@@ -7,6 +7,7 @@ set(s_qt_avio_headers
 set(s_qt_avio_srcs
 	  movie_saver.cpp
 	  movie_saver_audio.cpp
+	  movie_saver_video.cpp
 	  movie_saver_fileio.cpp
 )
 

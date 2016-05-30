@@ -209,7 +209,7 @@ void OSD_BASE::update_sound(int* extra_frames)
 			int length = samples * sizeof(int16_t) * 2; // stereo
 			if(now_record_video) {
 				if(sound_samples > rec_sound_buffer_ptr) {
-					QByteArray *p = new QByteArray((const char *)sound_buffer + rec_sound_buffer_ptr * 2, length);
+					QByteArray *p = new QByteArray((const char *)(sound_buffer + rec_sound_buffer_ptr * 2), length);
 					emit sig_enqueue_audio(p);
 				}
 			}

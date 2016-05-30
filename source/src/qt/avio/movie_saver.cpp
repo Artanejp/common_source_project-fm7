@@ -52,8 +52,62 @@ MOVIE_SAVER::MOVIE_SAVER(int width, int height, int fps, OSD *osd) : QThread(0)
 
 MOVIE_SAVER::~MOVIE_SAVER()
 {
-	do_close();
+	if(recording) do_close();
 }
+
+QString MOVIE_SAVER::ts2str(int64_t ts)
+{
+#if defined(USE_LIBAV)	
+	char buffer[AV_TS_MAX_STRING_SIZE + 16];
+	memset(buffer, 0x00, sizeof(buffer));
+	return QString::fromLocal8Bit(av_ts_make_string(buffer, ts));
+#else
+	return QString::fromUtf8("");
+#endif
+}		   
+
+QString MOVIE_SAVER::ts2timestr(int64_t ts, void *timebase)
+{
+#if defined(USE_LIBAV)	
+	char buffer[AV_TS_MAX_STRING_SIZE + 16];
+	AVRational *tb = (AVRational *)timebase;
+	memset(buffer, 0x00, sizeof(buffer));
+	return QString::fromLocal8Bit(av_ts_make_time_string(buffer, ts, tb));
+#else
+	return QString::fromUtf8("");
+#endif
+}		   
+
+QString MOVIE_SAVER::err2str(int errnum)
+{
+#if defined(USE_LIBAV)	
+	char buffer[AV_TS_MAX_STRING_SIZE + 16];
+	memset(buffer, 0x00, sizeof(buffer));
+	return QString::fromLocal8Bit(av_make_error_string(buffer, sizeof(buffer), errnum));
+#else
+	return QString::fromUtf8("");
+#endif
+}		   
+
+//void MOVIE_SAVER::log_packet(const AVFormatContext *fmt_ctx, const AVPacket *pkt)
+void MOVIE_SAVER::log_packet(const void *_fmt_ctx, const void *_pkt)
+{
+#if defined(USE_LIBAV)	
+	const AVFormatContext *fmt_ctx = (const AVFormatContext *)_fmt_ctx;
+	const AVPacket *pkt = (const AVPacket *)_pkt;
+    AVRational *time_base = &fmt_ctx->streams[pkt->stream_index]->time_base;
+
+    AGAR_DebugLog(AGAR_LOG_DEBUG, "pts:%s pts_time:%s dts:%s dts_time:%s duration:%s duration_time:%s stream_index:%d\n",
+           ts2str(pkt->pts).toLocal8Bit().constData(),
+		   ts2timestr(pkt->pts, (void *)time_base).toLocal8Bit().constData(),
+           ts2str(pkt->dts).toLocal8Bit().constData(),
+		   ts2timestr(pkt->dts, (void *)time_base).toLocal8Bit().constData(),
+           ts2str(pkt->duration).toLocal8Bit().constData(),
+		   ts2timestr(pkt->duration, (void *)time_base).toLocal8Bit().constData(),
+           pkt->stream_index);
+#endif	
+}
+
 
 void MOVIE_SAVER::enqueue_video(QByteArray *p, int width, int height)
 {
@@ -61,17 +115,16 @@ void MOVIE_SAVER::enqueue_video(QByteArray *p, int width, int height)
 	if(!recording) return;
 	if(p == NULL) return;
 	QByteArray *pp = new QByteArray(p->data(), p->size());
-	
+	//AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Enqueue video data %d bytes", p->size());
 	video_data_queue.enqueue(pp);
-	video_width_queue.enqueue(width);
-	video_height_queue.enqueue(height);
+	//video_width_queue.enqueue(width);
+	//video_height_queue.enqueue(height);
 #endif   
 }
 
 bool MOVIE_SAVER::dequeue_video(uint32_t *p)
 {
 	if(!recording) return false;
-	if(video_data_queue.isEmpty()) return false;
 	if(p == NULL) return false;
 
 	QByteArray *pp = video_data_queue.dequeue();
@@ -81,7 +134,9 @@ bool MOVIE_SAVER::dequeue_video(uint32_t *p)
 	video_size = pp->size();
 	if(video_size <= 0) return false;
 	memcpy(p, pp->data(), video_size);
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Dequeue video data %d bytes", pp->size());
+	//AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Dequeue video data %d bytes", pp->size());
+	//_width = video_width_queue.dequeue();
+	//_height = video_height_queue.dequeue();
 #else
 	video_size = 0;
 #endif   
@@ -96,7 +151,7 @@ void MOVIE_SAVER::enqueue_audio(QByteArray *p)
 	if(!recording) return;
 	if(p == NULL) return;
 	QByteArray *pp = new QByteArray(p->data(), p->size());
-	//AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Enqueue audio data %d bytes", p->size());
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Enqueue audio data %d bytes", p->size());
 	audio_data_queue.enqueue(pp);
 #endif   
 }
@@ -130,7 +185,7 @@ void MOVIE_SAVER::run()
     int got_packet;
     int dst_nb_samples;
 
-	int fps_wait = (int)((1000.0 / p_osd->vm_frame_rate()) / 4.0);
+	int fps_wait = (int)((1000.0 / p_osd->vm_frame_rate()) / 8.0);
 	int tmp_wait = fps_wait;
 	int ncount_audio = 0;
 	int ncount_video = 0;
@@ -153,13 +208,6 @@ void MOVIE_SAVER::run()
 		if(recording) {
 			if(!bRunThread) break;
 			if(old_recording != recording) {
-				//if(_filename.isEmpty()) {
-				//	goto _next_turn;
-				//}
-				//ret = transcode_init();
-				//if (ret < 0) {
-				//	goto _final;
-				//}
 				AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE/Saver: Start to recording.");
 				encode_video = encode_audio = 1;
 				audio_remain = 0;
@@ -176,9 +224,10 @@ void MOVIE_SAVER::run()
 				need_audio_transcode = true;
 			}
 		_video:
-			if(video_remain <= 0) {
-				if(video_data_queue.isEmpty() || video_width_queue.isEmpty()
-				   || video_height_queue.isEmpty())
+			{
+				//if(video_data_queue.isEmpty() || video_width_queue.isEmpty()
+				//   || video_height_queue.isEmpty())
+				if(video_data_queue.isEmpty())
 					goto _write_frame;
 				dequeue_video(video_frame_buf);
 				video_remain = video_size;
@@ -194,7 +243,6 @@ void MOVIE_SAVER::run()
 					AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE/Saver: Something wrong with encoding video.");
 					goto _final;
 				}
-				need_video_transcode = false;
 			}  else {
 				if(encode_audio == 0) {
 					encode_audio = write_audio_frame();
@@ -202,7 +250,6 @@ void MOVIE_SAVER::run()
 						AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE/Saver: Something wrong with encoding audio.");
 						goto _final;
 					}
-					need_audio_transcode = false;
 				}
 			}
 			if (ret < 0 && ret != AVERROR_EOF) {
@@ -218,7 +265,10 @@ void MOVIE_SAVER::run()
 	_next_turn:
 		old_recording = recording;
 		if(!bRunThread) break;
-			
+		if(need_video_transcode || need_audio_transcode) {
+			need_video_transcode = need_audio_transcode = false;
+			continue;
+		}
 		if(fps_wait >= tmp_wait) {
 			this->msleep(tmp_wait);
 			tmp_wait = 0;
@@ -227,7 +277,7 @@ void MOVIE_SAVER::run()
 			tmp_wait -= fps_wait;
 		}
 		if(tmp_wait <= 0) {
-			fps_wait = (int)((1000.0 / p_osd->vm_frame_rate()) / 4.0);
+			fps_wait = (int)((1000.0 / p_osd->vm_frame_rate()) / 8.0);
 			tmp_wait = fps_wait;
 		}
 		old_recording = recording;
@@ -238,76 +288,7 @@ void MOVIE_SAVER::run()
 		old_recording = false;
 	}
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE: Exit thread.");
-	do_close();
-}
-
-void MOVIE_SAVER::do_close()
-{
-	recording = false;
-#if defined(USE_LIBAV)
-    int ret, i;
-    AVFormatContext *os;
-    OutputStream *ost;
-    //InputStream *ist;
-    int64_t total_packets_written = 0;
-	if(output_context != NULL) {
-		AVFormatContext *oc = output_context;
-		AVOutputFormat *fmt = oc->oformat;
- 
-		av_write_trailer(oc);
-
-		/* Close each codec. */
-		if (have_video)
-			close_stream(oc, &video_st);
-		if (have_audio)
-			close_stream(oc, &audio_st);
-		have_video = have_audio = 0;
-		if (!(fmt->flags & AVFMT_NOFILE))
-			/* Close the output file. */
-			avio_closep(&oc->pb);
-
-		/* free the stream */
-		avformat_free_context(output_context);
-		output_context = NULL;
-		stream_format = NULL;
-		audio_codec = video_codec = NULL;
-		raw_options_list = NULL;
-
-		memset(&video_st, 0x00, sizeof(video_st));
-		memset(&audio_st, 0x00, sizeof(audio_st));
-	}
-#endif   // defined(USE_LIBAV)
-	memset(audio_frame_buf, 0x00, sizeof(audio_frame_buf));
-	memset(video_frame_buf, 0x00, sizeof(video_frame_buf));
-
-
-	while(!audio_data_queue.isEmpty()) {
-		QByteArray *pp = audio_data_queue.dequeue();
-		if(pp != NULL) delete pp;
-	}
-	audio_data_queue.clear();
-
-	while(!video_data_queue.isEmpty()) {
-		QByteArray *pp = video_data_queue.dequeue();
-		if(pp != NULL) delete pp;
-	}
-	video_data_queue.clear();
-	video_width_queue.clear();
-	video_height_queue.clear();
-
-	// Message
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE: Close: Write:  Video %lld frames, Audio %lld frames", totalDstFrame, totalAudioFrame);
-	totalSrcFrame = 0;
-	totalDstFrame = 0;
-	totalAudioFrame = 0;
-}
-
-
-QString MOVIE_SAVER::create_date_file_name(void)
-{
-	QDateTime nowTime = QDateTime::currentDateTime();
-	QString tmps = nowTime.toString(QString::fromUtf8("yyyy-MM-dd_hh-mm-ss.zzz."));
-	return tmps;
+	if(recording) do_close();
 }
 
 bool MOVIE_SAVER::is_recording(void)
@@ -328,11 +309,13 @@ void MOVIE_SAVER::do_set_record_fps(int fps)
 
 void MOVIE_SAVER::do_set_width(int width)
 {
+	//printf("width = %d -> %d\n", _width, width);
 	_width = width;
 }
 
 void MOVIE_SAVER::do_set_height(int height)
 {
+	//printf("height = %d -> %d\n", _height, height);
 	_height = height;
 }
 

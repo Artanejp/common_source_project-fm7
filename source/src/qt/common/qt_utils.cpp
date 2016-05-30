@@ -313,17 +313,14 @@ void Ui_MainWindow::LaunchEmuThread(void)
 		connect(action_SaveAsMovie[i]->binds, SIGNAL(sig_save_as_movie(QString, int)), hSaveMovieThread, SLOT(do_open(QString, int)));
 		connect(action_SaveAsMovie[i]->binds, SIGNAL(sig_start_record_movie(int)), hRunEmu, SLOT(doStartRecordVideo(int)));
 		connect(action_SaveAsMovie[i], SIGNAL(triggered()), action_SaveAsMovie[i]->binds, SLOT(do_save_as_movie()));
-		//connect(action_SaveAsMovie[i]->binds, SIGNAL(sig_stop_record_movie()), hRunEmu, SLOT(doStopRecordVideo()));
-		//connect(action_SaveAsMovie[i]->binds, SIGNAL(sig_stop_saving_movie()), hSaveMovieThread, SLOT(do_close()));
 	}
-	//connect(action_StopSavingMovie->binds, SIGNAL(sig_start_save_as_movie(QString, int)), hSaveMovieThread, SLOT(do_open(QString, int)));
-	//connect(action_StopSavingMovie->binds, SIGNAL(sig_start_record_movie(int)), hRunEmu, SLOT(doStartRecordVideo(int)));
 	connect(action_StopSavingMovie->binds, SIGNAL(sig_stop_record_movie()), hRunEmu, SLOT(doStopRecordVideo()));
 	connect(action_StopSavingMovie->binds, SIGNAL(sig_stop_saving_movie()), hSaveMovieThread, SLOT(do_close()));
 	connect(action_StopSavingMovie, SIGNAL(triggered()), action_StopSavingMovie->binds, SLOT(do_stop_saving_movie()));
 
+	connect(emu->get_osd(), SIGNAL(sig_movie_set_width(int)), hSaveMovieThread, SLOT(do_set_width(int)));
+	connect(emu->get_osd(), SIGNAL(sig_movie_set_height(int)), hSaveMovieThread, SLOT(do_set_height(int)));
    
-
 	connect(emu->get_osd(), SIGNAL(sig_enqueue_audio(QByteArray *)), hSaveMovieThread, SLOT(enqueue_audio(QByteArray *)));
 	connect(emu->get_osd(), SIGNAL(sig_enqueue_video(QByteArray *, int, int)), hSaveMovieThread, SLOT(enqueue_video(QByteArray *, int, int)));
 	connect(this, SIGNAL(sig_quit_movie_thread()), hSaveMovieThread, SLOT(do_exit()));

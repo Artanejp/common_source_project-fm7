@@ -61,17 +61,10 @@ void OSD_BASE::set_vm_screen_size(int screen_width, int screen_height, int windo
 		
 		// change the window size
 		//emit sig_resize_vm_screen(&(vm_screen_buffer.pImage), vm_window_width, vm_window_height);
+		emit sig_movie_set_width(screen_width);
+		emit sig_movie_set_height(screen_height);
 		emit sig_resize_vm_screen(&(vm_screen_buffer.pImage), screen_width, screen_height);
 	}
-//	if(vm_screen_buffer.width != vm_screen_width || vm_screen_buffer.height != vm_screen_height) {
-//		if(now_record_video) {
-//			stop_record_video();
-////			stop_record_sound();
-//		}
-//		//initialize_screen_buffer(&vm_screen_buffer, vm_screen_width, vm_screen_height, COLORONCOLOR);
-//		initialize_screen_buffer(&vm_screen_buffer, vm_screen_width, vm_screen_height, 0);
-//		emit sig_resize_vm_screen(&(vm_screen_buffer.pImage), vm_window_width, vm_window_height);
-//	}
 }
 
 
@@ -147,6 +140,8 @@ void OSD_BASE::initialize_screen_buffer(bitmap_t *buffer, int width, int height,
 	QColor fillcolor;
 	fillcolor.setRgb(0, 0, 0, 255);
 	buffer->pImage.fill(fillcolor);
+	emit sig_movie_set_width(width);
+	emit sig_movie_set_height(height);
 	emit sig_resize_vm_screen(&(buffer->pImage), width, height);
 }
 
@@ -186,62 +181,6 @@ bool OSD_BASE::start_record_video(int fps)
 		rec_video_run_frames = rec_video_frames = 0;
 	}
 
-#if 0	
-	bool show_dialog = (fps > 0);
-	
-	// initialize vfw
-	create_date_file_name(video_file_name, _MAX_PATH, _T("avi"));
-
-	AVIFileInit();
-	if(AVIFileOpen(&pAVIFile, bios_path(video_file_name), OF_WRITE | OF_CREATE, NULL) != AVIERR_OK) {
-		return false;
-	}
-	if(video_screen_buffer.width != vm_screen_buffer.width || video_screen_buffer.height != vm_screen_buffer.height) {
-		initialize_screen_buffer(&video_screen_buffer, vm_screen_buffer.width, vm_screen_buffer.height, 0);
-	}
-	
-	// stream header
-	AVISTREAMINFO strhdr;
-	memset(&strhdr, 0, sizeof(strhdr));
-	strhdr.fccType = streamtypeVIDEO;	// vids
-	strhdr.fccHandler = 0;
-	strhdr.dwScale = 1;
-	strhdr.dwRate = rec_video_fps;
-	strhdr.dwSuggestedBufferSize = video_screen_buffer.lpDib->bmiHeader.biSizeImage;
-	SetRect(&strhdr.rcFrame, 0, 0, video_screen_buffer.width, video_screen_buffer.height);
-	if(AVIFileCreateStream(pAVIFile, &pAVIStream, &strhdr) != AVIERR_OK) {
-		stop_record_video();
-		return false;
-	}
-	
-	// compression
-	AVICOMPRESSOPTIONS FAR * pOpts[1];
-	pOpts[0] = &AVIOpts;
-	if(show_dialog && !AVISaveOptions(main_window_handle, ICMF_CHOOSE_KEYFRAME | ICMF_CHOOSE_DATARATE, 1, &pAVIStream, (LPAVICOMPRESSOPTIONS FAR *)&pOpts)) {
-		AVISaveOptionsFree(1, (LPAVICOMPRESSOPTIONS FAR *)&pOpts);
-		stop_record_video();
-		return false;
-	}
-	if(AVIMakeCompressedStream(&pAVICompressed, pAVIStream, &AVIOpts, NULL) != AVIERR_OK) {
-		stop_record_video();
-		return false;
-	}
-	if(AVIStreamSetFormat(pAVICompressed, 0, &video_screen_buffer.lpDib->bmiHeader, video_screen_buffer.lpDib->bmiHeader.biSize + video_screen_buffer.lpDib->bmiHeader.biClrUsed * sizeof(RGBQUAD)) != AVIERR_OK) {
-		stop_record_video();
-		return false;
-	}
-	dwAVIFileSize = 0;
-	lAVIFrames = 0;
-	
-	hVideoThread = (HANDLE)0;
-	rec_video_thread_param.pAVICompressed = pAVICompressed;
-	rec_video_thread_param.lpBmp = video_screen_buffer.lpBmp;
-	rec_video_thread_param.pbmInfoHeader = &video_screen_buffer.lpDib->bmiHeader;
-	rec_video_thread_param.dwAVIFileSize = 0;
-	rec_video_thread_param.lAVIFrames = 0;
-	rec_video_thread_param.frames = 0;
-	rec_video_thread_param.result = 0;
-#endif	
 	now_record_video = true;
 	return true;
 }
@@ -330,16 +269,15 @@ int OSD_BASE::add_video_frames()
 		counter++;
 	}
 	if(counter != 0) {
-		//	int size = vm_screen_buffer.width, vm_screen_buffer.height;
+		int size = vm_screen_buffer.pImage.byteCount();
+		int i = counter;
 		// Rescaling
-		//QByteArray video_result(size, vm_screen_buffer.pImage.constData());
-		//while(counter > 0) {
+		QByteArray video_result(vm_screen_buffer.pImage.constBits(), size);
+		while(i > 0) {
 			// Enqueue to frame.
-			//if(movie_saver != NULL) {
-			//	emit sig_enqueue_video(&video_result, vm_screen_buffer.width, vm_screen_buffer.height);
-			//}
-			//counter--;
-		//}
+			emit sig_enqueue_video(&video_result, vm_screen_buffer.width, vm_screen_buffer.height);
+			i--;
+		}
 	}
 	return counter;
 }

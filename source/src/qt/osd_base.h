@@ -445,7 +445,9 @@ signals:
 	int sig_put_string_debugger(QString);
 	int sig_console_input_string(QString);
 	int sig_enqueue_video(QByteArray *data, int width, int height); 
-	int sig_enqueue_audio(QByteArray *data); 
+	int sig_enqueue_audio(QByteArray *data);
+	int sig_movie_set_width(int);
+	int sig_movie_set_height(int);
 	int sig_debugger_finished();
 };
 QT_END_NAMESPACE
