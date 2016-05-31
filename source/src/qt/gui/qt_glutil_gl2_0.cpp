@@ -536,7 +536,7 @@ void GLDraw_2_0::updateButtonTexture(void)
 			if(uButtonTextureID[i] != 0) {
 				p_wid->deleteTexture(uButtonTextureID[i]);
 			}
-			uButtonTextureID[i] = p_wid->bindTexture(*img);;
+			uButtonTextureID[i] = p_wid->bindTexture(*img);
 			delete painter;
 			delete img;
 		}
