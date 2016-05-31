@@ -46,6 +46,8 @@
 //#include "emu.h"
 //#include "vm.h"
 
+class MOVIE_SAVER;
+
 #include "qt_main.h"
 #define _MAX_DEBUGGER 8
 
@@ -300,6 +302,7 @@ class Ui_MainWindowBase : public QMainWindow
 	class Action_Control *action_SetupKeyboard;
 
 	QMenu *menuSaveAsMovie;
+	class Action_Control *action_SetupMovie; // 15, 24, 30, 60
 	class Action_Control *action_SaveAsMovie[4]; // 15, 24, 30, 60
 	class Action_Control *action_StopSavingMovie;
 	QActionGroup *actionGroup_SaveAsMovie;
@@ -457,6 +460,7 @@ public slots:
 	void rise_joystick_dialog(void);
 
 	void rise_keyboard_dialog(void);
+	virtual void rise_movie_dialog(void);
 
 	void OnLoadState(void);
 	void OnSaveState(void);

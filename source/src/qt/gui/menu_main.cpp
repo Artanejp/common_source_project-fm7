@@ -491,6 +491,8 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 	}
 	action_SetupKeyboard->setText(QApplication::translate("MainWindow", "Configure Keyboard", 0));
 	action_SetupKeyboard->setIcon(QIcon(":/icon_keyboard.png"));
+	action_SetupMovie->setText(QApplication::translate("MainWindow", "Configure movie encoding", 0));
+	
 	for(int i = 0; i < (CSP_MAINWIDGET_SAVE_MOVIE_END - 1); i++) {
 		switch(i + 1) {
 			case CSP_MAINWIDGET_SAVE_MOVIE_15FPS:
@@ -518,6 +520,7 @@ void Ui_MainWindowBase::CreateEmulatorMenu(void)
 		menuEmulator->addAction(action_SetupJoystick);
 	}
 	menuEmulator->addAction(action_SetupKeyboard);
+	menuEmulator->addAction(action_SetupMovie);
 	menuEmulator->addAction(menuSaveAsMovie->menuAction());
 }
 
@@ -530,6 +533,8 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	}
 	action_SetupKeyboard = new Action_Control(this);
 
+	action_SetupMovie = new Action_Control(this);
+	
 	menuSaveAsMovie = new QMenu(this);
 	actionGroup_SaveAsMovie = new QActionGroup(this);
 	for(int i = 0; i < (CSP_MAINWIDGET_SAVE_MOVIE_END - 1); i++) {
@@ -573,6 +578,11 @@ void Ui_MainWindowBase::rise_joystick_dialog(void)
 		dlg->setWindowTitle(QApplication::translate("CSP_DropDownJoysticks", "Configure Joysticks", 0));
 		dlg->show();
 	}
+}
+
+void Ui_MainWindowBase::rise_movie_dialog(void)
+{
+
 }
 
 void Ui_MainWindowBase::rise_keyboard_dialog(void)

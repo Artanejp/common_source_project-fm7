@@ -12,6 +12,7 @@
 #include <QQueue>
 #include <QString>
 #include <QThread>
+#include <QSize>
 
 #if defined(USE_LIBAV)
 extern "C" {
@@ -32,6 +33,7 @@ extern "C" {
 #define STREAM_PIX_FMT    AV_PIX_FMT_YUV420P /* default pix_fmt */
 
 #define SCALE_FLAGS SWS_BICUBIC
+//#define SCALE_FLAGS SWS_BILINEAR
 
 // a wrapper around a single output AVStream
 typedef struct OutputStream {
@@ -82,7 +84,6 @@ protected:
 	uint min_rate;
 	uint max_rate;
 	uint buffer_size;
-	uint bitrate;
 	int audio_sample_rate;
 	int _width;
 	int _height;
@@ -104,10 +105,7 @@ protected:
 	int16_t audio_frame_buf[2 * 48000 * sizeof(int16_t)]; // 1Sec
 	uint32_t video_frame_buf[1280 * 1024 * sizeof(uint32_t)]; // 1 frame : right?
 
-	QQueue<int> video_width_queue;
-	QQueue<int> video_height_queue;
 	QQueue<QImage *> video_data_queue;
-	
 	QQueue<QByteArray *> audio_data_queue;
 	int64_t audio_remain;
 	int64_t video_remain;
@@ -118,6 +116,11 @@ protected:
 	uint64_t audio_frame_max;
 	uint64_t video_frame_number;
 	uint64_t video_frame_max;
+
+	int audio_bit_rate;
+	int video_bit_rate;
+	QSize video_geometry;
+	int video_encode_threads;
 	
 	bool dequeue_audio(int16_t *);
 	bool dequeue_video(uint32_t *);
@@ -170,9 +173,17 @@ public slots:
 	void do_set_width(int width);
 	void do_set_height(int height);
 	void do_set_record_fps(int fps);
-	void do_exit();
+
+	void do_set_video_bitrate(int kbps);
+	void do_set_audio_bitrate(int kbps);
+	void do_set_video_geometry(QSize geometry);
+	void do_set_video_threads(int threads);
+	
 	void do_clear_options_list(void);
 	void do_add_option(QString key, QString value);
+	void do_reset_encoder_options(void);
+	
+	void do_exit();
 };
 QT_END_NAMESPACE
 

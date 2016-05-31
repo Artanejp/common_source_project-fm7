@@ -136,6 +136,18 @@ typedef struct {
 	int joy_buttons[4][16];
 #ifdef _USE_QT
 	_TCHAR assigned_joystick_name[16][256];
+
+	int video_width;
+	int video_height;
+	int video_bitrate;
+	int video_bframes;
+	int video_b_adapt;
+	int video_minq;
+	int video_maxq;
+	int video_subme;
+	int video_threads;
+	int audio_bitrate;
+	
 #endif	
 	// printer
 	int printer_device_type;

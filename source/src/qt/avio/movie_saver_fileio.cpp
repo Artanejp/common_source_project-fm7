@@ -76,8 +76,7 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
     case AVMEDIA_TYPE_AUDIO:
         c->sample_fmt  = (*codec)->sample_fmts ?
             (*codec)->sample_fmts[0] : AV_SAMPLE_FMT_FLTP;
-        c->bit_rate    = 128000;
-        //c->sample_rate = audio_sample_rate;
+        c->bit_rate    = audio_bit_rate;
         c->sample_rate = audio_sample_rate;
         if ((*codec)->supported_samplerates) {
             c->sample_rate = (*codec)->supported_samplerates[0];
@@ -101,11 +100,19 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
 
     case AVMEDIA_TYPE_VIDEO:
         c->codec_id = codec_id;
-
-        c->bit_rate = 400000;
+        c->bit_rate = video_bit_rate;
+		// See:
+		// https://libav.org/avconv.html#Video-Options
         /* Resolution must be a multiple of two. */
-        c->width    = 640;
-        c->height   = 480;
+        c->width    = video_geometry.width();
+        c->height   = video_geometry.height();
+		c->qmin     = config.video_minq;
+		c->qmax     = config.video_maxq;
+		c->thread_count     = video_encode_threads;
+		c->max_b_frames     = config.video_bframes;
+		//c->b_frame_strategy = config.video_b_adapt;
+		c->me_subpel_quality = config.video_subme;
+		c->me_method = ME_UMH;
         /* timebase: This is the fundamental unit of time (in seconds) in terms
          * of which frame timestamps are represented. For fixed-fps content,
          * timebase should be 1/framerate and timestamp increments should be
@@ -168,8 +175,8 @@ bool MOVIE_SAVER::do_open(QString filename, int fps, int _sample_rate)
     int ret;
     have_video = 0, have_audio = 0;
     int encode_video = 0, encode_audio = 0;
-    raw_options_list = NULL;
 	do_close();
+    raw_options_list = NULL;
 	
 	do_set_record_fps(fps);
 	audio_sample_rate = _sample_rate;
@@ -179,6 +186,37 @@ bool MOVIE_SAVER::do_open(QString filename, int fps, int _sample_rate)
 	audio_st = { 0 };
     /* Initialize libavcodec, and register all codecs and formats. */
     av_register_all();
+
+
+	{
+		QString value;
+		do_clear_options_list();
+		do_add_option(QString::fromUtf8("c:v"), QString::fromUtf8("libx264"));
+		do_add_option(QString::fromUtf8("c:a"), QString::fromUtf8("libfaac"));
+		
+		value.setNum(config.video_minq);
+		do_add_option(QString::fromUtf8("qmin"), value);
+		value.setNum(config.video_maxq);
+		do_add_option(QString::fromUtf8("qmax"), value);
+		
+		value.setNum(config.video_bframes);
+		do_add_option(QString::fromUtf8("bframes"), value);
+		
+		value.setNum(config.video_b_adapt);
+		do_add_option(QString::fromUtf8("b_adapt"), value);
+		
+		value.setNum(config.video_subme);
+		do_add_option(QString::fromUtf8("subme"), value);
+
+		value.setNum(config.video_subme);
+		do_add_option(QString::fromUtf8("subme"), value);
+		
+		video_encode_threads = config.video_threads;
+		video_geometry = QSize(config.video_width, config.video_height);
+		video_bit_rate = config.video_bitrate * 1000;
+		audio_bit_rate = config.audio_bitrate * 1000;
+		
+	}
 
 	for(int i = 0; i < encode_options.size(); i++) {
 		if(encode_opt_keys.size() <= i) break;
@@ -286,6 +324,10 @@ void MOVIE_SAVER::do_close()
 		memset(&video_st, 0x00, sizeof(video_st));
 		memset(&audio_st, 0x00, sizeof(audio_st));
 	}
+	if(raw_options_list != NULL) {
+		av_dict_free(&raw_options_list);
+		raw_options_list = NULL;
+	}
 #endif   // defined(USE_LIBAV)
 	memset(audio_frame_buf, 0x00, sizeof(audio_frame_buf));
 	memset(video_frame_buf, 0x00, sizeof(video_frame_buf));
@@ -302,8 +344,6 @@ void MOVIE_SAVER::do_close()
 		if(pp != NULL) delete pp;
 	}
 	video_data_queue.clear();
-	video_width_queue.clear();
-	video_height_queue.clear();
 
 	// Message
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE: Close: Write:  Video %lld frames, Audio %lld frames", totalDstFrame, totalAudioFrame);

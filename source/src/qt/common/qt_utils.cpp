@@ -34,6 +34,7 @@
 #include "menu_disk.h"
 #include "menu_bubble.h"
 #include "menu_flags.h"
+#include "dialog_movie.h"
 #include "../avio/movie_saver.h"
 // emulation core
 
@@ -100,6 +101,7 @@ void Ui_MainWindow::do_toggle_mouse(void)
 #endif	
 }
 
+
 void Object_Menu_Control::do_save_as_movie(void)
 {
 	int fps = 0;
@@ -121,6 +123,13 @@ void Object_Menu_Control::do_stop_saving_movie(void)
 {
 	emit sig_stop_record_movie();
 	emit sig_stop_saving_movie();
+}
+
+void Ui_MainWindow::rise_movie_dialog(void)
+{
+	CSP_DialogMovie *dlg = new CSP_DialogMovie(hSaveMovieThread, 0);
+	dlg->setWindowTitle(QApplication::translate("CSP_DialogMovie", "Configure movie encodings", 0));
+	dlg->show();
 }
 
 void Ui_MainWindow::LaunchEmuThread(void)
@@ -330,7 +339,8 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	hSaveMovieThread->setObjectName(objNameStr);
 	hSaveMovieThread->start();
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "MovieThread : Launch done.");
-	
+
+	connect(action_SetupMovie, SIGNAL(triggered()), this, SLOT(rise_movie_dialog()));
 	hRunEmu->start();
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : Launch done.");
 	this->set_screen_aspect(config.window_stretch_type);

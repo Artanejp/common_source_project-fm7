@@ -135,7 +135,18 @@ void initialize_config()
 #elif defined(USE_PRINTER)
 	config.printer_device_type = 0;
 #endif
-	
+#if defined(USE_QT)
+	config.video_width = 640;
+	config.video_height = 480;
+	config.video_bitrate = 512;
+	config.video_bframes = 4;
+	config.video_b_adapt = 2;
+	config.video_minq = 14;
+	config.video_maxq = 25;
+	config.video_subme = 8;
+	config.video_threads = 0;
+	config.audio_bitrate = 128;
+#endif
 	// screen
 #ifndef ONE_BOARD_MICRO_COMPUTER
 #ifdef _WIN32
@@ -345,6 +356,44 @@ void load_config(const _TCHAR *config_path)
 	config.printer_device_type = MyGetPrivateProfileInt(_T("Printer"), _T("DeviceType"), config.printer_device_type, config_path);
 	MyGetPrivateProfileString(_T("Printer"), _T("PrinterDll"), _T("printer.dll"), config.printer_dll_path, _MAX_PATH, config_path);
 #endif
+#if defined(_USE_QT)
+	config.video_width   = MyGetPrivateProfileInt(_T("Video"), _T("VideoWidth"), config.video_width, config_path);
+	if(config.video_width < 128) config.video_width = 128;
+	config.video_height  = MyGetPrivateProfileInt(_T("Video"), _T("VideoHeight"), config.video_height, config_path);
+	if(config.video_height < 80) config.video_height = 80;
+	
+	config.video_bitrate = MyGetPrivateProfileInt(_T("Video"), _T("VideoBitrate"), config.video_bitrate, config_path);
+	if(config.video_bitrate < 64) config.video_bitrate = 64;
+
+	config.video_bframes = MyGetPrivateProfileInt(_T("Video"), _T("VideoBFrames"), config.video_bframes, config_path);
+	if(config.video_bframes < 0) config.video_bframes = 0;
+	if(config.video_bframes > 10) config.video_bframes = 10;
+
+	config.video_b_adapt = MyGetPrivateProfileInt(_T("Video"), _T("VideoBAdapt"), config.video_b_adapt, config_path);
+	if(config.video_b_adapt < 0) config.video_b_adapt = 0;
+	if(config.video_b_adapt > 2) config.video_b_adapt = 2;
+	
+	config.video_subme   = MyGetPrivateProfileInt(_T("Video"), _T("VideoSubme"), config.video_subme, config_path);
+	if(config.video_subme < 0) config.video_subme = 0;
+	if(config.video_subme > 11) config.video_subme = 11;
+
+	config.video_minq   = MyGetPrivateProfileInt(_T("Video"), _T("VideoMinQ"), config.video_minq, config_path);
+	if(config.video_minq < 0) config.video_minq = 0;
+	if(config.video_minq > 63) config.video_minq = 63;
+
+	config.video_maxq   = MyGetPrivateProfileInt(_T("Video"), _T("VideoMaxQ"), config.video_maxq, config_path);
+	if(config.video_maxq < 0) config.video_maxq = 0;
+	if(config.video_maxq > 63) config.video_maxq = 63;
+	
+	config.video_threads = MyGetPrivateProfileInt(_T("Video"), _T("VideoThreads"), config.video_threads, config_path);
+	if(config.video_threads < 0) config.video_threads = 0;
+	if(config.video_threads > 16) config.video_threads = 16;
+	
+	config.audio_bitrate = MyGetPrivateProfileInt(_T("Video"), _T("AudioBitrate"), config.audio_bitrate, config_path);
+	if(config.audio_bitrate < 16) config.audio_bitrate = 16;
+	if(config.audio_bitrate > 448) config.audio_bitrate = 448;
+	
+#endif	
 #if defined(_USE_QT) && !defined(Q_OS_WIN)
 	AGAR_DebugLog(AGAR_LOG_INFO, "Read Done.");
 #endif
@@ -544,9 +593,23 @@ void save_config(const _TCHAR *config_path)
 #ifdef USE_PRINTER
 	MyWritePrivateProfileInt(_T("Printer"), _T("DeviceType"), config.printer_device_type, config_path);
 #endif
+#if defined(_USE_QT)
+	MyWritePrivateProfileInt(_T("Video"), _T("VideoWidth"), config.video_width, config_path);
+	MyWritePrivateProfileInt(_T("Video"), _T("VideoHeight"), config.video_height, config_path);
+	MyWritePrivateProfileInt(_T("Video"), _T("VideoBitrate"), config.video_bitrate, config_path);
+	MyWritePrivateProfileInt(_T("Video"), _T("VideoBFrames"), config.video_bframes, config_path);
+	MyWritePrivateProfileInt(_T("Video"), _T("VideoBAdapt"), config.video_b_adapt, config_path);
+	MyWritePrivateProfileInt(_T("Video"), _T("VideoMinQ"), config.video_minq, config_path);
+	MyWritePrivateProfileInt(_T("Video"), _T("VideoMaxQ"), config.video_maxq, config_path);
+	MyWritePrivateProfileInt(_T("Video"), _T("VideoSubme"), config.video_subme, config_path);
+	MyWritePrivateProfileInt(_T("Video"), _T("VideoThreads"), config.video_threads, config_path);
+	MyWritePrivateProfileInt(_T("Video"), _T("AudioBitrate"), config.audio_bitrate, config_path);
+#endif	
 #if defined(_USE_QT) && !defined(Q_OS_WIN)
 	AGAR_DebugLog(AGAR_LOG_INFO, "Write done.");
 #endif
+
+	
 }
 
 #define STATE_VERSION	5

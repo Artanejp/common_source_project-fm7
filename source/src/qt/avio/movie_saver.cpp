@@ -15,7 +15,6 @@ MOVIE_SAVER::MOVIE_SAVER(int width, int height, int fps, OSD *osd) : QThread(0)
 	buffer_size=8 * 1024 * 224;
 	max_rate=4000 * 1000;
 	min_rate=0;
-	bitrate = 2000 * 1000;
 	_width = width;
 	_height = height;
 	rec_fps = fps;
@@ -37,17 +36,18 @@ MOVIE_SAVER::MOVIE_SAVER(int width, int height, int fps, OSD *osd) : QThread(0)
 	output_context = NULL;
 	
 	audio_data_queue.clear();
-
 	video_data_queue.clear();
-	video_width_queue.clear();
-	video_height_queue.clear();
 	
-	encode_opt_keys.clear();
-	encode_options.clear();
-
+	do_reset_encoder_options();
 	totalSrcFrame = 0;
 	totalDstFrame = 0;
 	totalAudioFrame = 0;
+
+	video_bit_rate = 1500 * 1000;
+	audio_bit_rate = 160 * 1000;
+	video_geometry = QSize(640, 480);
+	video_encode_threads = 4;
+
 	bRunThread = false;
 }
 
@@ -326,6 +326,8 @@ void MOVIE_SAVER::do_clear_options_list(void)
 {
 	encode_opt_keys.clear();
 	encode_options.clear();
+	//do_add_option(QString::fromUtf8("c:v"), QString::fromUtf8("libx264"));
+	//do_add_option(QString::fromUtf8("c:a"), QString::fromUtf8("libfaac"));
 }
 
 void MOVIE_SAVER::do_add_option(QString key, QString value)
@@ -338,3 +340,44 @@ void MOVIE_SAVER::do_add_option(QString key, QString value)
 		encode_options.append(value);
 	}
 }		
+
+void MOVIE_SAVER::do_set_video_bitrate(int kbps)
+{
+	if(kbps < 10) return;
+	video_bit_rate = kbps * 1000;
+}
+
+void MOVIE_SAVER::do_set_audio_bitrate(int kbps)
+{
+	if(kbps < 8) return;
+	audio_bit_rate = kbps * 1000;
+}
+
+void MOVIE_SAVER::do_set_video_geometry(QSize geometry)
+{
+	if(geometry.width() < 100) return;
+	if(geometry.height() < 80) return;
+	video_geometry = geometry;
+}
+
+void MOVIE_SAVER::do_set_video_threads(int threads)
+{
+	video_encode_threads = threads;
+}
+
+void MOVIE_SAVER::do_reset_encoder_options(void)
+{
+	encode_opt_keys.clear();
+	encode_options.clear();
+
+	do_add_option(QString::fromUtf8("c:v"), QString::fromUtf8("libx264"));
+	do_add_option(QString::fromUtf8("c:a"), QString::fromUtf8("libfaac"));
+	do_add_option(QString::fromUtf8("preset"), QString::fromUtf8("slow"));
+	do_add_option(QString::fromUtf8("tune"), QString::fromUtf8("grain"));
+	//do_add_option(QString::fromUtf8("crf"), QString::fromUtf8("20"));
+	do_add_option(QString::fromUtf8("qmin"), QString::fromUtf8("16"));
+	do_add_option(QString::fromUtf8("qmax"), QString::fromUtf8("24"));
+	// Dummy
+	do_add_option(QString::fromUtf8("qmax"), QString::fromUtf8("24"));
+}
+
