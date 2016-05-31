@@ -327,7 +327,9 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(action_StopSavingMovie->binds, SIGNAL(sig_stop_record_movie()), hRunEmu, SLOT(doStopRecordVideo()));
 	connect(action_StopSavingMovie->binds, SIGNAL(sig_stop_saving_movie()), hSaveMovieThread, SLOT(do_close()));
 	connect(action_StopSavingMovie, SIGNAL(triggered()), action_StopSavingMovie->binds, SLOT(do_stop_saving_movie()));
-
+	connect(this, SIGNAL(sig_movie_set_width(int)), hSaveMovieThread, SLOT(do_set_width(int)));
+	connect(this, SIGNAL(sig_movie_set_height(int)), hSaveMovieThread, SLOT(do_set_height(int)));
+ 
 	connect(emu->get_osd(), SIGNAL(sig_movie_set_width(int)), hSaveMovieThread, SLOT(do_set_width(int)));
 	connect(emu->get_osd(), SIGNAL(sig_movie_set_height(int)), hSaveMovieThread, SLOT(do_set_height(int)));
    
@@ -344,6 +346,8 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	hRunEmu->start();
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : Launch done.");
 	this->set_screen_aspect(config.window_stretch_type);
+	emit sig_movie_set_width(SCREEN_WIDTH);
+	emit sig_movie_set_height(SCREEN_HEIGHT);
 }
 
 void Ui_MainWindow::LaunchJoyThread(void)

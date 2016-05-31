@@ -60,7 +60,6 @@ void OSD_BASE::set_vm_screen_size(int screen_width, int screen_height, int windo
 		vm_window_height_aspect = window_height_aspect;
 		
 		// change the window size
-		//emit sig_resize_vm_screen(&(vm_screen_buffer.pImage), vm_window_width, vm_window_height);
 		emit sig_movie_set_width(screen_width);
 		emit sig_movie_set_height(screen_height);
 		emit sig_resize_vm_screen(&(vm_screen_buffer.pImage), screen_width, screen_height);
@@ -91,10 +90,8 @@ int OSD_BASE::draw_screen()
 	// draw screen
 	lock_vm();
 	if(vm_screen_buffer.width != vm_screen_width || vm_screen_buffer.height != vm_screen_height) {
-		if(now_record_video) {
-//			stop_record_video();
-//			stop_record_sound();
-		}
+		emit sig_movie_set_width(vm_screen_width);
+		emit sig_movie_set_height(vm_screen_height);
 		initialize_screen_buffer(&vm_screen_buffer, vm_screen_width, vm_screen_height, 0);
 	}
 	this->vm_draw_screen();

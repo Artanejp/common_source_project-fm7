@@ -69,6 +69,9 @@ public slots:
 	void do_set_mouse_enable(bool flag);
 	void do_toggle_mouse(void);
 	void rise_movie_dialog(void);
+signals:
+	int sig_movie_set_width(int);
+	int sig_movie_set_height(int);
 
 	//virtual void redraw_status_bar(void);
 	
