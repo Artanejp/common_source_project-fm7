@@ -1345,7 +1345,6 @@ void EmuThreadClass::doWork(const QString &params)
 			}
 			prev_skip = now_skip;
 			//printf("p_emu::RUN Frames = %d SKIP=%d Interval = %d NextTime = %d\n", run_frames, now_skip, interval, next_time);
-      
 			if(next_time > tick_timer.elapsed()) {
 				//  update window if enough time
 				draw_timing = false;

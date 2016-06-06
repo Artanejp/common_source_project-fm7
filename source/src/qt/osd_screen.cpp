@@ -16,12 +16,13 @@
 
 #include "qt_gldraw.h"
 #include "osd.h"
+#include "menu_flags.h"
 
 #define REC_VIDEO_SUCCESS	1
 #define REC_VIDEO_FULL		2
 #define REC_VIDEO_ERROR		3
 
-
+extern USING_FLAGS *using_flags;
 
 void OSD_BASE::set_host_window_size(int window_width, int window_height, bool window_mode)
 {
@@ -239,6 +240,69 @@ void OSD_BASE::add_extra_frames(int extra_frames)
 	rec_video_run_frames += extra_frames;
 }
 
+
+void OSD_BASE::upload_bitmap(QImage *p)
+{
+	if(!using_flags->is_use_one_board_computer()) return;
+	if(p != NULL) {
+		background_image = QImage(*p);
+		rec_image_buffer = QImage(*p);
+	}
+}
+
+void OSD_BASE::set_buttons()
+{
+	if(!using_flags->is_use_one_board_computer()) return;
+	
+	int i;
+   	QImage *img;
+   	QPainter *painter;
+	QColor col;
+	QRect rect;
+	QPen *pen;
+	QFont font = QFont(QString::fromUtf8("Sans"));
+	col.setRgb(0, 0, 0, 255);
+	pen = new QPen(col);
+	
+	button_desc_t *vm_buttons_d = using_flags->get_vm_buttons();
+	if(vm_buttons_d != NULL) {
+		for(i = 0; i < using_flags->get_max_button(); i++) {
+			button_images[i] = QImage(vm_buttons_d[i].width, vm_buttons_d[i].height, QImage::Format_RGB32);
+			img = &(button_images[i]);
+			painter = new QPainter(img);
+			painter->setRenderHint(QPainter::Antialiasing, true);
+			col.setRgb(255, 255, 255, 255);
+			if(strlen(vm_buttons_d[i].caption) <= 3) {
+				font.setPixelSize(vm_buttons_d[i].width / 2); 
+			} else {
+				font.setPixelSize(vm_buttons_d[i].width / 4); 
+			}
+			painter->fillRect(0, 0, vm_buttons_d[i].width, vm_buttons_d[i].height, col);
+			painter->setFont(font);
+			//painter->setPen(pen);
+			rect.setWidth(vm_buttons_d[i].width);
+			rect.setHeight(vm_buttons_d[i].height);
+			rect.setX(0);
+			rect.setY(0);
+			painter->drawText(rect, Qt::AlignCenter, QString::fromUtf8(vm_buttons_d[i].caption));
+			delete painter;
+		}
+	}
+	delete pen;
+
+	QRgb pixel;
+	if(vm_buttons_d != NULL) {
+		for(int ii = 0; ii < using_flags->get_max_button(); ii++) {
+			for(int yy = 0; yy < button_images[ii].height(); yy++) {
+				for(int xx = 0; xx < button_images[ii].width(); xx++) {
+					pixel = button_images[ii].pixel(xx, yy);
+					background_image.setPixel(xx + vm_buttons_d[ii].x, yy + vm_buttons_d[ii].y, pixel);
+				}
+			}
+		}
+	}
+}
+
 int OSD_BASE::add_video_frames()
 {
 	static double frames = 0;
@@ -260,25 +324,49 @@ int OSD_BASE::add_video_frames()
 			frames = vm_frame_rate() / rec_video_fps;
 		}
 	}
+
 	while(rec_video_run_frames > 0) {
 		rec_video_run_frames -= frames;
 		rec_video_frames += frames;
 		counter++;
 	}
-	if(counter != 0) {
+
+	if(using_flags->is_use_one_board_computer()) {
 		int size = vm_screen_buffer.pImage.byteCount();
 		int i = counter;
-		// Rescaling
-		//QByteArray video_result(vm_screen_buffer.pImage.constBits(), size);
+		rec_image_buffer = QImage(background_image);
 		QImage *video_result = &(vm_screen_buffer.pImage);
+		QRgb pixel;
+		for(int yy = 0; yy < video_result->height(); yy++) {
+			for(int xx = 0; xx < video_result->width(); xx++) {
+				pixel = video_result->pixel(xx, yy);
+				pixel |= 0xff000000;
+				if(pixel != 0xff000000) {
+					rec_image_buffer.setPixel(xx, yy, pixel);
+				}
+			}
+		}
 		while(i > 0) {
 			// Enqueue to frame.
-			emit sig_enqueue_video(video_result);
+			emit sig_enqueue_video(&rec_image_buffer);
 			i--;
+		}
+	} else {
+		if(counter != 0) {
+			int size = vm_screen_buffer.pImage.byteCount();
+			int i = counter;
+			// Rescaling
+			QImage *video_result = &(vm_screen_buffer.pImage);
+			while(i > 0) {
+				// Enqueue to frame.
+				emit sig_enqueue_video(video_result);
+				i--;
+			}
 		}
 	}
 	return counter;
 }
+
 
 //#ifdef USE_PRINTER
 void OSD_BASE::create_bitmap(bitmap_t *bitmap, int width, int height)

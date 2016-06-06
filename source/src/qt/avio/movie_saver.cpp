@@ -117,7 +117,7 @@ void MOVIE_SAVER::enqueue_video(QImage *p)
 	if(p == NULL) return;
 	uint32_t *pq;
 	QImage *pp = new QImage(*p);
-	//AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Enqueue video data %d bytes", p->byteCount());
+	//AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Enqueue video data %d bytes %dx%d", pp->byteCount(), pp->width(), pp->height());
 	video_data_queue.enqueue(pp);
 #endif   
 }

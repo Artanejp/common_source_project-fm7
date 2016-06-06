@@ -64,13 +64,13 @@ class GLDrawClass: public QGLWidget
 	QString filename_screen_pixmap;
 	bool save_pixmap_req;
 	void SaveToPixmap(void);
-	GLDraw_2_0 *extfunc;
 	CSP_KeyTables *key_table;
 
 public:
 	GLDrawClass(QWidget *parent = 0);
 	~GLDrawClass();
-
+	GLDraw_2_0 *extfunc;
+	
 	QSize minimumSizeHint() const;
 	QSize sizeHint() const;
 	QSize getCanvasSize();

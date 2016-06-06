@@ -13,6 +13,7 @@
 
 #include <QObject>
 #include <QString>
+#include <QImage>
 
 #include <SDL.h>
 #include "osd_base.h"
@@ -53,6 +54,7 @@ protected:
 	int get_screen_width(void);
 	int get_screen_height(void);
 	int get_vm_buttons_code(int num);
+
 public:
 	OSD();
 	~OSD();
@@ -72,7 +74,6 @@ public:
 	int get_window_mode_height(int mode);
 	QString get_vm_config_name(void);
 	double vm_frame_rate(void);
-
 };
 QT_END_NAMESPACE
 

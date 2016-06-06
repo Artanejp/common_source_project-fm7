@@ -47,6 +47,8 @@ typedef struct {
 class EMU;
 class QEvent;
 class GLDrawClass;
+class QOpenGLFramebufferObject;
+class QOpenGLFramebufferObjectFormat;
 
 class GLDraw_2_0 : public QObject
 {
@@ -72,6 +74,10 @@ protected:
 	int screen_texture_width_old;
 	int screen_texture_height;
 	int screen_texture_height_old;
+
+	int rec_count;
+	int rec_width;
+	int rec_height;
 
 	QOpenGLFunctions_2_0 *extfunc;
 	VertexTexCoord_t vertexFormat[4];
@@ -121,7 +127,10 @@ protected:
 	void drawBitmapTexture(void);
 	bool crt_flag;
 	bool redraw_required;
-	
+
+	QOpenGLFramebufferObject *offscreen_frame_buffer;
+	QOpenGLFramebufferObjectFormat *offscreen_frame_buffer_format;
+	QImage offscreen_image;
 public:
 	GLDraw_2_0(GLDrawClass *parent, EMU *emu = 0);
 	~GLDraw_2_0();
@@ -161,5 +170,9 @@ public slots:
 	void doSetGridsHorizonal(int lines, bool force);
 	void doSetGridsVertical(int pixels, bool force);
 	void updateBitmap(QImage *);
+	void paintGL_OffScreen(int count, int w, int h);
+
+signals:
+	int sig_push_image_to_movie(QImage *);
 };
 #endif // _QT_COMMON_GLUTIL_2_0_H

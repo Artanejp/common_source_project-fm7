@@ -38,6 +38,7 @@
 #define SOCKET_BUFFER_MAX 0x100000
 #include "osd_types.h"
 
+#define N_MAX_BUTTONS 128
 
 #define WM_RESIZE  (WM_USER + 1)
 #define WM_SOCKET0 (WM_USER + 2)
@@ -61,6 +62,7 @@ class EMU;
 class VM;
 class FIFO;
 class CSP_KeyTables;
+class USING_FLAGS;
 
 QT_BEGIN_NAMESPACE
 class OSD_BASE : public QThread
@@ -71,11 +73,10 @@ protected:
 	QSemaphore *VMSemaphore;
 	QSemaphore *DebugSemaphore;
 	sdl_snddata_t snddata;
-//private:
+
 	_TCHAR app_path[_MAX_PATH];
 	QElapsedTimer osd_timer;
 	bool locked_vm;
-	
 	// console
 	FILE *hStdIn, *hStdOut;
 	QString console_cmd_str;
@@ -113,6 +114,10 @@ protected:
 	int mouse_oldy;
 	Qt::CursorShape mouse_shape;
 	
+	QImage background_image;
+	QImage button_images[N_MAX_BUTTONS];
+	QImage rec_image_buffer;
+	
 	// printer
 	
 	// screen
@@ -143,14 +148,9 @@ protected:
 	double rec_video_run_frames;
 	double rec_video_frames;
 	
-	//LPBITMAPINFO lpDibRec;
-	//PAVIFILE pAVIFile;
-	//PAVISTREAM pAVIStream;
-	//PAVISTREAM pAVICompressed;
-	//AVICOMPRESSOPTIONS AVIOpts;
 	uint64_t dwAVIFileSize;
 	uint64_t lAVIFrames;
-	//HANDLE hVideoThread;
+
 	rec_video_thread_param_t rec_video_thread_param;
 	
 	bool first_draw_screen;
@@ -189,23 +189,6 @@ protected:
 	// video device
 	void initialize_video();
 	void release_video();
-	
-	//IGraphBuilder *pGraphBuilder;
-	//IBaseFilter *pVideoBaseFilter;
-	//IBaseFilter *pCaptureBaseFilter;
-	//ICaptureGraphBuilder2 *pCaptureGraphBuilder2;
-	//ISampleGrabber *pVideoSampleGrabber;
-	//IBaseFilter *pSoundBaseFilter;
-	//ISampleGrabber *pSoundSampleGrabber;
-	//CMySampleGrabberCB *pSoundCallBack;
-	//IMediaControl *pMediaControl;
-	//IMediaSeeking *pMediaSeeking;
-	//IMediaPosition *pMediaPosition;
-	//IVideoWindow *pVideoWindow;
-	//IBasicVideo *pBasicVideo;
-	//IBasicAudio *pBasicAudio;
-	//bool bTimeFormatFrame;
-	//bool bVerticalReversed;
 	
 	bitmap_t dshow_screen_buffer;
 	int direct_show_width, direct_show_height;
@@ -437,7 +420,8 @@ public slots:
 	void close_debugger_console();
 	void do_close_debugger_thread();
 	void do_assign_js_setting(int jsnum, int axis_idx, int assigned_value);
-	
+	void upload_bitmap(QImage *p);
+	void set_buttons();
 signals:
 	int sig_update_screen(bitmap_t *);
 	int sig_save_screen(const char *);
@@ -450,6 +434,7 @@ signals:
 	int sig_movie_set_width(int);
 	int sig_movie_set_height(int);
 	int sig_debugger_finished();
+	int sig_req_encueue_video(int, int, int);
 };
 QT_END_NAMESPACE
 

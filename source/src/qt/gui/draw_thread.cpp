@@ -22,6 +22,7 @@
 #include "agar_logger.h"
 #include "mainwidget_base.h"
 #include "draw_thread.h"
+#include "qt_glutil_gl2_0.h"
 
 DrawThreadClass::DrawThreadClass(EMU *p, OSD *o, QObject *parent) : QThread(parent) {
 	MainWindow = (Ui_MainWindowBase *)parent;
@@ -35,6 +36,11 @@ DrawThreadClass::DrawThreadClass(EMU *p, OSD *o, QObject *parent) : QThread(pare
 	do_change_refresh_rate(screen->refreshRate());
 	connect(screen, SIGNAL(refreshRateChanged(qreal)), this, SLOT(do_change_refresh_rate(qreal)));
 	connect(this, SIGNAL(sig_update_screen(bitmap_t *)), glv, SLOT(update_screen(bitmap_t *)));
+	connect(this, SIGNAL(sig_push_frames_to_avio(int, int, int)), glv->extfunc, SLOT(paintGL_OffScreen(int, int, int)));
+	rec_frame_width = 640;
+	rec_frame_height = 480;
+	rec_frame_count = -1;
+
 	bDrawReq = false;
 }
 
@@ -78,6 +84,11 @@ void DrawThreadClass::doWork(const QString &param)
 				emit sig_update_screen(draw_screen_buffer);
 			}
 		}
+		if(rec_frame_count > 0) {
+			emit sig_push_frames_to_avio(rec_frame_count,
+										 rec_frame_width, rec_frame_height);
+			rec_frame_count = -1;
+		}
 		if(wait_count < 1.0f) {
 			msleep(1);
 			wait_count = wait_count + wait_refresh - 1.0f;
@@ -104,3 +115,9 @@ void DrawThreadClass::do_update_screen(bitmap_t *p)
 	bDrawReq = true;
 }
 	
+void DrawThreadClass::do_req_encueue_video(int count, int width, int height)
+{
+	rec_frame_width = width;
+	rec_frame_height = height;
+	rec_frame_count = count;
+}

@@ -135,11 +135,6 @@ void *MOVIE_SAVER::get_video_frame(void)
 	OutputStream *ost = &video_st;
     AVCodecContext *c = ost->st->codec;
 
-    /* check if we want to generate more frames */
-    //if (av_compare_ts(ost->next_pts, ost->st->codec->time_base,
-    //                  STREAM_DURATION, (AVRational){ 1, 1 }) >= 0)
-    //    return (void *)NULL;
-
     //if (c->pix_fmt != AV_PIX_FMT_YUV420P) {
         /* as we only generate a YUV420P picture, we must convert it
          * to the codec pixel format if needed */

@@ -35,6 +35,10 @@ class DrawThreadClass : public QThread {
 	qreal wait_refresh;
 	qreal wait_count;
 	int wait_factor;
+	int rec_frame_count;
+	int rec_frame_width;
+	int rec_frame_height;
+	
  protected:
 	QScreen *screen;
 	int draw_frames;
@@ -53,11 +57,13 @@ public slots:
 	void doDraw(bool flag);
 	void do_change_refresh_rate(qreal rate);
 	void do_update_screen(bitmap_t *p);
+	void do_req_encueue_video(int count, int width, int height);
 signals:
 	int sig_draw_frames(int);
 	int message_changed(QString);
 	int sig_update_screen(bitmap_t *);
 	int sig_draw_timing(bool);
+	int sig_push_frames_to_avio(int, int, int);
 };
 
 QT_END_NAMESPACE

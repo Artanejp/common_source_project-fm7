@@ -9,6 +9,10 @@
 
 //#include "emu.h"
 
+#include <QOpenGLFramebufferObject>
+#include <QOpenGLFramebufferObject>
+#include <QColor>
+
 #include "qt_gldraw.h"
 #include "agar_logger.h"
 #include "qt_glutil_gl2_0.h"
@@ -79,6 +83,13 @@ GLDraw_2_0::GLDraw_2_0(GLDrawClass *parent, EMU *emu) : QObject(parent)
 	horiz_pixels = using_flags->get_screen_width();
 	screen_width = 1.0;
 	screen_height = 1.0;
+
+	offscreen_frame_buffer = NULL;
+	offscreen_frame_buffer_format = NULL;
+	rec_count = 0;
+	rec_width  = using_flags->get_screen_width();
+	rec_height = using_flags->get_screen_height();
+
 }
 
 GLDraw_2_0::~GLDraw_2_0()
@@ -648,7 +659,7 @@ void GLDraw_2_0::drawMain(QOpenGLShaderProgram *prg,
 	if(texid != 0) {
 		extfunc->glEnable(GL_TEXTURE_2D);
 
-		extfunc->glViewport(0, 0, p_wid->width(), p_wid->height());
+		//extfunc->glViewport(0, 0, p_wid->width(), p_wid->height());
 		extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
 		extfunc->glBindTexture(GL_TEXTURE_2D, texid);
 
@@ -865,25 +876,36 @@ void GLDraw_2_0::resizeGL(int width, int height)
 void GLDraw_2_0::paintGL(void)
 {
 	int i;
-	if(!crt_flag && !redraw_required) return;
-	if(p_emu != NULL) {
-		crt_flag = false;
+	if(crt_flag || redraw_required) { //return;
+		if(p_emu != NULL) {
+			crt_flag = false;
+		}
+		redraw_required = false;
+		extfunc->glViewport(0, 0, p_wid->width(), p_wid->height());
+		extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
+		
+		extfunc->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		extfunc->glEnable(GL_DEPTH_TEST);
+		extfunc->glDisable(GL_BLEND);
+		if(using_flags->is_use_one_board_computer()) drawBitmapTexture();
+		drawButtons();
+		/*
+		 * VRAMの表示:テクスチャ貼った四角形
+		 */
+		drawScreenTexture();
+		extfunc->glDisable(GL_BLEND);
+		if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
+			drawGrids();
+		}
+		extfunc->glFlush();
 	}
-	redraw_required = false;
-	extfunc->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	extfunc->glEnable(GL_DEPTH_TEST);
-	extfunc->glDisable(GL_BLEND);
-	if(using_flags->is_use_one_board_computer()) drawBitmapTexture();
-	drawButtons();
-	/*
-	 * VRAMの表示:テクスチャ貼った四角形
-	 */
-	drawScreenTexture();
-	extfunc->glDisable(GL_BLEND);
-	if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
-		drawGrids();
-	}
-	extfunc->glFlush();
+}
+
+void GLDraw_2_0::paintGL_OffScreen(int count, int w, int h)
+{
+	rec_count += count;
+	rec_width  = w;
+	rec_height = h;
 }
 
 void GLDraw_2_0::do_set_screen_multiply(float mul)

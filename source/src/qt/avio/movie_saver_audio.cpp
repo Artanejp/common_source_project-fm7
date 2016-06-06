@@ -121,10 +121,6 @@ void *MOVIE_SAVER::get_audio_frame()
     int j, i, v;
     int16_t *q = (int16_t*)frame->data[0];
 	int offset = 0;
-    /* check if we want to generate more frames */
-    //if (av_compare_ts(ost->next_pts, ost->st->codec->time_base,
-    //                  STREAM_DURATION, (AVRational){ 1, 1 }) >= 0)
-    //    return NULL;
 	for(j = 0; j < frame->nb_samples; j++) {
 		if(audio_remain <= 0) {
 			while(audio_data_queue.isEmpty()) {

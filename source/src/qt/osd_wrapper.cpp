@@ -274,6 +274,9 @@ void OSD::force_unlock_vm(void)
 	locked_vm = false;
 }
 
+
+
+
 void OSD::set_draw_thread(DrawThreadClass *handler)
 {
 	this->moveToThread(handler);

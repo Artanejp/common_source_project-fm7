@@ -29,6 +29,7 @@
 #include "draw_thread.h"
 
 #include "qt_gldraw.h"
+#include "qt_glutil_gl2_0.h"
 #include "agar_logger.h"
 
 #include "menu_disk.h"
@@ -277,8 +278,10 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	QImageReader *reader = new QImageReader(":/background.png");
 	QImage *result = new QImage(reader->read()); // this acts as a default if the size is not matched
 	glv->updateBitmap(result);
+	emu->get_osd()->upload_bitmap(result);
 	delete result;
 	delete reader;
+	emu->get_osd()->set_buttons();
 #endif
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "DrawThread : Start.");
 	connect(hDrawEmu, SIGNAL(sig_draw_frames(int)), hRunEmu, SLOT(print_framerate(int)));
@@ -310,7 +313,9 @@ void Ui_MainWindow::LaunchEmuThread(void)
 			this, SLOT(resize_statusbar(int, int)));
 	connect(hRunEmu, SIGNAL(sig_resize_uibar(int, int)),
 			this, SLOT(resize_statusbar(int, int)));
-	
+
+	connect(emu->get_osd(), SIGNAL(sig_req_encueue_video(int, int, int)),
+			hDrawEmu, SLOT(do_req_encueue_video(int, int, int)));
 	connect(hRunEmu, SIGNAL(sig_finished()), glv, SLOT(releaseKeyCode(void)));
 	connect(hRunEmu, SIGNAL(sig_finished()), this, SLOT(delete_emu_thread()));
 	objNameStr = QString("EmuDrawThread");
@@ -335,6 +340,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
    
 	connect(emu->get_osd(), SIGNAL(sig_enqueue_audio(int16_t*, int)), hSaveMovieThread, SLOT(enqueue_audio(int16_t *, int)));
 	connect(emu->get_osd(), SIGNAL(sig_enqueue_video(QImage *)), hSaveMovieThread, SLOT(enqueue_video(QImage *)));
+	connect(glv->extfunc, SIGNAL(sig_push_image_to_movie(QImage *)), hSaveMovieThread, SLOT(enqueue_video(QImage *)));
 	connect(this, SIGNAL(sig_quit_movie_thread()), hSaveMovieThread, SLOT(do_exit()));
 
 	objNameStr = QString("EmuMovieThread");

@@ -28,12 +28,10 @@ extern "C" {
 
 // Copy from FFMPEG-3.0.2; doc/example/muxing.c .
 
-#define STREAM_DURATION   10.0
-#define STREAM_FRAME_RATE 25 /* 25 images/s */
 #define STREAM_PIX_FMT    AV_PIX_FMT_YUV420P /* default pix_fmt */
 
-#define SCALE_FLAGS SWS_BICUBIC
-//#define SCALE_FLAGS SWS_BILINEAR
+//#define SCALE_FLAGS SWS_BICUBLIN
+#define SCALE_FLAGS SWS_POINT
 
 // a wrapper around a single output AVStream
 typedef struct OutputStream {
