@@ -254,7 +254,7 @@ CSP_DialogMovie::CSP_DialogMovie(MOVIE_SAVER *ms, QWidget *parent) : QWidget(par
 	connect(this, SIGNAL(sig_video_add_option(QString, QString)), p_movie, SLOT(do_add_option(QString, QString)));
 	connect(this, SIGNAL(sig_video_clear_options()), p_movie, SLOT(do_clear_options_list()));
 	connect(this, SIGNAL(sig_set_audio_bitrate(int)), p_movie, SLOT(do_set_audio_bitrate(int)));
-	connect(this, SIGNAL(sig_set_video_bitrate(int)), p_movie, SLOT(do_set_vieo_bitrate(int)));
+	connect(this, SIGNAL(sig_set_video_bitrate(int)), p_movie, SLOT(do_set_video_bitrate(int)));
 	connect(this, SIGNAL(sig_set_video_resolution(QSize)), p_movie, SLOT(do_set_video_geometry(QSize)));
 	
 	connect(cancel_button, SIGNAL(clicked()), this, SLOT(close()));
