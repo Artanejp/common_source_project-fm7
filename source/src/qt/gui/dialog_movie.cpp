@@ -204,8 +204,8 @@ CSP_DialogMovie::CSP_DialogMovie(MOVIE_SAVER *ms, QWidget *parent) : QWidget(par
 	// Video bitrates
 	combo_video_fps->addItem(QString::fromUtf8("15"), 15);	
 	combo_video_fps->addItem(QString::fromUtf8("24"), 24);	
-	combo_video_fps->addItem(QString::fromUtf8("30"), 30);	
-	combo_video_fps->addItem(QString::fromUtf8("60"), 60);
+	combo_video_fps->addItem(QString::fromUtf8("30"), 30);
+	//combo_video_fps->addItem(QString::fromUtf8("60"), 60); // Temporally disabled
 	for(int i = 0; i < combo_video_fps->count(); i++) {
 		int fps = combo_video_fps->itemData(i).toInt();
 		if(fps == config.video_frame_rate) {
