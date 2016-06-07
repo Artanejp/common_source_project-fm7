@@ -1,3 +1,165 @@
+commit 2142d5c7426e21cfeedbaea0450f238f8b4d7d38
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 8 07:27:40 2016 +0900
+
+    [Qt][MOVIE_SAVER] Temporally disable 60fps.
+
+commit 6a789ca7ab95cdcb3abf5d52cb2ab570d2510c74
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 7 15:56:13 2016 +0900
+
+    [MOVIE_SAVER][UI][Qt] Move record movie to menu->screen.
+    * BUG: Recording with 60fps (maybe greater than VM's FPS) causes out of sync both audio and sound.
+
+commit dc0928e0741890e28db009152ab63d05c2328de5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 7 01:54:36 2016 +0900
+
+    [Qt][MOVIE_SAVER] Record correct screen with one-board-computer, with background and buttons.
+
+commit efdaa9f07e1bf99d6cc360c431d80a323e703358
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 1 15:42:46 2016 +0900
+
+    [MOVIE_SAVER] .
+
+commit 03b49c4d5ccf71fdceeb6cfaa3b7bfa967f0e45b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 1 15:41:49 2016 +0900
+
+    [BUILD][CMAKE] Fix FTBFS with Win32.
+
+commit b0a4cec545ebd7b9c1f94cd22e74e1d5ffe1387c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 31 20:36:20 2016 +0900
+
+    [Qt][MOVIE_SAVER] .
+
+commit dbd1db697abc62763a40fe3141c43e833a99133d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 31 20:20:51 2016 +0900
+
+    [Qt][MOVIE_SAVER] Fix wrong resolution without dynamic resolution settings.
+
+commit 125bc795227cc1776749e7cf018f820a093c7452
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 31 19:48:24 2016 +0900
+
+    [Qt][MOVIE_SAVER] Add configure dialog.
+
+commit 0ee7b90bdf588299d17ab94dd53f373e52dceb3b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 31 02:23:00 2016 +0900
+
+    [WIN32][Qt][MOVIE_SAVER] Mostly working movie recording (but delay time is larger ?) when building with MuinGW (Cross Build).
+    See, build-cmake/toolchain_mingw_cross_linux.cmake.
+    You must set ffmpeg's distributed dev binary and shared lib binary to
+    /usr/local/i586-mingw-msvc/ (or your settings) with cross-building,
+    and bundle DLLs to same directory of eemufoo.exe .
+
+commit 6f36fdf69e44917fb1dae7bb95aaab4ccdfce82a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 31 00:47:39 2016 +0900
+
+    [Qt][MOVIE_SAVER] Update SOversion.
+
+commit 5b7ecd8a3f6e05df449874a51d3af04777599bf2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 31 00:25:14 2016 +0900
+
+    [Qt][MOVIE_SAVER][FM77AV] Fix wrong movie-image when changing VM's resolution.
+
+commit 9ca291c762e9a5f9c1c7d8800cbd92601bdb2b06
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 30 22:08:48 2016 +0900
+
+    [Qt][MOVIE_SAVER] Fix choppy sound.
+
+commit cfef98ff7b5c5fcd0ceb9bac3662b14bf417cf74
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 30 18:21:00 2016 +0900
+
+    [Qt][MOVIE_SAVER] Fix color space.
+
+commit ec95afa6a77129694bec704ee540bc600f9e79cc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 30 18:06:38 2016 +0900
+
+    [Qt][MOVIE_SAVER] Enable to save movies (BUT something is wrong / and sound is choppy).
+
+commit 729d02759ba61b59dd435ef0aa93f64d7ffbe0e5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 30 14:39:42 2016 +0900
+
+    [VM][FM77AV] Fix crash with substitution ROM set.See http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/675 .
+    This issue causes this ROM checkes inserting FDs beyond 0: to 3: after booting.
+
+commit f9cc9eb6a36525b13938439c23e2a0282148d7b7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 29 22:10:48 2016 +0900
+
+    [Qt][MOVIE_SAVER] Update codec settings.
+
+commit 2daf563c73726eaa8e0dff4541914aeed03b83a9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 29 20:29:31 2016 +0900
+
+    [Qt][MOVIE_SAVER] Working.But not well, only not to crash any situations.
+
+commit d0195a10b2bfb030f1b3348d5f29fff0ea9691c0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 29 04:44:19 2016 +0900
+
+    [DOC] I forgot to commit RELEASENOTE.
+
+commit 58f4617c54021734f821fe08da4653fcfe37ea1a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 29 04:43:07 2016 +0900
+
+    [Qt][LIBAV] Refer from FFMPEG 3.0.2.
+
+commit fcc52b4357dc2484116a8e53795eb581a6f197e9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 28 19:36:49 2016 +0900
+
+    [Qt][UI] Fix saved file name for record as movie.
+
+commit bd2228e8293f217060d6b8da6c1182bca5feb9f5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 28 19:35:48 2016 +0900
+
+    [WIP][Qt][MOVIE] Still crash when using libav.
+
+commit 8f8216717635280346db69277afcc7bb003c6e8e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 28 03:10:00 2016 +0900
+
+    [Build][CMAKE] Make duplicate sequences to a function.
+
+commit 999fd88361210bd8c5fb7d54abc596085ef001be
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 28 02:36:47 2016 +0900
+
+    [Qt][MOVIE_SAVER] Update but still crashed on start to save :-(
+
+commit 0878746cfbdc9ae3fbd7b3a54c8723bf43f2536f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri May 27 21:08:28 2016 +0900
+
+    [Qt][MOVIE] Add libCSPavio .
+
+commit 7edefc726642d4ae477307f06ce65456e3d66d62
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri May 27 19:35:10 2016 +0900
+
+    [Qt][OSD] Prepair to add recording to video.
+
+commit 75be52dc7cf00b1119b1e2920f417ec55282820c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri May 27 19:09:59 2016 +0900
+
+    [Qt][MOVIE] Recorder: Initial. This still not working.
+
 commit 3d422036fe1b33a69dac1e2e42f0ced2c1f0235f
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Tue May 24 23:50:06 2016 +0900

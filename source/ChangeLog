@@ -1,5 +1,13 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT June 08, 2016
+  * Upstream 2016-04-13 .
+  * Add movie saver, using libav with x264.
+  * Now, all of binaries are built with ffmpeg-3.0.
+  * Build with 2142d5c7426e21cfeedbaea0450f238f8b4d7d38 (or later).
+
+-- Jun 08, 2016 07:34:45 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT May 23-2, 2016
   * Win32 binary only RELEASE
   * Fix unable to run with some natibve Windows environment.

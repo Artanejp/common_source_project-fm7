@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                           May 23, 2016
+                                          June 08, 2016
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -24,6 +24,7 @@
       コンパイラツールチェーン。
    d. SDL2 (SDL 1.xではないので注意)
    e. CMake 2.8以降。
+   f. ffmpegから、libavとlibswが必要です。 http://ffmpeg.org/ より。
    
    * Windows もしくは GNU/Linux のcross tool chain (要Wine)で、
      MinGW と Qt 5.5.1 でのビルドができることを確認しました。

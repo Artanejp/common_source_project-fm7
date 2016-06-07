@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                           May 23, 2016
+                                          June 08, 2016
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 0. About
@@ -23,6 +23,7 @@
    c. gcc / g++ (4.7 or later? ) or llvm clang / clang++ (3.5 or later?) toolchain.
    d. SDL2 (not SDL1.x).
    e. CMake 2.8 or later.
+   f. libav and libsw from ffmpeg (optional) http://ffmpeg.org/ . 
 
 3. How to build:
    After extracting (or git pulled) sourcecodes:
