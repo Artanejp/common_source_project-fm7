@@ -307,7 +307,7 @@ void MOVIE_SAVER::do_exit()
 
 void MOVIE_SAVER::do_set_record_fps(int fps)
 {
-	if((fps > 0) && (fps <= 60)) rec_fps = fps;
+	if((fps > 0) && (fps <= 75)) rec_fps = fps;
 }
 
 void MOVIE_SAVER::do_set_width(int width)

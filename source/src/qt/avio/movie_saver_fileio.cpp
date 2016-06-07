@@ -167,7 +167,7 @@ void MOVIE_SAVER::close_stream(void *_oc, void *_ost)
 
 
 
-bool MOVIE_SAVER::do_open(QString filename, int fps, int _sample_rate)
+bool MOVIE_SAVER::do_open(QString filename, int _fps, int _sample_rate)
 {
     AVOutputFormat *fmt;
     AVFormatContext *oc;
@@ -177,8 +177,8 @@ bool MOVIE_SAVER::do_open(QString filename, int fps, int _sample_rate)
     int encode_video = 0, encode_audio = 0;
 	do_close();
     raw_options_list = NULL;
-	
-	do_set_record_fps(fps);
+
+	do_set_record_fps(_fps);
 	audio_sample_rate = _sample_rate;
 	_filename = filename;
 	

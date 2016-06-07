@@ -46,6 +46,9 @@ CSP_DialogMovie::CSP_DialogMovie(MOVIE_SAVER *ms, QWidget *parent) : QWidget(par
 	cancel_button = new QPushButton(QApplication::translate("MainWindow", "Cancel", 0));
 	close_button = new QPushButton(QApplication::translate("MainWindow", "Save Options", 0));
 	label_audio_bitrate = new QLabel(QApplication::translate("MainWindow", "Audio Bitrate", 0), this);
+	label_video_fps = new QLabel(QApplication::translate("MainWindow", "Framerate", 0), this);
+	combo_video_fps = new QComboBox(this);
+	video_fps = config.video_frame_rate;
 	
 	// Value for resolution
 	combo_resolution->addItem(QString::fromUtf8("256x160"), QSize(256, 160));
@@ -198,6 +201,19 @@ CSP_DialogMovie::CSP_DialogMovie(MOVIE_SAVER *ms, QWidget *parent) : QWidget(par
 		}
 	}
 	connect(combo_audio_bitrate, SIGNAL(activated(int)), this, SLOT(do_set_audio_bitrate(int)));
+	// Video bitrates
+	combo_video_fps->addItem(QString::fromUtf8("15"), 15);	
+	combo_video_fps->addItem(QString::fromUtf8("24"), 24);	
+	combo_video_fps->addItem(QString::fromUtf8("30"), 30);	
+	combo_video_fps->addItem(QString::fromUtf8("60"), 60);
+	for(int i = 0; i < combo_video_fps->count(); i++) {
+		int fps = combo_video_fps->itemData(i).toInt();
+		if(fps == config.video_frame_rate) {
+			combo_video_fps->setCurrentIndex(i);
+		}
+	}
+	connect(combo_video_fps, SIGNAL(activated(int)), this, SLOT(do_set_video_fps(int)));
+	
 
 	grid_layout->addWidget(label_title, 0, 0);
 	grid_layout->addWidget(label_resolution, 1, 0);
@@ -215,27 +231,30 @@ CSP_DialogMovie::CSP_DialogMovie(MOVIE_SAVER *ms, QWidget *parent) : QWidget(par
 	grid_layout->addWidget(label_audio_bitrate, 7, 2);
 	grid_layout->addWidget(combo_audio_bitrate, 7, 3);
 	
-	grid_layout->addWidget(label_video_bframes, 8, 0);
-	grid_layout->addWidget(combo_video_bframes, 8, 1);
+	grid_layout->addWidget(label_video_fps, 8, 0);
+	grid_layout->addWidget(combo_video_fps, 8, 1);
 	
-	grid_layout->addWidget(label_video_b_adapt, 8, 2);
-	grid_layout->addWidget(combo_video_b_adapt, 8, 3);
+	grid_layout->addWidget(label_video_bframes, 9, 0);
+	grid_layout->addWidget(combo_video_bframes, 9, 1);
 	
-	grid_layout->addWidget(label_video_subme, 9, 0);
-	grid_layout->addWidget(combo_video_subme, 9, 1);
+	grid_layout->addWidget(label_video_b_adapt, 9, 2);
+	grid_layout->addWidget(combo_video_b_adapt, 9, 3);
 	
-	grid_layout->addWidget(label_video_threads, 9, 2);
-	grid_layout->addWidget(combo_video_threads, 9, 3);
+	grid_layout->addWidget(label_video_subme, 10, 0);
+	grid_layout->addWidget(combo_video_subme, 10, 1);
+	
+	grid_layout->addWidget(label_video_threads, 10, 2);
+	grid_layout->addWidget(combo_video_threads, 10, 3);
 
-	grid_layout->addWidget(cancel_button, 10, 2);
-	grid_layout->addWidget(close_button, 10, 3);
+	grid_layout->addWidget(cancel_button, 11, 2);
+	grid_layout->addWidget(close_button, 11, 3);
 
 	this->setLayout(grid_layout);
 	
 	connect(this, SIGNAL(sig_video_add_option(QString, QString)), p_movie, SLOT(do_add_option(QString, QString)));
 	connect(this, SIGNAL(sig_video_clear_options()), p_movie, SLOT(do_clear_options_list()));
 	connect(this, SIGNAL(sig_set_audio_bitrate(int)), p_movie, SLOT(do_set_audio_bitrate(int)));
-	connect(this, SIGNAL(sig_set_video_bitrate(int)), p_movie, SLOT(do_set_video_bitrate(int)));
+	connect(this, SIGNAL(sig_set_video_bitrate(int)), p_movie, SLOT(do_set_vieo_bitrate(int)));
 	connect(this, SIGNAL(sig_set_video_resolution(QSize)), p_movie, SLOT(do_set_video_geometry(QSize)));
 	
 	connect(cancel_button, SIGNAL(clicked()), this, SLOT(close()));
@@ -257,6 +276,14 @@ void CSP_DialogMovie::do_set_video_resolution(int n)
 	if(h < 80) h = 80;
 	geometry = QSize(w, h);
 	
+}
+
+void CSP_DialogMovie::do_set_video_fps(int n)
+{
+	int val = combo_video_fps->itemData(n).toInt();
+	if(val < 15) val = 15;
+	if(val > 75) val = 75;
+	video_fps = val;
 }
 
 void CSP_DialogMovie::do_set_qmin(int n)
@@ -362,5 +389,6 @@ void CSP_DialogMovie::do_set_codecs(void)
 	emit sig_set_video_resolution(geometry);
 
 	config.video_threads = video_threads;
+	config.video_frame_rate = video_fps;
 	this->close();
 }

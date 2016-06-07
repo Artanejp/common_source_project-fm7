@@ -69,7 +69,7 @@ private:
 	int s_num;
 	bool play;
 	bool write_protect;
-	double double_val; 
+	double double_val;
 signals:
 	int on_boot_mode(int);   
 	int on_cpu_type(int);   

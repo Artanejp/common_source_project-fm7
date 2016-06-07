@@ -146,6 +146,7 @@ void initialize_config()
 	config.video_subme = 8;
 	config.video_threads = 0;
 	config.audio_bitrate = 128;
+	config.video_frame_rate = 30;
 #endif
 	// screen
 #ifndef ONE_BOARD_MICRO_COMPUTER
@@ -393,6 +394,10 @@ void load_config(const _TCHAR *config_path)
 	if(config.audio_bitrate < 16) config.audio_bitrate = 16;
 	if(config.audio_bitrate > 448) config.audio_bitrate = 448;
 	
+	config.video_frame_rate = MyGetPrivateProfileInt(_T("Video"), _T("VideoFramerate"), config.video_frame_rate, config_path);
+	if(config.video_frame_rate < 15) config.video_frame_rate = 15;
+	if(config.video_frame_rate > 75) config.video_frame_rate = 75;
+
 #endif	
 #if defined(_USE_QT) && !defined(Q_OS_WIN)
 	AGAR_DebugLog(AGAR_LOG_INFO, "Read Done.");
@@ -604,6 +609,7 @@ void save_config(const _TCHAR *config_path)
 	MyWritePrivateProfileInt(_T("Video"), _T("VideoSubme"), config.video_subme, config_path);
 	MyWritePrivateProfileInt(_T("Video"), _T("VideoThreads"), config.video_threads, config_path);
 	MyWritePrivateProfileInt(_T("Video"), _T("AudioBitrate"), config.audio_bitrate, config_path);
+	MyWritePrivateProfileInt(_T("Video"), _T("VideoFramerate"), config.video_frame_rate, config_path);
 #endif	
 #if defined(_USE_QT) && !defined(Q_OS_WIN)
 	AGAR_DebugLog(AGAR_LOG_INFO, "Write done.");

@@ -301,11 +301,7 @@ class Ui_MainWindowBase : public QMainWindow
 	class Action_Control *action_SetupJoystick;
 	class Action_Control *action_SetupKeyboard;
 
-	QMenu *menuSaveAsMovie;
 	class Action_Control *action_SetupMovie; // 15, 24, 30, 60
-	class Action_Control *action_SaveAsMovie[4]; // 15, 24, 30, 60
-	class Action_Control *action_StopSavingMovie;
-	QActionGroup *actionGroup_SaveAsMovie;
 	
 	// Menus    
 	QMenu *menuControl;
@@ -461,6 +457,8 @@ public slots:
 
 	void rise_keyboard_dialog(void);
 	virtual void rise_movie_dialog(void);
+	void do_stop_saving_movie(void);
+	void do_start_saving_movie(void);
 
 	void OnLoadState(void);
 	void OnSaveState(void);
@@ -589,6 +587,8 @@ signals:
 	int quit_joy_thread();
 	int quit_draw_thread();
 	int sig_quit_movie_thread();
+	int sig_stop_saving_movie(void);
+	int sig_start_saving_movie(void);
 	int on_boot_mode(int);
 	int on_cpu_type(int);
 	int on_cpu_power(int);

@@ -493,25 +493,6 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 	action_SetupKeyboard->setIcon(QIcon(":/icon_keyboard.png"));
 	action_SetupMovie->setText(QApplication::translate("MainWindow", "Configure movie encoding", 0));
 	
-	for(int i = 0; i < (CSP_MAINWIDGET_SAVE_MOVIE_END - 1); i++) {
-		switch(i + 1) {
-			case CSP_MAINWIDGET_SAVE_MOVIE_15FPS:
-				action_SaveAsMovie[i]->setText(QApplication::translate("MainWindow", "15fps", 0));
-				break;
-			case CSP_MAINWIDGET_SAVE_MOVIE_24FPS:
-				action_SaveAsMovie[i]->setText(QApplication::translate("MainWindow", "24fps", 0));
-				break;
-			case CSP_MAINWIDGET_SAVE_MOVIE_30FPS:
-				action_SaveAsMovie[i]->setText(QApplication::translate("MainWindow", "30fps", 0));
-				break;
-			case CSP_MAINWIDGET_SAVE_MOVIE_60FPS:
-				action_SaveAsMovie[i]->setText(QApplication::translate("MainWindow", "60fps", 0));
-				break;
-		}
-	}
-	action_StopSavingMovie->setText(QApplication::translate("MainWindow", "Stop Recording", 0));
-	action_StopSavingMovie->setIcon(QIcon(":/icon_process_stop.png"));
-	menuSaveAsMovie->setTitle(QApplication::translate("MainWindow", "Record to Movie", 0));
 }
 
 void Ui_MainWindowBase::CreateEmulatorMenu(void)
@@ -521,7 +502,6 @@ void Ui_MainWindowBase::CreateEmulatorMenu(void)
 	}
 	menuEmulator->addAction(action_SetupKeyboard);
 	menuEmulator->addAction(action_SetupMovie);
-	menuEmulator->addAction(menuSaveAsMovie->menuAction());
 }
 
 void Ui_MainWindowBase::ConfigEmulatorMenu(void)
@@ -534,39 +514,6 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	action_SetupKeyboard = new Action_Control(this);
 
 	action_SetupMovie = new Action_Control(this);
-	
-	menuSaveAsMovie = new QMenu(this);
-	actionGroup_SaveAsMovie = new QActionGroup(this);
-	for(int i = 0; i < (CSP_MAINWIDGET_SAVE_MOVIE_END - 1); i++) {
-		action_SaveAsMovie[i] = new Action_Control(menuSaveAsMovie);
-		switch(i + 1) {
-			case CSP_MAINWIDGET_SAVE_MOVIE_15FPS:
-				tmps.setNum(15);
-				action_SaveAsMovie[i]->binds->setNumber(15);
-				break;
-			case CSP_MAINWIDGET_SAVE_MOVIE_24FPS:
-				tmps.setNum(24);
-				action_SaveAsMovie[i]->binds->setNumber(24);
-				break;
-			case CSP_MAINWIDGET_SAVE_MOVIE_30FPS:
-				tmps.setNum(30);
-				action_SaveAsMovie[i]->binds->setNumber(30);
-				break;
-			case CSP_MAINWIDGET_SAVE_MOVIE_60FPS:
-				tmps.setNum(60);
-				action_SaveAsMovie[i]->binds->setNumber(60);
-				break;
-		}
-		tmps = QString::fromUtf8("action_SaveAsMovie") + tmps;
-		action_SaveAsMovie[i]->setObjectName(tmps);
-		actionGroup_SaveAsMovie->addAction(action_SaveAsMovie[i]);
-		menuSaveAsMovie->addAction(action_SaveAsMovie[i]);
-	}
-	action_StopSavingMovie = new Action_Control(menuSaveAsMovie);
-	action_StopSavingMovie->setObjectName(QString::fromUtf8("actionStopRecordingMovie"));
-	action_StopSavingMovie->binds->setNumber(0);
-	actionGroup_SaveAsMovie->addAction(action_StopSavingMovie);
-	menuSaveAsMovie->addAction(action_StopSavingMovie);
   
 }
 

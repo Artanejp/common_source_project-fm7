@@ -55,6 +55,21 @@ void Object_Menu_Control::set_screen_size(void) {
 	emit sig_screen_multiply(nd);
 }
 
+void Ui_MainWindowBase::do_stop_saving_movie(void)
+{
+	actionStop_Record_Movie->setVisible(false);
+	actionStart_Record_Movie->setVisible(true);
+	emit sig_stop_saving_movie();
+}
+
+void Ui_MainWindowBase::do_start_saving_movie(void)
+{
+	actionStop_Record_Movie->setVisible(true);
+	actionStart_Record_Movie->setVisible(false);
+	emit sig_start_saving_movie();
+}
+
+
 void Ui_MainWindowBase::set_gl_scan_line_vert(bool f)
 {
 	config.opengl_scanline_vert = f;
@@ -221,7 +236,7 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 
 	actionStart_Record_Movie = new Action_Control(this);
 	actionStart_Record_Movie->setObjectName(QString::fromUtf8("actionStart_Record_Movie"));
-	actionStart_Record_Movie->setCheckable(true);
+	actionStart_Record_Movie->setCheckable(false);
 	
 	actionStop_Record_Movie = new Action_Control(this);
 	actionStop_Record_Movie->setObjectName(QString::fromUtf8("actionStop_Record_Movie"));

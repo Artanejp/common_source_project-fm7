@@ -167,7 +167,7 @@ public slots:
 	void enqueue_video(QImage *p);
 	void enqueue_audio(int16_t *p, int size);
 	void do_close();
-	bool do_open(QString filename, int frame_rate, int sample_rate);
+	bool do_open(QString filename, int _fps, int sample_rate);
 	void do_set_width(int width);
 	void do_set_height(int height);
 	void do_set_record_fps(int fps);

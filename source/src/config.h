@@ -147,7 +147,7 @@ typedef struct {
 	int video_subme;
 	int video_threads;
 	int audio_bitrate;
-	
+	int video_frame_rate; // FPS * 1000.0
 #endif	
 	// printer
 	int printer_device_type;

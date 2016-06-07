@@ -113,7 +113,7 @@ void Object_Menu_Control::do_save_as_movie(void)
 	path = QString::fromLocal8Bit(emu->get_osd()->get_app_path()) + path;
 	int rate = emu->get_osd()->get_sound_rate();
 	
-	int num = getNumber();
+	int num = config.video_frame_rate;
 	if((num <= 0) || (num > 75)) return;
 	fps = num;
 	emit sig_start_record_movie(fps);
@@ -324,14 +324,22 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "DrawThread : Launch done.");
 
 	hSaveMovieThread = new MOVIE_SAVER(640, 400,  30, emu->get_osd());
-	for(int i = 0; i < (CSP_MAINWIDGET_SAVE_MOVIE_END - 1); i++) {
-		connect(action_SaveAsMovie[i]->binds, SIGNAL(sig_save_as_movie(QString, int, int)), hSaveMovieThread, SLOT(do_open(QString, int, int)));
-		connect(action_SaveAsMovie[i]->binds, SIGNAL(sig_start_record_movie(int)), hRunEmu, SLOT(doStartRecordVideo(int)));
-		connect(action_SaveAsMovie[i], SIGNAL(triggered()), action_SaveAsMovie[i]->binds, SLOT(do_save_as_movie()));
-	}
-	connect(action_StopSavingMovie->binds, SIGNAL(sig_stop_record_movie()), hRunEmu, SLOT(doStopRecordVideo()));
-	connect(action_StopSavingMovie->binds, SIGNAL(sig_stop_saving_movie()), hSaveMovieThread, SLOT(do_close()));
-	connect(action_StopSavingMovie, SIGNAL(triggered()), action_StopSavingMovie->binds, SLOT(do_stop_saving_movie()));
+	
+	connect(actionStart_Record_Movie->binds, SIGNAL(sig_save_as_movie(QString, int, int)),
+			hSaveMovieThread, SLOT(do_open(QString, int, int)));
+	connect(actionStart_Record_Movie->binds, SIGNAL(sig_start_record_movie(int)), hRunEmu, SLOT(doStartRecordVideo(int)));
+	connect(this, SIGNAL(sig_start_saving_movie()),
+			actionStart_Record_Movie->binds, SLOT(do_save_as_movie()));
+	connect(actionStart_Record_Movie, SIGNAL(triggered()), this, SLOT(do_start_saving_movie()));
+
+	connect(actionStop_Record_Movie->binds, SIGNAL(sig_stop_record_movie()), hRunEmu, SLOT(doStopRecordVideo()));
+	connect(actionStop_Record_Movie->binds, SIGNAL(sig_stop_saving_movie()), hSaveMovieThread, SLOT(do_close()));
+	connect(this, SIGNAL(sig_stop_saving_movie()), actionStop_Record_Movie->binds, SLOT(do_stop_saving_movie()));
+	connect(actionStop_Record_Movie, SIGNAL(triggered()), this, SLOT(do_stop_saving_movie()));
+
+	actionStop_Record_Movie->setIcon(QIcon(":/icon_process_stop.png"));
+	actionStop_Record_Movie->setVisible(false);
+	
 	connect(this, SIGNAL(sig_movie_set_width(int)), hSaveMovieThread, SLOT(do_set_width(int)));
 	connect(this, SIGNAL(sig_movie_set_height(int)), hSaveMovieThread, SLOT(do_set_height(int)));
  

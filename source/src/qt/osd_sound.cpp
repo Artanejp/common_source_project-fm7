@@ -209,8 +209,6 @@ void OSD_BASE::update_sound(int* extra_frames)
 			int length = samples * sizeof(int16_t) * 2; // stereo
 			if(now_record_video) {
 				if(sound_samples > rec_sound_buffer_ptr) {
-					//QByteArray *p = new QByteArray((const char *)(sound_buffer + rec_sound_buffer_ptr * 2), length);
-					//emit sig_enqueue_audio(p);
 					emit sig_enqueue_audio((int16_t *)(&(sound_buffer[rec_sound_buffer_ptr * 2])), length); 
 				}
 			}
@@ -227,20 +225,13 @@ void OSD_BASE::update_sound(int* extra_frames)
 				// sync video recording
 				static double frames = 0;
 				static int prev_samples = -1;
-				if(this->get_support_variable_timing()) {
-					static double prev_fps = -1;
-					double fps = this->vm_frame_rate();
-					if(prev_samples != samples || prev_fps != fps) {
-						prev_samples = samples;
-						prev_fps = fps;
-						frames = fps * (double)samples / (double)sound_rate;
-					}
-				} else {
-					if(prev_samples != samples) {
-						prev_samples = samples;
-						frames = vm_frame_rate() * (double)samples / (double)sound_rate;
-					}
-				}
+				static double prev_fps = -1;
+				double fps = this->vm_frame_rate();
+				//if(prev_samples != samples || prev_fps != fps) {
+				//	prev_samples = samples;
+				//	prev_fps = fps;
+				frames = fps * (double)samples / (double)sound_rate;
+				//}
 				rec_video_frames -= frames;
 				if(rec_video_frames > 2) {
 					rec_video_run_frames -= (rec_video_frames - 2);

@@ -309,28 +309,23 @@ int OSD_BASE::add_video_frames()
 	static int prev_video_fps = -1;
 	int counter = 0;
 	static double prev_vm_fps = -1;
-
-	if(get_support_variable_timing()) {
-		double vm_fps = vm_frame_rate();
-		prev_vm_fps = -1;
-		if(prev_video_fps != rec_video_fps || prev_vm_fps != vm_fps) {
-			prev_video_fps = rec_video_fps;
-			prev_vm_fps = vm_fps;
-			frames = vm_fps / rec_video_fps;
-		}
-	} else {
-		if(prev_video_fps != rec_video_fps) {
-			prev_video_fps = rec_video_fps;
-			frames = vm_frame_rate() / rec_video_fps;
-		}
-	}
-
+	double vm_fps = vm_frame_rate();
+	//double vm_fps = (double)rec_video_fps;
+	
+	//prev_vm_fps = -1;
+	//if(prev_video_fps != rec_video_fps || prev_vm_fps != vm_fps) {
+	//	prev_video_fps = rec_video_fps;
+	//	prev_vm_fps = vm_fps;
+	frames = vm_fps / (double)rec_video_fps;
+	//}
+	
 	while(rec_video_run_frames > 0) {
 		rec_video_run_frames -= frames;
 		rec_video_frames += frames;
 		counter++;
 	}
-
+	if(counter <= 0) return counter;
+	
 	if(using_flags->is_use_one_board_computer()) {
 		int size = vm_screen_buffer.pImage.byteCount();
 		int i = counter;
@@ -352,16 +347,14 @@ int OSD_BASE::add_video_frames()
 			i--;
 		}
 	} else {
-		if(counter != 0) {
-			int size = vm_screen_buffer.pImage.byteCount();
-			int i = counter;
-			// Rescaling
-			QImage *video_result = &(vm_screen_buffer.pImage);
-			while(i > 0) {
-				// Enqueue to frame.
-				emit sig_enqueue_video(video_result);
-				i--;
-			}
+		int size = vm_screen_buffer.pImage.byteCount();
+		int i = counter;
+		// Rescaling
+		QImage *video_result = &(vm_screen_buffer.pImage);
+		while(i > 0) {
+			// Enqueue to frame.
+			emit sig_enqueue_video(video_result);
+			i--;
 		}
 	}
 	return counter;

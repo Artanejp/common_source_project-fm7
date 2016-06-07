@@ -12,30 +12,6 @@
 //#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 void OSD_BASE::initialize_video()
 {
-#if 0
-	pBasicAudio = NULL;
-	pBasicVideo = NULL;
-	pVideoWindow = NULL;
-	pMediaPosition = NULL;
-	pMediaSeeking = NULL;
-	pMediaControl = NULL;
-	pSoundCallBack = NULL;
-	pSoundSampleGrabber = NULL;
-	pSoundBaseFilter = NULL;
-	pVideoSampleGrabber = NULL;
-	pCaptureGraphBuilder2 = NULL;
-	pCaptureBaseFilter = NULL;
-	pVideoBaseFilter = NULL;
-	pGraphBuilder = NULL;
-	
-	memset(&dshow_screen_buffer, 0, sizeof(screen_buffer_t));
-	
-	direct_show_mute[0] = direct_show_mute[1] = true;
-
-	now_movie_play = now_movie_pause = false;
-	if(get_use_video_capture()) enum_capture_devs();
-	cur_capture_dev_index = -1;
-#endif
 }
 
 #define SAFE_RELEASE(x) { \
@@ -47,78 +23,14 @@ void OSD_BASE::initialize_video()
 
 void OSD_BASE::release_video()
 {
-#if 0
-	if(pMediaControl != NULL) {
-		pMediaControl->Stop();
-	}
-	SAFE_RELEASE(pBasicAudio);
-	SAFE_RELEASE(pBasicVideo);
-	SAFE_RELEASE(pVideoWindow);
-	SAFE_RELEASE(pMediaPosition);
-	SAFE_RELEASE(pMediaSeeking);
-	SAFE_RELEASE(pMediaControl);
-	SAFE_RELEASE(pSoundCallBack);
-	SAFE_RELEASE(pSoundSampleGrabber);
-	SAFE_RELEASE(pSoundBaseFilter);
-	SAFE_RELEASE(pVideoSampleGrabber);
-	SAFE_RELEASE(pCaptureGraphBuilder2);
-	SAFE_RELEASE(pCaptureBaseFilter);
-	SAFE_RELEASE(pVideoBaseFilter);
-	SAFE_RELEASE(pGraphBuilder);
-	
-	release_screen_buffer(&dshow_screen_buffer);
-#endif	
 }
 
 void OSD_BASE::get_video_buffer()
 {
-#if 0
-	if(pVideoSampleGrabber != NULL) {
-#if defined(_RGB555) || defined(_RGB565)
-		long buffer_size = direct_show_width * direct_show_height * 2;
-#elif defined(_RGB888)
-		long buffer_size = direct_show_width * direct_show_height * 4;
-#endif
-		pVideoSampleGrabber->GetCurrentBuffer(&buffer_size, (long *)dshow_screen_buffer.lpBmp);
-		if(vm_screen_width == direct_show_width && vm_screen_height == direct_show_height) {
-			if(bVerticalReversed) {
-				BitBlt(vm_screen_buffer.hdcDib, 0, vm_screen_height, vm_screen_width, -vm_screen_height, dshow_screen_buffer.hdcDib, 0, 0, SRCCOPY);
-			} else {
-				BitBlt(vm_screen_buffer.hdcDib, 0, 0, vm_screen_width, vm_screen_height, dshow_screen_buffer.hdcDib, 0, 0, SRCCOPY);
-			}
-		} else {
-			if(bVerticalReversed) {
-				StretchBlt(vm_screen_buffer.hdcDib, 0, vm_screen_height, vm_screen_width, -vm_screen_height, dshow_screen_buffer.hdcDib, 0, 0, direct_show_width, direct_show_height, SRCCOPY);
-			} else {
-				StretchBlt(vm_screen_buffer.hdcDib, 0, 0, vm_screen_width, vm_screen_height, dshow_screen_buffer.hdcDib, 0, 0, direct_show_width, direct_show_height, SRCCOPY);
-			}
-		}
-	} else {
-		memset(vm_screen_buffer.lpBmp, 0, vm_screen_width * vm_screen_height * sizeof(scrntype));
-	}
-#endif	
 }
 
 void OSD_BASE::mute_video_dev(bool l, bool r)
 {
-#if 0	
-	if(pBasicAudio != NULL) {
-		if(l && r) {
-			pBasicAudio->put_Volume(-10000L);
-		} else {
-			pBasicAudio->put_Volume(0L);
-		}
-		if(l && !r) {
-			pBasicAudio->put_Balance(1000L);
-		} else if(!l && r) {
-			pBasicAudio->put_Balance(-1000L);
-		} else {
-			pBasicAudio->put_Balance(0L);
-		}
-		direct_show_mute[0] = l;
-		direct_show_mute[1] = r;
-	}
-#endif	
 }
 //#endif // #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 

@@ -58,6 +58,10 @@ private:
 	QLabel *label_qmin_name;
 	QLabel *label_qmax_name;
 	QComboBox *combo_audio_bitrate;
+
+	QLabel *label_video_fps;
+	QComboBox *combo_video_fps;
+
 	QPushButton *cancel_button;
 	QPushButton *close_button;
 
@@ -74,6 +78,7 @@ protected:
 	int video_minq;
 	int video_maxq;
 	int audio_bitrate;
+	int video_fps;
 public:
 	CSP_DialogMovie(MOVIE_SAVER *ms, QWidget *parent = NULL);
 	~CSP_DialogMovie();
@@ -88,6 +93,7 @@ public slots:
 	void do_set_subme(int);
 	void do_set_video_threads(int);
 	void do_set_audio_bitrate(int);
+	void do_set_video_fps(int);
 	void do_set_codecs();
 	
 signals:
