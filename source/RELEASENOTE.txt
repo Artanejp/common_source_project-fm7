@@ -89,9 +89,9 @@ Changes:
   * Now, all of binaries are built with ffmpeg-2.8.7 at GNU/Linux,  with ffmpeg-3.0 at Windows.
   * Please read README.ffmpeg.txt .
   * [FM7/Disk] Add exceptions for Xanadu Scenario 2, this has not booted with changes 49dceaca9401d3c6037cb51ec013ca032ff0e83c .
-  * Build with 125287ff9d9a889c44828ad2ae1e32d05993bf93 (or later).
+  * Build with 64df71cd492be91289f883224640f42cace090ed (or later).
 
--- Jun 09, 2016 02:41:33 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Jun 09, 2016 05:50:50 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT June 08, 2016
   * Upstream 2016-04-13 .
