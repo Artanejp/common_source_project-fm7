@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                         June 08, 2016
+                                                         June 09, 2016
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 1.About
@@ -9,18 +9,18 @@ This package is Qt5 porting of Common Source Code Project (CSP)
 and built with Qt5, for Windows, built with MinGW(32bit).
 
 Source Code:
-   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160608
+   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160609
    
 Additional INFO:
 GNU/Linux with AMD64 binaries and Win32 with MINGW binaries are avaiable, packed with 7zip'ed format:
 
-   https://www.sendspace.com/file/pja2z2
+   
     or
-   http://www1.axfc.net/u/3676696
+   
 
-  SIZE: 85332844 
-  MD5SUM: 5d577985a134bf6661d6cf15407a89aa
-  SHA256SUM: 573dd2eb3b99cfc6098b27a6a6ab835030752c2fb95e96e1b84a9eb120a62588
+  SIZE: 
+  MD5SUM: 
+  SHA256SUM: 
 
 2.Background
 Common Source Code Project (CSP) is good emulator writing.
@@ -88,7 +88,7 @@ Changes:
   * Upstream 2016-04-13 .
   * Now, all of binaries are built with ffmpeg-2.8.7 at GNU/Linux,  with ffmpeg-3.0 at Windows.
   * Please read README.ffmpeg.txt .
-  * Build with (or later).
+  * Build with (or later) 2defdfbc5142b9f858031f37b9e99992dfbe8f4e .
 
 -- Jun 09, 2016 01:12:45 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 

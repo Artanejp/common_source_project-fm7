@@ -4,7 +4,7 @@
   * Upstream 2016-04-13 .
   * Now, all of binaries are built with ffmpeg-2.8.7 at GNU/Linux,  with ffmpeg-3.0 at Windows.
   * Please read README.ffmpeg.txt .
-  * Build with (or later).
+  * Build with 2defdfbc5142b9f858031f37b9e99992dfbe8f4e (or later).
 
 -- Jun 09, 2016 01:12:45 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
