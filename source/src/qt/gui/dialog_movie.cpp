@@ -312,7 +312,7 @@ void CSP_DialogMovie::do_set_bframes(int n)
 	int val = combo_video_bframes->itemData(n).toInt();
 	if(val < 0) val = 0;
 	if(val > 10) val = 10;
-	config.video_bframes = val;
+	video_bframes = val;
 }
 
 void CSP_DialogMovie::do_set_video_bitrate(int n)
@@ -327,7 +327,7 @@ void CSP_DialogMovie::do_set_b_adapt(int n)
 	int val = combo_video_b_adapt->itemData(n).toInt();
 	if(val < 0) val = 0;
 	if(val > 2) val = 2;
-	config.video_b_adapt = val;
+	video_b_adapt = val;
 }
 
 void CSP_DialogMovie::do_set_subme(int n)
@@ -335,7 +335,7 @@ void CSP_DialogMovie::do_set_subme(int n)
 	int val = combo_video_subme->itemData(n).toInt();
 	if(val < 4) val = 4;
 	if(val > 11) val = 11;
-	config.video_subme = val;
+	video_subme = val;
 }
 
 void CSP_DialogMovie::do_set_video_threads(int n)

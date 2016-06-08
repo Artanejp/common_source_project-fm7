@@ -109,6 +109,7 @@ void Object_Menu_Control::do_save_as_movie(void)
 	QDateTime nowTime = QDateTime::currentDateTime();
 	QString tmps = nowTime.toString(QString::fromUtf8("yyyy-MM-dd_hh-mm-ss.zzz."));
 	QString path = QString::fromUtf8("Saved_Movie_") + tmps + QString::fromUtf8("mp4");
+	//QString path = QString::fromUtf8("Saved_Movie_") + tmps + QString::fromUtf8("mkv");
 	if(emu->get_osd() == NULL) return;
 	path = QString::fromLocal8Bit(emu->get_osd()->get_app_path()) + path;
 	int rate = emu->get_osd()->get_sound_rate();

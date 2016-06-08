@@ -33,122 +33,142 @@ int MOVIE_SAVER::write_frame(void *_fmt_ctx, const void *_time_base, void *_st, 
 	const AVRational *time_base = (const AVRational *)_time_base;
 	AVStream *st = (AVStream *)_st;
 	AVPacket *pkt = (AVPacket *)_pkt;
-    /* rescale output packet timestamp values from codec to stream timebase */
-    av_packet_rescale_ts(pkt, *time_base, st->time_base);
-    pkt->stream_index = st->index;
+	/* rescale output packet timestamp values from codec to stream timebase */
+	av_packet_rescale_ts(pkt, *time_base, st->time_base);
+	pkt->stream_index = st->index;
 
-    /* Write the compressed frame to the media file. */
-    //log_packet(fmt_ctx, pkt);
-    return av_interleaved_write_frame(fmt_ctx, pkt);
+	/* Write the compressed frame to the media file. */
+	//log_packet(fmt_ctx, pkt);
+	return av_interleaved_write_frame(fmt_ctx, pkt);
 }
 
 /* Add an output stream. */
 //static void add_stream(OutputStream *ost, AVFormatContext *oc,
-//                       AVCodec **codec,
-//                       enum AVCodecID codec_id)
+//					   AVCodec **codec,
+//					   enum AVCodecID codec_id)
 bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
-                       void **_codec,
-                       uint64_t _codec_id)
+					   void **_codec,
+					   uint64_t _codec_id)
 {
-    AVCodecContext *c;
-    int i;
+	AVCodecContext *c;
+	int i;
 
 	OutputStream *ost = (OutputStream *)_ost;
 	AVFormatContext *oc = (AVFormatContext *)_oc;
 	AVCodec **codec = (AVCodec **)_codec;
 	enum AVCodecID codec_id = (enum AVCodecID)_codec_id;
-    /* find the encoder */
-    *codec = avcodec_find_encoder(codec_id);
-    if (!(*codec)) {
-        AGAR_DebugLog(AGAR_LOG_INFO, "Could not find encoder for '%s'\n",
-                (const char *)avcodec_get_name(codec_id));
-        return false;
-    }
+	/* find the encoder */
+	*codec = avcodec_find_encoder(codec_id);
+	if (!(*codec)) {
+		AGAR_DebugLog(AGAR_LOG_INFO, "Could not find encoder for '%s'\n",
+				(const char *)avcodec_get_name(codec_id));
+		return false;
+	}
 
-    ost->st = avformat_new_stream(oc, *codec);
-    if (!ost->st) {
-        AGAR_DebugLog(AGAR_LOG_INFO, "Could not allocate stream\n");
-        return false;
-    }
-    ost->st->id = oc->nb_streams-1;
-    c = ost->st->codec;
+	ost->st = avformat_new_stream(oc, *codec);
+	if (!ost->st) {
+		AGAR_DebugLog(AGAR_LOG_INFO, "Could not allocate stream\n");
+		return false;
+	}
+	ost->st->id = oc->nb_streams-1;
+	c = ost->st->codec;
 
-    switch ((*codec)->type) {
-    case AVMEDIA_TYPE_AUDIO:
-        c->sample_fmt  = (*codec)->sample_fmts ?
-            (*codec)->sample_fmts[0] : AV_SAMPLE_FMT_FLTP;
-        c->bit_rate    = audio_bit_rate;
-        c->sample_rate = audio_sample_rate;
-        if ((*codec)->supported_samplerates) {
-            c->sample_rate = (*codec)->supported_samplerates[0];
-            for (i = 0; (*codec)->supported_samplerates[i]; i++) {
-                if ((*codec)->supported_samplerates[i] == audio_sample_rate)
-                    c->sample_rate = audio_sample_rate;
-            }
-        }
-        c->channels        = av_get_channel_layout_nb_channels(c->channel_layout);
-        c->channel_layout = AV_CH_LAYOUT_STEREO;
-        if ((*codec)->channel_layouts) {
-            c->channel_layout = (*codec)->channel_layouts[0];
-            for (i = 0; (*codec)->channel_layouts[i]; i++) {
-                if ((*codec)->channel_layouts[i] == AV_CH_LAYOUT_STEREO)
-                    c->channel_layout = AV_CH_LAYOUT_STEREO;
-            }
-        }
-        c->channels        = av_get_channel_layout_nb_channels(c->channel_layout);
-        ost->st->time_base = (AVRational){ 1, c->sample_rate };
-        break;
+	switch ((*codec)->type) {
+	case AVMEDIA_TYPE_AUDIO:
+		c->sample_fmt  = (*codec)->sample_fmts ?
+			(*codec)->sample_fmts[0] : AV_SAMPLE_FMT_FLTP;
+		c->bit_rate	= audio_bit_rate;
+		c->sample_rate = audio_sample_rate;
+		if ((*codec)->supported_samplerates) {
+			c->sample_rate = (*codec)->supported_samplerates[0];
+			for (i = 0; (*codec)->supported_samplerates[i]; i++) {
+				if ((*codec)->supported_samplerates[i] == audio_sample_rate)
+					c->sample_rate = audio_sample_rate;
+			}
+		}
+		c->channels		= av_get_channel_layout_nb_channels(c->channel_layout);
+		c->channel_layout = AV_CH_LAYOUT_STEREO;
+		if ((*codec)->channel_layouts) {
+			c->channel_layout = (*codec)->channel_layouts[0];
+			for (i = 0; (*codec)->channel_layouts[i]; i++) {
+				if ((*codec)->channel_layouts[i] == AV_CH_LAYOUT_STEREO)
+					c->channel_layout = AV_CH_LAYOUT_STEREO;
+			}
+		}
+		c->channels		= av_get_channel_layout_nb_channels(c->channel_layout);
+		ost->st->time_base = (AVRational){ 1, c->sample_rate };
+		break;
 
-    case AVMEDIA_TYPE_VIDEO:
-        c->codec_id = codec_id;
-        c->bit_rate = video_bit_rate;
+	case AVMEDIA_TYPE_VIDEO:
+		c->codec_id = codec_id;
+		c->bit_rate = video_bit_rate;
 		// See:
 		// https://libav.org/avconv.html#Video-Options
-        /* Resolution must be a multiple of two. */
-        c->width    = video_geometry.width();
-        c->height   = video_geometry.height();
-		c->qmin     = config.video_minq;
-		c->qmax     = config.video_maxq;
-		c->thread_count     = video_encode_threads;
-		c->max_b_frames     = config.video_bframes;
+		/* Resolution must be a multiple of two. */
+		c->width	= video_geometry.width();
+		c->height   = video_geometry.height();
+		c->qmin	 = config.video_minq;
+		c->qmax	 = config.video_maxq;
+		c->thread_count	 = video_encode_threads;
+		c->max_b_frames	 = config.video_bframes;
+		
+		c->b_quant_offset = 2;
+		c->temporal_cplx_masking = 0.1;
+		c->spatial_cplx_masking = 0.15;
+		c->scenechange_threshold = 35;
+		c->noise_reduction = 0;
+		c->bidir_refine = 2;
+		c->refs = 5;
+		c->chromaoffset = 2;
+		c->max_qdiff = 6;
 		//c->b_frame_strategy = config.video_b_adapt;
 		c->me_subpel_quality = config.video_subme;
 		c->me_method = ME_UMH;
-        /* timebase: This is the fundamental unit of time (in seconds) in terms
-         * of which frame timestamps are represented. For fixed-fps content,
-         * timebase should be 1/framerate and timestamp increments should be
-         * identical to 1. */
-        ost->st->time_base = (AVRational){ 1, rec_fps};
-        c->time_base       = ost->st->time_base;
+		c->i_quant_offset = 1.2;
+		c->i_quant_factor = 1.5;
+		c->trellis = 2;
+		c->mb_lmin = 4;
+		c->mb_lmax = 18;
+		c->bidir_refine = 2;
+		c->keyint_min = rec_fps / 5;
+		c->gop_size = rec_fps * 5;
+		c->b_sensitivity = 55;
+		c->scenechange_threshold = 50;
 
-        c->gop_size      = rec_fps; /* emit one intra frame every one second */
-        c->pix_fmt       = STREAM_PIX_FMT;
-        if (c->codec_id == AV_CODEC_ID_MPEG2VIDEO) {
-            /* just for testing, we also add B frames */
-            c->max_b_frames = 2;
-        }
-        if (c->codec_id == AV_CODEC_ID_MPEG1VIDEO) {
-            /* Needed to avoid using macroblocks in which some coeffs overflow.
-             * This does not happen with normal video, it just happens here as
-             * the motion of the chroma plane does not match the luma plane. */
-            c->mb_decision = 2;
-        }
-        if (c->codec_id == AV_CODEC_ID_H264) {
-            /* Needed to avoid using macroblocks in which some coeffs overflow.
-             * This does not happen with normal video, it just happens here as
-             * the motion of the chroma plane does not match the luma plane. */
-            c->max_b_frames = 6;
-            c->mb_decision = 2;
-        }
-    break;
+		/* timebase: This is the fundamental unit of time (in seconds) in terms
+		 * of which frame timestamps are represented. For fixed-fps content,
+		 * timebase should be 1/framerate and timestamp increments should be
+		 * identical to 1. */
+		ost->st->time_base = (AVRational){ 1, rec_fps};
+		c->time_base	   = ost->st->time_base;
 
-    default:
-        break;
-    }
+		//c->gop_size	  = rec_fps; /* emit one intra frame every one second */
+		c->pix_fmt	   = STREAM_PIX_FMT;
+		if (c->codec_id == AV_CODEC_ID_MPEG2VIDEO) {
+			/* just for testing, we also add B frames */
+			c->max_b_frames = 2;
+		}
+		if (c->codec_id == AV_CODEC_ID_MPEG1VIDEO) {
+			/* Needed to avoid using macroblocks in which some coeffs overflow.
+			 * This does not happen with normal video, it just happens here as
+			 * the motion of the chroma plane does not match the luma plane. */
+			c->mb_decision = 2;
+		}
+		if (c->codec_id == AV_CODEC_ID_H264) {
+			/* Needed to avoid using macroblocks in which some coeffs overflow.
+			 * This does not happen with normal video, it just happens here as
+			 * the motion of the chroma plane does not match the luma plane. */
+			c->mb_decision = 2;
+		}
+	break;
 
-    /* Some formats want stream headers to be separate. */
-    if (oc->oformat->flags & AVFMT_GLOBALHEADER)
-        c->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+	default:
+		break;
+	}
+
+	/* Some formats want stream headers to be separate. */
+	if (oc->oformat->flags & AVFMT_GLOBALHEADER)
+		c->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
 	return true;
 }
 
@@ -159,34 +179,34 @@ void MOVIE_SAVER::close_stream(void *_oc, void *_ost)
 {
 	AVFormatContext *oc = (AVFormatContext *)_oc;
 	OutputStream *ost = (OutputStream *)_ost;
-    avcodec_close(ost->st->codec);
-    av_frame_free(&ost->frame);
-    av_frame_free(&ost->tmp_frame);
-    sws_freeContext(ost->sws_ctx);
-    swr_free(&ost->swr_ctx);
+	avcodec_close(ost->st->codec);
+	av_frame_free(&ost->frame);
+	av_frame_free(&ost->tmp_frame);
+	sws_freeContext(ost->sws_ctx);
+	swr_free(&ost->swr_ctx);
 }
 
 
 
 bool MOVIE_SAVER::do_open(QString filename, int _fps, int _sample_rate)
 {
-    AVOutputFormat *fmt;
-    AVFormatContext *oc;
-    //AVCodec *audio_codec, *video_codec;
-    int ret;
-    have_video = 0, have_audio = 0;
-    int encode_video = 0, encode_audio = 0;
+	AVOutputFormat *fmt;
+	AVFormatContext *oc;
+	//AVCodec *audio_codec, *video_codec;
+	int ret;
+	have_video = 0, have_audio = 0;
+	int encode_video = 0, encode_audio = 0;
 	do_close();
-    raw_options_list = NULL;
+	raw_options_list = NULL;
 
 	do_set_record_fps(_fps);
 	audio_sample_rate = _sample_rate;
 	_filename = filename;
 	
-    video_st = { 0 };
+	video_st = { 0 };
 	audio_st = { 0 };
-    /* Initialize libavcodec, and register all codecs and formats. */
-    av_register_all();
+	/* Initialize libavcodec, and register all codecs and formats. */
+	av_register_all();
 
 
 	{
@@ -221,69 +241,69 @@ bool MOVIE_SAVER::do_open(QString filename, int _fps, int _sample_rate)
 
 	for(int i = 0; i < encode_options.size(); i++) {
 		if(encode_opt_keys.size() <= i) break;
-        av_dict_set(&raw_options_list, encode_opt_keys.takeAt(i).toUtf8().constData(),
+		av_dict_set(&raw_options_list, encode_opt_keys.takeAt(i).toUtf8().constData(),
 					encode_options.takeAt(i).toUtf8().constData(), 0);
-    }
+	}
 
-    /* allocate the output media context */
-    avformat_alloc_output_context2(&oc, NULL, NULL, _filename.toLocal8Bit().constData());
-    if (!oc) {
-        printf("Could not deduce output format from file extension: using MPEG.\n");
-        avformat_alloc_output_context2(&oc, NULL, "mpeg", _filename.toLocal8Bit().constData());
-    }
-    if (!oc)
-        return false;
+	/* allocate the output media context */
+	avformat_alloc_output_context2(&oc, NULL, NULL, _filename.toLocal8Bit().constData());
+	if (!oc) {
+		printf("Could not deduce output format from file extension: using MPEG.\n");
+		avformat_alloc_output_context2(&oc, NULL, "mpeg", _filename.toLocal8Bit().constData());
+	}
+	if (!oc)
+		return false;
 
-    fmt = oc->oformat;
+	fmt = oc->oformat;
 
-    /* Add the audio and video streams using the default format codecs
-     * and initialize the codecs. */
-    if (fmt->video_codec != AV_CODEC_ID_NONE) {
-        if(!add_stream((void *)&video_st, (void *)oc, (void **)&video_codec, (uint64_t)fmt->video_codec)) goto _err_final;
-        have_video = 1;
-        encode_video = 1;
-    }
-    if (fmt->audio_codec != AV_CODEC_ID_NONE) {
-        if(!add_stream((void *)&audio_st, (void *)oc, (void **)&audio_codec, (uint64_t)fmt->audio_codec)) goto _err_final;
-        have_audio = 1;
-        encode_audio = 1;
-    }
+	/* Add the audio and video streams using the default format codecs
+	 * and initialize the codecs. */
+	if (fmt->video_codec != AV_CODEC_ID_NONE) {
+		if(!add_stream((void *)&video_st, (void *)oc, (void **)&video_codec, (uint64_t)fmt->video_codec)) goto _err_final;
+		have_video = 1;
+		encode_video = 1;
+	}
+	if (fmt->audio_codec != AV_CODEC_ID_NONE) {
+		if(!add_stream((void *)&audio_st, (void *)oc, (void **)&audio_codec, (uint64_t)fmt->audio_codec)) goto _err_final;
+		have_audio = 1;
+		encode_audio = 1;
+	}
 	output_context = oc;
 	stream_format  = fmt;
-    /* Now that all the parameters are set, we can open the audio and
-     * video codecs and allocate the necessary encode buffers. */
-    if (have_video)
-        open_video();
+	/* Now that all the parameters are set, we can open the audio and
+	 * video codecs and allocate the necessary encode buffers. */
+	if (have_video)
+		open_video();
 
-    if (have_audio)
-        open_audio();
+	if (have_audio)
+		open_audio();
 	
-    av_dump_format(oc, 0, _filename.toLocal8Bit().constData(), 1);
+	av_dump_format(oc, 0, _filename.toLocal8Bit().constData(), 1);
 
-    /* open the output file, if needed */
-    if (!(fmt->flags & AVFMT_NOFILE)) {
-        ret = avio_open(&oc->pb, filename.toLocal8Bit().constData(), AVIO_FLAG_WRITE);
-        if (ret < 0) {
-            AGAR_DebugLog(AGAR_LOG_INFO, "Could not open '%s': %s\n", filename.toLocal8Bit().constData(),
-                    err2str(ret).toLocal8Bit().constData());
-            goto _err_final;
-        } else {
-            AGAR_DebugLog(AGAR_LOG_INFO, "Success to Open file: '%s\n", filename.toLocal8Bit().constData());
+	/* open the output file, if needed */
+	if (!(fmt->flags & AVFMT_NOFILE)) {
+		ret = avio_open(&oc->pb, filename.toLocal8Bit().constData(), AVIO_FLAG_WRITE);
+		if (ret < 0) {
+			AGAR_DebugLog(AGAR_LOG_INFO, "Could not open '%s': %s\n", filename.toLocal8Bit().constData(),
+					err2str(ret).toLocal8Bit().constData());
+			goto _err_final;
+		} else {
+			AGAR_DebugLog(AGAR_LOG_INFO, "Success to Open file: '%s\n", filename.toLocal8Bit().constData());
 		}			
-    }
+	}
 
-    /* Write the stream header, if any. */
-    ret = avformat_write_header(oc, &raw_options_list);
-    if (ret < 0) {
-        AGAR_DebugLog(AGAR_LOG_INFO, "Error occurred when opening output file: %s\n",
+	/* Write the stream header, if any. */
+	ret = avformat_write_header(oc, &raw_options_list);
+	if (ret < 0) {
+		AGAR_DebugLog(AGAR_LOG_INFO, "Error occurred when opening output file: %s\n",
 				err2str(ret).toLocal8Bit().constData());
-        goto _err_final;
-    }
+		goto _err_final;
+	}
 
 	recording = true;
 	return true;
 _err_final:
-    avformat_free_context(oc);
+	avformat_free_context(oc);
 	oc = NULL;
 	output_context = NULL;
 	stream_format  = NULL;
@@ -294,11 +314,11 @@ void MOVIE_SAVER::do_close()
 {
 	recording = false;
 #if defined(USE_LIBAV)
-    int ret, i;
-    AVFormatContext *os;
-    OutputStream *ost;
-    //InputStream *ist;
-    int64_t total_packets_written = 0;
+	int ret, i;
+	AVFormatContext *os;
+	OutputStream *ost;
+	//InputStream *ist;
+	int64_t total_packets_written = 0;
 	if(output_context != NULL) {
 		AVFormatContext *oc = output_context;
 		AVOutputFormat *fmt = oc->oformat;
