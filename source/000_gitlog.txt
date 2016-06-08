@@ -1,3 +1,21 @@
+commit b10935053131ba172f24e771cb9e629467817663
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 9 05:52:04 2016 +0900
+
+    [DOC] Update revision.
+
+commit 64df71cd492be91289f883224640f42cace090ed
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 9 05:48:53 2016 +0900
+
+    [MOVIE_SAVER][x264] Improve encoding parameters.
+
+commit 1534eb16dfecd22cfd662be6578d0aead45ba2a3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 9 02:44:21 2016 +0900
+
+    [DOC] Update credits.
+
 commit 1f47a30797fc6674ecd613fb4302415101064e83
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Jun 9 02:43:05 2016 +0900
