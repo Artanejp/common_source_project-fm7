@@ -1,3 +1,9 @@
+commit 2634aa092d4850707389c692709b5339ee690770
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 8 23:18:55 2016 +0900
+
+    [Qt][MOVIE_SAVER] (MAYBE) Fix not running with Ubuntu 16.04 LTS.
+
 commit cd5cb8e89fb3a5bdf82fe7bacd6f7967dc56282f
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Wed Jun 8 08:06:31 2016 +0900

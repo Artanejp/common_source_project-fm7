@@ -1,5 +1,13 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT June 09, 2016
+  * Upstream 2016-04-13 .
+  * Now, all of binaries are built with ffmpeg-2.8.7 at GNU/Linux,  with ffmpeg-3.0 at Windows.
+  * Please read README.ffmpeg.txt .
+  * Build with (or later).
+
+-- Jun 09, 2016 01:12:45 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT June 08, 2016
   * Upstream 2016-04-13 .
   * Add movie saver, using libav with x264.
