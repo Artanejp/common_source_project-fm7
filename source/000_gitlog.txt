@@ -1,3 +1,21 @@
+commit 125287ff9d9a889c44828ad2ae1e32d05993bf93
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 9 02:39:29 2016 +0900
+
+    [VM][FM7] Add exceptions for Xanadu Scenario 2, this has not booted with changes 49dceaca9401d3c6037cb51ec013ca032ff0e83c .
+
+commit 510e05435ff0b1e75df5d6c826183e71c5376fa5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 9 01:20:42 2016 +0900
+
+    [DOC] Update credits.
+
+commit cc8fbf7c8343d256037638f7adc218626aaaebbe
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 9 01:19:02 2016 +0900
+
+    [DOC] Update gitlog.
+
 commit 2defdfbc5142b9f858031f37b9e99992dfbe8f4e
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Jun 9 01:18:19 2016 +0900
