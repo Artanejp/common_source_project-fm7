@@ -91,8 +91,8 @@ add_library(CSPavio SHARED
 #endif()
 
 set_target_properties(CSPavio PROPERTIES 
-			     SOVERSION 1.1.2
-			     VERSION 1.1.2
+			     SOVERSION 1.2.0
+			     VERSION 1.2.0
 			     )
 INSTALL(TARGETS CSPavio DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()
