@@ -1,3 +1,9 @@
+commit 1f47a30797fc6674ecd613fb4302415101064e83
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 9 02:43:05 2016 +0900
+
+    [DOC] Update ChangeLog.
+
 commit 125287ff9d9a889c44828ad2ae1e32d05993bf93
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Jun 9 02:39:29 2016 +0900
