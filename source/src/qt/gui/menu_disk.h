@@ -13,7 +13,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class Menu_FDClass: public Menu_MetaClass {
+class DLL_PREFIX Menu_FDClass: public Menu_MetaClass {
 	Q_OBJECT
 protected:
 	class Action_Control *action_ignore_crc_error;

@@ -78,7 +78,7 @@ class MOVIE_SAVER;
 
 extern 	USING_FLAGS *using_flags;
 
-class Ui_MainWindowBase : public QMainWindow
+class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 {
 	Q_OBJECT
  protected:

@@ -65,7 +65,7 @@ class CSP_KeyTables;
 class USING_FLAGS;
 
 QT_BEGIN_NAMESPACE
-class OSD_BASE : public QThread
+class DLL_PREFIX OSD_BASE : public QThread
 {
 	Q_OBJECT
 protected:

@@ -12,6 +12,7 @@
 
 #include <QThread>
 #include <SDL.h>
+#include "common.h"
 
 class EMU;
 class OSD;
@@ -19,7 +20,7 @@ class QString;
 
 QT_BEGIN_NAMESPACE
 
-class JoyThreadClass : public QThread {
+class DLL_PREFIX JoyThreadClass : public QThread {
 	Q_OBJECT
  private:
 	int joy_num[16];

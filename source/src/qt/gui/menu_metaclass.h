@@ -25,7 +25,8 @@ class EMU;
 QT_BEGIN_NAMESPACE
 extern 	USING_FLAGS *using_flags;
 
-class Menu_MetaClass : public QMenu {
+
+class DLL_PREFIX Menu_MetaClass : public QMenu {
 	Q_OBJECT
 private:
 
@@ -114,6 +115,11 @@ signals:
 	int sig_set_recent_media(int, int);
 	int sig_set_inner_slot(int, int);
 	int sig_insert_media(int);
+	int sig_update_inner_fd(int drv, QStringList base, class Action_Control **action_select_media_list,
+							QStringList lst, int num, bool use_d88_menus);
+	int sig_update_inner_bubble(int drv, QStringList base, class Action_Control **action_select_media_list,
+								QStringList lst, int num, bool use_d88_menus);
+
 };
 QT_END_NAMESPACE
 

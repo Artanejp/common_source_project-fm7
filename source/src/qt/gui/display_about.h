@@ -14,12 +14,12 @@
 #include <QHBoxLayout>
 #include <QGroupBox>
 
-//#include "emu.h"
+#include "common.h"
 
 QT_BEGIN_NAMESPACE
 
 class EMU;
-class Dlg_AboutCSP : public QWidget
+class DLL_PREFIX Dlg_AboutCSP : public QWidget
 {
 	Q_OBJECT
 protected:

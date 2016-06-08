@@ -46,9 +46,13 @@
 	#elif defined(Q_OS_WIN) || defined(__WIN32) || defined(__WIN64)
 		#define CSP_OS_GCC_WINDOWS
 		#define CSP_OS_WINDOWS
+		#define DLL_PREFIX   __declspec(dllexport)
+		#define DLL_PREFIX_I __declspec(dllimport)
 	#else
 		#define CSP_OS_GCC_GENERIC
 		#define CSP_OS_GENERIC
+		#define DLL_PREFIX
+		#define DLL_PREFIX_I
 	#endif
 	#if defined(__clang__)
 		#define __CSP_COMPILER_CLANG
@@ -56,7 +60,11 @@
 		#define __CSP_COMPILER_GCC
 	#endif
 	#define SUPPORT_CPLUSPLUS_11
+#else
+		#define DLL_PREFIX
+		#define DLL_PREFIX_I
 #endif
+
 #ifndef SUPPORT_CPLUSPLUS_11
 	#if defined(__cplusplus) && (__cplusplus > 199711L)
 		#define SUPPORT_CPLUSPLUS_11
@@ -383,17 +391,17 @@ uint16_t EndianToLittle_WORD(uint16_t x);
 		typedef int errno_t;
 	#endif
 //	errno_t my_tfopen_s(FILE** pFile, const _TCHAR *filename, const _TCHAR *mode);
-	errno_t my_strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource);
-	errno_t my_tcscpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource);
-	errno_t my_strncpy_s(char *strDestination, size_t numberOfElements, const char *strSource, size_t count);
-	errno_t my_tcsncpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource, size_t count);
-	char *my_strtok_s(char *strToken, const char *strDelimit, char **context);
-	_TCHAR *my_tcstok_s(_TCHAR *strToken, const char *strDelimit, _TCHAR **context);
+	errno_t DLL_PREFIX my_strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource);
+	errno_t DLL_PREFIX my_tcscpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource);
+	errno_t DLL_PREFIX my_strncpy_s(char *strDestination, size_t numberOfElements, const char *strSource, size_t count);
+	errno_t DLL_PREFIX my_tcsncpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource, size_t count);
+	char * DLL_PREFIX my_strtok_s(char *strToken, const char *strDelimit, char **context);
+	_TCHAR * DLL_PREFIX my_tcstok_s(_TCHAR *strToken, const char *strDelimit, _TCHAR **context);
 	#define my_fprintf_s fprintf
-	int my_sprintf_s(char *buffer, size_t sizeOfBuffer, const char *format, ...);
-	int my_stprintf_s(_TCHAR *buffer, size_t sizeOfBuffer, const _TCHAR *format, ...);
-	int my_vsprintf_s(char *buffer, size_t numberOfElements, const char *format, va_list argptr);
-	int my_vstprintf_s(_TCHAR *buffer, size_t numberOfElements, const _TCHAR *format, va_list argptr);
+	int DLL_PREFIX my_sprintf_s(char *buffer, size_t sizeOfBuffer, const char *format, ...);
+	int DLL_PREFIX my_stprintf_s(_TCHAR *buffer, size_t sizeOfBuffer, const _TCHAR *format, ...);
+	int DLL_PREFIX my_vsprintf_s(char *buffer, size_t numberOfElements, const char *format, va_list argptr);
+	int DLL_PREFIX my_vstprintf_s(_TCHAR *buffer, size_t numberOfElements, const _TCHAR *format, va_list argptr);
 #else
 //	#define my_tfopen_s _tfopen_s
 	#define my_strcpy_s strcpy_s
@@ -469,23 +477,23 @@ typedef struct {
 #pragma pack()
 
 // file path
-const _TCHAR *get_application_path();
-const _TCHAR *create_local_path(const _TCHAR *format, ...);
-void create_local_path(_TCHAR *file_path, int length, const _TCHAR *format, ...);
-const _TCHAR *create_date_file_path(const _TCHAR *extension);
-void create_date_file_path(_TCHAR *file_path, int length, const _TCHAR *extension);
-bool check_file_extension(const _TCHAR *file_path, const _TCHAR *ext);
-const _TCHAR *get_file_path_without_extensiton(const _TCHAR *file_path);
-void get_long_full_path_name(const _TCHAR* src, _TCHAR* dst, size_t dst_len);
-const _TCHAR* get_parent_dir(const _TCHAR* file);
+const _TCHAR * DLL_PREFIX get_application_path();
+const _TCHAR * DLL_PREFIX create_local_path(const _TCHAR *format, ...);
+void DLL_PREFIX create_local_path(_TCHAR *file_path, int length, const _TCHAR *format, ...);
+const _TCHAR * DLL_PREFIX create_date_file_path(const _TCHAR *extension);
+void DLL_PREFIX create_date_file_path(_TCHAR *file_path, int length, const _TCHAR *extension);
+bool DLL_PREFIX check_file_extension(const _TCHAR *file_path, const _TCHAR *ext);
+const _TCHAR * DLL_PREFIX get_file_path_without_extensiton(const _TCHAR *file_path);
+void DLL_PREFIX get_long_full_path_name(const _TCHAR* src, _TCHAR* dst, size_t dst_len);
+const _TCHAR* DLL_PREFIX get_parent_dir(const _TCHAR* file);
 
 // misc
-const _TCHAR *create_string(const _TCHAR* format, ...);
-uint32_t get_crc32(uint8_t data[], int size);
-uint16_t jis_to_sjis(uint16_t jis);
+const _TCHAR * DLL_PREFIX create_string(const _TCHAR* format, ...);
+uint32_t DLL_PREFIX get_crc32(uint8_t data[], int size);
+uint16_t DLL_PREFIX jis_to_sjis(uint16_t jis);
 
-int decibel_to_volume(int decibel);
-int32_t apply_volume(int32_t sample, int volume);
+int DLL_PREFIX decibel_to_volume(int decibel);
+int32_t DLL_PREFIX apply_volume(int32_t sample, int volume);
 
 #define array_length(array) (sizeof(array) / sizeof(array[0]))
 
@@ -510,6 +518,6 @@ typedef struct cur_time_s {
 	bool load_state(void *f);
 } cur_time_t;
 
-void get_host_time(cur_time_t* cur_time);
+void DLL_PREFIX get_host_time(cur_time_t* cur_time);
 
 #endif

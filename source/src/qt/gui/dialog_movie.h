@@ -13,7 +13,17 @@
 #include <QSize>
 #include <QWidget>
 
-	QT_BEGIN_NAMESPACE
+#ifdef __GNUC__
+	#if defined(Q_OS_WIN) || defined(__WIN32) || defined(__WIN64)
+		#define DLL_PREFIX __declspec(dllexport)
+	#else
+		#define DLL_PREFIX
+	#endif
+#else
+		#define DLL_PREFIX
+#endif
+
+QT_BEGIN_NAMESPACE
 class QHBoxLayout;
 class QVBoxLayout;
 class QGridLayout;
@@ -24,7 +34,7 @@ class QSlider;
 
 class MOVIE_SAVER;
 
-class CSP_DialogMovie: public QWidget {
+class DLL_PREFIX CSP_DialogMovie: public QWidget {
 	Q_OBJECT;
 private:
 	QSize geometry;

@@ -1,3 +1,21 @@
+commit cd5cb8e89fb3a5bdf82fe7bacd6f7967dc56282f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 8 08:06:31 2016 +0900
+
+    [UI][Qt][MOVIE_SAVER] Fix typo.
+
+commit 1ae7723ffc46228182eba985cb3c63dc029208f4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 8 07:46:20 2016 +0900
+
+    [*nix] Update installer script.
+
+commit 86d5ec29dee494bcf71a936dd3655cadeb457e5a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 8 07:44:43 2016 +0900
+
+    [DOC] Update documents.
+
 commit 2142d5c7426e21cfeedbaea0450f238f8b4d7d38
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Wed Jun 8 07:27:40 2016 +0900

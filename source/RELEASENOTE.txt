@@ -14,13 +14,13 @@ Source Code:
 Additional INFO:
 GNU/Linux with AMD64 binaries and Win32 with MINGW binaries are avaiable, packed with 7zip'ed format:
 
-   
+   https://www.sendspace.com/file/pja2z2
     or
-   
+   http://www1.axfc.net/u/3676696
 
-  SIZE: 
-  MD5SUM: 
-  SHA256SUM: 
+  SIZE: 85332844 
+  MD5SUM: 5d577985a134bf6661d6cf15407a89aa
+  SHA256SUM: 573dd2eb3b99cfc6098b27a6a6ab835030752c2fb95e96e1b84a9eb120a62588
 
 2.Background
 Common Source Code Project (CSP) is good emulator writing.

@@ -192,21 +192,32 @@ endif()
 
 include(simd-x86)
 
-set(BUNDLE_LIBS 
-
-                           ${OPENGL_LIBRARY}
-			   ${OPENCL_LIBRARY}
-			   ${GETTEXT_LIBRARY}
-			   ${OPENMP_LIBRARY}
-			   ${LIBAV_LIBRARIES}
-                           ${SDL_LIBS}
-			   ${LIBAV_LIBRARIES}
-			   ${ADDITIONAL_LIBRARIES}
-)
 if(WIN32)
-   set(BUNDLE_LIBS ${BUNDLE_LIBS})
+   set(BUNDLE_LIBS 
+       ${OPENGL_LIBRARY}
+       ${OPENCL_LIBRARY}
+       ${GETTEXT_LIBRARY}
+       ${OPENMP_LIBRARY}
+       ${LIBAV_LIBRARIES}
+       ${SDL_LIBS}
+       ${LIBAV_LIBRARIES}
+       ${ADDITIONAL_LIBRARIES}
+       )
+
 else()
+   set(BUNDLE_LIBS 
+       ${OPENGL_LIBRARY}
+       ${OPENCL_LIBRARY}
+       ${GETTEXT_LIBRARY}
+       ${OPENMP_LIBRARY}
+       ${SDL_LIBS}
+       ${LIBAV_LIBRARIES}
+       ${ADDITIONAL_LIBRARIES}
+       )
+
    set(BUNDLE_LIBS ${BUNDLE_LIBS} -lCSPosd -lCSPgui -lCSPemu_utils -lCSPavio)
+#   set(BUNDLE_LIBS ${BUNDLE_LIBS} -lCSPavcodec -lCSPavfilter -lCSPavformat -lCSPavutil -lCSPswresample -lCSPswscale -lCSPpostproc )
+
 endif()
 
 if(USE_QT_5)

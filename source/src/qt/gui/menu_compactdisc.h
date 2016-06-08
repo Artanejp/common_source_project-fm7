@@ -12,7 +12,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class Menu_CompactDiscClass: public Menu_MetaClass {
+class DLL_PREFIX Menu_CompactDiscClass: public Menu_MetaClass {
 	Q_OBJECT
 protected:
 public:

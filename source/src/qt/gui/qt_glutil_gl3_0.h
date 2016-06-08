@@ -13,7 +13,7 @@
 #include "qt_glutil_gl2_0.h"
 #include <QOpenGLFunctions_3_0>
 
-class GLDraw_3_0 : public GLDraw_2_0
+class DLL_PREFIX GLDraw_3_0 : public GLDraw_2_0
 {
 	Q_OBJECT
 protected:

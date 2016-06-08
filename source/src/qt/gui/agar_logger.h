@@ -19,17 +19,25 @@
 #include <sys/time.h>
 
 #include "simd_types.h"
-
+#ifdef __GNUC__
+	#if defined(Q_OS_WIN) || defined(__WIN32) || defined(__WIN64)
+		#define DLL_PREFIX __declspec(dllexport)
+	#else
+		#define DLL_PREFIX
+	#endif
+#else
+		#define DLL_PREFIX
+#endif
 #ifdef __cplusplus
 extern "C" {
 #endif
-   extern void AGAR_OpenLog(int syslog, int cons, const char *devname);
-   extern void AGAR_DebugLog(int level, const char *fmt, ...);
-   extern void AGAR_CloseLog(void);
-   extern void AGAR_SetLogStatus(int sw);
-   extern void AGAR_SetLogSysLog(int sw);
-   extern void AGAR_SetLogStdOut(int sw);
-   extern bool AGAR_LogGetStatus(void);
+   void DLL_PREFIX AGAR_OpenLog(int syslog, int cons, const char *devname);
+   void DLL_PREFIX AGAR_DebugLog(int level, const char *fmt, ...);
+   void DLL_PREFIX AGAR_CloseLog(void);
+   void DLL_PREFIX AGAR_SetLogStatus(int sw);
+   void DLL_PREFIX AGAR_SetLogSysLog(int sw);
+   void DLL_PREFIX AGAR_SetLogStdOut(int sw);
+   bool DLL_PREFIX AGAR_LogGetStatus(void);
 
 #define AGAR_LOG_ON 1
 #define AGAR_LOG_OFF 0

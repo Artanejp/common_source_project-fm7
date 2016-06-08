@@ -12,7 +12,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class Menu_BinaryClass: public Menu_MetaClass {
+class DLL_PREFIX Menu_BinaryClass: public Menu_MetaClass {
 	Q_OBJECT
 protected:
 	QActionGroup *action_group_save_recent;

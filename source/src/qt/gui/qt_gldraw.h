@@ -28,7 +28,7 @@ struct NativeVirtualKeyCode {
 	uint32_t key;
 };
 
-class GLDrawClass: public QGLWidget 
+class DLL_PREFIX GLDrawClass: public QGLWidget 
 {
 	Q_OBJECT
  private:

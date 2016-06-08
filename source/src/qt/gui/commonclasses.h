@@ -50,7 +50,7 @@ class EMU;
 extern class EMU* emu;
 
 QT_BEGIN_NAMESPACE
-typedef class Object_Menu_Control: public QObject {
+typedef class DLL_PREFIX Object_Menu_Control: public QObject {
 	Q_OBJECT
 public:
 //   explicit Object_Menu_Control(QObject *parent = 0);
@@ -206,7 +206,7 @@ signals:
 	int sig_stop_saving_movie();
 } Object_Menu_Control ;
 
-typedef class Action_Control: public QAction {
+typedef class DLL_PREFIX Action_Control: public QAction {
 	Q_OBJECT
   protected:
 	//    virtual void addedTo ( QWidget * actionWidget, QWidget * container ){}

@@ -51,11 +51,11 @@
 #define MAX_BINARY	1
 #endif
 
-void initialize_config();
-void load_config(const _TCHAR* config_path);
-void save_config(const _TCHAR* config_path);
-void save_config_state(void *f);
-bool load_config_state(void *f);
+void DLL_PREFIX initialize_config();
+void DLL_PREFIX load_config(const _TCHAR* config_path);
+void DLL_PREFIX save_config(const _TCHAR* config_path);
+void DLL_PREFIX save_config_state(void *f);
+bool DLL_PREFIX load_config_state(void *f);
 
 
 /*

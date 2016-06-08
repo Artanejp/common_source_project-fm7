@@ -17,7 +17,7 @@
 //#include "emu.h"
 #include "qt_main.h"
 
-typedef class CSP_DiskParams : public QObject
+typedef class DLL_PREFIX CSP_DiskParams : public QObject
 {   
 Q_OBJECT
 Q_DISABLE_COPY(CSP_DiskParams)

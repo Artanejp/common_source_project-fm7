@@ -7,12 +7,12 @@
 
 #include <QDir>
 
-#include "emu.h"
-#include "vm.h"
+//#include "emu.h"
+//#include "vm.h"
 #include "qt_dialogs.h"
 #include "menu_metaclass.h"
 #include "commonclasses.h"
-#include "mainwidget.h"
+#include "mainwidget_base.h"
 #include "commonclasses.h"
 
 
@@ -229,23 +229,7 @@ void Menu_MetaClass::do_update_inner_media(QStringList lst, int num)
 	QString tmps;
 	int ii;
 	inner_media_list.clear();
-#if defined(USE_FD1)	
-	if(use_d88_menus) {
-		for(ii = 0; ii < using_flags->get_max_d88_banks(); ii++) {
-			if(ii < p_emu->d88_file[media_drive].bank_num) {
-				inner_media_list << lst.value(ii);
-				action_select_media_list[ii]->setText(lst.value(ii));
-				action_select_media_list[ii]->setVisible(true);
-				if(ii == num) action_select_media_list[ii]->setChecked(true);
-			} else {
-				if(action_select_media_list[ii] != NULL) {
-					action_select_media_list[ii]->setText(QString::fromUtf8(""));
-					action_select_media_list[ii]->setVisible(false);
-				}
-			}
-		}
-	}
-#endif	
+	emit sig_update_inner_fd(media_drive, inner_media_list, action_select_media_list, lst , num, use_d88_menus);
 }
 
 void Menu_MetaClass::do_update_inner_media_bubble(QStringList lst, int num)
@@ -253,23 +237,8 @@ void Menu_MetaClass::do_update_inner_media_bubble(QStringList lst, int num)
 	QString tmps;
 	int ii;
 	inner_media_list.clear();
-#if defined(USE_BUBBLE1)	
-	if(use_d88_menus) {
-		for(ii = 0; ii < using_flags->get_max_b77_banks(); ii++) {
-			if(ii < p_emu->b77_file[media_drive].bank_num) {
-				inner_media_list << lst.value(ii);
-				action_select_media_list[ii]->setText(lst.value(ii));
-				action_select_media_list[ii]->setVisible(true);
-				if(ii == num) action_select_media_list[ii]->setChecked(true);
-			} else {
-				if(action_select_media_list[ii] != NULL) {
-					action_select_media_list[ii]->setText(QString::fromUtf8(""));
-					action_select_media_list[ii]->setVisible(false);
-				}
-			}
-		}
-	}
-#endif	
+	emit sig_update_inner_bubble(media_drive, inner_media_list, action_select_media_list,
+								 lst, num, use_d88_menus);
 }
 
 void Menu_MetaClass::create_pulldown_menu_sub(void)

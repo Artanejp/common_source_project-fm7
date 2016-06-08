@@ -34,7 +34,7 @@ QT_BEGIN_NAMESPACE
 
 //
 
-class Ui_SndSliderObject : public QSlider
+class DLL_PREFIX Ui_SndSliderObject : public QSlider
 {
 	Q_OBJECT
 private:

@@ -13,13 +13,14 @@
 #include <QLabel>
 #include <QStringList>
 #include <QString>
+#include "common.h"
 
 #include "dropdown_jsbutton.h"
 
 
 QT_BEGIN_NAMESPACE
 
-class CSP_DropDownJSPage: public QWidget {
+class DLL_PREFIX CSP_DropDownJSPage: public QWidget {
 	Q_OBJECT
 protected:
 	QWidget *p_wid;

@@ -16,7 +16,7 @@
 
 #include "dropdown_keytables.h"
 
-class CSP_DropDownJSButton: public QWidget {
+class DLL_PREFIX CSP_DropDownJSButton: public QWidget {
 	Q_OBJECT;
 protected:
 	QWidget *p_wid;

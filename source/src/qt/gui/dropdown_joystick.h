@@ -13,12 +13,13 @@
 #include <QStringList>
 #include <QString>
 #include <QHBoxLayout>
+#include "common.h"
 
 class CSP_DropDownJSPage;
 
 QT_BEGIN_NAMESPACE
 
-class CSP_DropDownJoysticks: public QWidget {
+class DLL_PREFIX CSP_DropDownJoysticks: public QWidget {
 	Q_OBJECT
 protected:
 	QWidget *p_wid;

@@ -196,6 +196,8 @@ void Ui_MainWindow::LaunchEmuThread(void)
 # endif
 	for(int ii = 0; ii < drvs; ii++) {
 		menu_fds[ii]->setEmu(emu);
+		connect(menu_fds[ii], SIGNAL(sig_update_inner_fd(int ,QStringList , class Action_Control **, QStringList , int, bool)),
+				this, SLOT(do_update_inner_fd(int ,QStringList , class Action_Control **, QStringList , int, bool)));
 	}
 #endif
 #if defined(USE_TAPE)
@@ -250,6 +252,10 @@ void Ui_MainWindow::LaunchEmuThread(void)
 # endif
 	for(int ii = 0; ii < drvs; ii++) {
 		menu_bubbles[ii]->setEmu(emu);
+		connect(menu_bubbles[ii],
+				SIGNAL(sig_update_inner_bubble(int ,QStringList , class Action_Control **, QStringList , int, bool)),
+				this,
+				SLOT(do_update_inner_bubble(int ,QStringList , class Action_Control **, QStringList , int, bool)));
 	}
 #endif
 	
@@ -634,6 +640,50 @@ int MainLoop(int argc, char *argv[])
 					 rMainWindow, SLOT(on_actionExit_triggered()));
 	GuiMain->exec();
 	return 0;
+}
+
+void Ui_MainWindow::do_update_inner_fd(int drv, QStringList base, class Action_Control **action_select_media_list,
+				       QStringList lst, int num, bool use_d88_menus)
+{
+#if defined(USE_FD1)
+	if(use_d88_menus) {
+		for(int ii = 0; ii < using_flags->get_max_d88_banks(); ii++) {
+			if(ii < emu->d88_file[drv].bank_num) {
+				base << lst.value(ii);
+				action_select_media_list[ii]->setText(lst.value(ii));
+				action_select_media_list[ii]->setVisible(true);
+				if(ii == num) action_select_media_list[ii]->setChecked(true);
+			} else {
+				if(action_select_media_list[ii] != NULL) {
+					action_select_media_list[ii]->setText(QString::fromUtf8(""));
+					action_select_media_list[ii]->setVisible(false);
+				}
+			}
+		}
+	}
+#endif	
+}
+
+void Ui_MainWindow::do_update_inner_bubble(int drv, QStringList base, class Action_Control **action_select_media_list,
+				       QStringList lst, int num, bool use_d88_menus)
+{
+#if defined(USE_BUBBLE1)	
+	if(use_d88_menus) {
+		for(int ii = 0; ii < using_flags->get_max_b77_banks(); ii++) {
+			if(ii < emu->b77_file[media_drive].bank_num) {
+				base << lst.value(ii);
+				action_select_media_list[ii]->setText(lst.value(ii));
+				action_select_media_list[ii]->setVisible(true);
+				if(ii == num) action_select_media_list[ii]->setChecked(true);
+			} else {
+				if(action_select_media_list[ii] != NULL) {
+					action_select_media_list[ii]->setText(QString::fromUtf8(""));
+					action_select_media_list[ii]->setVisible(false);
+				}
+			}
+		}
+	}
+#endif	
 }
 
 #ifdef USE_DEBUGGER

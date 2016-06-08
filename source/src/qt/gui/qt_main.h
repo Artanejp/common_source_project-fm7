@@ -28,14 +28,14 @@ class EMU;
 extern class META_MainWindow *rMainWindow;
 extern EMU* emu;
 // menu
-extern std::string cpp_homedir;
-extern std::string cpp_confdir;
-extern std::string my_procname;
-extern std::string sRssDir;
-extern bool now_menuloop;
+extern std::string DLL_PREFIX cpp_homedir;
+extern std::string DLL_PREFIX cpp_confdir;
+extern std::string DLL_PREFIX my_procname;
+extern std::string DLL_PREFIX sRssDir;
+extern bool DLL_PREFIX now_menuloop;
 
-extern const int screen_mode_width[];
-extern const int screen_mode_height[];
+extern const int DLL_PREFIX screen_mode_width[];
+extern const int DLL_PREFIX screen_mode_height[];
 
 #ifndef MAX_HISTORY
 #define MAX_HISTORY 8
@@ -77,10 +77,10 @@ extern const int screen_mode_height[];
 }
 #endif
 
-extern _TCHAR* get_parent_dir(_TCHAR* file);
-extern void Convert_CP932_to_UTF8(char *dst, char *src, int n_limit, int i_limit);
-extern void  get_long_full_path_name(_TCHAR* src, _TCHAR* dst);
-extern void get_short_filename(_TCHAR *dst, _TCHAR *file, int maxlen);
+extern _TCHAR* DLL_PREFIX get_parent_dir(_TCHAR* file);
+extern void DLL_PREFIX Convert_CP932_to_UTF8(char *dst, char *src, int n_limit, int i_limit);
+extern void DLL_PREFIX get_long_full_path_name(_TCHAR* src, _TCHAR* dst);
+extern void DLL_PREFIX get_short_filename(_TCHAR *dst, _TCHAR *file, int maxlen);
 
 // Important Flags
 //extern AGAR_CPUID *pCpuID;

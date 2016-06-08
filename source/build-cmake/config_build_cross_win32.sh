@@ -131,11 +131,11 @@ done
 
 exit 0
 
-for ii in libCSPavio libCSPgui libCSPosd libCSPemu_utils; do
-    cd $ii/build-win32
-    make clean
-    cd ../..
-done
+#for ii in libCSPavio libCSPgui libCSPosd libCSPemu_utils; do
+#    cd $ii/build-win32
+#    make clean
+#    cd ../..
+#done
 
 exit 0
 

@@ -50,7 +50,7 @@ class GLDrawClass;
 class QOpenGLFramebufferObject;
 class QOpenGLFramebufferObjectFormat;
 
-class GLDraw_2_0 : public QObject
+class DLL_PREFIX GLDraw_2_0 : public QObject
 {
 	Q_OBJECT
 protected:

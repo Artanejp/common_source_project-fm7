@@ -15,11 +15,7 @@ add_library(emu_utils
 )
 
 
-#add_library(CSPgui SHARED
-#	  ${s_qt_gui_srcs}
-#	  ${s_qt_gui_headers_MOC}
-#	  )
-#target_link_libraries(CSPgui PUBLIC
+#target_link_libraries(CSPemu_utils PUBLIC
 #	   ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPosd/build-win32/qt/osd/CSPosd.dll
 #	  Qt5::Core
 #	  Qt5::Gui

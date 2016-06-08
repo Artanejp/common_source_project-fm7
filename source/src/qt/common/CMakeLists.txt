@@ -2,7 +2,6 @@ message("* qt/common")
 
 set(s_qt_common_headers
 	  emu_thread.h
-	  menu_metaclass.h
 	  mainwidget.h
 	  ../osd.h
 )
@@ -16,7 +15,6 @@ endif()
 set(QT_COMMON_BASE  
 	  qt_utils.cpp
 	  menu_flags.cpp
-	  menu_metaclass.cpp
 	  emu_thread.cpp
 	  util_fd2.cpp
 	  util_bubble2.cpp

@@ -36,7 +36,7 @@ const keydef_table_t joystick_define_tbl[] = {
 };
 
 #define KEYDEF_MAXIMUM 512
-class CSP_KeyTables: public QObject {
+class DLL_PREFIX CSP_KeyTables: public QObject {
 	Q_OBJECT
 protected:
 	QObject *p_obj;

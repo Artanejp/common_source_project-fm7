@@ -69,6 +69,11 @@ public slots:
 	void do_set_mouse_enable(bool flag);
 	void do_toggle_mouse(void);
 	void rise_movie_dialog(void);
+	void do_update_inner_fd(int drv, QStringList base, class Action_Control **action_select_media_list,
+							QStringList lst, int num, bool use_d88_menus);
+	void do_update_inner_bubble(int drv, QStringList base, class Action_Control **action_select_media_list,
+							QStringList lst, int num, bool use_d88_menus);
+
 signals:
 	int sig_movie_set_width(int);
 	int sig_movie_set_height(int);

@@ -12,7 +12,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class Menu_CartClass: public Menu_MetaClass {
+class DLL_PREFIX Menu_CartClass: public Menu_MetaClass {
 	Q_OBJECT
 protected:
 public:

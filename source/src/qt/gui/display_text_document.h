@@ -14,11 +14,11 @@
 #include <QVBoxLayout>
 #include <QFont>
 
-//#include "emu.h"
+#include "common.h"
 
 QT_BEGIN_NAMESPACE
 
-class Dlg_BrowseText : public QWidget
+class DLL_PREFIX Dlg_BrowseText : public QWidget
 {
 	Q_OBJECT
 protected:

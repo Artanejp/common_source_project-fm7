@@ -25,7 +25,6 @@ extern "C" {
 	#include "libswresample/swresample.h"
 }
 #endif
-
 // Copy from FFMPEG-3.0.2; doc/example/muxing.c .
 
 #define STREAM_PIX_FMT    AV_PIX_FMT_YUV420P /* default pix_fmt */
