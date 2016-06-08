@@ -387,7 +387,13 @@ uint32_t MB8877::read_io8(uint32_t addr)
 			if(cmdtype == FDC_CMD_TYPE1 && !now_seek) {
 				status &= ~FDC_ST_BUSY;
 #ifdef MB8877_NO_BUSY_AFTER_SEEK
+	#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+			if(disk[0]->is_special_disk != SPECIAL_DISK_FM7_XANADU2_D) {
 				val &= ~FDC_ST_BUSY;
+			}
+	#else			
+				val &= ~FDC_ST_BUSY;
+	#endif
 #endif
 			}
 		}
