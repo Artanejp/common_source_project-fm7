@@ -1,3 +1,27 @@
+commit 2defdfbc5142b9f858031f37b9e99992dfbe8f4e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 9 01:18:19 2016 +0900
+
+    [DOC] Update revision.
+
+commit f2509bb63d89af04a53d66d2eff33e343deed3d0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 9 01:16:41 2016 +0900
+
+    [General][Linux] Update SOVERSION.
+
+commit b3649ba9e9c69ef71759046f4b97c92915ecfd53
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 9 01:14:17 2016 +0900
+
+    [Tool] Update installer.
+
+commit e5c00f8548bcb27609c34547e1c8975e9b0bae97
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 9 01:13:35 2016 +0900
+
+    [DOC][MOVIE_SAVER] Add README.ffmpeg.txt and update documents.
+
 commit 2634aa092d4850707389c692709b5339ee690770
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Wed Jun 8 23:18:55 2016 +0900
