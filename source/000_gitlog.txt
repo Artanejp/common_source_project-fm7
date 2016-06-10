@@ -1,3 +1,15 @@
+commit 89d31ce8daa733ea4a0c38f0a1890d3a0fcfce38
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 11 05:08:50 2016 +0900
+
+    [Qt][FM8] Fix FTBFS.
+
+commit 5f26677fb9ae126b269f85eb5d4d6dbe584c8279
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 11 04:14:44 2016 +0900
+
+    [DOC] Update changelog, etc.
+
 commit f8677cf9bb13ba54de48de5122e302a994ef82f3
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sat Jun 11 04:11:38 2016 +0900

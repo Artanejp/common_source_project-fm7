@@ -94,9 +94,9 @@ Changes:
   * [MOVIE_SAVER] Use ffmpeg internal aac codec, because faac or fdk_aac are not *Free* .
   * [VM/MOVIE_SAVER] Fix stopping when changing cartridge, now refer to upstream (split movies).
   * [Qt/Win32] Fix not work with WindowsXP, using homebrew version of ffmpeg-2.8.7.
-  * Build with f8677cf9bb13ba54de48de5122e302a994ef82f3 (or later).
+  * Build with 89d31ce8daa733ea4a0c38f0a1890d3a0fcfce38 (or later).
   
--- Jun 11, 2016 04:12:25 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Jun 11, 2016 05:09:55 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT June 09, 2016
   * Upstream 2016-04-13 .
