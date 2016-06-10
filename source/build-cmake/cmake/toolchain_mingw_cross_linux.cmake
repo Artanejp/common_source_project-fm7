@@ -6,7 +6,7 @@ SET(CMAKE_C_COMPILER i686-w64-mingw32-gcc)
 SET(CMAKE_CXX_COMPILER i686-w64-mingw32-g++)
 SET(CMAKE_RC_COMPILER i686-w64-mingw32-windres)
 
-set(LIBAV_ROOT_DIR "/usr/local/i586-mingw-msvc/ffmpeg-3.0")
+set(LIBAV_ROOT_DIR "/usr/local/i586-mingw-msvc/ffmpeg-2.8.7")
 
 # here is the target environment located
 set(USE_SDL2 ON)
