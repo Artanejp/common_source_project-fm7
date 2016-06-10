@@ -661,7 +661,7 @@ void Ui_MainWindow::do_update_inner_bubble(int drv, QStringList base, class Acti
 #if defined(USE_BUBBLE1)	
 	if(use_d88_menus) {
 		for(int ii = 0; ii < using_flags->get_max_b77_banks(); ii++) {
-			if(ii < emu->b77_file[media_drive].bank_num) {
+			if(ii < emu->b77_file[drv].bank_num) {
 				base << lst.value(ii);
 				action_select_media_list[ii]->setText(lst.value(ii));
 				action_select_media_list[ii]->setVisible(true);
