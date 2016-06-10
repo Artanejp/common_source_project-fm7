@@ -1,3 +1,46 @@
+commit f8677cf9bb13ba54de48de5122e302a994ef82f3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 11 04:11:38 2016 +0900
+
+    [Build] Update soversion.
+
+commit b38f4a9a8f6de7150739fcd649f333fc02c15733
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 11 04:07:49 2016 +0900
+
+    [Build][FFMPEG] Add bootstrap script.
+
+commit b05b2eed2b06f3b8039f5e9bb86e4fe2c9bab1a6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 11 04:02:17 2016 +0900
+
+    [Qt][Win32] Fix not work with WindowsXP, using homebrew version of ffmpeg-2.8.7.
+
+commit 77809b07c570b1473ef6417bbcc07585b85736a8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 11 04:00:15 2016 +0900
+
+    [MOVIE_SAVER] Use ffmpeg internal aac codec, because faac or fdk_aac are not *Free* .
+
+commit 8576dec645b7dc7066f28ca49afd777b96897e8e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 11 03:58:13 2016 +0900
+
+    [VM][MOVIE_SAVER] Fix stopping when changing cartridge, now refer to upstream (split movies).
+    See, http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/689 .
+
+commit 3d22f06675ec028954ebf96eccdaa8c466b7b585
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 9 05:57:53 2016 +0900
+
+    [Qt] Update credits.
+
+commit 0a8c6ff1a2d54314bfc28d1f111e814d77b3c8ca
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 9 05:52:44 2016 +0900
+
+    [DOC] Update gitlog.
+
 commit b10935053131ba172f24e771cb9e629467817663
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Jun 9 05:52:04 2016 +0900

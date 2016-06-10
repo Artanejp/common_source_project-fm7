@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                         June 09, 2016
+                                                         June 11, 2016
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 1.About
@@ -79,10 +79,24 @@ d. Now using GCC-6.1 with Link Time Optimize to build for distrubuted binaries.
 Upstream repositry:
 https://github.com/Artanejp/common_source_project-fm7
 
+Project Page:
+https://osdn.jp/projects/csp-qt/
+
 Upstream (Takeda Toshiya San's original code)
 http://homepage3.nifty.com/takeda-toshiya/
 
 Changes:
+
+* SNAPSHOT June 11, 2016
+  * Upstream 2016-04-13 .
+  * Use osdn.jp to distibute binaries.
+    https://osdn.jp/projects/csp-qt .
+  * [MOVIE_SAVER] Use ffmpeg internal aac codec, because faac or fdk_aac are not *Free* .
+  * [VM/MOVIE_SAVER] Fix stopping when changing cartridge, now refer to upstream (split movies).
+  * [Qt/Win32] Fix not work with WindowsXP, using homebrew version of ffmpeg-2.8.7.
+  * Build with f8677cf9bb13ba54de48de5122e302a994ef82f3 (or later).
+  
+-- Jun 11, 2016 04:12:25 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT June 09, 2016
   * Upstream 2016-04-13 .
