@@ -79,6 +79,7 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
 			(*codec)->sample_fmts[0] : AV_SAMPLE_FMT_FLTP;
 		c->bit_rate	= audio_bit_rate;
 		c->sample_rate = audio_sample_rate;
+		c->strict_std_compliance = -2; // For internal AAC
 		if ((*codec)->supported_samplerates) {
 			c->sample_rate = (*codec)->supported_samplerates[0];
 			for (i = 0; (*codec)->supported_samplerates[i]; i++) {
