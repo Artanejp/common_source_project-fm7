@@ -1225,6 +1225,7 @@ void EMU::open_cart(int drv, const _TCHAR* file_path)
 		bool v = osd->now_record_video;
 		stop_record_sound();
 		stop_record_video();
+
 		if(s) osd->start_record_sound();
 		if(v) osd->start_record_video(-1);
 	}

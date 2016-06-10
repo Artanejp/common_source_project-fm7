@@ -65,7 +65,7 @@ void Ui_MainWindowBase::set_recent_cart(int drv, int num)
 	menu_Cart[drv]->do_update_histories(listCARTs[drv]);
 	menu_Cart[drv]->do_set_initialize_directory(config.initial_cart_dir);
    
-	eject_cart(drv);
+	//eject_cart(drv);
 	emit sig_open_cart(drv, s_path);
 }
 

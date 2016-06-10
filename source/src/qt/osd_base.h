@@ -435,6 +435,8 @@ signals:
 	int sig_movie_set_height(int);
 	int sig_debugger_finished();
 	int sig_req_encueue_video(int, int, int);
+	int sig_save_as_movie(QString, int, int);
+	int sig_stop_saving_movie();
 };
 QT_END_NAMESPACE
 

@@ -13,6 +13,7 @@
 #include <QPen>
 #include <QPoint>
 #include <QTextCodec>
+#include <QDateTime>
 
 #include "qt_gldraw.h"
 #include "osd.h"
@@ -179,51 +180,21 @@ bool OSD_BASE::start_record_video(int fps)
 		rec_video_run_frames = rec_video_frames = 0;
 	}
 
+	QDateTime nowTime = QDateTime::currentDateTime();
+	QString tmps = nowTime.toString(QString::fromUtf8("yyyy-MM-dd_hh-mm-ss.zzz."));
+	QString path = QString::fromUtf8("Saved_Movie_") + tmps + QString::fromUtf8("mp4");
+	path = QString::fromLocal8Bit(this->get_app_path()) + path;
+	int rate = this->get_sound_rate();
+
 	now_record_video = true;
+	emit sig_save_as_movie(path, fps, rate);
 	return true;
 }
 
 void OSD_BASE::stop_record_video()
 {
-#if 0
-	// release thread
-	if(hVideoThread != (HANDLE)0) {
-		WaitForSingleObject(hVideoThread, INFINITE);
-		hVideoThread = (HANDLE)0;
-	}
-	
-	// release vfw
-	if(pAVIStream) {
-		AVIStreamClose(pAVIStream);
-	}
-	if(pAVICompressed) {
-		AVIStreamClose(pAVICompressed);
-	}
-	if(pAVIFile) {
-		AVIFileClose(pAVIFile);
-		AVIFileExit();
-	}
-	pAVIStream = NULL;
-	pAVICompressed = NULL;
-	pAVIFile = NULL;
-	
-	// repair header
-	if(now_record_video) {
-		FILE* fp = NULL;
-		if((fp = _tfopen(bios_path(video_file_name), _T("r+b"))) != NULL) {
-			// copy fccHandler
-			uint8_t buf[4];
-			fseek(fp, 0xbc, SEEK_SET);
-			if(ftell(fp) == 0xbc) {
-				fread(buf, 4, 1, fp);
-				fseek(fp, 0x70, SEEK_SET);
-				fwrite(buf, 4, 1, fp);
-			}
-			fclose(fp);
-		}
-	}
-#endif	
 	now_record_video = false;
+	emit sig_stop_saving_movie();
 }
 
 void OSD_BASE::restart_record_video()

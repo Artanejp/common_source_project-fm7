@@ -105,26 +105,13 @@ void Ui_MainWindow::do_toggle_mouse(void)
 
 void Object_Menu_Control::do_save_as_movie(void)
 {
-	int fps = 0;
-	QDateTime nowTime = QDateTime::currentDateTime();
-	QString tmps = nowTime.toString(QString::fromUtf8("yyyy-MM-dd_hh-mm-ss.zzz."));
-	QString path = QString::fromUtf8("Saved_Movie_") + tmps + QString::fromUtf8("mp4");
-	//QString path = QString::fromUtf8("Saved_Movie_") + tmps + QString::fromUtf8("mkv");
-	if(emu->get_osd() == NULL) return;
-	path = QString::fromLocal8Bit(emu->get_osd()->get_app_path()) + path;
-	int rate = emu->get_osd()->get_sound_rate();
-	
-	int num = config.video_frame_rate;
-	if((num <= 0) || (num > 75)) return;
-	fps = num;
+	int fps = config.video_frame_rate;
 	emit sig_start_record_movie(fps);
-	emit sig_save_as_movie(path, fps, rate);
 }
 
 void Object_Menu_Control::do_stop_saving_movie(void)
 {
 	emit sig_stop_record_movie();
-	emit sig_stop_saving_movie();
 }
 
 void Ui_MainWindow::rise_movie_dialog(void)
@@ -332,17 +319,18 @@ void Ui_MainWindow::LaunchEmuThread(void)
 
 	hSaveMovieThread = new MOVIE_SAVER(640, 400,  30, emu->get_osd());
 	
-	connect(actionStart_Record_Movie->binds, SIGNAL(sig_save_as_movie(QString, int, int)),
-			hSaveMovieThread, SLOT(do_open(QString, int, int)));
 	connect(actionStart_Record_Movie->binds, SIGNAL(sig_start_record_movie(int)), hRunEmu, SLOT(doStartRecordVideo(int)));
 	connect(this, SIGNAL(sig_start_saving_movie()),
 			actionStart_Record_Movie->binds, SLOT(do_save_as_movie()));
 	connect(actionStart_Record_Movie, SIGNAL(triggered()), this, SLOT(do_start_saving_movie()));
 
 	connect(actionStop_Record_Movie->binds, SIGNAL(sig_stop_record_movie()), hRunEmu, SLOT(doStopRecordVideo()));
-	connect(actionStop_Record_Movie->binds, SIGNAL(sig_stop_saving_movie()), hSaveMovieThread, SLOT(do_close()));
 	connect(this, SIGNAL(sig_stop_saving_movie()), actionStop_Record_Movie->binds, SLOT(do_stop_saving_movie()));
 	connect(actionStop_Record_Movie, SIGNAL(triggered()), this, SLOT(do_stop_saving_movie()));
+
+	connect(emu->get_osd(), SIGNAL(sig_save_as_movie(QString, int, int)),
+			hSaveMovieThread, SLOT(do_open(QString, int, int)));
+	connect(emu->get_osd(), SIGNAL(sig_stop_saving_movie()), hSaveMovieThread, SLOT(do_close()));
 
 	actionStop_Record_Movie->setIcon(QIcon(":/icon_process_stop.png"));
 	actionStop_Record_Movie->setVisible(false);
@@ -364,6 +352,8 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "MovieThread : Launch done.");
 
 	connect(action_SetupMovie, SIGNAL(triggered()), this, SLOT(rise_movie_dialog()));
+
+
 	hRunEmu->start();
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : Launch done.");
 	this->set_screen_aspect(config.window_stretch_type);
