@@ -9,13 +9,12 @@ This package is Qt5 porting of Common Source Code Project (CSP)
 and built with Qt5, for Windows, built with MinGW(32bit).
 
 Source Code:
-   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160609
+   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160611
    
 Additional INFO:
-GNU/Linux with AMD64 binaries and Win32 with MINGW binaries are avaiable, packed with 7zip'ed format:
-
-   
-    or
+   Binaries available:
+   Win32: https://osdn.jp/projects/csp-qt/downloads/65942/CSP_SNAPSHOT_20160611-1.Win32.7z/
+   GNU/Linux(amd64) : https://osdn.jp/projects/csp-qt/downloads/65942/CSP_SNAPSHOT_20160611-1.linux-gnu.tar.xz/
    
 
   SIZE: 

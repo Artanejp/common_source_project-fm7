@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                          June 08, 2016
+                                          June 11, 2016
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -10,6 +10,13 @@
    バイナリはGNU/Linux(64bit)用とMinGW (32bit Windows)用を
    用意しています。
    
+   ソースコード：
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160611
+   追加情報：
+     バイナリファイルが用意されています。
+     Win32: https://osdn.jp/projects/csp-qt/downloads/65942/CSP_SNAPSHOT_20160611-1.Win32.7z/
+     GNU/Linux(amd64) : https://osdn.jp/projects/csp-qt/downloads/65942/CSP_SNAPSHOT_20160611-1.linux-gnu.tar.xz/
+
 1. 背景
    CSPは、非常に優れた構造のエミュレータです（しかし、些か重くてコンパイラ
    がいい最適化をしないと重めですが）。
@@ -86,6 +93,83 @@
 
 7. Upstream (Takeda Toshiyaさんのオリジナル) 
       http://homepage3.nifty.com/takeda-toshiya/
+
+Changes:
+
+* SNAPSHOT June 11, 2016
+  * Upstream 2016-04-13 .
+  * Use osdn.jp to distibute binaries.
+    https://osdn.jp/projects/csp-qt .
+  * [MOVIE_SAVER] Use ffmpeg internal aac codec, because faac or fdk_aac are not *Free* .
+  * [VM/MOVIE_SAVER] Fix stopping when changing cartridge, now refer to upstream (split movies).
+  * [Qt/Win32] Fix not work with WindowsXP, using homebrew version of ffmpeg-2.8.7.
+  * Build with 89d31ce8daa733ea4a0c38f0a1890d3a0fcfce38 (or later).
+  
+-- Jun 11, 2016 05:09:55 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
+* SNAPSHOT June 09, 2016
+  * Upstream 2016-04-13 .
+  * Now, all of binaries are built with ffmpeg-2.8.7 at GNU/Linux,  with ffmpeg-3.0 at Windows.
+  * Please read README.ffmpeg.txt .
+  * [FM7/Disk] Add exceptions for Xanadu Scenario 2, this has not booted with changes 49dceaca9401d3c6037cb51ec013ca032ff0e83c .
+  * Build with 64df71cd492be91289f883224640f42cace090ed (or later).
+
+-- Jun 09, 2016 05:50:50 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
+* SNAPSHOT June 08, 2016
+  * Upstream 2016-04-13 .
+  * Add movie saver, using libav with x264.
+  * Now, all of binaries are built with ffmpeg-3.0.
+  * Build with 2142d5c7426e21cfeedbaea0450f238f8b4d7d38 (or later).
+
+-- Jun 08, 2016 07:34:45 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
+* SNAPSHOT May 23-2, 2016
+  * Win32 binary only RELEASE
+  * Fix unable to run with some natibve Windows environment.
+  * Build with c1448dc84f5439c7c8931614a8397dbefb6383da .
+
+-- May 24, 2016 22:42:00 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
+* SNAPSHOT May 23, 2016
+  * Upstream 2016-04-13 .
+  * [Win32] Now built with -msse -msse2 . You can run only later than Pentium4 .
+  * Move FILEIO:: FIFO:: COMMON:: to libCSPemu_utils .
+  * Make OSD:: to inherited by OSD_BASE:: .
+  * [Win32] Disable LINKFLAGS with "-static-libgcc -static-libstdc++" to reduce size of executions, now, bundled libstc++ is for gcc-5 .
+  * [Win32/Build] Support build with MSYS2 (but not display because MSYS2's Qt was build without OpenGL).
+  * [Linux] Build shared libraries with Link-Time-Optimize, reduce size of libs.
+  * [X1/VM] Configurable buttons for X1/Turbo/Turbo Z.
+  * [FM7/FDC] Set MB8877_NO_BUSY_AFTER_SEEK. Fixed unable to boot OS0. Thanks to Anna_Wu.
+  * [FM77AV/MB61VH010] ALULINE: Reduce CPU usage (at delta X > delta Y).
+  * [UI/Qt/DRAW] Fix crash sometimes when exit emulator.
+  * Build with 1c1ddc85dfa7456b1ce48662c2e2930dcc4fc9d8 (or later).
+
+-- May 23, 2016 02:22:07 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
+Upstream changes:
+-----
+4/13/2016
+
+[WINMAIN] improve auto key for the case to switch upper/lowercase with capslock
+[EMU/DEBUGGER] fix issue that u command may cause the infinite loop
+
+[VM/DATAREC] support to detect the frequency of signal
+[VM/DATAREC] fix to always adjust zero position of wave signal
+[VM/UPD1990A] fix not to check clk signal is low when stb signal is raised
+[VM/UPD7810] support debugger
+[VM/UPD7810] support MOV A,S opecode
+[VM/UPD7810] fix not to change V register (thanks PockEmul)
+
+[PC2001] support NEC PC-2001
+[PC2001] fix cpu clock
+[PC2001] support beep sound
+[PC2001/IO] support rtc control signals
+[YALKY] support Yuasa Kyouiku System YALKY
+[YALKY/IO] improve data recorder controller
+
+-----
+
 
 お楽しみあれ!
 -- Ohta.
