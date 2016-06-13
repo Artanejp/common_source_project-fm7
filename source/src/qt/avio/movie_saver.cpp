@@ -124,7 +124,7 @@ void MOVIE_SAVER::enqueue_video(QImage *p)
 
 bool MOVIE_SAVER::dequeue_video(uint32_t *p)
 {
-	if(!recording) return false;
+	//if(!recording) return false;
 	if(p == NULL) return false;
 
 	QImage *pp = video_data_queue.dequeue();
@@ -161,7 +161,7 @@ void MOVIE_SAVER::enqueue_audio(int16_t *p, int size)
 
 bool MOVIE_SAVER::dequeue_audio(int16_t *p)
 {
-	if(!recording) return false;
+	//if(!recording) return false;
 	if(audio_data_queue.isEmpty()) return false;
 	if(p == NULL) return false;
 	QByteArray *pp = audio_data_queue.dequeue();
@@ -198,21 +198,21 @@ void MOVIE_SAVER::run()
 	bool need_video_transcode = false;
 	int i;
     int64_t total_packets_written = 0;
-	int encode_audio = 0;
-	int encode_video = 0;
 	bool old_recording = false;
 	audio_remain = 0;
 	video_remain = 0;
 	audio_offset = 0;
 	audio_frame_offset = 0;
 	video_offset = 0;
+	n_encode_audio = 0;
+	n_encode_video = 0;
 	
 	while(bRunThread) {
 		if(recording) {
 			if(!bRunThread) break;
 			if(old_recording != recording) {
 				AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE/Saver: Start to recording.");
-				encode_video = encode_audio = 1;
+				n_encode_video = n_encode_audio = 1;
 				audio_remain = 0;
 				video_remain = 0;
 				audio_offset = 0;
@@ -228,8 +228,6 @@ void MOVIE_SAVER::run()
 			}
 		_video:
 			{
-				//if(video_data_queue.isEmpty() || video_width_queue.isEmpty()
-				//   || video_height_queue.isEmpty())
 				if(video_data_queue.isEmpty())
 					goto _write_frame;
 				dequeue_video(video_frame_buf);
@@ -238,18 +236,18 @@ void MOVIE_SAVER::run()
 				need_video_transcode = true;
 			}
 		_write_frame:
-			if ((encode_video == 0) &&
-				((encode_audio != 0) || av_compare_ts(video_st.next_pts, video_st.st->codec->time_base,
+			if ((n_encode_video == 0) &&
+				((n_encode_audio != 0) || av_compare_ts(video_st.next_pts, video_st.st->codec->time_base,
 														audio_st.next_pts, audio_st.st->codec->time_base) <= 0)) {
-				encode_video = write_video_frame();
-				if(encode_video < 0) {
+				n_encode_video = write_video_frame();
+				if(n_encode_video < 0) {
 					AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE/Saver: Something wrong with encoding video.");
 					goto _final;
 				}
-			}  else {
-				if(encode_audio == 0) {
-					encode_audio = write_audio_frame();
-					if(encode_audio < 0) {
+			} else {
+				if(n_encode_audio == 0) {
+					n_encode_audio = write_audio_frame();
+					if(n_encode_audio < 0) {
 						AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE/Saver: Something wrong with encoding audio.");
 						goto _final;
 					}
@@ -281,6 +279,7 @@ void MOVIE_SAVER::run()
 		}
 		if(tmp_wait <= 0) {
 			fps_wait = (int)((1000.0 / p_osd->vm_frame_rate()) / 8.0);
+			//fps_wait = 10;
 			tmp_wait = fps_wait;
 		}
 		old_recording = recording;

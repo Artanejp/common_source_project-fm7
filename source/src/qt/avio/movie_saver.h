@@ -55,6 +55,10 @@ QT_BEGIN_NAMESPACE
 class MOVIE_SAVER: public QThread
 {
 	Q_OBJECT
+private:
+	int n_encode_audio;
+	int n_encode_video;
+
 protected:
 	OSD *p_osd;
 

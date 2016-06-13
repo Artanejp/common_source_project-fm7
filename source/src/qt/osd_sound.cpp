@@ -205,58 +205,43 @@ void OSD_BASE::update_sound(int* extra_frames)
 		// sound buffer must be updated
 		Sint16* sound_buffer = (Sint16 *)this->create_sound(extra_frames);
 		if(now_record_sound || now_record_video) {
-			int samples = sound_samples - rec_sound_buffer_ptr;
-			int length = samples * sizeof(int16_t) * 2; // stereo
-			if(now_record_video) {
-				if(sound_samples > rec_sound_buffer_ptr) {
+			if(sound_samples > rec_sound_buffer_ptr) {
+				int samples = sound_samples - rec_sound_buffer_ptr;
+				int length = samples * sizeof(int16_t) * 2; // stereo
+				rec_sound_bytes += length;
+				if(now_record_video) {
+					//AGAR_DebugLog(AGAR_LOG_DEBUG, "Push Sound %d bytes\n", length);
 					emit sig_enqueue_audio((int16_t *)(&(sound_buffer[rec_sound_buffer_ptr * 2])), length); 
 				}
-			}
-			// record sound
-			if(now_record_sound) {
-				if(sound_samples > rec_sound_buffer_ptr) {
+				// record sound
+				if(now_record_sound) {
 					rec_sound_fio->Fwrite(sound_buffer + rec_sound_buffer_ptr * 2, length, 1);
-					rec_sound_bytes += length;
 				}
-			}
-		   
-#if 1				
-			if(now_record_video) {
-				// sync video recording
-				static double frames = 0;
-				static int prev_samples = -1;
-				static double prev_fps = -1;
-				double fps = this->vm_frame_rate();
-				//if(prev_samples != samples || prev_fps != fps) {
-				//	prev_samples = samples;
-				//	prev_fps = fps;
-				frames = fps * (double)samples / (double)sound_rate;
-				//}
-				rec_video_frames -= frames;
-				if(rec_video_frames > 2) {
-					rec_video_run_frames -= (rec_video_frames - 2);
-				} else if(rec_video_frames < -2) {
-					rec_video_run_frames -= (rec_video_frames + 2);
+				if(now_record_video) {
+					// sync video recording
+					static double frames = 0;
+					static int prev_samples = -1;
+					static double prev_fps = -1;
+					double fps = this->vm_frame_rate();
+					frames = fps * (double)samples / (double)sound_rate;
+					//}
+					rec_video_frames -= frames;
+					if(rec_video_frames > 2) {
+						rec_video_run_frames -= (rec_video_frames - 2);
+					} else if(rec_video_frames < -2) {
+						rec_video_run_frames -= (rec_video_frames + 2);
+					}
 				}
-//			rec_video_run_frames -= rec_video_frames;
+				//printf("Wrote %d samples ptr=%d\n", samples, rec_sound_buffer_ptr);
+				rec_sound_buffer_ptr += samples;
+				if(rec_sound_buffer_ptr >= sound_samples) rec_sound_buffer_ptr = 0;
 			}
-#endif			   
-			//printf("Wrote %d samples ptr=%d\n", samples, rec_sound_buffer_ptr);
-			rec_sound_buffer_ptr += samples;
-			if(rec_sound_buffer_ptr >= sound_samples) rec_sound_buffer_ptr = 0;
 		}
-	   
-		
 		if(sound_buffer) {
 		        int ssize;
 		        int pos;
 		        int pos2;
 		        if(snd_apply_sem) {
-					if(sound_debug) AGAR_DebugLog(AGAR_LOG_DEBUG, "SND:Pushed time=%d samples=%d\n",
-												  osd_timer.elapsed(), sound_samples);
-					//SDL_PauseAudioDevice(audio_dev_id, 1);
-					//SDL_LockAudio();
-					//SDL_SemWait(*snddata.snd_apply_sem);
 					ssize = sound_samples * snd_spec_presented.channels;
 
 			        pos = sound_data_pos;

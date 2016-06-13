@@ -1357,6 +1357,7 @@ void EmuThreadClass::doWork(const QString &params)
 				} else {
 					no_draw_count = 0;
 				}
+				//p_emu->draw_screen();
 				emit sig_draw_thread(req_draw);
 				skip_frames = 0;
 			

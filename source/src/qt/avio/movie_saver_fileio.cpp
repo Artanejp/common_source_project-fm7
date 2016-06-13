@@ -214,7 +214,7 @@ bool MOVIE_SAVER::do_open(QString filename, int _fps, int _sample_rate)
 		QString value;
 		do_clear_options_list();
 		do_add_option(QString::fromUtf8("c:v"), QString::fromUtf8("libx264"));
-		do_add_option(QString::fromUtf8("c:a"), QString::fromUtf8("libfaac"));
+		do_add_option(QString::fromUtf8("c:a"), QString::fromUtf8("aac"));
 		
 		value.setNum(config.video_minq);
 		do_add_option(QString::fromUtf8("qmin"), value);
@@ -323,7 +323,7 @@ void MOVIE_SAVER::do_close()
 	if(output_context != NULL) {
 		AVFormatContext *oc = output_context;
 		AVOutputFormat *fmt = oc->oformat;
- 
+
 		av_write_trailer(oc);
 
 		/* Close each codec. */
@@ -354,6 +354,8 @@ void MOVIE_SAVER::do_close()
 	memset(audio_frame_buf, 0x00, sizeof(audio_frame_buf));
 	memset(video_frame_buf, 0x00, sizeof(video_frame_buf));
 
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE: Close: Left:  Video %lld frames, Audio %lld frames", video_data_queue.size(),
+				  audio_data_queue.size());
 
 	while(!audio_data_queue.isEmpty()) {
 		QByteArray *pp = audio_data_queue.dequeue();
@@ -373,6 +375,7 @@ void MOVIE_SAVER::do_close()
 	totalDstFrame = 0;
 	totalAudioFrame = 0;
 }
+
 
 QString MOVIE_SAVER::create_date_file_name(void)
 {

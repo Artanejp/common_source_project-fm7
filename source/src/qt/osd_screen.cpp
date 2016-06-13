@@ -209,6 +209,7 @@ void OSD_BASE::restart_record_video()
 void OSD_BASE::add_extra_frames(int extra_frames)
 {
 	rec_video_run_frames += extra_frames;
+	//emit sig_send_wxita_frames(extra_frames);
 }
 
 
@@ -281,14 +282,7 @@ int OSD_BASE::add_video_frames()
 	int counter = 0;
 	static double prev_vm_fps = -1;
 	double vm_fps = vm_frame_rate();
-	//double vm_fps = (double)rec_video_fps;
-	
-	//prev_vm_fps = -1;
-	//if(prev_video_fps != rec_video_fps || prev_vm_fps != vm_fps) {
-	//	prev_video_fps = rec_video_fps;
-	//	prev_vm_fps = vm_fps;
 	frames = vm_fps / (double)rec_video_fps;
-	//}
 	
 	while(rec_video_run_frames > 0) {
 		rec_video_run_frames -= frames;
@@ -327,6 +321,7 @@ int OSD_BASE::add_video_frames()
 			emit sig_enqueue_video(video_result);
 			i--;
 		}
+		//AGAR_DebugLog(AGAR_LOG_DEBUG, "Push Video %d frames\n", counter);
 	}
 	return counter;
 }
