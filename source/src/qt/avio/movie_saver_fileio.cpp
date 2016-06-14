@@ -304,6 +304,7 @@ bool MOVIE_SAVER::do_open(QString filename, int _fps, int _sample_rate)
 	recording = true;
 	return true;
 _err_final:
+	recording = false;
 	avformat_free_context(oc);
 	oc = NULL;
 	output_context = NULL;
@@ -323,7 +324,6 @@ void MOVIE_SAVER::do_close()
 	if(output_context != NULL) {
 		AVFormatContext *oc = output_context;
 		AVOutputFormat *fmt = oc->oformat;
-
 		av_write_trailer(oc);
 
 		/* Close each codec. */
@@ -371,6 +371,7 @@ void MOVIE_SAVER::do_close()
 
 	// Message
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE: Close: Write:  Video %lld frames, Audio %lld frames", totalDstFrame, totalAudioFrame);
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE: Close: Dequeue:  Video %lld frames, Audio %lld frames", totalDstFrame, audio_count);
 	totalSrcFrame = 0;
 	totalDstFrame = 0;
 	totalAudioFrame = 0;

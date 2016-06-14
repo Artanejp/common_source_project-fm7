@@ -96,16 +96,16 @@ void MOVIE_SAVER::log_packet(const void *_fmt_ctx, const void *_pkt)
 #if defined(USE_LIBAV)	
 	const AVFormatContext *fmt_ctx = (const AVFormatContext *)_fmt_ctx;
 	const AVPacket *pkt = (const AVPacket *)_pkt;
-    AVRational *time_base = &fmt_ctx->streams[pkt->stream_index]->time_base;
+	AVRational *time_base = &fmt_ctx->streams[pkt->stream_index]->time_base;
 
-    AGAR_DebugLog(AGAR_LOG_DEBUG, "pts:%s pts_time:%s dts:%s dts_time:%s duration:%s duration_time:%s stream_index:%d\n",
-           ts2str(pkt->pts).toLocal8Bit().constData(),
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "pts:%s pts_time:%s dts:%s dts_time:%s duration:%s duration_time:%s stream_index:%d\n",
+		   ts2str(pkt->pts).toLocal8Bit().constData(),
 		   ts2timestr(pkt->pts, (void *)time_base).toLocal8Bit().constData(),
-           ts2str(pkt->dts).toLocal8Bit().constData(),
+		   ts2str(pkt->dts).toLocal8Bit().constData(),
 		   ts2timestr(pkt->dts, (void *)time_base).toLocal8Bit().constData(),
-           ts2str(pkt->duration).toLocal8Bit().constData(),
+		   ts2str(pkt->duration).toLocal8Bit().constData(),
 		   ts2timestr(pkt->duration, (void *)time_base).toLocal8Bit().constData(),
-           pkt->stream_index);
+		   pkt->stream_index);
 #endif	
 }
 
@@ -138,7 +138,7 @@ bool MOVIE_SAVER::dequeue_video(uint32_t *p)
 		pq = (uint32_t *)(pp->constScanLine(y));
 		memcpy(&(p[_width * y]), pq, ((_width * sizeof(uint32_t)) > pp->bytesPerLine()) ? pp->bytesPerLine() : _width * sizeof(uint32_t));
 	}
-	video_size = _width * (y + 1);
+	video_size = _width * y;
 	//AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Dequeue video data %d bytes", pp->size());
 #else
 	video_size = 0;
@@ -172,6 +172,7 @@ bool MOVIE_SAVER::dequeue_audio(int16_t *p)
 	audio_size = pp->size();
 	if(audio_size <= 0) return false;
 	memcpy(p, pp->constData(), audio_size);
+	audio_count++;
 #else
 	audio_size = 0;
 #endif   
@@ -184,9 +185,9 @@ void MOVIE_SAVER::run()
 {
 	bRunThread = true;
 	//AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE THREAD: Start");
-    int ret;
-    int got_packet;
-    int dst_nb_samples;
+	int ret;
+	int got_packet;
+	int dst_nb_samples;
 
 	int fps_wait = (int)((1000.0 / p_osd->vm_frame_rate()) / 8.0);
 	int tmp_wait = fps_wait;
@@ -197,7 +198,7 @@ void MOVIE_SAVER::run()
 	bool need_audio_transcode = false;
 	bool need_video_transcode = false;
 	int i;
-    int64_t total_packets_written = 0;
+	int64_t total_packets_written = 0;
 	bool old_recording = false;
 	audio_remain = 0;
 	video_remain = 0;
@@ -218,6 +219,8 @@ void MOVIE_SAVER::run()
 				audio_offset = 0;
 				audio_frame_offset = 0;
 				video_offset = 0;
+				video_count = 0;
+				audio_count = 0;
 			}
 			if(audio_remain <= 0) {
 				if(audio_data_queue.isEmpty()) goto _video;

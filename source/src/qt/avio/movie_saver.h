@@ -27,26 +27,26 @@ extern "C" {
 #endif
 // Copy from FFMPEG-3.0.2; doc/example/muxing.c .
 
-#define STREAM_PIX_FMT    AV_PIX_FMT_YUV420P /* default pix_fmt */
+#define STREAM_PIX_FMT	AV_PIX_FMT_YUV420P /* default pix_fmt */
 
 //#define SCALE_FLAGS SWS_BICUBLIN
 #define SCALE_FLAGS SWS_POINT
 
 // a wrapper around a single output AVStream
 typedef struct OutputStream {
-    AVStream *st;
+	AVStream *st;
 
-    /* pts of the next frame that will be generated */
-    int64_t next_pts;
-    int samples_count;
+	/* pts of the next frame that will be generated */
+	int64_t next_pts;
+	int samples_count;
 
-    AVFrame *frame;
-    AVFrame *tmp_frame;
+	AVFrame *frame;
+	AVFrame *tmp_frame;
 
-    float t, tincr, tincr2;
+	float t, tincr, tincr2;
 
-    struct SwsContext *sws_ctx;
-    struct SwrContext *swr_ctx;
+	struct SwsContext *sws_ctx;
+	struct SwrContext *swr_ctx;
 } OutputStream;
 
 class OSD;
@@ -66,14 +66,15 @@ protected:
 	bool have_audio;
 	bool encode_video;
 	bool encode_audio;
-
+	int64_t audio_count;
+	int64_t video_count;
 	QStringList encode_opt_keys;
 	QStringList encode_options;
 #if defined(USE_LIBAV)
-    AVOutputFormat *stream_format;
-    AVFormatContext *output_context;
-    AVCodec *audio_codec, *video_codec;
-    AVDictionary *raw_options_list;
+	AVOutputFormat *stream_format;
+	AVFormatContext *output_context;
+	AVCodec *audio_codec, *video_codec;
+	AVDictionary *raw_options_list;
 
 	OutputStream video_st;
 	OutputStream audio_st;
