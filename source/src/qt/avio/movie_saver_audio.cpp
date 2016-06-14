@@ -121,6 +121,7 @@ void *MOVIE_SAVER::get_audio_frame()
 	int j, i, v;
 	int16_t *q = (int16_t*)frame->data[0];
 	int offset = 0;
+	
 	for(j = 0; j < frame->nb_samples; j++) {
 		if(audio_remain <= 0) {
 			while(audio_data_queue.isEmpty()) {
@@ -163,7 +164,8 @@ int MOVIE_SAVER::write_audio_frame()
 	OutputStream *ost = &audio_st;
 	AVCodecContext *c;
 	AVPacket pkt = { 0 }; // data and size must be 0;
-	AVFrame *frame;
+	AVFrame *frame_src;
+	AVFrame *frame_dst;
 	int ret;
 	int got_packet;
 	int dst_nb_samples;
@@ -171,15 +173,14 @@ int MOVIE_SAVER::write_audio_frame()
 	av_init_packet(&pkt);
 	c = ost->st->codec;
 
-	frame = (AVFrame *)get_audio_frame();
+	frame_src = (AVFrame *)get_audio_frame();
 
-	if (frame) {
+	if (frame_src) {
 		/* convert samples from native format to destination codec format, using the resampler */
-			/* compute destination number of samples */
-		//printf("RATE=%d %d\n", c->sample_rate, audio_sample_rate);	
-		dst_nb_samples = av_rescale_rnd(swr_get_delay(ost->swr_ctx, c->sample_rate) + frame->nb_samples,
+		/* compute destination number of samples */
+		dst_nb_samples = av_rescale_rnd(swr_get_delay(ost->swr_ctx, c->sample_rate) + frame_src->nb_samples,
 										c->sample_rate, c->sample_rate,  AV_ROUND_UP);
-		av_assert0(dst_nb_samples == frame->nb_samples);
+		av_assert0(dst_nb_samples == frame_src->nb_samples);
 		/* when we pass a frame to the encoder, it may keep a reference to it
 		 * internally;
 		 * make sure we do not overwrite it here
@@ -192,19 +193,20 @@ int MOVIE_SAVER::write_audio_frame()
 		/* convert to destination format */
 		ret = swr_convert(ost->swr_ctx,
 						  ost->frame->data, dst_nb_samples,
-						  (const uint8_t **)frame->data, frame->nb_samples);
+						  (const uint8_t **)frame_src->data, frame_src->nb_samples);
 		if (ret < 0) {
 			AGAR_DebugLog(AGAR_LOG_INFO, "Error while converting\n");
 			return -1;
 		}
-		frame = ost->frame;
 		
-		frame->pts = av_rescale_q(ost->samples_count, (AVRational){1, c->sample_rate}, c->time_base);
+		frame_dst = ost->frame;
+		
+		frame_dst->pts = av_rescale_q(ost->samples_count, (AVRational){1, c->sample_rate}, c->time_base);
 		ost->samples_count += dst_nb_samples;
 		totalAudioFrame++;
 	}
 
-	ret = avcodec_encode_audio2(c, &pkt, frame, &got_packet);
+	ret = avcodec_encode_audio2(c, &pkt, frame_dst, &got_packet);
 	if (ret < 0) {
 		AGAR_DebugLog(AGAR_LOG_INFO, "Error encoding audio frame: %s\n", err2str(ret).toLocal8Bit().constData());
 		return -1;
@@ -217,7 +219,12 @@ int MOVIE_SAVER::write_audio_frame()
 					err2str(ret).toLocal8Bit().constData());
 			return -1;
 		}
+		//if(frame_dst) {
+		//	char buf[256];
+		//	memset(buf, 0x00, sizeof(buf));
+		//	char *s = av_ts_make_time_string(buf, frame_dst->pts, &c->time_base);
+		//	AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Write audio to file. pts=%s", s);
+		//}
 	}
-
-	return (frame || got_packet) ? 0 : 1;
+	return (frame_dst || got_packet) ? 0 : 1;
 }

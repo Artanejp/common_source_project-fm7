@@ -224,24 +224,34 @@ int MOVIE_SAVER::write_video_frame()
 	av_init_packet(&pkt);
 
 	/* encode the image */
+	frame->pts = totalDstFrame;
+	//got_packet = 1;
+	//while(got_packet) {
 	ret = avcodec_encode_video2(c, &pkt, frame, &got_packet);
+	//if(!got_packet) break;
 	if (ret < 0) {
 		AGAR_DebugLog(AGAR_LOG_INFO, "Error encoding video frame: %s\n", err2str(ret).toLocal8Bit().constData());
 		return -1;
 	}
 	totalDstFrame++;
-
 	if (got_packet) {
 		ret = this->write_frame((void *)oc, (const void *)&c->time_base, (void *)ost->st, (void *)&pkt);
+		
 		// ret = write_frame(oc, &c->time_base, ost->st, &pkt);
 	} else {
 		ret = 0;
 	}
-
+	
 	if (ret < 0) {
 		AGAR_DebugLog(AGAR_LOG_INFO, "Error while writing video frame: %s\n", err2str(ret).toLocal8Bit().constData());
 		return -1;
 	}
-	
+	//}
+	//if(frame) {
+	//	char buf[256];
+	//	memset(buf, 0x00, sizeof(buf));
+	//	char *s = av_ts_make_time_string(buf, frame->pts, &c->time_base);
+	//	AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Write video to file. sec=%s", s);
+	//}
 	return (frame || got_packet) ? 0 : 1;
 }

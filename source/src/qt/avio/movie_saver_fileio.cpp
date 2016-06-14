@@ -124,7 +124,7 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
 		c->max_qdiff = 6;
 		//c->b_frame_strategy = config.video_b_adapt;
 		c->me_subpel_quality = config.video_subme;
-		c->me_method = ME_UMH;
+		//c->me_method = ME_UMH;
 		c->i_quant_offset = 1.2;
 		c->i_quant_factor = 1.5;
 		c->trellis = 2;
@@ -135,7 +135,8 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
 		c->gop_size = rec_fps * 5;
 		c->b_sensitivity = 55;
 		c->scenechange_threshold = 50;
-
+		//c->profile=FF_PROFILE_H264_HIGH;
+		
 		/* timebase: This is the fundamental unit of time (in seconds) in terms
 		 * of which frame timestamps are represented. For fixed-fps content,
 		 * timebase should be 1/framerate and timestamp increments should be
@@ -181,6 +182,7 @@ void MOVIE_SAVER::close_stream(void *_oc, void *_ost)
 	AVFormatContext *oc = (AVFormatContext *)_oc;
 	OutputStream *ost = (OutputStream *)_ost;
 	avcodec_close(ost->st->codec);
+	while(avcodec_is_open(ost->st->codec) != 0) {}
 	av_frame_free(&ost->frame);
 	av_frame_free(&ost->tmp_frame);
 	sws_freeContext(ost->sws_ctx);
@@ -215,6 +217,8 @@ bool MOVIE_SAVER::do_open(QString filename, int _fps, int _sample_rate)
 		do_clear_options_list();
 		do_add_option(QString::fromUtf8("c:v"), QString::fromUtf8("libx264"));
 		do_add_option(QString::fromUtf8("c:a"), QString::fromUtf8("aac"));
+		//do_add_option(QString::fromUtf8("c:v"), QString::fromUtf8("theora"));
+		//do_add_option(QString::fromUtf8("c:a"), QString::fromUtf8("vorbis"));
 		
 		value.setNum(config.video_minq);
 		do_add_option(QString::fromUtf8("qmin"), value);
@@ -256,7 +260,9 @@ bool MOVIE_SAVER::do_open(QString filename, int _fps, int _sample_rate)
 		return false;
 
 	fmt = oc->oformat;
-
+	fmt->video_codec = AV_CODEC_ID_MPEG4;
+	fmt->audio_codec = AV_CODEC_ID_AAC;
+	
 	/* Add the audio and video streams using the default format codecs
 	 * and initialize the codecs. */
 	if (fmt->video_codec != AV_CODEC_ID_NONE) {
@@ -317,23 +323,25 @@ void MOVIE_SAVER::do_close()
 	recording = false;
 #if defined(USE_LIBAV)
 	int ret, i;
-	AVFormatContext *os;
 	OutputStream *ost;
-	//InputStream *ist;
+	int got_packet;
 	int64_t total_packets_written = 0;
 	if(output_context != NULL) {
 		AVFormatContext *oc = output_context;
 		AVOutputFormat *fmt = oc->oformat;
+		AVPacket pkt = {0};
+		AVCodecContext *c = video_st.st->codec;
+		
 		av_write_trailer(oc);
 
 		/* Close each codec. */
-		if (have_video)
+		if (have_video)	{
 			close_stream(oc, &video_st);
+		}
 		if (have_audio)
 			close_stream(oc, &audio_st);
 		have_video = have_audio = 0;
 		if (!(fmt->flags & AVFMT_NOFILE))
-			/* Close the output file. */
 			avio_closep(&oc->pb);
 
 		/* free the stream */

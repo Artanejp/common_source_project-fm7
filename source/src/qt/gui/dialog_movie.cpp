@@ -367,7 +367,9 @@ void CSP_DialogMovie::do_set_codecs(void)
 
 	emit sig_video_clear_options();
 	emit sig_video_add_option(QString::fromUtf8("c:v"), QString::fromUtf8("libx264"));
-	emit sig_video_add_option(QString::fromUtf8("c:a"), QString::fromUtf8("libfaac"));
+	emit sig_video_add_option(QString::fromUtf8("c:a"), QString::fromUtf8("aac"));
+	//emit sig_video_add_option(QString::fromUtf8("c:v"), QString::fromUtf8("theora"));
+	//emit sig_video_add_option(QString::fromUtf8("c:a"), QString::fromUtf8("vorbis"));
 	config.video_maxq = video_maxq;
 	config.video_minq = video_minq;
 	config.video_bframes = video_bframes;

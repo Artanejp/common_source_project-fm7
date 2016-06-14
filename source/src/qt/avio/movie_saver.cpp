@@ -139,7 +139,7 @@ bool MOVIE_SAVER::dequeue_video(uint32_t *p)
 		memcpy(&(p[_width * y]), pq, ((_width * sizeof(uint32_t)) > pp->bytesPerLine()) ? pp->bytesPerLine() : _width * sizeof(uint32_t));
 	}
 	video_size = _width * y;
-	//AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Dequeue video data %d bytes", pp->size());
+	//AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Dequeue video data %d bytes", pp->byteCount());
 #else
 	video_size = 0;
 #endif   
@@ -167,12 +167,11 @@ bool MOVIE_SAVER::dequeue_audio(int16_t *p)
 	QByteArray *pp = audio_data_queue.dequeue();
 #if defined(USE_MOVIE_SAVER)
 	if(pp == NULL) return false;
-	//AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Dequeue audio data %d bytes", pp->size());
-
 	audio_size = pp->size();
 	if(audio_size <= 0) return false;
 	memcpy(p, pp->constData(), audio_size);
 	audio_count++;
+	//AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Dequeue audio data %d bytes", pp->size());
 #else
 	audio_size = 0;
 #endif   
@@ -186,15 +185,8 @@ void MOVIE_SAVER::run()
 	bRunThread = true;
 	//AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE THREAD: Start");
 	int ret;
-	int got_packet;
-	int dst_nb_samples;
-
-	int fps_wait = (int)((1000.0 / p_osd->vm_frame_rate()) / 8.0);
+	int fps_wait = (int)((1000.0 / (double)rec_fps) / 2.0);
 	int tmp_wait = fps_wait;
-	int ncount_audio = 0;
-	int ncount_video = 0;
-	bool audio_continue = false;
-	bool video_continue = false;
 	bool need_audio_transcode = false;
 	bool need_video_transcode = false;
 	int i;
@@ -248,12 +240,10 @@ void MOVIE_SAVER::run()
 					goto _final;
 				}
 			} else {
-				if(n_encode_audio == 0) {
-					n_encode_audio = write_audio_frame();
-					if(n_encode_audio < 0) {
-						AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE/Saver: Something wrong with encoding audio.");
-						goto _final;
-					}
+				n_encode_audio = write_audio_frame();
+				if(n_encode_audio < 0) {
+					AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE/Saver: Something wrong with encoding audio.");
+					goto _final;
 				}
 			}
 			if (ret < 0 && ret != AVERROR_EOF) {
@@ -281,7 +271,7 @@ void MOVIE_SAVER::run()
 			tmp_wait -= fps_wait;
 		}
 		if(tmp_wait <= 0) {
-			fps_wait = (int)((1000.0 / p_osd->vm_frame_rate()) / 8.0);
+			fps_wait = (int)((1000.0 / (double)rec_fps) / 2.0);
 			//fps_wait = 10;
 			tmp_wait = fps_wait;
 		}
@@ -328,8 +318,6 @@ void MOVIE_SAVER::do_clear_options_list(void)
 {
 	encode_opt_keys.clear();
 	encode_options.clear();
-	//do_add_option(QString::fromUtf8("c:v"), QString::fromUtf8("libx264"));
-	//do_add_option(QString::fromUtf8("c:a"), QString::fromUtf8("libfaac"));
 }
 
 void MOVIE_SAVER::do_add_option(QString key, QString value)
@@ -373,7 +361,7 @@ void MOVIE_SAVER::do_reset_encoder_options(void)
 	encode_options.clear();
 
 	do_add_option(QString::fromUtf8("c:v"), QString::fromUtf8("libx264"));
-	do_add_option(QString::fromUtf8("c:a"), QString::fromUtf8("libfaac"));
+	do_add_option(QString::fromUtf8("c:a"), QString::fromUtf8("aac"));
 	do_add_option(QString::fromUtf8("preset"), QString::fromUtf8("slow"));
 	do_add_option(QString::fromUtf8("tune"), QString::fromUtf8("grain"));
 	//do_add_option(QString::fromUtf8("crf"), QString::fromUtf8("20"));
