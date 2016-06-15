@@ -48,12 +48,13 @@ MOVIE_SAVER::MOVIE_SAVER(int width, int height, int fps, OSD *osd) : QThread(0)
 	video_geometry = QSize(640, 480);
 	video_encode_threads = 4;
 
+	req_close = false;
 	bRunThread = false;
 }
 
 MOVIE_SAVER::~MOVIE_SAVER()
 {
-	if(recording) do_close();
+	if(recording) do_close_main();
 }
 
 QString MOVIE_SAVER::ts2str(int64_t ts)
@@ -199,6 +200,7 @@ void MOVIE_SAVER::run()
 	video_offset = 0;
 	n_encode_audio = 0;
 	n_encode_video = 0;
+	req_close = false;
 	
 	while(bRunThread) {
 		if(recording) {
@@ -213,6 +215,7 @@ void MOVIE_SAVER::run()
 				video_offset = 0;
 				video_count = 0;
 				audio_count = 0;
+				req_close = false;
 			}
 			if(audio_remain <= 0) {
 				if(audio_data_queue.isEmpty()) goto _video;
@@ -255,6 +258,9 @@ void MOVIE_SAVER::run()
 			
 			/* dump report by using the output first video and audio streams */
 			//print_report(0, timer_start, cur_time);
+			if(req_close) {
+				do_close_main();
+			}
 		}
 	_next_turn:
 		old_recording = recording;
@@ -279,11 +285,13 @@ void MOVIE_SAVER::run()
 		continue;
 	_final:
 		old_recording = recording;
-		do_close();
-		old_recording = false;
+		do_close_main();
+		req_close = false;
 	}
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE: Exit thread.");
-	if(recording) do_close();
+	if(recording) {
+		do_close_main();
+	}
 }
 
 bool MOVIE_SAVER::is_recording(void)
@@ -295,6 +303,7 @@ bool MOVIE_SAVER::is_recording(void)
 void MOVIE_SAVER::do_exit()
 {
 	bRunThread = false;
+	req_close = true;
 }
 
 void MOVIE_SAVER::do_set_record_fps(int fps)

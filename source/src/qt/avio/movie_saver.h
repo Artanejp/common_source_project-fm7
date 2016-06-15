@@ -62,6 +62,8 @@ private:
 protected:
 	OSD *p_osd;
 
+	bool req_close;
+	
 	bool have_video;
 	bool have_audio;
 	bool encode_video;
@@ -160,6 +162,7 @@ protected:
 	QString ts2str(int64_t ts);
 	QString ts2timestr(int64_t ts, void *timebase);
 	QString err2str(int errnum);
+	void do_close_main();
 
 public:
 	MOVIE_SAVER(int width, int height, int fps, OSD *osd);

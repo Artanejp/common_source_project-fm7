@@ -211,7 +211,7 @@ bool MOVIE_SAVER::do_open(QString filename, int _fps, int _sample_rate)
 	int ret;
 	have_video = 0, have_audio = 0;
 	int encode_video = 0, encode_audio = 0;
-	do_close();
+	do_close_main();
 	raw_options_list = NULL;
 
 	do_set_record_fps(_fps);
@@ -333,7 +333,13 @@ _err_final:
 
 void MOVIE_SAVER::do_close()
 {
+	req_close = true;
+}
+
+void MOVIE_SAVER::do_close_main()
+{
 	recording = false;
+	req_close = false;
 #if defined(USE_LIBAV)
 	int ret, i;
 	OutputStream *ost;
