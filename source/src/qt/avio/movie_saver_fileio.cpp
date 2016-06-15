@@ -211,7 +211,7 @@ bool MOVIE_SAVER::do_open(QString filename, int _fps, int _sample_rate)
 	int ret;
 	have_video = 0, have_audio = 0;
 	int encode_video = 0, encode_audio = 0;
-	do_close_main();
+	if(recording) do_close_main();
 	raw_options_list = NULL;
 
 	do_set_record_fps(_fps);
@@ -351,7 +351,7 @@ void MOVIE_SAVER::do_close_main()
 		AVPacket pkt = {0};
 		AVCodecContext *c = video_st.st->codec;
 		
-		av_write_trailer(oc);
+		//av_write_trailer(oc);
 
 		/* Close each codec. */
 		if (have_video)	{
@@ -360,6 +360,9 @@ void MOVIE_SAVER::do_close_main()
 		if (have_audio)
 			close_stream(oc, &audio_st);
 		have_video = have_audio = 0;
+
+		av_write_trailer(oc);
+
 		if (!(fmt->flags & AVFMT_NOFILE))
 			avio_closep(&oc->pb);
 
