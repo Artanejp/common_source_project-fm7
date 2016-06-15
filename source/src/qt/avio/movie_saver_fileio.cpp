@@ -124,7 +124,6 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
 		c->max_qdiff = 6;
 		//c->b_frame_strategy = config.video_b_adapt;
 		c->me_subpel_quality = config.video_subme;
-		//c->me_method = ME_UMH;
 		c->i_quant_offset = 1.2;
 		c->i_quant_factor = 1.5;
 		c->trellis = 2;
@@ -135,7 +134,6 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
 		c->gop_size = rec_fps * 5;
 		c->b_sensitivity = 55;
 		c->scenechange_threshold = 50;
-		//c->profile=FF_PROFILE_H264_HIGH;
 		
 		/* timebase: This is the fundamental unit of time (in seconds) in terms
 		 * of which frame timestamps are represented. For fixed-fps content,
@@ -149,6 +147,18 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
 		if (c->codec_id == AV_CODEC_ID_MPEG2VIDEO) {
 			/* just for testing, we also add B frames */
 			c->max_b_frames = 2;
+			c->gop_size  = rec_fps; /* emit one intra frame every one second */
+		}
+		if (c->codec_id == AV_CODEC_ID_MPEG4) {
+			if(c->qmin > c->qmax) {
+				int tmp;
+				tmp = c->qmin;
+				c->qmin = c->qmax;
+				c->qmax = tmp;
+			}
+			if(c->qmin <= 0) c->qmin = 1;
+			if(c->qmax <= 0) c->qmax = 1;
+			c->gop_size  = rec_fps; /* emit one intra frame every one second */
 		}
 		if (c->codec_id == AV_CODEC_ID_MPEG1VIDEO) {
 			/* Needed to avoid using macroblocks in which some coeffs overflow.
@@ -161,6 +171,8 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
 			 * This does not happen with normal video, it just happens here as
 			 * the motion of the chroma plane does not match the luma plane. */
 			c->mb_decision = 2;
+			c->me_method = ME_UMH;
+			c->profile=FF_PROFILE_H264_HIGH;
 		}
 	break;
 
@@ -261,6 +273,7 @@ bool MOVIE_SAVER::do_open(QString filename, int _fps, int _sample_rate)
 
 	fmt = oc->oformat;
 	fmt->video_codec = AV_CODEC_ID_MPEG4;
+	//fmt->video_codec = AV_CODEC_ID_H264;
 	fmt->audio_codec = AV_CODEC_ID_AAC;
 	
 	/* Add the audio and video streams using the default format codecs
