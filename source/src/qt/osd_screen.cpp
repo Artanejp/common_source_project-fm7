@@ -289,8 +289,11 @@ int OSD_BASE::add_video_frames()
 		rec_video_frames += frames;
 		counter++;
 	}
-	if(counter <= 0) return counter;
-	
+	if(frames <= 1.0) {
+		if(counter <= 0) return counter;
+	} else {
+		counter = counter + ((int)frames - 1);
+	}
 	if(using_flags->is_use_one_board_computer()) {
 		int size = vm_screen_buffer.pImage.byteCount();
 		int i = counter;
