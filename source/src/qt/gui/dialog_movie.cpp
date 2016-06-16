@@ -127,8 +127,10 @@ CSP_DialogMovie::CSP_DialogMovie(MOVIE_SAVER *ms, QWidget *parent) : QWidget(par
 	connect(combo_video_b_adapt, SIGNAL(activated(int)), this, SLOT(do_set_b_adapt(int)));
 
 	slider_qmin = new QSlider(Qt::Horizontal, this);
-	slider_qmin->setMinimum(0);
-	slider_qmin->setMaximum(63);
+	//slider_qmin->setMinimum(0);
+	//slider_qmin->setMaximum(63);
+	slider_qmin->setMinimum(1);
+	slider_qmin->setMaximum(31);
 	slider_qmin->setValue(config.video_minq);
 	label_qmin_val = new QLabel(this);
 	tmps.setNum(config.video_minq);
@@ -138,8 +140,10 @@ CSP_DialogMovie::CSP_DialogMovie(MOVIE_SAVER *ms, QWidget *parent) : QWidget(par
 	connect(slider_qmin, SIGNAL(valueChanged(int)), this, SLOT(do_set_qmin(int)));
 		
 	slider_qmax = new QSlider(Qt::Horizontal, this);
-	slider_qmax->setMinimum(0);
-	slider_qmax->setMaximum(63);
+	//slider_qmax->setMinimum(0);
+	//slider_qmax->setMaximum(63);
+	slider_qmax->setMinimum(1);
+	slider_qmax->setMaximum(31);
 	slider_qmax->setValue(config.video_maxq);
 	label_qmax_val = new QLabel(this);
 	tmps.setNum(config.video_maxq);
@@ -366,7 +370,7 @@ void CSP_DialogMovie::do_set_codecs(void)
 	emit sig_set_audio_bitrate(audio_bitrate);
 
 	emit sig_video_clear_options();
-	emit sig_video_add_option(QString::fromUtf8("c:v"), QString::fromUtf8("libx264"));
+	emit sig_video_add_option(QString::fromUtf8("c:v"), QString::fromUtf8("mpeg4"));
 	emit sig_video_add_option(QString::fromUtf8("c:a"), QString::fromUtf8("aac"));
 	//emit sig_video_add_option(QString::fromUtf8("c:v"), QString::fromUtf8("theora"));
 	//emit sig_video_add_option(QString::fromUtf8("c:a"), QString::fromUtf8("vorbis"));
