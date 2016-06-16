@@ -227,7 +227,7 @@ bool MOVIE_SAVER::do_open(QString filename, int _fps, int _sample_rate)
 	{
 		QString value;
 		do_clear_options_list();
-		do_add_option(QString::fromUtf8("c:v"), QString::fromUtf8("libx264"));
+		do_add_option(QString::fromUtf8("c:v"), QString::fromUtf8("mpeg4"));
 		do_add_option(QString::fromUtf8("c:a"), QString::fromUtf8("aac"));
 		//do_add_option(QString::fromUtf8("c:v"), QString::fromUtf8("theora"));
 		//do_add_option(QString::fromUtf8("c:a"), QString::fromUtf8("vorbis"));

@@ -226,10 +226,10 @@ void OSD_BASE::update_sound(int* extra_frames)
 					frames = fps * (double)samples / (double)sound_rate;
 					//}
 					rec_video_frames -= frames;
-					if(rec_video_frames > 2) {
-						rec_video_run_frames -= (rec_video_frames - 2);
-					} else if(rec_video_frames < -2) {
-						rec_video_run_frames -= (rec_video_frames + 2);
+					if(rec_video_frames > 2.0) {
+						rec_video_run_frames -= (rec_video_frames - 2.0);
+					} else if(rec_video_frames < -2.0) {
+						rec_video_run_frames -= (rec_video_frames + 2.0);
 					}
 				}
 				//printf("Wrote %d samples ptr=%d\n", samples, rec_sound_buffer_ptr);

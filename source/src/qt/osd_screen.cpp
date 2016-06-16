@@ -283,7 +283,7 @@ int OSD_BASE::add_video_frames()
 	static double prev_vm_fps = -1;
 	double vm_fps = vm_frame_rate();
 	frames = vm_fps / (double)rec_video_fps;
-	
+
 	while(rec_video_run_frames > 0) {
 		rec_video_run_frames -= frames;
 		rec_video_frames += frames;
@@ -292,7 +292,7 @@ int OSD_BASE::add_video_frames()
 	if(frames <= 1.0) {
 		if(counter <= 0) return counter;
 	} else {
-		counter = counter + ((int)frames - 1);
+		counter = counter + (int)frames;
 	}
 	if(using_flags->is_use_one_board_computer()) {
 		int size = vm_screen_buffer.pImage.byteCount();
