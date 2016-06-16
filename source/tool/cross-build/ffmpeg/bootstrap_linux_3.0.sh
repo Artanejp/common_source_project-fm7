@@ -1,0 +1,9 @@
+#!/bin/sh
+./configure --prefix=/usr/local/ffmpeg-3.0.2 \
+            --enable-shared --disable-static \
+	    --enable-gpl --enable-libx264 \
+	    --enable-libtheora --enable-libvorbis \
+	    --enable-libmp3lame \
+	    --cc=gcc-6 --cxx=g++-6 \
+	    --enable-lto
+	    

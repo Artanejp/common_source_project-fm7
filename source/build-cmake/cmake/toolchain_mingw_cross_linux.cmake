@@ -6,7 +6,7 @@ SET(CMAKE_C_COMPILER i686-w64-mingw32-gcc)
 SET(CMAKE_CXX_COMPILER i686-w64-mingw32-g++)
 SET(CMAKE_RC_COMPILER i686-w64-mingw32-windres)
 
-set(LIBAV_ROOT_DIR "/usr/local/i586-mingw-msvc/ffmpeg-2.8.7")
+set(LIBAV_ROOT_DIR "/usr/local/i586-mingw-msvc/ffmpeg-3.0.2")
 
 # here is the target environment located
 set(USE_SDL2 ON)
@@ -14,15 +14,15 @@ if(USE_SDL2)
    SET(CMAKE_FIND_ROOT_PATH  /usr/i686-w64-mingw32 
                           /usr/local/i586-mingw-msvc
                           /usr/local/i586-mingw-msvc/SDL2/i686-w64-mingw32
-			  /usr/local/i586-mingw-msvc/5.5/mingw492_32
-#			  /usr/local/i586-mingw-msvc/5.5/mingw530_32_win32
+#			  /usr/local/i586-mingw-msvc/5.5/mingw492_32
+			  /usr/local/i586-mingw-msvc/5.5/mingw_530_win32
 			  )
 else()
    SET(CMAKE_FIND_ROOT_PATH  /usr/i686-w64-mingw32 
                           /usr/local/i586-mingw-msvc
                           /usr/local/i586-mingw-msvc/SDL1/
-			  /usr/local/i586-mingw-msvc/5.5/mingw492_32
-#			  /usr/local/i586-mingw-msvc/5.5/mingw530_32_win32
+#			  /usr/local/i586-mingw-msvc/5.5/mingw492_32
+			  /usr/local/i586-mingw-msvc/5.5/mingw_530_win32
 			  )
 endif()
 
