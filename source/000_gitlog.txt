@@ -1,3 +1,15 @@
+commit 5f7fa319cf97bf535b473f949de48f30d009cff4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 18 02:17:46 2016 +0900
+
+    [DOC] Update Japanese/Englist releasenote.
+
+commit af8e6cb3cb69d85480b0eaa78be2c17f5901daaa
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 18 01:38:21 2016 +0900
+
+    [DOC] Update gitlog.
+
 commit 67e82466a4449c2fac1c8229d4731687f8c3f132
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sat Jun 18 01:37:52 2016 +0900
