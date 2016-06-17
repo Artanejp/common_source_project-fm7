@@ -333,7 +333,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(emu->get_osd(), SIGNAL(sig_stop_saving_movie()), hSaveMovieThread, SLOT(do_close()));
 
 	actionStop_Record_Movie->setIcon(QIcon(":/icon_process_stop.png"));
-	//actionStop_Record_Movie->setVisible(false);
+	actionStop_Record_Movie->setVisible(false);
 	
 	connect(this, SIGNAL(sig_movie_set_width(int)), hSaveMovieThread, SLOT(do_set_width(int)));
 	connect(this, SIGNAL(sig_movie_set_height(int)), hSaveMovieThread, SLOT(do_set_height(int)));
