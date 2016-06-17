@@ -183,10 +183,15 @@ bool MOVIE_SAVER::do_open(QString filename, int _fps, int _sample_rate)
 	AVOutputFormat *fmt;
 	AVFormatContext *oc;
 	//AVCodec *audio_codec, *video_codec;
-	int ret;
+	//do_close_main();
+	while(req_close) {
+		msleep(10);
+	}
+   	int ret;
 	have_video = 0, have_audio = 0;
 	int encode_video = 0, encode_audio = 0;
-	do_close_main();
+
+	 
 	raw_options_list = NULL;
 
 	do_set_record_fps(_fps);
