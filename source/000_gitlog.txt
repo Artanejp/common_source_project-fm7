@@ -1,3 +1,15 @@
+commit 01417bb11a303cd6a8df34dec5cb4889a5ee495b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 18 02:22:43 2016 +0900
+
+    [DOC] Update URLs.
+
+commit d58b1ed689a1258ebda2a72e89b45693273b6988
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 18 02:18:28 2016 +0900
+
+    [DOC Update gitlog
+
 commit 5f7fa319cf97bf535b473f949de48f30d009cff4
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sat Jun 18 02:17:46 2016 +0900
