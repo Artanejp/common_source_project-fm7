@@ -1,8 +1,10 @@
 #!/bin/bash
 
 CMAKE=/usr/bin/cmake
-CCMAKE_CC=gcc-5
-CCMAKE_CXX=g++-5
+#CCMAKE_CC=gcc-5
+#CCMAKE_CXX=g++-5
+CCMAKE_CC=gcc-6
+CCMAKE_CXX=g++-6
 
 MAKEFLAGS_CXX="-g -O2 -DNDEBUG"
 MAKEFLAGS_CC="-g -O2 -DNDEBUG"

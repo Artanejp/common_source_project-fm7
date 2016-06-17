@@ -33,8 +33,6 @@ BUILD_TYPE="Relwithdebinfo"
 CMAKE_LINKFLAG="-g -flto=6 -fwhole-program -O2 ${MAKEFLAGS_BASE}"
 CMAKE_DLL_LINKFLAG="-g -flto=6 -O2 ${MAKEFLAGS_BASE}"
 
-
-
 LIB_INSTALL="/usr/local/lib/x86_64-linux-gnu/"
 #LIB_INSTALL="/usr/local/lib/"
 #LIB_INSTALL="/usr/lib/x86_64-linux-gnu/"
