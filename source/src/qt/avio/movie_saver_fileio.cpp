@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#if defined(USE_LIBAV)
 extern "C" {
 	#include <libavutil/avassert.h>
 	#include <libavutil/channel_layout.h>
@@ -25,10 +26,12 @@ extern "C" {
 	#include <libswscale/swscale.h>
 	#include <libswresample/swresample.h>
 }
+#endif
 
 //int MOVIE_SAVER::write_frame(AVFormatContext *fmt_ctx, const AVRational *time_base, AVStream *st, AVPacket *pkt)
 int MOVIE_SAVER::write_frame(void *_fmt_ctx, const void *_time_base, void *_st, void *_pkt)
 {
+#if defined(USE_LIBAV)
 	AVFormatContext *fmt_ctx = (AVFormatContext *)_fmt_ctx;
 	const AVRational *time_base = (const AVRational *)_time_base;
 	AVStream *st = (AVStream *)_st;
@@ -40,6 +43,9 @@ int MOVIE_SAVER::write_frame(void *_fmt_ctx, const void *_time_base, void *_st, 
 	/* Write the compressed frame to the media file. */
 	//log_packet(fmt_ctx, pkt);
 	return av_interleaved_write_frame(fmt_ctx, pkt);
+#else
+	return 0;
+#endif
 }
 
 /* Add an output stream. */
@@ -50,6 +56,7 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
 					   void **_codec,
 					   uint64_t _codec_id)
 {
+#if defined(USE_LIBAV)
 	AVCodecContext *c;
 	int i;
 
@@ -108,32 +115,7 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
 		/* Resolution must be a multiple of two. */
 		c->width	= video_geometry.width();
 		c->height   = video_geometry.height();
-		c->qmin	 = config.video_minq;
-		c->qmax	 = config.video_maxq;
 		c->thread_count	 = video_encode_threads;
-		c->max_b_frames	 = config.video_bframes;
-		
-		c->b_quant_offset = 2;
-		c->temporal_cplx_masking = 0.1;
-		c->spatial_cplx_masking = 0.15;
-		c->scenechange_threshold = 35;
-		c->noise_reduction = 0;
-		c->bidir_refine = 2;
-		c->refs = 5;
-		c->chromaoffset = 2;
-		c->max_qdiff = 6;
-		//c->b_frame_strategy = config.video_b_adapt;
-		c->me_subpel_quality = config.video_subme;
-		c->i_quant_offset = 1.2;
-		c->i_quant_factor = 1.5;
-		c->trellis = 2;
-		c->mb_lmin = 4;
-		c->mb_lmax = 18;
-		c->bidir_refine = 2;
-		c->keyint_min = rec_fps / 5;
-		c->gop_size = rec_fps * 5;
-		c->b_sensitivity = 55;
-		c->scenechange_threshold = 50;
 		
 		/* timebase: This is the fundamental unit of time (in seconds) in terms
 		 * of which frame timestamps are represented. For fixed-fps content,
@@ -150,15 +132,7 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
 			c->gop_size  = rec_fps; /* emit one intra frame every one second */
 		}
 		if (c->codec_id == AV_CODEC_ID_MPEG4) {
-			if(c->qmin > c->qmax) {
-				int tmp;
-				tmp = c->qmin;
-				c->qmin = c->qmax;
-				c->qmax = tmp;
-			}
-			if(c->qmin <= 0) c->qmin = 1;
-			if(c->qmax <= 0) c->qmax = 1;
-			c->gop_size  = rec_fps; /* emit one intra frame every one second */
+			setup_mpeg4((void *)c);
 		}
 		if (c->codec_id == AV_CODEC_ID_MPEG1VIDEO) {
 			/* Needed to avoid using macroblocks in which some coeffs overflow.
@@ -167,12 +141,7 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
 			c->mb_decision = 2;
 		}
 		if (c->codec_id == AV_CODEC_ID_H264) {
-			/* Needed to avoid using macroblocks in which some coeffs overflow.
-			 * This does not happen with normal video, it just happens here as
-			 * the motion of the chroma plane does not match the luma plane. */
-			c->mb_decision = 2;
-			c->me_method = ME_UMH;
-			c->profile=FF_PROFILE_H264_HIGH;
+			setup_h264((void *)c);
 		}
 	break;
 
@@ -184,6 +153,9 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
 	if (oc->oformat->flags & AVFMT_GLOBALHEADER)
 		c->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
 	return true;
+#else
+	return false;
+#endif	
 }
 
 
@@ -191,6 +163,7 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
 //void MOVIE_SAVER::close_stream(AVFormatContext *oc, OutputStream *ost)
 void MOVIE_SAVER::close_stream(void *_oc, void *_ost)
 {
+#if defined(USE_LIBAV)
 	AVFormatContext *oc = (AVFormatContext *)_oc;
 	OutputStream *ost = (OutputStream *)_ost;
 	avcodec_close(ost->st->codec);
@@ -199,19 +172,21 @@ void MOVIE_SAVER::close_stream(void *_oc, void *_ost)
 	av_frame_free(&ost->tmp_frame);
 	sws_freeContext(ost->sws_ctx);
 	swr_free(&ost->swr_ctx);
+#endif	
 }
 
 
 
 bool MOVIE_SAVER::do_open(QString filename, int _fps, int _sample_rate)
 {
+#if defined(USE_LIBAV)
 	AVOutputFormat *fmt;
 	AVFormatContext *oc;
 	//AVCodec *audio_codec, *video_codec;
 	int ret;
 	have_video = 0, have_audio = 0;
 	int encode_video = 0, encode_audio = 0;
-	if(recording) do_close_main();
+	do_close_main();
 	raw_options_list = NULL;
 
 	do_set_record_fps(_fps);
@@ -232,26 +207,8 @@ bool MOVIE_SAVER::do_open(QString filename, int _fps, int _sample_rate)
 		//do_add_option(QString::fromUtf8("c:v"), QString::fromUtf8("theora"));
 		//do_add_option(QString::fromUtf8("c:a"), QString::fromUtf8("vorbis"));
 		
-		value.setNum(config.video_minq);
-		do_add_option(QString::fromUtf8("qmin"), value);
-		value.setNum(config.video_maxq);
-		do_add_option(QString::fromUtf8("qmax"), value);
-		
-		value.setNum(config.video_bframes);
-		do_add_option(QString::fromUtf8("bframes"), value);
-		
-		value.setNum(config.video_b_adapt);
-		do_add_option(QString::fromUtf8("b_adapt"), value);
-		
-		value.setNum(config.video_subme);
-		do_add_option(QString::fromUtf8("subme"), value);
-
-		value.setNum(config.video_subme);
-		do_add_option(QString::fromUtf8("subme"), value);
-		
 		video_encode_threads = config.video_threads;
 		video_geometry = QSize(config.video_width, config.video_height);
-		video_bit_rate = config.video_bitrate * 1000;
 		audio_bit_rate = config.audio_bitrate * 1000;
 		
 	}
@@ -272,8 +229,14 @@ bool MOVIE_SAVER::do_open(QString filename, int _fps, int _sample_rate)
 		return false;
 
 	fmt = oc->oformat;
-	fmt->video_codec = AV_CODEC_ID_MPEG4;
-	//fmt->video_codec = AV_CODEC_ID_H264;
+	switch(config.video_codec_type) {
+	case VIDEO_CODEC_MPEG4:
+		fmt->video_codec = AV_CODEC_ID_MPEG4;
+		break;
+	case VIDEO_CODEC_H264:
+		fmt->video_codec = AV_CODEC_ID_H264;
+		break;
+	}
 	fmt->audio_codec = AV_CODEC_ID_AAC;
 	
 	/* Add the audio and video streams using the default format codecs
@@ -329,6 +292,9 @@ _err_final:
 	output_context = NULL;
 	stream_format  = NULL;
 	return false;
+#else
+	return true;
+#endif	
 }
 
 void MOVIE_SAVER::do_close()
@@ -338,13 +304,12 @@ void MOVIE_SAVER::do_close()
 
 void MOVIE_SAVER::do_close_main()
 {
-	recording = false;
-	req_close = false;
 #if defined(USE_LIBAV)
 	int ret, i;
 	OutputStream *ost;
 	int got_packet;
 	int64_t total_packets_written = 0;
+
 	if(output_context != NULL) {
 		AVFormatContext *oc = output_context;
 		AVOutputFormat *fmt = oc->oformat;
@@ -380,6 +345,8 @@ void MOVIE_SAVER::do_close_main()
 		av_dict_free(&raw_options_list);
 		raw_options_list = NULL;
 	}
+	recording = false;
+	req_close = false;
 #endif   // defined(USE_LIBAV)
 	memset(audio_frame_buf, 0x00, sizeof(audio_frame_buf));
 	memset(video_frame_buf, 0x00, sizeof(video_frame_buf));

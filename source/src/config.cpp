@@ -138,12 +138,20 @@ void initialize_config()
 #if defined(USE_QT)
 	config.video_width = 640;
 	config.video_height = 480;
-	config.video_bitrate = 512;
-	config.video_bframes = 4;
-	config.video_b_adapt = 2;
-	config.video_minq = 14;
-	config.video_maxq = 25;
-	config.video_subme = 8;
+	config.video_codec_type = 0; // MPEG4
+	
+	config.video_h264_bitrate = 512;
+	config.video_h264_bframes = 4;
+	config.video_h264_b_adapt = 2;
+	config.video_h264_minq = 14;
+	config.video_h264_maxq = 25;
+	config.video_h264_subme = 8;
+	
+	config.video_mpeg4_bitrate = 512;
+	config.video_mpeg4_bframes = 4;
+	config.video_mpeg4_minq = 1;
+	config.video_mpeg4_maxq = 20;
+	
 	config.video_threads = 0;
 	config.audio_bitrate = 128;
 	config.video_frame_rate = 30;
@@ -363,29 +371,54 @@ void load_config(const _TCHAR *config_path)
 	config.video_height  = MyGetPrivateProfileInt(_T("Video"), _T("VideoHeight"), config.video_height, config_path);
 	if(config.video_height < 80) config.video_height = 80;
 	
-	config.video_bitrate = MyGetPrivateProfileInt(_T("Video"), _T("VideoBitrate"), config.video_bitrate, config_path);
-	if(config.video_bitrate < 64) config.video_bitrate = 64;
-
-	config.video_bframes = MyGetPrivateProfileInt(_T("Video"), _T("VideoBFrames"), config.video_bframes, config_path);
-	if(config.video_bframes < 0) config.video_bframes = 0;
-	if(config.video_bframes > 10) config.video_bframes = 10;
-
-	config.video_b_adapt = MyGetPrivateProfileInt(_T("Video"), _T("VideoBAdapt"), config.video_b_adapt, config_path);
-	if(config.video_b_adapt < 0) config.video_b_adapt = 0;
-	if(config.video_b_adapt > 2) config.video_b_adapt = 2;
+	config.video_codec_type = MyGetPrivateProfileInt(_T("Video"), _T("VideoCodecType"), config.video_codec_type, config_path);
+	if(config.video_codec_type > 1) config.video_codec_type = 1;
+	if(config.video_codec_type < 0) config.video_codec_type = 0;
 	
-	config.video_subme   = MyGetPrivateProfileInt(_T("Video"), _T("VideoSubme"), config.video_subme, config_path);
-	if(config.video_subme < 0) config.video_subme = 0;
-	if(config.video_subme > 11) config.video_subme = 11;
+	config.video_h264_bitrate = MyGetPrivateProfileInt(_T("Video"), _T("H264Bitrate"), config.video_h264_bitrate, config_path);
+	if(config.video_h264_bitrate < 64) config.video_h264_bitrate = 64;
 
-	config.video_minq   = MyGetPrivateProfileInt(_T("Video"), _T("VideoMinQ"), config.video_minq, config_path);
-	if(config.video_minq < 0) config.video_minq = 0;
-	if(config.video_minq > 63) config.video_minq = 63;
+	config.video_h264_bframes = MyGetPrivateProfileInt(_T("Video"), _T("H264BFrames"), config.video_h264_bframes, config_path);
+	if(config.video_h264_bframes < 0) config.video_h264_bframes = 0;
+	if(config.video_h264_bframes > 10) config.video_h264_bframes = 10;
 
-	config.video_maxq   = MyGetPrivateProfileInt(_T("Video"), _T("VideoMaxQ"), config.video_maxq, config_path);
-	if(config.video_maxq < 0) config.video_maxq = 0;
-	if(config.video_maxq > 63) config.video_maxq = 63;
+	config.video_h264_b_adapt = MyGetPrivateProfileInt(_T("Video"), _T("H264BAdapt"), config.video_h264_b_adapt, config_path);
+	if(config.video_h264_b_adapt < 0) config.video_h264_b_adapt = 0;
+	if(config.video_h264_b_adapt > 2) config.video_h264_b_adapt = 2;
 	
+	config.video_h264_subme   = MyGetPrivateProfileInt(_T("Video"), _T("H264Subme"), config.video_h264_subme, config_path);
+	if(config.video_h264_subme < 0) config.video_h264_subme = 0;
+	if(config.video_h264_subme > 11) config.video_h264_subme = 11;
+
+	config.video_h264_minq   = MyGetPrivateProfileInt(_T("Video"), _T("H264MinQ"), config.video_h264_minq, config_path);
+	if(config.video_h264_minq < 0) config.video_h264_minq = 0;
+	if(config.video_h264_minq > 63) config.video_h264_minq = 63;
+
+	config.video_h264_maxq   = MyGetPrivateProfileInt(_T("Video"), _T("H264MaxQ"), config.video_h264_maxq, config_path);
+	if(config.video_h264_maxq < 0) config.video_h264_maxq = 0;
+	if(config.video_h264_maxq > 63) config.video_h264_maxq = 63;
+	
+	config.video_mpeg4_bitrate = MyGetPrivateProfileInt(_T("Video"), _T("MPEG4Bitrate"), config.video_mpeg4_bitrate, config_path);
+	if(config.video_mpeg4_bitrate < 64) config.video_mpeg4_bitrate = 64;
+
+	config.video_mpeg4_bframes = MyGetPrivateProfileInt(_T("Video"), _T("MPEG4BFrames"), config.video_mpeg4_bframes, config_path);
+	if(config.video_mpeg4_bframes < 0) config.video_mpeg4_bframes = 0;
+	if(config.video_mpeg4_bframes > 10) config.video_mpeg4_bframes = 10;
+
+	config.video_mpeg4_minq   = MyGetPrivateProfileInt(_T("Video"), _T("MPEG4MinQ"), config.video_mpeg4_minq, config_path);
+	if(config.video_mpeg4_minq < 1) config.video_mpeg4_minq = 1;
+	if(config.video_mpeg4_minq > 31) config.video_mpeg4_minq = 31;
+
+	config.video_mpeg4_maxq   = MyGetPrivateProfileInt(_T("Video"), _T("MPEG4MaxQ"), config.video_mpeg4_maxq, config_path);
+	if(config.video_mpeg4_maxq < 1) config.video_mpeg4_maxq = 1;
+	if(config.video_mpeg4_maxq > 31) config.video_mpeg4_maxq = 31;
+	if(config.video_mpeg4_maxq < config.video_mpeg4_minq) {
+		int n;
+		n = config.video_mpeg4_maxq;
+		config.video_mpeg4_maxq  = config.video_mpeg4_minq;
+		config.video_mpeg4_minq = n;
+	}
+
 	config.video_threads = MyGetPrivateProfileInt(_T("Video"), _T("VideoThreads"), config.video_threads, config_path);
 	if(config.video_threads < 0) config.video_threads = 0;
 	if(config.video_threads > 16) config.video_threads = 16;
@@ -601,12 +634,20 @@ void save_config(const _TCHAR *config_path)
 #if defined(_USE_QT)
 	MyWritePrivateProfileInt(_T("Video"), _T("VideoWidth"), config.video_width, config_path);
 	MyWritePrivateProfileInt(_T("Video"), _T("VideoHeight"), config.video_height, config_path);
-	MyWritePrivateProfileInt(_T("Video"), _T("VideoBitrate"), config.video_bitrate, config_path);
-	MyWritePrivateProfileInt(_T("Video"), _T("VideoBFrames"), config.video_bframes, config_path);
-	MyWritePrivateProfileInt(_T("Video"), _T("VideoBAdapt"), config.video_b_adapt, config_path);
-	MyWritePrivateProfileInt(_T("Video"), _T("VideoMinQ"), config.video_minq, config_path);
-	MyWritePrivateProfileInt(_T("Video"), _T("VideoMaxQ"), config.video_maxq, config_path);
-	MyWritePrivateProfileInt(_T("Video"), _T("VideoSubme"), config.video_subme, config_path);
+	MyWritePrivateProfileInt(_T("Video"), _T("VideoCodecType"), config.video_codec_type, config_path);
+	
+	MyWritePrivateProfileInt(_T("Video"), _T("H264Bitrate"), config.video_h264_bitrate, config_path);
+	MyWritePrivateProfileInt(_T("Video"), _T("H264BFrames"), config.video_h264_bframes, config_path);
+	MyWritePrivateProfileInt(_T("Video"), _T("H264BAdapt"), config.video_h264_b_adapt, config_path);
+	MyWritePrivateProfileInt(_T("Video"), _T("H264MinQ"), config.video_h264_minq, config_path);
+	MyWritePrivateProfileInt(_T("Video"), _T("H264MaxQ"), config.video_h264_maxq, config_path);
+	MyWritePrivateProfileInt(_T("Video"), _T("H264Subme"), config.video_h264_subme, config_path);
+	
+	MyWritePrivateProfileInt(_T("Video"), _T("MPEG4Bitrate"), config.video_mpeg4_bitrate, config_path);
+	MyWritePrivateProfileInt(_T("Video"), _T("MPEG4BFrames"), config.video_mpeg4_bframes, config_path);
+	MyWritePrivateProfileInt(_T("Video"), _T("MPEG4MinQ"), config.video_mpeg4_minq, config_path);
+	MyWritePrivateProfileInt(_T("Video"), _T("MPEG4MaxQ"), config.video_mpeg4_maxq, config_path);
+	
 	MyWritePrivateProfileInt(_T("Video"), _T("VideoThreads"), config.video_threads, config_path);
 	MyWritePrivateProfileInt(_T("Video"), _T("AudioBitrate"), config.audio_bitrate, config_path);
 	MyWritePrivateProfileInt(_T("Video"), _T("VideoFramerate"), config.video_frame_rate, config_path);

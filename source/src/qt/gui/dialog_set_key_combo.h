@@ -11,15 +11,7 @@
 #include <QComboBox>
 #include <QList>
 #include <QStringList>
-#ifdef __GNUC__
-	#if defined(Q_OS_WIN) || defined(__WIN32) || defined(__WIN64)
-		#define DLL_PREFIX __declspec(dllexport)
-	#else
-		#define DLL_PREFIX
-	#endif
-#else
-		#define DLL_PREFIX
-#endif
+#include "common.h"
 
 QT_BEGIN_NAMESPACE
 class DLL_PREFIX CSP_KeySetupCombo: public QComboBox

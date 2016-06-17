@@ -263,6 +263,7 @@ void MOVIE_SAVER::run()
 			}
 		}
 	_next_turn:
+		//printf("%d\n", req_close);
 		old_recording = recording;
 		if(!bRunThread) break;
 		if(need_video_transcode || need_audio_transcode) {
@@ -282,6 +283,9 @@ void MOVIE_SAVER::run()
 			tmp_wait = fps_wait;
 		}
 		old_recording = recording;
+		if(req_close) {
+			do_close_main();
+		}
 		continue;
 	_final:
 		old_recording = recording;

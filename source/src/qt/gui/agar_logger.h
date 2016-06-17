@@ -19,15 +19,8 @@
 #include <sys/time.h>
 
 #include "simd_types.h"
-#ifdef __GNUC__
-	#if defined(Q_OS_WIN) || defined(__WIN32) || defined(__WIN64)
-		#define DLL_PREFIX __declspec(dllexport)
-	#else
-		#define DLL_PREFIX
-	#endif
-#else
-		#define DLL_PREFIX
-#endif
+#include "common.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -57,15 +57,15 @@ void Object_Menu_Control::set_screen_size(void) {
 
 void Ui_MainWindowBase::do_stop_saving_movie(void)
 {
-	actionStop_Record_Movie->setVisible(false);
-	actionStart_Record_Movie->setVisible(true);
+	//actionStop_Record_Movie->setVisible(false);
+	//actionStart_Record_Movie->setVisible(true);
 	emit sig_stop_saving_movie();
 }
 
 void Ui_MainWindowBase::do_start_saving_movie(void)
 {
-	actionStop_Record_Movie->setVisible(true);
-	actionStart_Record_Movie->setVisible(false);
+	//actionStop_Record_Movie->setVisible(true);
+	//actionStart_Record_Movie->setVisible(false);
 	emit sig_start_saving_movie();
 }
 

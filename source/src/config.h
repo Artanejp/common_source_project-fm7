@@ -139,12 +139,20 @@ typedef struct {
 
 	int video_width;
 	int video_height;
-	int video_bitrate;
-	int video_bframes;
-	int video_b_adapt;
-	int video_minq;
-	int video_maxq;
-	int video_subme;
+	int video_codec_type;
+	
+	int video_h264_bitrate;
+	int video_h264_bframes;
+	int video_h264_b_adapt;
+	int video_h264_minq;
+	int video_h264_maxq;
+	int video_h264_subme;
+
+	int video_mpeg4_bitrate;
+	int video_mpeg4_bframes;
+	int video_mpeg4_minq;
+	int video_mpeg4_maxq;
+	
 	int video_threads;
 	int audio_bitrate;
 	int video_frame_rate; // FPS * 1000.0

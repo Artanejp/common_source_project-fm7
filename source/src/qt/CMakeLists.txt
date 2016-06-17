@@ -39,8 +39,8 @@ else()
   )
   
   set_target_properties(CSPosd PROPERTIES 
-     SOVERSION 1.2.2
-     VERSION 1.2.2
+     SOVERSION 1.2.3
+     VERSION 1.2.3
   )
   INSTALL(TARGETS CSPosd DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

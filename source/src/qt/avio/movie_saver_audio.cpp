@@ -9,6 +9,7 @@
 #include "../osd.h"
 #include "agar_logger.h"
 
+#if defined(USE_LIBAV)
 extern "C" {
 	#include <libavutil/avassert.h>
 	#include <libavutil/channel_layout.h>
@@ -19,7 +20,7 @@ extern "C" {
 	#include <libswscale/swscale.h>
 	#include <libswresample/swresample.h>
 }
-
+#endif
 /**************************************************************/
 /* audio output */
 
@@ -30,6 +31,7 @@ void *MOVIE_SAVER::alloc_audio_frame(uint64_t _sample_fmt,
 								  uint64_t channel_layout,
 								  int sample_rate, int nb_samples)
 {
+#if defined(USE_LIBAV)
 	AVFrame *frame = av_frame_alloc();
 	int ret;
 	enum AVSampleFormat sample_fmt = (enum AVSampleFormat)_sample_fmt; 
@@ -52,11 +54,15 @@ void *MOVIE_SAVER::alloc_audio_frame(uint64_t _sample_fmt,
 	}
 
 	return (void *)frame;
+#else
+	return (void *)NULL;
+#endif
 }
 
 //static void open_audio(AVFormatContext *oc, AVCodec *codec, OutputStream *ost, AVDictionary *opt_arg)
 bool MOVIE_SAVER::open_audio(void)
 {
+#if defined(USE_LIBAV)
  	AVDictionary *opt_arg = raw_options_list;
 	OutputStream *ost = &audio_st;
 	AVCodec *codec = audio_codec;
@@ -109,6 +115,9 @@ bool MOVIE_SAVER::open_audio(void)
 	}
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE: Open to write audio : Success.");
 	return true;
+#else
+	return true;
+#endif
 }
 
 /* Prepare a 16 bit dummy audio frame of 'frame_size' samples and
@@ -116,6 +125,7 @@ bool MOVIE_SAVER::open_audio(void)
 //static AVFrame *get_audio_frame(OutputStream *ost)
 void *MOVIE_SAVER::get_audio_frame()
 {
+#if defined(USE_LIBAV)
 	OutputStream *ost = &audio_st;
 	AVFrame *frame = ost->tmp_frame;
 	int j, i, v;
@@ -127,6 +137,7 @@ void *MOVIE_SAVER::get_audio_frame()
 			while(audio_data_queue.isEmpty()) {
 				if(!bRunThread) return NULL;
 				if(!recording) return NULL;
+				if(req_close) return NULL;
 				msleep(1);
 			}
 			dequeue_audio(audio_frame_buf);
@@ -151,6 +162,9 @@ void *MOVIE_SAVER::get_audio_frame()
 	ost->next_pts  += frame->nb_samples;
 
 	return frame;
+#else
+	return (void *)NULL;
+#endif
 }
 
 /*
@@ -160,6 +174,7 @@ void *MOVIE_SAVER::get_audio_frame()
 //static int write_audio_frame(AVFormatContext *oc, OutputStream *ost)
 int MOVIE_SAVER::write_audio_frame()
 {
+#if defined(USE_LIBAV)
 	AVFormatContext *oc = output_context;
 	OutputStream *ost = &audio_st;
 	AVCodecContext *c;
@@ -174,7 +189,7 @@ int MOVIE_SAVER::write_audio_frame()
 	c = ost->st->codec;
 
 	frame_src = (AVFrame *)get_audio_frame();
-
+	//if(req_close) return 1;
 	if (frame_src) {
 		/* convert samples from native format to destination codec format, using the resampler */
 		/* compute destination number of samples */
@@ -227,4 +242,7 @@ int MOVIE_SAVER::write_audio_frame()
 		//}
 	}
 	return (frame_dst || got_packet) ? 0 : 1;
+#else
+	return 1;
+#endif
 }

@@ -32,6 +32,12 @@ extern "C" {
 //#define SCALE_FLAGS SWS_BICUBLIN
 #define SCALE_FLAGS SWS_POINT
 
+enum {
+	VIDEO_CODEC_MPEG4 = 0,
+	VIDEO_CODEC_H264,
+	VIDEO_CODEC_END,
+};
+
 // a wrapper around a single output AVStream
 typedef struct OutputStream {
 	AVStream *st;
@@ -58,12 +64,11 @@ class MOVIE_SAVER: public QThread
 private:
 	int n_encode_audio;
 	int n_encode_video;
-
 protected:
 	OSD *p_osd;
 
 	bool req_close;
-	
+
 	bool have_video;
 	bool have_audio;
 	bool encode_video;
@@ -157,7 +162,10 @@ protected:
 	int write_video_frame();
 	//void MOVIE_SAVER::close_stream(AVFormatContext *oc, OutputStream *ost)
 	void close_stream(void *_oc, void *_ost);
-
+	//void MOVIE_SAVER::setup_h264(AVCodecContext *_codec)
+	void setup_h264(void *_codec);
+	//void MOVIE_SAVER::setup_mpeg4(AVCodecContext *_codec)
+	void setup_mpeg4(void *_codec);
 
 	QString ts2str(int64_t ts);
 	QString ts2timestr(int64_t ts, void *timebase);

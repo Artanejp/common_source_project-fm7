@@ -26,6 +26,10 @@ set(s_qt_gui_headers
 	  dialog_set_key.h
 	  dialog_set_key_combo.h
 	  dialog_movie.h
+
+	  tab_movie_general.h
+	  tab_movie_h264.h
+	  tab_movie_mpeg4.h
 	  
 	  draw_thread.h
 	  joy_thread.h
@@ -72,6 +76,10 @@ set(s_qt_gui_srcs
 	  dialog_set_key.cpp
 	  dialog_set_key_combo.cpp
 	  dialog_movie.cpp
+	  
+	  tab_movie_general.cpp
+	  tab_movie_h264.cpp
+	  tab_movie_mpeg4.cpp
 	  
 	  draw_thread.cpp
 	  joy_thread.cpp
@@ -123,8 +131,8 @@ add_library(CSPgui SHARED
 )
 
 set_target_properties(CSPgui PROPERTIES 
-			     SOVERSION 1.3.3
-			     VERSION 1.3.3
+			     SOVERSION 1.3.4
+			     VERSION 1.3.4
 			     )
 INSTALL(TARGETS CSPgui DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

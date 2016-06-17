@@ -15,6 +15,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+
+#if defined(USE_LIBAV)
 extern "C" {
 	#include <libavutil/avassert.h>
 	#include <libavutil/channel_layout.h>
@@ -25,13 +27,91 @@ extern "C" {
 	#include <libswscale/swscale.h>
 	#include <libswresample/swresample.h>
 }
-
+#endif
 /**************************************************************/
 /* video output */
 
+void MOVIE_SAVER::setup_h264(void *_codec)
+{
+#if defined(USE_LIBAV)
+	AVCodecContext *c = (AVCodecContext *)_codec;
+
+	c->qmin	 = config.video_h264_minq;
+	c->qmax	 = config.video_h264_maxq;
+	c->bit_rate = config.video_h264_bitrate * 1000;
+	c->max_b_frames = config.video_h264_bframes;
+	c->b_quant_offset = 2;
+	c->temporal_cplx_masking = 0.1;
+	c->spatial_cplx_masking = 0.15;
+	c->scenechange_threshold = 35;
+	c->noise_reduction = 0;
+	c->bidir_refine = 2;
+	c->refs = 5;
+	c->chromaoffset = 2;
+	c->max_qdiff = 6;
+	c->b_frame_strategy = config.video_h264_b_adapt;
+	c->me_subpel_quality = config.video_h264_subme;
+	c->i_quant_offset = 1.2;
+	c->i_quant_factor = 1.5;
+	c->trellis = 2;
+	c->mb_lmin = 4;
+	c->mb_lmax = 18;
+	c->bidir_refine = 2;
+	c->keyint_min = rec_fps / 5;
+	c->gop_size = rec_fps * 5;
+	c->b_sensitivity = 55;
+	c->scenechange_threshold = 40;
+	/* Needed to avoid using macroblocks in which some coeffs overflow.
+	 * This does not happen with normal video, it just happens here as
+	 * the motion of the chroma plane does not match the luma plane. */
+	c->mb_decision = 2;
+	c->me_method = ME_UMH;
+	c->profile=FF_PROFILE_H264_HIGH;
+#endif	
+}
+
+void MOVIE_SAVER::setup_mpeg4(void *_codec)
+{
+#if defined(USE_LIBAV)
+	AVCodecContext *c = (AVCodecContext *)_codec;
+	c->qmin	 = config.video_mpeg4_minq;
+	c->qmax	 = config.video_mpeg4_maxq;
+	c->max_b_frames	 = config.video_mpeg4_bframes;
+	c->bit_rate = config.video_mpeg4_bitrate * 1000;
+	c->b_quant_offset = 2;
+	c->temporal_cplx_masking = 0.1;
+	c->spatial_cplx_masking = 0.15;
+	c->scenechange_threshold = 35;
+	c->noise_reduction = 0;
+	c->bidir_refine = 2;
+	c->refs = 5;
+	c->chromaoffset = 2;
+	c->max_qdiff = 6;
+	c->i_quant_offset = 1.2;
+	c->i_quant_factor = 1.5;
+	c->trellis = 2;
+	c->mb_lmin = 4;
+	c->mb_lmax = 18;
+	c->bidir_refine = 2;
+	c->keyint_min = rec_fps / 5;
+	c->gop_size = rec_fps * 5;
+	c->b_sensitivity = 55;
+	c->scenechange_threshold = 30;
+	if(c->qmin > c->qmax) {
+		int tmp;
+		tmp = c->qmin;
+		c->qmin = c->qmax;
+		c->qmax = tmp;
+	}
+	if(c->qmin <= 0) c->qmin = 1;
+	if(c->qmax <= 0) c->qmax = 1;
+	c->gop_size  = rec_fps; /* emit one intra frame every one second */
+#endif
+}
 //static AVFrame *alloc_picture(enum AVPixelFormat pix_fmt, int width, int height)
 void *MOVIE_SAVER::alloc_picture(uint64_t _pix_fmt, int width, int height)
 {
+#if defined(USE_LIBAV)
 	enum AVPixelFormat pix_fmt = (enum AVPixelFormat)_pix_fmt;
 	AVFrame *picture;
 	int ret;
@@ -52,11 +132,15 @@ void *MOVIE_SAVER::alloc_picture(uint64_t _pix_fmt, int width, int height)
 	}
 
 	return (void *)picture;
+#else
+	return (void *)NULL;
+#endif	
 }
 
 //void MOVIE_SAVER::open_video(OutputStream *_ost, AVDictionary *_opt_arg)
 bool MOVIE_SAVER::open_video()
 {
+#if defined(USE_LIBAV)
 	int ret;
 	AVDictionary *opt_arg = raw_options_list;
 	OutputStream *ost = &video_st;
@@ -86,7 +170,6 @@ bool MOVIE_SAVER::open_video()
 	 * picture is needed too. It is then converted to the required
 	 * output format. */
 	ost->tmp_frame = NULL;
-#if 1	
 	old_width = old_height = -1;
 	//if (c->pix_fmt != AV_PIX_FMT_YUV420P) {
 	ost->tmp_frame = (AVFrame *)alloc_picture(AV_PIX_FMT_RGBA, _width, _height);
@@ -95,14 +178,18 @@ bool MOVIE_SAVER::open_video()
 		return false;
 	}
 	//}
-#endif	
+	
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE: Open to write video : Success.");
 	return true;
+#else
+	return false;
+#endif
 }
 
 static void fill_yuv_image(AVFrame *pict, int frame_index,
 						   int width, int height)
 {
+#if defined(USE_LIBAV)
 	int x, y, i, ret;
 
 	/* when we pass a frame to the encoder, it may keep a reference to it
@@ -127,11 +214,13 @@ static void fill_yuv_image(AVFrame *pict, int frame_index,
 			pict->data[2][y * pict->linesize[2] + x] = 64 + x + i * 5;
 		}
 	}
+#endif	
 }
 
 //static AVFrame *get_video_frame(OutputStream *ost)
 void *MOVIE_SAVER::get_video_frame(void)
 {
+#if defined(USE_LIBAV)
 	OutputStream *ost = &video_st;
 	AVCodecContext *c = ost->st->codec;
 
@@ -201,6 +290,9 @@ void *MOVIE_SAVER::get_video_frame(void)
 	}
 	ost->frame->pts = ost->next_pts++;
 	return (void *)(ost->frame);
+#else
+	return (void *)NULL;
+#endif	
 }
 
 /*
@@ -210,6 +302,7 @@ void *MOVIE_SAVER::get_video_frame(void)
 //static int write_video_frame(AVFormatContext *oc, OutputStream *ost)
 int MOVIE_SAVER::write_video_frame()
 {
+#if defined(USE_LIBAV)
 	int ret;
 	AVFormatContext *oc = output_context;
 	OutputStream *ost = &video_st;
@@ -254,4 +347,7 @@ int MOVIE_SAVER::write_video_frame()
 	//	AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Write video to file. sec=%s", s);
 	//}
 	return (frame || got_packet) ? 0 : 1;
+#else
+	return 1;
+#endif
 }
