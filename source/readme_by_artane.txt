@@ -91,6 +91,18 @@
       http://homepage3.nifty.com/takeda-toshiya/
 
 Changes:
+* SNAPSHOT June 18, 2016
+  * Upstream 2016-04-13 .
+  * Build with FFMPEG 3.0.2 .
+  * [MOVIE_SAVER] More safer open/close.
+  * [MOVIE_SAVER] Fix deadlock when closing movie.
+  * [MOVIE_SAVER] Selectable both MPEG4v1 and H.264(libx264) for video codec.
+  * [MOVIE_SAVER][Qt] Temporally set video-codec to MPEG4 (not AVC).
+    This is issue of discard frames with libx264 by ffmpeg's libavcodec/libavformat.
+    This seems to be ffmpeg's issue, not my program.
+  * Build with fa5fa3841386d84736b5a80b444d6afc996c59cd (or later).
+  
+-- Jun 18, 2016 01:05:03 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT June 11, 2016
   * Upstream 2016-04-13 .
