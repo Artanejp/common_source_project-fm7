@@ -9,7 +9,7 @@ This package is Qt5 porting of Common Source Code Project (CSP)
 and built with Qt5, for Windows, built with MinGW(32bit).
 
 Source Code:
-   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160618-2
+   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160618-3
    
 Additional INFO:
    Binaries will be available, distibute from osdn.jp.
@@ -97,9 +97,10 @@ Changes:
   * [MOVIE_SAVER][Qt] Temporally set video-codec to MPEG4 (not AVC).
     This is issue of discard frames with libx264 by ffmpeg's libavcodec/libavformat.
     This seems to be ffmpeg's issue, not my program.
-  * Build with 01417bb11a303cd6a8df34dec5cb4889a5ee495b (or later).
+  * Build with 629f7d70816c04b38c3ab8cc277147a6bd2c2d2a (or later).
   
--- Jun 18, 2016 02:23:45 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Jun 18, 2016 03:32:06 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 
 * SNAPSHOT June 11, 2016
   * Upstream 2016-04-13 .

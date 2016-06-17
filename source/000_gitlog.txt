@@ -1,3 +1,27 @@
+commit 629f7d70816c04b38c3ab8cc277147a6bd2c2d2a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 18 03:28:35 2016 +0900
+
+    [BUG][MOVIE_SAVER] Fix changing cartridges.
+
+commit 775879de39f99538a14edff11305e551d99ef3b7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 18 02:51:40 2016 +0900
+
+    [DOC] Update ffmpeg3.0.2's docs.
+
+commit c9842f5152342ad630fadd0314e1cc9c9a0214fe
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 18 02:26:03 2016 +0900
+
+    [DOC] Add FFMPEG's documents.
+
+commit a3bf6610b67dd08385b4b0ba22a3a00c24dc158e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 18 02:25:29 2016 +0900
+
+    [DOC] Update revision, credist.
+
 commit 01417bb11a303cd6a8df34dec5cb4889a5ee495b
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sat Jun 18 02:22:43 2016 +0900

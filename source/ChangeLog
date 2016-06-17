@@ -9,9 +9,9 @@
   * [MOVIE_SAVER][Qt] Temporally set video-codec to MPEG4 (not AVC).
     This is issue of discard frames with libx264 by ffmpeg's libavcodec/libavformat.
     This seems to be ffmpeg's issue, not my program.
-  * Build with 01417bb11a303cd6a8df34dec5cb4889a5ee495b (or later).
+  * Build with 629f7d70816c04b38c3ab8cc277147a6bd2c2d2a (or later).
   
--- Jun 18, 2016 02:23:45 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Jun 18, 2016 03:32:06 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT June 11, 2016
   * Upstream 2016-04-13 .

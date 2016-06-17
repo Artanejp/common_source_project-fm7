@@ -11,7 +11,7 @@
    用意しています。
    
    ソースコード：
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160618-2
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160618-3
 
    追加情報:
     　各機種バイナリーは、osdn.jp　もしくはミラーサイトより入手可能です。
@@ -109,9 +109,9 @@ Changes:
   * [MOVIE_SAVER][Qt] Temporally set video-codec to MPEG4 (not AVC).
     This is issue of discard frames with libx264 by ffmpeg's libavcodec/libavformat.
     This seems to be ffmpeg's issue, not my program.
-  * Build with fa5fa3841386d84736b5a80b444d6afc996c59cd (or later).
+  * Build with 629f7d70816c04b38c3ab8cc277147a6bd2c2d2a (or later).
   
--- Jun 18, 2016 01:05:03 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Jun 18, 2016 03:32:06 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT June 11, 2016
   * Upstream 2016-04-13 .
