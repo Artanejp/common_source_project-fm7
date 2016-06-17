@@ -1,3 +1,21 @@
+commit 67e82466a4449c2fac1c8229d4731687f8c3f132
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 18 01:37:52 2016 +0900
+
+    [DOC] Update Japanese document.
+
+commit 160e73893801b5e3072da8f26b7bf07176bfa7f6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 18 01:32:43 2016 +0900
+
+    [BUILD] Update settings.
+
+commit 758e87fa1d0d67e825373694b98ba7db7367f0d7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 18 01:32:08 2016 +0900
+
+    [DOC] Update revison and credits.
+
 commit fa5fa3841386d84736b5a80b444d6afc996c59cd
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sat Jun 18 01:02:27 2016 +0900
