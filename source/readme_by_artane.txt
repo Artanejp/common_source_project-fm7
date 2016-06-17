@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                          June 11, 2016
+                                          June 18, 2016
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -11,11 +11,7 @@
    用意しています。
    
    ソースコード：
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160611
-   追加情報：
-     バイナリファイルが用意されています。
-     Win32: https://osdn.jp/projects/csp-qt/downloads/65942/CSP_SNAPSHOT_20160611-1.Win32.7z/
-     GNU/Linux(amd64) : https://osdn.jp/projects/csp-qt/downloads/65942/CSP_SNAPSHOT_20160611-1.linux-gnu.tar.xz/
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160618
 
 1. 背景
    CSPは、非常に優れた構造のエミュレータです（しかし、些か重くてコンパイラ

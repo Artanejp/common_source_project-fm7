@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                         June 11, 2016
+                                                         June 18, 2016
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 1.About
@@ -9,12 +9,12 @@ This package is Qt5 porting of Common Source Code Project (CSP)
 and built with Qt5, for Windows, built with MinGW(32bit).
 
 Source Code:
-   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160611
+   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160618
    
 Additional INFO:
    Binaries available:
-   Win32: https://osdn.jp/projects/csp-qt/downloads/65942/CSP_SNAPSHOT_20160611-1.Win32.7z/
-   GNU/Linux(amd64) : https://osdn.jp/projects/csp-qt/downloads/65942/CSP_SNAPSHOT_20160611-1.linux-gnu.tar.xz/
+   Win32: 
+   GNU/Linux(amd64) : 
    
 
   SIZE: 
@@ -85,6 +85,19 @@ Upstream (Takeda Toshiya San's original code)
 http://homepage3.nifty.com/takeda-toshiya/
 
 Changes:
+
+* SNAPSHOT June 18, 2016
+  * Upstream 2016-04-13 .
+  * Build with FFMPEG 3.0.2 .
+  * [MOVIE_SAVER] More safer open/close.
+  * [MOVIE_SAVER] Fix deadlock when closing movie.
+  * [MOVIE_SAVER] Selectable both MPEG4v1 and H.264(libx264) for video codec.
+  * [MOVIE_SAVER][Qt] Temporally set video-codec to MPEG4 (not AVC).
+    This is issue of discard frames with libx264 by ffmpeg's libavcodec/libavformat.
+    This seems to be ffmpeg's issue, not my program.
+  * Build with fa5fa3841386d84736b5a80b444d6afc996c59cd (or later).
+  
+-- Jun 18, 2016 01:05:03 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT June 11, 2016
   * Upstream 2016-04-13 .

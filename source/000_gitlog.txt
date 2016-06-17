@@ -1,3 +1,102 @@
+commit fa5fa3841386d84736b5a80b444d6afc996c59cd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 18 01:02:27 2016 +0900
+
+    [UI][Qt] Revert changes menu of saving movie.
+
+commit 3a6fe1c919e4c5b076f60db7dbd17bad3ed423c5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 18 00:28:49 2016 +0900
+
+    [INSTALLER] Update soversion.
+
+commit 32bea1a444791e6489a7ba68d7c6c6b5c2d8737a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 18 00:26:49 2016 +0900
+
+    [UI][Qt][MOVIE_SAVER] Selective video codecs.
+    [MOVIE_SAVER] Fix deadlock when closing movie.
+
+commit 87d75cf4eca00c4457ad8e4aca4d03bac5ad0106
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 16 23:47:38 2016 +0900
+
+    [BUILD] Build with ffmpeg 3.0.2 .
+
+commit e96ee6db06b73f275711942f21243d001a8517a9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 16 23:46:09 2016 +0900
+
+    [UI][Qt][MOVIE_SAVER] QP: Set range to  1 < xx < 31 .
+
+commit f2308609c736113992e39ff9203b1b4bb0664d86
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 16 23:45:30 2016 +0900
+
+    [Qt][MOVIE_SAVER] Fix timing of sending video frame(s).
+
+commit 25a0f0d5fd6e39152e126afd00e4e8dadc0ffe4c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 15 15:22:32 2016 +0900
+
+    [MOVIE_SAVER] More safer close.
+
+commit 14b337903e015bf0ed883b3126ec61cc8d3e3415
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 15 15:11:30 2016 +0900
+
+    [Qt][MOVIE_SAVER] Safer closing files.
+
+commit 997793b5c8440222b51c9cd9f0d09f09ec1d3021
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 15 14:45:06 2016 +0900
+
+    [UI][Qt][MOVIE_SAVER] Re-enable 60fps.
+
+commit 4d3f6d6d2509c8cb5ab2c81fc02f4fd250f78b5c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 15 14:44:24 2016 +0900
+
+    [Qt][MOVIE_SAVER] MPEG4v1: Safer settings.
+
+commit 6b22688449d22a22f00b14b1959b36fcbce49310
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 15 14:43:17 2016 +0900
+
+    [OSD][MOVIE_SAVER] Throw frames with correct timing, fixed un-sync both audio and video with any frame-rate (maybe).
+
+commit 7474bbdab537d537b31c552638646803cd2d9d5c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 15 03:20:17 2016 +0900
+
+    [MOVIE_SAVER][Qt] Temporally set video-codec to MPEG4 (not AVC).
+    This is issue of discard frames with libx264 by ffmpeg's libavcodec/libavformat.
+    This seems to be ffmpeg's issue, not my program.
+
+commit 53de32e5236009525e6a4297bd8c60af0983f17d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 14 23:11:37 2016 +0900
+
+    [SRC][LIBCSPAVIO] Fix indent from [SPC]x4 to [TAB].
+
+commit 12ac44fc529bf28234ee41bbccff334fda662b1f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jun 13 19:23:01 2016 +0900
+
+    [SOUND][Qt][MOVIE_SAVER] WIP: Fixing appending unneeded sound data.
+
+commit 2231f11a0528ae1f7acfa726c1b9ce8367790fe4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 11 15:02:42 2016 +0900
+
+    [DOC] Update RELEASE SNAPSHOT 2016-06-11.
+
+commit 6109cd3d7acabcab4c0c7d2655f80653162df8d6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 11 05:11:29 2016 +0900
+
+    [DOC] Update credits and ChangeLog.
+
 commit 89d31ce8daa733ea4a0c38f0a1890d3a0fcfce38
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sat Jun 11 05:08:50 2016 +0900

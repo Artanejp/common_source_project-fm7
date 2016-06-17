@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                          June 08, 2016
+                                          June 18, 2016
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 0. About
@@ -69,6 +69,7 @@ a. I tested to build only under Debian GNU/Linux "sid".
   d. Now using GCC-6 with Link Time Optimize to build for distrubuted binaries.
 
 6. Upstream repositry:
+      https://osdn.jp/projects/csp-qt/
       https://github.com/Artanejp/common_source_project-fm7
       https://www.pikacode.com/Artanejp/common_source_project-fm7/
       
