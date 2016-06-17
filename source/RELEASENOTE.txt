@@ -9,7 +9,7 @@ This package is Qt5 porting of Common Source Code Project (CSP)
 and built with Qt5, for Windows, built with MinGW(32bit).
 
 Source Code:
-   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160618
+   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160618-2
    
 Additional INFO:
    Binaries will be available, distibute from osdn.jp.
