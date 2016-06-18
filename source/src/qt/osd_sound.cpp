@@ -217,21 +217,14 @@ void OSD_BASE::update_sound(int* extra_frames)
 				if(now_record_sound) {
 					rec_sound_fio->Fwrite(sound_buffer + rec_sound_buffer_ptr * 2, length, 1);
 				}
-				if(now_record_video) {
-					// sync video recording
-					static double frames = 0;
-					static int prev_samples = -1;
-					static double prev_fps = -1;
-					double fps = this->vm_frame_rate();
-					frames = fps * (double)samples / (double)sound_rate;
-					//}
-					rec_video_frames -= frames;
-					if(rec_video_frames > 2.0) {
-						rec_video_run_frames -= (rec_video_frames - 2.0);
-					} else if(rec_video_frames < -2.0) {
-						rec_video_run_frames -= (rec_video_frames + 2.0);
-					}
-				}
+				//if(now_record_video) {
+				//	// sync video recording
+				//	static double frames = 0;
+				//	static int prev_samples = -1;
+				//	static double prev_fps = -1;
+				//	double fps = this->vm_frame_rate();
+				//	frames = fps * (double)samples / (double)sound_rate;
+				//}
 				//printf("Wrote %d samples ptr=%d\n", samples, rec_sound_buffer_ptr);
 				rec_sound_buffer_ptr += samples;
 				if(rec_sound_buffer_ptr >= sound_samples) rec_sound_buffer_ptr = 0;

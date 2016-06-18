@@ -1219,7 +1219,7 @@ void EMU::open_cart(int drv, const _TCHAR* file_path)
 		}
 		my_tcscpy_s(cart_status[drv].path, _MAX_PATH, file_path);
 		out_message(_T("Cart%d: %s"), drv + 1, file_path);
-		
+#if !defined(_USE_QT)		
 		// restart recording
 		bool s = osd->now_record_sound;
 		bool v = osd->now_record_video;
@@ -1228,6 +1228,7 @@ void EMU::open_cart(int drv, const _TCHAR* file_path)
 
 		if(s) osd->start_record_sound();
 		if(v) osd->start_record_video(-1);
+#endif		
 	}
 }
 
@@ -1237,10 +1238,11 @@ void EMU::close_cart(int drv)
 		vm->close_cart(drv);
 		clear_media_status(&cart_status[drv]);
 		out_message(_T("Cart%d: Ejected"), drv + 1);
-		
+#if !defined(_USE_QT)		
 		// stop recording
 		stop_record_video();
 		stop_record_sound();
+#endif		
 	}
 }
 

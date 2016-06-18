@@ -85,9 +85,9 @@ scrntype_t* OSD_BASE::get_buffer(bitmap_t *p, int y)
 int OSD_BASE::draw_screen()
 {
 	// check avi file recording timing
-	if(now_record_video && rec_video_run_frames <= 0) {
-		return 0;
-	}
+//	if(now_record_video && rec_video_run_frames <= 0) {
+//		return 0;
+//	}
 	
 	// draw screen
 	lock_vm();
@@ -177,7 +177,8 @@ bool OSD_BASE::start_record_video(int fps)
 {
 	if(fps > 0) {
 		rec_video_fps = fps;
-		rec_video_run_frames = rec_video_frames = 0;
+		rec_video_fps_nsec = (uint64_t)(1.0e9 / (double)fps);
+		rec_video_nsec = 0;
 	}
 
 	QDateTime nowTime = QDateTime::currentDateTime();
@@ -194,6 +195,7 @@ bool OSD_BASE::start_record_video(int fps)
 void OSD_BASE::stop_record_video()
 {
 	now_record_video = false;
+	//rec_video_nsec = 0;
 	emit sig_stop_saving_movie();
 }
 
@@ -208,7 +210,8 @@ void OSD_BASE::restart_record_video()
 
 void OSD_BASE::add_extra_frames(int extra_frames)
 {
-	rec_video_run_frames += extra_frames;
+	//rec_video_run_frames += extra_frames;
+	rec_video_nsec += (int64_t)(1.0e9 / vm_frame_rate()) * (int64_t)extra_frames;
 	//emit sig_send_wxita_frames(extra_frames);
 }
 
@@ -282,17 +285,12 @@ int OSD_BASE::add_video_frames()
 	int counter = 0;
 	static double prev_vm_fps = -1;
 	double vm_fps = vm_frame_rate();
-	frames = vm_fps / (double)rec_video_fps;
-
-	while(rec_video_run_frames > 0) {
-		rec_video_run_frames -= frames;
-		rec_video_frames += frames;
+	int64_t delta_ns = (int64_t)(1.0e9 / vm_fps);
+	//frames = vm_fps / (double)rec_video_fps;
+	rec_video_nsec += delta_ns;
+	while(rec_video_nsec >= 0) {
+		rec_video_nsec -= rec_video_fps_nsec;
 		counter++;
-	}
-	if(frames <= 1.0) {
-		if(counter <= 0) return counter;
-	} else {
-		counter = counter + (int)frames;
 	}
 	if(using_flags->is_use_one_board_computer()) {
 		int size = vm_screen_buffer.pImage.byteCount();

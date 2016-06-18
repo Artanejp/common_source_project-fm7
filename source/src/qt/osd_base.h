@@ -141,12 +141,10 @@ protected:
 	int base_window_width, base_window_height;
 	int vm_screen_width, vm_screen_height;
 	int draw_screen_width, draw_screen_height;
-	
+	int64_t rec_video_nsec, rec_video_fps_nsec;
 	
 	_TCHAR video_file_name[_MAX_PATH];
 	int rec_video_fps;
-	double rec_video_run_frames;
-	double rec_video_frames;
 	
 	uint64_t dwAVIFileSize;
 	uint64_t lAVIFrames;
