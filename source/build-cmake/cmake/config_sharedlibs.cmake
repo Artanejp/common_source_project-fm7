@@ -40,6 +40,8 @@ add_definitions(-D_USE_QT5)
 
 if(USE_QT5_4_APIS)
   add_definitions(-D_USE_QT_5_4)
+else()
+  add_definitions(-DQT_NO_VERSION_TAGGING)
 endif()
 
 if(USE_GCC_OLD_ABI)
