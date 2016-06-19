@@ -212,9 +212,9 @@ bool MOVIE_SAVER::do_open(QString filename, int _fps, int _sample_rate)
 		//do_add_option(QString::fromUtf8("c:v"), QString::fromUtf8("theora"));
 		//do_add_option(QString::fromUtf8("c:a"), QString::fromUtf8("vorbis"));
 		
-		video_encode_threads = config.video_threads;
-		video_geometry = QSize(config.video_width, config.video_height);
-		audio_bit_rate = config.audio_bitrate * 1000;
+		video_encode_threads = p_config->video_threads;
+		video_geometry = QSize(p_config->video_width, p_config->video_height);
+		audio_bit_rate = p_config->audio_bitrate * 1000;
 		
 	}
 
@@ -234,7 +234,7 @@ bool MOVIE_SAVER::do_open(QString filename, int _fps, int _sample_rate)
 		return false;
 
 	fmt = oc->oformat;
-	switch(config.video_codec_type) {
+	switch(p_config->video_codec_type) {
 	case VIDEO_CODEC_MPEG4:
 		fmt->video_codec = AV_CODEC_ID_MPEG4;
 		break;
@@ -289,6 +289,7 @@ bool MOVIE_SAVER::do_open(QString filename, int _fps, int _sample_rate)
 	}
 
 	recording = true;
+	emit sig_ready_to_record();
 	return true;
 _err_final:
 	recording = false;

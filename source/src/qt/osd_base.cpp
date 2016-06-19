@@ -23,6 +23,7 @@
 OSD_BASE::OSD_BASE(USING_FLAGS *p) : QThread(0)
 {
 	using_flags = p;
+	p_config = using_flags->get_config_ptr();
    	VMSemaphore = new QSemaphore(1);
    	DebugSemaphore = new QSemaphore(1);
 	locked_vm = false;

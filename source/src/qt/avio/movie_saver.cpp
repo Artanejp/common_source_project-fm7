@@ -10,7 +10,7 @@
 #include "../osd.h"
 #include "agar_logger.h"
 
-MOVIE_SAVER::MOVIE_SAVER(int width, int height, int fps, OSD *osd) : QThread(0)
+MOVIE_SAVER::MOVIE_SAVER(int width, int height, int fps, OSD *osd, config_t *cfg) : QThread(0)
 {
 	buffer_size=8 * 1024 * 224;
 	max_rate=4000 * 1000;
@@ -19,6 +19,8 @@ MOVIE_SAVER::MOVIE_SAVER(int width, int height, int fps, OSD *osd) : QThread(0)
 	_height = height;
 	rec_fps = fps;
 	p_osd = osd;
+	p_config = cfg;
+	
 	recording = false;
 	audio_sample_rate = 48000;
 #if defined(USE_MOVIE_SAVER)
@@ -186,7 +188,7 @@ void MOVIE_SAVER::run()
 	bRunThread = true;
 	//AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE THREAD: Start");
 	int ret;
-	int fps_wait = (int)((1000.0 / (double)rec_fps) / 2.0);
+	int fps_wait = (int)((1000.0 / (double)rec_fps) / 4.0);
 	int tmp_wait = fps_wait;
 	bool need_audio_transcode = false;
 	bool need_video_transcode = false;
@@ -278,7 +280,7 @@ void MOVIE_SAVER::run()
 			tmp_wait -= fps_wait;
 		}
 		if(tmp_wait <= 0) {
-			fps_wait = (int)((1000.0 / (double)rec_fps) / 2.0);
+			fps_wait = (int)((1000.0 / (double)rec_fps) / 4.0);
 			//fps_wait = 10;
 			tmp_wait = fps_wait;
 		}

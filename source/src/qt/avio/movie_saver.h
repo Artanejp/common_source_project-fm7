@@ -13,6 +13,7 @@
 #include <QString>
 #include <QThread>
 #include <QSize>
+#include "config.h"
 
 #if defined(USE_LIBAV)
 extern "C" {
@@ -66,7 +67,8 @@ private:
 	int n_encode_video;
 protected:
 	OSD *p_osd;
-
+	config_t *p_config;
+	
 	bool req_close;
 
 	bool have_video;
@@ -173,7 +175,7 @@ protected:
 	void do_close_main();
 
 public:
-	MOVIE_SAVER(int width, int height, int fps, OSD *osd);
+	MOVIE_SAVER(int width, int height, int fps, OSD *osd, config_t *cfg);
 	~MOVIE_SAVER();
 	bool is_recording(void);
 
@@ -197,6 +199,8 @@ public slots:
 	void do_reset_encoder_options(void);
 	
 	void do_exit();
+signals:
+	int sig_ready_to_record();
 };
 QT_END_NAMESPACE
 

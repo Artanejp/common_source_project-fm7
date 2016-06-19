@@ -187,10 +187,15 @@ bool OSD_BASE::start_record_video(int fps)
 	path = QString::fromLocal8Bit(this->get_app_path()) + path;
 	int rate = this->get_sound_rate();
 
-	now_record_video = true;
 	emit sig_save_as_movie(path, fps, rate);
+	now_record_video = true;
 	return true;
 }
+
+void OSD_BASE::do_start_record_video()
+{
+	now_record_video = true;
+}	
 
 void OSD_BASE::stop_record_video()
 {
@@ -286,12 +291,22 @@ int OSD_BASE::add_video_frames()
 	static double prev_vm_fps = -1;
 	double vm_fps = vm_frame_rate();
 	int64_t delta_ns = (int64_t)(1.0e9 / vm_fps);
-	//frames = vm_fps / (double)rec_video_fps;
-	rec_video_nsec += delta_ns;
-	while(rec_video_nsec >= 0) {
-		rec_video_nsec -= rec_video_fps_nsec;
-		counter++;
+	if(rec_video_fps_nsec >= delta_ns) {
+		rec_video_nsec += delta_ns;
+		while(rec_video_nsec >= rec_video_fps_nsec) {
+			rec_video_nsec -= rec_video_fps_nsec;
+			counter++;
+		}
+	} else {
+		rec_video_nsec += delta_ns;
+		if(rec_video_nsec > (rec_video_fps_nsec * 2))  rec_video_nsec -= rec_video_fps_nsec;
+		if(rec_video_nsec < (rec_video_fps_nsec * -2)) rec_video_nsec += rec_video_fps_nsec;
+		while(rec_video_nsec >= rec_video_fps_nsec) {
+			counter++;
+			rec_video_nsec -= rec_video_fps_nsec;
+		}
 	}
+		
 	if(using_flags->is_use_one_board_computer()) {
 		int size = vm_screen_buffer.pImage.byteCount();
 		int i = counter;

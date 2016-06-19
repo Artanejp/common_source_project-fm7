@@ -29,18 +29,20 @@
 #include "../config.h"
 #include "../fileio.h"
 #include "../fifo.h"
+
 #if !defined(Q_OS_WIN32)
 #include "qt_input.h"
 #endif
 typedef struct {
-   Sint16 **sound_buf_ptr;
-   int *sound_buffer_size;
-   int *sound_write_pos;
-   int *sound_data_len;
-   SDL_sem **snd_apply_sem;
-   Uint8 *snd_total_volume;
-   bool *sound_exit;
-   bool *sound_debug;
+	Sint16 **sound_buf_ptr;
+	int *sound_buffer_size;
+	int *sound_write_pos;
+	int *sound_data_len;
+	SDL_sem **snd_apply_sem;
+	Uint8 *snd_total_volume;
+	bool *sound_exit;
+	bool *sound_debug;
+	config_t *p_config;
 } sdl_snddata_t;
 
 

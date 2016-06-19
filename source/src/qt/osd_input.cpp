@@ -90,7 +90,7 @@ void OSD_BASE::do_assign_js_setting(int jsnum, int axis_idx, int assigned_value)
 	if((jsnum < 0) || (jsnum >= 4)) return;
 	if((axis_idx < 0) || (axis_idx >= 16)) return;
 	if((assigned_value < -256) || (assigned_value >= 0x10000)) return;
-	config.joy_buttons[jsnum][axis_idx] = assigned_value;
+	p_config->joy_buttons[jsnum][axis_idx] = assigned_value;
 }
 
 void OSD_BASE::update_input()

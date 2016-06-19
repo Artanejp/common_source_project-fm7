@@ -53,6 +53,7 @@
 #include "qt_main.h"
 //#include "mainwidget.h"
 #include "agar_logger.h"
+#include "config.h"
 
 class GLDrawClass;
 class EmuThreadClass;
@@ -74,6 +75,7 @@ protected:
 	QSemaphore *DebugSemaphore;
 	sdl_snddata_t snddata;
 	USING_FLAGS *using_flags;
+	config_t *p_config;
 	
 	_TCHAR app_path[_MAX_PATH];
 	QElapsedTimer osd_timer;
@@ -421,6 +423,7 @@ public slots:
 	void do_assign_js_setting(int jsnum, int axis_idx, int assigned_value);
 	void upload_bitmap(QImage *p);
 	void set_buttons();
+	void do_start_record_video();
 signals:
 	int sig_update_screen(bitmap_t *);
 	int sig_save_screen(const char *);

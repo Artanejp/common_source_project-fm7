@@ -12,6 +12,7 @@
 #include <SDL.h>
 #include "qt_main.h"
 #include "agar_logger.h"
+#include "menu_flags.h"
 
 #include <QString>
 #include <QDateTime>
@@ -37,9 +38,9 @@ void OSD_BASE::audio_callback(void *udata, Uint8 *stream, int len)
 	memset(stream, 0x00, len);
 	do {
 		SDL_SemWait(*pData->snd_apply_sem);
-		if(config.general_sound_level < -32768) config.general_sound_level = -32768;
-		if(config.general_sound_level > 32767)  config.general_sound_level = 32767;
-		*pData->snd_total_volume = (uint8_t)(((uint32_t)(config.general_sound_level + 32768)) >> 9);
+		if(pData->p_config->general_sound_level < -32768) pData->p_config->general_sound_level = -32768;
+		if(pData->p_config->general_sound_level > 32767)  pData->p_config->general_sound_level = 32767;
+		*pData->snd_total_volume = (uint8_t)(((uint32_t)(pData->p_config->general_sound_level + 32768)) >> 9);
 		sndlen = *pData->sound_data_len;
 		if(*(pData->sound_buffer_size)  <= *(pData->sound_write_pos)) { // Wrap
 			*(pData->sound_write_pos) = 0;
@@ -113,7 +114,8 @@ void OSD_BASE::initialize_sound(int rate, int samples)
 	snddata.snd_total_volume = &snd_total_volume;
 	snddata.sound_exit = &sound_exit;
 	snddata.sound_debug = &sound_debug;
-
+	snddata.p_config = p_config;
+	
 	snd_spec_req.format = AUDIO_S16SYS;
 	snd_spec_req.channels = 2;
 	snd_spec_req.freq = sound_rate;
@@ -211,7 +213,7 @@ void OSD_BASE::update_sound(int* extra_frames)
 				rec_sound_bytes += length;
 				if(now_record_video) {
 					//AGAR_DebugLog(AGAR_LOG_DEBUG, "Push Sound %d bytes\n", length);
-					emit sig_enqueue_audio((int16_t *)(&(sound_buffer[rec_sound_buffer_ptr * 2])), length); 
+					emit sig_enqueue_audio((int16_t *)(&(sound_buffer[rec_sound_buffer_ptr * 2])), length);
 				}
 				// record sound
 				if(now_record_sound) {
