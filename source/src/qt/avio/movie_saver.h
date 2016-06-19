@@ -11,6 +11,7 @@
 #include <QByteArray>
 #include <QQueue>
 #include <QString>
+#include <QStringList>
 #include <QThread>
 #include <QSize>
 #include "config.h"

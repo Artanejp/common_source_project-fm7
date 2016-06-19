@@ -4,6 +4,11 @@
 # this part was written only me.
 
 include(CheckFunctionExists)
+
+if(DEFINED QT5_ROOT_PATH)
+  SET(CMAKE_FIND_ROOT_PATH  ${QT5_ROOT_PATH} ${CMAKE_FIND_ROOT_PATH})
+endif()
+
 # Use cmake if enabled.
   find_program(USE_CCACHE ccache)
   if(USE_CCACHE)
@@ -35,7 +40,7 @@ add_definitions(-D_USE_QT5)
 if(USE_QT5_4_APIS)
   add_definitions(-D_USE_QT_5_4)
 else()
-  add_definitions(-DQT_NO_VERSION_TAGGING)
+  #add_definitions(-DQT_NO_VERSION_TAGGING)
 endif()
 
 if(USE_GCC_OLD_ABI)

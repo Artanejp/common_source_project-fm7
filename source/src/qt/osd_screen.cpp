@@ -184,6 +184,7 @@ bool OSD_BASE::start_record_video(int fps)
 	QDateTime nowTime = QDateTime::currentDateTime();
 	QString tmps = nowTime.toString(QString::fromUtf8("yyyy-MM-dd_hh-mm-ss.zzz."));
 	QString path = QString::fromUtf8("Saved_Movie_") + tmps + QString::fromUtf8("mp4");
+	//QString path = QString::fromUtf8("Saved_Movie_") + tmps + QString::fromUtf8("mkv");
 	path = QString::fromLocal8Bit(this->get_app_path()) + path;
 	int rate = this->get_sound_rate();
 
