@@ -20,7 +20,7 @@
 #include <QEvent>
 #include <QDateTime>
 
-extern USING_FLAGS *using_flags;
+//extern USING_FLAGS *using_flags;
 
 void GLDrawClass::enterEvent(QEvent *event)
 {

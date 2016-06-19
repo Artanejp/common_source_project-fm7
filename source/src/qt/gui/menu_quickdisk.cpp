@@ -13,7 +13,7 @@
 #include "qt_dialogs.h"
 //#include "emu.h"
 
-Menu_QDClass::Menu_QDClass(EMU *ep, QMenuBar *root_entry, QString desc, QWidget *parent, int drv) : Menu_MetaClass(ep, root_entry, desc, parent, drv)
+Menu_QDClass::Menu_QDClass(EMU *ep, QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent, int drv) : Menu_MetaClass(ep, root_entry, desc, p, parent, drv)
 {
 	QString tmps;
 	use_write_protect = true;

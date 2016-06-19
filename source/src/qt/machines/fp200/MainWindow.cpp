@@ -59,8 +59,7 @@ void META_MainWindow::setupUI_Emu(void)
 	ConfigCPUBootMode(2);
 }
 
-
-META_MainWindow::META_MainWindow(QWidget *parent) : Ui_MainWindow(parent)
+META_MainWindow::META_MainWindow(USING_FLAGS *p, QWidget *parent) : Ui_MainWindow(p, parent)
 {
 	setupUI_Emu();
 	retranslateUi();

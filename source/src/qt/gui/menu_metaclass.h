@@ -23,14 +23,14 @@
 class EMU;
 
 QT_BEGIN_NAMESPACE
-extern 	USING_FLAGS *using_flags;
-
+class USING_FLAGS;
 
 class DLL_PREFIX Menu_MetaClass : public QMenu {
 	Q_OBJECT
 private:
 
 protected:
+	USING_FLAGS *using_flags;
 	QWidget *p_wid;
 	QMenuBar *menu_root;
 	EMU *p_emu;
@@ -74,7 +74,7 @@ protected:
 	QStringList history;
 	QStringList inner_media_list;
 public:
-	Menu_MetaClass(EMU *ep, QMenuBar *root_entry, QString desc, QWidget *parent = 0, int drv = 0);
+	Menu_MetaClass(EMU *ep, QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent = 0, int drv = 0);
 	~Menu_MetaClass();
 
 	virtual void create_pulldown_menu_device_sub(void);

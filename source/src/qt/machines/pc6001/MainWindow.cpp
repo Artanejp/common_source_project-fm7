@@ -17,29 +17,29 @@
 //QT_BEGIN_NAMESPACE
 
 
-Object_Menu_Control_88::Object_Menu_Control_88(QObject *parent) : Object_Menu_Control(parent)
+Object_Menu_Control_60::Object_Menu_Control_60(QObject *parent, USING_FLAGS *p) : Object_Menu_Control(parent, p)
 {
 }
 
-Object_Menu_Control_88::~Object_Menu_Control_88()
+Object_Menu_Control_60::~Object_Menu_Control_60()
 {
 }
 
-void Object_Menu_Control_88::do_set_sound_device(void)
+void Object_Menu_Control_60::do_set_sound_device(void)
 {
 	emit sig_sound_device(this->getValue1());
 }
 
 
-Action_Control_88::Action_Control_88(QObject *parent) : Action_Control(parent)
+Action_Control_60::Action_Control_60(QObject *parent, USING_FLAGS *p) : Action_Control(parent, p)
 {
-	pc88_binds = new Object_Menu_Control_88(parent);
-	pc88_binds->setValue1(0);
+	pc60_binds = new Object_Menu_Control_60(parent, p);
+	pc60_binds->setValue1(0);
 }
 
-Action_Control_88::~Action_Control_88()
+Action_Control_60::~Action_Control_60()
 {
-	delete pc88_binds;
+	delete pc60_binds;
 }
 
 
@@ -99,7 +99,7 @@ void META_MainWindow::setupUI_Emu(void)
 }
 
 
-META_MainWindow::META_MainWindow(QWidget *parent) : Ui_MainWindow(parent)
+META_MainWindow::META_MainWindow(USING_FLAGS *p, QWidget *parent) : Ui_MainWindow(p, parent)
 {
 	setupUI_Emu();
 	retranslateUi();

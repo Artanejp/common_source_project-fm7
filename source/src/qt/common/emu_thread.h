@@ -26,6 +26,7 @@ class META_MainWindow;
 class EMU;
 class QString;
 class QWaitCondition;
+class USING_FLAGS;
 
 #ifndef MAX_HISTORY
 #define MAX_HISTORY 8
@@ -55,6 +56,7 @@ private:
 	bool key_changed;
  protected:
 	EMU *p_emu;
+	USING_FLAGS *using_flags;
 	QWaitCondition *drawCond;
 	class META_MainWindow *MainWindow;
 	QElapsedTimer tick_timer;
@@ -93,7 +95,7 @@ private:
 	void calc_volume_from_balance(int num, int balance);
 	void calc_volume_from_level(int num, int level);
 public:
-	EmuThreadClass(META_MainWindow *rootWindow, EMU *pp_emu, QObject *parent = 0);
+	EmuThreadClass(META_MainWindow *rootWindow, EMU *pp_emu, USING_FLAGS *p, QObject *parent = 0);
 	~EmuThreadClass();
 	void SetEmu(EMU *p) {
 		p_emu = p;

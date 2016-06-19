@@ -13,7 +13,7 @@
 #include "dropdown_jspage.h"
 #include "dropdown_joystick.h"
 
-CSP_DropDownJoysticks::CSP_DropDownJoysticks(QWidget *parent, QStringList *lst) : QWidget(parent)
+CSP_DropDownJoysticks::CSP_DropDownJoysticks(QWidget *parent, QStringList *lst, USING_FLAGS *using_flags) : QWidget(parent)
 {
 	p_wid = parent;
 
@@ -24,7 +24,7 @@ CSP_DropDownJoysticks::CSP_DropDownJoysticks(QWidget *parent, QStringList *lst) 
 	for(i = 0; i < 4; i++) {
 		QString tmps;
 		QString ns;
-		pages[i] = new CSP_DropDownJSPage(this, lst, i);
+		pages[i] = new CSP_DropDownJSPage(using_flags, this, lst, i);
 		ns.setNum(i + 1);
 		tmps = QString::fromUtf8("Joystick") + ns;
 		tabBox->addTab(pages[i], tmps);

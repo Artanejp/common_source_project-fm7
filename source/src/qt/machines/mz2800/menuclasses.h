@@ -10,16 +10,17 @@ QT_BEGIN_NAMESPACE
 
 
 class Ui_MainWindow;
+class USING_FLAGS;
 //  wrote of X1 Specific menu.
 class META_MainWindow : public Ui_MainWindow {
-  Q_OBJECT
- protected:
-  void setupUI_Emu(void);
-   void retranslateUi(void);
- public:
-  META_MainWindow(QWidget *parent = 0);
-  ~META_MainWindow();
- public slots:
+	Q_OBJECT
+protected:
+	void setupUI_Emu(void);
+	void retranslateUi(void);
+public:
+	META_MainWindow(USING_FLAGS *p, QWidget *parent = 0);
+	~META_MainWindow();
+public slots:
 };
 
 QT_END_NAMESPACE

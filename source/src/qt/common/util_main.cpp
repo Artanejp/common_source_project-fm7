@@ -24,7 +24,7 @@
 #include "qt_main.h"
 #include "menu_flags.h"
 
-Ui_MainWindow::Ui_MainWindow(QWidget *parent) : Ui_MainWindowBase(parent)
+Ui_MainWindow::Ui_MainWindow(USING_FLAGS *p, QWidget *parent) : Ui_MainWindowBase(p, parent)
 {
 }
 

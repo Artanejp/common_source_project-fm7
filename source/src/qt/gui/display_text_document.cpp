@@ -15,16 +15,15 @@
 #include "display_text_document.h"
 #include "menu_flags.h"
 
-extern USING_FLAGS * using_flags;
 
-Dlg_BrowseText::Dlg_BrowseText(QString fname, bool internal, QWidget *parent) : QWidget(parent)
+Dlg_BrowseText::Dlg_BrowseText(QString fname, USING_FLAGS *p, bool internal, QWidget *parent) : QWidget(parent)
 {
 	QByteArray tmps;
 	QFile f_desc;
 	QString str_text;
 	QStringList pathes;
 	QString path;
-	
+	using_flags = p;
 	parent_widget = parent;
 
 	if(internal) {

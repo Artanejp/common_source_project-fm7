@@ -18,7 +18,7 @@
 #include "agar_logger.h"
 
 
-Menu_CartClass::Menu_CartClass(EMU *ep, QMenuBar *root_entry, QString desc, QWidget *parent, int drv) : Menu_MetaClass(ep, root_entry, desc, parent, drv)
+Menu_CartClass::Menu_CartClass(EMU *ep, QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent, int drv) : Menu_MetaClass(ep, root_entry, desc, p, parent, drv)
 {
 	use_write_protect = false;
 	use_d88_menus = false;

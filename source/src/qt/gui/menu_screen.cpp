@@ -16,7 +16,7 @@
 #include "qt_gldraw.h"
 #include "menu_flags.h"
 
-extern USING_FLAGS *using_flags;
+//extern USING_FLAGS *using_flags;
 // WIP: Move another header.
 #if (SCREEN_WIDTH > 320)
 const static float screen_multiply_table[] = {0.5, 1.0, 1.5, 2.0, 2.25, 2.5, 3.0, 3.5, 4.0, 5.0, 6.0, 8.0, 0.0};
@@ -97,7 +97,7 @@ void Ui_MainWindowBase::ConfigScreenMenu_List(void)
 		}
 		screen_mode_count++;
 		tmps = QString::number(i);
-		actionScreenSize[i] = new Action_Control(this);
+		actionScreenSize[i] = new Action_Control(this, using_flags);
 		actionScreenSize[i]->setObjectName(QString::fromUtf8("actionScreenSize", -1) + tmps);
 		actionScreenSize[i]->setCheckable(true);
 		actionScreenSize[i]->binds->setNumber(i);
@@ -119,13 +119,13 @@ void Ui_MainWindowBase::ConfigScreenMenu_List(void)
 }
 void Ui_MainWindowBase::ConfigScreenMenu(void)
 {
-	actionZoom = new Action_Control(this);
+	actionZoom = new Action_Control(this, using_flags);
 	actionZoom->setObjectName(QString::fromUtf8("actionZoom"));
-	actionDisplay_Mode = new Action_Control(this);
+	actionDisplay_Mode = new Action_Control(this, using_flags);
 	actionDisplay_Mode->setObjectName(QString::fromUtf8("actionDisplay_Mode"));
 	
 	if(using_flags->is_use_scanline()) {
-		actionScanLine = new Action_Control(this);
+		actionScanLine = new Action_Control(this, using_flags);
 		actionScanLine->setObjectName(QString::fromUtf8("actionScanLine"));
 		actionScanLine->setCheckable(true);
 		if(config.scan_line != 0) {
@@ -137,7 +137,7 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 			this, SLOT(set_scan_line(bool)));
 	}
 	if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
-		actionGLScanLineHoriz = new Action_Control(this);
+		actionGLScanLineHoriz = new Action_Control(this, using_flags);
 		actionGLScanLineHoriz->setObjectName(QString::fromUtf8("actionGLScanLineHoriz"));
 		actionGLScanLineHoriz->setCheckable(true);
 		if(config.opengl_scanline_horiz != 0) {
@@ -148,7 +148,7 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 		connect(actionGLScanLineHoriz, SIGNAL(toggled(bool)),
 				this, SLOT(set_gl_scan_line_horiz(bool)));
 		if(using_flags->is_use_vertical_pixel_lines()) {
-			actionGLScanLineVert = new Action_Control(this);
+			actionGLScanLineVert = new Action_Control(this, using_flags);
 			actionGLScanLineVert->setObjectName(QString::fromUtf8("actionGLScanLineVert"));
 			actionGLScanLineVert->setCheckable(true);
 			if(config.opengl_scanline_vert != 0) {
@@ -161,7 +161,7 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 		}
 	}
 	if(using_flags->is_use_screen_rotate()) {
-		actionRotate = new Action_Control(this);
+		actionRotate = new Action_Control(this, using_flags);
 		actionRotate->setObjectName(QString::fromUtf8("actionScanLine"));
 		actionRotate->setCheckable(true);
 		if(config.rotate_type) {
@@ -173,14 +173,14 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 				this, SLOT(set_screen_rotate(bool)));
 	}
 	if(using_flags->is_use_crt_filter()) {
-		actionCRT_Filter = new Action_Control(this);
+		actionCRT_Filter = new Action_Control(this, using_flags);
 		actionCRT_Filter->setObjectName(QString::fromUtf8("actionCRT_Filter"));
 		actionCRT_Filter->setEnabled(true);
 		actionCRT_Filter->setCheckable(true);
 		if(config.crt_filter == 0) actionCRT_Filter->setChecked(true);
 		connect(actionCRT_Filter, SIGNAL(toggled(bool)), this, SLOT(set_crt_filter(bool)));
 	}
-	actionOpenGL_Filter = new Action_Control(this);
+	actionOpenGL_Filter = new Action_Control(this, using_flags);
 	actionOpenGL_Filter->setObjectName(QString::fromUtf8("actionOpenGL_Filter"));
 	actionOpenGL_Filter->setEnabled(true);
 	actionOpenGL_Filter->setCheckable(true);
@@ -189,25 +189,25 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 
 	if((using_flags->get_screen_height_aspect() != using_flags->get_screen_height()) ||
 	   (using_flags->get_screen_width_aspect() != using_flags->get_screen_width())) {
-		actionDot_by_Dot = new Action_Control(this);
+		actionDot_by_Dot = new Action_Control(this, using_flags);
 		actionDot_by_Dot->setObjectName(QString::fromUtf8("actionDot_by_Dot"));
 		actionDot_by_Dot->setCheckable(true);
 		if(config.window_stretch_type == 0) actionDot_by_Dot->setChecked(true);
 		actionDot_by_Dot->binds->setValue1(0);
 		
-		actionReferToX_Display = new Action_Control(this);
+		actionReferToX_Display = new Action_Control(this, using_flags);
 		actionReferToX_Display->setObjectName(QString::fromUtf8("actionReferToX_Display"));
 		actionReferToX_Display->setCheckable(true);
 		actionReferToX_Display->binds->setValue1(1);
 		if(config.window_stretch_type == 1) actionReferToX_Display->setChecked(true);
 		
-		actionReferToY_Display = new Action_Control(this);
+		actionReferToY_Display = new Action_Control(this, using_flags);
 		actionReferToY_Display->setObjectName(QString::fromUtf8("actionReferToY_Display"));
 		actionReferToY_Display->setCheckable(true);
 		actionReferToY_Display->binds->setValue1(2);
 		if(config.window_stretch_type == 2) actionReferToY_Display->setChecked(true);
 	
-		actionFill_Display = new Action_Control(this);
+		actionFill_Display = new Action_Control(this, using_flags);
 		actionFill_Display->setObjectName(QString::fromUtf8("actionFill_Display"));
 		actionFill_Display->setCheckable(true);
 		actionFill_Display->binds->setValue1(3);
@@ -231,14 +231,14 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 		connect(actionFill_Display, SIGNAL(triggered()), actionFill_Display->binds, SLOT(set_screen_aspect()));
 		connect(actionFill_Display->binds, SIGNAL(sig_screen_aspect(int)), this, SLOT(set_screen_aspect(int)));
 	}
-	actionCapture_Screen = new Action_Control(this);
+	actionCapture_Screen = new Action_Control(this, using_flags);
 	actionCapture_Screen->setObjectName(QString::fromUtf8("actionCapture_Screen"));
 
-	actionStart_Record_Movie = new Action_Control(this);
+	actionStart_Record_Movie = new Action_Control(this, using_flags);
 	actionStart_Record_Movie->setObjectName(QString::fromUtf8("actionStart_Record_Movie"));
 	actionStart_Record_Movie->setCheckable(false);
 	
-	actionStop_Record_Movie = new Action_Control(this);
+	actionStop_Record_Movie = new Action_Control(this, using_flags);
 	actionStop_Record_Movie->setObjectName(QString::fromUtf8("actionStop_Record_Movie"));
 	actionStop_Record_Movie->setCheckable(false);
 

@@ -24,6 +24,7 @@ class QSlider;
 class QTabWidget;
 
 class MOVIE_SAVER;
+class USING_FLAGS;
 class CSP_TabMovieGeneral;
 class CSP_TabMovieH264;
 class CSP_TabMovieMPEG4;
@@ -45,9 +46,10 @@ private:
 protected:
 	QWidget *p_wid;
 	MOVIE_SAVER *p_movie;
-
+	USING_FLAGS *using_flags;
+	
 public:
-	CSP_DialogMovie(MOVIE_SAVER *ms, QWidget *parent = NULL);
+	CSP_DialogMovie(MOVIE_SAVER *ms, USING_FLAGS *p, QWidget *parent = NULL);
 	~CSP_DialogMovie();
 public slots:
 	void do_set_codecs(void);

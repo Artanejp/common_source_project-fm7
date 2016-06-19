@@ -31,7 +31,7 @@
 #include "menu_flags.h"
 
 QT_BEGIN_NAMESPACE
-
+class USING_FLAGS;
 //
 
 class DLL_PREFIX Ui_SndSliderObject : public QSlider
@@ -39,10 +39,12 @@ class DLL_PREFIX Ui_SndSliderObject : public QSlider
 	Q_OBJECT
 private:
 	EMU *p_emu;
+	USING_FLAGS *using_flags;
+	
 	QWidget *parent_widget;
 	int bind_num;
 public:
-	Ui_SndSliderObject(EMU *_emu, Qt::Orientation orientation, QWidget *parent, int num = 0);
+	Ui_SndSliderObject(USING_FLAGS *p, EMU *_emu, Qt::Orientation orientation, QWidget *parent, int num = 0);
 	~Ui_SndSliderObject();
 public slots:
 	void setValue(int volume);
@@ -66,6 +68,7 @@ private:
 	QWidget *parent_widget;
 	QGridLayout *MasterLayout;
 protected:
+	USING_FLAGS *using_flags;
 	Ui_SndSliderObject *sliderMasterVolume;
 	QGroupBox *boxMasterVolume;
 	QVBoxLayout *VBoxMasterVolume;
@@ -79,7 +82,7 @@ protected:
 	QPushButton *ResetBalance[32];
 	QPushButton *closeButton;
 public:
-	Ui_SoundDialog(EMU *_emu, QWidget *parent = 0);
+	Ui_SoundDialog(USING_FLAGS *p, EMU *_emu, QWidget *parent = 0);
 	~Ui_SoundDialog();
 	void setDeviceLabel(int num, QString s);
 	void setSliderVisible(int num, bool flag);

@@ -15,9 +15,9 @@
 #include "display_about.h"
 #include "menu_flags.h"
 
-extern USING_FLAGS *using_flags;
+//extern USING_FLAGS *using_flags;
 
-Dlg_AboutCSP::Dlg_AboutCSP(QWidget *parent) : QWidget(parent)
+Dlg_AboutCSP::Dlg_AboutCSP(USING_FLAGS *p, QWidget *parent) : QWidget(parent)
 {
 	QByteArray tmps;
 	QFile f_credits(":/credits.html");
@@ -29,6 +29,7 @@ Dlg_AboutCSP::Dlg_AboutCSP(QWidget *parent) : QWidget(parent)
 	QStringList pathes;
 	
 	parent_widget = parent;
+	using_flags = p;
 	// Credits
 	credits.clear();
 	if(f_credits.open(QIODevice::ReadOnly | QIODevice::Text)) {

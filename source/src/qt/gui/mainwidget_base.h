@@ -76,12 +76,13 @@ class Menu_CompactDiscClass;
 class USING_FLAGS;
 class MOVIE_SAVER;
 
-extern 	USING_FLAGS *using_flags;
+//extern 	USING_FLAGS *using_flags;
 
 class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 {
 	Q_OBJECT
  protected:
+	USING_FLAGS *using_flags;
 	QMainWindow *MainWindow;
 	QApplication *CoreApplication;
 	
@@ -105,7 +106,6 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	QIcon VolumeLowIcon;
 	QIcon VolumeMidIcon;
 	QIcon VolumeHighIcon;
-	
 	// Some Functions
 	void ConfigCpuSpeed(void);
 	void ConfigControlMenu(void);
@@ -388,7 +388,7 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	class JoyThreadClass *hRunJoy;
 	class MOVIE_SAVER *hSaveMovieThread;
 public:
-	Ui_MainWindowBase(QWidget *parent = 0);
+	Ui_MainWindowBase(USING_FLAGS *p, QWidget *parent = 0);
 	~Ui_MainWindowBase();
 
 	// Initializer : using from InitContext.

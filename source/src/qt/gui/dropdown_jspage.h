@@ -19,6 +19,7 @@
 
 
 QT_BEGIN_NAMESPACE
+class USING_FLAGS;
 
 class DLL_PREFIX CSP_DropDownJSPage: public QWidget {
 	Q_OBJECT
@@ -35,7 +36,7 @@ protected:
 	QLabel *label_button[12];
 	int bind_jsnum;
 public:
-	CSP_DropDownJSPage(QWidget *parent = 0, QStringList *lst = 0, int jsnum = 0);
+	CSP_DropDownJSPage(USING_FLAGS *p, QWidget *parent = 0, QStringList *lst = 0, int jsnum = 0);
 	~CSP_DropDownJSPage();
 
 public slots:

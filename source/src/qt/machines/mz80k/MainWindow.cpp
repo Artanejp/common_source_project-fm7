@@ -14,16 +14,16 @@
 #include "emu.h"
 #include "qt_main.h"
 
-Action_Control_MZ80::Action_Control_MZ80(QObject *parent) : Action_Control(parent)
+Action_Control_MZ80::Action_Control_MZ80(QObject *parent, USING_FLAGS *p) : Action_Control(parent, p)
 {
-	mz_binds = new Object_Menu_Control_MZ80(parent);
+	mz_binds = new Object_Menu_Control_MZ80(parent, p);
 }
 
 Action_Control_MZ80::~Action_Control_MZ80(){
 	delete mz_binds;
 }
 
-Object_Menu_Control_MZ80::Object_Menu_Control_MZ80(QObject *parent) : Object_Menu_Control(parent)
+Object_Menu_Control_MZ80::Object_Menu_Control_MZ80(QObject *parent, USING_FLAGS *p) : Object_Menu_Control(parent, p)
 {
 }
 
@@ -40,7 +40,7 @@ void META_MainWindow::setupUI_Emu(void)
 {
 	QString tmps;
 	menuMachine->setVisible(true);
-	action_Emu_DipSw = new Action_Control_MZ80(this);
+	action_Emu_DipSw = new Action_Control_MZ80(this, using_flags);
 	action_Emu_DipSw->setCheckable(true);
 	tmps = QString::fromUtf8("actionEmu_DipSw0");
 	action_Emu_DipSw->setObjectName(tmps);
@@ -89,7 +89,7 @@ void META_MainWindow::retranslateUi(void)
 
 
 
-META_MainWindow::META_MainWindow(QWidget *parent) : Ui_MainWindow(parent)
+META_MainWindow::META_MainWindow(USING_FLAGS *p, QWidget *parent) : Ui_MainWindow(p, parent)
 {
 	setupUI_Emu();
 	retranslateUi();

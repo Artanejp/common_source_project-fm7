@@ -7,13 +7,13 @@
 // This extends class CSP_MainWindow as Ui_MainWindow.
 // You may use this as 
 QT_BEGIN_NAMESPACE
-
-//  wrote of MZ3500 Specific menu.
+class USING_FLAGS;
+/  wrote of MZ3500 Specific menu.
 class Object_Menu_Control_MZ3500: public Object_Menu_Control
 {
 	Q_OBJECT
 public:
-	Object_Menu_Control_MZ3500(QObject *parent);
+	Object_Menu_Control_MZ3500(QObject *parent, USING_FLAGS *p);
 	~Object_Menu_Control_MZ3500();
 signals:
 	int sig_dipsw(int, bool);
@@ -26,7 +26,7 @@ class Action_Control_MZ3500 : public Action_Control
 	Q_OBJECT
 public:
 	Object_Menu_Control_MZ3500 *mz_binds;
-	Action_Control_MZ3500(QObject *parent);
+	Action_Control_MZ3500(QObject *parent, USING_FLAGS *p);
 	~Action_Control_MZ3500();
 };
 
@@ -41,7 +41,7 @@ protected:
 	Action_Control_MZ3500 *action_Emu_DipSw[3];
   
 public:
-	META_MainWindow(QWidget *parent = 0);
+	META_MainWindow(USING_FLAGS *p, QWidget *parent = 0);
 	~META_MainWindow();
 public slots:
 };

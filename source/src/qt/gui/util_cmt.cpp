@@ -16,7 +16,7 @@
 #include "menu_cmt.h"
 #include "menu_flags.h"
 
-extern USING_FLAGS *using_flags;
+//extern USING_FLAGS *using_flags;
 void Object_Menu_Control::start_insert_play_cmt(void) {
 	//AGAR_DebugLog(AGAR_LOG_DEBUG, "%d", play);
 	emit sig_insert_play_cmt(play);
@@ -45,7 +45,7 @@ void Ui_MainWindowBase::CreateCMTMenu(void)
 	QString desc_rec;
 	
 	listCMT.clear();
-	menu_CMT = new Menu_CMTClass(emu, menubar, "Object_CMT_Menu", this, 0);
+	menu_CMT = new Menu_CMTClass(emu, menubar, "Object_CMT_Menu", using_flags, this, 0);
 	menu_CMT->setObjectName(QString::fromUtf8("menuCMT", -1));
 	
 	menu_CMT->create_pulldown_menu();	

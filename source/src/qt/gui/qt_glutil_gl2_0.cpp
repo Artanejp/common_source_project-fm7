@@ -18,13 +18,14 @@
 #include "qt_glutil_gl2_0.h"
 #include "menu_flags.h"
 
-extern USING_FLAGS *using_flags;
+//extern USING_FLAGS *using_flags;
 
 
-GLDraw_2_0::GLDraw_2_0(GLDrawClass *parent, EMU *emu) : QObject(parent)
+GLDraw_2_0::GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, EMU *emu) : QObject(parent)
 {
 	p_wid = parent;
 	p_emu = emu;
+	using_flags = p;
 	
 	gl_grid_horiz = false;
 	gl_grid_vert = false;

@@ -13,7 +13,7 @@
 #include "qt_dialogs.h"
 
 
-Menu_BinaryClass::Menu_BinaryClass(EMU *ep, QMenuBar *root_entry, QString desc, QWidget *parent, int drv) : Menu_MetaClass(ep, root_entry, desc, parent, drv)
+Menu_BinaryClass::Menu_BinaryClass(EMU *ep, QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent, int drv) : Menu_MetaClass(ep, root_entry, desc, p, parent, drv)
 {
 	use_write_protect = false;
 	use_d88_menus = false;
@@ -26,7 +26,7 @@ Menu_BinaryClass::~Menu_BinaryClass()
 void Menu_BinaryClass::create_pulldown_menu_device_sub(void)
 {
 	int ii;
-	action_saving = new Action_Control(p_wid);
+	action_saving = new Action_Control(p_wid, using_flags);
 	action_saving->setVisible(true);
 	action_saving->setCheckable(false);
 
@@ -40,7 +40,7 @@ void Menu_BinaryClass::create_pulldown_menu_device_sub(void)
 		
 		for(ii = 0; ii < MAX_HISTORY; ii++) {
 			tmps = history.value(ii, "");
-			action_recent_save_list[ii] = new Action_Control(p_wid);
+			action_recent_save_list[ii] = new Action_Control(p_wid, using_flags);
 			action_recent_save_list[ii]->binds->setDrive(media_drive);
 			action_recent_save_list[ii]->binds->setNumber(ii);
 			

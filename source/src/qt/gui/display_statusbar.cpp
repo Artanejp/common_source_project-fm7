@@ -24,7 +24,7 @@
 #include "menu_flags.h"
 
 //extern EMU* emu;
-extern USING_FLAGS *using_flags;
+//extern USING_FLAGS *using_flags;
 
 int Ui_MainWindowBase::Calc_OSD_Wfactor()
 {

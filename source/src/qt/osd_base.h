@@ -73,7 +73,8 @@ protected:
 	QSemaphore *VMSemaphore;
 	QSemaphore *DebugSemaphore;
 	sdl_snddata_t snddata;
-
+	USING_FLAGS *using_flags;
+	
 	_TCHAR app_path[_MAX_PATH];
 	QElapsedTimer osd_timer;
 	bool locked_vm;
@@ -242,7 +243,7 @@ protected:
 	virtual int get_vm_buttons_code(int num);
 
 public:
-	OSD_BASE();
+	OSD_BASE(USING_FLAGS *p);
 	~OSD_BASE();
 	
 	// common

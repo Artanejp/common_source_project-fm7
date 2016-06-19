@@ -16,10 +16,11 @@
 #include "../../config.h"
 #include "menu_flags.h"
 
-extern USING_FLAGS *using_flags;
+//extern USING_FLAGS *using_flags;
 
-CSP_TabMovieGeneral::CSP_TabMovieGeneral(MOVIE_SAVER *ms, CSP_DialogMovie *parent_window, QWidget *parent) : QWidget(parent)
+CSP_TabMovieGeneral::CSP_TabMovieGeneral(MOVIE_SAVER *ms, CSP_DialogMovie *parent_window, USING_FLAGS *p, QWidget *parent) : QWidget(parent)
 {
+	using_flags = p;
 	p_wid = parent;
 	p_movie = ms;
 	p_window = parent_window;

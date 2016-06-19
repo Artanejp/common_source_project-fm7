@@ -11,20 +11,19 @@
 QT_BEGIN_NAMESPACE
 
 class Ui_MainWindow;
+class USING_FLAGS;
 
 class META_MainWindow : public Ui_MainWindow {
-  Q_OBJECT
- protected:
-  void setupUI_Emu(void);
-  void retranslateUi(void);
-  
-  QMenu *menu_Emu_DipSw;
-  
- public:
-  META_MainWindow(QWidget *parent = 0);
-  ~META_MainWindow();
+	Q_OBJECT
+protected:
+	void setupUI_Emu(void);
+	void retranslateUi(void);
+	
+	QMenu *menu_Emu_DipSw;
+public:
+	META_MainWindow(USING_FLAGS *p, QWidget *parent = 0);
+	~META_MainWindow();
 public slots:
-
 };
 
 QT_END_NAMESPACE

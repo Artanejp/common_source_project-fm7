@@ -21,15 +21,14 @@
 
 #include "joy_thread.h"
 
-extern USING_FLAGS *using_flags;
-
-JoyThreadClass::JoyThreadClass(EMU *p, OSD *o, QObject *parent) : QThread(parent)
+JoyThreadClass::JoyThreadClass(EMU *p, OSD *o, USING_FLAGS *pflags, QObject *parent) : QThread(parent)
 {
 	int i, j;
 	int n;
 	p_emu = p;
 	p_osd = o;
 
+	using_flags = pflags;
 	if(using_flags->is_use_joystick()) {
 # if defined(USE_SDL2)
 		for(i = 0; i < 16; i++) {

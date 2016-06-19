@@ -32,7 +32,7 @@
 #endif
 
 #if defined(_USE_QT)
-EMU::EMU(class Ui_MainWindow *hwnd, GLDrawClass *hinst)
+EMU::EMU(class Ui_MainWindow *hwnd, GLDrawClass *hinst, USING_FLAGS *p)
 #elif defined(OSD_WIN32)
 EMU::EMU(HWND hwnd, HINSTANCE hinst)
 #else
@@ -81,12 +81,13 @@ EMU::EMU()
 #endif
 	
 	// initialize osd
-	osd = new OSD();
 #if defined(OSD_QT)
+	osd = new OSD(p);
 	osd->main_window_handle = hwnd;
 	osd->glv = hinst;
 	osd->host_cpus = 4;
 #elif defined(OSD_WIN32)
+	osd = new OSD();
 	osd->main_window_handle = hwnd;
 	osd->instance_handle = hinst;
 #endif

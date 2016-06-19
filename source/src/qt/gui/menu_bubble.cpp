@@ -12,7 +12,7 @@
 
 #include "qt_dialogs.h"
 
-Menu_BubbleClass::Menu_BubbleClass(EMU *ep, QMenuBar *root_entry, QString desc, QWidget *parent, int drv) : Menu_MetaClass(ep, root_entry, desc, parent, drv)
+Menu_BubbleClass::Menu_BubbleClass(EMU *ep, QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent, int drv) : Menu_MetaClass(ep, root_entry, desc, p, parent, drv)
 {
 	use_write_protect = true;
 	use_d88_menus = true;

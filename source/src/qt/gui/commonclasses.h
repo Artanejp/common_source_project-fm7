@@ -47,18 +47,20 @@
 //#include "qt_gldraw.h"
 
 class EMU;
-extern class EMU* emu;
+class USING_FLAGS;
+//extern class EMU* emu;
 
 QT_BEGIN_NAMESPACE
 typedef class DLL_PREFIX Object_Menu_Control: public QObject {
 	Q_OBJECT
 public:
-//   explicit Object_Menu_Control(QObject *parent = 0);
-	Object_Menu_Control(QObject *parent) : QObject(parent){
+	USING_FLAGS *using_flags;
+Object_Menu_Control(QObject *parent, USING_FLAGS *p) : QObject(parent){
 		bindValue = 0;
 		drive = 0;
 		s_num = 0;
 		double_val = 0.0;
+		using_flags = p;
 		play = true; // Read
 		write_protect = false; // Enable to write
 	}
@@ -212,8 +214,8 @@ typedef class DLL_PREFIX Action_Control: public QAction {
 	QString bindString;
  public:
 	Object_Menu_Control *binds;
-	Action_Control (QObject *parent) : QAction(parent) {
-		binds = new Object_Menu_Control(parent);
+	Action_Control (QObject *parent, USING_FLAGS *p) : QAction(parent) {
+		binds = new Object_Menu_Control(parent, p);
 		bindString.clear();
 	}
 	~Action_Control() {

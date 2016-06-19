@@ -17,17 +17,19 @@
 #include "common.h"
 
 QT_BEGIN_NAMESPACE
+class USING_FLAGS;
 
 class DLL_PREFIX Dlg_BrowseText : public QWidget
 {
 	Q_OBJECT
 protected:
 	QWidget *parent_widget;
+	USING_FLAGS *using_flags;
 	//QFont *TextFont;
 	QTextBrowser *TextBox;
 	QVBoxLayout *VBox;
 public:
-	Dlg_BrowseText(QString fname, bool internal = true, QWidget *parent = 0);
+	Dlg_BrowseText(QString fname, USING_FLAGS *p, bool internal = true, QWidget *parent = 0);
 	~Dlg_BrowseText();
 	
 };

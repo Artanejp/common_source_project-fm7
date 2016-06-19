@@ -14,6 +14,7 @@
 #include <QString>
 #include <QHBoxLayout>
 #include "common.h"
+#include "menu_flags.h"
 
 class CSP_DropDownJSPage;
 
@@ -29,7 +30,7 @@ protected:
 	QTabWidget *tabBox;
 	CSP_DropDownJSPage *pages[4];
 public:
-	CSP_DropDownJoysticks(QWidget *parent, QStringList *lst);
+	CSP_DropDownJoysticks(QWidget *parent, QStringList *lst, USING_FLAGS *using_flags);
 	~CSP_DropDownJoysticks();
 
 public slots:

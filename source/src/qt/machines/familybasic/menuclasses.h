@@ -11,7 +11,7 @@
 QT_BEGIN_NAMESPACE
 
 class Ui_MainWindow;
-
+class USING_FLAGS;
 class META_MainWindow : public Ui_MainWindow {
 	Q_OBJECT
  protected:
@@ -19,7 +19,7 @@ class META_MainWindow : public Ui_MainWindow {
 	void retranslateUi(void);
   
  public:
-	META_MainWindow(QWidget *parent = 0);
+	META_MainWindow(USING_FLAGS *p, QWidget *parent = 0);
 	~META_MainWindow();
 public slots:
 

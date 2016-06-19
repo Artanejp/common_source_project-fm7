@@ -17,7 +17,7 @@
 
 
 #include "qt_main.h"
-Menu_MetaClass::Menu_MetaClass(EMU *ep, QMenuBar *root_entry, QString desc, QWidget *parent, int drv) : QMenu(root_entry)
+Menu_MetaClass::Menu_MetaClass(EMU *ep, QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent, int drv) : QMenu(root_entry)
 {
 	QString tmps;
 	int ii;
@@ -25,6 +25,8 @@ Menu_MetaClass::Menu_MetaClass(EMU *ep, QMenuBar *root_entry, QString desc, QWid
 	p_wid = parent;
 	menu_root = root_entry;
 	p_emu = ep;
+	using_flags = p;
+	
 	media_drive = drv;
 
 	tmps.setNum(drv);
@@ -243,13 +245,13 @@ void Menu_MetaClass::do_update_inner_media_bubble(QStringList lst, int num)
 
 void Menu_MetaClass::create_pulldown_menu_sub(void)
 {
-	action_insert = new Action_Control(p_wid);
+	action_insert = new Action_Control(p_wid, using_flags);
 	action_insert->setObjectName(QString::fromUtf8("action_insert_") + object_desc);
 	action_insert->binds->setDrive(media_drive);
 	connect(action_insert, SIGNAL(triggered()), this, SLOT(do_open_dialog()));
 	action_insert->setIcon(icon_insert);
 	
-	action_eject = new Action_Control(p_wid);
+	action_eject = new Action_Control(p_wid, using_flags);
 	action_eject->setObjectName(QString::fromUtf8("action_eject_") + object_desc);
 	action_eject->binds->setDrive(media_drive);
 	connect(action_eject, SIGNAL(triggered()), this, SLOT(do_eject_media()));
@@ -264,7 +266,7 @@ void Menu_MetaClass::create_pulldown_menu_sub(void)
 		
 		for(ii = 0; ii < MAX_HISTORY; ii++) {
 			tmps = history.value(ii, "");
-			action_recent_list[ii] = new Action_Control(p_wid);
+			action_recent_list[ii] = new Action_Control(p_wid, using_flags);
 			action_recent_list[ii]->binds->setDrive(media_drive);
 			action_recent_list[ii]->binds->setNumber(ii);
 			
@@ -285,7 +287,7 @@ void Menu_MetaClass::create_pulldown_menu_sub(void)
 		
 		for(ii = 0; ii < using_flags->get_max_d88_banks(); ii++) {
 			tmps = history.value(ii, "");
-			action_select_media_list[ii] = new Action_Control(p_wid);
+			action_select_media_list[ii] = new Action_Control(p_wid, using_flags);
 			action_select_media_list[ii]->binds->setDrive(media_drive);
 			action_select_media_list[ii]->binds->setNumber(ii);
 			action_select_media_list[ii]->setText(tmps);
@@ -303,14 +305,14 @@ void Menu_MetaClass::create_pulldown_menu_sub(void)
 		action_group_protect = new QActionGroup(p_wid);
 		action_group_protect->setExclusive(true);
 
-		action_write_protect_on = new Action_Control(p_wid);
+		action_write_protect_on = new Action_Control(p_wid, using_flags);
 		action_write_protect_on->setObjectName(QString::fromUtf8("action_write_protect_on_") + object_desc);
 		action_write_protect_on->setCheckable(true);
 		action_write_protect_on->setChecked(true);
 		action_write_protect_on->binds->setDrive(media_drive);
 		action_write_protect_on->binds->setNumber(0);
 		
-		action_write_protect_off = new Action_Control(p_wid);
+		action_write_protect_off = new Action_Control(p_wid, using_flags);
 		action_write_protect_off->setObjectName(QString::fromUtf8("action_write_protect_off_") + object_desc);
 		action_write_protect_off->setCheckable(true);
 		action_write_protect_off->binds->setDrive(media_drive);

@@ -34,7 +34,7 @@
 
 #include "agar_logger.h"
 
-extern USING_FLAGS *using_flags;
+//extern USING_FLAGS *using_flags;
 
 void GLDrawClass::drawGrids(void)
 {
@@ -106,7 +106,7 @@ void GLDrawClass::paintGL(void)
 #define GL_MULTISAMPLE  0x809D
 #endif
 
-GLDrawClass::GLDrawClass(QWidget *parent)
+GLDrawClass::GLDrawClass(USING_FLAGS *p, QWidget *parent)
 #if defined(_USE_GLAPI_QT5_4)
   : QOpenGLWidget(parent, Qt::Widget)
 #else
@@ -116,6 +116,8 @@ GLDrawClass::GLDrawClass(QWidget *parent)
 	save_pixmap_req = false;
 	enable_mouse = true;
 	p_emu = NULL;
+	using_flags = p;
+	
 	filename_screen_pixmap.clear();
 	//imgptr = NULL;
 	extfunc = NULL;

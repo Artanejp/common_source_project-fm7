@@ -29,7 +29,7 @@
 
 #define KEY_KEEP_FRAMES 3
 
-extern USING_FLAGS *using_flags;
+//extern USING_FLAGS *using_flags;
 
 #if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
 const struct NativeScanCode convTable_QTScan106[] = {

@@ -14,15 +14,16 @@
 #include "../avio/movie_saver.h"
 #include "../../config.h"
 
-CSP_DialogMovie::CSP_DialogMovie(MOVIE_SAVER *ms, QWidget *parent) : QWidget(parent)
+CSP_DialogMovie::CSP_DialogMovie(MOVIE_SAVER *ms, USING_FLAGS *p, QWidget *parent) : QWidget(parent)
 {
 	p_wid = parent;
 	p_movie = ms;
+	using_flags = p;
 	tab_widget = new QTabWidget(this);
 
-	tab_general = new CSP_TabMovieGeneral(ms, this, parent);
-	tab_h264 = new CSP_TabMovieH264(ms, this, parent);
-	tab_mpeg4 = new CSP_TabMovieMPEG4(ms, this, parent);
+	tab_general = new CSP_TabMovieGeneral(ms, this, using_flags, parent);
+	tab_h264 = new CSP_TabMovieH264(ms, this, using_flags, parent);
+	tab_mpeg4 = new CSP_TabMovieMPEG4(ms, this, using_flags, parent);
 
 	tab_widget->addTab(tab_general, QApplication::translate("MainWindow", "General", 0));
 	tab_widget->addTab(tab_h264, QApplication::translate("MainWindow", "H.264", 0));

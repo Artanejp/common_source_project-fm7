@@ -43,7 +43,7 @@ void Action_Control_EX80::setIntValue(int val)
 }
 
 
-Action_Control_EX80::Action_Control_EX80(QObject *parent) : Action_Control(parent)
+Action_Control_EX80::Action_Control_EX80(QObject *parent, USING_FLAGS *pp) : Action_Control(parent, pp)
 {
 	bind_bool = false;
 	bind_int = 0;
@@ -60,13 +60,13 @@ void META_MainWindow::setupUI_Emu(void)
    actionGroup_DipSW1 = new QActionGroup(this);
    actionGroup_DipSW1->setExclusive(true);
    
-   actionDipSW1_ON = new Action_Control_EX80(this);
+   actionDipSW1_ON = new Action_Control_EX80(this, using_flags);
    actionDipSW1_ON->setCheckable(true);
    actionDipSW1_ON->setVisible(true);
    actionDipSW1_ON->setBoolValue(true);
    actionGroup_DipSW1->addAction(actionDipSW1_ON);
    
-   actionDipSW1_OFF = new Action_Control_EX80(this);
+   actionDipSW1_OFF = new Action_Control_EX80(this, using_flags);
    actionDipSW1_OFF->setCheckable(true);
    actionDipSW1_OFF->setVisible(true);
    actionDipSW1_OFF->setBoolValue(false);
@@ -81,13 +81,13 @@ void META_MainWindow::setupUI_Emu(void)
    actionGroup_DipSW2 = new QActionGroup(this);
    actionGroup_DipSW2->setExclusive(true);
    
-   actionDipSW2_ON = new Action_Control_EX80(this);
+   actionDipSW2_ON = new Action_Control_EX80(this, using_flags);
    actionDipSW2_ON->setCheckable(true);
    actionDipSW2_ON->setVisible(true);
    actionDipSW2_ON->setBoolValue(true);
    actionGroup_DipSW2->addAction(actionDipSW2_ON);
    
-   actionDipSW2_OFF = new Action_Control_EX80(this);
+   actionDipSW2_OFF = new Action_Control_EX80(this, using_flags);
    actionDipSW2_OFF->setCheckable(true);
    actionDipSW2_OFF->setVisible(true);
    actionDipSW2_OFF->setBoolValue(false);
@@ -126,7 +126,7 @@ void META_MainWindow::setupUI_Emu(void)
    actionGroup_VramAddr->setExclusive(true);
    int dipbit = (config.dipswitch & 0x0c) >> 2;
    for(i = 0; i < 4; i++) {
-	   actionVramAddr[i] = new Action_Control_EX80(this);
+	   actionVramAddr[i] = new Action_Control_EX80(this, using_flags);
 	   actionVramAddr[i]->setCheckable(true);
 	   actionVramAddr[i]->setVisible(true);
 	   actionVramAddr[i]->setIntValue(i);
@@ -183,7 +183,7 @@ void META_MainWindow::retranslateUi(void)
 
 
 
-META_MainWindow::META_MainWindow(QWidget *parent) : Ui_MainWindow(parent)
+META_MainWindow::META_MainWindow(USING_FLAGS *p, QWidget *parent) : Ui_MainWindow(p, parent)
 {
    setupUI_Emu();
    retranslateUi();

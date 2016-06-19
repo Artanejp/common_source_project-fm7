@@ -14,7 +14,7 @@
 //#include "emu.h"
 
 
-Menu_CMTClass::Menu_CMTClass(EMU *ep, QMenuBar *root_entry, QString desc, QWidget *parent, int drv) : Menu_MetaClass(ep, root_entry, desc, parent, drv)
+Menu_CMTClass::Menu_CMTClass(EMU *ep, QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent, int drv) : Menu_MetaClass(ep, root_entry, desc, p, parent, drv)
 {
 	use_write_protect = true;
 	use_d88_menus = false;
@@ -37,16 +37,16 @@ Menu_CMTClass::~Menu_CMTClass()
 
 void Menu_CMTClass::create_pulldown_menu_device_sub(void)
 {
-	action_wave_shaper = new Action_Control(p_wid);
+	action_wave_shaper = new Action_Control(p_wid, using_flags);
 	action_wave_shaper->setVisible(true);
 	action_wave_shaper->setCheckable(true);
 
 	if(using_flags->is_machine_cmt_mz_series()) {
-		action_direct_load_mzt = new Action_Control(p_wid);
+		action_direct_load_mzt = new Action_Control(p_wid, using_flags);
 		action_direct_load_mzt->setVisible(true);
 		action_direct_load_mzt->setCheckable(true);
 	}
-	action_recording = new Action_Control(p_wid);
+	action_recording = new Action_Control(p_wid, using_flags);
 	action_recording->setVisible(true);
 	action_recording->setCheckable(false);
 
@@ -63,27 +63,27 @@ void Menu_CMTClass::create_pulldown_menu_device_sub(void)
 		}
 	}
 	if(using_flags->is_use_tape_button()) {
-		action_play_start = new Action_Control(p_wid);
+		action_play_start = new Action_Control(p_wid, using_flags);
 		action_play_start->setVisible(true);
 		action_play_start->setCheckable(true);
 		
-		action_play_stop = new Action_Control(p_wid);
+		action_play_stop = new Action_Control(p_wid, using_flags);
 		action_play_stop->setVisible(true);
 		action_play_stop->setCheckable(true);
 		
-		action_fast_forward = new Action_Control(p_wid);
+		action_fast_forward = new Action_Control(p_wid, using_flags);
 		action_fast_forward->setVisible(true);
 		action_fast_forward->setCheckable(true);
 		
-		action_fast_rewind = new Action_Control(p_wid);
+		action_fast_rewind = new Action_Control(p_wid, using_flags);
 		action_fast_rewind->setVisible(true);
 		action_fast_rewind->setCheckable(true);
 		
-		action_apss_forward = new Action_Control(p_wid);
+		action_apss_forward = new Action_Control(p_wid, using_flags);
 		action_apss_forward->setVisible(true);
 		action_apss_forward->setCheckable(true);
 		
-		action_apss_rewind = new Action_Control(p_wid);
+		action_apss_rewind = new Action_Control(p_wid, using_flags);
 		action_apss_rewind->setVisible(true);
 		action_apss_rewind->setCheckable(true);
 

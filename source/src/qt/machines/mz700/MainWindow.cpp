@@ -18,16 +18,16 @@
 //QT_BEGIN_NAMESPACE
 
 
-Action_Control_MZ700::Action_Control_MZ700(QObject *parent) : Action_Control(parent)
+Action_Control_MZ700::Action_Control_MZ700(QObject *parent, USING_FLAGS *p) : Action_Control(parent, p)
 {
-	mz_binds = new Object_Menu_Control_MZ700(parent);
+	mz_binds = new Object_Menu_Control_MZ700(parent, p);
 }
 
 Action_Control_MZ700::~Action_Control_MZ700(){
 	delete mz_binds;
 }
 
-Object_Menu_Control_MZ700::Object_Menu_Control_MZ700(QObject *parent) : Object_Menu_Control(parent)
+Object_Menu_Control_MZ700::Object_Menu_Control_MZ700(QObject *parent, USING_FLAGS *p) : Object_Menu_Control(parent, p)
 {
 }
 
@@ -85,7 +85,7 @@ void META_MainWindow::setupUI_Emu(void)
 		actionGroup_MonitorType = new QActionGroup(this);
 		actionGroup_MonitorType->setExclusive(true);
 		for(ii = 0; ii < USE_MONITOR_TYPE; ii++) {
-			actionMonitorType[ii] = new Action_Control_MZ700(this);
+			actionMonitorType[ii] = new Action_Control_MZ700(this, using_flags);
 			actionGroup_MonitorType->addAction(actionMonitorType[ii]);
 			actionMonitorType[ii]->setCheckable(true);
 			actionMonitorType[ii]->setVisible(true);
@@ -141,8 +141,7 @@ void META_MainWindow::retranslateUi(void)
 } // retranslateUi
 
 
-
-META_MainWindow::META_MainWindow(QWidget *parent) : Ui_MainWindow(parent)
+META_MainWindow::META_MainWindow(USING_FLAGS *p, QWidget *parent) : Ui_MainWindow(p, parent)
 {
 	setupUI_Emu();
 	retranslateUi();

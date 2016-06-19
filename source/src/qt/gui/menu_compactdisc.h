@@ -16,7 +16,7 @@ class DLL_PREFIX Menu_CompactDiscClass: public Menu_MetaClass {
 	Q_OBJECT
 protected:
 public:
-	Menu_CompactDiscClass(EMU *ep, QMenuBar *root_entry, QString desc, QWidget *parent = 0, int drv = 0);
+	Menu_CompactDiscClass(EMU *ep, QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent = 0, int drv = 0);
 	~Menu_CompactDiscClass();
 	void create_pulldown_menu_device_sub();
 	void connect_menu_device_sub(void);

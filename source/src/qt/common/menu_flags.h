@@ -8,6 +8,9 @@
 #define _SCREEN_MODE_NUM 32
 #endif
 
+class EMU;
+class OSD;
+
 typedef struct {
 	const _TCHAR* caption;
 	int x, y;
@@ -139,6 +142,9 @@ private:
 	bool machine_z80tvgame;
 	
 	button_desc_t *vm_buttons_d;
+
+	EMU *p_emu;
+	OSD *p_osd;
 public:
 	USING_FLAGS();
 	~USING_FLAGS();
@@ -264,6 +270,10 @@ public:
 	bool is_machine_z80tvgame() { return machine_z80tvgame; }
 	const _TCHAR *get_joy_button_captions(int num);
 	const _TCHAR *get_sound_device_caption(int num);
+	void set_emu(EMU *p);
+	EMU *get_emu(void);
+	void set_osd(OSD *p);
+	OSD *get_osd(void);
 };
 	
 

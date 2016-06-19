@@ -58,7 +58,7 @@ protected:
 				  bool do_chromakey = false,
 				  QVector3D chromakey = QVector3D(0.0f, 0.0f, 0.0f));
 public:
-	GLDraw_3_0(GLDrawClass *parent, EMU *emu = 0);
+	GLDraw_3_0(GLDrawClass *parent, USING_FLAGS *p, EMU *emu = 0);
 	~GLDraw_3_0();
 	void initGLObjects();
 	void initLocalGLObjects(void);

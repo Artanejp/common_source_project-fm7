@@ -73,6 +73,7 @@ class CSP_Debugger;
 #endif
 
 #if defined(OSD_QT)
+class USING_FLAGS;
 class GLDrawClass;
 class EmuThreadClass;
 class DrawThreadClass;
@@ -168,7 +169,7 @@ public:
 	// initialize
 	// ----------------------------------------
 #if defined(OSD_QT)
-	EMU(class Ui_MainWindow *hwnd, GLDrawClass *hinst);
+	EMU(class Ui_MainWindow *hwnd, GLDrawClass *hinst, USING_FLAGS *p);
 #elif defined(OSD_WIN32)
  	EMU(HWND hwnd, HINSTANCE hinst);
 #else

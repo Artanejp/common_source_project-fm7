@@ -11,9 +11,9 @@
 #include "qt_glutil_gl3_0.h"
 #include "menu_flags.h"
 
-extern USING_FLAGS *using_flags;
+//extern USING_FLAGS *using_flags;
 
-GLDraw_3_0::GLDraw_3_0(GLDrawClass *parent, EMU *emu) : GLDraw_2_0(parent, emu)
+GLDraw_3_0::GLDraw_3_0(GLDrawClass *parent, USING_FLAGS *p, EMU *emu) : GLDraw_2_0(parent, p, emu)
 {
 	uTmpTextureID = 0;
 	uTmpFrameBuffer = 0;

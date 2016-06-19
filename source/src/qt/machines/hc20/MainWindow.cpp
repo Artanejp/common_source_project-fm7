@@ -15,16 +15,16 @@
 #include "qt_main.h"
 
 //QT_BEGIN_NAMESPACE
-Action_Control_HC20::Action_Control_HC20(QObject *parent) : Action_Control(parent)
+Action_Control_HC20::Action_Control_HC20(QObject *parent, USING_FLAGS *p) : Action_Control(parent, p)
 {
-	hc20_binds = new Object_Menu_Control_HC20(parent);
+	hc20_binds = new Object_Menu_Control_HC20(parent, p);
 }
 
 Action_Control_HC20::~Action_Control_HC20(){
 	delete hc20_binds;
 }
 
-Object_Menu_Control_HC20::Object_Menu_Control_HC20(QObject *parent) : Object_Menu_Control(parent)
+Object_Menu_Control_HC20::Object_Menu_Control_HC20(QObject *parent, USING_FLAGS *p) : Object_Menu_Control(parent, p)
 {
 }
 
@@ -48,7 +48,7 @@ void META_MainWindow::setupUI_Emu(void)
 	actionGroup_DipSw->setExclusive(false);
 	menuMachine->addAction(menu_Emu_DipSw->menuAction());
 	for(i = 0; i < 4; i++) {
-      	action_Emu_DipSw[i] = new Action_Control_HC20(this);
+      	action_Emu_DipSw[i] = new Action_Control_HC20(this, using_flags);
         action_Emu_DipSw[i]->setCheckable(true);
         action_Emu_DipSw[i]->hc20_binds->setValue1(i);
         tmps.number(i + 1);
@@ -106,8 +106,7 @@ void META_MainWindow::retranslateUi(void)
 } // retranslateUi
 
 
-
-META_MainWindow::META_MainWindow(QWidget *parent) : Ui_MainWindow(parent)
+META_MainWindow::META_MainWindow(USING_FLAGS *p, QWidget *parent) : Ui_MainWindow(p, parent)
 {
 	setupUI_Emu();
 	retranslateUi();

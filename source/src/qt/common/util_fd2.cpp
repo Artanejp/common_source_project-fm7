@@ -8,7 +8,7 @@
 
 #include "menu_flags.h"
 
-extern USING_FLAGS *using_flags;
+//extern USING_FLAGS *using_flags;
 extern class EMU *emu;
 
 #if defined(USE_FD1)	

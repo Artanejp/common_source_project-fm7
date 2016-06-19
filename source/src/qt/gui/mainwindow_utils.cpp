@@ -183,7 +183,7 @@ void Ui_MainWindowBase::ConfigDeviceType(void)
 		actionGroup_DeviceType = new QActionGroup(this);
 		actionGroup_DeviceType->setExclusive(true);
 		for(ii = 0; ii < using_flags->get_use_device_type(); ii++) {
-			actionDeviceType[ii] = new Action_Control(this);
+			actionDeviceType[ii] = new Action_Control(this, using_flags);
 			actionGroup_DeviceType->addAction(actionDeviceType[ii]);
 			actionDeviceType[ii]->setCheckable(true);
 			actionDeviceType[ii]->setVisible(true);
@@ -210,7 +210,7 @@ void Ui_MainWindowBase::ConfigDriveType(void)
 		actionGroup_DriveType->setExclusive(true);
 		menuMachine->addAction(menuDriveType->menuAction());
 		for(i = 0; i < using_flags->get_use_drive_type(); i++) {
-			actionDriveType[i] = new Action_Control(this);
+			actionDriveType[i] = new Action_Control(this, using_flags);
 			actionDriveType[i]->setCheckable(true);
 			actionDriveType[i]->setVisible(true);
 			actionDriveType[i]->binds->setValue1(i);
@@ -238,7 +238,7 @@ void Ui_MainWindowBase::ConfigSoundDeviceType(void)
 		actionGroup_SoundDevice->setExclusive(true);
 		menuMachine->addAction(menuSoundDevice->menuAction());   
 		for(i = 0; i < using_flags->get_use_sound_device_type(); i++) {
-			actionSoundDevice[i] = new Action_Control(this);
+			actionSoundDevice[i] = new Action_Control(this, using_flags);
 			actionSoundDevice[i]->setCheckable(true);
 			actionSoundDevice[i]->binds->setValue1(i);
 			if(i == config.sound_device_type) actionSoundDevice[i]->setChecked(true); // Need to write configure
@@ -269,7 +269,7 @@ void Ui_MainWindowBase::ConfigPrinterType(void)
 		actionGroup_PrintDevice->setExclusive(true);
 		menuMachine->addAction(menuPrintDevice->menuAction());   
 		for(i = 0; i < ilim; i++) {
-			actionPrintDevice[i] = new Action_Control(this);
+			actionPrintDevice[i] = new Action_Control(this, using_flags);
 			actionPrintDevice[i]->setCheckable(true);
 			actionPrintDevice[i]->binds->setValue1(i);
 			if(i == config.printer_device_type) actionPrintDevice[i]->setChecked(true); // Need to write configure

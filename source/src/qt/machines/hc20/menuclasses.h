@@ -12,12 +12,13 @@
 QT_BEGIN_NAMESPACE
 
 class Ui_MainWindow;
+class USING_FLAGS;
 //  wrote of HC20 Specific menu.
 class Object_Menu_Control_HC20: public Object_Menu_Control
 {
 	Q_OBJECT
 public:
-	Object_Menu_Control_HC20(QObject *parent);
+	Object_Menu_Control_HC20(QObject *parent, USING_FLAGS *p);
 	~Object_Menu_Control_HC20();
 signals:
 	int sig_dipsw(int, bool);
@@ -30,7 +31,7 @@ class Action_Control_HC20 : public Action_Control
 	Q_OBJECT
 public:
 	Object_Menu_Control_HC20 *hc20_binds;
-	Action_Control_HC20(QObject *parent);
+	Action_Control_HC20(QObject *parent, USING_FLAGS *p);
 	~Action_Control_HC20();
 };
 
@@ -43,9 +44,9 @@ protected:
 	QMenu *menu_Emu_DipSw;
 	QActionGroup *actionGroup_DipSw;
 	Action_Control_HC20 *action_Emu_DipSw[4];
-  
+
 public:
-	META_MainWindow(QWidget *parent = 0);
+	META_MainWindow(USING_FLAGS *p, QWidget *parent = 0);
 	~META_MainWindow();
 public slots:
 };

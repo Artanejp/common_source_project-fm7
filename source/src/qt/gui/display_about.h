@@ -17,13 +17,14 @@
 #include "common.h"
 
 QT_BEGIN_NAMESPACE
-
+class USING_FLAGS;
 class EMU;
 class DLL_PREFIX Dlg_AboutCSP : public QWidget
 {
 	Q_OBJECT
 protected:
 	EMU *p_emu;
+	USING_FLAGS *using_flags;
 	QWidget *parent_widget;
 
 	QTextBrowser *TextBox;
@@ -34,7 +35,7 @@ protected:
 	QWidget *BoxTitle;
 	QVBoxLayout *VBox;
 public:
-	Dlg_AboutCSP(QWidget *parent = 0);
+	Dlg_AboutCSP(USING_FLAGS *p, QWidget *parent = 0);
 	~Dlg_AboutCSP();
 	
 };

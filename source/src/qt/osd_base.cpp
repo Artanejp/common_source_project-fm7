@@ -20,8 +20,9 @@
 #include "agar_logger.h"
 #include "osd_base.h"
 
-OSD_BASE::OSD_BASE() : QThread(0)
+OSD_BASE::OSD_BASE(USING_FLAGS *p) : QThread(0)
 {
+	using_flags = p;
    	VMSemaphore = new QSemaphore(1);
    	DebugSemaphore = new QSemaphore(1);
 	locked_vm = false;

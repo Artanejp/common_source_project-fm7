@@ -18,7 +18,7 @@ static int log_onoff = 0;
 static int log_opened = FALSE;
 static char log_sysname[256];
 
-extern class USING_FLAGS *using_flags;
+//extern class USING_FLAGS *using_flags;
 extern "C" 
 {
    

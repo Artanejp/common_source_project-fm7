@@ -479,3 +479,22 @@ const _TCHAR *USING_FLAGS::get_sound_device_caption(int num)
 #endif	
 }
 
+void USING_FLAGS::set_emu(EMU *p)
+{
+	p_emu = p;
+}
+
+EMU *USING_FLAGS::get_emu(void)
+{
+	return p_emu;
+}
+
+void USING_FLAGS::set_osd(OSD *p)
+{
+	p_osd = p;
+}
+
+OSD *USING_FLAGS::get_osd(void)
+{
+	return p_osd;
+}

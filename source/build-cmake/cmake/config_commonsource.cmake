@@ -218,8 +218,6 @@ else()
        )
 
    set(BUNDLE_LIBS ${BUNDLE_LIBS} -lCSPosd -lCSPgui -lCSPemu_utils -lCSPavio)
-#   set(BUNDLE_LIBS ${BUNDLE_LIBS} -lCSPavcodec -lCSPavfilter -lCSPavformat -lCSPavutil -lCSPswresample -lCSPswscale -lCSPpostproc )
-
 endif()
 
 if(USE_QT_5)

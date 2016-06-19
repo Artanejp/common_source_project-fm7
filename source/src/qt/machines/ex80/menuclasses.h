@@ -12,6 +12,7 @@
 QT_BEGIN_NAMESPACE
 
 class Ui_MainWindow;
+class USING_FLAGS;
 
 class Action_Control_EX80 : public Action_Control
 {
@@ -20,7 +21,7 @@ private:
 	int bind_int;
 	bool bind_bool;
 public:
-	Action_Control_EX80(QObject *parent);
+	Action_Control_EX80(QObject *parent, USING_FLAGS *pp);
 	~Action_Control_EX80();
 	void setBoolValue(bool flag);
 	void setIntValue(int val);
@@ -56,7 +57,7 @@ protected:
 	void retranslateUi(void);
   
 public:
-	META_MainWindow(QWidget *parent = 0);
+	META_MainWindow(USING_FLAGS *p, QWidget *parent = 0);
 	~META_MainWindow();
 public slots:
 

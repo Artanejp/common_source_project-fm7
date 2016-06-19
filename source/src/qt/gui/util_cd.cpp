@@ -32,7 +32,7 @@ void Ui_MainWindowBase::CreateCDROMMenu(void)
 	QString ext_play, desc_play;
 	
 	listCDROM.clear();
-	menu_CDROM = new Menu_CompactDiscClass(emu, menubar, "Object_CDROM_Menu", this, 0);
+	menu_CDROM = new Menu_CompactDiscClass(emu, menubar, "Object_CDROM_Menu", using_flags, this, 0);
 	menu_CDROM->setObjectName(QString::fromUtf8("menuCDROM", -1));
 	
 	menu_CDROM->create_pulldown_menu();	

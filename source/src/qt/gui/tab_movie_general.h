@@ -24,6 +24,7 @@ class QSlider;
 
 class MOVIE_SAVER;
 class CSP_DialogMovie;
+class USING_FLAGS;
 
 class DLL_PREFIX CSP_TabMovieGeneral: public QWidget {
 	Q_OBJECT;
@@ -48,6 +49,7 @@ private:
 	QComboBox *combo_video_fps;
 
 protected:
+	USING_FLAGS *using_flags;
 	QWidget *p_wid;
 	MOVIE_SAVER *p_movie;
 	CSP_DialogMovie *p_window;
@@ -58,7 +60,7 @@ protected:
 	int audio_bitrate;
 	int video_fps;
 public:
-	CSP_TabMovieGeneral(MOVIE_SAVER *ms, CSP_DialogMovie *parent_window, QWidget *parent = NULL);
+	CSP_TabMovieGeneral(MOVIE_SAVER *ms, CSP_DialogMovie *parent_window, USING_FLAGS *p, QWidget *parent = NULL);
 	~CSP_TabMovieGeneral();
 public slots:
 	void do_set_video_codec_type(int);

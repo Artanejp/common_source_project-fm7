@@ -13,10 +13,10 @@
 #include "../avio/movie_saver.h"
 #include "../../config.h"
 
-CSP_TabMovieH264::CSP_TabMovieH264(MOVIE_SAVER *ms, CSP_DialogMovie *parent_window, QWidget *parent) : QWidget(parent)
+CSP_TabMovieH264::CSP_TabMovieH264(MOVIE_SAVER *ms, CSP_DialogMovie *parent_window,  USING_FLAGS *p, QWidget *parent) : QWidget(parent)
 {
 	QString tmps;
-	
+	using_flags = p;
 	p_wid = parent;
 	p_movie = ms;
 	p_window = parent_window;

@@ -17,7 +17,7 @@
 
 //QT_BEGIN_NAMESPACE
 
-Object_Menu_Control_98::Object_Menu_Control_98(QObject *parent) : Object_Menu_Control(parent)
+Object_Menu_Control_98::Object_Menu_Control_98(QObject *parent, USING_FLAGS *p) : Object_Menu_Control(parent, p)
 {
 }
 
@@ -31,9 +31,9 @@ void Object_Menu_Control_98::do_set_memory_wait(bool flag)
 }
 
 
-Action_Control_98::Action_Control_98(QObject *parent) : Action_Control(parent)
+Action_Control_98::Action_Control_98(QObject *parent, USING_FLAGS *p) : Action_Control(parent, p)
 {
-	pc98_binds = new Object_Menu_Control_98(parent);
+	pc98_binds = new Object_Menu_Control_98(parent, p);
 	pc98_binds->setValue1(0);
 }
 
@@ -153,7 +153,7 @@ void META_MainWindow::setupUI_Emu(void)
 #endif
 	
 #if defined(_PC98DO)
-	actionMemoryWait = new Action_Control_98(this);
+	actionMemoryWait = new Action_Control_98(this, using_flags);
 	actionMemoryWait->setCheckable(true);
 	actionMemoryWait->setVisible(true);
 	menuMachine->addAction(actionMemoryWait);
@@ -175,7 +175,7 @@ void META_MainWindow::setupUI_Emu(void)
 }
 
 
-META_MainWindow::META_MainWindow(QWidget *parent) : Ui_MainWindow(parent)
+META_MainWindow::META_MainWindow(USING_FLAGS *p, QWidget *parent) : Ui_MainWindow(p, parent)
 {
 	setupUI_Emu();
 	retranslateUi();

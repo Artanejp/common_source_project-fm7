@@ -16,16 +16,16 @@
 
 //QT_BEGIN_NAMESPACE
 
-Action_Control_MZ3500::Action_Control_MZ3500(QObject *parent) : Action_Control(parent)
+Action_Control_MZ3500::Action_Control_MZ3500(QObject *parent, USING_FLAGS *p) : Action_Control(parent, p)
 {
-	mz_binds = new Object_Menu_Control_MZ3500(parent);
+	mz_binds = new Object_Menu_Control_MZ3500(parent, p);
 }
 
 Action_Control_MZ3500::~Action_Control_MZ3500(){
 	delete mz_binds;
 }
 
-Object_Menu_Control_MZ3500::Object_Menu_Control_MZ3500(QObject *parent) : Object_Menu_Control(parent)
+Object_Menu_Control_MZ3500::Object_Menu_Control_MZ3500(QObject *parent, USING_FLAGS *p) : Object_Menu_Control(parent, p)
 {
 }
 
@@ -51,7 +51,7 @@ void META_MainWindow::setupUI_Emu(void)
 	menuMachine->addAction(menu_Emu_DipSw->menuAction());
 	
 	for(i = 0; i < 3; i++) {
-      	action_Emu_DipSw[i] = new Action_Control_MZ3500(this);
+      	action_Emu_DipSw[i] = new Action_Control_MZ3500(this, p);
         action_Emu_DipSw[i]->setCheckable(true);
         tmps.number(i + 1);
         tmps = QString::fromUtf8("actionEmu_DipSw") + tmps;
@@ -108,8 +108,7 @@ void META_MainWindow::retranslateUi(void)
 } // retranslateUi
 
 
-
-META_MainWindow::META_MainWindow(QWidget *parent) : Ui_MainWindow(parent)
+META_MainWindow::META_MainWindow(USING_FLAGS *p, QWidget *parent) : Ui_MainWindow(p, parent)
 {
 	setupUI_Emu();
 	retranslateUi();

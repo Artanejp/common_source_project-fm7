@@ -41,7 +41,6 @@
 
 EMU* emu;
 QApplication *GuiMain = NULL;
-extern USING_FLAGS *using_flags;
 
 // Start to define MainWindow.
 class META_MainWindow *rMainWindow;
@@ -116,7 +115,7 @@ void Object_Menu_Control::do_stop_saving_movie(void)
 
 void Ui_MainWindow::rise_movie_dialog(void)
 {
-	CSP_DialogMovie *dlg = new CSP_DialogMovie(hSaveMovieThread, 0);
+	CSP_DialogMovie *dlg = new CSP_DialogMovie(hSaveMovieThread, using_flags);
 	dlg->setWindowTitle(QApplication::translate("CSP_DialogMovie", "Configure movie encodings", 0));
 	dlg->show();
 }
@@ -128,7 +127,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 
 	int drvs;
 	
-	hRunEmu = new EmuThreadClass(rMainWindow, emu, this);
+	hRunEmu = new EmuThreadClass(rMainWindow, emu, using_flags, this);
 	connect(hRunEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
 	connect(hRunEmu, SIGNAL(sig_is_enable_mouse(bool)), glv, SLOT(do_set_mouse_enabled(bool)));
 	connect(glv, SIGNAL(sig_key_down(uint32_t, uint32_t, bool)), hRunEmu, SLOT(do_key_down(uint32_t, uint32_t, bool)));
@@ -364,7 +363,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 void Ui_MainWindow::LaunchJoyThread(void)
 {
 #if defined(USE_JOYSTICK)
-	hRunJoy = new JoyThreadClass(emu, emu->get_osd(), this);
+	hRunJoy = new JoyThreadClass(emu, emu->get_osd(), using_flags);
 	connect(this, SIGNAL(quit_joy_thread()), hRunJoy, SLOT(doExit()));
 	hRunJoy->setObjectName("JoyThread");
 	hRunJoy->start();
@@ -591,7 +590,8 @@ int MainLoop(int argc, char *argv[])
 
 	load_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
 	
-	rMainWindow = new META_MainWindow();
+	USING_FLAGS *using_flags = new USING_FLAGS;
+	rMainWindow = new META_MainWindow(using_flags);
 	rMainWindow->connect(rMainWindow, SIGNAL(sig_quit_all(void)), rMainWindow, SLOT(deleteLater(void)));
 	rMainWindow->setCoreApplication(GuiMain);
 	
@@ -601,7 +601,10 @@ int MainLoop(int argc, char *argv[])
 	
 	// initialize emulation core
 	rMainWindow->getWindow()->show();
-	emu = new EMU(rMainWindow, rMainWindow->getGraphicsView());
+	emu = new EMU(rMainWindow, rMainWindow->getGraphicsView(), using_flags);
+	using_flags->set_emu(emu);
+	using_flags->set_osd(emu->get_osd());
+
 #ifdef SUPPORT_DRAG_DROP
 	// open command line path
 	//	if(szCmdLine[0]) {

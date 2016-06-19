@@ -36,7 +36,7 @@ void Object_Menu_Control::on_set_latency(void) {
 
 void Ui_MainWindowBase::rise_volume_dialog(void)
 {
-	Ui_SoundDialog *dlg = new Ui_SoundDialog(emu, this);
+	Ui_SoundDialog *dlg = new Ui_SoundDialog(using_flags, emu, this);
 	QString tmps, s_val;
 	float n;
 	QIcon  img = QIcon(":/icon_speaker.png");
@@ -72,7 +72,7 @@ void Ui_MainWindowBase::CreateSoundMenu(void)
 	menuSound->addSeparator();
 	
 	if(using_flags->is_datarec_sound()) {
-		actionSoundCMT = new Action_Control(this);
+		actionSoundCMT = new Action_Control(this, using_flags);
 		actionSoundCMT->setObjectName(QString::fromUtf8("actionSoundCMT"));
 		actionSoundCMT->setCheckable(true);
 		if(config.tape_sound != 0) {
@@ -118,7 +118,7 @@ void Ui_MainWindowBase::ConfigSoundMenu(void)
 	actionGroup_Sound_Freq->setExclusive(true);
 	
 	for(i = 0; i < 8; i++) {
-		action_Freq[i] = new Action_Control(this);
+		action_Freq[i] = new Action_Control(this, using_flags);
 		tmps.setNum(s_freq_table[i]);
 		tmps = QString::fromUtf8("action") + tmps + QString::fromUtf8("Hz");
 		action_Freq[i]->setObjectName(tmps);
@@ -134,7 +134,7 @@ void Ui_MainWindowBase::ConfigSoundMenu(void)
 	actionGroup_Sound_Latency->setExclusive(true);
 
 	for(i = 0; i < 5; i++) {
-		action_Latency[i] = new Action_Control(this);
+		action_Latency[i] = new Action_Control(this, using_flags);
 		dval = s_late_table[i];
 		dval = dval * 1000.0;
 		tmps.setNum((int)dval);
@@ -146,13 +146,13 @@ void Ui_MainWindowBase::ConfigSoundMenu(void)
 		actionGroup_Sound_Latency->addAction(action_Latency[i]);
 	}
 
-	actionStart_Record = new Action_Control(this);
+	actionStart_Record = new Action_Control(this, using_flags);
 	actionStart_Record->setObjectName(QString::fromUtf8("actionStart_Record"));
 	actionStart_Record->setCheckable(true);
 	actionStart_Record->setChecked(false);
 	connect(actionStart_Record, SIGNAL(toggled(bool)), this, SLOT(start_record_sound(bool)));
 
-	action_VolumeDialog = new Action_Control(this);
+	action_VolumeDialog = new Action_Control(this, using_flags);
 	connect(action_VolumeDialog, SIGNAL(triggered()), this, SLOT(rise_volume_dialog()));
 	action_VolumeDialog->setObjectName(QString::fromUtf8("actionVolumedialog"));
 }

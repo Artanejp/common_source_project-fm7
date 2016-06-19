@@ -22,8 +22,6 @@ extern std::string cpp_confdir;
 extern std::string my_procname;
 extern std::string sRssDir;
 
-USING_FLAGS *using_flags;
-
 void get_long_full_path_name(_TCHAR* src, _TCHAR* dst)
 {
 	QString r_path;
@@ -112,7 +110,6 @@ int main(int argc, char *argv[])
 /*
  * アプリケーション初期化
  */
-	using_flags = new USING_FLAGS;
 	nErrorCode = MainLoop(argc, argv);
 	return nErrorCode;
 }

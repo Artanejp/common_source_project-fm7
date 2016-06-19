@@ -20,7 +20,7 @@
 #include "agar_logger.h"
 #include "osd.h"
 
-OSD::OSD() : OSD_BASE()
+OSD::OSD(USING_FLAGS *p) : OSD_BASE(p)
 {
 }
 

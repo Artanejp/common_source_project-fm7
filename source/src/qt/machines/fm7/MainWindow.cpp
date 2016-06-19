@@ -20,7 +20,7 @@
 //QT_BEGIN_NAMESPACE
 
 
-Object_Menu_Control_7::Object_Menu_Control_7(QObject *parent) : Object_Menu_Control(parent)
+Object_Menu_Control_7::Object_Menu_Control_7(QObject *parent, USING_FLAGS *p) : Object_Menu_Control(parent, p)
 {
 }
 
@@ -123,9 +123,9 @@ void Action_Control_7::do_set_frameskip()
 	config.dipswitch |= ((fm7_binds->getValue1() & 3) << 28);
 }
 
-Action_Control_7::Action_Control_7(QObject *parent) : Action_Control(parent)
+Action_Control_7::Action_Control_7(QObject *parent, USING_FLAGS *p) : Action_Control(parent, p)
 {
-	fm7_binds = new Object_Menu_Control_7(parent);
+	fm7_binds = new Object_Menu_Control_7(parent, p);
 	fm7_binds->setValue1(0);
 }
 
@@ -299,7 +299,7 @@ void META_MainWindow::setupUI_Emu(void)
 	actionGroup_FrameSkip->setExclusive(true);
 	skip = (config.dipswitch >> 28) & 3;
 	for(i = 0; i < 4; i++) {
-		actionFrameSkip[i] = new Action_Control_7(this);
+		actionFrameSkip[i] = new Action_Control_7(this, using_flags);
 		actionFrameSkip[i]->setCheckable(true);
 		actionFrameSkip[i]->setVisible(true);
 		actionFrameSkip[i]->fm7_binds->setValue1(i);
@@ -326,7 +326,7 @@ void META_MainWindow::setupUI_Emu(void)
 	ConfigCPUBootMode(3);
 #endif
 #if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
-	actionKanjiRom = new Action_Control_7(this);
+	actionKanjiRom = new Action_Control_7(this, using_flags);
 	menuMachine->addAction(actionKanjiRom);
 	actionKanjiRom->setCheckable(true);
 	actionKanjiRom->setVisible(true);
@@ -336,7 +336,7 @@ void META_MainWindow::setupUI_Emu(void)
 #endif
 
 #if defined(_FM8)
-	actionRamProtect = new Action_Control_7(this);
+	actionRamProtect = new Action_Control_7(this, using_flags);
 	menuMachine->addAction(actionRamProtect);
 	actionRamProtect->setCheckable(true);
 	actionRamProtect->setVisible(true);
@@ -346,7 +346,7 @@ void META_MainWindow::setupUI_Emu(void)
 	connect(actionRamProtect->fm7_binds, SIGNAL(sig_emu_update_config()),
 			this, SLOT(do_emu_update_config()));
 #else	
-	actionCycleSteal = new Action_Control_7(this);
+	actionCycleSteal = new Action_Control_7(this, using_flags);
 	menuMachine->addAction(actionCycleSteal);
 	actionCycleSteal->setCheckable(true);
 	actionCycleSteal->setVisible(true);
@@ -357,7 +357,7 @@ void META_MainWindow::setupUI_Emu(void)
 			this, SLOT(do_emu_update_config()));
 #endif	
 #if defined(_FM77AV_VARIANTS)	
-	actionSyncToHsync = new Action_Control_7(this);	
+	actionSyncToHsync = new Action_Control_7(this, using_flags);	
 	menuMachine->addAction(actionSyncToHsync);
 	actionSyncToHsync->setCheckable(true);
 	actionSyncToHsync->setVisible(true);
@@ -366,7 +366,7 @@ void META_MainWindow::setupUI_Emu(void)
 			actionSyncToHsync->fm7_binds, SLOT(do_set_hsync(bool)));
 #endif
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-	actionExtRam = new Action_Control_7(this);
+	actionExtRam = new Action_Control_7(this, using_flags);
 	menuMachine->addAction(actionExtRam);
 	actionExtRam->setCheckable(true);
 	actionExtRam->setVisible(true);
@@ -379,7 +379,7 @@ void META_MainWindow::setupUI_Emu(void)
 			this, SLOT(do_set_extram(bool)));
 #endif
 # if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
-	action_320kFloppy = new Action_Control_7(this);	
+	action_320kFloppy = new Action_Control_7(this, using_flags);	
 	menuMachine->addAction(action_320kFloppy);
 	action_320kFloppy->setCheckable(true);
 	action_320kFloppy->setVisible(true);
@@ -388,7 +388,7 @@ void META_MainWindow::setupUI_Emu(void)
 			action_320kFloppy->fm7_binds, SLOT(do_set_320kFloppy(bool)));
 # endif	
 # if defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
-	action_1MFloppy = new Action_Control_7(this);	
+	action_1MFloppy = new Action_Control_7(this, using_flags);	
 	menuMachine->addAction(action_1MFloppy);
 	action_1MFloppy->setCheckable(true);
 	action_1MFloppy->setVisible(true);
@@ -405,7 +405,7 @@ void META_MainWindow::setupUI_Emu(void)
 	actionGroup_Auto_5_8key = new QActionGroup(this);
 	actionGroup_Auto_5_8key->setExclusive(true);
 	
-	action_Neither_5_or_8key = new Action_Control_7(this);
+	action_Neither_5_or_8key = new Action_Control_7(this, using_flags);
 	action_Neither_5_or_8key->setCheckable(true);
 	action_Neither_5_or_8key->setVisible(true);
 	action_Neither_5_or_8key->fm7_binds->setValue1(0);
@@ -415,7 +415,7 @@ void META_MainWindow::setupUI_Emu(void)
 	connect(action_Neither_5_or_8key, SIGNAL(triggered()),
 			action_Neither_5_or_8key->fm7_binds, SLOT(do_set_autokey_5_8()));
 	
-	action_Auto_5key = new Action_Control_7(this);
+	action_Auto_5key = new Action_Control_7(this, using_flags);
 	action_Auto_5key->setCheckable(true);
 	action_Auto_5key->setVisible(true);
 	action_Auto_5key->fm7_binds->setValue1(1);
@@ -429,7 +429,7 @@ void META_MainWindow::setupUI_Emu(void)
 	connect(action_Auto_5key, SIGNAL(triggered()),
 			action_Auto_5key->fm7_binds, SLOT(do_set_autokey_5_8()));
 
-	action_Auto_8key = new Action_Control_7(this);
+	action_Auto_8key = new Action_Control_7(this, using_flags);
 	action_Auto_8key->setCheckable(true);
 	action_Auto_8key->setVisible(true);
 	action_Auto_8key->fm7_binds->setValue1(2);
@@ -445,7 +445,7 @@ void META_MainWindow::setupUI_Emu(void)
 }
 
 
-META_MainWindow::META_MainWindow(QWidget *parent) : Ui_MainWindow(parent)
+META_MainWindow::META_MainWindow(USING_FLAGS *p, QWidget *parent) : Ui_MainWindow(p, parent)
 {
 	setupUI_Emu();
 	retranslateUi();

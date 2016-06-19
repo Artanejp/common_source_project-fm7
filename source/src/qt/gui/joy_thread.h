@@ -17,6 +17,7 @@
 class EMU;
 class OSD;
 class QString;
+class USING_FLAGS;
 
 QT_BEGIN_NAMESPACE
 
@@ -32,6 +33,7 @@ class DLL_PREFIX JoyThreadClass : public QThread {
 	QString names[16];
 	EMU *p_emu;
 	OSD *p_osd;
+	USING_FLAGS *using_flags;
  protected:
 	bool bRunThread;
 	void joystick_plugged(int num);
@@ -46,7 +48,7 @@ class DLL_PREFIX JoyThreadClass : public QThread {
 	int get_joyid_from_instanceID(SDL_JoystickID id);
 # endif
  public:
-	JoyThreadClass(EMU *p, OSD *o, QObject *parent = 0);
+	JoyThreadClass(EMU *p, OSD *o, USING_FLAGS *pflags, QObject *parent = 0);
 	~JoyThreadClass();
 	void run() { doWork("");}
 	void SetEmu(EMU *p) {

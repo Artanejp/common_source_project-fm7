@@ -10,7 +10,7 @@
 #include "mainwidget_base.h"
 #include "menu_flags.h"
 
-extern USING_FLAGS *using_flags;
+//extern USING_FLAGS *using_flags;
 
 void Object_Menu_Control::set_boot_mode(void) {
 	emit on_boot_mode(bindValue);
@@ -41,7 +41,7 @@ void Object_Menu_Control::do_set_drive_type(void)
 
 void Ui_MainWindowBase::ConfigCpuSpeed(void)
 {
-	actionSpeed_x1 = new Action_Control(this);
+	actionSpeed_x1 = new Action_Control(this, using_flags);
 	actionSpeed_x1->setObjectName(QString::fromUtf8("actionSpeed_x1"));
 	actionSpeed_x1->setCheckable(true);
 	actionSpeed_x1->setChecked(true);
@@ -49,28 +49,28 @@ void Ui_MainWindowBase::ConfigCpuSpeed(void)
 	connect(actionSpeed_x1, SIGNAL(triggered()), actionSpeed_x1->binds, SLOT(set_cpupower())); // OK?  
 	connect(actionSpeed_x1->binds, SIGNAL(on_cpu_power(int)), this, SLOT(set_cpu_power(int))); // OK?  
   
-	actionSpeed_x2 = new Action_Control(this);
+	actionSpeed_x2 = new Action_Control(this, using_flags);
 	actionSpeed_x2->setObjectName(QString::fromUtf8("actionSpeed_x2"));
 	actionSpeed_x2->setCheckable(true);
 	actionSpeed_x2->binds->setValue1(1);
 	connect(actionSpeed_x2, SIGNAL(triggered()), actionSpeed_x2->binds, SLOT(set_cpupower())); // OK?  
 	connect(actionSpeed_x2->binds, SIGNAL(on_cpu_power(int)), this, SLOT(set_cpu_power(int))); // OK?  
   
-	actionSpeed_x4 = new Action_Control(this);
+	actionSpeed_x4 = new Action_Control(this, using_flags);
 	actionSpeed_x4->setObjectName(QString::fromUtf8("actionSpeed_x4"));
 	actionSpeed_x4->setCheckable(true);
 	actionSpeed_x4->binds->setValue1(2);
 	connect(actionSpeed_x4, SIGNAL(triggered()), actionSpeed_x4->binds, SLOT(set_cpupower())); // OK?  
 	connect(actionSpeed_x4->binds, SIGNAL(on_cpu_power(int)), this, SLOT(set_cpu_power(int))); // OK?  
   
-	actionSpeed_x8 = new Action_Control(this);
+	actionSpeed_x8 = new Action_Control(this, using_flags);
 	actionSpeed_x8->setObjectName(QString::fromUtf8("actionSpeed_x8"));
 	actionSpeed_x8->setCheckable(true);
 	actionSpeed_x8->binds->setValue1(3);
 	connect(actionSpeed_x8, SIGNAL(triggered()), actionSpeed_x8->binds, SLOT(set_cpupower())); // OK?  
 	connect(actionSpeed_x8->binds, SIGNAL(on_cpu_power(int)), this, SLOT(set_cpu_power(int))); // OK?  
   
-	actionSpeed_x16 = new Action_Control(this);
+	actionSpeed_x16 = new Action_Control(this, using_flags);
 	actionSpeed_x16->setObjectName(QString::fromUtf8("actionSpeed_x16"));
 	actionSpeed_x16->setCheckable(true);
 	actionSpeed_x16->binds->setValue1(4);
@@ -104,7 +104,7 @@ void Ui_MainWindowBase::ConfigCPUBootMode(int num)
 	actionGroup_BootMode = new QActionGroup(this);
 	actionGroup_BootMode->setExclusive(true);
 	for(i = 0; i < num; i++) {
-		actionBootMode[i] = new Action_Control(this);
+		actionBootMode[i] = new Action_Control(this, using_flags);
 		tmps = tmps.setNum(i);
 		tmps = QString::fromUtf8("actionBootMode_") + tmps;
 		actionBootMode[i]->setObjectName(tmps);
@@ -135,7 +135,7 @@ void Ui_MainWindowBase::ConfigCPUTypes(int num)
 	actionGroup_CpuType = new QActionGroup(this);
 	actionGroup_CpuType->setExclusive(true);
 	for(i = 0; i < num; i++) {
-		actionCpuType[i] = new Action_Control(this);
+		actionCpuType[i] = new Action_Control(this, using_flags);
 		tmps = tmps.setNum(i);
 		tmps = QString::fromUtf8("actionCpuType_") + tmps;
 		actionCpuType[i]->setObjectName(tmps);
@@ -152,39 +152,39 @@ void Ui_MainWindowBase::ConfigCPUTypes(int num)
 void Ui_MainWindowBase::ConfigControlMenu(void)
 {
 	int i;
-	actionReset = new Action_Control(this);
+	actionReset = new Action_Control(this, using_flags);
 	actionReset->setObjectName(QString::fromUtf8("actionReset"));
 	connect(actionReset, SIGNAL(triggered()),
 		this, SLOT(OnReset())); // OK?  
 	if(using_flags->is_use_special_reset()) {
-		actionSpecial_Reset = new Action_Control(this);
+		actionSpecial_Reset = new Action_Control(this, using_flags);
 		actionSpecial_Reset->setObjectName(QString::fromUtf8("actionSpecial_Reset"));
 		connect(actionSpecial_Reset, SIGNAL(triggered()),
 				this, SLOT(OnSpecialReset())); // OK?
 	}
 
-	actionExit_Emulator = new Action_Control(this);
+	actionExit_Emulator = new Action_Control(this, using_flags);
 	actionExit_Emulator->setObjectName(QString::fromUtf8("actionExit_Emulator"));
 	//connect(actionExit_Emulator, SIGNAL(triggered()),
 	//	this, SLOT(on_actionExit_triggered())); // OnGuiExit()?  
 
 	if(using_flags->is_use_auto_key()) {
-		actionPaste_from_Clipboard = new Action_Control(this);
+		actionPaste_from_Clipboard = new Action_Control(this, using_flags);
 		actionPaste_from_Clipboard->setObjectName(QString::fromUtf8("actionPaste_from_Clipboard"));
 		connect(actionPaste_from_Clipboard, SIGNAL(triggered()),
 				this, SLOT(OnStartAutoKey())); // OK?  
-		actionStop_Pasting = new Action_Control(this);
+		actionStop_Pasting = new Action_Control(this, using_flags);
 		actionStop_Pasting->setObjectName(QString::fromUtf8("actionStop_Pasting"));
 		connect(actionStop_Pasting, SIGNAL(triggered()),
 				this, SLOT(OnStopAutoKey())); // OK?
 	}
 	if(using_flags->is_use_state()) {
-		actionSave_State = new Action_Control(this);
+		actionSave_State = new Action_Control(this, using_flags);
 		actionSave_State->setObjectName(QString::fromUtf8("actionSave_State"));
 		connect(actionSave_State, SIGNAL(triggered()),
 				this, SLOT(OnSaveState())); // OK?  
 		
-		actionLoad_State = new Action_Control(this);
+		actionLoad_State = new Action_Control(this, using_flags);
 		actionLoad_State->setObjectName(QString::fromUtf8("actionLoad_State"));
 		connect(actionLoad_State, SIGNAL(triggered()),
 				this, SLOT(OnLoadState())); // OK?
@@ -193,7 +193,7 @@ void Ui_MainWindowBase::ConfigControlMenu(void)
 		for(i = 0; i < _MAX_DEBUGGER; i++) {
 			QString tmps;
 			tmps.setNum(i);
-			actionDebugger[i] = new Action_Control(this);
+			actionDebugger[i] = new Action_Control(this, using_flags);
 			actionDebugger[i]->setObjectName(QString::fromUtf8("actionDebugger") + tmps);
 			actionDebugger[i]->binds->setValue1(i);
 			connect(actionDebugger[i], SIGNAL(triggered()),

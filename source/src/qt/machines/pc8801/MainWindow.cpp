@@ -18,7 +18,7 @@
 //QT_BEGIN_NAMESPACE
 
 
-Object_Menu_Control_88::Object_Menu_Control_88(QObject *parent) : Object_Menu_Control(parent)
+Object_Menu_Control_88::Object_Menu_Control_88(QObject *parent, USING_FLAGS *p) : Object_Menu_Control(parent, p)
 {
 }
 
@@ -34,9 +34,9 @@ void Object_Menu_Control_88::do_set_memory_wait(bool flag)
 }
 
 
-Action_Control_88::Action_Control_88(QObject *parent) : Action_Control(parent)
+Action_Control_88::Action_Control_88(QObject *parent, USING_FLAGS *p) : Action_Control(parent, p)
 {
-	pc88_binds = new Object_Menu_Control_88(parent);
+	pc88_binds = new Object_Menu_Control_88(parent, p);
 	pc88_binds->setValue1(0);
 }
 
@@ -172,7 +172,7 @@ void META_MainWindow::setupUI_Emu(void)
 #elif defined(_PC8001SR)
 	ConfigCPUBootMode(3);
 #endif
-	actionMemoryWait = new Action_Control_88(this);
+	actionMemoryWait = new Action_Control_88(this, using_flags);
 	actionMemoryWait->setCheckable(true);
 	actionMemoryWait->setVisible(true);
 	actionMemoryWait->setChecked(false);
@@ -186,7 +186,7 @@ void META_MainWindow::setupUI_Emu(void)
 }
 
 
-META_MainWindow::META_MainWindow(QWidget *parent) : Ui_MainWindow(parent)
+META_MainWindow::META_MainWindow(USING_FLAGS *p, QWidget *parent) : Ui_MainWindow(p, parent)
 {
 	config_sound_device_type = 0;
 	setupUI_Emu();

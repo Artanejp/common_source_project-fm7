@@ -5,9 +5,9 @@
 #include <QApplication>
 #include "menu_flags.h"
 
-extern USING_FLAGS *using_flags;
+//extern USING_FLAGS *using_flags;
 
-CSP_DropDownJSPage::CSP_DropDownJSPage(QWidget *parent, QStringList *lst, int jsnum)
+CSP_DropDownJSPage::CSP_DropDownJSPage(USING_FLAGS *using_flags, QWidget *parent, QStringList *lst, int jsnum)
 {
 	int i;
 	QString nm;

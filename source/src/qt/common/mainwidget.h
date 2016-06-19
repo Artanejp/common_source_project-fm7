@@ -17,14 +17,15 @@ class USING_FLAGS;
 #ifndef _SCREEN_MODE_NUM
 #define _SCREEN_MODE_NUM 32
 #endif
-extern 	USING_FLAGS *using_flags;
+//extern 	USING_FLAGS *using_flags;
 
 class Ui_MainWindow : public Ui_MainWindowBase
 {
 	Q_OBJECT
 protected:
+	
 public:
-	Ui_MainWindow(QWidget *parent = 0);
+	Ui_MainWindow(USING_FLAGS *p, QWidget *parent = 0);
 	~Ui_MainWindow();
 
 	void set_window(int mode);

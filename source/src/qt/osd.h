@@ -25,6 +25,7 @@ class Ui_MainWindow;
 class EMU;
 class VM;
 class FIFO;
+class USING_FLAGS;
 class CSP_KeyTables;
 
 QT_BEGIN_NAMESPACE
@@ -56,7 +57,7 @@ protected:
 	int get_vm_buttons_code(int num);
 
 public:
-	OSD();
+	OSD(USING_FLAGS *p);
 	~OSD();
 	void initialize(int rate, int samples);
 	void release();

@@ -13,7 +13,7 @@
 //#include "emu.h"
 
 
-Menu_FDClass::Menu_FDClass(EMU *ep, QMenuBar *root_entry, QString desc, QWidget *parent, int drv) : Menu_MetaClass(ep, root_entry, desc, parent, drv)
+Menu_FDClass::Menu_FDClass(EMU *ep, QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent, int drv) : Menu_MetaClass(ep, root_entry, desc, p, parent, drv)
 {
 	use_write_protect = true;
 	use_d88_menus = true;
@@ -26,13 +26,13 @@ Menu_FDClass::~Menu_FDClass()
 
 void Menu_FDClass::create_pulldown_menu_device_sub(void)
 {
-	action_ignore_crc_error = new Action_Control(p_wid);
+	action_ignore_crc_error = new Action_Control(p_wid, using_flags);
 	action_ignore_crc_error->setVisible(true);
 	action_ignore_crc_error->setCheckable(true);
 	connect(action_ignore_crc_error->binds, SIGNAL(sig_emu_update_config()),
 			p_wid, SLOT(do_emu_update_config()));
 	
-	action_correct_timing = new Action_Control(p_wid);
+	action_correct_timing = new Action_Control(p_wid, using_flags);
 	action_correct_timing->setVisible(true);
 	action_correct_timing->setCheckable(true);
 	connect(action_correct_timing->binds, SIGNAL(sig_emu_update_config()),

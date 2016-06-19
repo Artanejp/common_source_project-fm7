@@ -9,11 +9,12 @@
 QT_BEGIN_NAMESPACE
 
 //  wrote of MZ80 Specific menu.
+class USING_FLAGS;
 class Object_Menu_Control_MZ80: public Object_Menu_Control
 {
 	Q_OBJECT
- public:
-	Object_Menu_Control_MZ80(QObject *parent);
+public:
+	Object_Menu_Control_MZ80(QObject *parent, USING_FLAGS *p);
 	~Object_Menu_Control_MZ80();
 signals:
 	int sig_dipsw(int, bool);
@@ -26,7 +27,7 @@ class Action_Control_MZ80 : public Action_Control
 	Q_OBJECT
 public:
 	Object_Menu_Control_MZ80 *mz_binds;
-	Action_Control_MZ80(QObject *parent);
+	Action_Control_MZ80(QObject *parent, USING_FLAGS *p);
 	~Action_Control_MZ80();
 };
 
@@ -39,7 +40,7 @@ protected:
 	void setupUI_Emu(void);
 	void retranslateUi(void);
 public:
-	META_MainWindow(QWidget *parent = 0);
+	META_MainWindow(USING_FLAGS *p, QWidget *parent = 0);
 	~META_MainWindow();
 public slots:
 };

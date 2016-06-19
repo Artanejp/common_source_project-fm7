@@ -26,11 +26,12 @@
 #endif
 #define MAX_SKIP_FRAMES 10
 
-extern USING_FLAGS *using_flags;
+//extern USING_FLAGS *using_flags;
 
-EmuThreadClass::EmuThreadClass(META_MainWindow *rootWindow, EMU *pp_emu, QObject *parent) : QThread(parent) {
+EmuThreadClass::EmuThreadClass(META_MainWindow *rootWindow, EMU *pp_emu, USING_FLAGS *p, QObject *parent) : QThread(parent) {
 	MainWindow = rootWindow;
 	p_emu = pp_emu;
+	using_flags = p;
 	
 	bRunThread = true;
 	prev_skip = false;

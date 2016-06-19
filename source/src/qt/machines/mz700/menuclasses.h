@@ -8,12 +8,12 @@
 // You may use this as 
 QT_BEGIN_NAMESPACE
 
-
+class USING_FLAGS;
 class Object_Menu_Control_MZ700: public Object_Menu_Control
 {
 	Q_OBJECT
 public:
-	Object_Menu_Control_MZ700(QObject *parent);
+	Object_Menu_Control_MZ700(QObject *parent, USING_FLAGS *p);
 	~Object_Menu_Control_MZ700();
 signals:
 	void sig_monitor_type(int);
@@ -26,7 +26,7 @@ class Action_Control_MZ700 : public Action_Control
 	Q_OBJECT
 public:
 	Object_Menu_Control_MZ700 *mz_binds;
-	Action_Control_MZ700(QObject *parent);
+	Action_Control_MZ700(QObject *parent, USING_FLAGS *p);
 	~Action_Control_MZ700();
 };
 
@@ -47,7 +47,7 @@ protected:
 	void setupUI_Emu(void);
 	void retranslateUi(void);
 public:
-	META_MainWindow(QWidget *parent = 0);
+	META_MainWindow(USING_FLAGS *p, QWidget *parent = 0);
 	~META_MainWindow();
 public slots:
 	void set_monitor_type(int);

@@ -15,16 +15,16 @@
 #include "emu.h"
 #include "qt_main.h"
 
-Action_Control_X1::Action_Control_X1(QObject *parent) : Action_Control(parent)
+Action_Control_X1::Action_Control_X1(QObject *parent, USING_FLAGS *p) : Action_Control(parent, p)
 {
-	x1_binds = new Object_Menu_Control_X1(parent);
+	x1_binds = new Object_Menu_Control_X1(parent, p);
 }
 
 Action_Control_X1::~Action_Control_X1(){
 	delete x1_binds;
 }
 
-Object_Menu_Control_X1::Object_Menu_Control_X1(QObject *parent) : Object_Menu_Control(parent)
+Object_Menu_Control_X1::Object_Menu_Control_X1(QObject *parent, USING_FLAGS *p) : Object_Menu_Control(parent, p)
 {
 }
 
@@ -47,12 +47,12 @@ void META_MainWindow::setupUI_Emu(void)
    menu_Emu_DisplayMode = new QMenu(menuMachine);
    menu_Emu_DisplayMode->setObjectName(QString::fromUtf8("menu_DisplayMode"));
    
-   actionGroup_DisplayMode = new QActionGroup(this);
+   actionGroup_DisplayMode = new QActionGroup(this, using_flags);
    actionGroup_DisplayMode->setObjectName(QString::fromUtf8("actionGroup_DisplayMode"));
    actionGroup_DisplayMode->setExclusive(true);
    menuMachine->addAction(menu_Emu_DisplayMode->menuAction());   
    for(i = 0; i < 2; i++) {
-	   action_Emu_DisplayMode[i] = new Action_Control_X1(this);
+	   action_Emu_DisplayMode[i] = new Action_Control_X1(this, using_flags);
 	   action_Emu_DisplayMode[i]->setCheckable(true);
 	   action_Emu_DisplayMode[i]->x1_binds->setValue1(i);
 	   if(i == config.monitor_type) action_Emu_DisplayMode[i]->setChecked(true); // Need to write configure
@@ -143,7 +143,7 @@ void META_MainWindow::retranslateUi(void)
 
 
 
-META_MainWindow::META_MainWindow(QWidget *parent) : Ui_MainWindow(parent)
+META_MainWindow::META_MainWindow(USING_FLAGS *p, QWidget *parent) : Ui_MainWindow(p, parent)
 {
 	setupUI_Emu();
 	retranslateUi();

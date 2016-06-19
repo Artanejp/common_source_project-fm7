@@ -18,6 +18,7 @@ class QEvent;
 class GLDraw_2_0;
 class GLDraw_3_0;
 class CSP_KeyTables;
+class USING_FLAGS;
 
 struct NativeScanCode {
 	uint32_t vk;
@@ -33,6 +34,7 @@ class DLL_PREFIX GLDrawClass: public QGLWidget
 	Q_OBJECT
  private:
 	EMU *p_emu;
+	USING_FLAGS *using_flags;
 	bool is_mouse_enabled;
 	
 	bool enable_mouse;
@@ -67,7 +69,7 @@ class DLL_PREFIX GLDrawClass: public QGLWidget
 	CSP_KeyTables *key_table;
 
 public:
-	GLDrawClass(QWidget *parent = 0);
+	GLDrawClass(USING_FLAGS *p, QWidget *parent = 0);
 	~GLDrawClass();
 	GLDraw_2_0 *extfunc;
 	

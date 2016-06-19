@@ -23,7 +23,7 @@
 #define REC_VIDEO_FULL		2
 #define REC_VIDEO_ERROR		3
 
-extern USING_FLAGS *using_flags;
+//extern USING_FLAGS *using_flags;
 
 void OSD_BASE::set_host_window_size(int window_width, int window_height, bool window_mode)
 {
