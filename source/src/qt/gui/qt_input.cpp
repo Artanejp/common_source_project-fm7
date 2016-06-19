@@ -162,7 +162,7 @@ uint32_t GLDrawClass::get106Scancode2VK(uint32_t data)
 	uint32_t vk;
 	int i = 0;
 	vk = key_table->get_vk_from_scan(data);
-	if(config.swap_kanji_pause) {
+	if(using_flags->get_config_ptr()->swap_kanji_pause) {
 		if(vk == VK_KANJI) {
 			vk = VK_PAUSE;
 		} else if(vk == VK_PAUSE) {

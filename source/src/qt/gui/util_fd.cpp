@@ -45,13 +45,13 @@ void Object_Menu_Control::no_write_protect_fd(void) {
 
 void Object_Menu_Control::do_set_ignore_crc_error(bool flag)
 {
-	config.ignore_disk_crc[drive] = flag;
+	using_flags->get_config_ptr()->ignore_disk_crc[drive] = flag;
 	emit sig_emu_update_config();
 }
 
 void Object_Menu_Control::do_set_correct_disk_timing(bool flag)
 {
-	config.correct_disk_timing[drive] = flag;
+	using_flags->get_config_ptr()->correct_disk_timing[drive] = flag;
 	emit sig_emu_update_config();
 }
 
@@ -100,9 +100,9 @@ void Ui_MainWindowBase::CreateFloppyMenu(int drv, int drv_base)
 		
 		menu_fds[drv]->do_clear_inner_media();
 		menu_fds[drv]->do_add_media_extension(ext, desc1);
-		SETUP_HISTORY(config.recent_floppy_disk_path[drv], listFDs[drv]);
+		SETUP_HISTORY(using_flags->get_config_ptr()->recent_floppy_disk_path[drv], listFDs[drv]);
 		menu_fds[drv]->do_update_histories(listFDs[drv]);
-		menu_fds[drv]->do_set_initialize_directory(config.initial_floppy_disk_dir);
+		menu_fds[drv]->do_set_initialize_directory(using_flags->get_config_ptr()->initial_floppy_disk_dir);
 		listD88[drv].clear();
 
 		QString name = QString::fromUtf8("FD");

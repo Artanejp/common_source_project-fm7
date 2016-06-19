@@ -13,6 +13,7 @@
 #include <QThread>
 #include <SDL.h>
 #include "common.h"
+#include "config.h"
 
 class EMU;
 class OSD;
@@ -34,6 +35,7 @@ class DLL_PREFIX JoyThreadClass : public QThread {
 	EMU *p_emu;
 	OSD *p_osd;
 	USING_FLAGS *using_flags;
+	config_t *p_config;
  protected:
 	bool bRunThread;
 	void joystick_plugged(int num);
@@ -48,7 +50,7 @@ class DLL_PREFIX JoyThreadClass : public QThread {
 	int get_joyid_from_instanceID(SDL_JoystickID id);
 # endif
  public:
-	JoyThreadClass(EMU *p, OSD *o, USING_FLAGS *pflags, QObject *parent = 0);
+	JoyThreadClass(EMU *p, OSD *o, USING_FLAGS *pflags, config_t *cfg, QObject *parent = 0);
 	~JoyThreadClass();
 	void run() { doWork("");}
 	void SetEmu(EMU *p) {

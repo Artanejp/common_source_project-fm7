@@ -104,7 +104,7 @@ void Ui_MainWindow::do_toggle_mouse(void)
 
 void Object_Menu_Control::do_save_as_movie(void)
 {
-	int fps = config.video_frame_rate;
+	int fps = using_flags->get_config_ptr()->video_frame_rate;
 	emit sig_start_record_movie(fps);
 }
 
@@ -316,7 +316,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	hDrawEmu->start();
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "DrawThread : Launch done.");
 
-	hSaveMovieThread = new MOVIE_SAVER(640, 400,  30, emu->get_osd());
+	hSaveMovieThread = new MOVIE_SAVER(640, 400,  30, emu->get_osd(), using_flags->get_config_ptr());
 	
 	connect(actionStart_Record_Movie->binds, SIGNAL(sig_start_record_movie(int)), hRunEmu, SLOT(doStartRecordVideo(int)));
 	connect(this, SIGNAL(sig_start_saving_movie()),
@@ -330,7 +330,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(emu->get_osd(), SIGNAL(sig_save_as_movie(QString, int, int)),
 			hSaveMovieThread, SLOT(do_open(QString, int, int)));
 	connect(emu->get_osd(), SIGNAL(sig_stop_saving_movie()), hSaveMovieThread, SLOT(do_close()));
-
+	
 	actionStop_Record_Movie->setIcon(QIcon(":/icon_process_stop.png"));
 	actionStop_Record_Movie->setVisible(false);
 	
@@ -355,7 +355,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 
 	hRunEmu->start();
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : Launch done.");
-	this->set_screen_aspect(config.window_stretch_type);
+	this->set_screen_aspect(using_flags->get_config_ptr()->window_stretch_type);
 	emit sig_movie_set_width(SCREEN_WIDTH);
 	emit sig_movie_set_height(SCREEN_HEIGHT);
 }
@@ -363,7 +363,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 void Ui_MainWindow::LaunchJoyThread(void)
 {
 #if defined(USE_JOYSTICK)
-	hRunJoy = new JoyThreadClass(emu, emu->get_osd(), using_flags);
+	hRunJoy = new JoyThreadClass(emu, emu->get_osd(), using_flags, using_flags->get_config_ptr());
 	connect(this, SIGNAL(quit_joy_thread()), hRunJoy, SLOT(doExit()));
 	hRunJoy->setObjectName("JoyThread");
 	hRunJoy->start();
@@ -565,7 +565,7 @@ static void setup_logs(void)
 #endif
 }
 
-int MainLoop(int argc, char *argv[])
+int MainLoop(int argc, char *argv[], config_t *cfg)
 {
 	char c;
 	char strbuf[2048];
@@ -590,7 +590,7 @@ int MainLoop(int argc, char *argv[])
 
 	load_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
 	
-	USING_FLAGS *using_flags = new USING_FLAGS;
+	USING_FLAGS *using_flags = new USING_FLAGS(cfg);
 	rMainWindow = new META_MainWindow(using_flags);
 	rMainWindow->connect(rMainWindow, SIGNAL(sig_quit_all(void)), rMainWindow, SLOT(deleteLater(void)));
 	rMainWindow->setCoreApplication(GuiMain);

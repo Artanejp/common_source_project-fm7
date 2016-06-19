@@ -21,14 +21,15 @@
 
 #include "joy_thread.h"
 
-JoyThreadClass::JoyThreadClass(EMU *p, OSD *o, USING_FLAGS *pflags, QObject *parent) : QThread(parent)
+JoyThreadClass::JoyThreadClass(EMU *p, OSD *o, USING_FLAGS *pflags, config_t *cfg, QObject *parent) : QThread(parent)
 {
 	int i, j;
 	int n;
 	p_emu = p;
 	p_osd = o;
-
+	p_config = cfg;
 	using_flags = pflags;
+	
 	if(using_flags->is_use_joystick()) {
 # if defined(USE_SDL2)
 		for(i = 0; i < 16; i++) {
@@ -96,7 +97,7 @@ void JoyThreadClass::joystick_plugged(int num)
 		if(controller_table[num] != NULL) {
 			names[num] = QString::fromUtf8(SDL_GameControllerNameForIndex(num));
 			AGAR_DebugLog(AGAR_LOG_DEBUG, "JoyThread : Controller %d : %s : is plugged.", num, names[num].toUtf8().constData());
-			strncpy(config.assigned_joystick_name[num], names[num].toUtf8().constData(), 255);
+			strncpy(p_config->assigned_joystick_name[num], names[num].toUtf8().constData(), 255);
 			joy_num[num] = num;
 		}
 	} else 
@@ -111,7 +112,7 @@ void JoyThreadClass::joystick_plugged(int num)
 					joy_num[i] = SDL_JoystickInstanceID(joyhandle[i]);
 					names[i] = QString::fromUtf8(SDL_JoystickNameForIndex(num));
 					AGAR_DebugLog(AGAR_LOG_DEBUG, "JoyThread : Joystick %d : %s : is plugged.", num, names[i].toUtf8().data());
-					strncpy(config.assigned_joystick_name[num], names[num].toUtf8().constData(), 255);
+					strncpy(p_config->assigned_joystick_name[num], names[num].toUtf8().constData(), 255);
 					break;
 				}
 			}
@@ -144,7 +145,7 @@ void JoyThreadClass::joystick_unplugged(int num)
 		}
 	}
 	names[num] = QString::fromUtf8("");
-	memset(config.assigned_joystick_name[num], 0x00, 255);
+	memset(p_config->assigned_joystick_name[num], 0x00, 255);
 }	
 
 void JoyThreadClass::x_axis_changed(int index, int value)

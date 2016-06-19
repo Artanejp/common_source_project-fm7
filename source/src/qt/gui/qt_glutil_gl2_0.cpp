@@ -501,8 +501,8 @@ void GLDraw_2_0::drawGridsVertical(void)
 
 void GLDraw_2_0::drawGrids(void)
 {
-	gl_grid_horiz = config.opengl_scanline_horiz;
-	gl_grid_vert  = config.opengl_scanline_vert;
+	gl_grid_horiz = using_flags->get_config_ptr()->opengl_scanline_horiz;
+	gl_grid_vert  = using_flags->get_config_ptr()->opengl_scanline_vert;
 	if(gl_grid_horiz && (vert_lines > 0)) {
 		drawGridsHorizonal();
 	} // Will fix.
@@ -622,7 +622,7 @@ void GLDraw_2_0::drawScreenTexture(void)
 	}
 	
 	QVector4D color;
-	smoosing = config.use_opengl_filters;
+	smoosing = using_flags->get_config_ptr()->use_opengl_filters;
 	if(set_brightness) {
 		color = QVector4D(fBrightR, fBrightG, fBrightB, 1.0);
 	} else {
@@ -682,7 +682,7 @@ void GLDraw_2_0::drawMain(QOpenGLShaderProgram *prg,
 				prg->setUniformValue("tex_width",  (float)screen_texture_width); 
 				prg->setUniformValue("tex_height", (float)screen_texture_height);
 				if(using_flags->is_use_screen_rotate()) {
-					if(config.rotate_type) {
+					if(using_flags->get_config_ptr()->rotate_type) {
 						prg->setUniformValue("rotate", GL_TRUE);
 					} else {
 						prg->setUniformValue("rotate", GL_FALSE);

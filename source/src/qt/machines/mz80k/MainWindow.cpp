@@ -14,6 +14,8 @@
 #include "emu.h"
 #include "qt_main.h"
 
+extern config_t config;
+
 Action_Control_MZ80::Action_Control_MZ80(QObject *parent, USING_FLAGS *p) : Action_Control(parent, p)
 {
 	mz_binds = new Object_Menu_Control_MZ80(parent, p);

@@ -38,6 +38,7 @@ extern EMU *emu;
 Ui_MainWindowBase::Ui_MainWindowBase(USING_FLAGS *p, QWidget *parent) : QMainWindow(parent)
 {
 	using_flags = p;
+	p_config = p->get_config_ptr();
 	setupUi();
 	createContextMenu();
 }
@@ -409,16 +410,16 @@ void Ui_MainWindowBase::setupUi(void)
 	connect(actionHelp_License_JP, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
 	menuHELP->addAction(actionHelp_License_JP);
 	
-	if(config.window_mode <= 0) config.window_mode = 0;
-	if(config.window_mode >= using_flags->get_screen_mode_num()) config.window_mode = using_flags->get_screen_mode_num() - 1;
+	if(using_flags->get_config_ptr()->window_mode <= 0) using_flags->get_config_ptr()->window_mode = 0;
+	if(using_flags->get_config_ptr()->window_mode >= using_flags->get_screen_mode_num()) using_flags->get_config_ptr()->window_mode = using_flags->get_screen_mode_num() - 1;
 	w = using_flags->get_screen_width();
 	h = using_flags->get_screen_height();
-	if(actionScreenSize[config.window_mode] != NULL) {
-		double nd = actionScreenSize[config.window_mode]->binds->getDoubleValue();
+	if(actionScreenSize[using_flags->get_config_ptr()->window_mode] != NULL) {
+		double nd = actionScreenSize[using_flags->get_config_ptr()->window_mode]->binds->getDoubleValue();
 		w = (int)(nd * (double)w);
 		h = (int)(nd * (double)h);
 		if(using_flags->is_use_screen_rotate()) {
-			if(config.rotate_type) {
+			if(using_flags->get_config_ptr()->rotate_type) {
 				int tmp_w = w;
 				w = h;
 				h = tmp_w;
@@ -426,7 +427,7 @@ void Ui_MainWindowBase::setupUi(void)
 		}
 	} else {
 		if(using_flags->is_use_screen_rotate()) {
-			if(config.rotate_type) {
+			if(using_flags->get_config_ptr()->rotate_type) {
 				w = 600;
 				h = 960;
 			} else {		   
@@ -446,9 +447,9 @@ void Ui_MainWindowBase::setupUi(void)
 		}
 	}
 	this->set_screen_size(w, h);
-	this->set_screen_aspect(config.window_stretch_type);
-	if(actionScreenSize[config.window_mode] != NULL) {
-		double nd = actionScreenSize[config.window_mode]->binds->getDoubleValue();
+	this->set_screen_aspect(using_flags->get_config_ptr()->window_stretch_type);
+	if(actionScreenSize[using_flags->get_config_ptr()->window_mode] != NULL) {
+		double nd = actionScreenSize[using_flags->get_config_ptr()->window_mode]->binds->getDoubleValue();
 		graphicsView->do_set_screen_multiply(nd);
 	}
 	if(using_flags->is_use_joystick()) {
@@ -793,7 +794,7 @@ void Ui_MainWindowBase::OnWindowMove(void)
 void Ui_MainWindowBase::OnWindowResize(void)
 {
 	if(emu) {
-		set_window(config.window_mode);
+		set_window(using_flags->get_config_ptr()->window_mode);
 	}
 }
 

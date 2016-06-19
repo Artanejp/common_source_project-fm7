@@ -14,6 +14,7 @@
 #include "emu.h"
 #include "qt_main.h"
 
+extern config_t config;
 
 Action_Control_QC10::Action_Control_QC10(QObject *parent, USING_FLAGS *p) : Action_Control(parent, p)
 {

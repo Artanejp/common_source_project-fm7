@@ -43,6 +43,7 @@
 #include "simd_types.h"
 #include "common.h"
 #include "config.h"
+#include "menu_flags.h"
 //#include "emu.h"
 //#include "vm.h"
 
@@ -73,16 +74,15 @@ class Menu_QDClass;
 class Menu_BinaryClass;
 class Menu_BubbleClass;
 class Menu_CompactDiscClass;
-class USING_FLAGS;
 class MOVIE_SAVER;
 
-//extern 	USING_FLAGS *using_flags;
 
 class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 {
 	Q_OBJECT
  protected:
 	USING_FLAGS *using_flags;
+	config_t *p_config;
 	QMainWindow *MainWindow;
 	QApplication *CoreApplication;
 	
@@ -566,14 +566,14 @@ public slots:
 	void set_dipsw(int num, bool flag) {
 		if((num < 0) || (num >= 32)) return;
 		if(flag) {
-			config.dipswitch = config.dipswitch | (1 << num);
+			using_flags->get_config_ptr()->dipswitch = using_flags->get_config_ptr()->dipswitch | (1 << num);
 		} else {
-			config.dipswitch = config.dipswitch & ~(1 << num);
+			using_flags->get_config_ptr()->dipswitch = using_flags->get_config_ptr()->dipswitch & ~(1 << num);
 		}
 	}
 	bool get_dipsw(int num) {
 		if((num < 0) || (num >= 32)) return false;
-		if(((1 << num) & config.dipswitch) == 0) return false;
+		if(((1 << num) & using_flags->get_config_ptr()->dipswitch) == 0) return false;
 		return true;
 	}
 	void set_printer_device(int);

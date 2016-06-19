@@ -4,6 +4,8 @@
 
 #include <QString>
 #include "common.h"
+#include "config.h"
+
 #ifndef _SCREEN_MODE_NUM
 #define _SCREEN_MODE_NUM 32
 #endif
@@ -145,8 +147,9 @@ private:
 
 	EMU *p_emu;
 	OSD *p_osd;
+	config_t *p_config;
 public:
-	USING_FLAGS();
+	USING_FLAGS(config_t *cfg);
 	~USING_FLAGS();
 	QString get_config_name() { return config_name; }
 	QString get_device_name() { return device_name; }
@@ -274,6 +277,7 @@ public:
 	EMU *get_emu(void);
 	void set_osd(OSD *p);
 	OSD *get_osd(void);
+	config_t *get_config_ptr(void);
 };
 	
 

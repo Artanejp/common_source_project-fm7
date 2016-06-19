@@ -16,6 +16,8 @@
 
 //QT_BEGIN_NAMESPACE
 
+extern config_t config;
+
 Action_Control_MZ3500::Action_Control_MZ3500(QObject *parent, USING_FLAGS *p) : Action_Control(parent, p)
 {
 	mz_binds = new Object_Menu_Control_MZ3500(parent, p);

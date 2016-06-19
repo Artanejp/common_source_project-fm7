@@ -44,7 +44,7 @@ void Ui_MainWindowBase::rise_volume_dialog(void)
 	dlg->setWindowIcon(img);
 	this->retranslateVolumeLabels(dlg);
 
-	n = (float)(((config.general_sound_level + 32768) * 1000) / 65535) / 10.0;
+	n = (float)(((using_flags->get_config_ptr()->general_sound_level + 32768) * 1000) / 65535) / 10.0;
 	s_val.setNum(n, 'f', 1);
 	tmps = QApplication::translate("Ui_SoundDialog", "Set Volume", 0);
 	tmps = tmps + QString::fromUtf8(" (") + s_val + QString::fromUtf8("%)");
@@ -75,7 +75,7 @@ void Ui_MainWindowBase::CreateSoundMenu(void)
 		actionSoundCMT = new Action_Control(this, using_flags);
 		actionSoundCMT->setObjectName(QString::fromUtf8("actionSoundCMT"));
 		actionSoundCMT->setCheckable(true);
-		if(config.tape_sound != 0) {
+		if(using_flags->get_config_ptr()->tape_sound != 0) {
 			actionSoundCMT->setChecked(true);
 		} else {
 			actionSoundCMT->setChecked(false);
@@ -124,7 +124,7 @@ void Ui_MainWindowBase::ConfigSoundMenu(void)
 		action_Freq[i]->setObjectName(tmps);
 		action_Freq[i]->setCheckable(true);
 		action_Freq[i]->binds->setNumber(i);
-		if(i == config.sound_frequency) {
+		if(i == using_flags->get_config_ptr()->sound_frequency) {
 			action_Freq[i]->setChecked(true);
 			freq = s_freq_table[i];
 		}
@@ -142,7 +142,7 @@ void Ui_MainWindowBase::ConfigSoundMenu(void)
 		action_Latency[i]->setObjectName(tmps);
 		action_Latency[i]->setCheckable(true);
 		action_Latency[i]->binds->setNumber(i);
-		if(i == config.sound_latency) action_Latency[i]->setChecked(true);
+		if(i == using_flags->get_config_ptr()->sound_latency) action_Latency[i]->setChecked(true);
 		actionGroup_Sound_Latency->addAction(action_Latency[i]);
 	}
 
@@ -200,5 +200,5 @@ void Ui_MainWindowBase::retranslateSoundMenu(void)
 	menuSound_Latency->setTitle(QApplication::translate("MainWindow", "Sound Latency", 0));
 	action_VolumeDialog->setText(QApplication::translate("MainWindow", "Set Volumes", 0));
 
-	do_update_volume(config.general_sound_level);
+	do_update_volume(using_flags->get_config_ptr()->general_sound_level);
 }

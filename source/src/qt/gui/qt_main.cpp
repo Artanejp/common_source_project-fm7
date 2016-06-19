@@ -95,7 +95,8 @@ void get_short_filename(_TCHAR *dst, _TCHAR *file, int maxlen)
 	return;
 }
 
-extern int MainLoop(int argc, char *argv[]);
+extern int MainLoop(int argc, char *argv[], config_t *cfg);
+extern config_t config;
 
 /*
  * This is main for Qt.
@@ -110,7 +111,7 @@ int main(int argc, char *argv[])
 /*
  * アプリケーション初期化
  */
-	nErrorCode = MainLoop(argc, argv);
+	nErrorCode = MainLoop(argc, argv, &config);
 	return nErrorCode;
 }
 #if defined(Q_OS_WIN) 

@@ -17,6 +17,7 @@
 
 //QT_BEGIN_NAMESPACE
 
+extern config_t config;
 
 Object_Menu_Control_88::Object_Menu_Control_88(QObject *parent, USING_FLAGS *p) : Object_Menu_Control(parent, p)
 {

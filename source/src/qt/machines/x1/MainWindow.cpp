@@ -38,7 +38,7 @@ void Object_Menu_Control_X1::do_set_display_mode(void)
 }
 #endif
 
-	
+extern config_t config;
 
 void META_MainWindow::setupUI_Emu(void)
 {
@@ -47,7 +47,7 @@ void META_MainWindow::setupUI_Emu(void)
    menu_Emu_DisplayMode = new QMenu(menuMachine);
    menu_Emu_DisplayMode->setObjectName(QString::fromUtf8("menu_DisplayMode"));
    
-   actionGroup_DisplayMode = new QActionGroup(this, using_flags);
+   actionGroup_DisplayMode = new QActionGroup(this);
    actionGroup_DisplayMode->setObjectName(QString::fromUtf8("actionGroup_DisplayMode"));
    actionGroup_DisplayMode->setExclusive(true);
    menuMachine->addAction(menu_Emu_DisplayMode->menuAction());   

@@ -21,21 +21,21 @@ extern const double s_late_table[];
 void Ui_MainWindowBase::set_latency(int num)
 {
 	if((num < 0) || (num >= 8)) return;
-	config.sound_latency = num;
+	using_flags->get_config_ptr()->sound_latency = num;
 	emit sig_emu_update_config();
 }
 
 void Ui_MainWindowBase::set_freq(int num)
 {
 	if((num < 0) || (num >= 16)) return;
-	config.sound_frequency = num;
+	using_flags->get_config_ptr()->sound_frequency = num;
 	emit sig_emu_update_config();
 }
 
 void Ui_MainWindowBase::set_sound_device(int num)
 {
 	if((num < 0) || (num >= using_flags->get_use_sound_device_type())) return;
-	config.sound_device_type = num;
+	using_flags->get_config_ptr()->sound_device_type = num;
 	emit sig_emu_update_config();
 }
 
@@ -57,57 +57,57 @@ void Ui_MainWindowBase::start_record_sound(bool start)
 void Ui_MainWindowBase::set_monitor_type(int num)
 {
 	if((num < 0) || (num >= using_flags->get_use_monitor_type())) return;
-	config.monitor_type = num;
+	using_flags->get_config_ptr()->monitor_type = num;
 	emit sig_emu_update_config();
 }
 
 void Ui_MainWindowBase::set_scan_line(bool flag)
 {
 	if(flag) {
-		config.scan_line = ~0;
+		using_flags->get_config_ptr()->scan_line = ~0;
 	} else {
-		config.scan_line = 0;
+		using_flags->get_config_ptr()->scan_line = 0;
 	}
 	emit sig_emu_update_config();
 }
 
 void Ui_MainWindowBase::set_screen_rotate(bool flag)
 {
-	config.rotate_type = flag;
-	if(config.window_mode >= using_flags->get_screen_mode_num()) config.window_mode = using_flags->get_screen_mode_num() - 1;
-	if(config.window_mode < 0) config.window_mode = 0;
-	if(actionScreenSize[config.window_mode] != NULL) {
-		actionScreenSize[config.window_mode]->binds->set_screen_size();
+	using_flags->get_config_ptr()->rotate_type = flag;
+	if(using_flags->get_config_ptr()->window_mode >= using_flags->get_screen_mode_num()) using_flags->get_config_ptr()->window_mode = using_flags->get_screen_mode_num() - 1;
+	if(using_flags->get_config_ptr()->window_mode < 0) using_flags->get_config_ptr()->window_mode = 0;
+	if(actionScreenSize[using_flags->get_config_ptr()->window_mode] != NULL) {
+		actionScreenSize[using_flags->get_config_ptr()->window_mode]->binds->set_screen_size();
 	}
 }
 
 void Ui_MainWindowBase::set_crt_filter(bool flag)
 {
-	config.crt_filter = flag;
+	using_flags->get_config_ptr()->crt_filter = flag;
 }
 
 void Ui_MainWindowBase::set_gl_crt_filter(bool flag)
 {
-	config.use_opengl_filters = flag;
+	using_flags->get_config_ptr()->use_opengl_filters = flag;
 }
 
 void Ui_MainWindowBase::set_cmt_sound(bool flag)
 {
-	config.tape_sound = flag;
+	using_flags->get_config_ptr()->tape_sound = flag;
 	emit sig_emu_update_config();
 }
 
 void Ui_MainWindowBase::set_device_type(int num)
 {
 	if((num >= using_flags->get_use_device_type()) && (num < 0)) return;
-	config.device_type = num;
+	using_flags->get_config_ptr()->device_type = num;
 	emit sig_emu_update_config();
 }
 
 void Ui_MainWindowBase::set_drive_type(int num)
 {
 	if((num >= using_flags->get_use_drive_type()) && (num < 0)) return;
-	config.drive_type = num;
+	using_flags->get_config_ptr()->drive_type = num;
 	emit sig_emu_update_config();
 }
    
@@ -116,7 +116,7 @@ void Ui_MainWindowBase::set_screen_size(int w, int h)
 {
 	if((w <= 0) || (h <= 0)) return;
 	if(using_flags->is_use_screen_rotate()) {
-		if(config.rotate_type) {
+		if(using_flags->get_config_ptr()->rotate_type) {
 			this->graphicsView->setFixedSize(h, w);
 			this->resize_statusbar(h, w);
 		} else {
@@ -140,12 +140,12 @@ void Ui_MainWindowBase::set_screen_aspect(int num)
 	// 2 = ASPECT(SCale Y)
 	// 3 = ASPECT(Scale X,Y)
 	
-	config.window_stretch_type = num;
+	using_flags->get_config_ptr()->window_stretch_type = num;
 	
 	if(emu) {
 		int w, h, n;
 		double nd, ww, hh;
-		n = config.window_mode;
+		n = using_flags->get_config_ptr()->window_mode;
 		if(n < 0) n = 1;
 		nd = actionScreenSize[n]->binds->getDoubleValue();
 		ww = nd * (double)using_flags->get_screen_width();
@@ -156,11 +156,11 @@ void Ui_MainWindowBase::set_screen_aspect(int num)
 			double par_w = (double)using_flags->get_screen_width_aspect() / (double)using_flags->get_screen_width();
 			double par_h = (double)using_flags->get_screen_height_aspect() / (double)using_flags->get_screen_height();
 			double par = par_h / par_w;
-			if(config.window_stretch_type == 1) { // refer to X, scale Y.
+			if(using_flags->get_config_ptr()->window_stretch_type == 1) { // refer to X, scale Y.
 				hh = hh * par_h;
-			} else if(config.window_stretch_type == 2) { // refer to Y, scale X only
+			} else if(using_flags->get_config_ptr()->window_stretch_type == 2) { // refer to Y, scale X only
 				ww = ww / par_h;
-			} else if(config.window_stretch_type == 3) { // Scale both X, Y
+			} else if(using_flags->get_config_ptr()->window_stretch_type == 3) { // Scale both X, Y
 				ww = ww * par_w;
 				hh = hh * par_h;
 			}
@@ -188,7 +188,7 @@ void Ui_MainWindowBase::ConfigDeviceType(void)
 			actionDeviceType[ii]->setCheckable(true);
 			actionDeviceType[ii]->setVisible(true);
 			actionDeviceType[ii]->binds->setValue1(ii);
-			if(config.device_type == ii) actionDeviceType[ii]->setChecked(true);
+			if(using_flags->get_config_ptr()->device_type == ii) actionDeviceType[ii]->setChecked(true);
 			menuDeviceType->addAction(actionDeviceType[ii]);
 			connect(actionDeviceType[ii], SIGNAL(triggered()),
 				actionDeviceType[ii]->binds, SLOT(do_set_device_type()));
@@ -214,7 +214,7 @@ void Ui_MainWindowBase::ConfigDriveType(void)
 			actionDriveType[i]->setCheckable(true);
 			actionDriveType[i]->setVisible(true);
 			actionDriveType[i]->binds->setValue1(i);
-			if(i == config.drive_type) actionDriveType[i]->setChecked(true); // Need to write configure
+			if(i == using_flags->get_config_ptr()->drive_type) actionDriveType[i]->setChecked(true); // Need to write configure
 			actionGroup_DriveType->addAction(actionDriveType[i]);
 			menuDriveType->addAction(actionDriveType[i]);
 			connect(actionDriveType[i], SIGNAL(triggered()),
@@ -241,7 +241,7 @@ void Ui_MainWindowBase::ConfigSoundDeviceType(void)
 			actionSoundDevice[i] = new Action_Control(this, using_flags);
 			actionSoundDevice[i]->setCheckable(true);
 			actionSoundDevice[i]->binds->setValue1(i);
-			if(i == config.sound_device_type) actionSoundDevice[i]->setChecked(true); // Need to write configure
+			if(i == using_flags->get_config_ptr()->sound_device_type) actionSoundDevice[i]->setChecked(true); // Need to write configure
 			tmps = QString::fromUtf8("actionSoundDevice_");
 			actionSoundDevice[i]->setObjectName(tmps + QString::number(i));
 			menuSoundDevice->addAction(actionSoundDevice[i]);
@@ -272,7 +272,7 @@ void Ui_MainWindowBase::ConfigPrinterType(void)
 			actionPrintDevice[i] = new Action_Control(this, using_flags);
 			actionPrintDevice[i]->setCheckable(true);
 			actionPrintDevice[i]->binds->setValue1(i);
-			if(i == config.printer_device_type) actionPrintDevice[i]->setChecked(true); // Need to write configure
+			if(i == using_flags->get_config_ptr()->printer_device_type) actionPrintDevice[i]->setChecked(true); // Need to write configure
 			tmps = QString::fromUtf8("actionPrintDevice_");
 			actionPrintDevice[i]->setObjectName(tmps + QString::number(i));
 			menuPrintDevice->addAction(actionPrintDevice[i]);
@@ -296,6 +296,6 @@ void Ui_MainWindowBase::set_printer_device(int p_type)
 	} else {
 		if(p_type >= 2) p_type = 1;
 	}
-	config.printer_device_type = p_type;
+	using_flags->get_config_ptr()->printer_device_type = p_type;
 	emit sig_emu_update_config();
 }

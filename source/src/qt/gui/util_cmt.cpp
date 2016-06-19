@@ -50,10 +50,10 @@ void Ui_MainWindowBase::CreateCMTMenu(void)
 	
 	menu_CMT->create_pulldown_menu();	
 	// Translate Menu
-	SETUP_HISTORY(config.recent_tape_path, listCMT);
+	SETUP_HISTORY(using_flags->get_config_ptr()->recent_tape_path, listCMT);
 	menu_CMT->do_set_write_protect(false);
 	menu_CMT->do_update_histories(listCMT);
-	menu_CMT->do_set_initialize_directory(config.initial_tape_dir);
+	menu_CMT->do_set_initialize_directory(using_flags->get_config_ptr()->initial_tape_dir);
 
 	if(using_flags->is_machine_pc6001()) {
 		ext_play = "*.wav *.p6 *.cas";
@@ -99,19 +99,19 @@ int Ui_MainWindowBase::set_recent_cmt(int drv, int num)
 	int i;
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
     
-	s_path = QString::fromLocal8Bit(config.recent_tape_path[num]);
+	s_path = QString::fromLocal8Bit(using_flags->get_config_ptr()->recent_tape_path[num]);
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
-	UPDATE_HISTORY(path_shadow, config.recent_tape_path, listCMT);
+	UPDATE_HISTORY(path_shadow, using_flags->get_config_ptr()->recent_tape_path, listCMT);
    
 	get_parent_dir(path_shadow);
-	strcpy(config.initial_tape_dir, path_shadow);
+	strcpy(using_flags->get_config_ptr()->initial_tape_dir, path_shadow);
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "Tape: Open READ");
 	
 	emit sig_close_tape();
 	emit sig_play_tape(s_path);
 	menu_CMT->do_update_histories(listCMT);
-	menu_CMT->do_set_initialize_directory(config.initial_tape_dir);
+	menu_CMT->do_set_initialize_directory(using_flags->get_config_ptr()->initial_tape_dir);
 	return 0;
 }
 
@@ -167,30 +167,30 @@ void Ui_MainWindowBase::do_push_apss_rewind_tape(void)
 void Ui_MainWindowBase::set_wave_shaper(bool f)
 {
 	if(f) {
-		config.wave_shaper = 1;
+		using_flags->get_config_ptr()->wave_shaper = 1;
 	} else {
-		config.wave_shaper = 0;
+		using_flags->get_config_ptr()->wave_shaper = 0;
 	}
 }
 
 bool Ui_MainWindowBase::get_wave_shaper(void)
 {
-	if(config.wave_shaper == 0) return false;
+	if(using_flags->get_config_ptr()->wave_shaper == 0) return false;
 	return true;
 }
 
 void Ui_MainWindowBase::set_direct_load_from_mzt(bool f)
 {
 	if(f) {
-		config.direct_load_mzt = 1;
+		using_flags->get_config_ptr()->direct_load_mzt = 1;
 	} else {
-		config.direct_load_mzt = 0;
+		using_flags->get_config_ptr()->direct_load_mzt = 0;
 	}
 }
 
 bool Ui_MainWindowBase::get_direct_load_mzt(void)
 {
-	if(config.direct_load_mzt == 0) return false;
+	if(using_flags->get_config_ptr()->direct_load_mzt == 0) return false;
 	return true;
 }
 
@@ -210,9 +210,9 @@ void Ui_MainWindowBase::do_open_read_cmt(int dummy, QString path)
 
 	if(path.length() <= 0) return;
 	strncpy(path_shadow, path.toLocal8Bit().constData(), PATH_MAX);
-	UPDATE_HISTORY(path_shadow, config.recent_tape_path, listCMT);
+	UPDATE_HISTORY(path_shadow, using_flags->get_config_ptr()->recent_tape_path, listCMT);
 	get_parent_dir(path_shadow);
-	strcpy(config.initial_tape_dir, path_shadow);
+	strcpy(using_flags->get_config_ptr()->initial_tape_dir, path_shadow);
 	// Copy filename again.
 	strncpy(path_shadow, path.toLocal8Bit().constData(), PATH_MAX);
 
@@ -220,7 +220,7 @@ void Ui_MainWindowBase::do_open_read_cmt(int dummy, QString path)
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "Tape: Open READ : filename = %s", path_shadow);
 	emit sig_play_tape(path);
 	menu_CMT->do_update_histories(listCMT);
-	menu_CMT->do_set_initialize_directory(config.initial_tape_dir);
+	menu_CMT->do_set_initialize_directory(using_flags->get_config_ptr()->initial_tape_dir);
 }
 
 void Ui_MainWindowBase::do_open_write_cmt(QString path) 
@@ -230,9 +230,9 @@ void Ui_MainWindowBase::do_open_write_cmt(QString path)
 
 	if(path.length() <= 0) return;
 	strncpy(path_shadow, path.toLocal8Bit().constData(), PATH_MAX);
-	UPDATE_HISTORY(path_shadow, config.recent_tape_path, listCMT);
+	UPDATE_HISTORY(path_shadow, using_flags->get_config_ptr()->recent_tape_path, listCMT);
 	get_parent_dir(path_shadow);
-	strcpy(config.initial_tape_dir, path_shadow);
+	strcpy(using_flags->get_config_ptr()->initial_tape_dir, path_shadow);
 	// Copy filename again.
 	strncpy(path_shadow, path.toLocal8Bit().constData(), PATH_MAX);
 
@@ -245,7 +245,7 @@ void Ui_MainWindowBase::do_open_write_cmt(QString path)
 		emit sig_rec_tape(path);
 	}
 	menu_CMT->do_update_histories(listCMT);
-	menu_CMT->do_set_initialize_directory(config.initial_tape_dir);
+	menu_CMT->do_set_initialize_directory(using_flags->get_config_ptr()->initial_tape_dir);
 }
 
 

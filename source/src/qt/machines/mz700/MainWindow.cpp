@@ -17,6 +17,7 @@
 
 //QT_BEGIN_NAMESPACE
 
+extern config_t config;
 
 Action_Control_MZ700::Action_Control_MZ700(QObject *parent, USING_FLAGS *p) : Action_Control(parent, p)
 {

@@ -31,7 +31,7 @@ void Ui_MainWindowBase::OnSaveState(void)
 
 void Ui_MainWindowBase::OnCpuPower(int mode)
 {
-	config.cpu_power = mode;
+	using_flags->get_config_ptr()->cpu_power = mode;
 	emit sig_emu_update_config();
 }
 

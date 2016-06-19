@@ -16,6 +16,8 @@
 
 #include "dropdown_keytables.h"
 
+class USING_FLAGS;
+
 class DLL_PREFIX CSP_DropDownJSButton: public QWidget {
 	Q_OBJECT;
 protected:
@@ -25,8 +27,9 @@ protected:
 	
 	int bind_button;
 	int bind_jsnum;
+	USING_FLAGS *using_flags;
 public:
-	CSP_DropDownJSButton(QWidget *parent = 0, QStringList *lst = 0, int jsnum = 0, int button_num = 0);
+	CSP_DropDownJSButton(USING_FLAGS *p, QWidget *parent = 0, QStringList *lst = 0, int jsnum = 0, int button_num = 0);
 	~CSP_DropDownJSButton();
 public slots:
 	void do_select(int index);

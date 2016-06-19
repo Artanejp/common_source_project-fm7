@@ -37,9 +37,9 @@ void Ui_MainWindowBase::CreateCDROMMenu(void)
 	
 	menu_CDROM->create_pulldown_menu();	
 	// Translate Menu
-	SETUP_HISTORY(config.recent_compact_disc_path, listCDROM);
+	SETUP_HISTORY(using_flags->get_config_ptr()->recent_compact_disc_path, listCDROM);
 	menu_CDROM->do_update_histories(listCDROM);
-	menu_CDROM->do_set_initialize_directory(config.initial_compact_disc_dir);
+	menu_CDROM->do_set_initialize_directory(using_flags->get_config_ptr()->initial_compact_disc_dir);
 	
 	ext_play = "*.ccd *.cue";
 	desc_play = "Compact Disc";
@@ -63,18 +63,18 @@ int Ui_MainWindowBase::set_recent_cdrom(int drv, int num)
 	int i;
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
     
-	s_path = QString::fromLocal8Bit(config.recent_compact_disc_path[num]);
+	s_path = QString::fromLocal8Bit(using_flags->get_config_ptr()->recent_compact_disc_path[num]);
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
-	UPDATE_HISTORY(path_shadow, config.recent_compact_disc_path, listCDROM);
+	UPDATE_HISTORY(path_shadow, using_flags->get_config_ptr()->recent_compact_disc_path, listCDROM);
    
 	get_parent_dir(path_shadow);
-	strcpy(config.initial_compact_disc_dir, path_shadow);
+	strcpy(using_flags->get_config_ptr()->initial_compact_disc_dir, path_shadow);
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
 	emit sig_close_cdrom();
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "CD-ROM: Open : filename = %s", path_shadow);
 	emit sig_open_cdrom(s_path);
 	menu_CDROM->do_update_histories(listCDROM);
-	menu_CDROM->do_set_initialize_directory(config.initial_compact_disc_dir);
+	menu_CDROM->do_set_initialize_directory(using_flags->get_config_ptr()->initial_compact_disc_dir);
 	return 0;
 }
 
@@ -90,9 +90,9 @@ void Ui_MainWindowBase::do_open_cdrom(int drv, QString path)
 
 	if(path.length() <= 0) return;
 	strncpy(path_shadow, path.toLocal8Bit().constData(), PATH_MAX);
-	UPDATE_HISTORY(path_shadow, config.recent_compact_disc_path, listCDROM);
+	UPDATE_HISTORY(path_shadow, using_flags->get_config_ptr()->recent_compact_disc_path, listCDROM);
 	get_parent_dir(path_shadow);
-	strcpy(config.initial_compact_disc_dir, path_shadow);
+	strcpy(using_flags->get_config_ptr()->initial_compact_disc_dir, path_shadow);
 	// Copy filename again.
 	strncpy(path_shadow, path.toLocal8Bit().constData(), PATH_MAX);
 
@@ -100,7 +100,7 @@ void Ui_MainWindowBase::do_open_cdrom(int drv, QString path)
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "CD-ROM: Open : filename = %s", path_shadow);
 	emit sig_open_cdrom(path);
 	menu_CDROM->do_update_histories(listCDROM);
-	menu_CDROM->do_set_initialize_directory(config.initial_compact_disc_dir);
+	menu_CDROM->do_set_initialize_directory(using_flags->get_config_ptr()->initial_compact_disc_dir);
 }
 
 void Ui_MainWindowBase::retranslateCDROMMenu(void)

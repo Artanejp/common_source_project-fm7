@@ -89,7 +89,7 @@ void GLDrawClass::mousePressEvent(QMouseEvent *event)
 		double xx;
 		double yy;
 		if(using_flags->is_use_screen_rotate()) {
-			if(config.rotate_type) {
+			if(using_flags->get_config_ptr()->rotate_type) {
 				xx = (double)ypos * ((double)using_flags->get_screen_width() / (double)d_hh);
 				yy = (double)xpos * ((double)using_flags->get_screen_height() / (double)d_ww);
 			} else 	{

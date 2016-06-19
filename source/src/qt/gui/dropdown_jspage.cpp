@@ -7,7 +7,7 @@
 
 //extern USING_FLAGS *using_flags;
 
-CSP_DropDownJSPage::CSP_DropDownJSPage(USING_FLAGS *using_flags, QWidget *parent, QStringList *lst, int jsnum)
+CSP_DropDownJSPage::CSP_DropDownJSPage(USING_FLAGS *pp, QWidget *parent, QStringList *lst, int jsnum)
 {
 	int i;
 	QString nm;
@@ -15,10 +15,10 @@ CSP_DropDownJSPage::CSP_DropDownJSPage(USING_FLAGS *using_flags, QWidget *parent
 	p_wid = parent;
 	layout = new QGridLayout(this);
 	bind_jsnum = jsnum;
-	
+	using_flags = pp;
 	for(i = 0; i < 4; i++) {
 		//label[i] = new QLabel(this);
-		combo_js[i] = new CSP_DropDownJSButton(this, lst, jsnum, i);
+		combo_js[i] = new CSP_DropDownJSButton(pp, this, lst, jsnum, i);
 	}
 	label_axis = new QLabel(QApplication::translate("MainWindow", "<B>Physical Axis:</B>", 0), this);
 	layout->addWidget(label_axis, 0, 0, Qt::AlignLeft);
@@ -40,7 +40,7 @@ CSP_DropDownJSPage::CSP_DropDownJSPage(USING_FLAGS *using_flags, QWidget *parent
 		if(joybuttons > i) {
 			memset(tmps, 0x00, sizeof(char) * 20);
 			label_button[i] = new QLabel(this);
-			js_button[i] = new CSP_DropDownJSButton(this, lst, jsnum, i + 4);
+			js_button[i] = new CSP_DropDownJSButton(pp, this, lst, jsnum, i + 4);
 			if(using_flags->is_use_joy_button_captions()) {
 				snprintf(tmps, 32, "<B>%s</B>", using_flags->get_joy_button_captions(i + 4));
 			} else {

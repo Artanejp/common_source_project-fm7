@@ -21,6 +21,7 @@
 #include "menuclasses.h"
 #include "mainwidget.h"
 #include "commonclasses.h"
+#include "config.h"
 
 class META_MainWindow;
 class EMU;
@@ -57,6 +58,8 @@ private:
  protected:
 	EMU *p_emu;
 	USING_FLAGS *using_flags;
+	config_t *p_config;
+	
 	QWaitCondition *drawCond;
 	class META_MainWindow *MainWindow;
 	QElapsedTimer tick_timer;

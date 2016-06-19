@@ -26,11 +26,12 @@ protected:
 	QWidget *p_wid;
 	QWidget *window;
 	QHBoxLayout *layout;
-
+	USING_FLAGS *using_flags;
+	
 	QTabWidget *tabBox;
 	CSP_DropDownJSPage *pages[4];
 public:
-	CSP_DropDownJoysticks(QWidget *parent, QStringList *lst, USING_FLAGS *using_flags);
+	CSP_DropDownJoysticks(QWidget *parent, QStringList *lst, USING_FLAGS *p);
 	~CSP_DropDownJoysticks();
 
 public slots:

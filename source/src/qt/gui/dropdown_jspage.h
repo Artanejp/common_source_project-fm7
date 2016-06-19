@@ -17,7 +17,6 @@
 
 #include "dropdown_jsbutton.h"
 
-
 QT_BEGIN_NAMESPACE
 class USING_FLAGS;
 
@@ -35,8 +34,9 @@ protected:
 	CSP_DropDownJSButton *js_button[12];
 	QLabel *label_button[12];
 	int bind_jsnum;
+	USING_FLAGS *using_flags;
 public:
-	CSP_DropDownJSPage(USING_FLAGS *p, QWidget *parent = 0, QStringList *lst = 0, int jsnum = 0);
+	CSP_DropDownJSPage(USING_FLAGS *pp, QWidget *parent = 0, QStringList *lst = 0, int jsnum = 0);
 	~CSP_DropDownJSPage();
 
 public slots:

@@ -9,7 +9,7 @@ static const _TCHAR *sound_device_caption[] = {""};
 static const _TCHAR *joy_button_captions[] = {""};
 #endif
 
-USING_FLAGS::USING_FLAGS()
+USING_FLAGS::USING_FLAGS(config_t *cfg)
 {
 	use_access_lamp = use_alt_f10_key = false;
 	use_auto_key = use_auto_key_us = use_auto_key_caps = false;
@@ -447,6 +447,8 @@ USING_FLAGS::USING_FLAGS()
 #if defined(USE_STATE)
 	use_state = true;
 #endif   
+
+	p_config = cfg;
 }
 
 USING_FLAGS::~USING_FLAGS()
@@ -497,4 +499,9 @@ void USING_FLAGS::set_osd(OSD *p)
 OSD *USING_FLAGS::get_osd(void)
 {
 	return p_osd;
+}
+
+config_t *USING_FLAGS::get_config_ptr(void)
+{
+	return p_config;
 }

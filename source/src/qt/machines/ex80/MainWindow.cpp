@@ -53,6 +53,7 @@ Action_Control_EX80::~Action_Control_EX80()
 {
 }
 
+extern config_t config;
 
 void META_MainWindow::setupUI_Emu(void)
 {

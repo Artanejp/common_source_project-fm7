@@ -26,12 +26,11 @@
 #endif
 #define MAX_SKIP_FRAMES 10
 
-//extern USING_FLAGS *using_flags;
-
 EmuThreadClass::EmuThreadClass(META_MainWindow *rootWindow, EMU *pp_emu, USING_FLAGS *p, QObject *parent) : QThread(parent) {
 	MainWindow = rootWindow;
 	p_emu = pp_emu;
 	using_flags = p;
+	p_config = p->get_config_ptr();
 	
 	bRunThread = true;
 	prev_skip = false;
@@ -56,8 +55,10 @@ EmuThreadClass::EmuThreadClass(META_MainWindow *rootWindow, EMU *pp_emu, USING_F
 	if(using_flags->get_use_sound_volume() > 0) {
 		for(int i = 0; i < using_flags->get_use_sound_volume(); i++) {
 			bUpdateVolumeReq[i] = true;
-			volume_avg[i] = (config.sound_volume_l[i] + config.sound_volume_r[i]) / 2;
-			volume_balance[i] = (config.sound_volume_r[i] - config.sound_volume_l[i]) / 2;
+			volume_avg[i] = (using_flags->get_config_ptr()->sound_volume_l[i] +
+							 using_flags->get_config_ptr()->sound_volume_r[i]) / 2;
+			volume_balance[i] = (using_flags->get_config_ptr()->sound_volume_r[i] -
+								 using_flags->get_config_ptr()->sound_volume_l[i]) / 2;
 		}
 	}
 };
@@ -74,8 +75,8 @@ void EmuThreadClass::calc_volume_from_balance(int num, int balance)
 	volume_balance[num] = balance;
 	right = level + balance;
 	left  = level - balance;
-	config.sound_volume_l[num] = left;	
-	config.sound_volume_r[num] = right;
+	using_flags->get_config_ptr()->sound_volume_l[num] = left;	
+	using_flags->get_config_ptr()->sound_volume_r[num] = right;
 }
 
 void EmuThreadClass::calc_volume_from_level(int num, int level)
@@ -85,8 +86,8 @@ void EmuThreadClass::calc_volume_from_level(int num, int level)
 	volume_avg[num] = level;
 	right = level + balance;
 	left  = level - balance;
-	config.sound_volume_l[num] = left;	
-	config.sound_volume_r[num] = right;
+	using_flags->get_config_ptr()->sound_volume_l[num] = left;	
+	using_flags->get_config_ptr()->sound_volume_r[num] = right;
 }
 
 int EmuThreadClass::get_interval(void)
@@ -1165,10 +1166,10 @@ void EmuThreadClass::doWork(const QString &params)
 #endif
 	QString ctext;
 	bool req_draw = true;
-	bool vert_line_bak = config.opengl_scanline_vert;
-	bool horiz_line_bak = config.opengl_scanline_horiz;
-	bool gl_crt_filter_bak = config.use_opengl_filters;
-	int opengl_filter_num_bak = config.opengl_filter_num;
+	bool vert_line_bak = using_flags->get_config_ptr()->opengl_scanline_vert;
+	bool horiz_line_bak = using_flags->get_config_ptr()->opengl_scanline_horiz;
+	bool gl_crt_filter_bak = using_flags->get_config_ptr()->use_opengl_filters;
+	int opengl_filter_num_bak = using_flags->get_config_ptr()->opengl_filter_num;
 	//uint32_t key_mod_old = 0xffffffff;
 	int no_draw_count = 0;	
 	bool prevRecordReq;
@@ -1255,14 +1256,14 @@ void EmuThreadClass::doWork(const QString &params)
 			}
 #endif
 #if defined(USE_MINIMUM_RENDERING)
-			if((vert_line_bak != config.opengl_scanline_vert) ||
-			   (horiz_line_bak != config.opengl_scanline_horiz) ||
-			   (gl_crt_filter_bak != config.use_opengl_filters) ||
-			   (opengl_filter_num_bak != config.opengl_filter_num)) req_draw = true;
-			vert_line_bak = config.opengl_scanline_vert;
-			horiz_line_bak = config.opengl_scanline_horiz;
-			gl_crt_filter_bak = config.use_opengl_filters;
-			opengl_filter_num_bak = config.opengl_filter_num;
+			if((vert_line_bak != p_config->opengl_scanline_vert) ||
+			   (horiz_line_bak != p_config->opengl_scanline_horiz) ||
+			   (gl_crt_filter_bak != p_config->use_opengl_filters) ||
+			   (opengl_filter_num_bak != p_config->opengl_filter_num)) req_draw = true;
+			vert_line_bak = p_config->opengl_scanline_vert;
+			horiz_line_bak = p_config->opengl_scanline_horiz;
+			gl_crt_filter_bak = p_config->use_opengl_filters;
+			opengl_filter_num_bak = p_config->opengl_filter_num;
 #endif
 			if(bStartRecordSoundReq != false) {
 				p_emu->start_record_sound();
@@ -1300,7 +1301,7 @@ void EmuThreadClass::doWork(const QString &params)
 #if defined(USE_SOUND_VOLUME)
 			for(int ii = 0; ii < USE_SOUND_VOLUME; ii++) {
 				if(bUpdateVolumeReq[ii]) {
-					p_emu->set_sound_device_volume(ii, config.sound_volume_l[ii], config.sound_volume_r[ii]);
+					p_emu->set_sound_device_volume(ii, p_config->sound_volume_l[ii], p_config->sound_volume_r[ii]);
 					bUpdateVolumeReq[ii] = false;
 				}
 			}

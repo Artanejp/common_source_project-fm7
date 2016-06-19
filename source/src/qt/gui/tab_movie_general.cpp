@@ -33,19 +33,19 @@ CSP_TabMovieGeneral::CSP_TabMovieGeneral(MOVIE_SAVER *ms, CSP_DialogMovie *paren
 	combo_vcodec->addItem(QString::fromUtf8("H.264 (Drop tail frames)"), VIDEO_CODEC_H264);
 	for(int i = 0; i < combo_vcodec->count(); i++) {
 		int ii = combo_vcodec->itemData(i).toInt();
-		if(ii == config.video_codec_type) {
+		if(ii == using_flags->get_config_ptr()->video_codec_type) {
 			combo_vcodec->setCurrentIndex(ii);
 		}
 	}
-	video_codec_type = config.video_codec_type;
+	video_codec_type = using_flags->get_config_ptr()->video_codec_type;
 	connect(combo_vcodec, SIGNAL(activated(int)), this, SLOT(do_set_video_codec_type(int)));
 
 	label_resolution = new QLabel(QApplication::translate("MainWindow", "Resolution", 0), this);
 	combo_resolution = new QComboBox(this);
 
-	geometry.setWidth(config.video_width);
-	geometry.setHeight(config.video_height);
-	audio_bitrate = config.audio_bitrate;
+	geometry.setWidth(using_flags->get_config_ptr()->video_width);
+	geometry.setHeight(using_flags->get_config_ptr()->video_height);
+	audio_bitrate = using_flags->get_config_ptr()->audio_bitrate;
 
 	label_video_threads = new QLabel(QApplication::translate("MainWindow", "Video Threads", 0), this);
 	combo_video_threads = new QComboBox(this);
@@ -53,7 +53,7 @@ CSP_TabMovieGeneral::CSP_TabMovieGeneral(MOVIE_SAVER *ms, CSP_DialogMovie *paren
 	label_audio_bitrate = new QLabel(QApplication::translate("MainWindow", "Audio Bitrate", 0), this);
 	label_video_fps = new QLabel(QApplication::translate("MainWindow", "Framerate", 0), this);
 	combo_video_fps = new QComboBox(this);
-	video_fps = config.video_frame_rate;
+	video_fps = using_flags->get_config_ptr()->video_frame_rate;
 	
 	// Value for resolution
 	bool skipf = false;
@@ -161,7 +161,7 @@ CSP_TabMovieGeneral::CSP_TabMovieGeneral(MOVIE_SAVER *ms, CSP_DialogMovie *paren
 	
 	for(int i = 0; i < combo_resolution->count(); i++) {
 		QSize s = combo_resolution->itemData(i).toSize();
-		if((s.width() == config.video_width) && (s.height() == config.video_height)) {
+		if((s.width() == using_flags->get_config_ptr()->video_width) && (s.height() == using_flags->get_config_ptr()->video_height)) {
 			combo_resolution->setCurrentIndex(i);
 		}
 	}
@@ -183,11 +183,11 @@ CSP_TabMovieGeneral::CSP_TabMovieGeneral(MOVIE_SAVER *ms, CSP_DialogMovie *paren
 	combo_video_threads->addItem(QString::fromUtf8("12"), 12);
 	for(int i = 0; i < combo_video_threads->count(); i++) {
 		int br = combo_video_threads->itemData(i).toInt();
-		if(br == config.video_threads) {
+		if(br == using_flags->get_config_ptr()->video_threads) {
 			combo_video_threads->setCurrentIndex(i);
 		}
 	}
-	video_threads = config.video_threads;
+	video_threads = using_flags->get_config_ptr()->video_threads;
 	connect(combo_video_threads, SIGNAL(activated(int)), this, SLOT(do_set_video_threads(int)));
 
 	// Audio bitrate
@@ -199,7 +199,7 @@ CSP_TabMovieGeneral::CSP_TabMovieGeneral(MOVIE_SAVER *ms, CSP_DialogMovie *paren
 	combo_audio_bitrate->addItem(QString::fromUtf8("192kbps"), 192);
 	for(int i = 0; i < combo_audio_bitrate->count(); i++) {
 		int br = combo_audio_bitrate->itemData(i).toInt();
-		if(br == config.audio_bitrate) {
+		if(br == using_flags->get_config_ptr()->audio_bitrate) {
 			combo_audio_bitrate->setCurrentIndex(i);
 		}
 	}
@@ -211,7 +211,7 @@ CSP_TabMovieGeneral::CSP_TabMovieGeneral(MOVIE_SAVER *ms, CSP_DialogMovie *paren
 	combo_video_fps->addItem(QString::fromUtf8("60fps"), 60); // Temporally disabled
 	for(int i = 0; i < combo_video_fps->count(); i++) {
 		int fps = combo_video_fps->itemData(i).toInt();
-		if(fps == config.video_frame_rate) {
+		if(fps == using_flags->get_config_ptr()->video_frame_rate) {
 			combo_video_fps->setCurrentIndex(i);
 		}
 	}
@@ -294,7 +294,7 @@ void CSP_TabMovieGeneral::do_set_codecs(void)
 
 	// See:
 	// https://libav.org/avconv.html#Video-Options
-	config.audio_bitrate = audio_bitrate;
+	using_flags->get_config_ptr()->audio_bitrate = audio_bitrate;
 	emit sig_set_audio_bitrate(audio_bitrate);
 
 	switch(video_codec_type) {
@@ -305,18 +305,18 @@ void CSP_TabMovieGeneral::do_set_codecs(void)
 		emit sig_video_add_option(QString::fromUtf8("c:v"), QString::fromUtf8("h264"));
 		break;
 	}
-	config.video_codec_type = video_codec_type;
+	using_flags->get_config_ptr()->video_codec_type = video_codec_type;
 	
 	emit sig_video_add_option(QString::fromUtf8("c:a"), QString::fromUtf8("aac"));
-	//config.audio_codec_type = audio_codec_type;
+	//using_flags->get_config_ptr()->audio_codec_type = audio_codec_type;
 
-	config.video_threads = video_threads;
-	config.video_frame_rate = video_fps;
+	using_flags->get_config_ptr()->video_threads = video_threads;
+	using_flags->get_config_ptr()->video_frame_rate = video_fps;
 
-	config.video_width = geometry.width();
-	config.video_height = geometry.height();
+	using_flags->get_config_ptr()->video_width = geometry.width();
+	using_flags->get_config_ptr()->video_height = geometry.height();
 	emit sig_set_video_resolution(geometry);
 
-	config.video_threads = video_threads;
-	config.video_frame_rate = video_fps;
+	using_flags->get_config_ptr()->video_threads = video_threads;
+	using_flags->get_config_ptr()->video_frame_rate = video_fps;
 }

@@ -16,6 +16,7 @@
 
 //QT_BEGIN_NAMESPACE
 
+extern config_t config;
 
 Object_Menu_Control_60::Object_Menu_Control_60(QObject *parent, USING_FLAGS *p) : Object_Menu_Control(parent, p)
 {

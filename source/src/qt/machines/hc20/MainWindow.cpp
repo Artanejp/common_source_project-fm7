@@ -14,6 +14,8 @@
 #include "menuclasses.h"
 #include "qt_main.h"
 
+extern config_t config;
+
 //QT_BEGIN_NAMESPACE
 Action_Control_HC20::Action_Control_HC20(QObject *parent, USING_FLAGS *p) : Action_Control(parent, p)
 {
