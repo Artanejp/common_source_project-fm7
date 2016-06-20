@@ -152,8 +152,9 @@ void initialize_config()
 	config.video_mpeg4_minq = 1;
 	config.video_mpeg4_maxq = 20;
 	
+	config.audio_codec_type = 0;
 	config.video_threads = 0;
-	config.audio_bitrate = 128;
+	config.audio_bitrate = 160;
 	config.video_frame_rate = 30;
 #endif
 	// screen
@@ -374,6 +375,10 @@ void load_config(const _TCHAR *config_path)
 	config.video_codec_type = MyGetPrivateProfileInt(_T("Video"), _T("VideoCodecType"), config.video_codec_type, config_path);
 	if(config.video_codec_type > 1) config.video_codec_type = 1;
 	if(config.video_codec_type < 0) config.video_codec_type = 0;
+	
+	config.audio_codec_type = MyGetPrivateProfileInt(_T("Video"), _T("AudioCodecType"), config.audio_codec_type, config_path);
+	if(config.video_codec_type > 2) config.audio_codec_type = 2;
+	if(config.video_codec_type < 0) config.audio_codec_type = 0;
 	
 	config.video_h264_bitrate = MyGetPrivateProfileInt(_T("Video"), _T("H264Bitrate"), config.video_h264_bitrate, config_path);
 	if(config.video_h264_bitrate < 64) config.video_h264_bitrate = 64;
@@ -635,6 +640,7 @@ void save_config(const _TCHAR *config_path)
 	MyWritePrivateProfileInt(_T("Video"), _T("VideoWidth"), config.video_width, config_path);
 	MyWritePrivateProfileInt(_T("Video"), _T("VideoHeight"), config.video_height, config_path);
 	MyWritePrivateProfileInt(_T("Video"), _T("VideoCodecType"), config.video_codec_type, config_path);
+	MyWritePrivateProfileInt(_T("Video"), _T("AudioCodecType"), config.audio_codec_type, config_path);
 	
 	MyWritePrivateProfileInt(_T("Video"), _T("H264Bitrate"), config.video_h264_bitrate, config_path);
 	MyWritePrivateProfileInt(_T("Video"), _T("H264BFrames"), config.video_h264_bframes, config_path);

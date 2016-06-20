@@ -140,6 +140,7 @@ typedef struct {
 	int video_width;
 	int video_height;
 	int video_codec_type;
+	int audio_codec_type;
 	
 	int video_h264_bitrate;
 	int video_h264_bframes;

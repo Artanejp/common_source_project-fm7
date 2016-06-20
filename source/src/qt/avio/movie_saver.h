@@ -40,6 +40,20 @@ enum {
 	VIDEO_CODEC_END,
 };
 
+enum {
+	AUDIO_CODEC_MP3 = 0,
+	AUDIO_CODEC_AAC,
+	AUDIO_CODEC_VORBIS,
+	AUDIO_CODEC_END,
+};
+
+enum {
+	VIDEO_CONTAINER_TYPE_MP4 = 0,
+	VIDEO_CONTAINER_TYPE_MKV,
+	VIDEO_CONTAINER_TYPE_END,
+
+};
+	
 // a wrapper around a single output AVStream
 typedef struct OutputStream {
 	AVStream *st;
@@ -169,6 +183,8 @@ protected:
 	void setup_h264(void *_codec);
 	//void MOVIE_SAVER::setup_mpeg4(AVCodecContext *_codec)
 	void setup_mpeg4(void *_codec);
+	//void MOVIE_SAVER::setup_audio(AVCodecContext *_codec_context, AVCodec **_codec)
+	void setup_audio(void *_codec_context, void **_codec);
 
 	QString ts2str(int64_t ts);
 	QString ts2timestr(int64_t ts, void *timebase);

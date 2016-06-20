@@ -82,31 +82,9 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
 
 	switch ((*codec)->type) {
 	case AVMEDIA_TYPE_AUDIO:
-		c->sample_fmt  = (*codec)->sample_fmts ?
-			(*codec)->sample_fmts[0] : AV_SAMPLE_FMT_FLTP;
-		c->bit_rate	= audio_bit_rate;
-		c->sample_rate = audio_sample_rate;
-		c->strict_std_compliance = -2; // For internal AAC
-		if ((*codec)->supported_samplerates) {
-			c->sample_rate = (*codec)->supported_samplerates[0];
-			for (i = 0; (*codec)->supported_samplerates[i]; i++) {
-				if ((*codec)->supported_samplerates[i] == audio_sample_rate)
-					c->sample_rate = audio_sample_rate;
-			}
-		}
-		c->channels		= av_get_channel_layout_nb_channels(c->channel_layout);
-		c->channel_layout = AV_CH_LAYOUT_STEREO;
-		if ((*codec)->channel_layouts) {
-			c->channel_layout = (*codec)->channel_layouts[0];
-			for (i = 0; (*codec)->channel_layouts[i]; i++) {
-				if ((*codec)->channel_layouts[i] == AV_CH_LAYOUT_STEREO)
-					c->channel_layout = AV_CH_LAYOUT_STEREO;
-			}
-		}
-		c->channels		= av_get_channel_layout_nb_channels(c->channel_layout);
-		ost->st->time_base = (AVRational){ 1, c->sample_rate };
+		setup_audio(c, codec);
+			ost->st->time_base = (AVRational){ 1, c->sample_rate };
 		break;
-
 	case AVMEDIA_TYPE_VIDEO:
 		c->codec_id = codec_id;
 		c->bit_rate = video_bit_rate;
@@ -242,9 +220,17 @@ bool MOVIE_SAVER::do_open(QString filename, int _fps, int _sample_rate)
 		fmt->video_codec = AV_CODEC_ID_H264;
 		break;
 	}
-	fmt->audio_codec = AV_CODEC_ID_AAC;
-	fmt->audio_codec = AV_CODEC_ID_MP3;
-	
+	switch(p_config->audio_codec_type) {
+	case AUDIO_CODEC_MP3:
+		fmt->audio_codec = AV_CODEC_ID_MP3;
+		break;
+	case AUDIO_CODEC_AAC:
+		fmt->audio_codec = AV_CODEC_ID_AAC;
+		break;
+	case AUDIO_CODEC_VORBIS:
+		fmt->audio_codec = AV_CODEC_ID_VORBIS;
+		break;
+	}		
 	/* Add the audio and video streams using the default format codecs
 	 * and initialize the codecs. */
 	if (fmt->video_codec != AV_CODEC_ID_NONE) {

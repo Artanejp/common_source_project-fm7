@@ -246,3 +246,46 @@ int MOVIE_SAVER::write_audio_frame()
 	return 1;
 #endif
 }
+
+void MOVIE_SAVER::setup_audio(void *_codec_context, void **_codec)
+{
+#if defined(USE_LIBAV)
+	AVCodecContext *c = (AVCodecContext *)_codec_context;
+	AVCodec **codec = (AVCodec **)_codec;
+	
+	c->sample_fmt  = (*codec)->sample_fmts ?
+		(*codec)->sample_fmts[0] : AV_SAMPLE_FMT_FLTP;
+	c->bit_rate	= audio_bit_rate;
+	c->sample_rate = audio_sample_rate;
+	if(c->codec_id == AUDIO_CODEC_AAC) {
+		c->strict_std_compliance = -2; // For internal AAC
+		c->global_quality = 100;
+	}
+	if(c->codec_id == AUDIO_CODEC_MP3) {
+		c->compression_level = 9; // Quality
+		// ABR/CBR/VBR
+	}
+	if(audio_sample_rate < 32000) {
+		c->cutoff = (audio_sample_rate * 2) / 3;
+	} else {
+		c->cutoff = audio_sample_rate / 2;
+	}		
+	if ((*codec)->supported_samplerates) {
+		c->sample_rate = (*codec)->supported_samplerates[0];
+		for (int i = 0; (*codec)->supported_samplerates[i]; i++) {
+			if ((*codec)->supported_samplerates[i] == audio_sample_rate)
+				c->sample_rate = audio_sample_rate;
+		}
+	}
+	c->channels		= av_get_channel_layout_nb_channels(c->channel_layout);
+	c->channel_layout = AV_CH_LAYOUT_STEREO;
+	if ((*codec)->channel_layouts) {
+		c->channel_layout = (*codec)->channel_layouts[0];
+		for (int i = 0; (*codec)->channel_layouts[i]; i++) {
+			if ((*codec)->channel_layouts[i] == AV_CH_LAYOUT_STEREO)
+				c->channel_layout = AV_CH_LAYOUT_STEREO;
+		}
+	}
+	c->channels		= av_get_channel_layout_nb_channels(c->channel_layout);
+#endif
+}

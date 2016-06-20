@@ -167,12 +167,23 @@ bool MOVIE_SAVER::dequeue_audio(int16_t *p)
 	//if(!recording) return false;
 	if(audio_data_queue.isEmpty()) return false;
 	if(p == NULL) return false;
+	
 	QByteArray *pp = audio_data_queue.dequeue();
+	int16_t *q = (int16_t *)pp->constData();
+	int32_t tmpd;
 #if defined(USE_MOVIE_SAVER)
 	if(pp == NULL) return false;
 	audio_size = pp->size();
 	if(audio_size <= 0) return false;
-	memcpy(p, pp->constData(), audio_size);
+	// I expect to use SIMD.
+	for(int i = 0; i < audio_size / sizeof(int16_t); i++) {
+		tmpd = q[i];
+		tmpd <<= 4;
+		tmpd = tmpd / 3;
+		tmpd >>= 3;
+		p[i] = tmpd;
+	}
+	//memcpy(p, pp->constData(), audio_size);
 	audio_count++;
 	//AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Dequeue audio data %d bytes", pp->size());
 #else

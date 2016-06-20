@@ -31,10 +31,10 @@ extern "C" {
 /**************************************************************/
 /* video output */
 
-void MOVIE_SAVER::setup_h264(void *_codec)
+void MOVIE_SAVER::setup_h264(void *_codec_context)
 {
 #if defined(USE_LIBAV)
-	AVCodecContext *c = (AVCodecContext *)_codec;
+	AVCodecContext *c = (AVCodecContext *)_codec_context;
 
 	c->qmin	 = p_config->video_h264_minq;
 	c->qmax	 = p_config->video_h264_maxq;
