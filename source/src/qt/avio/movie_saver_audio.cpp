@@ -266,7 +266,7 @@ void MOVIE_SAVER::setup_audio(void *_codec_context, void **_codec)
 		// ABR/CBR/VBR
 	}
 	if(audio_sample_rate < 32000) {
-		c->cutoff = (audio_sample_rate * 2) / 3;
+		c->cutoff = (audio_sample_rate * 3) / 5;
 	} else {
 		c->cutoff = audio_sample_rate / 2;
 	}		

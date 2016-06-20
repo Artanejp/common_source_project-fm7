@@ -174,6 +174,7 @@ bool MOVIE_SAVER::do_open(QString filename, int _fps, int _sample_rate)
 
 	do_set_record_fps(_fps);
 	audio_sample_rate = _sample_rate;
+	printf("Sample Rate:%d\n",_sample_rate);
 	_filename = filename;
 	
 	video_st = { 0 };
