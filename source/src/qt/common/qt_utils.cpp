@@ -587,6 +587,8 @@ int MainLoop(int argc, char *argv[], config_t *cfg)
 #endif
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "Audio and JOYSTICK subsystem was initialised.");
 	GuiMain = new QApplication(argc, argv);
+	Q_INIT_RESOURCE(commontexts);
+	Q_INIT_RESOURCE(shaders);
 
 	load_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
 	
@@ -633,6 +635,8 @@ int MainLoop(int argc, char *argv[], config_t *cfg)
 	QObject::connect(GuiMain, SIGNAL(lastWindowClosed()),
 					 rMainWindow, SLOT(on_actionExit_triggered()));
 	GuiMain->exec();
+	Q_CLEANUP_RESOURCE(shaders);
+	Q_CLEANUP_RESOURCE(commontexts);
 	return 0;
 }
 

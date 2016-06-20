@@ -90,6 +90,10 @@ set(s_qt_gui_srcs
 
 if(USE_QT_5)
   QT5_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})
+  QT5_ADD_RESOURCES(s_qt_gui_RCC ${RESOURCE}
+                    ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/commontexts.qrc
+                    ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/shaders.qrc#
+		    )
 else()
   QT4_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})
 endif()
@@ -98,6 +102,7 @@ if(WIN32)
 add_library(qt_gui
 	  ${s_qt_gui_srcs}
 	  ${s_qt_gui_headers_MOC}
+	  ${s_qt_gui_RCC}
 )
 #include (GenerateExportHeader)
 #add_library(CSPgui SHARED
@@ -126,6 +131,7 @@ else()
 add_library(CSPgui SHARED
 	  ${s_qt_gui_srcs}
 	  ${s_qt_gui_headers_MOC}
+	  ${s_qt_gui_RCC}
 )
 target_link_libraries(CSPgui PUBLIC
 	  Qt5::Core
