@@ -53,7 +53,7 @@ void META_MainWindow::setupUI_Emu(void)
 	menuMachine->addAction(menu_Emu_DipSw->menuAction());
 	
 	for(i = 0; i < 3; i++) {
-      	action_Emu_DipSw[i] = new Action_Control_MZ3500(this, p);
+      	action_Emu_DipSw[i] = new Action_Control_MZ3500(this, using_flags);
         action_Emu_DipSw[i]->setCheckable(true);
         tmps.number(i + 1);
         tmps = QString::fromUtf8("actionEmu_DipSw") + tmps;

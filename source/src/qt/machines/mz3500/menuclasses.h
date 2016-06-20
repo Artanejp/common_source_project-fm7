@@ -8,7 +8,7 @@
 // You may use this as 
 QT_BEGIN_NAMESPACE
 class USING_FLAGS;
-/  wrote of MZ3500 Specific menu.
+//  wrote of MZ3500 Specific menu.
 class Object_Menu_Control_MZ3500: public Object_Menu_Control
 {
 	Q_OBJECT
