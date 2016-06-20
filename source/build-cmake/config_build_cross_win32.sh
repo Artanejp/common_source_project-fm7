@@ -53,14 +53,14 @@ function build_dll() {
     make clean
     
     make ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
-    #case $? in
-    #      0 ) 
-    #      cp ./qt/gui/libqt_gui.a ../../bin-win32/ 
-    #      cp ./qt/gui/*.lib ../../bin-win32/ 
-    #      cp ./qt/gui/*.dll ../../bin-win32/ 
-    #      ;;
-    #      * ) exit $? ;;
-    #esac
+#    case $? in
+#         0 ) 
+#          cp ./qt/gui/libqt_gui.a ../../bin-win32/ 
+#          cp ./qt/gui/*.lib ../../bin-win32/ 
+#          cp ./qt/gui/*.dll ../../bin-win32/ 
+#         ;;
+#          * ) exit $? ;;
+#    esac
     #make clean
     cd ../..
 }

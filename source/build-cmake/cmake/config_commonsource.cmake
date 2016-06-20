@@ -213,12 +213,12 @@ if(WIN32)
 
 else()
    set(BUNDLE_LIBS 
-       ${OPENGL_LIBRARY}
+#       ${OPENGL_LIBRARY}
        ${OPENCL_LIBRARY}
-       ${GETTEXT_LIBRARY}
+#       ${GETTEXT_LIBRARY}
        ${OPENMP_LIBRARY}
        ${SDL_LIBS}
-       ${LIBAV_LIBRARIES}
+#       ${LIBAV_LIBRARIES}
        ${ADDITIONAL_LIBRARIES}
        )
 

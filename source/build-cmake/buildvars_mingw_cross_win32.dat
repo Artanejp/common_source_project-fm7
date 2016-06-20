@@ -22,17 +22,18 @@ MAKEFLAGS_BASE="-fvect-cost-model=dynamic -ftree-vectorize \
 
 MAKEFLAGS_CXX="-O2 ${MAKEFLAGS_BASE} -DNDEBUG" 
 MAKEFLAGS_CC="-O2 ${MAKEFLAGS_BASE} -DNDEBUG"
-#MAKEFLAGS_CXX="-O0 -flto -ffat-lto-objects -DNDEBUG" 
-#MAKEFLAGS_CC="-O0 -flto -ffat-lto-objects -DNDEBUG"
+#MAKEFLAGS_CXX="-O2 -flto -ffat-lto-objects -DNDEBUG" 
+#MAKEFLAGS_CC="-O2 -flto -ffat-lto-objects -DNDEBUG"
 
 MAKEFLAGS_LIB_CXX="-O2 ${MAKEFLAGS_BASE} -DNDEBUG" 
 MAKEFLAGS_LIB_CC="-O2 ${MAKEFLAGS_BASE}  -DNDEBUG"
-#MAKEFLAGS_LIB_CXX="-O0 -flto -ffat-lto-objects -DNDEBUG" 
-#MAKEFLAGS_LIB_CC="-O0 -flto -ffat-lto-objects -DNDEBUG"
+#MAKEFLAGS_LIB_CXX="-O2 -flto -ffat-lto-objects -DNDEBUG" 
+#MAKEFLAGS_LIB_CC="-O2 -flto -ffat-lto-objects -DNDEBUG"
 
 MAKEFLAGS_GENERAL="-j6"
 
-CMAKE_LINKFLAG="-static-libstdc++ -static-libgcc"
+#CMAKE_LINKFLAG="-static-libstdc++ -static-libgcc"
+CMAKE_LINKFLAG="-s"
 CMAKE_APPENDFLAG="-DUSE_QT5_4_APIS=ON -DUSE_MOVIE_LOADER=ON -DUSE_MOVIE_SAVER=ON"
 #CMAKE_APPENDFLAG="-DCMAKE_AR:STRING=i686-w64-mingw32-gcc-ar \
 #                   -DCMAKE_LD:STRING=i686-w64-mingw32-gcc-ld \
