@@ -46,11 +46,14 @@ CSP_TabMovieGeneral::CSP_TabMovieGeneral(MOVIE_SAVER *ms, CSP_DialogMovie *paren
 	geometry.setWidth(using_flags->get_config_ptr()->video_width);
 	geometry.setHeight(using_flags->get_config_ptr()->video_height);
 	audio_bitrate = using_flags->get_config_ptr()->audio_bitrate;
+	audio_codec_type = using_flags->get_config_ptr()->audio_codec_type;
 
 	label_video_threads = new QLabel(QApplication::translate("MainWindow", "Video Threads", 0), this);
 	combo_video_threads = new QComboBox(this);
 	combo_audio_bitrate = new QComboBox(this);
 	label_audio_bitrate = new QLabel(QApplication::translate("MainWindow", "Audio Bitrate", 0), this);
+	combo_audio_codec = new QComboBox(this);
+	label_audio_codec = new QLabel(QApplication::translate("MainWindow", "Audio Codec", 0), this);
 	label_video_fps = new QLabel(QApplication::translate("MainWindow", "Framerate", 0), this);
 	combo_video_fps = new QComboBox(this);
 	video_fps = using_flags->get_config_ptr()->video_frame_rate;
@@ -197,6 +200,10 @@ CSP_TabMovieGeneral::CSP_TabMovieGeneral(MOVIE_SAVER *ms, CSP_DialogMovie *paren
 	combo_audio_bitrate->addItem(QString::fromUtf8("128kbps"), 128);
 	combo_audio_bitrate->addItem(QString::fromUtf8("160kbps"), 160);
 	combo_audio_bitrate->addItem(QString::fromUtf8("192kbps"), 192);
+	combo_audio_bitrate->addItem(QString::fromUtf8("224kbps"), 224);
+	combo_audio_bitrate->addItem(QString::fromUtf8("256kbps"), 256);
+	combo_audio_bitrate->addItem(QString::fromUtf8("320kbps"), 320);
+	combo_audio_bitrate->addItem(QString::fromUtf8("384kbps"), 384);
 	for(int i = 0; i < combo_audio_bitrate->count(); i++) {
 		int br = combo_audio_bitrate->itemData(i).toInt();
 		if(br == using_flags->get_config_ptr()->audio_bitrate) {
@@ -204,6 +211,18 @@ CSP_TabMovieGeneral::CSP_TabMovieGeneral(MOVIE_SAVER *ms, CSP_DialogMovie *paren
 		}
 	}
 	connect(combo_audio_bitrate, SIGNAL(activated(int)), this, SLOT(do_set_audio_bitrate(int)));
+
+	combo_audio_codec->addItem(QString::fromUtf8("MP3(Lame)"), AUDIO_CODEC_MP3);
+	combo_audio_codec->addItem(QString::fromUtf8("AAC"), AUDIO_CODEC_AAC);
+	//combo_audio_codec->addItem(QString::fromUtf8("VORBIS(Maybe not working)"), AUDIO_CODEC_VORBIS);
+	for(int i = 0; i < combo_audio_codec->count(); i++) {
+		int br = combo_audio_codec->itemData(i).toInt();
+		if(br == using_flags->get_config_ptr()->audio_codec_type) {
+			combo_audio_codec->setCurrentIndex(i);
+		}
+	}
+	connect(combo_audio_codec, SIGNAL(activated(int)), this, SLOT(do_set_audio_codec_type(int)));
+	
 	// Video bitrates
 	combo_video_fps->addItem(QString::fromUtf8("15fps"), 15);	
 	combo_video_fps->addItem(QString::fromUtf8("24fps"), 24);	
@@ -223,14 +242,17 @@ CSP_TabMovieGeneral::CSP_TabMovieGeneral(MOVIE_SAVER *ms, CSP_DialogMovie *paren
 	grid_layout->addWidget(label_vcodec, 3, 0);
 	grid_layout->addWidget(combo_vcodec, 4, 0);
 
+	grid_layout->addWidget(label_audio_codec, 3, 2);
+	grid_layout->addWidget(combo_audio_codec, 4, 2);
+	
 	grid_layout->addWidget(label_audio_bitrate, 5, 2);
 	grid_layout->addWidget(combo_audio_bitrate, 5, 3);
 	
-	grid_layout->addWidget(label_video_fps, 5, 0);
-	grid_layout->addWidget(combo_video_fps, 5, 1);
+	grid_layout->addWidget(label_video_fps, 3, 1);
+	grid_layout->addWidget(combo_video_fps, 4, 1);
 	
-	grid_layout->addWidget(label_video_threads, 6, 2);
-	grid_layout->addWidget(combo_video_threads, 6, 3);
+	grid_layout->addWidget(label_video_threads, 5, 0);
+	grid_layout->addWidget(combo_video_threads, 5, 1);
 
 	this->setLayout(grid_layout);
 	
@@ -280,6 +302,14 @@ void CSP_TabMovieGeneral::do_set_video_codec_type(int n)
 	video_codec_type = val;
 }
 
+void CSP_TabMovieGeneral::do_set_audio_codec_type(int n)
+{
+	int val = combo_audio_codec->itemData(n).toInt();
+	if(val < 0) return;
+	if(val >= AUDIO_CODEC_END) return;
+	audio_codec_type = val;
+}
+
 void CSP_TabMovieGeneral::do_set_audio_bitrate(int n)
 {
 	int val = combo_audio_bitrate->itemData(n).toInt();
@@ -306,9 +336,20 @@ void CSP_TabMovieGeneral::do_set_codecs(void)
 		break;
 	}
 	using_flags->get_config_ptr()->video_codec_type = video_codec_type;
-	
-	emit sig_video_add_option(QString::fromUtf8("c:a"), QString::fromUtf8("aac"));
-	//using_flags->get_config_ptr()->audio_codec_type = audio_codec_type;
+
+	switch(audio_codec_type) {
+	case AUDIO_CODEC_MP3:
+		emit sig_video_add_option(QString::fromUtf8("c:a"), QString::fromUtf8("mp3"));
+		break;
+	case AUDIO_CODEC_AAC:
+		emit sig_video_add_option(QString::fromUtf8("c:a"), QString::fromUtf8("aac"));
+		break;
+	case AUDIO_CODEC_VORBIS:
+		emit sig_video_add_option(QString::fromUtf8("c:a"), QString::fromUtf8("vorbis"));
+		break;
+	}
+	using_flags->get_config_ptr()->video_codec_type = video_codec_type;
+	using_flags->get_config_ptr()->audio_codec_type = audio_codec_type;
 
 	using_flags->get_config_ptr()->video_threads = video_threads;
 	using_flags->get_config_ptr()->video_frame_rate = video_fps;

@@ -42,6 +42,9 @@ private:
 	QLabel *label_video_threads;
 	QComboBox *combo_video_threads;
 
+	QLabel *label_audio_codec;
+	QComboBox *combo_audio_codec;
+	
 	QLabel *label_audio_bitrate;
 	QComboBox *combo_audio_bitrate;
 
@@ -56,6 +59,7 @@ protected:
 	
 	int resolution;
 	int video_codec_type;
+	int audio_codec_type;
 	int video_threads;
 	int audio_bitrate;
 	int video_fps;
@@ -64,6 +68,7 @@ public:
 	~CSP_TabMovieGeneral();
 public slots:
 	void do_set_video_codec_type(int);
+	void do_set_audio_codec_type(int);
 	void do_set_video_resolution(int);
 	void do_set_video_threads(int);
 	void do_set_audio_bitrate(int);
