@@ -1,3 +1,28 @@
+commit 31826b851e66a5dc1b72830860b99bcbe4e24e8c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 21 01:31:18 2016 +0900
+
+    [Linux] Update installer.
+
+commit fe6ea8b485fd1207db83a64960bd6e5b6e752779
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 21 01:26:50 2016 +0900
+
+    [DOC] Add Issues.ja.txt . Still only Japanese.
+
+commit 008dfea9c20f69a16cf329665972ea58037eb43e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 21 01:23:20 2016 +0900
+
+    [DOC] Update documents.
+
+commit 7710b1745efb50713e84cf13984b10c686ed8915
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 21 01:17:13 2016 +0900
+
+    [DOC] Update documents.
+    [UI][Qt] Move initialize some resources to main().
+
 commit 85c331b7635ca713e819218b86d65a877b7478f3
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Tue Jun 21 00:59:42 2016 +0900
