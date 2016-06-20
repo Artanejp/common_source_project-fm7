@@ -1,3 +1,90 @@
+commit 85c331b7635ca713e819218b86d65a877b7478f3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 21 00:59:42 2016 +0900
+
+    [UI][Qt] Move shaders.qrc and commontexts.qrc to libCSPgui .
+
+commit 09f72ed66f65649d5d55bdaeb2e3143293bcacab
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jun 20 17:19:50 2016 +0900
+
+    [Qt][MZ3500] Fix FTBFS.
+
+commit 47d3704b0fb8a1845497cbf0db0c4d4757fdf41b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jun 20 17:14:41 2016 +0900
+
+    [VM][DISK][FM7] Fix not starting Xanadu1/FM-7.
+
+commit 08b65bba00fa54d0d03a53557a29917bb45a5938
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jun 20 15:56:23 2016 +0900
+
+    [MOVIE_SAVER] Audio: Adjust cutoff frequency.
+
+commit 6b65dc73822c2d65d24754dce4d3c0f9abac2ea4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jun 20 15:22:43 2016 +0900
+
+    [MOVIE_SAVER][Qt] Audio: add using libmp3lame and libvorbis, to encode movie.
+
+commit 41007f5a730dafa2302ae1901a59b3d611cfe43d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jun 20 15:22:06 2016 +0900
+
+    [MOVIE_SAVER][UI][Qt] Ready to use MP3LAME.
+
+commit 3fad7734987fb403b1fa0fc2a287c833ecd55ad1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jun 20 13:49:23 2016 +0900
+
+    [WIN32][BUILD] .
+
+commit a6488ba82ddaf39bea1b2c16fd4c1aa6f80850d0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jun 20 05:07:01 2016 +0900
+
+    [BUILD][Linux] Use external Qt5.31 to build emufoo, this is version dependent issue for Ubuntu 16.04 LTS and Debian 8.
+
+commit 9a86ee0e9e57accc3e2abd545535f8ddcb430998
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jun 20 04:13:10 2016 +0900
+
+    [UI][Qt] Not liking config, using_flags directly.
+
+commit 87818912d8ab6aba1475715993f65850655c9b28
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jun 20 04:11:16 2016 +0900
+
+    [Qt][MOVIE_SAVER] Fix syncing of A/V.
+    [Qt][OSD] Not linking config directly.
+
+commit e3eb76afc111a615d8d3393550f2ad9f6f9d249f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jun 19 20:46:59 2016 +0900
+
+    [UI][Qt] TRY: Enable DLLs even build for windows.
+
+commit 56896d3a22476a21e55696e2188a37cdd7d6001d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jun 19 05:23:47 2016 +0900
+
+    [BUILD] Try: Add flag "-DQT_NO_VERSION_TAGGING" for compilation , to keep compatibility Qt <= 5.5 .
+
+commit f9ec3b6a2b02309631cb85ad0f634b88e0d55c5c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jun 19 05:20:01 2016 +0900
+
+    [MOVIE_SAVER][OSD] Fix unsync audio and video in recorded movies with some machines (excepts 60fps).
+    [MOVIE_SAVER][EMU] Fix stop/restart recording movie when changing/ejecting CARTRIDGEs.
+    See, http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/699 .
+
+commit 2845efa3bfdd5495069b4a554227ced727a4ce36
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 18 03:34:23 2016 +0900
+
+    [DOC] Update.
+
 commit 629f7d70816c04b38c3ab8cc277147a6bd2c2d2a
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sat Jun 18 03:28:35 2016 +0900

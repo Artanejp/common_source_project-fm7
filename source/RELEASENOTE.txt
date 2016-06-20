@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                         June 18, 2016
+                                                         June 21, 2016
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 1.About
@@ -9,19 +9,14 @@ This package is Qt5 porting of Common Source Code Project (CSP)
 and built with Qt5, for Windows, built with MinGW(32bit).
 
 Source Code:
-   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160618-3
+   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160621
    
 Additional INFO:
    Binaries will be available, distibute from osdn.jp.
    See, https://osdn.jp/projects/csp-qt/  and
         https://osdn.jp/projects/csp-qt/releases/ .
-   Win32: 
-   GNU/Linux(amd64) : 
-   
+   Released at:
 
-  SIZE: 
-  MD5SUM: 
-  SHA256SUM: 
 
 2.Background
 Common Source Code Project (CSP) is good emulator writing.
@@ -87,6 +82,22 @@ Upstream (Takeda Toshiya San's original code)
 http://homepage3.nifty.com/takeda-toshiya/
 
 Changes:
+
+* SNAPSHOT June 21, 2016
+  * Upstream 2016-04-13
+  * Build with FFMPEG 3.0.2 supported libmp3lame.
+  * [Linux] Build with qt.io's official Qt 5.3.1 expect to work with 
+    Ubuntu 16.04 LTS and Debian 8 "Jessie".
+  * [MOVIE_SAVER] (Maybe mostly?) Fix asynchronous both video and audio.
+  * [MOVIE_SAVER] Add libmp3lame and vorbis (disable from UI) for audio codec.
+  * [Qt] Not linking config and using_flags directly from libCSPgui , libCSPavio and libCSPosd .
+  * [MOVIE_SAVER][EMU] Fix stop/restart recording movie when changing/ejecting CARTRIDGEs.
+                       Now, don't stop when changing/eject cartridge.
+    See, http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/699 .
+  * [MOVIE_SAVER] Re-enable (and selectable) H.264 for video codec.
+  * Build with 85c331b7635ca713e819218b86d65a877b7478f3 (or later).
+  
+-- Jun 21, 2016 01:07:44 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT June 18, 2016
   * Upstream 2016-04-13 .

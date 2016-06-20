@@ -111,7 +111,11 @@ int main(int argc, char *argv[])
 /*
  * アプリケーション初期化
  */
+	Q_INIT_RESOURCE(commontexts);
+	Q_INIT_RESOURCE(shaders);
 	nErrorCode = MainLoop(argc, argv, &config);
+	Q_CLEANUP_RESOURCE(shaders);
+	Q_CLEANUP_RESOURCE(commontexts);
 	return nErrorCode;
 }
 #if defined(Q_OS_WIN) 
