@@ -99,7 +99,7 @@ void GLDrawClass::paintGL(void)
 		}
 		extfunc->paintGL();
 	}
-	emit sig_draw_timing(false);
+//	emit sig_draw_timing(false);
 }
 
 #ifndef GL_MULTISAMPLE

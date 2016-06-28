@@ -324,6 +324,7 @@ public:
 	int get_vm_window_height_aspect();
 	scrntype_t* get_vm_screen_buffer(int y);
 	int draw_screen();
+	int no_draw_screen();
 	void reload_bitmap();
 	void capture_screen();
 	bool start_record_video(int fps);

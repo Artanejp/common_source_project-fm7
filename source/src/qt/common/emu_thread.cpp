@@ -1010,7 +1010,7 @@ void EmuThreadClass::print_framerate(int frames)
 
 void EmuThreadClass::do_draw_timing(bool f)
 {
-	draw_timing = f;
+//	draw_timing = f;
 }
 
 void EmuThreadClass::sample_access_drv(void)
@@ -1177,7 +1177,7 @@ void EmuThreadClass::doWork(const QString &params)
 	doing_debug_command = false;
 	
 	ctext.clear();
-	draw_timing = false;
+//	draw_timing = false;
 	bResetReq = false;
 	bSpecialResetReq = false;
 	bLoadStateReq = false;
@@ -1349,7 +1349,7 @@ void EmuThreadClass::doWork(const QString &params)
 			//printf("p_emu::RUN Frames = %d SKIP=%d Interval = %d NextTime = %d\n", run_frames, now_skip, interval, next_time);
 			if(next_time > tick_timer.elapsed()) {
 				//  update window if enough time
-				draw_timing = false;
+//				draw_timing = false;
 				if(!req_draw) {
 					no_draw_count++;
 					if(no_draw_count > (int)(FRAMES_PER_SEC / 4)) {
@@ -1359,7 +1359,6 @@ void EmuThreadClass::doWork(const QString &params)
 				} else {
 					no_draw_count = 0;
 				}
-				//p_emu->draw_screen();
 				emit sig_draw_thread(req_draw);
 				skip_frames = 0;
 			
@@ -1370,7 +1369,7 @@ void EmuThreadClass::doWork(const QString &params)
 				}
 			} else if(++skip_frames > MAX_SKIP_FRAMES) {
 				// update window at least once per 10 frames
-				draw_timing = false;
+//				draw_timing = false;
 				emit sig_draw_thread(true);
 				no_draw_count = 0;
 				skip_frames = 0;

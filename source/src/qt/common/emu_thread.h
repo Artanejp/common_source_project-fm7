@@ -74,7 +74,7 @@ private:
 	bool bStopRecordSoundReq;
 	bool bStartRecordMovieReq;
 
-	bool draw_timing;
+//	bool draw_timing;
 	bool doing_debug_command;
 	bool bUpdateVolumeReq[32];
 	int volume_balance[32];

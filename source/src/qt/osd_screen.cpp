@@ -118,6 +118,15 @@ int OSD_BASE::draw_screen()
 	}
 }
 
+int OSD_BASE::no_draw_screen()
+{
+	if(now_record_video) {
+		return add_video_frames();
+	} else {
+		return 1;
+	}
+}
+
 void OSD_BASE::update_screen()
 {
 	// UpdateScreen
