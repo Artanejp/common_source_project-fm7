@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                          June 21, 2016
+                                          June 29, 2016
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -96,10 +96,22 @@
       https://github.com/Artanejp/common_source_project-fm7
       https://www.pikacode.com/Artanejp/common_source_project-fm7/
 
-7. Upstream (Takeda Toshiyaさんのオリジナル) 
+7. Project Page:
+      https://osdn.jp/projects/csp-qt/
+
+8. Upstream (Takeda Toshiyaさんのオリジナル) 
       http://homepage3.nifty.com/takeda-toshiya/
 
 Changes:
+
+* SNAPSHOT June 29, 2016
+  * Upstream 2016-04-13
+  * Build with FFMPEG 3.0.2 supported libmp3lame.
+  * [MOVIE_SAVER/Win32] Fix wrong value of left frames for audio when stopping to record.
+  * [OSD/Qt] Fix wrong FPS with not drawing.
+  * Build with 3752c12b4b08f9910f3e3b6ad6f7dfbd76342cbb (or later).
+  
+-- Jun 29, 2016 13:05:15 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT June 21, 2016
   * Upstream 2016-04-13

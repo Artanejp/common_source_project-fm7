@@ -1,3 +1,21 @@
+commit 3752c12b4b08f9910f3e3b6ad6f7dfbd76342cbb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 29 12:12:33 2016 +0900
+
+    [MOVIE_SAVER][Win32] Fix wrong value of left frames for audio when stopping to record.
+
+commit e11aab907ec073b8c7fc1a556f71dcecb6294aa8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 28 17:30:11 2016 +0900
+
+    [OSD][SCREEN][Qt] Fix wrong FPS with not drawing.
+
+commit c6e8a7f49ff4936cb86bd9d7cc52e464ac8b50ab
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 21 02:35:28 2016 +0900
+
+    [DOC][OOPS] I forgot change readme_by_artane.txt, fixed.
+
 commit 31826b851e66a5dc1b72830860b99bcbe4e24e8c
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Tue Jun 21 01:31:18 2016 +0900
