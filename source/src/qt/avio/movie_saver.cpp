@@ -49,6 +49,7 @@ MOVIE_SAVER::MOVIE_SAVER(int width, int height, int fps, OSD *osd, config_t *cfg
 	audio_bit_rate = 160 * 1000;
 	video_geometry = QSize(640, 480);
 	video_encode_threads = 4;
+//	audio_enqueue_count = 0;
 
 	req_close = false;
 	bRunThread = false;
@@ -159,6 +160,7 @@ void MOVIE_SAVER::enqueue_audio(int16_t *p, int size)
 	QByteArray *pp = new QByteArray((const char *)p, size);
 	//AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Enqueue audio data %d bytes", size);
 	audio_data_queue.enqueue(pp);
+//	audio_enqueue_count++;
 #endif   
 }
 

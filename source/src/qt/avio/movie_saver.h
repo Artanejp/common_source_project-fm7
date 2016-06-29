@@ -80,6 +80,7 @@ class MOVIE_SAVER: public QThread
 private:
 	int n_encode_audio;
 	int n_encode_video;
+//	int64_t audio_enqueue_count;
 protected:
 	OSD *p_osd;
 	config_t *p_config;

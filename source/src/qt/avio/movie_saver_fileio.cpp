@@ -267,6 +267,10 @@ bool MOVIE_SAVER::do_open(QString filename, int _fps, int _sample_rate)
 			AGAR_DebugLog(AGAR_LOG_INFO, "Success to Open file: '%s\n", filename.toLocal8Bit().constData());
 		}			
 	}
+	totalSrcFrame = 0;
+	totalDstFrame = 0;
+	totalAudioFrame = 0;
+//	audio_enqueue_count = 0;
 
 	/* Write the stream header, if any. */
 	ret = avformat_write_header(oc, &raw_options_list);
@@ -345,27 +349,38 @@ void MOVIE_SAVER::do_close_main()
 	memset(audio_frame_buf, 0x00, sizeof(audio_frame_buf));
 	memset(video_frame_buf, 0x00, sizeof(video_frame_buf));
 
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE: Close: Left:  Video %lld frames, Audio %lld frames", video_data_queue.size(),
-				  audio_data_queue.size());
-
+	uint64_t leftq_a, leftq_v;
+	leftq_a = leftq_v = 0;
 	while(!audio_data_queue.isEmpty()) {
 		QByteArray *pp = audio_data_queue.dequeue();
-		if(pp != NULL) delete pp;
+		if(pp != NULL) {
+			leftq_a++;
+			delete pp;
+		}
 	}
 	audio_data_queue.clear();
 
 	while(!video_data_queue.isEmpty()) {
 		QImage *pp = video_data_queue.dequeue();
-		if(pp != NULL) delete pp;
+		if(pp != NULL) {
+			leftq_v++;
+			delete pp;
+		}
 	}
 	video_data_queue.clear();
 
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE: Close: Left:  Video %lld frames, Audio %lld frames",
+				  leftq_v,
+				  leftq_a
+		);
 	// Message
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE: Close: Write:  Video %lld frames, Audio %lld frames", totalDstFrame, totalAudioFrame);
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE: Close: Dequeue:  Video %lld frames, Audio %lld frames", totalDstFrame, audio_count);
 	totalSrcFrame = 0;
 	totalDstFrame = 0;
 	totalAudioFrame = 0;
+	//audio_enqueue_count = 0;
+	audio_count = 0;
 }
 
 
