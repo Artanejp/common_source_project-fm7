@@ -158,6 +158,7 @@ void MOVIE_SAVER::close_stream(void *_oc, void *_ost)
 bool MOVIE_SAVER::do_open(QString filename, int _fps, int _sample_rate)
 {
 #if defined(USE_LIBAV)
+	if(recording) return;
 	AVOutputFormat *fmt;
 	AVFormatContext *oc;
 	//AVCodec *audio_codec, *video_codec;
@@ -343,7 +344,6 @@ void MOVIE_SAVER::do_close_main()
 		av_dict_free(&raw_options_list);
 		raw_options_list = NULL;
 	}
-	recording = false;
 	req_close = false;
 #endif   // defined(USE_LIBAV)
 	memset(audio_frame_buf, 0x00, sizeof(audio_frame_buf));
@@ -376,6 +376,7 @@ void MOVIE_SAVER::do_close_main()
 	// Message
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE: Close: Write:  Video %lld frames, Audio %lld frames", totalDstFrame, totalAudioFrame);
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE: Close: Dequeue:  Video %lld frames, Audio %lld frames", totalDstFrame, audio_count);
+	recording = false;
 	totalSrcFrame = 0;
 	totalDstFrame = 0;
 	totalAudioFrame = 0;
