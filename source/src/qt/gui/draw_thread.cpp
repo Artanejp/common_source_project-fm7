@@ -58,10 +58,8 @@ void DrawThreadClass::SetEmu(EMU *p)
 void DrawThreadClass::doDraw(bool flag)
 {
 	if(flag) {
-//		emit sig_draw_timing(true);
 		draw_frames = p_osd->draw_screen();
 	} else {
-		//draw_frames = 1;
 		draw_frames = p_osd->no_draw_screen();
 	}
 	emit sig_draw_frames(draw_frames);

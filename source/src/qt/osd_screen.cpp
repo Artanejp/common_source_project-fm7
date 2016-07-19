@@ -112,19 +112,17 @@ int OSD_BASE::draw_screen()
 	
 	// record avi file
 	if(now_record_video) {
-		return add_video_frames();
-	} else {
-		return 1;
+		add_video_frames();
 	}
+	return 1;
 }
 
 int OSD_BASE::no_draw_screen()
 {
 	if(now_record_video) {
-		return add_video_frames();
-	} else {
-		return 1;
+		add_video_frames();
 	}
+	return 1;
 }
 
 void OSD_BASE::update_screen()
@@ -323,13 +321,22 @@ int OSD_BASE::add_video_frames()
 		rec_image_buffer = QImage(background_image);
 		QImage *video_result = &(vm_screen_buffer.pImage);
 		QRgb pixel;
-		for(int yy = 0; yy < video_result->height(); yy++) {
-			for(int xx = 0; xx < video_result->width(); xx++) {
+		int ww = video_result->width();
+		int hh = video_result->height();
+		for(int yy = 0; yy < hh; yy++) {
+			for(int xx = 0; xx < ww; xx++) {
 				pixel = video_result->pixel(xx, yy);
+#if defined(__LITTLE_ENDIAN__)
 				pixel |= 0xff000000;
 				if(pixel != 0xff000000) {
 					rec_image_buffer.setPixel(xx, yy, pixel);
 				}
+#else
+				pixel |= 0x000000ff;
+				if(pixel != 0x000000ff) {
+					rec_image_buffer.setPixel(xx, yy, pixel);
+				}
+#endif				
 			}
 		}
 		while(i > 0) {
