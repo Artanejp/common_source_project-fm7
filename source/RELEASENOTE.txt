@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                         June 29, 2016
+                                                         July 25, 2016
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 1.About
@@ -82,6 +82,16 @@ Upstream (Takeda Toshiya San's original code)
 http://homepage3.nifty.com/takeda-toshiya/
 
 Changes:
+
+* SNAPSHOT July 25, 2016
+  * Upstream 2016-04-13
+  * Bugfix only.
+  * [Win32] Build with Qt5.7.0 and GCC-6.1 (cross).
+  * [MOVIE_SAVER/OSD] Fix wrong framerate when recording ; this is related by frame skipping. Maybe fixed (3) of http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/705
+  * [MOVIE_SAVER/Qt] Fix duplicate opening before closing. Maybe fixed (5) of http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/708 .
+  * Build with 8265a0a859ac69ef7c17548851902eab2de6f7f4 (or later).
+  
+-- Jul 25, 2016 21:59:41 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT June 29, 2016
   * Upstream 2016-04-13

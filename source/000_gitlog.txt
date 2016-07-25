@@ -1,3 +1,34 @@
+commit 8265a0a859ac69ef7c17548851902eab2de6f7f4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 25 21:53:43 2016 +0900
+
+    [Build][Win32][CROSS] With (homebrew build of) Qt5.7.0.
+
+commit b0b504bf68c2a2418b1773990df8aaa6443724e0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jul 19 18:54:42 2016 +0900
+
+    [MOVIE_SAVER][OSD] Fix wrong framerate when recording ; this is related by frame skipping. Maybe fixed (3) of http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/705 .
+    [MOVIE_SAVER] One board computers: Fix wrong pixels when BIG_ENDIAN .
+
+commit b8af7fa7e7a8a7eeeb36be970d8c418f5dbc9f0e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jul 19 18:21:20 2016 +0900
+
+    [MOVIE_SAVER][Qt] Fix duplicate opening before closing. Maybe fixed (5) of http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/708 .
+
+commit 30e95573ea1560891f02cce4a20bd588830799e0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 29 13:10:44 2016 +0900
+
+    [DOC] Update documents.
+
+commit aa620307298b27c59c55e1e3ce667a07580398c1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 29 13:08:37 2016 +0900
+
+    [General] Update installer.
+
 commit 3752c12b4b08f9910f3e3b6ad6f7dfbd76342cbb
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Wed Jun 29 12:12:33 2016 +0900
@@ -803,7 +834,8 @@ commit 79057640386c89298bd1dbfcd6c3a45e8632d06e
 Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
 Date:   Mon May 16 16:35:09 2016 +0900
 
-    [BUILD][WIN32] Fix FTBFS.
+    
+[BUILD][WIN32] Fix FTBFS.
 
 commit 7410b9b300d333de91bddaa49abd6b1b5cc44c7a
 Author: K.Ohta <whatisthis.sowhat@gmail.com>

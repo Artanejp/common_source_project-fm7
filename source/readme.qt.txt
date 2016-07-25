@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                          June 21, 2016
+                                          July 25, 2016
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 0. About
