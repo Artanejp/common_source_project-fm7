@@ -1,0 +1,5 @@
+About OpenGL/Win32
+1. opengl32.dll in this package is software renderer, very slowly.
+2. If your box has OpenGL driver support OpenGL2.1 or later, rename opengl32.dll to any unused DLL name.
+Have fun!
+Ohta.
