@@ -25,6 +25,7 @@ else()
 #			  /usr/local/i586-mingw-msvc/5.5/mingw_530_win32
 			  )
 endif()
+SET(CSP_CROSS_BUILD 1)
 
 # adjust the default behaviour of the FIND_XXX() commands:
 # search headers and libraries in the target environment, search 
