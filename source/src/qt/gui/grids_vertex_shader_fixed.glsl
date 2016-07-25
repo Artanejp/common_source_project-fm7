@@ -1,12 +1,9 @@
-#ifdef GL_ES
- precision mediump float;
-#endif 
-
 attribute vec3 vertex;
-// This is from sample of Qt5 , see http://doc.qt.io/qt-5/qtopengl-cube-example.html .
-void main()
+void main ()
 {
-    // Calculate vertex position in screen space
-    gl_Position = vec4(vertex, 1.0);
+  vec4 tmpvar_1;
+  tmpvar_1.w = 1.0;
+  tmpvar_1.xyz = vertex;
+  gl_Position = tmpvar_1;
 }
 
