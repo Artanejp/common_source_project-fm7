@@ -74,6 +74,7 @@ class Menu_QDClass;
 class Menu_BinaryClass;
 class Menu_BubbleClass;
 class Menu_CompactDiscClass;
+class Menu_LaserdiscClass;
 class MOVIE_SAVER;
 
 
@@ -153,6 +154,11 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	void CreateCDROMPulldownMenu(void);
 	void retranslateCDROMMenu(void);
 
+	void CreateLaserdiscMenu(void);
+	void ConfigLaserdiscMenu(void);
+	void ConfigLaserdiscMenuSub(void);
+	void CreateLaserdiscPulldownMenu(void);
+	void retranslateLaserdiscMenu(void);
 
 	void ConfigBinaryMenu(void);
 	void retranslateBinaryMenu(int drv, int basedrv);
@@ -211,14 +217,7 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	QStringList listCMT;
 	bool cmt_write_protect;
 	QStringList listCDROM;
-	
-	class Action_Control *actionInsert_LD;
-	class Action_Control *actionEject_LD;
-	QActionGroup   *actionGroup_Opened_LD;
-	class Action_Control *actionRecent_Opened_LD;
-	class Action_Control *action_Recent_List_LD[MAX_HISTORY];
-	QStringList listLaserDisc;
-	
+	QStringList listLaserdisc;
 	QStringList listBINs[8];
 	// Screen
 	class Action_Control *actionZoom;
@@ -319,14 +318,11 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	Menu_CMTClass *menu_CMT;
 	
 	Menu_CompactDiscClass *menu_CDROM;
-	
+	Menu_LaserdiscClass *menu_Laserdisc;
 	Menu_CartClass *menu_Cart[8];
-	
-	QMenu *menuLD;
-	QMenu *menuLD_Recent;
 	Menu_BinaryClass *menu_BINs[8];
-	
 	Menu_BubbleClass *menu_bubbles[8];
+	
 	QStringList listBubbles[8];
 	QStringList listB77[8];
 
@@ -485,7 +481,7 @@ public slots:
 	void do_eject_cdrom(int drv);
 	void do_open_cdrom(int drv, QString path);
 	void do_change_osd_cdrom(QString tmpstr);
-#if 0
+#if 1
 	int set_recent_laserdisc(int num); 
 	void do_eject_laserdisc(void); 
 	void do_open_laserdisc(QString path);
@@ -633,8 +629,8 @@ signals:
 	int sig_open_cart(int drv, QString path);
 	int sig_open_cdrom(QString path);
 	int sig_close_cdrom(void);
-	int sig_close_laser_disk(void);
-	int sig_open_laser_disk(QString path);
+	int sig_close_laserdisc(void);
+	int sig_open_laserdisc(QString path);
 	int sig_load_binary(int drv, QString path);
 	int sig_save_binary(int drv, QString path);
 	int sig_write_protect_bubble(int, bool);

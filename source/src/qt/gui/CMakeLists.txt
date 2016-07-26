@@ -15,6 +15,7 @@ set(s_qt_gui_headers
 	  menu_cart.h
 	  menu_quickdisk.h
 	  menu_compactdisc.h
+	  menu_laserdisc.h
 	  menu_binary.h
 	  menu_bubble.h
 	  display_about.h
@@ -50,6 +51,7 @@ set(s_qt_gui_srcs
 	  menu_disk.cpp
 	  menu_quickdisk.cpp
 	  menu_compactdisc.cpp
+	  menu_laserdisc.cpp
 	  menu_cmt.cpp
 	  menu_cart.cpp
 	  menu_main.cpp
@@ -60,6 +62,7 @@ set(s_qt_gui_srcs
 	  mainwindow_utils.cpp
 	  util_fd.cpp
 	  util_cd.cpp
+	  util_ld.cpp
 	  util_cmt.cpp
 	  util_qd.cpp
 	  util_cart.cpp

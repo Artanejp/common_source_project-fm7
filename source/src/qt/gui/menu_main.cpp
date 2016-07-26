@@ -25,6 +25,7 @@
 #include "menu_quickdisk.h"
 #include "menu_binary.h"
 #include "menu_compactdisc.h"
+#include "menu_laserdisc.h"
 #include "menu_bubble.h"
 
 #include "qt_gldraw.h"
@@ -107,6 +108,9 @@ void Ui_MainWindowBase::setupUi(void)
 	if(using_flags->is_use_compact_disc()) {
 		ConfigCDROMMenu();
 	}
+	if(using_flags->is_use_laser_disc()) {
+		ConfigLaserdiscMenu();
+	}
 	if(using_flags->is_use_bubble()) {
 		ConfigBubbleMenu();
 	}
@@ -177,6 +181,9 @@ void Ui_MainWindowBase::setupUi(void)
 	}
 	if(using_flags->is_use_compact_disc()) {
 		CreateCDROMMenu();
+	}
+	if(using_flags->is_use_laser_disc()) {
+		CreateLaserdiscMenu();
 	}
 	if(using_flags->is_use_bubble()) {
 		int i;
@@ -250,9 +257,9 @@ void Ui_MainWindowBase::setupUi(void)
 	if(using_flags->is_use_compact_disc()) {
 		menubar->addAction(menu_CDROM->menuAction());
 	}
-//	if(using_flags->is_use_laser_disc()) {
-//		menubar->addAction(menu_LaserDisc->menuAction());
-//	}
+	if(using_flags->is_use_laser_disc()) {
+		menubar->addAction(menu_Laserdisc->menuAction());
+	}
 	if(using_flags->is_use_bubble()) {
 		int i;
 		for(i = 0; i < using_flags->get_max_bubble(); i++) {

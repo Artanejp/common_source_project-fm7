@@ -98,6 +98,10 @@ signals:
 	int sig_eject_cdrom(void);
 	int sig_recent_cdrom(int);
 		
+	int sig_insert_laserdisc(bool);
+	int sig_eject_laserdisc(void);
+	int sig_recent_laserdisc(int);
+	
 	int sig_insert_play_cmt(bool);
 	int sig_eject_cmt(void);
 	int sig_recent_cmt(int);
@@ -171,6 +175,10 @@ public slots:
 	void eject_cdrom(void);
 	void on_recent_cdrom();
 
+	void insert_laserdisc(void);
+	void eject_laserdisc(void);
+	void on_recent_laserdisc();
+	
 	void start_insert_play_cmt(void);
 	void eject_cmt(void);
 	void on_recent_cmt(void);
