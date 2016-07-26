@@ -56,7 +56,7 @@ void Ui_MainWindowBase::ConfigLaserdiscMenuSub(void)
 	
 }
 
-int Ui_MainWindowBase::set_recent_laserdisc(int num) 
+int Ui_MainWindowBase::set_recent_laserdisc(int drv, int num) 
 {
 	QString s_path;
 	char path_shadow[PATH_MAX];
@@ -78,12 +78,12 @@ int Ui_MainWindowBase::set_recent_laserdisc(int num)
 	return 0;
 }
 
-void Ui_MainWindowBase::do_eject_laserdisc(void) 
+void Ui_MainWindowBase::do_eject_laserdisc(int drv) 
 {
 	emit sig_close_laserdisc();
 }
 
-void Ui_MainWindowBase::do_open_laserdisc(QString path) 
+void Ui_MainWindowBase::do_open_laserdisc(int drv, QString path) 
 {
 	char path_shadow[PATH_MAX];
 	int i;
@@ -97,7 +97,7 @@ void Ui_MainWindowBase::do_open_laserdisc(QString path)
 	strncpy(path_shadow, path.toLocal8Bit().constData(), PATH_MAX);
 
 	emit sig_close_laserdisc();
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "CD-ROM: Open : filename = %s", path_shadow);
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "Laserdisc: Open : filename = %s", path_shadow);
 	emit sig_open_laserdisc(path);
 	menu_Laserdisc->do_update_histories(listLaserdisc);
 	menu_Laserdisc->do_set_initialize_directory(using_flags->get_config_ptr()->initial_laser_disc_dir);

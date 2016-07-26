@@ -28,7 +28,9 @@
 
 #include "ld700.h"
 #include "../fifo.h"
-
+#if !defined(__GNUC__) && !defined(__CYGWIN__) && !defined(Q_OS_CYGWIN)
+#define strnicmp(a,b,c) _strnicmp(a,b,c)
+#endif
 void LD700::initialize()
 {
 	prev_remote_signal = false;
@@ -389,7 +391,7 @@ void LD700::open_disc(const _TCHAR* file_path)
 				
 				for(int i = 0; i < 0x1000; i++) {
 					char *top = (char *)(buffer + i), tmp[128];
-					if(_strnicmp(top, "chapter:", 8) == 0) {
+					if(strnicmp(top, "chapter:", 8) == 0) {
 						top += 8;
 						for(int j = 0;;) {
 							char c = *top++;
@@ -417,7 +419,7 @@ void LD700::open_disc(const _TCHAR* file_path)
 							track_frame_raw[track] = atoi(tmp);
 							emu->out_debug_log(_T("LD700: TRACK %d: %d\n"), track, track_frame_raw[track]);
 						}
-					} else if(_strnicmp(top, "stop:", 5) == 0) {
+					} else if(strnicmp(top, "stop:", 5) == 0) {
 						top += 5;
 						for(int j = 0;;) {
 							char c = *top++;
@@ -433,7 +435,7 @@ void LD700::open_disc(const _TCHAR* file_path)
 							emu->out_debug_log(_T("LD700: PAUSE %d\n"), pause_frame_raw[num_pauses]);
 							num_pauses++;
 						}
-					} else if(_strnicmp(top, "ENCODER=", 8) == 0) {
+					} else if(strnicmp(top, "ENCODER=", 8) == 0) {
 						break;
 					}
 				}

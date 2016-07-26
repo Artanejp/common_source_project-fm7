@@ -481,12 +481,12 @@ public slots:
 	void do_eject_cdrom(int drv);
 	void do_open_cdrom(int drv, QString path);
 	void do_change_osd_cdrom(QString tmpstr);
-#if 1
-	int set_recent_laserdisc(int num); 
-	void do_eject_laserdisc(void); 
-	void do_open_laserdisc(QString path);
+
+	int set_recent_laserdisc(int drv, int num); 
+	void do_eject_laserdisc(int drv); 
+	void do_open_laserdisc(int drv, QString path);
 	void do_change_osd_laserdisc(QString tmpstr);
-#endif	
+
 	void CreateBinaryMenu(int drv, int drv_base);
 	void CreateBinaryPulldownMenu(int drv);
 	void ConfigBinaryMenuSub(int drv);

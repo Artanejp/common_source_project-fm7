@@ -32,6 +32,9 @@ void META_MainWindow::retranslateUi(void)
 	retranslateSoundMenu();
 	retranslateScreenMenu();
 	retranslateMachineMenu();
+#if defined(_PX7)
+	retranslateLaserdiscMenu();
+#endif
 	retranslateEmulatorMenu();
 	retranslateUI_Help();
    

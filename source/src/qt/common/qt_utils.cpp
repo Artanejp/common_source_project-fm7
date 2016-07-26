@@ -217,8 +217,8 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(hRunEmu, SIGNAL(sig_change_osd_cdrom(QString)), this, SLOT(do_change_osd_cdrom(QString)));
 #endif	
 #if defined(USE_LASER_DISK)
-	connect(this, SIGNAL(sig_open_laserdisc(QString)), hRunEmu, SLOT(do_open_laserdisc(QString)));
-	connect(this, SIGNAL(sig_close_laserdisc(void)), hRunEmu, SLOT(do_close_laserdisc(void)));
+	connect(this, SIGNAL(sig_open_laserdisc(QString)), hRunEmu, SLOT(do_open_laser_disc(QString)));
+	connect(this, SIGNAL(sig_close_laserdisc(void)), hRunEmu, SLOT(do_close_laser_disc(void)));
 #endif
 #if defined(USE_BINARY_FILE1)
 	connect(this, SIGNAL(sig_load_binary(int, QString)), hRunEmu, SLOT(do_load_binary(int, QString)));

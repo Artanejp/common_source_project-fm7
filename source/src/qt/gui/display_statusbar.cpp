@@ -337,6 +337,10 @@ void Ui_MainWindowBase::do_change_osd_cdrom(QString tmpstr)
 {
 	osd_str_cdrom = tmpstr;
 }
+void Ui_MainWindowBase::do_change_osd_laserdisc(QString tmpstr)
+{
+	osd_str_laserdisc = tmpstr;
+}
 void Ui_MainWindowBase::do_change_osd_cmt(QString tmpstr)
 {
 	osd_str_cmt = tmpstr;
