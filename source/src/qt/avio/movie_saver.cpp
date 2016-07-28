@@ -207,7 +207,7 @@ void MOVIE_SAVER::run()
 	bool need_video_transcode = false;
 	int i;
 	int64_t total_packets_written = 0;
-	bool old_recording = false;
+	volatile bool old_recording = false;
 	audio_remain = 0;
 	video_remain = 0;
 	audio_offset = 0;
@@ -220,9 +220,8 @@ void MOVIE_SAVER::run()
 	while(bRunThread) {
 		if(recording) {
 			if(!bRunThread) break;
-			if(old_recording != recording) {
-				AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE/Saver: Start to recording.");
-				n_encode_video = n_encode_audio = 1;
+			if(!old_recording) {
+				//n_encode_video = n_encode_audio = 1;
 				audio_remain = 0;
 				video_remain = 0;
 				audio_offset = 0;
@@ -231,6 +230,14 @@ void MOVIE_SAVER::run()
 				video_count = 0;
 				audio_count = 0;
 				req_close = false;
+				printf("*\n");
+				if(!do_open_main()) {
+					recording = false;
+					req_close = false;
+					goto _next_turn;
+				}
+				AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE/Saver: Start to recording.");
+				old_recording = true;
 			}
 			if(audio_remain <= 0) {
 				if(audio_data_queue.isEmpty()) goto _video;
@@ -275,11 +282,12 @@ void MOVIE_SAVER::run()
 			//print_report(0, timer_start, cur_time);
 			if(req_close) {
 				do_close_main();
+				need_video_transcode = need_audio_transcode = false;
+				old_recording = false;
 			}
 		}
 	_next_turn:
 		//printf("%d\n", req_close);
-		old_recording = recording;
 		if(!bRunThread) break;
 		if(need_video_transcode || need_audio_transcode) {
 			need_video_transcode = need_audio_transcode = false;
@@ -297,18 +305,18 @@ void MOVIE_SAVER::run()
 			//fps_wait = 10;
 			tmp_wait = fps_wait;
 		}
-		old_recording = recording;
 		if(req_close) {
 			do_close_main();
+			old_recording = false;
 		}
 		continue;
 	_final:
-		old_recording = recording;
 		do_close_main();
-		req_close = false;
+		old_recording = false;
 	}
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE: Exit thread.");
 	if(recording) {
+		req_close = true;
 		do_close_main();
 	}
 }

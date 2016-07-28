@@ -191,6 +191,7 @@ protected:
 	QString ts2timestr(int64_t ts, void *timebase);
 	QString err2str(int errnum);
 	void do_close_main();
+	bool do_open_main();
 
 public:
 	MOVIE_SAVER(int width, int height, int fps, OSD *osd, config_t *cfg);
@@ -202,7 +203,7 @@ public slots:
 	void enqueue_video(QImage *p);
 	void enqueue_audio(int16_t *p, int size);
 	void do_close();
-	bool do_open(QString filename, int _fps, int sample_rate);
+	void do_open(QString filename, int _fps, int sample_rate);
 	void do_set_width(int width);
 	void do_set_height(int height);
 	void do_set_record_fps(int fps);
@@ -219,6 +220,7 @@ public slots:
 	void do_exit();
 signals:
 	int sig_ready_to_record();
+	int sig_set_state_saving_movie(bool);
 };
 QT_END_NAMESPACE
 

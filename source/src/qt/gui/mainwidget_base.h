@@ -455,7 +455,7 @@ public slots:
 	virtual void rise_movie_dialog(void);
 	void do_stop_saving_movie(void);
 	void do_start_saving_movie(void);
-
+	void do_set_state_saving_movie(bool state);
 	void OnLoadState(void);
 	void OnSaveState(void);
 	virtual void OnOpenDebugger(int n);

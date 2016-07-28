@@ -145,7 +145,7 @@ void MOVIE_SAVER::close_stream(void *_oc, void *_ost)
 	AVFormatContext *oc = (AVFormatContext *)_oc;
 	OutputStream *ost = (OutputStream *)_ost;
 	avcodec_close(ost->st->codec);
-	while(avcodec_is_open(ost->st->codec) != 0) {}
+	while(avcodec_is_open(ost->st->codec) != 0) { this->msleep(5);}
 	av_frame_free(&ost->frame);
 	av_frame_free(&ost->tmp_frame);
 	sws_freeContext(ost->sws_ctx);
@@ -153,12 +153,25 @@ void MOVIE_SAVER::close_stream(void *_oc, void *_ost)
 #endif	
 }
 
+void MOVIE_SAVER::do_open(QString filename, int _fps, int _sample_rate)
+{
+	if(recording || req_close) return;
+	if(filename.isEmpty()) return;
+	if(_fps <= 0) return;
+	if(_sample_rate <= 10) return;
+	do_set_record_fps(_fps);
+	audio_sample_rate = _sample_rate;
+	_filename = filename;
+	recording = true;
+}
 
-
-bool MOVIE_SAVER::do_open(QString filename, int _fps, int _sample_rate)
+bool MOVIE_SAVER::do_open_main()
 {
 #if defined(USE_LIBAV)
-	if(recording) return;
+	if(req_close) return false;
+	if(_filename.isEmpty()) return false;
+	if(rec_fps <= 0) return false;
+	if(audio_sample_rate <= 10) return false;
 	AVOutputFormat *fmt;
 	AVFormatContext *oc;
 	//AVCodec *audio_codec, *video_codec;
@@ -169,20 +182,14 @@ bool MOVIE_SAVER::do_open(QString filename, int _fps, int _sample_rate)
    	int ret;
 	have_video = 0, have_audio = 0;
 	int encode_video = 0, encode_audio = 0;
-
 	 
 	raw_options_list = NULL;
-
-	do_set_record_fps(_fps);
-	audio_sample_rate = _sample_rate;
-	printf("Sample Rate:%d\n",_sample_rate);
-	_filename = filename;
+	printf("Sample Rate:%d\n",audio_sample_rate);
 	
 	video_st = { 0 };
 	audio_st = { 0 };
 	/* Initialize libavcodec, and register all codecs and formats. */
 	av_register_all();
-
 
 	{
 		QString value;
@@ -207,7 +214,7 @@ bool MOVIE_SAVER::do_open(QString filename, int _fps, int _sample_rate)
 	/* allocate the output media context */
 	avformat_alloc_output_context2(&oc, NULL, NULL, _filename.toLocal8Bit().constData());
 	if (!oc) {
-		printf("Could not deduce output format from file extension: using MPEG.\n");
+		printf("Could not reduce output format from file extension: using MPEG.\n");
 		avformat_alloc_output_context2(&oc, NULL, "mpeg", _filename.toLocal8Bit().constData());
 	}
 	if (!oc)
@@ -259,13 +266,13 @@ bool MOVIE_SAVER::do_open(QString filename, int _fps, int _sample_rate)
 
 	/* open the output file, if needed */
 	if (!(fmt->flags & AVFMT_NOFILE)) {
-		ret = avio_open(&oc->pb, filename.toLocal8Bit().constData(), AVIO_FLAG_WRITE);
+		ret = avio_open(&oc->pb, _filename.toLocal8Bit().constData(), AVIO_FLAG_WRITE);
 		if (ret < 0) {
-			AGAR_DebugLog(AGAR_LOG_INFO, "Could not open '%s': %s\n", filename.toLocal8Bit().constData(),
+			AGAR_DebugLog(AGAR_LOG_INFO, "Could not open '%s': %s\n", _filename.toLocal8Bit().constData(),
 					err2str(ret).toLocal8Bit().constData());
 			goto _err_final;
 		} else {
-			AGAR_DebugLog(AGAR_LOG_INFO, "Success to Open file: '%s\n", filename.toLocal8Bit().constData());
+			AGAR_DebugLog(AGAR_LOG_INFO, "Success to Open file: '%s\n", _filename.toLocal8Bit().constData());
 		}			
 	}
 	totalSrcFrame = 0;
@@ -280,18 +287,17 @@ bool MOVIE_SAVER::do_open(QString filename, int _fps, int _sample_rate)
 				err2str(ret).toLocal8Bit().constData());
 		goto _err_final;
 	}
-
-	recording = true;
-	emit sig_ready_to_record();
+	emit sig_set_state_saving_movie(true);
 	return true;
 _err_final:
-	recording = false;
 	avformat_free_context(oc);
 	oc = NULL;
 	output_context = NULL;
 	stream_format  = NULL;
+	emit sig_set_state_saving_movie(false);
 	return false;
 #else
+	emit sig_set_state_saving_movie(true);
 	return true;
 #endif	
 }
@@ -303,6 +309,7 @@ void MOVIE_SAVER::do_close()
 
 void MOVIE_SAVER::do_close_main()
 {
+	if(!req_close) return;
 #if defined(USE_LIBAV)
 	int ret, i;
 	OutputStream *ost;
@@ -316,6 +323,18 @@ void MOVIE_SAVER::do_close_main()
 		AVCodecContext *c = video_st.st->codec;
 		
 		//av_write_trailer(oc);
+		if(totalSrcFrame != totalDstFrame) {
+			while(!video_data_queue.isEmpty()) {
+				dequeue_video(video_frame_buf);
+				if(write_video_frame() < 0) break;
+			}
+		}
+		while(!audio_data_queue.isEmpty()) {
+			if(av_compare_ts(video_st.next_pts, video_st.st->codec->time_base,
+							 audio_st.next_pts, audio_st.st->codec->time_base) <= 0) break;
+			dequeue_audio(audio_frame_buf);
+			if(write_audio_frame() < 0) break;
+		}
 
 		/* Close each codec. */
 		if (have_video)	{
@@ -344,7 +363,6 @@ void MOVIE_SAVER::do_close_main()
 		av_dict_free(&raw_options_list);
 		raw_options_list = NULL;
 	}
-	req_close = false;
 #endif   // defined(USE_LIBAV)
 	memset(audio_frame_buf, 0x00, sizeof(audio_frame_buf));
 	memset(video_frame_buf, 0x00, sizeof(video_frame_buf));
@@ -372,16 +390,26 @@ void MOVIE_SAVER::do_close_main()
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE: Close: Left:  Video %lld frames, Audio %lld frames",
 				  leftq_v,
 				  leftq_a
-		);
+	);
 	// Message
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE: Close: Write:  Video %lld frames, Audio %lld frames", totalDstFrame, totalAudioFrame);
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE: Close: Dequeue:  Video %lld frames, Audio %lld frames", totalDstFrame, audio_count);
-	recording = false;
 	totalSrcFrame = 0;
 	totalDstFrame = 0;
 	totalAudioFrame = 0;
 	//audio_enqueue_count = 0;
+	audio_remain = 0;
+	video_remain = 0;
+	audio_offset = 0;
+	audio_frame_offset = 0;
+	video_offset = 0;
+	video_count = 0;
 	audio_count = 0;
+	
+	req_close = false;
+	recording = false;
+	
+	emit sig_set_state_saving_movie(false);
 }
 
 
