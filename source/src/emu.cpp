@@ -316,7 +316,6 @@ void EMU::force_unlock_vm()
 	osd->force_unlock_vm();
 }
 
-
 bool EMU::is_vm_locked()
 {
 	return osd->is_vm_locked();

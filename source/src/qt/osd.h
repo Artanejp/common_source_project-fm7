@@ -56,9 +56,8 @@ protected:
 	int get_screen_width(void);
 	int get_screen_height(void);
 	int get_vm_buttons_code(int num);
-#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	MOVIE_LOADER *movie_loader;
-#endif	
+
 public:
 	OSD(USING_FLAGS *p);
 	~OSD();
@@ -78,19 +77,18 @@ public:
 	int get_window_mode_height(int mode);
 	QString get_vm_config_name(void);
 	double vm_frame_rate(void);
+	void get_video_buffer();
 	
-#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	void initialize_video();
 	void release_video();
 	bool open_movie_file(const _TCHAR* file_path);
 	void close_movie_file();
 	uint32_t get_cur_movie_frame();
-#endif
+
 public slots:
-#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	void do_decode_movie(int frames);
 	void do_run_movie_audio_callback(uint8_t *data, long len);
-#endif
+
 };
 QT_END_NAMESPACE
 

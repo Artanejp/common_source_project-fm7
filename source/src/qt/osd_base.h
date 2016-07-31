@@ -115,7 +115,7 @@ protected:
 	int mouse_button;
 	int mouse_oldx;
 	int mouse_oldy;
-	Qt::CursorShape mouse_shape;
+	//Qt::CursorShape mouse_shape;
 	
 	QImage background_image;
 	QImage button_images[N_MAX_BUTTONS];
@@ -190,7 +190,7 @@ protected:
 	// video device
 	virtual void initialize_video();
 	virtual void release_video();
-	
+  
 	bitmap_t dshow_screen_buffer;
 	int direct_show_width, direct_show_height;
 	bool direct_show_mute[2];
@@ -253,6 +253,8 @@ public:
 	//EMU* emu;
 	class Ui_MainWindow *main_window_handle;
 	GLDrawClass *glv;
+	QMutex *screen_mutex;
+	
 	int host_cpus;
 	bool now_auto_key;
 	
@@ -344,7 +346,7 @@ public:
 	int get_sound_rate();
 	
 	// common video device
-	void get_video_buffer();
+	virtual void get_video_buffer();
 	void mute_video_dev(bool l, bool r);
 	virtual bool open_movie_file(const _TCHAR* file_path);
 	virtual void close_movie_file();
@@ -426,7 +428,8 @@ public slots:
 	void set_buttons();
 	void do_start_record_video();
 	virtual void do_decode_movie(int frames);
-	virtual void do_run_movie_audio_callback(uint8_t *data, long len);
+	void do_video_movie_end(bool flag);
+	void do_video_decoding_error(int num);
 signals:
 	int sig_update_screen(bitmap_t *);
 	int sig_save_screen(const char *);
@@ -445,6 +448,7 @@ signals:
 
 	int sig_movie_play();
 	int sig_movie_stop();
+	int sig_movie_pause(bool);
 	int sig_movie_seek_frame(bool, int);
 
 };

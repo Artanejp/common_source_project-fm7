@@ -344,14 +344,6 @@ _TCHAR* OSD_BASE::get_capture_dev_name(int index)
 	return capture_dev_name[index];
 }
 
-void OSD_BASE::wait_video_frame(QMutex *m)
-{
-}
-
-void OSD_BASE::do_decode_video_frame_completed()
-{
-}
-
 void OSD_BASE::do_decode_movie(int frames)
 {
 }
@@ -365,3 +357,4 @@ void OSD_BASE::do_video_decoding_error(int num)
 {
 	
 }
+

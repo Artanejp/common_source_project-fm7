@@ -42,10 +42,13 @@ typedef struct {
 
 QT_BEGIN_NAMESPACE
 class OSD;
+class QMutex;
+
 class MOVIE_LOADER: public QObject
 {
 	Q_OBJECT
 private:
+
 #if defined(USE_LIBAV)
 	AVFormatContext *fmt_ctx; // = NULL;
 	AVCodecContext *video_dec_ctx;// = NULL
@@ -69,6 +72,9 @@ private:
 protected:
 	OSD *p_osd;
 	config_t *p_cfg;
+
+	QMutex *video_mutex;
+	QMutex *snd_write_lock;
 	uint64_t frame_count;
 	double frame_rate;
 	int sound_rate;
@@ -93,9 +99,11 @@ public:
 	~MOVIE_LOADER();
 	bool open(QString filename);
 	bool close();
+	
+	void get_video_frame(void);	
 	double  get_movie_frame_rate(void);
 	int get_movie_sound_rate(void);
-	
+
 	QReadWriteLock frame_lock;
 	QWaitCondition lock_cond;
 	

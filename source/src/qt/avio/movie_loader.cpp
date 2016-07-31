@@ -2,15 +2,23 @@
 #include "movie_loader.h"
 
 #include <QMutex>
+
 MOVIE_LOADER(OSD *osd, config_t *cfg) : public QObject(NULL);
 {
 	p_osd = osd;
 	p_cfg = cfg;
+
+	video_mutex = new QMutex(QMutex::Recursive);
+	snd_write_lock = new QMutex(QMutex::Recursive);
 	
 	frame_count = 0;
 	frame_rate = 29.97;
+	video_frame_count = 0;
+	audio_frame_count = 0;
+	
 	now_opening = false;
 	use_hwaccel = false;
+	
 	_filename.clear();
 
 	video_format.clear();
@@ -38,12 +46,16 @@ MOVIE_LOADER(OSD *osd, config_t *cfg) : public QObject(NULL);
 	video_stream_idx = -1;
 	audio_stream_idx = -1;
 	frame = NULL;
-	video_frame_count = 0;
-	audio_frame_count = 0;
 	refcount = 0;
 #endif
 
 }
+
+~MOVIE_LOADER()
+{
+	delete video_mutex;
+}
+
 
 #if defined(USE_LIBAV)
 int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
@@ -78,10 +90,12 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
             }
 			if((old_dst_width != dst_width) || (old_dst_height != dst_height)) { // You sould allocate on opening.
 				if(tmp_frame != NULL) {
+					video_mutex->lock();
 					av_frame_free(tmp_frame);
 					tmp_frame = av_frame_alloc();
 					if (tmp_frame == NULL) {
 						AGAR_DebugLog(AGAR_LOG_INFO, "MOVIE_LOADER: Could not re-allocate video frame\n");
+						video_mutex->unlock();
 						return -1;
 					}
 					tmp_frame->format = AV_PIX_FMT_BGRA;
@@ -91,8 +105,10 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 					if(ret < 0) {
 						av_frame_free(tmp_frame);
 						AGAR_DebugLog(AGAR_LOG_INFO, "MOVIE_LOADER: Could not re-allocate output buffer\n");
+						video_mutex->unlock();
 						return -1;
 					}
+					video_mutex->unlock();
 				}
 			}
 			old_dst_width = dst_width;
@@ -123,10 +139,12 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 				
 			}
 			if(tmp_frame != NULL) { // You must pull final frame (and need locking?) before emit sig_decode_frames_complete().
+				video_mutex->lock();
 				ret = av_frame_make_writable(tmp_frame);
 				sws_scale(sws_context,
 						  frame->data, frame->linesize,
 						  0, dst_height, tmp_frame->data, tmp_frame->linesize);
+				video_mutex->unlock();
 			}
 			
 		} else if (pkt.stream_index == audio_stream_idx) {
@@ -162,10 +180,9 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 					px->data = malloc((long)unpadded_linesize);
 					memcpy(px->data, (uint8_t *)(frame->extended_data[0]), (long)unpadded_linesize); // post tmp-buffer.
 					px->unpadded_linesize = (long)unpadded_linesize;
-					
-					snd_write_lock.lockForWrite();
+					snd_write_lock->lock();
 					sound_data_queue.enqueue(px);
-					snd_write_lock.unlock();
+					snd_write_lock->unlock();
 				}
 				//fwrite(frame->extended_data[0], 1, unpadded_linesize, audio_dst_file);
         }
@@ -191,7 +208,7 @@ int MOVIE_LOADER::open_codec_context(int *stream_idx,
     ret = av_find_best_stream(fmt_ctx, type, -1, -1, NULL, 0);
     if (ret < 0) {
         fprintf(stderr, "Could not find %s stream in input file '%s'\n",
-                av_get_media_type_string(type), src_filename);
+                av_get_media_type_string(type), _filename.toLocal8Bit().constData());
         return ret;
     } else {
         stream_index = ret;
@@ -254,13 +271,18 @@ bool MOVIE_LOADER::open(QString filename)
 {
     int ret = 0, got_frame;
 	_filename = filename;
+	if(_filename.isEmpty()) return false;
+	
 	frame_count = 0;
+	audio_frame_count = 0;
+	video_frame_count = 0;
+	
     /* register all formats and codecs */
     av_register_all();
 
     /* open input file, and allocate format context */
     if (avformat_open_input(&fmt_ctx, _filename.toLocal8Bit().constData(), NULL, NULL) < 0) {
-        fprintf(stderr, "Could not open source file %s\n", src_filename);
+        fprintf(stderr, "Could not open source file %s\n", _filename.toLocal8Bit().constData());
         return -1;
     }
 
@@ -293,7 +315,7 @@ bool MOVIE_LOADER::open(QString filename)
     }
 
     /* dump input information to stderr */
-    av_dump_format(fmt_ctx, 0, src_filename, 0);
+    av_dump_format(fmt_ctx, 0, _filename.toLocal8Bit().constData(), 0);
 
     if (!audio_stream && !video_stream) {
         fprintf(stderr, "Could not find audio or video stream in the input, aborting\n");
@@ -331,6 +353,7 @@ bool MOVIE_LOADER::open(QString filename)
     pkt.size = 0;
 
 	// Re-allocate buffer;
+	video_mutex->lock();
 	tmp_frame = av_frame_alloc();
 	if (tmp_frame == NULL) {
 		AGAR_DebugLog(AGAR_LOG_INFO, "MOVIE_LOADER: Could not allocate output frame\n");
@@ -340,6 +363,7 @@ bool MOVIE_LOADER::open(QString filename)
 	tmp_frame->width = dst_width;
 	tmp_frame->height = dst_height;
 	ret = av_frame_get_buffer(tmp_frame, 32); //*
+	video_mutex->unlock();
 	if(ret < 0) {
 		av_frame_free(tmp_frame);
 		AGAR_DebugLog(AGAR_LOG_INFO, "MOVIE_LOADER: Could not re-allocate output buffer\n");
@@ -363,7 +387,10 @@ void MOVIE_LOADER::close(void)
 	}
 	swr_free(swr_context);
 	
+	video_mutex->lock();
 	if(tmp_frame != NULL) av_frame_free(&tmp_frame);
+	video_mutex->unlock();
+	
 	video_dec_ctx = NULL;
 	audio_dec_ctx = NULL;
 	sws_context = NULL;
@@ -454,14 +481,14 @@ void MOVIE_LOADER::do_decode_frames(int frames)
 		}
 		if(!now_pausing) {
 			uint32_t q;
-			p_osd->screen_mutex->lock();
+			video_mutex->lock();
 			for(int yy = 0; yy < dst_height; yy++) { 
-				q = (uint32_t *)(p_osd->get_vm_screen_buffer(yy));
+				q = (uint32_t *)(&(tmp_frame->data[0][yy * tmp_frame->linesize[0]]));
 				if((q != NULL) && (dst_width != 0)) {
 					memset(q, 0x00, dst_width * sizeof(uint32_t));
 				}
 			}
-			p_osd->screen_mutex->unlock();
+			video_mutex->unlock();
 		}
 		return;
 	}
@@ -478,13 +505,20 @@ void MOVIE_LOADER::do_decode_frames(int frames)
 		emit sig_movie_end(true);
 		return;
 	}
-	
+	do_dequeue_audio();
+	return;
+}
+
+void MOVIE_LOADER::get_video_frame()
+{
 	uint32_t cacheline[8];
 	uint32_t *p;
 	uint32_t *q;
 	int xx;
+	
 	p_osd->screen_mutex->lock();
 	if(tmp_frame != NULL) {
+		video_mutex->lock();
 		for(int yy = 0; yy < dst_height; yy++) {
 			p = (uint32_t *)(&(tmp_frame->data[0][yy * tmp_frame->linesize[0]]));
 			q = (uint32_t *)(p_osd->get_vm_screen_buffer(yy));
@@ -517,14 +551,12 @@ void MOVIE_LOADER::do_decode_frames(int frames)
 				*q++ = *p++;
 			}
 		}
+		video_mutex->unlock();
 	}
 	p_osd->screen_mutex->unlock();
-
-	do_dequeue_audio();
-	return;
 }
 
-void MOVIE_SAVER::do_seek_frame(bool relative, int frames)
+void MOVIE_LOADER::do_seek_frame(bool relative, int frames)
 {
 	// TODO.
 }
@@ -534,7 +566,7 @@ void MOVIE_LOADER::do_dequeue_audio()
 	long audio_data_size = 0;
 	sound_data_queue_t *tmpq = NULL;
 	
-	snd_write_lock.lockForWrite();
+	snd_write_lock->lock();
 	int il = sound_data_queue.count();
 	while(il > 0) {
 		tmpq = sound_data_queue.at(il - 1);
@@ -566,8 +598,10 @@ void MOVIE_LOADER::do_dequeue_audio()
 			}
 		}
 	}
-	snd_write_lock.unlock();
-	if(tmpdata != NULL) emit sig_send_audio_frame(tmpdata,dptr); // Please free arg1 after calling sound_callback of vm.
+	snd_write_lock->unlock();
+	if((tmpdata != NULL) && (dptr != 0)) {
+		emit sig_send_audio_frame(tmpdata,dptr); // Please free arg1 after calling sound_callback of vm.
+	}
 }	
 
 	

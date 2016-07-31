@@ -277,6 +277,7 @@ public:
 	EMU *get_emu(void);
 	void set_osd(OSD *p);
 	OSD *get_osd(void);
+	
 	config_t *get_config_ptr(void);
 };
 	

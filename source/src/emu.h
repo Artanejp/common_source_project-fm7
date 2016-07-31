@@ -283,7 +283,6 @@ public:
 	bool start_record_video(int fps);
 	void stop_record_video();
 	bool is_video_recording();
-	
 	// sound
 	int get_sound_rate()
 	{

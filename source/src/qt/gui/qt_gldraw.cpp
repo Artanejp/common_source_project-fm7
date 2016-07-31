@@ -33,6 +33,7 @@
 #include "qt_glutil_gl2_0.h"
 
 #include "agar_logger.h"
+#include "../osd.h"
 
 //extern USING_FLAGS *using_flags;
 
@@ -41,10 +42,9 @@ void GLDrawClass::drawGrids(void)
 	if(extfunc != NULL) extfunc->drawGrids();
 }
 
-
 void GLDrawClass::drawUpdateTexture(bitmap_t *p)
 {
-	p_emu->screen_mutex->lock();
+	if(using_flags->get_osd() != NULL)	using_flags->get_osd()->screen_mutex->lock();
 	if((p != NULL)) {
 		if(extfunc != NULL) {
 // Will fix at implemenitin PX7.
@@ -55,7 +55,7 @@ void GLDrawClass::drawUpdateTexture(bitmap_t *p)
 			}
 		}
 	}
-	p_emu->screen_mutex->unlock();
+	if(using_flags->get_osd() != NULL)	using_flags->get_osd()->screen_mutex->unlock();
 }
 
 void GLDrawClass::updateBitmap(QImage *p)

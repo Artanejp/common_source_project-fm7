@@ -28,7 +28,7 @@ OSD_BASE::OSD_BASE(USING_FLAGS *p) : QThread(0)
    	VMSemaphore = new QSemaphore(1);
    	DebugSemaphore = new QSemaphore(1);
 	locked_vm = false;
-	screen_mutex = new QMutex(Qt::Recursive);
+	screen_mutex = new QMutex(QMutex::Recursive);
 }
 
 OSD_BASE::~OSD_BASE()

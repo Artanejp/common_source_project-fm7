@@ -20,6 +20,9 @@
 
 #include "emu_thread.h"
 #include "draw_thread.h"
+#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
+#include "movie_loader.h"
+#endif
 
 #include "qt_gldraw.h"
 #include "agar_logger.h"
@@ -338,19 +341,22 @@ int OSD::get_window_mode_height(int mode)
 	return (p_config->window_stretch_type == 0 ? vm_window_height : vm_window_height_aspect) * (mode + WINDOW_MODE_BASE);
 }
 
-#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 void OSD::initialize_video()
 {
 	movie_loader = NULL;
+#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	movie_loader = new MOVIE_LOADER(this, &config);
-	connect(movie_saver, SIGNAL(sig_call_sounc_callback(uint8_t *, long)), this, SLOT(do_call_sound_callback(uint8 *, long)));
+	connect(movie_saver, SIGNAL(sig_call_sound_callback(uint8_t *, long)), this, SLOT(do_call_sound_callback(uint8 *, long)));
 	connect(movie_saver, SIGNAL(sig_movie_end(bool)), this, SLOT(do_video_movie_end(bool)));
 	connect(movie_saver, SIGNAL(sig_decoding_error(int)), this, SLOT(do_video_decoding_error(int)));
+#endif	
 }
 
 void OSD::release_video()
 {
+#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	delete movie_loader;
+#endif	
 	movie_loader = NULL;
 }
 
@@ -359,17 +365,21 @@ bool OSD::open_movie_file(const _TCHAR* file_path)
 {
 	bool ret = false;
 	if(file_path == NULL) return ret;
+#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	if(movie_loader != NULL) {
 		ret = movie_loader->open(QString::fromUtf8(file_path));
 	}
+#endif	
 	return ret;
 }
 
 void OSD::close_movie_file()
 {
+#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	if(movie_loader != NULL) {
 		movie_loadrer->close();
 	}
+#endif
 	now_movie_play = false;
 	now_movie_pause = false;
 }
@@ -378,6 +388,7 @@ void OSD::close_movie_file()
 uint32_t OSD::get_cur_movie_frame()
 {
 	uint64_t pos;
+#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	if(movie_loader != NULL) {
 		pos = movie_loader->get_current_frame();
 		if(pos > UINT_MAX) {
@@ -385,12 +396,14 @@ uint32_t OSD::get_cur_movie_frame()
 		}
 		return (uint32_t)pos;
 	}
+#endif	
 	return 0;
 }
 
 void OSD::do_run_movie_audio_callback(uint8_t *data, long len)
 {
 	if(data == NULL) return;
+#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 #if defined(_PX7)
 	if(this->vm->ld700 != NULL) {
 		lock_vm();
@@ -398,15 +411,21 @@ void OSD::do_run_movie_audio_callback(uint8_t *data, long len)
 		unlock_vm();
 	}
 #endif
+#endif
 	free(data);
 }
 
 void OSD::do_decode_movie(int frames)
 {
+#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	movie_loader->do_decode_frames(frames);
+#endif	
 }
 
-#endif //#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
-
-
+void OSD::get_video_buffer()
+{
+#if defined(_PX7)
+	movie_loader->get_video_frame();
+#endif
+}
 
