@@ -188,8 +188,8 @@ protected:
 	SDL_AudioSpec snd_spec_req, snd_spec_presented;
 	
 	// video device
-	void initialize_video();
-	void release_video();
+	virtual void initialize_video();
+	virtual void release_video();
 	
 	bitmap_t dshow_screen_buffer;
 	int direct_show_width, direct_show_height;
@@ -346,8 +346,8 @@ public:
 	// common video device
 	void get_video_buffer();
 	void mute_video_dev(bool l, bool r);
-	bool open_movie_file(const _TCHAR* file_path);
-	void close_movie_file();
+	virtual bool open_movie_file(const _TCHAR* file_path);
+	virtual void close_movie_file();
 	void play_movie();
 	void stop_movie();
 	void pause_movie();
@@ -425,6 +425,8 @@ public slots:
 	void upload_bitmap(QImage *p);
 	void set_buttons();
 	void do_start_record_video();
+	virtual void do_decode_movie(int frames);
+	virtual void do_run_movie_audio_callback(uint8_t *data, long len);
 signals:
 	int sig_update_screen(bitmap_t *);
 	int sig_save_screen(const char *);
@@ -440,6 +442,11 @@ signals:
 	int sig_req_encueue_video(int, int, int);
 	int sig_save_as_movie(QString, int, int);
 	int sig_stop_saving_movie();
+
+	int sig_movie_play();
+	int sig_movie_stop();
+	int sig_movie_seek_frame(bool, int);
+
 };
 QT_END_NAMESPACE
 

@@ -35,222 +35,46 @@ void OSD_BASE::mute_video_dev(bool l, bool r)
 //#endif // #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 
 
-//#ifdef USE_MOVIE_PLAYER
 bool OSD_BASE::open_movie_file(const _TCHAR* file_path)
 {
-#if 0	
-	WCHAR wFile[_MAX_PATH];
-	MultiByteToWideChar(CP_ACP, 0, file_path, -1, wFile, _MAX_PATH);
-	
-	AM_MEDIA_TYPE video_mt;
-	ZeroMemory(&video_mt, sizeof(AM_MEDIA_TYPE));
-	video_mt.majortype = MEDIATYPE_Video;
-#if defined(_RGB555)
-	video_mt.subtype = MEDIASUBTYPE_RGB555;
-#elif defined(_RGB565)
-	video_mt.subtype = MEDIASUBTYPE_RGB565;
-#elif defined(_RGB888)
-	video_mt.subtype = MEDIASUBTYPE_RGB32;
-#endif
-	video_mt.formattype = FORMAT_VideoInfo;
-	
-	AM_MEDIA_TYPE sound_mt;
-	ZeroMemory(&sound_mt, sizeof(AM_MEDIA_TYPE));
-	sound_mt.majortype = MEDIATYPE_Audio;
-	sound_mt.subtype = MEDIASUBTYPE_PCM;
-	
-	if(FAILED(CoCreateInstance(CLSID_FilterGraph, NULL, CLSCTX_INPROC, IID_IGraphBuilder, (void **)&pGraphBuilder))) {
-		return false;
-	}
-	if(FAILED(CoCreateInstance(CLSID_SampleGrabber, NULL, CLSCTX_INPROC, IID_IBaseFilter, (void **)&pVideoBaseFilter))) {
-		return false;
-	}
-	if(FAILED(pVideoBaseFilter->QueryInterface(IID_ISampleGrabber, (void **)&pVideoSampleGrabber))) {
-		return false;
-	}
-	if(FAILED(pVideoSampleGrabber->SetMediaType(&video_mt))) {
-		return false;
-	}
-	if(FAILED(pGraphBuilder->AddFilter(pVideoBaseFilter, L"Video Sample Grabber"))) {
-		return false;
-	}
-	if(FAILED(CoCreateInstance(CLSID_SampleGrabber, NULL, CLSCTX_INPROC, IID_IBaseFilter, (void **)&pSoundBaseFilter))) {
-		return false;
-	}
-	if(FAILED(pSoundBaseFilter->QueryInterface(IID_ISampleGrabber, (void **)&pSoundSampleGrabber))) {
-		return false;
-	}
-	if(FAILED(pSoundSampleGrabber->SetMediaType(&sound_mt))) {
-		return false;
-	}
-	if((pSoundCallBack = new CMySampleGrabberCB(vm)) == NULL) {
-		return false;
-	}
-	if(FAILED(pSoundSampleGrabber->SetCallback(pSoundCallBack, 1))) {
-		return false;
-	}
-	if(FAILED(pGraphBuilder->AddFilter(pSoundBaseFilter, L"Sound Sample Grabber"))) {
-		return false;
-	}
-	if(FAILED(pGraphBuilder->RenderFile(wFile, NULL))) {
-		return false;
-	}
-	if(FAILED(pVideoSampleGrabber->SetBufferSamples(TRUE))) {
-		return false;
-	}
-	if(FAILED(pVideoSampleGrabber->SetOneShot(FALSE))) {
-		return false;
-	}
-	if(FAILED(pSoundSampleGrabber->SetBufferSamples(FALSE))) {
-		return false;
-	}
-	if(FAILED(pSoundSampleGrabber->SetOneShot(FALSE))) {
-		return false;
-	}
-	if(FAILED(pGraphBuilder->QueryInterface(IID_IMediaControl, (void **)&pMediaControl))) {
-		return false;
-	}
-	if(FAILED(pGraphBuilder->QueryInterface(IID_IMediaSeeking, (void **)&pMediaSeeking))) {
-		return false;
-	}
-	if(FAILED(pGraphBuilder->QueryInterface(IID_IMediaPosition, (void **)&pMediaPosition))) {
-		return false;
-	}
-	if(FAILED(pGraphBuilder->QueryInterface(IID_IVideoWindow, (void **)&pVideoWindow))) {
-		return false;
-	}
-	if(FAILED(pGraphBuilder->QueryInterface(IID_IBasicVideo, (void **)&pBasicVideo))) {
-		return false;
-	}
-	if(FAILED(pGraphBuilder->QueryInterface(IID_IBasicAudio, (void **)&pBasicAudio))) {
-		return false;
-	}
-	if(FAILED(pVideoWindow->put_Owner((OAHWND)main_window_handle))) {
-		return false;
-	}
-	if(FAILED(pVideoWindow->put_WindowStyle(WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN))) {
-		return false;
-	}
-	if(FAILED(pVideoWindow->SetWindowPosition(0, 0, 0, 0))) {
-		return false;
-	}
-	if(FAILED(pVideoWindow->SetWindowForeground(FALSE))) {
-		return false;
-	}
-	if(pMediaSeeking->IsFormatSupported(&TIME_FORMAT_FRAME) == S_OK) {
-		if(FAILED(pMediaSeeking->SetTimeFormat(&TIME_FORMAT_FRAME))) {
-			return false;
-		}
-		bTimeFormatFrame = true;
-	} else {
-		if(FAILED(pMediaSeeking->SetTimeFormat(&TIME_FORMAT_MEDIA_TIME))) {
-			return false;
-		}
-		bTimeFormatFrame = false;
-	}
-	
-	// get the movie frame rate
-	if(FAILED(pBasicVideo->get_AvgTimePerFrame(&movie_frame_rate))) {
-		return false;
-	}
-	movie_frame_rate = 1 / movie_frame_rate;
-	
-	// get the movie sound rate
-	pSoundSampleGrabber->GetConnectedMediaType(&sound_mt);
-	WAVEFORMATEX *wf = (WAVEFORMATEX *)sound_mt.pbFormat;
-	WAVEFORMATEXTENSIBLE *wfe = (WAVEFORMATEXTENSIBLE *)sound_mt.pbFormat;
-	if(!((wf->wFormatTag == WAVE_FORMAT_PCM || (wf->wFormatTag == WAVE_FORMAT_EXTENSIBLE && wfe->SubFormat == MEDIASUBTYPE_PCM)) && wf->nChannels == 2 && wf->wBitsPerSample == 16)) {
-		return false;
-	}
-	movie_sound_rate = wf->nSamplesPerSec;
-	
-	// get the movie picture size
-	pVideoSampleGrabber->GetConnectedMediaType(&video_mt);
-	VIDEOINFOHEADER *pVideoHeader = (VIDEOINFOHEADER*)video_mt.pbFormat;
-	direct_show_width = pVideoHeader->bmiHeader.biWidth;
-	direct_show_height = pVideoHeader->bmiHeader.biHeight;
-	
-	bVerticalReversed = check_file_extension(file_path, _T(".ogv"));
-	
-	if(dshow_screen_buffer.width != direct_show_width || dshow_screen_buffer.height != direct_show_height) {
-		initialize_screen_buffer(&dshow_screen_buffer, direct_show_width, direct_show_height, COLORONCOLOR);
-	}
-#endif	
-	return true;
+	return false;
 }
 
 void OSD_BASE::close_movie_file()
 {
-	release_video();
 	now_movie_play = false;
 	now_movie_pause = false;
 }
 
 void OSD_BASE::play_movie()
 {
-#if 0
-	if(pMediaControl != NULL) {
-		pMediaControl->Run();
-		mute_video_dev(direct_show_mute[0], direct_show_mute[1]);
-		now_movie_play = true;
-		now_movie_pause = false;
-	}
-#else
 	now_movie_play = true;
 	now_movie_pause = false;
-#endif	
+	emit sig_movie_play();
 }
 
 void OSD_BASE::stop_movie()
 {
-#if 0
-	if(pMediaControl != NULL) {
-		pMediaControl->Stop();
-	}
-#endif	
 	now_movie_play = false;
 	now_movie_pause = false;
+	emit sig_movie_stop();
 }
 
 void OSD_BASE::pause_movie()
 {
-#if 0
-	if(pMediaControl != NULL) {
-		pMediaControl->Pause();
-		now_movie_pause = true;
-	}
-#else
 	now_movie_pause = true;
-#endif
+	emit sig_movie_pause(now_movie_pause);
 }
 
 void OSD_BASE::set_cur_movie_frame(int frame, bool relative)
 {
-#if 0	
-	if(pMediaSeeking != NULL) {
-		LONGLONG now = bTimeFormatFrame ? frame : (LONGLONG)(frame / movie_frame_rate * 10000000.0 + 0.5);
-		pMediaSeeking->SetPositions(&now, AM_SEEKING_AbsolutePositioning, NULL, AM_SEEKING_NoPositioning);
-	}
-#endif	
+	emit sig_movie_seek_frame(relative, frame);
 }
 
 uint32_t OSD_BASE::get_cur_movie_frame()
 {
-#if 0	
-	if(pMediaSeeking != NULL) {
-		LONGLONG now, stop;
-		if(SUCCEEDED(pMediaSeeking->GetPositions(&now, &stop))) {
-			if(bTimeFormatFrame) {
-				return (uint32)(now & 0xffffffff);
-			} else {
-				return (uint32)(now * movie_frame_rate / 10000000.0 + 0.5);
-			}
-		}
-	}
-#endif	
 	return 0;
 }
-//#endif
 
 //#ifdef USE_VIDEO_CAPTURE
 void OSD_BASE::enum_capture_devs()
@@ -297,7 +121,7 @@ bool OSD_BASE::connect_capture_dev(int index, bool pin)
 		return true;
 	}
 	if(cur_capture_dev_index != -1) {
-		release_video();
+		//release_video();
 		cur_capture_dev_index = -1;
 	}
 #if 0	
@@ -420,13 +244,13 @@ bool OSD_BASE::connect_capture_dev(int index, bool pin)
 void OSD_BASE::open_capture_dev(int index, bool pin)
 {
 	if(!connect_capture_dev(index, pin)) {
-		release_video();
+		//release_video();
 	}
 }
 
 void OSD_BASE::close_capture_dev()
 {
-	release_video();
+	//release_video();
 	cur_capture_dev_index = -1;
 }
 
@@ -451,7 +275,7 @@ void OSD_BASE::show_capture_dev_pin()
 #if 0	
 	if(cur_capture_dev_index != -1) {
 		if(!connect_capture_dev(cur_capture_dev_index, true)) {
-			release_video();
+			//release_video();
 		}
 	}
 #endif
@@ -518,4 +342,26 @@ int OSD_BASE::get_movie_sound_rate()
 _TCHAR* OSD_BASE::get_capture_dev_name(int index)
 {
 	return capture_dev_name[index];
+}
+
+void OSD_BASE::wait_video_frame(QMutex *m)
+{
+}
+
+void OSD_BASE::do_decode_video_frame_completed()
+{
+}
+
+void OSD_BASE::do_decode_movie(int frames)
+{
+}
+
+void OSD_BASE::do_video_movie_end(bool flag)
+{
+	
+}
+
+void OSD_BASE::do_video_decoding_error(int num)
+{
+	
 }

@@ -44,7 +44,7 @@ void GLDrawClass::drawGrids(void)
 
 void GLDrawClass::drawUpdateTexture(bitmap_t *p)
 {
-	//p_emu->lock_vm();
+	p_emu->screen_mutex->lock();
 	if((p != NULL)) {
 		if(extfunc != NULL) {
 // Will fix at implemenitin PX7.
@@ -55,7 +55,7 @@ void GLDrawClass::drawUpdateTexture(bitmap_t *p)
 			}
 		}
 	}
-	//p_emu->unlock_vm();
+	p_emu->screen_mutex->unlock();
 }
 
 void GLDrawClass::updateBitmap(QImage *p)

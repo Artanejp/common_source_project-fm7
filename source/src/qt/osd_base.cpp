@@ -15,6 +15,7 @@
 #include <QString>
 #include <QObject>
 #include <QThread>
+#include <QMutex>
 
 #include "qt_gldraw.h"
 #include "agar_logger.h"
@@ -27,12 +28,14 @@ OSD_BASE::OSD_BASE(USING_FLAGS *p) : QThread(0)
    	VMSemaphore = new QSemaphore(1);
    	DebugSemaphore = new QSemaphore(1);
 	locked_vm = false;
+	screen_mutex = new QMutex(Qt::Recursive);
 }
 
 OSD_BASE::~OSD_BASE()
 {
   	delete VMSemaphore;
 	delete DebugSemaphore;
+	delete screen_mutex;
 }
 
 extern std::string cpp_homedir;

@@ -90,6 +90,7 @@ int OSD_BASE::draw_screen()
 //	}
 	
 	// draw screen
+	screen_mutex->lock();
 	lock_vm();
 	if(vm_screen_buffer.width != vm_screen_width || vm_screen_buffer.height != vm_screen_height) {
 		emit sig_movie_set_width(vm_screen_width);
@@ -98,6 +99,7 @@ int OSD_BASE::draw_screen()
 	}
 	this->vm_draw_screen();
 	unlock_vm();
+	screen_mutex->unlock();
 	// screen size was changed in vm->draw_screen()
 	if(vm_screen_buffer.width != vm_screen_width || vm_screen_buffer.height != vm_screen_height) {
 		return 0;

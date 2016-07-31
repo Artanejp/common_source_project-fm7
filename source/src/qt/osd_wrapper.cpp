@@ -274,9 +274,6 @@ void OSD::force_unlock_vm(void)
 	locked_vm = false;
 }
 
-
-
-
 void OSD::set_draw_thread(DrawThreadClass *handler)
 {
 	this->moveToThread(handler);
@@ -303,15 +300,12 @@ void OSD::initialize_screen()
 	vm_window_height_aspect = WINDOW_HEIGHT_ASPECT;
 	
 	QColor col(0, 0, 0, 255);
-	//memset(&vm_screen_buffer, 0, sizeof(bitmap_t));
+
 	vm_screen_buffer.width = SCREEN_WIDTH;
 	vm_screen_buffer.height = SCREEN_HEIGHT;
 	vm_screen_buffer.pImage = QImage(SCREEN_WIDTH, SCREEN_HEIGHT, QImage::Format_ARGB32);
 	vm_screen_buffer.pImage.fill(col);
 	now_record_video = false;
-	//pAVIStream = NULL;
-	//pAVICompressed = NULL;
-	//pAVIFile = NULL;
 	
 	first_draw_screen = false;
 	first_invalidate = true;
@@ -321,9 +315,6 @@ void OSD::initialize_screen()
 void OSD::release_screen()
 {
 	stop_record_video();
-	
-	//release_d3d9();
-	//if(vm_screen_buffer.pImage != NULL) delete vm_screen_buffer.pImage;
 	release_screen_buffer(&vm_screen_buffer);
 }
 
@@ -346,4 +337,76 @@ int OSD::get_window_mode_height(int mode)
 	}
 	return (p_config->window_stretch_type == 0 ? vm_window_height : vm_window_height_aspect) * (mode + WINDOW_MODE_BASE);
 }
+
+#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
+void OSD::initialize_video()
+{
+	movie_loader = NULL;
+	movie_loader = new MOVIE_LOADER(this, &config);
+	connect(movie_saver, SIGNAL(sig_call_sounc_callback(uint8_t *, long)), this, SLOT(do_call_sound_callback(uint8 *, long)));
+	connect(movie_saver, SIGNAL(sig_movie_end(bool)), this, SLOT(do_video_movie_end(bool)));
+	connect(movie_saver, SIGNAL(sig_decoding_error(int)), this, SLOT(do_video_decoding_error(int)));
+}
+
+void OSD::release_video()
+{
+	delete movie_loader;
+	movie_loader = NULL;
+}
+
+
+bool OSD::open_movie_file(const _TCHAR* file_path)
+{
+	bool ret = false;
+	if(file_path == NULL) return ret;
+	if(movie_loader != NULL) {
+		ret = movie_loader->open(QString::fromUtf8(file_path));
+	}
+	return ret;
+}
+
+void OSD::close_movie_file()
+{
+	if(movie_loader != NULL) {
+		movie_loadrer->close();
+	}
+	now_movie_play = false;
+	now_movie_pause = false;
+}
+
+#include <limits.h>
+uint32_t OSD::get_cur_movie_frame()
+{
+	uint64_t pos;
+	if(movie_loader != NULL) {
+		pos = movie_loader->get_current_frame();
+		if(pos > UINT_MAX) {
+			return UINT_MAX;
+		}
+		return (uint32_t)pos;
+	}
+	return 0;
+}
+
+void OSD::do_run_movie_audio_callback(uint8_t *data, long len)
+{
+	if(data == NULL) return;
+#if defined(_PX7)
+	if(this->vm->ld700 != NULL) {
+		lock_vm();
+		this->vm->ld700->movie_sound_callback(data, len);
+		unlock_vm();
+	}
+#endif
+	free(data);
+}
+
+void OSD::do_decode_movie(int frames)
+{
+	movie_loader->do_decode_frames(frames);
+}
+
+#endif //#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
+
+
 
