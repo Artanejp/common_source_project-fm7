@@ -111,7 +111,7 @@ public slots:
 	
 	void do_play();
 	void do_stop();
-	void do_pause();
+	void do_pause(bool flag);
 //	void do_fast_forward(int ticks);
 //	void do_fast_rewind(int ticks);
 	void do_mute(bool left, bool right);
@@ -122,7 +122,6 @@ public slots:
 	
 signals:
 	int sig_call_sound_callback(uint8_t *, long); // Call callback.
-	int sig_decode_frames_complete(void); // Decode frames are completed.
 	int sig_movie_end(bool); // MOVIE END
 	int sig_movie_ready(bool); // ACK
 	int sig_decoding_error(int); // error_num

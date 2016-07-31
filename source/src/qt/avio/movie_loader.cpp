@@ -1,7 +1,7 @@
 #include "osd.h"
 #include "movie_loader.h"
 
-
+#include <QMutex>
 MOVIE_LOADER(OSD *osd, config_t *cfg) : public QObject(NULL);
 {
 	p_osd = osd;
@@ -79,9 +79,18 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 			if((old_dst_width != dst_width) || (old_dst_height != dst_height)) { // You sould allocate on opening.
 				if(tmp_frame != NULL) {
 					av_frame_free(tmp_frame);
-					tmp_frame = (AVFrame *)alloc_picture(AV_PIX_FMT_BGRA, dst_width, dst_height);
+					tmp_frame = av_frame_alloc();
 					if (tmp_frame == NULL) {
 						AGAR_DebugLog(AGAR_LOG_INFO, "MOVIE_LOADER: Could not re-allocate video frame\n");
+						return -1;
+					}
+					tmp_frame->format = AV_PIX_FMT_BGRA;
+					tmp_frame->width = dst_width;
+					tmp_frame->height = dst_height;
+					ret = av_frame_get_buffer(tmp_frame, 32); //*
+					if(ret < 0) {
+						av_frame_free(tmp_frame);
+						AGAR_DebugLog(AGAR_LOG_INFO, "MOVIE_LOADER: Could not re-allocate output buffer\n");
 						return -1;
 					}
 				}
@@ -245,7 +254,7 @@ bool MOVIE_LOADER::open(QString filename)
 {
     int ret = 0, got_frame;
 	_filename = filename;
-	
+	frame_count = 0;
     /* register all formats and codecs */
     av_register_all();
 
@@ -321,6 +330,22 @@ bool MOVIE_LOADER::open(QString filename)
     pkt.data = NULL;
     pkt.size = 0;
 
+	// Re-allocate buffer;
+	tmp_frame = av_frame_alloc();
+	if (tmp_frame == NULL) {
+		AGAR_DebugLog(AGAR_LOG_INFO, "MOVIE_LOADER: Could not allocate output frame\n");
+		goto _end;
+	}
+	tmp_frame->format = AV_PIX_FMT_BGRA;
+	tmp_frame->width = dst_width;
+	tmp_frame->height = dst_height;
+	ret = av_frame_get_buffer(tmp_frame, 32); //*
+	if(ret < 0) {
+		av_frame_free(tmp_frame);
+		AGAR_DebugLog(AGAR_LOG_INFO, "MOVIE_LOADER: Could not re-allocate output buffer\n");
+		goto _end;
+	}
+
 	// ToDo : Initialize SWScaler and SWresampler.
 	return true;
 end:
@@ -337,15 +362,15 @@ void MOVIE_LOADER::close(void)
 		sws_freeContext(sws_context);
 	}
 	swr_free(swr_context);
-	swr_context = NULL;
-	sws_context = NULL;
 	
-	av_frame_free(&tmp_frame);
+	if(tmp_frame != NULL) av_frame_free(&tmp_frame);
 	video_dec_ctx = NULL;
 	audio_dec_ctx = NULL;
 	sws_context = NULL;
-	now_playing = false;
+	swr_context = NULL;
 	
+	now_playing = false;
+	now_pausing = false;
 }
 
 double MOVIE_LOADER::get_movie_frame_rate(void)
@@ -378,7 +403,6 @@ bool MOVIE_LOADER::is_pausing(void)
 void MOVIE_LOADER::do_play()
 {
 	now_playing = true;
-	// ToDo: Uding libAV.
 	now_pausing = false;
 }
 
@@ -386,18 +410,14 @@ void MOVIE_LOADER::do_stop()
 {
 	now_playing = false;
 	now_pauseing = false;
-	// ToDo: Stop sequence, clear buffer? ,
 	// Still not closing.
 }
 
-void MOVIE_LOADER::do_pause()
+void MOVIE_LOADER::do_pause(bool flag)
 {
 	if(now_playing) {
 		// Pause button
-		if(!now_pausing) {
-			// ToDo: Real
-		}
-		now_pausing = true;
+		now_pausing = flag;
 	}
 }
 
@@ -410,13 +430,42 @@ void MOVIE_LOADER::do_decode_frames(int frames)
 {
 	int got_frame;
 	bool end_of_frame = false;
-	if(frames <= 0) {
+	int real_frames = 0;
+	double d_frames = (double)frames * (p_osd->vm_frame_rate / frame_rate);
+	mod_frames = mod_frames + d_frames;
+	real_frames = (int)mod_frames;
+	mod_frames = fmod(mod_frames, 1.0);
+	
+	if(real_frames <= 0) {
 		do_dequeue_audio();
-		emit sig_decode_frames_comlete();
-		if(frames < 0) emit sig_decoding_error(MOVIE_LOADER_ILL_FRAME_NUMBER);
+		//if(frames < 0) emit sig_decoding_error(MOVIE_LOADER_ILL_FRAME_NUMBER);
 		return;
 	}
-    for(int i = 0; i < frames; i++) {
+	if(!now_playing || now_pausing) {
+		uint8_t *null_sound;
+		double t;
+		uint32_t l;
+	    t = (double)(p_cfg->sound_frequency) / frame_rate;
+		l = 2 * sizeof(int16_t) * (int)(t + 0.5);
+		null_sound = (uint8_t *)malloc(l);
+		if(null_sound != NULL) {
+			memset(null_sound, 0x00, sizeof(null_sound));
+			emit sig_send_audio_frame(null_sound, l);
+		}
+		if(!now_pausing) {
+			uint32_t q;
+			p_osd->screen_mutex->lock();
+			for(int yy = 0; yy < dst_height; yy++) { 
+				q = (uint32_t *)(p_osd->get_vm_screen_buffer(yy));
+				if((q != NULL) && (dst_width != 0)) {
+					memset(q, 0x00, dst_width * sizeof(uint32_t));
+				}
+			}
+			p_osd->screen_mutex->unlock();
+		}
+		return;
+	}
+    for(int i = 0; i < real_frames; i++) {
         decode_packet(&got_frame, 1);
 		if(got_frame == 0) {
 			end_of_frame = true;
@@ -424,50 +473,54 @@ void MOVIE_LOADER::do_decode_frames(int frames)
 		}
     }
 	if(end_of_frame) {
-		// if frames > 1 then clear screen ?
+		// if real_frames > 1 then clear screen ?
 		do_dequeue_audio();
-		emit sig_decode_frames_comlete();
 		emit sig_movie_end(true);
 		return;
 	}
+	
 	uint32_t cacheline[8];
 	uint32_t *p;
 	uint32_t *q;
 	int xx;
-	for(int yy = 0; yy < dst_height; yy++) {
-		p = (uint32_t *)(&(tmp_frame->data[0][yy * tmp_frame->linesize[0]]));
-		q = (uint32_t *)(p_osd->get_vm_screen_buffer(yy));
-		if((p == NULL) || (q == NULL)) break;
-		for(xx = dst_width; xx > 7;) {
-			cacheline[0] = p[0];
-			cacheline[1] = p[1];
-			cacheline[2] = p[2];
-			cacheline[3] = p[3];
-			cacheline[4] = p[4];
-			cacheline[5] = p[5];
-			cacheline[6] = p[6];
-			cacheline[7] = p[7];
-
-			q[0] = cacheline[0];
-			q[1] = cacheline[1];
-			q[2] = cacheline[2];
-			q[3] = cacheline[3];
-			q[4] = cacheline[4];
-			q[5] = cacheline[5];
-			q[6] = cacheline[6];
-			q[7] = cacheline[7];
-
-			p += 8;
-			q += 8;
-			xx -= 8;
-			if(xx < 8) break;
-		}
-		for(; xx > 0; xx--) {
-			*q++ = *p++;
+	p_osd->screen_mutex->lock();
+	if(tmp_frame != NULL) {
+		for(int yy = 0; yy < dst_height; yy++) {
+			p = (uint32_t *)(&(tmp_frame->data[0][yy * tmp_frame->linesize[0]]));
+			q = (uint32_t *)(p_osd->get_vm_screen_buffer(yy));
+			if((p == NULL) || (q == NULL)) break;
+			for(xx = dst_width; xx > 7;) {
+				cacheline[0] = p[0];
+				cacheline[1] = p[1];
+				cacheline[2] = p[2];
+				cacheline[3] = p[3];
+				cacheline[4] = p[4];
+				cacheline[5] = p[5];
+				cacheline[6] = p[6];
+				cacheline[7] = p[7];
+				
+				q[0] = cacheline[0];
+				q[1] = cacheline[1];
+				q[2] = cacheline[2];
+				q[3] = cacheline[3];
+				q[4] = cacheline[4];
+				q[5] = cacheline[5];
+				q[6] = cacheline[6];
+				q[7] = cacheline[7];
+				
+				p += 8;
+				q += 8;
+				xx -= 8;
+				if(xx < 8) break;
+			}
+			for(; xx > 0; xx--) {
+				*q++ = *p++;
+			}
 		}
 	}
+	p_osd->screen_mutex->unlock();
+
 	do_dequeue_audio();
-	emit sig_decode_frames_comlete();
 	return;
 }
 
