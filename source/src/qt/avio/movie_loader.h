@@ -32,13 +32,14 @@ extern "C" {
 #include <QObject>
 #include <QReadWriteLock>
 #include <QWaitCondition>
+#include <QQueue>
 
 #include "config.h"
 
 typedef struct {
 	uint8_t *data;
 	long unpadded_linesize;
-} sound_data_cueue_t;
+} sound_data_queue_t;
 
 QT_BEGIN_NAMESPACE
 class OSD;
@@ -60,7 +61,11 @@ private:
 	int video_dst_bufsize;
 	int video_stream_idx, audio_stream_idx; //int video_stream_idx = -1, audio_stream_idx = -1;
 	AVFrame *frame; //AVFrame *frame = NULL;
+	AVFrame *tmp_frame; //AVFrame *tmp_frame = NULL;
 	AVPacket pkt;
+	struct SwsContext *sws_context;
+	struct SwrContext *swr_context;
+
 	int video_frame_count; // = 0;
 	int audio_frame_count; // = 0;
 	int refcount; // = 0
@@ -77,6 +82,7 @@ protected:
 	QMutex *snd_write_lock;
 	uint64_t frame_count;
 	double frame_rate;
+	double mod_frames;
 	int sound_rate;
 	bool now_opening;
 	QString _filename;
@@ -92,13 +98,14 @@ protected:
 	
 	int src_width, src_height;
 	int dst_width, dst_height;
+	int old_dst_width, old_dst_height;
 
-	QList<sound_data_cueue_t *> sound_data_queue;
+	QQueue<sound_data_queue_t *> sound_data_queue;
 public:
 	MOVIE_LOADER(OSD *osd, config_t *cfg);
 	~MOVIE_LOADER();
 	bool open(QString filename);
-	bool close();
+	void close();
 	
 	void get_video_frame(void);	
 	double  get_movie_frame_rate(void);
@@ -124,12 +131,12 @@ public slots:
 //	void do_fast_rewind(int ticks);
 	void do_mute(bool left, bool right);
 
-	void do_decode_frames(int frames);
+	void do_decode_frames(int frames, int width, int height);
 	void do_seek_frame(bool relative, int frames);
 	void do_dequeue_audio();
 	
 signals:
-	int sig_call_sound_callback(uint8_t *, long); // Call callback.
+	int sig_send_audio_frame(uint8_t *, long); // Call callback.
 	int sig_movie_end(bool); // MOVIE END
 	int sig_movie_ready(bool); // ACK
 	int sig_decoding_error(int); // error_num

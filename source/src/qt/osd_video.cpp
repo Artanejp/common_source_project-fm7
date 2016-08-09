@@ -358,3 +358,6 @@ void OSD_BASE::do_video_decoding_error(int num)
 	
 }
 
+void OSD_BASE::do_run_movie_audio_callback(uint8_t *data, long len)
+{
+}

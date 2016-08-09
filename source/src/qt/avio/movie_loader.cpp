@@ -1,9 +1,13 @@
-#include "osd.h"
+
+
+
+#include "../osd.h"
 #include "movie_loader.h"
+#include "agar_logger.h"
 
 #include <QMutex>
 
-MOVIE_LOADER(OSD *osd, config_t *cfg) : public QObject(NULL);
+MOVIE_LOADER::MOVIE_LOADER(OSD *osd, config_t *cfg) : QObject(NULL)
 {
 	p_osd = osd;
 	p_cfg = cfg;
@@ -33,6 +37,9 @@ MOVIE_LOADER(OSD *osd, config_t *cfg) : public QObject(NULL);
 	src_height = 200;
 	dst_width = 640;
 	dst_height = 200;
+	old_dst_width = dst_width;
+	old_dst_height = dst_height;
+	mod_frames = 0.0;
 #if defined(USE_LIBAV)
 	fmt_ctx = NULL;
 	video_dec_ctx = NULL;
@@ -46,12 +53,13 @@ MOVIE_LOADER(OSD *osd, config_t *cfg) : public QObject(NULL);
 	video_stream_idx = -1;
 	audio_stream_idx = -1;
 	frame = NULL;
+	tmp_frame = NULL;
 	refcount = 0;
 #endif
 
 }
 
-~MOVIE_LOADER()
+MOVIE_LOADER::~MOVIE_LOADER()
 {
 	delete video_mutex;
 }
@@ -69,7 +77,9 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
         /* decode video frame */
         ret = avcodec_decode_video2(video_dec_ctx, frame, got_frame, &pkt);
         if (ret < 0) {
-            fprintf(stderr, "Error decoding video frame (%s)\n", av_err2str(ret));
+			char str_buf[AV_ERROR_MAX_STRING_SIZE] = {0};
+			av_make_error_string(str_buf, AV_ERROR_MAX_STRING_SIZE, ret);
+            AGAR_DebugLog(AGAR_LOG_INFO, "Error decoding video frame (%s)\n", str_buf);
             return ret;
         }
 
@@ -78,7 +88,7 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
                 frame->format != pix_fmt) {
                 /* To handle this change, one could call av_image_alloc again and
                  * decode the following frames into another rawvideo file. */
-                fprintf(stderr, "Error: Width, height and pixel format have to be "
+                AGAR_DebugLog(AGAR_LOG_INFO, "Error: Width, height and pixel format have to be "
                         "constant in a rawvideo file, but the width, height or "
                         "pixel format of the input video changed:\n"
                         "old: width = %d, height = %d, format = %s\n"
@@ -91,7 +101,7 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 			if((old_dst_width != dst_width) || (old_dst_height != dst_height)) { // You sould allocate on opening.
 				if(tmp_frame != NULL) {
 					video_mutex->lock();
-					av_frame_free(tmp_frame);
+					av_frame_free(&tmp_frame);
 					tmp_frame = av_frame_alloc();
 					if (tmp_frame == NULL) {
 						AGAR_DebugLog(AGAR_LOG_INFO, "MOVIE_LOADER: Could not re-allocate video frame\n");
@@ -103,7 +113,7 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 					tmp_frame->height = dst_height;
 					ret = av_frame_get_buffer(tmp_frame, 32); //*
 					if(ret < 0) {
-						av_frame_free(tmp_frame);
+						av_frame_free(&tmp_frame);
 						AGAR_DebugLog(AGAR_LOG_INFO, "MOVIE_LOADER: Could not re-allocate output buffer\n");
 						video_mutex->unlock();
 						return -1;
@@ -114,10 +124,12 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 			old_dst_width = dst_width;
 			old_dst_height = dst_height;
 			
-            printf("video_frame%s n:%d coded_n:%d pts:%s\n",
-                   cached ? "(cached)" : "",
-                   video_frame_count++, frame->coded_picture_number,
-                   av_ts2timestr(frame->pts, &video_dec_ctx->time_base));
+			char str_buf2[AV_TS_MAX_STRING_SIZE] = {0};
+			av_ts_make_time_string(str_buf2, frame->pts, &video_dec_ctx->time_base);
+            AGAR_DebugLog(AGAR_LOG_DEBUG, "video_frame%s n:%d coded_n:%d pts:%s\n",
+						  cached ? "(cached)" : "",
+						  video_frame_count++, frame->coded_picture_number,
+						  str_buf2);
 			
             /* copy decoded frame to destination buffer:
              * this is required since rawvideo expects non aligned data */
@@ -146,12 +158,14 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 						  0, dst_height, tmp_frame->data, tmp_frame->linesize);
 				video_mutex->unlock();
 			}
-			
+		
 		} else if (pkt.stream_index == audio_stream_idx) {
 			/* decode audio frame */
 			ret = avcodec_decode_audio4(audio_dec_ctx, frame, got_frame, &pkt);
 			if (ret < 0) {
-				fprintf(stderr, "Error decoding audio frame (%s)\n", av_err2str(ret));
+				char str_buf[AV_ERROR_MAX_STRING_SIZE] = {0};
+				av_make_error_string(str_buf, AV_ERROR_MAX_STRING_SIZE, ret);
+				AGAR_DebugLog(AGAR_LOG_INFO, "Error decoding audio frame (%s)\n", str_buf);
 				return ret;
 			}
 			/* Some audio decoders decode only part of the packet, and have to be
@@ -162,10 +176,12 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 			
 			if (*got_frame) {
 				size_t unpadded_linesize = frame->nb_samples * av_get_bytes_per_sample(frame->format);
-				printf("audio_frame%s n:%d nb_samples:%d pts:%s\n",
-					   cached ? "(cached)" : "",
-					   audio_frame_count++, frame->nb_samples,
-					   av_ts2timestr(frame->pts, &audio_dec_ctx->time_base));
+				char str_buf[AV_TS_MAX_STRING_SIZE] = {0};
+				av_ts_make_time_string(str_buf, frame->pts, &audio_dec_ctx->time_base);
+				AGAR_DebugLog(AGAR_LOG_DEBUG,"audio_frame%s n:%d nb_samples:%d pts:%s\n",
+							  cached ? "(cached)" : "",
+							  audio_frame_count++, frame->nb_samples,
+							  str_buf);
 				
 				/* Write the raw audio data samples of the first plane. This works
 				 * fine for packed formats (e.g. AV_SAMPLE_FMT_S16). However,
@@ -175,9 +191,9 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 				 * in these cases.
 				 * You should use libswresample or libavfilter to convert the frame
 				 * to packed data. */
-				sound_data_cueue_t *px = malloc(sizeof(sound_data_cueue_t));
+				sound_data_queue_t *px = (sound_data_queue_t *)malloc(sizeof(sound_data_queue_t));
 				if(px != NULL) {
-					px->data = malloc((long)unpadded_linesize);
+					px->data = (uint8_t *)malloc((long)unpadded_linesize);
 					memcpy(px->data, (uint8_t *)(frame->extended_data[0]), (long)unpadded_linesize); // post tmp-buffer.
 					px->unpadded_linesize = (long)unpadded_linesize;
 					snd_write_lock->lock();
@@ -185,8 +201,9 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 					snd_write_lock->unlock();
 				}
 				//fwrite(frame->extended_data[0], 1, unpadded_linesize, audio_dst_file);
-        }
-    }
+			}
+		}
+	}
 
     /* If we use frame reference counting, we own the data and need
      * to de-reference it when we don't use it anymore */
@@ -207,7 +224,7 @@ int MOVIE_LOADER::open_codec_context(int *stream_idx,
 
     ret = av_find_best_stream(fmt_ctx, type, -1, -1, NULL, 0);
     if (ret < 0) {
-        fprintf(stderr, "Could not find %s stream in input file '%s'\n",
+        AGAR_DebugLog(AGAR_LOG_INFO, "Could not find %s stream in input file '%s'\n",
                 av_get_media_type_string(type), _filename.toLocal8Bit().constData());
         return ret;
     } else {
@@ -218,7 +235,7 @@ int MOVIE_LOADER::open_codec_context(int *stream_idx,
         dec_ctx = st->codec;
         dec = avcodec_find_decoder(dec_ctx->codec_id);
         if (!dec) {
-            fprintf(stderr, "Failed to find %s codec\n",
+            AGAR_DebugLog(AGAR_LOG_INFO, "Failed to find %s codec\n",
                     av_get_media_type_string(type));
             return AVERROR(EINVAL);
         }
@@ -226,7 +243,7 @@ int MOVIE_LOADER::open_codec_context(int *stream_idx,
         /* Init the decoders, with or without reference counting */
         av_dict_set(&opts, "refcounted_frames", refcount ? "1" : "0", 0);
         if ((ret = avcodec_open2(dec_ctx, dec, &opts)) < 0) {
-            fprintf(stderr, "Failed to open %s codec\n",
+            AGAR_DebugLog(AGAR_LOG_INFO, "Failed to open %s codec\n",
                     av_get_media_type_string(type));
             return ret;
         }
@@ -259,7 +276,7 @@ int MOVIE_LOADER::get_format_from_sample_fmt(const char **fmt,
         }
     }
 
-    fprintf(stderr,
+    AGAR_DebugLog(AGAR_LOG_INFO,
             "sample format %s is not supported as output format\n",
             av_get_sample_fmt_name(sample_fmt));
     return -1;
@@ -276,19 +293,19 @@ bool MOVIE_LOADER::open(QString filename)
 	frame_count = 0;
 	audio_frame_count = 0;
 	video_frame_count = 0;
-	
+	mod_frames = 0.0;
     /* register all formats and codecs */
     av_register_all();
 
     /* open input file, and allocate format context */
     if (avformat_open_input(&fmt_ctx, _filename.toLocal8Bit().constData(), NULL, NULL) < 0) {
-        fprintf(stderr, "Could not open source file %s\n", _filename.toLocal8Bit().constData());
+        AGAR_DebugLog(AGAR_LOG_INFO, "Could not open source file %s\n", _filename.toLocal8Bit().constData());
         return -1;
     }
 
     /* retrieve stream information */
     if (avformat_find_stream_info(fmt_ctx, NULL) < 0) {
-        fprintf(stderr, "Could not find stream information\n");
+        AGAR_DebugLog(AGAR_LOG_INFO, "Could not find stream information\n");
         exit(1);
     }
 
@@ -303,8 +320,8 @@ bool MOVIE_LOADER::open(QString filename)
         ret = av_image_alloc(video_dst_data, video_dst_linesize,
                              src_width, src_height, pix_fmt, 1);
         if (ret < 0) {
-            fprintf(stderr, "Could not allocate raw video buffer\n");
-            goto end;
+            AGAR_DebugLog(AGAR_LOG_INFO, "Could not allocate raw video buffer\n");
+            goto _end;
         }
         video_dst_bufsize = ret;
     }
@@ -318,16 +335,16 @@ bool MOVIE_LOADER::open(QString filename)
     av_dump_format(fmt_ctx, 0, _filename.toLocal8Bit().constData(), 0);
 
     if (!audio_stream && !video_stream) {
-        fprintf(stderr, "Could not find audio or video stream in the input, aborting\n");
+        AGAR_DebugLog(AGAR_LOG_INFO, "Could not find audio or video stream in the input, aborting\n");
         ret = 1;
-        goto end;
+        goto _end;
     }
 
     frame = av_frame_alloc();
     if (!frame) {
-        fprintf(stderr, "Could not allocate frame\n");
+        AGAR_DebugLog(AGAR_LOG_INFO, "Could not allocate frame\n");
         ret = AVERROR(ENOMEM);
-        goto end;
+        goto _end;
     }
 
     /* initialize packet, set data to NULL, let the demuxer fill it */
@@ -365,14 +382,14 @@ bool MOVIE_LOADER::open(QString filename)
 	ret = av_frame_get_buffer(tmp_frame, 32); //*
 	video_mutex->unlock();
 	if(ret < 0) {
-		av_frame_free(tmp_frame);
+		av_frame_free(&tmp_frame);
 		AGAR_DebugLog(AGAR_LOG_INFO, "MOVIE_LOADER: Could not re-allocate output buffer\n");
 		goto _end;
 	}
 
 	// ToDo : Initialize SWScaler and SWresampler.
 	return true;
-end:
+_end:
 	this->close();
     return false;
 }
@@ -385,7 +402,7 @@ void MOVIE_LOADER::close(void)
 	if(sws_context != NULL) {
 		sws_freeContext(sws_context);
 	}
-	swr_free(swr_context);
+	swr_free(&swr_context);
 	
 	video_mutex->lock();
 	if(tmp_frame != NULL) av_frame_free(&tmp_frame);
@@ -436,7 +453,7 @@ void MOVIE_LOADER::do_play()
 void MOVIE_LOADER::do_stop()
 {
 	now_playing = false;
-	now_pauseing = false;
+	now_pausing = false;
 	// Still not closing.
 }
 
@@ -453,15 +470,18 @@ void MOVIE_LOADER::do_mute(bool left, bool right)
 	// Real Mute
 }
 
-void MOVIE_LOADER::do_decode_frames(int frames)
+void MOVIE_LOADER::do_decode_frames(int frames, int width, int height)
 {
 	int got_frame;
 	bool end_of_frame = false;
 	int real_frames = 0;
-	double d_frames = (double)frames * (p_osd->vm_frame_rate / frame_rate);
+	double d_frames = (double)frames * (p_osd->vm_frame_rate() / frame_rate);
 	mod_frames = mod_frames + d_frames;
 	real_frames = (int)mod_frames;
 	mod_frames = fmod(mod_frames, 1.0);
+
+	if(width > 0) dst_width = width;
+	if(height > 0) dst_height = height;
 	
 	if(real_frames <= 0) {
 		do_dequeue_audio();
@@ -480,15 +500,17 @@ void MOVIE_LOADER::do_decode_frames(int frames)
 			emit sig_send_audio_frame(null_sound, l);
 		}
 		if(!now_pausing) {
-			uint32_t q;
-			video_mutex->lock();
-			for(int yy = 0; yy < dst_height; yy++) { 
-				q = (uint32_t *)(&(tmp_frame->data[0][yy * tmp_frame->linesize[0]]));
-				if((q != NULL) && (dst_width != 0)) {
-					memset(q, 0x00, dst_width * sizeof(uint32_t));
+			if(tmp_frame != NULL) {
+				uint32_t q;
+				video_mutex->lock();
+				for(int yy = 0; yy < dst_height; yy++) { 
+					q = (uint32_t *)(&(tmp_frame->data[0][yy * tmp_frame->linesize[0]]));
+					if((q != NULL) && (dst_width != 0)) {
+						memset(q, 0x00, dst_width * sizeof(uint32_t));
+					}
 				}
+				video_mutex->unlock();
 			}
-			video_mutex->unlock();
 		}
 		return;
 	}
@@ -579,7 +601,7 @@ void MOVIE_LOADER::do_dequeue_audio()
 	uint8_t *tmpdata = NULL;
 	long dptr = 0;
 	if(audio_data_size > 0) {
-		tmpdata = malloc(audio_data_size);
+		tmpdata = (uint8_t *)malloc(audio_data_size);
 		int ii;
 		il = sound_data_queue.count();
 		for(ii = 0; ii < il; ii++) {
@@ -604,4 +626,23 @@ void MOVIE_LOADER::do_dequeue_audio()
 	}
 }	
 
-	
+void MOVIE_LOADER::do_set_enable_hwaccel_decoding(bool enable)
+{
+	// ToDo.
+}
+
+void MOVIE_LOADER::do_set_enable_hwaccel_scaling(bool enable)
+{
+	// ToDo.
+}
+
+void MOVIE_LOADER::do_set_dst_geometry(int width, int height)
+{
+	if(width > 0) dst_width = width;
+	if(height > 0) dst_height = height;
+}
+
+void MOVIE_LOADER::do_set_dst_pixfmt(int type)
+{
+	// ToDo.
+}

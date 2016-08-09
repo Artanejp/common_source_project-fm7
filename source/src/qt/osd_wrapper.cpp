@@ -21,7 +21,7 @@
 #include "emu_thread.h"
 #include "draw_thread.h"
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
-#include "movie_loader.h"
+#include "avio/movie_loader.h"
 #endif
 
 #include "qt_gldraw.h"
@@ -346,9 +346,9 @@ void OSD::initialize_video()
 	movie_loader = NULL;
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	movie_loader = new MOVIE_LOADER(this, &config);
-	connect(movie_saver, SIGNAL(sig_call_sound_callback(uint8_t *, long)), this, SLOT(do_call_sound_callback(uint8 *, long)));
-	connect(movie_saver, SIGNAL(sig_movie_end(bool)), this, SLOT(do_video_movie_end(bool)));
-	connect(movie_saver, SIGNAL(sig_decoding_error(int)), this, SLOT(do_video_decoding_error(int)));
+	connect(movie_loader, SIGNAL(sig_send_audio_frame(uint8_t *, long)), this, SLOT(do_run_movie_audio_callback(uint8 *, long)));
+	connect(movie_loader, SIGNAL(sig_movie_end(bool)), this, SLOT(do_video_movie_end(bool)));
+	connect(movie_loader, SIGNAL(sig_decoding_error(int)), this, SLOT(do_video_decoding_error(int)));
 #endif	
 }
 
@@ -377,7 +377,7 @@ void OSD::close_movie_file()
 {
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	if(movie_loader != NULL) {
-		movie_loadrer->close();
+		movie_loader->close();
 	}
 #endif
 	now_movie_play = false;
@@ -405,9 +405,9 @@ void OSD::do_run_movie_audio_callback(uint8_t *data, long len)
 	if(data == NULL) return;
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 #if defined(_PX7)
-	if(this->vm->ld700 != NULL) {
+	{
 		lock_vm();
-		this->vm->ld700->movie_sound_callback(data, len);
+		this->vm->movie_sound_callback(data, len);
 		unlock_vm();
 	}
 #endif
@@ -418,7 +418,7 @@ void OSD::do_run_movie_audio_callback(uint8_t *data, long len)
 void OSD::do_decode_movie(int frames)
 {
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
-	movie_loader->do_decode_frames(frames);
+	movie_loader->do_decode_frames(frames, this->get_vm_window_width(), this->get_vm_window_height());
 #endif	
 }
 

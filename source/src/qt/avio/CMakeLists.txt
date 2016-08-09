@@ -2,9 +2,11 @@ message("* qt/avio")
 
 set(s_qt_avio_headers
 	  movie_saver.h
+	  movie_loader.h
 )
 
 set(s_qt_avio_srcs
+	  movie_loader.cpp
 	  movie_saver.cpp
 	  movie_saver_audio.cpp
 	  movie_saver_video.cpp
@@ -59,8 +61,8 @@ target_link_libraries(CSPavio PUBLIC
 	  )
 
 set_target_properties(CSPavio PROPERTIES 
-			     SOVERSION 2.1.0
-			     VERSION 2.1.0
+			     SOVERSION 2.2.0
+			     VERSION 2.2.0
 			     )
 INSTALL(TARGETS CSPavio DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

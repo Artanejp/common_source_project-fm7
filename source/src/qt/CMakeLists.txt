@@ -1,6 +1,6 @@
 message("* qt/osd")
 set(s_qt_osd_headers
-	  osd_base.h
+	osd_base.h
 )
 if(USE_QT_5)
   QT5_WRAP_CPP(s_qt_osd_headers_MOC ${s_qt_osd_headers})

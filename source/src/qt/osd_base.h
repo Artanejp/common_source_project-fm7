@@ -430,6 +430,7 @@ public slots:
 	virtual void do_decode_movie(int frames);
 	void do_video_movie_end(bool flag);
 	void do_video_decoding_error(int num);
+	virtual void do_run_movie_audio_callback(uint8_t *data, long len);
 signals:
 	int sig_update_screen(bitmap_t *);
 	int sig_save_screen(const char *);
