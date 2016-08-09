@@ -1,3 +1,27 @@
+commit fc7a03a9337287414e00777464ab273c4f44ea44
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Aug 10 01:41:29 2016 +0900
+
+    [MOVIE_SAVER][WIP] Fixing incorrect frames at 60fps.
+
+commit bdc3e81e0275a5fe891bed161f71b5f8855eb8d6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Aug 9 22:39:11 2016 +0900
+
+    [General][Linux] Update installer script.
+
+commit 76ad29019581df9f884649f3dc44a34281fa04f0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Aug 9 22:38:18 2016 +0900
+
+    [BUILD][WIN32] Update version of FFMPEG.
+
+commit 04d7e03a3a3339b781bdc2442df3903e25d8b092
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Aug 9 22:37:49 2016 +0900
+
+    [DOC] Update documents for release 2016-08-09.
+
 commit 0832029074ec2ee75a9384637450b75df6678f0f
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Tue Aug 9 16:04:30 2016 +0900

@@ -10,9 +10,9 @@
   * [MOVIE_SAVER] Synchronous OPEN->ENCODEING->CLOSING.
   * [UI/MOVIE_SAVER] DO NOT change state of "Save as movie" without *real* starting/stopping.
   * [Draw/OpenGL] Optimize GLSL's by https://github.com/aras-p/glsl-optimizer .
-  * Built with GIT 0832029074ec2ee75a9384637450b75df6678f0f (or later) .
+  * Built with GIT fc7a03a9337287414e00777464ab273c4f44ea44 (or later) .
  
--- Aug 09, 2016 22:21:45 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Aug 10, 2016 01:42:51 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT July 25, 2016
   * Upstream 2016-04-13
