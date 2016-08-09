@@ -308,10 +308,9 @@ int OSD_BASE::add_video_frames()
 			counter++;
 		}
 	} else {
-		rec_video_nsec += delta_ns;
-		if(rec_video_nsec > (rec_video_fps_nsec * 2))  rec_video_nsec -= rec_video_fps_nsec;
-		if(rec_video_nsec < (rec_video_fps_nsec * -2)) rec_video_nsec += rec_video_fps_nsec;
-		while(rec_video_nsec >= rec_video_fps_nsec) {
+		rec_video_nsec = rec_video_nsec + delta_ns - rec_video_fps_nsec;
+		counter = 1;
+		while(rec_video_nsec > rec_video_fps_nsec) {
 			counter++;
 			rec_video_nsec -= rec_video_fps_nsec;
 		}
@@ -350,10 +349,10 @@ int OSD_BASE::add_video_frames()
 		int size = vm_screen_buffer.pImage.byteCount();
 		int i = counter;
 		// Rescaling
-		QImage *video_result = &(vm_screen_buffer.pImage);
+		QImage video_result = QImage(vm_screen_buffer.pImage);
 		while(i > 0) {
 			// Enqueue to frame.
-			emit sig_enqueue_video(video_result);
+			emit sig_enqueue_video(&video_result);
 			i--;
 		}
 		//AGAR_DebugLog(AGAR_LOG_DEBUG, "Push Video %d frames\n", counter);

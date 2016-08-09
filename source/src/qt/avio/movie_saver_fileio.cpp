@@ -155,7 +155,7 @@ void MOVIE_SAVER::close_stream(void *_oc, void *_ost)
 
 void MOVIE_SAVER::do_open(QString filename, int _fps, int _sample_rate)
 {
-	if(recording || req_close) return;
+	if(recording || req_close || req_stop) return;
 	if(filename.isEmpty()) return;
 	if(_fps <= 0) return;
 	if(_sample_rate <= 10) return;
@@ -169,16 +169,12 @@ bool MOVIE_SAVER::do_open_main()
 {
 #if defined(USE_LIBAV)
 	if(req_close) return false;
+	if(req_stop) return false;
 	if(_filename.isEmpty()) return false;
 	if(rec_fps <= 0) return false;
 	if(audio_sample_rate <= 10) return false;
 	AVOutputFormat *fmt;
 	AVFormatContext *oc;
-	//AVCodec *audio_codec, *video_codec;
-	//do_close_main();
-	//while(req_close) {
-	//	msleep(10);
-	//}
    	int ret;
 	have_video = 0, have_audio = 0;
 	int encode_video = 0, encode_audio = 0;
@@ -305,6 +301,7 @@ _err_final:
 void MOVIE_SAVER::do_close()
 {
 	req_close = true;
+	req_stop = true;
 }
 
 void MOVIE_SAVER::do_close_main()
@@ -321,22 +318,41 @@ void MOVIE_SAVER::do_close_main()
 		AVOutputFormat *fmt = oc->oformat;
 		AVPacket pkt = {0};
 		AVCodecContext *c = video_st.st->codec;
-		
+		bool a_f, v_f;
+		bool need_video_transcode, need_audio_transcode;
+		a_f = v_f = false;
+		need_video_transcode = need_audio_transcode = false;
 		//av_write_trailer(oc);
-		if(totalSrcFrame != totalDstFrame) {
-			while(!video_data_queue.isEmpty()) {
-				dequeue_video(video_frame_buf);
-				if(write_video_frame() < 0) break;
+		/* Close each codec. */
+		//if(totalSrcFrame != totalDstFrame) {
+		while(!a_f || !v_f) {
+			if(audio_remain <= 0) {
+				a_f = audio_data_queue.isEmpty();
+				if(!a_f) {
+					dequeue_audio(audio_frame_buf);
+					audio_remain = audio_size;
+					audio_offset = 0;
+				}
+			}
+			{
+				v_f = video_data_queue.isEmpty();
+				if(!v_f) {
+					dequeue_video(video_frame_buf);
+					video_remain = video_size;
+					video_offset = 0;
+				}
+			}
+
+			if ((n_encode_video == 0) &&
+				((n_encode_audio != 0) || av_compare_ts(video_st.next_pts, video_st.st->codec->time_base,
+														audio_st.next_pts, audio_st.st->codec->time_base) <= 0)) {
+				n_encode_video = write_video_frame();
+				if(n_encode_video < 0) break;
+			} else {
+				n_encode_audio = write_audio_frame();
+				if(n_encode_audio < 0) break;
 			}
 		}
-		while(!audio_data_queue.isEmpty()) {
-			if(av_compare_ts(video_st.next_pts, video_st.st->codec->time_base,
-							 audio_st.next_pts, audio_st.st->codec->time_base) <= 0) break;
-			dequeue_audio(audio_frame_buf);
-			if(write_audio_frame() < 0) break;
-		}
-
-		/* Close each codec. */
 		if (have_video)	{
 			close_stream(oc, &video_st);
 		}
@@ -407,6 +423,7 @@ void MOVIE_SAVER::do_close_main()
 	audio_count = 0;
 	
 	req_close = false;
+	req_stop = false;
 	recording = false;
 	
 	emit sig_set_state_saving_movie(false);

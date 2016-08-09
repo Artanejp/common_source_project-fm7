@@ -52,6 +52,7 @@ MOVIE_SAVER::MOVIE_SAVER(int width, int height, int fps, OSD *osd, config_t *cfg
 //	audio_enqueue_count = 0;
 
 	req_close = false;
+	req_stop = false;
 	bRunThread = false;
 }
 
@@ -119,6 +120,7 @@ void MOVIE_SAVER::enqueue_video(QImage *p)
 #if defined(USE_MOVIE_SAVER)
 	if(!recording) return;
 	if(p == NULL) return;
+	if(req_stop) return;
 	uint32_t *pq;
 	QImage *pp = new QImage(*p);
 	//AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Enqueue video data %d bytes %dx%d", pp->byteCount(), pp->width(), pp->height());
@@ -157,6 +159,7 @@ void MOVIE_SAVER::enqueue_audio(int16_t *p, int size)
 #if defined(USE_MOVIE_SAVER)
 	if(!recording) return;
 	if(p == NULL) return;
+	if(req_stop) return;
 	QByteArray *pp = new QByteArray((const char *)p, size);
 	//AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Enqueue audio data %d bytes", size);
 	audio_data_queue.enqueue(pp);
@@ -207,6 +210,8 @@ void MOVIE_SAVER::run()
 	bool need_video_transcode = false;
 	int i;
 	int64_t total_packets_written = 0;
+	bool a_f, v_f;
+	a_f = v_f = false;
 	volatile bool old_recording = false;
 	audio_remain = 0;
 	video_remain = 0;
@@ -216,7 +221,7 @@ void MOVIE_SAVER::run()
 	n_encode_audio = 0;
 	n_encode_video = 0;
 	req_close = false;
-	
+	req_stop = false;
 	while(bRunThread) {
 		if(recording) {
 			if(!bRunThread) break;
@@ -230,17 +235,19 @@ void MOVIE_SAVER::run()
 				video_count = 0;
 				audio_count = 0;
 				req_close = false;
+				req_stop = false;
 				printf("*\n");
 				if(!do_open_main()) {
 					recording = false;
-					req_close = false;
 					goto _next_turn;
 				}
 				AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE/Saver: Start to recording.");
 				old_recording = true;
+				a_f = v_f = false;
 			}
 			if(audio_remain <= 0) {
-				if(audio_data_queue.isEmpty()) goto _video;
+				a_f = audio_data_queue.isEmpty();
+				if(a_f) goto _video;
 				dequeue_audio(audio_frame_buf);
 				audio_remain = audio_size;
 				audio_offset = 0;
@@ -248,7 +255,8 @@ void MOVIE_SAVER::run()
 			}
 		_video:
 			{
-				if(video_data_queue.isEmpty())
+				v_f = video_data_queue.isEmpty();
+				if(v_f)
 					goto _write_frame;
 				dequeue_video(video_frame_buf);
 				video_remain = video_size;
@@ -287,6 +295,7 @@ void MOVIE_SAVER::run()
 			}
 		}
 	_next_turn:
+		//if(req_stop && a_f && v_f) req_close = true;
 		//printf("%d\n", req_close);
 		if(!bRunThread) break;
 		if(need_video_transcode || need_audio_transcode) {
@@ -311,6 +320,7 @@ void MOVIE_SAVER::run()
 		}
 		continue;
 	_final:
+		req_close = true;
 		do_close_main();
 		old_recording = false;
 	}
@@ -331,6 +341,7 @@ void MOVIE_SAVER::do_exit()
 {
 	bRunThread = false;
 	req_close = true;
+	req_stop = true;
 }
 
 void MOVIE_SAVER::do_set_record_fps(int fps)

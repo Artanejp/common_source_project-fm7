@@ -86,6 +86,7 @@ protected:
 	config_t *p_config;
 	
 	bool req_close;
+	bool req_stop;
 
 	bool have_video;
 	bool have_audio;
