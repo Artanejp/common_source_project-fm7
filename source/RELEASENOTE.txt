@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                         July 25, 2016
+                                                         August 09, 2016
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 1.About
@@ -9,7 +9,7 @@ This package is Qt5 porting of Common Source Code Project (CSP)
 and built with Qt5, for Windows, built with MinGW(32bit).
 
 Source Code:
-   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160725
+   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160809
    
 Additional INFO:
    Binaries will be available, distibute from osdn.jp.
@@ -83,105 +83,19 @@ http://homepage3.nifty.com/takeda-toshiya/
 
 Changes:
 
-* SNAPSHOT July 25, 2016
+* SNAPSHOT August 09, 2016
   * Upstream 2016-04-13
-  * Bugfix only.
-  * [Win32] Build with Qt5.7.0 and GCC-6.1 (cross).
-  * [MOVIE_SAVER/OSD] Fix wrong framerate when recording ; this is related by frame skipping. Maybe fixed (3) of http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/705
-  * [MOVIE_SAVER/Qt] Fix duplicate opening before closing. Maybe fixed (5) of http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/708 .
-  * Build with 8265a0a859ac69ef7c17548851902eab2de6f7f4 (or later).
+  * [PX7] Add movie loader for LD, but not tested enough yet.
+  * [MOVIE_SAVER/OpenGL] Add locking around drawing buffer.
+  * [BUILD] Update FFMPEG to 3.1.1 .
+  * [FFMPEG/LINUX] Enable OpenCL for ffmpeg @linux.You need libOpenCL.so.1 to use homebrew build.
+  * [FFMPEG/WIN32] Enable DXVA2 for video-decoding accelerator.
+  * [MOVIE_SAVER] Synchronous OPEN->ENCODEING->CLOSING.
+  * [UI/MOVIE_SAVER] DO NOT change state of "Save as movie" without *real* starting/stopping.
+  * [Draw/OpenGL] Optimize GLSL's by https://github.com/aras-p/glsl-optimizer .
+  * Built with GIT 0832029074ec2ee75a9384637450b75df6678f0f (or later) .
   
--- Jul 25, 2016 21:59:41 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
-
-* SNAPSHOT June 29, 2016
-  * Upstream 2016-04-13
-  * Build with FFMPEG 3.0.2 supported libmp3lame.
-  * [MOVIE_SAVER/Win32] Fix wrong value of left frames for audio when stopping to record.
-  * [OSD/Qt] Fix wrong FPS with not drawing.
-  * Build with 3752c12b4b08f9910f3e3b6ad6f7dfbd76342cbb (or later).
-  
--- Jun 29, 2016 13:05:15 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
-
-* SNAPSHOT June 21, 2016
-  * Upstream 2016-04-13
-  * Build with FFMPEG 3.0.2 supported libmp3lame.
-  * [Linux] Build with qt.io's official Qt 5.3.1 expect to work with 
-    Ubuntu 16.04 LTS and Debian 8 "Jessie".
-  * [MOVIE_SAVER] (Maybe mostly?) Fix asynchronous both video and audio.
-  * [MOVIE_SAVER] Add libmp3lame and vorbis (disable from UI) for audio codec.
-  * [Qt] Not linking config and using_flags directly from libCSPgui , libCSPavio and libCSPosd .
-  * [MOVIE_SAVER][EMU] Fix stop/restart recording movie when changing/ejecting CARTRIDGEs.
-                       Now, don't stop when changing/eject cartridge.
-    See, http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/699 .
-  * [MOVIE_SAVER] Re-enable (and selectable) H.264 for video codec.
-  * Build with 85c331b7635ca713e819218b86d65a877b7478f3 (or later).
-  
--- Jun 21, 2016 01:07:44 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
-
-* SNAPSHOT June 18, 2016
-  * Upstream 2016-04-13 .
-  * Build with FFMPEG 3.0.2 .
-  * [MOVIE_SAVER] More safer open/close.
-  * [MOVIE_SAVER] Fix deadlock when closing movie.
-  * [MOVIE_SAVER] Selectable both MPEG4v1 and H.264(libx264) for video codec.
-  * [MOVIE_SAVER][Qt] Temporally set video-codec to MPEG4 (not AVC).
-    This is issue of discard frames with libx264 by ffmpeg's libavcodec/libavformat.
-    This seems to be ffmpeg's issue, not my program.
-  * Build with 629f7d70816c04b38c3ab8cc277147a6bd2c2d2a (or later).
-  
--- Jun 18, 2016 03:32:06 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
-
-
-* SNAPSHOT June 11, 2016
-  * Upstream 2016-04-13 .
-  * Use osdn.jp to distibute binaries.
-    https://osdn.jp/projects/csp-qt .
-  * [MOVIE_SAVER] Use ffmpeg internal aac codec, because faac or fdk_aac are not *Free* .
-  * [VM/MOVIE_SAVER] Fix stopping when changing cartridge, now refer to upstream (split movies).
-  * [Qt/Win32] Fix not work with WindowsXP, using homebrew version of ffmpeg-2.8.7.
-  * Build with 89d31ce8daa733ea4a0c38f0a1890d3a0fcfce38 (or later).
-  
--- Jun 11, 2016 05:09:55 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
-
-* SNAPSHOT June 09, 2016
-  * Upstream 2016-04-13 .
-  * Now, all of binaries are built with ffmpeg-2.8.7 at GNU/Linux,  with ffmpeg-3.0 at Windows.
-  * Please read README.ffmpeg.txt .
-  * [FM7/Disk] Add exceptions for Xanadu Scenario 2, this has not booted with changes 49dceaca9401d3c6037cb51ec013ca032ff0e83c .
-  * Build with 64df71cd492be91289f883224640f42cace090ed (or later).
-
--- Jun 09, 2016 05:50:50 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
-
-* SNAPSHOT June 08, 2016
-  * Upstream 2016-04-13 .
-  * Add movie saver, using libav with x264.
-  * Now, all of binaries are built with ffmpeg-3.0.
-  * Build with 2142d5c7426e21cfeedbaea0450f238f8b4d7d38 (or later).
-
--- Jun 08, 2016 07:34:45 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
-
-* SNAPSHOT May 23-2, 2016
-  * Win32 binary only RELEASE
-  * Fix unable to run with some natibve Windows environment.
-  * Build with c1448dc84f5439c7c8931614a8397dbefb6383da .
-
--- May 24, 2016 22:42:00 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
-
-* SNAPSHOT May 23, 2016
-  * Upstream 2016-04-13 .
-  * [Win32] Now built with -msse -msse2 . You can run only later than Pentium4 .
-  * Move FILEIO:: FIFO:: COMMON:: to libCSPemu_utils .
-  * Make OSD:: to inherited by OSD_BASE:: .
-  * [Win32] Disable LINKFLAGS with "-static-libgcc -static-libstdc++" to reduce size of executions, now, bundled libstc++ is for gcc-5 .
-  * [Win32/Build] Support build with MSYS2 (but not display because MSYS2's Qt was build without OpenGL).
-  * [Linux] Build shared libraries with Link-Time-Optimize, reduce size of libs.
-  * [X1/VM] Configurable buttons for X1/Turbo/Turbo Z.
-  * [FM7/FDC] Set MB8877_NO_BUSY_AFTER_SEEK. Fixed unable to boot OS0. Thanks to Anna_Wu.
-  * [FM77AV/MB61VH010] ALULINE: Reduce CPU usage (at delta X > delta Y).
-  * [UI/Qt/DRAW] Fix crash sometimes when exit emulator.
-  * Build with 1c1ddc85dfa7456b1ce48662c2e2930dcc4fc9d8 (or later).
-
--- May 23, 2016 02:22:07 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Aug 09, 2016 22:21:45 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 Upstream changes:
 -----

@@ -1,5 +1,5 @@
 Build Common Source Code Project (CSP) with FFMPEG.
-                                              June 09, 2016 K.Ohta
+                                              August 09, 2016 K.Ohta
                                  <whatisthis.sowhat _at_ gmail.com>
  
 1. Background
@@ -7,7 +7,7 @@ Build Common Source Code Project (CSP) with FFMPEG.
   This using libav (a.k.a. FFMpeg).
   But, this has different versions some distributions, because FFMpeg
   has often changing major version (THIS IS VERY EVIL (#゜Д゜)).
-  For example, in Debian sid built with 3.0.2, in Ubuntu 16.04 LTS with 2.8.6 .
+  For example, in Debian sid built with 3.1.1, in Ubuntu 16.04 LTS with 2.8.6 .
   So, distributed binaries must be built with fixed version of FFMpeg.
   
   Note:
@@ -22,8 +22,7 @@ Build Common Source Code Project (CSP) with FFMPEG.
      $ cd ffmpeg-{version}
      $ ./coinfigure --prefix=/usr/local/ffmpeg-{version} \
         --disable-static --enable-shared --enable-gpl \
-        --enable-non-free \
-        --enable-libx264 --enable-libfaac
+        --enable-libx264 --enable-libmp3lame
 	(and enabling another options)
   e. Build and install
     $ make

@@ -1,5 +1,19 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT August 09, 2016
+  * Upstream 2016-04-13
+  * [PX7] Add movie loader for LD, but not tested enough yet.
+  * [MOVIE_SAVER/OpenGL] Add locking around drawing buffer.
+  * [BUILD] Update FFMPEG to 3.1.1 .
+  * [FFMPEG/LINUX] Enable OpenCL for ffmpeg @linux.You need libOpenCL.so.1 to use homebrew build.
+  * [FFMPEG/WIN32] Enable DXVA2 for video-decoding accelerator.
+  * [MOVIE_SAVER] Synchronous OPEN->ENCODEING->CLOSING.
+  * [UI/MOVIE_SAVER] DO NOT change state of "Save as movie" without *real* starting/stopping.
+  * [Draw/OpenGL] Optimize GLSL's by https://github.com/aras-p/glsl-optimizer .
+  * Built with GIT 0832029074ec2ee75a9384637450b75df6678f0f (or later) .
+ 
+-- Aug 09, 2016 22:21:45 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT July 25, 2016
   * Upstream 2016-04-13
   * Bugfix only.

@@ -1,3 +1,97 @@
+commit 0832029074ec2ee75a9384637450b75df6678f0f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Aug 9 16:04:30 2016 +0900
+
+    [MOVIE_LOADER][PX7][Qt] Add movie loader for PX7.Stil not test enough.
+
+commit 19f995be91fc8961970cb3b3517cbba614a127ac
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Aug 1 00:47:20 2016 +0900
+
+    [Qt][OSD] Fix FTBFS (excepts PX7).
+
+commit a493ce2a28860b20b7b40db6a7c8935df27e1671
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jul 31 22:34:29 2016 +0900
+
+    [Qt] Update CMakefile.
+
+commit 721a6e20a9ca03c96833efc7f498f8e80d0583e6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jul 31 22:33:01 2016 +0900
+
+    [DRAW][MOVIE_SAVER][OpenGL] Add locking around drawing buffer.
+
+commit d0591f54a237695b177dcdb9c2a1f5f236cbfc36
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jul 31 22:32:12 2016 +0900
+
+    [MOVIE_LOADER][WIP] Implementing video dedoder, still not working.
+
+commit 5701e1dbc19221e261c947c15ade6455c476ca64
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jul 30 09:39:47 2016 +0900
+
+    [WIP][Qt][MOVIE_LOADER] Constructing MOVIE_LOADER class.
+
+commit bcd10c39874287c8c1cd227f0d0fd4012b481254
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jul 30 06:14:29 2016 +0900
+
+    [BUILD][MOVIE_SAVER][FFMPEG] Update FFMPEG to 3.1.1 .
+    [FFMPEG][LINUX] Enable OpenCL for ffmpeg @linux.You need libOpenCL.so.1 to use homebrew build.
+    [FFMPEG][WIN32] Enable DXVA2 for video-decoding accelerator.
+
+commit 5edae4c1426e55fc4026b12e833793edc890e434
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jul 28 18:36:31 2016 +0900
+
+    * I hope to fix issues of (5) at http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/708 , really (；´Д｀)
+    [Qt][MOVIE_SAVER] Synchronous OPEN->ENCODEING->CLOSING.
+    [UI][Qt][MOVIE_SAVER] DO NOT change state of "Save as movie" without *real* starting/stopping.
+
+commit 3acf978aea1bd67f94235f2d8a85e4b2bb789d01
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jul 26 18:30:05 2016 +0900
+
+    [VM][Qt][MSX] Add PX7.LD part still not working.
+
+commit 7c708ab9d92d63544e404e84c05de6de3a3ee562
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jul 26 17:57:03 2016 +0900
+
+    [UI][Qt][PX7] Add GUI side of laserdisc supporting.
+
+commit 82625059d0f6f62a76f321fa2dc92748181065d1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jul 26 04:28:01 2016 +0900
+
+    [Draw][GL] Optimize GLSL's by https://github.com/aras-p/glsl-optimizer .
+
+commit c2b0ae46d0bc8fd26af9d62bab1be570f4f9de65
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jul 26 04:24:11 2016 +0900
+
+    [BUILD][CMAKE][Win32] Fix FTBFS without Qt 5.3.
+
+commit 5bb9ec4997591f7e5c650cf3dbc1119860bd76f1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jul 26 04:22:55 2016 +0900
+
+    [DOC] Add a article about Window's OpenGL.
+
+commit 89f3d2f62f2f7c4c09f6490bab924b6e33e12701
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 25 22:05:17 2016 +0900
+
+    [DOC][OOPs] I forgot to change upstream URL X-)
+
+commit ebcef0348598605e0c3362dd6bd1ecba89b38d0a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 25 22:03:17 2016 +0900
+
+    [DOC] Update for 2016-07-25.
+
 commit 8265a0a859ac69ef7c17548851902eab2de6f7f4
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Mon Jul 25 21:53:43 2016 +0900
@@ -834,8 +928,7 @@ commit 79057640386c89298bd1dbfcd6c3a45e8632d06e
 Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
 Date:   Mon May 16 16:35:09 2016 +0900
 
-    
-[BUILD][WIN32] Fix FTBFS.
+    [BUILD][WIN32] Fix FTBFS.
 
 commit 7410b9b300d333de91bddaa49abd6b1b5cc44c7a
 Author: K.Ohta <whatisthis.sowhat@gmail.com>

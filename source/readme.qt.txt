@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                          July 25, 2016
+                                          August 09, 2016
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 0. About
@@ -12,14 +12,14 @@
    I'm using GNU/Linux, and I starting to apply FM-7(or later).
    So, I start to port to GNU/Linux and using Qt4.
    
-   * Note: You can build with MinGW32 and Qt 5.5.1(for MinGW).
+   * Note: You can build with MinGW32 and Qt 5.7(for MinGW).
 
    * TIPS: If emufoo.exe don't show screen drawing, set environment 
            variable QT_OPENGL to software (i.e. Using Windows as VirtualBox's gueat OS).
      
 2. What you need at least:
    a. Qt5 (neither Qt3 and Qt4) toolkit.
-   b. Some OpenGL implementation, maybe at leaset OpenGL v3.0 .
+   b. Some OpenGL implementation, maybe at leaset OpenGL v2.1.
    c. gcc / g++ (4.7 or later? ) or llvm clang / clang++ (3.5 or later?) toolchain.
    d. SDL2 (not SDL1.x).
    e. CMake 2.8 or later.
@@ -65,7 +65,7 @@ a. I tested to build only under Debian GNU/Linux "sid".
   b. Now, I using Qt5 as toolkit, because authors of Qt announced
      "Qt4 is obsolete, will be updated no longer".
 
-  c. All of virtual machines of upstream (@Apr 01, 2016) excepts PX7 are already ported to Qt.
+  c. All of virtual machines of upstream (@Apr 13, 2016) are ported to Qt.
   d. Now using GCC-6 with Link Time Optimize to build for distrubuted binaries.
 
 6. Upstream repositry:
