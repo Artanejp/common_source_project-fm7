@@ -30,7 +30,7 @@ MAKEFLAGS_LIB_CC="-O2 ${MAKEFLAGS_BASE}  -DNDEBUG"
 #MAKEFLAGS_LIB_CXX="-O2 -flto -ffat-lto-objects -DNDEBUG" 
 #MAKEFLAGS_LIB_CC="-O2 -flto -ffat-lto-objects -DNDEBUG"
 
-MAKEFLAGS_GENERAL="-j3"
+MAKEFLAGS_GENERAL="-j2"
 
 #CMAKE_LINKFLAG="-static-libstdc++ -static-libgcc"
 CMAKE_LINKFLAG="-s"
@@ -41,6 +41,6 @@ CMAKE_APPENDFLAG="-DUSE_QT5_4_APIS=ON -DUSE_MOVIE_LOADER=ON -DUSE_MOVIE_SAVER=ON
 #		   -DCMAKE_RANLIB:STRING=i686-w64-mingw32-gcc-ranlib \
 #		   "
 
-CMAKE_APPENDFLAG="${CMAKE_APPENDFLAG} -DLIBAV_ROOT_DIR=/usr/local/i586-mingw-msvc/ffmpeg-3.0.2"
+CMAKE_APPENDFLAG="${CMAKE_APPENDFLAG} -DLIBAV_ROOT_DIR=/usr/local/i586-mingw-msvc/ffmpeg-3.1.1"
 
 
