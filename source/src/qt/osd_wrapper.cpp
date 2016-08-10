@@ -346,8 +346,13 @@ void OSD::initialize_video()
 	movie_loader = NULL;
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	movie_loader = new MOVIE_LOADER(this, &config);
-	connect(movie_loader, SIGNAL(sig_send_audio_frame(uint8_t *, long)), this, SLOT(do_run_movie_audio_callback(uint8 *, long)));
+	connect(movie_loader, SIGNAL(sig_send_audio_frame(uint8_t *, long)), this, SLOT(do_run_movie_audio_callback(uint8_t *, long)));
 	connect(movie_loader, SIGNAL(sig_movie_end(bool)), this, SLOT(do_video_movie_end(bool)));
+	connect(this, SIGNAL(sig_movie_play(void)), movie_loader, SLOT(do_play()));
+	connect(this, SIGNAL(sig_movie_stop(void)), movie_loader, SLOT(do_stop()));
+	connect(this, SIGNAL(sig_movie_pause(bool)), movie_loader, SLOT(do_pause(bool)));
+	connect(this, SIGNAL(sig_movie_seek_frame(bool, int)), movie_loader, SLOT(do_seek_frame(bool, int)));
+	//connect(this, SIGNAL(sig_movie_mute(bool, bool)), movie_loader, SLOT(do_mute(bool, bool)));
 	connect(movie_loader, SIGNAL(sig_decoding_error(int)), this, SLOT(do_video_decoding_error(int)));
 #endif	
 }
@@ -424,8 +429,10 @@ void OSD::do_decode_movie(int frames)
 
 void OSD::get_video_buffer()
 {
-#if defined(_PX7)
+#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
+	//movie_loader->do_decode_frames(1, this->get_vm_window_width(), this->get_vm_window_height());
 	movie_loader->get_video_frame();
+	//printf("**\n");
 #endif
 }
 

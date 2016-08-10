@@ -146,8 +146,8 @@ public slots:
 	void do_open_quickdisk(int drv, QString path);
 	void do_close_cart(int drv);
 	void do_open_cart(int drv, QString path);
-	void do_close_laser_disk(void);
-	void do_open_laser_disk(QString path);
+	void do_close_laser_disc(void);
+	void do_open_laser_disc(QString path);
 	void do_eject_cdrom(void);
 	void do_open_cdrom(QString path);
 	void do_load_binary(int drv, QString path);

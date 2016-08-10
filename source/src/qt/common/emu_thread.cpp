@@ -876,17 +876,17 @@ void EmuThreadClass::do_open_cart(int drv, QString path)
 }
 
 
-void EmuThreadClass::do_close_laser_disk(void)
+void EmuThreadClass::do_close_laser_disc(void)
 {
-#ifdef USE_LASER_DISK
-	p_emu->close_laser_disk();
+#ifdef USE_LASER_DISC
+	p_emu->close_laser_disc();
 #endif
 }
 
-void EmuThreadClass::do_open_laser_disk(QString path)
+void EmuThreadClass::do_open_laser_disc(QString path)
 {
-#ifdef USE_LASER_DISK
-	p_emu->open_laser_disk(path.toLocal8Bit().constData());
+#ifdef USE_LASER_DISC
+	p_emu->open_laser_disc(path.toLocal8Bit().constData());
 #endif	
 }
 

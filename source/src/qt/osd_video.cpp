@@ -27,6 +27,7 @@ void OSD_BASE::release_video()
 
 void OSD_BASE::get_video_buffer()
 {
+   
 }
 
 void OSD_BASE::mute_video_dev(bool l, bool r)
@@ -50,6 +51,7 @@ void OSD_BASE::play_movie()
 {
 	now_movie_play = true;
 	now_movie_pause = false;
+	printf("@@\n");
 	emit sig_movie_play();
 }
 
