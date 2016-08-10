@@ -173,8 +173,10 @@ void OSD_BASE::release_sound()
 #endif   
 	if(snd_apply_sem != NULL) {
 		SDL_DestroySemaphore(snd_apply_sem);
+		snd_apply_sem = NULL;
 	}
 	if(sound_buf_ptr != NULL) free(sound_buf_ptr);
+	sound_buf_ptr = NULL;
 	// stop recording
 	stop_record_sound();
 }

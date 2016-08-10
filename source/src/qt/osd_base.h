@@ -354,7 +354,7 @@ public:
 	void stop_movie();
 	void pause_movie();
 	double get_movie_frame_rate();
-	int get_movie_sound_rate();
+	virtual int get_movie_sound_rate();
 	void set_cur_movie_frame(int frame, bool relative);
 	uint32_t get_cur_movie_frame();
 	bool now_movie_play, now_movie_pause;

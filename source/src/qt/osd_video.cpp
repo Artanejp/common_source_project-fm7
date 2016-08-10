@@ -51,7 +51,6 @@ void OSD_BASE::play_movie()
 {
 	now_movie_play = true;
 	now_movie_pause = false;
-	printf("@@\n");
 	emit sig_movie_play();
 }
 

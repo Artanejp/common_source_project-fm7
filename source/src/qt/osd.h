@@ -84,6 +84,7 @@ public:
 	bool open_movie_file(const _TCHAR* file_path);
 	void close_movie_file();
 	uint32_t get_cur_movie_frame();
+	int get_movie_sound_rate();
 
 public slots:
 	void do_decode_movie(int frames);

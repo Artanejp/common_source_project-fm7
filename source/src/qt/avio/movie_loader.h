@@ -37,7 +37,7 @@ extern "C" {
 #include "config.h"
 
 typedef struct {
-	uint8_t *data;
+	uint8_t *data[4];
 	long unpadded_linesize;
 } sound_data_queue_t;
 
@@ -49,7 +49,7 @@ class MOVIE_LOADER: public QObject
 {
 	Q_OBJECT
 private:
-
+	bool req_transfer;
 #if defined(USE_LIBAV)
 	AVFormatContext *fmt_ctx; // = NULL;
 	AVCodecContext *video_dec_ctx;// = NULL
@@ -61,7 +61,6 @@ private:
 	int video_dst_bufsize;
 	int video_stream_idx, audio_stream_idx; //int video_stream_idx = -1, audio_stream_idx = -1;
 	AVFrame *frame; //AVFrame *frame = NULL;
-	AVFrame *tmp_frame; //AVFrame *tmp_frame = NULL;
 	AVPacket pkt;
 	struct SwsContext *sws_context;
 	struct SwrContext *swr_context;

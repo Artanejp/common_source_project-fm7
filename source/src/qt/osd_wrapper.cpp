@@ -346,7 +346,7 @@ void OSD::initialize_video()
 	movie_loader = NULL;
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	movie_loader = new MOVIE_LOADER(this, &config);
-	connect(movie_loader, SIGNAL(sig_send_audio_frame(uint8_t *, long)), this, SLOT(do_run_movie_audio_callback(uint8_t *, long)));
+	//connect(movie_loader, SIGNAL(sig_send_audio_frame(uint8_t *, long)), this, SLOT(do_run_movie_audio_callback2(uint8_t *, long)));
 	connect(movie_loader, SIGNAL(sig_movie_end(bool)), this, SLOT(do_video_movie_end(bool)));
 	connect(this, SIGNAL(sig_movie_play(void)), movie_loader, SLOT(do_play()));
 	connect(this, SIGNAL(sig_movie_stop(void)), movie_loader, SLOT(do_stop()));
@@ -436,3 +436,10 @@ void OSD::get_video_buffer()
 #endif
 }
 
+
+int OSD::get_movie_sound_rate()
+{
+#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
+	return movie_loader->get_movie_sound_rate();
+#endif
+}

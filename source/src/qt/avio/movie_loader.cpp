@@ -40,6 +40,8 @@ MOVIE_LOADER::MOVIE_LOADER(OSD *osd, config_t *cfg) : QObject(NULL)
 	old_dst_width = dst_width;
 	old_dst_height = dst_height;
 	mod_frames = 0.0;
+	sound_rate = 44100;
+	req_transfer = true;
 #if defined(USE_LIBAV)
 	fmt_ctx = NULL;
 	video_dec_ctx = NULL;
@@ -54,7 +56,6 @@ MOVIE_LOADER::MOVIE_LOADER(OSD *osd, config_t *cfg) : QObject(NULL)
 	video_stream_idx = -1;
 	audio_stream_idx = -1;
 	frame = NULL;
-	tmp_frame = NULL;
 	refcount = 0;
 #endif
 
@@ -71,58 +72,50 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 {
 	int ret = 0;
 	int decoded = pkt.size;
-
+	
 	*got_frame = 0;
-
+	
 	if (pkt.stream_index == video_stream_idx) {
 		/* decode video frame */
-        	ret = avcodec_decode_video2(video_dec_ctx, frame, got_frame, &pkt);
-        	if (ret < 0) {
+		ret = avcodec_decode_video2(video_dec_ctx, frame, got_frame, &pkt);
+		if (ret < 0) {
 			char str_buf[AV_ERROR_MAX_STRING_SIZE] = {0};
 			av_make_error_string(str_buf, AV_ERROR_MAX_STRING_SIZE, ret);
 			AGAR_DebugLog(AGAR_LOG_INFO, "Error decoding video frame (%s)\n", str_buf);
 			return ret;
 		}
-        	if (*got_frame) {
+		if (*got_frame) {
             if (frame->width != src_width || frame->height != src_height ||
                 frame->format != pix_fmt) {
                 /* To handle this change, one could call av_image_alloc again and
                  * decode the following frames into another rawvideo file. */
                 AGAR_DebugLog(AGAR_LOG_INFO, "Error: Width, height and pixel format have to be "
-                        "constant in a rawvideo file, but the width, height or "
-                        "pixel format of the input video changed:\n"
-                        "old: width = %d, height = %d, format = %s\n"
-                        "new: width = %d, height = %d, format = %s\n",
-                        src_width, src_height, av_get_pix_fmt_name(pix_fmt),
-                        frame->width, frame->height,
-                        av_get_pix_fmt_name(frame->format));
+							  "constant in a rawvideo file, but the width, height or "
+							  "pixel format of the input video changed:\n"
+							  "old: width = %d, height = %d, format = %s\n"
+							  "new: width = %d, height = %d, format = %s\n",
+							  src_width, src_height, av_get_pix_fmt_name(pix_fmt),
+							  frame->width, frame->height,
+							  av_get_pix_fmt_name(frame->format));
                 return -1;
             }
 			if((old_dst_width != dst_width) || (old_dst_height != dst_height)) { // You sould allocate on opening.
-				if(tmp_frame != NULL) {
-					video_mutex->lock();
-					av_frame_free(&tmp_frame);
-					tmp_frame = av_frame_alloc();
-					if (tmp_frame == NULL) {
-						AGAR_DebugLog(AGAR_LOG_INFO, "MOVIE_LOADER: Could not re-allocate video frame\n");
-						video_mutex->unlock();
-						return -1;
-					}
-					tmp_frame->format = AV_PIX_FMT_BGRA;
-					tmp_frame->width = dst_width;
-					tmp_frame->height = dst_height;
-					ret = av_frame_get_buffer(tmp_frame, 32); //*
-					if(ret < 0) {
-						av_frame_free(&tmp_frame);
-						AGAR_DebugLog(AGAR_LOG_INFO, "MOVIE_LOADER: Could not re-allocate output buffer\n");
-						video_mutex->unlock();
-						return -1;
-					}
+				video_mutex->lock();
+				for(int i = 0; i < 4; i++) av_free(video_dst_data[i]);
+				ret = av_image_alloc(video_dst_data, video_dst_linesize,
+									 dst_width, dst_height, AV_PIX_FMT_BGRA, 1);
+				
+				if(ret < 0) {
+					AGAR_DebugLog(AGAR_LOG_INFO, "MOVIE_LOADER: Could not re-allocate output buffer\n");
+					old_dst_width = dst_width;
+					old_dst_height = dst_height;
 					video_mutex->unlock();
+					return -1;
 				}
+				old_dst_width = dst_width;
+				old_dst_height = dst_height;
+				video_mutex->unlock();
 			}
-			old_dst_width = dst_width;
-			old_dst_height = dst_height;
 			
 			char str_buf2[AV_TS_MAX_STRING_SIZE] = {0};
 			av_ts_make_time_string(str_buf2, frame->pts, &video_dec_ctx->time_base);
@@ -147,20 +140,13 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 				}
 				
 			}
-			if(tmp_frame != NULL) { // You must pull final frame (and need locking?) before emit sig_decode_frames_complete().
-				video_mutex->lock();
-		       ///ret = av_frame_make_writable(tmp_frame);
-				//printf("%x %d\n", tmp_frame->data[0], tmp_frame->linesize[0]);
-				sws_scale(sws_context,
-						  frame->data, frame->linesize,
-						  0, dst_height, video_dst_data, video_dst_linesize);
-				//tmp_frame->pts = tmp_frame->pts + 1;
-				video_mutex->unlock();
-			}
+			video_mutex->lock();
+			sws_scale(sws_context,
+					  frame->data, frame->linesize,
+					  0, dst_height, video_dst_data, video_dst_linesize);
+			req_transfer = true;
+			video_mutex->unlock();
 #endif	   
-            //av_image_copy(video_dst_data, video_dst_linesize,
-           //               (const uint8_t **)(tmp_frame->data), tmp_frame->linesize,
-           //           pix_fmt, dst_width, dst_height);
 		}
 	} else if (pkt.stream_index == audio_stream_idx) {
 		/* decode audio frame */
@@ -180,6 +166,9 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 		if (*got_frame) {
 			size_t unpadded_linesize = frame->nb_samples * av_get_bytes_per_sample(frame->format);
 			char str_buf[AV_TS_MAX_STRING_SIZE] = {0};
+			AVCodecContext *c = audio_stream->codec;
+			int dst_nb_samples = av_rescale_rnd(swr_get_delay(swr_context, c->sample_rate) + frame->nb_samples,
+												c->sample_rate, c->sample_rate,  AV_ROUND_UP);
 			av_ts_make_time_string(str_buf, frame->pts, &audio_dec_ctx->time_base);
 			//AGAR_DebugLog(AGAR_LOG_DEBUG,"audio_frame%s n:%d nb_samples:%d pts:%s\n",
 			//			  cached ? "(cached)" : "",
@@ -196,14 +185,30 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 			 * to packed data. */
 			sound_data_queue_t *px = (sound_data_queue_t *)malloc(sizeof(sound_data_queue_t));
 			if(px != NULL) {
-				px->data = (uint8_t *)malloc((long)unpadded_linesize);
-				memcpy(px->data, (uint8_t *)(frame->extended_data[0]), (long)unpadded_linesize); // post tmp-buffer.
-				px->unpadded_linesize = (long)unpadded_linesize;
+				px->data[0] = (uint8_t *)malloc((long)dst_nb_samples * 2 * sizeof(int16_t));
+				px->data[1] = px->data[2] = px->data[3] = NULL;
+				if(px->data[0] == NULL) {
+					free(px);
+					AGAR_DebugLog(AGAR_LOG_INFO, "Error while converting\n");
+					return -1;
+				}					
+				ret = swr_convert(swr_context,
+								  px->data, dst_nb_samples,
+								  (const uint8_t **)frame->data, frame->nb_samples);
+				if (ret < 0) {
+					free(px->data[0]);
+					free(px);
+					AGAR_DebugLog(AGAR_LOG_INFO, "Error while converting\n");
+					return -1;
+				}
+				px->unpadded_linesize = (long)dst_nb_samples * 2 * sizeof(int16_t);
 				snd_write_lock->lock();
 				sound_data_queue.enqueue(px);
 				snd_write_lock->unlock();
+			} else {
+				AGAR_DebugLog(AGAR_LOG_INFO, "Error while converting\n");
+				return -1;
 			}
-			//fwrite(frame->extended_data[0], 1, unpadded_linesize, audio_dst_file);
 		}
 	}
 
@@ -297,6 +302,7 @@ bool MOVIE_LOADER::open(QString filename)
 	audio_frame_count = 0;
 	video_frame_count = 0;
 	mod_frames = 0.0;
+	req_transfer = true;
     /* register all formats and codecs */
     av_register_all();
 
@@ -320,8 +326,9 @@ bool MOVIE_LOADER::open(QString filename)
         src_width = video_dec_ctx->width;
         src_height = video_dec_ctx->height;
         pix_fmt = video_dec_ctx->pix_fmt;
-        //ret = av_image_alloc(video_dst_data, video_dst_linesize,
-        //                     src_width, src_height, pix_fmt, 1);
+		AVRational rate;
+		rate = av_stream_get_r_frame_rate(video_stream);
+		frame_rate = av_q2d(rate);
         if (ret < 0) {
             AGAR_DebugLog(AGAR_LOG_INFO, "Could not allocate raw video buffer\n");
             goto _end;
@@ -332,11 +339,30 @@ bool MOVIE_LOADER::open(QString filename)
     if (open_codec_context(&audio_stream_idx, fmt_ctx, AVMEDIA_TYPE_AUDIO) >= 0) {
         audio_stream = fmt_ctx->streams[audio_stream_idx];
         audio_dec_ctx = audio_stream->codec;
+		sound_rate = audio_stream->codec->sample_rate;
     }
+	swr_context = swr_alloc();
+	if(swr_context == NULL) {
+		AGAR_DebugLog(AGAR_LOG_INFO, "Could not allocate resampler context\n");
+		goto _end;
+	}
+	av_opt_set_int	   (swr_context, "in_channel_count",   audio_stream->codec->channels,	   0);
+	av_opt_set_int	   (swr_context, "in_sample_rate",	   audio_stream->codec->sample_rate,	0);
+	av_opt_set_sample_fmt(swr_context, "in_sample_fmt",	   audio_stream->codec->sample_fmt, 0);
+	av_opt_set_int	   (swr_context, "out_channel_count",  2,	   0);
+	av_opt_set_int	   (swr_context, "out_sample_rate",	   sound_rate,	0);
+	av_opt_set_sample_fmt(swr_context, "out_sample_fmt",   AV_SAMPLE_FMT_S16,	 0);
+	
+	/* initialize the resampling context */
+	if ((ret = swr_init(swr_context)) < 0) {
+		AGAR_DebugLog(AGAR_LOG_INFO, "Failed to initialize the resampling context\n");
+		goto _end;
+	}
 
     /* dump input information to stderr */
     av_dump_format(fmt_ctx, 0, _filename.toLocal8Bit().constData(), 0);
-
+	AGAR_DebugLog(AGAR_LOG_INFO, "Video is %f fps", frame_rate);
+	AGAR_DebugLog(AGAR_LOG_INFO, "Audio is %d Hz ", sound_rate);
     if (!audio_stream && !video_stream) {
         AGAR_DebugLog(AGAR_LOG_INFO, "Could not find audio or video stream in the input, aborting\n");
         ret = 1;
@@ -355,41 +381,14 @@ bool MOVIE_LOADER::open(QString filename)
     pkt.data = NULL;
     pkt.size = 0;
 
-    /* read frames from the file */
-    //while (av_read_frame(fmt_ctx, &pkt) >= 0) {
-    //    AVPacket orig_pkt = pkt;
-    //    do {
-    //        ret = decode_packet(&got_frame, 0);
-   //         if (ret < 0)
-   //             break;
-   //         pkt.data += ret;
-   //         pkt.size -= ret;
-   //     } while (pkt.size > 0);
-   //     av_packet_unref(&orig_pkt);
-   // }
-
-    /* flush cached frames */
-    pkt.data = NULL;
-    pkt.size = 0;
-
 	// Re-allocate buffer;
 	video_mutex->lock();
-        ret = av_image_alloc(video_dst_data, video_dst_linesize,
+	ret = av_image_alloc(video_dst_data, video_dst_linesize,
                              dst_width, dst_height, AV_PIX_FMT_BGRA, 1);
-	tmp_frame = av_frame_alloc();
-	if (tmp_frame == NULL) {
-		AGAR_DebugLog(AGAR_LOG_INFO, "MOVIE_LOADER: Could not allocate output frame\n");
-		video_mutex->unlock();
-		goto _end;
-	}
-	tmp_frame->format = AV_PIX_FMT_BGRA;
-	tmp_frame->width = dst_width;
-	tmp_frame->height = dst_height;
-	printf("%d %d\n", dst_width, dst_height);
-	ret = av_frame_get_buffer(tmp_frame, 32); //*
+	old_dst_width = dst_width;
+	old_dst_height = dst_height;
 	video_mutex->unlock();
 	if(ret < 0) {
-		av_frame_free(&tmp_frame);
 		AGAR_DebugLog(AGAR_LOG_INFO, "MOVIE_LOADER: Could not re-allocate output buffer\n");
 		//video_mutex->unlock();
 		goto _end;
@@ -414,7 +413,7 @@ void MOVIE_LOADER::close(void)
 	swr_free(&swr_context);
 	
 	video_mutex->lock();
-	if(tmp_frame != NULL) av_frame_free(&tmp_frame);
+	req_transfer = true;
 	if(frame != NULL) av_frame_free(&frame);
 	for(int i = 0; i < 4; i++) {
 		if(video_dst_data[i] != NULL) av_free(video_dst_data[i]);
@@ -491,11 +490,11 @@ void MOVIE_LOADER::do_decode_frames(int frames, int width, int height)
 	int got_frame;
 	bool end_of_frame = false;
 	int real_frames = 0;
-	double d_frames = (double)frames * (p_osd->vm_frame_rate() / frame_rate);
+	double d_frames = (double)frames * (frame_rate /p_osd->vm_frame_rate());
 	mod_frames = mod_frames + d_frames;
 	real_frames = (int)mod_frames;
-	mod_frames = fmod(mod_frames, 1.0);
-	real_frames = 1;
+	mod_frames = mod_frames - (double)real_frames;
+	
 	if(width > 0) dst_width = width;
 	if(height > 0) dst_height = height;
 	
@@ -504,6 +503,7 @@ void MOVIE_LOADER::do_decode_frames(int frames, int width, int height)
 		//if(frames < 0) emit sig_decoding_error(MOVIE_LOADER_ILL_FRAME_NUMBER);
 		return;
 	}
+
 	if(!now_playing || now_pausing) {
 		uint8_t *null_sound;
 		double t;
@@ -516,11 +516,11 @@ void MOVIE_LOADER::do_decode_frames(int frames, int width, int height)
 			emit sig_send_audio_frame(null_sound, l);
 		}
 		if(!now_pausing) {
-			if(tmp_frame != NULL) {
+			if(video_dst_data[0] != NULL) {
 				uint32_t q;
 				video_mutex->lock();
 				for(int yy = 0; yy < dst_height; yy++) { 
-					q = (uint32_t *)(&(tmp_frame->data[0][yy * tmp_frame->linesize[0]]));
+					q = (uint32_t *)(&(video_dst_data[0][yy * video_dst_linesize[0]]));
 					if((q != NULL) && (dst_width != 0)) {
 						memset(q, 0x00, dst_width * sizeof(uint32_t));
 					}
@@ -528,7 +528,6 @@ void MOVIE_LOADER::do_decode_frames(int frames, int width, int height)
 				video_mutex->unlock();
 			}
 		}
-		//printf("##\n");
 		return;
 	}
 	for(int i = 0; i < real_frames; i++) {
@@ -557,12 +556,12 @@ void MOVIE_LOADER::get_video_frame()
 	int xx;
 	
 	p_osd->screen_mutex->lock();
-	if(tmp_frame != NULL) {
-		video_mutex->lock();
+	video_mutex->lock();
+	if(req_transfer) {
+		req_transfer = false;
 		for(int yy = 0; yy < dst_height; yy++) {
 			q = (uint32_t *)(p_osd->get_vm_screen_buffer(yy));
 #if 1
-			//p = (uint32_t *)(&(tmp_frame->data[0][yy * tmp_frame->linesize[0]]));
 			p = (uint32_t *)(&(video_dst_data[0][yy * video_dst_linesize[0]]));
 			if((p == NULL) || (q == NULL)) break;
 			for(xx = dst_width; xx > 7;) {
@@ -618,8 +617,8 @@ void MOVIE_LOADER::get_video_frame()
 #endif		   
 		}
 		video_mutex->unlock();
+		p_osd->screen_mutex->unlock();
 	}
-	p_osd->screen_mutex->unlock();
 }
 
 void MOVIE_LOADER::do_seek_frame(bool relative, int frames)
@@ -651,14 +650,14 @@ void MOVIE_LOADER::do_dequeue_audio()
 		for(ii = 0; ii < il; ii++) {
 			tmpq = sound_data_queue.dequeue();
 			if(tmpq != NULL) {
-				if(tmpq->data != NULL) {
+				if(tmpq->data[0] != NULL) {
 					if((tmpq->unpadded_linesize != 0) && (dptr < audio_data_size)) {
 						if(tmpdata != NULL) {
-							memcpy(&tmpdata[dptr], tmpq->data, tmpq->unpadded_linesize);
+							memcpy(&tmpdata[dptr], tmpq->data[0], tmpq->unpadded_linesize);
 						}
 						dptr += tmpq->unpadded_linesize;
 					}
-					free(tmpq->data);
+					free(tmpq->data[0]);
 				}
 				free(tmpq);
 			}
@@ -666,7 +665,9 @@ void MOVIE_LOADER::do_dequeue_audio()
 	}
 	snd_write_lock->unlock();
 	if((tmpdata != NULL) && (dptr != 0)) {
-		emit sig_send_audio_frame(tmpdata,dptr); // Please free arg1 after calling sound_callback of vm.
+		//emit sig_send_audio_frame(tmpdata,dptr); // Please free arg1 after calling sound_callback of vm.
+		//if(p_osd != NULL) p_osd->do_run_movie_audio_callback(tmpdata, dptr / (sizeof(int16_t) * 2));
+		if(p_osd != NULL) p_osd->do_run_movie_audio_callback(tmpdata, dptr);
 	}
 }	
 
