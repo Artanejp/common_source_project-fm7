@@ -1,3 +1,47 @@
+commit 171d3309339e4b941d2bd13a3dd0c11840cfeb62
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Aug 15 23:34:52 2016 +0900
+
+    [Linux] Update installer.
+
+commit b85e1cb6051fe2bf2390ab2f74bebfddc7c69ba6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Aug 15 23:29:58 2016 +0900
+
+    [Qt][OSD][MOVIE_SAVER] Maybe correctness frame(s) counting with 60fps ヽ(=´▽=)ﾉ
+    [MOVIE_SAVER] Fix sometimes crashing when stop to save movie.
+    [GENERAL] Update SO versions.
+
+commit 26677598bb1777750b2b239588a70f7e8dfd5106
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Aug 11 02:54:15 2016 +0900
+
+    [BUILD][General] Update SOVERSION of DLLs.
+
+commit 494dc3c3e27a6a70066f297717caa37d9e8c87eb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Aug 11 02:50:26 2016 +0900
+
+    [MOVIE_LOADER][PX7] Sound Laser Disc, but not be smooth.
+
+commit e511bcd1b28597c52940a07bcc3fd59f069f2292
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Aug 10 22:44:23 2016 +0900
+
+    [MOVIE_LOADER] Primary decoding.
+
+commit 573f06633bb39963f9c3c32096feed3b033033e1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Aug 10 12:58:42 2016 +0900
+
+    [BUILD][WIN32] Fix FTBFS.
+
+commit 32c14bb3e01802827ccdfe168fe5e565507bb0b2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Aug 10 01:44:55 2016 +0900
+
+    [DOC] Upodate documents.
+
 commit fc7a03a9337287414e00777464ab273c4f44ea44
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Wed Aug 10 01:41:29 2016 +0900

@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                          August 09, 2016
+                                          August 15, 2016
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -11,7 +11,7 @@
    用意しています。
    
    ソースコード：
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160809
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160815
 
    追加情報:
     　各機種バイナリーは、osdn.jp　もしくはミラーサイトより入手可能です。
@@ -105,6 +105,15 @@
       http://homepage3.nifty.com/takeda-toshiya/
 
 Changes:
+* SNAPSHOT August 15, 2016
+  * Upstream 2016-04-13
+  * [OSD][MOVIE_SAVER] Maybe correctness frame(s) counting with 60fps ヽ(=´▽=)ﾉ
+  * [MOVIE_SAVER] Fix sometimes crashing when stop to save movie.
+  * [PX7/MOVIE_LOADER] Sound Laser Disc, but not be smooth.
+  * Built with GIT 171d3309339e4b941d2bd13a3dd0c11840cfeb62 (or later) .
+ 
+-- Aug 15, 2016 23:35:43 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT August 09, 2016
   * Upstream 2016-04-13
   * [PX7] Add movie loader for LD, but not tested enough yet.
