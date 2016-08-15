@@ -145,8 +145,8 @@ target_link_libraries(CSPgui PUBLIC
 	  )
 
 set_target_properties(CSPgui PROPERTIES 
-			     SOVERSION 2.0.1
-			     VERSION 2.0.1
+			     SOVERSION 2.0.2
+			     VERSION 2.0.2
 			     )
 INSTALL(TARGETS CSPgui DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

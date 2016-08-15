@@ -175,6 +175,6 @@ public slots:
 	void paintGL_OffScreen(int count, int w, int h);
 
 signals:
-	int sig_push_image_to_movie(QImage *);
+	int sig_push_image_to_movie(int, int, int, QImage *);
 };
 #endif // _QT_COMMON_GLUTIL_2_0_H

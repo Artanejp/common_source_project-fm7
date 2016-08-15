@@ -273,6 +273,7 @@ public:
 	bool is_machine_z80tvgame() { return machine_z80tvgame; }
 	const _TCHAR *get_joy_button_captions(int num);
 	const _TCHAR *get_sound_device_caption(int num);
+	int get_s_freq_table(int num);
 	void set_emu(EMU *p);
 	EMU *get_emu(void);
 	void set_osd(OSD *p);

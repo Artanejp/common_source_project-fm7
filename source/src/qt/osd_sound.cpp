@@ -378,7 +378,7 @@ void OSD_BASE::stop_record_sound()
 			wav_header.format_id = EndianToLittle_WORD(1);
 			wav_header.channels =  EndianToLittle_WORD(2);
 			wav_header.sample_bits = EndianToLittle_WORD(16);
-			wav_header.sample_rate = EndianToLittle_DWORD(sound_rate);
+			wav_header.sample_rate = EndianToLittle_DWORD(snd_spec_presented.freq);
 			wav_header.block_size = EndianToLittle_WORD(wav_header.channels * wav_header.sample_bits / 8);
 			wav_header.data_speed = EndianToLittle_DWORD(wav_header.sample_rate * wav_header.block_size);
 			
@@ -407,5 +407,5 @@ void OSD_BASE::restart_record_sound()
 
 int OSD_BASE::get_sound_rate()
 {
-	return sound_rate;
+	return snd_spec_presented.freq;
 }

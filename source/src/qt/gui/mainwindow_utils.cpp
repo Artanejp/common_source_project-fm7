@@ -15,9 +15,6 @@
 #include "qt_dialogs.h"
 #include "agar_logger.h"
 
-extern const int s_freq_table[];
-extern const double s_late_table[];
-
 void Ui_MainWindowBase::set_latency(int num)
 {
 	if((num < 0) || (num >= 8)) return;

@@ -9,6 +9,16 @@ static const _TCHAR *sound_device_caption[] = {""};
 static const _TCHAR *joy_button_captions[] = {""};
 #endif
 
+const int s_freq_table[8] = {
+		2000, 4000, 8000, 11025, 22050, 44100,
+#ifdef OVERRIDE_SOUND_FREQ_48000HZ
+		OVERRIDE_SOUND_FREQ_48000HZ,
+#else
+		48000,
+#endif
+		96000,
+};
+
 USING_FLAGS::USING_FLAGS(config_t *cfg)
 {
 	p_osd = NULL;
@@ -448,7 +458,6 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 #if defined(USE_STATE)
 	use_state = true;
 #endif   
-
 	p_config = cfg;
 }
 
@@ -506,3 +515,11 @@ config_t *USING_FLAGS::get_config_ptr(void)
 {
 	return p_config;
 }
+
+int USING_FLAGS::get_s_freq_table(int num)
+{
+	if(num < 0) return s_freq_table[0];
+	if(num >= (sizeof(s_freq_table) / sizeof(int))) return s_freq_table[sizeof(int) / sizeof(s_freq_table) - 1];
+	return s_freq_table[num];
+}
+																		

@@ -9,20 +9,14 @@
 #include "mainwidget_base.h"
 //#include "menuclasses.h"
 #include "sound_dialog.h"
+#include "../common/menu_flags.h"
+
 #include <QImageReader>
 #include <QImage>
 
 // WIP: Will move to another file
-const int s_freq_table[8] = {
-		2000, 4000, 8000, 11025, 22050, 44100,
-#ifdef OVERRIDE_SOUND_FREQ_48000HZ
-		OVERRIDE_SOUND_FREQ_48000HZ,
-#else
-		48000,
-#endif
-		96000,
-};
 const double s_late_table[5] = {0.05, 0.1, 0.2, 0.3, 0.4};
+extern USING_FLAGS *using_flags;
 
 void Object_Menu_Control::on_set_freq(void) {
    emit sig_freq(s_num);
@@ -119,14 +113,14 @@ void Ui_MainWindowBase::ConfigSoundMenu(void)
 	
 	for(i = 0; i < 8; i++) {
 		action_Freq[i] = new Action_Control(this, using_flags);
-		tmps.setNum(s_freq_table[i]);
+		tmps.setNum(using_flags->get_s_freq_table(i));
 		tmps = QString::fromUtf8("action") + tmps + QString::fromUtf8("Hz");
 		action_Freq[i]->setObjectName(tmps);
 		action_Freq[i]->setCheckable(true);
 		action_Freq[i]->binds->setNumber(i);
 		if(i == using_flags->get_config_ptr()->sound_frequency) {
 			action_Freq[i]->setChecked(true);
-			freq = s_freq_table[i];
+			freq = using_flags->get_s_freq_table(i);
 		}
 		actionGroup_Sound_Freq->addAction(action_Freq[i]);
 	}
@@ -179,7 +173,7 @@ void Ui_MainWindowBase::retranslateSoundMenu(void)
 	if(using_flags->is_without_sound()) return;
   
 	for(i = 0; i < 8; i++) {
-		tmps.setNum(s_freq_table[i]);
+		tmps.setNum(using_flags->get_s_freq_table(i));
 		tmps = tmps + QApplication::translate("MainWindow", "Hz", 0);
 		action_Freq[i]->setText(tmps);
 	}

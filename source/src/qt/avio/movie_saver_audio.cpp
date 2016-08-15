@@ -94,20 +94,30 @@ bool MOVIE_SAVER::open_audio(void)
 									   c->sample_rate, nb_samples);
 
 	/* create resampler context */
+#if 1
+	/* set options */
 	ost->swr_ctx = swr_alloc();
 	if (!ost->swr_ctx) {
 		AGAR_DebugLog(AGAR_LOG_INFO, "Could not allocate resampler context\n");
 		return false;
 	}
-	
-	/* set options */
 	av_opt_set_int	   (ost->swr_ctx, "in_channel_count",   c->channels,	   0);
-	av_opt_set_int	   (ost->swr_ctx, "in_sample_rate",	 c->sample_rate,	0);
+	av_opt_set_int	   (ost->swr_ctx, "in_sample_rate",	 audio_sample_rate,	0);
 	av_opt_set_sample_fmt(ost->swr_ctx, "in_sample_fmt",	  AV_SAMPLE_FMT_S16, 0);
 	av_opt_set_int	   (ost->swr_ctx, "out_channel_count",  c->channels,	   0);
 	av_opt_set_int	   (ost->swr_ctx, "out_sample_rate",	c->sample_rate,	0);
 	av_opt_set_sample_fmt(ost->swr_ctx, "out_sample_fmt",	 c->sample_fmt,	 0);
 	
+#else
+	ost->swr_ctx = swr_alloc_set_opts(NULL,
+									  AV_CH_LAYOUT_STEREO, c->sample_fmt, c->sample_rate,
+									  AV_CH_LAYOUT_STEREO, AV_SAMPLE_FMT_S16, audio_sample_rate,
+									  0, NULL);
+	if (ost->swr_ctx == NULL) {
+		AGAR_DebugLog(AGAR_LOG_INFO, "Failed to initialize the resampling context\n");
+		return false;
+	}
+#endif	
 	/* initialize the resampling context */
 	if ((ret = swr_init(ost->swr_ctx)) < 0) {
 		AGAR_DebugLog(AGAR_LOG_INFO, "Failed to initialize the resampling context\n");
@@ -158,8 +168,9 @@ void *MOVIE_SAVER::get_audio_frame()
 			//}
 		}
 	}
-	frame->pts = ost->next_pts;
-	ost->next_pts  += frame->nb_samples;
+	frame->pts = av_rescale_rnd(ost->next_pts, audio_st.st->codec->sample_rate, audio_sample_rate, AV_ROUND_UP);
+	//frame->pts = ost->next_pts;
+	//ost->next_pts += frame->nb_samples;
 
 	return frame;
 #else
@@ -194,9 +205,14 @@ int MOVIE_SAVER::write_audio_frame()
 	{
 		/* convert samples from native format to destination codec format, using the resampler */
 		/* compute destination number of samples */
-		dst_nb_samples = av_rescale_rnd(swr_get_delay(ost->swr_ctx, c->sample_rate) + frame_src->nb_samples,
-										c->sample_rate, c->sample_rate,  AV_ROUND_UP);
-		av_assert0(dst_nb_samples == frame_src->nb_samples);
+		dst_nb_samples = av_rescale_rnd(swr_get_delay(ost->swr_ctx, audio_sample_rate) + frame_src->nb_samples,
+										c->sample_rate,  audio_sample_rate, AV_ROUND_UP);
+		//dst_nb_samples = av_rescale_rnd(frame_src->nb_samples,
+		//								c->sample_rate,  audio_sample_rate, AV_ROUND_UP);
+
+		//printf("IN %d Hz %d Samples OUT %d Hz %d Samples\n",
+		//	   audio_sample_rate, frame_src->nb_samples,
+		//	   c->sample_rate, dst_nb_samples);
 		/* when we pass a frame to the encoder, it may keep a reference to it
 		 * internally;
 		 * make sure we do not overwrite it here
@@ -214,11 +230,13 @@ int MOVIE_SAVER::write_audio_frame()
 			AGAR_DebugLog(AGAR_LOG_INFO, "Error while converting\n");
 			return -1;
 		}
-		
+
 		frame_dst = ost->frame;
+		frame_dst->nb_samples = dst_nb_samples;
 		
 		frame_dst->pts = av_rescale_q(ost->samples_count, (AVRational){1, c->sample_rate}, c->time_base);
 		ost->samples_count += dst_nb_samples;
+		ost->next_pts += dst_nb_samples;
 		totalAudioFrame++;
 	}
 
