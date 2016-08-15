@@ -342,7 +342,8 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(emu->get_osd(), SIGNAL(sig_movie_set_height(int)), hSaveMovieThread, SLOT(do_set_height(int)));
    
 	connect(emu->get_osd(), SIGNAL(sig_enqueue_audio(int16_t*, int)), hSaveMovieThread, SLOT(enqueue_audio(int16_t *, int)));
-	connect(emu->get_osd(), SIGNAL(sig_enqueue_video(QImage *)), hSaveMovieThread, SLOT(enqueue_video(QImage *)));
+	connect(emu->get_osd(), SIGNAL(sig_enqueue_video(int, int, int, QImage *)),
+			hSaveMovieThread, SLOT(enqueue_video(int, int, int, QImage *)));
 	connect(glv->extfunc, SIGNAL(sig_push_image_to_movie(QImage *)), hSaveMovieThread, SLOT(enqueue_video(QImage *)));
 	connect(this, SIGNAL(sig_quit_movie_thread()), hSaveMovieThread, SLOT(do_exit()));
 

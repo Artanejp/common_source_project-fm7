@@ -337,7 +337,8 @@ void MOVIE_SAVER::do_close_main()
 			{
 				v_f = video_data_queue.isEmpty();
 				if(!v_f) {
-					dequeue_video(video_frame_buf);
+					if(left_frames <= 0) dequeue_video(video_frame_buf);
+					left_frames--;
 					video_remain = video_size;
 					video_offset = 0;
 				}
@@ -395,9 +396,9 @@ void MOVIE_SAVER::do_close_main()
 	audio_data_queue.clear();
 
 	while(!video_data_queue.isEmpty()) {
-		QImage *pp = video_data_queue.dequeue();
+		VIDEO_DATA *pp = video_data_queue.dequeue();
 		if(pp != NULL) {
-			leftq_v++;
+			if(pp->frames >= 0) leftq_v += pp->frames;
 			delete pp;
 		}
 	}

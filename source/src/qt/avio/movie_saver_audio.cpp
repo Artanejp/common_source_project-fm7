@@ -190,7 +190,8 @@ int MOVIE_SAVER::write_audio_frame()
 
 	frame_src = (AVFrame *)get_audio_frame();
 	//if(req_close) return 1;
-	if (frame_src) {
+	if (frame_src == NULL) return 0;
+	{
 		/* convert samples from native format to destination codec format, using the resampler */
 		/* compute destination number of samples */
 		dst_nb_samples = av_rescale_rnd(swr_get_delay(ost->swr_ctx, c->sample_rate) + frame_src->nb_samples,

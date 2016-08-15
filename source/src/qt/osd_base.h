@@ -144,7 +144,7 @@ protected:
 	int base_window_width, base_window_height;
 	int vm_screen_width, vm_screen_height;
 	int draw_screen_width, draw_screen_height;
-	int64_t rec_video_nsec, rec_video_fps_nsec;
+	int rec_video_nsec, rec_video_fps_nsec;
 	
 	_TCHAR video_file_name[_MAX_PATH];
 	int rec_video_fps;
@@ -438,7 +438,7 @@ signals:
 	int sig_resize_vm_screen(QImage *, int, int);
 	int sig_put_string_debugger(QString);
 	int sig_console_input_string(QString);
-	int sig_enqueue_video(QImage *); 
+	int sig_enqueue_video(int, int, int, QImage *); 
 	int sig_enqueue_audio(int16_t *data, int size);
 	int sig_movie_set_width(int);
 	int sig_movie_set_height(int);

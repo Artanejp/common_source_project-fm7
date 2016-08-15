@@ -50,7 +50,7 @@ MOVIE_SAVER::MOVIE_SAVER(int width, int height, int fps, OSD *osd, config_t *cfg
 	video_geometry = QSize(640, 480);
 	video_encode_threads = 4;
 //	audio_enqueue_count = 0;
-
+	left_frames = 0;
 	req_close = false;
 	req_stop = false;
 	bRunThread = false;
@@ -115,16 +115,16 @@ void MOVIE_SAVER::log_packet(const void *_fmt_ctx, const void *_pkt)
 }
 
 
-void MOVIE_SAVER::enqueue_video(QImage *p)
+void MOVIE_SAVER::enqueue_video(int frames, int width, int height, QImage *p)
 {
 #if defined(USE_MOVIE_SAVER)
 	if(!recording) return;
 	if(p == NULL) return;
 	if(req_stop) return;
 	uint32_t *pq;
-	QImage *pp = new QImage(*p);
-	//AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Enqueue video data %d bytes %dx%d", pp->byteCount(), pp->width(), pp->height());
-	video_data_queue.enqueue(pp);
+	VIDEO_DATA *px = new VIDEO_DATA(frames, width, height, p);
+	//AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Enqueue video data %dx%d %d bytes %dx%d", width, height, p->byteCount(), p->width(), p->height());
+	video_data_queue.enqueue(px);
 #endif   
 }
 
@@ -133,24 +133,29 @@ bool MOVIE_SAVER::dequeue_video(uint32_t *p)
 	//if(!recording) return false;
 	if(p == NULL) return false;
 
-	QImage *pp = video_data_queue.dequeue();
+	VIDEO_DATA *pp = video_data_queue.dequeue();
 #if defined(USE_MOVIE_SAVER)
 	if(pp == NULL) return false;
 	int y;
 	int x;
 	uint32_t *pq;
-	for(y = 0; y < _height; y++) {
-		if(y >= pp->height()) break;
-		pq = (uint32_t *)(pp->constScanLine(y));
-		memcpy(&(p[_width * y]), pq, ((_width * sizeof(uint32_t)) > pp->bytesPerLine()) ? pp->bytesPerLine() : _width * sizeof(uint32_t));
+	QImage *pp_i = &(pp->frame_data);
+	left_frames = pp->frames;
+	_width = pp->_width;
+	_height = pp->_height;
+	if((left_frames > 0) && (pp_i != NULL)){ 
+		for(y = 0; y < _height; y++) {
+			if(y >= pp_i->height()) break;
+			pq = (uint32_t *)(pp_i->constScanLine(y));
+			memcpy(&(p[_width * y]), pq, ((_width * sizeof(uint32_t)) > pp_i->bytesPerLine()) ? pp_i->bytesPerLine() : _width * sizeof(uint32_t));
+		}
+		video_size = _width * y;
+		//AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Dequeue video data %d bytes", pp->byteCount());
 	}
-	video_size = _width * y;
-	//AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Dequeue video data %d bytes", pp->byteCount());
 #else
 	video_size = 0;
 #endif   
 	if(pp != NULL) delete pp;
-	
 	return true;
 }
 
@@ -222,6 +227,7 @@ void MOVIE_SAVER::run()
 	n_encode_video = 0;
 	req_close = false;
 	req_stop = false;
+	left_frames = 0;
 	while(bRunThread) {
 		if(recording) {
 			if(!bRunThread) break;
@@ -236,7 +242,8 @@ void MOVIE_SAVER::run()
 				audio_count = 0;
 				req_close = false;
 				req_stop = false;
-				printf("*\n");
+				//printf("*\n");
+				left_frames = 0;
 				if(!do_open_main()) {
 					recording = false;
 					goto _next_turn;
@@ -258,7 +265,8 @@ void MOVIE_SAVER::run()
 				v_f = video_data_queue.isEmpty();
 				if(v_f)
 					goto _write_frame;
-				dequeue_video(video_frame_buf);
+				if(left_frames <= 0) dequeue_video(video_frame_buf);
+				left_frames--;
 				video_remain = video_size;
 				video_offset = 0;
 				need_video_transcode = true;

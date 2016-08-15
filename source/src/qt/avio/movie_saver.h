@@ -14,6 +14,7 @@
 #include <QStringList>
 #include <QThread>
 #include <QSize>
+#include <QImage>
 #include "config.h"
 
 #if defined(USE_LIBAV)
@@ -74,6 +75,22 @@ typedef struct OutputStream {
 class OSD;
 
 QT_BEGIN_NAMESPACE
+class VIDEO_DATA {
+
+public:
+	int frames;
+	int _width;
+	int _height;
+	QImage frame_data;
+	VIDEO_DATA(int n_frames, int width, int height, QImage *pp) {
+		frame_data = QImage(*pp);
+		frames = n_frames;
+		_width = width;
+		_height = height;
+	};
+	~VIDEO_DATA() {};
+};
+
 class MOVIE_SAVER: public QThread
 {
 	Q_OBJECT
@@ -129,11 +146,12 @@ protected:
 	uint64_t totalSrcFrame;
 	uint64_t totalDstFrame;
 	uint64_t totalAudioFrame;
-
+	int left_frames;
+	
 	int16_t audio_frame_buf[2 * 48000 * sizeof(int16_t)]; // 1Sec
 	uint32_t video_frame_buf[1280 * 1024 * sizeof(uint32_t)]; // 1 frame : right?
 
-	QQueue<QImage *> video_data_queue;
+	QQueue<VIDEO_DATA *> video_data_queue;
 	QQueue<QByteArray *> audio_data_queue;
 	int64_t audio_remain;
 	int64_t video_remain;
@@ -201,7 +219,7 @@ public:
 
 public slots:
 	void run();
-	void enqueue_video(QImage *p);
+	void enqueue_video(int frames, int width, int height, QImage *p);
 	void enqueue_audio(int16_t *p, int size);
 	void do_close();
 	void do_open(QString filename, int _fps, int sample_rate);

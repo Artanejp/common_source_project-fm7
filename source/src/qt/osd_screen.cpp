@@ -62,8 +62,8 @@ void OSD_BASE::set_vm_screen_size(int screen_width, int screen_height, int windo
 		vm_window_height_aspect = window_height_aspect;
 		
 		// change the window size
-		emit sig_movie_set_width(screen_width);
-		emit sig_movie_set_height(screen_height);
+		//emit sig_movie_set_width(screen_width);
+		//emit sig_movie_set_height(screen_height);
 		emit sig_resize_vm_screen(&(vm_screen_buffer.pImage), screen_width, screen_height);
 	}
 }
@@ -93,8 +93,8 @@ int OSD_BASE::draw_screen()
 	screen_mutex->lock();
 	lock_vm();
 	if(vm_screen_buffer.width != vm_screen_width || vm_screen_buffer.height != vm_screen_height) {
-		emit sig_movie_set_width(vm_screen_width);
-		emit sig_movie_set_height(vm_screen_height);
+		//emit sig_movie_set_width(vm_screen_width);
+		//emit sig_movie_set_height(vm_screen_height);
 		initialize_screen_buffer(&vm_screen_buffer, vm_screen_width, vm_screen_height, 0);
 	}
 	this->vm_draw_screen();
@@ -148,8 +148,8 @@ void OSD_BASE::initialize_screen_buffer(bitmap_t *buffer, int width, int height,
 	QColor fillcolor;
 	fillcolor.setRgb(0, 0, 0, 255);
 	buffer->pImage.fill(fillcolor);
-	emit sig_movie_set_width(width);
-	emit sig_movie_set_height(height);
+	//emit sig_movie_set_width(width);
+	//emit sig_movie_set_height(height);
 	emit sig_resize_vm_screen(&(buffer->pImage), width, height);
 }
 
@@ -186,7 +186,7 @@ bool OSD_BASE::start_record_video(int fps)
 {
 	if(fps > 0) {
 		rec_video_fps = fps;
-		rec_video_fps_nsec = (uint64_t)(1.0e9 / (double)fps);
+		rec_video_fps_nsec = (int)(1.0e9 / (double)fps);
 		rec_video_nsec = 0;
 	}
 
@@ -226,7 +226,8 @@ void OSD_BASE::restart_record_video()
 void OSD_BASE::add_extra_frames(int extra_frames)
 {
 	//rec_video_run_frames += extra_frames;
-	rec_video_nsec += (int64_t)(1.0e9 / vm_frame_rate()) * (int64_t)extra_frames;
+	rec_video_nsec += ((int)(1.0e9 / vm_frame_rate()) * extra_frames);
+	if(rec_video_nsec < 0) rec_video_nsec = 0;
 	//emit sig_send_wxita_frames(extra_frames);
 }
 
@@ -300,7 +301,7 @@ int OSD_BASE::add_video_frames()
 	int counter = 0;
 	static double prev_vm_fps = -1;
 	double vm_fps = vm_frame_rate();
-	int64_t delta_ns = (int64_t)(1.0e9 / vm_fps);
+	int delta_ns = (int)(1.0e9 / vm_fps);
 	if(rec_video_fps_nsec >= delta_ns) {
 		rec_video_nsec += delta_ns;
 		while(rec_video_nsec >= rec_video_fps_nsec) {
@@ -308,14 +309,18 @@ int OSD_BASE::add_video_frames()
 			counter++;
 		}
 	} else {
-		rec_video_nsec = rec_video_nsec + delta_ns - rec_video_fps_nsec;
-		counter = 1;
-		while(rec_video_nsec > rec_video_fps_nsec) {
+		rec_video_nsec += delta_ns;
+		if(rec_video_nsec > (rec_video_fps_nsec * 2)) {
+			rec_video_nsec -= rec_video_fps_nsec;
+		} else if(rec_video_nsec < (rec_video_fps_nsec * -2)) {
+			rec_video_nsec += rec_video_fps_nsec;
+		}
+		while(rec_video_nsec >= rec_video_fps_nsec) {
 			counter++;
 			rec_video_nsec -= rec_video_fps_nsec;
 		}
 	}
-		
+	
 	if(using_flags->is_use_one_board_computer()) {
 		int size = vm_screen_buffer.pImage.byteCount();
 		int i = counter;
@@ -340,20 +345,20 @@ int OSD_BASE::add_video_frames()
 #endif				
 			}
 		}
-		while(i > 0) {
+		if(i > 0) {
 			// Enqueue to frame.
-			emit sig_enqueue_video(&rec_image_buffer);
-			i--;
+			emit sig_enqueue_video(i, background_image.width(), background_image.height(), &rec_image_buffer);
+			//i--;
 		}
 	} else {
 		int size = vm_screen_buffer.pImage.byteCount();
 		int i = counter;
 		// Rescaling
 		QImage video_result = QImage(vm_screen_buffer.pImage);
-		while(i > 0) {
+		if(i > 0) {
 			// Enqueue to frame.
-			emit sig_enqueue_video(&video_result);
-			i--;
+			emit sig_enqueue_video(i, vm_screen_width, vm_screen_height, &video_result);
+			//i--;
 		}
 		//AGAR_DebugLog(AGAR_LOG_DEBUG, "Push Video %d frames\n", counter);
 	}
