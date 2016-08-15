@@ -1,3 +1,15 @@
+commit 3f4c809912dc92cdeb34d8ecdebe0087aa7f37b3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Aug 16 02:37:45 2016 +0900
+
+    [MOVIE_SAVER][PC8801][PC9801] Adjust sound frequency when OVERRIDE_48000Hz , still choppy.
+
+commit 367f0e305be7b6f707a6e2c7d9e2968f9a517005
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Aug 15 23:38:34 2016 +0900
+
+    [DOC] Update documents.
+
 commit 171d3309339e4b941d2bd13a3dd0c11840cfeb62
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Mon Aug 15 23:34:52 2016 +0900
