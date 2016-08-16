@@ -71,7 +71,8 @@ private:
 	int decode_packet(int *got_frame, int cached);
 	int open_codec_context(int *stream_idx, AVFormatContext *fmt_ctx, enum AVMediaType type);
 	int get_format_from_sample_fmt(const char **fmt, enum AVSampleFormat sample_fmt);
-
+	int64_t decode_count_time;
+	int64_t frame_count_time;
 #endif
 protected:
 	OSD *p_osd;

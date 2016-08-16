@@ -12,6 +12,7 @@
 
 #include <QThread>
 #include <QScreen>
+#include <QWaitCondition>
 
 #include <SDL.h>
 
@@ -64,6 +65,7 @@ signals:
 	int sig_update_screen(bitmap_t *);
 //	int sig_draw_timing(bool);
 	int sig_push_frames_to_avio(int, int, int);
+
 };
 
 QT_END_NAMESPACE

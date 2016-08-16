@@ -29,13 +29,14 @@ DrawThreadClass::DrawThreadClass(EMU *p, OSD *o, QObject *parent) : QThread(pare
 	glv = MainWindow->getGraphicsView();
 	p_emu = emu;
 	p_osd = o;
+	
 	screen = QGuiApplication::primaryScreen();
 	
 	draw_screen_buffer = NULL;
 	
 	do_change_refresh_rate(screen->refreshRate());
 	connect(screen, SIGNAL(refreshRateChanged(qreal)), this, SLOT(do_change_refresh_rate(qreal)));
-	connect(this, SIGNAL(sig_update_screen(bitmap_t *)), glv, SLOT(update_screen(bitmap_t *)));
+	connect(this, SIGNAL(sig_update_screen(bitmap_t *)), glv, SLOT(update_screen(bitmap_t *)), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_push_frames_to_avio(int, int, int)), glv->extfunc, SLOT(paintGL_OffScreen(int, int, int)));
 	rec_frame_width = 640;
 	rec_frame_height = 480;
@@ -50,8 +51,8 @@ DrawThreadClass::~DrawThreadClass()
 
 void DrawThreadClass::SetEmu(EMU *p)
 {
-		p_emu = p;
-		p_osd = p->get_osd();
+	p_emu = p;
+	p_osd = p->get_osd();
 }
 
 
@@ -70,11 +71,11 @@ void DrawThreadClass::doExit(void)
 {
 	//AGAR_DebugLog(AGAR_LOG_DEBUG, "DrawThread : Exit.");
 	bRunThread = false;
-	//this->exit(0);
 }
 
 void DrawThreadClass::doWork(const QString &param)
 {
+
 	bRunThread = true;
 	do {
 		if(bDrawReq) {
@@ -120,3 +121,4 @@ void DrawThreadClass::do_req_encueue_video(int count, int width, int height)
 	rec_frame_height = height;
 	rec_frame_count = count;
 }
+

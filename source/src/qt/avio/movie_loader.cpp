@@ -42,6 +42,8 @@ MOVIE_LOADER::MOVIE_LOADER(OSD *osd, config_t *cfg) : QObject(NULL)
 	mod_frames = 0.0;
 	sound_rate = 44100;
 	req_transfer = true;
+	decode_count_time = 0;
+	frame_count_time = 0;
 #if defined(USE_LIBAV)
 	fmt_ctx = NULL;
 	video_dec_ctx = NULL;
@@ -118,6 +120,7 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 			}
 			
 			char str_buf2[AV_TS_MAX_STRING_SIZE] = {0};
+
 			av_ts_make_time_string(str_buf2, frame->pts, &video_dec_ctx->time_base);
 			//AGAR_DebugLog(AGAR_LOG_DEBUG, "video_frame%s n:%d coded_n:%d pts:%s\n",
 			//			  cached ? "(cached)" : "",
@@ -126,7 +129,8 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 			
             /* copy decoded frame to destination buffer:
              * this is required since rawvideo expects non aligned data */
-#if 1		   
+#if 1
+			//frame_count_time++;
 			if(sws_context == NULL) {
 				sws_context = sws_getContext(frame->width, frame->height,
 											 frame->format,
@@ -191,7 +195,7 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 					free(px);
 					AGAR_DebugLog(AGAR_LOG_INFO, "Error while converting\n");
 					return -1;
-				}					
+				}
 				ret = swr_convert(swr_context,
 								  px->data, dst_nb_samples,
 								  (const uint8_t **)frame->data, frame->nb_samples);
@@ -303,6 +307,8 @@ bool MOVIE_LOADER::open(QString filename)
 	video_frame_count = 0;
 	mod_frames = 0.0;
 	req_transfer = true;
+	decode_count_time = 0;
+	frame_count_time = 0;
     /* register all formats and codecs */
     av_register_all();
 
@@ -429,6 +435,8 @@ void MOVIE_LOADER::close(void)
 	
 	now_playing = false;
 	now_pausing = false;
+	decode_count_time = 0;
+	frame_count_time = 0;
 	AGAR_DebugLog(AGAR_LOG_INFO, "MOVIE_LOADER: Close movie.");
 }
 
@@ -490,17 +498,17 @@ void MOVIE_LOADER::do_decode_frames(int frames, int width, int height)
 	int got_frame;
 	bool end_of_frame = false;
 	int real_frames = 0;
-	double d_frames = (double)frames * (frame_rate /p_osd->vm_frame_rate());
+	double d_frames = (double)frames * (frame_rate / p_osd->vm_frame_rate());
 	mod_frames = mod_frames + d_frames;
 	real_frames = (int)mod_frames;
 	mod_frames = mod_frames - (double)real_frames;
-	
+
 	if(width > 0) dst_width = width;
 	if(height > 0) dst_height = height;
 	
 	if(real_frames <= 0) {
 		do_dequeue_audio();
-		//if(frames < 0) emit sig_decoding_error(MOVIE_LOADER_ILL_FRAME_NUMBER);
+		///if(frames < 0) emit sig_decoding_error(MOVIE_LOADER_ILL_FRAME_NUMBER);
 		return;
 	}
 
@@ -530,14 +538,21 @@ void MOVIE_LOADER::do_decode_frames(int frames, int width, int height)
 		}
 		return;
 	}
-	for(int i = 0; i < real_frames; i++) {
+	decode_count_time = decode_count_time + (int64_t)frames;
+	AVRational range = video_stream->time_base;
+	AVRational range2 = {video_stream->time_base.num, (int)((double)video_stream->time_base.den * frame_rate / p_osd->vm_frame_rate())};
+
+	while(av_compare_ts(frame_count_time, range,
+						decode_count_time, range2) <= 0) {
 		av_read_frame(fmt_ctx, &pkt);
 		decode_packet(&got_frame, 0);
+		frame_count_time++;
 		if(got_frame == 0) {
 			end_of_frame = true;
 			break;
 		}
 	}
+	//decode_count_time = decode_count_time + (int64_t)frames;
 	if(end_of_frame) {
 		// if real_frames > 1 then clear screen ?
 		do_dequeue_audio();
