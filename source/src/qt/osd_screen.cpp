@@ -84,11 +84,6 @@ scrntype_t* OSD_BASE::get_buffer(bitmap_t *p, int y)
 
 int OSD_BASE::draw_screen()
 {
-	// check avi file recording timing
-//	if(now_record_video && rec_video_run_frames <= 0) {
-//		return 0;
-//	}
-	
 	// draw screen
 	screen_mutex->lock();
 	lock_vm();
@@ -302,13 +297,8 @@ int OSD_BASE::add_video_frames()
 	static double prev_vm_fps = -1;
 	double vm_fps = vm_frame_rate();
 	int delta_ns = (int)(1.0e9 / vm_fps);
-	if(rec_video_fps_nsec >= delta_ns) {
-		rec_video_nsec += delta_ns;
-		while(rec_video_nsec >= rec_video_fps_nsec) {
-			rec_video_nsec -= rec_video_fps_nsec;
-			counter++;
-		}
-	} else {
+	//if(rec_video_fps_nsec >= delta_ns) {
+	{ // Will branch whether rec_video_fps_nsec >= delta_ns ?
 		rec_video_nsec += delta_ns;
 		if(rec_video_nsec > (rec_video_fps_nsec * 2)) {
 			rec_video_nsec -= rec_video_fps_nsec;
@@ -316,8 +306,8 @@ int OSD_BASE::add_video_frames()
 			rec_video_nsec += rec_video_fps_nsec;
 		}
 		while(rec_video_nsec >= rec_video_fps_nsec) {
-			counter++;
 			rec_video_nsec -= rec_video_fps_nsec;
+			counter++;
 		}
 	}
 	
