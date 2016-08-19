@@ -15,10 +15,10 @@ MOVIE_LOADER::MOVIE_LOADER(OSD *osd, config_t *cfg) : QObject(NULL)
 	video_mutex = new QMutex(QMutex::Recursive);
 	snd_write_lock = new QMutex(QMutex::Recursive);
 	
-	frame_count = 0;
 	frame_rate = 29.97;
 	video_frame_count = 0;
-	audio_frame_count = 0;
+	duration_us = 0;
+	audio_total_samples = 0;
 	
 	now_opening = false;
 	use_hwaccel = false;
@@ -42,8 +42,7 @@ MOVIE_LOADER::MOVIE_LOADER(OSD *osd, config_t *cfg) : QObject(NULL)
 	mod_frames = 0.0;
 	sound_rate = 44100;
 	req_transfer = true;
-	decode_count_time = 0;
-	frame_count_time = 0;
+
 #if defined(USE_LIBAV)
 	fmt_ctx = NULL;
 	video_dec_ctx = NULL;
@@ -121,7 +120,9 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 			
 			char str_buf2[AV_TS_MAX_STRING_SIZE] = {0};
 
-			av_ts_make_time_string(str_buf2, frame->pts, &video_dec_ctx->time_base);
+
+			video_frame_count++;
+			//av_ts_make_time_string(str_buf2, frame->pts, &video_dec_ctx->time_base);
 			//AGAR_DebugLog(AGAR_LOG_DEBUG, "video_frame%s n:%d coded_n:%d pts:%s\n",
 			//			  cached ? "(cached)" : "",
 			//			  video_frame_count++, frame->coded_picture_number,
@@ -129,8 +130,6 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 			
             /* copy decoded frame to destination buffer:
              * this is required since rawvideo expects non aligned data */
-#if 1
-			//frame_count_time++;
 			if(sws_context == NULL) {
 				sws_context = sws_getContext(frame->width, frame->height,
 											 frame->format,
@@ -150,7 +149,6 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 					  0, dst_height, video_dst_data, video_dst_linesize);
 			req_transfer = true;
 			video_mutex->unlock();
-#endif	   
 		}
 	} else if (pkt.stream_index == audio_stream_idx) {
 		/* decode audio frame */
@@ -173,12 +171,12 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 			AVCodecContext *c = audio_stream->codec;
 			int dst_nb_samples = av_rescale_rnd(swr_get_delay(swr_context, c->sample_rate) + frame->nb_samples,
 												c->sample_rate, c->sample_rate,  AV_ROUND_UP);
-			av_ts_make_time_string(str_buf, frame->pts, &audio_dec_ctx->time_base);
+			//av_ts_make_time_string(str_buf, frame->pts, &audio_dec_ctx->time_base);
 			//AGAR_DebugLog(AGAR_LOG_DEBUG,"audio_frame%s n:%d nb_samples:%d pts:%s\n",
 			//			  cached ? "(cached)" : "",
 			//			  audio_frame_count++, frame->nb_samples,
 			//			  str_buf);
-			
+			audio_total_samples += (int64_t)dst_nb_samples;
 			/* Write the raw audio data samples of the first plane. This works
 			 * fine for packed formats (e.g. AV_SAMPLE_FMT_S16). However,
 			 * most audio decoders output planar audio, which uses a separate
@@ -302,13 +300,13 @@ bool MOVIE_LOADER::open(QString filename)
 	_filename = filename;
 	if(_filename.isEmpty()) return false;
 	
-	frame_count = 0;
-	audio_frame_count = 0;
-	video_frame_count = 0;
 	mod_frames = 0.0;
 	req_transfer = true;
-	decode_count_time = 0;
-	frame_count_time = 0;
+	
+	duration_us = 0;
+	video_frame_count = 0;
+	audio_total_samples = 0;
+	
     /* register all formats and codecs */
     av_register_all();
 
@@ -432,11 +430,11 @@ void MOVIE_LOADER::close(void)
 	audio_dec_ctx = NULL;
 	sws_context = NULL;
 	swr_context = NULL;
+	video_frame_count = 0;
+	duration_us = 0;
 	
 	now_playing = false;
 	now_pausing = false;
-	decode_count_time = 0;
-	frame_count_time = 0;
 	AGAR_DebugLog(AGAR_LOG_INFO, "MOVIE_LOADER: Close movie.");
 }
 
@@ -452,7 +450,7 @@ int MOVIE_LOADER::get_movie_sound_rate(void)
 
 uint64_t MOVIE_LOADER::get_current_frame(void)
 {
-	return frame_count;
+	return video_frame_count;
 }
 
 bool MOVIE_LOADER::is_playing(void)
@@ -477,6 +475,7 @@ void MOVIE_LOADER::do_stop()
 {
 	now_playing = false;
 	now_pausing = false;
+	duration_us = 0;
 	// Still not closing.
 }
 
@@ -499,6 +498,8 @@ void MOVIE_LOADER::do_decode_frames(int frames, int width, int height)
 	bool end_of_frame = false;
 	int real_frames = 0;
 	double d_frames = (double)frames * (frame_rate / p_osd->vm_frame_rate());
+	if(now_playing) duration_us = duration_us + (int64_t)((1.0e6 * (double)frames) / p_osd->vm_frame_rate());
+
 	mod_frames = mod_frames + d_frames;
 	real_frames = (int)mod_frames;
 	mod_frames = mod_frames - (double)real_frames;
@@ -538,21 +539,20 @@ void MOVIE_LOADER::do_decode_frames(int frames, int width, int height)
 		}
 		return;
 	}
-	decode_count_time = decode_count_time + (int64_t)frames;
-	AVRational range = video_stream->time_base;
-	AVRational range2 = {video_stream->time_base.num, (int)((double)video_stream->time_base.den * frame_rate / p_osd->vm_frame_rate())};
-
-	while(av_compare_ts(frame_count_time, range,
-						decode_count_time, range2) <= 0) {
+	bool a_f = true;
+	bool v_f = true;
+	while(v_f || a_f) {
+		v_f = (av_rescale_rnd(video_frame_count, 1000000000, (int64_t)(frame_rate * 1000.0), AV_ROUND_UP) < duration_us);
+		a_f = (av_rescale_rnd(audio_total_samples, 1000000, audio_stream->codec->sample_rate, AV_ROUND_UP) < duration_us);
+		//AGAR_DebugLog(AGAR_LOG_DEBUG, "%lld usec. V=%lld A=%lld, %d - %d\n", duration_us, video_frame_count, audio_total_samples, v_f, a_f);
+		if(!a_f && !v_f) break; 
 		av_read_frame(fmt_ctx, &pkt);
 		decode_packet(&got_frame, 0);
-		frame_count_time++;
 		if(got_frame == 0) {
 			end_of_frame = true;
 			break;
 		}
 	}
-	//decode_count_time = decode_count_time + (int64_t)frames;
 	if(end_of_frame) {
 		// if real_frames > 1 then clear screen ?
 		do_dequeue_audio();

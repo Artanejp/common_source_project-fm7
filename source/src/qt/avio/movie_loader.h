@@ -65,14 +65,14 @@ private:
 	struct SwsContext *sws_context;
 	struct SwrContext *swr_context;
 
-	int video_frame_count; // = 0;
-	int audio_frame_count; // = 0;
+	int64_t video_frame_count; // = 0;
+	int64_t duration_us;
+	int64_t audio_total_samples;
+	
 	int refcount; // = 0
 	int decode_packet(int *got_frame, int cached);
 	int open_codec_context(int *stream_idx, AVFormatContext *fmt_ctx, enum AVMediaType type);
 	int get_format_from_sample_fmt(const char **fmt, enum AVSampleFormat sample_fmt);
-	int64_t decode_count_time;
-	int64_t frame_count_time;
 #endif
 protected:
 	OSD *p_osd;
@@ -80,7 +80,6 @@ protected:
 
 	QMutex *video_mutex;
 	QMutex *snd_write_lock;
-	uint64_t frame_count;
 	double frame_rate;
 	double mod_frames;
 	int sound_rate;
