@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                          August 16, 2016
+                                          August 19, 2016
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -11,7 +11,7 @@
    用意しています。
    
    ソースコード：
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160816
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160819
 
    追加情報:
     　各機種バイナリーは、osdn.jp　もしくはミラーサイトより入手可能です。
@@ -105,6 +105,15 @@
       http://homepage3.nifty.com/takeda-toshiya/
 
 Changes:
+* SNAPSHOT August 19, 2016
+  * Upstream 2016-04-13
+  * [WIN32] Replace libICU to homebrew, fix not starting.
+  * [OSD/MOVIE_SAVER] Fix frames to enqueue to MOVIUE_SAVER, as if VIDEO FPS >= RECORD FPS.
+  * [MOVIE_LOADER] Sync A/V on playing MOVIE.
+  * Built with GIT 77380a77b25ca06965b912c84509e5c91085aeb1 (or later) .
+
+-- Aug 19, 2016 23:12:36 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT August 15, 2016
   * Upstream 2016-04-13
   * [OSD][MOVIE_SAVER] Maybe correctness frame(s) counting with 60fps ヽ(=´▽=)ﾉ

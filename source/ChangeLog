@@ -1,5 +1,14 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT August 19, 2016
+  * Upstream 2016-04-13
+  * [WIN32] Replace libICU to homebrew, fix not starting.
+  * [OSD/MOVIE_SAVER] Fix frames to enqueue to MOVIUE_SAVER, as if VIDEO FPS >= RECORD FPS.
+  * [MOVIE_LOADER] Sync A/V on playing MOVIE.
+  * Built with GIT 77380a77b25ca06965b912c84509e5c91085aeb1 (or later) .
+
+-- Aug 19, 2016 23:12:36 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT August 15, 2016
   * Upstream 2016-04-13
   * [OSD][MOVIE_SAVER] Maybe correctness frame(s) counting with 60fps ヽ(=´▽=)ﾉ

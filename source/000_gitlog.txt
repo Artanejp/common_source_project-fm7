@@ -1,3 +1,39 @@
+commit 77380a77b25ca06965b912c84509e5c91085aeb1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 19 23:09:34 2016 +0900
+
+    [MOVIE_LOADER] Sync A/V.
+
+commit cf226fdda3e5187df86be8ad9aacd2570c3f9c84
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Aug 18 03:16:28 2016 +0900
+
+    [CROSS_BUILD][WIN32] Update bootstrap scripts.
+
+commit 8741019e7574323835f64e72e2b055fa0a68eb7f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Aug 17 01:52:45 2016 +0900
+
+    [MOVIE_LOADER][PX7][WIP] Fix choppy sound with LD, still not syncing A/V.
+
+commit e4c4904c054bda65bbbdeb0907973a373a4ebf78
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Aug 16 14:49:03 2016 +0900
+
+    [OSD][MOVIE_SAVER] Fix frames to enqueue to MOVIUE_SAVER, as if VIDEO FPS >= RECORD FPS.
+
+commit f559e53aedeac36bbbacfb37bda90de4a391aa07
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Aug 16 13:28:44 2016 +0900
+
+    [DOC] Update Issues.ja.txt .
+
+commit 9b69a5058cab078f0bca95fc9436302313a45047
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Aug 16 02:43:50 2016 +0900
+
+    [DOC] Update for RELEASE SNAPSHOT 2016-08-16.
+
 commit 3f4c809912dc92cdeb34d8ecdebe0087aa7f37b3
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Tue Aug 16 02:37:45 2016 +0900
@@ -5869,7 +5905,7 @@ Date:   Mon Jul 13 15:01:20 2015 +0900
     Merge branch 'master' of github.com:Artanejp/common_source_project-fm7
     
     Conflicts:
-    	source/src/vm/fm7/mb61vh010.cpp
+            source/src/vm/fm7/mb61vh010.cpp
 
 commit 63a7d0b42c3eda721fef19d0cbe5a94715470933
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
@@ -5956,7 +5992,7 @@ Date:   Thu Jul 9 04:06:04 2015 +0900
     Merge remote-tracking branch 'remotes/origin/master'
     
     Conflicts:
-    	source/src/vm/fm7/mb61vh010.cpp
+            source/src/vm/fm7/mb61vh010.cpp
 
 commit bddc6d74fa33c025554cb174f4d00cdbc4784a0b
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
@@ -8042,8 +8078,8 @@ Date:   Fri Mar 13 23:28:09 2015 +0900
     [VM][MC6809] Fix wrong MUL instruction.Re-Enter.
     
     Conflicts:
-    	source/src/vm/mc6809.cpp
-    	source/src/vm/mc6809.h
+            source/src/vm/mc6809.cpp
+            source/src/vm/mc6809.h
 
 commit 4dec4d45c361ca26129c0fbf48f0ff72fce28614
 Author: K.Ohta <whatisthis.sowhat@gmail.com>

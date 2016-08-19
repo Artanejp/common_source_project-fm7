@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                         August 16, 2016
+                                                         August 19, 2016
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 1.About
@@ -9,7 +9,7 @@ This package is Qt5 porting of Common Source Code Project (CSP)
 and built with Qt5, for Windows, built with MinGW(32bit).
 
 Source Code:
-   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160816
+   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160819
    
 Additional INFO:
    Binaries will be available, distibute from osdn.jp.
@@ -82,6 +82,15 @@ Upstream (Takeda Toshiya San's original code)
 http://homepage3.nifty.com/takeda-toshiya/
 
 Changes:
+
+* SNAPSHOT August 19, 2016
+  * Upstream 2016-04-13
+  * [WIN32] Replace libICU to homebrew, fix not starting.
+  * [OSD/MOVIE_SAVER] Fix frames to enqueue to MOVIUE_SAVER, as if VIDEO FPS >= RECORD FPS.
+  * [MOVIE_LOADER] Sync A/V on playing MOVIE.
+  * Built with GIT 77380a77b25ca06965b912c84509e5c91085aeb1 (or later) .
+
+-- Aug 19, 2016 23:12:36 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT August 15, 2016
   * Upstream 2016-04-13
