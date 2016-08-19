@@ -1,3 +1,9 @@
+commit d354480c8d83b16d9645667451a8cbea0c6ea309
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 19 23:21:59 2016 +0900
+
+    [DOC] Update documents, SOVERSION.
+
 commit 77380a77b25ca06965b912c84509e5c91085aeb1
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Fri Aug 19 23:09:34 2016 +0900
