@@ -692,7 +692,8 @@ void EmuThreadClass::do_start_auto_key(QString ctext)
 
 void EmuThreadClass::do_stop_auto_key(void)
 {
-	//AGAR_DebugLog(AGAR_LOG_DEBUG, "AutoKey: stop\n");
+	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL,
+	//					  "AutoKey: stop\n");
 #if defined(USE_AUTO_KEY)   
 	p_emu->stop_auto_key();
 #endif   
@@ -1388,7 +1389,8 @@ void EmuThreadClass::doWork(const QString &params)
 	} while(1);
 _exit:
 	//emit quit_draw_thread();
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : EXIT");
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL,
+						  "EmuThread : EXIT");
 	emit sig_finished();
 	this->quit();
 }

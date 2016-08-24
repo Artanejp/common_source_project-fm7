@@ -956,7 +956,7 @@ void EMU::out_debug_log(const _TCHAR* format, ...)
 	my_tcscpy_s(prev_buffer, 1024, buffer);
 	
 #if defined(_USE_QT) || defined(_USE_AGAR) || defined(_USE_SDL)
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "%s", buffer);
+	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_EMU, "%s", buffer);
 #else
 	if(debug_log) {
 		_ftprintf(debug_log, _T("%s"), buffer);
@@ -983,7 +983,7 @@ void EMU::force_out_debug_log(const _TCHAR* format, ...)
 	my_tcscpy_s(prev_buffer, 1024, buffer);
 	
 #if defined(_USE_QT) || defined(_USE_AGAR) || defined(_USE_SDL)
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "%s", buffer);
+	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_EMU, "%s", buffer);
 #else
 	if(debug_log) {
 		_ftprintf(debug_log, _T("%s"), buffer);
@@ -1000,9 +1000,17 @@ void EMU::force_out_debug_log(const _TCHAR* format, ...)
 
 void EMU::out_message(const _TCHAR* format, ...)
 {
+//#if defined(_USE_QT)
+//	_TCHAR mes_buf[1024];
+//#endif	
 	va_list ap;
 	va_start(ap, format);
 	my_vstprintf_s(message, 1024, format, ap); // Security for MSVC:C6386.
+//#if defined(_USE_QT)
+//	memset(mes_buf, 0x00, sizeof(mes_buf));
+//	my_vstprintf_s(mes_buf, 1024, format, ap); // Security for MSVC:C6386.
+//	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_EMU, "%s", mes_buf);
+//#endif
 	va_end(ap);
 	message_count = 4; // 4sec
 }

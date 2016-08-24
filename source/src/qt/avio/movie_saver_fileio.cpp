@@ -67,14 +67,14 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
 	/* find the encoder */
 	*codec = avcodec_find_encoder(codec_id);
 	if (!(*codec)) {
-		AGAR_DebugLog(AGAR_LOG_INFO, "Could not find encoder for '%s'\n",
+		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not find encoder for '%s'\n",
 				(const char *)avcodec_get_name(codec_id));
 		return false;
 	}
 
 	ost->st = avformat_new_stream(oc, *codec);
 	if (!ost->st) {
-		AGAR_DebugLog(AGAR_LOG_INFO, "Could not allocate stream\n");
+		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not allocate stream\n");
 		return false;
 	}
 	ost->st->id = oc->nb_streams-1;
@@ -264,11 +264,13 @@ bool MOVIE_SAVER::do_open_main()
 	if (!(fmt->flags & AVFMT_NOFILE)) {
 		ret = avio_open(&oc->pb, _filename.toLocal8Bit().constData(), AVIO_FLAG_WRITE);
 		if (ret < 0) {
-			AGAR_DebugLog(AGAR_LOG_INFO, "Could not open '%s': %s\n", _filename.toLocal8Bit().constData(),
+			csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER,
+								  "Could not open '%s': %s\n", _filename.toLocal8Bit().constData(),
 					err2str(ret).toLocal8Bit().constData());
 			goto _err_final;
 		} else {
-			AGAR_DebugLog(AGAR_LOG_INFO, "Success to Open file: '%s\n", _filename.toLocal8Bit().constData());
+			csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER,
+								  "Success to Open file: '%s\n", _filename.toLocal8Bit().constData());
 		}			
 	}
 	totalSrcFrame = 0;
@@ -279,7 +281,8 @@ bool MOVIE_SAVER::do_open_main()
 	/* Write the stream header, if any. */
 	ret = avformat_write_header(oc, &raw_options_list);
 	if (ret < 0) {
-		AGAR_DebugLog(AGAR_LOG_INFO, "Error occurred when opening output file: %s\n",
+		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER,
+							  "Error occurred when opening output file: %s\n",
 				err2str(ret).toLocal8Bit().constData());
 		goto _err_final;
 	}
@@ -404,13 +407,16 @@ void MOVIE_SAVER::do_close_main()
 	}
 	video_data_queue.clear();
 
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE: Close: Left:  Video %lld frames, Audio %lld frames",
+	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER,
+						  "Close: Left:  Video %lld frames, Audio %lld frames",
 				  leftq_v,
 				  leftq_a
 	);
 	// Message
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE: Close: Write:  Video %lld frames, Audio %lld frames", totalDstFrame, totalAudioFrame);
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE: Close: Dequeue:  Video %lld frames, Audio %lld frames", totalDstFrame, audio_count);
+	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER,
+				  "MOVIE: Close: Write:  Video %lld frames, Audio %lld frames", totalDstFrame, totalAudioFrame);
+	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER,
+						  "MOVIE: Close: Dequeue:  Video %lld frames, Audio %lld frames", totalDstFrame, audio_count);
 	totalSrcFrame = 0;
 	totalDstFrame = 0;
 	totalAudioFrame = 0;

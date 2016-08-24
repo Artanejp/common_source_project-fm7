@@ -92,7 +92,7 @@ _TCHAR* OSD_BASE::bios_path(const _TCHAR* file_name)
 {
 	static _TCHAR file_path[_MAX_PATH];
 	snprintf(file_path, _MAX_PATH, _T("%s%s"), app_path, file_name);
-	AGAR_DebugLog(AGAR_LOG_INFO, "BIOS PATH:%s", file_path);
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_OSD, "BIOS PATH:%s", file_path);
 	return file_path;
 }
 

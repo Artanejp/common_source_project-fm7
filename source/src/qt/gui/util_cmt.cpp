@@ -106,7 +106,7 @@ int Ui_MainWindowBase::set_recent_cmt(int drv, int num)
 	get_parent_dir(path_shadow);
 	strcpy(using_flags->get_config_ptr()->initial_tape_dir, path_shadow);
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "Tape: Open READ");
+	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_VFILE_CMT + 0, "Open READ");
 	
 	emit sig_close_tape();
 	emit sig_play_tape(s_path);
@@ -217,7 +217,7 @@ void Ui_MainWindowBase::do_open_read_cmt(int dummy, QString path)
 	strncpy(path_shadow, path.toLocal8Bit().constData(), PATH_MAX);
 
 	emit sig_close_tape();
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "Tape: Open READ : filename = %s", path_shadow);
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_VFILE_CMT + 0, "Open READ : filename = %s", path_shadow);
 	emit sig_play_tape(path);
 	menu_CMT->do_update_histories(listCMT);
 	menu_CMT->do_set_initialize_directory(using_flags->get_config_ptr()->initial_tape_dir);
@@ -238,10 +238,10 @@ void Ui_MainWindowBase::do_open_write_cmt(QString path)
 
 	emit sig_close_tape();
 	if(menu_CMT->getWriteProtect() != false) {
-		AGAR_DebugLog(AGAR_LOG_DEBUG, "Tape: Open READ : filename = %s", path_shadow);
+		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_VFILE_CMT + 0, "Open READ : filename = %s", path_shadow);
 		emit sig_play_tape(path);
 	} else {
-		AGAR_DebugLog(AGAR_LOG_DEBUG, "Tape: Open Write : filename = %s", path_shadow);
+		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_VFILE_CMT + 0, "Open Write : filename = %s", path_shadow);
 		emit sig_rec_tape(path);
 	}
 	menu_CMT->do_update_histories(listCMT);

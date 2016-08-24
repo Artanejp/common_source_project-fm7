@@ -71,7 +71,7 @@ int Ui_MainWindowBase::set_recent_laserdisc(int drv, int num)
 	strcpy(using_flags->get_config_ptr()->initial_laser_disc_dir, path_shadow);
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
 	emit sig_close_laserdisc();
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "Laserdisc: Open : filename = %s", path_shadow);
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_VFILE_LASERDISC + 0, "Open : filename = %s", path_shadow);
 	emit sig_open_laserdisc(s_path);
 	menu_Laserdisc->do_update_histories(listLaserdisc);
 	menu_Laserdisc->do_set_initialize_directory(using_flags->get_config_ptr()->initial_laser_disc_dir);
@@ -97,7 +97,7 @@ void Ui_MainWindowBase::do_open_laserdisc(int drv, QString path)
 	strncpy(path_shadow, path.toLocal8Bit().constData(), PATH_MAX);
 
 	emit sig_close_laserdisc();
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "Laserdisc: Open : filename = %s", path_shadow);
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_VFILE_LASERDISC + 0, "Open : filename = %s", path_shadow);
 	emit sig_open_laserdisc(path);
 	menu_Laserdisc->do_update_histories(listLaserdisc);
 	menu_Laserdisc->do_set_initialize_directory(using_flags->get_config_ptr()->initial_laser_disc_dir);

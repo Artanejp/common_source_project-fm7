@@ -56,8 +56,9 @@ void OSD_BASE::audio_callback(void *udata, Uint8 *stream, int len)
 		}
 		if((*(pData->sound_write_pos) + len2) >= *(pData->sound_buffer_size) ) len2 = *(pData->sound_buffer_size) - *(pData->sound_write_pos);
 		
-		if(*(pData->sound_debug)) AGAR_DebugLog(AGAR_LOG_DEBUG, "SND:Callback,sound_write_pos=%d,spos=%d,len=%d,len2=%d",
-												*(pData->sound_write_pos), spos, len, len2);
+		if(*(pData->sound_debug)) csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND,
+														"Callback,sound_write_pos=%d,spos=%d,len=%d,len2=%d",
+														*(pData->sound_write_pos), spos, len, len2);
 		if((len2 > 0) && (sndlen > 0)){
 			writepos = *pData->sound_write_pos;
 			p = (Uint8 *)(*pData->sound_buf_ptr);
@@ -126,9 +127,9 @@ void OSD_BASE::initialize_sound(int rate, int samples)
 #if defined(USE_SDL2)      
 	for(i = 0; i < SDL_GetNumAudioDevices(0); i++) {
 		//devname = SDL_GetAudioDeviceName(i, 0);
-		//AGAR_DebugLog(AGAR_LOG_INFO, "Audio Device: %s", devname.c_str());
 		QString tmps = QString::fromUtf8(SDL_GetAudioDeviceName(i, 0));
-		AGAR_DebugLog(AGAR_LOG_INFO, "Audio Device: %s", tmps.toLocal8Bit().constData());
+		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND,
+							  "Audio Device: %s", tmps.toLocal8Bit().constData());
 	}
 #endif   
 	SDL_OpenAudio(&snd_spec_req, &snd_spec_presented);
@@ -151,7 +152,8 @@ void OSD_BASE::initialize_sound(int rate, int samples)
 		sound_buf_ptr = NULL;
 		return;
 	}
-	AGAR_DebugLog(AGAR_LOG_INFO, "Sound OK: BufSize = %d", sound_buffer_size);
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND,
+						  "Sound OK: BufSize = %d", sound_buffer_size);
 	memset(sound_buf_ptr, 0x00, sound_buffer_size * sizeof(Sint16));
 #if defined(USE_SDL2)   
 	SDL_PauseAudioDevice(audio_dev_id, 0);
@@ -193,7 +195,8 @@ void OSD_BASE::update_sound(int* extra_frames)
 		// start play
 		// check current position
 		play_c = sound_write_pos;
-		if(sound_debug) AGAR_DebugLog(AGAR_LOG_DEBUG, "SND: Called time=%d sound_write_pos=%d\n", osd_timer.elapsed(), play_c);
+		if(sound_debug) csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND,
+											  "Called time=%d sound_write_pos=%d\n", osd_timer.elapsed(), play_c);
 		if(!sound_first_half) {
 			if(play_c < (sound_buffer_size / 2)) {
 				return;

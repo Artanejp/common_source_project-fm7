@@ -127,7 +127,7 @@ void *MOVIE_SAVER::alloc_picture(uint64_t _pix_fmt, int width, int height)
 	/* allocate the buffers for the frame data */
 	ret = av_frame_get_buffer(picture, 32);
 	if (ret < 0) {
-		AGAR_DebugLog(AGAR_LOG_INFO, "Could not allocate frame data.\n");
+		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not allocate frame data.\n");
 		return (void *)NULL;
 	}
 
@@ -155,14 +155,14 @@ bool MOVIE_SAVER::open_video()
 	ret = avcodec_open2(c, codec, &opt);
 	av_dict_free(&opt);
 	if (ret < 0) {
-		AGAR_DebugLog(AGAR_LOG_INFO, "Could not open video codec: %s\n", err2str(ret).toLocal8Bit().constData());
+		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not open video codec: %s\n", err2str(ret).toLocal8Bit().constData());
 		return false;
 	}
 
 	/* allocate and init a re-usable frame */
 	ost->frame = (AVFrame *)alloc_picture(c->pix_fmt, c->width, c->height);
 	if (!ost->frame) {
-		AGAR_DebugLog(AGAR_LOG_INFO, "Could not allocate video frame\n");
+		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not allocate video frame\n");
 		return false;
 	}
 
@@ -179,7 +179,8 @@ bool MOVIE_SAVER::open_video()
 	}
 	//}
 	
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE: Open to write video : Success.");
+	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER,
+						  "MOVIE: Open to write video : Success.");
 	return true;
 #else
 	return false;
@@ -236,7 +237,7 @@ void *MOVIE_SAVER::get_video_frame(void)
 			av_frame_free(&ost->tmp_frame);
 			ost->tmp_frame = (AVFrame *)alloc_picture(AV_PIX_FMT_BGRA, _width, _height);
 			if (ost->tmp_frame == NULL) {
-				AGAR_DebugLog(AGAR_LOG_INFO, "Could not re-allocate video frame\n");
+				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not re-allocate video frame\n");
 				return (void *)NULL;
 			}
 		}
@@ -252,7 +253,7 @@ void *MOVIE_SAVER::get_video_frame(void)
 									  c->pix_fmt,
 									  SCALE_FLAGS, NULL, NULL, NULL);
 		if (!ost->sws_ctx) {
-			AGAR_DebugLog(AGAR_LOG_INFO,
+			csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER,
 					"Could not initialize the conversion context\n");
 			return (void *)NULL;
 		}
@@ -347,7 +348,7 @@ int MOVIE_SAVER::write_video_frame()
 	ret = avcodec_encode_video2(c, &pkt, frame, &got_packet);
 	//if(!got_packet) break;
 	if (ret < 0) {
-		AGAR_DebugLog(AGAR_LOG_INFO, "Error encoding video frame: %s\n", err2str(ret).toLocal8Bit().constData());
+		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error encoding video frame: %s\n", err2str(ret).toLocal8Bit().constData());
 		return -1;
 	}
 	totalDstFrame++;
@@ -360,7 +361,7 @@ int MOVIE_SAVER::write_video_frame()
 	}
 	
 	if (ret < 0) {
-		AGAR_DebugLog(AGAR_LOG_INFO, "Error while writing video frame: %s\n", err2str(ret).toLocal8Bit().constData());
+		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error while writing video frame: %s\n", err2str(ret).toLocal8Bit().constData());
 		return -1;
 	}
 	//}

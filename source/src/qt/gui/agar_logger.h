@@ -11,7 +11,11 @@
 
 #include <stdarg.h>
 #include <stdio.h>
-#include <QWidget>
+#include <QObject>
+#include <QStringList>
+#include <QString>
+#include <QQueue>
+
 #if !defined(Q_OS_WIN32)
 #  include <syslog.h>
 #endif
@@ -21,34 +25,145 @@
 #include "simd_types.h"
 #include "common.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-   void DLL_PREFIX AGAR_OpenLog(int syslog, int cons, const char *devname);
-   void DLL_PREFIX AGAR_DebugLog(int level, const char *fmt, ...);
-   void DLL_PREFIX AGAR_CloseLog(void);
-   void DLL_PREFIX AGAR_SetLogStatus(int sw);
-   void DLL_PREFIX AGAR_SetLogSysLog(int sw);
-   void DLL_PREFIX AGAR_SetLogStdOut(int sw);
-   bool DLL_PREFIX AGAR_LogGetStatus(void);
-
-#define AGAR_LOG_ON 1
-#define AGAR_LOG_OFF 0
+#define CSP_LOG_ON 1
+#define CSP_LOG_OFF 0
    
-#define AGAR_LOG_DEBUG 0
-#define AGAR_LOG_INFO 1
-#define AGAR_LOG_WARN 2
+#define CSP_LOG_DEBUG 0
+#define CSP_LOG_INFO 1
+#define CSP_LOG_WARN 2
+#define CSP_LOG_DEBUG2 3
 
-   
-#ifndef FALSE
-#define FALSE                   0
-#endif
-#ifndef TRUE
-#define TRUE                    (!FALSE)
-#endif
+#define CSP_LOG_LEVELS 8
 
-#ifdef __cplusplus
-}
-#endif
- 
+enum {
+	CSP_LOG_TYPE_UNDEFINED = 0,
+	CSP_LOG_TYPE_GENERAL = 1,
+	CSP_LOG_TYPE_OSD,
+	CSP_LOG_TYPE_EMU,
+	CSP_LOG_TYPE_VM,
+	CSP_LOG_TYPE_GUI,
+	CSP_LOG_TYPE_SOUND,
+	CSP_LOG_TYPE_VIDEO,
+	CSP_LOG_TYPE_KEYBOARD,
+	CSP_LOG_TYPE_MOUSE,
+	CSP_LOG_TYPE_JOYSTICK,
+	CSP_LOG_TYPE_MOVIE_LOADER,
+	CSP_LOG_TYPE_MOVIE_SAVER,
+	CSP_LOG_TYPE_SCREEN,
+	CSP_LOG_TYPE_PRINTER,
+	CSP_LOG_TYPE_SOCKET,
+	CSP_LOG_TYPE_COMPONENT_END,
+	CSP_LOG_TYPE_VM_CPU0 = 32,
+	CSP_LOG_TYPE_VM_CPU1,
+	CSP_LOG_TYPE_VM_CPU2,
+	CSP_LOG_TYPE_VM_CPU3,
+	CSP_LOG_TYPE_VM_CPU4,
+	CSP_LOG_TYPE_VM_CPU5,
+	CSP_LOG_TYPE_VM_CPU6,
+	CSP_LOG_TYPE_VM_CPU7,
+	CSP_LOG_TYPE_VM_DEVICE_0,
+	CSP_LOG_TYPE_VM_DEVICE_END = 255,
+	CSP_LOG_TYPE_VFILE_HEAD = 256,
+	CSP_LOG_TYPE_VFILE_BINARY = 256,
+	CSP_LOG_TYPE_VFILE_BUBBLE = 264,
+	CSP_LOG_TYPE_VFILE_CART = 272,
+	CSP_LOG_TYPE_VFILE_CMT = 280,
+	CSP_LOG_TYPE_VFILE_COMPACTDISC = 288,
+	CSP_LOG_TYPE_VFILE_FLOPPY = 296,
+	CSP_LOG_TYPE_VFILE_LASERDISC = 312,
+	CSP_LOG_TYPE_VFILE_QUICKDISK = 320,
+	CSP_LOG_TYPE_VFILE_END = 336,
+
+};
+	
+	
+	
+QT_BEGIN_NAMESPACE
+
+class CSP_LoggerLine {
+private:
+	int64_t linenum;
+	int level;
+	QString domain;
+	QString mainstr;
+	QString timestamp;
+public:
+	CSP_LoggerLine(int64_t line, int _level, QString _domain, QString time_s, QString s) {
+		mainstr = s;
+		linenum = line;
+		level = _level;
+		domain = _domain;
+		timestamp = time_s;
+	};
+	~CSP_LoggerLine() {};
+	QString get_element_syslog(void) {
+		QString s;
+		if(domain.isEmpty()) {
+			s = mainstr;
+		} else {
+			s = domain + QString::fromUtf8(" ") + mainstr;
+		}
+		return s;
+	};
+	QString get_element_console(void) {
+		QString s;
+		if(domain.isEmpty()) {
+			s = timestamp + QString::fromUtf8(" ") + mainstr;
+		} else {
+			s = timestamp + QString::fromUtf8(" ") + domain + QString::fromUtf8(" ") + mainstr;
+		}
+		return s;
+	};
+};
+
+class QMutex;
+class CSP_Logger: public QObject {
+	Q_OBJECT
+private:
+	bool syslog_flag;
+	bool syslog_flag_out;
+
+	bool log_cons;
+	bool log_cons_out;
+	bool log_onoff;
+	bool log_opened;
+
+	int64_t linenum;
+	int64_t line_wrap;
+	int cons_log_levels;
+	int sys_log_levels;
+	
+	QString loglist;
+	QString log_sysname;
+	QStringList component_names;
+	QStringList vfile_names;
+	QStringList cpu_names;
+	QStringList device_names;
+	
+	QQueue<CSP_LoggerLine *> squeue;
+	QMutex *lock_mutex;
+
+protected:
+	void debug_log(int level, int domain_num, char *strbuf);
+
+public:
+	CSP_Logger(bool b_syslog, bool cons, const char *devname);
+	~CSP_Logger();
+	void open(bool b_syslog, bool cons, const char *devname);
+	void debug_log(int level, const char *fmt, ...);
+	void debug_log(int level, int domain_num, const char *fmt, ...);
+	void close(void);
+	void set_log_status(bool sw);
+	void set_log_syslog(int level, bool sw);
+	void set_log_stdout(int level, bool sw);
+	bool get_status(void);
+	
+	void set_emu_vm_name(const char *devname);
+	void set_device_name(int num, char *devname);
+	void set_cpu_name(int num, char *devname);
+};
+QT_END_NAMESPACE
+
+extern CSP_Logger *csp_logger;
+
 #endif

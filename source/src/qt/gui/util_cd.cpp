@@ -71,7 +71,7 @@ int Ui_MainWindowBase::set_recent_cdrom(int drv, int num)
 	strcpy(using_flags->get_config_ptr()->initial_compact_disc_dir, path_shadow);
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
 	emit sig_close_cdrom();
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "CD-ROM: Open : filename = %s", path_shadow);
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_VFILE_COMPACTDISC + 0, "Open : filename = %s", path_shadow);
 	emit sig_open_cdrom(s_path);
 	menu_CDROM->do_update_histories(listCDROM);
 	menu_CDROM->do_set_initialize_directory(using_flags->get_config_ptr()->initial_compact_disc_dir);
@@ -97,7 +97,7 @@ void Ui_MainWindowBase::do_open_cdrom(int drv, QString path)
 	strncpy(path_shadow, path.toLocal8Bit().constData(), PATH_MAX);
 
 	emit sig_close_cdrom();
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "CD-ROM: Open : filename = %s", path_shadow);
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_VFILE_COMPACTDISC + 0, "Open : filename = %s", path_shadow);
 	emit sig_open_cdrom(path);
 	menu_CDROM->do_update_histories(listCDROM);
 	menu_CDROM->do_set_initialize_directory(using_flags->get_config_ptr()->initial_compact_disc_dir);

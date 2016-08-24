@@ -22,7 +22,6 @@ extern "C" {
 }
 #endif
 
-
 // Copy from FFMPEG-3.0.2; doc/example/muxing.c .
 #define STREAM_PIX_FMT	AV_PIX_FMT_RGBA /* default pix_fmt */
 

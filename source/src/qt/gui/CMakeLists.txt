@@ -1,6 +1,8 @@
 message("* qt/gui")
 
 set(s_qt_gui_headers
+	  agar_logger.h
+  
 	  qt_dialogs.h
 	  qt_gldraw.h
 	  qt_glutil_gl2_0.h
@@ -145,8 +147,8 @@ target_link_libraries(CSPgui PUBLIC
 	  )
 
 set_target_properties(CSPgui PROPERTIES 
-			     SOVERSION 2.0.3
-			     VERSION 2.0.3
+			     SOVERSION 2.1.0
+			     VERSION 2.1.0
 			     )
 INSTALL(TARGETS CSPgui DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

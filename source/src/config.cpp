@@ -438,7 +438,7 @@ void load_config(const _TCHAR *config_path)
 
 #endif	
 #if defined(_USE_QT) && !defined(Q_OS_WIN)
-	AGAR_DebugLog(AGAR_LOG_INFO, "Read Done.");
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Read config done.");
 #endif
 }
 
@@ -659,7 +659,7 @@ void save_config(const _TCHAR *config_path)
 	MyWritePrivateProfileInt(_T("Video"), _T("VideoFramerate"), config.video_frame_rate, config_path);
 #endif	
 #if defined(_USE_QT) && !defined(Q_OS_WIN)
-	AGAR_DebugLog(AGAR_LOG_INFO, "Write done.");
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Write config done.");
 #endif
 
 	

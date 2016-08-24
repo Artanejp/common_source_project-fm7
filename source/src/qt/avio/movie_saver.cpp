@@ -108,7 +108,7 @@ void MOVIE_SAVER::log_packet(const void *_fmt_ctx, const void *_pkt)
 	const AVPacket *pkt = (const AVPacket *)_pkt;
 	AVRational *time_base = &fmt_ctx->streams[pkt->stream_index]->time_base;
 
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "pts:%s pts_time:%s dts:%s dts_time:%s duration:%s duration_time:%s stream_index:%d\n",
+	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "pts:%s pts_time:%s dts:%s dts_time:%s duration:%s duration_time:%s stream_index:%d\n",
 		   ts2str(pkt->pts).toLocal8Bit().constData(),
 		   ts2timestr(pkt->pts, (void *)time_base).toLocal8Bit().constData(),
 		   ts2str(pkt->dts).toLocal8Bit().constData(),
@@ -128,7 +128,7 @@ void MOVIE_SAVER::enqueue_video(int frames, int width, int height, QImage *p)
 	if(req_stop) return;
 	uint32_t *pq;
 	VIDEO_DATA *px = new VIDEO_DATA(frames, width, height, p);
-	//AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Enqueue video data %dx%d %d bytes %dx%d %d frames", width, height, p->byteCount(), p->width(), p->height(), frames);
+	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "Movie: Enqueue video data %dx%d %d bytes %dx%d %d frames", width, height, p->byteCount(), p->width(), p->height(), frames);
 	//video_queue_mutex->lock();
 	video_data_queue.enqueue(px);
 	//video_queue_mutex->unlock();
@@ -157,7 +157,7 @@ bool MOVIE_SAVER::dequeue_video(uint32_t *p)
 			memcpy(&(p[_width * y]), pq, ((_width * sizeof(uint32_t)) > pp_i->bytesPerLine()) ? pp_i->bytesPerLine() : _width * sizeof(uint32_t));
 		}
 		video_size = _width * y;
-		//AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Dequeue video data %d bytes", pp->byteCount());
+		//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "Movie: Dequeue video data %d bytes", pp->byteCount());
 	}
 #else
 	video_size = 0;
@@ -173,7 +173,7 @@ void MOVIE_SAVER::enqueue_audio(int16_t *p, int size)
 	if(p == NULL) return;
 	if(req_stop) return;
 	QByteArray *pp = new QByteArray((const char *)p, size);
-	//AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Enqueue audio data %d bytes", size);
+	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "Movie: Enqueue audio data %d bytes", size);
 	audio_data_queue.enqueue(pp);
 //	audio_enqueue_count++;
 #endif   
@@ -202,7 +202,7 @@ bool MOVIE_SAVER::dequeue_audio(int16_t *p)
 	}
 	//memcpy(p, pp->constData(), audio_size);
 	audio_count++;
-	//AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Dequeue audio data %d bytes", pp->size());
+	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "Movie: Dequeue audio data %d bytes", pp->size());
 #else
 	audio_size = 0;
 #endif   
@@ -214,7 +214,7 @@ bool MOVIE_SAVER::dequeue_audio(int16_t *p)
 void MOVIE_SAVER::run()
 {
 	bRunThread = true;
-	//AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE THREAD: Start");
+	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "MOVIE THREAD: Start");
 	int ret;
 	int fps_wait = (int)((1000.0 / (double)rec_fps) / 4.0);
 	int tmp_wait = fps_wait;
@@ -255,7 +255,7 @@ void MOVIE_SAVER::run()
 					recording = false;
 					goto _next_turn;
 				}
-				AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE/Saver: Start to recording.");
+				csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "MOVIE/Saver: Start to recording.");
 				old_recording = true;
 				a_f = v_f = false;
 			}
@@ -284,20 +284,20 @@ void MOVIE_SAVER::run()
 														audio_st.next_pts, audio_st.st->codec->time_base) <= 0)) {
 				n_encode_video = write_video_frame();
 				if(n_encode_video < 0) {
-					AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE/Saver: Something wrong with encoding video.");
+					csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "MOVIE/Saver: Something wrong with encoding video.");
 					goto _final;
 				}
 			} else {
 				n_encode_audio = write_audio_frame();
 				if(n_encode_audio < 0) {
-					AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE/Saver: Something wrong with encoding audio.");
+					csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "MOVIE/Saver: Something wrong with encoding audio.");
 					goto _final;
 				}
 			}
 			if (ret < 0 && ret != AVERROR_EOF) {
 				char errbuf[128];
 				av_strerror(ret, errbuf, sizeof(errbuf));
-				AGAR_DebugLog(AGAR_LOG_INFO, "Error while filtering: %s\n", (const char *)errbuf);
+				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error while filtering: %s\n", (const char *)errbuf);
 				goto _final;
 			}
 			
@@ -339,7 +339,7 @@ void MOVIE_SAVER::run()
 		do_close_main();
 		old_recording = false;
 	}
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE: Exit thread.");
+	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "MOVIE: Exit thread.");
 	if(recording) {
 		req_close = true;
 		do_close_main();

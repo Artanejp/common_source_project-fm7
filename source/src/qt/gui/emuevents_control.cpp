@@ -9,13 +9,13 @@ extern EMU *emu;
 
 void Ui_MainWindowBase::OnReset(void)
 {
-	AGAR_DebugLog(AGAR_LOG_INFO, "Reset");
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GUI, "Reset");
 	emit sig_vm_reset();
 }
 
 void Ui_MainWindowBase::OnSpecialReset(void)
 {
-	AGAR_DebugLog(AGAR_LOG_INFO, "Special Reset");
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GUI, "Special reset");
 	emit sig_vm_specialreset();
 }
 

@@ -16,6 +16,7 @@
 #include "common.h"
 #include "fileio.h"
 #include "menu_flags.h"
+#include "agar_logger.h"
 
 extern std::string cpp_homedir;
 extern std::string cpp_confdir;
@@ -98,6 +99,8 @@ void get_short_filename(_TCHAR *dst, _TCHAR *file, int maxlen)
 extern int MainLoop(int argc, char *argv[], config_t *cfg);
 extern config_t config;
 
+CSP_Logger *csp_logger;
+
 /*
  * This is main for Qt.
  */
@@ -111,11 +114,18 @@ int main(int argc, char *argv[])
 /*
  * アプリケーション初期化
  */
+
+	csp_logger = new CSP_Logger(false, true, NULL); // Write to syslog, console
+	csp_logger->set_log_stdout(CSP_LOG_DEBUG, true);
+	csp_logger->set_log_stdout(CSP_LOG_INFO, true);
+	csp_logger->set_log_stdout(CSP_LOG_WARN, true);
 	Q_INIT_RESOURCE(commontexts);
 	Q_INIT_RESOURCE(shaders);
 	nErrorCode = MainLoop(argc, argv, &config);
 	Q_CLEANUP_RESOURCE(shaders);
 	Q_CLEANUP_RESOURCE(commontexts);
+	if(csp_logger != NULL) delete csp_logger;
+	
 	return nErrorCode;
 }
 #if defined(Q_OS_WIN) 

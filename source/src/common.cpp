@@ -261,7 +261,7 @@ static std::string MyGetPrivateProfileStr(const _TCHAR *lpAppName, const _TCHAR 
 		delete pf;
 		return got_str;
 	}
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "Try App: %s Key: %s", lpAppName, lpKeyName);
+	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Try App: %s Key: %s", lpAppName, lpKeyName);
 	pf->Fseek(0, FILEIO_SEEK_SET);
 	do {
 		key_str = key;
@@ -292,7 +292,7 @@ static std::string MyGetPrivateProfileStr(const _TCHAR *lpAppName, const _TCHAR 
 	delete pf;
 	
 	got_str.erase(0, pos + key_str.length());
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "Got: %s Length: %d", got_str.c_str(), got_str.length());
+	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Got: %s Length: %d", got_str.c_str(), got_str.length());
 	return got_str;
 }
 
@@ -350,7 +350,7 @@ UINT DLL_PREFIX MyGetPrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, INT
 	} else {
 		i = strtol(s.c_str(), NULL, 10);
 	}
-	//AGAR_DebugLog(AGAR_LOG_DEBUG, "Got Int: %d\n", i);
+	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Got Int: %d\n", i);
 	return i;
 }
 #endif

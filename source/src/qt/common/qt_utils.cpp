@@ -260,7 +260,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(this, SIGNAL(sig_stop_auto_key()), hRunEmu, SLOT(do_stop_auto_key()));
 #endif	
 	//connect(actionExit_Emulator, SIGNAL(triggered()), hRunEmu, SLOT(doExit()));
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : Start.");
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "EmuThread : Start.");
 	objNameStr = QString("EmuThreadClass");
 	hRunEmu->setObjectName(objNameStr);
 	
@@ -276,7 +276,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	delete reader;
 	emu->get_osd()->set_buttons();
 #endif
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "DrawThread : Start.");
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "DrawThread : Start.");
 	connect(hDrawEmu, SIGNAL(sig_draw_frames(int)), hRunEmu, SLOT(print_framerate(int)));
 	connect(hRunEmu, SIGNAL(window_title_changed(QString)), this, SLOT(do_set_window_title(QString)));
 	connect(hDrawEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
@@ -314,7 +314,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	objNameStr = QString("EmuDrawThread");
 	hDrawEmu->setObjectName(objNameStr);
 	hDrawEmu->start();
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "DrawThread : Launch done.");
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "DrawThread : Launch done.");
 
 	hSaveMovieThread = new MOVIE_SAVER(640, 400,  30, emu->get_osd(), using_flags->get_config_ptr());
 	
@@ -351,13 +351,13 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	objNameStr = QString("EmuMovieThread");
 	hSaveMovieThread->setObjectName(objNameStr);
 	hSaveMovieThread->start();
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "MovieThread : Launch done.");
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "MovieThread : Launch done.");
 
 	connect(action_SetupMovie, SIGNAL(triggered()), this, SLOT(rise_movie_dialog()));
 
 
 	hRunEmu->start();
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : Launch done.");
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "EmuThread : Launch done.");
 	this->set_screen_aspect(using_flags->get_config_ptr()->window_stretch_type);
 	emit sig_movie_set_width(SCREEN_WIDTH);
 	emit sig_movie_set_height(SCREEN_HEIGHT);
@@ -533,7 +533,7 @@ static void setup_logs(void)
 #endif
 	bLogSYSLOG = (int)0;
 	bLogSTDOUT = (int)1;
-	AGAR_OpenLog(bLogSYSLOG, bLogSTDOUT, DEVICE_NAME); // Write to syslog, console
+	//csp_logger = new CSP_Logger((bLogSYSLOG != 0), (bLogSTDOUT != 0), DEVICE_NAME); // Write to syslog, console
 	
 	archstr = "Generic";
 #if defined(__x86_64__)
@@ -542,12 +542,13 @@ static void setup_logs(void)
 #if defined(__i386__)
 	archstr = "ia32";
 #endif
-	AGAR_DebugLog(AGAR_LOG_INFO, "Start Common Source Project '%s'", my_procname.c_str());
-	AGAR_DebugLog(AGAR_LOG_INFO, "(C) Toshiya Takeda / Qt Version K.Ohta");
-	AGAR_DebugLog(AGAR_LOG_INFO, "Architecture: %s", archstr.c_str());
 	
-	//AGAR_DebugLog(AGAR_LOG_INFO, " -? is print help(s).");
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "Moduledir = %s home = %s", cpp_confdir.c_str(), cpp_homedir.c_str()); // Debug
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Start Common Source Project '%s'", my_procname.c_str());
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "(C) Toshiya Takeda / Qt Version K.Ohta");
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Architecture: %s", archstr.c_str());
+	
+	//csp_logger->debug_log(AGAR_LOG_INFO, " -? is print help(s).");
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Moduledir = %s home = %s", cpp_confdir.c_str(), cpp_homedir.c_str()); // Debug
 #if !defined(Q_OS_CYGWIN)	
 	{
 		QDir dir;
@@ -579,6 +580,7 @@ int MainLoop(int argc, char *argv[], config_t *cfg)
 	setup_logs();
 	cpp_homedir.copy(homedir, PATH_MAX - 1, 0);
 	flag = FALSE;
+	csp_logger->set_emu_vm_name(DEVICE_NAME); // Write to syslog, console
 	/*
 	 * Into Qt's Loop.
 	 */
@@ -588,7 +590,7 @@ int MainLoop(int argc, char *argv[], config_t *cfg)
 	SDL_Init(SDL_INIT_AUDIO | SDL_INIT_JOYSTICK | SDL_INIT_VIDEO);
 	//SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO);
 #endif
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "Audio and JOYSTICK subsystem was initialised.");
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Audio and JOYSTICK subsystem was initialised.");
 	GuiMain = new QApplication(argc, argv);
 	load_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
 	
@@ -597,7 +599,7 @@ int MainLoop(int argc, char *argv[], config_t *cfg)
 	rMainWindow->connect(rMainWindow, SIGNAL(sig_quit_all(void)), rMainWindow, SLOT(deleteLater(void)));
 	rMainWindow->setCoreApplication(GuiMain);
 	
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "InitInstance() OK.");
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "InitInstance() OK.");
   
 	// disable ime
 	

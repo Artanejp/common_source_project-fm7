@@ -36,7 +36,7 @@ void *MOVIE_SAVER::alloc_audio_frame(uint64_t _sample_fmt,
 	int ret;
 	enum AVSampleFormat sample_fmt = (enum AVSampleFormat)_sample_fmt; 
 	if (!frame) {
-		AGAR_DebugLog(AGAR_LOG_INFO, "Error allocating an audio frame\n");
+		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error allocating an audio frame\n");
 		exit(1);
 	}
 
@@ -48,7 +48,7 @@ void *MOVIE_SAVER::alloc_audio_frame(uint64_t _sample_fmt,
 	if (nb_samples) {
 		ret = av_frame_get_buffer(frame, 0);
 		if (ret < 0) {
-			AGAR_DebugLog(AGAR_LOG_INFO, "Error allocating an audio buffer\n");
+			csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error allocating an audio buffer\n");
 			return NULL;
 		}
 	}
@@ -79,7 +79,7 @@ bool MOVIE_SAVER::open_audio(void)
 	ret = avcodec_open2(c, codec, &opt);
 	av_dict_free(&opt);
 	if (ret < 0) {
-		AGAR_DebugLog(AGAR_LOG_INFO, "Could not open audio codec: %s\n", err2str(ret).toLocal8Bit().constData());
+		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not open audio codec: %s\n", err2str(ret).toLocal8Bit().constData());
 		return false;
 	}
 
@@ -98,7 +98,7 @@ bool MOVIE_SAVER::open_audio(void)
 	/* set options */
 	ost->swr_ctx = swr_alloc();
 	if (!ost->swr_ctx) {
-		AGAR_DebugLog(AGAR_LOG_INFO, "Could not allocate resampler context\n");
+		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not allocate resampler context\n");
 		return false;
 	}
 	av_opt_set_int	   (ost->swr_ctx, "in_channel_count",   c->channels,	   0);
@@ -114,16 +114,16 @@ bool MOVIE_SAVER::open_audio(void)
 									  AV_CH_LAYOUT_STEREO, AV_SAMPLE_FMT_S16, audio_sample_rate,
 									  0, NULL);
 	if (ost->swr_ctx == NULL) {
-		AGAR_DebugLog(AGAR_LOG_INFO, "Failed to initialize the resampling context\n");
+		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Failed to initialize the resampling context\n");
 		return false;
 	}
 #endif	
 	/* initialize the resampling context */
 	if ((ret = swr_init(ost->swr_ctx)) < 0) {
-		AGAR_DebugLog(AGAR_LOG_INFO, "Failed to initialize the resampling context\n");
+		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Failed to initialize the resampling context\n");
 		return false;
 	}
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE: Open to write audio : Success.");
+	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "Open to write audio : Success.");
 	return true;
 #else
 	return true;
@@ -219,7 +219,7 @@ int MOVIE_SAVER::write_audio_frame()
 		 */
 		ret = av_frame_make_writable(ost->frame);
 		if (ret < 0) {
-			AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE/Saver: Audio: Fail to make writable frame.");
+			csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "Audio: Fail to make writable frame.");
 			return -1;
 		}
 		/* convert to destination format */
@@ -227,7 +227,7 @@ int MOVIE_SAVER::write_audio_frame()
 						  ost->frame->data, dst_nb_samples,
 						  (const uint8_t **)frame_src->data, frame_src->nb_samples);
 		if (ret < 0) {
-			AGAR_DebugLog(AGAR_LOG_INFO, "Error while converting\n");
+			csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error while converting\n");
 			return -1;
 		}
 
@@ -242,14 +242,14 @@ int MOVIE_SAVER::write_audio_frame()
 
 	ret = avcodec_encode_audio2(c, &pkt, frame_dst, &got_packet);
 	if (ret < 0) {
-		AGAR_DebugLog(AGAR_LOG_INFO, "Error encoding audio frame: %s\n", err2str(ret).toLocal8Bit().constData());
+		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error encoding audio frame: %s\n", err2str(ret).toLocal8Bit().constData());
 		return -1;
 	}
 
 	if (got_packet) {
 		ret = this->write_frame((void *)oc, (const void *)&c->time_base, (void *)ost->st, (void *)&pkt);
 		if (ret < 0) {
-			AGAR_DebugLog(AGAR_LOG_INFO, "Error while writing audio frame: %s\n",
+			csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error while writing audio frame: %s\n",
 					err2str(ret).toLocal8Bit().constData());
 			return -1;
 		}

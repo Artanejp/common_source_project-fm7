@@ -22,8 +22,8 @@
 void CSP_DiskParams::_open_disk(QString s)
 {
 	int d = getDrive();
-	AGAR_DebugLog(AGAR_LOG_INFO, "Try to open media image: %s", s.toLocal8Bit().constData());
-	AGAR_DebugLog(AGAR_LOG_INFO, "Drive = %d\n", d);
+	int n = d + CSP_LOG_TYPE_VFILE_FLOPPY;
+	csp_logger->debug_log(CSP_LOG_INFO, n, "Try to open media image: %s", s.toLocal8Bit().constData());
 	emit do_open_disk(d, s);
 }
 

@@ -69,7 +69,8 @@ void DrawThreadClass::doDraw(bool flag)
 
 void DrawThreadClass::doExit(void)
 {
-	//AGAR_DebugLog(AGAR_LOG_DEBUG, "DrawThread : Exit.");
+	//csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL,
+	//					  "DrawThread : Exit.");
 	bRunThread = false;
 }
 
@@ -98,7 +99,8 @@ void DrawThreadClass::doWork(const QString &param)
 			wait_count -= (qreal)wait_factor;
 		}
 	} while(bRunThread);
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "DrawThread : Exit.");
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL,
+						  "DrawThread : Exit.");
 	this->exit(0);
 }
 
