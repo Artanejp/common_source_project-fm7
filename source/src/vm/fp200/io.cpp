@@ -238,7 +238,7 @@ void IO::reset()
 void IO::write_io8(uint32_t addr, uint32_t data)
 {
 #ifdef _IO_DEBUG_LOG
-	emu->out_debug_log(_T("%06x\tSOD=%d\tOUT8\t%04x, %02x\n"), get_cpu_pc(0), sod ? 1 : 0, addr & 0xff, data & 0xff);
+	this->out_debug_log(_T("%06x\tSOD=%d\tOUT8\t%04x, %02x\n"), get_cpu_pc(0), sod ? 1 : 0, addr & 0xff, data & 0xff);
 #endif
 	
 	if(sod) {
@@ -359,7 +359,7 @@ uint32_t IO::read_io8(uint32_t addr)
 		}
 	}
 #ifdef _IO_DEBUG_LOG
-	emu->out_debug_log(_T("%06x\tSOD=%d\tIN8\t%04x = %02x\n"), get_cpu_pc(0), sod ? 1 : 0, addr & 0xff, value);
+	this->out_debug_log(_T("%06x\tSOD=%d\tIN8\t%04x = %02x\n"), get_cpu_pc(0), sod ? 1 : 0, addr & 0xff, value);
 #endif
 	return value;
 }

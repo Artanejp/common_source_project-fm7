@@ -102,6 +102,7 @@ public:
 #ifdef DATAREC_SOUND
 		sound_volume_l = sound_volume_r = 1024;
 #endif
+		set_device_name(_T("DATA RECORDER"));
 	}
 	~DATAREC() {}
 	

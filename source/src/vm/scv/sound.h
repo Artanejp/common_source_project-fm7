@@ -68,7 +68,9 @@ private:
 	void process_cmd();
 	
 public:
-	SOUND(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	SOUND(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
+		set_device_name(_T("SOUND"));
+	}
 	~SOUND() {}
 	
 	// common functions

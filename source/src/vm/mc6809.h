@@ -413,6 +413,7 @@ public:
 	{
 		initialize_output_signals(&outputs_bus_clr);
 		initialize_output_signals(&outputs_bus_halt);
+		set_device_name(_T("MC6809"));
 	}
 	~MC6809() {}
 	

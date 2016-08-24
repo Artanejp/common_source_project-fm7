@@ -26,6 +26,7 @@ public:
 		bytes_per_sec = 0x500000; // 5MB/sec
 		
 		default_drive_size = 0x2800000;	// 40MB
+		set_device_name(_T("SCSI HDD"));
 	}
 	~SCSI_HDD() {}
 	

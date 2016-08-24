@@ -353,7 +353,7 @@ void IO::event_vline(int v, int clock)
 
 void IO::write_io8(uint32_t addr, uint32_t data)
 {
-//	emu->out_debug_log(_T("OUT\t%4x, %2x\n"), addr, data);
+//	this->out_debug_log(_T("OUT\t%4x, %2x\n"), addr, data);
 	switch(addr & 0xff) {
 	case 0x80:
 		font_code = data;
@@ -456,7 +456,7 @@ uint32_t IO::read_io8(uint32_t addr)
 		val = rregs[6];
 		break;
 	}
-//	emu->out_debug_log(_T("IN\t%4x = %2x\n", addr, val);
+//	this->out_debug_log(_T("IN\t%4x = %2x\n", addr, val);
 	return val;
 }
 
@@ -938,7 +938,7 @@ void IO::send_to_sub()
 				sub_int |= 1;
 				update_intr();
 			}
-//			emu->out_debug_log(_T("CMD TYPE = %2x, LEN = %d RSP=%d\n"), cmd_type, cmd_len, rsp_buf->count());
+//			this->out_debug_log(_T("CMD TYPE = %2x, LEN = %d RSP=%d\n"), cmd_type, cmd_len, rsp_buf->count());
 		}
 	}
 }

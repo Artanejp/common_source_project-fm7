@@ -67,7 +67,7 @@ void KEYBOARD::write_io8(uint32_t addr, uint32_t data)
 				static uint32_t prev_clk = 0;
 				int us = (int)((double)get_passed_clock(prev_clk) * 1000.0 * 1000.0 / 4000000 + 0.5);
 				prev_clk = get_current_clock();
-				emu->out_debug_log(_T("%d\t%d\n"), prev_signal, us);
+				this->out_debug_log(_T("%d\t%d\n"), prev_signal, us);
 				prev_signal = cur_signal;
 			}
 		}

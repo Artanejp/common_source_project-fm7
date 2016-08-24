@@ -55,6 +55,7 @@ public:
 	MAIN(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		intr_mask = intr_request = intr_in_service = 0;
+		set_device_name(_T("FP1100 MAIN"));
 	}
 	~MAIN() {}
 	

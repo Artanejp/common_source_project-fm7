@@ -128,6 +128,8 @@ void DISK::open(const _TCHAR* file_path, int bank)
 		my_tcscpy_s(orig_path, _MAX_PATH, file_path);
 		my_tcscpy_s(dest_path, _MAX_PATH, file_path);
 		
+		this->out_debug_log("OPENed: %s", file_path);
+			
 		file_size.d = fio->FileLength();
 		fio->Fseek(0, FILEIO_SEEK_SET);
 		
@@ -326,6 +328,7 @@ void DISK::open(const _TCHAR* file_path, int bank)
 								0x00, 0x00
 							};
 							if(memcmp((void *)(t + 0x10), deathforce, sizeof(deathforce)) == 0) {
+								this->out_debug_log("SPECIAL DISK: DEATH FORCE");
 								is_special_disk = SPECIAL_DISK_FM7_DEATHFORCE;
 								break;
 							}
@@ -356,6 +359,7 @@ void DISK::open(const _TCHAR* file_path, int bank)
 							if(memcmp((void *)(t + 0x10 + 0x60), xanadu2fm_d_1, sizeof(xanadu2fm_d_1)) == 0) {
 								if(memcmp((void *)(t + 0x10 + 0x70), xanadu2fm_d_2, sizeof(xanadu2fm_d_2)) == 0) {
 									is_special_disk = SPECIAL_DISK_FM7_XANADU2_D;
+									this->out_debug_log("SPECIAL DISK: Xanadu scenario 2 Disk D");
 								}
 								break;
 							}
@@ -386,6 +390,7 @@ void DISK::open(const _TCHAR* file_path, int bank)
 							if(memcmp((void *)(t + 0x10 + 0), xanadu1fm_d_1, sizeof(xanadu1fm_d_1)) == 0) {
 								if(memcmp((void *)(t + 0x10 + 0xb0), xanadu1fm_d_2, sizeof(xanadu1fm_d_2)) == 0) {
 									is_special_disk = SPECIAL_DISK_FM7_XANADU2_D; // Same issue as Xanadu2.
+									this->out_debug_log("SPECIAL DISK: Xanadu scenario 1 Disk A");
 								}
 								break;
 							}
@@ -415,10 +420,12 @@ void DISK::open(const _TCHAR* file_path, int bank)
 							};
 							if(memcmp((void *)(t + 0x58), psyoblade_ipl1, sizeof(psyoblade_ipl1)) == 0) {
 								is_special_disk = SPECIAL_DISK_FM77AV_PSYOBLADE;
+								this->out_debug_log("SPECIAL DISK: PSY-O-BLADE");
 								break;
 							} else if(memcmp((void *)(t + 0x10), psyoblade_disk_1, sizeof(psyoblade_disk_1)) == 0) {
 								if(memcmp((void *)(t + 0x40), psyoblade_disk_2, sizeof(psyoblade_disk_2)) == 0) {
 									is_special_disk = SPECIAL_DISK_FM77AV_PSYOBLADE;
+									this->out_debug_log("SPECIAL DISK: PSY-O-BLADE");
 									break;
 								}
 							}
@@ -437,6 +444,7 @@ void DISK::open(const _TCHAR* file_path, int bank)
 							};
 							if(memcmp((void *)(t + 0x70), taiyoufm1, sizeof(taiyoufm1)) == 0) {
 								is_special_disk = SPECIAL_DISK_FM7_TAIYOU1;
+								this->out_debug_log("SPECIAL DISK: TAIYOU NO SHINDEN Disk 1");
 								break;
 							}
 						} else if(data_size.sd == 0x100 && t[0] == 0 && t[1] == 0 && t[2] == 2 && t[3] == 1) {
@@ -452,6 +460,7 @@ void DISK::open(const _TCHAR* file_path, int bank)
 							};
 							if(memcmp((void *)(t + 0x00), taiyoufm2, sizeof(taiyoufm2)) == 0) {
 								is_special_disk = SPECIAL_DISK_FM7_TAIYOU2;
+								this->out_debug_log("SPECIAL DISK: TAIYOU NO SHINDEN Disk 2");
 								break;
 							}
 						}
@@ -470,6 +479,7 @@ void DISK::open(const _TCHAR* file_path, int bank)
 						};
 						if(memcmp((void *)(t + 0x70), taiyoufm1, sizeof(taiyoufm1)) == 0) {
 							is_special_disk = SPECIAL_DISK_FM7_TAIYOU1;
+								this->out_debug_log("SPECIAL DISK: TAIYOU NO SHINDEN Disk 1");
 							break;
 						}
 					} else if(data_size.sd == 0x100 && t[0] == 0 && t[1] == 0 && t[2] == 2 && t[3] == 1) {
@@ -485,6 +495,7 @@ void DISK::open(const _TCHAR* file_path, int bank)
 						};
 						if(memcmp((void *)(t + 0x00), taiyoufm2, sizeof(taiyoufm2)) == 0) {
 							is_special_disk = SPECIAL_DISK_FM7_TAIYOU2;
+							this->out_debug_log("SPECIAL DISK: TAIYOU NO SHINDEN Disk 1");
 							break;
 						}
 					}
@@ -509,6 +520,7 @@ void DISK::open(const _TCHAR* file_path, int bank)
 #endif
 				if(memcmp((void *)(t + 0x11), batten, sizeof(batten)) == 0) {
 					is_special_disk = SPECIAL_DISK_X1_BATTEN;
+					this->out_debug_log("SPECIAL DISK: BATTEN TANUKI NO DAI BOUKEN");
 				}
 			}
 		}
@@ -644,6 +656,7 @@ void DISK::close()
 				free(post_buffer);
 			}
 			delete fio;
+			this->out_debug_log("CLOSEd");
 		}
 		ejected = true;
 	}

@@ -233,14 +233,14 @@ void EVENT::register_event(DEVICE* device, int event_id, double usec, bool loop,
 {
 #ifdef _DEBUG_LOG
 	if(!initialize_done && !loop) {
-		emu->out_debug_log(_T("EVENT: non-loop event is registered before initialize is done\n"));
+		this->out_debug_log(_T("EVENT: non-loop event is registered before initialize is done\n"));
 	}
 #endif
 	
 	// register event
 	if(first_free_event == NULL) {
 #ifdef _DEBUG_LOG
-		emu->out_debug_log(_T("EVENT: too many events !!!\n"));
+		this->out_debug_log(_T("EVENT: too many events !!!\n"));
 #endif
 		if(register_id != NULL) {
 			*register_id = -1;
@@ -276,14 +276,14 @@ void EVENT::register_event_by_clock(DEVICE* device, int event_id, uint64_t clock
 {
 #ifdef _DEBUG_LOG
 	if(!initialize_done && !loop) {
-		emu->out_debug_log(_T("EVENT: non-loop event is registered before initialize is done\n"));
+		this->out_debug_log(_T("EVENT: non-loop event is registered before initialize is done\n"));
 	}
 #endif
 	
 	// register event
 	if(first_free_event == NULL) {
 #ifdef _DEBUG_LOG
-		emu->out_debug_log(_T("EVENT: too many events !!!\n"));
+		this->out_debug_log(_T("EVENT: too many events !!!\n"));
 #endif
 		if(register_id != NULL) {
 			*register_id = -1;
@@ -346,7 +346,7 @@ void EVENT::cancel_event(DEVICE* device, int register_id)
 	if(0 <= register_id && register_id < MAX_EVENT) {
 		event_t *event_handle = &event[register_id];
 		if(device != NULL && device != event_handle->device) {
-			emu->out_debug_log(_T("EVENT: event cannot be canceled by non owned device (id=%d) !!!\n"), device->this_device_id);
+			this->out_debug_log(_T("EVENT: event cannot be canceled by non owned device (id=%d) !!!\n"), device->this_device_id);
 			return;
 		}
 		if(event_handle->active) {
@@ -371,7 +371,7 @@ void EVENT::register_frame_event(DEVICE* dev)
 		frame_event[frame_event_count++] = dev;
 	} else {
 #ifdef _DEBUG_LOG
-		emu->out_debug_log(_T("EVENT: too many frame events !!!\n"));
+		this->out_debug_log(_T("EVENT: too many frame events !!!\n"));
 #endif
 	}
 }
@@ -382,7 +382,7 @@ void EVENT::register_vline_event(DEVICE* dev)
 		vline_event[vline_event_count++] = dev;
 	} else {
 #ifdef _DEBUG_LOG
-		emu->out_debug_log(_T("EVENT: too many vline events !!!\n"));
+		this->out_debug_log(_T("EVENT: too many vline events !!!\n"));
 #endif
 	}
 }

@@ -128,6 +128,7 @@ public:
 		initialize_output_signals(&outputs_index);
 		force_ready = false;
 		raise_irq_when_media_changed = false;
+		set_device_name(_T("uPD765A"));
 	}
 	~UPD765A() {}
 	

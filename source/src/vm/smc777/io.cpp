@@ -245,7 +245,7 @@ uint32_t IO::fetch_op(uint32_t addr, int *wait)
 void IO::write_io8(uint32_t addr, uint32_t data)
 {
 #ifdef _IO_DEBUG_LOG
-	emu->out_debug_log(_T("%04x\tOUT8\t%04x,%02x\n"), d_cpu->get_pc(), addr, data);
+	this->out_debug_log(_T("%04x\tOUT8\t%04x,%02x\n"), d_cpu->get_pc(), addr, data);
 #endif
 	uint8_t laddr = addr & 0xff;
 	
@@ -465,7 +465,7 @@ uint32_t IO::read_io8(uint32_t addr)
 #ifdef _IO_DEBUG_LOG
 {
 	uint32_t val = read_io8_debug(addr);
-	emu->out_debug_log(_T("%04x\tIN8\t%04x = %02x\n"), d_cpu->get_pc(), addr, val);
+	this->out_debug_log(_T("%04x\tIN8\t%04x = %02x\n"), d_cpu->get_pc(), addr, val);
 	return val;
 }
 

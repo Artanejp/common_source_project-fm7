@@ -159,7 +159,7 @@ void T3444A::write_io8(uint32_t addr, uint32_t data)
 				
 				if(fdc[drvreg].index >= disk[drvreg]->sector_size.sd) {
 #ifdef _FDC_DEBUG_LOG
-					emu->out_debug_log(_T("FDC\tWRITE DATA FINISHED\n"));
+					this->out_debug_log(_T("FDC\tWRITE DATA FINISHED\n"));
 #endif
 					// 2S: 300rpm, 3100bytes/track -> 0.0155bytes/us
 					register_my_event(EVENT_TND, 100); // 0.0155bytes/us * 100us = 1.55bytes < GAP3
@@ -203,7 +203,7 @@ uint32_t T3444A::read_io8(uint32_t addr)
 	case 0:
 		// status reg
 #ifdef _FDC_DEBUG_LOG
-		emu->out_debug_log(_T("FDC\tSTATUS=%02x\n"),status);
+		this->out_debug_log(_T("FDC\tSTATUS=%02x\n"),status);
 #endif
 		return status;
 	case 3:
@@ -220,7 +220,7 @@ uint32_t T3444A::read_io8(uint32_t addr)
 				
 				if(fdc[drvreg].index >= disk[drvreg]->sector_size.sd) {
 #ifdef _FDC_DEBUG_LOG
-					emu->out_debug_log(_T("FDC\tREAD DATA FINISHED\n"));
+					this->out_debug_log(_T("FDC\tREAD DATA FINISHED\n"));
 #endif
 //					if(status == FDC_STA_DATA_ERROR) {
 //						status |= FDC_STA_FDC_READY;
@@ -354,13 +354,13 @@ void T3444A::event_callback(int event_id, int err)
 			if(secreg < SECTORS_IN_TRACK) {
 				secreg++;
 #ifdef _FDC_DEBUG_LOG
-				emu->out_debug_log(_T("FDC\tTND AND CONTINUE SEC=%d\n"), secreg);
+				this->out_debug_log(_T("FDC\tTND AND CONTINUE SEC=%d\n"), secreg);
 #endif
 				cmd_read_write();
 			} else {
 //				secreg = 1;
 #ifdef _FDC_DEBUG_LOG
-				emu->out_debug_log(_T("FDC\tTND BUT TERMINATED SEC=%d\n"), secreg);
+				this->out_debug_log(_T("FDC\tTND BUT TERMINATED SEC=%d\n"), secreg);
 #endif
 				status = FDC_STA_FDC_READY | FDC_STA_LAST_SECTOR;
 			}
@@ -397,7 +397,7 @@ void T3444A::process_cmd()
 		_T("Seek and Write Data with Deleted Data Address Mark"),
 	};
 	if(cmdreg == cmdreg) {
-		emu->out_debug_log(_T("FDC\tCMD=%2xh (%s) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, cmdstr[cmdreg], datareg, drvreg, trkreg, sidereg, secreg);
+		this->out_debug_log(_T("FDC\tCMD=%2xh (%s) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, cmdstr[cmdreg], datareg, drvreg, trkreg, sidereg, secreg);
 	}
 #endif
 	status = 0; // FDC is busy
@@ -572,7 +572,7 @@ uint8_t T3444A::search_sector()
 		fdc[drvreg].next_sync_position = disk[drvreg]->sync_position[index];
 		fdc[drvreg].index = 0;
 #ifdef _FDC_DEBUG_LOG
-		emu->out_debug_log(_T("FDC\tSECTOR FOUND SIZE=$%04x ID=%02x %02x %02x %02x CRC=%02x %02x CRC_ERROR=%d\n"),
+		this->out_debug_log(_T("FDC\tSECTOR FOUND SIZE=$%04x ID=%02x %02x %02x %02x CRC=%02x %02x CRC_ERROR=%d\n"),
 			disk[drvreg]->sector_size.sd,
 			disk[drvreg]->id[0], disk[drvreg]->id[1], disk[drvreg]->id[2], disk[drvreg]->id[3],
 			disk[drvreg]->id[4], disk[drvreg]->id[5],

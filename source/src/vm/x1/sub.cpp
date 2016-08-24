@@ -90,7 +90,7 @@ void SUB::write_io8(uint32_t addr, uint32_t data)
 	// FIXME: this function is referred from both 80c48 and z80
 	if((addr & 0xff00) == 0x1900) {
 		// for z80
-//		emu->out_debug_log(_T("Z80 -> PA=%2x\n"), data);
+//		this->out_debug_log(_T("Z80 -> PA=%2x\n"), data);
 		d_pio->write_signal(SIG_I8255_PORT_A, data, 0xff);
 		SET_STB(true);
 		SET_STB(false);
@@ -139,7 +139,7 @@ uint32_t SUB::read_io8(uint32_t addr)
 	if((addr & 0xff00) == 0x1900) {
 		// for z80
 		uint32_t value = d_pio->read_signal(SIG_I8255_PORT_A);
-//		emu->out_debug_log(_T("Z80 <- PA=%2x\n"), value);
+//		this->out_debug_log(_T("Z80 <- PA=%2x\n"), value);
 		if(iei) {
 			SET_ACK(true);
 			SET_ACK(false);

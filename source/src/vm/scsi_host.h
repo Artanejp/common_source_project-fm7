@@ -46,6 +46,7 @@ public:
 		initialize_output_signals(&outputs_atn);
 		initialize_output_signals(&outputs_ack);
 		initialize_output_signals(&outputs_rst);
+		set_device_name(_T("SCSI HOST"));
 	}
 	~SCSI_HOST() {}
 	

@@ -47,7 +47,7 @@ void SCSI::write_io8(uint32_t addr, uint32_t data)
 	case 0x2f0:
 		// data register
 		#ifdef _SCSI_DEBUG_LOG
-			emu->out_debug_log(_T("[SCSI] out %04X %02X\n"), addr, data);
+			this->out_debug_log(_T("[SCSI] out %04X %02X\n"), addr, data);
 		#endif
 //		if(ctrl_reg & CTRL_SWEN) {
 			d_host->write_dma_io8(addr, data);
@@ -57,7 +57,7 @@ void SCSI::write_io8(uint32_t addr, uint32_t data)
 	case 0x2f1:
 		// control register
 		#ifdef _SCSI_DEBUG_LOG
-			emu->out_debug_log(_T("[SCSI] out %04X %02X\n"), addr, data);
+			this->out_debug_log(_T("[SCSI] out %04X %02X\n"), addr, data);
 		#endif
 		ctrl_reg = data;
 //		if(ctrl_reg  & CTRL_SWEN) {
@@ -69,7 +69,7 @@ void SCSI::write_io8(uint32_t addr, uint32_t data)
 		
 	case 0x2f2:
 		#ifdef _SCSI_DEBUG_LOG
-			emu->out_debug_log(_T("[SCSI] out %04X %02X\n"), addr, data);
+			this->out_debug_log(_T("[SCSI] out %04X %02X\n"), addr, data);
 		#endif
 		if(data & STATUS_PHASE) {
 			phase_status = false;
@@ -85,7 +85,7 @@ void SCSI::write_io8(uint32_t addr, uint32_t data)
 	case 0x2f3:
 		// irq mask register
 		#ifdef _SCSI_DEBUG_LOG
-			emu->out_debug_log(_T("[SCSI] out %04X %02X\n"), addr, data);
+			this->out_debug_log(_T("[SCSI] out %04X %02X\n"), addr, data);
 		#endif
 		intm_reg = data;
 		break;
@@ -103,7 +103,7 @@ uint32_t SCSI::read_io8(uint32_t addr)
 			value = d_host->read_dma_io8(addr);
 //		}
 		#ifdef _SCSI_DEBUG_LOG
-			emu->out_debug_log(_T("[SCSI] in  %04X %02X\n"), addr, value);
+			this->out_debug_log(_T("[SCSI] in  %04X %02X\n"), addr, value);
 		#endif
 		return value;
 		
@@ -116,7 +116,7 @@ uint32_t SCSI::read_io8(uint32_t addr)
 		        (d_host->read_signal(SIG_SCSI_BSY) ? STATUS_BSY : 0) |
 		        (phase_status || eop_status        ? STATUS_INT : 0) | 0x04;
 		#ifdef _SCSI_DEBUG_LOG
-			emu->out_debug_log(_T("[SCSI] in  %04X %02X\n"), addr, value);
+			this->out_debug_log(_T("[SCSI] in  %04X %02X\n"), addr, value);
 		#endif
 		return value;
 		
@@ -124,7 +124,7 @@ uint32_t SCSI::read_io8(uint32_t addr)
 		// irq status register
 		value = (phase_status ? STATUS_PHASE : 0) | (eop_status ? STATUS_EOP : 0);
 		#ifdef _SCSI_DEBUG_LOG
-			emu->out_debug_log(_T("[SCSI] in  %04X %02X\n"), addr, value);
+			this->out_debug_log(_T("[SCSI] in  %04X %02X\n"), addr, value);
 		#endif
 		return value;
 	}

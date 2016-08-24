@@ -62,6 +62,7 @@ public:
 //		seek_time = 400000; // 400msec (temporary)
 		seek_time = 10.0;
 		bytes_per_sec = 2048 * 75; // speed x1
+		set_device_name(_T("SCSI CDROM"));
 	}
 	~SCSI_CDROM() {}
 	

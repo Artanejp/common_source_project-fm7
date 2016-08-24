@@ -112,6 +112,7 @@ public:
 #ifdef _DEBUG_LOG
 		initialize_done = false;
 #endif
+		set_device_name(_T("EVENT"));
 	}
 	~EVENT() {}
 	

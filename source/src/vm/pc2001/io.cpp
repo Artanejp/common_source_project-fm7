@@ -35,7 +35,7 @@ void IO::write_io8(uint32_t addr, uint32_t data)
 	switch(addr) {
 	case UPD7807_PORTA:
 		#ifdef _IO_DEBUG_LOG
-			emu->out_debug_log("%06x\tOUT8\tPA, %02x\n", get_cpu_pc(0), data);
+			this->out_debug_log("%06x\tOUT8\tPA, %02x\n", get_cpu_pc(0), data);
 		#endif
 		d_rtc->write_signal(SIG_UPD1990A_CMD, data & 0x03, 0x07);
 		d_rtc->write_signal(SIG_UPD1990A_STB, data, 0x08);
@@ -45,7 +45,7 @@ void IO::write_io8(uint32_t addr, uint32_t data)
 		
 	case UPD7807_PORTB:
 		#ifdef _IO_DEBUG_LOG
-			emu->out_debug_log("%06x\tOUT8\tPB, %02x\n", get_cpu_pc(0), data);
+			this->out_debug_log("%06x\tOUT8\tPB, %02x\n", get_cpu_pc(0), data);
 		#endif
 		if(!(port_b & 0x04) && (data & 0x04)) {
 			d_rtc->write_signal(SIG_UPD1990A_DIN, port_s, 0x80);
@@ -59,13 +59,13 @@ void IO::write_io8(uint32_t addr, uint32_t data)
 		
 	case UPD7807_PORTC:
 		#ifdef _IO_DEBUG_LOG
-			emu->out_debug_log("%06x\tOUT8\tPC, %02x\n", get_cpu_pc(0), data);
+			this->out_debug_log("%06x\tOUT8\tPC, %02x\n", get_cpu_pc(0), data);
 		#endif
 		break;
 		
 	case UPD7807_PORTS:
 		#ifdef _IO_DEBUG_LOG
-			emu->out_debug_log("%06x\tOUT8\tPS, %02x\n", get_cpu_pc(0), data);
+			this->out_debug_log("%06x\tOUT8\tPS, %02x\n", get_cpu_pc(0), data);
 		#endif
 		if(port_a & 0x40) {
 			// output to printer
@@ -89,21 +89,21 @@ uint32_t IO::read_io8(uint32_t addr)
 	case UPD7807_PORTB:
 		value = (drec_in ? 0x80 : 0) | ((port_a & 0x40) ? 0 : 0x02);
 		#ifdef _IO_DEBUG_LOG
-			emu->out_debug_log("%06x\tIN8\tPB = %02x\n", get_cpu_pc(0), value);
+			this->out_debug_log("%06x\tIN8\tPB = %02x\n", get_cpu_pc(0), value);
 		#endif
 		break;
 		
 	case UPD7807_PORTC:
 		value = get_key();
 		#ifdef _IO_DEBUG_LOG
-			emu->out_debug_log("%06x\tIN8\tPC = %02x\n", get_cpu_pc(0), value);
+			this->out_debug_log("%06x\tIN8\tPC = %02x\n", get_cpu_pc(0), value);
 		#endif
 		break;
 		
 	case UPD7807_PORTS:
 		value = port_s;
 		#ifdef _IO_DEBUG_LOG
-			emu->out_debug_log("%06x\tIN8\tPS = %02x\n", get_cpu_pc(0), value);
+			this->out_debug_log("%06x\tIN8\tPS = %02x\n", get_cpu_pc(0), value);
 		#endif
 		break;
 	}
@@ -115,7 +115,7 @@ void IO::write_io16(uint32_t addr, uint32_t data)
 	switch(addr) {
 	case UPD7807_PORTE:
 		#ifdef _IO_DEBUG_LOG
-			emu->out_debug_log("%06x\tOUT16\tPE, %04x\n", get_cpu_pc(0), data);
+			this->out_debug_log("%06x\tOUT16\tPE, %04x\n", get_cpu_pc(0), data);
 		#endif
 		key_strobe = data;
 		break;

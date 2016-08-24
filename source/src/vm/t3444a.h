@@ -106,6 +106,7 @@ public:
 		initialize_output_signals(&outputs_rqm);
 		tnd = true;
 		motor_on = false;
+		set_device_name(_T("T3444A"));
 	}
 	~T3444A() {}
 	

@@ -104,7 +104,12 @@ void MB8877::initialize()
 {
 	// initialize d88 handler
 	for(int i = 0; i < MAX_DRIVE; i++) {
+		_TCHAR strbuf[128];
+		_TCHAR strbuf2[128];
 		disk[i] = new DISK(emu);
+		strncpy(strbuf, (_TCHAR *)this->get_device_name(), 128);
+		snprintf(strbuf2, 128, "%s/DRIVE%d", strbuf, i + 1);
+		disk[i]->set_device_name((const _TCHAR *)strbuf2);
 	}
 	
 	// initialize timing
@@ -218,7 +223,7 @@ void MB8877::write_io8(uint32_t addr, uint32_t data)
 					if(cmdtype == FDC_CMD_WR_SEC) {
 						// single sector
 #ifdef _FDC_DEBUG_LOG
-						emu->out_debug_log(_T("FDC\tEND OF SECTOR\n"));
+						this->out_debug_log(_T("FDC\tEND OF SECTOR\n"));
 #endif
 						status &= ~FDC_ST_BUSY;
 						cmdtype = 0;
@@ -226,7 +231,7 @@ void MB8877::write_io8(uint32_t addr, uint32_t data)
 					} else {
 						// multisector
 #ifdef _FDC_DEBUG_LOG
-						emu->out_debug_log(_T("FDC\tEND OF SECTOR (SEARCH NEXT)\n"));
+						this->out_debug_log(_T("FDC\tEND OF SECTOR (SEARCH NEXT)\n"));
 #endif
 						// 2HD: 360rpm, 10410bytes/track -> 0.06246bytes/us
 						register_my_event(EVENT_MULTI1, 30); // 0.06246bytes/us * 30us = 1.8738bytes < GAP3
@@ -413,7 +418,7 @@ uint32_t MB8877::read_io8(uint32_t addr)
 			set_irq(false);
 		}
 #ifdef _FDC_DEBUG_LOG
-		emu->out_debug_log(_T("FDC\tSTATUS=%2x\n"), val);
+		this->out_debug_log(_T("FDC\tSTATUS=%2x\n"), val);
 #endif
 #if defined(HAS_MB8866) || defined(HAS_MB8876)
 		return (~val) & 0xff;
@@ -448,7 +453,7 @@ uint32_t MB8877::read_io8(uint32_t addr)
 					if(disk[drvreg]->data_crc_error && !disk[drvreg]->ignore_crc()) {
 						// data crc error
 #ifdef _FDC_DEBUG_LOG
-						emu->out_debug_log(_T("FDC\tEND OF SECTOR (DATA CRC ERROR)\n"));
+						this->out_debug_log(_T("FDC\tEND OF SECTOR (DATA CRC ERROR)\n"));
 #endif
 						status |= FDC_ST_CRCERR;
 						status &= ~FDC_ST_BUSY;
@@ -457,7 +462,7 @@ uint32_t MB8877::read_io8(uint32_t addr)
 					} else if(cmdtype == FDC_CMD_RD_SEC) {
 						// single sector
 #ifdef _FDC_DEBUG_LOG
-						emu->out_debug_log(_T("FDC\tEND OF SECTOR\n"));
+						this->out_debug_log(_T("FDC\tEND OF SECTOR\n"));
 #endif
 						status &= ~FDC_ST_BUSY;
 						cmdtype = 0;
@@ -465,7 +470,7 @@ uint32_t MB8877::read_io8(uint32_t addr)
 					} else {
 						// multisector
 #ifdef _FDC_DEBUG_LOG
-						emu->out_debug_log(_T("FDC\tEND OF SECTOR (SEARCH NEXT)\n"));
+						this->out_debug_log(_T("FDC\tEND OF SECTOR (SEARCH NEXT)\n"));
 #endif
 						register_my_event(EVENT_MULTI1, 30);
 						register_my_event(EVENT_MULTI2, 60);
@@ -489,7 +494,7 @@ uint32_t MB8877::read_io8(uint32_t addr)
 					cmdtype = 0;
 					set_irq(true);
 #ifdef _FDC_DEBUG_LOG
-					emu->out_debug_log(_T("FDC\tEND OF ID FIELD\n"));
+					this->out_debug_log(_T("FDC\tEND OF ID FIELD\n"));
 #endif
 				} else {
 					register_drq_event(1);
@@ -503,7 +508,7 @@ uint32_t MB8877::read_io8(uint32_t addr)
 				}
 				if((fdc[drvreg].index + 1) >= disk[drvreg]->get_track_size()) {
 #ifdef _FDC_DEBUG_LOG
-					emu->out_debug_log(_T("FDC\tEND OF TRACK\n"));
+					this->out_debug_log(_T("FDC\tEND OF TRACK\n"));
 #endif
 					status &= ~FDC_ST_BUSY;
 					status |= FDC_ST_LOSTDATA;
@@ -521,7 +526,7 @@ uint32_t MB8877::read_io8(uint32_t addr)
 			}
 		}
 #ifdef _FDC_DEBUG_LOG
-		emu->out_debug_log(_T("FDC\tDATA=%2x\n"), datareg);
+		this->out_debug_log(_T("FDC\tDATA=%2x\n"), datareg);
 #endif
 #if defined(HAS_MB8866) || defined(HAS_MB8876)
 		return (~datareg) & 0xff;
@@ -597,7 +602,7 @@ void MB8877::event_callback(int event_id, int err)
 	switch(event) {
 	case EVENT_SEEK:
 #ifdef _FDC_DEBUG_LOG
-		//emu->out_debug_log(_T("FDC\tSEEK START\n"));
+		//this->out_debug_log(_T("FDC\tSEEK START\n"));
 #endif
 		if(seektrk > fdc[drvreg].track) {
 			fdc[drvreg].track++;
@@ -643,7 +648,7 @@ void MB8877::event_callback(int event_id, int err)
 		status = status_tmp;
 		set_irq(true);
 #ifdef _FDC_DEBUG_LOG
-		//emu->out_debug_log(_T("FDC\tSEEK END\n"));
+		//this->out_debug_log(_T("FDC\tSEEK END\n"));
 #endif
 		break;
 	case EVENT_SEARCH:
@@ -656,14 +661,14 @@ void MB8877::event_callback(int event_id, int err)
 			}
 #endif
 #ifdef _FDC_DEBUG_LOG
-			emu->out_debug_log(_T("FDC\tSEARCH NG\n"));
+			this->out_debug_log(_T("FDC\tSEARCH NG\n"));
 #endif
 			status = status_tmp & ~(FDC_ST_BUSY | FDC_ST_DRQ);
 			cmdtype = 0;
 			set_irq(true);
 		} else if(status_tmp & FDC_ST_WRITEFAULT) {
 #ifdef _FDC_DEBUG_LOG
-			emu->out_debug_log(_T("FDC\tWRITE PROTECTED\n"));
+			this->out_debug_log(_T("FDC\tWRITE PROTECTED\n"));
 #endif
 			status = status_tmp & ~(FDC_ST_BUSY | FDC_ST_DRQ);
 			cmdtype = 0;
@@ -682,7 +687,7 @@ void MB8877::event_callback(int event_id, int err)
 			set_drq(true);
 			drive_sel = false;
 #ifdef _FDC_DEBUG_LOG
-			emu->out_debug_log(_T("FDC\tSEARCH OK\n"));
+			this->out_debug_log(_T("FDC\tSEARCH OK\n"));
 #endif
 		}
 		break;
@@ -704,7 +709,7 @@ void MB8877::event_callback(int event_id, int err)
 			fdc[drvreg].prev_clock = prev_drq_clock = get_current_clock();
 			set_drq(true);
 #ifdef _FDC_DEBUG_LOG
-			//emu->out_debug_log(_T("FDC\tDRQ!\n"));
+			//this->out_debug_log(_T("FDC\tDRQ!\n"));
 #endif
 		}
 		break;
@@ -721,7 +726,7 @@ void MB8877::event_callback(int event_id, int err)
 	case EVENT_LOST:
 		if(status & FDC_ST_BUSY) {
 #ifdef _FDC_DEBUG_LOG
-			emu->out_debug_log(_T("FDC\tDATA LOST\n"));
+			this->out_debug_log(_T("FDC\tDATA LOST\n"));
 #endif
 			if(cmdtype == FDC_CMD_WR_SEC || cmdtype == FDC_CMD_WR_MSEC || cmdtype == FDC_CMD_WR_TRK) {
 				if(fdc[drvreg].index == 0) {
@@ -755,21 +760,21 @@ void MB8877::process_cmd()
 	if(cmdreg == 0xfc) {
 		// delay (may be only in extended mode)
 		#ifdef _FDC_DEBUG_LOG
-			emu->out_debug_log(_T("FDC\tCMD=%2xh (DELAY   ) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
+			this->out_debug_log(_T("FDC\tCMD=%2xh (DELAY   ) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
 		#endif
 		cmdtype = status = 0;
 		return;
 	} else if(cmdreg == 0xfd) {
 		// assign parameter
 		#ifdef _FDC_DEBUG_LOG
-			emu->out_debug_log(_T("FDC\tCMD=%2xh (ASGN PAR) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
+			this->out_debug_log(_T("FDC\tCMD=%2xh (ASGN PAR) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
 		#endif
 		cmdtype = status = 0;
 		return;
 	} else if(cmdreg == 0xfe) {
 		// assign mode
 		#ifdef _FDC_DEBUG_LOG
-			emu->out_debug_log(_T("FDC\tCMD=%2xh (ASGN MOD) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
+			this->out_debug_log(_T("FDC\tCMD=%2xh (ASGN MOD) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
 		#endif
 		extended_mode = !extended_mode;
 		cmdtype = status = 0;
@@ -777,7 +782,7 @@ void MB8877::process_cmd()
 	} else if(cmdreg == 0xff) {
 		// reset (may be only in extended mode)
 		#ifdef _FDC_DEBUG_LOG
-			emu->out_debug_log(_T("FDC\tCMD=%2xh (RESET   ) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
+			this->out_debug_log(_T("FDC\tCMD=%2xh (RESET   ) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
 		#endif
 		cmd_forceint();
 		extended_mode = true;
@@ -786,13 +791,13 @@ void MB8877::process_cmd()
 		// type-1
 		if((cmdreg & 0xeb) == 0x21) {
 			#ifdef _FDC_DEBUG_LOG
-				emu->out_debug_log(_T("FDC\tCMD=%2xh (STEP IN ) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
+				this->out_debug_log(_T("FDC\tCMD=%2xh (STEP IN ) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
 			#endif
 			cmd_stepin();
 			return;
 		} else if((cmdreg & 0xeb) == 0x22) {
 			#ifdef _FDC_DEBUG_LOG
-				emu->out_debug_log(_T("FDC\tCMD=%2xh (STEP OUT) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
+				this->out_debug_log(_T("FDC\tCMD=%2xh (STEP OUT) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
 			#endif
 			cmd_stepout();
 			return;
@@ -800,14 +805,14 @@ void MB8877::process_cmd()
 		} else if((cmdreg & 0xf4) == 0x44) {
 			// read-after-seek
 			#ifdef _FDC_DEBUG_LOG
-				emu->out_debug_log(_T("FDC\tCMD=%2xh (RDaftSEK) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
+				this->out_debug_log(_T("FDC\tCMD=%2xh (RDaftSEK) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
 			#endif
 			cmd_seek();
 			return;
 		} else if((cmdreg & 0xf4) == 0x64) {
 			// write-after-seek
 			#ifdef _FDC_DEBUG_LOG
-				emu->out_debug_log(_T("FDC\tCMD=%2xh (WRaftSEK) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
+				this->out_debug_log(_T("FDC\tCMD=%2xh (WRaftSEK) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
 			#endif
 			cmd_seek();
 			return;
@@ -815,7 +820,7 @@ void MB8877::process_cmd()
 		} else if((cmdreg & 0xfb) == 0xf1) {
 			// format
 			#ifdef _FDC_DEBUG_LOG
-				emu->out_debug_log(_T("FDC\tCMD=%2xh (FORMAT  ) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
+				this->out_debug_log(_T("FDC\tCMD=%2xh (FORMAT  ) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
 			#endif
 			cmd_format();
 			return;
@@ -831,7 +836,7 @@ void MB8877::process_cmd()
 		_T("RD DATA "),	_T("RD DATA "),	_T("RD DATA "),	_T("WR DATA "),
 		_T("RD ADDR "),	_T("FORCEINT"),	_T("RD TRACK"),	_T("WR TRACK")
 	};
-	emu->out_debug_log(_T("FDC\tCMD=%2xh (%s) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, cmdstr[cmdreg >> 4], datareg, drvreg, trkreg, sidereg, secreg);
+	this->out_debug_log(_T("FDC\tCMD=%2xh (%s) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, cmdstr[cmdreg >> 4], datareg, drvreg, trkreg, sidereg, secreg);
 #endif
 	
 	switch(cmdreg & 0xf8) {
@@ -1257,7 +1262,7 @@ uint8_t MB8877::search_sector()
 		fdc[drvreg].next_am1_position = disk[drvreg]->am1_position[index];
 		fdc[drvreg].index = 0;
 #ifdef _FDC_DEBUG_LOG
-		emu->out_debug_log(_T("FDC\tSECTOR FOUND SIZE=$%04x ID=%02x %02x %02x %02x CRC=%02x %02x CRC_ERROR=%d\n"),
+		this->out_debug_log(_T("FDC\tSECTOR FOUND SIZE=$%04x ID=%02x %02x %02x %02x CRC=%02x %02x CRC_ERROR=%d\n"),
 			disk[drvreg]->sector_size.sd,
 			disk[drvreg]->id[0], disk[drvreg]->id[1], disk[drvreg]->id[2], disk[drvreg]->id[3],
 			disk[drvreg]->id[4], disk[drvreg]->id[5],

@@ -304,14 +304,14 @@ void PSUB::event_callback(int event_id, int err)
 				// this is command parameter
 				*datap++ = inbuf;
 #ifdef DEBUG_COMMAND
-				emu->out_debug_log(_T(" %2x"), inbuf);
+				this->out_debug_log(_T(" %2x"), inbuf);
 #endif
 				cmdlen--;
 			} else {
 				// this is new command
 				mode = inbuf;
 #ifdef DEBUG_COMMAND
-				emu->out_debug_log(_T("X1 PSUB: cmd %2x"), inbuf);
+				this->out_debug_log(_T("X1 PSUB: cmd %2x"), inbuf);
 #endif
 				if(0xd0 <= mode && mode <= 0xd7) {
 					cmdlen = 6;
@@ -325,7 +325,7 @@ void PSUB::event_callback(int event_id, int err)
 				// this command has no parameters or all parameters are received,
 				// so cpu processes the command
 #ifdef DEBUG_COMMAND
-				emu->out_debug_log(_T("\n"));
+				this->out_debug_log(_T("\n"));
 #endif
 				process_cmd();
 			}
@@ -596,7 +596,7 @@ void PSUB::process_cmd()
 		databuf[0x16][0] |= get_key_low() & 0x1f;
 #endif
 #ifdef DEBUG_COMMAND
-		emu->out_debug_log(_T("X1 PSUB: keycode %2x %2x\n"), databuf[0x16][0], databuf[0x16][1]);
+		this->out_debug_log(_T("X1 PSUB: keycode %2x %2x\n"), databuf[0x16][0], databuf[0x16][1]);
 #endif
 		datalen = 2;
 		break;
@@ -671,7 +671,7 @@ void PSUB::process_cmd()
 				break;
 #ifdef DEBUG_COMMAND
 			default:
-				emu->out_debug_log(_T("X1 PSUB: unknown CMT control %2x\n"), databuf[0x19][0]);
+				this->out_debug_log(_T("X1 PSUB: unknown CMT control %2x\n"), databuf[0x19][0]);
 				break;
 #endif
 			}
@@ -725,7 +725,7 @@ void PSUB::process_cmd()
 		break;
 #ifdef DEBUG_COMMAND
 	default:
-		emu->out_debug_log(_T("X1 PSUB: unknown cmd %2x\n"), mode);
+		this->out_debug_log(_T("X1 PSUB: unknown cmd %2x\n"), mode);
 #endif
 	}
 }

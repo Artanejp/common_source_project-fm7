@@ -89,13 +89,13 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 			} else {
 				// unknown ???
 #ifdef _IO_DEBUG_LOG
-				emu->out_debug_log(_T("%6x\tWM8\t%4x,%2x\n"), get_cpu_pc(0), addr, data);
+				this->out_debug_log(_T("%6x\tWM8\t%4x,%2x\n"), get_cpu_pc(0), addr, data);
 #endif
 			}
 			break;
 		default:
 #ifdef _IO_DEBUG_LOG
-			emu->out_debug_log(_T("%6x\tWM8\t%4x,%2x\n"), get_cpu_pc(0), addr, data);
+			this->out_debug_log(_T("%6x\tWM8\t%4x,%2x\n"), get_cpu_pc(0), addr, data);
 #endif
 			break;
 		}
@@ -127,7 +127,7 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 			return sysport;
 		}
 #ifdef _IO_DEBUG_LOG
-		emu->out_debug_log(_T("%6x\tRM8\t%4x\n"), get_cpu_pc(0), addr);
+		this->out_debug_log(_T("%6x\tRM8\t%4x\n"), get_cpu_pc(0), addr);
 #endif
 		return 0xff;
 	}

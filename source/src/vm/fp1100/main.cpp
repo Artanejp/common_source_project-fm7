@@ -87,7 +87,7 @@ uint32_t MAIN::read_data8w(uint32_t addr, int *wait)
 void MAIN::write_io8(uint32_t addr, uint32_t data)
 {
 #ifdef _IO_DEBUG_LOG
-	emu->out_debug_log(_T("%06x\tOUT8\t%04x,%02x\n"), get_cpu_pc(0), addr, data);
+	this->out_debug_log(_T("%06x\tOUT8\t%04x,%02x\n"), get_cpu_pc(0), addr, data);
 #endif
 	switch(addr & 0xffe0) {
 	case 0xff00:
@@ -144,7 +144,7 @@ uint32_t MAIN::read_io8(uint32_t addr)
 		break;
 	}
 #ifdef _IO_DEBUG_LOG
-	emu->out_debug_log(_T("%06x\tIN8\t%04x = %02x\n"), get_cpu_pc(0), addr, val);
+	this->out_debug_log(_T("%06x\tIN8\t%04x = %02x\n"), get_cpu_pc(0), addr, val);
 #endif
 	return val;
 }

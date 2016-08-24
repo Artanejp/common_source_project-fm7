@@ -16,6 +16,7 @@
 #else
 #include "../common.h"
 #endif
+#include <stdarg.h>
 
 // d88 media type
 #define MEDIA_TYPE_2D	0x00
@@ -67,6 +68,8 @@ private:
 	bool is_solid_image;
 	bool is_fdi_image;
 	uint8_t fdi_header[4096];
+	_TCHAR this_device_name[128];
+	
 	int solid_ncyl, solid_nside, solid_nsec, solid_size;
 	bool solid_mfm;
 	
@@ -101,6 +104,9 @@ public:
 		drive_mfm = true;
 		static int num = 0;
 		drive_num = num++;
+		_TCHAR strb[16];
+		snprintf(strb, 16, "DISK%d", drive_num);
+		set_device_name((const _TCHAR *)strb);
 	}
 	~DISK()
 	{
@@ -194,7 +200,27 @@ public:
 #endif
 		return false;
 	}
-	
+	void set_device_name(const _TCHAR *p)
+	{
+		if(p == NULL) return;
+		strncpy(this_device_name, p, 128);
+	}
+	void out_debug_log(const char *fmt, ...)
+	{
+		char strbuf[4096];
+		va_list ap;
+		
+		va_start(ap, fmt);
+		vsnprintf(strbuf, 4095, fmt, ap);
+#if defined(_USE_QT)
+		csp_logger->debug_log(CSP_LOG_DEBUG, -1, "[%s] %s", this_device_name, strbuf);
+#else
+		char strbuf2[4096];
+		snprintf(strbuf2, 4095, "[%s] %s", this_device_name, strbuf);
+		emu->out_debug_log("%s", strbuf2);
+#endif
+		va_end(ap);
+	}
 	// state
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);

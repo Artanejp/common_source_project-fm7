@@ -15,6 +15,7 @@
 #include "../emu.h"
 #if defined(_USE_QT)
 #include "../qt/gui/agar_logger.h"
+#define USE_DEVICE_NAME
 #endif
 
 // max devices connected to the output port
@@ -53,9 +54,7 @@ protected:
 public:
 	DEVICE(VM* parent_vm, EMU* parent_emu) : vm(parent_vm), emu(parent_emu)
 	{
-#ifdef _USE_QT
 		strncpy(this_device_name, "Base Device", 128);
-#endif		
 		prev_device = vm->last_device;
 		next_device = NULL;
 		if(vm->first_device == NULL) {
@@ -514,11 +513,7 @@ public:
 	// misc
 	virtual const _TCHAR *get_device_name(void)
 	{
-#ifdef _USE_QT
 		return (const _TCHAR *)this_device_name;
-#else
-		return _T("Base Device");
-#endif
 	}
    
 	// event manager
@@ -661,6 +656,10 @@ public:
 		va_end(ap);
 	}
 #else
+	virtual void set_device_name(const _TCHAR *name) {
+		if(name == NULL) return;
+		strncpy(this_device_name, name, 128);
+	}
 	virtual void out_debug_log(const char *fmt, ...) {
 		char strbuf[4096];
 		va_list ap;
@@ -670,7 +669,6 @@ public:
 		emu->out_debug_log("%s", strbuf);
 		va_end(ap);
 	}
-	
 #endif
 #ifdef USE_DEBUGGER
 	// debugger
@@ -750,9 +748,7 @@ public:
 		return 0;
 	}
 #endif
-#ifdef _USE_QT
 	_TCHAR this_device_name[128];
-#endif
 	
 	DEVICE* prev_device;
 	DEVICE* next_device;

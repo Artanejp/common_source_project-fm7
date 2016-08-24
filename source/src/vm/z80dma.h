@@ -69,6 +69,7 @@ public:
 			regs.t[i] = 0;
 		}
 		d_cpu = d_child = NULL;
+		set_device_name(_T("Z80 DMA"));
 	}
 	~Z80DMA() {}
 	

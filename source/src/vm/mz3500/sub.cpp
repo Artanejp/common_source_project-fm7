@@ -97,7 +97,7 @@ void SUB::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xf0) {
 	case 0x00:	// mz3500sm p.18,77
-//		emu->out_debug_log(_T("SUB->MAIN\tINT0=1\n"));
+//		this->out_debug_log(_T("SUB->MAIN\tINT0=1\n"));
 		d_main->write_signal(SIG_MAIN_INT0, 1, 1);
 		break;
 	case 0x50:	// mz3500sm p.28

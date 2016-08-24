@@ -1999,7 +1999,7 @@ OP_HANDLER(sync_09)	// Rename 20101110
 OP_HANDLER(trap) {
 	int_state |= MC6809_INSN_HALT;	// HALTフラグ
 	// Debug: トラップ要因
-	emu->out_debug_log(_T("MC6809 : TRAP(HALT) @%04x %02x %02x\n"), PC - 1, RM(PC - 1), RM(PC));
+	this->out_debug_log(_T("TRAP(HALT) @%04x %02x %02x\n"), PC - 1, RM(PC - 1), RM(PC));
 }
 
 /* $15 trap */

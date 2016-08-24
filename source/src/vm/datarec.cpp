@@ -435,6 +435,7 @@ bool DATAREC::play_tape(const _TCHAR* file_path)
 				play = is_wav = true;
 			}
 		}
+		this->out_debug_log("Opened to play: %s", file_path);
 		play_fio->Fclose();
 	}
 	if(play) {
@@ -488,6 +489,7 @@ bool DATAREC::rec_tape(const _TCHAR* file_path)
 			buffer[0] = out_signal ? 0x80 : 0;
 		}
 		rec = true;
+		this->out_debug_log("Opened to record: %s", file_path);
 		update_event();
 	}
 	return rec;
@@ -512,6 +514,7 @@ void DATAREC::close_file()
 {
 	if(play_fio->IsOpened()) {
 		play_fio->Fclose();
+		this->out_debug_log("Closed (play)");
 	}
 	if(rec_fio->IsOpened()) {
 		if(rec) {
@@ -532,6 +535,7 @@ void DATAREC::close_file()
 			}
 		}
 		rec_fio->Fclose();
+		this->out_debug_log("Closed (record)");
 	}
 	if(buffer != NULL) {
 		free(buffer);
@@ -1662,6 +1666,7 @@ bool DATAREC::load_state(FILEIO* state_fio)
 	int length_tmp = state_fio->FgetInt32();
 	if(rec) {
 		rec_fio->Fopen(rec_file_path, FILEIO_READ_WRITE_NEW_BINARY);
+		this->out_debug_log("Opened to record: %s", rec_file_path);
 		while(length_tmp != 0) {
 			uint8_t buffer_tmp[1024];
 			int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));

@@ -94,7 +94,7 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 			} else if(!prev_status && atn_status) {
 				// L -> H
 				#ifdef _SCSI_DEBUG_LOG
-					emu->out_debug_log(_T("[SCSI_DEV:ID=%d] ATN signal raised\n"), scsi_id);
+					this->out_debug_log(_T("[SCSI_DEV:ID=%d] ATN signal raised\n"), scsi_id);
 				#endif
 				if(ack_status) {
 					// wait until ack=off
@@ -295,7 +295,7 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 			if(!prev_status & rst_status) {
 				// L -> H
 				#ifdef _SCSI_DEBUG_LOG
-					emu->out_debug_log(_T("[SCSI_DEV:ID=%d] RST signal raised\n"), scsi_id);
+					this->out_debug_log(_T("[SCSI_DEV:ID=%d] RST signal raised\n"), scsi_id);
 				#endif
 				reset_device();
 				set_phase(SCSI_PHASE_BUS_FREE);
@@ -313,7 +313,7 @@ void SCSI_DEV::event_callback(int event_id, int err)
 		if((data_bus & 0x7f) == (1 << scsi_id)) {
 			// this device is selected!
 			#ifdef _SCSI_DEBUG_LOG
-				emu->out_debug_log(_T("[SCSI_DEV:ID=%d] This device is selected\n"), scsi_id);
+				this->out_debug_log(_T("[SCSI_DEV:ID=%d] This device is selected\n"), scsi_id);
 			#endif
 			set_bsy(true);
 			selected = true;
@@ -335,7 +335,7 @@ void SCSI_DEV::event_callback(int event_id, int err)
 void SCSI_DEV::set_phase(int value)
 {
 	#ifdef _SCSI_DEBUG_LOG
-		emu->out_debug_log(_T("[SCSI_DEV:ID=%d] Phase %s -> %s\n"), scsi_id, scsi_phase_name[phase], scsi_phase_name[value]);
+		this->out_debug_log(_T("[SCSI_DEV:ID=%d] Phase %s -> %s\n"), scsi_id, scsi_phase_name[phase], scsi_phase_name[value]);
 	#endif
 	if(event_phase != -1) {
 		cancel_event(this, event_phase);
@@ -382,7 +382,7 @@ void SCSI_DEV::set_dat(int value)
 void SCSI_DEV::set_bsy(int value)
 {
 	#ifdef _SCSI_DEBUG_LOG
-//		emu->out_debug_log(_T("[SCSI_DEV:ID=%d] BUSY = %d\n"), scsi_id, value ? 1 : 0);
+//		this->out_debug_log(_T("[SCSI_DEV:ID=%d] BUSY = %d\n"), scsi_id, value ? 1 : 0);
 	#endif
 	write_signals(&outputs_bsy, value ? 0xffffffff : 0);
 }
@@ -390,7 +390,7 @@ void SCSI_DEV::set_bsy(int value)
 void SCSI_DEV::set_cd(int value)
 {
 	#ifdef _SCSI_DEBUG_LOG
-//		emu->out_debug_log(_T("[SCSI_DEV:ID=%d] C/D = %d\n"), scsi_id, value ? 1 : 0);
+//		this->out_debug_log(_T("[SCSI_DEV:ID=%d] C/D = %d\n"), scsi_id, value ? 1 : 0);
 	#endif
 	write_signals(&outputs_cd,  value ? 0xffffffff : 0);
 }
@@ -398,7 +398,7 @@ void SCSI_DEV::set_cd(int value)
 void SCSI_DEV::set_io(int value)
 {
 	#ifdef _SCSI_DEBUG_LOG
-//		emu->out_debug_log(_T("[SCSI_DEV:ID=%d] I/O = %d\n"), scsi_id, value ? 1 : 0);
+//		this->out_debug_log(_T("[SCSI_DEV:ID=%d] I/O = %d\n"), scsi_id, value ? 1 : 0);
 	#endif
 	write_signals(&outputs_io,  value ? 0xffffffff : 0);
 }
@@ -406,7 +406,7 @@ void SCSI_DEV::set_io(int value)
 void SCSI_DEV::set_msg(int value)
 {
 	#ifdef _SCSI_DEBUG_LOG
-//		emu->out_debug_log(_T("[SCSI_DEV:ID=%d] MSG = %d\n"), scsi_id, value ? 1 : 0);
+//		this->out_debug_log(_T("[SCSI_DEV:ID=%d] MSG = %d\n"), scsi_id, value ? 1 : 0);
 	#endif
 	write_signals(&outputs_msg, value ? 0xffffffff : 0);
 }
@@ -414,7 +414,7 @@ void SCSI_DEV::set_msg(int value)
 void SCSI_DEV::set_req(int value)
 {
 	#ifdef _SCSI_DEBUG_LOG
-		emu->out_debug_log(_T("[SCSI_DEV:ID=%d] REQ = %d\n"), scsi_id, value ? 1 : 0);
+		this->out_debug_log(_T("[SCSI_DEV:ID=%d] REQ = %d\n"), scsi_id, value ? 1 : 0);
 	#endif
 	if(event_req != -1) {
 		cancel_event(this, event_req);
@@ -463,7 +463,7 @@ void SCSI_DEV::start_command()
 	switch(command[0]) {
 	case SCSI_CMD_TST_U_RDY:
 		#ifdef _SCSI_DEBUG_LOG
-			emu->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: Test Unit Ready\n"), scsi_id);
+			this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: Test Unit Ready\n"), scsi_id);
 		#endif
 		// change to status phase
 		set_dat(is_device_ready() ? SCSI_STATUS_GOOD : SCSI_STATUS_CHKCOND);
@@ -472,7 +472,7 @@ void SCSI_DEV::start_command()
 		
 	case SCSI_CMD_REQ_SENSE:
 		#ifdef _SCSI_DEBUG_LOG
-			emu->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: Request Sense\n"), scsi_id);
+			this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: Request Sense\n"), scsi_id);
 		#endif
 		// start position
 		position = (command[1] & 0x1f) * 0x10000 + command[2] * 0x100 + command[3];
@@ -504,7 +504,7 @@ void SCSI_DEV::start_command()
 		
 	case SCSI_CMD_INQUIRY:
 		#ifdef _SCSI_DEBUG_LOG
-			emu->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: Inquiry\n"), scsi_id);
+			this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: Inquiry\n"), scsi_id);
 		#endif
 		// start position
 		position = (command[1] & 0x1f) * 0x10000 + command[2] * 0x100 + command[3];
@@ -540,7 +540,7 @@ void SCSI_DEV::start_command()
 		
 	case SCSI_CMD_RD_CAPAC:
 		#ifdef _SCSI_DEBUG_LOG
-			emu->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: Read Capacity\n"), scsi_id);
+			this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: Read Capacity\n"), scsi_id);
 		#endif
 		// initialize max logical block address
 		initialize_max_logical_block_addr();
@@ -566,7 +566,7 @@ void SCSI_DEV::start_command()
 		
 	case SCSI_CMD_FORMAT:
 		#ifdef _SCSI_DEBUG_LOG
-			emu->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: Format Unit\n"), scsi_id);
+			this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: Format Unit\n"), scsi_id);
 		#endif
 		if(command[1] & 0x10) {
 			// change to data out phase for extra bytes
@@ -581,7 +581,7 @@ void SCSI_DEV::start_command()
 		
 	case SCSI_CMD_RD_DEFECT:
 		#ifdef _SCSI_DEBUG_LOG
-			emu->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: Read Defect Data\n"), scsi_id);
+			this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: Read Defect Data\n"), scsi_id);
 		#endif
 		// transfer length
 		remain = 4;
@@ -598,7 +598,7 @@ void SCSI_DEV::start_command()
 		
 	case SCSI_CMD_READ6:
 		#ifdef _SCSI_DEBUG_LOG
-			emu->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: Read 6-byte\n"), scsi_id);
+			this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: Read 6-byte\n"), scsi_id);
 		#endif
 		// start position
 		position = (command[1] & 0x1f) * 0x10000 + command[2] * 0x100 + command[3];
@@ -625,7 +625,7 @@ void SCSI_DEV::start_command()
 		
 	case SCSI_CMD_WRITE6:
 		#ifdef _SCSI_DEBUG_LOG
-			emu->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: Write 6-Byte\n"), scsi_id);
+			this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: Write 6-Byte\n"), scsi_id);
 		#endif
 		// start position
 		position = (command[1] & 0x1f) * 0x10000 + command[2] * 0x100 + command[3];
@@ -646,7 +646,7 @@ void SCSI_DEV::start_command()
 		
 	case SCSI_CMD_READ10:
 		#ifdef _SCSI_DEBUG_LOG
-			emu->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: Read 10-byte\n"), scsi_id);
+			this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: Read 10-byte\n"), scsi_id);
 		#endif
 		// start position
 		position = command[2] * 0x1000000 + command[3] * 0x10000 + command[4] * 0x100 + command[5];
@@ -674,12 +674,12 @@ void SCSI_DEV::start_command()
 		
 	case SCSI_CMD_WRITE10:
 		#ifdef _SCSI_DEBUG_LOG
-			emu->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: Write 10-Byte\n"), scsi_id);
+			this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: Write 10-Byte\n"), scsi_id);
 		#endif
 		goto WRITE10;
 	case SCSI_CMD_WRT_VERIFY:
 		#ifdef _SCSI_DEBUG_LOG
-			emu->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: Write and Verify\n"), scsi_id);
+			this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: Write and Verify\n"), scsi_id);
 		#endif
 	WRITE10:
 		// start position
@@ -702,7 +702,7 @@ void SCSI_DEV::start_command()
 		
 	case SCSI_CMD_READ12:
 		#ifdef _SCSI_DEBUG_LOG
-			emu->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: Read 12-byte\n"), scsi_id);
+			this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: Read 12-byte\n"), scsi_id);
 		#endif
 		// start position
 		position = command[2] * 0x1000000 + command[3] * 0x10000 + command[4] * 0x100 + command[5];
@@ -730,7 +730,7 @@ void SCSI_DEV::start_command()
 		
 	case SCSI_CMD_WRITE12:
 		#ifdef _SCSI_DEBUG_LOG
-			emu->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: Write 12-Byte\n"), scsi_id);
+			this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: Write 12-Byte\n"), scsi_id);
 		#endif
 		// start position
 		position = command[2] * 0x1000000 + command[3] * 0x10000 + command[4] * 0x100 + command[5];
@@ -752,7 +752,7 @@ void SCSI_DEV::start_command()
 		
 	default:
 		#ifdef _SCSI_DEBUG_LOG
-			emu->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: Unknown %02X\n"), scsi_id, command[0]);
+			this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: Unknown %02X\n"), scsi_id, command[0]);
 		#endif
 		set_dat(SCSI_STATUS_GOOD);
 		set_phase_delay(SCSI_PHASE_STATUS, 10.0);

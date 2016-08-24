@@ -354,7 +354,7 @@ void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 		if(fdc_irq != signal) {
 			fdc_irq = signal;
 #ifdef _FDC_DEBUG_LOG
-			emu->out_debug_log(_T("MEM\tfdc_irq=%2x\n"), fdc_irq);
+			this->out_debug_log(_T("MEM\tfdc_irq=%2x\n"), fdc_irq);
 #endif
 //			update_fdif_rom_bank();
 		}
@@ -362,7 +362,7 @@ void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 		if(fdc_drq != signal) {
 			fdc_drq = signal;
 #ifdef _FDC_DEBUG_LOG
-			emu->out_debug_log(_T("MEM\tfdc_drq=%2x\n"), fdc_drq);
+			this->out_debug_log(_T("MEM\tfdc_drq=%2x\n"), fdc_drq);
 #endif
 			update_fdif_rom_bank();
 		}

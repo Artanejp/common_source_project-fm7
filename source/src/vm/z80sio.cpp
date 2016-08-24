@@ -212,7 +212,7 @@ void Z80SIO::write_io8(uint32_t addr, uint32_t data)
 	case 3:
 		// control
 #ifdef SIO_DEBUG
-//		emu->out_debug_log(_T("Z80SIO: ch=%d WR[%d]=%2x\n"), ch, port[ch].pointer, data);
+//		this->out_debug_log(_T("Z80SIO: ch=%d WR[%d]=%2x\n"), ch, port[ch].pointer, data);
 #endif
 		switch(port[ch].pointer) {
 		case 0:
@@ -316,12 +316,12 @@ void Z80SIO::write_io8(uint32_t addr, uint32_t data)
 				// enter hunt/sync phase
 				if(MONOSYNC(ch)) {
 #ifdef SIO_DEBUG
-					emu->out_debug_log(_T("Z80SIO: ch=%d enter hunt/sync phase (monosync)\n"), ch);
+					this->out_debug_log(_T("Z80SIO: ch=%d enter hunt/sync phase (monosync)\n"), ch);
 #endif
 					port[ch].sync_bit = BIT_SYNC1;
 				} else if(BISYNC(ch)) {
 #ifdef SIO_DEBUG
-					emu->out_debug_log(_T("Z80SIO: ch=%d enter hunt/sync phase (bisync)\n"), ch);
+					this->out_debug_log(_T("Z80SIO: ch=%d enter hunt/sync phase (bisync)\n"), ch);
 #endif
 					port[ch].sync_bit = BIT_SYNC1 | BIT_SYNC2;
 				}
@@ -624,7 +624,7 @@ void Z80SIO::event_callback(int event_id, int err)
 						goto request_next_data;
 					}
 #ifdef SIO_DEBUG
-					emu->out_debug_log(_T("Z80SIO: ch=%d recv sync1\n"), ch);
+					this->out_debug_log(_T("Z80SIO: ch=%d recv sync1\n"), ch);
 #endif
 					port[ch].sync_bit &= ~BIT_SYNC1;
 				} else if(port[ch].sync_bit & BIT_SYNC2) {
@@ -633,13 +633,13 @@ void Z80SIO::event_callback(int event_id, int err)
 						goto request_next_data;
 					}
 #ifdef SIO_DEBUG
-					emu->out_debug_log(_T("Z80SIO: ch=%d recv sync2\n"), ch);
+					this->out_debug_log(_T("Z80SIO: ch=%d recv sync2\n"), ch);
 #endif
 					port[ch].sync_bit &= ~BIT_SYNC2;
 				}
 				if(port[ch].sync_bit == 0) {
 #ifdef SIO_DEBUG
-					emu->out_debug_log(_T("Z80SIO: ch=%d leave hunt/sync phase\n"), ch);
+					this->out_debug_log(_T("Z80SIO: ch=%d leave hunt/sync phase\n"), ch);
 #endif
 					if(!port[ch].stat_intr) {
 						port[ch].stat_intr = true;
@@ -655,7 +655,7 @@ void Z80SIO::event_callback(int event_id, int err)
 			}
 			// load received data into buffer
 #ifdef SIO_DEBUG
-			emu->out_debug_log(_T("Z80SIO: ch=%d recv %2x\n"), ch, data);
+			this->out_debug_log(_T("Z80SIO: ch=%d recv %2x\n"), ch, data);
 #endif
 			port[ch].recv->write(data);
 			
@@ -691,7 +691,7 @@ request_next_data:
 		if(port[ch].rtmp->empty()) {
 			// no data received
 #ifdef SIO_DEBUG
-			emu->out_debug_log(_T("Z80SIO: ch=%d end of block\n"), ch);
+			this->out_debug_log(_T("Z80SIO: ch=%d end of block\n"), ch);
 #endif
 			port[ch].recv_id = -1;
 		} else {

@@ -637,7 +637,7 @@ void IO::send_to_7508(uint8_t val)
 	default:
 		// unknown cmd
 		cmd_buf->read();
-		emu->out_debug_log(_T("unknown cmd %2x\n"), cmd);
+		this->out_debug_log(_T("unknown cmd %2x\n"), cmd);
 	}
 }
 

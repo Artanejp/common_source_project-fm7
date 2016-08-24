@@ -41,7 +41,7 @@ void SCSI::write_io8(uint32_t addr, uint32_t data)
 	case 0xc30:
 		// data register
 		#ifdef _SCSI_DEBUG_LOG
-			emu->out_debug_log(_T("[SCSI] out %04X %02X\n"), addr, data);
+			this->out_debug_log(_T("[SCSI] out %04X %02X\n"), addr, data);
 		#endif
 		if(ctrl_reg & CTRL_WEN) {
 			d_host->write_dma_io8(addr, data);
@@ -51,7 +51,7 @@ void SCSI::write_io8(uint32_t addr, uint32_t data)
 	case 0xc32:
 		// control register
 		#ifdef _SCSI_DEBUG_LOG
-			emu->out_debug_log(_T("[SCSI] out %04X %02X\n"), addr, data);
+			this->out_debug_log(_T("[SCSI] out %04X %02X\n"), addr, data);
 		#endif
 		ctrl_reg = data;
 		if(ctrl_reg  & CTRL_WEN) {
@@ -74,7 +74,7 @@ uint32_t SCSI::read_io8(uint32_t addr)
 			value = d_host->read_dma_io8(addr);
 		}
 		#ifdef _SCSI_DEBUG_LOG
-			emu->out_debug_log(_T("[SCSI] in  %04X %02X\n"), addr, value);
+			this->out_debug_log(_T("[SCSI] in  %04X %02X\n"), addr, value);
 		#endif
 		return value;
 		
@@ -87,7 +87,7 @@ uint32_t SCSI::read_io8(uint32_t addr)
 		        (d_host->read_signal(SIG_SCSI_BSY) ? STATUS_BSY : 0) |
 		        (irq_status                        ? STATUS_INT : 0);
 		#ifdef _SCSI_DEBUG_LOG
-			emu->out_debug_log(_T("[SCSI] in  %04X %02X\n"), addr, value);
+			this->out_debug_log(_T("[SCSI] in  %04X %02X\n"), addr, value);
 		#endif
 		return value;
 	}

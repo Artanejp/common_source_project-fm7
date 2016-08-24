@@ -34,7 +34,7 @@ void JOYSTICK::write_io8(uint32_t addr, uint32_t data)
 		status |= 2;
 		break;
 	}
-//	emu->out_debug_log(_T("OUT\t%2x, %2x\n"), addr & 0xff, data);
+//	this->out_debug_log(_T("OUT\t%2x, %2x\n"), addr & 0xff, data);
 }
 
 uint32_t JOYSTICK::read_io8(uint32_t addr)
@@ -75,7 +75,7 @@ uint32_t JOYSTICK::read_io8(uint32_t addr)
 //		status &= ~2;
 		break;
 	}
-//	emu->out_debug_log(_T("IN\t%2x, %2x\n"), addr & 0xff, val);
+//	this->out_debug_log(_T("IN\t%2x, %2x\n"), addr & 0xff, val);
 	return val;
 }
 

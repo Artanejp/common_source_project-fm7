@@ -296,7 +296,7 @@ void IO::event_callback(int event_id, int err)
 
 void IO::write_io8(uint32_t addr, uint32_t data)
 {
-	//emu->out_debug_log(_T("OUT %2x,%2x\n"), addr & 0xff, data);
+	//this->out_debug_log(_T("OUT %2x,%2x\n"), addr & 0xff, data);
 	switch(addr & 0xff) {
 	case 0x00:
 		// CTLR1
@@ -340,7 +340,7 @@ void IO::write_io8(uint32_t addr, uint32_t data)
 		cmd6303_buf->write(data);
 		psr |= BIT_OBF;
 #ifdef OUT_CMD_LOG
-		emu->out_debug_log(_T("%4x\tDAT %2x\n"), get_cpu_pc(0), data);
+		this->out_debug_log(_T("%4x\tDAT %2x\n"), get_cpu_pc(0), data);
 #endif
 		break;
 	case 0x0f:
@@ -348,7 +348,7 @@ void IO::write_io8(uint32_t addr, uint32_t data)
 		cmd6303 = data;
 		psr |= BIT_OBF;
 #ifdef OUT_CMD_LOG
-		emu->out_debug_log(_T("\n%4x\tCMD %2x\n"), vm->get_cpu_pc(), data);
+		this->out_debug_log(_T("\n%4x\tCMD %2x\n"), vm->get_cpu_pc(), data);
 #endif
 		break;
 	case 0x80:
@@ -400,7 +400,7 @@ void IO::write_io8(uint32_t addr, uint32_t data)
 uint32_t IO::read_io8(uint32_t addr)
 {
 	uint32_t val = 0xff;
-//	emu->out_debug_log(_T("IN %2x\n"), addr & 0xff);
+//	this->out_debug_log(_T("IN %2x\n"), addr & 0xff);
 	
 	switch(addr & 0xff) {
 	case 0x00:
@@ -446,7 +446,7 @@ uint32_t IO::read_io8(uint32_t addr)
 			psr &= ~BIT_F1;
 		}
 #ifdef OUT_CMD_LOG
-		emu->out_debug_log(_T("%4x\tRCV %2x\n"), vm->get_cpu_pc(), val);
+		this->out_debug_log(_T("%4x\tRCV %2x\n"), vm->get_cpu_pc(), val);
 #endif
 		return val;
 	case 0x80:
@@ -765,7 +765,7 @@ void IO::send_to_7508(uint8_t val)
 	default:
 		// unknown cmd
 		cmd7508_buf->read();
-		emu->out_debug_log(_T("unknown cmd %2x\n"), cmd);
+		this->out_debug_log(_T("unknown cmd %2x\n"), cmd);
 	}
 }
 

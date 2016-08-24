@@ -113,6 +113,7 @@ public:
 			initialize_output_signals(&port[i].outputs_rxdone);
 		}
 		d_cpu = d_child = NULL;
+		set_device_name(_T("Z80 SIO"));
 	}
 	~Z80SIO() {}
 	
