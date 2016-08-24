@@ -268,6 +268,7 @@ void *MOVIE_SAVER::get_video_frame(void)
 		uint32_t *p;
 		AVFrame *qq = ost->tmp_frame;
 		uint32_t *q;
+		uint32_t cacheline[8];
 		int i;
 		int ret;
 		if(ost->tmp_frame != NULL) {
@@ -276,12 +277,35 @@ void *MOVIE_SAVER::get_video_frame(void)
 			//exit(1);
 			for(y = 0; y < h; y++) {
 				yy[0] = y * qq->linesize[0];
-				//yy[0] = y * in_linesize[0];
 				p = (uint32_t *)(&(video_frame_buf[y * w]));
 				q = (uint32_t *)(&(qq->data[0][yy[0]]));
-				for(x = 0; x < w; x++) {
-					*q++ = *p++;
-				}			
+				for(x = 0; x < (w / 8); x++) {
+					cacheline[0] = p[0];
+					cacheline[1] = p[1];
+					cacheline[2] = p[2];
+					cacheline[3] = p[3];
+					cacheline[4] = p[4];
+					cacheline[5] = p[5];
+					cacheline[6] = p[6];
+					cacheline[7] = p[7];
+
+					q[0] = cacheline[0];
+					q[1] = cacheline[1];
+					q[2] = cacheline[2];
+					q[3] = cacheline[3];
+					q[4] = cacheline[4];
+					q[5] = cacheline[5];
+					q[6] = cacheline[6];
+					q[7] = cacheline[7];
+
+					q += 8;
+					p += 8;
+				}
+				if((w & 7) != 0) {
+					for(x = 0; x < (w & 7); x++) {
+						q[x] = p[x];
+					}
+				}
 			}
 		}
 		sws_scale(ost->sws_ctx,

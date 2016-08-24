@@ -73,7 +73,7 @@ typedef struct OutputStream {
 } OutputStream;
 
 class OSD;
-
+class QMutex;
 QT_BEGIN_NAMESPACE
 class VIDEO_DATA {
 
@@ -97,7 +97,7 @@ class MOVIE_SAVER: public QThread
 private:
 	int n_encode_audio;
 	int n_encode_video;
-//	int64_t audio_enqueue_count;
+	//QMutex *video_queue_mutex;
 protected:
 	OSD *p_osd;
 	config_t *p_config;

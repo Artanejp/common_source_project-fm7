@@ -298,7 +298,18 @@ int OSD_BASE::add_video_frames()
 	double vm_fps = vm_frame_rate();
 	int delta_ns = (int)(1.0e9 / vm_fps);
 	//if(rec_video_fps_nsec >= delta_ns) {
-	{ // Will branch whether rec_video_fps_nsec >= delta_ns ?
+	if(delta_ns == rec_video_fps_nsec) {
+		rec_video_nsec += delta_ns;
+		if(rec_video_nsec > (rec_video_fps_nsec * 2)) {
+			rec_video_nsec -= rec_video_fps_nsec;
+		} else if(rec_video_nsec < (rec_video_fps_nsec * -2)) {
+			rec_video_nsec += rec_video_fps_nsec;
+		}
+		while(rec_video_nsec > rec_video_fps_nsec) {
+			rec_video_nsec -= rec_video_fps_nsec;
+			counter++;
+		}
+	} else { // Will branch whether rec_video_fps_nsec >= delta_ns ?
 		rec_video_nsec += delta_ns;
 		if(rec_video_nsec > (rec_video_fps_nsec * 2)) {
 			rec_video_nsec -= rec_video_fps_nsec;
@@ -343,8 +354,8 @@ int OSD_BASE::add_video_frames()
 	} else {
 		int size = vm_screen_buffer.pImage.byteCount();
 		int i = counter;
-		// Rescaling
 		QImage video_result = QImage(vm_screen_buffer.pImage);
+		// Rescaling
 		if(i > 0) {
 			// Enqueue to frame.
 			emit sig_enqueue_video(i, vm_screen_width, vm_screen_height, &video_result);

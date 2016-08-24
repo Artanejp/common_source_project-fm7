@@ -41,6 +41,8 @@ MOVIE_SAVER::MOVIE_SAVER(int width, int height, int fps, OSD *osd, config_t *cfg
 	video_data_queue.clear();
 	
 	do_reset_encoder_options();
+
+	//video_queue_mutex = new QMutex(QMutex::Recursive);
 	totalSrcFrame = 0;
 	totalDstFrame = 0;
 	totalAudioFrame = 0;
@@ -54,11 +56,14 @@ MOVIE_SAVER::MOVIE_SAVER(int width, int height, int fps, OSD *osd, config_t *cfg
 	req_close = false;
 	req_stop = false;
 	bRunThread = false;
+	
 }
 
 MOVIE_SAVER::~MOVIE_SAVER()
 {
 	if(recording) do_close_main();
+	//if(video_queue_mutex) delete video_queue_mutex;
+
 }
 
 QString MOVIE_SAVER::ts2str(int64_t ts)
@@ -123,8 +128,10 @@ void MOVIE_SAVER::enqueue_video(int frames, int width, int height, QImage *p)
 	if(req_stop) return;
 	uint32_t *pq;
 	VIDEO_DATA *px = new VIDEO_DATA(frames, width, height, p);
-	//AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Enqueue video data %dx%d %d bytes %dx%d", width, height, p->byteCount(), p->width(), p->height());
+	//AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Enqueue video data %dx%d %d bytes %dx%d %d frames", width, height, p->byteCount(), p->width(), p->height(), frames);
+	//video_queue_mutex->lock();
 	video_data_queue.enqueue(px);
+	//video_queue_mutex->unlock();
 #endif   
 }
 
