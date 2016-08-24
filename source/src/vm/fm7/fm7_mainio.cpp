@@ -612,7 +612,7 @@ void FM7_MAINIO::do_firq(void)
 	} else {
 		maincpu->write_signal(SIG_CPU_FIRQ, 0, 1);
 	}
-	p_emu->out_debug_log(_T("IO: do_firq(). BREAK=%d ATTN=%d"), firq_break_key ? 1 : 0, firq_sub_attention ? 1 : 0);
+	this->out_debug_log(_T("IO: do_firq(). BREAK=%d ATTN=%d"), firq_break_key ? 1 : 0, firq_sub_attention ? 1 : 0);
 }
 
 void FM7_MAINIO::do_nmi(bool flag)
@@ -1017,7 +1017,7 @@ void FM7_MAINIO::write_signal(int id, uint32_t data, uint32_t mask)
 	irqstat_printer = false;
 	irqstat_reg0 |= 0x06;
 	do_irq();
-	//p_emu->out_debug_log(_T("IO: Check IRQ Status."));
+	//this->out_debug_log(_T("IO: Check IRQ Status."));
 	return val;
 #else
 	return 0xff;
@@ -1542,7 +1542,7 @@ void FM7_MAINIO::write_data8(uint32_t addr, uint32_t data)
 			break;
 		case 0x99:
 			dmac->write_data8(dma_addr, data);
-			//p_emu->out_debug_log(_T("IO: Wrote DMA %02x to reg %02x\n"), data, dma_addr);
+			//this->out_debug_log(_T("IO: Wrote DMA %02x to reg %02x\n"), data, dma_addr);
 			break;
 #endif			
 		default:
@@ -1634,7 +1634,7 @@ void FM7_MAINIO::save_state(FILEIO *state_fio)
 	int addr;
 	state_fio->FputUint32_BE(STATE_VERSION);
 	state_fio->FputInt32_BE(this_device_id);
-	p_emu->out_debug_log("Save State: MAINIO: id=%d ver=%d\n", this_device_id, STATE_VERSION);
+	this->out_debug_log("Save State: MAINIO: id=%d ver=%d\n", this_device_id, STATE_VERSION);
 
 	// Version 1
 	{
@@ -1795,7 +1795,7 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 	
 	version = state_fio->FgetUint32_BE();
 	if(this_device_id != state_fio->FgetInt32_BE()) return false;
-	p_emu->out_debug_log("Load State: MAINIO: id=%d ver=%d\n", this_device_id, version);
+	this->out_debug_log("Load State: MAINIO: id=%d ver=%d\n", this_device_id, version);
 
 	if(version >= 1) {
 		for(addr = 0; addr < 0x100; addr++) io_w_latch[addr] = state_fio->FgetUint8();

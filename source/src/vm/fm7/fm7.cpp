@@ -151,6 +151,56 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #else
 	led_terminate = new DEVICE(this, emu);
 #endif
+
+#if defined(_USE_QT)
+	event->set_device_name(_T("EVENT"));
+	
+	maincpu->set_device_name(_T("MAINCPU(MC6809)"));
+	subcpu->set_device_name(_T("SUBCPU(MC6809)"));
+	dummycpu->set_device_name(_T("DUMMYCPU"));
+# ifdef WITH_Z80
+	z80cpu->set_device_name(_T("Z80 CPU"));
+# endif
+	
+	mainio->set_device_name(_T("MAIN I/O"));
+	mainmem->set_device_name(_T("MAIN MEMORY"));
+	led_terminate->set_device_name(_T("LEDs"));
+	if(fdc != NULL) fdc->set_device_name(_T("FDC(320KB)(MB8877)"));
+						
+	// basic devices
+	// I/Os
+# if defined(HAS_DMA)
+	dmac->set_device_name(_T("DMAC(HD6844)"));
+# endif   
+# if defined(_FM8)
+	psg->det_device_name(_T("PSG"));
+# else	
+	opn[0]->set_device_name(_T("OPN"));
+	opn[1]->set_device_name(_T("WHG"));
+	opn[2]->set_device_name(_T("THG"));
+#  if !defined(_FM77AV_VARIANTS)
+	psg->det_device_name(_T("PSG"));
+#  endif
+# endif
+	drec->set_device_name(_T("DATA RECORDER"));
+	pcm1bit->set_device_name(_T("BEEP"));
+	joystick->set_device_name(_T("JOYSTICK"));
+	printer->set_device_name(_T("PRINTER"));
+# if defined(_FM77AV_VARIANTS)
+	alu->set_device_name(_T("ALU(MB61VH010)"));
+	keyboard_beep->set_device_name(_T("BEEP(KEYBOARD)"));
+# endif	
+	keyboard->set_device_name(_T("KEYBOARD"));
+	display->set_device_name(_T("DISPLAY"));
+	if(kanjiclass1 != NULL) kanjiclass1->set_device_name(_T("KANJI ROM CLASS1"));
+# ifdef CAPABLE_KANJI_CLASS2
+	if(kanjiclass2 != NULL) kanjiclass2->set_device_name(_T("KANJI ROM CLASS2"));
+# endif
+# if defined(_FM8)
+	bubble_vasette[0]->set_device_name(_T("BUBBLE0"));
+	bubble_vasette[1]->set_device_name(_T("BUBBLE1"));
+# endif	
+#endif
 	this->connect_bus();
 	
 }

@@ -489,7 +489,7 @@ int FM7_MAINMEM::nonmmr_convert(uint32_t addr, uint32_t *realaddr)
 		}
 		break;
 	}
-	emu->out_debug_log(_T("Main: Over run ADDR = %08x"), addr);
+	this->out_debug_log(_T("Over run ADDR = %08x"), addr);
 	*realaddr = addr;
 	return FM7_MAINMEM_NULL;
 }
@@ -684,7 +684,7 @@ uint32_t FM7_MAINMEM::read_data8_main(uint32_t addr, bool dmamode)
 	
 	bank = getbank(addr, &realaddr, false, dmamode);
 	if(bank < 0) {
-		emu->out_debug_log(_T("Illegal BANK: ADDR = %04x"), addr);
+		this->out_debug_log(_T("Illegal BANK: ADDR = %04x"), addr);
 		return 0xff; // Illegal
 	}
 	if(bank == FM7_MAINMEM_SHAREDRAM) {
@@ -765,7 +765,7 @@ void FM7_MAINMEM::write_data8_main(uint32_t addr, uint32_t data, bool dmamode)
 	int bank;
 	bank = getbank(addr, &realaddr, true, dmamode);
 	if(bank < 0) {
-		emu->out_debug_log(_T("Illegal BANK: ADDR = %04x"), addr);
+		this->out_debug_log(_T("Illegal BANK: ADDR = %04x"), addr);
 		return; // Illegal
 	}
 	if(bank == FM7_MAINMEM_SHAREDRAM) {
@@ -1098,7 +1098,7 @@ void FM7_MAINMEM::initialize(void)
 	read_table[i].memory = fm7_mainmem_initrom;
 
 	if(read_bios(_T("INITIATE.ROM"), read_table[i].memory, 0x2000) >= 0x2000) diag_load_initrom = true;
-	emu->out_debug_log(_T("77AV INITIATOR ROM READING : %s"), diag_load_initrom ? "OK" : "NG");
+	this->out_debug_log(_T("77AV INITIATOR ROM READING : %s"), diag_load_initrom ? "OK" : "NG");
 
 	read_table[FM7_MAINMEM_BOOTROM_BAS].memory = NULL; // Not connected.
 	read_table[FM7_MAINMEM_BOOTROM_DOS].memory = NULL; // Not connected.
@@ -1128,10 +1128,10 @@ void FM7_MAINMEM::initialize(void)
 	fm7_bootram[0x1ff] = 0x00; //
 	// FM-7
 #endif
-	emu->out_debug_log(_T("BOOT ROM (basic mode) READING : %s"), diag_load_bootrom_bas ? "OK" : "NG");
-	emu->out_debug_log(_T("BOOT ROM (DOS   mode) READING : %s"), diag_load_bootrom_dos ? "OK" : "NG");
+	this->out_debug_log(_T("BOOT ROM (basic mode) READING : %s"), diag_load_bootrom_bas ? "OK" : "NG");
+	this->out_debug_log(_T("BOOT ROM (DOS   mode) READING : %s"), diag_load_bootrom_dos ? "OK" : "NG");
 #if defined(_FM77_VARIANTS)
-	emu->out_debug_log(_T("BOOT ROM (MMR   mode) READING : %s"), diag_load_bootrom_mmr ? "OK" : "NG");
+	this->out_debug_log(_T("BOOT ROM (MMR   mode) READING : %s"), diag_load_bootrom_mmr ? "OK" : "NG");
 #endif
 
 
@@ -1165,7 +1165,7 @@ void FM7_MAINMEM::initialize(void)
 #else // FM8
 	if(read_bios(_T("FBASIC10.ROM"), fm7_mainmem_basicrom, 0x7c00) == 0x7c00) diag_load_basicrom = true;
 #endif	
-	emu->out_debug_log(_T("BASIC ROM READING : %s"), diag_load_basicrom ? "OK" : "NG");
+	this->out_debug_log(_T("BASIC ROM READING : %s"), diag_load_basicrom ? "OK" : "NG");
    
 	i = FM7_MAINMEM_BIOSWORK;
 	memset(fm7_mainmem_bioswork, 0x00, 0x80 * sizeof(uint8_t));
@@ -1177,7 +1177,7 @@ void FM7_MAINMEM::initialize(void)
 	memset(fm7_mainmem_dictrom, 0xff, 0x40000 * sizeof(uint8_t));
 	read_table[i].memory = fm7_mainmem_dictrom;
 	if(read_bios(_T("DICROM.ROM"), fm7_mainmem_dictrom, 0x40000) == 0x40000) diag_load_dictrom = true;
-	emu->out_debug_log(_T("DICTIONARY ROM READING : %s"), diag_load_dictrom ? "OK" : "NG");
+	this->out_debug_log(_T("DICTIONARY ROM READING : %s"), diag_load_dictrom ? "OK" : "NG");
 	dictrom_connected = diag_load_dictrom;
 	
 	i = FM7_MAINMEM_BACKUPED_RAM;
@@ -1186,7 +1186,7 @@ void FM7_MAINMEM::initialize(void)
 	read_table[i].memory = fm7_mainmem_learndata;
 	write_table[i].memory = fm7_mainmem_learndata;
 	if(read_bios(_T("USERDIC.DAT"), read_table[i].memory, 0x2000) == 0x2000) diag_load_learndata = true;
-	emu->out_debug_log(_T("DICTIONARY BACKUPED RAM READING : %s"), diag_load_learndata ? "OK" : "NG");
+	this->out_debug_log(_T("DICTIONARY BACKUPED RAM READING : %s"), diag_load_learndata ? "OK" : "NG");
 	if(!diag_load_learndata) write_bios(_T("USERDIC.DAT"), fm7_mainmem_learndata, 0x2000);
 #endif
 	
@@ -1196,7 +1196,7 @@ void FM7_MAINMEM::initialize(void)
 	memset(fm7_mainmem_extrarom, 0xff, sizeof(fm7_mainmem_extrarom));
 	read_table[i].memory = fm7_mainmem_extrarom;
 	if(read_bios(_T("EXTSUB.ROM"), read_table[i].memory, 0xc000) == 0xc000) diag_load_extrarom = true;
-	emu->out_debug_log(_T("AV40SX/EX EXTRA ROM READING : %s"), diag_load_extrarom ? "OK" : "NG");
+	this->out_debug_log(_T("AV40SX/EX EXTRA ROM READING : %s"), diag_load_extrarom ? "OK" : "NG");
 #endif
 }
 
@@ -1224,7 +1224,7 @@ void FM7_MAINMEM::save_state(FILEIO *state_fio)
 {
 	state_fio->FputUint32_BE(STATE_VERSION);
 	state_fio->FputInt32_BE(this_device_id);
-	p_emu->out_debug_log("Save State: MAINMEM: id=%d ver=%d\n", this_device_id, STATE_VERSION);
+	this->out_debug_log("Save State: MAINMEM: id=%d ver=%d\n", this_device_id, STATE_VERSION);
 
 	// V1
 	state_fio->FputBool(ioaccess_wait);
@@ -1329,7 +1329,7 @@ bool FM7_MAINMEM::load_state(FILEIO *state_fio)
 	uint32_t version;
 	version = state_fio->FgetUint32_BE();
 	if(this_device_id != state_fio->FgetInt32_BE()) return false;
-	p_emu->out_debug_log("Load State: MAINMEM: id=%d ver=%d\n", this_device_id, version);
+	this->out_debug_log("Load State: MAINMEM: id=%d ver=%d\n", this_device_id, version);
 	if(version >= 1) {
 		// V1
 		ioaccess_wait = state_fio->FgetBool();

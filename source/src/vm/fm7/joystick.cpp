@@ -296,7 +296,7 @@ void JOYSTICK::save_state(FILEIO *state_fio)
 	int ch;
 	state_fio->FputUint32_BE(STATE_VERSION);
 	state_fio->FputInt32_BE(this_device_id);
-	p_emu->out_debug_log("Save State: JOYSTICK: id=%d ver=%d\n", this_device_id, STATE_VERSION);
+	this->out_debug_log("Save State: JOYSTICK: id=%d ver=%d\n", this_device_id, STATE_VERSION);
 	// Version 1
 	for(ch = 0; ch < 2; ch++) {
 #if !defined(_FM8)
@@ -328,7 +328,7 @@ bool JOYSTICK::load_state(FILEIO *state_fio)
 	uint32_t devid = state_fio->FgetInt32_BE();
 	bool stat = false;
 	int ch;
-	p_emu->out_debug_log("Load State: JOYSTICK: id=%d ver=%d\n", devid, version);
+	this->out_debug_log("Load State: JOYSTICK: id=%d ver=%d\n", devid, version);
 	if(devid != this_device_id) return stat;
 	if(version >= 1) {
 		for(ch = 0; ch < 2; ch++) {

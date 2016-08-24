@@ -10,8 +10,12 @@
 #ifndef _DEVICE_H_
 #define _DEVICE_H_
 
+#include <stdarg.h>
 #include "vm.h"
 #include "../emu.h"
+#if defined(_USE_QT)
+#include "../qt/gui/agar_logger.h"
+#endif
 
 // max devices connected to the output port
 #define MAX_OUTPUT	16
@@ -49,6 +53,9 @@ protected:
 public:
 	DEVICE(VM* parent_vm, EMU* parent_emu) : vm(parent_vm), emu(parent_emu)
 	{
+#ifdef _USE_QT
+		strncpy(this_device_name, "Base Device", 128);
+#endif		
 		prev_device = vm->last_device;
 		next_device = NULL;
 		if(vm->first_device == NULL) {
@@ -507,7 +514,11 @@ public:
 	// misc
 	virtual const _TCHAR *get_device_name(void)
 	{
+#ifdef _USE_QT
+		return (const _TCHAR *)this_device_name;
+#else
 		return _T("Base Device");
+#endif
 	}
    
 	// event manager
@@ -634,7 +645,33 @@ public:
 	// sound
 	virtual void mix(int32_t* buffer, int cnt) {}
 	virtual void set_volume(int ch, int decibel_l, int decibel_r) {} // +1 equals +0.5dB (same as fmgen)
+#ifdef _USE_QT
+	virtual void set_device_name(const _TCHAR *name) {
+		if(name == NULL) return;
+		strncpy(this_device_name, name, 128);
+		csp_logger->set_device_name(this_device_id, (char *)name);
+	}
+	virtual void out_debug_log(const char *fmt, ...) {
+		char strbuf[4096];
+		va_list ap;
+
+		va_start(ap, fmt);
+		vsnprintf(strbuf, 4095, fmt, ap);
+		csp_logger->debug_log(CSP_LOG_DEBUG, this_device_id + CSP_LOG_TYPE_VM_DEVICE_0, "%s", strbuf);
+		va_end(ap);
+	}
+#else
+	virtual void out_debug_log(const char *fmt, ...) {
+		char strbuf[4096];
+		va_list ap;
+
+		va_start(ap, fmt);
+		vsnprintf(strbuf, 4095, fmt, ap);
+		emu->out_debug_log("%s", strbuf);
+		va_end(ap);
+	}
 	
+#endif
 #ifdef USE_DEBUGGER
 	// debugger
 	virtual void *get_debugger()
@@ -712,6 +749,9 @@ public:
 	{
 		return 0;
 	}
+#endif
+#ifdef _USE_QT
+	_TCHAR this_device_name[128];
 #endif
 	
 	DEVICE* prev_device;

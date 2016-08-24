@@ -2386,10 +2386,10 @@ void DISPLAY::initialize()
 	diag_load_subrom_c = false;
 #if defined(_FM8)	
 	if(read_bios(_T("SUBSYS_8.ROM"), subsys_c, 0x2800) >= 0x2800) diag_load_subrom_c = true;
-	emu->out_debug_log(_T("SUBSYSTEM ROM READING : %s"), diag_load_subrom_c ? "OK" : "NG");
+	this->out_debug_log(_T("SUBSYSTEM ROM READING : %s"), diag_load_subrom_c ? "OK" : "NG");
 #else
 	if(read_bios(_T("SUBSYS_C.ROM"), subsys_c, 0x2800) >= 0x2800) diag_load_subrom_c = true;
-	emu->out_debug_log(_T("SUBSYSTEM ROM Type C READING : %s"), diag_load_subrom_c ? "OK" : "NG");
+	this->out_debug_log(_T("SUBSYSTEM ROM Type C READING : %s"), diag_load_subrom_c ? "OK" : "NG");
 #endif
 #if defined(_FM77AV_VARIANTS)
 	memset(subsys_a, 0xff, sizeof(subsys_a));
@@ -2399,15 +2399,15 @@ void DISPLAY::initialize()
    
 	diag_load_subrom_a = false;
    	if(read_bios(_T("SUBSYS_A.ROM"), subsys_a, 0x2000) >= 0x2000) diag_load_subrom_a = true;
-	emu->out_debug_log(_T("SUBSYSTEM ROM Type A READING : %s"), diag_load_subrom_a ? "OK" : "NG");
+	this->out_debug_log(_T("SUBSYSTEM ROM Type A READING : %s"), diag_load_subrom_a ? "OK" : "NG");
 
 	diag_load_subrom_b = false;
    	if(read_bios(_T("SUBSYS_B.ROM"), subsys_b, 0x2000) >= 0x2000) diag_load_subrom_b = true;
-	emu->out_debug_log(_T("SUBSYSTEM ROM Type B READING : %s"), diag_load_subrom_b ? "OK" : "NG");
+	this->out_debug_log(_T("SUBSYSTEM ROM Type B READING : %s"), diag_load_subrom_b ? "OK" : "NG");
 
 	diag_load_subrom_cg = false;
    	if(read_bios(_T("SUBSYSCG.ROM"), subsys_cg, 0x2000) >= 0x2000) diag_load_subrom_cg = true;
-	emu->out_debug_log(_T("SUBSYSTEM CG ROM READING : %s"), diag_load_subrom_cg ? "OK" : "NG");
+	this->out_debug_log(_T("SUBSYSTEM CG ROM READING : %s"), diag_load_subrom_cg ? "OK" : "NG");
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
     defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
 	memset(subsys_ram, 0x00, sizeof(subsys_ram));
@@ -2467,7 +2467,7 @@ void DISPLAY::save_state(FILEIO *state_fio)
 {
   	state_fio->FputUint32_BE(STATE_VERSION);
 	state_fio->FputInt32_BE(this_device_id);
-	p_emu->out_debug_log("Save State: DISPLAY : id=%d ver=%d\n", this_device_id, STATE_VERSION);
+	this->out_debug_log("Save State: DISPLAY : id=%d ver=%d\n", this_device_id, STATE_VERSION);
 
 	{
 		int i;
@@ -2611,7 +2611,7 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 	if(this_device_id != state_fio->FgetInt32_BE()) {
 		return false;
 	}
-	p_emu->out_debug_log("Load State: DISPLAY : id=%d ver=%d\n", this_device_id, version);
+	this->out_debug_log("Load State: DISPLAY : id=%d ver=%d\n", this_device_id, version);
    
 	if(version >= 1) {
 		int addr;

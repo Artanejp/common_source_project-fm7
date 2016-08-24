@@ -84,14 +84,14 @@ void FM7_MAINIO::set_fdc_cmd(uint8_t val)
 		if((words != 0) && (words < 0xffff) && (dmac->read_signal(HD6844_IS_TRANSFER_0) == 0)) {
 			dmac->write_signal(HD6844_SRC_FIXED_ADDR_CH0, 3, 0xffffffff);
 			dmac->write_signal(HD6844_TRANSFER_START, 0, 0xffffffff);
-			//p_emu->out_debug_log(_T("FDC: Start DMA CMDREG=%02x CHRN=%02x %02x %02x * DRVSEL=%08x\n"),
+			//this->out_debug_log(_T("FDC: Start DMA CMDREG=%02x CHRN=%02x %02x %02x * DRVSEL=%08x\n"),
 			//					 fdc_cmdreg, fdc_trackreg, fdc_headreg & 0x01, fdc_sectreg, fdc_drvsel);
 		}
 	}
 #endif	
 	fdc->write_io8(0, val & 0x00ff);
 #ifdef _FM7_FDC_DEBUG	
-	p_emu->out_debug_log(_T("FDC: CMD: $%02x"), fdc_cmdreg);
+	this->out_debug_log(_T("FDC: CMD: $%02x"), fdc_cmdreg);
 #endif	
 }
 
@@ -101,7 +101,7 @@ uint8_t FM7_MAINIO::get_fdc_stat(void)
 	if(!connect_fdc) return 0xff;
 	fdc_statreg =  fdc->read_io8(0);
 #ifdef _FM7_FDC_DEBUG	
-	if(stat_backup != fdc_statreg) p_emu->out_debug_log(_T("FDC: \nGet Stat(not busy): $%02x"), fdc_statreg);
+	if(stat_backup != fdc_statreg) this->out_debug_log(_T("FDC: \nGet Stat(not busy): $%02x"), fdc_statreg);
 #endif	
 	return fdc_statreg;
 }
@@ -129,7 +129,7 @@ void FM7_MAINIO::set_fdc_track(uint8_t val)
 #endif	
 	fdc->write_io8(1, val);
 #ifdef _FM7_FDC_DEBUG	
-	p_emu->out_debug_log(_T("FDC : Set Track: %d"), val);
+	this->out_debug_log(_T("FDC : Set Track: %d"), val);
 #endif	
 }
 
@@ -146,7 +146,7 @@ void FM7_MAINIO::set_fdc_sector(uint8_t val)
 	fdc_sectreg = val;
 	fdc->write_io8(2, val);
 #ifdef _FM7_FDC_DEBUG	
-	p_emu->out_debug_log(_T("FDC: Set Sector: $%02x"), val);
+	this->out_debug_log(_T("FDC: Set Sector: $%02x"), val);
 #endif	
 }
 
@@ -185,7 +185,7 @@ uint8_t FM7_MAINIO::get_fdc_motor(void)
 	val = val | (fdc_drvsel & 0x40);
 #endif	
 #ifdef _FM7_FDC_DEBUG	
-	p_emu->out_debug_log(_T("FDC: Get motor/Drive: $%02x"), val);
+	this->out_debug_log(_T("FDC: Get motor/Drive: $%02x"), val);
 #endif	
 	return val;
 }
@@ -196,7 +196,7 @@ void FM7_MAINIO::set_fdc_fd1c(uint8_t val)
 	fdc_headreg = (val & 0x01) | 0xfe;
 	fdc->write_signal(SIG_MB8877_SIDEREG, val, 0x01);
 #ifdef _FM7_FDC_DEBUG	
-	p_emu->out_debug_log(_T("FDC: Set side/head: $%02x"), val);
+	this->out_debug_log(_T("FDC: Set side/head: $%02x"), val);
 #endif	
 }
 
@@ -240,7 +240,7 @@ void FM7_MAINIO::set_fdc_fd1d(uint8_t val)
 		}
 	}
 #ifdef _FM7_FDC_DEBUG	
-	p_emu->out_debug_log(_T("FDC: Set Drive Select: $%02x"), val);
+	this->out_debug_log(_T("FDC: Set Drive Select: $%02x"), val);
 #endif	
 }
 
@@ -273,10 +273,10 @@ void FM7_MAINIO::set_fdc_fd1e(uint8_t val)
 	}
 	if((val & 0x40) != 0) {
 		for(drive = 0; drive < MAX_DRIVE; drive++) fdc->set_drive_type(drive, DRIVE_TYPE_2D);
-		//emu->out_debug_log(_T("2D\n"));
+		//this->out_debug_log(_T("2D\n"));
 	} else {
 		for(drive = 0; drive < MAX_DRIVE; drive++) fdc->set_drive_type(drive, DRIVE_TYPE_2DD);
-		//emu->out_debug_log(_T("2DD\n"));
+		//this->out_debug_log(_T("2DD\n"));
 	}
 #endif	
 }

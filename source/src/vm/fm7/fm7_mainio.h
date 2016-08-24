@@ -457,7 +457,7 @@ class FM7_MAINIO : public DEVICE {
 			extdet_neg = true;
 			irqreg_fdc = 0x3f; //0b00111111;
 		}
-		emu->out_debug_log(_T("FDC: connect=%d"), connect_fdc);
+		this->out_debug_log(_T("FDC: connect=%d"), connect_fdc);
 		fdc = p;
 	}	
 	void set_context_maincpu(MC6809 *p){

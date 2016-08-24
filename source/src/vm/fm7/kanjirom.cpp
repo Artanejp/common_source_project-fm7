@@ -90,7 +90,7 @@ void KANJIROM::save_state(FILEIO *state_fio)
 {
 	state_fio->FputUint32_BE(STATE_VERSION);
 	state_fio->FputInt32_BE(this_device_id);
-	p_emu->out_debug_log("Save State: KANJIROM: id=%d ver=%d\n", this_device_id, STATE_VERSION);
+	this->out_debug_log("Save State: KANJIROM: id=%d ver=%d\n", this_device_id, STATE_VERSION);
 
 	state_fio->FputBool(class2);
 	state_fio->FputBool(read_ok);
@@ -103,7 +103,7 @@ bool KANJIROM::load_state(FILEIO *state_fio)
 	uint32_t version;
 	version = state_fio->FgetUint32_BE();
 	if(this_device_id != state_fio->FgetInt32_BE()) return false;
-	p_emu->out_debug_log("Load State: KANJIROM: id=%d ver=%d\n", this_device_id, version);
+	this->out_debug_log("Load State: KANJIROM: id=%d ver=%d\n", this_device_id, version);
 
 	if(version >= 1) {
 		class2 = state_fio->FgetBool();
