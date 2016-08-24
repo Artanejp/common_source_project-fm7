@@ -197,8 +197,8 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	if(kanjiclass2 != NULL) kanjiclass2->set_device_name(_T("KANJI ROM CLASS2"));
 # endif
 # if defined(_FM8)
-	bubble_vasette[0]->set_device_name(_T("BUBBLE0"));
-	bubble_vasette[1]->set_device_name(_T("BUBBLE1"));
+	bubble_casette[0]->set_device_name(_T("BUBBLE0"));
+	bubble_casette[1]->set_device_name(_T("BUBBLE1"));
 # endif	
 #endif
 	this->connect_bus();
