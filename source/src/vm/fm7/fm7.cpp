@@ -173,13 +173,13 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	dmac->set_device_name(_T("DMAC(HD6844)"));
 # endif   
 # if defined(_FM8)
-	psg->det_device_name(_T("PSG"));
+	psg->set_device_name(_T("PSG"));
 # else	
 	opn[0]->set_device_name(_T("OPN"));
 	opn[1]->set_device_name(_T("WHG"));
 	opn[2]->set_device_name(_T("THG"));
 #  if !defined(_FM77AV_VARIANTS)
-	psg->det_device_name(_T("PSG"));
+	psg->set_device_name(_T("PSG"));
 #  endif
 # endif
 	drec->set_device_name(_T("DATA RECORDER"));
