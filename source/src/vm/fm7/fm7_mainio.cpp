@@ -612,7 +612,7 @@ void FM7_MAINIO::do_firq(void)
 	} else {
 		maincpu->write_signal(SIG_CPU_FIRQ, 0, 1);
 	}
-	this->out_debug_log(_T("IO: do_firq(). BREAK=%d ATTN=%d"), firq_break_key ? 1 : 0, firq_sub_attention ? 1 : 0);
+	//this->out_debug_log(_T("IO: do_firq(). BREAK=%d ATTN=%d"), firq_break_key ? 1 : 0, firq_sub_attention ? 1 : 0);
 }
 
 void FM7_MAINIO::do_nmi(bool flag)
