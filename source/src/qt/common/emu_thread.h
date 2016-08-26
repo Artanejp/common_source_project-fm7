@@ -11,6 +11,7 @@
 #define _CSP_QT_EMU_THREAD_H
 
 #include <QThread>
+#include <QQueue>
 #include <QElapsedTimer>
 
 #include "common.h"
@@ -36,6 +37,12 @@ class USING_FLAGS;
 QT_BEGIN_NAMESPACE
 #define MAX_COMMAND_LEN	64
 
+typedef struct {
+	uint32_t code;
+	uint32_t mod;
+	bool repeat;
+} key_queue_t;
+
 class EmuThreadClass : public QThread {
 	Q_OBJECT
 private:
@@ -50,11 +57,9 @@ private:
 	char dbg_prev_command[MAX_COMMAND_LEN];
 
 	int get_interval(void);
-	bool key_repeat;
-	uint32_t key_down_code;
-	uint32_t key_up_code;
-	uint32_t key_mod_code;
-	bool key_changed;
+	QQueue <key_queue_t>key_up_queue;
+	QQueue <key_queue_t>key_down_queue;
+	uint32_t key_mod;
  protected:
 	EMU *p_emu;
 	USING_FLAGS *using_flags;

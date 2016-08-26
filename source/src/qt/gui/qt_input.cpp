@@ -11,6 +11,7 @@
 
 #include <Qt>
 #include <QKeyEvent>
+#include <QThread>
 //#include "emu.h"
 //#include "vm/vm.h"
 #include "config.h"
@@ -256,6 +257,7 @@ void GLDrawClass::keyReleaseEvent(QKeyEvent *event)
 		}
 	}
 #endif
+	//QThread::msleep(2);
 	//printf("Key: UP: VK=%d SCAN=%04x MOD=%08x\n", vk, scan, mod);
 	emit sig_key_up(vk, mod);
 }
@@ -274,6 +276,7 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
 	if(using_flags->is_use_mouse()) {
 		if(vk == VK_APPS) { // Special key : capture/uncapture mouse.
 			emit sig_toggle_mouse();
+			//QThread::msleep(2);
 			return;
 		}
 	}
@@ -289,7 +292,7 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
 		}
 	}
 #endif
-   
+	//QThread::msleep(2);
 	//printf("Key: DOWN: VK=%d SCAN=%04x MOD=%08x\n", vk, scan, mod);
 	emit sig_key_down(vk, mod, false);
 }

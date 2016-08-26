@@ -131,7 +131,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(hRunEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
 	connect(hRunEmu, SIGNAL(sig_is_enable_mouse(bool)), glv, SLOT(do_set_mouse_enabled(bool)));
 	connect(glv, SIGNAL(sig_key_down(uint32_t, uint32_t, bool)), hRunEmu, SLOT(do_key_down(uint32_t, uint32_t, bool)));
-	connect(glv, SIGNAL(sig_key_up(uint32_t, uint32_t)), hRunEmu, SLOT(do_key_up(uint32_t, uint32_t)));
+	connect(glv, SIGNAL(sig_key_up(uint32_t, uint32_t)),hRunEmu, SLOT(do_key_up(uint32_t, uint32_t)));
 	connect(this, SIGNAL(sig_quit_widgets()), glv, SLOT(do_stop_run_vm()));
 
 	

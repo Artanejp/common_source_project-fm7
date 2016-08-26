@@ -148,8 +148,11 @@ void EmuThreadClass::button_pressed_mouse(Qt::MouseButton button)
 						   (mouse_y < (vm_buttons_d[i].y + vm_buttons_d[i].height))) {
 							if(vm_buttons_d[i].code != 0x00) {
 								//p_emu->key_down(vm_buttons_d[i].code, false);
-								key_down_code = vm_buttons_d[i].code;
-								key_repeat = false;
+								key_queue_t sp;
+								sp.code = vm_buttons_d[i].code;
+								sp.mod = key_mod;
+								sp.repeat = false;
+								key_down_queue.enqueue(sp);
 							} else {
 								bResetReq = true;
 							}
@@ -194,8 +197,11 @@ void EmuThreadClass::button_released_mouse(Qt::MouseButton button)
 						if((mouse_y >= vm_buttons_d[i].y) &&
 						   (mouse_y < (vm_buttons_d[i].y + vm_buttons_d[i].height))) {
 							if(vm_buttons_d[i].code != 0x00) {
-								//p_emu->key_up(vm_buttons_d[i].code);
-								key_up_code = vm_buttons_d[i].code;
+								key_queue_t sp;
+								sp.code = vm_buttons_d[i].code;
+								sp.mod = key_mod;
+								sp.repeat = false;
+								key_up_queue.enqueue(sp);
 							}
 						}
 					}
@@ -208,18 +214,23 @@ void EmuThreadClass::button_released_mouse(Qt::MouseButton button)
 
 void EmuThreadClass::do_key_down(uint32_t vk, uint32_t mod, bool repeat)
 {
-	key_down_code = vk;
-	key_mod_code = mod;
-	key_repeat = repeat;
-	key_changed = true;
+	key_queue_t sp;
+	sp.code = vk;
+	sp.mod = mod;
+	sp.repeat = repeat;
+	key_down_queue.enqueue(sp);
+	key_mod = mod;
+	//key_changed = true;
 }
 
 void EmuThreadClass::do_key_up(uint32_t vk, uint32_t mod)
 {
-	key_up_code = vk;
-	key_mod_code = mod;
-	key_changed = true;
-
+	key_queue_t sp;
+	sp.code = vk;
+	sp.mod = mod;
+	sp.repeat = false;
+	key_mod = mod;
+	key_up_queue.enqueue(sp);
 }
 
 
@@ -1192,11 +1203,10 @@ void EmuThreadClass::doWork(const QString &params)
 	next_time = 0;
 	mouse_flag = false;
 
-	key_repeat = false;
-	key_down_code = 0;
-	key_up_code = 0;
-	key_mod_code = 0;
-	key_changed = false;
+	key_mod = 0;
+	key_up_queue.clear();
+	key_down_queue.clear();
+
 #if defined(USE_QD1)
 	for(int i = 0; i < 2; i++) qd_text[i].clear();
 #endif
@@ -1307,20 +1317,18 @@ void EmuThreadClass::doWork(const QString &params)
 				}
 			}
 #endif
-			if(key_changed) {
-				p_emu->key_modifiers(key_mod_code);
-				key_changed = false;
+			while(!key_up_queue.isEmpty()) {
+				key_queue_t sp;
+				sp = key_up_queue.dequeue();
+				p_emu->key_modifiers(sp.mod);
+				p_emu->key_up(sp.code);
 			}
-			if(key_down_code != 0) {
-				p_emu->key_down(key_down_code, key_repeat);
-				key_down_code = 0;
+			while(!key_down_queue.isEmpty()) {
+				key_queue_t sp;
+				sp = key_down_queue.dequeue();
+				p_emu->key_modifiers(sp.mod);
+				p_emu->key_down(sp.code, sp.repeat);
 			}
-			if(key_up_code != 0) {
-				p_emu->key_modifiers(key_mod_code);
-				p_emu->key_up(key_up_code);
-				key_up_code = 0;
-			}
-			
 			run_frames = p_emu->run();
 			total_frames += run_frames;
 #if defined(USE_MINIMUM_RENDERING)
