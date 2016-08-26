@@ -29,6 +29,7 @@ OSD_BASE::OSD_BASE(USING_FLAGS *p) : QThread(0)
    	DebugSemaphore = new QSemaphore(1);
 	locked_vm = false;
 	screen_mutex = new QMutex(QMutex::Recursive);
+	device_node_list.clear();
 }
 
 OSD_BASE::~OSD_BASE()
@@ -294,4 +295,27 @@ int OSD_BASE::get_window_mode_width(int mode)
 int OSD_BASE::get_window_mode_height(int mode)
 {
 	return 200;
+}
+
+void OSD_BASE::set_vm_node(void)
+{
+	device_node_list.clear();
+}
+
+const _TCHAR *OSD_BASE::get_vm_node_name(int id)
+{
+	int i;
+	device_node_t sp;
+	for(i = 0; i < device_node_list.size(); i++) {
+		sp = device_node_list.at(i);
+		if(id == sp.id) {
+			return sp.name;
+		}
+	}
+	return NULL;
+}
+
+int OSD_BASE::get_vm_node_size(void)
+{
+	return device_node_list.size();
 }

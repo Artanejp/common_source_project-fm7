@@ -52,6 +52,7 @@ enum {
 	CSP_LOG_TYPE_SCREEN,
 	CSP_LOG_TYPE_PRINTER,
 	CSP_LOG_TYPE_SOCKET,
+	CSP_LOG_TYPE_EVENT,
 	CSP_LOG_TYPE_COMPONENT_END,
 	CSP_LOG_TYPE_VM_CPU0 = 32,
 	CSP_LOG_TYPE_VM_CPU1,
@@ -117,6 +118,8 @@ public:
 };
 
 class QMutex;
+class OSD;
+
 class CSP_Logger: public QObject {
 	Q_OBJECT
 private:
@@ -142,13 +145,14 @@ private:
 	
 	QQueue<CSP_LoggerLine *> squeue;
 	QMutex *lock_mutex;
-
+	OSD *p_osd;
 protected:
 	void debug_log(int level, int domain_num, char *strbuf);
 
 public:
 	CSP_Logger(bool b_syslog, bool cons, const char *devname);
 	~CSP_Logger();
+	void set_osd(OSD *p) { p_osd = p; }
 	void open(bool b_syslog, bool cons, const char *devname);
 	void debug_log(int level, const char *fmt, ...);
 	void debug_log(int level, int domain_num, const char *fmt, ...);
@@ -161,6 +165,8 @@ public:
 	void set_emu_vm_name(const char *devname);
 	void set_device_name(int num, char *devname);
 	void set_cpu_name(int num, char *devname);
+	void set_device_node_log(int device_id, int to_output, int type, bool flag);
+	void output_event_log(int device_id, int level, const char *fmt, ...);
 };
 QT_END_NAMESPACE
 

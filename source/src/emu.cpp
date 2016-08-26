@@ -94,6 +94,9 @@ EMU::EMU()
 	osd->initialize(sound_rate, sound_samples);
 	// initialize vm
 	osd->vm = vm = new VM(this);
+# if defined(_USE_QT)
+	osd->set_vm_node();
+# endif	
 	// Below is temporally workaround. I will fix ASAP (or give up): 20160311 K.Ohta
 	// Problems seem to be resolved. See fm7.cpp. 20160319 K.Ohta
 	// Still not resolved with FM-7/77 :-( 20160407 K.Ohta
@@ -101,6 +104,9 @@ EMU::EMU()
 	defined(_FM77_VARIANTS)
 	delete vm;
 	osd->vm = vm = new VM(this);
+# if defined(_USE_QT)
+	osd->set_vm_node();
+# endif	
 #endif
 #ifdef USE_AUTO_KEY
 	initialize_auto_key();
@@ -242,6 +248,9 @@ void EMU::reset()
 		osd->lock_vm();		
 		delete vm;
 		osd->vm = vm = new VM(this);
+# if defined(_USE_QT)
+		osd->set_vm_node();
+# endif	
 		vm->initialize_sound(sound_rate, sound_samples);
 #ifdef USE_SOUND_VOLUME
 		for(int i = 0; i < USE_SOUND_VOLUME; i++) {
@@ -1749,6 +1758,9 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 					osd->stop_sound();
 					delete vm;
 					osd->vm = vm = new VM(this);
+# if defined(_USE_QT)
+					osd->set_vm_node();
+# endif	
 					vm->initialize_sound(sound_rate, sound_samples);
 #ifdef USE_SOUND_VOLUME
 					for(int i = 0; i < USE_SOUND_VOLUME; i++) {

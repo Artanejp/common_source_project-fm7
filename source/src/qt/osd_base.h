@@ -20,6 +20,7 @@
 #include <QString>
 #include <QQueue>
 #include <QImage>
+#include <QList>
 
 #include <SDL.h>
 #include "simd_types.h"
@@ -66,6 +67,12 @@ class CSP_KeyTables;
 class USING_FLAGS;
 
 QT_BEGIN_NAMESPACE
+
+typedef struct {
+	int id;
+	const _TCHAR *name;
+} device_node_t;
+
 class DLL_PREFIX OSD_BASE : public QThread
 {
 	Q_OBJECT
@@ -221,6 +228,7 @@ protected:
 	int recv_r_ptr[SOCKET_MAX], recv_w_ptr[SOCKET_MAX];
 
 	// wrapper
+	QList<device_node_t> device_node_list;
 	virtual void vm_draw_screen(void);
 	virtual Sint16* create_sound(int *extra_frames);
 	virtual bool get_use_socket(void);
@@ -243,7 +251,6 @@ protected:
 	virtual int get_screen_width(void);
 	virtual int get_screen_height(void);
 	virtual int get_vm_buttons_code(int num);
-
 public:
 	OSD_BASE(USING_FLAGS *p);
 	~OSD_BASE();
@@ -417,6 +424,9 @@ public:
 	virtual void set_draw_thread(DrawThreadClass *handler);
 	virtual QString get_vm_config_name(void);
 	virtual double vm_frame_rate(void);
+	virtual void set_vm_node(void);
+	virtual const _TCHAR *get_vm_node_name(int id);
+	virtual int get_vm_node_size(void);
 	
 public slots:
 	void do_write_inputdata(QString s);

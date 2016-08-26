@@ -14,7 +14,7 @@
 #include "emu.h"
 #include "vm/vm.h"
 #include "menu_flags.h"
-
+#include "../osd.h"
 
 CSP_Logger::CSP_Logger(bool b_syslog, bool cons, const char *devname)
 {
@@ -43,6 +43,7 @@ CSP_Logger::CSP_Logger(bool b_syslog, bool cons, const char *devname)
 		"SCREEN",
 		"PRINTER",
 		"SOCKET",
+		"EVENT"
 		"Undefined",
 		NULL
 	};
@@ -364,3 +365,32 @@ void CSP_Logger::set_cpu_name(int num, char *devname)
 	QString tmps = QString::fromUtf8(devname);
 	device_names.replace(num, tmps);
 }
+
+void CSP_Logger::set_device_node_log(int device_id, int to_output, int type, bool flag)
+{
+}
+
+void CSP_Logger::output_event_log(int device_id, int level, const char *fmt, ...)
+{
+	char strbuf[4500];
+	char strbuf2[4096];
+	char devname[128];
+	char *p = NULL;
+	if(p_osd != NULL) {
+		*p = (char *)p_osd->get_vm_node_name(device_id);
+	}
+	if(p == NULL) {
+		snprintf(devname, 127, "DEVICE#%d", device_id);
+	} else {
+		strncpy(devname, p, 127);
+	}
+	
+	va_list ap;
+	va_start(ap, fmt);	
+	vsnprintf(strbuf2, 4095, fmt, ap);
+	snprintf(strbuf, 4500, "[%s] %s", devname, strbuf2); 
+	debug_log(level, CSP_LOG_TYPE_EVENT, strbuf);
+	va_end(ap);
+}
+
+

@@ -57,7 +57,6 @@ protected:
 	int get_screen_height(void);
 	int get_vm_buttons_code(int num);
 	MOVIE_LOADER *movie_loader;
-
 public:
 	OSD(USING_FLAGS *p);
 	~OSD();
@@ -85,11 +84,10 @@ public:
 	void close_movie_file();
 	uint32_t get_cur_movie_frame();
 	int get_movie_sound_rate();
-
+	void set_vm_node(void);
 public slots:
 	void do_decode_movie(int frames);
 	void do_run_movie_audio_callback(uint8_t *data, long len);
-
 };
 QT_END_NAMESPACE
 

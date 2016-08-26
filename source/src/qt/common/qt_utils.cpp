@@ -596,6 +596,7 @@ int MainLoop(int argc, char *argv[], config_t *cfg)
 	emu = new EMU(rMainWindow, rMainWindow->getGraphicsView(), using_flags);
 	using_flags->set_emu(emu);
 	using_flags->set_osd(emu->get_osd());
+	csp_logger->set_osd(emu->get_osd());
 
 #ifdef SUPPORT_DRAG_DROP
 	// open command line path
