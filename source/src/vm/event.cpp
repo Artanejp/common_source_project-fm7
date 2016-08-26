@@ -346,9 +346,21 @@ void EVENT::cancel_event(DEVICE* device, int register_id)
 	if(0 <= register_id && register_id < MAX_EVENT) {
 		event_t *event_handle = &event[register_id];
 		if(device != NULL && device != event_handle->device) {
+#if defined(_USE_QT)			
+
+			csp_logger->output_event_log(device->this_device_id, CSP_LOG_INFO,
+										 _T("Event cannot be canceled by non owned device (device_id=%d register_id=%d) !!!\n"),
+										 device->this_device_id, register_id);
+#else			
 			this->out_debug_log(_T("EVENT: event cannot be canceled by non owned device (id=%d) !!!\n"), device->this_device_id);
+#endif			
 			return;
 		}
+#ifdef _DEBUG_LOG		
+# if defined(_USE_QT)			
+		if(device != NULL) csp_logger->output_event_log(device->this_device_id, CSP_LOG_INFO, _T("Canceling event was succeeded (id=%d  register_id=%d)"), device->this_device_id, register_id);
+# endif
+#endif
 		if(event_handle->active) {
 			if(event_handle->prev != NULL) {
 				event_handle->prev->next = event_handle->next;
