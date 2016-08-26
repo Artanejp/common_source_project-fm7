@@ -33,10 +33,6 @@ public:
 	// common functions
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("SCSI Hard Disk Drive");
-	}
 	
 	// virtual scsi functions
 	void read_buffer(int length);

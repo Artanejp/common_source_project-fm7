@@ -306,11 +306,6 @@ class DISPLAY: public DEVICE
 	}
 	bool screen_update(void);
 	void reset_screen_update(void);
-	const _TCHAR *get_device_name()
-	{
-		return _T("FM7_DISPLAY");
-	}
-   
 	void set_context_kanjiclass1(DEVICE *p)	{
 #if defined(_FM77_VARIANTS) || \
     defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \

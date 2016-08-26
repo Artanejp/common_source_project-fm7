@@ -490,10 +490,6 @@ public:
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name(void)
-	{
-		return _T("MC6809");
-	}
 	void set_extra_clock(int clock)
 	{
 		extra_icount += clock;

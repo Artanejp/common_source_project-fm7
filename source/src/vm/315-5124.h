@@ -92,6 +92,7 @@ public:
 	_315_5124(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_irq);
+		set_device_name(_T("315-5124"));
 	}
 	~_315_5124() {}
 	
@@ -101,11 +102,6 @@ public:
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
 	void event_vline(int v, int clock);
-	const _TCHAR *get_device_name()
-	{
-		return _T("315-5124");
-	}
-	
 	// unique function
 	void set_context_key(KEYBOARD* device)
 	{

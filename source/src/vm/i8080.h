@@ -202,6 +202,7 @@ public:
 		SID = true;
 		initialize_output_signals(&outputs_busack);
 		initialize_output_signals(&outputs_sod);
+		set_device_name(_T("i8080"));
 	}
 	~I8080() {}
 	
@@ -243,10 +244,6 @@ public:
 #endif
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("8080");
-	}
 	
 	// unique function
 	void set_context_mem(DEVICE* device)

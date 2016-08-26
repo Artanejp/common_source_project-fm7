@@ -17,6 +17,7 @@ MB61VH010::MB61VH010(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_
 	p_emu = parent_emu;
 	p_vm = parent_vm;
 	target = NULL;
+	set_device_name(_T("MB61VH010 ALU"));
 }
 
 MB61VH010::~MB61VH010()

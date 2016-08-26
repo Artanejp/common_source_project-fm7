@@ -159,10 +159,6 @@ class FM7_MAINMEM : public DEVICE
 	void save_state(FILEIO *state_fio);
 	void update_config();
 	bool load_state(FILEIO *state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("FM7_MAIN_MEM");
-	}
 
 	void set_context_display(DEVICE *p){
 		int i;  

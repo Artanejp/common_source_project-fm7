@@ -368,6 +368,7 @@ public:
 		}
 		initialize_output_signals(&outputs_sio);
 #endif
+		set_device_name(_T("MC6800"));
 	}
 	~MC6800() {}
 	
@@ -413,10 +414,6 @@ public:
 #endif
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("MC6800");
-	}
 	
 	// unique functions
 	void set_context_mem(DEVICE* device)

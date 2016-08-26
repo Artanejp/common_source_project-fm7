@@ -116,6 +116,7 @@ public:
 		initialize_output_signals(&outputs_cb2);
 		initialize_output_signals(&outputs_irq);
 		clock = CPU_CLOCKS;
+		set_device_name(_T("SY6522"));
 	}
 	~SY6522() {}
 	
@@ -128,10 +129,6 @@ public:
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("SY6522");
-	}
 	
 	// unique functions
 	void set_context_port_a(DEVICE* device, int id, uint32_t mask, int shift)

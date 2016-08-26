@@ -19,6 +19,7 @@ JOYSTICK::JOYSTICK(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_em
 	rawdata = NULL;
 	mouse_state = NULL;
 	lpt_type = 0;
+	set_device_name(_T("JOYSTICK"));
 }
 
 JOYSTICK::~JOYSTICK()

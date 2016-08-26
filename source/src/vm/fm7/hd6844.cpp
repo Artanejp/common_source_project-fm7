@@ -26,6 +26,7 @@ HD6844::HD6844(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
 	}
 	initialize_output_signals(&(drq_line[0]));
 	initialize_output_signals(&(drq_line[1]));
+	set_device_name(_T("HD6844 DMAC"));
 }
 
 HD6844::~HD6844()

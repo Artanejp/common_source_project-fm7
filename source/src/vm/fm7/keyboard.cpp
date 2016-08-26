@@ -1189,6 +1189,7 @@ KEYBOARD::KEYBOARD(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_em
 	initialize_output_signals(&kana_led);
 	initialize_output_signals(&caps_led);
 	initialize_output_signals(&ins_led);
+	set_device_name(_T("KEYBOARD SUBSYSTEM"));
 }
 
 void KEYBOARD::release(void)

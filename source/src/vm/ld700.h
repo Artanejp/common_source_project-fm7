@@ -81,10 +81,6 @@ public:
 	void event_callback(int event_id, int err);
 	void mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
-	const _TCHAR *get_device_name()
-	{
-		return _T("LD-700");
-	}
 	
 	// unique functions
 	void set_context_exv(DEVICE* device, int id, uint32_t mask)

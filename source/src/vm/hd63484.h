@@ -61,10 +61,6 @@ public:
 	void write_io16(uint32_t addr, uint32_t data);
 	uint32_t read_io16(uint32_t addr);
 	void event_vline(int v, int clock);
-	const _TCHAR *get_device_name()
-	{
-		return _T("HD63484");
-	}
 	
 	// unique functions
 	void set_vram_ptr(uint16_t* ptr, uint32_t size)

@@ -39,6 +39,7 @@ public:
 			port[i].wreg = port[i].rreg = 0;//0xff;
 		}
 		clear_ports_by_cmdreg = false;
+		set_device_name(_T("i8255"));
 	}
 	~I8255() {}
 	
@@ -50,11 +51,6 @@ public:
 	uint32_t read_signal(int id);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("8255");
-	}
-	
 	// unique functions
 	void set_context_port_a(DEVICE* device, int id, uint32_t mask, int shift)
 	{

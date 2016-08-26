@@ -36,6 +36,7 @@ public:
 		initialize_output_signals(&outputs);
 		bits_mask = bits_in = 0;
 		prev = first = true;
+		set_device_name(_T("NAND GATE"));
 	}
 	~NAND() {}
 	
@@ -43,10 +44,6 @@ public:
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("NAND Gate");
-	}
 	
 	// unique functions
 	void set_context_out(DEVICE* device, int id, uint32_t mask)

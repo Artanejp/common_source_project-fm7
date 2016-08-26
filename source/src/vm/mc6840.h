@@ -85,6 +85,7 @@ public:
 		initialize_output_signals(&outputs_irq);
 		m_internal_clock = 0.0;
 		m_external_clock[0] = m_external_clock[1] = m_external_clock[2] = 0.0;
+		set_device_name(_T("MC6840"));
 	}
 	~MC6840() {}
 	
@@ -97,10 +98,6 @@ public:
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("MC6840");
-	}
 	
 	// unique functions
 	void set_context_ch0(DEVICE* device, int id, uint32_t mask)

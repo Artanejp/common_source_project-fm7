@@ -45,6 +45,7 @@ public:
 #ifdef SINGLE_MODE_DMA
 		d_dma = NULL;
 #endif
+		set_device_name(_T("i80286"));
 	}
 	~I286() {}
 	
@@ -94,10 +95,6 @@ public:
 #endif
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("80286");
-	}
 	
 	// unique function
 	void set_context_mem(DEVICE* device)

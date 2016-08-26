@@ -37,6 +37,7 @@ public:
 	{
 		initialize_output_signals(&outputs_busy);
 		initialize_output_signals(&outputs_ack);
+		set_device_name(_T("DUMMY PRINTER DEVICE"));
 	}
 	~PRNFILE() {}
 	
@@ -50,10 +51,6 @@ public:
 	void event_callback(int event_id, int err);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("Dummy Printer Device");
-	}
 	
 	// unique functions
 	void set_context_busy(DEVICE* device, int id, uint32_t mask)

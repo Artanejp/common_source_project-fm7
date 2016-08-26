@@ -75,6 +75,7 @@ public:
 		d_dma = NULL;
 #endif
 		mode_word = false;
+		set_device_name(_T("i8237"));
 	}
 	~I8237() {}
 	
@@ -86,10 +87,6 @@ public:
 	void do_dma();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("8237");
-	}
 	
 	// unique functions
 	void set_context_memory(DEVICE* device)

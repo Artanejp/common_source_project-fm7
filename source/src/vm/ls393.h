@@ -33,6 +33,7 @@ public:
 		}
 		count = 0;
 		prev_in = false;
+		set_device_name(_T("74LS393"));
 	}
 	~LS393() {}
 	
@@ -40,10 +41,6 @@ public:
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("74LS393");
-	}
 	
 	// unique functions
 	void set_context_1qa(DEVICE* device, int id, uint32_t mask)

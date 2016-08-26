@@ -56,6 +56,7 @@ public:
 	I8259(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		d_cpu = NULL;
+		set_device_name(_T("i8259"));
 	}
 	~I8259() {}
 	
@@ -69,11 +70,6 @@ public:
 	void event_callback(int event_id, int err);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("8259");
-	}
-	
 	// interrupt common functions
 	void set_intr_line(bool line, bool pending, uint32_t bit)
 	{

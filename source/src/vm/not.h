@@ -27,6 +27,7 @@ public:
 	{
 		initialize_output_signals(&outputs);
 		prev = first = true;
+		set_device_name(_T("NOT GATE"));
 	}
 	~NOT() {}
 	
@@ -34,10 +35,6 @@ public:
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("NOT Gate");
-	}
 	
 	// unique function
 	void set_context_out(DEVICE* device, int id, uint32_t mask)

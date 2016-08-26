@@ -52,6 +52,9 @@ public:
 		initialize_output_signals(&outputs_data);
 #ifndef HAS_MSM5832
 		initialize_output_signals(&outputs_busy);
+		set_device_name(_T("MSM58321"));
+#else
+		set_device_name(_T("MSM5832"));
 #endif
 	}
 	~MSM58321() {}
@@ -62,10 +65,6 @@ public:
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("MSM58321");
-	}
 	
 	// unique functions
 	void set_context_data(DEVICE* device, int id, uint32_t mask, int shift)

@@ -44,6 +44,7 @@ public:
 			initialize_output_signals(&port[i].outputs_irq);
 			port[i].wreg = port[i].rreg = 0;//0xff;
 		}
+		set_device_name(_T("MC6820"));
 	}
 	~MC6820() {}
 	
@@ -54,10 +55,6 @@ public:
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("MC6820");
-	}
 	
 	// unique functions
 	void set_context_port_a(DEVICE* device, int id, uint32_t mask, int shift)

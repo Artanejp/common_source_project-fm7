@@ -955,6 +955,7 @@ FM7_MAINMEM::FM7_MAINMEM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, par
 	// Initialize table
 	memset(read_table, 0x00, sizeof(read_table));
 	memset(write_table, 0x00, sizeof(write_table));
+	set_device_name(_T("MAIN MEMORY"));
 }
 
 FM7_MAINMEM::~FM7_MAINMEM()

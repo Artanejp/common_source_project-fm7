@@ -31,7 +31,9 @@ private:
 	bool busreq;
 	
 public:
-	HUC6280(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	HUC6280(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
+		set_device_name(_T("HuC6280"));
+	}
 	~HUC6280() {}
 	
 	// common functions
@@ -65,10 +67,6 @@ public:
 #endif
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("HuC6280");
-	}
 	
 	// unique function
 	void set_context_mem(DEVICE* device)

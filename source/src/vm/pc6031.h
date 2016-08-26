@@ -74,7 +74,9 @@ private:
 	unsigned char InD3H_60();
 	
 public:
-	PC6031(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	PC6031(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
+		set_device_name(_T("PSEUDO PC-6031"));
+	}
 	~PC6031() {}
 	
 	// common functions
@@ -85,10 +87,6 @@ public:
 	uint32_t read_signal(int ch);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("Pseudo PC-6031");
-	}
 	
 	// unique functions
 	DISK* get_disk_handler(int drv)

@@ -53,6 +53,7 @@ public:
 		initialize_output_signals(&outputs_txe);
 		initialize_output_signals(&outputs_dtr);
 		initialize_output_signals(&outputs_rst);
+		set_device_name(_T("i8251"));
 	}
 	~I8251() {}
 	
@@ -66,10 +67,6 @@ public:
 	void event_callback(int event_id, int err);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("8251");
-	}
 	
 	// unique functions
 	void set_context_out(DEVICE* device, int id)

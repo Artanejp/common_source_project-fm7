@@ -30,6 +30,7 @@ DISPLAY::DISPLAY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	mainio = NULL;
 	subcpu = NULL;
 	keyboard = NULL;
+	set_device_name(_T("DISPLAY SUBSYSTEM"));
 }
 
 DISPLAY::~DISPLAY()

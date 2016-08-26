@@ -165,6 +165,7 @@ FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, paren
 	initialize_output_signals(&printer_reset_bus);
 	initialize_output_signals(&printer_strobe_bus);
 	initialize_output_signals(&printer_select_bus);
+	set_device_name(_T("MAIN I/O"));
 }
 
 FM7_MAINIO::~FM7_MAINIO()

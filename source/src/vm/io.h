@@ -84,10 +84,6 @@ public:
 	uint32_t read_dma_io32(uint32_t addr);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("Standard I/O Bus");
-	}
 	
 	// unique functions
 	void set_iomap_single_r(uint32_t addr, DEVICE* device);

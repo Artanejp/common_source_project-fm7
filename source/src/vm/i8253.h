@@ -69,6 +69,7 @@ public:
 			initialize_output_signals(&counter[i].outputs);
 			counter[i].freq = 0;
 		}
+		set_device_name(_T("i8253"));
 	}
 	~I8253() {}
 	
@@ -85,11 +86,6 @@ public:
 	}
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("8253");
-	}
-	
 	// unique functions
 	void set_context_ch0(DEVICE* device, int id, uint32_t mask)
 	{

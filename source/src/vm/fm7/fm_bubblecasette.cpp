@@ -21,6 +21,7 @@ BUBBLECASETTE::BUBBLECASETTE(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm,
 	bubble_inserted = false;
 	read_access = write_access = false;
 	p_emu = parent_emu;
+	set_device_name(_T("FM Bubble Casette"));
 }
 
 BUBBLECASETTE::~BUBBLECASETTE()

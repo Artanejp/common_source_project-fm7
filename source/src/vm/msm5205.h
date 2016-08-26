@@ -64,6 +64,7 @@ public:
 		initialize_output_signals(&m_vclk_cb);
 		volume_m = 1024;
 		volume_l = volume_r = 1024;
+		set_device_name(_T("MSM5205"));
 	}
 	~MSM5205() {}
 	
@@ -75,10 +76,6 @@ public:
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("MSM5205");
-	}
 	
 	// unique functions
 	void initialize_sound(int clock, int mode)

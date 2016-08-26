@@ -38,6 +38,7 @@ public:
 	{
 		initialize_output_signals(&outputs_intr);
 		initialize_output_signals(&outputs_sqw);
+		set_device_name(_T("HD146818P"));
 	}
 	~HD146818P() {}
 	
@@ -50,10 +51,6 @@ public:
 	void event_callback(int event_id, int err);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("HD146818P");
-	}
 	
 	// unique functions
 	void set_context_intr(DEVICE* device, int id, uint32_t mask)

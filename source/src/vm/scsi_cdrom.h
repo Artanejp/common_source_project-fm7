@@ -76,10 +76,6 @@ public:
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("SCSI CD-ROM");
-	}
 	
 	// virtual scsi functions
 	void reset_device();

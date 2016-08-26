@@ -124,10 +124,6 @@ public:
 	void update_config();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("Event Manager");
-	}
 	
 	// common event functions
 	int get_event_manager_id()

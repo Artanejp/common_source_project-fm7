@@ -64,6 +64,7 @@ public:
 		gm = 0;
 		initialize_output_signals(&outputs_vsync);
 		initialize_output_signals(&outputs_hsync);
+		set_device_name(_T("MC6847"));
 	}
 	~MC6847() {}
 	
@@ -76,11 +77,6 @@ public:
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("MC6847");
-	}
-	
 	// unique functions
 	void set_context_cpu(DEVICE* device)
 	{

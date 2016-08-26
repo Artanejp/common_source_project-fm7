@@ -35,6 +35,7 @@ public:
 	MCS48MEM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		memset(ram, 0, sizeof(ram));
+		set_device_name(_T("MCS48 MEMORY BUS"));
 	}
 	~MCS48MEM() {}
 	
@@ -48,10 +49,6 @@ public:
 	}
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("MCS48 Memory Bus");
-	}
 };
 
 class MCS48 : public DEVICE
@@ -72,6 +69,7 @@ public:
 	MCS48(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		d_mem = d_io = d_intr = NULL;
+		set_device_name(_T("MCS48"));
 	}
 	~MCS48() {}
 	
@@ -106,10 +104,6 @@ public:
 #endif
 	void save_state(FILEIO* state_state_fio);
 	bool load_state(FILEIO* state_state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("MCS48");
-	}
 	
 	// unique functions
 	void set_context_mem(DEVICE* device)
