@@ -36,6 +36,8 @@ set(s_qt_gui_headers
 	  
 	  draw_thread.h
 	  joy_thread.h
+	  emu_thread_tmpl.h
+	  
 )
 
 set(s_qt_gui_srcs
@@ -88,6 +90,8 @@ set(s_qt_gui_srcs
 	  
 	  draw_thread.cpp
 	  joy_thread.cpp
+	  emu_thread_tmpl.cpp
+	  
 	  agar_logger.cpp
 	  
 	  qt_main.cpp
@@ -147,8 +151,8 @@ target_link_libraries(CSPgui PUBLIC
 	  )
 
 set_target_properties(CSPgui PROPERTIES 
-			     SOVERSION 2.1.0
-			     VERSION 2.1.0
+			     SOVERSION 2.1.1
+			     VERSION 2.1.1
 			     )
 INSTALL(TARGETS CSPgui DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

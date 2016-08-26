@@ -101,18 +101,6 @@ void Ui_MainWindow::do_toggle_mouse(void)
 #endif	
 }
 
-
-void Object_Menu_Control::do_save_as_movie(void)
-{
-	int fps = using_flags->get_config_ptr()->video_frame_rate;
-	emit sig_start_record_movie(fps);
-}
-
-void Object_Menu_Control::do_stop_saving_movie(void)
-{
-	emit sig_stop_record_movie();
-}
-
 void Ui_MainWindow::rise_movie_dialog(void)
 {
 	CSP_DialogMovie *dlg = new CSP_DialogMovie(hSaveMovieThread, using_flags);
@@ -407,7 +395,7 @@ void Ui_MainWindow::OnWindowMove(void)
 }
 
 
-#ifdef USE_POWER_OFF
+#ifdef USE_NOTIFY_POWER_OFF
 bool Ui_MainWindow::GetPowerState(void)
 {
 	if(close_notified == 0) return true;
@@ -418,7 +406,7 @@ bool Ui_MainWindow::GetPowerState(void)
 void Ui_MainWindow::OnMainWindowClosed(void)
 {
 	// notify power off
-#ifdef USE_POWER_OFF
+#ifdef USE_NOTIFY_POWER_OFF
 	if(emu) {
 		if(!close_notified) {
 			emu->lock_vm();

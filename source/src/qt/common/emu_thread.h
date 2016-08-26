@@ -12,6 +12,7 @@
 
 #include <QThread>
 #include <QQueue>
+#include <QString>
 #include <QElapsedTimer>
 
 #include "common.h"
@@ -23,117 +24,52 @@
 #include "mainwidget.h"
 #include "commonclasses.h"
 #include "config.h"
-
-class META_MainWindow;
-class EMU;
-class QString;
-class QWaitCondition;
-class USING_FLAGS;
+#include "../gui/emu_thread_tmpl.h"
 
 #ifndef MAX_HISTORY
 #define MAX_HISTORY 8
 #endif
-
-QT_BEGIN_NAMESPACE
 #define MAX_COMMAND_LEN	64
 
-typedef struct {
-	uint32_t code;
-	uint32_t mod;
-	bool repeat;
-} key_queue_t;
 
-class EmuThreadClass : public QThread {
+class META_MainWindow;
+class EMU;
+class QWaitCondition;
+class USING_FLAGS;
+
+QT_BEGIN_NAMESPACE
+
+class EmuThreadClass : public EmuThreadClassBase {
 	Q_OBJECT
-private:
-	bool calc_message;
-	bool tape_play_flag;
-	bool tape_rec_flag;
-	int tape_pos;
-	bool mouse_flag;
-	int mouse_x;
-	int mouse_y;
-	
+protected:
 	char dbg_prev_command[MAX_COMMAND_LEN];
 
-	int get_interval(void);
-	QQueue <key_queue_t>key_up_queue;
-	QQueue <key_queue_t>key_down_queue;
-	uint32_t key_mod;
- protected:
-	EMU *p_emu;
-	USING_FLAGS *using_flags;
-	config_t *p_config;
-	
-	QWaitCondition *drawCond;
-	class META_MainWindow *MainWindow;
-	QElapsedTimer tick_timer;
-	
-	bool bRunThread;
-	bool bResetReq;
-	bool bSpecialResetReq;
-	bool bLoadStateReq;
-	bool bSaveStateReq;
-	bool bUpdateConfigReq;
-	bool bStartRecordSoundReq;
-	bool bStopRecordSoundReq;
-	bool bStartRecordMovieReq;
+	void button_pressed_mouse_sub(Qt::MouseButton button);
+	void button_released_mouse_sub(Qt::MouseButton button);
+	void get_qd_string(void);
+	void get_fd_string(void);
+	void get_tape_string(void);
+	void get_cd_string(void);
+	void get_bubble_string(void);
 
-//	bool draw_timing;
-	bool doing_debug_command;
-	bool bUpdateVolumeReq[32];
-	int volume_balance[32];
-	int volume_avg[32];
-	int record_fps;
-
-	qint64 next_time;
-	qint64 update_fps_time;
-	bool prev_skip;
-	int total_frames;
-	int draw_frames;
-	int skip_frames;
-	QString qd_text[8];
-	QString fd_text[16];
-	QString cmt_text;
-	QString cdrom_text;
-	QString laserdisc_text;
-	QString bubble_text[16];
-	QString clipBoardText;
-	void sample_access_drv(void);
-	void calc_volume_from_balance(int num, int balance);
-	void calc_volume_from_level(int num, int level);
 public:
 	EmuThreadClass(META_MainWindow *rootWindow, EMU *pp_emu, USING_FLAGS *p, QObject *parent = 0);
 	~EmuThreadClass();
 	void SetEmu(EMU *p) {
 		p_emu = p;
 	}
-	void set_tape_play(bool);
+
 	void run() { doWork("");}
-	EmuThreadClass *currentHandler();
-	void resize_screen(int sw, int sh, int stw, int sth);
 	bool now_debugging();
+	int get_interval(void);
+
 public slots:
 	void doWork(const QString &param);
-	void doExit(void);
 	void print_framerate(int frames);
-	void doReset();
-	void doSpecialReset();
-	void doLoadState();
-	void doSaveState();
-	void doUpdateConfig();
-	void doStartRecordSound();
-	void doStopRecordSound();
-	void doStartRecordVideo(int fps);
-	void doStopRecordVideo();
-
+	
 	void doSetDisplaySize(int w, int h, int ww, int wh);
-	void doUpdateVolumeLevel(int num, int level);
-	void doUpdateVolumeBalance(int num, int level);
-
 	void moved_mouse(int, int);
-	void button_pressed_mouse(Qt::MouseButton);
-	void button_released_mouse(Qt::MouseButton);
+
 	void do_write_protect_disk(int drv, bool flag);
 	void do_close_disk(int);
 	void do_open_disk(int, QString, int);
@@ -162,38 +98,9 @@ public slots:
 	void do_open_bubble_casette(int, QString, int);
 	void do_start_auto_key(QString text);
 	void do_stop_auto_key(void);
-	void do_draw_timing(bool);
+
 	void do_call_debugger_command(QString s);
 	void do_close_debugger(void);
-	void do_key_down(uint32_t vk, uint32_t mod, bool repeat);
-	void do_key_up(uint32_t vk, uint32_t mod);
-signals:
-	int message_changed(QString);
-	int window_title_changed(QString);
-	int sig_draw_thread(bool);
-	int quit_draw_thread(void);
-	int sig_screen_aspect(int);
-	int sig_screen_size(int, int);
-	int sig_finished(void);
-	int call_emu_thread(EMU *);
-	int sig_check_grab_mouse(bool);
-	int sig_mouse_enable(bool);
-	int sig_update_recent_disk(int);
-	int sig_change_osd_fd(int, QString);
-	int sig_change_osd_qd(int, QString);
-	int sig_change_osd_cmt(QString);
-	int sig_change_osd_cdrom(QString);
-	int sig_change_osd_laserdisc(QString);
-	int sig_update_recent_bubble(int);
-	int sig_change_osd_bubble(int, QString);
-	int sig_set_grid_vertical(int, bool);
-	int sig_set_grid_horizonal(int, bool);
-	int sig_send_data_led(quint32);
-	int sig_resize_screen(int, int);
-	int sig_resize_uibar(int, int);
-	int sig_is_enable_mouse(bool);
-	int sig_debugger_input(QString);
-	int sig_quit_debugger();
 };
 
 QT_END_NAMESPACE

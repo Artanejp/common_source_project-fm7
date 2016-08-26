@@ -65,70 +65,28 @@ Object_Menu_Control(QObject *parent, USING_FLAGS *p) : QObject(parent){
 		write_protect = false; // Enable to write
 	}
 	~Object_Menu_Control() {}
-private:
+protected:
 	int bindValue;
 	int drive;
 	int s_num;
 	bool play;
 	bool write_protect;
 	double double_val;
-signals:
-	int on_boot_mode(int);   
-	int on_cpu_type(int);   
-	int on_cpu_power(int); 
-	int on_open_debugger(int);
+ public:
+	void setValue1(int v) {bindValue = v;}
+	int getValue1(void) {return bindValue;}
+	void setDrive(int num) { drive = num;}
+	int getDrive(void) { return drive;}
+	void setNumber(int num) { s_num = num;}
+	int getNumber(void) { return s_num;}
+	void setDoubleValue(double n) {double_val = n;}
+	double getDoubleValue(void) {return double_val;}
 	
-	int sig_insert_fd(int);
-	int sig_eject_fd(int);
-	int set_d88_slot(int, int);
-	int set_recent_disk(int, int);
-	int sig_write_protect_fd(int, bool);
-	int sig_device_type(int);
-	int sig_sound_device(int);
-	int sig_printer_device(int);
-	int sig_drive_type(int);
-	int sig_emu_update_config(void);
-
-	int set_recent_quick_disk(int, int);
-	int sig_write_protect_Qd(int, bool);
-	int sig_eject_Qd(int);
-	int sig_insert_Qd(int);
-	
-	int sig_insert_cdrom(bool);
-	int sig_eject_cdrom(void);
-	int sig_recent_cdrom(int);
-		
-	int sig_insert_laserdisc(bool);
-	int sig_eject_laserdisc(void);
-	int sig_recent_laserdisc(int);
-	
-	int sig_insert_play_cmt(bool);
-	int sig_eject_cmt(void);
-	int sig_recent_cmt(int);
-	int sig_set_write_protect_cmt(bool);
-	int sig_insert_cart(int);
-	int sig_eject_cart(int);
-	int set_recent_cart(int, int);
-
-	int sig_open_binary_file(int, QString, bool);
-	int sig_open_binary(int, bool);
-	int set_recent_binary_load(int, int);
-	int set_recent_binary_save(int, int);
-
-	// bubble
-	int sig_insert_bubble(int);
-	int sig_eject_bubble(int);
-	int set_b77_slot(int, int);
-	int set_recent_bubble(int, int);
-	int sig_write_protect_bubble(int, bool);
-	
-	int sig_freq(int);
-	int sig_latency(int);
-	int sig_sounddevice(int);
-	int sig_set_dipsw(int, bool);
-	int sig_screen_aspect(int);
-	int sig_screen_size(int, int);
-	int sig_screen_multiply(float);
+	bool isPlay(void) { return play; }
+	void setPlay(bool b) { play = b; }
+   
+	bool isWriteProtect(void) { return write_protect; }
+	void setWriteProtect(bool b) {write_protect = b;}
 public slots:
 	void set_boot_mode(void);
 	void set_cpu_type(void);
@@ -189,30 +147,73 @@ public slots:
 	void insert_cart(void);
 	void eject_cart(void);
 	void on_recent_cart(void);
-     
- public:
-	void setValue1(int v) {bindValue = v;}
-	int getValue1(void) {return bindValue;}
-	void setDrive(int num) { drive = num;}
-	int getDrive(void) { return drive;}
-	void setNumber(int num) { s_num = num;}
-	int getNumber(void) { return s_num;}
-	void setDoubleValue(double n) {double_val = n;}
-	double getDoubleValue(void) {return double_val;}
-	
-	bool isPlay(void) { return play; }
-	void setPlay(bool b) { play = b; }
-   
-	bool isWriteProtect(void) { return write_protect; }
-	void setWriteProtect(bool b) {write_protect = b;}
-public slots:
 	void do_save_as_movie(void);
 	void do_stop_saving_movie(void);
+     
+signals:
+	int on_boot_mode(int);   
+	int on_cpu_type(int);   
+	int on_cpu_power(int); 
+	int on_open_debugger(int);
+	
+	int sig_insert_fd(int);
+	int sig_eject_fd(int);
+	int set_d88_slot(int, int);
+	int set_recent_disk(int, int);
+	int sig_write_protect_fd(int, bool);
+	int sig_device_type(int);
+	int sig_sound_device(int);
+	int sig_printer_device(int);
+	int sig_drive_type(int);
+	int sig_emu_update_config(void);
+
+	int set_recent_quick_disk(int, int);
+	int sig_write_protect_Qd(int, bool);
+	int sig_eject_Qd(int);
+	int sig_insert_Qd(int);
+	
+	int sig_insert_cdrom(bool);
+	int sig_eject_cdrom(void);
+	int sig_recent_cdrom(int);
+		
+	int sig_insert_laserdisc(bool);
+	int sig_eject_laserdisc(void);
+	int sig_recent_laserdisc(int);
+	
+	int sig_insert_play_cmt(bool);
+	int sig_eject_cmt(void);
+	int sig_recent_cmt(int);
+	int sig_set_write_protect_cmt(bool);
+	int sig_insert_cart(int);
+	int sig_eject_cart(int);
+	int set_recent_cart(int, int);
+
+	int sig_open_binary_file(int, QString, bool);
+	int sig_open_binary(int, bool);
+	int set_recent_binary_load(int, int);
+	int set_recent_binary_save(int, int);
+
+	// bubble
+	int sig_insert_bubble(int);
+	int sig_eject_bubble(int);
+	int set_b77_slot(int, int);
+	int set_recent_bubble(int, int);
+	int sig_write_protect_bubble(int, bool);
+	
+	int sig_freq(int);
+	int sig_latency(int);
+	int sig_sounddevice(int);
+	int sig_set_dipsw(int, bool);
+	int sig_screen_aspect(int);
+	int sig_screen_size(int, int);
+	int sig_screen_multiply(float);
 
 signals:
 	int sig_stop_record_movie();
 	int sig_start_record_movie(int);
 } Object_Menu_Control ;
+
+
 
 typedef class DLL_PREFIX Action_Control: public QAction {
 	Q_OBJECT

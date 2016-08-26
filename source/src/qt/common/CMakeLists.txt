@@ -15,7 +15,10 @@ endif()
 set(QT_COMMON_BASE  
 	  qt_utils.cpp
 	  menu_flags.cpp
+	  
 	  emu_thread.cpp
+	  emu_thread_slots.cpp
+	  
 	  util_fd2.cpp
 	  util_bubble2.cpp
 	  util_main.cpp

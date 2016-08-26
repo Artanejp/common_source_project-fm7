@@ -43,7 +43,7 @@ public:
 	void OnWindowMove(void);
 	void OnWindowRedraw(void);
 	void OnMainWindowClosed(void);
-#ifdef USE_POWER_OFF
+#if defined(USE_NOTIFY_POWER_OFF)
 	bool GetPowerState(void);
 #endif	
 public slots:
