@@ -105,12 +105,14 @@ void OSD_BASE::update_input()
 			if(key_status[VK_SHIFT] == 0) {
 				// shift key is newly pressed
 				key_status[VK_SHIFT] = 0x80;
+				if(!this->get_notify_key_down_lr_shift()) key_status[VK_LSHIFT] = 0x80;
 				if(this->get_notify_key_down()) vm_key_down(VK_SHIFT, false);
 			}
 		} else if(!key_shift_pressed && key_shift_released) {
 			if(key_status[VK_SHIFT] != 0) {
 			// shift key is newly released
 				key_status[VK_SHIFT] = 0;
+				if(!this->get_notify_key_down_lr_shift()) key_status[VK_LSHIFT] = 0;
 				if(this->get_notify_key_down()) vm_key_up(VK_SHIFT);
 				// check l/r shift
 				if(!(GetAsyncKeyState(VK_LSHIFT) & 0x8000)) key_status[VK_LSHIFT] &= 0x7f;
