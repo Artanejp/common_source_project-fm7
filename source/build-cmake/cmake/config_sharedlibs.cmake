@@ -38,6 +38,12 @@ set(USE_GCC_OLD_ABI ON CACHE BOOL "Build with older GCC ABIs if you can.")
 set(USE_SDL2 ON CACHE BOOL "Build with libSDL2. DIsable is building with libSDL1.")
 set(USE_MOVIE_SAVER OFF CACHE BOOL "Save screen/audio as MP4 MOVIE. Needs libav .")
 set(USE_MOVIE_LOADER OFF CACHE BOOL "Load movie from screen for some VMs. Needs libav .")
+set(USE_LTO ON CACHE BOOL "Use link-time-optimization to build.")
+if(USE_LTO)
+#   set_property(DIRECTORY PROPERTY INTERPROCEDURAL_OPTIMIZATION true)
+else()
+#   set_property(DIRECTORY PROPERTY INTERPROCEDURAL_OPTIMIZATION false)
+endif()
 
 add_definitions(-D_USE_QT5)
 
