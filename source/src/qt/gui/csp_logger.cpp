@@ -565,7 +565,7 @@ void CSP_Logger::clear_log(void)
 	}
 }
 
-int64_t CSP_Logger::write_log(const _TCHAR *name, int loglevel, const char *domain_name)
+int64_t CSP_Logger::write_log(const _TCHAR *name, const char *domain_name, bool utf8, bool forget)
 {
 	int64_t n_len = (int64_t)-1;
 	if(name == NULL) return n_len;
@@ -573,18 +573,17 @@ int64_t CSP_Logger::write_log(const _TCHAR *name, int loglevel, const char *doma
 	FILEIO *fio = new FILEIO();
 	if(fio == NULL) return n_len;
 	
-	if(!fio->Fopen(name, FILEIO_READ_WRITE_APPEND_ASCII)) {
+	if(!fio->Fopen(name, FILEIO_READ_WRITE_BINARY)) {
 		delete fio;
 		return n_len;
 	}
-
+	if(fio->FileLength() > 0) fio->Fseek(0, FILEIO_SEEK_END);
 	n_len = 0;
 	char strbuf[0x20000];
 	int64_t len = 0;
-	bool forget = true; // Really?
 	do {
 		memset(strbuf, 0x00, sizeof(strbuf));
-		len = get_console_list(strbuf, 0x20000, true, domain_name, forget, (int64_t)-1, (int64_t)-1);
+		len = get_console_list(strbuf, 0x20000, utf8, (char *)domain_name, forget);
 		if(len > 0x20000) break; // Illegal
 		if(len <= 0) break;
 		if(fio->Fwrite(strbuf, (uint32_t)len, 1) != len) break;

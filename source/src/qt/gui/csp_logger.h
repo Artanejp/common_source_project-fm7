@@ -189,10 +189,9 @@ public:
 	void set_device_node_log(int to_output, int type, bool* flags, int start, int devices);
 	void set_device_node_log(int to_output, int type, int *flags, int start, int devices);
 	void output_event_log(int device_id, int level, const char *fmt, ...);
-	int64_t get_console_list(char *buffer, int64_t buf_size, bool utf8, char *domainname, bool forget, int64_t start, int64_t end);
+	int64_t get_console_list(char *buffer, int64_t buf_size, bool utf8, char *domainname, bool forget, int64_t start = -1, int64_t end = -1);
 	void clear_log(void);
-	int64_t write_log(const _TCHAR *name, int loglevel, const char *domain_name);
-
+	int64_t write_log(const _TCHAR *name, const char *domain_name = NULL, bool utf8 = true, bool forget = false);
 };
 QT_END_NAMESPACE
 
