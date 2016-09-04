@@ -83,11 +83,13 @@ void Ui_MainWindowBase::do_browse_document(QString fname)
 
 void Ui_MainWindowBase::do_set_conslog(bool f)
 {
+	using_flags->get_config_ptr()->log_to_console = f;
 	csp_logger->set_log_stdout(-1, f);
 }
 
 void Ui_MainWindowBase::do_set_syslog(bool f)
 {
+	using_flags->get_config_ptr()->log_to_syslog = f;
 	csp_logger->set_log_syslog(-1, f);
 }
 
