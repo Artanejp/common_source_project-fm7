@@ -300,6 +300,12 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	class Action_Control *action_SetupJoystick;
 	class Action_Control *action_SetupKeyboard;
 
+	QMenu *menuLogToConsole;
+	QMenu *menuLogToSyslog;
+	class Action_Control *action_LogToSyslog;
+	class Action_Control *action_LogToConsole;
+	class Action_Control *action_LogRecord;
+
 	class Action_Control *action_SetupMovie; // 15, 24, 30, 60
 	
 	// Menus    
@@ -575,7 +581,8 @@ public slots:
 	void set_printer_device(int);
 	void do_show_about(void);
 	void do_browse_document(QString);
-   
+	void do_set_conslog(bool);
+	void do_set_syslog(bool);
 signals:
 	int message_changed(QString);
 	int quit_emu_thread();

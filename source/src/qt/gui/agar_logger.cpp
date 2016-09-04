@@ -19,6 +19,21 @@
 CSP_Logger::CSP_Logger(bool b_syslog, bool cons, const char *devname)
 {
 	lock_mutex = new QMutex(QMutex::Recursive);
+	this->reset();
+	this->open(b_syslog, cons, devname);
+}
+
+
+CSP_Logger::~CSP_Logger()
+{
+	loglist.clear();
+	log_sysname.clear();
+	squeue.clear();
+	delete lock_mutex;
+}
+
+void CSP_Logger::reset(void)
+{
 	QString tmps;
 	const char *p;
 
@@ -26,6 +41,8 @@ CSP_Logger::CSP_Logger(bool b_syslog, bool cons, const char *devname)
 	vfile_names.clear();
 	cpu_names.clear();
 	device_names.clear();
+	max_cpus = 0;
+	max_devices = 0;
 	
 	const char *components[] = {
 		"GENERAL",
@@ -88,24 +105,23 @@ CSP_Logger::CSP_Logger(bool b_syslog, bool cons, const char *devname)
 		QString ss;
 		ss.setNum(i);
 		cpu_names.append(tmps + ss);
+		for(int j = 0; j < CSP_LOG_LEVELS; j++) {
+			level_cpu_out_record[i][j] = true;
+			level_cpu_out_syslog[i][j] = false;
+			level_cpu_out_console[i][j] = true;
+		}
 	}
 	tmps = QString::fromUtf8("DEV"); // Enable to update
 	for(int i = 0; i < (256 - (32 + 8)); i++) {
 		QString ss;
 		ss.setNum(i);
 		device_names.append(tmps + ss);
+		for(int j = 0; j < CSP_LOG_LEVELS; j++) {
+			level_dev_out_record[i][j] = true;
+			level_dev_out_syslog[i][j] = false;
+			level_dev_out_console[i][j] = true;
+		}
 	}
-	
-	
-	this->open(b_syslog, cons, devname);
-}
-
-CSP_Logger::~CSP_Logger()
-{
-	loglist.clear();
-	log_sysname.clear();
-	squeue.clear();
-	delete lock_mutex;
 }
 
 //extern class USING_FLAGS *using_flags;
@@ -220,14 +236,23 @@ void CSP_Logger::debug_log(int level, int domain_num, char *strbuf)
 		int cons_log_level_n = (1 << level) & cons_log_levels;
 		int sys_log_level_n = (1 << level) & sys_log_levels;
 		QString domain_s;
+		bool record_flag = true;
 		domain_s.clear();
 		
 		if((domain_num > 0) && (domain_num < CSP_LOG_TYPE_COMPONENT_END)) {
 			domain_s = component_names.at(domain_num - 1);
 		} else if((domain_num >= CSP_LOG_TYPE_VM_CPU0) && (domain_num < CSP_LOG_TYPE_VM_DEVICE_0)) {
 			domain_s = cpu_names.at(domain_num - CSP_LOG_TYPE_VM_CPU0);
+			
+			record_flag = level_cpu_out_record[domain_num - CSP_LOG_TYPE_VM_CPU0][level];
+			if(!level_cpu_out_syslog[domain_num - CSP_LOG_TYPE_VM_CPU0][level]) sys_log_level_n = 0;
+			if(!level_cpu_out_console[domain_num - CSP_LOG_TYPE_VM_CPU0][level]) cons_log_level_n = 0;
 		} else if((domain_num >= CSP_LOG_TYPE_VM_DEVICE_0) && (domain_num <= CSP_LOG_TYPE_VM_DEVICE_END)) {
 			domain_s = device_names.at(domain_num - CSP_LOG_TYPE_VM_DEVICE_0);
+			
+			record_flag = level_dev_out_record[domain_num - CSP_LOG_TYPE_VM_DEVICE_0][level];
+			if(!level_dev_out_syslog[domain_num - CSP_LOG_TYPE_VM_DEVICE_0][level]) sys_log_level_n = 0;
+			if(!level_dev_out_console[domain_num - CSP_LOG_TYPE_VM_DEVICE_0][level]) cons_log_level_n = 0;
 		} else if((domain_num >= CSP_LOG_TYPE_VFILE_HEAD) && (domain_num < CSP_LOG_TYPE_VFILE_END)) {
 			domain_s = vfile_names.at(domain_num - CSP_LOG_TYPE_VFILE_HEAD);
 		}
@@ -240,9 +265,7 @@ void CSP_Logger::debug_log(int level, int domain_num, char *strbuf)
 		do {
 			if(p != NULL) {
 				CSP_LoggerLine *tmps;
-				if(linenum == LLONG_MAX) line_wrap++;
-				tmps = new CSP_LoggerLine(linenum++, level, domain_s, time_s, QString::fromUtf8(p));
-				squeue.enqueue(tmps);
+				tmps = new CSP_LoggerLine(linenum, level, domain_s, time_s, QString::fromUtf8(p));
 				if(log_onoff) {
 					if(cons_log_level_n != 0) {
 						fprintf(stdout, "%s : %s\n",
@@ -262,6 +285,17 @@ void CSP_Logger::debug_log(int level, int domain_num, char *strbuf)
 #else
 				p = strtok_r(NULL, delim, &p_bak);
 #endif
+				if(!record_flag) {
+					delete tmps;
+				} else {
+					squeue.enqueue(tmps);
+					if(linenum == LLONG_MAX) {
+						line_wrap++;
+						linenum = 0;
+					} else {
+						linenum++;
+					}
+				}
 			}
 #if defined(Q_OS_WIN)
 			fflush(stdout);
@@ -355,6 +389,7 @@ void CSP_Logger::set_device_name(int num, char *devname)
 	if(devname == NULL) return;
 	QString tmps = QString::fromUtf8(devname);
 	device_names.replace(num, tmps);
+	if(max_devices <= num) max_devices = num + 1;
 }
 
 void CSP_Logger::set_cpu_name(int num, char *devname)
@@ -364,33 +399,161 @@ void CSP_Logger::set_cpu_name(int num, char *devname)
 	if(devname == NULL) return;
 	QString tmps = QString::fromUtf8(devname);
 	device_names.replace(num, tmps);
+	if(max_cpus <= num) max_cpus = num + 1;
 }
 
 void CSP_Logger::set_device_node_log(int device_id, int to_output, int type, bool flag)
 {
+	if(type < 0) return;
+	if(type >= CSP_LOG_LEVELS) return;
+	if(to_output < 0) return;
+	if(to_output > 2) return;
+	if(device_id >= (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0)) return;
+	if(device_id == -1) { // Flush all device
+		for(int i = 0; i < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1); i++) {
+			// 0 = record, 1 = syslog, 2 = console;
+			switch(to_output)
+			{
+			case 0:
+				level_dev_out_record[i][type] = flag;
+				break;
+			case 1:
+				level_dev_out_syslog[i][type] = flag;
+				break;
+			case 2:
+				level_dev_out_console[i][type] = flag;
+				break;
+			default:
+				break;
+			}
+		}
+	} else {
+		// 0 = record, 1 = syslog, 2 = console;
+		switch(to_output)
+		{
+		case 0:
+			level_dev_out_record[device_id][type] = flag;
+			break;
+		case 1:
+			level_dev_out_syslog[device_id][type] = flag;
+			break;
+		case 2:
+			level_dev_out_console[device_id][type] = flag;
+			break;
+		default:
+			break;
+		}
+	}
+}
+
+void CSP_Logger::set_device_node_log(int to_output, int type, bool *flags, int start, int devices)
+{
+	if(flags == NULL) return;
+	if(start < 0) return;
+
+	int i;
+	for(i = 0; i < devices; i++) {
+		set_device_node_log(i + start, to_output, type, flags[i]);
+	}
+}
+
+void CSP_Logger::set_device_node_log(int to_output, int type, int *flags, int start, int devices)
+{
+	if(flags == NULL) return;
+	if(start < 0) return;
+	
+	int i;
+	bool f;
+	for(i = 0; i < devices; i++) {
+		f = (flags[i] == 0) ? false : true;
+		set_device_node_log(i + start, to_output, type, f);
+	}
 }
 
 void CSP_Logger::output_event_log(int device_id, int level, const char *fmt, ...)
 {
 	char strbuf[4500];
 	char strbuf2[4096];
-	char devname[128];
 	char *p = NULL;
-	if(p_osd != NULL) {
-		p = (char *)p_osd->get_vm_node_name(device_id);
-	}
-	if(p == NULL) {
-		snprintf(devname, 127, "DEVICE#%d", device_id);
-	} else {
-		strncpy(devname, p, 127);
-	}
+	p = (char *)(device_names.at(device_id).toLocal8Bit().constData());
 	
 	va_list ap;
 	va_start(ap, fmt);	
 	vsnprintf(strbuf2, 4095, fmt, ap);
-	snprintf(strbuf, 4500, "[%s] %s", devname, strbuf2); 
+	snprintf(strbuf, 4500, "[%s] %s", p, strbuf2); 
 	debug_log(level, CSP_LOG_TYPE_EVENT, strbuf);
 	va_end(ap);
 }
 
+int64_t CSP_Logger::get_console_list(char *buffer, int64_t buf_size, bool utf8, char *domainname, bool forget, int64_t start, int64_t end)
+{
+	if((buffer == NULL) || (buf_size < 0)) return (int64_t)-1;
 
+	QString dom;
+	char tmpbuf[8192];
+	bool not_match_domain = false;
+	if(domainname == NULL) not_match_domain = true;
+	if(!not_match_domain && (domainname != NULL)) dom = QString::fromUtf8(domainname);
+	if(dom.isEmpty()) not_match_domain = true;
+
+	int64_t total_size = 0;
+	CSP_LoggerLine *t;
+	QString tmps;
+	char *pp = buffer;
+	bool check_line = ((start >= 0) && (end >= start));
+	for(int i = 0; i < squeue.size(); i++) {
+		if(forget) {
+			t = squeue.dequeue();
+		} else {
+			t = squeue.at(i);
+		}
+		if(t != NULL) {
+
+			if(check_line) {
+				int64_t n_line = t->get_line_num();
+				if((n_line < start) || (n_line >= end)) continue;
+			}
+
+			if(not_match_domain) {
+				tmps = t->get_element_console();
+			} else {
+				if(dom == t->get_domain()) {
+					tmps = t->get_element_console();
+				} else {
+					tmps.clear();
+				}
+			}
+			if(!tmps.isEmpty()) {
+				int l = 0;
+				QByteArray ns;
+				if(utf8) {
+					ns = tmps.toUtf8();
+				} else {
+					ns = tmps.toLocal8Bit();
+				}
+				l = ns.size();
+				if(l > 0) {
+					memset(tmpbuf, 0x00, 8192);
+					if(l >= 8192) l = 8192 -1;
+					strncpy(tmpbuf, ns.constData(), l);
+				}
+				if(((int64_t)l + total_size) < buf_size) {
+					strncpy(pp, tmpbuf, l);
+					pp += l;
+					total_size += (int64_t)l;
+				} else {
+					break;
+				}
+			}
+		}
+	}
+	return total_size;
+}
+
+void CSP_Logger::clear_log(void)
+{
+	while(!squeue.isEmpty()) {
+		CSP_LoggerLine *p = squeue.dequeue();
+		if(p != NULL) delete p;
+	}
+}

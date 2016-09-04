@@ -161,6 +161,15 @@ typedef struct {
 	// printer
 	int printer_device_type;
 	_TCHAR printer_dll_path[_MAX_PATH];
+
+	// General
+#ifdef _USE_QT
+	bool log_to_syslog;
+	bool log_to_console;
+	bool dev_log_to_syslog[256 - 32][8];
+	bool dev_log_to_console[256 - 32][8];
+	bool dev_log_recording[256 - 32][8];
+#endif
 } config_t;
 
 extern config_t config;

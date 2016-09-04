@@ -6,15 +6,6 @@
 
 	[ config ]
 */
-#if defined(_USE_AGAR)
-#include <SDL/SDL.h>
-#include <agar/core.h>
-#include <string>
-#include <vector>
-#include "fileio.h"
-#include "agar_logger.h"
-#endif
-
 #if defined(_USE_QT)
 #include <string>
 #include <vector>
@@ -171,6 +162,16 @@ void initialize_config()
 	config.opengl_scanline_horiz = false;
 	config.use_opengl_filters = false;
 	config.opengl_filter_num = 0;
+
+	config.log_to_syslog = false;
+	config.log_to_console = true;
+	for(int i = 0; i < (256 -32); i++) {
+		for(int j = 0; j <8; j++) {
+			config.dev_log_to_syslog[i][j] = false;
+			config.dev_log_to_console[i][j] = true;
+			config.dev_log_recording[i][j] = true;
+		}
+	}
 #endif	
 }
 
@@ -437,6 +438,32 @@ void load_config(const _TCHAR *config_path)
 	if(config.video_frame_rate > 75) config.video_frame_rate = 75;
 
 #endif	
+#if defined(_USE_QT)
+	config.log_to_syslog = MyGetPrivateProfileBool(_T("Emulator"), _T("WriteToSyslog"), config.log_to_syslog, config_path);
+	config.log_to_console = MyGetPrivateProfileBool(_T("Emulator"), _T("WriteToConsole"), config.log_to_console, config_path);
+	for(int ii = 0; ii < (256 - 32); ii++) {
+		uint32_t flags = 0;
+		flags = MyGetPrivateProfileInt(_T("Emulator"), create_string(_T("SyslogEnabled%d"), ii), 0x0000, config_path);
+		for(int jj = 0; jj < 8; jj++) {
+			config.dev_log_to_syslog[ii][jj] = ((flags & 0x0001) != 0) ? true : false;
+			csp_logger->set_device_node_log(ii, 1, jj, config.dev_log_to_syslog[ii][jj]);
+			flags >>= 1;
+		}
+		flags = 0;
+		flags = MyGetPrivateProfileInt(_T("Emulator"), create_string(_T("ConsoleLogEnabled%d"), ii), 0xffff, config_path);
+		for(int jj = 0; jj < 8; jj++) {
+			config.dev_log_to_console[ii][jj] = ((flags & 0x0001) != 0) ? true : false;
+			csp_logger->set_device_node_log(ii, 2, jj, config.dev_log_to_console[ii][jj]);
+			flags >>= 1;
+		}
+		flags = MyGetPrivateProfileInt(_T("Emulator"), create_string(_T("RecordLogEnabled%d"), ii), 0x00, config_path);
+		for(int jj = 0; jj < 8; jj++) {
+			config.dev_log_recording[ii][jj] = ((flags & 0x0001) != 0) ? true : false;
+			csp_logger->set_device_node_log(ii, 0, jj, config.dev_log_recording[ii][jj]);
+			flags >>= 1;
+		}
+	}
+#endif
 #if defined(_USE_QT) && !defined(Q_OS_WIN)
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Read config done.");
 #endif
@@ -658,6 +685,34 @@ void save_config(const _TCHAR *config_path)
 	MyWritePrivateProfileInt(_T("Video"), _T("AudioBitrate"), config.audio_bitrate, config_path);
 	MyWritePrivateProfileInt(_T("Video"), _T("VideoFramerate"), config.video_frame_rate, config_path);
 #endif	
+#if defined(_USE_QT)
+	MyWritePrivateProfileBool(_T("Emulator"), _T("WriteToSyslog"), config.log_to_syslog, config_path);
+	MyWritePrivateProfileBool(_T("Emulator"), _T("WriteToConsole"), config.log_to_console, config_path);
+	
+	for(int ii = 0; ii < (256 - 32); ii++) {
+		uint32_t flags = 0;
+		flags = 0;
+		for(int jj = 0; jj < 8; jj++) {
+			flags <<= 1;
+			if(config.dev_log_to_syslog[ii][jj]) flags |= 0x0001;
+		}
+		flags = MyWritePrivateProfileInt(_T("Emulator"), create_string(_T("SyslogEnabled%d"), ii), flags, config_path);
+
+		flags = 0;
+		for(int jj = 0; jj < 8; jj++) {
+			flags <<= 1;
+			if(config.dev_log_to_console[ii][jj]) flags |= 0x0001;
+		}
+		flags = MyWritePrivateProfileInt(_T("Emulator"), create_string(_T("ConsoleLogEnabled%d"), ii), flags, config_path);
+
+		flags = 0;
+		for(int jj = 0; jj < 8; jj++) {
+			flags <<= 1;
+			if(config.dev_log_recording[ii][jj]) flags |= 0x0001;
+		}
+		flags = MyWritePrivateProfileInt(_T("Emulator"), create_string(_T("RecordLogEnabled%d"), ii), flags, config_path);
+	}
+#endif
 #if defined(_USE_QT) && !defined(Q_OS_WIN)
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Write config done.");
 #endif

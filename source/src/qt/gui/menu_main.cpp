@@ -32,9 +32,11 @@
 //#include "emu.h"
 #include "qt_main.h"
 #include "menu_flags.h"
+#include "agar_logger.h"
 
 extern EMU *emu;
 //extern USING_FLAGS *using_flags;
+
 
 Ui_MainWindowBase::Ui_MainWindowBase(USING_FLAGS *p, QWidget *parent) : QMainWindow(parent)
 {
@@ -79,6 +81,15 @@ void Ui_MainWindowBase::do_browse_document(QString fname)
 	dlg->show();
 }
 
+void Ui_MainWindowBase::do_set_conslog(bool f)
+{
+	csp_logger->set_log_stdout(-1, f);
+}
+
+void Ui_MainWindowBase::do_set_syslog(bool f)
+{
+	csp_logger->set_log_syslog(-1, f);
+}
 
 void Ui_MainWindowBase::setupUi(void)
 {
@@ -463,6 +474,8 @@ void Ui_MainWindowBase::setupUi(void)
 		connect(action_SetupJoystick, SIGNAL(triggered()), this, SLOT(rise_joystick_dialog()));
 	}
 	connect(action_SetupKeyboard, SIGNAL(triggered()), this, SLOT(rise_keyboard_dialog()));
+	connect(action_LogToSyslog, SIGNAL(toggled(bool)), this, SLOT(do_set_syslog(bool)));
+	connect(action_LogToConsole, SIGNAL(toggled(bool)), this, SLOT(do_set_conslog(bool)));
 	   
 	QImageReader reader(":/default.ico");
 	QImage result = reader.read();
@@ -501,11 +514,18 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 	action_SetupKeyboard->setText(QApplication::translate("MainWindow", "Configure Keyboard", 0));
 	action_SetupKeyboard->setIcon(QIcon(":/icon_keyboard.png"));
 	action_SetupMovie->setText(QApplication::translate("MainWindow", "Configure movie encoding", 0));
-	
+
+	action_LogToConsole->setText(QApplication::translate("MainWindow", "Log to Console", 0));
+	action_LogToSyslog->setText(QApplication::translate("MainWindow", "Log to Syslog", 0));
+	//action_LogRecord->setText(QApplication::translate("MainWindow", "Recording Log", 0));
 }
 
 void Ui_MainWindowBase::CreateEmulatorMenu(void)
 {
+	//menuEmulator->addAction(action_LogRecord);
+	menuEmulator->addAction(action_LogToConsole);
+	menuEmulator->addAction(action_LogToSyslog);
+	menuEmulator->addSeparator();
 	if(using_flags->is_use_joystick()) {
 		menuEmulator->addAction(action_SetupJoystick);
 	}
@@ -520,6 +540,21 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	if(using_flags->is_use_joystick()) {
 		action_SetupJoystick = new Action_Control(this, using_flags);
 	}
+	action_LogToSyslog = new Action_Control(this, using_flags);
+	action_LogToSyslog->setCheckable(true);
+	action_LogToSyslog->setEnabled(true);
+	if(using_flags->get_config_ptr()->log_to_syslog != 0) action_LogToSyslog->setChecked(true);
+	
+	action_LogToConsole = new Action_Control(this, using_flags);
+	action_LogToConsole->setCheckable(true);
+	action_LogToConsole->setEnabled(true);
+	if(using_flags->get_config_ptr()->log_to_console != 0) action_LogToConsole->setChecked(true);
+	
+	//action_LogRecord = new Action_Control(this, using_flags);
+	//action_LogRecord->setCheckable(true);
+	//action_LogRecord->setEnabled(true);
+	//if(using_flags->get_config_ptr()->log_recording == 0) action_LogRecord->setChecked(false);
+	
 	action_SetupKeyboard = new Action_Control(this, using_flags);
 
 	action_SetupMovie = new Action_Control(this, using_flags);

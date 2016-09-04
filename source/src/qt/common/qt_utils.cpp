@@ -598,6 +598,8 @@ int MainLoop(int argc, char *argv[], config_t *cfg)
 	using_flags->set_osd(emu->get_osd());
 	csp_logger->set_osd(emu->get_osd());
 
+	
+
 #ifdef SUPPORT_DRAG_DROP
 	// open command line path
 	//	if(szCmdLine[0]) {

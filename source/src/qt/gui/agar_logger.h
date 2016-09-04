@@ -97,6 +97,12 @@ public:
 		timestamp = time_s;
 	};
 	~CSP_LoggerLine() {};
+	int64_t get_line_num(void) {
+		return linenum;
+	}
+	QString get_domain(void) {
+		return domain;
+	}
 	QString get_element_syslog(void) {
 		QString s;
 		if(domain.isEmpty()) {
@@ -142,10 +148,23 @@ private:
 	QStringList vfile_names;
 	QStringList cpu_names;
 	QStringList device_names;
+
+	// Device
+	bool level_dev_out_record[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1][CSP_LOG_LEVELS]; // Record to log chain
+	bool level_dev_out_syslog[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1][CSP_LOG_LEVELS]; // Syslog chain
+	bool level_dev_out_console[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1][CSP_LOG_LEVELS]; // Console log chain
+
+    // CPU
+	bool level_cpu_out_record[8][CSP_LOG_LEVELS]; // Record to log chain
+	bool level_cpu_out_syslog[8][CSP_LOG_LEVELS]; // Syslog chain
+	bool level_cpu_out_console[8][CSP_LOG_LEVELS]; // Console log chain
 	
 	QQueue<CSP_LoggerLine *> squeue;
 	QMutex *lock_mutex;
 	OSD *p_osd;
+
+	int max_devices;
+	int max_cpus;
 protected:
 	void debug_log(int level, int domain_num, char *strbuf);
 
@@ -154,6 +173,7 @@ public:
 	~CSP_Logger();
 	void set_osd(OSD *p) { p_osd = p; }
 	void open(bool b_syslog, bool cons, const char *devname);
+	void reset(void);
 	void debug_log(int level, const char *fmt, ...);
 	void debug_log(int level, int domain_num, const char *fmt, ...);
 	void close(void);
@@ -166,7 +186,11 @@ public:
 	void set_device_name(int num, char *devname);
 	void set_cpu_name(int num, char *devname);
 	void set_device_node_log(int device_id, int to_output, int type, bool flag);
+	void set_device_node_log(int to_output, int type, bool* flags, int start, int devices);
+	void set_device_node_log(int to_output, int type, int *flags, int start, int devices);
 	void output_event_log(int device_id, int level, const char *fmt, ...);
+	int64_t get_console_list(char *buffer, int64_t buf_size, bool utf8, char *domainname, bool forget, int64_t start, int64_t end);
+	void clear_log(void);
 };
 QT_END_NAMESPACE
 
