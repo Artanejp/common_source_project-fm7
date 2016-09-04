@@ -191,6 +191,8 @@ public:
 	void output_event_log(int device_id, int level, const char *fmt, ...);
 	int64_t get_console_list(char *buffer, int64_t buf_size, bool utf8, char *domainname, bool forget, int64_t start, int64_t end);
 	void clear_log(void);
+	int64_t write_log(const _TCHAR *name, int loglevel, const char *domain_name);
+
 };
 QT_END_NAMESPACE
 

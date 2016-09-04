@@ -564,3 +564,33 @@ void CSP_Logger::clear_log(void)
 		if(p != NULL) delete p;
 	}
 }
+
+int64_t CSP_Logger::write_log(const _TCHAR *name, int loglevel, const char *domain_name)
+{
+	int64_t n_len = (int64_t)-1;
+	if(name == NULL) return n_len;
+	
+	FILEIO *fio = new FILEIO();
+	if(fio == NULL) return n_len;
+	
+	if(!fio->Fopen(name, FILEIO_READ_WRITE_APPEND_ASCII)) {
+		delete fio;
+		return n_len;
+	}
+
+	n_len = 0;
+	char strbuf[0x20000];
+	int64_t len = 0;
+	bool forget = true; // Really?
+	do {
+		memset(strbuf, 0x00, sizeof(strbuf));
+		len = get_console_list(strbuf, 0x20000, true, domain_name, forget, (int64_t)-1, (int64_t)-1);
+		if(len > 0x20000) break; // Illegal
+		if(len <= 0) break;
+		if(fio->Fwrite(strbuf, (uint32_t)len, 1) != len) break;
+		n_len += len;
+	} while(len > 0);
+	fio->Fclose();
+	delete fio;
+	return n_len;
+}
