@@ -302,9 +302,15 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 
 	QMenu *menuLogToConsole;
 	QMenu *menuLogToSyslog;
+	QMenu *menuDevLogToConsole;
+	QMenu *menuDevLogToSyslog;
+	
 	class Action_Control *action_LogToSyslog;
 	class Action_Control *action_LogToConsole;
 	class Action_Control *action_LogRecord;
+	class Action_Control *action_DevLogToSyslog[256 - 32];
+	class Action_Control *action_DevLogToConsole[256 - 32];
+	class Action_Control *action_DevLogRecord[256 - 32];
 
 	class Action_Control *action_SetupMovie; // 15, 24, 30, 60
 	
@@ -389,6 +395,9 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	class DrawThreadClass *hDrawEmu;
 	class JoyThreadClass *hRunJoy;
 	class MOVIE_SAVER *hSaveMovieThread;
+	
+	int max_vm_nodes;
+	bool ui_retranslate_completed;
 public:
 	Ui_MainWindowBase(USING_FLAGS *p, QWidget *parent = 0);
 	~Ui_MainWindowBase();
@@ -583,6 +592,9 @@ public slots:
 	void do_browse_document(QString);
 	void do_set_conslog(bool);
 	void do_set_syslog(bool);
+	void do_update_device_node_name(int id, const _TCHAR *name);	
+	void do_set_dev_log_to_console(int id, bool f);
+
 signals:
 	int message_changed(QString);
 	int quit_emu_thread();

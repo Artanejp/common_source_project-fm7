@@ -28,17 +28,15 @@ private:
 	void update_pointer(uint8_t mode);
 	
 public:
-	UPD16434(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	UPD16434(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
+		set_device_name(_T("uPD16434"));
+	}
 	~UPD16434() {}
 	
 	// common functions
 	void reset();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("uPD16434");
-	}
 	
 	// unique functions
 	void data(uint8_t data);

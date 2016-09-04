@@ -384,10 +384,17 @@ void CSP_Logger::set_emu_vm_name(const char *devname)
 
 void CSP_Logger::set_device_name(int num, char *devname)
 {
+	QString tmps;
 	if(num < 0) return;
 	if(num > (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0)) return;
-	if(devname == NULL) return;
-	QString tmps = QString::fromUtf8(devname);
+	if(devname == NULL) {
+		QString s;
+		s.setNum(num);
+		tmps = QString::fromUtf8("Device#");
+		tmps = tmps + s;
+	} else {
+		tmps = QString::fromUtf8(devname);
+	}
 	device_names.replace(num, tmps);
 	if(max_devices <= num) max_devices = num + 1;
 }

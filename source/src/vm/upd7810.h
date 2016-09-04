@@ -43,6 +43,7 @@ public:
 	{
 		initialize_output_signals(&outputs_to);
 		initialize_output_signals(&outputs_txd);
+		set_device_name(_T("uPD7810"));
 	}
 	~UPD7810() {}
 	
@@ -77,10 +78,6 @@ public:
 #endif
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("uPD7810");
-	}
 	
 	// unique functions
 	void set_context_mem(DEVICE* device)

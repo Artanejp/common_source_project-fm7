@@ -8,7 +8,9 @@
 */
 
 #include "event.h"
-
+#if defined(_USE_QT)			
+#include "../qt/gui/csp_logger.h"
+#endif
 #define EVENT_MIX	0
 
 void EVENT::initialize()

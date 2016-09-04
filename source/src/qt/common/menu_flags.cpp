@@ -1,5 +1,7 @@
 #include "common.h"
 #include "vm.h"
+#include "emu.h"
+#include "osd.h"
 #include "menu_flags.h"
 
 #ifndef USE_SOUND_VOLUME
@@ -523,3 +525,20 @@ int USING_FLAGS::get_s_freq_table(int num)
 	return s_freq_table[num];
 }
 																		
+int USING_FLAGS::get_vm_node_size(void)
+{
+	if(p_emu == NULL) return 0;
+	return p_emu->get_osd()->get_vm_node_size();
+}
+
+void USING_FLAGS::set_vm_node_name(int id, const _TCHAR *name)
+{
+	if(p_emu == NULL) return;
+	p_emu->get_osd()->set_vm_node(id, name);
+}
+
+_TCHAR *USING_FLAGS::get_vm_node_name(int id)
+{
+	if(p_emu == NULL) return NULL;
+	return p_emu->get_osd()->get_vm_node_name(id);
+}

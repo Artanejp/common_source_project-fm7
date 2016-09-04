@@ -234,9 +234,12 @@ public slots:
   	void do_check_grab_mouse(bool);
 	void do_send_string(void);
 	void do_set_string(QString);
+	void do_set_dev_log_to_console(bool f);
+	
 signals:
 	int quit_emu_thread(void);
 	int sig_send_string(QString);
+	int sig_set_dev_log_to_console(int, bool);
 } ActionControl;
 QT_END_NAMESPACE
 

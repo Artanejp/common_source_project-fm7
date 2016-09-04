@@ -44,6 +44,8 @@ Ui_MainWindowBase::Ui_MainWindowBase(USING_FLAGS *p, QWidget *parent) : QMainWin
 	p_config = p->get_config_ptr();
 	setupUi();
 	createContextMenu();
+	max_vm_nodes = 0;
+	ui_retranslate_completed = false;
 }
 
 Ui_MainWindowBase::~Ui_MainWindowBase()
@@ -68,6 +70,11 @@ void Action_Control::do_set_string(QString s)
 	bindString = s;
 }
 
+void Action_Control::do_set_dev_log_to_console(bool f)
+{
+	int num = this->binds->getValue1();
+	emit sig_set_dev_log_to_console(num, f);
+}
 
 void Ui_MainWindowBase::do_show_about(void)
 {
@@ -92,6 +99,30 @@ void Ui_MainWindowBase::do_set_syslog(bool f)
 	using_flags->get_config_ptr()->log_to_syslog = f;
 	csp_logger->set_log_syslog(-1, f);
 }
+
+void Ui_MainWindowBase::do_update_device_node_name(int id, const _TCHAR *name)
+{
+	if(action_DevLogToConsole[id] == NULL) return;
+	if(!ui_retranslate_completed) return;
+	if(using_flags->get_vm_node_size() > id) {
+		action_DevLogToConsole[id]->setEnabled(true);
+		action_DevLogToConsole[id]->setVisible(true);
+	} else {
+		action_DevLogToConsole[id]->setEnabled(false);
+		action_DevLogToConsole[id]->setVisible(false);
+	}
+	char s[64] = {0};
+	snprintf(s, 60, "#%02d: %s", id, name);
+	action_DevLogToConsole[id]->setText(QString::fromUtf8(s));
+}
+
+
+void Ui_MainWindowBase::do_set_dev_log_to_console(int num, bool f)
+{
+	csp_logger->set_device_node_log(num, 2, CSP_LOG_DEBUG, f);
+	using_flags->get_config_ptr()->dev_log_to_console[num][0] = f;
+}
+
 
 void Ui_MainWindowBase::setupUi(void)
 {
@@ -520,12 +551,20 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 	action_LogToConsole->setText(QApplication::translate("MainWindow", "Log to Console", 0));
 	action_LogToSyslog->setText(QApplication::translate("MainWindow", "Log to Syslog", 0));
 	//action_LogRecord->setText(QApplication::translate("MainWindow", "Recording Log", 0));
+	for(int i=0; i < (256 - 32) ; i++) {
+		const _TCHAR *p;
+		p = using_flags->get_vm_node_name(i);
+		do_update_device_node_name(i, p);
+	}
+	menuDevLogToConsole->setTitle(QApplication::translate("MainWindow", "Per Device", 0));
 }
 
 void Ui_MainWindowBase::CreateEmulatorMenu(void)
 {
 	//menuEmulator->addAction(action_LogRecord);
 	menuEmulator->addAction(action_LogToConsole);
+	menuEmulator->addAction(menuDevLogToConsole->menuAction());
+	menuEmulator->addSeparator();
 	menuEmulator->addAction(action_LogToSyslog);
 	menuEmulator->addSeparator();
 	if(using_flags->is_use_joystick()) {
@@ -551,7 +590,20 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	action_LogToConsole->setCheckable(true);
 	action_LogToConsole->setEnabled(true);
 	if(using_flags->get_config_ptr()->log_to_console != 0) action_LogToConsole->setChecked(true);
-	
+
+	menuDevLogToConsole = new QMenu(menuEmulator);
+	for(int i = 0; i < (256 - 32); i++) {
+		action_DevLogToConsole[i] = new Action_Control(this, using_flags);
+		action_DevLogToConsole[i]->setCheckable(true);
+		action_DevLogToConsole[i]->setEnabled(false);
+		action_DevLogToConsole[i]->binds->setValue1(i);
+		menuDevLogToConsole->addAction(action_DevLogToConsole[i]);
+		if(using_flags->get_config_ptr()->dev_log_to_console[i][0]) action_DevLogToConsole[i]->setChecked(true);
+		connect(action_DevLogToConsole[i], SIGNAL(toggled(bool)),
+				action_DevLogToConsole[i], SLOT(do_set_dev_log_to_console(bool)));
+		connect(action_DevLogToConsole[i], SIGNAL(sig_set_dev_log_to_console(int, bool)),
+				this, SLOT(do_set_dev_log_to_console(int, bool)));
+	}		
 	//action_LogRecord = new Action_Control(this, using_flags);
 	//action_LogRecord->setCheckable(true);
 	//action_LogRecord->setEnabled(true);
@@ -616,7 +668,7 @@ void Ui_MainWindowBase::retranslateUI_Help(void)
 
 	actionHelp_License->setText(QApplication::translate("MainWindow", "Show License", 0));
 	actionHelp_License_JP->setText(QApplication::translate("MainWindow", "Show License (Japanese)", 0));
-	
+	ui_retranslate_completed = true;
 }
 
 // You can Override this function: Re-define on foo/MainWindow.cpp.

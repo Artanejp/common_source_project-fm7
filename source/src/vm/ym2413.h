@@ -31,6 +31,7 @@ public:
 	YM2413(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		volume_l = volume_r = 1024;
+		set_device_name(_T("YM2413"));
 	}
 	~YM2413() {}
 	
@@ -42,11 +43,6 @@ public:
 	uint32_t read_io8(uint32_t addr);
 	void mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
-	const _TCHAR *get_device_name()
-	{
-		return _T("YM2413");
-	}
-	
 	// unique functions
 	void initialize_sound(int rate, int clock, int samples);
 };

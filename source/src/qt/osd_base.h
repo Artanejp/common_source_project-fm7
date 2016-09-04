@@ -227,6 +227,7 @@ protected:
 	int recv_r_ptr[SOCKET_MAX], recv_w_ptr[SOCKET_MAX];
 
 	// wrapper
+	int max_vm_nodes;
 	QList<device_node_t> device_node_list;
 	virtual void vm_draw_screen(void);
 	virtual Sint16* create_sound(int *extra_frames);
@@ -423,7 +424,9 @@ public:
 	virtual void set_draw_thread(DrawThreadClass *handler);
 	virtual QString get_vm_config_name(void);
 	virtual double vm_frame_rate(void);
-	virtual void set_vm_node(void);
+	
+	virtual void reset_vm_node(void);
+	virtual void set_vm_node(int id, const _TCHAR *name);
 	virtual const _TCHAR *get_vm_node_name(int id);
 	virtual int get_vm_node_size(void);
 	
@@ -461,6 +464,7 @@ signals:
 	int sig_movie_pause(bool);
 	int sig_movie_seek_frame(bool, int);
 
+	int sig_update_device_node_name(int id, const _TCHAR *name);
 };
 QT_END_NAMESPACE
 

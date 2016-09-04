@@ -117,6 +117,7 @@ public:
 	UPD7752(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		volume_l = volume_r = 1024;
+		set_device_name(_T("uPD7752"));
 	}
 	~UPD7752() {}
 	
@@ -131,10 +132,6 @@ public:
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("uPD7752");
-	}
 	
 	// unique function
 	void initialize_sound(int rate)

@@ -119,6 +119,11 @@ public:
 #endif
 		base_decibel_fm = base_decibel_psg = 0;
 		decibel_vol = 0 + 5;
+#ifdef HAS_YM2608
+		set_device_name(_T("YM2608"));
+#else		
+		set_device_name(_T("YM2203"));
+#endif		
 	}
 	~YM2203() {}
 	
@@ -136,16 +141,6 @@ public:
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name(void)
-	{
-#ifdef HAS_YM2608
-		if(is_ym2608) {
-			return _T("YM2608");
-		}
-#endif
-		return _T("YM2203");
-	}
-	
 	// unique functions
 #ifdef HAS_YM_SERIES
 	void set_context_irq(DEVICE* device, int id, uint32_t mask)

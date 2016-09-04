@@ -81,11 +81,6 @@ public:
 	void do_dma();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("Z80DMA");
-	}
-	
 	// interrupt common functions
 	void set_context_intr(DEVICE* device, uint32_t bit)
 	{

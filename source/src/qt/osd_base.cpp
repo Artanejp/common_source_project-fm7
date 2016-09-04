@@ -30,6 +30,7 @@ OSD_BASE::OSD_BASE(USING_FLAGS *p) : QThread(0)
 	locked_vm = false;
 	screen_mutex = new QMutex(QMutex::Recursive);
 	device_node_list.clear();
+	max_vm_nodes = 0;
 }
 
 OSD_BASE::~OSD_BASE()
@@ -297,9 +298,34 @@ int OSD_BASE::get_window_mode_height(int mode)
 	return 200;
 }
 
-void OSD_BASE::set_vm_node(void)
+void OSD_BASE::reset_vm_node(void)
 {
 	device_node_list.clear();
+	csp_logger->reset();
+	max_vm_nodes = 0;
+}
+
+void OSD_BASE::set_vm_node(int id, const _TCHAR *name)
+{
+	device_node_t sp;
+	int i;
+	for(i = 0; i < device_node_list.size(); i++) {
+		sp = device_node_list.at(i);
+		if(id == sp.id) {
+			sp.id = id;
+			sp.name = name;
+			csp_logger->set_device_name(id, (char *)name);
+			device_node_list.replace(i, sp);
+			if(id >= max_vm_nodes) max_vm_nodes = id + 1;
+			return;
+		}
+	}
+	// Not Found
+	sp.id = id;
+	sp.name = name;
+	csp_logger->set_device_name(id, (char *)name);
+	device_node_list.append(sp);
+	if(id >= max_vm_nodes) max_vm_nodes = id + 1;
 }
 
 const _TCHAR *OSD_BASE::get_vm_node_name(int id)
@@ -317,5 +343,5 @@ const _TCHAR *OSD_BASE::get_vm_node_name(int id)
 
 int OSD_BASE::get_vm_node_size(void)
 {
-	return device_node_list.size();
+	return max_vm_nodes;
 }

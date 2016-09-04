@@ -445,15 +445,20 @@ int OSD::get_movie_sound_rate()
 #endif
 }
 
-void OSD::set_vm_node()
+void OSD::reset_vm_node()
 {
 	device_node_t sp;
 	device_node_list.clear();
+	max_vm_nodes = 0;
 	for(DEVICE *p = vm->first_device; p != NULL; p = p->next_device) {
 		sp.id = p->this_device_id;
 		sp.name = p->this_device_name;
 		csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL,  "Device %d :%s", sp.id, sp.name);
 		device_node_list.append(sp);
+		if(max_vm_nodes <= p->this_device_id) max_vm_nodes = p->this_device_id + 1;
+	}
+	for(DEVICE *p = vm->first_device; p != NULL; p = p->next_device) {
+		emit sig_update_device_node_name(p->this_device_id, p->this_device_name);
 	}
 }
 

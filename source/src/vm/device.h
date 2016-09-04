@@ -14,7 +14,8 @@
 #include "vm.h"
 #include "../emu.h"
 #if defined(_USE_QT)
-#include "../qt/gui/agar_logger.h"
+#include "osd.h"
+#include "csp_logger.h"
 #define USE_DEVICE_NAME
 #endif
 
@@ -511,7 +512,7 @@ public:
 		return false;
 	}
 	// misc
-	virtual const _TCHAR *get_device_name(void)
+	const _TCHAR *get_device_name(void)
 	{
 		return (const _TCHAR *)this_device_name;
 	}
@@ -644,7 +645,7 @@ public:
 	virtual void set_device_name(const _TCHAR *name) {
 		if(name == NULL) return;
 		strncpy(this_device_name, name, 128);
-		csp_logger->set_device_name(this_device_id, (char *)name);
+		emu->get_osd()->set_vm_node(this_device_id, (_TCHAR *)name);
 	}
 	virtual void out_debug_log(const char *fmt, ...) {
 		char strbuf[4096];

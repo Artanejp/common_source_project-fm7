@@ -597,9 +597,12 @@ int MainLoop(int argc, char *argv[], config_t *cfg)
 	using_flags->set_emu(emu);
 	using_flags->set_osd(emu->get_osd());
 	csp_logger->set_osd(emu->get_osd());
-
-	
-
+	QObject::connect(emu->get_osd(), SIGNAL(sig_update_device_node_name(int, const _TCHAR *)),
+					 rMainWindow, SLOT(do_update_device_node_name(int, const _TCHAR *)));
+	for(int i = 0; i < (256 - 32); i++) {
+		rMainWindow->do_update_device_node_name(i, using_flags->get_vm_node_name(i));
+	}
+			
 #ifdef SUPPORT_DRAG_DROP
 	// open command line path
 	//	if(szCmdLine[0]) {

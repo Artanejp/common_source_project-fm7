@@ -27,7 +27,9 @@ private:
 	void write_to_cur_time();
 	
 public:
-	UPD4991A(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	UPD4991A(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
+		set_device_name(_T("uPD4991A"));
+	}
 	~UPD4991A() {}
 	
 	// common functions
@@ -37,10 +39,6 @@ public:
 	void event_callback(int event_id, int err);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("uPD4991A");
-	}
 };
 
 #endif

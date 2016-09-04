@@ -49,6 +49,7 @@ public:
 		d_dma = NULL;
 #endif
 		initialize_output_signals(&outputs_tc);
+		set_device_name(_T("uPD71071"));
 	}
 	~UPD71071() {}
 	
@@ -61,11 +62,6 @@ public:
 	void do_dma();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("uPD71071");
-	}
-	
 	// unique functions
 	void set_context_memory(DEVICE* device)
 	{

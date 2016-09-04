@@ -18,6 +18,7 @@
 #include "qt_gldraw.h"
 #include "osd.h"
 #include "menu_flags.h"
+#include "csp_logger.h"
 
 #define REC_VIDEO_SUCCESS	1
 #define REC_VIDEO_FULL		2

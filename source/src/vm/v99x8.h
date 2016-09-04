@@ -159,6 +159,7 @@ public:
 	V99X8(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_irq);
+		set_device_name(_T("V99x8"));
 	}
 	~V99X8() {}
 	
@@ -170,11 +171,6 @@ public:
 	void event_vline(int v, int clock);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("V99x8");
-	}
-	
 	// unique functions
 	void set_context_irq(DEVICE* device, int id, uint32_t mask)
 	{

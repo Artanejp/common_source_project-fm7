@@ -125,6 +125,7 @@ public:
 		mode = 0;
 		lastparity = 0;
 		nmi = mid = idle = false;
+		set_device_name(_T("TMS9955"));
 	}
 	~TMS9995() {}
 	
@@ -172,11 +173,6 @@ public:
 #endif
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("TMS9995");
-	}
-	
 	// unique functions
 	void set_context_mem(DEVICE* device)
 	{

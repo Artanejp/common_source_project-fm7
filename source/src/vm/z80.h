@@ -111,6 +111,7 @@ public:
 		d_dma = NULL;
 #endif
 		initialize_output_signals(&outputs_busack);
+		set_device_name(_T("Z80"));
 	}
 	~Z80() {}
 	
@@ -164,11 +165,6 @@ public:
 #endif
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("Z80");
-	}
-	
 	// unique functions
 	void set_context_mem(DEVICE* device)
 	{

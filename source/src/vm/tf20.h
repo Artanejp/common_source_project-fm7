@@ -32,6 +32,7 @@ public:
 	TF20(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		drive_no = 0;
+		set_device_name(_T("TF-20"));
 	}
 	~TF20() {}
 	
@@ -45,10 +46,6 @@ public:
 	uint32_t get_intr_ack();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("TF-20");
-	}
 	
 	// unique functions
 	void set_context_cpu(DEVICE* device)

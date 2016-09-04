@@ -279,6 +279,10 @@ public:
 	void set_osd(OSD *p);
 	OSD *get_osd(void);
 	
+	int get_vm_node_size();
+	void set_vm_node_name(int id, const _TCHAR *name);
+	_TCHAR *get_vm_node_name(int id);
+	
 	config_t *get_config_ptr(void);
 };
 	

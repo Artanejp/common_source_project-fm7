@@ -123,10 +123,6 @@ public:
 	void event_callback(int event_id, int err);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name()
-	{
-		return _T("T3444A");
-	}
 	
 	// unique functions
 	void set_context_rqm(DEVICE* device, int id, uint32_t mask)

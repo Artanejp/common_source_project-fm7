@@ -10,6 +10,10 @@
 #include "disk.h"
 #include "../fileio.h"
 
+#if defined(_USE_QT)
+#include "../qt/gui/csp_logger.h"
+#endif
+
 #ifndef _ANY2D88
 #define local_path(x) create_local_path(x)
 #else

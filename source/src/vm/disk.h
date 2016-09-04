@@ -16,6 +16,10 @@
 #else
 #include "../common.h"
 #endif
+#if defined(_USE_QT)
+#include "../qt/gui/csp_logger.h"
+#endif
+
 #include <stdarg.h>
 
 // d88 media type
@@ -204,6 +208,7 @@ public:
 	{
 		if(p == NULL) return;
 		strncpy(this_device_name, p, 128);
+		
 	}
 	void out_debug_log(const char *fmt, ...)
 	{
