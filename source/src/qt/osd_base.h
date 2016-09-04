@@ -53,7 +53,6 @@
 
 #include "qt_main.h"
 //#include "mainwidget.h"
-#include "agar_logger.h"
 #include "config.h"
 
 class GLDrawClass;

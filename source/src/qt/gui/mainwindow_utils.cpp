@@ -13,7 +13,7 @@
 
 //#include "menuclasses.h"
 #include "qt_dialogs.h"
-#include "agar_logger.h"
+//#include "csp_logger.h"
 
 void Ui_MainWindowBase::set_latency(int num)
 {

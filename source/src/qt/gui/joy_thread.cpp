@@ -17,7 +17,7 @@
 #include "qt_input.h"
 #include "qt_gldraw.h"
 #include "qt_main.h"
-#include "agar_logger.h"
+#include "csp_logger.h"
 
 #include "joy_thread.h"
 

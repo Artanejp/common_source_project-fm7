@@ -15,7 +15,7 @@
 #include "qt_main.h"
 #include "qt_dialogs.h"
 
-#include "agar_logger.h"
+//#include "csp_logger.h"
 #include "commonclasses.h"
 //#include "menuclasses.h"
 

@@ -11,7 +11,7 @@
 #include "mainwidget_base.h"
 #include "commonclasses.h"
 #include "qt_dialogs.h"
-#include "agar_logger.h"
+//#include "csp_logger.h"
 
 #include "menu_binary.h"
 

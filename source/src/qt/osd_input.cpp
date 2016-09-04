@@ -22,7 +22,7 @@
 
 #include "osd.h"
 //#include "mainwidget.h"
-#include "agar_logger.h"
+//#include "csp_logger.h"
 #include "dropdown_keyset.h"
 
 #define KEY_KEEP_FRAMES	3

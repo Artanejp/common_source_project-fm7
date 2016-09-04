@@ -32,7 +32,7 @@
 //#include "emu.h"
 #include "qt_main.h"
 #include "menu_flags.h"
-#include "agar_logger.h"
+#include "csp_logger.h"
 
 extern EMU *emu;
 //extern USING_FLAGS *using_flags;

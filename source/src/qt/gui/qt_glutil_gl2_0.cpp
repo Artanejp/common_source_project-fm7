@@ -14,7 +14,7 @@
 #include <QColor>
 
 #include "qt_gldraw.h"
-#include "agar_logger.h"
+//#include "csp_logger.h"
 #include "qt_glutil_gl2_0.h"
 #include "menu_flags.h"
 

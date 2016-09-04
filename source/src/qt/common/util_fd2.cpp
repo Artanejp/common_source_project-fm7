@@ -4,7 +4,7 @@
 
 #include "qt_dialogs.h"
 #include "emu.h"
-#include "agar_logger.h"
+//#include "csp_logger.h"
 
 #include "menu_flags.h"
 

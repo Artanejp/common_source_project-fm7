@@ -16,7 +16,7 @@
 #include "common.h"
 #include "fileio.h"
 #include "menu_flags.h"
-#include "agar_logger.h"
+#include "csp_logger.h"
 
 extern std::string cpp_homedir;
 extern std::string cpp_confdir;

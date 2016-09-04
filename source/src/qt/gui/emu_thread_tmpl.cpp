@@ -17,7 +17,7 @@
 #include "emu_thread_tmpl.h"
 
 #include "qt_gldraw.h"
-#include "agar_logger.h"
+//#include "csp_logger.h"
 #include "../common/menu_flags.h"
 
 EmuThreadClassBase::EmuThreadClassBase(META_MainWindow *rootWindow, EMU *pp_emu, USING_FLAGS *p, QObject *parent) : QThread(parent) {

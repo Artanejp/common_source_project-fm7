@@ -15,7 +15,7 @@
 
 #include "qt_dialogs.h"
 //#include "emu.h"
-#include "agar_logger.h"
+//#include "csp_logger.h"
 
 
 Menu_CartClass::Menu_CartClass(EMU *ep, QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent, int drv) : Menu_MetaClass(ep, root_entry, desc, p, parent, drv)

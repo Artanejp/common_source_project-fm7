@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 #include "fileio.h"
-#include "agar_logger.h"
+#include "csp_logger.h"
 #include "qt_main.h"
 # if defined(Q_OS_WIN)
 # include <windows.h>

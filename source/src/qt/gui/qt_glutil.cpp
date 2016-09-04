@@ -4,7 +4,7 @@
  */
 
 #undef _USE_OPENCL
-#include "agar_logger.h"
+#include "csp_logger.h"
 #include "common.h"
 //#include "emu.h"
 

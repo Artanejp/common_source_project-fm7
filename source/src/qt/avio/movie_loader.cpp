@@ -1,8 +1,13 @@
-
+/*
+ * Common Source Code Project for Qt : movie loader
+ * (C) 2016 K.Ohta <whatisthis.sowhat _at_ gmail.com>
+ *  License: GPLv2
+ *  History: June 30, 2016 : Initial. This refer from sample of ffmpeg .
+ */
 
 #include "../osd.h"
 #include "movie_loader.h"
-#include "agar_logger.h"
+#include "csp_logger.h"
 
 #include <QMutex>
 

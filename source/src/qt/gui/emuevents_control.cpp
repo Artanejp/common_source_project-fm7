@@ -1,9 +1,15 @@
+/*
+ * Common Source Code Project for Qt : movie saver.
+ * (C) 2016 K.Ohta <whatisthis.sowhat _at_ gmail.com>
+ *  License: GPLv2
+ *  History: April 07, 2016 : Initial.
+ */
 
 
 #include "qt_emuevents.h"
 #include "qt_main.h"
 #include "qt_dialogs.h"
-#include "agar_logger.h"
+#include "csp_logger.h"
 
 extern EMU *emu;
 

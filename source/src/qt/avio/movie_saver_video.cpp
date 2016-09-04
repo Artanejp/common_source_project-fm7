@@ -9,7 +9,7 @@
 #include "common.h"
 #include "movie_saver.h"
 #include "../osd.h"
-#include "agar_logger.h"
+#include "csp_logger.h"
 
 #include <stdlib.h>
 #include <stdio.h>

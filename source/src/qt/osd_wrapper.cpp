@@ -27,7 +27,7 @@
 #endif
 
 #include "qt_gldraw.h"
-#include "agar_logger.h"
+#include "csp_logger.h"
 
 void OSD::vm_draw_screen(void)
 {

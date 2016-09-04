@@ -19,7 +19,7 @@
 #include "vm/vm.h"
 
 #include "qt_main.h"
-#include "agar_logger.h"
+#include "csp_logger.h"
 #include "mainwidget_base.h"
 #include "draw_thread.h"
 #include "qt_glutil_gl2_0.h"

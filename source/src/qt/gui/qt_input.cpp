@@ -21,7 +21,7 @@
 #include "qt_gldraw.h"
 #include "qt_main.h"
 //#include "menuclasses.h"
-#include "agar_logger.h"
+//#include "csp_logger.h"
 #include "menu_flags.h"
 
 #ifndef Ulong

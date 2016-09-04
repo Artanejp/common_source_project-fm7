@@ -9,7 +9,7 @@
 #include <QMutex>
 #include <QMutexLocker>
 
-#include "agar_logger.h"
+#include "csp_logger.h"
 #include <string.h>
 #include "emu.h"
 #include "vm/vm.h"

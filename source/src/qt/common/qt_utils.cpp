@@ -30,7 +30,7 @@
 
 #include "qt_gldraw.h"
 #include "qt_glutil_gl2_0.h"
-#include "agar_logger.h"
+#include "csp_logger.h"
 
 #include "menu_disk.h"
 #include "menu_bubble.h"

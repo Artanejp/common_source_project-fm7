@@ -18,7 +18,7 @@
 #include <QMutex>
 
 #include "qt_gldraw.h"
-#include "agar_logger.h"
+#include "csp_logger.h"
 #include "osd_base.h"
 
 OSD_BASE::OSD_BASE(USING_FLAGS *p) : QThread(0)

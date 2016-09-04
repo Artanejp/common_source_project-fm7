@@ -5,7 +5,7 @@
 
 #include "qt_dialogs.h"
 #include "emu.h"
-#include "agar_logger.h"
+//#include "csp_logger.h"
 
 #if defined(USE_BUBBLE1)
 extern EMU *emu;

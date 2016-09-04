@@ -8,7 +8,7 @@
 #include <QDateTime>
 #include "movie_saver.h"
 #include "../osd.h"
-#include "agar_logger.h"
+#include "csp_logger.h"
 
 MOVIE_SAVER::MOVIE_SAVER(int width, int height, int fps, OSD *osd, config_t *cfg) : QThread(0)
 {

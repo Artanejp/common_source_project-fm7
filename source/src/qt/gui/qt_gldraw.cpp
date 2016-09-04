@@ -32,7 +32,7 @@
 #include "qt_gldraw.h"
 #include "qt_glutil_gl2_0.h"
 
-#include "agar_logger.h"
+#include "csp_logger.h"
 #include "../osd.h"
 
 //extern USING_FLAGS *using_flags;

@@ -17,7 +17,7 @@
 #include <QThread>
 
 #include "qt_gldraw.h"
-#include "agar_logger.h"
+//#include "csp_logger.h"
 #include "osd.h"
 
 OSD::OSD(USING_FLAGS *p) : OSD_BASE(p)
