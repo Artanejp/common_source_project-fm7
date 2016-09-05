@@ -637,7 +637,9 @@ int64_t CSP_Logger::copy_log(char *buffer, int64_t buf_size, int64_t *lines, cha
 	int64_t nlines = 0;
 	int64_t ssize = start_size;
 	if(ssize < 0) ssize = 0;
-	char *p = buffer;
+	if(start_size >= buf_size) return -1;
+	
+	char *p = &(buffer[start_size]);
 	
 	if(line < 0) line = 0;
 	{
