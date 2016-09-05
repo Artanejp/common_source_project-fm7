@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                         August 19, 2016
+                                                         Sep 06, 2016
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 1.About
@@ -79,7 +79,7 @@ Project Page:
 https://osdn.jp/projects/csp-qt/
 
 Upstream (Takeda Toshiya San's original code)
-http://homepage3.nifty.com/takeda-toshiya/
+      http://takeda-toshiya.my.coocan.jp/
 
 Changes:
 

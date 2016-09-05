@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                          August 19, 2016
+                                          Sep 06, 2016
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -102,7 +102,7 @@
       https://osdn.jp/projects/csp-qt/
 
 8. Upstream (Takeda Toshiyaさんのオリジナル) 
-      http://homepage3.nifty.com/takeda-toshiya/
+      http://takeda-toshiya.my.coocan.jp/
 
 Changes:
 * SNAPSHOT August 19, 2016

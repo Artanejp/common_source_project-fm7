@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                          August 09, 2016
+                                          Sep 06, 2016
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 0. About
@@ -74,7 +74,7 @@ a. I tested to build only under Debian GNU/Linux "sid".
       https://www.pikacode.com/Artanejp/common_source_project-fm7/
       
 7. Upstream (Takeda Toshiya San's original code) 
-      http://homepage3.nifty.com/takeda-toshiya/
+      http://takeda-toshiya.my.coocan.jp/
 
 Have fun!
 -- Ohta.
