@@ -494,7 +494,7 @@ void CSP_Logger::output_event_log(int device_id, int level, const char *fmt, ...
 
 int64_t CSP_Logger::get_console_list(char *buffer, int64_t buf_size, bool utf8, char *domainname, bool forget, int64_t start, int64_t end)
 {
-	if((buffer == NULL) || (buf_size < 0)) return (int64_t)-1;
+	if((buffer == NULL) || (buf_size <= 0)) return (int64_t)-1;
 
 	QString dom;
 	char tmpbuf[8192];
@@ -508,10 +508,17 @@ int64_t CSP_Logger::get_console_list(char *buffer, int64_t buf_size, bool utf8, 
 	QString tmps;
 	char *pp = buffer;
 	bool check_line = ((start >= 0) && (end >= start));
-	for(int i = 0; i < squeue.size(); i++) {
+	int ssize;
+	{
+		QMutexLocker locker(lock_mutex);
+		ssize=squeue.size();
+	}
+	for(int i = 0; i < ssize; i++) {
 		if(forget) {
+			QMutexLocker locker(lock_mutex);
 			t = squeue.dequeue();
 		} else {
+			QMutexLocker locker(lock_mutex);
 			t = squeue.at(i);
 		}
 		if(t != NULL) {
@@ -593,3 +600,34 @@ int64_t CSP_Logger::write_log(const _TCHAR *name, const char *domain_name, bool 
 	delete fio;
 	return n_len;
 }
+
+int64_t CSP_Logger::copy_log(char *buffer, int64_t buf_size, int64_t *lines, char *domainname, bool utf8, bool forget, int64_t start, int64_t start_size)
+{
+	if((buffer == NULL) || (buf_size <= 0)) return (int64_t)-1;
+	int64_t line = start;
+	int64_t size = 0;
+	int64_t buf_left = buf_size;
+	int64_t lines_t = 0;
+	int64_t nlines = 0;
+	int64_t ssize = start_size;
+	if(ssize < 0) ssize = 0;
+	char *p = buffer;
+	
+	if(line < 0) line = 0;
+	{
+		QMutexLocker locker(lock_mutex);
+		nlines = squeue.size();
+	}
+	for(; (buf_left > 0) && (nlines > 0);) {
+		size = get_console_list(buffer, buf_left, utf8, domainname, forget, line, line + 1);
+		if(size <= 0) break;
+		buf_left -= size;
+		ssize += size;
+		p = &(p[size]);
+		lines_t++;
+		nlines--;
+	}
+	if(lines != NULL) *lines = *lines + lines_t;
+	return ssize;
+}
+	

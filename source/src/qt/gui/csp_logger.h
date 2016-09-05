@@ -192,6 +192,7 @@ public:
 	int64_t get_console_list(char *buffer, int64_t buf_size, bool utf8, char *domainname, bool forget, int64_t start = -1, int64_t end = -1);
 	void clear_log(void);
 	int64_t write_log(const _TCHAR *name, const char *domain_name = NULL, bool utf8 = true, bool forget = false);
+	int64_t copy_log(char *buffer, int64_t buf_size, int64_t *lines = NULL, char *domainname = NULL, bool utf8 = true, bool forget = false, int64_t start = 0, int64_t start_size = 0)
 };
 QT_END_NAMESPACE
 
