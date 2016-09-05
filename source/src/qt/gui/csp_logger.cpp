@@ -37,6 +37,7 @@ void CSP_Logger::reset(void)
 	QString tmps;
 	const char *p;
 
+	QMutexLocker locker(lock_mutex);
 	component_names.clear();
 	vfile_names.clear();
 	cpu_names.clear();
@@ -129,6 +130,7 @@ void CSP_Logger::open(bool b_syslog, bool cons, const char *devname)
 {
 	int flags = 0;
 	
+	QMutexLocker locker(lock_mutex);
 	log_onoff = true;
 	
 	loglist.clear();
@@ -217,11 +219,14 @@ void CSP_Logger::debug_log(int level, int domain_num, char *strbuf)
 	char *p;
 	char *p_bak;
 	const char delim[2] = "\n";
+	{
+		QMutexLocker locker(lock_mutex);
 #ifdef __MINGW32__
-	p = strtok(strbuf, delim);
+		p = strtok(strbuf, delim);
 #else
-	p = strtok_r(strbuf, delim, &p_bak); 
+		p = strtok_r(strbuf, delim, &p_bak); 
 #endif
+	}
 	if(strbuf != NULL) {
 		nowtime = time(NULL);
 		gettimeofday(&tv, NULL);
@@ -231,14 +236,13 @@ void CSP_Logger::debug_log(int level, int domain_num, char *strbuf)
 			snprintf(strbuf3, 23, ".%06ld", tv.tv_usec);
 		}
 		QString time_s = QString::fromUtf8(strbuf2) + QString::fromUtf8(strbuf3);
-		QMutexLocker locker(lock_mutex);
 		
 		int cons_log_level_n = (1 << level) & cons_log_levels;
 		int sys_log_level_n = (1 << level) & sys_log_levels;
 		QString domain_s;
 		bool record_flag = true;
-		domain_s.clear();
 		
+		domain_s.clear();
 		if((domain_num > 0) && (domain_num < CSP_LOG_TYPE_COMPONENT_END)) {
 			domain_s = component_names.at(domain_num - 1);
 		} else if((domain_num >= CSP_LOG_TYPE_VM_CPU0) && (domain_num < CSP_LOG_TYPE_VM_DEVICE_0)) {
@@ -280,14 +284,18 @@ void CSP_Logger::debug_log(int level, int domain_num, char *strbuf)
 					}
 #endif
 				}
+				{
+					QMutexLocker locker(lock_mutex);
 #ifdef __MINGW32__
-				p = strtok(NULL, delim);
+					p = strtok(NULL, delim);
 #else
-				p = strtok_r(NULL, delim, &p_bak);
+					p = strtok_r(NULL, delim, &p_bak);
 #endif
+				}
 				if(!record_flag) {
 					delete tmps;
 				} else {
+					QMutexLocker locker(lock_mutex);
 					squeue.enqueue(tmps);
 					if(linenum == LLONG_MAX) {
 						line_wrap++;
@@ -298,7 +306,10 @@ void CSP_Logger::debug_log(int level, int domain_num, char *strbuf)
 				}
 			}
 #if defined(Q_OS_WIN)
-			fflush(stdout);
+			{
+				QMutexLocker locker(lock_mutex);
+				fflush(stdout);
+			}
 #endif			
 		} while(p != NULL);
 	}
@@ -516,16 +527,22 @@ int64_t CSP_Logger::get_console_list(char *buffer, int64_t buf_size, bool utf8, 
 	for(int i = 0; i < ssize; i++) {
 		if(forget) {
 			QMutexLocker locker(lock_mutex);
+			if(squeue.isEmpty()) break;
 			t = squeue.dequeue();
 		} else {
 			QMutexLocker locker(lock_mutex);
 			t = squeue.at(i);
 		}
 		if(t != NULL) {
-
 			if(check_line) {
 				int64_t n_line = t->get_line_num();
-				if((n_line < start) || (n_line >= end)) continue;
+				if((n_line < start) || (n_line >= end)) {
+					if(forget) {
+						QMutexLocker locker(lock_mutex);
+						delete t;
+					}
+					continue;
+				}
 			}
 
 			if(not_match_domain) {
@@ -556,8 +573,16 @@ int64_t CSP_Logger::get_console_list(char *buffer, int64_t buf_size, bool utf8, 
 					pp += l;
 					total_size += (int64_t)l;
 				} else {
+					if(forget) {
+						QMutexLocker locker(lock_mutex);
+						delete t;
+					}
 					break;
 				}
+			}
+			if(forget) {
+				QMutexLocker locker(lock_mutex);
+				delete t;
 			}
 		}
 	}
@@ -566,6 +591,7 @@ int64_t CSP_Logger::get_console_list(char *buffer, int64_t buf_size, bool utf8, 
 
 void CSP_Logger::clear_log(void)
 {
+	QMutexLocker locker(lock_mutex);
 	while(!squeue.isEmpty()) {
 		CSP_LoggerLine *p = squeue.dequeue();
 		if(p != NULL) delete p;
@@ -630,4 +656,4 @@ int64_t CSP_Logger::copy_log(char *buffer, int64_t buf_size, int64_t *lines, cha
 	if(lines != NULL) *lines = *lines + lines_t;
 	return ssize;
 }
-	
+
