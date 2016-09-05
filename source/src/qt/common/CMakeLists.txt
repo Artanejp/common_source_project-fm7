@@ -5,6 +5,9 @@ set(s_qt_common_headers
 	  mainwidget.h
 	  ../osd.h
 )
+if(USE_SOCKET)
+  set(s_qt_common_headers ${s_qt_common_headers} ../osd_socket.h)
+endif()
 
 if(USE_QT_5)
   QT5_WRAP_CPP(s_qt_common_headers_MOC ${s_qt_common_headers})

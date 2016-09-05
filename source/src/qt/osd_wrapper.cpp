@@ -462,3 +462,373 @@ void OSD::reset_vm_node()
 	}
 }
 
+#if defined(USE_SOCKET)
+#include <QHostAddress>
+#include "osd_socket.h"
+#endif
+// Socket
+void OSD::initialize_socket()
+{
+	for(int i = 0; i < SOCKET_MAX; i++) {
+		tcp_socket[i] = NULL;
+		udp_socket[i] = NULL;
+		is_tcp[i] = false;
+		socket_delay[i] = 0;
+		host_mode[i] = false;
+	}
+}
+
+void OSD::release_socket()
+{
+	// release sockets
+#ifdef USE_SOCKET
+	for(int i = 0; i < SOCKET_MAX; i++) {
+		if(tcp_socket[i] != NULL) {
+			if(tcp_socket[i]->isOpen()) tcp_socket[i]->close();
+			delete tcp_socket[i];
+			tcp_socket[i] = NULL;
+		}
+		if(udp_socket[i] != NULL) {
+			if(udp_socket[i]->isOpen()) udp_socket[i]->close();
+			delete udp_socket[i];
+			udp_socket[i] = NULL;
+		}
+	}
+#endif	
+}
+
+
+void OSD::notify_socket_connected(int ch)
+{
+	do_notify_socket_connected(ch);
+}
+
+void OSD::do_notify_socket_connected(int ch)
+{
+#ifdef USE_SOCKET
+	vm->notify_socket_connected(ch);
+#endif	
+}
+
+
+void OSD::notify_socket_disconnected(int ch)
+{
+	do_notify_socket_disconnected(ch);
+}
+
+
+void OSD::do_notify_socket_disconnected(int ch)
+{
+	if(!socket_delay[ch]) {
+		socket_delay[ch] = 1;//56;
+	}
+}
+
+// Called per 1 frame.
+void OSD::update_socket()
+{
+#ifdef USE_SOCKET
+	qint64 bytes;
+	for(int i = 0; i < SOCKET_MAX; i++) {
+		QIODevice *p = NULL;
+		if(is_tcp[i]) {
+			if(tcp_socket[i] != NULL) {
+				if(tcp_socket[i]->isOpen()) {
+					p = tcp_socket[i];
+				}
+			}
+		} else {
+			if(udp_socket[i] != NULL) {
+				if(udp_socket[i]->isOpen()) {
+					p = udp_socket[i];
+				}
+			}
+		}
+		if(p != NULL) {	
+			// recv
+			bytes = p->bytesAvailable();
+			if(bytes > 0) {
+				int size0, size1;
+				uint8_t* buf0 = vm->get_socket_recv_buffer0(i, &size0, &size1);
+				uint8_t* buf1 = vm->get_socket_recv_buffer1(i);
+				qint64 size;
+				
+				if(bytes > (qint64)(size0 + size1)) {
+					bytes = (qint64)(size0 + size1);
+				}
+				QByteArray src = p->read(bytes);
+
+				size = src.size();
+				uint8_t *pp = (uint8_t *)(src.constData());
+				if(size <= (qint64)size0) {
+					memcpy(buf0, pp, size);
+				} else {
+					memcpy(buf0, pp, size0);
+					memcpy(buf1, pp + size0, (int)size - size0);
+				}
+				vm->inc_socket_recv_buffer_ptr(i, (int)size);
+			} else if(socket_delay[i] != 0) {
+				if(--socket_delay[i] == 0) {
+					vm->notify_socket_disconnected(i);
+				}
+			}
+		}
+	}
+#endif	
+}
+
+bool OSD::initialize_socket_tcp(int ch)
+{
+#ifdef USE_SOCKET
+	if(udp_socket[ch] != NULL) {
+		if(udp_socket[ch]->isOpen()) {
+			udp_socket[ch]->close();
+		}
+		delete udp_socket[ch];
+		udp_socket[ch] = NULL;
+	}
+	if(tcp_socket[ch] != NULL) {
+		if(tcp_socket[ch]->isOpen()) tcp_socket[ch]->close();
+		delete tcp_socket[ch];
+	}
+	is_tcp[ch] = true;
+	tcp_socket[ch] = new QTcpSocket2(ch);
+	if(tcp_socket[ch] == NULL) return false;
+	tcp_socket[ch]->setChannel(ch);
+	connect(tcp_socket[ch], SIGNAL(connected()), tcp_socket[ch], SLOT(do_connected()));
+	connect(tcp_socket[ch], SIGNAL(sig_connected(int)), this, SLOT(do_notify_socket_connected(int)));
+	connect(tcp_socket[ch], SIGNAL(disconnected()), tcp_socket[ch], SLOT(do_disconnected()));
+	connect(tcp_socket[ch], SIGNAL(sig_disconnected(int)), this, SLOT(do_notify_socket_disconnected(int)));
+#endif	
+	return true;
+}
+
+bool OSD::initialize_socket_udp(int ch)
+{
+#ifdef USE_SOCKET
+	if(tcp_socket[ch] != NULL) {
+		if(tcp_socket[ch]->isOpen()) {
+			tcp_socket[ch]->close();
+		}
+		delete tcp_socket[ch];
+		tcp_socket[ch] = NULL;
+	}
+	if(udp_socket[ch] != NULL) {
+		if(udp_socket[ch]->isOpen()) udp_socket[ch]->close();
+		delete udp_socket[ch];
+	}
+	is_tcp[ch] = false;
+	udp_socket[ch] = new QUdpSocket2(ch);
+	if(udp_socket[ch] == NULL) return false;
+	connect(udp_socket[ch], SIGNAL(connected()), udp_socket[ch], SLOT(do_connected()));
+	connect(udp_socket[ch], SIGNAL(sig_connected(int)), this, SLOT(do_notify_socket_connected(int)));
+	connect(udp_socket[ch], SIGNAL(disconnected()), udp_socket[ch], SLOT(do_disconnected()));
+	connect(udp_socket[ch], SIGNAL(sig_disconnected(int)), this, SLOT(do_notify_socket_disconnected(int)));
+#endif	
+	return true;
+}
+
+bool OSD::connect_socket(int ch, uint32_t ipaddr, int port)
+{
+#ifdef USE_SOCKET
+	QHostAddress addr = QHostAddress((quint32)ipaddr);
+	if(is_tcp[ch]) {
+		if(tcp_socket[ch] != NULL) {
+			tcp_socket[ch]->connectToHost(addr, (quint16)port);
+		} else {
+			return false;
+		}
+	} else {
+		if(udp_socket[ch] != NULL) {
+			udp_socket[ch]->connectToHost(addr, (quint16)port);
+		} else {
+			return false;
+		}
+	}
+	host_mode[ch] = false;
+#endif
+	return true;
+}
+
+void OSD::disconnect_socket(int ch)
+{
+//	soc[ch] = -1;
+#ifdef USE_SOCKET
+	if(host_mode[ch]) {
+		if(is_tcp[ch]) {
+			if(tcp_socket[ch] != NULL) {
+				if(tcp_socket[ch]->isOpen()) tcp_socket[ch]->close();
+			}
+		} else {
+			if(udp_socket[ch] != NULL) {
+				if(udp_socket[ch]->isOpen()) udp_socket[ch]->close();
+			}
+		}
+	} else {
+		if(is_tcp[ch]) {
+			if(tcp_socket[ch] != NULL) {
+				udp_socket[ch]->disconnectFromHost();
+			}
+		} else {
+			if(udp_socket[ch] != NULL) {
+				udp_socket[ch]->disconnectFromHost();
+			}
+		}
+	}		
+	vm->notify_socket_disconnected(ch);
+#endif	
+}
+
+bool OSD::listen_socket(int ch)
+{
+#ifdef USE_SOCKET
+	//QHostAddress addr = QHostAddress(QHostAddress::AnyIPv4); // OK?
+	// This unit is dummy?
+	//connect(udp_socket[ch], SIGNAL(connected()), udp_socket[ch], SLOT(do_connected()));
+	//connect(udp_socket[ch], SIGNAL(sig_connected(int)), this, SLOT(do_notify_socket_connected(int)));
+	//connect(udp_socket[ch], SIGNAL(disconnected()), udp_socket[ch], SLOT(do_disconnected()));
+	//connect(udp_socket[ch], SIGNAL(sig_disconnected(int)), this, SLOT(do_notify_socket_disconnected(int)));
+#endif	
+	return false;
+}
+
+void OSD::send_socket_data_tcp(int ch)
+{
+#ifdef USE_SOCKET
+	if(is_tcp[ch]) {
+		while(1) {
+			int size;
+			uint8_t *buf = vm->get_socket_send_buffer(ch, &size);
+			if(size <= 0) {
+				return;
+			}
+			qint64 size2 = 0;
+			if(tcp_socket[ch] != NULL) {
+				if(tcp_socket[ch]->isWritable()) {
+					size2 = tcp_socket[ch]->write((const char *)buf, (qint64)size);
+					if(size2 < 0) {
+						disconnect_socket(ch);
+						notify_socket_disconnected(ch);
+						return;
+					}
+				}
+			} else {
+				return;
+			}
+			vm->inc_socket_send_buffer_ptr(ch, (int)size2);
+		}
+	}
+#endif	
+}
+
+void OSD::send_socket_data_udp(int ch, uint32_t ipaddr, int port)
+{
+#ifdef USE_SOCKET
+	QHostAddress addr = QHostAddress((quint32)ipaddr);
+	if(!is_tcp[ch]) {
+		while(1) {
+			int size;
+			uint8_t *buf = vm->get_socket_send_buffer(ch, &size);
+			if(size <= 0) {
+				return;
+			}
+			qint64 size2 = 0;
+			
+			if(udp_socket[ch] != NULL) {
+				size2 = udp_socket[ch]->writeDatagram((const char *)buf, (qint64)size, addr, (quint16)port);
+				if(size2 < 0) {
+					disconnect_socket(ch);
+					notify_socket_disconnected(ch);
+					return;
+				}
+			} else {
+				return;
+			}
+			vm->inc_socket_send_buffer_ptr(ch, (int)size2);
+		}
+	}
+#endif	
+}
+
+void OSD::send_socket_data(int ch)
+{
+	// This is dummy.
+}
+
+void OSD::recv_socket_data(int ch)
+{
+	// This is dummy.
+}
+
+int OSD::get_socket(int ch)
+{
+#ifdef USE_SOCKET
+	if(is_tcp[ch]) {
+		if(tcp_socket[ch] == NULL) return -1;
+	} else {
+		if(udp_socket[ch] == NULL) return -1;
+	}
+#endif	
+	return ch;
+}
+
+//
+#if defined(USE_SOCKET)
+QTcpSocket2::QTcpSocket2(int channel, QObject *parent) : QTcpSocket(parent)
+{
+	ch = channel;
+}
+
+QTcpSocket2::~QTcpSocket2()
+{
+}
+
+void QTcpSocket2::do_connected(void)
+{
+	emit sig_connected(ch);
+}
+
+void QTcpSocket2::do_disconnected(void)
+{
+	emit sig_disconnected(ch);
+}
+
+void QTcpSocket2::setChannel(int channel)
+{
+	ch = channel;
+}
+
+int QTcpSocket2::getChannel(void)
+{
+	return ch;
+}
+
+QUdpSocket2::QUdpSocket2(int channel, QObject *parent) : QUdpSocket(parent)
+{
+	ch = channel;
+}
+
+QUdpSocket2::~QUdpSocket2()
+{
+}
+
+void QUdpSocket2::do_connected(void)
+{
+	emit sig_connected(ch);
+}
+
+void QUdpSocket2::do_disconnected(void)
+{
+	emit sig_disconnected(ch);
+}
+
+void QUdpSocket2::setChannel(int channel)
+{
+	ch = channel;
+}
+
+int QUdpSocket2::getChannel(void)
+{
+	return ch;
+}
+#endif

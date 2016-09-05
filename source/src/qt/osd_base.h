@@ -216,15 +216,12 @@ protected:
 	bool prn_strobe;
 
 	// socket
-	void initialize_socket();
-	void release_socket();
+	virtual void initialize_socket();
+	virtual void release_socket();
 	
-	int soc[SOCKET_MAX];
 	bool is_tcp[SOCKET_MAX];
-	//struct sockaddr_in udpaddr[SOCKET_MAX];
+	bool host_mode[SOCKET_MAX];
 	int socket_delay[SOCKET_MAX];
-	char recv_buffer[SOCKET_MAX][SOCKET_BUFFER_MAX];
-	int recv_r_ptr[SOCKET_MAX], recv_w_ptr[SOCKET_MAX];
 
 	// wrapper
 	int max_vm_nodes;
@@ -395,19 +392,19 @@ public:
 	void write_bitmap_to_file(bitmap_t *bitmap, const _TCHAR *file_path);
 
 	// common socket
-	int get_socket(int ch);
-	void notify_socket_connected(int ch);
-	void notify_socket_disconnected(int ch);
-	void update_socket();
-	bool initialize_socket_tcp(int ch);
-	bool initialize_socket_udp(int ch);
-	bool connect_socket(int ch, uint32_t ipaddr, int port);
-	void disconnect_socket(int ch);
-	bool listen_socket(int ch);
-	void send_socket_data_tcp(int ch);
-	void send_socket_data_udp(int ch, uint32_t ipaddr, int port);
-	void send_socket_data(int ch);
-	void recv_socket_data(int ch);
+	virtual int get_socket(int ch);
+	virtual void notify_socket_connected(int ch);
+	virtual void notify_socket_disconnected(int ch);
+	virtual void update_socket();
+	virtual bool initialize_socket_tcp(int ch);
+	virtual bool initialize_socket_udp(int ch);
+	virtual bool connect_socket(int ch, uint32_t ipaddr, int port);
+	virtual void disconnect_socket(int ch);
+	virtual bool listen_socket(int ch);
+	virtual void send_socket_data_tcp(int ch);
+	virtual void send_socket_data_udp(int ch, uint32_t ipaddr, int port);
+	virtual void send_socket_data(int ch);
+	virtual void recv_socket_data(int ch);
 
 	// win32 dependent
 	void update_screen();

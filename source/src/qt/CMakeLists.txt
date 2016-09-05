@@ -7,10 +7,6 @@ if(USE_QT_5)
 else()
   QT4_WRAP_CPP(s_qt_osd_headers_MOC ${s_qt_osd_headers})
 endif()
-#if(USE_SOCKET)
-#  set(QT_COMMON_BASE ${QT_COMMON_BASE} qt_socket.cpp)
-#endif()
-
  
 SET(s_qt_osd_srcs
 	  osd_base.cpp
@@ -64,8 +60,8 @@ target_link_libraries(CSPosd PUBLIC
 	  )
   
   set_target_properties(CSPosd PROPERTIES 
-     SOVERSION 2.4.0
-     VERSION 2.4.0
+     SOVERSION 2.4.1
+     VERSION 2.4.1
   )
   INSTALL(TARGETS CSPosd DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()
