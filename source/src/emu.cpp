@@ -515,12 +515,14 @@ void EMU::update_joystick()
 				int code = -config.joy_buttons[i][j];
 				if(code < 256 && key_buffer[code]) {
 					joy_status[i] |= (1 << j);
+					//printf("%d %d %02x %02x\n", i, j, config.joy_buttons[i][j], joy_status[i]);
 				}
 			} else {
 				int stick = config.joy_buttons[i][j] >> 4;
 				int button = config.joy_buttons[i][j] & 15;
 				if(stick < 2 && (joy_buffer[stick & 3] & (1 << button))) {
 					joy_status[i] |= (1 << j);
+					//printf("%d %d %02x %02x\n", i, j, config.joy_buttons[i][j], joy_status[i]);
 				}
 			}
 		}
