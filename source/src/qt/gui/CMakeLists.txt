@@ -29,7 +29,8 @@ set(s_qt_gui_headers
 	  dialog_set_key.h
 	  dialog_set_key_combo.h
 	  dialog_movie.h
-
+	  display_log.h
+	  
 	  tab_movie_general.h
 	  tab_movie_h264.h
 	  tab_movie_mpeg4.h
@@ -83,6 +84,7 @@ set(s_qt_gui_srcs
 	  dialog_set_key.cpp
 	  dialog_set_key_combo.cpp
 	  dialog_movie.cpp
+	  display_log.cpp
 	  
 	  tab_movie_general.cpp
 	  tab_movie_h264.cpp
@@ -151,8 +153,8 @@ target_link_libraries(CSPgui PUBLIC
 	  )
 
 set_target_properties(CSPgui PROPERTIES 
-			     SOVERSION 2.1.5
-			     VERSION 2.1.5
+			     SOVERSION 2.2.0
+			     VERSION 2.2.0
 			     )
 INSTALL(TARGETS CSPgui DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

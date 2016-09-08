@@ -25,6 +25,7 @@ add_library(qt_osd
     ${s_qt_osd_srcs}
     ${s_qt_osd_headers_MOC}
     )
+#set_property(TARGET qt_osd PROPERTY INTERPROCEDURAL_OPTIMIZATION True)
 #include (GenerateExportHeader)
 #  add_library(CSPosd SHARED
 #    ${s_qt_osd_srcs}

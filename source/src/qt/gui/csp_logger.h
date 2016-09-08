@@ -121,6 +121,18 @@ public:
 		}
 		return s;
 	};
+	bool check_level(QString _domain, int _level) {
+		bool f = true;
+		if(!_domain.isEmpty()) {
+			if(_domain != domain) f = false;
+		}
+		if(_level >= 0) {
+			if(_level != level) {
+				f = false;
+			}
+		}
+		return f;
+	}
 };
 
 class QMutex;
@@ -189,10 +201,11 @@ public:
 	void set_device_node_log(int to_output, int type, bool* flags, int start, int devices);
 	void set_device_node_log(int to_output, int type, int *flags, int start, int devices);
 	void output_event_log(int device_id, int level, const char *fmt, ...);
-	int64_t get_console_list(char *buffer, int64_t buf_size, bool utf8, char *domainname, bool forget, int64_t start = -1, int64_t end = -1);
+	int64_t get_console_list(char *buffer, int64_t buf_size, bool utf8, char *domainname, bool forget, int64_t start = -1, int64_t end = -1, int64_t *end_line = 0);
 	void clear_log(void);
 	int64_t write_log(const _TCHAR *name, const char *domain_name = NULL, bool utf8 = true, bool forget = false);
-	int64_t copy_log(char *buffer, int64_t buf_size, int64_t *lines = NULL, char *domainname = NULL, bool utf8 = true, bool forget = false, int64_t start = 0, int64_t start_size = 0);
+	int64_t copy_log(char *buffer, int64_t buf_size, int64_t *lines = NULL, char *domainname = NULL, bool utf8 = true, bool forget = false, int64_t start = 0, int64_t start_size = 0, int64_t *end_line = 0);
+	void *get_raw_data(bool forget = false, int64_t start = 0, int64_t *end_line = NULL);
 };
 QT_END_NAMESPACE
 

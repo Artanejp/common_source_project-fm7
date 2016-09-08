@@ -503,7 +503,7 @@ void CSP_Logger::output_event_log(int device_id, int level, const char *fmt, ...
 	va_end(ap);
 }
 
-int64_t CSP_Logger::get_console_list(char *buffer, int64_t buf_size, bool utf8, char *domainname, bool forget, int64_t start, int64_t end)
+int64_t CSP_Logger::get_console_list(char *buffer, int64_t buf_size, bool utf8, char *domainname, bool forget, int64_t start, int64_t end, int64_t *end_line)
 {
 	if((buffer == NULL) || (buf_size <= 0)) return (int64_t)-1;
 
@@ -534,8 +534,9 @@ int64_t CSP_Logger::get_console_list(char *buffer, int64_t buf_size, bool utf8, 
 			t = squeue.at(i);
 		}
 		if(t != NULL) {
+			int64_t n_line = t->get_line_num();
+			if(end_line != NULL) *end_line = n_line;
 			if(check_line) {
-				int64_t n_line = t->get_line_num();
 				if((n_line < start) || (n_line >= end)) {
 					if(forget) {
 						QMutexLocker locker(lock_mutex);
@@ -627,7 +628,7 @@ int64_t CSP_Logger::write_log(const _TCHAR *name, const char *domain_name, bool 
 	return n_len;
 }
 
-int64_t CSP_Logger::copy_log(char *buffer, int64_t buf_size, int64_t *lines, char *domainname, bool utf8, bool forget, int64_t start, int64_t start_size)
+int64_t CSP_Logger::copy_log(char *buffer, int64_t buf_size, int64_t *lines, char *domainname, bool utf8, bool forget, int64_t start, int64_t start_size, int64_t *end_line)
 {
 	if((buffer == NULL) || (buf_size <= 0)) return (int64_t)-1;
 	int64_t line = start;
@@ -647,7 +648,7 @@ int64_t CSP_Logger::copy_log(char *buffer, int64_t buf_size, int64_t *lines, cha
 		nlines = squeue.size();
 	}
 	for(; (buf_left > 0) && (nlines > 0);) {
-		size = get_console_list(buffer, buf_left, utf8, domainname, forget, line, line + 1);
+		size = get_console_list(buffer, buf_left, utf8, domainname, forget, line, line + 1, end_line);
 		if(size <= 0) break;
 		buf_left -= size;
 		ssize += size;
@@ -659,3 +660,23 @@ int64_t CSP_Logger::copy_log(char *buffer, int64_t buf_size, int64_t *lines, cha
 	return ssize;
 }
 
+void *CSP_Logger::get_raw_data(bool forget, int64_t start, int64_t *end_line)
+{
+	QMutexLocker locker(lock_mutex);
+	CSP_LoggerLine *t;
+	int i;
+	int64_t n = squeue.size();
+
+	if(start < 0)  return (void *)NULL;
+	if(start >= n) return (void *)NULL;
+	if(forget) {
+		t = squeue.dequeue();
+	} else {
+		t = squeue.at(start);
+	}
+	if(t != NULL) {
+		if(end_line != NULL) *end_line = t->get_line_num();
+		return (void *)t;
+	}
+	return (void *)NULL;
+}

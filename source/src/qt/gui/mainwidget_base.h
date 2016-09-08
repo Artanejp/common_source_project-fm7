@@ -299,7 +299,8 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	// Emulator
 	class Action_Control *action_SetupJoystick;
 	class Action_Control *action_SetupKeyboard;
-
+	class Action_Control *action_LogView;
+	
 	QMenu *menuLogToConsole;
 	QMenu *menuLogToSyslog;
 	QMenu *menuDevLogToConsole;
@@ -461,6 +462,7 @@ public slots:
 	void do_set_sound_device(int);
 	void do_emu_update_volume_balance(int num, int level);
 	void do_emu_update_volume_level(int num, int level);
+	void rise_log_viewer(void);
 	
 	void rise_volume_dialog(void);
 
@@ -473,6 +475,8 @@ public slots:
 	void do_set_state_saving_movie(bool state);
 	void OnLoadState(void);
 	void OnSaveState(void);
+
+	
 	virtual void OnOpenDebugger(int n);
 	virtual void OnCloseDebugger(void);
 	

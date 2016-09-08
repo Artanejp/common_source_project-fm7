@@ -557,6 +557,9 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 		do_update_device_node_name(i, p);
 	}
 	menuDevLogToConsole->setTitle(QApplication::translate("MainWindow", "Per Device", 0));
+
+	action_LogView->setText(QApplication::translate("MainWindow", "View Log", 0));
+	
 }
 
 void Ui_MainWindowBase::CreateEmulatorMenu(void)
@@ -566,6 +569,8 @@ void Ui_MainWindowBase::CreateEmulatorMenu(void)
 	menuEmulator->addAction(menuDevLogToConsole->menuAction());
 	menuEmulator->addSeparator();
 	menuEmulator->addAction(action_LogToSyslog);
+	menuEmulator->addSeparator();
+	menuEmulator->addAction(action_LogView);
 	menuEmulator->addSeparator();
 	if(using_flags->is_use_joystick()) {
 		menuEmulator->addAction(action_SetupJoystick);
@@ -603,7 +608,11 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 				action_DevLogToConsole[i], SLOT(do_set_dev_log_to_console(bool)));
 		connect(action_DevLogToConsole[i], SIGNAL(sig_set_dev_log_to_console(int, bool)),
 				this, SLOT(do_set_dev_log_to_console(int, bool)));
-	}		
+	}
+	action_LogView = new Action_Control(this, using_flags);
+	connect(action_LogView, SIGNAL(triggered()),
+			this, SLOT(rise_log_viewer()));
+	
 	//action_LogRecord = new Action_Control(this, using_flags);
 	//action_LogRecord->setCheckable(true);
 	//action_LogRecord->setEnabled(true);
@@ -613,6 +622,14 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 
 	action_SetupMovie = new Action_Control(this, using_flags);
   
+}
+
+#include "display_log.h"
+
+void Ui_MainWindowBase::rise_log_viewer(void)
+{
+	Dlg_LogViewer *dlg = new Dlg_LogViewer(using_flags, NULL);
+	dlg->show();
 }
 
 void Ui_MainWindowBase::rise_joystick_dialog(void)
