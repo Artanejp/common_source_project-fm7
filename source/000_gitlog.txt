@@ -1,3 +1,15 @@
+commit 75d3266551cdbcafa9348299b770f847501da07c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Sep 9 01:22:17 2016 +0900
+
+    [DOC] Update build version.
+
+commit 1884b5247665d71c06fc6590b17434c5f3350ad5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Sep 9 01:10:54 2016 +0900
+
+    [DOC] Update to SNAPSHOT 2016-09-09.
+
 commit 771e6376ee9da1f2d466381d834fa40bc2310f60
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Fri Sep 9 00:53:27 2016 +0900
