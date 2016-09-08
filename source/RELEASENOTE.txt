@@ -99,7 +99,7 @@ Changes:
   * [OSD/KEYBOARD] Fix handling around SHIFT for some machines(i.e. PC8801).
   * [MOVIE_SAVER] Use SIMD to transfer a picture OSD(VM)->MOVIE_SAVER .
   * [DOC] Update updtream's URL, moved to takeda-toshiya.my.coocan.jp .
-  * Built with GIT 771e6376ee9da1f2d466381d834fa40bc2310f60 (or later).
+  * Built with GIT 1884b5247665d71c06fc6590b17434c5f3350ad5 (or later).
 
 -- Sep 09, 2016 01:02:51 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
