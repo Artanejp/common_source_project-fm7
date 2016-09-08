@@ -5,6 +5,16 @@ SET(CMAKE_SYSTEM_NAME Windows)
 SET(CMAKE_C_COMPILER i686-w64-mingw32-gcc)
 SET(CMAKE_CXX_COMPILER i686-w64-mingw32-g++)
 SET(CMAKE_RC_COMPILER i686-w64-mingw32-windres)
+SET(CMAKE_AR  i686-w64-mingw32-gcc-ar)
+
+#set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
+#set(CMAKE_EXE_LINKER_FLAGS "-static-libstdc++")
+set(CMAKE_EXE_LINKER_FLAGS "-flto=6 -fwhole-program")
+
+#SET(CMAKE_C_ARCHIVE_CREATE "<CMAKE_AR> qcs <TARGET> --plugin==$(i686-264-mingw32-gcc --print-file-name=liblto_plugin.so) <LINK_FLAGS> <OBJECTS>")
+#SET(CMAKE_C_ARCHIVE_FINISH   true)
+#SET(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> qcs <TARGET> --plugin==$(i686-264-mingw32-gcc --print-file-name=liblto_plugin.so) <LINK_FLAGS> <OBJECTS>")
+#SET(CMAKE_CXX_ARCHIVE_FINISH   true)
 
 set(LIBAV_ROOT_DIR "/usr/local/i586-mingw-msvc/ffmpeg-3.1.1")
 
@@ -49,6 +59,3 @@ set(SDL_INCLUDE_DIRS /usr/local/i586-mingw-msvc/SDL1/include/SDL)
 set(SDLMAIN_LIBRARY "")
 
 set(ADDITIONAL_LIBRARIES libwinmm.a)
-#set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
-#set(CMAKE_EXE_LINKER_FLAGS "-static-libstdc++")
-set(CMAKE_EXE_LINKER_FLAGS "")

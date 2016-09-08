@@ -216,7 +216,10 @@ if(WIN32)
        ${LIBAV_LIBRARIES}
        ${ADDITIONAL_LIBRARIES}
        )
-
+       #SET(CMAKE_C_ARCHIVE_CREATE "<CMAKE_AR> qcs <TARGET>  <LINK_FLAGS> <OBJECTS>")
+       #SET(CMAKE_C_ARCHIVE_FINISH   true)
+       #SET(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> qcs <TARGET> <LINK_FLAGS> <OBJECTS>")
+       #SET(CMAKE_CXX_ARCHIVE_FINISH   true)
 else()
    set(BUNDLE_LIBS 
 #       ${OPENGL_LIBRARY}
@@ -227,8 +230,7 @@ else()
 #       ${LIBAV_LIBRARIES}
        ${ADDITIONAL_LIBRARIES}
        )
-
-   set(BUNDLE_LIBS ${BUNDLE_LIBS} -lCSPosd -lCSPgui -lCSPemu_utils -lCSPavio)
+       set(BUNDLE_LIBS ${BUNDLE_LIBS} -lCSPosd -lCSPgui -lCSPemu_utils -lCSPavio)
 endif()
 
 if(USE_QT_5)

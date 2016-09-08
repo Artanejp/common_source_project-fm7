@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                          Sep 06, 2016
+                                          Sep 09, 2016
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -11,7 +11,7 @@
    用意しています。
    
    ソースコード：
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160819
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160909
 
    追加情報:
     　各機種バイナリーは、osdn.jp　もしくはミラーサイトより入手可能です。
@@ -93,6 +93,7 @@
 
    c.上流の2016-04-17現在でのPX7以外の全ての仮想マシンがQtに移植出来ています。
    d. Linux用ビルドでは、GCC 6をリンク時最適化(LTO)モードで使っています。
+   e. MZ-2500のソケット機能を実装してみていますが、マトモにテストできてません(；´Д｀)
    
 6. Upstream repositry:
       https://github.com/Artanejp/common_source_project-fm7
@@ -105,6 +106,25 @@
       http://takeda-toshiya.my.coocan.jp/
 
 Changes:
+* SNAPSHOT September 09, 2016
+  * Upstream 2016-04-13
+  * [LOGGER] Add extend logger.
+  * [LOGGER/Qt] Rename agar_logger.[cpp|h] to csp_logger.[cpp|h] .
+  * [VM] Ready to enable log per device.
+  * [VM] Update emu->out_debug_log to [DEVICE]->out_debug_log .
+  * [UI/Qt] Add log viewer window.
+  * [Qt/EMUTHREAD] Move commonly blocks to gui/ .
+  * [Qt/KEY] Use queue for keyin/out.
+  * [VM/OSD] Add socket (networking) featuers, but still not test (；´Д｀)
+  * [VM/FM77AV] MB61VH010 : Faster drawing lines.
+  * [VM/FM7] MAINIO: Comment out logging around FIRQ, temporally.
+  * [OSD/KEYBOARD] Fix handling around SHIFT for some machines(i.e. PC8801).
+  * [MOVIE_SAVER] Use SIMD to transfer a picture OSD(VM)->MOVIE_SAVER .
+  * [DOC] Update updtream's URL, moved to takeda-toshiya.my.coocan.jp .
+  * Built with GIT 771e6376ee9da1f2d466381d834fa40bc2310f60 (or later).
+
+-- Sep 09, 2016 01:02:51 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT August 19, 2016
   * Upstream 2016-04-13
   * [WIN32] Replace libICU to homebrew, fix not starting.

@@ -1,3 +1,199 @@
+commit 771e6376ee9da1f2d466381d834fa40bc2310f60
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Sep 9 00:53:27 2016 +0900
+
+    [UI][Qt] Add log viewer.
+
+commit f72bd4f0437b812142cac26542d5968af388ab64
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Sep 7 02:53:49 2016 +0900
+
+    [VM][FM77AV][MB61VH010] Expect to faster process.
+    [VM][FM77AV][MB61VH010] LINE: Don't throw event less than 2uS.
+
+commit 8a48a6b03b8edf9c736646977bcd644d29c0dd90
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Sep 7 01:21:33 2016 +0900
+
+    [VM][[FM77AV][MB61VH010] Faster drawing line at some situations.
+
+commit b8812a4a7a20deef790ae46ec0ad857d173d13ba
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Sep 6 01:21:17 2016 +0900
+
+    [DOC] Update updtream's URL, moved to takeda-toshiya.my.coocan.jp .
+
+commit f8bee1ff689ef3bc0d4495a123def437e8839a65
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Sep 6 00:52:31 2016 +0900
+
+    [OSD][Qt][MZ2500] Implement socket functions.Still not tested.
+
+commit 2fb5a9d258c8b7dffb29f6a49e192b214b6e268d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Sep 5 16:47:53 2016 +0900
+
+    [Qt][LOGGER] Fix FTBFS.
+
+commit fdaf0133b2e454b3ed61fdc5f6283219c41f2ba9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Sep 5 16:45:20 2016 +0900
+
+    [Qt][LOGGER] copy_log(): Using arg ; start_size.
+
+commit b89a9da723ed6780af6fe3b7c1b64c8970775fad
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Sep 5 16:42:04 2016 +0900
+
+    [Qt][LOGGER] More safety locking.
+
+commit 5df2a53c8f7b819c25bb49f396896495685d59b6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Sep 5 16:21:41 2016 +0900
+
+    [Qt][LOGGER] Add copy_log().
+
+commit 03bb0e598828dc2a2201aa4e690f04b711c60129
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Sep 5 04:09:00 2016 +0900
+
+    [Qt][LOGGER] Add default values.
+
+commit 196290e7115737a532116a991079808076d96c95
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Sep 5 03:31:37 2016 +0900
+
+    [BUILD][CMAKE] Update cmake files.
+
+commit 2fd71f9204037136b4c15b72c9508749acaf9ef5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Sep 5 03:28:03 2016 +0900
+
+    [Qt][LOGGER] Add "Save to File".
+
+commit 9703e81ed5680d1958c74805c91d16697676d17c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Sep 5 03:05:05 2016 +0900
+
+    [VM][Qt][LOGGER] Add setting on/off per device.
+
+commit 0fa118528b98ca5b80704888fa0963930c61270d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Sep 5 00:26:48 2016 +0900
+
+    [LOGGER][Qt] Rename agar_logger.[cpp|h] to csp_logger.[cpp|h] .
+
+commit d4ada03cbbb1d74d61cd778c58ecd6e1ae3815a8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Sep 4 16:26:41 2016 +0900
+
+    [LOGGER][Qt] I forgot to save statuss to config_t.
+
+commit e694084e1395b27aadbbee20adf98e541922e3c0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Sep 4 16:10:06 2016 +0900
+
+    [Qt][LOGGER] Add full logger feature.UI is still imcomplete.
+
+commit 3943d903c4eb5b33acdc14188355cec1e6f142e8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Aug 28 07:06:49 2016 +0900
+
+    [Qt][OSD][KEYBOARD] Fix handling around SHIFT for some machines(i.e. PC8801).
+
+commit c869fb9228f7a13b47f5e576529cf93c7790f185
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 26 22:35:58 2016 +0900
+
+    [VM][EVENT][LOGGER][Qt] Improve event log.
+
+commit da41a7427de6e384ac387e71abb2bf68dc92d9d0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 26 22:12:07 2016 +0900
+
+    [LOGGER] Add out_event_log() . This is useful to debug illegular incidents from EVENT:: .
+    [LOGGER][OSD][EMU] Record devices node when (re-)constructing VM.
+
+commit 39054c2b8a069029497a90e61fa3e747e7d4d152
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 26 22:11:00 2016 +0900
+
+    [VM][WIP] Set default name to devices, these are WIP.
+
+commit 1a7cfe63063087298aed269a72466f0863be50c4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 26 21:00:14 2016 +0900
+
+    [UI][Qt]{EMUTHREAD] Move commonly blocks to gui/ .
+
+commit 868d30d21066640333876e8e1231a7c11dcb4554
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 26 16:02:52 2016 +0900
+
+    [UI][Qt][KEY] Use queue for keyin/out.
+
+commit 292ea73cd9129ab26928ec61ba234ad999a0e0c5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Aug 25 04:44:08 2016 +0900
+
+    [VM][FM7][MAINIO] Comment out logging around FIRQ, temporally.
+
+commit 969721219c2844263fab53b9eae7607039a151ae
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Aug 25 04:37:21 2016 +0900
+
+    [VM][FM8] Fix FTBFS.
+
+commit 444cc50fbcdd6aac69c838641f40fe9832c6b802
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Aug 25 04:33:48 2016 +0900
+
+    [VM][FM7][FM77][FM8] Fix FTBFS.
+
+commit a38a6078f453805082aa805a7f894b2b7a09b950
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Aug 25 04:11:20 2016 +0900
+
+    [UI][Qt] Supress log.
+
+commit d6af4811979d66a273cc41018ddedc8dd20d74bb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Aug 25 04:10:38 2016 +0900
+
+    [VM] Update emu->out_debug_log to [DEVICE]->out_debug_log .
+
+commit e1f7535ee34373dee9914357361fe802a9e210f0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Aug 25 02:37:53 2016 +0900
+
+    [VM][DEVICE] Add set_device_name() and out_debug_log() to DEVICE class. These aim to per device logging.
+    [VM][FM7][QT] Example to FM7 series.
+
+commit d0c78ba0b5282a67f15a24a6dc8db06c5580862c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Aug 25 02:36:24 2016 +0900
+
+    [Qt][LOGGER] Replace CSP_Logger class from AGAR_DebugLog().
+    {LOGGER] Add domain (node) with log.
+
+commit ec2f9868500e61b610927804631f6d3b5eba1d27
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Aug 24 15:53:49 2016 +0900
+
+    [Qt][MOVIE_SAVER][WIP] Use direct-connection to emit frames more correct.
+
+commit 871e5629e6b10c17839f52ad59fc8d68d7d32b37
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Aug 24 15:52:39 2016 +0900
+
+    [MOVIE_SAVER] Use SIMD to transfer a picture OSD(VM)->MOVIE_SAVER .
+
+commit 922f4a2fb1e4cbd5c625b5a9170c752bded5360e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 19 23:22:26 2016 +0900
+
+    [DOC] Update gitlog.
+
 commit d354480c8d83b16d9645667451a8cbea0c6ea309
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Fri Aug 19 23:21:59 2016 +0900
