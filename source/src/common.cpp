@@ -330,6 +330,7 @@ DWORD DLL_PREFIX MyGetPrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName,
 		fio->Fclose();
 	}
 	delete fio;
+	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Try App: %s Key: %s", lpAppName, lpKeyName);
 	return strlen(lpp);
 }
 

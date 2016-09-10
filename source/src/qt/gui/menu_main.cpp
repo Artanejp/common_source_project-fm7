@@ -264,7 +264,7 @@ void Ui_MainWindowBase::setupUi(void)
 	}
 	menuEmulator = new QMenu(menubar);
 	menuEmulator->setObjectName(QString::fromUtf8("menuEmulator"));
-	
+
 	menuHELP = new QMenu(menubar);
 	menuHELP->setObjectName(QString::fromUtf8("menuHELP"));
 	MainWindow->setMenuBar(menubar);
@@ -551,7 +551,7 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 	action_LogToConsole->setText(QApplication::translate("MainWindow", "Log to Console", 0));
 	action_LogToSyslog->setText(QApplication::translate("MainWindow", "Log to Syslog", 0));
 	//action_LogRecord->setText(QApplication::translate("MainWindow", "Recording Log", 0));
-	for(int i=0; i < (256 - 32) ; i++) {
+	for(int i=0; i < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1) ; i++) {
 		const _TCHAR *p;
 		p = using_flags->get_vm_node_name(i);
 		do_update_device_node_name(i, p);
@@ -597,7 +597,7 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	if(using_flags->get_config_ptr()->log_to_console != 0) action_LogToConsole->setChecked(true);
 
 	menuDevLogToConsole = new QMenu(menuEmulator);
-	for(int i = 0; i < (256 - 32); i++) {
+	for(int i = 0; i < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1); i++) {
 		action_DevLogToConsole[i] = new Action_Control(this, using_flags);
 		action_DevLogToConsole[i]->setCheckable(true);
 		action_DevLogToConsole[i]->setEnabled(false);

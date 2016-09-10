@@ -113,7 +113,7 @@ void CSP_Logger::reset(void)
 		}
 	}
 	tmps = QString::fromUtf8("DEV"); // Enable to update
-	for(int i = 0; i < (256 - (32 + 8)); i++) {
+	for(int i = 0; i < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1); i++) {
 		QString ss;
 		ss.setNum(i);
 		device_names.append(tmps + ss);
@@ -426,8 +426,8 @@ void CSP_Logger::set_device_node_log(int device_id, int to_output, int type, boo
 	if(type >= CSP_LOG_LEVELS) return;
 	if(to_output < 0) return;
 	if(to_output > 2) return;
-	if(device_id >= (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0)) return;
-	if(device_id == -1) { // Flush all device
+	if(device_id > (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0)) return;
+	if(device_id < 0) { // Flush all device
 		for(int i = 0; i < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1); i++) {
 			// 0 = record, 1 = syslog, 2 = console;
 			switch(to_output)

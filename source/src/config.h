@@ -12,6 +12,9 @@
 
 #include "vm/vm.h"
 #include "fileio.h"
+#if defined(_USE_QT)
+#include "qt/gui/csp_logger.h"
+#endif
 
 #define MAX_HISTORY	8
 
@@ -166,9 +169,9 @@ typedef struct {
 #ifdef _USE_QT
 	bool log_to_syslog;
 	bool log_to_console;
-	bool dev_log_to_syslog[256 - 32][8];
-	bool dev_log_to_console[256 - 32][8];
-	bool dev_log_recording[256 - 32][8];
+	bool dev_log_to_syslog[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1][8];
+	bool dev_log_to_console[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1][8];
+	bool dev_log_recording[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1][8];
 #endif
 } config_t;
 

@@ -44,6 +44,7 @@
 #include "common.h"
 #include "config.h"
 #include "menu_flags.h"
+#include "csp_logger.h"
 //#include "emu.h"
 //#include "vm.h"
 
@@ -309,9 +310,9 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	class Action_Control *action_LogToSyslog;
 	class Action_Control *action_LogToConsole;
 	class Action_Control *action_LogRecord;
-	class Action_Control *action_DevLogToSyslog[256 - 32];
-	class Action_Control *action_DevLogToConsole[256 - 32];
-	class Action_Control *action_DevLogRecord[256 - 32];
+	class Action_Control *action_DevLogToSyslog[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1];
+	class Action_Control *action_DevLogToConsole[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1];
+	class Action_Control *action_DevLogRecord[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1];
 
 	class Action_Control *action_SetupMovie; // 15, 24, 30, 60
 	

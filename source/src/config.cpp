@@ -165,7 +165,7 @@ void initialize_config()
 
 	config.log_to_syslog = false;
 	config.log_to_console = true;
-	for(int i = 0; i < (256 -32); i++) {
+	for(int i = 0; i < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1); i++) {
 		for(int j = 0; j <8; j++) {
 			config.dev_log_to_syslog[i][j] = false;
 			config.dev_log_to_console[i][j] = true;
@@ -441,7 +441,7 @@ void load_config(const _TCHAR *config_path)
 #if defined(_USE_QT)
 	config.log_to_syslog = MyGetPrivateProfileBool(_T("Emulator"), _T("WriteToSyslog"), config.log_to_syslog, config_path);
 	config.log_to_console = MyGetPrivateProfileBool(_T("Emulator"), _T("WriteToConsole"), config.log_to_console, config_path);
-	for(int ii = 0; ii < (256 - 32); ii++) {
+	for(int ii = 0; ii < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1); ii++) {
 		uint32_t flags = 0;
 		flags = MyGetPrivateProfileInt(_T("Emulator"), create_string(_T("SyslogEnabled%d"), ii), 0x0000, config_path);
 		for(int jj = 0; jj < 8; jj++) {
@@ -464,7 +464,7 @@ void load_config(const _TCHAR *config_path)
 		}
 	}
 #endif
-#if defined(_USE_QT) && !defined(Q_OS_WIN)
+#if defined(_USE_QT)
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Read config done.");
 #endif
 }
@@ -689,7 +689,7 @@ void save_config(const _TCHAR *config_path)
 	MyWritePrivateProfileBool(_T("Emulator"), _T("WriteToSyslog"), config.log_to_syslog, config_path);
 	MyWritePrivateProfileBool(_T("Emulator"), _T("WriteToConsole"), config.log_to_console, config_path);
 	
-	for(int ii = 0; ii < (256 - 32); ii++) {
+	for(int ii = 0; ii < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1); ii++) {
 		uint32_t flags = 0;
 		flags = 0;
 		for(int jj = 0; jj < 8; jj++) {
