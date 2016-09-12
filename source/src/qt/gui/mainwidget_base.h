@@ -415,6 +415,7 @@ public:
 	virtual void retranslateCartMenu(int drv, int basedrv);
 	virtual void retranslateVolumeLabels(Ui_SoundDialog *);
 	virtual void retranslateEmulatorMenu(void);
+	virtual void retranselateUi_Depended_OSD(void);
 	// About Status bar
 	virtual void initStatusBar(void);
 	// EmuThread

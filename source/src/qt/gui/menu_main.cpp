@@ -539,11 +539,12 @@ void Ui_MainWindowBase::setupUi(void)
 void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 {
 	int i;
-	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
 	if(using_flags->is_use_joystick()) {
 		action_SetupJoystick->setText(QApplication::translate("MainWindow", "Configure Joysticks", 0));
 		action_SetupJoystick->setIcon(QIcon(":/icon_gamepad.png"));
 	}
+	
+	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
 	action_SetupKeyboard->setText(QApplication::translate("MainWindow", "Configure Keyboard", 0));
 	action_SetupKeyboard->setIcon(QIcon(":/icon_keyboard.png"));
 	action_SetupMovie->setText(QApplication::translate("MainWindow", "Configure movie encoding", 0));
@@ -551,15 +552,20 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 	action_LogToConsole->setText(QApplication::translate("MainWindow", "Log to Console", 0));
 	action_LogToSyslog->setText(QApplication::translate("MainWindow", "Log to Syslog", 0));
 	//action_LogRecord->setText(QApplication::translate("MainWindow", "Recording Log", 0));
+	
+	menuDevLogToConsole->setTitle(QApplication::translate("MainWindow", "Per Device", 0));
+
+	action_LogView->setText(QApplication::translate("MainWindow", "View Log", 0));
+	
+}
+
+void Ui_MainWindowBase::retranselateUi_Depended_OSD(void)
+{
 	for(int i=0; i < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1) ; i++) {
 		const _TCHAR *p;
 		p = using_flags->get_vm_node_name(i);
 		do_update_device_node_name(i, p);
 	}
-	menuDevLogToConsole->setTitle(QApplication::translate("MainWindow", "Per Device", 0));
-
-	action_LogView->setText(QApplication::translate("MainWindow", "View Log", 0));
-	
 }
 
 void Ui_MainWindowBase::CreateEmulatorMenu(void)

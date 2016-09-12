@@ -261,7 +261,7 @@ static std::string MyGetPrivateProfileStr(const _TCHAR *lpAppName, const _TCHAR 
 		delete pf;
 		return got_str;
 	}
-	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Try App: %s Key: %s", lpAppName, lpKeyName);
+	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Try App: %s Key: %s", lpAppName, lpKeyName);
 	pf->Fseek(0, FILEIO_SEEK_SET);
 	do {
 		key_str = key;
@@ -292,7 +292,7 @@ static std::string MyGetPrivateProfileStr(const _TCHAR *lpAppName, const _TCHAR 
 	delete pf;
 	
 	got_str.erase(0, pos + key_str.length());
-	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Got: %s Length: %d", got_str.c_str(), got_str.length());
+	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Got: %s Length: %d", got_str.c_str(), got_str.length());
 	return got_str;
 }
 
@@ -330,7 +330,7 @@ DWORD DLL_PREFIX MyGetPrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName,
 		fio->Fclose();
 	}
 	delete fio;
-	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Try App: %s Key: %s", lpAppName, lpKeyName);
+	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Try App: %s Key: %s", lpAppName, lpKeyName);
 	return strlen(lpp);
 }
 

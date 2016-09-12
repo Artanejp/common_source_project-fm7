@@ -583,20 +583,20 @@ int MainLoop(int argc, char *argv[], config_t *cfg)
 	load_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
 	
 	USING_FLAGS *using_flags = new USING_FLAGS(cfg);
+	// initialize emulation core
 	rMainWindow = new META_MainWindow(using_flags);
 	rMainWindow->connect(rMainWindow, SIGNAL(sig_quit_all(void)), rMainWindow, SLOT(deleteLater(void)));
 	rMainWindow->setCoreApplication(GuiMain);
-	
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "InitInstance() OK.");
-  
-	// disable ime
-	
-	// initialize emulation core
 	rMainWindow->getWindow()->show();
+	
 	emu = new EMU(rMainWindow, rMainWindow->getGraphicsView(), using_flags);
 	using_flags->set_emu(emu);
 	using_flags->set_osd(emu->get_osd());
 	csp_logger->set_osd(emu->get_osd());
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "InitInstance() OK.");
+	
+	rMainWindow->retranselateUi_Depended_OSD();
+
 	QObject::connect(emu->get_osd(), SIGNAL(sig_update_device_node_name(int, const _TCHAR *)),
 					 rMainWindow, SLOT(do_update_device_node_name(int, const _TCHAR *)));
 	for(int i = 0; i < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1); i++) {
