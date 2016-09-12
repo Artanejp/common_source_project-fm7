@@ -291,7 +291,7 @@ void Ui_MainWindowBase::set_printer_device(int p_type)
 			p_type = using_flags->get_use_printer_type() - 1;
 		}
 	} else {
-		if(p_type >= 2) p_type = 1;
+		if(p_type >= 8) p_type = 0;
 	}
 	using_flags->get_config_ptr()->printer_device_type = p_type;
 	emit sig_emu_update_config();
