@@ -358,11 +358,6 @@ void EVENT::cancel_event(DEVICE* device, int register_id)
 #endif			
 			return;
 		}
-#ifdef _DEBUG_LOG		
-# if defined(_USE_QT)			
-		if(device != NULL) csp_logger->output_event_log(device->this_device_id, CSP_LOG_INFO, _T("Canceling event was succeeded (id=%d  register_id=%d)"), device->this_device_id, register_id);
-# endif
-#endif
 		if(event_handle->active) {
 			if(event_handle->prev != NULL) {
 				event_handle->prev->next = event_handle->next;
