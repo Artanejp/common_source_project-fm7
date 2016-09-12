@@ -165,13 +165,6 @@ void initialize_config()
 
 	config.log_to_syslog = false;
 	config.log_to_console = true;
-	for(int i = 0; i < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1); i++) {
-		for(int j = 0; j <8; j++) {
-			config.dev_log_to_syslog[i][j] = false;
-			config.dev_log_to_console[i][j] = true;
-			config.dev_log_recording[i][j] = true;
-		}
-	}
 #endif	
 }
 
@@ -456,7 +449,7 @@ void load_config(const _TCHAR *config_path)
 			csp_logger->set_device_node_log(ii, 2, jj, config.dev_log_to_console[ii][jj]);
 			flags >>= 1;
 		}
-		flags = MyGetPrivateProfileInt(_T("Emulator"), create_string(_T("RecordLogEnabled%d"), ii), 0x00, config_path);
+		flags = MyGetPrivateProfileInt(_T("Emulator"), create_string(_T("RecordLogEnabled%d"), ii), 0xffff, config_path);
 		for(int jj = 0; jj < 8; jj++) {
 			config.dev_log_recording[ii][jj] = ((flags & 0x0001) != 0) ? true : false;
 			csp_logger->set_device_node_log(ii, 0, jj, config.dev_log_recording[ii][jj]);
