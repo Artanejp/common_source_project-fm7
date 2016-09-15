@@ -19,129 +19,83 @@
   still not correct this article, *
 
 1. What is this (literally)
-As the previous stage to make a eFM-7, Common Source Code Project (below CSP)
-From the beginning the porting to Qt + OpenGL, first anniversary in December 30 last year
-In the previous year. So, maybe the historical value Once after perhaps 30 years out position
-I do not know. I think (^ _ ^; to now, keep together the various miscellaneous
-I thought that cormorant.
+As the previous stage to make a eFM-7, Common Source Code Project (below CSP) from the beginning the porting to Qt + OpenGL, first anniversary in December 30 last year in the previous year. So, maybe the historical value Once after perhaps 30 years out position I do not know. I think (^_^; to now, keep together the various miscellaneous I thought that cormorant.
 
-2. Prehistory: XM7 / ​​SDL
-From the front, there was a very good FM-7 emulator [1] say XM7.
-However, this did not work only on Windows.
-At the time of what was in 2008 was that? 09 years, which the GP2X [2] and say South Korea
-Move in the portable game machine, you want to do the Xanadu. Feeling to say that [3]
-There were licensed thank PI., Who made the Takegami's and based on the author XM7
-Et al., Although the PI. I have been readily agreed, how Takegami's can really
-Or suspicious is to have been at first I was not so good, but SDL and Gtk
-Once you show you the code and screen shots but was temporarily transplant,
+2. Prehistory: XM7/​​SDL
+From the front, there was a very good FM-7 emulator [1] say XM7. However, this did not work only on Windows.
+At the time of what was in 2008 was that? or 2009, which the GP2X [2] and say South Korea move in the portable game machine, you want to do the Xanadu. Feeling to say that [3] there were licensed (thanks to Mr.PI., Who made the Mr.Takegami's and based on the author XM7 et al., Although the Mr.PI ).
+I have been readily agreed, how Mr.Takegami's can really or suspicious is to have been at first I was not so good, but SDL and Gtk Once you show you the code and screen shots but was temporarily transplant,
 So I was able to relatively easily license, began a full-scale work.
 
 [1] http://retropc.net/ryu/xm7/ current development end
 [2] https://ja.wikipedia.org/wiki/GP2X
-[3] eventually we gave up the porting to GP2X system in the machine specs problem, but ...
+[3] Eventually we gave up the porting to GP2X system in the machine specs problem, but ...
 
-In the first period, referring to the Gimons Mr. has been ported to Gtk before and after 05 years
-In to, is a translation began from the place to transplant XM7 the latest version of the Gtk and SDL at that time.
-On top of that, not move in GP2X that it Gtk. Simply because, on the SDL
-Looking for a GUI tool kit that runs on, and adopted arrived to those that say that Agar [4]
-Was is a translation.
+In the first period, referring to the Mr.Gimons has been ported to Gtk before and after 05 years in to, is a translation began from the place to transplant XM7 the latest version of the Gtk and SDL at that time.
+On top of that, not move in GP2X that it Gtk. Simply because, on the SDL Looking for a GUI tool kit that runs on, and adopted arrived to those that say that Agar [4] was is a translation.
 [4] http://www.libagar.org/
 
-At the time, though the balloon is variously disease, also keyboard bedridden verge
-In a situation not a few even day to hit from the futon, even if you always died Considering now
-And was the state was not at all funny, sew the interval that does not move the body in a disease
-But it became of work, the head of 2010, out that there is a reasonably practical
-came.
+At the time, though the balloon is variously disease, also keyboard bedridden verge in a situation not a few even day to hit from the futon, even if you always died considering now and was the state was not at all funny, sew the interval that does not move the body in a disease. But it became of work, the head of 2010, out that there is a reasonably practical came.
 <B> However, with the exception of the Agar that a buggy </ B>.
 On top of that, I crushed one by one the bug, to after thinking seriously load balancing on the way
-The off-road of multi-threaded from [5] to OpenCL done before and after 2011,
-It is developed on the went to become sluggish.
+The off-road of multi-threaded from [5] to OpenCL done before and after 2011,it is developed on the went to become sluggish.
 
 [5] This is also utilized to eFM-7 and CSP / Qt. OpenCL is,
     Although I think that the future is not probably do so performance does not come out.
    
-Honke (Tagegami's version XM7) it may also be had by almost completed
-But you may have noticed the importance of radio in the Great East Japan Earthquake, Open I2C
-Radio [6] [7] is a large became the thing to focus on the project say.
+Honke (Tagegami's version XM7) it may also be had by almost completed but you may have noticed the importance of radio in the Great East Japan Earthquake, Open I2C Radio [6] [7] is a large became the thing to focus on the project say.
 
 [6] https://osdn.jp/projects/openi2cradio/
 [7] http://sky.geocities.jp/artanejp/
 
-All told, until close to the end even 2014, the two projects
-Advanced, Open I2C Radio is almost stable in the mid of 2013 (I think it was)
-On, as the next project, USB dongle for one-segment reception using RTL2832U
-Did the project (listed in [7]) to be diverted to it to receive a shortwave and medium wave Le
-I had interest.
+All told, until close to the end even 2014, the two projects advanced, Open I2C Radio is almost stable in the mid of 2013 (I think it was)
+On, as the next project, USB dongle for one-segment reception using RTL2832U.
+Did the project (listed in [7]) to be diverted to it to receive a shortwave and medium wave Le I had interest.
 
-About 3.XM7
-Originally, pull the EM7 that was able to prototype a time when C ++ is not performance is put out too much
-In order to have in the footsteps, and the GUI part and FM sound source emulator of C ++, that the C language of the body,
-But there is a very incongruous, yet also certainly to performance also out accuracy
-Thing that was better than my eFM7. On top of that, I was using the UI and SDL of C ++ center
-Of adding the renderer, become a thing of repeated softening Okujoya, once the first
-I'm want to re-create from. Desire to say that there was in the position mid-2014 (penitence).
-On top of that, says emulator collector (and to say that Anna Wu's German
-Will drinking? ) It is more of, to interact with Takegami Mr. from around mid-2014
-And I like was, but ultimately Takegami Mr. and around the exchange of in English
-Is reluctant, there was the fact that dispute.
+3.About XM7
+Originally, pull the EM7 that was able to prototype a time when C ++ is not performance is put out too much in order to have in the footsteps, and the GUI part and FM sound source emulator of C ++, that the C language of the body, but there is a very incongruous, yet also certainly to performance also out accuracy
+Thing that was better than my eFM7. On top of that, I was using the UI and SDL of C ++ center of adding the renderer, become a thing of repeated softening Okujoya, once the first I'm want to re-create from. Desire to say that there was in the position mid-2014 (penitence).
+On top of that, says emulator collector (and to say that Anna Wu's German (Will drinking? ) It is more of, to interact with Takegami Mr. from around mid-2014 and I like was, but ultimately Takegami Mr. and around the exchange of in English is reluctant, there was the fact that dispute.
 
-In, you are looking at the process in Twitter, or irresponsible say anaerobic was pointing, I
-Insanely English is poor human originally bug in Debian GNU / Linux [8], etc.
-If forced to throw the report discussion on the development in English of the community
-There is also a human had become usual to the, something tremendous in the process
-I feel uncomfortable, I think, "Do not it not a place to here are of their own",
-And also or complaining to an old friend, well also to foreign manufacturers in the person work
-It does not is probably well-known to because it was a person (not put out the name to go, technical force domestic
-I think the top class), me listening to grumble ... "or, per the do in English
-Yan before Ri if there is to me to say that (^ ^) ", I mean that was pushed in the back.
+In, you are looking at the process in Twitter, or irresponsible say anaerobic was pointing, I insanely English is poor human originally bug in Debian GNU / Linux [8], etc.
+If forced to throw the report discussion on the development in English of the community there is also a human had become usual to the, something tremendous in the process I feel uncomfortable, I think, "Do not it not a place to here are of their own".
+And also or complaining to an old friend, well also to foreign manufacturers in the person work it does not is probably well-known to because it was a person (I can't put out the name to go, technical force domestic I think the top class), me listening to grumble ... "or, per the do in English before if there is to me to say that (^ ^) ", I mean that was pushed in the back. Whether it was December 28, 2014.
+After all, in the direction of porting the FM-7 system to CSP, off the rudder, git on December 30, 2014
+To build a repository [9], it means you put the source code at the time of the latest CSP there it is.
 
-Whether it was December 28, 2014.
-After all, in the direction of Nokkeru the FM-7 system in CSP, off the rudder, git on December 30, 2014
-To build a repository [9], it means you put the source code at the time of the latest CSP there
-It is.
-
-[8] Coincidentally, on December 28, 2015, Mr. Ian Murdok is by the police of assault, 亡Ku
-    It was not. It was 42.
+[8] Coincidentally, on December 28, 2015, Mr. Ian Murdok was suicided by the police assaulting. It was 42.
 [9] https://github.com/Artanejp/common_source_project-fm7
 
-Start porting of 4.CSP
-
+4.Start Porting of CSP
 In transplantation, the first for the tool kit was using Agar.
 <B> will move for the time being. Because it is easier to verify the work say that is </ B>.
-So, it was the first to move the X1 Turbo and PC-8801MA. [10] On top of that,
-Since Agar are having to buggy portability Toka various problems, another highly versatile
+So, it was the first to move the X1 Turbo and PC-8801MA. [10] On top of that, since Agar are having to buggy portability Toka various problems, another highly versatile.
 It means you decide to use the tool kit. [11]
 
-[10] Since the software for operation verification there were a lot (^ _ ^;
-[11] The other, move in GP2X gave up (^ _ ^;
+[10] Since the software for operation verification there were a lot (^_^;
+[11] The other, move in GP2X gave up (^_^;
 
-In, What shall to use. Although I thought and, Gtk is rapidly become a 3 Arekore
-On that has become necessary, was not good impression there is also abundance of Gnome 3 bug
-Because, <B> Ja, Chaimashou in Qt I never used at all. </ B> and.
-If you look, the sound relationship and the joystick did not have a standard
-In, let's leave it to SDL. Drawing around Let's required OpenGL. Mercy is not.
+In, What shall to use. Although I thought and, Gtk is rapidly become a 3 Arekore on that has become necessary, was not good impression there is also abundance of Gnome 3 bug ,<B> So, I will use Qt I never used at all. </B> .
+If you look, the sound relationship and the joystick did not have a standard in, let's leave it to SDL. drawing around Let's required OpenGL. Mercy is not.
 By say, make a rough policy, is a translation went to the transplant.
-The work itself is, there is no unity even dirty extremely're using in fumbling the Qt code
-Although there were in, in it it is possible to put the majority of the VM in March of 2015
-It has led.
+The work itself is, there is no unity even dirty extremely're using in fumbling the Qt code although there were in, in it it is possible to put the majority of the VM in March of 2015 it has led.
+
 Looking at the git log,
   - On January 8, X1 almost compiler was moving roughly in passed, in Agar
      (After a little commit fc894319809e05692fd447a5f232a46ebdf17c7)
   - On January 10, to raise the sound spoiled of Agar, decided to convert to Qt
      (Commit 98ac2645ec6a3798072445ac003f08d529d6065c)
-- On January 11, it came to the compiler passes in Qt
-(Commit 1033cc86e36b8e1d38771ef404e7d43ad07ebb39)
-- On 12 January, the basis of the drawing system and the GUI has moved is completed VM? (However, there is a bug)
+  - On January 11, it came to the compiler passes in Qt
+     (Commit 1033cc86e36b8e1d38771ef404e7d43ad07ebb39)
+  - On 12 January, the basis of the drawing system and the GUI has moved is completed VM? (However, there is a bug)
      (Commit e5887aa7464c7276eef9d2578ea880988f3da60d)
   - On January 13, a bug in the drawing system was also taken once it is keyboard-based
      (Commit 6deec5abac027eca1a71fa89e485650d3c9735da)
-Feeling called, started on December 30, trying to somehow Agar is there from 10 days
-It was, to switch to or Qt became various unpleasant, the basis for the Qt application in a day
-Design is increased, in one week from there, went finished the portion become now of foundation
-It is a translation.
-From there, so go as fast To move some of the VM, until January 28
-Proceed [12], the full-fledged implementation of the FM-7 to to move an existing VM from there
-Is a translation that began to. [13]
+
+Feeling called, started on December 30, trying to somehow Agar is there from 10 days it was, to switch to or Qt became various unpleasant, the basis for the Qt application in a day.
+Design is increased, in one week from there, went finished the portion become now of foundation is a translation.
+From there, so go as fast To move some of the VM, until January 28.
+Proceed [12], the full-fledged implementation of the FM-7 to to move an existing VM from there is a translation that began to. [13]
 
 [12] commit ce574213769b2685ead0df84c81f193e519d3906 later
 [13] Although the December 31, 2014 I was doing trying to implementation of FM-7
@@ -150,30 +104,23 @@ Is a translation that began to. [13]
      It did became a thing ...
 
 5.eFM-7
-Well, if me up to this point, it is a port of the FM-7. Next, the 1980s were protected from the parents' home
-Of Oh! I / O map and head family CSP VM code of the FM-7 to be scattered to the FM magazine and WEB on, at the time after the
-And O'to draw the contents of the Tips specific hack in XM7 source code of which has been published, on their own
-On began to rebuild the code (because I do not want to copyright infringement ...),
+Well, if me up to this point, it is a port of the FM-7. Next, the 1980s were protected from the parents' home of Oh!FM and  I/O(Japanese magazine of computer) and head family CSP VM code of the FM-7 to be scattered to the FM magazine and WEB on, at the time after the and O'to draw the contents of the Tips specific hack in XM7 source code of which has been published, on their own on began to rebuild the code (because I do not want to copyright infringement ...).
+
 From February to March of 2015, is a translation went to do the implementation of the FM-7.
-In, if not move on March 11, 2011 (coincidentally's day from the Great East Japan Earthquake of the four-year anniversary!)
-Link now passes through [14], 6809 mistake of MPU of the description [15] and disk.cpp / mb8877.cpp
-While fix the hour, minute and second format [16] corresponding part time at the, at the end of March is, a lot of software for the FM-7
-Bets now works. [17]
+In, if not move on March 11, 2011 (coincidentally's day from the Great East Japan Earthquake of the four-year anniversary!), link now passes through [14], 6809 mistake of MPU of the description [15] and disk.cpp / mb8877.cpp while fix the hour, minute and second format [16] corresponding part time at the, at the end of March is, a lot of software for the FM-7 bets now works. [17]
 
 [14] commit 65fe797cd5a681ba25c14a88566d7c80d0a8cd9a
 [15] This is, as it is derived from that code of the version of MAME that is based on the old,
-Of course, it miscellaneous undefined instruction has not been implemented, the movement of the flag also problems
-was.
-Modify work around here is not trailing until November of 2015, Kanagawa on the way
-I went to Kawasaki library, to get a lot of (had been destroyed in my parents) material,
-Including the portion other than the MC6809 went piled modifications to the modification.
-Now of mc6809.cpp I'm thinking that there is no hindrance to say that the final version. But dirty (^ _ ^;
+Of course, it miscellaneous undefined instruction has not been implemented, the movement of the flag also problems was.
+
+Modify work around here is not trailing until November of 2015, Kanagawa on the way I went to Kawasaki library, to get a lot of (had been destroyed in my parents) material, including the portion other than the MC6809 went piled modifications to the modification.
+Now of mc6809.cpp I'm thinking that there is no hindrance to say that the final version. But dirty (^_^;
 [16] MB8877 is, the F5, F6, F7 in the data column of the time format in command for the FDC
      Since it has been assigned, and do not do a thing special, sector number F5~F7 is to write
      I can not. In the 1980s, software that uses this in a personal computer to copy protection
      There is a lot, because F5~F7 character code at the time was a "hours, minutes and seconds",
      Special format of this hand was called "hour, minute, and second format."
-     This checks the hour, minute and second code when it was written in the sector and the gap of "hour, minute and second" ID
+     This checks the hour, minute and second code when it was written in the sector and the gap of "時分秒"(hour, minute and second) ID.
      Or, it had aimed at the copy protection = protection by putting an important program
      Time was, but many of the copy tool (such as CopyBoy7) is only in the disk drive of the user
      Since it was able to reproduce the hour, minute and second format, Zu unstable data bits
@@ -185,46 +132,41 @@ Now of mc6809.cpp I'm thinking that there is no hindrance to say that the final 
 Next was the goal, was FM77AV.
 This is, have gained a unique device that said MMU and logical operations, linear interpolation LSI (ALU),
 The basic command sequence of the ALU, was referring to the XM7.
-Internal biggest reason Takegami and Mr Anna was dispute is, MESS is a device of this neighborhood
-To be a description from XM7 it was round rip-off, but protested through Anna Mr., MESS
-Is absolutely no answer from the community. By stemming from very playful story to say that
-Since the, this area is going wrote careful increasing in other parts. [18]
+Internal biggest reason Takegami and Mr Anna was dispute is, MESS is a device of this neighborhood to be a description from XM7 it was round rip-off, but protested through Anna Mr., MESS is absolutely no answer from the community. By stemming from very playful story to say that since the, this area is going wrote careful increasing in other parts. [18]
 Currently, the specifications have been to move, may not able to fine-ALU hack ...
-And is a place of feeling to say (Toka drawing of the character of the Saio blade).
+And is a place of feeling to say (Toka drawing of the character of the PSY-O-BLADE).
 Since it has come out is somewhat of a problem with the timing calculation, we are asked to fix opportunity.
 
-[18] in the internal structure of the ALU, what is written using the division operation of the C language in a straight line interpolation function
-It is actually you or was from such reasons.
+[18] in the internal structure of the ALU, what is written using the division operation of the C language in a straight line interpolation function, it is actually you or was from such reasons.
 
-Including around here, the two channels of the "old days of the PC," plate, the PC emulator overall attrition
-It is often throw a binary to listen to the bug report and improvement plan in your thread residents
-Also became way, I think it was from around here. At the time, I did not move in Windows
+Including around here, the two channels of the "old days of the PC," plate, the PC emulator overall attrition.
+It is often throw a binary to listen to the bug report and improvement plan in your thread residents.
+ Also became way, I think it was from around here. At the time, I did not move in Windows.
 There is the but (will be moved later).
 This work is now been difficulties in Somehow, as most of the software is run without inconsistency
 Became is, was June 16 days before and after. It is at stake after all three months. [19]
 
 [19] commit 1b4320ef6229e75013478fe1ec66ed1eb3c47bd5
 
-The following is, I made the FM-77. This was pushed forward without so much painful. However,
-You By giving up the 400 line part of the FM-77L4 you do not have the cash.
-However, where the boot sequence and memory map is different in subtle as well as FM-7 both 77AV is
+The following is, I made the FM-77. This was pushed forward without so much painful. However, you by giving up the 400 line part of the FM-77L4 you do not have the cash.
+However, where the boot sequence and memory map is different in subtle as well as FM-7 both 77AV is.
 Become overlooked likely, There was also that the notice from the post. In particular boot RAM around.
 
-Well, you come up here, to DMAC implement other FM77AV40EX, inevitably
-But is the translation ... or when the software increases have been spouting a variety of bugs that move, we have to various groped
+Well, you come up here, to DMAC implement other FM77AV40EX, inevitably.
+But is the translation ... or when the software increases have been spouting a variety of bugs that move, we have to various groped.
 So no, it took several months here Somehow.
 Much of this time of the outcome, it has been fed back to the work of Takeda's CSP authorship.
-Takeda-san, thank you very much m (_ _) m
+Takeda-san, thank you very much m(_ _)m
 
-... And, on the 14th of September, AV40EX also is almost all right [20], apply to Windows from there
+... And, on the 14th of September, AV40EX also is almost all right [20], apply to Windows from there.
 And, it is a translation that will let go transplanted all of the VM.
 FM-8 has got a Yaruyaru fraud, but thought I going to do sloppy.
 
 [20] commit bbf5ed7132304d6e4c19da3cb2d634923eb55a5b per
 
-Then, build a Windows-friendly cross-development environment of using MinGW in one month less than from there
-Or, to absorb the difference in the library of API, as much as possible included in the binary package for Win32
-So as to, while debated of via two channels of Takeda's, leading to the now
+Then, build a Windows-friendly cross-development environment of using MinGW in one month less than from there.
+Or, to absorb the difference in the library of API, as much as possible included in the binary package for Win32.
+So as to, while debated of via two channels of Takeda's, leading to the now.
 It is a translation.
 
 5. In the last moment
@@ -233,39 +175,34 @@ Mr. also some things and those yelling put the proposal of the two channels of t
 Such, of being able to something like FOSS of the best part is, I think that really be nice.
 And, with respect to the FM-7 system, so it can not be denied especially sweet validation of AV system, doing a lot
 Ku that there will be a pattering. But, well, because we will be doing from now on self-paced,
-Including everyone of Takeda-san and user, everyone thank you m (_ _) m
+Including everyone of Takeda-san and user, everyone thank you m(_ _)m
 
                                2016 1.1 K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 ※ postscript:
 
-6. bonus 1: with respect to the "1/60 of a second problem."
-The emulator, you may say, '1/60 second problem ".
-And the actual display, Toka speed of the display of the vertical retrace that emulation is different
-For reasons that say Toka is often the case that the timing to synchronization is not taken, the actual display at a minimum of
-What to do with the 1 of frame = 1 / 60th of a second of the deviation occurs. The story to say that, to eliminate this deviation
-Often debate will occur not.
+6. bonus 1:
+  How many with respect to the "1/60 of a second problem."
+  The emulator, you may say, '1/60 second problem ".
+  Thee actual display, and speed of the display of the vertical retrace that emulation is different
+for reasons that says are often the case that the timing to synchronization is not taken, the actual display at a minimum of.
+What to do with the 1 of frame = 1/60th of a second of the deviation occurs. The story to say that, to eliminate this deviation,often debate will occur not.
 Something emulator you sell a deviation of less than 1/60 seconds, there you'll ne.
 My position is something that "can not be helped even out up to 2 frames".
-And say what it, one frame of delay a thing coming out of the difference between the out of the box, and the other
-1 frame of delay, the Direct X and OpenGL that is caught between, was drawn to the "front of the frame period
-Eliminate flickering by displaying things "structure have been commonly available on the OS side of the host machine,
-So the side is because that touch directly from the application may be difficult.
-In other words, (if vertical retrace frequency is significantly different from a little more), the worst in two frames of about displacement
-More than vertical retrace frequency of Display is different Let's think of the can not be avoided. By say.
+And say what it, one frame of delay a thing coming out of the difference between the out of the box, and the other 1 frame of delay, the DirectX and OpenGL that is caught between, was drawn to the "front of the frame period eliminate flickering by displaying things"structure have been commonly available on the OS side of the host machine,so the side is because that touch directly from the application may be difficult.
+In other words, (if vertical retrace frequency is significantly different from a little more), the worst in two frames of about displacement more than vertical retrace frequency of Display is different Let's think of the can not be avoided. By say.
 It is not intended normal applications do to stick up there, relaxation in the setting of the OS side
 I It is a story that is also, if possible.
 Ultimately, it would should I ask CSP side synchronized VBLANK interrupt the OS side is prepared,
 Is Naa somehow think up such a thing. And, I think personally. So sides, the CSP
 Please try it in people to customize based on (probably fairly or GL or Direct X or Vulkan
-Since the code will change ...). GPLv2 is there also for that. I think such as
-I (^ _ ^;
+Since the code will change ...). GPLv2 is there also for that. I think such as(^_^;
 
 
 Revision history:
-On the basis of you pointed out in the 2016-01-05 2 channel emulator comprehensive attrition,
-Some review the description of the facts to get a license. After, add 6. Section.
+* On the basis of you pointed out in the 2016-01-05 2 channel emulator comprehensive attrition,
+some review the description of the facts to get a license. After, add 6. Section.
  
-To point out about the representation of the hour, minute and second protect / format when in 2016-01-07 ↑ of the plate,
+* To point out about the representation of the hour, minute and second protect / format when in 2016-01-07 ↑ of the plate,
            Have appended correction (fear s)
 
