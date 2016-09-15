@@ -1,0 +1,85 @@
+To Do (that I try to do future) 2016-09-15 K.Ohta
+  Sorry, this file is written in Japanese, not English X-)
+
+※ Written orders and the priorities are * There is no relationship at all *
+※ This article still not corrected from machine-traslate from Japanese
+   (ToDo.ja.txt) article by GOOGLE TRANSLATION X-)
+
+[Qt] text browser implementation. The old file, which had been written the note, such as Strategy Toka Do you want to read without moving the priority of the window.
+[Qt] enhancement of Help
+
+[PCENGINE] CD-ROM ^ 2 test ('Cos I do not have (;'Д `))
+[FM7] extended RAM tangling of operation test
+* I should do sloppy Do> [FM7] [FM8] implementation of the Green monitor function (Request from Anna_Wu).
+[VM] IPC implementation via RS-232C. Construction of the structure to write a UART emulation result of reading from or writing to the FIFO in the RAW.
+[VM] [DISK] the development of imaging criteria of disk you are writing data to the Toka gap of track
+[Qt] [MZ2500] seriously to debug the socket.
+
+※ that you are wondering
+[VM] FM-11 is I wonder what to do (;'Д `) to the absence of actual to very few materials (;'Д`)
+* Wait a minute because troublesome> [FM7] implementation of the Japanese communication card
+To [VM] disk or FDC to implement the mix (), (if there is if the sound source file) to be able to play the FDD seek sound
+[FM7] implementation of speech synthesis card (no hard spots)
+[FM7] mouse card implementation of (Somehow)
+[Qt] [VM] ROM the Yara necessary things What with save binary a list with Query to the VM from the UI side (in StringList) making structure.
+
+* Although we started to somehow too eating the CPU when you are using the still> [FM77AV] ALU drawing lines.
+* I should do, but likely to be troublesome something on the specification> [FM7] Joystick -> implementation of the Keyboard conversion mechanism
+* I'll see time> [FM7] implementation of the Kanji printer (Tatte Tsu, Do no materials (;'Д `))
+→ FMPR-201 http://software.aufheben.info/ooholdpc/fmpr201.html there was a rough command of
+
+--- Or less, (I'd like to be called) past the log ---
+
+* Could perhaps> [FM7] and lose information problem key input is intense
+* I was able to tentatively has deviated from the specifications? > [FM8] implementation of bubble file
+* Maybe can have> [Qt] volume settings to improve the matter that there is that unlike in and after it ends before the end
+* Once implementation> [Qt] construction of recording mechanism of the system log. So as soon as read in the softening of the window.
+
+* Can was> [Qt] Add how to turn off warning in WindowsXP, etc. to document https://support.microsoft.com/en-us/kb/310519
+*done. The main change (of the console side) font size. > [Qt] eliminate [Windows] of the log kanji is to garbled
+* Can was> [Qt] dialog related to volume, etc.
+* Can the> [VM] [Qt] the [OpenGL] scan line in order to implemented in OpenGL, to be able to Query the aspect of the resolution to the VM
+* Maybe can have> [FM7] crush the bugs there is a screen may remain when the state load
+Maybe can was> [FM8] Let's start implementation ※ irresponsible of FM-8 ( '· ω · `)> I
+* Can was> [FM7] to allow machine settings without Kanji ROM (7 / NEW7 / 8 only)
+* Can the> [Qt] production of the dialog where you can set the key code
+* Can was> [Qt] Windows build also, do in Qt. If possible, to eliminate the M $ VC.
+* Can was ish, the THX! Takeda's> [VM] structure that can volume settings from the outside of the VM, be implemented in all of the audio device
+* Na or can not be Na or not ( '· ω · `)> [VM] [Qt] resolution of the there is a firm that if you reset
+* Can the> [VM] in [FM7] Mappy, etc., correction of the things that will not sound the music at a certain timing
+* I was able to tentatively test is not sufficient> [Qt] of laser disk implementation. I Toka how to video display without imposing burden on how to use Toka OpenGL of <del> QMultimedia (;'Д `) </ del>
+     It appeared to use the libav (;'Д `)
+
+Below, the response-related
+※ http: //hanabi.2ch.net/test/read.cgi/i4004/1430836648/528
+> 528: Transcorp's 2016/03/05 (Sat) 17: 41: 35.32
+>>> 527
+> Binaries CSP_BUILD_20160304-1.7z You have written only in that I noticed try in Windows.
+
+* Maybe we can was> · Paste from Clipboard with a new line has not worked?
+* Maybe we can have> and position of each sound source of Volume: initial position in the state ini file is not is a right end, but at the center and press the Reset button
+* Can was> · Reset button instead of two for each sound source, I wonder why not even one together all sound source + Main volume. A matter of taste?
+
+> After, but not related to the time of the update content,
+*done. If it contains Japanese in the name of the main change the font size (lack of console side)> · Audio Device, only garbled log the location of the command prompt in Windows. Tape of the wav file name is not garbled in the case of Japanese.
+* Maybe can have>, immediately after the start-up message, whether the same contents as the printf and AGAR_LOG_INFO and AGAR_LOG_DEBUG are output multiple times there is a meaning
+* The once deal>, immediately after the start-up message - I have written about, for booting from a command prompt? - It does not appear to change with or without the?
+* Maybe the person who is good> · ttp: Looking at the //doc.qt.io/qt-5/qapplication.html#QApplication, the first to call the main of the last of more of the src / qt / common / qt_main.cpp will argument is more of 1 is not good than 0. I do not know whether to be a zero-length string.
+* The can was> · readme.qt.txt and README of 0. About is written I Built with Visual Studio, and the other now I'm MinGW
+
+※ http: //hanabi.2ch.net/test/read.cgi/i4004/1430836648/530
+> 530: 528 2016/03/05 (Sat) 21: 21: 11.25
+> Postscript.
+When to start * can was> of · cygwin from the terminal, the log display is not in real time. Collectively come out at the end. Although not garbled Japanese is the audio device name wav file name of the Japanese is garbled. I think no one to worry about up there.
+↑ Reference: http://stackoverflow.com/questions/17984660/c90-printf-with-n-or-r-n-not-working-in-cygwin-but-fflushstdout-works-fine
+
+※ http: //hanabi.2ch.net/test/read.cgi/i4004/1430836648/532
+> 532: Transcorp's 2016/03/07 (Mon) 23:15: 15.57
+> Artane. San to.
+>> [FM7] implementation of the Kanji printer (Tatte Tsu, Do no materials (;'Д `))
+> Http://software.aufheben.info/ooholdpc/fmpr201.html
+> And,
+> Etc. FMPR-671B of http://www.fmworld.net/biz/printer/support/manual/#dot of the instruction manual of the "FM mode command table"
+> Whether it would be useful.
+> "FM printer sequence Reference Manual (serial printer ed.)"
+> Could not be found I might Moabeta if there!

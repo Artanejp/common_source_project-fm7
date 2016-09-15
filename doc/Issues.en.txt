@@ -1,0 +1,40 @@
+※ Known Issues
+                                           August 16, 2016 K.Ohta
+* Note: This is translated from Issues.ja.txt by GOOGLE TRANSLATION.
+
+* If you specify a H.264 the video codec of the video there is no end one second about the video
+→ of libx264 codec side of ffmpeg (the end of the process?) Problem.
+Future reports to ffmpeg development side.
+
+* Sound If you specify a Vorbis to audio codec of the video does not turn
+→ examine workaround
+
+* Specify the aac to the audio codec of the video, and sound a long vowel in the PSG single note griping
+And was to, such as high-pitched noise to enter (example: emufm7 run the PLAY "V15AAAAA" in)
+→ seems to ffmpeg of built-in AAC codec problem. The MP3 does not occur.
+
+* Specify the H.264 the video codec of the video, the entire machine while recording a high fps
+When the load is high, continue to consume more and more memory
+→ H.264 CPU resources to avoid the encoding is processing delay is not enough.
+  → was the image to a minimum memory consumption when enqueue from OSD to MOVIE_SAVER (2016-08-16)
+
+* The PC-8801/9801 series (+ perhaps PC-8001SR), the voice of the sample rate
+When you save the video as 48000Hz, sound becomes strange.
+→ has issued a voice at a sample rate 55600Hz but, ffmpeg side 96000Hz
+I have a record as. The main improvement in the future. → Although the pitch was healed, lucky Bata (2016-08-16)
+
+* GNU / Linux of FFMPEG does not work!
+→ OpenCL has been effective and build the FFMPEG. Please install the libOpenCL.
+
+* If the video save at 60fps, the frame may be inaccurate
+→ determine the cause! → healed maybe (2016-08-15)
+
+* PX7: If you are moving load, to crash it's file name other than alphanumeric
+  → fix in the next release (2016-08-16)
+  
+* PX7: When moving load take Kaku
+  Since → video in the code of a timing issue, and a little thought.
+  → I could probably. Yet the moving of measures of variable frame rate (2016-08-19)
+
+* PX7: video scaling is funny
+  → fix later (;'Д `)

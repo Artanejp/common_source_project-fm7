@@ -1,0 +1,225 @@
+*** This article still not correct from auto-translated by GOOGLE-TRANSLATE.
+*** If you can tranlate Japanese to any languages, please
+*** Translate this, publish and pull request to my GITHUB.
+
+Common Source Code Project for Qt: How to Build
+                                        Feb 25, 2016 K.Ohta
+                           <Whatisthis.sowhat_at_gmail.com>
+
+1.First of all
+Common Source Code Project the (CSP) in terms of porting to Qt, the build
+There is a voice that does not know well when using the method - especially MinGW to or
+So it was, we wrote a little.
+
+2. What you need
+• The Windows of the person, MinGW is required ... is, open-source version of Qt
+The installer [1] (in the case of Qt5.5.1 GCC4.9.2) MinGW is
+It comes with, but, half-hearted.
+· GCC (may not be good Qt and compatibility that it LLVM CLANG)
+· Qt5.1 or more, of course also the development files such as header.
+· OpenGL 2.1 or more moves environment. With the software renderer in Windows for Qt
+You've had.
+· CMake [2] 2.8 or more
+· LibSDL2 [3]
+If - if possible, it can be slightly faster and use the CCACHE [4]
+If · git [5] is, child download the source code from the repository [6]
+You bet you can.
+· Emufm7 part of the code of the source code in the gawk from a text file
+Users had dropped to. However, the file after generation to the source tree
+It contains.
+
+[1] Windows for in http://www.qt.io/download-open-source/ of (32 / 64bit)
+Please try using the installer
+[2] http://cmake.org/
+[3] http://libsdl.org/
+[4] https://ccache.samba.org/
+[5] https://git-scm.com/
+[6] https://github.com/Artanejp/common_source_project-fm7
+    https://www.pikacode.com/Artanejp/common_source_project-fm7/
+    
+These things, GNU / Linux if such and MinGW, package management software
+In will be put in the majority.
+
+3. How to Build
+  3-1. Basic method
+The source tree allowed to expand to $ {SRCDIR},
+      $ Cd $ {SRCDIR} / source / build-cmake / {VM name} /
+      $ Mkdir -p build
+      $ Cd build
+      $ Cmake .. ※ [7]
+      $ Make
+  It went well,
+      $ Sudo make install
+
+In fact, [7], it is convenient setting is better to use the ccmake of CursesGUI version of CMake.
+
+   In the case of 3-2.MinGW
+     It is basically the same, and use the windeployqt.exe of Qt, the necessary Qt La
+     For us to copy the library.
+     However, DLL of libstdc associated with libSDL2 and OpenGL relationship is to manually copy
+     That you will need.
+     Since there is no CMake is the official MinGW, please download from [8].
+     
+     Install the a.MinGW.
+     mingw32-gcc and mingw32-g ++ and mingw32-binutils,
+     mingw-developer-toolkit and mingw32-pthreds-w32
+     Please install the sure.
+     
+     To register the shortcut of b.MSYS Bash, for example, on your desktop and menu
+     Let's place. If the default installation location,
+     Is C: \ MinGW \ msys \ 1.0 \ msys.bat.
+     
+     Install the c.Qt.
+     Start the installer you downloaded from [1], the mingw toolchain
+     Install in, including form.
+     
+     Install the d.CMake.
+     Whether to include the CMake the path? Come ask the installer and
+     So please check.
+     
+     If e. Necessary, install the Git.
+     
+     f.C:. \ MinGW \ msys \ 1.0 \ home \ {username} \ to edit the profile.
+     At this time, since performed in Notepad problem comes out, use the vim.
+     From the MSYS BASH
+       $ Vim ~ / .profile
+       Please to add the following line.
+           export PATH = / c / MinGw / bin: $ PATH: /c/Qt/Qt5.5.1/5.5/mingw492_32/bin
+       When you are finished, in the [ESC] → ZZ command, it writes.
+       
+     g.SDL2 Install. (Reference: [9])
+     Download SDL2 have been "Windows Development MinGW" tarball of
+       The expand and install.
+       $ Tar xf SDL2-devel-2.0.4-mingw.tar.gz
+       $ Cd SDL2-2.0.4
+       $ Mingw32-make install-package arch = i686-w64-mingw32 prefix = / c / mingw
+       
+     h. When you come up to this point, to start the MSYS BASH again.
+     And, of release page in the source and github that have been taken in the git clone
+       Expand the source code. Here, describing the full path to the $ {SRCDIR}
+       To do.
+       
+     i. Build.
+       $ Cd $ {SRCDIR}
+       $ Cd source / build-cmake / $ {VM name}
+       $ Mkdir build-win32
+       $ Cd build-win32
+       $ Cmake .. -G "MinGW Makefiles"
+        ※[Ten]
+       $ Mingw32-make
+
+     ※ Notes: Windwos on (the native) in MinGW, rather than make, mingw32-make
+     Use and the like. I have a Windows side is make, yet this is the unix format
+     Since it is a villainy specification that not me seriously interpret the Makefile ...
+     
+     j. cormorant or Ku be or prayer a call that came in buildings de
+     
+     k. When you build, the directory to the emu $ {VM name} .exe for moving
+     Copy.
+     
+     l. on which has moved to copy the previous directory I,
+       $ Windeployqt.exe --release emu $ {VM name} .exe
+       If you, copy the necessary Qt libraries in release mode Shiteku
+       Are you, but the copy manually, such as libSDL2 and libpthread and libgcc_s
+       If that does not, can not be started from the Windows Explorer (;'Д `)
+       In addition, it specifies the Debug and Relwithdebinfo to build the type of CMake
+       Time,
+       $ Windeployqt.exe --debug emu $ {VM name} .exe
+       Let's say.
+       Then, the following file C: \ Qt \ Qt5.5.1 \ mingw492_32 \ bin (such as)
+       Or, or from C: \ MinGW \ bin, and copy it to the directory where you placed the exe.
+       icudt54.dll
+       icuin54.dll
+       icuuc54.dll
+       libgcc_s_dw2-1.dll
+       libstdc ++ - 6.dll
+       libwinpthread-1.dll
+       On top of that, SDL2.dll (C: should located in the \ MinGW \ bin) is also, in this directory
+       Copy.
+     
+[8] http://cmake.org/download/
+[9] https://gist.github.com/Hamayama/155b5557db31334ce492
+[10] In fact, once after you move the CMake, a fine setting to start the cmake-gui
+Better to is better.
+
+   3-3. Cross build (do the build for Windows in such as GNU / Linux)
+   Here, in the GNU / Linux host, how to cross build the CSP for Windows
+   You have a brief description.
+   Become an aid for the ARM build and other OS Builds for Android, etc. for
+   Award.
+
+a. installation of cross compiler
+In most cases, because there is a cross-GCC Toolchain for MinGW, it
+Install.
+
+Installation of b.Wine
+Because such as moc there is a need to use for Windows, install the Wine want
+It is.
+On top of that, so that you can start a file of exe extension via Wine
+There to support scripts such as binfmt-support, set in the upda-ebinfmts
+To do. [11]
+$ Sudo update-binfmts --install Win32Exec / usr / bin / wine --magic "MZ"
+I think that it was good at (I'm sorry in faint memory)
+
+[11] http://d.hatena.ne.jp/kakurasan/20110909/p1 such as the reference.
+
+c.Qt for Windows installation of
+From the URL of the [1], you drop the installer for Windows.
+And,
+$ Sudo wine ./qt-opensource-foo.exe
+will do.
+Then because Qt installer screen comes out,
+Z: \ usr \ local \ i586-mingw-msvc
+Please specify to the installation.
+At this time,
+$ Sudo chmod ugo + x /usr/local/i586-mingw-msvc/5.5/mingw492_32/bin/*.exe
+As such, let's be able to start the tool for Windows Qt directly attached.
+
+d.libSDL2 installation of
+libSDL2 also, and you should install the ones for Windows.
+From [3], download for Windows SDL2 (for Development),
+/ Usr / local / i586-mingw-msvc / Let's expand to around.
+
+e. Cross build
+Although we use the ToolChain function of CMake, so many things setting is confusing,
+Already Yes available are those described.
+$ {SRCDIR} /source/build-cmake/cmake/toolchain_mingw_cross_linux.cmake
+Messing with description of this file,
+$ Cd $ {SRCDIR} / source / build-cmake / {VM name} /
+ $ Mkdir -p build
+  $ Cd build
+   $ Cmake .. -DCMAKE_TOOLCHAIN_FILE = .. / .. / cmake / toolchain_mingw_cross_linux.cmake
+    $ Make
+    In it you should be okay.
+    
+3-3. Trying to music
+In the description up to this point, we have to build the manual in a virtual machine basis.
+However, although the once could under preparation, is every time awkward every time.
+Therefore, a batch file (Bash script) are available.
+· $ {SRCDIR} /source/build-cmake/config_build.sh: normal build
+· $ {SRCDIR} /source/build-cmake/config_build_cross_win32.sh
+: To build a file for MinGW32 (Windows) on GNU / Linux
+Script
+· $ {SRCDIR} /source/build-cmake/config_build_mingw.sh
+: Script to build a file for MinGW with MinGW on Windows
+
+config_build.sh will continue to write the settings to a file called buildvars.dat.
+config_build_mingw.sh is, the settings to a file called buildvars_mingw.dat
+I will continue to write.
+
+How to use it,
+$ ./Doru {Script name} $ {VM name 1} $ {VM name 2} ... $ {VM name n}
+is.
+Generate the Makefiles from CMake → make → install → make clean
+Done in full automatic.
+
+For make results, $ in {VM name} /build/make.log (MinGW for cross build
+$ Have been recorded in the {VM name} /build-win32/build.log).
+
+For Windows-friendly build, $ {SRCDIR} / source / build-cmake / bin-win32 /
+Copy the resulting binary in, and clean the build working directory.
+
+For batch build, and use the Midnight Commander (mc), it is very easy.
+For more information, the https://www.midnight-commander.org/.
+Windows of unofficial build, https: to //sourceforge.net/projects/mcwin32/
+Equipped therefore, let's install using the installer.

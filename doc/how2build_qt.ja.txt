@@ -1,5 +1,5 @@
 **If you cannot read Japanese, please read how2build_qt.txt.
-***That article will come , but still not wrote.
+***That article translated from this by GOOGLE TRANSLATION , but still not correct.
 
 ***If you can tranlate Japanese to any languages, please
 ***translate this, publish and pull request to my GITHUB. 
