@@ -2,6 +2,7 @@ message("* qt/debugger")
 
 set(s_qt_debugger_headers
 	  qt_debugger.h
+	  debugger_thread.h
 )
 
 if(USE_QT_5)

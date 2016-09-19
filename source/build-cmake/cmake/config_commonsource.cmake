@@ -170,13 +170,13 @@ add_subdirectory(../../src common)
 add_subdirectory(../../src/vm vm/)
 
 if(DEFINED VM_NAME)
- if(WITH_DEBUGGER)
+# if(WITH_DEBUGGER)
    set(DEBUG_LIBS qt_debugger)
    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/debugger)
    add_subdirectory(../../src/qt/debugger qt/debugger)
- else()
-   set(DEBUG_LIBS)
- endif()
+# else()
+#   set(DEBUG_LIBS)
+# endif()
 
 if(WIN32)
 	   set(LOCAL_LIBS 

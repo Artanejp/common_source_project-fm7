@@ -28,44 +28,44 @@ void OSD_BASE::do_write_inputdata(QString s)
 void OSD_BASE::do_set_input_string(QString s)
 {
 	//if(s.empty()
-	DebugSemaphore->acquire(1);
+	//DebugSemaphore->acquire(1);
 	console_cmd_str.append(s);
 	console_cmd_str.append(QString::fromUtf8("\n"));
-	DebugSemaphore->release();
+	//DebugSemaphore->release();
 }
 
 _TCHAR *OSD_BASE::console_input_string(void)
 {
-	DebugSemaphore->acquire(1);
+	//DebugSemaphore->acquire(1);
 	if(console_cmd_str.isEmpty()) {
-		DebugSemaphore->release(1);
+		//DebugSemaphore->release(1);
 		return NULL;
 	}
 	_TCHAR *p = (_TCHAR *)console_cmd_str.toUtf8().constData();
-	DebugSemaphore->release();
+	//DebugSemaphore->release();
 	return p;
 }
 
 void OSD_BASE::clear_console_input_string(void)
 {
-	DebugSemaphore->acquire(1);
+	//DebugSemaphore->acquire(1);
 	console_cmd_str.clear();
-	DebugSemaphore->release();
+	//DebugSemaphore->release();
 }
 
 void OSD_BASE::open_console(_TCHAR* title)
 {
 	if(osd_console_opened) return;
-	DebugSemaphore->acquire(1);
+	//DebugSemaphore->acquire(1);
 	console_cmd_str.clear();
 	osd_console_opened = true;
-	DebugSemaphore->release();
+	//DebugSemaphore->release();
 
 }
 
 void OSD_BASE::close_console()
 {
-	DebugSemaphore->release(DebugSemaphore->available());
+	//DebugSemaphore->release(DebugSemaphore->available());
 	console_cmd_str.clear();
 	osd_console_opened = false;
 }
@@ -97,14 +97,14 @@ int OSD_BASE::read_console_input(_TCHAR* buffer)
 	int i;
 	int count = 0;
 	QString tmps;
-	DebugSemaphore->acquire(1);
+	//DebugSemaphore->acquire(1);
 	tmps = console_cmd_str.left(16);
-	DebugSemaphore->release(1);
+	//DebugSemaphore->release(1);
 	if(buffer == NULL) return 0;
-	
 	memset(buffer, 0x00, 16);
-	
-	if(tmps.isEmpty()) return 0;
+	if(tmps.isEmpty()) {
+		return 0;
+	}
 	int locallen = tmps.indexOf(QString::fromUtf8("\n"));
 	if(locallen >= 16) locallen = 15;
 	if(locallen >= 0) {
@@ -115,12 +115,12 @@ int OSD_BASE::read_console_input(_TCHAR* buffer)
 	count = tmps.length();
 	if(tmps.isEmpty() || (count <= 0)) return 0; 
 	if(count > 16) count = 16;
-	DebugSemaphore->acquire(1);
+	//DebugSemaphore->acquire(1);
 	int l = console_cmd_str.length();
 	
 	console_cmd_str = console_cmd_str.right(l - count);	
 	strncpy(buffer, tmps.toLocal8Bit().constData(), count);
-	DebugSemaphore->release(1);
+	//DebugSemaphore->release(1);
 
 	return count;
 }

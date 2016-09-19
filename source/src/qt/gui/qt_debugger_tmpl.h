@@ -7,46 +7,46 @@
 	[ debugger console ]
 */
 
-#ifndef _CSP_QT_DEBUGGER_H
-#define _CSP_QT_DEBUGGER_H
+#ifndef _CSP_QT_DEBUGGER_TMPL_H
+#define _CSP_QT_DEBUGGER_TMPL_H
 
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>
 #include <QMetaObject>
+#include <QThread>
+#include <QWidget>
+#include <QPlainTextEdit>
+#include <QLineEdit>
+#include <QString>
+#include <QStringList>
+#include <QVBoxLayout>
 #include <QTimer>
 #include <QCloseEvent>
 
-#include "qt_debugger_tmpl.h"
-#include "../../emu.h"
-#include "../../vm/device.h"
-#include "../../vm/debugger.h"
-#include "../../vm/vm.h"
 #include "../../fileio.h"
 
-#if defined(USE_DEBUGGER)
-#include "debugger_thread.h"
-#endif
-
 QT_BEGIN_NAMESPACE	
-class CSP_Debugger : public CSP_Debugger_Tmpl
+
+class CSP_DebuggerThread;
+class CSP_Debugger_Tmpl : public QWidget
 {
 	Q_OBJECT
  protected:
-	CSP_DebuggerThread *main_thread;
+	QObject *parent_object;
+	QWidget *widget;
+	QTextEdit *text;
+	QLineEdit *text_command;
+	QVBoxLayout *VBoxWindow;
  public:
-	CSP_Debugger(QWidget *parent);
-	~CSP_Debugger();
-#if defined(USE_DEBUGGER)
-	debugger_thread_t debugger_thread_param;
-#endif	
-	void closeEvent(QCloseEvent *event);
-	
+	CSP_Debugger_Tmpl(QWidget *parent);
+	~CSP_Debugger_Tmpl();
+	//virtual void closeEvent(QCloseEvent *event);
 public slots:
-	void doExit(void);
-	void doExit2(void);
-	void call_debugger(void);
-	void run(void);
+	void stop_polling();
+	void put_string(QString);
+	void cmd_clear();
+	virtual void run(void);
 signals:
 	void sig_put_string(QString);
 	void sig_run_command(QString);
@@ -54,7 +54,6 @@ signals:
 	void sig_start_debugger();
 	void sig_call_debugger(QString);
 	void sig_close_debugger(void);
-	void sig_stop_debugger(void);
 };
 
 QT_END_NAMESPACE	

@@ -15,129 +15,74 @@
 #include <QObject>
 #include <QMetaObject>
 
-//#include "res/resource.h"
-#include "../../emu.h"
-#include "../../vm/device.h"
-#include "../../vm/debugger.h"
-#include "../../vm/vm.h"
-#include "../../fileio.h"
 #include "qt_debugger.h"
-//#include <QThread>
-//#include <QMainWindow>
-
-
-#ifdef USE_DEBUGGER
-
-void CSP_Debugger::put_string(QString s)
-{
-	text->insertPlainText(s);
-	text->moveCursor(QTextCursor::End);
-}
-
-void CSP_Debugger::cmd_clear()
-{
-	text_command->clear();
-	text->moveCursor(QTextCursor::End);
-}
-
-
-void CSP_Debugger::doExit2(void)
-{
-	emit sig_close_debugger();
-}
 
 void CSP_Debugger::doExit(void)
 {
-	DEVICE *cpu = debugger_thread_param.vm->get_cpu(debugger_thread_param.cpu_index);
-	DEBUGGER *debugger = (DEBUGGER *)cpu->get_debugger();
-	debugger_thread_param.request_terminate = true;
-	
-	try {
-		debugger->now_debugging = debugger->now_going = debugger->now_suspended = false;
-	} catch(...) {
-	}
-	// release console
-	debugger_thread_param.running = false;
 	emit sig_finished();
 }
 
-void CSP_Debugger::stop_polling()
+void CSP_Debugger::doExit2(void)
 {
-	//poll_stop = true;
+	emit sig_finished();
 }
 
 void CSP_Debugger::call_debugger(void)
 {
+#if defined(USE_DEBUGGER)
 	OSD *osd = debugger_thread_param.osd;
 	osd->do_set_input_string(text_command->text());
 //	emit sig_call_debugger(text_command->text());
+#endif	
 	cmd_clear();
 }
 
 void CSP_Debugger::run(void)
 {
+	connect(text_command, SIGNAL(editingFinished()), this, SLOT(call_debugger()));
+	connect(this, SIGNAL(sig_finished()), this, SLOT(close()));
+	connect(this, SIGNAL(destroyed()), this, SLOT(doExit()));
+	connect(parent_object, SIGNAL(quit_debugger_thread()), this, SLOT(close()));
+	
+#if defined(USE_DEBUGGER)
 	main_thread = new CSP_DebuggerThread(NULL, &debugger_thread_param);
 	OSD *osd = debugger_thread_param.osd;
 	main_thread->setObjectName(QString::fromUtf8("Debugger"));
 	main_thread->moveToThread(main_thread);
-	
-	connect(text_command, SIGNAL(editingFinished()), this, SLOT(call_debugger()));
 	connect(this, SIGNAL(sig_call_debugger(QString)), osd, SLOT(do_set_input_string(QString)));
-	
-	//connect(main_thread, SIGNAL(sig_text_clear()), this, SLOT(cmd_clear()));
 	connect(osd, SIGNAL(sig_put_string_debugger(QString)), this, SLOT(put_string(QString)));
 	
 	connect(main_thread, SIGNAL(finished()), this, SLOT(doExit()));
 	connect(main_thread, SIGNAL(quit_debugger_thread()), this, SLOT(doExit()));
-	
-	connect(this, SIGNAL(sig_finished()), this, SLOT(close()));
-	connect(this, SIGNAL(destroyed()), this, SLOT(doExit()));
 	connect(this, SIGNAL(sig_close_debugger()), main_thread, SLOT(quit_debugger()));
-	
-	connect(parent_object, SIGNAL(quit_debugger_thread()), this, SLOT(close()));
-								  
 	main_thread->start();
+#endif
 }
 
 void CSP_Debugger::closeEvent(QCloseEvent *event)
 {
-	main_thread->terminate();
-	doExit();
+	//emit sig_close_debugger();
+	event->ignore();
 }
 
-CSP_Debugger::CSP_Debugger(QWidget *parent) : QWidget(parent, Qt::Window)
+CSP_Debugger::CSP_Debugger(QWidget *parent) : CSP_Debugger_Tmpl(parent)
 {
-	widget = this;
-	
-	parent_object = parent;
-	text = new QTextEdit(this);
-	text->setReadOnly(true);
-	text->setLineWrapMode(QTextEdit::WidgetWidth);
-	//text->setCenterOnScroll(true);
-
-	text_command = new QLineEdit(this);
-	text_command->setEchoMode(QLineEdit::Normal);
-	text_command->setMaxLength(1024);
-	text_command->setReadOnly(false);
-	text_command->setEnabled(true);
-	text_command->clear();
-	//connect(text_command, SIGNAL(editingFinished()), this, SLOT(call_debugger()));
-	
-	VBoxWindow = new QVBoxLayout;
-
-	VBoxWindow->addWidget(text);
-	VBoxWindow->addWidget(text_command);
-	this->setLayout(VBoxWindow);
-	this->resize(640, 500);
+#if defined(USE_DEBUGGER)	
+	main_thread = NULL;
+#endif
 }
-
 
 CSP_Debugger::~CSP_Debugger()
 {
-	
-}
-   
-
-
+#if defined(USE_DEBUGGER)
+	if(main_thread != NULL) {
+		if(main_thread->isRunning()) {
+			main_thread->quit_debugger();
+			main_thread->terminate();
+		}
+		delete main_thread;
+	}
 #endif
+}
+
 
