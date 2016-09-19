@@ -47,6 +47,7 @@ public slots:
 	void doExit2(void);
 	void call_debugger(void);
 	void run(void);
+	void do_destroy_thread(void);
 signals:
 	void sig_put_string(QString);
 	void sig_run_command(QString);

@@ -32,7 +32,6 @@ void CSP_Debugger::call_debugger(void)
 #if defined(USE_DEBUGGER)
 	OSD *osd = debugger_thread_param.osd;
 	osd->do_set_input_string(text_command->text());
-//	emit sig_call_debugger(text_command->text());
 #endif	
 	cmd_clear();
 }
@@ -63,6 +62,21 @@ void CSP_Debugger::closeEvent(QCloseEvent *event)
 {
 	//emit sig_close_debugger();
 	event->ignore();
+}
+
+void CSP_Debugger::do_destroy_thread(void)
+{
+#if defined(USE_DEBUGGER)
+	if(main_thread != NULL) {
+		if(main_thread->isRunning()) {
+			main_thread->quit_debugger();
+			main_thread->terminate();
+		}
+		delete main_thread;
+	}
+	main_thread = NULL;
+#endif
+	this->close();
 }
 
 CSP_Debugger::CSP_Debugger(QWidget *parent) : CSP_Debugger_Tmpl(parent)
