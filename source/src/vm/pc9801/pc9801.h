@@ -42,6 +42,9 @@
 #define SUPPORT_2DD_FDD_IF
 #define SUPPORT_320KB_FDD_IF
 #define SUPPORT_OLD_BUZZER
+#elif defined(_PC9801VM)
+//#define SUPPORT_ITF_ROM
+#define SUPPORT_2HD_2DD_FDD_IF
 #elif defined(_PC9801VF) || defined(_PC9801U)
 #define SUPPORT_2DD_FDD_IF
 #else
@@ -116,9 +119,15 @@
 #endif
 #define I8259_MAX_CHIPS		2
 #define SINGLE_MODE_DMA
+#if defined(_PC9801VM)
 #define MEMORY_ADDR_MAX		0x100000
 #define MEMORY_BANK_SIZE	0x800
 #define IO_ADDR_MAX		0x10000
+#else
+#define MEMORY_ADDR_MAX		0x100000
+#define MEMORY_BANK_SIZE	0x800
+#define IO_ADDR_MAX		0x10000
+#endif
 #define OVERRIDE_SOUND_FREQ_48000HZ	55467
 #define SUPPORT_VARIABLE_TIMING
 
@@ -258,7 +267,9 @@ class PC80S31K;
 class PC88;
 class Z80;
 #endif
-
+#if defined(SUPPORT_ITF_ROM)
+class ITF;
+#endif
 class VM
 {
 protected:
@@ -336,11 +347,16 @@ protected:
 	UPD765A* fdc_sub;
 	Z80* cpu_sub;
 #endif
-	
+#if defined(SUPPORT_ITF_ROM)
+	ITF* itf;
+#endif	
 	// memory
 	uint8_t ram[0xa0000];
 	uint8_t ipl[0x18000];
 	uint8_t sound_bios[0x4000];
+#if defined(SUPPORT_ITF_ROM)
+	uint8_t itf_rom[0x8000];
+#endif
 #if defined(_PC9801) || defined(_PC9801E)
 	uint8_t fd_bios_2hd[0x1000];
 	uint8_t fd_bios_2dd[0x1000];

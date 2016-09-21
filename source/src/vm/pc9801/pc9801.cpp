@@ -57,7 +57,9 @@
 #if defined(SUPPORT_CMT_IF)
 #include "cmt.h"
 #endif
-
+#if defined(SUPPORT_ITF_ROM)
+#include "itf.h"
+#endif
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 #include "../pc80s31k.h"
 #include "../z80.h"
@@ -182,7 +184,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	fdc_sub = new UPD765A(this, emu);
 	cpu_sub = new Z80(this, emu);
 #endif
-	
+#if defined(SUPPORT_ITF_ROM)
+	itf = new ITF(this, emu);
+#endif
 	/* IRQ	0  PIT
 		1  KEYBOARD
 		2  CRTV
@@ -363,6 +367,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	memset(ram, 0, sizeof(ram));
 	memset(ipl, 0xff, sizeof(ipl));
 	memset(sound_bios, 0xff, sizeof(sound_bios));
+	
+#if defined(SUPPORT_ITF_ROM)
+	memset(itf_rom, 0xff, sizeof(itf_rom));
+#endif
+	
 #if defined(_PC9801) || defined(_PC9801E)
 	memset(fd_bios_2hd, 0xff, sizeof(fd_bios_2hd));
 	memset(fd_bios_2dd, 0xff, sizeof(fd_bios_2dd));
@@ -380,7 +389,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	memory->read_bios(_T("2HDIF.ROM"), fd_bios_2hd, sizeof(fd_bios_2hd));
 	memory->read_bios(_T("2DDIF.ROM"), fd_bios_2dd, sizeof(fd_bios_2dd));
 #endif
-	
 	memory->set_memory_rw(0x00000, 0x9ffff, ram);
 	// A0000h - A1FFFh: TEXT VRAM
 	// A2000h - A3FFFh: ATTRIBUTE
@@ -398,7 +406,20 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// E0000h - E7FFFh: VRAM
 	memory->set_memory_mapped_io_rw(0xe0000, 0xe7fff, display);
 #endif
+	
+	// E8000h - FFFFFh: IPL or ITF ROM
+#if defined(SUPPORT_ITF_ROM)
+	memory->read_bios(_T("ITF.ROM"), itf_rom, sizeof(itf_rom));
+	
+	itf->set_context_itf(itf_rom);
+	itf->set_context_ipl(ipl);
+	memory->set_memory_mapped_io_r(0xe8000, 0xfffff, itf);
+//	memory->set_memory_r(0x1c0000, 0x1c7fff, itf);
+//	memory->set_memory_r(0x1f8000, 0x1fffff, itf);
+//	memory->set_memory_r(0x1e8000, 0x1f7fff, ipl);
+#else
 	memory->set_memory_r(0xe8000, 0xfffff, ipl);
+#endif	
 	
 	// i/o bus
 	io->set_iomap_alias_rw(0x00, pic, 0);
@@ -541,7 +562,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		io->set_iovalue_single_r(0x18e, 0x80); // INT5
 //		io->set_iovalue_single_r(0x18e, 0xc0); // INT6
 	}
-	
+#if defined(SUPPORT_ITF_ROM)
+	io->set_iomap_range_w(0x43c, 0x43d, itf);
+	io->set_iomap_range_r(0x43c, 0x43d, itf);
+#endif
 #if !defined(SUPPORT_OLD_BUZZER)
 	io->set_iomap_alias_rw(0x3fd9, pit, 0);
 	io->set_iomap_alias_rw(0x3fdb, pit, 1);
@@ -1182,7 +1206,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	7
+#define STATE_VERSION	8
 
 void VM::save_state(FILEIO* state_fio)
 {
@@ -1215,6 +1239,10 @@ bool VM::load_state(FILEIO* state_fio)
 	boot_mode = state_fio->FgetInt32();
 #endif
 	sound_device_type = state_fio->FgetInt32();
+#if defined(SUPPORT_ITF_ROM)
+	itf->set_context_ipl(ipl);
+	itf->set_context_itf(itf_rom);
+#endif	
 	return true;
 }
 
