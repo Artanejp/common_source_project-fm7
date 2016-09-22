@@ -108,9 +108,9 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 				}
 				register_event(this, EVENT_TIMER, 100000, false, &timer_id);
 			}
-//			if(modereg & 4) {
-//				d_fdc->write_signal(SIG_UPD765A_MOTOR, data, 0x08);
-//			}
+			if(modereg & 4) {
+				d_fdc->write_signal(SIG_UPD765A_MOTOR, data, 0x08);
+			}
 			ctrlreg = data;
 		}
 		break;
@@ -121,6 +121,9 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 		} else if((modereg & 2) && !(data & 2)) {
 			d_fdc->set_drive_type(0, DRIVE_TYPE_2DD);
 			d_fdc->set_drive_type(1, DRIVE_TYPE_2DD);
+		}
+		if(((data & 4) == 0) && (((modereg & 1) != 0) || ((data & 1) != 0))) {
+			d_fdc->write_signal(SIG_UPD765A_MOTOR, 0x01, 0x01);
 		}
 		modereg = data;
 		break;
@@ -207,10 +210,12 @@ void FLOPPY::write_signal(int id, uint32_t data, uint32_t mask)
 		}
 		break;
 	case SIG_FLOPPY_DRQ:
-		if(modereg & 1) {
-			d_dma->write_signal(SIG_I8237_CH2, data, mask);
-		} else {
-			d_dma->write_signal(SIG_I8237_CH3, data, mask);
+		if(ctrlreg & 0x04) {
+			if(modereg & 1) {
+				d_dma->write_signal(SIG_I8237_CH2, data, mask);
+			} else {
+				d_dma->write_signal(SIG_I8237_CH3, data, mask);
+			}
 		}
 		break;
 #endif
