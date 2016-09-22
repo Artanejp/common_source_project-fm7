@@ -154,51 +154,41 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 
 #if defined(_USE_QT)
 	event->set_device_name(_T("EVENT"));
+	dummy->set_device_name(_T("1st Dummy"));
 	
 	maincpu->set_device_name(_T("MAINCPU(MC6809)"));
 	subcpu->set_device_name(_T("SUBCPU(MC6809)"));
-	dummycpu->set_device_name(_T("DUMMYCPU"));
+	dummycpu->set_device_name(_T("DUMMY CPU"));
 # ifdef WITH_Z80
 	z80cpu->set_device_name(_T("Z80 CPU"));
 # endif
-	
-	mainio->set_device_name(_T("MAIN I/O"));
-	mainmem->set_device_name(_T("MAIN MEMORY"));
 	led_terminate->set_device_name(_T("LEDs"));
-	if(fdc != NULL) fdc->set_device_name(_T("FDC(320KB)(MB8877)"));
+	if(fdc != NULL) fdc->set_device_name(_T("MB8877 FDC(320KB)"));
 						
 	// basic devices
 	// I/Os
-# if defined(HAS_DMA)
-	dmac->set_device_name(_T("DMAC(HD6844)"));
-# endif   
 # if defined(_FM8)
-	psg->set_device_name(_T("PSG"));
+	psg->set_device_name(_T("AY-3-8910 PSG"));
 # else	
-	opn[0]->set_device_name(_T("OPN"));
-	opn[1]->set_device_name(_T("WHG"));
-	opn[2]->set_device_name(_T("THG"));
+	opn[0]->set_device_name(_T("YM2203 OPN"));
+	opn[1]->set_device_name(_T("YM2203 WHG"));
+	opn[2]->set_device_name(_T("YM2203 THG"));
 #  if !defined(_FM77AV_VARIANTS)
-	psg->set_device_name(_T("PSG"));
+	psg->set_device_name(_T("AY-3-8910 PSG"));
 #  endif
 # endif
-	drec->set_device_name(_T("DATA RECORDER"));
 	pcm1bit->set_device_name(_T("BEEP"));
-	joystick->set_device_name(_T("JOYSTICK"));
-	printer->set_device_name(_T("PRINTER"));
+	printer->set_device_name(_T("PRINTER I/F"));
 # if defined(_FM77AV_VARIANTS)
-	alu->set_device_name(_T("ALU(MB61VH010)"));
 	keyboard_beep->set_device_name(_T("BEEP(KEYBOARD)"));
 # endif	
-	keyboard->set_device_name(_T("KEYBOARD"));
-	display->set_device_name(_T("DISPLAY"));
 	if(kanjiclass1 != NULL) kanjiclass1->set_device_name(_T("KANJI ROM CLASS1"));
 # ifdef CAPABLE_KANJI_CLASS2
 	if(kanjiclass2 != NULL) kanjiclass2->set_device_name(_T("KANJI ROM CLASS2"));
 # endif
 # if defined(_FM8)
-	bubble_casette[0]->set_device_name(_T("BUBBLE0"));
-	bubble_casette[1]->set_device_name(_T("BUBBLE1"));
+	bubble_casette[0]->set_device_name(_T("BUBBLE CASETTE #0"));
+	bubble_casette[1]->set_device_name(_T("BUBBLE CASETTE #1"));
 # endif	
 #endif
 	this->connect_bus();

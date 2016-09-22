@@ -103,6 +103,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
+#if defined(_USE_QT)
+	dummy->set_device_name(_T("1st Dummy"));
+	event->set_device_name(_T("EVENT"));
+#endif	
 	
 #if defined(SUPPORT_OLD_BUZZER)
 	beep = new BEEP(this, emu);
@@ -112,41 +116,102 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	dma = new I8237(this, emu);
 #if defined(SUPPORT_CMT_IF)
 	sio_cmt = new I8251(this, emu);		// for cmt
+  #if defined(_USE_QT)
+	sio_cmt->set_device_name(_T("i8251 SIO(CMT)"));
+  #endif	
 #endif
 	sio_rs = new I8251(this, emu);		// for rs232c
 	sio_kbd = new I8251(this, emu);		// for keyboard
+#if defined(_USE_QT)
+	sio_rs->set_device_name(_T("i8251 SIO(RS-232C)"));
+	sio_kbd->set_device_name(_T("i8251 SIO(KEYBOARD)"));
+#endif	
 	pit = new I8253(this, emu);
 #if defined(SUPPORT_320KB_FDD_IF)
 	pio_fdd = new I8255(this, emu);		// for 320kb fdd i/f
+  #if defined(_USE_QT)
+	pio_fdd->set_device_name(_T("i8255 PIO(320KB FDD)"));
+  #endif	
 #endif
 	pio_mouse = new I8255(this, emu);	// for mouse
 	pio_sys = new I8255(this, emu);		// for system port
 	pio_prn = new I8255(this, emu);		// for printer
+#if defined(_USE_QT)
+	pio_mouse->set_device_name(_T("i8255 PIO(MOUSE)"));
+	pio_prn->set_device_name(_T("i8255 PIO(PRINTER)"));
+	pio_sys->set_device_name(_T("i8255 PIO(SYSTEM)"));
+#endif	
 	pic = new I8259(this, emu);
 	cpu = new I286(this, emu);
+#if defined(_USE_QT)
+  #if defined(HAS_I86)
+	cpu->set_device_name(_T("CPU(i8086)"));
+  #elif defined(HAS_I386)
+	cpu->set_device_name(_T("CPU(i386)"));
+  #elif defined(HAS_I486)
+	cpu->set_device_name(_T("CPU(i486)"));
+  #elif defined(HAS_PENTIUM)
+	cpu->set_device_name(_T("CPU(Pentium)"));
+  #elif defined(HAS_V33A)
+	cpu->set_device_name(_T("CPU(V33A)"));
+  #elif defined(HAS_V30)
+	cpu->set_device_name(_T("CPU(V30)"));
+  #else
+	cpu->set_device_name(_T("CPU(i286)"));
+  #endif
+#endif
 	io = new IO(this, emu);
 	dmareg1 = new LS244(this, emu);
 	dmareg2 = new LS244(this, emu);
 	dmareg3 = new LS244(this, emu);
 	dmareg0 = new LS244(this, emu);
 	rtcreg = new LS244(this, emu);
+#if defined(_USE_QT)
+	io->set_device_name(_T("I/O BUS"));
+	dmareg1->set_device_name(_T("DMA REG1(74LS244)"));
+	dmareg2->set_device_name(_T("DMA REG2(74LS244)"));
+	dmareg3->set_device_name(_T("DMA REG3(74LS244)"));
+	dmareg0->set_device_name(_T("DMA REG0(74LS244)"));
+	rtcreg->set_device_name(_T("RTC REG(74LS244)"));
+#endif
+	
 	memory = new MEMORY(this, emu);
 	not_busy = new NOT(this, emu);
+#if defined(_USE_QT)
+	memory->set_device_name(_T("MEMORY"));
+	not_busy->set_device_name(_T("NOT GATE(PRINTER BUSY)"));
+#endif	
 #if defined(HAS_I86) || defined(HAS_V30)
 	not_prn = new NOT(this, emu);
+ #if defined(_USE_QT)
+	not_prn->set_device_name(_T("NOT GATE(PRINTER PIO INPUT)"));
+ #endif	
 #endif
 	rtc = new UPD1990A(this, emu);
 #if defined(SUPPORT_2HD_FDD_IF)
 	fdc_2hd = new UPD765A(this, emu);
+ #if defined(_USE_QT)
+	fdc_2hd->set_device_name(_T("uPD765A FDC(2HD I/F)"));
+ #endif	
 #endif
 #if defined(SUPPORT_2DD_FDD_IF)
 	fdc_2dd = new UPD765A(this, emu);
+ #if defined(_USE_QT)
+	fdc_2dd->set_device_name(_T("uPD765A FDC(2DD I/F)"));
+ #endif	
 #endif
 #if defined(SUPPORT_2HD_2DD_FDD_IF)
 	fdc = new UPD765A(this, emu);
+ #if defined(_USE_QT)
+	fdc->set_device_name(_T("uPD765A FDC(2DD/2HD I/F)"));
+ #endif	
 #endif
 	gdc_chr = new UPD7220(this, emu);
 	gdc_gfx = new UPD7220(this, emu);
+#if defined(_USE_QT)
+	gdc_chr->set_device_name(_T("uPD7220 GDC(CHARACTER)"));
+	gdc_gfx->set_device_name(_T("uPD7220 GDC(GRAPHICS)"));
+#endif	
 	
 	if(sound_device_type == 0 || sound_device_type == 1) {
 		opn = new YM2203(this, emu);
@@ -155,11 +220,21 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #endif
 		fmsound = new FMSOUND(this, emu);
 		joystick = new JOYSTICK(this, emu);
+#if defined(_USE_QT)
+		fmsound->set_device_name(_T("FM SOUND"));
+		joystick->set_device_name(_T("JOYSTICK"));
+#endif		
 	} else if(sound_device_type == 2 || sound_device_type == 3) {
 		tms3631 = new TMS3631(this, emu);
 		pit_14 = new I8253(this, emu);
 		pio_14 = new I8255(this, emu);
 		maskreg_14 = new LS244(this, emu);
+#if defined(_USE_QT)
+		tms3631->set_device_name(_T("TMS3631 SOUND"));
+		pit_14->set_device_name(_T("i8253 PIT(-14 SOUND)"));
+		pio_14->set_device_name(_T("i8255 PIO(-14 SOUND)"));
+		maskreg_14->set_device_name(_T("MASK REGISTER(74LS244)(-14 SOUND)"));
+#endif		
 	}
 	if(config.printer_device_type == 0) {
 		printer = new PRNFILE(this, emu);
@@ -171,11 +246,20 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 #if defined(SUPPORT_CMT_IF)
 	cmt = new CMT(this, emu);
+  #if defined(_USE_QT)
+	cmt->set_device_name(_T("CMT I/F"));
+  #endif
 #endif
 	display = new DISPLAY(this, emu);
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	mouse = new MOUSE(this, emu);
+#if defined(_USE_QT)
+	display->set_device_name(_T("DISPLAY I/F"));
+	floppy->set_device_name(_T("FDD I/F"));
+	keyboard->set_device_name(_T("KEYBOARD I/F"));
+	mouse->set_device_name(_T("MOUSE I/F"));
+#endif
 	
 #if defined(SUPPORT_320KB_FDD_IF)
 	// 320kb fdd drives
@@ -183,9 +267,18 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pc80s31k = new PC80S31K(this, emu);
 	fdc_sub = new UPD765A(this, emu);
 	cpu_sub = new Z80(this, emu);
+  #if defined(_USE_QT)
+	pio_sub->set_device_name(_T("i8255 PIO(320KB FDD)"));
+	pc80s31k->set_device_name(_T("PC80S-31K(320KB FDD)"));
+	fdc_sub->set_device_name(_T("uPD765A FDC(320KB FDD)"));
+	cpu_sub->set_device_name(_T("Z80 CPU(320KB FDD)"));
+  #endif
 #endif
 #if defined(SUPPORT_ITF_ROM)
 	itf = new ITF(this, emu);
+  #if defined(_USE_QT)
+	itf->set_device_name(_T("ITF/BIOS ROM BLOCK"));
+  #endif
 #endif
 	/* IRQ	0  PIT
 		1  KEYBOARD
@@ -585,7 +678,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pc88event = new EVENT(this, emu);
 	pc88event->set_frames_per_sec(60);
 	pc88event->set_lines_per_frame(260);
-	
+#if defined(_USE_QT)
+	pc88event->set_device_name(_T("PC8801 EVENT"));
+#endif	
 	pc88 = new PC88(this, emu);
 	pc88->set_context_event_manager(pc88event);
 	pc88sio = new I8251(this, emu);
@@ -598,15 +693,28 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pc88rtc->set_context_event_manager(pc88event);
 	pc88opn = new YM2203(this, emu);
 	pc88opn->set_context_event_manager(pc88event);
+#if defined(_USE_QT)
+	pc88->set_device_name(_T("PC8801 MAIN"));
+	pc88sio->set_device_name(_T("i8251 SIO(PC8801)"));
+	pc88pio->set_device_name(_T("i8255 PIO(PC8801)"));
+	pc88pcm->set_device_name(_T("1BIT PCM SOUND(PC8801)"));
+	pc88opn->set_device_name(_T("YM2203 OPN(PC8801)"));
+#endif	
+
 #ifdef SUPPORT_PC88_OPNA
 	pc88opn->is_ym2608 = true;
 #endif
 	pc88cpu = new Z80(this, emu);
 	pc88cpu->set_context_event_manager(pc88event);
-	
+#if defined(_USE_QT)
+	pc88cpu->set_device_name(_T("Z80 CPU(PC8801)"));
+#endif	
 	if(config.printer_device_type == 0) {
 		pc88prn = new PRNFILE(this, emu);
 		pc88prn->set_context_event_manager(pc88event);
+#if defined(_USE_QT)
+		pc88prn->set_device_name(_T("PRINTER TO FILE(PC8801)"));
+#endif	
 //	} else if(config.printer_device_type == 1) {
 //		pc88prn = new PCPR201(this, emu);
 //		pc88prn->set_context_event_manager(pc88event);
@@ -622,6 +730,12 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pc88fdc_sub->set_context_event_manager(pc88event);
 	pc88cpu_sub = new Z80(this, emu);
 	pc88cpu_sub->set_context_event_manager(pc88event);
+#if defined(_USE_QT)
+	pc88sub->set_device_name(_T("PC-80S31K(PC8801 FDD)"));
+	pc88pio_sub->set_device_name(_T("i8255 PIO(PC8801 FDD)"));
+	pc88fdc_sub->set_device_name(_T("uPD765A FDC(PC8801 FDD)"));
+	pc88cpu_sub->set_device_name(_T("Z80 CPU(PC8801 FDD)"));
+#endif	
 	
 	pc88event->set_context_cpu(pc88cpu, (config.cpu_type != 0) ? 3993624 : 7987248);
 	pc88event->set_context_cpu(pc88cpu_sub, 3993624);

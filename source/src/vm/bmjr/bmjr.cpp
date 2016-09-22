@@ -39,6 +39,14 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	memory = new MEMORY(this, emu);
 	
+	// Set names
+#if defined(_USE_QT)
+	dummy->set_device_name(_T("1st Dummy"));
+	event->set_device_name(_T("EVENT"));
+	cpu->set_device_name(_T("CPU(MC6800)"));
+	pia->set_device_name(_T("MC6820 PIA"));
+	memory->set_device_name(_T("MEMORY"));
+#endif
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(drec);

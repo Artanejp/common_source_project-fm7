@@ -54,6 +54,20 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pcm = new PCM1BIT(this, emu);
 	
 	sub = new SUB(this, emu);
+
+#if defined(_USE_QT)
+	dummy->set_device_name(_T("1st Dummy"));
+	event->set_device_name(_T("EVENT"));
+	cpu->set_device_name(_T("CPU(i286)"));
+
+	sio->set_device_name(_T("i8251(RS-232C)"));
+	pio->set_device_name(_T("i8259(SYSTEM PORT)"));
+	
+	rtc->set_device_name(_T("MSM58321(RTC)"));
+	memory->set_device_name(_T("MEMORY"));
+
+	sub->set_device_name(_T("SUB SYSTEM"));
+#endif
 	
 	// set contexts
 	event->set_context_cpu(cpu);

@@ -55,35 +55,70 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
+#if defined(_USE_QT)
+	dummy->set_device_name(_T("1st Dummy"));
+	event->set_device_name(_T("EVENT"));
+#endif	
 	
 	drec = new DATAREC(this, emu);
 	pio = new I8255(this, emu);
 	io = new IO(this, emu);
+#if defined(_USE_QT)
+	pio->set_device_name(_T("i8255 PIO"));
+	io->set_device_name(_T("I/O BUS"));
+#endif	
 #if defined(_PX7)
 	ldp = new LD700(this, emu);
 #endif
 	not_remote = new NOT(this, emu);
 	psg = new YM2203(this, emu);
 	pcm = new PCM1BIT(this, emu);
+#if defined(_USE_QT)
+	not_remote->set_device_name(_T("NOT GATE(REMOTE)"));
+	psg->set_device_name(_T("AY-3-8910 PSG"));
+	pcm->set_device_name(_T("PCM BUZZER"));
+#endif	
 #if defined(_MSX2)
 	rtc = new RP5C01(this, emu);
 	vdp = new V99X8(this, emu);
+  #if defined(_USE_QT)
+	rtc->set_device_name(_T("RP5C01 RTC"));
+	vdp->set_device_name(_T("V99x8 VDP"));
+  #endif
 #else
 	vdp = new TMS9918A(this, emu);
+  #if defined(_USE_QT)
+	vdp->set_device_name(_T("TMS9918 VDP"));
+  #endif	
 #endif
 	cpu = new Z80(this, emu);
-	
+#if defined(_USE_QT)
+	cpu->set_device_name(_T("CPU(Z80)"));
+#endif	
 	joystick = new JOYSTICK(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
 #if defined(_MSX2)
 	rtcif = new RTCIF(this, emu);
 #endif
+#if defined(_USE_QT)
+	joystick->set_device_name(_T("JOYSTICK I/F"));
+	keyboard->set_device_name(_T("KEYBOARD I/F"));
+	memory->set_device_name(_T("MEMORY"));
+  #if defined(_MSX2)
+	rtcif->set_device_name(_T("RTC I/F"));
+  #endif
+#endif
 	slot0 = new SLOT0(this, emu);	// #0: main memory
 	slot1 = new SLOT1(this, emu);	// #1: rom-cartridge or msx-dos
 	slot2 = new SLOT2(this, emu);	// #2: fdd-cartridge or p-basic
 	slot3 = new SLOT3(this, emu);	// #3: rom-cartridge or ram-cartridge
-	
+#if defined(_USE_QT)
+	slot0->set_device_name(_T("SLOT#0 MAIN MEMORY"));
+	slot1->set_device_name(_T("SLOT#1 ROM CARTRIDGE"));
+	slot2->set_device_name(_T("SLOT#2 FDD CARTRIDGE"));
+	slot3->set_device_name(_T("SLOT#3 ROM CARTRIDGE"));
+#endif
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(psg);

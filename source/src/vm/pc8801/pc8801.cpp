@@ -52,8 +52,19 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pc88event = new EVENT(this, emu);
 //	pc88event->set_frames_per_sec(60);
 //	pc88event->set_lines_per_frame(260);
+#if defined(_USE_QT)
+	dummy->set_device_name(_T("1st Dummy"));
+	pc88event->set_device_name(_T("EVENT"));
+#endif	
 	
 	pc88 = new PC88(this, emu);
+#if defined(_USE_QT)
+  #if defined(_PC8001) || defined(_PC8001MK2) || defined(_PC8001SR)
+	pc88->set_device_name(_T("PC8001 MAIN"));
+  #else
+	pc88->set_device_name(_T("PC8801 MAIN"));
+  #endif
+#endif	
 //	pc88->set_context_event_manager(pc88event);
 	pc88sio = new I8251(this, emu);
 //	pc88sio->set_context_event_manager(pc88event);
@@ -72,6 +83,13 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #ifdef USE_SOUND_DEVICE_TYPE
 #ifdef SUPPORT_PC88_OPNA
 	pc88opn->is_ym2608 = (config.sound_device_type == 0);
+  #if defined(_USE_QT)
+	pc88opn->set_device_name(_T("YM2608 OPNA"));
+  #endif	
+#else
+  #if defined(_USE_QT)
+	pc88opn->set_device_name(_T("YM2203 OPN"));
+  #endif	
 #endif
 #ifdef SUPPORT_PC88_SB2
 	if(config.sound_device_type == 2) {
@@ -79,6 +97,13 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #ifdef SUPPORT_PC88_OPNA
 		pc88sb2->is_ym2608 = true;
 #endif
+  #if defined(_USE_QT)
+    #ifdef SUPPORT_PC88_OPNA
+		pc88sb2->set_device_name(_T("YM2608 OPNA(SB2)"));
+    #else
+		pc88sb2->set_device_name(_T("YM2203 OPN(SB2)"));
+    #endif
+  #endif	
 //		pc88sb2->set_context_event_manager(pc88event);
 	} else {
 		pc88sb2 = NULL;
@@ -98,6 +123,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	dummycpu = new DEVICE(this, emu);
 	pc88cpu = new Z80(this, emu);
 //	pc88cpu->set_context_event_manager(pc88event);
+#if defined(_USE_QT)
+	dummycpu->set_device_name(_T("DUMMY CPU"));
+	pc88cpu->set_device_name(_T("MAIN CPU(Z80)"));
+#endif
 	
 	pc88sub = new PC80S31K(this, emu);
 //	pc88sub->set_context_event_manager(pc88event);
@@ -107,7 +136,12 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 //	pc88fdc_sub->set_context_event_manager(pc88event);
 	pc88cpu_sub = new Z80(this, emu);
 //	pc88cpu_sub->set_context_event_manager(pc88event);
-	
+#if defined(_USE_QT)
+	pc88sub->set_device_name(_T("PC-80S31K FDD I/F"));
+	pc88pio_sub->set_device_name(_T("i8255 PIO(FDD)"));
+	pc88fdc_sub->set_device_name(_T("uPD765A FDC(FDD)"));
+	pc88cpu_sub->set_device_name(_T("Z80 CPU(FDD)"));
+#endif	
 #ifdef SUPPORT_PC88_PCG8100
 	pc88pit = new I8253(this, emu);
 //	pc88pit->set_context_event_manager(pc88event);
@@ -117,6 +151,12 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 //	pc88pcm->set_context_event_manager(pc88event);
 	pc88pcm2 = new PCM1BIT(this, emu);
 //	pc88pcm->set_context_event_manager(pc88event);
+  #if defined(_USE_QT)
+	pc88pit->set_device_name(_T("i8253 PIT(PCG8100)"));
+	pc88pcm0->set_device_name(_T("SOUND #1(PCG8100)"));
+	pc88pcm1->set_device_name(_T("SOUND #2(PCG8100)"));
+	pc88pcm2->set_device_name(_T("SOUND #3(PCG8100)"));
+  #endif
 #endif
 	
 	pc88event->set_context_cpu(dummycpu, 3993624 / 4);

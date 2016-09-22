@@ -34,15 +34,28 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
+#if defined(_USE_QT)
+	dummy->set_device_name(_T("1st Dummy"));
+	event->set_device_name(_T("EVENT"));
+#endif	
 	
 	beep = new BEEP(this, emu);
 	sio = new I8251(this, emu);
 	tf20 = new PTF20(this, emu);
 	cpu = new Z80(this, emu);
+#if defined(_USE_QT)
+	beep->set_device_name(_T("BEEP"));
+	tf20->set_device_name(_T("PSEUDO TF20"));
+	sio->set_device_name(_T("i8251 SIO"));
+	cpu->set_device_name(_T("CPU(Z80)"));
+#endif	
 	
 	io = new IO(this, emu);
 	memory = new MEMORY(this, emu);
-	
+#if defined(_USE_QT)
+	io->set_device_name(_T("I/O"));
+	memory->set_device_name(_T("MEMORY"));
+#endif	
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(beep);

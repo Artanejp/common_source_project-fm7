@@ -40,13 +40,22 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-	
+#if defined(_USE_QT)
+	dummy->set_device_name(_T("1st Dummy"));
+	event->set_device_name(_T("EVENT"));
+#endif	
 	beep = new BEEP(this, emu);
 	drec = new DATAREC(this, emu);
 	crtc = new HD46505(this, emu);
 	fdc = new UPD765A(this, emu);
 	subcpu = new UPD7801(this, emu);
 	maincpu = new Z80(this, emu);
+#if defined(_USE_QT)
+	beep->set_device_name(_T("BEEP"));
+	crtc->set_device_name(_T("HD46505 CRTC"));
+	subcpu->set_device_name(_T("SUB CPU(uPD7801)"));
+	maincpu->set_device_name(_T("MAIN CPU(Z80)"));
+#endif
 	
 	mainbus = new MAIN(this, emu);
 	subbus = new SUB(this, emu);
@@ -64,7 +73,19 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	rampack6 = new RAMPACK(this, emu);
 	rampack6->index = 6;
 	rompack = new ROMPACK(this, emu);
-	
+#if defined(_USE_QT)
+	mainbus->set_device_name(_T("MAIN BUS"));
+	subbus->set_device_name(_T("SUB BUS"));
+
+	fdcpack->set_device_name(_T("FDD PACK"));
+	rampack1->set_device_name(_T("RAM PACK #1"));
+	rampack2->set_device_name(_T("RAM PACK #2"));
+	rampack3->set_device_name(_T("RAM PACK #3"));
+	rampack4->set_device_name(_T("RAM PACK #4"));
+	rampack5->set_device_name(_T("RAM PACK #5"));
+	rampack6->set_device_name(_T("RAM PACK #6"));
+	rompack->set_device_name(_T("ROM PACK"));
+#endif
 	// set contexts
 	event->set_context_cpu(maincpu);
 	event->set_context_cpu(subcpu, SUB_CPU_CLOCKS);

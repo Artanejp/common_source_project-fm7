@@ -40,7 +40,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-	
+#if defined(_USE_QT)
+	dummy->set_device_name(_T("1st Dummy"));
+	event->set_device_name(_T("EVENT"));
+#endif	
 	drec = new DATAREC(this, emu);
 	sio = new I8251(this, emu);
 	pio_k = new I8255(this, emu);
@@ -50,11 +53,24 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	vdp = new _315_5124(this, emu);
 	fdc = new UPD765A(this, emu);
 	cpu = new Z80(this, emu);
+#if defined(_USE_QT)
+	sio->set_device_name(_T("i8251(SG SERIAL)"));
+	pio_k->set_device_name(_T("i8255(SG KEYBOARD)"));
+	pio_f->set_device_name(_T("i8255(SG FDD)"));
+	io->set_device_name(_T("I/O BUS"));
+	psg->set_device_name(_T("SN76489AN PSG"));
+	vdp->set_device_name(_T("SEGA 315-5124 VDP"));
+	cpu->set_device_name(_T("CPU(Z80)"));
+#endif	
 	
 	key = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
 	system = new SYSTEM(this, emu);
-
+#if defined(_USE_QT)
+	key->set_device_name(_T("KEYBOARD"));
+	memory->set_device_name(_T("MEMORY"));
+	system->set_device_name(_T("SYSTEM"));
+#endif
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(psg);

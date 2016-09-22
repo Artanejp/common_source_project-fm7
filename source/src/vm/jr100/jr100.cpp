@@ -34,6 +34,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
+#if defined(_USE_QT)
+	dummy->set_device_name(_T("1st Dummy"));
+	event->set_device_name(_T("EVENT"));
+#endif	
 	
 	drec = new DATAREC(this, emu);
 	cpu = new MC6800(this, emu);	// MB8861N
@@ -41,9 +45,18 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	not_ear = new NOT(this, emu);
 	pcm = new PCM1BIT(this, emu);
 	via = new SY6522(this, emu);
+#if defined(_USE_QT)
+	cpu->set_device_name(_T("CPU(MC6800)"));
+	not_mic->set_device_name(_T("NOT GATE(MIC)"));
+	not_ear->set_device_name(_T("NOT GATE(EAR PHONE)"));
+	pcm->set_device_name(_T("SOUND DEVICE"));
+	via->set_device_name(_T("SY6522 VIA"));
+#endif	
 	
 	memory = new MEMORY(this, emu);
-	
+#if defined(_USE_QT)
+	memory->set_device_name(_T("MEMORY"));
+#endif	
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(pcm);

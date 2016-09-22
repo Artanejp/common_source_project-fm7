@@ -48,6 +48,22 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	display = new DISPLAY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
+	// Set names
+#if defined(_USE_QT)
+	dummy->set_device_name(_T("1st Dummy"));
+	event->set_device_name(_T("EVENT"));
+	cpu->set_device_name(_T("CPU(i8080)"));
+	
+	pio->set_device_name(_T("i8255(SOUND/KEY/DISPLAY)"));
+	sio->set_device_name(_T("i8251(CMT)"));
+	io->set_device_name(_T("I/O PORT"));
+	pcm->set_device_name(_T("SOUND OUT"));
+	
+	cmt->set_device_name(_T("CMT Unit"));
+	display->set_device_name(_T("DISPLAY"));
+	keyboard->set_device_name(_T("KEYBOARD"));
+	memory->set_device_name(_T("MEMORY"));
+#endif
 	
 	// set contexts
 	event->set_context_cpu(cpu);

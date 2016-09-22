@@ -69,23 +69,41 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
+#if defined(_USE_QT)
+	dummy->set_device_name(_T("1st Dummy"));
+	event->set_device_name(_T("EVENT"));
+#endif	
 	
 	drec = new DATAREC(this, emu);
 	crtc = new HD46505(this, emu);
 	pio = new I8255(this, emu);
 	io = new IO(this, emu);
+#if defined(_USE_QT)
+	io->set_device_name(_T("I/O"));
+#endif	
 	fdc = new MB8877(this, emu);
 	psg = new YM2203(this, emu);
 	cpu = new Z80(this, emu);
 	ctc = new Z80CTC(this, emu);
 	sio = new Z80SIO(this, emu);
+#if defined(_USE_QT)
+	psg->set_device_name(_T("AY-3-8910 PSG"));
+#endif	
 	if(sound_device_type >= 1) {
 		opm1 = new YM2151(this, emu);
 		ctc1 = new Z80CTC(this, emu);
+#if defined(_USE_QT)
+		opm1->set_device_name(_T("YM2151 OPM(SOUND #1)"));
+		ctc1->set_device_name(_T("Z80 CTC(SOUND #1)"));
+#endif	
 	}
 	if(sound_device_type == 2) {
 		opm2 = new YM2151(this, emu);
 		ctc2 = new Z80CTC(this, emu);
+#if defined(_USE_QT)
+		opm2->set_device_name(_T("YM2151 OPM(SOUND #2)"));
+		ctc2->set_device_name(_T("Z80 CTC(SOUND #2)"));
+#endif	
 	}
 	if(config.printer_device_type == 0) {
 		printer = new PRNFILE(this, emu);
@@ -107,21 +125,43 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	joy = new JOYSTICK(this, emu);
 	memory = new MEMORY(this, emu);
 	mouse = new MOUSE(this, emu);
+#if defined(_USE_QT)
+	display->set_device_name(_T("DISPLAY I/F"));
+	emm->set_device_name(_T("EMM BLOCK"));
+	floppy->set_device_name(_T("FLOPPY I/F"));
+	iobus->set_device_name(_T("I/O BUS"));
+	joy->set_device_name(_T("JOYSTICK I/F"));
+	memory->set_device_name(_T("MEMORY"));
+	mouse->set_device_name(_T("MOUSE I/F"));
+#endif	
 	
 	if(pseudo_sub_cpu) {
 		psub = new PSUB(this, emu);
 		cpu_sub = NULL;
 		cpu_kbd = NULL;
+#if defined(_USE_QT)
+		psub->set_device_name(_T("PSEUDO SUB SYSTEM"));
+#endif
 	} else {
 		// sub cpu
 		cpu_sub = new MCS48(this, emu);
 		pio_sub = new I8255(this, emu);
 		rtc_sub = new UPD1990A(this, emu);
 		sub = new SUB(this, emu);
+#if defined(_USE_QT)
+		cpu_sub->set_device_name(_T("SUB CPU(MCS48)"));
+		pio_sub->set_device_name(_T("i8255 PIO(SUB SYSTEM)"));
+		rtc_sub->set_device_name(_T("RTC(SUB SYSTEM)"));
+		sub->set_device_name(_T("SUB SYSTEM"));
+#endif
 		
 		// keyboard
 		cpu_kbd = new MCS48(this, emu);
 		kbd = new KEYBOARD(this, emu);
+#if defined(_USE_QT)
+		cpu_kbd->set_device_name(_T("KEYBOARD CPU(MCS48)"));
+		kbd->set_device_name(_T("KEYBOARD SYSTEM"));
+#endif
 	}
 	
 	// set contexts
@@ -359,12 +399,17 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pceevent = new EVENT(this, emu);
 	pceevent->set_frames_per_sec(PCE_FRAMES_PER_SEC);
 	pceevent->set_lines_per_frame(PCE_LINES_PER_FRAME);
-	
+#if defined(_USE_QT)
+	pceevent->set_device_name(_T("EVENT(PC-ENGINE)"));
+#endif	
 	pcecpu = new HUC6280(this, emu);
 	pcecpu->set_context_event_manager(pceevent);
 	pce = new PCE(this, emu);
 	pce->set_context_event_manager(pceevent);
-	
+#if defined(_USE_QT)
+	pcecpu->set_device_name(_T("HuC6820 CPU(PC-ENGINE)"));
+	pce->set_device_name(_T("SUB SYSTEM(PC-ENGINE)"));
+#endif	
 	pceevent->set_context_cpu(pcecpu, PCE_CPU_CLOCKS);
 	pceevent->set_context_sound(pce);
 	

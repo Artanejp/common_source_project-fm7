@@ -59,6 +59,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
+#if defined(_USE_QT)
+	dummy->set_device_name(_T("1st Dummy"));
+	event->set_device_name(_T("EVENT"));
+#endif	
 	
 	drec = new DATAREC(this, emu);
 	pit = new I8253(this, emu);
@@ -68,6 +72,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pcm = new PCM1BIT(this, emu);
 	cpu = new Z80(this, emu);
 	pio = new Z80PIO(this, emu);
+#if defined(_USE_QT)
+	cpu->set_device_name(_T("CPU(Z80)"));
+	pio_i->set_device_name(_T("i8255 PIO(CMT/CRTC)"));
+	pio->set_device_name(_T("Z80 PIO(KEYBOARD/CRTC)"));
+#endif	
 	
 	cmt = new CMT(this, emu);
 	floppy = new FLOPPY(this, emu);
@@ -77,10 +86,24 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	mz1r13 = new MZ1R13(this, emu);
 	printer = new PRINTER(this, emu);
 	timer = new TIMER(this, emu);
+#if defined(_USE_QT)
+	cmt->set_device_name(_T("CMT I/F"));
+	floppy->set_device_name(_T("FLOPPY I/F"));
+	keyboard->set_device_name(_T("KEYBOARD I/F"));
+	mz1r12->set_device_name(_T("MZ-1R12"));
+	mz1r13->set_device_name(_T("MZ-1R13"));
+	printer->set_device_name(_T("PRINTER I/F"));
+	timer->set_device_name(_T("TIMER I/F"));
+	memory->set_device_name(_T("MEMORY I/F"));
+#endif	
 	
 #ifdef SUPPORT_QUICK_DISK
 	sio = new Z80SIO(this, emu);
 	qd = new QUICKDISK(this, emu);
+  #if defined(_USE_QT)
+	sio->set_device_name(_T("Z80 SIO(QD)"));
+	qd->set_device_name(_T("QUICK DISK"));
+  #endif
 #endif
 	
 #ifdef SUPPORT_16BIT_BOARD
@@ -88,6 +111,12 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	cpu_16 = new I286(this, emu);	// 8088
 	pic_16 = new I8259(this, emu);
 	mz1m01 = new MZ1M01(this, emu);
+  #if defined(_USE_QT)
+	pio_to16->set_device_name(_T("Z80 PIO(16BIT BOARD)"));
+	cpu_16->set_device_name(_T("CPU i286(16BIT BOARD)"));
+	pic_16->set_device_name(_T("i8259 PIC(16BIT BOARD)"));
+	mz1m01_to16->set_device_name(_T("MZ-1M01(16BIT BOARD)"));
+  #endif
 #endif
 	
 	// set contexts

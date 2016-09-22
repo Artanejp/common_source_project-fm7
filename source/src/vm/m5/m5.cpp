@@ -37,6 +37,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
+#if defined(_USE_QT)
+	dummy->set_device_name(_T("1st Dummy"));
+	event->set_device_name(_T("EVENT"));
+#endif	
 	
 	drec = new DATAREC(this, emu);
 	io = new IO(this, emu);
@@ -45,10 +49,21 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	vdp = new TMS9918A(this, emu);
 	cpu = new Z80(this, emu);
 	ctc = new Z80CTC(this, emu);
+#if defined(_USE_QT)
+	io->set_device_name(_T("I/O BUS"));
+	memory->set_device_name(_T("MEMORY"));
+	psg->set_device_name(_T("SN76489 PSG"));
+	vdp->set_device_name(_T("TMS9918 VDP"));
+	cpu->set_device_name(_T("CPU(Z80)"));
+	ctc->set_device_name(_T("Z80 CTC"));
+#endif	
 	
 	cmt = new CMT(this, emu);
 	key = new KEYBOARD(this, emu);
-	
+#if defined(_USE_QT)
+	cmt->set_device_name(_T("CMT I/F"));
+	key->set_device_name(_T("KEYBOARD I/F"));
+#endif	
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(psg);

@@ -106,16 +106,39 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-	
+#if defined(_USE_QT)
+	dummy->set_device_name(_T("1st Dummy"));
+	event->set_device_name(_T("EVENT"));
+#endif	
+
 #if defined(HAS_I286)
 	cpu = new I286(this, emu);
 #else
 	cpu = new I386(this, emu);
 #endif
+#if defined(_USE_QT)
+  #if defined(HAS_I286)
+	cpu->set_device_name(_T("CPU(i286)"));
+  #elif defined(HAS_I386)
+	cpu->set_device_name(_T("CPU(i386)"));
+  #elif defined(HAS_I486)
+	cpu->set_device_name(_T("CPU(i486)"));
+  #elif defined(HAS_PENTIUM)
+	cpu->set_device_name(_T("CPU(Pentium)"));
+  #endif
+#endif	
+
 	crtc = new HD46505(this, emu);
 #ifdef _FMR60
 	acrtc = new HD63484(this, emu);
 #endif
+#if defined(_USE_QT)
+	crtc->set_device_name(_T("HD46505 CRTC"));
+ #ifdef _FMR60
+	acrtc->set_device_name(_T("HD63484 ACRTC"));
+ #endif
+#endif
+	
 	sio = new I8251(this, emu);
 	pit0 = new I8253(this, emu);
 	pit1 = new I8253(this, emu);
@@ -124,21 +147,43 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	fdc = new MB8877(this, emu);
 	rtc = new MSM58321(this, emu);
 	pcm = new PCM1BIT(this, emu);
+#if defined(_USE_QT)	
+	sio->set_device_name(_T("i8251 SIO"));
+	pit0->set_device_name(_T("i8253 PIT #0"));
+	pit1->set_device_name(_T("i8253 PIT #1"));
+	pic->set_device_name(_T("i8259 PIC"));
+	rtc->set_device_name(_T("MSM58321 RTC"));
+	pcm->set_device_name(_T("PCM SOUND"));
+#endif
+	
 	scsi_host = new SCSI_HOST(this, emu);
+#if defined(_USE_QT)	
+	scsi_host->set_device_name(_T("SCSI HOST"));
+#endif	
 	for(int i = 0; i < 7; i++) {
 		if(FILEIO::IsFileExisting(create_local_path(_T("SCSI%d.DAT"), i))) {
 			SCSI_HDD* scsi_hdd = new SCSI_HDD(this, emu);
+#if defined(_USE_QT)
+			char d_name[64] = {0};
+			snprintf(d_name, 64, "SCSI DISK #%d", i + 1);
+			scsi_hdd->set_device_name(d_name);
+#endif			
 			scsi_hdd->scsi_id = i;
 			scsi_hdd->set_context_interface(scsi_host);
 			scsi_host->set_context_target(scsi_hdd);
 		}
 	}
 	dma = new UPD71071(this, emu);
-	
+#if defined(_USE_QT)	
+	dma->set_device_name(_T("uPD71071 DMAC"));
+#endif	
 	if(FILEIO::IsFileExisting(create_local_path(_T("IPL.ROM")))) {
 		bios = NULL;
 	} else {
 		bios = new BIOS(this, emu);
+#if defined(_USE_QT)
+		bios->set_device_name(_T("PSEUDO BIOS"));
+#endif
 	}
 	cmos = new CMOS(this, emu);
 	floppy = new FLOPPY(this, emu);
@@ -147,6 +192,15 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	scsi = new SCSI(this, emu);
 //	serial = new SERIAL(this, emu);
 	timer = new TIMER(this, emu);
+#if defined(_USE_QT)
+	cmos->set_device_name(_T("CMOS RAM"));
+	floppy->set_device_name(_T("FLOPPY I/F"));
+	keyboard->set_device_name(_T("KEYBOARD"));
+	memory->set_device_name(_T("MEMORY"));
+	scsi->set_device_name(_T("SCSI I/F"));
+	//serial->set_device_name(_T("SERIAL I/F"));
+	timer->set_device_name(_T("TIMER I/F"));
+#endif
 	
 	// set contexts
 	event->set_context_cpu(cpu, cpu_clock[config.cpu_type & 1]);

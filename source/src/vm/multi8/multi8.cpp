@@ -45,6 +45,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
+#if defined(_USE_QT)
+	dummy->set_device_name(_T("1st Dummy"));
+	event->set_device_name(_T("EVENT"));
+#endif	
 	
 	beep = new BEEP(this, emu);
 	crtc = new HD46505(this, emu);
@@ -56,6 +60,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	fdc = new UPD765A(this, emu);
 	psg = new YM2203(this, emu);
 	cpu = new Z80(this, emu);
+#if defined(_USE_QT)
+	psg->set_device_name(_T("AY-3-8910 PSG"));
+	io->set_device_name(_T("I/O"));
+	cpu->set_device_name(_T("CPU(Z80)"));
+#endif	
 	
 	cmt = new CMT(this, emu);
 	display = new DISPLAY(this, emu);
@@ -63,7 +72,14 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	kanji = new KANJI(this, emu);
 	key = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
-	
+#if defined(_USE_QT)
+	cmt->set_device_name(_T("CMT I/F"));
+	display->set_device_name(_T("DISPLAY I/F"));
+	floppy->set_device_name(_T("FDD I/F"));
+	kanji->set_device_name(_T("KANJI ROM"));
+	key->set_device_name(_T("KEYBOARD I/F"));
+	memory->set_device_name(_T("MEMORY"));
+#endif
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(beep);

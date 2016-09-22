@@ -36,8 +36,15 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pceevent = new EVENT(this, emu);
 //	pceevent->set_frames_per_sec(FRAMES_PER_SEC);
 //	pceevent->set_lines_per_frame(LINES_PER_FRAME);
+#if defined(_USE_QT)
+	dummy->set_device_name(_T("1st Dummy"));
+	pceevent->set_device_name(_T("PC-ENGINE EVENT"));
+#endif	
 	
 	pcecpu = new HUC6280(this, emu);
+#if defined(_USE_QT)
+	pcecpu->set_device_name(_T("PC-ENGINE CPU(HuC6280)"));
+#endif	
 //	pcecpu->set_context_event_manager(pceevent);
 	adpcm = new MSM5205(this, emu);
 //	adpcm->set_context_event_manager(pceevent);
@@ -48,6 +55,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	pce = new PCE(this, emu);
 //	pce->set_context_event_manager(pceevent);
+#if defined(_USE_QT)
+	pce->set_device_name(_T("PC-ENGINE MAIN"));
+#endif	
 	
 	pceevent->set_context_cpu(pcecpu, CPU_CLOCKS);
 	pceevent->set_context_sound(pce);

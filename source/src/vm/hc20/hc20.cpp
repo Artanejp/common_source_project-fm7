@@ -37,19 +37,35 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
+#if defined(_USE_QT)
+	dummy->set_device_name(_T("1st Dummy"));
+	event->set_device_name(_T("EVENT"));
+#endif	
 	
 	beep = new BEEP(this, emu);
 	rtc = new HD146818P(this, emu);
 	cpu = new MC6800(this, emu);
-	
+#if defined(_USE_QT)
+	beep->set_device_name(_T("BEEP"));
+	rtc->set_device_name(_T("HD146818P RTC"));
+	cpu->set_device_name(_T("CPU(MC6800)"));
+#endif	
 	tf20 = new TF20(this, emu);
 	pio_tf20 = new I8255(this, emu);
 	fdc_tf20 = new UPD765A(this, emu);
 	cpu_tf20 = new Z80(this, emu);
 	sio_tf20 = new Z80SIO(this, emu);
-	
+#if defined(_USE_QT)
+	tf20->set_device_name(_T("TF20 FDD"));
+	pio_tf20->set_device_name(_T("TF20 PIO(i8255)"));
+	cpu_tf20->set_device_name(_T("TF20 CPU(Z80)"));
+	sio_tf20->set_device_name(_T("TF20 SIO(Z80 SIO)"));
+	fdc_tf20->set_device_name(_T("TF20 FDC(uPD765A)"));
+#endif	
 	memory = new MEMORY(this, emu);
-	
+#if defined(_USE_QT)
+	memory->set_device_name(_T("MEMORY"));
+#endif	
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_cpu(cpu_tf20, 4000000);
