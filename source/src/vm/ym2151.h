@@ -60,7 +60,7 @@ public:
 	{
 		initialize_output_signals(&outputs_irq);
 		base_decibel = 0;
-		set_device_name(_T("YM2151"));
+		set_device_name(_T("YM2151 OPM"));
 	}
 	~YM2151() {}
 	

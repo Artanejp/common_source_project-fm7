@@ -64,7 +64,7 @@ public:
 		initialize_output_signals(&m_vclk_cb);
 		volume_m = 1024;
 		volume_l = volume_r = 1024;
-		set_device_name(_T("MSM5205"));
+		set_device_name(_T("MSM5205 ADPCM"));
 	}
 	~MSM5205() {}
 	

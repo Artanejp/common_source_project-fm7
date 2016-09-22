@@ -56,7 +56,7 @@ public:
 	I8259(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		d_cpu = NULL;
-		set_device_name(_T("i8259"));
+		set_device_name(_T("i8259 PIC"));
 	}
 	~I8259() {}
 	

@@ -75,7 +75,7 @@ public:
 		d_dma = NULL;
 #endif
 		mode_word = false;
-		set_device_name(_T("i8237"));
+		set_device_name(_T("i8237 DMAC"));
 	}
 	~I8237() {}
 	

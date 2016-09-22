@@ -69,7 +69,7 @@ public:
 			initialize_output_signals(&counter[i].outputs);
 			counter[i].freq = 0;
 		}
-		set_device_name(_T("i8253"));
+		set_device_name(_T("i8253 PIT"));
 	}
 	~I8253() {}
 	

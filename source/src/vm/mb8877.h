@@ -124,7 +124,7 @@ public:
 		initialize_output_signals(&outputs_irq);
 		initialize_output_signals(&outputs_drq);
 		motor_on = false;
-		set_device_name(_T("MB8877"));
+		set_device_name(_T("MB8877 FDC"));
 	}
 	~MB8877() {}
 	

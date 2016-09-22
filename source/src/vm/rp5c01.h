@@ -42,7 +42,7 @@ public:
 	{
 		initialize_output_signals(&outputs_alarm);
 		initialize_output_signals(&outputs_pulse);
-		set_device_name(_T("RP-5C01"));
+		set_device_name(_T("RP-5C01 RTC"));
 	}
 	~RP5C01() {}
 	

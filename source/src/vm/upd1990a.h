@@ -57,7 +57,7 @@ public:
 #ifdef HAS_UPD4990A
 		shift_cmd = 0;
 #endif
-		set_device_name(_T("uPD1990A"));
+		set_device_name(_T("uPD1990A RTC"));
 	}
 	~UPD1990A() {}
 	

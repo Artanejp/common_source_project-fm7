@@ -53,7 +53,7 @@ public:
 		initialize_output_signals(&outputs_txe);
 		initialize_output_signals(&outputs_dtr);
 		initialize_output_signals(&outputs_rst);
-		set_device_name(_T("i8251"));
+		set_device_name(_T("i8251 SIO"));
 	}
 	~I8251() {}
 	

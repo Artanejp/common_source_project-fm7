@@ -52,9 +52,9 @@ public:
 		initialize_output_signals(&outputs_data);
 #ifndef HAS_MSM5832
 		initialize_output_signals(&outputs_busy);
-		set_device_name(_T("MSM58321"));
+		set_device_name(_T("MSM58321 RTC"));
 #else
-		set_device_name(_T("MSM5832"));
+		set_device_name(_T("MSM5832 RTC"));
 #endif
 	}
 	~MSM58321() {}

@@ -38,7 +38,7 @@ public:
 	{
 		initialize_output_signals(&outputs_intr);
 		initialize_output_signals(&outputs_sqw);
-		set_device_name(_T("HD146818P"));
+		set_device_name(_T("HD146818P RTC"));
 	}
 	~HD146818P() {}
 	

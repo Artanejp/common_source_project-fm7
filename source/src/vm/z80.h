@@ -111,7 +111,7 @@ public:
 		d_dma = NULL;
 #endif
 		initialize_output_signals(&outputs_busack);
-		set_device_name(_T("Z80"));
+		set_device_name(_T("Z80 CPU"));
 	}
 	~Z80() {}
 	
