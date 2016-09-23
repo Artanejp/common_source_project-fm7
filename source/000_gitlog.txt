@@ -1,3 +1,21 @@
+commit 88650a4eeb04e758fbccae27931364195604a750
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Sep 23 20:09:13 2016 +0900
+
+    [DOC] Update status.
+
+commit 10333285bb21900f1b4f4a841da70b205428fd5e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Sep 23 20:05:25 2016 +0900
+
+    [DOC] Fix typo.
+
+commit cef709682ed3c43687e6af657feb98ceea6228d8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Sep 23 19:54:59 2016 +0900
+
+    [DOC] Update to release.
+
 commit 8cdb1dbebf95d7371e514886c23edc6c9401848a
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Fri Sep 23 19:40:23 2016 +0900
