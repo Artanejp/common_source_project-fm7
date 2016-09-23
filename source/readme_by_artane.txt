@@ -123,7 +123,7 @@ Changes:
   * [Qt/Debugger] Not hang-up when Opening debugger and exit emu{foo}. This is temporally workaround.
   * [Qt/Debugger] Don't close with close button, this is temporally workaround.
   * [UI/Qt] Fix selecting printers.
-  * [VM/PC9801] Add prepair of using ITF ROM, this is sitll only preparation.
+  * [VM/PC9801] Add prepair of using ITF ROM, this is still only preparation.
   * Built with GIT 8cdb1dbebf95d7371e514886c23edc6c9401848a (or later).
 
 -- Sep 23, 2016 19:48:12 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
