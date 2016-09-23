@@ -1,5 +1,5 @@
 ※ Known Issues
-                                           August 16, 2016 K.Ohta
+                                           September 23, 2016 K.Ohta
 * Note: This is translated from Issues.ja.txt by GOOGLE TRANSLATION.
 
 * If you specify a H.264 the video codec of the video there is no end one second about the video
@@ -38,3 +38,7 @@ I have a record as. The main improvement in the future. → Although the pitch w
 
 * PX7: video scaling is funny
   → fix later (;'Д `)
+
+* WIN32: On debugger window, click close button on DESKTOP, then quit debugger with "q" command, emulator hangs.
+  →Will check reason, and will fix.
+  
