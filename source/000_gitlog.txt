@@ -1,3 +1,146 @@
+commit 8cdb1dbebf95d7371e514886c23edc6c9401848a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Sep 23 19:40:23 2016 +0900
+
+    [VM][PASOPIA7] FIX FTBFS.
+
+commit 454d4cd3fd32fb5247fac38750358a410e2adfda
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Sep 23 19:32:13 2016 +0900
+
+    [VM][N5200][PASOPIA][PC2001][TK80][X07] Fix FTBFSs.
+
+commit 7e4b57c4f13593da4fd0bb726784a3222e1ff19d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Sep 23 19:18:16 2016 +0900
+
+    [VM] Fix missing name of components.
+
+commit e700be281ad5cb08d0bd508111a86600bb17ff5f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Sep 23 17:51:00 2016 +0900
+
+    [VM][DEVICE] Add name to all of components.
+
+commit 25a44fa0affc15401696c4bd54f308b2d5644a67
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Sep 23 16:08:39 2016 +0900
+
+    [VM][DEVICE] Add role of device to all device's name.
+
+commit 9b6f63f218d55ea7edefb85cdd89317357fe8556
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Sep 23 01:56:29 2016 +0900
+
+    [VM][DEVICE][WIP] Add role of device to name of devices.WIP.
+
+commit d8570f4923083e6df263efe8b6d4f9ffdac9c54d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Sep 23 01:48:58 2016 +0900
+
+    [VM][DEVICE] Add name of devices (or blocks) from BABAGE2nd to MZ-2500, PC-8001/8801, PC-9801, PC ENGINE and X1.
+
+commit 846bf4151a67cb77db27ead3b5364ac5286ce27d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Sep 22 23:38:27 2016 +0900
+
+    [VM][PC9801][FDD] More correctness FDD I/F, refer to http://www.webtech.co.jp/company/doc/undocumented_mem/io_fdd.txt .
+
+commit 699ec62a147dc61a027c9842a9a28fc5fe3ae73c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Sep 22 01:39:43 2016 +0900
+
+    [VM][PC9801] Add prepare to support ITF.ROM .
+
+commit 455a2d87211a050d33312338c21764bfae948d5a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Sep 19 22:31:02 2016 +0900
+
+    [Qt][Debugger] Not hang-up when Opening debugger and exit emu{foo}. This is temporally workaround.
+
+commit 1986a68dd278655bb537507c92aeaca7e2380859
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Sep 19 22:06:40 2016 +0900
+
+    [Qt][Debugger] Add templete of debugger to libCSPgui.so .
+    [Qt][Debugger] Don't close with close button, this is temporally workaround.
+
+commit 4e2e8f9746d82cf8f18ee6118c375175111cfd02
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Sep 15 14:26:11 2016 +0900
+
+    [DOC][WIP] Correcting About_eFM7.en.txt, this is WIP.
+
+commit da8c52e85169d6488c1351ac78b2293c8628bc33
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Sep 15 14:04:52 2016 +0900
+
+    [DOC] Correct how3build.qt.txt . (maybe incorrect (；´Д｀))
+
+commit 54abe3141323c62706c5f46de3ea999c3cf05e10
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Sep 15 13:20:55 2016 +0900
+
+    [DOC] Add English translations of some articles by GOOGLE TRANSLATION, but not correct wors etc yet X-)
+
+commit e73f60d59565d4f99c5b77ae37feae378e53352d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Sep 13 05:23:35 2016 +0900
+
+    [UI][Qt][PRINTER] Fix selecting printers.
+
+commit a6fedf4ca20b6f9d5974b2c9370394ef5c02898a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Sep 13 05:23:01 2016 +0900
+
+    [EMU][CONFIG][LOG] Fix settings of log.
+
+commit edc2ec2a8cb48ec879f5ef3a43b74497bb1b905d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Sep 13 05:19:13 2016 +0900
+
+    [VM][FM7][MB8877][DISK] Workaround for RIGLAS/FM-7.
+    Perhaps, below have side-effect, add special-disk to RIGLAS FM.
+    * Don't "NOT READY" even stopping motor.
+    * Transfer even stopping motor.
+    [EVENT] Remove logging on cancel event.
+
+commit e832a45eb07039bbb1330a491e2b3a43ec93e120
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Sep 12 19:50:52 2016 +0900
+
+    [UI][Qt][WIN32] Fix crash on startup (maybe true) caused by (´∀｀)＜ぬるぽ　ヽ(・∀・)ノ┌┛ガッΣ(ノ｀Д´)ノ
+
+commit c05d9119224685b07b098728e721804f1ca6e647
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Sep 11 01:21:15 2016 +0900
+
+    [WIN32] (Maybe) Fix crash with MSYS2, Cygwin and Windows7 , maybe... (　；∀；)
+
+commit f5c5336d83561c70c274a3626a150d45d40c68b6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Sep 9 07:14:37 2016 +0900
+
+    [EMU][JOYSTICK] .
+
+commit 19748881535914a460628b795b63611aa772ab09
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Sep 9 07:14:03 2016 +0900
+
+    [VM][FM7][OOPS][JOYSTICK] Fix not redirect triggers.
+
+commit 173836dc0533e9ff707548ae46959ea170836dee
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Sep 9 01:29:56 2016 +0900
+
+    [General][Linux] Update installer.
+
+commit 5dcc528f921744dab4113386b6c03bebe5562bf9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Sep 9 01:23:09 2016 +0900
+
+    [DOC] Update gitlog.
+
 commit 75d3266551cdbcafa9348299b770f847501da07c
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Fri Sep 9 01:22:17 2016 +0900

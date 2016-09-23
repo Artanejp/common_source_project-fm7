@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                          Sep 09, 2016
+                                          Sep 23, 2016
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -11,7 +11,7 @@
    用意しています。
    
    ソースコード：
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160909
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160923
 
    追加情報:
     　各機種バイナリーは、osdn.jp　もしくはミラーサイトより入手可能です。
@@ -21,6 +21,9 @@
 　   Win32: 
   　 GNU/Linux(amd64) : 
 
+【おねがい】
+     　doc/以下の文書で日本語しかなかったものを英語に翻訳していますが、機械翻訳を使ってるのであやしいです。
+       英語の上手い方、校正などお願いします m(_ _)m
 
 1. 背景
    CSPは、非常に優れた構造のエミュレータです（しかし、些か重くてコンパイラ
@@ -106,6 +109,25 @@
       http://takeda-toshiya.my.coocan.jp/
 
 Changes:
+
+* SNAPSHOT September 23, 2016
+  * Upstream 2016-04-13
+  * [DOC] Translated some documents written in Japanese only to English using Google-Translate, still not enaugh to be corrected.
+  * [Qt/WIN32] Fix crash on startup (maybe true) caused by (´∀｀)＜ぬるぽ　ヽ(・∀・)ノ┌┛ガッΣ(ノ｀Д´)ノ
+  * [VM] Add original name and role to all device and VM components.
+  * [VM/FM7] JOYSTICK: Fix not redirect triggers.
+  * [VM/FM7][MB8877/DISK] Workaround for RIGLAS/FM-7. Perhaps, below have side-effect, add special-disk to RIGLAS FM.
+  ** Don't "NOT READY" even stopping motor.
+  ** Transfer even stopping motor.
+  * [EVENT] Remove logging on cancel event.
+  * [Qt/Debugger] Not hang-up when Opening debugger and exit emu{foo}. This is temporally workaround.
+  * [Qt/Debugger] Don't close with close button, this is temporally workaround.
+  * [UI/Qt] Fix selecting printers.
+  * [VM/PC9801] Add prepair of using ITF ROM, this is sitll only preparation.
+  * Built with GIT 8cdb1dbebf95d7371e514886c23edc6c9401848a (or later).
+
+-- Sep 23, 2016 19:48:12 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT September 09, 2016
   * Upstream 2016-04-13
   * [LOGGER] Add extend logger.
