@@ -20,11 +20,7 @@ class JOYPAC2 : public PAC2DEV
 private:
 	const uint32_t* joy;
 public:
-	JOYPAC2(VM* parent_vm, EMU* parent_emu) : PAC2DEV(parent_vm, parent_emu) {
-#if defined(_USE_QT)
-		set_device_name(_T("JOY PAC2"));
-#endif
-	}
+	JOYPAC2(VM* parent_vm, EMU* parent_emu) : PAC2DEV(parent_vm, parent_emu) {}
 	~JOYPAC2() {}
 	
 	// common functions
