@@ -65,11 +65,28 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
+#if defined(_USE_QT)
+	dummy->set_device_name(_T("1st Dummy"));
+	event->set_device_name(_T("EVENT"));
+#endif	
 	
 	pio_sub = new I8255(this, emu);
 	io = new IO(this, emu);
 	psg = new YM2203(this, emu);
 	cpu = new Z80(this, emu);
+#if defined(_USE_QT)
+#ifdef _PC6001
+	pio_sub->set_device_name(_T("i8255 PIO(PRINTER/SOUND/SUB/VDP)"));
+#else
+	pio_sub->set_device_name(_T("i8255 PIO(PRINTER/SOUND/SUB)"));
+#endif
+#if defined(_PC6601SR) || defined(_PC6001MK2SR)
+	psg->set_device_name(_T("YM2203 OPN"));
+#else
+	psg->set_device_name(_T("AY-3-8910 PSG"));
+#endif
+	cpu->set_device_name(_T("CPU(Z80)"));
+#endif	
 	
 	if(config.printer_device_type == 0) {
 		printer = new PRNFILE(this, emu);
@@ -79,10 +96,18 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 #if defined(_PC6601) || defined(_PC6601SR)
 	floppy = new FLOPPY(this, emu);
+#if defined(_USE_QT)
+	floppy->set_device_name(_T("FLOPPY I/F"));
+#endif
 #endif
 	joystick = new JOYSTICK(this, emu);
 	memory = new MEMORY(this, emu);
 	timer = new TIMER(this, emu);
+#if defined(_USE_QT)
+	joystick->set_device_name(_T("JOYSTICK I/F"));
+	memory->set_device_name(_T("MEMORY"));
+	timer->set_device_name(_T("TIMER"));
+#endif
 	
 	// set contexts
 	event->set_context_cpu(cpu);

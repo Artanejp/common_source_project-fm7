@@ -47,6 +47,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
+#if defined(_USE_QT)
+	dummy->set_device_name(_T("1st Dummy"));
+	event->set_device_name(_T("EVENT"));
+#endif	
 	
 	drec = new DATAREC(this, emu);
 	crtc = new HD46505(this, emu);
@@ -61,13 +65,28 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	cpu = new Z80(this, emu);
 	ctc = new Z80CTC(this, emu);
 	pio = new Z80PIO(this, emu);
+#if defined(_USE_QT)
+	pio0->set_device_name(_T("i8255 PIO(MEMORY)"));
+	pio1->set_device_name(_T("i8255 PIO(DISPLAY/MEMORY)"));
+	pio2->set_device_name(_T("i8255 PIO(DATA RECORDER)"));
+	flipflop->set_device_name(_T("74LS74 F/F(SOUND OUT)"));
+	not_remote->set_device_name(_T("NOT GATE(REMOTE CONTROL)"));
+	cpu->set_device_name(_T("CPU(Z80)"));
+	pio->set_device_name(_T("Z80 PIO(SOUND/KEYBOARD/INTERRUPT)"));
+#endif	
 	
 	floppy = new FLOPPY(this, emu);
 	display = new DISPLAY(this, emu);
 	key = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
 	pac2 = new PAC2(this, emu);
-	
+#if defined(_USE_QT)
+	floppy->set_device_name(_T("FLOPPY I/F"));
+	display->set_device_name(_T("DISPLAY I/F"));
+	key->set_device_name(_T("KEYBOARD I/F"));
+	memory->set_device_name(_T("MEMORY"));
+	pac2->set_device_name(_T("PAC2 I/F"));
+#endif	
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(pcm);

@@ -19,7 +19,9 @@ void PAC2::initialize()
 	kanji = new KANJIPAC2(vm, emu);
 	joy = new JOYPAC2(vm, emu);
 	dummy = new PAC2DEV(vm, emu);
-	
+#if defined(_USE_QT)
+	dummy->set_device_name(_T("DUMMY PAC2"));
+#endif	
 	rampac2->initialize(1);
 	kanji->initialize(1);
 	joy->initialize(1);

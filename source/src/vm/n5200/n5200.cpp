@@ -40,7 +40,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-	
+#if defined(_USE_QT)
+	dummy->set_device_name(_T("1st Dummy"));
+	event->set_device_name(_T("EVENT"));
+#endif	
 	beep = new BEEP(this, emu);
 	cpu = new I386(this, emu);
 	dma = new I8237(this, emu);
@@ -55,12 +58,28 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	gdc_c = new UPD7220(this, emu);
 	gdc_g = new UPD7220(this, emu);
 	fdc = new UPD765A(this, emu);
+#if defined(_USE_QT)
+	cpu->set_device_name(_T("CPU(i386)"));
+	sio_r->set_device_name(_T("i8251 SIO(RS-232C)"));
+	sio_k->set_device_name(_T("i8251 SIO(KEYBOARD)"));
+	pio_r->set_device_name(_T("i8255 PIO(SYSTEM PORT)"));
+	pio_k->set_device_name(_T("i8255 PIO(PRINTER)"));
+	gdc_c->set_device_name(_T("uPD7220 GDC(CHARACTER)"));
+	gdc_g->set_device_name(_T("uPD7220 GDC(GRAPHICS)"));
+#endif	
 	
 	display = new DISPLAY(this, emu);
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
 	system = new SYSTEM(this, emu);
+#if defined(_USE_QT)
+	display->set_device_name(_T("DISPLAY I/F"));
+	floppy->set_device_name(_T("FLOPPY I/F"));
+	keyboard->set_device_name(_T("KEYBOARD I/F"));
+	memory->set_device_name(_T("MEMORY"));
+	system->set_device_name(_T("SYSTEM"));
+#endif	
 	
 	// set contexts
 	event->set_context_cpu(cpu);

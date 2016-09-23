@@ -39,6 +39,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
+#if defined(_USE_QT)
+	dummy->set_device_name(_T("1st Dummy"));
+#endif	
 	
 	drec = new DATAREC(this, emu);
 	io = new IO(this, emu);
@@ -46,12 +49,23 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	not_vsync = new NOT(this, emu);
 	psg = new YM2203(this, emu);
 	cpu = new Z80(this, emu);
+#if defined(_USE_QT)
+	io->set_device_name(_T("I/O BUS"));
+	not_vsync->set_device_name(_T("NOT GATE(VSYNC)"));
+	psg->set_device_name(_T("AY-3-8910 PSG"));
+	cpu->set_device_name(_T("CPU(Z80)"));
+#endif	
 	
 	joystick = new JOYSTICK(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
 	system = new SYSTEM(this, emu);
-	
+#if defined(_USE_QT)
+	joystick->set_device_name(_T("JOYSTICK I/F"));
+	keyboard->set_device_name(_T("KEYBOARD I/F"));
+	memory->set_device_name(_T("MEMORY"));
+	system->set_device_name(_T("SYSTEM"));
+#endif
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(psg);

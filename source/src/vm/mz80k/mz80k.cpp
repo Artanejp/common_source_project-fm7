@@ -59,9 +59,16 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
+#if defined(_USE_QT)
+	dummy->set_device_name(_T("1st Dummy"));
+	event->set_device_name(_T("EVENT"));
+#endif	
 	
 #if defined(_MZ1200) || defined(_MZ80A)
 	and_int = new AND(this, emu);
+#if defined(_USE_QT)
+	and_int->set_device_name(_T("AND GATE(INTERRUPTS)"));
+#endif	
 #endif
 	drec = new DATAREC(this, emu);
 	ctc = new I8253(this, emu);
@@ -69,19 +76,35 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	counter = new LS393(this, emu);
 	pcm = new PCM1BIT(this, emu);
 	cpu = new Z80(this, emu);
+#if defined(_USE_QT)
+	counter->set_device_name(_T("74LS393 COUNTER(CTC/SOUND)"));
+#endif	
 	
 	keyboard = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
 	printer = new PRINTER(this, emu);
+#if defined(_USE_QT)
+	keyboard->set_device_name(_T("KEYBOARD I/F"));
+	memory->set_device_name(_T("MEMORY"));
+	printer->set_device_name(_T("PRINTER I/F"));
+#endif	
 	
 #if defined(SUPPORT_MZ80AIF)
 	io = new IO(this, emu);
 	fdc = new MB8877(this, emu);	// mb8866
 	mz80aif = new MZ80AIF(this, emu);
+#if defined(_USE_QT)
+	io->set_device_name(_T("I/O BUS"));
+	mz80aif->set_device_name(_T("MZ-80 AIF"));
+#endif
 #elif defined(SUPPORT_MZ80FIO)
 	io = new IO(this, emu);
 	fdc = new T3444A(this, emu);	// t3444m
 	mz80fio = new MZ80FIO(this, emu);
+#if defined(_USE_QT)
+	io->set_device_name(_T("I/O BUS"));
+	mz80fio->set_device_name(_T("MZ-80 FIO"));
+#endif
 #endif
 	
 	// set contexts

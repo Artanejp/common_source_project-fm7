@@ -34,14 +34,25 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
+#if defined(_USE_QT)
+	dummy->set_device_name(_T("1st Dummy"));
+#endif	
 	
 	io = new IO(this, emu);
 	memory = new MEMORY(this, emu);
 	cpu = new Z80(this, emu);
+#if defined(_USE_QT)
+	cpu->set_device_name(_T("CPU(Z80)"));
+#endif	
 	
 	joystick = new JOYSTICK(this, emu);
 	psg = new PSG(this, emu);
 	vdp = new VDP(this, emu);
+#if defined(_USE_QT)
+	joystick->set_device_name(_T("JOYSTICK I/F"));
+	psg->set_device_name(_T("SOUND"));
+	vdp->set_device_name(_T("VIDEO PROCESSOR"));
+#endif	
 	
 	// set contexts
 	event->set_context_cpu(cpu);

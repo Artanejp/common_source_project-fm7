@@ -90,8 +90,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	cmt->set_device_name(_T("CMT I/F"));
 	floppy->set_device_name(_T("FLOPPY I/F"));
 	keyboard->set_device_name(_T("KEYBOARD I/F"));
-	mz1r12->set_device_name(_T("MZ-1R12"));
-	mz1r13->set_device_name(_T("MZ-1R13"));
 	printer->set_device_name(_T("PRINTER I/F"));
 	timer->set_device_name(_T("TIMER I/F"));
 	memory->set_device_name(_T("MEMORY I/F"));
@@ -115,7 +113,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio_to16->set_device_name(_T("Z80 PIO(16BIT BOARD)"));
 	cpu_16->set_device_name(_T("CPU i286(16BIT BOARD)"));
 	pic_16->set_device_name(_T("i8259 PIC(16BIT BOARD)"));
-	mz1m01_to16->set_device_name(_T("MZ-1M01(16BIT BOARD)"));
   #endif
 #endif
 	

@@ -45,12 +45,21 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
+#if defined(_USE_QT)
+	dummy->set_device_name(_T("1st Dummy"));
+	event->set_device_name(_T("EVENT"));
+#endif	
 	
 	// for main cpu
 	mainio = new IO(this, emu);
 	fdc = new UPD765A(this, emu);
 	maincpu = new Z80(this, emu);
 	mainbus= new MAIN(this, emu);
+#if defined(_USE_QT)
+	mainio->set_device_name(_T("MAIN I/O"));
+	maincpu->set_device_name(_T("MAIN CPU(Z80)"));
+	mainbus->set_device_name(_T("MAIN BUS"));
+#endif	
 	
 	// for sub cpu
 	if(config.printer_device_type == 0) {
@@ -81,6 +90,22 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	subcpu = new Z80(this, emu);
 	subbus = new SUB(this, emu);
 	kbd = new KEYBOARD(this, emu);
+#if defined(_USE_QT)
+	subio->set_device_name(_T("SUB I/O"));
+	subcpu->set_device_name(_T("SUB CPU(Z80)"));
+	subbus->set_device_name(_T("SUB BUS"));
+	ls244->set_device_name(_T("74LS244(I/O)"));
+	not_data1->set_device_name(_T("NOT GATE #1"));
+	not_data2->set_device_name(_T("NOT GATE #2"));
+	not_data3->set_device_name(_T("NOT GATE #3"));
+	not_data4->set_device_name(_T("NOT GATE #4"));
+	not_data5->set_device_name(_T("NOT GATE #5"));
+	not_data6->set_device_name(_T("NOT GATE #6"));
+	not_data7->set_device_name(_T("NOT GATE #7"));
+	not_data8->set_device_name(_T("NOT GATE #8"));
+	gdc_chr->set_device_name(_T("uPD7220 GDC(CHARACTER)"));
+	gdc_gfx->set_device_name(_T("uPD7220 GDC(GRAPHICS)"));
+#endif	
 	
 	// set contexts
 	event->set_context_cpu(maincpu, CPU_CLOCKS);

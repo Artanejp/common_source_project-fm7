@@ -42,6 +42,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
+#if defined(_USE_QT)
+	dummy->set_device_name(_T("1st Dummy"));
+#endif	
 	
 	drec = new DATAREC(this, emu);
 	crtc = new HD46505(this, emu);
@@ -54,9 +57,14 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	psg = new SN76489AN(this, emu);
 #endif
 	cpu = new Z80(this, emu);
+#if defined(_USE_QT)
+	cpu->set_device_name(_T("CPU(Z80)"));
+#endif	
 	
 	io = new IO(this, emu);
-	
+#if defined(_USE_QT)
+	io->set_device_name(_T("I/O BUS"));
+#endif	
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(pcm);

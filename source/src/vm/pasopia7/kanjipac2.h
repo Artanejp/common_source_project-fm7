@@ -21,7 +21,11 @@ private:
 	uint8_t rom[0x20000];
 	uint32_t ptr;
 public:
-	KANJIPAC2(VM* parent_vm, EMU* parent_emu) : PAC2DEV(parent_vm, parent_emu) {}
+	KANJIPAC2(VM* parent_vm, EMU* parent_emu) : PAC2DEV(parent_vm, parent_emu) {
+#if defined(_USE_QT)
+		set_device_name(_T("KANJI PAC2"));
+#endif
+	}
 	~KANJIPAC2() {}
 	
 	// common functions

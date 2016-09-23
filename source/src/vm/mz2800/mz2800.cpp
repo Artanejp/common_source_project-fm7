@@ -55,14 +55,23 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-	
+#if defined(_USE_QT)
+	dummy->set_device_name(_T("1st Dummy"));
+	event->set_device_name(_T("EVENT"));
+#endif	
 	cpu = new I286(this, emu);
+#if defined(_USE_QT)
+	cpu->set_device_name(_T("CPU(i286)"));
+#endif	
 	pit = new I8253(this, emu);
 	pio0 = new I8255(this, emu);
 	pic = new I8259(this, emu);
 	io = new IO(this, emu);
 	fdc = new MB8877(this, emu);
 	not_busy = new NOT(this, emu);
+#if defined(_USE_QT)
+	not_busy->set_device_name(_T("NOT GATE(PRINTER BUSY)"));
+#endif
 	pcm = new PCM1BIT(this, emu);
 	rtc = new RP5C01(this, emu);	// RP-5C15
 //	sasi = new SASI(this, emu);
@@ -81,7 +90,18 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	rst = new RESET(this, emu);
 	serial = new SERIAL(this, emu);
 	sysport = new SYSPORT(this, emu);
-	
+#if defined(_USE_QT)
+	crtc->set_device_name(_T("CRTC"));
+	floppy->set_device_name(_T("FLOPPY I/F"));
+	joystick->set_device_name(_T("JOYSTICK I/F"));
+	keyboard->set_device_name(_T("KEYBOARD I/F"));
+	memory->set_device_name(_T("MEMORY"));
+	mouse->set_device_name(_T("MOUSE I/F"));
+	printer->set_device_name(_T("PRINTER I/F"));
+	rst->set_device_name(_T("RESET I/F"));
+	serial->set_device_name(_T("SERIAL I/F"));
+	sysport->set_device_name(_T("SYSTEM PORT"));
+#endif	
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(opn);

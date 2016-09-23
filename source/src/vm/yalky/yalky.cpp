@@ -36,13 +36,22 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
+#if defined(_USE_QT)
+	dummy->set_device_name(_T("1st Dummy"));
+#endif	
 	
 	drec = new DATAREC(this, emu);
 	cpu = new I8080(this, emu);	// 8085
 	pio = new I8155(this, emu);	// 8156
 	memory = new MEMORY(this, emu);
+#if defined(_USE_QT)
+	cpu->set_device_name(_T("CPU(i8080)"));
+#endif	
 	
 	io = new IO(this, emu);
+#if defined(_USE_QT)
+	io->set_device_name(_T("I/O"));
+#endif	
 	
 	// set contexts
 	event->set_context_cpu(cpu);

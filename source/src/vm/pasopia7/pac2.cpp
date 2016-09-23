@@ -24,6 +24,11 @@ void PAC2::initialize()
 	rampac2[1] = new RAMPAC2(vm, emu);
 	kanji = new KANJIPAC2(vm, emu);
 	joy = new JOYPAC2(vm, emu);
+#if defined(_USE_QT)
+	dummy->set_device_name(_T("DUMMY PAC2"));
+	rampac2[0]->set_device_name(_T("RAM PAC2 #1"));
+	rampac2[1]->set_device_name(_T("RAM PAC2 #2"));
+#endif
 	
 	rampac2[0]->initialize(1);
 	rampac2[1]->initialize(2);

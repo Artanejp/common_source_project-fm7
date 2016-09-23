@@ -48,6 +48,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
+#if defined(_USE_QT)
+	dummy->set_device_name(_T("1st Dummy"));
+	event->set_device_name(_T("EVENT"));
+#endif	
 	
 	if(config.printer_device_type == 0) {
 		printer = new PRNFILE(this, emu);
@@ -62,6 +66,15 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	cpu = new I286(this, emu);
 	io = new IO(this, emu);
 	div = new LS393(this, emu);
+#if defined(_USE_QT)
+	io->set_device_name(_T("MAIN I/O"));
+  #if defined(_MZ6550)
+	cpu->set_device_name(_T("MAIN CPU(i286)"));
+  #else
+	cpu->set_device_name(_T("MAIN CPU(i8086)"));
+  #endif
+	div->set_device_name(_T("74LS393(DIVIDER)"));
+#endif	
 	not_data1 = new NOT(this, emu);
 	not_data2 = new NOT(this, emu);
 	not_data3 = new NOT(this, emu);
@@ -71,6 +84,17 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	not_data7 = new NOT(this, emu);
 	not_data8 = new NOT(this, emu);
 	not_busy = new NOT(this, emu);
+#if defined(_USE_QT)
+	not_data1->set_device_name(_T("NOT GATE #1"));
+	not_data2->set_device_name(_T("NOT GATE #2"));
+	not_data3->set_device_name(_T("NOT GATE #3"));
+	not_data4->set_device_name(_T("NOT GATE #4"));
+	not_data5->set_device_name(_T("NOT GATE #5"));
+	not_data6->set_device_name(_T("NOT GATE #6"));
+	not_data7->set_device_name(_T("NOT GATE #7"));
+	not_data8->set_device_name(_T("NOT GATE #8"));
+	not_busy->set_device_name(_T("NOT GATE(PRINTER BUSY)"));
+#endif
 	rtc = new RP5C01(this, emu);
 	gdc = new UPD7220(this, emu);
 	fdc = new UPD765A(this, emu);
@@ -85,7 +109,12 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	keyboard = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
 	sysport = new SYSPORT(this, emu);
-	
+#if defined(_USE_QT)
+	display->set_device_name(_T("DISPLAY I/F"));
+	keyboard->set_device_name(_T("KEYBOARD I/F"));
+	memory->set_device_name(_T("MEMORY"));
+	sysport->set_device_name(_T("SYSTEM PORT"));
+#endif	
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(psg);

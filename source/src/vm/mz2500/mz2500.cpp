@@ -109,10 +109,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	joystick->set_device_name(_T("JOYSTICK I/F"));
 	keyboard->set_device_name(_T("KEYBOARD I/F"));
 	mouse->set_device_name(_T("MOUSE I/F"));
-	mz1e26->set_device_name(_T("MZ-1E26"));
-	mz1e30->set_device_name(_T("MZ-1E30"));
-	mz1r13->set_device_name(_T("MZ-1R13"));
-	mz1r37->set_device_name(_T("MZ-1R37"));
 	printer->set_device_name(_T("PRINTER I/F"));
 	serial->set_device_name(_T("SERIAL I/F"));
 	timer->set_device_name(_T("TIMER I/F"));

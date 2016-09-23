@@ -41,6 +41,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
+#if defined(_USE_QT)
+	dummy->set_device_name(_T("1st Dummy"));
+#endif	
 	
 	sio_b = new I8251(this, emu);	// on TK-80BS
 	pio_b = new I8255(this, emu);
@@ -50,11 +53,23 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pcm0 = new PCM1BIT(this, emu);
 	pcm1 = new PCM1BIT(this, emu);
 	cpu = new I8080(this, emu);
+#if defined(_USE_QT)
+	sio_b->set_device_name(_T("i8251 SIO(TK-80BS/CMT)"));
+	pio_b->set_device_name(_T("i8255 PIO(TK-80BS/DISPLAY)"));
+	pio_t->set_device_name(_T("i8255 PIO(TK-80/SOUND/KEYBOARD/DISPLAY)"));
+	pcm0->set_device_name(_T("PCM SOUND #1"));
+	pcm1->set_device_name(_T("PCM SOUND #2"));
+	cpu->set_device_name(_T("CPU(i8080)");
+#endif	
 	
 	cmt = new CMT(this, emu);
 	display = new DISPLAY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
-	
+#if defined(_USE_QT)
+	cmt->set_device_name(_T("CMT I/F"));
+	display->set_device_name(_T("DISPLAY"));
+	keyboard->set_device_name(_T("KEYBOARD"));
+#endif	
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(pcm0);

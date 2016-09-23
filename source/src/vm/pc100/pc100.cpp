@@ -43,6 +43,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
+#if defined(_USE_QT)
+	dummy->set_device_name(_T("1st Dummy"));
+	event->set_device_name(_T("EVENT"));
+#endif	
 	
 	and_drq = new AND(this, emu);
 	beep = new BEEP(this, emu);
@@ -56,11 +60,21 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	rtc = new MSM58321(this, emu);
 	pcm = new PCM1BIT(this, emu);
 	fdc = new UPD765A(this, emu);
+#if defined(_USE_QT)
+	and_drq->set_device_name(_T("AND GATE(FDC DRQ)"));
+	pio0->set_device_name(_T("i8255 PIO(MSM5832 RTC)"));
+	pio1->set_device_name(_T("i8255 PIO(CRTC)"));
+	cpu->set_device_name(_T("CPU(i8086)"));
+#endif	
 	
 	crtc = new CRTC(this, emu);
 	ioctrl = new IOCTRL(this, emu);
 	kanji = new KANJI(this, emu);
-	
+#if defined(_USE_QT)
+	crtc->set_device_name(_T("CRTC"));
+	ioctrl->set_device_name(_T("I/O CONTROL"));
+	kanji->set_device_name(_T("KANJI I/F"));
+#endif	
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(beep);

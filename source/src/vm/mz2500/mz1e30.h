@@ -52,7 +52,11 @@ private:
 	bool format(int drv);
 	
 public:
-	MZ1E30(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	MZ1E30(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
+#if defined(_USE_QT)		
+		set_device_name(_T("MZ-1E30 SASI"));
+#endif
+	}
 	~MZ1E30() {}
 	
 	// common functions
