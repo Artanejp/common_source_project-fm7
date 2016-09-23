@@ -125,7 +125,7 @@ public:
 		mode = 0;
 		lastparity = 0;
 		nmi = mid = idle = false;
-		set_device_name(_T("TMS9955"));
+		set_device_name(_T("TMS9995 CPU"));
 	}
 	~TMS9995() {}
 	

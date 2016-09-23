@@ -98,7 +98,7 @@ public:
 	{
 		initialize_output_signals(&outputs_busy);
 		initialize_output_signals(&outputs_ack);
-		set_device_name(_T("MZ-1P17"));
+		set_device_name(_T("MZ-1P17 KANJI THERMAL PRINTER"));
 	}
 	~MZ1P17() {}
 	

@@ -49,7 +49,7 @@ public:
 		d_dma = NULL;
 #endif
 		initialize_output_signals(&outputs_tc);
-		set_device_name(_T("uPD71071"));
+		set_device_name(_T("uPD71071 DMAC"));
 	}
 	~UPD71071() {}
 	

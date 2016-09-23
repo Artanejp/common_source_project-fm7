@@ -202,7 +202,7 @@ public:
 		SID = true;
 		initialize_output_signals(&outputs_busack);
 		initialize_output_signals(&outputs_sod);
-		set_device_name(_T("i8080"));
+		set_device_name(_T("i8080 CPU"));
 	}
 	~I8080() {}
 	

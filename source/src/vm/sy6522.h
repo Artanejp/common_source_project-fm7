@@ -116,7 +116,7 @@ public:
 		initialize_output_signals(&outputs_cb2);
 		initialize_output_signals(&outputs_irq);
 		clock = CPU_CLOCKS;
-		set_device_name(_T("SY6522"));
+		set_device_name(_T("SY6522 VIA"));
 	}
 	~SY6522() {}
 	

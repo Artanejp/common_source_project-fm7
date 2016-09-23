@@ -33,7 +33,7 @@ public:
 		}
 		count = 0;
 		prev_in = false;
-		set_device_name(_T("74LS393"));
+		set_device_name(_T("74LS393 4-STAGE COUNTER"));
 	}
 	~LS393() {}
 	

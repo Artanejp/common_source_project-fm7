@@ -53,7 +53,7 @@ public:
 #ifdef TMS9918A_SUPER_IMPOSE
 		now_super_impose = false;
 #endif
-		set_device_name(_T("TMS9918a"));
+		set_device_name(_T("TMS9918a VDP"));
 	}
 	~TMS9918A() {}
 	

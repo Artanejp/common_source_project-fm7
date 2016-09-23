@@ -129,7 +129,7 @@ public:
 		vram = NULL;
 		vram_size = 0;
 		vram_data_mask = 0xffff;
-		set_device_name(_T("uPD7220"));
+		set_device_name(_T("uPD7220 GDC"));
 	}
 	~UPD7220() {}
 	

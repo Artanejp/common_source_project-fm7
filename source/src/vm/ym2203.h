@@ -120,9 +120,9 @@ public:
 		base_decibel_fm = base_decibel_psg = 0;
 		decibel_vol = 0 + 5;
 #ifdef HAS_YM2608
-		set_device_name(_T("YM2608"));
+		set_device_name(_T("YM2608 OPNA"));
 #else		
-		set_device_name(_T("YM2203"));
+		set_device_name(_T("YM2203 OPN"));
 #endif		
 	}
 	~YM2203() {}

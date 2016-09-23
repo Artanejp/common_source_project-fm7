@@ -43,7 +43,7 @@ public:
 	{
 		initialize_output_signals(&outputs_to);
 		initialize_output_signals(&outputs_txd);
-		set_device_name(_T("uPD7810"));
+		set_device_name(_T("uPD7810/7811 MCU"));
 	}
 	~UPD7810() {}
 	

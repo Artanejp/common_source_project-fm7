@@ -44,7 +44,7 @@ public:
 			initialize_output_signals(&port[i].outputs_irq);
 			port[i].wreg = port[i].rreg = 0;//0xff;
 		}
-		set_device_name(_T("MC6820"));
+		set_device_name(_T("MC6820 PIA"));
 	}
 	~MC6820() {}
 	

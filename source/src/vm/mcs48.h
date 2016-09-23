@@ -69,7 +69,7 @@ public:
 	MCS48(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		d_mem = d_io = d_intr = NULL;
-		set_device_name(_T("MCS48"));
+		set_device_name(_T("MCS48 MCU"));
 	}
 	~MCS48() {}
 	

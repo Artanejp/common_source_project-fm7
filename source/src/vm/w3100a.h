@@ -30,7 +30,7 @@ private:
 	
 public:
 	W3100A(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
-		set_device_name(_T("W3100A"));
+		set_device_name(_T("W3100A TCP/IP"));
 	}
 	~W3100A() {}
 	

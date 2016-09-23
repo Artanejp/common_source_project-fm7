@@ -105,7 +105,7 @@ public:
 	{
 		initialize_output_signals(&outputs_so);
 		SI = SCK = false;
-		set_device_name(_T("uPD7801"));
+		set_device_name(_T("uPD7801 CPU"));
 	}
 	~UPD7801() {}
 	

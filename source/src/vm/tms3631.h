@@ -40,7 +40,7 @@ public:
 	TMS3631(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		volume_l = volume_r = 1024;
-		set_device_name(_T("TMS3631"));
+		set_device_name(_T("TMS3631 SSG"));
 	}
 	~TMS3631() {}
 	

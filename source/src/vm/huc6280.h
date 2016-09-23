@@ -32,7 +32,7 @@ private:
 	
 public:
 	HUC6280(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
-		set_device_name(_T("HuC6280"));
+		set_device_name(_T("HuC6280 CPU"));
 	}
 	~HUC6280() {}
 	

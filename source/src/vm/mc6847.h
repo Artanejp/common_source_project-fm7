@@ -64,7 +64,7 @@ public:
 		gm = 0;
 		initialize_output_signals(&outputs_vsync);
 		initialize_output_signals(&outputs_hsync);
-		set_device_name(_T("MC6847"));
+		set_device_name(_T("MC6847 VIDEO DISPLAY CONTOROLLER"));
 	}
 	~MC6847() {}
 	

@@ -159,7 +159,7 @@ public:
 	V99X8(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_irq);
-		set_device_name(_T("V99x8"));
+		set_device_name(_T("V99x8 VDP"));
 	}
 	~V99X8() {}
 	

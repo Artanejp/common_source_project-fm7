@@ -32,7 +32,7 @@ public:
 	TF20(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		drive_no = 0;
-		set_device_name(_T("TF-20"));
+		set_device_name(_T("TF-20 FDD"));
 	}
 	~TF20() {}
 	

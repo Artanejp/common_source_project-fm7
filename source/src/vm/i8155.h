@@ -64,7 +64,7 @@ public:
 		}
 		initialize_output_signals(&outputs_timer);
 		freq = 0;
-		set_device_name(_T("i8155"));
+		set_device_name(_T("i8155 TIMER/RAM"));
 	}
 	~I8155() {}
 	

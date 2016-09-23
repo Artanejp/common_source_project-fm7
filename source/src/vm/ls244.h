@@ -28,7 +28,7 @@ public:
 	LS244(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs);
-		set_device_name(_T("74LS244"));
+		set_device_name(_T("74LS244 OCTAL 3-STATE BUFFER"));
 	}
 	~LS244() {}
 	

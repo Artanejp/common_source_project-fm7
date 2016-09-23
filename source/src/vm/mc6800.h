@@ -368,7 +368,13 @@ public:
 		}
 		initialize_output_signals(&outputs_sio);
 #endif
-		set_device_name(_T("MC6800"));
+#if defined(HAS_MC6801)
+		set_device_name(_T("MC6801 MPU"));
+#elif  defined(HAS_HD6301)
+		set_device_name(_T("HD6301 MPU"));
+#else
+		set_device_name(_T("MC6800 MPU"));
+#endif
 	}
 	~MC6800() {}
 	

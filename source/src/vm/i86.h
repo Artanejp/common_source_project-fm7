@@ -341,7 +341,11 @@ public:
 		d_dma = NULL;
 #endif
 		busreq = false;
-		set_device_name(_T("i8086"));
+#if defined(HAS_I86)
+		set_device_name(_T("i8086 CPU"));
+#else
+		set_device_name(_T("i80186 CPU"));
+#endif		
 	}
 	~I86() {}
 	

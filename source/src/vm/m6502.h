@@ -38,7 +38,7 @@ public:
 	M6502(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		busreq = false;
-		set_device_name(_T("M6502"));
+		set_device_name(_T("M6502 CPU"));
 	}
 	~M6502() {}
 	

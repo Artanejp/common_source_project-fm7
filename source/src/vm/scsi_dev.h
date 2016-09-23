@@ -157,7 +157,7 @@ public:
 		initialize_output_signals(&outputs_req);
 		
 		max_logical_block_addr = 0;	// uninitialized
-		set_device_name(_T("SCSI"));
+		set_device_name(_T("SCSI DEVICE"));
 	}
 	~SCSI_DEV() {}
 	
