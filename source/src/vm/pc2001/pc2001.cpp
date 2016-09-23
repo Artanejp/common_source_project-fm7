@@ -55,7 +55,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	lcd[1]->set_device_name(_T("uPD16434 LCD CONTROLLER #2"));
 	lcd[2]->set_device_name(_T("uPD16434 LCD CONTROLLER #3"));
 	lcd[3]->set_device_name(_T("uPD16434 LCD CONTROLLER #4"));
-	cpu->set_device_name(_T("CPU(uPD7810)");
+	cpu->set_device_name(_T("CPU(uPD7810)"));
 #endif	
 	
 	io = new IO(this, emu);

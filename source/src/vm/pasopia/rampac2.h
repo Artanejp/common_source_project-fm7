@@ -24,11 +24,7 @@ private:
 	bool opened, modified;
 	
 public:
-	RAMPAC2(VM* parent_vm, EMU* parent_emu) : PAC2DEV(parent_vm, parent_emu) {
-#if defined(_USE_QT)
-		set_device_name(_T("RAM PAC2"));
-#endif
-	}
+	RAMPAC2(VM* parent_vm, EMU* parent_emu) : PAC2DEV(parent_vm, parent_emu) {}
 	~RAMPAC2() {}
 	
 	// common functions

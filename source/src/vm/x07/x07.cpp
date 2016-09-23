@@ -40,7 +40,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	memory = new MEMORY(this, emu);
 	cpu = new Z80(this, emu);
 #if defined(_USE_QT)
-	cpu->set_device_name(_T("CPU(Z80)");
+	cpu->set_device_name(_T("CPU(Z80)"));
 #endif	
 	
 	io = new IO(this, emu);

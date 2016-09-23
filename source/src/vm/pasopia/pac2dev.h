@@ -20,11 +20,7 @@ protected:
 	VM* vm;
 	EMU* emu;
 public:
-	PAC2DEV(VM* parent_vm, EMU* parent_emu) : vm(parent_vm), emu(parent_emu) {
-#if defined(_USE_QT)
-		set_device_name(_T("PAC2 DEVICE"));
-#endif
-	}
+	PAC2DEV(VM* parent_vm, EMU* parent_emu) : vm(parent_vm), emu(parent_emu) {}
 	~PAC2DEV(void) {}
 	
 	virtual void initialize(int id) {}

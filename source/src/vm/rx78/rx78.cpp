@@ -56,7 +56,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	vdp = new VDP(this, emu);
 #if defined(_USE_QT)
 	cmt->set_device_name(_T("CMT I/F"));
-	keyboard->set_device_name(_T("KEYBOARD I/F"));
+	key->set_device_name(_T("KEYBOARD I/F"));
 	memory->set_device_name(_T("MEMORY"));
 	prt->set_device_name(_T("PRINTER I/F"));
 	vdp->set_device_name(_T("VIDEO"));

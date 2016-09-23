@@ -59,7 +59,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio_t->set_device_name(_T("i8255 PIO(TK-80/SOUND/KEYBOARD/DISPLAY)"));
 	pcm0->set_device_name(_T("PCM SOUND #1"));
 	pcm1->set_device_name(_T("PCM SOUND #2"));
-	cpu->set_device_name(_T("CPU(i8080)");
+	cpu->set_device_name(_T("CPU(i8080)"));
 #endif	
 	
 	cmt = new CMT(this, emu);

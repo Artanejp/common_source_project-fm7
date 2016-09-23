@@ -62,8 +62,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	cpu->set_device_name(_T("CPU(i386)"));
 	sio_r->set_device_name(_T("i8251 SIO(RS-232C)"));
 	sio_k->set_device_name(_T("i8251 SIO(KEYBOARD)"));
-	pio_r->set_device_name(_T("i8255 PIO(SYSTEM PORT)"));
-	pio_k->set_device_name(_T("i8255 PIO(PRINTER)"));
+	pio_s->set_device_name(_T("i8255 PIO(SYSTEM PORT)"));
+	pio_p->set_device_name(_T("i8255 PIO(PRINTER)"));
 	gdc_c->set_device_name(_T("uPD7220 GDC(CHARACTER)"));
 	gdc_g->set_device_name(_T("uPD7220 GDC(GRAPHICS)"));
 #endif	
