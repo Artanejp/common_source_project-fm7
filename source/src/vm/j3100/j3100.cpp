@@ -107,7 +107,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	dmareg->set_device_name(_T("DMA REG"));
 	floppy->set_device_name(_T("FLOPPY"));
 	keyboard->set_device_name(_T("KEYBOARD"));
-	display->set_device_name(_T("DISPLAY"));
+	memory->set_device_name(_T("MEMORY"));
 	sasi->set_device_name(_T("SASI I/F"));
 	system->set_device_name(_T("SYSTEM"));
 #endif

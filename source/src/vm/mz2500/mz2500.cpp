@@ -104,6 +104,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #if defined(_USE_QT)
 	calendar->set_device_name(_T("CALENDAR"));
 	cmt->set_device_name(_T("CMT I/F"));
+	crtc->set_device_name(_T("CRT CONTROLLER"));
 	floppy->set_device_name(_T("FLOPPY I/F"));
 	interrupt->set_device_name(_T("INTERRUPT I/F"));
 	joystick->set_device_name(_T("JOYSTICK I/F"));

@@ -105,6 +105,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	not_data8->set_device_name(_T("NOT GATE #8"));
 	gdc_chr->set_device_name(_T("uPD7220 GDC(CHARACTER)"));
 	gdc_gfx->set_device_name(_T("uPD7220 GDC(GRAPHICS)"));
+	kbd->set_device_name(_T("KEYBOARD I/F"));
 #endif	
 	
 	// set contexts

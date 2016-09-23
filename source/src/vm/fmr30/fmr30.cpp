@@ -70,7 +70,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	sio_ch2->set_device_name(_T("i8251 SIO(RS-232C #2)"));
 	pit->set_device_name(_T("i8253 PIT"));
 	pic->set_device_name(_T("i8259 PIC"));
-	cpu->set_device_name(_T("CPU(i286)"));
+	cpu->set_device_name(_T("CPU(i8086)"));
 #endif
 	
 	scsi_host = new SCSI_HOST(this, emu);

@@ -67,7 +67,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event = new EVENT(this, emu);	// must be 2nd device
 #if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));
-	event->set_device_name(_T("EVENT"));
 #endif	
 	
 	pio_sub = new I8255(this, emu);
@@ -126,6 +125,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	vdp->load_font_image(create_local_path(_T("CGROM60.60")));
 	vdp->set_context_cpu(cpu);
 	pio_sub->set_context_port_c(vdp, SIG_MC6847_ENABLE, 0x02, 0);	// CRTKILL
+#if defined(_USE_QT)
+	display->set_device_name(_T("DISPLAY I/F"));
+#endif
 #else
 	voice = new UPD7752(this, emu);
 	event->set_context_sound(voice);
@@ -157,6 +159,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		timer->set_context_sub(sub);
 	} else {
 		psub = new PSUB(this, emu);
+#if defined(_USE_QT)
+		psub->set_device_name(_T("PSEUDO SUB SYSTEM"));
+#endif
 		psub->set_context_pio(pio_sub);
 		psub->set_context_timer(timer);
 		timer->set_context_sub(psub);
@@ -168,6 +173,13 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		pc80s31k = new PC80S31K(this, emu);
 		fdc_pc80s31k = new UPD765A(this, emu);
 		cpu_pc80s31k = new Z80(this, emu);
+#if defined(_USE_QT)
+		pio_fdd->set_device_name(_T("i8255 PIO(FDD)"));
+		pio_pc80s31k->set_device_name(_T("i8255 PIO(PC-80S31K)"));
+		pc80s31k->set_device_name(_T("PC-80S31K FDD"));
+		fdc_pc80s31k->set_device_name(_T("uPD765A FDC(PC-80S31K)"));
+		cpu_pc80s31k->set_device_name(_T("Z80 CPU(PC-80S31K)"));
+#endif
 		
 		event->set_context_cpu(cpu_pc80s31k, 4000000);
 		pc80s31k->set_context_cpu(cpu_pc80s31k);
