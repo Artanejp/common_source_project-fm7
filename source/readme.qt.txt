@@ -66,7 +66,8 @@ a. I tested to build only under Debian GNU/Linux "sid".
      "Qt4 is obsolete, will be updated no longer".
 
   c. All of virtual machines of upstream (@Apr 13, 2016) are ported to Qt.
-  d. Now using GCC-6 with Link Time Optimize to build for distrubuted binaries.
+  d. Implement socket feature using by MZ-2500, but not enough to test (；´Д｀)
+  e. Now using GCC-6 with Link Time Optimize to build for distrubuted binaries.
 
 6. Upstream repositry:
       https://osdn.jp/projects/csp-qt/
