@@ -249,7 +249,6 @@ void MOVIE_SAVER::run()
 				audio_count = 0;
 				req_close = false;
 				req_stop = false;
-				//printf("*\n");
 				left_frames = 0;
 				if(!do_open_main()) {
 					recording = false;
@@ -311,7 +310,6 @@ void MOVIE_SAVER::run()
 		}
 	_next_turn:
 		//if(req_stop && a_f && v_f) req_close = true;
-		//printf("%d\n", req_close);
 		if(!bRunThread) break;
 		if(need_video_transcode || need_audio_transcode) {
 			need_video_transcode = need_audio_transcode = false;
@@ -366,13 +364,11 @@ void MOVIE_SAVER::do_set_record_fps(int fps)
 
 void MOVIE_SAVER::do_set_width(int width)
 {
-	//printf("width = %d -> %d\n", _width, width);
 	_width = width;
 }
 
 void MOVIE_SAVER::do_set_height(int height)
 {
-	//printf("height = %d -> %d\n", _height, height);
 	_height = height;
 }
 

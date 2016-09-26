@@ -180,8 +180,6 @@ bool MOVIE_SAVER::do_open_main()
 	int encode_video = 0, encode_audio = 0;
 	 
 	raw_options_list = NULL;
-	printf("Sample Rate:%d\n",audio_sample_rate);
-	
 	video_st = { 0 };
 	audio_st = { 0 };
 	/* Initialize libavcodec, and register all codecs and formats. */
