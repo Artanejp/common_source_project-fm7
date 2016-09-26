@@ -46,6 +46,7 @@ Ui_MainWindowBase::Ui_MainWindowBase(USING_FLAGS *p, QWidget *parent) : QMainWin
 	createContextMenu();
 	max_vm_nodes = 0;
 	ui_retranslate_completed = false;
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "GUI OK");
 }
 
 Ui_MainWindowBase::~Ui_MainWindowBase()
@@ -132,7 +133,6 @@ void Ui_MainWindowBase::setupUi(void)
 	if (MainWindow->objectName().isEmpty())
 		MainWindow->setObjectName(QString::fromUtf8("MainWindow"));
 	//MainWindow->resize(1288, 862);
-   
 	ConfigControlMenu();
 	ConfigFloppyMenu();
 	ConfigCMTMenu();
@@ -166,7 +166,8 @@ void Ui_MainWindowBase::setupUi(void)
 	graphicsView->setObjectName(QString::fromUtf8("graphicsView"));
 	graphicsView->setMaximumSize(2560, 2560); // ?
 	graphicsView->setMinimumSize(240, 192); // ?
-	//graphicsView->grabKeyboard();
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "GraphicsView OK");
+	
 	graphicsView->setAttribute(Qt::WA_InputMethodEnabled, false); // Disable [Zenkaku / Hankaku] with IM.
 	graphicsView->setAttribute(Qt::WA_KeyboardFocusChange, false); 
 	//graphicsView->setFocusPolicy(Qt::StrongFocus);
@@ -509,6 +510,7 @@ void Ui_MainWindowBase::setupUi(void)
 	connect(action_SetupKeyboard, SIGNAL(triggered()), this, SLOT(rise_keyboard_dialog()));
 	connect(action_LogToSyslog, SIGNAL(toggled(bool)), this, SLOT(do_set_syslog(bool)));
 	connect(action_LogToConsole, SIGNAL(toggled(bool)), this, SLOT(do_set_conslog(bool)));
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Menu OK");
 	   
 	QImageReader reader(":/default.ico");
 	QImage result = reader.read();
@@ -530,6 +532,7 @@ void Ui_MainWindowBase::setupUi(void)
 	ExitIcon = QIcon(":/icon_exit.png");
 
 	QMetaObject::connectSlotsByName(MainWindow);
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "setupUI() OK");
 } // setupUi
 
 // Emulator
@@ -596,13 +599,14 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	action_LogToSyslog->setCheckable(true);
 	action_LogToSyslog->setEnabled(true);
 	if(using_flags->get_config_ptr()->log_to_syslog != 0) action_LogToSyslog->setChecked(true);
-	
+
 	action_LogToConsole = new Action_Control(this, using_flags);
 	action_LogToConsole->setCheckable(true);
 	action_LogToConsole->setEnabled(true);
 	if(using_flags->get_config_ptr()->log_to_console != 0) action_LogToConsole->setChecked(true);
 
-	menuDevLogToConsole = new QMenu(menuEmulator);
+	//menuDevLogToConsole = new QMenu(menuEmulator);
+	menuDevLogToConsole = new QMenu(this);
 	for(int i = 0; i < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1); i++) {
 		action_DevLogToConsole[i] = new Action_Control(this, using_flags);
 		action_DevLogToConsole[i]->setCheckable(true);
@@ -618,7 +622,6 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	action_LogView = new Action_Control(this, using_flags);
 	connect(action_LogView, SIGNAL(triggered()),
 			this, SLOT(rise_log_viewer()));
-	
 	//action_LogRecord = new Action_Control(this, using_flags);
 	//action_LogRecord->setCheckable(true);
 	//action_LogRecord->setEnabled(true);
