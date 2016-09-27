@@ -1,46 +1,57 @@
 #CMAKE=/usr/bin/cmake
 #TOOLCHAIN_SCRIPT="../../cmake/toolchain_mingw_cross_linux.cmake"
+#TOOLCHAIN_SCRIPT="../../cmake/toolchain_win32_cross_linux_llvm.cmake"
 
 BUILD_TYPE="Release"
 
-#MAKEFLAGS_BASE="-fvect-cost-model=dynamic -ftree-vectorize \
-#               -ftree-loop-distribute-patterns \
-#		-ftree-loop-optimize -ftree-loop-if-convert-stores \
-#		-fbranch-probabilities -fbranch-target-load-optimize \
-#		-fselective-scheduling -fsel-sched-pipelining -fsel-sched-pipelining-outer-loops \
-#               -funroll-loops \
-#		-fgraphite-identity \
-#		-floop-nest-optimize \
-#		"
+## MinGW GCC
 MAKEFLAGS_BASE="-fvect-cost-model=dynamic -ftree-vectorize \
 		-ftree-loop-optimize -ftree-loop-if-convert-stores \
 		-fselective-scheduling -fsel-sched-pipelining -fsel-sched-pipelining-outer-loops \
+		-funroll-loops \
+		-floop-nest-optimize \
 	        -msse -msse2 -mfpmath=sse"
-#MAKEFLAGS_BASE="-fvect-cost-model=dynamic -ftree-vectorize \
-#	       -ftree-loop-optimize -ftree-loop-if-convert-stores \
-#	       "
+		
+MAKEFLAGS_BASE2="-flto -O3 ${MAKEFLAGS_BASE} -DNDEBUG"
+#MAKEFLAGS_BASE2="-g -ggdb -DNDEBUG"
 
-MAKEFLAGS_CXX="-O2 ${MAKEFLAGS_BASE} -DNDEBUG" 
-MAKEFLAGS_CC="-O2 ${MAKEFLAGS_BASE} -DNDEBUG"
-#MAKEFLAGS_CXX="-O2 -flto -ffat-lto-objects -DNDEBUG" 
-#MAKEFLAGS_CC="-O2 -flto -ffat-lto-objects -DNDEBUG"
+MAKEFLAGS_CXX="${MAKEFLAGS_BASE2}"
+MAKEFLAGS_CC="${MAKEFLAGS_BASE2}"
+MAKEFLAGS_LIB_CXX="${MAKEFLAGS_BASE2}"
+MAKEFLAGS_LIB_CC="${MAKEFLAGS_BASE2}"
 
-MAKEFLAGS_LIB_CXX="-O2 ${MAKEFLAGS_BASE} -DNDEBUG" 
-MAKEFLAGS_LIB_CC="-O2 ${MAKEFLAGS_BASE}  -DNDEBUG"
-#MAKEFLAGS_LIB_CXX="-O2 -flto -ffat-lto-objects -DNDEBUG" 
-#MAKEFLAGS_LIB_CC="-O2 -flto -ffat-lto-objects -DNDEBUG"
+MAKEFLAGS_LINK_BASE="-s ${MAKEFLAGS_BASE2}"
+#MAKEFLAGS_LINK_BASE="-g -ggdb ${MAKEFLAGS_BASE2}"
+CMAKE_LINKFLAG="${MAKEFLAGS_LINK_BASE}"
+CMAKE_DLL_LINKFLAG="${MAKEFLAGS_LINK_BASE}"
 
-MAKEFLAGS_GENERAL="-j2"
+CMAKE_APPENDFLAG="-DUSE_QT5_4_APIS=ON -DUSE_MOVIE_LOADER=ON \
+                   -DUSE_MOVIE_SAVER=ON \
+                   -DCMAKE_AR:STRING=i686-w64-mingw32-gcc-ar \
+                   -DCMAKE_LD:STRING=i686-w64-mingw32-gcc-ld \
+		   -DCMAKE_NM:STRING=i686-w64-mingw32-gcc-nm \
+		   -DCMAKE_RANLIB:STRING=i686-w64-mingw32-gcc-ranlib \
+		   "
 
-#CMAKE_LINKFLAG="-static-libstdc++ -static-libgcc"
-CMAKE_LINKFLAG="-s"
-CMAKE_APPENDFLAG="-DUSE_QT5_4_APIS=ON -DUSE_MOVIE_LOADER=ON -DUSE_MOVIE_SAVER=ON"
-#CMAKE_APPENDFLAG="-DCMAKE_AR:STRING=i686-w64-mingw32-gcc-ar \
-#                   -DCMAKE_LD:STRING=i686-w64-mingw32-gcc-ld \
-#		   -DCMAKE_NM:STRING=i686-w64-mingw32-gcc-nm \
-#		   -DCMAKE_RANLIB:STRING=i686-w64-mingw32-gcc-ranlib \
+## LLVM
+#MAKEFLAGS_BASE="-target i686-w64-mingw32"
+#CMAKE_APPENDFLAG="-DUSE_QT5_4_APIS=ON -DUSE_MOVIE_LOADER=ON \
+#                   -DUSE_MOVIE_SAVER=ON \
+#                   -DCMAKE_AR:STRING=llvm-ar-3.9 \
+#                   -DCMAKE_LD:STRING=llvm-ld-3.9 \
+#		   -DCMAKE_NM:STRING=llvm-nm-3.9 \
+#		   -DCMAKE_RANLIB:STRING=llvm-ranlib-3.9 \
 #		   "
+#MAKEFLAGS_CXX="-flto -O2 ${MAKEFLAGS_BASE} -DNDEBUG" 
+#MAKEFLAGS_CC="-flto -O2 ${MAKEFLAGS_BASE} -DNDEBUG"
+#MAKEFLAGS_LIB_CXX="-flto -O2 ${MAKEFLAGS_BASE} -DNDEBUG" 
+#MAKEFLAGS_LIB_CC="-flto -O2 ${MAKEFLAGS_BASE}  -DNDEBUG"
+#CMAKE_LINKFLAG="-s -flto"
+#CMAKE_DLL_LINKFLAG="-s -flto"
+#CMAKE_LINKFLAG="-g  -ggdb"
+#CMAKE_DLL_LINKFLAG="-g  -ggdb"
 
 CMAKE_APPENDFLAG="${CMAKE_APPENDFLAG} -DLIBAV_ROOT_DIR=/usr/local/i586-mingw-msvc/ffmpeg-3.1.1"
+MAKEFLAGS_GENERAL="-j5"
 
 

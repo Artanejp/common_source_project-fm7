@@ -2,6 +2,7 @@
 
 CMAKE=/usr/bin/cmake
 TOOLCHAIN_SCRIPT="../../cmake/toolchain_mingw_cross_linux.cmake"
+#TOOLCHAIN_SCRIPT="../../cmake/toolchain_win32_cross_linux_llvm.cmake"
 
 MAKEFLAGS_CXX="-g -O3 -DNDEBUG"
 MAKEFLAGS_CC="-g -O3 -DNDEBUG"
@@ -10,14 +11,13 @@ CMAKE_APPENDFLAG=""
 export WINEDEBUG="-all"
 CMAKE_LINKFLAG=""
 CMAKE_APPENDFLAG=""
+MAKEFLAGS_GENERAL="-j4"
 
 mkdir -p ./bin-win32/
 
 if [ -e ./buildvars_mingw_cross_win32.dat ] ; then
     . ./buildvars_mingw_cross_win32.dat
 fi
-
-MAKEFLAGS_GENERAL="-j4"
 
 # To use MOC, please enable wine as interpreter of EXEs , below:
 # $ sudo update-binfmts --install Win32_Wine /usr/bin/wine --extension exe . 
@@ -27,7 +27,6 @@ MAKEFLAGS_CC="${MAKEFLAGS_CC} -DWINVER=0x501"
 
 MAKEFLAGS_LIB_CXX="${MAKEFLAGS_LIB_CXX} -DWINVER=0x501"
 MAKEFLAGS_LIB_CC="${MAKEFLAGS_LIB_CC} -DWINVER=0x501"
-
 
 function build_dll() {
     mkdir -p $1/build-win32
