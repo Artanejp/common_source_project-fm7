@@ -82,7 +82,7 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
 
 	switch ((*codec)->type) {
 	case AVMEDIA_TYPE_AUDIO:
-		setup_audio(c, codec);
+		setup_audio(c, (void **)codec);
 			ost->st->time_base = (AVRational){ 1, c->sample_rate };
 		break;
 	case AVMEDIA_TYPE_VIDEO:
@@ -180,8 +180,11 @@ bool MOVIE_SAVER::do_open_main()
 	int encode_video = 0, encode_audio = 0;
 	 
 	raw_options_list = NULL;
-	video_st = { 0 };
-	audio_st = { 0 };
+	//video_st = { 0 };
+	//audio_st = { 0 };
+	memset(&video_st, 0x00, sizeof(video_st));
+	memset(&audio_st, 0x00, sizeof(audio_st));
+	
 	/* Initialize libavcodec, and register all codecs and formats. */
 	av_register_all();
 

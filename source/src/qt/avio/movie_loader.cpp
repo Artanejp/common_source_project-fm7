@@ -101,7 +101,7 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 							  "new: width = %d, height = %d, format = %s\n",
 							  src_width, src_height, av_get_pix_fmt_name(pix_fmt),
 							  frame->width, frame->height,
-							  av_get_pix_fmt_name(frame->format));
+									  av_get_pix_fmt_name((enum AVPixelFormat)frame->format));
                 return -1;
             }
 			if((old_dst_width != dst_width) || (old_dst_height != dst_height)) { // You sould allocate on opening.
@@ -136,7 +136,7 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
              * this is required since rawvideo expects non aligned data */
 			if(sws_context == NULL) {
 				sws_context = sws_getContext(frame->width, frame->height,
-											 frame->format,
+											 (enum AVPixelFormat) frame->format,
 											 dst_width, dst_height,
 											 AV_PIX_FMT_BGRA,
 											 SCALE_FLAGS, NULL, NULL, NULL);
@@ -170,7 +170,7 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 		decoded = FFMIN(ret, pkt.size);
 			
 		if (*got_frame) {
-			size_t unpadded_linesize = frame->nb_samples * av_get_bytes_per_sample(frame->format);
+			size_t unpadded_linesize = frame->nb_samples * av_get_bytes_per_sample((enum AVSampleFormat)frame->format);
 			char str_buf[AV_TS_MAX_STRING_SIZE] = {0};
 			AVCodecContext *c = audio_stream->codec;
 			int dst_nb_samples = av_rescale_rnd(swr_get_delay(swr_context, c->sample_rate) + frame->nb_samples,
@@ -530,7 +530,7 @@ void MOVIE_LOADER::do_decode_frames(int frames, int width, int height)
 		}
 		if(!now_pausing) {
 			if(video_dst_data[0] != NULL) {
-				uint32_t q;
+				uint32_t *q;
 				video_mutex->lock();
 				for(int yy = 0; yy < dst_height; yy++) { 
 					q = (uint32_t *)(&(video_dst_data[0][yy * video_dst_linesize[0]]));

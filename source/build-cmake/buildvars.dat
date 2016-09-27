@@ -1,44 +1,60 @@
+
+MAKEFLAGS_GENERAL="-j6"
+BUILD_TYPE="Relwithdebinfo"
 CMAKE=/usr/bin/cmake
 
-CCMAKE_CC=gcc-6
-CCMAKE_CXX=g++-6
+CCMAKE_CC=clang-3.9
+CCMAKE_CXX=clang++-3.9
 
-MAKEFLAGS_BASE="-fvect-cost-model=dynamic -ftree-vectorize \
-               -ftree-loop-distribute-patterns \
-	       -ftree-loop-optimize -ftree-loop-if-convert-stores \
-	       -fbranch-probabilities -fbranch-target-load-optimize \
-	       -fselective-scheduling -fsel-sched-pipelining -fsel-sched-pipelining-outer-loops \
-	       -funroll-loops \
-	       -fgraphite-identity \
-	       -floop-nest-optimize \
-	       -msse -msse2 \
+MAKEFLAGS_BASE=" \
+ 	        -Wreserved-user-defined-literal \
+ 	        -fslp-vectorize \
+ 	        -fvectorize -funroll-loops \
+ 	        -msse -msse2 \
 	       "
-#MAKEFLAGS_BASE="-fvect-cost-model=dynamic -ftree-vectorize \
-#	       -ftree-loop-optimize -ftree-loop-if-convert-stores \
-#	       -msse -msse2 \
-#	       -floop-nest-optimize \
-#	       "
 	       
-MAKEFLAGS_CXX="-g -O2 ${MAKEFLAGS_BASE} -flto -DNDEBUG" 
-MAKEFLAGS_CC="-g -O2  ${MAKEFLAGS_BASE} -flto -DNDEBUG"
-#MAKEFLAGS_CXX="-g -O0 -flto -DNDEBUG" 
-#MAKEFLAGS_CC="-g -O0 -flto -DNDEBUG"
+MAKEFLAGS_CXX="-g -O3  -std=c++03 ${MAKEFLAGS_BASE} -flto -DNDEBUG" 
+MAKEFLAGS_CC="-g -O3   -std=c11 ${MAKEFLAGS_BASE} -flto -DNDEBUG"
+MAKEFLAGS_LIB_CXX="-flto -g -O3  -std=c++03 ${MAKEFLAGS_BASE} -DNDEBUG" 
+MAKEFLAGS_LIB_CC="-flto -g -O3  -std=c11 ${MAKEFLAGS_BASE}  -DNDEBUG"
 
-MAKEFLAGS_LIB_CXX="-flto -g -O2 ${MAKEFLAGS_BASE} -DNDEBUG" 
-MAKEFLAGS_LIB_CC="-flto -g -O2 ${MAKEFLAGS_BASE}  -DNDEBUG"
 
-MAKEFLAGS_GENERAL="-j2"
+#CCMAKE_CC=gcc-6
+#CCMAKE_CXX=g++-6
+#
+#MAKEFLAGS_BASE="-fvect-cost-model=dynamic -ftree-vectorize \
+#               -ftree-loop-distribute-patterns \
+#	       -ftree-loop-optimize -ftree-loop-if-convert-stores \
+#	       -fbranch-probabilities -fbranch-target-load-optimize \
+#	       -fselective-scheduling -fsel-sched-pipelining -fsel-sched-pipelining-outer-loops \
+#	       -funroll-loops \
+#	       -fgraphite-identity \
+#	       -floop-nest-optimize \
+#	       -msse -msse2 \
+#	       "
+#MAKEFLAGS_CXX="-g -O2 ${MAKEFLAGS_BASE} -flto -DNDEBUG" 
+#MAKEFLAGS_CC="-g -O2  ${MAKEFLAGS_BASE} -flto -DNDEBUG"
+#MAKEFLAGS_LIB_CXX="-flto -g -O2 ${MAKEFLAGS_BASE} -DNDEBUG" 
+#MAKEFLAGS_LIB_CC="-flto -g -O2 ${MAKEFLAGS_BASE}  -DNDEBUG"
 
-BUILD_TYPE="Relwithdebinfo"
-CMAKE_LINKFLAG="-g -flto=6 -fwhole-program -O2 ${MAKEFLAGS_BASE}"
-CMAKE_DLL_LINKFLAG="-g -flto=6 -O2 ${MAKEFLAGS_BASE}"
+
+
+CMAKE_APPENDFLAG="-DUSE_MOVIE_SAVER=ON -DUSE_MOVIE_LOADER=ON"
+CMAKE_APPENDFLAG="${CMAKE_APPENDFLAG} -DLIBAV_ROOT_DIR=/usr/local/ffmpeg-3.1.1"
+CMAKE_APPENDFLAG="${CMAKE_APPENDFLAG}  -DQT5_ROOT_PATH=/opt/Qt5.3.2/5.3/gcc_64"
+
+#CMAKE_APPENDFLAG="${CMAKE_APPENDFLAG} -DCMAKE_AR:STRING=gcc-ar-6 -DCMAKE_NM:STRING=gcc-nm-6 -DCMAKE_RANLIB:STRING=gcc-ranlib-6"
+
+CMAKE_APPENDFLAG="${CMAKE_APPENDFLAG} -DCMAKE_AR:STRING=llvm-ar-3.9 -DCMAKE_NM:STRING=llvm-nm-3.9 -DCMAKE_RANLIB:STRING=llvm-ranlib-3.9"
+CMAKE_APPENDFLAG="${CMAKE_APPENDFLAG} -DCMAKE_AS:STRING=llvm-asr-3.9"
+
+
+
+CMAKE_LINKFLAG="-g  -O3 ${MAKEFLAGS_BASE}"
+CMAKE_DLL_LINKFLAG="-g -O3 ${MAKEFLAGS_BASE}"
 
 LIB_INSTALL="/usr/local/lib/x86_64-linux-gnu/"
 #LIB_INSTALL="/usr/local/lib/"
 #LIB_INSTALL="/usr/lib/x86_64-linux-gnu/"
-CMAKE_APPENDFLAG="-DUSE_MOVIE_SAVER=ON -DUSE_MOVIE_LOADER=ON -DCMAKE_AR:STRING=gcc-ar-6 -DCMAKE_NM:STRING=gcc-nm-6 -DCMAKE_RANLIB:STRING=gcc-ranlib-6"
-CMAKE_APPENDFLAG="${CMAKE_APPENDFLAG}  -DLIBAV_ROOT_DIR=/usr/local/ffmpeg-3.0.2"
-CMAKE_APPENDFLAG="${CMAKE_APPENDFLAG}  -DQT5_ROOT_PATH=/opt/Qt5.3.2/5.3/gcc_64"
-
 
 

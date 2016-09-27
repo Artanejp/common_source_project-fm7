@@ -540,5 +540,5 @@ void USING_FLAGS::set_vm_node_name(int id, const _TCHAR *name)
 _TCHAR *USING_FLAGS::get_vm_node_name(int id)
 {
 	if(p_emu == NULL) return NULL;
-	return p_emu->get_osd()->get_vm_node_name(id);
+	return (_TCHAR *)p_emu->get_osd()->get_vm_node_name(id);
 }
