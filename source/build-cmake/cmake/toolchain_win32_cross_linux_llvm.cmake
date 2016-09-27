@@ -2,14 +2,18 @@
 SET(CMAKE_SYSTEM_NAME Windows)
 
 # which compilers to use for C and C++
-SET(CMAKE_C_COMPILER clang-3.9)
-SET(CMAKE_CXX_COMPILER clang++-3.9)
+SET(CMAKE_SYSTEM_NAME Windows)
+SET(CMAKE_C_COMPILER i686-w64-mingw32-clang)
+SET(CMAKE_CXX_COMPILER i686-w64-mingw32-clang++)
 SET(CMAKE_RC_COMPILER i686-w64-mingw32-windres)
 SET(CMAKE_AR  llvm-ar-3.9)
+SET(CMAKE_LD  /usr/bin/i686-w64-mingw32-ld)
+SET(CMAKE_LINKSE  /usr/bin/i686-w64-mingw32-ld)
+SET(CMAKE_NM  llvm-nm-3.9)
 
 #set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
 #set(CMAKE_EXE_LINKER_FLAGS "-static-libstdc++")
-set(CMAKE_EXE_LINKER_FLAGS "-target i686-w64-mingw32 -flto")
+#set(CMAKE_EXE_LINKER_FLAGS "")
 
 #SET(CMAKE_C_ARCHIVE_CREATE "<CMAKE_AR> qcs <TARGET> --plugin==$(i686-264-mingw32-gcc --print-file-name=liblto_plugin.so) <LINK_FLAGS> <OBJECTS>")
 #SET(CMAKE_C_ARCHIVE_FINISH   true)

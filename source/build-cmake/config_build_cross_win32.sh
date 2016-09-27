@@ -12,7 +12,7 @@ export WINEDEBUG="-all"
 CMAKE_LINKFLAG=""
 CMAKE_APPENDFLAG=""
 MAKEFLAGS_GENERAL="-j4"
-
+export WCLANG_FORCE_CXX_EXCEPTIONS=1
 mkdir -p ./bin-win32/
 
 if [ -e ./buildvars_mingw_cross_win32.dat ] ; then

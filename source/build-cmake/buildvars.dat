@@ -13,6 +13,7 @@ MAKEFLAGS_BASE=" \
  	        -Wreserved-user-defined-literal \
  	        -fslp-vectorize \
  	        -fvectorize -funroll-loops \
+		-mcpu=x86-64 \
  	        -msse -msse2 \
 	       "
 MAKEFLAGS_CXX_BASE="-g -O3  -std=c++03 ${MAKEFLAGS_BASE} -flto -DNDEBUG" 
