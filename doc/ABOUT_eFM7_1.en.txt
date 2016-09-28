@@ -1,65 +1,90 @@
-2016 New Year Anniversary & eFM-7 porting 1 anniversary,
-"It various other and eFM-7"
+2016 New Year Anniversary & eFM-7 porting 1st anniversary,
+"Various things others and eFM-7"
       Jan 1,2016 K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
-* Sorry, this document is written in Japanese only,
-  I can not use english well, if you interest of this
-  and you can translate from Japanese to any languages,
+* Sorry, this document is written in Japanese only, I can not use english well.
+  If you interest of this and you can translate from Japanese to any languages,
   please translate this.
-  This document is released with GFDL, you can copy
-  and redistribute this document under GFDL.
-  This document is written with UTF-8.
-  This document, in the form along the GFDL (GNU Free Document License)
-  You can copy and redistribute.
-  Since English is poor write only Japanese, I'm sorry ( '· ω · `)
-  If you have some people that can be translated from Japanese into other languages, by all means ask
-  And you m (_ _) m
+  This document is released with GFDL, you can copy and redistribute this document
+  under GFDL.
+  This document is written with UTF-8,and in the form along the GFDL (GNU Free Document
+  License), you can copy and redistribute.
+  
+  Since English is poor write only Japanese, sorry (´・ω・｀)
+  If you have some people that can be translated from Japanese into other languages,
+  pls. tell me m(_ _)m
 
-* Important Notice: This article has translateed by GOOGLE TRANSLATION from Japanese,
-  still not correct this article, *
+* Important Notice: This article has translated by GOOGLE TRANSLATION from Japanese,
+  still not correct this article. *
 
-1. What is this (literally)
-As the previous stage to make a eFM-7, Common Source Code Project (below CSP) from the beginning the porting to Qt + OpenGL, first anniversary in December 30 last year in the previous year. So, maybe the historical value Once after perhaps 30 years out position I do not know. I think (^_^; to now, keep together the various miscellaneous I thought that cormorant.
+1. About this (literally)
+As the previous stage to make a eFM-7, Common Source Code Project (below CSP) from the
+beginning the porting to Qt + OpenGL, first anniversary in December 30 last year in the
+previous year (2014). So, maybe the historical value once after perhaps 30 years, I think (^_^;.
+So, I thought to record the various miscellaneous things about emulators of Fujitsu FM-7.
 
 2. Prehistory: XM7/​​SDL
-From the front, there was a very good FM-7 emulator [1] say XM7. However, this did not work only on Windows.
-At the time of what was in 2008 was that? or 2009, which the GP2X [2] and say South Korea move in the portable game machine, you want to do the Xanadu. Feeling to say that [3] there were licensed (thanks to Mr.PI., Who made the Mr.Takegami's and based on the author XM7 et al., Although the Mr.PI ).
-I have been readily agreed, how Mr.Takegami's can really or suspicious is to have been at first I was not so good, but SDL and Gtk Once you show you the code and screen shots but was temporarily transplant,
-So I was able to relatively easily license, began a full-scale work.
+From the front, there was a very good FM-7 emulator [1] say XM7. However, this works only
+on Windows. At the time of what was in 2008? or 2009, I wish to work this on the GP2X [2],
+South Korea's portable game machine, especially want to work the Xanadu. I ported XM7 to
+*nix [3] there were licensed. (Thanks to Mr.PI. author of EM7, base of XM7,
+and Mr.Takegami, the author of XM7 et al). Mr.PI. agreed cheerfully, however Mr.Takegami
+suspected to able to port this, he was suspicious, but I ported to SDL and Gtk ,the code
+and screen shots but was temporarily porting, I show this to them, I was able to relatively
+easily license, began a full-scale work.
 
 [1] http://retropc.net/ryu/xm7/ current development end
 [2] https://ja.wikipedia.org/wiki/GP2X
 [3] Eventually we gave up the porting to GP2X system in the machine specs problem, but ...
 
-In the first period, referring to the Mr.Gimons has been ported to Gtk before and after 05 years in to, is a translation began from the place to transplant XM7 the latest version of the Gtk and SDL at that time.
-On top of that, not move in GP2X that it Gtk. Simply because, on the SDL Looking for a GUI tool kit that runs on, and adopted arrived to those that say that Agar [4] was is a translation.
+In the first period, I ported XM7 referring to the Mr.Gimons has been ported to Gtk at about 2005,
+porting  began from the place to port XM7 the latest version of the Gtk and SDL at that time.
+Then,only reason not working in GP2X that it Gtk, I lokked for GUI toolkit only with SDL,
+found AGAR[4] to port.
 [4] http://www.libagar.org/
 
-At the time, though the balloon is variously disease, also keyboard bedridden verge in a situation not a few even day to hit from the futon, even if you always died considering now and was the state was not at all funny, sew the interval that does not move the body in a disease. But it became of work, the head of 2010, out that there is a reasonably practical came.
-<B> However, with the exception of the Agar that a buggy </ B>.
-On top of that, I crushed one by one the bug, to after thinking seriously load balancing on the way
-The off-road of multi-threaded from [5] to OpenCL done before and after 2011,it is developed on the went to become sluggish.
+At the time, I had sickness more and more seriously, typing keyboard with bedridden verge in a
+situation not a few even day to hit from the futon (bed), even if I wad always died considering now
+and was the state was not at all funny, sew the interval that does not move the body in a disease.
+But it became of work, the head of 2010, out that there is a reasonably practical came.
+<B> However, with the exception of the Agar's problems that a buggy </ B>.
+So, I debugged one by one their bugs, then thinking seriously load balancing on the way to off-road
+of from multi-threaded [5] to OpenCL done before and after 2011,it is developed on the went to
+become sluggish.
 
-[5] This is also utilized to eFM-7 and CSP / Qt. OpenCL is,
-    Although I think that the future is not probably do so performance does not come out.
+[5] This is also utilized to eFM-7 and CSP / Qt. OpenCL is, although I think that the future is
+    not probably do so performance does not come out.
    
-Honke (Tagegami's version XM7) it may also be had by almost completed but you may have noticed the importance of radio in the Great East Japan Earthquake, Open I2C Radio [6] [7] is a large became the thing to focus on the project say.
+Upstream (Tagegami's version XM7) had by almost completed,and I might have noticed the importance of radio
+in the Great East Japan Earthquake (2011-03-11), I mainly focused to work of Open I2C Radio [6] [7] project.
 
 [6] https://osdn.jp/projects/openi2cradio/
 [7] http://sky.geocities.jp/artanejp/
 
-All told, until close to the end even 2014, the two projects advanced, Open I2C Radio is almost stable in the mid of 2013 (I think it was)
-On, as the next project, USB dongle for one-segment reception using RTL2832U.
-Did the project (listed in [7]) to be diverted to it to receive a shortwave and medium wave Le I had interest.
+All told, until close to the end even 2014, the two projects advanced, Open I2C Radio is almost stable
+in the mid of 2013 (I think it was).As the next project, USB dongle for DigitalTV(DVB or One-Segment ISDB)
+using RTL2832U.
+Did the project (listed in [7]) to be diverted to it to receive a shortwave and medium wave ,I had interest.
 
 3.About XM7
-Originally, pull the EM7 that was able to prototype a time when C ++ is not performance is put out too much in order to have in the footsteps, and the GUI part and FM sound source emulator of C ++, that the C language of the body, but there is a very incongruous, yet also certainly to performance also out accuracy
-Thing that was better than my eFM7. On top of that, I was using the UI and SDL of C ++ center of adding the renderer, become a thing of repeated softening Okujoya, once the first I'm want to re-create from. Desire to say that there was in the position mid-2014 (penitence).
-On top of that, says emulator collector (and to say that Anna Wu's German (Will drinking? ) It is more of, to interact with Takegami Mr. from around mid-2014 and I like was, but ultimately Takegami Mr. and around the exchange of in English is reluctant, there was the fact that dispute.
+In the first place, pull the EM7 that was able to prototype a time when C++ is not performance is put out
+too much in order to have in the footsteps, and the GUI part and FM sound source emulator of C++,
+that the C language of the body, but there is a very incongruous, yet also certainly to performance
+also out accuracy thing that was better than my eFM7. And ,I was using the UI and SDL of C++ center of adding
+the renderer, become a chaotic.I desired to re-create from this by scratch at mid-2014 (penitence). 
+St the same time, Germany emulator collector (Is calling right?), Anna Wu had interact with Mr. Takegami
+from around mid-2014 , but ultimately Takegami Mr. and around the exchange of in English is reluctant,
+there was the fact that dispute.
 
-In, you are looking at the process in Twitter, or irresponsible say anaerobic was pointing, I insanely English is poor human originally bug in Debian GNU / Linux [8], etc.
-If forced to throw the report discussion on the development in English of the community there is also a human had become usual to the, something tremendous in the process I feel uncomfortable, I think, "Do not it not a place to here are of their own".
-And also or complaining to an old friend, well also to foreign manufacturers in the person work it does not is probably well-known to because it was a person (I can't put out the name to go, technical force domestic I think the top class), me listening to grumble ... "or, per the do in English before if there is to me to say that (^ ^) ", I mean that was pushed in the back. Whether it was December 28, 2014.
+I was looking at the process in Twitter, or irresponsible say anaerobic was pointing, I insanely English is
+poor human, but originally bug in Debian GNU / Linux [8] etc, if forced to send the report discussion on
+the development in English of the community there is also a human had become usual to the, something
+tremendous in the process.I feel uncomfortable. I think, "Do not it not a place to here are of their own".
+And also or complaining to an old friend, well also to foreign manufacturers in the person work it does
+not is probably well-known to because it was a person (I can't put out the name to go, technical force
+domestic I think the top class of programmers), me listening to grumble ... "or, per the do in English
+before if there is to me to say that (^ ^) ", I mean that was pushed in the back.
+Whether it was December 28, 2014.
 After all, in the direction of porting the FM-7 system to CSP, off the rudder, git on December 30, 2014
 To build a repository [9], it means you put the source code at the time of the latest CSP there it is.
 
@@ -67,44 +92,55 @@ To build a repository [9], it means you put the source code at the time of the l
 [9] https://github.com/Artanejp/common_source_project-fm7
 
 4.Start Porting of CSP
-In transplantation, the first for the tool kit was using Agar.
-<B> will move for the time being. Because it is easier to verify the work say that is </ B>.
-So, it was the first to move the X1 Turbo and PC-8801MA. [10] On top of that, since Agar are having to buggy portability Toka various problems, another highly versatile.
-It means you decide to use the tool kit. [11]
+In porting, the first for the tool kit was using Agar.
+<B>Would work the time being. Because it is easier to verify the work say that is </ B>.
+So, it was the first to work the X1 Turbo and PC-8801MA. [10]
+But, since Agar was having to buggy portability and having various problems, another highly versatile.
+It means require to decide using the another tool kit as GUI. [11]
 
 [10] Since the software for operation verification there were a lot (^_^;
 [11] The other, move in GP2X gave up (^_^;
 
-In, What shall to use. Although I thought and, Gtk is rapidly become a 3 Arekore on that has become necessary, was not good impression there is also abundance of Gnome 3 bug ,<B> So, I will use Qt I never used at all. </B> .
-If you look, the sound relationship and the joystick did not have a standard in, let's leave it to SDL. drawing around Let's required OpenGL. Mercy is not.
-By say, make a rough policy, is a translation went to the transplant.
-The work itself is, there is no unity even dirty extremely're using in fumbling the Qt code although there were in, in it it is possible to put the majority of the VM in March of 2015 it has led.
+Then, What shall to use ? Although I thought and, Gtk was needed another midlle wares since Gtk3, was
+not good impression there is also abundance of Gnome 3's bugs,<B>So, I will use Qt I had never used at all. </B> .
+I surveyed Qt4, the sound relationship and the joystick did not have a standard in (with Qt4 and 5.4) ,
+SDL to do sound and Joystick, around drawing required OpenGL. Mercy is not.
+By say, make a rough policy,  went to the porting.The work itself is, there is no unity even dirty
+extremely're using in fumbling the Qt code although there were in, in it is possible to put the majority
+of the VM in March of 2015 it has led.
 
 Looking at the git log,
-  - On January 8, X1 almost compiler was moving roughly in passed, in Agar
+  - On January 8, X1 almost was roughly passed to compilation, with Agar
      (After a little commit fc894319809e05692fd447a5f232a46ebdf17c7)
-  - On January 10, to raise the sound spoiled of Agar, decided to convert to Qt
+  - On January 10, I gave up to be spoiled of Agar, decided to convert to Qt
      (Commit 98ac2645ec6a3798072445ac003f08d529d6065c)
-  - On January 11, it came to the compiler passes in Qt
+  - On January 11, it came to the compiler passes with Qt
      (Commit 1033cc86e36b8e1d38771ef404e7d43ad07ebb39)
-  - On 12 January, the basis of the drawing system and the GUI has moved is completed VM? (However, there is a bug)
+  - On 12 January, the basis of the drawing system and the GUI has worked and working VM?
+     (However, there had a bug a lot)
      (Commit e5887aa7464c7276eef9d2578ea880988f3da60d)
-  - On January 13, a bug in the drawing system was also taken once it is keyboard-based
+  - On January 13, a keyboard part had worked and bugs around the drawing system were resolved.
      (Commit 6deec5abac027eca1a71fa89e485650d3c9735da)
 
-Feeling called, started on December 30, trying to somehow Agar is there from 10 days it was, to switch to or Qt became various unpleasant, the basis for the Qt application in a day.
-Design is increased, in one week from there, went finished the portion become now of foundation is a translation.
-From there, so go as fast To move some of the VM, until January 28.
-Proceed [12], the full-fledged implementation of the FM-7 to to move an existing VM from there is a translation that began to. [13]
-
+Feeling called, started on December 30, trying to somehow Agar is there from 10 days it was,
+to switch to Qt became various unpleasant, the basis for the Qt application in a day.
+Design is increased, in one week from there, went finished the portion become now of foundation
+is a translation. From there, so go as fast to work some of the VMs, until January 28.
+Proceed [12], the full-fledged implementation of the FM-7 to to move an existing VM from there
+was a translation that began to. [13]
+--- maybe done (but maybe contains bugs a lot) 20160928 ---
 [12] commit ce574213769b2685ead0df84c81f193e519d3906 later
-[13] Although the December 31, 2014 I was doing trying to implementation of FM-7
+[13] Although the December 31, 2014 I had tried to implement of FM-7
      (Commit e409be1add5f6b9ddf76bada7c24469cb35ae2bc later),
      It did not Yuka Standing variety to earlier application to the head family of Agar and Qt
      It did became a thing ...
 
 5.eFM-7
-Well, if me up to this point, it is a port of the FM-7. Next, the 1980s were protected from the parents' home of Oh!FM and  I/O(Japanese magazine of computer) and head family CSP VM code of the FM-7 to be scattered to the FM magazine and WEB on, at the time after the and O'to draw the contents of the Tips specific hack in XM7 source code of which has been published, on their own on began to rebuild the code (because I do not want to copyright infringement ...).
+Well, if me up to this point, it is a port of the FM-7. Next, the 1980s were protected from the
+parents' home of Oh!FM and  I/O(Japanese magazine of computer) and head family CSP VM code of the
+FM-7 to be scattered to the FM magazine and WEB on, at the time after the and O'to draw the contents
+of the Tips specific hack in XM7 source code of which has been published, on their own on began to
+rebuild the code (because I do not want to copyright infringement ...).
 
 From February to March of 2015, is a translation went to do the implementation of the FM-7.
 In, if not move on March 11, 2011 (coincidentally's day from the Great East Japan Earthquake of the four-year anniversary!), link now passes through [14], 6809 mistake of MPU of the description [15] and disk.cpp / mb8877.cpp while fix the hour, minute and second format [16] corresponding part time at the, at the end of March is, a lot of software for the FM-7 bets now works. [17]
@@ -179,9 +215,9 @@ Including everyone of Takeda-san and user, everyone thank you m(_ _)m
 
                                2016 1.1 K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
-※ postscript:
+※ Postscript:
 
-6. bonus 1:
+6. Bonus 1:
   How many with respect to the "1/60 of a second problem."
   The emulator, you may say, '1/60 second problem ".
   Thee actual display, and speed of the display of the vertical retrace that emulation is different
