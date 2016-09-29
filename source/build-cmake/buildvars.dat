@@ -1,13 +1,13 @@
 ###
 #
-BUILD_TOOLCHAIN="LLVM"
+#BUILD_TOOLCHAIN="LLVM"
+BUILD_TOOLCHAIN="GCC"
 
 BUILD_TYPE="Relwithdebinfo"
 # "No" or "Yes".
-CSP_DEBUG="Yes"
+CSP_DEBUG="No"
 # "No" or "Yes".
 USE_LTO="Yes"
-
 # No" or "Yes"
 STRIP_SYMBOLS="No"
 

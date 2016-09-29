@@ -11,7 +11,9 @@ case ${CSP_DEBUG} in
       MAKEFLAGS_BASE2="-g -ggdb ${MAKEFLAGS_BASE} -DNDEBUG"
       ;;
    "No" | "no" | "NO" | * )
-      MAKEFLAGS_BASE2="-fvect-cost-model=dynamic -ftree-vectorize \
+      MAKEFLAGS_BASE2="-g -ggdb \
+               -O3 \
+               -fvect-cost-model=dynamic -ftree-vectorize \
                -ftree-loop-distribute-patterns \
 	       -ftree-loop-optimize -ftree-loop-if-convert-stores \
 	       -fbranch-probabilities -fbranch-target-load-optimize \
@@ -20,17 +22,17 @@ case ${CSP_DEBUG} in
 	       -fgraphite-identity \
 	       -floop-nest-optimize \
 	       -msse -msse2 \
-	       ${MAKEFLAGS_BASE} \
+               ${MAKEFLAGS_BASE} \
 	       "
 	       ;;
 esac
 case ${USE_LTO} in
    "Yes" | "yes" | "YES" )
        MAKEFLAGS_BASE2="-flto -ffat-lto-objects ${MAKEFLAGS_BASE2}"
-       MAKEFLAGS_LINK_BASE="-flto -ffat-lto-objects -fwhole-program ${MAKEFLAGS_BASE2}"
+       MAKEFLAGS_LINK_BASE2="-flto=6 -fwhole-program ${MAKEFLAGS_BASE2}"
        ;;
    "No" | "no" | "NO" | * )
-       MAKEFLAGS_LINK_BASE="${MAKEFLAGS_BASE2}"
+       MAKEFLAGS_LINK_BASE2="${MAKEFLAGS_BASE2}"
        ;;
 esac
 
