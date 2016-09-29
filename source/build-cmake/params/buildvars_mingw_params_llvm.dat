@@ -1,0 +1,29 @@
+################
+#
+# This is build-parameters fo LLVM/MinGW.
+# Neither for GCC and LLVM/Linux .
+#
+case ${CSP_DEBUG} in
+   "Yes" | "yes" | "YES" )
+     MAKEFLAGS_BASE2="-g -ggdb ${MAKEFLAGS_BASE} -DNDEBUG"
+     MAKEFLAGS_LINK_BASE="-g -ggdb ${MAKEFLAGS_BASE}"
+     ;;
+   "No" | "no" | "NO" | * )
+     MAKEFLAGS_BASE2="-O3 ${MAKEFLAGS_BASE} -DNDEBUG \
+                -std=c++0x \
+                -march=pentium4 \
+		-Wreserved-user-defined-literal \
+		-D_HAS_EXCEPTIONS \
+		-D__float128=\"long double\"
+		"
+      MAKEFLAGS_LINK_BASE="-s ${MAKEFLAGS_BASE}"
+      ;;
+esac
+
+CMAKE_APPENDFLAG="-DUSE_QT5_4_APIS=ON -DUSE_MOVIE_LOADER=ON \
+                   -DUSE_MOVIE_SAVER=ON \
+                   -DCMAKE_AR:STRING=llvm-ar-3.9 \
+                   -DCMAKE_LD:STRING=i686-w64-mingw32-ld \
+		   -DCMAKE_NM:STRING=llvm-nm-3.9 \
+		   -DCMAKE_RANLIB:STRING=llvm-ranlib-3.9 \
+		   "

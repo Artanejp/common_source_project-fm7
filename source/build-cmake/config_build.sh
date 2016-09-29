@@ -1,13 +1,8 @@
 #!/bin/bash
 
 CMAKE=/usr/bin/cmake
-#CCMAKE_CC=gcc-5
-#CCMAKE_CXX=g++-5
 CCMAKE_CC=gcc-6
 CCMAKE_CXX=g++-6
-
-MAKEFLAGS_CXX="-g -O2 -DNDEBUG"
-MAKEFLAGS_CC="-g -O2 -DNDEBUG"
 LIB_INSTALL="/usr/local/lib/x86_64-linux-gnu/"
 
 BUILD_TYPE="Relwithdebinfo"
@@ -16,7 +11,67 @@ CMAKE_APPENDFLAG=""
 if [ -e ./buildvars.dat ] ; then
     . ./buildvars.dat
 fi
+case ${BUILD_TOOLCHAIN} in
+   "LLVM" | "llvm" | "CLANG" | "clang" )
+          #TOOLCHAIN_SCRIPT="../../cmake/toolchain_win32_cross_linux_llvm.cmake"
+	  . ./params/buildvars_linux_params_llvm.dat
+	  echo "Setup for LLVM"
+	  ;;
+   "GCC" | "gcc" | "GNU" )
+	  #TOOLCHAIN_SCRIPT="../../cmake/toolchain_mingw_cross_linux.cmake"
+	  . ./params/buildvars_linux_params_gcc.dat
+	  echo "Setup for GCC"
+	  ;;
+   * )
+	  #TOOLCHAIN_SCRIPT="../../cmake/toolchain_mingw_cross_linux.cmake"
+	  . ./params/buildvars_linux_params_gcc.dat
+	  echo "ASSUME GCC"
+	  ;;
+esac   
+case ${USE_LTO} in
+   "Yes" | "yes" | "YES" )
+     MAKEFLAGS_BASE2="-flto ${MAKEFLAGS_BASE2}"
+     MAKEFLAGS_LINK_BASE2="-flto -O3 ${MAKEFLAGS_BASE2}"
+   ;;
+   "No" | "no" | "NO" | * )
+     MAKEFLAGS_BASE2="${MAKEFLAGS_BASE2}"
+     MAKEFLAGS_LINK_BASE2="${MAKEFLAGS_BASE2}"
+   ;;
+esac
 
+case ${STRIP_SYMBOLS} in
+   "Yes" | "yes" | "YES" )
+     MAKEFLAGS_BASE2="-s ${MAKEFLAGS_BASE2}"
+     MAKEFLAGS_LINK_BASE="-s ${MAKEFLAGS_LINK_BASE2}"
+     MAKEFLAGS_DLL_LINK_BASE="-s ${MAKEFLAGS_LINK_BASE2}"
+   ;;
+   "No" | "no" | "NO" | * )
+     MAKEFLAGS_BASE2="-g -ggdb ${MAKEFLAGS_BASE2}"
+     MAKEFLAGS_LINK_BASE="-g -ggdb ${MAKEFLAGS_LINK_BASE2}"
+     MAKEFLAGS_DLL_LINK_BASE="-g -ggdb ${MAKEFLAGS_LINK_BASE2}"
+   ;;
+esac
+#################
+#
+#
+MAKEFLAGS_CXX="${MAKEFLAGS_CXX_BASE2}"
+MAKEFLAGS_CC="${MAKEFLAGS_CC_BASE2}"
+MAKEFLAGS_LIB_CXX="${MAKEFLAGS_CXX_BASE2}"
+MAKEFLAGS_LIB_CC="${MAKEFLAGS_CC_BASE2}"
+
+###################
+#
+#
+if [ -n "${FFMPEG_DIR}" ]; then \
+   CMAKE_APPENDFLAG="${CMAKE_APPENDFLAG} -DLIBAV_ROOT_DIR=${FFMPEG_DIR}"
+fi
+if [ -n "${QT5_DIR}" ]; then \
+   CMAKE_APPENDFLAG="${CMAKE_APPENDFLAG}  -DQT5_ROOT_PATH=${QT5_DIR}"
+fi
+
+#################################
+#
+#
 function build_dll() {
     # $1 = dir
     mkdir -p $1/build
@@ -28,7 +83,7 @@ function build_dll() {
 	     ${CMAKE_FLAGS1} \
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
-	     "-DCMAKE_SHARED_LINKER_FLAGS:STRING=${CMAKE_DLL_LINKFLAG}" \
+	     "-DCMAKE_SHARED_LINKER_FLAGS:STRING=${CMAKE_DLL_LINK_BASE}" \
 	     ${CMAKE_APPENDFLAG} \
 	     .. | tee make.log
     
@@ -38,7 +93,7 @@ function build_dll() {
 	     ${CMAKE_FLAGS1} \
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
-	     "-DCMAKE_SHARED_LINKER_FLAGS:STRING=${CMAKE_DLL_LINKFLAG}" \
+	     "-DCMAKE_SHARED_LINKER_FLAGS:STRING=${CMAKE_DLL_LINK_BASE}" \
 	     ${CMAKE_APPENDFLAG} \
 	     .. | tee -a make.log
     
@@ -98,7 +153,7 @@ for SRCDATA in $@ ; do\
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_CC}" \
 	     ${CMAKE_APPENDFLAG} \
-	     "-DCMAKE_EXE_LINKER_FLAGS:STRING=${CMAKE_LINKFLAG}" \
+	     "-DCMAKE_EXE_LINKER_FLAGS:STRING=${CMAKE_LINK_BASE}" \
 	     .. | tee make.log
 
     ${CMAKE} -D CMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
@@ -107,7 +162,7 @@ for SRCDATA in $@ ; do\
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_CC}" \
 	     ${CMAKE_APPENDFLAG} \
-	     "-DCMAKE_EXE_LINKER_FLAGS:STRING=${CMAKE_LINKFLAG}" \
+	     "-DCMAKE_EXE_LINKER_FLAGS:STRING=${CMAKE_LINK_BASE}" \
 	     .. | tee -a make.log
 
     make clean

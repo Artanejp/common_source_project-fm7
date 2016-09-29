@@ -1,67 +1,20 @@
 #CMAKE=/usr/bin/cmake
-#TOOLCHAIN_SCRIPT="../../cmake/toolchain_mingw_cross_linux.cmake"
-#TOOLCHAIN_SCRIPT="../../cmake/toolchain_win32_cross_linux_llvm.cmake"
+BUILD_TOOLCHAIN="GCC"
 
 BUILD_TYPE="Release"
+# "No" or "Yes".
+CSP_DEBUG="No"
+# "No" or "Yes".
+USE_LTO="Yes"
 
-## MinGW GCC
-MAKEFLAGS_BASE="-fvect-cost-model=dynamic -ftree-vectorize \
-		-ftree-loop-optimize -ftree-loop-if-convert-stores \
-		-fselective-scheduling -fsel-sched-pipelining -fsel-sched-pipelining-outer-loops \
-		-funroll-loops \
-		-floop-nest-optimize \
-	        -msse -msse2 -mfpmath=sse \
-		-std=c++11"
-		
-MAKEFLAGS_BASE2="-flto -O3 ${MAKEFLAGS_BASE} -DNDEBUG"
-#MAKEFLAGS_BASE2="-g -ggdb -DNDEBUG"
+# No" or "Yes"
+STRIP_SYMBOLS="Yes"
 
-MAKEFLAGS_LINK_BASE="-s -fwhole-program ${MAKEFLAGS_BASE2}"
-#MAKEFLAGS_LINK_BASE="-g -ggdb ${MAKEFLAGS_BASE2}"
+ADDITIONAL_MAKEFLAGS_LINK_EXE=""
+ADDITIONAL_MAKEFLAGS_LINK_DLL=""
+ADDITIONAL_MAKEFLAGS_LINK_LIB=""
 
-CMAKE_APPENDFLAG="-DUSE_QT5_4_APIS=ON -DUSE_MOVIE_LOADER=ON \
-                   -DUSE_MOVIE_SAVER=ON \
-                   -DCMAKE_AR:STRING=i686-w64-mingw32-gcc-ar \
-                   -DCMAKE_LD:STRING=i686-w64-mingw32-gcc-ld \
-		   -DCMAKE_NM:STRING=i686-w64-mingw32-gcc-nm \
-		   -DCMAKE_RANLIB:STRING=i686-w64-mingw32-gcc-ranlib \
-	   "
-
-## LLVM
-#MAKEFLAGS_BASE=""
-
-#MAKEFLAGS_BASE2="-O3 ${MAKEFLAGS_BASE} -DNDEBUG \
-#                -std=c++0x \
-#                -march=pentium4 \
-#		-Wreserved-user-defined-literal \
-#		-D_HAS_EXCEPTIONS \
-#		-D__float128=\"long double\"
-#		"
-#MAKEFLAGS_BASE2="-g -ggdb -DNDEBUG"
-
-#MAKEFLAGS_LINK_BASE="-s ${MAKEFLAGS_BASE2}"
-#MAKEFLAGS_LINK_BASE="-g -ggdb ${MAKEFLAGS_BASE2}"
-
-#CMAKE_APPENDFLAG="-DUSE_QT5_4_APIS=ON -DUSE_MOVIE_LOADER=ON \
-#                   -DUSE_MOVIE_SAVER=ON \
-#                   -DCMAKE_AR:STRING=llvm-ar-3.9 \
-#                   -DCMAKE_LD:STRING=i686-w64-mingw32-ld \
-#		   -DCMAKE_NM:STRING=llvm-nm-3.9 \
-#		   -DCMAKE_RANLIB:STRING=llvm-ranlib-3.9 \
-#		   "
-
-###########################
-#
-#
-MAKEFLAGS_CXX="${MAKEFLAGS_BASE2}"
-MAKEFLAGS_CC="${MAKEFLAGS_BASE2}"
-MAKEFLAGS_LIB_CXX="${MAKEFLAGS_BASE2}"
-MAKEFLAGS_LIB_CC="${MAKEFLAGS_BASE2}"
-
-CMAKE_LINKFLAG="${MAKEFLAGS_LINK_BASE}"
-CMAKE_DLL_LINKFLAG="${MAKEFLAGS_LINK_BASE}"
-
-CMAKE_APPENDFLAG="${CMAKE_APPENDFLAG} -DLIBAV_ROOT_DIR=/usr/local/i586-mingw-msvc/ffmpeg-3.1.1"
+FFMPEG_DIR="/usr/local/i586-mingw-msvc/ffmpeg-3.1.1"
 MAKEFLAGS_GENERAL="-j5"
-
+MAKEFLAGS_BASE=""
 

@@ -1,11 +1,7 @@
 #!/bin/bash
 
 CMAKE=/usr/bin/cmake
-TOOLCHAIN_SCRIPT="../../cmake/toolchain_mingw_cross_linux.cmake"
-#TOOLCHAIN_SCRIPT="../../cmake/toolchain_win32_cross_linux_llvm.cmake"
 
-MAKEFLAGS_CXX="-g -O3 -DNDEBUG"
-MAKEFLAGS_CC="-g -O3 -DNDEBUG"
 BUILD_TYPE="Relwithdebinfo"
 CMAKE_APPENDFLAG=""
 export WINEDEBUG="-all"
@@ -13,11 +9,63 @@ CMAKE_LINKFLAG=""
 CMAKE_APPENDFLAG=""
 MAKEFLAGS_GENERAL="-j4"
 export WCLANG_FORCE_CXX_EXCEPTIONS=1
+
 mkdir -p ./bin-win32/
 
 if [ -e ./buildvars_mingw_cross_win32.dat ] ; then
     . ./buildvars_mingw_cross_win32.dat
 fi
+case ${BUILD_TOOLCHAIN} in
+   "LLVM" | "llvm" | "CLANG" | "clang" )
+          TOOLCHAIN_SCRIPT="../../cmake/toolchain_win32_cross_linux_llvm.cmake"
+	  . ./params/buildvars_mingw_params_llvm.dat
+	  echo "Setup for LLVM"
+	  ;;
+   "GCC" | "gcc" | "GNU" )
+	  TOOLCHAIN_SCRIPT="../../cmake/toolchain_mingw_cross_linux.cmake"
+	  . ./params/buildvars_mingw_params_gcc.dat
+	  echo "Setup for GCC"
+	  ;;
+   * )
+	  TOOLCHAIN_SCRIPT="../../cmake/toolchain_mingw_cross_linux.cmake"
+	  . ./params/buildvars_mingw_params_gcc.dat
+	  echo "ASSUME GCC"
+	  ;;
+esac   
+
+CMAKE_APPENDFLAG="${CMAKE_APPENDFLAG} -DLIBAV_ROOT_DIR=${FFMPEG_DIR}"
+
+case ${USE_LTO} in
+   "Yes" | "yes" | "YES" )
+     MAKEFLAGS_BASE2="-flto ${MAKEFLAGS_BASE2}"
+     MAKEFLAGS_LINK_BASE="-flto ${MAKEFLAGS_BASE2}"
+   ;;
+   "No" | "no" | "NO" | * )
+     MAKEFLAGS_BASE2="-flto ${MAKEFLAGS_BASE2}"
+     MAKEFLAGS_LINK_BASE="-flto ${MAKEFLAGS_BASE2}"
+   ;;
+esac
+
+case ${STRIP_SYMBOLS} in
+   "Yes" | "yes" | "YES" )
+     MAKEFLAGS_BASE2="-s ${MAKEFLAGS_BASE2}"
+     MAKEFLAGS_LINK_BASE="-s ${MAKEFLAGS_LINK_BASE}"
+   ;;
+   "No" | "no" | "NO" | * )
+     MAKEFLAGS_BASE2="-g -ggdb ${MAKEFLAGS_BASE2}"
+     MAKEFLAGS_LINK_BASE="-g -ggdb ${MAKEFLAGS_LINK_BASE}"
+   ;;
+esac
+###########################
+#
+#
+MAKEFLAGS_CXX="${MAKEFLAGS_BASE2} "
+MAKEFLAGS_CC="${MAKEFLAGS_BASE2}"
+MAKEFLAGS_LIB_CXX="${ADDITIONAL_MAKEFLAGS_LINK_LIB} ${MAKEFLAGS_BASE2}"
+MAKEFLAGS_LIB_CC="${ADDITIONAL_MAKEFLAGS_LINK_LIB}  ${MAKEFLAGS_BASE2}"
+
+CMAKE_LINKFLAG="${ADDITIONAL_MAKEFLAGS_LINK_EXE}  ${MAKEFLAGS_LINK_BASE}"
+CMAKE_DLL_LINKFLAG="${ADDITIONAL_MAKEFLAGS_LINK_DLL}  ${MAKEFLAGS_LINK_BASE}"
 
 # To use MOC, please enable wine as interpreter of EXEs , below:
 # $ sudo update-binfmts --install Win32_Wine /usr/bin/wine --extension exe . 

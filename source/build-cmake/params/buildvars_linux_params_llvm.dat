@@ -1,0 +1,48 @@
+################
+#
+# This is build-parameters fo LLVM/Linux.
+# Neither for LLVM/MinGW and GCC.
+#
+## CLANG
+CCMAKE_CC=clang-3.9
+CCMAKE_CXX=clang++-3.9
+
+case ${CSP_DEBUG} in
+   "Yes" | "yes" | "YES" )
+      MAKEFLAGS_BASE2=" -g -ggdb \
+ 	        -Wreserved-user-defined-literal \
+ 	        -fslp-vectorize \
+ 	        -fvectorize -funroll-loops \
+		-mcpu=x86-64 \
+ 	        -msse -msse2 \
+		${MAKEFLAGS_BASE} \
+	        "
+	       ;;
+   "No" | "no" | "NO" | *)
+      MAKEFLAGS_BASE2="  \
+ 	        -Wreserved-user-defined-literal \
+ 	        -fslp-vectorize \
+ 	        -fvectorize -funroll-loops \
+		-mcpu=x86-64 \
+ 	        -msse -msse2 \
+		${MAKEFLAGS_BASE} \
+	        "
+		;;
+esac
+case ${USE_LTO} in
+   "Yes" | "yes" | "YES" )
+        MAKEFLAGS_CXX_BASE2="-flto -O3  -std=c++03 ${MAKEFLAGS_BASE2} -DNDEBUG" 
+        MAKEFLAGS_CC_BASE2="-flto -O3   -std=c11 ${MAKEFLAGS_BASE2} -DNDEBUG"
+	MAKEFLAGS_LINK_BASE2="-flto -O3  ${MAKEFLAGS_BASE2}"
+	;;
+   "No" | "no" | "NO" | * )
+        MAKEFLAGS_CXX_BASE2="-std=c++03 ${MAKEFLAGS_BASE2} -DNDEBUG" 
+        MAKEFLAGS_CC_BASE2="--std=c11 ${MAKEFLAGS_BASE2} -DNDEBUG"
+	MAKEFLAGS_LINK_BASE2="${MAKEFLAGS_BASE2}"
+	;;
+esac	
+
+CMAKE_APPENDFLAG="${CMAKE_APPENDFLAG} -DCMAKE_AR:STRING=llvm-ar-3.9 -DCMAKE_NM:STRING=llvm-nm-3.9 -DCMAKE_RANLIB:STRING=llvm-ranlib-3.9"
+CMAKE_APPENDFLAG="${CMAKE_APPENDFLAG} -DCMAKE_AS:STRING=llvm-as-3.9"
+
+
