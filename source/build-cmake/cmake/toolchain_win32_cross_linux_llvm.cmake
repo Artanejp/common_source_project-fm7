@@ -3,24 +3,26 @@ SET(CMAKE_SYSTEM_NAME Windows)
 
 # which compilers to use for C and C++
 SET(CMAKE_SYSTEM_NAME Windows)
-SET(CMAKE_C_COMPILER i686-w64-mingw32-clang)
-SET(CMAKE_CXX_COMPILER i686-w64-mingw32-clang++)
+SET(CMAKE_C_COMPILER clang)
+SET(CMAKE_CXX_COMPILER clang++)
 SET(CMAKE_RC_COMPILER i686-w64-mingw32-windres)
 SET(CMAKE_AR  llvm-ar-3.9)
-SET(CMAKE_LD  /usr/bin/i686-w64-mingw32-ld)
+SET(CMAKE_LD  llvm-link-3.9)
 SET(CMAKE_LINKSE  /usr/bin/i686-w64-mingw32-ld)
 SET(CMAKE_NM  llvm-nm-3.9)
 
-#set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
-#set(CMAKE_EXE_LINKER_FLAGS "-static-libstdc++")
+set(CMAKE_CXX_FLAGS "-target i686-w64-mingw32")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -nostdinc -nostdinc++")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem /usr/lib/clang/3.9.0/include")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem /usr/i686-w64-mingw32/include/../../../usr/lib/gcc/i686-w64-mingw32/6.1-win32/include/c++")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem /usr/i686-w64-mingw32/include/../../../usr/lib/gcc/i686-w64-mingw32/6.1-win32/include/c++/i686-w64-mingw32")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem /usr/i686-w64-mingw32/include")
+
+set(CMAKE_EXE_LINKER_FLAGS "-L/usr/lib/gcc/i686-w64-mingw32/6.1-win32 -target i686-w64-mingw32 ")
 #set(CMAKE_EXE_LINKER_FLAGS "")
 
-#SET(CMAKE_C_ARCHIVE_CREATE "<CMAKE_AR> qcs <TARGET> --plugin==$(i686-264-mingw32-gcc --print-file-name=liblto_plugin.so) <LINK_FLAGS> <OBJECTS>")
-#SET(CMAKE_C_ARCHIVE_FINISH   true)
-#SET(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> qcs <TARGET> --plugin==$(i686-264-mingw32-gcc --print-file-name=liblto_plugin.so) <LINK_FLAGS> <OBJECTS>")
-#SET(CMAKE_CXX_ARCHIVE_FINISH   true)
-
 set(LIBAV_ROOT_DIR "/usr/local/i586-mingw-msvc/ffmpeg-3.1.1")
+
 
 # here is the target environment located
 set(USE_SDL2 ON)
@@ -29,14 +31,12 @@ if(USE_SDL2)
                           /usr/local/i586-mingw-msvc
                           /usr/local/i586-mingw-msvc/SDL2/i686-w64-mingw32
 			  /usr/local/i586-mingw-msvc/5.7/mingw_611
-#			  /usr/local/i586-mingw-msvc/5.5/mingw_530_win32
 			  )
 else()
    SET(CMAKE_FIND_ROOT_PATH  /usr/i686-w64-mingw32 
                           /usr/local/i586-mingw-msvc
                           /usr/local/i586-mingw-msvc/SDL1/
 			  /usr/local/i586-mingw-msvc/5.7/mingw_611
-#			  /usr/local/i586-mingw-msvc/5.5/mingw_530_win32
 			  )
 endif()
 SET(CSP_CROSS_BUILD 1)
@@ -63,3 +63,4 @@ set(SDL_INCLUDE_DIRS /usr/local/i586-mingw-msvc/SDL1/include/SDL)
 set(SDLMAIN_LIBRARY "")
 
 set(ADDITIONAL_LIBRARIES libwinmm.a)
+

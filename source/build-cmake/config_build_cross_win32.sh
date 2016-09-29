@@ -87,6 +87,7 @@ function build_dll() {
 	     "-DUSE_SDL2=ON" \
 	     ${CMAKE_APPENDFLAG} \
 	     "-DCMAKE_EXE_LINKER_FLAGS:STRING=${CMAKE_LINKFLAG}" \
+	     "-DCMAKE_CROSSCOMPILING=true"\
 	.. | tee make.log
     
     ${CMAKE} ${CMAKE_FLAGS1} \

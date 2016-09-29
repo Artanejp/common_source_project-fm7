@@ -5,19 +5,18 @@
 #
 case ${CSP_DEBUG} in
    "Yes" | "yes" | "YES" )
-     MAKEFLAGS_BASE2="-g -ggdb ${MAKEFLAGS_BASE} -DNDEBUG"
-     MAKEFLAGS_LINK_BASE="-g -ggdb ${MAKEFLAGS_BASE}"
-     ;;
+         MAKEFLAGS_BASE2="-g -ggdb ${MAKEFLAGS_BASE} -DNDEBUG"
+         MAKEFLAGS_LINK_BASE="-g -ggdb ${MAKEFLAGS_BASE}"
+         ;;
    "No" | "no" | "NO" | * )
-     MAKEFLAGS_BASE2="-O3 ${MAKEFLAGS_BASE} -DNDEBUG \
-                -std=c++0x \
-                -march=pentium4 \
-		-Wreserved-user-defined-literal \
-		-D_HAS_EXCEPTIONS \
-		-D__float128=\"long double\"
-		"
-      MAKEFLAGS_LINK_BASE="-s ${MAKEFLAGS_BASE}"
-      ;;
+         MAKEFLAGS_BASE2="-O3 ${MAKEFLAGS_BASE} -DNDEBUG \
+	 					  -std=c++0x \
+						  -Wreserved-user-defined-literal \
+						  -D_HAS_EXCEPTIONS \
+						  -D__float128=\"long double\"
+						  "
+         MAKEFLAGS_LINK_BASE="-s ${MAKEFLAGS_BASE}"
+         ;;
 esac
 
 CMAKE_APPENDFLAG="-DUSE_QT5_4_APIS=ON -DUSE_MOVIE_LOADER=ON \

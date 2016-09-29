@@ -15,6 +15,7 @@ case ${CSP_DEBUG} in
 		-fselective-scheduling -fsel-sched-pipelining -fsel-sched-pipelining-outer-loops \
 		-funroll-loops \
 		-floop-nest-optimize \
+		-march=i686 \
 	        -msse -msse2 -mfpmath=sse \
 		-std=c++11 \
 		-DNDEBUG "
