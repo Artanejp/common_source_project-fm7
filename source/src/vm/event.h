@@ -15,7 +15,8 @@
 #include "device.h"
 
 #define MAX_CPU		8
-#define MAX_SOUND	8
+// 20161003 K.O
+#define MAX_SOUND	16
 #define MAX_LINES	1024
 #define MAX_EVENT	64
 #define NO_EVENT	-1
@@ -187,7 +188,9 @@ public:
 	}
 	void set_context_sound(DEVICE* device)
 	{
-		d_sound[dcount_sound++] = device;
+		if(dcount_sound < MAX_SOUND) {
+			d_sound[dcount_sound++] = device;
+		}
 	}
 	bool is_frame_skippable();
 };
