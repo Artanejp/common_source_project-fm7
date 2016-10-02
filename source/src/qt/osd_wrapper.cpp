@@ -25,7 +25,9 @@
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 #include "avio/movie_loader.h"
 #endif
-
+#if defined(USE_SOUND_FILES)
+#include "avio/sound_loader.h"
+#endif
 #include "qt_gldraw.h"
 #include "csp_logger.h"
 
@@ -48,7 +50,83 @@ Sint16* OSD::create_sound(int *extra_frames)
 	return (Sint16 *)vm->create_sound(extra_frames);
 }
 
+#ifdef USE_SOUND_FILES
+void OSD::load_sound_file(int id, const _TCHAR *name, int16_t **data, int *dst_size)
+{
+	int i = 0;
+	if(data != NULL) *data = NULL;
+	if(dst_size != NULL) *dst_size = 0;
+	if(id <= 0) return;
 
+	for(i = 0; i < USE_SOUND_FILES; i++) {
+		SOUND_LOADER *p = sound_file_obj[i];
+		if(p != NULL) {
+			if(p->get_id() == id) break;
+		}
+	}
+	
+	if(i >= USE_SOUND_FILES) {
+		for(i = 0; i < USE_SOUND_FILES; i++) {
+			SOUND_LOADER *p = sound_file_obj[i];
+			if(p != NULL) {
+				if(p->get_id() < 0) {
+					p->set_id(id);
+					break;
+				}
+			}
+		}
+	}
+	if(i >= USE_SOUND_FILES) return;
+	SOUND_LOADER *p = sound_file_obj[i];
+	if(p != NULL) {
+		p->free_sound_buffer(NULL);
+		p->set_sound_rate(this->get_sound_rate());
+		if(p->open(id, QString::fromUtf8(name))) {
+			p->do_decode_frames();
+			p->close();
+			if(data != NULL) *data = (int16_t *)(p->get_sound_buffer());
+			if(dst_size != NULL) *dst_size = p->get_dst_size();
+		}
+	}
+}
+
+void OSD::free_sound_file(int id, int16_t **data)
+{
+	void *pp;
+	if(data == NULL) return;
+	for(int i = 0; i < USE_SOUND_FILES; i++) {
+		SOUND_LOADER *p = sound_file_obj[i];
+		if(p != NULL) {
+			if(p->get_id() == id) {
+				p->free_sound_buffer(*data);
+				*data = NULL;
+				break;
+			}
+		}
+	}
+}
+
+void OSD::init_sound_files()
+{
+	for(int i = 0; i < USE_SOUND_FILES; i++) {
+		sound_file_obj[i] = NULL;
+		SOUND_LOADER *p = new SOUND_LOADER((void *)tail_sound_file);
+		if(p != NULL) {
+			sound_file_obj[i] = p;
+		}
+		tail_sound_file = p;
+	}
+}
+
+void OSD::release_sound_files()
+{
+	for(int i = 0; i < USE_SOUND_FILES; i++) {
+		SOUND_LOADER *p = sound_file_obj[i];
+		if(p != NULL) delete p;
+		sound_file_obj[i] = NULL;
+	}
+}
+#endif
 bool OSD::get_use_socket(void)
 {
 #ifdef USE_SOCKET

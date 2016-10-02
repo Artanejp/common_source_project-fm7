@@ -28,6 +28,7 @@ class FIFO;
 class USING_FLAGS;
 class CSP_KeyTables;
 class MOVIE_LOADER;
+class SOUND_LOADER;
 class QTcpSocket2;
 class QUdpSocket2;
 
@@ -64,6 +65,14 @@ protected:
 	QTcpSocket2 *tcp_socket[SOCKET_MAX];
 	QUdpSocket2 *udp_socket[SOCKET_MAX];
 	
+
+#ifdef USE_SOUND_FILES
+	SOUND_LOADER *tail_sound_file;
+	SOUND_LOADER *sound_file_obj[USE_SOUND_FILES];
+	
+	void init_sound_files();
+	void release_sound_files();
+#endif
 public:
 	OSD(USING_FLAGS *p);
 	~OSD();
@@ -116,6 +125,11 @@ public:
 	void recv_socket_data(int ch);
 	int get_socket(int ch);
 
+	// Sound
+#ifdef USE_SOUND_FILES
+	void load_sound_file(int id, const _TCHAR *name, int16_t **data, int *dst_size);
+	void free_sound_file(int id, int16_t **data);
+#endif
 public slots:
 	void do_decode_movie(int frames);
 	void do_run_movie_audio_callback(uint8_t *data, long len);

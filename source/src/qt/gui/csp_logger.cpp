@@ -62,6 +62,7 @@ void CSP_Logger::reset(void)
 		"PRINTER",
 		"SOCKET",
 		"EVENT",
+		"SOUND_LOADER",
 		"Undefined",
 		NULL
 	};

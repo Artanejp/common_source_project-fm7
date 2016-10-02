@@ -17,7 +17,6 @@
 #include <QThread>
 
 #include "qt_gldraw.h"
-//#include "csp_logger.h"
 #include "osd.h"
 
 OSD::OSD(USING_FLAGS *p) : OSD_BASE(p)
@@ -46,15 +45,17 @@ void OSD::initialize(int rate, int samples)
 	memset(app_path, 0x00, sizeof(app_path));
 	strncpy(app_path, tmp_path.toUtf8().constData(), _MAX_PATH);
 	
-	//memset(console_string, 0x00, sizeof(console_string));
 	console_cmd_str.clear();
 	osd_console_opened = false;
 	osd_timer.start();
-	//CoInitialize(NULL);
+
 	initialize_input();
 	initialize_printer();
 	initialize_screen();
 	initialize_sound(rate, samples);
+#if defined(USE_SOUND_FILES)
+	init_sound_files();
+#endif
 	if(get_use_movie_player() || get_use_video_capture()) initialize_video();
 	if(get_use_socket()) initialize_socket();
 }
@@ -67,7 +68,9 @@ void OSD::release()
 	release_sound();
 	if(get_use_movie_player() || get_use_video_capture()) release_video();
 	if(get_use_socket()) release_socket();
-	//CoUninitialize();
+#if defined(USE_SOUND_FILES)
+	release_sound_files();
+#endif
 }
 
 void OSD::power_off()

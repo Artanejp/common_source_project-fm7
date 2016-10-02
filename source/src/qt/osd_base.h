@@ -248,6 +248,9 @@ protected:
 	virtual int get_screen_width(void);
 	virtual int get_screen_height(void);
 	virtual int get_vm_buttons_code(int num);
+
+	virtual void init_sound_files();
+	virtual void release_sound_files();
 public:
 	OSD_BASE(USING_FLAGS *p);
 	~OSD_BASE();
@@ -348,6 +351,9 @@ public:
 	void restart_record_sound();
 	bool now_record_sound;
 	int get_sound_rate();
+	// Wrapper : Sound
+	virtual void load_sound_file(int id, const _TCHAR *name, int16_t **data, int *dst_size);
+	virtual void free_sound_file(int id, int16_t **data);
 	
 	// common video device
 	virtual void get_video_buffer();
@@ -426,7 +432,7 @@ public:
 	virtual void set_vm_node(int id, const _TCHAR *name);
 	virtual const _TCHAR *get_vm_node_name(int id);
 	virtual int get_vm_node_size(void);
-	
+
 public slots:
 	void do_write_inputdata(QString s);
 	void do_set_input_string(QString s);

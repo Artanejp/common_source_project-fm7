@@ -160,7 +160,7 @@ void OSD_BASE::initialize_sound(int rate, int samples)
 #else   
 	SDL_PauseAudio(0);
 #endif   
-	
+
 	sound_ok = sound_first_half = true;
 }
 
@@ -411,4 +411,22 @@ void OSD_BASE::restart_record_sound()
 int OSD_BASE::get_sound_rate()
 {
 	return snd_spec_presented.freq;
+}
+
+void OSD_BASE::load_sound_file(int id, const _TCHAR *name, int16_t **data, int *dst_size)
+{
+	if(data != NULL) *data = NULL;
+	if(dst_size != NULL) *dst_size = 0;
+}
+
+void OSD_BASE::free_sound_file(int id, int16_t **data)
+{
+}
+
+void OSD_BASE::init_sound_files()
+{
+}
+
+void OSD_BASE::release_sound_files()
+{
 }
