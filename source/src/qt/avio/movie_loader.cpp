@@ -323,7 +323,7 @@ bool MOVIE_LOADER::open(QString filename)
     /* retrieve stream information */
     if (avformat_find_stream_info(fmt_ctx, NULL) < 0) {
         csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Could not find stream information\n");
-        exit(1);
+        return -1;;
     }
 
     if (open_codec_context(&video_stream_idx, fmt_ctx, AVMEDIA_TYPE_VIDEO) >= 0) {

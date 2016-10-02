@@ -3,6 +3,7 @@ message("* qt/avio")
 set(s_qt_avio_headers
 	  movie_saver.h
 	  movie_loader.h
+	  sound_loader.h
 )
 
 set(s_qt_avio_srcs
@@ -11,6 +12,7 @@ set(s_qt_avio_srcs
 	  movie_saver_audio.cpp
 	  movie_saver_video.cpp
 	  movie_saver_fileio.cpp
+	  sound_loader.cpp
 )
 
 if(USE_QT_5)
