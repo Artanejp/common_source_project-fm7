@@ -73,7 +73,6 @@ function build_dll() {
 	     ${CMAKE_FLAGS1} \
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
-	     "-DCMAKE_SHARED_LINKER_FLAGS:STRING=${CMAKE_DLL_LINK_BASE}" \
 	     ${CMAKE_APPENDFLAG} \
 	     .. | tee make.log
     
@@ -83,7 +82,6 @@ function build_dll() {
 	     ${CMAKE_FLAGS1} \
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
-	     "-DCMAKE_SHARED_LINKER_FLAGS:STRING=${CMAKE_DLL_LINK_BASE}" \
 	     ${CMAKE_APPENDFLAG} \
 	     .. | tee -a make.log
     
@@ -143,7 +141,7 @@ for SRCDATA in $@ ; do\
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_CC}" \
 	     ${CMAKE_APPENDFLAG} \
-	     "-DCMAKE_EXE_LINKER_FLAGS:STRING=${CMAKE_LINK_BASE}" \
+	     "-DCMAKE_EXE_LINKER_FLAGS:STRING=${MAKEFLAGS_LINK_BASE}" \
 	     .. | tee make.log
 
     ${CMAKE} -D CMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
@@ -152,7 +150,7 @@ for SRCDATA in $@ ; do\
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_CC}" \
 	     ${CMAKE_APPENDFLAG} \
-	     "-DCMAKE_EXE_LINKER_FLAGS:STRING=${CMAKE_LINK_BASE}" \
+	     "-DCMAKE_EXE_LINKER_FLAGS:STRING=${MAKEFLAGS_LINK_BASE}" \
 	     .. | tee -a make.log
 
     make clean

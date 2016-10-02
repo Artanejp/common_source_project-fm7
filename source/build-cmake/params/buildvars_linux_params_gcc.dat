@@ -28,11 +28,12 @@ case ${CSP_DEBUG} in
 esac
 case ${USE_LTO} in
    "Yes" | "yes" | "YES" )
-       MAKEFLAGS_BASE2="-flto -ffat-lto-objects ${MAKEFLAGS_BASE2}"
        MAKEFLAGS_LINK_BASE2="-flto=6 -fwhole-program ${MAKEFLAGS_BASE2}"
+       MAKEFLAGS_BASE2="-flto -ffat-lto-objects ${MAKEFLAGS_BASE2}"
        ;;
    "No" | "no" | "NO" | * )
        MAKEFLAGS_LINK_BASE2="${MAKEFLAGS_BASE2}"
+       MAKEFLAGS_BASE2="${MAKEFLAGS_BASE2}"
        ;;
 esac
 
