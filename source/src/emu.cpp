@@ -1644,6 +1644,18 @@ void EMU::update_config()
 	vm->update_config();
 }
 
+#ifdef OSD_QT
+	// New APIs
+void EMU::load_sound_file(int id, const _TCHAR *name, int16_t **data, int *dst_size)
+{
+	osd->load_sound_file(id, name, data, dst_size);
+}
+
+void EMU::free_sound_file(int id, int16_t **data)
+{
+	osd->free_sound_file(id, data);
+}
+#endif
 
 
 // ----------------------------------------------------------------------------

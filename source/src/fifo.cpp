@@ -65,6 +65,17 @@ int FIFO::read_not_remove(int pt)
 	return 0;
 }
 
+void FIFO::write_not_push(int pt, int d)
+{
+	if(pt >= 0 && pt < cnt) {
+		pt += wpt;
+		if(pt >= size) {
+			pt -= size;
+		}
+		buf[pt] = d;
+	}
+}
+
 int FIFO::count()
 {
 	return cnt;

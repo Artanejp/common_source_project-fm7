@@ -10,7 +10,9 @@
 
 #include "mb8877.h"
 #include "disk.h"
-
+#if defined(USE_SOUND_FILES)
+#include "wav_sounder.h"
+#endif
 #define FDC_ST_BUSY		0x01	// busy
 #define FDC_ST_INDEX		0x02	// index hole
 #define FDC_ST_DRQ		0x02	// data request
@@ -631,6 +633,9 @@ void MB8877::event_callback(int event_id, int err)
 		}
 		if(seektrk != fdc[drvreg].track) {
 			register_seek_event();
+#if defined(USE_SOUND_FILES)
+			if(seek_sound != NULL) seek_sound->write_signal(SIG_WAV_SOUNDER_ADD, 1, 1);
+#endif			
 			break;
 		}
 		seekend_clock = get_current_clock();

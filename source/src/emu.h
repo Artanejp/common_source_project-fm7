@@ -479,6 +479,11 @@ public:
 	void save_state();
 	void load_state();
 #endif
+#ifdef OSD_QT
+	// New APIs
+	void load_sound_file(int id, const _TCHAR *name, int16_t **data, int *dst_size);
+	void free_sound_file(int id, int16_t **data);
+#endif
 };
 #endif // _EMU_H_
 

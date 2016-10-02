@@ -25,6 +25,7 @@ public:
 	void write(int val);
 	int read();
 	int read_not_remove(int pt);
+	void write_not_push(int pt, int d);
 	int count();
 	bool full();
 	bool empty();

@@ -20,7 +20,9 @@
 #define SIG_MB8877_MOTOR		2
 
 class DISK;
-
+#if defined(USE_SOUND_FILES)
+class WAV_SOUNDER;
+#endif
 class MB8877 : public DEVICE
 {
 private:
@@ -48,7 +50,9 @@ private:
 		uint32_t prev_clock;
 	} fdc[MAX_DRIVE];
 	DISK* disk[MAX_DRIVE];
-	
+#if defined(USE_SOUND_FILES)
+	DEVICE *seek_sound;
+#endif
 	// registor
 	uint8_t status, status_tmp;
 	uint8_t cmdreg, cmdreg_tmp;
@@ -124,6 +128,9 @@ public:
 		initialize_output_signals(&outputs_irq);
 		initialize_output_signals(&outputs_drq);
 		motor_on = false;
+#if defined(USE_SOUND_FILES)
+		seek_sound = NULL;
+#endif
 		set_device_name(_T("MB8877 FDC"));
 	}
 	~MB8877() {}
@@ -151,6 +158,12 @@ public:
 	{
 		register_output_signal(&outputs_drq, device, id, mask);
 	}
+#if defined(USE_SOUND_FILES)
+	void set_context_seek(DEVICE* device)
+	{
+		seek_sound = device;
+	}
+#endif
 	DISK* get_disk_handler(int drv)
 	{
 		return disk[drv];
