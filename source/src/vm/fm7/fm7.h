@@ -38,7 +38,9 @@
 #define USE_DEBUGGER
 #define DATAREC_SOUND
 #define USE_DIG_RESOLUTION
-
+#if defined(_USE_QT)
+#define USE_SOUND_FILES 3
+#endif
 #if defined(_FM8)
 #define DEVICE_NAME		"FUJITSU FM-8"
 #define CONFIG_NAME		"fm8"
@@ -219,11 +221,20 @@
 #define SOUND_DEVICE_TYPE_DEFAULT	1
 #endif
 
-#if defined(_FM8)
-#define USE_SOUND_VOLUME	3
+#if defined(USE_SOUND_FILES)
+# if defined(_FM8)
+#define USE_SOUND_VOLUME	5
+# else
+#define USE_SOUND_VOLUME	11
+# endif
 #else
+# if defined(_FM8)
+#define USE_SOUND_VOLUME	3
+# else
 #define USE_SOUND_VOLUME	9
+# endif
 #endif
+
 #define IGNORE_DISK_CRC_DEFAULT		true
 // device informations for virtual machine
 
@@ -317,6 +328,9 @@ static const _TCHAR *sound_device_caption[] = {
 	_T("PSG(Hack)"),
 	_T("Beep"),
 	_T("CMT"),
+# if defined(USE_SOUND_FILES)
+	_T("FDD SEEK"), _T("RELAY"),
+# endif
 #else
 # if !defined(_FM77AV_VARIANTS)
 	_T("PSG"),
@@ -326,6 +340,9 @@ static const _TCHAR *sound_device_caption[] = {
 # if defined(_FM77AV_VARIANTS)
 	_T("Keyboard"),
 # endif
+#if defined(USE_SOUND_FILES)
+	_T("FDD SEEK"), _T("RELAY"),
+#endif
 #endif	
 };
 #endif
@@ -380,7 +397,9 @@ class JOYSTICK;
 #if WITH_Z80
 class Z80;
 #endif
-
+#if defined(USE_SOUND_FILES)
+class WAV_SOUNDER;
+#endif
 class VM {
 protected:
 	EMU* emu;
@@ -434,6 +453,11 @@ protected:
 	KANJIROM *kanjiclass1;
 #ifdef CAPABLE_KANJI_CLASS2
 	KANJIROM *kanjiclass2;
+#endif
+#if defined(USE_SOUND_FILES)
+	WAV_SOUNDER *fdd_seek;
+	WAV_SOUNDER *cmt_relay_on;
+	WAV_SOUNDER *cmt_relay_off;
 #endif
 	bool connect_320kfdc;
 	bool connect_1Mfdc;

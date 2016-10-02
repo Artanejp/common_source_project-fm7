@@ -21,6 +21,9 @@
 #if defined(_FM8)
 #include "bubblecasette.h"
 #endif
+#if defined(USE_SOUND_FILES)
+#include "../wav_sounder.h"
+#endif
 
 FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
@@ -55,10 +58,15 @@ FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, paren
 	bubble_casette[0] = NULL;
 	bubble_casette[1] = NULL;
 #endif	
+#if defined(USE_SOUND_FILES)
+	dev_relay_sound_on = NULL;
+	dev_relay_sound_off = NULL;
+#endif
 	// FD00
 	clock_fast = true;
 	lpt_strobe = false;  // bit6
 	lpt_slctin = false;  // bit7
+	drec_flag = 0x00;
 	// FD01
 	lpt_outdata = 0x00;
 	// FD02
@@ -267,7 +275,15 @@ void FM7_MAINIO::reset()
 	irqreq_keyboard = false;
 	// FD00
 	drec->write_signal(SIG_DATAREC_MIC, 0x00, 0x01);
-	drec->set_remote(false);
+	drec->write_signal(SIG_DATAREC_REMOTE, 0x00, 0x02);
+#if defined(USE_SOUND_FILES)
+	if(drec_flag != 0x00) {
+		if(dev_relay_sound_off != NULL) {
+			dev_relay_sound_off->write_signal(SIG_WAV_SOUNDER_ADD, 0x01, 0x01);
+		}
+	}
+#endif
+	drec_flag = 0x00;
 	reset_fdc();
 	reset_sound();
 	
@@ -357,7 +373,24 @@ uint8_t FM7_MAINIO::get_port_fd00(void)
 void FM7_MAINIO::set_port_fd00(uint8_t data)
 {
 	drec->write_signal(SIG_DATAREC_MIC, data, 0x01);
-	drec->set_remote(((data & 0x02) != 0));
+	
+	uint8_t drec_flag_b = data & 0x02;
+	drec->write_signal(SIG_DATAREC_REMOTE, drec_flag_b, 0x02);
+#if defined(USE_SOUND_FILES)
+	if(drec_flag != drec_flag_b) {
+		if(drec_flag_b == 0x02) {
+			if(dev_relay_sound_on != NULL) {
+				dev_relay_sound_on->write_signal(SIG_WAV_SOUNDER_ADD, 0x01, 0x01);
+			}
+		} else {
+			if(dev_relay_sound_off != NULL) {
+				dev_relay_sound_off->write_signal(SIG_WAV_SOUNDER_ADD, 0x01, 0x01);
+			}
+		}			
+	}
+#endif
+	drec_flag = drec_flag_b;
+	
 	lpt_slctin = ((data & 0x80) == 0);
 	lpt_strobe = ((data & 0x40) != 0);
 	this->write_signals(&printer_strobe_bus, lpt_strobe ? 0xffffffff : 0);
@@ -1628,7 +1661,7 @@ void FM7_MAINIO::event_vline(int v, int clock)
 {
 }
 
-#define STATE_VERSION 6
+#define STATE_VERSION 7
 void FM7_MAINIO::save_state(FILEIO *state_fio)
 {
 	int ch;
@@ -1784,7 +1817,10 @@ void FM7_MAINIO::save_state(FILEIO *state_fio)
 #if defined(_FM77AV_VARIANTS)
 		state_fio->FputUint8(reg_fd12);
 #endif		
-	}		
+	}
+	{
+		state_fio->FputUint8(drec_flag);
+	}
 }
 
 bool FM7_MAINIO::load_state(FILEIO *state_fio)
@@ -1942,6 +1978,9 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 #if defined(_FM77AV_VARIANTS)
 		reg_fd12 = state_fio->FgetUint8();
 #endif		
+	}
+	{
+		drec_flag = state_fio->FgetUint8();
 	}
 	if(version != STATE_VERSION) return false;
 	return true;
