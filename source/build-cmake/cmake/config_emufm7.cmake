@@ -21,7 +21,7 @@ set(VMFILES
 		   mb8877.cpp
 		   
 		   ym2203.cpp
-		   
+		   wav_sounder.cpp
 		   prnfile.cpp
 		   datarec.cpp
 		   disk.cpp
