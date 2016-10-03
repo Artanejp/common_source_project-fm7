@@ -96,10 +96,19 @@
 #define USE_SCANLINE
 #endif
 #define USE_ACCESS_LAMP
+#define USE_SOUND_FILES 3
+#if defined(USE_SOUND_FILES)
+#if defined(_PC6001)
+#define USE_SOUND_VOLUME	3
+#else
+#define USE_SOUND_VOLUME	4
+#endif
+#else
 #if defined(_PC6001)
 #define USE_SOUND_VOLUME	2
 #else
 #define USE_SOUND_VOLUME	3
+#endif
 #endif
 #define USE_JOYSTICK
 #define USE_PRINTER
@@ -116,6 +125,9 @@ static const _TCHAR *sound_device_caption[] = {
 	_T("Voice"),
 #endif
 	_T("CMT"),
+#if defined(USE_SOUND_FILES)
+	_T("FDD"),
+#endif
 };
 #endif
 
@@ -138,6 +150,9 @@ class Z80;
 
 class DATAREC;
 class MCS48;
+#if defined(USE_SOUND_FILES)
+class WAV_SOUNDER;
+#endif
 
 #ifdef _PC6001
 class DISPLAY;
@@ -189,7 +204,11 @@ protected:
 	PC80S31K *pc80s31k;
 	UPD765A* fdc_pc80s31k;
 	Z80* cpu_pc80s31k;
-	
+#if defined(USE_SOUND_FILES)
+	WAV_SOUNDER* d_pc80s31k_seek;
+	WAV_SOUNDER* d_pc6031_seek;
+	WAV_SOUNDER* d_floppy_seek;
+#endif
 	bool support_sub_cpu;
 	bool support_pc80s31k;
 	

@@ -23,7 +23,9 @@
 #include "../device.h"
 
 class DISK;
-
+#if defined(USE_SOUND_FILES)
+class WAV_SOUNDER;
+#endif
 class FLOPPY : public DEVICE
 {
 private:
@@ -31,7 +33,9 @@ private:
 	unsigned char io_B1H;
 	
 	DISK* disk[2];
-	
+#if defined(USE_SOUND_FILES)
+	DEVICE *d_seek_sound;
+#endif
 	int cur_trk[2];
 	int cur_sct[2];
 	int cur_pos[2];
@@ -58,7 +62,10 @@ private:
 	unsigned char SendSectors;		// amount(100H unit)
 	int DIO;							// data direction TRUE: Buffer->CPU FALSE: CPU->Buffer
 	unsigned char Status;			// FDC status register
-	
+#if defined(USE_SOUND_FILES)
+	int seek_track_num[2];
+	int seek_event_id[2];
+#endif
 	void Push(int part, unsigned char data);
 	unsigned char Pop(int part);
 	void Clear(int i);
@@ -97,13 +104,22 @@ private:
 	unsigned char InDDH_66();
 	
 public:
-	FLOPPY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	FLOPPY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+#if defined(USE_SOUND_FILES)
+	seek_track_num[0] = seek_track_num[1] = 0;
+	cur_trk[0] = cur_trk[1] = 0;
+	seek_event_id[0] = seek_event_id[1] = -1;
+	d_seek_sound = NULL;
+#endif
+	}
 	~FLOPPY() {}
 	
 	// common functions
 	void initialize();
 	void release();
 	void reset();
+	void event_callback(int event_id, int err);
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
 	uint32_t read_signal(int ch);
@@ -115,6 +131,12 @@ public:
 	{
 		d_ext = device;
 	}
+#if defined(USE_SOUND_FILES)
+	void set_context_seek(DEVICE *d)
+	{
+		d_seek_sound = d;
+	}
+#endif
 	DISK* get_disk_handler(int drv)
 	{
 		return disk[drv];

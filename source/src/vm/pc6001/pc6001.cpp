@@ -34,6 +34,9 @@
 
 #include "../datarec.h"
 #include "../mcs48.h"
+#if defined(USE_SOUND_FILES)
+#include "../wav_sounder.h"
+#endif
 
 #ifdef USE_DEBUGGER
 #include "../debugger.h"
@@ -68,7 +71,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));
 #endif	
-	
+	d_pc80s31k_seek = d_pc6031_seek = d_floppy_seek = NULL;	
 	pio_sub = new I8255(this, emu);
 	io = new IO(this, emu);
 	psg = new YM2203(this, emu);
@@ -180,7 +183,13 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		fdc_pc80s31k->set_device_name(_T("uPD765A FDC(PC-80S31K)"));
 		cpu_pc80s31k->set_device_name(_T("Z80 CPU(PC-80S31K)"));
 #endif
-		
+#if defined(USE_SOUND_FILES)
+		d_pc80s31k_seek = new WAV_SOUNDER(this, emu);
+		if(d_pc80s31k_seek->load_data(_T("FDDSEEK.WAV"))) {
+			event->set_context_sound(d_pc80s31k_seek);
+			fdc_pc80s31k->set_context_seek(d_pc80s31k_seek);
+		}
+#endif		
 		event->set_context_cpu(cpu_pc80s31k, 4000000);
 		pc80s31k->set_context_cpu(cpu_pc80s31k);
 		pc80s31k->set_context_fdc(fdc_pc80s31k);
@@ -210,6 +219,18 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #if defined(_PC6601) || defined(_PC6601SR)
 		floppy->set_context_ext(pc6031);
 #endif
+#if defined(USE_SOUND_FILES)
+		d_pc6031_seek = new WAV_SOUNDER(this, emu);
+		if(d_pc6031_seek->load_data(_T("FDDSEEK.WAV"))) {
+			event->set_context_sound(d_pc6031_seek);
+			pc6031->set_context_seek(d_pc6031_seek);
+		}
+		d_floppy_seek = new WAV_SOUNDER(this, emu);
+		if(d_floppy_seek->load_data(_T("FDDSEEK.WAV"))) {
+			event->set_context_sound(d_floppy_seek);
+			floppy->set_context_seek(d_floppy_seek);
+		}
+#endif		
 		cpu_pc80s31k = NULL;
 	}
 	
@@ -405,6 +426,13 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 			drec->set_volume(0, decibel_l, decibel_r);
 		}
 	}
+#if defined(USE_SOUND_FILES)
+	 else if(ch-- == 0) {
+		 if(d_pc80s31k_seek != NULL) d_pc80s31k_seek->set_volume(0, decibel_l, decibel_r);
+		 if(d_pc6031_seek != NULL) d_pc6031_seek->set_volume(0, decibel_l, decibel_r);
+		 if(d_floppy_seek != NULL) d_floppy_seek->set_volume(0, decibel_l, decibel_r);
+	}
+#endif
 }
 #endif
 

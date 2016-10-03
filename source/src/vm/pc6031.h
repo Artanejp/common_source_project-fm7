@@ -28,7 +28,11 @@ class PC6031 : public DEVICE
 {
 private:
 	DISK* disk[2];
-	
+#if defined(USE_SOUND_FILES)
+	DEVICE *d_seek_sound;
+	int seek_event_id[2];
+	int seek_track_num[2];
+#endif
 	int cur_trk[2];
 	int cur_sct[2];
 	int cur_pos[2];
@@ -76,6 +80,11 @@ private:
 public:
 	PC6031(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
 		set_device_name(_T("PSEUDO PC-6031 FDD"));
+#if defined(USE_SOUND_FILES)
+		d_seek_sound = NULL;
+		seek_event_id[0] = seek_event_id[1] = -1;
+		seek_track_num[0] = seek_track_num[1] = 0;
+#endif
 	}
 	~PC6031() {}
 	
@@ -87,8 +96,15 @@ public:
 	uint32_t read_signal(int ch);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	void event_callback(int event_id, int err);
 	
 	// unique functions
+#if defined(USE_SOUND_FILES)
+	void set_context_seek(DEVICE *d)
+	{
+		d_seek_sound = d;
+	}
+#endif
 	DISK* get_disk_handler(int drv)
 	{
 		return disk[drv];

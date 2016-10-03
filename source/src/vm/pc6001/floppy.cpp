@@ -17,10 +17,43 @@
 
 #include "floppy.h"
 #include "../disk.h"
+#if defined(USE_SOUND_FILES)
+#include "../wav_sounder.h"
+
+#define EVENT_SEEK_SOUND 2
+#endif
+
+void FLOPPY::event_callback(int event_id, int err)
+{
+#if defined(USE_SOUND_FILES)
+	if((event_id >= EVENT_SEEK_SOUND) && (event_id < (EVENT_SEEK_SOUND + 2))) {
+		int drvno = event_id - EVENT_SEEK_SOUND;
+		if(cur_trk[drvno] < seek_track_num[drvno]) {
+			seek_track_num[drvno] -= 2;
+			register_event(this, EVENT_SEEK_SOUND + drvno, 16000, false, &seek_event_id[drvno]);
+		} else if(cur_trk[drvno] > seek_track_num[drvno]) {
+			seek_track_num[drvno] += 2;
+			register_event(this, EVENT_SEEK_SOUND + drvno, 16000, false, &seek_event_id[drvno]);
+		} else {
+			seek_event_id[drvno] = -1;
+		}
+		if(d_seek_sound != NULL) d_seek_sound->write_signal(SIG_WAV_SOUNDER_ADD, 1, 1);
+	}
+#endif
+}
 
 int FLOPPY::Seek88(int drvno, int trackno, int sectno)
 {
 	if(drvno < 2) {
+#if defined(USE_SOUND_FILES)
+		if(cur_trk[drvno] != trackno) {
+			seek_track_num[drvno] = (cur_trk[drvno] & 0xfe);
+			if(seek_event_id[drvno] >= 0) {
+				cancel_event(this, seek_event_id[drvno]);
+			}
+			register_event(this, EVENT_SEEK_SOUND + drvno, 16000, false, &seek_event_id[drvno]);
+		}
+#endif
 		cur_trk[drvno] = trackno;
 		cur_sct[drvno] = sectno;
 		cur_pos[drvno] = 0;
@@ -559,7 +592,7 @@ bool FLOPPY::is_disk_protected(int drv)
 	return false;
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void FLOPPY::save_state(FILEIO* state_fio)
 {
@@ -585,6 +618,10 @@ void FLOPPY::save_state(FILEIO* state_fio)
 	state_fio->FputUint8(SendSectors);
 	state_fio->FputInt32(DIO);
 	state_fio->FputUint8(Status);
+	for(int i = 0; i < 2; i++) {
+		state_fio->FputInt32(seek_event_id[i]);
+		state_fio->FputInt32(seek_track_num[i]);
+	}
 }
 
 bool FLOPPY::load_state(FILEIO* state_fio)
@@ -615,6 +652,10 @@ bool FLOPPY::load_state(FILEIO* state_fio)
 	SendSectors = state_fio->FgetUint8();
 	DIO = state_fio->FgetInt32();
 	Status = state_fio->FgetUint8();
+	for(int i = 0; i < 2; i++) {
+		seek_event_id[i] = state_fio->FgetInt32();
+		seek_track_num[i] = state_fio->FgetInt32();
+	}
 	return true;
 }
 

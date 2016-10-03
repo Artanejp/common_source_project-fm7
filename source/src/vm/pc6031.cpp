@@ -17,14 +17,47 @@
 
 #include "pc6031.h"
 #include "disk.h"
+#if defined(USE_SOUND_FILES)
+#include "wav_sounder.h"
+#endif
+#if defined(USE_SOUND_FILES)
+#define EVENT_SEEK_SOUND 2
+#endif
+
+void PC6031::event_callback(int event_id, int err)
+{
+#if defined(USE_SOUND_FILES)
+	if((event_id >= EVENT_SEEK_SOUND) && (event_id < (EVENT_SEEK_SOUND + 2))) {
+		int drvno = event_id - EVENT_SEEK_SOUND;
+		if((mdisk.trk * 2) < seek_track_num[drvno]) {
+			seek_track_num[drvno] -= 2;
+			register_event(this, EVENT_SEEK_SOUND + drvno, 16000, false, &seek_event_id[drvno]);
+		} else if((mdisk.trk * 2)> seek_track_num[drvno]) {
+			seek_track_num[drvno] += 2;
+			register_event(this, EVENT_SEEK_SOUND + drvno, 16000, false, &seek_event_id[drvno]);
+		} else {
+			seek_event_id[drvno] = -1;
+		}
+		if(d_seek_sound != NULL) d_seek_sound->write_signal(SIG_WAV_SOUNDER_ADD, 1, 1);
+	}
+#endif
+}
 
 int PC6031::Seek88(int drvno, int trackno, int sectno)
 {
 	if(drvno < 2) {
+#if defined(USE_SOUND_FILES)
+		if(cur_trk[drvno] != trackno) {
+			seek_track_num[drvno] = (cur_trk[drvno] & 0xfe);
+			if(seek_event_id[drvno] >= 0) {
+				cancel_event(this, seek_event_id[drvno]);
+			}
+			register_event(this, EVENT_SEEK_SOUND + drvno, 16000, false, &seek_event_id[drvno]);
+		}
+#endif
 		cur_trk[drvno] = trackno;
 		cur_sct[drvno] = sectno;
 		cur_pos[drvno] = 0;
-		
 		if(disk[drvno]->get_track(trackno >> 1, trackno & 1)) {
 			for(int i = 0; i < disk[drvno]->sector_num.sd; i++) {
 				if(disk[drvno]->get_sector(trackno >> 1, 0/*trackno & 1*/, i)) {
@@ -385,7 +418,7 @@ bool PC6031::is_disk_protected(int drv)
 	return false;
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void PC6031::save_state(FILEIO* state_fio)
 {
@@ -405,6 +438,10 @@ void PC6031::save_state(FILEIO* state_fio)
 	state_fio->FputUint8(old_D2H);
 	state_fio->FputUint8(io_D3H);
 	state_fio->FputInt32(DrvNum);
+	for(int i = 0; i < 2; i++) {
+		state_fio->FputInt32(seek_event_id[i]);
+		state_fio->FputInt32(seek_track_num[i]);
+	}
 }
 
 bool PC6031::load_state(FILEIO* state_fio)
@@ -430,6 +467,10 @@ bool PC6031::load_state(FILEIO* state_fio)
 	old_D2H = state_fio->FgetUint8();
 	io_D3H = state_fio->FgetUint8();
 	DrvNum = state_fio->FgetInt32();
+	for(int i = 0; i < 2; i++) {
+		seek_event_id[i] = state_fio->FgetInt32();
+		seek_track_num[i] = state_fio->FgetInt32();
+	}
 	return true;
 }
 
