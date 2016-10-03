@@ -46,7 +46,11 @@ private:
 		uint32_t prev_clock;
 	} fdc[4];
 	DISK* disk[4];
-	
+#if defined(USE_SOUND_FILES)
+	DEVICE *d_seek_sound;
+	int seek_snd_trk[4];
+	int sddk_snd_id[4];
+#endif
 	uint8_t hdu, hdue, id[4], eot, gpl, dtl;
 	
 	int phase, prevphase;
@@ -64,6 +68,9 @@ private:
 	int count;
 	int event_phase;
 	int phase_id, drq_id, lost_id, result7_id, seek_id[4];
+#if defined(USE_SOUND_FILES)
+	int seek_snd_id[4];
+#endif
 	bool force_ready;
 	bool reset_signal;
 	bool prev_index;
@@ -129,6 +136,9 @@ public:
 		force_ready = false;
 		raise_irq_when_media_changed = false;
 		set_device_name(_T("uPD765A FDC"));
+#if defined(USE_SOUND_FILES)
+		d_seek_sound = NULL;
+#endif
 	}
 	~UPD765A() {}
 	
@@ -162,6 +172,12 @@ public:
 	{
 		register_output_signal(&outputs_index, device, id, mask);
 	}
+#if defined(USE_SOUND_FILES)
+	void set_context_seek(DEVICE* device)
+	{
+		d_seek_sound = device;
+	}
+#endif	
 	DISK* get_disk_handler(int drv)
 	{
 		return disk[drv];
