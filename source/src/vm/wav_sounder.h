@@ -23,7 +23,6 @@
 // SIG_WAV_SOUNDER_CLEAR : Clear sound table.
 
 class EMU;
-class FIFO;
 
 class WAV_SOUNDER : public DEVICE {
 protected:
@@ -33,12 +32,14 @@ protected:
 	bool play_flag, mute_flag;
 	char data_path[_MAX_PATH];
 	
-	FIFO *queue;
+	int render_table[256];
+	int sound_count;
 	int16_t *_data;
 public:
 	WAV_SOUNDER(VM *parent_vm, EMU *parent_emu);
 	~WAV_SOUNDER();
-	
+
+	void reset();
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void mix(int32_t *buffer, int cnt);
 	
