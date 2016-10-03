@@ -625,17 +625,20 @@ void MB8877::event_callback(int event_id, int err)
 #endif
 		if(seektrk > fdc[drvreg].track) {
 			fdc[drvreg].track++;
+#if defined(USE_SOUND_FILES)
+			if(d_seek_sound != NULL) d_seek_sound->write_signal(SIG_WAV_SOUNDER_ADD, 1, 1);
+#endif			
 		} else if(seektrk < fdc[drvreg].track) {
 			fdc[drvreg].track--;
+#if defined(USE_SOUND_FILES)
+			if(d_seek_sound != NULL) d_seek_sound->write_signal(SIG_WAV_SOUNDER_ADD, 1, 1);
+#endif			
 		}
 		if((cmdreg & 0x10) || ((cmdreg & 0xf0) == 0)) {
 			trkreg = fdc[drvreg].track;
 		}
 		if(seektrk != fdc[drvreg].track) {
 			register_seek_event();
-#if defined(USE_SOUND_FILES)
-			if(seek_sound != NULL) seek_sound->write_signal(SIG_WAV_SOUNDER_ADD, 1, 1);
-#endif			
 			break;
 		}
 		seekend_clock = get_current_clock();

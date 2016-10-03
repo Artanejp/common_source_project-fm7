@@ -51,7 +51,7 @@ private:
 	} fdc[MAX_DRIVE];
 	DISK* disk[MAX_DRIVE];
 #if defined(USE_SOUND_FILES)
-	DEVICE *seek_sound;
+	DEVICE *d_seek_sound;
 #endif
 	// registor
 	uint8_t status, status_tmp;
@@ -129,7 +129,7 @@ public:
 		initialize_output_signals(&outputs_drq);
 		motor_on = false;
 #if defined(USE_SOUND_FILES)
-		seek_sound = NULL;
+		d_seek_sound = NULL;
 #endif
 		set_device_name(_T("MB8877 FDC"));
 	}
@@ -161,7 +161,7 @@ public:
 #if defined(USE_SOUND_FILES)
 	void set_context_seek(DEVICE* device)
 	{
-		seek_sound = device;
+		d_seek_sound = device;
 	}
 #endif
 	DISK* get_disk_handler(int drv)
