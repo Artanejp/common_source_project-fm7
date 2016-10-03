@@ -131,7 +131,11 @@ void DATAREC::event_callback(int event_id, int err)
 			bool signal = in_signal;
 			if(is_wav) {
 				if(buffer_ptr >= 0 && buffer_ptr < buffer_length) {
-					signal = ((buffer[buffer_ptr] & 0x80) != 0);
+					if(buffer != NULL) {
+						signal = ((buffer[buffer_ptr] & 0x80) != 0);
+					} else {
+						signal = false;
+					}
 #ifdef DATAREC_SOUND
 					if(sound_buffer != NULL && ff_rew == 0) {
 						sound_sample = sound_buffer[buffer_ptr];
@@ -154,26 +158,31 @@ void DATAREC::event_callback(int event_id, int err)
 				update_event();
 			} else {
 				if(ff_rew < 0) {
-					if(buffer_bak != NULL) {
+					if((buffer_bak != NULL) && (buffer != NULL)) {
 						memcpy(buffer, buffer_bak, buffer_length);
 					}
 					buffer_ptr = 0;
 					set_remote(false);	// top of tape
 				} else {
-					while(buffer_ptr < buffer_length) {
-						if((buffer[buffer_ptr] & 0x7f) == 0) {
-							if(++buffer_ptr == buffer_length) {
-								set_remote(false);	// end of tape
-								signal = false;
+					if(buffer != NULL) {
+						while(buffer_ptr < buffer_length) {
+							if((buffer[buffer_ptr] & 0x7f) == 0) {
+								if(++buffer_ptr == buffer_length) {
+									set_remote(false);	// end of tape
+									signal = false;
+									break;
+								}
+								signal = ((buffer[buffer_ptr] & 0x80) != 0);
+							} else {
+								signal = ((buffer[buffer_ptr] & 0x80) != 0);
+								uint8_t tmp = buffer[buffer_ptr];
+								buffer[buffer_ptr] = (tmp & 0x80) | ((tmp & 0x7f) - 1);
 								break;
 							}
-							signal = ((buffer[buffer_ptr] & 0x80) != 0);
-						} else {
-							signal = ((buffer[buffer_ptr] & 0x80) != 0);
-							uint8_t tmp = buffer[buffer_ptr];
-							buffer[buffer_ptr] = (tmp & 0x80) | ((tmp & 0x7f) - 1);
-							break;
 						}
+					} else {
+						signal = false;
+						set_remote(false);
 					}
 				}
 			}
@@ -221,7 +230,7 @@ void DATAREC::event_callback(int event_id, int err)
 					}
 				}
 			}
-		} else if(rec) {
+		} else if(rec && buffer != NULL) {
 			if(out_signal) {
 				positive_clocks += get_passed_clock(prev_clock);
 			} else {
