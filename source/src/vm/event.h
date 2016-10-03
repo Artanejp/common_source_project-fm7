@@ -16,7 +16,7 @@
 
 #define MAX_CPU		8
 // 20161003 K.O
-#define MAX_SOUND	16
+#define MAX_SOUND	32
 #define MAX_LINES	1024
 #define MAX_EVENT	64
 #define NO_EVENT	-1
