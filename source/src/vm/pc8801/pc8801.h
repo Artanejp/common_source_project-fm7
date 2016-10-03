@@ -97,6 +97,27 @@
 #define USE_SOUND_DEVICE_TYPE	2
 #endif
 #endif
+#define USE_SOUND_FILES 3
+
+#if defined(USE_SOUND_FILES)
+#if    defined(SUPPORT_PC88_OPNA) &&  defined(SUPPORT_PC88_SB2) &&  defined(SUPPORT_PC88_PCG8100)
+#define USE_SOUND_VOLUME	(4 + 4 + 1 + 1 + 1)
+#elif  defined(SUPPORT_PC88_OPNA) &&  defined(SUPPORT_PC88_SB2) && !defined(SUPPORT_PC88_PCG8100)
+#define USE_SOUND_VOLUME	(4 + 4 + 0 + 1 + 1)
+#elif  defined(SUPPORT_PC88_OPNA) && !defined(SUPPORT_PC88_SB2) &&  defined(SUPPORT_PC88_PCG8100)
+#define USE_SOUND_VOLUME	(4 + 0 + 1 + 1 + 1)
+#elif  defined(SUPPORT_PC88_OPNA) && !defined(SUPPORT_PC88_SB2) && !defined(SUPPORT_PC88_PCG8100)
+#define USE_SOUND_VOLUME	(4 + 0 + 0 + 1 + 1)
+#elif !defined(SUPPORT_PC88_OPNA) &&  defined(SUPPORT_PC88_SB2) &&  defined(SUPPORT_PC88_PCG8100)
+#define USE_SOUND_VOLUME	(2 + 4 + 1 + 1 + 1)
+#elif !defined(SUPPORT_PC88_OPNA) &&  defined(SUPPORT_PC88_SB2) && !defined(SUPPORT_PC88_PCG8100)
+#define USE_SOUND_VOLUME	(2 + 4 + 0 + 1 + 1)
+#elif !defined(SUPPORT_PC88_OPNA) && !defined(SUPPORT_PC88_SB2) &&  defined(SUPPORT_PC88_PCG8100)
+#define USE_SOUND_VOLUME	(2 + 0 + 1 + 1 + 1)
+#elif !defined(SUPPORT_PC88_OPNA) && !defined(SUPPORT_PC88_SB2) && !defined(SUPPORT_PC88_PCG8100)
+#define USE_SOUND_VOLUME	(2 + 0 + 0 + 1 + 1)
+#endif
+#else
 #if    defined(SUPPORT_PC88_OPNA) &&  defined(SUPPORT_PC88_SB2) &&  defined(SUPPORT_PC88_PCG8100)
 #define USE_SOUND_VOLUME	(4 + 4 + 1 + 1)
 #elif  defined(SUPPORT_PC88_OPNA) &&  defined(SUPPORT_PC88_SB2) && !defined(SUPPORT_PC88_PCG8100)
@@ -113,6 +134,7 @@
 #define USE_SOUND_VOLUME	(2 + 0 + 1 + 1)
 #elif !defined(SUPPORT_PC88_OPNA) && !defined(SUPPORT_PC88_SB2) && !defined(SUPPORT_PC88_PCG8100)
 #define USE_SOUND_VOLUME	(2 + 0 + 0 + 1)
+#endif
 #endif
 #define USE_JOYSTICK
 #define USE_MOUSE
@@ -138,6 +160,9 @@ static const _TCHAR *sound_device_caption[] = {
 	_T("PCG-8100"),
 #endif
 	_T("Beep"),
+#if defined(USE_SOUND_FILES)
+	_T("FDD"),
+#endif
 };
 #endif
 
@@ -158,7 +183,9 @@ class UPD765A;
 #ifdef SUPPORT_PC88_PCG8100
 class I8253;
 #endif
-
+#if defined(USE_SOUND_FILES)
+class WAV_SOUNDER;
+#endif
 class PC88;
 
 class VM
@@ -185,7 +212,9 @@ protected:
 	I8255* pc88pio_sub;
 	UPD765A* pc88fdc_sub;
 	Z80* pc88cpu_sub;
-	
+#if defined(USE_SOUND_FILES)
+	WAV_SOUNDER* pc88fdc_seeksnd;
+#endif
 #ifdef SUPPORT_PC88_PCG8100
 	I8253* pc88pit;
 	PCM1BIT* pc88pcm0;

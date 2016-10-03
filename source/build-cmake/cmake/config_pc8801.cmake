@@ -31,6 +31,8 @@ set(VMFILES
 		   io.cpp
 		   memory.cpp
 		   prnfile.cpp
+
+		   wav_sounder.cpp
 )
 
 set(BUILD_SHARED_LIBS OFF)
