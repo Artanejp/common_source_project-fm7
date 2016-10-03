@@ -92,21 +92,26 @@ void WAV_SOUNDER::mix(int32_t *buffer, int cnt)
 
 void WAV_SOUNDER::set_volume(int ch, int decibel_l, int decibel_r)
 {
-	volume_l = decibel_to_volume(decibel_l + 6);
-	volume_r = decibel_to_volume(decibel_r + 6);
+	volume_l = decibel_to_volume(decibel_l);
+	volume_r = decibel_to_volume(decibel_r);
 }
 
 bool WAV_SOUNDER::load_data(const _TCHAR *path)
 {
 	if(path == NULL) return false;
-	
+	bool stat = false;
 	_TCHAR sname[128];
 	const _TCHAR *s;
 	s = create_local_path(path);
 	p_emu->load_sound_file(this_device_id, s, &_data, &dst_size);
-	snprintf(sname, 127, "WAV SOUNDER #%d:%s", this_device_id, path);
+	if((_data == NULL) || (dst_size <= 0)) {
+		snprintf(sname, 127, "WAV SOUNDER #%d:%s (FAILED)", this_device_id, path);
+	} else {
+		snprintf(sname, 127, "WAV SOUNDER #%d:%s", this_device_id, path);
+		stat = true;
+	}
 	this->set_device_name((const _TCHAR *)sname);
-	return true;
+	return stat;
 }
 
 const _TCHAR *WAV_SOUNDER::get_file_name(void)
