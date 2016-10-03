@@ -174,6 +174,27 @@
 #define USE_SCREEN_ROTATE
 #define USE_ACCESS_LAMP
 #define USE_SOUND_DEVICE_TYPE	5
+#define USE_SOUND_FILES 3
+
+#if defined(USE_SOUND_FILES)
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
+#if    defined(SUPPORT_PC98_OPNA) &&  defined(SUPPORT_PC88_OPNA)
+#define USE_SOUND_VOLUME	(4 + 1 + 1 + 4 + 1 + 1)
+#elif  defined(SUPPORT_PC98_OPNA) && !defined(SUPPORT_PC88_OPNA)
+#define USE_SOUND_VOLUME	(4 + 1 + 1 + 2 + 1 + 1)
+#elif !defined(SUPPORT_PC98_OPNA) &&  defined(SUPPORT_PC88_OPNA)
+#define USE_SOUND_VOLUME	(2 + 1 + 1 + 4 + 1 + 1)
+#elif !defined(SUPPORT_PC98_OPNA) && !defined(SUPPORT_PC88_OPNA)
+#define USE_SOUND_VOLUME	(2 + 1 + 1 + 2 + 1 + 1)
+#endif
+#else
+#if defined(SUPPORT_PC98_OPNA)
+#define USE_SOUND_VOLUME	(4 + 1 + 1 + 1)
+#else
+#define USE_SOUND_VOLUME	(2 + 1 + 1 + 1)
+#endif
+#endif
+#else
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 #if    defined(SUPPORT_PC98_OPNA) &&  defined(SUPPORT_PC88_OPNA)
 #define USE_SOUND_VOLUME	(4 + 1 + 1 + 4 + 1)
@@ -189,6 +210,7 @@
 #define USE_SOUND_VOLUME	(4 + 1 + 1)
 #else
 #define USE_SOUND_VOLUME	(2 + 1 + 1)
+#endif
 #endif
 #endif
 #define USE_JOYSTICK
@@ -216,6 +238,9 @@ static const _TCHAR *sound_device_caption[] = {
 	_T("PC-88 OPN (FM)"), _T("PC-88 OPN (PSG)"),
 #endif
 	_T("PC-88 Beep"), 
+#endif
+#if defined(USE_SOUND_FILES)
+	_T("FDD"),
 #endif
 };
 #endif
@@ -270,6 +295,10 @@ class Z80;
 #if defined(SUPPORT_ITF_ROM)
 class ITF;
 #endif
+#if defined(USE_SOUND_FILES)
+class WAV_SOUNDER;
+#endif
+
 class VM
 {
 protected:
@@ -327,6 +356,17 @@ protected:
 #if defined(SUPPORT_CMT_IF)
 	CMT* cmt;
 #endif
+#if defined(USE_SOUND_FILES)
+#if defined(SUPPORT_2HD_FDD_IF)
+	WAV_SOUNDER* fdc_2hd_seeksnd;
+#endif
+#if defined(SUPPORT_2DD_FDD_IF)
+	WAV_SOUNDER* fdc_2dd_seeksnd;
+#endif
+#if defined(SUPPORT_2HD_2DD_FDD_IF)
+	WAV_SOUNDER* fdc_seeksnd;
+#endif
+#endif
 	DISPLAY* display;
 	FLOPPY* floppy;
 	FMSOUND* fmsound;
@@ -346,6 +386,9 @@ protected:
 	PC80S31K *pc80s31k;
 	UPD765A* fdc_sub;
 	Z80* cpu_sub;
+#if defined(USE_SOUND_FILES)
+	WAV_SOUNDER* fdc_sub_seeksnd;
+#endif
 #endif
 #if defined(SUPPORT_ITF_ROM)
 	ITF* itf;
@@ -382,6 +425,9 @@ protected:
 	I8255* pc88pio_sub;
 	UPD765A* pc88fdc_sub;
 	Z80* pc88cpu_sub;
+#if defined(USE_SOUND_FILES)
+	WAV_SOUNDER* pc88fdc_sub_seeksnd;
+#endif
 	
 	int boot_mode;
 #endif

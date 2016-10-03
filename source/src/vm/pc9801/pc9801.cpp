@@ -38,6 +38,9 @@
 #include "../upd7220.h"
 #include "../upd765a.h"
 #include "../ym2203.h"
+#if defined(USE_SOUND_FILES)
+#include "../wav_sounder.h"
+#endif
 
 #ifdef USE_DEBUGGER
 #include "../debugger.h"
@@ -193,18 +196,27 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
  #if defined(_USE_QT)
 	fdc_2hd->set_device_name(_T("uPD765A FDC(2HD I/F)"));
  #endif	
+ #if defined(USE_SOUND_FILES)
+	fdc_2hd_seeksnd = new WAV_SOUNDER(this, emu);
+ #endif
 #endif
 #if defined(SUPPORT_2DD_FDD_IF)
 	fdc_2dd = new UPD765A(this, emu);
  #if defined(_USE_QT)
 	fdc_2dd->set_device_name(_T("uPD765A FDC(2DD I/F)"));
  #endif	
+ #if defined(USE_SOUND_FILES)
+	fdc_2dd_seeksnd = new WAV_SOUNDER(this, emu);
+ #endif
 #endif
 #if defined(SUPPORT_2HD_2DD_FDD_IF)
 	fdc = new UPD765A(this, emu);
  #if defined(_USE_QT)
 	fdc->set_device_name(_T("uPD765A FDC(2DD/2HD I/F)"));
  #endif	
+ #if defined(USE_SOUND_FILES)
+	fdc_seeksnd = new WAV_SOUNDER(this, emu);
+ #endif
 #endif
 	gdc_chr = new UPD7220(this, emu);
 	gdc_gfx = new UPD7220(this, emu);
@@ -273,6 +285,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	fdc_sub->set_device_name(_T("uPD765A FDC(320KB FDD)"));
 	cpu_sub->set_device_name(_T("Z80 CPU(320KB FDD)"));
   #endif
+  #if defined(USE_SOUND_FILES)
+	fdc_sub_seeksnd = new WAV_SOUNDER(this, emu);
+  #endif
 #endif
 #if defined(SUPPORT_ITF_ROM)
 	itf = new ITF(this, emu);
@@ -309,7 +324,32 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	} else if(sound_device_type == 2 || sound_device_type == 3) {
 		event->set_context_sound(tms3631);
 	}
-	
+#if defined(USE_SOUND_FILES)
+#if defined(SUPPORT_2HD_FDD_IF)
+	if(fdc_2hd_seeksnd->load_data(_T("FDDSEEK.WAV"))) {
+		event->set_context_sound(fdc_2hd_seeksnd);
+		fdc_2hd->set_context_seek(fdc_2hd_seeksnd);
+	}
+#endif
+#if defined(SUPPORT_2DD_FDD_IF)
+	if(fdc_2dd_seeksnd->load_data(_T("FDDSEEK.WAV"))) {
+		event->set_context_sound(fdc_2dd_seeksnd);
+		fdc_2dd->set_context_seek(fdc_2dd_seeksnd);
+	}
+#endif
+#if defined(SUPPORT_2HD_2DD_FDD_IF)
+	if(fdc_seeksnd->load_data(_T("FDDSEEK.WAV"))) {
+		event->set_context_sound(fdc_seeksnd);
+		fdc->set_context_seek(fdc_seeksnd);
+	}
+#endif
+#if defined(SUPPORT_320KB_FDD_IF)
+	if(fdc_sub_seeksnd->load_data(_T("FDDSEEK.WAV"))) {
+		event->set_context_sound(fdc_sub_seeksnd);
+		fdc_sub->set_context_seek(fdc_sub_seeksnd);
+	}
+#endif
+#endif
 	dma->set_context_memory(memory);
 	// dma ch.0: sasi
 	// dma ch.1: memory refresh
@@ -736,11 +776,20 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pc88fdc_sub->set_device_name(_T("uPD765A FDC(PC8801 FDD)"));
 	pc88cpu_sub->set_device_name(_T("Z80 CPU(PC8801 FDD)"));
 #endif	
+#if defined(USE_SOUND_FILES)
+	pc88fdc_sub_seeksnd = new WAV_SOUNDER(this, emu);
+#endif
 	
 	pc88event->set_context_cpu(pc88cpu, (config.cpu_type != 0) ? 3993624 : 7987248);
 	pc88event->set_context_cpu(pc88cpu_sub, 3993624);
 	pc88event->set_context_sound(pc88opn);
 	pc88event->set_context_sound(pc88pcm);
+#if defined(USE_SOUND_FILES)
+	if(pc88fdc_sub_seeksnd->load_data(_T("FDDSEEK.WAV"))) {
+		pc88event->set_context_sound(pc88fdc_sub_seeksnd);
+		pc88fdc_sub->set_context_seek(pc88fdc_sub_seeksnd);
+	}
+#endif
 	
 	pc88->set_context_cpu(pc88cpu);
 	pc88->set_context_opn(pc88opn);
@@ -1087,6 +1136,25 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 #endif
 	} else if(ch-- == 0) {
 		pc88pcm->set_volume(0, decibel_l, decibel_r);
+#endif
+	}
+#if defined(USE_SOUND_FILES)
+	else if(ch-- == 0) {
+#if defined(SUPPORT_2HD_FDD_IF)
+		fdc_2hd_seeksnd->set_volume(0, decibel_l, decibel_r);
+#endif
+#if defined(SUPPORT_2DD_FDD_IF)
+		fdc_2dd_seeksnd->set_volume(0, decibel_l, decibel_r);
+#endif
+#if defined(SUPPORT_2HD_2DD_FDD_IF)
+		fdc_seeksnd->set_volume(0, decibel_l, decibel_r);
+#endif
+#if defined(SUPPORT_320KB_FDD_IF)
+		fdc_sub_seeksnd->set_volume(0, decibel_l, decibel_r);
+#endif
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
+		pc88fdc_sub_seeksnd->set_volume(0, decibel_l, decibel_r);
+#endif
 #endif
 	}
 }
