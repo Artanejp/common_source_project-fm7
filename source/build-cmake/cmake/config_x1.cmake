@@ -36,6 +36,8 @@ set(VMFILES
 		   memory.cpp
 		   prnfile.cpp
 		   mz1p17.cpp
+
+		   wav_sounder.cpp
 )
 
 set(BUILD_X1 OFF CACHE BOOL "Build for X1")

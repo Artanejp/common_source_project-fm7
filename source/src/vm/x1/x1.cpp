@@ -54,6 +54,9 @@
 #include "../huc6280.h"
 #include "../pcengine/pce.h"
 #endif
+#if defined(USE_SOUND_FILES)
+#include "../wav_sounder.cpp"
+#endif
 
 // ----------------------------------------------------------------------------
 // initialize
@@ -134,13 +137,43 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	memory->set_device_name(_T("MEMORY"));
 	mouse->set_device_name(_T("MOUSE I/F"));
 #endif	
-	
+#if defined(USE_SOUND_FILES)
+	fdd_seek = new WAV_SOUNDER(this, emu);
+	if(fdd_seek->load_data(_T("FDDSEEK.WAV"))) {
+		fdc->set_context_seek(fdd_seek);
+		event->set_context_sound(fdd_seek);
+	}
+#endif
+#if defined(USE_SOUND_FILES)
+	cmt_eject = new WAV_SOUNDER(this, emu);
+	//cmt_ffrew = new WAV_SOUNDER(this, emu);
+	cmt_play  = new WAV_SOUNDER(this, emu);
+	cmt_stop  = new WAV_SOUNDER(this, emu);
+	if(cmt_eject->load_data(_T("CMTEJECT.WAV"))) {
+		event->set_context_sound(cmt_eject);
+	}
+	//if(cmt_ffrew->load_data(_T("CMTFF.WAV"))) {
+	//	event->set_context_sound(cmt_ffrew);
+	//}
+	if(cmt_play->load_data(_T("CMTPLAY.WAV"))) {
+		event->set_context_sound(cmt_play);
+	}
+	if(cmt_stop->load_data(_T("CMTSTOP.WAV"))) {
+		event->set_context_sound(cmt_stop);
+	}
+#endif
 	if(pseudo_sub_cpu) {
 		psub = new PSUB(this, emu);
 		cpu_sub = NULL;
 		cpu_kbd = NULL;
 #if defined(_USE_QT)
 		psub->set_device_name(_T("PSEUDO SUB SYSTEM"));
+#endif
+#if defined(USE_SOUND_FILES)
+		psub->set_context_cmt_eject(cmt_eject);
+		//psub->set_context_cmt_ffrew(cmt_ffrew);
+		psub->set_context_cmt_play(cmt_play);
+		psub->set_context_cmt_stop(cmt_stop);
 #endif
 	} else {
 		// sub cpu
@@ -153,6 +186,12 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		pio_sub->set_device_name(_T("i8255 PIO(SUB SYSTEM)"));
 		rtc_sub->set_device_name(_T("RTC(SUB SYSTEM)"));
 		sub->set_device_name(_T("SUB SYSTEM"));
+#endif
+#if defined(USE_SOUND_FILES)
+		sub->set_context_cmt_eject(cmt_eject);
+		//sub->set_context_cmt_ffrew(cmt_ffrew);
+		sub->set_context_cmt_play(cmt_play);
+		sub->set_context_cmt_stop(cmt_stop);
 #endif
 		
 		// keyboard
@@ -621,6 +660,25 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 	} else if(ch == 4) {
 		pce->set_volume(0, decibel_l, decibel_r);
 #endif
+#if defined(USE_SOUND_FILES)
+# if defined(_X1TWIN)
+	} else if(ch == 5) {
+		if(fdd_seek != NULL) fdd_seek->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 6) {
+		if(cmt_eject != NULL) cmt_eject->set_volume(0, decibel_l, decibel_r);
+		//if(cmt_ffrew != NULL) cmt_ffrew->set_volume(0, decibel_l, decibel_r);
+		if(cmt_play  != NULL) cmt_play->set_volume(0, decibel_l, decibel_r);
+		if(cmt_stop  != NULL) cmt_stop->set_volume(0, decibel_l, decibel_r);
+# else
+	} else if(ch == 4) {
+		if(fdd_seek != NULL) fdd_seek->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 5) {
+		if(cmt_eject != NULL) cmt_eject->set_volume(0, decibel_l, decibel_r);
+		//if(cmt_ffrew != NULL) cmt_ffrew->set_volume(0, decibel_l, decibel_r);
+		if(cmt_play  != NULL) cmt_play->set_volume(0, decibel_l, decibel_r);
+		if(cmt_stop  != NULL) cmt_stop->set_volume(0, decibel_l, decibel_r);
+# endif
+#endif
 	}
 }
 #endif
@@ -746,33 +804,51 @@ void VM::push_play()
 {
 	drec->set_ff_rew(0);
 	drec->set_remote(true);
+#if defined(USE_SOUND_FILES)
+	if(cmt_play != NULL) cmt_play->write_signal(SIG_WAV_SOUNDER_ADD, 1, 1);
+#endif
 }
 
 void VM::push_stop()
 {
 	drec->set_remote(false);
+#if defined(USE_SOUND_FILES)
+	if(cmt_stop != NULL) cmt_stop->write_signal(SIG_WAV_SOUNDER_ADD, 1, 1);
+#endif
 }
 
 void VM::push_fast_forward()
 {
 	drec->set_ff_rew(1);
 	drec->set_remote(true);
+#if defined(USE_SOUND_FILES)
+	//if(cmt_ffrew != NULL) cmt_ffrew->write_signal(SIG_WAV_SOUNDER_ADD, 1, 1);
+#endif
 }
 
 void VM::push_fast_rewind()
 {
 	drec->set_ff_rew(-1);
 	drec->set_remote(true);
+#if defined(USE_SOUND_FILES)
+	//if(cmt_ffrew != NULL) cmt_ffrew->write_signal(SIG_WAV_SOUNDER_ADD, 1, 1);
+#endif
 }
 
 void VM::push_apss_forward()
 {
 	drec->do_apss(1);
+#if defined(USE_SOUND_FILES)
+	//if(cmt_ffrew != NULL) cmt_ffrew->write_signal(SIG_WAV_SOUNDER_ADD, 1, 1);
+#endif
 }
 
 void VM::push_apss_rewind()
 {
 	drec->do_apss(-1);
+#if defined(USE_SOUND_FILES)
+	//if(cmt_ffrew != NULL) cmt_ffrew->write_signal(SIG_WAV_SOUNDER_ADD, 1, 1);
+#endif
 }
 
 bool VM::is_frame_skippable()

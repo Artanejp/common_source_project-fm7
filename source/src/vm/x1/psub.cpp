@@ -13,7 +13,9 @@
 #include "../datarec.h"
 #include "../i8255.h"
 #include "../../fifo.h"
-
+#if defined(USE_SOUND_FILES)
+#include "../wav_sounder.h"
+#endif
 //#define DEBUG_COMMAND
 
 #define EVENT_1SEC	0
@@ -488,6 +490,9 @@ void PSUB::close_tape()
 		databuf[0x1a][0] = CMT_EJECT;
 		play = rec = false;
 		d_drec->set_remote(false);
+#if defined(USE_SOUND_FILES)
+		if(d_cmt_eject != NULL) d_cmt_eject->write_signal(SIG_WAV_SOUNDER_ADD, 1, 1);
+#endif
 	}
 }
 
@@ -623,6 +628,9 @@ void PSUB::process_cmd()
 				if(play) {
 					d_drec->set_ff_rew(0);
 					d_drec->set_remote(true);
+#if defined(USE_SOUND_FILES)
+					if(d_cmt_play != NULL) d_cmt_play->write_signal(SIG_WAV_SOUNDER_ADD, 1, 1);
+#endif
 				} else if(rec) {
 					new_status = CMT_STOP;
 				} else {
@@ -633,6 +641,9 @@ void PSUB::process_cmd()
 				if(play) {
 					d_drec->set_ff_rew(1);
 					d_drec->set_remote(true);
+#if defined(USE_SOUND_FILES)
+					//if(d_cmt_ffrew != NULL) d_cmt_ffrew->write_signal(SIG_WAV_SOUNDER_ADD, 1, 1);
+#endif
 				} else if(rec) {
 					new_status = CMT_STOP;
 				} else {
@@ -643,6 +654,9 @@ void PSUB::process_cmd()
 				if(play) {
 					d_drec->set_ff_rew(-1);
 					d_drec->set_remote(true);
+#if defined(USE_SOUND_FILES)
+					//if(d_cmt_ffrew != NULL) d_cmt_ffrew->write_signal(SIG_WAV_SOUNDER_ADD, 1, 1);
+#endif
 				} else if(rec) {
 					new_status = CMT_STOP;
 				} else {
@@ -652,6 +666,9 @@ void PSUB::process_cmd()
 			case CMT_APSS_PLUS:
 			case CMT_APSS_MINUS:
 				if(play) {
+#if defined(USE_SOUND_FILES)
+					//if(d_cmt_ffrew != NULL) d_cmt_ffrew->write_signal(SIG_WAV_SOUNDER_ADD, 1, 1);
+#endif
 					d_drec->do_apss((databuf[0x19][0] == CMT_APSS_PLUS) ? 1 : -1);
 					new_status = CMT_STOP;
 				} else if(rec) {
@@ -664,6 +681,9 @@ void PSUB::process_cmd()
 				if(play) {
 					new_status = CMT_STOP;
 				} else if(rec) {
+#if defined(USE_SOUND_FILES)
+					if(d_cmt_play != NULL) d_cmt_play->write_signal(SIG_WAV_SOUNDER_ADD, 1, 1);
+#endif
 					d_drec->set_remote(true);
 				} else {
 					new_status = CMT_EJECT;
@@ -675,7 +695,16 @@ void PSUB::process_cmd()
 				break;
 #endif
 			}
+#if defined(USE_SOUND_FILES)
+			if(new_status == CMT_EJECT) {
+				if(d_cmt_eject != NULL) d_cmt_eject->write_signal(SIG_WAV_SOUNDER_ADD, 1, 1);
+			} else if(new_status == CMT_STOP) {
+				if(d_cmt_stop != NULL) d_cmt_stop->write_signal(SIG_WAV_SOUNDER_ADD, 1, 1);
+			}
+#endif
+
 			databuf[0x1a][0] = new_status;
+			
 		}
 		break;
 	case 0xea:

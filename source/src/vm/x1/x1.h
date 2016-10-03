@@ -108,12 +108,22 @@
 #define USE_SCANLINE
 #define USE_ACCESS_LAMP
 #define USE_SOUND_DEVICE_TYPE		3
+// ToDo
+#define USE_SOUND_FILES             5
 // CZ-8BS1 x1
 #define SOUND_DEVICE_TYPE_DEFAULT	1
-#if defined(_X1TWIN)
-#define USE_SOUND_VOLUME	5
+#if defined(USE_SOUND_FILES)
+# if defined(_X1TWIN)
+# define USE_SOUND_VOLUME	7
+# else
+# define USE_SOUND_VOLUME	6
+# endif
 #else
-#define USE_SOUND_VOLUME	4
+# if defined(_X1TWIN)
+# define USE_SOUND_VOLUME	5
+# else
+# define USE_SOUND_VOLUME	4
+# endif
 #endif
 #define USE_JOYSTICK
 #define USE_JOY_BUTTON_CAPTIONS
@@ -131,6 +141,9 @@ static const _TCHAR *sound_device_caption[] = {
 	_T("PSG"), _T("CZ-8BS1 #1"), _T("CZ-8BS1 #2"), _T("CMT"),
 #if defined(_X1TWIN)
 	_T("Voice"),
+#endif
+#if defined(USE_SOUND_FILES)
+	_T("FDD SEEK"), _T("CMT BUTTONS"),
 #endif
 };
 #endif
@@ -274,7 +287,9 @@ class KEYBOARD;
 class HUC6280;
 class PCE;
 #endif
-
+#if defined(USE_SOUND_FILES)
+class WAV_SOUNDER;
+#endif
 class VM
 {
 protected:
@@ -300,7 +315,13 @@ protected:
 #ifdef _X1TURBO_FEATURE
 	Z80DMA* dma;
 #endif
-	
+#if defined(USE_SOUND_FILES)
+	WAV_SOUNDER *fdd_seek;
+	WAV_SOUNDER *cmt_eject;
+	//WAV_SOUNDER *cmt_ffrew;
+	WAV_SOUNDER *cmt_play;
+	WAV_SOUNDER *cmt_stop;
+#endif
 	DISPLAY* display;
 	EMM* emm;
 	FLOPPY* floppy;
