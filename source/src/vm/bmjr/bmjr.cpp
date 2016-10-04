@@ -51,6 +51,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_cpu(cpu);
 	event->set_context_sound(drec);
 	event->set_context_sound(memory);
+#if defined(USE_SOUND_FILES)
+	drec->load_sound_data(DATAREC_SNDFILE_RELAY_ON, _T("RELAY_ON.WAV"));
+	drec->load_sound_data(DATAREC_SNDFILE_RELAY_OFF, _T("RELAYOFF.WAV"));
+#endif
 	
 	drec->set_context_ear(memory, SIG_MEMORY_DATAREC_EAR, 1);
 	
@@ -171,7 +175,18 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		memory->set_volume(0, decibel_l, decibel_r);
 	} else if(ch == 1) {
 		drec->set_volume(0, decibel_l, decibel_r);
+#if defined(DATAREC_SOUND)
+		drec->set_volume(1, decibel_l, decibel_r);
+#endif
 	}
+#if defined(USE_SOUND_FILES)
+	else if(ch == 2) {
+		drec->set_volume(2 + DATAREC_SNDFILE_RELAY_ON, decibel_l, decibel_r);
+		drec->set_volume(2 + DATAREC_SNDFILE_RELAY_OFF, decibel_l, decibel_r);
+		//drec->set_volume(2 + DATAREC_SNDFILE_EJECT, decibel_l, decibel_r);
+	}		
+#endif
+
 }
 #endif
 

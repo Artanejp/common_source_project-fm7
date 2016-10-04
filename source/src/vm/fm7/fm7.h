@@ -36,7 +36,7 @@
 #define USE_ACCESS_LAMP
 #define USE_STATE
 #define USE_DEBUGGER
-#define DATAREC_SOUND
+//#define DATAREC_SOUND
 #define USE_DIG_RESOLUTION
 #if defined(_USE_QT)
 #define USE_SOUND_FILES 3

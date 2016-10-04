@@ -71,6 +71,9 @@ void CMT::forward()
 	if(play || rec) {
 		d_drec->set_ff_rew(0);
 		d_drec->set_remote(true);
+#if defined(USE_SOUND_FILES)
+		d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_PLAY, 1, 1);
+#endif
 	}
 	now_play = (play || rec);
 	now_rewind = false;
@@ -80,6 +83,9 @@ void CMT::stop()
 {
 	if(play || rec) {
 		d_drec->set_remote(false);
+#if defined(USE_SOUND_FILES)
+		d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_STOP, 1, 1);
+#endif
 	}
 	now_play = now_rewind = false;
 	d_pio->write_signal(SIG_I8255_PORT_B, 0, 0x40);
@@ -224,6 +230,9 @@ void CMT::write_signal(int id, uint32_t data, uint32_t mask)
 				fast_rewind();
 			}
 #endif
+#if defined(USE_SOUND_FILES)
+			d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_STOP, 1, 1);
+#endif
 			now_play = false;
 		}
 	} else if(id == SIG_CMT_TOP) {
@@ -232,6 +241,9 @@ void CMT::write_signal(int id, uint32_t data, uint32_t mask)
 			if(!(pa & 0x40)) {
 				forward();
 			}
+#endif
+#if defined(USE_SOUND_FILES)
+			d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_STOP, 1, 1);
 #endif
 			now_rewind = false;
 		}
@@ -275,6 +287,9 @@ void CMT::event_callback(int event_id, int err)
 	} else if(event_id == EVENT_EJECT) {
 		emu->close_tape();
 		register_id_eject = -1;
+#if defined(USE_SOUND_FILES)
+	d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_EJECT, 1, 1);
+#endif
 #ifndef _MZ80B
 	} else if(event_id == EVENT_APSS) {
 		d_pio->write_signal(SIG_I8255_PORT_B, 0, 0x40);
@@ -288,6 +303,16 @@ void CMT::event_callback(int event_id, int err)
 
 void CMT::play_tape(bool value)
 {
+#if defined(USE_SOUND_FILES)
+	if(play != value) {
+		if(value) {
+			d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_PLAY, 1, 1);
+		} else {
+			d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_STOP, 1, 1);
+		}
+	}
+#endif
+
 	play = value;
 	rec = false;
 	d_pio->write_signal(SIG_I8255_PORT_B, play ? 0x10 : 0x30, 0x30);
@@ -296,6 +321,15 @@ void CMT::play_tape(bool value)
 void CMT::rec_tape(bool value)
 {
 	play = false;
+#if defined(USE_SOUND_FILES)
+	if(rec != value) {
+		if(value) {
+			d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_PLAY, 1, 1);
+		} else {
+			d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_STOP, 1, 1);
+		}
+	}
+#endif
 	rec = value;
 	d_pio->write_signal(SIG_I8255_PORT_B, rec ? 0 : 0x30, 0x30);
 }
@@ -306,6 +340,9 @@ void CMT::close_tape()
 	now_play = now_rewind = false;
 	d_pio->write_signal(SIG_I8255_PORT_B, 0x30, 0x30);
 	d_pio->write_signal(SIG_I8255_PORT_B, 0, 0x40);
+#if defined(USE_SOUND_FILES)
+	d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_EJECT, 1, 1);
+#endif
 	
 #ifndef _MZ80B
 	if(register_id_apss != -1) {

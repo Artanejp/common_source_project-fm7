@@ -31,7 +31,12 @@
 #define USE_AUTO_KEY_RELEASE	10
 //#define USE_CRT_FILTER
 //#define USE_SCANLINE
+#define USE_SOUND_FILES 2
+#if defined(USE_SOUND_FILES)
+#define USE_SOUND_VOLUME	3
+#else
 #define USE_SOUND_VOLUME	2
+#endif
 #define USE_DEBUGGER
 #define USE_STATE
 
@@ -41,6 +46,9 @@
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
 	_T("Beep"), _T("CMT"),
+#if defined(USE_SOUND_FILES)
+	_T("CMT RELAY"),
+#endif
 };
 #endif
 

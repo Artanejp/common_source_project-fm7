@@ -36,9 +36,6 @@
 #define MB8877_SND_TYPE_HEAD 1
 #endif
 class DISK;
-#if defined(USE_SOUND_FILES)
-class WAV_SOUNDER;
-#endif
 class MB8877 : public DEVICE
 {
 private:
@@ -136,7 +133,6 @@ private:
 	void set_drq(bool val);
 	
 #if defined(USE_SOUND_FILES)
-protected:
 	_TCHAR snd_seek_name[512];
 	_TCHAR snd_head_name[512];
 	int snd_seek_mix_tbl[MB8877_SND_TBL_MAX];

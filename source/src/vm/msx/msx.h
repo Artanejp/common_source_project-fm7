@@ -64,10 +64,24 @@
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		6
 #define USE_AUTO_KEY_RELEASE	10
+#if defined(USE_FD1)
+#define USE_SOUND_FILES		4
+#else
+#define USE_SOUND_FILES		3
+#endif
+#if defined(USE_SOUND_FILES)
+#if defined(_PX7)
+#define USE_SOUND_VOLUME	5
+#else
+//#define USE_SOUND_VOLUME	5
+#define USE_SOUND_VOLUME	4
+#endif
+#else
 #if defined(_PX7)
 #define USE_SOUND_VOLUME	4
 #else
 #define USE_SOUND_VOLUME	3
+#endif
 #endif
 #define USE_JOYSTICK
 #define USE_DEBUGGER
@@ -81,6 +95,12 @@ static const _TCHAR *sound_device_caption[] = {
 	_T("PSG"), _T("Beep"), _T("CMT"),
 #if defined(_PX7)
 	_T("LD-700"),
+#endif
+#if defined(USE_SOUND_FILES)
+#if defined(USE_FD1)
+	//_T("FDD SEEK"),
+#endif
+	_T("CMT Buttons"),
 #endif
 };
 #endif

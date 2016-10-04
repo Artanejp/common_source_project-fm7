@@ -111,6 +111,24 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_cpu(cpu);
 	event->set_context_sound(pcm);
 	event->set_context_sound(drec);
+#if defined(USE_SOUND_FILES)
+
+#if defined(SUPPORT_MZ80AIF)
+	if(fdc->load_sound_data(MB8877_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
+		event->set_context_sound(fdc);
+	}
+#elif defined(SUPPORT_MZ80FIO)
+	if(fdc->load_sound_data(T3444A_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
+		event->set_context_sound(fdc);
+	}
+#endif
+	
+	drec->load_sound_data(DATAREC_SNDFILE_EJECT, _T("CMTEJECT.WAV"));
+	//drec->load_sound_data(DATAREC_SNDFILE_PLAY, _T("CMTPLAY.WAV"));
+	//drec->load_sound_data(DATAREC_SNDFILE_STOP, _T("CMTSTOP.WAV"));
+	drec->load_sound_data(DATAREC_SNDFILE_RELAY_ON, _T("CMTPLAY.WAV"));
+	drec->load_sound_data(DATAREC_SNDFILE_RELAY_OFF, _T("CMTSTOP.WAV"));
+#endif
 	
 #if defined(_MZ1200) || defined(_MZ80A)
 	and_int->set_context_out(cpu, SIG_CPU_IRQ, 1);
@@ -300,6 +318,19 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 	} else if(ch == 1) {
 		drec->set_volume(0, decibel_l, decibel_r);
 	}
+#if defined(USE_SOUND_FILES)
+	else if(ch == 2) {
+#if defined(SUPPORT_MZ80AIF)
+		fdc->set_volume(MB8877_SND_TYPE_SEEK, decibel_l, decibel_r);
+#elif defined(SUPPORT_MZ80FIO)
+		fdc->set_volume(T3444A_SND_TYPE_SEEK, decibel_l, decibel_r);
+#endif
+	} else if(ch == 3) {
+		drec->set_volume(2 + DATAREC_SNDFILE_RELAY_ON, decibel_l, decibel_r);
+		drec->set_volume(2 + DATAREC_SNDFILE_RELAY_OFF, decibel_l, decibel_r);
+		drec->set_volume(2 + DATAREC_SNDFILE_EJECT, decibel_l, decibel_r);
+	}		
+#endif
 }
 #endif
 
@@ -364,6 +395,9 @@ void VM::rec_tape(const _TCHAR* file_path)
 
 void VM::close_tape()
 {
+#if defined(USE_SOUND_FILES)
+	drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_EJECT, 1, 1);
+#endif
 	drec->close_tape();
 	drec->write_signal(SIG_DATAREC_REMOTE, 0, 0);
 }

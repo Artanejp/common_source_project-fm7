@@ -36,6 +36,7 @@
 #define Z80_IO_WAIT
 
 // device informations for win32
+#define USE_SOUND_FILES 4
 #define USE_SPECIAL_RESET
 #define USE_FD1
 #define USE_FD2
@@ -52,7 +53,11 @@
 #define USE_CRT_FILTER
 #define USE_SCANLINE
 #define USE_ACCESS_LAMP
+#if defined(USE_SOUND_FILES)
+#define USE_SOUND_VOLUME	7
+#else
 #define USE_SOUND_VOLUME	5
+#endif
 #define USE_JOYSTICK
 #define USE_MOUSE
 #define USE_PRINTER
@@ -66,6 +71,9 @@
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
 	_T("OPN (FM)"), _T("OPN (PSG)"), _T("Beep"), _T("CMT (Signal)"), _T("CMT (Voice)"),
+#if defined(USE_SOUND_FILES)
+	_T("FDD SEEK"), _T("CMT Buttons"),
+#endif
 };
 #endif
 

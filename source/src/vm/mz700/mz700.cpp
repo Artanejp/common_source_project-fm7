@@ -153,6 +153,28 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_sound(psg_r);
 #endif
 	event->set_context_sound(drec);
+
+#if defined(USE_SOUND_FILES)
+#if defined(_MZ800) || defined(_MZ1500)
+	if(fdc->load_sound_data(MB8877_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
+		event->set_context_sound(fdc);
+	}
+	//if(qd->load_sound_data(MB8877_SND_TYPE_SEEK, _T("QD_SEEK.WAV"))) {
+	//	event->set_context_sound(qd);
+	//}
+#endif
+	drec->load_sound_data(DATAREC_SNDFILE_EJECT, _T("CMTEJECT.WAV"));
+	//drec->load_sound_data(DATAREC_SNDFILE_PLAY, _T("CMTPLAY.WAV"));
+	//drec->load_sound_data(DATAREC_SNDFILE_STOP, _T("CMTSTOP.WAV"));
+#if defined(_MZ1500)
+	// Is MZ-821?
+	drec->load_sound_data(DATAREC_SNDFILE_RELAY_ON, _T("RELAY_ON.WAV"));
+	drec->load_sound_data(DATAREC_SNDFILE_RELAY_OFF, _T("RELAYOFF.WAV"));
+#else
+	drec->load_sound_data(DATAREC_SNDFILE_RELAY_ON, _T("CMTPLAY.WAV"));
+	drec->load_sound_data(DATAREC_SNDFILE_RELAY_OFF, _T("CMTSTOP.WAV"));
+#endif
+#endif
 	
 	// VRAM/PCG wait
 	memory->set_context_cpu(cpu);
@@ -523,6 +545,18 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 	} else if(ch-- == 0) {
 		drec->set_volume(0, decibel_l, decibel_r);
 	}
+#if defined(USE_SOUND_FILES)
+#if defined(_MZ1500) || defined(_MZ800)
+	else if(ch-- == 0) {
+		fdc->set_volume(MB8877_SND_TYPE_SEEK, decibel_l, decibel_r);
+	}
+#endif
+	else if(ch-- == 0) {
+		drec->set_volume(2 + DATAREC_SNDFILE_RELAY_ON, decibel_l, decibel_r);
+		drec->set_volume(2 + DATAREC_SNDFILE_RELAY_OFF, decibel_l, decibel_r);
+		drec->set_volume(2 + DATAREC_SNDFILE_EJECT, decibel_l, decibel_r);
+	}		
+#endif
 }
 #endif
 
@@ -544,6 +578,9 @@ void VM::rec_tape(const _TCHAR* file_path)
 
 void VM::close_tape()
 {
+#if defined(USE_SOUND_FILES)
+	drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_EJECT, 1, 1);
+#endif
 	drec->close_tape();
 	drec->set_remote(false);
 }

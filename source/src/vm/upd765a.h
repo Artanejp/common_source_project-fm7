@@ -140,7 +140,6 @@ private:
 	void cmd_invalid();
 	
 #if defined(USE_SOUND_FILES)
-protected:
 	_TCHAR snd_seek_name[512];
 	_TCHAR snd_head_name[512];
 	int snd_seek_mix_tbl[UPD765A_SND_TBL_MAX];

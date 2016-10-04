@@ -123,6 +123,14 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #endif
 	event->set_context_sound(pcm);
 	event->set_context_sound(drec);
+#if defined(USE_SOUND_FILES)
+	if(fdc->load_sound_data(MB8877_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
+		event->set_context_sound(fdc);
+	}
+	drec->load_sound_data(DATAREC_SNDFILE_EJECT, _T("CMTEJECT.WAV"));
+	drec->load_sound_data(DATAREC_SNDFILE_PLAY, _T("CMTPLAY.WAV"));
+	drec->load_sound_data(DATAREC_SNDFILE_STOP, _T("CMTSTOP.WAV"));
+#endif
 	
 	drec->set_context_ear(cmt, SIG_CMT_OUT, 1);
 	drec->set_context_remote(cmt, SIG_CMT_REMOTE, 1);

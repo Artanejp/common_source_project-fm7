@@ -22,6 +22,21 @@
 #define SIG_T3444A_DRDY		4
 #define SIG_T3444A_CRDY		5
 #define SIG_T3444A_RQM		6
+#if defined(USE_SOUND_FILES)
+#define T3444A_SND_TBL_MAX 256
+#ifndef SIG_SOUNDER_MUTE
+#define SIG_SOUNDER_MUTE    	(65536 + 0)
+#endif
+#ifndef SIG_SOUNDER_RELOAD
+#define SIG_SOUNDER_RELOAD    	(65536 + 32)
+#endif
+#ifndef SIG_SOUNDER_ADD
+#define SIG_SOUNDER_ADD     	(65536 + 64)
+#endif
+
+#define T3444A_SND_TYPE_SEEK 0
+#define T3444A_SND_TYPE_HEAD 1
+#endif
 
 #ifdef HAS_T3444M
 #define SECTORS_IN_TRACK	16
@@ -100,12 +115,38 @@ private:
 	// rqm
 	void set_rqm(bool val);
 	
+#if defined(USE_SOUND_FILES)
+	_TCHAR snd_seek_name[512];
+	_TCHAR snd_head_name[512];
+	int snd_seek_mix_tbl[T3444A_SND_TBL_MAX];
+	int snd_head_mix_tbl[T3444A_SND_TBL_MAX];
+	int16_t *snd_seek_data; // Read only
+	int16_t *snd_head_data; // Read only
+	int snd_seek_samples_size;
+	int snd_head_samples_size;
+	bool snd_mute;
+	int snd_level_l, snd_level_r;
+	virtual void mix_main(int32_t *dst, int count, int16_t *src, int *table, int samples);
+	void add_sound(int type);
+#endif
 public:
 	T3444A(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_rqm);
 		tnd = true;
 		motor_on = false;
+#if defined(USE_SOUND_FILES)
+		for(int i = 0; i < T3444A_SND_TBL_MAX; i++) {
+			snd_seek_mix_tbl[i] = -1;
+			snd_head_mix_tbl[i] = -1;
+		}
+		snd_seek_data = snd_head_data = NULL;
+		snd_seek_samples_size = snd_head_samples_size = 0;
+		snd_mute = false;
+		snd_level_l = snd_level_r = decibel_to_volume(0);
+		memset(snd_seek_name, 0x00, sizeof(snd_seek_name));
+		memset(snd_head_name, 0x00, sizeof(snd_head_name));
+#endif
 		set_device_name(_T("T3444A FDC"));
 	}
 	~T3444A() {}
@@ -133,6 +174,15 @@ public:
 	{
 		return disk[drv];
 	}
+#if defined(USE_SOUND_FILES)
+	// Around SOUND. 20161004 K.O
+	bool load_sound_data(int type, const _TCHAR *pathname);
+	void release_sound_data(int type);
+	bool reload_sound_data(int type);
+	
+	void mix(int32_t *buffer, int cnt);
+	void set_volume(int ch, int decibel_l, int decibel_r);
+#endif
 	void open_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_disk(int drv);
 	bool is_disk_inserted(int drv);
