@@ -712,6 +712,8 @@ void DLL_PREFIX get_host_time(cur_time_t* cur_time)
 #endif
 }
 
+
+
 void cur_time_t::increment()
 {
 	if(++second >= 60) {

@@ -51,7 +51,6 @@
 #define DISK_BUFFER_SIZE	0x380000	// 3.5MB
 #define TRACK_BUFFER_SIZE	0x080000	// 0.5MB
 
-
 class FILEIO;
 
 class DISK
@@ -92,7 +91,6 @@ private:
 	
 	// solid image decoder (fdi/tfd/2d/img/sf7)
 	bool solid_to_d88(FILEIO *fio, int type, int ncyl, int nside, int nsec, int size, bool mfm);
-	
 public:
 #ifndef _ANY2D88
 	DISK(EMU* parent_emu) : emu(parent_emu)

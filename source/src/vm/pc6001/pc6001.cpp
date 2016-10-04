@@ -34,9 +34,6 @@
 
 #include "../datarec.h"
 #include "../mcs48.h"
-#if defined(USE_SOUND_FILES)
-#include "../wav_sounder.h"
-#endif
 
 #ifdef USE_DEBUGGER
 #include "../debugger.h"
@@ -149,6 +146,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		drec = new DATAREC(this, emu);
 		event->set_context_cpu(cpu_sub, 8000000);
 		event->set_context_sound(drec);
+#if defined(USE_SOUND_FILES)
+		drec->load_sound_data(DATAREC_SNDFILE_RELAY_ON, _T("RELAY_ON.WAV"));
+		drec->load_sound_data(DATAREC_SNDFILE_RELAY_OFF, _T("RELAY_OFF.WAV"));
+#endif		
 		cpu_sub->set_context_mem(new MCS48MEM(this, emu));
 		cpu_sub->set_context_io(sub);
 #ifdef USE_DEBUGGER
@@ -184,10 +185,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		cpu_pc80s31k->set_device_name(_T("Z80 CPU(PC-80S31K)"));
 #endif
 #if defined(USE_SOUND_FILES)
-		d_pc80s31k_seek = new WAV_SOUNDER(this, emu);
-		if(d_pc80s31k_seek->load_data(_T("FDDSEEK.WAV"))) {
-			event->set_context_sound(d_pc80s31k_seek);
-			fdc_pc80s31k->set_context_seek(d_pc80s31k_seek);
+		if(fdc_pc80s31k->load_sound_data(UPD765A_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
+			event->set_context_sound(fdc_pc80s31k);
 		}
 #endif		
 		event->set_context_cpu(cpu_pc80s31k, 4000000);
@@ -220,15 +219,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		floppy->set_context_ext(pc6031);
 #endif
 #if defined(USE_SOUND_FILES)
-		d_pc6031_seek = new WAV_SOUNDER(this, emu);
-		if(d_pc6031_seek->load_data(_T("FDDSEEK.WAV"))) {
-			event->set_context_sound(d_pc6031_seek);
-			pc6031->set_context_seek(d_pc6031_seek);
+		if(pc6031->load_sound_data(PC6031_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
+			event->set_context_sound(pc6031);
 		}
-		d_floppy_seek = new WAV_SOUNDER(this, emu);
-		if(d_floppy_seek->load_data(_T("FDDSEEK.WAV"))) {
-			event->set_context_sound(d_floppy_seek);
-			floppy->set_context_seek(d_floppy_seek);
+		if(floppy->load_sound_data(FLOPPY_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
+			event->set_context_sound(floppy);
 		}
 #endif		
 		cpu_pc80s31k = NULL;
@@ -428,9 +423,12 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 	}
 #if defined(USE_SOUND_FILES)
 	 else if(ch-- == 0) {
-		 if(d_pc80s31k_seek != NULL) d_pc80s31k_seek->set_volume(0, decibel_l, decibel_r);
-		 if(d_pc6031_seek != NULL) d_pc6031_seek->set_volume(0, decibel_l, decibel_r);
-		 if(d_floppy_seek != NULL) d_floppy_seek->set_volume(0, decibel_l, decibel_r);
+		 if(support_pc80s31k) {
+			 if(fdc_pc80s31k != NULL) fdc_pc80s31k->set_volume(0, decibel_l, decibel_r);
+		 } else {
+			 if(pc6031 != NULL) pc6031->set_volume(0, decibel_l, decibel_r);
+			 if(floppy != NULL) floppy->set_volume(0, decibel_l, decibel_r);
+		 }
 	}
 #endif
 }

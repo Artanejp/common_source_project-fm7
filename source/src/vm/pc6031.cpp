@@ -18,9 +18,6 @@
 #include "pc6031.h"
 #include "disk.h"
 #if defined(USE_SOUND_FILES)
-#include "wav_sounder.h"
-#endif
-#if defined(USE_SOUND_FILES)
 #define EVENT_SEEK_SOUND 2
 #endif
 
@@ -38,7 +35,7 @@ void PC6031::event_callback(int event_id, int err)
 		} else {
 			seek_event_id[drvno] = -1;
 		}
-		if(d_seek_sound != NULL) d_seek_sound->write_signal(SIG_WAV_SOUNDER_ADD, 1, 1);
+		add_sound(PC6031_SND_TYPE_SEEK);
 	}
 #endif
 }
@@ -418,6 +415,154 @@ bool PC6031::is_disk_protected(int drv)
 	return false;
 }
 
+#if defined(USE_SOUND_FILES)
+void PC6031::add_sound(int type)
+{
+	int *p;
+	if(type == PC6031_SND_TYPE_SEEK) {
+		p = snd_seek_mix_tbl;
+	} else if(type == PC6031_SND_TYPE_HEAD) {
+		p = snd_head_mix_tbl;
+	} else {
+		return;
+	}
+	for(int i = 0; i < PC6031_SND_TBL_MAX; i++) {
+		if(p[i] < 0) {
+			p[i] = 0;
+			break;
+		}
+	}
+}
+
+bool PC6031::load_sound_data(int type, const _TCHAR *pathname)
+{
+	if((type < 0) || (type > 1)) return false;
+	int16_t *data = NULL;
+	int dst_size = 0;
+	int id = (this_device_id << 8) + type;
+	const _TCHAR *sp;
+	sp = create_local_path(pathname);
+	emu->load_sound_file(id, sp, &data, &dst_size);
+	if((dst_size <= 0) || (data == NULL)) { // Failed
+		this->out_debug_log("ID=%d : Failed to load SOUND FILE for %s:%s", id, (type == 0) ? _T("SEEK") : _T("HEAD") ,pathname);
+		return false;
+	} else {
+		int utl_size = dst_size * 2 * sizeof(int16_t);
+		int alloc_size = utl_size + 64;
+		switch(type) {
+		case PC6031_SND_TYPE_SEEK: // SEEK
+			snd_seek_data = (int16_t *)malloc(alloc_size);
+			memcpy(snd_seek_data, data, utl_size);
+			strncpy(snd_seek_name, pathname, 511);
+			snd_seek_samples_size = dst_size;
+			break;
+		case PC6031_SND_TYPE_HEAD: // HEAD
+			snd_seek_data = (int16_t *)malloc(alloc_size);
+			memcpy(snd_head_data, data, utl_size);
+			strncpy(snd_head_name, pathname, 511);
+			snd_head_samples_size = dst_size;
+			break;
+		default:
+			this->out_debug_log("ID=%d : Illegal type (%d): 0 (SEEK SOUND) or 1 (HEAD SOUND) is available.",
+								id, type);
+			return false;
+		}
+		this->out_debug_log("ID=%d : Success to load SOUND FILE for %s:%s",
+							id, (type == 0) ? _T("SEEK") : _T("HEAD") ,
+							pathname);
+	}
+	return true;
+}
+
+void PC6031::release_sound_data(int type)
+{
+	switch(type) {
+	case PC6031_SND_TYPE_SEEK: // SEEK
+		if(snd_seek_data != NULL) free(snd_seek_data);
+		memset(snd_seek_name, 0x00, sizeof(snd_seek_name));
+		snd_seek_data = NULL;
+		break;
+	case PC6031_SND_TYPE_HEAD: // HEAD
+		if(snd_head_data != NULL) free(snd_head_data);
+		memset(snd_head_name, 0x00, sizeof(snd_head_name));
+		snd_head_data = NULL;
+			break;
+	default:
+		break;
+	}
+}
+
+bool PC6031::reload_sound_data(int type)
+{
+	switch(type) {
+	case PC6031_SND_TYPE_SEEK: // SEEK
+		if(snd_seek_data != NULL) free(snd_seek_data);
+		break;
+	case PC6031_SND_TYPE_HEAD:
+		if(snd_seek_data != NULL) free(snd_seek_data);
+		break;
+	default:
+		return false;
+		break;
+	}
+	_TCHAR *p = (type == PC6031_SND_TYPE_SEEK) ? snd_seek_name : snd_head_name;
+    _TCHAR tmps[512];
+	strncpy(tmps, p, 511);
+	return load_sound_data(type, tmps);
+}
+
+void PC6031::mix_main(int32_t *dst, int count, int16_t *src, int *table, int samples)
+{
+	int ptr, pp;
+	int i, j, k;
+	int32_t data[2];
+	int32_t *dst_tmp;
+	for(i=0; i < PC6031_SND_TBL_MAX; i++) {
+		ptr = table[i];
+		if(ptr >= 0) {
+			if(ptr < samples) {
+				if(!snd_mute) {
+					pp = ptr << 1;
+					dst_tmp = dst;
+					k = 0;
+					for(j = 0; j < count; j++) {
+						if(ptr >= samples) {
+							break;
+						}
+						data[0] = (int32_t)src[pp + 0];
+						data[1] = (int32_t)src[pp + 1];
+						dst_tmp[k + 0] += apply_volume((int32_t)data[0], snd_level_l);
+						dst_tmp[k + 1] += apply_volume((int32_t)data[1], snd_level_r);
+						k += 2;
+						pp += 2;
+						ptr++;
+					}
+				} else {
+					ptr += count;
+				}
+			}
+			if(ptr >= samples) {
+				table[i] = -1;
+			} else {
+				table[i] = ptr;
+			}
+		}
+	}
+}
+
+void PC6031::mix(int32_t *buffer, int cnt)
+{
+	if(snd_seek_data != NULL) mix_main(buffer, cnt, snd_seek_data, snd_seek_mix_tbl, snd_seek_samples_size);
+	if(snd_head_data != NULL) mix_main(buffer, cnt, snd_head_data, snd_head_mix_tbl, snd_head_samples_size);
+}
+
+void PC6031::set_volume(int ch, int decibel_l, int decibel_r)
+{
+	snd_level_l = decibel_to_volume(decibel_l);
+	snd_level_r = decibel_to_volume(decibel_r);
+}
+#endif
+
 #define STATE_VERSION	2
 
 void PC6031::save_state(FILEIO* state_fio)
@@ -438,10 +583,23 @@ void PC6031::save_state(FILEIO* state_fio)
 	state_fio->FputUint8(old_D2H);
 	state_fio->FputUint8(io_D3H);
 	state_fio->FputInt32(DrvNum);
+#if defined(USE_SOUND_FILES)
 	for(int i = 0; i < 2; i++) {
 		state_fio->FputInt32(seek_event_id[i]);
 		state_fio->FputInt32(seek_track_num[i]);
 	}
+	state_fio->Fwrite(snd_seek_name, sizeof(snd_seek_name), 1);
+	state_fio->Fwrite(snd_head_name, sizeof(snd_head_name), 1);
+	for(int i = 0; i < PC6031_SND_TBL_MAX; i++) {
+		state_fio->FputInt32(snd_seek_mix_tbl[i]);
+	}
+	for(int i = 0; i < PC6031_SND_TBL_MAX; i++) {
+		state_fio->FputInt32(snd_head_mix_tbl[i]);
+	}
+	state_fio->FputBool(snd_mute);
+	state_fio->FputInt32(snd_level_l);
+	state_fio->FputInt32(snd_level_r);
+#endif
 }
 
 bool PC6031::load_state(FILEIO* state_fio)
@@ -467,10 +625,35 @@ bool PC6031::load_state(FILEIO* state_fio)
 	old_D2H = state_fio->FgetUint8();
 	io_D3H = state_fio->FgetUint8();
 	DrvNum = state_fio->FgetInt32();
+#if defined(USE_SOUND_FILES)
 	for(int i = 0; i < 2; i++) {
 		seek_event_id[i] = state_fio->FgetInt32();
 		seek_track_num[i] = state_fio->FgetInt32();
 	}
+	state_fio->Fread(snd_seek_name, sizeof(snd_seek_name), 1);
+	state_fio->Fread(snd_head_name, sizeof(snd_head_name), 1);
+	for(int i = 0; i < PC6031_SND_TBL_MAX; i++) {
+		snd_seek_mix_tbl[i] = state_fio->FgetInt32();
+	}
+	for(int i = 0; i < PC6031_SND_TBL_MAX; i++) {
+		snd_head_mix_tbl[i] = state_fio->FgetInt32();
+	}
+	snd_mute = state_fio->FgetBool();
+	snd_level_l = state_fio->FgetInt32();
+	snd_level_r = state_fio->FgetInt32();
+	if(snd_seek_data != NULL) free(snd_seek_data);
+	if(snd_head_data != NULL) free(snd_head_data);
+	if(strlen(snd_seek_name) > 0) {
+		_TCHAR tmps[512];
+		strncpy(tmps, snd_seek_name, 511);
+		load_sound_data(PC6031_SND_TYPE_SEEK, (const _TCHAR *)tmps);
+	}
+	if(strlen(snd_head_name) > 0) {
+		_TCHAR tmps[512];
+		strncpy(tmps, snd_head_name, 511);
+		load_sound_data(PC6031_SND_TYPE_HEAD, (const _TCHAR *)tmps);
+	}
+#endif
 	return true;
 }
 

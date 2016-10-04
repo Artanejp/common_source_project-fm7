@@ -100,6 +100,15 @@ void DATAREC::write_signal(int id, uint32_t data, uint32_t mask)
 		}
 		trigger = signal;
 	}
+#if defined(USE_SOUND_FILES)
+	else if((id >= SIG_SOUNDER_MUTE) && (id < (SIG_SOUNDER_MUTE + DATAREC_SNDFILE_END))) {
+		snd_mute[id - SIG_SOUNDER_MUTE] = signal;
+	} else if((id >= SIG_SOUNDER_RELOAD) && (id < (SIG_SOUNDER_RELOAD + DATAREC_SNDFILE_END))) {
+		reload_sound_data(id - SIG_SOUNDER_RELOAD);
+	} else if((id >= SIG_SOUNDER_ADD) && (id < (SIG_SOUNDER_ADD + DATAREC_SNDFILE_END))) {
+		add_sound(id - SIG_SOUNDER_ADD);
+	}
+#endif
 }
 
 void DATAREC::event_frame()
@@ -279,6 +288,11 @@ void DATAREC::event_callback(int event_id, int err)
 void DATAREC::set_remote(bool value)
 {
 	if(remote != value) {
+		if(value) {
+			add_sound(DATAREC_SNDFILE_RELAY_ON);
+		} else {
+			add_sound(DATAREC_SNDFILE_RELAY_OFF);
+		}
 		remote = value;
 		update_event();
 	}
@@ -1456,7 +1470,105 @@ int DATAREC::load_msx_cas_image()
 	free(bytes);
 	return samples_pos;
 }
+#if defined(USE_SOUND_FILES)
+void DATAREC::add_sound(int type)
+{
+	int *p;
+	if((type < 0) || (type >= DATAREC_SNDFILE_END)) return;
+	p = snd_mix_tbls[type];
+	for(int i = 0; i < DATAREC_SND_TBL_MAX; i++) {
+		if(p[i] < 0) {
+			p[i] = 0;
+			break;
+		}
+	}
+}
 
+bool DATAREC::load_sound_data(int type, const _TCHAR *pathname)
+{
+	if((type < 0) || (type >= DATAREC_SNDFILE_END)) return false;
+	int16_t *data = NULL;
+	int dst_size = 0;
+	int id = (this_device_id << 8) + type;
+	const _TCHAR *sp;
+	sp = create_local_path(pathname);
+	emu->load_sound_file(id, sp, &data, &dst_size);
+	if((dst_size <= 0) || (data == NULL)) { // Failed
+		this->out_debug_log("ID=%d : Failed to load SOUND FILE for TYPE=%d:%s", id, type ,pathname);
+		snd_datas[type] = NULL;
+		snd_samples[type] = 0;
+		return false;
+	} else {
+		int utl_size = dst_size * 2 * sizeof(int16_t);
+		int alloc_size = utl_size + 64;
+		snd_datas[type] = (int16_t *)malloc(alloc_size);
+		memcpy(snd_datas[type], data, utl_size);
+		strncpy(snd_file_names[type], pathname, 511);
+		snd_samples[type] = dst_size;
+		this->out_debug_log("ID=%d : Success to load SOUND FILE for TYPE %d:%s",
+							id, type , pathname);
+	}
+	return true;
+}
+
+void DATAREC::release_sound_data(int type)
+{
+	if((type < 0) || (type >= DATAREC_SNDFILE_END)) return;
+	if(snd_datas[type] != NULL) free(snd_datas[type]);
+	snd_datas[type] = NULL;
+	memset(snd_file_names[type], 0x00, sizeof(_TCHAR) * 512);
+}
+
+bool DATAREC::reload_sound_data(int type)
+{
+	if((type < 0) || (type >= DATAREC_SNDFILE_END)) return false;
+	if(snd_datas[type] != NULL) free(snd_datas[type]);
+	_TCHAR *p = snd_file_names[type];
+    _TCHAR tmps[512];
+	strncpy(tmps, p, 511);
+	return load_sound_data(type, tmps);
+}
+
+void DATAREC::mix_sndfiles(int ch, int32_t *dst, int cnt, int16_t *src, int samples)
+{
+	int ptr, pp;
+	int i, j, k;
+	int32_t data[2];
+	int32_t *dst_tmp;
+	int *table = snd_mix_tbls[ch];
+	for(i=0; i < DATAREC_SND_TBL_MAX; i++) {
+		ptr = table[i];
+		if(ptr >= 0) {
+			if(ptr < samples) {
+				if(!snd_mute[ch]) {
+					pp = ptr << 1;
+					dst_tmp = dst;
+					k = 0;
+					for(j = 0; j < cnt; j++) {
+						if(ptr >= samples) {
+							break;
+						}
+						data[0] = (int32_t)src[pp + 0];
+						data[1] = (int32_t)src[pp + 1];
+						dst_tmp[k + 0] += apply_volume((int32_t)data[0], snd_level_l[ch]);
+						dst_tmp[k + 1] += apply_volume((int32_t)data[1], snd_level_r[ch]);
+						k += 2;
+						pp += 2;
+						ptr++;
+					}
+				} else {
+					ptr += cnt;
+				}
+			}
+		}
+		if(ptr >= samples) {
+			table[i] = -1;
+		} else {
+			table[i] = ptr;
+		}
+	}
+}
+#endif
 void DATAREC::mix(int32_t* buffer, int cnt)
 {
 	int32_t* buffer_tmp = buffer;
@@ -1527,6 +1639,12 @@ void DATAREC::mix(int32_t* buffer, int cnt)
 		}
 	}
 #endif
+#if defined(USE_SOUND_FILES)
+	for(int j = 0; j < DATAREC_SNDFILE_END; j++) {
+		if(snd_datas[j] != NULL) mix_sndfiles(j, buffer, cnt,
+											  snd_datas[j], snd_samples[j]);
+	}
+#endif
 }
 
 void DATAREC::set_volume(int ch, int decibel_l, int decibel_r)
@@ -1540,6 +1658,12 @@ void DATAREC::set_volume(int ch, int decibel_l, int decibel_r)
 		sound_volume_r = decibel_to_volume(decibel_r);
 #endif
 	}
+#if defined(USE_SOUND_FILES)
+	else if((ch >= 2) && (ch < (DATAREC_SNDFILE_END + 2))) {
+		snd_level_l[ch - 2] = decibel_to_volume(decibel_l);
+		snd_level_r[ch - 2] = decibel_to_volume(decibel_r);
+	}
+#endif
 }
 
 double DATAREC::get_ave_hi_freq()
@@ -1581,7 +1705,7 @@ double DATAREC::get_ave_hi_freq()
 	return ave_hi_freq;
 }
 
-#define STATE_VERSION	6
+#define STATE_VERSION	7
 
 void DATAREC::save_state(FILEIO* state_fio)
 {
@@ -1655,6 +1779,15 @@ void DATAREC::save_state(FILEIO* state_fio)
 	state_fio->FputUint32(pcm_prev_clock);
 	state_fio->FputInt32(pcm_positive_clocks);
 	state_fio->FputInt32(pcm_negative_clocks);
+#if defined(USE_SOUND_FILES)
+	for(int j = 0; j < DATAREC_SNDFILE_END; j++) {
+		state_fio->Fwrite(snd_file_names[j], sizeof(_TCHAR) * 512, 1);
+		state_fio->Fwrite(snd_mix_tbls[j], sizeof(int) * DATAREC_SND_TBL_MAX, 1);
+		state_fio->FputInt32(snd_samples[j]);
+		state_fio->FputInt32(snd_level_l[j]);
+		state_fio->FputInt32(snd_level_r[j]);
+	}
+#endif
 }
 
 bool DATAREC::load_state(FILEIO* state_fio)
@@ -1731,6 +1864,21 @@ bool DATAREC::load_state(FILEIO* state_fio)
 	pcm_last_vol_l = pcm_last_vol_r = 0;
 #ifdef DATAREC_SOUND
 	sound_last_vol_l = sound_last_vol_r = 0;
+#endif
+#if defined(USE_SOUND_FILES)
+	for(int j = 0; j < DATAREC_SNDFILE_END; j++) {
+		if(snd_datas[j] != NULL) free(snd_datas[j]);
+		state_fio->Fread(snd_file_names[j], sizeof(_TCHAR) * 512, 1);
+		state_fio->Fread(snd_mix_tbls[j], sizeof(int) * DATAREC_SND_TBL_MAX, 1);
+		snd_samples[j] = state_fio->FgetInt32();
+		snd_level_l[j] = state_fio->FgetInt32();
+		snd_level_r[j] = state_fio->FgetInt32();
+		if(strlen(snd_file_names[j]) > 0) {
+			_TCHAR tmps[512];
+			strncpy(tmps, snd_file_names[j], 511);
+			load_sound_data(j, (const _TCHAR *)tmps);
+		}
+	}
 #endif
 	return true;
 }

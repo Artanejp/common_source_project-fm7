@@ -24,6 +24,22 @@
 #define SIG_UPD765A_DRQ_MASK	6
 #define SIG_UPD765A_FREADY	7
 
+#if defined(USE_SOUND_FILES)
+#define UPD765A_SND_TBL_MAX 256
+#ifndef SIG_SOUNDER_MUTE
+#define SIG_SOUNDER_MUTE    	(65536 + 0)
+#endif
+#ifndef SIG_SOUNDER_RELOAD
+#define SIG_SOUNDER_RELOAD    	(65536 + 32)
+#endif
+#ifndef SIG_SOUNDER_ADD
+#define SIG_SOUNDER_ADD     	(65536 + 64)
+#endif
+
+#define UPD765A_SND_TYPE_SEEK 0
+#define UPD765A_SND_TYPE_HEAD 1
+#endif
+
 class DISK;
 
 class UPD765A : public DEVICE
@@ -47,9 +63,8 @@ private:
 	} fdc[4];
 	DISK* disk[4];
 #if defined(USE_SOUND_FILES)
-	DEVICE *d_seek_sound;
 	int seek_snd_trk[4];
-	int sddk_snd_id[4];
+	int seek_snd_id[4];
 #endif
 	uint8_t hdu, hdue, id[4], eot, gpl, dtl;
 	
@@ -68,9 +83,7 @@ private:
 	int count;
 	int event_phase;
 	int phase_id, drq_id, lost_id, result7_id, seek_id[4];
-#if defined(USE_SOUND_FILES)
-	int seek_snd_id[4];
-#endif
+	
 	bool force_ready;
 	bool reset_signal;
 	bool prev_index;
@@ -126,6 +139,21 @@ private:
 	void cmd_specify();
 	void cmd_invalid();
 	
+#if defined(USE_SOUND_FILES)
+protected:
+	_TCHAR snd_seek_name[512];
+	_TCHAR snd_head_name[512];
+	int snd_seek_mix_tbl[UPD765A_SND_TBL_MAX];
+	int snd_head_mix_tbl[UPD765A_SND_TBL_MAX];
+	int16_t *snd_seek_data; // Read only
+	int16_t *snd_head_data; // Read only
+	int snd_seek_samples_size;
+	int snd_head_samples_size;
+	bool snd_mute;
+	int snd_level_l, snd_level_r;
+	virtual void mix_main(int32_t *dst, int count, int16_t *src, int *table, int samples);
+	void add_sound(int type);
+#endif
 public:
 	UPD765A(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -137,7 +165,16 @@ public:
 		raise_irq_when_media_changed = false;
 		set_device_name(_T("uPD765A FDC"));
 #if defined(USE_SOUND_FILES)
-		d_seek_sound = NULL;
+		for(int i = 0; i < UPD765A_SND_TBL_MAX; i++) {
+			snd_seek_mix_tbl[i] = -1;
+			snd_head_mix_tbl[i] = -1;
+		}
+		snd_seek_data = snd_head_data = NULL;
+		snd_seek_samples_size = snd_head_samples_size = 0;
+		snd_mute = false;
+		snd_level_l = snd_level_r = decibel_to_volume(0);
+		memset(snd_seek_name, 0x00, sizeof(snd_seek_name));
+		memset(snd_head_name, 0x00, sizeof(snd_head_name));
 #endif
 	}
 	~UPD765A() {}
@@ -172,16 +209,19 @@ public:
 	{
 		register_output_signal(&outputs_index, device, id, mask);
 	}
-#if defined(USE_SOUND_FILES)
-	void set_context_seek(DEVICE* device)
-	{
-		d_seek_sound = device;
-	}
-#endif	
 	DISK* get_disk_handler(int drv)
 	{
 		return disk[drv];
 	}
+#if defined(USE_SOUND_FILES)
+	// Around SOUND. 20161004 K.O
+	bool load_sound_data(int type, const _TCHAR *pathname);
+	void release_sound_data(int type);
+	bool reload_sound_data(int type);
+	
+	void mix(int32_t *buffer, int cnt);
+	void set_volume(int ch, int decibel_l, int decibel_r);
+#endif
 	void open_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_disk(int drv);
 	bool is_disk_inserted(int drv);

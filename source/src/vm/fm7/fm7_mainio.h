@@ -361,10 +361,6 @@ class FM7_MAINIO : public DEVICE {
 #if defined(_FM8)
 	BUBBLECASETTE *bubble_casette[2];
 #endif
-#if defined(USE_SOUND_FILES)
-	DEVICE *dev_relay_sound_on;
-	DEVICE *dev_relay_sound_off;
-#endif
 public:
 	FM7_MAINIO(VM* parent_vm, EMU* parent_emu);
 	~FM7_MAINIO();
@@ -490,14 +486,6 @@ public:
 	void set_context_printer_select(DEVICE *p, int id, uint32_t mask) {
 		register_output_signal(&printer_select_bus, p, id, mask);
 	}
-#if defined(USE_SOUND_FILES)
-	void set_context_relay_on(DEVICE *p) {
-		dev_relay_sound_on = p;
-	}
-	void set_context_relay_off(DEVICE *p) {
-		dev_relay_sound_off = p;
-	}
-#endif	
 #if defined(_FM8)
 	void set_context_bubble(BUBBLECASETTE *p, int drive) {
 		if(drive > 2) return;

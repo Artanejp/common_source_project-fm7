@@ -44,9 +44,6 @@
 #define SIG_DUMMYDEVICE_BIT1 1
 #define SIG_DUMMYDEVICE_BIT2 2
 #endif
-#if defined(USE_SOUND_FILES)
-#include "../wav_sounder.h"
-#endif
 #include "./fm7_mainio.h"
 #include "./fm7_mainmem.h"
 #include "./fm7_display.h"
@@ -153,11 +150,6 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #else
 	led_terminate = new DEVICE(this, emu);
 #endif
-#if defined(USE_SOUND_FILES)
-	fdd_seek = new WAV_SOUNDER(this, emu);
-	cmt_relay_on = new WAV_SOUNDER(this, emu);
-	cmt_relay_off = new WAV_SOUNDER(this, emu);
-#endif	
 #if defined(_USE_QT)
 	event->set_device_name(_T("EVENT"));
 	dummy->set_device_name(_T("1st Dummy"));
@@ -288,13 +280,11 @@ void VM::connect_bus(void)
 # endif
 	event->set_context_sound(drec);
 #if defined(USE_SOUND_FILES)
-	fdd_seek->load_data(_T("FDDSEEK.WAV"));
-	event->set_context_sound(fdd_seek);
-	
-	cmt_relay_on->load_data(_T("RELAY_ON.WAV"));
-	cmt_relay_off->load_data(_T("RELAYOFF.WAV"));
-	event->set_context_sound(cmt_relay_on);
-	event->set_context_sound(cmt_relay_off);
+	if(fdc->load_sound_data(MB8877_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
+		event->set_context_sound(fdc);
+	}
+	drec->load_sound_data(DATAREC_SNDFILE_RELAY_ON, _T("RELAY_ON.WAV"));
+	drec->load_sound_data(DATAREC_SNDFILE_RELAY_OFF, _T("RELAYOFF.WAV"));
 #endif
 # if defined(_FM77AV_VARIANTS)
 	event->set_context_sound(keyboard_beep);
@@ -378,11 +368,6 @@ void VM::connect_bus(void)
 		fdc->set_context_irq(mainio, FM7_MAINIO_FDC_IRQ, 0x1);
 		fdc->set_context_drq(mainio, FM7_MAINIO_FDC_DRQ, 0x1);
 		mainio->set_context_fdc(fdc);
-#if defined(USE_SOUND_FILES)
-		fdc->set_context_seek(fdd_seek);
-		mainio->set_context_relay_on(cmt_relay_on);
-		mainio->set_context_relay_off(cmt_relay_off);
-#endif
 #if defined(_FM8) || (_FM7) || (_FMNEW7)
 	}
 #endif	
@@ -649,10 +634,11 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 #endif
 #if defined(USE_SOUND_FILES)
 	 else if(ch-- == 0) {
-		 fdd_seek->set_volume(0, decibel_l, decibel_r);
+		 fdc->set_volume(0, decibel_l, decibel_r);
 	 } else if(ch-- == 0) {
-		 cmt_relay_on->set_volume(0, decibel_l, decibel_r);
-		 cmt_relay_off->set_volume(0, decibel_l, decibel_r);
+		 for(int i = 0; i < DATAREC_SNDFILE_END; i++) {
+			 drec->set_volume(i + 2, decibel_l, decibel_r);
+		 }
 	 }
 #endif
 }

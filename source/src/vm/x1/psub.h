@@ -27,12 +27,6 @@ class PSUB : public DEVICE
 private:
 	DEVICE *d_cpu, *d_pio;
 	DATAREC *d_drec;
-#if defined(USE_SOUND_FILES)
-	DEVICE *d_cmt_eject;
-	//DEVICE *d_cmt_ffrew;
-	DEVICE *d_cmt_play;
-	DEVICE *d_cmt_stop;
-#endif
 	cur_time_t cur_time;
 	int time_register_id;
 	
@@ -63,12 +57,6 @@ private:
 public:
 	PSUB(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
 		set_device_name(_T("PSEUDO SUBSYSTEM"));
-#if defined(USE_SOUND_FILES)
-		d_cmt_eject = NULL;
-		//d_cmt_ffrew = NULL;
-		d_cmt_play  = NULL;
-		d_cmt_stop  = NULL;
-#endif
 	}
 	~PSUB() {}
 	
@@ -102,24 +90,6 @@ public:
 	{
 		d_drec = device;
 	}
-#if defined(USE_SOUND_FILES)
-	void set_context_cmt_eject(DEVICE* device)
-	{
-		d_cmt_eject = device;
-	}
-	//void set_context_cmt_ffrew(DEVICE* device)
-	//{
-	//	d_cmt_ffrew = device;
-	//}
-	void set_context_cmt_play(DEVICE* device)
-	{
-		d_cmt_play = device;
-	}
-	void set_context_cmt_stop(DEVICE* device)
-	{
-		d_cmt_stop = device;
-	}
-#endif
 	void key_down(int code, bool repeat);
 	void key_up(int code);
 	void play_tape(bool value);

@@ -397,9 +397,6 @@ class JOYSTICK;
 #if WITH_Z80
 class Z80;
 #endif
-#if defined(USE_SOUND_FILES)
-class WAV_SOUNDER;
-#endif
 class VM {
 protected:
 	EMU* emu;
@@ -453,11 +450,6 @@ protected:
 	KANJIROM *kanjiclass1;
 #ifdef CAPABLE_KANJI_CLASS2
 	KANJIROM *kanjiclass2;
-#endif
-#if defined(USE_SOUND_FILES)
-	WAV_SOUNDER *fdd_seek;
-	WAV_SOUNDER *cmt_relay_on;
-	WAV_SOUNDER *cmt_relay_off;
 #endif
 	bool connect_320kfdc;
 	bool connect_1Mfdc;

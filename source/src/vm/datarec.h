@@ -18,6 +18,29 @@
 #define SIG_DATAREC_REMOTE	1
 #define SIG_DATAREC_TRIG	2
 
+#if defined(USE_SOUND_FILES)
+#ifndef SIG_SOUNDER_MUTE
+#define SIG_SOUNDER_MUTE    	(65536 + 0)
+#endif
+#ifndef SIG_SOUNDER_RELOAD
+#define SIG_SOUNDER_RELOAD    	(65536 + 32)
+#endif
+#ifndef SIG_SOUNDER_ADD
+#define SIG_SOUNDER_ADD     	(65536 + 64)
+#endif
+enum {
+	DATAREC_SNDFILE_RELAY_ON = 0,
+	DATAREC_SNDFILE_RELAY_OFF,
+	DATAREC_SNDFILE_PLAY,
+	DATAREC_SNDFILE_STOP,
+	DATAREC_SNDFILE_EJECT,
+	DATAREC_SNDFILE_FF,
+	DATAREC_SNDFILE_REW,
+	DATAREC_SNDFILE_END,
+};
+#define DATAREC_SND_TBL_MAX 256
+#endif
+
 class FILEIO;
 
 class DATAREC : public DEVICE
@@ -52,6 +75,18 @@ private:
 	int sound_buffer_length;
 	int16_t *sound_buffer, sound_sample;
 #endif
+#if defined(USE_SOUND_FILES)
+	_TCHAR snd_file_names[DATAREC_SNDFILE_END][512];
+	int snd_mix_tbls[DATAREC_SNDFILE_END][DATAREC_SND_TBL_MAX];
+	int16_t *snd_datas[DATAREC_SNDFILE_END];
+	int snd_samples[DATAREC_SNDFILE_END];
+	bool snd_mute[DATAREC_SNDFILE_END];
+	int snd_level_l[DATAREC_SNDFILE_END], snd_level_r[DATAREC_SNDFILE_END];
+
+	virtual void mix_sndfiles(int ch, int32_t *dst, int cnt, int16_t *src, int samples);
+	void add_sound(int type);
+#endif
+
 	bool is_wav, is_tap;
 	double ave_hi_freq;
 	
@@ -102,6 +137,18 @@ public:
 #ifdef DATAREC_SOUND
 		sound_volume_l = sound_volume_r = 1024;
 #endif
+#if defined(USE_SOUND_FILES)
+		for(int j = 0; j < DATAREC_SNDFILE_END; j++) {
+			for(int i = 0; i < DATAREC_SND_TBL_MAX; i++) {
+				snd_mix_tbls[j][i] = -1;
+			}
+			snd_datas[j] = NULL;
+			snd_samples[j] = 0;
+			snd_mute[j] = false;
+			snd_level_l[j] = snd_level_r[j] = decibel_to_volume(0);
+			memset(snd_file_names[j], 0x00, sizeof(_TCHAR) * 512);
+		}
+#endif
 		set_device_name(_T("DATA RECORDER"));
 	}
 	~DATAREC() {}
@@ -117,6 +164,13 @@ public:
 	}
 	void event_frame();
 	void event_callback(int event_id, int err);
+#if defined(USE_SOUND_FILES)
+	// Around SOUND. 20161004 K.O
+	bool load_sound_data(int type, const _TCHAR *pathname);
+	void release_sound_data(int type);
+	bool reload_sound_data(int type);
+	
+#endif
 	void mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	void save_state(FILEIO* state_fio);

@@ -183,9 +183,6 @@ class UPD765A;
 #ifdef SUPPORT_PC88_PCG8100
 class I8253;
 #endif
-#if defined(USE_SOUND_FILES)
-class WAV_SOUNDER;
-#endif
 class PC88;
 
 class VM
@@ -212,9 +209,6 @@ protected:
 	I8255* pc88pio_sub;
 	UPD765A* pc88fdc_sub;
 	Z80* pc88cpu_sub;
-#if defined(USE_SOUND_FILES)
-	WAV_SOUNDER* pc88fdc_seeksnd;
-#endif
 #ifdef SUPPORT_PC88_PCG8100
 	I8253* pc88pit;
 	PCM1BIT* pc88pcm0;

@@ -287,9 +287,6 @@ class KEYBOARD;
 class HUC6280;
 class PCE;
 #endif
-#if defined(USE_SOUND_FILES)
-class WAV_SOUNDER;
-#endif
 class VM
 {
 protected:
@@ -314,13 +311,6 @@ protected:
 	Z80CTC* ctc2;
 #ifdef _X1TURBO_FEATURE
 	Z80DMA* dma;
-#endif
-#if defined(USE_SOUND_FILES)
-	WAV_SOUNDER *fdd_seek;
-	WAV_SOUNDER *cmt_eject;
-	//WAV_SOUNDER *cmt_ffrew;
-	WAV_SOUNDER *cmt_play;
-	WAV_SOUNDER *cmt_stop;
 #endif
 	DISPLAY* display;
 	EMM* emm;

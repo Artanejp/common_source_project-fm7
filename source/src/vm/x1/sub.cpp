@@ -137,12 +137,12 @@ void SUB::write_io8(uint32_t addr, uint32_t data)
 			if((p2_out & 0x10) && !(data & 0x10)) {
 				d_drec->set_remote(false);
 #if defined(USE_SOUND_FILES)
-				if(d_cmt_stop != NULL) d_cmt_stop->write_signal(SIG_WAV_SOUNDER_ADD, 1, 1);
+				d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_STOP, 1, 1);
 #endif
 			}
 #if defined(USE_SOUND_FILES)
 			if(ffrew_comp) {
-				//if(d_cmt_ffrew != NULL) d_cmt_ffrew->write_signal(SIG_WAV_SOUNDER_ADD, 1, 1);
+				d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_FF, 1, 1);
 			}
 #endif
 			intr = ((data & 0x40) == 0);
@@ -205,7 +205,7 @@ void SUB::write_signal(int id, uint32_t data, uint32_t mask)
 		{
 			bool f = ((data & mask) != 0);
 			if((f != tape_eot) && (f)) {
-				if(d_cmt_stop != NULL) d_cmt_stop->write_signal(SIG_WAV_SOUNDER_ADD, 1, 1);
+				d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_STOP, 1, 1);
 			}
 		}
 #endif
@@ -222,9 +222,9 @@ void SUB::play_tape(bool value)
 #if defined(USE_SOUND_FILES)
 	if(tape_play != value) {
 		if(value) {
-			if(d_cmt_play != NULL) d_cmt_play->write_signal(SIG_WAV_SOUNDER_ADD, 1, 1);
+			d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_PLAY, 1, 1);
 		} else {
-			if(d_cmt_stop != NULL) d_cmt_stop->write_signal(SIG_WAV_SOUNDER_ADD, 1, 1);
+			d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_STOP, 1, 1);
 		}
 	}			
 #endif
@@ -238,9 +238,9 @@ void SUB::rec_tape(bool value)
 #if defined(USE_SOUND_FILES)
 	if(tape_rec != value) {
 		if(value) {
-			if(d_cmt_play != NULL) d_cmt_play->write_signal(SIG_WAV_SOUNDER_ADD, 1, 1);
+			d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_PLAY, 1, 1);
 		} else {
-			if(d_cmt_stop != NULL) d_cmt_stop->write_signal(SIG_WAV_SOUNDER_ADD, 1, 1);
+			d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_STOP, 1, 1);
 		}
 	}			
 #endif
@@ -252,7 +252,7 @@ void SUB::rec_tape(bool value)
 void SUB::close_tape()
 {
 #if defined(USE_SOUND_FILES)
-	if(d_cmt_eject != NULL) d_cmt_eject->write_signal(SIG_WAV_SOUNDER_ADD, 1, 1);
+	d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_EJECT, 1, 1);
 #endif
 	tape_play = tape_rec = tape_eot = tape_apss = false;
 	update_tape();

@@ -33,9 +33,6 @@
 #ifdef SUPPORT_PC88_PCG8100
 #include "../i8253.h"
 #endif
-#if defined(USE_SOUND_FILES)
-#include "../wav_sounder.h"
-#endif
 
 #include "pc88.h"
 
@@ -145,9 +142,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pc88fdc_sub->set_device_name(_T("uPD765A FDC(FDD)"));
 	pc88cpu_sub->set_device_name(_T("Z80 CPU(FDD)"));
 #endif
-#if defined(USE_SOUND_FILES)
-	pc88fdc_seeksnd = new WAV_SOUNDER(this, emu);
-#endif
 #ifdef SUPPORT_PC88_PCG8100
 	pc88pit = new I8253(this, emu);
 //	pc88pit->set_context_event_manager(pc88event);
@@ -185,9 +179,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pc88event->set_context_sound(pc88pcm2);
 #endif
 #if defined(USE_SOUND_FILES)
-	if(pc88fdc_seeksnd->load_data(_T("FDDSEEK.WAV"))) {
-		pc88event->set_context_sound(pc88fdc_seeksnd);
-		pc88fdc_sub->set_context_seek(pc88fdc_seeksnd);
+	if(pc88fdc_sub->load_sound_data(UPD765A_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
+		pc88event->set_context_sound(pc88fdc_sub);
 	}
 #endif	
 	pc88->set_context_cpu(pc88cpu);
@@ -424,8 +417,8 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 	}
 #if defined(USE_SOUND_FILES)
     else if(ch-- == 0) {
-		if(pc88fdc_seeksnd != NULL) pc88fdc_seeksnd->set_volume(0, decibel_l, decibel_r);
-	}
+		pc88fdc_sub->set_volume(0, decibel_l, decibel_r);
+	}		
 #endif
 }
 #endif

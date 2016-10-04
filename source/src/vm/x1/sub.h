@@ -27,12 +27,6 @@ class SUB : public DEVICE
 private:
 	DEVICE *d_pio, *d_rtc;
 	DATAREC *d_drec;
-#if defined(USE_SOUND_FILES)
-	DEVICE *d_cmt_eject;
-	//DEVICE *d_cmt_ffrew;
-	DEVICE *d_cmt_play;
-	DEVICE *d_cmt_stop;
-#endif
 	
 	uint8_t p1_out, p1_in, p2_out, p2_in;
 	uint8_t portc;
@@ -51,12 +45,6 @@ private:
 public:
 	SUB(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
 		set_device_name(_T("SUB SYSTEM"));
-#if defined(USE_SOUND_FILES)
-		d_cmt_eject = NULL;
-		//d_cmt_ffrew = NULL;
-		d_cmt_play  = NULL;
-		d_cmt_stop  = NULL;
-#endif
 	}
 	~SUB() {}
 	
@@ -91,24 +79,6 @@ public:
 	{
 		d_drec = device;
 	}
-#if defined(USE_SOUND_FILES)
-	void set_context_cmt_eject(DEVICE* device)
-	{
-		d_cmt_eject = device;
-	}
-	//void set_context_cmt_ffrew(DEVICE* device)
-	//{
-	//	d_cmt_ffrew = device;
-	//}
-	void set_context_cmt_play(DEVICE* device)
-	{
-		d_cmt_play = device;
-	}
-	void set_context_cmt_stop(DEVICE* device)
-	{
-		d_cmt_stop = device;
-	}
-#endif
 	void play_tape(bool value);
 	void rec_tape(bool value);
 	void close_tape();
