@@ -54,7 +54,6 @@ set(BUILD_MZ2500 OFF CACHE BOOL "Build EMU-MZ2500")
 set(BUILD_MZ2200 OFF CACHE BOOL "Build EMU-MZ2200")
 set(BUILD_MZ2000 OFF CACHE BOOL "Build EMU-MZ2000")
 set(BUILD_MZ80B OFF CACHE BOOL "Build EMU-MZ80B")
-set(USE_CMT_SOUND ON CACHE BOOL "Using sound with CMT")
 
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
@@ -109,9 +108,6 @@ set(VMFILES ${VMFILES}
 #add_definitions(-DSUPPORT_MZ80AIF)
 endif()
 
-if(USE_CMT_SOUND)
-add_definitions(-DDATAREC_SOUND)
-endif()
 
 
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})

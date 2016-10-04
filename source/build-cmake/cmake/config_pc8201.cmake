@@ -28,7 +28,6 @@ set(BUILD_SHARED_LIBS OFF)
 
 set(BUILD_PC8201  OFF CACHE BOOL "Build on PC-8201")
 set(BUILD_PC8201A OFF CACHE BOOL "Build on PC-8201A")
-set(USE_CMT_SOUND ON CACHE BOOL "Sound with CMT")
 
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
@@ -45,9 +44,6 @@ elseif(BUILD_PC8201A)
    add_definitions(-D_PC8201A)
    set(EXEC_TARGET emupc8201a)
    set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc8201a.qrc)
-endif()
-if(USE_CMT_SOUND)
-   add_definitions(-DDATAREC_SOUND)
 endif()
 include(config_commonsource)
 

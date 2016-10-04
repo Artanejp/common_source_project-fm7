@@ -33,7 +33,6 @@ set(VMFILES_BASE
 set(BUILD_MZ80A OFF CACHE BOOL "Build EMU-MZ80A")
 set(BUILD_MZ80K OFF CACHE BOOL "Build EMU-MZ80A")
 set(BUILD_MZ1200 OFF CACHE BOOL "Build EMU-MZ1200")
-set(USE_CMT_SOUND ON CACHE BOOL "Using sound with CMT")
 
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
@@ -89,10 +88,6 @@ set(VMFILES ${VMFILES}
 	    io.cpp )
 #add_definitions(-DSUPPORT_MZ80AIF)
 
-endif()
-
-if(USE_CMT_SOUND)
-add_definitions(-DDATAREC_SOUND)
 endif()
 
 include(config_commonsource)

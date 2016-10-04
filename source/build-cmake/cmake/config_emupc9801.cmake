@@ -34,7 +34,6 @@ set(BUILD_PC9801U OFF CACHE BOOL "Build on PC9801U")
 set(BUILD_PC9801VF OFF CACHE BOOL "Build on PC9801VF")
 set(BUILD_PC9801VM OFF CACHE BOOL "Build on PC9801VM")
 set(BUILD_PC98DO OFF CACHE BOOL "Build on PC98DO")
-set(USE_CMT_SOUND ON CACHE BOOL "Sound with Data Recorder.")
 
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
@@ -52,9 +51,6 @@ if(BUILD_PC9801)
        z80.cpp
        not.cpp
    )
-   if(USE_CMT_SOUND)
-       add_definitions(-DDATAREC_SOUND)
-   endif()
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc9801.qrc)
 elseif(BUILD_PC9801E)
    add_definitions(-D_PC9801E)
@@ -65,9 +61,6 @@ elseif(BUILD_PC9801E)
        i286.cpp
        z80.cpp
    )
-   if(USE_CMT_SOUND)
-       add_definitions(-DDATAREC_SOUND)
-   endif()
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc9801e.qrc)
 elseif(BUILD_PC9801U)
    add_definitions(-D_PC9801U)
@@ -114,9 +107,6 @@ elseif(BUILD_PC98DO)
        not.cpp
    )
    set(VM_APPEND_LIBS vm_pc8801)
-   if(USE_CMT_SOUND)
-       add_definitions(-DDATAREC_SOUND)
-   endif()
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc98do.qrc)
 endif()
 

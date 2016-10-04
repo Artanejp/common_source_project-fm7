@@ -46,7 +46,6 @@ set(VMFILES_MZ1500 ${VMFILES_MZ800}
 set(BUILD_MZ700 OFF CACHE BOOL "Build EMU-MZ800")
 set(BUILD_MZ800 OFF CACHE BOOL "Build EMU-MZ800")
 set(BUILD_MZ1500 OFF CACHE BOOL "Build EMU-MZ1500")
-set(USE_CMT_SOUND ON CACHE BOOL "Using sound with CMT")
 
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
@@ -80,10 +79,6 @@ add_definitions(-D_MZ700)
 set(EXEC_TARGET emumz700)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz700.qrc)
 set(USE_FMGEN OFF)
-endif()
-
-if(USE_CMT_SOUND)
-add_definitions(-DDATAREC_SOUND)
 endif()
 
 include(config_commonsource)

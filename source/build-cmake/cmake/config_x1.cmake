@@ -44,7 +44,6 @@ set(BUILD_X1TURBOZ OFF CACHE BOOL "Build for X1 TurboZ")
 set(BUILD_X1TWIN OFF CACHE BOOL "Build for X1 twin")
 
 set(BUILD_SHARED_LIBS OFF)
-set(USE_CMT_SOUND ON CACHE BOOL "Sound with CMT")
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 set(XM7_VERSION 3)
@@ -83,10 +82,6 @@ elseif(BUILD_X1TWIN)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/x1twin.qrc)
 endif()
 
-
-if(USE_CMT_SOUND)
-  add_definitions(-DDATAREC_SOUND)
-endif()
 if(BUILD_X1TWIN)
   set(VM_APPEND_LIBS vm_pcengine)
 endif()

@@ -48,9 +48,6 @@ if(BUILD_GAMEGEAR)
 		   datarec.cpp
 		   disk.cpp
 		   )
-if(USE_CMT_SOUND)
-  add_definitions(-DDATAREC_SOUND)
-endif()
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/gamegear.qrc)
 elseif(BUILD_MARK3)
   set(EXEC_TARGET emumark3)

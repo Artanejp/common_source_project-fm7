@@ -39,7 +39,6 @@ set(VMFILES_BASE
 set(BUILD_PX7 OFF CACHE BOOL "Build for Pioneer PX7")
 set(BUILD_MSX1 OFF CACHE BOOL "Build for MSX1")
 set(BUILD_MSX2 ON CACHE BOOL "Build for MSX2")
-set(USE_CMT_SOUND ON CACHE BOOL "Sound with CMT")
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")
@@ -82,5 +81,4 @@ else()
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/msx1.qrc)
 endif()
 
-add_definitions(-DDATAREC_SOUND)
 include(config_commonsource)

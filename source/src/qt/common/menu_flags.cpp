@@ -434,6 +434,9 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	#if defined(USE_TAPE_PTR)
 		use_tape_ptr = true;
 	#endif
+	//#if defined(DATAREC_SOUND)
+		use_datarec_sound = true;
+	//#endif
 #endif
 #if defined(USE_VM_AUTO_KEY_TABLE)
 	use_vm_auto_key_table = true;
@@ -447,9 +450,6 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 #endif
 #if defined(NOTIFY_KEY_DOWN_LR_SHIFT)
 	notify_key_down_lr_shift = true;
-#endif
-#if defined(DATAREC_SOUND)
-	use_datarec_sound = true;
 #endif
 #if defined(TAPE_BINARY_ONLY)
 	tape_binary_only = true;

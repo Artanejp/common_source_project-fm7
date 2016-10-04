@@ -38,7 +38,6 @@ set(VMFILES
 )
 
 set(BUILD_SHARED_LIBS OFF)
-set(USE_CMT_SOUND ON CACHE BOOL "Sound with Data Recorder.")
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 set(WITH_DEBUGGER ON CACHE BOOL "Build with FP1100 debugger.")
@@ -53,10 +52,6 @@ add_definitions(-D_CONFIGURE_WITH_CMAKE)
   set(EXEC_TARGET emufp1100)
   add_definitions(-D_FP1100)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fp1100.qrc)
-
-if(USE_CMT_SOUND)
-  add_definitions(-DDATAREC_SOUND)
-endif()
 
 
 include(config_commonsource)
