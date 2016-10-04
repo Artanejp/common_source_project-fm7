@@ -68,7 +68,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));
 #endif	
-	d_pc80s31k_seek = d_pc6031_seek = d_floppy_seek = NULL;	
 	pio_sub = new I8255(this, emu);
 	io = new IO(this, emu);
 	psg = new YM2203(this, emu);
@@ -222,13 +221,16 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		if(pc6031->load_sound_data(PC6031_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
 			event->set_context_sound(pc6031);
 		}
-		if(floppy->load_sound_data(FLOPPY_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
-			event->set_context_sound(floppy);
-		}
 #endif		
 		cpu_pc80s31k = NULL;
 	}
-	
+#if defined(USE_SOUND_FILES)
+#if defined(_PC6601) || defined(_PC6601SR)
+	if(floppy->load_sound_data(FLOPPY_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
+		event->set_context_sound(floppy);
+	}
+#endif
+#endif
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
@@ -423,11 +425,13 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 	}
 #if defined(USE_SOUND_FILES)
 	 else if(ch-- == 0) {
+#if defined(_PC6601) || defined(_PC6601SR)
+		 if(floppy != NULL) floppy->set_volume(0, decibel_l, decibel_r);
+#endif
 		 if(support_pc80s31k) {
 			 if(fdc_pc80s31k != NULL) fdc_pc80s31k->set_volume(0, decibel_l, decibel_r);
 		 } else {
 			 if(pc6031 != NULL) pc6031->set_volume(0, decibel_l, decibel_r);
-			 if(floppy != NULL) floppy->set_volume(0, decibel_l, decibel_r);
 		 }
 	}
 #endif
