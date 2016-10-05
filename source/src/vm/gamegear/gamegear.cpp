@@ -75,6 +75,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_cpu(cpu);
 	event->set_context_sound(psg);
 	event->set_context_sound(drec);
+#if defined(USE_SOUND_FILES)
+	drec->load_sound_data(DATAREC_SNDFILE_RELAY_ON, _T("CMTPLAY.WAV"));
+	drec->load_sound_data(DATAREC_SNDFILE_RELAY_OFF, _T("CMTSTOP.WAV"));
+	drec->load_sound_data(DATAREC_SNDFILE_EJECT, _T("CMTEJECT.WAV"));
+#endif	
 	
 	drec->set_context_ear(pio_k, SIG_I8255_PORT_B, 0x80);
 	pio_k->set_context_port_c(key, SIG_KEYBOARD_COLUMN, 0x07, 0);
@@ -307,7 +312,12 @@ void VM::rec_tape(const _TCHAR* file_path)
 
 void VM::close_tape()
 {
+#if defined(USE_SOUND_FILES)
+	drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_EJECT, 1, 1);
+#endif
+	emu->lock_vm();
 	drec->close_tape();
+	emu->unlock_vm();
 }
 
 bool VM::is_tape_inserted()

@@ -32,7 +32,12 @@
 #define USE_AUTO_KEY_RELEASE	10
 #define USE_AUTO_KEY_CAPS_LOCK	(0xf2 | 0x100)
 #define DONT_KEEEP_KEY_PRESSED
+#define USE_SOUND_FILES		3
+#if defined(USE_SOUND_FILES)
+#define USE_SOUND_VOLUME	3
+#else
 #define USE_SOUND_VOLUME	2
+#endif
 #define USE_DEBUGGER
 #define USE_STATE
 
@@ -41,6 +46,9 @@
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
 	_T("Beep"), _T("CMT"),
+#if defined(USE_SOUND_FILES)
+	_T("CMT Buttons"),
+#endif
 };
 #endif
 

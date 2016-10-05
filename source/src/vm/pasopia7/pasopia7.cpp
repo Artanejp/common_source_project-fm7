@@ -103,6 +103,19 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_sound(psg0);
 	event->set_context_sound(psg1);
 	event->set_context_sound(drec);
+#if defined(USE_SOUND_FILES)
+	if(fdc->load_sound_data(UPD765A_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
+		event->set_context_sound(fdc);
+	}
+#if defined(_LCD)
+	drec->load_sound_data(DATAREC_SNDFILE_RELAY_ON,  _T("CMTPLAY.WAV"));
+	drec->load_sound_data(DATAREC_SNDFILE_RELAY_OFF, _T("CMTSTOP.WAV"));
+	drec->load_sound_data(DATAREC_SNDFILE_EJECT,     _T("CMTEJECT.WAV"));
+#else
+	drec->load_sound_data(DATAREC_SNDFILE_RELAY_ON, _T("RELAY_ON.WAV"));
+	drec->load_sound_data(DATAREC_SNDFILE_RELAY_OFF, _T("RELAYOFF.WAV"));
+#endif
+#endif
 	
 	drec->set_context_ear(pio2, SIG_I8255_PORT_B, 0x20);
 	crtc->set_context_disp(pio0, SIG_I8255_PORT_B, 8);
@@ -310,6 +323,15 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 	} else if(ch == 3) {
 		drec->set_volume(0, decibel_l, decibel_r);
 	}
+#if defined(USE_SOUND_FILES)
+	 else if(ch == 4) {
+		 fdc->set_volume(0, decibel_l, decibel_r);
+	 } else if(ch == 5) {
+		 for(int i = 0; i < DATAREC_SNDFILE_END; i++) {
+			 drec->set_volume(i + 2, decibel_l, decibel_r);
+		 }
+	 }
+#endif
 }
 #endif
 
@@ -345,16 +367,27 @@ bool VM::is_floppy_disk_protected(int drv)
 void VM::play_tape(const _TCHAR* file_path)
 {
 	drec->play_tape(file_path);
+#if defined(USE_SOUND_FILES) && defined(_LCD)
+	drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_RELAY_ON, 1, 1);
+#endif
 }
 
 void VM::rec_tape(const _TCHAR* file_path)
 {
 	drec->rec_tape(file_path);
+#if defined(USE_SOUND_FILES) && defined(_LCD)
+	drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_RELAY_ON, 1, 1);
+#endif
 }
 
 void VM::close_tape()
 {
+#if defined(USE_SOUND_FILES) && defined(_LCD)
+	drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_EJECT, 1, 1);
+#endif
+	emu->lock_vm();
 	drec->close_tape();
+	emu->unlock_vm();
 }
 
 bool VM::is_tape_inserted()

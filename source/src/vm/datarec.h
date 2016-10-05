@@ -42,7 +42,7 @@ enum {
 #endif
 
 class FILEIO;
-
+class EMU;
 class DATAREC : public DEVICE
 {
 private:

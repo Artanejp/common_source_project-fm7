@@ -66,7 +66,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_cpu(cpu);
 	event->set_context_sound(pcm);
 	event->set_context_sound(drec);
-	
+#if defined(USE_SOUND_FILES)
+	drec->load_sound_data(DATAREC_SNDFILE_RELAY_ON,  _T("CMTPLAY.WAV"));
+	drec->load_sound_data(DATAREC_SNDFILE_RELAY_OFF, _T("CMTSTOP.WAV"));
+	drec->load_sound_data(DATAREC_SNDFILE_EJECT,     _T("CMTEJECT.WAV"));
+#endif
 	drec->set_context_ear(io, SIG_IO_DREC_IN, 1);
 	rtc->set_context_dout(io, SIG_IO_RTC_IN, 1);
 	cpu->set_context_to(pcm, SIG_PCM1BIT_SIGNAL, 1);
@@ -199,6 +203,13 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 	} else if(ch == 1) {
 		drec->set_volume(0, decibel_l, decibel_r);
 	}
+#if defined(USE_SOUND_FILES)
+	 else if(ch == 2) {
+		 for(int i = 0; i < DATAREC_SNDFILE_END; i++) {
+			 drec->set_volume(i + 2, decibel_l, decibel_r);
+		 }
+	 }
+#endif
 }
 #endif
 
@@ -220,7 +231,12 @@ void VM::rec_tape(const _TCHAR* file_path)
 
 void VM::close_tape()
 {
+#if defined(USE_SOUND_FILES)
+	drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_EJECT, 1, 1);
+#endif
+	emu->lock_vm();
 	drec->close_tape();
+	emu->unlock_vm();
 	drec->write_signal(SIG_DATAREC_REMOTE, 0, 0);
 }
 

@@ -42,7 +42,12 @@
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_ACCESS_LAMP
+#define USE_SOUND_FILES		1
+#if defined(USE_SOUND_FILES)
+#define USE_SOUND_VOLUME	2
+#else
 #define USE_SOUND_VOLUME	1
+#endif
 #define USE_DEBUGGER
 #define USE_STATE
 
@@ -52,6 +57,9 @@
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
 	_T("PSG"),
+#if defined(USE_SOUND_FILES)
+	_T("FDD SEEK"),
+#endif
 };
 #endif
 

@@ -61,7 +61,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_cpu(cpu);
 	event->set_context_sound(pcm);
 	event->set_context_sound(drec);
-	
+#if defined(USE_SOUND_FILES)
+	drec->load_sound_data(DATAREC_SNDFILE_RELAY_ON, _T("RELAY_ON.WAV"));
+	drec->load_sound_data(DATAREC_SNDFILE_RELAY_OFF, _T("RELAYOFF.WAV"));
+#endif
 	via->set_context_port_a(memory, SIG_MEMORY_VIA_PORT_A, 0xff, 0);
 	via->set_context_port_b(memory, SIG_MEMORY_VIA_PORT_B, 0xff, 0);
 	via->set_context_port_b(pcm, SIG_PCM1BIT_SIGNAL, 0x80, 0);	// PB7 -> Speaker
@@ -192,6 +195,12 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 	} else if(ch == 1) {
 		drec->set_volume(0, decibel_l, decibel_r);
 	}
+#if defined(USE_SOUND_FILES)
+	else if(ch == 2) {
+		drec->set_volume(2 + DATAREC_SNDFILE_RELAY_ON,  decibel_l, decibel_r);
+		drec->set_volume(2 + DATAREC_SNDFILE_RELAY_OFF, decibel_l, decibel_r);
+	}
+#endif
 }
 #endif
 
@@ -214,7 +223,9 @@ void VM::rec_tape(const _TCHAR* file_path)
 void VM::close_tape()
 {
 	push_stop();
+	emu->lock_vm();
 	drec->close_tape();
+	emu->unlock_vm();
 }
 
 bool VM::is_tape_inserted()

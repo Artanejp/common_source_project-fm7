@@ -51,8 +51,13 @@
 #ifdef _COLOR_MONITOR
 #define USE_CRT_FILTER
 #endif
+#define USE_SOUND_FILES		2
 #define USE_ACCESS_LAMP
+#if defined(USE_SOUND_FILES)
+#define USE_SOUND_VOLUME	2
+#else
 #define USE_SOUND_VOLUME	1
+#endif
 #define USE_DEBUGGER
 #define USE_STATE
 
@@ -62,6 +67,9 @@
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
 	_T("Beep"),
+#if defined(USE_SOUND_FILES)
+	_T("FDD SEEK"),
+#endif
 };
 #endif
 

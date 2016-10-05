@@ -61,7 +61,12 @@
 #define USE_CRT_FILTER
 #define USE_SCANLINE
 #define USE_ACCESS_LAMP
+#define USE_SOUND_FILES		2
+#if defined(USE_SOUND_FILES)
+#define USE_SOUND_VOLUME	2
+#else
 #define USE_SOUND_VOLUME	1
+#endif
 #define USE_MOUSE
 #define USE_PRINTER
 #define USE_PRINTER_TYPE	4
@@ -74,6 +79,9 @@
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
 	_T("PSG"),
+#if defined(USE_SOUND_FILES)
+	_T("FDD Seek"),
+#endif
 };
 #endif
 

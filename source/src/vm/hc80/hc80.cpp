@@ -59,6 +59,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(beep);
+#if defined(USE_SOUND_FILES)
+	//event->set_context_sound(tf20);
+	//tf20->load_sound_data(PTF20_SND_TYPE_SEEK,   _T("FDDSEEK.WAV"));
+#endif	
 	
 	tf20->set_context_sio(io, SIG_IO_TF20);
 	
@@ -187,6 +191,10 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 	if(ch == 0) {
 		beep->set_volume(0, decibel_l, decibel_r);
 	}
+#if defined(USE_SOUND_FILES)
+	else if(ch == 1) {
+	}
+#endif
 }
 #endif
 

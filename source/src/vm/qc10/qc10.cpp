@@ -86,7 +86,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(pcm);
-	
+#if defined(USE_SOUND_FILES)
+	if(fdc->load_sound_data(UPD765A_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
+		event->set_context_sound(fdc);
+	}
+#endif	
 	rtc->set_context_intr(pic, SIG_I8259_IR2 | SIG_I8259_CHIP1, 1);
 	dma0->set_context_memory(memory);
 	dma0->set_context_ch0(fdc);
@@ -283,6 +287,11 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 	if(ch == 0) {
 		pcm->set_volume(0, decibel_l, decibel_r);
 	}
+#if defined(USE_SOUND_FILES)
+	else if(ch == 1) {
+		fdc->set_volume(UPD765A_SND_TYPE_SEEK, decibel_l, decibel_r);
+	}
+#endif
 }
 #endif
 

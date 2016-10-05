@@ -33,6 +33,7 @@
 #define USE_TAPE_BAUD
 #define USE_FD1
 #define USE_FD2
+#define USE_SOUND_FILES		3
 //#define USE_FD3
 //#define USE_FD4
 #define NOTIFY_KEY_DOWN
@@ -45,7 +46,11 @@
 #define USE_CRT_FILTER
 #define USE_SCANLINE
 #define USE_ACCESS_LAMP
+#if defined(USE_SOUND_FILES)
+#define USE_SOUND_VOLUME	4
+#else
 #define USE_SOUND_VOLUME	2
+#endif
 #define USE_DEBUGGER
 #define USE_STATE
 
@@ -55,6 +60,9 @@
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
 	_T("Beep"), _T("CMT"),
+#if defined(USE_SOUND_FILES)
+	_T("FDD SEEK"), _T("CMT Relay"),
+#endif
 };
 #endif
 

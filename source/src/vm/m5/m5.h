@@ -30,7 +30,12 @@
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	8
+#define USE_SOUND_FILES		2
+#if defined(USE_SOUND_FILES)
+#define USE_SOUND_VOLUME	3
+#else
 #define USE_SOUND_VOLUME	2
+#endif
 #define USE_JOYSTICK
 #define USE_DEBUGGER
 #define USE_STATE
@@ -41,6 +46,9 @@
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
 	_T("PSG"), _T("CMT"),
+#if defined(USE_SOUND_FILES)
+	_T("CMT Relay"),
+#endif
 };
 #endif
 

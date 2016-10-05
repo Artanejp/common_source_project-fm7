@@ -84,7 +84,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_cpu(cpu);
 	event->set_context_sound(beep);
 	event->set_context_sound(psg);
-	
+#if defined(USE_SOUND_FILES)
+	if(fdc->load_sound_data(UPD765A_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
+		event->set_context_sound(fdc);
+	}
+#endif	
 	crtc->set_context_vsync(pio, SIG_I8255_PORT_A, 0x20);
 	sio->set_context_out(cmt, SIG_CMT_OUT);
 	pit->set_context_ch1(pit, SIG_I8253_CLOCK_2, 1);
@@ -244,6 +248,11 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 	} else if(ch == 1) {
 		beep->set_volume(0, decibel_l, decibel_r);
 	}
+#if defined(USE_SOUND_FILES)
+	else if(ch == 2) {
+		fdc->set_volume(UPD765A_SND_TYPE_SEEK, decibel_l, decibel_r);
+	}
+#endif
 }
 #endif
 

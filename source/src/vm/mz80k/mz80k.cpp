@@ -398,7 +398,10 @@ void VM::close_tape()
 #if defined(USE_SOUND_FILES)
 	drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_EJECT, 1, 1);
 #endif
+	emu->lock_vm();
 	drec->close_tape();
+	emu->unlock_vm();
+
 	drec->write_signal(SIG_DATAREC_REMOTE, 0, 0);
 }
 

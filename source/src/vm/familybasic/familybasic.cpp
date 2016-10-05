@@ -192,7 +192,9 @@ void VM::rec_tape(const _TCHAR* file_path)
 
 void VM::close_tape()
 {
+	emu->lock_vm();
 	drec->close_tape();
+	emu->unlock_vm();
 	drec->write_signal(SIG_DATAREC_REMOTE, 0, 1);
 }
 

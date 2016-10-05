@@ -24,6 +24,7 @@
 #define MAX_DRIVE				1
 
 // device informations for win32
+#define USE_SOUND_FILES			3
 #define USE_CART1
 #define USE_FD1
 #define USE_TAPE
@@ -32,7 +33,11 @@
 #define USE_AUTO_KEY_RELEASE	8
 #define USE_AUTO_KEY_CAPS
 #define USE_ACCESS_LAMP
+#if defined(USE_SOUND_FILES)
+#define USE_SOUND_VOLUME	4
+#else
 #define USE_SOUND_VOLUME	2
+#endif
 #define USE_JOYSTICK
 #define USE_DEBUGGER
 
@@ -42,6 +47,9 @@
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
 	_T("PSG"), _T("CMT"),
+#if defined(USE_SOUND_FILES)
+	_T("FDD SEEK"), _T("CMT RELAY"),
+#endif
 };
 #endif
 

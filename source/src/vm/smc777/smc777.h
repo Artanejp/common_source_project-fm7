@@ -54,10 +54,19 @@
 #define USE_CRT_FILTER
 #define USE_SCANLINE
 #define USE_ACCESS_LAMP
+#define USE_SOUND_FILES		4
+#if defined(USE_SOUND_FILES)
+#if defined(_SMC777)
+#define USE_SOUND_VOLUME	5
+#else
+#define USE_SOUND_VOLUME	4
+#endif
+#else
 #if defined(_SMC777)
 #define USE_SOUND_VOLUME	3
 #else
 #define USE_SOUND_VOLUME	2
+#endif
 #endif
 #define USE_JOYSTICK
 #define USE_DEBUGGER
@@ -141,6 +150,9 @@ static const _TCHAR *sound_device_caption[] = {
 	_T("PSG"),
 #endif
 	_T("Beep"), _T("CMT"),
+#if defined(USE_SOUND_FILES)
+	_T("FDD SEEK"), _T("CMT Relay"),
+#endif
 };
 #endif
 

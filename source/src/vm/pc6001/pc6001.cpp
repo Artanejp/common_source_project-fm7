@@ -611,7 +611,9 @@ void VM::close_tape()
 		if(sub->is_tape_inserted()) {
 			sub->close_tape();	// temporary
 		} else {
+			emu->lock_vm();
 			drec->close_tape();
+			emu->unlock_vm();
 		}
 	} else {
 		psub->close_tape();

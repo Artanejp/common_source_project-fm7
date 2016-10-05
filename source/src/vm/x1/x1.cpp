@@ -738,12 +738,14 @@ void VM::rec_tape(const _TCHAR* file_path)
 
 void VM::close_tape()
 {
+	emu->lock_vm();
 	drec->close_tape();
 	if(pseudo_sub_cpu) {
 		psub->close_tape();
 	} else {
 		sub->close_tape();
 	}
+	emu->unlock_vm();
 }
 
 bool VM::is_tape_inserted()
