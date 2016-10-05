@@ -288,11 +288,13 @@ void DATAREC::event_callback(int event_id, int err)
 void DATAREC::set_remote(bool value)
 {
 	if(remote != value) {
+#if defined(USE_SOUND_FILES)
 		if(value) {
 			add_sound(DATAREC_SNDFILE_RELAY_ON);
 		} else {
 			add_sound(DATAREC_SNDFILE_RELAY_OFF);
 		}
+#endif
 		remote = value;
 		update_event();
 	}
