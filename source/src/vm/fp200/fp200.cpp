@@ -51,6 +51,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(drec);
+#if defined(USE_SOUND_FILES)
+	drec->load_sound_data(DATAREC_SNDFILE_PLAY,  _T("CMTPLAY.WAV"));
+	drec->load_sound_data(DATAREC_SNDFILE_STOP,  _T("CMTSTOP.WAV"));
+	drec->load_sound_data(DATAREC_SNDFILE_EJECT, _T("CMTEJECT.WAV"));
+#endif	
 	
 	drec->set_context_ear(io, SIG_IO_CMT, 1);
 	cpu->set_context_sod(io, SIG_IO_SOD, 1);
@@ -184,6 +189,11 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 	if(ch == 0) {
 		drec->set_volume(0, decibel_l, decibel_r);
 	}
+#if defined(USE_SOUND_FILES)
+	else if(ch == 1) {
+		drec->set_volume(2 + DATAREC_SNDFILE_EJECT, decibel_l, decibel_r);
+	}
+#endif
 }
 #endif
 
@@ -221,6 +231,9 @@ void VM::rec_tape(const _TCHAR* file_path)
 
 void VM::close_tape()
 {
+#if defined(USE_SOUND_FILES)
+	drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_EJECT, 1, 1);
+#endif
 	drec->close_tape();
 	io->close_tape();
 }

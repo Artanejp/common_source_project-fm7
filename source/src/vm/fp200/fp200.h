@@ -23,6 +23,7 @@
 #define I8080_MEMORY_WAIT
 #define MEMORY_ADDR_MAX		0x10000
 #define MEMORY_BANK_SIZE	0x2000
+#define USE_SOUND_FILES		3
 
 // device informations for win32
 #define WINDOW_MODE_BASE	2
@@ -33,7 +34,11 @@
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_CAPS
+#if defined(USE_SOUND_FILES)
+#define USE_SOUND_VOLUME	2
+#else
 #define USE_SOUND_VOLUME	1
+#endif
 #define USE_DEBUGGER
 #define USE_STATE
 
@@ -43,6 +48,9 @@
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
 	_T("CMT"),
+#if defined(USE_SOUND_FILES)
+	_T("CMT Relay"),
+#endif
 };
 #endif
 
