@@ -59,7 +59,6 @@ FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, paren
 	clock_fast = true;
 	lpt_strobe = false;  // bit6
 	lpt_slctin = false;  // bit7
-	drec_flag = 0x00;
 	// FD01
 	lpt_outdata = 0x00;
 	// FD02
@@ -269,7 +268,6 @@ void FM7_MAINIO::reset()
 	// FD00
 	drec->write_signal(SIG_DATAREC_MIC, 0x00, 0x01);
 	drec->write_signal(SIG_DATAREC_REMOTE, 0x00, 0x02);
-	drec_flag = 0x00;
 	reset_fdc();
 	reset_sound();
 	
@@ -360,9 +358,7 @@ void FM7_MAINIO::set_port_fd00(uint8_t data)
 {
 	drec->write_signal(SIG_DATAREC_MIC, data, 0x01);
 	
-	uint8_t drec_flag_b = data & 0x02;
-	drec->write_signal(SIG_DATAREC_REMOTE, drec_flag_b, 0x02);
-	drec_flag = drec_flag_b;
+	drec->write_signal(SIG_DATAREC_REMOTE, data, 0x02);
 	
 	lpt_slctin = ((data & 0x80) == 0);
 	lpt_strobe = ((data & 0x40) != 0);
@@ -1634,7 +1630,7 @@ void FM7_MAINIO::event_vline(int v, int clock)
 {
 }
 
-#define STATE_VERSION 7
+#define STATE_VERSION 6
 void FM7_MAINIO::save_state(FILEIO *state_fio)
 {
 	int ch;
@@ -1790,9 +1786,6 @@ void FM7_MAINIO::save_state(FILEIO *state_fio)
 #if defined(_FM77AV_VARIANTS)
 		state_fio->FputUint8(reg_fd12);
 #endif		
-	}
-	{
-		state_fio->FputUint8(drec_flag);
 	}
 }
 
@@ -1951,9 +1944,6 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 #if defined(_FM77AV_VARIANTS)
 		reg_fd12 = state_fio->FgetUint8();
 #endif		
-	}
-	{
-		drec_flag = state_fio->FgetUint8();
 	}
 	if(version != STATE_VERSION) return false;
 	return true;

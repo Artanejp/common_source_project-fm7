@@ -53,7 +53,6 @@ class FM7_MAINIO : public DEVICE {
 	/* FD00: W */
 	bool lpt_strobe;  // bit6
 	bool lpt_slctin;  // bit7
-	uint8_t drec_flag;
 	/* FD01: W */
 	uint8_t lpt_outdata; //
 
