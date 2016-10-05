@@ -109,6 +109,7 @@
 #define USE_ACCESS_LAMP
 #define USE_SOUND_DEVICE_TYPE		3
 // ToDo
+#define DATAREC_SOUND
 #define USE_SOUND_FILES             5
 // CZ-8BS1 x1
 #define SOUND_DEVICE_TYPE_DEFAULT	1

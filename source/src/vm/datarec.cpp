@@ -1795,9 +1795,15 @@ void DATAREC::save_state(FILEIO* state_fio)
 bool DATAREC::load_state(FILEIO* state_fio)
 {
 	close_file();
-	
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool pending = false;
+	uint32_t s_version = state_fio->FgetUint32();
+	uint32_t desired_version = STATE_VERSION;
+	if(s_version != STATE_VERSION) {
+		if(s_version == 6) {
+			pending = true;
+		} else {
+			return false;
+		}
 	}
 	if(state_fio->FgetInt32() != this_device_id) {
 		return false;
@@ -1868,17 +1874,19 @@ bool DATAREC::load_state(FILEIO* state_fio)
 	sound_last_vol_l = sound_last_vol_r = 0;
 #endif
 #if defined(USE_SOUND_FILES)
-	for(int j = 0; j < DATAREC_SNDFILE_END; j++) {
-		if(snd_datas[j] != NULL) free(snd_datas[j]);
-		state_fio->Fread(snd_file_names[j], sizeof(_TCHAR) * 512, 1);
-		state_fio->Fread(snd_mix_tbls[j], sizeof(int) * DATAREC_SND_TBL_MAX, 1);
-		snd_samples[j] = state_fio->FgetInt32();
-		snd_level_l[j] = state_fio->FgetInt32();
-		snd_level_r[j] = state_fio->FgetInt32();
-		if(strlen(snd_file_names[j]) > 0) {
-			_TCHAR tmps[512];
-			strncpy(tmps, snd_file_names[j], 511);
-			load_sound_data(j, (const _TCHAR *)tmps);
+	if(!pending) {
+		for(int j = 0; j < DATAREC_SNDFILE_END; j++) {
+			if(snd_datas[j] != NULL) free(snd_datas[j]);
+			state_fio->Fread(snd_file_names[j], sizeof(_TCHAR) * 512, 1);
+			state_fio->Fread(snd_mix_tbls[j], sizeof(int) * DATAREC_SND_TBL_MAX, 1);
+			snd_samples[j] = state_fio->FgetInt32();
+			snd_level_l[j] = state_fio->FgetInt32();
+			snd_level_r[j] = state_fio->FgetInt32();
+			if(strlen(snd_file_names[j]) > 0) {
+				_TCHAR tmps[512];
+				strncpy(tmps, snd_file_names[j], 511);
+				load_sound_data(j, (const _TCHAR *)tmps);
+			}
 		}
 	}
 #endif

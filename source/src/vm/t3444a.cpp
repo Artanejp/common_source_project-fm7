@@ -947,8 +947,15 @@ void T3444A::save_state(FILEIO* state_fio)
 
 bool T3444A::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool pending = false;
+	uint32_t s_version = state_fio->FgetUint32();
+	uint32_t desired_version = STATE_VERSION;
+	if(s_version != STATE_VERSION) {
+		if(s_version == 1) {
+			pending = true;
+		} else {
+			return false;
+		}
 	}
 	if(state_fio->FgetInt32() != this_device_id) {
 		return false;
@@ -976,28 +983,30 @@ bool T3444A::load_state(FILEIO* state_fio)
 	motor_on = state_fio->FgetBool();
 	prev_rqm_clock = state_fio->FgetUint32();
 #if defined(USE_SOUND_FILES)
-	state_fio->Fread(snd_seek_name, sizeof(snd_seek_name), 1);
-	state_fio->Fread(snd_head_name, sizeof(snd_head_name), 1);
-	for(int i = 0; i < T3444A_SND_TBL_MAX; i++) {
-		snd_seek_mix_tbl[i] = state_fio->FgetInt32();
-	}
-	for(int i = 0; i < T3444A_SND_TBL_MAX; i++) {
-		snd_head_mix_tbl[i] = state_fio->FgetInt32();
-	}
-	snd_mute = state_fio->FgetBool();
-	snd_level_l = state_fio->FgetInt32();
-	snd_level_r = state_fio->FgetInt32();
-	if(snd_seek_data != NULL) free(snd_seek_data);
-	if(snd_head_data != NULL) free(snd_head_data);
-	if(strlen(snd_seek_name) > 0) {
-		_TCHAR tmps[512];
-		strncpy(tmps, snd_seek_name, 511);
-		load_sound_data(T3444A_SND_TYPE_SEEK, (const _TCHAR *)tmps);
-	}
-	if(strlen(snd_head_name) > 0) {
-		_TCHAR tmps[512];
-		strncpy(tmps, snd_head_name, 511);
-		load_sound_data(T3444A_SND_TYPE_HEAD, (const _TCHAR *)tmps);
+	if(!pending) {
+		state_fio->Fread(snd_seek_name, sizeof(snd_seek_name), 1);
+		state_fio->Fread(snd_head_name, sizeof(snd_head_name), 1);
+		for(int i = 0; i < T3444A_SND_TBL_MAX; i++) {
+			snd_seek_mix_tbl[i] = state_fio->FgetInt32();
+		}
+		for(int i = 0; i < T3444A_SND_TBL_MAX; i++) {
+			snd_head_mix_tbl[i] = state_fio->FgetInt32();
+		}
+		snd_mute = state_fio->FgetBool();
+		snd_level_l = state_fio->FgetInt32();
+		snd_level_r = state_fio->FgetInt32();
+		if(snd_seek_data != NULL) free(snd_seek_data);
+		if(snd_head_data != NULL) free(snd_head_data);
+		if(strlen(snd_seek_name) > 0) {
+			_TCHAR tmps[512];
+			strncpy(tmps, snd_seek_name, 511);
+			load_sound_data(T3444A_SND_TYPE_SEEK, (const _TCHAR *)tmps);
+		}
+		if(strlen(snd_head_name) > 0) {
+			_TCHAR tmps[512];
+			strncpy(tmps, snd_head_name, 511);
+			load_sound_data(T3444A_SND_TYPE_HEAD, (const _TCHAR *)tmps);
+		}
 	}
 #endif
 	return true;
