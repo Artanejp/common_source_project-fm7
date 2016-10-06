@@ -3,87 +3,53 @@
       Jan 1,2016 K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * Sorry, this document is written in Japanese only, I can not use english well.
-  If you interest of this and you can translate from Japanese to any languages,
-  please translate this.
-  This document is released with GFDL, you can copy and redistribute this document
-  under GFDL.
-  This document is written with UTF-8,and in the form along the GFDL (GNU Free Document
-  License), you can copy and redistribute.
+  If you interest of this and you can translate from Japanese to any languages,  please translate this.
+  This document is released with GFDL, you can copy and redistribute this document under GFDL.
+  This document is written with UTF-8,and in the form along the GFDL (GNU Free Document License), you can copy and redistribute.
   
   Since English is poor write only Japanese, sorry (´・ω・｀)
-  If you have some people that can be translated from Japanese into other languages,
-  pls. tell me m(_ _)m
+  If you have some people that can be translated from Japanese into other languages,pls. tell me m(_ _)m
 
-* Important Notice: This article has translated by GOOGLE TRANSLATION from Japanese,
-  still not correct this article. *
+* Important Notice: This article has translated by GOOGLE TRANSLATION from Japanese, still not correct this article. *
 
 1. About this (literally)
-As the previous stage to make a eFM-7, Common Source Code Project (below CSP) from the
-beginning the porting to Qt + OpenGL, first anniversary in December 30 last year in the
-previous year (2014). So, maybe the historical value once after perhaps 30 years, I think (^_^;.
+As the previous stage to make a eFM-7, Common Source Code Project (below CSP) from the beginning the porting to Qt + OpenGL, first anniversary in December 30 last year in the previous year (2014). So, maybe the historical value once after perhaps 30 years, I think (^_^;.
 So, I thought to record the various miscellaneous things about emulators of Fujitsu FM-7.
 
 2. Prehistory: XM7/​​SDL
-From the front, there was a very good FM-7 emulator [1] say XM7. However, this works only
-on Windows. At the time of what was in 2008? or 2009, I wish to work this on the GP2X [2],
-South Korea's portable game machine, especially want to work the Xanadu. I ported XM7 to
-*nix [3] there were licensed. (Thanks to Mr.PI. author of EM7, base of XM7,
-and Mr.Takegami, the author of XM7 et al). Mr.PI. agreed cheerfully, however Mr.Takegami
-suspected to able to port this, he was suspicious, but I ported to SDL and Gtk ,the code
-and screen shots but was temporarily porting, I show this to them, I was able to relatively
-easily license, began a full-scale work.
+From the front, there was a very good FM-7 emulator [1] say XM7. However, this works only on Windows. At the time of what was in 2008? or 2009, I wish to work this on the GP2X [2], South Korea's portable game machine, especially want to work the Xanadu. I ported XM7 to *nix [3] there were licensed. (Thanks to Mr.PI. author of EM7, base of XM7,
+and Mr.Takegami, the author of XM7 et al). Mr.PI. agreed cheerfully, however Mr.Takegami suspected to able to port this, he was suspicious, but I ported to SDL and Gtk ,the code and screen shots but was temporarily porting, I show this to them, I was able to relatively easily license, began a full-scale work.
 
 [1] http://retropc.net/ryu/xm7/ current development end
 [2] https://ja.wikipedia.org/wiki/GP2X
 [3] Eventually we gave up the porting to GP2X system in the machine specs problem, but ...
 
-In the first period, I ported XM7 referring to the Mr.Gimons has been ported to Gtk at about 2005,
-porting  began from the place to port XM7 the latest version of the Gtk and SDL at that time.
-Then,only reason not working in GP2X that it Gtk, I lokked for GUI toolkit only with SDL,
-found AGAR[4] to port.
+In the first period, I ported XM7 referring to the Mr.Gimons has been ported to Gtk at about 2005, porting  began from the place to port XM7 the latest version of the Gtk and SDL at that time.
+Then,only reason not working in GP2X that it Gtk, I lokked for GUI toolkit only with SDL, found AGAR[4] to port.
 [4] http://www.libagar.org/
 
-At the time, I had sickness more and more seriously, typing keyboard with bedridden verge in a
-situation not a few even day to hit from the futon (bed), even if I wad always died considering now
-and was the state was not at all funny, sew the interval that does not move the body in a disease.
+At the time, I had sickness more and more seriously, typing keyboard with bedridden verge in a situation not a few even day to hit from the futon (bed), even if I wad always died considering now and was the state was not at all funny, sew the interval that does not move the body in a disease.
 But it became of work, the head of 2010, out that there is a reasonably practical came.
 <B> However, with the exception of the Agar's problems that a buggy </ B>.
-So, I debugged one by one their bugs, then thinking seriously load balancing on the way to off-road
-of from multi-threaded [5] to OpenCL done before and after 2011,it is developed on the went to
-become sluggish.
+So, I debugged one by one their bugs, then thinking seriously load balancing on the way to off-load of from multi-threaded [5] to OpenCL done before and after 2011,it is developed on the went to become sluggish.
 
-[5] This is also utilized to eFM-7 and CSP / Qt. OpenCL is, although I think that the future is
-    not probably do so performance does not come out.
+[5] This is also utilized to eFM-7 and CSP / Qt. OpenCL is, although I think that the future is not probably do so performance does not come out.
    
-Upstream (Tagegami's version XM7) had by almost completed,and I might have noticed the importance of radio
-in the Great East Japan Earthquake (2011-03-11), I mainly focused to work of Open I2C Radio [6] [7] project.
+Upstream (Tagegami's version XM7) had by almost completed,and I might have noticed the importance of radio in the Great East Japan Earthquake (2011-03-11), I mainly focused to work of Open I2C Radio [6] [7] project.
 
 [6] https://osdn.jp/projects/openi2cradio/
 [7] http://sky.geocities.jp/artanejp/
 
-All told, until close to the end even 2014, the two projects advanced, Open I2C Radio is almost stable
-in the mid of 2013 (I think it was).As the next project, USB dongle for DigitalTV(DVB or One-Segment ISDB)
-using RTL2832U.
+All told, until close to the end even 2014, the two projects advanced, Open I2C Radio is almost stable in the mid of 2013 (I think it was).As the next project, USB dongle for DigitalTV(DVB or One-Segment ISDB) using RTL2832U.
 Did the project (listed in [7]) to be diverted to it to receive a shortwave and medium wave ,I had interest.
 
 3.About XM7
-In the first place, pull the EM7 that was able to prototype a time when C++ is not performance is put out
-too much in order to have in the footsteps, and the GUI part and FM sound source emulator of C++,
-that the C language of the body, but there is a very incongruous, yet also certainly to performance
-also out accuracy thing that was better than my eFM7. And ,I was using the UI and SDL of C++ center of adding
-the renderer, become a chaotic.I desired to re-create from this by scratch at mid-2014 (penitence). 
-St the same time, Germany emulator collector (Is calling right?), Anna Wu had interact with Mr. Takegami
-from around mid-2014 , but ultimately Takegami Mr. and around the exchange of in English is reluctant,
-there was the fact that dispute.
+In the first place, pull the EM7 that was able to prototype a time when C++ is not performance is put out too much in order to have in the footsteps, and the GUI part and FM sound source emulator of C++,that the C language of the body, but there is a very incongruous, yet also certainly to performance also out accuracy thing that was better than my eFM7. And ,I was using the UI and SDL of C++ center of adding the renderer, become a chaotic.I desired to re-create from this by scratch at mid-2014 (penitence). 
+St the same time, Germany emulator collector (Is calling right?), Anna Wu had interact with Mr. Takegami from around mid-2014 , but ultimately Takegami Mr. and around the exchange of in English is reluctant, there was the fact that dispute.
 
-I was looking at the process in Twitter, or irresponsible say anaerobic was pointing, I insanely English is poor human, but originally bug in Debian GNU / Linux [8] etc, if forced to send the report discussion on
-the development in English of the community there is also a human had become usual to the, something
-tremendous in the process.I feel uncomfortable. I think, "Do not it not a place to here are of their own".
-And also or complaining to an old friend, well also to foreign manufacturers in the person work it does
-not is probably well-known to because it was a person (I can't put out the name to go, technical force
-domestic I think the top class of programmers), me listening to grumble ... "or, per the do in English
-before if there is to me to say that (^ ^) ", I mean that was pushed in the back.
-Whether it was December 28, 2014.
+I was looking at the process in Twitter, I'm sick to deats of them,that I don't use English well,very poor,but I usually report bugs in Debian GNU / Linux [8] etc and join discussion on the development in English communities where necessary, so I felt something wrong strongly to the process.
+I feel uncomfortable. I think, "I don't be a place to here are of their own".
+And I complain to an old friend about this, well also to foreign manufacturers in the person work it does not is probably well-known to because it was a person (I can't put out the name to go, technical force domestic I think the top class of programmers), listening to grumble ... "Your feeling is right, your stance is me too(^ ^) ", I mean that was pushed in the back.Whether it was December 28, 2014.
 After all, in the direction of porting the FM-7 system to CSP, off the rudder, git on December 30, 2014
 To build a repository [9], it means you put the source code at the time of the latest CSP there it is.
 
@@ -150,26 +116,23 @@ Now of mc6809.cpp I'm thinking that there is no hindrance to say that the final 
      Since it was able to reproduce the 時分秒 format, copy protection used special data called "unstable data bits shift"(不安定ビットずれデータ).This was put in sector,and checks pattern of bit shift to check be master diskette.Both 時分秒 and unstable bit shift were used same copy protection mostly.
 [17] commit 3c875fb911e484c15bfdad2f67dadb9bdedd5e75
 
---- maybe done (but maybe contains bugs a lot) 20161006 ---
 Next, I aimed a target was FM77AV.
-This is, have gained a unique device that said MMU and logical operations, linear interpolation LSI (ALU).The basic command sequence of the ALU, was referring to the XM7.
-Internal biggest reason Takegami and Mr Anna was dispute is, MESS is a device of this neighborhood to be a description from XM7 it was round rip-off, but protested through Anna Mr., MESS is absolutely no answer from the community. By stemming from very playful story to say that since the, this area is going wrote careful increasing in other parts. [18]
-Currently, the specifications have been to move, may not able to fine-ALU hack ...
-And is a place of feeling to say (Toka drawing of the character of the PSY-O-BLADE).
+This have gained a unique device that said MMU and logical operations, linear interpolation LSI (ALU).The basic command sequence of the ALU, was referring to the XM7.
+Internal biggest reason Takegami and Mr Anna was dispute is, MESS is a device of this neighborhood to be a description from XM7 it was round rip-off, but protested through Anna by Mr.Takegami, MESS community was absolutely no answer. Caused by this issue, I was careful to write around there wspecially than other parts. [18]
+Currently, it works well behaved specifications, maybe not able to fine-ALU hack ...(i.e. drawing the character of the PSY-O-BLADE).
 Since it has come out is somewhat of a problem with the timing calculation, we are asked to fix opportunity.
 
-[18] in the internal structure of the ALU, what is written using the division operation of the C language in a straight line interpolation function, it is actually you or was from such reasons.
+[18] In the internal structure of the ALU, what is written using the division operation of the C language in a straight line interpolation function, it is actually from this reasons.
 
-Including around here, the two channels of the "old days of the PC," plate, the PC emulator overall attrition.
-It is often throw a binary to listen to the bug report and improvement plan in your thread residents.
- Also became way, I think it was from around here. At the time, I did not move in Windows.
-There is the but (will be moved later).
-This work is now been difficulties in Somehow, as most of the software is run without inconsistency
-Became is, was June 16 days before and after. It is at stake after all three months. [19]
+Including around here, I often throw binaries to "Old days of the PC"(or called retro-PC) board of the ni-channels(2nちゃんねる) the PC emulator board to listen to the bug report and improvement plan to thread inhabitant was about that day.
+Also became way, I think it was from around here. At the time, CSP for Qt did not work in Windows. There is the but (would be worked later).
+This work was been difficulties in Somehow, as most of the softwares were run without inconsistency.It was about June 16. It is at stake after all three months. [19]
 
 [19] commit 1b4320ef6229e75013478fe1ec66ed1eb3c47bd5
 
-The following is, I made the FM-77. This was pushed forward without so much painful. However, you by giving up the 400 line part of the FM-77L4 you do not have the cash.
+The following is, I made the FM-77. This was pushed forward without so much painful. However,I gave up to implement the 400 line part of the FM-77L4 .
+--- maybe done (but maybe contains bugs a lot) 20161006 ---
+
 However, where the boot sequence and memory map is different in subtle as well as FM-7 both 77AV is.
 Become overlooked likely, There was also that the notice from the post. In particular boot RAM around.
 
