@@ -76,8 +76,7 @@ St the same time, Germany emulator collector (Is calling right?), Anna Wu had in
 from around mid-2014 , but ultimately Takegami Mr. and around the exchange of in English is reluctant,
 there was the fact that dispute.
 
-I was looking at the process in Twitter, or irresponsible say anaerobic was pointing, I insanely English is
-poor human, but originally bug in Debian GNU / Linux [8] etc, if forced to send the report discussion on
+I was looking at the process in Twitter, or irresponsible say anaerobic was pointing, I insanely English is poor human, but originally bug in Debian GNU / Linux [8] etc, if forced to send the report discussion on
 the development in English of the community there is also a human had become usual to the, something
 tremendous in the process.I feel uncomfortable. I think, "Do not it not a place to here are of their own".
 And also or complaining to an old friend, well also to foreign manufacturers in the person work it does
@@ -128,46 +127,32 @@ Design is increased, in one week from there, went finished the portion become no
 is a translation. From there, so go as fast to work some of the VMs, until January 28.
 Proceed [12], the full-fledged implementation of the FM-7 to to move an existing VM from there
 was a translation that began to. [13]
---- maybe done (but maybe contains bugs a lot) 20160928 ---
+
 [12] commit ce574213769b2685ead0df84c81f193e519d3906 later
-[13] Although the December 31, 2014 I had tried to implement of FM-7
+[13] Although the December 31, 2014 I had tried to implement of FM-7,
      (Commit e409be1add5f6b9ddf76bada7c24469cb35ae2bc later),
-     It did not Yuka Standing variety to earlier application to the head family of Agar and Qt
-     It did became a thing ...
+     but counldn't be kept going to develop a lot, I decided to prioritize
+	 to apply upstream of CSP to Agar and Qt.
 
 5.eFM-7
-Well, if me up to this point, it is a port of the FM-7. Next, the 1980s were protected from the
-parents' home of Oh!FM and  I/O(Japanese magazine of computer) and head family CSP VM code of the
-FM-7 to be scattered to the FM magazine and WEB on, at the time after the and O'to draw the contents
-of the Tips specific hack in XM7 source code of which has been published, on their own on began to
-rebuild the code (because I do not want to copyright infringement ...).
-
-From February to March of 2015, is a translation went to do the implementation of the FM-7.
-In, if not move on March 11, 2011 (coincidentally's day from the Great East Japan Earthquake of the four-year anniversary!), link now passes through [14], 6809 mistake of MPU of the description [15] and disk.cpp / mb8877.cpp while fix the hour, minute and second format [16] corresponding part time at the, at the end of March is, a lot of software for the FM-7 bets now works. [17]
+  Well, reached to this stage, this is time to porting FM-7. Next, I got the 1980's magazined at my mother's home; Oh!FM.I begin to make FM-7's emulator based oin I/O map (written in Oh!FM and the WEB) of FM-7 and code of upstream CSP, and  I did in consideration of updtream XM7's source code.
+  I re-construct codes of FM-7 emulator, because I don't wish to violate any copyrights. From February to March of 2015, I implemented of the FM-7 (to CSP).
+Then, at  March 11, 2015 (coincidentally's day from the Great East Japan Earthquake of the four-year anniversary!),
+still not work, but linking had succeeded [14], after this, I fixed mistake of implementation of 6809 MPU part [15] and, fixed "F5F6F7"(時分秒) disk format behavior inherence of MB8877 specification to disk.cpp / mb8877.cpp [16] , then at the end of March is, a lot of software for the FM-7 had warked. [17]
 
 [14] commit 65fe797cd5a681ba25c14a88566d7c80d0a8cd9a
-[15] This is, as it is derived from that code of the version of MAME that is based on the old,
-Of course, it miscellaneous undefined instruction has not been implemented, the movement of the flag also problems was.
-
-Modify work around here is not trailing until November of 2015, Kanagawa on the way I went to Kawasaki library, to get a lot of (had been destroyed in my parents) material, including the portion other than the MC6809 went piled modifications to the modification.
-Now of mc6809.cpp I'm thinking that there is no hindrance to say that the final version. But dirty (^_^;
-[16] MB8877 is, the F5, F6, F7 in the data column of the time format in command for the FDC
-     Since it has been assigned, and do not do a thing special, sector number F5~F7 is to write
-     I can not. In the 1980s, software that uses this in a personal computer to copy protection
-     There is a lot, because F5~F7 character code at the time was a "hours, minutes and seconds",
-     Special format of this hand was called "hour, minute, and second format."
-     This checks the hour, minute and second code when it was written in the sector and the gap of "時分秒"(hour, minute and second) ID.
-     Or, it had aimed at the copy protection = protection by putting an important program
-     Time was, but many of the copy tool (such as CopyBoy7) is only in the disk drive of the user
-     Since it was able to reproduce the hour, minute and second format, Zu unstable data bits
-     Re and a special data put in a sector which is called, the change in the data is read the sector
-     And protection, such as to check that the "correct", in the hour, minute, and second protected set
-     Now go-used.
+[15] This issue has roots in mc6809.cpp code was based on older version of MAME  around that time.Of course, it was not implemented miscellaneous undefined instructions,behaviors of the condition-flags of CPU had also problems.
+Modify work around here is not trailing until November of 2015, I went to Kanagawa prefectural library at Kawasaki, to get a lot of (had been destroyed in my parents) material, including the portion other than the MC6809 went piled modifications to the modification.
+Now of mc6809.cpp I'm thinking that there is no hindrance to say that the final version. But dirty coding(^_^;
+[16] MB8877 is, the F5, F6, F7 in the data column of the time format in command for the FDC since it has been assigned, and sector number F5~F7 is not to write.
+     In the 1980s, softwares that uses this in a personal computer to copy protection were a lot, because disf format using F5~F7 character code at the sector numbers or outside of sectors were a "hours, minutes and seconds special format"(時分秒フォーマット).
+     This checks the F5, F6 and F7 code when it was written in the sector id and the gap of track or or, it had aimed at the copy protection = protection by putting an important program time was, but many of the copy tool (such as CopyBoy7) is only in the disk drive of the user.
+     Since it was able to reproduce the 時分秒 format, copy protection used special data called "unstable data bits shift"(不安定ビットずれデータ).This was put in sector,and checks pattern of bit shift to check be master diskette.Both 時分秒 and unstable bit shift were used same copy protection mostly.
 [17] commit 3c875fb911e484c15bfdad2f67dadb9bdedd5e75
 
-Next was the goal, was FM77AV.
-This is, have gained a unique device that said MMU and logical operations, linear interpolation LSI (ALU),
-The basic command sequence of the ALU, was referring to the XM7.
+--- maybe done (but maybe contains bugs a lot) 20161006 ---
+Next, I aimed a target was FM77AV.
+This is, have gained a unique device that said MMU and logical operations, linear interpolation LSI (ALU).The basic command sequence of the ALU, was referring to the XM7.
 Internal biggest reason Takegami and Mr Anna was dispute is, MESS is a device of this neighborhood to be a description from XM7 it was round rip-off, but protested through Anna Mr., MESS is absolutely no answer from the community. By stemming from very playful story to say that since the, this area is going wrote careful increasing in other parts. [18]
 Currently, the specifications have been to move, may not able to fine-ALU hack ...
 And is a place of feeling to say (Toka drawing of the character of the PSY-O-BLADE).
