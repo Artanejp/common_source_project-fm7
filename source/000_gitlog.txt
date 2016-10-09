@@ -1,3 +1,9 @@
+commit 64125555381d23520dcf40f8cda80a332d92c5ff
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 9 23:34:26 2016 +0900
+
+    [DOC] Update to release.
+
 commit 3129bcfe18267942d202153a683b2d4e56fc96a8
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sun Oct 9 23:20:56 2016 +0900
