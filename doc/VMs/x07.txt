@@ -8,6 +8,10 @@
 	BASIC.ROM	$B000-$FFFF
 	FONT.ROM	6x8 dots font image (bit7-bit2)
 
+    Optional:
+	RELAY_ON.WAV    Sound file of turning on a CMT's RELAY.	
+	RELAYOFF.WAV    Sound file of turning off a CMT's RELAY.
+
 --- Key maps
 
 	Virtual		PC

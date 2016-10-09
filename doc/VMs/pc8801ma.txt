@@ -18,6 +18,9 @@
 	N80_2.ROM	PC-8001mkII
 	N80_3.ROM	PC-8001mkIISR
 
+    Optional:
+	FDDSEEK.WAV     Sound file of FDD SEEKING.
+
 --- Key maps
 
 	Virtual		PC

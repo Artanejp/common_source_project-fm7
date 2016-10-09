@@ -7,6 +7,9 @@
 	EXT.ROM		8000H-BFFFH (Expansion Unit)
 	TF20.ROM	0000H-07FFH (TF-20 internal)
 
+    Optional:
+	FDDSEEK.WAV     Sound file of FDD SEEKING.
+
 --- Key maps
 
 	Virtual		PC

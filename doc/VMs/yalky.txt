@@ -6,6 +6,11 @@
 	BIOS.ROM
 	FONT.ROM
 
+    Optional:
+	CMTPLAY.WAV		Sound file of CMT PLAY button.
+	CMTSTOP.WAV		Sound file of CMT Stop button.
+	CMTEJECT.WAV	Sound file of CMT Eject button.
+
 --- Key maps
 
 	Virtual		PC

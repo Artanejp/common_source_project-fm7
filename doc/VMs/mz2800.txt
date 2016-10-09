@@ -7,6 +7,9 @@
 	KANJI.ROM	Kanji ROM 256KB (same as MZ-2500)
 	DICT.ROM	Dictionary ROM 256KB (same as MZ-2500)
 
+    Optional:
+	FDDSEEK.WAV     Sound file of FDD SEEKING.
+
 --- Key maps
 
 	Virtual		PC

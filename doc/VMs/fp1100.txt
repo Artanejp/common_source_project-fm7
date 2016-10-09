@@ -9,6 +9,11 @@
 	SUB2.ROM	SUB $1000-$1FFF
 	SUB3.ROM	SUB $F000-$FF7F
 
+	Optional:
+	FDDSEEK.WAV     Sound file of FDD SEEKING.
+	RELAY_ON.WAV    Sound file of turning on a CMT's RELAY.	
+	RELAYOFF.WAV    Sound file of turning off a CMT's RELAY.
+
 ----------------------------------------
 TAKEDA, toshiya
 t-takeda@m1.interq.or.jp

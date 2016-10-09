@@ -11,6 +11,9 @@
 
 	(*) If IPL.ROM not exist, the internal pseudo IPL is used.
 
+    Optional:
+	FDDSEEK.WAV     Sound file of FDD SEEKING.
+
 --- SCSI hard drive and memory card
 
 	Place SCSI*.DAT (*: 0-7) and MEMCARD*.DAT (*: 0-1).

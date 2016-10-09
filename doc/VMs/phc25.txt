@@ -6,6 +6,10 @@
 	BASIC.ROM	$0000-$5FFF
 	FONT.ROM	$5000-$5FFF
 
+    Optional:
+	RELAY_ON.WAV    Sound file of turning on a CMT's RELAY.	
+	RELAYOFF.WAV    Sound file of turning off a CMT's RELAY.
+
 ----------------------------------------
 TAKEDA, toshiya
 t-takeda@m1.interq.or.jp

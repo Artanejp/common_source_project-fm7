@@ -6,6 +6,9 @@
 	IPL.ROM		IPL ROM
 	KANJI.ROM	Kanji CG ROM (run pc100/mkfont.exe)
 
+    Optional:
+	FDDSEEK.WAV     Sound file of FDD SEEKING.
+
 --- Key maps
 
 	Virtual		PC

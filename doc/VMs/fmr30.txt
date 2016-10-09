@@ -6,6 +6,9 @@
 	IPL.ROM		IPL ROM 64KB ($F0000-$FFFFF)
 	KANJI16.ROM	16x16 Kanji Font ROM
 
+    Optional:
+	FDDSEEK.WAV     Sound file of FDD SEEKING.
+
 --- SCSI hard drive
 
 	Place SCSI*.DAT (*: 0-7).

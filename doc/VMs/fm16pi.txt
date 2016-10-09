@@ -6,6 +6,9 @@
 	KANJI.ROM	$80000-$BFFFF
 	CART.ROM	$C0000-$FFFFF (BASIC or COBOL)
 
+	Optional:
+	FDDSEEK.WAV     Sound file of FDD SEEKING.
+
 --- Key maps
 
 	Virtual		PC

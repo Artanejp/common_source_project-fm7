@@ -16,6 +16,12 @@
 	$7FE	$FD
 	$7FF	$E9
 
+    Optional:
+	FDDSEEK.WAV     Sound file of FDD SEEKING.
+	CMTPLAY.WAV		Sound file of CMT PLAY button.
+	CMTSTOP.WAV		Sound file of CMT Stop button.
+	CMTEJECT.WAV	Sound file of CMT Eject button.
+
 --- Key maps
 
 	Virtual			PC (106JP)

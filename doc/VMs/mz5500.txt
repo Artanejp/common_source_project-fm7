@@ -10,6 +10,9 @@
 
 	* Bank can be switched by the port $230.
 
+    Optional:
+	FDDSEEK.WAV     Sound file of FDD SEEKING.
+
 --- Key maps
 
 	Virtual		PC

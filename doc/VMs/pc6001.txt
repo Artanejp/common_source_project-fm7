@@ -58,3 +58,8 @@ If SUBCPU.?? does not exist, pesudo sub-cpu emulation is used.
 
 DISK.ROM is required for PC-80S31K emulation.
 If DISK.ROM does not exist, PC-6031 and PC-6032 are connected to the machine.
+
+    Optional:
+	FDDSEEK.WAV     Sound file of FDD SEEKING.(Excepts PC-6001)
+	RELAY_ON.WAV    Sound file of turning on a CMT's RELAY.	
+	RELAYOFF.WAV    Sound file of turning off a CMT's RELAY.

@@ -7,6 +7,12 @@
 	FDIF.ROM	$F000-$F3FF (MZ-80FIO Boot ROM)
 	FONT.ROM	8x8 dots font image
 
+    Optional:
+	FDDSEEK.WAV     Sound file of FDD SEEKING.
+	CMTPLAY.WAV		Sound file of CMT PLAY button.
+	CMTSTOP.WAV		Sound file of CMT Stop button.
+	CMTEJECT.WAV	Sound file of CMT Eject button.
+
 --- Key maps
 
 	Virtual		PC

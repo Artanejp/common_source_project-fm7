@@ -15,6 +15,9 @@
 
 	Refer also pc98lt/readme.txt and pc98ha/readme.txt
 
+    Optional:
+	FDDSEEK.WAV     Sound file of FDD SEEKING.
+
 --- Key maps
 
 	Virtual		PC

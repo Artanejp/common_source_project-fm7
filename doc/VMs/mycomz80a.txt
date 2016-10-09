@@ -8,6 +8,10 @@
 
 	Pseudo ROMs are provided in my web page.
 
+    Optional:
+	RELAY_ON.WAV    Sound file of turning on a CMT's RELAY.	
+	RELAYOFF.WAV    Sound file of turning off a CMT's RELAY.
+
 --- Optional Hardwares
 
 	64KB RAM

@@ -5,6 +5,9 @@
 
 	BASIC.ROM	$E000 - $FFFF
 
+    Optional:
+	RELAY_ON.WAV    Sound file of turning on a CMT's RELAY.	
+	RELAYOFF.WAV    Sound file of turning off a CMT's RELAY.
 ----------------------------------------
 TAKEDA, toshiya
 t-takeda@m1.interq.or.jp

@@ -20,10 +20,10 @@
 	Please select one of two:
 	KANJI1.ROM      JIS class 1 Kanji ROM $20000 bytes
 	KANJI.ROM       JIS class 1 Kanji ROM $20000 bytes
+	
 	FDDSEEK.WAV     Sound file of FDD SEEKING.
 	RELAY_ON.WAV    Sound file of turning on a CMT's RELAY.	
 	RELAYOFF.WAV    Sound file of turning off a CMT's RELAY.
-
 
 --- Key maps
 

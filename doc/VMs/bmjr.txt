@@ -8,6 +8,10 @@
 	MONITOR.ROM	$F000 - $FFFF
 	FONT.ROM	8x8 dots font image
 
+    Optional:
+	RELAY_ON.WAV    Sound file of turning on a CMT's RELAY.	
+	RELAYOFF.WAV    Sound file of turning off a CMT's RELAY.
+
 --- Key maps
 
 	Virtual		PC
