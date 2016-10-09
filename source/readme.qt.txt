@@ -53,6 +53,7 @@
      second is Qt's scan code.
    ・Common UI components (at src/qt/gui ) are moved to shared lib. libCSPgui.so .
    ・Installer (bash) script is available now; src/tool/installer_unix.sh .
+   ・When you place specified WAV files(differ per VM) same directory as ROMs, you can sound sounds: i.e. FDD seek, CMT relay and buttons.
    
 5.Status
 a. I tested to build only under Debian GNU/Linux "sid".

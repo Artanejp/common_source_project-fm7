@@ -1,3 +1,263 @@
+commit c3080d958a21890699495269075cfeb037aeb297
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 9 22:50:26 2016 +0900
+
+    [Qt][CONFIG][UI] Add config entries for pseudo-sounds (i.e. FDD,Relay).
+
+commit f5242a8cff416ff3c5fba8a690ae0f65ec81f0bb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 6 20:33:20 2016 +0900
+
+    [DOC] ABOUT_eFM7 : More translate.
+
+commit a7c533c203bc8e7575940391aeedd3b0a12c595c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 6 17:36:21 2016 +0900
+
+    [DOC] Update ABOUT_eFM7_1.en.txt, still partly translation.
+
+commit e590abe9f83d4f08ead01737b7f2c77582d274ab
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 5 20:57:13 2016 +0900
+
+    [VM][DATAREC][FDD] Add sounds of SEEK/CMT, excepts either pseudo devices / bios.
+    [VM][DATAREC] Fix freeze resetting when loading from TAPE.
+
+commit 1affdb63fd8a1ff9295af4269e2d15e4ec00ea70
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 5 16:23:50 2016 +0900
+
+    [VM][FP200] Add CMT button's sounds.
+
+commit 004bf295dd036e2905ea5a1ed36461be179e45fe
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 5 15:32:19 2016 +0900
+
+    [VM][X1][FM7] load_state(): Keep backward compatibility to SNAPSHOT 20160923.
+
+commit 815cfb1186ee23bd9dc85d11983124fa99ed8f94
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 5 14:38:09 2016 +0900
+
+    [VM][FM7] MAINIO: Revert STATE_VERSION to 6.
+
+commit 329971e210ff8bc34ce35e9868921c3a44b35d24
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 5 14:02:30 2016 +0900
+
+    [VM][DATAREC] Fix FTBFS with some VMs.
+
+commit 924bfaf7b644ca73240de65823d27eb2490d0809
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 5 06:51:23 2016 +0900
+
+    [VM][BMJR][FM7][MB8877][MSX][MZ80K][MZ700][MZ2500][T3444A][uPD765A] Add playing sound files. (BMjr has not sounded datarec,why?)
+
+commit 1923450bf8c5479b3f89b98fa1ef1b034ae834d5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 5 06:49:38 2016 +0900
+
+    [BUILD][VM] Remove "-DDATAREC_SOUND" if unneeded.
+
+commit 7ecdc018f1671d80f4d287b81d9f75c1db22942d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Oct 4 17:19:52 2016 +0900
+
+    [VM][PC100] Add a seek sound.
+
+commit 184c907a6622d3ae2dec77580f8ae8422435e71e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Oct 4 17:19:22 2016 +0900
+
+    [PC6001][VM] Fix FTBFS.
+
+commit cf0c4598b556fbdcb4af488c2e4e6fbe66d9697e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Oct 4 16:57:00 2016 +0900
+
+    [VM][FM7][PC88][PC60][PC98][X1] DATAREC/SEEK; has sound files, will abandon WAV_SOUNDER DEVICE.
+
+commit b5bd35c8b0485e8cf4e02277056e797007a9af96
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 3 21:20:37 2016 +0900
+
+    [VM][PC6001] Add seek sounds.
+
+commit 4590a5f3484ae4a3d344db53b7e107ca45412a63
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 3 21:19:57 2016 +0900
+
+    [VM][PC9801] Add seek sound.
+
+commit fa3bdd95e41acb312913272dec1205a20b16fec6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 3 21:19:10 2016 +0900
+
+    [VM][EVENT] Extend permitted sound events to 32.
+
+commit ccf5ea3607bb3f2c95270603a9724aa7f6db722c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 3 21:18:40 2016 +0900
+
+    [VM][PC8801] Add seek sound.
+
+commit 4757c407f1e4b1f84160372fa55d4156b6c15a51
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 3 21:17:22 2016 +0900
+
+    [VM][uPD765A] More correctness seek timing.
+    [VM][uPD765A] Add seek sound.
+
+commit 0e8dc83555fa33b64ab4874571c330f0f98e7956
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 3 17:55:41 2016 +0900
+
+    [VM][MB8877] More accurate seek sound.
+
+commit f7b07f94efd9eeb47d130aa16e1f2aa7005e291e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 3 16:48:56 2016 +0900
+
+    [VM][WAV_SOUNDER] Use a static table instead of FIFO. Expect to be faster.
+
+commit 51ac81a705b03c44d8a87f40fae59fcf15eb1694
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 3 16:24:54 2016 +0900
+
+    [VM][X1] Add sounds for X1 series.
+
+commit bfbc15db3dd0954c1ab3067237957c1e124fe493
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 3 16:23:19 2016 +0900
+
+    [VM][WAV_SOUNDER] Fix crash on failed to load without any sound file.
+
+commit c57cc4127dd2f9c9527106b56b0b4583f7c65d8a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 3 16:20:29 2016 +0900
+
+    [VM][DATAREC] Fix crash when eject under playing a tape.
+
+commit 7580a2bef858a70055a7dbe2834b17df6551a3a0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 3 01:56:38 2016 +0900
+
+    [Build][CMAKE] Update DLL's version.
+
+commit 5f1eb41a6953e3c5a2e9fc01c27562dd955ba922
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 3 01:52:59 2016 +0900
+
+    [DOC] FM-7/77AV/8 : Update VMs/*.txt .
+
+commit 97308b42f2851810e9e4552e18aab6e09cde31c4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 3 01:48:49 2016 +0900
+
+    [Build][CMAKE][FM7] Add wav sound.
+
+commit bd897115fad872c79390cc9dc156de949334a0dc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 3 01:48:07 2016 +0900
+
+    [Build][Linux] Fix wrong flags with LTO.
+
+commit f9ee028ba582edf050be3b98544dc82776f678f1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 3 01:47:16 2016 +0900
+
+    [OSD][Qt] Extend for SOUND_LOADER.
+
+commit aa0dde7d20fc0ae63d558492a78e002acafe1bed
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 3 01:46:43 2016 +0900
+
+    [VM][FM7] Add sounds; FDD Seeking and Relay.
+
+commit 5e864711a1e602d6247b33ec73d99d18dfc5d9ee
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 3 01:45:36 2016 +0900
+
+    [VM][WMU] Add WAV_SOUNDER class to play WAVS (i.e. FDD seeking). See wav_sounder.[cpp|h] and mb8877.[cpp|h] .
+
+commit 4a3d70d0c01336136fec0580adf84a835b01ac3c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 3 01:44:54 2016 +0900
+
+    [Qt][AVIO] Add SOUND_LOADER class.
+
+commit 35ca4fea31e414ca47a9a07bfae6e5c67805c8a9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 3 01:43:57 2016 +0900
+
+    [VM][EVENT] Update MAX_SOUND from 8 to 16.
+
+commit 7d7ce4f82ab2df1a63f9ebfa1f894b83e559486b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Sep 29 23:49:08 2016 +0900
+
+    [WIP][BUILD][WIN32] TRY: Use llvm to build, this is wip.
+
+commit 1b2f044dc532d1e2534be10080493f043c8e4479
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Sep 29 18:05:42 2016 +0900
+
+    [BUILD] Fix Linux/GCC.
+
+commit de07e089dbc3065273dd13db0fd572158a00ae86
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Sep 29 17:04:56 2016 +0900
+
+    [Build][GENERAL] Separate compiler depended params to source/build-cmake/param/ .
+
+commit 3d44518d2958672da3c5ae51ca9f00bc4997c537
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Sep 28 18:55:15 2016 +0900
+
+    [DOC] Translate and correct ABOUT_eFM7_1.en.txt by hand, partly.
+
+commit 9f6e5e1fca352fa704751c2a67e997b6ae5acd49
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Sep 28 06:54:05 2016 +0900
+
+    [BUILD][General][WIP] Win32: TRY: Cross build with llvm clang, linking has failed yet.
+
+commit 1d3609dcbe1619614f09afe594fd019af5a98c55
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Sep 27 13:05:39 2016 +0900
+
+    [General][BUILD][WIP] TRY: Also use LLVM CLANG to build Win32 binary, still not succeeded.
+
+commit 2be65424c9658602c2810cbbe2dd011a5e3100c3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Sep 27 11:54:21 2016 +0900
+
+    [BUILD][GENERAL] Non-Cross: Enable to use llvm-clang (3.9) to build.
+
+commit 2a3087a2eebcb856ab1ee5fa6b9b0c33041dea09
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Sep 27 03:24:33 2016 +0900
+
+    [UI][Qt][AVIO][WIP] Trim logs.WIP.
+
+commit c3dc108612fa94495cf2076c8b8abe410d4fb08c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Sep 27 03:21:17 2016 +0900
+
+    [Qt][GUI][Win32] Fix crash launching with gdb/Mingw32 or gdb/Cygwin. See http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/750 .
+
+commit 73249c9203a357eb6061a5d44efb5d89f00bcdca
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Sep 23 22:02:50 2016 +0900
+
+    [DOC] Update GITLOG.
+
+commit fe5eb3a8561717a74ce16fa3e65af57d6466f4bc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Sep 23 22:02:29 2016 +0900
+
+    [DOC] Update Issues.
+
 commit 88650a4eeb04e758fbccae27931364195604a750
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Fri Sep 23 20:09:13 2016 +0900
