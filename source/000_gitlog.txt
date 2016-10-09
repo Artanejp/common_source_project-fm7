@@ -1,3 +1,15 @@
+commit 3129bcfe18267942d202153a683b2d4e56fc96a8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 9 23:20:56 2016 +0900
+
+    [DOC] Qt ports: Add about sound files.
+
+commit ef81b8b71646d878dd9e7d0a7a299b290b419224
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 9 23:20:09 2016 +0900
+
+    [DOC] VMs/ : Add about sound files.
+
 commit c3080d958a21890699495269075cfeb037aeb297
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sun Oct 9 22:50:26 2016 +0900

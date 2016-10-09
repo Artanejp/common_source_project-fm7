@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                          Sep 23, 2016
+                                          Oct 10, 2016
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -108,6 +108,21 @@
       http://takeda-toshiya.my.coocan.jp/
 
 Changes:
+
+* SNAPSHOT October 10, 2016
+  * Upstream 2016-04-13
+  * [VM] Add pseudo sounds (i.e. FDD seek), need sound files (even not WAV file at Qt porting), see doc/VMs/foo.txt . 
+  * [VM][DATAREC][FDCs] Update STATE_VERSION of some devices.
+  * [VM/X1,FM7] load_state(): Keep backward compatibility to SNAPSHOT 20160923.
+  * [VM/EVENT] Extend permitted sound events to 32 to use sound files (reserved feature).
+  * [VM/EVENT] Update MAX_SOUND from 8 to 16.
+  * [Qt/GUI] Win32: Fix crash launching with gdb/Mingw32 or gdb/Cygwin. See http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/750 .
+  * [Build/Linux] Fix wrong flags with LTO.
+  * [Build] Non-Win32 : Ready to build with llvm clang (later than 3.7?).
+  * [Build/GENERAL] Separate compiler depended params to source/build-cmake/param/ .
+  * Build with commit 3129bcfe18267942d202153a683b2d4e56fc96a8 (or later).
+
+-- Oct 09, 2016 23:28:39 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT September 23, 2016
   * Upstream 2016-04-13
