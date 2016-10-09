@@ -33,6 +33,8 @@
 #define USE_AUTO_KEY_CAPS
 #define USE_ACCESS_LAMP
 #define USE_SOUND_FILES		3
+#define USE_SOUND_FILES_FDD
+#define USE_SOUND_FILES_RELAY
 #if defined(USE_SOUND_FILES)
 #define USE_SOUND_VOLUME	4
 #else

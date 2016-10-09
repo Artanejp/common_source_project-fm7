@@ -50,6 +50,8 @@
 
 // device informations for win32
 #define USE_SOUND_FILES 4
+#define USE_SOUND_FILES_FDD
+#define USE_SOUND_FILES_BUTTONS
 #define USE_DIPSWITCH
 #define USE_TAPE
 #define USE_TAPE_BUTTON

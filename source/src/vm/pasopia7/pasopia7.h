@@ -63,6 +63,12 @@
 #else
 #define USE_SOUND_FILES		5
 #endif
+#define USE_SOUND_FILES_FDD
+#ifdef _LCD
+#define USE_SOUND_FILES_BUTTONS
+#else
+#define USE_SOUND_FILES_RELAY
+#endif
 #if defined(USE_SOUND_FILES)
 #define USE_SOUND_VOLUME	6
 #else

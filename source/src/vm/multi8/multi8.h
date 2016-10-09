@@ -44,6 +44,8 @@
 #define USE_SCANLINE
 #define USE_ACCESS_LAMP
 #define USE_SOUND_FILES		2
+#define USE_SOUND_FILES_FDD
+//#define USE_SOUND_FILES_RELAY
 #if defined(USE_SOUND_FILES)
 #define USE_SOUND_VOLUME	3
 #else

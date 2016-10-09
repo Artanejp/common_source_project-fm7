@@ -89,6 +89,34 @@ void Ui_MainWindowBase::do_browse_document(QString fname)
 	dlg->show();
 }
 
+void Ui_MainWindowBase::do_set_sound_files_fdd(bool f)
+{
+	if(f) {
+		using_flags->get_config_ptr()->sound_fdd = 1;
+	} else {
+		using_flags->get_config_ptr()->sound_fdd = 0;
+	}
+}
+
+void Ui_MainWindowBase::do_set_sound_files_relay(bool f)
+{
+	if(f) {
+		using_flags->get_config_ptr()->sound_relay = 1;
+	} else {
+		using_flags->get_config_ptr()->sound_relay = 0;
+	}
+}
+
+void Ui_MainWindowBase::do_set_sound_files_buttons(bool f)
+{
+	if(f) {
+		using_flags->get_config_ptr()->sound_buttons = 1;
+	} else {
+		using_flags->get_config_ptr()->sound_buttons = 0;
+	}
+}
+
+
 void Ui_MainWindowBase::do_set_conslog(bool f)
 {
 	using_flags->get_config_ptr()->log_to_console = f;
@@ -507,6 +535,18 @@ void Ui_MainWindowBase::setupUi(void)
 	if(using_flags->is_use_joystick()) {
 		connect(action_SetupJoystick, SIGNAL(triggered()), this, SLOT(rise_joystick_dialog()));
 	}
+
+	if(using_flags->is_use_sound_files()) {
+		if(using_flags->is_use_sound_files_fdd()) {
+			connect(action_SoundFilesFDD, SIGNAL(toggled(bool)), this, SLOT(do_set_sound_files_fdd(bool)));
+		}
+		if(using_flags->is_use_sound_files_relay()) {
+			connect(action_SoundFilesRelay, SIGNAL(toggled(bool)), this, SLOT(do_set_sound_files_relay(bool)));
+		}
+		if(using_flags->is_use_sound_files_buttons()) {
+			connect(action_SoundFilesButtons, SIGNAL(toggled(bool)), this, SLOT(do_set_sound_files_buttons(bool)));
+		}
+	}		
 	connect(action_SetupKeyboard, SIGNAL(triggered()), this, SLOT(rise_keyboard_dialog()));
 	connect(action_LogToSyslog, SIGNAL(toggled(bool)), this, SLOT(do_set_syslog(bool)));
 	connect(action_LogToConsole, SIGNAL(toggled(bool)), this, SLOT(do_set_conslog(bool)));
@@ -555,6 +595,17 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 	action_LogToConsole->setText(QApplication::translate("MainWindow", "Log to Console", 0));
 	action_LogToSyslog->setText(QApplication::translate("MainWindow", "Log to Syslog", 0));
 	//action_LogRecord->setText(QApplication::translate("MainWindow", "Recording Log", 0));
+	if(using_flags->is_use_sound_files()) {
+		if(using_flags->is_use_sound_files_fdd()) {
+			action_SoundFilesFDD->setText(QApplication::translate("MainWindow", "Sound FDD Seek", 0));
+		}
+		if(using_flags->is_use_sound_files_relay()) {
+			action_SoundFilesRelay->setText(QApplication::translate("MainWindow", "Sound CMT Relay", 0));
+		}
+		if(using_flags->is_use_sound_files_buttons()) {
+			action_SoundFilesButtons->setText(QApplication::translate("MainWindow", "Sound CMT Buttons", 0));
+		}
+	}		
 	
 	menuDevLogToConsole->setTitle(QApplication::translate("MainWindow", "Per Device", 0));
 
@@ -581,6 +632,12 @@ void Ui_MainWindowBase::CreateEmulatorMenu(void)
 	menuEmulator->addSeparator();
 	menuEmulator->addAction(action_LogView);
 	menuEmulator->addSeparator();
+	if(using_flags->is_use_sound_files()) {
+		if(using_flags->is_use_sound_files_fdd())     menuEmulator->addAction(action_SoundFilesFDD);
+		if(using_flags->is_use_sound_files_relay())   menuEmulator->addAction(action_SoundFilesRelay);
+		if(using_flags->is_use_sound_files_buttons()) menuEmulator->addAction(action_SoundFilesButtons);
+		menuEmulator->addSeparator();
+	}
 	if(using_flags->is_use_joystick()) {
 		menuEmulator->addAction(action_SetupJoystick);
 	}
@@ -594,6 +651,35 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	QString tmps;
 	if(using_flags->is_use_joystick()) {
 		action_SetupJoystick = new Action_Control(this, using_flags);
+	}
+	if(using_flags->is_use_sound_files()) {
+		if(using_flags->is_use_sound_files_fdd()) {
+			action_SoundFilesFDD = new Action_Control(this, using_flags);
+			action_SoundFilesFDD->setCheckable(true);
+			action_SoundFilesFDD->setEnabled(true);
+			action_SoundFilesFDD->setChecked(false);
+			if(using_flags->get_config_ptr()->sound_fdd != 0) {
+				action_SoundFilesFDD->setChecked(true);
+			}
+		}
+		if(using_flags->is_use_sound_files_relay()) {
+			action_SoundFilesRelay = new Action_Control(this, using_flags);
+			action_SoundFilesRelay->setCheckable(true);
+			action_SoundFilesRelay->setEnabled(true);
+			action_SoundFilesRelay->setChecked(false);
+			if(using_flags->get_config_ptr()->sound_relay != 0) {
+				action_SoundFilesRelay->setChecked(true);
+			}
+		}
+		if(using_flags->is_use_sound_files_buttons()) {
+			action_SoundFilesButtons = new Action_Control(this, using_flags);
+			action_SoundFilesButtons->setCheckable(true);
+			action_SoundFilesButtons->setEnabled(true);
+			action_SoundFilesButtons->setChecked(false);
+			if(using_flags->get_config_ptr()->sound_buttons != 0) {
+				action_SoundFilesButtons->setChecked(true);
+			}
+		}
 	}
 	action_LogToSyslog = new Action_Control(this, using_flags);
 	action_LogToSyslog->setCheckable(true);

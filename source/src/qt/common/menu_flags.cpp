@@ -80,6 +80,11 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	use_sound_device_type = 0;
 	use_sound_volume = 0;
 	without_sound = false;
+	use_sound_files = false;
+	use_sound_files_fdd = false;
+	use_sound_files_relay = false;
+	use_sound_files_buttons = false;
+	
 	use_special_reset = false;
 
 	use_state = false;
@@ -419,6 +424,24 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 #endif
 #if defined(WITHOUT_SOUND)
 	without_sound = true;
+#endif
+#if defined(USE_SOUND_FILES)
+	use_sound_files = true;
+# if !defined(USE_SOUND_FILES_FDD) && !defined(USE_SOUND_FILES_RELAY) && !defined(USE_SOUND_FILES_BUTTONS)
+	use_sound_files_fdd = true;
+	use_sound_files_relay = true;
+	use_sound_files_buttons = true;
+# else
+#  if defined(USE_SOUND_FILES_FDD)
+	use_sound_files_fdd = true;
+#  endif
+#  if defined(USE_SOUND_FILES_RELAY)
+	use_sound_files_relay = true;
+#  endif
+#  if defined(USE_SOUND_FILES_BUTTONS)
+	use_sound_files_buttons = true;
+#  endif
+# endif
 #endif
 #if defined(USE_SPECIAL_RESET)
 	use_special_reset = true;

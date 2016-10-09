@@ -111,6 +111,8 @@
 // ToDo
 #define DATAREC_SOUND
 #define USE_SOUND_FILES             5
+#define USE_SOUND_FILES_FDD
+#define USE_SOUND_FILES_BUTTONS
 // CZ-8BS1 x1
 #define SOUND_DEVICE_TYPE_DEFAULT	1
 #if defined(USE_SOUND_FILES)

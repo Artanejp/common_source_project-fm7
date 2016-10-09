@@ -38,6 +38,8 @@
 #define USE_NOTIFY_POWER_OFF
 #define USE_ACCESS_LAMP
 #define USE_SOUND_FILES		1
+#define USE_SOUND_FILES_FDD
+//#define USE_SOUND_FILES_RELAY
 #if defined(USE_SOUND_FILES)
 #define USE_SOUND_VOLUME	2
 #else

@@ -102,7 +102,11 @@ private:
 	int use_sound_device_type;
 	int use_sound_volume;
 	bool without_sound;
-
+	bool use_sound_files;
+	bool use_sound_files_fdd;
+	bool use_sound_files_relay;
+	bool use_sound_files_buttons;
+	
 	bool use_special_reset;
 
 	bool use_state;
@@ -232,6 +236,10 @@ public:
 	int get_use_sound_device_type() { return use_sound_device_type; }
 	int get_use_sound_volume() { return use_sound_volume; }
 	bool is_without_sound() { return without_sound; }
+	bool is_use_sound_files() { return use_sound_files; }
+	bool is_use_sound_files_fdd() { return use_sound_files_fdd; }
+	bool is_use_sound_files_relay() { return use_sound_files_relay; }
+	bool is_use_sound_files_buttons() { return use_sound_files_buttons; }
 
 	bool is_use_special_reset() { return use_special_reset; }
 

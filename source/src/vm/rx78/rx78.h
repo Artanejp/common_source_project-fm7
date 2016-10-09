@@ -29,6 +29,7 @@
 #define USE_AUTO_KEY_RELEASE	10
 #define USE_AUTO_KEY_CAPS
 #define USE_SOUND_FILES		2
+#define USE_SOUND_FILES_RELAY
 #if defined(USE_SOUND_FILES)
 #define USE_SOUND_VOLUME	3
 #else

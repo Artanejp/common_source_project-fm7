@@ -1542,7 +1542,7 @@ void DATAREC::mix_sndfiles(int ch, int32_t *dst, int cnt, int16_t *src, int samp
 		ptr = table[i];
 		if(ptr >= 0) {
 			if(ptr < samples) {
-				if(!snd_mute[ch]) {
+				if(!snd_mute[ch] && ((config.sound_relay != 0) || (config.sound_buttons != 0))) {
 					pp = ptr << 1;
 					dst_tmp = dst;
 					k = 0;

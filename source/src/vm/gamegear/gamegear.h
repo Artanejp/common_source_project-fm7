@@ -25,6 +25,8 @@
 
 // device informations for win32
 #define USE_SOUND_FILES			3
+#define USE_SOUND_FILES_FDD
+#define USE_SOUND_FILES_RELAY
 #define USE_CART1
 #define USE_FD1
 #define USE_TAPE

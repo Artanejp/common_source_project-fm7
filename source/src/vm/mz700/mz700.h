@@ -83,10 +83,16 @@
 #if defined(USE_SOUND_FILES)
 #if defined(_MZ700)
 #define USE_SOUND_VOLUME	3
+#define USE_SOUND_FILES_BUTTONS
 #elif defined(_MZ800)
 #define USE_SOUND_VOLUME	5
+#define USE_SOUND_FILES_BUTTONS
+#define USE_SOUND_FILES_FDD
+//#define USE_SOUND_FILES_QD
 #elif defined(_MZ1500)
 #define USE_SOUND_VOLUME	6
+#define USE_SOUND_FILES_BUTTONS
+#define USE_SOUND_FILES_FDD
 #endif
 #else
 #if defined(_MZ700)

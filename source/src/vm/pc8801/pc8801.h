@@ -98,6 +98,8 @@
 #endif
 #endif
 #define USE_SOUND_FILES 3
+#define USE_SOUND_FILES_FDD
+//#define USE_SOUND_FILES_RELAY
 
 #if defined(USE_SOUND_FILES)
 #if    defined(SUPPORT_PC88_OPNA) &&  defined(SUPPORT_PC88_SB2) &&  defined(SUPPORT_PC88_PCG8100)

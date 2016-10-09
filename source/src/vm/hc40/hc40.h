@@ -35,6 +35,8 @@
 #define USE_AUTO_KEY_RELEASE	10
 #define USE_ACCESS_LAMP
 #define USE_SOUND_FILES			5
+#define USE_SOUND_FILES_FDD
+#define USE_SOUND_FILES_RELAY
 #if defined(USE_SOUND_FILES)
 #define USE_SOUND_VOLUME		3
 #else

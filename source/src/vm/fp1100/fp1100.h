@@ -33,9 +33,11 @@
 #define USE_TAPE_BAUD
 #define USE_FD1
 #define USE_FD2
-#define USE_SOUND_FILES		3
 //#define USE_FD3
 //#define USE_FD4
+#define USE_SOUND_FILES		3
+#define USE_SOUND_FILES_FDD
+#define USE_SOUND_FILES_RELAY
 #define NOTIFY_KEY_DOWN
 #define USE_SHIFT_NUMPAD_KEY
 #define USE_ALT_F10_KEY

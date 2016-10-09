@@ -861,7 +861,7 @@ void T3444A::mix_main(int32_t *dst, int count, int16_t *src, int *table, int sam
 		ptr = table[i];
 		if(ptr >= 0) {
 			if(ptr < samples) {
-				if(!snd_mute) {
+				if(!snd_mute && (config.sound_fdd != 0)) {
 					pp = ptr << 1;
 					dst_tmp = dst;
 					k = 0;

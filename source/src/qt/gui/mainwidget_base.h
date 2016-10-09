@@ -302,6 +302,9 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	class Action_Control *action_SetupKeyboard;
 	class Action_Control *action_LogView;
 	
+	class Action_Control *action_SoundFilesFDD;
+	class Action_Control *action_SoundFilesRelay;
+	class Action_Control *action_SoundFilesButtons;
 	QMenu *menuLogToConsole;
 	QMenu *menuLogToSyslog;
 	QMenu *menuDevLogToConsole;
@@ -596,11 +599,14 @@ public slots:
 	void set_printer_device(int);
 	void do_show_about(void);
 	void do_browse_document(QString);
+	
+	void do_set_sound_files_fdd(bool f);
+	void do_set_sound_files_relay(bool f);
+	void do_set_sound_files_buttons(bool f);
 	void do_set_conslog(bool);
 	void do_set_syslog(bool);
 	void do_update_device_node_name(int id, const _TCHAR *name);	
 	void do_set_dev_log_to_console(int id, bool f);
-
 signals:
 	int message_changed(QString);
 	int quit_emu_thread();

@@ -165,6 +165,10 @@ void initialize_config()
 
 	config.log_to_syslog = false;
 	config.log_to_console = true;
+
+	config.sound_fdd = 1;
+	config.sound_relay = 0;
+	config.sound_buttons = 0;
 #endif	
 }
 
@@ -432,6 +436,10 @@ void load_config(const _TCHAR *config_path)
 
 #endif	
 #if defined(_USE_QT)
+	config.sound_fdd = MyGetPrivateProfileInt(_T("Emulator"), _T("SoundFDD"), config.sound_fdd, config_path);
+	config.sound_relay = MyGetPrivateProfileInt(_T("Emulator"), _T("SoundRelay"), config.sound_relay, config_path);
+	config.sound_buttons = MyGetPrivateProfileInt(_T("Emulator"), _T("SoundButtons"), config.sound_buttons, config_path);
+	
 	config.log_to_syslog = MyGetPrivateProfileBool(_T("Emulator"), _T("WriteToSyslog"), config.log_to_syslog, config_path);
 	config.log_to_console = MyGetPrivateProfileBool(_T("Emulator"), _T("WriteToConsole"), config.log_to_console, config_path);
 	for(int ii = 0; ii < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1); ii++) {
@@ -679,6 +687,10 @@ void save_config(const _TCHAR *config_path)
 	MyWritePrivateProfileInt(_T("Video"), _T("VideoFramerate"), config.video_frame_rate, config_path);
 #endif	
 #if defined(_USE_QT)
+	MyWritePrivateProfileInt(_T("Emulator"), _T("SoundFDD"), config.sound_fdd, config_path);
+	MyWritePrivateProfileInt(_T("Emulator"), _T("SoundRelay"), config.sound_relay, config_path);
+	MyWritePrivateProfileInt(_T("Emulator"), _T("SoundButtons"), config.sound_buttons, config_path);
+	
 	MyWritePrivateProfileBool(_T("Emulator"), _T("WriteToSyslog"), config.log_to_syslog, config_path);
 	MyWritePrivateProfileBool(_T("Emulator"), _T("WriteToConsole"), config.log_to_console, config_path);
 	
@@ -709,8 +721,6 @@ void save_config(const _TCHAR *config_path)
 #if defined(_USE_QT) && !defined(Q_OS_WIN)
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Write config done.");
 #endif
-
-	
 }
 
 #define STATE_VERSION	5

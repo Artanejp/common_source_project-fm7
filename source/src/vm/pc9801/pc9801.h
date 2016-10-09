@@ -175,7 +175,10 @@
 #define USE_ACCESS_LAMP
 #define USE_SOUND_DEVICE_TYPE	5
 #define USE_SOUND_FILES 3
-
+#define USE_SOUND_FILES_FDD
+#if defined(USE_TAPE)
+#define USE_SOUND_FILES_RELAY
+#endif
 #if defined(USE_SOUND_FILES)
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 #if    defined(SUPPORT_PC98_OPNA) &&  defined(SUPPORT_PC88_OPNA)

@@ -24,6 +24,7 @@
 #define MEMORY_ADDR_MAX		0x10000
 #define MEMORY_BANK_SIZE	0x2000
 #define USE_SOUND_FILES		3
+#define USE_SOUND_FILES_RELAY
 
 // device informations for win32
 #define WINDOW_MODE_BASE	2

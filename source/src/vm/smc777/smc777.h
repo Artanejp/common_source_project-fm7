@@ -55,6 +55,8 @@
 #define USE_SCANLINE
 #define USE_ACCESS_LAMP
 #define USE_SOUND_FILES		4
+#define USE_SOUND_FILES_FDD
+#define USE_SOUND_FILES_RELAY
 #if defined(USE_SOUND_FILES)
 #if defined(_SMC777)
 #define USE_SOUND_VOLUME	5

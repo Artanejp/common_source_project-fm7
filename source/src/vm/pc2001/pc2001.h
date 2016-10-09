@@ -33,6 +33,7 @@
 #define USE_AUTO_KEY_CAPS_LOCK	(0xf2 | 0x100)
 #define DONT_KEEEP_KEY_PRESSED
 #define USE_SOUND_FILES		3
+#define USE_SOUND_FILES_BUTTONS
 #if defined(USE_SOUND_FILES)
 #define USE_SOUND_VOLUME	3
 #else

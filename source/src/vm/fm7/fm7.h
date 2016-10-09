@@ -40,6 +40,8 @@
 #define USE_DIG_RESOLUTION
 #if defined(_USE_QT)
 #define USE_SOUND_FILES 3
+#define USE_SOUND_FILES_FDD
+#define USE_SOUND_FILES_RELAY
 #endif
 #if defined(_FM8)
 #define DEVICE_NAME		"FUJITSU FM-8"

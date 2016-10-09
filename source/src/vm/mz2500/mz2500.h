@@ -37,6 +37,8 @@
 
 // device informations for win32
 #define USE_SOUND_FILES 4
+#define USE_SOUND_FILES_FDD
+#define USE_SOUND_FILES_BUTTONS
 #define USE_SPECIAL_RESET
 #define USE_FD1
 #define USE_FD2

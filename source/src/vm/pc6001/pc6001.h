@@ -97,11 +97,13 @@
 #endif
 #define USE_ACCESS_LAMP
 #define USE_SOUND_FILES 3
+#define USE_SOUND_FILES_RELAY
 #if defined(USE_SOUND_FILES)
 #if defined(_PC6001)
 #define USE_SOUND_VOLUME	3
 #else
 #define USE_SOUND_VOLUME	4
+#define USE_SOUND_FILES_FDD
 #endif
 #else
 #if defined(_PC6001)
