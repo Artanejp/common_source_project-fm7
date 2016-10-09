@@ -1,3 +1,16 @@
+commit d100ae8323d6657fe37ac44a69abc8da470b77ad
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 10 05:19:38 2016 +0900
+
+    [VM][FM7][VRAM] Make gcc using SIMD (when optimize options have set) to be faster rendering.
+    [VM][FM7][VRAM] Do not use inline, to make compiler optimizing.
+
+commit 60e09c529a8176d9ef1b1544bfdd36340c4260fc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 9 23:34:49 2016 +0900
+
+    [DOC] Update gitlog.
+
 commit 64125555381d23520dcf40f8cda80a332d92c5ff
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sun Oct 9 23:34:26 2016 +0900

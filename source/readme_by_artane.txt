@@ -11,7 +11,7 @@
    用意しています。
    
    ソースコード：
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160923
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20161010
 
    追加情報:
     　各機種バイナリーは、osdn.jp　もしくはミラーサイトより入手可能です。
@@ -113,6 +113,7 @@ Changes:
   * Upstream 2016-04-13
   * [VM] Add pseudo sounds (i.e. FDD seek), need sound files (even not WAV file at Qt porting), see doc/VMs/foo.txt . 
   * [VM][DATAREC][FDCs] Update STATE_VERSION of some devices.
+  * [VM/FM7] VRAM: Make gcc using SIMD (when optimize options have set) to be faster rendering.
   * [VM/X1,FM7] load_state(): Keep backward compatibility to SNAPSHOT 20160923.
   * [VM/EVENT] Extend permitted sound events to 32 to use sound files (reserved feature).
   * [VM/EVENT] Update MAX_SOUND from 8 to 16.
@@ -120,9 +121,9 @@ Changes:
   * [Build/Linux] Fix wrong flags with LTO.
   * [Build] Non-Win32 : Ready to build with llvm clang (later than 3.7?).
   * [Build/GENERAL] Separate compiler depended params to source/build-cmake/param/ .
-  * Build with commit 3129bcfe18267942d202153a683b2d4e56fc96a8 (or later).
+  * Build with commit d100ae8323d6657fe37ac44a69abc8da470b77ad (or later).
 
--- Oct 09, 2016 23:28:39 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Oct 10, 2016 05:22:18 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT September 23, 2016
   * Upstream 2016-04-13
