@@ -51,7 +51,7 @@ void DISPLAY::write_vram_l4_400l(uint32_t addr, uint32_t offset, uint32_t data)
 #endif	
 }
 
-inline void DISPLAY::GETVRAM_8_200L(int yoff, scrntype_t *p, uint32_t mask,
+void DISPLAY::GETVRAM_8_200L(int yoff, scrntype_t *p, uint32_t mask,
 									bool window_inv = false)
 {
 	register uint8_t b, r, g;
@@ -81,7 +81,21 @@ inline void DISPLAY::GETVRAM_8_200L(int yoff, scrntype_t *p, uint32_t mask,
 	if(mask & 0x01) b = gvram_shadow[yoff_d + 0x00000];
 	if(mask & 0x02) r = gvram_shadow[yoff_d + 0x04000];
 	if(mask & 0x04) g = gvram_shadow[yoff_d + 0x08000];
-	
+#if 1
+	uint16_t *pg = &(bit_trans_table_0[g][0]);
+	uint16_t *pr = &(bit_trans_table_1[r][0]);
+	uint16_t *pb = &(bit_trans_table_2[b][0]);
+	uint16_t tmp_d[8];
+	for(int i = 0; i < 8; i++) {
+		tmp_d[i] = pg[i] | pr[i] | pb[i];
+	}
+	for(int i = 0; i < 8; i++) {
+		tmp_d[i] = tmp_d[i] >> 5;
+	}
+	for(int i = 0; i < 8; i++) {
+		p[i] = dpalette_pixel[tmp_d[i]];
+	}
+#else	
 	dot = ((g & 0x80) >> 5) | ((r & 0x80) >> 6) | ((b & 0x80) >> 7);
 	p[0] = dpalette_pixel[dot];
 	dot = ((g & 0x40) >> 4) | ((r & 0x40) >> 5) | ((b & 0x40) >> 6);
@@ -99,11 +113,12 @@ inline void DISPLAY::GETVRAM_8_200L(int yoff, scrntype_t *p, uint32_t mask,
 	p[6] = dpalette_pixel[dot];
 	dot = ((g & 0x1) << 2) | ((r & 0x1) << 1) | (b & 0x1);
 	p[7] = dpalette_pixel[dot];
+#endif
 }
 
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-inline void DISPLAY::GETVRAM_8_400L(int yoff, scrntype_t *p, uint32_t mask,
-									bool window_inv = false)
+void DISPLAY::GETVRAM_8_400L(int yoff, scrntype_t *p, uint32_t mask,
+							 bool window_inv = false)
 {
 	register uint8_t b, r, g;
 	register uint32_t dot;
@@ -127,7 +142,21 @@ inline void DISPLAY::GETVRAM_8_400L(int yoff, scrntype_t *p, uint32_t mask,
 	if(mask & 0x01) b = gvram_shadow[yoff_d + 0x00000];
 	if(mask & 0x02) r = gvram_shadow[yoff_d + 0x08000];
 	if(mask & 0x04) g = gvram_shadow[yoff_d + 0x10000];
-
+#if 1
+	uint16_t *pg = &(bit_trans_table_0[g][0]);
+	uint16_t *pr = &(bit_trans_table_1[r][0]);
+	uint16_t *pb = &(bit_trans_table_2[b][0]);
+	uint16_t tmp_d[8];
+	for(int i = 0; i < 8; i++) {
+		tmp_d[i] = pg[i] | pr[i] | pb[i];
+	}
+	for(int i = 0; i < 8; i++) {
+		tmp_d[i] = tmp_d[i] >> 5;
+	}
+	for(int i = 0; i < 8; i++) {
+		p[i] = dpalette_pixel[tmp_d[i]];
+	}
+#else	
 	dot = ((g & 0x80) >> 5) | ((r & 0x80) >> 6) | ((b & 0x80) >> 7);
 	p[0] = dpalette_pixel[dot];
 	dot = ((g & 0x40) >> 4) | ((r & 0x40) >> 5) | ((b & 0x40) >> 6);
@@ -145,9 +174,10 @@ inline void DISPLAY::GETVRAM_8_400L(int yoff, scrntype_t *p, uint32_t mask,
 	p[6] = dpalette_pixel[dot];
 	dot = ((g & 0x1) << 2) | ((r & 0x1) << 1) | (b & 0x1);
 	p[7] = dpalette_pixel[dot];
+#endif
 }
 
-inline void DISPLAY::GETVRAM_256k(int yoff, scrntype_t *p, uint32_t mask)
+void DISPLAY::GETVRAM_256k(int yoff, scrntype_t *p, uint32_t mask)
 {
 	register uint32_t b3, r3, g3;
 	register uint32_t b4, r4, g4;
@@ -168,6 +198,90 @@ inline void DISPLAY::GETVRAM_256k(int yoff, scrntype_t *p, uint32_t mask)
 	
 	yoff_d1 = yoff;
 	yoff_d2 = yoff;
+#if 1
+	uint8_t  bb[8], rr[8], gg[8];
+	uint16_t *p0, *p1, *p2, *p3, *p4, *p5;
+	uint32_t _btmp[8], _rtmp[8], _gtmp[8];
+	if(mask & 0x01) {
+		// B
+		bb[0] = gvram_shadow[yoff_d1];
+		bb[1] = gvram_shadow[yoff_d1 + 0x02000];
+		
+		bb[2] = gvram_shadow[yoff_d2 + 0x0c000];
+		bb[3] = gvram_shadow[yoff_d2 + 0x0e000];
+	
+		bb[4] = gvram_shadow[yoff_d1 + 0x18000];
+		bb[5] = gvram_shadow[yoff_d1 + 0x1a000];
+		
+		p0 = &(bit_trans_table_0[bb[0]][0]);
+		p1 = &(bit_trans_table_1[bb[1]][0]);
+		p2 = &(bit_trans_table_2[bb[2]][0]);
+		p3 = &(bit_trans_table_3[bb[3]][0]);
+		p4 = &(bit_trans_table_4[bb[4]][0]);
+		p5 = &(bit_trans_table_5[bb[5]][0]);
+		for(int i = 0; i < 8; i++) {
+			_btmp[i] = p0[i] | p1[i] | p2[i] | p3[i] | p4[i] | p5[i];
+		}
+	} else {
+		for(int i = 0; i < 8; i++) {
+			_btmp[i] = 0;
+		}
+	}
+	if(mask & 0x02) {
+		// R
+		rr[0] = gvram_shadow[yoff_d1 + 0x04000];
+		rr[1] = gvram_shadow[yoff_d1 + 0x06000];
+		
+		rr[2] = gvram_shadow[yoff_d2 + 0x10000];
+		rr[3] = gvram_shadow[yoff_d2 + 0x12000];
+	
+		rr[4] = gvram_shadow[yoff_d1 + 0x1c000];
+		rr[5] = gvram_shadow[yoff_d1 + 0x1e000];
+		
+		p0 = &(bit_trans_table_0[rr[0]][0]);
+		p1 = &(bit_trans_table_1[rr[1]][0]);
+		p2 = &(bit_trans_table_2[rr[2]][0]);
+		p3 = &(bit_trans_table_3[rr[3]][0]);
+		p4 = &(bit_trans_table_4[rr[4]][0]);
+		p5 = &(bit_trans_table_5[rr[5]][0]);
+		for(int i = 0; i < 8; i++) {
+			_rtmp[i] = p0[i] | p1[i] | p2[i] | p3[i] | p4[i] | p5[i];
+		}
+	} else {
+		for(int i = 0; i < 8; i++) {
+			_rtmp[i] = 0;
+		}
+	}
+	if(mask & 0x04) {
+		// G
+		gg[0] = gvram_shadow[yoff_d1 + 0x08000];
+		gg[1] = gvram_shadow[yoff_d1 + 0x0a000];
+		
+		gg[2] = gvram_shadow[yoff_d2 + 0x14000];
+		gg[3] = gvram_shadow[yoff_d2 + 0x16000];
+	
+		gg[4] = gvram_shadow[yoff_d1 + 0x20000];
+		gg[5] = gvram_shadow[yoff_d1 + 0x22000];
+		
+		p0 = &(bit_trans_table_0[gg[0]][0]);
+		p1 = &(bit_trans_table_1[gg[1]][0]);
+		p2 = &(bit_trans_table_2[gg[2]][0]);
+		p3 = &(bit_trans_table_3[gg[3]][0]);
+		p4 = &(bit_trans_table_4[gg[4]][0]);
+		p5 = &(bit_trans_table_5[gg[5]][0]);
+		for(int i = 0; i < 8; i++) {
+			_gtmp[i] = p0[i] | p1[i] | p2[i] | p3[i] | p4[i] | p5[i];
+		}
+	} else {
+		for(int i = 0; i < 8; i++) {
+			_gtmp[i] = 0;
+		}
+	}
+	for(int i = 0; i < 8; i++) {
+		p[i] = RGB_COLOR(_rtmp[i], _gtmp[i], _btmp[i]);
+	}
+	
+#else
 	if(mask & 0x01) {
 		b3  = gvram_shadow[yoff_d1] << 24;
 		b3 |= gvram_shadow[yoff_d1 + 0x02000] << 16;
@@ -228,15 +342,18 @@ inline void DISPLAY::GETVRAM_256k(int yoff, scrntype_t *p, uint32_t mask)
 		//p[cp + 1] = pixel;
 		cp += 1;
 	}
-	
+#endif	
 }
 #endif
 
 #if defined(_FM77AV_VARIANTS)
-inline void DISPLAY::GETVRAM_4096(int yoff, scrntype_t *p, uint32_t mask,
+void DISPLAY::GETVRAM_4096(int yoff, scrntype_t *p, uint32_t mask,
 								  bool window_inv = false)
 {
 	uint32_t b3, r3, g3;
+	uint8_t  bb[4], rr[4], gg[4];
+	uint16_t pixels[8];
+	
 	scrntype_t b, r, g;
 	uint32_t idx;;
 	scrntype_t pixel;
@@ -262,7 +379,59 @@ inline void DISPLAY::GETVRAM_4096(int yoff, scrntype_t *p, uint32_t mask,
 		yoff_d2 += 0x18000;
 	}
 # endif
+#if 1
+	bb[0] = gvram_shadow[yoff_d1];
+	bb[1] = gvram_shadow[yoff_d1 + 0x02000];
+	rr[0] = gvram_shadow[yoff_d1 + 0x04000];
+	rr[1] = gvram_shadow[yoff_d1 + 0x06000];
+		
+	gg[0] = gvram_shadow[yoff_d1 + 0x08000];
+	gg[1] = gvram_shadow[yoff_d1 + 0x0a000];
+		
+	bb[2] = gvram_shadow[yoff_d2 + 0x0c000];
+	bb[3] = gvram_shadow[yoff_d2 + 0x0e000];
+		
+	rr[2] = gvram_shadow[yoff_d2 + 0x10000];
+	rr[3] = gvram_shadow[yoff_d2 + 0x12000];
+	gg[2] = gvram_shadow[yoff_d2 + 0x14000];
+	gg[3] = gvram_shadow[yoff_d2 + 0x16000];
 
+	uint16_t tmp_g[8], tmp_r[8], tmp_b[8];
+	uint16_t *p0, *p1, *p2, *p3;
+	// G
+	p0 = &(bit_trans_table_0[gg[0]][0]);
+	p1 = &(bit_trans_table_1[gg[1]][0]);
+	p2 = &(bit_trans_table_2[gg[2]][0]);
+	p3 = &(bit_trans_table_3[gg[3]][0]);
+	for(int i = 0; i < 8; i++) {
+		tmp_g[i]  = p0[i] | p1[i] | p2[i] | p3[i];
+	}
+	// R
+	p0 = &(bit_trans_table_0[rr[0]][0]);
+	p1 = &(bit_trans_table_1[rr[1]][0]);
+	p2 = &(bit_trans_table_2[rr[2]][0]);
+	p3 = &(bit_trans_table_3[rr[3]][0]);
+	for(int i = 0; i < 8; i++) {
+		tmp_r[i]  = p0[i] | p1[i] | p2[i] | p3[i];
+	}
+	// B
+	p0 = &(bit_trans_table_0[bb[0]][0]);
+	p1 = &(bit_trans_table_1[bb[1]][0]);
+	p2 = &(bit_trans_table_2[bb[2]][0]);
+	p3 = &(bit_trans_table_3[bb[3]][0]);
+	for(int i = 0; i < 8; i++) {
+		tmp_b[i]  = p0[i] | p1[i] | p2[i] | p3[i];
+	}
+	for(int i = 0; i < 8; i++) {
+		pixels[i] = (tmp_g[i] * 16) | tmp_r[i] | (tmp_b[i] / 16);
+	}
+	for(int i = 0; i < 8; i++) {
+		pixels[i] = pixels[i] & mask;
+	}
+	for(int i = 0; i < 8; i++) {
+		p[i] = analog_palette_pixel[pixels[i]];
+	}
+#else
 	b3  = gvram_shadow[yoff_d1] << 24;
 	b3 |= gvram_shadow[yoff_d1 + 0x02000] << 16;
 	r3  = gvram_shadow[yoff_d1 + 0x04000] << 24;
@@ -350,6 +519,7 @@ inline void DISPLAY::GETVRAM_4096(int yoff, scrntype_t *p, uint32_t mask,
 	idx = (g  | b | r ) & mask;
 	pixel = analog_palette_pixel[idx];
 	p[7] = pixel;
+#endif	
 	//p[15] = pixel;
 }
 #endif

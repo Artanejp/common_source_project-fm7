@@ -30,6 +30,20 @@ DISPLAY::DISPLAY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	mainio = NULL;
 	subcpu = NULL;
 	keyboard = NULL;
+	for(int i = 0; i < 256; i++) {
+		uint16_t n = (uint16_t)i;
+		for(int j = 0; j < 8; j++) {
+			bit_trans_table_0[i][j] = n & 0x80;
+			bit_trans_table_1[i][j] = ((n & 0x80) != 0) ? 0x40 : 0;
+			bit_trans_table_2[i][j] = ((n & 0x80) != 0) ? 0x20 : 0;
+			bit_trans_table_3[i][j] = ((n & 0x80) != 0) ? 0x10 : 0;
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+			bit_trans_table_4[i][j] = ((n & 0x80) != 0) ? 0x08 : 0;
+			bit_trans_table_5[i][j] = ((n & 0x80) != 0) ? 0x04 : 0;
+#endif			
+			n <<= 1;
+		}
+	}
 	set_device_name(_T("DISPLAY SUBSYSTEM"));
 }
 
