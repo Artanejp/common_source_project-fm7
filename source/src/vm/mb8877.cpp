@@ -138,6 +138,7 @@ void MB8877::release()
 
 void MB8877::reset()
 {
+	touch_sound();
 	for(int i = 0; i < MAX_DRIVE; i++) {
 		fdc[i].track = 0;
 		fdc[i].index = 0;
@@ -1581,6 +1582,7 @@ void MB8877::add_sound(int type)
 	} else {
 		return;
 	}
+	touch_sound();
 	for(int i = 0; i < MB8877_SND_TBL_MAX; i++) {
 		if(p[i] < 0) {
 			p[i] = 0;
@@ -1834,6 +1836,7 @@ bool MB8877::load_state(FILEIO* state_fio)
 		}
 	}
 #endif
+	//touch_sound();
 	return true;
 }
 

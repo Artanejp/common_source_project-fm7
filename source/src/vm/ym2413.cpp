@@ -2176,11 +2176,13 @@ void YM2413::release()
 
 void YM2413::reset()
 {
+	touch_sound();
 	YM2413ResetChip(0);
 }
 
 void YM2413::write_io8(uint32_t addr, uint32_t data)
 {
+	touch_sound();
 	if (addr & 1) {
 		reg[ latch & 0x3F] = data;
 		latch = data;

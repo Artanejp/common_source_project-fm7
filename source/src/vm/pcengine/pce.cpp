@@ -1544,6 +1544,7 @@ uint8_t PCE::sgx_vdc_r(uint16_t offset)
 
 void PCE::psg_reset()
 {
+	touch_sound();
 	memset(psg, 0, sizeof(psg));
 	for (int i = 0; i < 6; i++) {
 		psg[i].regs[4] = 0x80;
@@ -1558,25 +1559,32 @@ void PCE::psg_write(uint16_t addr, uint8_t data)
 {
 	switch(addr & 0x1f) {
 	case 0:
+		touch_sound();
 		psg_ch = data & 7;
 		break;
 	case 1:
+		touch_sound();
 		psg_vol = data;
 		break;
 	case 2:
+		touch_sound();
 		psg[psg_ch].regs[2] = data;
 		break;
 	case 3:
+		touch_sound();
 //		psg[psg_ch].regs[3] = data & 0x1f;
 		psg[psg_ch].regs[3] = data & 0xf;
 		break;
 	case 4:
+		touch_sound();
 		psg[psg_ch].regs[4] = data;
 		break;
 	case 5:
+		touch_sound();
 		psg[psg_ch].regs[5] = data;
 		break;
 	case 6:
+		touch_sound();
 		if(psg[psg_ch].regs[4] & 0x40) {
 			psg[psg_ch].wav[0] =data & 0x1f;
 		}
@@ -1586,12 +1594,15 @@ void PCE::psg_write(uint16_t addr, uint8_t data)
 		}
 		break;
 	case 7:
+		touch_sound();
 		psg[psg_ch].regs[7] = data;
 		break;
 	case 8:
+		touch_sound();
 		psg_lfo_freq = data;
 		break;
 	case 9:
+		touch_sound();
 		psg_lfo_ctrl = data;
 		break;
 	}
@@ -1841,6 +1852,7 @@ void PCE::cdrom_initialize()
 
 void PCE::cdrom_reset()
 {
+	touch_sound();
 	memset(cdrom_regs, 0, sizeof(cdrom_regs));
 	cdrom_regs[0x0c] |= PCE_CD_ADPCM_STOP_FLAG;
 	cdrom_regs[0x0c] &= ~PCE_CD_ADPCM_PLAY_FLAG;
@@ -1867,6 +1879,7 @@ void PCE::cdrom_reset()
 
 void PCE::cdrom_write(uint16_t addr, uint8_t data)
 {
+	touch_sound();
 	switch(addr & 0x0f) {
 	case 0x00:  /* CDC status */
 		d_scsi_host->write_signal(SIG_SCSI_SEL, 1, 1);
@@ -2153,6 +2166,7 @@ uint8_t PCE::read_cdrom_data()
 
 void PCE::reset_adpcm()
 {
+	touch_sound();
 	// reset ADPCM hardware
 	adpcm_read_ptr = adpcm_write_ptr = 0;
 	msm_start_addr = msm_end_addr = msm_half_addr = 0;
@@ -2184,6 +2198,7 @@ void PCE::adpcm_do_dma()
 
 void PCE::adpcm_play()
 {
+	touch_sound();
 	cdrom_regs[0x0c] &= ~PCE_CD_ADPCM_STOP_FLAG;
 	cdrom_regs[0x0c] |= PCE_CD_ADPCM_PLAY_FLAG;
 	set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_FULL_PLAY, CLEAR_LINE);
@@ -2193,6 +2208,7 @@ void PCE::adpcm_play()
 
 void PCE::adpcm_stop()
 {
+	touch_sound();
 	cdrom_regs[0x0c] |= PCE_CD_ADPCM_STOP_FLAG;
 	cdrom_regs[0x0c] &= ~PCE_CD_ADPCM_PLAY_FLAG;
 	cdrom_regs[0x0d] &= ~0x60;
@@ -2330,6 +2346,7 @@ void PCE::write_signal(int id, uint32_t data, uint32_t mask)
 		break;
 		
 	case SIG_PCE_CDDA_DONE:
+		touch_sound();
 		if(data & mask) {
 			set_cdrom_irq_line(PCE_CD_IRQ_TRANSFER_DONE, ASSERT_LINE);
 		}

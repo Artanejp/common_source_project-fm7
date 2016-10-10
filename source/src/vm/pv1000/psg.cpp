@@ -15,11 +15,13 @@
 
 void PSG::reset()
 {
+	touch_sound();
 	memset(ch, 0, sizeof(ch));
 }
 
 void PSG::write_io8(uint32_t addr, uint32_t data)
 {
+	touch_sound();
 	ch[addr & 3].period = 0x3f - (data & 0x3f);
 }
 

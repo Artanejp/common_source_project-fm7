@@ -130,6 +130,7 @@ int	UPD7752::Synth(uint8_t *param, D7752_SAMPLE *frame)
 	int p;
 	
 	if (!param || !frame) return D7752_ERR_PARAM;
+	touch_sound();
 	curr = &Coef;
 	
 	// expand parameters to coefficients
@@ -246,6 +247,7 @@ void UPD7752::UpConvert(void)
 // abort voice
 void UPD7752::AbortVoice(void)
 {
+	touch_sound();
 	// stop thread loop
 	ThreadLoopStop = 1;
 	// cancel remaining parameters
@@ -395,12 +397,15 @@ void UPD7752::write_io8(uint32_t addr, uint32_t data)
 	switch(port)
 	{
 	case 0xE0:
+		touch_sound();
 		VSetData(data);
 		break;
 	case 0xE2:
+		touch_sound();
 		VSetMode(data);
 		break;
 	case 0xE3:
+		touch_sound();
 		VSetCommand(data);
 		break;
 	}

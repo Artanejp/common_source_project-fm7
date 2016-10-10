@@ -327,6 +327,7 @@ void APU::write_data_sync(uint32_t addr, uint32_t data)
 	switch (addr) {
 	case 0x4000:
 	case 0x4004:
+		touch_sound();
 		chan = (addr & 4) >> 2;
 		rectangle[chan].regs[0] = data;
 		rectangle[chan].volume = data & 0x0f;
@@ -337,6 +338,7 @@ void APU::write_data_sync(uint32_t addr, uint32_t data)
 		break;
 	case 0x4001:
 	case 0x4005:
+		touch_sound();
 		chan = (addr & 4) >> 2;
 		rectangle[chan].regs[1] = data;
 		rectangle[chan].sweep_on = ((data & 0x80) != 0);
@@ -347,12 +349,14 @@ void APU::write_data_sync(uint32_t addr, uint32_t data)
 		break;
 	case 0x4002:
 	case 0x4006:
+		touch_sound();
 		chan = (addr & 4) >> 2;
 		rectangle[chan].regs[2] = data;
 		rectangle[chan].freq = (rectangle[chan].freq & ~0xff) | data;
 		break;
 	case 0x4003:
 	case 0x4007:
+		touch_sound();
 		chan = (addr & 4) >> 2;
 		rectangle[chan].regs[3] = data;
 		rectangle[chan].vbl_length = vbl_lut[data >> 3];
@@ -364,6 +368,7 @@ void APU::write_data_sync(uint32_t addr, uint32_t data)
 		}
 		break;
 	case 0x4008:
+		touch_sound();
 		triangle.regs[0] = data;
 		triangle.holdnote = ((data & 0x80) != 0);
 		if(!triangle.counter_started && triangle.vbl_length > 0) {
@@ -371,10 +376,12 @@ void APU::write_data_sync(uint32_t addr, uint32_t data)
 		}
 		break;
 	case 0x400a:
+		touch_sound();
 		triangle.regs[1] = data;
 		triangle.freq = APU_TO_FIXED((((triangle.regs[2] & 7) << 8) + data) + 1);
 		break;
 	case 0x400b:
+		touch_sound();
 		triangle.regs[2] = data;
 		triangle.write_latency = (int)(228 / APU_FROM_FIXED(cycle_rate));
 		triangle.freq = APU_TO_FIXED((((data & 7) << 8) + triangle.regs[1]) + 1);
@@ -386,6 +393,7 @@ void APU::write_data_sync(uint32_t addr, uint32_t data)
 		}
 		break;
 	case 0x400c:
+		touch_sound();
 		noise.regs[0] = data;
 		noise.env_delay = decay_lut[data & 0x0f];
 		noise.holdnote = ((data & 0x20) != 0);
@@ -393,11 +401,13 @@ void APU::write_data_sync(uint32_t addr, uint32_t data)
 		noise.volume = data & 0x0f;
 		break;
 	case 0x400e:
+		touch_sound();
 		noise.regs[1] = data;
 		noise.freq = APU_TO_FIXED(noise_freq[data & 0x0f]);
 		noise.xor_tap = (data & 0x80) ? 0x40: 0x02;
 		break;
 	case 0x400f:
+		touch_sound();
 		noise.regs[2] = data;
 		noise.vbl_length = vbl_lut[data >> 3];
 		noise.env_vol = 0; /* reset envelope */
@@ -406,6 +416,7 @@ void APU::write_data_sync(uint32_t addr, uint32_t data)
 		}
 		break;
 	case 0x4010:
+		touch_sound();
 		dmc.regs[0] = data;
 		dmc.freq = APU_TO_FIXED(dmc_clocks[data & 0x0f]);
 		dmc.looping = ((data & 0x40) != 0);
@@ -417,18 +428,22 @@ void APU::write_data_sync(uint32_t addr, uint32_t data)
 		}
 		break;
 	case 0x4011:	/* 7-bit DAC */
+		touch_sound();
 		data &= 0x7f; /* bit 7 ignored */
 		dmc.regs[1] = data;
 		break;
 	case 0x4012:
+		touch_sound();
 		dmc.regs[2] = data;
 		dmc.cached_addr = 0xc000 + (uint16_t) (data << 6);
 		break;
 	case 0x4013:
+		touch_sound();
 		dmc.regs[3] = data;
 		dmc.cached_dmalength = ((data << 4) + 1) << 3;
 		break;
 	case 0x4015:
+		touch_sound();
 		// bodge for timestamp queue
 		dmc.enabled = ((data & 0x10) != 0);
 		enable_reg = data;
@@ -462,6 +477,7 @@ void APU::write_data_sync(uint32_t addr, uint32_t data)
 	case 0x400D:
 		break;
 	case 0x4017:
+		touch_sound();
 		count_rate = (data & 0x80) ? 4 : 5;
 		break;
 	default:
@@ -477,11 +493,13 @@ void APU::write_data_cur(uint32_t addr, uint32_t data)
 	switch (addr) {
 	case 0x4000:
 	case 0x4004:
+		touch_sound();
 		chan = (addr & 4) >> 2;
 		rectangle[chan].holdnote_cur = ((data & 0x20) != 0);
 		break;
 	case 0x4003:
 	case 0x4007:
+		touch_sound();
 		chan = (addr & 4) >> 2;
 		rectangle[chan].vbl_length_cur = vbl_length[data >> 3] * 5;
 		if(enable_reg_cur & (1 << chan)) {
@@ -489,9 +507,11 @@ void APU::write_data_cur(uint32_t addr, uint32_t data)
 		}
 		break;
 	case 0x4008:
+		touch_sound();
 		triangle.holdnote_cur = ((data & 0x80) != 0);
 		break;
 	case 0x400b:
+		touch_sound();
 		triangle.vbl_length_cur = vbl_length[data >> 3] * 5;
 		if(enable_reg_cur & 0x04) {
 			triangle.enabled_cur = true;
@@ -499,15 +519,18 @@ void APU::write_data_cur(uint32_t addr, uint32_t data)
 		triangle.counter_started_cur = true;
 		break;
 	case 0x400c:
+		touch_sound();
 		noise.holdnote_cur = ((data & 0x20) != 0);
 		break;
 	case 0x400f:
+		touch_sound();
 		noise.vbl_length_cur = vbl_length[data >> 3] * 5;
 		if(enable_reg_cur & 0x08) {
 			noise.enabled_cur = true;
 		}
 		break;
 	case 0x4010:
+		touch_sound();
 		dmc.freq_cur = dmc_clocks[data & 0x0f];
 		dmc.phaseacc_cur = 0;
 		dmc.looping_cur = ((data & 0x40) != 0);
@@ -519,9 +542,11 @@ void APU::write_data_cur(uint32_t addr, uint32_t data)
 		}
 		break;
 	case 0x4013:
+		touch_sound();
 		dmc.cached_dmalength_cur = (data << 4) + 1;
 		break;
 	case 0x4015:
+		touch_sound();
 		enable_reg_cur = data;
 		for(chan = 0; chan < 2; chan++) {
 			if(!(data & (1 << chan))) {
@@ -562,6 +587,7 @@ void APU::initialize()
 
 void APU::reset()
 {
+	touch_sound();
 	// reset queue
 	elapsed_cycles = 0;
 	memset(&queue, 0, APUQUEUE_SIZE * sizeof(queue_t));
@@ -608,6 +634,7 @@ void APU::write_data8(uint32_t addr, uint32_t data)
 	case 0x400c: case 0x400d: case 0x400e: case 0x400f:
 	case 0x4010: case 0x4011: case 0x4012: case 0x4013:
 	case 0x4017:
+		touch_sound();
 		d.timestamp = get_current_clock();
 		d.addr = addr;
 		d.data = data;
@@ -806,6 +833,7 @@ bool APU::load_state(FILEIO* state_fio)
 	ave = state_fio->FgetDouble();
 	max = state_fio->FgetDouble();
 	min = state_fio->FgetDouble();
+	//touch_sound();
 	return true;
 }
 

@@ -41,6 +41,7 @@ void YM2151::release()
 
 void YM2151::reset()
 {
+	touch_sound();
 	opm->Reset();
 #ifdef SUPPORT_MAME_FM_DLL
 	if(dllchip) {
@@ -201,6 +202,7 @@ void YM2151::initialize_sound(int rate, int clock, int samples, int decibel)
 
 void YM2151::set_reg(uint32_t addr, uint32_t data)
 {
+	touch_sound();
 	opm->SetReg(addr, data);
 #ifdef SUPPORT_MAME_FM_DLL
 	if(dllchip) {
@@ -273,6 +275,7 @@ bool YM2151::load_state(FILEIO* state_fio)
 		}
 	}
 #endif
+	//touch_sound();
 	return true;
 }
 

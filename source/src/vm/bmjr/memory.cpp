@@ -100,6 +100,7 @@ void MEMORY::initialize()
 
 void MEMORY::reset()
 {
+	touch_sound();
 	memory_bank = 0;
 	update_bank();
 	
@@ -130,6 +131,7 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 			break;
 		case 0xee80:
 			if(sound_sample != ((data >> 1) & 0x1f)) {
+				touch_sound();
 				sound_accum += (double)sound_sample * get_passed_usec(sound_clock);
 				sound_clock = get_current_clock();
 				sound_sample = (data >> 1) & 0x1f;

@@ -41,6 +41,7 @@ void SCSI_CDROM::release()
 
 void SCSI_CDROM::reset()
 {
+	touch_sound();
 	SCSI_DEV::reset();
 	set_cdda_status(CDDA_OFF);
 }
@@ -186,6 +187,7 @@ uint32_t lba_to_msf_alt(uint32_t lba)
 
 void SCSI_CDROM::start_command()
 {
+	touch_sound();
 	switch(command[0]) {
 	case SCSI_CMD_READ6:
 		seek_time = 10;//get_seek_time((command[1] & 0x1f) * 0x10000 + command[2] * 0x100 + command[3]);

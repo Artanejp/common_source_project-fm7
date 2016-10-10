@@ -53,6 +53,7 @@ void DATAREC::initialize()
 
 void DATAREC::reset()
 {
+	touch_sound();
 	close_tape();
 	pcm_prev_clock = get_current_clock();
 	pcm_positive_clocks = pcm_negative_clocks = 0;
@@ -71,6 +72,7 @@ void DATAREC::write_signal(int id, uint32_t data, uint32_t mask)
 	
 	if(id == SIG_DATAREC_MIC) {
 		if(out_signal != signal) {
+			touch_sound();
 			if(rec && remote) {
 				if(out_signal) {
 					pcm_positive_clocks += get_passed_clock(pcm_prev_clock);
@@ -92,20 +94,25 @@ void DATAREC::write_signal(int id, uint32_t data, uint32_t mask)
 			out_signal = signal;
 		}
 	} else if(id == SIG_DATAREC_REMOTE) {
+		touch_sound();
 		set_remote(signal);
 	} else if(id == SIG_DATAREC_TRIG) {
 		// L->H: remote signal is switched
 		if(signal && !trigger) {
+			touch_sound();
 			set_remote(!remote);
 		}
 		trigger = signal;
 	}
 #if defined(USE_SOUND_FILES)
 	else if((id >= SIG_SOUNDER_MUTE) && (id < (SIG_SOUNDER_MUTE + DATAREC_SNDFILE_END))) {
+		touch_sound();
 		snd_mute[id - SIG_SOUNDER_MUTE] = signal;
 	} else if((id >= SIG_SOUNDER_RELOAD) && (id < (SIG_SOUNDER_RELOAD + DATAREC_SNDFILE_END))) {
+		touch_sound();
 		reload_sound_data(id - SIG_SOUNDER_RELOAD);
 	} else if((id >= SIG_SOUNDER_ADD) && (id < (SIG_SOUNDER_ADD + DATAREC_SNDFILE_END))) {
+		touch_sound();
 		add_sound(id - SIG_SOUNDER_ADD);
 	}
 #endif
@@ -206,6 +213,7 @@ void DATAREC::event_callback(int event_id, int err)
 				pcm_changed = 2;
 				in_signal = signal;
 				signal_changed++;
+				touch_sound();
 				write_signals(&outputs_ear, in_signal ? 0xffffffff : 0);
 			}
 			// chek apss state
@@ -472,6 +480,7 @@ bool DATAREC::play_tape(const _TCHAR* file_path)
 		// get the first signal
 		bool signal = ((buffer[0] & 0x80) != 0);
 		if(signal != in_signal) {
+			touch_sound();
 			write_signals(&outputs_ear, signal ? 0xffffffff : 0);
 			in_signal = signal;
 		}
@@ -522,6 +531,7 @@ bool DATAREC::rec_tape(const _TCHAR* file_path)
 
 void DATAREC::close_tape()
 {
+	touch_sound();
 	close_file();
 	
 	play = rec = is_wav = is_tap = false;

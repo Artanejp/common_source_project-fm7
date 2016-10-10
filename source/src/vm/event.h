@@ -85,7 +85,10 @@ private:
 #ifdef _DEBUG_LOG
 	bool initialize_done;
 #endif
-	
+	int mix_counter;
+	int mix_limit;
+	bool need_mix;
+	bool sound_touched;
 public:
 	EVENT(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -191,6 +194,23 @@ public:
 		if(dcount_sound < MAX_SOUND) {
 			d_sound[dcount_sound++] = device;
 		}
+	}
+	void touch_sound(void)
+	{
+		if(!need_mix && !sound_touched) {
+			int t_s = mix_counter;
+			if(t_s >= (sound_tmp_samples - buffer_ptr)) t_s = sound_tmp_samples - buffer_ptr - 1; 
+			if(t_s > 0) {
+				mix_sound(t_s);
+				mix_counter = mix_counter - t_s;
+			}
+			if(mix_counter < 1) mix_counter = 1;
+			sound_touched = true;
+		}
+	}
+	void set_realtime_render(bool flag)
+	{
+		need_mix = flag;
 	}
 	bool is_frame_skippable();
 };

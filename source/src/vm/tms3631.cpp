@@ -33,11 +33,14 @@ void TMS3631::reset()
 void TMS3631::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_TMS3631_ENVELOP1) {
+		touch_sound();
 		envelop1 = (envelop1 & ~mask) | (data & mask);
 	} else if(id == SIG_TMS3631_ENVELOP2) {
+		touch_sound();
 		envelop2 = (envelop2 & ~mask) | (data & mask);
 	} else if(id == SIG_TMS3631_DATAREG) {
 		// from board14.c
+		touch_sound();
 		data = (datareg & ~mask) | (data & mask);
 		if(data & 0x80) {
 			if(!(datareg & 0x80)) {
@@ -53,6 +56,7 @@ void TMS3631::write_signal(int id, uint32_t data, uint32_t mask)
 		}
 		datareg = data;
 	} else if(id == SIG_TMS3631_MASKREG) {
+		touch_sound();
 		maskreg = (maskreg & ~mask) | (data & mask);
 	}
 }
@@ -146,6 +150,7 @@ bool TMS3631::load_state(FILEIO* state_fio)
 	state_fio->Fread(ch, sizeof(ch), 1);
 	channel = state_fio->FgetUint8();
 	set_key = state_fio->FgetBool();
+	//touch_sound();
 	return true;
 }
 

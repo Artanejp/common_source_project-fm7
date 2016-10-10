@@ -35,6 +35,7 @@ WAV_SOUNDER::~WAV_SOUNDER()
 
 void WAV_SOUNDER::reset()
 {
+	touch_sound();
 	sound_count = 0;
 	for(int i = 0; i < (sizeof(render_table) / sizeof(int)); i++) {
 		render_table[i] = -1;
@@ -47,6 +48,7 @@ void WAV_SOUNDER::write_signal(int id, uint32_t data, uint32_t mask)
 	if(_data == NULL) return;
 	switch(id) {
 	case SIG_WAV_SOUNDER_ADD:
+		touch_sound();
 		if(sound_count < (sizeof(render_table) / sizeof(int))) {
 			for(int i = 0; i < (sizeof(render_table) / sizeof(int)); i++) {
 				if(render_table[i] < 0) {
@@ -59,12 +61,15 @@ void WAV_SOUNDER::write_signal(int id, uint32_t data, uint32_t mask)
 		}
 		break;
 	case SIG_WAV_SOUNDER_PLAY:
+		touch_sound();
 		play_flag = ((data & mask) != 0);
 		break;
 	case SIG_WAV_SOUNDER_MUTE:
+		touch_sound();
 		mute_flag = ((data & mask) != 0);
 		break;
 	case SIG_WAV_SOUNDER_CLEAR:
+		touch_sound();
 		for(int i = 0; i < (sizeof(render_table) / sizeof(int)); i++) {
 			render_table[i] = -1;
 		}

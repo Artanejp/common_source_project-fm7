@@ -88,11 +88,13 @@ void LD700::write_signal(int id, uint32_t data, uint32_t mask)
 			switch(phase) {
 			case PHASE_IDLE:
 				if(signal) {
+					touch_sound();
 					command = num_bits = 0;
 					phase = PHASE_HEADER_PULSE;
 				}
 				break;
 			case PHASE_HEADER_PULSE:
+				touch_sound();
 				if(5800 <= usec && usec < 11200) {
 					phase = PHASE_HEADER_SPACE;
 				} else {
@@ -100,6 +102,7 @@ void LD700::write_signal(int id, uint32_t data, uint32_t mask)
 				}
 				break;
 			case PHASE_HEADER_SPACE:
+				touch_sound();
 				if(3400 <= usec && usec < 6200) {
 					phase = PHASE_BITS_PULSE;
 				} else {
@@ -107,6 +110,7 @@ void LD700::write_signal(int id, uint32_t data, uint32_t mask)
 				}
 				break;
 			case PHASE_BITS_PULSE:
+				touch_sound();
 				if(usec >= 380 && usec < 1070) {
 					phase = PHASE_BITS_SPACE;
 				} else {
@@ -114,6 +118,7 @@ void LD700::write_signal(int id, uint32_t data, uint32_t mask)
 				}
 				break;
 			case PHASE_BITS_SPACE:
+				touch_sound();
 				if(1260 <= usec && usec < 4720) {
 					// bit 1
 					command |= 1 << num_bits;
@@ -139,8 +144,10 @@ void LD700::write_signal(int id, uint32_t data, uint32_t mask)
 			}
 		}
 	} else if(id == SIG_LD700_MUTE_L) {
+		touch_sound();
 		sound_mute_l = ((data & mask) != 0);
 	} else if(id == SIG_LD700_MUTE_R) {
+		touch_sound();
 		sound_mute_r = ((data & mask) != 0);
 	}
 }

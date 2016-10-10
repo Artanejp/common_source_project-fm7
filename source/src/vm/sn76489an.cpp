@@ -30,6 +30,7 @@ void SN76489AN::initialize()
 
 void SN76489AN::reset()
 {
+	touch_sound();
 	for(int i = 0; i < 4; i++) {
 		ch[i].count = 0;
 		ch[i].period = 1;
@@ -52,17 +53,20 @@ void SN76489AN::write_io8(uint32_t addr, uint32_t data)
 		
 		switch(index & 7) {
 		case 0: case 2: case 4:
+			touch_sound();
 			// tone : frequency
 			regs[index] = (regs[index] & 0x3f0) | (data & 0x0f);
 			ch[c].period = regs[index] ? regs[index] : 0x400;
 //			ch[c].count = 0;
 			break;
 		case 1: case 3: case 5: case 7:
+			touch_sound();
 			// tone / noise : volume
 			regs[index] = data & 0x0f;
 			ch[c].volume = volume_table[data & 0x0f];
 			break;
 		case 6:
+			touch_sound();
 			// noise : frequency, mode
 			regs[6] = data;
 			data &= 3;
@@ -77,6 +81,7 @@ void SN76489AN::write_io8(uint32_t addr, uint32_t data)
 		
 		switch(index & 0x07) {
 		case 0: case 2: case 4:
+			touch_sound();
 			// tone : frequency
 			regs[index] = (regs[index] & 0x0f) | (((uint16_t)data << 4) & 0x3f0);
 			ch[c].period = regs[index] ? regs[index] : 0x400;
@@ -93,8 +98,10 @@ void SN76489AN::write_io8(uint32_t addr, uint32_t data)
 void SN76489AN::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_SN76489AN_MUTE) {
+		touch_sound();
 		mute = ((data & mask) != 0);
 	} else if(id == SIG_SN76489AN_DATA) {
+		touch_sound();
 		val = data & mask;
 	} else if(id == SIG_SN76489AN_CS) {
 		bool next = ((data & mask) != 0);
@@ -213,6 +220,7 @@ bool SN76489AN::load_state(FILEIO* state_fio)
 	cs = state_fio->FgetBool();
 	we = state_fio->FgetBool();
 	val = state_fio->FgetUint8();
+	//touch_sound();
 	return true;
 }
 

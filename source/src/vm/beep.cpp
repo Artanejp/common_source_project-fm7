@@ -11,6 +11,7 @@
 
 void BEEP::reset()
 {
+	touch_sound();
 	signal = true;
 	count = 0;
 	on = mute = false;
@@ -19,8 +20,10 @@ void BEEP::reset()
 void BEEP::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_BEEP_ON) {
+		touch_sound();
 		on = ((data & mask) != 0);
 	} else if(id == SIG_BEEP_MUTE) {
+		touch_sound();
 		mute = ((data & mask) != 0);
 	}
 }
@@ -85,6 +88,7 @@ bool BEEP::load_state(FILEIO* state_fio)
 	count = state_fio->FgetInt32();
 	on = state_fio->FgetBool();
 	mute = state_fio->FgetBool();
+	//touch_sound();
 	return true;
 }
 

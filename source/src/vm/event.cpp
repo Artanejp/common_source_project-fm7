@@ -40,7 +40,10 @@ void EVENT::initialize_sound(int rate, int samples)
 	sound_tmp = (int32_t*)malloc(sound_tmp_samples * sizeof(int32_t) * 2);
 	memset(sound_tmp, 0, sound_tmp_samples * sizeof(int32_t) * 2);
 	buffer_ptr = 0;
-	
+	mix_counter = 1;
+	mix_limit = (int)((double)(emu->get_sound_rate() / 4000.0)); // per 0.25ms.
+	need_mix = false;
+	sound_touched = false;
 	// register event
 	this->register_event(this, EVENT_MIX, 1000000.0 / rate, true, NULL);
 }
@@ -414,15 +417,33 @@ double EVENT::get_event_remaining_usec(int register_id)
 
 void EVENT::event_callback(int event_id, int err)
 {
-//	if(event_id == EVENT_MIX) {
+	//if(event_id == EVENT_MIX) {
 		// mix sound
 		if(prev_skip && dont_skip_frames == 0 && !sound_changed) {
 			buffer_ptr = 0;
 		}
 		if(sound_tmp_samples - buffer_ptr > 0) {
-			mix_sound(1);
+			int t_s = mix_counter;
+			if(t_s >= (sound_tmp_samples - buffer_ptr)) t_s = sound_tmp_samples - buffer_ptr - 1; 
+			if(need_mix) {
+				if(t_s > 0) {
+					mix_sound(t_s);
+					mix_counter = mix_counter - t_s;
+				}
+				if(mix_counter < 1) mix_counter = 1;
+			} else	if((mix_counter >= mix_limit) && !sound_touched) {
+				if(t_s > 0) {
+					mix_sound(t_s);
+					mix_counter = mix_counter - t_s;
+				}
+				if(mix_counter < 1) mix_counter = 1;
+			} else {
+				mix_counter++;
+			}
+			sound_touched = false;
+			//mix_sound(1);
 		}
-//	}
+		//}
 }
 
 void EVENT::mix_sound(int samples)
@@ -616,6 +637,10 @@ bool EVENT::load_state(FILEIO* state_fio)
 		memset(sound_tmp, 0, sound_tmp_samples * sizeof(int32_t) * 2);
 	}
 	buffer_ptr = 0;
+	mix_counter = 1;
+	mix_limit = (int)((double)(emu->get_sound_rate() / 4000.0));  // per 0.25ms.
+	need_mix = false;
+	sound_touched = false;
 	return true;
 }
 

@@ -377,6 +377,7 @@ void FLOPPY::release()
 
 void FLOPPY::reset()
 {
+	touch_sound();
 	io_B1H = 0;
 	memset(Index, 0, sizeof(Index));
 }
@@ -601,6 +602,7 @@ void FLOPPY::add_sound(int type)
 	} else {
 		return;
 	}
+	touch_sound();
 	for(int i = 0; i < FLOPPY_SND_TBL_MAX; i++) {
 		if(p[i] < 0) {
 			p[i] = 0;

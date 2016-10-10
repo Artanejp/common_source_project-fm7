@@ -111,6 +111,7 @@ void T3444A::release()
 
 void T3444A::reset()
 {
+	touch_sound();
 	for(int i = 0; i < 4; i++) {
 		fdc[i].track = 0;
 		fdc[i].index = 0;
@@ -766,6 +767,7 @@ void T3444A::add_sound(int type)
 	} else {
 		return;
 	}
+	touch_sound();
 	for(int i = 0; i < T3444A_SND_TBL_MAX; i++) {
 		if(p[i] < 0) {
 			p[i] = 0;
@@ -1009,6 +1011,7 @@ bool T3444A::load_state(FILEIO* state_fio)
 		}
 	}
 #endif
+	//touch_sound();
 	return true;
 }
 

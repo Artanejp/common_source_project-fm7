@@ -42,9 +42,13 @@ void PCM1BIT::write_signal(int id, uint32_t data, uint32_t mask)
 			signal = next;
 		}
 	} else if(id == SIG_PCM1BIT_ON) {
+		touch_sound();
 		on = ((data & mask) != 0);
+		set_realtime_render(on & !mute);
 	} else if(id == SIG_PCM1BIT_MUTE) {
+		touch_sound();
 		mute = ((data & mask) != 0);
+		set_realtime_render(on & !mute);
 	}
 }
 
@@ -140,6 +144,8 @@ bool PCM1BIT::load_state(FILEIO* state_fio)
 	
 	// post process
 	last_vol_l = last_vol_r = 0;
+	//touch_sound();
+	set_realtime_render(on & !mute);
 	return true;
 }
 

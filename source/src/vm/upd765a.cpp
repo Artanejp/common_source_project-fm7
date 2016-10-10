@@ -172,6 +172,7 @@ void UPD765A::release()
 
 void UPD765A::reset()
 {
+	touch_sound();
 	shift_to_idle();
 //	CANCEL_EVENT();
 	phase_id = drq_id = lost_id = result7_id = -1;
@@ -179,7 +180,6 @@ void UPD765A::reset()
 #if defined(USE_SOUND_FILES)
 	seek_snd_id[0] = seek_snd_id[1] = seek_snd_id[2] = seek_snd_id[3] = -1;
 #endif	
-	
 	set_irq(false);
 	set_drq(false);
 }
@@ -1648,6 +1648,7 @@ void UPD765A::add_sound(int type)
 	} else {
 		return;
 	}
+	touch_sound();
 	for(int i = 0; i < UPD765A_SND_TBL_MAX; i++) {
 		if(p[i] < 0) {
 			p[i] = 0;
@@ -1935,6 +1936,7 @@ bool UPD765A::load_state(FILEIO* state_fio)
 		}
 	}
 #endif
+	//touch_sound();
 	return true;
 }
 

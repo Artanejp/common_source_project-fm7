@@ -215,6 +215,7 @@ void MSM5205::reset_w(int reset)
 
 void MSM5205::data_w(int data)
 {
+	touch_sound();
 	if (m_bitwidth == 4)
 		m_data = data & 0x0f;
 	else
@@ -239,6 +240,7 @@ void MSM5205::playmode_w(int select)
 	{
 //		m_stream->update();
 
+		touch_sound();
 		m_prescaler = prescaler;
 
 		/* timer set */
@@ -264,6 +266,7 @@ void MSM5205::playmode_w(int select)
 
 	if (m_bitwidth != bitwidth)
 	{
+		touch_sound();
 //		m_stream->update();
 		m_bitwidth = bitwidth;
 	}
@@ -272,6 +275,7 @@ void MSM5205::playmode_w(int select)
 
 void MSM5205::set_volume(int volume)
 {
+	touch_sound();
 	volume_m = (int)(1024.0 * (max(0, min(100, volume)) / 100.0));
 }
 
@@ -280,12 +284,14 @@ void MSM5205::change_clock_w(int32_t clock)
 	m_mod_clock = clock;
 
 	if (m_prescaler != 0) {
+		touch_sound();
 		double period = 1000000.0 / m_mod_clock * m_prescaler;
 		if(m_timer != -1) {
 			cancel_event(this, m_timer);
 		}
 		register_event(this, EVENT_TIMER, period, true, &m_timer);
 	} else {
+		touch_sound();
 		if(m_timer != -1) {
 			cancel_event(this, m_timer);
 			m_timer = -1;

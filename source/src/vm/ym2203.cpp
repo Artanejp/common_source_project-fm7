@@ -57,6 +57,7 @@ void YM2203::release()
 
 void YM2203::reset()
 {
+	touch_sound();
 #ifdef HAS_YM2608
 	if(is_ym2608) {
 		opna->Reset();
@@ -543,12 +544,13 @@ void YM2203::initialize_sound(int rate, int clock, int samples, int decibel_fm, 
 
 void YM2203::set_reg(uint32_t addr, uint32_t data)
 {
+	touch_sound();
 #ifdef HAS_YM2608
 	if(is_ym2608) {
 		opna->SetReg(addr, data);
 	} else
 #endif
-	opn->SetReg(addr, data);
+		opn->SetReg(addr, data);
 #ifdef SUPPORT_MAME_FM_DLL
 	if(dllchip) {
 		fmdll->SetReg(dllchip, addr, data);
@@ -685,6 +687,7 @@ bool YM2203::load_state(FILEIO* state_fio)
 	right_volume = state_fio->FgetInt32();
 	v_left_volume = state_fio->FgetInt32();
 	v_right_volume = state_fio->FgetInt32();
+	//touch_sound();
 
 	return true;
 }

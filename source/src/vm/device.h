@@ -629,6 +629,28 @@ public:
 		}
 		event_manager->set_lines_per_frame(lines);
 	}
+	// Force reder sound immediately when device's status has changed.
+	// You must call this after you changing registers (or enything).
+	// If has problems, try set_realtime_render.
+	// See mb8877.cpp and ym2203.cpp. 
+	// -- 20161010 K.O
+	virtual void touch_sound(void)
+	{
+		if(event_manager == NULL) {
+			event_manager = vm->first_device->next_device;
+		}
+		event_manager->touch_sound();
+	}
+	// Force render per 1 sample automatically.
+	// See pcm1bit.cpp .
+	// -- 20161010 K.O
+	virtual void set_realtime_render(bool flag)
+	{
+		if(event_manager == NULL) {
+			event_manager = vm->first_device->next_device;
+		}
+		event_manager->set_realtime_render(flag);
+	}		
 	virtual void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame) {}
 	
 	// event callback

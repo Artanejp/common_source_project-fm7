@@ -426,6 +426,7 @@ void PC6031::add_sound(int type)
 	} else {
 		return;
 	}
+	touch_sound();
 	for(int i = 0; i < PC6031_SND_TBL_MAX; i++) {
 		if(p[i] < 0) {
 			p[i] = 0;
