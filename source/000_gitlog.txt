@@ -1,3 +1,9 @@
+commit 04f8b06683a418a6de28aba96455e01a3d111807
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 10 05:25:19 2016 +0900
+
+    [DOC] Re-update to release.
+
 commit d100ae8323d6657fe37ac44a69abc8da470b77ad
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Mon Oct 10 05:19:38 2016 +0900
