@@ -85,6 +85,7 @@ void DISPLAY::reset_cpuonly()
 	for(i = 0; i < 411; i++) vram_wrote_table[i] = true;
 	for(i = 0; i < 411; i++) vram_draw_table[i] = true;
 	displine = 0;
+	active_page = 0;
 #if defined(_FM77AV_VARIANTS) || defined(_FM77L4)
 	
 	vsync = true;
@@ -115,7 +116,6 @@ void DISPLAY::reset_cpuonly()
 	offset_point_bank1 = 0;
 	display_page = 0;
 	display_page_bak = 0;
-	active_page = 0;
 	
 	subcpu_resetreq = false;
 	subrom_bank_using = subrom_bank;
