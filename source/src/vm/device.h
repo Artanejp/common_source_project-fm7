@@ -507,8 +507,7 @@ public:
 	{
 		return false;
 	}
-	virtual bool bios_ret_z80(uint16_t PC, pair_t* af, pair_t* bc, pair_t* de, pair_t* hl, pair_t* ix, pair_t* iy, uint8_t* iff1)
-	{
+	virtual bool bios_ret_z80(uint16_t PC, pair_t* af, pair_t* bc, pair_t* de, pair_t* hl, pair_t* ix, pair_t* iy, uint8_t* iff1)	{
 		return false;
 	}
 	// misc

@@ -199,10 +199,11 @@ public:
 	{
 		if(!need_mix && !sound_touched) {
 			int t_s = mix_counter;
+			// Do need mix_sound(remain_samples) before?
 			if(t_s >= (sound_tmp_samples - buffer_ptr)) t_s = sound_tmp_samples - buffer_ptr - 1; 
 			if(t_s > 0) {
-				mix_sound(t_s);
-				mix_counter = mix_counter - t_s;
+					mix_sound(t_s);
+					mix_counter = mix_counter - t_s;
 			}
 			if(mix_counter < 1) mix_counter = 1;
 			sound_touched = true;
