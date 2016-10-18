@@ -38,7 +38,11 @@ const uint16_t vk_matrix_106[0x68] = { // VK
 	/* INS, EL, CLS, DEL, DUP, ↑, HOME,← */
 	VK_INSERT,	VK_PRIOR,	VK_NEXT,	VK_DELETE,	VK_END,		VK_UP,		VK_HOME,	VK_LEFT,	// +0x48
 	/* ↓, →, LCTRL, LSHIFT or SHIFT (Winwdows), RSHIFT, CAPS, Graph=LWIN or ALT (WIndows), Lspace=Muhenkan */
+#if defined(_MSC_VER) || defined(Q_OS_WIN)
 	VK_DOWN,	VK_RIGHT,	VK_CONTROL,	VK_LSHIFT,	VK_RSHIFT,	VK_CAPITAL,	VK_LMENU,	VK_NONCONVERT,	// +0x50
+#else   
+	VK_DOWN,	VK_RIGHT,	VK_CONTROL,	VK_LSHIFT,	VK_RSHIFT,	VK_CAPITAL,	VK_LWIN,	VK_NONCONVERT,	// +0x50
+#endif
 	/* Cspace=Space, *Unknown*, KANA, *Unknown* , ESC(Break), F1, F2, F3 */
 	VK_SPACE,	0x00,		0x15,		0x00,		VK_ESCAPE,	VK_F1,		VK_F2,	VK_F3,	// +0x58
 	/* F4, F5, F6, F7, F8, F9, F10 , *END* */
