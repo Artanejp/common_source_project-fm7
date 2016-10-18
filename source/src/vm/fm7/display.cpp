@@ -44,6 +44,8 @@ DISPLAY::DISPLAY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 			n <<= 1;
 		}
 	}
+	displine = 0;
+	active_page = 0;
 	set_device_name(_T("DISPLAY SUBSYSTEM"));
 }
 
@@ -86,8 +88,8 @@ void DISPLAY::reset_cpuonly()
 	for(i = 0; i < 411; i++) vram_draw_table[i] = true;
 	displine = 0;
 	active_page = 0;
-#if defined(_FM77AV_VARIANTS) || defined(_FM77L4)
 	
+#if defined(_FM77AV_VARIANTS) || defined(_FM77L4)
 	vsync = true;
 	vblank = true;
 	hblank = false;

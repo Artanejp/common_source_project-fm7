@@ -1,5 +1,14 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT October 18, 2016
+  * Upstream 2016-04-13
+  * [VM/EVENT] Sound devices: Do mix_sound() dynamically, not do per a sample:
+  *            To reduce usage of host CPU. See event.[cpp|h] and device.h .
+  * [VM/FM7] Non-FM77AV*: Fix not clear active_page, fixed crash randomly.
+  * Built with 004920711399d430ead55e59c948e7fb7a04a402 or later.
+
+-- Oct 18, 2016 11:22:05 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT October 10, 2016
   * Upstream 2016-04-13
   * [VM] Add pseudo sounds (i.e. FDD seek), need sound files (even not WAV file at Qt porting), see doc/VMs/foo.txt . 

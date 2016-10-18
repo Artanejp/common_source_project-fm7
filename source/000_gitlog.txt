@@ -1,3 +1,27 @@
+commit 004920711399d430ead55e59c948e7fb7a04a402
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 13 22:52:46 2016 +0900
+
+    [VM][SOUND][EVENT] mix(): Collected up mix_sound() timing.
+
+commit 520a40a325f7367c9cbddf89cbf9d73b087af2d5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 13 22:51:55 2016 +0900
+
+    [VM][FM7][BUG][DISPLAY] Non-FM77AV*: Fix not clear active_page.
+
+commit 0404fcd46dd451c177d42d387c636be8e8acff3e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 10 19:50:48 2016 +0900
+
+    [VM][EVENT] Sound devices: Do mix_sound() dynamically, not do per a sample: To reduce usage of host CPU. See event.[cpp|h] and device.h .
+
+commit e78ccfafdda95de490b2ed4f00c797d9beb1e7cf
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 10 14:23:26 2016 +0900
+
+    [DOC] Update gitlog.
+
 commit 04f8b06683a418a6de28aba96455e01a3d111807
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Mon Oct 10 05:25:19 2016 +0900

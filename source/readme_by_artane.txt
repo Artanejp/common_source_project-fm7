@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                          Oct 10, 2016
+                                          Oct 18, 2016
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -11,7 +11,7 @@
    用意しています。
    
    ソースコード：
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20161010
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20161018
 
    追加情報:
     　各機種バイナリーは、osdn.jp　もしくはミラーサイトより入手可能です。
@@ -108,6 +108,15 @@
       http://takeda-toshiya.my.coocan.jp/
 
 Changes:
+
+* SNAPSHOT October 18, 2016
+  * Upstream 2016-04-13
+  * [VM/EVENT] Sound devices: Do mix_sound() dynamically, not do per a sample:
+  *            To reduce usage of host CPU. See event.[cpp|h] and device.h .
+  * [VM/FM7] Non-FM77AV*: Fix not clear active_page, fixed crash randomly.
+  * Built with 004920711399d430ead55e59c948e7fb7a04a402 or later.
+
+-- Oct 18, 2016 11:22:05 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT October 10, 2016
   * Upstream 2016-04-13
