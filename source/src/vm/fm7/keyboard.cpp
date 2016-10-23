@@ -267,10 +267,10 @@ uint16_t KEYBOARD::scan2fmkeycode(uint8_t sc)
 		   ((retval >= ',') && (retval <= '/')) ||
 		   ((retval == '[') || (retval == ']')) ||
 		   ((retval == '{') || (retval == '}'))) {
-			if(romakana_ptr < sizeof(romakana_buffer)) {
+			if(romakana_ptr < (sizeof(romakana_buffer) / sizeof(_TCHAR))) {
 				romakana_buffer[romakana_ptr++] = retval;
-				_TCHAR kana_buffer[16];
-				int kana_len = sizeof(kana_buffer);
+				_TCHAR kana_buffer[6];
+				int kana_len = 6;
 				memset(kana_buffer, 0x00, sizeof(kana_buffer));
 				
 				if(alphabet_to_kana((const _TCHAR *)romakana_buffer, kana_buffer, &kana_len) > 0) {
@@ -291,7 +291,7 @@ uint16_t KEYBOARD::scan2fmkeycode(uint8_t sc)
 				}
 				retval = 0;
 			} else { // Discard
-				for(i = 0; i < sizeof(romakana_buffer); i++) {
+				for(i = 0; i < (sizeof(romakana_buffer) / sizeof(_TCHAR)); i++) {
 					key_fifo->write(romakana_buffer[i]);
 				}
 				retval = 0;
