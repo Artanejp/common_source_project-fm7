@@ -261,7 +261,13 @@ int alphabet_to_kana(const _TCHAR *src, _TCHAR *dst, int *dstlen)
 				*dstlen = 0;
 				return 0;
 			}
-			if((base_code & 0x00ff) == KANA_WA) {
+			if(src[i] == src[i + 1]) {
+				// TT
+				if(j < dlen) {
+					dst[j++] = KANA_SMALL_TU;
+				}
+				i+= 1;
+			} else if((base_code & 0x00ff) == KANA_WA) {
 				_TCHAR c_code = detect_w((const _TCHAR)src[i + 1], base_code);
 				if(c_code != 0) {
 					if(j < dlen) {
