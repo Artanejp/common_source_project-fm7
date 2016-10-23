@@ -296,7 +296,7 @@ int SOUND_LOADER::do_decode_frames(void)
 	}
 #if defined(USE_LIBAV)	
 	_data_size = 65536 * 2 * sizeof(int16_t);
-	sound_buffer = malloc(_data_size);
+	sound_buffer = (int16_t *)malloc(_data_size);
 	if(sound_buffer == NULL) {
 		return -1;
 	}
