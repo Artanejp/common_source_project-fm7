@@ -29,7 +29,7 @@ void EVENT::initialize()
 	prev_skip = next_skip = false;
 	sound_changed = false;
 
-	need_mix = false;
+	need_mix = 0;
 }
 
 void EVENT::initialize_sound(int rate, int samples)
@@ -427,7 +427,7 @@ void EVENT::event_callback(int event_id, int err)
 		if(sound_tmp_samples - buffer_ptr > 0) {
 			int t_s = mix_counter;
 			if(t_s >= (sound_tmp_samples - buffer_ptr)) t_s = sound_tmp_samples - buffer_ptr - 1; 
-			if(need_mix || (mix_counter >= mix_limit) || sound_touched) {
+			if((need_mix > 0) || (mix_counter >= mix_limit) || sound_touched) {
 				if(t_s > 0) {
 					mix_sound(t_s);
 					mix_counter = mix_counter - t_s;
