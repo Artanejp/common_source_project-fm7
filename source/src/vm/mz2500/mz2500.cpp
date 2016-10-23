@@ -142,6 +142,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio_i->set_context_port_c(cmt, SIG_CMT_PIO_PC, 0xff, 0);
 	pio_i->set_context_port_c(crtc, SIG_CRTC_MASK, 0x01, 0);
 	pio_i->set_context_port_c(pcm, SIG_PCM1BIT_SIGNAL, 0x04, 0);
+	// Sound:: Force realtime rendering. This is temporally fix. 20161024 K.O
+	pcm->set_realtime_render(true);
+
+	
 	rtc->set_context_alarm(interrupt, SIG_INTERRUPT_RP5C15, 1);
 	rtc->set_context_pulse(opn, SIG_YM2203_PORT_B, 8);
 	opn->set_context_port_a(floppy, SIG_FLOPPY_REVERSE, 0x02, 0);

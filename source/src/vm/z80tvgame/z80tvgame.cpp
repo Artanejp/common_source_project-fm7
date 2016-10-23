@@ -64,7 +64,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(pcm);
-	
+
+	// Sound:: Force realtime rendering. This is temporally fix. 20161024 K.O
+	pcm->set_realtime_render(true);
+
 #ifdef _USE_I8255
 	pio->set_context_port_c(pcm, SIG_PCM1BIT_SIGNAL, 1, 0);
 #else

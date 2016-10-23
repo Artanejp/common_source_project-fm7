@@ -121,6 +121,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio0->set_context_port_c(rst, SIG_RESET_CONTROL, 0xff, 0);
 	pio0->set_context_port_c(crtc, SIG_CRTC_MASK, 0x01, 0);
 	pio0->set_context_port_c(pcm, SIG_PCM1BIT_SIGNAL, 0x04, 0);
+	// Sound:: Force realtime rendering. This is temporally fix. 20161024 K.O
+	pcm->set_realtime_render(true);
+
+	
 	pic->set_context_cpu(cpu);
 	fdc->set_context_drq(dma, SIG_UPD71071_CH1, 1);
 	fdc->set_context_irq(pic, SIG_I8259_CHIP0 | SIG_I8259_IR5, 1);

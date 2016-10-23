@@ -78,7 +78,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	}
 	drec->load_sound_data(DATAREC_SNDFILE_RELAY_ON, _T("RELAY_ON.WAV"));
 	drec->load_sound_data(DATAREC_SNDFILE_RELAY_OFF, _T("RELAYOFF.WAV"));
-#endif	
+#endif
+	// Sound:: Force realtime rendering. This is temporally fix. 20161024 K.O
+	pcm->set_realtime_render(true);
 
 	drec->set_context_ear(io, SIG_IO_DATAREC_IN, 1);
 	crtc->set_context_disp(io, SIG_IO_CRTC_DISP, 1);

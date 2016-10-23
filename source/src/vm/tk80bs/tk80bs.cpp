@@ -91,6 +91,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio_t->set_context_port_c(pcm1, SIG_PCM1BIT_SIGNAL, 4, 0);
 	pio_t->set_context_port_c(keyboard, SIG_KEYBOARD_COLUMN, 0x70, 0);
 	pio_t->set_context_port_c(display, SIG_DISPLAY_DMA, 0x80, 0);
+	// Sound:: Force realtime rendering. This is temporally fix. 20161024 K.O
+	pcm0->set_realtime_render(true);
+	pcm1->set_realtime_render(true);
 	
 	cmt->set_context_sio(sio_b);
 	display->set_context_key(keyboard);
