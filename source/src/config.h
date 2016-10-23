@@ -176,6 +176,8 @@ typedef struct {
 	int sound_fdd;
 	int sound_relay;
 	int sound_buttons;
+
+	bool roma_kana_conversion;
 #endif
 } config_t;
 

@@ -169,6 +169,8 @@ void initialize_config()
 	config.sound_fdd = 1;
 	config.sound_relay = 0;
 	config.sound_buttons = 0;
+
+	config.roma_kana_conversion = false;
 #endif	
 }
 
@@ -442,6 +444,8 @@ void load_config(const _TCHAR *config_path)
 	
 	config.log_to_syslog = MyGetPrivateProfileBool(_T("Emulator"), _T("WriteToSyslog"), config.log_to_syslog, config_path);
 	config.log_to_console = MyGetPrivateProfileBool(_T("Emulator"), _T("WriteToConsole"), config.log_to_console, config_path);
+	config.roma_kana_conversion = MyGetPrivateProfileInt(_T("Emulator"), _T("RomaKana"), config.roma_kana_conversion, config_path);
+	
 	for(int ii = 0; ii < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1); ii++) {
 		uint32_t flags = 0;
 		flags = MyGetPrivateProfileInt(_T("Emulator"), create_string(_T("SyslogEnabled%d"), ii), 0x0000, config_path);
@@ -693,6 +697,7 @@ void save_config(const _TCHAR *config_path)
 	
 	MyWritePrivateProfileBool(_T("Emulator"), _T("WriteToSyslog"), config.log_to_syslog, config_path);
 	MyWritePrivateProfileBool(_T("Emulator"), _T("WriteToConsole"), config.log_to_console, config_path);
+	MyWritePrivateProfileInt(_T("Emulator"), _T("RomaKana"), config.roma_kana_conversion, config_path);
 	
 	for(int ii = 0; ii < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1); ii++) {
 		uint32_t flags = 0;
