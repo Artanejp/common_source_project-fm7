@@ -28,6 +28,7 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	use_auto_key = use_auto_key_us = use_auto_key_caps = false;
 	use_auto_key_no_caps = use_auto_key_release =
 	use_auto_key_shift = use_binary_file = false;
+	use_roma_kana_conversion = false;
 	
 	max_binary = 0;
 	use_bitmap = false;
@@ -214,7 +215,10 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	#if defined(USE_AUTO_KEY_SHIFT)
 		use_auto_key_shift = true;
 	#endif
-#endif	
+#endif
+#if defined(SUPPORT_ROMA_KANA_CONVERSION)
+	use_roma_kana_conversion = true;
+#endif
 #if defined(USE_BINARY_FILE1) || defined(USE_BINARY_FILE2) || defined(USE_BINARY_FILE3) || defined(USE_BINARY_FILE4) || \
 	defined(USE_BINARY_FILE5) || defined(USE_BINARY_FILE6) || defined(USE_BINARY_FILE7) || defined(USE_BINARY_FILE8)
 	use_binary_file = true;

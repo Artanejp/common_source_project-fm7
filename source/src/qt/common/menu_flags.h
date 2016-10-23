@@ -28,6 +28,7 @@ private:
 	// USE_* flags
 	bool use_access_lamp;
 	bool use_alt_f10_key;
+	bool use_roma_kana_conversion;
 	
 	bool use_auto_key;
 	bool use_auto_key_us;
@@ -167,6 +168,7 @@ public:
 	bool is_use_auto_key_no_caps() { return use_auto_key_no_caps; }
 	bool is_use_auto_key_release() { return use_auto_key_release; }
 	bool is_use_auto_key_shift() { return use_auto_key_shift; }
+	bool is_use_roma_kana_conversion() { return use_roma_kana_conversion; }
 
 	bool is_use_binary_file() { return use_binary_file; }
 	int get_max_binary() { return max_binary; }

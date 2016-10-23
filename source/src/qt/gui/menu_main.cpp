@@ -55,7 +55,6 @@ Ui_MainWindowBase::~Ui_MainWindowBase()
 	graphicsView->releaseKeyboard();
 }
 
-
 void Action_Control::do_check_grab_mouse(bool flag)
 {
 	this->toggle();
@@ -75,6 +74,11 @@ void Action_Control::do_set_dev_log_to_console(bool f)
 {
 	int num = this->binds->getValue1();
 	emit sig_set_dev_log_to_console(num, f);
+}
+
+void Ui_MainWindowBase::do_set_roma_kana(bool flag)
+{
+	using_flags->get_config_ptr()->roma_kana_conversion = flag;
 }
 
 void Ui_MainWindowBase::do_show_about(void)
@@ -586,7 +590,9 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 		action_SetupJoystick->setText(QApplication::translate("MainWindow", "Configure Joysticks", 0));
 		action_SetupJoystick->setIcon(QIcon(":/icon_gamepad.png"));
 	}
-	
+	if(using_flags->is_use_roma_kana_conversion()) {
+		action_UseRomaKana->setText(QApplication::translate("MainWindow", "ROMA-KANA Conversion", 0));
+	}
 	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
 	action_SetupKeyboard->setText(QApplication::translate("MainWindow", "Configure Keyboard", 0));
 	action_SetupKeyboard->setIcon(QIcon(":/icon_keyboard.png"));
@@ -625,6 +631,10 @@ void Ui_MainWindowBase::retranselateUi_Depended_OSD(void)
 void Ui_MainWindowBase::CreateEmulatorMenu(void)
 {
 	//menuEmulator->addAction(action_LogRecord);
+	if(using_flags->is_use_roma_kana_conversion()) {
+		menuEmulator->addAction(action_UseRomaKana);
+		menuEmulator->addSeparator();
+	}
 	menuEmulator->addAction(action_LogToConsole);
 	menuEmulator->addAction(menuDevLogToConsole->menuAction());
 	menuEmulator->addSeparator();
@@ -649,6 +659,12 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 {
 	int i;
 	QString tmps;
+	if(using_flags->is_use_roma_kana_conversion()) {
+		action_UseRomaKana = new Action_Control(this, using_flags);
+		action_UseRomaKana->setCheckable(true);
+		if(using_flags->get_config_ptr()->roma_kana_conversion) action_UseRomaKana->setChecked(true);
+		connect(action_UseRomaKana, SIGNAL(toggled(bool)), this, SLOT(do_set_roma_kana(bool)));
+	}
 	if(using_flags->is_use_joystick()) {
 		action_SetupJoystick = new Action_Control(this, using_flags);
 	}

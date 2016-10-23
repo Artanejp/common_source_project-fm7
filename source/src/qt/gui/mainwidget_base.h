@@ -309,7 +309,8 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	QMenu *menuLogToSyslog;
 	QMenu *menuDevLogToConsole;
 	QMenu *menuDevLogToSyslog;
-	
+
+	class Action_Control *action_UseRomaKana;
 	class Action_Control *action_LogToSyslog;
 	class Action_Control *action_LogToConsole;
 	class Action_Control *action_LogRecord;
@@ -607,6 +608,7 @@ public slots:
 	void do_set_syslog(bool);
 	void do_update_device_node_name(int id, const _TCHAR *name);	
 	void do_set_dev_log_to_console(int id, bool f);
+	void do_set_roma_kana(bool f);
 signals:
 	int message_changed(QString);
 	int quit_emu_thread();
