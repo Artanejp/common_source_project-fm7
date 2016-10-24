@@ -95,7 +95,8 @@ set(s_qt_gui_srcs
 	  joy_thread.cpp
 	  emu_thread_tmpl.cpp
 	  qt_debugger_tmpl.cpp
-  
+
+	  ../../romakana.cpp
 	  csp_logger.cpp
 	  qt_main.cpp
 )

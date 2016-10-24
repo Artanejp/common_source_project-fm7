@@ -33,6 +33,12 @@ class USING_FLAGS;
 QT_BEGIN_NAMESPACE
 
 typedef struct {
+	uint32_t vk;
+	uint32_t code;
+	bool shift;
+} romakana_convert_t;
+
+typedef struct {
 	uint32_t code;
 	uint32_t mod;
 	bool repeat;
@@ -51,8 +57,12 @@ protected:
 	
 	QQueue <key_queue_t>key_up_queue;
 	QQueue <key_queue_t>key_down_queue;
+	QQueue <key_queue_t>roma_kana_down_queue;
+	QQueue <key_queue_t>roma_kana_up_queue;
 	uint32_t key_mod;
-
+	bool roma_kana_conv;
+	bool roma_kana_updown;
+	
 	EMU *p_emu;
 	USING_FLAGS *using_flags;
 	config_t *p_config;
@@ -91,7 +101,10 @@ protected:
 	QString laserdisc_text;
 	QString bubble_text[16];
 	QString clipBoardText;
-	
+
+	_TCHAR roma_kana_buffer[8];
+	uint32_t roma_kana_shadow[8];
+	int roma_kana_ptr;
 	void calc_volume_from_balance(int num, int balance);
 	void calc_volume_from_level(int num, int level);
 	

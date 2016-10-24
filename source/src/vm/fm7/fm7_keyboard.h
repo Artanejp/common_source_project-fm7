@@ -41,10 +41,6 @@ class KEYBOARD : public DEVICE {
 
 	uint32_t keycode_7;
 	int keymode;
-#if defined(SUPPORT_ROMA_KANA_CONVERSION)
-	_TCHAR romakana_buffer[8];
-	int romakana_ptr;
-#endif
 private:
 	bool ctrl_pressed; 
 	bool lshift_pressed; 

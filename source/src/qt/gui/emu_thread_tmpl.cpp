@@ -17,8 +17,81 @@
 #include "emu_thread_tmpl.h"
 
 #include "qt_gldraw.h"
+#include "../../romakana.h"
+
 //#include "csp_logger.h"
 #include "../common/menu_flags.h"
+const romakana_convert_t romakana_table_1[] = {
+	{'1', KANA_NA + 2, false}, // NU
+	{'2', KANA_HA + 2, false}, // HU
+	{'3', KANA_A  + 0, false}, // A
+	{'4', KANA_A  + 2, false}, // U
+	{'5', KANA_A  + 3, false}, // E
+	{'6', KANA_A  + 4, false}, // O
+	{'7', KANA_YA + 0, false}, // YA
+	{'8', KANA_YA + 1, false}, // YU
+	{'9', KANA_YA + 2, false}, // YO
+	{'0', KANA_WA + 0, false}, // WA
+	{'-', KANA_HA + 4, false}, // HO
+	{'^', KANA_HA + 3, false}, // HE
+	{VK_OEM_5, KANA_ONBIKI, false}, // -
+
+	{'3', KANA_SMALL_A,      true}, // A
+	{'4', KANA_SMALL_U,      true}, // U
+	{'5', KANA_SMALL_E,      true}, // E
+	{'6', KANA_SMALL_O,      true}, // O
+	{'7', KANA_SMALL_YA + 0, true}, // YA
+	{'8', KANA_SMALL_YA + 1, true}, // YU
+	{'9', KANA_SMALL_YA + 2, true}, // YO
+	{'0', KANA_WO,           true}, // WO
+
+	{'Q', KANA_TA + 0, false}, // TA
+	{'W', KANA_TA + 3, false}, // TE
+	{'E', KANA_A  + 1, false}, // I
+	{'R', KANA_SA + 2, false}, // SU
+	{'T', KANA_KA + 0, false}, // KA
+	{'Y', KANA_NN    , false}, // NN
+	{'U', KANA_NA + 0, false}, // NA
+	{'I', KANA_NA + 1, false}, // NI
+	{'O', KANA_RA + 0, false}, // RA
+	{'P', KANA_SA + 3, false}, // SE
+	{'Q', KANA_TA + 0, false}, // TA
+	{VK_OEM_3, KANA_DAKUON, false}, // DAKUTEN
+	{VK_OEM_4, KANA_HANDAKUON, false}, // HANDAKUTEN
+	{VK_OEM_4, KANA_UPPER_KAKKO, true}, // [
+	
+	{'A', KANA_TA + 1, false}, // TI
+	{'S', KANA_TA + 4, false}, // TO
+	{'D', KANA_SA + 1, false}, // SI
+	{'F', KANA_HA + 0, false}, // HA
+	{'G', KANA_KA + 1, false}, // KI
+	{'H', KANA_KA + 2, false}, // KU
+	{'J', KANA_MA + 0, false}, // MA
+	{'K', KANA_NA + 4, false}, // NO
+	{'L', KANA_RA + 1, false}, // RI
+	{VK_OEM_PLUS, KANA_RA + 3, false}, // RE
+	{VK_OEM_1, KANA_KA + 3, false}, // KE
+	{VK_OEM_6, KANA_MA + 2, false}, // MU
+	{VK_OEM_6, KANA_DOWNER_KAKKO, true}, // ]
+
+	{'Z', KANA_TA + 2, false}, // TU
+	{'X', KANA_SA + 0, false}, // SA
+	{'C', KANA_SA + 4, false}, // SO
+	{'V', KANA_HA + 1, false}, // HI
+	{'B', KANA_KA + 4, false}, // KO
+	{'N', KANA_MA + 1, false}, // MI
+	{'M', KANA_MA + 4, false}, // MO
+	{VK_OEM_COMMA,  KANA_NA + 3, false}, // NE
+	{VK_OEM_PERIOD, KANA_RA + 2, false}, // RU
+	{VK_OEM_2,   KANA_MA + 3, false}, // ME
+	{VK_OEM_102, KANA_RA + 4, false}, // RO
+
+	{VK_OEM_COMMA,  KANA_COMMA, true}, // 
+	{VK_OEM_PERIOD, KANA_MARU,  true}, // 
+	{VK_OEM_2,   KANA_NAKAGURO, true}, // 
+	//{VK_OEM_102, KANA_RA + 4, false}, // RO
+	{0xffff, 0xffffffff, false}
+};
 
 EmuThreadClassBase::EmuThreadClassBase(META_MainWindow *rootWindow, EMU *pp_emu, USING_FLAGS *p, QObject *parent) : QThread(parent) {
 	MainWindow = rootWindow;
@@ -55,6 +128,11 @@ EmuThreadClassBase::EmuThreadClassBase(META_MainWindow *rootWindow, EMU *pp_emu,
 								 using_flags->get_config_ptr()->sound_volume_l[i]) / 2;
 		}
 	}
+	memset(roma_kana_buffer, 0x00, sizeof(roma_kana_buffer));
+	roma_kana_ptr = 0;
+	roma_kana_down_queue.clear();
+	roma_kana_up_queue.clear();
+	roma_kana_conv = false;
 };
 
 EmuThreadClassBase::~EmuThreadClassBase() {
@@ -156,15 +234,48 @@ void EmuThreadClassBase::button_released_mouse(Qt::MouseButton button)
 	}
 }
 
+
 void EmuThreadClassBase::do_key_down(uint32_t vk, uint32_t mod, bool repeat)
 {
 	key_queue_t sp;
 	sp.code = vk;
 	sp.mod = mod;
 	sp.repeat = repeat;
+	//key_changed = true;
+#if 1
+	if(using_flags->is_use_roma_kana_conversion()) {
+		if(p_config->roma_kana_conversion) {
+			if(roma_kana_ptr < (sizeof(roma_kana_buffer) / sizeof(_TCHAR)) &&
+			   (((vk >= 'A') && (vk <= 'z')) ||
+				(vk == VK_OEM_4) || (vk == VK_OEM_6) ||
+				(vk == VK_OEM_2) || (vk == VK_OEM_COMMA) ||
+				(vk == VK_OEM_PERIOD) || (vk == VK_OEM_MINUS))) {
+				return;
+			} else {
+				if(roma_kana_ptr > (sizeof(roma_kana_buffer) / sizeof(_TCHAR))) roma_kana_ptr = sizeof(roma_kana_buffer) / sizeof(_TCHAR);
+				key_queue_t ssp;
+				for(int i = 0; i < roma_kana_ptr; i++) {
+					ssp.code = roma_kana_shadow[i];
+					ssp.mod = mod;
+					key_down_queue.enqueue(ssp);
+					key_up_queue.enqueue(ssp);
+				}
+				ssp.code = VK_SHIFT;
+				ssp.mod = mod & ~(Qt::ShiftModifier);
+				ssp.repeat = false;
+				//key_down_queue.enqueue(ssp);
+				key_up_queue.enqueue(ssp);
+				memset(roma_kana_shadow, 0x00, sizeof(roma_kana_shadow));
+				memset(roma_kana_buffer, 0x00, sizeof(roma_kana_buffer));
+				roma_kana_ptr = 0;
+				//roma_kana_updown = false;
+				//roma_kana_conv = false;
+			}
+		}
+	}
+#endif
 	key_down_queue.enqueue(sp);
 	key_mod = mod;
-	//key_changed = true;
 }
 
 void EmuThreadClassBase::do_key_up(uint32_t vk, uint32_t mod)
@@ -173,8 +284,134 @@ void EmuThreadClassBase::do_key_up(uint32_t vk, uint32_t mod)
 	sp.code = vk;
 	sp.mod = mod;
 	sp.repeat = false;
-	key_mod = mod;
+#if 1
+	if(using_flags->is_use_roma_kana_conversion()) {
+		if(p_config->roma_kana_conversion) {
+			if(roma_kana_ptr < (sizeof(roma_kana_buffer) / sizeof(_TCHAR)) &&
+			   (((vk >= 'A') && (vk <= 'z')) ||
+				(vk == VK_OEM_4) || (vk == VK_OEM_6) ||
+				(vk == VK_OEM_2) || (vk == VK_OEM_COMMA) ||
+				(vk == VK_OEM_PERIOD) || (vk == VK_OEM_MINUS))) {
+				   _TCHAR kana_buffer[6];
+				   int kana_len = 6;
+				   memset(kana_buffer, 0x00, sizeof(kana_buffer));
+				   uint32_t vvk = vk;
+				   switch(vk) {
+				   case VK_OEM_MINUS:
+					   vvk = '-';
+					   break;
+				   case VK_OEM_4:
+					   vvk = '[';
+					   break;
+				   case VK_OEM_6:
+					   vvk = ']';
+					   break;
+				   case VK_OEM_COMMA:
+					   vvk = ',';
+					   break;
+				   case VK_OEM_PERIOD:
+					   vvk = '.';
+					   break;
+				   case VK_OEM_2:
+					   vvk = '/';
+					   break;
+				   }
+				   roma_kana_shadow[roma_kana_ptr] = vk;
+				   roma_kana_buffer[roma_kana_ptr++] = (_TCHAR)vvk;
+				   if(alphabet_to_kana((const _TCHAR *)roma_kana_buffer, kana_buffer, &kana_len) > 0) {
+					   key_queue_t ssp;
+					   ssp.code = 0;
+					   ssp.mod = 0;
+					   ssp.repeat = false;
+					   bool before_shift = false;
+					   for(int i = 0; i < kana_len; i++) {
+						   int j = 0;
+						   do {
+							   if(romakana_table_1[j].vk == 0xffff) break;
+							   if((_TCHAR)romakana_table_1[j].code == kana_buffer[i]) {
+								   uint32_t vvvk = romakana_table_1[j].vk;
+								   switch(romakana_table_1[j].vk) {
+								   case '-':
+									   vvvk = VK_OEM_MINUS;
+									   break;
+								   case '^':
+									   vvvk = VK_OEM_7;
+									   break;
+								   case '@':
+									   vvvk = VK_OEM_3;
+									   break;
+								   case '[':
+									   vvvk = VK_OEM_4;
+									   break;
+								   case ';':
+									   vvvk = VK_OEM_PLUS;
+									   break;
+								   case ':':
+									   vvvk = VK_OEM_1;
+									   break;
+								   case ']':
+									   vvvk = VK_OEM_6;
+									   break;
+								   case ',':
+									   vvvk = VK_OEM_COMMA;
+									   break;
+								   case '.':
+									   vvvk = VK_OEM_PERIOD;
+									   break;
+								   case '/':
+									   vvvk = VK_OEM_2;
+									   break;
+								   }
+								   ssp.code = vvvk;
+								   ssp.mod = mod;
+								   ssp.repeat = false;
+#if 1
+								   if(romakana_table_1[j].shift) {
+									   key_queue_t sss;
+									   sss.code = VK_SHIFT;
+									   ssp.mod = ssp.mod | Qt::ShiftModifier;
+									   sss.mod = ssp.mod;
+									   sss.repeat = false;
+									   roma_kana_down_queue.enqueue(sss);
+								   }
+#endif
+								   roma_kana_down_queue.enqueue(ssp);
+								   roma_kana_up_queue.enqueue(ssp);
+								   if(romakana_table_1[j].shift) {
+									   key_queue_t sss;
+									   sss.code = VK_SHIFT;
+									   ssp.mod = ssp.mod & ~(Qt::ShiftModifier);
+									   sss.mod = ssp.mod;
+									   sss.repeat = false;
+									   roma_kana_up_queue.enqueue(sss);
+								   }
+								   break;
+							   }
+							   j++;
+						   } while(1);
+					   }
+					   if(kana_len > 0) {
+						   roma_kana_ptr = 0;
+						   ssp.code = VK_SHIFT;
+						   ssp.mod = mod & ~(Qt::ShiftModifier);
+						   ssp.repeat = false;
+						   roma_kana_down_queue.enqueue(ssp);
+						   roma_kana_up_queue.enqueue(ssp);
+						   memset(roma_kana_buffer, 0x00, sizeof(roma_kana_buffer));
+						   memset(roma_kana_shadow, 0x00, sizeof(roma_kana_shadow));
+						   roma_kana_updown = false;
+						   roma_kana_conv = true;
+					   }
+				   }
+				   return;
+			} else {
+			
+			}
+		}
+	}
+#endif
 	key_up_queue.enqueue(sp);
+	key_mod = mod;
 }
 
 void EmuThreadClassBase::set_tape_play(bool flag)

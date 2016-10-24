@@ -5,7 +5,7 @@ message("* common/common")
 add_library(common_common
 	config.cpp
 	debugger.cpp
-	romakana.cpp
+#	romakana.cpp
 )
 
 add_library(common_emu

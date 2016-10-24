@@ -8,10 +8,7 @@
 */
 
 #include "common.h"
-#include "vm.h"
 #include "romakana.h"
-
-#if defined(SUPPORT_ROMA_KANA_CONVERSION)
 
 _TCHAR detect_shiin(const _TCHAR src, bool *b_dakuon, bool *b_handakuon, bool *b_chi, bool *b_kigou)
 {
@@ -541,4 +538,3 @@ int alphabet_to_kana(const _TCHAR *src, _TCHAR *dst, int *dstlen)
 	return i;
 }
 }
-#endif //defined(SUPPORT_ROMA_KANA_CONVERSION)

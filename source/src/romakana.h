@@ -10,7 +10,6 @@
 #ifndef _ROMAKANA_H
 #define _ROMAKANA_H
 
-#if defined(SUPPORT_ROMA_KANA_CONVERSION)
 #define KANA_MARU			0x00a1
 #define KANA_UPPER_KAKKO	0x00a2
 #define KANA_DOWNER_KAKKO	0x00a3
@@ -53,6 +52,5 @@ extern "C" {
 // 2 : convert, but, another candicate exiusts.
 	extern int alphabet_to_kana(const _TCHAR *src, _TCHAR *dst, int *dstlen);
 }
-#endif // defined(SUPPORT_ROMA_KANA_CONVERSION)
 
 #endif

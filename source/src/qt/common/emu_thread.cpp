@@ -395,17 +395,42 @@ void EmuThreadClass::doWork(const QString &params)
 				}
 			}
 #endif
-			while(!key_up_queue.isEmpty()) {
-				key_queue_t sp;
-				sp = key_up_queue.dequeue();
-				p_emu->key_modifiers(sp.mod);
-				p_emu->key_up(sp.code);
-			}
-			while(!key_down_queue.isEmpty()) {
-				key_queue_t sp;
-				sp = key_down_queue.dequeue();
-				p_emu->key_modifiers(sp.mod);
-				p_emu->key_down(sp.code, sp.repeat);
+			if(roma_kana_conv) {
+				if(!roma_kana_updown) {
+					if(!roma_kana_down_queue.isEmpty()) {
+						key_queue_t sp;
+						sp = roma_kana_down_queue.dequeue();
+						key_mod = sp.mod;
+						p_emu->key_modifiers(sp.mod);
+						p_emu->key_down(sp.code, false);
+						//p_emu->key_up(sp.code);
+					}
+					roma_kana_updown = true;
+				} else {
+					if(!roma_kana_up_queue.isEmpty()) {
+						key_queue_t sp;
+						sp = roma_kana_up_queue.dequeue();
+						key_mod = sp.mod;
+						p_emu->key_modifiers(sp.mod);
+						p_emu->key_up(sp.code);
+					}
+					roma_kana_updown = false;
+				}
+				if(roma_kana_down_queue.isEmpty() && roma_kana_up_queue.isEmpty()) roma_kana_conv = false;
+			} else {
+				while(!key_up_queue.isEmpty()) {
+					key_queue_t sp;
+					sp = key_up_queue.dequeue();
+					key_mod = sp.mod;
+					p_emu->key_modifiers(sp.mod);
+					p_emu->key_up(sp.code);
+				}
+				while(!key_down_queue.isEmpty()) {
+					key_queue_t sp;
+					sp = key_down_queue.dequeue();
+					p_emu->key_modifiers(sp.mod);
+					p_emu->key_down(sp.code, sp.repeat);
+				}
 			}
 			run_frames = p_emu->run();
 			total_frames += run_frames;

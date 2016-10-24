@@ -11,10 +11,6 @@
 #include "fm7_keyboard.h"
 #include "keyboard_tables.h"
 
-#if defined(SUPPORT_ROMA_KANA_CONVERSION)
-#include "../../romakana.h"
-#endif
-
 #if defined(_FM77AV_VARIANTS)
 #include "../beep.h"
 #include "fm77av_hidden_message_keyboard.h"
@@ -167,27 +163,11 @@ uint16_t KEYBOARD::scan2fmkeycode(uint8_t sc)
 				keyptr = graph_key;
 			}
 		} else if(kana_pressed) {
-#if defined(SUPPORT_ROMA_KANA_CONVERSION)
-			if(config.roma_kana_conversion) {
-				if(shift_pressed) {
-					keyptr = standard_shift_key;
-				} else {
-					keyptr = standard_key;
-				}
-			} else {
-				if(shift_pressed) {
-					keyptr = kana_shift_key;
-				} else {
-					keyptr = kana_key;
-				}
-			}				
-#else
 			if(shift_pressed) {
 				keyptr = kana_shift_key;
 			} else {
 				keyptr = kana_key;
 			}
-#endif
 		} else { // Standard
 			stdkey = true;
 			if(shift_pressed) {
@@ -259,56 +239,6 @@ uint16_t KEYBOARD::scan2fmkeycode(uint8_t sc)
 			}
 		}
 	}
-#if defined(SUPPORT_ROMA_KANA_CONVERSION)
-	else if(kana_pressed) {
-		int i = 0;
-		if(((retval >= '`') && (retval <= 'z')) ||
-		   ((retval >= '@') && (retval <= 'Z')) ||
-		   ((retval >= ',') && (retval <= '/')) ||
-		   ((retval == '[') || (retval == ']')) ||
-		   ((retval == '{') || (retval == '}'))) {
-			if(romakana_ptr < (sizeof(romakana_buffer) / sizeof(_TCHAR))) {
-				romakana_buffer[romakana_ptr++] = retval;
-				_TCHAR kana_buffer[6];
-				int kana_len = 6;
-				memset(kana_buffer, 0x00, sizeof(kana_buffer));
-				
-				if(alphabet_to_kana((const _TCHAR *)romakana_buffer, kana_buffer, &kana_len) > 0) {
-					int r;
-					if(kana_len > 0) {
-						for(i = 0; i < kana_len; i++) {
-							r = kana_buffer[i];
-							if(r == KANA_WO) {
-								r = (KANA_WA + 1) & 0x00ff;
-							} else {
-								r = r & 0x00ff;
-							}
-							key_fifo->write(r);
-						}
-					}
-					memset(romakana_buffer, 0x00, sizeof(romakana_buffer));
-					romakana_ptr = 0;
-				}
-				retval = 0;
-			} else { // Discard
-				for(i = 0; i < (sizeof(romakana_buffer) / sizeof(_TCHAR)); i++) {
-					key_fifo->write(romakana_buffer[i]);
-				}
-				retval = 0;
-				memset(romakana_buffer, 0x00, sizeof(romakana_buffer));
-				romakana_ptr = 0;
-			}
-		} else {
-			if(romakana_ptr > 0) {
-				for(i = 0; i < romakana_ptr; i++) {
-					key_fifo->write(romakana_buffer[i]);
-				}
-				memset(romakana_buffer, 0x00, sizeof(romakana_buffer));
-				romakana_ptr = 0;
-			}
-		}
-	}
-#endif						
 	return retval;
 }
 
@@ -695,10 +625,6 @@ void KEYBOARD::reset_unchange_mode(void)
 	if(event_hidden1_av >= 0) cancel_event(this, event_hidden1_av);
    	event_hidden1_av = -1;
 	hidden1_ptr = 0;
-#endif
-#if defined(SUPPORT_ROMA_KANA_CONVERSION)
-	memset(romakana_buffer, 0x00, sizeof(romakana_buffer));
-	romakana_ptr = 0;
 #endif
 	// Bus
 	this->write_signals(&break_line, 0x00);
