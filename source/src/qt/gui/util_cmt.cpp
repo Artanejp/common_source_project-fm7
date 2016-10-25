@@ -62,10 +62,10 @@ void Ui_MainWindowBase::CreateCMTMenu(void)
 		ext_play = "*.cas *.cmt *.n80 *.t88";
 		ext_rec  = "*.cas *.cmt";
 	} else if(using_flags->is_machine_mz80a_variants()) {
-		ext_play = "*.wav *.cas *.mzt *.m12 *.t77";
+		ext_play = "*.wav *.cas *.mzt *.mzf *.m12 *.t77";
 		ext_rec = "*.wav *.cas";
 	} else if(using_flags->is_machine_mz80b_variants()) {
-		ext_play = "*.wav *.cas *.mzt *.mti *.mtw *.dat";
+		ext_play = "*.wav *.cas *.mzt *.mzf *.mti *.mtw *.dat";
 		ext_rec =  "*.wav *.cas";
 	} else if(using_flags->is_machine_x1_series()) {
 		ext_play = "*.wav *.cas *.tap *.t77";
