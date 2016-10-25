@@ -7,15 +7,17 @@
 	[ Romaji -> Kana conversion ]
 */
 
-#if defined(_USE_QT)
-#include "qt/gui/qt_input.h"
-#endif
+
+// Note: This routine require at least C/C++99.
+// Because this uses unicode string.
+#include <wchar.h>
+
 #include "common.h"
 #include "romakana.h"
 
-_TCHAR detect_shiin(const _TCHAR src, bool *b_dakuon, bool *b_handakuon, bool *b_chi, bool *b_kigou)
+wchar_t detect_shiin(const char src, bool *b_dakuon, bool *b_handakuon, bool *b_chi, bool *b_kigou)
 {
-	_TCHAR base_code;
+	wchar_t base_code;
 	*b_dakuon = false;
 	*b_handakuon = false;
 	*b_chi = false;
@@ -68,6 +70,8 @@ _TCHAR detect_shiin(const _TCHAR src, bool *b_dakuon, bool *b_handakuon, bool *b
 		break;
 	case 'Z':
 	case 'z':
+	case 'J':
+	case 'j':
 		base_code = KANA_SA;
 		*b_dakuon = true;
 		break;
@@ -88,7 +92,7 @@ _TCHAR detect_shiin(const _TCHAR src, bool *b_dakuon, bool *b_handakuon, bool *b
 		break;
 	case 'C':
 	case 'c':
-		base_code = 0;
+		base_code = (wchar_t)0;
 		*b_chi = true;
 		break;
 	case '-':
@@ -124,13 +128,13 @@ _TCHAR detect_shiin(const _TCHAR src, bool *b_dakuon, bool *b_handakuon, bool *b
 		*b_kigou = true;
 		break;
 	default:
-		base_code = 0;
+		base_code = (wchar_t)0;
 		break;
 	}
 	return base_code;
 }
 
-int detect_boin(_TCHAR src, _TCHAR base_code, bool *b_xya, bool *b_tsu)
+int detect_boin(const char src, wchar_t base_code, bool *b_xya, bool *b_tsu)
 {
 	int code = -1;
 	*b_xya = false;
@@ -164,7 +168,7 @@ int detect_boin(_TCHAR src, _TCHAR base_code, bool *b_xya, bool *b_tsu)
 		break;
 	case 'S': // TSU
 	case 's':
-		if((base_code & 0x00ff) == 0x00c0) {
+		if(base_code  == L'ﾀ') {
 			code = -2;
 			*b_tsu = true;
 		}
@@ -173,7 +177,7 @@ int detect_boin(_TCHAR src, _TCHAR base_code, bool *b_xya, bool *b_tsu)
 	return code;
 }
 
-_TCHAR detect_xya(const _TCHAR c, _TCHAR base_code)
+wchar_t detect_xya(const char c, wchar_t base_code)
 {
 	bool b_dummy1;
 	bool b_dummy2;
@@ -182,21 +186,27 @@ _TCHAR detect_xya(const _TCHAR c, _TCHAR base_code)
 	case 0: // Kya
 		return KANA_SMALL_YA;
 		break;
+	case 1: // Kyi
+		return KANA_SMALL_I;
+		break;
 	case 2: // Kyu
 		return KANA_SMALL_YU;
+		break;
+	case 3: // Kye
+		return KANA_SMALL_E;
 		break;
 	case 4: // Kyo
 		return KANA_SMALL_YO;
 		break;
 	default:
-		return 0;
+		return (wchar_t)0;
 		break;
 	}
-	return 0;
+	return (wchar_t)0;
 }
 
 
-_TCHAR detect_w(const _TCHAR c, _TCHAR base_code)
+wchar_t detect_w(const char c, wchar_t base_code)
 {
 	bool b_dummy1;
 	bool b_dummy2;
@@ -209,88 +219,15 @@ _TCHAR detect_w(const _TCHAR c, _TCHAR base_code)
 		return KANA_WO;
 		break;
 	default:
-		return 0;
+		return (wchar_t)0;
 		break;
 	}
-	return 0;
+	return (wchar_t)0;
 }
 
 extern "C" {
 // Roma-Kana Conversion table for JIS keyboard (Maybe Host is 106 keyboard. Some keyboards needs another table). 
-const romakana_convert_t romakana_table_1[] = {
-	{'1', KANA_NA + 2, false}, // NU
-	{'2', KANA_HA + 2, false}, // HU
-	{'3', KANA_A  + 0, false}, // A
-	{'4', KANA_A  + 2, false}, // U
-	{'5', KANA_A  + 3, false}, // E
-	{'6', KANA_A  + 4, false}, // O
-	{'7', KANA_YA + 0, false}, // YA
-	{'8', KANA_YA + 1, false}, // YU
-	{'9', KANA_YA + 2, false}, // YO
-	{'0', KANA_WA + 0, false}, // WA
-	{'-', KANA_HA + 4, false}, // HO
-	{'^', KANA_HA + 3, false}, // HE
-	{VK_OEM_5, KANA_ONBIKI, false}, // -
-
-	{'3', KANA_SMALL_A,      true}, // A
-	{'4', KANA_SMALL_U,      true}, // U
-	{'5', KANA_SMALL_E,      true}, // E
-	{'6', KANA_SMALL_O,      true}, // O
-	{'7', KANA_SMALL_YA + 0, true}, // YA
-	{'8', KANA_SMALL_YA + 1, true}, // YU
-	{'9', KANA_SMALL_YA + 2, true}, // YO
-	{'0', KANA_WO,           true}, // WO
-
-	{'Q', KANA_TA + 0, false}, // TA
-	{'W', KANA_TA + 3, false}, // TE
-	{'E', KANA_A  + 1, false}, // I
-	{'R', KANA_SA + 2, false}, // SU
-	{'T', KANA_KA + 0, false}, // KA
-	{'Y', KANA_NN    , false}, // NN
-	{'U', KANA_NA + 0, false}, // NA
-	{'I', KANA_NA + 1, false}, // NI
-	{'O', KANA_RA + 0, false}, // RA
-	{'P', KANA_SA + 3, false}, // SE
-	{'Q', KANA_TA + 0, false}, // TA
-	{VK_OEM_3, KANA_DAKUON, false}, // DAKUTEN
-	{VK_OEM_4, KANA_HANDAKUON, false}, // HANDAKUTEN
-	{VK_OEM_4, KANA_UPPER_KAKKO, true}, // [
-	
-	{'A', KANA_TA + 1, false}, // TI
-	{'S', KANA_TA + 4, false}, // TO
-	{'D', KANA_SA + 1, false}, // SI
-	{'F', KANA_HA + 0, false}, // HA
-	{'G', KANA_KA + 1, false}, // KI
-	{'H', KANA_KA + 2, false}, // KU
-	{'J', KANA_MA + 0, false}, // MA
-	{'K', KANA_NA + 4, false}, // NO
-	{'L', KANA_RA + 1, false}, // RI
-	{VK_OEM_PLUS, KANA_RA + 3, false}, // RE
-	{VK_OEM_1, KANA_KA + 3, false}, // KE
-	{VK_OEM_6, KANA_MA + 2, false}, // MU
-	{VK_OEM_6, KANA_DOWNER_KAKKO, true}, // ]
-
-	{'Z', KANA_TA + 2, false}, // TU
-	{'Z', KANA_SMALL_TU, true}, // TU (Small)
-	{'X', KANA_SA + 0, false}, // SA
-	{'C', KANA_SA + 4, false}, // SO
-	{'V', KANA_HA + 1, false}, // HI
-	{'B', KANA_KA + 4, false}, // KO
-	{'N', KANA_MA + 1, false}, // MI
-	{'M', KANA_MA + 4, false}, // MO
-	{VK_OEM_COMMA,  KANA_NA + 3, false}, // NE
-	{VK_OEM_PERIOD, KANA_RA + 2, false}, // RU
-	{VK_OEM_2,   KANA_MA + 3, false}, // ME
-	{VK_OEM_102, KANA_RA + 4, false}, // RO
-
-	{VK_OEM_COMMA,  KANA_COMMA, true}, // 
-	{VK_OEM_PERIOD, KANA_MARU,  true}, // 
-	{VK_OEM_2,   KANA_NAKAGURO, true}, // 
-	//{VK_OEM_102, KANA_RA + 4, false}, // RO
-	{0xffff, 0xffffffff, false}
-};
-
-int alphabet_to_kana(const _TCHAR *src, _TCHAR *dst, int *dstlen)
+int alphabet_to_kana(const _TCHAR *src, wchar_t *dst, int *dstlen)
 {
 	int srclen;
 	bool b_boin = false;
@@ -305,7 +242,17 @@ int alphabet_to_kana(const _TCHAR *src, _TCHAR *dst, int *dstlen)
 	int dstp = 0;
 	int dlen;
 	int i, j;
-	_TCHAR base_code = 0;
+	wchar_t base_code[4];
+	const wchar_t *tmptt_a[5] = {L"ｱ", L"ｲ", L"ｳ", L"ｴ", L"ｵ"};
+	const wchar_t *tmptt_ka[5] = {L"ｶ", L"ｷ", L"ｸ", L"ｹ", L"ｺ"};
+	const wchar_t *tmptt_sa[5] = {L"ｻ", L"ｼ", L"ｽ", L"ｾ", L"ｿ"};
+	const wchar_t *tmptt_ta[5] = {L"ﾀ", L"ﾁ", L"ﾂ", L"ﾃ", L"ﾄ"};
+	const wchar_t *tmptt_na[5] = {L"ﾅ", L"ﾆ", L"ﾇ", L"ﾈ", L"ﾉ"};
+	const wchar_t *tmptt_ha[5] = {L"ﾊ", L"ﾋ", L"ﾌ", L"ﾍ", L"ﾎ"};
+	const wchar_t *tmptt_ma[5] = {L"ﾏ", L"ﾐ", L"ﾑ", L"ﾒ", L"ﾓ"};
+	const wchar_t *tmptt_ra[5] = {L"ﾗ", L"ﾘ", L"ﾙ", L"ﾚ", L"ﾛ"};
+	const wchar_t *tbl_tt[5] = {L"ｧ", L"ｨ", L"ｩ", L"ｪ", L"ｫ"};
+	
 	if((src == NULL) || (dst == NULL) || (dstlen == NULL)) return -1;
 	srclen = strlen(src);
 	dlen = *dstlen;
@@ -313,15 +260,18 @@ int alphabet_to_kana(const _TCHAR *src, _TCHAR *dst, int *dstlen)
 	i = 0;
 	j = 0;
 	do {
-		base_code = detect_shiin((const _TCHAR)src[i], &b_dakuon, &b_handakuon, &b_chi, &b_kigou);
+		memset(base_code, 0x00, sizeof(base_code));
+		base_code[0] = detect_shiin((const char)src[i], &b_dakuon, &b_handakuon, &b_chi, &b_kigou);
 		if(b_kigou) {
-			if(base_code != 0) {
+			if(wcslen(base_code) != (size_t)0) {
 				if(j < dlen) {
-					dst[j++] = base_code;
+					wcsncat(dst, base_code, 1);
+					j++;
+					//dst[j++] = base_code;
 				}
 			}
 			i++;
-		} else if(base_code != 0) {
+		} else if(wcslen(base_code) != (size_t)0) {
 			if((i + 1) >= srclen) {
 				*dstlen = 0;
 				return 0;
@@ -329,57 +279,87 @@ int alphabet_to_kana(const _TCHAR *src, _TCHAR *dst, int *dstlen)
 			if(src[i] == src[i + 1]) {
 				if(((src[i] & 0xff) == 'N') || ((src[i] & 0xff) == 'n')) {
 					if(j < dlen) {
-						dst[j++] = KANA_NN;
+						wcscat(dst, L"ﾝ");
+						j++;
+						//dst[j++] = (uint32_t)KANA_NN;
 					}
 					i += 2;
 				} else {
 					// TT
 					if(j < dlen) {
-						dst[j++] = KANA_SMALL_TU;
+						wcscat(dst, L"ｯ");
+						j++;
+						//dst[j++] = KANA_SMALL_TU;
 					}
 					i += 1;
 				}
-			} else if((base_code & 0x00ff) == KANA_WA) {
-				_TCHAR c_code = detect_w((const _TCHAR)src[i + 1], base_code);
-				if(c_code != 0) {
+			} else if(wcsncmp(base_code, L"ﾜ", 1) == 0) {
+				wchar_t c_code[2] = {0};
+				c_code[0] = detect_w((const char)src[i + 1], base_code[0]);
+				if(wcslen(c_code) != (size_t)0) {
 					if(j < dlen) {
-						dst[j++] = c_code;
+						wcsncat(dst, c_code, 1);
+						j++;
+						//dst[j++] = c_code;
 					}
 					i += 2;
 				} else {
+					wchar_t tmps[4];
 					if(j < dlen) {
-						dst[j++] = src[i];
+						swprintf(tmps, 1, L"%c", src[i]);
+						wcsncat(dst, tmps, 1);
+						j++;
+						//dst[j++] = src[i];
 					}
 					if(j < dlen) {
-						dst[j++] = src[i + 1];
+						swprintf(tmps, 1, L"%c", src[i + 1]);
+						wcsncat(dst, tmps, 1);
+						j++;
+						//dst[j++] = src[i + 1];
 					}
 					i += 2;
 				}
-			} else if((base_code & 0x00ff) == KANA_SMALL_A) {
+			} else if(wcsncmp(base_code, L"ｧ", 1) == 0) {
 				int c_code = 0;
-				c_code = detect_boin((const _TCHAR)src[i + 1], base_code, &b_xya, &b_tsu);
+				c_code = detect_boin((const _TCHAR)src[i + 1], base_code[0], &b_xya, &b_tsu);
 				if(c_code >= 0) {
 					if(j < dlen) {
-						dst[j++] = KANA_SMALL_A + c_code;
+						if(c_code < 5) wcsncat(dst, tbl_tt[c_code], 1);
+						j++;
+						//dst[j++] = KANA_SMALL_A + c_code;
 					}
 					i += 2;
 				} else {
 					if(b_xya) {
 						if((i + 2) < srclen) {
-							_TCHAR rr = detect_xya((const _TCHAR)src[i + 2], base_code);
-							if(rr != 0) {
+							wchar_t rr[2] = {0};
+							rr[0] = detect_xya((const char)src[i + 2], base_code[0]);
+							if(wcslen(rr) != 0) {
 								if(j < dlen) {
-									dst[j++] = rr;
+									wcsncat(dst, rr, 1);
+									j++;
+									//dst[j++] = rr;
 								}
 							} else {
+								wchar_t tmps[4];
+								
 								if(j < dlen) {
-									dst[j++] = src[i];
+									swprintf(tmps, 1, L"%c", src[i]);
+									wcsncat(dst, tmps, 1);
+									j++;
+									//dst[j++] = src[i];
 								}
 								if(j < dlen) {
-									dst[j++] = src[i + 1];
+									swprintf(tmps, 1, L"%c", src[i + 1]);
+									wcsncat(dst, tmps, 1);
+									j++;
+									//dst[j++] = src[i];
 								}
 								if(j < dlen) {
-									dst[j++] = src[i + 2];
+									swprintf(tmps, 1, L"%c", src[i + 2]);
+									wcsncat(dst, tmps, 1);
+									j++;
+									//dst[j++] = src[i];
 								}
 							}
 							i += 3;
@@ -389,11 +369,18 @@ int alphabet_to_kana(const _TCHAR *src, _TCHAR *dst, int *dstlen)
 						}
 					} else {
 						if((i + 2) < srclen) {
+							wchar_t tmps[4] = {0};
 							if(j < dlen) {
-								dst[j++] = src[i];
+								swprintf(tmps, 1, L"%c", src[i]);
+								wcsncat(dst, tmps, 1);
+								j++;
+								//dst[j++] = src[i];
 							}
 							if(j < dlen) {
-								dst[j++] = src[i + 1];
+								swprintf(tmps, 1, L"%c", src[i + 1]);
+								wcsncat(dst, tmps, 1);
+								j++;
+								//dst[j++] = src[i];
 							}
 							i += 2;
 						} else {
@@ -403,71 +390,124 @@ int alphabet_to_kana(const _TCHAR *src, _TCHAR *dst, int *dstlen)
 					}
 				}
 			} else {
-				int code = detect_boin((const _TCHAR)src[i + 1], base_code, &b_xya, &b_tsu);
+				int code = detect_boin((const char)src[i + 1], base_code[0], &b_xya, &b_tsu);
+				wchar_t tmps[4] = {0};
 				if(code >= 0) {
 					if(j < dlen) {
-						if((base_code & 0x00ff) == KANA_YA) {
+						if(wcsncmp(base_code, L"ﾔ", 1) == 0) {
 							switch(code) {
 							case 0:
-								dst[j++] = base_code;
+								wcsncat(dst, L"ﾔ", 1);
+								j++;
 								break;
 							case 2:
-								dst[j++] = base_code + 1;
+								wcsncat(dst, L"ﾕ", 1);
+								j++;
 								break;
 							case 4:
-								dst[j++] = base_code + 2;
+								wcsncat(dst, L"ﾖ", 1);
+								j++;
 								break;
 							default:
-								dst[j++] = src[i];
+								swprintf(tmps, 1, L"%c", src[i]);
+								wcsncat(dst, tmps, 1);
+								j++;
 								if(j < dlen) {
-									dst[j++] = src[i + 1];
+									swprintf(tmps, 1, L"%c", src[i + 1]);
+									wcsncat(dst, tmps, 1);
+									j++;
 								}
 								break;
 							}
 						} else {
-							dst[j++] = base_code + code;
+							const wchar_t **base_addr = NULL;
+							if((wcsncmp(base_code, L"ｱ", 1) == 0) && (code < 5)){
+								base_addr = tmptt_a;
+							} else if((wcsncmp(base_code, L"ｶ", 1) == 0) && (code < 5)){
+								base_addr = tmptt_ka;
+							} else if((wcsncmp(base_code, L"ｻ", 1) == 0) && (code < 5)){
+								base_addr = tmptt_sa;
+							} else if((wcsncmp(base_code, L"ﾀ", 1) == 0) && (code < 5)){
+								base_addr = tmptt_ta;
+							} else if((wcsncmp(base_code, L"ﾅ", 1) == 0) && (code < 5)){
+								base_addr = tmptt_na;
+							} else if((wcsncmp(base_code, L"ﾊ", 1) == 0) && (code < 5)){
+								base_addr = tmptt_ha;
+							} else if((wcsncmp(base_code, L"ﾏ", 1) == 0) && (code < 5)){
+								base_addr = tmptt_ma;
+							} else if((wcsncmp(base_code, L"ﾗ", 1) == 0) && (code < 5)){
+								base_addr = tmptt_ra;
+							}
+							if(base_addr != NULL) {
+								wcsncat(dst, base_addr[code], 1);
+								j++;
+							}
+							//dst[j++] = base_code + code;
 						}
 					}
 					if(b_dakuon) {
 						if(j < dlen) {
-							dst[j++] = KANA_DAKUON;
+							wcsncat(dst, L"ﾞ", 1);
+							j++;
+							//dst[j++] = KANA_DAKUON;
 						}
 					} else if(b_handakuon) {
 						if(j < dlen) {
-							dst[j++] = KANA_HANDAKUON;
+							wcsncat(dst, L"ﾟ", 1);
+							j++;
+							//dst[j++] = KANA_HANDAKUON;
 						}
 					}
 					i += 2;
 				} else {
-					_TCHAR next_code = 0;
+					wchar_t next_code[4] = {0};
 					if(b_xya) {
 						if((i + 2) >= srclen) {
 							*dstlen = 0;
 							return 0;
 						}
-						uint32_t bc = base_code & 0x00ff;
-						if(((bc >= KANA_KA) && (bc <= KANA_MA)) || (bc == KANA_RA)) {
+						if((base_code[0] == L'ｶ') ||
+						   (base_code[0] == L'ｻ') ||
+						   (base_code[0] == L'ﾀ') ||
+						   (base_code[0] == L'ﾅ') ||
+						   (base_code[0] == L'ﾊ') ||
+						   (base_code[0] == L'ﾏ') ||
+						   (base_code[0] == L'ﾗ')) {
 							// Ky*, Sy*, Ty*, Ny*, My*, Hy*, Ry*, Zy*, Dy*, By*, Py*
-							next_code = detect_xya((const _TCHAR)src[i + 2], base_code);
-							if(next_code != 0) {
+							next_code[0] = detect_xya((const char)src[i + 2], base_code[0]);
+							if(wcslen(next_code) != 0) {
 								if(j < dlen) {
-									dst[j] = base_code + 1;
+									if((wcsncmp(base_code, L"ｶ", 1) == 0)){
+										wcsncat(dst, L"ｷ", 1);
+									} else if((wcsncmp(base_code, L"ｻ", 1) == 0)){
+										wcsncat(dst, L"ｼ", 1);
+									} else if((wcsncmp(base_code, L"ﾀ", 1) == 0)){
+										wcsncat(dst, L"ﾁ", 1);
+									} else if((wcsncmp(base_code, L"ﾅ", 1) == 0)){
+										wcsncat(dst, L"ﾆ", 1);
+									} else if((wcsncmp(base_code, L"ﾊ", 1) == 0)){
+										wcsncat(dst, L"ﾋ", 1);
+									} else if((wcsncmp(base_code, L"ﾏ", 1) == 0)){
+										wcsncat(dst, L"ﾐ", 1);
+									} else if((wcsncmp(base_code, L"ﾗ", 1) == 0)){
+										wcsncat(dst, L"ﾘ", 1);
+									}
 									j++;
 									i += 2;
 								}
 								if(b_dakuon) {
 									if(j < dlen) {
-										dst[j] = KANA_DAKUON;
+										wcsncat(dst, L"ﾞ", 1);
 										j++;
 									}
 								} else if(b_handakuon) {
 									if(j < dlen) {
-										dst[j] = KANA_HANDAKUON;
+										wcsncat(dst, L"ﾟ", 1);
 										j++;
 								}
 								}								
 								if(j < dlen) {
-									dst[j] = next_code;
+									wcsncat(dst, next_code, 1);
 									j++;
 									i++;
 								}
@@ -475,14 +515,24 @@ int alphabet_to_kana(const _TCHAR *src, _TCHAR *dst, int *dstlen)
 								i += 2;
 							}
 						} else {
+							wchar_t tmps[4] = {0};
 							if(j < dlen) {
-								dst[j++] = src[i];
+								swprintf(tmps, 1, L"%c", src[i]);
+								wcsncat(dst, tmps, 1);
+								j++;
+								//dst[j++] = src[i];
 							}
 							if(j < dlen) {
-								dst[j++] = src[i + 1];
+								swprintf(tmps, 1, L"%c", src[i + 1]);
+								wcsncat(dst, tmps, 1);
+								j++;
+								//dst[j++] = src[i];
 							}
 							if(j < dlen) {
-								dst[j++] = src[i + 2];
+								swprintf(tmps, 1, L"%c", src[i + 2]);
+								wcsncat(dst, tmps, 1);
+								j++;
+								//dst[j++] = src[i];
 							}
 							i += 3;
 						}
@@ -491,31 +541,49 @@ int alphabet_to_kana(const _TCHAR *src, _TCHAR *dst, int *dstlen)
 							*dstlen = 0;
 							return 0;
 						}
-						uint32_t bc = base_code & 0x00ff;
 						if((src[i + 2] == 'u') || (src[i + 2] == 'U')) {
 							if(j < dlen) {
-								dst[j++] = KANA_TA + 2; // TU
+								wcsncat(dst, L"ﾂ", 1);
+								j++;
 							}
 							i += 3;
 						} else {
+							wchar_t tmps[4] = {0};
 							if(j < dlen) {
-								dst[j++] = src[i];
+								swprintf(tmps, 1, L"%c", src[i]);
+								wcsncat(dst, tmps, 1);
+								j++;
+								//dst[j++] = src[i];
 							}
 							if(j < dlen) {
-								dst[j++] = src[i + 1];
+								swprintf(tmps, 1, L"%c", src[i + 1]);
+								wcsncat(dst, tmps, 1);
+								j++;
+								//dst[j++] = src[i];
 							}
 							if(j < dlen) {
-								dst[j++] = src[i + 2];
+								swprintf(tmps, 1, L"%c", src[i + 2]);
+								wcsncat(dst, tmps, 1);
+								j++;
+								//dst[j++] = src[i];
 							}
 							i += 3;
 						}
 					} else {
+						wchar_t tmps[4] = {0};
 						if(j < dlen) {
-						dst[j++] = src[i++];
+							swprintf(tmps, 1, L"%c", src[i]);
+							wcsncat(dst, tmps, 1);
+							j++;
+							//dst[j++] = src[i];
 						}
 						if(j < dlen) {
-							dst[j++] = src[i++];
+							swprintf(tmps, 1, L"%c", src[i + 1]);
+							wcsncat(dst, tmps, 1);
+							j++;
+							//dst[j++] = src[i];
 						}
+						i += 2;
 					}
 				}
 			}
@@ -523,79 +591,113 @@ int alphabet_to_kana(const _TCHAR *src, _TCHAR *dst, int *dstlen)
 			if(b_chi) {
 				if((i + 2) < srclen) {
 					if((src[i + 1] == 'H') || (src[i + 1] == 'h')) {
-						int code = detect_boin((const _TCHAR)src[i + 2], base_code, &b_xya, &b_tsu);
-						_TCHAR ccode = 0;
+						int code = detect_boin((const _TCHAR)src[i + 2], base_code[0], &b_xya, &b_tsu);
+						_TCHAR ccode[4] = {0};
 						if(code >= 0) {
-							switch(code) {
-							case 0: // Cha
-							case 2: // Chu
-							case 3: // Che
-							case 4: // Cho
-								ccode = KANA_TA + 1;
-								break;
-							}
-							if(ccode != 0) {
+							if(code == 1) {
+								wchar_t tmps[4] = {0};
 								if(j < dlen) {
-									dst[j++] = ccode;
+									swprintf(tmps, 1, L"%c", src[i]);
+									wcsncat(dst, tmps, 1);
+									j++;
+									//dst[j++] = src[i];
 								}
 								if(j < dlen) {
-									if(code == 3) { // Che
-										dst[j++] = KANA_SMALL_E;
-									} else {
-										dst[j++] = (code >> 1) + KANA_SMALL_YA;
-									}
+									swprintf(tmps, 1, L"%c", src[i + 1]);
+									wcsncat(dst, tmps, 1);
+									j++;
+									//dst[j++] = src[i];
+								}
+								if(j < dlen) {
+									swprintf(tmps, 1, L"%c", src[i + 2]);
+									wcsncat(dst, tmps, 1);
+									j++;
+									//dst[j++] = src[i];
 								}
 							} else {
-								if(code == 1) {
-									if(j < dlen) {
-										dst[j++] = KANA_TA + 1;
-									}
-								} else {
-									if(j < dlen) {
-										dst[j++] = src[i];
-									}
-									if(j < dlen) {
-										dst[j++] = src[i + 1];
-									}
-									if(j < dlen) {
-										dst[j++] = src[i + 2];
+								if((j + 2) < dlen) {
+									switch(code) {
+									case 0: // Cha
+										wcsncat(dst, L"ﾁｬ", 1);
+										j += 2;
+										break;
+									case 2: // Chu
+										wcsncat(dst, L"ﾁｭ", 1);
+										j += 2;
+										break;
+									case 3: // Chu
+										wcsncat(dst, L"ﾁｪ", 1);
+										j += 2;
+										break;
+									case 4: // Cho
+										wcsncat(dst, L"ﾁｮ", 1);
+										j += 2;
+										break;
 									}
 								}
 							}
 							i += 3;
 						} else {
+							wchar_t tmps[4] = {0};
 							if(j < dlen) {
-								dst[j++] = src[i];
+								swprintf(tmps, 1, L"%c", src[i]);
+								wcsncat(dst, tmps, 1);
+								j++;
+								//dst[j++] = src[i];
 							}
 							if(j < dlen) {
-								dst[j++] = src[i + 1];
+								swprintf(tmps, 1, L"%c", src[i + 1]);
+								wcsncat(dst, tmps, 1);
+								j++;
+								//dst[j++] = src[i];
 							}
 							i += 2;
 						}
 					} else { // Not cha-cho
+						wchar_t tmps[4] = {0};
 						if(j < dlen) {
-							dst[j++] = src[i++];
+							swprintf(tmps, 1, L"%c", src[i]);
+							wcsncat(dst, tmps, 1);
+							j++;
+							//dst[j++] = src[i];
 						}
-					}						
+						i++;
+					}					
 				} else {
 					*dstlen = 0;
 					return 0;
 				}					
 			} else { // Not chi
-				if(base_code != 0) {
+				if(wcslen(base_code) != 0) {
 					if(j < dlen) {
-						dst[j++] = src[i];
-					}
+						wchar_t tmps[4] = {0};
+						if(j < dlen) {
+							swprintf(tmps, 1, L"%c", src[i]);
+							wcsncat(dst, tmps, 1);
+							j++;
+							//dst[j++] = src[i];
+						}
+						i++;
+					}						
 					break; // over srclen.
 				}
-				int code = detect_boin((const _TCHAR)src[i], base_code, &b_xya, &b_tsu);
+				int code = detect_boin((const char)src[i], base_code[0], &b_xya, &b_tsu);
 				if(code >= 0) {
 					if(j < dlen) {
-						dst[j++] = code + KANA_A;
+						if(code < 5) {
+							wcsncat(dst, tmptt_a[code], 1);
+							j++;
+						}
 					}
 				} else {
 					if(j < dlen) {
-						dst[j++] = src[i];
+						wchar_t tmps[4] = {0};
+						if(j < dlen) {
+							swprintf(tmps, 1, L"%c", src[i]);
+							wcsncat(dst, tmps, 1);
+							j++;
+							//dst[j++] = src[i];
+						}
 					}
 				}
 				i++;

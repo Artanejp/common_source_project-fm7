@@ -10,44 +10,41 @@
 #ifndef _ROMAKANA_H
 #define _ROMAKANA_H
 
-#define KANA_MARU			0x00a1
-#define KANA_UPPER_KAKKO	0x00a2
-#define KANA_DOWNER_KAKKO	0x00a3
-#define KANA_COMMA			0x00a4
-#define KANA_NAKAGURO		0x00a5
-#define KANA_WO				0x00a6
-#define KANA_SMALL_A		0x00a7
-#define KANA_SMALL_I		0x00a8
-#define KANA_SMALL_U		0x00a9
-#define KANA_SMALL_E		0x00aa
-#define KANA_SMALL_O		0x00ab
-#define KANA_SMALL_YA		0x00ac
-#define KANA_SMALL_YU		0x00ad
-#define KANA_SMALL_YO		0x00ae
-#define KANA_SMALL_TU		0x00af
-#define KANA_ONBIKI			0x00b0
-#define KANA_A				0x00b1
-#define KANA_KA				0x00b6
-#define KANA_SA				0x00bb
-#define KANA_TA				0x00c0
-#define KANA_NA				0x00c5
-#define KANA_HA				0x00ca
-#define KANA_MA				0x00cf
-#define KANA_YA				0x00d4
-#define KANA_RA				0x00d7
-#define KANA_WA				0x00dc
-#define KANA_NN				0x00dd
-#define KANA_DAKUON			0x00de
-#define KANA_HANDAKUON		0x00df
+// Note: This routine require at least C/C++99.
+// Because this uses unicode string.
+#include <wchar.h>
 
-typedef struct {
-	uint32_t vk;
-	uint32_t code;
-	bool shift;
-} romakana_convert_t;
+#define KANA_MARU			L'｡'
+#define KANA_UPPER_KAKKO	L'｢'
+#define KANA_DOWNER_KAKKO	L'｣'
+#define KANA_COMMA			L'､'
+#define KANA_NAKAGURO		L'･'
+#define KANA_WO				L'ｦ'
+#define KANA_SMALL_A		L'ｧ'
+#define KANA_SMALL_I		L'ｨ'
+#define KANA_SMALL_U		L'ｩ'
+#define KANA_SMALL_E		L'ｪ'
+#define KANA_SMALL_O		L'ｫ'
+#define KANA_SMALL_YA		L'ｬ'
+#define KANA_SMALL_YU		L'ｭ'
+#define KANA_SMALL_YO		L'ｮ'
+#define KANA_SMALL_TU		L'ﾂ'
+#define KANA_ONBIKI			L'ｰ'
+#define KANA_A				L'ｱ'
+#define KANA_KA				L'ｶ'
+#define KANA_SA				L'ｻ'
+#define KANA_TA				L'ﾀ'
+#define KANA_NA				L'ﾅ'
+#define KANA_HA				L'ﾊ'
+#define KANA_MA				L'ﾏ'
+#define KANA_YA				L'ﾔ'
+#define KANA_RA				L'ﾗ'
+#define KANA_WA				L'ﾜ'
+#define KANA_NN				L'ﾝ'
+#define KANA_DAKUON			L'ﾞ'
+#define KANA_HANDAKUON		L'ﾟ'
 
 extern "C" {
-	extern const romakana_convert_t romakana_table_1[];
 // Convert romaji -> kana.
 // ARG:
 // src : src string (ASCII)
@@ -57,7 +54,7 @@ extern "C" {
 // 0  : Not converted
 // 1 : convert
 // 2 : convert, but, another candicate exiusts.
-	extern int alphabet_to_kana(const _TCHAR *src, _TCHAR *dst, int *dstlen);
+	extern int alphabet_to_kana(const _TCHAR *src, wchar_t *dst, int *dstlen);
 }
 
 #endif

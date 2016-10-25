@@ -52,13 +52,10 @@ protected:
 	
 	QQueue <key_queue_t>key_up_queue;
 	QQueue <key_queue_t>key_down_queue;
-	QQueue <key_queue_t>roma_kana_down_queue;
-	QQueue <key_queue_t>roma_kana_up_queue;
+	QQueue <QString>roma_kana_queue;
 	uint32_t key_mod;
 	bool roma_kana_conv;
-	int roma_kana_updown;
 	bool romakana_conversion_mode;
-	romakana_convert_t romakana_table[128];
 
 	EMU *p_emu;
 	USING_FLAGS *using_flags;

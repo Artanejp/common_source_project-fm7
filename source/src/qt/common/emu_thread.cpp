@@ -396,54 +396,21 @@ void EmuThreadClass::doWork(const QString &params)
 			}
 #endif
 			if(roma_kana_conv) {
-				if(roma_kana_updown == 0) {
-					if(!roma_kana_down_queue.isEmpty()) {
-						key_queue_t sp;
-						sp = roma_kana_down_queue.dequeue();
-						key_mod = sp.mod;
-						p_emu->key_modifiers(sp.mod);
-						p_emu->key_down(sp.code, false);
-						//p_emu->key_up(sp.code);
-					}
-					roma_kana_updown++;
-				} else if(roma_kana_updown < 3) {
-					roma_kana_updown++;
-				} else if(roma_kana_updown == 3) {
-					if(!roma_kana_up_queue.isEmpty()) {
-						key_queue_t sp;
-						sp = roma_kana_up_queue.dequeue();
-						key_mod = sp.mod;
-						p_emu->key_modifiers(sp.mod);
-						p_emu->key_up(sp.code);
-					}
-					roma_kana_updown++;
-				} else { // >= 6
-					if(roma_kana_down_queue.isEmpty() && roma_kana_up_queue.isEmpty()) {
-						if(roma_kana_updown == 6) {
-#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-							// This is workaround for auto-repeating.
-							// If better solution has exists, will replace.
-							p_emu->key_modifiers(key_mod);
-							p_emu->key_down(VK_KANJI, false);
-#else
-							// This is workaround for auto-repeating.
-							// If better solution has exists, will replace.
-							p_emu->key_modifiers(key_mod);
-							p_emu->key_down(VK_ESCAPE, false);
-#endif
-						} else if(roma_kana_updown == 9) {
-#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-							p_emu->key_up(VK_KANJI);
-#else
-							p_emu->key_up(VK_ESCAPE);
-#endif
-							roma_kana_conv = false;
-							roma_kana_updown = -1;
+				if(!roma_kana_queue.isEmpty()) {
+#if defined(USE_AUTO_KEY)
+					FIFO *dmy = emu->get_auto_key_buffer();
+					if(dmy != NULL) {
+						if(dmy->empty()) {
+							QString tmps = roma_kana_queue.dequeue();
+							this->do_start_auto_key(tmps);
 						}
-						roma_kana_updown++;
-					} else {
-						roma_kana_updown = 0;
 					}
+#else
+						roma_kana_queue.clear();
+#endif
+				}
+				if(roma_kana_queue.isEmpty()) {
+					roma_kana_conv = false;
 				}
 			}
 			// else

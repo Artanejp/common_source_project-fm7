@@ -59,18 +59,9 @@ EmuThreadClassBase::EmuThreadClassBase(META_MainWindow *rootWindow, EMU *pp_emu,
 	}
 	memset(roma_kana_buffer, 0x00, sizeof(roma_kana_buffer));
 	roma_kana_ptr = 0;
-	roma_kana_down_queue.clear();
-	roma_kana_up_queue.clear();
-	roma_kana_updown = 0;
+	roma_kana_queue.clear();
 	roma_kana_conv = false;
 	romakana_conversion_mode = false;
-	memset(romakana_table, 0x00, sizeof(romakana_table));
-	for(int i = 0; i < (sizeof(romakana_table) / sizeof(romakana_convert_t)); i++) {
-		if(romakana_table_1[i].vk == 0xffff) break;
-		romakana_table[i].vk = romakana_table_1[i].vk;
-		romakana_table[i].code = romakana_table_1[i].code;
-		romakana_table[i].shift = romakana_table_1[i].shift;
-	}		
 };
 
 EmuThreadClassBase::~EmuThreadClassBase() {
@@ -231,124 +222,44 @@ void EmuThreadClassBase::do_key_up(uint32_t vk, uint32_t mod)
 				(vk == VK_OEM_4) || (vk == VK_OEM_6) ||
 				(vk == VK_OEM_2) || (vk == VK_OEM_COMMA) ||
 				(vk == VK_OEM_PERIOD) || (vk == VK_OEM_MINUS))) {
-				   _TCHAR kana_buffer[6];
-				   int kana_len = 6;
-				   memset(kana_buffer, 0x00, sizeof(kana_buffer));
-				   uint32_t vvk = vk;
-				   switch(vk) {
-				   case VK_OEM_MINUS:
-					   vvk = '-';
-					   break;
-				   case VK_OEM_4:
-					   vvk = '[';
-					   break;
-				   case VK_OEM_6:
-					   vvk = ']';
-					   break;
-				   case VK_OEM_COMMA:
-					   vvk = ',';
-					   break;
-				   case VK_OEM_PERIOD:
-					   vvk = '.';
-					   break;
-				   case VK_OEM_2:
-					   vvk = '/';
-					   break;
-				   }
-				   roma_kana_shadow[roma_kana_ptr] = vk;
-				   roma_kana_buffer[roma_kana_ptr++] = (_TCHAR)vvk;
-				   if(alphabet_to_kana((const _TCHAR *)roma_kana_buffer, kana_buffer, &kana_len) > 0) {
-					   key_queue_t ssp;
-					   ssp.code = 0;
-					   ssp.mod = 0;
-					   ssp.repeat = false;
-					   bool before_shift = false;
-					   for(int i = 0; i < kana_len; i++) {
-						   int j = 0;
-						   do {
-							   before_shift = false;
-							   if(romakana_table[j].vk == 0xffff) break;
-							   if((_TCHAR)romakana_table[j].code == kana_buffer[i]) {
-								   uint32_t vvvk = romakana_table[j].vk;
-								   switch(romakana_table[j].vk) {
-								   case '-':
-									   vvvk = VK_OEM_MINUS;
-									   break;
-								   case '^':
-									   vvvk = VK_OEM_7;
-									   break;
-								   case '@':
-									   vvvk = VK_OEM_3;
-									   break;
-								   case '[':
-									   vvvk = VK_OEM_4;
-									   break;
-								   case ';':
-									   vvvk = VK_OEM_PLUS;
-									   break;
-								   case ':':
-									   vvvk = VK_OEM_1;
-									   break;
-								   case ']':
-									   vvvk = VK_OEM_6;
-									   break;
-								   case ',':
-									   vvvk = VK_OEM_COMMA;
-									   break;
-								   case '.':
-									   vvvk = VK_OEM_PERIOD;
-									   break;
-								   case '/':
-									   vvvk = VK_OEM_2;
-									   break;
-								   }
-								   ssp.code = vvvk;
-								   ssp.mod = mod;
-								   ssp.repeat = false;
-								   if(romakana_table[j].shift) {
-								   	   key_queue_t sss;
-									   sss.code = VK_SHIFT;
-									   sss.mod = ssp.mod | Qt::ShiftModifier;
-									   sss.repeat = false;
-									   roma_kana_down_queue.enqueue(sss);
-								   }
-								   roma_kana_down_queue.enqueue(ssp);
-								   roma_kana_up_queue.enqueue(ssp);
-								   if(romakana_table[j].shift) {
-									   key_queue_t sss;
-									   sss.code = VK_SHIFT;
-									   sss.mod = ssp.mod & ~(Qt::ShiftModifier);
-									   sss.repeat = false;
-									   roma_kana_up_queue.enqueue(sss);
-									   before_shift = true;
-								   }
-								   break;
-							   }
-							   j++;
-						   } while(1);
-					   }
-					   if(kana_len > 0) {
-						   roma_kana_ptr = 0;
-						   key_queue_t sss;
-						   if(!before_shift) {
-							   sss.code = VK_SHIFT;
-							   sss.mod = mod & ~(Qt::ShiftModifier);
-							   sss.repeat = false;
-							   //} else {
-							   //sss.code = 0x00;
-							   //sss.mod = mod & ~(Qt::ShiftModifier);
-							   //sss.repeat = false;
-							   //}
-							   roma_kana_down_queue.enqueue(sss);
-							   roma_kana_up_queue.enqueue(sss);
-						   }
-						   //roma_kana_updown = 0;
-						   roma_kana_conv = true;
-					   }
-					   memset(roma_kana_buffer, 0x00, sizeof(roma_kana_buffer));
-					   memset(roma_kana_shadow, 0x00, sizeof(roma_kana_shadow));
-				   }
-				   return;
+				wchar_t kana_buffer[12];
+				int kana_len = 10;
+				memset(kana_buffer, 0x00, sizeof(kana_buffer));
+				uint32_t vvk = vk;
+				switch(vk) {
+				case VK_OEM_MINUS:
+					vvk = '-';
+					break;
+				case VK_OEM_4:
+					vvk = '[';
+					break;
+				case VK_OEM_6:
+					vvk = ']';
+					break;
+				case VK_OEM_COMMA:
+					vvk = ',';
+					break;
+				case VK_OEM_PERIOD:
+					vvk = '.';
+					break;
+				case VK_OEM_2:
+					vvk = '/';
+					break;
+				}
+				roma_kana_shadow[roma_kana_ptr] = vk;
+				roma_kana_buffer[roma_kana_ptr++] = (_TCHAR)vvk;
+				if(alphabet_to_kana((const _TCHAR *)roma_kana_buffer, kana_buffer, &kana_len) > 0) {
+					if(kana_len > 0) {
+						QString kana_str = QString::fromWCharArray((const wchar_t *)kana_buffer, kana_len);
+						roma_kana_queue.enqueue(kana_str);
+						//printf("%s\n", kana_str.toUtf8().constData());
+					}
+					roma_kana_ptr = 0;
+					memset(roma_kana_buffer, 0x00, sizeof(roma_kana_buffer));
+					memset(roma_kana_shadow, 0x00, sizeof(roma_kana_shadow));
+					roma_kana_conv = true;
+				}
+				return;
 			} else {
 				if(roma_kana_ptr > 0) {
 					for(int i = 0; i < roma_kana_ptr; i++) {
