@@ -7,6 +7,9 @@
 	[ Romaji -> Kana conversion ]
 */
 
+#if defined(_USE_QT)
+#include "qt/gui/qt_input.h"
+#endif
 #include "common.h"
 #include "romakana.h"
 
@@ -127,12 +130,11 @@ _TCHAR detect_shiin(const _TCHAR src, bool *b_dakuon, bool *b_handakuon, bool *b
 	return base_code;
 }
 
-int detect_boin(_TCHAR src, _TCHAR base_code, bool *b_xya, bool *b_tsu, bool *b_nn)
+int detect_boin(_TCHAR src, _TCHAR base_code, bool *b_xya, bool *b_tsu)
 {
 	int code = -1;
 	*b_xya = false;
 	*b_tsu = false;
-	*b_nn = false;
 	switch(src)
 	{
 	case 'A':
@@ -167,11 +169,6 @@ int detect_boin(_TCHAR src, _TCHAR base_code, bool *b_xya, bool *b_tsu, bool *b_
 			*b_tsu = true;
 		}
 		break;
-	case 'N': // NN
-	case 'n':
-		code = -3;
-		*b_nn = true;
-		break;
 	}
 	return code;
 }
@@ -180,8 +177,7 @@ _TCHAR detect_xya(const _TCHAR c, _TCHAR base_code)
 {
 	bool b_dummy1;
 	bool b_dummy2;
-	bool b_dummy3;
-	int r_code = detect_boin(c, base_code, &b_dummy1, &b_dummy2, &b_dummy3);
+	int r_code = detect_boin(c, base_code, &b_dummy1, &b_dummy2);
 	switch(r_code) {
 	case 0: // Kya
 		return KANA_SMALL_YA;
@@ -204,8 +200,7 @@ _TCHAR detect_w(const _TCHAR c, _TCHAR base_code)
 {
 	bool b_dummy1;
 	bool b_dummy2;
-	bool b_dummy3;
-	int r_code = detect_boin(c, base_code, &b_dummy1, &b_dummy2, &b_dummy3);
+	int r_code = detect_boin(c, base_code, &b_dummy1, &b_dummy2);
 	switch(r_code) {
 	case 0: // Wa
 		return KANA_WA;
@@ -221,6 +216,80 @@ _TCHAR detect_w(const _TCHAR c, _TCHAR base_code)
 }
 
 extern "C" {
+// Roma-Kana Conversion table for JIS keyboard (Maybe Host is 106 keyboard. Some keyboards needs another table). 
+const romakana_convert_t romakana_table_1[] = {
+	{'1', KANA_NA + 2, false}, // NU
+	{'2', KANA_HA + 2, false}, // HU
+	{'3', KANA_A  + 0, false}, // A
+	{'4', KANA_A  + 2, false}, // U
+	{'5', KANA_A  + 3, false}, // E
+	{'6', KANA_A  + 4, false}, // O
+	{'7', KANA_YA + 0, false}, // YA
+	{'8', KANA_YA + 1, false}, // YU
+	{'9', KANA_YA + 2, false}, // YO
+	{'0', KANA_WA + 0, false}, // WA
+	{'-', KANA_HA + 4, false}, // HO
+	{'^', KANA_HA + 3, false}, // HE
+	{VK_OEM_5, KANA_ONBIKI, false}, // -
+
+	{'3', KANA_SMALL_A,      true}, // A
+	{'4', KANA_SMALL_U,      true}, // U
+	{'5', KANA_SMALL_E,      true}, // E
+	{'6', KANA_SMALL_O,      true}, // O
+	{'7', KANA_SMALL_YA + 0, true}, // YA
+	{'8', KANA_SMALL_YA + 1, true}, // YU
+	{'9', KANA_SMALL_YA + 2, true}, // YO
+	{'0', KANA_WO,           true}, // WO
+
+	{'Q', KANA_TA + 0, false}, // TA
+	{'W', KANA_TA + 3, false}, // TE
+	{'E', KANA_A  + 1, false}, // I
+	{'R', KANA_SA + 2, false}, // SU
+	{'T', KANA_KA + 0, false}, // KA
+	{'Y', KANA_NN    , false}, // NN
+	{'U', KANA_NA + 0, false}, // NA
+	{'I', KANA_NA + 1, false}, // NI
+	{'O', KANA_RA + 0, false}, // RA
+	{'P', KANA_SA + 3, false}, // SE
+	{'Q', KANA_TA + 0, false}, // TA
+	{VK_OEM_3, KANA_DAKUON, false}, // DAKUTEN
+	{VK_OEM_4, KANA_HANDAKUON, false}, // HANDAKUTEN
+	{VK_OEM_4, KANA_UPPER_KAKKO, true}, // [
+	
+	{'A', KANA_TA + 1, false}, // TI
+	{'S', KANA_TA + 4, false}, // TO
+	{'D', KANA_SA + 1, false}, // SI
+	{'F', KANA_HA + 0, false}, // HA
+	{'G', KANA_KA + 1, false}, // KI
+	{'H', KANA_KA + 2, false}, // KU
+	{'J', KANA_MA + 0, false}, // MA
+	{'K', KANA_NA + 4, false}, // NO
+	{'L', KANA_RA + 1, false}, // RI
+	{VK_OEM_PLUS, KANA_RA + 3, false}, // RE
+	{VK_OEM_1, KANA_KA + 3, false}, // KE
+	{VK_OEM_6, KANA_MA + 2, false}, // MU
+	{VK_OEM_6, KANA_DOWNER_KAKKO, true}, // ]
+
+	{'Z', KANA_TA + 2, false}, // TU
+	{'Z', KANA_SMALL_TU, true}, // TU (Small)
+	{'X', KANA_SA + 0, false}, // SA
+	{'C', KANA_SA + 4, false}, // SO
+	{'V', KANA_HA + 1, false}, // HI
+	{'B', KANA_KA + 4, false}, // KO
+	{'N', KANA_MA + 1, false}, // MI
+	{'M', KANA_MA + 4, false}, // MO
+	{VK_OEM_COMMA,  KANA_NA + 3, false}, // NE
+	{VK_OEM_PERIOD, KANA_RA + 2, false}, // RU
+	{VK_OEM_2,   KANA_MA + 3, false}, // ME
+	{VK_OEM_102, KANA_RA + 4, false}, // RO
+
+	{VK_OEM_COMMA,  KANA_COMMA, true}, // 
+	{VK_OEM_PERIOD, KANA_MARU,  true}, // 
+	{VK_OEM_2,   KANA_NAKAGURO, true}, // 
+	//{VK_OEM_102, KANA_RA + 4, false}, // RO
+	{0xffff, 0xffffffff, false}
+};
+
 int alphabet_to_kana(const _TCHAR *src, _TCHAR *dst, int *dstlen)
 {
 	int srclen;
@@ -232,7 +301,6 @@ int alphabet_to_kana(const _TCHAR *src, _TCHAR *dst, int *dstlen)
 	bool b_xya = false;
 	bool b_tsu = false;
 	bool b_chi = false;
-	bool b_nn = false;
 	bool b_kigou = false;
 	int dstp = 0;
 	int dlen;
@@ -259,11 +327,18 @@ int alphabet_to_kana(const _TCHAR *src, _TCHAR *dst, int *dstlen)
 				return 0;
 			}
 			if(src[i] == src[i + 1]) {
-				// TT
-				if(j < dlen) {
-					dst[j++] = KANA_SMALL_TU;
+				if(((src[i] & 0xff) == 'N') || ((src[i] & 0xff) == 'n')) {
+					if(j < dlen) {
+						dst[j++] = KANA_NN;
+					}
+					i += 2;
+				} else {
+					// TT
+					if(j < dlen) {
+						dst[j++] = KANA_SMALL_TU;
+					}
+					i += 1;
 				}
-				i+= 1;
 			} else if((base_code & 0x00ff) == KANA_WA) {
 				_TCHAR c_code = detect_w((const _TCHAR)src[i + 1], base_code);
 				if(c_code != 0) {
@@ -282,7 +357,7 @@ int alphabet_to_kana(const _TCHAR *src, _TCHAR *dst, int *dstlen)
 				}
 			} else if((base_code & 0x00ff) == KANA_SMALL_A) {
 				int c_code = 0;
-				c_code = detect_boin((const _TCHAR)src[i + 1], base_code, &b_xya, &b_tsu, &b_nn);
+				c_code = detect_boin((const _TCHAR)src[i + 1], base_code, &b_xya, &b_tsu);
 				if(c_code >= 0) {
 					if(j < dlen) {
 						dst[j++] = KANA_SMALL_A + c_code;
@@ -328,13 +403,8 @@ int alphabet_to_kana(const _TCHAR *src, _TCHAR *dst, int *dstlen)
 					}
 				}
 			} else {
-				int code = detect_boin((const _TCHAR)src[i + 1], base_code, &b_xya, &b_tsu, &b_nn);
-				if(b_nn) {
-					if(j < dlen) {
-						dst[j++] = KANA_NN;
-					}
-					i += 2;
-				} else if(code >= 0) {
+				int code = detect_boin((const _TCHAR)src[i + 1], base_code, &b_xya, &b_tsu);
+				if(code >= 0) {
 					if(j < dlen) {
 						if((base_code & 0x00ff) == KANA_YA) {
 							switch(code) {
@@ -368,7 +438,6 @@ int alphabet_to_kana(const _TCHAR *src, _TCHAR *dst, int *dstlen)
 						}
 					}
 					i += 2;
-
 				} else {
 					_TCHAR next_code = 0;
 					if(b_xya) {
@@ -454,7 +523,7 @@ int alphabet_to_kana(const _TCHAR *src, _TCHAR *dst, int *dstlen)
 			if(b_chi) {
 				if((i + 2) < srclen) {
 					if((src[i + 1] == 'H') || (src[i + 1] == 'h')) {
-						int code = detect_boin((const _TCHAR)src[i + 2], base_code, &b_xya, &b_tsu, &b_nn);
+						int code = detect_boin((const _TCHAR)src[i + 2], base_code, &b_xya, &b_tsu);
 						_TCHAR ccode = 0;
 						if(code >= 0) {
 							switch(code) {
@@ -519,7 +588,7 @@ int alphabet_to_kana(const _TCHAR *src, _TCHAR *dst, int *dstlen)
 					}
 					break; // over srclen.
 				}
-				int code = detect_boin((const _TCHAR)src[i], base_code, &b_xya, &b_tsu, &b_nn);
+				int code = detect_boin((const _TCHAR)src[i], base_code, &b_xya, &b_tsu);
 				if(code >= 0) {
 					if(j < dlen) {
 						dst[j++] = code + KANA_A;

@@ -40,7 +40,14 @@
 #define KANA_DAKUON			0x00de
 #define KANA_HANDAKUON		0x00df
 
+typedef struct {
+	uint32_t vk;
+	uint32_t code;
+	bool shift;
+} romakana_convert_t;
+
 extern "C" {
+	extern const romakana_convert_t romakana_table_1[];
 // Convert romaji -> kana.
 // ARG:
 // src : src string (ASCII)

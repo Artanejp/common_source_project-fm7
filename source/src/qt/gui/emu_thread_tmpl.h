@@ -31,12 +31,7 @@ class QWaitCondition;
 class USING_FLAGS;
 
 QT_BEGIN_NAMESPACE
-
-typedef struct {
-	uint32_t vk;
-	uint32_t code;
-	bool shift;
-} romakana_convert_t;
+#include "../../romakana.h"
 
 typedef struct {
 	uint32_t code;
@@ -61,8 +56,10 @@ protected:
 	QQueue <key_queue_t>roma_kana_up_queue;
 	uint32_t key_mod;
 	bool roma_kana_conv;
-	bool roma_kana_updown;
-	
+	int roma_kana_updown;
+	bool romakana_conversion_mode;
+	romakana_convert_t romakana_table[128];
+
 	EMU *p_emu;
 	USING_FLAGS *using_flags;
 	config_t *p_config;
@@ -174,6 +171,7 @@ signals:
 	int sig_is_enable_mouse(bool);
 	int sig_debugger_input(QString);
 	int sig_quit_debugger();
+	int sig_romakana_mode(bool);
 };
 
 QT_END_NAMESPACE

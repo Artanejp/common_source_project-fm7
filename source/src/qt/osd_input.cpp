@@ -187,6 +187,7 @@ void OSD_BASE::update_input()
 
 void OSD_BASE::key_down(int code, bool repeat)
 {
+	if((code >= 256) || (code < 0)) return; // WORKAROUND
 	if(code == VK_SHIFT) {
 		if(!(key_status[VK_LSHIFT] & 0x80) && (GetAsyncKeyState(VK_LSHIFT) & 0x8000)) {
 			code = VK_LSHIFT;
@@ -229,6 +230,7 @@ void OSD_BASE::key_down(int code, bool repeat)
 
 void OSD_BASE::key_up(int code)
 {
+	if((code >= 256) || (code < 0)) return; // WORKAROUND
 	if(code == VK_SHIFT) {
 		if((key_status[VK_LSHIFT] & 0x80) && !(GetAsyncKeyState(VK_LSHIFT) & 0x8000)) {
 			code = VK_LSHIFT;
