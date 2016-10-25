@@ -117,6 +117,7 @@ public:
 		initialize_done = false;
 #endif
 		set_device_name(_T("EVENT"));
+		need_mix = 0;
 	}
 	~EVENT() {}
 	

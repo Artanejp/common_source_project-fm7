@@ -28,8 +28,6 @@ void EVENT::initialize()
 	dont_skip_frames = 0;
 	prev_skip = next_skip = false;
 	sound_changed = false;
-
-	need_mix = 0;
 }
 
 void EVENT::initialize_sound(int rate, int samples)
