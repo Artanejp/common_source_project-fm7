@@ -112,6 +112,7 @@
 #define USE_SOUND_VOLUME	3
 #endif
 #endif
+#define SUPPORT_ROMA_KANA_CONVERSION
 #define USE_JOYSTICK
 #define USE_PRINTER
 #define USE_DEBUGGER

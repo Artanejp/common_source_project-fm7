@@ -55,6 +55,7 @@
 #define USE_CRT_FILTER
 #define USE_SCANLINE
 #define USE_ACCESS_LAMP
+#define SUPPORT_ROMA_KANA_CONVERSION
 #if defined(USE_SOUND_FILES)
 #define USE_SOUND_VOLUME	7
 #else

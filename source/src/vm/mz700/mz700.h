@@ -107,6 +107,7 @@
 #define USE_PRINTER
 #define USE_PRINTER_TYPE	4
 #endif
+//#define SUPPORT_ROMA_KANA_CONVERSION
 #define USE_DEBUGGER
 #define USE_STATE
 

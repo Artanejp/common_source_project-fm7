@@ -204,12 +204,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	and_snd->set_context_out(pcm, SIG_PCM1BIT_SIGNAL, 1);
 	and_snd->set_mask(SIG_AND_BIT_0 | SIG_AND_BIT_1);
 	// Sound:: Force realtime rendering. This is temporally fix. 20161024 K.O
-	pcm->set_realtime_render(true);
 #else
 	// 8253:OUT#0 -> SPEAKER
 	pit->set_context_ch0(pcm, SIG_PCM1BIT_SIGNAL, 1);
 	// Sound:: Force realtime rendering. This is temporally fix. 20161024 K.O
-	pcm->set_realtime_render(true);
 #endif
 #if defined(_MZ800)
 	// 8253:OUT#0 -> NOT -> Z80PIO:PA4
@@ -417,6 +415,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
+	pcm->set_realtime_render(true);
 #if defined(_MZ800) || defined(_MZ1500)
 	for(int i = 0; i < MAX_DRIVE; i++) {
 		fdc->set_drive_type(i, DRIVE_TYPE_2DD);

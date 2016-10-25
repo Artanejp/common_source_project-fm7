@@ -82,6 +82,7 @@
 #define USE_PRINTER_TYPE	4
 #define USE_DEBUGGER
 #define USE_STATE
+#define SUPPORT_ROMA_KANA_CONVERSION
 
 #include "../../common.h"
 #include "../../fileio.h"
