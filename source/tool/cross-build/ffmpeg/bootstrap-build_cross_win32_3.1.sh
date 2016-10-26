@@ -1,6 +1,6 @@
 #!/bin/sh
 ./configure --cross-prefix=i686-w64-mingw32- \
-            --prefix=/usr/local/i586-mingw-msvc/ffmpeg-3.1.1 \
+            --prefix=/usr/local/i586-mingw-msvc/ffmpeg-3.1.5 \
             --disable-static --enable-shared \
 	    --target-os=mingw32 --arch=i686 \
 	    --enable-gpl \
