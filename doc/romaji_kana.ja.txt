@@ -2,10 +2,6 @@
                                        Oct 26, 2016
 		  K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
-Note: This document still don't tranlated to
-      any language.If you can translate from Japanese,
-	  Plese translate and notice to me.
-
 1.これはなにか
 　ローマ字かな変換機能を持っていない機種でも、強引にローマ
 字かな変換を行なう機能です。

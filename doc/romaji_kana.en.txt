@@ -1,0 +1,85 @@
+* About ROMAJI-KANA conversion assitant feature.
+                                       Oct 26, 2016
+		  K.Ohta <whatisthis.sowhat _at_ gmail.com>
+
+1.What is this?
+Using ROMAJI-KANA conversion at a few machines,
+regardless of lacking native ROMAJI-KANA conversion.
+This aims to be useful for older Japanese adventure-games.
+
+2.How to use
+ a. Check menu entry, "ROMA-KANA Conversion" at "Emulator" section.
+ b. Press [PF12] to toggle enabling ROMAJI-KANA conversion.
+    If enable , display "[R]" at head of status message.
+    ** This feature has not all of VMs, now only a few VMs have. **
+
+3.Supported VMs
+・FM-8/7/77/AV/40/EX
+・MSX 1/2
+・MZ-80B/2200/2500
+・PC-6001/6601(But, code of Kana-key is differ, not works well)
+・PC-8801
+・X1/Turbo/Z
+
+4.Conversion code list
+母音
+A : あ
+I : い
+U : う
+E : え
+O : お
+xa : ぁ
+xi : ぃ
+xu : ぅ
+xe : ぇ
+xo : ぉ
+
+母音
+k  : か行
+s  : さ行
+t  : た行
+n  : な行
+h  : は行
+m  : ま行
+y  : や行
+r  : ら行
+w  : わ行
+z  : ザ行
+j  : ザ行
+d  : ダ行
+b  : バ行
+p  : パ行
+
+その他
+*y* : *ャ/ィ/ュ/ェ/ョ (例: pya -> ピャ)
+nn  : ン
+-   : ー(音引き)
+[   : 「
+]   :  」
+,   : 、
+.   : 。
+/   : ・(なかぐろ)
+
+5.Implementation
+At CSP, when inputting from host's keyboard, RAW key code has
+converted to virtual keyboard code(VK_foo) of windows
+temporally and queueing.
+Now, snooping VK code before queueing, send to
+alphabet_to_kana() at src/romakana.cpp to convert ROMAJI to KATAKANA,
+result is put to array of wchar_t (UTF-8).
+
+And, queueing this result (converted to QString, Qt native string type)
+to ROMAJI-KANA conversion queue.
+At emulation loop (i.e. calling emu->run()), when AUTO-KEY(Copy and Paste)
+FIFO has empty, dequeueing from ROMAJI-KANA conversion queue and enqueue
+these characters to AUTO-KEY fifo, then, process AUTO-KEY function.
+
+Note:
+"romakana.cpp" use wchar_t and use UTF-8 to process internally,
+C++ compiler is required later than C++99?.
+And, you need convert coding result of ROMAJI-KANA conversion to
+internal coding EMU::auto_key_foo() (mostly Shift-JIS).
+
+Sorry for irrational...(´・ω・｀)
+
+Ohta.
