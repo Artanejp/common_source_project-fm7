@@ -114,6 +114,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
+	// Sound:: Force realtime rendering. This is temporally fix. 20161024 K.O
+	pcm->set_realtime_render(true);
 	rtc->write_signal(SIG_UPD1990A_STB, 0, 0);
 }
 
@@ -126,8 +128,6 @@ VM::~VM()
 		delete device;
 		device = next_device;
 	}
-	// Sound:: Force realtime rendering. This is temporally fix. 20161024 K.O
-	pcm->set_realtime_render(true);
 }
 
 DEVICE* VM::get_device(int id)
