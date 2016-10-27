@@ -259,15 +259,13 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		io->set_flipflop_single_rw(i, iovalues[i & 0x1f]);
 	}
 #endif
-
-
-
-
-	
 	// initialize all devices
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
+#ifdef TYPE_SL
+	pcm->set_realtime_render(true);
+#endif
 }
 
 VM::~VM()
