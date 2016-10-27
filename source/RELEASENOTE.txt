@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                         Oct 18, 2016
+                                                         Oct 27, 2016
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 1.About
@@ -9,7 +9,7 @@ This package is Qt5 porting of Common Source Code Project (CSP)
 and built with Qt5, for Windows, built with MinGW(32bit).
 
 Source Code:
-   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20161018
+   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20161027
    
 Additional INFO:
    Binaries will be available, distibute from osdn.jp.
@@ -83,6 +83,16 @@ Upstream (Takeda Toshiya San's original code)
       http://takeda-toshiya.my.coocan.jp/
 
 Changes:
+
+* SNAPSHOT October 27, 2016
+  * Upstream 2016-04-13
+  * [GENERAL] Add ROMAJI-KANA input assistant feature. see romakana.[en|ja].txt .
+  * [VM/SOUND] Fix wrong rendering period for PCM1BIT with some VMs.  Maybe fixed issue of http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/775 .
+  * [VM/EVENT] Re-entrant set_realtime_render().
+  * Built with FFMPEG(libav) 3.1.5 .
+  * Built with 006cc1d851483ea84fc5a3f4fa58cbf03302c49b or later.
+
+-- Oct 27, 2016 17:01:21 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT October 18, 2016
   * Upstream 2016-04-13

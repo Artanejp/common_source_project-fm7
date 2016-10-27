@@ -1,3 +1,148 @@
+commit 006cc1d851483ea84fc5a3f4fa58cbf03302c49b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 27 16:56:59 2016 +0900
+
+    [ROMAKANA] Update documents.
+
+commit 1860b057132badf1a6d153f0047f3269eac611ac
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 27 16:56:34 2016 +0900
+
+    [ROMAKANA] More supported VMs.
+
+commit 2d012029aa3763556a9615f8bba9dfa311fd36b5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 27 16:55:50 2016 +0900
+
+    [VM][FM16PI][J3100] Fix BEEP.
+
+commit b4b67b59610bcd88d3caf31fd7403cf3a525c630
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 27 16:48:05 2016 +0900
+
+    [SOUND][PCM1BIT] Fix to beep, but not effect?
+
+commit 2142ec606b57df842b8aa706b162c567ab3db5e5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 27 16:36:15 2016 +0900
+
+    [QC10] Fix beep issue.
+
+commit bb1339147cf499abbc07ef8f8815e41405de289c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 27 15:52:45 2016 +0900
+
+    [DOC][ROMAKANA] Add english document.
+
+commit 4ebdfadeff44adfe2343eeb8db39372a69fd868f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 26 12:21:41 2016 +0900
+
+    [BUILD] Update FFMPEG to 3.1.5 .
+
+commit 11b82498b729451ad7f1a983f7a1c115be6c6409
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 26 11:29:29 2016 +0900
+
+    [DOC][ROMAKANA] add romaji_kana.ja.txt .
+
+commit afc497c01402e16d23f7a9b4e2b3d45886ce059d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 26 01:41:15 2016 +0900
+
+    [VM][EVENT] Non-Clear force_rendering_sound counter even reset/initialize.
+
+commit 9167d71fccece3a6508cda0984c5b1f1f0e8fb7a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 26 01:40:31 2016 +0900
+
+    [UI][Qt] MZ: Add support MZF type tape data.
+
+commit ff9ba6191e6c96a33afe16067eb3b0e9d5412b5d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 26 00:49:16 2016 +0900
+
+    [ROMAKANA][VM] TRY: Enable to use romaji-kana conversion for FM-7/77/AV/8/MZ-700(?)/PC-6000(Maybe corrupt)/PC-8001/PC-8801/MSX(?)/X1.
+
+commit 7dabcf6f59a38369e4697a39d25828c156ccdf13
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Oct 25 23:21:56 2016 +0900
+
+    [ROMAKANA] Use AUTO_KEY feature instead of direct sending VK_foo.
+
+commit 2e9be08552dd3f3ee94cb5b2790257edd4d73b2d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Oct 25 13:37:56 2016 +0900
+
+    [ROMAKANA] .
+
+commit 6f595dd1e71923675e4e6af3b061041deef6372f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 24 18:26:57 2016 +0900
+
+    [WIP][ROMAKANA] Move romaji-kana conversion from VM to EmuThread. WIP.
+
+commit 62893983d30d2ce69e28fffe3e6d5a42558f07f4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 24 05:35:10 2016 +0900
+
+    [Qt][SOUND_LOADER] Remove a warning.
+
+commit 0b82afedce1712ab5ef4bb73e7e05681c0402ad6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 24 05:32:44 2016 +0900
+
+    [VM][SOUND] Fix wrong rendering period for PCM1BIT with some VMs.
+    Maybe fixed issue of http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/775 .
+
+commit bc98cf60cabed392fd0ae6f746c9b6af9f850b50
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 24 05:30:43 2016 +0900
+
+    [VM][EVENT] Re-entrant set_realtime_render().
+
+commit c71ce5b9298bdd458b7bed9500120e0092ed2ce3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 24 02:46:19 2016 +0900
+
+    [VM][FM7][KEYBVOARD] Adjust size of roma-kana buffer.
+
+commit d38ac0fb1cc041c7f3ea95094f794f28b806966a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 24 02:44:52 2016 +0900
+
+    [ROMAKANA] Add xtu(ッ) .
+
+commit 286edf12ae1e511014a1ad380d1331abf080dcf3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 24 02:12:25 2016 +0900
+
+    [Build][CMAKE] .
+
+commit 5d4dd53df925f9c7b4f62067fd607df536784dbc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 24 02:11:29 2016 +0900
+
+    [UI][Qt] Add support ROMAJI-KANA conversion.
+
+commit deb443f9553ad16eebc29416360b8f80ec4b1c3c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 24 02:09:21 2016 +0900
+
+    [VM][KEYBOARD] Add ROMAJI-KANA conversion.(When set SUPPORT_ROMA_KANA_CONVERSION). See  scan2fmkeycode() of vm/fm7/keyboard.cpp.
+
+commit e1dca5dbfdb3ccdd03dce4ff8ec1f2a6ea041a7c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 19 04:59:29 2016 +0900
+
+    [VM][FM7][KEYBOARD] Fix not have GRPH key excepts Windows HOST.
+
+commit 85b564dd733ea6a0e7373a064d1f2b71eb8c20df
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Oct 18 16:36:49 2016 +0900
+
+    [DOC] Update for release.
+
 commit 004920711399d430ead55e59c948e7fb7a04a402
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Oct 13 22:52:46 2016 +0900

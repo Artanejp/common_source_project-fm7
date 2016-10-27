@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                          Oct 18, 2016
+                                          Oct 27, 2016
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -11,7 +11,7 @@
    用意しています。
    
    ソースコード：
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20161018
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20161027
 
    追加情報:
     　各機種バイナリーは、osdn.jp　もしくはミラーサイトより入手可能です。
@@ -80,7 +80,8 @@
    ・UI部分の共通コンポーネント (src/qt/gui) を共有ライブラリlibCSPgui.soにまとめました。
    ・インストール用のBASHスクリプトを用意しました。src/tool/installer_unix.shです。
    ・ROMと同じところに、特定のWAVファイル(VMによって異なる)を入れると、FDDのシーク音やテープのボタン音・リレー音を鳴らすことが出来ます。
-     
+    ・ローマ字カタカナ変換支援機構が一部の機種に実装されてます。romaji_kana.ja.txt をお読みください。
+    
 5. 移植状況
    a. 現在、Debian GNU/Linux "sid" の AMD64版でしかテストしていません。
    　 が、多分他のGNU/Linux OSやBSD系のOS (Mac含む) でもビルドすれば
@@ -108,6 +109,16 @@
       http://takeda-toshiya.my.coocan.jp/
 
 Changes:
+
+* SNAPSHOT October 27, 2016
+  * Upstream 2016-04-13
+  * [GENERAL] Add ROMAJI-KANA input assistant feature. see romakana.[en|ja].txt .
+  * [VM/SOUND] Fix wrong rendering period for PCM1BIT with some VMs.  Maybe fixed issue of http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/775 .
+  * [VM/EVENT] Re-entrant set_realtime_render().
+  * Built with FFMPEG(libav) 3.1.5 .
+  * Built with 006cc1d851483ea84fc5a3f4fa58cbf03302c49b or later.
+
+-- Oct 27, 2016 17:01:21 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT October 18, 2016
   * Upstream 2016-04-13

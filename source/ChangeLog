@@ -1,5 +1,15 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT October 27, 2016
+  * Upstream 2016-04-13
+  * [GENERAL] Add ROMAJI-KANA input assistant feature. see romakana.[en|ja].txt .
+  * [VM/SOUND] Fix wrong rendering period for PCM1BIT with some VMs.  Maybe fixed issue of http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/775 .
+  * [VM/EVENT] Re-entrant set_realtime_render().
+  * Built with FFMPEG(libav) 3.1.5 .
+  * Built with 006cc1d851483ea84fc5a3f4fa58cbf03302c49b or later.
+
+-- Oct 27, 2016 17:01:21 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT October 18, 2016
   * Upstream 2016-04-13
   * [VM/EVENT] Sound devices: Do mix_sound() dynamically, not do per a sample:
