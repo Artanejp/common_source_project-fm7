@@ -1,5 +1,5 @@
 * About ROMAJI-KANA conversion assitant feature.
-                                       Oct 26, 2016
+                                       Oct 27, 2016
 		  K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 1.What is this?
@@ -14,11 +14,21 @@ This aims to be useful for older Japanese adventure-games.
     ** This feature has not all of VMs, now only a few VMs have. **
 
 3.Supported VMs
+・Basic Master Jr
 ・FM-8/7/77/AV/40/EX
+・FP-1100
+・FP-200
 ・MSX 1/2
 ・MZ-80B/2200/2500
+・MULTI 8
+・MYCOM Z80A
+・MZ-80B/2200/2500
+・PASOPIA/7
+・PC-2001(Not checked)
 ・PC-6001/6601(But, code of Kana-key is differ, not works well)
+・PC-8201
 ・PC-8801
+・TK-80BS
 ・X1/Turbo/Z
 
 4.Conversion code list
