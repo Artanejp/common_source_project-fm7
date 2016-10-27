@@ -35,6 +35,8 @@
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_CAPS
+#define SUPPORT_ROMA_KANA_CONVERSION
+
 #if defined(USE_SOUND_FILES)
 #define USE_SOUND_VOLUME	2
 #else

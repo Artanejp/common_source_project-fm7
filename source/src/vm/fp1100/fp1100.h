@@ -35,6 +35,8 @@
 #define USE_FD2
 //#define USE_FD3
 //#define USE_FD4
+#define SUPPORT_ROMA_KANA_CONVERSION
+
 #define USE_SOUND_FILES		3
 #define USE_SOUND_FILES_FDD
 #define USE_SOUND_FILES_RELAY

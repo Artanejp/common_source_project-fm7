@@ -68,6 +68,8 @@
 #define USE_CRT_FILTER
 #define USE_SCANLINE
 #define USE_ACCESS_LAMP
+#define SUPPORT_ROMA_KANA_CONVERSION
+
 #ifdef _LCD
 #define USE_SOUND_FILES		4
 #else
