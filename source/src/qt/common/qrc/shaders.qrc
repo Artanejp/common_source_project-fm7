@@ -8,5 +8,7 @@
     <file alias="grids_fragment_shader.glsl">../../gui/grids_fragment_shader.glsl</file>
     <file alias="grids_vertex_shader.glsl">../../gui/grids_vertex_shader.glsl</file>
     <file alias="grids_vertex_shader_fixed.glsl">../../gui/grids_vertex_shader_fixed.glsl</file>
+    <file alias="ntsc_pass1.glsl">../../gui/ntsc_pass1.glsl</file>
+    <file alias="ntsc_pass2.glsl">../../gui/ntsc_pass2.glsl</file>
 </qresource>
 </RCC>
