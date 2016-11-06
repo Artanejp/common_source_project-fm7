@@ -27,10 +27,11 @@ uniform float phase;
 #endif
 
 #if defined(COMPOSITE)
+//#define SATURATION 1.0
 #define SATURATION 1.0
 #define BRIGHTNESS 1.0
-#define ARTIFACTING 1.0
-#define FRINGING 1.0
+#define ARTIFACTING 0.1
+#define FRINGING 0.2
 #elif defined(SVIDEO)
 #define SATURATION 1.0
 #define BRIGHTNESS 1.0
@@ -74,8 +75,12 @@ vec3 rgb2yiq(vec3 col)
 
 void main() {
 	// #include "ntsc-pass1-encode-demodulate.inc" //
+	
 	vec3 col = texture2D(a_texture, v_texcoord).rgb;
-	vec3 yiq = rgb2yiq(col);
+	vec3 yiq;
+	//col = pow(col, vec3(0.45));
+	//col = col * 0.925 + vec3(0.075);
+	yiq = rgb2yiq(col);
 
 #if defined(TWO_PHASE)
 	float chroma_phase = PI * (mod(pix_no.y, 2.0) + phase);
@@ -92,7 +97,7 @@ void main() {
 	yiq *= mix_mat; // Cross-talk
 	yiq.yz *= vec2(i_mod, q_mod); // Demodulate
 
-	//gl_FragColor = vec4(yiq, 1.0);
-	gl_FragColor = vec4(col, 1.0);
+	gl_FragColor = vec4(yiq, 1.0);
+
 // END "ntsc-pass1-encode-demodulate.inc" //
 }

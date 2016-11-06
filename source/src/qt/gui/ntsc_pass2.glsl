@@ -9,12 +9,12 @@ uniform vec4 source_size;
 uniform vec4 target_size;
 
 #define TAPS 24
-uniform float luma_filter[TAPS + 1];
-uniform float chroma_filter[TAPS + 1];
+uniform float luma_filter[24 + 1];
+uniform float chroma_filter[24 + 1];
 
 #define OLD_THREE_PHASE //options here include THREE_PHASE, TWO_PHASE or OLD_THREE_PHASE
 #define GAMMA_CORRECTION //comment to disable gamma correction, usually because higan's gamma correction is enabled or you have another shader already doing it
-#define CRT_GAMMA 2.5
+#define CRT_GAMMA 2.2
 #define DISPLAY_GAMMA 2.1
 
 
@@ -54,11 +54,12 @@ void main() {
 	float one_x = 1.0 / source_size.x;
 	vec3 signal = vec3(0.0);
 	int i;
+	
 	for (i = 0; i < TAPS; i++)
 	{
 		float offset = float(i);
 		vec3 sums = fetch_offset(offset - float(TAPS), one_x) +
-		fetch_offset(float(TAPS) - offset, one_x);
+				fetch_offset(float(TAPS) - offset, one_x);
 	
 		signal += sums * vec3(luma_filter[i], chroma_filter[i], chroma_filter[i]);
 	}		
@@ -68,7 +69,7 @@ void main() {
 // END "ntsc-pass2-decode.inc" //
 
    vec3 rgb = yiq2rgb(signal);
-   
+
 #ifdef GAMMA_CORRECTION
    vec3 gamma = vec3(CRT_GAMMA / DISPLAY_GAMMA);
    rgb = pow(rgb, gamma.rgb);

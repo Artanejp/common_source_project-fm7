@@ -57,6 +57,9 @@ protected:
 
 	void drawGridsHorizonal(void);
 	void drawGridsVertical(void);
+	void set_texture_vertex(QImage *p, int w_wid, int h_wid,
+							int w, int h,
+							float wmul = 1.0f, float hmul = 1.0f);
 	virtual void updateGridsVAO(QOpenGLBuffer *bp,
 								QOpenGLVertexArrayObject *vp,
 								GLfloat *tp,
@@ -76,13 +79,6 @@ protected:
 				  QVector4D color, bool f_smoosing,
 				  bool do_chromakey = false,
 				  QVector3D chromakey = QVector3D(0.0f, 0.0f, 0.0f));
-	void renderToTmpFrameBuffer(GLuint src_texture, int w, int h,
-								QOpenGLShaderProgram *shader,
-								GLuint out_texture,
-								GLuint fb, GLuint rb, 
-								QOpenGLBuffer *bv, QOpenGLVertexArrayObject *av,
-								GLfloat bright_r = 1.0f, GLfloat bright_g = 1.0f, GLfloat bright_b = 1.0f,
-								bool use_chromakey = false);
 	void renderToTmpFrameBuffer_nPass(GLuint src_texture,
 									  GLuint src_w,
 									  GLuint src_h,
@@ -93,7 +89,8 @@ protected:
 									  QOpenGLBuffer *bv,
 									  QOpenGLVertexArrayObject *av,
 									  GLuint fb,
-									  GLuint rb);
+									  GLuint rb,
+									  bool use_chromakey = false);
 public:
 	GLDraw_3_0(GLDrawClass *parent, USING_FLAGS *p, EMU *emu = 0);
 	~GLDraw_3_0();
