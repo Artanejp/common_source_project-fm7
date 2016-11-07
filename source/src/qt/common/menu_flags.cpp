@@ -92,6 +92,7 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 
 	use_tape = use_tape_baud = use_tape_button = use_tape_ptr = false;
 	use_vm_auto_key_table = false;
+	support_tv_render = false;
 	
 	screen_width = SCREEN_WIDTH;
 	screen_height = SCREEN_HEIGHT;
@@ -301,6 +302,9 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 #endif
 #if defined(USE_CRT_FILTER)
 	use_crt_filter = true;
+#endif
+#if defined(SUPPORT_TV_RENDER)
+	support_tv_render = true;
 #endif
 #if defined(USE_DEBUGGER)
 	use_debugger = true;

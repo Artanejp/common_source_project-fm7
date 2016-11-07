@@ -171,6 +171,7 @@ void initialize_config()
 	config.sound_buttons = 0;
 
 	config.roma_kana_conversion = false;
+	config.rendering_type = CONFIG_RENDER_TYPE_STD;
 #endif	
 }
 
@@ -317,6 +318,10 @@ void load_config(const _TCHAR *config_path)
 													   config.use_opengl_filters, config_path);
 	config.opengl_filter_num = 	MyGetPrivateProfileInt(_T("Screen"), _T("OpenGLFilterNum"),
 													 config.opengl_filter_num, config_path);
+	config.rendering_type = MyGetPrivateProfileInt(_T("Screen"), _T("RenderType"),
+													 config.rendering_type, config_path);
+	if(config.rendering_type < 0) config.rendering_type = 0;
+	if(config.rendering_type >= CONFIG_RENDER_TYPE_END) config.rendering_type = CONFIG_RENDER_TYPE_END - 1;
 #endif	
 	// sound
 	config.sound_frequency = MyGetPrivateProfileInt(_T("Sound"), _T("Frequency"), config.sound_frequency, config_path);
@@ -581,11 +586,12 @@ void save_config(const _TCHAR *config_path)
 	}
 #endif
 #if defined(_USE_QT)
-	config.use_opengl_scanline = MyGetPrivateProfileBool(_T("Screen"), _T("UseOpenGLScanLine"), config.use_opengl_scanline, config_path);
-	config.opengl_scanline_vert = MyGetPrivateProfileBool(_T("Screen"), _T("OpenGLScanLineVert"), config.opengl_scanline_vert, config_path);;
-	config.opengl_scanline_horiz = MyGetPrivateProfileBool(_T("Screen"), _T("OpenGLScanLineHoriz"), config.opengl_scanline_horiz, config_path);;
-	config.use_opengl_filters = MyGetPrivateProfileBool(_T("Screen"), _T("UseOpenGLFilters"), config.use_opengl_filters, config_path);
-	config.opengl_filter_num = MyGetPrivateProfileInt(_T("Screen"), _T("OpenGLFilterNum"), config.opengl_filter_num, config_path);
+	MyWritePrivateProfileBool(_T("Screen"), _T("UseOpenGLScanLine"), config.use_opengl_scanline, config_path);
+	MyWritePrivateProfileBool(_T("Screen"), _T("OpenGLScanLineVert"), config.opengl_scanline_vert, config_path);;
+	MyWritePrivateProfileBool(_T("Screen"), _T("OpenGLScanLineHoriz"), config.opengl_scanline_horiz, config_path);;
+	MyWritePrivateProfileBool(_T("Screen"), _T("UseOpenGLFilters"), config.use_opengl_filters, config_path);
+	MyWritePrivateProfileInt(_T("Screen"), _T("OpenGLFilterNum"), config.opengl_filter_num, config_path);
+	MyWritePrivateProfileInt(_T("Screen"), _T("RenderType"), config.rendering_type, config_path);
 #endif
 	
 	// screen

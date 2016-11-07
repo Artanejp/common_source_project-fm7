@@ -132,6 +132,8 @@ private:
 	bool use_datarec_sound;
 	bool tape_binary_only;
 	int screen_mode_num;
+
+	bool support_tv_render;
 	
 	bool machine_pasopia_variants;
 	bool machine_tk80_series;
@@ -255,6 +257,7 @@ public:
 	bool is_use_vm_auto_key_table() { return use_vm_auto_key_table; }
 
 	bool is_use_vertical_pixel_lines() { return use_vertical_pixel_lines; }
+	bool is_support_tv_render() { return support_tv_render; }
 
 	int get_screen_width() { return screen_width; }
 	int get_screen_height() { return screen_height; }

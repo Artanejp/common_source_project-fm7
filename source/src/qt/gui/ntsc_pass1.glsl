@@ -30,7 +30,7 @@ uniform float phase;
 //#define SATURATION 1.0
 #define SATURATION 1.0
 #define BRIGHTNESS 1.0
-#define ARTIFACTING 0.1
+#define ARTIFACTING 0.2
 #define FRINGING 0.2
 #elif defined(SVIDEO)
 #define SATURATION 1.0
@@ -62,25 +62,30 @@ vec3 yiq2rgb(vec3 yiq)
    return (yiq * yiq2rgb_mat);
 }
 
-mat3 yiq_mat = mat3(
-      0.2989, 0.5959, 0.2115,
-      0.5870, -0.2744, -0.5229,
-      0.1140, -0.3216, 0.3114
+//mat3 yiq_mat = mat3(
+//      0.2989, 0.5959, 0.2115,
+//      0.5870, -0.2744, -0.5229,
+//    0.1140, -0.3216, 0.3114
+//);
+
+// Change Matrix: [RGB]->[YCbCr]
+mat3 ycbcr_mat = mat3(
+      0.29891, -0.16874,  0.50000,
+      0.58661, -0.33126, -0.41869,
+      0.11448,  0.50000, -0.08131
 );
 
-vec3 rgb2yiq(vec3 col)
+vec3 rgb2ycbcr(vec3 col)
 {
-   return (col * yiq_mat);
+   return (col * ycbcr_mat);
 }
 
 void main() {
 	// #include "ntsc-pass1-encode-demodulate.inc" //
 	
 	vec3 col = texture2D(a_texture, v_texcoord).rgb;
-	vec3 yiq;
-	//col = pow(col, vec3(0.45));
-	//col = col * 0.925 + vec3(0.075);
-	yiq = rgb2yiq(col);
+	vec3 ycbcr;
+	ycbcr = rgb2ycbcr(col);
 
 #if defined(TWO_PHASE)
 	float chroma_phase = PI * (mod(pix_no.y, 2.0) + phase);
@@ -93,11 +98,12 @@ void main() {
 	float i_mod = cos(mod_phase);
 	float q_mod = sin(mod_phase);
 
-	yiq.yz *= vec2(i_mod, q_mod); // Modulate
-	yiq *= mix_mat; // Cross-talk
-	yiq.yz *= vec2(i_mod, q_mod); // Demodulate
-
-	gl_FragColor = vec4(yiq, 1.0);
+	ycbcr.yz *= vec2(i_mod, q_mod); // Modulate
+	ycbcr *= mix_mat; // Cross-talk
+	ycbcr.yz *= vec2(i_mod, q_mod); // Demodulate
+	ycbcr = ycbcr + vec3(0.0, 0.5, 0.5);
+	//ycbcr = ycbcr * vec3(0.75, 0.75, 0.75);
+	gl_FragColor = vec4(ycbcr, 1.0);
 
 // END "ntsc-pass1-encode-demodulate.inc" //
 }

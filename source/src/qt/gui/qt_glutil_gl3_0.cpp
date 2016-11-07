@@ -572,6 +572,7 @@ void GLDraw_3_0::renderToTmpFrameBuffer_nPass(GLuint src_texture,
 		0.042004791
 	};
 #else
+#if 1
 	// THREE_PHASE
 	const float luma_filter[24 + 1] = {
 		-0.000012020,
@@ -628,7 +629,7 @@ void GLDraw_3_0::renderToTmpFrameBuffer_nPass(GLuint src_texture,
 		0.079052396
 	};
 // END "ntsc-decode-filter-3phase.inc" //
-#if 0
+#else
 				// TWO_PHASE
 	const float luma_filter[24 + 1] = {
 		-0.000012020,
@@ -726,7 +727,7 @@ void GLDraw_3_0::renderToTmpFrameBuffer_nPass(GLuint src_texture,
 					}
 					ii = shader->uniformLocation("phase");
 					if(ii >= 0) {
-						float phase = 3.14f / 4;
+						float phase = 1.0 / 32.0;
 						shader->setUniformValue(ii,  phase);
 					}
 					ii = shader->uniformLocation("luma_filter");
@@ -808,57 +809,55 @@ void GLDraw_3_0::uploadMainTexture(QImage *p, bool use_chromakey)
 							 GL_BGRA, GL_UNSIGNED_BYTE, p->constBits());
 		extfunc_3_0->glBindTexture(GL_TEXTURE_2D, 0);
 	}
-#if 1
-	renderToTmpFrameBuffer_nPass(uVramTextureID,
-								 screen_texture_width,
-								 screen_texture_height,
-								 tmp_shader,
-								 uTmpTextureID,
-								 p_wid->width(),
-								 p_wid->height(),
-								 buffer_vertex_tmp_texture,
-								 vertex_tmp_texture,
-								 uTmpFrameBuffer,
-								 uTmpDepthBuffer,
-								 use_chromakey);
-	
-#else
-	renderToTmpFrameBuffer_nPass(uVramTextureID,
-								 screen_texture_width,
-								 screen_texture_height,
-								 ntsc_pass1_shader,
-								 uVramPass1Texture,
-								 screen_texture_width * 2,
-								 screen_texture_height,
-								 buffer_vertex_pass1_texture,
-								 vertex_pass1_texture,
-								 uVramPass1FrameBuffer,
-								 uVramPass1RenderBuffer);
-	renderToTmpFrameBuffer_nPass(uVramPass1Texture,
-								 screen_texture_width * 2,
-								 screen_texture_height,
-								 ntsc_pass2_shader,
-								 uVramPass2Texture,
-								 screen_texture_width,
-								 screen_texture_height,
-								 buffer_vertex_pass2_texture,
-								 vertex_pass2_texture,
-								 uVramPass2FrameBuffer,
-								 uVramPass2RenderBuffer);
-	renderToTmpFrameBuffer_nPass(uVramPass2Texture,
-								 screen_texture_width,
-								 screen_texture_height,
-								 tmp_shader,
-								 uTmpTextureID,
-								 p_wid->width(),
-								 p_wid->height(),
-								 buffer_vertex_tmp_texture,
-								 vertex_tmp_texture,
-								 uTmpFrameBuffer,
-								 uTmpDepthBuffer,
-								 use_chromakey);
-	
-#endif							 
+	if(using_flags->is_support_tv_render() && (using_flags->get_config_ptr()->rendering_type == CONFIG_RENDER_TYPE_TV)) {
+		renderToTmpFrameBuffer_nPass(uVramTextureID,
+									 screen_texture_width,
+									 screen_texture_height,
+									 ntsc_pass1_shader,
+									 uVramPass1Texture,
+									 screen_texture_width * 2,
+									 screen_texture_height,
+									 buffer_vertex_pass1_texture,
+									 vertex_pass1_texture,
+									 uVramPass1FrameBuffer,
+									 uVramPass1RenderBuffer);
+		renderToTmpFrameBuffer_nPass(uVramPass1Texture,
+									 screen_texture_width * 2,
+									 screen_texture_height,
+									 ntsc_pass2_shader,
+									 uVramPass2Texture,
+									 screen_texture_width,
+									 screen_texture_height,
+									 buffer_vertex_pass2_texture,
+									 vertex_pass2_texture,
+									 uVramPass2FrameBuffer,
+									 uVramPass2RenderBuffer);
+		renderToTmpFrameBuffer_nPass(uVramPass2Texture,
+									 screen_texture_width,
+									 screen_texture_height,
+									 tmp_shader,
+									 uTmpTextureID,
+									 p_wid->width(),
+									 p_wid->height(),
+									 buffer_vertex_tmp_texture,
+									 vertex_tmp_texture,
+									 uTmpFrameBuffer,
+									 uTmpDepthBuffer,
+									 use_chromakey);
+	} else {
+		renderToTmpFrameBuffer_nPass(uVramTextureID,
+									 screen_texture_width,
+									 screen_texture_height,
+									 tmp_shader,
+									 uTmpTextureID,
+									 p_wid->width(),
+									 p_wid->height(),
+									 buffer_vertex_tmp_texture,
+									 vertex_tmp_texture,
+									 uTmpFrameBuffer,
+									 uTmpDepthBuffer,
+									 use_chromakey);
+	}		
 	crt_flag = true;
 }
 

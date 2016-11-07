@@ -16,6 +16,12 @@
 #include "qt/gui/csp_logger.h"
 #endif
 
+enum {
+	CONFIG_RENDER_TYPE_STD = 0,
+	CONFIG_RENDER_TYPE_TV,
+	CONFIG_RENDER_TYPE_END
+};
+
 #define MAX_HISTORY	8
 
 #if defined(USE_CART2)
@@ -178,6 +184,7 @@ typedef struct {
 	int sound_buttons;
 
 	bool roma_kana_conversion;
+	int rendering_type;
 #endif
 } config_t;
 
