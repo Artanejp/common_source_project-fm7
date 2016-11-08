@@ -25,6 +25,7 @@
 #define MEMORY_BANK_SIZE	0x1000
 
 // device informations for win32
+#define SUPPORT_TV_RENDER
 #define USE_CART1
 #define USE_TAPE
 #define TAPE_BINARY_ONLY

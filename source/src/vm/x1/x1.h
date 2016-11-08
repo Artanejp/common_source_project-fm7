@@ -129,6 +129,7 @@
 # define USE_SOUND_VOLUME	4
 # endif
 #endif
+#define SUPPORT_TV_RENDER
 #define USE_JOYSTICK
 #define USE_JOY_BUTTON_CAPTIONS
 #define USE_MOUSE

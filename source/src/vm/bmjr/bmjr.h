@@ -23,6 +23,7 @@
 #define HAS_MC6800
 
 // device informations for win32
+#define SUPPORT_TV_RENDER
 #define USE_TAPE
 #define USE_TAPE_BUTTON
 #define NOTIFY_KEY_DOWN

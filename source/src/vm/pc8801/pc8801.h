@@ -139,6 +139,7 @@
 #define USE_SOUND_VOLUME	(2 + 0 + 0 + 1)
 #endif
 #endif
+#define SUPPORT_TV_RENDER
 #define USE_JOYSTICK
 #define USE_MOUSE
 #define USE_PRINTER

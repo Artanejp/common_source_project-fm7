@@ -86,6 +86,7 @@
 #endif
 #endif
 #define SUPPORT_ROMA_KANA_CONVERSION
+#define SUPPORT_TV_RENDER
 #define USE_JOYSTICK
 #define USE_DEBUGGER
 #define USE_STATE

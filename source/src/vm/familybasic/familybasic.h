@@ -25,6 +25,7 @@
 #define HAS_N2A03
 
 // device informations for win32
+#define SUPPORT_TV_RENDER
 #define USE_BOOT_MODE		3
 #define USE_TAPE
 #define USE_ALT_F10_KEY

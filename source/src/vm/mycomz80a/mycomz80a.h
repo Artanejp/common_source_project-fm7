@@ -45,6 +45,7 @@
 #else
 #define USE_SOUND_VOLUME	2
 #endif
+#define SUPPORT_TV_RENDER
 #define USE_DEBUGGER
 #define USE_STATE
 

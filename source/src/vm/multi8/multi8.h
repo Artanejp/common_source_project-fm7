@@ -29,6 +29,7 @@
 #define SUPPORT_VARIABLE_TIMING
 
 // device informations for win32
+#define SUPPORT_TV_RENDER
 #define USE_TAPE
 #define TAPE_BINARY_ONLY
 #define USE_FD1

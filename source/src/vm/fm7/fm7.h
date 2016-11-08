@@ -238,6 +238,7 @@
 #define USE_SOUND_VOLUME	9
 # endif
 #endif
+#define SUPPORT_TV_RENDER
 
 #define IGNORE_DISK_CRC_DEFAULT		true
 // device informations for virtual machine
