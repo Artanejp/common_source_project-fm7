@@ -27,11 +27,10 @@ uniform float phase;
 #endif
 
 #if defined(COMPOSITE)
-//#define SATURATION 1.0
 #define SATURATION 1.0
 #define BRIGHTNESS 1.0
-#define ARTIFACTING 0.2
-#define FRINGING 0.2
+#define ARTIFACTING 0.1
+#define FRINGING 0.05
 #elif defined(SVIDEO)
 #define SATURATION 1.0
 #define BRIGHTNESS 1.0
@@ -62,11 +61,15 @@ vec3 yiq2rgb(vec3 yiq)
    return (yiq * yiq2rgb_mat);
 }
 
-//mat3 yiq_mat = mat3(
-//      0.2989, 0.5959, 0.2115,
-//      0.5870, -0.2744, -0.5229,
-//    0.1140, -0.3216, 0.3114
-//);
+mat3 yiq_mat = mat3(
+      0.2989, 0.5959, 0.2115,
+      0.5870, -0.2744, -0.5229,
+    0.1140, -0.3216, 0.3114
+);
+vec3 rgb2yiq(vec3 col)
+{
+   return (col * yiq_mat);
+}
 
 // Change Matrix: [RGB]->[YCbCr]
 mat3 ycbcr_mat = mat3(
@@ -102,7 +105,6 @@ void main() {
 	ycbcr *= mix_mat; // Cross-talk
 	ycbcr.yz *= vec2(i_mod, q_mod); // Demodulate
 	ycbcr = ycbcr + vec3(0.0, 0.5, 0.5);
-	//ycbcr = ycbcr * vec3(0.75, 0.75, 0.75);
 	gl_FragColor = vec4(ycbcr, 1.0);
 
 // END "ntsc-pass1-encode-demodulate.inc" //
