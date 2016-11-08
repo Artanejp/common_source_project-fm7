@@ -128,18 +128,26 @@ void GLDraw_3_0::initGLObjects()
 	extfunc->initializeOpenGLFunctions();
 	extfunc_3_0 = new QOpenGLFunctions_3_0;
 	extfunc_3_0->initializeOpenGLFunctions();
+	extfunc->glGetIntegerv(GL_MAX_TEXTURE_SIZE, &texture_max_size);
 }	
 
 void GLDraw_3_0::initLocalGLObjects(void)
 {
 
+	int _width = using_flags->get_screen_width();
+	if((_width * 4) <= texture_max_size) {
+		_width = _width * 4;
+		low_resolution_screen = true;
+	} else {
+		_width = _width * 2;
+	}
+	
 	main_shader = new QOpenGLShaderProgram(p_wid);
 	if(main_shader != NULL) {
 		main_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertex_shader.glsl");
 		main_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/fragment_shader.glsl");
 		main_shader->link();
 	}
-
 	
 	buffer_screen_vertex = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
 	vertex_screen = new QOpenGLVertexArrayObject;
@@ -201,61 +209,7 @@ void GLDraw_3_0::initLocalGLObjects(void)
 	vertex_tmp_texture = new QOpenGLVertexArrayObject;
 	if(vertex_tmp_texture != NULL) {
 		if(vertex_tmp_texture->create()) {
-			float iw, ih;
-			float wfactor, hfactor;
-			int ww, hh;
-			int w, h;
-			ww = w = screen_texture_width;
-			hh = h = screen_texture_height;
-			if(w <= 0) ww = w = using_flags->get_screen_width();
-			if(h <= 0) hh = h = using_flags->get_screen_height();
-			wfactor = 1.0f;
-			hfactor = 1.0f;
-			if(imgptr != NULL) {
-				iw = (float)imgptr->width();
-				ih = (float)imgptr->height();
-			} else {
-				iw = (float)using_flags->get_screen_width();
-				ih = (float)using_flags->get_screen_height();
-			}
-			//if(screen_multiply < 1.0f) {
-			if((w > p_wid->width()) || (h > p_wid->height())) {
-				ww = (int)(screen_multiply * (float)w);
-				hh = (int)(screen_multiply * (float)h);
-				wfactor = screen_multiply * 2.0f - 1.0f;
-				hfactor = -screen_multiply * 2.0f + 1.0f;
-			}
-			if(screen_multiply < 1.0f) {
-				ww = (int)(screen_multiply * (float)w);
-				hh = (int)(screen_multiply * (float)h);
-				wfactor = screen_multiply * 2.0f - 1.0f;
-				hfactor = -screen_multiply * 2.0f + 1.0f;
-			}
-		   
-			vertexTmpTexture[0].x = -1.0f;
-			vertexTmpTexture[0].x = -1.0f;
-			vertexTmpTexture[0].y = -1.0f;
-			vertexTmpTexture[0].z = -0.1f;
-			vertexTmpTexture[0].s = 0.0f;
-			vertexTmpTexture[0].t = 0.0f;
-			
-			vertexTmpTexture[1].x = wfactor;
-			vertexTmpTexture[1].y = -1.0f;
-			vertexTmpTexture[1].z = -0.1f;
-			vertexTmpTexture[1].s = (float)w / iw;
-			vertexTmpTexture[1].t = 0.0f;
-			
-			vertexTmpTexture[2].x = wfactor;
-			vertexTmpTexture[2].y = hfactor;
-			vertexTmpTexture[2].z = -0.1f;
-			vertexTmpTexture[2].s = (float)w / iw;
-			vertexTmpTexture[2].t = (float)h / ih;
-			
-			vertexTmpTexture[3].x = -1.0f;
-			vertexTmpTexture[3].y = hfactor;
-			vertexTmpTexture[3].z = -0.1f;
-			vertexTmpTexture[3].s = 0.0f;
-			vertexTmpTexture[3].t = (float)h / ih;
+			set_texture_vertex(imgptr, p_wid->width(), p_wid->height(), using_flags->get_screen_width(), using_flags->get_screen_height());
 			buffer_vertex_tmp_texture->create();
 			int vertex_loc = tmp_shader->attributeLocation("vertex");
 			int texcoord_loc = tmp_shader->attributeLocation("texcoord");
@@ -271,7 +225,7 @@ void GLDraw_3_0::initLocalGLObjects(void)
 		}
 	}
 	if(uTmpTextureID == 0) {
-		QImage img(using_flags->get_screen_width(), using_flags->get_screen_height(), QImage::Format_ARGB32);
+		QImage img(_width, using_flags->get_screen_height(), QImage::Format_ARGB32);
 		QColor col(0, 0, 0, 255);
 		img.fill(col);
 		uTmpTextureID = p_wid->bindTexture(img);
@@ -283,7 +237,7 @@ void GLDraw_3_0::initLocalGLObjects(void)
 	if(uTmpDepthBuffer == 0) {
 		extfunc_3_0->glGenRenderbuffers(1, &uTmpDepthBuffer);
 		extfunc_3_0->glBindRenderbuffer(GL_RENDERBUFFER, uTmpDepthBuffer);
-		extfunc_3_0->glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, using_flags->get_screen_width(), using_flags->get_screen_height());
+		extfunc_3_0->glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, _width, using_flags->get_screen_height());
 		extfunc_3_0->glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	}
 
@@ -311,25 +265,27 @@ void GLDraw_3_0::initLocalGLObjects(void)
 			setNormalVAO(ntsc_pass1_shader, vertex_pass1_texture,
 						 buffer_vertex_pass1_texture,
 						 vertexTmpTexture, 4);
-			
-			if(uVramPass1Texture == 0) {
-				QImage img(using_flags->get_screen_width() * 2, using_flags->get_screen_height(), QImage::Format_ARGB32);
-				QColor col(0, 0, 0, 255);
-				img.fill(col);
-				uVramPass1Texture = p_wid->bindTexture(img);
-				//printf("Texture: %d %d %d\n", w * 2, h, uVramPass1Texture);
-				extfunc_3_0->glBindTexture(GL_TEXTURE_2D, 0);
-			}
-			if(uVramPass1FrameBuffer == 0) {
-				extfunc_3_0->glGenFramebuffers(1, &uVramPass1FrameBuffer);
-				//printf("FrameBuffer: %d\n", uVramPass1FrameBuffer);
-			}
-			if(uVramPass1RenderBuffer == 0) {
-				extfunc_3_0->glGenRenderbuffers(1, &uVramPass1RenderBuffer);
-				extfunc_3_0->glBindRenderbuffer(GL_RENDERBUFFER, uVramPass1RenderBuffer);
-				extfunc_3_0->glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, using_flags->get_screen_width() * 2, using_flags->get_screen_height());
-				extfunc_3_0->glBindRenderbuffer(GL_RENDERBUFFER, 0);
-				//printf("RenderBuffer: %d\n", uVramPass1RenderBuffer);
+
+			{
+				if(uVramPass1Texture == 0) {
+					QImage img(_width, using_flags->get_screen_height(), QImage::Format_ARGB32);
+					QColor col(0, 0, 0, 255);
+					img.fill(col);
+					uVramPass1Texture = p_wid->bindTexture(img);
+					//printf("Texture: %d %d %d\n", w * 2, h, uVramPass1Texture);
+					extfunc_3_0->glBindTexture(GL_TEXTURE_2D, 0);
+				}
+				if(uVramPass1FrameBuffer == 0) {
+					extfunc_3_0->glGenFramebuffers(1, &uVramPass1FrameBuffer);
+					//printf("FrameBuffer: %d\n", uVramPass1FrameBuffer);
+				}
+				if(uVramPass1RenderBuffer == 0) {
+					extfunc_3_0->glGenRenderbuffers(1, &uVramPass1RenderBuffer);
+					extfunc_3_0->glBindRenderbuffer(GL_RENDERBUFFER, uVramPass1RenderBuffer);
+					extfunc_3_0->glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, _width, using_flags->get_screen_height());
+					extfunc_3_0->glBindRenderbuffer(GL_RENDERBUFFER, 0);
+					//printf("RenderBuffer: %d\n", uVramPass1RenderBuffer);
+				}
 			}
 		}
 	}
@@ -358,7 +314,7 @@ void GLDraw_3_0::initLocalGLObjects(void)
 						 vertexTmpTexture, 4);
 
 			if(uVramPass2Texture == 0) {
-				QImage img(using_flags->get_screen_width(), using_flags->get_screen_height(), QImage::Format_ARGB32);
+				QImage img(_width, using_flags->get_screen_height(), QImage::Format_ARGB32);
 				QColor col(0, 0, 0, 255);
 				img.fill(col);
 				uVramPass2Texture = p_wid->bindTexture(img);
@@ -370,7 +326,7 @@ void GLDraw_3_0::initLocalGLObjects(void)
 			if(uVramPass2RenderBuffer == 0) {
 				extfunc_3_0->glGenRenderbuffers(1, &uVramPass2RenderBuffer);
 				extfunc_3_0->glBindRenderbuffer(GL_RENDERBUFFER, uVramPass2RenderBuffer);
-				extfunc_3_0->glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, using_flags->get_screen_width(), using_flags->get_screen_height());
+				extfunc_3_0->glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, _width, using_flags->get_screen_height());
 				extfunc_3_0->glBindRenderbuffer(GL_RENDERBUFFER, 0);
 			}
 		}
@@ -705,12 +661,13 @@ void GLDraw_3_0::renderToTmpFrameBuffer_nPass(GLuint src_texture,
 				av->bind();
 				bv->bind();
 				shader->bind();
-				extfunc_3_0->glViewport(0, 0, src_w, src_h);
+				//extfunc_3_0->glViewport(0, 0, src_w, src_h);
+				extfunc_3_0->glViewport(0, 0, dst_w, dst_h);
 				extfunc_3_0->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
 				extfunc_3_0->glActiveTexture(GL_TEXTURE0);
 				extfunc_3_0->glBindTexture(GL_TEXTURE_2D, src_texture);
 				extfunc_3_0->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-				extfunc_3_0->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+				extfunc_3_0->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 				//extfunc_3_0->glColor4f(1.0, 1.0, 1.0, 1.0);
 				shader->setUniformValue("a_texture", 0);
 				//shader->setUniformValue("a_texture", src_texture);
@@ -727,7 +684,7 @@ void GLDraw_3_0::renderToTmpFrameBuffer_nPass(GLuint src_texture,
 					}
 					ii = shader->uniformLocation("phase");
 					if(ii >= 0) {
-						float phase = 1.0 / 32.0;
+						float phase = 0.1;
 						shader->setUniformValue(ii,  phase);
 					}
 					ii = shader->uniformLocation("luma_filter");
@@ -815,43 +772,35 @@ void GLDraw_3_0::uploadMainTexture(QImage *p, bool use_chromakey)
 									 screen_texture_height,
 									 ntsc_pass1_shader,
 									 uVramPass1Texture,
-									 screen_texture_width * 2,
+									 (low_resolution_screen) ? (screen_texture_width * 4) : (screen_texture_width * 2),
 									 screen_texture_height,
 									 buffer_vertex_pass1_texture,
 									 vertex_pass1_texture,
 									 uVramPass1FrameBuffer,
 									 uVramPass1RenderBuffer);
 		renderToTmpFrameBuffer_nPass(uVramPass1Texture,
-									 screen_texture_width * 2,
+									 (low_resolution_screen) ? (screen_texture_width * 4) : (screen_texture_width * 2),
 									 screen_texture_height,
 									 ntsc_pass2_shader,
-									 uVramPass2Texture,
-									 screen_texture_width,
+									 uTmpTextureID,
+									 (low_resolution_screen) ? (screen_texture_width * 4) : (screen_texture_width * 2),
 									 screen_texture_height,
+									 //p_wid->width() * 2,
+									 //p_wid->height(),
 									 buffer_vertex_pass2_texture,
 									 vertex_pass2_texture,
 									 uVramPass2FrameBuffer,
 									 uVramPass2RenderBuffer);
-		renderToTmpFrameBuffer_nPass(uVramPass2Texture,
-									 screen_texture_width,
-									 screen_texture_height,
-									 tmp_shader,
-									 uTmpTextureID,
-									 p_wid->width(),
-									 p_wid->height(),
-									 buffer_vertex_tmp_texture,
-									 vertex_tmp_texture,
-									 uTmpFrameBuffer,
-									 uTmpDepthBuffer,
-									 use_chromakey);
 	} else {
 		renderToTmpFrameBuffer_nPass(uVramTextureID,
 									 screen_texture_width,
 									 screen_texture_height,
 									 tmp_shader,
 									 uTmpTextureID,
-									 p_wid->width(),
-									 p_wid->height(),
+									 (low_resolution_screen) ? (screen_texture_width * 4) : (screen_texture_width * 2),
+									 screen_texture_height,
+									 //p_wid->width(),
+									 //p_wid->height(),
 									 buffer_vertex_tmp_texture,
 									 vertex_tmp_texture,
 									 uTmpFrameBuffer,
@@ -879,22 +828,13 @@ void GLDraw_3_0::drawScreenTexture(void)
 	} else {
 		color = QVector4D(1.0, 1.0, 1.0, 1.0);
 	}			
-	{
-		main_shader->setUniformValue("color", color);
-#if 1
-		drawMain(main_shader, vertex_screen,
-				 buffer_screen_vertex,
-				 vertexFormat,
-				 uTmpTextureID, // v2.0
-				 color, smoosing);
-#else
-		drawMain(main_shader, vertex_screen,
-				 buffer_screen_vertex,
-				 vertexFormat,
-				 uVramPass2Texture, // v2.0
-				 color, smoosing);
-#endif
-	}		
+	main_shader->setUniformValue("color", color);
+	drawMain(main_shader, vertex_screen,
+			 buffer_screen_vertex,
+			 vertexFormat,
+			 uTmpTextureID, // v2.0
+			 color, smoosing);
+	
 	if(using_flags->is_use_one_board_computer()) {
 		extfunc_3_0->glDisable(GL_BLEND);
 	}
@@ -923,10 +863,10 @@ void GLDraw_3_0::drawMain(QOpenGLShaderProgram *prg,
 		extfunc->glBindTexture(GL_TEXTURE_2D, texid);
 		if(!f_smoosing) {
 			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		} else {
 			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		}
 		prg->setUniformValue("a_texture", 0);
 		prg->setUniformValue("color", color);
@@ -1003,13 +943,14 @@ void GLDraw_3_0::set_texture_vertex(QImage *p, int w_wid, int h_wid, int w, int 
 		iw = (float)using_flags->get_screen_width();
 		ih = (float)using_flags->get_screen_height();
 	}
+#if 0
 	if((ww > w_wid) || (hh > h_wid)) {
 		ww = (int)(screen_multiply * (float)w * wmul);
 		hh = (int)(screen_multiply * (float)h * hmul);
 		wfactor = screen_multiply * 2.0f - 1.0f;
 		hfactor = -screen_multiply * 2.0f + 1.0f;
 	}
-	
+#endif
 	vertexTmpTexture[0].x = -1.0f;
 	vertexTmpTexture[0].y = -1.0f;
 	vertexTmpTexture[0].z = -0.1f;
@@ -1077,7 +1018,19 @@ void GLDraw_3_0::do_set_texture_size(QImage *p, int w, int h)
 			iw = (float)using_flags->get_screen_width();
 			ih = (float)using_flags->get_screen_height();
 		}
-		
+		vertexFormat[0].x = -1.0f;
+		vertexFormat[0].y = -1.0f;
+		vertexFormat[0].z = -0.9f;
+		vertexFormat[1].x =  1.0f;
+		vertexFormat[1].y = -1.0f;
+		vertexFormat[1].z = -0.9f;
+		vertexFormat[2].x =  1.0f;
+		vertexFormat[2].y =  1.0f;
+		vertexFormat[2].z = -0.9f;
+		vertexFormat[3].x = -1.0f;
+		vertexFormat[3].y =  1.0f;
+		vertexFormat[3].z = -0.9f;
+
 		vertexFormat[0].s = 0.0f;
 		vertexFormat[0].t = (float)hh / ih;
 		vertexFormat[1].s = (float)ww / iw;

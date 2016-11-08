@@ -77,6 +77,16 @@ void Ui_MainWindowBase::do_start_saving_movie(void)
 	emit sig_start_saving_movie();
 }
 
+void Ui_MainWindowBase::do_set_render_mode_std(void)
+{
+	using_flags->get_config_ptr()->rendering_type = CONFIG_RENDER_TYPE_STD;
+}
+
+void Ui_MainWindowBase::do_set_render_mode_tv(void)
+{
+	using_flags->get_config_ptr()->rendering_type = CONFIG_RENDER_TYPE_TV;
+}
+
 void Ui_MainWindowBase::do_set_state_saving_movie(bool state)
 {
 	actionStop_Record_Movie->setVisible(state);
@@ -255,6 +265,38 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 	actionStop_Record_Movie->setObjectName(QString::fromUtf8("actionStop_Record_Movie"));
 	actionStop_Record_Movie->setCheckable(false);
 
+	bool b_support_tv_render = using_flags->is_support_tv_render();
+	if(b_support_tv_render) {
+		int ii = CONFIG_RENDER_TYPE_END;
+		int i;
+		
+		if((ii >= 8) || (ii < 0)) ii = 8;
+		actionGroup_RenderMode = new QActionGroup(this);
+		actionGroup_RenderMode->setExclusive(true);
+		
+		for(i = 0; i < ii; i++) {
+			action_SetRenderMode[i] = new Action_Control(this, using_flags);
+			action_SetRenderMode[i]->setCheckable(true);
+			action_SetRenderMode[i]->setEnabled(false);
+			action_SetRenderMode[i]->setVisible(false);
+			action_SetRenderMode[i]->binds->setValue1(i);
+			
+			if(i == using_flags->get_config_ptr()->rendering_type) action_SetRenderMode[i]->setChecked(true);
+		
+			if(i == CONFIG_RENDER_TYPE_STD) {
+				action_SetRenderMode[i]->setEnabled(true);
+				action_SetRenderMode[i]->setVisible(true);
+				actionGroup_RenderMode->addAction(action_SetRenderMode[i]);
+				connect(action_SetRenderMode[i], SIGNAL(triggered()), this, SLOT(do_set_render_mode_std()));
+			}
+			if(b_support_tv_render && (i == CONFIG_RENDER_TYPE_TV)) {
+				action_SetRenderMode[i]->setEnabled(true);
+				action_SetRenderMode[i]->setVisible(true);
+				actionGroup_RenderMode->addAction(action_SetRenderMode[i]);
+				connect(action_SetRenderMode[i], SIGNAL(triggered()), this, SLOT(do_set_render_mode_tv()));
+			}
+		}
+	}				
 	ConfigScreenMenu_List();  
 }
 
@@ -268,7 +310,16 @@ void Ui_MainWindowBase::CreateScreenMenu(void)
 		menuStretch_Mode = new QMenu(menuScreen);
 		menuStretch_Mode->setObjectName(QString::fromUtf8("menuStretch_Mode"));
 	}
-
+	bool b_support_tv_render = using_flags->is_support_tv_render();
+	if(b_support_tv_render) {
+		menuScreen_Render = new QMenu(menuScreen);
+		menuScreen_Render->setObjectName(QString::fromUtf8("menuRender_Mode"));
+		menuScreen_Render->addAction(action_SetRenderMode[CONFIG_RENDER_TYPE_STD]);
+		if(b_support_tv_render) {
+			menuScreen_Render->addAction(action_SetRenderMode[CONFIG_RENDER_TYPE_TV]);
+		}
+		menuScreen->addAction(menuScreen_Render->menuAction());
+	}
 	menuScreenSize = new QMenu(menuScreen);
 	menuScreenSize->setObjectName(QString::fromUtf8("menuScreen_Size"));
 	menuScreen->addSeparator();
@@ -373,6 +424,14 @@ void Ui_MainWindowBase::retranslateScreenMenu(void)
 		tmps = QString::number(s_mul);
 		tmps = QString::fromUtf8("x", -1) + tmps;
 		actionScreenSize[i]->setText(tmps);
+	}
+	bool b_support_tv_render = using_flags->is_support_tv_render();
+	if(b_support_tv_render) {
+		menuScreen_Render->setTitle(QApplication::translate("MainWindow", "Render Mode", 0));
+		action_SetRenderMode[CONFIG_RENDER_TYPE_STD]->setText(QApplication::translate("MainWindow", "Standard", 0));
+		if(b_support_tv_render) {
+			action_SetRenderMode[CONFIG_RENDER_TYPE_TV]->setText(QApplication::translate("MainWindow", "TV", 0));
+		}
 	}
 }
 

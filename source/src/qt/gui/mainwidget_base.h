@@ -242,7 +242,11 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	class Action_Control *actionCapture_Screen;
 
 	QActionGroup *actionGroup_ScreenSize;
-	class Action_Control *actionScreenSize[32]; 
+	class Action_Control *actionScreenSize[32];
+
+	QActionGroup *actionGroup_RenderMode;
+	class Action_Control *action_SetRenderMode[8];
+	
 	class Action_Control *actionAbout;
 	class Action_Control *actionHelp_README_BIOS;
 	class Action_Control *actionHelp_README;
@@ -319,6 +323,7 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	class Action_Control *action_DevLogRecord[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1];
 
 	class Action_Control *action_SetupMovie; // 15, 24, 30, 60
+
 	
 	// Menus    
 	QMenu *menuControl;
@@ -348,6 +353,7 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 
 	QMenu *menuStretch_Mode;
 	QMenu *menuScreenSize;
+	QMenu *menuScreen_Render;
   
 	QMenu *menuSound;
 	QMenu *menuOutput_Frequency;
@@ -609,6 +615,9 @@ public slots:
 	void do_update_device_node_name(int id, const _TCHAR *name);	
 	void do_set_dev_log_to_console(int id, bool f);
 	void do_set_roma_kana(bool f);
+	void do_set_render_mode_std(void);
+	void do_set_render_mode_tv(void);
+	
 signals:
 	int message_changed(QString);
 	int quit_emu_thread();

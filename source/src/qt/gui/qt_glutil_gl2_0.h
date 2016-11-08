@@ -133,6 +133,8 @@ protected:
 	QOpenGLFramebufferObject *offscreen_frame_buffer;
 	QOpenGLFramebufferObjectFormat *offscreen_frame_buffer_format;
 	QImage offscreen_image;
+	GLint texture_max_size;
+	bool low_resolution_screen;
 public:
 	GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, EMU *emu = 0);
 	~GLDraw_2_0();

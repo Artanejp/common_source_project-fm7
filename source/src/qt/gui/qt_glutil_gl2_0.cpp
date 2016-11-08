@@ -51,6 +51,8 @@ GLDraw_2_0::GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, EMU *emu) : QObject(
 
 	uBitmapTextureID = 0;
 	bitmap_uploaded = false;
+	texture_max_size = 128;
+	low_resolution_screen = false;
 	int i;
 	// Will fix: Must fix setup of vm_buttons[].
 	button_desc_t *vm_buttons_d = using_flags->get_vm_buttons();
@@ -200,6 +202,7 @@ void GLDraw_2_0::initGLObjects()
 	extfunc->initializeOpenGLFunctions();
 	extfunc->glViewport(0, 0, p_wid->width(), p_wid->height());
 	extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
+	extfunc->glGetIntegerv(GL_MAX_TEXTURE_SIZE, &texture_max_size);
 }	
 
 void GLDraw_2_0::initFBO(void)
