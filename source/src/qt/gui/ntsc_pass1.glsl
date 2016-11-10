@@ -1,7 +1,6 @@
 // NTSC Shader - written by Hans-Kristian Arntzen
 // License: GPLv3
 // pulled from git://github.com/libretro/common-shaders.git on 01/30/2014
-
 varying vec2 v_texcoord;
 
 uniform sampler2D a_texture;
