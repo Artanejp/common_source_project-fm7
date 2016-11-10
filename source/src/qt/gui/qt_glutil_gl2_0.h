@@ -19,30 +19,10 @@
 #include <QImage>
 #include <QOpenGLFunctions_2_0>
 #include <QTimer>
-#include <QOpenGLVertexArrayObject>
-#include <QOpenGLShaderProgram>
-#include <QOpenGLBuffer>
-#include <QOpenGLContext>
-
-#include <QMatrix4x2>
-#include <QMatrix4x4>
-
-#include <QVector>
-#include <QVector2D>
-#include <QVector3D>
-#include <QVector4D>
 
 #include "common.h"
-//#include "osd.h"
-//#include "emu.h"
 
-typedef struct  {
-		GLfloat x, y, z;
-		GLfloat s, t;
-} VertexTexCoord_t;
-typedef struct {
-		GLfloat x, y;
-} VertexLines_t ;
+#include "qt_glpack.h"
 
 class EMU;
 class QEvent;
@@ -54,6 +34,8 @@ class USING_FLAGS;
 class DLL_PREFIX GLDraw_2_0 : public QObject
 {
 	Q_OBJECT
+private:
+	QOpenGLFunctions_2_0 *extfunc;
 protected:
 	GLDrawClass *p_wid;
 	USING_FLAGS *using_flags;
@@ -81,7 +63,6 @@ protected:
 	int rec_width;
 	int rec_height;
 
-	QOpenGLFunctions_2_0 *extfunc;
 	VertexTexCoord_t vertexFormat[4];
 	
 	QOpenGLShaderProgram *main_shader;

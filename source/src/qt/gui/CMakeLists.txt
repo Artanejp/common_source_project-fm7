@@ -5,6 +5,7 @@ set(s_qt_gui_headers
   
 	  qt_dialogs.h
 	  qt_gldraw.h
+	  qt_glpack.h
 	  qt_glutil_gl2_0.h
 	  qt_glutil_gl3_0.h
 	  
@@ -46,12 +47,13 @@ set(s_qt_gui_srcs
 	  emuevents_control.cpp
 	  qt_gldraw.cpp
 	  qt_glutil.cpp
+	  qt_glpack.cpp
 	  qt_glutil_gl2_0.cpp
 	  qt_glutil_gl3_0.cpp
 	  qt_glevents.cpp
 	  qt_dialogs.cpp
 
-          qt_input.cpp
+      qt_input.cpp
 	  menu_control.cpp
 	  menu_metaclass.cpp
 	  menu_disk.cpp
