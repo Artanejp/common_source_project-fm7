@@ -124,6 +124,7 @@ void GLDraw_3_0::setNormalVAO(QOpenGLShaderProgram *prg,
 
 void GLDraw_3_0::initGLObjects()
 {
+	GLDraw_2_0::initGLObjects();
 	extfunc = new QOpenGLFunctions_3_0;
 	extfunc->initializeOpenGLFunctions();
 	extfunc->glGetIntegerv(GL_MAX_TEXTURE_SIZE, &texture_max_size);
@@ -140,6 +141,7 @@ void GLDraw_3_0::initLocalGLObjects(void)
 		_width = _width * 2;
 	}
 	p_wid->makeCurrent();
+#if 1
 	main_shader = new QOpenGLShaderProgram(p_wid);
 	if(main_shader != NULL) {
 		main_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertex_shader.glsl");
@@ -329,7 +331,54 @@ void GLDraw_3_0::initLocalGLObjects(void)
 			}
 		}
 	}
+#else
+	vertexFormat[0].x = -0.5f;
+	vertexFormat[0].y = -0.5f;
+	vertexFormat[0].z = -0.9f;
+	vertexFormat[0].s = 0.0f;
+	vertexFormat[0].t = 1.0f;
+	
+	vertexFormat[1].x = +0.5f;
+	vertexFormat[1].y = -0.5f;
+	vertexFormat[1].z = -0.9f;
+	vertexFormat[1].s = 1.0f;
+	vertexFormat[1].t = 1.0f;
+	
+	vertexFormat[2].x = +0.5f;
+	vertexFormat[2].y = +0.5f;
+	vertexFormat[2].z = -0.9f;
+	vertexFormat[2].s = 1.0f;
+	vertexFormat[2].t = 0.0f;
+	
+	vertexFormat[3].x = -0.5f;
+	vertexFormat[3].y = +0.5f;
+	vertexFormat[3].z = -0.9f;
+	vertexFormat[3].s = 0.0f;
+	vertexFormat[3].t = 0.0f;
 
+	main_pass = new GLScreenPack(p_wid);
+	main_pass->initialize(_width, using_flags->get_screen_height(), _width, using_flags->get_screen_height(), ":/vertex_shader.glsl", ":/fragment_shader.glsl");
+
+	std_pass = new GLScreenPack(p_wid);
+	std_pass->initialize(_width, using_flags->get_screen_height() * 2, _width, using_flags->get_screen_height() * 2,":/tmp_vertex_shader.glsl", ":/chromakey_fragment_shader.glsl");
+	if(uTmpTextureID == 0) {
+		QImage img(_width, using_flags->get_screen_height() * 2, QImage::Format_ARGB32);
+		QColor col(0, 0, 0, 255);
+		img.fill(col);
+		uTmpTextureID = p_wid->bindTexture(img);
+		extfunc->glBindTexture(GL_TEXTURE_2D, 0);
+	}
+	if(uTmpFrameBuffer == 0) {
+		extfunc->glGenFramebuffers(1, &uTmpFrameBuffer);
+	}
+	if(uTmpDepthBuffer == 0) {
+		extfunc->glGenRenderbuffers(1, &uTmpDepthBuffer);
+		extfunc->glBindRenderbuffer(GL_RENDERBUFFER, uTmpDepthBuffer);
+		extfunc->glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, _width, using_flags->get_screen_height() * 2);
+		extfunc->glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	}
+
+#endif
 	grids_shader = new QOpenGLShaderProgram(p_wid);
 	if(using_flags->is_use_screen_rotate()) {
 		if(grids_shader != NULL) {

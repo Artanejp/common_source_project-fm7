@@ -293,9 +293,9 @@ void EmuThreadClass::doWork(const QString &params)
 	mouse_flag = false;
 
 	key_mod = 0;
-	key_up_queue.clear();
-	key_down_queue.clear();
-
+	//key_up_queue.clear();
+	//key_down_queue.clear();
+	clear_key_queue();
 
 	for(int i = 0; i < using_flags->get_max_drive(); i++) qd_text[i].clear();
 	for(int i = 0; i < using_flags->get_max_drive(); i++) fd_text[i].clear();
@@ -415,16 +415,16 @@ void EmuThreadClass::doWork(const QString &params)
 			}
 			// else
 			{
-				while(!key_up_queue.isEmpty()) {
+				while(!is_empty_key_up()) {
 					key_queue_t sp;
-					sp = key_up_queue.dequeue();
+					dequeue_key_up(&sp);
 					key_mod = sp.mod;
 					p_emu->key_modifiers(sp.mod);
 					p_emu->key_up(sp.code);
 				}
-				while(!key_down_queue.isEmpty()) {
+				while(!is_empty_key_down()) {
 					key_queue_t sp;
-					sp = key_down_queue.dequeue();
+					dequeue_key_down(&sp);
 					p_emu->key_modifiers(sp.mod);
 					p_emu->key_down(sp.code, sp.repeat);
 				}

@@ -35,7 +35,7 @@ class DLL_PREFIX GLDraw_2_0 : public QObject
 {
 	Q_OBJECT
 private:
-	QOpenGLFunctions_2_0 *extfunc;
+	QOpenGLFunctions_2_0 *extfunc_2;
 protected:
 	GLDrawClass *p_wid;
 	USING_FLAGS *using_flags;
@@ -121,7 +121,7 @@ public:
 	~GLDraw_2_0();
 
 	virtual void initGLObjects();
-	void initFBO(void);
+	virtual void initFBO(void);
 	virtual void initLocalGLObjects(void);
 	virtual void uploadMainTexture(QImage *p, bool chromakey);
 

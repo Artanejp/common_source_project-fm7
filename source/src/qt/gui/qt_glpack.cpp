@@ -31,6 +31,20 @@ GLScreenPack::GLScreenPack(QObject *parent) : QObject(parent)
 
 	Texture = 0;
 }
+GLScreenPack::~GLScreenPack()
+{
+	if(vertex != NULL) {
+		if(vertex->isCreated()) vertex->destroy();
+		delete vertex;
+	}
+	if(vertex_buffer != NULL) {
+		if(vertex_buffer->isCreated()) vertex_buffer->destroy();
+		delete vertex_buffer;
+	}
+	if(program != NULL) {
+		delete program;
+	}
+}
 
 bool GLScreenPack::initialize(int total_width, int total_height, int width, int height, const QString &vertex_shader_file, const QString &fragment_shader_file)
 {

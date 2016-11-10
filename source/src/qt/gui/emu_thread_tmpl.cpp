@@ -62,10 +62,26 @@ EmuThreadClassBase::EmuThreadClassBase(META_MainWindow *rootWindow, EMU *pp_emu,
 	roma_kana_queue.clear();
 	roma_kana_conv = false;
 	romakana_conversion_mode = false;
+
+	key_up_code_fifo = new FIFO(4096);
+	key_up_mod_fifo = new FIFO(4096);
+	key_up_repeat_fifo = new FIFO(4096);
+
+	key_down_code_fifo = new FIFO(4096);
+	key_down_mod_fifo = new FIFO(4096);
+	key_down_repeat_fifo = new FIFO(4096);
 };
 
 EmuThreadClassBase::~EmuThreadClassBase() {
 	delete drawCond;
+	
+	delete key_up_code_fifo;
+	delete key_up_mod_fifo;
+	delete key_up_repeat_fifo;
+	
+	delete key_down_code_fifo;
+	delete key_down_mod_fifo;
+	delete key_down_repeat_fifo;
 };
 
 void EmuThreadClassBase::calc_volume_from_balance(int num, int balance)
@@ -118,7 +134,7 @@ void EmuThreadClassBase::button_pressed_mouse(Qt::MouseButton button)
 								sp.code = vm_buttons_d[i].code;
 								sp.mod = key_mod;
 								sp.repeat = false;
-								key_down_queue.enqueue(sp);
+								enqueue_key_down(sp);
 							} else {
 								bResetReq = true;
 							}
@@ -152,7 +168,7 @@ void EmuThreadClassBase::button_released_mouse(Qt::MouseButton button)
 								sp.code = vm_buttons_d[i].code;
 								sp.mod = key_mod;
 								sp.repeat = false;
-								key_up_queue.enqueue(sp);
+								enqueue_key_up(sp);
 							}
 						}
 					}
@@ -190,8 +206,8 @@ void EmuThreadClassBase::do_key_down(uint32_t vk, uint32_t mod, bool repeat)
 				for(int i = 0; i < roma_kana_ptr; i++) {
 					ssp.code = roma_kana_shadow[i];
 					ssp.mod = mod;
-					key_down_queue.enqueue(ssp);
-					key_up_queue.enqueue(ssp);
+					enqueue_key_down(ssp);
+					enqueue_key_up(ssp);
 				}
 				//ssp.code = VK_SHIFT;
 				//ssp.mod = mod & ~(Qt::ShiftModifier);
@@ -204,7 +220,7 @@ void EmuThreadClassBase::do_key_down(uint32_t vk, uint32_t mod, bool repeat)
 			}
 		}
 	}
-	key_down_queue.enqueue(sp);
+	enqueue_key_down(sp);
 	key_mod = mod;
 }
 
@@ -267,8 +283,8 @@ void EmuThreadClassBase::do_key_up(uint32_t vk, uint32_t mod)
 						sss.code = roma_kana_shadow[i];
 						sss.mod = mod;
 						sss.repeat = false;
-						key_down_queue.enqueue(sss);
-						key_up_queue.enqueue(sss);
+						enqueue_key_down(sss);
+						enqueue_key_up(sss);
 					}
 					memset(roma_kana_buffer, 0x00, sizeof(roma_kana_buffer));
 					memset(roma_kana_shadow, 0x00, sizeof(roma_kana_shadow));
@@ -277,7 +293,7 @@ void EmuThreadClassBase::do_key_up(uint32_t vk, uint32_t mod)
 			}
 		}
 	}
-	key_up_queue.enqueue(sp);
+	enqueue_key_up(sp);
 	key_mod = mod;
 }
 

@@ -46,7 +46,7 @@ GLDraw_2_0::GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, EMU *emu) : QObject(
 	screen_texture_height = using_flags->get_screen_height();
 	screen_texture_height_old = using_flags->get_screen_height();
 	p_emu = emu;
-	extfunc = NULL;
+	extfunc_2 = NULL;
 	redraw_required = false;
 
 	uBitmapTextureID = 0;
@@ -119,7 +119,7 @@ GLDraw_2_0::~GLDraw_2_0()
 	if(using_flags->is_use_one_board_computer()) {
 		if(vertex_bitmap->isCreated()) vertex_bitmap->destroy();
 	}
-	if(extfunc != NULL) delete extfunc;
+	if(extfunc_2 != NULL) delete extfunc_2;
 }
 
 void GLDraw_2_0::initializeGL(void)
@@ -198,11 +198,11 @@ void GLDraw_2_0::setDrawGLGridHoriz(bool flag)
 
 void GLDraw_2_0::initGLObjects()
 {
-	extfunc = new QOpenGLFunctions_2_0;
-	extfunc->initializeOpenGLFunctions();
-	extfunc->glViewport(0, 0, p_wid->width(), p_wid->height());
-	extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
-	extfunc->glGetIntegerv(GL_MAX_TEXTURE_SIZE, &texture_max_size);
+	extfunc_2 = new QOpenGLFunctions_2_0;
+	extfunc_2->initializeOpenGLFunctions();
+	extfunc_2->glViewport(0, 0, p_wid->width(), p_wid->height());
+	extfunc_2->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
+	extfunc_2->glGetIntegerv(GL_MAX_TEXTURE_SIZE, &texture_max_size);
 }	
 
 void GLDraw_2_0::initFBO(void)
@@ -343,7 +343,7 @@ void GLDraw_2_0::initFBO(void)
 	   }
 	}
 	// Init view
-	extfunc->glClearColor(0.0, 0.0, 0.0, 1.0);
+	extfunc_2->glClearColor(0.0, 0.0, 0.0, 1.0);
 }
 
 void GLDraw_2_0::initLocalGLObjects(void)
@@ -463,22 +463,22 @@ void GLDraw_2_0::drawGridsMain(GLfloat *tp,
 							   QVector4D color)
 {
 	if(number <= 0) return;
-	extfunc->glDisable(GL_TEXTURE_2D);
-	extfunc->glDisable(GL_DEPTH_TEST);
-	extfunc->glDisable(GL_BLEND);
+	extfunc_2->glDisable(GL_TEXTURE_2D);
+	extfunc_2->glDisable(GL_DEPTH_TEST);
+	extfunc_2->glDisable(GL_BLEND);
 	{ 
 		if(tp != NULL) {
 			int i;
 			int p = 0;
-			extfunc->glColor4f(color.x(), color.y(), color.z(), color.w());
-			extfunc->glLineWidth(lineWidth);
-			extfunc->glBegin(GL_LINES);
+			extfunc_2->glColor4f(color.x(), color.y(), color.z(), color.w());
+			extfunc_2->glLineWidth(lineWidth);
+			extfunc_2->glBegin(GL_LINES);
 			for(i = 0; i < (number + 1); i++) {
-				extfunc->glVertex3f(tp[p + 0], tp[p + 1], tp[p + 2]);
-				extfunc->glVertex3f(tp[p + 3], tp[p + 4], tp[p + 5]);
+				extfunc_2->glVertex3f(tp[p + 0], tp[p + 1], tp[p + 2]);
+				extfunc_2->glVertex3f(tp[p + 3], tp[p + 4], tp[p + 5]);
 				p += 6;
 			}
-			extfunc->glEnd();
+			extfunc_2->glEnd();
 		}
 	}
 }
@@ -617,11 +617,11 @@ void GLDraw_2_0::drawScreenTexture(void)
 {
 	if(using_flags->is_use_one_board_computer()) {
 		if(uBitmapTextureID != 0) {
-			extfunc->glEnable(GL_BLEND);
-			extfunc->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			extfunc_2->glEnable(GL_BLEND);
+			extfunc_2->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		}
 	} else {
-		extfunc->glDisable(GL_BLEND);
+		extfunc_2->glDisable(GL_BLEND);
 	}
 	
 	QVector4D color;
@@ -639,7 +639,7 @@ void GLDraw_2_0::drawScreenTexture(void)
 				 uVramTextureID, // v2.0
 				 color, smoosing,
 				 true, cc);
-		extfunc->glDisable(GL_BLEND);
+		extfunc_2->glDisable(GL_BLEND);
 	} else{
 		drawMain(main_shader, vertex_screen,
 				 buffer_screen_vertex,
@@ -661,18 +661,18 @@ void GLDraw_2_0::drawMain(QOpenGLShaderProgram *prg,
 						   
 {
 	if(texid != 0) {
-		extfunc->glEnable(GL_TEXTURE_2D);
+		extfunc_2->glEnable(GL_TEXTURE_2D);
 
-		//extfunc->glViewport(0, 0, p_wid->width(), p_wid->height());
-		extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
-		extfunc->glBindTexture(GL_TEXTURE_2D, texid);
+		//extfunc_2->glViewport(0, 0, p_wid->width(), p_wid->height());
+		extfunc_2->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
+		extfunc_2->glBindTexture(GL_TEXTURE_2D, texid);
 
 		if(!f_smoosing) {
-			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+			extfunc_2->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			extfunc_2->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
 		} else {
-			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+			extfunc_2->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			extfunc_2->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
 		}
 
 		if((bp != NULL) && (vp != NULL) && (prg != NULL)) {
@@ -706,35 +706,35 @@ void GLDraw_2_0::drawMain(QOpenGLShaderProgram *prg,
 				prg->enableAttributeArray(vertex_loc);
 				prg->enableAttributeArray(texcoord_loc);
 				
-				extfunc->glEnableClientState(GL_VERTEX_ARRAY);
-				extfunc->glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-				extfunc->glColor3f(1.0f, 1.0f, 1.0f);
+				extfunc_2->glEnableClientState(GL_VERTEX_ARRAY);
+				extfunc_2->glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+				extfunc_2->glColor3f(1.0f, 1.0f, 1.0f);
 				
-				extfunc->glVertexPointer(3, GL_FLOAT, sizeof(VertexTexCoord_t), (void *)0);
-				extfunc->glTexCoordPointer(2, GL_FLOAT, sizeof(VertexTexCoord_t), (void *)(0 + 3 * sizeof(GLfloat)));
-				extfunc->glDrawArrays(GL_POLYGON, 0, 4);
-				extfunc->glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-				extfunc->glDisableClientState(GL_VERTEX_ARRAY);
+				extfunc_2->glVertexPointer(3, GL_FLOAT, sizeof(VertexTexCoord_t), (void *)0);
+				extfunc_2->glTexCoordPointer(2, GL_FLOAT, sizeof(VertexTexCoord_t), (void *)(0 + 3 * sizeof(GLfloat)));
+				extfunc_2->glDrawArrays(GL_POLYGON, 0, 4);
+				extfunc_2->glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+				extfunc_2->glDisableClientState(GL_VERTEX_ARRAY);
 				
 				bp->release();
 				vp->release();
 				prg->release();
-				extfunc->glBindTexture(GL_TEXTURE_2D, 0);
-				extfunc->glDisable(GL_TEXTURE_2D);
+				extfunc_2->glBindTexture(GL_TEXTURE_2D, 0);
+				extfunc_2->glDisable(GL_TEXTURE_2D);
 				return;
 			}
 		}
 		
 		{ // Fallback
 			int i;
-			extfunc->glBegin(GL_POLYGON);
+			extfunc_2->glBegin(GL_POLYGON);
 			for(i = 0; i < 4; i++) {
-				extfunc->glTexCoord2f(vertex_data[i].s, vertex_data[i].t);
-				extfunc->glVertex3f(vertex_data[i].x, vertex_data[i].y, vertex_data[i].z);
+				extfunc_2->glTexCoord2f(vertex_data[i].s, vertex_data[i].t);
+				extfunc_2->glVertex3f(vertex_data[i].x, vertex_data[i].y, vertex_data[i].z);
 			}
-			extfunc->glEnd();
-			extfunc->glBindTexture(GL_TEXTURE_2D, 0);
-			extfunc->glDisable(GL_TEXTURE_2D);
+			extfunc_2->glEnd();
+			extfunc_2->glBindTexture(GL_TEXTURE_2D, 0);
+			extfunc_2->glDisable(GL_TEXTURE_2D);
 		}
 	}
 }
@@ -792,12 +792,12 @@ void GLDraw_2_0::uploadMainTexture(QImage *p, bool use_chromakey)
 				if(uVramTextureID == 0) {
 					uVramTextureID = p_wid->bindTexture(pp);
 				}
-				extfunc->glBindTexture(GL_TEXTURE_2D, uVramTextureID);
-				extfunc->glTexSubImage2D(GL_TEXTURE_2D, 0,
+				extfunc_2->glBindTexture(GL_TEXTURE_2D, uVramTextureID);
+				extfunc_2->glTexSubImage2D(GL_TEXTURE_2D, 0,
 										 0, 0,
 										 pp.width(), pp.height(),
 										 GL_BGRA, GL_UNSIGNED_BYTE, pp.constBits());
-				extfunc->glBindTexture(GL_TEXTURE_2D, 0);
+				extfunc_2->glBindTexture(GL_TEXTURE_2D, 0);
 				crt_flag = true;
 				return;
 			}
@@ -806,12 +806,12 @@ void GLDraw_2_0::uploadMainTexture(QImage *p, bool use_chromakey)
 		if(uVramTextureID == 0) {
 			uVramTextureID = p_wid->bindTexture(*p);
 		}
-		extfunc->glBindTexture(GL_TEXTURE_2D, uVramTextureID);
-		extfunc->glTexSubImage2D(GL_TEXTURE_2D, 0,
+		extfunc_2->glBindTexture(GL_TEXTURE_2D, uVramTextureID);
+		extfunc_2->glTexSubImage2D(GL_TEXTURE_2D, 0,
 								 0, 0,
 								 p->width(), p->height(),
 								 GL_BGRA, GL_UNSIGNED_BYTE, p->constBits());
-		extfunc->glBindTexture(GL_TEXTURE_2D, 0);
+		extfunc_2->glBindTexture(GL_TEXTURE_2D, 0);
 	}
 	crt_flag = true;
 }
@@ -821,8 +821,8 @@ void GLDraw_2_0::resizeGL(int width, int height)
 	int side = qMin(width, height);
 	double ww, hh;
 	int w, h;
-	extfunc->glViewport(0, 0, width, height);
-	extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
+	extfunc_2->glViewport(0, 0, width, height);
+	extfunc_2->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
 	crt_flag = true;
 	if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
 		doSetGridsHorizonal(vert_lines, true);
@@ -885,23 +885,23 @@ void GLDraw_2_0::paintGL(void)
 			crt_flag = false;
 		}
 		redraw_required = false;
-		extfunc->glViewport(0, 0, p_wid->width(), p_wid->height());
-		extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
+		extfunc_2->glViewport(0, 0, p_wid->width(), p_wid->height());
+		extfunc_2->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
 		
-		extfunc->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		extfunc->glEnable(GL_DEPTH_TEST);
-		extfunc->glDisable(GL_BLEND);
+		extfunc_2->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		extfunc_2->glEnable(GL_DEPTH_TEST);
+		extfunc_2->glDisable(GL_BLEND);
 		if(using_flags->is_use_one_board_computer()) drawBitmapTexture();
 		drawButtons();
 		/*
 		 * VRAMの表示:テクスチャ貼った四角形
 		 */
 		drawScreenTexture();
-		extfunc->glDisable(GL_BLEND);
+		extfunc_2->glDisable(GL_BLEND);
 		if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
 			drawGrids();
 		}
-		extfunc->glFlush();
+		extfunc_2->glFlush();
 	}
 }
 

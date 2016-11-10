@@ -136,11 +136,11 @@ void GLDrawClass::InitFBO(void)
 	QOpenGLFunctions_3_0 *funcs_3_0 = glContext->versionFunctions<QOpenGLFunctions_3_0>();
 	if((funcs_3_0 != NULL) && (extfunc == NULL)){
 		extfunc = new GLDraw_3_0(this, using_flags);
+		printf("%x\n", extfunc);
 		csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Use OpenGL v3.0");
-	}
-
-	if((funcs_2_0 != NULL)  && (extfunc == NULL)){
+	} else if((funcs_2_0 != NULL)  && (extfunc == NULL)){
 		extfunc = new GLDraw_2_0(this, using_flags);
+		printf("%x\n", extfunc);
 		csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Use OpenGL v2.0");
 	}
 	if(extfunc != NULL) {
