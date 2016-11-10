@@ -60,17 +60,17 @@ GLDraw_3_0::~GLDraw_3_0()
 	p_wid->deleteTexture(uVramPass1Texture);
 	p_wid->deleteTexture(uVramPass2Texture);
 	
-	extfunc_3_0->glDeleteFramebuffers(1, &uTmpFrameBuffer);
-	extfunc_3_0->glDeleteRenderbuffers(1, &uTmpDepthBuffer);
+	extfunc->glDeleteFramebuffers(1, &uTmpFrameBuffer);
+	extfunc->glDeleteRenderbuffers(1, &uTmpDepthBuffer);
 	
-	extfunc_3_0->glDeleteFramebuffers(1, &uVramPass1FrameBuffer);
-	extfunc_3_0->glDeleteRenderbuffers(1, &uVramPass1RenderBuffer);
+	extfunc->glDeleteFramebuffers(1, &uVramPass1FrameBuffer);
+	extfunc->glDeleteRenderbuffers(1, &uVramPass1RenderBuffer);
 	
-	extfunc_3_0->glDeleteFramebuffers(1, &uVramPass2FrameBuffer);
-	extfunc_3_0->glDeleteRenderbuffers(1, &uVramPass2RenderBuffer);
+	extfunc->glDeleteFramebuffers(1, &uVramPass2FrameBuffer);
+	extfunc->glDeleteRenderbuffers(1, &uVramPass2RenderBuffer);
 	
-	//extfunc_3_0->glDeleteFramebuffers(1, &uTmpFrameBuffer);
-	//extfunc_3_0->glDeleteRenderbuffers(1, &uTmpDepthBuffer);
+	//extfunc->glDeleteFramebuffers(1, &uTmpFrameBuffer);
+	//extfunc->glDeleteRenderbuffers(1, &uTmpDepthBuffer);
 	
 	if(buffer_vertex_tmp_texture->isCreated()) buffer_vertex_tmp_texture->destroy();
 	if(vertex_tmp_texture->isCreated()) vertex_tmp_texture->destroy();
@@ -113,8 +113,8 @@ void GLDraw_3_0::setNormalVAO(QOpenGLShaderProgram *prg,
 	prg->setAttributeBuffer(texcoord_loc, GL_FLOAT, 3 * sizeof(GLfloat), 2, sizeof(VertexTexCoord_t));
 	prg->setUniformValue("a_texture", 0);
 			   
-	extfunc_3_0->glVertexAttribPointer(vertex_loc, 3, GL_FLOAT, GL_FALSE, sizeof(VertexTexCoord_t), 0); 
-	extfunc_3_0->glVertexAttribPointer(texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(VertexTexCoord_t), 
+	extfunc->glVertexAttribPointer(vertex_loc, 3, GL_FLOAT, GL_FALSE, sizeof(VertexTexCoord_t), 0); 
+	extfunc->glVertexAttribPointer(texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(VertexTexCoord_t), 
 							       (char *)NULL + 3 * sizeof(GLfloat)); 
 	bp->release();
 	vp->release();
@@ -124,10 +124,8 @@ void GLDraw_3_0::setNormalVAO(QOpenGLShaderProgram *prg,
 
 void GLDraw_3_0::initGLObjects()
 {
-	extfunc = new QOpenGLFunctions_2_0;
+	extfunc = new QOpenGLFunctions_3_0;
 	extfunc->initializeOpenGLFunctions();
-	extfunc_3_0 = new QOpenGLFunctions_3_0;
-	extfunc_3_0->initializeOpenGLFunctions();
 	extfunc->glGetIntegerv(GL_MAX_TEXTURE_SIZE, &texture_max_size);
 }	
 
@@ -141,7 +139,7 @@ void GLDraw_3_0::initLocalGLObjects(void)
 	} else {
 		_width = _width * 2;
 	}
-	
+	p_wid->makeCurrent();
 	main_shader = new QOpenGLShaderProgram(p_wid);
 	if(main_shader != NULL) {
 		main_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertex_shader.glsl");
@@ -225,20 +223,20 @@ void GLDraw_3_0::initLocalGLObjects(void)
 		}
 	}
 	if(uTmpTextureID == 0) {
-		QImage img(_width, using_flags->get_screen_height(), QImage::Format_ARGB32);
+		QImage img(_width, using_flags->get_screen_height() * 2, QImage::Format_ARGB32);
 		QColor col(0, 0, 0, 255);
 		img.fill(col);
 		uTmpTextureID = p_wid->bindTexture(img);
-		extfunc_3_0->glBindTexture(GL_TEXTURE_2D, 0);
+		extfunc->glBindTexture(GL_TEXTURE_2D, 0);
 	}
 	if(uTmpFrameBuffer == 0) {
-		extfunc_3_0->glGenFramebuffers(1, &uTmpFrameBuffer);
+		extfunc->glGenFramebuffers(1, &uTmpFrameBuffer);
 	}
 	if(uTmpDepthBuffer == 0) {
-		extfunc_3_0->glGenRenderbuffers(1, &uTmpDepthBuffer);
-		extfunc_3_0->glBindRenderbuffer(GL_RENDERBUFFER, uTmpDepthBuffer);
-		extfunc_3_0->glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, _width, using_flags->get_screen_height());
-		extfunc_3_0->glBindRenderbuffer(GL_RENDERBUFFER, 0);
+		extfunc->glGenRenderbuffers(1, &uTmpDepthBuffer);
+		extfunc->glBindRenderbuffer(GL_RENDERBUFFER, uTmpDepthBuffer);
+		extfunc->glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, _width, using_flags->get_screen_height() * 2);
+		extfunc->glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	}
 
 	// Pass1
@@ -268,22 +266,22 @@ void GLDraw_3_0::initLocalGLObjects(void)
 
 			{
 				if(uVramPass1Texture == 0) {
-					QImage img(_width, using_flags->get_screen_height(), QImage::Format_ARGB32);
+					QImage img(_width, using_flags->get_screen_height() * 2, QImage::Format_ARGB32);
 					QColor col(0, 0, 0, 255);
 					img.fill(col);
 					uVramPass1Texture = p_wid->bindTexture(img);
 					//printf("Texture: %d %d %d\n", w * 2, h, uVramPass1Texture);
-					extfunc_3_0->glBindTexture(GL_TEXTURE_2D, 0);
+					extfunc->glBindTexture(GL_TEXTURE_2D, 0);
 				}
 				if(uVramPass1FrameBuffer == 0) {
-					extfunc_3_0->glGenFramebuffers(1, &uVramPass1FrameBuffer);
+					extfunc->glGenFramebuffers(1, &uVramPass1FrameBuffer);
 					//printf("FrameBuffer: %d\n", uVramPass1FrameBuffer);
 				}
 				if(uVramPass1RenderBuffer == 0) {
-					extfunc_3_0->glGenRenderbuffers(1, &uVramPass1RenderBuffer);
-					extfunc_3_0->glBindRenderbuffer(GL_RENDERBUFFER, uVramPass1RenderBuffer);
-					extfunc_3_0->glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, _width, using_flags->get_screen_height());
-					extfunc_3_0->glBindRenderbuffer(GL_RENDERBUFFER, 0);
+					extfunc->glGenRenderbuffers(1, &uVramPass1RenderBuffer);
+					extfunc->glBindRenderbuffer(GL_RENDERBUFFER, uVramPass1RenderBuffer);
+					extfunc->glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, _width, using_flags->get_screen_height() * 2);
+					extfunc->glBindRenderbuffer(GL_RENDERBUFFER, 0);
 					//printf("RenderBuffer: %d\n", uVramPass1RenderBuffer);
 				}
 			}
@@ -301,7 +299,7 @@ void GLDraw_3_0::initLocalGLObjects(void)
 	vertex_pass2_texture = new QOpenGLVertexArrayObject;
 	if(vertex_pass2_texture != NULL) {
 		if(vertex_pass2_texture->create()) {
-			set_texture_vertex(imgptr, p_wid->width(), p_wid->height(), using_flags->get_screen_width(), using_flags->get_screen_height());
+			set_texture_vertex(imgptr, p_wid->width(), p_wid->height(), using_flags->get_screen_width(), using_flags->get_screen_height() * 2);
 			buffer_vertex_pass2_texture->create();
 			vertex_pass2_texture->bind();
 			buffer_vertex_pass2_texture->bind();
@@ -314,20 +312,20 @@ void GLDraw_3_0::initLocalGLObjects(void)
 						 vertexTmpTexture, 4);
 
 			if(uVramPass2Texture == 0) {
-				QImage img(_width, using_flags->get_screen_height(), QImage::Format_ARGB32);
+				QImage img(_width, using_flags->get_screen_height() * 2, QImage::Format_ARGB32);
 				QColor col(0, 0, 0, 255);
 				img.fill(col);
 				uVramPass2Texture = p_wid->bindTexture(img);
-				extfunc_3_0->glBindTexture(GL_TEXTURE_2D, 0);
+				extfunc->glBindTexture(GL_TEXTURE_2D, 0);
 			}
 			if(uVramPass2FrameBuffer == 0) {
-				extfunc_3_0->glGenFramebuffers(1, &uVramPass2FrameBuffer);
+				extfunc->glGenFramebuffers(1, &uVramPass2FrameBuffer);
 			}
 			if(uVramPass2RenderBuffer == 0) {
-				extfunc_3_0->glGenRenderbuffers(1, &uVramPass2RenderBuffer);
-				extfunc_3_0->glBindRenderbuffer(GL_RENDERBUFFER, uVramPass2RenderBuffer);
-				extfunc_3_0->glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, _width, using_flags->get_screen_height());
-				extfunc_3_0->glBindRenderbuffer(GL_RENDERBUFFER, 0);
+				extfunc->glGenRenderbuffers(1, &uVramPass2RenderBuffer);
+				extfunc->glBindRenderbuffer(GL_RENDERBUFFER, uVramPass2RenderBuffer);
+				extfunc->glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, _width, using_flags->get_screen_height() * 2);
+				extfunc->glBindRenderbuffer(GL_RENDERBUFFER, 0);
 			}
 		}
 	}
@@ -359,6 +357,7 @@ void GLDraw_3_0::initLocalGLObjects(void)
 				   glVertGrids, using_flags->get_screen_width() + 2);
 
 			
+	p_wid->doneCurrent();
 }
 
 void GLDraw_3_0::updateGridsVAO(QOpenGLBuffer *bp,
@@ -412,15 +411,15 @@ void GLDraw_3_0::drawGridsMain_3(QOpenGLShaderProgram *prg,
 		prg->setUniformValue("color", color);
 		prg->enableAttributeArray("vertex");
 		int vertex_loc = prg->attributeLocation("vertex");
-		extfunc_3_0->glVertexAttribPointer(vertex_loc, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3, 0); 
-		extfunc_3_0->glEnableVertexAttribArray(vertex_loc);
+		extfunc->glVertexAttribPointer(vertex_loc, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3, 0); 
+		extfunc->glEnableVertexAttribArray(vertex_loc);
 		
-		extfunc_3_0->glEnableClientState(GL_VERTEX_ARRAY);
-		extfunc_3_0->glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-		extfunc_3_0->glLineWidth(lineWidth);
-		extfunc_3_0->glVertexPointer(3, GL_FLOAT, 0, 0);
-		extfunc_3_0->glDrawArrays(GL_LINES, 0, (number + 1) * 2);
-		extfunc_3_0->glDisableClientState(GL_VERTEX_ARRAY);
+		extfunc->glEnableClientState(GL_VERTEX_ARRAY);
+		extfunc->glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		extfunc->glLineWidth(lineWidth);
+		extfunc->glVertexPointer(3, GL_FLOAT, 0, 0);
+		extfunc->glDrawArrays(GL_LINES, 0, (number + 1) * 2);
+		extfunc->glDisableClientState(GL_VERTEX_ARRAY);
 		prg->release();
 		vp->release();
 		bp->release();
@@ -647,28 +646,28 @@ void GLDraw_3_0::renderToTmpFrameBuffer_nPass(GLuint src_texture,
 #endif
 	{
 		// NTSC_PASSx
-		extfunc_3_0->glBindFramebuffer(GL_FRAMEBUFFER, fb);
-		extfunc_3_0->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, out_texture, 0);
-		extfunc_3_0->glBindRenderbuffer(GL_RENDERBUFFER, rb);
-		extfunc_3_0->glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rb);
+		extfunc->glBindFramebuffer(GL_FRAMEBUFFER, fb);
+		extfunc->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, out_texture, 0);
+		extfunc->glBindRenderbuffer(GL_RENDERBUFFER, rb);
+		extfunc->glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rb);
 
-		extfunc_3_0->glClearColor(0.0, 0.0, 0.0, 1.0);
-		extfunc_3_0->glClearDepth(1.0f);
-		extfunc_3_0->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		extfunc->glClearColor(0.0, 0.0, 0.0, 1.0);
+		extfunc->glClearDepth(1.0f);
+		extfunc->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		{
 			if(src_texture != 0) {
-				extfunc_3_0->glEnable(GL_TEXTURE_2D);
+				extfunc->glEnable(GL_TEXTURE_2D);
 				av->bind();
 				bv->bind();
 				shader->bind();
-				//extfunc_3_0->glViewport(0, 0, src_w, src_h);
-				extfunc_3_0->glViewport(0, 0, dst_w, dst_h);
-				extfunc_3_0->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
-				extfunc_3_0->glActiveTexture(GL_TEXTURE0);
-				extfunc_3_0->glBindTexture(GL_TEXTURE_2D, src_texture);
-				extfunc_3_0->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-				extfunc_3_0->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-				//extfunc_3_0->glColor4f(1.0, 1.0, 1.0, 1.0);
+				//extfunc->glViewport(0, 0, src_w, src_h);
+				extfunc->glViewport(0, 0, dst_w, dst_h);
+				extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
+				extfunc->glActiveTexture(GL_TEXTURE0);
+				extfunc->glBindTexture(GL_TEXTURE_2D, src_texture);
+				extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+				extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+				//extfunc->glColor4f(1.0, 1.0, 1.0, 1.0);
 				shader->setUniformValue("a_texture", 0);
 				//shader->setUniformValue("a_texture", src_texture);
 				{
@@ -725,24 +724,24 @@ void GLDraw_3_0::renderToTmpFrameBuffer_nPass(GLuint src_texture,
 				
 				int vertex_loc = shader->attributeLocation("vertex");
 				int texcoord_loc = shader->attributeLocation("texcoord");
-				extfunc_3_0->glEnableVertexAttribArray(vertex_loc);
-				extfunc_3_0->glEnableVertexAttribArray(texcoord_loc);
-				extfunc_3_0->glEnable(GL_VERTEX_ARRAY);
+				extfunc->glEnableVertexAttribArray(vertex_loc);
+				extfunc->glEnableVertexAttribArray(texcoord_loc);
+				extfunc->glEnable(GL_VERTEX_ARRAY);
 
-				extfunc_3_0->glDrawArrays(GL_POLYGON, 0, 4);
+				extfunc->glDrawArrays(GL_POLYGON, 0, 4);
 				
-				extfunc_3_0->glViewport(0, 0, dst_w, dst_h);
-				extfunc_3_0->glOrtho(0.0f, (float)dst_w, 0.0f, (float)dst_h, -1.0, 1.0);
+				extfunc->glViewport(0, 0, dst_w, dst_h);
+				extfunc->glOrtho(0.0f, (float)dst_w, 0.0f, (float)dst_h, -1.0, 1.0);
 				bv->release();
 				av->release();
 		
 				shader->release();
-				extfunc_3_0->glBindTexture(GL_TEXTURE_2D, 0);
-				extfunc_3_0->glDisable(GL_TEXTURE_2D);
+				extfunc->glBindTexture(GL_TEXTURE_2D, 0);
+				extfunc->glDisable(GL_TEXTURE_2D);
 			}
 		}
-		extfunc_3_0->glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		extfunc_3_0->glBindRenderbuffer(GL_RENDERBUFFER, 0);
+		extfunc->glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		extfunc->glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	}
 }
 
@@ -759,12 +758,12 @@ void GLDraw_3_0::uploadMainTexture(QImage *p, bool use_chromakey)
 	}
 	{
 		// Upload to main texture
-		extfunc_3_0->glBindTexture(GL_TEXTURE_2D, uVramTextureID);
-		extfunc_3_0->glTexSubImage2D(GL_TEXTURE_2D, 0,
+		extfunc->glBindTexture(GL_TEXTURE_2D, uVramTextureID);
+		extfunc->glTexSubImage2D(GL_TEXTURE_2D, 0,
 							 0, 0,
 							 p->width(), p->height(),
 							 GL_BGRA, GL_UNSIGNED_BYTE, p->constBits());
-		extfunc_3_0->glBindTexture(GL_TEXTURE_2D, 0);
+		extfunc->glBindTexture(GL_TEXTURE_2D, 0);
 	}
 	if(using_flags->is_support_tv_render() && (using_flags->get_config_ptr()->rendering_type == CONFIG_RENDER_TYPE_TV)) {
 		renderToTmpFrameBuffer_nPass(uVramTextureID,
@@ -773,7 +772,7 @@ void GLDraw_3_0::uploadMainTexture(QImage *p, bool use_chromakey)
 									 ntsc_pass1_shader,
 									 uVramPass1Texture,
 									 (low_resolution_screen) ? (screen_texture_width * 4) : (screen_texture_width * 2),
-									 screen_texture_height,
+									 screen_texture_height * 2,
 									 buffer_vertex_pass1_texture,
 									 vertex_pass1_texture,
 									 uVramPass1FrameBuffer,
@@ -784,9 +783,7 @@ void GLDraw_3_0::uploadMainTexture(QImage *p, bool use_chromakey)
 									 ntsc_pass2_shader,
 									 uTmpTextureID,
 									 (low_resolution_screen) ? (screen_texture_width * 4) : (screen_texture_width * 2),
-									 screen_texture_height,
-									 //p_wid->width() * 2,
-									 //p_wid->height(),
+									 screen_texture_height * 2,
 									 buffer_vertex_pass2_texture,
 									 vertex_pass2_texture,
 									 uVramPass2FrameBuffer,
@@ -798,9 +795,7 @@ void GLDraw_3_0::uploadMainTexture(QImage *p, bool use_chromakey)
 									 tmp_shader,
 									 uTmpTextureID,
 									 (low_resolution_screen) ? (screen_texture_width * 4) : (screen_texture_width * 2),
-									 screen_texture_height,
-									 //p_wid->width(),
-									 //p_wid->height(),
+									 screen_texture_height * 2,
 									 buffer_vertex_tmp_texture,
 									 vertex_tmp_texture,
 									 uTmpFrameBuffer,
@@ -836,7 +831,7 @@ void GLDraw_3_0::drawScreenTexture(void)
 			 color, smoosing);
 	
 	if(using_flags->is_use_one_board_computer()) {
-		extfunc_3_0->glDisable(GL_BLEND);
+		extfunc->glDisable(GL_BLEND);
 	}
 }
 

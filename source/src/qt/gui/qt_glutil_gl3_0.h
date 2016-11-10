@@ -16,8 +16,9 @@
 class DLL_PREFIX GLDraw_3_0 : public GLDraw_2_0
 {
 	Q_OBJECT
+private:
+	QOpenGLFunctions_3_0 *extfunc;
 protected:
-	QOpenGLFunctions_3_0 *extfunc_3_0;
 	VertexTexCoord_t vertexTmpTexture[4];
 	QOpenGLShaderProgram *tmp_shader;
 	QOpenGLShaderProgram *ntsc_pass1_shader;
