@@ -35,7 +35,8 @@ GLScreenPack::GLScreenPack(int _width, int _height, QObject *parent) : QObject(p
 	tex_geometry_h = _height;
 	tex_geometry_x = 0;
 	tex_geometry_y = 0;
-	fbo_format.setInternalTextureFormat(GL_RGBA8);
+	//fbo_format.setInternalTextureFormat(GL_RGBA8);
+	fbo_format.setInternalTextureFormat(GL_RGBA32F);
 	fbo_format.setTextureTarget(GL_TEXTURE_2D);
 	frame_buffer_object = new QOpenGLFramebufferObject(_width, _height, fbo_format);
 	Texture = 0;
@@ -220,6 +221,7 @@ void GLScreenPack::setNormalVAO(VertexTexCoord_t *tp,
 	vertex_buffer->write(0, tp, sizeof(VertexTexCoord_t) * size);
 	program->setAttributeBuffer(vertex_loc, GL_FLOAT, 0, 3, sizeof(VertexTexCoord_t));
 	program->setAttributeBuffer(texcoord_loc, GL_FLOAT, 3 * sizeof(GLfloat), 2, sizeof(VertexTexCoord_t));
+	program->setUniformValue("a_texture", 0);
 			   
 	vertex_buffer->release();
 	vertex->release();

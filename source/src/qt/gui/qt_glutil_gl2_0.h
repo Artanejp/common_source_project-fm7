@@ -140,7 +140,7 @@ public:
 public slots:
 	virtual void setBrightness(GLfloat r, GLfloat g, GLfloat b);
 	virtual void do_set_texture_size(QImage *p, int w, int h);
-	void do_set_screen_multiply(float mul);
+	virtual void do_set_screen_multiply(float mul);
 	
 	void initializeGL();
 	void paintGL();

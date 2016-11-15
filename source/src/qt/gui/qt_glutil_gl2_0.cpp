@@ -92,7 +92,6 @@ GLDraw_2_0::GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, EMU *emu) : QObject(
 	rec_count = 0;
 	rec_width  = using_flags->get_screen_width();
 	rec_height = using_flags->get_screen_height();
-
 }
 
 GLDraw_2_0::~GLDraw_2_0()
@@ -118,6 +117,9 @@ GLDraw_2_0::~GLDraw_2_0()
 
 	if(using_flags->is_use_one_board_computer()) {
 		if(vertex_bitmap->isCreated()) vertex_bitmap->destroy();
+	}
+	if(uVramTextureID != 0) {
+		p_wid->deleteTexture(uVramTextureID);
 	}
 	if(extfunc_2 != NULL) delete extfunc_2;
 }
@@ -745,10 +747,12 @@ void GLDraw_2_0::uploadBitmapTexture(QImage *p)
 	if(!using_flags->is_use_one_board_computer()) return;
 	if(p == NULL) return;
 	if(!bitmap_uploaded) {
+		p_wid->makeCurrent();
 		if(uBitmapTextureID != 0) {
 	  		p_wid->deleteTexture(uBitmapTextureID);
 		}
 		uBitmapTextureID = p_wid->bindTexture(*p);
+		p_wid->doneCurrent();
 		bitmap_uploaded = true;
 		crt_flag = true;
 	}
@@ -830,6 +834,8 @@ void GLDraw_2_0::resizeGL(int width, int height)
 	int side = qMin(width, height);
 	double ww, hh;
 	int w, h;
+
+	p_wid->makeCurrent();
 	extfunc_2->glViewport(0, 0, width, height);
 	extfunc_2->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
 	crt_flag = true;
@@ -880,11 +886,13 @@ void GLDraw_2_0::resizeGL(int width, int height)
 	if(using_flags->get_max_button() > 0) {
 		updateButtonTexture();
 	}
+	p_wid->doneCurrent();
 }
 
 void GLDraw_2_0::paintGL(void)
 {
 	int i;
+	p_wid->makeCurrent();
 	if(crt_flag || redraw_required) { //return;
 		if(p_emu != NULL) {
 			crt_flag = false;
@@ -908,6 +916,7 @@ void GLDraw_2_0::paintGL(void)
 		}
 		extfunc_2->glFlush();
 	}
+	p_wid->doneCurrent();
 }
 
 void GLDraw_2_0::paintGL_OffScreen(int count, int w, int h)

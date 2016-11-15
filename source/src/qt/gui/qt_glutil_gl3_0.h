@@ -21,6 +21,7 @@ class DLL_PREFIX GLDraw_3_0 : public GLDraw_2_0
 	Q_OBJECT
 private:
 	QOpenGLFunctions_3_0 *extfunc;
+	float ringing_phase;
 protected:
 	GLScreenPack *main_pass;
 	GLScreenPack *std_pass;
@@ -82,6 +83,7 @@ public:
 	void initLocalGLObjects(void);
 	void uploadMainTexture(QImage *p, bool chromakey);
 	void drawScreenTexture(void);
+	virtual void do_set_screen_multiply(float mul);
 public slots:
 	void setBrightness(GLfloat r, GLfloat g, GLfloat b);
 	void do_set_texture_size(QImage *p, int w, int h);

@@ -31,7 +31,7 @@ GLDraw_3_0::GLDraw_3_0(GLDrawClass *parent, USING_FLAGS *p, EMU *emu) : GLDraw_2
 	
 	grids_vertical_buffer = NULL;
 	grids_vertical_vertex = NULL;
-
+	ringing_phase = 0.0f;
 }
 
 GLDraw_3_0::~GLDraw_3_0()
@@ -69,7 +69,37 @@ void GLDraw_3_0::setNormalVAO(QOpenGLShaderProgram *prg,
 	vp->bind();
 	bp->bind();
 
-	bp->write(0, tp, sizeof(VertexTexCoord_t) * size);
+	if(tp == NULL) {
+#if 0
+		VertexTexCoord_t tv[4];
+		tv[0].x = -1.0f;
+		tv[0].y = -1.0f;
+		tv[0].z = -0.9f;
+		tv[0].s = 0.0f;
+		tv[0].t = 1.0f;
+		
+		tv[1].x = +1.0f;
+		tv[1].y = -1.0f;
+		tv[1].z = -0.9f;
+		tv[1].s = 1.0f;
+		tv[1].t = 1.0f;
+		
+		tv[2].x = +1.0f;
+		tv[2].y = +1.0f;
+		tv[2].z = -0.9f;
+		tv[2].s = 1.0f;
+		tv[2].t = 0.0f;
+
+		tv[3].x = -1.0f;
+		tv[3].y = +1.0f;
+		tv[3].z = -0.9f;
+		tv[3].s = 0.0f;
+		tv[3].t = 0.0f;
+		bp->write(0, tv, sizeof(VertexTexCoord_t) * 4);
+#endif
+	} else {
+		bp->write(0, tp, sizeof(VertexTexCoord_t) * size);
+	}
 	prg->setAttributeBuffer(vertex_loc, GL_FLOAT, 0, 3, sizeof(VertexTexCoord_t));
 	prg->setAttributeBuffer(texcoord_loc, GL_FLOAT, 3 * sizeof(GLfloat), 2, sizeof(VertexTexCoord_t));
 	prg->setUniformValue("a_texture", 0);
@@ -114,7 +144,7 @@ void GLDraw_3_0::initPackedGLObject(GLScreenPack **p,
 	}
 }
 					
-			
+
 void GLDraw_3_0::initLocalGLObjects(void)
 {
 
@@ -129,50 +159,58 @@ void GLDraw_3_0::initLocalGLObjects(void)
 	}
 	p_wid->makeCurrent();
 	
-	vertexFormat[0].x = -0.5f;
-	vertexFormat[0].y = -0.5f;
+	vertexFormat[0].x = -1.0f;
+	vertexFormat[0].y = -1.0f;
 	vertexFormat[0].z = -0.9f;
 	vertexFormat[0].s = 0.0f;
 	vertexFormat[0].t = 1.0f;
 	
-	vertexFormat[1].x = +0.5f;
-	vertexFormat[1].y = -0.5f;
+	vertexFormat[1].x = +1.0f;
+	vertexFormat[1].y = -1.0f;
 	vertexFormat[1].z = -0.9f;
 	vertexFormat[1].s = 1.0f;
 	vertexFormat[1].t = 1.0f;
 	
-	vertexFormat[2].x = +0.5f;
-	vertexFormat[2].y = +0.5f;
+	vertexFormat[2].x = +1.0f;
+	vertexFormat[2].y = +1.0f;
 	vertexFormat[2].z = -0.9f;
 	vertexFormat[2].s = 1.0f;
 	vertexFormat[2].t = 0.0f;
 	
-	vertexFormat[3].x = -0.5f;
-	vertexFormat[3].y = +0.5f;
+	vertexFormat[3].x = -1.0f;
+	vertexFormat[3].y = +1.0f;
 	vertexFormat[3].z = -0.9f;
 	vertexFormat[3].s = 0.0f;
 	vertexFormat[3].t = 0.0f;
 
 	initPackedGLObject(&main_pass,
-					   _width, _height * 2,
+					   using_flags->get_screen_width() * 2, _height * 2,
 					   ":/vertex_shader.glsl" , ":/fragment_shader.glsl",
 					   "Main Shader");
+	if(main_pass != NULL) {
+		setNormalVAO(main_pass->getShader(), main_pass->getVAO(),
+					 main_pass->getVertexBuffer(),
+					 vertexFormat, 4);
+	}
 	
 	initPackedGLObject(&std_pass,
-					   _width, _height * 2,
-					   ":/vertex_shader.glsl" , ":/normal_fragment_shader.glsl",
+					   _width / 2, _height * 2,
+					   ":/vertex_shader.glsl" , ":/chromakey_fragment_shader.glsl",
 					   "Standard Shader");
 	//std_pass->initialize(_width, _height * 2,":/tmp_vertex_shader.glsl", ":/chromakey_fragment_shader.glsl");
 
 	initPackedGLObject(&ntsc_pass1,
-					   _width, _height * 2,
+					   _width * 2, _height * 2,
 					   ":/vertex_shader.glsl" , ":/ntsc_pass1.glsl",
 					   "NTSC Shader Pass1");
+	//enableAttributeBuffers(ntsc_pass1->getShader());
 	initPackedGLObject(&ntsc_pass2,
 					   _width, _height * 2,
 					   ":/vertex_shader.glsl" , ":/ntsc_pass2.glsl",
 					   "NTSC Shader Pass2");
+	//enableAttributeBuffers(ntsc_pass2->getShader());
 	
+
 	grids_shader = new QOpenGLShaderProgram(p_wid);
 	if(using_flags->is_use_screen_rotate()) {
 		if(grids_shader != NULL) {
@@ -199,7 +237,7 @@ void GLDraw_3_0::initLocalGLObjects(void)
 	updateGridsVAO(grids_vertical_buffer, grids_vertical_vertex,
 				   glVertGrids, using_flags->get_screen_width() + 2);
 
-			
+	do_set_texture_size(NULL, -1, -1);
 	p_wid->doneCurrent();
 }
 
@@ -516,8 +554,9 @@ void GLDraw_3_0::renderToTmpFrameBuffer_nPass(GLuint src_texture,
 					}
 					ii = shader->uniformLocation("phase");
 					if(ii >= 0) {
-						float phase = 0.1;
-						shader->setUniformValue(ii,  phase);
+						ringing_phase = ringing_phase + 0.093;
+						if(ringing_phase > 1.0) ringing_phase = ringing_phase - 1.0;
+						shader->setUniformValue(ii,  ringing_phase);
 					}
 					ii = shader->uniformLocation("luma_filter");
 					if(ii >= 0) {
@@ -596,26 +635,29 @@ void GLDraw_3_0::uploadMainTexture(QImage *p, bool use_chromakey)
 	if(using_flags->is_support_tv_render() && (using_flags->get_config_ptr()->rendering_type == CONFIG_RENDER_TYPE_TV)) {
 		renderToTmpFrameBuffer_nPass(uVramTextureID,
 									 (low_resolution_screen) ? (screen_texture_width * 4) : (screen_texture_width * 2),
-									 screen_texture_height,
+									 screen_texture_height * 2,
 									 ntsc_pass1,
-									 (low_resolution_screen) ? (screen_texture_width * 4) : (screen_texture_width * 2),
+									 (low_resolution_screen) ? (screen_texture_width * 8) : (screen_texture_width * 4),
 									 screen_texture_height * 2);
 		renderToTmpFrameBuffer_nPass(ntsc_pass1->getTexture(),
-									 (low_resolution_screen) ? (screen_texture_width * 4) : (screen_texture_width * 2),
-									 screen_texture_height,
+									 (low_resolution_screen) ? (screen_texture_width * 8) : (screen_texture_width * 4),
+									 screen_texture_height * 2,
 									 ntsc_pass2,
 									 (low_resolution_screen) ? (screen_texture_width * 4) : (screen_texture_width * 2),
 									 screen_texture_height * 2);
 		uTmpTextureID = ntsc_pass2->getTexture();
 	} else {
 		renderToTmpFrameBuffer_nPass(uVramTextureID,
-									 (low_resolution_screen) ? (screen_texture_width * 4) : (screen_texture_width * 2),
+									 (low_resolution_screen) ? (screen_texture_width * 2) : (screen_texture_width * 2),
 									 screen_texture_height * 2,
 									 std_pass,
-									 (low_resolution_screen) ? (screen_texture_width * 4) : (screen_texture_width * 2),
-									 screen_texture_height * 2);
+									 (low_resolution_screen) ? (screen_texture_width * 2) : (screen_texture_width * 1),
+									 screen_texture_height * 2,
+									 use_chromakey);
 
+		std_pass->bind();
 		uTmpTextureID = std_pass->getTexture();
+		std_pass->release();
 	}
 	crt_flag = true;
 }
@@ -773,14 +815,6 @@ void GLDraw_3_0::set_texture_vertex(QImage *p, int w_wid, int h_wid, int w, int 
 		iw = (float)using_flags->get_screen_width();
 		ih = (float)using_flags->get_screen_height();
 	}
-#if 0
-	if((ww > w_wid) || (hh > h_wid)) {
-		ww = (int)(screen_multiply * (float)w * wmul);
-		hh = (int)(screen_multiply * (float)h * hmul);
-		wfactor = screen_multiply * 2.0f - 1.0f;
-		hfactor = -screen_multiply * 2.0f + 1.0f;
-	}
-#endif
 	vertexTmpTexture[0].x = -1.0f;
 	vertexTmpTexture[0].y = -1.0f;
 	vertexTmpTexture[0].z = -0.1f;
@@ -806,12 +840,18 @@ void GLDraw_3_0::set_texture_vertex(QImage *p, int w_wid, int h_wid, int w, int 
 	vertexTmpTexture[3].t = ((float)h * hmul) / ih;
 }
 
+void GLDraw_3_0::do_set_screen_multiply(float mul)
+{
+	screen_multiply = mul;
+	do_set_texture_size(imgptr, screen_texture_width, screen_texture_height);
+}
+
 void GLDraw_3_0::do_set_texture_size(QImage *p, int w, int h)
 {
 	if(w <= 0) w = using_flags->get_screen_width();
 	if(h <= 0) h = using_flags->get_screen_height();
 	imgptr = p;
-	if(p != NULL) {
+	if(p_wid != NULL) {
 		screen_texture_width = w;
 		screen_texture_height = h;
 
@@ -832,7 +872,7 @@ void GLDraw_3_0::do_set_texture_size(QImage *p, int w, int h)
 						 vertexTmpTexture, 4);
 			
 		}
-		{
+		if(p != NULL) {
 			p_wid->deleteTexture(uVramTextureID);
 			uVramTextureID = p_wid->bindTexture(*p);
 		}
