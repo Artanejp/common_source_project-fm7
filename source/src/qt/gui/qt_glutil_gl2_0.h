@@ -99,6 +99,7 @@ protected:
 	virtual void setNormalVAO(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
 					  QOpenGLBuffer *bp, VertexTexCoord_t *tp, int size = 4);
 	
+	virtual void resizeGL_Screen(void);
 	virtual void drawGridsHorizonal(void);
 	virtual void drawGridsVertical(void);
 	void drawGridsMain(GLfloat *tp,

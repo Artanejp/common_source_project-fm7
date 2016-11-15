@@ -2,7 +2,7 @@
 
 
 
-GLScreenPack::GLScreenPack(QObject *parent) : QObject(parent)
+GLScreenPack::GLScreenPack(int _width, int _height, QObject *parent) : QObject(parent)
 {
 	program = new QOpenGLShaderProgram(this);
 	
@@ -11,6 +11,7 @@ GLScreenPack::GLScreenPack(QObject *parent) : QObject(parent)
 
 	init_status = false;
 	shader_status = false;
+	Texture = 0;
 	
 	for(int i = 0; i < 4; i++) {
 		Vertexs[i].x = 0.0;
@@ -19,16 +20,24 @@ GLScreenPack::GLScreenPack(QObject *parent) : QObject(parent)
 		Vertexs[i].s = 0.0;
 		Vertexs[i].t = 0.0;
 	}
-	viewport_w = 0;
-	viewport_h = 0;
-	viewport_w = 0;
+	if(_width <= 0) {
+		_width = 640;
+	}
+	if(_height <= 0) {
+		_height = 400;
+	}
+	viewport_w = _width;
+	viewport_h = _height;
+	viewport_x = 0;
 	viewport_y = 0;
 
-	tex_geometry_w = 0;
-	tex_geometry_h = 0;
+	tex_geometry_w = _width;
+	tex_geometry_h = _height;
 	tex_geometry_x = 0;
 	tex_geometry_y = 0;
-
+	fbo_format.setInternalTextureFormat(GL_RGBA8);
+	fbo_format.setTextureTarget(GL_TEXTURE_2D);
+	frame_buffer_object = new QOpenGLFramebufferObject(_width, _height, fbo_format);
 	Texture = 0;
 }
 GLScreenPack::~GLScreenPack()
@@ -44,18 +53,30 @@ GLScreenPack::~GLScreenPack()
 	if(program != NULL) {
 		delete program;
 	}
+	if(frame_buffer_object != NULL) {
+		delete frame_buffer_object;
+	}
 }
 
-bool GLScreenPack::initialize(int total_width, int total_height, int width, int height, const QString &vertex_shader_file, const QString &fragment_shader_file)
+bool GLScreenPack::initialize(int total_width, int total_height, const QString &vertex_shader_file, const QString &fragment_shader_file, int width, int height)
 {
-	
+
 	viewport_w = total_width;
 	viewport_h = total_height;
 	viewport_w = 0;
 	viewport_y = 0;
 
-	tex_geometry_w = width;
-	tex_geometry_h = height;
+	if(((width > 0) && (height > 0)) &&
+	   ((tex_geometry_w != width) ||
+		(tex_geometry_h != height))) {
+		if(frame_buffer_object != NULL) {
+			delete frame_buffer_object;
+		}
+		frame_buffer_object = new QOpenGLFramebufferObject(width, height, fbo_format);
+		tex_geometry_w = width;
+		tex_geometry_h = height;
+	}
+		
 	tex_geometry_x = 0;
 	tex_geometry_y = 0;
 	
@@ -209,17 +230,6 @@ void GLScreenPack::setNormalVAO(VertexTexCoord_t *tp,
 	program->enableAttributeArray(texcoord_loc);
 }
 
-void GLScreenPack::setTexture(GLuint id)
-{
-	Texture = id;
-}
-
-GLuint GLScreenPack::getTexture()
-{
-	return Texture;
-}
-
-	
 VertexTexCoord_t GLScreenPack::getVertexPos(int pos)
 {
 	VertexTexCoord_t V;

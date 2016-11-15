@@ -816,6 +816,15 @@ void GLDraw_2_0::uploadMainTexture(QImage *p, bool use_chromakey)
 	crt_flag = true;
 }
 
+void GLDraw_2_0::resizeGL_Screen(void)
+{
+	if(buffer_screen_vertex->isCreated()) {
+		setNormalVAO(main_shader, vertex_screen,
+					 buffer_screen_vertex,
+					 vertexFormat, 4);
+	}
+}	
+
 void GLDraw_2_0::resizeGL(int width, int height)
 {
 	int side = qMin(width, height);
@@ -841,12 +850,8 @@ void GLDraw_2_0::resizeGL(int width, int height)
 	
 	vertexFormat[3].x = -screen_width;
 	vertexFormat[3].y = +screen_height;
+	resizeGL_Screen();
 	
-	if(buffer_screen_vertex->isCreated()) {
-		setNormalVAO(main_shader, vertex_screen,
-					 buffer_screen_vertex,
-					 vertexFormat, 4);
-	}
 	if(using_flags->is_use_one_board_computer()) {
 		if(vertex_bitmap->isCreated()) {
 #if !defined(BITMAP_OFFSET_X)

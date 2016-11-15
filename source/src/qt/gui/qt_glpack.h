@@ -15,6 +15,8 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLBuffer>
 #include <QOpenGLContext>
+#include <QOpenGLFramebufferObject>
+#include <QOpenGLFramebufferObjectFormat>
 #include <QGLWidget>
 #include <QImage>
 
@@ -43,6 +45,9 @@ protected:
 	QOpenGLShaderProgram *program;
 	QOpenGLBuffer *vertex_buffer;
 	QOpenGLVertexArrayObject *vertex;
+	QOpenGLFramebufferObject *frame_buffer_object;
+	QOpenGLFramebufferObjectFormat fbo_format;
+	
 	VertexTexCoord_t Vertexs[4];
 	int tex_geometry_w, tex_geometry_h, tex_geometry_x, tex_geometry_y;
 	int viewport_w, viewport_h, viewport_x, viewport_y;
@@ -50,11 +55,11 @@ protected:
 	bool init_status;
 	bool shader_status;
 public:
-	GLScreenPack(QObject *parent = NULL);
+	GLScreenPack(int _width, int _height, QObject *parent = NULL);
 	~GLScreenPack();
 	virtual bool initialize(int total_width, int total_height,
-							int width, int height,
-							const QString &vertex_shader_file, const QString &fragment_shader_file);
+							const QString &vertex_shader_file, const QString &fragment_shader_file,
+							int width = -1, int height = -1);
 	virtual void updateVertex(int viewport_width, int viewport_height,
 							  int screen_width, int screen_height,
 							  int texture_width, int texture_height,
@@ -67,9 +72,6 @@ public:
 	QOpenGLBuffer *getVertexBuffer(void) { return vertex_buffer; }
 	QOpenGLVertexArrayObject *getVAO(void) { return vertex; }
 	VertexTexCoord_t getVertexPos(int pos);
-	void setTexture(GLuint id);
-	GLuint getTexture();
-	
 	bool addVertexShaderSrc(const QString &fileName)
 	{
 		return program->addShaderFromSourceFile(QOpenGLShader::Vertex, fileName);
@@ -87,8 +89,20 @@ public:
 	{
 		return program->log();
 	}
+	GLuint getTexture(void)
+	{
+		if(frame_buffer_object == NULL) return Texture;
+		return frame_buffer_object->texture();
+	}
+	GLuint setTexture(GLuint id)
+	{
+		Texture = id;
+	}
 	virtual void bind(void)
 	{
+		if(frame_buffer_object != NULL) {
+			frame_buffer_object->bind();
+		}
 		vertex->bind();
 		vertex_buffer->bind();
 		program->bind();
@@ -98,6 +112,9 @@ public:
 		program->release();
 		vertex_buffer->release();
 		vertex->release();
+		if(frame_buffer_object != NULL) {
+			frame_buffer_object->release();
+		}
 	}
 };
 QT_END_NAMESPACE
