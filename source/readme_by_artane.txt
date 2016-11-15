@@ -14,9 +14,9 @@
      https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20161027
 
    追加情報:
-    　各機種バイナリーは、osdn.jp　もしくはミラーサイトより入手可能です。
-   　https://osdn.jp/projects/csp-qt/  
-     https://osdn.jp/projects/csp-qt/releases/　をチェックしてください。
+    　各機種バイナリーは、osdn.net　もしくはミラーサイトより入手可能です。
+   　https://osdn.net/projects/csp-qt/  
+     https://osdn.net/projects/csp-qt/releases/　をチェックしてください。
 
 　   Win32: 
   　 GNU/Linux(amd64) : 

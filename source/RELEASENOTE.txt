@@ -12,9 +12,9 @@ Source Code:
    https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20161027
    
 Additional INFO:
-   Binaries will be available, distibute from osdn.jp.
-   See, https://osdn.jp/projects/csp-qt/  and
-        https://osdn.jp/projects/csp-qt/releases/ .
+   Binaries will be available, distibute from osdn.net.
+   See, https://osdn.net/projects/csp-qt/  and
+        https://osdn.net/projects/csp-qt/releases/ .
    Released at:
 
 
