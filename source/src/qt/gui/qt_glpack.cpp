@@ -221,9 +221,6 @@ void GLScreenPack::setNormalVAO(VertexTexCoord_t *tp,
 	program->setAttributeBuffer(vertex_loc, GL_FLOAT, 0, 3, sizeof(VertexTexCoord_t));
 	program->setAttributeBuffer(texcoord_loc, GL_FLOAT, 3 * sizeof(GLfloat), 2, sizeof(VertexTexCoord_t));
 			   
-	//extfunc_3_0->glVertexAttribPointer(vertex_loc, 3, GL_FLOAT, GL_FALSE, sizeof(VertexTexCoord_t), 0); 
-	//extfunc_3_0->glVertexAttribPointer(texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(VertexTexCoord_t), 
-	//						       (char *)NULL + 3 * sizeof(GLfloat)); 
 	vertex_buffer->release();
 	vertex->release();
 	program->enableAttributeArray(vertex_loc);

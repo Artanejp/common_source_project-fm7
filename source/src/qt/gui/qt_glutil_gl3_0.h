@@ -37,18 +37,16 @@ protected:
 
 	GLuint uTmpTextureID;
 	
-	void setNormalVAO(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
+	virtual void setNormalVAO(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
 					  QOpenGLBuffer *bp, VertexTexCoord_t *tp, int size = 4);
 
-	void drawGridsHorizonal(void);
-	void drawGridsVertical(void);
-	void set_texture_vertex(QImage *p, int w_wid, int h_wid,
-							int w, int h,
-							float wmul = 1.0f, float hmul = 1.0f);
+	virtual void set_texture_vertex(QImage *p, int w_wid, int h_wid,
+										int w, int h,
+										float wmul = 1.0f, float hmul = 1.0f);
 	virtual void updateGridsVAO(QOpenGLBuffer *bp,
-								QOpenGLVertexArrayObject *vp,
-								GLfloat *tp,
-								int number);
+									QOpenGLVertexArrayObject *vp,
+									GLfloat *tp,
+									int number);
 
 	virtual void drawGridsMain_3(QOpenGLShaderProgram *prg,
 								 QOpenGLBuffer *bp,
@@ -57,14 +55,20 @@ protected:
 								 GLfloat lineWidth = 0.2f,
 								 QVector4D color = QVector4D(0.0, 0.0, 0.0, 1.0));
 	virtual void resizeGL_Screen(void);
-	void drawMain(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
-				  QOpenGLBuffer *bp,
-				  VertexTexCoord_t *vertex_data,
+	virtual void initPackedGLObject(GLScreenPack **p,
+								int _width, int _height,
+								const QString vertex_shader, const QString fragment_shader,
+								const QString _name);
+
+	virtual void drawGridsHorizonal(void);
+	virtual void drawGridsVertical(void);
+
+	virtual void drawMain(GLScreenPack *obj,
 				  GLuint texid,
 				  QVector4D color, bool f_smoosing,
 				  bool do_chromakey = false,
 				  QVector3D chromakey = QVector3D(0.0f, 0.0f, 0.0f));
-	void renderToTmpFrameBuffer_nPass(GLuint src_texture,
+	virtual void renderToTmpFrameBuffer_nPass(GLuint src_texture,
 										  GLuint src_w,
 										  GLuint src_h,
 										  GLScreenPack *renderObject,

@@ -63,6 +63,7 @@ void CSP_Logger::reset(void)
 		"SOCKET",
 		"EVENT",
 		"SOUND_LOADER",
+		"GL_SHADER",
 		"Undefined",
 		NULL
 	};

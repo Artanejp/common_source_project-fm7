@@ -10,6 +10,7 @@
 #include "qt_gldraw.h"
 #include "qt_glpack.h"
 #include "qt_glutil_gl3_0.h"
+#include "csp_logger.h"
 #include "menu_flags.h"
 
 //extern USING_FLAGS *using_flags;
@@ -90,11 +91,36 @@ void GLDraw_3_0::initGLObjects()
 	extfunc->glGetIntegerv(GL_MAX_TEXTURE_SIZE, &texture_max_size);
 }	
 
+void GLDraw_3_0::initPackedGLObject(GLScreenPack **p,
+									int _width, int _height,
+									const QString vertex_shader, const QString fragment_shader,
+									const QString _name)
+{
+	QString s;
+	GLScreenPack *pp;
+	if(p != NULL) {
+		pp = new GLScreenPack(_width, _height, p_wid);
+		*p = pp;
+		if(pp != NULL) {
+			pp->initialize(_width, _height, vertex_shader, fragment_shader);
+			s = pp->getShaderLog();
+			if(s.size() > 0) {
+				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GL_SHADER, "In shader of %s ", _name.toLocal8Bit().constData());
+				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GL_SHADER, "Vertex: %s ",  vertex_shader.toLocal8Bit().constData());
+				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GL_SHADER, "Fragment: %s ", fragment_shader.toLocal8Bit().constData());
+				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GL_SHADER, "%s", s.toLocal8Bit().constData());
+			}
+		}
+	}
+}
+					
+			
 void GLDraw_3_0::initLocalGLObjects(void)
 {
 
 	int _width = using_flags->get_screen_width();
 	int _height = using_flags->get_screen_height();
+	
 	if((_width * 4) <= texture_max_size) {
 		_width = _width * 4;
 		low_resolution_screen = true;
@@ -127,17 +153,25 @@ void GLDraw_3_0::initLocalGLObjects(void)
 	vertexFormat[3].s = 0.0f;
 	vertexFormat[3].t = 0.0f;
 
-	main_pass = new GLScreenPack(_width, _height * 2, p_wid);
-	main_pass->initialize(_width, _height * 2, ":/vertex_shader.glsl", ":/fragment_shader.glsl");
+	initPackedGLObject(&main_pass,
+					   _width, _height * 2,
+					   ":/vertex_shader.glsl" , ":/fragment_shader.glsl",
+					   "Main Shader");
+	
+	initPackedGLObject(&std_pass,
+					   _width, _height * 2,
+					   ":/vertex_shader.glsl" , ":/normal_fragment_shader.glsl",
+					   "Standard Shader");
+	//std_pass->initialize(_width, _height * 2,":/tmp_vertex_shader.glsl", ":/chromakey_fragment_shader.glsl");
 
-	std_pass = new GLScreenPack(_width, _height * 2, p_wid);
-	std_pass->initialize(_width, _height * 2,":/tmp_vertex_shader.glsl", ":/chromakey_fragment_shader.glsl");
-
-	ntsc_pass1 = new GLScreenPack(_width, _height * 2, p_wid);
-	ntsc_pass1->initialize(_width, _height * 2,":/tmp_vertex_shader.glsl", ":/ntsc_pass1.glsl");
-
-	ntsc_pass2 = new GLScreenPack(_width, _height * 2, p_wid);
-	ntsc_pass2->initialize(_width, _height * 2,":/tmp_vertex_shader.glsl", ":/ntsc_pass2.glsl");
+	initPackedGLObject(&ntsc_pass1,
+					   _width, _height * 2,
+					   ":/vertex_shader.glsl" , ":/ntsc_pass1.glsl",
+					   "NTSC Shader Pass1");
+	initPackedGLObject(&ntsc_pass2,
+					   _width, _height * 2,
+					   ":/vertex_shader.glsl" , ":/ntsc_pass2.glsl",
+					   "NTSC Shader Pass2");
 	
 	grids_shader = new QOpenGLShaderProgram(p_wid);
 	if(using_flags->is_use_screen_rotate()) {
@@ -604,10 +638,7 @@ void GLDraw_3_0::drawScreenTexture(void)
 	} else {
 		color = QVector4D(1.0, 1.0, 1.0, 1.0);
 	}			
-	main_pass->getShader()->setUniformValue("color", color);
-	drawMain(main_pass->getShader(), main_pass->getVAO(),
-			 main_pass->getVertexBuffer(),
-			 vertexFormat,
+	drawMain(main_pass,
 			 uTmpTextureID, // v2.0
 			 color, smoosing);
 	if(using_flags->is_use_one_board_computer()) {
@@ -616,10 +647,7 @@ void GLDraw_3_0::drawScreenTexture(void)
 }
 
 
-void GLDraw_3_0::drawMain(QOpenGLShaderProgram *prg,
-						  QOpenGLVertexArrayObject *vp,
-						  QOpenGLBuffer *bp,
-						  VertexTexCoord_t *vertex_data,
+void GLDraw_3_0::drawMain(GLScreenPack *obj,
 						  GLuint texid,
 						  QVector4D color,
 						  bool f_smoosing,
@@ -627,6 +655,11 @@ void GLDraw_3_0::drawMain(QOpenGLShaderProgram *prg,
 						  QVector3D chromakey)
 						   
 {
+	QOpenGLShaderProgram *prg = obj->getShader();
+	QOpenGLVertexArrayObject *vp = obj->getVAO();
+	QOpenGLBuffer *bp = obj->getVertexBuffer();
+	int ii;
+		
 	if(texid != 0) {
 		extfunc->glEnable(GL_TEXTURE_2D);
 		vp->bind();
@@ -644,10 +677,21 @@ void GLDraw_3_0::drawMain(QOpenGLShaderProgram *prg,
 			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		}
 		prg->setUniformValue("a_texture", 0);
-		prg->setUniformValue("color", color);
-		prg->setUniformValue("tex_width",  (float)screen_texture_width); 
-		prg->setUniformValue("tex_height", (float)screen_texture_height);
 		
+		ii = prg->uniformLocation("color");
+		if(ii >= 0) {
+			prg->setUniformValue(ii,  color);
+		}
+		
+		ii = prg->uniformLocation("tex_width");
+		if(ii >= 0) {
+			prg->setUniformValue(ii,  (float)screen_texture_width);
+		}
+		
+		ii = prg->uniformLocation("tex_height");
+		if(ii >= 0) {
+			prg->setUniformValue(ii,  (float)screen_texture_height);
+		}
 		if(using_flags->is_use_screen_rotate()) {
 			if(using_flags->get_config_ptr()->rotate_type) {
 				prg->setUniformValue("rotate", GL_TRUE);
@@ -657,12 +701,23 @@ void GLDraw_3_0::drawMain(QOpenGLShaderProgram *prg,
 		} else {
 			prg->setUniformValue("rotate", GL_FALSE);
 		}
+
 		if(do_chromakey) {
-			prg->setUniformValue("chromakey", chromakey);
-			prg->setUniformValue("do_chromakey", GL_TRUE);
+			ii = prg->uniformLocation("chromakey");
+			if(ii >= 0) {
+				prg->setUniformValue(ii, chromakey);
+			}
+			ii = prg->uniformLocation("do_chromakey");
+			if(ii >= 0) {
+				prg->setUniformValue(ii, GL_TRUE);
+			}
 		} else {
-			prg->setUniformValue("do_chromakey", GL_FALSE);
-		}			
+			ii = prg->uniformLocation("do_chromakey");
+			if(ii >= 0) {
+				prg->setUniformValue(ii, GL_FALSE);
+			}
+		}
+		
 		prg->enableAttributeArray("texcoord");
 		prg->enableAttributeArray("vertex");
 		int vertex_loc = prg->attributeLocation("vertex");

@@ -71,6 +71,7 @@ public:
 	QOpenGLShaderProgram *getShader(void) { return program; }
 	QOpenGLBuffer *getVertexBuffer(void) { return vertex_buffer; }
 	QOpenGLVertexArrayObject *getVAO(void) { return vertex; }
+	QOpenGLFramebufferObject *getFrameBuffer(void) { return frame_buffer_object; }
 	VertexTexCoord_t getVertexPos(int pos);
 	bool addVertexShaderSrc(const QString &fileName)
 	{
@@ -85,6 +86,7 @@ public:
 	{
 		return program->link();
 	}
+	
 	QString getShaderLog(void)
 	{
 		return program->log();
