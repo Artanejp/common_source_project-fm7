@@ -13,7 +13,7 @@ uniform float luma_filter[24 + 1];
 uniform float chroma_filter[24 + 1];
 
 #define THREE_PHASE //options here include THREE_PHASE, TWO_PHASE or OLD_THREE_PHASE
-//#define GAMMA_CORRECTION //comment to disable gamma correction, usually because higan's gamma correction is enabled or you have another shader already doing it
+#define GAMMA_CORRECTION //comment to disable gamma correction, usually because higan's gamma correction is enabled or you have another shader already doing it
 #define CRT_GAMMA 2.5
 #define DISPLAY_GAMMA 2.1
 
@@ -27,7 +27,8 @@ mat3 yiq2rgb_mat = mat3(
 
 vec3 yiq2rgb(vec3 yiq)
 {
-   return (yiq * yiq2rgb_mat);
+	//yiq = yiq - vec3(0.0, 0.5, 0.5);
+	return (yiq * yiq2rgb_mat);
 }
 
 mat3 ycbcr2rgb_mat = mat3(
@@ -38,8 +39,8 @@ mat3 ycbcr2rgb_mat = mat3(
  
 vec3 ycbcr2rgb(vec3 ycbcr)
 {
-	vec3 ra = ycbcr - vec3(0.0, 0.5, 0.5);
-	//vec3 ra = ycbcr;
+	//vec3 ra = ycbcr - vec3(0.0, 0.5, 0.5);
+	vec3 ra = ycbcr;
 	return (ra * ycbcr2rgb_mat);
 }
 
@@ -67,7 +68,7 @@ void main() {
 	float one_x = 1.0 / source_size.x;
 	vec3 signal = vec3(0.0);
 	int i;
-#if 1
+
 	for (i = 1; i < TAPS; i++)
 	{
 		float offset = float(i);
@@ -78,24 +79,10 @@ void main() {
 	}		
 
 	signal += texture2D(a_texture, fixCoord).xyz * vec3(luma_filter[TAPS], chroma_filter[TAPS], chroma_filter[TAPS]);
-#else
-	for (i = 1; i < 10; i++)
-	{
-		float offset = float(i);
-		float luma_weight = pow(2.6, (1.0 - offset) / 2.0);
-		float chroma_weight = pow(3.0, (1.0 - offset) / 2.0);
-		vec3 sums = fetch_offset(offset, one_x) +
-				fetch_offset(0.0 - offset, one_x);
-		signal += sums * vec3(luma_weight, chroma_weight, chroma_weight);
-	}
-	signal = signal * vec3(0.22, 0.23, 0.22); 
-	signal += texture2D(a_texture, fixCoord).xyz;
-	signal = signal * vec3(0.50, 0.50, 0.50);
-#endif
 // END "ntsc-pass2-decode.inc" //
 
-   vec3 rgb = ycbcr2rgb(signal);
-   //vec3 rgb = yiq2rgb(signal);
+   //vec3 rgb = ycbcr2rgb(signal);
+   vec3 rgb = yiq2rgb(signal);
 #ifdef GAMMA_CORRECTION
    vec3 gamma = vec3(CRT_GAMMA / DISPLAY_GAMMA);
    rgb = pow(rgb, gamma.rgb);
