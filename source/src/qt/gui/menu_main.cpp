@@ -193,17 +193,28 @@ void Ui_MainWindowBase::setupUi(void)
 	ConfigEmulatorMenu();	
 	actionAbout = new Action_Control(this, using_flags);
 	actionAbout->setObjectName(QString::fromUtf8("actionAbout"));
-   
-	graphicsView = new GLDrawClass(using_flags, this);
-	graphicsView->setObjectName(QString::fromUtf8("graphicsView"));
-	graphicsView->setMaximumSize(2560, 2560); // ?
-	graphicsView->setMinimumSize(240, 192); // ?
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "GraphicsView OK");
+
+	{
+#if defined(_USE_GLAPI_QT5_4)
+		QSurfaceFormat fmt;
+		fmt.setProfile(QSurfaceFormat::CompatibilityProfile); // Requires >=Qt-4.8.0
+#else
+		QGLFormat fmt;
+		fmt.setProfile(QGLFormat::CompatibilityProfile); // Requires >=Qt-4.8.0
+		//fmt.setProfile(QGLFormat::CoreProfile); // Requires >=Qt-4.8.0
+		fmt.setVersion(3, 0);
+#endif
+		graphicsView = new GLDrawClass(using_flags, this, fmt);
+		graphicsView->setObjectName(QString::fromUtf8("graphicsView"));
+		graphicsView->setMaximumSize(2560, 2560); // ?
+		graphicsView->setMinimumSize(240, 192); // ?
+		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "GraphicsView OK");
+		graphicsView->setAttribute(Qt::WA_InputMethodEnabled, false); // Disable [Zenkaku / Hankaku] with IM.
+		graphicsView->setAttribute(Qt::WA_KeyboardFocusChange, false); 
+		//graphicsView->setFocusPolicy(Qt::StrongFocus);
+		//this->setFocusPolicy(Qt::ClickFocus);
+	}
 	
-	graphicsView->setAttribute(Qt::WA_InputMethodEnabled, false); // Disable [Zenkaku / Hankaku] with IM.
-	graphicsView->setAttribute(Qt::WA_KeyboardFocusChange, false); 
-	//graphicsView->setFocusPolicy(Qt::StrongFocus);
-	//this->setFocusPolicy(Qt::ClickFocus);
    
 	bitmapImage = NULL;
 	MainWindow->setCentralWidget(graphicsView);

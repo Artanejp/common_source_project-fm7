@@ -106,13 +106,17 @@ void GLDrawClass::paintGL(void)
 #define GL_MULTISAMPLE  0x809D
 #endif
 
-GLDrawClass::GLDrawClass(USING_FLAGS *p, QWidget *parent)
 #if defined(_USE_GLAPI_QT5_4)
-  : QOpenGLWidget(parent, Qt::Widget)
+GLDrawClass::GLDrawClass(USING_FLAGS *p, QWidget *parent, const QSurfaceFormat &fmt)
+	: QOpenGLWidget(parent, Qt::Widget)
 #else
-  : QGLWidget(parent)
+GLDrawClass::GLDrawClass(USING_FLAGS *p, QWidget *parent, const QGLFormat &fmt)
+	: QGLWidget(fmt, parent)
 #endif
 {
+#if defined(_USE_GLAPI_QT5_4)
+	this->setFormat(fmt);
+#endif
 	save_pixmap_req = false;
 	enable_mouse = true;
 	p_emu = NULL;

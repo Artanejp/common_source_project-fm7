@@ -14,6 +14,180 @@
 #include "menu_flags.h"
 
 //extern USING_FLAGS *using_flags;
+#if 0
+	// OLD_THREE_PHASE
+const float luma_filter[24 + 1] = {
+		-0.000071070,
+		-0.000032816,
+		0.000128784,
+		0.000134711,
+		-0.000226705,
+		-0.000777988,
+		-0.000997809,
+		-0.000522802,
+		0.000344691,
+		0.000768930,
+		0.000275591,
+		-0.000373434,
+		0.000522796,
+		0.003813817,
+		0.007502825,
+		0.006786001,
+		-0.002636726,
+		-0.019461182,
+		-0.033792479,
+		-0.029921972,
+		0.005032552,
+		0.071226466,
+		0.151755921,
+		0.218166470,
+		0.243902439
+	};
+const float chroma_filter[24 + 1] = {
+		0.001845562,
+		0.002381606,
+		0.003040177,
+		0.003838976,
+		0.004795341,
+		0.005925312,
+		0.007242534,
+		0.008757043,
+		0.010473987,
+		0.012392365,
+		0.014503872,
+		0.016791957,
+		0.019231195,
+		0.021787070,
+		0.024416251,
+		0.027067414,
+		0.029682613,
+		0.032199202,
+		0.034552198,
+		0.036677005,
+		0.038512317,
+		0.040003044,
+		0.041103048,
+		0.041777517,
+		0.042004791
+	};
+#else
+#if 1
+	// THREE_PHASE
+const float luma_filter[24 + 1] = {
+		-0.000012020,
+		-0.000022146,
+		-0.000013155,
+		-0.000012020,
+		-0.000049979,
+		-0.000113940,
+		-0.000122150,
+		-0.000005612,
+		0.000170516,
+		0.000237199,
+		0.000169640,
+		0.000285688,
+		0.000984574,
+		0.002018683,
+		0.002002275,
+		-0.000909882,
+		-0.007049081,
+		-0.013222860,
+		-0.012606931,
+		0.002460860,
+		0.035868225,
+		0.084016453,
+		0.135563500,
+		0.175261268,
+		0.190176552
+	};
+const float chroma_filter[24 + 1] = {
+		-0.000118847,
+		-0.000271306,
+		-0.000502642,
+		-0.000930833,
+		-0.001451013,
+		-0.002064744,
+		-0.002700432,
+		-0.003241276,
+		-0.003524948,
+		-0.003350284,
+		-0.002491729,
+		-0.000721149,
+		0.002164659,
+		0.006313635,
+		0.011789103,
+		0.018545660,
+		0.026414396,
+		0.035100710,
+		0.044196567,
+		0.053207202,
+		0.061590275,
+		0.068803602,
+		0.074356193,
+		0.077856564,
+		0.079052396
+	};
+// END "ntsc-decode-filter-3phase.inc" //
+#else
+				// TWO_PHASE
+const float luma_filter[24 + 1] = {
+		-0.000012020,
+		-0.000022146,
+		-0.000013155,
+		-0.000012020,
+		-0.000049979,
+		-0.000113940,
+		-0.000122150,
+		-0.000005612,
+		0.000170516,
+		0.000237199,
+		0.000169640,
+		0.000285688,
+		0.000984574,
+		0.002018683,
+		0.002002275,
+		-0.000909882,
+		-0.007049081,
+		-0.013222860,
+		-0.012606931,
+		0.002460860,
+		0.035868225,
+		0.084016453,
+		0.135563500,
+		0.175261268,
+		0.190176552
+	};
+	
+const float chroma_filter[24 + 1] = {
+		-0.000118847,
+		-0.000271306,
+		-0.000502642,
+		-0.000930833,
+		-0.001451013,
+		-0.002064744,
+		-0.002700432,
+		-0.003241276,
+		-0.003524948,
+		-0.003350284,
+		-0.002491729,
+		-0.000721149,
+		0.002164659,
+		0.006313635,
+		0.011789103,
+		0.018545660,
+		0.026414396,
+		0.035100710,
+		0.044196567,
+		0.053207202,
+		0.061590275,
+		0.068803602,
+		0.074356193,
+		0.077856564,
+		0.079052396
+	};
+// END "ntsc-decode-filter-3phase.inc" //
+#endif
+#endif
 
 GLDraw_3_0::GLDraw_3_0(GLDrawClass *parent, USING_FLAGS *p, EMU *emu) : GLDraw_2_0(parent, p, emu)
 {
@@ -55,6 +229,23 @@ GLDraw_3_0::~GLDraw_3_0()
 		if(grids_vertical_vertex->isCreated()) grids_vertical_vertex->destroy();
 	}
 
+}
+
+void GLDraw_3_0::initFBO(void)
+{
+	glHorizGrids = (GLfloat *)malloc(sizeof(float) * (using_flags->get_screen_height() + 2) * 6);
+	if(glHorizGrids != NULL) {
+		doSetGridsHorizonal(using_flags->get_screen_height(), true);
+	}
+	glVertGrids  = (GLfloat *)malloc(sizeof(float) * (using_flags->get_screen_width() + 2) * 6);
+	if(glVertGrids != NULL) {
+		doSetGridsVertical(using_flags->get_screen_width(), true);
+	}
+	if(using_flags->get_max_button() > 0) {
+		initButtons();
+	}
+	// Init view
+	extfunc->glClearColor(0.0, 0.0, 0.0, 1.0);
 }
 
 void GLDraw_3_0::setNormalVAO(QOpenGLShaderProgram *prg,
@@ -115,7 +306,6 @@ void GLDraw_3_0::setNormalVAO(QOpenGLShaderProgram *prg,
 
 void GLDraw_3_0::initGLObjects()
 {
-	GLDraw_2_0::initGLObjects();
 	extfunc = new QOpenGLFunctions_3_0;
 	extfunc->initializeOpenGLFunctions();
 	extfunc->glGetIntegerv(GL_MAX_TEXTURE_SIZE, &texture_max_size);
@@ -132,7 +322,7 @@ void GLDraw_3_0::initPackedGLObject(GLScreenPack **p,
 		pp = new GLScreenPack(_width, _height, p_wid);
 		*p = pp;
 		if(pp != NULL) {
-			pp->initialize(_width, _height, vertex_shader, fragment_shader);
+			bool f = pp->initialize(_width, _height, vertex_shader, fragment_shader);
 			s = pp->getShaderLog();
 			if(s.size() > 0) {
 				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GL_SHADER, "In shader of %s ", _name.toLocal8Bit().constData());
@@ -144,6 +334,61 @@ void GLDraw_3_0::initPackedGLObject(GLScreenPack **p,
 	}
 }
 					
+
+
+bool GLDraw_3_0::initGridShaders(const QString vertex_fixed, const QString vertex_rotate, const QString fragment)
+{
+	bool f = false;
+	grids_shader = new QOpenGLShaderProgram(p_wid);
+	if(grids_shader != NULL) {
+		if(using_flags->is_use_screen_rotate()) {
+			f = grids_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, vertex_rotate);
+		} else {
+			f = grids_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, vertex_fixed);
+		}
+		f &= grids_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, fragment);
+		f &= grids_shader->link();
+	}
+	return f;
+}
+
+bool GLDraw_3_0::initGridVertexObject(QOpenGLBuffer **vbo, QOpenGLVertexArrayObject **vao, int alloc_size)
+{
+	QOpenGLBuffer *bp = NULL;
+	QOpenGLVertexArrayObject *ap = NULL;
+	*vao = NULL;
+	*vbo = NULL;
+	*vbo  = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+	bp = *vbo;
+	if(bp != NULL) {
+		if(bp->create()) {
+			bp->bind();
+			bp->allocate(alloc_size * sizeof(GLfloat) * 3 * 2);
+			bp->release();
+		} else {
+			delete *vbo;
+			return false;
+		}
+	} else {
+		return false;
+	}
+	
+	*vao = new QOpenGLVertexArrayObject;
+	ap = *vao;
+	if(ap == NULL) {
+		bp->destroy();
+		delete *vbo;
+		return false;
+	}
+	if(!ap->create()) {
+		delete *vao;
+		bp->destroy();
+		delete *vbo;
+		return false;
+	}
+	return true;
+}
+
 
 void GLDraw_3_0::initLocalGLObjects(void)
 {
@@ -192,50 +437,38 @@ void GLDraw_3_0::initLocalGLObjects(void)
 					 main_pass->getVertexBuffer(),
 					 vertexFormat, 4);
 	}
-	
 	initPackedGLObject(&std_pass,
 					   _width / 2, _height * 2,
 					   ":/vertex_shader.glsl" , ":/chromakey_fragment_shader.glsl",
 					   "Standard Shader");
-	//std_pass->initialize(_width, _height * 2,":/tmp_vertex_shader.glsl", ":/chromakey_fragment_shader.glsl");
 
 	initPackedGLObject(&ntsc_pass1,
 					   _width * 2, _height * 2,
 					   ":/vertex_shader.glsl" , ":/ntsc_pass1.glsl",
 					   "NTSC Shader Pass1");
-	//enableAttributeBuffers(ntsc_pass1->getShader());
 	initPackedGLObject(&ntsc_pass2,
 					   _width, _height * 2,
 					   ":/vertex_shader.glsl" , ":/ntsc_pass2.glsl",
 					   "NTSC Shader Pass2");
-	//enableAttributeBuffers(ntsc_pass2->getShader());
-	
-
-	grids_shader = new QOpenGLShaderProgram(p_wid);
-	if(using_flags->is_use_screen_rotate()) {
-		if(grids_shader != NULL) {
-			grids_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/grids_vertex_shader.glsl");
-			grids_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/grids_fragment_shader.glsl");
-			grids_shader->link();
-		}
-	} else {
-		if(grids_shader != NULL) {
-			grids_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/grids_vertex_shader_fixed.glsl");
-			grids_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/grids_fragment_shader.glsl");
-			grids_shader->link();
+	if(using_flags->is_use_one_board_computer()) {
+		initBitmapVertex();
+		initPackedGLObject(&bitmap_block,
+						   _width * 2, _height * 2,
+						   ":/vertex_shader.glsl", ":/normal_fragment_shader.glsl",
+						   "Background Bitmap Shader");
+		if(bitmap_block != NULL) {
+			setNormalVAO(bitmap_block->getShader(), bitmap_block->getVAO(),
+						 bitmap_block->getVertexBuffer(),
+						 vertexBitmap, 4);
 		}
 	}
-	grids_horizonal_buffer = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
-	grids_horizonal_vertex = new QOpenGLVertexArrayObject;
-	grids_horizonal_vertex->create();
-	updateGridsVAO(grids_horizonal_buffer, grids_horizonal_vertex,
-				   glHorizGrids, using_flags->get_screen_height() + 2);
+	initGridShaders(":/grids_vertex_shader_fixed.glsl", ":/grids_vertex_shader.glsl", ":/grids_fragment_shader.glsl");
 	
-	grids_vertical_buffer = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
-	grids_vertical_vertex = new QOpenGLVertexArrayObject;
-	grids_vertical_vertex->create();
-	updateGridsVAO(grids_vertical_buffer, grids_vertical_vertex,
-				   glVertGrids, using_flags->get_screen_width() + 2);
+	initGridVertexObject(&grids_horizonal_buffer, &grids_horizonal_vertex, using_flags->get_screen_height() + 3);
+	doSetGridsHorizonal(using_flags->get_screen_height(), true);
+	
+	initGridVertexObject(&grids_vertical_buffer, &grids_vertical_vertex, using_flags->get_screen_width() + 3);
+	doSetGridsVertical(using_flags->get_screen_width(), true);
 
 	do_set_texture_size(NULL, -1, -1);
 	p_wid->doneCurrent();
@@ -248,9 +481,9 @@ void GLDraw_3_0::updateGridsVAO(QOpenGLBuffer *bp,
 
 {
 	bool checkf = false;
-	if(bp != NULL) {
+	if((bp != NULL) && (vp != NULL)) {
 		if(bp->isCreated()) {
-			if(bp->size() != (number * sizeof(GLfloat) * 3 * 2)) {
+			if(bp->size() < ((number + 1) * sizeof(GLfloat) * 3 * 2)) {
 				bp->destroy();
 				bp->create();
 				checkf = true;
@@ -259,14 +492,16 @@ void GLDraw_3_0::updateGridsVAO(QOpenGLBuffer *bp,
 			bp->create();
 			checkf = true;
 		}
+		vp->bind();
+		bp->bind();
 		if(checkf) {
-			bp->bind();
 			bp->allocate((number + 1) * sizeof(GLfloat) * 3 * 2);
-			if(tp != NULL) {
-				bp->write(0, tp, (number + 1) * sizeof(GLfloat) * 3 * 2);
-			}
-			bp->release();
 		}
+		if(tp != NULL) {
+			bp->write(0, tp, (number + 1) * sizeof(GLfloat) * 3 * 2);
+		}
+		bp->release();
+		vp->release();
 	}
 }
 void GLDraw_3_0::drawGridsMain_3(QOpenGLShaderProgram *prg,
@@ -288,10 +523,19 @@ void GLDraw_3_0::drawGridsMain_3(QOpenGLShaderProgram *prg,
 		bp->bind();
 		vp->bind();
 		prg->bind();
+		//GLfloat ff[2];
+		//bp->read(8, &ff, sizeof(GLfloat) * 2);
+		//printf("%d %f %f\n", number, ff[0], ff[1]);
 		
 		prg->setUniformValue("color", color);
 		prg->enableAttributeArray("vertex");
 		int vertex_loc = prg->attributeLocation("vertex");
+		
+		extfunc->glViewport(0, 0, p_wid->width(), p_wid->height());
+		extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
+		//extfunc->glEnable(GL_BLEND);
+		//extfunc->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		//extfunc->glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 		extfunc->glVertexAttribPointer(vertex_loc, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3, 0); 
 		extfunc->glEnableVertexAttribArray(vertex_loc);
 		
@@ -301,19 +545,34 @@ void GLDraw_3_0::drawGridsMain_3(QOpenGLShaderProgram *prg,
 		extfunc->glVertexPointer(3, GL_FLOAT, 0, 0);
 		extfunc->glDrawArrays(GL_LINES, 0, (number + 1) * 2);
 		extfunc->glDisableClientState(GL_VERTEX_ARRAY);
+		//extfunc->glDisable(GL_BLEND);
 		prg->release();
 		vp->release();
 		bp->release();
 	}
 }
 
-void GLDraw_3_0::drawGridsHorizonal(void)
+void GLDraw_3_0::doSetGridsVertical(int pixels, bool force)
 {
-	QVector4D c= QVector4D(0.0f, 0.0f, 0.0f, 1.0f);
+	GLDraw_2_0::doSetGridsVertical(pixels, force);
+	updateGridsVAO(grids_vertical_buffer,
+				   grids_vertical_vertex,
+				   glVertGrids,
+				   pixels);
+	
+}
+void GLDraw_3_0::doSetGridsHorizonal(int lines, bool force)
+{
+	GLDraw_2_0::doSetGridsHorizonal(lines, force);
 	updateGridsVAO(grids_horizonal_buffer,
 				   grids_horizonal_vertex,
 				   glHorizGrids,
-				   vert_lines);
+				   lines);
+}
+
+void GLDraw_3_0::drawGridsHorizonal(void)
+{
+	QVector4D c= QVector4D(0.0f, 0.0f, 0.0f, 1.0f);
 	drawGridsMain_3(grids_shader,
 					grids_horizonal_buffer,
 					grids_horizonal_vertex,
@@ -325,10 +584,6 @@ void GLDraw_3_0::drawGridsHorizonal(void)
 void GLDraw_3_0::drawGridsVertical(void)
 {
 	QVector4D c= QVector4D(0.0f, 0.0f, 0.0f, 1.0f);
-	updateGridsVAO(grids_vertical_buffer,
-				   grids_vertical_vertex,
-				   glVertGrids,
-				   horiz_pixels);
 	drawGridsMain_3(grids_shader,
 					grids_vertical_buffer,
 					grids_vertical_vertex,
@@ -345,180 +600,6 @@ void GLDraw_3_0::renderToTmpFrameBuffer_nPass(GLuint src_texture,
 											  GLuint dst_h,
 											  bool use_chromakey)
 {
-#if 0
-	// OLD_THREE_PHASE
-	const float luma_filter[24 + 1] = {
-		-0.000071070,
-		-0.000032816,
-		0.000128784,
-		0.000134711,
-		-0.000226705,
-		-0.000777988,
-		-0.000997809,
-		-0.000522802,
-		0.000344691,
-		0.000768930,
-		0.000275591,
-		-0.000373434,
-		0.000522796,
-		0.003813817,
-		0.007502825,
-		0.006786001,
-		-0.002636726,
-		-0.019461182,
-		-0.033792479,
-		-0.029921972,
-		0.005032552,
-		0.071226466,
-		0.151755921,
-		0.218166470,
-		0.243902439
-	};
-	const float chroma_filter[24 + 1] = {
-		0.001845562,
-		0.002381606,
-		0.003040177,
-		0.003838976,
-		0.004795341,
-		0.005925312,
-		0.007242534,
-		0.008757043,
-		0.010473987,
-		0.012392365,
-		0.014503872,
-		0.016791957,
-		0.019231195,
-		0.021787070,
-		0.024416251,
-		0.027067414,
-		0.029682613,
-		0.032199202,
-		0.034552198,
-		0.036677005,
-		0.038512317,
-		0.040003044,
-		0.041103048,
-		0.041777517,
-		0.042004791
-	};
-#else
-#if 1
-	// THREE_PHASE
-	const float luma_filter[24 + 1] = {
-		-0.000012020,
-		-0.000022146,
-		-0.000013155,
-		-0.000012020,
-		-0.000049979,
-		-0.000113940,
-		-0.000122150,
-		-0.000005612,
-		0.000170516,
-		0.000237199,
-		0.000169640,
-		0.000285688,
-		0.000984574,
-		0.002018683,
-		0.002002275,
-		-0.000909882,
-		-0.007049081,
-		-0.013222860,
-		-0.012606931,
-		0.002460860,
-		0.035868225,
-		0.084016453,
-		0.135563500,
-		0.175261268,
-		0.190176552
-	};
-	const float chroma_filter[24 + 1] = {
-		-0.000118847,
-		-0.000271306,
-		-0.000502642,
-		-0.000930833,
-		-0.001451013,
-		-0.002064744,
-		-0.002700432,
-		-0.003241276,
-		-0.003524948,
-		-0.003350284,
-		-0.002491729,
-		-0.000721149,
-		0.002164659,
-		0.006313635,
-		0.011789103,
-		0.018545660,
-		0.026414396,
-		0.035100710,
-		0.044196567,
-		0.053207202,
-		0.061590275,
-		0.068803602,
-		0.074356193,
-		0.077856564,
-		0.079052396
-	};
-// END "ntsc-decode-filter-3phase.inc" //
-#else
-				// TWO_PHASE
-	const float luma_filter[24 + 1] = {
-		-0.000012020,
-		-0.000022146,
-		-0.000013155,
-		-0.000012020,
-		-0.000049979,
-		-0.000113940,
-		-0.000122150,
-		-0.000005612,
-		0.000170516,
-		0.000237199,
-		0.000169640,
-		0.000285688,
-		0.000984574,
-		0.002018683,
-		0.002002275,
-		-0.000909882,
-		-0.007049081,
-		-0.013222860,
-		-0.012606931,
-		0.002460860,
-		0.035868225,
-		0.084016453,
-		0.135563500,
-		0.175261268,
-		0.190176552
-	};
-	
-	const float chroma_filter[24 + 1] = {
-		-0.000118847,
-		-0.000271306,
-		-0.000502642,
-		-0.000930833,
-		-0.001451013,
-		-0.002064744,
-		-0.002700432,
-		-0.003241276,
-		-0.003524948,
-		-0.003350284,
-		-0.002491729,
-		-0.000721149,
-		0.002164659,
-		0.006313635,
-		0.011789103,
-		0.018545660,
-		0.026414396,
-		0.035100710,
-		0.044196567,
-		0.053207202,
-		0.061590275,
-		0.068803602,
-		0.074356193,
-		0.077856564,
-		0.079052396
-	};
-// END "ntsc-decode-filter-3phase.inc" //
-#endif
-#endif
 	{
 		QOpenGLShaderProgram *shader = renderObject->getShader();
 		int ii;
@@ -777,6 +858,119 @@ void GLDraw_3_0::drawMain(GLScreenPack *obj,
 	}
 }
 
+void GLDraw_3_0::drawButtonsMain(int num, bool f_smoosing)
+{
+	GLuint texid = uButtonTextureID[num];
+	QOpenGLBuffer *bp = buffer_button_vertex[num];
+	QOpenGLShaderProgram  *prg = button_shader;
+	QOpenGLVertexArrayObject *vp = vertex_button[num];
+	QVector4D color;
+	int ii;
+	
+	color = QVector4D(1.0, 1.0, 1.0, 1.0);
+	
+	if((bp != NULL) && (vp != NULL) && (prg != NULL)) {
+		if((bp->isCreated()) && (vp->isCreated()) && (prg->isLinked())) {
+			bp->bind();
+			vp->bind();
+			prg->bind();
+			extfunc->glViewport(0, 0, p_wid->width(), p_wid->height());
+			extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
+			extfunc->glActiveTexture(GL_TEXTURE0);
+			extfunc->glBindTexture(GL_TEXTURE_2D, texid);
+			if(!f_smoosing) {
+				extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+				extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+			} else {
+				extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+			}
+			prg->setUniformValue("a_texture", 0);
+			
+			ii = prg->uniformLocation("color");
+			if(ii >= 0) {
+				prg->setUniformValue(ii,  color);
+			}
+			if(using_flags->is_use_screen_rotate()) {
+				if(using_flags->get_config_ptr()->rotate_type) {
+					prg->setUniformValue("rotate", GL_TRUE);
+				} else {
+					prg->setUniformValue("rotate", GL_FALSE);
+				}
+			} else {
+				prg->setUniformValue("rotate", GL_FALSE);
+			}
+			ii = prg->uniformLocation("do_chromakey");
+			if(ii >= 0) {
+				prg->setUniformValue(ii, GL_FALSE);
+			}
+			int vertex_loc = prg->attributeLocation("vertex");
+			int texcoord_loc = prg->attributeLocation("texcoord");
+			//prg->setAttributeBuffer(vertex_loc, GL_FLOAT, 0, 3, sizeof(VertexTexCoord_t));
+			//prg->setAttributeBuffer(texcoord_loc, GL_FLOAT, 3 * sizeof(GLfloat), 2, sizeof(VertexTexCoord_t));
+			prg->enableAttributeArray(vertex_loc);
+			prg->enableAttributeArray(texcoord_loc);
+			extfunc->glEnableVertexAttribArray(vertex_loc);
+			extfunc->glEnableVertexAttribArray(texcoord_loc);
+			extfunc->glEnable(GL_VERTEX_ARRAY);
+			extfunc->glDrawArrays(GL_POLYGON, 0, 4);
+			bp->release();
+			vp->release();
+			prg->release();
+			extfunc->glBindTexture(GL_TEXTURE_2D, 0);
+			extfunc->glDisable(GL_TEXTURE_2D);
+			return;
+			}
+		}
+
+}
+
+void GLDraw_3_0::drawButtons(void)
+{
+	for(int i = 0; i < using_flags->get_max_button(); i++) {
+		drawButtonsMain(i, false);
+	}
+}
+
+void GLDraw_3_0::drawBitmapTexture(void)
+{
+	QVector4D color = QVector4D(1.0f, 1.0f, 1.0f, 1.0f);
+	smoosing = using_flags->get_config_ptr()->use_opengl_filters;
+
+	if(using_flags->is_use_one_board_computer()) {
+		extfunc->glDisable(GL_BLEND);
+		drawMain(bitmap_block,
+				 uBitmapTextureID,
+				 color, smoosing);
+	}
+}
+
+void GLDraw_3_0::paintGL(void)
+{
+	p_wid->makeCurrent();
+	if(crt_flag || redraw_required) { //return;
+		if(p_emu != NULL) {
+			crt_flag = false;
+		}
+		redraw_required = false;
+		extfunc->glViewport(0, 0, p_wid->width(), p_wid->height());
+		extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
+		
+		extfunc->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		extfunc->glEnable(GL_DEPTH_TEST);
+		extfunc->glDisable(GL_BLEND);
+		if(using_flags->is_use_one_board_computer()) drawBitmapTexture();
+		if(using_flags->get_max_button() > 0) drawButtons();
+		
+		drawScreenTexture();
+		extfunc->glDisable(GL_BLEND);
+		if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
+			drawGrids();
+		}
+		extfunc->glFlush();
+	}
+	p_wid->doneCurrent();
+}
 
 void GLDraw_3_0::setBrightness(GLfloat r, GLfloat g, GLfloat b)
 {
@@ -913,10 +1107,10 @@ void GLDraw_3_0::do_set_texture_size(QImage *p, int w, int h)
 		setNormalVAO(main_pass->getShader(), main_pass->getVAO(),
 					 main_pass->getVertexBuffer(),
 					 vertexFormat, 4);
-		p_wid->doneCurrent();
-
+		
 		this->doSetGridsHorizonal(h, true);
 		this->doSetGridsVertical(w, true);
+		p_wid->doneCurrent();
 	}
 }
 
@@ -929,3 +1123,31 @@ void GLDraw_3_0::resizeGL_Screen(void)
 	}
 }	
 
+void GLDraw_3_0::resizeGL(int width, int height)
+{
+	int side = qMin(width, height);
+	double ww, hh;
+	int w, h;
+
+	p_wid->makeCurrent();
+	extfunc->glViewport(0, 0, width, height);
+	extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
+	crt_flag = true;
+	if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
+		doSetGridsHorizonal(vert_lines, true);
+		if(using_flags->is_use_vertical_pixel_lines()) {
+			doSetGridsVertical(horiz_pixels, true);
+		}
+	}
+	resizeGL_SetVertexs();
+	resizeGL_Screen();
+	if(using_flags->is_use_one_board_computer()) {
+		setNormalVAO(bitmap_block->getShader(), bitmap_block->getVAO(),
+					 bitmap_block->getVertexBuffer(),
+					 vertexBitmap, 4);
+	}	
+	if(using_flags->get_max_button() > 0) {
+		updateButtonTexture();
+	}
+	p_wid->doneCurrent();
+}

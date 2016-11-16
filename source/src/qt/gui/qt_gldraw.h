@@ -12,7 +12,13 @@
 #include "dropdown_keyset.h"
 #include "menu_flags.h"
 
+#if defined(_USE_GLAPI_QT5_4)
+#include <QOpenGLWidget>
+#include <QSurfaceFormat>
+#else
+#include <QGLFormat>
 #include <QGLWidget>
+#endif
 class EMU;
 class QEvent;
 class GLDraw_2_0;
@@ -29,7 +35,11 @@ struct NativeVirtualKeyCode {
 	uint32_t key;
 };
 
-class DLL_PREFIX GLDrawClass: public QGLWidget 
+#if defined(_USE_GLAPI_QT5_4)
+class DLL_PREFIX GLDrawClass: public QOpenGLWidget 
+#else
+class DLL_PREFIX GLDrawClass: public QGLWidget
+#endif
 {
 	Q_OBJECT
  private:
@@ -56,9 +66,6 @@ class DLL_PREFIX GLDrawClass: public QGLWidget
 	void drawGrids(void);
 
 	uint32_t get106Scancode2VK(uint32_t data);
-#ifdef _USE_OPENCL
-	//     extern class GLCLDraw *cldraw;
-#endif
 	bool QueryGLExtensions(const char *str);
 	void InitGLExtensionVars(void);
 	void InitContextCL(void);
@@ -69,7 +76,11 @@ class DLL_PREFIX GLDrawClass: public QGLWidget
 	CSP_KeyTables *key_table;
 
 public:
-	GLDrawClass(USING_FLAGS *p, QWidget *parent = 0);
+#if defined(_USE_GLAPI_QT5_4)
+	GLDrawClass(USING_FLAGS *p, QWidget *parent = 0, const QSoufaceFormat &fmt = QSurfaceFormat::defaultFormat());
+#else
+	GLDrawClass(USING_FLAGS *p, QWidget *parent = 0, const QGLFormat &fmt = QGLFormat::defaultFormat());
+#endif
 	~GLDrawClass();
 	GLDraw_2_0 *extfunc;
 	

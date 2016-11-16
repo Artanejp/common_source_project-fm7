@@ -207,7 +207,107 @@ void GLDraw_2_0::initGLObjects()
 	extfunc_2->glGetIntegerv(GL_MAX_TEXTURE_SIZE, &texture_max_size);
 }	
 
-void GLDraw_2_0::initFBO(void)
+void GLDraw_2_0::initButtons(void)
+{
+	button_desc_t *vm_buttons_d = using_flags->get_vm_buttons();
+	if(vm_buttons_d != NULL) {
+		button_shader = new QOpenGLShaderProgram(p_wid);
+		if(button_shader != NULL) {
+			button_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertex_shader.glsl");
+			button_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/normal_fragment_shader.glsl");
+			button_shader->link();
+		}
+		
+		vertexButtons = new QVector<VertexTexCoord_t>;
+		int i;
+		for(i = 0; i < using_flags->get_max_button(); i++) {
+			buffer_button_vertex[i] = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+			buffer_button_vertex[i]->create();
+			fButtonX[i] = -1.0 + (float)(vm_buttons_d[i].x * 2) / (float)using_flags->get_screen_width();
+			fButtonY[i] = 1.0 - (float)(vm_buttons_d[i].y * 2) / (float)using_flags->get_screen_height();
+			fButtonWidth[i] = (float)(vm_buttons_d[i].width * 2) / (float)using_flags->get_screen_width();
+			fButtonHeight[i] = (float)(vm_buttons_d[i].height * 2) / (float)using_flags->get_screen_height();
+			
+			vertex_button[i] = new QOpenGLVertexArrayObject;
+			if(vertex_button[i] != NULL) {
+				if(vertex_button[i]->create()) {
+					VertexTexCoord_t vt[4];
+					
+					vt[0].x =  fButtonX[i];
+					vt[0].y =  fButtonY[i];
+					vt[0].z =  -0.5f;
+					vt[0].s = 0.0f;
+					vt[0].t = 1.0f;
+					
+					vt[1].x =  fButtonX[i] + fButtonWidth[i];
+					vt[1].y =  fButtonY[i];
+					vt[1].z =  -0.5f;
+					vt[1].s = 1.0f;
+					vt[1].t = 1.0f;
+					
+					vt[2].x =  fButtonX[i] + fButtonWidth[i];
+					vt[2].y =  fButtonY[i] - fButtonHeight[i];
+					vt[2].z =  -0.5f;
+					vt[2].s = 1.0f;
+					vt[2].t = 0.0f;
+					
+					vt[3].x =  fButtonX[i];
+					vt[3].y =  fButtonY[i] - fButtonHeight[i];
+					vt[3].z =  -0.5f;
+					vt[3].s = 0.0f;
+					vt[3].t = 0.0f;
+					
+					vertexButtons->append(vt[0]);
+					vertexButtons->append(vt[1]);
+					vertexButtons->append(vt[2]);
+					vertexButtons->append(vt[3]);
+					vertex_button[i]->bind();
+					buffer_button_vertex[i]->bind();
+					buffer_button_vertex[i]->allocate(4 * sizeof(VertexTexCoord_t));
+					
+					buffer_button_vertex[i]->setUsagePattern(QOpenGLBuffer::StaticDraw);
+					buffer_button_vertex[i]->release();
+					vertex_button[i]->release();
+					setNormalVAO(button_shader, vertex_button[i],
+								 buffer_button_vertex[i],
+								 vt, 4);
+				}
+			}
+		}
+	}
+}
+
+void GLDraw_2_0::initBitmapVertex(void)
+{
+	if(using_flags->is_use_one_board_computer()) {
+		vertexBitmap[0].x = -1.0f;
+		vertexBitmap[0].y = -1.0f;
+		vertexBitmap[0].z = -0.1f;
+		vertexBitmap[0].s = 0.0f;
+		vertexBitmap[0].t = 0.0f;
+		
+		vertexBitmap[1].x = +1.0f;
+		vertexBitmap[1].y = -1.0f;
+		vertexBitmap[1].z = -0.1f;
+		vertexBitmap[1].s = 1.0f;
+		vertexBitmap[1].t = 0.0f;
+		
+		vertexBitmap[2].x = +1.0f;
+		vertexBitmap[2].y = +1.0f;
+		vertexBitmap[2].z = -0.1f;
+		vertexBitmap[2].s = 1.0f;
+		vertexBitmap[2].t = 1.0f;
+		
+		vertexBitmap[3].x = -1.0f;
+		vertexBitmap[3].y = +1.0f;
+		vertexBitmap[3].z = -0.1f;
+		vertexBitmap[3].s = 0.0f;
+		vertexBitmap[3].t = 1.0f;
+		
+	}
+}
+
+void GLDraw_2_0::initBitmapVAO(void)
 {
 	if(using_flags->is_use_one_board_computer()) {
 		bitmap_shader = new QOpenGLShaderProgram(p_wid);
@@ -216,14 +316,37 @@ void GLDraw_2_0::initFBO(void)
 			bitmap_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/normal_fragment_shader.glsl");
 			bitmap_shader->link();
 		}
-	}
-	if(using_flags->get_max_button() > 0) {
-		button_shader = new QOpenGLShaderProgram(p_wid);
-		if(button_shader != NULL) {
-			button_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertex_shader.glsl");
-			button_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/normal_fragment_shader.glsl");
-			button_shader->link();
+		buffer_bitmap_vertex = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+		vertex_bitmap = new QOpenGLVertexArrayObject;
+		if(vertex_bitmap != NULL) {
+			if(vertex_bitmap->create()) {
+				buffer_bitmap_vertex->create();
+				buffer_bitmap_vertex->setUsagePattern(QOpenGLBuffer::StaticDraw);
+				
+				{
+					QVector4D c;
+					c = QVector4D(1.0, 1.0, 1.0, 1.0);
+					bitmap_shader->setUniformValue("color", c);
+				}
+				vertex_bitmap->bind();
+				buffer_bitmap_vertex->bind();
+				buffer_bitmap_vertex->allocate(sizeof(vertexBitmap));
+				buffer_bitmap_vertex->release();
+				vertex_bitmap->release();
+				setNormalVAO(bitmap_shader, vertex_bitmap,
+							 buffer_bitmap_vertex,
+							 vertexBitmap, 4);
+			}
 		}
+	}	
+}
+
+void GLDraw_2_0::initFBO(void)
+{
+	// Will fix around vm_buttons[].
+	initBitmapVertex();
+	if(using_flags->get_max_button() > 0) {
+		initButtons();
 	}
 	glHorizGrids = (GLfloat *)malloc(sizeof(float) * (using_flags->get_screen_height() + 2) * 6);
 	if(glHorizGrids != NULL) {
@@ -232,117 +355,6 @@ void GLDraw_2_0::initFBO(void)
 	glVertGrids  = (GLfloat *)malloc(sizeof(float) * (using_flags->get_screen_width() + 2) * 6);
 	if(glVertGrids != NULL) {
 		doSetGridsVertical(using_flags->get_screen_width(), true);
-	}
-	// Will fix around vm_buttons[].
-	button_desc_t *vm_buttons_d = using_flags->get_vm_buttons();
-	if(vm_buttons_d != NULL) {
-		if(using_flags->get_max_button() > 0) {
-			vertexButtons = new QVector<VertexTexCoord_t>;
-			int i;
-			
-			for(i = 0; i < using_flags->get_max_button(); i++) {
-				buffer_button_vertex[i] = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
-				buffer_button_vertex[i]->create();
-				fButtonX[i] = -1.0 + (float)(vm_buttons_d[i].x * 2) / (float)using_flags->get_screen_width();
-				fButtonY[i] = 1.0 - (float)(vm_buttons_d[i].y * 2) / (float)using_flags->get_screen_height();
-				fButtonWidth[i] = (float)(vm_buttons_d[i].width * 2) / (float)using_flags->get_screen_width();
-				fButtonHeight[i] = (float)(vm_buttons_d[i].height * 2) / (float)using_flags->get_screen_height();
-			   
-				vertex_button[i] = new QOpenGLVertexArrayObject;
-				if(vertex_button[i] != NULL) {
-					if(vertex_button[i]->create()) {
-						VertexTexCoord_t vt[4];
-
-						vt[0].x =  fButtonX[i];
-						vt[0].y =  fButtonY[i];
-						vt[0].z =  -0.5f;
-						vt[0].s = 0.0f;
-						vt[0].t = 1.0f;
-						
-						vt[1].x =  fButtonX[i] + fButtonWidth[i];
-						vt[1].y =  fButtonY[i];
-						vt[1].z =  -0.5f;
-						vt[1].s = 1.0f;
-						vt[1].t = 1.0f;
-						
-						vt[2].x =  fButtonX[i] + fButtonWidth[i];
-						vt[2].y =  fButtonY[i] - fButtonHeight[i];
-						vt[2].z =  -0.5f;
-						vt[2].s = 1.0f;
-						vt[2].t = 0.0f;
-						
-						vt[3].x =  fButtonX[i];
-						vt[3].y =  fButtonY[i] - fButtonHeight[i];
-						vt[3].z =  -0.5f;
-						vt[3].s = 0.0f;
-						vt[3].t = 0.0f;
-				
-						vertexButtons->append(vt[0]);
-						vertexButtons->append(vt[1]);
-						vertexButtons->append(vt[2]);
-						vertexButtons->append(vt[3]);
-						vertex_button[i]->bind();
-						buffer_button_vertex[i]->bind();
-						buffer_button_vertex[i]->allocate(4 * sizeof(VertexTexCoord_t));
-						
-						buffer_button_vertex[i]->setUsagePattern(QOpenGLBuffer::StaticDraw);
-						buffer_button_vertex[i]->release();
-						vertex_button[i]->release();
-						setNormalVAO(button_shader, vertex_button[i],
-									 buffer_button_vertex[i],
-									 vt, 4);
-					}
-				}
-			}
-		}
-	}
-	if(using_flags->is_use_one_board_computer()) {
-	   buffer_bitmap_vertex = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
-	   vertex_bitmap = new QOpenGLVertexArrayObject;
-	   vertexBitmap[0].x = -1.0f;
-	   vertexBitmap[0].y = -1.0f;
-	   vertexBitmap[0].z = -0.1f;
-	   vertexBitmap[0].s = 0.0f;
-	   vertexBitmap[0].t = 0.0f;
-	   
-	   vertexBitmap[1].x = +1.0f;
-	   vertexBitmap[1].y = -1.0f;
-	   vertexBitmap[1].z = -0.1f;
-	   vertexBitmap[1].s = 1.0f;
-	   vertexBitmap[1].t = 0.0f;
-	   
-	   vertexBitmap[2].x = +1.0f;
-	   vertexBitmap[2].y = +1.0f;
-	   vertexBitmap[2].z = -0.1f;
-	   vertexBitmap[2].s = 1.0f;
-	   vertexBitmap[2].t = 1.0f;
-	   
-	   vertexBitmap[3].x = -1.0f;
-	   vertexBitmap[3].y = +1.0f;
-	   vertexBitmap[3].z = -0.1f;
-	   vertexBitmap[3].s = 0.0f;
-	   vertexBitmap[3].t = 1.0f;
-	   
-	   if(vertex_bitmap != NULL) {
-		   if(vertex_bitmap->create()) {
-			   buffer_bitmap_vertex->create();
-			   buffer_bitmap_vertex->setUsagePattern(QOpenGLBuffer::StaticDraw);
-			   
-			   {
-				   QVector4D c;
-				   c = QVector4D(1.0, 1.0, 1.0, 1.0);
-				   bitmap_shader->setUniformValue("color", c);
-			   }
-			   vertex_bitmap->bind();
-			   buffer_bitmap_vertex->bind();
-			   buffer_bitmap_vertex->allocate(sizeof(vertexBitmap));
-			   buffer_bitmap_vertex->release();
-			   vertex_bitmap->release();
-			   setNormalVAO(bitmap_shader, vertex_bitmap,
-							buffer_bitmap_vertex,
-							vertexBitmap, 4);
-		   }
-	   }
 	}
 	// Init view
 	extfunc_2->glClearColor(0.0, 0.0, 0.0, 1.0);
@@ -829,22 +841,8 @@ void GLDraw_2_0::resizeGL_Screen(void)
 	}
 }	
 
-void GLDraw_2_0::resizeGL(int width, int height)
+void GLDraw_2_0::resizeGL_SetVertexs(void)
 {
-	int side = qMin(width, height);
-	double ww, hh;
-	int w, h;
-
-	p_wid->makeCurrent();
-	extfunc_2->glViewport(0, 0, width, height);
-	extfunc_2->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
-	crt_flag = true;
-	if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
-		doSetGridsHorizonal(vert_lines, true);
-		if(using_flags->is_use_vertical_pixel_lines()) {
-			doSetGridsVertical(horiz_pixels, true);
-		}
-	}
 	vertexFormat[0].x = -screen_width;
 	vertexFormat[0].y = -screen_height;
 	
@@ -856,10 +854,7 @@ void GLDraw_2_0::resizeGL(int width, int height)
 	
 	vertexFormat[3].x = -screen_width;
 	vertexFormat[3].y = +screen_height;
-	resizeGL_Screen();
-	
 	if(using_flags->is_use_one_board_computer()) {
-		if(vertex_bitmap->isCreated()) {
 #if !defined(BITMAP_OFFSET_X)
 		#define BITMAP_OFFSET_X 0
 #endif	   
@@ -878,11 +873,34 @@ void GLDraw_2_0::resizeGL(int width, int height)
 			vertexBitmap[3].x = -1.0f;
 			vertexBitmap[3].y = 1.0f - (float)BITMAP_OFFSET_Y * 2.0 / (float)using_flags->get_screen_height();
 			
+	}
+}
+
+void GLDraw_2_0::resizeGL(int width, int height)
+{
+	int side = qMin(width, height);
+	double ww, hh;
+	int w, h;
+
+	p_wid->makeCurrent();
+	extfunc_2->glViewport(0, 0, width, height);
+	extfunc_2->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
+	crt_flag = true;
+	if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
+		doSetGridsHorizonal(vert_lines, true);
+		if(using_flags->is_use_vertical_pixel_lines()) {
+			doSetGridsVertical(horiz_pixels, true);
+		}
+	}
+	resizeGL_SetVertexs();
+	resizeGL_Screen();
+	if(using_flags->is_use_one_board_computer()) {
+		if(vertex_bitmap->isCreated()) {
 			setNormalVAO(bitmap_shader, vertex_bitmap,
 						 buffer_bitmap_vertex,
 						 vertexBitmap, 4);
 		}
-	}
+	}	
 	if(using_flags->get_max_button() > 0) {
 		updateButtonTexture();
 	}

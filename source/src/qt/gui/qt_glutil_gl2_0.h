@@ -78,6 +78,10 @@ protected:
 	QOpenGLBuffer *buffer_button_vertex[128];
 	QOpenGLShaderProgram *button_shader;
 
+	virtual void initButtons(void);
+	virtual void initBitmapVertex(void);
+	virtual void initBitmapVAO(void);
+
 	GLuint uVramTextureID;
 	GLuint uButtonTextureID[128];
 	GLfloat fButtonX[128];
@@ -97,11 +101,13 @@ protected:
 	GLuint uBitmapTextureID;
 	bool bitmap_uploaded;
 	virtual void setNormalVAO(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
-					  QOpenGLBuffer *bp, VertexTexCoord_t *tp, int size = 4);
+							  QOpenGLBuffer *bp, VertexTexCoord_t *tp, int size = 4);
 	
 	virtual void resizeGL_Screen(void);
 	virtual void drawGridsHorizonal(void);
 	virtual void drawGridsVertical(void);
+	void resizeGL_SetVertexs(void);
+	
 	void drawGridsMain(GLfloat *tp,
 					   int number,
 					   GLfloat lineWidth = 0.2f,
@@ -137,14 +143,16 @@ public:
 						  QVector4D color, bool f_smoosing,
 						  bool do_chromakey = false,
 						  QVector3D chromakey = QVector3D(0.0f, 0.0f, 0.0f));
+	virtual void doSetGridsHorizonal(int lines, bool force);
+	virtual void doSetGridsVertical(int pixels, bool force);
 public slots:
 	virtual void setBrightness(GLfloat r, GLfloat g, GLfloat b);
 	virtual void do_set_texture_size(QImage *p, int w, int h);
 	virtual void do_set_screen_multiply(float mul);
 	
 	void initializeGL();
-	void paintGL();
-	void resizeGL(int width, int height);
+	virtual void paintGL();
+	virtual void resizeGL(int width, int height);
 
 	void setImgPtr(QImage *p);
 	void setSmoosing(bool);
@@ -153,8 +161,6 @@ public slots:
 	void setVirtualVramSize(int ,int);	
 	void setEmuPtr(EMU *p);
 	void setChangeBrightness(bool);
-	void doSetGridsHorizonal(int lines, bool force);
-	void doSetGridsVertical(int pixels, bool force);
 	void updateBitmap(QImage *);
 	void paintGL_OffScreen(int count, int w, int h);
 

@@ -19,6 +19,8 @@
 #include <omp.h>
 #endif //_OPENMP
 #include <QGLContext>
+#include <QPair>
+#include <QSurfaceFormat>
 
 //extern const char *cl_render;
 
@@ -120,35 +122,38 @@ void GLDrawClass::InitFBO(void)
 	GLfloat xf, yf, delta;
 	QOpenGLContext *glContext = QOpenGLContext::currentContext();
 	QOpenGLVersionProfile prof;
-   
+	
 	// Try 4.x
 	//prof.setProfile(QSurfaceFormat::CoreProfile);
 		
 	QOpenGLFunctions_2_0 *funcs_2_0 = glContext->versionFunctions<QOpenGLFunctions_2_0>();
-	if(funcs_2_0 != NULL) {
-		csp_logger->debug_log(CSP_LOG_DEBUG, "Supported OpenGL Vendor  %s", funcs_2_0->glGetString(GL_VENDOR));
-		csp_logger->debug_log(CSP_LOG_DEBUG, "Supported OpenGL Version %s", funcs_2_0->glGetString(GL_VERSION));
-		csp_logger->debug_log(CSP_LOG_DEBUG, "Supported OpenGL Shading Language Version %s", funcs_2_0->glGetString(GL_SHADING_LANGUAGE_VERSION));
-		csp_logger->debug_log(CSP_LOG_DEBUG, "Supported OpenGL Renderer %s", funcs_2_0->glGetString(GL_RENDERER));
-		//csp_logger->debug_log(CSP_LOG_DEBUG, "Supported OpenGL Extensions %s", funcs_2_0->glGetString(GL_EXTENSIONS));
+	QSurfaceFormat _fmt = glContext->format();
+	QOpenGLFunctions *funcs = glContext->functions();
+	
+	QPair<int, int> _glversion = _fmt.version();
+	if((_fmt.renderableType() & QSurfaceFormat::OpenGL) != 0) {
+		if((_glversion.first == 3) && (_glversion.second <= 0) && (extfunc == NULL)){
+			extfunc = new GLDraw_3_0(this, using_flags);
+			csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Use OpenGL v3.0 Renderer");
+		} else if((funcs_2_0 != NULL)  && (extfunc == NULL)){
+			extfunc = new GLDraw_2_0(this, using_flags);
+			csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Use OpenGL v2.0 Renderer");
+		}
 	}
+	if(funcs != NULL) {
+		csp_logger->debug_log(CSP_LOG_DEBUG, "Supported OpenGL Vendor  %s", funcs->glGetString(GL_VENDOR));
+		csp_logger->debug_log(CSP_LOG_DEBUG, "Supported OpenGL Version %s", funcs->glGetString(GL_VERSION));
+		csp_logger->debug_log(CSP_LOG_DEBUG, "Supported OpenGL Shading Language Version %s", funcs->glGetString(GL_SHADING_LANGUAGE_VERSION));
+		csp_logger->debug_log(CSP_LOG_DEBUG, "Supported OpenGL Renderer %s", funcs->glGetString(GL_RENDERER));
+		//csp_logger->debug_log(CSP_LOG_DEBUG, "Supported OpenGL Extensions %s", funcs->glGetString(GL_EXTENSIONS));
+	}		
 
-	QOpenGLFunctions_3_0 *funcs_3_0 = glContext->versionFunctions<QOpenGLFunctions_3_0>();
-	if((funcs_3_0 != NULL) && (extfunc == NULL)){
-		extfunc = new GLDraw_3_0(this, using_flags);
-		csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Use OpenGL v3.0");
-	} else
-	if((funcs_2_0 != NULL)  && (extfunc == NULL)){
-		extfunc = new GLDraw_2_0(this, using_flags);
-		csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Use OpenGL v2.0");
-	}
 	if(extfunc != NULL) {
 		extfunc->initGLObjects();
 		extfunc->initFBO();
 		extfunc->initLocalGLObjects();
 	} else {
 		csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "None using OpenGL.");
-//str_gl_version = QString::fromUtf8("None");
 	}
 }
 

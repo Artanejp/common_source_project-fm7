@@ -27,6 +27,7 @@ protected:
 	GLScreenPack *std_pass;
 	GLScreenPack *ntsc_pass1;
 	GLScreenPack *ntsc_pass2;
+	GLScreenPack *bitmap_block;
 
 	VertexTexCoord_t vertexTmpTexture[4];
 	
@@ -40,7 +41,8 @@ protected:
 	
 	virtual void setNormalVAO(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
 					  QOpenGLBuffer *bp, VertexTexCoord_t *tp, int size = 4);
-
+	virtual bool initGridShaders(const QString vertex_fixed, const QString vertex_rotate, const QString fragment);
+	virtual bool initGridVertexObject(QOpenGLBuffer **vbo, QOpenGLVertexArrayObject **vao, int alloc_size);
 	virtual void set_texture_vertex(QImage *p, int w_wid, int h_wid,
 										int w, int h,
 										float wmul = 1.0f, float hmul = 1.0f);
@@ -76,16 +78,27 @@ protected:
 										  GLuint dst_w,
 										  GLuint dst_h,
 										  bool use_chromakey = false);
+	virtual void drawBitmapTexture(void);
+	virtual void drawButtonsMain(int num, bool f_smoosing);
+
 public:
 	GLDraw_3_0(GLDrawClass *parent, USING_FLAGS *p, EMU *emu = 0);
 	~GLDraw_3_0();
-	void initGLObjects();
-	void initLocalGLObjects(void);
-	void uploadMainTexture(QImage *p, bool chromakey);
-	void drawScreenTexture(void);
+	void drawButtons(void);
+	virtual void initGLObjects();
+	virtual void initLocalGLObjects(void);
+	virtual void initFBO(void);
+	//virtual void initBitmapVertex(void);
+	
+	virtual void uploadMainTexture(QImage *p, bool chromakey);
+	virtual void drawScreenTexture(void);
 	virtual void do_set_screen_multiply(float mul);
+	virtual void doSetGridsHorizonal(int lines, bool force);
+	virtual void doSetGridsVertical(int pixels, bool force);
 public slots:
 	void setBrightness(GLfloat r, GLfloat g, GLfloat b);
 	void do_set_texture_size(QImage *p, int w, int h);
+	virtual void paintGL(void);
+	virtual void resizeGL(int width, int height);
 };
 #endif
