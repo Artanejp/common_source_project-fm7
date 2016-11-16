@@ -68,16 +68,14 @@ void main() {
 	float one_x = 1.0 / source_size.x;
 	vec3 signal = vec3(0.0);
 	int i;
-
-	for (i = 1; i < TAPS; i++)
+	int ibegin = TAPS / 2;
+	for (i = ibegin; i < TAPS; i++)
 	{
 		float offset = float(i);
 		vec3 sums = fetch_offset(offset - float(TAPS), one_x) +
 				fetch_offset(float(TAPS) - offset, one_x);
-	
 		signal += sums * vec3(luma_filter[i], chroma_filter[i], chroma_filter[i]);
 	}		
-
 	signal += texture2D(a_texture, fixCoord).xyz * vec3(luma_filter[TAPS], chroma_filter[TAPS], chroma_filter[TAPS]);
 // END "ntsc-pass2-decode.inc" //
 

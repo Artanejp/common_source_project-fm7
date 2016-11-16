@@ -443,13 +443,28 @@ void GLDraw_3_0::initLocalGLObjects(void)
 					   "Standard Shader");
 
 	initPackedGLObject(&ntsc_pass1,
-					   _width * 2, _height * 2,
+					   _width, _height,
 					   ":/vertex_shader.glsl" , ":/ntsc_pass1.glsl",
 					   "NTSC Shader Pass1");
 	initPackedGLObject(&ntsc_pass2,
-					   _width, _height * 2,
+					   _width / 2, _height,
 					   ":/vertex_shader.glsl" , ":/ntsc_pass2.glsl",
 					   "NTSC Shader Pass2");
+	{
+		int ii;
+		QOpenGLShaderProgram *shader = ntsc_pass2->getShader();
+		shader->bind();
+		ii = shader->uniformLocation("luma_filter");
+		if(ii >= 0) {
+			shader->setUniformValueArray(ii, luma_filter, 24 + 1, 1);
+		}
+		ii = shader->uniformLocation("chroma_filter");
+		if(ii >= 0) {
+			shader->setUniformValueArray(ii, chroma_filter, 24 + 1, 1);
+		}
+		shader->release();
+	}
+   
 	if(using_flags->is_use_one_board_computer()) {
 		initBitmapVertex();
 		initPackedGLObject(&bitmap_block,
@@ -639,14 +654,14 @@ void GLDraw_3_0::renderToTmpFrameBuffer_nPass(GLuint src_texture,
 						if(ringing_phase > 1.0) ringing_phase = ringing_phase - 1.0;
 						shader->setUniformValue(ii,  ringing_phase);
 					}
-					ii = shader->uniformLocation("luma_filter");
-					if(ii >= 0) {
-						shader->setUniformValueArray(ii, luma_filter, 24 + 1, 1);
-					}
-					ii = shader->uniformLocation("chroma_filter");
-					if(ii >= 0) {
-						shader->setUniformValueArray(ii, chroma_filter, 24 + 1, 1);
-					}
+					//ii = shader->uniformLocation("luma_filter");
+					//if(ii >= 0) {
+					//	shader->setUniformValueArray(ii, luma_filter, 24 + 1, 1);
+					//}
+					//ii = shader->uniformLocation("chroma_filter");
+					//if(ii >= 0) {
+					//	shader->setUniformValueArray(ii, chroma_filter, 24 + 1, 1);
+					//}
 				}
 				{
 					QVector4D c(fBrightR, fBrightG, fBrightB, 1.0);
@@ -697,12 +712,20 @@ void GLDraw_3_0::renderToTmpFrameBuffer_nPass(GLuint src_texture,
 void GLDraw_3_0::uploadMainTexture(QImage *p, bool use_chromakey)
 {
 	// set vertex
+	int iw, ih;
 	redraw_required = true;
 	if(p == NULL) return;
 	//redraw_required = true;
 	imgptr = p;
 	if(uVramTextureID == 0) {
 		uVramTextureID = p_wid->bindTexture(*p);
+	}
+	if(p != NULL) {
+		iw = p->width();
+		ih = p->height();
+	} else {
+		iw = using_flags->get_screen_width();
+		ih = using_flags->get_screen_height();
 	}
 	{
 		// Upload to main texture
@@ -718,22 +741,22 @@ void GLDraw_3_0::uploadMainTexture(QImage *p, bool use_chromakey)
 									 (low_resolution_screen) ? (screen_texture_width * 4) : (screen_texture_width * 2),
 									 screen_texture_height * 2,
 									 ntsc_pass1,
-									 (low_resolution_screen) ? (screen_texture_width * 8) : (screen_texture_width * 4),
-									 screen_texture_height * 2);
+									 (low_resolution_screen) ? (iw * 4) : (iw * 2),
+									 ih * 1);
 		renderToTmpFrameBuffer_nPass(ntsc_pass1->getTexture(),
-									 (low_resolution_screen) ? (screen_texture_width * 8) : (screen_texture_width * 4),
-									 screen_texture_height * 2,
+									 (low_resolution_screen) ? (iw * 4) : (iw * 2),
+									 ih * 1,
 									 ntsc_pass2,
-									 (low_resolution_screen) ? (screen_texture_width * 4) : (screen_texture_width * 2),
-									 screen_texture_height * 2);
+									 (low_resolution_screen) ? (iw * 2) : (iw * 1),
+									 ih * 1);
 		uTmpTextureID = ntsc_pass2->getTexture();
 	} else {
 		renderToTmpFrameBuffer_nPass(uVramTextureID,
 									 (low_resolution_screen) ? (screen_texture_width * 2) : (screen_texture_width * 2),
 									 screen_texture_height * 2,
 									 std_pass,
-									 (low_resolution_screen) ? (screen_texture_width * 2) : (screen_texture_width * 1),
-									 screen_texture_height * 2,
+									 (low_resolution_screen) ? (iw * 2) : (iw * 1),
+									 ih * 2,
 									 use_chromakey);
 
 		std_pass->bind();
@@ -1045,6 +1068,15 @@ void GLDraw_3_0::do_set_texture_size(QImage *p, int w, int h)
 	if(w <= 0) w = using_flags->get_screen_width();
 	if(h <= 0) h = using_flags->get_screen_height();
 	imgptr = p;
+	float iw, ih;
+	if(p != NULL) {
+		iw = (float)p->width();
+		ih = (float)p->height();
+	} else {
+		iw = (float)using_flags->get_screen_width();
+		ih = (float)using_flags->get_screen_height();
+	}
+	//printf("%d x %d\n", w, h);
 	if(p_wid != NULL) {
 		screen_texture_width = w;
 		screen_texture_height = h;
@@ -1060,7 +1092,7 @@ void GLDraw_3_0::do_set_texture_size(QImage *p, int w, int h)
 						 ntsc_pass1->getVertexBuffer(),
 						 vertexTmpTexture, 4);
 
-			set_texture_vertex(p, p_wid->width(), p_wid->height(), w, h);
+			set_texture_vertex(p, p_wid->width(), p_wid->height(), (int)iw, (int)ih);
 			setNormalVAO(ntsc_pass2->getShader(), ntsc_pass2->getVAO(),
 						 ntsc_pass2->getVertexBuffer(),
 						 vertexTmpTexture, 4);
@@ -1072,16 +1104,7 @@ void GLDraw_3_0::do_set_texture_size(QImage *p, int w, int h)
 		}
 		int ww = w;
 		int hh = h;
-		float iw, ih;
 		
-		//if(screen_multiply < 1.0f) {
-		if(p != NULL) {
-			iw = (float)p->width();
-			ih = (float)p->height();
-		} else {
-			iw = (float)using_flags->get_screen_width();
-			ih = (float)using_flags->get_screen_height();
-		}
 		vertexFormat[0].x = -1.0f;
 		vertexFormat[0].y = -1.0f;
 		vertexFormat[0].z = -0.9f;
@@ -1096,10 +1119,14 @@ void GLDraw_3_0::do_set_texture_size(QImage *p, int w, int h)
 		vertexFormat[3].z = -0.9f;
 
 		vertexFormat[0].s = 0.0f;
-		vertexFormat[0].t = (float)hh / ih;
-		vertexFormat[1].s = (float)ww / iw;
-		vertexFormat[1].t = (float)hh / ih;
-		vertexFormat[2].s = (float)ww / iw;
+		//vertexFormat[0].t = (float)h / ih;
+		//vertexFormat[1].s = (float)w / iw;
+		//vertexFormat[1].t = (float)h / ih;
+		//vertexFormat[2].s = (float)w / iw;
+		vertexFormat[0].t = 1.0f;
+		vertexFormat[1].s = 1.0f;
+		vertexFormat[1].t = 1.0f;
+		vertexFormat[2].s = 1.0f;
 		vertexFormat[2].t = 0.0f;
 		vertexFormat[3].s = 0.0f;
 		vertexFormat[3].t = 0.0f;

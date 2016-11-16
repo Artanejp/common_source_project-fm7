@@ -29,7 +29,7 @@ uniform float phase;
 #define SATURATION 1.1
 #define BRIGHTNESS 1.0
 #define ARTIFACTING 1.3
-#define FRINGING 1.3
+#define FRINGING 1.2
 #elif defined(SVIDEO)
 #define SATURATION 1.0
 #define BRIGHTNESS 1.0
