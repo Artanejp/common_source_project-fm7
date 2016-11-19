@@ -67,15 +67,35 @@ void main() {
 // #include "ntsc-pass2-decode.inc" //
 	float one_x = 1.0 / source_size.x;
 	vec3 signal = vec3(0.0);
-	int i;
-	int ibegin = TAPS / 2;
+	int i,j;
+	int ibegin = 1;
+#if 0	
 	for (i = ibegin; i < TAPS; i++)
 	{
 		float offset = float(i);
 		vec3 sums = fetch_offset(offset - float(TAPS), one_x) +
 				fetch_offset(float(TAPS) - offset, one_x);
 		signal += sums * vec3(luma_filter[i], chroma_filter[i], chroma_filter[i]);
-	}		
+	}
+#else
+	float pos_offset = float(TAPS - ibegin) * one_x;
+	vec3 sums_p = vec3(0.0, 0.0, 0.0);
+	//vec3 sums_n[TAPS];
+	vec2 fix_coord = v_texcoord - vec2(0.5 / source_size.x, 0.0);
+	vec2 delta = vec2(one_x, 0);
+	vec3 pix_p, pix_n;
+	vec3 tmpv;
+	vec2 addr_p = fix_coord + vec2(pos_offset, 0);
+	vec2 addr_n = fix_coord - vec2(pos_offset, 0);
+	for (i = ibegin ; i < TAPS; i++) {
+		pix_p = texture2D(a_texture, addr_p).xyz;
+		pix_n = texture2D(a_texture, addr_n).xyz;
+		pix_p = (pix_n + pix_p) * vec3(luma_filter[i], chroma_filter[i], chroma_filter[i]);
+		signal = signal + pix_p;
+		addr_p = addr_p - delta;
+		addr_n = addr_n + delta;
+	}	   
+#endif
 	signal += texture2D(a_texture, fixCoord).xyz * vec3(luma_filter[TAPS], chroma_filter[TAPS], chroma_filter[TAPS]);
 // END "ntsc-pass2-decode.inc" //
 
