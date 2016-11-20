@@ -30,6 +30,7 @@ To [VM] disk or FDC to implement the mix (), (if there is if the sound source fi
 
 --- Or less, (I'd like to be called) past the log ---
 
+* DONE>[VM] Imprement sound with FDD and CMT-Relay.
 * Could perhaps> [FM7] and lose information problem key input is intense
 * I was able to tentatively has deviated from the specifications? > [FM8] implementation of bubble file
 * Maybe can have> [Qt] volume settings to improve the matter that there is that unlike in and after it ends before the end

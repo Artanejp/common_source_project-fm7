@@ -1,3 +1,162 @@
+commit 27ee1e6dbee9c40e249c65ac36c2a4f4c7fe0635
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Nov 20 22:46:06 2016 +0900
+
+    [Qt][GL] Adjust textures size.
+
+commit b767a19575e3ffb3ebdd5908d2cb0f7eb0426419
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Nov 20 22:45:31 2016 +0900
+
+    [EMU][GL] TV-Rendering: Adjust draw timing.
+
+commit f839b8b3026fd62260b7b30bfe67bcc1ee800f4d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Nov 20 17:05:45 2016 +0900
+
+    [GL][Shader] Reduce GPUs usage, using lower power on rendering.
+
+commit b160f5d9c8018a938645c360aa93205046e296a7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Nov 20 05:12:25 2016 +0900
+
+    [GL][SHADER] NTSC_PASS2 SHADER: Make vector calcuration and simple addressing to reduce GPU usage.Make about half of GPU usage at "TV Rendering".
+
+commit 909ca7f5483f062f9672303f61a132310d0547e5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Nov 17 06:16:48 2016 +0900
+
+    [GL][Shader][NTSC] Reduce GPU usage.
+
+commit acb7114eb02c73ca3166b58ccd688a50ec6683e9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Nov 17 03:06:55 2016 +0900
+
+    [Qt][EMU] Reduce to draw.
+
+commit 19009b16eb9f115ec6526a4f4327891b4ba90200
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Nov 17 03:06:06 2016 +0900
+
+    [Qt][OpenGL] GLv3.0: Not using GL2 functions.Prepare to build GL4.
+
+commit 7ab51bc66207ac014cf7aec31473902a412aa898
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Nov 16 06:14:28 2016 +0900
+
+    [GL][GLSL] TV renderer: Adjust parameters.
+
+commit 85dc008f9b595c2dde7f126f9c9db21b93fa7f45
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Nov 16 06:14:04 2016 +0900
+
+    [Qt][GL] Fix crash with GL2.0.
+
+commit 41d5d0971832b0f821dfd921e0d866041ce1a0d0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 15 23:17:55 2016 +0900
+
+    [DOC] I forgot commit some documents X-)
+
+commit 1435d7e581196c09a4b2423f74314112a4625e28
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 15 23:09:04 2016 +0900
+
+    [Qt][GL] GL3.0: Not use chromakey_fragment_shader.glsl to reduce GPU usage.
+    [Qt][GL] Add putting shader log to logger.
+
+commit 3d6a913fbb5aa3d21660d8e8c90cdbbb358293ff
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 15 21:56:00 2016 +0900
+
+    [Qt][Draw] GL3.0: Pack GL-Objects to GLScreenPack Class, using Qt::OpenGL functions (less than Qt5.2?).
+
+commit 44c95b0078263bb51364ad7bc93d2a5da47e1f66
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Nov 11 01:18:53 2016 +0900
+
+    [UI][Qt] Use FIFO class instead of QQueue<key_queue_t>, to fix crash randomly at same point of de-queueing key_down_queue.
+    [Qt][GL3] Initialize GL2's functions at GL3 class.
+
+commit aa63182b3d82a053df1f09fa09a63d643471197f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Nov 10 22:24:51 2016 +0900
+
+    [Qt][GL][GL3] .
+
+commit db88a79aff1bd7c1e76257dd6c81159a23dfab14
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Nov 10 22:24:07 2016 +0900
+
+    [Qt][GL] Try: Separate around tmp texture to a class.
+
+commit f71f936c4b08551221969d0246e0dbe2c5c656bc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Nov 10 22:22:49 2016 +0900
+
+    [Qt][GL] Calcurate at 2x bigger tmp texture.
+    [Qt][GL] Abondon using both GL2 and GL3.0, use only GL3.0 .
+
+commit 6dbb7e015b0b4ec17576c28a343d7b6becff9a00
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Nov 9 03:21:39 2016 +0900
+
+    [VM][Qt] Enable "TV rendering" with some VMs.
+
+commit d2e0e9cfb1dfa8783e86798f7cda918644d1a5ce
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Nov 9 03:20:51 2016 +0900
+
+    [GL][GLSL] NTSC: More accurate.
+
+commit 9ea2f222041eee42f00506b4a77cdd193f1b9ada
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Nov 9 03:19:20 2016 +0900
+
+    [Draw][Qt] GLv3: Zoom size of temporally texture(s) to x4.Drawing to temporally texture refer to destination.
+
+commit fbc7eba36be7db2a0e627e242af6b780aedfd9b1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 7 16:03:15 2016 +0900
+
+    [Qt][GL][Display] Add NTSC-TV rendering.Still not enabled any VMs.
+
+commit 7e8170a96c6cc09bf1e98a2e7db9f366e2f34862
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 7 04:25:30 2016 +0900
+
+    [Build][Linux] Fix FTBFS.
+
+commit cfedb815da575218c3ead0e7cb506356515c98af
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 7 04:24:43 2016 +0900
+
+    [Qt][Draw] NTSC-Shader: Maybe work, but color is wrong.
+
+commit 5c09b15559d258e4624940c4a9af1b59b2dd4046
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Nov 2 04:02:06 2016 +0900
+
+    [Linux] Build with Qt 5.5.1. Abondon Qt 5.3.
+
+commit 33b5a69575778142de48c5eaabd134bb7ad64e1f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Nov 2 02:56:44 2016 +0900
+
+    [Qt][GL][Draw] TRY: NTSC shader.
+
+commit 5d2f3b2d046306f9797bbbcc03c5b5e4f5822846
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 27 17:05:46 2016 +0900
+
+    [DOC] Update documents.
+
+commit f3c250c28a3b39d7900036a405d3fb5e6be2a840
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 27 17:00:57 2016 +0900
+
+    [GENERAL] Update installer.
+
 commit 006cc1d851483ea84fc5a3f4fa58cbf03302c49b
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Oct 27 16:56:59 2016 +0900

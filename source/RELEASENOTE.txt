@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                         Oct 27, 2016
+                                                         Nov 21, 2016
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 1.About
@@ -9,7 +9,7 @@ This package is Qt5 porting of Common Source Code Project (CSP)
 and built with Qt5, for Windows, built with MinGW(32bit).
 
 Source Code:
-   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20161027
+   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20161121
    
 Additional INFO:
    Binaries will be available, distibute from osdn.net.
@@ -26,7 +26,7 @@ I'm using GNU/Linux, and I starting to apply FM-7(or later).
 So, I start to port to GNU/Linux and using Qt4/Qt5.
 
 What you need at least:
-a. Qt5 (neither Qt3 and Qt4) toolkit.
+a. Qt5 (neither Qt3 and Qt4) toolkit: Qt5.3 or later.
 b. Some OpenGL implementation, maybe at leaset OpenGL v2.x .
 c. gcc / g++ (4.7 or later? ) or llvm clang / clang++ (3.5 or later?) toolchain.
 d. SDL2 (not SDL1.x).
@@ -83,6 +83,16 @@ Upstream (Takeda Toshiya San's original code)
       http://takeda-toshiya.my.coocan.jp/
 
 Changes:
+
+* SNAPSHOT November 21, 2016
+  * Upstream 2016-04-13
+  * [Linux] Build with Qt 5.5.1 . Abondon Qt 5.3 (If you need, build with your Qt or use binary of qt.io build version.)
+  * [OpenGL] Add Television like rendering to some machines. Needs OpenGL3.0 or upper.
+  * [OpenGL] Isolate both GL3.0 and GL2.0.
+  * [OpenGL] Improve internal of GLDraw and GLDraw_foo class.
+  * Built with 27ee1e6dbee9c40e249c65ac36c2a4f4c7fe0635 or newer.
+
+-- Nov 20, 2016 23:04:31 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT October 27, 2016
   * Upstream 2016-04-13

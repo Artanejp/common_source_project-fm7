@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                          Oct 27, 2016
+                                          Nov 21, 2016
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -11,7 +11,7 @@
    用意しています。
    
    ソースコード：
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20161027
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20161121
 
    追加情報:
     　各機種バイナリーは、osdn.net　もしくはミラーサイトより入手可能です。
@@ -33,7 +33,7 @@
    と言う感じで作業をはじめました。
 
 2. 最低限必要なもの(Qt版)
-   a. Qt5 ツールキット
+   a. Qt5 ツールキット。バイナリはQt 5.5基準でビルドしてあります。
    b. OpenGL, 多分、最低OpenGL 2.1は必要です。 (New!)
    c. gcc / g++ (4.7以降？)もしくは llvm clang / clang++ (3.5以降?)
       コンパイラツールチェーン。
@@ -42,7 +42,7 @@
    f. ffmpegから、libavとlibswが必要です。 http://ffmpeg.org/ より。
    g. ffmpegは、それぞれのランタイムに必要なものをバンドルしてあります
       ので、動かない時はインストールしてみてください。
-   h. GNU/Linuxビルドでは、Qt5.3でビルドしてあります(Ubuntu 16.04LTS向け)
+   h. GNU/Linuxビルドでは、Qt5.5.1でビルドしてあります(Ubuntu 16.04LTS向け)
    * Windows もしくは GNU/Linux のcross tool chain (要Wine)で、
      MinGW と Qt 5.7 でのビルドができることを確認しました。
      
@@ -109,6 +109,16 @@
       http://takeda-toshiya.my.coocan.jp/
 
 Changes:
+
+* SNAPSHOT November 21, 2016
+  * Upstream 2016-04-13
+  * [Linux] Build with Qt 5.5.1 . Abondon Qt 5.3 (If you need, build with your Qt or use binary of qt.io build version.)
+  * [OpenGL] Add Television like rendering to some machines. Needs OpenGL3.0 or upper.
+  * [OpenGL] Isolate both GL3.0 and GL2.0.
+  * [OpenGL] Improve internal of GLDraw and GLDraw_foo class.
+  * Built with 27ee1e6dbee9c40e249c65ac36c2a4f4c7fe0635 or newer.
+
+-- Nov 20, 2016 23:04:31 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT October 27, 2016
   * Upstream 2016-04-13
