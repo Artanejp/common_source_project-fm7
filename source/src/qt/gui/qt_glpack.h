@@ -100,6 +100,22 @@ public:
 	{
 		Texture = id;
 	}
+	int getViewportWidth()
+	{
+		return viewport_w;
+	}
+	int getViewportHeight()
+	{
+		return viewport_h;
+	}
+	int getTextureWidth()
+	{
+		return tex_geometry_w;
+	}
+	int getTextureHeight()
+	{
+		return tex_geometry_h;
+	}
 	virtual void bind(void)
 	{
 		if(frame_buffer_object != NULL) {

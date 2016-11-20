@@ -64,7 +64,7 @@ bool GLScreenPack::initialize(int total_width, int total_height, const QString &
 
 	viewport_w = total_width;
 	viewport_h = total_height;
-	viewport_w = 0;
+	viewport_x = 0;
 	viewport_y = 0;
 
 	if(((width > 0) && (height > 0)) &&

@@ -429,7 +429,7 @@ void GLDraw_3_0::initLocalGLObjects(void)
 	vertexFormat[3].t = 0.0f;
 
 	initPackedGLObject(&main_pass,
-					   using_flags->get_screen_width() * 2, _height * 2,
+					   using_flags->get_screen_width() * 2, using_flags->get_screen_height() * 2,
 					   ":/vertex_shader.glsl" , ":/fragment_shader.glsl",
 					   "Main Shader");
 	if(main_pass != NULL) {
@@ -438,8 +438,7 @@ void GLDraw_3_0::initLocalGLObjects(void)
 					 vertexFormat, 4);
 	}
 	initPackedGLObject(&std_pass,
-					   //_width / 2, _height * 2,
-					   (low_resolution_screen) ? _width / 4 : _width / 2, _height,
+					   using_flags->get_screen_width(), using_flags->get_screen_height(),
 					   ":/vertex_shader.glsl" , ":/chromakey_fragment_shader.glsl",
 					   "Standard Shader");
 
@@ -713,7 +712,6 @@ void GLDraw_3_0::renderToTmpFrameBuffer_nPass(GLuint src_texture,
 void GLDraw_3_0::uploadMainTexture(QImage *p, bool use_chromakey)
 {
 	// set vertex
-	int iw, ih;
 	redraw_required = true;
 	if(p == NULL) return;
 	//redraw_required = true;
@@ -721,50 +719,44 @@ void GLDraw_3_0::uploadMainTexture(QImage *p, bool use_chromakey)
 	if(uVramTextureID == 0) {
 		uVramTextureID = p_wid->bindTexture(*p);
 	}
-	if(p != NULL) {
-		iw = p->width();
-		ih = p->height();
-	} else {
-		iw = using_flags->get_screen_width();
-		ih = using_flags->get_screen_height();
-	}
 	{
 		// Upload to main texture
 		extfunc->glBindTexture(GL_TEXTURE_2D, uVramTextureID);
 		extfunc->glTexSubImage2D(GL_TEXTURE_2D, 0,
-							 0, 0,
-							 p->width(), p->height(),
-							 GL_BGRA, GL_UNSIGNED_BYTE, p->constBits());
+								 0, 0,
+								 //screen_texture_width * 2,
+								 //screen_texture_height * 2,
+								 p->width(), p->height(),
+								 GL_BGRA, GL_UNSIGNED_BYTE, p->constBits());
 		extfunc->glBindTexture(GL_TEXTURE_2D, 0);
 	}
 	if(using_flags->is_support_tv_render() && (using_flags->get_config_ptr()->rendering_type == CONFIG_RENDER_TYPE_TV)) {
 		renderToTmpFrameBuffer_nPass(uVramTextureID,
-									 (low_resolution_screen) ? (screen_texture_width * 4) : (screen_texture_width * 2),
-									 screen_texture_height * 2,
+									 screen_texture_width,
+									 screen_texture_height,
 									 ntsc_pass1,
-									 (low_resolution_screen) ? (iw * 4) : (iw * 2),
-									 ih * 1);
+									 ntsc_pass1->getViewportWidth(),
+									 ntsc_pass1->getViewportHeight());
+		
 		renderToTmpFrameBuffer_nPass(ntsc_pass1->getTexture(),
-									 (low_resolution_screen) ? (iw * 4) : (iw * 2),
-									 ih * 1,
+									 ntsc_pass1->getViewportWidth(),
+									 ntsc_pass1->getViewportHeight(),
 									 ntsc_pass2,
-									 (low_resolution_screen) ? (iw * 2) : (iw * 1),
-									 ih * 1);
+									 ntsc_pass2->getViewportWidth(),
+									 ntsc_pass2->getViewportHeight());
 		uTmpTextureID = ntsc_pass2->getTexture();
 	} else {
 		renderToTmpFrameBuffer_nPass(uVramTextureID,
-									 screen_texture_width * 2,
-									 screen_texture_height * 2,
+									 screen_texture_width,
+									 screen_texture_height,
 									 std_pass,
-									 //(low_resolution_screen) ? (iw * 2) : (iw * 1),
-									 //ih * 2,
-									 iw,
-									 ih,
+									 std_pass->getViewportWidth(),
+									 std_pass->getViewportHeight(),
 									 use_chromakey);
 
-		std_pass->bind();
+		//std_pass->bind();
 		uTmpTextureID = std_pass->getTexture();
-		std_pass->release();
+		//std_pass->release();
 	}
 	crt_flag = true;
 }
