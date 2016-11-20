@@ -464,7 +464,7 @@ void EmuThreadClass::doWork(const QString &params)
 					int count_limit = (int)(FRAMES_PER_SEC / 3);
 #if defined(SUPPORT_TV_RENDER)
 					if(config.rendering_type == CONFIG_RENDER_TYPE_TV) {
-						count_limit = (int)(FRAMES_PER_SEC / 16);
+						count_limit = 0;
 					}
 #endif
 					if(no_draw_count > count_limit) {
