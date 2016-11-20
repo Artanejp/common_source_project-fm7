@@ -438,7 +438,8 @@ void GLDraw_3_0::initLocalGLObjects(void)
 					 vertexFormat, 4);
 	}
 	initPackedGLObject(&std_pass,
-					   _width / 2, _height * 2,
+					   //_width / 2, _height * 2,
+					   (low_resolution_screen) ? _width / 4 : _width / 2, _height,
 					   ":/vertex_shader.glsl" , ":/chromakey_fragment_shader.glsl",
 					   "Standard Shader");
 
@@ -752,11 +753,13 @@ void GLDraw_3_0::uploadMainTexture(QImage *p, bool use_chromakey)
 		uTmpTextureID = ntsc_pass2->getTexture();
 	} else {
 		renderToTmpFrameBuffer_nPass(uVramTextureID,
-									 (low_resolution_screen) ? (screen_texture_width * 2) : (screen_texture_width * 2),
+									 screen_texture_width * 2,
 									 screen_texture_height * 2,
 									 std_pass,
-									 (low_resolution_screen) ? (iw * 2) : (iw * 1),
-									 ih * 2,
+									 //(low_resolution_screen) ? (iw * 2) : (iw * 1),
+									 //ih * 2,
+									 iw,
+									 ih,
 									 use_chromakey);
 
 		std_pass->bind();

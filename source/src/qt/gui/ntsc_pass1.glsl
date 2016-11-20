@@ -100,9 +100,9 @@ void main() {
 	float i_mod = cos(mod_phase);
 	float q_mod = sin(mod_phase);
 
-	ycbcr.yz *= vec2(i_mod, q_mod); // Modulate
+	ycbcr *= vec3(1.0, i_mod, q_mod); // Modulate
 	ycbcr *= mix_mat; // Cross-talk
-	ycbcr.yz *= vec2(i_mod, q_mod); // Demodulate
+	ycbcr *= vec3(1.0, i_mod, q_mod); // Demodulate
 	//ycbcr = ycbcr + vec3(0.0, 0.5, 0.5);
 	gl_FragColor = vec4(ycbcr, 1.0);
 
