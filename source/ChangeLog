@@ -6,9 +6,9 @@
   * [OpenGL] Add Television like rendering to some machines. Needs OpenGL3.0 or upper.
   * [OpenGL] Isolate both GL3.0 and GL2.0.
   * [OpenGL] Improve internal of GLDraw and GLDraw_foo class.
-  * Built with 27ee1e6dbee9c40e249c65ac36c2a4f4c7fe0635 or newer.
+  * Built with 73358d8563543f1a0d860794a2f5c83cecb0d533 or newer.
 
--- Nov 20, 2016 23:04:31 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Nov 21, 2016 16:29:24 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT October 27, 2016
   * Upstream 2016-04-13

@@ -1,3 +1,15 @@
+commit 73358d8563543f1a0d860794a2f5c83cecb0d533
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 21 16:57:49 2016 +0900
+
+    [Qt][OpenGL] Fix crash with GL v2.0.
+
+commit 8cee7a303c8ac3bc12d16f5c6ba4eaa2094c3f6b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Nov 20 23:14:01 2016 +0900
+
+    [DOC] Update for RELEASE 2016-11-21.
+
 commit 27ee1e6dbee9c40e249c65ac36c2a4f4c7fe0635
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sun Nov 20 22:46:06 2016 +0900
