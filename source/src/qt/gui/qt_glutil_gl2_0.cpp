@@ -87,6 +87,9 @@ GLDraw_2_0::GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, EMU *emu) : QObject(
 	screen_width = 1.0;
 	screen_height = 1.0;
 
+	buffer_screen_vertex = NULL;
+	vertex_screen = NULL;
+
 	offscreen_frame_buffer = NULL;
 	offscreen_frame_buffer_format = NULL;
 	rec_count = 0;
@@ -402,8 +405,9 @@ void GLDraw_2_0::initLocalGLObjects(void)
 				main_shader->setUniformValue("color", c);
 			}
 			
-			buffer_screen_vertex->create();
+			//buffer_screen_vertex->create();
 			buffer_screen_vertex->setUsagePattern(QOpenGLBuffer::DynamicDraw);
+			vertex_screen->create();
 			
 			if(vertex_screen != NULL) vertex_screen->bind();
 			buffer_screen_vertex->bind();
@@ -415,6 +419,7 @@ void GLDraw_2_0::initLocalGLObjects(void)
 						 vertexFormat, 4);
 		}
 	}
+	initBitmapVAO();
 }
 
 void GLDraw_2_0::doSetGridsHorizonal(int lines, bool force)
@@ -577,7 +582,7 @@ void GLDraw_2_0::updateButtonTexture(void)
 void GLDraw_2_0::drawButtons()
 {
 	int i;
-	//updateButtonTexture();
+	updateButtonTexture();
 	for(i = 0; i < using_flags->get_max_button(); i++) {
 		QVector4D c;
 		VertexTexCoord_t vt[4];
@@ -677,7 +682,7 @@ void GLDraw_2_0::drawMain(QOpenGLShaderProgram *prg,
 	if(texid != 0) {
 		extfunc_2->glEnable(GL_TEXTURE_2D);
 
-		//extfunc_2->glViewport(0, 0, p_wid->width(), p_wid->height());
+		extfunc_2->glViewport(0, 0, p_wid->width(), p_wid->height());
 		extfunc_2->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
 		extfunc_2->glBindTexture(GL_TEXTURE_2D, texid);
 
@@ -787,6 +792,7 @@ void GLDraw_2_0::uploadMainTexture(QImage *p, bool use_chromakey)
 	{
 		if(use_chromakey) {
 			bool checkf = false;
+#if 0
 			if(vertex_screen == NULL) {
 				checkf = true;
 			} else {
@@ -817,6 +823,7 @@ void GLDraw_2_0::uploadMainTexture(QImage *p, bool use_chromakey)
 				crt_flag = true;
 				return;
 			}
+#endif
 		}
 		// Upload to main texture
 		if(uVramTextureID == 0) {
@@ -895,12 +902,15 @@ void GLDraw_2_0::resizeGL(int width, int height)
 	resizeGL_SetVertexs();
 	resizeGL_Screen();
 	if(using_flags->is_use_one_board_computer()) {
-		if(vertex_bitmap->isCreated()) {
-			setNormalVAO(bitmap_shader, vertex_bitmap,
-						 buffer_bitmap_vertex,
-						 vertexBitmap, 4);
+		if(vertex_bitmap != NULL) {
+			if(vertex_bitmap->isCreated()) {
+				setNormalVAO(bitmap_shader, vertex_bitmap,
+							 buffer_bitmap_vertex,
+							 vertexBitmap, 4);
+			}
 		}
-	}	
+	}
+
 	if(using_flags->get_max_button() > 0) {
 		updateButtonTexture();
 	}
@@ -910,7 +920,7 @@ void GLDraw_2_0::resizeGL(int width, int height)
 void GLDraw_2_0::paintGL(void)
 {
 	int i;
-	p_wid->makeCurrent();
+	//p_wid->makeCurrent();
 	if(crt_flag || redraw_required) { //return;
 		if(p_emu != NULL) {
 			crt_flag = false;
@@ -934,7 +944,7 @@ void GLDraw_2_0::paintGL(void)
 		}
 		extfunc_2->glFlush();
 	}
-	p_wid->doneCurrent();
+	//p_wid->doneCurrent();
 }
 
 void GLDraw_2_0::paintGL_OffScreen(int count, int w, int h)
