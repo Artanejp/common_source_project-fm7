@@ -260,8 +260,13 @@
 #define CPU_CLOCKS		2000000
 #endif
 
+# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77L4)
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		400
+#else
+#define SCREEN_WIDTH		640
+#define SCREEN_HEIGHT		200
+#endif
 #define WINDOW_HEIGHT_ASPECT 480
 #define HAS_MC6809              
 #define MB8877_MAX_CHIPS	1
