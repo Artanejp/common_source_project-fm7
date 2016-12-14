@@ -17,6 +17,7 @@ export PKG_CONFIG_LIBDIR=/usr/i686-w64-mingw32/lib
 	    -nomake examples \
 	    -nomake tests \
 	    -skip qtactiveqt \
+	    -no-eglfs \
 	    -L /usr/local/i586-mingw-msvc/Angle/lib \
 	    -I /usr/local/i586-mingw-msvc/Angle/include \
 	    -largefile \
