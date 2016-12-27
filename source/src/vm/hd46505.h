@@ -16,6 +16,7 @@
 
 class HD46505 : public DEVICE
 {
+
 private:
 	// output signals
 	outputs_t outputs_disp;
