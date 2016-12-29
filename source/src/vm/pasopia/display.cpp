@@ -397,7 +397,7 @@ void DISPLAY::draw_screen2_normal(uint16_t src)
 				uint8_t* font_base = &font[code_t << 3];
 				uint8_t p = is_graph[l] ? (attr[src_g] ? vram[src_g] : 0) : font_base[l];
 				src_g = (src_g + 0x800) & 0x3fff;
-				uint8_t c_p = is_graph[l] ? 7 : c_t[l];
+				uint8_t c_p = /*is_graph[l] ? 7 : */c_t[l];
 				uint8_t* d = &screen[y + l][x << 3];
 				
 				d[0] = (p & 0x80) ? c_p : c_b;
@@ -460,7 +460,7 @@ void DISPLAY::draw_screen2_wide(uint16_t src)
 				uint8_t* font_base = &font[code_t << 3];
 				uint8_t p = is_graph[l] ? (attr[src_g] ? vram[src_g] : 0) : font_base[l];
 				src_g = (src_g + 0x800) & 0x3fff;
-				uint8_t c_p = is_graph[l] ? 7 : c_t[l];
+				uint8_t c_p = /*is_graph[l] ? 7 : */c_t[l];
 				uint8_t* d = &screen[y + l][x << 4];
 				
 				d[ 0] = d[ 1] = (p & 0x80) ? c_p : c_b;

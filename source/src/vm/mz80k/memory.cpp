@@ -175,6 +175,11 @@ void MEMORY::event_vline(int v, int clock)
 		for(int x = 0; x < 320; x += 8) {
 			int code = vram[(ptr++) & 0x7ff] << 3;
 			uint8_t pat = pcg_active ? pcg_ptr[code | (v & 7)] : font[code | (v & 7)];
+			
+			// 8255(PIO) PC0 is /V-GATE 2016.11.21 by Suga
+			if((d_pio->read_io8(2) & 0x01) == 0x00) {
+				pat = 0x00;
+			}
 #if defined(_MZ1200) || defined(_MZ80A)
 			if(reverse) {
 				pat = ~pat;

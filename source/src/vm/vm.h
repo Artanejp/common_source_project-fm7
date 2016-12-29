@@ -440,6 +440,11 @@
 #include "scv/scv.h"
 #endif
 
+// SHARP SM-B-80TE
+#ifdef _SMB80TE
+#include "smb80te/smb80te.h"
+#endif
+
 // SONY SMC-70
 #ifdef _SMC70
 #include "smc777/smc777.h"

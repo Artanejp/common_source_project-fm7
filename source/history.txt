@@ -1,3 +1,14 @@
+12/29/2016
+
+[RESOURCE] recompress png files in https://tinypng.com/
+
+[EMU/DEBUGGER] support p command (trace one opcode, step-over)
+
+[MZ80K/MEMORY] support V-GATE signal (thanks Mr.Suga)
+[PASOPIA/DISPLAY] fix graphic color in screen 2 mode (thanks Mr.Kamei)
+[SMB80TE] support SHARP SM-B-80TE
+
+
 4/13/2016
 
 [WINMAIN] improve auto key for the case to switch upper/lowercase with capslock

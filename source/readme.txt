@@ -1,5 +1,5 @@
 retro pc emulator common source code
-								4/13/2016
+								12/29/2016
 
 --- What's this ?
 
@@ -102,6 +102,7 @@ This archive includes the all source codes of emulators listed below:
 		EmuZ-5500	MZ-5500
 		EmuZ-6500	MZ-6500
 		EmuZ-6550	MZ-6550 (work in progress)
+		eSM-B-80TE	SM-B-80TE
 		eX1		X1
 		eX1twin		X1twin
 		eX1turbo	X1turbo
@@ -337,4 +338,4 @@ See also COPYING.txt for more details about the license.
 ----------------------------------------
 TAKEDA, toshiya
 t-takeda@m1.interq.or.jp
-http://homepage3.nifty.com/takeda-toshiya/
+http://takeda-toshiya.my.coocan.jp/

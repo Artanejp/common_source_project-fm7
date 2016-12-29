@@ -572,13 +572,21 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 				} else {
 					my_printf(p->osd, _T("invalid parameter number\n"));
 				}
-			} else if(_tcsicmp(params[0], _T("G")) == 0) {
+			} else if(_tcsicmp(params[0], _T("G")) == 0 || _tcsicmp(params[0], _T("P")) == 0) {
 				if(num == 1 || num == 2) {
-					if(num >= 2) {
+					bool break_points_stored = false;
+					if(_tcsicmp(params[0], _T("P")) == 0) {
+						debugger->store_break_points();
+						debugger->bp.table[0].addr = (cpu->get_next_pc() + cpu->debug_dasm(cpu->get_next_pc(), buffer, 1024)) & prog_addr_mask;
+						debugger->bp.table[0].mask = prog_addr_mask;
+						debugger->bp.table[0].status = 1;
+						break_points_stored = true;
+					} else if(num >= 2) {
 						debugger->store_break_points();
 						debugger->bp.table[0].addr = my_hexatoi(params[1]) & prog_addr_mask;
 						debugger->bp.table[0].mask = prog_addr_mask;
 						debugger->bp.table[0].status = 1;
+						break_points_stored = true;
 					}
 					debugger->now_going = true;
 					debugger->now_suspended = false;
@@ -616,7 +624,9 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 					if(debugger->hit()) {
 						p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_INTENSITY);
 						if(debugger->bp.hit) {
-							my_printf(p->osd, _T("breaked at %08X\n"), cpu->get_next_pc());
+							if(_tcsicmp(params[0], _T("G")) == 0) {
+								my_printf(p->osd, _T("breaked at %08X\n"), cpu->get_next_pc());
+							}
 						} else if(debugger->rbp.hit) {
 							my_printf(p->osd, _T("breaked at %08X: memory %08X was read at %08X\n"), cpu->get_next_pc(), debugger->rbp.hit_addr, cpu->get_pc());
 						} else if(debugger->wbp.hit) {
@@ -631,7 +641,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 						p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_INTENSITY);
 						my_printf(p->osd, _T("breaked at %08X: esc key was pressed\n"), cpu->get_next_pc());
 					}
-					if(num >= 2) {
+					if(break_points_stored) {
 						debugger->restore_break_points();
 					}
 					p->osd->set_console_text_attribute(FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
@@ -767,7 +777,8 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 				
 				my_printf(p->osd, _T("G - go (press esc key to break)\n"));
 				my_printf(p->osd, _T("G <address> - go and break at address\n"));
-				my_printf(p->osd, _T("T [<count>] - trace\n"));
+				my_printf(p->osd, _T("P - trace one opcode (step over)\n"));
+				my_printf(p->osd, _T("T [<count>] - trace (step in)\n"));
 				my_printf(p->osd, _T("Q - quit\n"));
 				
 				my_printf(p->osd, _T("> <filename> - output logfile\n"));

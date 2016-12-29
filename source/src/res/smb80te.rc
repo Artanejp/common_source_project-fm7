@@ -1,0 +1,154 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Japanese resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
+#ifdef _WIN32
+LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
+#pragma code_page(932)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // Japanese resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDR_ACCELERATOR1 ACCELERATORS DISCARDABLE 
+BEGIN
+    VK_RETURN,      ID_ACCEL_SCREEN,        VIRTKEY, ALT, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MENU1 MENU DISCARDABLE 
+BEGIN
+    POPUP "Control"
+    BEGIN
+        MENUITEM "Reset",                       ID_RESET
+        MENUITEM SEPARATOR
+        MENUITEM "SW: ADRS SW 8000",            ID_DIPSWITCH0
+        MENUITEM SEPARATOR
+        MENUITEM "CPU x1",                      ID_CPU_POWER0
+        MENUITEM "CPU x2",                      ID_CPU_POWER1
+        MENUITEM "CPU x4",                      ID_CPU_POWER2
+        MENUITEM "CPU x8",                      ID_CPU_POWER3
+        MENUITEM "CPU x16",                     ID_CPU_POWER4
+//        MENUITEM SEPARATOR
+//        MENUITEM "Paste",                       ID_AUTOKEY_START
+//        MENUITEM "Stop",                        ID_AUTOKEY_STOP
+        MENUITEM SEPARATOR
+        MENUITEM "Save State",                  ID_SAVE_STATE
+        MENUITEM "Load State",                  ID_LOAD_STATE
+        MENUITEM SEPARATOR
+        MENUITEM "Debug Main CPU",              ID_OPEN_DEBUGGER0
+        MENUITEM "Close Debugger",              ID_CLOSE_DEBUGGER
+        MENUITEM SEPARATOR
+        MENUITEM "Exit",                        ID_EXIT
+    END
+    POPUP "CMT"
+    BEGIN
+        MENUITEM "Play",                        ID_PLAY_TAPE
+        MENUITEM "Rec",                         ID_REC_TAPE
+        MENUITEM "Eject",                       ID_CLOSE_TAPE
+//        MENUITEM SEPARATOR
+//        MENUITEM "Play Tape Sound",             ID_PLAY_TAPE_SOUND
+//        MENUITEM "Waveform Shaper",             ID_USE_WAVE_SHAPER
+        MENUITEM SEPARATOR
+        MENUITEM "Recent",                      ID_RECENT_TAPE
+    END
+    POPUP "RAM"
+    BEGIN
+        MENUITEM "Load",                        ID_LOAD_BINARY1
+        MENUITEM "Save",                        ID_SAVE_BINARY1
+        MENUITEM SEPARATOR
+        MENUITEM "Recent",                      ID_RECENT_BINARY1
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+IDI_BITMAP1             IMAGE   DISCARDABLE     "smb80te.png"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON1               ICON    DISCARDABLE     "smb80te.ico"
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

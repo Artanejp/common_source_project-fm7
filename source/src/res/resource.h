@@ -1284,6 +1284,13 @@
 #define MENU_POS_INPUT                  4
 #endif
 
+// SHARP SM-B-80TE
+#ifdef _SMB80TE
+#define MENU_POS_CONTROL                0
+#define MENU_POS_TAPE                   1
+#define MENU_POS_BINARY1                2
+#endif
+
 // SONY SMC-70
 #ifdef _SMC70
 #define MENU_POS_CONTROL                0

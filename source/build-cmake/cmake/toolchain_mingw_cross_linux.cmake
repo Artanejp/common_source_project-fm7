@@ -24,14 +24,14 @@ if(USE_SDL2)
    SET(CMAKE_FIND_ROOT_PATH  /usr/i686-w64-mingw32 
                           /usr/local/i586-mingw-msvc
                           /usr/local/i586-mingw-msvc/SDL2/i686-w64-mingw32
-			  /usr/local/i586-mingw-msvc/5.7/mingw_611
+			  /usr/local/i586-mingw-msvc/5.7.1/mingw_621
 #			  /usr/local/i586-mingw-msvc/5.5/mingw_530_win32
 			  )
 else()
    SET(CMAKE_FIND_ROOT_PATH  /usr/i686-w64-mingw32 
                           /usr/local/i586-mingw-msvc
                           /usr/local/i586-mingw-msvc/SDL1/
-			  /usr/local/i586-mingw-msvc/5.7/mingw_611
+			  /usr/local/i586-mingw-msvc/5.7.1/mingw_621
 #			  /usr/local/i586-mingw-msvc/5.5/mingw_530_win32
 			  )
 endif()

@@ -307,6 +307,10 @@ devenv.com scv.vcproj /Rebuild Release
 mkdir build_xp\scv
 copy Release\scv.exe build_xp\scv\.
 
+devenv.com smb80te.vcproj /Rebuild Release
+mkdir build_xp\smb80te
+copy Release\smb80te.exe build_xp\smb80te\.
+
 devenv.com smc70.vcproj /Rebuild Release
 devenv.com smc777.vcproj /Rebuild Release
 mkdir build_xp\smc777
