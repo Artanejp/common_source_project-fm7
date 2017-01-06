@@ -12,16 +12,15 @@
 #include <Qt>
 #include <QKeyEvent>
 #include <QThread>
-//#include "emu.h"
-//#include "vm/vm.h"
+
+
 #include "config.h"
 #include "fileio.h"
 
 #include "qt_input.h"
 #include "qt_gldraw.h"
 #include "qt_main.h"
-//#include "menuclasses.h"
-//#include "csp_logger.h"
+#include "csp_logger.h"
 #include "menu_flags.h"
 
 #ifndef Ulong
@@ -269,14 +268,15 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
 	uint32_t scan;
 	uint32_t vk;
    
+	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_KEYBOARD, "Key_DOWN_IN: count=%d key=%08x MOD=%08x", event->count(), key, mod);
 	if(event->isAutoRepeat()) return;
 	scan = event->nativeScanCode();
 	vk = get106Scancode2VK(scan);
 
+	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_KEYBOARD, "Key_DOWN_CONV: VK=%d SCAN=%04x MOD=%08x", vk, scan, mod);
 	if(using_flags->is_use_mouse()) {
 		if(vk == VK_APPS) { // Special key : capture/uncapture mouse.
 			emit sig_toggle_mouse();
-			//QThread::msleep(2);
 			return;
 		}
 	}
@@ -292,8 +292,6 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
 		}
 	}
 #endif
-	//QThread::msleep(2);
-	//printf("Key: DOWN: VK=%d SCAN=%04x MOD=%08x\n", vk, scan, mod);
 	emit sig_key_down(vk, mod, false);
 }
 

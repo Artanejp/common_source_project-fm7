@@ -210,7 +210,9 @@ void Ui_MainWindowBase::setupUi(void)
 		graphicsView->setMinimumSize(240, 192); // ?
 		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "GraphicsView OK");
 		graphicsView->setAttribute(Qt::WA_InputMethodEnabled, false); // Disable [Zenkaku / Hankaku] with IM.
-		graphicsView->setAttribute(Qt::WA_KeyboardFocusChange, false); 
+		graphicsView->setAttribute(Qt::WA_KeyboardFocusChange, false);
+		graphicsView->setAttribute(Qt::WA_KeyCompression, false);
+		
 		//graphicsView->setFocusPolicy(Qt::StrongFocus);
 		//this->setFocusPolicy(Qt::ClickFocus);
 	}
