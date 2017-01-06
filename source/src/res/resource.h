@@ -446,6 +446,15 @@
 #define MENU_POS_INPUT                  4
 #endif
 
+// COLECO ColecoVision
+#ifdef _COLECOVISION
+#define MENU_POS_CONTROL                0
+#define MENU_POS_CART1                  1
+#define MENU_POS_SCREEN                 2
+#define MENU_POS_SOUND                  3
+#define MENU_POS_INPUT                  4
+#endif
+
 // TOSHIBA EX-80
 #ifdef _EX80
 #define MENU_POS_CONTROL                0
