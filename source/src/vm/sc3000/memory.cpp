@@ -27,7 +27,7 @@
 
 void MEMORY::initialize()
 {
-	memset(cart, 0xff, sizeof(cart));
+//	memset(cart, 0xff, sizeof(cart));
 	memset(ipl, 0xff, sizeof(ipl));
 	memset(ram, 0, sizeof(ram));
 	memset(rdmy, 0xff, sizeof(rdmy));
@@ -41,17 +41,18 @@ void MEMORY::initialize()
 	delete fio;
 	
 	// set memory map
-	SET_BANK(0x0000, 0x1fff, ram + 0x0000, ipl);
-	SET_BANK(0x2000, 0x3fff, ram + 0x2000, rdmy);
-	SET_BANK(0x4000, 0xffff, ram + 0x4000, ram + 0x4000);
-	
-	inserted = false;
-	ram_selected = false;
+	close_cart();
 }
 
 void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
+	if(addr >= 0xfffd) {
+		if(bank[addr - 0xfffd] != 0xff) {
+			bank[addr - 0xfffd] = data;
+			update_bank();
+		}
+	}
 	wbank[addr >> 12][addr & 0xfff] = data;
 }
 
@@ -63,16 +64,10 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 
 void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
-	// from PIO-P6
-	ram_selected = ((data & mask) != 0);
-	
-	if(ram_selected) {
-		SET_BANK(0x0000, 0x3fff, ram, ram);
-	} else if(inserted) {
-		SET_BANK(0x0000, 0x3fff, wdmy, cart);
-	} else {
-		SET_BANK(0x0000, 0x1fff, ram + 0x0000, ipl);
-		SET_BANK(0x2000, 0x3fff, ram + 0x2000, rdmy);
+	if(id == SIG_MEMORY_SEL) {
+		// from PIO-P6
+		ram_selected = ((data & mask) != 0);
+		update_bank();
 	}
 }
 
@@ -83,12 +78,20 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 	if(fio->Fopen(file_path, FILEIO_READ_BINARY)) {
 		memset(cart, 0xff, sizeof(cart));
 		fio->Fread(cart, sizeof(cart), 1);
+		if(fio->Ftell() > 0x8000) {
+			// ホーム麻雀(32KB+16KB) or ロレッタの肖像(128KB)
+			bank[0] = 0;
+			bank[1] = 1;
+			bank[2] = 2;
+		} else {
+			bank[0] = bank[1] = bank[2] = 0xff;
+		}
 		fio->Fclose();
 		inserted = true;
 		ram_selected = false;
 		
 		// set memory map
-		SET_BANK(0x0000, 0x7fff, wdmy, cart);
+		update_bank();
 	}
 	delete fio;
 }
@@ -98,14 +101,42 @@ void MEMORY::close_cart()
 	memset(cart, 0xff, sizeof(cart));
 	inserted = false;
 	ram_selected = false;
+	bank[0] = bank[1] = bank[2] = 0xff;
 	
 	// set memory map
-	SET_BANK(0x0000, 0x1fff, ram + 0x0000, ipl);
-	SET_BANK(0x2000, 0x3fff, ram + 0x2000, rdmy);
-	SET_BANK(0x4000, 0x7fff, ram + 0x4000, ram + 0x4000);
+	update_bank();
 }
 
-#define STATE_VERSION	1
+void MEMORY::update_bank()
+{
+	if(!inserted) {
+		SET_BANK(0x0000, 0x1fff, ram + 0x0000, ipl);
+		SET_BANK(0x2000, 0x3fff, ram + 0x2000, rdmy);
+		SET_BANK(0x4000, 0xffff, ram + 0x4000, ram + 0x4000);
+	} else {
+		if(bank[0] == 0xff) {
+			SET_BANK(0x0000, 0x3fff, wdmy, cart + 0x0000);
+		} else {
+			SET_BANK(0x0000, 0x3fff, wdmy, cart + 0x4000 * (bank[0] & 7));
+		}
+		if(bank[1] == 0xff) {
+			SET_BANK(0x4000, 0x7fff, wdmy, cart + 0x4000);
+		} else {
+			SET_BANK(0x4000, 0x7fff, wdmy, cart + 0x4000 * (bank[1] & 7));
+		}
+		if(bank[2] == 0xff) {
+			SET_BANK(0x8000, 0xbfff, ram + 0x8000, ram + 0x8000);
+		} else {
+			SET_BANK(0x8000, 0xbfff, wdmy, cart + 0x4000 * (bank[2] & 7));
+		}
+		SET_BANK(0xc000, 0xffff, ram + 0xc000, ram + 0xc000);
+	}
+	if(ram_selected) {
+		SET_BANK(0x0000, 0x3fff, ram, ram);
+	}
+}
+
+#define STATE_VERSION	2
 
 void MEMORY::save_state(FILEIO* state_fio)
 {
@@ -115,6 +146,7 @@ void MEMORY::save_state(FILEIO* state_fio)
 	state_fio->Fwrite(ram, sizeof(ram), 1);
 	state_fio->FputBool(inserted);
 	state_fio->FputBool(ram_selected);
+	state_fio->Fwrite(bank, sizeof(bank), 1);
 }
 
 bool MEMORY::load_state(FILEIO* state_fio)
@@ -128,18 +160,11 @@ bool MEMORY::load_state(FILEIO* state_fio)
 	state_fio->Fread(ram, sizeof(ram), 1);
 	inserted = state_fio->FgetBool();
 	ram_selected = state_fio->FgetBool();
+	state_fio->Fread(bank, sizeof(bank), 1);
 	
 	// post process
-	if(inserted) {
-		SET_BANK(0x0000, 0x7fff, wdmy, cart);
-	} else {
-		SET_BANK(0x0000, 0x1fff, ram + 0x0000, ipl);
-		SET_BANK(0x2000, 0x3fff, ram + 0x2000, rdmy);
-		SET_BANK(0x4000, 0x7fff, ram + 0x4000, ram + 0x4000);
-	}
-	if(ram_selected) {
-		SET_BANK(0x0000, 0x3fff, ram, ram);
-	}
+	update_bank();
+	
 	return true;
 }
 

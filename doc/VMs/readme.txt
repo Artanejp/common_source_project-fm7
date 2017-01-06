@@ -1,5 +1,5 @@
 Binary archive of retro pc emulator common source code
-								4/13/2016
+								12/30/2016
 
 --- What's this ?
 
@@ -17,6 +17,8 @@ This archive includes the binaries of the emulators listed below:
 		eFP-1100	FP-1100
 		ePV-1000	PV-1000
 		EmuGaki		PV-2000
+	COLECO
+		yaCOLECOVISION	ColecoVision
 	EPOCH
 		eSCV		Super Cassette Vision
 	EPSON
@@ -100,6 +102,7 @@ This archive includes the binaries of the emulators listed below:
 		EmuZ-3500	MZ-3500
 		EmuZ-5500	MZ-5500
 		EmuZ-6500	MZ-6500
+		eSM-B-80TE	SM-B-80TE
 		eX1		X1
 		eX1twin		X1twin
 		eX1turbo	X1turbo
@@ -345,6 +348,8 @@ Save/Load State info:
 - vm/bmjr/*
 	bm2 by Mr.maruhiro
 	Mr.Enri for HITACH BASIC Master Jr hardware design info
+- vm/colecovision/*
+	yaCOLECOVISION by Mr.tanam
 - vm/familybasic
 	nester by Mr.Darren Ranalli
 - vm/fm7/*
@@ -434,4 +439,4 @@ Save/Load State info:
 ----------------------------------------
 TAKEDA, toshiya
 t-takeda@m1.interq.or.jp
-http://homepage3.nifty.com/takeda-toshiya/
+http://takeda-toshiya.my.coocan.jp/

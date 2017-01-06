@@ -1,5 +1,5 @@
 retro pc emulator common source code
-								12/29/2016
+								12/30/2016
 
 --- What's this ?
 
@@ -17,6 +17,8 @@ This archive includes the all source codes of emulators listed below:
 		eFP-1100	FP-1100
 		ePV-1000	PV-1000
 		EmuGaki		PV-2000
+	COLECO
+		yaCOLECOVISION	ColecoVision
 	EPOCH
 		eSCV		Super Cassette Vision
 	EPSON
@@ -249,6 +251,8 @@ See also COPYING.txt for more details about the license.
 - vm/bmjr/*
 	bm2 by Mr.maruhiro
 	Mr.Enri for HITACH BASIC Master Jr hardware design info
+- vm/colecovision/*
+	yaCOLECOVISION by Mr.tanam
 - vm/familybasic
 	nester by Mr.Darren Ranalli
 - vm/fm7/*

@@ -1641,7 +1641,10 @@ void open_cart_dialog(HWND hWnd, int drv)
 {
 	_TCHAR* path = get_open_file_name(
 		hWnd,
-#if defined(_GAMEGEAR)
+#if defined(_COLECOVISION)
+		_T("Supported Files (*.rom;*.bin;*.hex;*.col)\0*.rom;*.bin;*.hex;*.col\0All Files (*.*)\0*.*\0\0"),
+		_T("Game Cartridge"),
+#elif defined(_GAMEGEAR)
 		_T("Supported Files (*.rom;*.bin;*.hex;*.gg;*.col)\0*.rom;*.bin;*.hex;*.gg;*.col\0All Files (*.*)\0*.*\0\0"),
 		_T("Game Cartridge"),
 #elif defined(_MASTERSYSTEM)
@@ -1653,6 +1656,9 @@ void open_cart_dialog(HWND hWnd, int drv)
 #elif defined(_PCENGINE) || defined(_X1TWIN)
 		_T("Supported Files (*.rom;*.bin;*.hex;*.pce)\0*.rom;*.bin;*.hex;*.pce\0All Files (*.*)\0*.*\0\0"),
 		_T("HuCARD"),
+#elif defined(_SC3000)
+		_T("Supported Files (*.rom;*.bin;*.hex;*.sc;*.sg)\0*.rom;*.bin;*.hex;*.sc;*.sg\0All Files (*.*)\0*.*\0\0"),
+		_T("Game Cartridge"),
 #else
 		_T("Supported Files (*.rom;*.bin;*.hex)\0*.rom;*.bin;*.hex\0All Files (*.*)\0*.*\0\0"), 
 		_T("Game Cartridge"),
@@ -1953,6 +1959,8 @@ void open_any_file(const _TCHAR* path)
 	if(check_file_extension(path, _T(".rom")) || 
 	   check_file_extension(path, _T(".bin")) || 
 	   check_file_extension(path, _T(".hex")) || 
+	   check_file_extension(path, _T(".sc" )) || 
+	   check_file_extension(path, _T(".sg" )) || 
 	   check_file_extension(path, _T(".gg" )) || 
 	   check_file_extension(path, _T(".col")) || 
 	   check_file_extension(path, _T(".sms")) || 

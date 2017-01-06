@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="sc3000"
+	Name="colecovision"
 	ProjectGUID="{26207C6A-4A3C-4BE2-A3D6-C8A2FF886A96}"
-	RootNamespace="sc3000"
+	RootNamespace="colecovision"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -43,17 +43,17 @@
 				MkTypLibCompatible="true"
 				SuppressStartupBanner="true"
 				TargetEnvironment="1"
-				TypeLibraryName=".\Debug/sc3000.tlb"
+				TypeLibraryName=".\Debug/colecovision.tlb"
 				HeaderFileName=""
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_SC3000"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_COLECOVISION"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				PrecompiledHeaderFile=".\Debug/sc3000.pch"
+				PrecompiledHeaderFile=".\Debug/colecovision.pch"
 				AssemblerListingLocation=".\Debug/"
 				ObjectFile=".\Debug/"
 				ProgramDataBaseFileName=".\Debug/"
@@ -76,11 +76,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="odbc32.lib odbccp32.lib winmm.lib imm32.lib"
-				OutputFile=".\Debug/sc3000.exe"
+				OutputFile=".\Debug/colecovision.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\Debug/sc3000.pdb"
+				ProgramDatabaseFile=".\Debug/colecovision.pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -98,7 +98,7 @@
 			<Tool
 				Name="VCBscMakeTool"
 				SuppressStartupBanner="true"
-				OutputFile=".\Debug/sc3000.bsc"
+				OutputFile=".\Debug/colecovision.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -138,19 +138,19 @@
 				MkTypLibCompatible="true"
 				SuppressStartupBanner="true"
 				TargetEnvironment="1"
-				TypeLibraryName=".\Release/sc3000.tlb"
+				TypeLibraryName=".\Release/colecovision.tlb"
 				HeaderFileName=""
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="2"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_SC3000"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_COLECOVISION"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				EnableEnhancedInstructionSet="2"
-				PrecompiledHeaderFile=".\Release/sc3000.pch"
+				PrecompiledHeaderFile=".\Release/colecovision.pch"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
 				ProgramDataBaseFileName=".\Release/"
@@ -172,10 +172,10 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="odbc32.lib odbccp32.lib winmm.lib imm32.lib"
-				OutputFile=".\Release/sc3000.exe"
+				OutputFile=".\Release/colecovision.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				ProgramDatabaseFile=".\Release/sc3000.pdb"
+				ProgramDatabaseFile=".\Release/colecovision.pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -193,7 +193,7 @@
 			<Tool
 				Name="VCBscMakeTool"
 				SuppressStartupBanner="true"
-				OutputFile=".\Release/sc3000.bsc"
+				OutputFile=".\Release/colecovision.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -468,87 +468,7 @@
 				Filter="cpp"
 				>
 				<File
-					RelativePath="..\src\vm\datarec.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\src\vm\disk.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
 					RelativePath="..\src\vm\event.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\src\vm\i8251.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\src\vm\i8255.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -628,26 +548,6 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\src\vm\upd765a.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
 					RelativePath="..\src\vm\z80.cpp"
 					>
 					<FileConfiguration
@@ -673,7 +573,7 @@
 				Filter="cpp"
 				>
 				<File
-					RelativePath="..\src\vm\sc3000\keyboard.cpp"
+					RelativePath="..\src\vm\colecovision\keyboard.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -693,7 +593,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\src\vm\sc3000\memory.cpp"
+					RelativePath="..\src\vm\colecovision\memory.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -713,7 +613,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\src\vm\sc3000\sc3000.cpp"
+					RelativePath="..\src\vm\colecovision\colecovision.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -777,10 +677,6 @@
 				Filter="h"
 				>
 				<File
-					RelativePath="..\src\vm\datarec.h"
-					>
-				</File>
-				<File
 					RelativePath="..\src\vm\debugger.h"
 					>
 				</File>
@@ -789,19 +685,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\src\vm\disk.h"
-					>
-				</File>
-				<File
 					RelativePath="..\src\vm\event.h"
-					>
-				</File>
-				<File
-					RelativePath="..\src\vm\i8251.h"
-					>
-				</File>
-				<File
-					RelativePath="..\src\vm\i8255.h"
 					>
 				</File>
 				<File
@@ -814,10 +698,6 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\tms9918a.h"
-					>
-				</File>
-				<File
-					RelativePath="..\src\vm\upd765a.h"
 					>
 				</File>
 				<File
@@ -834,15 +714,15 @@
 				Filter="h"
 				>
 				<File
-					RelativePath="..\src\vm\sc3000\keyboard.h"
+					RelativePath="..\src\vm\colecovision\keyboard.h"
 					>
 				</File>
 				<File
-					RelativePath="..\src\vm\sc3000\memory.h"
+					RelativePath="..\src\vm\colecovision\memory.h"
 					>
 				</File>
 				<File
-					RelativePath="..\src\vm\sc3000\sc3000.h"
+					RelativePath="..\src\vm\colecovision\colecovision.h"
 					>
 				</File>
 			</Filter>
@@ -856,11 +736,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\sc3000.ico"
+				RelativePath="..\src\res\colecovision.ico"
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\sc3000.rc"
+				RelativePath="..\src\res\colecovision.rc"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"

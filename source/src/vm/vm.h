@@ -20,6 +20,11 @@
 #include "bmjr/bmjr.h"
 #endif
 
+// COLECO ColecoVision
+#ifdef _COLECOVISION
+#include "colecovision/colecovision.h"
+#endif
+
 // TOSHIBA EX-80
 #ifdef _EX80
 #include "ex80/ex80.h"

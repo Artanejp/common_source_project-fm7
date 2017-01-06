@@ -83,19 +83,7 @@
     <ClCompile Include="..\src\win32\winmain.cpp">
       <Filter>Source Files\OSD Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\vm\datarec.cpp">
-      <Filter>Source Files\VM Common Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\vm\disk.cpp">
-      <Filter>Source Files\VM Common Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\vm\event.cpp">
-      <Filter>Source Files\VM Common Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\vm\i8251.cpp">
-      <Filter>Source Files\VM Common Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\vm\i8255.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\vm\io.cpp">
@@ -107,19 +95,16 @@
     <ClCompile Include="..\src\vm\tms9918a.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\vm\upd765a.cpp">
-      <Filter>Source Files\VM Common Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\vm\z80.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\vm\sc3000\keyboard.cpp">
+    <ClCompile Include="..\src\vm\colecovision\keyboard.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\vm\sc3000\memory.cpp">
+    <ClCompile Include="..\src\vm\colecovision\memory.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\vm\sc3000\sc3000.cpp">
+    <ClCompile Include="..\src\vm\colecovision\colecovision.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -142,25 +127,13 @@
     <ClInclude Include="..\src\win32\osd.h">
       <Filter>Header Files\OSD Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\vm\datarec.h">
-      <Filter>Header Files\VM Common Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\vm\debugger.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\device.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\vm\disk.h">
-      <Filter>Header Files\VM Common Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\vm\event.h">
-      <Filter>Header Files\VM Common Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\vm\i8251.h">
-      <Filter>Header Files\VM Common Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\vm\i8255.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\io.h">
@@ -172,22 +145,19 @@
     <ClInclude Include="..\src\vm\tms9918a.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\vm\upd765a.h">
-      <Filter>Header Files\VM Common Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\vm\vm.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\z80.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\vm\sc3000\keyboard.h">
+    <ClInclude Include="..\src\vm\colecovision\keyboard.h">
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\vm\sc3000\memory.h">
+    <ClInclude Include="..\src\vm\colecovision\memory.h">
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\vm\sc3000\sc3000.h">
+    <ClInclude Include="..\src\vm\colecovision\colecovision.h">
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\res\resource.h">
@@ -195,12 +165,12 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\src\res\sc3000.ico">
+    <Image Include="..\src\res\colecovision.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\src\res\sc3000.rc">
+    <ResourceCompile Include="..\src\res\colecovision.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
