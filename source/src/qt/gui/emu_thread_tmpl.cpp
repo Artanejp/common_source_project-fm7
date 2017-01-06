@@ -192,6 +192,7 @@ void EmuThreadClassBase::do_key_down(uint32_t vk, uint32_t mod, bool repeat)
 			if((vk == VK_F12)) {
 				romakana_conversion_mode = !romakana_conversion_mode;
 				//emit sig_romakana_mode(romakana_conversion_mode);
+				return;
 			}
 			if(roma_kana_ptr < (sizeof(roma_kana_buffer) / sizeof(_TCHAR)) &&
 			   (((vk >= 'A') && (vk <= 'z')) ||
@@ -200,23 +201,6 @@ void EmuThreadClassBase::do_key_down(uint32_t vk, uint32_t mod, bool repeat)
 				(vk == VK_OEM_PERIOD) || (vk == VK_OEM_MINUS)) &&
 				romakana_conversion_mode) {
 				return;
-			} else {
-				if(roma_kana_ptr > (sizeof(roma_kana_buffer) / sizeof(_TCHAR))) roma_kana_ptr = sizeof(roma_kana_buffer) / sizeof(_TCHAR);
-				key_queue_t ssp;
-				for(int i = 0; i < roma_kana_ptr; i++) {
-					ssp.code = roma_kana_shadow[i];
-					ssp.mod = mod;
-					enqueue_key_down(ssp);
-					enqueue_key_up(ssp);
-				}
-				//ssp.code = VK_SHIFT;
-				//ssp.mod = mod & ~(Qt::ShiftModifier);
-				//ssp.repeat = false;
-				//key_down_queue.enqueue(ssp);
-				//key_up_queue.enqueue(ssp);
-				memset(roma_kana_shadow, 0x00, sizeof(roma_kana_shadow));
-				memset(roma_kana_buffer, 0x00, sizeof(roma_kana_buffer));
-				roma_kana_ptr = 0;
 			}
 		}
 	}
