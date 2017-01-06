@@ -258,8 +258,9 @@ void Ui_MainWindow::LaunchEmuThread(void)
 #ifdef ONE_BOARD_MICRO_COMPUTER
 	QImageReader *reader = new QImageReader(":/background.png");
 	QImage *result = new QImage(reader->read()); // this acts as a default if the size is not matched
-	glv->updateBitmap(result);
-	emu->get_osd()->upload_bitmap(result);
+	QImage result2 = result->convertToFormat(QImage::Format_ARGB32);
+	glv->updateBitmap(&result2);
+	emu->get_osd()->upload_bitmap(&result2);
 	delete result;
 	delete reader;
 	emu->get_osd()->set_buttons();

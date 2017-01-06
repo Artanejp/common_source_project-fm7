@@ -280,10 +280,12 @@ void OSD_BASE::set_buttons()
 	QRgb pixel;
 	if(vm_buttons_d != NULL) {
 		for(int ii = 0; ii < using_flags->get_max_button(); ii++) {
-			for(int yy = 0; yy < button_images[ii].height(); yy++) {
-				for(int xx = 0; xx < button_images[ii].width(); xx++) {
+			for(int yy = 0; yy < vm_buttons_d[ii].width; yy++) {
+				for(int xx = 0; xx < vm_buttons_d[ii].height; xx++) {
 					pixel = button_images[ii].pixel(xx, yy);
-					background_image.setPixel(xx + vm_buttons_d[ii].x, yy + vm_buttons_d[ii].y, pixel);
+					int xxx = vm_buttons_d[ii].x + xx;
+					int yyy = vm_buttons_d[ii].y + yy;
+					background_image.setPixel(xxx, yyy, pixel);
 				}
 			}
 		}
@@ -331,6 +333,7 @@ int OSD_BASE::add_video_frames()
 		QRgb pixel;
 		int ww = video_result->width();
 		int hh = video_result->height();
+		printf("%d x %d\n", ww, hh);
 		for(int yy = 0; yy < hh; yy++) {
 			for(int xx = 0; xx < ww; xx++) {
 				pixel = video_result->pixel(xx, yy);

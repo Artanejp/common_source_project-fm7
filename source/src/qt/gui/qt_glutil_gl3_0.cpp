@@ -428,10 +428,17 @@ void GLDraw_3_0::initLocalGLObjects(void)
 	vertexFormat[3].s = 0.0f;
 	vertexFormat[3].t = 0.0f;
 
-	initPackedGLObject(&main_pass,
-					   using_flags->get_screen_width() * 2, using_flags->get_screen_height() * 2,
-					   ":/vertex_shader.glsl" , ":/fragment_shader.glsl",
-					   "Main Shader");
+	if(using_flags->is_use_one_board_computer() || (using_flags->get_max_button() > 0)) {
+		initPackedGLObject(&main_pass,
+						   using_flags->get_screen_width() * 2, using_flags->get_screen_height() * 2,
+						   ":/vertex_shader.glsl" , ":/chromakey_fragment_shader2.glsl",
+						   "Main Shader");
+	} else {
+		initPackedGLObject(&main_pass,
+						   using_flags->get_screen_width() * 2, using_flags->get_screen_height() * 2,
+						   ":/vertex_shader.glsl" , ":/fragment_shader.glsl",
+						   "Main Shader");
+	}		
 	if(main_pass != NULL) {
 		setNormalVAO(main_pass->getShader(), main_pass->getVAO(),
 					 main_pass->getVertexBuffer(),
@@ -764,10 +771,9 @@ void GLDraw_3_0::uploadMainTexture(QImage *p, bool use_chromakey)
 void GLDraw_3_0::drawScreenTexture(void)
 {
 	if(using_flags->is_use_one_board_computer()) {
-		if(uBitmapTextureID != 0) {
-			extfunc->glEnable(GL_BLEND);
-			extfunc->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		}
+		extfunc->glEnable(GL_BLEND);
+		extfunc->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		//extfunc->glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
 	} else {
 		extfunc->glDisable(GL_BLEND);
 	}
@@ -778,12 +784,17 @@ void GLDraw_3_0::drawScreenTexture(void)
 		color = QVector4D(fBrightR, fBrightG, fBrightB, 1.0);
 	} else {
 		color = QVector4D(1.0, 1.0, 1.0, 1.0);
-	}			
-	drawMain(main_pass,
-			 uTmpTextureID, // v2.0
-			 color, smoosing);
+	}
 	if(using_flags->is_use_one_board_computer()) {
+		drawMain(main_pass,
+				 uTmpTextureID, // v2.0
+				 color, smoosing,
+				 true, QVector3D(0.0, 0.0, 0.0));	
 		extfunc->glDisable(GL_BLEND);
+	} else {
+		drawMain(main_pass,
+				 uTmpTextureID, // v2.0
+				 color, smoosing);	
 	}
 }
 
@@ -909,6 +920,10 @@ void GLDraw_3_0::drawButtonsMain(int num, bool f_smoosing)
 			if(ii >= 0) {
 				prg->setUniformValue(ii,  color);
 			}
+			ii = prg->uniformLocation("do_chromakey");
+			if(ii >= 0) {
+				prg->setUniformValue(ii, GL_FALSE);
+			}
 			if(using_flags->is_use_screen_rotate()) {
 				if(using_flags->get_config_ptr()->rotate_type) {
 					prg->setUniformValue("rotate", GL_TRUE);
@@ -917,10 +932,6 @@ void GLDraw_3_0::drawButtonsMain(int num, bool f_smoosing)
 				}
 			} else {
 				prg->setUniformValue("rotate", GL_FALSE);
-			}
-			ii = prg->uniformLocation("do_chromakey");
-			if(ii >= 0) {
-				prg->setUniformValue(ii, GL_FALSE);
 			}
 			int vertex_loc = prg->attributeLocation("vertex");
 			int texcoord_loc = prg->attributeLocation("texcoord");
