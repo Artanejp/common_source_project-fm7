@@ -1,0 +1,7 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file alias="default.ico">../../../res/smb80te.ico</file>
+    <file alias="background.png">../../../res/smb80te.png</file>
+    <file alias="bios_and_keys.txt">../../../../../doc/VMs/smb80te.txt</file>
+</qresource>
+</RCC>

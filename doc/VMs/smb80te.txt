@@ -1,0 +1,27 @@
+"eSM-B-80TE" - SHARP SM-B-80TE Emulator for Win32
+								12/29/2015
+
+--- Internal ROM images
+
+	MON.ROM		$8000-$87FF
+	USER.ROM	$8800-$8FFF (optional)
+
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	RUN		F1
+	STEP		F2
+	LD/INC		F3 or PgUp
+	STOR/DEC	F4 or PgDn
+	SHIFT		F5 or Shift
+	REG'/REG	F6
+	ADRS		F7
+	WR		F8 or Enter
+	0-9,A-F		0-9,A-F
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://takeda-toshiya.my.coocan.jp/

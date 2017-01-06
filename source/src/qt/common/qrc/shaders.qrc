@@ -4,6 +4,7 @@
     <file alias="tmp_vertex_shader.glsl">../../gui/tmp_vertex_shader.glsl</file>
     <file alias="normal_fragment_shader.glsl">../../gui/normal_fragment_shader.glsl</file>
     <file alias="chromakey_fragment_shader.glsl">../../gui/chromakey_fragment_shader.glsl</file>
+    <file alias="chromakey_fragment_shader2.glsl">../../gui/chromakey_fragment_shader2.glsl</file>
     <file alias="vertex_shader.glsl">../../gui/vertex_shader.glsl</file>
     <file alias="grids_fragment_shader.glsl">../../gui/grids_fragment_shader.glsl</file>
     <file alias="grids_vertex_shader.glsl">../../gui/grids_vertex_shader.glsl</file>
