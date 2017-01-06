@@ -90,7 +90,7 @@ void DISPLAY::draw_screen()
 	scrntype_t color_b = (mode & 2) ? RGB_COLOR(0, 0, 1) : RGB_COLOR(255, 255, 255);
 	int code_ofs = (mode & 1) << 8;
 	int ptr = 0;
-	
+
 	for(int y = 0; y < 128; y += 8) {
 		for(int x = 0; x < 256; x += 8) {
 			int code = vram[ptr++];
