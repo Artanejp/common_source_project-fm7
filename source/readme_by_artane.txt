@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                          Nov 21, 2016
+                                          Jan 06, 2017
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -11,7 +11,7 @@
    用意しています。
    
    ソースコード：
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20161121
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20170106
 
    追加情報:
     　各機種バイナリーは、osdn.net　もしくはミラーサイトより入手可能です。
@@ -109,124 +109,30 @@
       http://takeda-toshiya.my.coocan.jp/
 
 Changes:
+12/31/2016
 
-* SNAPSHOT November 21, 2016
-  * Upstream 2016-04-13
-  * [Linux] Build with Qt 5.5.1 . Abondon Qt 5.3 (If you need, build with your Qt or use binary of qt.io build version.)
-  * [OpenGL] Add Television like rendering to some machines. Needs OpenGL3.0 or upper.
-  * [OpenGL] Isolate both GL3.0 and GL2.0.
-  * [OpenGL] Improve internal of GLDraw and GLDraw_foo class.
-  * Built with 73358d8563543f1a0d860794a2f5c83cecb0d533 or newer.
+[COLECOVISION/KEYBOARD] fix not to raise irq when joystick is pressed
+[COLECOVISION/KEYBOARD] fix joystick/tenkey inputs
+[COLECOVISION/KEYBOARD] fix to save/load tenky enabled status
+[SC3000/MEMORY] support 32KB+16KB or 128KB ROM carts
 
--- Nov 21, 2016 16:29:24 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
-* SNAPSHOT October 27, 2016
-  * Upstream 2016-04-13
-  * [GENERAL] Add ROMAJI-KANA input assistant feature. see romakana.[en|ja].txt .
-  * [VM/SOUND] Fix wrong rendering period for PCM1BIT with some VMs.  Maybe fixed issue of http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/775 .
-  * [VM/EVENT] Re-entrant set_realtime_render().
-  * Built with FFMPEG(libav) 3.1.5 .
-  * Built with 006cc1d851483ea84fc5a3f4fa58cbf03302c49b or later.
+12/30/2016
 
--- Oct 27, 2016 17:01:21 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+[COLECOVISION] support COLECO ColecoVision (thanks Mr.tanam)
 
-* SNAPSHOT October 18, 2016
-  * Upstream 2016-04-13
-  * [VM/EVENT] Sound devices: Do mix_sound() dynamically, not do per a sample:
-  *            To reduce usage of host CPU. See event.[cpp|h] and device.h .
-  * [VM/FM7] Non-FM77AV*: Fix not clear active_page, fixed crash randomly.
-  * Built with 004920711399d430ead55e59c948e7fb7a04a402 or later.
 
--- Oct 18, 2016 11:22:05 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+12/29/2016
 
-* SNAPSHOT October 10, 2016
-  * Upstream 2016-04-13
-  * [VM] Add pseudo sounds (i.e. FDD seek), need sound files (even not WAV file at Qt porting), see doc/VMs/foo.txt . 
-  * [VM][DATAREC][FDCs] Update STATE_VERSION of some devices.
-  * [VM/FM7] VRAM: Make gcc using SIMD (when optimize options have set) to be faster rendering.
-  * [VM/X1,FM7] load_state(): Keep backward compatibility to SNAPSHOT 20160923.
-  * [VM/EVENT] Extend permitted sound events to 32 to use sound files (reserved feature).
-  * [VM/EVENT] Update MAX_SOUND from 8 to 16.
-  * [Qt/GUI] Win32: Fix crash launching with gdb/Mingw32 or gdb/Cygwin. See http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/750 .
-  * [Build/Linux] Fix wrong flags with LTO.
-  * [Build] Non-Win32 : Ready to build with llvm clang (later than 3.7?).
-  * [Build/GENERAL] Separate compiler depended params to source/build-cmake/param/ .
-  * Build with commit d100ae8323d6657fe37ac44a69abc8da470b77ad (or later).
+[RESOURCE] recompress png files in https://tinypng.com/
 
--- Oct 10, 2016 05:22:18 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+[EMU/DEBUGGER] support p command (trace one opcode, step-over)
 
-* SNAPSHOT September 23, 2016
-  * Upstream 2016-04-13
-  * [DOC] Translated some documents written in Japanese only to English using Google-Translate, still not enaugh to be corrected.
-  * [Qt/WIN32] Fix crash on startup (maybe true) caused by (´∀｀)＜ぬるぽ　ヽ(・∀・)ノ┌┛ガッΣ(ノ｀Д´)ノ
-  * [VM] Add original name and role to all device and VM components.
-  * [VM/FM7] JOYSTICK: Fix not redirect triggers.
-  * [VM/FM7][MB8877/DISK] Workaround for RIGLAS/FM-7. Perhaps, below have side-effect, add special-disk to RIGLAS FM.
-  ** Don't "NOT READY" even stopping motor.
-  ** Transfer even stopping motor.
-  * [EVENT] Remove logging on cancel event.
-  * [Qt/Debugger] Not hang-up when Opening debugger and exit emu{foo}. This is temporally workaround.
-  * [Qt/Debugger] Don't close with close button, this is temporally workaround.
-  * [UI/Qt] Fix selecting printers.
-  * [VM/PC9801] Add prepair of using ITF ROM, this is still only preparation.
-  * Built with GIT 8cdb1dbebf95d7371e514886c23edc6c9401848a (or later).
+[MZ80K/MEMORY] support V-GATE signal (thanks Mr.Suga)
+[PASOPIA/DISPLAY] fix graphic color in screen 2 mode (thanks Mr.Kamei)
+[SMB80TE] support SHARP SM-B-80TE
 
--- Sep 23, 2016 19:48:12 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
-* SNAPSHOT September 09, 2016
-  * Upstream 2016-04-13
-  * [LOGGER] Add extend logger.
-  * [LOGGER/Qt] Rename agar_logger.[cpp|h] to csp_logger.[cpp|h] .
-  * [VM] Ready to enable log per device.
-  * [VM] Update emu->out_debug_log to [DEVICE]->out_debug_log .
-  * [UI/Qt] Add log viewer window.
-  * [Qt/EMUTHREAD] Move commonly blocks to gui/ .
-  * [Qt/KEY] Use queue for keyin/out.
-  * [VM/OSD] Add socket (networking) featuers, but still not test (；´Д｀)
-  * [VM/FM77AV] MB61VH010 : Faster drawing lines.
-  * [VM/FM7] MAINIO: Comment out logging around FIRQ, temporally.
-  * [OSD/KEYBOARD] Fix handling around SHIFT for some machines(i.e. PC8801).
-  * [MOVIE_SAVER] Use SIMD to transfer a picture OSD(VM)->MOVIE_SAVER .
-  * [DOC] Update updtream's URL, moved to takeda-toshiya.my.coocan.jp .
-  * Built with GIT 1884b5247665d71c06fc6590b17434c5f3350ad5 (or later).
-
--- Sep 09, 2016 01:02:51 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
-
-* SNAPSHOT August 19, 2016
-  * Upstream 2016-04-13
-  * [WIN32] Replace libICU to homebrew, fix not starting.
-  * [OSD/MOVIE_SAVER] Fix frames to enqueue to MOVIUE_SAVER, as if VIDEO FPS >= RECORD FPS.
-  * [MOVIE_LOADER] Sync A/V on playing MOVIE.
-  * Built with GIT 77380a77b25ca06965b912c84509e5c91085aeb1 (or later) .
-
--- Aug 19, 2016 23:12:36 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
-
-* SNAPSHOT August 15, 2016
-  * Upstream 2016-04-13
-  * [OSD][MOVIE_SAVER] Maybe correctness frame(s) counting with 60fps ヽ(=´▽=)ﾉ
-  * [MOVIE_SAVER] Fix sometimes crashing when stop to save movie.
-  * [PX7/MOVIE_LOADER] Sound Laser Disc, but not be smooth.
-  * [MOVIE_SAVER][PC8801][PC9801] Adjust sound frequency when OVERRIDE_48000Hz , still choppy.
-  * Built with GIT 3f4c809912dc92cdeb34d8ecdebe0087aa7f37b3 (or later) .
- 
--- Aug 16, 2016 02:40:55 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
-
-* SNAPSHOT August 09, 2016
-  * Upstream 2016-04-13
-  * [PX7] Add movie loader for LD, but not tested enough yet.
-  * [MOVIE_SAVER/OpenGL] Add locking around drawing buffer.
-  * [BUILD] Update FFMPEG to 3.1.1 .
-  * [FFMPEG/LINUX] Enable OpenCL for ffmpeg @linux.You need libOpenCL.so.1 to use homebrew build.
-  * [FFMPEG/WIN32] Enable DXVA2 for video-decoding accelerator.
-  * [MOVIE_SAVER] Synchronous OPEN->ENCODEING->CLOSING.
-  * [UI/MOVIE_SAVER] DO NOT change state of "Save as movie" without *real* starting/stopping.
-  * [Draw/OpenGL] Optimize GLSL's by https://github.com/aras-p/glsl-optimizer .
-  * Built with GIT fc7a03a9337287414e00777464ab273c4f44ea44 (or later) .
- 
--- Aug 10, 2016 01:42:51 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
-
-Upstream changes:
------
 4/13/2016
 
 [WINMAIN] improve auto key for the case to switch upper/lowercase with capslock

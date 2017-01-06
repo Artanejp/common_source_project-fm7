@@ -1,3 +1,123 @@
+commit 9bfdcc78ff194a934a2d57ce6d4f1cbec9f26a58
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 6 19:42:30 2017 +0900
+
+    [General][Qt] Add Colecovision.
+
+commit 1121cd49986eaf421d05a2076a671e3e42643d7b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 6 19:28:49 2017 +0900
+
+    [VM][General] Add COLECOVISION . Still nbot implement UIs.
+
+commit 91b00fd772a22f45b5fc7c6521319c682c467ca8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 6 19:24:58 2017 +0900
+
+    [General][RES] Add resources for 20161231.
+
+commit bb88fa0594bb3e76a79b6941bfae574fbb56ab16
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 6 19:16:21 2017 +0900
+
+    [VC2013] Remove cleanup.bat .
+
+commit 65befd5af5a70ba35d1ade73e51ac98742d7a8b8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 6 19:14:53 2017 +0900
+
+    [TK80BS] .
+
+commit 054b636dc3f2609054a5c879f28b6acfe5b6da6e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 6 19:13:26 2017 +0900
+
+    [Qt][GL] One board computers: Correctness drawing with GL3.0.
+
+commit 5d3b69c91228be0e518a79c9db6c8a8a187e4b99
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 6 19:12:20 2017 +0900
+
+    [OSD][Draw][Qt] One board computers: Read correctly background PNG even using indexed colors.
+
+commit 1c13bfb07d802307064098e62d80910653c5feea
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 6 19:11:07 2017 +0900
+
+    [VM][General] Add Sharp SM-B-80TE .
+
+commit e9e1754835590021c43fec03c029e51da1c1e9fb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 6 15:39:11 2017 +0900
+
+    [EMU][Qt] ROMAKANA: Remove duplicated calling of conversion.Call only at key-up.
+
+commit f6c8abc14ca7f7a7912014665a3d7fbf0d5ed4de
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 6 15:37:32 2017 +0900
+
+    [Qt][KEYBOARD] Disable key compression event , use event-by-input for keyboard.Expect to fix crash with any input situations.
+
+commit 40b1d23c60a358ec7772a82e9a023b27d3876fe0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 29 23:42:48 2016 +0900
+
+    [General] Replace PNGs to latest upstream.
+
+commit cd0e647ad0eff8431569d7f12301db4b2d30defa
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 29 23:39:21 2016 +0900
+
+    [General] Merge Upstream 2016-12-29.SMB80TE was not tested yet.
+
+commit 021ec7e7ae711096a212254e2293a3210702ae15
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Dec 28 04:25:03 2016 +0900
+
+    [HD46505] .
+
+commit 17c94db646cf461cc78f0fbcc1d0dba728413ac6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Dec 28 04:24:12 2016 +0900
+
+    [VM][Towns] Initial start.Still not working.
+
+commit 24e0fc31dc923f05e396495af7016708f189963a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 15 03:36:49 2016 +0900
+
+    [WIN32][Qt] Cross-Build Qt libs: disable EGLFS (not EGL).
+
+commit 2ff49ae1df15f25a87a623dc373befd6e4909e98
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 15 03:04:05 2016 +0900
+
+    [Build][Qt][CROSS][WIN32] Qt script to build: Add Angle as GLES.
+
+commit 42e72462fce12a1c98d1a3a645990fd58a95a0dc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 28 22:16:13 2016 +0900
+
+    [DOC] Re-Translate ABOUT_eFM7_1.txt to English with *NEW* Google Translate, will check.
+
+commit 8a95adf7eef0fde30aba5f6544fba3f917226125
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 22 16:27:52 2016 +0900
+
+    [VM][FM7] Reduce graphic buffer for non-400 lines machines.
+
+commit c54f3475da338d3a41f365e744393af37a366281
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 21 17:23:50 2016 +0900
+
+    [DOC] Add TV-Renderer.ja.txt .
+
+commit 28159afc55bcaa9bf3c13475b23a696cb18ed393
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 21 17:01:02 2016 +0900
+
+    [DOC] Re-Update for release.
+
 commit 73358d8563543f1a0d860794a2f5c83cecb0d533
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Mon Nov 21 16:57:49 2016 +0900
@@ -3538,7 +3658,7 @@ Date:   Fri Feb 26 02:07:35 2016 +0900
     [UI][Qt][Win32] Workaround for FTBFS with Native MinGW32.
 
 commit 3d1fce80cbee7dbb84b77212c4853ab004dadbd1
-Merge: 5fbbea3 cfdcb0d
+Merge: 5fbbea3d cfdcb0d8
 Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
 Date:   Fri Feb 26 01:59:06 2016 +0900
 
@@ -5544,7 +5664,7 @@ Date:   Fri Oct 2 01:29:00 2015 +0900
     [VM][FM77AV40][FM77AV20] Fix unable to BOOT.
 
 commit f4d42828fdd622cf7d3686ee2adff8bcfa254c6a
-Merge: 7f05de0 ee9d8fa
+Merge: 7f05de0d ee9d8fa2
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Oct 1 22:59:57 2015 +0900
 
@@ -5854,7 +5974,7 @@ Date:   Sat Sep 26 01:06:24 2015 +0900
     [Build][Win32][MZ1200] Add lacked class.
 
 commit 355e51b187d647932801bf9a8f3d34abf2743c1e
-Merge: 121801f 2c73964
+Merge: 121801f3 2c73964b
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sat Sep 26 01:03:05 2015 +0900
 
@@ -6547,7 +6667,7 @@ Date:   Fri Jul 31 23:44:58 2015 +0900
     [DOC][General] Add Japanese translation of GPLv2 .
 
 commit 5eb2ab986e856b9b2cac263deecb458c847f721e
-Merge: be90e28 9558fd1
+Merge: be90e28e 9558fd1c
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Fri Jul 31 23:32:14 2015 +0900
 
@@ -6910,7 +7030,7 @@ Date:   Mon Jul 13 15:02:26 2015 +0900
     [VM][MB61VH010] MERGE fto head.
 
 commit e3eeb6a5fb080770f118619eb613f8195f69c108
-Merge: 63a7d0b 6531f9b
+Merge: 63a7d0b4 6531f9be
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Mon Jul 13 15:01:20 2015 +0900
 
@@ -6997,7 +7117,7 @@ Date:   Thu Jul 9 05:20:02 2015 +0900
     [VM][FM7][DISPLAY] Implement (maybe) correct reset sequence, thanks, Ryu!
 
 commit 86217f6fe3e93205e858c31d1f33289bf53df59c
-Merge: c7a0c73 bddc6d7
+Merge: c7a0c732 bddc6d74
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Jul 9 04:06:04 2015 +0900
 
@@ -7291,7 +7411,7 @@ Date:   Thu Jun 25 05:37:02 2015 +0900
     [VM][FM77] Implement around MMR.
 
 commit b4270b3ad7e3ba58eb08ba90dde2da2fd32e47c4
-Merge: a79593c d7746ba
+Merge: a79593cd d7746ba5
 Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
 Date:   Tue Jun 23 19:01:46 2015 +0900
 
@@ -7329,7 +7449,7 @@ Date:   Mon Jun 22 05:57:07 2015 +0900
     [VM][PC98DO] Fix crash on booting with PC98 mode.
 
 commit 9f9a856449643ca429e43b5a2c85b916ef384afe
-Merge: 42ccab3 d332146
+Merge: 42ccab38 d3321466
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Mon Jun 22 05:16:51 2015 +0900
 
@@ -7381,7 +7501,7 @@ Date:   Sun Jun 21 21:27:02 2015 +0900
     [Build][Win32] Fix wrong ICON for X1 TurboZ.
 
 commit bb59d6be243286783e6b7ba53039977053293e23
-Merge: 8afff6e 0f375d5
+Merge: 8afff6ee 0f375d54
 Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sun Jun 21 20:38:08 2015 +0900
 
@@ -7394,7 +7514,7 @@ Date:   Sun Jun 21 20:37:21 2015 +0900
     [WIN32][FM77] Add a lacked entry.
 
 commit 0f375d5490328d4782fa21f20d782665beb08a08
-Merge: f3d1e61 911af4e
+Merge: f3d1e619 911af4e9
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sun Jun 21 16:34:12 2015 +0900
 
@@ -7414,7 +7534,7 @@ Date:   Sun Jun 21 16:32:23 2015 +0900
     [WIN32] Separate definition of menu  order from res/resources.h to machine_res.h,resources.h is  overwritten from Visual Studio 2013 when changes menu item.
 
 commit 2664b0da96a332e51cf656c1b4af1ccf29d3fabc
-Merge: d11c74b 78741ea
+Merge: d11c74ba 78741ea0
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sun Jun 21 16:02:10 2015 +0900
 
@@ -7457,7 +7577,7 @@ Date:   Sat Jun 20 16:52:27 2015 +0900
     [VM][Qt] Add Epson HC40.
 
 commit eae8910b139cf88046f4122dcb959c2bae3ce273
-Merge: ccd7fd3 36c7d14
+Merge: ccd7fd30 36c7d149
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sat Jun 20 16:23:53 2015 +0900
 
@@ -7736,7 +7856,7 @@ Date:   Tue Jun 9 19:37:55 2015 +0900
     [WIN32][FM7] Fix wrong aspect.
 
 commit ecb03683b0acbee60d49336c1aaff06b482338c7
-Merge: faf4e87 a70cfe3
+Merge: faf4e870 a70cfe3b
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Mon Jun 8 00:53:40 2015 +0900
 
@@ -7907,7 +8027,7 @@ Date:   Sun May 24 16:07:26 2015 +0900
     [VM][EVENT] Fix freezing.
 
 commit c7c88b9c186be9b2223884a8f601257b72d71b15
-Merge: d2b1be9 353cc99
+Merge: d2b1be93 353cc99d
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sun May 24 15:57:23 2015 +0900
 
@@ -7927,7 +8047,7 @@ Date:   Sun May 24 05:03:37 2015 +0900
     [VM][FM7] Fix wrong commit.
 
 commit 353cc99db01e53064385a7705f8c7ad585e039bd
-Merge: ee38e9c 019938f
+Merge: ee38e9c7 019938ff
 Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sun May 24 15:25:27 2015 +0900
 
@@ -8037,7 +8157,7 @@ Date:   Wed May 20 03:29:58 2015 +0900
     [VM][FM7][MAINIO][MAINMEM] Re-order calling.Faster a bit.
 
 commit 4d85d1642c86350d097009f4002304c40133472c
-Merge: 6b87c76 dfe25af
+Merge: 6b87c761 dfe25af4
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Tue May 19 22:03:39 2015 +0900
 

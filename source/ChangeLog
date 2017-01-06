@@ -1,5 +1,16 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT January 06, 2017
+  * Upstream 2016-12-31
+  * Add Coleco Colecovision and SHARP SM-B-80TE (from upstreeam).
+  * [FM7] Reduce graphic buffer for non-400 lines machines.
+  * [WIN32/Qt] Cross-Build Qt libs: disable EGLFS (not EGL).
+  * [Qt] One board computers: Read correctly background PNG even using indexed colors.
+  * [Qt/GL] One board computers: Correctness drawing with GL3.0.
+  * Built with 9bfdcc78ff194a934a2d57ce6d4f1cbec9f26a58 or newer.
+
+-- Jan 06, 2017 19:56:37 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT November 21, 2016
   * Upstream 2016-04-13
   * [Linux] Build with Qt 5.5.1 . Abondon Qt 5.3 (If you need, build with your Qt or use binary of qt.io build version.)
