@@ -91,9 +91,9 @@
 #define USE_SOUND_FILES		1
 #define USE_SOUND_FILES_FDD
 #if defined(USE_SOUND_FILES)
-#define USE_SOUND_VOLUME	2
+#define USE_SOUND_VOLUME	5
 #else
-#define USE_SOUND_VOLUME	1
+#define USE_SOUND_VOLUME	6
 #endif
 #define USE_DEBUGGER
 #define USE_STATE
@@ -103,7 +103,7 @@
 
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
-	_T("Beep"),
+	_T("Beep"), _T("FM SSG"), _T("FM OPNB"), _T("PCM"), _T("CD-DA"),
 #if defined(USE_SOUND_FILES)
 	_T("FDD SEEK"),
 #endif
@@ -114,32 +114,36 @@ class EMU;
 class DEVICE;
 class EVENT;
 
-class HD46505;
-#ifdef _FMR60
-class HD63484;
-#endif
 class I8251;
 class I8253;
 class I8259;
-#if defined(HAS_I286)
-class I286;
-#else
 class I386;
-#endif
-class IO;
-class MB8877;
-class MSM58321;
-class PCM1BIT;
-class SCSI_HOST;
-class UPD71071;
 
-class BIOS;
+class IO;
+class TOWNS_CRTC;
+class TOWNS_VRAM;
+class TOWNS_SPRITE;
+class TOWNS_JOYSTICK; // Mouse and Joystick.
+
+class RF5C68;      // PCM
+class YM2612;      // OPNB
+class MB87078;     // VOLUME
+//class AD7820KR;  // A/D Converter.
+class MB8877;      // FDC
+class MSM58321;    // RTC
+class PCM1BIT;     // BUZZER
+class UPD71071;    // DMAC
+class TOWNS_CDROM; // CDROM Controller
+class TOWNS_SERIALROM; // SERIAL ROM. May be 32 bytes.
 class CMOS;
 class FLOPPY;
 class KEYBOARD;
 class MEMORY;
 //class SERIAL;
 class SCSI;
+class SCSI_HOST;
+class SCSI_HDD;
+class SCSI_CDROM;
 class TIMER;
 
 class VM
@@ -150,32 +154,35 @@ protected:
 	// devices
 	EVENT* event;
 	
-	HD46505* crtc;
-#if defined(_FMR60)
-	HD63484* acrtc;
-#endif
+	TOWNS_CRTC *crtc;
+	
 	I8251* sio;
 	I8253* pit0;
 	I8253* pit1;
-	I8259* pic;
-#if defined(HAS_I286)
-	I286* cpu;
-#else
-	I386* cpu;
-#endif
+	
+	I8259* pic0;
+	I8259* pic1;
+	
+	I386* cpu; // i386DX/SX/486DX/486SX?/Pentium with FPU?
+
 	IO* io;
 	MB8877* fdc;
 	MSM58321* rtc;
 	PCM1BIT* pcm;
 	SCSI_HOST* scsi_host;
 	UPD71071* dma;
+
 	
-	BIOS* bios;
+	//BIOS* bios;
 	CMOS* cmos;
+
 	FLOPPY* floppy;
 	KEYBOARD* keyboard;
 	MEMORY* memory;
+	
 	SCSI* scsi;
+	SCSI_HDD *hdd[4]; // 
+	SCSI_CDROM *cdrom; // 
 //	SERIAL* serial;
 	TIMER* timer;
 	

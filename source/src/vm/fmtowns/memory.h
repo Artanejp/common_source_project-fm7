@@ -1,9 +1,8 @@
 /*
-	FUJITSU FMR-50 Emulator 'eFMR-50'
-	FUJITSU FMR-60 Emulator 'eFMR-60'
+	FUJITSU FM Towns Emulator 'eFMTowns'
 
-	Author : Takeda.Toshiya
-	Date   : 2008.04.29 -
+	Author : Kyuma.Ohta <whatisthis.sowhat _at_ gmail.com>
+	Date   : 2017.01.07 -
 
 	[ memory ]
 */
@@ -15,101 +14,84 @@
 #include "../../emu.h"
 #include "../device.h"
 
-#define SIG_MEMORY_DISP		0
-#define SIG_MEMORY_VSYNC	1
+//#define SIG_MEMORY_DISP		0
+//#define SIG_MEMORY_VSYNC	1
 
-#if defined(HAS_I286)
-class I286;
-#else
 class I386;
-#endif
+// Bank size = 1GB / 1MB.
+// Page 0 (0000:00000 - 0000:fffff) is another routine.
+#define TOWNS_BANK_SIZE 1024
+// Page0 size is 1MB / 2KB.
+#define TOWNS_BANK000_BANK_SIZE 512
 
+// C000:00000 - C1f0:fffff is 32MB / 32KB 
+#define TOWNS_BANKC0x_BANK_SIZE 1024
+// C200:00000 - C230:fffff is 4MB / 2KB 
+#define TOWNS_BANKC2x_BANK_SIZE 2048
+
+// MAP:
+// 00000000 - 000fffff : SYSTEM RAM PAGE 0 (Similar to FMR-50).
+// 00010000 - 3fffffff : EXTRA RAM (for i386 native mode.Page size is 1MB.)
+// 40000000 - 7fffffff : External I/O BOX.Not accessible.
+// 80000000 - bfffffff : VRAM (Reserved 01020000H bytes with earlier Towns.)
+// c0000000 - c21fffff : ROM card and dictionaly/font/DOS ROMs.
+// c2200000 - c2200fff : PCM RAM (Banked).
+// c2201000 - fffbffff : Reserved.
+// FFFC0000 - FFFFFFFF : Towns System ROM.
+
+enum {
+	TOWNS_MEMORY_TYPE_FORBID = 0,
+	TOWNS_MEMORY_TYPE_PAGE0  = 1, // - 0xfffff
+	TOWNS_MEMORY_TYPE_INTRAM,     // 0x100000 -
+	TOWNS_MEMORY_TYPE_EXT_MMIO,
+	TOWNS_MEMORY_TYPE_VRAM,
+	TOWNS_MEMORY_TYPE_SPRITE,
+	TOWNS_MEMORY_TYPE_ROMCARD,
+	TOWNS_MEMORY_TYPE_MSDOS,
+	TOWNS_MEMORY_TYPE_DICTROM,
+	TOWNS_MEMORY_TYPE_KANJIFONT,
+	TOWNS_MEMORY_TYPE_DICTLEARN,
+	TOWNS_MEMORY_TYPE_WAVERAM,
+	TOWNS_MEMORY_TYPE_SYSTEM_ROM,
+};
+
+	
 class MEMORY : public DEVICE
 {
 private:
-#if defined(HAS_I286)
-	I286 *d_cpu;
-#else
 	I386 *d_cpu;
-#endif
-	DEVICE *d_crtc;
-	
-	uint8_t* rbank[8192];	// 16MB / 2KB
-	uint8_t* wbank[8192];
-	uint8_t wdmy[0x800];
-	uint8_t rdmy[0x800];
-	
-	uint8_t ram[0x400000];	// RAM 1+3MB
-#ifdef _FMR60
-	uint8_t vram[0x80000];	// VRAM 512KB
-	uint8_t cvram[0x2000];
-	uint8_t avram[0x2000];
-#else
-	uint8_t vram[0x40000];	// VRAM 256KB
-	uint8_t cvram[0x1000];
-	uint8_t kvram[0x1000];
-	uint8_t dummy[0x8000];	// dummy plane
-#endif
-	uint8_t ipl[0x4000];	// IPL 16KB
-#ifdef _FMR60
-	uint8_t ank24[0x3000];		// ANK(14x24)
-	uint8_t kanji24[0x240000];	// KANJI(24x24)
-#else
-	uint8_t ank8[0x800];	// ANK(8x8) 2KB
-	uint8_t ank16[0x1000];	// ANK(8x16) 4KB
-	uint8_t kanji16[0x40000];	// KANJI(16x16) 256KB
-#endif
-	uint8_t machine_id;	// MACHINE ID
-	
+
+	DEVICE *d_vram;
+
+	uint8_t  read_banktype_head[256]; // xx000000 - xxffffff
+	uint32_t read_offset_head[256];
+	uint8_t  write_banktype_head[256]; // xx000000 - xxffffff
+	uint32_t write_offset_head[256];
+
+	uint8_t *read_bank_adrs_cx[0x400 * 16];   // C0000000 - C3FFFFFF : Per 4KB
+	uint8_t *write_bank_adrs_cx[0x400 * 16];  // C0000000 - C3FFFFFF : Per 4KB
+	uint8_t device_type_adrs_cx[0x400 * 16];  // C0000000 - C3FFFFFF : Per 4KB
+
+	uint8_t *read_bank_adrs_fx[0x1000]; // FF000000 - FFFFFFFF : Per 4KB
+
+	uint8_t *extram_base; // 0x100000 - : 2MB / 4MB / 6MB
+	int32_t extram_pages; //
+	uint8_t *extram_adrs[4096]; // 256MB / 64KB
+
+	uint8_t msdos_rom[0x80000]; // MSDOS ROM. READ ONLY.
+	uint8_t dict_rom[0x80000];  // Dictionary rom. READ ONLY.
+	uint8_t font_rom[0x40000]; // Font ROM. READ ONLY.
+	uint8_t system_rom[0x40000]; // System ROM. READ ONLY.
+	uint8_t machine_id[2];	// MACHINE ID
+
 	// memory
 	uint8_t protect, rst;
 	uint8_t mainmem, rplane, wplane;
 	uint8_t dma_addr_reg, dma_wrap_reg;
 	uint32_t dma_addr_mask;
 	
-	// crtc
-	uint8_t* chreg;
-	bool disp, vsync;
-	int blink;
-	
-	// video
-	uint8_t apal[16][3], apalsel, dpal[8];
-	uint8_t outctrl;
-	
-#ifndef _FMR60
-	// 16bit card
-	uint8_t pagesel, ankcg;
-	uint8_t dispctrl;
-	uint8_t mix;
-	uint16_t accaddr, dispaddr;
-	
-	// kanji
-	int kj_h, kj_l, kj_ofs, kj_row;
-	
-	// logical operation
-	uint8_t cmdreg, imgcol, maskreg, compreg[8], compbit, bankdis, tilereg[3];
-	uint16_t lofs, lsty, lsx, lsy, lex, ley;
-	void point(int x, int y, int col);
-	void line();
-#endif
-	
-	uint8_t screen_txt[SCREEN_HEIGHT][SCREEN_WIDTH + 14];
-	uint8_t screen_cg[SCREEN_HEIGHT][SCREEN_WIDTH];
-//	uint8_t screen_txt[400][648];
-//	uint8_t screen_cg[400][640];
-	scrntype_t palette_txt[16];
-	scrntype_t palette_cg[16];
-	
 	void update_bank();
 	void update_dma_addr_mask();
-#ifdef _FMR60
-	void draw_text();
-#else
-	void draw_text40();
-	void draw_text80();
-#endif
-	void draw_cg();
-	
 public:
 	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
 		set_device_name(_T("MEMORY"));

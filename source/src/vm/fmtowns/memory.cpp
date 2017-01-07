@@ -9,11 +9,7 @@
 */
 
 #include "memory.h"
-#if defined(HAS_I286)
-#include "../i286.h"
-#else
 #include "../i386.h"
-#endif
 
 static const uint8_t bios1[] = {
 	0xFA,				// cli
@@ -180,10 +176,10 @@ void MEMORY::reset()
 
 void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
-	if(addr & 0xff000000) {
+	//if(addr & 0xff000000) {
 		// > 16MB
-		return;
-	}
+	//	return;
+	//}
 	if(!mainmem) {
 #ifdef _FMR60
 		if(0xc0000 <= addr && addr < 0xe0000) {
@@ -432,6 +428,8 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 		}
 		return 0xff;
 	}
+
+	
 #ifndef _FMR60
 	if(!mainmem) {
 		if(0xcff80 <= addr && addr < 0xcffe0) {
