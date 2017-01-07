@@ -15,95 +15,326 @@
 #include "../emu.h"
 #include "device.h"
 
+/*
+ * I/O Address :
+ *  0440H : Register address (8bit W/O : bit7 to 5 must be '0').
+ *  0442H : Register data LOW  (8bit W/O).
+ *  0443H : Register data HIGH (8bit W/O).
+ * Interrupts (8259) :
+ *  #11 : VSYNC.
+ * Registers description:
+ *  Note1: Values are hex, register numbers are decimal.
+ *  Note2: Register #00 to #16 ,#18, #22 and #25 to #26 has 11bit.
+ *         #17, #19 to #21, #23 to #24 and #27 has 16bit.
+ *         #28 has bit 15,14  and 7 to 0.
+ *         #29 has 4bit.
+ *         #31 has bit15 and bit 8 to 0.
+ *        
+ *  #00 / bit 7 - 1 : HSW1 (Bit 10 to 8 and 0 must be '0')
+ *  #01 / bit 7 - 1 : HSW2 (Bit 10 to 8 and 0 must be '0')
+ *  #02 / ??
+ *  #03 / ??
+ *  #04 / bit10 - 1 : HST  (Bit 0 bust be '1')
+ *  #05 / bit 4 - 0 : VST1 (Bit 10 to 5 must be '0')
+ *  #06 / bit 4 - 0 : VST2 (Bit 10 to 5 must be '0')
+ *  #07 / bit 4 - 0 : EET  (Bit 10 to 5 must be '0')
+ *  #08 / bit10 - 0 : VST
+ *  #09 / bit10 - 0 : HDS0 (Layer 0)
+ *  #10 / bit10 - 0 : HDE0 (Layer 0)
+ *  #11 / bit10 - 0 : HDS1 (Layer 1)
+ *  #12 / bit10 - 0 : HDE1 (Layer 1)
+ *  #13 / bit10 - 0 : VDS0 (Layer 0)
+ *  #14 / bit10 - 0 : VDE0 (Layer 0)
+ *  #15 / bit10 - 0 : VDS1 (Layer 1)
+ *  #16 / bit10 - 0 : VDE1 (Layer 1)
+ *  #17 / bit15 - 0 : FA0  (Layer 0) 
+ *  #18 / bit10 - 0 : HAJ0 (Layer 0) 
+ *  #19 / bit15 - 0 : FO0  (Layer 0) 
+ *  #20 / bit15 - 0 : LO0  (Layer 0) 
+ *  #21 / bit15 - 0 : FA1  (Layer 1) 
+ *  #22 / bit10 - 0 : HAJ1 (Layer 1) 
+ *  #23 / bit15 - 0 : FO1  (Layer 1) 
+ *  #24 / bit15 - 0 : LO1  (Layer 1)
+ *  #25 / bit10 - 0 : EHAJ (External horizonal sync adjusting)
+ *  #26 / bit10 - 0 : EVAJ (External horizonal sync adjusting)
+ *  #27 / bit15 - 0 : bit15-12 : ZV1 / bit11-8 : ZH1 / bit7-4 : ZV0 / bit3-0 : ZH0 (Zooming)
+ *  #28 / bit15 : START ('1' = START) / bit14 : ESYN ('0' = Internal)
+ *        bit7 : ESM1 ('0'=Impose / '1' = Digitize) / bit 6 : ESM0
+ *        bit5 : CEN1 ('1' = Enable) / bit4 : CEN0
+ *        bit3-2 : CL1 (Colors : 00 = ND / 01 = 32768x2 / 10 = 32768x1 / 11 = 256x1 or 16x2)
+ *        bit1-0 : CL0
+ *  #29 / bit3-2 : SCSEL (Clock divide = 2 * (SCSEL + 1)).
+ *        bit1-0 : CLKSEL (00 = 28.6363MHz / 01 = 24.5454MHz / 10 = 25.175MHz / 11 = 21.0525MHz)
+ *  #30 / Status register (RO): 
+ *        bit15 : DSPTV1 / bit14 : DSPTV0 (VDISP = '1')
+ *        bit13 : DSPTH1 / bit12 : DSPTH0 (HDISP = '1')
+ *        bit11 : FIELD (Field number)
+ *        bit10 : VSYNC / bit9 : HSYNC ('1' = ACTIVE)
+ *        bit8  : VIN ('1' = EXTERNAL VIDEO has exists)
+ *       Dummy register  (WO):
+ *        bit3 : FR3 ('1' = Halve tone) /  bit2 : FR2 ('1' = Using sync generator)
+ *        bit1 : VCRDEN ('1' = Video card enable) / bit0 : SCEN ('1' = Sub carry enable)
+ *
+ *  #31 / bit15 = RETRG ('1' = Re-Trigger) / bit8-0 : PM (Pulse width : Width = PM * Clock).
+ */
+/*
+ * Around Video Out.
+ *  I/O 044CH : Digital palette modified flags.
+ *	I/O 0448H (WO) : Register Address.
+ *	I/O 044AH (WO) : Register Data.
+ *  Registers:
+ *   #00 : Control registers.
+ *   #01 : Priority registers.
+ */
+#define TOWNS_CRTC_MAX_LINES  1024
+#define TOWNS_CRTC_MAX_PIXELS 1024
+enum {
+	TOWNS_CRTC_REG_HSW1 = 0,
+	TOWNS_CRTC_REG_HSW2 = 1,
+	TOWNS_CRTC_REG_HST  = 4,
+	TOWNS_CRTC_REG_VST1,
+	TOWNS_CRTC_REG_VST2,
+	TOWNS_CRTC_REG_EET,
+	
+	TOWNS_CRTC_REG_VST, // 8
+	TOWNS_CRTC_REG_HDS0,
+	TOWNS_CRTC_REG_HDE0,
+	TOWNS_CRTC_REG_HDS1,
+	TOWNS_CRTC_REG_HDE1,
+	TOWNS_CRTC_REG_VDS0,
+	TOWNS_CRTC_REG_VDE0,
+	TOWNS_CRTC_REG_VDS1,
+	
+	TOWNS_CRTC_REG_VDE1,
+	TOWNS_CRTC_REG_FA0,
+	TOWNS_CRTC_REG_HAJ0,
+	TOWNS_CRTC_REG_FO0,
+	TOWNS_CRTC_REG_LO0,
+	TOWNS_CRTC_REG_FA1,
+	TOWNS_CRTC_REG_HAJ1,
+	TOWNS_CRTC_REG_FO1,
+	
+	TOWNS_CRTC_REG_LO1,
+	TOWNS_CRTC_REG_EHAJ,
+	TOWNS_CRTC_REG_EVAJ,
+	TOWNS_CRTC_REG_ZOOM,
+	TOWNS_CRTC_REG_DISPMODE, // 28
+	TOWNS_CRTC_REG_CLK, // 29
+	TOWNS_CRTC_REG_DUMMY, // 30
+	TOWNS_CRTC_REG_CTRL, // 31
+};
+
 class TOWNS_CRTC : public DEVICE
 {
 private:
 	// output signals
-	outputs_t outputs_disp;
-	outputs_t outputs_vblank;
-	outputs_t outputs_vsync;
-	outputs_t outputs_hsync;
-	
-	uint8_t regs[32];
+	outputs_t outputs_int_vsync;  // Connect to int 11.
+	uint16_t regs[32];      // I/O 0442H, 0443H
 	bool regs_written[32];
-	int ch;
+	uint8_t reg_ch;         // I/O 0440H
 	bool timing_changed;
-	
-	int cpu_clocks;
-#if defined(TOWNS_CRTC_CHAR_CLOCK)
-	double char_clock, next_char_clock;
-#elif defined(TOWNS_CRTC_HORIZ_FREQ)
-	double horiz_freq, next_horiz_freq;
-#endif
+
+	// Not include around video input/dizitize features yet.
+	bool line_changed[2][TOWNS_CRTC_MAX_LINES];
+	bool line_rendered[2][TOWNS_CRTC_MAX_LINES];
+
+	double crtc_clock; // 
+	// They are not saved.Must be calculate when loading.
+	double horiz_us, next_horiz_us; // (HST + 1) * clock
+	double horiz_width_posi_us, horiz_width_nega_us; // HSW1, HSW2
+	double vert_us, next_vert_us; // (VST +1) * horiz_us / 2.0
+	double vstart_us;
+	double vert_sync_pre_us; // VST1 * horiz_us / 2.0
+	double vert_sync_end_us; // VST2 * horiz_us / 2.0
+	// End
+
 	double frames_per_sec;
 	
-	int hz_total, hz_disp;
-	int hs_start, hs_end;
+    uint32_t hstart_words[2]; // HSTART ((HDS[01] * clock) : Horizonal offset words (Related by ZH[01]). Maybe 0.
+    uint32_t hend_words[2];   // HEND   ((HDE[01] * clock) : Horizonal offset words (Related by ZH[01]). Maybe 0.
+    uint32_t vstart_lines[2]; // VSTART ((VDS[01] * clock) : Horizonal offset words (Related by VH[01]).
+    uint32_t vend_lines[2];   // VEND   ((VDE[01] * clock) : Horizonal offset words (Related by VH[01]).
+
+	uint32_t zoom_factor_vert; // Related display resolutions of two layers and zoom factors. Multiplied by 1024.
+	uint32_t zoom_factor_horiz; // Related display resolutions of two layers and zoom factors. Multiplied by 1024.
 	
-	int vt_total, vt_disp;
-	int vs_start, vs_end;
+	uint32_t line_count[2]; // Separate per layer.
 	
-	int disp_end_clock;
-	int hs_start_clock, hs_end_clock;
+	int vert_line_count; // Not separate per layer.Total count.
+
+	int buffer_num; // Frame buffer number.
+	// Note: To display to real screen, use blending of OpenGL/DirectX
+	//       from below framebuffers per layer if you can.
+	//       And, recommand to use (hardware) shader to rendering (= not to use framebuffer of below) if enabled.
+	//       Not recommanded to use draw_screen() type rendering.
+	//       Rendering precesses may be heavily to use only CPU (I think). 20170107 K.Ohta.
+	scrntype_t *framebuffer0[2]; // Frame Buffer Layer 0. Not saved.
+	scrntype_t *framebuffer1[2]; // Frame Buffer Layer 1. Not saved.
+
+	int framebuffer_width[2];
+	int framebuffer_height[2];
 	
-	bool display, vblank, vsync, hsync;
+	uint16_t *vram_ptr[2];   // Layer [01] address.
+	uint32_t vram_size[2];   // Layer [01] size [bytes].
+	uint32_t vram_offset[2]; // Layer [01] address offset.
+
+	// Not Saved?.
+	uint8_t layer_colors[2];
+	
+	uint32_t layer_virtual_width[2];
+	uint32_t layer_virtual_height[2];
+	uint32_t layer_display_width[2];
+	uint32_t layer_display_height[2];
+	// End.
+	
+	bool vdisp, vblank, vsync, hsync, hdisp, frame_in;
+
+	// Video output controller (I/O 0448H, 044AH)
+	// Register 00 : Display mode.
+	bool display_on[2]; // CL11-CL00 : bit3-0
+	bool one_layer_mode; // PMODE : bit4
+	// Register 11: Priority mode.
+	uint8_t vout_palette_mode;
+	bool vout_ys;
+	bool video_brightness; // false = high.
+	bool layer1_front; // if false, layer 0 is front.
+	
+	// Video output registers. May be split to separate files?
+	// FMR50 Compatible registers. They are mostly dummy.
+	// Digital paletts. I/O FD98H - FD9FH.
+	uint8_t r50_digital_palette[8];
+
+	// MMIO? 000C:FF80H
+	uint8_t r50_mix_reg;
+	// MMIO? 000C:FF81H
+	uint8_t r50_update_mode;
+	// MMIO? 000C:FF82H Not dummy?
+	uint8_t r50_dispmode;
+	// MMIO? 000C:FF83H Not dummy?
+	uint8_t r50_pagesel;
+	// MMIO? 000C:FF86H Not dummy?
+	uint8_t r50_status;
+	// I/O FDA0H Not Dummy?
+	//uint8_t r50_sub_statreg;
+
+	// Around Analog palette.
+	uint8_t apalette_code; // I/O FD90H (RW). 16 or 256 colors.
+	uint8_t apalette_b;    // I/O FD92H (RW).
+	uint8_t apalette_r;    // I/O FD94H (RW).
+	uint8_t apalette_g;    // I/O FD96H (RW).
+	uint16_t   apalette_16_rgb[2][16];   // R * 256 + G * 16 + B
+	scrntype_t apalette_16_pixel[2][16]; // Not saved. Must be calculated.
+	uint32_t   apalette_256_rgb[256];    // R * 65536 + G * 256 + B
+	scrntype_t apalette_256_pixel[256];  // Not saved. Must be calculated.
+	
+	// Others.
+	uint8_t video_out_reg_addr;  // I/O 0448H
+	uint8_t video_out_reg_data;  // I/O 044AH
+	uint8_t video_out_regs[2];
+	bool layer_display_flags[2]; // I/O FDA0H (WO) : bit3-2 (Layer1) or bit1-0 (Layer0).Not 0 is true.
+	bool r50_dpalette_updated;   // I/O 044CH (RO) : bit7
+	bool sprite_busy;            // I/O 044CH (RO) : bit1. Must update from write_signal().
+	bool splite_disp_page;       // I/O 044CH (RO) : bit0. Must update from write_signal().
+	// End.
+
+	// Accessing VRAM. Will be separated.
+	// Memory description:
+	// All of accessing must be little endian.
+	// 000C:00000 - 000C:07fff : Plane accessing window(->FM-R50 features?). Access to Layer #0 (8000:00000).
+	// 000C:08000 - 000C:0ffff : I/O CVRAM
+	// 000D:00000 - 000E:0ffff : Reserved (Window for KANJI, DIC etc).
+	// 8000:00000 - 8000:3ffff : Plane accessing Layer #0.
+	// 8000:40000 - 8000:7ffff : Plane accessing Layer #1.
+	// 8010:00000 - 8010:7ffff : Plane accessing with one layer.
+	// 8100:00000 - 8100:1ffff : Sprite (and text vram).
+	// I/O 0458H (RW) : VRAM ACCESS CONTROLLER reg address.
+	// I/O 045AH (RW) : VRAM ACCESS CONTROLLER reg data (LOW).
+	// I/O 045BH (RW) : VRAM ACCESS CONTROLLER reg data (HIGH).
+	pair_t packed_pixel_mask_reg; // '1' = Write. I/O 0458H - 045BH.
+	uint8_t *vram_addr;
+	uint32_t vram_bytes;
+	uint32_t layer_offset[4];
+	uint8_t *text_vram; // 4096bytes
+	uint8_t *kanji_vram; // 4096bytes
+	// End.
+
+	// Flags related by host renderer. Not saved.
+	bool has_hardware_rendering;
+	bool has_hardware_blending;
+	// End.
+	
+	// 
+	// Event IDs. Saved.
+	int event_id_hsync;
+	int event_id_hsw;
+	//int event_id_hsw1; //??
+	//int event_id_hsw2; //??
+	int event_id_vsync;
+	int event_id_vstart;
+	int event_id_vst1;
+	int event_id_vst2;
+	int event_id_vblank;
 	
 	void set_display(bool val);
 	void set_vblank(bool val);
 	void set_vsync(bool val);
 	void set_hsync(bool val);
+
+protected:
+	bool render_a_line(int layer, int linenum, int xoffset, uint8_t *vramptr, uint32_t words);
+	void render_line_16(int layer, scrntype_t *framebuffer, uint8_t *vramptr, uint32_t words);
+	void render_line_256(int layer, scrntype_t *framebuffer, uint8_t *vramptr, uint32_t words);
+	void render_line_32768(int layer, scrntype_t *framebuffer, uint8_t *vramptr, uint32_t words);
+	void render_clear(int layer, scrntype_t *framebuffer);
 	
 public:
 	TOWNS_CRTC(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		initialize_output_signals(&outputs_disp);
-		initialize_output_signals(&outputs_vblank);
-		initialize_output_signals(&outputs_vsync);
-		initialize_output_signals(&outputs_hsync);
+		initialize_output_signals(&outputs_int_vsync);
 		set_device_name(_T("FM-Towns CRTC"));
 	}
 	~TOWNS_CRTC() {}
 
 	void initialize();
 	void reset();
+	
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t read_signal(int ch);
+
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
-	void event_pre_frame();
-	void event_frame();
-	void event_vline(int v, int clock);
+
+	void write_io16(uint32_t addr, uint32_t data);
+	uint32_t read_io16(uint32_t addr);
+	
+	uint32_t read_data8(uint32_t addr);
+	uint32_t read_data16(uint32_t addr);
+	uint32_t read_data32(uint32_t addr);
+	
+	void write_data8(uint32_t addr, uint32_t data);
+	void write_data16(uint32_t addr, uint32_t data);
+	void write_data32(uint32_t addr, uint32_t data);
+	// New APIs?
+	void set_frame_buffer(int layer, bool buffer1, scrntype_t *framebuffer, int width, int height);
+	scrntype_t *get_frame_buffer_ptr(int layer);
+	int  get_frame_buffer_width(int layer);
+	int  get_frame_buffer_height(int layer);
+	bool is_display(int layer);
+	bool is_updated(int layer, int line_num);
+	void lock_frame_buffer(int layer);
+	void unlock_frame_buffer(int layer);
+	void set_render_features(bool blending_from_buffer, bool rendering_framebuffer);
+	// End.
 	void event_callback(int event_id, int err);
-	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
+	//void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	// unique function
-	void set_context_disp(DEVICE* device, int id, uint32_t mask)
-	{
-		register_output_signal(&outputs_disp, device, id, mask);
-	}
-	void set_context_vblank(DEVICE* device, int id, uint32_t mask)
-	{
-		register_output_signal(&outputs_vblank, device, id, mask);
-	}
 	void set_context_vsync(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_vsync, device, id, mask);
 	}
-	void set_context_hsync(DEVICE* device, int id, uint32_t mask)
-	{
-		register_output_signal(&outputs_hsync, device, id, mask);
-	}
-#if defined(TOWNS_CRTC_CHAR_CLOCK)
-	void set_char_clock(double clock)
-	{
-		next_char_clock = clock;
-	}
-#elif defined(TOWNS_CRTC_HORIZ_FREQ)
-	void set_horiz_freq(double freq)
-	{
-		next_horiz_freq = freq;
-	}
-#endif
-	uint8_t* get_regs()
+	uint16_t* get_regs_ptr()
 	{
 		return regs;
 	}
