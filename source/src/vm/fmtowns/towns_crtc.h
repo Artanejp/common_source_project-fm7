@@ -178,6 +178,7 @@ private:
 	uint32_t vram_size[2];   // Layer [01] size [bytes].
 	uint32_t vram_offset[2]; // Layer [01] address offset.
 
+	scrntype_t table_32768c[65536];
 	// Not Saved?.
 	uint8_t layer_colors[2];
 	

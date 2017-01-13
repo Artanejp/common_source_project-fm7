@@ -14,14 +14,47 @@
 #define EVENT_HSYNC_S	1
 #define EVENT_HSYNC_E	2
 
+#define CLEAR_COLOR RGBA_COLOR(0,0,0,0)
+
+#if defined(_RGB888)
+#define _USE_ALPHA_CHANNEL
+#endif
+
 void TOWNS_CRTC::initialize()
 {
 	memset(regs, 0, sizeof(regs));
 	memset(regs_written, 0, sizeof(regs_written));
+
+#ifdef _USE_ALPHA_CHANNEL
+	for(int i = 0; i < 32768; i++) {
+		uint8_t g = (i / (32 * 32)) & 0x1f;
+		uint8_t r = (i / 32) & 0x1f;
+		uint8_t b = i & 0x1f;
+		table_32768c[i] = RGBA_COLOR(r << 3, g << 3, b << 3, 0xff);
+	}
+	for(int i = 32768; i < 65536; i++) {
+		table_32768c[i] = _CLEAR_COLOR;
+	}
+#endif
+	line_count[0] = line_count[1] = 0;
+	for(int i = 0; i < TOWNS_CRTC_MAX_LINES; i++) {
+		line_changed[0][i] = true;
+		line_rendered[0][i] = false;
+		line_changed[1][i] = true;
+		line_rendered[1][i] = false;
+	}
+	event_id_hsync = -1;
+	event_id_hsw = -1;
+	event_id_vsync = -1;
+	event_id_vstart = -1;
+	event_id_vst1 = -1;
+	event_id_vst2 = -1;
+	event_id_vblank = -1;
 	
 	// register events
-	register_frame_event(this);
-	register_vline_event(this);
+	//register_frame_event(this);
+	//register_vline_event(this);
+	
 }
 
 void TOWNS_CRTC::reset()
@@ -58,6 +91,82 @@ void TOWNS_CRTC::reset()
 	horiz_freq = 0;
 	next_horiz_freq = TOWNS_CRTC_HORIZ_FREQ;
 #endif
+
+	line_count[0] = line_count[1] = 0;
+	for(int i = 0; i < TOWNS_CRTC_MAX_LINES; i++) {
+		line_changed[0][i] = true;
+		line_rendered[0][i] = false;
+		line_changed[1][i] = true;
+		line_rendered[1][i] = false;
+	}
+	if(event_id_hsync  >= 0) cancel_event(this, event_id_hsync);
+	if(event_id_hsw    >= 0) cancel_event(this, event_id_hsw);
+	if(event_id_vsync  >= 0) cancel_event(this, event_id_vsync);
+	if(event_id_vstart >= 0) cancel_event(this, event_id_vstart);
+	if(event_id_vst1   >= 0) cancel_event(this, event_id_vst1);
+	if(event_id_vst2   >= 0) cancel_event(this, event_id_vst2);
+	if(event_id_vblank >= 0) cancel_event(this, event_id_vblank);
+	
+	event_id_hsw = -1;
+	event_id_vsync = -1;
+	event_id_vstart = -1;
+	event_id_vst1 = -1;
+	event_id_vst2 = -1;
+	event_id_vblank = -1;
+
+	// Register vstart
+	register_event(this, EVENT_CRTC_VSTART, vstart_us, false, &event_id_vstart);
+}
+// CRTC register #29
+void TOWNS_CRTC::set_crtc_clock(uint16_t val)
+{
+	scsel = (val & 0x0c) >> 2;
+	clksel = val & 0x03;
+	const double clocks[] = {
+		28.6363e6, 24.5454e6, 25.175e6, 21.0525e6
+	};
+	if(crtc_clock[clksel] != crtc_clock) {
+		crtc_clock = crtc_clock[clksel];
+		force_recalc_crtc_param(-1);
+	}
+}
+
+void TOWNS_CRTC::set_crtc_hsw1(void)
+{
+	int val = (int)(regs[ch + TOWNS_CRTC_REG_HSW1] & 0x0fff);
+	horiz_width_posi_us = horiz_us * (double)val;
+	// Update
+}
+void TOWNS_CRTC::set_crtc_hsw2(void)
+{
+	int val = (int)(regs[TOWNS_CRTC_REG_HSW2] & 0x0fff);
+	horiz_width_nega_us = horiz_us * (double)val;
+	// Update
+}
+
+void TOWNS_CRTC::set_crtc_hst(void)
+{
+	int val = (int)(regs[TOWNS_CRTC_REG_HST] & 0x07ff) | 1;
+	next_horiz_us = (double)(val + 1) * 1.0 / crtc_clock;
+	// Update
+}
+
+void TOWNS_CRTC::set_crtc_vst1(void)
+{
+	int val = (int)regs[TOWNS_CRTC_REG_VST1];
+	vert_sync_pre_us = ((double)val * horiz_us) / 2.0;
+}
+
+void TOWNS_CRTC::set_crtc_vst2(void)
+{
+	int val = (int)regs[TOWNS_CRTC_REG_VST2];
+	vert_sync_end_us = ((double)val * horiz_us) / 2.0;
+}
+
+void TOWNS_CRTC::set_crtc_vst2(void)
+{
+	int val = (int)regs[TOWNS_CRTC_REG_VST];
+	next_vert_us = ((double)val * horiz_us) / 2.0;
 }
 
 void TOWNS_CRTC::write_io8(uint32_t addr, uint32_t data)
@@ -83,6 +192,75 @@ uint32_t TOWNS_CRTC::read_io8(uint32_t addr)
 		return ch;
 	}
 }
+
+// I/Os
+// Palette.
+void TOWNS_CRTC::calc_apalette16(int layer, int index)
+{
+	if(index < 0) return;
+	if(index > 15) return;
+	apalette_16_rgb[layer][index] =
+		((uint16_t)(apalette_b & 0x0f)) |
+		((uint16_t)(apalette_r & 0x0f) << 4) |
+		((uint16_t)(apalette_g & 0x0f) << 8);
+	if(index == 0) {
+		apalette_16_pixel[layer][index] = _CLEAR_COLOR; // ??
+	} else {
+		apalette_16_pixel[layer][index] = RGBA_COLOR((apalette_r & 0x0f) << 4, (apalette_g & 0x0f) << 4, (apalette_b & 0x0f) << 4, 0xff);
+	}
+}
+
+void TOWNS_CRTC::calc_apalette256(int index)
+{
+	if(index < 0) return;
+	if(index > 255) return;
+	apalette_256_rgb[layer][index] =
+		((uint32_t)apalette_b) |
+		((uint32_t)apalette_r << 8) |
+		((uint32_t)apalette_g << 16);
+	if(index == 0) {
+		apalette_256_pixel[index] = _CLEAR_COLOR; // ??
+	} else {
+		apalette_256_pixel[index] = RGBA_COLOR(apalette_r, apalette_g, apalette_b, 0xff);
+	}
+}
+
+void TOWNS_CRTC::set_apalette_r(int layer, uint8_t val)
+{
+	apalette_r = val;
+	if(apalette_code < 16) {
+		calc_apalette16(layer, (int)apalette_code);
+	}
+	// if layer == 0 ?
+	calc_apalette256((int)apalette_code % 256);
+}
+
+void TOWNS_CRTC::set_apalette_g(int layer, uint8_t val)
+{
+	apalette_g = val;
+	if(apalette_code < 16) {
+		calc_apalette16(layer, (int)apalette_code);
+	}
+	// if layer == 0 ?
+	calc_apalette256((int)apalette_code % 256);
+}
+
+void TOWNS_CRTC::set_apalette_b(int layer, uint8_t val)
+{
+	apalette_b = val;
+	if(apalette_code < 16) {
+		calc_apalette16(layer, (int)apalette_code);
+	}
+	// if layer == 0 ?
+	calc_apalette256((int)apalette_code % 256);
+}
+
+void TOWNS_CRTC::set_apalette_num(int layer, uint8_t val)
+{
+	apalette_code = ((int)val) % 256;
+}
+
+
 
 void TOWNS_CRTC::event_pre_frame()
 {
@@ -184,6 +362,7 @@ void TOWNS_CRTC::event_vline(int v, int clock)
 
 void TOWNS_CRTC::event_callback(int event_id, int err)
 {
+	/*
 	if(event_id == EVENT_DISPLAY) {
 		set_display(false);
 	} else if(event_id == EVENT_HSYNC_S) {
@@ -191,6 +370,67 @@ void TOWNS_CRTC::event_callback(int event_id, int err)
 	} else if(event_id == EVENT_HSYNC_E) {
 		set_hsync(false);
 	}
+	*/
+	int eid2 = (event_id / 2) * 2;
+	if(eid2 == EVENT_ID_VSTART) {
+		line_count[0] = line_count[1] = 0;
+		if((horiz_us != next_horiz_us) || (vert_us != next_vert_us)) {
+			horiz_us = next_horiz_us;
+			vert_us = next_vert_us;
+			force_recalc_crtc_param(-1);
+			//register_event(this, EVENT_CRTC_VSTART + 0, vert_us, true, &event_id_vstart); // OK?
+		}
+		frame_in = true;
+		hsync = true;
+		hdisp = false;
+		vdisp = true;
+		vblank = false;
+		vsync = false;
+		
+		register_event(this, EVENT_CRTC_VSYNC  + 0, vert_sync_end_us, false, &event_id_vsync);
+		register_event(this, EVENT_CRTC_HSTART + 0, vert_sync_pre_us, false, &event_id_hsw[0]);
+		register_event(this, EVENT_CRTC_HSTART + 1, vert_sync_pre_us, false, &event_id_hsw[1]);
+	} else if(eid2 == EVENT_ID_HSW) {
+		// Do render
+		hsync = false;
+		int i = event_id & 1;
+		if(!vsync) {
+			hdisp = true;
+			if((vstart_lines[i] <= line_count[i]) && ((vend_lines[i] + vstart_lines[i]) > line_count[i])) {
+				if(line_changed[i][line_count[i]]) {
+					// Renderer main
+				}
+			}
+			line_changed[i][line_count[i]] = false;
+			line_rendered[i][line_count[i]] = true;
+			line_count[i]++;
+			register_event(this, EVENT_CRTC_HSTART + i, horiz_us[i], false, &event_id_hsw[i]);
+		} else {
+			hsync = false;
+			hdisp = false;
+			register_event(this, EVENT_CRTC_HSTART + i, horiz_us[i], false, &event_id_hsw[i]);
+		}
+	} else if(eid2 == EVENT_ID_HSTART) {
+		int i = event_id & 1;
+		hsync = true;
+		if(!vsync) {
+			frame_in = true;
+			register_event(this, EVENT_CRTC_HSW + i, horiz_width_posi_us[i], false, &event_id_hsw[i]);
+		} else {
+			register_event(this, EVENT_CRTC_HSW + i, horiz_width_nega_us[i], false, &event_id_hsw[i]);
+			hdisp = false;
+		}				
+	} else if(eid2 == EVENT_ID_VSYNC) {
+		int i = event_id & 1;
+
+		frame_in = false;
+		vsync = true;
+		vdisp = false;
+		vblank = true;
+		register_event(this, EVENT_CRTC_VSTART + 0, vert_us, false, &event_id_vstart); // OK?
+		// If display has not supported BLENDING, put blending ?.
+	}
+
 }
 
 void TOWNS_CRTC::set_display(bool val)
@@ -209,13 +449,16 @@ void TOWNS_CRTC::set_vblank(bool val)
 	}
 }
 
+
+// Renderers
 void TOWNS_CRTC::render_line_16(int layer, scrntype_t *framebuffer, uint8_t *vramptr, uint32_t words)
 {
 	uint32_t wordptr = 0;
 	int nwords = (int)words / 8;
 	int ip;
 	uint32_t src;
-	uint8_t  srcdat[8];
+	uint32_t src1, src2;
+	uint8_t  srcdat1[4], srcdat2[1];
 	scrntype_t *pdst = framebuffer;
 	uint32_t *pp = (uint32_t *)vramptr;
 	
@@ -223,6 +466,19 @@ void TOWNS_CRTC::render_line_16(int layer, scrntype_t *framebuffer, uint8_t *vra
 	if(vramptr == NULL) return;
 	for(ip = 0; ip < nwords; ip++) {
 		src = pp[ip];
+		src1 = (src & 0xf0f0f0f0) >> 4;
+		src2 = src & 0x0f0f0f0f;
+		
+		srcdat1[0] = (uint8_t)(src1 >> 24);
+		srcdat1[1] = (uint8_t)(src1 >> 16);
+		srcdat1[2] = (uint8_t)(src1 >> 8);
+		srcdat1[3] = (uint8_t)(src1 >> 0);
+		
+		srcdat2[0] = (uint8_t)(src2 >> 24);
+		srcdat2[1] = (uint8_t)(src2 >> 16);
+		srcdat2[2] = (uint8_t)(src2 >> 8);
+		srcdat2[3] = (uint8_t)(src2 >> 0);
+		/*
 		srcdat[0] = (uint8_t)((src & 0xf0000000) >> 28);
 		srcdat[1] = (uint8_t)((src & 0x0f000000) >> 24);
 		srcdat[2] = (uint8_t)((src & 0x00f00000) >> 20);
@@ -235,6 +491,12 @@ void TOWNS_CRTC::render_line_16(int layer, scrntype_t *framebuffer, uint8_t *vra
 			pdst[i] = apalette_16_pixel[layer][srcdat[i]];
 		}
 		pdst += 8;
+		*/
+		for(int i = 0; i < 4; i++) {
+			pdst[0] = apalette_16_pixel[layer][srcdat1[i]];
+			pdst[1] = apalette_16_pixel[layer][srcdat2[i]];
+			pdst += 2;
+		}
 	}
 	int mod_words = words - (nwords * 8);
 	if(mod_words > 0) {
@@ -288,7 +550,6 @@ void TOWNS_CRTC::render_line_256(int layer, scrntype_t *framebuffer, uint8_t *vr
 	}
 }
 
-#define CLEAR_COLOR RGBA_COLOR(0,0,0,0)
 // To be used table??
 void TOWNS_CRTC::render_line_32768(int layer, scrntype_t *framebuffer, uint8_t *vramptr, uint32_t words)
 {
@@ -316,9 +577,21 @@ void TOWNS_CRTC::render_line_32768(int layer, scrntype_t *framebuffer, uint8_t *
 		}
 		for(int i = 0; i < 8; i++) {
 			uint16_t v = cachep[i];
+#ifdef _USE_ALPHA_CHANNEL
+#ifdef __BIG_ENDIAN__
+			pair_t n;
+			n.d = 0;
+			n.b.l = v & 0xff;
+			n.b.h = (v & 0xff00) >> 8;
+			dcache[i] = table_32768c[n.sw.l];
+#else
+			dcache[i] = table_32768c[v];
+#endif
+#else
 			if((v & 0x8000) == 0) {
-				dcache[i] = RGBA_COLOR(v & 0x03e0, v & 0x7c00, v & 0x001f, 0xff); // RGB555 -> PIXEL
+				dcache[i] = RGBA_COLOR((v & 0x03e0) >> 2, (v & 0x7c00) >> 7, (v & 0x001f) << 3, 0xff); // RGB555 -> PIXEL
 			}
+#endif
 		}
 		for(int i = 0; i < 8; i++) {
 			pdst[i] = dcache[i];
@@ -331,10 +604,22 @@ void TOWNS_CRTC::render_line_32768(int layer, scrntype_t *framebuffer, uint8_t *
 		scrntype_t dc;
 		for(int i = 0; i < mod_words; i++) {
 			src16 = vp[i];
+#ifdef _USE_ALPHA_CHANNEL
+#ifdef __BIG_ENDIAN__
+			pair_t n;
+			n.d = 0;
+			n.b.l = src16 & 0xff;
+			n.b.h = (src16 & 0xff00) >> 8;
+			dc = table_32768c[n.sw.l];
+#else
+			dc = table_32768c[src16];
+#endif
+#else
 			dc = _CLEAR_COLOR;
 			if((src16 & 0x8000) == 0) {
-				dc = RGBA_COLOR(src16 & 0x03e0, src16 & 0x7c00, src16 & 0x001f, 0xff); // RGB555 -> PIXEL
+				dc = RGBA_COLOR((src16 & 0x03e0) >> 2, (src16 & 0x7c00) >> 7, (src16 & 0x001f) << 3, 0xff); // RGB555 -> PIXEL
 			}
+#endif
 			pdst[i] = dc;
 		}
 	}
