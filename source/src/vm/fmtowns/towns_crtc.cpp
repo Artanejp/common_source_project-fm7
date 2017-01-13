@@ -209,6 +209,138 @@ void TOWNS_CRTC::set_vblank(bool val)
 	}
 }
 
+void TOWNS_CRTC::render_line_16(int layer, scrntype_t *framebuffer, uint8_t *vramptr, uint32_t words)
+{
+	uint32_t wordptr = 0;
+	int nwords = (int)words / 8;
+	int ip;
+	uint32_t src;
+	uint8_t  srcdat[8];
+	scrntype_t *pdst = framebuffer;
+	uint32_t *pp = (uint32_t *)vramptr;
+	
+	if(framebuffer == NULL) return;
+	if(vramptr == NULL) return;
+	for(ip = 0; ip < nwords; ip++) {
+		src = pp[ip];
+		srcdat[0] = (uint8_t)((src & 0xf0000000) >> 28);
+		srcdat[1] = (uint8_t)((src & 0x0f000000) >> 24);
+		srcdat[2] = (uint8_t)((src & 0x00f00000) >> 20);
+		srcdat[3] = (uint8_t)((src & 0x000f0000) >> 16);
+		srcdat[4] = (uint8_t)((src & 0x0000f000) >> 12);
+		srcdat[5] = (uint8_t)((src & 0x00000f00) >> 8);
+		srcdat[6] = (uint8_t)((src & 0x000000f0) >> 4);
+		srcdat[7] = (uint8_t)(src & 0x0f);
+		for(int i = 0; i < 8; i++) {
+			pdst[i] = apalette_16_pixel[layer][srcdat[i]];
+		}
+		pdst += 8;
+	}
+	int mod_words = words - (nwords * 8);
+	if(mod_words > 0) {
+		uint8_t *ppp = (uint8_t *)(&pp[ip]);
+		uint8_t hi, lo;
+		for(int i = 0; i < mod_words / 2; i++) {
+			uint8_t d = ppp[i];
+			hi = (d & 0xf0) >> 4;
+			lo = d & 0x0f;
+			*pdst++ = apalette_16_pixel[layer][hi];
+			*pdst++ = apalette_16_pixel[layer][lo];
+		}
+		if((mod_words & 1) != 0) {
+			hi = (ppp[mod_words / 2] & 0xf0) >> 4;
+			*pdst++ = apalette_16_pixel[layer][hi];
+		}
+	}
+}
+
+void TOWNS_CRTC::render_line_256(int layer, scrntype_t *framebuffer, uint8_t *vramptr, uint32_t words)
+{
+	uint32_t wordptr = 0;
+	int nwords = (int)words / 4;
+	int ip;
+	uint32_t src;
+	uint8_t  srcdat[4];
+	scrntype_t *pdst = framebuffer;
+	uint32_t *pp = (uint32_t *)vramptr;
+	
+	if(framebuffer == NULL) return;
+	if(vramptr == NULL) return;
+	for(ip = 0; ip < nwords; ip++) {
+		src = pp[ip];
+		srcdat[0] = (uint8_t)((src & 0xff000000) >> 24);
+		srcdat[1] = (uint8_t)((src & 0x00ff0000) >> 16);
+		srcdat[2] = (uint8_t)((src & 0x0000ff00) >> 8);
+		srcdat[3] = (uint8_t) (src & 0x000000ff);
+		for(int i = 0; i < 4; i++) {
+			pdst[i] = apalette_256_pixel[srcdat[i]];
+		}
+		pdst += 4;
+	}
+	int mod_words = words - (nwords * 4);
+	if(mod_words > 0) {
+		uint8_t src8;
+		uint8_t *p8 = (uint8_t *)(&pp[ip]);
+		for(int i = 0; i < mod_words; i++) {
+			src8 = p8[i];
+			pdst[i] = apalette_256_pixel[src8];
+		}
+	}
+}
+
+#define CLEAR_COLOR RGBA_COLOR(0,0,0,0)
+// To be used table??
+void TOWNS_CRTC::render_line_32768(int layer, scrntype_t *framebuffer, uint8_t *vramptr, uint32_t words)
+{
+	uint32_t wordptr = 0;
+	int nwords = (int)words / 8;
+	int ip;
+	uint16_t src16;
+	uint32_t  srcdat[4];
+	scrntype_t *pdst = framebuffer;
+	uint32_t *pp = (uint32_t *)vramptr;
+	uint16_t *cachep = (uint16_t *)srcdat;
+	int i = 0;
+	
+	if(framebuffer == NULL) return;
+	if(vramptr == NULL) return;
+	
+	for(ip = 0; ip < nwords; ip++) {
+		for(int i = 0; i < 4; i++) {
+			srcdat[i] = pp[i];
+		}
+		pp = pp + 4;
+		scrntype_t dcache[8];
+		for(int i = 0; i < 8; i++) {
+			dcache[i] = _CLEAR_COLOR;
+		}
+		for(int i = 0; i < 8; i++) {
+			uint16_t v = cachep[i];
+			if((v & 0x8000) == 0) {
+				dcache[i] = RGBA_COLOR(v & 0x03e0, v & 0x7c00, v & 0x001f, 0xff); // RGB555 -> PIXEL
+			}
+		}
+		for(int i = 0; i < 8; i++) {
+			pdst[i] = dcache[i];
+		}
+		pdst += 8;
+	}
+	int mod_words = words - nwords * 8;
+	if(mod_words > 0) {
+		uint16_t *vp = (uint16_t *)pp;
+		scrntype_t dc;
+		for(int i = 0; i < mod_words; i++) {
+			src16 = vp[i];
+			dc = _CLEAR_COLOR;
+			if((src16 & 0x8000) == 0) {
+				dc = RGBA_COLOR(src16 & 0x03e0, src16 & 0x7c00, src16 & 0x001f, 0xff); // RGB555 -> PIXEL
+			}
+			pdst[i] = dc;
+		}
+	}
+}
+#undef _CLEAR_COLOR
+
 #define STATE_VERSION	1
 
 void TOWNS_CRTC::save_state(FILEIO* state_fio)
