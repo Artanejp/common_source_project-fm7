@@ -10,9 +10,16 @@
 
 #include "towns_crtc.h"
 
-#define EVENT_DISPLAY	0
-#define EVENT_HSYNC_S	1
-#define EVENT_HSYNC_E	2
+enum {
+	EVENT_CRTC_VSTART = 0,
+	EVENT_CRTC_VST1   = 2,
+	EVENT_CRTC_VST2   = 4,
+	EVENT_CRTC_VDS    = 6,
+	EVENT_CRTC_VDE    = 8,
+	EVENT_CRTC_HSTART = 10,
+	EVENT_CRTC_HEND   = 12,
+	EVENT_CRTC_HSW    = 14,
+};
 
 #define CLEAR_COLOR RGBA_COLOR(0,0,0,0)
 
@@ -323,112 +330,112 @@ void TOWNS_CRTC::update_timing(int new_clocks, double new_frames_per_sec, int ne
 	disp_end_clock = 0;
 }
 
-void TOWNS_CRTC::event_frame()
-{
-	// update envet clocks after update_timing() is called
-	if(disp_end_clock == 0 && vt_total != 0) {
-		disp_end_clock = (int)((double)cpu_clocks * (double)hz_disp / frames_per_sec / (double)vt_total / (double)hz_total);
-		hs_start_clock = (int)((double)cpu_clocks * (double)hs_start / frames_per_sec / (double)vt_total / (double)hz_total);
-		hs_end_clock = (int)((double)cpu_clocks * (double)hs_end / frames_per_sec / (double)vt_total / (double)hz_total);
-	}
-}
-
-void TOWNS_CRTC::event_vline(int v, int clock)
-{
-	// if vt_disp == 0, raise vblank for one line
-	bool new_vblank = ((v < vt_disp) || (v == 0 && vt_disp == 0));
-	
-	// display
-	if(outputs_disp.count) {
-		set_display(new_vblank);
-		if(new_vblank && hz_disp < hz_total) {
-			register_event_by_clock(this, EVENT_DISPLAY, disp_end_clock, false, NULL);
-		}
-	}
-	
-	// vblank
-	set_vblank(new_vblank);	// active low
-	
-	// vsync
-	set_vsync(vs_start <= v && v < vs_end);
-	
-	// hsync
-	if(outputs_hsync.count && hs_start < hs_end && hs_end < hz_total) {
-		set_hsync(false);
-		register_event_by_clock(this, EVENT_HSYNC_S, hs_start_clock, false, NULL);
-		register_event_by_clock(this, EVENT_HSYNC_E, hs_end_clock, false, NULL);
-	}
-}
-
 void TOWNS_CRTC::event_callback(int event_id, int err)
 {
 	/*
-	if(event_id == EVENT_DISPLAY) {
-		set_display(false);
-	} else if(event_id == EVENT_HSYNC_S) {
-		set_hsync(true);
-	} else if(event_id == EVENT_HSYNC_E) {
-		set_hsync(false);
-	}
-	*/
+	 * Related CRTC registers:
+	 * HST, HSW1, HSW2 : HSYNC
+	 * VST, VST1, VST2 : VSYNC
+	 * (EET: for interlace : still not implement)
+	 * VDS0, VDE0, HDS0, HDE0 : Display timing for Layer0
+	 * VDS1, VDE1, HDS1, HDE1 : Display timing for Layer1
+	 * FA0, HAJ0, LO0, FO0  : ToDo (For calculating address)
+	 * FA1, HAJ1, LO1, FO1  : ToDo (For calculating address)
+	 * ZOOM (#27) : ToDo
+	 */
 	int eid2 = (event_id / 2) * 2;
-	if(eid2 == EVENT_ID_VSTART) {
+	if(eid2 == EVENT_CRTC_VSTART) {
 		line_count[0] = line_count[1] = 0;
 		if((horiz_us != next_horiz_us) || (vert_us != next_vert_us)) {
 			horiz_us = next_horiz_us;
 			vert_us = next_vert_us;
 			force_recalc_crtc_param(-1);
-			//register_event(this, EVENT_CRTC_VSTART + 0, vert_us, true, &event_id_vstart); // OK?
+			if(event_id_vsync >= 0) cancel_event(this, event_id_vsync);
+			if(event_id_hsw >= 0) cancel_event(this, event_id_hsw);
+			
+			register_event(this, EVENT_CRTC_HSTART + 0, vert_sync_pre_us, false, &event_id_hsw); // HSW = HSYNC
+			register_event(this, EVENT_CRTC_VSTART + 0, vert_us, true, &event_id_vsync); // VST
 		}
-		frame_in = true;
-		hsync = true;
+		frame_in[0] = frame_in[1] = false;
+		line_count[0] = line_count[1] = 0;
+		line_count_mod[0] = line_count_mod[1] = 0;
+		hsync = false;
 		hdisp = false;
 		vdisp = true;
-		vblank = false;
+		vblank = true;
 		vsync = false;
-		
-		register_event(this, EVENT_CRTC_VSYNC  + 0, vert_sync_end_us, false, &event_id_vsync);
-		register_event(this, EVENT_CRTC_HSTART + 0, vert_sync_pre_us, false, &event_id_hsw[0]);
-		register_event(this, EVENT_CRTC_HSTART + 1, vert_sync_pre_us, false, &event_id_hsw[1]);
-	} else if(eid2 == EVENT_ID_HSW) {
+		major_line_count = -1;
+		register_event(this, EVENT_CRTC_VST1 + 0, vert_sync_pre_us, false, &event_id_vstn); // VST1
+		register_event(this, EVENT_CRTC_VDS + 0, vert_start_us[0], false, &event_id_vstart[0]); // VDS0 : Layer1
+		register_event(this, EVENT_CRTC_VDS + 1, vert_start_us[1], false, &event_id_vstart[1]); // VDS1 : Layer2
+	} else if(eid2 == EVENT_CRTC_VST1) {
+		vsync = true;
+		if(vert_sync_end_us > 0.0) {
+			register_event(this, EVENT_CRTC_VST2 + 0, vert_sync_end_us, false, &event_id_vstn); // VST2 - VST1.
+		} else {
+			vsync = false;
+		}
+	} else if (eid2 == EVENT_CRTC_VST2) {
+		vsync = false;
+		vblank = false;
+		event_id_vstn = -1;
+	} else if(eid2 == EVENT_CRTC_VDS) { // Display start
+		int layer = event_id & 1;
+		frame_in[layer] = true;
+		// DO ofset line?
+		if(event_id_vend[layer] >= 0) cancel_event(this, event_id_vend[layer]);
+		register_event(this, EVENT_CRTC_VDE + layer, vert_start_us[0], false, &event_id_vend[layer]); // VDEx
+		event_id_vstart[layer] = -1;
+	} else if(eid2 == EVENT_CRTC_VDE) { // Display end
+		int layer = event_id & 1;
+		frame_in[layer] = false;
+		if(event_id_vstart[layer] >= 0) cancel_event(this, event_id_vstart[layer]);
+		event_id_vstart[layer] = -1;
+		event_id_vend[layer] = -1;
+		// DO ofset line?
+	} else if(eid2 == EVENT_CRTC_HSTART) {
 		// Do render
-		hsync = false;
-		int i = event_id & 1;
-		if(!vsync) {
-			hdisp = true;
-			if((vstart_lines[i] <= line_count[i]) && ((vend_lines[i] + vstart_lines[i]) > line_count[i])) {
-				if(line_changed[i][line_count[i]]) {
-					// Renderer main
+		hsync = true;
+		hdisp = false;
+		major_line_count++;
+		if(vsync) { // in VSYNC. Not Display.
+			if(event_id_hswn >= 0) cancel_event(this, event_id_hswn);
+			register_event(this, EVENT_CRTC_HSW + 0, hsw2_us, false, &event_id_hswn); // Indicate HSYNC
+		} else { // Not in VSYNC. May be displaied.
+			for(layer = 0; layer < 2; layer++) {
+				if(frame_in[layer] && (major_line_count >= 0) && (major_line_count < TOWNS_CRTC_MAX_LINES)) {
+					if((vstart_lines[layer] <= major_line_count) && (vend_lines[layer] => major_line_count)) {
+						// Proccessing zooming by ZOOM register(reg #27).
+						{
+							// If zoom is not supported by hardware, if first line : render.
+							// Not first: copy (put here?)
+						} // else {
+						if(line_changed[layer][line_count[layer]]) {
+							{
+								// Do rendering.
+								line_changed[layer][line_count[layer]] = false;
+								line_rendered[layer][line_count[layer]] = true;
+							}
+						}
+					}
+					{
+						// If zoom by hardware
+						line_count_mod[layer] += line_count_factor[layer]; // line_count_factor[n] = 2048 / VZOOM_FACTOR[01]
+						if(line_count_mod[layer] >= 2048) {
+							line_count[layer]++;
+							line_count_mod[layer] -= 2048;
+						}
+					}
 				}
 			}
-			line_changed[i][line_count[i]] = false;
-			line_rendered[i][line_count[i]] = true;
-			line_count[i]++;
-			register_event(this, EVENT_CRTC_HSTART + i, horiz_us[i], false, &event_id_hsw[i]);
-		} else {
-			hsync = false;
-			hdisp = false;
-			register_event(this, EVENT_CRTC_HSTART + i, horiz_us[i], false, &event_id_hsw[i]);
+			if(event_id_hswn >= 0) cancel_event(this, event_id_hswn);
+			register_event(this, EVENT_CRTC_HSW + 0, hsw1_us, false, &event_id_hswn); // Indicate HSYNC
 		}
-	} else if(eid2 == EVENT_ID_HSTART) {
-		int i = event_id & 1;
-		hsync = true;
+	} else if(eid2 == EVENT_CRTC_HSW) {
 		if(!vsync) {
-			frame_in = true;
-			register_event(this, EVENT_CRTC_HSW + i, horiz_width_posi_us[i], false, &event_id_hsw[i]);
-		} else {
-			register_event(this, EVENT_CRTC_HSW + i, horiz_width_nega_us[i], false, &event_id_hsw[i]);
-			hdisp = false;
-		}				
-	} else if(eid2 == EVENT_ID_VSYNC) {
-		int i = event_id & 1;
-
-		frame_in = false;
-		vsync = true;
-		vdisp = false;
-		vblank = true;
-		register_event(this, EVENT_CRTC_VSTART + 0, vert_us, false, &event_id_vstart); // OK?
-		// If display has not supported BLENDING, put blending ?.
+			hdisp = true;
+		}
+		hsync = false;
 	}
 
 }
