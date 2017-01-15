@@ -185,13 +185,35 @@ void UPD71071::do_dma()
 	if(cmd & 4) {
 		return;
 	}
-	
+	// ToDo: Will check WORD transfer mode for FM-Towns.(mode.bit0 = '1).
 	// run dma
 	for(int c = 0; c < 4; c++) {
 		uint8_t bit = 1 << c;
 		if(((req | sreq) & bit) && !(mask & bit)) {
 			// execute dma
 			while((req | sreq) & bit) {
+#if 0
+				if((dma[c].mode & 0x01) == 1) { // 16bit transfer mode.
+					if((dma[c].mode & 0x0c) == 4) {
+						// io -> memory
+						uint32_t val = dma[c].dev->read_dma_io16(0);
+						d_mem->write_dma_data16(dma[c].areg, val);
+						// update temporary register
+						tmp = val;
+					} else if((dma[c].mode & 0x0c) == 8) {
+						// memory -> io
+						uint32_t val = d_mem->read_dma_data16(dma[c].areg);
+						dma[c].dev->write_dma_io16(0, val);
+						// update temporary register
+						tmp = val;
+					}
+					if(dma[c].mode & 0x20) {
+						dma[c].areg = (dma[c].areg - 2) & 0xffffff;
+					} else {
+						dma[c].areg = (dma[c].areg + 2) & 0xffffff;
+					}
+				} else { // 8bit mode
+#endif
 				if((dma[c].mode & 0x0c) == 4) {
 					// io -> memory
 					uint32_t val = dma[c].dev->read_dma_io8(0);
@@ -210,6 +232,9 @@ void UPD71071::do_dma()
 				} else {
 					dma[c].areg = (dma[c].areg + 1) & 0xffffff;
 				}
+#if 0 // 16bit mode
+				}
+#endif
 				if(dma[c].creg-- == 0) {
 					// TC
 					if(dma[c].mode & 0x10) {
