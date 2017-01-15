@@ -55,19 +55,22 @@ enum {
 	TOWNS_MEMORY_TYPE_SYSTEM_ROM,
 };
 
-	
+// Please set from config
+#define TOWNS_EXTRAM_PAGES 6
+
+class TOWNS_VRAM;
 class MEMORY : public DEVICE
 {
 private:
 	I386 *d_cpu;
 
-	DEVICE *d_vram;
-
-	uint8_t  read_banktype_head[256]; // xx000000 - xxffffff
-	uint32_t read_offset_head[256];
-	uint8_t  write_banktype_head[256]; // xx000000 - xxffffff
-	uint32_t write_offset_head[256];
-
+	TOWNS_VRAM *d_vram;
+	DEVICE *d_crtc;
+	DEVICE *d_cmos;
+	DEVICE *d_pcm;
+	DEVICE *d_extio;
+	DEVICE *d_beep;
+	
 	uint8_t *read_bank_adrs_cx[0x400 * 16];   // C0000000 - C3FFFFFF : Per 4KB
 	uint8_t *write_bank_adrs_cx[0x400 * 16];  // C0000000 - C3FFFFFF : Per 4KB
 	uint8_t device_type_adrs_cx[0x400 * 16];  // C0000000 - C3FFFFFF : Per 4KB
@@ -75,14 +78,25 @@ private:
 	uint8_t *read_bank_adrs_fx[0x1000]; // FF000000 - FFFFFFFF : Per 4KB
 
 	uint8_t *extram_base; // 0x100000 - : 2MB / 4MB / 6MB
-	int32_t extram_pages; //
-	uint8_t *extram_adrs[4096]; // 256MB / 64KB
+	uint32_t extram_pages; //
+	uint8_t *extram_adrs[0x400]; // 1 bank is 1MB
 
 	uint8_t msdos_rom[0x80000]; // MSDOS ROM. READ ONLY.
 	uint8_t dict_rom[0x80000];  // Dictionary rom. READ ONLY.
 	uint8_t font_rom[0x40000]; // Font ROM. READ ONLY.
-	uint8_t system_rom[0x40000]; // System ROM. READ ONLY.
-	uint8_t machine_id[2];	// MACHINE ID
+#if 0	
+	uint8_t font_20_rom[0x40000]; // Font ROM (20 pixels). READ ONLY.
+#endif	
+	uint8_t system_rom[0x20000]; // System ROM. READ ONLY.
+
+	bool bankf8_ram;
+	bool bankd0_dict;
+	uint8_t dict_bank;
+	uint8_t page0[0xc0000];
+	uint8_t ram_0d0[0x20000];
+	uint8_t ram_0f0[0x8000];
+	uint8_t ram_0f8[0x8000];
+	//uint8_t machine_id[2];	// MACHINE ID
 
 	// memory
 	uint8_t protect, rst;
@@ -95,16 +109,33 @@ private:
 public:
 	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
 		set_device_name(_T("MEMORY"));
+		d_vram = NULL;
+		d_crtc = NULL;
+		d_cmos = NULL;
+		d_pcm = NULL;
+		d_extio = NULL;
+		d_beep = NULL;
 	}
 	~MEMORY() {}
 	
 	// common functions
 	void initialize();
 	void reset();
+
 	void write_data8(uint32_t addr, uint32_t data);
 	uint32_t read_data8(uint32_t addr);
+	// Using [read|write]_data[16|32] to be faster memory access.
+	void write_data16(uint32_t addr, uint32_t data);
+	uint32_t read_data16(uint32_t addr);
+	void write_data32(uint32_t addr, uint32_t data);
+	uint32_t read_data32(uint32_t addr);
+	
 	void write_dma_data8(uint32_t addr, uint32_t data);
 	uint32_t read_dma_data8(uint32_t addr);
+	// Using [read|write]_dma_data16 for DMAC 16bit mode (SCSI/CDROM?).
+	void write_dma_data16(uint32_t addr, uint32_t data);
+	uint32_t read_dma_data16(uint32_t addr);
+	
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
 	void write_signal(int id, uint32_t data, uint32_t mask);
@@ -113,11 +144,7 @@ public:
 	bool load_state(FILEIO* state_fio);
 	
 	// unique functions
-#if defined(HAS_I286)
-	void set_context_cpu(I286* device)
-#else
 	void set_context_cpu(I386* device)
-#endif
 	{
 		d_cpu = device;
 	}
@@ -125,34 +152,31 @@ public:
 	{
 		machine_id = id;
 	}
+	void set_context_vram(TOWNS_VRAM* device)
+	{
+		d_vram = device;
+	}
 	void set_context_crtc(DEVICE* device)
 	{
 		d_crtc = device;
 	}
+	void set_context_cmos(DEVICE* device)
+	{
+		d_cmos = device;
+	}
+	void set_context_pcm(DEVICE* device)
+	{
+		d_pcm = device;
+	}
+	void set_context_beep(DEVICE* device)
+	{
+		d_beep = device;
+	}
+	
 	void set_chregs_ptr(uint8_t* ptr)
 	{
 		chreg = ptr;
 	}
-	uint8_t* get_vram()
-	{
-		return vram;
-	}
-	uint8_t* get_cvram()
-	{
-		return cvram;
-	}
-#ifdef _FMR60
-	uint8_t* get_avram()
-	{
-		return avram;
-	}
-#else
-	uint8_t* get_kvram()
-	{
-		return kvram;
-	}
-#endif
-	void draw_screen();
 };
 
 #endif

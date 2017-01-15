@@ -11,34 +11,6 @@
 #include "memory.h"
 #include "../i386.h"
 
-static const uint8_t bios1[] = {
-	0xFA,				// cli
-	0xDB,0xE3,			// fninit
-	0xB8,0xA0,0xF7,			// mov	ax,F7A0
-	0x8E,0xD0,			// mov	ss,ax
-	0xBC,0x7E,0x05,			// mov	sp,057E
-	// init i/o
-	0xB4,0x80,			// mov	ah,80
-	0x9A,0x14,0x00,0xFB,0xFF,	// call	far FFFB:0014
-	// boot from fdd
-	0xB4,0x81,			// mov	ah,81
-	0x9A,0x14,0x00,0xFB,0xFF,	// call	far FFFB:0014
-	0x73,0x0B,			// jnb	$+11
-	0x74,0xF5,			// jz	$-11
-	// boot from scsi-hdd
-	0xB4,0x82,			// mov	ah,82
-	0x9A,0x14,0x00,0xFB,0xFF,	// call	far FFFB:0014
-	0x72,0xEC,			// jb	$-20
-	// goto ipl
-	0x9A,0x04,0x00,0x00,0xB0,	// call	far B000:0004
-	0xEB,0xE7			// jmp $-25
-};
-
-static const uint8_t bios2[] = {
-	0xEA,0x00,0x00,0x00,0xFC,	// jmp	FC00:0000
-	0x00,0x00,0x00,
-	0xcf				// iret
-};
 
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 11, eb = (e) >> 11; \
@@ -58,91 +30,89 @@ static const uint8_t bios2[] = {
 
 void MEMORY::initialize()
 {
-	// init memory
-	memset(ram, 0, sizeof(ram));
-	memset(vram, 0, sizeof(vram));
-	memset(cvram, 0, sizeof(cvram));
-#ifdef _FMR60
-	memset(avram, 0, sizeof(avram));
-#else
-	memset(kvram, 0, sizeof(kvram));
-	memset(dummy, 0, sizeof(dummy));
-#endif
-	memset(ipl, 0xff, sizeof(ipl));
-#ifdef _FMR60
-	memset(ank24, 0xff, sizeof(ank24));
-	memset(kanji24, 0xff, sizeof(kanji24));
-#else
-	memset(ank8, 0xff, sizeof(ank8));
-	memset(ank16, 0xff, sizeof(ank16));
-	memset(kanji16, 0xff, sizeof(kanji16));
-#endif
-	memset(rdmy, 0xff, sizeof(rdmy));
+
+	bankf8_ram = false;
+	bankd0_dict = false;
+	dict_bank = 0;
 	
+	vram_wait_val = 6;
+	mem_wait_val = 3;
+	
+	memset(page0, 0x00, sizeof(page0));
+	memset(ram_0d0, 0x00, sizeof(ram_0d0));
+	memset(ram_0f0, 0x00, sizeof(ram_0f0));
+	memset(ram_0f8, 0x00, sizeof(ram_0f8));
+	
+	memset(system_rom, 0xff, sizeof(system_rom));
+	memset(font_rom, 0xff, sizeof(font_rom));
+#if 0
+	memset(font_20_rom, 0xff, sizeof(font_20_rom));
+#endif
+	memset(msdos_rom, 0xff, sizeof(msdos_rom));
+	memset(dict_rom, 0xff, sizeof(dict_rom));
+
 	// load rom image
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(create_local_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
-		fio->Fread(ipl, sizeof(ipl), 1);
+	if(fio->Fopen(create_local_path(_T("FMT_SYS.ROM")), FILEIO_READ_BINARY)) { // SYSTEM
+		fio->Fread(system_rom, sizeof(system_rom), 1);
 		fio->Fclose();
+	}
+	if(fio->Fopen(create_local_path(_T("FMT_FNT.ROM")), FILEIO_READ_BINARY)) { // FONT
+		fio->Fread(font_rom, sizeof(font_rom), 1);
+		fio->Fclose();
+	}
+#if 0
+	if(fio->Fopen(create_local_path(_T("FMT_F20.ROM")), FILEIO_READ_BINARY)) { // 20 pixels FONT : Optional
+		fio->Fread(font_20_rom, sizeof(font_20_rom), 1);
+		fio->Fclose();
+	}
+#endif
+	if(fio->Fopen(create_local_path(_T("FMT_DOS.ROM")), FILEIO_READ_BINARY)) { // MSDOS
+		fio->Fread(msdos_rom, sizeof(msdos_rom), 1);
+		fio->Fclose();
+	}
+	if(fio->Fopen(create_local_path(_T("FMT_DIC.ROM")), FILEIO_READ_BINARY)) { // MSDOS
+		fio->Fread(dict_rom, sizeof(dict_rom), 1);
+		fio->Fclose();
+	}
+	
+	memset(extram_adrs, 0x00, sizeof(extram_adrs));
+	extram_pages = TOWNS_EXTRAM_PAGES;
+	extram_base = (uint8_t *)malloc(extram_pages * 0x100000);
+	if(extram_base == NULL) {
+		extram_pages = 0;
 	} else {
-		// load pseudo ipl
-		memcpy(ipl + 0x0000, bios1, sizeof(bios1));
-		memcpy(ipl + 0x3ff0, bios2, sizeof(bios2));
-	}
-#ifdef _FMR60
-	if(fio->Fopen(create_local_path(_T("ANK24.ROM")), FILEIO_READ_BINARY)) {
-		fio->Fread(ank24, sizeof(ank24), 1);
-		fio->Fclose();
-	}
-	if(fio->Fopen(create_local_path(_T("KANJI24.ROM")), FILEIO_READ_BINARY)) {
-		fio->Fread(kanji24, sizeof(kanji24), 1);
-		fio->Fclose();
-	}
-#else
-	if(fio->Fopen(create_local_path(_T("ANK8.ROM")), FILEIO_READ_BINARY)) {
-		fio->Fread(ank8, sizeof(ank8), 1);
-		fio->Fclose();
-	}
-	if(fio->Fopen(create_local_path(_T("ANK16.ROM")), FILEIO_READ_BINARY)) {
-		fio->Fread(ank16, sizeof(ank16), 1);
-		fio->Fclose();
-	}
-	if(fio->Fopen(create_local_path(_T("KANJI16.ROM")), FILEIO_READ_BINARY)) {
-		fio->Fread(kanji16, sizeof(kanji16), 1);
-		fio->Fclose();
-	}
-#endif
-	delete fio;
-	
-	// set memory
-	SET_BANK(0x000000, 0xffffff, wdmy, rdmy);
-	SET_BANK(0x000000, sizeof(ram) - 1, ram, ram);
-#ifdef _FMR60
-	SET_BANK(0xff8000, 0xff9fff, cvram, cvram);
-	SET_BANK(0xffa000, 0xffbfff, avram, avram);
-#endif
-	SET_BANK(0xffc000, 0xffffff, wdmy, ipl);
-	
-	// set palette
-	for(int i = 0; i < 8; i++) {
-		dpal[i] = i;
-		apal[i][0] = (i & 1) ? 0xf0 : 0;
-		apal[i][1] = (i & 2) ? 0xf0 : 0;
-		apal[i][2] = (i & 4) ? 0xf0 : 0;
-	}
-	for(int i = 0; i < 16; i++) {
-		if(i & 8) {
-			palette_cg[i] = RGB_COLOR(i & 2 ? 255 : 0, i & 4 ? 255 : 0, i & 1 ? 255 : 0);
-		} else {
-			palette_cg[i] = RGB_COLOR(i & 2 ? 127 : 0, i & 4 ? 127 : 0, i & 1 ? 127 : 0);
+		for(uint32_t ui = 0; ui < extram_pages; ui++) {
+			uint8_t *p;
+			p = &(extram_base[ui << 20]);
+			extram_adrs[ui] = p;
 		}
-		palette_txt[i] = palette_cg[i];
 	}
-	palette_txt[0] = RGB_COLOR(63, 63, 63);
-	apalsel = 0;
+	// Address Cx000000
+	memset(write_bank_adrs_cx, 0x00, sizeof(write_bank_adrs_cx));
+	memset(read_bank_adrs_cx, 0x00, sizeof(read_bank_adrs_cx));
+	memset(device_bank_adrs_cx, 0x00, sizeof(device_bank_adrs_cx));
 	
-	// register event
-	register_frame_event(this);
+	for(uint32_t ui = 0x0000; ui < 0x4000; ui++) {
+		if(ui < 0x2000) {
+			// ROM CARD?
+		} else if(ui < 0x2080) {
+			read_bank_adrs_cx[ui] = &(msdos_rom[(ui - 0x2000) << 12]);
+		} else if(ui < 0x2100) {
+			read_bank_adrs_cx[ui] = &(dict_rom[(ui - 0x2080) << 12]);
+		} else if(ui < 0x2140) {
+			read_bank_adrs_cx[ui] = &(font_rom[(ui - 0x2100) << 12]);
+		} else if(ui < 0x2142) {
+			devicetype_adrs_cx[ui] = TOWNS_MEMORY_TYPE_DICTLEARN;
+		} eise if(ui < 0x2200) {
+			// Reserved.
+		} else if(ui < 0x2201) {
+			devicetype_adrs_cx[ui] = TOWNS_MEMORY_TYPE_WAVERAM;
+		} else {
+			// Reserved.
+		}
+	}
+			
 }
 
 void MEMORY::reset()
@@ -171,104 +141,23 @@ void MEMORY::reset()
 #endif
 	dma_addr_reg = dma_wrap_reg = 0;
 	dma_addr_mask = 0x00ffffff;
-	d_cpu->set_address_mask(0x00ffffff);
+	d_cpu->set_address_mask(0xffffffff);
 }
 
-void MEMORY::write_data8(uint32_t addr, uint32_t data)
+void MEMORY::write_page0_8(uint32_t addr, uint32_t data, int *wait)
 {
-	//if(addr & 0xff000000) {
-		// > 16MB
-	//	return;
-	//}
-	if(!mainmem) {
-#ifdef _FMR60
-		if(0xc0000 <= addr && addr < 0xe0000) {
-			addr &= 0x1ffff;
-			for(int pl = 0; pl < 4; pl++) {
-				if(wplane & (1 << pl)) {
-					vram[addr + 0x20000 * pl] = data;
-				}
-			}
-		}
-#else
-		if(0xc0000 <= addr && addr < 0xc8000) {
-			// vram
-			uint32_t page;
-			if(dispctrl & 0x40) {
-				// 400 line
-				addr = ((pagesel & 0x10) << 13) | (addr & 0x7fff);
-				page = 0x8000;
-			} else {
-				// 200 line
-				addr = ((pagesel & 0x18) << 13) | (addr & 0x3fff);
-				page = 0x4000;
-			}
-			if(cmdreg & 0x80) {
-				// logical operations
-				if((cmdreg & 7) == 7) {
-					// compare
-					compbit = 0;
-					for(uint8_t bit = 1; bit <= 0x80; bit <<= 1) {
-						uint8_t val = 0;
-						for(int pl = 0; pl < 4; pl++) {
-							if(vram[addr + page * pl] & bit) {
-								val |= 1 << pl;
-							}
-						}
-						for(int i = 0; i < 8; i++) {
-							if((compreg[i] & 0x80) && (compreg[i] & 0xf) == val) {
-								compbit |= bit;
-							}
-						}
-					}
-				} else {
-					uint8_t mask = maskreg | ~data, val[4];
-					for(int pl = 0; pl < 4; pl++) {
-						val[pl] = (imgcol & (1 << pl)) ? 0xff : 0;
-					}
-					switch(cmdreg & 7) {
-					case 2:	// or
-						for(int pl = 0; pl < 4; pl++) {
-							val[pl] |= vram[addr + page * pl];
-						}
-						break;
-					case 3:	// and
-						for(int pl = 0; pl < 4; pl++) {
-							val[pl] &= vram[addr + page * pl];
-						}
-						break;
-					case 4:	// xor
-						for(int pl = 0; pl < 4; pl++) {
-							val[pl] ^= vram[addr + page * pl];
-						}
-						break;
-					case 5:	// not
-						for(int pl = 0; pl < 4; pl++) {
-							val[pl] = ~vram[addr + page * pl];
-						}
-						break;
-					case 6:	// tile
-						for(int pl = 0; pl < 4; pl++) {
-							val[pl] = tilereg[pl];
-						}
-						break;
-					}
-					for(int pl = 0; pl < 4; pl++) {
-						if(!(bankdis & (1 << pl))) {
-							vram[addr + page * pl] &= mask;
-							vram[addr + page * pl] |= val[pl] & ~mask;
-						}
-					}
-				}
-			} else {
-				for(int pl = 0; pl < 4; pl++) {
-					if(wplane & (1 << pl)) {
-						vram[addr + page * pl] = data;
-					}
-				}
-			}
-			return;
-		} else if(0xcff80 <= addr && addr < 0xcffe0) {
+	addr = addr & 0x000fffff;
+	if(wait != NULL) *wait = mem_wait_val;
+
+	if(addr < 0xc0000) {
+		page0[addr] = (uint8_t)data;
+	} else if(addr < 0xc8000) {
+		if(d_vram != NULL) {
+			d_vram->write_plane_data8(addr & 0x7fff, data);
+			if(wait != NULL) *wait = vram_wait_val;
+	} else if(addr < 0xd0000) {
+		// MMIO, VRAM and ram.
+		if(0xcff80 <= addr && addr < 0xcffe0) {
 #ifdef _DEBUG_LOG
 //			this->out_debug_log(_T("MW\t%4x, %2x\n"), addr, data);
 #endif
@@ -411,27 +300,325 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 			}
 			return;
 		}
-#endif
+	} else if(addr < 0xd8000) {
+		if(!bankd0_dict) {
+			ram_0d0[addr - 0x0d0000] = (uint8_t)data;
+			// RAM? DICT?
+		} else {
+			// DICT
+			//dict_rom[addr - 0xd0000 + (((uint32_t)dict_bank) << 15))
+		}
+	} else if(addr < 0xda000) {
+		if(!bankd0_dict) {
+			// RAM? DICT?
+			ram_0d0[addr - 0x0d0000] = (uint8_t)data;
+		} else {
+			// DICT
+			if(d_cmos != NULL) d_cmos->write_data8(addr, data);
+			return;
+		}
+	} else if(addr < 0xf0000) {
+		if(!bankd0_dict) {
+			ram_0d0[addr - 0x0d0000] = (uint8_t)data;
+		}
+	} else if(addr < 0xf8000) {
+		ram_0f0[addr - 0xf0000] = (uint8_t)data;
+	} else if(addr < 0x100000) {
+		if(bankf8_ram) {
+			// RAM
+			ram_0f8[addr - 0xf8000] = (uint8_t)data;
+		} else {
+			// BOOT ROM(ro)
+			//system_rom[addr - 0xf8000 + 0x18000];
+		}
 	}
-	if((addr & ~3) == 8 && (protect & 0x80)) {
-		return;
-	}
-	wbank[addr >> 11][addr & 0x7ff] = data;
 }
 
-uint32_t MEMORY::read_data8(uint32_t addr)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
-	if(addr & 0xff000000) {
-		// > 16MB
-		if(addr >= 0xffffc000) {
-			return ipl[addr & 0x3fff];
+	int wait = 0;
+	write_data8w(addr, data, &wait);
+}
+
+void MEMORY::write_data16(uint32_t addr, uint32_t data)
+{
+	int wait = 0;
+	write_data16w(addr, data, &wait);
+}
+
+void MEMORY::write_data32(uint32_t addr, uint32_t data)
+{
+	int wait = 0;
+	write_data32w(addr, data, &wait);
+}
+
+void MEMORY::write_data8w(uint32_t addr, uint32_t data, int *wait)
+{
+	uint32_t addr_head = (addr & 0xf0000000) >> 28;
+	uint32_t addr_mid;
+	uint32_t addr_low;
+	uint32_t ui;
+	uint8_t *pp;
+	
+	if(wait != NULL) *wait = mem_wait_val;
+	switch(addr_head) {
+	case 0x0:
+	case 0x1:
+	case 0x2:
+	case 0x3:
+		if(addr < 0x00100000) {
+			write_page0_8(addr, data, wait);
+		} else {
+			ui = (((addr - 0x00100000) & 0x3ff00000) >> 20);
+			uint8_t *p = extram_adrs[ui];
+			if(p != NULL) {
+				addr_low = addr & 0x000fffff;
+				p[addr_low] = (uint8_t)data;
+			}
+		}
+		break;
+	case 4:
+	case 5:
+	case 6:
+	case 7:
+		if(extio != NULL) extio->write_data8(addr, data);
+		break;
+	case 8:
+		if(d_vram != NULL) {
+			d_vram->write_data8(addr, data);
+			if(wait != NULL) *wait = vram_wait_val;
+		}
+		break;
+	case 9:
+	case 0x0a:
+	case 0x0b:
+		// ??
+		break;
+	case 0x0c:
+		addr_mid = (addr & 0x03fff000) >> 16 ;
+		addr_low = addr & 0x00000fff;
+		pp = write_bank_adrs_cx[addr_mid];
+		if(pp != NULL) {
+			pp[addr_low] = (uint8_t)data;
+		} else if(device_type_adrs_cx[addr_mid] != 0) {
+			switch(device_type_adrs_cx[addr_mid]) {
+			case TOWNS_MEMORY_TYPE_WAVERAM:
+				if(d_pcm != NULL) {
+					d_pcm->write_data8(addr, data);
+				}
+				break;
+			case TOWNS_MEMORY_TYPE_DICTLEARN:
+				if(d_cmos != NULL) {
+					d_cmos->write_data8(addr, data);
+				}
+				break;
+			case TOWNS_MEMORY_TYPE_FORBID:
+			default:
+				break;
+			}
+		}
+		break;
+	case 0x0d:
+	case 0x0e:
+		// ??
+		break;
+	case 0x0f:
+		// ROM, maybe unable to write.
+		break;
+	}
+}
+
+void MEMORY::write_data16w(uint32_t addr, uint32_t data, int *wait)
+{
+	uint32_t addr_head = (addr & 0xf0000000) >> 28;
+	uint32_t addr_low;
+	uint32_t addr_mid;
+	uint16_t *pp;
+	if(wait != NULL) *wait = mem_wait_val;
+	switch(addr_head) {
+	case 0x0:
+	case 0x1:
+	case 0x2:
+	case 0x3:
+		if(addr < 0x00100000) {
+			write_page0_16(addr, data, wait);
+		} else {
+			ui = (((addr - 0x00100000) & 0x3ff00000) >> 20);
+			uint16_t *p = (uint16_t *)extram_adrs[ui];
+			if(p != NULL) {
+				addr_low = (addr & 0x000fffff) >> 1;
+#if __LITTLE_ENDIAN__
+				p[addr_low] = (uint16_t)data;
+#else
+				uint8_t *p8 = (uint8_*)(&(p[addr_low]));
+				pair_t d;
+				d.d = data;
+				d.write_2bytes_le_to(p8);
+#endif
+			}
+		}
+		break;
+	case 4:
+	case 5:
+	case 6:
+	case 7:
+		if(extio != NULL) extio->write_data16(addr, data);
+		break;
+	case 8:
+		if(d_vram != NULL) {
+			d_vram->write_data16(addr, data);
+			if(wait != NULL) *wait = mem_wait_val;
+		}
+		break;
+	case 9:
+	case 0x0a:
+	case 0x0b:
+		// ??
+		break;
+	case 0x0c:
+		addr_mid = (addr & 0x03fff000) >> 16 ;
+		addr_low = addr & 0x00000fff;
+		pp = (uint16_t *)write_bank_adrs_cx[addr_mid];
+		if(pp != NULL) {
+#if __LITTLE_ENDIAN__
+			pp[addr_low >> 1] = (uint16_t)data;
+#else
+			uint8_t *p8 = (uint8_*)(&(pp[addr_low]));
+			pair_t d;
+			d.d = data;
+			d.write_2bytes_le_to(p8);
+#endif
+		} else if(device_type_adrs_cx[addr_mid] != 0) {
+			switch(device_type_adrs_cx[addr_mid]) {
+			case TOWNS_MEMORY_TYPE_WAVERAM:
+				if(d_pcm != NULL) {
+					d_pcm->write_data8(addr, data);
+				}
+				break;
+			case TOWNS_MEMORY_TYPE_DICTLEARN:
+				if(d_cmos != NULL) {
+					d_cmos->write_data8(addr, data);
+				}
+				break;
+			case TOWNS_MEMORY_TYPE_FORBID:
+			default:
+				break;
+			}
+		}
+		break;
+	case 0x0d:
+	case 0x0e:
+		// ??
+		break;
+	case 0x0f:
+		// ROM, maybe unable to write.
+		break;
+	}
+}
+
+void MEMORY::write_data32w(uint32_t addr, uint32_t data, int *wait)
+{
+	uint32_t addr_head = (addr & 0xf0000000) >> 28;
+	uint32_t addr_low;
+	uint32_t addr_mid;
+	uint32_t *pp;
+	if(wait != NULL) *wait = mem_wait_val;
+	switch(addr_head) {
+	case 0x0:
+	case 0x1:
+	case 0x2:
+	case 0x3:
+		if(addr < 0x00100000) {
+			write_page0_32(addr, data, wait);
+		} else {
+			ui = (((addr - 0x00100000) & 0x3ff00000) >> 20);
+			uint32_t *p = (uint32_t *)extram_adrs[ui];
+			if(p != NULL) {
+				addr_low = (addr & 0x000fffff) >> 2;
+#if __LITTLE_ENDIAN__
+				p[addr_low] = data;
+#else
+				uint8_t *p8 = (uint8_*)(&(p[addr_low]));
+				pair_t d;
+				d.d = data;
+				d.write_4bytes_le_to(p8);
+#endif
+			}
+		}
+		break;
+	case 4:
+	case 5:
+	case 6:
+	case 7:
+		if(extio != NULL) extio->write_data32(addr, data);
+		break;
+	case 8:
+		if(d_vram != NULL) {
+			d_vram->write_data32(addr, data);
+			if(wait != NULL) *wait = vram_wait_val;
+		}
+		break;
+	case 9:
+	case 0x0a:
+	case 0x0b:
+		// ??
+		break;
+	case 0x0c:
+		addr_mid = (addr & 0x03fff000) >> 16 ;
+		addr_low = (addr & 0x00000fff >> 2);
+		pp = (uint32_t *)write_bank_adrs_cx[addr_mid];
+		if(pp != NULL) {
+#if __LITTLE_ENDIAN__
+			pp[addr_low >> 2] = data;
+#else
+			uint8_t *p8 = (uint8_*)(&(pp[addr_low]));
+			pair_t d;
+			d.d = data;
+			d.write_4bytes_le_to(p8);
+#endif
+		} else if(device_type_adrs_cx[addr_mid] != 0) {
+			switch(device_type_adrs_cx[addr_mid]) {
+			case TOWNS_MEMORY_TYPE_WAVERAM:
+				if(d_pcm != NULL) {
+					d_pcm->write_data8(addr, data);
+				}
+				break;
+			case TOWNS_MEMORY_TYPE_DICTLEARN:
+				if(d_cmos != NULL) {
+					d_cmos->write_data8(addr, data);
+				}
+				break;
+			case TOWNS_MEMORY_TYPE_FORBID:
+			default:
+				break;
+			}
+		}
+		break;
+	case 0x0d:
+	case 0x0e:
+		// ??
+		break;
+	case 0x0f:
+		// ROM, maybe unable to write.
+		break;
+	}
+}
+
+uint32_t MEMORY::read_page0_8(uint32_t addr, int *wait)
+{
+
+	addr = addr & 0x000fffff;
+	if(wait != NULL) *wait = mem_wait_val;
+	if(addr < 0xc0000) {
+		return page0[addr];
+	} else if(addr < 0xc8000) {
+		if(d_vram != NULL) {
+			if(wait != NULL) *wait = vram_wait_val;
+			return d_vram->read_plane_data8(addr 0x7fff);
 		}
 		return 0xff;
-	}
-
-	
-#ifndef _FMR60
-	if(!mainmem) {
+	} else if(addr < 0xd0000) {
+		// MMIO, VRAM and ram.
 		if(0xcff80 <= addr && addr < 0xcffe0) {
 #ifdef _DEBUG_LOG
 //			this->out_debug_log(_T("MR\t%4x\n"), addr);
@@ -475,19 +662,406 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 			}
 			return 0xff;
 		}
+	} else if(addr < 0xd8000) {
+		if(!bankd0_dict) {
+			return ram_0d0[addr - 0x0d0000];
+			// RAM? DICT?
+		} else {
+			// DICT
+			return dict_rom[addr - 0xd0000 + (((uint32_t)dict_bank) << 15))];
+		}
+	} else if(addr < 0xda000) {
+		if(!bankd0_dict) {
+			// RAM? DICT?
+			return ram_0d0[addr - 0x0d0000];
+		} else {
+			// DICT
+			if(d_cmos != NULL) return d_cmos->read_data8(addr);
+			return;
+		}
+	} else if(addr < 0xf0000) {
+		if(!bankd0_dict) {
+			return ram_0d0[addr - 0x0d0000];
+		}
+		return 0xff;
+	} else if(addr < 0xf8000) {
+		return ram_0f0[addr - 0xf0000];
+	} else if(addr < 0x100000) {
+		if(bankf8_ram) {
+			// RAM
+			return ram_0f8[addr - 0xf8000];
+		} else {
+			// BOOT ROM(ro)
+			return system_rom[addr - 0xf8000 + 0x18000];
+		}
 	}
+	return 0xff;
+}
+
+
+uint32_t MEMORY::read_data8(uint32_t addr)
+{
+	int wait;
+	return read_data8w(addr, &wait);
+}
+
+uint32_t MEMORY::read_data16(uint32_t addr)
+{
+	int wait;
+	return read_data16w(addr, &wait);
+}
+
+uint32_t MEMORY::read_data32(uint32_t addr)
+{
+	int wait;
+	return read_data32w(addr, &wait);
+}
+
+uint32_t MEMORY::read_data8w(uint32_t addr, int *wait)
+{
+	uint32_t addr_head = (addr & 0xf0000000) >> 28;
+	uint32_t addr_mid;
+	uint32_t addr_low;
+	uint32_t ui;
+	uint8_t *pp;
+	
+	if(wait != NULL) *wait = mem_wait_val;
+	switch(addr_head) {
+	case 0x00:
+	case 0x01:
+	case 0x02:
+	case 0x03:
+		if(addr < 0x00100000) {
+			return read_page0_8(addr, wait);
+		} else {
+			ui = (((addr - 0x00100000) & 0x3ff00000) >> 20);
+			pp = extram_adrs[ui];
+			if(pp != NULL) {
+				addr_low = addr & 0x000fffff;
+				return pp[addr_low];
+			}
+		}
+		return 0xff;
+		break;
+	case 0x04:
+	case 0x05:
+	case 0x06:
+	case 0x07:
+		if(extio != NULL) return extio->read_data8(addr);
+		break;
+	case 0x08:
+		if(d_vram != NULL) {
+			if(wait != NULL) *wait = vram_wait_val;
+			return d_vram->read_data8(addr);
+		}
+		break;
+	case 0x09:
+	case 0x0a:
+	case 0x0b:
+		return 0xff;
+		// ??
+		break;
+	case 0x0c:
+		addr_mid = (addr & 0x03fff000) >> 12 ;
+		pp = read_bank_adrs_cx[addr_mid];
+		if(pp != NULL) {
+			addr_low = addr & 0x00000fff;
+			return pp[addr_low];
+		} else if(device_type_adrs_cx[addr_mid] != 0) {
+			switch(device_type_adrs_cx[addr_mid]) {
+			case TOWNS_MEMORY_TYPE_WAVERAM:
+				if(d_pcm != NULL) {
+					return d_pcm->read_data8((addr & 0x0ffe));
+				}
+				break;
+			case TOWNS_MEMORY_TYPE_DICTLEARN:
+				if(d_cmos != NULL) {
+					return d_cmos->read_data8((addr & 0x0ffe));
+				}
+				break;
+			case TOWNS_MEMORY_TYPE_FORBID:
+			default:
+				return 0xff;
+				break;
+			}
+			return 0xff;
+		} else {
+			return 0xff;
+		}
+		break;
+	case 0x0d:
+	case 0x0e:
+		// ??
+		return 0xff;
+		break;
+	case 0x0f:
+		// ROM, maybe unable to write.
+		if(addr < 0xfffc0000) {
+			return 0xff;
+		} else {
+			pp = system_rom;
+			addr_low = addr - 0xfffc0000;
+			return (uint32_t)pp[addr_low];
+		}
+		break;
+	}
+	return 0xff;
+}
+
+uint32_t MEMORY::read_data16w(uint32_t addr, int *wait)
+{
+	uint32_t addr_head = (addr & 0xf0000000) >> 28;
+	uint32_t addr_mid;
+	uint32_t addr_low;
+	uint32_t ui;
+	uint16_t *pp;
+
+	
+	if(wait != NULL) *wait = mem_wait_val;
+	switch(addr_head) {
+	case 0x00:
+	case 0x01:
+	case 0x02:
+	case 0x03:
+		if(addr < 0x00100000) {
+			return read_page0_16(addr, wait);
+		} else {
+			ui = (((addr - 0x00100000) & 0x3ff00000) >> 20);
+			pp = (uint16_t *)extram_adrs[ui];
+			if(pp != NULL) {
+#ifdef __LITTLE_ENDIAN__
+				addr_low = (addr & 0x000fffff) >> 1;
+				return pp[addr_low];
+#else
+				pair_t d;
+				uint8 *p8 = (uint8 *)pp;
+				addr_low = addr & 0x000ffffe;
+				d.read_2bytes_le_from(&(p8[addr_low]));
+				return d.d;
 #endif
-	return rbank[addr >> 11][addr & 0x7ff];
+			}
+		}
+		return 0xffffffff;
+		break;
+	case 0x04:
+	case 0x05:
+	case 0x06:
+	case 0x07:
+		if(extio != NULL) return extio->read_data16(addr);
+		break;
+	case 0x08:
+		if(d_vram != NULL) {
+			if(wait != NULL) *wait = vram_wait_val;
+			return d_vram->read_data16(addr);
+		}
+		break;
+	case 0x09:
+	case 0x0a:
+	case 0x0b:
+		return 0xffffffff;
+		// ??
+		break;
+	case 0x0c:
+		addr_mid = (addr & 0x03fff000) >> 12 ;
+		pp = (uint16_t *)read_bank_adrs_cx[addr_mid];
+		if(pp != NULL) {
+#ifdef __LITTLE_ENDIAN__
+				addr_low = (addr & 0x00000fff) >> 1;
+				return pp[addr_low];
+#else
+				pair_t d;
+				uint8 *p8 = (uint8 *)pp;
+				addr_low = addr & 0x00000ffe;
+				d.read_2bytes_le_from(&(p8[addr_low]));
+				return d.d;
+#endif
+		} else if(device_type_adrs_cx[addr_mid] != 0) {
+			switch(device_type_adrs_cx[addr_mid]) {
+			case TOWNS_MEMORY_TYPE_WAVERAM:
+				if(d_pcm != NULL) {
+					return d_pcm->read_data8((addr & 0x0ffe));
+				}
+				break;
+			case TOWNS_MEMORY_TYPE_DICTLEARN:
+				if(d_cmos != NULL) {
+					return d_cmos->read_data8((addr & 0x0ffe));
+				}
+				break;
+			case TOWNS_MEMORY_TYPE_FORBID:
+			default:
+				return 0xffff;
+				break;
+			}
+			return 0xffff;
+		} else {
+			return 0xffff;
+		}
+		break;
+	case 0x0d:
+	case 0x0e:
+		// ??
+		return 0xffff;
+		break;
+	case 0x0f:
+		// ROM, maybe unable to write.
+		if(addr < 0xfffc0000) {
+			return 0xffff;
+		} else {
+#ifdef __LITTLE_ENDIAN__
+			pp = (uint16_t *)system_rom;
+			addr_low = (addr - 0xfffc0000) >> 1;
+			return (uint32_t)pp[addr_low];
+#else
+			pair_t d;
+			uint8_t *p8;
+			addr_low = (addr - 0xfffc0000) & 0x3fffe;
+			p8 = &(system_rom[addr_low]);
+			d.read_2bytes_le_from(p8);
+			return d.d;
+#endif
+		}
+		break;
+	}
+	return 0xffff;
+}
+
+uint32_t MEMORY::read_data32w(uint32_t addr, int *wait)
+{
+	uint32_t addr_head = (addr & 0xf0000000) >> 28;
+	uint32_t addr_mid;
+	uint32_t addr_low;
+	uint32_t ui;
+	uint32_t *pp;
+
+	if(wait != NULL) *wait = mem_wait_val;
+	switch(addr_head) {
+	case 0x00:
+	case 0x01:
+	case 0x02:
+	case 0x03:
+		if(addr < 0x00100000) {
+			return read_page0_32(addr);
+		} else {
+			ui = (((addr - 0x00100000) & 0x3ff00000) >> 20);
+			pp = (uint32_t *)extram_adrs[ui];
+			if(pp != NULL) {
+#ifdef __LITTLE_ENDIAN__
+				addr_low = (addr & 0x000fffff) >> 2;
+				return pp[addr_low];
+#else
+				pair_t d;
+				uint8 *p8 = (uint8 *)pp;
+				addr_low = addr & 0x000ffffc;
+				d.read_4bytes_le_from(&(p8[addr_low]));
+				return d.d;
+#endif
+			}
+		}
+		return 0xffffffff;
+		break;
+	case 0x04:
+	case 0x05:
+	case 0x06:
+	case 0x07:
+		if(extio != NULL) return extio->read_data32(addr);
+		break;
+	case 0x08:
+		if(d_vram != NULL) {
+			if(wait != NULL) *wait = vram_wait_val;
+			return d_vram->read_data32(addr);
+		}
+		break;
+	case 0x09:
+	case 0x0a:
+	case 0x0b:
+		return 0xffffffff;
+		// ??
+		break;
+	case 0x0c:
+		addr_mid = (addr & 0x03fff000) >> 12 ;
+		pp = (uint32_t *)read_bank_adrs_cx[addr_mid];
+		if(pp != NULL) {
+#ifdef __LITTLE_ENDIAN__
+				addr_low = (addr & 0x00000fff) >> 2;
+				return pp[addr_low];
+#else
+				pair_t d;
+				uint8 *p8 = (uint8 *)pp;
+				addr_low = addr & 0x00000ffc;
+				d.read_4bytes_le_from(&(p8[addr_low]));
+				return d.d;
+#endif
+		} else if(device_type_adrs_cx[addr_mid] != 0) {
+			switch(device_type_adrs_cx[addr_mid]) {
+			case TOWNS_MEMORY_TYPE_WAVERAM:
+				if(d_pcm != NULL) {
+					return d_pcm->read_data8((addr & 0x0ffc));
+				}
+				break;
+			case TOWNS_MEMORY_TYPE_DICTLEARN:
+				if(d_cmos != NULL) {
+					return d_cmos->read_data8((addr & 0x0ffc));
+				}
+				break;
+			case TOWNS_MEMORY_TYPE_FORBID:
+			default:
+				return 0xffffffff;
+				break;
+			}
+			return 0xffffffff;
+		} else {
+			return 0xffffffff;
+		}
+		break;
+	case 0x0d:
+	case 0x0e:
+		// ??
+		return 0xffffffff;
+		break;
+	case 0x0f:
+		// ROM, maybe unable to write.
+		if(addr < 0xfffc0000) {
+			return 0xffffffff;
+		} else {
+#ifdef __LITTLE_ENDIAN__
+			pp = (uint32_t *)system_rom;
+			addr_low = (addr - 0xfffc0000) >> 2;
+			return pp[addr_low];
+#else
+			pair_t d;
+			uint8_t *p8;
+			addr_low = (addr - 0xfffc0000) & 0x3fffc;
+			p8 = &(system_rom[addr_low]);
+			d.read_4bytes_le_from(p8);
+			return d.d;
+#endif
+		}
+		break;
+	}
+	return 0xffffffff;
 }
 
 void MEMORY::write_dma_data8(uint32_t addr, uint32_t data)
 {
-	write_data8(addr & dma_addr_mask, data);
+	int wait;
+	write_data8w(addr & dma_addr_mask, data, &wait);
 }
 
 uint32_t MEMORY::read_dma_data8(uint32_t addr)
 {
-	return read_data8(addr & dma_addr_mask);
+	int wait;
+	return read_data8w(addr & dma_addr_mask, &wait);
+}
+void MEMORY::write_dma_data16(uint32_t addr, uint32_t data)
+{
+	int wait;
+	write_data16w(addr & dma_addr_mask, data, &wait);
+}
+
+uint32_t MEMORY::read_dma_data16(uint32_t addr)
+{
+	int wait;
+	return read_data16w(addr & dma_addr_mask, &wait);
 }
 
 void MEMORY::write_io8(uint32_t addr, uint32_t data)
@@ -507,34 +1081,16 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 			d_cpu->reset();
 		}
 		// protect mode
-#if defined(HAS_I286)
-		if(data & 0x20) {
-			d_cpu->set_address_mask(0x00ffffff);
-		} else {
-			d_cpu->set_address_mask(0x000fffff);
+		if(data & 0x80) {
+			// NMI Vector protect
 		}
-#else
-		switch(data & 0x30) {
-		case 0x00:	// 20bit
-			d_cpu->set_address_mask(0x000fffff);
-			break;
-		case 0x20:	// 24bit
-			d_cpu->set_address_mask(0x00ffffff);
-			break;
-		default:	// 32bit
-			d_cpu->set_address_mask(0xffffffff);
-			break;
-		}
-#endif
-		update_dma_addr_mask();
 		break;
 	case 0x22:
-		dma_addr_reg = data;
-		update_dma_addr_mask();
-		break;
-	case 0x24:
-		dma_wrap_reg = data;
-		update_dma_addr_mask();
+		// Power off
+		if(data & 0x40) {
+			// power off
+			emu->power_off();
+		}
 		break;
 	case 0x400:
 		// video output control
@@ -567,6 +1123,19 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 		// green level register
 		apal[apalsel][2] = data & 0xf0;
 		palette_cg[apalsel] = RGB_COLOR(apal[apalsel][1], apal[apalsel][2], apal[apalsel][0]);
+		break;
+	case 0x480:
+		bankf8_ram = false;
+		if((data & 0x02) != 0) {
+			bankf8_ram = true;
+		}
+		bankf8_dic = false;
+		if((data & 0x01) != 0) {
+			bankf8_dic = true;
+		}
+		break;
+	case 0x484:
+		dict_bank = data & 0x0f;
 		break;
 	case 0xfd98:
 	case 0xfd99:
@@ -633,6 +1202,13 @@ uint32_t MEMORY::read_io8(uint32_t addr)
 	case 0x40e:
 		// green level register
 		return apal[apalsel][2];
+		// Towns
+	case 0x480:
+		return (bankf8_ram ? 0x02 : 0x00) | (bankf8_dic ? 0x01 : 0x00);
+		break;
+	case 0x484:
+		return dict_bank & 0x0f;
+		break;
 	case 0xfd98:
 	case 0xfd99:
 	case 0xfd9a:
