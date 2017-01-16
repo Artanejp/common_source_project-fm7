@@ -91,7 +91,7 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #endif
 #if defined(_FM8)
 	for(int i = 0; i < 2; i++) bubble_casette[i] = new BUBBLECASETTE(this, emu);
-#endif	
+#endif	drec = NULL;
 	drec = new DATAREC(this, emu);
 	pcm1bit = new PCM1BIT(this, emu);
 
@@ -270,7 +270,7 @@ void VM::connect_bus(void)
 	event->set_context_sound(pcm1bit);
 #if defined(_FM8)
 	event->set_context_sound(psg);
-	event->set_context_sound(drec);
+	if(drec != NULL) event->set_context_sound(drec);
 #else
 	event->set_context_sound(opn[0]);
 	event->set_context_sound(opn[1]);
@@ -280,11 +280,15 @@ void VM::connect_bus(void)
 # endif
 	event->set_context_sound(drec);
 #if defined(USE_SOUND_FILES)
-	if(fdc->load_sound_data(MB8877_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
-		event->set_context_sound(fdc);
+	if(fdc != NULL) {
+		if(fdc->load_sound_data(MB8877_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
+			event->set_context_sound(fdc);
+		}
 	}
-	drec->load_sound_data(DATAREC_SNDFILE_RELAY_ON, _T("RELAY_ON.WAV"));
-	drec->load_sound_data(DATAREC_SNDFILE_RELAY_OFF, _T("RELAYOFF.WAV"));
+	if(drec != NULL) {
+		drec->load_sound_data(DATAREC_SNDFILE_RELAY_ON, _T("RELAY_ON.WAV"));
+		drec->load_sound_data(DATAREC_SNDFILE_RELAY_OFF, _T("RELAYOFF.WAV"));
+	}
 #endif
 # if defined(_FM77AV_VARIANTS)
 	event->set_context_sound(keyboard_beep);
@@ -329,10 +333,11 @@ void VM::connect_bus(void)
 	keyboard->set_context_caps_led(led_terminate, SIG_DUMMYDEVICE_BIT1, 0xffffffff);
 	keyboard->set_context_kana_led(led_terminate, SIG_DUMMYDEVICE_BIT2, 0xffffffff);
    
-	drec->set_context_ear(mainio, FM7_MAINIO_CMT_RECV, 0xffffffff);
-	//drec->set_context_remote(mainio, FM7_MAINIO_CMT_REMOTE, 0xffffffff);
-	mainio->set_context_datarec(drec);
-	
+	if(drec != NULL) {
+		drec->set_context_ear(mainio, FM7_MAINIO_CMT_RECV, 0xffffffff);
+		//drec->set_context_remote(mainio, FM7_MAINIO_CMT_REMOTE, 0xffffffff);
+		mainio->set_context_datarec(drec);
+	}
 	mainmem->set_context_mainio(mainio);
 	mainmem->set_context_display(display);
 	mainmem->set_context_maincpu(maincpu);
@@ -625,7 +630,7 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 	if(ch-- == 0) {
 		pcm1bit->set_volume(0, decibel_l, decibel_r);
 	} else if(ch-- == 0) {
-		drec->set_volume(0, decibel_l, decibel_r);
+	  if(drec != NULL) drec->set_volume(0, decibel_l, decibel_r);
 	}
 #if defined(_FM77AV_VARIANTS)
 	 else if(ch-- == 0) {
@@ -634,10 +639,10 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 #endif
 #if defined(USE_SOUND_FILES)
 	 else if(ch-- == 0) {
-		 fdc->set_volume(0, decibel_l, decibel_r);
+		 if(fdc != NULL) fdc->set_volume(0, decibel_l, decibel_r);
 	 } else if(ch-- == 0) {
 		 for(int i = 0; i < DATAREC_SNDFILE_END; i++) {
-			 drec->set_volume(i + 2, decibel_l, decibel_r);
+			if(drec != NULL) drec->set_volume(i + 2, decibel_l, decibel_r);
 		 }
 	 }
 #endif
@@ -705,73 +710,97 @@ bool VM::is_floppy_disk_protected(int drv)
 
 void VM::play_tape(const _TCHAR* file_path)
 {
-	drec->play_tape(file_path);
+	if(drec != NULL) drec->play_tape(file_path);
 }
 
 void VM::rec_tape(const _TCHAR* file_path)
 {
-	drec->rec_tape(file_path);
+	if(drec != NULL) drec->rec_tape(file_path);
 }
 
 void VM::close_tape()
 {
 	emu->lock_vm();
-	drec->close_tape();
+	if(drec != NULL) drec->close_tape();
 	emu->unlock_vm();
 }
 
 bool VM::is_tape_inserted()
 {
-	return drec->is_tape_inserted();
+	if(drec != NULL) {
+		return drec->is_tape_inserted();
+	}
+	return false;
 }
 
 bool VM::is_tape_playing()
 {
-	return drec->is_tape_playing();
+	if(drec != NULL) {
+		return drec->is_tape_playing();
+	}
+	return false;
 }
 
 bool VM::is_tape_recording()
 {
-	return drec->is_tape_recording();
+	if(drec != NULL) {
+		return drec->is_tape_recording();
+	}
+	return false;
 }
 
 int VM::get_tape_position()
 {
-	return drec->get_tape_position();
+	if(drec != NULL) {
+		return drec->get_tape_position();
+	}
+	return 0;
 }
 
 void VM::push_play()
 {
-	drec->set_ff_rew(0);
-	drec->set_remote(true);
+	if(drec != NULL) {
+		drec->set_ff_rew(0);
+		drec->set_remote(true);
+	}
 }
 
 
 void VM::push_stop()
 {
-	drec->set_remote(false);
+	if(drec != NULL) {
+		drec->set_remote(false);
+	}
 }
 
 void VM::push_fast_forward()
 {
-	drec->set_ff_rew(1);
-	drec->set_remote(true);
+	if(drec != NULL) {
+		drec->set_ff_rew(1);
+		drec->set_remote(true);
+	}
 }
 
 void VM::push_fast_rewind()
 {
-	drec->set_ff_rew(-1);
-	drec->set_remote(true);
+	if(drec != NULL) {
+		drec->set_ff_rew(-1);
+		drec->set_remote(true);
+	}
 }
 
 void VM::push_apss_forward()
 {
-	drec->do_apss(1);
+	if(drec != NULL) {
+		drec->do_apss(1);
+	}
 }
 
 void VM::push_apss_rewind()
 {
-	drec->do_apss(-1);
+	if(drec != NULL) {
+		drec->do_apss(-1);
+	}
 }
 
 bool VM::is_frame_skippable()
