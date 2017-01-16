@@ -35,169 +35,121 @@
 class TOWNS_VRAM : public DEVICE
 {
 protected:
-	scrntype_t *render_buffer;
 	uint32_t page_modes[4];
-	uint32_t masks;
+	bool line_rendered[2][TOWNS_CRTC_MAX_LINES];
+	
+	scrntype_t *framebuffer0[2]; // Frame Buffer Layer 0. Not saved.
+	scrntype_t *framebuffer1[2]; // Frame Buffer Layer 1. Not saved.
+
+	int framebuffer_width[2];
+	int framebuffer_height[2];
+
+	uint16_t *vram_ptr[2];   // Layer [01] address.
+	uint32_t vram_size[2];   // Layer [01] size [bytes].
+	uint32_t vram_offset[2]; // Layer [01] address offset.
+
+	scrntype_t table_32768c[65536];
+	
+	uint32_t layer_virtual_width[2];
+	uint32_t layer_virtual_height[2];
+	uint32_t layer_display_width[2];
+	uint32_t layer_display_height[2];
+
+	bool access_page1;
+	uint32_t write_plane_mask; // for plane-access.
+	uint8_t packed_access_mask_lo;
+	uint8_t packed_access_mask_hi;
+	
+
 	uint8_t vram[0x80000]; // Related by machine.
+	// FMR50 Compatible registers. They are mostly dummy.
+	// Digital paletts. I/O FD98H - FD9FH.
+	uint8_t r50_digital_palette[8];
+	bool layer_display_flags[2]; // I/O FDA0H (WO) : bit3-2 (Layer1) or bit1-0 (Layer0).Not 0 is true.
+	
+	bool r50_dpalette_updated;   // I/O 044CH (RO) : bit7
+	
+	bool sprite_busy;            // I/O 044CH (RO) : bit1. Must update from write_signal().
+	bool splite_disp_page;       // I/O 044CH (RO) : bit0. Must update from write_signal().
+	
+	// Around Analog palette.
+	uint8_t apalette_code; // I/O FD90H (RW). 16 or 256 colors.
+	uint8_t apalette_b;    // I/O FD92H (RW).
+	uint8_t apalette_r;    // I/O FD94H (RW).
+	uint8_t apalette_g;    // I/O FD96H (RW).
+	uint16_t   apalette_16_rgb[2][16];   // R * 256 + G * 16 + B
+	scrntype_t apalette_16_pixel[2][16]; // Not saved. Must be calculated.
+	uint32_t   apalette_256_rgb[256];    // R * 65536 + G * 256 + B
+	scrntype_t apalette_256_pixel[256];  // Not saved. Must be calculated.
+	// Accessing VRAM. Will be separated.
+	// Memory description:
+	// All of accessing must be little endian.
+	// 000C:00000 - 000C:07fff : Plane accessing window(->FM-R50 features?). Access to Layer #0 (8000:00000).
+	// 000C:08000 - 000C:0ffff : I/O CVRAM
+	// 000D:00000 - 000E:0ffff : Reserved (Window for KANJI, DIC etc).
+	// 8000:00000 - 8000:3ffff : Plane accessing Layer #0.
+	// 8000:40000 - 8000:7ffff : Plane accessing Layer #1.
+	// 8010:00000 - 8010:7ffff : Plane accessing with one layer.
+	// 8100:00000 - 8100:1ffff : Sprite (and text vram).
+	// I/O 0458H (RW) : VRAM ACCESS CONTROLLER reg address.
+	// I/O 045AH (RW) : VRAM ACCESS CONTROLLER reg data (LOW).
+	// I/O 045BH (RW) : VRAM ACCESS CONTROLLER reg data (HIGH).
+	pair_t packed_pixel_mask_reg; // '1' = Write. I/O 0458H - 045BH.
+	//uint8_t *vram_addr;
+	uint32_t vram_bytes;
+	uint32_t layer_offset[4];
+	uint8_t text_vram[4096]; // 4096bytes
+	uint8_t kanji_vram[4096]; // 4096bytes
+	// End.
+
+	// Flags related by host renderer. Not saved.
+	bool has_hardware_rendering;
+	bool has_hardware_blending;
+	// End.
 public:
 	TOWNS_VRAM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		memset(vram, 0x00, sizeof(vram));
 		render_buffer = NULL;
 		page_modes[0] = page_modes[1] = page_modes[2] = page_modes[3] = 0;
-		masks = 0;
+		packed_access_mask_hi = packed_access_mask_lo = 0xff;
+		write_plane_mask = 0xffffffff;
 	}
 	~TOWNS_VRAM() {}
 	
-	uint32_t read_data8(uint32_t addr)
-	{
-		if(addr < 0x80000000) {
-			// Plane Access
-			uint32_t data32;
-			uint8_t data8;
-			uint32_t n_plane = (addr & 0x18000) / 0x8000;
-			uint32_t n_addr = addr & 0x7fff;
-			uint32_t x_addr = n_addr << 2;
-			uint32_t *p;
-			if(plane_page1) x_addr += 0x20000;
-			p = (uint32_t *)(&(vram[x_addr]));
-			data32 = *p;
-			data32 >>= (3 - n_plane);
-			data8 =
-				((data32 & 0x10000000) ? 0x80 : 0) |
-				((data32 & 0x01000000) ? 0x40 : 0) | 
-				((data32 & 0x00100000) ? 0x20 : 0) | 
-				((data32 & 0x00010000) ? 0x10 : 0) | 
-				((data32 & 0x00001000) ? 0x08 : 0) |
-				((data32 & 0x00000100) ? 0x04 : 0) | 
-				((data32 & 0x00000010) ? 0x02 : 0) | 
-				((data32 & 0x00000001) ? 0x01 : 0);
-			return (uint32_t) data8;
-		} else {
-			return vram[addr & TOWNS_VRAM_ADDR_MASK];
-		}
-	};
-				
-	uint32_t read_data16(uint32_t addr)
-	{
-		pair_t n;
-		n.d = 0;
-		if(addr < 0x80000000) {
-			addr = addr & 0x1fffe;
-			n.b.h = read_data8(addr + 1);
-			n.b.l = read_data8(addr);
-		} else {
-			addr = addr & (TOWNS_VRAM_ADDR_MASK & 0xfffffffe);
-			n.b.h = vram[addr + 1];
-			n.b.l = vram[addr];
-		}
-		return n.d;
-	}
-
-	uint32_t read_data32(uint32_t addr)
-	{
-		if(addr < 0x80000000) {
-			addr = addr & 0x1fffc;
-			n.b.h3 = read_data8(addr + 3);
-			n.b.h2 = read_data8(addr + 2);
-			n.b.h  = read_data8(addr + 1);
-			n.b.l  = read_data8(addr);
-		} else {
-			addr = addr & (TOWNS_VRAM_ADDR_MASK & 0xfffffffc);
-			n.b.h3 = vram[addr + 3];
-			n.b.h2 = vram[addr + 2];
-			n.b.h  = vram[addr + 1];
-			n.b.l  = vram[addr];
-		}
-		return n.d;
-	}
-
-	void write_data8(uint32_t addr, uint32_t data)
-	{
-		if(addr < 0x80000000) {
-			// Plane Access
-			pair_t data_p;
-			uint32_t n_plane = (addr & 0x18000) / 0x8000;
-			uint32_t n_addr = addr & 0x7fff;
-			uint32_t x_addr = n_addr << 2;
-			
-			pair_t *p;
-			if(plane_page1) x_addr += 0x20000;
-			p = (pair_t *)(&(vram[x_addr]));
-			data_p.d = *p;
-			// ToDo
-		} else {
-			// ToDo: Scroll
-			uint32_t mask2 = (masks >> ((3 - (addr & 3)) * 8)) & 0xff;
-			uint32_t d_s = vram[addr & TOWNS_VRAM_ADDR_MASK] & ~mask2;
-			uint32_t d_d = data & mask2;
-			vram[addr & TOWNS_VRAM_ADDR_MASK] = d_s | d_d;
-		}
-	}
-	
-	void write_data16(uint32_t addr, uint32_t data)
-	{
-		if(addr < 0x80000000) {
-			// Plane Access
-			pair_t data_p;
-			uint32_t n_plane = (addr & 0x18000) / 0x8000;
-			uint32_t n_addr = addr & 0x7fff;
-			uint32_t x_addr = n_addr << 2;
-			
-			pair_t *p;
-			if(plane_page1) x_addr += 0x20000;
-			p = (pair_t *)(&(vram[x_addr]));
-			data_p.d = *p;
-			// ToDo
-		} else {
-			pair_t n;
-			uint16_t *p;
-			n.d = 0;
-			p = (uint16_t *)(&(vram[addr & TOWNS_VRAM_ADDR_MASK & 0xfffffffe]));
-			n.sw.l = *p;
-			uint32_t mask2 = (masks >> ((2 - (addr & 2)) * 16)) & 0xffff;
-			uint32_t d_s = n.d & ~mask2;
-			uint32_t d_d = data & mask2;
-			// ToDo: Scroll
-			n.d = d_s | d_d;
-			*p = n.sw.l;
-		}
-	}
-
-	void write_data32(uint32_t addr, uint32_t data)
-	{
-		if(addr < 0x80000000) {
-			// Plane Access
-			pair_t data_p;
-			uint32_t n_plane = (addr & 0x18000) / 0x8000;
-			uint32_t n_addr = addr & 0x7fff;
-			uint32_t x_addr = n_addr << 2;
-			
-			pair_t *p;
-			if(plane_page1) x_addr += 0x20000;
-			p = (pair_t *)(&(vram[x_addr]));
-			data_p.d = *p;
-			// ToDo
-		} else {
-			uint32_t n;
-			uint32_t *p;
-
-			p = (uint32_t *)(&(vram[addr & TOWNS_VRAM_ADDR_MASK & 0xfffffffc]));
-			n = *p;
-			uint32_t mask2 = masks;
-			uint32_t d_s = n & ~mask2;
-			uint32_t d_d = data & mask2;
-			// ToDo: Scroll
-			*p = d_s | d_d;
-		}
-	}
+	uint32_t read_data8(uint32_t addr);
+	uint32_t read_data16(uint32_t addr);
+	uint32_t read_data32(uint32_t addr);
+	void write_data8(uint32_t addr, uint32_t data);
+	void write_data16(uint32_t addr, uint32_t data);
+	void write_data32(uint32_t addr, uint32_t data);
 
 	uint32_t read_io8(uint32_t addr);
 	void write_io8(uint32_t addr, uint32_t data);
 	void draw_screen();
 	void write_signal(int id, uint32_t data, uint32_t mask); // Do render
 
-	void set_context_renderbuffer(scrntype_t *p){
+	// Unique Functions
+	uint32_t read_plane_data8(uint32_t addr);
+	uint32_t read_plane_data16(uint32_t addr);
+	uint32_t read_plane_data32(uint32_t addr);
+	// New APIs?
+	void write_plane_data8(uint32_t addr, uint32_t data);
+	void write_plane_data16(uint32_t addr, uint32_t data);
+	void write_plane_data32(uint32_t addr, uint32_t data);
+
+	void set_frame_buffer(int layer, bool buffer1, scrntype_t *framebuffer, int width, int height);
+	scrntype_t *get_frame_buffer_ptr(int layer);
+	int  get_frame_buffer_width(int layer);
+	int  get_frame_buffer_height(int layer);
+	bool is_display(int layer);
+	bool is_updated(int layer, int line_num);
+	void lock_frame_buffer(int layer);
+	void unlock_frame_buffer(int layer);
+	void set_render_features(bool blending_from_buffer, bool rendering_framebuffer);
+	// End.
+	
+	void set_context_renderbuffer(scrntype_t *p, uint32_t size){
 		render_buffer = p;
 	};
 };
