@@ -8,7 +8,7 @@ CCMAKE_CXX=g++
 
 case ${USE_RADICAL_OPTIMIZE} in
    "Yes" | "yes" | "YES" )
-   MAKEFLAGS_BASE3= "
+      MAKEFLAGS_BASE3=" \
                -O3 \
                -fvect-cost-model=dynamic -ftree-vectorize \
                -ftree-loop-distribute-patterns \
@@ -21,9 +21,9 @@ case ${USE_RADICAL_OPTIMIZE} in
 	       -msse -msse2 \
                ${MAKEFLAGS_BASE} \
 	       "
-	       
+	       ;;
    "No" | "no" | "NO" | * )
-   MAKEFLAGS_BASE3="-g -ggdb \
+      MAKEFLAGS_BASE3=" \
                -O2 \
 	       -funroll-loops \
 	       -floop-nest-optimize \
@@ -33,13 +33,14 @@ case ${USE_RADICAL_OPTIMIZE} in
 	       ;;
 esac
 
+
 case ${CSP_DEBUG} in
    "Yes" | "yes" | "YES" )
       MAKEFLAGS_BASE2="-g -ggdb ${MAKEFLAGS_BASE3} -DNDEBUG"
       ;;
    "No" | "no" | "NO" | * )
       MAKEFLAGS_BASE2="-g -ggdb ${MAKEFLAGS_BASE3}"
-       ;;
+      ;;
 esac
 
 case ${USE_LTO} in
