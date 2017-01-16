@@ -91,7 +91,8 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #endif
 #if defined(_FM8)
 	for(int i = 0; i < 2; i++) bubble_casette[i] = new BUBBLECASETTE(this, emu);
-#endif	drec = NULL;
+#endif
+	drec = NULL;
 	drec = new DATAREC(this, emu);
 	pcm1bit = new PCM1BIT(this, emu);
 
