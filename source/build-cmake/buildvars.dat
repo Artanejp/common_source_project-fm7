@@ -10,13 +10,20 @@ CSP_DEBUG="No"
 USE_LTO="Yes"
 # "No" or "Yes"
 STRIP_SYMBOLS="No"
+# "No" or "Yes"
+USE_RADICAL_OPTIMIZE="No"
 
 ADDITIONAL_MAKEFLAGS_LINK_EXE=""
 ADDITIONAL_MAKEFLAGS_LINK_DLL=""
 ADDITIONAL_MAKEFLAGS_LINK_LIB=""
 
-FFMPEG_DIR="/usr/local/ffmpeg-3.2"
-QT5_DIR="/opt/Qt5.5.1/5.5/gcc_64"
+FFMPEG_DIR="/usr/include/x86_64-linux-gnu/"
+QT5_DIR="/usr/include/x86_64-linux-gnu/"
+FFMPEG_DIR="/usr/include/x86_64-linux-gnu/"
+QT5_DIR="/usr/include/x86_64-linux-gnu/"
+#FFMPEG_DIR="/usr/local/ffmpeg-3.2"
+#QT5_DIR="/opt/Qt5.5.1/5.5/gcc_64"
+
 LIB_INSTALL="/usr/local/lib/x86_64-linux-gnu/"
 
 MAKEFLAGS_GENERAL="-j6"
