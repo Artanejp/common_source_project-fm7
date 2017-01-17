@@ -32,8 +32,8 @@ GLDraw_2_0::GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, EMU *emu) : QObject(
 	glVertGrids = NULL;
 	glHorizGrids = NULL;
 
-	vert_lines = using_flags->get_screen_height();
-	horiz_pixels = using_flags->get_screen_width();
+	vert_lines = using_flags->get_real_screen_height();
+	horiz_pixels = using_flags->get_real_screen_width();
 	set_brightness = false;
 	crt_flag = false;
 	smoosing = false;
@@ -351,13 +351,13 @@ void GLDraw_2_0::initFBO(void)
 	if(using_flags->get_max_button() > 0) {
 		initButtons();
 	}
-	glHorizGrids = (GLfloat *)malloc(sizeof(float) * (using_flags->get_screen_height() + 2) * 6);
+	glHorizGrids = (GLfloat *)malloc(sizeof(float) * (using_flags->get_real_screen_height() + 2) * 6);
 	if(glHorizGrids != NULL) {
-		doSetGridsHorizonal(using_flags->get_screen_height(), true);
+		doSetGridsHorizonal(using_flags->get_real_screen_height(), true);
 	}
-	glVertGrids  = (GLfloat *)malloc(sizeof(float) * (using_flags->get_screen_width() + 2) * 6);
+	glVertGrids  = (GLfloat *)malloc(sizeof(float) * (using_flags->get_real_screen_width() + 2) * 6);
 	if(glVertGrids != NULL) {
-		doSetGridsVertical(using_flags->get_screen_width(), true);
+		doSetGridsVertical(using_flags->get_real_screen_width(), true);
 	}
 	// Init view
 	extfunc_2->glClearColor(0.0, 0.0, 0.0, 1.0);
@@ -432,7 +432,7 @@ void GLDraw_2_0::doSetGridsHorizonal(int lines, bool force)
 	vert_lines = lines;
 	yf = -screen_height;
 	if(vert_lines <= 0) return;
-	if(vert_lines > using_flags->get_screen_height()) vert_lines = using_flags->get_screen_height();
+	if(vert_lines > using_flags->get_real_screen_height()) vert_lines = using_flags->get_real_screen_height();
 	
 	delta = (2.0f * screen_height) / (float)vert_lines;
 	yf = yf - delta * 1.0f;
@@ -458,13 +458,13 @@ void GLDraw_2_0::doSetGridsVertical(int pixels, bool force)
 	if((pixels == horiz_pixels) && !force) return;
 	horiz_pixels = pixels;
 	if(horiz_pixels <= 0) return;
-	if(horiz_pixels > using_flags->get_screen_width()) horiz_pixels = using_flags->get_screen_width();
+	if(horiz_pixels > using_flags->get_real_screen_width()) horiz_pixels = using_flags->get_real_screen_width();
 	
 	xf = -screen_width;
 	delta = (2.0f * screen_width) / (float)horiz_pixels;
 	xf = xf - delta * 0.75f;
 	if(glVertGrids != NULL) {
-		if(horiz_pixels > using_flags->get_screen_width()) horiz_pixels = using_flags->get_screen_width();
+		if(horiz_pixels > using_flags->get_real_screen_width()) horiz_pixels = using_flags->get_real_screen_width();
 		for(i = 0; i < (horiz_pixels + 1) ; i++) {
 			glVertGrids[i * 6]     = xf; // XBegin
 			glVertGrids[i * 6 + 3] = xf; // XEnd

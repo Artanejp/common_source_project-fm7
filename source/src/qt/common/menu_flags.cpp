@@ -94,8 +94,20 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	use_vm_auto_key_table = false;
 	support_tv_render = false;
 	
+	real_screen_width  = SCREEN_WIDTH;
+	real_screen_height = SCREEN_HEIGHT;
+	
+#if defined(SCREEN_FAKE_WIDTH)
+	screen_width = SCREEN_FAKE_WIDTH;
+#else
 	screen_width = SCREEN_WIDTH;
+#endif
+#if defined(SCREEN_FAKE_HEIGHT)
+	screen_height = SCREEN_FAKE_HEIGHT;
+#else
 	screen_height = SCREEN_HEIGHT;
+#endif
+	
 	screen_width_aspect = WINDOW_WIDTH_ASPECT;
 	screen_height_aspect = WINDOW_HEIGHT_ASPECT;
 	max_button = 0;

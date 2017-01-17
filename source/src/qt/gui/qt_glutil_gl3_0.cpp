@@ -233,13 +233,13 @@ GLDraw_3_0::~GLDraw_3_0()
 
 void GLDraw_3_0::initFBO(void)
 {
-	glHorizGrids = (GLfloat *)malloc(sizeof(float) * (using_flags->get_screen_height() + 2) * 6);
+	glHorizGrids = (GLfloat *)malloc(sizeof(float) * (using_flags->get_real_screen_height() + 2) * 6);
 	if(glHorizGrids != NULL) {
-		doSetGridsHorizonal(using_flags->get_screen_height(), true);
+		doSetGridsHorizonal(using_flags->get_real_screen_height(), true);
 	}
-	glVertGrids  = (GLfloat *)malloc(sizeof(float) * (using_flags->get_screen_width() + 2) * 6);
+	glVertGrids  = (GLfloat *)malloc(sizeof(float) * (using_flags->get_real_screen_width() + 2) * 6);
 	if(glVertGrids != NULL) {
-		doSetGridsVertical(using_flags->get_screen_width(), true);
+		doSetGridsVertical(using_flags->get_real_screen_width(), true);
 	}
 	if(using_flags->get_max_button() > 0) {
 		initButtons();
@@ -486,11 +486,11 @@ void GLDraw_3_0::initLocalGLObjects(void)
 	}
 	initGridShaders(":/grids_vertex_shader_fixed.glsl", ":/grids_vertex_shader.glsl", ":/grids_fragment_shader.glsl");
 	
-	initGridVertexObject(&grids_horizonal_buffer, &grids_horizonal_vertex, using_flags->get_screen_height() + 3);
-	doSetGridsHorizonal(using_flags->get_screen_height(), true);
+	initGridVertexObject(&grids_horizonal_buffer, &grids_horizonal_vertex, using_flags->get_real_screen_height() + 3);
+	doSetGridsHorizonal(using_flags->get_real_screen_height(), true);
 	
-	initGridVertexObject(&grids_vertical_buffer, &grids_vertical_vertex, using_flags->get_screen_width() + 3);
-	doSetGridsVertical(using_flags->get_screen_width(), true);
+	initGridVertexObject(&grids_vertical_buffer, &grids_vertical_vertex, using_flags->get_real_screen_width() + 3);
+	doSetGridsVertical(using_flags->get_real_screen_width(), true);
 
 	do_set_texture_size(NULL, -1, -1);
 	p_wid->doneCurrent();

@@ -263,9 +263,13 @@
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77L4)
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		400
+#undef SCREEN_FAKE_WIDTH
+#undef SCREEN_FAKE_HEIGHT
 #else
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		200
+#define SCREEN_FAKE_WIDTH   640
+#define SCREEN_FAKE_HEIGHT  400
 #endif
 #define WINDOW_HEIGHT_ASPECT 480
 #define HAS_MC6809              

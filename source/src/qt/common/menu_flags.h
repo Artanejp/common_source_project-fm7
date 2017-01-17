@@ -125,6 +125,9 @@ private:
 	int screen_width;
 	int screen_height;
 	
+	int real_screen_width;
+	int real_screen_height;
+	
 	int screen_width_aspect;
 	int screen_height_aspect;
 	bool notify_key_down_lr_shift;
@@ -263,6 +266,9 @@ public:
 	int get_screen_height() { return screen_height; }
 	int get_screen_width_aspect() { return screen_width_aspect; }
 	int get_screen_height_aspect() { return screen_height_aspect; }
+	int get_real_screen_width() { return real_screen_width; }
+	int get_real_screen_height() { return real_screen_height; }
+	
 	int get_screen_mode_num() { return screen_mode_num; }
 	int get_max_button() { return max_button; }
 	button_desc_t *get_vm_buttons() { return vm_buttons_d; }
