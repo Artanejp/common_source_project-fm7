@@ -59,7 +59,7 @@ enum {
 #define TOWNS_EXTRAM_PAGES 6
 
 class TOWNS_VRAM;
-class MEMORY : public DEVICE
+class TOWNS_MEMORY : public DEVICE
 {
 private:
 	I386 *d_cpu;
@@ -91,6 +91,10 @@ private:
 
 	bool bankf8_ram;
 	bool bankd0_dict;
+	int vram_wait_val;
+	int mem_wait_val;
+	int extio_wait_val;
+	
 	uint8_t dict_bank;
 	uint8_t page0[0xc0000];
 	uint8_t ram_0d0[0x20000];
@@ -104,10 +108,9 @@ private:
 	uint8_t dma_addr_reg, dma_wrap_reg;
 	uint32_t dma_addr_mask;
 	
-	void update_bank();
 	void update_dma_addr_mask();
 public:
-	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
+	TOWNS_MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
 		set_device_name(_T("MEMORY"));
 		d_vram = NULL;
 		d_crtc = NULL;
@@ -116,7 +119,7 @@ public:
 		d_extio = NULL;
 		d_beep = NULL;
 	}
-	~MEMORY() {}
+	~TOWNS_MEMORY() {}
 	
 	// common functions
 	void initialize();
