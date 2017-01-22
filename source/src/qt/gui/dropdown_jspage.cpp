@@ -20,7 +20,7 @@ CSP_DropDownJSPage::CSP_DropDownJSPage(USING_FLAGS *pp, QWidget *parent, QString
 		//label[i] = new QLabel(this);
 		combo_js[i] = new CSP_DropDownJSButton(pp, this, lst, jsnum, i);
 	}
-	label_axis = new QLabel(QApplication::translate("MainWindow", "<B>Physical Axis:</B>", 0), this);
+	label_axis = new QLabel(QApplication::translate("JoystickDialog", "<B>Physical Axis:</B>", 0), this);
 	layout->addWidget(label_axis, 0, 0, Qt::AlignLeft);
 	// Down
 	layout->addWidget(combo_js[1], 1, 1, Qt::AlignRight);
@@ -30,7 +30,7 @@ CSP_DropDownJSPage::CSP_DropDownJSPage(USING_FLAGS *pp, QWidget *parent, QString
 	layout->addWidget(combo_js[3], 2, 0, Qt::AlignRight);
 	// Right
 	layout->addWidget(combo_js[2], 2, 2, Qt::AlignRight);
-	label_buttons = new QLabel(QApplication::translate("MainWindow", "<B>Physical Buttons:</B>", 0), this);
+	label_buttons = new QLabel(QApplication::translate("JoystickDialog", "<B>Physical Buttons:</B>", 0), this);
 	layout->addWidget(label_buttons, 4, 0, Qt::AlignLeft);
 
 	int joybuttons = using_flags->get_num_joy_button_captions();

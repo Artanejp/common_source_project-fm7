@@ -236,14 +236,14 @@ void META_MainWindow::retranslateUi(void)
 	actionKanjiRom->setToolTip(QApplication::translate("MainWindow", "Connect KANJI ROM.Need restart emulator if changed.", 0));
 #endif	
 #if defined(_FM8)
-	actionRamProtect->setText(QString::fromUtf8("BANK PROTECT($FD0F/hack)"));
+	actionRamProtect->setText(QApplication::translate("MainWindow", "BANK PROTECT($FD0F/hack)", 0));
 	actionRamProtect->setToolTip(QApplication::translate("MainWindow", "Protect bank setting if checked.\nUnchecked to simulate FM-7.\nUseful for some software tranferring to URA-RAM.", 0));
 #elif defined(_FM7) || defined(_FMNEW7)	
-	actionCycleSteal->setText(QString::fromUtf8("Cycle Steal(hack)"));
-	actionCycleSteal->setToolTip(QString::fromUtf8("Enabling cycle steal to be faster drawing.\nThis is hack for FM-7."));
+	actionCycleSteal->setText(QApplication::translate("MainWindow", "Cycle Steal(hack)", 0));
+	actionCycleSteal->setToolTip(QApplication::translate("MainWindow", "Enabling cycle steal to be faster drawing.\nThis is hack for FM-7.", 0));
 #else							  
-	actionCycleSteal->setText(QString::fromUtf8("Cycle Steal"));
-	actionCycleSteal->setToolTip(QString::fromUtf8("Enabling cycle steal to be faster drawing."));
+	actionCycleSteal->setText(QApplication::translate("MainWindow", "Cycle Steal", 0));
+	actionCycleSteal->setToolTip(QApplication::translate("MainWindow", "Enabling cycle steal to be faster drawing.", 0));
 #endif							  
 	menuSoundDevice->setTitle(QApplication::translate("MainWindow", "Sound Boards", 0));
 #if defined(USE_SOUND_DEVICE_TYPE)

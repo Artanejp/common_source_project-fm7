@@ -27,11 +27,11 @@ CSP_TabMovieGeneral::CSP_TabMovieGeneral(MOVIE_SAVER *ms, CSP_DialogMovie *paren
 	QString tmps;
 	grid_layout = new QGridLayout(this);
 
-	label_vcodec = new QLabel(QApplication::translate("MainWindow", "Video Codec", 0), this);
+	label_vcodec = new QLabel(QApplication::translate("MovieTabGeneral", "Video Codec", 0), this);
 	combo_vcodec = new QComboBox(this);
 	combo_vcodec->addItem(QString::fromUtf8("MPEG4"), VIDEO_CODEC_MPEG4);
 	combo_vcodec->addItem(QString::fromUtf8("H.264 (Drop tail frames)"), VIDEO_CODEC_H264);
-	combo_vcodec->setToolTip(QApplication::translate("MainWindow", "MPEG4 will make larger and lower quality file.\nBut very fast.\nH.264 will make smaller and better quality file.\nBut very slowly.\n**Note: Movie file is using MP4 container, not AVI.**", 0));
+	combo_vcodec->setToolTip(QApplication::translate("MovieTabGeneral", "MPEG4 will make larger and lower quality file.\nBut very fast.\nH.264 will make smaller and better quality file.\nBut very slowly.\n**Note: Movie file is using MP4 container, not AVI.**", 0));
 
 	for(int i = 0; i < combo_vcodec->count(); i++) {
 		int ii = combo_vcodec->itemData(i).toInt();
@@ -42,25 +42,25 @@ CSP_TabMovieGeneral::CSP_TabMovieGeneral(MOVIE_SAVER *ms, CSP_DialogMovie *paren
 	video_codec_type = using_flags->get_config_ptr()->video_codec_type;
 	connect(combo_vcodec, SIGNAL(activated(int)), this, SLOT(do_set_video_codec_type(int)));
 
-	label_resolution = new QLabel(QApplication::translate("MainWindow", "Resolution", 0), this);
+	label_resolution = new QLabel(QApplication::translate("MovieTabGeneral", "Resolution", 0), this);
 	combo_resolution = new QComboBox(this);
-	combo_resolution->setToolTip(QApplication::translate("MainWindow", "Set resolution of encoded movie file.", 0));
+	combo_resolution->setToolTip(QApplication::translate("MovieTabGeneral", "Set resolution of encoded movie file.", 0));
 	
 	geometry.setWidth(using_flags->get_config_ptr()->video_width);
 	geometry.setHeight(using_flags->get_config_ptr()->video_height);
 	audio_bitrate = using_flags->get_config_ptr()->audio_bitrate;
 	audio_codec_type = using_flags->get_config_ptr()->audio_codec_type;
 
-	label_video_threads = new QLabel(QApplication::translate("MainWindow", "Video Threads", 0), this);
+	label_video_threads = new QLabel(QApplication::translate("MovieTabGeneral", "Video Threads", 0), this);
 	combo_video_threads = new QComboBox(this);
-	combo_video_threads->setToolTip(QApplication::translate("MainWindow", "Set number of threads used by H.264 movie endcoding.", 0));
+	combo_video_threads->setToolTip(QApplication::translate("MovieTabGeneral", "Set number of threads used by H.264 movie endcoding.", 0));
 	combo_audio_bitrate = new QComboBox(this);
 
-	label_audio_bitrate = new QLabel(QApplication::translate("MainWindow", "Audio Bitrate", 0), this);
+	label_audio_bitrate = new QLabel(QApplication::translate("MovieTabGeneral", "Audio Bitrate", 0), this);
 	combo_audio_codec = new QComboBox(this);
-	label_audio_codec = new QLabel(QApplication::translate("MainWindow", "Audio Codec", 0), this);
-	combo_audio_codec->setToolTip(QApplication::translate("MainWindow", "Set codec of audio.\nMP3 is using LAME.\nAAC is experimental; using libAV's AAC encoder.", 0));
-	label_video_fps = new QLabel(QApplication::translate("MainWindow", "Framerate", 0), this);
+	label_audio_codec = new QLabel(QApplication::translate("MovieTabGeneral", "Audio Codec", 0), this);
+	combo_audio_codec->setToolTip(QApplication::translate("MovieTabGeneral", "Set codec of audio.\nMP3 is using LAME.\nAAC is experimental; using libAV's AAC encoder.", 0));
+	label_video_fps = new QLabel(QApplication::translate("MovieTabGeneral", "Framerate", 0), this);
 	combo_video_fps = new QComboBox(this);
 	video_fps = using_flags->get_config_ptr()->video_frame_rate;
 	

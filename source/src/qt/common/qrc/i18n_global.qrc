@@ -1,0 +1,5 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file alias="csp_qt_gui_ja.qm">../../../res/i18n/ja/csp_qt_gui.qm</file>
+</qresource>
+</RCC>

@@ -583,6 +583,15 @@ int MainLoop(int argc, char *argv[], config_t *cfg)
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Audio and JOYSTICK subsystem was initialised.");
 	GuiMain = new QApplication(argc, argv);
 	load_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
+
+	QTranslator sys_translator;
+	QTranslator local_translator;
+	if(sys_translator.load(QLocale(), QLatin1String("csp_qt_gui"), QLatin1String("_"), QLatin1String(":/"))) {
+		GuiMain->installTranslator(&sys_translator);
+	}
+	if(local_translator.load(QLocale(), QLatin1String("csp_qt_machine"), QLatin1String("_"), QLatin1String(":/"))) {
+		GuiMain->installTranslator(&local_translator);
+	}
 	
 	USING_FLAGS *using_flags = new USING_FLAGS(cfg);
 	// initialize emulation core

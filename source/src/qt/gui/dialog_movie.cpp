@@ -25,15 +25,15 @@ CSP_DialogMovie::CSP_DialogMovie(MOVIE_SAVER *ms, USING_FLAGS *p, QWidget *paren
 	tab_h264 = new CSP_TabMovieH264(ms, this, using_flags, parent);
 	tab_mpeg4 = new CSP_TabMovieMPEG4(ms, this, using_flags, parent);
 
-	tab_widget->addTab(tab_general, QApplication::translate("MainWindow", "General", 0));
-	tab_widget->addTab(tab_h264, QApplication::translate("MainWindow", "H.264", 0));
-	tab_widget->addTab(tab_mpeg4, QApplication::translate("MainWindow", "MPEG4v1", 0));
+	tab_widget->addTab(tab_general, QApplication::translate("MovieDialog", "General", 0));
+	tab_widget->addTab(tab_h264, QApplication::translate("MovieDialog", "H.264", 0));
+	tab_widget->addTab(tab_mpeg4, QApplication::translate("MovieDialog", "MPEG4v1", 0));
 	
-	label_title = new QLabel(QApplication::translate("MainWindow", "Set movie codecs.", 0), this);
+	label_title = new QLabel(QApplication::translate("MovieDialog", "Set movie codecs.", 0), this);
 	grid_layout = new QGridLayout(this);
 	
-	cancel_button = new QPushButton(QApplication::translate("MainWindow", "Cancel", 0));
-	close_button = new QPushButton(QApplication::translate("MainWindow", "Save Options", 0));
+	cancel_button = new QPushButton(QApplication::translate("MovieDialog", "Cancel", 0));
+	close_button = new QPushButton(QApplication::translate("MovieDialog", "Save Options", 0));
 
 	grid_layout->addWidget(label_title, 0, 0, 1, 2);
 	grid_layout->addWidget(tab_widget, 1, 0, 8, 4);

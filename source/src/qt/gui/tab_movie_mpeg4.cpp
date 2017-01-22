@@ -34,10 +34,10 @@ CSP_TabMovieMPEG4::CSP_TabMovieMPEG4(MOVIE_SAVER *ms, CSP_DialogMovie *parent_wi
 	if(video_minq < 1) video_minq = 1;
 	if(video_minq > 31) video_minq = 31;
 
-	label_video_bframes = new QLabel(QApplication::translate("MainWindow", "Max B Frames", 0), this);
+	label_video_bframes = new QLabel(QApplication::translate("MovieTabMPEG4", "Max B Frames", 0), this);
 	combo_video_bframes = new QComboBox(this);
 	// Video bitrates
-	label_video_bitrate = new QLabel(QApplication::translate("MainWindow", "Bitrate", 0), this);
+	label_video_bitrate = new QLabel(QApplication::translate("MovieTabMPEG4", "Bitrate", 0), this);
 	combo_video_bitrate = new QComboBox(this);
 	combo_video_bitrate->addItem(QString::fromUtf8("128Kbps"), 128);	
 	combo_video_bitrate->addItem(QString::fromUtf8("256Kbps"), 256);
@@ -108,7 +108,7 @@ CSP_TabMovieMPEG4::CSP_TabMovieMPEG4(MOVIE_SAVER *ms, CSP_DialogMovie *parent_wi
 	connect(slider_qmax, SIGNAL(valueChanged(int)), this, SLOT(do_set_qmax(int)));
 	video_maxq = using_flags->get_config_ptr()->video_mpeg4_maxq;
 	
-	label_title = new QLabel(QApplication::translate("MainWindow", "Set MPEG4v1 parameter.", 0), this);
+	label_title = new QLabel(QApplication::translate("MovieTabMPEG4", "Set MPEG4v1 parameter.", 0), this);
 	grid_layout = new QGridLayout(this);
 
 	grid_layout->addWidget(label_title, 0, 0);
