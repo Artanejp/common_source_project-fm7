@@ -7,8 +7,8 @@
 	[ memory ]
 */
 
-#ifndef _MEMORY_H_
-#define _MEMORY_H_
+#ifndef _TOWNS_MEMORY_H_
+#define _TOWNS_MEMORY_H_
 
 #include "../vm.h"
 #include "../../emu.h"

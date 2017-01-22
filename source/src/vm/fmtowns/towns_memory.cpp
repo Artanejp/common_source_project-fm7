@@ -7,7 +7,7 @@
 	[ memory]
 */
 
-#include "./memory.h"
+#include "./towns_memory.h"
 #include "../i386.h"
 
 void TOWNS_MEMORY::initialize()
