@@ -600,7 +600,7 @@ See HELP-&gt;READMEs-&gt;Bios and Key assigns</source>
     <message>
         <location filename="menu_main.cpp" line="813"/>
         <source>About this emulator.</source>
-        <translation>このえみゅれーたについて。
+        <translation>このエミュレータについて。
 クレジット表記などです。</translation>
     </message>
     <message>
@@ -781,7 +781,7 @@ Maybe output only ascii text.</source>
         <source>Enable write protection.
 You can&apos;t write any data to this media.</source>
         <translation>書き込み保護をします。
-このメデイァには、如何なるデータも書き込めません。</translation>
+このメディアには、如何なるデータも*書き込めません*。</translation>
     </message>
     <message>
         <location filename="menu_metaclass.cpp" line="426"/>
