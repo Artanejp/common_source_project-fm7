@@ -49,6 +49,8 @@ void Menu_CartClass::retranslate_pulldown_menu_device_sub(void)
 	if((drv < 0) || (drv >= 8)) return;
 	action_insert->setText(QApplication::translate("MainWindow", "Insert", 0));
 	action_eject->setText(QApplication::translate("MainWindow", "Eject", 0));
+	action_insert->setToolTip(QApplication::translate("MainWindow", "Insert a cartridge image file.", 0));
+	action_eject->setToolTip(QApplication::translate("MainWindow", "Eject a cartridge image.", 0));
 
 	menu_history->setTitle(QApplication::translate("MainWindow", "Recent Opened", 0));
 	this->setTitle(QApplication::translate("MainWindow", drive_name.toUtf8().constData() , 0));

@@ -234,17 +234,22 @@ void Ui_MainWindowBase::setupUi(void)
 	menubar->setObjectName(QString::fromUtf8("menubar"));
 	menubar->setGeometry(QRect(0, 0, 1288, 27));
 	menuControl = new QMenu(menubar);
+	menuControl->setToolTipsVisible(true);
 	menuControl->setObjectName(QString::fromUtf8("menuControl"));
 	menuState = new QMenu(menuControl);
+	menuState->setToolTipsVisible(true);
 	menuState->setObjectName(QString::fromUtf8("menuState"));
 	if(using_flags->is_use_auto_key()) {
 		menuCopy_Paste = new QMenu(menuControl);
 		menuCopy_Paste->setObjectName(QString::fromUtf8("menuCopy_Paste"));
+		menuCopy_Paste->setToolTipsVisible(true);
 	}
 	menuCpu_Speed = new QMenu(menuControl);
 	menuCpu_Speed->setObjectName(QString::fromUtf8("menuCpu_Speed"));
+	menuCpu_Speed->setToolTipsVisible(true);
 	menuDebugger = new QMenu(menuControl);
 	menuDebugger->setObjectName(QString::fromUtf8("menuDebugger"));
+	menuDebugger->setToolTipsVisible(true);
 	if(using_flags->is_use_fd()) {
 		int i;
 		for(i = 0; i < using_flags->get_max_drive(); i++) CreateFloppyMenu(i, i + 1);
@@ -286,6 +291,7 @@ void Ui_MainWindowBase::setupUi(void)
 
 	menuMachine = new QMenu(menubar);
 	menuMachine->setObjectName(QString::fromUtf8("menuMachine"));
+	menuMachine->setToolTipsVisible(true);
 
 	if(using_flags->is_use_mouse()) {
 		actionMouseEnable = new Action_Control(this, using_flags);
@@ -307,12 +313,15 @@ void Ui_MainWindowBase::setupUi(void)
 	if(!using_flags->is_without_sound()) {
 		menuSound = new QMenu(menubar);
 		menuSound->setObjectName(QString::fromUtf8("menuSound"));
+		menuSound->setToolTipsVisible(true);
 	}
 	menuEmulator = new QMenu(menubar);
 	menuEmulator->setObjectName(QString::fromUtf8("menuEmulator"));
+	menuEmulator->setToolTipsVisible(true);
 
 	menuHELP = new QMenu(menubar);
 	menuHELP->setObjectName(QString::fromUtf8("menuHELP"));
+	menuHELP->setToolTipsVisible(true);
 	MainWindow->setMenuBar(menubar);
 
 	menubar->addAction(menuControl->menuAction());
@@ -392,6 +401,8 @@ void Ui_MainWindowBase::setupUi(void)
 	menuHELP->addSeparator();
 	menuHelp_Readme = new QMenu(menuHELP);
 	menuHelp_Readme->setObjectName(QString::fromUtf8("menuHelp_Readme_menu"));;
+	menuHelp_Readme->setToolTipsVisible(true);
+	
 	menuHELP->addAction(menuHelp_Readme->menuAction());
 
 	actionHelp_README = new Action_Control(this, using_flags);
@@ -463,6 +474,7 @@ void Ui_MainWindowBase::setupUi(void)
 
 	menuHelp_Histories = new QMenu(menuHELP);
 	menuHelp_Histories->setObjectName(QString::fromUtf8("menuHelp_Histories"));;
+	menuHelp_Histories->setToolTipsVisible(true);
 	menuHELP->addAction(menuHelp_Histories->menuAction());
 
 	actionHelp_History = new Action_Control(this, using_flags);
@@ -601,35 +613,43 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 	int i;
 	if(using_flags->is_use_joystick()) {
 		action_SetupJoystick->setText(QApplication::translate("MainWindow", "Configure Joysticks", 0));
+		action_SetupJoystick->setToolTip(QApplication::translate("MainWindow", "Configure assigning buttons/directions of joysticks.", 0));
 		action_SetupJoystick->setIcon(QIcon(":/icon_gamepad.png"));
 	}
 	if(using_flags->is_use_roma_kana_conversion()) {
 		action_UseRomaKana->setText(QApplication::translate("MainWindow", "ROMA-KANA Conversion", 0));
+		action_UseRomaKana->setToolTip(QApplication::translate("MainWindow", "Use romaji-kana conversion assistant of emulator.", 0));
 	}
 	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
 	action_SetupKeyboard->setText(QApplication::translate("MainWindow", "Configure Keyboard", 0));
+	action_SetupKeyboard->setToolTip(QApplication::translate("MainWindow", "Set addignation of keyboard.", 0));
 	action_SetupKeyboard->setIcon(QIcon(":/icon_keyboard.png"));
 	action_SetupMovie->setText(QApplication::translate("MainWindow", "Configure movie encoding", 0));
+	action_SetupMovie->setToolTip(QApplication::translate("MainWindow", "Configure parameters of movie encoding.", 0));
 
 	action_LogToConsole->setText(QApplication::translate("MainWindow", "Log to Console", 0));
+	action_LogToConsole->setToolTip(QApplication::translate("MainWindow", "Enable logging to STDOUT if checked.", 0));
 	action_LogToSyslog->setText(QApplication::translate("MainWindow", "Log to Syslog", 0));
+	action_LogToSyslog->setToolTip(QApplication::translate("MainWindow", "Enable logging to SYSTEM log.\nMay be having permission to system and using *nix OS.", 0));
 	//action_LogRecord->setText(QApplication::translate("MainWindow", "Recording Log", 0));
 	if(using_flags->is_use_sound_files()) {
 		if(using_flags->is_use_sound_files_fdd()) {
 			action_SoundFilesFDD->setText(QApplication::translate("MainWindow", "Sound FDD Seek", 0));
+			action_SoundFilesFDD->setToolTip(QApplication::translate("MainWindow", "Enable FDD HEAD seeking sound.\nNeeds sound file.\nSee HELP->READMEs->Bios and Key assigns", 0));
 		}
 		if(using_flags->is_use_sound_files_relay()) {
 			action_SoundFilesRelay->setText(QApplication::translate("MainWindow", "Sound CMT Relay", 0));
+			action_SoundFilesRelay->setToolTip(QApplication::translate("MainWindow", "Enable CMT relay's sound.\nNeeds sound file.\nSee HELP->READMEs->Bios and Key assigns", 0));
 		}
 		if(using_flags->is_use_sound_files_buttons()) {
 			action_SoundFilesButtons->setText(QApplication::translate("MainWindow", "Sound CMT Buttons", 0));
+			action_SoundFilesButtons->setToolTip(QApplication::translate("MainWindow", "Enable CMT button's sound.\nNeeds sound file.\nSee HELP->READMEs->Bios and Key assigns", 0));
 		}
 	}		
-	
 	menuDevLogToConsole->setTitle(QApplication::translate("MainWindow", "Per Device", 0));
 
 	action_LogView->setText(QApplication::translate("MainWindow", "View Log", 0));
-	
+	action_LogView->setToolTip(QApplication::translate("MainWindow", "View emulator logs with a dialog.", 0));
 }
 
 void Ui_MainWindowBase::retranselateUi_Depended_OSD(void)
@@ -722,6 +742,7 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 
 	//menuDevLogToConsole = new QMenu(menuEmulator);
 	menuDevLogToConsole = new QMenu(this);
+	menuDevLogToConsole->setToolTipsVisible(true);
 	for(int i = 0; i < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1); i++) {
 		action_DevLogToConsole[i] = new Action_Control(this, using_flags);
 		action_DevLogToConsole[i]->setCheckable(true);
@@ -784,10 +805,12 @@ void Ui_MainWindowBase::retranslateUI_Help(void)
 {
 	menuHELP->setTitle(QApplication::translate("MainWindow", "Help", 0));
 	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
+	actionHelp_AboutQt->setToolTip(QApplication::translate("MainWindow", "Display Qt version.", 0));
 	actionHelp_AboutQt->setIcon(QApplication::style()->standardIcon(QStyle::SP_TitleBarMenuButton));
 	
 	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
 	actionAbout->setIcon(QApplication::style()->standardIcon(QStyle::SP_MessageBoxQuestion));
+	actionAbout->setToolTip(QApplication::translate("MainWindow", "About this emulator.", 0));
 
 	menuHelp_Readme->setTitle(QApplication::translate("MainWindow", "READMEs", 0));
 	
@@ -808,7 +831,9 @@ void Ui_MainWindowBase::retranslateUI_Help(void)
 	actionHelp_History_MR_TANAM->setText(QApplication::translate("MainWindow", "History by Tanam", 0));
 
 	actionHelp_License->setText(QApplication::translate("MainWindow", "Show License", 0));
+	actionHelp_License->setToolTip(QApplication::translate("MainWindow", "Show general license (GPLv2).", 0));
 	actionHelp_License_JP->setText(QApplication::translate("MainWindow", "Show License (Japanese)", 0));
+	actionHelp_License_JP->setToolTip(QApplication::translate("MainWindow", "Show general license (GPLv2).\nTranslated to Japanese.", 0));
 	ui_retranslate_completed = true;
 }
 
@@ -848,14 +873,17 @@ void Ui_MainWindowBase::retranslateMachineMenu(void)
 		menuPrintDevice->setTitle(QApplication::translate("MainWindow", "Printer (Need RESET)", 0));
 		i = 1;
 		actionPrintDevice[0]->setText(QApplication::translate("MainWindow", "Dump to File", 0));
+		actionPrintDevice[0]->setToolTip(QApplication::translate("MainWindow", "Dump printer output to file.\nMaybe output only ascii text.", 0));
 		if(using_flags->get_use_printer_type() > 0) {
 			for(i = 1; i < (using_flags->get_use_printer_type() - 1); i++) {
 				tmps2.setNum(i + 1);
 				tmps = QApplication::translate("MainWindow", "Printer", 0) + tmps2;
 				actionPrintDevice[i]->setText(tmps); 
+				actionPrintDevice[i]->setToolTip(tmps); 
 			}
 		}
 		actionPrintDevice[i]->setText(QApplication::translate("MainWindow", "Not Connect", 0));
+		actionPrintDevice[i]->setToolTip(QApplication::translate("MainWindow", "None devices connect to printer port.", 0));
 	}
 }
 void Ui_MainWindowBase::retranslateUi(void)

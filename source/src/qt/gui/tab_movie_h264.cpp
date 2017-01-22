@@ -48,6 +48,8 @@ CSP_TabMovieH264::CSP_TabMovieH264(MOVIE_SAVER *ms, CSP_DialogMovie *parent_wind
 	combo_video_bitrate->addItem(QString::fromUtf8("1800Kbps"), 1800);
 	combo_video_bitrate->addItem(QString::fromUtf8("3000Kbps"), 3000);
 	combo_video_bitrate->addItem(QString::fromUtf8("4500Kbps"), 4500);
+	combo_video_bitrate->setToolTip(QApplication::translate("MainWindow", "Set bitrate of video.\nLarger is better quality, but makes larger file.", 0));
+
 	for(int i = 0; i < combo_video_bitrate->count(); i++) {
 		int br = combo_video_bitrate->itemData(i).toInt();
 		if(br == using_flags->get_config_ptr()->video_h264_bitrate) {
@@ -67,6 +69,7 @@ CSP_TabMovieH264::CSP_TabMovieH264(MOVIE_SAVER *ms, CSP_DialogMovie *parent_wind
 	combo_video_bframes->addItem(QString::fromUtf8("6"), 6);
 	combo_video_bframes->addItem(QString::fromUtf8("7"), 7);
 	combo_video_bframes->addItem(QString::fromUtf8("8"), 8);
+	combo_video_bframes->setToolTip(QApplication::translate("MainWindow", "Max numbers of B FRAMEs.\nLarger value will make smaller file, but slowly.", 0));
 	for(int i = 0; i < combo_video_bframes->count(); i++) {
 		int br = combo_video_bframes->itemData(i).toInt();
 		if(br == using_flags->get_config_ptr()->video_h264_bframes) {
@@ -80,6 +83,7 @@ CSP_TabMovieH264::CSP_TabMovieH264(MOVIE_SAVER *ms, CSP_DialogMovie *parent_wind
 	combo_video_b_adapt->addItem(QApplication::translate("MainWindow", "None", 0), 0);
 	combo_video_b_adapt->addItem(QApplication::translate("MainWindow", "Fast", 0), 1);
 	combo_video_b_adapt->addItem(QApplication::translate("MainWindow", "Optimal (Slow with high B-Frames)", 0), 2);
+	combo_video_b_adapt->setToolTip(QApplication::translate("MainWindow", "Set decision of using B FRAMEs.", 0));
 	for(int i = 0; i < combo_video_b_adapt->count(); i++) {
 		int br = combo_video_b_adapt->itemData(i).toInt();
 		if(br == using_flags->get_config_ptr()->video_h264_b_adapt) {
@@ -97,6 +101,8 @@ CSP_TabMovieH264::CSP_TabMovieH264(MOVIE_SAVER *ms, CSP_DialogMovie *parent_wind
 	tmps.setNum(using_flags->get_config_ptr()->video_h264_minq);
 	label_qmin_val->setText(tmps);
 	label_qmin_name = new QLabel(QString::fromUtf8("QP Min"), this);
+	slider_qmin->setToolTip(QApplication::translate("MainWindow", "Minimum Quant.\nSmaller value is better quality, but making larger file.\nLarger value is dirty picture, but making smaller file.\n15 to 24 is recommended.", 0));
+
 	video_minq = using_flags->get_config_ptr()->video_h264_minq;
 	connect(slider_qmin, SIGNAL(valueChanged(int)), this, SLOT(do_set_qmin(int)));
 		
@@ -108,6 +114,7 @@ CSP_TabMovieH264::CSP_TabMovieH264(MOVIE_SAVER *ms, CSP_DialogMovie *parent_wind
 	tmps.setNum(using_flags->get_config_ptr()->video_h264_maxq);
 	label_qmax_val->setText(tmps);
 	label_qmax_name = new QLabel(QString::fromUtf8("QP Max"), this);
+	slider_qmax->setToolTip(QApplication::translate("MainWindow", "Maximum Quant.\nSmaller value is better quality, but making larger file.\nLarger value is dirty picture, but making smaller file.\n20 to 28 is recommended.", 0));
 	connect(slider_qmax, SIGNAL(valueChanged(int)), this, SLOT(do_set_qmax(int)));
 	video_maxq = using_flags->get_config_ptr()->video_h264_maxq;
 	
@@ -118,6 +125,8 @@ CSP_TabMovieH264::CSP_TabMovieH264(MOVIE_SAVER *ms, CSP_DialogMovie *parent_wind
 	combo_video_subme->addItem(QApplication::translate("MainWindow", "RD refinement for all frames", 0), 9);
 	combo_video_subme->addItem(QApplication::translate("MainWindow", "QP-RD", 0), 10); // Trellis 2, admode > 0
 	combo_video_subme->addItem(QApplication::translate("MainWindow", "Full RD: disable all early terminations", 0), 11);
+	combo_video_subme->setToolTip(QApplication::translate("MainWindow", "Set motion estimation.\nLarger value is better, but slowly.", 0));
+
 	for(int i = 0; i < combo_video_subme->count(); i++) {
 		int br = combo_video_subme->itemData(i).toInt();
 		if(br == using_flags->get_config_ptr()->video_h264_subme) {

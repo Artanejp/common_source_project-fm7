@@ -200,15 +200,22 @@ void Ui_MainWindowBase::retranslateSoundMenu(void)
 	}
 	actionStart_Record->setIcon(RecordSoundIcon);
 	actionStart_Record->setText(QApplication::translate("MainWindow", "Start Recording Sound", 0));
+	actionStart_Record->setToolTip(QApplication::translate("MainWindow", "Record sound as WAV file.", 0));
+	
 	if(using_flags->is_datarec_sound()) {
 		actionSoundCMT->setText(QApplication::translate("MainWindow", "Sound CMT", 0));
+		actionSoundCMT->setToolTip(QApplication::translate("MainWindow", "Enable sound of CMT TAPE recorder.", 0));
 	}
 	actionSoundStrictRendering->setText(QApplication::translate("MainWindow", "Strict Rendering", 0));
+	actionSoundStrictRendering->setToolTip(QApplication::translate("MainWindow", "Rendering per a sample.Select to slower, but accurate rendering sound.", 0));
 	
 	menuSound->setTitle(QApplication::translate("MainWindow", "Sound", 0));
 	menuOutput_Frequency->setTitle(QApplication::translate("MainWindow", "Output Frequency", 0));
 	menuSound_Latency->setTitle(QApplication::translate("MainWindow", "Sound Latency", 0));
+	
 	action_VolumeDialog->setText(QApplication::translate("MainWindow", "Set Volumes", 0));
+	action_VolumeDialog->setToolTip(QApplication::translate("MainWindow", "Open a VOLUME dialog.", 0));
 
+	menuSound->setToolTipsVisible(true);
 	do_update_volume(using_flags->get_config_ptr()->general_sound_level);
 }

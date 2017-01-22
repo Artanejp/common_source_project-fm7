@@ -142,7 +142,9 @@ void Menu_BinaryClass::do_open_save_dialog()
 void Menu_BinaryClass::retranslate_pulldown_menu_device_sub(void)
 {
 	action_insert->setText(QApplication::translate("MainWindow", "Load", 0));
+	action_insert->setToolTip(QApplication::translate("MainWindow", "Load memory image from a file.", 0));
 	action_saving->setText(QApplication::translate("MainWindow", "Save", 0));
+	action_saving->setToolTip(QApplication::translate("MainWindow", "Save memory image to a file.", 0));
 	action_saving->setIcon(QIcon(":/icon_saveas.png"));
 	//menu_history_save->setTitle(QApplication::translate("MainWindow", "Recently Saved", 0));
 	menu_history->setTitle(QApplication::translate("MainWindow", "Recently Loaded", 0));

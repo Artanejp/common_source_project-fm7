@@ -276,6 +276,7 @@ void Ui_MainWindowBase::createContextMenu(void)
 void Ui_MainWindowBase::retranslateControlMenu(const char *SpecialResetTitle,  bool WithSpecialReset)
 {
 	actionReset->setText(QApplication::translate("MainWindow", "Reset", 0));
+	actionReset->setToolTip(QApplication::translate("MainWindow", "Reset virtual machine.", 0));
 	actionReset->setIcon(ResetIcon);
 	if(using_flags->is_use_special_reset()) {
 		actionSpecial_Reset->setText(QApplication::translate("MainWindow", SpecialResetTitle, 0));
@@ -283,6 +284,7 @@ void Ui_MainWindowBase::retranslateControlMenu(const char *SpecialResetTitle,  b
 	}
 
 	actionExit_Emulator->setText(QApplication::translate("MainWindow", "Exit Emulator", 0));
+	actionExit_Emulator->setToolTip(QApplication::translate("MainWindow", "Exit emulator.\n**WARN: WITHOUT confirming.**", 0));
 	actionExit_Emulator->setIcon(ExitIcon);
 
 	actionSpeed_x1->setText(QApplication::translate("MainWindow", "Speed x1", 0));
@@ -293,15 +295,19 @@ void Ui_MainWindowBase::retranslateControlMenu(const char *SpecialResetTitle,  b
 	
 	if(using_flags->is_use_auto_key()) {
 		actionPaste_from_Clipboard->setText(QApplication::translate("MainWindow", "Paste from Clipboard", 0));
+		actionPaste_from_Clipboard->setToolTip(QApplication::translate("MainWindow", "Paste ANK text to virtual machine from desktop's clop board.", 0));
 		actionPaste_from_Clipboard->setIcon(QIcon(":/icon_paste.png"));
 		actionStop_Pasting->setText(QApplication::translate("MainWindow", "Stop Pasting", 0));
+		actionStop_Pasting->setToolTip(QApplication::translate("MainWindow", "Abort pasting ANK text to virtual machine.", 0));
 		actionStop_Pasting->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogCancelButton));
 	}
 	if(using_flags->is_use_state()) {
 		actionSave_State->setText(QApplication::translate("MainWindow", "Save State", 0));
 		actionSave_State->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogSaveButton));
+		actionSave_State->setToolTip(QApplication::translate("MainWindow", "Save snapshot to fixed bin file.", 0));
 		actionLoad_State->setText(QApplication::translate("MainWindow", "Load State", 0));
 		actionLoad_State->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton));
+		actionLoad_State->setToolTip(QApplication::translate("MainWindow", "Load snapshot from fixed bin file.", 0));
 	}
 	if(using_flags->is_use_debugger()) {
 		actionDebugger[0]->setText(QApplication::translate("MainWindow", "Main CPU", 0));
@@ -312,13 +318,14 @@ void Ui_MainWindowBase::retranslateControlMenu(const char *SpecialResetTitle,  b
 	}
 	menuControl->setTitle(QApplication::translate("MainWindow", "Control", 0));
 	menuState->setTitle(QApplication::translate("MainWindow", "State", 0));
-
+	
 	if(using_flags->is_use_auto_key()) {
 		menuCopy_Paste->setTitle(QApplication::translate("MainWindow", "Copy/Paste", 0));
 	}
 	menuCpu_Speed->setTitle(QApplication::translate("MainWindow", "CPU Speed", 0));
 	if(using_flags->is_use_mouse()) {
 		actionMouseEnable->setText(QApplication::translate("MainWindow", "Grab MOUSE", 0));
+		actionMouseEnable->setToolTip(QApplication::translate("MainWindow", "Grabbing host's mouse.\nPress RIGHT Application key (or another) to toggle enable/disable.", 0));
 	}
 }
 

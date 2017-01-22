@@ -62,8 +62,13 @@ void Menu_FDClass::connect_menu_device_sub(void)
 void Menu_FDClass::retranslate_pulldown_menu_device_sub(void)
 {
 	action_insert->setIcon(icon_floppy);
+	action_insert->setToolTip(QApplication::translate("MainWindow", "Insert virtual floppy disk file.", 0));
+	action_eject->setToolTip(QApplication::translate("MainWindow", "Eject virtual floppy disk.", 0));
+	
 	action_ignore_crc_error->setText(QApplication::translate("MainWindow", "Ignore CRC error", 0));
+	action_ignore_crc_error->setToolTip(QApplication::translate("MainWindow", "Ignore CRC error of virtual floppy.\nUseful for some softwares,\n but causes wrong working with some softwares.", 0));
 	action_correct_timing->setText(QApplication::translate("MainWindow", "Correct transfer timing", 0));
+	action_correct_timing->setToolTip(QApplication::translate("MainWindow", "Correct transferring timing.\nUseful for some softwares\n needs strict transfer timing.", 0));
 }
 
 

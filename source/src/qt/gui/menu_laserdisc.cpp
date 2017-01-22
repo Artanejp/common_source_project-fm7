@@ -41,7 +41,9 @@ void Menu_LaserdiscClass::connect_menu_device_sub(void)
 void Menu_LaserdiscClass::retranslate_pulldown_menu_device_sub(void)
 {
 	action_insert->setText(QApplication::translate("MainWindow", "Insert Laserdisc", 0));
+	action_insert->setToolTip(QApplication::translate("MainWindow", "Insert a MOVIE file.", 0));
 	action_eject->setText(QApplication::translate("MainWindow", "Eject Laserdisc", 0));
+	action_eject->setToolTip(QApplication::translate("MainWindow", "Eject a MOVIE file.", 0));
 
 	this->setTitle(QApplication::translate("MainWindow", "Laserdisc" , 0));
 	action_insert->setIcon(QIcon(":/icon_cd.png"));

@@ -176,6 +176,7 @@ void Ui_MainWindowBase::ConfigDeviceType(void)
 		menuDeviceType = new QMenu(menuMachine);
 		menuDeviceType->setObjectName(QString::fromUtf8("menuDeviceType"));
 		menuMachine->addAction(menuDeviceType->menuAction());
+		menuDeviceType->setToolTipsVisible(true);
       
 		actionGroup_DeviceType = new QActionGroup(this);
 		actionGroup_DeviceType->setExclusive(true);
@@ -201,6 +202,7 @@ void Ui_MainWindowBase::ConfigDriveType(void)
 	if(using_flags->get_use_drive_type() > 0) {
 		menuDriveType = new QMenu(menuMachine);
 		menuDriveType->setObjectName(QString::fromUtf8("menu_DriveType"));
+		menuDriveType->setToolTipsVisible(true);
 		
 		actionGroup_DriveType = new QActionGroup(this);
 		actionGroup_DriveType->setObjectName(QString::fromUtf8("actionGroup_DriveType"));
@@ -229,7 +231,7 @@ void Ui_MainWindowBase::ConfigSoundDeviceType(void)
 		QString tmps;
 		menuSoundDevice = new QMenu(menuMachine);
 		menuSoundDevice->setObjectName(QString::fromUtf8("menu_SoundDevice"));
-		
+		menuSoundDevice->setToolTipsVisible(true);
 		actionGroup_SoundDevice = new QActionGroup(this);
 		actionGroup_SoundDevice->setObjectName(QString::fromUtf8("actionGroup_SoundDevice"));
 		actionGroup_SoundDevice->setExclusive(true);
@@ -260,11 +262,13 @@ void Ui_MainWindowBase::ConfigPrinterType(void)
 		if(using_flags->get_use_printer_type() > 0) ilim = using_flags->get_use_printer_type();
 		menuPrintDevice = new QMenu(menuMachine);
 		menuPrintDevice->setObjectName(QString::fromUtf8("menu_PrintDevice"));
+		menuPrintDevice->setToolTipsVisible(true);
 		
 		actionGroup_PrintDevice = new QActionGroup(this);
 		actionGroup_PrintDevice->setObjectName(QString::fromUtf8("actionGroup_PrintDevice"));
 		actionGroup_PrintDevice->setExclusive(true);
-		menuMachine->addAction(menuPrintDevice->menuAction());   
+		menuMachine->addAction(menuPrintDevice->menuAction());
+
 		for(i = 0; i < ilim; i++) {
 			actionPrintDevice[i] = new Action_Control(this, using_flags);
 			actionPrintDevice[i]->setCheckable(true);

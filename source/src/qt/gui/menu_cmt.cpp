@@ -201,11 +201,16 @@ void Menu_CMTClass::do_eject_cmt(int dummy)
 void Menu_CMTClass::retranslate_pulldown_menu_device_sub(void)
 {
 	action_insert->setText(QApplication::translate("MainWindow", "Insert CMT", 0));
+	action_insert->setToolTip(QApplication::translate("MainWindow", "Insert a TAPE image file.", 0));
 	action_eject->setText(QApplication::translate("MainWindow", "Eject CMT", 0));
+	action_eject->setToolTip(QApplication::translate("MainWindow", "Eject a TAPE image file.", 0));
 
 	action_wave_shaper->setText(QApplication::translate("MainWindow", "Enable Wave Shaper", 0));
+	action_wave_shaper->setToolTip(QApplication::translate("MainWindow", "Enable wave shaping.\nUseful for some images.", 0));
+
 	if(using_flags->is_machine_cmt_mz_series()) {
 		action_direct_load_mzt->setText(QApplication::translate("MainWindow", "Direct load from MZT", 0));
+		action_direct_load_mzt->setToolTip(QApplication::translate("MainWindow", "Direct loading to memory.\nOnly for MZT image file.", 0));
 	}
 	this->setTitle(QApplication::translate("MainWindow", "Cassette Tape" , 0));
 	action_insert->setIcon(icon_cmt);
@@ -227,4 +232,5 @@ void Menu_CMTClass::retranslate_pulldown_menu_device_sub(void)
 	}
 	action_recording->setIcon(icon_record_to_wav);
 	action_recording->setText(QApplication::translate("MainWindow", "Record to a WAV File", 0));
+	action_recording->setToolTip(QApplication::translate("MainWindow", "Record CMT output to a file.", 0));
 }
