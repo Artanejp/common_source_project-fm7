@@ -106,6 +106,7 @@ void initialize_config()
 #elif defined(USE_SOUND_DEVICE_TYPE)
 	config.sound_device_type = 0;
 #endif
+	config.sound_strict_rendering = true;
 	
 	// input
 #ifdef _WIN32
@@ -345,6 +346,8 @@ void load_config(const _TCHAR *config_path)
 #endif
  	MyGetPrivateProfileString(_T("Sound"), _T("FMGenDll"), _T("mamefm.dll"), config.fmgen_dll_path, _MAX_PATH, config_path);
 	config.general_sound_level = MyGetPrivateProfileInt(_T("Sound"), _T("GeneralSoundLevel"), config.general_sound_level, config_path);
+	config.sound_strict_rendering = MyGetPrivateProfileBool(_T("Sound"), _T("StrictRendering"), config.sound_strict_rendering, config_path);
+
 	// input
 #ifdef _WIN32
 	config.use_direct_input = MyGetPrivateProfileBool(_T("Input"), _T("UseDirectInput"), config.use_direct_input, config_path);
@@ -648,6 +651,7 @@ void save_config(const _TCHAR *config_path)
 
  	MyWritePrivateProfileString(_T("Sound"), _T("FMGenDll"), config.fmgen_dll_path, config_path);
 	MyWritePrivateProfileInt(_T("Sound"), _T("GeneralSoundLevel"), config.general_sound_level, config_path);
+	MyWritePrivateProfileBool(_T("Sound"), _T("StrictRendering"), config.sound_strict_rendering, config_path);;
 	// input
 #ifdef _WIN32
 	MyWritePrivateProfileBool(_T("Input"), _T("UseDirectInput"), config.use_direct_input, config_path);

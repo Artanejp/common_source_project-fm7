@@ -63,8 +63,8 @@ target_link_libraries(CSPavio PUBLIC
 	  )
 
 set_target_properties(CSPavio PROPERTIES 
-			     SOVERSION 2.5.1
-			     VERSION 2.5.1
+			     SOVERSION 2.5.2
+			     VERSION 2.5.2
 			     )
 INSTALL(TARGETS CSPavio DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

@@ -148,15 +148,12 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	psg->set_context_port_b(joystick, SIG_JOYSTICK_SEL, 0x40, 0);
 	vdp->set_context_irq(cpu, SIG_CPU_IRQ, 1);
 
-	// Sound:: Force realtime rendering. This is temporally fix. 20161024 K.O
-	pcm->set_realtime_render(true);
 #if defined(_PX7)
 	pio->set_context_port_c(slot2, SIG_SLOT2_MUTE, 0x10, 0);
 	ldp->set_context_exv(slot2, SIG_SLOT2_EXV, 1);
 	ldp->set_context_ack(slot2, SIG_SLOT2_ACK, 1);
 	ldp->set_context_sound(psg, SIG_YM2203_PORT_A, 0x80);
 #endif
-	
 	joystick->set_context_psg(psg);
 //	keyboard->set_context_cpu(cpu);
 	keyboard->set_context_pio(pio);

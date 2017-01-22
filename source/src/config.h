@@ -135,6 +135,7 @@ typedef struct {
 	int sound_volume_l[32];
 	int sound_volume_r[32];
 	_TCHAR fmgen_dll_path[_MAX_PATH];
+	bool sound_strict_rendering;
 	
 	// input
 #ifdef _WIN32

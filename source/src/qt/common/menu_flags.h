@@ -247,7 +247,6 @@ public:
 	bool is_use_sound_files_fdd() { return use_sound_files_fdd; }
 	bool is_use_sound_files_relay() { return use_sound_files_relay; }
 	bool is_use_sound_files_buttons() { return use_sound_files_buttons; }
-
 	bool is_use_special_reset() { return use_special_reset; }
 
 	bool is_use_state() { return use_state; }

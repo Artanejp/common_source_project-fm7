@@ -280,7 +280,7 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	class Action_Control *actionStart_Record_Movie;
 	class Action_Control *actionStop_Record_Movie;
 	class Action_Control *action_VolumeDialog;
-	
+	class Action_Control *actionSoundStrictRendering;
 
 	class Action_Control *actionMouseEnable;
 	class Action_Control *actionHelp_AboutQt;
@@ -580,6 +580,8 @@ public slots:
 	void set_freq(int);
 	void set_latency(int);
 	void set_sound_device(int);
+	void do_set_sound_strict_rendering(bool f);
+	
 	void set_monitor_type(int);
 	void message_status_bar(QString);
 	void resize_statusbar(int w, int h);

@@ -417,7 +417,6 @@ double EVENT::get_event_remaining_usec(int register_id)
 
 void EVENT::event_callback(int event_id, int err)
 {
-	//if(event_id == EVENT_MIX) {
 		// mix sound
 		if(prev_skip && dont_skip_frames == 0 && !sound_changed) {
 			buffer_ptr = 0;
@@ -425,6 +424,14 @@ void EVENT::event_callback(int event_id, int err)
 		if(sound_tmp_samples - buffer_ptr > 0) {
 			int t_s = mix_counter;
 			if(t_s >= (sound_tmp_samples - buffer_ptr)) t_s = sound_tmp_samples - buffer_ptr - 1; 
+			if(config.sound_strict_rendering) {
+				if(t_s <= 1) {
+					mix_sound(1);
+					mix_counter = 1;
+					sound_touched = false;
+					return;
+				}
+			}
 			if((need_mix > 0) || (mix_counter >= mix_limit) || sound_touched) {
 				if(t_s > 0) {
 					mix_sound(t_s);
@@ -435,10 +442,7 @@ void EVENT::event_callback(int event_id, int err)
 			} else {
 				mix_counter++;
 			}
-			//sound_touched = false;
-			//mix_sound(1);
 		}
-		//}
 }
 
 void EVENT::mix_sound(int samples)

@@ -27,6 +27,12 @@ void Object_Menu_Control::on_set_latency(void) {
 }
 
 
+void Ui_MainWindowBase::do_set_sound_strict_rendering(bool f)
+{
+	if(using_flags != NULL) {
+		using_flags->get_config_ptr()->sound_strict_rendering = f;
+	}
+}
 
 void Ui_MainWindowBase::rise_volume_dialog(void)
 {
@@ -60,11 +66,19 @@ void Ui_MainWindowBase::CreateSoundMenu(void)
   
 	menuSound->addAction(actionStart_Record);
 	menuSound->addSeparator();
+	actionSoundStrictRendering = new Action_Control(this, using_flags);
+	actionSoundStrictRendering->setObjectName(QString::fromUtf8("actionSoundStrictRendering"));
+	actionSoundStrictRendering->setCheckable(true);
+	if(using_flags->get_config_ptr()->sound_strict_rendering) actionSoundStrictRendering->setChecked(true);
+	connect(actionSoundStrictRendering, SIGNAL(toggled(bool)),
+			this, SLOT(do_set_sound_strict_rendering(bool)));
+	menuSound->addAction(actionSoundStrictRendering);
+	
 	menuOutput_Frequency = new QMenu(menuSound);
 	menuOutput_Frequency->setObjectName(QString::fromUtf8("menuOutput_Frequency"));
 	menuSound->addAction(menuOutput_Frequency->menuAction());
 	menuSound->addSeparator();
-	
+
 	if(using_flags->is_datarec_sound()) {
 		actionSoundCMT = new Action_Control(this, using_flags);
 		actionSoundCMT->setObjectName(QString::fromUtf8("actionSoundCMT"));
@@ -189,6 +203,8 @@ void Ui_MainWindowBase::retranslateSoundMenu(void)
 	if(using_flags->is_datarec_sound()) {
 		actionSoundCMT->setText(QApplication::translate("MainWindow", "Sound CMT", 0));
 	}
+	actionSoundStrictRendering->setText(QApplication::translate("MainWindow", "Strict Rendering", 0));
+	
 	menuSound->setTitle(QApplication::translate("MainWindow", "Sound", 0));
 	menuOutput_Frequency->setTitle(QApplication::translate("MainWindow", "Output Frequency", 0));
 	menuSound_Latency->setTitle(QApplication::translate("MainWindow", "Sound Latency", 0));
