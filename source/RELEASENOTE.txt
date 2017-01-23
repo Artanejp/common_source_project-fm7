@@ -9,68 +9,97 @@ This package is Qt5 porting of Common Source Code Project (CSP)
 and built with Qt5, for Windows, built with MinGW(32bit).
 
 Source Code:
+
    https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20170124
    
 Additional INFO:
+
    Binaries will be available, distibute from osdn.net.
+   
    See, https://osdn.net/projects/csp-qt/  and
         https://osdn.net/projects/csp-qt/releases/ .
+	
    Released at:
 
 
 2.Background
+
 Common Source Code Project (CSP) is good emulator writing.
 It also distributed with GPLv2, this is good for me.
+
 But codes are specified to M$ Visual C.
 I'm using GNU/Linux, and I starting to apply FM-7(or later).
+
 So, I start to port to GNU/Linux and using Qt4/Qt5.
 
 What you need at least:
+
 a. Qt5 (neither Qt3 and Qt4) toolkit: Qt5.3 or later.
+
 b. Some OpenGL implementation, maybe at leaset OpenGL v2.x .
-c. gcc / g++ (4.7 or later? ) or llvm clang / clang++ (3.5 or later?) toolchain.
+
+c. gcc / g++ (5.0 or later? ) or llvm clang / clang++ (3.5 or later?) toolchain.
+
 d. SDL2 (not SDL1.x).
+
 e. CMake 2.8 or later.
 
-   * TIPS: If emufoo.exe don't show screen drawing, set environment 
-           variable QT_OPENGL to software (i.e. Using Windows as VirtualBox's gueat OS).
+* TIPS: If emufoo.exe don't show screen drawing, set environment variable QT_OPENGL to software (i.e. Using Windows as VirtualBox's gueat OS).
 
 
 3.How to build:
+
 After extracting (or git pulled) sourcecodes:
+
 $ cd {srctop}/source/build-cmake/{Machine name}/
+
 $ mkdir build
+
 $ cd build
 
 To configure:
+
 $ cmake ..
+
 or
+
 $ ccmake ..
 
 To build:
+
 $ make
 
 To install:
+
 $ sudo make install
 
 4.Qt specified notice:
-・Place R@Ms under $HOME/emu{Machine Name}/ , this directory has made
+
+*Place R@Ms under $HOME/emu{Machine Name}/ , this directory has made
 after first using.
-・Config file, {foo}.ini is writteon on $HOME/.config/emu{Machine Name}/ .
+
+*Config file, {foo}.ini is writteon on $HOME/.config/emu{Machine Name}/ .
 
 5.Status
-a. I tested to build only under Debian GNU/Linux "sid".
+
+a. I tested to build only under Debian GNU/Linux "sid",Ubuntu Linux 16.04LTS "Xenial" for AMD64 (x86_64)
+and MinGW with GCC6 (Windows 32bit).
+
    But, perhaps, will succed to build another GNU/Linux OSs or BSD OS variants.
+   
    * On windows, using MinGW is already okay, but not tested drawing.
+   
    * Cross building with GNU/Linux's MinGW32 and Qt5.5.1 (for MinGW) is available. 
      Modify and use build-cmake/config_build_cross_win32.sh and related *.cmake files.
+     
    * And, you can also build with M$ Visual Studio 2013 or 2015.
 
-b. Now, I using Qt5 as toolkit, because authors of Qt announced
-   "Qt4 is obsolete, will be updated no longer".
+b. Now, I using Qt5 as toolkit, because authors of Qt announced "Qt4 is obsolete, will be updated no longer".
 
-c. All of virtual machines are already ported to Qt (On Oct 29, 2015):
+c. All of virtual machines are already ported to Qt (On Oct 29, 2015).
+
 d. Now using GCC-6.1 with Link Time Optimize to build for distrubuted binaries.
+
 e. Implemented socket, networking for MZ-2500, but, not tested yet (；´Д｀)
 
 Upstream repositry:
@@ -83,6 +112,7 @@ Upstream (Takeda Toshiya San's original code)
       http://takeda-toshiya.my.coocan.jp/
 
 Changes:
+
 * SNAPSHOT January 24, 2017
   * Upstream 2016-12-31
   * [UI/Qt] Add tooltips to menu entries mostly.
@@ -134,8 +164,11 @@ Upstream changes:
 12/31/2016
 
 [COLECOVISION/KEYBOARD] fix not to raise irq when joystick is pressed
+
 [COLECOVISION/KEYBOARD] fix joystick/tenkey inputs
+
 [COLECOVISION/KEYBOARD] fix to save/load tenky enabled status
+
 [SC3000/MEMORY] support 32KB+16KB or 128KB ROM carts
 
 
@@ -151,27 +184,40 @@ Upstream changes:
 [EMU/DEBUGGER] support p command (trace one opcode, step-over)
 
 [MZ80K/MEMORY] support V-GATE signal (thanks Mr.Suga)
+
 [PASOPIA/DISPLAY] fix graphic color in screen 2 mode (thanks Mr.Kamei)
+
 [SMB80TE] support SHARP SM-B-80TE
 
 
 4/13/2016
 
 [WINMAIN] improve auto key for the case to switch upper/lowercase with capslock
+
 [EMU/DEBUGGER] fix issue that u command may cause the infinite loop
 
 [VM/DATAREC] support to detect the frequency of signal
+
 [VM/DATAREC] fix to always adjust zero position of wave signal
+
 [VM/UPD1990A] fix not to check clk signal is low when stb signal is raised
+
 [VM/UPD7810] support debugger
+
 [VM/UPD7810] support MOV A,S opecode
+
 [VM/UPD7810] fix not to change V register (thanks PockEmul)
 
 [PC2001] support NEC PC-2001
+
 [PC2001] fix cpu clock
+
 [PC2001] support beep sound
+
 [PC2001/IO] support rtc control signals
+
 [YALKY] support Yuasa Kyouiku System YALKY
+
 [YALKY/IO] improve data recorder controller
 
 -----

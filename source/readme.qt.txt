@@ -4,9 +4,11 @@
 
 0. About
    This package is Qt5 porting of Common Source Code Project (CSP).
+   
    Building with GNU/Linux(64bit) and MinGW(32bit Windows).
    
 1. Background
+
    Common Source Code Project (CSP) is good emulator writing.
    But codes are specified to M$ Visual C.
    I'm using GNU/Linux, and I starting to apply FM-7(or later).
@@ -18,6 +20,7 @@
            variable QT_OPENGL to software (i.e. Using Windows as VirtualBox's gueat OS).
      
 2. What you need at least:
+
    a. Qt5 (neither Qt3 and Qt4) toolkit.
    b. Some OpenGL implementation, maybe at leaset OpenGL v2.1.
    c. gcc / g++ (4.7 or later? ) or llvm clang / clang++ (3.5 or later?) toolchain.
