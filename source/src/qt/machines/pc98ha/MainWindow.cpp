@@ -40,7 +40,7 @@ void META_MainWindow::retranslateUi(void)
    
 #if defined(USE_PRINTER)
 	actionPrintDevice[1]->setText(QString::fromUtf8("PC-PR201"));
-	actionPrintDevice[1]->setToolTips(QApplication::translate("MainWindow", "NEC PC-PR201 kanji serial printer.", 0));
+	actionPrintDevice[1]->setToolTip(QApplication::translate("MainWindow", "NEC PC-PR201 kanji serial printer.", 0));
 #endif	
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 #ifdef USE_DEBUGGER
