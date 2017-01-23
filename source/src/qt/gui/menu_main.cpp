@@ -13,6 +13,9 @@
 #include <QImage>
 #include <QImageReader>
 #include <QPixmap>
+#include <QApplication>
+#include <QLocale>
+#include <QTranslator>
 
 #include "commonclasses.h"
 #include "display_about.h"
@@ -36,7 +39,6 @@
 
 extern EMU *emu;
 //extern USING_FLAGS *using_flags;
-
 
 Ui_MainWindowBase::Ui_MainWindowBase(USING_FLAGS *p, QWidget *parent) : QMainWindow(parent)
 {

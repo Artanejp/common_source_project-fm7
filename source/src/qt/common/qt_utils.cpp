@@ -584,17 +584,19 @@ int MainLoop(int argc, char *argv[], config_t *cfg)
 	GuiMain = new QApplication(argc, argv);
 	load_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
 
-	QTranslator sys_translator;
-	QTranslator local_translator;
-	if(sys_translator.load(QLocale(), QLatin1String("csp_qt_gui"), QLatin1String("_"), QLatin1String(":/"))) {
-		GuiMain->installTranslator(&sys_translator);
-	}
-	if(local_translator.load(QLocale(), QLatin1String("csp_qt_machine"), QLatin1String("_"), QLatin1String(":/"))) {
-		GuiMain->installTranslator(&local_translator);
-	}
-	
 	USING_FLAGS *using_flags = new USING_FLAGS(cfg);
 	// initialize emulation core
+
+	QTranslator local_translator;
+	QLocale s_locale;
+	if(local_translator.load(s_locale, QLatin1String("csp_qt_machine"), QLatin1String("_"), QLatin1String(":/"))) {
+		GuiMain->installTranslator(&local_translator);
+	}
+	QTranslator s_translator;
+	if(s_translator.load(s_locale, QLatin1String("csp_qt_gui"), QLatin1String("_"), QLatin1String(":/"))) {
+		GuiMain->installTranslator(&s_translator);
+	}
+	
 	rMainWindow = new META_MainWindow(using_flags);
 	rMainWindow->connect(rMainWindow, SIGNAL(sig_quit_all(void)), rMainWindow, SLOT(deleteLater(void)));
 	rMainWindow->setCoreApplication(GuiMain);

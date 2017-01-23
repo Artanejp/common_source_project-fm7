@@ -105,11 +105,18 @@ set(s_qt_gui_srcs
 
 if(USE_QT_5)
   QT5_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})
-  QT5_ADD_RESOURCES(s_qt_gui_RCC ${RESOURCE}
-                    ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/commontexts.qrc
-                    ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/shaders.qrc
-					${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/i18n_global.qrc
-		    )
+#  if(WIN32)
+    QT5_ADD_RESOURCES(s_qt_gui_RCC ${RESOURCE}
+                      ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/commontexts.qrc
+		      ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/shaders.qrc
+		      )
+#  else()
+#    QT5_ADD_RESOURCES(s_qt_gui_RCC ${RESOURCE}
+#                      ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/commontexts.qrc
+#		      ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/shaders.qrc
+#		      ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/i18n_global.qrc
+#		      )
+#  endif()
 else()
   QT4_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})
 endif()

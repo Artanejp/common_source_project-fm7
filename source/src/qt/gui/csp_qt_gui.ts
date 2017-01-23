@@ -4,7 +4,7 @@
 <context>
     <name>CSP_DropDownJoysticks</name>
     <message>
-        <location filename="menu_main.cpp" line="785"/>
+        <location filename="menu_main.cpp" line="793"/>
         <source>Configure Joysticks</source>
         <translation>ジョイステックを設定する</translation>
     </message>
@@ -40,7 +40,7 @@
         <translation>＊未定義＊</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="799"/>
+        <location filename="menu_main.cpp" line="807"/>
         <source>Configure Keyboard</source>
         <translation>キーボードの設定</translation>
     </message>
@@ -453,67 +453,67 @@ Useful for some softwares
         <translation>レーザディスク</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="615"/>
+        <location filename="menu_main.cpp" line="623"/>
         <source>Configure Joysticks</source>
         <translation>ジョイスティックの設定</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="616"/>
+        <location filename="menu_main.cpp" line="624"/>
         <source>Configure assigning buttons/directions of joysticks.</source>
         <translation>ジョイスティックの方向やボタンの割当を設定します。</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="620"/>
+        <location filename="menu_main.cpp" line="628"/>
         <source>ROMA-KANA Conversion</source>
         <translation>ローマ字かな変換</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="621"/>
+        <location filename="menu_main.cpp" line="629"/>
         <source>Use romaji-kana conversion assistant of emulator.</source>
         <translation>エミュレータ上のローマ字かな変換を使用します。</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="623"/>
+        <location filename="menu_main.cpp" line="631"/>
         <source>Emulator</source>
         <translation>エミュレータ</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="624"/>
+        <location filename="menu_main.cpp" line="632"/>
         <source>Configure Keyboard</source>
         <translation>キーボード設定</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="625"/>
+        <location filename="menu_main.cpp" line="633"/>
         <source>Set addignation of keyboard.</source>
         <translation>キーの割当を設定します。</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="627"/>
+        <location filename="menu_main.cpp" line="635"/>
         <source>Configure movie encoding</source>
         <translation>動画保存設定</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="628"/>
+        <location filename="menu_main.cpp" line="636"/>
         <source>Configure parameters of movie encoding.</source>
         <translation>動画保存での、エンコーディングのパラメータを設定します。</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="630"/>
+        <location filename="menu_main.cpp" line="638"/>
         <source>Log to Console</source>
         <translation>コンソールに記録</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="631"/>
+        <location filename="menu_main.cpp" line="639"/>
         <source>Enable logging to STDOUT if checked.</source>
         <translation>チェックすると、標準出力にログが出ます。</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="632"/>
+        <location filename="menu_main.cpp" line="640"/>
         <source>Log to Syslog</source>
         <translation>SYSLOGに記録</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="633"/>
+        <location filename="menu_main.cpp" line="641"/>
         <source>Enable logging to SYSTEM log.
 May be having permission to system and using *nix OS.</source>
         <translation>ホストのシステムログにログを記録します。
@@ -521,12 +521,12 @@ May be having permission to system and using *nix OS.</source>
 つ*nix OSでないと使えないかもしれません。</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="637"/>
+        <location filename="menu_main.cpp" line="645"/>
         <source>Sound FDD Seek</source>
         <translation>FDシーク音を鳴らす</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="638"/>
+        <location filename="menu_main.cpp" line="646"/>
         <source>Enable FDD HEAD seeking sound.
 Needs sound file.
 See HELP-&gt;READMEs-&gt;Bios and Key assigns</source>
@@ -535,12 +535,12 @@ See HELP-&gt;READMEs-&gt;Bios and Key assigns</source>
 ヘルプのREADMEsの「BIOSとキー割り当て」項目をお読み下さい</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="641"/>
+        <location filename="menu_main.cpp" line="649"/>
         <source>Sound CMT Relay</source>
         <translation>レコーダのリレー音を鳴らす</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="642"/>
+        <location filename="menu_main.cpp" line="650"/>
         <source>Enable CMT relay&apos;s sound.
 Needs sound file.
 See HELP-&gt;READMEs-&gt;Bios and Key assigns</source>
@@ -549,12 +549,12 @@ See HELP-&gt;READMEs-&gt;Bios and Key assigns</source>
 ヘルプのREADMEsの「BIOSとキー割り当て」項目をお読み下さい</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="645"/>
+        <location filename="menu_main.cpp" line="653"/>
         <source>Sound CMT Buttons</source>
         <translation>ボタン音を鳴らす</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="646"/>
+        <location filename="menu_main.cpp" line="654"/>
         <source>Enable CMT button&apos;s sound.
 Needs sound file.
 See HELP-&gt;READMEs-&gt;Bios and Key assigns</source>
@@ -563,191 +563,191 @@ See HELP-&gt;READMEs-&gt;Bios and Key assigns</source>
 ヘルプのREADMEsの「BIOSとキー割り当て」項目をお読み下さい</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="649"/>
+        <location filename="menu_main.cpp" line="657"/>
         <source>Per Device</source>
         <translation>デバイスごと</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="651"/>
+        <location filename="menu_main.cpp" line="659"/>
         <source>View Log</source>
         <translation>ログを見る</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="652"/>
+        <location filename="menu_main.cpp" line="660"/>
         <source>View emulator logs with a dialog.</source>
         <translation>エミュレータのログを、ダイアログで見ます。</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="806"/>
+        <location filename="menu_main.cpp" line="814"/>
         <source>Help</source>
         <translation>ヘルプ</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="807"/>
+        <location filename="menu_main.cpp" line="815"/>
         <source>About Qt</source>
         <translation>Qtについて</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="808"/>
+        <location filename="menu_main.cpp" line="816"/>
         <source>Display Qt version.</source>
         <translation>Qtのヴァージョンを表示します。</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="811"/>
+        <location filename="menu_main.cpp" line="819"/>
         <source>About...</source>
         <translation>このソフトについて...</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="813"/>
+        <location filename="menu_main.cpp" line="821"/>
         <source>About this emulator.</source>
         <translation>このエミュレータについて。
 クレジット表記などです。</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="815"/>
+        <location filename="menu_main.cpp" line="823"/>
         <source>READMEs</source>
         <translation>READMEs</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="817"/>
+        <location filename="menu_main.cpp" line="825"/>
         <source>General Document</source>
         <translation>総合的な文書</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="818"/>
+        <location filename="menu_main.cpp" line="826"/>
         <source>About Qt ports</source>
         <translation>Qt移植版について(英語)</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="819"/>
+        <location filename="menu_main.cpp" line="827"/>
         <source>About Qt ports (Japanese).</source>
         <translation>Qt移植版について(日本語）。</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="820"/>
+        <location filename="menu_main.cpp" line="828"/>
         <source>By Mr. tanam</source>
         <translation>Tanamさんによる文書</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="821"/>
+        <location filename="menu_main.cpp" line="829"/>
         <source>About eFM-7/8/77/AV.</source>
         <translation>eFM-7/8/77/AVについて。</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="822"/>
+        <location filename="menu_main.cpp" line="830"/>
         <source>About eFM-7/8/77/AV (Japanese).</source>
         <translation>eFM-7/8/77/AVについて（日本語）。</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="823"/>
+        <location filename="menu_main.cpp" line="831"/>
         <source>FAQs(English)</source>
         <translation>FAQs(英語)</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="824"/>
+        <location filename="menu_main.cpp" line="832"/>
         <source>FAQs(Japanese)</source>
         <translation>FAQs(日本語)</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="825"/>
+        <location filename="menu_main.cpp" line="833"/>
         <source>BIOS and Key assigns</source>
         <translation>BIOSとキー割り当てについて</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="827"/>
+        <location filename="menu_main.cpp" line="835"/>
         <source>Histories</source>
         <translation>履歴・歴史</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="828"/>
+        <location filename="menu_main.cpp" line="836"/>
         <source>General History</source>
         <translation>全体の歴史</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="829"/>
+        <location filename="menu_main.cpp" line="837"/>
         <source>Release Note</source>
         <translation>リリースノート</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="830"/>
+        <location filename="menu_main.cpp" line="838"/>
         <source>Change Log</source>
         <translation>チェンジログ</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="831"/>
+        <location filename="menu_main.cpp" line="839"/>
         <source>History by Tanam</source>
         <translation>Tanamさん部分の履歴</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="833"/>
+        <location filename="menu_main.cpp" line="841"/>
         <source>Show License</source>
         <translation>ライセンス</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="834"/>
+        <location filename="menu_main.cpp" line="842"/>
         <source>Show general license (GPLv2).</source>
         <translation>ライセンスを読みます。GPL2です。</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="835"/>
+        <location filename="menu_main.cpp" line="843"/>
         <source>Show License (Japanese)</source>
         <translation>ライセンス(日本語)</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="836"/>
+        <location filename="menu_main.cpp" line="844"/>
         <source>Show general license (GPLv2).
 Translated to Japanese.</source>
         <translation>日本語に翻訳されたライセンスを読みます(GPL2)。</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="847"/>
+        <location filename="menu_main.cpp" line="855"/>
         <source>Machine</source>
         <translation>マシン</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="849"/>
+        <location filename="menu_main.cpp" line="857"/>
         <source>Device Type</source>
         <translation>デバイス</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="857"/>
+        <location filename="menu_main.cpp" line="865"/>
         <source>Sound Cards</source>
         <translation>サウンドカード</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="865"/>
+        <location filename="menu_main.cpp" line="873"/>
         <source>Drive Type</source>
         <translation>ドライブタイプ</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="873"/>
+        <location filename="menu_main.cpp" line="881"/>
         <source>Printer (Need RESET)</source>
         <translation>プリンタ（リセットが必要）</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="875"/>
+        <location filename="menu_main.cpp" line="883"/>
         <source>Dump to File</source>
         <translation>ファイルに書き込む</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="876"/>
+        <location filename="menu_main.cpp" line="884"/>
         <source>Dump printer output to file.
 Maybe output only ascii text.</source>
         <translation>プリンタ出力をファイルに書き込みます。
 書き込まれるのは、多分、アスキーテキストだけです。</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="880"/>
+        <location filename="menu_main.cpp" line="888"/>
         <source>Printer</source>
         <translation>プリンター</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="885"/>
+        <location filename="menu_main.cpp" line="893"/>
         <source>Not Connect</source>
         <translation>未接続</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="886"/>
+        <location filename="menu_main.cpp" line="894"/>
         <source>None devices connect to printer port.</source>
         <translation>プリンタポートに何も繋がってない状態です。</translation>
     </message>
@@ -1058,12 +1058,12 @@ OpenGL 2.0では無効です。</translation>
     <message>
         <location filename="dialog_movie.cpp" line="29"/>
         <source>H.264</source>
-        <translation>H.264</translation>
+        <translation type="unfinished">H.264</translation>
     </message>
     <message>
         <location filename="dialog_movie.cpp" line="30"/>
         <source>MPEG4v1</source>
-        <translation>MPEG4v1</translation>
+        <translation type="unfinished">MPEG4v1</translation>
     </message>
     <message>
         <location filename="dialog_movie.cpp" line="32"/>
@@ -1272,7 +1272,7 @@ Larger value is better, but slowly.</source>
     <message>
         <location filename="tab_movie_mpeg4.cpp" line="37"/>
         <source>Max B Frames</source>
-        <translation></translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="tab_movie_mpeg4.cpp" line="40"/>

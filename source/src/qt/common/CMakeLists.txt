@@ -29,18 +29,15 @@ set(QT_COMMON_BASE
 	  ../osd_wrapper.cpp
 )
 
-if(USE_QT_5)
-  QT5_ADD_RESOURCES(s_qt_common_RCC ${RESOURCE}
-#                    ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/commontexts.qrc
-#                    ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/shaders.qrc
-                    ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/icons.qrc)
-else()
-  QT4_ADD_RESOURCES(s_qt_common_RCC ${RESOURCE} 
-#                    ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/commontexts.qrc
-#                    ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/shaders.qrc
-                    ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/icons.qrc)
-endif()
 
+#if(WIN32)
+  QT5_ADD_RESOURCES(s_qt_common_RCC ${RESOURCE}
+		      ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/i18n_global.qrc
+		      ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/icons.qrc)
+#else()
+#  QT5_ADD_RESOURCES(s_qt_common_RCC ${RESOURCE}
+#                    ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/icons.qrc)
+#endif()
 add_executable(${EXEC_TARGET}
 	  ${QT_COMMON_BASE}
 	  ${s_qt_common_headers_MOC}
