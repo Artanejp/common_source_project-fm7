@@ -6,12 +6,12 @@
     <message>
         <location filename="MainWindow.cpp" line="44"/>
         <source>Do reset.</source>
-        <translation type="unfinished">リセットします。</translation>
+        <translation>リセットします。</translation>
     </message>
     <message>
         <location filename="MainWindow.cpp" line="47"/>
         <source>Auto Start SW:</source>
-        <translation type="unfinished">オートスタート SW:</translation>
+        <translation>オートスタート SW:</translation>
     </message>
     <message>
         <location filename="MainWindow.cpp" line="49"/>
