@@ -1,3 +1,51 @@
+commit ad294aee8bac83a5d30c618fa70d32fd166e1e2f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 24 04:43:24 2017 +0900
+
+    .
+
+commit 521c888be5d7f8ef4832828c6c20ee7a0f7a67ed
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 24 04:34:05 2017 +0900
+
+    [DOC] Adjust DOCs.
+
+commit 2b71afed6ea71ca215917f42dd8f106124983de9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 24 04:20:24 2017 +0900
+
+    [Build][Qt][SMC70] OOPS:Fixed FTBFS,
+
+commit 59b7d2fb3ef0fe0c86e1e98e1ff47dee5e5ad0b2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 24 03:59:32 2017 +0900
+
+    [OOPS][DOC] I also forgot to update documents(；´Д｀)
+
+commit 4879cae9132e7fecde43485579220864072b8f4c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 24 03:42:57 2017 +0900
+
+    [DOC][OOPS] I forgot ChangeLog to version hash (；´Д｀)
+
+commit f74382e1b0c2e86d1d9c5962021bf5a3f2e1a6ba
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 24 01:51:09 2017 +0900
+
+    [Linux] Update installer.
+
+commit 015a9c8f1a58efe3cb7f54fa234a2702e35c7080
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 24 01:17:12 2017 +0900
+
+    [UI] .
+
+commit 3d8c0b5aca8ba777ff2e339823577ac072d16e5b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 24 01:10:26 2017 +0900
+
+    [DOC] For release 2017-01-24.
+
 commit 6e93d6920626193bf37fa6dfc2f41a8e84d8fd78
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Tue Jan 24 01:04:33 2017 +0900
