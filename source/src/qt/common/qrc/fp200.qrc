@@ -2,5 +2,6 @@
 <qresource>
     <file alias="default.ico">../../../res/fp200.ico</file>
     <file alias="bios_and_keys.txt">../../../../../doc/VMs/fp200.txt</file>
+  <file alias="csp_qt_machine_ja.qm">../../../res/i18n/ja/fp200.qm</file>
 </qresource>
 </RCC>

@@ -2,5 +2,6 @@
 <qresource>
     <file alias="default.ico">../../../res/pc6001mk2.ico</file>
     <file alias="bios_and_keys.txt">../../../../../doc/VMs/pc6001.txt</file>
+    <file alias="csp_qt_machine_ja.qm">../../../res/i18n/ja/pc6001.qm</file>
 </qresource>
 </RCC>

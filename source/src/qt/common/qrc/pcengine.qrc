@@ -2,5 +2,6 @@
 <qresource>
     <file alias="default.ico">../../../res/pcengine.ico</file>
     <file alias="bios_and_keys.txt">../../../../../doc/VMs/00_still_not_written.txt</file>
+    <file alias="csp_qt_machine_ja.qm">../../../res/i18n/ja/pcengine.qm</file>
 </qresource>
 </RCC>

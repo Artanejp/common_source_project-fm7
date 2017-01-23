@@ -3,5 +3,6 @@
     <file alias="background.png">../../../res/ex80.png</file>
     <file alias="default.ico">../../../res/ex80.ico</file>
     <file alias="bios_and_keys.txt">../../../../../doc/VMs/ex80.txt</file>
+    <file alias="csp_qt_machine_ja.qm">../../../res/i18n/ja/ex80.qm</file>
 </qresource>
 </RCC>

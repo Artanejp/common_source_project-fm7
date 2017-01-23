@@ -2,5 +2,6 @@
 <qresource>
     <file alias="default.ico">../../../res/mz2200.ico</file>
     <file alias="bios_and_keys.txt">../../../../../doc/VMs/mz80b.txt</file>
+    <file alias="csp_qt_machine_ja.qm">../../../res/i18n/ja/mz2500.qm</file>
 </qresource>
 </RCC>

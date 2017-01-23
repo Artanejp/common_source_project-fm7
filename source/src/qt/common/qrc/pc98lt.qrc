@@ -2,5 +2,6 @@
 <qresource>
     <file alias="default.ico">../../../res/pc98lt.ico</file>
     <file alias="bios_and_keys.txt">../../../../../doc/VMs/pc98ha.txt</file>
+    <file alias="csp_qt_machine_ja.qm">../../../res/i18n/ja/pc98ha.qm</file>
 </qresource>
 </RCC>

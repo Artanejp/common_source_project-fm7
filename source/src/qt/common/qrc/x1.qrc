@@ -2,5 +2,6 @@
 <qresource>
     <file alias="default.ico">../../../res/x1.ico</file>
     <file alias="bios_and_keys.txt">../../../../../doc/VMs/x1twin_turbo.txt</file>
+    <file alias="csp_qt_machine_ja.qm">../../../res/i18n/ja/x1.qm</file>
 </qresource>
 </RCC>
