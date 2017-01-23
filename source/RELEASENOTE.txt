@@ -106,10 +106,12 @@ Upstream repositry:
 https://github.com/Artanejp/common_source_project-fm7
 
 Project Page:
+
 https://osdn.jp/projects/csp-qt/
 
-Upstream (Takeda Toshiya San's original code)
-      http://takeda-toshiya.my.coocan.jp/
+Upstream (Takeda Toshiya San's original code):
+
+http://takeda-toshiya.my.coocan.jp/
 
 Changes:
 
