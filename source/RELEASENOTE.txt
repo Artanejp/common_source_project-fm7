@@ -94,7 +94,7 @@ Changes:
   * [Build/Linux] Fix scripts.
   * [Build/Linux] Fix crash built with gcc-5 (or earlier). Fixed for Ubuntu16.04LTS.
   * [Build/Linux] Separate builds both Debian/sid and Ubuntu/16.04LTS (expects to work with Debian/stable).
-  * Built with  or newer.
+  * Built with 6e93d6920626193bf37fa6dfc2f41a8e84d8fd78 or newer.
 
 -- Jan 24, 2017 01:06:26 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
