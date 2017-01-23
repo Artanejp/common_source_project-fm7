@@ -39,7 +39,7 @@ void META_MainWindow::retranslateUi(void)
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 	actionReset->setText(QApplication::translate("MainWindow", "IPL Reset", 0));
 	actionReset->setToolTip(QApplication::translate("MainWindow", "Do IPL reset.", 0));
-	actionSpecial_Reset->setToolTip(QApplication::translate("MainWindow", "Do system reset.", 0));
+	//actionSpecial_Reset->setToolTip(QApplication::translate("MainWindow", "Do system reset.", 0));
 #if defined(USE_PRINTER)
 	actionPrintDevice[1]->setText(QString::fromUtf8("MZ-1P17"));
 	actionPrintDevice[1]->setToolTip(QApplication::translate("MainWindow", "Sharp MZ-1P17 kanji thermal printer.", 0));

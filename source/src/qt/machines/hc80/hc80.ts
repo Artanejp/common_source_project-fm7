@@ -6,7 +6,7 @@
     <message>
         <location filename="MainWindow.cpp" line="38"/>
         <source>Do system reset.</source>
-        <translation type="unfinished"></translation>
+        <translation>システムリセットします。</translation>
     </message>
     <message>
         <location filename="MainWindow.cpp" line="39"/>

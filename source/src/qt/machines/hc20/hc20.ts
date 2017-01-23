@@ -26,7 +26,7 @@
     <message>
         <location filename="MainWindow.cpp" line="93"/>
         <source>HELP</source>
-        <translation type="unfinished"></translation>
+        <translation>ヘルプ</translation>
     </message>
     <message>
         <location filename="MainWindow.cpp" line="95"/>
