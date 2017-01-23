@@ -85,13 +85,14 @@
     ・ローマ字カタカナ変換支援機構が一部の機種に実装されてます。romaji_kana.ja.txt をお読みください。
     
 5. 移植状況
-   a. 現在、Debian GNU/Linux "sid" の AMD64版でしかテストしていません。
-   　 が、多分他のGNU/Linux OSやBSD系のOS (Mac含む) でもビルドすれば
-   　 動くでしょう。
-      Windows もしくは GNU/Linux(要Wineとbinfmt-support)上でのMinGWと
-      Qt community edition でのビルドが通るようになりました。
-      安定したWindowsビルドを必要な方は、Visual Studio 2013 か 2015 のCommunity Edition
-      でビルドしてください。（もう少ししたら、MinGWに切り替えようとは思ってます。)
+   a.現在、Debian GNU/Linux "sid"と、Ubuntu Linux 16.04LTS "Xenial"
+     の AMD64版でしかテストしていません。
+   　が、多分他のGNU/Linux OSやBSD系のOS (Mac含む) でもビルドすれば
+   　動くでしょう。
+     Windows もしくは GNU/Linux(要Wineとbinfmt-support)上でのMinGWと
+     Qt community edition でのビルドが通るようになりました。
+     安定したWindowsビルドを必要な方は、Visual Studio 2013 か 2015 のCommunity Edition
+     でビルドしてください。（もう少ししたら、MinGWに切り替えようとは思ってます。)
       
    b. 今は、Qtの開発側が「Qt4おわりね」とアナウンスしたので、Qt4ではなく
       Qt5を使っています。

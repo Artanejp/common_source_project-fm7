@@ -57,10 +57,11 @@
    ・When you place specified WAV files(differ per VM) same directory as ROMs, you can sound sounds: i.e. FDD seek, CMT relay and buttons.
    
 5.Status
-a. I tested to build only under Debian GNU/Linux "sid".
+a. I tested to build only under Debian GNU/Linux "sid" and 
+   Ubuntu Linux 16.04LTS (Xenial).
    But, perhaps, will succed to build another GNU/Linux OSs or BSD OS variants.
    * On windows, using MinGW is already okay.
-   * Cross building with GNU/Linux's MinGW32 and Qt5.5.1 (for MinGW) is available. 
+   * Cross building with GNU/Linux's MinGW32 (GCC6) and Qt5.7 (for MinGW) is available. 
      Modify and use build-cmake/config_build_cross_win32.sh and related *.cmake files.
    * And, you can also build with M$ Visual Studio 2013 or 2015.
    
