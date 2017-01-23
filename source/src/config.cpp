@@ -106,7 +106,7 @@ void initialize_config()
 #elif defined(USE_SOUND_DEVICE_TYPE)
 	config.sound_device_type = 0;
 #endif
-	config.sound_strict_rendering = true;
+	config.sound_strict_rendering = false;
 	
 	// input
 #ifdef _WIN32
