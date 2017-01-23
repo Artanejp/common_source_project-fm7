@@ -467,7 +467,7 @@ void UPD7752::mix(int32_t* buffer, int cnt)
 	}
 	for(int i = 0; i < cnt; i++) {
 		int32_t vol = 0;
-		if (fout < fin) {
+		if ((fout < fin) && (voicebuf != NULL)) {
 			vol=voicebuf[fout]-128;
 			voicebuf[fout]=0;
 			fout++;
