@@ -1,3 +1,186 @@
+commit 6e93d6920626193bf37fa6dfc2f41a8e84d8fd78
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 24 01:04:33 2017 +0900
+
+    [Qt][Build] Fix FTBFS with some VMs.
+
+commit f89d2acc89b7c8914832fd2634f44ddb6c19c99f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 24 00:46:36 2017 +0900
+
+    [VM][PC6601][UPD7752] Fix crash sometimes.
+
+commit 5e697fcd0197afea1679587abd2666fb94a24f3c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 24 00:27:17 2017 +0900
+
+    [Qt][PC98HA][OOPS] Fix FTBFS.
+
+commit 11f7325fc68f88f086a831a54f4158180e13be34
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 24 00:20:38 2017 +0900
+
+    [Qt][PC98][Translation] Fix typo.
+
+commit d2b23df8b6f97b1ad52df4eecf1ac407f79ad2a1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 23 23:59:38 2017 +0900
+
+    [OOPS] Add some translations.
+    [OOPS] Fix crash with mz2800.
+
+commit 6e60b7ad8cda9c76ba976fde5d522504492f6fc1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 23 23:27:10 2017 +0900
+
+    [Qt][FAMILYBASIC] Fix typo and FTBFS.
+
+commit 2915a7bc14e9456654fb10f1551be15251331f6e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 23 23:24:10 2017 +0900
+
+    [CONFIG] Set defaults value of Sound:StrictRendering to "false".
+
+commit f0f83f28254a8bd98268c1e492f83d958dae4cd8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 23 23:15:07 2017 +0900
+
+    [UI][Qt] Add QRCs for translations.
+
+commit 26e68145432e1dccbda8cd1de345bae84778275d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 23 23:14:21 2017 +0900
+
+    [UI][Qt] Add translations of menu entries and tooltips.
+
+commit d9e9e2b2ed70c02174bbdd8b5a01e677c8b9f33c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 23 08:24:21 2017 +0900
+
+    [UI][Qt] Fix TYPOs.
+
+commit d9caba4577982df440daa5fe2b3fa9557a93fadc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 23 08:04:54 2017 +0900
+
+    [UI][Qt][MENU][I18N] Add Japanese translations for libCSPGUI.
+    [UI][Qt] Add more tooltips.
+    [UI][Qt][FM7] Add Japanese translations.
+
+commit 1ac719886e418d84bbc597570d15cd6306f485a2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 23 03:59:46 2017 +0900
+
+    [UI][Qt] Add TOOLTIPs to menu entries and some dialogs.
+
+commit 8546166f788c74a993ebab78302141a9efe87ef5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 23 01:10:37 2017 +0900
+
+    [VM][SOUND][PCM1BIT] Add "Strict Rendering" to "Sound" menu.
+
+commit 8ce7a31474bbece519d8b083dcc57ca7862eacef
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 22 18:14:57 2017 +0900
+
+    [VM][FMTOWNS][WIP] Implementing SPRITE.
+
+commit e2762f4c39d2d4262852a185b2af46cc1156e1db
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 19 17:27:55 2017 +0900
+
+    [VM][FMTOWNS][MEMORY] Trim code.WIP.
+
+commit 1550acbecec0a6612b411f28ce383e8ae4c3c695
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 17 14:43:17 2017 +0900
+
+    [DRAW][OpenGL][Qt][FM7] Fix wrong screen aspect on VMs without variable lines.
+
+commit 7e852c64d047608ca704ff42c468602532ae2831
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 16 21:55:20 2017 +0900
+
+    [BUILD][Linux]Fix scripts.
+
+commit 79d4d66063126ceb428b8c5c70d69b30442b54e2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 16 12:21:10 2017 +0000
+
+    [VM][FM7] .
+
+commit 61fd8019a1bab8587f6b034334ab17476f2ee752
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 16 12:20:05 2017 +0000
+
+    [BUILD][LINUX][GCC] Fix crash on some VMs built with gcc-5 (or earlier).
+
+commit df92929ef66d89a132fecd5557988a103be78500
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 16 12:06:43 2017 +0000
+
+    [VM][FM7] Fix crash without connecting FDDs.
+
+commit 344fd040a13761ad59586abbf542b2401fe62175
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 16 16:41:54 2017 +0900
+
+    [VM][FMTOWNS] Add VRAM.
+
+commit 6774c02ad4a1af0da2d80b252d2ebf1600f517fe
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 16 02:03:49 2017 +0900
+
+    [VM][UPD71071] Implementing: Add 16bit (word) transfer mode.WIP.
+
+commit dd94242544298e1909c0f4e3a1e1d13f067344d9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 16 02:03:26 2017 +0900
+
+    [VM][FMTOWNS] Implementing memory.
+
+commit ed092e84758ccbe480024268142aa0d38a42d3ce
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 14 17:05:37 2017 +0900
+
+    [FMTOWNS][CRTC] Adjust SYNC signals timing.
+
+commit 9440a3242dd7e84505d10490fe470474d5b234e4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 13 16:51:04 2017 +0900
+
+    [FMTOWNS][CRTC][WIP] Implementing SYNC features.
+
+commit e8afc759d9718dd73b7bbce284c338577ae4ad80
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 13 14:23:59 2017 +0900
+
+    [FMTOWNS][CRTC] Add line frenderer.Expect to use SIMD by compiler(;´Д｀)ﾊｧﾊｧ
+
+commit a918c80169d16c1c15fd13174accc36642d176ac
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 7 17:29:37 2017 +0900
+
+    [FMTOWNS][WIP] Add memory definitions.
+
+commit 519f62755ec4dd6a071b8b1def0e56f3b578114d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 7 16:04:23 2017 +0900
+
+    [FMTOWNS] Definition of CRTC and more.
+
+commit d173274bde989f725c1218a047534aa44976814e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 6 20:01:44 2017 +0900
+
+    [Qt5.7] .
+
+commit 95cad82321dcd1adf27eb65f9d21416d353626f8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 6 20:01:16 2017 +0900
+
+    [20170106] Update documents.
+
 commit 9bfdcc78ff194a934a2d57ce6d4f1cbec9f26a58
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Fri Jan 6 19:42:30 2017 +0900

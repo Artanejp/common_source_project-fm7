@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                          Oct 10, 2016
+                                          Jan 24, 2017
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 0. About
@@ -43,6 +43,7 @@
    $ sudo make install
 
 4.Qt specified notice (for non-Windows):
+   ・Added ToolTips and Japanese translations.(2017-01-24)
    ・Place R@Ms under $HOME/emu{Machine Name}/ , this directory has made
      after first using.
    ・Config file, {foo}.ini is written on $HOME/.config/emu{Machine Name}/ .

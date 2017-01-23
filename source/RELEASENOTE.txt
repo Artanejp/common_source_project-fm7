@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                         Jan 06, 2017
+                                                         Jan 24, 2017
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 1.About
@@ -9,7 +9,7 @@ This package is Qt5 porting of Common Source Code Project (CSP)
 and built with Qt5, for Windows, built with MinGW(32bit).
 
 Source Code:
-   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20170106
+   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20170124
    
 Additional INFO:
    Binaries will be available, distibute from osdn.net.
@@ -83,7 +83,20 @@ Upstream (Takeda Toshiya San's original code)
       http://takeda-toshiya.my.coocan.jp/
 
 Changes:
+* SNAPSHOT January 24, 2017
+  * Upstream 2016-12-31
+  * [UI/Qt] Add tooltips to menu entries mostly.
+  * [UI/Qt] Add Japanese translations to menu entries mostly.
+  * [SOUND] Add "Strict Rendering" entry to sound menu, for PCM1BIT device.
+  * [VM/FM7] Fix crash without connecting FDDs.
+  * [VM/UPD7752] Fix (´∀｀)＜ぬるぽ sometimes.
+  * [DRAW/FM7] Fix wrong screen aspect on VMs without variable lines.
+  * [Build/Linux] Fix scripts.
+  * [Build/Linux] Fix crash built with gcc-5 (or earlier). Fixed for Ubuntu16.04LTS.
+  * [Build/Linux] Separate builds both Debian/sid and Ubuntu/16.04LTS (expects to work with Debian/stable).
+  * Built with  or newer.
 
+-- Jan 24, 2017 01:06:26 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT January 06, 2017
   * Upstream 2016-12-31

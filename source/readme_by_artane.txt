@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                          Jan 06, 2017
+                                          Jan 24, 2017
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -11,7 +11,7 @@
    用意しています。
    
    ソースコード：
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20170106
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20170124
 
    追加情報:
     　各機種バイナリーは、osdn.net　もしくはミラーサイトより入手可能です。
@@ -69,6 +69,8 @@
    $ sudo make install
 
 4. Qt固有の話(Windows除く)
+   ・ToolTipsを付けました。(2017-01-24)
+   ・日本語に翻訳しました。(2017-01-24)
    ・R@Mを $HOME/emu{Machine Name}/ に配置してください。(Windowsの場合は今の所 .\emu{Machine Name}\)
    　なお、このディレクトリは最初起動した後で作成されます。
    ・設定ファイルは、$HOME/.config/emu{Machine Name}/ に書き込まれます。(Windowsの場合は今の所 .\.config\emu{Machine Name}\)
