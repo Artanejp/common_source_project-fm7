@@ -35,6 +35,7 @@ void META_MainWindow::retranslateUi(void)
 	retranslateUI_Help();
 	
 	menuBootMode->setTitle("BOOT Mode");
+	memnuBootMode->setToolTipsVisible(true);
 	actionBootMode[0]->setText(QString::fromUtf8("BASIC V1"));
 	actionBootMode[1]->setText(QString::fromUtf8("BASIC V2"));	
 	actionBootMode[2]->setText(QString::fromUtf8("Playbox BASIC"));

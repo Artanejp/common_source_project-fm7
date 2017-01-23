@@ -74,11 +74,15 @@ void META_MainWindow::retranslateUi(void)
 
 #if defined(_MZ80A) || defined(_MZ80K)	
 	action_Emu_DipSw->setText(QApplication::translate("MainWindow", "PCG-8000", 0));
+	action_Emu_DipSw->setToolTip(QApplication::translate("MainWindow", "HAL laboratory PCG-8000 PCG.", 0));
 #elif defined(_MZ1200)
 	action_Emu_DipSw->setText(QApplication::translate("MainWindow", "PCG-1200", 0));
+	action_Emu_DipSw->setToolTip(QApplication::translate("MainWindow", "HAL laboratory PCG-1200 PCG.", 0));
 #endif
-	actionPrintDevice[1]->setText(QString::fromUtf8("Sharp MZ-1P17"));
+	actionPrintDevice[1]->setText(QString::fromUtf8("MZ-1P17"));
+	actionPrintDevice[1]->setToolTip(QApplication::translate("MainWindow", "Sharp MZ-1P17 kanji thermal printer.", 0));
 	actionPrintDevice[2]->setText(QString::fromUtf8("DUMMY"));
+	actionPrintDevice[2]->setToolTip(QApplication::translate("MainWindow", "DUMMY printer.", 0));
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);

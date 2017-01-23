@@ -88,6 +88,7 @@ void META_MainWindow::retranslateUi(void)
 #endif	
 #if defined(USE_PRINTER)
 	//actionPrintDevice[1]->setText(QString::fromUtf8("PC-PR201"));
+	//actionPrintDevice[1]->setToolTip(QApplication::translate("NEC PC-PR201 kanji serial printer."));
 #endif
 
    // Set Labels

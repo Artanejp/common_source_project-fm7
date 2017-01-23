@@ -37,11 +37,13 @@ void META_MainWindow::retranslateUi(void)
 	retranslateEmulatorMenu();
 	retranslateUI_Help();
 #if defined(USE_PRINTER)
-	actionPrintDevice[1]->setText(QString::fromUtf8("Sharp MZ-1P17"));
+	actionPrintDevice[1]->setText(QString::fromUtf8("MZ-1P17"));
+	actionPrintDevice[1]->setToolTip(QApplication::translate("MainWindow", "Sharp MZ-1P17 kanji thermal printer.", 0));
 #endif   
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 	
 	actionReset->setText(QApplication::translate("MainWindow", "Reset", 0));
+	actionSpecial_Reset->setToolTip(QApplication::translate("MainWindow", "Do NMI reset.", 0));
 #if defined(USE_DEBUGGER)
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(false);

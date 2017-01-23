@@ -32,8 +32,11 @@ void META_MainWindow::retranslateUi(void)
 	
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 	menuBootMode->setTitle("BOOT Mode");
+	menuBootMode->setToolTipsVisible(true);
 	actionBootMode[0]->setText(QString::fromUtf8("BASIC"));
 	actionBootMode[1]->setText(QString::fromUtf8("CETL"));	
+	actionBootMode[0]->setToolTip(QApplication::translate("MainWindow", "Run as BASIC machine.", 0));
+	actionBootMode[1]->setToolTip(QApplication::translate("MainWindow", "Run as CETL (Spread-sheet language) machine.", 0));
 	
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);

@@ -38,6 +38,7 @@ void META_MainWindow::retranslateUi(void)
 	retranslateEmulatorMenu();
 	retranslateUI_Help();
 	actionAddress8000->setText(QApplication::translate("MainWindow", "SW: ADRS SW 8000", 0));
+	actionAddress8000->setToolTip(QApplication::translate("MainWindow", "SW: ADRS SW 8000", 0));
 		
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 	// Set Labels

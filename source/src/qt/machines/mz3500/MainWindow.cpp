@@ -90,6 +90,8 @@ void META_MainWindow::retranslateUi(void)
 	retranslateScreenMenu();
 	retranslateEmulatorMenu();
 	retranslateUI_Help();
+	actionReset->setToolTip(QApplication::translate("MainWindow", "Do system reset.", 0));
+	actionSpecial_Reset->setToolTip(QApplication::translate("MainWindow", "HALT a machine.", 0));
    
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 	menu_Emu_DipSw->setTitle(QApplication::translate("MainWindow", "Dip Switches", 0));
@@ -97,8 +99,8 @@ void META_MainWindow::retranslateUi(void)
 	action_Emu_DipSw[1]->setText(QApplication::translate("MainWindow", "FD1: Normally Capital Letter", 0));
 	action_Emu_DipSw[2]->setText(QApplication::translate("MainWindow", "P/M: 3500 CG for 200 Line CRT", 0));
 
-//	actionPrintDevice[1]->setText(QApplication::translate("MainWindow", "Write to file", 0));
 	actionPrintDevice[1]->setText(QApplication::translate("MainWindow", "MZ-1P17", 0));
+	actionPrintDevice[1]->setToolTip(QApplication::translate("MainWindow", "Sharp MZ-1P17 kanji thermal printer.", 0));
 #if defined(USE_DEBUGGER)
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(true);

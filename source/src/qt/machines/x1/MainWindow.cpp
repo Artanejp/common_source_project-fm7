@@ -87,14 +87,8 @@ void META_MainWindow::retranslateUi(void)
 	retranslateEmulatorMenu();
 	retranslateMachineMenu();
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
- 
-	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
-	
+	actionSpecial_Reset->setToolTip(QApplication::translate("MainWindow", "Do NMI reset.", 0));
 
-	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
-	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
-  
-	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
 	// Set Labels
 	menuSoundDevice->setTitle(QApplication::translate("MainWindow", "Sound Device", 0));
 	actionSoundDevice[0]->setText(QApplication::translate("MainWindow", "PSG", 0));
@@ -133,11 +127,12 @@ void META_MainWindow::retranslateUi(void)
 #if defined(USE_PRINTER)
 	actionPrintDevice[1]->setText(QString::fromUtf8("Sharp MZ-1P17"));
 	actionPrintDevice[2]->setText(QString::fromUtf8("PC-PR201"));
+	actionPrintDevice[1]->setToolTip(QApplication::translate("MainWindow", "Sharp MZ-1P17 kanji thermal printer.", 0));
+	actionPrintDevice[2]->setToolTip(QApplication::translate("MainWindow", "NEC PC-PR201 kanji serial printer.", 0));
 #endif
 #if defined(_X1TWIN)
 	menu_Cart[0]->setTitle(QApplication::translate("MainWindow", "HuCARD", 0));
 #endif	
-	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
 	
 } // retranslateUi
 

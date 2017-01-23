@@ -43,6 +43,7 @@ void META_MainWindow::retranslateUi(void)
 	retranslateBinaryMenu(0, 1);
 	menu_BINs[0]->setTitle(QApplication::translate("MainWindow", "RAMPAC", 0));
 	menuBootMode->setTitle("BOOT Mode");
+	menuBootMode->setToolTipsVisible(true);
 	actionBootMode[0]->setText(QString::fromUtf8("T-BASIC Ver 1.0"));
 	actionBootMode[1]->setText(QString::fromUtf8("T-BASIC Ver 1.1"));
 	actionBootMode[2]->setText(QString::fromUtf8("OA-BASIC (Disk)"));
@@ -50,6 +51,7 @@ void META_MainWindow::retranslateUi(void)
 	actionBootMode[4]->setText(QString::fromUtf8("Mini Pascal"));
 	
 	menuDeviceType->setTitle(QApplication::translate("MainWindow", "Extra connector", 0));
+	menuDeviceType->setToolTipsVisible(true);
 	actionDeviceType[0]->setText(QApplication::translate("MainWindow", "RAMPAC", 0));
 	actionDeviceType[1]->setText(QApplication::translate("MainWindow", "Kanji ROM", 0));
 	actionDeviceType[2]->setText(QApplication::translate("MainWindow", "Joystick", 0));
@@ -61,16 +63,10 @@ void META_MainWindow::retranslateUi(void)
 	retranslateBinaryMenu(1, 2);
 	menu_BINs[1]->setTitle(QApplication::translate("MainWindow", "RAMPAC2", 0));
 	//actionSave_BIN[1]->setVisible(false);
+	menuDeviceType->setToolTipsVisible(true);
 #endif
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 	
-	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
-	
-	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
-	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
-	
-	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
-	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
 #if defined(USE_DEBUGGER)
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(false);

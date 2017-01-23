@@ -58,6 +58,7 @@ void META_MainWindow::retranslateUi(void)
 	QString n_tmps;
 	int i;
 	menu_Emu_DipSw->setTitle(QApplication::translate("MainWindow", "DIP Switches", 0));
+	menu_Emu_DipSw->setToolTipsVisible(true);
 	for(i = 0; i < 8; i++) {
 		tmps = QApplication::translate("MainWindow", "DIP Switch #", 0);
 		n_tmps.setNum(i + 1);

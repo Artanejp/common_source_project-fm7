@@ -123,14 +123,19 @@ void META_MainWindow::retranslateUi(void)
 	actionBootMode[1]->setText(QString::fromUtf8("MZ-700"));
    
 	menuMonitorType->setTitle("Monitor Type");
+	menuMonitorType->setToolTipsVisible(true);
 	actionMonitorType[0]->setText(QApplication::translate("MainWindow", "Color", 0));
 	actionMonitorType[1]->setText(QApplication::translate("MainWindow", "Monochrome", 0));
+	actionMonitorType[0]->setToolTip(QApplication::translate("MainWindow", "Use color CRT.", 0));
+	actionMonitorType[1]->setToolTip(QApplication::translate("MainWindow", "Use monochrome CRT.", 0));
 	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));;
 #elif defined(_MZ700)
 	action_PCG700->setText(QApplication::translate("MainWindow", "PCG-700", 0));
+	action_PCG700->setToolTip(QApplication::translate("MainWindow", "HAL laboratory PCG-700 PCG.", 0));
 #endif
 #if defined(_MZ1500)
-	actionPrintDevice[1]->setText(QString::fromUtf8("Sharp MZ-1P17"));
+	actionPrintDevice[1]->setText(QString::fromUtf8("MZ-1P17"));
+	actionPrintDevice[1]->setToolTip(QApplication::translate("MainWindow", "Sharp MZ-1P17 kanji thermal printer.", 0));
 #endif
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);

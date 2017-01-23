@@ -105,15 +105,24 @@ void META_MainWindow::retranslateUi(void)
   
 #if defined(_PC8801MA)
 	menuBootMode->setTitle("Machine Mode");
+	menuBootMode->setToolTipsVisible(true);
 	actionBootMode[0]->setText(QString::fromUtf8("N88-V1(S) Mode"));
 	actionBootMode[1]->setText(QString::fromUtf8("N88-V1(H) Mode"));	
 	actionBootMode[2]->setText(QString::fromUtf8("N88-V2 Mode"));
 	actionBootMode[3]->setText(QString::fromUtf8("N Mode (N80 compatible)"));
+	actionBootMode[0]->setToolTip(QApplication::translate("MainWindow", "V1(Standard) Mode.\nYou can run softwares of PC-8801/mk2.", 0));
+	actionBootMode[1]->setToolTip(QApplication::translate("MainWindow", "V1(High Speed) Mode.\nYou can run softwares of PC-8801/mk2 faster.", 0));	
+	actionBootMode[2]->setToolTip(QApplication::translate("MainWindow", "V2 Mode.\nYou can run only softwares for PC-8801SR or later.", 0));
+	actionBootMode[3]->setToolTip(QApplication::translate("MainWindow", "N Mode.\nYou can run softwares of PC-8001/mk2.", 0));
 #elif defined(_PC8001SR)
 	menuBootMode->setTitle("Machine Mode");
+	menuBootMode->setToolTipsVisible(true);
 	actionBootMode[0]->setText(QString::fromUtf8("N80-V1     Mode"));
 	actionBootMode[1]->setText(QString::fromUtf8("N80-V2(SR) Mode"));	
 	actionBootMode[2]->setText(QString::fromUtf8("N Mode"));
+	actionBootMode[0]->setToolTip(QApplication::translate("MainWindow", "V1 Mode.\nYou can run softwares of PC-8001/mk2.", 0));
+	actionBootMode[1]->setToolTip(QApplication::translate("MainWindow", "V2 Mode.\nYou can run only softwares for PC-8001mk2SR or later.", 0));
+	actionBootMode[2]->setToolTip(QApplication::translate("MainWindow", "N  Mode.\nYou can run only softwares for PC-8001.", 0));
 #endif
   
 #if defined(SUPPORT_PC88_SB2)
@@ -121,10 +130,15 @@ void META_MainWindow::retranslateUi(void)
 	actionSoundDevice[0]->setText(QString::fromUtf8("PC-8801-23 (OPNA)"));
 	actionSoundDevice[1]->setText(QString::fromUtf8("PC-8801-11 (OPN)"));   
 	actionSoundDevice[2]->setText(QString::fromUtf8("Sound Board 2 (OPN + OPNA)"));   
+	actionSoundDevice[0]->setToolTip(QApplication::translate("MainWindow", "PC-8801-23 (OPNA).", 0));
+	actionSoundDevice[1]->setToolTip(QApplication::translate("MainWindow", "PC-8801-11 (OPN).", 0));   
+	actionSoundDevice[2]->setToolTip(QApplication::translate("MainWindow", "Sound Board 2 (OPN + OPNA).", 0));   
 #elif defined(SUPPORT_PC88_OPNA)
 	menuSoundDevice->setTitle(QApplication::translate("MainWindow", "Sound Board", 0));
 	actionSoundDevice[0]->setText(QString::fromUtf8("PC-8801-23 (OPNA)"));
 	actionSoundDevice[1]->setText(QString::fromUtf8("PC-8801-11 (OPN)"));
+	actionSoundDevice[0]->setToolTip(QApplication::translate("MainWindow", "PC-8801-23 (OPNA).", 0));
+	actionSoundDevice[1]->setToolTip(QApplication::translate("MainWindow", "PC-8801-11 (OPN).", 0));
 #endif
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setText(QApplication::translate("MainWindow", "Main CPU", 0));
@@ -142,12 +156,16 @@ void META_MainWindow::retranslateUi(void)
 #if defined(USE_DEVICE_TYPE)
 	actionDeviceType[0]->setText(QApplication::translate("MainWindow", "Joystick", 0));
 	actionDeviceType[1]->setText(QApplication::translate("MainWindow", "Bus Mouse", 0));
+	actionDeviceType[0]->setToolTip(QApplication::translate("MainWindow", "Connect joystick to JOY PORT.", 0));
+	actionDeviceType[1]->setToolTip(QApplication::translate("MainWindow", "Connect bus-mouse to JOY PORT.", 0));
 	menuDeviceType->setTitle(QApplication::translate("MainWindow", "Joy Port", 0));
 #endif
 #if defined(USE_PRINTER)
 	actionPrintDevice[1]->setText(QString::fromUtf8("PC-PR201"));
+	actionPrintDevice[1]->setToolTip(QApplication::translate("MainWindow", "NEC PC-PR201 kanji serial printer.", 0));
 #endif	
 	actionMemoryWait->setText(QApplication::translate("MainWindow", "Wait Memory", 0));
+	actionMemoryWait->setToolTip(QApplication::translate("MainWindow", "Simulate waiting memory.", 0));
 // End.
    // Set Labels
   

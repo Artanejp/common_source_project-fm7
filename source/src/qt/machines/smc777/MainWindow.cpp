@@ -40,23 +40,17 @@ void META_MainWindow::retranslateUi(void)
 	retranslateMachineMenu();
 	retranslateEmulatorMenu();
 	retranslateUI_Help();
+
+	actionSpecial_Reset->setToolTip(QApplication::translate("MainWindow", "Do reset.", 0));
+	
 #if defined(_SMC70)
 	menuBootMode->setTitle(QApplication::translate("MainWindow", "Auto Start SW:", 0));
+	menuBootMode->setToolTipVisual(true);
 	actionBootMode[0]->setText(QApplication::translate("MainWindow", "ROM", 0));
 	actionBootMode[1]->setText(QApplication::translate("MainWindow", "Disk", 0));
 	actionBootMode[2]->setText(QApplication::translate("MainWindow", "Off", 0));
 #endif	
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
-  
-  
-	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
-  
-
-	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
-	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
-  
-	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
-	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(false);

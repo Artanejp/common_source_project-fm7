@@ -33,8 +33,11 @@ void META_MainWindow::retranslateUi(void)
 	// Will implement : RAM LOAD/SAVE
   
 	menuBootMode->setTitle("BOOT Mode");
+	menuBootMode->setToolTipVisible(true);
 	actionBootMode[0]->setText(QString::fromUtf8("L1 BASIC"));
 	actionBootMode[1]->setText(QString::fromUtf8("L2 BASIC"));	
+	actionBootMode[0]->setToolTip(QApplication::translate("mainWindow", "Use L1 BASIC.", 0));
+	actionBootMode[1]->setToolTip(QApplication::translate("mainWindow", "Use L2 BASIC.", 0));
 	
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 	// Set Labels

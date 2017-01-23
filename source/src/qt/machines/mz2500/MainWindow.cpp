@@ -40,13 +40,19 @@ void META_MainWindow::retranslateUi(void)
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 	
 	actionReset->setText(QApplication::translate("MainWindow", "IPL Reset", 0));
+	actionReset->setToolTip(QApplication::translate("MainWindow", "Do IPL reset.", 0));
+	actionSpecial_Reset->setToolTip(QApplication::translate("MainWindow", "Do system reset.", 0));
 #if defined(USE_PRINTER)
 #if defined(_MZ2500)
-	actionPrintDevice[1]->setText(QString::fromUtf8("Sharp MZ-1P17"));
+	actionPrintDevice[1]->setText(QString::fromUtf8("MZ-1P17"));
+	actionPrintDevice[1]->setToolTip(QApplication::translate("MainWindow", "Sharp MZ-1P17 Kanji thermal printer.", 0));
 	actionPrintDevice[2]->setText(QString::fromUtf8("PC-PR201"));
+	actionPrintDevice[2]->setToolTip(QApplication::translate("MainWindow", "NEC PC-PR201 Japanese serial printer.", 0));
 #else
-	actionPrintDevice[1]->setText(QString::fromUtf8("Sharp MZ-1P17 (MZ-1)"));
-	actionPrintDevice[2]->setText(QString::fromUtf8("Sharp MZ-1P17 (MZ-3)"));
+	actionPrintDevice[1]->setText(QString::fromUtf8("MZ-1P17 (MZ-1)"));
+	actionPrintDevice[2]->setText(QString::fromUtf8("MZ-1P17 (MZ-3)"));
+	actionPrintDevice[1]->setToolTip(QApplication::translate("MainWindow", "Sharp MZ-1P17 kanji thermal printer (MZ-1).", 0));
+	actionPrintDevice[2]->setToolTip(QApplication::translate("MainWindow", "Sharp MZ-1P17 kanji thermal printer (MZ-3).", 0));
 #endif	
 #endif
 #if defined(USE_DEBUGGER)

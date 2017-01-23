@@ -35,7 +35,9 @@ void META_MainWindow::retranslateUi(void)
 	retranslateEmulatorMenu();
 	retranslateUI_Help();
 
+	actionSpecial_Reset->setToolTip(QApplication::translate("MainWindow", "Do system reset.", 0));
 	menuDeviceType->setTitle(QApplication::translate("MainWindow", "Option Cartridge", 0));
+	menuDeviceType->setToolTipsVisible(true);
 	actionDeviceType[0]->setText(QApplication::translate("MainWindow", "None", 0));
 	actionDeviceType[1]->setText(QApplication::translate("MainWindow", "Intelligent RAM Disk", 0));
 	actionDeviceType[2]->setText(QApplication::translate("MainWindow", "Non-intelligent RAM Disk", 0));

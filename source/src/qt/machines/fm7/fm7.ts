@@ -91,11 +91,11 @@ Useful for some software tranferring to URA-RAM.</source>
     </message>
     <message>
         <source>Sound Boards</source>
-        <translation>サウンドボード</translation>
+        <translation type="unfinished">音源</translation>
     </message>
     <message>
         <source>Use only buzzer as sound device.</source>
-        <translation>ブザーのみサウンドデバイスにします。</translation>
+        <translation type="unfinished">ブザーのみにします。</translation>
     </message>
     <message>
         <source>Set FM-7 compatible PSG.

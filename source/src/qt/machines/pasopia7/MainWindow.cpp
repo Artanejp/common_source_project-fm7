@@ -43,6 +43,7 @@ void META_MainWindow::retranslateUi(void)
 	retranslateBinaryMenu(0, 1);
 	menu_BINs[0]->setTitle(QApplication::translate("MainWindow", "RAMPAC", 0));
 	menuBootMode->setTitle("BOOT Mode");
+	menuBootMode->setToolTipsVisible(true);
 	actionBootMode[0]->setText(QString::fromUtf8("T-BASIC Ver 1.0"));
 	actionBootMode[1]->setText(QString::fromUtf8("T-BASIC Ver 1.1"));
 	actionBootMode[2]->setText(QString::fromUtf8("OA-BASIC (Disk)"));

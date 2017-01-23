@@ -87,6 +87,11 @@ void META_MainWindow::retranslateUi(void)
 	actionSoundDevice[2]->setText(QApplication::translate("MainWindow", "PC-9801-14 (BIOS Enabled)", 0));
 	actionSoundDevice[3]->setText(QApplication::translate("MainWindow", "PC-9801-14 (BIOS Disabled)", 0));
 	actionSoundDevice[4]->setText(QApplication::translate("MainWindow", "None", 0));
+	actionSoundDevice[0]->setToolTip(QApplication::translate("MainWindow", "PC-9801-26 sound board has connected.\nThis uses YAMAHA YM-2203 OPN synthesizer chip.\nOn board BIOS is enabled.", 0));
+	actionSoundDevice[1]->setToolTip(QApplication::translate("MainWindow", "PC-9801-26 sound board has connected.\nThis uses YAMAHA YM-2203 OPN synthesizer chip.\nOn board BIOS is disabled.", 0));
+	actionSoundDevice[2]->setToolTip(QApplication::translate("MainWindow", "PC-9801-14 sound board has connected.\nThis uses TI TMS3631-RI104 synthesizer chip.\nOn board BIOS is enabled.", 0));
+	actionSoundDevice[3]->setToolTip(QApplication::translate("MainWindow", "PC-9801-14 sound board has connected.\nThis uses TI TMS3631-RI104 synthesizer chip.\nOn board BIOS is disabled.", 0));
+	actionSoundDevice[4]->setToolTip(QApplication::translate("MainWindow", "None sound devices has connected.", 0));
 #endif
 #if defined(USE_TAPE)
 	retranslateCMTMenu();
@@ -107,19 +112,27 @@ void META_MainWindow::retranslateUi(void)
 	
 #ifdef USE_BOOT_MODE
 # ifdef _PC98DO
-	menuBootMode->setTitle("Machine Mode");
+	menuBootMode->setTitle(QApplication::translate("MainWindow", "Machine Mode", 0));
+	menuBootMode->setToolTipsVisible(true);
 	actionBootMode[0]->setText(QString::fromUtf8("PC-98"));
 	actionBootMode[1]->setText(QString::fromUtf8("N88-V1(S) Mode"));
 	actionBootMode[2]->setText(QString::fromUtf8("N88-V1(H) Mode"));	
 	actionBootMode[3]->setText(QString::fromUtf8("N88-V2 Mode"));
 	actionBootMode[4]->setText(QString::fromUtf8("N Mode (N80 compatible)"));
+	actionBootMode[0]->setToolTip(QApplication::translate("MainWindow", "PC-9801 Mode.\nYou can run softwares of PC-9801 series.\nMay be earlier than PC-9801VM.", 0));
+	actionBootMode[1]->setToolTip(QApplication::translate("MainWindow", "PC8801 V1(Standard) Mode.\nYou can run softwares of PC-8801/mk2.", 0));
+	actionBootMode[2]->setToolTip(QApplication::translate("MainWindow", "PC8801 V1(High Speed) Mode.\nYou can run softwares of PC-8801/mk2 faster.", 0));	
+	actionBootMode[3]->setToolTip(QApplication::translate("MainWindow", "PC8801 V2 Mode.\nYou can run only softwares for PC-8801SR or later.", 0));
+	actionBootMode[4]->setToolTip(QApplication::translate("MainWindow", "PC8801 N Mode.\nYou can run softwares of PC-8001/mk2.", 0));
 # endif
 #endif
 #ifdef _PC98DO
    	actionMemoryWait->setText(QApplication::translate("MainWindow", "Memory Wait", 0));
+	actionMemoryWait->setToolTip(QApplication::translate("MainWindow", "Simulate waiting memory.", 0));
 #endif
 #if defined(USE_PRINTER)
 	actionPrintDevice[1]->setText(QString::fromUtf8("PC-PR201"));
+	actionPrintDevice[1]->setToolTip(QApplication::translate("MainWindow", "NEC PC-PR201 kanji serial printer.", 0));
 #endif	
 	retranslateUI_Help();
 	// End.
