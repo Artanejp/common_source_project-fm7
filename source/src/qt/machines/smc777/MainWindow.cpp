@@ -45,7 +45,7 @@ void META_MainWindow::retranslateUi(void)
 	
 #if defined(_SMC70)
 	menuBootMode->setTitle(QApplication::translate("MainWindow", "Auto Start SW:", 0));
-	menuBootMode->setToolTipsVisual(true);
+	menuBootMode->setToolTipsVisible(true);
 	actionBootMode[0]->setText(QApplication::translate("MainWindow", "ROM", 0));
 	actionBootMode[1]->setText(QApplication::translate("MainWindow", "Disk", 0));
 	actionBootMode[2]->setText(QApplication::translate("MainWindow", "Off", 0));
