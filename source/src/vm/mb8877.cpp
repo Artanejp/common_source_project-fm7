@@ -161,6 +161,7 @@ void MB8877::write_io8(uint32_t addr, uint32_t data)
 	case 0:
 		// command reg
 		cmdreg_tmp = cmdreg;
+		//printf("WRITE: CMDREG to %02x\n", data);
 #if defined(HAS_MB8866) || defined(HAS_MB8876)
 		cmdreg = (~data) & 0xff;
 #else
@@ -171,6 +172,7 @@ void MB8877::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 1:
 		// track reg
+		//printf("WRITE: TRKREG to %02x\n", data);
 #if defined(HAS_MB8866) || defined(HAS_MB8876)
 		trkreg = (~data) & 0xff;
 #else
@@ -640,6 +642,7 @@ void MB8877::event_callback(int event_id, int err)
 			add_sound(MB8877_SND_TYPE_SEEK);
 #endif			
 		}
+		//printf("TRK: %d\n", fdc[drvreg].track);
 		if((cmdreg & 0x10) || ((cmdreg & 0xf0) == 0)) {
 			trkreg = fdc[drvreg].track;
 		}
@@ -941,11 +944,21 @@ void MB8877::cmd_seek()
 	status = FDC_ST_HEADENG | FDC_ST_BUSY;
 	
 	seektrk = datareg;
+	//printf("SEEK %d -> %d\n", trkreg, seektrk);
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
+	defined(_FM77AV20) || defined(_FM77AV20EX)
+	if(disk[drvreg]->drive_type != DRIVE_TYPE_2D) {
+		seektrk = (seektrk > 83) ? 83 : (seektrk < 0) ? 0 : seektrk;
+	} else {
+		seektrk = (seektrk > 41) ? 41 : (seektrk < 0) ? 0 : seektrk;
+	}
+#else
 	if(disk[drvreg]->media_type != MEDIA_TYPE_2D){
 		seektrk = (seektrk > 83) ? 83 : (seektrk < 0) ? 0 : seektrk;
 	} else {
 		seektrk = (seektrk > 41) ? 41 : (seektrk < 0) ? 0 : seektrk;
-	}		
+	}
+#endif
 //	seekvct = !(datareg > trkreg);
 	seekvct = !(seektrk > fdc[drvreg].track);	
 	if(cmdreg & 4) {
@@ -976,11 +989,20 @@ void MB8877::cmd_stepin()
 	status = FDC_ST_HEADENG | FDC_ST_BUSY;
 	
 	seektrk = fdc[drvreg].track + 1;
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
+	defined(_FM77AV20) || defined(_FM77AV20EX)
+	if(disk[drvreg]->drive_type != DRIVE_TYPE_2D) {
+		seektrk = (seektrk > 83) ? 83 : (seektrk < 0) ? 0 : seektrk;
+	} else {
+		seektrk = (seektrk > 41) ? 41 : (seektrk < 0) ? 0 : seektrk;
+	}
+#else
 	if(disk[drvreg]->media_type != MEDIA_TYPE_2D){
 		seektrk = (seektrk > 83) ? 83 : (seektrk < 0) ? 0 : seektrk;
 	} else {
 		seektrk = (seektrk > 41) ? 41 : (seektrk < 0) ? 0 : seektrk;
-	}		
+	}
+#endif
 	seekvct = false;
 	if(cmdreg & 4) {
 		// verify
@@ -999,11 +1021,20 @@ void MB8877::cmd_stepout()
 	status = FDC_ST_HEADENG | FDC_ST_BUSY;
 	
 	seektrk = fdc[drvreg].track - 1;
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
+	defined(_FM77AV20) || defined(_FM77AV20EX)
+	if(disk[drvreg]->drive_type != DRIVE_TYPE_2D) {
+		seektrk = (seektrk > 83) ? 83 : (seektrk < 0) ? 0 : seektrk;
+	} else {
+		seektrk = (seektrk > 41) ? 41 : (seektrk < 0) ? 0 : seektrk;
+	}
+#else
 	if(disk[drvreg]->media_type != MEDIA_TYPE_2D){
 		seektrk = (seektrk > 83) ? 83 : (seektrk < 0) ? 0 : seektrk;
 	} else {
 		seektrk = (seektrk > 41) ? 41 : (seektrk < 0) ? 0 : seektrk;
-	}		
+	}
+#endif
 	seekvct = true;
 	if(cmdreg & 4) {
 		// verify
@@ -1214,6 +1245,16 @@ uint8_t MB8877::search_track()
 {
 	// get track
 	int track = fdc[drvreg].track;
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
+	defined(_FM77AV20) || defined(_FM77AV20EX)
+	if(disk[drvreg]->media_type == MEDIA_TYPE_2D) {
+		if((disk[drvreg]->drive_type == DRIVE_TYPE_2DD) ||
+		   (disk[drvreg]->drive_type == DRIVE_TYPE_2HD) ||
+		   (disk[drvreg]->drive_type == DRIVE_TYPE_144)) {
+			track >>= 1;
+		}
+	}
+#endif
 	if(!disk[drvreg]->get_track(track, sidereg)){
 		return FDC_ST_SEEKERR;
 	}
@@ -1258,7 +1299,8 @@ uint8_t MB8877::search_sector()
 	
 	// get track
 	int track = fdc[drvreg].track;
-#if defined(_FM77AV_VARIANTS)   
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
+	defined(_FM77AV20) || defined(_FM77AV20EX)
 	if(disk[drvreg]->media_type == MEDIA_TYPE_2D) {
 		if((disk[drvreg]->drive_type == DRIVE_TYPE_2DD) ||
 		   (disk[drvreg]->drive_type == DRIVE_TYPE_2HD) ||
@@ -1293,7 +1335,7 @@ uint8_t MB8877::search_sector()
 		// get sector
 		int index = (first_sector + i) % sector_num;
 		disk[drvreg]->get_sector(-1, -1, index);
-		
+		//printf("CHRN=%02x %02x %02x %02x\n", disk[drvreg]->id[0], disk[drvreg]->id[1], disk[drvreg]->id[2], disk[drvreg]->id[3]);
 		// check id
 		if(disk[drvreg]->id[0] != trkreg) {
 			continue;
@@ -1343,7 +1385,8 @@ uint8_t MB8877::search_addr()
 {
 	// get track
 	int track = fdc[drvreg].track;
-#if defined(_FM77AV_VARIANTS)   
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
+	defined(_FM77AV20) || defined(_FM77AV20EX)
 	if(disk[drvreg]->media_type == MEDIA_TYPE_2D) {
 		if((disk[drvreg]->drive_type == DRIVE_TYPE_2DD) ||
 		   (disk[drvreg]->drive_type == DRIVE_TYPE_2HD) ||

@@ -124,7 +124,7 @@ void FM7_MAINIO::set_fdc_track(uint8_t val)
    	if(disk->media_type != MEDIA_TYPE_2D){
 		if(disk->drive_type == DRIVE_TYPE_2D) val <<= 1;
 	} else { 
-		if(disk->drive_type != DRIVE_TYPE_2D) val >>= 1;
+		//if(disk->drive_type != DRIVE_TYPE_2D) val >>= 1;
 	}
 #endif	
 	fdc->write_io8(1, val);

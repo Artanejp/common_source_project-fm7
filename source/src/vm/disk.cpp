@@ -686,6 +686,7 @@ bool DISK::get_track(int trk, int side)
 		return false;
 	}
 
+	//printf("disk[foo]->get_track(trk=%d ,side=%d)\n", trk, side);
 	// search track
 	int trkside = is_1dd_image ? trk : (trk * 2 + (side & 1));
 	if(!(0 <= trkside && trkside < 164)) {
