@@ -20,6 +20,11 @@
     </message>
     <message>
         <location filename="MainWindow.cpp" line="46"/>
+        <source>NMI Reset</source>
+        <translation>NMIリセット</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="47"/>
         <source>Do NMI reset.</source>
         <translation>NMIリセットします。</translation>
     </message>

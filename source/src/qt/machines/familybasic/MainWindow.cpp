@@ -34,7 +34,7 @@ void META_MainWindow::retranslateUi(void)
 	retranslateEmulatorMenu();
 	retranslateUI_Help();
 	
-	menuBootMode->setTitle("BOOT Mode");
+	menuBootMode->setTitle(QApplication::translate("Machine", "BOOT Mode", 0));
 	menuBootMode->setToolTipsVisible(true);
 	actionBootMode[0]->setText(QString::fromUtf8("BASIC V1"));
 	actionBootMode[1]->setText(QString::fromUtf8("BASIC V2"));	

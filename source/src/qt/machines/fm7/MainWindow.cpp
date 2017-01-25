@@ -181,6 +181,8 @@ void META_MainWindow::retranslateUi(void)
 	retranslateUI_Help();
 	
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
+	actionSpecial_Reset->setText(QApplication::translate("MainWindow", "Hot Start(BREAK+RESET)", 0));
+	actionSpecial_Reset->setToolTip(QApplication::translate("MainWindow", "Do HOT START.\nReset with pressing BREAK key.", 0));
 	
 #if defined(USE_PRINTER_TYPE)
 	actionPrintDevice[1]->setText(QApplication::translate("MainWindow", "Dempa Joystick with #1", 0));
@@ -202,28 +204,34 @@ void META_MainWindow::retranslateUi(void)
 	// 
 	// FM-7 Specified
 
-	menuFrameSkip->setTitle(QApplication::translate("MainWindow", "Frame skip", 0));
-	actionFrameSkip[0]->setText(QApplication::translate("MainWindow", "None", 0));
-	actionFrameSkip[1]->setText(QApplication::translate("MainWindow", "1 Frame", 0));
-	actionFrameSkip[2]->setText(QApplication::translate("MainWindow", "2 Frames", 0));
-	actionFrameSkip[3]->setText(QApplication::translate("MainWindow", "3 Frames", 0));
+	menuFrameSkip->setTitle(QApplication::translate("Machine", "Frame skip", 0));
+	actionFrameSkip[0]->setText(QApplication::translate("Machine", "None", 0));
+	actionFrameSkip[1]->setText(QApplication::translate("Machine", "1 Frame", 0));
+	actionFrameSkip[2]->setText(QApplication::translate("Machine", "2 Frames", 0));
+	actionFrameSkip[3]->setText(QApplication::translate("Machine", "3 Frames", 0));
 #if defined(_FM77AV_VARIANTS)
-	actionSyncToHsync->setText(QApplication::translate("MainWindow", "Sync to HSYNC", 0));
-	actionSyncToHsync->setToolTip(QApplication::translate("MainWindow", "Emulate display syncing to HSYNC.\nExpect to emulate more accurate.", 0));
+	actionSyncToHsync->setText(QApplication::translate("Machine", "Sync to HSYNC", 0));
+	actionSyncToHsync->setToolTip(QApplication::translate("Machine", "Emulate display syncing to HSYNC.\nExpect to emulate more accurate.", 0));
 #endif	
-	menuCpuType->setTitle(QApplication::translate("MainWindow", "CPU Frequency", 0));
+	menuCpuType->setTitle(QApplication::translate("Machine", "CPU Frequency", 0));
 	actionCpuType[0]->setText(QString::fromUtf8("2MHz"));
 	actionCpuType[1]->setText(QString::fromUtf8("1.2MHz"));
 	
-	menuBootMode->setTitle("BOOT Mode");
-	actionBootMode[0]->setText(QString::fromUtf8("BASIC"));
-	actionBootMode[1]->setText(QString::fromUtf8("DOS"));	
+	menuBootMode->setTitle(QApplication::translate("Machine", "BOOT Mode", 0));
+	menuBootMode->setToolTipsVisible(true);
+	actionBootMode[0]->setText(QApplication::translate("Machine", "BASIC", 0));
+	actionBootMode[1]->setText(QApplication::translate("Machine", "DOS", 0));	
+	actionBootMode[0]->setToolTip(QApplication::translate("Machine", "Boot with F-BASIC.", 0));
+	actionBootMode[1]->setToolTip(QApplication::translate("Machine", "DOS boot mode.\nUse for CP/M, FLEX, OS-9, R-DOS and some OSs.", 0));	
 #if defined(_FM77_VARIANTS)
 	actionBootMode[2]->setVisible(true);
 	actionBootMode[2]->setText(QString::fromUtf8("MMR"));
+	actionBootMode[2]->setToolTip(QApplication::translate("Machine", "MMR boot mode.\nThis is FM-77 feature and I don't know about this.", 0));
 #elif defined(_FM8)
-	actionBootMode[2]->setText(QApplication::translate("MainWindow", "Bubble Casette", 0));
-	actionBootMode[3]->setText(QApplication::translate("MainWindow", "8Inch FD", 0));
+	actionBootMode[2]->setText(QApplication::translate("Machine", "Bubble Casette", 0));
+	actionBootMode[3]->setText(QApplication::translate("Machine", "8Inch FD", 0));
+	actionBootMode[2]->setToolTip(QApplication::translate("Machine", "Boot for bubble casette.\nYou must install boot rom for this.", 0));
+	actionBootMode[3]->setToolTip(QApplication::translate("Machine", "Boot for 8inch floppy disk.\nYou must install boot rom for this.", 0));
 	
 	actionBootMode[2]->setVisible(true);
 	actionBootMode[3]->setVisible(true);
@@ -232,78 +240,91 @@ void META_MainWindow::retranslateUi(void)
 #endif
 
 #if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
-	actionKanjiRom->setText(QApplication::translate("MainWindow", "Kanji ROM(Need restart)", 0));
-	actionKanjiRom->setToolTip(QApplication::translate("MainWindow", "Connect KANJI ROM.Need restart emulator if changed.", 0));
+	actionKanjiRom->setText(QApplication::translate("Machine", "Kanji ROM(Need restart)", 0));
+	actionKanjiRom->setToolTip(QApplication::translate("Machine", "Connect KANJI ROM.Need restart emulator if changed.", 0));
 #endif	
 #if defined(_FM8)
-	actionRamProtect->setText(QApplication::translate("MainWindow", "BANK PROTECT($FD0F/hack)", 0));
-	actionRamProtect->setToolTip(QApplication::translate("MainWindow", "Protect bank setting if checked.\nUnchecked to simulate FM-7.\nUseful for some software tranferring to URA-RAM.", 0));
+	actionRamProtect->setText(QApplication::translate("Machine", "BANK PROTECT($FD0F/hack)", 0));
+	actionRamProtect->setToolTip(QApplication::translate("Machine", "Protect bank setting if checked.\nUnchecked to simulate FM-7.\nUseful for some software tranferring to URA-RAM.", 0));
 #elif defined(_FM7) || defined(_FMNEW7)	
-	actionCycleSteal->setText(QApplication::translate("MainWindow", "Cycle Steal(hack)", 0));
-	actionCycleSteal->setToolTip(QApplication::translate("MainWindow", "Enabling cycle steal to be faster drawing.\nThis is hack for FM-7.", 0));
+	actionCycleSteal->setText(QApplication::translate("Machine", "Cycle Steal(hack)", 0));
+	actionCycleSteal->setToolTip(QApplication::translate("Machine", "Enabling cycle steal to be faster drawing.\nThis is hack for FM-7.", 0));
 #else							  
-	actionCycleSteal->setText(QApplication::translate("MainWindow", "Cycle Steal", 0));
-	actionCycleSteal->setToolTip(QApplication::translate("MainWindow", "Enabling cycle steal to be faster drawing.", 0));
+	actionCycleSteal->setText(QApplication::translate("Machine", "Cycle Steal", 0));
+	actionCycleSteal->setToolTip(QApplication::translate("Machine", "Enabling cycle steal to be faster drawing.", 0));
 #endif							  
-	menuSoundDevice->setTitle(QApplication::translate("MainWindow", "Sound Boards", 0));
+	menuSoundDevice->setTitle(QApplication::translate("Machine", "Sound Boards", 0));
 #if defined(USE_SOUND_DEVICE_TYPE)
 # if defined(_FM8)
 	actionSoundDevice[0]->setVisible(true);
 	actionSoundDevice[1]->setVisible(true);
-	actionSoundDevice[0]->setText(QString::fromUtf8("Beep Only"));
-	actionSoundDevice[0]->setToolTip(QApplication::translate("MainWindow", "Use only buzzer as sound device.", 0));
-	actionSoundDevice[1]->setText(QString::fromUtf8("PSG (hack)"));
-	actionSoundDevice[1]->setToolTip(QApplication::translate("MainWindow", "Set FM-7 compatible PSG.\nThis emulates extra PSG board made by third party.", 0));
+	actionSoundDevice[0]->setText(QApplication::translate("Machine", "Beep Only", 0));
+	actionSoundDevice[0]->setToolTip(QApplication::translate("Machine", "Use only buzzer as sound device.", 0));
+	actionSoundDevice[1]->setText(QApplication::translate("Machine", "PSG (hack)", 0));
+	actionSoundDevice[1]->setToolTip(QApplication::translate("Machine", "Set FM-7 compatible PSG.\nThis emulates extra PSG board made by third party.", 0));
 # elif defined(_FM77AV_VARIANTS)
 	actionSoundDevice[0]->setVisible(false);
 	actionSoundDevice[2]->setVisible(false);
 	actionSoundDevice[4]->setVisible(false);
 	actionSoundDevice[6]->setVisible(false);
-	actionSoundDevice[1]->setText(QString::fromUtf8("OPN"));
-	actionSoundDevice[3]->setText(QString::fromUtf8("OPN+WHG"));
-	actionSoundDevice[5]->setText(QString::fromUtf8("OPN+THG"));
-	actionSoundDevice[7]->setText(QString::fromUtf8("OPN+WHG+THG"));
+	actionSoundDevice[1]->setText(QApplication::translate("Machine", "OPN", 0));
+	actionSoundDevice[3]->setText(QApplication::translate("Machine", "OPN+WHG", 0));
+	actionSoundDevice[5]->setText(QApplication::translate("Machine", "OPN+THG", 0));
+	actionSoundDevice[7]->setText(QApplication::translate("Machine", "OPN+WHG+THG", 0));
+	
+	actionSoundDevice[1]->setToolTip(QApplication::translate("Machine", "Using only default FM synthesizer board.", 0));
+	actionSoundDevice[3]->setToolTip(QApplication::translate("Machine", "Using default FM synthesizer board\nand WHG second FM synthesizer board.", 0));
+	actionSoundDevice[5]->setToolTip(QApplication::translate("Machine", "Using default FM synthesizer board\nand THG third FM synthesizer board.", 0));
+	actionSoundDevice[7]->setToolTip(QApplication::translate("Machine", "Using default FM synthesizer board\nand WHG second FM synthesizer board\nand THG third FM synthesizer board.", 0));
 # else
-	actionSoundDevice[0]->setText(QString::fromUtf8("PSG"));
-	actionSoundDevice[1]->setText(QString::fromUtf8("PSG+OPN"));
-	actionSoundDevice[2]->setText(QString::fromUtf8("PSG+WHG"));
-	actionSoundDevice[3]->setText(QString::fromUtf8("PSG+OPN+WHG"));
-	actionSoundDevice[4]->setText(QString::fromUtf8("PSG+THG"));
-	actionSoundDevice[5]->setText(QString::fromUtf8("PSG+OPN+THG"));
-	actionSoundDevice[6]->setText(QString::fromUtf8("PSG+WHG+THG"));
-	actionSoundDevice[7]->setText(QString::fromUtf8("PSG+OPN+WHG+THG"));
+	actionSoundDevice[0]->setText(QApplication::translate("Machine", "PSG", 0));
+	actionSoundDevice[1]->setText(QApplication::translate("Machine", "PSG+OPN", 0));
+	actionSoundDevice[2]->setText(QApplication::translate("Machine", "PSG+WHG", 0));
+	actionSoundDevice[3]->setText(QApplication::translate("Machine", "PSG+OPN+WHG", 0));
+	actionSoundDevice[4]->setText(QApplication::translate("Machine", "PSG+THG", 0));
+	actionSoundDevice[5]->setText(QApplication::translate("Machine", "PSG+OPN+THG", 0));
+	actionSoundDevice[6]->setText(QApplication::translate("Machine", "PSG+WHG+THG", 0));
+	actionSoundDevice[7]->setText(QApplication::translate("Machine", "PSG+OPN+WHG+THG", 0));
+	
+	actionSoundDevice[0]->setToolTip(QApplication::translate("Machine", "Using only default PSG.", 0));
+	actionSoundDevice[1]->setToolTip(QApplication::translate("Machine", "Using default PSG \nand Fujitsu's FM synthesizer board.", 0));
+	actionSoundDevice[2]->setToolTip(QApplication::translate("Machine", "Using default PSG \nand WHG second FM synthesizer board.", 0));
+	actionSoundDevice[3]->setToolTip(QApplication::translate("Machine", "Using default PSG \nand Fujitsu's FM synthesizer board\nand WHG second FM synthesizer board.", 0));
+	actionSoundDevice[4]->setToolTip(QApplication::translate("Machine", "Using default PSG \nand THG third FM synthesizer board.", 0));
+	actionSoundDevice[5]->setToolTip(QApplication::translate("Machine", "Using default PSG \nand Fujitsu's FM synthesizer board\nand THG third FM synthesizer board.", 0));
+	actionSoundDevice[6]->setToolTip(QApplication::translate("Machine", "Using default PSG \nand WHG 2nd FM sythesizer board\nand THG third FM synthesizer board.", 0));
+	actionSoundDevice[7]->setToolTip(QApplication::translate("Machine", "Using default PSG \nand Fujitsu's FM synthesizer board\nand WHG second FM synthesizer board\nand THG third FM synthesizer board.", 0));
 # endif
 #endif
 #if !defined(_FM8)
 # if defined(USE_DEVICE_TYPE)
-	menuDeviceType->setTitle(QApplication::translate("MainWindow", "Mouse", 0));
-	actionDeviceType[0]->setText(QApplication::translate("MainWindow", "none", 0));
-	actionDeviceType[1]->setText(QApplication::translate("MainWindow", "JS port1", 0));
-	actionDeviceType[1]->setToolTip(QApplication::translate("MainWindow", "Connect mouse to JOYSTICK port #1.", 0));
-	actionDeviceType[2]->setText(QApplication::translate("MainWindow", "JS port2", 0));
-	actionDeviceType[2]->setToolTip(QApplication::translate("MainWindow", "Connect mouse to JOYSTICK port #2.", 0));
+	menuDeviceType->setTitle(QApplication::translate("Machine", "Mouse", 0));
+	actionDeviceType[0]->setText(QApplication::translate("Machine", "none", 0));
+	actionDeviceType[1]->setText(QApplication::translate("Machine", "JS port1", 0));
+	actionDeviceType[1]->setToolTip(QApplication::translate("Machine", "Connect mouse to JOYSTICK port #1.", 0));
+	actionDeviceType[2]->setText(QApplication::translate("Machine", "JS port2", 0));
+	actionDeviceType[2]->setToolTip(QApplication::translate("Machine", "Connect mouse to JOYSTICK port #2.", 0));
 # endif	
 # if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
-	actionExtRam->setText(QApplication::translate("MainWindow", "Use Extra RAM (Need reboot)", 0));
-	actionExtRam->setToolTip(QApplication::translate("MainWindow", "Using extra ram block.\nNeed to reboot if changed.", 0));
+	actionExtRam->setText(QApplication::translate("Machine", "Use Extra RAM (Need reboot)", 0));
+	actionExtRam->setToolTip(QApplication::translate("Machine", "Using extra ram block.\nNeed to reboot if changed.", 0));
 # endif
 #endif
 #if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
-	action_320kFloppy->setText(QApplication::translate("MainWindow", "Connect 320KB FDD(Need Restart)", 0));
-	action_320kFloppy->setToolTip(QApplication::translate("MainWindow", "Connect 2D floppy drive.\nNeed to restart emulator if changed.", 0));
+	action_320kFloppy->setText(QApplication::translate("Machine", "Connect 320KB FDD(Need Restart)", 0));
+	action_320kFloppy->setToolTip(QApplication::translate("Machine", "Connect 2D floppy drive.\nNeed to restart emulator if changed.", 0));
 #endif	
 #if defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
-	action_1MFloppy->setText(QApplication::translate("MainWindow", "Connect 1MB FDD(Need Restart)", 0));
-	action_1MFloppy->setToolTip(QApplication::translate("MainWindow", "**Note: This option still not implemented**\nConnect 2HD (or 8inch) floppy drive.\nNeed to restart emulator if changed.\n", 0));
+	action_1MFloppy->setText(QApplication::translate("Machine", "Connect 1MB FDD(Need Restart)", 0));
+	action_1MFloppy->setToolTip(QApplication::translate("Machine", "**Note: This option still not implemented**\nConnect 2HD (or 8inch) floppy drive.\nNeed to restart emulator if changed.\n", 0));
 #endif
-	menuAuto5_8Key->setTitle(QApplication::translate("MainWindow", "Auto Stop Ten Key (hack)", 0));
-	action_Neither_5_or_8key->setText(QApplication::translate("MainWindow", "None used.", 0));
-	action_Auto_5key->setText(QApplication::translate("MainWindow", "Use 5", 0));
-	action_Auto_5key->setToolTip(QApplication::translate("MainWindow", "Use '5' key to stop with some GAMES.\nUseful for games using '2 4 6 8' to move character.", 0));
-	action_Auto_8key->setText(QApplication::translate("MainWindow", "Use 8", 0));
-	action_Auto_8key->setToolTip(QApplication::translate("MainWindow", "Use '8' key to stop with some GAMES.\nUseful for games using '1 2 3 5' to move character.", 0));
+	menuAuto5_8Key->setTitle(QApplication::translate("Machine", "Auto Stop Ten Key (hack)", 0));
+	action_Neither_5_or_8key->setText(QApplication::translate("Machine", "None used.", 0));
+	action_Auto_5key->setText(QApplication::translate("Machine", "Use 5", 0));
+	action_Auto_5key->setToolTip(QApplication::translate("Machine", "Use '5' key to stop with some GAMES.\nUseful for games using '2 4 6 8' to move character.", 0));
+	action_Auto_8key->setText(QApplication::translate("Machine", "Use 8", 0));
+	action_Auto_8key->setToolTip(QApplication::translate("Machine", "Use '8' key to stop with some GAMES.\nUseful for games using '1 2 3 5' to move character.", 0));
 	// Set Labels
-
 	menuMachine->setToolTipsVisible(true);
 	menuAuto5_8Key->setToolTipsVisible(true);
 #if !defined(_FM8)

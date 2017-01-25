@@ -118,7 +118,7 @@ void META_MainWindow::retranslateUi(void)
 	
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 #if defined(_MZ800)
-	menuBootMode->setTitle("BOOT Mode");
+	menuBootMode->setTitle(QApplication::translate("Machine", "BOOT Mode", 0));
 	actionBootMode[0]->setText(QString::fromUtf8("MZ-800"));
 	actionBootMode[1]->setText(QString::fromUtf8("MZ-700"));
    

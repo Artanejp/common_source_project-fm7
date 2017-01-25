@@ -39,7 +39,7 @@ void META_MainWindow::retranslateUi(void)
 	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
 	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
 	
-	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
+	menuHELP->setTitle(QApplication::translate("MainWindow", "Help", 0));
 	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);

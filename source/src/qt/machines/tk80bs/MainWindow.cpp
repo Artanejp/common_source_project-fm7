@@ -32,7 +32,7 @@ void META_MainWindow::retranslateUi(void)
 	retranslateUI_Help();
 	// Will implement : RAM LOAD/SAVE
   
-	menuBootMode->setTitle("BOOT Mode");
+	menuBootMode->setTitle(QApplication::translate("Machine", "BOOT Mode", 0));
 	menuBootMode->setToolTipsVisible(true);
 	actionBootMode[0]->setText(QString::fromUtf8("L1 BASIC"));
 	actionBootMode[1]->setText(QString::fromUtf8("L2 BASIC"));	

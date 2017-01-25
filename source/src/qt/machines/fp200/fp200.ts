@@ -2,6 +2,14 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="ja_JP">
 <context>
+    <name>Machine</name>
+    <message>
+        <location filename="MainWindow.cpp" line="34"/>
+        <source>BOOT Mode</source>
+        <translation>起動モード</translation>
+    </message>
+</context>
+<context>
     <name>MainWindow</name>
     <message>
         <location filename="MainWindow.cpp" line="33"/>

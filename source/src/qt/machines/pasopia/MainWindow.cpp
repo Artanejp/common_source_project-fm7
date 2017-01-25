@@ -42,7 +42,7 @@ void META_MainWindow::retranslateUi(void)
 #if defined(_PASOPIA)
 	retranslateBinaryMenu(0, 1);
 	menu_BINs[0]->setTitle(QApplication::translate("MainWindow", "RAMPAC", 0));
-	menuBootMode->setTitle("BOOT Mode");
+	menuBootMode->setTitle(QApplication::translate("Machine", "BOOT Mode", 0));
 	menuBootMode->setToolTipsVisible(true);
 	actionBootMode[0]->setText(QString::fromUtf8("T-BASIC Ver 1.0"));
 	actionBootMode[1]->setText(QString::fromUtf8("T-BASIC Ver 1.1"));

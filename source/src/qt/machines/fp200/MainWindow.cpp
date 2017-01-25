@@ -31,7 +31,7 @@ void META_MainWindow::retranslateUi(void)
 	retranslateUI_Help();
 	
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
-	menuBootMode->setTitle("BOOT Mode");
+	menuBootMode->setTitle(QApplication::translate("Machine", "BOOT Mode", 0));
 	menuBootMode->setToolTipsVisible(true);
 	actionBootMode[0]->setText(QString::fromUtf8("BASIC"));
 	actionBootMode[1]->setText(QString::fromUtf8("CETL"));	

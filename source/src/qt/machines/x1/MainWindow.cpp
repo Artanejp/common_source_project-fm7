@@ -87,6 +87,7 @@ void META_MainWindow::retranslateUi(void)
 	retranslateEmulatorMenu();
 	retranslateMachineMenu();
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
+	actionSpecial_Reset->setText(QApplication::translate("Machine", "NMI Reset", 0));
 	actionSpecial_Reset->setToolTip(QApplication::translate("MainWindow", "Do NMI reset.", 0));
 
 	// Set Labels

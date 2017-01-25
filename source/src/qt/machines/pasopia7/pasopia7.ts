@@ -2,6 +2,14 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="ja_JP">
 <context>
+    <name>Machine</name>
+    <message>
+        <location filename="MainWindow.cpp" line="45"/>
+        <source>BOOT Mode</source>
+        <translation>起動モード</translation>
+    </message>
+</context>
+<context>
     <name>MainWindow</name>
     <message>
         <location filename="MainWindow.cpp" line="44"/>
@@ -33,36 +41,6 @@
         <location filename="MainWindow.cpp" line="63"/>
         <source>RAMPAC2</source>
         <translation>RAMパック2</translation>
-    </message>
-    <message>
-        <location filename="MainWindow.cpp" line="66"/>
-        <source>MainWindow</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="MainWindow.cpp" line="68"/>
-        <source>About...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="MainWindow.cpp" line="70"/>
-        <source>Emulator</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="MainWindow.cpp" line="71"/>
-        <source>Machine</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="MainWindow.cpp" line="73"/>
-        <source>HELP</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="MainWindow.cpp" line="74"/>
-        <source>About Qt</source>
-        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

@@ -42,7 +42,7 @@ void META_MainWindow::retranslateUi(void)
 #if defined(_PASOPIA)
 	retranslateBinaryMenu(0, 1);
 	menu_BINs[0]->setTitle(QApplication::translate("MainWindow", "RAMPAC", 0));
-	menuBootMode->setTitle("BOOT Mode");
+	menuBootMode->setTitle(QApplication::translate("Machine", "BOOT Mode", 0));
 	menuBootMode->setToolTipsVisible(true);
 	actionBootMode[0]->setText(QString::fromUtf8("T-BASIC Ver 1.0"));
 	actionBootMode[1]->setText(QString::fromUtf8("T-BASIC Ver 1.1"));
@@ -63,15 +63,6 @@ void META_MainWindow::retranslateUi(void)
 	menu_BINs[1]->setTitle(QApplication::translate("MainWindow", "RAMPAC2", 0));
 	//actionSave_BIN[1]->setVisible(false);
 #endif
-	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
-  
-	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
-
-	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
-	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
-  
-	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
-	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
 #if defined(USE_DEBUGGER)
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(false);

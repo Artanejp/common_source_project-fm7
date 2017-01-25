@@ -2,6 +2,14 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="ja_JP">
 <context>
+    <name>Machine</name>
+    <message>
+        <location filename="MainWindow.cpp" line="121"/>
+        <source>BOOT Mode</source>
+        <translation>起動モード</translation>
+    </message>
+</context>
+<context>
     <name>MainWindow</name>
     <message>
         <location filename="MainWindow.cpp" line="119"/>
@@ -31,7 +39,7 @@
     <message>
         <location filename="MainWindow.cpp" line="131"/>
         <source>Machine</source>
-        <translation type="unfinished"></translation>
+        <translation>仮想マシン</translation>
     </message>
     <message>
         <location filename="MainWindow.cpp" line="133"/>
