@@ -425,12 +425,11 @@ void EVENT::event_callback(int event_id, int err)
 			int t_s = mix_counter;
 			if(t_s >= (sound_tmp_samples - buffer_ptr)) t_s = sound_tmp_samples - buffer_ptr - 1; 
 			if(config.sound_strict_rendering) {
-				if(t_s <= 1) {
-					mix_sound(1);
-					mix_counter = 1;
-					sound_touched = false;
-					return;
-				}
+				if(t_s < 1) t_s = 1;
+				mix_sound(t_s);
+				mix_counter = 1;
+				sound_touched = false;
+				return;
 			}
 			if((need_mix > 0) || (mix_counter >= mix_limit) || sound_touched) {
 				if(t_s > 0) {

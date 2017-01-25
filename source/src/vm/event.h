@@ -198,6 +198,7 @@ public:
 	}
 	void touch_sound(void)
 	{
+		if(config.sound_strict_rendering) return;
 		if((need_mix <= 0) && !sound_touched) {
 			int t_s = mix_counter;
 			// Do need mix_sound(remain_samples) before?
