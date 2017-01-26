@@ -368,7 +368,7 @@ void GLDraw_2_0::initLocalGLObjects(void)
 	main_shader = new QOpenGLShaderProgram(p_wid);
 	if(main_shader != NULL) {
 		main_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertex_shader.glsl");
-		main_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/chromakey_fragment_shader.glsl");
+		main_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/chromakey_fragment_shader2.glsl");
 		main_shader->link();
 	}
 	buffer_screen_vertex = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
@@ -932,8 +932,12 @@ void GLDraw_2_0::paintGL(void)
 		extfunc_2->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		extfunc_2->glEnable(GL_DEPTH_TEST);
 		extfunc_2->glDisable(GL_BLEND);
-		if(using_flags->is_use_one_board_computer()) drawBitmapTexture();
-		drawButtons();
+		if(using_flags->is_use_one_board_computer() || using_flags->is_use_bitmap()) {
+			drawBitmapTexture();
+		}
+		if((using_flags->get_max_button() > 0)) {
+			drawButtons();
+		}
 		/*
 		 * VRAMの表示:テクスチャ貼った四角形
 		 */

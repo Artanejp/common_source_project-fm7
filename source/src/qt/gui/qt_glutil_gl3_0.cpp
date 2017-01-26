@@ -988,9 +988,14 @@ void GLDraw_3_0::paintGL(void)
 		extfunc->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		extfunc->glEnable(GL_DEPTH_TEST);
 		extfunc->glDisable(GL_BLEND);
-		if(using_flags->is_use_one_board_computer()) drawBitmapTexture();
-		if(using_flags->get_max_button() > 0) drawButtons();
-		
+		if(using_flags->is_use_one_board_computer() || using_flags->is_use_bitmap()) {
+			extfunc->glEnable(GL_BLEND);
+			drawBitmapTexture();
+		}
+		if(using_flags->get_max_button() > 0) {
+			extfunc->glEnable(GL_BLEND);
+			drawButtons();
+		}
 		drawScreenTexture();
 		extfunc->glDisable(GL_BLEND);
 		if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
