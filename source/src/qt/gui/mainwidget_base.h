@@ -62,6 +62,15 @@ enum {
 	CSP_MAINWIDGET_SAVE_MOVIE_END,
 };
 
+#define MAX_RENDER_PLATFORMS 8
+
+enum {
+	RENDER_PLATFORMS_OPENGL3_MAIN = 0,
+	RENDER_PLATFORMS_OPENGL2_MAIN,
+	RENDER_PLATFORMS_OPENGL_CORE,
+	RENDER_PLATFORMS_END
+};
+
 QT_BEGIN_NAMESPACE
 
 class Ui_SoundDialog;
@@ -313,6 +322,10 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	QMenu *menuLogToSyslog;
 	QMenu *menuDevLogToConsole;
 	QMenu *menuDevLogToSyslog;
+	QMenu *menu_SetRenderPlatform;
+	
+	class Action_Control *action_SetRenderPlatform[MAX_RENDER_PLATFORMS];
+	QActionGroup *actionGroup_SetRenderPlatform;
 
 	class Action_Control *action_UseRomaKana;
 	class Action_Control *action_LogToSyslog;
@@ -619,6 +632,7 @@ public slots:
 	void do_set_roma_kana(bool f);
 	void do_set_render_mode_std(void);
 	void do_set_render_mode_tv(void);
+	void do_select_render_platform(int num);
 	
 signals:
 	int message_changed(QString);

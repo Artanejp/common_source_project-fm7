@@ -21,6 +21,16 @@ enum {
 	CONFIG_RENDER_TYPE_TV,
 	CONFIG_RENDER_TYPE_END
 };
+enum {
+	CONFIG_RENDER_PLATFORM_OPENGL_MAIN = 0,
+	CONFIG_RENDER_PLATFORM_OPENGL_CORE = 1,
+	CONFIG_RENDER_PLATFORM_OPENGL_ES   = 2,
+	CONFIG_RENDER_PLATFORM_QT3D        = 8,
+	CONFIG_RENDER_PLATFORM_VULKAN      = 16,
+	CONFIG_RENDER_PLATFORM_DIRECTDRAW  = 24,
+	CONFIG_RENDER_PLATFORM_SDLFB       = 25,
+	CONFIG_RENDER_PLATFORM_DIRECTX     = 32,
+};
 
 #define MAX_HISTORY	8
 
@@ -124,6 +134,20 @@ typedef struct {
 	int opengl_filter_num;
 
 	bool swap_kanji_pause;
+	/*
+	 * TYPE : 
+	 *    0 : OpenGL/Main Profile
+	 *    1 : OpenGL/Core Profile
+	 *    2 : OpenGL ES
+	 *    8 : Qt3D(Will not implement)
+	 *   16 : Vulkan (Will not implement)
+	 *   24 : DirectDraw (Will not implement)
+	 *   25 : SDLFB(Will not implement)
+     *   32 : DirectX(Will not implement)
+	 */ 
+	int render_platform;
+	int render_major_version;
+	int render_minor_version;
 #endif	
 	
 	// sound

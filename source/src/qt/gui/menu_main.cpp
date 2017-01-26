@@ -72,6 +72,12 @@ void Action_Control::do_set_string(QString s)
 	bindString = s;
 }
 
+void Action_Control::do_select_render_platform(void)
+{
+	int num = this->binds->getValue1();
+	emit sig_select_render_platform(num);
+}
+
 void Action_Control::do_set_dev_log_to_console(bool f)
 {
 	int num = this->binds->getValue1();
@@ -158,6 +164,37 @@ void Ui_MainWindowBase::do_set_dev_log_to_console(int num, bool f)
 	using_flags->get_config_ptr()->dev_log_to_console[num][0] = f;
 }
 
+void Ui_MainWindowBase::do_select_render_platform(int num)
+{
+	int _major = 0;
+	int _minor = 0;
+	int _type = -1;
+
+	switch(num) {
+	case RENDER_PLATFORMS_OPENGL3_MAIN:
+		_type = CONFIG_RENDER_PLATFORM_OPENGL_MAIN;
+		_major = 3;
+		_minor = 0;
+		break;
+	case RENDER_PLATFORMS_OPENGL2_MAIN:
+		_type = CONFIG_RENDER_PLATFORM_OPENGL_MAIN;
+		_major = 2;
+		_minor = 0;
+		break;
+	case RENDER_PLATFORMS_OPENGL_CORE:
+		_type = CONFIG_RENDER_PLATFORM_OPENGL_CORE;
+		_major = 3;
+		_minor = 2;
+		break;
+	default:
+		break;
+	}
+	if(_type >= 0) {
+		using_flags->get_config_ptr()->render_platform = _type;
+		using_flags->get_config_ptr()->render_major_version = _major;
+		using_flags->get_config_ptr()->render_minor_version = _minor;
+	}
+}
 
 void Ui_MainWindowBase::setupUi(void)
 {
@@ -199,13 +236,33 @@ void Ui_MainWindowBase::setupUi(void)
 	{
 #if defined(_USE_GLAPI_QT5_4)
 		QSurfaceFormat fmt;
-		fmt.setProfile(QSurfaceFormat::CompatibilityProfile); // Requires >=Qt-4.8.0
 #else
 		QGLFormat fmt;
-		fmt.setProfile(QGLFormat::CompatibilityProfile); // Requires >=Qt-4.8.0
-		//fmt.setProfile(QGLFormat::CoreProfile); // Requires >=Qt-4.8.0
-		fmt.setVersion(3, 0);
 #endif
+		{
+			int render_type = using_flags->get_config_ptr()->render_platform;
+			int _major_version = using_flags->get_config_ptr()->render_major_version;
+			int _minor_version = using_flags->get_config_ptr()->render_minor_version;
+#if defined(_USE_GLAPI_QT5_4)
+				if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_CORE) { 
+					fmt.setProfile(QSurfaceFormat::CoreProfile); // Requires >=Qt-4.8.0
+					csp_logger->debug_log(CSP_LOG_DEBUG,  CSP_LOG_TYPE_GENERAL, "Try to use OpenGL CORE profile.");
+				} else { // Fallback
+					fmt.setProfile(QSurfaceFormat::CompatibilityProfile); // Requires >=Qt-4.8.0
+					csp_logger->debug_log(CSP_LOG_DEBUG,  CSP_LOG_TYPE_GENERAL, "Try to use OpenGL Compatible(MAIN) profile.");
+				}
+#else
+				if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_CORE) { 
+					fmt.setProfile(QGLFormat::CoreProfile); // Requires >=Qt-4.8.0
+					csp_logger->debug_log(CSP_LOG_DEBUG,  CSP_LOG_TYPE_GENERAL, "Try to use OpenGL CORE profile.");
+					fmt.setVersion(3, 2);
+				} else {
+					fmt.setProfile(QGLFormat::CompatibilityProfile); // Requires >=Qt-4.8.0
+					csp_logger->debug_log(CSP_LOG_DEBUG,  CSP_LOG_TYPE_GENERAL, "Try to use OpenGL Compatible(MAIN) profile.");
+					fmt.setVersion(3, 0);
+				}					
+#endif
+		}
 		graphicsView = new GLDrawClass(using_flags, this, fmt);
 		graphicsView->setObjectName(QString::fromUtf8("graphicsView"));
 		graphicsView->setMaximumSize(2560, 2560); // ?
@@ -650,6 +707,14 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 	}		
 	menuDevLogToConsole->setTitle(QApplication::translate("MainWindow", "Per Device", 0));
 
+	menu_SetRenderPlatform->setTitle(QApplication::translate("MainWindow", "Video Platform(need restart)", 0));
+	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL3_MAIN]->setText(QApplication::translate("MainWindow", "OpenGLv3.0", 0));
+	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL2_MAIN]->setText(QApplication::translate("MainWindow", "OpenGLv2.0", 0));
+	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL_CORE]->setText(QApplication::translate("MainWindow", "OpenGL(Core profile)", 0));
+	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL3_MAIN]->setToolTip(QApplication::translate("MainWindow", "Using OpenGL v3.0(MAIN).\nThis is recommanded.\nIf changed, need to restart this emulator.", 0));
+	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL2_MAIN]->setToolTip(QApplication::translate("MainWindow", "Using OpenGLv2.\nThis is fallback of some systems.\nIf changed, need to restart this emulator.", 0));
+	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL_CORE]->setToolTip(QApplication::translate("MainWindow", "Using OpenGL core profile.\nThis still not implement.\nIf changed, need to restart this emulator.", 0));
+	
 	action_LogView->setText(QApplication::translate("MainWindow", "View Log", 0));
 	action_LogView->setToolTip(QApplication::translate("MainWindow", "View emulator logs with a dialog.", 0));
 }
@@ -683,6 +748,8 @@ void Ui_MainWindowBase::CreateEmulatorMenu(void)
 		if(using_flags->is_use_sound_files_buttons()) menuEmulator->addAction(action_SoundFilesButtons);
 		menuEmulator->addSeparator();
 	}
+	menuEmulator->addAction(menu_SetRenderPlatform->menuAction());
+	
 	if(using_flags->is_use_joystick()) {
 		menuEmulator->addAction(action_SetupJoystick);
 	}
@@ -760,11 +827,50 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	action_LogView = new Action_Control(this, using_flags);
 	connect(action_LogView, SIGNAL(triggered()),
 			this, SLOT(rise_log_viewer()));
-	//action_LogRecord = new Action_Control(this, using_flags);
-	//action_LogRecord->setCheckable(true);
-	//action_LogRecord->setEnabled(true);
-	//if(using_flags->get_config_ptr()->log_recording == 0) action_LogRecord->setChecked(false);
 	
+	menu_SetRenderPlatform = new QMenu(this);
+	menu_SetRenderPlatform->setToolTipsVisible(true);
+	actionGroup_SetRenderPlatform = new QActionGroup(this);
+	actionGroup_SetRenderPlatform->setExclusive(true);
+	{
+			int render_type = using_flags->get_config_ptr()->render_platform;
+			int _major_version = using_flags->get_config_ptr()->render_major_version;
+			int _minor_version = using_flags->get_config_ptr()->render_minor_version;
+			for(i = 0; i < MAX_RENDER_PLATFORMS; i++) {
+				tmps = QString::number(i);
+				action_SetRenderPlatform[i] = new Action_Control(this, using_flags);
+				action_SetRenderPlatform[i]->setObjectName(QString::fromUtf8("action_SetRenderPlatform", -1) + tmps);
+				action_SetRenderPlatform[i]->setCheckable(true);
+				action_SetRenderPlatform[i]->binds->setValue1(i);
+				actionGroup_SetRenderPlatform->addAction(action_SetRenderPlatform[i]);
+				menu_SetRenderPlatform->addAction(action_SetRenderPlatform[i]);
+				if(i >= RENDER_PLATFORMS_END) {
+					action_SetRenderPlatform[i]->setVisible(false);
+				} else {
+					if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_MAIN) {
+						if(_major_version >= 3) {
+							if(i == RENDER_PLATFORMS_OPENGL3_MAIN) {
+								action_SetRenderPlatform[i]->setChecked(true);
+							}
+						} else if(i == RENDER_PLATFORMS_OPENGL2_MAIN) {
+							action_SetRenderPlatform[i]->setChecked(true);
+						}
+					} else if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_CORE) {
+						if(i == RENDER_PLATFORMS_OPENGL_CORE) {
+							action_SetRenderPlatform[i]->setChecked(true);
+						}						
+					}
+					if(i == RENDER_PLATFORMS_OPENGL_CORE) {
+							action_SetRenderPlatform[i]->setEnabled(false);
+							//action_SetRenderPlatform[i]->setCheckable(false);
+					}						
+				}
+				connect(action_SetRenderPlatform[i], SIGNAL(triggered()),
+						action_SetRenderPlatform[i], SLOT(do_select_render_platform(void)));
+				connect(action_SetRenderPlatform[i], SIGNAL(sig_select_render_platform(int)),
+						this, SLOT(do_select_render_platform(int)));
+			}
+	}
 	action_SetupKeyboard = new Action_Control(this, using_flags);
 
 	action_SetupMovie = new Action_Control(this, using_flags);

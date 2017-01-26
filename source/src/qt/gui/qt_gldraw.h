@@ -104,6 +104,7 @@ public:
 	void InitFBO(void);
 	void closeEvent(QCloseEvent *event);
 	void drawUpdateTexture(bitmap_t *p);
+	QString logGLString(bool getExtensions = false);
 
 public slots:
 	void initKeyCode(void);

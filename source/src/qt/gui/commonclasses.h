@@ -149,7 +149,7 @@ public slots:
 	void on_recent_cart(void);
 	void do_save_as_movie(void);
 	void do_stop_saving_movie(void);
-     
+
 signals:
 	int on_boot_mode(int);   
 	int on_cpu_type(int);   
@@ -235,11 +235,13 @@ public slots:
 	void do_send_string(void);
 	void do_set_string(QString);
 	void do_set_dev_log_to_console(bool f);
+	void do_select_render_platform(void);
 	
 signals:
 	int quit_emu_thread(void);
 	int sig_send_string(QString);
 	int sig_set_dev_log_to_console(int, bool);
+	int sig_select_render_platform(int);
 } ActionControl;
 QT_END_NAMESPACE
 

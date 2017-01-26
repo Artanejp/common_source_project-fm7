@@ -114,47 +114,83 @@ void GLDrawClass::InitGLExtensionVars(void)
 {
 }
 
+QString GLDrawClass::logGLString(bool getExtensions)
+{
+	const GLubyte *(*glGetString)(GLenum);
+	QOpenGLContext *glContext = QOpenGLContext::currentContext();
 
-	
+	QString s;
+	s.clear();
+	glGetString = (const GLubyte *(*)(GLenum))glContext->getProcAddress(QByteArray("glGetString"));
+	if(glGetString != NULL) {
+		s.append(QString::fromUtf8("\nSupported OpenGL Vendor: "));
+		s.append(QString::fromUtf8((const char *)glGetString(GL_VENDOR)));
+		s.append(QString::fromUtf8("\nSupported OpenGL Version: "));
+		s.append(QString::fromUtf8((const char *)glGetString(GL_VERSION)));
+		s.append(QString::fromUtf8("\nSupported OpenGL Shading Language Version: "));
+		s.append(QString::fromUtf8((const char *)glGetString(GL_SHADING_LANGUAGE_VERSION)));
+		s.append(QString::fromUtf8("\nSupported OpenGL Renderer: "));
+		s.append(QString::fromUtf8((const char *)glGetString(GL_RENDERER)));
+		if(getExtensions) {
+			s.append(QString::fromUtf8("\nSupported OpenGL Extensions: "));
+			s.append(QString::fromUtf8((const char *)glGetString(GL_EXTENSIONS)));
+		}
+	}
+	return s;
+}
+
 void GLDrawClass::InitFBO(void)
 {
 	int i;
 	GLfloat xf, yf, delta;
 	QOpenGLContext *glContext = QOpenGLContext::currentContext();
-	QOpenGLVersionProfile prof;
-	
-	// Try 4.x
-	//prof.setProfile(QSurfaceFormat::CoreProfile);
-		
-	QOpenGLFunctions_2_0 *funcs_2_0 = glContext->versionFunctions<QOpenGLFunctions_2_0>();
+	int render_type = using_flags->get_config_ptr()->render_platform;
+	int _major_version = using_flags->get_config_ptr()->render_major_version;
+	int _minor_version = using_flags->get_config_ptr()->render_minor_version;
 	QSurfaceFormat _fmt = glContext->format();
-	QOpenGLFunctions *funcs = glContext->functions();
+	QSurfaceFormat::RenderableType capability = _fmt.renderableType();
+	QString tmps = logGLString(false);
 	
-	QPair<int, int> _glversion = _fmt.version();
-	if((_fmt.renderableType() & QSurfaceFormat::OpenGL) != 0) {
-		if((_glversion.first == 3) && (_glversion.second <= 0) && (extfunc == NULL)){
-			extfunc = new GLDraw_3_0(this, using_flags);
-			csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Use OpenGL v3.0 Renderer");
-		} else
-		if((funcs_2_0 != NULL)  && (extfunc == NULL)){
-			extfunc = new GLDraw_2_0(this, using_flags);
-			csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Use OpenGL v2.0 Renderer");
+	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "%s", tmps.toLocal8Bit().constData());
+	
+	if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_CORE) {
+		QPair<int, int> _glversion = _fmt.version();
+		if((((_glversion.first == 3) && (_glversion.second >= 2)) || (_glversion.first >= 4)) &&
+		   (extfunc == NULL) &&
+		   (((_major_version == 3) && (_minor_version >= 2)) || (_major_version >= 4))){
+			//extfunc = new GLDraw_3_0(this, using_flags); // ToDo
+			if(extfunc != NULL) {
+				csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Use OpenGL v3.2(CORE) Renderer");
+			}
 		}
 	}
-	if(funcs != NULL) {
-		csp_logger->debug_log(CSP_LOG_DEBUG, "Supported OpenGL Vendor  %s", funcs->glGetString(GL_VENDOR));
-		csp_logger->debug_log(CSP_LOG_DEBUG, "Supported OpenGL Version %s", funcs->glGetString(GL_VERSION));
-		csp_logger->debug_log(CSP_LOG_DEBUG, "Supported OpenGL Shading Language Version %s", funcs->glGetString(GL_SHADING_LANGUAGE_VERSION));
-		csp_logger->debug_log(CSP_LOG_DEBUG, "Supported OpenGL Renderer %s", funcs->glGetString(GL_RENDERER));
-		//csp_logger->debug_log(CSP_LOG_DEBUG, "Supported OpenGL Extensions %s", funcs->glGetString(GL_EXTENSIONS));
-	}		
 
+	if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_MAIN) {
+		QPair<int, int> _glversion = _fmt.version();
+		if((_glversion.first >= 3) && (_glversion.second >= 0) &&
+		   (extfunc == NULL) &&
+		   (_major_version >= 3)){
+			extfunc = new GLDraw_3_0(this, using_flags);
+			if(extfunc != NULL) {
+				csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Use OpenGL v3.0 Renderer");
+			}
+		}
+		if(extfunc == NULL) { // Fallback
+			if((_major_version >= 3) || ((_major_version == 2) && (_minor_version >= 1)))  {
+				csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Try to use fallback: OpenGL 2.0");
+			}				
+			extfunc = new GLDraw_2_0(this, using_flags);
+			if(extfunc != NULL) {
+				csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Use OpenGL v2.0 Renderer");
+			}
+		}
+	}
 	if(extfunc != NULL) {
 		extfunc->initGLObjects();
 		extfunc->initFBO();
 		extfunc->initLocalGLObjects();
 	} else {
-		csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "None using OpenGL.");
+		csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "None using OpenGL.Sorry.");
 	}
 }
 

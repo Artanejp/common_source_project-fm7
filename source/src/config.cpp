@@ -163,7 +163,9 @@ void initialize_config()
 	config.opengl_scanline_horiz = false;
 	config.use_opengl_filters = false;
 	config.opengl_filter_num = 0;
-
+	config.render_platform = CONFIG_RENDER_PLATFORM_OPENGL_MAIN;
+	config.render_major_version = 3;
+	config.render_minor_version = 0;
 	config.log_to_syslog = false;
 	config.log_to_console = true;
 
@@ -319,6 +321,12 @@ void load_config(const _TCHAR *config_path)
 													   config.use_opengl_filters, config_path);
 	config.opengl_filter_num = 	MyGetPrivateProfileInt(_T("Screen"), _T("OpenGLFilterNum"),
 													 config.opengl_filter_num, config_path);
+	config.render_platform = MyGetPrivateProfileInt(_T("Screen"), _T("RenderPlatform"),
+												   config.render_platform, config_path);
+	config.render_major_version = MyGetPrivateProfileInt(_T("Screen"), _T("RenderMajorVersion"),
+												   config.render_major_version, config_path);
+	config.render_minor_version = MyGetPrivateProfileInt(_T("Screen"), _T("RenderMinorVersion"),
+												   config.render_minor_version, config_path);
 	config.rendering_type = MyGetPrivateProfileInt(_T("Screen"), _T("RenderType"),
 													 config.rendering_type, config_path);
 	if(config.rendering_type < 0) config.rendering_type = 0;
@@ -595,6 +603,9 @@ void save_config(const _TCHAR *config_path)
 	MyWritePrivateProfileBool(_T("Screen"), _T("UseOpenGLFilters"), config.use_opengl_filters, config_path);
 	MyWritePrivateProfileInt(_T("Screen"), _T("OpenGLFilterNum"), config.opengl_filter_num, config_path);
 	MyWritePrivateProfileInt(_T("Screen"), _T("RenderType"), config.rendering_type, config_path);
+	MyWritePrivateProfileInt(_T("Screen"), _T("RenderPlatform"), config.render_platform, config_path);
+	MyWritePrivateProfileInt(_T("Screen"), _T("RenderMajorVersion"), config.render_major_version, config_path);
+	MyWritePrivateProfileInt(_T("Screen"), _T("RenderMinorVersion"), config.render_minor_version, config_path);
 #endif
 	
 	// screen
@@ -623,18 +634,6 @@ void save_config(const _TCHAR *config_path)
 #ifdef USE_SCREEN_ROTATE
 	MyWritePrivateProfileInt(_T("Screen"), _T("RotateType"), config.rotate_type, config_path);
 #endif
-#if defined(_USE_QT)
-	MyWritePrivateProfileBool(_T("Screen"), _T("UseOpenGLScanLine"),
-							config.use_opengl_scanline, config_path);
-	MyWritePrivateProfileBool(_T("Screen"), _T("OpenGLScanLineVert"),
-							config.opengl_scanline_vert, config_path);;
-	MyWritePrivateProfileBool(_T("Screen"), _T("OpenGLScanLineHoriz"),
-							config.opengl_scanline_horiz, config_path);;
-	MyWritePrivateProfileBool(_T("Screen"), _T("UseOpenGLFilters"),
-							config.use_opengl_filters, config_path);
-	MyWritePrivateProfileInt(_T("Screen"), _T("OpenGLFilterNum"),
-						   config.opengl_filter_num, config_path);
-#endif	
 	
 	// sound
 	MyWritePrivateProfileInt(_T("Sound"), _T("Frequency"), config.sound_frequency, config_path);
