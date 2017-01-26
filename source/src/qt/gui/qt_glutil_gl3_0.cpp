@@ -1022,22 +1022,11 @@ void GLDraw_3_0::setBrightness(GLfloat r, GLfloat g, GLfloat b)
 	}
 }
 
-void GLDraw_3_0::set_texture_vertex(QImage *p, int w_wid, int h_wid, int w, int h, float wmul, float hmul)
+void GLDraw_3_0::set_texture_vertex(float wmul, float hmul)
 {
-	int ww = (int)(w * wmul);
-	int hh = (int)(h * hmul);
 	float wfactor = 1.0f;
 	float hfactor = 1.0f;
-	float iw, ih;
-	
-	//if(screen_multiply < 1.0f) {
-	if(p != NULL) {
-		iw = (float)p->width();
-		ih = (float)p->height();
-	} else {
-		iw = (float)using_flags->get_screen_width();
-		ih = (float)using_flags->get_screen_height();
-	}
+
 	vertexTmpTexture[0].x = -1.0f;
 	vertexTmpTexture[0].y = -1.0f;
 	vertexTmpTexture[0].z = -0.1f;
@@ -1047,20 +1036,20 @@ void GLDraw_3_0::set_texture_vertex(QImage *p, int w_wid, int h_wid, int w, int 
 	vertexTmpTexture[1].x = wfactor;
 	vertexTmpTexture[1].y = -1.0f;
 	vertexTmpTexture[1].z = -0.1f;
-	vertexTmpTexture[1].s = ((float)w * wmul) / iw;
+	vertexTmpTexture[1].s = wmul;
 	vertexTmpTexture[1].t = 0.0f;
 	
 	vertexTmpTexture[2].x = wfactor;
 	vertexTmpTexture[2].y = hfactor;
 	vertexTmpTexture[2].z = -0.1f;
-	vertexTmpTexture[2].s = ((float)w * wmul) / iw;
-	vertexTmpTexture[2].t = ((float)h * hmul) / ih;
+	vertexTmpTexture[2].s = wmul;
+	vertexTmpTexture[2].t = hmul;
 	
 	vertexTmpTexture[3].x = -1.0f;
 	vertexTmpTexture[3].y = hfactor;
 	vertexTmpTexture[3].z = -0.1f;
 	vertexTmpTexture[3].s = 0.0f;
-	vertexTmpTexture[3].t = ((float)h * hmul) / ih;
+	vertexTmpTexture[3].t = hmul;
 }
 
 void GLDraw_3_0::do_set_screen_multiply(float mul)
@@ -1082,23 +1071,24 @@ void GLDraw_3_0::do_set_texture_size(QImage *p, int w, int h)
 		iw = (float)using_flags->get_screen_width();
 		ih = (float)using_flags->get_screen_height();
 	}
-	//printf("%d x %d\n", w, h);
+	//printf("%dx%d -> %fx%f\n", w, h, iw, ih);
 	if(p_wid != NULL) {
 		screen_texture_width = w;
 		screen_texture_height = h;
 
 		p_wid->makeCurrent();
 		{
-			set_texture_vertex(p, p_wid->width(), p_wid->height(), w, h);
+			set_texture_vertex((float)w / iw, (float)h / ih);
 			setNormalVAO(std_pass->getShader(), std_pass->getVAO(),
 						 std_pass->getVertexBuffer(),
 						 vertexTmpTexture, 4);
-			set_texture_vertex(p, p_wid->width(), p_wid->height(), w, h);
+			//set_texture_vertex(p, p_wid->width(), p_wid->height(), w, h);
+			set_texture_vertex((float)w / iw, (float)h / ih);
 			setNormalVAO(ntsc_pass1->getShader(), ntsc_pass1->getVAO(),
 						 ntsc_pass1->getVertexBuffer(),
 						 vertexTmpTexture, 4);
 
-			set_texture_vertex(p, p_wid->width(), p_wid->height(), (int)iw, (int)ih);
+			set_texture_vertex(1.0f, 1.0f);
 			setNormalVAO(ntsc_pass2->getShader(), ntsc_pass2->getVAO(),
 						 ntsc_pass2->getVertexBuffer(),
 						 vertexTmpTexture, 4);

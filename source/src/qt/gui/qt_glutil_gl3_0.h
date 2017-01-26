@@ -43,9 +43,7 @@ protected:
 					  QOpenGLBuffer *bp, VertexTexCoord_t *tp, int size = 4);
 	virtual bool initGridShaders(const QString vertex_fixed, const QString vertex_rotate, const QString fragment);
 	virtual bool initGridVertexObject(QOpenGLBuffer **vbo, QOpenGLVertexArrayObject **vao, int alloc_size);
-	virtual void set_texture_vertex(QImage *p, int w_wid, int h_wid,
-										int w, int h,
-										float wmul = 1.0f, float hmul = 1.0f);
+	virtual void set_texture_vertex(float wmul = 1.0f, float hmul = 1.0f);
 	virtual void updateGridsVAO(QOpenGLBuffer *bp,
 									QOpenGLVertexArrayObject *vp,
 									GLfloat *tp,
