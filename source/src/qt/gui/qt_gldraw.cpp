@@ -17,6 +17,7 @@
 #if defined(_WINDOWS) || defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
 #include <GL/gl.h>
 #include <GL/glext.h>
+#include <GL/wglext.h>
 #else
 # if !defined(_USE_GLAPI_QT5_4) || !defined(_USE_GLAPI_QT5_1)  
 #  include <GL/glx.h>

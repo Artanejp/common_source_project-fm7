@@ -967,8 +967,10 @@ void GLDraw_2_0::do_set_screen_multiply(float mul)
 
 void GLDraw_2_0::do_set_texture_size(QImage *p, int w, int h)
 {
-	if(w <= 0) w = using_flags->get_screen_width();
-	if(h <= 0) h = using_flags->get_screen_height();
+	//if(w <= 0) w = using_flags->get_screen_width();
+	//if(h <= 0) h = using_flags->get_screen_height();
+	if(w <= 0) w = using_flags->get_real_screen_width();
+	if(h <= 0) h = using_flags->get_real_screen_height();
 	float wfactor = 1.0f;
 	float hfactor = 1.0f;
 	float iw, ih;
@@ -983,10 +985,10 @@ void GLDraw_2_0::do_set_texture_size(QImage *p, int w, int h)
 		screen_texture_width = w;
 		screen_texture_height = h;
 		vertexFormat[0].s = 0.0f;
-		vertexFormat[0].t = (float)hh / ih;
-		vertexFormat[1].s = (float)ww / iw;
-		vertexFormat[1].t = (float)hh / ih;
-		vertexFormat[2].s = (float)ww / iw;
+		vertexFormat[0].t = (float)h / ih;
+		vertexFormat[1].s = (float)w / iw;
+		vertexFormat[1].t = (float)h / ih;
+		vertexFormat[2].s = (float)w / iw;
 		vertexFormat[2].t = 0.0f;
 		vertexFormat[3].s = 0.0f;
 		vertexFormat[3].t = 0.0f;

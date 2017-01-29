@@ -977,6 +977,7 @@ void GLDraw_3_0::drawBitmapTexture(void)
 void GLDraw_3_0::paintGL(void)
 {
 	//p_wid->makeCurrent();
+
 	if(crt_flag || redraw_required) { //return;
 		if(p_emu != NULL) {
 			crt_flag = false;

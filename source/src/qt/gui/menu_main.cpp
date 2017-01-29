@@ -154,20 +154,25 @@ void Ui_MainWindowBase::do_update_device_node_name(int id, const _TCHAR *name)
 	if(using_flags->get_vm_node_size() > id) {
 		action_DevLogToConsole[id]->setEnabled(true);
 		action_DevLogToConsole[id]->setVisible(true);
-
+#if !defined(Q_OS_WIN)
 		action_DevLogToSyslog[id]->setEnabled(true);
 		action_DevLogToSyslog[id]->setVisible(true);
+#endif
 	} else {
 		action_DevLogToConsole[id]->setEnabled(false);
 		action_DevLogToConsole[id]->setVisible(false);
 		
+#if !defined(Q_OS_WIN)
 		action_DevLogToSyslog[id]->setEnabled(false);
 		action_DevLogToSyslog[id]->setVisible(false);
+#endif
 	}
 	char s[64] = {0};
 	snprintf(s, 60, "#%02d: %s", id, name);
 	action_DevLogToConsole[id]->setText(QString::fromUtf8(s));
+#if !defined(Q_OS_WIN)
 	action_DevLogToSyslog[id]->setText(QString::fromUtf8(s));
+#endif
 }
 
 
@@ -655,7 +660,9 @@ void Ui_MainWindowBase::setupUi(void)
 		}
 	}		
 	connect(action_SetupKeyboard, SIGNAL(triggered()), this, SLOT(rise_keyboard_dialog()));
+#if !defined(Q_OS_WIN)
 	connect(action_LogToSyslog, SIGNAL(toggled(bool)), this, SLOT(do_set_syslog(bool)));
+#endif	
 	connect(action_LogToConsole, SIGNAL(toggled(bool)), this, SLOT(do_set_conslog(bool)));
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Menu OK");
 	   
@@ -707,9 +714,11 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 
 	action_LogToConsole->setText(QApplication::translate("MainWindow", "Log to Console", 0));
 	action_LogToConsole->setToolTip(QApplication::translate("MainWindow", "Enable logging to STDOUT if checked.", 0));
+#if !defined(Q_OS_WIN)
 	action_LogToSyslog->setText(QApplication::translate("MainWindow", "Log to Syslog", 0));
 	action_LogToSyslog->setToolTip(QApplication::translate("MainWindow", "Enable logging to SYSTEM log.\nMay be having permission to system and using *nix OS.", 0));
 	//action_LogRecord->setText(QApplication::translate("MainWindow", "Recording Log", 0));
+#endif
 	if(using_flags->is_use_sound_files()) {
 		if(using_flags->is_use_sound_files_fdd()) {
 			action_SoundFilesFDD->setText(QApplication::translate("MainWindow", "Sound FDD Seek", 0));
@@ -725,8 +734,9 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 		}
 	}		
 	menuDevLogToConsole->setTitle(QApplication::translate("MainWindow", "Per Device", 0));
+#if !defined(Q_OS_WIN)
 	menuDevLogToSyslog->setTitle(QApplication::translate("MainWindow", "Per Device", 0));
-
+#endif
 	menu_SetRenderPlatform->setTitle(QApplication::translate("MainWindow", "Video Platform(need restart)", 0));
 	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL3_MAIN]->setText(QApplication::translate("MainWindow", "OpenGLv3.0", 0));
 	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL2_MAIN]->setText(QApplication::translate("MainWindow", "OpenGLv2.0", 0));
@@ -758,8 +768,10 @@ void Ui_MainWindowBase::CreateEmulatorMenu(void)
 	menuEmulator->addAction(action_LogToConsole);
 	menuEmulator->addAction(menuDevLogToConsole->menuAction());
 	menuEmulator->addSeparator();
+#if !defined(Q_OS_WIN)
 	menuEmulator->addAction(action_LogToSyslog);
 	menuEmulator->addAction(menuDevLogToSyslog->menuAction());
+#endif
 	menuEmulator->addSeparator();
 	menuEmulator->addAction(action_LogView);
 	menuEmulator->addSeparator();
@@ -820,6 +832,7 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 			}
 		}
 	}
+#if !defined(Q_OS_WIN)
 	action_LogToSyslog = new Action_Control(this, using_flags);
 	action_LogToSyslog->setCheckable(true);
 	action_LogToSyslog->setEnabled(true);
@@ -838,7 +851,7 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 		connect(action_DevLogToSyslog[i], SIGNAL(sig_set_dev_log_to_syslog(int, bool)),
 				this, SLOT(do_set_dev_log_to_syslog(int, bool)));
 	}
-
+#endif
 	action_LogToConsole = new Action_Control(this, using_flags);
 	action_LogToConsole->setCheckable(true);
 	action_LogToConsole->setEnabled(true);

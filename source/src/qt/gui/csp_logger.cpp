@@ -149,13 +149,15 @@ void CSP_Logger::open(bool b_syslog, bool cons, const char *devname)
 	log_sysname = log_sysname + dname + QString::fromUtf8(")");
 	
 	if(b_syslog) {
+#if !defined(Q_OS_WIN)
 		syslog_flag = true;
-#if defined(_SYS_SYSLOG_H) || defined(_SYSLOG_H)
 		if(cons) { 
 			flags = LOG_CONS;
 		}
 		//openlog(devname, flags | LOG_PID | LOG_NOWAIT, LOG_USER);
 		openlog(devname, flags | LOG_PID , LOG_USER);
+#else
+		syslog_flag = false;
 #endif
 	} else {
 		syslog_flag = false;
@@ -167,9 +169,13 @@ void CSP_Logger::open(bool b_syslog, bool cons, const char *devname)
 	
 	cons_log_levels = 1 << CSP_LOG_INFO;
 	
+#if !defined(Q_OS_WIN)   
 	sys_log_levels = 1 << CSP_LOG_INFO;
 	sys_log_levels |= (1 << CSP_LOG_DEBUG);
 	sys_log_levels |= (1 << CSP_LOG_WARN);
+#else
+	sys_log_levels = 0;
+#endif
 	linenum = 1;
 	line_wrap = 0;
 	
@@ -342,6 +348,7 @@ void CSP_Logger::set_log_stdout(int level, bool sw)
 
 void CSP_Logger::set_log_syslog(int level, bool sw)
 {
+#if !defined(Q_OS_WIN)   
 	if((level < 0) || (level >= 32)) {
 		syslog_flag_out = sw;
 		return;
@@ -352,6 +359,7 @@ void CSP_Logger::set_log_syslog(int level, bool sw)
 	} else {
 		sys_log_levels &= ~lv;
 	}
+#endif
 }
 
 bool CSP_Logger::get_status(void)
@@ -365,7 +373,7 @@ void CSP_Logger::close(void)
 	QMutexLocker locker(lock_mutex);
 
 	log_opened = false;
-#if !defined(Q_OS_WIN32)   
+#if !defined(Q_OS_WIN)   
 	if(syslog_flag != 0) {
 	     closelog();
 	}

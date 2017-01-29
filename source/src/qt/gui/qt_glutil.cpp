@@ -15,6 +15,10 @@
 #include <QOpenGLFunctions_4_1_Core>
 #include <QOpenGLFunctions_3_2_Core>
 
+#if defined(_WINDOWS) || defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
+#include <GL/wglext.h>
+#endif
+
 #ifdef USE_OPENMP
 #include <omp.h>
 #endif //_OPENMP
@@ -116,11 +120,12 @@ void GLDrawClass::InitGLExtensionVars(void)
 
 QString GLDrawClass::logGLString(bool getExtensions)
 {
-	const GLubyte *(*glGetString)(GLenum);
-	QOpenGLContext *glContext = QOpenGLContext::currentContext();
-
 	QString s;
 	s.clear();
+
+	const GLubyte *(*glGetString)(GLenum) = NULL;
+	QOpenGLContext *glContext = QOpenGLContext::currentContext();
+
 	glGetString = (const GLubyte *(*)(GLenum))glContext->getProcAddress(QByteArray("glGetString"));
 	if(glGetString != NULL) {
 		s.append(QString::fromUtf8("\nSupported OpenGL Vendor: "));
@@ -149,10 +154,10 @@ void GLDrawClass::InitFBO(void)
 	int _minor_version = using_flags->get_config_ptr()->render_minor_version;
 	QSurfaceFormat _fmt = glContext->format();
 	QSurfaceFormat::RenderableType capability = _fmt.renderableType();
+#if !defined(Q_OS_WIN)
 	QString tmps = logGLString(false);
-	
 	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "%s", tmps.toLocal8Bit().constData());
-	
+#endif
 	if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_CORE) {
 		QPair<int, int> _glversion = _fmt.version();
 		if((((_glversion.first == 3) && (_glversion.second >= 2)) || (_glversion.first >= 4)) &&
