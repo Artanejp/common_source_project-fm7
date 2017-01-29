@@ -1,3 +1,65 @@
+commit 5e58321d587a74979c7691d280a4123dba16f68c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 30 01:36:20 2017 +0900
+
+    [Qt][LOG] Enable syslog *truely*.
+
+commit 84dfbe5d6c60f8ce8db80a98efdca42d4d7a17f4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 26 23:15:22 2017 +0900
+
+    [Qt][OpenGL] Fix backgrounds not display at one-board-computer.
+
+commit ab3a2005418b54df829c3223f2c25f22ddf77de8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 26 22:24:21 2017 +0900
+
+    [Draw][OpenGL][UI] Add selection of draw infrastracture; OpenGLv3(MAIN) and OpenGLv2 (and OpenGLv3.2(Core): Still not implemented).
+
+commit 7d81374950faa4296e2ba8774008d8dd96b45f51
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 26 20:42:50 2017 +0900
+
+    [Draw][Qt] Fix wrong aspect when using variable screen size.i.e.)emufm7/emufm77av40ex.
+
+commit aad9dc1763636b3838fb310935077e4999d9c786
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 26 08:48:06 2017 +0900
+
+    [VM][DISK][MB8877][FM77AV40] Fix accessing 2D disk from 2DD mode drive (not 2D mode).
+    Fixed boot issue of REVIVER.
+
+commit 888f62a3d355615607ee36d8dccf03e55de461dd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 26 03:16:18 2017 +0900
+
+    [UI][Qt] Update Japanese translations.
+
+commit 6336ba0122135c9887c164468838ca4334dbcabe
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 25 17:44:21 2017 +0900
+
+    [VM][EVENT][SOUND] Fix problems voice with PCM (at least MSX and FM-7(Reviver)).
+    See http://hanabi.2ch.net/test/read.cgi/i4004/1483504365/37 .
+
+commit 3ff6301ccc2a971501418dc253ae17e3779cb3d0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 24 16:14:16 2017 +0900
+
+    [DOC] Update document to F2(fix2).
+
+commit 3cd17603c352048623c19631a36b678c8b404e8a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 24 07:30:12 2017 +0900
+
+    [UI][Qt][Windows] Fix not display translated entries, excepts "Machine" menu.
+
+commit 8ef04c7a3b605a01bd70c9faa5358c59a592099b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 24 05:15:49 2017 +0900
+
+    [DOC] Update gitlog.
+
 commit ad294aee8bac83a5d30c618fa70d32fd166e1e2f
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Tue Jan 24 04:43:24 2017 +0900

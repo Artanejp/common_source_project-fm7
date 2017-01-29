@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                          Jan 24, 2017
+                                          Jan 30, 2017
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -12,7 +12,7 @@
    
    ソースコード：
    
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20170124_F2
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20170130
 
    追加情報:
    
@@ -151,6 +151,24 @@
 Changes:
 
 ChangeLog:
+* SNAPSHOT January 30, 2017
+  * Upstream 2016-12-31
+  * [VM/SOUND] Fix problems voice with PCM (at least MSX and FM-7(Reviver)).
+  
+               See http://hanabi.2ch.net/test/read.cgi/i4004/1483504365/37 .
+	       
+. * [VM/MB8877] Fix accessing 2D disk from 2DD mode drive (not 2D mode).
+
+                Fixed booting issue of REVIVER for FM-7/77/AV with FM77AV40/EX/SX.
+		
+  * [Draw/Qt] Fix wrong aspect when using variable screen size.i.e.)emufm7/emufm77av40ex.
+  * [UI/OpenGL] Add selection of draw infrastracture; OpenGLv3(MAIN) and OpenGLv2 (and OpenGLv3.2(Core): Still not implemented).
+  * [Qt/OpenGL] Fix backgrounds not display at one-board-computer drawing with OpenGLv2.
+  * [Qt/LOG] Enable syslog *truely*.
+  * Built with 5e58321d587a74979c7691d280a4123dba16f68c or newer.
+
+-- Jan 30, 2017 01:41:09 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT January 24, 2017
   * Upstream 2016-12-31
   * [UI/Qt] Add tooltips to menu entries mostly.
