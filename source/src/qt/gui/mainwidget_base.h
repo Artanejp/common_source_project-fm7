@@ -318,8 +318,8 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	class Action_Control *action_SoundFilesFDD;
 	class Action_Control *action_SoundFilesRelay;
 	class Action_Control *action_SoundFilesButtons;
-	QMenu *menuLogToConsole;
-	QMenu *menuLogToSyslog;
+	//QMenu *menuLogToConsole;
+	//QMenu *menuLogToSyslog;
 	QMenu *menuDevLogToConsole;
 	QMenu *menuDevLogToSyslog;
 	QMenu *menu_SetRenderPlatform;
@@ -629,6 +629,7 @@ public slots:
 	void do_set_syslog(bool);
 	void do_update_device_node_name(int id, const _TCHAR *name);	
 	void do_set_dev_log_to_console(int id, bool f);
+	void do_set_dev_log_to_syslog(int id, bool f);
 	void do_set_roma_kana(bool f);
 	void do_set_render_mode_std(void);
 	void do_set_render_mode_tv(void);

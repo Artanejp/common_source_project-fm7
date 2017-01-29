@@ -84,6 +84,12 @@ void Action_Control::do_set_dev_log_to_console(bool f)
 	emit sig_set_dev_log_to_console(num, f);
 }
 
+void Action_Control::do_set_dev_log_to_syslog(bool f)
+{
+	int num = this->binds->getValue1();
+	emit sig_set_dev_log_to_syslog(num, f);
+}
+
 void Ui_MainWindowBase::do_set_roma_kana(bool flag)
 {
 	using_flags->get_config_ptr()->roma_kana_conversion = flag;
@@ -148,13 +154,20 @@ void Ui_MainWindowBase::do_update_device_node_name(int id, const _TCHAR *name)
 	if(using_flags->get_vm_node_size() > id) {
 		action_DevLogToConsole[id]->setEnabled(true);
 		action_DevLogToConsole[id]->setVisible(true);
+
+		action_DevLogToSyslog[id]->setEnabled(true);
+		action_DevLogToSyslog[id]->setVisible(true);
 	} else {
 		action_DevLogToConsole[id]->setEnabled(false);
 		action_DevLogToConsole[id]->setVisible(false);
+		
+		action_DevLogToSyslog[id]->setEnabled(false);
+		action_DevLogToSyslog[id]->setVisible(false);
 	}
 	char s[64] = {0};
 	snprintf(s, 60, "#%02d: %s", id, name);
 	action_DevLogToConsole[id]->setText(QString::fromUtf8(s));
+	action_DevLogToSyslog[id]->setText(QString::fromUtf8(s));
 }
 
 
@@ -162,6 +175,12 @@ void Ui_MainWindowBase::do_set_dev_log_to_console(int num, bool f)
 {
 	csp_logger->set_device_node_log(num, 2, CSP_LOG_DEBUG, f);
 	using_flags->get_config_ptr()->dev_log_to_console[num][0] = f;
+}
+
+void Ui_MainWindowBase::do_set_dev_log_to_syslog(int num, bool f)
+{
+	csp_logger->set_device_node_log(num, 2, CSP_LOG_DEBUG, f);
+	using_flags->get_config_ptr()->dev_log_to_syslog[num][0] = f;
 }
 
 void Ui_MainWindowBase::do_select_render_platform(int num)
@@ -706,6 +725,7 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 		}
 	}		
 	menuDevLogToConsole->setTitle(QApplication::translate("MainWindow", "Per Device", 0));
+	menuDevLogToSyslog->setTitle(QApplication::translate("MainWindow", "Per Device", 0));
 
 	menu_SetRenderPlatform->setTitle(QApplication::translate("MainWindow", "Video Platform(need restart)", 0));
 	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL3_MAIN]->setText(QApplication::translate("MainWindow", "OpenGLv3.0", 0));
@@ -739,6 +759,7 @@ void Ui_MainWindowBase::CreateEmulatorMenu(void)
 	menuEmulator->addAction(menuDevLogToConsole->menuAction());
 	menuEmulator->addSeparator();
 	menuEmulator->addAction(action_LogToSyslog);
+	menuEmulator->addAction(menuDevLogToSyslog->menuAction());
 	menuEmulator->addSeparator();
 	menuEmulator->addAction(action_LogView);
 	menuEmulator->addSeparator();
@@ -803,6 +824,20 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	action_LogToSyslog->setCheckable(true);
 	action_LogToSyslog->setEnabled(true);
 	if(using_flags->get_config_ptr()->log_to_syslog != 0) action_LogToSyslog->setChecked(true);
+	menuDevLogToSyslog = new QMenu(this);
+	menuDevLogToSyslog->setToolTipsVisible(true);
+	for(int i = 0; i < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1); i++) {
+		action_DevLogToSyslog[i] = new Action_Control(this, using_flags);
+		action_DevLogToSyslog[i]->setCheckable(true);
+		action_DevLogToSyslog[i]->setEnabled(false);
+		action_DevLogToSyslog[i]->binds->setValue1(i);
+		menuDevLogToSyslog->addAction(action_DevLogToSyslog[i]);
+		if(using_flags->get_config_ptr()->dev_log_to_syslog[i][0]) action_DevLogToSyslog[i]->setChecked(true);
+		connect(action_DevLogToSyslog[i], SIGNAL(toggled(bool)),
+				action_DevLogToSyslog[i], SLOT(do_set_dev_log_to_syslog(bool)));
+		connect(action_DevLogToSyslog[i], SIGNAL(sig_set_dev_log_to_syslog(int, bool)),
+				this, SLOT(do_set_dev_log_to_syslog(int, bool)));
+	}
 
 	action_LogToConsole = new Action_Control(this, using_flags);
 	action_LogToConsole->setCheckable(true);

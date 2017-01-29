@@ -114,11 +114,6 @@ int main(int argc, char *argv[])
 /*
  * アプリケーション初期化
  */
-
-	csp_logger = new CSP_Logger(false, true, NULL); // Write to syslog, console
-	csp_logger->set_log_stdout(CSP_LOG_DEBUG, true);
-	csp_logger->set_log_stdout(CSP_LOG_INFO, true);
-	csp_logger->set_log_stdout(CSP_LOG_WARN, true);
 	Q_INIT_RESOURCE(commontexts);
 	Q_INIT_RESOURCE(shaders);
 	nErrorCode = MainLoop(argc, argv, &config);

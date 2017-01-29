@@ -168,7 +168,13 @@ void initialize_config()
 	config.render_minor_version = 0;
 	config.log_to_syslog = false;
 	config.log_to_console = true;
-
+	for(int ii = 0; ii < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1) ; ii++) {
+		for(int jj = 0; jj < 8; jj++) {
+			config.dev_log_to_syslog[ii][jj] = true;
+			config.dev_log_to_console[ii][jj] = true;
+			config.dev_log_recording[ii][jj] = true;
+		}
+	}
 	config.sound_fdd = 1;
 	config.sound_relay = 0;
 	config.sound_buttons = 0;
@@ -461,32 +467,29 @@ void load_config(const _TCHAR *config_path)
 	config.log_to_syslog = MyGetPrivateProfileBool(_T("Emulator"), _T("WriteToSyslog"), config.log_to_syslog, config_path);
 	config.log_to_console = MyGetPrivateProfileBool(_T("Emulator"), _T("WriteToConsole"), config.log_to_console, config_path);
 	config.roma_kana_conversion = MyGetPrivateProfileInt(_T("Emulator"), _T("RomaKana"), config.roma_kana_conversion, config_path);
-	
-	for(int ii = 0; ii < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1); ii++) {
+
+	for(int ii = 0; ii < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1) ; ii++) {
 		uint32_t flags = 0;
-		flags = MyGetPrivateProfileInt(_T("Emulator"), create_string(_T("SyslogEnabled%d"), ii), 0x0000, config_path);
+		flags = MyGetPrivateProfileInt(_T("Emulator"), create_string(_T("SyslogEnabled%d"), ii), 0xffff, config_path);
 		for(int jj = 0; jj < 8; jj++) {
 			config.dev_log_to_syslog[ii][jj] = ((flags & 0x0001) != 0) ? true : false;
-			csp_logger->set_device_node_log(ii, 1, jj, config.dev_log_to_syslog[ii][jj]);
 			flags >>= 1;
 		}
 		flags = 0;
 		flags = MyGetPrivateProfileInt(_T("Emulator"), create_string(_T("ConsoleLogEnabled%d"), ii), 0xffff, config_path);
 		for(int jj = 0; jj < 8; jj++) {
 			config.dev_log_to_console[ii][jj] = ((flags & 0x0001) != 0) ? true : false;
-			csp_logger->set_device_node_log(ii, 2, jj, config.dev_log_to_console[ii][jj]);
 			flags >>= 1;
 		}
 		flags = MyGetPrivateProfileInt(_T("Emulator"), create_string(_T("RecordLogEnabled%d"), ii), 0xffff, config_path);
 		for(int jj = 0; jj < 8; jj++) {
 			config.dev_log_recording[ii][jj] = ((flags & 0x0001) != 0) ? true : false;
-			csp_logger->set_device_node_log(ii, 0, jj, config.dev_log_recording[ii][jj]);
 			flags >>= 1;
 		}
 	}
 #endif
 #if defined(_USE_QT)
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Read config done.");
+	//csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Read config done.");
 #endif
 }
 
@@ -708,28 +711,28 @@ void save_config(const _TCHAR *config_path)
 	MyWritePrivateProfileBool(_T("Emulator"), _T("WriteToConsole"), config.log_to_console, config_path);
 	MyWritePrivateProfileInt(_T("Emulator"), _T("RomaKana"), config.roma_kana_conversion, config_path);
 	
-	for(int ii = 0; ii < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1); ii++) {
+	for(int ii = 0; ii < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1) ; ii++) {
 		uint32_t flags = 0;
 		flags = 0;
 		for(int jj = 0; jj < 8; jj++) {
 			flags <<= 1;
 			if(config.dev_log_to_syslog[ii][jj]) flags |= 0x0001;
 		}
-		flags = MyWritePrivateProfileInt(_T("Emulator"), create_string(_T("SyslogEnabled%d"), ii), flags, config_path);
+		MyWritePrivateProfileInt(_T("Emulator"), create_string(_T("SyslogEnabled%d"), ii), flags, config_path);
 
 		flags = 0;
 		for(int jj = 0; jj < 8; jj++) {
 			flags <<= 1;
 			if(config.dev_log_to_console[ii][jj]) flags |= 0x0001;
 		}
-		flags = MyWritePrivateProfileInt(_T("Emulator"), create_string(_T("ConsoleLogEnabled%d"), ii), flags, config_path);
+		MyWritePrivateProfileInt(_T("Emulator"), create_string(_T("ConsoleLogEnabled%d"), ii), flags, config_path);
 
 		flags = 0;
 		for(int jj = 0; jj < 8; jj++) {
 			flags <<= 1;
 			if(config.dev_log_recording[ii][jj]) flags |= 0x0001;
 		}
-		flags = MyWritePrivateProfileInt(_T("Emulator"), create_string(_T("RecordLogEnabled%d"), ii), flags, config_path);
+		MyWritePrivateProfileInt(_T("Emulator"), create_string(_T("RecordLogEnabled%d"), ii), flags, config_path);
 	}
 #endif
 #if defined(_USE_QT) && !defined(Q_OS_WIN)

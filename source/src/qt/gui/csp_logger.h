@@ -108,9 +108,9 @@ public:
 	QString get_element_syslog(void) {
 		QString s;
 		if(domain.isEmpty()) {
-			s = mainstr;
+			s = timestamp + QString::fromUtf8(" ") + mainstr;
 		} else {
-			s = domain + QString::fromUtf8(" ") + mainstr;
+			s = timestamp + QString::fromUtf8(" ") + domain + QString::fromUtf8(" ") + mainstr;
 		}
 		return s;
 	};

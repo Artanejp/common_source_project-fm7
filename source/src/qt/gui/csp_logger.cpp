@@ -154,7 +154,8 @@ void CSP_Logger::open(bool b_syslog, bool cons, const char *devname)
 		if(cons) { 
 			flags = LOG_CONS;
 		}
-		openlog(log_sysname.toLocal8Bit().constData(), flags | LOG_PID | LOG_NOWAIT, LOG_USER);
+		//openlog(devname, flags | LOG_PID | LOG_NOWAIT, LOG_USER);
+		openlog(devname, flags | LOG_PID , LOG_USER);
 #endif
 	} else {
 		syslog_flag = false;
@@ -165,12 +166,16 @@ void CSP_Logger::open(bool b_syslog, bool cons, const char *devname)
 	syslog_flag_out = syslog_flag;
 	
 	cons_log_levels = 1 << CSP_LOG_INFO;
+	
+	sys_log_levels = 1 << CSP_LOG_INFO;
+	sys_log_levels |= (1 << CSP_LOG_DEBUG);
+	sys_log_levels |= (1 << CSP_LOG_WARN);
 	linenum = 1;
 	line_wrap = 0;
 	
 	this->debug_log(CSP_LOG_INFO, "Start logging.");
 }
-
+			
 void CSP_Logger::debug_log(int level, const char *fmt, ...)
 {
 	char strbuf[4096];
@@ -232,7 +237,7 @@ void CSP_Logger::debug_log(int level, int domain_num, char *strbuf)
 	if(strbuf != NULL) {
 		nowtime = time(NULL);
 		gettimeofday(&tv, NULL);
-		if(log_cons != 0) { // Print only
+		if((log_cons != 0) || (syslog_flag != 0)) {
 			timedat = localtime(&nowtime);
 			strftime(strbuf2, 255, "%Y-%m-%d %H:%M:%S", timedat);
 			snprintf(strbuf3, 23, ".%06ld", tv.tv_usec);
@@ -280,8 +285,7 @@ void CSP_Logger::debug_log(int level, int domain_num, char *strbuf)
 					}
 #if !defined(Q_OS_WIN)   
 					if(sys_log_level_n != 0) {
-						syslog(level_flag, "uS=%06ld %s",
-							   tv.tv_usec,
+						syslog(level_flag, "%s",
 							   tmps->get_element_syslog().toLocal8Bit().constData());
 					}
 #endif

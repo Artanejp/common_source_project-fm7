@@ -484,10 +484,7 @@ extern void get_short_filename(_TCHAR *dst, _TCHAR *file, int maxlen);
 
 static void setup_logs(void)
 {
-	std::string archstr;
 	std::string delim;
-	int  bLogSYSLOG;
-	int  bLogSTDOUT;
 	char    *p;
 
 	my_procname = "emu";
@@ -521,24 +518,7 @@ static void setup_logs(void)
 #else
 	cpp_confdir = cpp_homedir + ".config" + delim + my_procname + delim;
 #endif
-	bLogSYSLOG = (int)0;
-	bLogSTDOUT = (int)1;
-	//csp_logger = new CSP_Logger((bLogSYSLOG != 0), (bLogSTDOUT != 0), DEVICE_NAME); // Write to syslog, console
 	
-	archstr = "Generic";
-#if defined(__x86_64__)
-	archstr = "amd64";
-#endif
-#if defined(__i386__)
-	archstr = "ia32";
-#endif
-	
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Start Common Source Project '%s'", my_procname.c_str());
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "(C) Toshiya Takeda / Qt Version K.Ohta");
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Architecture: %s", archstr.c_str());
-	
-	//csp_logger->debug_log(AGAR_LOG_INFO, " -? is print help(s).");
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Moduledir = %s home = %s", cpp_confdir.c_str(), cpp_homedir.c_str()); // Debug
 #if !defined(Q_OS_CYGWIN)	
 	{
 		QDir dir;
@@ -567,10 +547,36 @@ int MainLoop(int argc, char *argv[], config_t *cfg)
 	char homedir[PATH_MAX];
 	int thread_ret;
 	int w, h;
+	std::string archstr;
+	std::string emustr("emu");
+	std::string cfgstr(CONFIG_NAME);
 	setup_logs();
 	cpp_homedir.copy(homedir, PATH_MAX - 1, 0);
 	flag = FALSE;
+
+	load_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
+	
+	emustr = emustr + cfgstr;
+
+	csp_logger = new CSP_Logger(config.log_to_syslog, config.log_to_console, emustr.c_str()); // Write to syslog, console
+	csp_logger->set_log_stdout(CSP_LOG_DEBUG, true);
+	csp_logger->set_log_stdout(CSP_LOG_INFO, true);
+	csp_logger->set_log_stdout(CSP_LOG_WARN, true);
+	
+	archstr = "Generic";
+#if defined(__x86_64__)
+	archstr = "amd64";
+#endif
+#if defined(__i386__)
+	archstr = "ia32";
+#endif
 	csp_logger->set_emu_vm_name(DEVICE_NAME); // Write to syslog, console
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Start Common Source Project '%s'", my_procname.c_str());
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "(C) Toshiya Takeda / Qt Version K.Ohta");
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Architecture: %s", archstr.c_str());
+	
+	//csp_logger->debug_log(AGAR_LOG_INFO, " -? is print help(s).");
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Moduledir = %s home = %s", cpp_confdir.c_str(), cpp_homedir.c_str()); // Debug
 	/*
 	 * Into Qt's Loop.
 	 */
@@ -582,8 +588,14 @@ int MainLoop(int argc, char *argv[], config_t *cfg)
 #endif
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Audio and JOYSTICK subsystem was initialised.");
 	GuiMain = new QApplication(argc, argv);
-	load_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
-
+	//load_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
+	for(int ii = 0; ii < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1); ii++) {
+		for(int jj = 0; jj < 8; jj++) {
+			csp_logger->set_device_node_log(ii, 1, jj, config.dev_log_to_syslog[ii][jj]);
+			csp_logger->set_device_node_log(ii, 2, jj, config.dev_log_to_console[ii][jj]);
+			csp_logger->set_device_node_log(ii, 0, jj, config.dev_log_recording[ii][jj]);
+		}
+	}
 	USING_FLAGS *using_flags = new USING_FLAGS(cfg);
 	// initialize emulation core
 
