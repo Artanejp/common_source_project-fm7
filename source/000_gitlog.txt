@@ -1,3 +1,15 @@
+commit cef2d4601438fd1fa680485ddba3434690e58451
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 30 05:02:59 2017 +0900
+
+    [Draw][OpenGL][Windows] Temporally fixed crashing on Windows.This seems to be glGetProcAddress() 's issue.
+
+commit c4ece542677bb0e8a6ff3496f1d65309311e7ff0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 30 01:46:30 2017 +0900
+
+    [RELEASE] 2017-01-30.
+
 commit 5e58321d587a74979c7691d280a4123dba16f68c
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Mon Jan 30 01:36:20 2017 +0900

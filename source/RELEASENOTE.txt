@@ -125,9 +125,9 @@ Changes:
   * [UI/OpenGL] Add selection of draw infrastracture; OpenGLv3(MAIN) and OpenGLv2 (and OpenGLv3.2(Core): Still not implemented).
   * [Qt/OpenGL] Fix backgrounds not display at one-board-computer drawing with OpenGLv2.
   * [Qt/LOG] Enable syslog *truely*.
-  * Built with 5e58321d587a74979c7691d280a4123dba16f68c or newer.
+  * Built with cef2d4601438fd1fa680485ddba3434690e58451 or newer.
 
--- Jan 30, 2017 01:41:09 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Jan 30, 2017 05:04:55 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT January 24, 2017
   * Upstream 2016-12-31
