@@ -15,6 +15,8 @@
 #include <QMenuBar>
 #include <QAction>
 #include <QActionGroup>
+#include <QDir>
+#include <QStyle>
 
 #include "common.h"
 #include "config.h"

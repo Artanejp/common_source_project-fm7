@@ -5,14 +5,16 @@
  *  History: Jan 14, 2015 : Initial
  */
 
+#include <QImageReader>
+#include <QImage>
+#include <QMenu>
+
 #include "commonclasses.h"
 #include "mainwidget_base.h"
 //#include "menuclasses.h"
 #include "sound_dialog.h"
 #include "../common/menu_flags.h"
 
-#include <QImageReader>
-#include <QImage>
 
 // WIP: Will move to another file
 const double s_late_table[5] = {0.05, 0.1, 0.2, 0.3, 0.4};

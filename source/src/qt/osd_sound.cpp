@@ -9,7 +9,9 @@
 
 #include "../emu.h"
 #include "../fileio.h"
+
 #include <SDL.h>
+
 #include "qt_main.h"
 #include "csp_logger.h"
 #include "menu_flags.h"

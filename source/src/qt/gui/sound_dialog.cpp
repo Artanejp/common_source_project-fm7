@@ -5,9 +5,9 @@
  *  History: Jul 28, 2015 : Initial
  */
 
-//#include "menuclasses.h"
+#include <QStyle>
+
 #include "sound_dialog.h"
-//#include "vm.h"
 #include "menu_flags.h"
 
 //extern USING_FLAGS *using_flags;

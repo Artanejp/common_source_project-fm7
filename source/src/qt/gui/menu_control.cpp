@@ -5,7 +5,9 @@
  */
 
 #include <QString>
-//#include "menuclasses.h"
+#include <QMenu>
+#include <QStyle>
+
 #include "commonclasses.h"
 #include "mainwidget_base.h"
 #include "menu_flags.h"

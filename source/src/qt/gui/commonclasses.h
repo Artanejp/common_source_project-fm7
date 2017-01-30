@@ -9,6 +9,11 @@
 #ifndef _CSP_QT_GUI_COMMONCLASSES_H
 #define _CSP_QT_GUI_COMMONCLASSES_H
 
+#include <QVariant>
+#include <QObject>
+#include <QAction>
+
+#if 0
 #if defined(_USE_QT5)
 #include <QVariant>
 #include <QAction>
@@ -23,29 +28,25 @@
 #include <QWidget>
 #include <QIcon>
 #include <QString>
-#else
-#include <QtCore/QVariant>
-#include <QtCore/QString>
-#include <QtGui/QAction>
-#include <QtGui/QApplication>
-#include <QtGui/QButtonGroup>
-#include <QtGui/QGraphicsView>
-#include <QtGui/QHeaderView>
-#include <QtGui/QMainWindow>
-#include <QtGui/QMenu>
-#include <QtGui/QMenuBar>
-#include <QtGui/QStatusBar>
-#include <QtGui/QWidget>
-#include <QtGui/QIconSet>
+#endif
 #endif
 
 #include "simd_types.h"
 #include "common.h"
 #include "config.h"
-//#include "emu.h"
-//#include "qt_main.h"
-//#include "qt_gldraw.h"
-
+#if 0
+class QApplication;
+class QButtonGroup;
+class QGraphicsView;
+class QHeaderView;
+class QMainWindow;
+class QMenu;
+class QMenuBar;
+class QStatusBar;
+class QWidget;
+class QIcon;
+class QString;
+#endif
 class EMU;
 class USING_FLAGS;
 //extern class EMU* emu;

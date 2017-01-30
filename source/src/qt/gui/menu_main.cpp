@@ -7,7 +7,7 @@
  * Jan 14, 2015 : Initial, moved from qt/x1turboz/MainWindow.cpp .
  */
 
-#include <QtCore/QVariant>
+#include <QVariant>
 #include <QtGui>
 #include <QIcon>
 #include <QImage>
@@ -16,6 +16,8 @@
 #include <QApplication>
 #include <QLocale>
 #include <QTranslator>
+#include <QStatusBar>
+
 
 #include "commonclasses.h"
 #include "display_about.h"
@@ -219,6 +221,24 @@ void Ui_MainWindowBase::do_select_render_platform(int num)
 		using_flags->get_config_ptr()->render_minor_version = _minor;
 	}
 }
+
+void Ui_MainWindowBase::set_dipsw(int num, bool flag)
+{
+	if((num < 0) || (num >= 32)) return;
+	if(flag) {
+		using_flags->get_config_ptr()->dipswitch = using_flags->get_config_ptr()->dipswitch | (1 << num);
+	} else {
+		using_flags->get_config_ptr()->dipswitch = using_flags->get_config_ptr()->dipswitch & ~(1 << num);
+	}
+}
+
+bool Ui_MainWindowBase::get_dipsw(int num)
+{
+	if((num < 0) || (num >= 32)) return false;
+	if(((1 << num) & using_flags->get_config_ptr()->dipswitch) == 0) return false;
+	return true;
+}
+
 
 void Ui_MainWindowBase::setupUi(void)
 {

@@ -8,7 +8,7 @@
  * [qt -> gui -> status bar]
  */
 
-#include <QtCore/QVariant>
+#include <QVariant>
 #include <QtGui>
 #include <QSize>
 #include <QHBoxLayout>
@@ -16,6 +16,10 @@
 #include <QBrush>
 #include <QGraphicsView>
 #include <QTransform>
+#include <QLabel>
+#include <QTimer>
+#include <QStatusBar>
+#include <QGraphicsEllipseItem>
 
 #include "mainwidget_base.h"
 //#include "emu.h"

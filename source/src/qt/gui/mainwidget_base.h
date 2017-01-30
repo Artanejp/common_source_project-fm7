@@ -7,46 +7,20 @@
 #ifndef _CSP_QT_MAINWIDGET_BASE_H
 #define _CSP_QT_MAINWIDGET_BASE_H
 
-#if defined(_USE_QT5)
 #include <QVariant>
-#include <QAction>
+#include <QObject>
 #include <QApplication>
-#include <QButtonGroup>
-#include <QGraphicsView>
-#include <QHeaderView>
 #include <QMainWindow>
+#include <QIcon>
+#include <QString>
+#include <QStringList>
 #include <QMenu>
 #include <QMenuBar>
-#include <QStatusBar>
-#include <QWidget>
-#include <QIcon>
-#include <QLabel>
-#include <QGraphicsEllipseItem>
-#include <QStringList>
-#include <QClipboard>
-#else
-#include <QtCore/QVariant>
-#include <QtGui/QAction>
-#include <QtGui/QApplication>
-#include <QtGui/QButtonGroup>
-#include <QtGui/QGraphicsView>
-#include <QtGui/QHeaderView>
-#include <QtGui/QMainWindow>
-#include <QtGui/QMenu>
-#include <QtGui/QMenuBar>
-#include <QtGui/QStatusBar>
-#include <QtGui/QWidget>
-#include <QtGui/QIconSet>
-#include <QLabel>
-#endif
 
-#include "simd_types.h"
 #include "common.h"
 #include "config.h"
 #include "menu_flags.h"
 #include "csp_logger.h"
-//#include "emu.h"
-//#include "vm.h"
 
 class MOVIE_SAVER;
 
@@ -72,6 +46,21 @@ enum {
 };
 
 QT_BEGIN_NAMESPACE
+
+
+class QVariant;
+class QAction;
+class QActionGroup;
+class QButtonGroup;
+class QGraphicsView;
+class QGraphicsScene;
+class QHeaderView;
+
+class QStatusBar;
+class QWidget;
+class QLabel;
+class QGraphicsEllipseItem;
+class QClipboard;
 
 class Ui_SoundDialog;
 class GLDrawClass;
@@ -605,23 +594,12 @@ public slots:
 	void set_scan_line(bool);
 	void set_gl_scan_line_vert(bool);
 	void set_gl_scan_line_horiz(bool);
-	void set_dipsw(int num, bool flag) {
-		if((num < 0) || (num >= 32)) return;
-		if(flag) {
-			using_flags->get_config_ptr()->dipswitch = using_flags->get_config_ptr()->dipswitch | (1 << num);
-		} else {
-			using_flags->get_config_ptr()->dipswitch = using_flags->get_config_ptr()->dipswitch & ~(1 << num);
-		}
-	}
-	bool get_dipsw(int num) {
-		if((num < 0) || (num >= 32)) return false;
-		if(((1 << num) & using_flags->get_config_ptr()->dipswitch) == 0) return false;
-		return true;
-	}
 	void set_printer_device(int);
 	void do_show_about(void);
 	void do_browse_document(QString);
-	
+	void set_dipsw(int num, bool flag);
+	bool get_dipsw(int num);
+
 	void do_set_sound_files_fdd(bool f);
 	void do_set_sound_files_relay(bool f);
 	void do_set_sound_files_buttons(bool f);

@@ -9,14 +9,12 @@
 
 #ifndef _CSP_QT_DIALOGS_H
 #define _CSP_QT_DIALOGS_H
-#if defined(_USE_QT5)
+
 #include <QFileDialog>
-#else
-#include <QtGui/QFileDialog>
-#endif
-//#include "emu.h"
+
 #include "qt_main.h"
 
+QT_BEGIN_NAMESPACE
 typedef class DLL_PREFIX CSP_DiskParams : public QObject
 {   
 Q_OBJECT
@@ -68,5 +66,6 @@ public:
 		delete param;
 	}
 } CSP_DiskDialog;
+QT_END_NAMESPACE
 
 #endif //End.

@@ -5,7 +5,6 @@
  * History: 2015-11-11 Initial.
  */
 
-#include <QDir>
 
 //#include "emu.h"
 //#include "vm.h"
@@ -14,9 +13,8 @@
 #include "commonclasses.h"
 #include "mainwidget_base.h"
 #include "commonclasses.h"
-
-
 #include "qt_main.h"
+
 Menu_MetaClass::Menu_MetaClass(EMU *ep, QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent, int drv) : QMenu(root_entry)
 {
 	QString tmps;

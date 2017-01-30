@@ -14,8 +14,6 @@
 #include <QString>
 #include <QImage>
 
-#include <SDL.h>
-
 #include "osd_base.h"
 
 class GLDrawClass;

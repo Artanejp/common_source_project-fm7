@@ -6,6 +6,8 @@
  * History:
  * Jan 24, 2014 : Moved from some files.
  */
+#include <QMenu>
+#include <QMenuBar>
 
 #include "commonclasses.h"
 #include "mainwidget_base.h"

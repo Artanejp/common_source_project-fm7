@@ -38,11 +38,15 @@ set(QT_COMMON_BASE
 #  QT5_ADD_RESOURCES(s_qt_common_RCC ${RESOURCE}
 #                    ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/icons.qrc)
 #endif()
+#include(cotire)
+
 add_executable(${EXEC_TARGET}
 	  ${QT_COMMON_BASE}
 	  ${s_qt_common_headers_MOC}
 	  ${s_qt_common_RCC}
 )
+#cotire(${EXEC_TARGET})
+
 if(USE_QT_5)
   if(USE_SOCKET)
     QT5_USE_MODULES(${EXEC_TARGET} Widgets Core Gui OpenGL Network)

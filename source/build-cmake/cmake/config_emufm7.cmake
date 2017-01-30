@@ -95,7 +95,7 @@ if(BUILD_FM7)
   set(EXEC_TARGET emufm7)
   add_definitions(-D_FM7)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fm7.qrc)
-  
+ 
 elseif(BUILD_FM8)
   set(EXEC_TARGET emufm8)
   add_definitions(-D_FM8)

@@ -6,9 +6,9 @@
  *   History :
  * Jan 14, 2015 : Initial, moved from qt/x1turboz/MainWindow.cpp .
  */
+#include <QMenu>
+#include <QMenuBar>
 
-#include <QtCore/QVariant>
-#include <QtGui>
 #include "commonclasses.h"
 #include "mainwidget_base.h"
 //#include "menuclasses.h"
