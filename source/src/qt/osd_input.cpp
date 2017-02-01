@@ -552,22 +552,13 @@ void OSD_BASE::enable_mouse()
 {
 	// enable mouse emulation
 	if(!mouse_enabled) {
-		QCursor cursor;
-		QPoint pos;
 		mouse_oldx = mouse_ptrx = get_screen_width() / 2;
 		mouse_oldy = mouse_ptry = get_screen_height() / 2;
-		cursor = glv->cursor();
-		pos.setX(glv->width() / 2);
-		pos.setY(glv->height() / 2);
-		cursor.setPos(glv->mapToGlobal(pos));
-		QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
-		//mouse_shape = cursor.shape();
-		//cursor.setShape(Qt::BlankCursor);
 		mouse_status[0] = 0;
 		mouse_status[1] = 0;
 		mouse_status[2] = mouse_button;
+		emit sig_enable_mouse();
 	}
-	glv->setMouseTracking(true);
 	mouse_enabled = true;
 }
 
@@ -575,11 +566,7 @@ void OSD_BASE::disable_mouse()
 {
 	// disenable mouse emulation
 	if(mouse_enabled) {
-		QCursor cursor;
-		cursor = glv->cursor();
-		if(QApplication::overrideCursor() != NULL) QApplication::restoreOverrideCursor();
-		//QApplication::restoreOverrideCursor();
-		glv->setMouseTracking(false);
+		emit sig_disable_mouse();
 	}
 	mouse_enabled = false;
 }

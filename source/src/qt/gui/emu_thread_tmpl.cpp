@@ -22,9 +22,8 @@
 //#include "csp_logger.h"
 #include "../common/menu_flags.h"
 
-EmuThreadClassBase::EmuThreadClassBase(META_MainWindow *rootWindow, EMU *pp_emu, USING_FLAGS *p, QObject *parent) : QThread(parent) {
+EmuThreadClassBase::EmuThreadClassBase(META_MainWindow *rootWindow, USING_FLAGS *p, QObject *parent) : QThread(parent) {
 	MainWindow = rootWindow;
-	p_emu = pp_emu;
 	using_flags = p;
 	p_config = p->get_config_ptr();
 	
@@ -291,11 +290,6 @@ void EmuThreadClassBase::resize_screen(int screen_width, int screen_height, int 
 	emit sig_resize_screen(screen_width, screen_height);
 }
 
-void EmuThreadClassBase::do_draw_timing(bool f)
-{
-//	draw_timing = f;
-}
-
 void EmuThreadClassBase::sample_access_drv(void)
 {
 	if(using_flags->is_use_qd()) get_qd_string();
@@ -305,53 +299,53 @@ void EmuThreadClassBase::sample_access_drv(void)
 	if(using_flags->is_use_bubble()) get_bubble_string();
 }
 
-void EmuThreadClassBase::doUpdateConfig()
+void EmuThreadClassBase::do_update_config()
 {
 	bUpdateConfigReq = true;
 }
 
-void EmuThreadClassBase::doStartRecordSound()
+void EmuThreadClassBase::do_start_record_sound()
 {
 	bStartRecordSoundReq = true;
 }
 
-void EmuThreadClassBase::doStopRecordSound()
+void EmuThreadClassBase::do_stop_record_sound()
 {
 	bStopRecordSoundReq = true;
 }
 
-void EmuThreadClassBase::doReset()
+void EmuThreadClassBase::do_reset()
 {
 	bResetReq = true;
 }
 
-void EmuThreadClassBase::doSpecialReset()
+void EmuThreadClassBase::do_special_reset()
 {
 	bSpecialResetReq = true;
 }
 
-void EmuThreadClassBase::doLoadState()
+void EmuThreadClassBase::do_load_state()
 {
 	bLoadStateReq = true;
 }
 
-void EmuThreadClassBase::doSaveState()
+void EmuThreadClassBase::do_save_state()
 {
 	bSaveStateReq = true;
 }
 
-void EmuThreadClassBase::doStartRecordVideo(int fps)
+void EmuThreadClassBase::do_start_record_video(int fps)
 {
 	record_fps = fps;
 	bStartRecordMovieReq = true;
 }
 
-void EmuThreadClassBase::doStopRecordVideo()
+void EmuThreadClassBase::do_stop_record_video()
 {
 	bStartRecordMovieReq = false;
 }
 
-void EmuThreadClassBase::doUpdateVolumeLevel(int num, int level)
+void EmuThreadClassBase::do_update_volume_level(int num, int level)
 {
 	if(using_flags->get_use_sound_volume() > 0) {
 		if((num < using_flags->get_use_sound_volume()) && (num >= 0)) {
@@ -361,7 +355,7 @@ void EmuThreadClassBase::doUpdateVolumeLevel(int num, int level)
 	}
 }
 
-void EmuThreadClassBase::doUpdateVolumeBalance(int num, int level)
+void EmuThreadClassBase::do_update_volume_balance(int num, int level)
 {
 	if(using_flags->get_use_sound_volume() > 0) {
 		if((num < using_flags->get_use_sound_volume()) && (num >= 0)) {

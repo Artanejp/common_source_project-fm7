@@ -53,12 +53,8 @@ protected:
 	void get_bubble_string(void);
 
 public:
-	EmuThreadClass(META_MainWindow *rootWindow, EMU *pp_emu, USING_FLAGS *p, QObject *parent = 0);
+	EmuThreadClass(META_MainWindow *rootWindow, USING_FLAGS *p, QObject *parent = 0);
 	~EmuThreadClass();
-	void SetEmu(EMU *p) {
-		p_emu = p;
-	}
-
 	void run() { doWork("");}
 	bool now_debugging();
 	int get_interval(void);
@@ -67,7 +63,7 @@ public slots:
 	void doWork(const QString &param);
 	void print_framerate(int frames);
 	
-	void doSetDisplaySize(int w, int h, int ww, int wh);
+	void do_set_display_size(int w, int h, int ww, int wh);
 	void moved_mouse(int, int);
 
 	void do_write_protect_disk(int drv, bool flag);

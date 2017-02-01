@@ -468,6 +468,8 @@ signals:
 	int sig_movie_seek_frame(bool, int);
 
 	int sig_update_device_node_name(int id, const _TCHAR *name);
+	int sig_enable_mouse(void);
+	int sig_disable_mouse(void);
 };
 QT_END_NAMESPACE
 

@@ -39,7 +39,6 @@ private:
 protected:
 	GLDrawClass *p_wid;
 	USING_FLAGS *using_flags;
-	EMU *p_emu;
 	QImage *imgptr;
 	bool smoosing;
 	bool gl_grid_horiz;
@@ -123,6 +122,7 @@ protected:
 	QImage offscreen_image;
 	GLint texture_max_size;
 	bool low_resolution_screen;
+	bool emu_launched;
 public:
 	GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, EMU *emu = 0);
 	~GLDraw_2_0();
@@ -159,10 +159,10 @@ public slots:
 	void setDrawGLGridVert(bool);
 	void setDrawGLGridHoriz(bool);
 	void setVirtualVramSize(int ,int);	
-	void setEmuPtr(EMU *p);
 	void setChangeBrightness(bool);
 	void updateBitmap(QImage *);
 	void paintGL_OffScreen(int count, int w, int h);
+	void set_emu_launched(void);
 
 signals:
 	int sig_push_image_to_movie(int, int, int, QImage *);

@@ -115,7 +115,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 
 	int drvs;
 	
-	hRunEmu = new EmuThreadClass(rMainWindow, emu, using_flags, this);
+	hRunEmu = new EmuThreadClass(rMainWindow, using_flags);
 	connect(hRunEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
 	connect(hRunEmu, SIGNAL(sig_is_enable_mouse(bool)), glv, SLOT(do_set_mouse_enabled(bool)));
 	connect(glv, SIGNAL(sig_key_down(uint32_t, uint32_t, bool)), hRunEmu, SLOT(do_key_down(uint32_t, uint32_t, bool)));
@@ -124,17 +124,17 @@ void Ui_MainWindow::LaunchEmuThread(void)
 
 	
 	//connect(hRunEmu, SIGNAL(sig_finished()), this, SLOT(delete_emu_thread()));
-	connect(this, SIGNAL(sig_vm_reset()), hRunEmu, SLOT(doReset()));
-	connect(this, SIGNAL(sig_vm_specialreset()), hRunEmu, SLOT(doSpecialReset()));
-	connect(this, SIGNAL(sig_vm_loadstate()), hRunEmu, SLOT(doLoadState()));
-	connect(this, SIGNAL(sig_vm_savestate()), hRunEmu, SLOT(doSaveState()));
+	connect(this, SIGNAL(sig_vm_reset()), hRunEmu, SLOT(do_reset()));
+	connect(this, SIGNAL(sig_vm_specialreset()), hRunEmu, SLOT(do_special_reset()));
+	connect(this, SIGNAL(sig_vm_loadstate()), hRunEmu, SLOT(do_load_state()));
+	connect(this, SIGNAL(sig_vm_savestate()), hRunEmu, SLOT(do_save_state()));
 
-	connect(this, SIGNAL(sig_emu_update_config()), hRunEmu, SLOT(doUpdateConfig()));
-	connect(this, SIGNAL(sig_emu_update_volume_level(int, int)), hRunEmu, SLOT(doUpdateVolumeLevel(int, int)));
-	connect(this, SIGNAL(sig_emu_update_volume_balance(int, int)), hRunEmu, SLOT(doUpdateVolumeBalance(int, int)));
-	connect(this, SIGNAL(sig_emu_start_rec_sound()), hRunEmu, SLOT(doStartRecordSound()));
-	connect(this, SIGNAL(sig_emu_stop_rec_sound()), hRunEmu, SLOT(doStopRecordSound()));
-	connect(this, SIGNAL(sig_emu_set_display_size(int, int, int, int)), hRunEmu, SLOT(doSetDisplaySize(int, int, int, int)));
+	connect(this, SIGNAL(sig_emu_update_config()), hRunEmu, SLOT(do_update_config()));
+	connect(this, SIGNAL(sig_emu_update_volume_level(int, int)), hRunEmu, SLOT(do_update_volume_level(int, int)));
+	connect(this, SIGNAL(sig_emu_update_volume_balance(int, int)), hRunEmu, SLOT(do_update_volume_balance(int, int)));
+	connect(this, SIGNAL(sig_emu_start_rec_sound()), hRunEmu, SLOT(do_start_record_sound()));
+	connect(this, SIGNAL(sig_emu_stop_rec_sound()), hRunEmu, SLOT(do_stop_record_sound()));
+	connect(this, SIGNAL(sig_emu_set_display_size(int, int, int, int)), hRunEmu, SLOT(do_set_display_size(int, int, int, int)));
 	
 
 #if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
@@ -275,9 +275,6 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	//connect(hRunEmu, SIGNAL(quit_draw_thread()), hDrawEmu, SLOT(doExit()));
 	connect(this, SIGNAL(quit_draw_thread()), hDrawEmu, SLOT(doExit()));
 
-//	connect(glv, SIGNAL(sig_draw_timing(bool)), hRunEmu, SLOT(do_draw_timing(bool)));
-//	connect(hDrawEmu, SIGNAL(sig_draw_timing(bool)), hRunEmu, SLOT(do_draw_timing(bool)));
-	
 	connect(glv, SIGNAL(do_notify_move_mouse(int, int)),
 			hRunEmu, SLOT(moved_mouse(int, int)));
 	connect(glv, SIGNAL(do_notify_button_pressed(Qt::MouseButton)),
@@ -307,12 +304,12 @@ void Ui_MainWindow::LaunchEmuThread(void)
 
 	hSaveMovieThread = new MOVIE_SAVER(640, 400,  30, emu->get_osd(), using_flags->get_config_ptr());
 	
-	connect(actionStart_Record_Movie->binds, SIGNAL(sig_start_record_movie(int)), hRunEmu, SLOT(doStartRecordVideo(int)));
+	connect(actionStart_Record_Movie->binds, SIGNAL(sig_start_record_movie(int)), hRunEmu, SLOT(do_start_record_video(int)));
 	connect(this, SIGNAL(sig_start_saving_movie()),
 			actionStart_Record_Movie->binds, SLOT(do_save_as_movie()));
 	connect(actionStart_Record_Movie, SIGNAL(triggered()), this, SLOT(do_start_saving_movie()));
 
-	connect(actionStop_Record_Movie->binds, SIGNAL(sig_stop_record_movie()), hRunEmu, SLOT(doStopRecordVideo()));
+	connect(actionStop_Record_Movie->binds, SIGNAL(sig_stop_record_movie()), hRunEmu, SLOT(do_stop_record_video()));
 	connect(this, SIGNAL(sig_stop_saving_movie()), actionStop_Record_Movie->binds, SLOT(do_stop_saving_movie()));
 	connect(hSaveMovieThread, SIGNAL(sig_set_state_saving_movie(bool)), this, SLOT(do_set_state_saving_movie(bool)));
 	connect(actionStop_Record_Movie, SIGNAL(triggered()), this, SLOT(do_stop_saving_movie()));
@@ -584,11 +581,10 @@ int MainLoop(int argc, char *argv[], config_t *cfg)
 	SDL_Init(SDL_INIT_AUDIO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
 #else
 	SDL_Init(SDL_INIT_AUDIO | SDL_INIT_JOYSTICK | SDL_INIT_VIDEO);
-	//SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO);
 #endif
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Audio and JOYSTICK subsystem was initialised.");
 	GuiMain = new QApplication(argc, argv);
-	//load_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
+	GuiMain->setObjectName(QString::fromUtf8("Gui_Main"));
 	for(int ii = 0; ii < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1); ii++) {
 		for(int jj = 0; jj < 8; jj++) {
 			csp_logger->set_device_node_log(ii, 1, jj, config.dev_log_to_syslog[ii][jj]);
@@ -613,46 +609,24 @@ int MainLoop(int argc, char *argv[], config_t *cfg)
 	rMainWindow->connect(rMainWindow, SIGNAL(sig_quit_all(void)), rMainWindow, SLOT(deleteLater(void)));
 	rMainWindow->setCoreApplication(GuiMain);
 	rMainWindow->getWindow()->show();
-	
-	emu = new EMU(rMainWindow, rMainWindow->getGraphicsView(), using_flags);
-	using_flags->set_emu(emu);
-	using_flags->set_osd(emu->get_osd());
-	csp_logger->set_osd(emu->get_osd());
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "InitInstance() OK.");
-	
+			
+	// main loop
+	rMainWindow->LaunchEmuThread();
+#if defined(USE_JOYSTICK)
+	rMainWindow->LaunchJoyThread();
+#endif	
+	GLDrawClass *pgl = rMainWindow->getGraphicsView();
+	pgl->set_emu_launched();
+	pgl->setFixedSize(pgl->width(), pgl->height());
 	rMainWindow->retranselateUi_Depended_OSD();
-
 	QObject::connect(emu->get_osd(), SIGNAL(sig_update_device_node_name(int, const _TCHAR *)),
 					 rMainWindow, SLOT(do_update_device_node_name(int, const _TCHAR *)));
 	for(int i = 0; i < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1); i++) {
 		rMainWindow->do_update_device_node_name(i, using_flags->get_vm_node_name(i));
 	}
-			
-#ifdef SUPPORT_DRAG_DROP
-	// open command line path
-	//	if(szCmdLine[0]) {
-	//	if(szCmdLine[0] == _T('"')) {
-	//		int len = strlen(szCmdLine);
-	//		szCmdLine[len - 1] = _T('\0');
-	//		szCmdLine++;
-	//	}
-	//	_TCHAR path[_MAX_PATH];
-	//	get_long_full_path_name(szCmdLine, path);
-	//	open_any_file(path);
-	//}
-#endif
+	csp_logger->set_osd(emu->get_osd());
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "InitInstance() OK.");
 	
-	// set priority
-	
-	// main loop
-	GLDrawClass *pgl = rMainWindow->getGraphicsView();
-	pgl->setEmuPtr(emu);
-	pgl->setFixedSize(pgl->width(), pgl->height());
-	
-#if defined(USE_JOYSTICK)
-	rMainWindow->LaunchJoyThread();
-#endif	
-	rMainWindow->LaunchEmuThread();
 	QObject::connect(GuiMain, SIGNAL(lastWindowClosed()),
 					 rMainWindow, SLOT(on_actionExit_triggered()));
 	GuiMain->exec();

@@ -14,6 +14,7 @@
 #include "qt_glutil_gl3_0.h"
 #include <QOpenGLFunctions_4_1_Core>
 #include <QOpenGLFunctions_3_2_Core>
+#include <QApplication>
 
 #if defined(_WINDOWS) || defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
 #include <GL/wglext.h>
@@ -209,4 +210,24 @@ void GLDrawClass::SaveToPixmap(void)
 		save_pixmap_req = false;
 		filename_screen_pixmap.clear();
 	}
+}
+
+void GLDrawClass::do_enable_mouse(void)
+{
+	QCursor cursor;
+	QPoint pos;
+	cursor = this->cursor();
+	pos.setX(this->width() / 2);
+	pos.setY(this->height() / 2);
+	cursor.setPos(this->mapToGlobal(pos));
+	QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
+	//mouse_shape = cursor.shape();
+	//cursor.setShape(Qt::BlankCursor);
+	this->setMouseTracking(true);
+}
+
+void GLDrawClass::do_disable_mouse(void)
+{
+	if(QApplication::overrideCursor() != NULL) QApplication::restoreOverrideCursor();
+	setMouseTracking(false);
 }

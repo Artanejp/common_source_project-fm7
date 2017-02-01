@@ -51,7 +51,7 @@ DrawThreadClass::~DrawThreadClass()
 
 void DrawThreadClass::SetEmu(EMU *p)
 {
-	p_emu = p;
+	//p_emu = p;
 	p_osd = p->get_osd();
 }
 

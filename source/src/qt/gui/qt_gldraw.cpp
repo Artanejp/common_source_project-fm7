@@ -132,7 +132,7 @@ GLDrawClass::GLDrawClass(USING_FLAGS *p, QWidget *parent, const QGLFormat &fmt)
 	draw_height = using_flags->get_screen_height();
 	delay_update = false;
 	is_mouse_enabled = false;
-
+	emu_launched = false;
 	run_vm = true;
 	this->initKeyCode();
 }
@@ -145,11 +145,11 @@ GLDrawClass::~GLDrawClass()
 
 }
 
-void GLDrawClass::setEmuPtr(EMU *p)
+void GLDrawClass::set_emu_launched()
 {
-	p_emu = p;
+	emu_launched = true;
 	if(extfunc != NULL) {
-		extfunc->setEmuPtr(p);
+		extfunc->set_emu_launched();
 	}
 }
 

@@ -26,9 +26,16 @@
 #endif
 #define MAX_SKIP_FRAMES 10
 
-EmuThreadClass::EmuThreadClass(META_MainWindow *rootWindow, EMU *pp_emu, USING_FLAGS *p, QObject *parent)
-	: EmuThreadClassBase(rootWindow, pp_emu, p, parent)
+extern EMU *emu;
+
+EmuThreadClass::EmuThreadClass(META_MainWindow *rootWindow, USING_FLAGS *p, QObject *parent)
+	: EmuThreadClassBase(rootWindow, p, parent)
 {
+	emu = new EMU(rMainWindow, rMainWindow->getGraphicsView(), using_flags);
+	p_emu = emu;
+	p->set_emu(emu);
+	p->set_osd(emu->get_osd());
+	emu->get_osd()->moveToThread(this);
 }
 
 EmuThreadClass::~EmuThreadClass()
@@ -509,7 +516,7 @@ _exit:
 	this->quit();
 }
 
-void EmuThreadClass::doSetDisplaySize(int w, int h, int ww, int wh)
+void EmuThreadClass::do_set_display_size(int w, int h, int ww, int wh)
 {
 	p_emu->suspend();
 	//p_emu->set_vm_screen_size(w, h, -1, -1, ww, wh);

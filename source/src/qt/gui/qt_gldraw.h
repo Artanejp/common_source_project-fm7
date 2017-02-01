@@ -105,7 +105,7 @@ public:
 	void closeEvent(QCloseEvent *event);
 	void drawUpdateTexture(bitmap_t *p);
 	QString logGLString(bool getExtensions = false);
-
+	bool emu_launched;
 public slots:
 	void initKeyCode(void);
 	void releaseKeyCode(void);
@@ -126,7 +126,7 @@ public slots:
 	
 	void updateBitmap(QImage *);
 
-	void setEmuPtr(EMU *p);
+	void set_emu_launched(void);
 	void enterEvent(QEvent *);
 	void leaveEvent(QEvent *);
 	void do_save_frame_screen(void);
@@ -137,6 +137,9 @@ public slots:
 	void do_update_keyboard_scan_code(uint32_t vk, uint32_t scan);
 	void do_set_mouse_enabled(bool flag);
 	void do_stop_run_vm();
+	void do_enable_mouse(void);
+	void do_disable_mouse(void);
+	
 signals:
 	void update_screenChanged(int tick);
 	void do_notify_move_mouse(int x, int y);

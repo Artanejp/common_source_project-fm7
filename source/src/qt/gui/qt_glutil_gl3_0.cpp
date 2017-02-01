@@ -979,7 +979,7 @@ void GLDraw_3_0::paintGL(void)
 	//p_wid->makeCurrent();
 
 	if(crt_flag || redraw_required) { //return;
-		if(p_emu != NULL) {
+		if(emu_launched) {
 			crt_flag = false;
 		}
 		redraw_required = false;

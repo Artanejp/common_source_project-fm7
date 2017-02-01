@@ -169,12 +169,9 @@ protected:
 		key_down_repeat_fifo->clear();
 	};		
 public:
-	EmuThreadClassBase(META_MainWindow *rootWindow, EMU *pp_emu, USING_FLAGS *p, QObject *parent = 0);
+	EmuThreadClassBase(META_MainWindow *rootWindow, USING_FLAGS *p, QObject *parent = 0);
 	~EmuThreadClassBase();
 	virtual void run() {};
-	void SetEmu(EMU *p) {
-		p_emu = p;
-	}
 	void set_tape_play(bool);
 	void resize_screen(int sw, int sh, int stw, int sth);
 	void sample_access_drv(void);
@@ -182,24 +179,22 @@ public:
 public slots:
 	void doExit(void);
 	
-	void doReset();
-	void doSpecialReset();
-	void doLoadState();
-	void doSaveState();
-	void doUpdateConfig();
-	void doStartRecordSound();
-	void doStopRecordSound();
-	void doStartRecordVideo(int fps);
-	void doStopRecordVideo();
-	void doUpdateVolumeLevel(int num, int level);
-	void doUpdateVolumeBalance(int num, int level);
+	void do_reset();
+	void do_special_reset();
+	void do_load_state();
+	void do_save_state();
+	void do_update_config();
+	void do_start_record_sound();
+	void do_stop_record_sound();
+	void do_start_record_video(int fps);
+	void do_stop_record_video();
+	void do_update_volume_level(int num, int level);
+	void do_update_volume_balance(int num, int level);
 
 	void button_pressed_mouse(Qt::MouseButton);
 	void button_released_mouse(Qt::MouseButton);
 	void do_key_down(uint32_t vk, uint32_t mod, bool repeat);
 	void do_key_up(uint32_t vk, uint32_t mod);
-	void do_draw_timing(bool f);
-	
 signals:
 	int message_changed(QString);
 	int window_title_changed(QString);

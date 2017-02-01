@@ -23,7 +23,6 @@ class DLL_PREFIX Dlg_AboutCSP : public QWidget
 {
 	Q_OBJECT
 protected:
-	EMU *p_emu;
 	USING_FLAGS *using_flags;
 	QWidget *parent_widget;
 

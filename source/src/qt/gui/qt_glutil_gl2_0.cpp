@@ -18,13 +18,9 @@
 #include "qt_glutil_gl2_0.h"
 #include "menu_flags.h"
 
-//extern USING_FLAGS *using_flags;
-
-
 GLDraw_2_0::GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, EMU *emu) : QObject(parent)
 {
 	p_wid = parent;
-	p_emu = emu;
 	using_flags = p;
 	
 	gl_grid_horiz = false;
@@ -38,14 +34,14 @@ GLDraw_2_0::GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, EMU *emu) : QObject(
 	crt_flag = false;
 	smoosing = false;
 	uVramTextureID = 0;
-
+	emu_launched = false;
+	
 	imgptr = NULL;
 	screen_multiply = 1.0f;
 	screen_texture_width = using_flags->get_screen_width();
 	screen_texture_width_old = using_flags->get_screen_width();
 	screen_texture_height = using_flags->get_screen_height();
 	screen_texture_height_old = using_flags->get_screen_height();
-	p_emu = emu;
 	extfunc_2 = NULL;
 	redraw_required = false;
 
@@ -184,9 +180,9 @@ void GLDraw_2_0::setVirtualVramSize(int width, int height)
 	crt_flag = true;
 }
 
-void GLDraw_2_0::setEmuPtr(EMU *p)
+void GLDraw_2_0::set_emu_launched(void)
 {
-	p_emu = p;
+	emu_launched = true;
 }
 
 void GLDraw_2_0::setDrawGLGridVert(bool flag)
@@ -922,7 +918,7 @@ void GLDraw_2_0::paintGL(void)
 	int i;
 	//p_wid->makeCurrent();
 	if(crt_flag || redraw_required) { //return;
-		if(p_emu != NULL) {
+		if(emu_launched) {
 			crt_flag = false;
 		}
 		redraw_required = false;
