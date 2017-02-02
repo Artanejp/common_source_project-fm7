@@ -190,6 +190,7 @@ if(WIN32)
 		   ${VM_APPEND_LIBS}
 		   ${FMGEN_LIB}
 		   vm_vm
+		   vm_common_vm
 		   ${DEBUG_LIBS}
 		   common_common
 		   )
@@ -198,8 +199,8 @@ else()
 		   common_emu
            qt_${VM_NAME}
 		   vm_${VM_NAME}
-		   ${VM_APPEND_LIBS}
 		   vm_vm
+		   ${VM_APPEND_LIBS}
 		   ${DEBUG_LIBS}
 		   common_common
 		   )
@@ -233,7 +234,7 @@ else()
 #       ${LIBAV_LIBRARIES}
        ${ADDITIONAL_LIBRARIES}
        )
-       set(BUNDLE_LIBS ${BUNDLE_LIBS} -lCSPosd ${FMGEN_LIB} -lCSPgui -lCSPemu_utils -lCSPavio)
+       set(BUNDLE_LIBS ${BUNDLE_LIBS} -lCSPosd ${FMGEN_LIB} -lCSPcommon_vm -lCSPgui -lCSPemu_utils -lCSPavio)
 endif()
 
 if(USE_QT_5)

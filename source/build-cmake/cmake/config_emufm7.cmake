@@ -15,8 +15,7 @@ set(WITH_JOYSTICK ON)
 
 set(VMFILES
 		   mc6809.cpp
-#
-		   pcm1bit.cpp
+#		   pcm1bit.cpp
 #		   beep.cpp
 		   mb8877.cpp
 		   
@@ -27,7 +26,6 @@ set(VMFILES
 		   disk.cpp
 		   event.cpp
 		   io.cpp
-		   memory.cpp
 )
 
 if(NOT BUILD_FM7)
@@ -95,74 +93,74 @@ if(BUILD_FM7)
   set(EXEC_TARGET emufm7)
   add_definitions(-D_FM7)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fm7.qrc)
-  set(VMFILES ${VMFILES} ay_3_891x.cpp)
+#  set(VMFILES ${VMFILES} ay_3_891x.cpp)
  
 elseif(BUILD_FM8)
   set(EXEC_TARGET emufm8)
   add_definitions(-D_FM8)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fm8.qrc)
-  set(VMFILES ${VMFILES} ay_3_891x.cpp)
+#  set(VMFILES ${VMFILES} ay_3_891x.cpp)
   
 elseif(BUILD_FM77)
   set(EXEC_TARGET emufm77)
   add_definitions(-D_FM77)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fm77.qrc)
-  set(VMFILES ${VMFILES} ay_3_891x.cpp)
+#  set(VMFILES ${VMFILES} ay_3_891x.cpp)
   
 elseif(BUILD_FM77L2)
   set(EXEC_TARGET emufm77l2)
   add_definitions(-D_FM77L2)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fm77l2.qrc)
-  set(VMFILES ${VMFILES} ay_3_891x.cpp)
+#  set(VMFILES ${VMFILES} ay_3_891x.cpp)
   
 elseif(BUILD_FM77L4)
   set(EXEC_TARGET emufm77l4)
   add_definitions(-D_FM77L4)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/source/src/qt/fm7/fm77.qrc)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fm77l4.qrc)
-  set(VMFILES ${VMFILES} ay_3_891x.cpp)
+#  set(VMFILES ${VMFILES} ay_3_891x.cpp)
   
 elseif(BUILD_FM77AV)
   set(EXEC_TARGET emufm77av)
   add_definitions(-D_FM77AV)
   set(FM77AV_VARIANTS ON)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fm77av.qrc)
-  set(VMFILES ${VMFILES} beep.cpp)
+#  set(VMFILES ${VMFILES} beep.cpp)
 
 elseif(BUILD_FM77AV20)
   set(EXEC_TARGET emufm77av20)
   add_definitions(-D_FM77AV20)
   set(FM77AV_VARIANTS ON)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fm77av20.qrc)
-  set(VMFILES ${VMFILES} beep.cpp)
+#  set(VMFILES ${VMFILES} beep.cpp)
   
 elseif(BUILD_FM77AV20EX)
   set(EXEC_TARGET emufm77av20ex)
   add_definitions(-D_FM77AV20EX)
   set(FM77AV_VARIANTS ON)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fm77av20ex.qrc)
-  set(VMFILES ${VMFILES} beep.cpp)
+#  set(VMFILES ${VMFILES} beep.cpp)
   
 elseif(BUILD_FM77AV40)
   set(EXEC_TARGET emufm77av40)
   add_definitions(-D_FM77AV40)
   set(FM77AV_VARIANTS ON)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fm77av40.qrc)
-  set(VMFILES ${VMFILES} beep.cpp)
+#  set(VMFILES ${VMFILES} beep.cpp)
 
 elseif(BUILD_FM77AV40SX)
   set(EXEC_TARGET emufm77av40sx)
   add_definitions(-D_FM77AV40SX)
   set(FM77AV_VARIANTS ON)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fm77av40sx.qrc)
-  set(VMFILES ${VMFILES} beep.cpp)
+#  set(VMFILES ${VMFILES} beep.cpp)
 
 elseif(BUILD_FM77AV40EX)
   set(EXEC_TARGET emufm77av40ex)
   add_definitions(-D_FM77AV40EX)
   set(FM77AV_VARIANTS ON)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fm77av40ex.qrc)
-  set(VMFILES ${VMFILES} beep.cpp)
+#  set(VMFILES ${VMFILES} beep.cpp)
   
 endif()
 

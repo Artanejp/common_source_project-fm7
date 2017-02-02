@@ -8,9 +8,11 @@
  *   Jun 16, 2015 : Initial, split from sound.cpp.
  *
  */
+#include "../vm.h"
 #include "fm7_mainio.h"
 #include "./joystick.h"
 #include "../../config.h"
+#include "../../emu.h"
 
 JOYSTICK::JOYSTICK(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
 {

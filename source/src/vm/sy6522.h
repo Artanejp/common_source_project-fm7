@@ -26,8 +26,8 @@
 #ifndef _SY6522_H_
 #define _SY6522_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 #define SIG_SY6522_PORT_A	0
@@ -37,6 +37,8 @@
 #define SIG_SY6522_PORT_CB1	4
 #define SIG_SY6522_PORT_CB2	5
 
+class VM;
+class EMU;
 class SY6522 : public DEVICE
 {
 private:

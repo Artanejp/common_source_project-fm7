@@ -6,6 +6,7 @@
  *  Feb 11, 2015 : Initial
  */
 
+#include "vm.h"
 #include "../../fileio.h"
 #include "emu.h"
 #include "fm7_common.h"

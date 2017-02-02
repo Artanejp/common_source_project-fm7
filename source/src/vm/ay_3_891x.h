@@ -12,8 +12,8 @@
 #ifndef _AY_3_891X_H_
 #define _AY_3_891X_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 #include "fmgen/psg_ay_3_891x.h"
 
@@ -46,6 +46,8 @@
 #endif
 #define SIG_AY_3_891X_MUTE	2
 
+class VM;
+class EMU;
 class AY_3_891X : public DEVICE
 {
 private:

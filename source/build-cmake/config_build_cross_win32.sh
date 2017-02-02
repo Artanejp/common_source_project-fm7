@@ -136,6 +136,7 @@ case ${BUILD_TYPE} in
 esac
 
 # libCSPGui
+build_dll libCSPcommon_vm
 build_dll libCSPfmgen
 build_dll libCSPavio
 build_dll libCSPgui

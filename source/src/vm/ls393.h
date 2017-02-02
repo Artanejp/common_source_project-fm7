@@ -10,12 +10,14 @@
 #ifndef _LS393_H_
 #define _LS393_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 #define SIG_LS393_CLK	0
 
+class VM;
+class EMU;
 class LS393 : public DEVICE
 {
 private:

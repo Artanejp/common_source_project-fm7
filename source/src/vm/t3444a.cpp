@@ -259,13 +259,13 @@ void T3444A::write_signal(int id, uint32_t data, uint32_t mask)
 	} else if(id == SIG_T3444A_MOTOR) {
 		motor_on = ((data & mask) != 0);
 	}
-#if defined(USE_SOUND_FILES)
+//#if defined(USE_SOUND_FILES)
 	else if((id >= SIG_SOUNDER_MUTE) && (id < (SIG_SOUNDER_MUTE + 2))) {
 		snd_mute = ((data & mask) != 0);
 	} else if((id >= SIG_SOUNDER_RELOAD) && (id < (SIG_SOUNDER_RELOAD + 2))) {
 		reload_sound_data(id - SIG_SOUNDER_RELOAD);
 	}
-#endif
+//#endif
 }
 
 uint32_t T3444A::read_signal(int ch)
@@ -301,14 +301,15 @@ void T3444A::event_callback(int event_id, int err)
 	case EVENT_SEEK:
 		if(seektrk > fdc[drvreg].track) {
 			fdc[drvreg].track++;
-#if defined(USE_SOUND_FILES)
+//#if defined(USE_SOUND_FILES)
 			add_sound(T3444A_SND_TYPE_SEEK);
-#endif			
+//#endif			
 		} else if(seektrk < fdc[drvreg].track) {
 			fdc[drvreg].track--;
-#if defined(USE_SOUND_FILES)
+//#if defined(USE_SOUND_FILES)
+
 			add_sound(T3444A_SND_TYPE_SEEK);
-#endif			
+//#endif			
 		}
 		if(seektrk != fdc[drvreg].track) {
 			register_seek_event();
@@ -756,7 +757,8 @@ void T3444A::set_drive_mfm(int drv, bool mfm)
 // TYPE=
 //     0: FDD SEEK
 //     1: HEAD ENGAGE (Optional?)
-#if defined(USE_SOUND_FILES)
+//#if defined(USE_SOUND_FILES)
+
 void T3444A::add_sound(int type)
 {
 	int *p;
@@ -903,7 +905,7 @@ void T3444A::set_volume(int ch, int decibel_l, int decibel_r)
 	snd_level_l = decibel_to_volume(decibel_l);
 	snd_level_r = decibel_to_volume(decibel_r);
 }
-#endif
+//#endif
 
 #define STATE_VERSION	2
 
@@ -932,7 +934,8 @@ void T3444A::save_state(FILEIO* state_fio)
 	state_fio->FputBool(tnd);
 	state_fio->FputBool(motor_on);
 	state_fio->FputUint32(prev_rqm_clock);
-#if defined(USE_SOUND_FILES)
+//#if defined(USE_SOUND_FILES)
+
 	state_fio->Fwrite(snd_seek_name, sizeof(snd_seek_name), 1);
 	state_fio->Fwrite(snd_head_name, sizeof(snd_head_name), 1);
 	for(int i = 0; i < T3444A_SND_TBL_MAX; i++) {
@@ -944,7 +947,7 @@ void T3444A::save_state(FILEIO* state_fio)
 	state_fio->FputBool(snd_mute);
 	state_fio->FputInt32(snd_level_l);
 	state_fio->FputInt32(snd_level_r);
-#endif
+//#endif
 }
 
 bool T3444A::load_state(FILEIO* state_fio)
@@ -984,7 +987,7 @@ bool T3444A::load_state(FILEIO* state_fio)
 	tnd = state_fio->FgetBool();
 	motor_on = state_fio->FgetBool();
 	prev_rqm_clock = state_fio->FgetUint32();
-#if defined(USE_SOUND_FILES)
+//#if defined(USE_SOUND_FILES)
 	if(!pending) {
 		state_fio->Fread(snd_seek_name, sizeof(snd_seek_name), 1);
 		state_fio->Fread(snd_head_name, sizeof(snd_head_name), 1);
@@ -1010,7 +1013,7 @@ bool T3444A::load_state(FILEIO* state_fio)
 			load_sound_data(T3444A_SND_TYPE_HEAD, (const _TCHAR *)tmps);
 		}
 	}
-#endif
+//#endif
 	//touch_sound();
 	return true;
 }

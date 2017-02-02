@@ -10,8 +10,8 @@
 #ifndef _Z80PIO_H_
 #define _Z80PIO_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 #define SIG_Z80PIO_PORT_A	0
@@ -19,6 +19,8 @@
 #define SIG_Z80PIO_STROBE_A	2
 #define SIG_Z80PIO_STROBE_B	3
 
+class VM;
+class EMU;
 class Z80PIO : public DEVICE
 {
 private:

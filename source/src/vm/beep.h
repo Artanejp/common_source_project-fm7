@@ -10,13 +10,15 @@
 #ifndef _BEEP_H_
 #define _BEEP_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 #define SIG_BEEP_ON	0
 #define SIG_BEEP_MUTE	1
 
+class VM;
+class EMU;
 class BEEP : public DEVICE
 {
 private:

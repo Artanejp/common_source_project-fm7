@@ -5,7 +5,9 @@
  * History : 
  *  Feb 12, 2015 : Initial 
  */
-#include "fm7.h"
+
+#include "vm.h"
+#include "emu.h"
 #include "../../fifo.h"
 #include "../device.h"
 #include "fm7_keyboard.h"

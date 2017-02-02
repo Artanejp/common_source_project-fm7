@@ -11,24 +11,23 @@
 #ifndef _MC6809_H_
 #define _MC6809_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
-#ifdef USE_DEBUGGER
+class VM;
+class EMU;
 class DEBUGGER;
-#endif
-
 class MC6809 : public DEVICE
 {
 private:
 	// context
 	DEVICE *d_mem;
-#ifdef USE_DEBUGGER
+
 	DEBUGGER *d_debugger;
 	DEVICE *d_mem_stored;
 	int dasm_ptr;
-#endif
+
 	outputs_t outputs_bus_halt; // For sync
 
 	outputs_t outputs_bus_clr; // If clr() insn used, write "1" or "2".
@@ -417,7 +416,6 @@ public:
 	}
 	~MC6809() {}
 	
-#ifdef USE_DEBUGGER
 	void *get_debugger()
 	{
 		return d_debugger;
@@ -482,7 +480,7 @@ public:
 	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 	uint32_t cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_t *oprom, const uint8_t *opram);
-#endif
+
 	// common functions
 	void reset();
 	void initialize();
@@ -553,12 +551,12 @@ public:
 	{
 		register_output_signal(&outputs_bus_clr, device, id, mask);
 	}
-#ifdef USE_DEBUGGER
+
 	void set_context_debugger(DEBUGGER* device)
 	{
 		d_debugger = device;
 	}
-#endif
+
 };
 
 #endif

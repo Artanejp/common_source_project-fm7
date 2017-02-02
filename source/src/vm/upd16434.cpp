@@ -8,7 +8,8 @@
 	[ uPD16434 ]
 */
 
-
+#include "vm.h"
+#include "emu.h"
 #include "upd16434.h"
 
 /*

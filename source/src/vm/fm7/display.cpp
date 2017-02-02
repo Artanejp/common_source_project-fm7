@@ -5,6 +5,8 @@
  *  Feb 10, 2015 : Initial.
  */
 
+#include "vm.h"
+#include "emu.h"
 #include "../../fileio.h"
 #include "fm7_display.h"
 #if defined(_FM77AV_VARIANTS)

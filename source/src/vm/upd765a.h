@@ -24,7 +24,7 @@
 #define SIG_UPD765A_DRQ_MASK	6
 #define SIG_UPD765A_FREADY	7
 
-#if defined(USE_SOUND_FILES)
+//#if defined(USE_SOUND_FILES)
 #define UPD765A_SND_TBL_MAX 256
 #ifndef SIG_SOUNDER_MUTE
 #define SIG_SOUNDER_MUTE    	(65536 + 0)
@@ -38,7 +38,7 @@
 
 #define UPD765A_SND_TYPE_SEEK 0
 #define UPD765A_SND_TYPE_HEAD 1
-#endif
+//#endif
 
 class DISK;
 
@@ -62,10 +62,10 @@ private:
 		uint32_t prev_clock;
 	} fdc[4];
 	DISK* disk[4];
-#if defined(USE_SOUND_FILES)
+//#if defined(USE_SOUND_FILES)
 	int seek_snd_trk[4];
 	int seek_snd_id[4];
-#endif
+//#endif
 	uint8_t hdu, hdue, id[4], eot, gpl, dtl;
 	
 	int phase, prevphase;
@@ -73,9 +73,9 @@ private:
 	uint32_t result;
 	int step_rate_time;
 	bool no_dma_mode, motor_on;
-#ifdef UPD765A_DMA_MODE
+//#ifdef UPD765A_DMA_MODE
 	bool dma_data_lost;
-#endif
+//#endif
 	bool irq_masked, drq_masked;
 	
 	uint8_t* bufptr;
@@ -139,7 +139,7 @@ private:
 	void cmd_specify();
 	void cmd_invalid();
 	
-#if defined(USE_SOUND_FILES)
+//#if defined(USE_SOUND_FILES)
 	_TCHAR snd_seek_name[512];
 	_TCHAR snd_head_name[512];
 	int snd_seek_mix_tbl[UPD765A_SND_TBL_MAX];
@@ -152,7 +152,7 @@ private:
 	int snd_level_l, snd_level_r;
 	virtual void mix_main(int32_t *dst, int count, int16_t *src, int *table, int samples);
 	void add_sound(int type);
-#endif
+//#endif
 public:
 	UPD765A(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -163,7 +163,7 @@ public:
 		force_ready = false;
 		raise_irq_when_media_changed = false;
 		set_device_name(_T("uPD765A FDC"));
-#if defined(USE_SOUND_FILES)
+//#if defined(USE_SOUND_FILES)
 		for(int i = 0; i < UPD765A_SND_TBL_MAX; i++) {
 			snd_seek_mix_tbl[i] = -1;
 			snd_head_mix_tbl[i] = -1;
@@ -174,7 +174,7 @@ public:
 		snd_level_l = snd_level_r = decibel_to_volume(0);
 		memset(snd_seek_name, 0x00, sizeof(snd_seek_name));
 		memset(snd_head_name, 0x00, sizeof(snd_head_name));
-#endif
+//#endif
 	}
 	~UPD765A() {}
 	
@@ -212,7 +212,7 @@ public:
 	{
 		return disk[drv];
 	}
-#if defined(USE_SOUND_FILES)
+//#if defined(USE_SOUND_FILES)
 	// Around SOUND. 20161004 K.O
 	bool load_sound_data(int type, const _TCHAR *pathname);
 	void release_sound_data(int type);
@@ -220,7 +220,7 @@ public:
 	
 	void mix(int32_t *buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
-#endif
+//#endif
 	void open_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_disk(int drv);
 	bool is_disk_inserted(int drv);

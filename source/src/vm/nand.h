@@ -10,8 +10,8 @@
 #ifndef _NAND_H_
 #define _NAND_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 #define SIG_NAND_BIT_0	0x01
@@ -23,6 +23,8 @@
 #define SIG_NAND_BIT_6	0x40
 #define SIG_NAND_BIT_7	0x80
 
+class VM;
+class EMU;
 class NAND : public DEVICE
 {
 private:

@@ -139,6 +139,7 @@ void UPD765A::initialize()
 	motor_on = false;	// motor off
 	reset_signal = true;
 	irq_masked = drq_masked = false;
+	dma_data_lost = false;
 	
 	set_irq(false);
 	set_drq(false);
@@ -147,12 +148,12 @@ void UPD765A::initialize()
 #else
 	set_hdu(0);
 #endif
-#if defined(USE_SOUND_FILES)
+//#if defined(USE_SOUND_FILES)
 	for(int i = 0; i < 4; i++) {
 		seek_snd_trk[i] = 0;
 		seek_snd_id[i] = -1;
 	}
-#endif	
+//#endif	
 	// index hole event
 	if(outputs_index.count) {
 		register_event(this, EVENT_INDEX, 4, true, NULL);
@@ -177,9 +178,9 @@ void UPD765A::reset()
 //	CANCEL_EVENT();
 	phase_id = drq_id = lost_id = result7_id = -1;
 	seek_id[0] = seek_id[1] = seek_id[2] = seek_id[3] = -1;
-#if defined(USE_SOUND_FILES)
+//#if defined(USE_SOUND_FILES)
 	seek_snd_id[0] = seek_snd_id[1] = seek_snd_id[2] = seek_snd_id[3] = -1;
-#endif	
+//#endif	
 	set_irq(false);
 	set_drq(false);
 }
@@ -410,13 +411,13 @@ void UPD765A::write_signal(int id, uint32_t data, uint32_t mask)
 		// for NEC PC-98x1 series
 		force_ready = ((data & mask) != 0);
 	}
-#if defined(USE_SOUND_FILES)
+//#if defined(USE_SOUND_FILES)
 	else if((id >= SIG_SOUNDER_MUTE) && (id < (SIG_SOUNDER_MUTE + 2))) {
 		snd_mute = ((data & mask) != 0);
 	} else if((id >= SIG_SOUNDER_RELOAD) && (id < (SIG_SOUNDER_RELOAD + 2))) {
 		reload_sound_data(id - SIG_SOUNDER_RELOAD);
 	}
-#endif
+//#endif
 }
 
 uint32_t UPD765A::read_signal(int ch)
@@ -470,7 +471,7 @@ void UPD765A::event_callback(int event_id, int err)
 		seek_id[drv] = -1;
 		seek_event(drv);
 	}
-#if defined(USE_SOUND_FILES)
+//#if defined(USE_SOUND_FILES)
 	else if(event_id >= EVENT_SEEK_SND && event_id < EVENT_SEEK_SND + 4) {
 		int drv = event_id - EVENT_SEEK_SND;
 		int seektime_snd = (32 - 2 * step_rate_time) * 1000;
@@ -491,8 +492,7 @@ void UPD765A::event_callback(int event_id, int err)
 			add_sound(UPD765A_SND_TYPE_SEEK);
 		}
 	}
-#endif
-
+//#endif
 }
 
 void UPD765A::set_irq(bool val)
@@ -689,13 +689,13 @@ void UPD765A::seek(int drv, int trk)
 	if(disk[drv]->drive_type == DRIVE_TYPE_2HD) {
 		seektime /= 2;
 	}
-#if defined(USE_SOUND_FILES)
+//#if defined(USE_SOUND_FILES)
 	int seektime_snd = 0;
 	if(drv < 4) {
 		if(trk != fdc[drv].track) seektime_snd = 500 + (32 - 2 * step_rate_time) * 1000;
 		seek_snd_trk[drv] = fdc[drv].track;
 	}
-#endif			
+//#endif			
 	seektime = (trk == fdc[drv].track) ? 120 : seektime * abs(trk - fdc[drv].track) + 500; //usec
 	
 	if(drv >= 4) {
@@ -712,13 +712,13 @@ void UPD765A::seek(int drv, int trk)
 			cancel_event(this, seek_id[drv]);
 		}
 		register_event(this, EVENT_SEEK + drv, seektime, false, &seek_id[drv]);
-#if defined(USE_SOUND_FILES)
+//#if defined(USE_SOUND_FILES)
 		if(seek_snd_id[drv] != -1) {
 			cancel_event(this, seek_snd_id[drv]);
 			seek_snd_id[drv] = -1;
 		}
 		if(seektime_snd > 0) register_event(this, EVENT_SEEK_SND + drv, seektime_snd, false, &seek_snd_id[drv]);
-#endif
+//#endif
 		seekstat |= 1 << drv;
 #endif
 	}
@@ -1637,7 +1637,7 @@ void UPD765A::set_drive_mfm(int drv, bool mfm)
 		disk[drv]->drive_mfm = mfm;
 	}
 }
-#if defined(USE_SOUND_FILES)
+//#if defined(USE_SOUND_FILES)
 void UPD765A::add_sound(int type)
 {
 	int *p;
@@ -1784,7 +1784,7 @@ void UPD765A::set_volume(int ch, int decibel_l, int decibel_r)
 	snd_level_l = decibel_to_volume(decibel_l);
 	snd_level_r = decibel_to_volume(decibel_r);
 }
-#endif
+//#endif
 
 #define STATE_VERSION	3
 
@@ -1830,13 +1830,13 @@ void UPD765A::save_state(FILEIO* state_fio)
 	state_fio->FputBool(reset_signal);
 	state_fio->FputBool(prev_index);
 	state_fio->FputUint32(prev_drq_clock);
-#if defined(USE_SOUND_FILES)
+//#if defined(USE_SOUND_FILES)
 	for(int i = 0; i < 4; i++) {
 		state_fio->FputInt32(seek_snd_trk[i]);
 		state_fio->FputInt32(seek_snd_id[i]);
 	}
-#endif
-#if defined(USE_SOUND_FILES)
+//#endif
+//#if defined(USE_SOUND_FILES)
 	state_fio->Fwrite(snd_seek_name, sizeof(snd_seek_name), 1);
 	state_fio->Fwrite(snd_head_name, sizeof(snd_head_name), 1);
 	for(int i = 0; i < UPD765A_SND_TBL_MAX; i++) {
@@ -1848,7 +1848,7 @@ void UPD765A::save_state(FILEIO* state_fio)
 	state_fio->FputBool(snd_mute);
 	state_fio->FputInt32(snd_level_l);
 	state_fio->FputInt32(snd_level_r);
-#endif
+//#endif
 }
 
 bool UPD765A::load_state(FILEIO* state_fio)
@@ -1905,7 +1905,7 @@ bool UPD765A::load_state(FILEIO* state_fio)
 	reset_signal = state_fio->FgetBool();
 	prev_index = state_fio->FgetBool();
 	prev_drq_clock = state_fio->FgetUint32();
-#if defined(USE_SOUND_FILES)
+//#if defined(USE_SOUND_FILES)
 	if(!pending) {
 		for(int i = 0; i < 4; i++) {
 			seek_snd_trk[i] = state_fio->FgetInt32();
@@ -1935,7 +1935,7 @@ bool UPD765A::load_state(FILEIO* state_fio)
 			load_sound_data(UPD765A_SND_TYPE_HEAD, (const _TCHAR *)tmps);
 		}
 	}
-#endif
+//#endif
 	//touch_sound();
 	return true;
 }

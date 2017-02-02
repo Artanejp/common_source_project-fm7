@@ -14,6 +14,8 @@
 #include "../emu.h"
 #include "device.h"
 
+//class VM;
+//class EMU;
 class RP5C01 : public DEVICE
 {
 private:

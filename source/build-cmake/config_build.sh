@@ -120,16 +120,12 @@ esac
 
 # libCSPGui
 
+build_dll libCSPcommon_vm
 build_dll libCSPfmgen
-
 build_dll libCSPavio
-
 build_dll libCSPgui
-
 build_dll libCSPosd
-
 build_dll libCSPemu_utils
-
 
 for SRCDATA in $@ ; do\
 

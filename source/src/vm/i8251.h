@@ -10,8 +10,8 @@
 #ifndef _I8251_H_
 #define _I8251_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 #define SIG_I8251_RECV		0
@@ -21,7 +21,8 @@
 #define SIG_I8251_LOOPBACK	4
 
 class FIFO;
-
+class VM;
+class EMU;
 class I8251 : public DEVICE
 {
 private:

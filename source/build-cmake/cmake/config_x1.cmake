@@ -20,13 +20,13 @@ set(VMFILES
 		   beep.cpp
 		   hd46505.cpp
 		   i8255.cpp
-		   ym2151.cpp
+#		   ym2151.cpp
 #		   ym2203.cpp
-		   ay_3_891x.cpp
+#		   ay_3_891x.cpp
 		   mb8877.cpp
 		   upd1990a.cpp
 		   z80ctc.cpp
-		   z80pio.cpp
+#		   z80pio.cpp
 		   z80sio.cpp
 		   
 		   prnfile.cpp
@@ -34,7 +34,7 @@ set(VMFILES
 		   disk.cpp
 		   event.cpp
 		   io.cpp
-		   memory.cpp
+#		   memory.cpp
 		   prnfile.cpp
 		   mz1p17.cpp
 )

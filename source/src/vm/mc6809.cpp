@@ -15,7 +15,8 @@
 */
 
 // Fixed IRQ/FIRQ by Mr.Sasaji at 2011.06.17
-
+#include "vm.h"
+#include "../emu.h"
 #include "mc6809.h"
 #include "mc6809_consts.h"
 //#include "common.h"
@@ -248,10 +249,10 @@ void MC6809::reset()
 	U = 0;
 	S = 0;
 	EA = 0;
-#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+//#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	clr_used = false;
 	write_signals(&outputs_bus_clr, 0x00000000);
-#endif
+//#endif
 	write_signals(&outputs_bus_halt, ((int_state & MC6809_HALT_BIT) != 0) ? 0xffffffff : 0x00000000);
    
 	CC |= CC_II;	/* IRQ disabled */
@@ -532,7 +533,7 @@ void MC6809::run_one_opecode()
 
 void MC6809::op(uint8_t ireg)
 {
-#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+//#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	if(ireg == 0x0f) { // clr_di()
 		write_signals(&outputs_bus_clr, 0x00000001);
 		clr_used = true;
@@ -543,37 +544,49 @@ void MC6809::op(uint8_t ireg)
 		if(clr_used) write_signals(&outputs_bus_clr, 0x00000000);
 		clr_used = false;
 	}
-   
-#endif
+//#endif
 	//printf("CPU(%08x) PC=%04x OP=%02x %02x %02x %02x %02x\n", (void *)this, PC, ireg, RM(PC), RM(PC + 1), RM(PC + 2), RM(PC + 3));
 
 	(this->*m6809_main[ireg])();
 }
 
-#ifdef USE_DEBUGGER
+
 void MC6809::write_debug_data8(uint32_t addr, uint32_t data)
 {
+#ifdef USE_DEBUGGER
 	d_mem_stored->write_data8(addr, data);
+#endif
 }
 
 uint32_t MC6809::read_debug_data8(uint32_t addr)
 {
+#ifdef USE_DEBUGGER
 	return d_mem_stored->read_data8(addr);
+#else
+	return 0xff;
+#endif
 }
 
 void MC6809::write_debug_io8(uint32_t addr, uint32_t data)
 {
+#ifdef USE_DEBUGGER
 	d_mem_stored->write_io8(addr, data);
+#endif
 }
 
 uint32_t MC6809::read_debug_io8(uint32_t addr)
 {
+#ifdef USE_DEBUGGER
 	uint8_t val = d_mem_stored->read_io8(addr);
 	return val;
+#else
+	return 0xff;
+#endif
 }
 
 bool MC6809::write_debug_reg(const _TCHAR *reg, uint32_t data)
 {
+#ifdef USE_DEBUGGER
 	if(_tcsicmp(reg, _T("PC")) == 0) {
 		PC = data;
 	} else if(_tcsicmp(reg, _T("DP")) == 0) {
@@ -597,11 +610,13 @@ bool MC6809::write_debug_reg(const _TCHAR *reg, uint32_t data)
 	} else {
 		return false;
 	}
+#endif
 	return true;
 }
 
 void MC6809::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
+#ifdef USE_DEBUGGER
 	my_stprintf_s(buffer, buffer_len,
 		 _T("PC = %04x PPC = %04x INTR=[%s %s %s %s][%s %s %s %s %s] CC = [%c%c%c%c%c%c%c%c]\nA = %02x B = %02x DP = %02x X = %04x Y = %04x U = %04x S = %04x EA = %04x"),
 		 PC,
@@ -627,6 +642,7 @@ void MC6809::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 		 X, Y, U, S,
 		 EAD
 	 );
+#endif
 }  
 
 // from MAME 0.160
@@ -1028,6 +1044,7 @@ static const _TCHAR *const m6809_regs_te[16] =
 
 uint32_t MC6809::cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_t *oprom, const uint8_t *opram)
 {
+#ifdef USE_DEBUGGER
 	uint8_t opcode, mode, pb, pbm, reg;
 	const uint8_t *operandarray;
 	unsigned int ea;//, flags;
@@ -1280,10 +1297,14 @@ uint32_t MC6809::cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_
 	}
 
 	return p;
+#else
+	return 0;
+#endif
 }
 
 int MC6809::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
+#ifdef USE_DEBUGGER
 	_TCHAR buffer_tmp[1024]; // enough ???
 	uint8_t ops[4];
 	for(int i = 0; i < 4; i++) {
@@ -1292,8 +1313,10 @@ int MC6809::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	int length = cpu_disassemble_m6809(buffer_tmp, pc, ops, ops);
 	my_tcscpy_s(buffer, buffer_len, buffer_tmp);
 	return length;
-}
+#else
+	return 0;
 #endif
+}
 
 
 

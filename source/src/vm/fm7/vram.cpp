@@ -5,6 +5,8 @@
  *  Sep 27, 2015 : Split from display.cpp .
  */
 
+#include "vm.h"
+#include "emu.h"
 #include "fm7_display.h"
 
 uint8_t DISPLAY::read_vram_l4_400l(uint32_t addr, uint32_t offset)

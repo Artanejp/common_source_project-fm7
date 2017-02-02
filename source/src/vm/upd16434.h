@@ -11,10 +11,12 @@
 #ifndef _UPD16434_H_
 #define _UPD16434_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
+class VM;
+class EMU;
 class UPD16434 : public DEVICE
 {
 private:

@@ -10,8 +10,8 @@
 #ifndef _YM2151_H_
 #define _YM2151_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 #include "fmgen/opm.h"
 
@@ -22,6 +22,8 @@
 
 #define SIG_YM2151_MUTE		0
 
+class VM;
+class EMU;
 class YM2151 : public DEVICE
 {
 private:

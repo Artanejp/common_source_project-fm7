@@ -6,7 +6,7 @@ set(WITH_MOUSE ON)
 
 set(VMFILES
 		   i8237.cpp
-		   i8251.cpp
+#		   i8251.cpp
 		   i8253.cpp
 		   i8255.cpp
 		   i8259.cpp
@@ -15,15 +15,14 @@ set(VMFILES
 		   upd1990a.cpp
 		   upd765a.cpp
 		   upd7220.cpp
-		   tms3631.cpp
-		   
+#		   tms3631.cpp
 		   ym2203.cpp
-		   ls244.cpp
+#		   ls244.cpp
 		   
 		   disk.cpp
 		   event.cpp
 		   io.cpp
-		   memory.cpp
+#		   memory.cpp
 		   prnfile.cpp
 )
 set(BUILD_SHARED_LIBS OFF)

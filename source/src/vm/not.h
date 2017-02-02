@@ -10,12 +10,14 @@
 #ifndef _NOT_H_
 #define _NOT_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 #define SIG_NOT_INPUT	0
 
+class VM;
+class EMU;
 class NOT : public DEVICE
 {
 private:
