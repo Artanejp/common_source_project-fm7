@@ -24,7 +24,8 @@
 //#include "../pcpr201.h"
 #include "../prnfile.h"
 #include "../ym2151.h"
-#include "../ym2203.h"
+//#include "../ym2203.h"
+#include "../ay_3_891x.h"
 #include "../z80.h"
 #include "../z80ctc.h"
 #include "../z80sio.h"
@@ -82,7 +83,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	io->set_device_name(_T("I/O"));
 #endif	
 	fdc = new MB8877(this, emu);
-	psg = new YM2203(this, emu);
+	//psg = new YM2203(this, emu);
+	psg = new AY_3_891X(this, emu);
 	cpu = new Z80(this, emu);
 	ctc = new Z80CTC(this, emu);
 	sio = new Z80SIO(this, emu);
@@ -489,7 +491,7 @@ void VM::reset()
 		device->reset();
 	}
 	pio->write_signal(SIG_I8255_PORT_B, 0x00, 0x08);	// busy = low
-	psg->set_reg(0x2e, 0);	// set prescaler
+	//psg->set_reg(0x2e, 0);	// set prescaler
 }
 
 void VM::special_reset()
