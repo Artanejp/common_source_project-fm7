@@ -65,7 +65,7 @@ CSP_TabMovieGeneral::CSP_TabMovieGeneral(MOVIE_SAVER *ms, CSP_DialogMovie *paren
 	video_fps = using_flags->get_config_ptr()->video_frame_rate;
 	
 	// Value for resolution
-	bool skipf = false;
+	//bool skipf = false;
 	int x_w[4];
 	int y_h[4];
 	for(int ii = 1; ii < 5; ii++) {

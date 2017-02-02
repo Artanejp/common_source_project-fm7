@@ -98,7 +98,6 @@ int Ui_MainWindowBase::set_recent_quick_disk(int drv, int num)
 {
 	QString s_path;
 	char path_shadow[_MAX_PATH];
-	int i;
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
 	s_path = QString::fromLocal8Bit(using_flags->get_config_ptr()->recent_quick_disk_path[drv][num]);
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), _MAX_PATH);
@@ -124,7 +123,7 @@ void Ui_MainWindowBase::_open_quick_disk(int drv, const QString fname)
 {
 	char path_shadow[_MAX_PATH];
 	QString s_name = fname;
-	int i;
+	
 	if(fname.length() <= 0) return;
 	strncpy(path_shadow, s_name.toLocal8Bit().constData(), _MAX_PATH);
 

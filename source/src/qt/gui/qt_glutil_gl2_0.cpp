@@ -106,7 +106,7 @@ GLDraw_2_0::~GLDraw_2_0()
 	}
 	if(using_flags->get_max_button() > 0) {
 		int i;
-		for(i = 0; i < using_flags->get_max_button() > 0; i++) {
+		for(i = 0; i < using_flags->get_max_button(); i++) {
 			if(uButtonTextureID[i] != 0) p_wid->deleteTexture(uButtonTextureID[i]);
 		}
 		for(i = 0; i < using_flags->get_max_button(); i++) {
@@ -756,7 +756,6 @@ void GLDraw_2_0::drawMain(QOpenGLShaderProgram *prg,
 
 void GLDraw_2_0::uploadBitmapTexture(QImage *p)
 {
-	int i;
 	if(!using_flags->is_use_one_board_computer()) return;
 	if(p == NULL) return;
 	if(!bitmap_uploaded) {
@@ -787,8 +786,8 @@ void GLDraw_2_0::uploadMainTexture(QImage *p, bool use_chromakey)
 	if(p == NULL) return;
 	{
 		if(use_chromakey) {
-			bool checkf = false;
 #if 0
+			bool checkf = false;
 			if(vertex_screen == NULL) {
 				checkf = true;
 			} else {
@@ -881,10 +880,7 @@ void GLDraw_2_0::resizeGL_SetVertexs(void)
 
 void GLDraw_2_0::resizeGL(int width, int height)
 {
-	int side = qMin(width, height);
-	double ww, hh;
-	int w, h;
-
+	//int side = qMin(width, height);
 	p_wid->makeCurrent();
 	extfunc_2->glViewport(0, 0, width, height);
 	extfunc_2->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
@@ -915,7 +911,6 @@ void GLDraw_2_0::resizeGL(int width, int height)
 
 void GLDraw_2_0::paintGL(void)
 {
-	int i;
 	//p_wid->makeCurrent();
 	if(crt_flag || redraw_required) { //return;
 		if(emu_launched) {
@@ -967,12 +962,9 @@ void GLDraw_2_0::do_set_texture_size(QImage *p, int w, int h)
 	//if(h <= 0) h = using_flags->get_screen_height();
 	if(w <= 0) w = using_flags->get_real_screen_width();
 	if(h <= 0) h = using_flags->get_real_screen_height();
-	float wfactor = 1.0f;
-	float hfactor = 1.0f;
-	float iw, ih;
 	if(p != NULL) {
-		int ww = w;
-		int hh = h;
+		float iw;
+		float ih;
 		imgptr = p;
 		iw = (float)p->width();
 		ih = (float)p->height();

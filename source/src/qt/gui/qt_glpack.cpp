@@ -97,8 +97,8 @@ bool GLScreenPack::initialize(int total_width, int total_height, const QString &
 		if(vertex->create()) {
 			GLfloat xfactor = ((GLfloat)tex_geometry_w / (GLfloat)viewport_w) * 2.0f - 1.0f;
 			GLfloat yfactor = ((GLfloat)tex_geometry_h / (GLfloat)viewport_h) * 2.0f - 1.0f;
-			GLfloat sfactor = 1.0f;
-			GLfloat tfactor = 1.0f;
+			//GLfloat sfactor = 1.0f;
+			//GLfloat tfactor = 1.0f;
 			Vertexs[0].x = -1.0f;
 			Vertexs[0].y = -1.0f;
 			Vertexs[0].z = -0.9f;

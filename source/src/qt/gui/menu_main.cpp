@@ -285,8 +285,8 @@ void Ui_MainWindowBase::setupUi(void)
 #endif
 		{
 			int render_type = using_flags->get_config_ptr()->render_platform;
-			int _major_version = using_flags->get_config_ptr()->render_major_version;
-			int _minor_version = using_flags->get_config_ptr()->render_minor_version;
+			//int _major_version = using_flags->get_config_ptr()->render_major_version;
+			//int _minor_version = using_flags->get_config_ptr()->render_minor_version;
 #if defined(_USE_GLAPI_QT5_4)
 				if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_CORE) { 
 					fmt.setProfile(QSurfaceFormat::CoreProfile); // Requires >=Qt-4.8.0
@@ -715,7 +715,6 @@ void Ui_MainWindowBase::setupUi(void)
 
 void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 {
-	int i;
 	if(using_flags->is_use_joystick()) {
 		action_SetupJoystick->setText(QApplication::translate("MainWindow", "Configure Joysticks", 0));
 		action_SetupJoystick->setToolTip(QApplication::translate("MainWindow", "Configure assigning buttons/directions of joysticks.", 0));
@@ -903,7 +902,7 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	{
 			int render_type = using_flags->get_config_ptr()->render_platform;
 			int _major_version = using_flags->get_config_ptr()->render_major_version;
-			int _minor_version = using_flags->get_config_ptr()->render_minor_version;
+			//int _minor_version = using_flags->get_config_ptr()->render_minor_version; // ToDo
 			for(i = 0; i < MAX_RENDER_PLATFORMS; i++) {
 				tmps = QString::number(i);
 				action_SetRenderPlatform[i] = new Action_Control(this, using_flags);

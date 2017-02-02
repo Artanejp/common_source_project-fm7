@@ -47,8 +47,6 @@ void GLDrawClass::InitContextCL(void)
 
 void GLDrawClass::initializeGL(void)
 {
-	int i;
-	GLfloat xf, yf, delta;
 	/*
 	 * GL 拡張の取得 20110907-
 	 */
@@ -105,13 +103,6 @@ void GLDrawClass::setVirtualVramSize(int width, int height)
 // OpenGL状態変数
 bool GLDrawClass::QueryGLExtensions(const char *str)
 {
-	char *ext;
-	char *p;
-	int i;
-	int j;
-	int k;
-	int l;
-	int ll;
 	return false;
 }
 
@@ -147,14 +138,12 @@ QString GLDrawClass::logGLString(bool getExtensions)
 
 void GLDrawClass::InitFBO(void)
 {
-	int i;
-	GLfloat xf, yf, delta;
 	QOpenGLContext *glContext = QOpenGLContext::currentContext();
 	int render_type = using_flags->get_config_ptr()->render_platform;
 	int _major_version = using_flags->get_config_ptr()->render_major_version;
 	int _minor_version = using_flags->get_config_ptr()->render_minor_version;
 	QSurfaceFormat _fmt = glContext->format();
-	QSurfaceFormat::RenderableType capability = _fmt.renderableType();
+	//QSurfaceFormat::RenderableType capability = _fmt.renderableType();
 #if !defined(Q_OS_WIN)
 	QString tmps = logGLString(false);
 	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "%s", tmps.toLocal8Bit().constData());

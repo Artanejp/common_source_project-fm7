@@ -162,9 +162,10 @@ uint32_t FILEIO::FileLength()
 }
 
 #define GET_VALUE(type) \
-	uint8_t buffer[sizeof(type)]; \
-	fread(buffer, sizeof(buffer), 1, fp); \
-	return *(type *)buffer
+	uint8_t buffer[sizeof(type)];				\
+	type *tmpv = (type *)buffer;				\
+	fread(buffer, sizeof(buffer), 1, fp);		\
+	return *tmpv;						
 
 #define PUT_VALUE(type, v) \
 	fwrite(&v, sizeof(type), 1, fp)

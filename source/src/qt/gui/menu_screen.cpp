@@ -39,7 +39,7 @@ void Object_Menu_Control::set_screen_size(void) {
 	   (using_flags->get_screen_width_aspect() != using_flags->get_screen_width())) {
 		double par_w = (double)using_flags->get_screen_width_aspect() / (double)using_flags->get_screen_width();
 		double par_h = (double)using_flags->get_screen_height_aspect() / (double)using_flags->get_screen_height();
-		double par = par_h / par_w;
+		//double par = par_h / par_w;
 		if(using_flags->get_config_ptr()->window_stretch_type == 1) { // refer to X, scale Y.
 			hh = hh * par_h;
 		} else if(using_flags->get_config_ptr()->window_stretch_type == 2) { // refer to Y, scale X only
@@ -375,7 +375,6 @@ void Ui_MainWindowBase::retranslateScreenMenu(void)
 {
 	int i;
 	QString tmps;
-	int w, h;
 	actionZoom->setText(QApplication::translate("MainWindow", "Zoom Screen", 0));
 	actionDisplay_Mode->setText(QApplication::translate("MainWindow", "Display Mode", 0));
 

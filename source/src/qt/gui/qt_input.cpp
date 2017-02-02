@@ -158,9 +158,7 @@ const struct NativeScanCode convTable_QTScan106[] = {
 
 uint32_t GLDrawClass::get106Scancode2VK(uint32_t data)
 {
-	uint32_t val = 0;
 	uint32_t vk;
-	int i = 0;
 	vk = key_table->get_vk_from_scan(data);
 	if(using_flags->get_config_ptr()->swap_kanji_pause) {
 		if(vk == VK_KANJI) {
@@ -179,9 +177,7 @@ uint32_t GLDrawClass::get106Scancode2VK(uint32_t data)
 
 void GLDrawClass::initKeyCode(void)
 {
-   	int i;
 	key_table = new CSP_KeyTables(this, default_key_table_106_QtScan);
-
 	{
 		// Replace only ScanCode
 		FILEIO *fio = new FILEIO();
@@ -237,7 +233,7 @@ void GLDrawClass::releaseKeyCode(void)
 
 void GLDrawClass::keyReleaseEvent(QKeyEvent *event)
 {
-	int key = event->key();
+	//int key = event->key();
 	uint32_t mod = event->modifiers();
 	uint32_t scan;
 	uint32_t vk;
@@ -263,7 +259,7 @@ void GLDrawClass::keyReleaseEvent(QKeyEvent *event)
 
 void GLDrawClass::keyPressEvent(QKeyEvent *event)
 {
-	int key = event->key();
+	//int key = event->key();
 	uint32_t mod = event->modifiers();;
 	uint32_t scan;
 	uint32_t vk;

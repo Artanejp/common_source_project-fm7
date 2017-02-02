@@ -564,7 +564,7 @@ config_t *USING_FLAGS::get_config_ptr(void)
 int USING_FLAGS::get_s_freq_table(int num)
 {
 	if(num < 0) return s_freq_table[0];
-	if(num >= (sizeof(s_freq_table) / sizeof(int))) return s_freq_table[sizeof(int) / sizeof(s_freq_table) - 1];
+	if(num >= (int)(sizeof(s_freq_table) / sizeof(int))) return s_freq_table[sizeof(s_freq_table) / sizeof(int) - 1];
 	return s_freq_table[num];
 }
 																		

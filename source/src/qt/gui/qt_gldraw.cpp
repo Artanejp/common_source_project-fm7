@@ -68,8 +68,6 @@ void GLDrawClass::updateBitmap(QImage *p)
 
 void GLDrawClass::resizeGL(int width, int height)
 {
-	int side = qMin(width, height);
-	double ww, hh;
 	if(extfunc != NULL) {
 		extfunc->resizeGL(width, height);
 	} else {
@@ -89,8 +87,6 @@ void GLDrawClass::resizeGL(int width, int height)
 
 void GLDrawClass::paintGL(void)
 {
-	int i;
-
 	SaveToPixmap(); // If save requested, then Save to Pixmap.
 	if(extfunc != NULL) {
 		if(delay_update) {

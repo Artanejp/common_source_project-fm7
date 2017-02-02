@@ -95,8 +95,6 @@ void OSD_BASE::do_assign_js_setting(int jsnum, int axis_idx, int assigned_value)
 
 void OSD_BASE::update_input()
 {
-	int *keystat;
-	int i_c = 0;;
 	bool press_flag = false;
 	bool release_flag = false;
 	if(get_use_shift_numpad_key()) {
@@ -168,15 +166,8 @@ void OSD_BASE::update_input()
 	update_buttons(press_flag, release_flag);
 	// update mouse status
 	if(mouse_enabled) {
-		bool hid = false;
+		//bool hid = false;
 		memset(mouse_status, 0, sizeof(mouse_status));
-		// get current status
-		// move mouse cursor to the center of window
-		//if(mouse_ptrx < 0) mouse_ptrx = 0;
-		//if(mouse_ptrx >= SCREEN_WIDTH) mouse_ptrx = SCREEN_WIDTH - 1;
-		//if(mouse_ptry < 0) mouse_ptry = 0;
-		//if(mouse_ptry >= SCREEN_HEIGHT) mouse_ptry = SCREEN_HEIGHT - 1;
-		
 		mouse_status[0] = mouse_ptrx - mouse_oldx;
 		mouse_status[1] = mouse_ptry - mouse_oldy;
 		mouse_status[2] = mouse_button;

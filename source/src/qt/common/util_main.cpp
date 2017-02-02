@@ -41,7 +41,6 @@ extern bool now_fullscreen;
 
 void Ui_MainWindow::set_window(int mode)
 {
-	QMenuBar *hMenu;
 	//	static LONG style = WS_VISIBLE;
 
 	if(mode >= 0 && mode < using_flags->get_screen_mode_num()) {

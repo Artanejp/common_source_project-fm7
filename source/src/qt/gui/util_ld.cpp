@@ -60,7 +60,6 @@ int Ui_MainWindowBase::set_recent_laserdisc(int drv, int num)
 {
 	QString s_path;
 	char path_shadow[PATH_MAX];
-	int i;
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
     
 	s_path = QString::fromLocal8Bit(using_flags->get_config_ptr()->recent_laser_disc_path[num]);
@@ -86,7 +85,6 @@ void Ui_MainWindowBase::do_eject_laserdisc(int drv)
 void Ui_MainWindowBase::do_open_laserdisc(int drv, QString path) 
 {
 	char path_shadow[PATH_MAX];
-	int i;
 
 	if(path.length() <= 0) return;
 	strncpy(path_shadow, path.toLocal8Bit().constData(), PATH_MAX);

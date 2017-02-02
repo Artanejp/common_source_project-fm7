@@ -193,7 +193,7 @@ void Ui_MainWindowBase::resize_statusbar(int w, int h)
 {
 	int wfactor;
 	QSize nowSize;
-	double height, width;
+	//double height, width;
 	double scaleFactor;
 	int ww;
 	int pt;
@@ -204,8 +204,8 @@ void Ui_MainWindowBase::resize_statusbar(int w, int h)
 	QString tmps;
 
 	nowSize = messagesStatusBar->size();
-	height = (double)(nowSize.height());
-	width  = (double)(nowSize.width());
+	//height = (double)(nowSize.height());
+	//width  = (double)(nowSize.width());
 	scaleFactor = (double)w / 1280.0;
    
 	statusbar->setFixedWidth(w);
@@ -358,8 +358,8 @@ void Ui_MainWindowBase::do_change_osd_bubble(int drv, QString tmpstr)
 
 void Ui_MainWindowBase::redraw_status_bar(void)
 {
-	int access_drv;
-	int tape_counter;
+	//int access_drv;
+	//int tape_counter;
 	int i;
 
 	if(using_flags->is_use_fd()) {

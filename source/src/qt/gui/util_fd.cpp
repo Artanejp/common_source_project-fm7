@@ -83,7 +83,6 @@ void Ui_MainWindowBase::_open_disk(int drv, const QString fname)
 
 void Ui_MainWindowBase::eject_fd(int drv) 
 {
-	int i;
 	emit sig_close_disk(drv);
 	menu_fds[drv]->do_clear_inner_media();
 }

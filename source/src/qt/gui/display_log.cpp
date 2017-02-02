@@ -155,7 +155,6 @@ void Dlg_LogViewer::do_update(void)
 	do {
 		p = (CSP_LoggerLine *)(csp_logger->get_raw_data(false, line, NULL));
 		if(p == NULL) break;
-		bool f = false;
 		for(int i = 0; i < 8; i++) {
 			if((level_map & (1 << i)) != 0) {  
 				if(p->check_level(domain_name, i)) {
@@ -189,7 +188,6 @@ void Dlg_LogViewer::do_refresh(void)
 	do {
 		p = (CSP_LoggerLine *)(csp_logger->get_raw_data(false, now_end_line, NULL));
 		if(p == NULL) break;
-		bool f = false;
 		for(int i = 0; i < 8; i++) {
 			if((level_map & (1 << i)) != 0) {  
 				if(p->check_level(domain_name, 1 << i)) {

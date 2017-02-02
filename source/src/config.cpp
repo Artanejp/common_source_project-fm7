@@ -35,7 +35,6 @@ config_t config;
 //extern _TCHAR* get_parent_dir(_TCHAR* file);
 BOOL MyWritePrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, int Value, LPCTSTR lpFileName)
 {
- 	_TCHAR String[32];
 	return MyWritePrivateProfileString(lpAppName, lpKeyName, create_string(_T("%d"), Value), lpFileName);
 }
  
@@ -51,7 +50,6 @@ bool MyGetPrivateProfileBool(LPCTSTR lpAppName, LPCTSTR lpKeyName, bool bDefault
 
 void initialize_config()
 {
-	int i;
 	// initial settings
 	memset(&config, 0, sizeof(config_t));
 	config.window_mode = 1;	
@@ -745,10 +743,8 @@ void save_config(const _TCHAR *config_path)
 void save_config_state(void *f)
 {
 	FILEIO *state_fio = (FILEIO *)f;
-	int drv;
 	
 	state_fio->FputUint32(STATE_VERSION);
-	
 #ifdef USE_BOOT_MODE
 	state_fio->FputInt32(config.boot_mode);
 #endif

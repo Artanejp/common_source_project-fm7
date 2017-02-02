@@ -1074,8 +1074,8 @@ static bool hex2bin(const _TCHAR* file_path, const _TCHAR* dest_path)
 			if(record_type == 0x01) break;
 			if(record_type != 0x00) continue;
 			for(int i = 0; i < bytes; i++) {
-				if(offset + i < sizeof(buffer)) {
-					if(length < offset + i) {
+				if((offset + i) < (int)sizeof(buffer)) {
+					if(length < (offset + i)) {
 						length = offset + i;
 					}
 					buffer[offset + i] = hex2uint8(line + 9 + 2 * i);

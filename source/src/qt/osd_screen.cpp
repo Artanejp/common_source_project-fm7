@@ -294,10 +294,10 @@ void OSD_BASE::set_buttons()
 
 int OSD_BASE::add_video_frames()
 {
-	static double frames = 0;
-	static int prev_video_fps = -1;
+	//static double frames = 0;
+	//static int prev_video_fps = -1;
 	int counter = 0;
-	static double prev_vm_fps = -1;
+	//static double prev_vm_fps = -1;
 	double vm_fps = vm_frame_rate();
 	int delta_ns = (int)(1.0e9 / vm_fps);
 	//if(rec_video_fps_nsec >= delta_ns) {
@@ -326,7 +326,7 @@ int OSD_BASE::add_video_frames()
 	}
 	
 	if(using_flags->is_use_one_board_computer()) {
-		int size = vm_screen_buffer.pImage.byteCount();
+		//int size = vm_screen_buffer.pImage.byteCount();
 		int i = counter;
 		rec_image_buffer = QImage(background_image);
 		QImage *video_result = &(vm_screen_buffer.pImage);
@@ -356,7 +356,7 @@ int OSD_BASE::add_video_frames()
 			//i--;
 		}
 	} else {
-		int size = vm_screen_buffer.pImage.byteCount();
+		//int size = vm_screen_buffer.pImage.byteCount();
 		int i = counter;
 		QImage video_result = QImage(vm_screen_buffer.pImage);
 		// Rescaling

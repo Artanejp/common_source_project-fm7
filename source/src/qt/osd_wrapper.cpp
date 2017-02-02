@@ -92,7 +92,6 @@ void OSD::load_sound_file(int id, const _TCHAR *name, int16_t **data, int *dst_s
 
 void OSD::free_sound_file(int id, int16_t **data)
 {
-	void *pp;
 	if(data == NULL) return;
 	for(int i = 0; i < USE_SOUND_FILES; i++) {
 		SOUND_LOADER *p = sound_file_obj[i];
@@ -473,9 +472,9 @@ void OSD::close_movie_file()
 #include <limits.h>
 uint32_t OSD::get_cur_movie_frame()
 {
-	uint64_t pos;
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	if(movie_loader != NULL) {
+		uint64_t pos;
 		pos = movie_loader->get_current_frame();
 		if(pos > UINT_MAX) {
 			return UINT_MAX;
@@ -522,6 +521,7 @@ int OSD::get_movie_sound_rate()
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	return movie_loader->get_movie_sound_rate();
 #endif
+	return 44100;
 }
 
 void OSD::reset_vm_node()

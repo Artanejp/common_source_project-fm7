@@ -108,7 +108,6 @@ void EmuThreadClassBase::calc_volume_from_level(int num, int level)
 
 void EmuThreadClassBase::doExit(void)
 {
-	int status;
 	bRunThread = false;
 }
 
@@ -140,6 +139,8 @@ void EmuThreadClassBase::button_pressed_mouse(Qt::MouseButton button)
 						}
 					}
 				}
+				break;
+			default:
 				break;
 			}
 		}
@@ -173,6 +174,8 @@ void EmuThreadClassBase::button_released_mouse(Qt::MouseButton button)
 					}
 				}
 				break;
+			default:
+				break;
 			}
 		}
 	}
@@ -193,7 +196,7 @@ void EmuThreadClassBase::do_key_down(uint32_t vk, uint32_t mod, bool repeat)
 				//emit sig_romakana_mode(romakana_conversion_mode);
 				return;
 			}
-			if(roma_kana_ptr < (sizeof(roma_kana_buffer) / sizeof(_TCHAR)) &&
+			if(roma_kana_ptr < (int)(sizeof(roma_kana_buffer) / sizeof(_TCHAR)) &&
 			   (((vk >= 'A') && (vk <= 'z')) ||
 				(vk == VK_OEM_4) || (vk == VK_OEM_6) ||
 				(vk == VK_OEM_2) || (vk == VK_OEM_COMMA) ||
@@ -216,7 +219,7 @@ void EmuThreadClassBase::do_key_up(uint32_t vk, uint32_t mod)
 
 	if(using_flags->is_use_roma_kana_conversion()) {
 		if(p_config->roma_kana_conversion && romakana_conversion_mode) {
-			if(roma_kana_ptr < (sizeof(roma_kana_buffer) / sizeof(_TCHAR)) &&
+			if(roma_kana_ptr < (int)(sizeof(roma_kana_buffer) / sizeof(_TCHAR)) &&
 			   (((vk >= 'A') && (vk <= 'z')) ||
 				(vk == VK_OEM_4) || (vk == VK_OEM_6) ||
 				(vk == VK_OEM_2) || (vk == VK_OEM_COMMA) ||

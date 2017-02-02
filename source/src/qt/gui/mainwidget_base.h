@@ -544,10 +544,7 @@ public slots:
 	void do_write_protect_cmt(int drv, bool flag);
 	int  set_recent_cmt(int drv, int num);
 	void set_wave_shaper(bool f);
-//#if defined(_MZ80A) || defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(_MZ800) || defined(_MZ1500) || \
-//	defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
 	void set_direct_load_from_mzt(bool f);
-//#endif	
 	void do_open_write_cmt(QString);
 	void do_open_read_cmt(int dummy, QString path);
 	void do_change_osd_cmt(QString tmpstr);

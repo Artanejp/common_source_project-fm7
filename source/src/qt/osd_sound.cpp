@@ -22,10 +22,7 @@
 
 void OSD_BASE::audio_callback(void *udata, Uint8 *stream, int len)
 {
-	int pos;
-	int blen = len;
 	int len2 = len;
-	int channels = 2;
 	int spos;
 	Uint8 *p;
 	Uint8 *s;
@@ -53,7 +50,7 @@ void OSD_BASE::audio_callback(void *udata, Uint8 *stream, int len)
 			return;
 		}
 		if(len2 >= sndlen) len2 = sndlen;  // Okay
-		if((spos + len2) >= (len / sizeof(Sint16))) {
+		if((spos + len2) >= (int)(len / sizeof(Sint16))) {
 			len2 = (len / sizeof(Sint16)) - spos;
 		}
 		if((*(pData->sound_write_pos) + len2) >= *(pData->sound_buffer_size) ) len2 = *(pData->sound_buffer_size) - *(pData->sound_write_pos);
@@ -191,7 +188,8 @@ void OSD_BASE::update_sound(int* extra_frames)
 	
 	now_mute = false;
 	if(sound_ok) {
-		uint32_t play_c, offset, size1, size2;
+		uint32_t play_c, size1, size2;
+		//uint32_t offset;
 		Sint16 *ptr1, *ptr2;
 		
 		// start play
@@ -200,15 +198,15 @@ void OSD_BASE::update_sound(int* extra_frames)
 		if(sound_debug) csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND,
 											  "Called time=%d sound_write_pos=%d\n", osd_timer.elapsed(), play_c);
 		if(!sound_first_half) {
-			if(play_c < (sound_buffer_size / 2)) {
+			if((int)play_c < (sound_buffer_size / 2)) {
 				return;
 			}
-			offset = 0;
+			//offset = 0;
 		} else {
-			if(play_c >= (sound_buffer_size / 2)) {
+			if((int)play_c >= (sound_buffer_size / 2)) {
 				return;
 			}
-			offset = sound_buffer_size / 2;
+			//offset = sound_buffer_size / 2;
 		}
 		//SDL_UnlockAudio();
 		// sound buffer must be updated

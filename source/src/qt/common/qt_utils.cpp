@@ -538,18 +538,12 @@ static void setup_logs(void)
 
 int MainLoop(int argc, char *argv[], config_t *cfg)
 {
-	char c;
-	char strbuf[2048];
-	bool flag;
 	char homedir[PATH_MAX];
-	int thread_ret;
-	int w, h;
 	std::string archstr;
 	std::string emustr("emu");
 	std::string cfgstr(CONFIG_NAME);
 	setup_logs();
 	cpp_homedir.copy(homedir, PATH_MAX - 1, 0);
-	flag = FALSE;
 
 	load_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
 	

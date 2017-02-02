@@ -28,7 +28,7 @@ void get_long_full_path_name(_TCHAR* src, _TCHAR* dst)
 	QString r_path;
 	QString delim;
 	QString ss;
-	const char *s;
+	//const char *s;
 	QDir mdir;
 	if(src == NULL) {
 		if(dst != NULL) dst[0] = '\0';
@@ -70,7 +70,7 @@ _TCHAR* get_parent_dir(_TCHAR* file)
 	for(ptr = strlen(p) - 1; ptr >= 0; ptr--) { 
 		if(p[ptr] == delim) break;
 	}
-	if(ptr >= 0) for(ptr = ptr + 1; ptr < strlen(p); ptr++) p[ptr] = '\0'; 
+	if(ptr >= 0) for(ptr = ptr + 1; ptr < (int)strlen(p); ptr++) p[ptr] = '\0'; 
 	return p;
 }
 
@@ -86,7 +86,7 @@ void get_short_filename(_TCHAR *dst, _TCHAR *file, int maxlen)
 	for(i = strlen(file) - 1; i <= 0; i--) {
 		if(file[i] == delim) break;
 	}
-	if(i >= (strlen(file) - 1)) {
+	if(i >= ((int)strlen(file) - 1)) {
 		dst[0] = '\0';
 		return;
 	}

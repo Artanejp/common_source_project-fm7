@@ -27,7 +27,6 @@ void Object_Menu_Control::on_recent_cart(void){
 void Ui_MainWindowBase::_open_cart(int drv, const QString fname)
 {
 	char path_shadow[PATH_MAX];
-	int i;
 
 	if(fname.length() <= 0) return;
 	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX);
@@ -51,7 +50,6 @@ void Ui_MainWindowBase::set_recent_cart(int drv, int num)
 {
 	QString s_path;
 	char path_shadow[PATH_MAX];
-	int i;
     
 	if((num < 0) || (num >= MAX_HISTORY)) return;
  

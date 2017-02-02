@@ -76,7 +76,9 @@ void EmuThreadClass::button_pressed_mouse_sub(Qt::MouseButton button)
 		flag = !flag;
 		emit sig_mouse_enable(flag);
 		break;
-		}
+	default:
+		break;
+	}
 	p_emu->set_mouse_button(stat);
 #endif	   
 }	
@@ -95,6 +97,8 @@ void EmuThreadClass::button_released_mouse_sub(Qt::MouseButton button)
 		case Qt::MiddleButton:
 			//emit sig_mouse_enable(false);
 			break;
+		default:
+			break;
 		}
 		p_emu->set_mouse_button(stat);
 #endif
@@ -112,7 +116,7 @@ void EmuThreadClass::get_fd_string(void)
 	access_drv = p_emu->get_access_lamp_status();
 #endif	
 	{
-		for(i = 0; i < using_flags->get_max_drive(); i++) {
+		for(i = 0; i < (int)using_flags->get_max_drive(); i++) {
 			if(p_emu->is_floppy_disk_inserted(i)) {
 				if(using_flags->is_use_access_lamp()) {
 					if(i == (access_drv - 1)) {
@@ -267,10 +271,7 @@ void EmuThreadClass::doWork(const QString &params)
 	uint32_t led_data = 0x00000000;
 	uint32_t led_data_old = 0x00000000;
 	// Tape
-	bool tape_flag;
-	int tpos;
 	// DIG_RESOLUTION
-	int width, height;
 	//
 	QString ctext;
 	bool req_draw = true;
@@ -280,10 +281,9 @@ void EmuThreadClass::doWork(const QString &params)
 	int opengl_filter_num_bak = using_flags->get_config_ptr()->opengl_filter_num;
 	//uint32_t key_mod_old = 0xffffffff;
 	int no_draw_count = 0;	
-	bool prevRecordReq;
+	bool prevRecordReq = false;
 
 	doing_debug_command = false;
-	
 	ctext.clear();
 //	draw_timing = false;
 	bResetReq = false;

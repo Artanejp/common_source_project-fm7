@@ -322,7 +322,7 @@ void GLDraw_3_0::initPackedGLObject(GLScreenPack **p,
 		pp = new GLScreenPack(_width, _height, p_wid);
 		*p = pp;
 		if(pp != NULL) {
-			bool f = pp->initialize(_width, _height, vertex_shader, fragment_shader);
+			pp->initialize(_width, _height, vertex_shader, fragment_shader);
 			s = pp->getShaderLog();
 			if(s.size() > 0) {
 				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GL_SHADER, "In shader of %s ", _name.toLocal8Bit().constData());
@@ -505,7 +505,7 @@ void GLDraw_3_0::updateGridsVAO(QOpenGLBuffer *bp,
 	bool checkf = false;
 	if((bp != NULL) && (vp != NULL)) {
 		if(bp->isCreated()) {
-			if(bp->size() < ((number + 1) * sizeof(GLfloat) * 3 * 2)) {
+			if(bp->size() < (int)((number + 1) * sizeof(GLfloat) * 3 * 2)) {
 				bp->destroy();
 				bp->create();
 				checkf = true;
@@ -541,7 +541,6 @@ void GLDraw_3_0::drawGridsMain_3(QOpenGLShaderProgram *prg,
 	if((bp == NULL) || (vp == NULL) || (prg == NULL)) return;
 	if((!bp->isCreated()) || (!vp->isCreated()) || (!prg->isLinked())) return;
 	{
-		int i, p;
 		bp->bind();
 		vp->bind();
 		prg->bind();
@@ -1106,9 +1105,6 @@ void GLDraw_3_0::do_set_texture_size(QImage *p, int w, int h)
 			p_wid->deleteTexture(uVramTextureID);
 			uVramTextureID = p_wid->bindTexture(*p);
 		}
-		int ww = w;
-		int hh = h;
-		
 		vertexFormat[0].x = -1.0f;
 		vertexFormat[0].y = -1.0f;
 		vertexFormat[0].z = -0.9f;
@@ -1156,10 +1152,7 @@ void GLDraw_3_0::resizeGL_Screen(void)
 
 void GLDraw_3_0::resizeGL(int width, int height)
 {
-	int side = qMin(width, height);
-	double ww, hh;
-	int w, h;
-
+	//int side = qMin(width, height);
 	p_wid->makeCurrent();
 	extfunc->glViewport(0, 0, width, height);
 	extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);

@@ -241,6 +241,7 @@ BOOL DLL_PREFIX MyWritePrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName
 	return result;
 }
 
+#if 0
 static std::string MyGetPrivateProfileStr(const _TCHAR *lpAppName, const _TCHAR *lpKeyName, _TCHAR *lpFileName)
 {
 	std::string key;
@@ -295,6 +296,7 @@ static std::string MyGetPrivateProfileStr(const _TCHAR *lpAppName, const _TCHAR 
 	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Got: %s Length: %d", got_str.c_str(), got_str.length());
 	return got_str;
 }
+#endif
 
 DWORD DLL_PREFIX MyGetPrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpDefault, LPTSTR lpReturnedString, DWORD nSize, LPCTSTR lpFileName)
 {
@@ -530,13 +532,13 @@ bool DLL_PREFIX check_file_extension(const _TCHAR *file_path, const _TCHAR *ext)
 #if defined(_USE_QT)
 	std::string s_fpath = file_path;
 	std::string s_ext = ext;
-	bool f = false;
+	//bool f = false;
 	int pos;
 	std::transform(s_fpath.begin(), s_fpath.end(), s_fpath.begin(), to_upper());
 	std::transform(s_ext.begin(), s_ext.end(), s_ext.begin(), to_upper());
 	if(s_fpath.length() < s_ext.length()) return false;
 	pos = s_fpath.rfind(s_ext.c_str(), s_fpath.length());
-	if((pos != std::string::npos) && (pos >= (s_fpath.length() - s_ext.length()))) return true; 
+	if((pos != (int)std::string::npos) && (pos >= ((int)s_fpath.length() - (int)s_ext.length()))) return true; 
 	return false;
 #else
 	int nam_len = _tcslen(file_path);
@@ -566,9 +568,8 @@ const _TCHAR *DLL_PREFIX get_file_path_without_extensiton(const _TCHAR *file_pat
 
 void DLL_PREFIX get_long_full_path_name(const _TCHAR* src, _TCHAR* dst, size_t dst_len)
 {
-	_TCHAR tmp[_MAX_PATH];
-	
 #ifdef _WIN32
+	_TCHAR tmp[_MAX_PATH];
 	if(GetFullPathName(src, _MAX_PATH, tmp, NULL) == 0) {
 		my_tcscpy_s(dst, dst_len, src);
 	} else if(GetLongPathName(tmp, dst, _MAX_PATH) == 0) {

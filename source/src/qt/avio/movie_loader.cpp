@@ -170,7 +170,7 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 		decoded = FFMIN(ret, pkt.size);
 			
 		if (*got_frame) {
-			size_t unpadded_linesize = frame->nb_samples * av_get_bytes_per_sample((enum AVSampleFormat)frame->format);
+			//size_t unpadded_linesize = frame->nb_samples * av_get_bytes_per_sample((enum AVSampleFormat)frame->format);
 			char str_buf[AV_TS_MAX_STRING_SIZE] = {0};
 			AVCodecContext *c = audio_stream->codec;
 			int dst_nb_samples = av_rescale_rnd(swr_get_delay(swr_context, c->sample_rate) + frame->nb_samples,

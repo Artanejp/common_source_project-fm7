@@ -58,7 +58,6 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
 {
 #if defined(USE_LIBAV)
 	AVCodecContext *c;
-	int i;
 
 	OutputStream *ost = (OutputStream *)_ost;
 	AVFormatContext *oc = (AVFormatContext *)_oc;
@@ -177,7 +176,6 @@ bool MOVIE_SAVER::do_open_main()
 	AVFormatContext *oc;
    	int ret;
 	have_video = 0, have_audio = 0;
-	int encode_video = 0, encode_audio = 0;
 	 
 	raw_options_list = NULL;
 	//video_st = { 0 };
@@ -312,21 +310,17 @@ void MOVIE_SAVER::do_close_main()
 {
 	if(!req_close) return;
 #if defined(USE_LIBAV)
-	int ret, i;
-	OutputStream *ost;
-	int got_packet;
-	int64_t total_packets_written = 0;
-
 	if(output_context != NULL) {
 		AVFormatContext *oc = output_context;
 		AVOutputFormat *fmt = oc->oformat;
-		AVPacket pkt = {0};
-		AVCodecContext *c = video_st.st->codec;
+		//AVPacket pkt = {0};
+		//AVCodecContext *c = video_st.st->codec;
 		bool a_f, v_f;
-		bool need_video_transcode, need_audio_transcode;
+		//bool need_video_transcode, need_audio_transcode;
+		bool need_audio_transcode;
 		a_f = v_f = false;
-		need_video_transcode = need_audio_transcode = false;
-		//av_write_trailer(oc);
+		//need_video_transcode = need_audio_transcode = false;
+		need_audio_transcode = false;
 		/* Close each codec. */
 		//if(totalSrcFrame != totalDstFrame) {
 		while(!a_f || !v_f) {
