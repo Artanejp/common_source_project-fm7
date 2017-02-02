@@ -190,7 +190,6 @@ if(WIN32)
 		   ${VM_APPEND_LIBS}
 		   ${FMGEN_LIB}
 		   vm_vm
-		   vm_common_vm
 		   ${DEBUG_LIBS}
 		   common_common
 		   )

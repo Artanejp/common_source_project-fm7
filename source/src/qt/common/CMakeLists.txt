@@ -60,7 +60,7 @@ if(WIN32)
 	 ${BUNDLE_LIBS}
    )
  endif()
- #${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPcommon_vm/build-win32/vm/commoin_vm/libvm_common_vm.a
+
  target_link_libraries(${EXEC_TARGET} 
  ${LOCAL_LIBS}
  ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPemu_utils/build-win32/qt/emuutils/libemu_utils.a
@@ -68,6 +68,7 @@ if(WIN32)
  ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPgui/build-win32/qt/gui/libqt_gui.a
  ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPavio/build-win32/qt/avio/libqt_avio.a
  ${BUNDLE_LIBS} 
+ ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPcommon_vm/build-win32/vm/common_vm/libvm_common_vm.a
  ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPgui/build-win32/qt/gui/libqt_gui.a
  Qt5::OpenGL
  )
