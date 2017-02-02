@@ -55,6 +55,12 @@ if(USE_QT_5)
   endif()
 endif()
 if(WIN32)
+ if(USE_FMGEN)
+   set(BUNDLE_LIBS
+	 ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPfmgen/build-win32/vm/fmgen/libvm_fmgen.a
+	 ${BUNDLE_LIBS}
+   )
+ endif()
  target_link_libraries(${EXEC_TARGET} 
  ${LOCAL_LIBS}
  ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPemu_utils/build-win32/qt/emuutils/libemu_utils.a

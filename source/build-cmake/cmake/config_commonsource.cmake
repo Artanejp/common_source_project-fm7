@@ -149,7 +149,11 @@ if(DEFINED VM_NAME)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/${VM_NAME})
   if(USE_FMGEN)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-    set(FMGEN_LIB vm_fmgen)
+    if(WIN32)
+#      set(FMGEN_LIB vm_fmgen)
+	else()
+	  set(FMGEN_LIB "-lCSPfmgen")
+	endif()
   endif()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/${VM_NAME})
 endif()
@@ -181,22 +185,21 @@ if(DEFINED VM_NAME)
 if(WIN32)
 	   set(LOCAL_LIBS 
 		   common_emu
-                   qt_${VM_NAME}
+           qt_${VM_NAME}
 		   vm_${VM_NAME}
 		   ${VM_APPEND_LIBS}
-		   vm_vm
 		   ${FMGEN_LIB}
+		   vm_vm
 		   ${DEBUG_LIBS}
 		   common_common
 		   )
 else()
 	   set(LOCAL_LIBS     
 		   common_emu
-                   qt_${VM_NAME}
+           qt_${VM_NAME}
 		   vm_${VM_NAME}
 		   ${VM_APPEND_LIBS}
 		   vm_vm
-		   ${FMGEN_LIB}
 		   ${DEBUG_LIBS}
 		   common_common
 		   )
@@ -230,7 +233,7 @@ else()
 #       ${LIBAV_LIBRARIES}
        ${ADDITIONAL_LIBRARIES}
        )
-       set(BUNDLE_LIBS ${BUNDLE_LIBS} -lCSPosd -lCSPgui -lCSPemu_utils -lCSPavio)
+       set(BUNDLE_LIBS ${BUNDLE_LIBS} -lCSPosd ${FMGEN_LIB} -lCSPgui -lCSPemu_utils -lCSPavio)
 endif()
 
 if(USE_QT_5)
@@ -241,9 +244,9 @@ set(BUNDLE_LIBS ${BUNDLE_LIBS} ${THREADS_LIBRARY})
 
 if(DEFINED VM_NAME)
 	add_subdirectory(../../src/vm/${VM_NAME} vm/${VM_NAME})
-  if(USE_FMGEN)
-	add_subdirectory(../../src/vm/fmgen vm/fmgen)
-  endif()	
+#  if(USE_FMGEN)
+#	add_subdirectory(../../src/vm/fmgen vm/fmgen)
+#  endif()	
 	add_subdirectory(../../src/qt/machines/${VM_NAME} qt/${VM_NAME})
 	add_subdirectory(../../src/qt/common qt/common)
 endif()

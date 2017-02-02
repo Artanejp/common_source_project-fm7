@@ -120,6 +120,8 @@ esac
 
 # libCSPGui
 
+build_dll libCSPfmgen
+
 build_dll libCSPavio
 
 build_dll libCSPgui

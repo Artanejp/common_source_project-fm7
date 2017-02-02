@@ -8,7 +8,7 @@
 #include "misc.h"
 #include "./psg_ay_3_891x.h"
 // for AY-3-8190/8192
-#include "../vm.h"
+//#include "../vm.h"
 
 #include "../../fileio.h"
 
