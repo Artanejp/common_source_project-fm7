@@ -461,9 +461,6 @@ void VM::connect_bus(void)
 
 void VM::update_config()
 {
-	uint32_t vol1, vol2, tmpv;
-	int ii, i_limit;
-
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->update_config();
 	}
@@ -872,7 +869,6 @@ void VM::save_state(FILEIO* state_fio)
 bool VM::load_state(FILEIO* state_fio)
 {
 	uint32_t version = state_fio->FgetUint32_BE();
-	int i = 1;
 	if(version != STATE_VERSION) {
 		return false;
 	}

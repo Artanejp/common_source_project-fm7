@@ -54,8 +54,7 @@ void DISPLAY::write_vram_l4_400l(uint32_t addr, uint32_t offset, uint32_t data)
 void DISPLAY::GETVRAM_8_200L(int yoff, scrntype_t *p, uint32_t mask,
 									bool window_inv = false)
 {
-	register uint8_t b, r, g;
-	register uint32_t dot;
+	uint8_t b, r, g;
 	uint32_t yoff_d;
 #if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	int dpage = vram_display_block;
@@ -96,6 +95,7 @@ void DISPLAY::GETVRAM_8_200L(int yoff, scrntype_t *p, uint32_t mask,
 		p[i] = dpalette_pixel[tmp_d[i]];
 	}
 #else	
+	uint32_t dot;
 	dot = ((g & 0x80) >> 5) | ((r & 0x80) >> 6) | ((b & 0x80) >> 7);
 	p[0] = dpalette_pixel[dot];
 	dot = ((g & 0x40) >> 4) | ((r & 0x40) >> 5) | ((b & 0x40) >> 6);
@@ -120,8 +120,8 @@ void DISPLAY::GETVRAM_8_200L(int yoff, scrntype_t *p, uint32_t mask,
 void DISPLAY::GETVRAM_8_400L(int yoff, scrntype_t *p, uint32_t mask,
 							 bool window_inv = false)
 {
-	register uint8_t b, r, g;
-	register uint32_t dot;
+	uint8_t b, r, g;
+	uint32_t dot;
 	uint32_t yoff_d;
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	int dpage = vram_display_block;
@@ -179,11 +179,11 @@ void DISPLAY::GETVRAM_8_400L(int yoff, scrntype_t *p, uint32_t mask,
 
 void DISPLAY::GETVRAM_256k(int yoff, scrntype_t *p, uint32_t mask)
 {
-	register uint32_t b3, r3, g3;
-	register uint32_t b4, r4, g4;
-	register uint32_t btmp, rtmp, gtmp;
+	uint32_t b3, r3, g3;
+	uint32_t b4, r4, g4;
+	uint32_t btmp, rtmp, gtmp;
 	
-	register scrntype_t b, r, g;
+	scrntype_t b, r, g;
 	scrntype_t pixel;
 	uint32_t _bit;
 	int _shift;
@@ -537,8 +537,8 @@ void DISPLAY::draw_screen2()
 	int y;
 	int x;
 	scrntype_t *p, *pp;
-	register int yoff;
-	register uint32_t rgbmask;
+	int yoff;
+	uint32_t rgbmask;
 	uint32_t yoff_d1, yoff_d2;
 	uint16_t wx_begin, wx_end, wy_low, wy_high;
 	
@@ -560,7 +560,7 @@ void DISPLAY::draw_screen2()
 	frame_skip_count++;
 #if defined(_FM77AV_VARIANTS)
 	{
-		int factor = (config.dipswitch & FM7_DIPSW_FRAMESKIP) >> 28;
+		uint32_t factor = (config.dipswitch & FM7_DIPSW_FRAMESKIP) >> 28;
 		if(frame_skip_count < factor) return;
 		frame_skip_count = 0;
 	}
@@ -568,7 +568,7 @@ void DISPLAY::draw_screen2()
 	yoff_d1 = 0;
 #else
 	{
-		int factor = (config.dipswitch & FM7_DIPSW_FRAMESKIP) >> 28;
+		uint32_t factor = (config.dipswitch & FM7_DIPSW_FRAMESKIP) >> 28;
 		if((frame_skip_count < factor) || !(vram_wrote_shadow)) return;
 		frame_skip_count = 0;
 	}

@@ -352,7 +352,7 @@ void META_MainWindow::setupUI_Emu(void)
 		actionFrameSkip[i]->fm7_binds->setValue1(i);
 		actionGroup_FrameSkip->addAction(actionFrameSkip[i]);
 		menuFrameSkip->addAction(actionFrameSkip[i]);
-		if(i == skip) actionFrameSkip[i]->setChecked(true);
+		if((uint32_t)i == skip) actionFrameSkip[i]->setChecked(true);
 		connect(actionFrameSkip[i], SIGNAL(triggered()), actionFrameSkip[i], SLOT(do_set_frameskip()));
 	}
 	menuMachine->addAction(menuFrameSkip->menuAction());

@@ -173,7 +173,6 @@ void DISPLAY::reset_cpuonly()
 void DISPLAY::reset()
 {
 	int i;
-	
 	memset(io_w_latch, 0xff, sizeof(io_w_latch));
 	halt_flag = false;
 	vram_accessflag = true;
@@ -1683,10 +1682,11 @@ void DISPLAY::write_dma_data8(uint32_t addr, uint32_t data)
 		if(display_mode == DISPLAY_MODE_8_400L) {
 			color = vram_bank & 0x03;
 			if(color > 2) color = 0;
-		} else {
+		} else
+# endif
+		{
 			color = (addr >> 14) & 0x03;
 		}
-# endif
 #if !defined(_FM8)		
 		if((multimode_accessmask & (1 << color)) != 0) return;
 #endif		
@@ -1895,10 +1895,11 @@ uint32_t DISPLAY::read_dma_data8(uint32_t addr)
 		if(display_mode == DISPLAY_MODE_8_400L) {
 			color = vram_bank & 0x03;
 			if(color > 2) color = 0;
-		} else {
+		} else
+# endif
+		{
 			color = (addr >> 14) & 0x03;
 		}
-# endif
 # if !defined(_FM8)		
 		if((multimode_accessmask & (1 << color)) != 0) return 0xff;
 # endif		
