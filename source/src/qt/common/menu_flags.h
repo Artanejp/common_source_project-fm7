@@ -219,7 +219,7 @@ public:
 	bool is_use_minimum_rendaring() { return use_minimum_rendering; }
 	bool is_use_dig_resolution() { return use_dig_resolution; }
 
-	int get_use_monitor_type() { use_monitor_type; }
+	int get_use_monitor_type() { return use_monitor_type; }
 	
 	bool is_use_mouse() { return use_mouse; }
 	

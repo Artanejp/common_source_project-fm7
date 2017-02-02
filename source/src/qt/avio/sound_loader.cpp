@@ -188,7 +188,7 @@ int SOUND_LOADER::decode_packet(int *got_frame, int cached)
 			}
 			_dst_size += dst_nb_samples;
 			if(_data_size <= (_dst_size * 2 * sizeof(int16_t))) {
-				sound_buffer = realloc(sound_buffer, _data_size << 1);
+				sound_buffer = (int16_t *)realloc(sound_buffer, _data_size << 1);
 				if(sound_buffer == NULL) {
 					csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Error re-allocate sound buffer");
 					if(_data[0] != NULL) free(_data[0]);

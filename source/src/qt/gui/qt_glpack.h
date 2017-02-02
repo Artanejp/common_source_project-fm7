@@ -99,6 +99,7 @@ public:
 	GLuint setTexture(GLuint id)
 	{
 		Texture = id;
+		return id;
 	}
 	int getViewportWidth()
 	{
