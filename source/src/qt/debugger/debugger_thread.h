@@ -16,6 +16,7 @@
 #include <QThread>
 #include <QCloseEvent>
 
+#include "../../vm/vm.h"
 #if defined(USE_DEBUGGER)	
 #include "../../emu.h"
 #endif

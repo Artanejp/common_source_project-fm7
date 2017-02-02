@@ -21,7 +21,6 @@ set(QT_COMMON_BASE
 	  
 	  emu_thread.cpp
 	  emu_thread_slots.cpp
-	  
 	  util_fd2.cpp
 	  util_bubble2.cpp
 	  util_main.cpp
@@ -61,6 +60,7 @@ if(WIN32)
 	 ${BUNDLE_LIBS}
    )
  endif()
+ #${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPcommon_vm/build-win32/vm/commoin_vm/libvm_common_vm.a
  target_link_libraries(${EXEC_TARGET} 
  ${LOCAL_LIBS}
  ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPemu_utils/build-win32/qt/emuutils/libemu_utils.a
