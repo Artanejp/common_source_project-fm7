@@ -156,12 +156,6 @@
    
 /* macros for addressing modes (postbytes have their own code) */
 #define DIRECT		EAD = DPD; IMMBYTE(ea.b.l)
-//#define DIRECT		{		\
-//    pair_t tmpea;				\
-//    tmpea.d = 0;				\
-//    tmpea.b.h = DP;				\
-//    IMMBYTE(tmpea.b.l);			\
-//    EAD = tmpea.d; }
 
 #define IMM8		EAD = PCD; PC++
 #define IMM16		EAD = PCD; PC += 2

@@ -224,7 +224,7 @@ void DISK::open(const _TCHAR* file_path, int bank)
 				}
 				int len = p->ncyl * p->nside * p->nsec * p->size;
 				// 4096 bytes: FDI header ???
-				if(file_size.d == len + (is_fdi_tmp ? 4096 : 0)) {
+				if(file_size.d == (uint32_t)(len + (is_fdi_tmp ? 4096 : 0))) {
 					fio->Fseek(0, FILEIO_SEEK_SET);
 					if(is_fdi_tmp) {
 						is_fdi_image = true;
@@ -1473,7 +1473,7 @@ static short td_decode_position(FILEIO* fio)
 		}
 		i = (i << 1) + bit;
 	}
-	return (c | i & 0x3f);
+	return (c | (i & 0x3f));
 }
 
 static void td_init_decode()
@@ -1889,7 +1889,8 @@ bool DISK::cpdread_to_d88(FILEIO *fio)
 	if(!extendformat) {
 		int cnt = 0, tmp = 0x100;
 		for(int i = 0; i < tracks * heads; i++) {
-			if(track_offsets_error = (memcmp(tmp_buffer + tmp, "Track-Info", 10) != 0)) {
+			track_offsets_error = (memcmp(tmp_buffer + tmp, "Track-Info", 10) != 0);
+			if(track_offsets_error) {
 				break;
 			}
 			track_offsets[cnt] = tmp;
@@ -1901,7 +1902,8 @@ bool DISK::cpdread_to_d88(FILEIO *fio)
 		for(int i = 0; i < tracks * heads; i++) {
 			int length = tmp_buffer[0x34 + i] << 8;
 			if(length != 0) {
-				if(track_offsets_error = (memcmp(tmp_buffer + tmp, "Track-Info", 10) != 0)) {
+				track_offsets_error = (memcmp(tmp_buffer + tmp, "Track-Info", 10) != 0);
+				if(track_offsets_error) {
 					break;
 				}
 				track_offsets[cnt] = tmp;
@@ -1919,7 +1921,8 @@ bool DISK::cpdread_to_d88(FILEIO *fio)
 		for(int i = 0; i < tracks * heads; i++) {
 			bool found = false;
 			for(; tmp < image_size; tmp += 0x10) {
-				if(found = (memcmp(tmp_buffer + tmp, "Track-Info", 10) == 0)) {
+				found = (memcmp(tmp_buffer + tmp, "Track-Info", 10) == 0);
+				if(found) {
 					break;
 				}
 			}

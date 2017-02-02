@@ -144,7 +144,7 @@ void MB8877::reset()
 		fdc[i].index = 0;
 		fdc[i].access = false;
 	}
-	for(int i = 0; i < array_length(register_id); i++) {
+	for(int i = 0; i < (int)array_length(register_id); i++) {
 		register_id[i] = -1;
 	}
 	now_search = now_seek = drive_sel = false;
@@ -1813,7 +1813,7 @@ void MB8877::save_state(FILEIO* state_fio)
 bool MB8877::load_state(FILEIO* state_fio)
 {
 	uint32_t s_version = state_fio->FgetUint32();
-	uint32_t desired_version = STATE_VERSION;
+	//uint32_t desired_version = STATE_VERSION;
 	bool pending = false;
 	if(s_version != STATE_VERSION) {
 		if(s_version == 5) {

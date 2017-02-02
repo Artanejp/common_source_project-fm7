@@ -72,6 +72,10 @@ public:
 		// primary event manager
 		event_manager = NULL;
 	}
+	//ToDo: Will implement real destructor per real classes and below destructor decl. with "virtual".
+	// This makes warning:
+	//"deleting object of polymorphic class type 'DEVICE' which has non-virtual
+	// destructor might cause undefined behavior [-Wdelete-non-virtual-dtor]".
 	~DEVICE(void) {}
 	
 	virtual void initialize() {}

@@ -52,14 +52,14 @@ inline pair_t MC6809::RM16_PAIR(uint32_t addr)
 	pair_t b;
 	b.d = 0;
 	b.b.h = RM(addr);
-	b.b.l = RM(addr + 1);
+	b.b.l = RM((addr + 1));
 	return b;
 }
 
 inline void MC6809::WM16(uint32_t Addr, pair_t *p)
 {
 	WM(Addr , p->b.h);
-	WM(Addr + 1, p->b.l);
+	WM((Addr + 1), p->b.l);
 }
 
 /* increment */
@@ -302,7 +302,7 @@ void MC6809::write_signal(int id, uint32_t data, uint32_t mask)
 
 void MC6809::cpu_nmi(void)
 {
-	pair_t rpc = pPC;
+	//pair_t rpc = pPC;
 	if ((int_state & MC6809_CWAI_IN) == 0) {
 		CC |= CC_E;
 		PUSHWORD(pPC);
@@ -325,7 +325,7 @@ void MC6809::cpu_nmi(void)
 // Refine from cpu_x86.asm of V3.52a.
 void MC6809::cpu_firq(void)
 {
-	pair_t rpc = pPC;
+	//pair_t rpc = pPC;
 	if ((int_state & MC6809_CWAI_IN) == 0) {
 		/* NORMAL */
 		CC &= ~CC_E;
@@ -342,7 +342,7 @@ void MC6809::cpu_firq(void)
 // Refine from cpu_x86.asm of V3.52a.
 void MC6809::cpu_irq(void)
 {
-	pair_t rpc = pPC;
+	//pair_t rpc = pPC;
 	if ((int_state & MC6809_CWAI_IN) == 0) {
 		CC |= CC_E;
 		PUSHWORD(pPC);
@@ -382,7 +382,8 @@ int MC6809::run(int clock)
 	if(busreq) write_signals(&outputs_bus_halt, 0x00000000);
 	busreq = false;
 	if((int_state & MC6809_INSN_HALT) != 0) {	// 0x80
-		uint8_t dmy = RM(PCD);
+		//uint8_t dmy = RM(PCD); //Will save.Need to keep.
+		RM(PCD); //Will save.Need to keep.
 		icount = 0;
 		icount -= extra_icount;
 		extra_icount = 0;
@@ -392,7 +393,7 @@ int MC6809::run(int clock)
  	/*
 	 * Check Interrupt
 	 */
-check_nmi:
+//check_nmi:
 	if ((int_state & (MC6809_NMI_BIT | MC6809_FIRQ_BIT | MC6809_IRQ_BIT)) != 0) {	// 0x0007
 		if ((int_state & MC6809_NMI_BIT) == 0)
 			goto check_firq;
@@ -1747,7 +1748,7 @@ inline uint8_t MC6809::SBC8_REG(uint8_t reg, uint8_t data)
 	uint8_t cc_c = CC & CC_C;
 	r = (uint16_t)reg - (uint16_t)data - (uint16_t)cc_c;
 	CLR_HNZVC;
-	SET_FLAGS8(reg, data + cc_c , r);
+	SET_FLAGS8(reg, (data + cc_c) , r);
 	return (uint8_t)r;
 }
 
@@ -1807,7 +1808,7 @@ inline uint8_t MC6809::ADC8_REG(uint8_t reg, uint8_t data)
 	t &= 0x00ff;
 	r = reg + t + c_cc;
 	CLR_HNZVC;
-	SET_HNZVC8(reg, t + c_cc, r);
+	SET_HNZVC8(reg, (t + c_cc), r);
 	return (uint8_t)r;
 }	
 
@@ -1999,7 +2000,7 @@ OP_HANDLER(sync_09)	// Rename 20101110
 OP_HANDLER(trap) {
 	int_state |= MC6809_INSN_HALT;	// HALTフラグ
 	// Debug: トラップ要因
-	this->out_debug_log(_T("TRAP(HALT) @%04x %02x %02x\n"), PC - 1, RM(PC - 1), RM(PC));
+	this->out_debug_log(_T("TRAP(HALT) @%04x %02x %02x\n"), PC - 1, RM((PC - 1)), RM(PC));
 }
 
 /* $15 trap */
@@ -2506,9 +2507,10 @@ OP_HANDLER(leau) {
 
 /* $34 PSHS inherent ----- */
 OP_HANDLER(pshs) {
-		uint8_t t, dmy;
+		uint8_t t;
 		IMMBYTE(t);
-		dmy = RM(S);	// Add 20100825
+		//dmy = RM(S);	// Add 20100825
+		RM(S);	// Add 20100825
 		if (t & 0x80) {
 			PUSHWORD(pPC);
 			icount -= 2;
@@ -2545,7 +2547,7 @@ OP_HANDLER(pshs) {
 
 /* 35 PULS inherent ----- */
 OP_HANDLER(puls) {
-		uint8_t t, dmy;
+		uint8_t t;
 		IMMBYTE(t);
 		if (t & 0x01) {
 			PULLBYTE(CC);
@@ -2579,17 +2581,18 @@ OP_HANDLER(puls) {
 			PULLWORD(pPC);
 			icount -= 2;
 		}
-		dmy = RM(S);	// Add 20100825
-
+		//dmy = RM(S);	// Add 20100825
+		RM(S);	// Add 20100825
 		/* HJB 990225: moved check after all PULLs */
 //  if( t&0x01 ) { check_irq_lines(); }
 	}
 
 /* $36 PSHU inherent ----- */
 OP_HANDLER(pshu) {
-		uint8_t t, dmy;
+		uint8_t t;
 		IMMBYTE(t);
-		dmy = RM(U);	// Add 20100825
+		//dmy = RM(U);	// Add 20100825
+		RM(U);	// Add 20100825
 		if (t & 0x80) {
 			PSHUWORD(pPC);
 			icount -= 2;
@@ -2626,7 +2629,7 @@ OP_HANDLER(pshu) {
 
 /* 37 PULU inherent ----- */
 OP_HANDLER(pulu) {
-		uint8_t t, dmy;
+		uint8_t t;
 		IMMBYTE(t);
 		if (t & 0x01) {
 			PULUBYTE(CC);
@@ -2660,8 +2663,8 @@ OP_HANDLER(pulu) {
 			PULUWORD(pPC);
 			icount -= 2;
 		}
-		dmy = RM(U);	// Add 20100825
-
+		//dmy = RM(U);	// Add 20100825
+		RM(U);	// Add 20100825
 		/* HJB 990225: moved check after all PULLs */
 		//if( t&0x01 ) { check_irq_lines(); }
 }
@@ -3043,9 +3046,10 @@ OP_HANDLER(jmp_ix) {
 
 /* $6F CLR indexed -0100 */
 OP_HANDLER(clr_ix) {
-	uint8_t t, dummy;
+	uint8_t t;
 	t = GET_INDEXED_DATA();
-	dummy = RM(EAD);	// Dummy Read(Alpha etc...)
+	//dummy = RM(EAD);	// Dummy Read(Alpha etc...)
+	RM(EAD);	// Dummy Read(Alpha etc...)
 	CLR_MEM(t);
 }
 
@@ -3229,8 +3233,10 @@ OP_HANDLER(sta_im) {
  */
 OP_HANDLER(flag8_im) {
 		// 20111117
-		uint8_t t;
-		IMMBYTE(t);
+		//uint8_t t;
+		// IMMBYTE(t);
+		ROP_ARG(PCD);
+		PC++;
 		CLR_NZV;
 		CC |= CC_N;
 	}
