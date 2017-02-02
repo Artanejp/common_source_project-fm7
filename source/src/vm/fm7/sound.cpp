@@ -12,22 +12,16 @@
 #include "../pcm1bit.h"
 #include "../datarec.h"
 #include "../ym2203.h"
-
 #include "fm7_mainio.h"
+#include "../ay_3_891x.h"
 #include "../../config.h"
 
 void FM7_MAINIO::reset_sound(void)
 {
-	int i, j, k;
+	int i, j;
 
-#if defined(_FM8)
-	k = 1;
-#elif defined(_FM77AV_VARIANTS)
-	k = 3;
-#else
-	k = 4;
-#endif
-	for(i = 0; i < k; i++) {
+#if !defined(_FM8)
+	for(i = 0; i < 3; i++) {
 		opn_data[i]= 0;
 		opn_cmdreg[i] = 0;
 		opn_address[i] = 0;
@@ -46,6 +40,12 @@ void FM7_MAINIO::reset_sound(void)
 		}
 	   
 	}
+#endif
+#if !defined(_FM77AV_VARIANTS)
+	if(psg != NULL) {
+		psg->reset();
+	}
+#endif
 #if defined(_FM8)
 	connect_psg = false;
 #else	
@@ -107,13 +107,21 @@ void FM7_MAINIO::reset_sound(void)
 	pcm1bit->write_signal(SIG_PCM1BIT_ON, 0x00, 0x01);
 	
 #if defined(_FM8)
-	opn[0]->write_signal(SIG_YM2203_MUTE, !connect_psg ? 0xffffffff : 0x00000000, 0xffffffff);
+# if defined(USE_AY_3_8910_AS_PSG)
+	psg->write_signal(SIG_AY_3_891X_MUTE, !connect_psg ? 0xffffffff : 0x00000000, 0xffffffff);
+# else	
+	psg->write_signal(SIG_YM2203_MUTE, !connect_psg ? 0xffffffff : 0x00000000, 0xffffffff);
+# endif
 #else
 	opn[0]->write_signal(SIG_YM2203_MUTE, !connect_opn ? 0xffffffff : 0x00000000, 0xffffffff);
 	opn[1]->write_signal(SIG_YM2203_MUTE, !connect_whg ? 0xffffffff : 0x00000000, 0xffffffff);
 	opn[2]->write_signal(SIG_YM2203_MUTE, !connect_thg ? 0xffffffff : 0x00000000, 0xffffffff);
 # if !defined(_FM77AV_VARIANTS)
-	opn[3]->write_signal(SIG_YM2203_MUTE, 0x00000000, 0xffffffff);
+#  if defined(USE_AY_3_8910_AS_PSG)
+	psg->write_signal(SIG_AY_3_891X_MUTE, 0x00000000, 0xffffffff);
+#  else
+	psg->write_signal(SIG_YM2203_MUTE, 0x00000000, 0xffffffff);
+#  endif
 # endif
 #endif	
 }
@@ -169,16 +177,18 @@ void FM7_MAINIO::write_opn_reg(int index, uint32_t addr, uint32_t data)
 #if defined(_FM8)
 	if(connect_psg) {
 		opn_regs[0][addr] = data;
-		opn[0]->write_io8(0, addr & 0x0f);
-		opn[0]->write_io8(1, data);
+		psg->write_io8(0, addr & 0x0f);
+		psg->write_io8(1, data);
 		return;
 	}
-#else	
+#else
+# if !defined(_FM77AV_VARIANTS)
 	if(index == 3) { // PSG
-	  	opn[index]->write_io8(0, addr & 0x0f);
-		opn[index]->write_io8(1, data);
+	  	psg->write_io8(0, addr & 0x0f);
+		psg->write_io8(1, data);
 		return;
 	}
+# endif
 	if((addr >= 0x2d) && (addr < 0x30)) {
 		opn[index]->write_io8(0, addr);
 		return;
@@ -190,7 +200,7 @@ void FM7_MAINIO::write_opn_reg(int index, uint32_t addr, uint32_t data)
 	opn[index]->write_io8(1, data);
 	opn_regs[index][addr] = data;
 	return;
-#endif	
+#endif
 }
 
 void FM7_MAINIO::set_opn(int index, uint8_t val)
@@ -200,13 +210,21 @@ void FM7_MAINIO::set_opn(int index, uint8_t val)
 		return;
 	}
 	if(index != 0) return;
+	if(psg == NULL) return;
 #else	
 	if((index > 3) || (index < 0)) return;
 	if((index == 0) && (!connect_opn)) return;
 	if((index == 1) && (!connect_whg)) return;
 	if((index == 2) && (!connect_thg)) return;
 	if((index == 3) && (opn_psg_77av)) return;
-	if(opn[index] == NULL) return;
+# if !defined(_FM77AV_VARIANTS)	
+	if(index == 3) {
+		if(psg == NULL) return;
+	} else
+# endif
+	if(opn[index] == NULL) {
+		return;
+	}
 #endif   
 	opn_data[index] = val;
 	switch(opn_cmdreg[index]){
@@ -221,11 +239,13 @@ void FM7_MAINIO::set_opn(int index, uint8_t val)
 				opn_address[index] = val & 0x0f;
 			} else {
 				opn_address[index] = val;
+#if !defined(_FM8)
 				if((val > 0x2c) && (val < 0x30)) {
 					opn_data[index] = 0;
 					opn[index]->write_io8(0, val);
 					opn[index]->write_io8(1, 0);
 				}
+#endif
 			}
 			break;
 	   
@@ -238,14 +258,22 @@ uint8_t FM7_MAINIO::get_opn(int index)
 #if defined(_FM8)
 	if(!connect_psg) return val;
 	if(index != 0) return val;
+	if(psg == NULL) return val;
 #else	
 	if((index > 2) || (index < 0)) return val;
 	if((index == 0) && (!connect_opn)) return val;
 	if((index == 1) && (!connect_whg)) return val;
 	if((index == 2) && (!connect_thg)) return val;
 	if((index == 3) && (opn_psg_77av)) return val;
+# if !defined(_FM77AV_VARIANTS)	
+	if(index == 3) {
+		if(psg == NULL) return val;
+	} else
+# endif
+		if(opn[index] == NULL) {
+		return val;
+	}
 #endif	   
-	if(opn[index] == NULL) return val;
 	switch(opn_cmdreg[index]) {
 		case 0:
 		case 1:
@@ -253,6 +281,7 @@ uint8_t FM7_MAINIO::get_opn(int index)
 		case 3:
 			val = opn_data[index];
 			break;
+#if !defined(_FM8)
 		case 4:
 			opn_stat[index] = opn[index]->read_io8(0) & 0x03;
 			if(index != 3) val = opn_stat[index];
@@ -264,6 +293,7 @@ uint8_t FM7_MAINIO::get_opn(int index)
 			}
 			return 0x00;
 			break;
+#endif
 		default:
 	 		break;
 		}
@@ -277,13 +307,19 @@ void FM7_MAINIO::set_opn_cmd(int index, uint8_t cmd)
 #if defined(_FM8)
 	if(!connect_psg) return;
 	if(index != 0) return;
+	if(psg == NULL) return;
 #else	
 	if((index >= 4) || (index < 0)) return;
 	if((index == 0) && (!connect_opn)) return;
 	if((index == 1) && (!connect_whg)) return;
 	if((index == 2) && (!connect_thg)) return;
 	if((index == 3) && (opn_psg_77av)) return ;
-#endif	
+# if !defined(_FM77AV_VARIANTS)	
+	if(index == 3) {
+		if(psg == NULL) return;
+	}
+# endif
+#endif
 	uint32_t mask[16] = { // Parameter is related by XM7. Thanks Ryu.
 		0xff, 0x0f, 0xff, 0x0f,
 		0xff, 0x0f, 0x1f, 0xff,
@@ -296,8 +332,23 @@ void FM7_MAINIO::set_opn_cmd(int index, uint8_t cmd)
 		case 0:
 			break;
 		case 1:
+#if defined(_FM8)
+			if(index == 0) {
+				psg->write_io8(0, opn_address[index]);
+				opn_data[index] = psg->read_io8(1);
+			}
+#elif !defined(_FM77AV_VARIANTS)	
+			if(index == 3) {
+				psg->write_io8(0, opn_address[index]);
+				opn_data[index] = psg->read_io8(1);
+			} else {
+				opn[index]->write_io8(0, opn_address[index]);
+				opn_data[index] = opn[index]->read_io8(1);
+			}				
+#else
 			opn[index]->write_io8(0, opn_address[index]);
 			opn_data[index] = opn[index]->read_io8(1);
+#endif
 			if(opn_address[index] <= 0x0f) {
 				opn_data[index] &= mask[opn_address[index]];
 			}
@@ -310,16 +361,21 @@ void FM7_MAINIO::set_opn_cmd(int index, uint8_t cmd)
 				opn_address[index] = val & 0x0f;
 			} else {
 				opn_address[index] = val;
+#if !defined(_FM8)
 				if((val > 0x2c) && (val < 0x30)) {
 					opn_data[index] = 0;
 					opn[index]->write_io8(0, val);
 					opn[index]->write_io8(1, 0);
 				}
+#endif
 			}
+
 			break;
+#if !defined(_FM8)
 		case 4:
 			opn_stat[index] = opn[index]->read_io8(0) & 0x03;
 	   		break;
+#endif
 	 	default:
 	   		break;
 	}
@@ -348,7 +404,7 @@ void FM7_MAINIO::opn_note_on(int index)
 {
 	uint8_t r;
 #if !defined(_FM8)
-	if((index < 0) || (index >= 3)) return;
+	if((index < 0) || (index >= 2)) return;
 	// Not on for CSM mode. From XM7. Thanks, Ryu.
 	r = opn_ch3mode[index];
 	if ((r & 0xc0) == 0x80) {

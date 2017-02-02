@@ -26,6 +26,8 @@
 
 #include "../pcm1bit.h"
 #include "../ym2203.h"
+#include "../ay_3_891x.h"
+
 #if defined(_FM77AV_VARIANTS)
 #include "mb61vh010.h"
 #include "../beep.h"
@@ -62,7 +64,8 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 # if defined(_FM77AV_VARIANTS)
 	opn[0] = opn[1] = opn[2] = NULL;
 # else   
-	opn[0] = opn[1] = opn[2] = psg = NULL; 
+	opn[0] = opn[1] = opn[2] = NULL;
+	psg = NULL; 
 # endif
 #endif
 	dummy = new DEVICE(this, emu);	// must be 1st device
@@ -80,14 +83,22 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	dmac = new HD6844(this, emu);
 #endif   
 #if defined(_FM8)
+#  if defined(USE_AY_3_8910_AS_PSG)
+	psg = new AY_3_891X(this, emu);
+#  else
 	psg = new YM2203(this, emu);
+#  endif
 #else	
 	opn[0] = new YM2203(this, emu); // OPN
 	opn[1] = new YM2203(this, emu); // WHG
 	opn[2] = new YM2203(this, emu); // THG
 # if !defined(_FM77AV_VARIANTS)
+#  if defined(USE_AY_3_8910_AS_PSG)
+	psg = new AY_3_891X(this, emu);
+#  else
 	psg = new YM2203(this, emu);
-# endif
+#  endif
+# endif	
 #endif
 #if defined(_FM8)
 	for(int i = 0; i < 2; i++) bubble_casette[i] = new BUBBLECASETTE(this, emu);
@@ -474,9 +485,13 @@ void VM::reset()
 		device->reset();
 	}
 #if !defined(_FM77AV_VARIANTS) || defined(_FM8)
+# if defined(USE_AY_3_8910_AS_PSG)
+	psg->write_signal(SIG_AY_3_891X_MUTE, 0x00, 0x01); // Okay?
+# else	
 	psg->set_reg(0x27, 0); // stop timer
 	psg->set_reg(0x2e, 0);	// set prescaler
 	psg->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
+#endif
 #endif
 #if !defined(_FM8)
 	for(int i = 0; i < 3; i++) {
