@@ -10,14 +10,16 @@
 #ifndef _YM2413_H_
 #define _YM2413_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 typedef INT16 SAMP;
 typedef void (*OPLL_UPDATEHANDLER)(int param,int min_interval_us);
 void YM2413SetUpdateHandler(int which, OPLL_UPDATEHANDLER UpdateHandler, int param);
 
+class VM;
+class EMU;
 class YM2413 : public DEVICE
 {
 private:
