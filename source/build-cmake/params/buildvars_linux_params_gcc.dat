@@ -19,6 +19,7 @@ case ${USE_RADICAL_OPTIMIZE} in
 	       -fgraphite-identity \
 	       -floop-nest-optimize \
 	       -msse -msse2 \
+	       -Wall \
                ${MAKEFLAGS_BASE} \
 	       "
 	       ;;
