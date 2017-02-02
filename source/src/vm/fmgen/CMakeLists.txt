@@ -9,4 +9,5 @@ add_library(vm_fmgen
 		     opm.cpp
 		     opna.cpp
 		     psg.cpp
+		     psg_ay_3_891x.cpp
 )

@@ -106,18 +106,18 @@ void PSG::SetVolume(int volume_l, int volume_r)
 {
 	double base_l = 0x4000 / 3.0 * pow(10.0, volume_l / 40.0);
 	double base_r = 0x4000 / 3.0 * pow(10.0, volume_r / 40.0);
-#if defined(HAS_AY_3_8910) || defined(HAS_AY_3_8912)
-	// AY-3-8190/8192 (PSG): 16step
-	for (int i=31; i>=3; i-=2)
-	{
-		EmitTableL[i] = EmitTableL[i-1] = int(base_l);
-		EmitTableR[i] = EmitTableR[i-1] = int(base_r);
-		base_l /= 1.189207115;
-		base_l /= 1.189207115;
-		base_r /= 1.189207115;
-		base_r /= 1.189207115;
-	}
-#else
+//#if defined(HAS_AY_3_8910) || defined(HAS_AY_3_8912)
+//	// AY-3-8190/8192 (PSG): 16step
+//	for (int i=31; i>=3; i-=2)
+//	{
+//		EmitTableL[i] = EmitTableL[i-1] = int(base_l);
+//		EmitTableR[i] = EmitTableR[i-1] = int(base_r);
+//		base_l /= 1.189207115;
+//		base_l /= 1.189207115;
+//		base_r /= 1.189207115;
+//		base_r /= 1.189207115;
+//	}
+//#else
 	// YM2203 (SSG): 32step
 	for (int i=31; i>=2; i--)
 	{
@@ -126,7 +126,7 @@ void PSG::SetVolume(int volume_l, int volume_r)
 		base_l /= 1.189207115;
 		base_r /= 1.189207115;
 	}
-#endif
+//#endif
 	EmitTableL[1] = 0;
 	EmitTableL[0] = 0;
 	EmitTableR[1] = 0;

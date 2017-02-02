@@ -4,10 +4,11 @@
 // ---------------------------------------------------------------------------
 //	$Id: psg.h,v 1.8 2003/04/22 13:12:53 cisc Exp $
 
-#ifndef PSG_H
-#define PSG_H
+#ifndef PSG_AY_3_891X_H
+#define PSG_AY_3_891X_H
 
 #include "types.h"
+#include "psg.h"
 
 #define PSG_SAMPLETYPE		int32		// int32 or int16
 
@@ -41,61 +42,13 @@
 //		各音源の音量を調節する
 //		単位は約 1/2 dB
 //
-class PSG
+class PSG_AY_3_891X : public PSG
 {
 public:
-	typedef PSG_SAMPLETYPE Sample;
-	
-	enum
-	{
-		noisetablesize = 1 << 11,	// ←メモリ使用量を減らしたいなら減らして
-		toneshift = 24,
-		envshift = 22,
-		noiseshift = 14,
-		oversampling = 2,		// ← 音質より速度が優先なら減らすといいかも
-	};
-
-public:
-	PSG();
-	~PSG();
-
-	void Mix(Sample* dest, int nsamples);
-	void SetClock(int clock, int rate);
-	
-	virtual void SetVolume(int vol_l, int vol_r);
-	void SetChannelMask(int c);
-	
-	void Reset();
-	void SetReg(uint regnum, uint8 data);
-	uint GetReg(uint regnum) { return reg[regnum & 0x0f]; }
-
-	void SaveState(void *f);
-	bool LoadState(void *f);
-	
-protected:
-	void MakeNoiseTable();
-	void MakeEnvelopTable();
-	static void StoreSample(Sample& dest, int32 data);
-	
-	uint8 reg[16];
-
-	const uint* envelop_l;
-	const uint* envelop_r;
-	uint olevel_l[3];
-	uint olevel_r[3];
-	uint32 scount[3], speriod[3];
-	uint32 ecount, eperiod;
-	uint32 ncount, nperiod;
-	uint32 tperiodbase;
-	uint32 eperiodbase;
-	uint32 nperiodbase;
-	int mask;
-
-	uint enveloptable_l[16][64];
-	uint enveloptable_r[16][64];
-	uint noisetable[noisetablesize];
-	int EmitTableL[32];
-	int EmitTableR[32];
+	PSG_AY_3_891X();
+	~PSG_AY_3_891X();
+	bool Init(uint c, uint r);
+	void SetVolume(int vol_l, int vol_r);
 };
 
-#endif // PSG_H
+#endif // PSG_AY_3_891X_H
