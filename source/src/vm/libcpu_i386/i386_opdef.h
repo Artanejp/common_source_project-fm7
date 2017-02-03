@@ -5,6 +5,19 @@
 #include "./i386priv.h"
 #include "./i386ops.h"
 
+#ifndef INLINE
+#define INLINE inline
+#endif
+
+#define U64(v) UINT64(v)
+
+#define fatalerror(...) exit(1)
+#define logerror(...)
+#define popmessage(...)
+
+/*****************************************************************************/
+/* src/emu/devcpu.h */
+
 // CPU interface functions
 #define CPU_INIT_NAME(name)			I386_OPS_BASE::cpu_init_##name
 #define CPU_INIT(name)				void* CPU_INIT_NAME(name)()
@@ -31,6 +44,38 @@
 #define CPU_DISASSEMBLE_CALL_NAME(name)	cpu_disassemble_##name
 #define CPU_DISASSEMBLE_CALL(name)	CPU_DISASSEMBLE_CALL_NAME(name)(buffer, eip, oprom)
 
+/*****************************************************************************/
+/* src/emu/didisasm.h */
+
+// Disassembler constants
+const UINT32 DASMFLAG_SUPPORTED     = 0x80000000;   // are disassembly flags supported?
+const UINT32 DASMFLAG_STEP_OUT      = 0x40000000;   // this instruction should be the end of a step out sequence
+const UINT32 DASMFLAG_STEP_OVER     = 0x20000000;   // this instruction should be stepped over by setting a breakpoint afterwards
+const UINT32 DASMFLAG_OVERINSTMASK  = 0x18000000;   // number of extra instructions to skip when stepping over
+const UINT32 DASMFLAG_OVERINSTSHIFT = 27;           // bits to shift after masking to get the value
+const UINT32 DASMFLAG_LENGTHMASK    = 0x0000ffff;   // the low 16-bits contain the actual length
+
+/*****************************************************************************/
+/* src/emu/diexec.h */
+
+// I/O line states
+enum line_state
+{
+	CLEAR_LINE = 0,				// clear (a fired or held) line
+	ASSERT_LINE,				// assert an interrupt immediately
+	HOLD_LINE,				// hold interrupt line until acknowledged
+	PULSE_LINE				// pulse interrupt line instantaneously (only for NMI, RESET)
+};
+
+enum
+{
+	INPUT_LINE_IRQ = 0,
+	INPUT_LINE_NMI
+};
+
+/*****************************************************************************/
+/* src/emu/dimemory.h */
+
 
 class DEBUG;
 class I386_OPS_BASE {
@@ -43,6 +88,7 @@ protected:
 	UINT8 cycle_table_rm[X86_NUM_CPUS][CYCLES_NUM_OPCODES];
 	UINT8 cycle_table_pm[X86_NUM_CPUS][CYCLES_NUM_OPCODES];
 
+	UINT32 i386_escape_ea;   // hack around GCC 4.6 error because we need the side effects of GetEA()
 
 protected:
 	UINT32 i386_load_protected_mode_segment( I386_SREG *seg, UINT64 *desc );

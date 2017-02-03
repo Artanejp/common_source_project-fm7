@@ -1,4 +1,8 @@
 
+#include "../vm.h"
+#include "../../emu.h"
+#include "./i386opdef_real.h"
+
 I386_OPS::I386_OPS(void) : I386_OPS_BASE()
 {
 }
@@ -201,3 +205,14 @@ int I386_OPS::cpu_execute_i386(int cycles)
 }
 
 
+void I386_OPS::I386OP(int)(i386_state *cpustate)               // Opcode 0xcd
+{
+	int interrupt = FETCH(cpustate);
+	CYCLES(cpustate,CYCLES_INT);
+#ifdef I386_PSEUDO_BIOS
+	BIOS_INT(interrupt)
+#endif
+	cpustate->ext = 0; // not an external interrupt
+	i386_trap(cpustate,interrupt, 1, 0);
+	cpustate->ext = 1;
+}

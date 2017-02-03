@@ -486,15 +486,11 @@ void I386_OPS_BASE::I386OP(bts_rm16_r16)()      // Opcode 0x0f ab
 		CYCLES(CYCLES_BTS_REG_MEM);
 	}
 }
-
+// Belows are without PSEUDO_BIOS, sometimes needs to use i386op16_real.cpp .
 void I386_OPS_BASE::I386OP(call_abs16)()        // Opcode 0x9a
 {
 	UINT16 offset = FETCH16();
 	UINT16 ptr = FETCH16();
-
-#ifdef I386_PSEUDO_BIOS
-	BIOS_CALL(((ptr << 4) + offset) & cpustate->a20_mask)
-#endif
 
 	if( PROTECTED_MODE && !V8086_MODE)
 	{
@@ -517,9 +513,6 @@ void I386_OPS_BASE::I386OP(call_rel16)()        // Opcode 0xe8
 {
 	INT16 disp = FETCH16();
 
-#ifdef I386_PSEUDO_BIOS
-	BIOS_CALL((cpustate->pc + disp) & cpustate->a20_mask)
-#endif
 
 	PUSH16( cpustate->eip );
 	if (cpustate->sreg[CS].d)
@@ -3023,9 +3016,6 @@ void I386_OPS_BASE::I386OP(groupFF_16)()        // Opcode 0xff
 					address = READ16(ea);
 					CYCLES(CYCLES_CALL_MEM);       /* TODO: Timing = 10 + m */
 				}
-#ifdef I386_PSEUDO_BIOS
-				BIOS_CALL(((cpustate->sreg[CS].selector << 4) + address) & cpustate->a20_mask)
-#endif
 				PUSH16( cpustate->eip );
 				cpustate->eip = address;
 				CHANGE_PC(cpustate->eip);
@@ -3044,9 +3034,6 @@ void I386_OPS_BASE::I386OP(groupFF_16)()        // Opcode 0xff
 					address = READ16(ea + 0);
 					selector = READ16(ea + 2);
 					CYCLES(CYCLES_CALL_MEM_INTERSEG);      /* TODO: Timing = 10 + m */
-#ifdef I386_PSEUDO_BIOS
-					BIOS_CALL(((selector << 4) + address) & cpustate->a20_mask)
-#endif
 					if(PROTECTED_MODE && !V8086_MODE)
 					{
 						i386_protected_mode_call(selector,address,1,0);

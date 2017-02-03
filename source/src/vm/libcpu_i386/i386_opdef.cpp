@@ -19,7 +19,8 @@
 
 //#include "emu.h"
 //#include "debugger.h"
-#include "i386priv.h"
+//#include "i386priv.h"
+#include "./i386_opdef.h"
 //#include "i386.h"
 
 //#include "debug/debugcpu.h"

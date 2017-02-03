@@ -2,13 +2,73 @@
 // copyright-holders:Ville Linde, Barry Rodewald, Carl, Phil Bennett
 #pragma once
 
-#ifndef __I386_PRIV_H__
-#define __I386_PRIV_H__
+#ifndef __LIB_I386_PRIV_H__
+#define __LIB_I386_PRIV_H__
 
-//#include "i386.h"
-#include "../../../lib/softfloat/milieu.h"
-#include "../../../lib/softfloat/softfloat.h"
-#include "../vtlb.h"
+// Translation intentions
+const int TRANSLATE_TYPE_MASK       = 0x03;     // read write or fetch
+const int TRANSLATE_USER_MASK       = 0x04;     // user mode or fully privileged
+const int TRANSLATE_DEBUG_MASK      = 0x08;     // debug mode (no side effects)
+
+const int TRANSLATE_READ            = 0;        // translate for read
+const int TRANSLATE_WRITE           = 1;        // translate for write
+const int TRANSLATE_FETCH           = 2;        // translate for instruction fetch
+const int TRANSLATE_READ_USER       = (TRANSLATE_READ | TRANSLATE_USER_MASK);
+const int TRANSLATE_WRITE_USER      = (TRANSLATE_WRITE | TRANSLATE_USER_MASK);
+const int TRANSLATE_FETCH_USER      = (TRANSLATE_FETCH | TRANSLATE_USER_MASK);
+const int TRANSLATE_READ_DEBUG      = (TRANSLATE_READ | TRANSLATE_DEBUG_MASK);
+const int TRANSLATE_WRITE_DEBUG     = (TRANSLATE_WRITE | TRANSLATE_DEBUG_MASK);
+const int TRANSLATE_FETCH_DEBUG     = (TRANSLATE_FETCH | TRANSLATE_DEBUG_MASK);
+
+/*****************************************************************************/
+/* src/emu/emucore.h */
+
+// constants for expression endianness
+enum endianness_t
+{
+	ENDIANNESS_LITTLE,
+	ENDIANNESS_BIG
+};
+
+// declare native endianness to be one or the other
+#ifdef LSB_FIRST
+const endianness_t ENDIANNESS_NATIVE = ENDIANNESS_LITTLE;
+#else
+const endianness_t ENDIANNESS_NATIVE = ENDIANNESS_BIG;
+#endif
+// endian-based value: first value is if 'endian' is little-endian, second is if 'endian' is big-endian
+#define ENDIAN_VALUE_LE_BE(endian,leval,beval)	(((endian) == ENDIANNESS_LITTLE) ? (leval) : (beval))
+// endian-based value: first value is if native endianness is little-endian, second is if native is big-endian
+#define NATIVE_ENDIAN_VALUE_LE_BE(leval,beval)	ENDIAN_VALUE_LE_BE(ENDIANNESS_NATIVE, leval, beval)
+// endian-based value: first value is if 'endian' matches native, second is if 'endian' doesn't match native
+#define ENDIAN_VALUE_NE_NNE(endian,leval,beval)	(((endian) == ENDIANNESS_NATIVE) ? (neval) : (nneval))
+
+/*****************************************************************************/
+/* src/emu/memory.h */
+
+// address spaces
+enum address_spacenum
+{
+	AS_0,                           // first address space
+	AS_1,                           // second address space
+	AS_2,                           // third address space
+	AS_3,                           // fourth address space
+	ADDRESS_SPACES,                 // maximum number of address spaces
+
+	// alternate address space names for common use
+	AS_PROGRAM = AS_0,              // program address space
+	AS_DATA = AS_1,                 // data address space
+	AS_IO = AS_2                    // I/O address space
+};
+
+// offsets and addresses are 32-bit (for now...)
+typedef UINT32	offs_t;
+
+/*****************************************************************************/
+/* src/osd/osdcomm.h */
+
+/* Highly useful macro for compile-time knowledge of an array size */
+#define ARRAY_LENGTH(x)     (sizeof(x) / sizeof(x[0]))
 
 #include <math.h>
 
