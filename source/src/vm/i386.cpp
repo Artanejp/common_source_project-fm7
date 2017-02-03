@@ -1,21 +1,11 @@
-/*
-	Skelton for retropc emulator
 
-	Origin : MAME i386 core
-	Author : Takeda.Toshiya
-	Date  : 2009.06.08-
 
-	[ i386/i486/Pentium/MediaGX ]
-*/
-
+#include "vm.h"
+#include "../emu.h"
 #include "i386.h"
 #ifdef USE_DEBUGGER
 #include "debugger.h"
 #endif
-
-/* ----------------------------------------------------------------------------
-	MAME i386
----------------------------------------------------------------------------- */
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1400)
 #pragma warning( disable : 4018 )
@@ -43,10 +33,6 @@
 	#define CPU_MODEL pentium3
 #elif defined(HAS_PENTIUM4)
 	#define CPU_MODEL pentium4
-#endif
-
-#ifndef __BIG_ENDIAN__
-#define LSB_FIRST
 #endif
 
 #ifndef INLINE
@@ -181,41 +167,43 @@ typedef UINT32	offs_t;
 #define ARRAY_LENGTH(x)     (sizeof(x) / sizeof(x[0]))
 
 #ifdef I386_PSEUDO_BIOS
-#define BIOS_INT(num) if(cpustate->bios != NULL) { \
+#define BIOS_INT(num, __ret) if(cpustate->bios != NULL) { \
 	uint16_t regs[8], sregs[4]; \
+	__ret = false; \
 	regs[0] = REG16(AX); regs[1] = REG16(CX); regs[2] = REG16(DX); regs[3] = REG16(BX); \
 	regs[4] = REG16(SP); regs[5] = REG16(BP); regs[6] = REG16(SI); regs[7] = REG16(DI); \
 	sregs[0] = cpustate->sreg[ES].selector; sregs[1] = cpustate->sreg[CS].selector; \
 	sregs[2] = cpustate->sreg[SS].selector; sregs[3] = cpustate->sreg[DS].selector; \
 	int32_t ZeroFlag = cpustate->ZF, CarryFlag = cpustate->CF; \
+	printf("INT %x \n", num); \
 	if(cpustate->bios->bios_int_i86(num, regs, sregs, &ZeroFlag, &CarryFlag)) { \
 		REG16(AX) = regs[0]; REG16(CX) = regs[1]; REG16(DX) = regs[2]; REG16(BX) = regs[3]; \
 		REG16(SP) = regs[4]; REG16(BP) = regs[5]; REG16(SI) = regs[6]; REG16(DI) = regs[7]; \
 		cpustate->ZF = (UINT8)ZeroFlag; cpustate->CF = (UINT8)CarryFlag; \
-		return; \
+		__ret = true;													\
 	} \
 }
-#define BIOS_CALL(address) if(cpustate->bios != NULL) { \
+#define BIOS_CALL(address,__ret) if(cpustate->bios != NULL) {	\
 	uint16_t regs[8], sregs[4]; \
+	__ret = false; \
 	regs[0] = REG16(AX); regs[1] = REG16(CX); regs[2] = REG16(DX); regs[3] = REG16(BX); \
 	regs[4] = REG16(SP); regs[5] = REG16(BP); regs[6] = REG16(SI); regs[7] = REG16(DI); \
 	sregs[0] = cpustate->sreg[ES].selector; sregs[1] = cpustate->sreg[CS].selector; \
 	sregs[2] = cpustate->sreg[SS].selector; sregs[3] = cpustate->sreg[DS].selector; \
 	int32_t ZeroFlag = cpustate->ZF, CarryFlag = cpustate->CF; \
+	printf("CALL %08x %0x AX=%04x %02x %02x\n", cpustate, address, regs[0], REG8(AH), REG8(AL)); \
 	if(cpustate->bios->bios_call_i86(address, regs, sregs, &ZeroFlag, &CarryFlag)) { \
 		REG16(AX) = regs[0]; REG16(CX) = regs[1]; REG16(DX) = regs[2]; REG16(BX) = regs[3]; \
 		REG16(SP) = regs[4]; REG16(BP) = regs[5]; REG16(SI) = regs[6]; REG16(DI) = regs[7]; \
 		cpustate->ZF = (UINT8)ZeroFlag; cpustate->CF = (UINT8)CarryFlag; \
-		return; \
+		__ret = true; \
 	} \
 }
 #endif
 
-static CPU_TRANSLATE(i386);
-
-#include "mame/lib/softfloat/softfloat.c"
-#include "mame/emu/cpu/vtlb.c"
-#include "mame/emu/cpu/i386/i386.c"
+//static CPU_TRANSLATE(i386);
+#include "mame/emu/cpu/vtlb.h"
+#include "mame/emu/cpu/i386/i386_exec.c"
 #ifdef USE_DEBUGGER
 #include "mame/emu/cpu/i386/i386dasm.c"
 #endif
@@ -225,15 +213,15 @@ void I386::initialize()
 	opaque = CPU_INIT_CALL(CPU_MODEL);
 	
 	i386_state *cpustate = (i386_state *)opaque;
+
+	//I386_BASE::initialize();
 	cpustate->pic = d_pic;
 	cpustate->program = d_mem;
 	cpustate->io = d_io;
-#ifdef I386_PSEUDO_BIOS
 	cpustate->bios = d_bios;
-#endif
-#ifdef SINGLE_MODE_DMA
 	cpustate->dma = d_dma;
-#endif
+	cpustate->shutdown = 0;
+	
 #ifdef USE_DEBUGGER
 	cpustate->emu = emu;
 	cpustate->debugger = d_debugger;
@@ -246,13 +234,6 @@ void I386::initialize()
 	cpustate->shutdown = 0;
 }
 
-void I386::release()
-{
-	i386_state *cpustate = (i386_state *)opaque;
-	vtlb_free(cpustate->vtlb);
-	free(opaque);
-}
-
 void I386::reset()
 {
 	i386_state *cpustate = (i386_state *)opaque;
@@ -262,53 +243,200 @@ void I386::reset()
 int I386::run(int cycles)
 {
 	i386_state *cpustate = (i386_state *)opaque;
-	return CPU_EXECUTE_CALL(i386);
+	return cpu_execute((void *)cpustate, cycles);
+	//return CPU_EXECUTE_CALL(i386);
 }
 
-void I386::write_signal(int id, uint32_t data, uint32_t mask)
+extern "C" {
+extern void I386OP(decode_opcode)(i386_state *cpustate);
+};	
+
+int I386::cpu_execute(void *p, int cycles)
 {
-	i386_state *cpustate = (i386_state *)opaque;
-	
-	if(id == SIG_CPU_NMI) {
-		i386_set_irq_line(cpustate, INPUT_LINE_NMI, (data & mask) ? HOLD_LINE : CLEAR_LINE);
-	} else if(id == SIG_CPU_IRQ) {
-		i386_set_irq_line(cpustate, INPUT_LINE_IRQ, (data & mask) ? HOLD_LINE : CLEAR_LINE);
-	} else if(id == SIG_CPU_BUSREQ) {
-		cpustate->busreq = (data & mask) ? 1 : 0;
-	} else if(id == SIG_I386_A20) {
-		i386_set_a20_line(cpustate, data & mask);
+	i386_state *cpustate = (i386_state *)p;
+	CHANGE_PC(cpustate,cpustate->eip);
+
+	if (cpustate->halted || cpustate->busreq)
+	{
+#ifdef SINGLE_MODE_DMA
+		if(cpustate->dma != NULL) {
+			cpustate->dma->do_dma();
+		}
+#endif
+		if (cycles == -1) {
+			int passed_cycles = max(1, cpustate->extra_cycles);
+			// this is main cpu, cpustate->cycles is not used
+			/*cpustate->cycles = */cpustate->extra_cycles = 0;
+			cpustate->tsc += passed_cycles;
+			return passed_cycles;
+		} else {
+			cpustate->cycles += cycles;
+			cpustate->base_cycles = cpustate->cycles;
+
+			/* adjust for any interrupts that came in */
+			cpustate->cycles -= cpustate->extra_cycles;
+			cpustate->extra_cycles = 0;
+
+			/* if busreq is raised, spin cpu while remained clock */
+			if (cpustate->cycles > 0) {
+				cpustate->cycles = 0;
+			}
+			int passed_cycles = cpustate->base_cycles - cpustate->cycles;
+			cpustate->tsc += passed_cycles;
+			return passed_cycles;
+		}
 	}
+
+	if (cycles == -1) {
+		cpustate->cycles = 1;
+	} else {
+		cpustate->cycles += cycles;
+	}
+	cpustate->base_cycles = cpustate->cycles;
+
+	/* adjust for any interrupts that came in */
+	cpustate->cycles -= cpustate->extra_cycles;
+	cpustate->extra_cycles = 0;
+
+	while( cpustate->cycles > 0 && !cpustate->busreq )
+	{
+#ifdef USE_DEBUGGER
+		bool now_debugging = cpustate->debugger->now_debugging;
+		if(now_debugging) {
+			cpustate->debugger->check_break_points(cpustate->pc);
+			if(cpustate->debugger->now_suspended) {
+				cpustate->emu->mute_sound();
+				while(cpustate->debugger->now_debugging && cpustate->debugger->now_suspended) {
+					cpustate->emu->sleep(10);
+				}
+			}
+			if(cpustate->debugger->now_debugging) {
+				cpustate->program = cpustate->io = cpustate->debugger;
+			} else {
+				now_debugging = false;
+			}
+			i386_check_irq_line(cpustate);
+			cpustate->operand_size = cpustate->sreg[CS].d;
+			cpustate->xmm_operand_size = 0;
+			cpustate->address_size = cpustate->sreg[CS].d;
+			cpustate->operand_prefix = 0;
+			cpustate->address_prefix = 0;
+
+			cpustate->ext = 1;
+			int old_tf = cpustate->TF;
+
+			cpustate->segment_prefix = 0;
+			cpustate->prev_eip = cpustate->eip;
+			cpustate->prev_pc = cpustate->pc;
+
+			if(cpustate->delayed_interrupt_enable != 0)
+			{
+				cpustate->IF = 1;
+				cpustate->delayed_interrupt_enable = 0;
+			}
+#ifdef DEBUG_MISSING_OPCODE
+			cpustate->opcode_bytes_length = 0;
+			cpustate->opcode_pc = cpustate->pc;
+#endif
+			try
+			{
+				I386OP(decode_opcode)(cpustate);
+				printf("%04x\n", REG16(AX));
+				if(cpustate->TF && old_tf)
+				{
+					cpustate->prev_eip = cpustate->eip;
+					cpustate->ext = 1;
+					i386_trap(cpustate,1,0,0);
+				}
+				if(cpustate->lock && (cpustate->opcode != 0xf0))
+					cpustate->lock = false;
+			}
+			catch(UINT64 e)
+			{
+				cpustate->ext = 1;
+				i386_trap_with_error(cpustate,e&0xffffffff,0,0,e>>32);
+			}
+#ifdef SINGLE_MODE_DMA
+			if(cpustate->dma != NULL) {
+				cpustate->dma->do_dma();
+			}
+#endif
+			/* adjust for any interrupts that came in */
+			cpustate->cycles -= cpustate->extra_cycles;
+			cpustate->extra_cycles = 0;
+			
+			if(now_debugging) {
+				if(!cpustate->debugger->now_going) {
+					cpustate->debugger->now_suspended = true;
+				}
+				cpustate->program = cpustate->program_stored;
+				cpustate->io = cpustate->io_stored;
+			}
+		} else {
+#endif
+			i386_check_irq_line(cpustate);
+			cpustate->operand_size = cpustate->sreg[CS].d;
+			cpustate->xmm_operand_size = 0;
+			cpustate->address_size = cpustate->sreg[CS].d;
+			cpustate->operand_prefix = 0;
+			cpustate->address_prefix = 0;
+
+			cpustate->ext = 1;
+			int old_tf = cpustate->TF;
+
+			cpustate->segment_prefix = 0;
+			cpustate->prev_eip = cpustate->eip;
+			cpustate->prev_pc = cpustate->pc;
+
+			if(cpustate->delayed_interrupt_enable != 0)
+			{
+				cpustate->IF = 1;
+				cpustate->delayed_interrupt_enable = 0;
+			}
+#ifdef DEBUG_MISSING_OPCODE
+			cpustate->opcode_bytes_length = 0;
+			cpustate->opcode_pc = cpustate->pc;
+#endif
+			try
+			{
+				I386OP(decode_opcode)(cpustate);
+				printf("%04x\n", REG16(AX));
+				if(cpustate->TF && old_tf)
+				{
+					cpustate->prev_eip = cpustate->eip;
+					cpustate->ext = 1;
+					i386_trap(cpustate,1,0,0);
+				}
+				if(cpustate->lock && (cpustate->opcode != 0xf0))
+					cpustate->lock = false;
+			}
+			catch(UINT64 e)
+			{
+				cpustate->ext = 1;
+				i386_trap_with_error(cpustate,e&0xffffffff,0,0,e>>32);
+			}
+#ifdef SINGLE_MODE_DMA
+			if(cpustate->dma != NULL) {
+				cpustate->dma->do_dma();
+			}
+#endif
+			/* adjust for any interrupts that came in */
+			cpustate->cycles -= cpustate->extra_cycles;
+			cpustate->extra_cycles = 0;
+#ifdef USE_DEBUGGER
+		}
+#endif
+	}
+
+	/* if busreq is raised, spin cpu while remained clock */
+	if (cpustate->cycles > 0 && cpustate->busreq) {
+		cpustate->cycles = 0;
+	}
+	int passed_cycles = cpustate->base_cycles - cpustate->cycles;
+	cpustate->tsc += passed_cycles;
+	return passed_cycles;
 }
 
-void I386::set_intr_line(bool line, bool pending, uint32_t bit)
-{
-	i386_state *cpustate = (i386_state *)opaque;
-	i386_set_irq_line(cpustate, INPUT_LINE_IRQ, line ? HOLD_LINE : CLEAR_LINE);
-}
-
-void I386::set_extra_clock(int cycles)
-{
-	i386_state *cpustate = (i386_state *)opaque;
-	cpustate->extra_cycles += cycles;
-}
-
-int I386::get_extra_clock()
-{
-	i386_state *cpustate = (i386_state *)opaque;
-	return cpustate->extra_cycles;
-}
-
-uint32_t I386::get_pc()
-{
-	i386_state *cpustate = (i386_state *)opaque;
-	return cpustate->prev_pc;
-}
-
-uint32_t I386::get_next_pc()
-{
-	i386_state *cpustate = (i386_state *)opaque;
-	return cpustate->pc;
-}
 
 #ifdef USE_DEBUGGER
 void I386::write_debug_data8(uint32_t addr, uint32_t data)
@@ -454,61 +582,16 @@ int I386::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 }
 #endif
 
-void I386::set_address_mask(uint32_t mask)
-{
-	i386_state *cpustate = (i386_state *)opaque;
-	cpustate->a20_mask = mask;
-}
-
-uint32_t I386::get_address_mask()
-{
-	i386_state *cpustate = (i386_state *)opaque;
-	return cpustate->a20_mask;
-}
-
-void I386::set_shutdown_flag(int shutdown)
-{
-	i386_state *cpustate = (i386_state *)opaque;
-	cpustate->shutdown = shutdown;
-}
-
-int I386::get_shutdown_flag()
-{
-	i386_state *cpustate = (i386_state *)opaque;
-	return cpustate->shutdown;
-}
-
-#define STATE_VERSION	1
-
 void I386::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->Fwrite(opaque, sizeof(i386_state), 1);
+	I386_BASE::save_state(state_fio);
 }
 
-bool I386::load_state(FILEIO* state_fio)
+bool I386::load_state(FILEIO *state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
-	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	state_fio->Fread(opaque, sizeof(i386_state), 1);
+	if(!I386_BASE::load_state(state_fio)) return false;
 	
-	// post process
 	i386_state *cpustate = (i386_state *)opaque;
-	cpustate->pic = d_pic;
-	cpustate->program = d_mem;
-	cpustate->io = d_io;
-#ifdef I86_PSEUDO_BIOS
-	cpustate->bios = d_bios;
-#endif
-#ifdef SINGLE_MODE_DMA
-	cpustate->dma = d_dma;
-#endif
 #ifdef USE_DEBUGGER
 	cpustate->emu = emu;
 	cpustate->debugger = d_debugger;
@@ -517,4 +600,3 @@ bool I386::load_state(FILEIO* state_fio)
 #endif
 	return true;
 }
-
