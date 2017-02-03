@@ -2325,13 +2325,13 @@ static void I386OP(int3)(i386_state *cpustate)              // Opcode 0xcc
 	cpustate->ext = 1;
 }
 
+extern void i386_call_pseudo_bios_int_main(i386_state *cpustate, int interrupt);
+
 static void I386OP(int)(i386_state *cpustate)               // Opcode 0xcd
 {
 	int interrupt = FETCH(cpustate);
 	CYCLES(cpustate,CYCLES_INT);
-#ifdef I386_PSEUDO_BIOS
-	BIOS_INT(interrupt)
-#endif
+	i386_call_pseudo_bios_int_main(cpustate, interrupt);
 	cpustate->ext = 0; // not an external interrupt
 	i386_trap(cpustate,interrupt, 1, 0);
 	cpustate->ext = 1;

@@ -411,18 +411,16 @@ struct i386_state
 	DEVICE *pic;
 	DEVICE *program;
 	DEVICE *io;
-#ifdef I386_PSEUDO_BIOS
 	DEVICE *bios;
-#endif
-#ifdef SINGLE_MODE_DMA
+
 	DEVICE *dma;
-#endif
-#ifdef USE_DEBUGGER
+
+//#ifdef USE_DEBUGGER
 	EMU *emu;
 	DEBUGGER *debugger;
 	DEVICE *program_stored;
 	DEVICE *io_stored;
-#endif
+//#endif
 	UINT32 a20_mask;
 
 	int cpuid_max_input_value_eax;

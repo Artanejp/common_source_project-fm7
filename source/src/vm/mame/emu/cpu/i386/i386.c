@@ -27,16 +27,29 @@
 /* seems to be defined on mingw-gcc */
 #undef i386
 
-static CPU_RESET( CPU_MODEL );
-
 int i386_parity_table[256];
 MODRM_TABLE i386_MODRM_table[256];
 
-static void i386_trap_with_error(i386_state* cpustate, int irq, int irq_gate, int trap_level, UINT32 err);
+extern void i386_trap_with_error(i386_state* cpustate, int irq, int irq_gate, int trap_level, UINT32 err);
 static void i286_task_switch(i386_state* cpustate, UINT16 selector, UINT8 nested);
 static void i386_task_switch(i386_state* cpustate, UINT16 selector, UINT8 nested);
-static void build_opcode_table(i386_state *cpustate, UINT32 features);
-static void zero_state(i386_state *cpustate);
+//static void build_opcode_table(i386_state *cpustate, UINT32 features);
+//static void zero_state(i386_state *cpustate);
+
+extern void i386_op_decode_opcode_main(i386_state *cpustate);
+extern void i386_op_decode_two_byte_main(i386_state *cpustate);
+extern void i386_op_decode_three_byte38_main(i386_state *cpustate);
+extern void i386_op_decode_three_byte3a_main(i386_state *cpustate);
+extern void i386_op_decode_three_byte66_main(i386_state *cpustate);
+extern void i386_op_decode_three_bytef2_main(i386_state *cpustate);
+extern void i386_op_decode_three_bytef3_main(i386_state *cpustate);
+extern void i386_op_decode_four_byte3866_main(i386_state *cpustate);
+extern void i386_op_decode_four_byte38f2_main(i386_state *cpustate);
+extern void i386_op_decode_four_byte38f3_main(i386_state *cpustate);
+extern void i386_op_decode_four_byte3a66_main(i386_state *cpustate);
+extern void i386_op_decode_four_byte3af2_main(i386_state *cpustate);
+
+extern void i386_pentium_smi_main(i386_state *cpustate);
 static void pentium_smi(i386_state* cpustate);
 
 #define FAULT(fault,error) {cpustate->ext = 1; i386_trap_with_error(cpustate,fault,0,0,error); return;}
@@ -44,7 +57,7 @@ static void pentium_smi(i386_state* cpustate);
 
 /*************************************************************************/
 
-static UINT32 i386_load_protected_mode_segment(i386_state *cpustate, I386_SREG *seg, UINT64 *desc )
+UINT32 i386_load_protected_mode_segment(i386_state *cpustate, I386_SREG *seg, UINT64 *desc )
 {
 	UINT32 v1,v2;
 	UINT32 base, limit;
@@ -89,7 +102,7 @@ static UINT32 i386_load_protected_mode_segment(i386_state *cpustate, I386_SREG *
 	return 1;
 }
 
-static void i386_load_call_gate(i386_state* cpustate, I386_CALL_GATE *gate)
+void i386_load_call_gate(i386_state* cpustate, I386_CALL_GATE *gate)
 {
 	UINT32 v1,v2;
 	UINT32 base,limit;
@@ -120,7 +133,7 @@ static void i386_load_call_gate(i386_state* cpustate, I386_CALL_GATE *gate)
 	gate->dpl = (gate->ar >> 5) & 0x03;
 }
 
-static void i386_set_descriptor_accessed(i386_state *cpustate, UINT16 selector)
+void i386_set_descriptor_accessed(i386_state *cpustate, UINT16 selector)
 {
 	// assume the selector is valid, we don't need to check it again
 	UINT32 base, addr;
@@ -140,7 +153,7 @@ static void i386_set_descriptor_accessed(i386_state *cpustate, UINT16 selector)
 	cpustate->program->write_data8(addr, rights | 1);
 }
 
-static void i386_load_segment_descriptor(i386_state *cpustate, int segment )
+void i386_load_segment_descriptor(i386_state *cpustate, int segment )
 {
 	if (PROTECTED_MODE)
 	{
@@ -171,7 +184,7 @@ static void i386_load_segment_descriptor(i386_state *cpustate, int segment )
 }
 
 /* Retrieves the stack selector located in the current TSS */
-static UINT32 i386_get_stack_segment(i386_state* cpustate, UINT8 privilege)
+UINT32 i386_get_stack_segment(i386_state* cpustate, UINT8 privilege)
 {
 	UINT32 ret;
 	if(privilege >= 3)
@@ -186,7 +199,7 @@ static UINT32 i386_get_stack_segment(i386_state* cpustate, UINT8 privilege)
 }
 
 /* Retrieves the stack pointer located in the current TSS */
-static UINT32 i386_get_stack_ptr(i386_state* cpustate, UINT8 privilege)
+UINT32 i386_get_stack_ptr(i386_state* cpustate, UINT8 privilege)
 {
 	UINT32 ret;
 	if(privilege >= 3)
@@ -596,7 +609,19 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 	if(fault) *fault = false;
 }
 
-static void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level)
+extern void i80386_cpu_reset_main(i386_state *cpustate);
+
+static CPU_TRANSLATE( i386 )
+{
+	i386_state *cpustate = (i386_state *)cpudevice;
+	int ret = TRUE;
+	if(space == AS_PROGRAM)
+		ret = i386_translate_address(cpustate, intention, address, NULL);
+	*address &= cpustate->a20_mask;
+	return ret;
+}
+
+void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level)
 {
 	/*  I386 Interrupts/Traps/Faults:
 	 *
@@ -664,7 +689,7 @@ static void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level
 		if(trap_level >= 3)
 		{
 			logerror("IRQ: Triple fault. CPU reset.\n");
-			CPU_RESET_CALL(CPU_MODEL);
+			i80386_cpu_reset_main(cpustate);
 			cpustate->shutdown = 1;
 			return;
 		}
@@ -997,7 +1022,7 @@ static void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level
 
 }
 
-static void i386_trap_with_error(i386_state *cpustate,int irq, int irq_gate, int trap_level, UINT32 error)
+void i386_trap_with_error(i386_state *cpustate,int irq, int irq_gate, int trap_level, UINT32 error)
 {
 	i386_trap(cpustate,irq,irq_gate,trap_level);
 	if(irq == 8 || irq == 10 || irq == 11 || irq == 12 || irq == 13 || irq == 14)
@@ -1252,22 +1277,6 @@ static void i386_task_switch(i386_state *cpustate, UINT16 selector, UINT8 nested
 //  printf("386 Task Switch from selector %04x to %04x\n",old_task,selector);
 }
 
-static void i386_check_irq_line(i386_state *cpustate)
-{
-	if(!cpustate->smm && cpustate->smi)
-	{
-		pentium_smi(cpustate);
-		return;
-	}
-
-	/* Check if the interrupts are enabled */
-	if ( (cpustate->irq_state) && cpustate->IF )
-	{
-		cpustate->cycles -= 2;
-		i386_trap(cpustate, cpustate->pic->get_intr_ack(), 1, 0);
-		cpustate->irq_state = 0;
-	}
-}
 
 static void i386_protected_mode_jump(i386_state *cpustate, UINT16 seg, UINT32 off, int indirect, int operand32)
 {
@@ -2739,7 +2748,7 @@ INLINE void CYCLES_RM(i386_state *cpustate,int modrm, int r, int m)
 	}
 }
 
-static void build_cycle_table()
+void i386_build_cycle_table()
 {
 	int i, j;
 	for (j=0; j < X86_NUM_CPUS; j++)
@@ -2781,7 +2790,6 @@ static void report_invalid_modrm(i386_state *cpustate, const char* opcode, UINT8
 	i386_trap(cpustate, 6, 0, 0);
 }
 
-/* Forward declarations */
 static void I386OP(decode_opcode)(i386_state *cpustate);
 static void I386OP(decode_two_byte)(i386_state *cpustate);
 static void I386OP(decode_three_byte38)(i386_state *cpustate);
@@ -2795,8 +2803,6 @@ static void I386OP(decode_four_byte38f2)(i386_state *cpustate);
 static void I386OP(decode_four_byte3af2)(i386_state *cpustate);
 static void I386OP(decode_four_byte38f3)(i386_state *cpustate);
 
-
-
 #include "i386ops.c"
 #include "i386op16.c"
 #include "i386op32.c"
@@ -2804,8 +2810,47 @@ static void I386OP(decode_four_byte38f3)(i386_state *cpustate);
 #include "pentops.c"
 #include "x87ops.c"
 #include "i386ops.h"
+#include "i386ops_tbl.h"
 
-static void I386OP(decode_opcode)(i386_state *cpustate)
+static void i386_set_irq_line(i386_state *cpustate,int irqline, int state)
+{
+	if (state != CLEAR_LINE && cpustate->halted)
+	{
+		cpustate->halted = 0;
+	}
+
+	if ( irqline == INPUT_LINE_NMI )
+	{
+		/* NMI (I do not think that this is 100% right) */
+		if(cpustate->nmi_masked)
+		{
+			cpustate->nmi_latched = true;
+			return;
+		}
+		if ( state )
+			i386_trap(cpustate,2, 1, 0);
+	}
+	else
+	{
+		cpustate->irq_state = state;
+	}
+}
+
+static void i386_set_a20_line(i386_state *cpustate,int state)
+{
+	if (state)
+	{
+		cpustate->a20_mask = ~0;
+	}
+	else
+	{
+		cpustate->a20_mask = ~(1 << 20);
+	}
+	// TODO: how does A20M and the tlb interact
+	vtlb_flush_dynamic(cpustate->vtlb);
+}
+
+void i386_op_decode_opcode_main(i386_state *cpustate)
 {
 	cpustate->opcode = FETCH(cpustate);
 
@@ -2816,10 +2861,10 @@ static void I386OP(decode_opcode)(i386_state *cpustate)
 		cpustate->opcode_table1_32[cpustate->opcode](cpustate);
 	else
 		cpustate->opcode_table1_16[cpustate->opcode](cpustate);
+
 }
 
-/* Two-byte opcode 0f xx */
-static void I386OP(decode_two_byte)(i386_state *cpustate)
+void i386_op_decode_two_byte_main(i386_state *cpustate)
 {
 	cpustate->opcode = FETCH(cpustate);
 
@@ -2832,8 +2877,25 @@ static void I386OP(decode_two_byte)(i386_state *cpustate)
 		cpustate->opcode_table2_16[cpustate->opcode](cpustate);
 }
 
+static void I386OP(decode_opcode)(i386_state *cpustate)
+{
+	i386_op_decode_opcode_main(cpustate);
+}
+
+/* Two-byte opcode 0f xx */
+static void I386OP(decode_two_byte)(i386_state *cpustate)
+{
+	i386_op_decode_two_byte_main(cpustate);
+}
+
+
 /* Three-byte opcode 0f 38 xx */
 static void I386OP(decode_three_byte38)(i386_state *cpustate)
+{
+	i386_op_decode_three_byte38_main(cpustate);
+}
+
+void i386_op_decode_three_byte38_main(i386_state *cpustate)
 {
 	cpustate->opcode = FETCH(cpustate);
 
@@ -2846,6 +2908,11 @@ static void I386OP(decode_three_byte38)(i386_state *cpustate)
 /* Three-byte opcode 0f 3a xx */
 static void I386OP(decode_three_byte3a)(i386_state *cpustate)
 {
+	i386_op_decode_three_byte3a_main(cpustate);
+}
+
+void i386_op_decode_three_byte3a_main(i386_state *cpustate)
+{
 	cpustate->opcode = FETCH(cpustate);
 
 	if (cpustate->operand_size)
@@ -2857,6 +2924,11 @@ static void I386OP(decode_three_byte3a)(i386_state *cpustate)
 /* Three-byte opcode prefix 66 0f xx */
 static void I386OP(decode_three_byte66)(i386_state *cpustate)
 {
+	i386_op_decode_three_byte66_main(cpustate);
+}
+
+void i386_op_decode_three_byte66_main(i386_state *cpustate)
+{
 	cpustate->opcode = FETCH(cpustate);
 	if( cpustate->operand_size )
 		cpustate->opcode_table366_32[cpustate->opcode](cpustate);
@@ -2866,6 +2938,11 @@ static void I386OP(decode_three_byte66)(i386_state *cpustate)
 
 /* Three-byte opcode prefix f2 0f xx */
 static void I386OP(decode_three_bytef2)(i386_state *cpustate)
+{
+	i386_op_decode_three_bytef2_main(cpustate);
+}
+
+void i386_op_decode_three_bytef2_main(i386_state *cpustate)
 {
 	cpustate->opcode = FETCH(cpustate);
 	if( cpustate->operand_size )
@@ -2877,15 +2954,24 @@ static void I386OP(decode_three_bytef2)(i386_state *cpustate)
 /* Three-byte opcode prefix f3 0f */
 static void I386OP(decode_three_bytef3)(i386_state *cpustate)
 {
+	i386_op_decode_three_bytef3_main(cpustate);
+}
+
+void i386_op_decode_three_bytef3_main(i386_state *cpustate)
+{
 	cpustate->opcode = FETCH(cpustate);
 	if( cpustate->operand_size )
 		cpustate->opcode_table3f3_32[cpustate->opcode](cpustate);
 	else
 		cpustate->opcode_table3f3_16[cpustate->opcode](cpustate);
 }
-
 /* Four-byte opcode prefix 66 0f 38 xx */
 static void I386OP(decode_four_byte3866)(i386_state *cpustate)
+{
+	i386_op_decode_four_byte3866_main(cpustate);
+}
+
+void i386_op_decode_four_byte3866_main(i386_state *cpustate)
 {
 	cpustate->opcode = FETCH(cpustate);
 	if (cpustate->operand_size)
@@ -2897,6 +2983,11 @@ static void I386OP(decode_four_byte3866)(i386_state *cpustate)
 /* Four-byte opcode prefix 66 0f 3a xx */
 static void I386OP(decode_four_byte3a66)(i386_state *cpustate)
 {
+	i386_op_decode_four_byte3a66_main(cpustate);
+}
+	
+void i386_op_decode_four_byte3a66_main(i386_state *cpustate)
+{
 	cpustate->opcode = FETCH(cpustate);
 	if (cpustate->operand_size)
 		cpustate->opcode_table4663a_32[cpustate->opcode](cpustate);
@@ -2906,6 +2997,11 @@ static void I386OP(decode_four_byte3a66)(i386_state *cpustate)
 
 /* Four-byte opcode prefix f2 0f 38 xx */
 static void I386OP(decode_four_byte38f2)(i386_state *cpustate)
+{
+	i386_op_decode_four_byte38f2_main(cpustate);
+}
+
+void i386_op_decode_four_byte38f2_main(i386_state *cpustate)
 {
 	cpustate->opcode = FETCH(cpustate);
 	if (cpustate->operand_size)
@@ -2917,6 +3013,10 @@ static void I386OP(decode_four_byte38f2)(i386_state *cpustate)
 /* Four-byte opcode prefix f2 0f 3a xx */
 static void I386OP(decode_four_byte3af2)(i386_state *cpustate)
 {
+	i386_op_decode_four_byte3af2_main(cpustate);
+}
+void i386_op_decode_four_byte3af2_main(i386_state *cpustate)
+{
 	cpustate->opcode = FETCH(cpustate);
 	if (cpustate->operand_size)
 		cpustate->opcode_table4f23a_32[cpustate->opcode](cpustate);
@@ -2927,6 +3027,11 @@ static void I386OP(decode_four_byte3af2)(i386_state *cpustate)
 /* Four-byte opcode prefix f3 0f 38 xx */
 static void I386OP(decode_four_byte38f3)(i386_state *cpustate)
 {
+	i386_op_decode_four_byte38f3_main(cpustate);
+}
+
+void i386_op_decode_four_byte38f3_main(i386_state *cpustate)
+{
 	cpustate->opcode = FETCH(cpustate);
 	if (cpustate->operand_size)
 		cpustate->opcode_table4f338_32[cpustate->opcode](cpustate);
@@ -2934,74 +3039,7 @@ static void I386OP(decode_four_byte38f3)(i386_state *cpustate)
 		cpustate->opcode_table4f338_16[cpustate->opcode](cpustate);
 }
 
-
-/*************************************************************************/
-
-static void i386_postload(i386_state *cpustate)
-{
-	int i;
-	for (i = 0; i < 6; i++)
-		i386_load_segment_descriptor(cpustate,i);
-	CHANGE_PC(cpustate,cpustate->eip);
-}
-
-static i386_state *i386_common_init(int tlbsize)
-{
-	int i, j;
-	static const int regs8[8] = {AL,CL,DL,BL,AH,CH,DH,BH};
-	static const int regs16[8] = {AX,CX,DX,BX,SP,BP,SI,DI};
-	static const int regs32[8] = {EAX,ECX,EDX,EBX,ESP,EBP,ESI,EDI};
-	i386_state *cpustate = (i386_state *)malloc(sizeof(i386_state));
-
-	assert((sizeof(XMM_REG)/sizeof(double)) == 2);
-
-	build_cycle_table();
-
-	for( i=0; i < 256; i++ ) {
-		int c=0;
-		for( j=0; j < 8; j++ ) {
-			if( i & (1 << j) )
-				c++;
-		}
-		i386_parity_table[i] = ~(c & 0x1) & 0x1;
-	}
-
-	for( i=0; i < 256; i++ ) {
-		i386_MODRM_table[i].reg.b = regs8[(i >> 3) & 0x7];
-		i386_MODRM_table[i].reg.w = regs16[(i >> 3) & 0x7];
-		i386_MODRM_table[i].reg.d = regs32[(i >> 3) & 0x7];
-
-		i386_MODRM_table[i].rm.b = regs8[i & 0x7];
-		i386_MODRM_table[i].rm.w = regs16[i & 0x7];
-		i386_MODRM_table[i].rm.d = regs32[i & 0x7];
-	}
-
-	cpustate->vtlb = vtlb_alloc(cpustate, AS_PROGRAM, 0, tlbsize);
-	cpustate->smi = false;
-	cpustate->lock = false;
-
-//	i386_interface *intf = (i386_interface *) device->static_config();
-//
-//	if (intf != NULL)
-//		cpustate->smiact.resolve(intf->smiact, *device);
-//	else
-//		memset(&cpustate->smiact, 0, sizeof(cpustate->smiact));
-
-	zero_state(cpustate);
-
-	return cpustate;
-}
-
-CPU_INIT( i386 )
-{
-	i386_state *cpustate = i386_common_init(32);
-	build_opcode_table(cpustate, OP_I386);
-	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_I386];
-	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_I386];
-	return cpustate;
-}
-
-static void build_opcode_table(i386_state *cpustate, UINT32 features)
+void i386_build_opcode_table(i386_state *cpustate, UINT32 features)
 {
 	int i;
 	for (i=0; i < 256; i++)
@@ -3094,130 +3132,83 @@ static void build_opcode_table(i386_state *cpustate, UINT32 features)
 	}
 }
 
-static void zero_state(i386_state *cpustate)
+void i386_i386_cpu_init_main(i386_state *cpustate)
 {
-	memset( &cpustate->reg, 0, sizeof(cpustate->reg) );
-	memset( cpustate->sreg, 0, sizeof(cpustate->sreg) );
-	cpustate->eip = 0;
-	cpustate->pc = 0;
-	cpustate->prev_eip = 0;
-	cpustate->eflags = 0;
-	cpustate->eflags_mask = 0;
-	cpustate->CF = 0;
-	cpustate->DF = 0;
-	cpustate->SF = 0;
-	cpustate->OF = 0;
-	cpustate->ZF = 0;
-	cpustate->PF = 0;
-	cpustate->AF = 0;
-	cpustate->IF = 0;
-	cpustate->TF = 0;
-	cpustate->IOP1 = 0;
-	cpustate->IOP2 = 0;
-	cpustate->NT = 0;
-	cpustate->RF = 0;
-	cpustate->VM = 0;
-	cpustate->AC = 0;
-	cpustate->VIF = 0;
-	cpustate->VIP = 0;
-	cpustate->ID = 0;
-	cpustate->CPL = 0;
-	cpustate->performed_intersegment_jump = 0;
-	cpustate->delayed_interrupt_enable = 0;
-	memset( cpustate->cr, 0, sizeof(cpustate->cr) );
-	memset( cpustate->dr, 0, sizeof(cpustate->dr) );
-	memset( cpustate->tr, 0, sizeof(cpustate->tr) );
-	memset( &cpustate->gdtr, 0, sizeof(cpustate->gdtr) );
-	memset( &cpustate->idtr, 0, sizeof(cpustate->idtr) );
-	memset( &cpustate->task, 0, sizeof(cpustate->task) );
-	memset( &cpustate->ldtr, 0, sizeof(cpustate->ldtr) );
-	cpustate->ext = 0;
-	cpustate->halted = 0;
-	cpustate->operand_size = 0;
-	cpustate->xmm_operand_size = 0;
-	cpustate->address_size = 0;
-	cpustate->operand_prefix = 0;
-	cpustate->address_prefix = 0;
-	cpustate->segment_prefix = 0;
-	cpustate->segment_override = 0;
-	cpustate->cycles = 0;
-	cpustate->base_cycles = 0;
-	cpustate->opcode = 0;
-	cpustate->irq_state = 0;
-	cpustate->a20_mask = 0;
-	cpustate->cpuid_max_input_value_eax = 0;
-	cpustate->cpuid_id0 = 0;
-	cpustate->cpuid_id1 = 0;
-	cpustate->cpuid_id2 = 0;
-	cpustate->cpu_version = 0;
-	cpustate->feature_flags = 0;
-	cpustate->tsc = 0;
-	cpustate->perfctr[0] = cpustate->perfctr[1] = 0;
-	memset( cpustate->x87_reg, 0, sizeof(cpustate->x87_reg) );
-	cpustate->x87_cw = 0;
-	cpustate->x87_sw = 0;
-	cpustate->x87_tw = 0;
-	cpustate->x87_data_ptr = 0;
-	cpustate->x87_inst_ptr = 0;
-	cpustate->x87_opcode = 0;
-	memset( cpustate->sse_reg, 0, sizeof(cpustate->sse_reg) );
-	cpustate->mxcsr = 0;
-	cpustate->smm = false;
-	cpustate->smi = false;
-	cpustate->smi_latched = false;
-	cpustate->nmi_masked = false;
-	cpustate->nmi_latched = false;
-	cpustate->smbase = 0;
-#ifdef DEBUG_MISSING_OPCODE
-	memset( cpustate->opcode_bytes, 0, sizeof(cpustate->opcode_bytes) );
-	cpustate->opcode_pc = 0;
-	cpustate->opcode_bytes_length = 0;
-#endif
+	i386_build_opcode_table(cpustate, OP_I386);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_I386];
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_I386];
 }
 
-static CPU_RESET( i386 )
+void i386_i486_cpu_init_main(i386_state *cpustate)
 {
-	zero_state(cpustate);
-	vtlb_flush_dynamic(cpustate->vtlb);
+	i386_build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486);
+	build_x87_opcode_table(cpustate);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_I486];
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_I486];
+}
 
-	cpustate->sreg[CS].selector = 0xf000;
-	cpustate->sreg[CS].base     = 0xffff0000;
-	cpustate->sreg[CS].limit    = 0xffff;
-	cpustate->sreg[CS].flags    = 0x9b;
-	cpustate->sreg[CS].valid    = true;
+void i386_pentium_cpu_init_main(i386_state *cpustate)
+{
+	i386_build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM);
+	build_x87_opcode_table(cpustate);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];
+}
 
-	cpustate->sreg[DS].base = cpustate->sreg[ES].base = cpustate->sreg[FS].base = cpustate->sreg[GS].base = cpustate->sreg[SS].base = 0x00000000;
-	cpustate->sreg[DS].limit = cpustate->sreg[ES].limit = cpustate->sreg[FS].limit = cpustate->sreg[GS].limit = cpustate->sreg[SS].limit = 0xffff;
-	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0092;
-	cpustate->sreg[DS].valid = cpustate->sreg[ES].valid = cpustate->sreg[FS].valid = cpustate->sreg[GS].valid = cpustate->sreg[SS].valid =true;
+void i386_mediagx_cpu_init_main(i386_state *cpustate)
+{
+	build_x87_opcode_table(cpustate);
+	i386_build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_CYRIX);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_MEDIAGX];
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_MEDIAGX];
+}
 
-	cpustate->idtr.base = 0;
-	cpustate->idtr.limit = 0x3ff;
-	cpustate->smm = false;
-	cpustate->smi_latched = false;
-	cpustate->nmi_masked = false;
-	cpustate->nmi_latched = false;
+void i386_pentium_pro_cpu_init_main(i386_state *cpustate)
+{
+	build_x87_opcode_table(cpustate);
+	i386_build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+}
 
-	cpustate->a20_mask = ~0;
+void i386_pentium_mmx_cpu_init_main(i386_state *cpustate)
+{
+	build_x87_opcode_table(cpustate);
+	i386_build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_MMX);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+}
 
-	cpustate->cr[0] = 0x7fffffe0; // reserved bits set to 1
-	cpustate->eflags = 0;
-	cpustate->eflags_mask = 0x00037fd7;
-	cpustate->eip = 0xfff0;
+void i386_pentium2_cpu_init_main(i386_state *cpustate)
+{
+	build_x87_opcode_table(cpustate);
+	i386_build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO | OP_MMX);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+}
 
-	// [11:8] Family
-	// [ 7:4] Model
-	// [ 3:0] Stepping ID
-	// Family 3 (386), Model 0 (DX), Stepping 8 (D1)
-	REG32(EAX) = 0;
-	REG32(EDX) = (3 << 8) | (0 << 4) | (8);
+void i386_pentium3_cpu_init_main(i386_state *cpustate)
+{
+	build_x87_opcode_table(cpustate);
+	i386_build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO | OP_MMX | OP_SSE);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+}
 
-	cpustate->CPL = 0;
-
-	CHANGE_PC(cpustate,cpustate->eip);
+void i386_pentium4_cpu_init_main(i386_state *cpustate)
+{
+	build_x87_opcode_table(cpustate);
+	i386_build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO | OP_MMX | OP_SSE | OP_SSE2);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
 }
 
 static void pentium_smi(i386_state *cpustate)
+{
+	i386_pentium_smi_main(cpustate);
+}
+
+void i386_pentium_smi_main(i386_state *cpustate)
 {
 	UINT32 smram_state = cpustate->smbase + 0xfe00;
 	UINT32 old_cr0 = cpustate->cr[0];
@@ -3305,776 +3296,3 @@ static void pentium_smi(i386_state *cpustate)
 	cpustate->nmi_masked = true;
 	CHANGE_PC(cpustate,cpustate->eip);
 }
-
-static void i386_set_irq_line(i386_state *cpustate,int irqline, int state)
-{
-	if (state != CLEAR_LINE && cpustate->halted)
-	{
-		cpustate->halted = 0;
-	}
-
-	if ( irqline == INPUT_LINE_NMI )
-	{
-		/* NMI (I do not think that this is 100% right) */
-		if(cpustate->nmi_masked)
-		{
-			cpustate->nmi_latched = true;
-			return;
-		}
-		if ( state )
-			i386_trap(cpustate,2, 1, 0);
-	}
-	else
-	{
-		cpustate->irq_state = state;
-	}
-}
-
-static void i386_set_a20_line(i386_state *cpustate,int state)
-{
-	if (state)
-	{
-		cpustate->a20_mask = ~0;
-	}
-	else
-	{
-		cpustate->a20_mask = ~(1 << 20);
-	}
-	// TODO: how does A20M and the tlb interact
-	vtlb_flush_dynamic(cpustate->vtlb);
-}
-
-static CPU_EXECUTE( i386 )
-{
-	CHANGE_PC(cpustate,cpustate->eip);
-
-	if (cpustate->halted || cpustate->busreq)
-	{
-#ifdef SINGLE_MODE_DMA
-		if(cpustate->dma != NULL) {
-			cpustate->dma->do_dma();
-		}
-#endif
-		if (cycles == -1) {
-			int passed_cycles = max(1, cpustate->extra_cycles);
-			// this is main cpu, cpustate->cycles is not used
-			/*cpustate->cycles = */cpustate->extra_cycles = 0;
-			cpustate->tsc += passed_cycles;
-			return passed_cycles;
-		} else {
-			cpustate->cycles += cycles;
-			cpustate->base_cycles = cpustate->cycles;
-
-			/* adjust for any interrupts that came in */
-			cpustate->cycles -= cpustate->extra_cycles;
-			cpustate->extra_cycles = 0;
-
-			/* if busreq is raised, spin cpu while remained clock */
-			if (cpustate->cycles > 0) {
-				cpustate->cycles = 0;
-			}
-			int passed_cycles = cpustate->base_cycles - cpustate->cycles;
-			cpustate->tsc += passed_cycles;
-			return passed_cycles;
-		}
-	}
-
-	if (cycles == -1) {
-		cpustate->cycles = 1;
-	} else {
-		cpustate->cycles += cycles;
-	}
-	cpustate->base_cycles = cpustate->cycles;
-
-	/* adjust for any interrupts that came in */
-	cpustate->cycles -= cpustate->extra_cycles;
-	cpustate->extra_cycles = 0;
-
-	while( cpustate->cycles > 0 && !cpustate->busreq )
-	{
-#ifdef USE_DEBUGGER
-		bool now_debugging = cpustate->debugger->now_debugging;
-		if(now_debugging) {
-			cpustate->debugger->check_break_points(cpustate->pc);
-			if(cpustate->debugger->now_suspended) {
-				cpustate->emu->mute_sound();
-				while(cpustate->debugger->now_debugging && cpustate->debugger->now_suspended) {
-					cpustate->emu->sleep(10);
-				}
-			}
-			if(cpustate->debugger->now_debugging) {
-				cpustate->program = cpustate->io = cpustate->debugger;
-			} else {
-				now_debugging = false;
-			}
-			i386_check_irq_line(cpustate);
-			cpustate->operand_size = cpustate->sreg[CS].d;
-			cpustate->xmm_operand_size = 0;
-			cpustate->address_size = cpustate->sreg[CS].d;
-			cpustate->operand_prefix = 0;
-			cpustate->address_prefix = 0;
-
-			cpustate->ext = 1;
-			int old_tf = cpustate->TF;
-
-			cpustate->segment_prefix = 0;
-			cpustate->prev_eip = cpustate->eip;
-			cpustate->prev_pc = cpustate->pc;
-
-			if(cpustate->delayed_interrupt_enable != 0)
-			{
-				cpustate->IF = 1;
-				cpustate->delayed_interrupt_enable = 0;
-			}
-#ifdef DEBUG_MISSING_OPCODE
-			cpustate->opcode_bytes_length = 0;
-			cpustate->opcode_pc = cpustate->pc;
-#endif
-			try
-			{
-				I386OP(decode_opcode)(cpustate);
-				if(cpustate->TF && old_tf)
-				{
-					cpustate->prev_eip = cpustate->eip;
-					cpustate->ext = 1;
-					i386_trap(cpustate,1,0,0);
-				}
-				if(cpustate->lock && (cpustate->opcode != 0xf0))
-					cpustate->lock = false;
-			}
-			catch(UINT64 e)
-			{
-				cpustate->ext = 1;
-				i386_trap_with_error(cpustate,e&0xffffffff,0,0,e>>32);
-			}
-#ifdef SINGLE_MODE_DMA
-			if(cpustate->dma != NULL) {
-				cpustate->dma->do_dma();
-			}
-#endif
-			/* adjust for any interrupts that came in */
-			cpustate->cycles -= cpustate->extra_cycles;
-			cpustate->extra_cycles = 0;
-			
-			if(now_debugging) {
-				if(!cpustate->debugger->now_going) {
-					cpustate->debugger->now_suspended = true;
-				}
-				cpustate->program = cpustate->program_stored;
-				cpustate->io = cpustate->io_stored;
-			}
-		} else {
-#endif
-			i386_check_irq_line(cpustate);
-			cpustate->operand_size = cpustate->sreg[CS].d;
-			cpustate->xmm_operand_size = 0;
-			cpustate->address_size = cpustate->sreg[CS].d;
-			cpustate->operand_prefix = 0;
-			cpustate->address_prefix = 0;
-
-			cpustate->ext = 1;
-			int old_tf = cpustate->TF;
-
-			cpustate->segment_prefix = 0;
-			cpustate->prev_eip = cpustate->eip;
-			cpustate->prev_pc = cpustate->pc;
-
-			if(cpustate->delayed_interrupt_enable != 0)
-			{
-				cpustate->IF = 1;
-				cpustate->delayed_interrupt_enable = 0;
-			}
-#ifdef DEBUG_MISSING_OPCODE
-			cpustate->opcode_bytes_length = 0;
-			cpustate->opcode_pc = cpustate->pc;
-#endif
-			try
-			{
-				I386OP(decode_opcode)(cpustate);
-				if(cpustate->TF && old_tf)
-				{
-					cpustate->prev_eip = cpustate->eip;
-					cpustate->ext = 1;
-					i386_trap(cpustate,1,0,0);
-				}
-				if(cpustate->lock && (cpustate->opcode != 0xf0))
-					cpustate->lock = false;
-			}
-			catch(UINT64 e)
-			{
-				cpustate->ext = 1;
-				i386_trap_with_error(cpustate,e&0xffffffff,0,0,e>>32);
-			}
-#ifdef SINGLE_MODE_DMA
-			if(cpustate->dma != NULL) {
-				cpustate->dma->do_dma();
-			}
-#endif
-			/* adjust for any interrupts that came in */
-			cpustate->cycles -= cpustate->extra_cycles;
-			cpustate->extra_cycles = 0;
-#ifdef USE_DEBUGGER
-		}
-#endif
-	}
-
-	/* if busreq is raised, spin cpu while remained clock */
-	if (cpustate->cycles > 0 && cpustate->busreq) {
-		cpustate->cycles = 0;
-	}
-	int passed_cycles = cpustate->base_cycles - cpustate->cycles;
-	cpustate->tsc += passed_cycles;
-	return passed_cycles;
-}
-
-/*************************************************************************/
-
-static CPU_TRANSLATE( i386 )
-{
-	i386_state *cpustate = (i386_state *)cpudevice;
-	int ret = TRUE;
-	if(space == AS_PROGRAM)
-		ret = i386_translate_address(cpustate, intention, address, NULL);
-	*address &= cpustate->a20_mask;
-	return ret;
-}
-
-/*****************************************************************************/
-/* Intel 486 */
-
-
-static CPU_INIT( i486 )
-{
-	i386_state *cpustate = i386_common_init(32);
-	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486);
-	build_x87_opcode_table(cpustate);
-	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_I486];
-	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_I486];
-	return cpustate;
-}
-
-static CPU_RESET( i486 )
-{
-	zero_state(cpustate);
-	vtlb_flush_dynamic(cpustate->vtlb);
-
-	cpustate->sreg[CS].selector = 0xf000;
-	cpustate->sreg[CS].base     = 0xffff0000;
-	cpustate->sreg[CS].limit    = 0xffff;
-	cpustate->sreg[CS].flags    = 0x009b;
-
-	cpustate->sreg[DS].base = cpustate->sreg[ES].base = cpustate->sreg[FS].base = cpustate->sreg[GS].base = cpustate->sreg[SS].base = 0x00000000;
-	cpustate->sreg[DS].limit = cpustate->sreg[ES].limit = cpustate->sreg[FS].limit = cpustate->sreg[GS].limit = cpustate->sreg[SS].limit = 0xffff;
-	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0092;
-
-	cpustate->idtr.base = 0;
-	cpustate->idtr.limit = 0x3ff;
-
-	cpustate->a20_mask = ~0;
-
-	cpustate->cr[0] = 0x00000010;
-	cpustate->eflags = 0;
-	cpustate->eflags_mask = 0x00077fd7;
-	cpustate->eip = 0xfff0;
-	cpustate->smm = false;
-	cpustate->smi_latched = false;
-	cpustate->nmi_masked = false;
-	cpustate->nmi_latched = false;
-
-	x87_reset(cpustate);
-
-	// [11:8] Family
-	// [ 7:4] Model
-	// [ 3:0] Stepping ID
-	// Family 4 (486), Model 0/1 (DX), Stepping 3
-	REG32(EAX) = 0;
-	REG32(EDX) = (4 << 8) | (0 << 4) | (3);
-
-	CHANGE_PC(cpustate,cpustate->eip);
-}
-
-/*****************************************************************************/
-/* Pentium */
-
-
-static CPU_INIT( pentium )
-{
-	// 64 dtlb small, 8 dtlb large, 32 itlb
-	i386_state *cpustate = i386_common_init(96);
-	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM);
-	build_x87_opcode_table(cpustate);
-	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];
-	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];
-	return cpustate;
-}
-
-static CPU_RESET( pentium )
-{
-	zero_state(cpustate);
-	vtlb_flush_dynamic(cpustate->vtlb);
-
-	cpustate->sreg[CS].selector = 0xf000;
-	cpustate->sreg[CS].base     = 0xffff0000;
-	cpustate->sreg[CS].limit    = 0xffff;
-	cpustate->sreg[CS].flags    = 0x009b;
-
-	cpustate->sreg[DS].base = cpustate->sreg[ES].base = cpustate->sreg[FS].base = cpustate->sreg[GS].base = cpustate->sreg[SS].base = 0x00000000;
-	cpustate->sreg[DS].limit = cpustate->sreg[ES].limit = cpustate->sreg[FS].limit = cpustate->sreg[GS].limit = cpustate->sreg[SS].limit = 0xffff;
-	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0092;
-
-	cpustate->idtr.base = 0;
-	cpustate->idtr.limit = 0x3ff;
-
-	cpustate->a20_mask = ~0;
-
-	cpustate->cr[0] = 0x00000010;
-	cpustate->eflags = 0x00200000;
-	cpustate->eflags_mask = 0x003f7fd7;
-	cpustate->eip = 0xfff0;
-	cpustate->mxcsr = 0x1f80;
-	cpustate->smm = false;
-	cpustate->smi_latched = false;
-	cpustate->smbase = 0x30000;
-	cpustate->nmi_masked = false;
-	cpustate->nmi_latched = false;
-
-	x87_reset(cpustate);
-
-	// [11:8] Family
-	// [ 7:4] Model
-	// [ 3:0] Stepping ID
-	// Family 5 (Pentium), Model 2 (75 - 200MHz), Stepping 5
-	REG32(EAX) = 0;
-	REG32(EDX) = (5 << 8) | (2 << 4) | (5);
-
-	cpustate->cpuid_id0 = 0x756e6547;   // Genu
-	cpustate->cpuid_id1 = 0x49656e69;   // ineI
-	cpustate->cpuid_id2 = 0x6c65746e;   // ntel
-
-	cpustate->cpuid_max_input_value_eax = 0x01;
-	cpustate->cpu_version = REG32(EDX);
-
-	// [ 0:0] FPU on chip
-	// [ 2:2] I/O breakpoints
-	// [ 4:4] Time Stamp Counter
-	// [ 5:5] Pentium CPU style model specific registers
-	// [ 7:7] Machine Check Exception
-	// [ 8:8] CMPXCHG8B instruction
-	cpustate->feature_flags = 0x000001bf;
-
-	CHANGE_PC(cpustate,cpustate->eip);
-}
-
-/*****************************************************************************/
-/* Cyrix MediaGX */
-
-
-static CPU_INIT( mediagx )
-{
-	// probably 32 unified
-	i386_state *cpustate = i386_common_init(32);
-	build_x87_opcode_table(cpustate);
-	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_CYRIX);
-	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_MEDIAGX];
-	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_MEDIAGX];
-	return cpustate;
-}
-
-static CPU_RESET( mediagx )
-{
-	zero_state(cpustate);
-	vtlb_flush_dynamic(cpustate->vtlb);
-
-	cpustate->sreg[CS].selector = 0xf000;
-	cpustate->sreg[CS].base     = 0xffff0000;
-	cpustate->sreg[CS].limit    = 0xffff;
-	cpustate->sreg[CS].flags    = 0x009b;
-
-	cpustate->sreg[DS].base = cpustate->sreg[ES].base = cpustate->sreg[FS].base = cpustate->sreg[GS].base = cpustate->sreg[SS].base = 0x00000000;
-	cpustate->sreg[DS].limit = cpustate->sreg[ES].limit = cpustate->sreg[FS].limit = cpustate->sreg[GS].limit = cpustate->sreg[SS].limit = 0xffff;
-	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0092;
-
-	cpustate->idtr.base = 0;
-	cpustate->idtr.limit = 0x3ff;
-
-	cpustate->a20_mask = ~0;
-
-	cpustate->cr[0] = 0x00000010;
-	cpustate->eflags = 0x00200000;
-	cpustate->eflags_mask = 0x00277fd7; /* TODO: is this correct? */
-	cpustate->eip = 0xfff0;
-	cpustate->smm = false;
-	cpustate->smi_latched = false;
-	cpustate->nmi_masked = false;
-	cpustate->nmi_latched = false;
-
-	x87_reset(cpustate);
-
-	// [11:8] Family
-	// [ 7:4] Model
-	// [ 3:0] Stepping ID
-	// Family 4, Model 4 (MediaGX)
-	REG32(EAX) = 0;
-	REG32(EDX) = (4 << 8) | (4 << 4) | (1); /* TODO: is this correct? */
-
-	cpustate->cpuid_id0 = 0x69727943;   // Cyri
-	cpustate->cpuid_id1 = 0x736e4978;   // xIns
-	cpustate->cpuid_id2 = 0x6d616574;   // tead
-
-	cpustate->cpuid_max_input_value_eax = 0x01;
-	cpustate->cpu_version = REG32(EDX);
-
-	// [ 0:0] FPU on chip
-	cpustate->feature_flags = 0x00000001;
-
-	CHANGE_PC(cpustate,cpustate->eip);
-}
-
-/*****************************************************************************/
-/* Intel Pentium Pro */
-
-static CPU_INIT( pentium_pro )
-{
-	// 64 dtlb small, 32 itlb
-	i386_state *cpustate = i386_common_init(96);
-	build_x87_opcode_table(cpustate);
-	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO);
-	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
-	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
-	return cpustate;
-}
-
-static CPU_RESET( pentium_pro )
-{
-	zero_state(cpustate);
-	vtlb_flush_dynamic(cpustate->vtlb);
-
-	cpustate->sreg[CS].selector = 0xf000;
-	cpustate->sreg[CS].base     = 0xffff0000;
-	cpustate->sreg[CS].limit    = 0xffff;
-	cpustate->sreg[CS].flags    = 0x009b;
-
-	cpustate->sreg[DS].base = cpustate->sreg[ES].base = cpustate->sreg[FS].base = cpustate->sreg[GS].base = cpustate->sreg[SS].base = 0x00000000;
-	cpustate->sreg[DS].limit = cpustate->sreg[ES].limit = cpustate->sreg[FS].limit = cpustate->sreg[GS].limit = cpustate->sreg[SS].limit = 0xffff;
-	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0092;
-
-	cpustate->idtr.base = 0;
-	cpustate->idtr.limit = 0x3ff;
-
-	cpustate->a20_mask = ~0;
-
-	cpustate->cr[0] = 0x60000010;
-	cpustate->eflags = 0x00200000;
-	cpustate->eflags_mask = 0x00277fd7; /* TODO: is this correct? */
-	cpustate->eip = 0xfff0;
-	cpustate->mxcsr = 0x1f80;
-	cpustate->smm = false;
-	cpustate->smi_latched = false;
-	cpustate->smbase = 0x30000;
-	cpustate->nmi_masked = false;
-	cpustate->nmi_latched = false;
-
-	x87_reset(cpustate);
-
-	// [11:8] Family
-	// [ 7:4] Model
-	// [ 3:0] Stepping ID
-	// Family 6, Model 1 (Pentium Pro)
-	REG32(EAX) = 0;
-	REG32(EDX) = (6 << 8) | (1 << 4) | (1); /* TODO: is this correct? */
-
-	cpustate->cpuid_id0 = 0x756e6547;   // Genu
-	cpustate->cpuid_id1 = 0x49656e69;   // ineI
-	cpustate->cpuid_id2 = 0x6c65746e;   // ntel
-
-	cpustate->cpuid_max_input_value_eax = 0x02;
-	cpustate->cpu_version = REG32(EDX);
-
-	// [ 0:0] FPU on chip
-	// [ 2:2] I/O breakpoints
-	// [ 4:4] Time Stamp Counter
-	// [ 5:5] Pentium CPU style model specific registers
-	// [ 7:7] Machine Check Exception
-	// [ 8:8] CMPXCHG8B instruction
-	// [15:15] CMOV and FCMOV
-	// No MMX
-	cpustate->feature_flags = 0x000081bf;
-
-	CHANGE_PC(cpustate,cpustate->eip);
-}
-
-/*****************************************************************************/
-/* Intel Pentium MMX */
-
-static CPU_INIT( pentium_mmx )
-{
-	// 64 dtlb small, 8 dtlb large, 32 itlb small, 2 itlb large
-	i386_state *cpustate = i386_common_init(96);
-	build_x87_opcode_table(cpustate);
-	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_MMX);
-	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
-	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
-	return cpustate;
-}
-
-static CPU_RESET( pentium_mmx )
-{
-	zero_state(cpustate);
-	vtlb_flush_dynamic(cpustate->vtlb);
-
-	cpustate->sreg[CS].selector = 0xf000;
-	cpustate->sreg[CS].base     = 0xffff0000;
-	cpustate->sreg[CS].limit    = 0xffff;
-	cpustate->sreg[CS].flags    = 0x009b;
-
-	cpustate->sreg[DS].base = cpustate->sreg[ES].base = cpustate->sreg[FS].base = cpustate->sreg[GS].base = cpustate->sreg[SS].base = 0x00000000;
-	cpustate->sreg[DS].limit = cpustate->sreg[ES].limit = cpustate->sreg[FS].limit = cpustate->sreg[GS].limit = cpustate->sreg[SS].limit = 0xffff;
-	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0092;
-
-	cpustate->idtr.base = 0;
-	cpustate->idtr.limit = 0x3ff;
-
-	cpustate->a20_mask = ~0;
-
-	cpustate->cr[0] = 0x60000010;
-	cpustate->eflags = 0x00200000;
-	cpustate->eflags_mask = 0x00277fd7; /* TODO: is this correct? */
-	cpustate->eip = 0xfff0;
-	cpustate->mxcsr = 0x1f80;
-	cpustate->smm = false;
-	cpustate->smi_latched = false;
-	cpustate->smbase = 0x30000;
-	cpustate->nmi_masked = false;
-	cpustate->nmi_latched = false;
-
-	x87_reset(cpustate);
-
-	// [11:8] Family
-	// [ 7:4] Model
-	// [ 3:0] Stepping ID
-	// Family 5, Model 4 (P55C)
-	REG32(EAX) = 0;
-	REG32(EDX) = (5 << 8) | (4 << 4) | (1);
-
-	cpustate->cpuid_id0 = 0x756e6547;   // Genu
-	cpustate->cpuid_id1 = 0x49656e69;   // ineI
-	cpustate->cpuid_id2 = 0x6c65746e;   // ntel
-
-	cpustate->cpuid_max_input_value_eax = 0x01;
-	cpustate->cpu_version = REG32(EDX);
-
-	// [ 0:0] FPU on chip
-	// [ 2:2] I/O breakpoints
-	// [ 4:4] Time Stamp Counter
-	// [ 5:5] Pentium CPU style model specific registers
-	// [ 7:7] Machine Check Exception
-	// [ 8:8] CMPXCHG8B instruction
-	// [23:23] MMX instructions
-	cpustate->feature_flags = 0x008001bf;
-
-	CHANGE_PC(cpustate,cpustate->eip);
-}
-
-/*****************************************************************************/
-/* Intel Pentium II */
-
-static CPU_INIT( pentium2 )
-{
-	// 64 dtlb small, 8 dtlb large, 32 itlb small, 2 itlb large
-	i386_state *cpustate = i386_common_init(96);
-	build_x87_opcode_table(cpustate);
-	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO | OP_MMX);
-	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
-	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
-	return cpustate;
-}
-
-static CPU_RESET( pentium2 )
-{
-	zero_state(cpustate);
-	vtlb_flush_dynamic(cpustate->vtlb);
-
-	cpustate->sreg[CS].selector = 0xf000;
-	cpustate->sreg[CS].base     = 0xffff0000;
-	cpustate->sreg[CS].limit    = 0xffff;
-	cpustate->sreg[CS].flags    = 0x009b;
-
-	cpustate->sreg[DS].base = cpustate->sreg[ES].base = cpustate->sreg[FS].base = cpustate->sreg[GS].base = cpustate->sreg[SS].base = 0x00000000;
-	cpustate->sreg[DS].limit = cpustate->sreg[ES].limit = cpustate->sreg[FS].limit = cpustate->sreg[GS].limit = cpustate->sreg[SS].limit = 0xffff;
-	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0092;
-
-	cpustate->idtr.base = 0;
-	cpustate->idtr.limit = 0x3ff;
-
-	cpustate->a20_mask = ~0;
-
-	cpustate->cr[0] = 0x60000010;
-	cpustate->eflags = 0x00200000;
-	cpustate->eflags_mask = 0x00277fd7; /* TODO: is this correct? */
-	cpustate->eip = 0xfff0;
-	cpustate->mxcsr = 0x1f80;
-	cpustate->smm = false;
-	cpustate->smi_latched = false;
-	cpustate->smbase = 0x30000;
-	cpustate->nmi_masked = false;
-	cpustate->nmi_latched = false;
-
-	x87_reset(cpustate);
-
-	// [11:8] Family
-	// [ 7:4] Model
-	// [ 3:0] Stepping ID
-	// Family 6, Model 3 (Pentium II / Klamath)
-	REG32(EAX) = 0;
-	REG32(EDX) = (6 << 8) | (3 << 4) | (1); /* TODO: is this correct? */
-
-	cpustate->cpuid_id0 = 0x756e6547;   // Genu
-	cpustate->cpuid_id1 = 0x49656e69;   // ineI
-	cpustate->cpuid_id2 = 0x6c65746e;   // ntel
-
-	cpustate->cpuid_max_input_value_eax = 0x02;
-	cpustate->cpu_version = REG32(EDX);
-
-	// [ 0:0] FPU on chip
-	cpustate->feature_flags = 0x008081bf;       // TODO: enable relevant flags here
-
-	CHANGE_PC(cpustate,cpustate->eip);
-}
-
-/*****************************************************************************/
-/* Intel Pentium III */
-
-static CPU_INIT( pentium3 )
-{
-	// 64 dtlb small, 8 dtlb large, 32 itlb small, 2 itlb large
-	i386_state *cpustate = i386_common_init(96);
-	build_x87_opcode_table(cpustate);
-	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO | OP_MMX | OP_SSE);
-	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
-	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
-	return cpustate;
-}
-
-static CPU_RESET( pentium3 )
-{
-	zero_state(cpustate);
-	vtlb_flush_dynamic(cpustate->vtlb);
-
-	cpustate->sreg[CS].selector = 0xf000;
-	cpustate->sreg[CS].base     = 0xffff0000;
-	cpustate->sreg[CS].limit    = 0xffff;
-	cpustate->sreg[CS].flags    = 0x009b;
-
-	cpustate->sreg[DS].base = cpustate->sreg[ES].base = cpustate->sreg[FS].base = cpustate->sreg[GS].base = cpustate->sreg[SS].base = 0x00000000;
-	cpustate->sreg[DS].limit = cpustate->sreg[ES].limit = cpustate->sreg[FS].limit = cpustate->sreg[GS].limit = cpustate->sreg[SS].limit = 0xffff;
-	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0092;
-
-	cpustate->idtr.base = 0;
-	cpustate->idtr.limit = 0x3ff;
-
-	cpustate->a20_mask = ~0;
-
-	cpustate->cr[0] = 0x60000010;
-	cpustate->eflags = 0x00200000;
-	cpustate->eflags_mask = 0x00277fd7; /* TODO: is this correct? */
-	cpustate->eip = 0xfff0;
-	cpustate->mxcsr = 0x1f80;
-	cpustate->smm = false;
-	cpustate->smi_latched = false;
-	cpustate->smbase = 0x30000;
-	cpustate->nmi_masked = false;
-	cpustate->nmi_latched = false;
-
-	x87_reset(cpustate);
-
-	// [11:8] Family
-	// [ 7:4] Model
-	// [ 3:0] Stepping ID
-	// Family 6, Model 8 (Pentium III / Coppermine)
-	REG32(EAX) = 0;
-	REG32(EDX) = (6 << 8) | (8 << 4) | (10);
-
-	cpustate->cpuid_id0 = 0x756e6547;   // Genu
-	cpustate->cpuid_id1 = 0x49656e69;   // ineI
-	cpustate->cpuid_id2 = 0x6c65746e;   // ntel
-
-	cpustate->cpuid_max_input_value_eax = 0x03;
-	cpustate->cpu_version = REG32(EDX);
-
-	// [ 0:0] FPU on chip
-	// [ 4:4] Time Stamp Counter
-	// [ D:D] PTE Global Bit
-	cpustate->feature_flags = 0x00002011;       // TODO: enable relevant flags here
-
-	CHANGE_PC(cpustate,cpustate->eip);
-}
-
-/*****************************************************************************/
-/* Intel Pentium 4 */
-
-static CPU_INIT( pentium4 )
-{
-	// 128 dtlb, 64 itlb
-	i386_state *cpustate = i386_common_init(196);
-	build_x87_opcode_table(cpustate);
-	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO | OP_MMX | OP_SSE | OP_SSE2);
-	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
-	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
-	return cpustate;
-}
-
-static CPU_RESET( pentium4 )
-{
-	zero_state(cpustate);
-	vtlb_flush_dynamic(cpustate->vtlb);
-
-	cpustate->sreg[CS].selector = 0xf000;
-	cpustate->sreg[CS].base     = 0xffff0000;
-	cpustate->sreg[CS].limit    = 0xffff;
-	cpustate->sreg[CS].flags    = 0x009b;
-
-	cpustate->sreg[DS].base = cpustate->sreg[ES].base = cpustate->sreg[FS].base = cpustate->sreg[GS].base = cpustate->sreg[SS].base = 0x00000000;
-	cpustate->sreg[DS].limit = cpustate->sreg[ES].limit = cpustate->sreg[FS].limit = cpustate->sreg[GS].limit = cpustate->sreg[SS].limit = 0xffff;
-	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0092;
-
-	cpustate->idtr.base = 0;
-	cpustate->idtr.limit = 0x3ff;
-
-	cpustate->a20_mask = ~0;
-
-	cpustate->cr[0] = 0x60000010;
-	cpustate->eflags = 0x00200000;
-	cpustate->eflags_mask = 0x00277fd7; /* TODO: is this correct? */
-	cpustate->eip = 0xfff0;
-	cpustate->mxcsr = 0x1f80;
-	cpustate->smm = false;
-	cpustate->smi_latched = false;
-	cpustate->smbase = 0x30000;
-	cpustate->nmi_masked = false;
-	cpustate->nmi_latched = false;
-
-	x87_reset(cpustate);
-
-	// [27:20] Extended family
-	// [19:16] Extended model
-	// [13:12] Type
-	// [11: 8] Family
-	// [ 7: 4] Model
-	// [ 3: 0] Stepping ID
-	// Family 15, Model 0 (Pentium 4 / Willamette)
-	REG32(EAX) = 0;
-	REG32(EDX) = (0 << 20) | (0xf << 8) | (0 << 4) | (1);
-
-	cpustate->cpuid_id0 = 0x756e6547;   // Genu
-	cpustate->cpuid_id1 = 0x49656e69;   // ineI
-	cpustate->cpuid_id2 = 0x6c65746e;   // ntel
-
-	cpustate->cpuid_max_input_value_eax = 0x02;
-	cpustate->cpu_version = REG32(EDX);
-
-	// [ 0:0] FPU on chip
-	cpustate->feature_flags = 0x00000001;       // TODO: enable relevant flags here
-
-	CHANGE_PC(cpustate,cpustate->eip);
-}
-
