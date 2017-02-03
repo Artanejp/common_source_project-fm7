@@ -7,13 +7,13 @@ set(s_vm_common_vm_srcs
 	
 	../hd146818p.cpp
 	../hd63484.cpp
-	
+#	i386 is super class.
+	../i386_base.cpp
 	../i8155.cpp
 	
 	../i8251.cpp
 	
 #	../i8259.cpp
-#	../io.cpp
 #	../ld700.cpp
 	../ls244.cpp
 	../ls393.cpp
@@ -23,7 +23,6 @@ set(s_vm_common_vm_srcs
 	../mc6820.cpp
 	../mc6840.cpp
 
-	../memory.cpp
 	../msm5205.cpp
 
 	../nand.cpp
