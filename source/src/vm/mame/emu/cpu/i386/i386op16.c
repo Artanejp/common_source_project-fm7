@@ -487,13 +487,14 @@ static void I386OP(bts_rm16_r16)(i386_state *cpustate)      // Opcode 0x0f ab
 	}
 }
 
-extern void i386_call_pseudo_bios_call_main(i386_state *cpustate, UINT16 addr);
 static void I386OP(call_abs16)(i386_state *cpustate)        // Opcode 0x9a
 {
 	UINT16 offset = FETCH16(cpustate);
 	UINT16 ptr = FETCH16(cpustate);
 
-	i386_call_pseudo_bios_call_main(cpustate, ((ptr << 4) + offset) & cpustate->a20_mask);
+#ifdef I386_PSEUDO_BIOS
+	BIOS_CALL(((ptr << 4) + offset) & cpustate->a20_mask)
+#endif
 
 	if( PROTECTED_MODE && !V8086_MODE)
 	{
@@ -516,7 +517,9 @@ static void I386OP(call_rel16)(i386_state *cpustate)        // Opcode 0xe8
 {
 	INT16 disp = FETCH16(cpustate);
 
-	i386_call_pseudo_bios_call_main(cpustate, (cpustate->pc + disp) & cpustate->a20_mask);
+#ifdef I386_PSEUDO_BIOS
+	BIOS_CALL((cpustate->pc + disp) & cpustate->a20_mask)
+#endif
 
 	PUSH16(cpustate, cpustate->eip );
 	if (cpustate->sreg[CS].d)
@@ -3020,7 +3023,9 @@ static void I386OP(groupFF_16)(i386_state *cpustate)        // Opcode 0xff
 					address = READ16(cpustate,ea);
 					CYCLES(cpustate,CYCLES_CALL_MEM);       /* TODO: Timing = 10 + m */
 				}
-				i386_call_pseudo_bios_call_main(cpustate, ((cpustate->sreg[CS].selector << 4) + address) & cpustate->a20_mask);
+#ifdef I386_PSEUDO_BIOS
+				BIOS_CALL(((cpustate->sreg[CS].selector << 4) + address) & cpustate->a20_mask)
+#endif
 				PUSH16(cpustate, cpustate->eip );
 				cpustate->eip = address;
 				CHANGE_PC(cpustate,cpustate->eip);
@@ -3039,7 +3044,9 @@ static void I386OP(groupFF_16)(i386_state *cpustate)        // Opcode 0xff
 					address = READ16(cpustate,ea + 0);
 					selector = READ16(cpustate,ea + 2);
 					CYCLES(cpustate,CYCLES_CALL_MEM_INTERSEG);      /* TODO: Timing = 10 + m */
-					i386_call_pseudo_bios_call_main(cpustate, ((selector << 4) + address) & cpustate->a20_mask);
+#ifdef I386_PSEUDO_BIOS
+					BIOS_CALL(((selector << 4) + address) & cpustate->a20_mask)
+#endif
 					if(PROTECTED_MODE && !V8086_MODE)
 					{
 						i386_protected_mode_call(cpustate,selector,address,1,0);
