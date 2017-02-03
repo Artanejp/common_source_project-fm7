@@ -147,14 +147,13 @@ endif()
 
 if(DEFINED VM_NAME)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/${VM_NAME})
-  if(USE_FMGEN)
+#  if(USE_FMGEN)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-    if(WIN32)
+#    if(WIN32)
 #      set(FMGEN_LIB vm_fmgen)
-	else()
-	  set(FMGEN_LIB "-lCSPfmgen")
-	endif()
-  endif()
+#	  set(FMGEN_LIB "-lCSPfmgen")
+#	endif()
+#  endif()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/${VM_NAME})
 endif()
 
@@ -233,7 +232,7 @@ else()
 #       ${LIBAV_LIBRARIES}
        ${ADDITIONAL_LIBRARIES}
        )
-       set(BUNDLE_LIBS ${BUNDLE_LIBS} -lCSPosd ${FMGEN_LIB} -lCSPcommon_vm -lCSPgui -lCSPemu_utils -lCSPavio)
+       set(BUNDLE_LIBS ${BUNDLE_LIBS} -lCSPosd -lCSPfmgen -lCSPcommon_vm -lCSPgui -lCSPemu_utils -lCSPavio)
 endif()
 
 if(USE_QT_5)
