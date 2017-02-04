@@ -32,9 +32,9 @@ DEVICE::DEVICE(VM* parent_vm, EMU* parent_emu) : vm(parent_vm), emu(parent_emu)
 	event_manager = NULL;
 }
 
-DEVICE::~DEVICE(void)
-{
-}
+//DEVICE::~DEVICE(void)
+//{
+//}
 
 uint32_t DEVICE::read_io8(uint32_t addr)
 {

@@ -7,44 +7,17 @@
 	[ device base class ]
 */
 
-#ifndef _DEVICE_H_
-#define _DEVICE_H_
+#ifndef _LIBCPU_NEWDEV_DEVICE_H_
+#define _LIBCPU_NEWDEV_DEVICE_H_
 
 #include <stdarg.h>
-#include "../fileio.h"
+#include "vm.h"
+#include "../emu.h"
 #if defined(_USE_QT)
 #include "osd.h"
 #include "csp_logger.h"
-#define USE_DEVICE_NAME
+//#define USE_DEVICE_NAME
 #endif
-
-// max devices connected to the output port
-#define MAX_OUTPUT	16
-
-// common signal id
-#define SIG_CPU_IRQ		101
-#define SIG_CPU_FIRQ		102
-#define SIG_CPU_NMI		103
-#define SIG_CPU_BUSREQ		104
-#define SIG_CPU_DEBUG		105
-
-#define SIG_PRINTER_DATA	201
-#define SIG_PRINTER_STROBE	202
-#define SIG_PRINTER_RESET	203
-#define SIG_PRINTER_BUSY	204
-#define SIG_PRINTER_ACK		205
-#define SIG_PRINTER_SELECT	206
-
-#define SIG_SCSI_DAT		301
-#define SIG_SCSI_BSY		302
-#define SIG_SCSI_CD		303
-#define SIG_SCSI_IO		304
-#define SIG_SCSI_MSG		305
-#define SIG_SCSI_REQ		306
-#define SIG_SCSI_SEL		307
-#define SIG_SCSI_ATN		308
-#define SIG_SCSI_ACK		309
-#define SIG_SCSI_RST		310
 
 class VM;
 class EMU;
@@ -59,7 +32,8 @@ public:
 	// This makes warning:
 	//"deleting object of polymorphic class type 'DEVICE' which has non-virtual
 	// destructor might cause undefined behavior [-Wdelete-non-virtual-dtor]".
-	~DEVICE(void);
+	//~DEVICE(void);
+	~DEVICE(void) {}
 	
 	virtual void initialize() {}
 	virtual void release() {}
@@ -543,8 +517,9 @@ public:
 
 	virtual void set_device_name(const _TCHAR *name);
 	virtual void out_debug_log(const char *fmt, ...);
-
+#if 1
 	// debugger
+	// DEBUGGER is enabled by default.
 	virtual void *get_debugger();
 	virtual uint32_t get_debug_prog_addr_mask();
 	virtual uint32_t get_debug_data_addr_mask();
@@ -563,7 +538,7 @@ public:
 	virtual bool write_debug_reg(const _TCHAR *reg, uint32_t data);
 	virtual void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	virtual int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
-
+#endif
 	_TCHAR this_device_name[128];
 	
 	DEVICE* prev_device;
