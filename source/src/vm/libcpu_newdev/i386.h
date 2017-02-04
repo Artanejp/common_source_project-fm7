@@ -13,38 +13,22 @@
 
 #include "vm.h"
 #include "../emu.h"
-#include "device.h"
-
-#define SIG_I386_A20	1
+#include "i386_base.h"
 
 #ifdef USE_DEBUGGER
 class DEBUGGER;
 #endif
 
-class I386 : public DEVICE
+class I386 : public I386_BASE
 {
-private:
-	DEVICE *d_mem, *d_io, *d_pic;
-#ifdef I386_PSEUDO_BIOS
-	DEVICE *d_bios;
-#endif
-#ifdef SINGLE_MODE_DMA
-	DEVICE *d_dma;
-#endif
+protected:
 #ifdef USE_DEBUGGER
 	DEBUGGER *d_debugger;
 #endif
-	void *opaque;
-	
 public:
-	I386(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	I386(VM* parent_vm, EMU* parent_emu) : I386_BASE(parent_vm, parent_emu)
 	{
-#ifdef I386_PSEUDO_BIOS
-		d_bios = NULL;
-#endif
-#ifdef SINGLE_MODE_DMA
-		d_dma = NULL;
-#endif
+		d_debugger = NULL;
 #if defined(HAS_I386)
 		set_device_name(_T("i80386 CPU"));
 #elif defined(HAS_I486)
@@ -66,18 +50,11 @@ public:
 #endif
 	}
 	~I386() {}
-	
 	// common functions
 	void initialize();
-	void release();
 	void reset();
 	int run(int cycles);
-	void write_signal(int id, uint32_t data, uint32_t mask);
-	void set_intr_line(bool line, bool pending, uint32_t bit);
-	void set_extra_clock(int cycles);
-	int get_extra_clock();
-	uint32_t get_pc();
-	uint32_t get_next_pc();
+	int cpu_execute(void *p, int cycles);	
 #ifdef USE_DEBUGGER
 	void *get_debugger()
 	{
@@ -107,44 +84,34 @@ public:
 	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 #endif
+
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
 	// unique function
-	void set_context_mem(DEVICE* device)
-	{
-		d_mem = device;
-	}
-	void set_context_io(DEVICE* device)
-	{
-		d_io = device;
-	}
-	void set_context_intr(DEVICE* device)
-	{
-		d_pic = device;
-	}
-#ifdef I386_PSEUDO_BIOS
 	void set_context_bios(DEVICE* device)
 	{
+#ifdef I386_PSEUDO_BIOS
 		d_bios = device;
-	}
+		printf("BIOS = %0x \n", device);
 #endif
-#ifdef SINGLE_MODE_DMA
+	}
+
 	void set_context_dma(DEVICE* device)
 	{
+#ifdef SINGLE_MODE_DMA
 		d_dma = device;
-	}
+		printf("DMA = %0x \n", device);
 #endif
+	}
+
 #ifdef USE_DEBUGGER
 	void set_context_debugger(DEBUGGER* device)
 	{
 		d_debugger = device;
 	}
 #endif
-	void set_address_mask(uint32_t mask);
-	uint32_t get_address_mask();
-	void set_shutdown_flag(int shutdown);
-	int get_shutdown_flag();
+
 };
 
 #endif
