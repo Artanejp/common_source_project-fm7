@@ -47,6 +47,9 @@
 #define SIG_SCSI_ACK		309
 #define SIG_SCSI_RST		310
 
+#if defined(USE_DEVICES_SHARED_LIB)
+#include "libcpu_newdev/device.h"
+#else
 class DEVICE
 {
 protected:
@@ -780,5 +783,6 @@ public:
 	DEVICE* next_device;
 	int this_device_id;
 };
+#endif //USE_DEVICES_SHARED_LIB
 
 #endif
