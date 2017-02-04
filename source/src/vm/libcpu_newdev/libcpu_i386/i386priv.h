@@ -70,6 +70,9 @@ typedef UINT32	offs_t;
 /* Highly useful macro for compile-time knowledge of an array size */
 #define ARRAY_LENGTH(x)     (sizeof(x) / sizeof(x[0]))
 
+#include "../libcpu_softfloat/milieu.h"
+#include "../libcpu_softfloat/softfloat.h"
+#include "./vtlb.h"
 #include <math.h>
 
 //#define DEBUG_MISSING_OPCODE
