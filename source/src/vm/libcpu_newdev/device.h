@@ -11,8 +11,7 @@
 #define _DEVICE_H_
 
 #include <stdarg.h>
-#include "vm.h"
-#include "../emu.h"
+#include "../fileio.h"
 #if defined(_USE_QT)
 #include "osd.h"
 #include "csp_logger.h"
@@ -47,36 +46,20 @@
 #define SIG_SCSI_ACK		309
 #define SIG_SCSI_RST		310
 
+class VM;
+class EMU;
 class DEVICE
 {
 protected:
 	VM* vm;
 	EMU* emu;
 public:
-	DEVICE(VM* parent_vm, EMU* parent_emu) : vm(parent_vm), emu(parent_emu)
-	{
-		strncpy(this_device_name, "Base Device", 128);
-		prev_device = vm->last_device;
-		next_device = NULL;
-		if(vm->first_device == NULL) {
-			// this is the first device
-			vm->first_device = this;
-			this_device_id = 0;
-		} else {
-			// this is not the first device
-			vm->last_device->next_device = this;
-			this_device_id = vm->last_device->this_device_id + 1;
-		}
-		vm->last_device = this;
-		
-		// primary event manager
-		event_manager = NULL;
-	}
+	DEVICE(VM* parent_vm, EMU* parent_emu);
 	//ToDo: Will implement real destructor per real classes and below destructor decl. with "virtual".
 	// This makes warning:
 	//"deleting object of polymorphic class type 'DEVICE' which has non-virtual
 	// destructor might cause undefined behavior [-Wdelete-non-virtual-dtor]".
-	~DEVICE(void) {}
+	~DEVICE(void);
 	
 	virtual void initialize() {}
 	virtual void release() {}
@@ -221,14 +204,7 @@ public:
 	
 	// i/o bus
 	virtual void write_io8(uint32_t addr, uint32_t data) {}
-	virtual uint32_t read_io8(uint32_t addr)
-	{
-#ifdef IOBUS_RETURN_ADDR
-		return (addr & 1 ? addr >> 8 : addr) & 0xff;
-#else
-		return 0xff;
-#endif
-	}
+	virtual uint32_t read_io8(uint32_t addr);
 	virtual void write_io16(uint32_t addr, uint32_t data)
 	{
 		write_io8(addr, data & 0xff);
@@ -527,133 +503,31 @@ public:
 	{
 		event_manager = device;
 	}
-	virtual int get_event_manager_id()
-	{
-		if(event_manager == NULL) {
-			event_manager = vm->first_device->next_device;
-		}
-		return event_manager->this_device_id;
-	}
-	virtual void register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id)
-	{
-		if(event_manager == NULL) {
-			event_manager = vm->first_device->next_device;
-		}
-		event_manager->register_event(device, event_id, usec, loop, register_id);
-	}
-	virtual void register_event_by_clock(DEVICE* device, int event_id, uint64_t clock, bool loop, int* register_id)
-	{
-		if(event_manager == NULL) {
-			event_manager = vm->first_device->next_device;
-		}
-		event_manager->register_event_by_clock(device, event_id, clock, loop, register_id);
-	}
-	virtual void cancel_event(DEVICE* device, int register_id)
-	{
-		if(event_manager == NULL) {
-			event_manager = vm->first_device->next_device;
-		}
-		event_manager->cancel_event(device, register_id);
-	}
-	virtual void register_frame_event(DEVICE* device)
-	{
-		if(event_manager == NULL) {
-			event_manager = vm->first_device->next_device;
-		}
-		event_manager->register_frame_event(device);
-	}
-	virtual void register_vline_event(DEVICE* device)
-	{
-		if(event_manager == NULL) {
-			event_manager = vm->first_device->next_device;
-		}
-		event_manager->register_vline_event(device);
-	}
-	virtual uint32_t get_event_remaining_clock(int register_id)
-	{
-		if(event_manager == NULL) {
-			event_manager = vm->first_device->next_device;
-		}
-		return event_manager->get_event_remaining_clock(register_id);
-	}
-	virtual double get_event_remaining_usec(int register_id)
-	{
-		if(event_manager == NULL) {
-			event_manager = vm->first_device->next_device;
-		}
-		return event_manager->get_event_remaining_usec(register_id);
-	}
-	virtual uint32_t get_current_clock()
-	{
-		if(event_manager == NULL) {
-			event_manager = vm->first_device->next_device;
-		}
-		return event_manager->get_current_clock();
-	}
-	virtual uint32_t get_passed_clock(uint32_t prev)
-	{
-		if(event_manager == NULL) {
-			event_manager = vm->first_device->next_device;
-		}
-		return event_manager->get_passed_clock(prev);
-	}
-	virtual double get_passed_usec(uint32_t prev)
-	{
-		if(event_manager == NULL) {
-			event_manager = vm->first_device->next_device;
-		}
-		return event_manager->get_passed_usec(prev);
-	}
-	virtual uint32_t get_cpu_pc(int index)
-	{
-		if(event_manager == NULL) {
-			event_manager = vm->first_device->next_device;
-		}
-		return event_manager->get_cpu_pc(index);
-	}
-	virtual void request_skip_frames()
-	{
-		if(event_manager == NULL) {
-			event_manager = vm->first_device->next_device;
-		}
-		event_manager->request_skip_frames();
-	}
-	virtual void set_frames_per_sec(double frames)
-	{
-		if(event_manager == NULL) {
-			event_manager = vm->first_device->next_device;
-		}
-		event_manager->set_frames_per_sec(frames);
-	}
-	virtual void set_lines_per_frame(int lines)
-	{
-		if(event_manager == NULL) {
-			event_manager = vm->first_device->next_device;
-		}
-		event_manager->set_lines_per_frame(lines);
-	}
-	// Force reder sound immediately when device's status has changed.
+	virtual int get_event_manager_id();
+	virtual void register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id);
+	virtual void register_event_by_clock(DEVICE* device, int event_id, uint64_t clock, bool loop, int* register_id);
+	virtual void cancel_event(DEVICE* device, int register_id);
+	virtual void register_frame_event(DEVICE* device);
+	virtual void register_vline_event(DEVICE* device);
+	virtual uint32_t get_event_remaining_clock(int register_id);
+	virtual double get_event_remaining_usec(int register_id);
+	virtual uint32_t get_current_clock();
+	virtual uint32_t get_passed_clock(uint32_t prev);
+	virtual double get_passed_usec(uint32_t prev);
+	virtual uint32_t get_cpu_pc(int index);
+	virtual void request_skip_frames();
+	virtual void set_frames_per_sec(double frames);
+	virtual void set_lines_per_frame(int lines);
+	// Force render sound immediately when device's status has changed.
 	// You must call this after you changing registers (or enything).
 	// If has problems, try set_realtime_render.
 	// See mb8877.cpp and ym2203.cpp. 
 	// -- 20161010 K.O
-	virtual void touch_sound(void)
-	{
-		if(event_manager == NULL) {
-			event_manager = vm->first_device->next_device;
-		}
-		event_manager->touch_sound();
-	}
+	virtual void touch_sound(void);
 	// Force render per 1 sample automatically.
 	// See pcm1bit.cpp .
 	// -- 20161010 K.O
-	virtual void set_realtime_render(bool flag)
-	{
-		if(event_manager == NULL) {
-			event_manager = vm->first_device->next_device;
-		}
-		event_manager->set_realtime_render(flag);
-	}		
+	virtual void set_realtime_render(bool flag);
 	virtual void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame) {}
 	
 	// event callback
@@ -666,114 +540,30 @@ public:
 	// sound
 	virtual void mix(int32_t* buffer, int cnt) {}
 	virtual void set_volume(int ch, int decibel_l, int decibel_r) {} // +1 equals +0.5dB (same as fmgen)
-#ifdef _USE_QT
-	virtual void set_device_name(const _TCHAR *name) {
-		if(name == NULL) return;
-		strncpy(this_device_name, name, 128);
-		emu->get_osd()->set_vm_node(this_device_id, (_TCHAR *)name);
-	}
-	virtual void out_debug_log(const char *fmt, ...) {
-		char strbuf[4096];
-		va_list ap;
 
-		va_start(ap, fmt);
-		vsnprintf(strbuf, 4095, fmt, ap);
-		csp_logger->debug_log(CSP_LOG_DEBUG, this_device_id + CSP_LOG_TYPE_VM_DEVICE_0, "%s", strbuf);
-		va_end(ap);
-	}
-#else
-	virtual void set_device_name(const _TCHAR *name) {
-		if(name == NULL) return;
-		strncpy(this_device_name, name, 128);
-	}
-	virtual void out_debug_log(const char *fmt, ...) {
-		char strbuf[4096];
-		va_list ap;
+	virtual void set_device_name(const _TCHAR *name);
+	virtual void out_debug_log(const char *fmt, ...);
 
-		va_start(ap, fmt);
-		vsnprintf(strbuf, 4095, fmt, ap);
-		emu->out_debug_log("%s", strbuf);
-		va_end(ap);
-	}
-#endif
-#ifdef USE_DEBUGGER
 	// debugger
-	virtual void *get_debugger()
-	{
-		return NULL;
-	}
-	virtual uint32_t get_debug_prog_addr_mask()
-	{
-		return 0;
-	}
-	virtual uint32_t get_debug_data_addr_mask()
-	{
-		return 0;
-	}
-	virtual void write_debug_data8(uint32_t addr, uint32_t data) {}
-	virtual uint32_t read_debug_data8(uint32_t addr)
-	{
-		return 0xff;
-	}
-	virtual void write_debug_data16(uint32_t addr, uint32_t data)
-	{
-		write_debug_data8(addr, data & 0xff);
-		write_debug_data8(addr + 1, (data >> 8) & 0xff);
-	}
-	virtual uint32_t read_debug_data16(uint32_t addr)
-	{
-		uint32_t val = read_debug_data8(addr);
-		val |= read_debug_data8(addr + 1) << 8;
-		return val;
-	}
-	virtual void write_debug_data32(uint32_t addr, uint32_t data)
-	{
-		write_debug_data16(addr, data & 0xffff);
-		write_debug_data16(addr + 2, (data >> 16) & 0xffff);
-	}
-	virtual uint32_t read_debug_data32(uint32_t addr)
-	{
-		uint32_t val = read_debug_data16(addr);
-		val |= read_debug_data16(addr + 2) << 16;
-		return val;
-	}
-	virtual void write_debug_io8(uint32_t addr, uint32_t data) {}
-	virtual uint32_t read_debug_io8(uint32_t addr)
-	{
-		return 0xff;
-	}
-	virtual void write_debug_io16(uint32_t addr, uint32_t data)
-	{
-		write_debug_io8(addr, data & 0xff);
-		write_debug_io8(addr + 1, (data >> 8) & 0xff);
-	}
-	virtual uint32_t read_debug_io16(uint32_t addr)
-	{
-		uint32_t val = read_debug_io8(addr);
-		val |= read_debug_io8(addr + 1) << 8;
-		return val;
-	}
-	virtual void write_debug_io32(uint32_t addr, uint32_t data)
-	{
-		write_debug_io16(addr, data & 0xffff);
-		write_debug_io16(addr + 2, (data >> 16) & 0xffff);
-	}
-	virtual uint32_t read_debug_io32(uint32_t addr)
-	{
-		uint32_t val = read_debug_io16(addr);
-		val |= read_debug_io16(addr + 2) << 16;
-		return val;
-	}
-	virtual bool write_debug_reg(const _TCHAR *reg, uint32_t data)
-	{
-		return false;
-	}
-	virtual void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len) {}
-	virtual int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
-	{
-		return 0;
-	}
-#endif
+	virtual void *get_debugger();
+	virtual uint32_t get_debug_prog_addr_mask();
+	virtual uint32_t get_debug_data_addr_mask();
+	virtual void write_debug_data8(uint32_t addr, uint32_t data);
+	virtual uint32_t read_debug_data8(uint32_t addr);
+	virtual void write_debug_data16(uint32_t addr, uint32_t data);
+	virtual uint32_t read_debug_data16(uint32_t addr);
+	virtual void write_debug_data32(uint32_t addr, uint32_t data);
+	virtual uint32_t read_debug_data32(uint32_t addr);
+	virtual void write_debug_io8(uint32_t addr, uint32_t data);
+	virtual uint32_t read_debug_io8(uint32_t addr);
+	virtual void write_debug_io16(uint32_t addr, uint32_t data);
+	virtual uint32_t read_debug_io16(uint32_t addr);
+	virtual void write_debug_io32(uint32_t addr, uint32_t data);
+	virtual uint32_t read_debug_io32(uint32_t addr);
+	virtual bool write_debug_reg(const _TCHAR *reg, uint32_t data);
+	virtual void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+	virtual int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
+
 	_TCHAR this_device_name[128];
 	
 	DEVICE* prev_device;
