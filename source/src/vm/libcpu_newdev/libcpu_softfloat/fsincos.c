@@ -26,19 +26,24 @@ these four paragraphs for those parts of this code that are retained.
 #define FLOAT128
 
 #define USE_estimateDiv128To64
+#include "fpu_constant.h"
 #include "mamesf.h"
+#include "milieu.h"
 #include "softfloat.h"
 //#include "softfloat-specialize"
-#include "fpu_constant.h"
 
-static const floatx80 floatx80_one = packFloatx80(0, 0x3fff, U64(0x8000000000000000));
-static const floatx80 floatx80_default_nan = packFloatx80(0, 0xffff, U64(0xffffffffffffffff));
+static floatx80 floatx80_one;
+static floatx80 floatx80_default_nan;
 
 #define packFloat2x128m(zHi, zLo) {(zHi), (zLo)}
 #define PACK_FLOAT_128(hi,lo) packFloat2x128m(LIT64(hi),LIT64(lo))
 
 #define EXP_BIAS 0x3FFF
-
+void softfloat_fsincos_init(void)
+{
+	floatx80_one = packFloatx80(0, 0x3fff, U64(0x8000000000000000));
+	floatx80_default_nan = packFloatx80(0, 0xffff, U64(0xffffffffffffffff));
+}	
 /*----------------------------------------------------------------------------
 | Returns the fraction bits of the extended double-precision floating-point
 | value `a'.
@@ -121,7 +126,7 @@ static UINT64 argument_reduction_kernel(UINT64 aSig0, int Exp, UINT64 *zSig0, UI
 	return q;
 }
 
-static int reduce_trig_arg(int expDiff, int &zSign, UINT64 &aSig0, UINT64 &aSig1)
+static int reduce_trig_arg(int expDiff, int zSign, UINT64 aSig0, UINT64 aSig1)
 {
 	UINT64 term0, term1, q = 0;
 
@@ -370,12 +375,12 @@ int sf_fsincos(floatx80 a, floatx80 *sin_a, floatx80 *cos_a)
 	return 0;
 }
 
-int floatx80_fsin(floatx80 &a)
+int floatx80_fsin(floatx80 a)
 {
 	return sf_fsincos(a, &a, 0);
 }
 
-int floatx80_fcos(floatx80 &a)
+int floatx80_fcos(floatx80 a)
 {
 	return sf_fsincos(a, 0, &a);
 }
@@ -407,7 +412,7 @@ int floatx80_fcos(floatx80 &a)
 //           cos(x)
 //
 
-int floatx80_ftan(floatx80 &a)
+int floatx80_ftan(floatx80 a)
 {
 	UINT64 aSig0, aSig1 = 0;
 	INT32 aExp, zExp, expDiff;

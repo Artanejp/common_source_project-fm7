@@ -1,7 +1,7 @@
 
 #include "../vm.h"
 #include "../../emu.h"
-#include "./i386opdef_real.h"
+#include "./i386_real.h"
 
 #ifdef I386_PSEUDO_BIOS
 #define BIOS_INT(num) if(cpustate->bios != NULL) { \
@@ -11,7 +11,6 @@
 	sregs[0] = cpustate->sreg[ES].selector; sregs[1] = cpustate->sreg[CS].selector; \
 	sregs[2] = cpustate->sreg[SS].selector; sregs[3] = cpustate->sreg[DS].selector; \
 	int32_t ZeroFlag = cpustate->ZF, CarryFlag = cpustate->CF; \
-	printf("INT %x \n", num); \
 	if(cpustate->bios->bios_int_i86(num, regs, sregs, &ZeroFlag, &CarryFlag)) { \
 		REG16(AX) = regs[0]; REG16(CX) = regs[1]; REG16(DX) = regs[2]; REG16(BX) = regs[3]; \
 		REG16(SP) = regs[4]; REG16(BP) = regs[5]; REG16(SI) = regs[6]; REG16(DI) = regs[7]; \
@@ -26,7 +25,6 @@
 	sregs[0] = cpustate->sreg[ES].selector; sregs[1] = cpustate->sreg[CS].selector; \
 	sregs[2] = cpustate->sreg[SS].selector; sregs[3] = cpustate->sreg[DS].selector; \
 	int32_t ZeroFlag = cpustate->ZF, CarryFlag = cpustate->CF; \
-	printf("CALL %08x %0x AX=%04x %02x %02x\n", cpustate, address, regs[0], REG8(AH), REG8(AL)); \
 	if(cpustate->bios->bios_call_i86(address, regs, sregs, &ZeroFlag, &CarryFlag)) { \
 		REG16(AX) = regs[0]; REG16(CX) = regs[1]; REG16(DX) = regs[2]; REG16(BX) = regs[3]; \
 		REG16(SP) = regs[4]; REG16(BP) = regs[5]; REG16(SI) = regs[6]; REG16(DI) = regs[7]; \
@@ -36,14 +34,14 @@
 }
 #endif
 
-void I386_OPS::I386OP(call_abs16)()        // Opcode 0x9a
+void I386_OPS::i386_call_abs16()        // Opcode 0x9a
 {
 	UINT16 offset = FETCH16();
 	UINT16 ptr = FETCH16();
-
 #ifdef I386_PSEUDO_BIOS
 	BIOS_CALL(((ptr << 4) + offset) & cpustate->a20_mask)
 #endif
+		//printf(" \n");
 
 	if( PROTECTED_MODE && !V8086_MODE)
 	{
@@ -62,7 +60,7 @@ void I386_OPS::I386OP(call_abs16)()        // Opcode 0x9a
 	CHANGE_PC(cpustate->eip);
 }
 
-void I386_OPS::I386OP(call_rel16)()        // Opcode 0xe8
+void I386_OPS::i386_call_rel16()        // Opcode 0xe8
 {
 	INT16 disp = FETCH16();
 
@@ -83,7 +81,7 @@ void I386_OPS::I386OP(call_rel16)()        // Opcode 0xe8
 	CYCLES(CYCLES_CALL);       /* TODO: Timing = 7 + m */
 }
 
-void I386_OPS::I386OP(groupFF_16)()        // Opcode 0xff
+void I386_OPS::i386_groupFF_16()        // Opcode 0xff
 {
 	UINT8 modrm = FETCH();
 

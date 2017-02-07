@@ -93,7 +93,7 @@ int I386_OPS_BASE::i386_translate_address(int intention, offs_t *address, vtlb_e
 ***********************************************************************************/
 
 // Pentium MSR handling
-UINT64 I386_OPS_BASE::pentium_msr_read(i386_state *cpustate, UINT32 offset,UINT8 *valid_msr)
+UINT64 I386_OPS_BASE::pentium_msr_read(UINT32 offset,UINT8 *valid_msr)
 {
 	switch(offset)
 	{
@@ -136,7 +136,7 @@ UINT64 I386_OPS_BASE::pentium_msr_read(i386_state *cpustate, UINT32 offset,UINT8
 	return -1;
 }
 
-void I386_OPS_BASE::pentium_msr_write(i386_state *cpustate, UINT32 offset, UINT64 data, UINT8 *valid_msr)
+void I386_OPS_BASE::pentium_msr_write(UINT32 offset, UINT64 data, UINT8 *valid_msr)
 {
 	switch(offset)
 	{
@@ -182,7 +182,7 @@ void I386_OPS_BASE::pentium_msr_write(i386_state *cpustate, UINT32 offset, UINT6
 }
 
 // P6 (Pentium Pro, Pentium II, Pentium III) MSR handling
-UINT64 I386_OPS_BASE::p6_msr_read(i386_state *cpustate, UINT32 offset,UINT8 *valid_msr)
+UINT64 I386_OPS_BASE::p6_msr_read(UINT32 offset,UINT8 *valid_msr)
 {
 	switch(offset)
 	{
@@ -215,7 +215,7 @@ UINT64 I386_OPS_BASE::p6_msr_read(i386_state *cpustate, UINT32 offset,UINT8 *val
 	return -1;
 }
 
-void I386_OPS_BASE::p6_msr_write(i386_state *cpustate, UINT32 offset, UINT64 data, UINT8 *valid_msr)
+void I386_OPS_BASE::p6_msr_write(UINT32 offset, UINT64 data, UINT8 *valid_msr)
 {
 	switch(offset)
 	{
@@ -242,7 +242,7 @@ void I386_OPS_BASE::p6_msr_write(i386_state *cpustate, UINT32 offset, UINT64 dat
 }
 
 // PIV (Pentium 4+)
-UINT64 I386_OPS_BASE::piv_msr_read(i386_state *cpustate, UINT32 offset,UINT8 *valid_msr)
+UINT64 I386_OPS_BASE::piv_msr_read(UINT32 offset,UINT8 *valid_msr)
 {
 	switch(offset)
 	{
@@ -254,7 +254,7 @@ UINT64 I386_OPS_BASE::piv_msr_read(i386_state *cpustate, UINT32 offset,UINT8 *va
 	return -1;
 }
 
-void I386_OPS_BASE::piv_msr_write(i386_state *cpustate, UINT32 offset, UINT64 data, UINT8 *valid_msr)
+void I386_OPS_BASE::piv_msr_write(UINT32 offset, UINT64 data, UINT8 *valid_msr)
 {
 	switch(offset)
 	{

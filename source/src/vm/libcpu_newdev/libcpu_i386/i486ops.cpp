@@ -1,6 +1,10 @@
 // license:BSD-3-Clause
 // copyright-holders:Ville Linde, Barry Rodewald, Carl, Phil Bennett
 // Intel 486+ specific opcodes
+#include "./i386_opdef.h"
+
+#define FAULT(fault,error) {cpustate->ext = 1; i386_trap_with_error(fault,0,0,error); return;}
+#define FAULT_EXP(fault,error) {cpustate->ext = 1; i386_trap_with_error(fault,0,trap_level+1,error); return;}
 
 void I386_OPS_BASE::I486OP(cpuid)()             // Opcode 0x0F A2
 {
@@ -215,7 +219,7 @@ void I386_OPS_BASE::I486OP(group0F01_16)()      // Opcode 0x0f 01
 			{
 				if( modrm >= 0xc0 ) {
 					address = LOAD_RM16(modrm);
-					ea = i386_translate( cpustate, CS, address, 1 );
+					ea = i386_translate(  CS, address, 1 );
 				} else {
 					ea = GetEA(modrm,1);
 				}
@@ -229,7 +233,7 @@ void I386_OPS_BASE::I486OP(group0F01_16)()      // Opcode 0x0f 01
 				if (modrm >= 0xc0)
 				{
 					address = LOAD_RM16(modrm);
-					ea = i386_translate( cpustate, CS, address, 1 );
+					ea = i386_translate(  CS, address, 1 );
 				}
 				else
 				{
@@ -246,7 +250,7 @@ void I386_OPS_BASE::I486OP(group0F01_16)()      // Opcode 0x0f 01
 					FAULT(FAULT_GP,0)
 				if( modrm >= 0xc0 ) {
 					address = LOAD_RM16(modrm);
-					ea = i386_translate( cpustate, CS, address, 0 );
+					ea = i386_translate(  CS, address, 0 );
 				} else {
 					ea = GetEA(modrm,0);
 				}
@@ -261,7 +265,7 @@ void I386_OPS_BASE::I486OP(group0F01_16)()      // Opcode 0x0f 01
 					FAULT(FAULT_GP,0)
 				if( modrm >= 0xc0 ) {
 					address = LOAD_RM16(modrm);
-					ea = i386_translate( cpustate, CS, address, 0 );
+					ea = i386_translate(  CS, address, 0 );
 				} else {
 					ea = GetEA(modrm,0);
 				}
@@ -332,7 +336,7 @@ void I386_OPS_BASE::I486OP(group0F01_32)()      // Opcode 0x0f 01
 			{
 				if( modrm >= 0xc0 ) {
 					address = LOAD_RM32(modrm);
-					ea = i386_translate( cpustate, CS, address, 1 );
+					ea = i386_translate(  CS, address, 1 );
 				} else {
 					ea = GetEA(modrm,1);
 				}
@@ -346,7 +350,7 @@ void I386_OPS_BASE::I486OP(group0F01_32)()      // Opcode 0x0f 01
 				if (modrm >= 0xc0)
 				{
 					address = LOAD_RM32(modrm);
-					ea = i386_translate( cpustate, CS, address, 1 );
+					ea = i386_translate(  CS, address, 1 );
 				}
 				else
 				{
@@ -363,7 +367,7 @@ void I386_OPS_BASE::I486OP(group0F01_32)()      // Opcode 0x0f 01
 					FAULT(FAULT_GP,0)
 				if( modrm >= 0xc0 ) {
 					address = LOAD_RM32(modrm);
-					ea = i386_translate( cpustate, CS, address, 0 );
+					ea = i386_translate(  CS, address, 0 );
 				} else {
 					ea = GetEA(modrm,0);
 				}
@@ -378,7 +382,7 @@ void I386_OPS_BASE::I486OP(group0F01_32)()      // Opcode 0x0f 01
 					FAULT(FAULT_GP,0)
 				if( modrm >= 0xc0 ) {
 					address = LOAD_RM32(modrm);
-					ea = i386_translate( cpustate, CS, address, 0 );
+					ea = i386_translate( CS, address, 0 );
 				} else {
 					ea = GetEA(modrm,0);
 				}

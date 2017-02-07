@@ -8,27 +8,31 @@
 	[ i386/i486/Pentium/MediaGX ]
 */
 
-#ifndef _I386_H_ 
-#define _I386_H_
+#ifndef _NEWDEV_I386_H_ 
+#define _NEWDEV_I386_H_
 
 #include "vm.h"
-#include "../emu.h"
-#include "i386_base.h"
+#include "../../emu.h"
+#include "./i386_base.h"
+//#include "./libcpu_i386/i386_real.h"
 
 #ifdef USE_DEBUGGER
 class DEBUGGER;
 #endif
-
+ 
 class I386 : public I386_BASE
 {
 protected:
 #ifdef USE_DEBUGGER
 	DEBUGGER *d_debugger;
 #endif
+
 public:
 	I386(VM* parent_vm, EMU* parent_emu) : I386_BASE(parent_vm, parent_emu)
 	{
+#ifdef USE_DEBUGGER
 		d_debugger = NULL;
+#endif
 #if defined(HAS_I386)
 		set_device_name(_T("i80386 CPU"));
 #elif defined(HAS_I486)
@@ -54,7 +58,7 @@ public:
 	void initialize();
 	void reset();
 	int run(int cycles);
-	int cpu_execute(void *p, int cycles);	
+	//int cpu_execute(void *p, int cycles);	
 #ifdef USE_DEBUGGER
 	void *get_debugger()
 	{
@@ -89,27 +93,11 @@ public:
 	bool load_state(FILEIO* state_fio);
 	
 	// unique function
-	void set_context_bios(DEVICE* device)
-	{
-#ifdef I386_PSEUDO_BIOS
-		d_bios = device;
-		printf("BIOS = %0x \n", device);
-#endif
-	}
-
-	void set_context_dma(DEVICE* device)
-	{
-#ifdef SINGLE_MODE_DMA
-		d_dma = device;
-		printf("DMA = %0x \n", device);
-#endif
-	}
+	void set_context_bios(DEVICE* device);
+	void set_context_dma(DEVICE* device);
 
 #ifdef USE_DEBUGGER
-	void set_context_debugger(DEBUGGER* device)
-	{
-		d_debugger = device;
-	}
+	void set_context_debugger(DEBUGGER* device);
 #endif
 
 };

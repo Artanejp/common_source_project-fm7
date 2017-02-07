@@ -27,26 +27,59 @@ these four paragraphs for those parts of this code that are retained.
 #define FLOAT128
 
 #define USE_estimateDiv128To64
-#include "mamesf.h"
-#include "softfloat.h"
-//#include "softfloat-specialize"
 #include "fpu_constant.h"
+#include "mamesf.h"
+#include "milieu.h"
+//#include "softfloat-specialize"
+#include "softfloat.h"
 
-static const floatx80 floatx80_log10_2 = packFloatx80(0, 0x3ffd, U64(0x9a209a84fbcff798));
-static const floatx80 floatx80_ln_2 = packFloatx80(0, 0x3ffe, U64(0xb17217f7d1cf79ac));
-static const floatx80 floatx80_one = packFloatx80(0, 0x3fff, U64(0x8000000000000000));
-static const floatx80 floatx80_default_nan = packFloatx80(0, 0xffff, U64(0xffffffffffffffff));
 
-#define packFloat_128(zHi, zLo) {(zHi), (zLo)}
-#define PACK_FLOAT_128(hi,lo) packFloat_128(LIT64(hi),LIT64(lo))
+static floatx80 floatx80_log10_2;
+static floatx80 floatx80_ln_2;
+//static floatx80 floatx80_one;
+//static floatx80 floatx80_default_nan;
+
+#define packFloat_128(x,zHi,zLo) {x.high = zHi; x.low = zLo;}
+inline void PACK_FLOAT_128_Y(float128 *p, uint64_t hi,uint64_t lo) {
+	p->high = hi;
+	p->low = lo;
+}
 
 #define EXP_BIAS 0x3FFF
+static float128 float128_one;
+static float128 float128_two;
+static float128 float128_ln2inv2;
 
+#define L2_ARR_SIZE 9
+
+static float128 ln_arr[L2_ARR_SIZE];
+
+void softfloat_fyl2x_init(void)
+{
+	floatx80_log10_2 = packFloatx80(0, 0x3ffd, U64(0x9a209a84fbcff798));
+	floatx80_ln_2 = packFloatx80(0, 0x3ffe, U64(0xb17217f7d1cf79ac));
+	floatx80_one = packFloatx80(0, 0x3fff, U64(0x8000000000000000));
+	floatx80_default_nan = packFloatx80(0, 0xffff, U64(0xffffffffffffffff));
+	packFloat_128(float128_one, U64(0x3fff000000000000), U64(0x0000000000000000));
+	packFloat_128(float128_two, U64(0x4000000000000000), U64(0x0000000000000000));
+	packFloat_128(float128_ln2inv2, U64(0x400071547652b82f), U64(0xe1777d0ffda0d23a));
+	
+	PACK_FLOAT_128_Y(&ln_arr[0], LIT64(0x3fff000000000000), LIT64(0x0000000000000000)); /*  1 */
+	PACK_FLOAT_128_Y(&ln_arr[1], LIT64(0x3ffd555555555555), LIT64(0x5555555555555555)); /*  3 */
+	PACK_FLOAT_128_Y(&ln_arr[2], LIT64(0x3ffc999999999999), LIT64(0x999999999999999a)); /*  5 */
+	PACK_FLOAT_128_Y(&ln_arr[3], LIT64(0x3ffc249249249249), LIT64(0x2492492492492492)); /*  7 */
+	PACK_FLOAT_128_Y(&ln_arr[4], LIT64(0x3ffbc71c71c71c71), LIT64(0xc71c71c71c71c71c)); /*  9 */
+	PACK_FLOAT_128_Y(&ln_arr[5], LIT64(0x3ffb745d1745d174), LIT64(0x5d1745d1745d1746)); /* 11 */
+	PACK_FLOAT_128_Y(&ln_arr[6], LIT64(0x3ffb3b13b13b13b1), LIT64(0x3b13b13b13b13b14)); /* 13 */
+	PACK_FLOAT_128_Y(&ln_arr[7], LIT64(0x3ffb111111111111), LIT64(0x1111111111111111)); /* 15 */
+	PACK_FLOAT_128_Y(&ln_arr[8], LIT64(0x3ffae1e1e1e1e1e1), LIT64(0xe1e1e1e1e1e1e1e2)); /* 17 */
+
+}	
 /*----------------------------------------------------------------------------
 | Returns the fraction bits of the extended double-precision floating-point
 | value `a'.
 *----------------------------------------------------------------------------*/
-
+#if 0
 INLINE bits64 extractFloatx80Frac( floatx80 a )
 {
 	return a.low;
@@ -105,6 +138,7 @@ INLINE void normalizeFloatx80Subnormal(UINT64 aSig, INT32 *zExpPtr, UINT64 *zSig
 	*zExpPtr = 1 - shiftCount;
 }
 
+#endif
 
 /*----------------------------------------------------------------------------
 | Returns 1 if the extended double-precision floating-point value `a' is a
@@ -115,7 +149,6 @@ INLINE int floatx80_is_nan(floatx80 a)
 {
 	return ((a.high & 0x7FFF) == 0x7FFF) && (INT64) (a.low<<1);
 }
-
 /*----------------------------------------------------------------------------
 | Takes two extended double-precision floating-point values `a' and `b', one
 | of which is a NaN, and returns the appropriate NaN result.  If either `a' or
@@ -147,32 +180,11 @@ static floatx80 propagateFloatx80NaN(floatx80 a, floatx80 b)
 	}
 }
 
-static const float128 float128_one =
-	packFloat_128(U64(0x3fff000000000000), U64(0x0000000000000000));
-static const float128 float128_two =
-	packFloat_128(U64(0x4000000000000000), U64(0x0000000000000000));
-
-static const float128 float128_ln2inv2 =
-	packFloat_128(U64(0x400071547652b82f), U64(0xe1777d0ffda0d23a));
 
 #define SQRT2_HALF_SIG  U64(0xb504f333f9de6484)
 
 extern float128 OddPoly(float128 x, float128 *arr, unsigned n);
 
-#define L2_ARR_SIZE 9
-
-static float128 ln_arr[L2_ARR_SIZE] =
-{
-	PACK_FLOAT_128(0x3fff000000000000, 0x0000000000000000), /*  1 */
-	PACK_FLOAT_128(0x3ffd555555555555, 0x5555555555555555), /*  3 */
-	PACK_FLOAT_128(0x3ffc999999999999, 0x999999999999999a), /*  5 */
-	PACK_FLOAT_128(0x3ffc249249249249, 0x2492492492492492), /*  7 */
-	PACK_FLOAT_128(0x3ffbc71c71c71c71, 0xc71c71c71c71c71c), /*  9 */
-	PACK_FLOAT_128(0x3ffb745d1745d174, 0x5d1745d1745d1746), /* 11 */
-	PACK_FLOAT_128(0x3ffb3b13b13b13b1, 0x3b13b13b13b13b14), /* 13 */
-	PACK_FLOAT_128(0x3ffb111111111111, 0x1111111111111111), /* 15 */
-	PACK_FLOAT_128(0x3ffae1e1e1e1e1e1, 0xe1e1e1e1e1e1e1e2)  /* 17 */
-};
 
 static float128 poly_ln(float128 x1)
 {

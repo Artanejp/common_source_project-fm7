@@ -7,7 +7,8 @@
 */
 
 //#include "emu.h"
-
+#include "../../../common.h"
+#include "./i386_real.h"
 enum
 {
 	PARAM_REG = 1,      /* 16 or 32-bit register */
@@ -114,10 +115,7 @@ struct GROUP_OP {
 	const I386_OPCODE *opcode;
 };
 
-static const UINT8 *opcode_ptr;
-static const UINT8 *opcode_ptr_base;
-
-static const i386_opcode_table1[256] =
+static const I386_OPCODE i386_opcode_table1[256] =
 {
 	// 0x00
 	{_T("add"),             MODRM,          PARAM_RM8,          PARAM_REG8,         0               },
@@ -1978,87 +1976,12 @@ static const _TCHAR *const i386_reg8[8] = {_T("al"), _T("cl"), _T("dl"), _T("bl"
 static const _TCHAR *const i386_reg8rex[16] = {_T("al"), _T("cl"), _T("dl"), _T("bl"), _T("spl"), _T("bpl"), _T("sil"), _T("dil"), _T("r8l"), _T("r9l"), _T("r10l"), _T("r11l"), _T("r12l"), _T("r13l"), _T("r14l"), _T("r15l")};
 static const _TCHAR *const i386_sreg[8] = {_T("es"), _T("cs"), _T("ss"), _T("ds"), _T("fs"), _T("gs"), _T("???"), _T("???")};
 
-static int address_size;
-static int operand_size;
-static int address_prefix;
-static int operand_prefix;
-static int max_length;
-static UINT64 pc;
-static UINT8 modrm;
-static UINT32 segment;
-static offs_t dasm_flags;
-static _TCHAR modrm_string[256];
-static UINT8 rex, regex, sibex, rmex;
-static UINT8 pre0f;
-static UINT8 curmode;
 
 #define MODRM_REG1  ((modrm >> 3) & 0x7)
 #define MODRM_REG2  (modrm & 0x7)
 #define MODRM_MOD   ((modrm >> 6) & 0x3)
 
-INLINE UINT8 I386_OPS::_FETCH(void)
-{
-	if ((opcode_ptr - opcode_ptr_base) + 1 > max_length)
-		return 0xff;
-	pc++;
-	return *opcode_ptr++;
-}
-
-#if 0
-INLINE UINT16 I386_OPS::_FETCH16(void)
-{
-	UINT16 d;
-	if ((opcode_ptr - opcode_ptr_base) + 2 > max_length)
-		return 0xffff;
-	d = opcode_ptr[0] | (opcode_ptr[1] << 8);
-	opcode_ptr += 2;
-	pc += 2;
-	return d;
-}
-#endif
-
-INLINE UINT32 I386_OPS::_FETCH32(void)
-{
-	UINT32 d;
-	if ((opcode_ptr - opcode_ptr_base) + 4 > max_length)
-		return 0xffffffff;
-	d = opcode_ptr[0] | (opcode_ptr[1] << 8) | (opcode_ptr[2] << 16) | (opcode_ptr[3] << 24);
-	opcode_ptr += 4;
-	pc += 4;
-	return d;
-}
-
-INLINE UINT8 I386_OPS::_FETCHD(void)
-{
-	if ((opcode_ptr - opcode_ptr_base) + 1 > max_length)
-		return 0xff;
-	pc++;
-	return *opcode_ptr++;
-}
-
-INLINE UINT16 I386_OPS::_FETCHD16(void)
-{
-	UINT16 d;
-	if ((opcode_ptr - opcode_ptr_base) + 2 > max_length)
-		return 0xffff;
-	d = opcode_ptr[0] | (opcode_ptr[1] << 8);
-	opcode_ptr += 2;
-	pc += 2;
-	return d;
-}
-
-INLINE UINT32 I386_OPS::_FETCHD32(void)
-{
-	UINT32 d;
-	if ((opcode_ptr - opcode_ptr_base) + 4 > max_length)
-		return 0xffffffff;
-	d = opcode_ptr[0] | (opcode_ptr[1] << 8) | (opcode_ptr[2] << 16) | (opcode_ptr[3] << 24);
-	opcode_ptr += 4;
-	pc += 4;
-	return d;
-}
-
-static _TCHAR *I386_OPS::hexstring(UINT32 value, int digits)
+_TCHAR *I386_OPS::hexstring(UINT32 value, int digits)
 {
 	static _TCHAR buffer[20];
 	buffer[0] = _T('0');
@@ -2069,7 +1992,7 @@ static _TCHAR *I386_OPS::hexstring(UINT32 value, int digits)
 	return (buffer[1] >= _T('0') && buffer[1] <= _T('9')) ? &buffer[1] : &buffer[0];
 }
 
-static _TCHAR *I386_OPS::hexstring64(UINT32 lo, UINT32 hi)
+_TCHAR *I386_OPS::hexstring64(UINT32 lo, UINT32 hi)
 {
 	static _TCHAR buffer[40];
 	buffer[0] = _T('0');
@@ -2080,7 +2003,7 @@ static _TCHAR *I386_OPS::hexstring64(UINT32 lo, UINT32 hi)
 	return (buffer[1] >= _T('0') && buffer[1] <= _T('9')) ? &buffer[1] : &buffer[0];
 }
 
-static _TCHAR *I386_OPS::hexstringpc(UINT64 pc)
+_TCHAR *I386_OPS::hexstringpc(UINT64 pc)
 {
 	if (curmode == 64)
 		return hexstring64((UINT32)pc, (UINT32)(pc >> 32));
@@ -3060,7 +2983,7 @@ handle_unknown:
 	_stprintf(s, _T("???"));
 }
 
-int i386_dasm_one_ex(_TCHAR *buffer, UINT64 eip, const UINT8 *oprom, int mode)
+int I386_OPS::i386_dasm_one_ex(_TCHAR *buffer, UINT64 eip, const UINT8 *oprom, int mode)
 {
 	UINT8 op;
 
@@ -3108,22 +3031,22 @@ int i386_dasm_one_ex(_TCHAR *buffer, UINT64 eip, const UINT8 *oprom, int mode)
 	return (pc-eip) | dasm_flags | DASMFLAG_SUPPORTED;
 }
 
-int i386_dasm_one(_TCHAR *buffer, offs_t eip, const UINT8 *oprom, int mode)
+int I386_OPS::i386_dasm_one(_TCHAR *buffer, offs_t eip, const UINT8 *oprom, int mode)
 {
 	return i386_dasm_one_ex(buffer, eip, oprom, mode);
 }
 
-CPU_DISASSEMBLE( x86_16 )
+int I386_OPS::cpu_disassemble_x86_16(_TCHAR *buffer, UINT64 eip, const UINT8 *oprom)
 {
 	return i386_dasm_one_ex(buffer, pc, oprom, 16);
 }
 
-CPU_DISASSEMBLE( x86_32 )
+int I386_OPS::cpu_disassemble_x86_32(_TCHAR *buffer, UINT64 eip, const UINT8 *oprom)
 {
 	return i386_dasm_one_ex(buffer, pc, oprom, 32);
 }
 
-CPU_DISASSEMBLE( x86_64 )
+int I386_OPS::cpu_disassemble_x86_64(_TCHAR *buffer, UINT64 eip, const UINT8 *oprom)
 {
 	return i386_dasm_one_ex(buffer, pc, oprom, 64);
 }

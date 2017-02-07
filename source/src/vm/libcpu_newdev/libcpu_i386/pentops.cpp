@@ -1,57 +1,13 @@
 // license:BSD-3-Clause
 // copyright-holders:Ville Linde, Barry Rodewald, Carl, Phil Bennett
 // Pentium+ specific opcodes
+#include "./i386_opdef.h"
+
+#define FAULT(fault,error) {cpustate->ext = 1; i386_trap_with_error(fault,0,0,error); return;}
+#define FAULT_EXP(fault,error) {cpustate->ext = 1; i386_trap_with_error(fault,0,trap_level+1,error); return;}
 
 extern flag float32_is_nan( float32 a ); // since its not defined in softfloat.h
 extern flag float64_is_nan( float64 a ); // since its not defined in softfloat.h
-
-INLINE void MMXPROLOG()
-{
-	//cpustate->x87_sw &= ~(X87_SW_TOP_MASK << X87_SW_TOP_SHIFT); // top = 0
-	cpustate->x87_tw = 0; // tag word = 0
-}
-
-INLINE void READMMX(UINT32 ea,MMX_REG &r)
-{
-	r.q=READ64( ea);
-}
-
-INLINE void WRITEMMX(UINT32 ea,MMX_REG &r)
-{
-	WRITE64( ea, r.q);
-}
-
-INLINE void READXMM(UINT32 ea,XMM_REG &r)
-{
-	r.q[0]=READ64( ea);
-	r.q[1]=READ64( ea+8);
-}
-
-INLINE void WRITEXMM(UINT32 ea,XMM_REG &r)
-{
-	WRITE64( ea, r.q[0]);
-	WRITE64( ea+8, r.q[1]);
-}
-
-INLINE void READXMM_LO64(UINT32 ea,XMM_REG &r)
-{
-	r.q[0]=READ64( ea);
-}
-
-INLINE void WRITEXMM_LO64(UINT32 ea,XMM_REG &r)
-{
-	WRITE64( ea, r.q[0]);
-}
-
-INLINE void READXMM_HI64(UINT32 ea,XMM_REG &r)
-{
-	r.q[1]=READ64( ea);
-}
-
-INLINE void WRITEXMM_HI64(UINT32 ea,XMM_REG &r)
-{
-	WRITE64( ea, r.q[1]);
-}
 
 void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 {
@@ -1062,7 +1018,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	}
 }
 
- void I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
+void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 {
 /*
 0f 3a       BB0_RESET (set BB0 pointer = base)
@@ -1074,7 +1030,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	CYCLES(1);
 }
 
- void I386OP(cyrix_unknown)()     // Opcode 0x0f 74
+ void I386_OPS_BASE::I386OP(cyrix_unknown)()     // Opcode 0x0f 74
 {
 	logerror("Unemulated 0x0f 0x74 opcode called\n");
 
@@ -1200,41 +1156,6 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	// TODO: actually implement TZCNT
 }
 
-INLINE INT8 I386_OPS_BASE::SaturatedSignedWordToSignedByte(INT16 word)
-{
-	if (word > 127)
-		return 127;
-	if (word < -128)
-		return -128;
-	return (INT8)word;
-}
-
-INLINE UINT8 I386_OPS_BASE::SaturatedSignedWordToUnsignedByte(INT16 word)
-{
-	if (word > 255)
-		return 255;
-	if (word < 0)
-		return 0;
-	return (UINT8)word;
-}
-
-INLINE INT16 I386_OPS_BASE::SaturatedSignedDwordToSignedWord(INT32 dword)
-{
-	if (dword > 32767)
-		return 32767;
-	if (dword < -32768)
-		return -32768;
-	return (INT16)dword;
-}
-
-INLINE UINT16 I386_OPS_BASE::SaturatedSignedDwordToUnsignedWord(INT32 dword)
-{
-	if (dword > 65535)
-		return 65535;
-	if (dword < 0)
-		return 0;
-	return (UINT16)dword;
-}
 
  void I386_OPS_BASE::MMXOP(group_0f71)()  // Opcode 0f 71
 {
@@ -1982,7 +1903,7 @@ INLINE UINT16 I386_OPS_BASE::SaturatedSignedDwordToUnsignedWord(INT32 dword)
 	CYCLES(1);     // TODO: correct cycle count
 }
 
- void I386OP(cyrix_svdc)() // Opcode 0f 78
+ void I386_OPS_BASE::I386OP(cyrix_svdc)() // Opcode 0f 78
 {
 	UINT8 modrm = FETCH();
 
@@ -2046,7 +1967,7 @@ INLINE UINT16 I386_OPS_BASE::SaturatedSignedDwordToUnsignedWord(INT32 dword)
 	CYCLES(1);     // TODO: correct cycle count
 }
 
- void I386OP(cyrix_rsdc)() // Opcode 0f 79
+ void I386_OPS_BASE::I386OP(cyrix_rsdc)() // Opcode 0f 79
 {
 	UINT8 modrm = FETCH();
 
@@ -2113,7 +2034,7 @@ INLINE UINT16 I386_OPS_BASE::SaturatedSignedDwordToUnsignedWord(INT32 dword)
 	CYCLES(1);     // TODO: correct cycle count
 }
 
- void I386OP(cyrix_svldt)() // Opcode 0f 7a
+ void I386_OPS_BASE::I386OP(cyrix_svldt)() // Opcode 0f 7a
 {
 	if ( PROTECTED_MODE && !V8086_MODE )
 	{
@@ -2142,7 +2063,7 @@ INLINE UINT16 I386_OPS_BASE::SaturatedSignedDwordToUnsignedWord(INT32 dword)
 	CYCLES(1);     // TODO: correct cycle count
 }
 
- void I386OP(cyrix_rsldt)() // Opcode 0f 7b
+ void I386_OPS_BASE::I386OP(cyrix_rsldt)() // Opcode 0f 7b
 {
 	if ( PROTECTED_MODE && !V8086_MODE )
 	{
@@ -2178,7 +2099,7 @@ INLINE UINT16 I386_OPS_BASE::SaturatedSignedDwordToUnsignedWord(INT32 dword)
 	CYCLES(1);     // TODO: correct cycle count
 }
 
- void I386OP(cyrix_svts)() // Opcode 0f 7c
+ void I386_OPS_BASE::I386OP(cyrix_svts)() // Opcode 0f 7c
 {
 	if ( PROTECTED_MODE )
 	{
@@ -2206,7 +2127,7 @@ INLINE UINT16 I386_OPS_BASE::SaturatedSignedDwordToUnsignedWord(INT32 dword)
 	}
 }
 
- void I386OP(cyrix_rsts)() // Opcode 0f 7d
+ void I386_OPS_BASE::I386OP(cyrix_rsts)() // Opcode 0f 7d
 {
 	if ( PROTECTED_MODE )
 	{

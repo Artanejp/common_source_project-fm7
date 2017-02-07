@@ -247,7 +247,7 @@ static float64 propagateFloat64NaN( float64 a, float64 b )
 | Returns 1 if the extended double-precision floating-point value `a' is a
 | NaN; otherwise returns 0.
 *----------------------------------------------------------------------------*/
-
+#if 0
 flag floatx80_is_nan( floatx80 a )
 {
 
@@ -259,6 +259,7 @@ flag floatx80_is_nan( floatx80 a )
 | Returns 1 if the extended double-precision floating-point value `a' is a
 | signaling NaN; otherwise returns 0.
 *----------------------------------------------------------------------------*/
+#endif
 
 flag floatx80_is_signaling_nan( floatx80 a )
 {
@@ -304,7 +305,7 @@ static floatx80 commonNaNToFloatx80( commonNaNT a )
     return z;
 
 }
-
+#if 0
 /*----------------------------------------------------------------------------
 | Takes two extended double-precision floating-point values `a' and `b', one
 | of which is a NaN, and returns the appropriate NaN result.  If either `a' or
@@ -356,7 +357,6 @@ INLINE int32 extractFloatx80Exp( floatx80 a )
     return a.high & 0x7FFF;
 
 }
-
 /*----------------------------------------------------------------------------
 | Returns the sign bit of the extended double-precision floating-point value
 | `a'.
@@ -368,6 +368,7 @@ INLINE flag extractFloatx80Sign( floatx80 a )
     return a.high>>15;
 
 }
+#endif
 
 #endif
 

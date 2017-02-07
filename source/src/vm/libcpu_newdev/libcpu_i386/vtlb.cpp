@@ -8,10 +8,7 @@
 
 ***************************************************************************/
 
-//#include "emu.h"
-#include "vtlb.h"
-
-
+#include "i386_opdef.h"
 
 /***************************************************************************
     DEBUGGING
@@ -19,12 +16,9 @@
 
 #define PRINTF_TLB          (0)
 
-
-
 /***************************************************************************
     TYPE DEFINITIONS
 ***************************************************************************/
-
 /* VTLB state */
 struct vtlb_state
 {
@@ -41,8 +35,6 @@ struct vtlb_state
 	vtlb_entry *        save;               /* cache of live table entries for saving */
 };
 
-
-
 /***************************************************************************
     INITIALIZATION/TEARDOWN
 ***************************************************************************/
@@ -52,7 +44,7 @@ struct vtlb_state
     given CPU
 -------------------------------------------------*/
 
-vtlb_state *vtlb_alloc(void *cpu, address_spacenum space, int fixed_entries, int dynamic_entries)
+vtlb_state *I386_OPS_BASE::vtlb_alloc(void *cpu, address_spacenum space, int fixed_entries, int dynamic_entries)
 {
 	vtlb_state *vtlb;
 
@@ -98,7 +90,7 @@ vtlb_state *vtlb_alloc(void *cpu, address_spacenum space, int fixed_entries, int
     vtlb_free - free an allocated VTLB
 -------------------------------------------------*/
 
-void vtlb_free(vtlb_state *vtlb)
+void I386_OPS_BASE::vtlb_free(vtlb_state *vtlb)
 {
 	/* free the fixed pages if allocated */
 	if (vtlb->fixedpages != NULL)
@@ -125,9 +117,7 @@ void vtlb_free(vtlb_state *vtlb)
     response to an unmapped access
 -------------------------------------------------*/
 
-static int cpu_translate_i386(void *cpudevice, address_spacenum space, int intention, offs_t *address);
-
-int vtlb_fill(vtlb_state *vtlb, offs_t address, int intention)
+int I386_OPS_BASE::vtlb_fill(vtlb_state *vtlb, offs_t address, int intention)
 {
 	offs_t tableindex = address >> vtlb->pageshift;
 	vtlb_entry entry = vtlb->table[tableindex];
@@ -198,7 +188,7 @@ int vtlb_fill(vtlb_state *vtlb, offs_t address, int intention)
     vtlb_load - load a fixed VTLB entry
 -------------------------------------------------*/
 
-void vtlb_load(vtlb_state *vtlb, int entrynum, int numpages, offs_t address, vtlb_entry value)
+void I386_OPS_BASE::vtlb_load(vtlb_state *vtlb, int entrynum, int numpages, offs_t address, vtlb_entry value)
 {
 	offs_t tableindex = address >> vtlb->pageshift;
 	int liveindex = vtlb->dynamic + entrynum;
@@ -233,7 +223,7 @@ void vtlb_load(vtlb_state *vtlb, int entrynum, int numpages, offs_t address, vtl
     vtlb_dynload - load a dynamic VTLB entry
 -------------------------------------------------*/
 
-void vtlb_dynload(vtlb_state *vtlb, UINT32 index, offs_t address, vtlb_entry value)
+void I386_OPS_BASE::vtlb_dynload(vtlb_state *vtlb, UINT32 index, offs_t address, vtlb_entry value)
 {
 	vtlb_entry entry = vtlb->table[index];
 
@@ -274,7 +264,7 @@ void vtlb_dynload(vtlb_state *vtlb, UINT32 index, offs_t address, vtlb_entry val
     from the dynamic part of the VTLB
 -------------------------------------------------*/
 
-void vtlb_flush_dynamic(vtlb_state *vtlb)
+void I386_OPS_BASE::vtlb_flush_dynamic(vtlb_state *vtlb)
 {
 	int liveindex;
 
@@ -297,7 +287,7 @@ void vtlb_flush_dynamic(vtlb_state *vtlb)
     particular address from the VTLB
 -------------------------------------------------*/
 
-void vtlb_flush_address(vtlb_state *vtlb, offs_t address)
+void I386_OPS_BASE::vtlb_flush_address(vtlb_state *vtlb, offs_t address)
 {
 	offs_t tableindex = address >> vtlb->pageshift;
 
@@ -319,7 +309,7 @@ void vtlb_flush_address(vtlb_state *vtlb, offs_t address)
     the linear VTLB lookup table
 -------------------------------------------------*/
 
-const vtlb_entry *vtlb_table(vtlb_state *vtlb)
+const vtlb_entry *I386_OPS_BASE::vtlb_table(vtlb_state *vtlb)
 {
 	return vtlb->table;
 }

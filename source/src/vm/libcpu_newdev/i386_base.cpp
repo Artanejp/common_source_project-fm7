@@ -9,106 +9,112 @@
 */
 
 #include "i386_base.h"
+#include "libcpu_i386/i386_opdef.h"
 
 void I386_BASE::initialize()
 {
-//	i386_state *cpustate = (i386_state *)opaque;
-//	cpustate->pic = d_pic;
-//	cpustate->program = d_mem;
-//	cpustate->io = d_io;
-//	cpustate->bios = d_bios;
-//	cpustate->dma = d_dma;
-//	cpustate->shutdown = 0;
+	cpucore = new I386_OPS_BASE;
+	cpucore->cpu_init_i386();
+	cpucore->set_context_pic(d_pic);
+	cpucore->set_context_progmem(d_mem);
+	cpucore->set_context_io(d_io);
+	cpucore->set_shutdown_flag(0);
 }
 
 void I386_BASE::release()
 {
-	i386_state *cpustate = (i386_state *)opaque;
-	vtlb_free(cpustate->vtlb);
-	free(opaque);
+	cpucore->i386_vtlb_free();
+	cpucore->i386_free_state();
+	delete cpucore;
 }
 
 void I386_BASE::reset()
 {
-	//i386_state *cpustate = (i386_state *)opaque;
-	//CPU_RESET_CALL(CPU_MODEL);
+	cpucore->cpu_reset_i386();
 }
 
 int I386_BASE::run(int cycles)
 {
-	//i386_state *cpustate = (i386_state *)opaque;
-	return 0;
-	//return CPU_EXECUTE_CALL(i386);
+	return cpucore->cpu_execute_i386(cycles);
 }
 
 void I386_BASE::write_signal(int id, uint32_t data, uint32_t mask)
 {
-	i386_state *cpustate = (i386_state *)opaque;
-	
 	if(id == SIG_CPU_NMI) {
-		i386_set_irq_line(cpustate, INPUT_LINE_NMI, (data & mask) ? HOLD_LINE : CLEAR_LINE);
+		cpucore->i386_set_irq_line( INPUT_LINE_NMI, (data & mask) ? HOLD_LINE : CLEAR_LINE);
 	} else if(id == SIG_CPU_IRQ) {
-		i386_set_irq_line(cpustate, INPUT_LINE_IRQ, (data & mask) ? HOLD_LINE : CLEAR_LINE);
+		cpucore->i386_set_irq_line( INPUT_LINE_IRQ, (data & mask) ? HOLD_LINE : CLEAR_LINE);
 	} else if(id == SIG_CPU_BUSREQ) {
-		cpustate->busreq = (data & mask) ? 1 : 0;
+		cpucore->set_busreq(((data & mask) != 0));
 	} else if(id == SIG_I386_A20) {
-		i386_set_a20_line(cpustate, data & mask);
+		cpucore->i386_set_a20_line( data & mask);
 	}
 }
 
 void I386_BASE::set_intr_line(bool line, bool pending, uint32_t bit)
 {
-	i386_state *cpustate = (i386_state *)opaque;
-	i386_set_irq_line(cpustate, INPUT_LINE_IRQ, line ? HOLD_LINE : CLEAR_LINE);
+	cpucore->i386_set_irq_line(INPUT_LINE_IRQ, line ? HOLD_LINE : CLEAR_LINE);
 }
 
 void I386_BASE::set_extra_clock(int cycles)
 {
-	i386_state *cpustate = (i386_state *)opaque;
-	cpustate->extra_cycles += cycles;
+	cpucore->set_extra_clock(cycles);
 }
 
 int I386_BASE::get_extra_clock()
 {
-	i386_state *cpustate = (i386_state *)opaque;
-	return cpustate->extra_cycles;
+	return cpucore->get_extra_clock();
 }
 
 uint32_t I386_BASE::get_pc()
 {
-	i386_state *cpustate = (i386_state *)opaque;
-	return cpustate->prev_pc;
+	return cpucore->get_prev_pc();
 }
 
 uint32_t I386_BASE::get_next_pc()
 {
-	i386_state *cpustate = (i386_state *)opaque;
-	return cpustate->pc;
+	return cpucore->get_pc();
 }
 
 void I386_BASE::set_address_mask(uint32_t mask)
 {
-	i386_state *cpustate = (i386_state *)opaque;
-	cpustate->a20_mask = mask;
+	cpucore->set_address_mask(mask);
 }
 
 uint32_t I386_BASE::get_address_mask()
 {
-	i386_state *cpustate = (i386_state *)opaque;
-	return cpustate->a20_mask;
+	return cpucore->get_address_mask();
 }
-
 void I386_BASE::set_shutdown_flag(int shutdown)
 {
-	i386_state *cpustate = (i386_state *)opaque;
-	cpustate->shutdown = shutdown;
+	cpucore->set_shutdown_flag(shutdown);
 }
 
 int I386_BASE::get_shutdown_flag()
 {
-	i386_state *cpustate = (i386_state *)opaque;
-	return cpustate->shutdown;
+	return cpucore->get_shutdown_flag();
 }
+
+void I386_BASE::set_context_mem(DEVICE* device)
+{
+	d_mem = device;
+	if(cpucore != NULL) cpucore->set_context_progmem(d_mem);
+}
+
+void I386_BASE::set_context_io(DEVICE* device)
+{
+	d_io = device;
+	if(cpucore != NULL) cpucore->set_context_io(d_io);
+}
+
+void I386_BASE::set_context_intr(DEVICE* device)
+{
+	d_pic = device;
+	if(cpucore != NULL) cpucore->set_context_pic(d_pic);
+}
+
+
+#include "../../fileio.h"
 
 #define STATE_VERSION	1
 
@@ -116,8 +122,7 @@ void I386_BASE::save_state(FILEIO* state_fio)
 {
 	state_fio->FputUint32(STATE_VERSION);
 	state_fio->FputInt32(this_device_id);
-	
-	state_fio->Fwrite(opaque, sizeof(i386_state), 1);
+	cpucore->save_state(state_fio);
 }
 
 bool I386_BASE::load_state(FILEIO* state_fio)
@@ -128,16 +133,12 @@ bool I386_BASE::load_state(FILEIO* state_fio)
 	if(state_fio->FgetInt32() != this_device_id) {
 		return false;
 	}
-	state_fio->Fread(opaque, sizeof(i386_state), 1);
+	cpucore->load_state(state_fio);
 	
 	// post process
-	i386_state *cpustate = (i386_state *)opaque;
-	cpustate->pic = d_pic;
-	cpustate->program = d_mem;
-	cpustate->io = d_io;
-
-	cpustate->bios = d_bios;
-	cpustate->dma = d_dma;
+	cpucore->set_context_pic(d_pic);
+	cpucore->set_context_progmem(d_mem);
+	cpucore->set_context_io(d_io);
 
 	return true;
 }

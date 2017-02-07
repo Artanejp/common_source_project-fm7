@@ -1,5 +1,14 @@
 // license:BSD-3-Clause
 // copyright-holders:Ville Linde, Barry Rodewald, Carl, Phil Bennett
+#include "./i386_opdef.h"
+#include "./i386ops.h"
+
+/* seems to be defined on mingw-gcc */
+#undef i386
+
+#define FAULT(fault,error) {cpustate->ext = 1; i386_trap_with_error(fault,0,0,error); return;}
+#define FAULT_EXP(fault,error) {cpustate->ext = 1; i386_trap_with_error(fault,0,trap_level+1,error); return;}
+
 UINT32 I386_OPS_BASE::I386OP(shift_rotate32)( UINT8 modrm, UINT32 value, UINT8 shift)
 {
 	UINT32 dst, src;
@@ -117,8 +126,6 @@ UINT32 I386_OPS_BASE::I386OP(shift_rotate32)( UINT8 modrm, UINT32 value, UINT8 s
 	}
 	return dst;
 }
-
-
 
 void I386_OPS_BASE::I386OP(adc_rm32_r32)()      // Opcode 0x11
 {

@@ -8,12 +8,14 @@
 */
 
 #include "common.h"
-#include "vm.h"
-#include "../emu.h"
+#include "../vm.h"
+#include "../..//emu.h"
 #include "device.h"
 
 DEVICE::DEVICE(VM* parent_vm, EMU* parent_emu) : vm(parent_vm), emu(parent_emu)
 {
+	vm = parent_vm;
+	emu = parent_emu;
 	strncpy(this_device_name, "Base Device", 128);
 	prev_device = vm->last_device;
 	next_device = NULL;

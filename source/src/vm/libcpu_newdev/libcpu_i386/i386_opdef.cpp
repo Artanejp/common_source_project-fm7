@@ -17,22 +17,14 @@
         Intel Pentium 4
 */
 
-//#include "emu.h"
-//#include "debugger.h"
-//#include "i386priv.h"
 #include "./i386_opdef.h"
-//#include "i386.h"
-
-//#include "debug/debugcpu.h"
+#include "./i386ops.h"
 
 /* seems to be defined on mingw-gcc */
 #undef i386
 
-//static CPU_RESET( CPU_MODEL );
-
-
-#define FAULT(fault,error) {cpustate->ext = 1; i386_trap_with_error(cpustate,fault,0,0,error); return;}
-#define FAULT_EXP(fault,error) {cpustate->ext = 1; i386_trap_with_error(cpustate,fault,0,trap_level+1,error); return;}
+#define FAULT(fault,error) {cpustate->ext = 1; i386_trap_with_error(fault,0,0,error); return;}
+#define FAULT_EXP(fault,error) {cpustate->ext = 1; i386_trap_with_error(fault,0,trap_level+1,error); return;}
 
 /*************************************************************************/
 
@@ -65,8 +57,8 @@ UINT32 I386_OPS_BASE::i386_load_protected_mode_segment( I386_SREG *seg, UINT64 *
 	if (limit == 0 || entry + 7 > limit)
 		return 0;
 
-	v1 = READ32PL0(cpustate, base + entry );
-	v2 = READ32PL0(cpustate, base + entry + 4 );
+	v1 = READ32PL0(base + entry );
+	v2 = READ32PL0(base + entry + 4 );
 
 	seg->flags = (v2 >> 8) & 0xf0ff;
 	seg->base = (v2 & 0xff000000) | ((v2 & 0xff) << 16) | ((v1 >> 16) & 0xffff);
@@ -100,8 +92,8 @@ void I386_OPS_BASE::i386_load_call_gate(I386_CALL_GATE *gate)
 	if (limit == 0 || entry + 7 > limit)
 		return;
 
-	v1 = READ32PL0(cpustate, base + entry );
-	v2 = READ32PL0(cpustate, base + entry + 4 );
+	v1 = READ32PL0(base + entry );
+	v2 = READ32PL0(base + entry + 4 );
 
 	/* Note that for task gates, offset and dword_count are not used */
 	gate->selector = (v1 >> 16) & 0xffff;
@@ -126,7 +118,7 @@ void I386_OPS_BASE::i386_set_descriptor_accessed( UINT16 selector)
 		base = cpustate->gdtr.base;
 
 	addr = base + (selector & ~7) + 5;
-	i386_translate_address(cpustate, TRANSLATE_READ, &addr, NULL);
+	i386_translate_address(TRANSLATE_READ, &addr, NULL);
 	rights = cpustate->program->read_data8(addr);
 	// Should a fault be thrown if the table is read only?
 	cpustate->program->write_data8(addr, rights | 1);
@@ -138,9 +130,9 @@ void I386_OPS_BASE::i386_load_segment_descriptor( int segment )
 	{
 		if (!V8086_MODE)
 		{
-			i386_load_protected_mode_segment(cpustate, &cpustate->sreg[segment], NULL );
+			i386_load_protected_mode_segment(&cpustate->sreg[segment], NULL );
 			if(cpustate->sreg[segment].selector)
-				i386_set_descriptor_accessed(cpustate, cpustate->sreg[segment].selector);
+				i386_set_descriptor_accessed(cpustate->sreg[segment].selector);
 		}
 		else
 		{
@@ -170,9 +162,9 @@ UINT32 I386_OPS_BASE::i386_get_stack_segment(UINT8 privilege)
 		return 0;
 
 	if(cpustate->task.flags & 8)
-		ret = READ32PL0(cpustate,(cpustate->task.base+8) + (8*privilege));
+		ret = READ32PL0((cpustate->task.base+8) + (8*privilege));
 	else
-		ret = READ16PL0(cpustate,(cpustate->task.base+4) + (4*privilege));
+		ret = READ16PL0((cpustate->task.base+4) + (4*privilege));
 
 	return ret;
 }
@@ -185,9 +177,9 @@ UINT32 I386_OPS_BASE::i386_get_stack_ptr(UINT8 privilege)
 		return 0;
 
 	if(cpustate->task.flags & 8)
-		ret = READ32PL0(cpustate,(cpustate->task.base+4) + (8*privilege));
+		ret = READ32PL0((cpustate->task.base+4) + (8*privilege));
 	else
-		ret = READ16PL0(cpustate,(cpustate->task.base+2) + (4*privilege));
+		ret = READ16PL0((cpustate->task.base+2) + (4*privilege));
 
 	return ret;
 }
@@ -244,7 +236,7 @@ void I386_OPS_BASE::sib_byte(UINT8 mod, UINT32* out_ea, UINT8* out_segment)
 	UINT32 ea = 0;
 	UINT8 segment = 0;
 	UINT8 scale, i, base;
-	UINT8 sib = FETCH(cpustate);
+	UINT8 sib = FETCH();
 	scale = (sib >> 6) & 0x3;
 	i = (sib >> 3) & 0x7;
 	base = sib & 0x7;
@@ -258,7 +250,7 @@ void I386_OPS_BASE::sib_byte(UINT8 mod, UINT32* out_ea, UINT8* out_segment)
 		case 4: ea = REG32(ESP); segment = SS; break;
 		case 5:
 			if( mod == 0 ) {
-				ea = FETCH32(cpustate);
+				ea = FETCH32();
 				segment = DS;
 			} else if( mod == 1 ) {
 				ea = REG32(EBP);
@@ -308,10 +300,10 @@ void I386_OPS_BASE::modrm_to_EA(UINT8 mod_rm, UINT32* out_ea, UINT8* out_segment
 			case 1: ea = REG32(ECX); segment = DS; break;
 			case 2: ea = REG32(EDX); segment = DS; break;
 			case 3: ea = REG32(EBX); segment = DS; break;
-			case 4: sib_byte(cpustate, mod, &ea, &segment ); break;
+			case 4: sib_byte(mod, &ea, &segment ); break;
 			case 5:
 				if( mod == 0 ) {
-					ea = FETCH32(cpustate); segment = DS;
+					ea = FETCH32(); segment = DS;
 				} else {
 					ea = REG32(EBP); segment = SS;
 				}
@@ -320,10 +312,10 @@ void I386_OPS_BASE::modrm_to_EA(UINT8 mod_rm, UINT32* out_ea, UINT8* out_segment
 			case 7: ea = REG32(EDI); segment = DS; break;
 		}
 		if( mod == 1 ) {
-			disp8 = FETCH(cpustate);
+			disp8 = FETCH();
 			ea += (INT32)disp8;
 		} else if( mod == 2 ) {
-			disp32 = FETCH32(cpustate);
+			disp32 = FETCH32();
 			ea += disp32;
 		}
 
@@ -345,7 +337,7 @@ void I386_OPS_BASE::modrm_to_EA(UINT8 mod_rm, UINT32* out_ea, UINT8* out_segment
 			case 5: ea = REG16(DI); segment = DS; break;
 			case 6:
 				if( mod == 0 ) {
-					ea = FETCH16(cpustate); segment = DS;
+					ea = FETCH16(); segment = DS;
 				} else {
 					ea = REG16(BP); segment = SS;
 				}
@@ -353,10 +345,10 @@ void I386_OPS_BASE::modrm_to_EA(UINT8 mod_rm, UINT32* out_ea, UINT8* out_segment
 			case 7: ea = REG16(BX); segment = DS; break;
 		}
 		if( mod == 1 ) {
-			disp8 = FETCH(cpustate);
+			disp8 = FETCH();
 			ea += (INT32)disp8;
 		} else if( mod == 2 ) {
-			disp16 = FETCH16(cpustate);
+			disp16 = FETCH16();
 			ea += (INT32)disp16;
 		}
 
@@ -372,7 +364,7 @@ UINT32 I386_OPS_BASE::GetNonTranslatedEA(UINT8 modrm,UINT8 *seg)
 {
 	UINT8 segment;
 	UINT32 ea;
-	modrm_to_EA(cpustate, modrm, &ea, &segment );
+	modrm_to_EA(modrm, &ea, &segment );
 	if(seg) *seg = segment;
 	return ea;
 }
@@ -381,8 +373,8 @@ UINT32 I386_OPS_BASE::GetEA(UINT8 modrm, int rwn)
 {
 	UINT8 segment;
 	UINT32 ea;
-	modrm_to_EA(cpustate, modrm, &ea, &segment );
-	return i386_translate(cpustate, segment, ea, rwn );
+	modrm_to_EA(modrm, &ea, &segment );
+	return i386_translate(segment, ea, rwn );
 }
 
 /* Check segment register for validity when changing privilege level after an RETF */
@@ -396,7 +388,7 @@ void I386_OPS_BASE::i386_check_sreg_validity(int reg)
 
 	memset(&desc, 0, sizeof(desc));
 	desc.selector = selector;
-	i386_load_protected_mode_segment(cpustate,&desc,NULL);
+	i386_load_protected_mode_segment(&desc,NULL);
 	DPL = (desc.flags >> 5) & 0x03;  // descriptor privilege level
 	RPL = selector & 0x03;
 
@@ -429,7 +421,7 @@ void I386_OPS_BASE::i386_check_sreg_validity(int reg)
 	if(invalid != 0)
 	{
 		cpustate->sreg[reg].selector = 0;
-		i386_load_segment_descriptor(cpustate,reg);
+		i386_load_segment_descriptor(reg);
 	}
 }
 
@@ -469,7 +461,7 @@ void I386_OPS_BASE::i386_sreg_load( UINT16 selector, UINT8 reg, bool *fault)
 	if(!PROTECTED_MODE || V8086_MODE)
 	{
 		cpustate->sreg[reg].selector = selector;
-		i386_load_segment_descriptor(cpustate, reg);
+		i386_load_segment_descriptor(reg);
 		if(fault) *fault = false;
 		return;
 	}
@@ -481,7 +473,7 @@ void I386_OPS_BASE::i386_sreg_load( UINT16 selector, UINT8 reg, bool *fault)
 
 		memset(&stack, 0, sizeof(stack));
 		stack.selector = selector;
-		i386_load_protected_mode_segment(cpustate,&stack,NULL);
+		i386_load_protected_mode_segment(&stack,NULL);
 		DPL = (stack.flags >> 5) & 0x03;
 
 		if((selector & ~0x0003) == 0)
@@ -533,14 +525,14 @@ void I386_OPS_BASE::i386_sreg_load( UINT16 selector, UINT8 reg, bool *fault)
 		if((selector & ~0x0003) == 0)
 		{
 			cpustate->sreg[reg].selector = selector;
-			i386_load_segment_descriptor(cpustate, reg );
+			i386_load_segment_descriptor(reg );
 			if(fault) *fault = false;
 			return;
 		}
 
 		memset(&desc, 0, sizeof(desc));
 		desc.selector = selector;
-		i386_load_protected_mode_segment(cpustate,&desc,NULL);
+		i386_load_protected_mode_segment(&desc,NULL);
 		DPL = (desc.flags >> 5) & 0x03;
 
 		if(selector & 0x0004)  // LDT
@@ -584,7 +576,7 @@ void I386_OPS_BASE::i386_sreg_load( UINT16 selector, UINT8 reg, bool *fault)
 	}
 
 	cpustate->sreg[reg].selector = selector;
-	i386_load_segment_descriptor(cpustate, reg );
+	i386_load_segment_descriptor(reg );
 	if(fault) *fault = false;
 }
 
@@ -620,15 +612,15 @@ void I386_OPS_BASE::i386_trap(int irq, int irq_gate, int trap_level)
 	if( !(PROTECTED_MODE) )
 	{
 		/* 16-bit */
-		PUSH16(cpustate, oldflags & 0xffff );
-		PUSH16(cpustate, cpustate->sreg[CS].selector );
+		PUSH16(oldflags & 0xffff );
+		PUSH16(cpustate->sreg[CS].selector );
 		if(irq == 3 || irq == 4 || irq == 9 || irq_gate == 1)
-			PUSH16(cpustate, cpustate->eip );
+			PUSH16(cpustate->eip );
 		else
-			PUSH16(cpustate, cpustate->prev_eip );
+			PUSH16(cpustate->prev_eip );
 
-		cpustate->sreg[CS].selector = READ16(cpustate, cpustate->idtr.base + entry + 2 );
-		cpustate->eip = READ16(cpustate, cpustate->idtr.base + entry );
+		cpustate->sreg[CS].selector = READ16(cpustate->idtr.base + entry + 2 );
+		cpustate->eip = READ16(cpustate->idtr.base + entry );
 
 		cpustate->TF = 0;
 		cpustate->IF = 0;
@@ -641,8 +633,8 @@ void I386_OPS_BASE::i386_trap(int irq, int irq_gate, int trap_level)
 		UINT8 CPL = cpustate->CPL, DPL = 0; //, RPL = 0;
 
 		/* 32-bit */
-		v1 = READ32PL0(cpustate, cpustate->idtr.base + entry );
-		v2 = READ32PL0(cpustate, cpustate->idtr.base + entry + 4 );
+		v1 = READ32PL0(cpustate->idtr.base + entry );
+		v2 = READ32PL0(cpustate->idtr.base + entry + 4 );
 		offset = (v2 & 0xffff0000) | (v1 & 0xffff);
 		segment = (v1 >> 16) & 0xffff;
 		type = (v2>>8) & 0x1F;
@@ -656,7 +648,7 @@ void I386_OPS_BASE::i386_trap(int irq, int irq_gate, int trap_level)
 		if(trap_level >= 3)
 		{
 			logerror("IRQ: Triple fault. CPU reset.\n");
-			CPU_RESET_CALL(CPU_MODEL);
+			CPU_RESET_CALL(i386); //!
 			cpustate->shutdown = 1;
 			return;
 		}
@@ -703,7 +695,7 @@ void I386_OPS_BASE::i386_trap(int irq, int irq_gate, int trap_level)
 			/* Task gate */
 			memset(&desc, 0, sizeof(desc));
 			desc.selector = segment;
-			i386_load_protected_mode_segment(cpustate,&desc,NULL);
+			i386_load_protected_mode_segment(&desc,NULL);
 			if(segment & 0x04)
 			{
 				logerror("IRQ: Task gate: TSS is not in the GDT.\n");
@@ -730,9 +722,9 @@ void I386_OPS_BASE::i386_trap(int irq, int irq_gate, int trap_level)
 			if(!(irq == 3 || irq == 4 || irq == 9 || irq_gate == 1))
 				cpustate->eip = cpustate->prev_eip;
 			if(desc.flags & 0x08)
-				i386_task_switch(cpustate,desc.selector,1);
+				i386_task_switch(desc.selector,1);
 			else
-				i286_task_switch(cpustate,desc.selector,1);
+				i286_task_switch(desc.selector,1);
 			return;
 		}
 		else
@@ -740,7 +732,7 @@ void I386_OPS_BASE::i386_trap(int irq, int irq_gate, int trap_level)
 			/* Interrupt or Trap gate */
 			memset(&desc, 0, sizeof(desc));
 			desc.selector = segment;
-			i386_load_protected_mode_segment(cpustate,&desc,NULL);
+			i386_load_protected_mode_segment(&desc,NULL);
 			CPL = cpustate->CPL;  // current privilege level
 			DPL = (desc.flags >> 5) & 0x03;  // descriptor privilege level
 //          RPL = segment & 0x03;  // requested privilege level
@@ -789,8 +781,8 @@ void I386_OPS_BASE::i386_trap(int irq, int irq_gate, int trap_level)
 				}
 				/* Check new stack segment in TSS */
 				memset(&stack, 0, sizeof(stack));
-				stack.selector = i386_get_stack_segment(cpustate,DPL);
-				i386_load_protected_mode_segment(cpustate,&stack,NULL);
+				stack.selector = i386_get_stack_segment(DPL);
+				i386_load_protected_mode_segment(&stack,NULL);
 				oldSS = cpustate->sreg[SS].selector;
 				if(flags & 0x0008)
 					oldESP = REG32(ESP);
@@ -837,7 +829,7 @@ void I386_OPS_BASE::i386_trap(int irq, int irq_gate, int trap_level)
 					logerror("IRQ: New stack segment is not present.\n");
 					FAULT_EXP(FAULT_SS,(stack.selector & ~0x03)+cpustate->ext) // #TS(stack selector + EXT)
 				}
-				newESP = i386_get_stack_ptr(cpustate,DPL);
+				newESP = i386_get_stack_ptr(DPL);
 				if(type & 0x08) // 32-bit gate
 				{
 					if(((newESP < (V8086_MODE?36:20)) && !(stack.flags & 0x4)) || ((~stack.limit < (~(newESP - 1) + (V8086_MODE?36:20))) && (stack.flags & 0x4)))
@@ -863,50 +855,50 @@ void I386_OPS_BASE::i386_trap(int irq, int irq_gate, int trap_level)
 				/* change CPL before accessing the stack */
 				cpustate->CPL = DPL;
 				/* check for page fault at new stack TODO: check if stack frame crosses page boundary */
-				WRITE_TEST(cpustate, stack.base+newESP-1);
+				WRITE_TEST(stack.base+newESP-1);
 				/* Load new stack segment descriptor */
 				cpustate->sreg[SS].selector = stack.selector;
-				i386_load_protected_mode_segment(cpustate,&cpustate->sreg[SS],NULL);
-				i386_set_descriptor_accessed(cpustate, stack.selector);
+				i386_load_protected_mode_segment(&cpustate->sreg[SS],NULL);
+				i386_set_descriptor_accessed(stack.selector);
 				REG32(ESP) = newESP;
 				if(V8086_MODE)
 				{
 					//logerror("IRQ (%08x): Interrupt during V8086 task\n",cpustate->pc);
 					if(type & 0x08)
 					{
-						PUSH32(cpustate,cpustate->sreg[GS].selector & 0xffff);
-						PUSH32(cpustate,cpustate->sreg[FS].selector & 0xffff);
-						PUSH32(cpustate,cpustate->sreg[DS].selector & 0xffff);
-						PUSH32(cpustate,cpustate->sreg[ES].selector & 0xffff);
+						PUSH32(cpustate->sreg[GS].selector & 0xffff);
+						PUSH32(cpustate->sreg[FS].selector & 0xffff);
+						PUSH32(cpustate->sreg[DS].selector & 0xffff);
+						PUSH32(cpustate->sreg[ES].selector & 0xffff);
 					}
 					else
 					{
-						PUSH16(cpustate,cpustate->sreg[GS].selector);
-						PUSH16(cpustate,cpustate->sreg[FS].selector);
-						PUSH16(cpustate,cpustate->sreg[DS].selector);
-						PUSH16(cpustate,cpustate->sreg[ES].selector);
+						PUSH16(cpustate->sreg[GS].selector);
+						PUSH16(cpustate->sreg[FS].selector);
+						PUSH16(cpustate->sreg[DS].selector);
+						PUSH16(cpustate->sreg[ES].selector);
 					}
 					cpustate->sreg[GS].selector = 0;
 					cpustate->sreg[FS].selector = 0;
 					cpustate->sreg[DS].selector = 0;
 					cpustate->sreg[ES].selector = 0;
 					cpustate->VM = 0;
-					i386_load_segment_descriptor(cpustate,GS);
-					i386_load_segment_descriptor(cpustate,FS);
-					i386_load_segment_descriptor(cpustate,DS);
-					i386_load_segment_descriptor(cpustate,ES);
+					i386_load_segment_descriptor(GS);
+					i386_load_segment_descriptor(FS);
+					i386_load_segment_descriptor(DS);
+					i386_load_segment_descriptor(ES);
 				}
 				if(type & 0x08)
 				{
 					// 32-bit gate
-					PUSH32(cpustate,oldSS);
-					PUSH32(cpustate,oldESP);
+					PUSH32(oldSS);
+					PUSH32(oldESP);
 				}
 				else
 				{
 					// 16-bit gate
-					PUSH16(cpustate,oldSS);
-					PUSH16(cpustate,oldESP);
+					PUSH16(oldSS);
+					PUSH16(oldESP);
 				}
 				SetRPL = 1;
 			}
@@ -951,21 +943,21 @@ void I386_OPS_BASE::i386_trap(int irq, int irq_gate, int trap_level)
 			// this is ugly but the alternative is worse
 			if(type != 0x0e && type != 0x0f)  // if not 386 interrupt or trap gate
 			{
-				PUSH16(cpustate, oldflags & 0xffff );
-				PUSH16(cpustate, cpustate->sreg[CS].selector );
+				PUSH16(oldflags & 0xffff );
+				PUSH16(cpustate->sreg[CS].selector );
 				if(irq == 3 || irq == 4 || irq == 9 || irq_gate == 1)
-					PUSH16(cpustate, cpustate->eip );
+					PUSH16(cpustate->eip );
 				else
-					PUSH16(cpustate, cpustate->prev_eip );
+					PUSH16(cpustate->prev_eip );
 			}
 			else
 			{
-				PUSH32(cpustate, oldflags & 0x00ffffff );
-				PUSH32(cpustate, cpustate->sreg[CS].selector );
+				PUSH32(oldflags & 0x00ffffff );
+				PUSH32(cpustate->sreg[CS].selector );
 				if(irq == 3 || irq == 4 || irq == 9 || irq_gate == 1)
-					PUSH32(cpustate, cpustate->eip );
+					PUSH32(cpustate->eip );
 				else
-					PUSH32(cpustate, cpustate->prev_eip );
+					PUSH32(cpustate->prev_eip );
 			}
 		}
 		catch(UINT64 e)
@@ -985,13 +977,13 @@ void I386_OPS_BASE::i386_trap(int irq, int irq_gate, int trap_level)
 	}
 
 	i386_load_segment_descriptor(CS);
-	CHANGE_PC(cpustate,cpustate->eip);
+	CHANGE_PC(cpustate->eip);
 
 }
 
 void I386_OPS_BASE::i386_trap_with_error(int irq, int irq_gate, int trap_level, UINT32 error)
 {
-	i386_trap(cpustate,irq,irq_gate,trap_level);
+	i386_trap(irq,irq_gate,trap_level);
 	if(irq == 8 || irq == 10 || irq == 11 || irq == 12 || irq == 13 || irq == 14)
 	{
 		// for these exceptions, an error code is pushed onto the stack by the processor.
@@ -1000,21 +992,21 @@ void I386_OPS_BASE::i386_trap_with_error(int irq, int irq_gate, int trap_level, 
 		{
 			UINT32 entry = irq * 8;
 			UINT32 v2,type;
-			v2 = READ32PL0(cpustate, cpustate->idtr.base + entry + 4 );
+			v2 = READ32PL0(cpustate->idtr.base + entry + 4 );
 			type = (v2>>8) & 0x1F;
 			if(type == 5)
 			{
-				v2 = READ32PL0(cpustate, cpustate->idtr.base + entry);
-				v2 = READ32PL0(cpustate, cpustate->gdtr.base + ((v2 >> 16) & 0xfff8) + 4);
+				v2 = READ32PL0(cpustate->idtr.base + entry);
+				v2 = READ32PL0(cpustate->gdtr.base + ((v2 >> 16) & 0xfff8) + 4);
 				type = (v2>>8) & 0x1F;
 			}
 			if(type >= 9)
-				PUSH32(cpustate,error);
+				PUSH32(error);
 			else
-				PUSH16(cpustate,error);
+				PUSH16(error);
 		}
 		else
-			PUSH16(cpustate,error);
+			PUSH16(error);
 	}
 }
 
@@ -1033,32 +1025,32 @@ void I386_OPS_BASE::i286_task_switch( UINT16 selector, UINT8 nested)
 	{
 		if(cpustate->task.segment & 0x0004)
 		{
-			ar_byte = READ8(cpustate,cpustate->ldtr.base + (cpustate->task.segment & ~0x0007) + 5);
-			WRITE8(cpustate,cpustate->ldtr.base + (cpustate->task.segment & ~0x0007) + 5,ar_byte & ~0x02);
+			ar_byte = READ8(cpustate->ldtr.base + (cpustate->task.segment & ~0x0007) + 5);
+			WRITE8(cpustate->ldtr.base + (cpustate->task.segment & ~0x0007) + 5,ar_byte & ~0x02);
 		}
 		else
 		{
-			ar_byte = READ8(cpustate,cpustate->gdtr.base + (cpustate->task.segment & ~0x0007) + 5);
-			WRITE8(cpustate,cpustate->gdtr.base + (cpustate->task.segment & ~0x0007) + 5,ar_byte & ~0x02);
+			ar_byte = READ8(cpustate->gdtr.base + (cpustate->task.segment & ~0x0007) + 5);
+			WRITE8(cpustate->gdtr.base + (cpustate->task.segment & ~0x0007) + 5,ar_byte & ~0x02);
 		}
 	}
 
 	/* Save the state of the current task in the current TSS (TR register base) */
 	tss = cpustate->task.base;
-	WRITE16(cpustate,tss+0x0e,cpustate->eip & 0x0000ffff);
-	WRITE16(cpustate,tss+0x10,get_flags() & 0x0000ffff);
-	WRITE16(cpustate,tss+0x12,REG16(AX));
-	WRITE16(cpustate,tss+0x14,REG16(CX));
-	WRITE16(cpustate,tss+0x16,REG16(DX));
-	WRITE16(cpustate,tss+0x18,REG16(BX));
-	WRITE16(cpustate,tss+0x1a,REG16(SP));
-	WRITE16(cpustate,tss+0x1c,REG16(BP));
-	WRITE16(cpustate,tss+0x1e,REG16(SI));
-	WRITE16(cpustate,tss+0x20,REG16(DI));
-	WRITE16(cpustate,tss+0x22,cpustate->sreg[ES].selector);
-	WRITE16(cpustate,tss+0x24,cpustate->sreg[CS].selector);
-	WRITE16(cpustate,tss+0x26,cpustate->sreg[SS].selector);
-	WRITE16(cpustate,tss+0x28,cpustate->sreg[DS].selector);
+	WRITE16(tss+0x0e,cpustate->eip & 0x0000ffff);
+	WRITE16(tss+0x10,get_flags() & 0x0000ffff);
+	WRITE16(tss+0x12,REG16(AX));
+	WRITE16(tss+0x14,REG16(CX));
+	WRITE16(tss+0x16,REG16(DX));
+	WRITE16(tss+0x18,REG16(BX));
+	WRITE16(tss+0x1a,REG16(SP));
+	WRITE16(tss+0x1c,REG16(BP));
+	WRITE16(tss+0x1e,REG16(SI));
+	WRITE16(tss+0x20,REG16(DI));
+	WRITE16(tss+0x22,cpustate->sreg[ES].selector);
+	WRITE16(tss+0x24,cpustate->sreg[CS].selector);
+	WRITE16(tss+0x26,cpustate->sreg[SS].selector);
+	WRITE16(tss+0x28,cpustate->sreg[DS].selector);
 
 	old_task = cpustate->task.segment;
 
@@ -1066,7 +1058,7 @@ void I386_OPS_BASE::i286_task_switch( UINT16 selector, UINT8 nested)
 	cpustate->task.segment = selector;
 	memset(&seg, 0, sizeof(seg));
 	seg.selector = cpustate->task.segment;
-	i386_load_protected_mode_segment(cpustate,&seg,NULL);
+	i386_load_protected_mode_segment(&seg,NULL);
 	cpustate->task.limit = seg.limit;
 	cpustate->task.base = seg.base;
 	cpustate->task.flags = seg.flags;
@@ -1076,51 +1068,51 @@ void I386_OPS_BASE::i286_task_switch( UINT16 selector, UINT8 nested)
 
 	/* Load incoming task state from the new task's TSS */
 	tss = cpustate->task.base;
-	cpustate->ldtr.segment = READ16(cpustate,tss+0x2a) & 0xffff;
+	cpustate->ldtr.segment = READ16(tss+0x2a) & 0xffff;
 	seg.selector = cpustate->ldtr.segment;
-	i386_load_protected_mode_segment(cpustate,&seg,NULL);
+	i386_load_protected_mode_segment(&seg,NULL);
 	cpustate->ldtr.limit = seg.limit;
 	cpustate->ldtr.base = seg.base;
 	cpustate->ldtr.flags = seg.flags;
-	cpustate->eip = READ16(cpustate,tss+0x0e);
-	set_flags(cpustate,READ16(cpustate,tss+0x10));
-	REG16(AX) = READ16(cpustate,tss+0x12);
-	REG16(CX) = READ16(cpustate,tss+0x14);
-	REG16(DX) = READ16(cpustate,tss+0x16);
-	REG16(BX) = READ16(cpustate,tss+0x18);
-	REG16(SP) = READ16(cpustate,tss+0x1a);
-	REG16(BP) = READ16(cpustate,tss+0x1c);
-	REG16(SI) = READ16(cpustate,tss+0x1e);
-	REG16(DI) = READ16(cpustate,tss+0x20);
-	cpustate->sreg[ES].selector = READ16(cpustate,tss+0x22) & 0xffff;
-	i386_load_segment_descriptor(cpustate, ES);
-	cpustate->sreg[CS].selector = READ16(cpustate,tss+0x24) & 0xffff;
-	i386_load_segment_descriptor(cpustate, CS);
-	cpustate->sreg[SS].selector = READ16(cpustate,tss+0x26) & 0xffff;
-	i386_load_segment_descriptor(cpustate, SS);
-	cpustate->sreg[DS].selector = READ16(cpustate,tss+0x28) & 0xffff;
-	i386_load_segment_descriptor(cpustate, DS);
+	cpustate->eip = READ16(tss+0x0e);
+	set_flags(READ16(tss+0x10));
+	REG16(AX) = READ16(tss+0x12);
+	REG16(CX) = READ16(tss+0x14);
+	REG16(DX) = READ16(tss+0x16);
+	REG16(BX) = READ16(tss+0x18);
+	REG16(SP) = READ16(tss+0x1a);
+	REG16(BP) = READ16(tss+0x1c);
+	REG16(SI) = READ16(tss+0x1e);
+	REG16(DI) = READ16(tss+0x20);
+	cpustate->sreg[ES].selector = READ16(tss+0x22) & 0xffff;
+	i386_load_segment_descriptor(ES);
+	cpustate->sreg[CS].selector = READ16(tss+0x24) & 0xffff;
+	i386_load_segment_descriptor(CS);
+	cpustate->sreg[SS].selector = READ16(tss+0x26) & 0xffff;
+	i386_load_segment_descriptor(SS);
+	cpustate->sreg[DS].selector = READ16(tss+0x28) & 0xffff;
+	i386_load_segment_descriptor(DS);
 
 	/* Set the busy bit in the new task's descriptor */
 	if(selector & 0x0004)
 	{
-		ar_byte = READ8(cpustate,cpustate->ldtr.base + (selector & ~0x0007) + 5);
-		WRITE8(cpustate,cpustate->ldtr.base + (selector & ~0x0007) + 5,ar_byte | 0x02);
+		ar_byte = READ8(cpustate->ldtr.base + (selector & ~0x0007) + 5);
+		WRITE8(cpustate->ldtr.base + (selector & ~0x0007) + 5,ar_byte | 0x02);
 	}
 	else
 	{
-		ar_byte = READ8(cpustate,cpustate->gdtr.base + (selector & ~0x0007) + 5);
-		WRITE8(cpustate,cpustate->gdtr.base + (selector & ~0x0007) + 5,ar_byte | 0x02);
+		ar_byte = READ8(cpustate->gdtr.base + (selector & ~0x0007) + 5);
+		WRITE8(cpustate->gdtr.base + (selector & ~0x0007) + 5,ar_byte | 0x02);
 	}
 
 	/* For nested tasks, we write the outgoing task's selector to the back-link field of the new TSS,
 	   and set the NT flag in the EFLAGS register */
 	if(nested != 0)
 	{
-		WRITE16(cpustate,tss+0,old_task);
+		WRITE16(tss+0,old_task);
 		cpustate->NT = 1;
 	}
-	CHANGE_PC(cpustate,cpustate->eip);
+	CHANGE_PC(cpustate->eip);
 
 	cpustate->CPL = (cpustate->sreg[SS].flags >> 5) & 3;
 //  printf("286 Task Switch from selector %04x to %04x\n",old_task,selector);
@@ -1141,35 +1133,35 @@ void I386_OPS_BASE::i386_task_switch( UINT16 selector, UINT8 nested)
 	{
 		if(cpustate->task.segment & 0x0004)
 		{
-			ar_byte = READ8(cpustate,cpustate->ldtr.base + (cpustate->task.segment & ~0x0007) + 5);
-			WRITE8(cpustate,cpustate->ldtr.base + (cpustate->task.segment & ~0x0007) + 5,ar_byte & ~0x02);
+			ar_byte = READ8(cpustate->ldtr.base + (cpustate->task.segment & ~0x0007) + 5);
+			WRITE8(cpustate->ldtr.base + (cpustate->task.segment & ~0x0007) + 5,ar_byte & ~0x02);
 		}
 		else
 		{
-			ar_byte = READ8(cpustate,cpustate->gdtr.base + (cpustate->task.segment & ~0x0007) + 5);
-			WRITE8(cpustate,cpustate->gdtr.base + (cpustate->task.segment & ~0x0007) + 5,ar_byte & ~0x02);
+			ar_byte = READ8(cpustate->gdtr.base + (cpustate->task.segment & ~0x0007) + 5);
+			WRITE8(cpustate->gdtr.base + (cpustate->task.segment & ~0x0007) + 5,ar_byte & ~0x02);
 		}
 	}
 
 	/* Save the state of the current task in the current TSS (TR register base) */
 	tss = cpustate->task.base;
-	WRITE32(cpustate,tss+0x1c,cpustate->cr[3]);  // correct?
-	WRITE32(cpustate,tss+0x20,cpustate->eip);
-	WRITE32(cpustate,tss+0x24,get_flags());
-	WRITE32(cpustate,tss+0x28,REG32(EAX));
-	WRITE32(cpustate,tss+0x2c,REG32(ECX));
-	WRITE32(cpustate,tss+0x30,REG32(EDX));
-	WRITE32(cpustate,tss+0x34,REG32(EBX));
-	WRITE32(cpustate,tss+0x38,REG32(ESP));
-	WRITE32(cpustate,tss+0x3c,REG32(EBP));
-	WRITE32(cpustate,tss+0x40,REG32(ESI));
-	WRITE32(cpustate,tss+0x44,REG32(EDI));
-	WRITE32(cpustate,tss+0x48,cpustate->sreg[ES].selector);
-	WRITE32(cpustate,tss+0x4c,cpustate->sreg[CS].selector);
-	WRITE32(cpustate,tss+0x50,cpustate->sreg[SS].selector);
-	WRITE32(cpustate,tss+0x54,cpustate->sreg[DS].selector);
-	WRITE32(cpustate,tss+0x58,cpustate->sreg[FS].selector);
-	WRITE32(cpustate,tss+0x5c,cpustate->sreg[GS].selector);
+	WRITE32(tss+0x1c,cpustate->cr[3]);  // correct?
+	WRITE32(tss+0x20,cpustate->eip);
+	WRITE32(tss+0x24,get_flags());
+	WRITE32(tss+0x28,REG32(EAX));
+	WRITE32(tss+0x2c,REG32(ECX));
+	WRITE32(tss+0x30,REG32(EDX));
+	WRITE32(tss+0x34,REG32(EBX));
+	WRITE32(tss+0x38,REG32(ESP));
+	WRITE32(tss+0x3c,REG32(EBP));
+	WRITE32(tss+0x40,REG32(ESI));
+	WRITE32(tss+0x44,REG32(EDI));
+	WRITE32(tss+0x48,cpustate->sreg[ES].selector);
+	WRITE32(tss+0x4c,cpustate->sreg[CS].selector);
+	WRITE32(tss+0x50,cpustate->sreg[SS].selector);
+	WRITE32(tss+0x54,cpustate->sreg[DS].selector);
+	WRITE32(tss+0x58,cpustate->sreg[FS].selector);
+	WRITE32(tss+0x5c,cpustate->sreg[GS].selector);
 
 	old_task = cpustate->task.segment;
 
@@ -1177,7 +1169,7 @@ void I386_OPS_BASE::i386_task_switch( UINT16 selector, UINT8 nested)
 	cpustate->task.segment = selector;
 	memset(&seg, 0, sizeof(seg));
 	seg.selector = cpustate->task.segment;
-	i386_load_protected_mode_segment(cpustate,&seg,NULL);
+	i386_load_protected_mode_segment(&seg,NULL);
 	cpustate->task.limit = seg.limit;
 	cpustate->task.base = seg.base;
 	cpustate->task.flags = seg.flags;
@@ -1187,58 +1179,58 @@ void I386_OPS_BASE::i386_task_switch( UINT16 selector, UINT8 nested)
 
 	/* Load incoming task state from the new task's TSS */
 	tss = cpustate->task.base;
-	cpustate->ldtr.segment = READ32(cpustate,tss+0x60) & 0xffff;
+	cpustate->ldtr.segment = READ32(tss+0x60) & 0xffff;
 	seg.selector = cpustate->ldtr.segment;
-	i386_load_protected_mode_segment(cpustate,&seg,NULL);
+	i386_load_protected_mode_segment(&seg,NULL);
 	cpustate->ldtr.limit = seg.limit;
 	cpustate->ldtr.base = seg.base;
 	cpustate->ldtr.flags = seg.flags;
-	cpustate->eip = READ32(cpustate,tss+0x20);
-	set_flags(cpustate,READ32(cpustate,tss+0x24));
-	REG32(EAX) = READ32(cpustate,tss+0x28);
-	REG32(ECX) = READ32(cpustate,tss+0x2c);
-	REG32(EDX) = READ32(cpustate,tss+0x30);
-	REG32(EBX) = READ32(cpustate,tss+0x34);
-	REG32(ESP) = READ32(cpustate,tss+0x38);
-	REG32(EBP) = READ32(cpustate,tss+0x3c);
-	REG32(ESI) = READ32(cpustate,tss+0x40);
-	REG32(EDI) = READ32(cpustate,tss+0x44);
-	cpustate->sreg[ES].selector = READ32(cpustate,tss+0x48) & 0xffff;
-	i386_load_segment_descriptor(cpustate, ES);
-	cpustate->sreg[CS].selector = READ32(cpustate,tss+0x4c) & 0xffff;
-	i386_load_segment_descriptor(cpustate, CS);
-	cpustate->sreg[SS].selector = READ32(cpustate,tss+0x50) & 0xffff;
-	i386_load_segment_descriptor(cpustate, SS);
-	cpustate->sreg[DS].selector = READ32(cpustate,tss+0x54) & 0xffff;
-	i386_load_segment_descriptor(cpustate, DS);
-	cpustate->sreg[FS].selector = READ32(cpustate,tss+0x58) & 0xffff;
-	i386_load_segment_descriptor(cpustate, FS);
-	cpustate->sreg[GS].selector = READ32(cpustate,tss+0x5c) & 0xffff;
-	i386_load_segment_descriptor(cpustate, GS);
+	cpustate->eip = READ32(tss+0x20);
+	set_flags(READ32(tss+0x24));
+	REG32(EAX) = READ32(tss+0x28);
+	REG32(ECX) = READ32(tss+0x2c);
+	REG32(EDX) = READ32(tss+0x30);
+	REG32(EBX) = READ32(tss+0x34);
+	REG32(ESP) = READ32(tss+0x38);
+	REG32(EBP) = READ32(tss+0x3c);
+	REG32(ESI) = READ32(tss+0x40);
+	REG32(EDI) = READ32(tss+0x44);
+	cpustate->sreg[ES].selector = READ32(tss+0x48) & 0xffff;
+	i386_load_segment_descriptor(ES);
+	cpustate->sreg[CS].selector = READ32(tss+0x4c) & 0xffff;
+	i386_load_segment_descriptor(CS);
+	cpustate->sreg[SS].selector = READ32(tss+0x50) & 0xffff;
+	i386_load_segment_descriptor(SS);
+	cpustate->sreg[DS].selector = READ32(tss+0x54) & 0xffff;
+	i386_load_segment_descriptor(DS);
+	cpustate->sreg[FS].selector = READ32(tss+0x58) & 0xffff;
+	i386_load_segment_descriptor(FS);
+	cpustate->sreg[GS].selector = READ32(tss+0x5c) & 0xffff;
+	i386_load_segment_descriptor(GS);
 	/* For nested tasks, we write the outgoing task's selector to the back-link field of the new TSS,
 	   and set the NT flag in the EFLAGS register before setting cr3 as the old tss address might be gone */
 	if(nested != 0)
 	{
-		WRITE32(cpustate,tss+0,old_task);
+		WRITE32(tss+0,old_task);
 		cpustate->NT = 1;
 	}
-	cpustate->cr[3] = READ32(cpustate,tss+0x1c);  // CR3 (PDBR)
+	cpustate->cr[3] = READ32(tss+0x1c);  // CR3 (PDBR)
 	if(oldcr3 != cpustate->cr[3])
 		vtlb_flush_dynamic(cpustate->vtlb);
 
 	/* Set the busy bit in the new task's descriptor */
 	if(selector & 0x0004)
 	{
-		ar_byte = READ8(cpustate,cpustate->ldtr.base + (selector & ~0x0007) + 5);
-		WRITE8(cpustate,cpustate->ldtr.base + (selector & ~0x0007) + 5,ar_byte | 0x02);
+		ar_byte = READ8(cpustate->ldtr.base + (selector & ~0x0007) + 5);
+		WRITE8(cpustate->ldtr.base + (selector & ~0x0007) + 5,ar_byte | 0x02);
 	}
 	else
 	{
-		ar_byte = READ8(cpustate,cpustate->gdtr.base + (selector & ~0x0007) + 5);
-		WRITE8(cpustate,cpustate->gdtr.base + (selector & ~0x0007) + 5,ar_byte | 0x02);
+		ar_byte = READ8(cpustate->gdtr.base + (selector & ~0x0007) + 5);
+		WRITE8(cpustate->gdtr.base + (selector & ~0x0007) + 5,ar_byte | 0x02);
 	}
 
-	CHANGE_PC(cpustate,cpustate->eip);
+	CHANGE_PC(cpustate->eip);
 
 	cpustate->CPL = (cpustate->sreg[SS].flags >> 5) & 3;
 //  printf("386 Task Switch from selector %04x to %04x\n",old_task,selector);
@@ -1256,7 +1248,7 @@ void I386_OPS_BASE::i386_check_irq_line()
 	if ( (cpustate->irq_state) && cpustate->IF )
 	{
 		cpustate->cycles -= 2;
-		i386_trap(cpustate, cpustate->pic->get_intr_ack(), 1, 0);
+		i386_trap(cpustate->pic->get_intr_ack(), 1, 0);
 		cpustate->irq_state = 0;
 	}
 }
@@ -1298,7 +1290,7 @@ void I386_OPS_BASE::i386_protected_mode_jump( UINT16 seg, UINT32 off, int indire
 	/* Determine segment type */
 	memset(&desc, 0, sizeof(desc));
 	desc.selector = segment;
-	i386_load_protected_mode_segment(cpustate,&desc,NULL);
+	i386_load_protected_mode_segment(&desc,NULL);
 	CPL = cpustate->CPL;  // current privilege level
 	DPL = (desc.flags >> 5) & 0x03;  // descriptor privilege level
 	RPL = segment & 0x03;  // requested privilege level
@@ -1356,7 +1348,7 @@ void I386_OPS_BASE::i386_protected_mode_jump( UINT16 seg, UINT32 off, int indire
 				logerror("JMP: Available 386 TSS at %08x\n",cpustate->pc);
 				memset(&desc, 0, sizeof(desc));
 				desc.selector = segment;
-				i386_load_protected_mode_segment(cpustate,&desc,NULL);
+				i386_load_protected_mode_segment(&desc,NULL);
 				DPL = (desc.flags >> 5) & 0x03;  // descriptor privilege level
 				if(DPL < CPL)
 				{
@@ -1374,9 +1366,9 @@ void I386_OPS_BASE::i386_protected_mode_jump( UINT16 seg, UINT32 off, int indire
 					FAULT(FAULT_GP,segment & 0xfffc)
 				}
 				if(desc.flags & 0x0008)
-					i386_task_switch(cpustate,desc.selector,0);
+					i386_task_switch(desc.selector,0);
 				else
-					i286_task_switch(cpustate,desc.selector,0);
+					i286_task_switch(desc.selector,0);
 				return;
 			case 0x04:  // 286 Call Gate
 			case 0x0c:  // 386 Call Gate
@@ -1384,7 +1376,7 @@ void I386_OPS_BASE::i386_protected_mode_jump( UINT16 seg, UINT32 off, int indire
 				SetRPL = 1;
 				memset(&call_gate, 0, sizeof(call_gate));
 				call_gate.segment = segment;
-				i386_load_call_gate(cpustate,&call_gate);
+				i386_load_call_gate(&call_gate);
 				DPL = call_gate.dpl;
 				if(DPL < CPL)
 				{
@@ -1424,7 +1416,7 @@ void I386_OPS_BASE::i386_protected_mode_jump( UINT16 seg, UINT32 off, int indire
 					}
 				}
 				desc.selector = call_gate.selector;
-				i386_load_protected_mode_segment(cpustate,&desc,NULL);
+				i386_load_protected_mode_segment(&desc,NULL);
 				DPL = (desc.flags >> 5) & 0x03;
 				if((desc.flags & 0x0018) != 0x18)
 				{
@@ -1464,7 +1456,7 @@ void I386_OPS_BASE::i386_protected_mode_jump( UINT16 seg, UINT32 off, int indire
 				logerror("JMP: Task gate at %08x\n",cpustate->pc);
 				memset(&call_gate, 0, sizeof(call_gate));
 				call_gate.segment = segment;
-				i386_load_call_gate(cpustate,&call_gate);
+				i386_load_call_gate(&call_gate);
 				DPL = call_gate.dpl;
 				if(DPL < CPL)
 				{
@@ -1483,7 +1475,7 @@ void I386_OPS_BASE::i386_protected_mode_jump( UINT16 seg, UINT32 off, int indire
 				}
 				/* Check the TSS that the task gate points to */
 				desc.selector = call_gate.selector;
-				i386_load_protected_mode_segment(cpustate,&desc,NULL);
+				i386_load_protected_mode_segment(&desc,NULL);
 				DPL = (desc.flags >> 5) & 0x03;  // descriptor privilege level
 				RPL = call_gate.selector & 0x03;  // requested privilege level
 				if(call_gate.selector & 0x04)
@@ -1510,9 +1502,9 @@ void I386_OPS_BASE::i386_protected_mode_jump( UINT16 seg, UINT32 off, int indire
 					FAULT(FAULT_NP,call_gate.selector & 0xfffc)
 				}
 				if(call_gate.ar & 0x08)
-					i386_task_switch(cpustate,call_gate.selector,0);
+					i386_task_switch(call_gate.selector,0);
 				else
-					i286_task_switch(cpustate,call_gate.selector,0);
+					i286_task_switch(call_gate.selector,0);
 				return;
 			default:  // invalid segment type
 				logerror("JMP: Invalid segment type (%i) to jump to.\n",desc.flags & 0x000f);
@@ -1529,8 +1521,8 @@ void I386_OPS_BASE::i386_protected_mode_jump( UINT16 seg, UINT32 off, int indire
 		cpustate->eip = offset;
 	cpustate->sreg[CS].selector = segment;
 	cpustate->performed_intersegment_jump = 1;
-	i386_load_segment_descriptor(cpustate,CS);
-	CHANGE_PC(cpustate,cpustate->eip);
+	i386_load_segment_descriptor(CS);
+	CHANGE_PC(cpustate->eip);
 }
 
 void I386_OPS_BASE::i386_protected_mode_call( UINT16 seg, UINT32 off, int indirect, int operand32)
@@ -1568,7 +1560,7 @@ void I386_OPS_BASE::i386_protected_mode_call( UINT16 seg, UINT32 off, int indire
 	/* Determine segment type */
 	memset(&desc, 0, sizeof(desc));
 	desc.selector = selector;
-	i386_load_protected_mode_segment(cpustate,&desc,NULL);
+	i386_load_protected_mode_segment(&desc,NULL);
 	CPL = cpustate->CPL;  // current privilege level
 	DPL = (desc.flags >> 5) & 0x03;  // descriptor privilege level
 	RPL = selector & 0x03;  // requested privilege level
@@ -1605,7 +1597,7 @@ void I386_OPS_BASE::i386_protected_mode_call( UINT16 seg, UINT32 off, int indire
 		}
 		if (operand32 != 0)  // if 32-bit
 		{
-			if(i386_limit_check(cpustate, SS, REG32(ESP) - 8))
+			if(i386_limit_check(SS, REG32(ESP) - 8))
 			{
 				logerror("CALL (%08x): Stack has no room for return address.\n",cpustate->pc);
 				FAULT(FAULT_SS,0)  // #SS(0)
@@ -1613,7 +1605,7 @@ void I386_OPS_BASE::i386_protected_mode_call( UINT16 seg, UINT32 off, int indire
 		}
 		else
 		{
-			if(i386_limit_check(cpustate, SS, (REG16(SP) - 4) & 0xffff))
+			if(i386_limit_check(SS, (REG16(SP) - 4) & 0xffff))
 			{
 				logerror("CALL (%08x): Stack has no room for return address.\n",cpustate->pc);
 				FAULT(FAULT_SS,0)  // #SS(0)
@@ -1661,9 +1653,9 @@ void I386_OPS_BASE::i386_protected_mode_call( UINT16 seg, UINT32 off, int indire
 					FAULT(FAULT_NP,selector & ~0x03) // #NP(selector)
 				}
 				if(desc.flags & 0x08)
-					i386_task_switch(cpustate,desc.selector,1);
+					i386_task_switch(desc.selector,1);
 				else
-					i286_task_switch(cpustate,desc.selector,1);
+					i286_task_switch(desc.selector,1);
 				return;
 			case 0x04:  // 286 call gate
 			case 0x0c:  // 386 call gate
@@ -1673,7 +1665,7 @@ void I386_OPS_BASE::i386_protected_mode_call( UINT16 seg, UINT32 off, int indire
 					operand32 = 1;
 				memset(&gate, 0, sizeof(gate));
 				gate.segment = selector;
-				i386_load_call_gate(cpustate,&gate);
+				i386_load_call_gate(&gate);
 				DPL = gate.dpl;
 				//logerror("CALL: Call gate at %08x (%i parameters)\n",cpustate->pc,gate.dword_count);
 				if(DPL < CPL)
@@ -1713,7 +1705,7 @@ void I386_OPS_BASE::i386_protected_mode_call( UINT16 seg, UINT32 off, int indire
 						FAULT(FAULT_GP,desc.selector & ~0x03)  // #GP(selector)
 					}
 				}
-				i386_load_protected_mode_segment(cpustate,&desc,NULL);
+				i386_load_protected_mode_segment(&desc,NULL);
 				if((desc.flags & 0x0018) != 0x18)
 				{
 					logerror("CALL: Call gate: Segment is not a code segment.\n");
@@ -1738,8 +1730,8 @@ void I386_OPS_BASE::i386_protected_mode_call( UINT16 seg, UINT32 off, int indire
 					/* more privilege */
 					/* Check new SS segment for privilege level from TSS */
 					memset(&stack, 0, sizeof(stack));
-					stack.selector = i386_get_stack_segment(cpustate,DPL);
-					i386_load_protected_mode_segment(cpustate,&stack,NULL);
+					stack.selector = i386_get_stack_segment(DPL);
+					i386_load_protected_mode_segment(&stack,NULL);
 					if((stack.selector & ~0x03) == 0)
 					{
 						logerror("CALL: Call gate: TSS selector is null\n");
@@ -1781,7 +1773,7 @@ void I386_OPS_BASE::i386_protected_mode_call( UINT16 seg, UINT32 off, int indire
 						logerror("CALL: Call gate: Stack segment is not present\n");
 						FAULT(FAULT_SS,stack.selector)  // #SS(SS selector)
 					}
-					UINT32 newESP = i386_get_stack_ptr(cpustate,DPL);
+					UINT32 newESP = i386_get_stack_ptr(DPL);
 					if(!stack.d)
 					{
 						newESP &= 0xffff;
@@ -1817,10 +1809,10 @@ void I386_OPS_BASE::i386_protected_mode_call( UINT16 seg, UINT32 off, int indire
 
 					cpustate->CPL = (stack.flags >> 5) & 0x03;
 					/* check for page fault at new stack */
-					WRITE_TEST(cpustate, stack.base+newESP-1);
+					WRITE_TEST(stack.base+newESP-1);
 					/* switch to new stack */
 					oldSS = cpustate->sreg[SS].selector;
-					cpustate->sreg[SS].selector = i386_get_stack_segment(cpustate,cpustate->CPL);
+					cpustate->sreg[SS].selector = i386_get_stack_segment(cpustate->CPL);
 					if(operand32 != 0)
 					{
 						oldESP = REG32(ESP);
@@ -1829,32 +1821,32 @@ void I386_OPS_BASE::i386_protected_mode_call( UINT16 seg, UINT32 off, int indire
 					{
 						oldESP = REG16(SP);
 					}
-					i386_load_segment_descriptor(cpustate, SS );
+					i386_load_segment_descriptor(SS );
 					REG32(ESP) = newESP;
 
 					if(operand32 != 0)
 					{
-						PUSH32(cpustate,oldSS);
-						PUSH32(cpustate,oldESP);
+						PUSH32(oldSS);
+						PUSH32(oldESP);
 					}
 					else
 					{
-						PUSH16(cpustate,oldSS);
-						PUSH16(cpustate,oldESP & 0xffff);
+						PUSH16(oldSS);
+						PUSH16(oldESP & 0xffff);
 					}
 
 					memset(&temp, 0, sizeof(temp));
 					temp.selector = oldSS;
-					i386_load_protected_mode_segment(cpustate,&temp,NULL);
+					i386_load_protected_mode_segment(&temp,NULL);
 					/* copy parameters from old stack to new stack */
 					for(x=(gate.dword_count & 0x1f)-1;x>=0;x--)
 					{
 						UINT32 addr = oldESP + (operand32?(x*4):(x*2));
 						addr = temp.base + (temp.d?addr:(addr&0xffff));
 						if(operand32)
-							PUSH32(cpustate,READ32(cpustate,addr));
+							PUSH32(READ32(addr));
 						else
-							PUSH16(cpustate,READ16(cpustate,addr));
+							PUSH16(READ16(addr));
 					}
 					SetRPL = 1;
 				}
@@ -1863,7 +1855,7 @@ void I386_OPS_BASE::i386_protected_mode_call( UINT16 seg, UINT32 off, int indire
 					/* same privilege */
 					if (operand32 != 0)  // if 32-bit
 					{
-						if(i386_limit_check(cpustate, SS, REG32(ESP) - 8))
+						if(i386_limit_check(SS, REG32(ESP) - 8))
 						{
 							logerror("CALL: Stack has no room for return address.\n");
 							FAULT(FAULT_SS,0) // #SS(0)
@@ -1873,7 +1865,7 @@ void I386_OPS_BASE::i386_protected_mode_call( UINT16 seg, UINT32 off, int indire
 					}
 					else
 					{
-						if(i386_limit_check(cpustate, SS, (REG16(SP) - 4) & 0xffff))
+						if(i386_limit_check(SS, (REG16(SP) - 4) & 0xffff))
 						{
 							logerror("CALL: Stack has no room for return address.\n");
 							FAULT(FAULT_SS,0) // #SS(0)
@@ -1893,7 +1885,7 @@ void I386_OPS_BASE::i386_protected_mode_call( UINT16 seg, UINT32 off, int indire
 				logerror("CALL: Task gate at %08x\n",cpustate->pc);
 				memset(&gate, 0, sizeof(gate));
 				gate.segment = selector;
-				i386_load_call_gate(cpustate,&gate);
+				i386_load_call_gate(&gate);
 				DPL = gate.dpl;
 				if(DPL < CPL)
 				{
@@ -1912,7 +1904,7 @@ void I386_OPS_BASE::i386_protected_mode_call( UINT16 seg, UINT32 off, int indire
 				}
 				/* Check the TSS that the task gate points to */
 				desc.selector = gate.selector;
-				i386_load_protected_mode_segment(cpustate,&desc,NULL);
+				i386_load_protected_mode_segment(&desc,NULL);
 				if(gate.selector & 0x04)
 				{
 					logerror("CALL: Task Gate: TSS is not global.\n");
@@ -1937,9 +1929,9 @@ void I386_OPS_BASE::i386_protected_mode_call( UINT16 seg, UINT32 off, int indire
 					FAULT(FAULT_NP,gate.selector & ~0x03) // #TS(selector)
 				}
 				if(desc.flags & 0x08)
-					i386_task_switch(cpustate,desc.selector,1);  // with nesting
+					i386_task_switch(desc.selector,1);  // with nesting
 				else
-					i286_task_switch(cpustate,desc.selector,1);
+					i286_task_switch(desc.selector,1);
 				return;
 			default:
 				logerror("CALL: Invalid special segment type (%i) to jump to.\n",desc.flags & 0x000f);
@@ -1958,22 +1950,22 @@ void I386_OPS_BASE::i386_protected_mode_call( UINT16 seg, UINT32 off, int indire
 		if(operand32 == 0)
 		{
 			/* 16-bit operand size */
-			PUSH16(cpustate, cpustate->sreg[CS].selector );
-			PUSH16(cpustate, cpustate->eip & 0x0000ffff );
+			PUSH16(cpustate->sreg[CS].selector );
+			PUSH16(cpustate->eip & 0x0000ffff );
 			cpustate->sreg[CS].selector = selector;
 			cpustate->performed_intersegment_jump = 1;
 			cpustate->eip = offset;
-			i386_load_segment_descriptor(cpustate,CS);
+			i386_load_segment_descriptor(CS);
 		}
 		else
 		{
 			/* 32-bit operand size */
-			PUSH32(cpustate, cpustate->sreg[CS].selector );
-			PUSH32(cpustate, cpustate->eip );
+			PUSH32(cpustate->sreg[CS].selector );
+			PUSH32(cpustate->eip );
 			cpustate->sreg[CS].selector = selector;
 			cpustate->performed_intersegment_jump = 1;
 			cpustate->eip = offset;
-			i386_load_segment_descriptor(cpustate, CS );
+			i386_load_segment_descriptor(CS );
 		}
 	}
 	catch(UINT64 e)
@@ -1982,7 +1974,7 @@ void I386_OPS_BASE::i386_protected_mode_call( UINT16 seg, UINT32 off, int indire
 		throw e;
 	}
 
-	CHANGE_PC(cpustate,cpustate->eip);
+	CHANGE_PC(cpustate->eip);
 }
 
 void I386_OPS_BASE::i386_protected_mode_retf(UINT8 count, UINT8 operand32)
@@ -1991,22 +1983,22 @@ void I386_OPS_BASE::i386_protected_mode_retf(UINT8 count, UINT8 operand32)
 	I386_SREG desc;
 	UINT8 CPL, RPL, DPL;
 
-	UINT32 ea = i386_translate(cpustate, SS, (STACK_32BIT)?REG32(ESP):REG16(SP), 0);
+	UINT32 ea = i386_translate(SS, (STACK_32BIT)?REG32(ESP):REG16(SP), 0);
 
 	if(operand32 == 0)
 	{
-		newEIP = READ16(cpustate, ea) & 0xffff;
-		newCS = READ16(cpustate, ea+2) & 0xffff;
+		newEIP = READ16(ea) & 0xffff;
+		newCS = READ16(ea+2) & 0xffff;
 	}
 	else
 	{
-		newEIP = READ32(cpustate, ea);
-		newCS = READ32(cpustate, ea+4) & 0xffff;
+		newEIP = READ32(ea);
+		newCS = READ32(ea+4) & 0xffff;
 	}
 
 	memset(&desc, 0, sizeof(desc));
 	desc.selector = newCS;
-	i386_load_protected_mode_segment(cpustate,&desc,NULL);
+	i386_load_protected_mode_segment(&desc,NULL);
 	CPL = cpustate->CPL;  // current privilege level
 	DPL = (desc.flags >> 5) & 0x03;  // descriptor privilege level
 	RPL = newCS & 0x03;
@@ -2075,7 +2067,7 @@ void I386_OPS_BASE::i386_protected_mode_retf(UINT8 count, UINT8 operand32)
 		if(operand32 == 0)
 		{
 			UINT32 offset = (STACK_32BIT ? REG32(ESP) : REG16(SP));
-			if(i386_limit_check(cpustate,SS,offset+count+3) != 0)
+			if(i386_limit_check(SS,offset+count+3) != 0)
 			{
 				logerror("RETF (%08x): SP is past stack segment limit.\n",cpustate->pc);
 				FAULT(FAULT_SS,0)
@@ -2084,7 +2076,7 @@ void I386_OPS_BASE::i386_protected_mode_retf(UINT8 count, UINT8 operand32)
 		else
 		{
 			UINT32 offset = (STACK_32BIT ? REG32(ESP) : REG16(SP));
-			if(i386_limit_check(cpustate,SS,offset+count+7) != 0)
+			if(i386_limit_check(SS,offset+count+7) != 0)
 			{
 				logerror("RETF: ESP is past stack segment limit.\n");
 				FAULT(FAULT_SS,0)
@@ -2102,7 +2094,7 @@ void I386_OPS_BASE::i386_protected_mode_retf(UINT8 count, UINT8 operand32)
 		if(operand32 == 0)
 		{
 			UINT32 offset = (STACK_32BIT ? REG32(ESP) : REG16(SP));
-			if(i386_limit_check(cpustate,SS,offset+count+7) != 0)
+			if(i386_limit_check(SS,offset+count+7) != 0)
 			{
 				logerror("RETF (%08x): SP is past stack segment limit.\n",cpustate->pc);
 				FAULT(FAULT_SS,0)
@@ -2111,7 +2103,7 @@ void I386_OPS_BASE::i386_protected_mode_retf(UINT8 count, UINT8 operand32)
 		else
 		{
 			UINT32 offset = (STACK_32BIT ? REG32(ESP) : REG16(SP));
-			if(i386_limit_check(cpustate,SS,offset+count+15) != 0)
+			if(i386_limit_check(SS,offset+count+15) != 0)
 			{
 				logerror("RETF: ESP is past stack segment limit.\n");
 				FAULT(FAULT_SS,0)
@@ -2174,19 +2166,19 @@ void I386_OPS_BASE::i386_protected_mode_retf(UINT8 count, UINT8 operand32)
 		if(operand32 == 0)
 		{
 			ea += count+4;
-			newESP = READ16(cpustate, ea) & 0xffff;
-			newSS = READ16(cpustate, ea+2) & 0xffff;
+			newESP = READ16(ea) & 0xffff;
+			newSS = READ16(ea+2) & 0xffff;
 		}
 		else
 		{
 			ea += count+8;
-			newESP = READ32(cpustate, ea);
-			newSS = READ32(cpustate, ea+4) & 0xffff;
+			newESP = READ32(ea);
+			newSS = READ32(ea+4) & 0xffff;
 		}
 
 		/* Check SS selector and descriptor */
 		desc.selector = newSS;
-		i386_load_protected_mode_segment(cpustate,&desc,NULL);
+		i386_load_protected_mode_segment(&desc,NULL);
 		DPL = (desc.flags >> 5) & 0x03;  // descriptor privilege level
 		if((newSS & ~0x07) == 0)
 		{
@@ -2237,13 +2229,13 @@ void I386_OPS_BASE::i386_protected_mode_retf(UINT8 count, UINT8 operand32)
 		else
 			REG32(ESP) = newESP+count;
 		cpustate->sreg[SS].selector = newSS;
-		i386_load_segment_descriptor(cpustate, SS );
+		i386_load_segment_descriptor(SS );
 
 		/* Check that DS, ES, FS and GS are valid for the new privilege level */
-		i386_check_sreg_validity(cpustate,DS);
-		i386_check_sreg_validity(cpustate,ES);
-		i386_check_sreg_validity(cpustate,FS);
-		i386_check_sreg_validity(cpustate,GS);
+		i386_check_sreg_validity(DS);
+		i386_check_sreg_validity(ES);
+		i386_check_sreg_validity(FS);
+		i386_check_sreg_validity(GS);
 	}
 
 	/* Load new CS:(E)IP */
@@ -2252,8 +2244,8 @@ void I386_OPS_BASE::i386_protected_mode_retf(UINT8 count, UINT8 operand32)
 	else
 		cpustate->eip = newEIP;
 	cpustate->sreg[CS].selector = newCS;
-	i386_load_segment_descriptor(cpustate, CS );
-	CHANGE_PC(cpustate,cpustate->eip);
+	i386_load_segment_descriptor(CS );
+	CHANGE_PC(cpustate->eip);
 }
 
 void I386_OPS_BASE::i386_protected_mode_iret(int operand32)
@@ -2265,18 +2257,18 @@ void I386_OPS_BASE::i386_protected_mode_iret(int operand32)
 	UINT32 newflags;
 
 	CPL = cpustate->CPL;
-	UINT32 ea = i386_translate(cpustate, SS, (STACK_32BIT)?REG32(ESP):REG16(SP), 0);
+	UINT32 ea = i386_translate(SS, (STACK_32BIT)?REG32(ESP):REG16(SP), 0);
 	if(operand32 == 0)
 	{
-		newEIP = READ16(cpustate, ea) & 0xffff;
-		newCS = READ16(cpustate, ea+2) & 0xffff;
-		newflags = READ16(cpustate, ea+4) & 0xffff;
+		newEIP = READ16(ea) & 0xffff;
+		newCS = READ16(ea+2) & 0xffff;
+		newflags = READ16(ea+4) & 0xffff;
 	}
 	else
 	{
-		newEIP = READ32(cpustate, ea);
-		newCS = READ32(cpustate, ea+4) & 0xffff;
-		newflags = READ32(cpustate, ea+8);
+		newEIP = READ32(ea);
+		newCS = READ32(ea+4) & 0xffff;
+		newflags = READ32(ea+8);
 	}
 
 	if(V8086_MODE)
@@ -2293,7 +2285,7 @@ void I386_OPS_BASE::i386_protected_mode_iret(int operand32)
 			cpustate->sreg[CS].selector = newCS & 0xffff;
 			newflags &= ~(3<<12);
 			newflags |= (((oldflags>>12)&3)<<12);  // IOPL cannot be changed in V86 mode
-			set_flags(cpustate,(newflags & 0xffff) | (oldflags & ~0xffff));
+			set_flags((newflags & 0xffff) | (oldflags & ~0xffff));
 			REG16(SP) += 6;
 		}
 		else
@@ -2302,13 +2294,13 @@ void I386_OPS_BASE::i386_protected_mode_iret(int operand32)
 			cpustate->sreg[CS].selector = newCS & 0xffff;
 			newflags &= ~(3<<12);
 			newflags |= 0x20000 | (((oldflags>>12)&3)<<12);  // IOPL and VM cannot be changed in V86 mode
-			set_flags(cpustate,newflags);
+			set_flags(newflags);
 			REG32(ESP) += 12;
 		}
 	}
 	else if(NESTED_TASK)
 	{
-		UINT32 task = READ32(cpustate,cpustate->task.base);
+		UINT32 task = READ32(cpustate->task.base);
 		/* Task Return */
 		logerror("IRET (%08x): Nested task return.\n",cpustate->pc);
 		/* Check back-link selector in TSS */
@@ -2324,7 +2316,7 @@ void I386_OPS_BASE::i386_protected_mode_iret(int operand32)
 		}
 		memset(&desc, 0, sizeof(desc));
 		desc.selector = task;
-		i386_load_protected_mode_segment(cpustate,&desc,NULL);
+		i386_load_protected_mode_segment(&desc,NULL);
 		if((desc.flags & 0x001f) != 0x000b)
 		{
 			logerror("IRET (%08x): Task return: Back-linked TSS is not a busy TSS.\n",cpustate->pc);
@@ -2336,9 +2328,9 @@ void I386_OPS_BASE::i386_protected_mode_iret(int operand32)
 			FAULT(FAULT_NP,task & ~0x03)
 		}
 		if(desc.flags & 0x08)
-			i386_task_switch(cpustate,desc.selector,0);
+			i386_task_switch(desc.selector,0);
 		else
-			i286_task_switch(cpustate,desc.selector,0);
+			i286_task_switch(desc.selector,0);
 		return;
 	}
 	else
@@ -2346,8 +2338,8 @@ void I386_OPS_BASE::i386_protected_mode_iret(int operand32)
 		if(newflags & 0x00020000) // if returning to virtual 8086 mode
 		{
 			// 16-bit iret can't reach here
-			newESP = READ32(cpustate, ea+12);
-			newSS = READ32(cpustate, ea+16) & 0xffff;
+			newESP = READ32(ea+12);
+			newSS = READ32(ea+16) & 0xffff;
 			/* Return to v86 mode */
 			//logerror("IRET (%08x): Returning to Virtual 8086 mode.\n",cpustate->pc);
 			if(CPL != 0)
@@ -2355,23 +2347,23 @@ void I386_OPS_BASE::i386_protected_mode_iret(int operand32)
 				UINT32 oldflags = get_flags();
 				newflags = (newflags & ~0x00003000) | (oldflags & 0x00003000);
 			}
-			set_flags(cpustate,newflags);
-			cpustate->eip = POP32(cpustate) & 0xffff;  // high 16 bits are ignored
-			cpustate->sreg[CS].selector = POP32(cpustate) & 0xffff;
-			POP32(cpustate);  // already set flags
-			newESP = POP32(cpustate);
-			newSS = POP32(cpustate) & 0xffff;
-			cpustate->sreg[ES].selector = POP32(cpustate) & 0xffff;
-			cpustate->sreg[DS].selector = POP32(cpustate) & 0xffff;
-			cpustate->sreg[FS].selector = POP32(cpustate) & 0xffff;
-			cpustate->sreg[GS].selector = POP32(cpustate) & 0xffff;
+			set_flags(newflags);
+			cpustate->eip = POP32() & 0xffff;  // high 16 bits are ignored
+			cpustate->sreg[CS].selector = POP32() & 0xffff;
+			POP32();  // already set flags
+			newESP = POP32();
+			newSS = POP32() & 0xffff;
+			cpustate->sreg[ES].selector = POP32() & 0xffff;
+			cpustate->sreg[DS].selector = POP32() & 0xffff;
+			cpustate->sreg[FS].selector = POP32() & 0xffff;
+			cpustate->sreg[GS].selector = POP32() & 0xffff;
 			REG32(ESP) = newESP;  // all 32 bits are loaded
 			cpustate->sreg[SS].selector = newSS;
-			i386_load_segment_descriptor(cpustate,ES);
-			i386_load_segment_descriptor(cpustate,DS);
-			i386_load_segment_descriptor(cpustate,FS);
-			i386_load_segment_descriptor(cpustate,GS);
-			i386_load_segment_descriptor(cpustate,SS);
+			i386_load_segment_descriptor(ES);
+			i386_load_segment_descriptor(DS);
+			i386_load_segment_descriptor(FS);
+			i386_load_segment_descriptor(GS);
+			i386_load_segment_descriptor(SS);
 			cpustate->CPL = 3;  // Virtual 8086 tasks are always run at CPL 3
 		}
 		else
@@ -2379,7 +2371,7 @@ void I386_OPS_BASE::i386_protected_mode_iret(int operand32)
 			if(operand32 == 0)
 			{
 				UINT32 offset = (STACK_32BIT ? REG32(ESP) : REG16(SP));
-				if(i386_limit_check(cpustate,SS,offset+3) != 0)
+				if(i386_limit_check(SS,offset+3) != 0)
 				{
 					logerror("IRET: Data on stack is past SS limit.\n");
 					FAULT(FAULT_SS,0)
@@ -2388,7 +2380,7 @@ void I386_OPS_BASE::i386_protected_mode_iret(int operand32)
 			else
 			{
 				UINT32 offset = (STACK_32BIT ? REG32(ESP) : REG16(SP));
-				if(i386_limit_check(cpustate,SS,offset+7) != 0)
+				if(i386_limit_check(SS,offset+7) != 0)
 				{
 					logerror("IRET: Data on stack is past SS limit.\n");
 					FAULT(FAULT_SS,0)
@@ -2406,7 +2398,7 @@ void I386_OPS_BASE::i386_protected_mode_iret(int operand32)
 				if(operand32 == 0)
 				{
 					UINT32 offset = (STACK_32BIT ? REG32(ESP) : REG16(SP));
-					if(i386_limit_check(cpustate,SS,offset+5) != 0)
+					if(i386_limit_check(SS,offset+5) != 0)
 					{
 						logerror("IRET (%08x): Data on stack is past SS limit.\n",cpustate->pc);
 						FAULT(FAULT_SS,0)
@@ -2415,7 +2407,7 @@ void I386_OPS_BASE::i386_protected_mode_iret(int operand32)
 				else
 				{
 					UINT32 offset = (STACK_32BIT ? REG32(ESP) : REG16(SP));
-					if(i386_limit_check(cpustate,SS,offset+11) != 0)
+					if(i386_limit_check(SS,offset+11) != 0)
 					{
 						logerror("IRET (%08x): Data on stack is past SS limit.\n",cpustate->pc);
 						FAULT(FAULT_SS,0)
@@ -2444,7 +2436,7 @@ void I386_OPS_BASE::i386_protected_mode_iret(int operand32)
 				}
 				memset(&desc, 0, sizeof(desc));
 				desc.selector = newCS;
-				i386_load_protected_mode_segment(cpustate,&desc,NULL);
+				i386_load_protected_mode_segment(&desc,NULL);
 				DPL = (desc.flags >> 5) & 0x03;  // descriptor privilege level
 				RPL = newCS & 0x03;
 				if((desc.flags & 0x0018) != 0x0018)
@@ -2481,7 +2473,7 @@ void I386_OPS_BASE::i386_protected_mode_iret(int operand32)
 
 				if(CPL != 0)
 				{
-					UINT32 oldflags = get_flags(cpustate);
+					UINT32 oldflags = get_flags();
 					newflags = (newflags & ~0x00003000) | (oldflags & 0x00003000);
 				}
 
@@ -2489,14 +2481,14 @@ void I386_OPS_BASE::i386_protected_mode_iret(int operand32)
 				{
 					cpustate->eip = newEIP;
 					cpustate->sreg[CS].selector = newCS;
-					set_flags(cpustate,newflags);
+					set_flags(newflags);
 					REG16(SP) += 6;
 				}
 				else
 				{
 					cpustate->eip = newEIP;
 					cpustate->sreg[CS].selector = newCS & 0xffff;
-					set_flags(cpustate,newflags);
+					set_flags(newflags);
 					REG32(ESP) += 12;
 				}
 			}
@@ -2505,13 +2497,13 @@ void I386_OPS_BASE::i386_protected_mode_iret(int operand32)
 				/* return to outer privilege level */
 				memset(&desc, 0, sizeof(desc));
 				desc.selector = newCS;
-				i386_load_protected_mode_segment(cpustate,&desc,NULL);
+				i386_load_protected_mode_segment(&desc,NULL);
 				DPL = (desc.flags >> 5) & 0x03;  // descriptor privilege level
 				RPL = newCS & 0x03;
 				if(operand32 == 0)
 				{
 					UINT32 offset = (STACK_32BIT ? REG32(ESP) : REG16(SP));
-					if(i386_limit_check(cpustate,SS,offset+9) != 0)
+					if(i386_limit_check(SS,offset+9) != 0)
 					{
 						logerror("IRET: SP is past SS limit.\n");
 						FAULT(FAULT_SS,0)
@@ -2520,7 +2512,7 @@ void I386_OPS_BASE::i386_protected_mode_iret(int operand32)
 				else
 				{
 					UINT32 offset = (STACK_32BIT ? REG32(ESP) : REG16(SP));
-					if(i386_limit_check(cpustate,SS,offset+19) != 0)
+					if(i386_limit_check(SS,offset+19) != 0)
 					{
 						logerror("IRET: ESP is past SS limit.\n");
 						FAULT(FAULT_SS,0)
@@ -2578,17 +2570,17 @@ void I386_OPS_BASE::i386_protected_mode_iret(int operand32)
 				/* Check SS selector and descriptor */
 				if(operand32 == 0)
 				{
-					newESP = READ16(cpustate, ea+6) & 0xffff;
-					newSS = READ16(cpustate, ea+8) & 0xffff;
+					newESP = READ16(ea+6) & 0xffff;
+					newSS = READ16(ea+8) & 0xffff;
 				}
 				else
 				{
-					newESP = READ32(cpustate, ea+12);
-					newSS = READ32(cpustate, ea+16) & 0xffff;
+					newESP = READ32(ea+12);
+					newSS = READ32(ea+16) & 0xffff;
 				}
 				memset(&stack, 0, sizeof(stack));
 				stack.selector = newSS;
-				i386_load_protected_mode_segment(cpustate,&stack,NULL);
+				i386_load_protected_mode_segment(&stack,NULL);
 				DPL = (stack.flags >> 5) & 0x03;
 				if((newSS & ~0x03) == 0)
 				{
@@ -2650,7 +2642,7 @@ void I386_OPS_BASE::i386_protected_mode_iret(int operand32)
 				// IOPL can only change if CPL is zero
 				if(CPL != 0)
 				{
-					UINT32 oldflags = get_flags(cpustate);
+					UINT32 oldflags = get_flags();
 					newflags = (newflags & ~0x00003000) | (oldflags & 0x00003000);
 				}
 
@@ -2658,7 +2650,7 @@ void I386_OPS_BASE::i386_protected_mode_iret(int operand32)
 				{
 					cpustate->eip = newEIP & 0xffff;
 					cpustate->sreg[CS].selector = newCS;
-					set_flags(cpustate,newflags);
+					set_flags(newflags);
 					REG16(SP) = newESP & 0xffff;
 					cpustate->sreg[SS].selector = newSS;
 				}
@@ -2666,67 +2658,27 @@ void I386_OPS_BASE::i386_protected_mode_iret(int operand32)
 				{
 					cpustate->eip = newEIP;
 					cpustate->sreg[CS].selector = newCS & 0xffff;
-					set_flags(cpustate,newflags);
+					set_flags(newflags);
 					REG32(ESP) = newESP;
 					cpustate->sreg[SS].selector = newSS & 0xffff;
 				}
 				cpustate->CPL = newCS & 0x03;
-				i386_load_segment_descriptor(cpustate,SS);
+				i386_load_segment_descriptor(SS);
 
 				/* Check that DS, ES, FS and GS are valid for the new privilege level */
-				i386_check_sreg_validity(cpustate,DS);
-				i386_check_sreg_validity(cpustate,ES);
-				i386_check_sreg_validity(cpustate,FS);
-				i386_check_sreg_validity(cpustate,GS);
+				i386_check_sreg_validity(DS);
+				i386_check_sreg_validity(ES);
+				i386_check_sreg_validity(FS);
+				i386_check_sreg_validity(GS);
 			}
 		}
 	}
 
-	i386_load_segment_descriptor(cpustate,CS);
-	CHANGE_PC(cpustate,cpustate->eip);
+	i386_load_segment_descriptor(CS);
+	CHANGE_PC(cpustate->eip);
 }
 
-#include "cycles.h"
-
-#define CYCLES_NUM(x)   (cpustate->cycles -= (x))
-
-INLINE void CYCLES(int x)
-{
-	if (PROTECTED_MODE)
-	{
-		cpustate->cycles -= cpustate->cycle_table_pm[x];
-	}
-	else
-	{
-		cpustate->cycles -= cpustate->cycle_table_rm[x];
-	}
-}
-
-INLINE void CYCLES_RM(int modrm, int r, int m)
-{
-	if (modrm >= 0xc0)
-	{
-		if (PROTECTED_MODE)
-		{
-			cpustate->cycles -= cpustate->cycle_table_pm[r];
-		}
-		else
-		{
-			cpustate->cycles -= cpustate->cycle_table_rm[r];
-		}
-	}
-	else
-	{
-		if (PROTECTED_MODE)
-		{
-			cpustate->cycles -= cpustate->cycle_table_pm[m];
-		}
-		else
-		{
-			cpustate->cycles -= cpustate->cycle_table_rm[m];
-		}
-	}
-}
+//#include "cycles.h"
 
 void I386_OPS_BASE::build_cycle_table()
 {
@@ -2767,146 +2719,139 @@ void I386_OPS_BASE::report_invalid_modrm( const char* opcode, UINT8 modrm)
 		logerror(" %02X", cpustate->opcode_bytes[a]);
 	logerror(" at %08X\n", cpustate->opcode_pc);
 #endif
-	i386_trap(cpustate, 6, 0, 0);
+	i386_trap(6, 0, 0);
 }
 
 /* Forward declarations */
 
-#include "i386ops.c"
-#include "i386op16.c"
-#include "i386op32.c"
-#include "i486ops.c"
-#include "pentops.c"
-#include "x87ops.c"
-#include "i386ops.h"
 
-void I386OP(decode_opcode)()
+void I386_OPS_BASE::I386OP(decode_opcode)()
 {
-	cpustate->opcode = FETCH(cpustate);
+	cpustate->opcode = FETCH();
 
 	if(cpustate->lock && !cpustate->lock_table[0][cpustate->opcode])
 		return I386OP(invalid)();
 
 	if( cpustate->operand_size )
-		cpustate->opcode_table1_32[cpustate->opcode]();
+		(this->*cpustate->opcode_table1_32[cpustate->opcode])();
 	else
-		cpustate->opcode_table1_16[cpustate->opcode]();
+		(this->*cpustate->opcode_table1_16[cpustate->opcode])();
 }
 
 /* Two-byte opcode 0f xx */
-void I386OP(decode_two_byte)()
+void I386_OPS_BASE::I386OP(decode_two_byte)()
 {
-	cpustate->opcode = FETCH(cpustate);
+	cpustate->opcode = FETCH();
 
 	if(cpustate->lock && !cpustate->lock_table[1][cpustate->opcode])
 		return I386OP(invalid)();
 
 	if( cpustate->operand_size )
-		cpustate->opcode_table2_32[cpustate->opcode]();
+		(this->*cpustate->opcode_table2_32[cpustate->opcode])();
 	else
-		cpustate->opcode_table2_16[cpustate->opcode]();
+		(this->*cpustate->opcode_table2_16[cpustate->opcode])();
 }
 
 /* Three-byte opcode 0f 38 xx */
-void I386OP(decode_three_byte38)()
+void I386_OPS_BASE::I386OP(decode_three_byte38)()
 {
 	cpustate->opcode = FETCH();
 
 	if (cpustate->operand_size)
-		cpustate->opcode_table338_32[cpustate->opcode]();
+		(this->*cpustate->opcode_table338_32[cpustate->opcode])();
 	else
-		cpustate->opcode_table338_16[cpustate->opcode]();
+		(this->*cpustate->opcode_table338_16[cpustate->opcode])();
 }
 
 /* Three-byte opcode 0f 3a xx */
-void I386OP(decode_three_byte3a)()
+void I386_OPS_BASE::I386OP(decode_three_byte3a)()
 {
-	cpustate->opcode = FETCH(cpustate);
+	cpustate->opcode = FETCH();
 
 	if (cpustate->operand_size)
-		cpustate->opcode_table33a_32[cpustate->opcode]();
+		(this->*cpustate->opcode_table33a_32[cpustate->opcode])();
 	else
-		cpustate->opcode_table33a_16[cpustate->opcode]();
+		(this->*cpustate->opcode_table33a_16[cpustate->opcode])();
 }
 
 /* Three-byte opcode prefix 66 0f xx */
-void I386OP(decode_three_byte66)()
+void I386_OPS_BASE::I386OP(decode_three_byte66)()
 {
-	cpustate->opcode = FETCH(cpustate);
+	cpustate->opcode = FETCH();
 	if( cpustate->operand_size )
-		cpustate->opcode_table366_32[cpustate->opcode]();
+		(this->*cpustate->opcode_table366_32[cpustate->opcode])();
 	else
-		cpustate->opcode_table366_16[cpustate->opcode]();
+		(this->*cpustate->opcode_table366_16[cpustate->opcode])();
 }
 
 /* Three-byte opcode prefix f2 0f xx */
-void I386OP(decode_three_bytef2)()
+void I386_OPS_BASE::I386OP(decode_three_bytef2)()
 {
-	cpustate->opcode = FETCH(cpustate);
+	cpustate->opcode = FETCH();
 	if( cpustate->operand_size )
-		cpustate->opcode_table3f2_32[cpustate->opcode]();
+		(this->*cpustate->opcode_table3f2_32[cpustate->opcode])();
 	else
-		cpustate->opcode_table3f2_16[cpustate->opcode]();
+		(this->*cpustate->opcode_table3f2_16[cpustate->opcode])();
 }
 
 /* Three-byte opcode prefix f3 0f */
-void I386OP(decode_three_bytef3)()
+void I386_OPS_BASE::I386OP(decode_three_bytef3)()
 {
-	cpustate->opcode = FETCH(cpustate);
+	cpustate->opcode = FETCH();
 	if( cpustate->operand_size )
-		cpustate->opcode_table3f3_32[cpustate->opcode]();
+		(this->*cpustate->opcode_table3f3_32[cpustate->opcode])();
 	else
-		cpustate->opcode_table3f3_16[cpustate->opcode]();
+		(this->*cpustate->opcode_table3f3_16[cpustate->opcode])();
 }
 
 /* Four-byte opcode prefix 66 0f 38 xx */
-void I386OP(decode_four_byte3866)()
+void I386_OPS_BASE::I386OP(decode_four_byte3866)()
 {
-	cpustate->opcode = FETCH(cpustate);
+	cpustate->opcode = FETCH();
 	if (cpustate->operand_size)
-		cpustate->opcode_table46638_32[cpustate->opcode]();
+		(this->*cpustate->opcode_table46638_32[cpustate->opcode])();
 	else
-		cpustate->opcode_table46638_16[cpustate->opcode]();
+		(this->*cpustate->opcode_table46638_16[cpustate->opcode])();
 }
 
 /* Four-byte opcode prefix 66 0f 3a xx */
-void I386OP(decode_four_byte3a66)()
+void I386_OPS_BASE::I386OP(decode_four_byte3a66)()
 {
-	cpustate->opcode = FETCH(cpustate);
+	cpustate->opcode = FETCH();
 	if (cpustate->operand_size)
-		cpustate->opcode_table4663a_32[cpustate->opcode]();
+		(this->*cpustate->opcode_table4663a_32[cpustate->opcode])();
 	else
-		cpustate->opcode_table4663a_16[cpustate->opcode]();
+		(this->*cpustate->opcode_table4663a_16[cpustate->opcode])();
 }
 
 /* Four-byte opcode prefix f2 0f 38 xx */
-void I386OP(decode_four_byte38f2)()
+void I386_OPS_BASE::I386OP(decode_four_byte38f2)()
 {
-	cpustate->opcode = FETCH(cpustate);
+	cpustate->opcode = FETCH();
 	if (cpustate->operand_size)
-		cpustate->opcode_table4f238_32[cpustate->opcode]();
+		(this->*cpustate->opcode_table4f238_32[cpustate->opcode])();
 	else
-		cpustate->opcode_table4f238_16[cpustate->opcode]();
+		(this->*cpustate->opcode_table4f238_16[cpustate->opcode])();
 }
 
 /* Four-byte opcode prefix f2 0f 3a xx */
-void I386OP(decode_four_byte3af2)()
+void I386_OPS_BASE::I386OP(decode_four_byte3af2)()
 {
-	cpustate->opcode = FETCH(cpustate);
+	cpustate->opcode = FETCH();
 	if (cpustate->operand_size)
-		cpustate->opcode_table4f23a_32[cpustate->opcode]();
+		(this->*cpustate->opcode_table4f23a_32[cpustate->opcode])();
 	else
-		cpustate->opcode_table4f23a_16[cpustate->opcode]();
+		(this->*cpustate->opcode_table4f23a_16[cpustate->opcode])();
 }
 
 /* Four-byte opcode prefix f3 0f 38 xx */
-void I386OP(decode_four_byte38f3)()
+void I386_OPS_BASE::I386OP(decode_four_byte38f3)()
 {
-	cpustate->opcode = FETCH(cpustate);
+	cpustate->opcode = FETCH();
 	if (cpustate->operand_size)
-		cpustate->opcode_table4f338_32[cpustate->opcode]();
+		(this->*cpustate->opcode_table4f338_32[cpustate->opcode])();
 	else
-		cpustate->opcode_table4f338_16[cpustate->opcode]();
+		(this->*cpustate->opcode_table4f338_16[cpustate->opcode])();
 }
 
 
@@ -2917,8 +2862,11 @@ void I386_OPS_BASE::i386_postload()
 	int i;
 	for (i = 0; i < 6; i++)
 		i386_load_segment_descriptor(i);
-	CHANGE_PC(cpustate,cpustate->eip);
+	CHANGE_PC(cpustate->eip);
 }
+
+#include "./cycles.h"
+#include "./i386_ops_table.h"
 
 i386_state *I386_OPS_BASE::i386_common_init(int tlbsize)
 {
@@ -2927,6 +2875,8 @@ i386_state *I386_OPS_BASE::i386_common_init(int tlbsize)
 	static const int regs16[8] = {AX,CX,DX,BX,SP,BP,SI,DI};
 	static const int regs32[8] = {EAX,ECX,EDX,EBX,ESP,EBP,ESI,EDI};
 	cpustate = (i386_state *)malloc(sizeof(i386_state));
+	x86_cycle_table = _x86_cycle_table_real;
+	//x86_opcode_table = _x86_opcode_table_fake;
 
 	assert((sizeof(XMM_REG)/sizeof(double)) == 2);
 
@@ -2951,7 +2901,7 @@ i386_state *I386_OPS_BASE::i386_common_init(int tlbsize)
 		i386_MODRM_table[i].rm.d = regs32[i & 0x7];
 	}
 
-	cpustate->vtlb = vtlb_alloc(AS_PROGRAM, 0, tlbsize);
+	cpustate->vtlb = vtlb_alloc((void *)cpustate, AS_PROGRAM, 0, tlbsize);
 	cpustate->smi = false;
 	cpustate->lock = false;
 
@@ -2963,11 +2913,23 @@ i386_state *I386_OPS_BASE::i386_common_init(int tlbsize)
 //		memset(&cpustate->smiact, 0, sizeof(cpustate->smiact));
 
 	zero_state();
+	cpustate->program = d_mem;
+	cpustate->io = d_io;
+	cpustate->pic = d_pic;
 
 	return cpustate;
 }
+void I386_OPS_BASE::i386_vtlb_free(void)
+{
+	vtlb_free(cpustate->vtlb);
+}
 
-CPU_INIT( i386 )
+void I386_OPS_BASE::i386_free_state(void)
+{
+	if(cpustate != NULL) free(cpustate);
+}
+
+void *I386_OPS_BASE::cpu_init_i386(void)
 {
 	i386_common_init(32);
 	build_opcode_table(OP_I386);
@@ -2976,7 +2938,19 @@ CPU_INIT( i386 )
 	return cpustate;
 }
 
-#include "./i386_ops_table.h"
+//#include "./i386_ops_table.h"
+
+void I386_OPS_BASE::save_state(FILEIO *state_fio)
+{
+	state_fio->Fwrite(cpustate, sizeof(i386_state), 1);
+}
+
+bool I386_OPS_BASE::load_state(FILEIO *state_fio)
+{
+	state_fio->Fread(cpustate, sizeof(i386_state), 1);
+	return true;
+}
+
 
 void I386_OPS_BASE::build_opcode_table(UINT32 features)
 {
@@ -2984,16 +2958,16 @@ void I386_OPS_BASE::build_opcode_table(UINT32 features)
 	i386_state *_cpustate = cpustate;
 	for (i=0; i < 256; i++)
 	{
-		_cpustate->opcode_table1_16[i] = I386OP(invalid);
-		_cpustate->opcode_table1_32[i] = I386OP(invalid);
-		_cpustate->opcode_table2_16[i] = I386OP(invalid);
-		_cpustate->opcode_table2_32[i] = I386OP(invalid);
-		_cpustate->opcode_table366_16[i] = I386OP(invalid);
-		_cpustate->opcode_table366_32[i] = I386OP(invalid);
-		_cpustate->opcode_table3f2_16[i] = I386OP(invalid);
-		_cpustate->opcode_table3f2_32[i] = I386OP(invalid);
-		_cpustate->opcode_table3f3_16[i] = I386OP(invalid);
-		_cpustate->opcode_table3f3_32[i] = I386OP(invalid);
+		_cpustate->opcode_table1_16[i] = &I386_OPS_BASE::I386OP(invalid);
+		_cpustate->opcode_table1_32[i] = &I386_OPS_BASE::I386OP(invalid);
+		_cpustate->opcode_table2_16[i] = &I386_OPS_BASE::I386OP(invalid);
+		_cpustate->opcode_table2_32[i] = &I386_OPS_BASE::I386OP(invalid);
+		_cpustate->opcode_table366_16[i] = &I386_OPS_BASE::I386OP(invalid);
+		_cpustate->opcode_table366_32[i] = &I386_OPS_BASE::I386OP(invalid);
+		_cpustate->opcode_table3f2_16[i] = &I386_OPS_BASE::I386OP(invalid);
+		_cpustate->opcode_table3f2_32[i] = &I386_OPS_BASE::I386OP(invalid);
+		_cpustate->opcode_table3f3_16[i] = &I386_OPS_BASE::I386OP(invalid);
+		_cpustate->opcode_table3f3_32[i] = &I386_OPS_BASE::I386OP(invalid);
 		_cpustate->lock_table[0][i] = false;
 		_cpustate->lock_table[1][i] = false;
 	}
@@ -3070,6 +3044,7 @@ void I386_OPS_BASE::build_opcode_table(UINT32 features)
 			}
 		}
 	}
+
 }
 
 void I386_OPS_BASE::zero_state()
@@ -3153,7 +3128,7 @@ void I386_OPS_BASE::zero_state()
 #endif
 }
 
-CPU_RESET( i386 )
+void I386_OPS_BASE::cpu_reset_i386(void)
 {
 	zero_state();
 	vtlb_flush_dynamic(cpustate->vtlb);
@@ -3192,79 +3167,79 @@ CPU_RESET( i386 )
 
 	cpustate->CPL = 0;
 
-	CHANGE_PC(cpustate,cpustate->eip);
+	CHANGE_PC(cpustate->eip);
 }
 
 void I386_OPS_BASE::pentium_smi()
 {
 	UINT32 smram_state = cpustate->smbase + 0xfe00;
 	UINT32 old_cr0 = cpustate->cr[0];
-	UINT32 old_flags = get_flags(cpustate);
+	UINT32 old_flags = get_flags();
 
 	if(cpustate->smm)
 		return;
 
 	cpustate->cr[0] &= ~(0x8000000d);
-	set_flags(cpustate, 2);
+	set_flags(2);
 //	if(!cpustate->smiact.isnull())
 //		cpustate->smiact(true);
 	cpustate->smm = true;
 	cpustate->smi_latched = false;
 
 	// save state
-	WRITE32(cpustate, cpustate->cr[4], smram_state+SMRAM_IP5_CR4);
-	WRITE32(cpustate, cpustate->sreg[ES].limit, smram_state+SMRAM_IP5_ESLIM);
-	WRITE32(cpustate, cpustate->sreg[ES].base, smram_state+SMRAM_IP5_ESBASE);
-	WRITE32(cpustate, cpustate->sreg[ES].flags, smram_state+SMRAM_IP5_ESACC);
-	WRITE32(cpustate, cpustate->sreg[CS].limit, smram_state+SMRAM_IP5_CSLIM);
-	WRITE32(cpustate, cpustate->sreg[CS].base, smram_state+SMRAM_IP5_CSBASE);
-	WRITE32(cpustate, cpustate->sreg[CS].flags, smram_state+SMRAM_IP5_CSACC);
-	WRITE32(cpustate, cpustate->sreg[SS].limit, smram_state+SMRAM_IP5_SSLIM);
-	WRITE32(cpustate, cpustate->sreg[SS].base, smram_state+SMRAM_IP5_SSBASE);
-	WRITE32(cpustate, cpustate->sreg[SS].flags, smram_state+SMRAM_IP5_SSACC);
-	WRITE32(cpustate, cpustate->sreg[DS].limit, smram_state+SMRAM_IP5_DSLIM);
-	WRITE32(cpustate, cpustate->sreg[DS].base, smram_state+SMRAM_IP5_DSBASE);
-	WRITE32(cpustate, cpustate->sreg[DS].flags, smram_state+SMRAM_IP5_DSACC);
-	WRITE32(cpustate, cpustate->sreg[FS].limit, smram_state+SMRAM_IP5_FSLIM);
-	WRITE32(cpustate, cpustate->sreg[FS].base, smram_state+SMRAM_IP5_FSBASE);
-	WRITE32(cpustate, cpustate->sreg[FS].flags, smram_state+SMRAM_IP5_FSACC);
-	WRITE32(cpustate, cpustate->sreg[GS].limit, smram_state+SMRAM_IP5_GSLIM);
-	WRITE32(cpustate, cpustate->sreg[GS].base, smram_state+SMRAM_IP5_GSBASE);
-	WRITE32(cpustate, cpustate->sreg[GS].flags, smram_state+SMRAM_IP5_GSACC);
-	WRITE32(cpustate, cpustate->ldtr.flags, smram_state+SMRAM_IP5_LDTACC);
-	WRITE32(cpustate, cpustate->ldtr.limit, smram_state+SMRAM_IP5_LDTLIM);
-	WRITE32(cpustate, cpustate->ldtr.base, smram_state+SMRAM_IP5_LDTBASE);
-	WRITE32(cpustate, cpustate->gdtr.limit, smram_state+SMRAM_IP5_GDTLIM);
-	WRITE32(cpustate, cpustate->gdtr.base, smram_state+SMRAM_IP5_GDTBASE);
-	WRITE32(cpustate, cpustate->idtr.limit, smram_state+SMRAM_IP5_IDTLIM);
-	WRITE32(cpustate, cpustate->idtr.base, smram_state+SMRAM_IP5_IDTBASE);
-	WRITE32(cpustate, cpustate->task.limit, smram_state+SMRAM_IP5_TRLIM);
-	WRITE32(cpustate, cpustate->task.base, smram_state+SMRAM_IP5_TRBASE);
-	WRITE32(cpustate, cpustate->task.flags, smram_state+SMRAM_IP5_TRACC);
+	WRITE32(cpustate->cr[4], smram_state+SMRAM_IP5_CR4);
+	WRITE32(cpustate->sreg[ES].limit, smram_state+SMRAM_IP5_ESLIM);
+	WRITE32(cpustate->sreg[ES].base, smram_state+SMRAM_IP5_ESBASE);
+	WRITE32(cpustate->sreg[ES].flags, smram_state+SMRAM_IP5_ESACC);
+	WRITE32(cpustate->sreg[CS].limit, smram_state+SMRAM_IP5_CSLIM);
+	WRITE32(cpustate->sreg[CS].base, smram_state+SMRAM_IP5_CSBASE);
+	WRITE32(cpustate->sreg[CS].flags, smram_state+SMRAM_IP5_CSACC);
+	WRITE32(cpustate->sreg[SS].limit, smram_state+SMRAM_IP5_SSLIM);
+	WRITE32(cpustate->sreg[SS].base, smram_state+SMRAM_IP5_SSBASE);
+	WRITE32(cpustate->sreg[SS].flags, smram_state+SMRAM_IP5_SSACC);
+	WRITE32(cpustate->sreg[DS].limit, smram_state+SMRAM_IP5_DSLIM);
+	WRITE32(cpustate->sreg[DS].base, smram_state+SMRAM_IP5_DSBASE);
+	WRITE32(cpustate->sreg[DS].flags, smram_state+SMRAM_IP5_DSACC);
+	WRITE32(cpustate->sreg[FS].limit, smram_state+SMRAM_IP5_FSLIM);
+	WRITE32(cpustate->sreg[FS].base, smram_state+SMRAM_IP5_FSBASE);
+	WRITE32(cpustate->sreg[FS].flags, smram_state+SMRAM_IP5_FSACC);
+	WRITE32(cpustate->sreg[GS].limit, smram_state+SMRAM_IP5_GSLIM);
+	WRITE32(cpustate->sreg[GS].base, smram_state+SMRAM_IP5_GSBASE);
+	WRITE32(cpustate->sreg[GS].flags, smram_state+SMRAM_IP5_GSACC);
+	WRITE32(cpustate->ldtr.flags, smram_state+SMRAM_IP5_LDTACC);
+	WRITE32(cpustate->ldtr.limit, smram_state+SMRAM_IP5_LDTLIM);
+	WRITE32(cpustate->ldtr.base, smram_state+SMRAM_IP5_LDTBASE);
+	WRITE32(cpustate->gdtr.limit, smram_state+SMRAM_IP5_GDTLIM);
+	WRITE32(cpustate->gdtr.base, smram_state+SMRAM_IP5_GDTBASE);
+	WRITE32(cpustate->idtr.limit, smram_state+SMRAM_IP5_IDTLIM);
+	WRITE32(cpustate->idtr.base, smram_state+SMRAM_IP5_IDTBASE);
+	WRITE32(cpustate->task.limit, smram_state+SMRAM_IP5_TRLIM);
+	WRITE32(cpustate->task.base, smram_state+SMRAM_IP5_TRBASE);
+	WRITE32(cpustate->task.flags, smram_state+SMRAM_IP5_TRACC);
 
-	WRITE32(cpustate, cpustate->sreg[ES].selector, smram_state+SMRAM_ES);
-	WRITE32(cpustate, cpustate->sreg[CS].selector, smram_state+SMRAM_CS);
-	WRITE32(cpustate, cpustate->sreg[SS].selector, smram_state+SMRAM_SS);
-	WRITE32(cpustate, cpustate->sreg[DS].selector, smram_state+SMRAM_DS);
-	WRITE32(cpustate, cpustate->sreg[FS].selector, smram_state+SMRAM_FS);
-	WRITE32(cpustate, cpustate->sreg[GS].selector, smram_state+SMRAM_GS);
-	WRITE32(cpustate, cpustate->ldtr.segment, smram_state+SMRAM_LDTR);
-	WRITE32(cpustate, cpustate->task.segment, smram_state+SMRAM_TR);
+	WRITE32(cpustate->sreg[ES].selector, smram_state+SMRAM_ES);
+	WRITE32(cpustate->sreg[CS].selector, smram_state+SMRAM_CS);
+	WRITE32(cpustate->sreg[SS].selector, smram_state+SMRAM_SS);
+	WRITE32(cpustate->sreg[DS].selector, smram_state+SMRAM_DS);
+	WRITE32(cpustate->sreg[FS].selector, smram_state+SMRAM_FS);
+	WRITE32(cpustate->sreg[GS].selector, smram_state+SMRAM_GS);
+	WRITE32(cpustate->ldtr.segment, smram_state+SMRAM_LDTR);
+	WRITE32(cpustate->task.segment, smram_state+SMRAM_TR);
 
-	WRITE32(cpustate, cpustate->dr[7], smram_state+SMRAM_DR7);
-	WRITE32(cpustate, cpustate->dr[6], smram_state+SMRAM_DR6);
-	WRITE32(cpustate, REG32(EAX), smram_state+SMRAM_EAX);
-	WRITE32(cpustate, REG32(ECX), smram_state+SMRAM_ECX);
-	WRITE32(cpustate, REG32(EDX), smram_state+SMRAM_EDX);
-	WRITE32(cpustate, REG32(EBX), smram_state+SMRAM_EBX);
-	WRITE32(cpustate, REG32(ESP), smram_state+SMRAM_ESP);
-	WRITE32(cpustate, REG32(EBP), smram_state+SMRAM_EBP);
-	WRITE32(cpustate, REG32(ESI), smram_state+SMRAM_ESI);
-	WRITE32(cpustate, REG32(EDI), smram_state+SMRAM_EDI);
-	WRITE32(cpustate, cpustate->eip, smram_state+SMRAM_EIP);
-	WRITE32(cpustate, old_flags, smram_state+SMRAM_EAX);
-	WRITE32(cpustate, cpustate->cr[3], smram_state+SMRAM_CR3);
-	WRITE32(cpustate, old_cr0, smram_state+SMRAM_CR0);
+	WRITE32(cpustate->dr[7], smram_state+SMRAM_DR7);
+	WRITE32(cpustate->dr[6], smram_state+SMRAM_DR6);
+	WRITE32(REG32(EAX), smram_state+SMRAM_EAX);
+	WRITE32(REG32(ECX), smram_state+SMRAM_ECX);
+	WRITE32(REG32(EDX), smram_state+SMRAM_EDX);
+	WRITE32(REG32(EBX), smram_state+SMRAM_EBX);
+	WRITE32(REG32(ESP), smram_state+SMRAM_ESP);
+	WRITE32(REG32(EBP), smram_state+SMRAM_EBP);
+	WRITE32(REG32(ESI), smram_state+SMRAM_ESI);
+	WRITE32(REG32(EDI), smram_state+SMRAM_EDI);
+	WRITE32(cpustate->eip, smram_state+SMRAM_EIP);
+	WRITE32(old_flags, smram_state+SMRAM_EAX);
+	WRITE32(cpustate->cr[3], smram_state+SMRAM_CR3);
+	WRITE32(old_cr0, smram_state+SMRAM_CR0);
 
 	cpustate->sreg[DS].selector = cpustate->sreg[ES].selector = cpustate->sreg[FS].selector = cpustate->sreg[GS].selector = cpustate->sreg[SS].selector = 0;
 	cpustate->sreg[DS].base = cpustate->sreg[ES].base = cpustate->sreg[FS].base = cpustate->sreg[GS].base = cpustate->sreg[SS].base = 0x00000000;
@@ -3281,7 +3256,7 @@ void I386_OPS_BASE::pentium_smi()
 	cpustate->eip = 0x8000;
 
 	cpustate->nmi_masked = true;
-	CHANGE_PC(cpustate,cpustate->eip);
+	CHANGE_PC(cpustate->eip);
 }
 
 void I386_OPS_BASE::i386_set_irq_line(int irqline, int state)
@@ -3300,7 +3275,7 @@ void I386_OPS_BASE::i386_set_irq_line(int irqline, int state)
 			return;
 		}
 		if ( state )
-			i386_trap(cpustate,2, 1, 0);
+			i386_trap(2, 1, 0);
 	}
 	else
 	{
@@ -3323,9 +3298,9 @@ void I386_OPS_BASE::i386_set_a20_line(int state)
 }
 
 // BASE execution : EXECUTE without DMA, BIOS and debugger.
-int I386_OPS_BASE::cpu_execute_i386(int cycle)
+int I386_OPS_BASE::cpu_execute_i386(int cycles)
 {
-	CHANGE_PC(cpustate,cpustate->eip);
+	CHANGE_PC(cpustate->eip);
 
 	if (cpustate->halted || cpustate->busreq)
 	{
@@ -3366,7 +3341,7 @@ int I386_OPS_BASE::cpu_execute_i386(int cycle)
 
 	while( cpustate->cycles > 0 && !cpustate->busreq )
 	{
-			i386_check_irq_line(cpustate);
+			i386_check_irq_line();
 			cpustate->operand_size = cpustate->sreg[CS].d;
 			cpustate->xmm_operand_size = 0;
 			cpustate->address_size = cpustate->sreg[CS].d;
@@ -3391,12 +3366,12 @@ int I386_OPS_BASE::cpu_execute_i386(int cycle)
 #endif
 			try
 			{
-				I386OP(decode_opcode)(cpustate);
+				I386OP(decode_opcode)();
 				if(cpustate->TF && old_tf)
 				{
 					cpustate->prev_eip = cpustate->eip;
 					cpustate->ext = 1;
-					i386_trap(cpustate,1,0,0);
+					i386_trap(1,0,0);
 				}
 				if(cpustate->lock && (cpustate->opcode != 0xf0))
 					cpustate->lock = false;
@@ -3404,7 +3379,7 @@ int I386_OPS_BASE::cpu_execute_i386(int cycle)
 			catch(UINT64 e)
 			{
 				cpustate->ext = 1;
-				i386_trap_with_error(cpustate,e&0xffffffff,0,0,e>>32);
+				i386_trap_with_error(e&0xffffffff,0,0,e>>32);
 			}
 			/* adjust for any interrupts that came in */
 			cpustate->cycles -= cpustate->extra_cycles;
@@ -3427,7 +3402,7 @@ int I386_OPS_BASE::cpu_translate_i386(void *cpudevice, address_spacenum space, i
 	i386_state *cpu_state = (i386_state *)cpudevice;
 	int ret = TRUE;
 	if(space == AS_PROGRAM)
-		ret = i386_translate_address(cpu_state, intention, address, NULL);
+		ret = i386_translate_address(intention, address, NULL);
 	*address &= cpu_state->a20_mask;
 	return ret;
 }
@@ -3436,7 +3411,7 @@ int I386_OPS_BASE::cpu_translate_i386(void *cpudevice, address_spacenum space, i
 /* Intel 486 */
 
 
-CPU_INIT( i486 )
+void *I386_OPS_BASE::cpu_init_i486(void)
 {
 	i386_common_init(32);
 	build_opcode_table(OP_I386 | OP_FPU | OP_I486);
@@ -3446,7 +3421,7 @@ CPU_INIT( i486 )
 	return cpustate;
 }
 
-CPU_RESET( i486 )
+void I386_OPS_BASE::cpu_reset_i486(void)
 {
 	zero_state();
 	vtlb_flush_dynamic(cpustate->vtlb);
@@ -3474,7 +3449,7 @@ CPU_RESET( i486 )
 	cpustate->nmi_masked = false;
 	cpustate->nmi_latched = false;
 
-	x87_reset(cpustate);
+	x87_reset();
 
 	// [11:8] Family
 	// [ 7:4] Model
@@ -3483,14 +3458,14 @@ CPU_RESET( i486 )
 	REG32(EAX) = 0;
 	REG32(EDX) = (4 << 8) | (0 << 4) | (3);
 
-	CHANGE_PC(cpustate,cpustate->eip);
+	CHANGE_PC(cpustate->eip);
 }
 
 /*****************************************************************************/
 /* Pentium */
 
 
-CPU_INIT( pentium )
+void *I386_OPS_BASE::cpu_init_pentium(void)
 {
 	// 64 dtlb small, 8 dtlb large, 32 itlb
 	i386_common_init(96);
@@ -3501,7 +3476,7 @@ CPU_INIT( pentium )
 	return cpustate;
 }
 
-CPU_RESET( pentium )
+void I386_OPS_BASE::cpu_reset_pentium(void)
 {
 	zero_state();
 	vtlb_flush_dynamic(cpustate->vtlb);
@@ -3531,7 +3506,7 @@ CPU_RESET( pentium )
 	cpustate->nmi_masked = false;
 	cpustate->nmi_latched = false;
 
-	x87_reset(cpustate);
+	x87_reset();
 
 	// [11:8] Family
 	// [ 7:4] Model
@@ -3555,14 +3530,14 @@ CPU_RESET( pentium )
 	// [ 8:8] CMPXCHG8B instruction
 	cpustate->feature_flags = 0x000001bf;
 
-	CHANGE_PC(cpustate,cpustate->eip);
+	CHANGE_PC(cpustate->eip);
 }
 
 /*****************************************************************************/
 /* Cyrix MediaGX */
 
 
-CPU_INIT( mediagx )
+void *I386_OPS_BASE::cpu_init_mediagx(void)
 {
 	// probably 32 unified
 	i386_common_init(32);
@@ -3573,7 +3548,7 @@ CPU_INIT( mediagx )
 	return cpustate;
 }
 
-CPU_RESET( mediagx )
+void I386_OPS_BASE::cpu_reset_mediagx(void)
 {
 	zero_state();
 	vtlb_flush_dynamic(cpustate->vtlb);
@@ -3601,7 +3576,7 @@ CPU_RESET( mediagx )
 	cpustate->nmi_masked = false;
 	cpustate->nmi_latched = false;
 
-	x87_reset(cpustate);
+	x87_reset();
 
 	// [11:8] Family
 	// [ 7:4] Model
@@ -3620,13 +3595,13 @@ CPU_RESET( mediagx )
 	// [ 0:0] FPU on chip
 	cpustate->feature_flags = 0x00000001;
 
-	CHANGE_PC(cpustate,cpustate->eip);
+	CHANGE_PC(cpustate->eip);
 }
 
 /*****************************************************************************/
 /* Intel Pentium Pro */
 
-CPU_INIT( pentium_pro )
+void *I386_OPS_BASE::cpu_init_pentium_pro(void)
 {
 	// 64 dtlb small, 32 itlb
 	i386_common_init(96);
@@ -3637,7 +3612,7 @@ CPU_INIT( pentium_pro )
 	return cpustate;
 }
 
-CPU_RESET( pentium_pro )
+void I386_OPS_BASE::cpu_reset_pentium_pro(void)
 {
 	zero_state();
 	vtlb_flush_dynamic(cpustate->vtlb);
@@ -3667,7 +3642,7 @@ CPU_RESET( pentium_pro )
 	cpustate->nmi_masked = false;
 	cpustate->nmi_latched = false;
 
-	x87_reset(cpustate);
+	x87_reset();
 
 	// [11:8] Family
 	// [ 7:4] Model
@@ -3693,13 +3668,13 @@ CPU_RESET( pentium_pro )
 	// No MMX
 	cpustate->feature_flags = 0x000081bf;
 
-	CHANGE_PC(cpustate,cpustate->eip);
+	CHANGE_PC(cpustate->eip);
 }
 
 /*****************************************************************************/
 /* Intel Pentium MMX */
 
-CPU_INIT( pentium_mmx )
+void *I386_OPS_BASE::cpu_init_pentium_mmx(void)
 {
 	// 64 dtlb small, 8 dtlb large, 32 itlb small, 2 itlb large
 	i386_common_init(96);
@@ -3710,7 +3685,7 @@ CPU_INIT( pentium_mmx )
 	return cpustate;
 }
 
-CPU_RESET( pentium_mmx )
+void I386_OPS_BASE::cpu_reset_pentium_mmx(void)
 {
 	zero_state();
 	vtlb_flush_dynamic(cpustate->vtlb);
@@ -3740,7 +3715,7 @@ CPU_RESET( pentium_mmx )
 	cpustate->nmi_masked = false;
 	cpustate->nmi_latched = false;
 
-	x87_reset(cpustate);
+	x87_reset();
 
 	// [11:8] Family
 	// [ 7:4] Model
@@ -3765,24 +3740,24 @@ CPU_RESET( pentium_mmx )
 	// [23:23] MMX instructions
 	cpustate->feature_flags = 0x008001bf;
 
-	CHANGE_PC(cpustate,cpustate->eip);
+	CHANGE_PC(cpustate->eip);
 }
 
 /*****************************************************************************/
 /* Intel Pentium II */
 
-CPU_INIT( pentium2 )
+void *I386_OPS_BASE::cpu_init_pentium2(void)
 {
 	// 64 dtlb small, 8 dtlb large, 32 itlb small, 2 itlb large
 	i386_common_init(96);
-	build_x87_opcode_table(cpustate);
+	build_x87_opcode_table();
 	build_opcode_table(OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO | OP_MMX);
 	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
 	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
 	return cpustate;
 }
 
-CPU_RESET( pentium2 )
+void I386_OPS_BASE::cpu_reset_pentium2(void)
 {
 	zero_state();
 	vtlb_flush_dynamic(cpustate->vtlb);
@@ -3812,7 +3787,7 @@ CPU_RESET( pentium2 )
 	cpustate->nmi_masked = false;
 	cpustate->nmi_latched = false;
 
-	x87_reset(cpustate);
+	x87_reset();
 
 	// [11:8] Family
 	// [ 7:4] Model
@@ -3831,24 +3806,24 @@ CPU_RESET( pentium2 )
 	// [ 0:0] FPU on chip
 	cpustate->feature_flags = 0x008081bf;       // TODO: enable relevant flags here
 
-	CHANGE_PC(cpustate,cpustate->eip);
+	CHANGE_PC(cpustate->eip);
 }
 
 /*****************************************************************************/
 /* Intel Pentium III */
 
-CPU_INIT( pentium3 )
+void *I386_OPS_BASE::cpu_init_pentium3(void)
 {
 	// 64 dtlb small, 8 dtlb large, 32 itlb small, 2 itlb large
 	i386_common_init(96);
-	build_x87_opcode_table(cpustate);
+	build_x87_opcode_table();
 	build_opcode_table(OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO | OP_MMX | OP_SSE);
 	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
 	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
 	return cpustate;
 }
 
-CPU_RESET( pentium3 )
+void I386_OPS_BASE::cpu_reset_pentium3(void)
 {
 	zero_state();
 	vtlb_flush_dynamic(cpustate->vtlb);
@@ -3878,7 +3853,7 @@ CPU_RESET( pentium3 )
 	cpustate->nmi_masked = false;
 	cpustate->nmi_latched = false;
 
-	x87_reset(cpustate);
+	x87_reset();
 
 	// [11:8] Family
 	// [ 7:4] Model
@@ -3899,13 +3874,13 @@ CPU_RESET( pentium3 )
 	// [ D:D] PTE Global Bit
 	cpustate->feature_flags = 0x00002011;       // TODO: enable relevant flags here
 
-	CHANGE_PC(cpustate,cpustate->eip);
+	CHANGE_PC(cpustate->eip);
 }
 
 /*****************************************************************************/
 /* Intel Pentium 4 */
 
-CPU_INIT( pentium4 )
+void *I386_OPS_BASE::cpu_init_pentium4(void)
 {
 	// 128 dtlb, 64 itlb
 	i386_common_init(196);
@@ -3916,7 +3891,7 @@ CPU_INIT( pentium4 )
 	return cpustate;
 }
 
-CPU_RESET( pentium4 )
+void I386_OPS_BASE::cpu_reset_pentium4(void)
 {
 	zero_state();
 	vtlb_flush_dynamic(cpustate->vtlb);
@@ -3946,7 +3921,7 @@ CPU_RESET( pentium4 )
 	cpustate->nmi_masked = false;
 	cpustate->nmi_latched = false;
 
-	x87_reset(cpustate);
+	x87_reset();
 
 	// [27:20] Extended family
 	// [19:16] Extended model
@@ -3968,6 +3943,6 @@ CPU_RESET( pentium4 )
 	// [ 0:0] FPU on chip
 	cpustate->feature_flags = 0x00000001;       // TODO: enable relevant flags here
 
-	CHANGE_PC(cpustate,cpustate->eip);
+	CHANGE_PC(cpustate->eip);
 }
 

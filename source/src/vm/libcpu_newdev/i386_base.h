@@ -14,27 +14,28 @@
 //#include "vm.h"
 //#include "../emu.h"
 #include <assert.h>
-#include "device.h"
-
+#include "./device.h"
 #define SIG_I386_A20	1
 
 class VM;
 class EMU;
 class DEBUGGER;
+class I386_OPS_BASE;
+class FILEIO;
 class I386_BASE : public DEVICE
 {
 protected:
+	I386_OPS_BASE *cpucore;
 	DEVICE *d_mem, *d_io, *d_pic;
 
 	DEVICE *d_bios;
 	DEVICE *d_dma;
-	void *opaque;
-	
 public:
 	I386_BASE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		d_bios = NULL;
 		d_dma = NULL;
+		cpucore = NULL;
 		set_device_name(_T("i80x86 CPU BASE"));
 	}
 	~I386_BASE() {}
@@ -55,18 +56,10 @@ public:
 	virtual bool load_state(FILEIO* state_fio);
 	
 	// unique function
-	void set_context_mem(DEVICE* device)
-	{
-		d_mem = device;
-	}
-	void set_context_io(DEVICE* device)
-	{
-		d_io = device;
-	}
-	void set_context_intr(DEVICE* device)
-	{
-		d_pic = device;
-	}
+	void set_context_mem(DEVICE* device);
+	void set_context_io(DEVICE* device);
+	void set_context_intr(DEVICE* device);
+	
 	virtual void set_context_bios(DEVICE* device) {}
 	virtual void set_context_dma(DEVICE* device) {}
 	void set_address_mask(uint32_t mask);

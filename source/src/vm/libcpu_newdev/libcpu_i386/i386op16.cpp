@@ -1,5 +1,10 @@
 // license:BSD-3-Clause
 // copyright-holders:Ville Linde, Barry Rodewald, Carl, Phil Bennett
+#include "./i386_opdef.h"
+
+#define FAULT(fault,error) {cpustate->ext = 1; i386_trap_with_error(fault,0,0,error); return;}
+#define FAULT_EXP(fault,error) {cpustate->ext = 1; i386_trap_with_error(fault,0,trap_level+1,error); return;}
+
 UINT16 I386_OPS_BASE::I386OP(shift_rotate16)( UINT8 modrm, UINT32 value, UINT8 shift)
 {
 	UINT32 src = value & 0xffff;
@@ -1147,7 +1152,7 @@ void I386_OPS_BASE::I386OP(jmp_abs16)()         // Opcode 0xea
 {
 	UINT16 address = FETCH16();
 	UINT16 segment = FETCH16();
-
+	//printf("!!!!!!!!!!!JMP ABS %04x:%04x\n", address, segment);
 	if( PROTECTED_MODE && !V8086_MODE)
 	{
 		i386_protected_mode_jump(segment,address,0,0);

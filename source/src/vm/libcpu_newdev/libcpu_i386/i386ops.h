@@ -2,11 +2,12 @@
 // copyright-holders:Ville Linde, Barry Rodewald, Carl, Phil Bennett
 #ifndef __LIB_I386_OPS_OPS_H__
 #define __LIB_I386_OPS_OPS_H__
-struct X86_OPCODE {
+class I386_OPS_BASE;
+typedef struct X86_OPCODE {
 	UINT8 opcode;
 	UINT32 flags;
-	void (*I386_OPS_BASE::handler16)();
-	void (*I386_OPS_BASE::handler32)();
+	void (I386_OPS_BASE::*handler16)();
+	void (I386_OPS_BASE::*handler32)();
 	bool lockable;
 };
 

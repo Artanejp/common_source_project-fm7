@@ -480,7 +480,7 @@ static float64
 | and significand are stored at the locations pointed to by `zExpPtr' and
 | `zSigPtr', respectively.
 *----------------------------------------------------------------------------*/
-
+#if 0
 static void
 	normalizeFloatx80Subnormal( bits64 aSig, int32 *zExpPtr, bits64 *zSigPtr )
 {
@@ -491,7 +491,7 @@ static void
 	*zExpPtr = 1 - shiftCount;
 
 }
-
+#endif
 /*----------------------------------------------------------------------------
 | Takes an abstract floating-point value having sign `zSign', exponent `zExp',
 | and extended significand formed by the concatenation of `zSig0' and `zSig1',
