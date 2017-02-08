@@ -5,6 +5,41 @@
 
 include(CheckFunctionExists)
 
+if(USE_DEVICES_SHARED_LIB)
+  add_definitions(-DUSE_DEVICES_SHARED_LIB)
+  set(I386_CPPS
+	libcpu_newdev/i386.cpp
+	libcpu_newdev/libcpu_i386/i386_real.cpp
+	libcpu_newdev/libcpu_i386/i386op16_real.cpp
+	libcpu_newdev/libcpu_i386/i386dasm.cpp
+	)
+  set(MC6809_CPPS mc6809.cpp)
+else()
+  set(I386_CPPS i386.cpp)
+  set(MC6809_CPPS mc6809.cpp)
+  set(VMFILES ${VMFILES} ${VMFILES_LIB})
+endif()
+
+if(FLAG_USE_I86)
+  set(VMFILES ${VMFILES} i86.cpp)
+endif()
+if(FLAG_USE_I286)
+  set(VMFILES ${VMFILES} i286.cpp)
+endif()
+if(FLAG_USE_I386_VARIANTS)
+  set(VMFILES ${VMFILES} ${I386_CPPS})
+endif()
+if(FLAG_USE_Z80)
+  set(VMFILES ${VMFILES} z80.cpp)
+endif()
+if(FLAG_USE_MC6809)
+  set(VMFILES ${VMFILES} ${MC6809_CPPS})
+endif()
+
+if(USE_DEVICES_SHARED_LIB)
+  set(VMFILES ${VMFILES}   libcpu_newdev/device.cpp)
+endif()
+
 if(DEFINED QT5_ROOT_PATH)
   SET(CMAKE_FIND_ROOT_PATH  ${QT5_ROOT_PATH} ${CMAKE_FIND_ROOT_PATH})
 endif()

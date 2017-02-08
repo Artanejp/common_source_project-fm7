@@ -84,6 +84,7 @@ function build_dll() {
 	     ${CMAKE_FLAGS1} \
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
+	     "${CMAKE_FLAGS4}" \
 	     "-DUSE_SDL2=ON" \
 	     ${CMAKE_APPENDFLAG} \
 	     "-DCMAKE_EXE_LINKER_FLAGS:STRING=${CMAKE_LINKFLAG}" \
@@ -93,6 +94,7 @@ function build_dll() {
     ${CMAKE} ${CMAKE_FLAGS1} \
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
+	     "${CMAKE_FLAGS4}" \
 	     "-DUSE_SDL2=ON" \
 	     ${CMAKE_APPENDFLAG} \
 	     "-DCMAKE_EXE_LINKER_FLAGS:STRING=${CMAKE_LINKFLAG}" \
@@ -136,7 +138,15 @@ case ${BUILD_TYPE} in
 esac
 
 # libCSPGui
-build_dll libCSPcommon_vm
+case ${USE_COMMON_DEVICE_LIB} in
+   "Yes" | "yes" | "YES" )
+   CMAKE_FLAGS4="-DUSE_DEVICES_SHARED_LIB=ON"
+   build_dll libCSPcommon_vm
+   ;;
+   * )
+   CMAKE_FLAGS4=""
+   ;;
+esac
 build_dll libCSPfmgen
 build_dll libCSPavio
 build_dll libCSPgui
@@ -154,6 +164,7 @@ for SRCDATA in $@ ; do\
 	     ${CMAKE_FLAGS1} \
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_CC}" \
+	     "${CMAKE_FLAGS4}" \
 	     "-DUSE_SDL2=ON" \
 	     "-DCMAKE_EXE_LINKER_FLAGS:STRING=${CMAKE_LINKFLAG}" \
 	     ${CMAKE_APPENDFLAG} \
@@ -162,6 +173,7 @@ for SRCDATA in $@ ; do\
     ${CMAKE} ${CMAKE_FLAGS1} \
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_CC}" \
+	     "${CMAKE_FLAGS4}" \
 	     "-DUSE_SDL2=ON" \
 	     "-DCMAKE_EXE_LINKER_FLAGS:STRING=${CMAKE_LINKFLAG}" \
 	     ${CMAKE_APPENDFLAG} \

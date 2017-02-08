@@ -7,8 +7,6 @@ set(s_vm_common_vm_srcs
 	
 	../hd146818p.cpp
 	../hd63484.cpp
-#	i386 is super class.
-	../i386_base.cpp
 	../i8155.cpp
 	
 	../i8251.cpp
@@ -67,6 +65,18 @@ set(s_vm_common_vm_srcs
 #	../z80dma.cpp
 	../z80pio.cpp
 #	../z80sio.cpp
+
+	../libcpu_newdev/libcpu_i386/i386_opdef.cpp
+	../libcpu_newdev/libcpu_i386/i386_base_ext.cpp
+	../libcpu_newdev/libcpu_i386/i386op16.cpp
+	../libcpu_newdev/libcpu_i386/i386op32.cpp
+	../libcpu_newdev/libcpu_i386/i386ops.cpp
+	../libcpu_newdev/libcpu_i386/i486ops.cpp
+	../libcpu_newdev/libcpu_i386/pentops.cpp
+	../libcpu_newdev/libcpu_i386/x87ops.cpp
+	../libcpu_newdev/libcpu_i386/vtlb.cpp
+
+	../libcpu_newdev/i386_base.cpp
 )
 
 if(WIN32)

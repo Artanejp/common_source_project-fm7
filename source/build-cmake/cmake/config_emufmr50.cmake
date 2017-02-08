@@ -13,9 +13,6 @@ set(WITH_MOUSE ON)
 
 set(VMFILES
 #
-		   pcm1bit.cpp
-
-		   i8251.cpp
 		   i8253.cpp
 		   i8259.cpp
 		   hd46505.cpp
@@ -25,13 +22,21 @@ set(VMFILES
 		   scsi_dev.cpp
 		   scsi_host.cpp
 		   scsi_hdd.cpp
-		   
+		   memory.cpp
+
 		   disk.cpp
 		   event.cpp
 		   io.cpp
 )
 
+set(VMFILES_LIB
+		   pcm1bit.cpp
 
+		   i8251.cpp
+           hd63484.cpp
+		   i386.cpp  
+		   )
+		 
 set(BUILD_SHARED_LIBS OFF)
 
 set(BUILD_FMR50_286 OFF CACHE BOOL "Build for FM-R50, i286 version")
@@ -48,6 +53,7 @@ set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 
 set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")
 
+
 include(detect_target_cpu)
 #include(windows-mingw-cross)
 # set entry
@@ -59,49 +65,58 @@ if(BUILD_FMR50_286)
   set(EXEC_TARGET emufmr50_286)
   add_definitions(-D_FMR50)
   add_definitions(-DHAS_I286)
-  set(VMFILES ${VMFILES} i286.cpp)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fmr50.qrc)
+  set(FLAG_USE_I386_VARIANTS OFF)
+  set(FLAG_USE_I286 ON)
 elseif(BUILD_FMR50_386)
   set(EXEC_TARGET emufmr50_386)
   add_definitions(-D_FMR50)
   add_definitions(-DHAS_I386)
-  set(VMFILES ${VMFILES} i386.cpp)
+  set(FLAG_USE_I386_VARIANTS ON)
+  set(FLAG_USE_I286 OFF)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fmr50.qrc)
 elseif(BUILD_FMR50_486)
   set(EXEC_TARGET emufmr50_486)
   add_definitions(-D_FMR50)
   add_definitions(-DHAS_I486)
-  set(VMFILES ${VMFILES} i386.cpp)
+  set(FLAG_USE_I386_VARIANTS ON)
+  set(FLAG_USE_I286 OFF)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fmr50.qrc)
 elseif(BUILD_FMR250)
   set(EXEC_TARGET emufmr250)
   add_definitions(-D_FMR50)
   add_definitions(-DHAS_PENTIUM)
-  set(VMFILES ${VMFILES} i386.cpp)
+  set(FLAG_USE_I386_VARIANTS ON)
+  set(FLAG_USE_I286 OFF)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fmr50.qrc)
 elseif(BUILD_FMR60)
   set(EXEC_TARGET emufmr60)
   add_definitions(-D_FMR60)
   add_definitions(-DHAS_I286)
-  set(VMFILES ${VMFILES} i286.cpp hd63484.cpp)
+  set(FLAG_USE_I386_VARIANTS OFF)
+  set(FLAG_USE_I286 ON)
+  set(VMFILES ${VMFILES} hd63484.cpp)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fmr60.qrc)
 elseif(BUILD_FMR70)
   set(EXEC_TARGET emufmr70)
   add_definitions(-D_FMR60)
   add_definitions(-DHAS_I386)
-  set(VMFILES ${VMFILES} i386.cpp hd63484.cpp)
+  set(FLAG_USE_I386_VARIANTS ON)
+  set(FLAG_USE_I286 OFF)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fmr60.qrc)
 elseif(BUILD_FMR80)
   set(EXEC_TARGET emufmr80)
   add_definitions(-D_FMR60)
   add_definitions(-DHAS_I486)
-  set(VMFILES ${VMFILES} i386.cpp hd63484.cpp)
+  set(FLAG_USE_I386_VARIANTS ON)
+  set(FLAG_USE_I286 OFF)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fmr60.qrc)
 elseif(BUILD_FMR280)
   set(EXEC_TARGET emufmr280)
   add_definitions(-D_FMR60)
   add_definitions(-DHAS_PENTIUM)
-  set(VMFILES ${VMFILES} i386.cpp hd63484.cpp)
+  set(FLAG_USE_I386_VARIANTS ON)
+  set(FLAG_USE_I286 OFF)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fmr60.qrc)
 endif()
 
