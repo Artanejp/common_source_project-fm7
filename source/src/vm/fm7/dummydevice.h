@@ -50,17 +50,21 @@ enum {
 	SIG_DUMMYDEVICE_CLEAR_ON_RESET,
 	SIG_DUMMYDEVICE_CLEAR_WITH_ZERO,
 };
+class VM;
 class EMU;
-
 class DUMMYDEVICE : public DEVICE {
 private:
-	EMU *p_emu;
 	uint32_t status;
 	bool clear_on_reset;
 	bool clear_with_zero;
 public:
-	DUMMYDEVICE(VM *parent_vm, EMU *parent_emu);
-	~DUMMYDEVICE();
+	DUMMYDEVICE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		status = 0x00000000;
+		clear_on_reset = true;
+		clear_with_zero = true;
+	}
+	~DUMMYDEVICE() {}
 
 	uint32_t read_signal(int id);
 	void write_signal(int id, uint32_t data, uint32_t mask);

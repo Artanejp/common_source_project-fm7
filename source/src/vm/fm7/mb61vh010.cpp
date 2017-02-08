@@ -11,19 +11,6 @@
 
 #include "mb61vh010.h"
 
-
-MB61VH010::MB61VH010(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
-{
-	p_emu = parent_emu;
-	p_vm = parent_vm;
-	target = NULL;
-	set_device_name(_T("MB61VH010 ALU"));
-}
-
-MB61VH010::~MB61VH010()
-{
-}
-
 uint8_t MB61VH010::do_read(uint32_t addr, uint32_t bank)
 {
 	uint32_t raddr;
@@ -32,11 +19,11 @@ uint8_t MB61VH010::do_read(uint32_t addr, uint32_t bank)
 	if(is_400line) {
 		if((addr & 0xffff) < 0x8000) {
 			raddr = (addr  & 0x7fff) | (0x8000 * bank);
-			return target->read_data8(raddr + DISPLAY_VRAM_DIRECT_ACCESS);
+			return target->read_data8(raddr + direct_access_offset);
 		}
 	} else {
 		raddr = (addr & 0x3fff) | (0x4000 * bank);
-		return target->read_data8(raddr + DISPLAY_VRAM_DIRECT_ACCESS);
+		return target->read_data8(raddr + direct_access_offset);
 	}
 	return 0xff;
 }
@@ -64,11 +51,11 @@ void MB61VH010::do_write(uint32_t addr, uint32_t bank, uint8_t data)
 	if(is_400line) {
 		if((addr & 0xffff) < 0x8000) {
 			raddr = (addr & 0x7fff) | (0x8000 * bank);
-			target->write_data8(raddr + DISPLAY_VRAM_DIRECT_ACCESS, readdata);
+			target->write_data8(raddr + direct_access_offset, readdata);
 		}
 	} else {
 		raddr = (addr & 0x3fff) | (0x4000 * bank);
-		target->write_data8(raddr + DISPLAY_VRAM_DIRECT_ACCESS, readdata);
+		target->write_data8(raddr + direct_access_offset, readdata);
 	}
 	return;
 }
@@ -871,7 +858,7 @@ uint32_t MB61VH010::read_data8(uint32_t id)
 				}
 				do_alucmds_dmyread(raddr);
 				raddr = (id - ALU_WRITE_PROXY) % 0xc000;
-				dmydata = target->read_data8(raddr + DISPLAY_VRAM_DIRECT_ACCESS);
+				dmydata = target->read_data8(raddr + direct_access_offset);
 				return dmydata;
 			}
 			return 0xffffffff;

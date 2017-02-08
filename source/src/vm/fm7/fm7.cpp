@@ -375,6 +375,7 @@ void VM::connect_bus(void)
 #if defined(_FM77AV_VARIANTS)
 	display->set_context_alu(alu);
 	alu->set_context_memory(display);
+	alu->set_direct_access_offset(DISPLAY_VRAM_DIRECT_ACCESS);
 #endif	
 	// Palette, VSYNC, HSYNC, Multi-page, display mode. 
 	mainio->set_context_display(display);

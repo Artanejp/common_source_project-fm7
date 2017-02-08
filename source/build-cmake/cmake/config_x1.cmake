@@ -15,29 +15,33 @@ set(WITH_MOUSE ON)
 
 set(VMFILES
 		   z80.cpp
-		   mcs48.cpp
 		   
-		   beep.cpp
 		   hd46505.cpp
 		   i8255.cpp
-#		   ym2151.cpp
-#		   ym2203.cpp
-#		   ay_3_891x.cpp
 		   mb8877.cpp
 		   upd1990a.cpp
 		   z80ctc.cpp
-#		   z80pio.cpp
+
 		   z80sio.cpp
 		   
 		   prnfile.cpp
 		   datarec.cpp
 		   disk.cpp
 		   event.cpp
+		   
 		   io.cpp
-#		   memory.cpp
 		   prnfile.cpp
 		   mz1p17.cpp
 )
+set(VMFILES_LIB
+		   mcs48.cpp
+		   beep.cpp
+		   z80pio.cpp
+		   ym2151.cpp
+		   ym2203.cpp
+		   ay_3_891x.cpp
+)
+set(FLAG_USE_MCS48 ON)
 
 set(BUILD_X1 OFF CACHE BOOL "Build for X1")
 set(BUILD_X1TURBO OFF CACHE BOOL "Build for X1 Turbo")

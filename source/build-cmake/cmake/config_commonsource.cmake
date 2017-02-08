@@ -16,9 +16,13 @@ if(USE_DEVICES_SHARED_LIB)
   set(MC6809_CPPS 
 	libcpu_newdev/libcpu_mc6809/mc6809.cpp
   )
+  set(MCS48_CPPS
+	libcpu_newdev/mcs48.cpp
+  )
 else()
   set(I386_CPPS i386.cpp)
   set(MC6809_CPPS mc6809.cpp)
+  set(MCS48_CPPS mcs48.cpp)
   set(VMFILES ${VMFILES} ${VMFILES_LIB})
 endif()
 
@@ -37,7 +41,9 @@ endif()
 if(FLAG_USE_MC6809)
   set(VMFILES ${VMFILES} ${MC6809_CPPS})
 endif()
-
+if(FLAG_USE_MCS48)
+  set(VMFILES ${VMFILES} ${MCS48_CPPS})
+endif()
 if(USE_DEVICES_SHARED_LIB)
   set(VMFILES ${VMFILES}   libcpu_newdev/device.cpp)
 endif()
