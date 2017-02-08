@@ -6,7 +6,10 @@
 
 	[ event manager ]
 */
-
+#if defined(USE_DEVICES_SHARED_LIB)
+#include "vm.h"
+#include "../emu.h"
+#endif
 #include "event.h"
 #if defined(_USE_QT)			
 #include "../qt/gui/csp_logger.h"
@@ -91,7 +94,7 @@ void EVENT::drive()
 	for(int i = 0; i < frame_event_count; i++) {
 		frame_event[i]->event_pre_frame();
 	}
-	
+
 	// generate clocks per line
 	if(frames_per_sec != next_frames_per_sec || lines_per_frame != next_lines_per_frame) {
 		frames_per_sec = next_frames_per_sec;
@@ -187,7 +190,6 @@ void EVENT::drive()
 void EVENT::update_event(int clock)
 {
 	uint64_t event_clocks_tmp = event_clocks + clock;
-	
 	while(first_fire_event != NULL && first_fire_event->expired_clock <= event_clocks_tmp) {
 		event_t *event_handle = first_fire_event;
 		uint64_t expired_clock = event_handle->expired_clock;

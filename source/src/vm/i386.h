@@ -10,7 +10,10 @@
 
 #ifndef _I386_H_ 
 #define _I386_H_
-
+#if defined(USE_DEVICES_SHARED_LIB)
+//#if 0
+#include "libcpu_newdev/i386.h"
+#else
 #include "vm.h"
 #include "../emu.h"
 #include "device.h"
@@ -146,5 +149,5 @@ public:
 	void set_shutdown_flag(int shutdown);
 	int get_shutdown_flag();
 };
-
+#endif
 #endif

@@ -19,6 +19,8 @@
 #define USE_DEVICE_NAME
 #endif
 
+#if defined(USE_DEVICES_SHARED_LIB)
+#include "libcpu_newdev/device.h"
 // max devices connected to the output port
 #define MAX_OUTPUT	16
 
@@ -47,8 +49,6 @@
 #define SIG_SCSI_ACK		309
 #define SIG_SCSI_RST		310
 
-#if defined(USE_DEVICES_SHARED_LIB)
-#include "libcpu_newdev/device.h"
 #else
 class DEVICE
 {

@@ -10,8 +10,10 @@
 #ifndef _EVENT_H_
 #define _EVENT_H_
 
+#if defined(USE_DEVICES_SHARED_LIB)
 #include "vm.h"
 #include "../emu.h"
+#endif
 #include "device.h"
 
 #define MAX_CPU		8
@@ -112,7 +114,7 @@ public:
 		lines_per_frame = 0;
 		next_frames_per_sec = FRAMES_PER_SEC;
 		next_lines_per_frame = LINES_PER_FRAME;
-		
+
 #ifdef _DEBUG_LOG
 		initialize_done = false;
 #endif
@@ -195,6 +197,7 @@ public:
 		if(dcount_sound < MAX_SOUND) {
 			d_sound[dcount_sound++] = device;
 		}
+		printf("SOUND %d\n", dcount_sound);
 	}
 	void touch_sound(void)
 	{
@@ -204,8 +207,8 @@ public:
 			// Do need mix_sound(remain_samples) before?
 			if(t_s >= (sound_tmp_samples - buffer_ptr)) t_s = sound_tmp_samples - buffer_ptr - 1; 
 			if(t_s > 0) {
-					mix_sound(t_s);
-					mix_counter = mix_counter - t_s;
+				mix_sound(t_s);
+				mix_counter = mix_counter - t_s;
 			}
 			if(mix_counter < 1) mix_counter = 1;
 			sound_touched = true;
