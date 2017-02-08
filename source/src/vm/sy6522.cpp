@@ -34,8 +34,8 @@
    timer init, reset, read changed
  */
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "sy6522.h"
 
 /***************************************************************************

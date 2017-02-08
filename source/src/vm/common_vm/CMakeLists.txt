@@ -20,9 +20,10 @@ set(s_vm_common_vm_srcs
 	../libcpu_newdev/libcpu_mc6809/mc6809_base.cpp
 	../mc6820.cpp
 	../mc6840.cpp
+	../libcpu_newdev/mcs48_base.cpp
 
 	../msm5205.cpp
-
+	
 	../nand.cpp
 	../nor.cpp
 	../not.cpp
@@ -39,9 +40,9 @@ set(s_vm_common_vm_srcs
 #	../scsi_hdd.cpp
 #	../scsi_host.cpp
 #	../sn76489an.cpp
-#	../sy6522.cpp
+	../sy6522.cpp
 #	../t3444a.cpp
-	../tf20.cpp
+#	../tf20.cpp
 	../tms3631.cpp
 #	../tms9918a.cpp
 #	../tms9995.cpp
@@ -77,6 +78,11 @@ set(s_vm_common_vm_srcs
 	../libcpu_newdev/libcpu_i386/vtlb.cpp
 
 	../libcpu_newdev/i386_base.cpp
+	
+	# FM-7/77/AV
+	../fm7/hd6844.cpp
+	../fm7/mb61vh010.cpp
+	../fm7/dummydevice.cpp
 )
 
 if(WIN32)
