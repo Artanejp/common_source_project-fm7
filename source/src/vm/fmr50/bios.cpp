@@ -313,9 +313,10 @@ bool BIOS::bios_call_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t
 	
 	if(PC == 0xfffc4) {
 		// disk bios
-#ifdef _DEBUG_LOG
-		emu->out_debug_log(_T("%6x\tDISK BIOS: AH=%2x,AL=%2x,CX=%4x,DX=%4x,BX=%4x,DS=%2x,DI=%2x\n"), get_cpu_pc(0), AH,AL,CX,DX,BX,DS,DI);
-#endif
+//#ifdef _DEBUG_LOG
+//		emu->out_debug_log(_T("%6x\tDISK BIOS: AH=%2x,AL=%2x,CX=%4x,DX=%4x,BX=%4x,DS=%2x,DI=%2x\n"), get_cpu_pc(0), AH,AL,CX,DX,BX,DS,DI);
+		//printf(_T("%6x\tDISK BIOS: AH=%2x,AL=%2x,CX=%4x,DX=%4x,BX=%4x,DS=%2x,DI=%2x\n"), get_cpu_pc(0), AH,AL,CX,DX,BX,DS,DI);
+//#endif
 		if(AH == 2) {
 			// drive status
 			if((AL & 0xf0) == 0x20) {
@@ -1077,6 +1078,7 @@ bool BIOS::bios_int_i86(int intnum, uint16_t regs[], uint16_t sregs[], int32_t* 
 	
 	if(intnum == 0x93) {
 		// disk bios
+	printf("INT 93H\n");
 		return bios_call_i86(0xfffc4, regs, sregs, ZeroFlag, CarryFlag);
 	}
 	return false;
