@@ -90,7 +90,6 @@ void OSD_BASE::initialize_sound(int rate, int samples)
 
 	sound_rate = rate;
 	sound_samples = samples;
-	sound_ok = sound_started = now_mute = now_record_sound = false;
 	rec_sound_buffer_ptr = 0;
 	sound_ok = sound_started = now_mute = now_record_sound = false;
 	sound_write_pos = 0;
