@@ -494,6 +494,7 @@ const _TCHAR *DLL_PREFIX create_local_path(const _TCHAR *format, ...)
 	static unsigned int table_index = 0;
 	unsigned int output_index = (table_index++) & 7;
 	_TCHAR file_name[_MAX_PATH];
+	//printf("%d %d\n", table_index, output_index);
 	va_list ap;
 	
 	va_start(ap, format);

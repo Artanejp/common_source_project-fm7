@@ -374,7 +374,6 @@ void Ui_MainWindow::delete_joy_thread(void)
 
 void Ui_MainWindow::on_actionExit_triggered()
 {
-	save_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
 	OnMainWindowClosed();
 }
 
@@ -439,6 +438,7 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 		hRunEmu->wait();
 		delete hRunEmu;
 	}
+	save_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
 #if defined(USE_JOYSTICK)
 	if(hRunJoy != NULL) {
 		hRunJoy->wait();
