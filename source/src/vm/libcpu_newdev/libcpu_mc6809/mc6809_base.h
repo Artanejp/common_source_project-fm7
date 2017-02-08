@@ -8,23 +8,22 @@
 	[ MC6809 ]
 */
 
-#ifndef _MC6809_H_
-#define _MC6809_H_
+#ifndef _LIBNEWDEV_MC6809_BASE_H_
+#define _LIBNEWDEV_MC6809_BASE_H_
 
-#if defined(USE_DEVICES_SHARED_LIB)
-//#if 0
-#include "libcpu_newdev/libcpu_mc6809/mc6809.h"
-#else
-#include "vm.h"
-#include "../emu.h"
-#include "device.h"
+//#include "vm.h"
+//#include "../emu.h"
+#include "../device.h"
 
 class VM;
 class EMU;
 class DEBUGGER;
-class MC6809 : public DEVICE
+class MC6809_BASE : public DEVICE
 {
-private:
+protected:
+	virtual void run_one_opecode();
+	// opcodes
+	void op(uint8_t ireg);
 	// context
 	DEVICE *d_mem;
 
@@ -55,10 +54,7 @@ private:
 	void cpu_irq(void);
 	void cpu_firq(void);
 	void cpu_nmi(void);
-	
-	// opcodes
-	void run_one_opecode();
-	void op(uint8_t ireg);
+	//opcodes
 	void fetch_effective_address();
 	void fetch_effective_address_IDX(uint8_t upper, uint8_t lower);
 	// Useful routines.
@@ -113,7 +109,7 @@ private:
 	inline uint16_t LOAD16_REG(uint16_t reg);
 	inline void STORE16_REG(pair_t *p);
 
- public:
+public:
 	void abx();
 	void adca_di();
 	void adca_ex();
@@ -412,13 +408,13 @@ private:
 
 	
 public:
-	MC6809(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) 
+	MC6809_BASE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) 
 	{
 		initialize_output_signals(&outputs_bus_clr);
 		initialize_output_signals(&outputs_bus_halt);
 		set_device_name(_T("MC6809 MPU"));
 	}
-	~MC6809() {}
+	~MC6809_BASE() {}
 	
 	void *get_debugger()
 	{
@@ -432,8 +428,8 @@ public:
 	{
 		return 0xffff;
 	}
-	void write_debug_data8(uint32_t addr, uint32_t data);
-	uint32_t read_debug_data8(uint32_t addr);
+	virtual void write_debug_data8(uint32_t addr, uint32_t data);
+	virtual uint32_t read_debug_data8(uint32_t addr);
 	void write_debug_data16(uint32_t addr, uint32_t data)
 	{
 		write_debug_data8(addr, (data >> 8) & 0xff);
@@ -456,8 +452,8 @@ public:
 		val |= read_debug_data16(addr + 2);
 		return val;
 	}
-	void write_debug_io8(uint32_t addr, uint32_t data);
-	uint32_t read_debug_io8(uint32_t addr);
+	virtual void write_debug_io8(uint32_t addr, uint32_t data);
+	virtual uint32_t read_debug_io8(uint32_t addr);
 	void write_debug_io16(uint32_t addr, uint32_t data)
 	{
 		write_debug_io8(addr, (data >> 8) & 0xff);
@@ -480,14 +476,14 @@ public:
 		val |= read_debug_io16(addr + 2);
 		return val;
 	}
-	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
-	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
-	uint32_t cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_t *oprom, const uint8_t *opram);
+	virtual bool write_debug_reg(const _TCHAR *reg, uint32_t data);
+	virtual void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+	virtual int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
+	virtual uint32_t cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_t *oprom, const uint8_t *opram);
 
 	// common functions
 	void reset();
-	void initialize();
+	virtual void initialize();
 	int run(int clock);
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
@@ -562,6 +558,9 @@ public:
 	}
 
 };
-#endif
+extern const int mc6809_cycles1[];
+extern const uint8_t mc6809_flags8i[256];
+extern const uint8_t mc6809_flags8d[256];
+
 #endif
 
