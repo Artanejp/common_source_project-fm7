@@ -8,7 +8,7 @@
 //#include "./i386_opdef.h"
 
 //static const X86_OPCODE _x86_opcode_table_fake[] =
-X86_OPCODE x86_opcode_table[] =
+const X86_OPCODE x86_opcode_table[] =
 {
 //  Opcode      Flags                       16-bit handler                  32-bit handler
 	{ 0x00,     OP_I386,                    &I386_OPS_BASE::i386_add_rm8_r8,             &I386_OPS_BASE::i386_add_rm8_r8,         true },

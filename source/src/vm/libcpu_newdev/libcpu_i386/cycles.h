@@ -6,7 +6,7 @@
 #ifndef __LIB_I386_CYCLES_H__
 #define __LIB_I386_CYCLES_H__
 
-static const X86_CYCLE_TABLE _x86_cycle_table_real[] =
+const X86_CYCLE_TABLE x86_cycle_table[] =
 {
 	// opcode                     rm/pmode
 	//                            i386         i486         pentium      mediagx

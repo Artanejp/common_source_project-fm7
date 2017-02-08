@@ -26,9 +26,9 @@ i386_state *I386_OPS::i386_common_init(int tlbsize)
 	static const int regs8[8] = {AL,CL,DL,BL,AH,CH,DH,BH};
 	static const int regs16[8] = {AX,CX,DX,BX,SP,BP,SI,DI};
 	static const int regs32[8] = {EAX,ECX,EDX,EBX,ESP,EBP,ESI,EDI};
-	cpustate = (i386_state *)malloc(sizeof(i386_state));
-	x86_cycle_table = _x86_cycle_table_real;
-	//x86_opcode_table = (X86_OPCODE *)x86_opcode_table;
+	cpustate = &__cpustate;
+	//cpustate = (i386_state *)malloc(sizeof(i386_state));
+	//x86_cycle_table = _x86_cycle_table_real;
 
 	assert((sizeof(XMM_REG)/sizeof(double)) == 2);
 

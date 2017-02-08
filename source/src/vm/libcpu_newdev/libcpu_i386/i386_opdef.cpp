@@ -2678,7 +2678,7 @@ void I386_OPS_BASE::i386_protected_mode_iret(int operand32)
 	CHANGE_PC(cpustate->eip);
 }
 
-//#include "cycles.h"
+#include "cycles.h"
 
 void I386_OPS_BASE::build_cycle_table()
 {
@@ -2865,7 +2865,6 @@ void I386_OPS_BASE::i386_postload()
 	CHANGE_PC(cpustate->eip);
 }
 
-#include "./cycles.h"
 #include "./i386_ops_table.h"
 
 i386_state *I386_OPS_BASE::i386_common_init(int tlbsize)
@@ -2874,8 +2873,9 @@ i386_state *I386_OPS_BASE::i386_common_init(int tlbsize)
 	static const int regs8[8] = {AL,CL,DL,BL,AH,CH,DH,BH};
 	static const int regs16[8] = {AX,CX,DX,BX,SP,BP,SI,DI};
 	static const int regs32[8] = {EAX,ECX,EDX,EBX,ESP,EBP,ESI,EDI};
-	cpustate = (i386_state *)malloc(sizeof(i386_state));
-	x86_cycle_table = _x86_cycle_table_real;
+	cpustate = &__cpustate;
+	//cpustate = (i386_state *)malloc(sizeof(i386_state));
+	//x86_cycle_table = _x86_cycle_table_real;
 	//x86_opcode_table = _x86_opcode_table_fake;
 
 	assert((sizeof(XMM_REG)/sizeof(double)) == 2);
@@ -2926,7 +2926,7 @@ void I386_OPS_BASE::i386_vtlb_free(void)
 
 void I386_OPS_BASE::i386_free_state(void)
 {
-	if(cpustate != NULL) free(cpustate);
+	//if(cpustate != NULL) free(cpustate);
 }
 
 void *I386_OPS_BASE::cpu_init_i386(void)

@@ -506,13 +506,13 @@ protected:
 	i386_state *cpustate;
 	int _cputype;
 // Parameters.
-	const X86_CYCLE_TABLE *x86_cycle_table;
+	//const X86_CYCLE_TABLE *x86_cycle_table;
 	//const X86_OPCODE *x86_opcode_table;
 	//X86_OPCODE x86_opcode_table[];
 	
 	int i386_parity_table[256];
 	MODRM_TABLE i386_MODRM_table[256];
-	
+	i386_state __cpustate;
 	UINT8 cycle_table_rm[X86_NUM_CPUS][CYCLES_NUM_OPCODES];
 	UINT8 cycle_table_pm[X86_NUM_CPUS][CYCLES_NUM_OPCODES];
 	const floatx80 fx80_zero =   { 0x0000, U64(0x0000000000000000) };
@@ -1831,7 +1831,9 @@ protected:
 	int x87_dec_stack();
 	int x87_check_exceptions();
 };
-extern X86_OPCODE x86_opcode_table[];
+extern const X86_OPCODE x86_opcode_table[];
+extern const X86_CYCLE_TABLE x86_cycle_table[];
+
 /***********************************************************************************/
 
 #define CYCLES_NUM(x)   (cpustate->cycles -= (x))
