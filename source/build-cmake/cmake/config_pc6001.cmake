@@ -14,13 +14,13 @@ set(WITH_MOUSE ON)
 
 set(VMFILES
 		   z80.cpp
-		   i8255.cpp
+
 		   pc6031.cpp
 		   pc80s31k.cpp
+		   i8255.cpp
 		   
 		   upd765a.cpp
 		   ym2203.cpp
-		   mcs48.cpp
 		   
 		   disk.cpp
 		   event.cpp
@@ -29,6 +29,11 @@ set(VMFILES
 		   datarec.cpp
 		   prnfile.cpp
 )
+
+set(VMFILES_LIB
+)
+set(FLAG_USE_MCS48 ON)
+set(FLAG_USE_Z80 ON)
 
 set(BUILD_SHARED_LIBS OFF)
 

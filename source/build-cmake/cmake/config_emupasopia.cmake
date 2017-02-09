@@ -12,21 +12,22 @@ set(WITH_MOUSE OFF)
 set(VMFILES
 		   z80.cpp
 
-		   hd46505.cpp
 		   i8255.cpp
 		   
-		   ls393.cpp
-		   not.cpp
-
 		   z80ctc.cpp
-		   z80pio.cpp
 		   upd765a.cpp
+		   hd46505.cpp
 		   
-		   pcm1bit.cpp
 		   datarec.cpp
 		   io.cpp
 		   event.cpp
 		   disk.cpp
+)
+set(VMFILES_LIB
+	   ls393.cpp
+	   not.cpp
+	   z80pio.cpp
+	   pcm1bit.cpp
 )
 
 if(NOT BUILD_PASOPIA)

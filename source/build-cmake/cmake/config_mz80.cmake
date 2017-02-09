@@ -15,13 +15,8 @@ set(WITH_MOUSE OFF)
 
 set(VMFILES_BASE
 		   z80.cpp
-		   beep.cpp
-		   
-		   i8255.cpp
 		   i8253.cpp
-		   ls393.cpp
-		   pcm1bit.cpp
-		   
+		   i8255.cpp
 		   datarec.cpp
 		   prnfile.cpp
 		   mz1p17.cpp
@@ -29,6 +24,13 @@ set(VMFILES_BASE
 		   io.cpp
 		   memory.cpp
 )
+
+set(VMFILES_LIB
+	   beep.cpp
+	   ls393.cpp
+	   pcm1bit.cpp
+)		   
+		   
 
 set(BUILD_MZ80A OFF CACHE BOOL "Build EMU-MZ80A")
 set(BUILD_MZ80K OFF CACHE BOOL "Build EMU-MZ80A")

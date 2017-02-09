@@ -11,38 +11,42 @@ set(WITH_MOUSE ON)
 
 set(VMFILES_BASE
 		   z80.cpp
-		   beep.cpp
+
 		   i8255.cpp
 		   i8253.cpp
-		   pcm1bit.cpp
 		   
 		   datarec.cpp
 		   
-		   and.cpp
-
 		   event.cpp
 		   io.cpp
 		   memory.cpp
 )
 
 set(VMFILES_MZ800 ${VMFILES_BASE}
-		   mb8877.cpp
-		   disk.cpp
+	   mb8877.cpp
+	   disk.cpp
 		   
-		   not.cpp
-		   sn76489an.cpp
-		   z80pio.cpp
-		   z80sio.cpp
+	   sn76489an.cpp
+	   z80sio.cpp
 )
 
 set(VMFILES_MZ1500 ${VMFILES_MZ800}
-		   ym2203.cpp
-		   prnfile.cpp
-		   mz1p17.cpp
+	   ym2203.cpp
+	   prnfile.cpp
+	   mz1p17.cpp
 )
-		   
 
-
+set(VMFILES_LIB
+	   beep.cpp
+	   pcm1bit.cpp
+	   and.cpp
+)
+set(VMFILES_LIB_MZ800 
+	   not.cpp
+	   z80pio.cpp
+)
+set(VMFILES_LIB_MZ1500 ${VMFILES_LIB_MZ800}
+)
 set(BUILD_MZ700 OFF CACHE BOOL "Build EMU-MZ800")
 set(BUILD_MZ800 OFF CACHE BOOL "Build EMU-MZ800")
 set(BUILD_MZ1500 OFF CACHE BOOL "Build EMU-MZ1500")
@@ -64,6 +68,7 @@ set(VMFILES ${VMFILES_MZ1500})
 add_definitions(-D_MZ1500)
 set(EXEC_TARGET emumz1500)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz1500.qrc)
+set(VMFILES_LIB ${VMFILES_LIB} ${VMFILES_LIB_MZ1500})
 set(USE_FMGEN OFF)
 elseif(BUILD_MZ800)
 
@@ -71,6 +76,7 @@ set(VMFILES ${VMFILES_MZ800})
 add_definitions(-D_MZ800)
 set(EXEC_TARGET emumz800)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz800.qrc)
+set(VMFILES_LIB ${VMFILES_LIB} ${VMFILES_LIB_MZ800})
 set(USE_FMGEN OFF)
 else()
 

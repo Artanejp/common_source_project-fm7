@@ -11,17 +11,18 @@ set(USE_FMGEN OFF)
 set(WITH_JOYSTICK OFF)
 set(WITH_MOUSE OFF)
 set(VMFILES
-		   i8080.cpp
-		   i8155.cpp
+	   i8080.cpp
+	   upd1990a.cpp
 		   
-		   upd1990a.cpp
+	   io.cpp
+	   datarec.cpp
 		   
-		   io.cpp
-		   pcm1bit.cpp
-		   datarec.cpp
-		   
-		   event.cpp
+	   event.cpp
 )
+set(VMFILES_LIB
+	   i8155.cpp
+	   pcm1bit.cpp
+)		   
 
 
 set(BUILD_SHARED_LIBS OFF)

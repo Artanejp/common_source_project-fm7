@@ -5,17 +5,13 @@ set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
 
 set(VMFILES
-		   i8251.cpp
 		   i8253.cpp
-		   i8255.cpp
+
 		   i8259.cpp
+		   i8255.cpp
 		   
 		   upd765a.cpp
 		   upd71071.cpp
-		   
-		   beep.cpp
-		   ls244.cpp
-		   not.cpp
 		   
 		   disk.cpp
 		   event.cpp
@@ -23,6 +19,14 @@ set(VMFILES
 		   memory.cpp
 		   prnfile.cpp
 )
+set(VMFILES_LIB
+		   beep.cpp
+		   ls244.cpp
+		   not.cpp
+		   i8251.cpp
+		   
+)
+
 set(BUILD_SHARED_LIBS OFF)
 set(BUILD_PC98HA OFF CACHE BOOL "Build on PC98 HA")
 set(BUILD_PC98LT OFF CACHE BOOL "Build on PC98 LT")
