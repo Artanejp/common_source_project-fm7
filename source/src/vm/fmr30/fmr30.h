@@ -72,7 +72,7 @@ class I8237;
 class I8251;
 class I8253;
 class I8259;
-class I286;
+class I86;
 class IO;
 class MB8877;
 class SCSI_HOST;
@@ -104,7 +104,7 @@ protected:
 	I8251* sio_ch2;
 	I8253* pit;
 	I8259* pic;
-	I286* cpu;
+	I86* cpu;
 	IO* io;
 	MB8877* fdc;
 	SCSI_HOST* scsi_host;

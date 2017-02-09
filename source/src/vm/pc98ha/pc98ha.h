@@ -81,7 +81,11 @@ class I8251;
 class I8253;
 class I8255;
 class I8259;
+#if defined(HAS_V30) || defined(HAS_I86)
+class I86;
+#else
 class I286;
+#endif
 class IO;
 class NOT;
 #ifdef _PC98HA
@@ -115,7 +119,11 @@ protected:
 	I8255* pio_sys;
 	I8255* pio_prn;
 	I8259* pic;
+#if defined(HAS_V30) || defined(HAS_I86)
+	I86* cpu;
+#else
 	I286* cpu;
+#endif
 	IO* io;
 	NOT* not_busy;
 #ifdef _PC98HA

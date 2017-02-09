@@ -16,7 +16,7 @@
 #include "../i8251.h"
 #include "../i8253.h"
 #include "../i8259.h"
-#include "../i286.h"
+#include "../i86.h"
 #include "../io.h"
 #include "../mb8877.h"
 #include "../scsi_hdd.h"
@@ -56,7 +56,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	sio_ch2 = new I8251(this, emu);	// RS-232C ch.2
 	pit = new I8253(this, emu);
 	pic = new I8259(this, emu);
-	cpu = new I286(this, emu);
+	cpu = new I86(this, emu);
 	io = new IO(this, emu);
 	fdc = new MB8877(this, emu);
 #if defined(_USE_QT)
@@ -70,7 +70,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	sio_ch2->set_device_name(_T("i8251 SIO(RS-232C #2)"));
 	pit->set_device_name(_T("i8253 PIT"));
 	pic->set_device_name(_T("i8259 PIC"));
-	cpu->set_device_name(_T("CPU(i8086)"));
+	cpu->set_device_name(_T("CPU(80C86)"));
 #endif
 	
 	scsi_host = new SCSI_HOST(this, emu);

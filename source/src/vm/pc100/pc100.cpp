@@ -18,7 +18,7 @@
 #include "../i8251.h"
 #include "../i8255.h"
 #include "../i8259.h"
-#include "../i286.h"
+#include "../i86.h"
 #include "../io.h"
 #include "../memory.h"
 #include "../msm58321.h"
@@ -54,7 +54,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio0 = new I8255(this, emu);
 	pio1 = new I8255(this, emu);
 	pic = new I8259(this, emu);
-	cpu = new I286(this, emu);
+	cpu = new I86(this, emu);
 	io = new IO(this, emu);
 	memory = new MEMORY(this, emu);
 	rtc = new MSM58321(this, emu);

@@ -40,13 +40,13 @@ void PC6031::event_callback(int event_id, int err)
 		}
 		add_sound(PC6031_SND_TYPE_SEEK);
 	}
-//#endif
+#endif
 }
 
 int PC6031::Seek88(int drvno, int trackno, int sectno)
 {
 	if(drvno < 2) {
-//#if defined(USE_SOUND_FILES)
+#if defined(USE_SOUND_FILES)
 
 		if(cur_trk[drvno] != trackno) {
 			seek_track_num[drvno] = (cur_trk[drvno] & 0xfe);
@@ -55,7 +55,7 @@ int PC6031::Seek88(int drvno, int trackno, int sectno)
 			}
 			register_event(this, EVENT_SEEK_SOUND + drvno, 16000, false, &seek_event_id[drvno]);
 		}
-//#endif
+#endif
 		cur_trk[drvno] = trackno;
 		cur_sct[drvno] = sectno;
 		cur_pos[drvno] = 0;

@@ -39,7 +39,7 @@ set(VMFILES_LIB
 		   pcm1bit.cpp
 		   i8251.cpp
 )
-set(FLAG_USE_I286 ON)
+set(FLAG_USE_I86 ON)
 
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
