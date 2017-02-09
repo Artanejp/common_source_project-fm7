@@ -1,0 +1,6 @@
+create_hdd.exe creates sasi hard drive images HDD1.DAT / HDD2.DAT
+sasi interface rom and hard drive utility are required to support hard drives.
+
+create_hdd.exeを実行すると、sasiハードディスクイメージが作成されます。
+使用するには、sasiインターフェースのromイメージ、およびhddユーティリティ
+ディスクが必要です。

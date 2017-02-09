@@ -1,0 +1,10 @@
+Usage: wav_apss (source wav file) [threshold]
+
+The music tape for BASIC-M25 demonstration and Moon Child has 2 channels.
+The left channel is a degital data for APSS,
+and the right channel is for a analog music data.
+This utility is to cleanup the left channel for EmuZ-2500.
+
+BASIC-M25の付録デモやムーンチャイルド等で使用する音楽テープは、
+左音声に頭出し用のデジタルデータ、右音声に音楽が記録されています。
+本ツールは、この左音声のノイズを除去するためのものです。
