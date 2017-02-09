@@ -136,6 +136,7 @@ typedef UINT32	offs_t;
 #define cpu_state i80286_state
 #include "mame/emu/cpu/i86/i286.c"
 #endif
+
 #ifdef USE_DEBUGGER
 #ifdef HAS_V30
 #include "mame/emu/cpu/nec/necdasm.c"
