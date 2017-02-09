@@ -16,7 +16,11 @@
 #include "../i8237.h"
 #include "../i8255.h"
 #include "../i8259.h"
+#if defined(HAS_I286) || defined(HAS_I186)
 #include "../i286.h"
+#else
+#include "../i86.h"
+#endif
 #include "../io.h"
 #include "../ls393.h"
 #include "../mz1p17.h"
@@ -63,7 +67,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	dma = new I8237(this, emu);
 	pio = new I8255(this, emu);
 	pic = new I8259(this, emu);
+#if defined(HAS_I286) || defined(HAS_I186)
 	cpu = new I286(this, emu);
+#else
+	cpu = new I86(this, emu);
+#endif
 	io = new IO(this, emu);
 	div = new LS393(this, emu);
 #if defined(_USE_QT)
