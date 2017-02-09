@@ -18,16 +18,20 @@ if(USE_DEVICES_SHARED_LIB)
   )
   set(MCS48_CPPS
 	libcpu_newdev/mcs48.cpp
-  )
+	)
+  set(IX86_CPPS
+	libcpu_newdev/i86.cpp
+	)
 else()
   set(I386_CPPS i386.cpp)
   set(MC6809_CPPS mc6809.cpp)
   set(MCS48_CPPS mcs48.cpp)
+  set(IX86_CPPS i86.cpp)
   set(VMFILES ${VMFILES} ${VMFILES_LIB})
 endif()
 
 if(FLAG_USE_I86)
-  set(VMFILES ${VMFILES} i86.cpp)
+  set(VMFILES ${VMFILES} ${IX86_CPPS})
 endif()
 if(FLAG_USE_I286)
   set(VMFILES ${VMFILES} i286.cpp)

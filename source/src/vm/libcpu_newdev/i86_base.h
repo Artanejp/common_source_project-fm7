@@ -8,34 +8,23 @@
 	[ 80x86 ]
 */
 
-#ifndef _I86_H_ 
-#define _I86_H_
+#ifndef _LIBNEWDEV_I86_BASE_H_ 
+#define _LIBNEWDEV_I86_BASE_H_
 
-#include "vm.h"
-#include "../emu.h"
-#include "device.h"
-
+#include "../../common.h"
+#include "./device.h"
+#include "./i86_defs.h"
 #define SIG_I86_TEST	0
 
-#ifdef USE_DEBUGGER
-class DEBUGGER;
-#endif
-
-class I86 : public DEVICE
+class I86_BASE : public DEVICE
 {
-private:
+protected:
 	/* ---------------------------------------------------------------------------
 	contexts
 	--------------------------------------------------------------------------- */
 	
 	DEVICE *d_mem, *d_io, *d_pic, *d_bios;
-#ifdef SINGLE_MODE_DMA
-	DEVICE *d_dma;
-#endif
-#ifdef USE_DEBUGGER
-	DEBUGGER *d_debugger;
 	DEVICE *d_mem_stored, *d_io_stored;
-#endif
 	
 	/* ---------------------------------------------------------------------------
 	registers
@@ -53,6 +42,16 @@ private:
 	int32_t AuxVal, OverVal, SignVal, ZeroVal, CarryVal, DirVal;
 	uint8_t ParityVal;
 	uint8_t TF, IF, MF;
+	struct {
+		struct {
+			WREGS w[256];
+			BREGS b[256];
+		} reg;
+		struct {
+			WREGS w[256];
+			BREGS b[256];
+		} RM;
+	} Mod_RM;
 	
 	int int_state;
 	bool test_state;
@@ -67,6 +66,7 @@ private:
 	uint16_t eo;		/* effective offset of the address (before segment is added) */
 	uint8_t ea_seg;		/* effective segment of the address */
 	
+	struct i80x86_timing timing;
 	/* ---------------------------------------------------------------------------
 	opecode
 	--------------------------------------------------------------------------- */
@@ -79,11 +79,18 @@ private:
 	void rotate_shift_word(unsigned ModRM, unsigned cnt);
 	
 	// opecode
-	void run_one_opecode();
-#ifdef USE_DEBUGGER
-	void run_one_opecode_debugger();
-#endif
-	void instruction(uint8_t code);
+	virtual void run_one_opecode();
+	virtual void run_one_opecode_debugger();
+	virtual void instruction(uint8_t code);
+	
+	virtual void _repc(int flagval);
+	virtual void _call_far();
+	virtual void _int();
+	virtual void _aad();
+	virtual void _call_d16();
+	virtual void _rep(int flagval);
+	virtual void _ffpre();
+	
 	inline void _add_br8();
 	inline void _add_wr16();
 	inline void _add_r8b();
@@ -99,9 +106,6 @@ private:
 	inline void _or_ald8();
 	inline void _or_axd16();
 	inline void _push_cs();
-#if defined(HAS_V30)
-	inline void _0fpre();
-#endif
 	inline void _adc_br8();
 	inline void _adc_wr16();
 	inline void _adc_r8b();
@@ -185,7 +189,6 @@ private:
 	inline void _pusha();
 	inline void _popa();
 	inline void _bound();
-	inline void _repc(int flagval);
 	inline void _push_d16();
 	inline void _imul_d16();
 	inline void _push_d8();
@@ -236,7 +239,6 @@ private:
 	inline void _xchg_axdi();
 	inline void _cbw();
 	inline void _cwd();
-	inline void _call_far();
 	inline void _wait();
 	inline void _pushf();
 	inline void _popf();
@@ -287,7 +289,6 @@ private:
 	inline void _retf_d16();
 	inline void _retf();
 	inline void _int3();
-	inline void _int();
 	inline void _into();
 	inline void _iret();
 	inline void _rotshft_b();
@@ -295,7 +296,6 @@ private:
 	inline void _rotshft_bcl();
 	inline void _rotshft_wcl();
 	inline void _aam();
-	inline void _aad();
 	inline void _setalc();
 	inline void _xlat();
 	inline void _escape();
@@ -307,7 +307,6 @@ private:
 	inline void _inax();
 	inline void _outal();
 	inline void _outax();
-	inline void _call_d16();
 	inline void _jmp_d16();
 	inline void _jmp_far();
 	inline void _jmp_d8();
@@ -316,7 +315,6 @@ private:
 	inline void _outdxal();
 	inline void _outdxax();
 	inline void _lock();
-	inline void _rep(int flagval);
 	inline void _repne();
 	inline void _repe();
 	inline void _hlt();
@@ -330,29 +328,24 @@ private:
 	inline void _cld();
 	inline void _std();
 	inline void _fepre();
-	inline void _ffpre();
 	inline void _invalid();
 	
 public:
-	I86(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	I86_BASE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		d_bios = NULL;
-#ifdef SINGLE_MODE_DMA
-		d_dma = NULL;
-#endif
 		busreq = false;
-#if defined(HAS_I86)
+		d_bios = NULL;
+		d_pic = NULL;
+		d_mem = d_mem_stored = NULL;
+		d_io = d_io_stored = NULL;
 		set_device_name(_T("i8086 CPU"));
-#else
-		set_device_name(_T("i80186 CPU"));
-#endif		
 	}
-	~I86() {}
+	~I86_BASE() {}
 	
 	// common functions
-	void initialize();
-	void reset();
-	int run(int clock);
+	virtual void initialize();
+	virtual void reset();
+	virtual int run(int clock);
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void set_intr_line(bool line, bool pending, uint32_t bit);
 	void set_extra_clock(int clock)
@@ -371,19 +364,6 @@ public:
 	{
 		return pc;
 	}
-#ifdef USE_DEBUGGER
-	void *get_debugger()
-	{
-		return d_debugger;
-	}
-	uint32_t get_debug_prog_addr_mask()
-	{
-		return 0xfffff;
-	}
-	uint32_t get_debug_data_addr_mask()
-	{
-		return 0xfffff;
-	}
 	void write_debug_data8(uint32_t addr, uint32_t data);
 	uint32_t read_debug_data8(uint32_t addr);
 	void write_debug_data16(uint32_t addr, uint32_t data);
@@ -395,7 +375,7 @@ public:
 	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
 	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
-#endif
+
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
@@ -416,18 +396,7 @@ public:
 	{
 		d_bios = device;
 	}
-#ifdef SINGLE_MODE_DMA
-	void set_context_dma(DEVICE* device)
-	{
-		d_dma = device;
-	}
-#endif
-#ifdef USE_DEBUGGER
-	void set_context_debugger(DEBUGGER* device)
-	{
-		d_debugger = device;
-	}
-#endif
 };
+#include "i86_inlineops.h"
 
 #endif

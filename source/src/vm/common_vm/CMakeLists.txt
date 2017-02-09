@@ -21,6 +21,7 @@ set(s_vm_common_vm_srcs
 	../mc6820.cpp
 	../mc6840.cpp
 	../libcpu_newdev/mcs48_base.cpp
+	../libcpu_newdev/i86_base.cpp
 
 	../msm5205.cpp
 	
@@ -40,7 +41,7 @@ set(s_vm_common_vm_srcs
 #	../scsi_hdd.cpp
 #	../scsi_host.cpp
 #	../sn76489an.cpp
-	../sy6522.cpp
+#	../sy6522.cpp
 #	../t3444a.cpp
 #	../tf20.cpp
 	../tms3631.cpp
