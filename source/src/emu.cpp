@@ -618,6 +618,25 @@ void EMU::screen_skip_line(bool skip_line)
 #endif
 
 #ifdef ONE_BOARD_MICRO_COMPUTER
+void EMU::get_invalidated_rect(int *left, int *top, int *right, int *bottom)
+{
+#ifdef MAX_DRAW_RANGES
+	for(int i = 0; i < MAX_DRAW_RANGES; i++) {
+#else
+	for(int i = 0; i < vm->max_draw_ranges(); i++) { // for TK-80BS
+#endif
+		int x1 = vm_ranges[i].x;
+		int y1 = vm_ranges[i].y;
+		int x2 = x1 + vm_ranges[i].width;
+		int y2 = y1 + vm_ranges[i].height;
+		
+		*left   = (i == 0) ? x1 : min(x1, *left  );
+		*top    = (i == 0) ? y1 : min(y1, *top   );
+		*right  = (i == 0) ? x2 : max(x2, *right );
+		*bottom = (i == 0) ? y2 : max(y2, *bottom);
+	}
+}
+
 void EMU::reload_bitmap()
 {
 	osd->reload_bitmap();

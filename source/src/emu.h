@@ -274,6 +274,7 @@ public:
 	void screen_skip_line(bool skip_line);
 #endif
 #ifdef ONE_BOARD_MICRO_COMPUTER
+	void get_invalidated_rect(int *left, int *top, int *right, int *bottom);
 	void reload_bitmap();
 #endif
 #ifdef OSD_WIN32

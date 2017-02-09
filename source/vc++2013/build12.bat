@@ -410,6 +410,11 @@ call :clean
 mkdir build_vc12\tk80bs
 copy binary_vc12\tk80bs.exe build_vc12\tk80bs\.
 
+devenv.com tk85.vcxproj /Rebuild Release
+call :clean
+mkdir build_vc12\tk85
+copy binary_vc12\tk85.exe build_vc12\tk85\.
+
 devenv.com x07.vcxproj /Rebuild Release
 call :clean
 mkdir build_vc12\x07

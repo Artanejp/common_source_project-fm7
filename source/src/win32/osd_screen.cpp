@@ -310,7 +310,26 @@ int OSD::draw_screen()
 #endif
 	
 	// invalidate window
+#ifdef ONE_BOARD_MICRO_COMPUTER
+	if(first_invalidate) {
+		InvalidateRect(main_window_handle, NULL, TRUE);
+	} else {
+#ifdef MAX_DRAW_RANGES
+		for(int i = 0; i < MAX_DRAW_RANGES; i++) {
+#else
+		for(int i = 0; i < vm->max_draw_ranges(); i++) { // for TK-80BS
+#endif
+			int x = vm_ranges[i].x;
+			int y = vm_ranges[i].y;
+			int w = vm_ranges[i].width;
+			int h = vm_ranges[i].height;
+			RECT rect = { x, y, x + w, y + h };
+			InvalidateRect(main_window_handle, &rect, FALSE);
+		}
+	}
+#else
 	InvalidateRect(main_window_handle, NULL, first_invalidate);
+#endif
 	UpdateWindow(main_window_handle);
 	first_draw_screen = self_invalidate = true;
 	
@@ -334,7 +353,7 @@ void OSD::update_screen(HDC hdc)
 	if(first_invalidate || !self_invalidate) {
 #if 1
 		// load png from resource
-		HRSRC hResource = FindResource(instance_handle, _T("IDI_BITMAP1"), _T("IMAGE"));
+		HRSRC hResource = FindResource(instance_handle, _T("IDI_BITMAP_BOARD"), _T("IMAGE"));
 		if(hResource != NULL) {
 			const void* pResourceData = LockResource(LoadResource(instance_handle, hResource));
 			if(pResourceData != NULL) {
@@ -362,7 +381,7 @@ void OSD::update_screen(HDC hdc)
 #else
 		// load bitmap from resource
 		HDC hmdc = CreateCompatibleDC(hdc);
-		HBITMAP hBitmap = LoadBitmap(instance_handle, _T("IDI_BITMAP1"));
+		HBITMAP hBitmap = LoadBitmap(instance_handle, _T("IDI_BITMAP_BOARD"));
 		BITMAP bmp;
 		GetObject(hBitmap, sizeof(BITMAP), &bmp);
 		int w = (int)bmp.bmWidth;

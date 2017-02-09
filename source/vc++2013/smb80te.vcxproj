@@ -195,7 +195,32 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\src\res\smb80te.ico" />
-    <Image Include="..\src\res\smb80te.png" />
+    <Image Include="..\src\res\smb80te\board.png" />
+    <Image Include="..\src\res\smb80te\button00.png" />
+    <Image Include="..\src\res\smb80te\button01.png" />
+    <Image Include="..\src\res\smb80te\button02.png" />
+    <Image Include="..\src\res\smb80te\button03.png" />
+    <Image Include="..\src\res\smb80te\button04.png" />
+    <Image Include="..\src\res\smb80te\button05.png" />
+    <Image Include="..\src\res\smb80te\button06.png" />
+    <Image Include="..\src\res\smb80te\button07.png" />
+    <Image Include="..\src\res\smb80te\button08.png" />
+    <Image Include="..\src\res\smb80te\button09.png" />
+    <Image Include="..\src\res\smb80te\button10.png" />
+    <Image Include="..\src\res\smb80te\button11.png" />
+    <Image Include="..\src\res\smb80te\button12.png" />
+    <Image Include="..\src\res\smb80te\button13.png" />
+    <Image Include="..\src\res\smb80te\button14.png" />
+    <Image Include="..\src\res\smb80te\button15.png" />
+    <Image Include="..\src\res\smb80te\button16.png" />
+    <Image Include="..\src\res\smb80te\button17.png" />
+    <Image Include="..\src\res\smb80te\button18.png" />
+    <Image Include="..\src\res\smb80te\button19.png" />
+    <Image Include="..\src\res\smb80te\button20.png" />
+    <Image Include="..\src\res\smb80te\button21.png" />
+    <Image Include="..\src\res\smb80te\button22.png" />
+    <Image Include="..\src\res\smb80te\button23.png" />
+    <Image Include="..\src\res\smb80te\button24.png" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\res\smb80te.rc">

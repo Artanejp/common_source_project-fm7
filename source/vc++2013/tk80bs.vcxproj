@@ -175,6 +175,7 @@
     <ClCompile Include="..\src\vm\tk80bs\cmt.cpp" />
     <ClCompile Include="..\src\vm\tk80bs\display.cpp" />
     <ClCompile Include="..\src\vm\tk80bs\keyboard.cpp" />
+    <ClCompile Include="..\src\vm\tk80bs\membus.cpp" />
     <ClCompile Include="..\src\vm\tk80bs\tk80bs.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -197,12 +198,38 @@
     <ClInclude Include="..\src\vm\tk80bs\cmt.h" />
     <ClInclude Include="..\src\vm\tk80bs\display.h" />
     <ClInclude Include="..\src\vm\tk80bs\keyboard.h" />
+    <ClInclude Include="..\src\vm\tk80bs\membus.h" />
     <ClInclude Include="..\src\vm\tk80bs\tk80bs.h" />
     <ClInclude Include="..\src\res\resource.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\src\res\tk80bs.ico" />
-    <Image Include="..\src\res\tk80bs.png" />
+    <Image Include="..\src\res\tk80bs\board.png" />
+    <Image Include="..\src\res\tk80bs\button00.png" />
+    <Image Include="..\src\res\tk80bs\button01.png" />
+    <Image Include="..\src\res\tk80bs\button02.png" />
+    <Image Include="..\src\res\tk80bs\button03.png" />
+    <Image Include="..\src\res\tk80bs\button04.png" />
+    <Image Include="..\src\res\tk80bs\button05.png" />
+    <Image Include="..\src\res\tk80bs\button06.png" />
+    <Image Include="..\src\res\tk80bs\button07.png" />
+    <Image Include="..\src\res\tk80bs\button08.png" />
+    <Image Include="..\src\res\tk80bs\button09.png" />
+    <Image Include="..\src\res\tk80bs\button10.png" />
+    <Image Include="..\src\res\tk80bs\button11.png" />
+    <Image Include="..\src\res\tk80bs\button12.png" />
+    <Image Include="..\src\res\tk80bs\button13.png" />
+    <Image Include="..\src\res\tk80bs\button14.png" />
+    <Image Include="..\src\res\tk80bs\button15.png" />
+    <Image Include="..\src\res\tk80bs\button16.png" />
+    <Image Include="..\src\res\tk80bs\button17.png" />
+    <Image Include="..\src\res\tk80bs\button18.png" />
+    <Image Include="..\src\res\tk80bs\button19.png" />
+    <Image Include="..\src\res\tk80bs\button20.png" />
+    <Image Include="..\src\res\tk80bs\button21.png" />
+    <Image Include="..\src\res\tk80bs\button22.png" />
+    <Image Include="..\src\res\tk80bs\button23.png" />
+    <Image Include="..\src\res\tk80bs\button24.png" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\res\tk80bs.rc">

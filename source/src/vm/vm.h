@@ -465,6 +465,16 @@
 #include "tk80bs/tk80bs.h"
 #endif
 
+// NEC TK-80
+#ifdef _TK80
+#include "tk80bs/tk80bs.h"
+#endif
+
+// NEC TK-85
+#ifdef _TK85
+#include "tk80bs/tk80bs.h"
+#endif
+
 // CANON X-07
 #ifdef _X07
 #include "x07/x07.h"

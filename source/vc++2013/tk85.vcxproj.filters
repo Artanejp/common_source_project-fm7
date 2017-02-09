@@ -2,47 +2,47 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
-      <UniqueIdentifier>{c7523237-e98d-48cd-b8f1-1afd6fd75221}</UniqueIdentifier>
+      <UniqueIdentifier>{24ec3d88-aa5f-47a1-9fa4-adc2376393cb}</UniqueIdentifier>
       <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
     </Filter>
     <Filter Include="Source Files\EMU Source Files">
-      <UniqueIdentifier>{c24cd37b-ab32-401f-a876-a2d785cb8d2e}</UniqueIdentifier>
+      <UniqueIdentifier>{80537760-254d-4808-bbc2-e65b84a0d22e}</UniqueIdentifier>
       <Extensions>cpp</Extensions>
     </Filter>
     <Filter Include="Source Files\OSD Source Files">
-      <UniqueIdentifier>{371e780b-6961-448c-ab56-1c2ab7ba2cfd}</UniqueIdentifier>
+      <UniqueIdentifier>{08cce149-96c9-49a6-9386-8fcc6a8149d9}</UniqueIdentifier>
       <Extensions>cpp</Extensions>
     </Filter>
     <Filter Include="Source Files\VM Common Source Files">
-      <UniqueIdentifier>{102ce3ab-2837-4d1f-aaf5-c5929844705c}</UniqueIdentifier>
+      <UniqueIdentifier>{cf3a4f3a-e561-4bb8-98b9-db69716f217c}</UniqueIdentifier>
       <Extensions>cpp</Extensions>
     </Filter>
     <Filter Include="Source Files\VM Driver Source Files">
-      <UniqueIdentifier>{a14410dd-d833-46c8-abf0-452f646e278b}</UniqueIdentifier>
+      <UniqueIdentifier>{f6e91b45-e929-4f14-889e-fbffe465f39c}</UniqueIdentifier>
       <Extensions>cpp</Extensions>
     </Filter>
     <Filter Include="Header Files">
-      <UniqueIdentifier>{47ddcd63-254d-424e-ba71-d6789dd5d0b3}</UniqueIdentifier>
+      <UniqueIdentifier>{8926f704-4f64-4300-a63f-b2416353db9a}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl</Extensions>
     </Filter>
     <Filter Include="Header Files\EMU Header Files">
-      <UniqueIdentifier>{1083b5aa-145a-47d6-8694-7fd884b6eba3}</UniqueIdentifier>
+      <UniqueIdentifier>{17f68f0b-3db0-4de1-9934-0b5ff4221677}</UniqueIdentifier>
       <Extensions>h</Extensions>
     </Filter>
     <Filter Include="Header Files\OSD Header Files">
-      <UniqueIdentifier>{e610f724-1f9e-41d3-a1e9-4a634bb2bf08}</UniqueIdentifier>
+      <UniqueIdentifier>{b1e06718-feaa-4d3e-ab5a-8bf4e8632719}</UniqueIdentifier>
       <Extensions>h</Extensions>
     </Filter>
     <Filter Include="Header Files\VM Common Header Files">
-      <UniqueIdentifier>{eb63c8d7-0ade-4cba-b54d-76a7099ae53b}</UniqueIdentifier>
+      <UniqueIdentifier>{574bc49c-5005-4d39-831b-effbce45e51a}</UniqueIdentifier>
       <Extensions>h</Extensions>
     </Filter>
     <Filter Include="Header Files\VM Driver Header Files">
-      <UniqueIdentifier>{02b62b1a-6ebc-44d8-8187-1a60983d8608}</UniqueIdentifier>
+      <UniqueIdentifier>{2017f0b6-930c-468a-919a-436907452c6e}</UniqueIdentifier>
       <Extensions>h</Extensions>
     </Filter>
     <Filter Include="Resource Files">
-      <UniqueIdentifier>{0a13828b-05f2-4687-928a-146eb93fa259}</UniqueIdentifier>
+      <UniqueIdentifier>{ca53ed44-16e2-427b-9070-d8a5fda74e66}</UniqueIdentifier>
       <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
     </Filter>
   </ItemGroup>
@@ -89,22 +89,28 @@
     <ClCompile Include="..\src\vm\event.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\vm\io.cpp">
+    <ClCompile Include="..\src\vm\i8080.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\vm\not.cpp">
+    <ClCompile Include="..\src\vm\i8255.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\vm\z80.cpp">
+    <ClCompile Include="..\src\vm\memory.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\vm\z80pio.cpp">
+    <ClCompile Include="..\src\vm\pcm1bit.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\vm\smb80te\memory.cpp">
+    <ClCompile Include="..\src\vm\tk80bs\display.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\vm\smb80te\smb80te.cpp">
+    <ClCompile Include="..\src\vm\tk80bs\keyboard.cpp">
+      <Filter>Source Files\VM Driver Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\tk80bs\membus.cpp">
+      <Filter>Source Files\VM Driver Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\tk80bs\tk80bs.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -130,31 +136,40 @@
     <ClInclude Include="..\src\vm\datarec.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\vm\debugger.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\vm\device.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\event.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\vm\io.h">
+    <ClInclude Include="..\src\vm\i8080.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\vm\not.h">
+    <ClInclude Include="..\src\vm\i8255.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\memory.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\pcm1bit.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\vm.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\vm\z80.h">
-      <Filter>Header Files\VM Common Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\vm\z80pio.h">
-      <Filter>Header Files\VM Common Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\vm\smb80te\memory.h">
+    <ClInclude Include="..\src\vm\tk80bs\display.h">
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\vm\smb80te\smb80te.h">
+    <ClInclude Include="..\src\vm\tk80bs\keyboard.h">
+      <Filter>Header Files\VM Driver Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\tk80bs\membus.h">
+      <Filter>Header Files\VM Driver Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\tk80bs\tk80bs.h">
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\res\resource.h">
@@ -162,90 +177,93 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\src\res\smb80te.ico">
+    <Image Include="..\src\res\tk85.ico">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\src\res\smb80te\board.png">
+    <Image Include="..\src\res\tk85\board.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\src\res\smb80te\button00.png">
+    <Image Include="..\src\res\tk85\button00.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\src\res\smb80te\button01.png">
+    <Image Include="..\src\res\tk85\button01.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\src\res\smb80te\button02.png">
+    <Image Include="..\src\res\tk85\button02.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\src\res\smb80te\button03.png">
+    <Image Include="..\src\res\tk85\button03.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\src\res\smb80te\button04.png">
+    <Image Include="..\src\res\tk85\button04.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\src\res\smb80te\button05.png">
+    <Image Include="..\src\res\tk85\button05.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\src\res\smb80te\button06.png">
+    <Image Include="..\src\res\tk85\button06.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\src\res\smb80te\button07.png">
+    <Image Include="..\src\res\tk85\button07.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\src\res\smb80te\button08.png">
+    <Image Include="..\src\res\tk85\button08.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\src\res\smb80te\button09.png">
+    <Image Include="..\src\res\tk85\button09.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\src\res\smb80te\button10.png">
+    <Image Include="..\src\res\tk85\button10.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\src\res\smb80te\button11.png">
+    <Image Include="..\src\res\tk85\button11.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\src\res\smb80te\button12.png">
+    <Image Include="..\src\res\tk85\button12.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\src\res\smb80te\button13.png">
+    <Image Include="..\src\res\tk85\button13.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\src\res\smb80te\button14.png">
+    <Image Include="..\src\res\tk85\button14.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\src\res\smb80te\button15.png">
+    <Image Include="..\src\res\tk85\button15.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\src\res\smb80te\button16.png">
+    <Image Include="..\src\res\tk85\button16.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\src\res\smb80te\button17.png">
+    <Image Include="..\src\res\tk85\button17.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\src\res\smb80te\button18.png">
+    <Image Include="..\src\res\tk85\button18.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\src\res\smb80te\button19.png">
+    <Image Include="..\src\res\tk85\button19.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\src\res\smb80te\button20.png">
+    <Image Include="..\src\res\tk85\button20.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\src\res\smb80te\button21.png">
+    <Image Include="..\src\res\tk85\button21.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\src\res\smb80te\button22.png">
+    <Image Include="..\src\res\tk85\button22.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\src\res\smb80te\button23.png">
+    <Image Include="..\src\res\tk85\button23.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\src\res\smb80te\button24.png">
+    <Image Include="..\src\res\tk85\button24.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\tk85\button25.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\src\res\smb80te.rc">
+    <ResourceCompile Include="..\src\res\tk85.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>

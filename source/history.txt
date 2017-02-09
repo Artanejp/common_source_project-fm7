@@ -1,3 +1,17 @@
+2/9/2016
+
+[WINMAIN] support to draw bitmap image onto buttons
+[WINMAIN] fix to redraw pcb bitmap image when window is invalidated
+[WIN32/SCREEN] fix to invalidate rects for 7-seg leds and buttons
+
+[BABBAGE2ND] add bitmap images for buttons
+[EX80] add bitmap images for buttons
+[SMB80TE] add bitmap images for buttons
+[TK80BS] add bitmap images for buttons
+[TK85] support NEC TK-85
+[YS6464A] add bitmap images for buttons
+
+
 12/31/2016
 
 [COLECOVISION/KEYBOARD] fix not to raise irq when joystick is pressed

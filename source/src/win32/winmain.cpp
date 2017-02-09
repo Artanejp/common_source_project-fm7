@@ -118,7 +118,7 @@ BOOL CALLBACK JoyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam);
 // buttons
 #ifdef ONE_BOARD_MICRO_COMPUTER
 void create_buttons(HWND hWnd);
-void release_buttons();
+void draw_button(HDC hDC, UINT index, UINT pressed);
 #endif
 
 // misc
@@ -403,9 +403,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			ChangeDisplaySettings(NULL, 0);
 		}
 		now_fullscreen = false;
-#ifdef ONE_BOARD_MICRO_COMPUTER
-		release_buttons();
-#endif
 		if(hMenu != NULL && IsMenu(hMenu)) {
 			DestroyMenu(hMenu);
 		}
@@ -436,10 +433,25 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		if(emu) {
 			PAINTSTRUCT ps;
 			HDC hdc = BeginPaint(hWnd, &ps);
+#ifdef ONE_BOARD_MICRO_COMPUTER
+			// check if self invalidate or not
+			int left = 0, top = 0, right = 0, bottom = 0;
+			emu->get_invalidated_rect(&left, &top, &right, &bottom);
+			if(ps.rcPaint.left != left || ps.rcPaint.top != top || ps.rcPaint.right != right || ps.rcPaint.bottom != bottom) {
+				emu->reload_bitmap();
+			}
+#endif
 			emu->update_screen(hdc);
 			EndPaint(hWnd, &ps);
 		}
 		return 0;
+#ifdef ONE_BOARD_MICRO_COMPUTER
+	case WM_DRAWITEM:
+//		if(((LPDRAWITEMSTRUCT)lParam)->itemAction & (ODA_DRAWENTIRE | ODA_SELECT)) {
+			draw_button(((LPDRAWITEMSTRUCT)lParam)->hDC, (UINT)wParam - ID_BUTTON, ((LPDRAWITEMSTRUCT)lParam)->itemState & ODS_SELECTED);
+//		}
+		return TRUE;
+#endif
 	case WM_MOVING:
 		if(emu) {
 			emu->suspend();
@@ -2817,7 +2829,6 @@ BOOL CALLBACK JoyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
 
 #ifdef ONE_BOARD_MICRO_COMPUTER
 #define MAX_FONT_SIZE 32
-HFONT hFont[MAX_FONT_SIZE];
 HWND hButton[MAX_BUTTONS];
 WNDPROC ButtonOldProc[MAX_BUTTONS];
 
@@ -2847,45 +2858,72 @@ LRESULT CALLBACK ButtonSubProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lPara
 
 void create_buttons(HWND hWnd)
 {
-	memset(hFont, 0, sizeof(hFont));
 	for(int i = 0; i < MAX_BUTTONS; i++) {
-		hButton[i] = CreateWindow(_T("BUTTON"), vm_buttons[i].caption,
-		                          WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | (_tcsstr(vm_buttons[i].caption, _T("\n")) ? BS_MULTILINE : 0),
+		hButton[i] = CreateWindow(_T("BUTTON"), NULL/*vm_buttons[i].caption*/,
+		                          WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_OWNERDRAW/*(_tcsstr(vm_buttons[i].caption, _T("\n")) ? BS_MULTILINE : 0)*/,
 		                          vm_buttons[i].x, vm_buttons[i].y,
 		                          vm_buttons[i].width, vm_buttons[i].height,
 		                          hWnd, (HMENU)(ID_BUTTON + i), (HINSTANCE)GetModuleHandle(0), NULL);
 		ButtonOldProc[i] = (WNDPROC)(LONG_PTR)GetWindowLong(hButton[i], GWL_WNDPROC);
 		SetWindowLong(hButton[i], GWL_WNDPROC, (LONG)(LONG_PTR)ButtonSubProc);
-		//HFONT hFont = GetWindowFont(hButton[i]);
-		if(!hFont[vm_buttons[i].font_size]) {
-			LOGFONT logfont;
-			logfont.lfEscapement = 0;
-			logfont.lfOrientation = 0;
-			logfont.lfWeight = FW_NORMAL;
-			logfont.lfItalic = FALSE;
-			logfont.lfUnderline = FALSE;
-			logfont.lfStrikeOut = FALSE;
-			logfont.lfCharSet = DEFAULT_CHARSET;
-			logfont.lfOutPrecision = OUT_TT_PRECIS;
-			logfont.lfClipPrecision = CLIP_DEFAULT_PRECIS;
-			logfont.lfQuality = DEFAULT_QUALITY;
-			logfont.lfPitchAndFamily = FIXED_PITCH | FF_DONTCARE;
-			my_tcscpy_s(logfont.lfFaceName, LF_FACESIZE, _T("Arial"));
-			logfont.lfHeight = vm_buttons[i].font_size;
-			logfont.lfWidth = vm_buttons[i].font_size >> 1;
-			hFont[vm_buttons[i].font_size] = CreateFontIndirect(&logfont);
-		}
-		SetWindowFont(hButton[i], hFont[vm_buttons[i].font_size], TRUE);
 	}
 }
 
-void release_buttons()
+void draw_button(HDC hDC, UINT index, UINT pressed)
 {
-	for(int i = 0; i < MAX_FONT_SIZE; i++) {
-		if(hFont[i]) {
-			DeleteObject(hFont[i]);
+	HINSTANCE hInstance = (HINSTANCE)GetModuleHandle(0);
+	_TCHAR name[24];
+	
+	_stprintf(name, _T("IDI_BITMAP_BUTTON%02d"), index);
+#if 1
+	// load png from resource
+	HRSRC hResource = FindResource(hInstance, name, _T("IMAGE"));
+	if(hResource != NULL) {
+		const void* pResourceData = LockResource(LoadResource(hInstance, hResource));
+		if(pResourceData != NULL) {
+			DWORD dwResourceSize = SizeofResource(hInstance, hResource);
+			HGLOBAL hResourceBuffer = GlobalAlloc(GMEM_MOVEABLE, dwResourceSize);
+			if(hResourceBuffer != NULL) {
+				void* pResourceBuffer = GlobalLock(hResourceBuffer);
+				if(pResourceBuffer != NULL) {
+					CopyMemory(pResourceBuffer, pResourceData, dwResourceSize);
+					IStream* pIStream = NULL;
+					if(CreateStreamOnHGlobal(hResourceBuffer, FALSE, &pIStream) == S_OK) {
+						Gdiplus::Bitmap *pBitmap = Gdiplus::Bitmap::FromStream(pIStream);
+						if(pBitmap != NULL) {
+							Gdiplus::Graphics graphics(hDC);
+							if(pressed) {
+								graphics.DrawImage(pBitmap, 2,  2, pBitmap->GetWidth() - 2, pBitmap->GetHeight() - 2);
+							} else {
+								graphics.DrawImage(pBitmap, 1, 1);
+							}
+							delete pBitmap;
+						}
+					}
+				}
+				GlobalUnlock(hResourceBuffer);
+			}
+			GlobalFree(hResourceBuffer);
 		}
 	}
+#else
+	// load bitmap from resource
+	HDC hmdc = CreateCompatibleDC(hDC);
+	HBITMAP hBitmap = LoadBitmap(hInstance, name);
+	BITMAP bmp;
+	GetObject(hBitmap, sizeof(BITMAP), &bmp);
+	int w = (int)bmp.bmWidth;
+	int h = (int)bmp.bmHeight;
+	HBITMAP hOldBitmap = (HBITMAP)SelectObject(hmdc, hBitmap);
+	if(pressed) {
+		StretchBlt(hDC, 2, 2, w - 2, h - 2, hmdc, 0, 0, w, h, SRCCOPY);
+	} else {
+		BitBlt(hDC, 1, 1, w, h, hmdc, 0, 0, SRCCOPY);
+	}
+	SelectObject(hmdc, hOldBitmap);
+	DeleteObject(hBitmap);
+	DeleteDC(hmdc);
+#endif
 }
 #endif
 

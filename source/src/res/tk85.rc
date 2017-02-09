@@ -81,9 +81,6 @@ BEGIN
     BEGIN
         MENUITEM "Reset",                       ID_RESET
         MENUITEM SEPARATOR
-        MENUITEM "Lv1 BASIC"                    ID_BOOT_MODE0
-        MENUITEM "Lv2 BASIC"                    ID_BOOT_MODE1
-        MENUITEM SEPARATOR
         MENUITEM "SW: STEP/AUTO",                   ID_DIPSWITCH0
         MENUITEM SEPARATOR
         MENUITEM "CPU x1",                      ID_CPU_POWER0
@@ -115,6 +112,9 @@ BEGIN
         MENUITEM "Play",                        ID_PLAY_TAPE
         MENUITEM "Rec",                         ID_REC_TAPE
         MENUITEM "Eject",                       ID_CLOSE_TAPE
+        MENUITEM SEPARATOR
+        MENUITEM "Play Tape Sound",             ID_PLAY_TAPE_SOUND
+        MENUITEM "Waveform Shaper",             ID_USE_WAVE_SHAPER
         MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_TAPE
     END
@@ -148,32 +148,33 @@ END
 // Image
 //
 
-IDI_BITMAP_BOARD        IMAGE   DISCARDABLE     "tk80bs\board.png"
-IDI_BITMAP_BUTTON00     IMAGE   DISCARDABLE     "tk80bs\button00.png"
-IDI_BITMAP_BUTTON01     IMAGE   DISCARDABLE     "tk80bs\button01.png"
-IDI_BITMAP_BUTTON02     IMAGE   DISCARDABLE     "tk80bs\button02.png"
-IDI_BITMAP_BUTTON03     IMAGE   DISCARDABLE     "tk80bs\button03.png"
-IDI_BITMAP_BUTTON04     IMAGE   DISCARDABLE     "tk80bs\button04.png"
-IDI_BITMAP_BUTTON05     IMAGE   DISCARDABLE     "tk80bs\button05.png"
-IDI_BITMAP_BUTTON06     IMAGE   DISCARDABLE     "tk80bs\button06.png"
-IDI_BITMAP_BUTTON07     IMAGE   DISCARDABLE     "tk80bs\button07.png"
-IDI_BITMAP_BUTTON08     IMAGE   DISCARDABLE     "tk80bs\button08.png"
-IDI_BITMAP_BUTTON09     IMAGE   DISCARDABLE     "tk80bs\button09.png"
-IDI_BITMAP_BUTTON10     IMAGE   DISCARDABLE     "tk80bs\button10.png"
-IDI_BITMAP_BUTTON11     IMAGE   DISCARDABLE     "tk80bs\button11.png"
-IDI_BITMAP_BUTTON12     IMAGE   DISCARDABLE     "tk80bs\button12.png"
-IDI_BITMAP_BUTTON13     IMAGE   DISCARDABLE     "tk80bs\button13.png"
-IDI_BITMAP_BUTTON14     IMAGE   DISCARDABLE     "tk80bs\button14.png"
-IDI_BITMAP_BUTTON15     IMAGE   DISCARDABLE     "tk80bs\button15.png"
-IDI_BITMAP_BUTTON16     IMAGE   DISCARDABLE     "tk80bs\button16.png"
-IDI_BITMAP_BUTTON17     IMAGE   DISCARDABLE     "tk80bs\button17.png"
-IDI_BITMAP_BUTTON18     IMAGE   DISCARDABLE     "tk80bs\button18.png"
-IDI_BITMAP_BUTTON19     IMAGE   DISCARDABLE     "tk80bs\button19.png"
-IDI_BITMAP_BUTTON20     IMAGE   DISCARDABLE     "tk80bs\button20.png"
-IDI_BITMAP_BUTTON21     IMAGE   DISCARDABLE     "tk80bs\button21.png"
-IDI_BITMAP_BUTTON22     IMAGE   DISCARDABLE     "tk80bs\button22.png"
-IDI_BITMAP_BUTTON23     IMAGE   DISCARDABLE     "tk80bs\button23.png"
-IDI_BITMAP_BUTTON24     IMAGE   DISCARDABLE     "tk80bs\button24.png"
+IDI_BITMAP_BOARD        IMAGE   DISCARDABLE     "tk85\board.png"
+IDI_BITMAP_BUTTON00     IMAGE   DISCARDABLE     "tk85\button00.png"
+IDI_BITMAP_BUTTON01     IMAGE   DISCARDABLE     "tk85\button01.png"
+IDI_BITMAP_BUTTON02     IMAGE   DISCARDABLE     "tk85\button02.png"
+IDI_BITMAP_BUTTON03     IMAGE   DISCARDABLE     "tk85\button03.png"
+IDI_BITMAP_BUTTON04     IMAGE   DISCARDABLE     "tk85\button04.png"
+IDI_BITMAP_BUTTON05     IMAGE   DISCARDABLE     "tk85\button05.png"
+IDI_BITMAP_BUTTON06     IMAGE   DISCARDABLE     "tk85\button06.png"
+IDI_BITMAP_BUTTON07     IMAGE   DISCARDABLE     "tk85\button07.png"
+IDI_BITMAP_BUTTON08     IMAGE   DISCARDABLE     "tk85\button08.png"
+IDI_BITMAP_BUTTON09     IMAGE   DISCARDABLE     "tk85\button09.png"
+IDI_BITMAP_BUTTON10     IMAGE   DISCARDABLE     "tk85\button10.png"
+IDI_BITMAP_BUTTON11     IMAGE   DISCARDABLE     "tk85\button11.png"
+IDI_BITMAP_BUTTON12     IMAGE   DISCARDABLE     "tk85\button12.png"
+IDI_BITMAP_BUTTON13     IMAGE   DISCARDABLE     "tk85\button13.png"
+IDI_BITMAP_BUTTON14     IMAGE   DISCARDABLE     "tk85\button14.png"
+IDI_BITMAP_BUTTON15     IMAGE   DISCARDABLE     "tk85\button15.png"
+IDI_BITMAP_BUTTON16     IMAGE   DISCARDABLE     "tk85\button16.png"
+IDI_BITMAP_BUTTON17     IMAGE   DISCARDABLE     "tk85\button17.png"
+IDI_BITMAP_BUTTON18     IMAGE   DISCARDABLE     "tk85\button18.png"
+IDI_BITMAP_BUTTON19     IMAGE   DISCARDABLE     "tk85\button19.png"
+IDI_BITMAP_BUTTON20     IMAGE   DISCARDABLE     "tk85\button20.png"
+IDI_BITMAP_BUTTON21     IMAGE   DISCARDABLE     "tk85\button21.png"
+IDI_BITMAP_BUTTON22     IMAGE   DISCARDABLE     "tk85\button22.png"
+IDI_BITMAP_BUTTON23     IMAGE   DISCARDABLE     "tk85\button23.png"
+IDI_BITMAP_BUTTON24     IMAGE   DISCARDABLE     "tk85\button24.png"
+IDI_BITMAP_BUTTON25     IMAGE   DISCARDABLE     "tk85\button25.png"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -183,7 +184,7 @@ IDI_BITMAP_BUTTON24     IMAGE   DISCARDABLE     "tk80bs\button24.png"
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_ICON1               ICON    DISCARDABLE     "tk80bs.ico"
+IDI_ICON1               ICON    DISCARDABLE     "tk85.ico"
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -193,7 +194,7 @@ IDI_ICON1               ICON    DISCARDABLE     "tk80bs.ico"
 // Dialog
 //
 
-IDD_VOLUME DIALOG DISCARDABLE  0, 0, 250, 90
+IDD_VOLUME DIALOG DISCARDABLE  0, 0, 250, 120
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Volume"
 FONT 9, "MS PGothic"
@@ -204,8 +205,11 @@ BEGIN
     LTEXT           "Sound Device #2",IDC_VOLUME_CAPTION1,6,36,60,8
     CONTROL         "",IDC_VOLUME_PARAM_L1,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,36,175,12
     CONTROL         "",IDC_VOLUME_PARAM_R1,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,51,175,12
-    DEFPUSHBUTTON   "OK",IDOK,70,70,50,14
-    DEFPUSHBUTTON   "Reset",IDC_VOLUME_RESET,130,70,50,14
+    LTEXT           "Sound Device #3",IDC_VOLUME_CAPTION2,6,66,60,8
+    CONTROL         "",IDC_VOLUME_PARAM_L2,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,66,175,12
+    CONTROL         "",IDC_VOLUME_PARAM_R2,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,81,175,12
+    DEFPUSHBUTTON   "OK",IDOK,70,100,50,14
+    DEFPUSHBUTTON   "Reset",IDC_VOLUME_RESET,130,100,50,14
 END
 
 

@@ -14,8 +14,8 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 project (emutk80bs)
 
-set(BUILD_TK80BS ON  CACHE BOOL "Build for TK-80 BS")
+set(BUILD_TK80BS OFF  CACHE BOOL "Build for TK-80 BS")
 set(BUILD_TK80   OFF CACHE BOOL "Build for TK-80")
-set(BUILD_TK85   OFF CACHE BOOL "Build for TK-85")
+set(BUILD_TK85   ON  CACHE BOOL "Build for TK-85")
 
 include(config_tk80)

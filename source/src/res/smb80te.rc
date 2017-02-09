@@ -126,7 +126,32 @@ END
 // Icon
 //
 
-IDI_BITMAP1             IMAGE   DISCARDABLE     "smb80te.png"
+IDI_BITMAP_BOARD        IMAGE   DISCARDABLE     "smb80te\board.png"
+IDI_BITMAP_BUTTON00     IMAGE   DISCARDABLE     "smb80te\button00.png"
+IDI_BITMAP_BUTTON01     IMAGE   DISCARDABLE     "smb80te\button01.png"
+IDI_BITMAP_BUTTON02     IMAGE   DISCARDABLE     "smb80te\button02.png"
+IDI_BITMAP_BUTTON03     IMAGE   DISCARDABLE     "smb80te\button03.png"
+IDI_BITMAP_BUTTON04     IMAGE   DISCARDABLE     "smb80te\button04.png"
+IDI_BITMAP_BUTTON05     IMAGE   DISCARDABLE     "smb80te\button05.png"
+IDI_BITMAP_BUTTON06     IMAGE   DISCARDABLE     "smb80te\button06.png"
+IDI_BITMAP_BUTTON07     IMAGE   DISCARDABLE     "smb80te\button07.png"
+IDI_BITMAP_BUTTON08     IMAGE   DISCARDABLE     "smb80te\button08.png"
+IDI_BITMAP_BUTTON09     IMAGE   DISCARDABLE     "smb80te\button09.png"
+IDI_BITMAP_BUTTON10     IMAGE   DISCARDABLE     "smb80te\button10.png"
+IDI_BITMAP_BUTTON11     IMAGE   DISCARDABLE     "smb80te\button11.png"
+IDI_BITMAP_BUTTON12     IMAGE   DISCARDABLE     "smb80te\button12.png"
+IDI_BITMAP_BUTTON13     IMAGE   DISCARDABLE     "smb80te\button13.png"
+IDI_BITMAP_BUTTON14     IMAGE   DISCARDABLE     "smb80te\button14.png"
+IDI_BITMAP_BUTTON15     IMAGE   DISCARDABLE     "smb80te\button15.png"
+IDI_BITMAP_BUTTON16     IMAGE   DISCARDABLE     "smb80te\button16.png"
+IDI_BITMAP_BUTTON17     IMAGE   DISCARDABLE     "smb80te\button17.png"
+IDI_BITMAP_BUTTON18     IMAGE   DISCARDABLE     "smb80te\button18.png"
+IDI_BITMAP_BUTTON19     IMAGE   DISCARDABLE     "smb80te\button19.png"
+IDI_BITMAP_BUTTON20     IMAGE   DISCARDABLE     "smb80te\button20.png"
+IDI_BITMAP_BUTTON21     IMAGE   DISCARDABLE     "smb80te\button21.png"
+IDI_BITMAP_BUTTON22     IMAGE   DISCARDABLE     "smb80te\button22.png"
+IDI_BITMAP_BUTTON23     IMAGE   DISCARDABLE     "smb80te\button23.png"
+IDI_BITMAP_BUTTON24     IMAGE   DISCARDABLE     "smb80te\button24.png"
 
 
 /////////////////////////////////////////////////////////////////////////////

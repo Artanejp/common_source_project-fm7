@@ -325,6 +325,10 @@ devenv.com tk80bs.vcproj /Rebuild Release
 mkdir build_xp\tk80bs
 copy Release\tk80bs.exe build_xp\tk80bs\.
 
+devenv.com tk85.vcproj /Rebuild Release
+mkdir build_xp\tk85
+copy Release\tk85.exe build_xp\tk85\.
+
 devenv.com x07.vcproj /Rebuild Release
 mkdir build_xp\x07
 copy Release\x07.exe build_xp\x07\.

@@ -197,7 +197,28 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\src\res\ys6464a.ico" />
-    <Image Include="..\src\res\ys6464a.png" />
+    <Image Include="..\src\res\ys6464a\board.png" />
+    <Image Include="..\src\res\ys6464a\button00.png" />
+    <Image Include="..\src\res\ys6464a\button01.png" />
+    <Image Include="..\src\res\ys6464a\button02.png" />
+    <Image Include="..\src\res\ys6464a\button03.png" />
+    <Image Include="..\src\res\ys6464a\button04.png" />
+    <Image Include="..\src\res\ys6464a\button05.png" />
+    <Image Include="..\src\res\ys6464a\button06.png" />
+    <Image Include="..\src\res\ys6464a\button07.png" />
+    <Image Include="..\src\res\ys6464a\button08.png" />
+    <Image Include="..\src\res\ys6464a\button09.png" />
+    <Image Include="..\src\res\ys6464a\button10.png" />
+    <Image Include="..\src\res\ys6464a\button11.png" />
+    <Image Include="..\src\res\ys6464a\button12.png" />
+    <Image Include="..\src\res\ys6464a\button13.png" />
+    <Image Include="..\src\res\ys6464a\button14.png" />
+    <Image Include="..\src\res\ys6464a\button15.png" />
+    <Image Include="..\src\res\ys6464a\button16.png" />
+    <Image Include="..\src\res\ys6464a\button17.png" />
+    <Image Include="..\src\res\ys6464a\button18.png" />
+    <Image Include="..\src\res\ys6464a\button19.png" />
+    <Image Include="..\src\res\ys6464a\button20.png" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\res\ys6464a.rc">

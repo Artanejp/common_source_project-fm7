@@ -1,5 +1,7 @@
 /*
 	NEC TK-80BS (COMPO BS/80) Emulator 'eTK-80BS'
+	NEC TK-80 Emulator 'eTK-80'
+	NEC TK-85 Emulator 'eTK-85'
 
 	Author : Takeda.Toshiya
 	Date   : 2008.08.26 -
@@ -10,6 +12,7 @@
 #include "keyboard.h"
 #include "../i8255.h"
 
+#if defined(_TK80BS)
 static const uint8_t matrix[256] = {
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x08,0x00,0x00,0x00,0x00,0x0a,0x00,0x00,
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
@@ -85,17 +88,22 @@ static const uint8_t matrix_ks[256] = {
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 };
+#endif
 
 void KEYBOARD::initialize()
 {
 	key_stat = emu->get_key_buffer();
+#if defined(_TK80BS)
 	kb_type = 3;
+#endif
 }
 
 void KEYBOARD::reset()
 {
+#if defined(_TK80BS)
 	prev_type = prev_brk = prev_kana = 0;
 	kana_lock = false;
+#endif
 	column = 0xff;
 }
 
@@ -108,6 +116,7 @@ void KEYBOARD::write_signal(int id, uint32_t data, uint32_t mask)
 
 void KEYBOARD::key_down(int code)
 {
+#if defined(_TK80BS)
 	// get special key
 	bool hit_type = (key_stat[0x1b] && !prev_type);	// ESC
 	bool hit_brk = (key_stat[0x13] && !prev_brk);	// PAUSE/BREAK
@@ -163,6 +172,7 @@ void KEYBOARD::key_down(int code)
 			d_pio_b->write_signal(SIG_I8255_PORT_A, code, 0xff);
 		}
 	}
+#endif
 	
 	// update TK-80 keyboard
 	update_tk80();
@@ -170,9 +180,11 @@ void KEYBOARD::key_down(int code)
 
 void KEYBOARD::key_up(int code)
 {
+#if defined(_TK80BS)
 	prev_type = key_stat[0x1b];
 	prev_brk = key_stat[0x13];
 	prev_kana = key_stat[0x15];
+#endif
 	
 	// update TK-80 keyboard
 	update_tk80();
@@ -195,7 +207,9 @@ void KEYBOARD::update_tk80()
 	uint32_t val = 0xff;
 	
 	// keyboard
+#if defined(_TK80BS)
 	if(kb_type & 2) {
+#endif
 		if(!(column & 0x10)) {
 			if(key_stat[0x30] || key_stat[0x60]) val &= ~0x01;	// 0
 			if(key_stat[0x31] || key_stat[0x61]) val &= ~0x02;	// 1
@@ -226,7 +240,10 @@ void KEYBOARD::update_tk80()
 			if(key_stat[0x72]                  ) val &= ~0x40;	// STORE DATA	F3
 			if(key_stat[0x73]                  ) val &= ~0x80;	// LOAD DATA	F4
 		}
+#if defined(_TK80BS)
 	}
+#endif
+	
 	// graphical buffons
 	if(!(column & 0x10)) {
 		if(key_stat[0x80]) val &= ~0x01;	// 0
@@ -261,19 +278,21 @@ void KEYBOARD::update_tk80()
 	d_pio_t->write_signal(SIG_I8255_PORT_A, val, 0xff);
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void KEYBOARD::save_state(FILEIO* state_fio)
 {
 	state_fio->FputUint32(STATE_VERSION);
 	state_fio->FputInt32(this_device_id);
 	
+#if defined(_TK80BS)
 	state_fio->FputUint8(prev_type);
 	state_fio->FputUint8(prev_brk);
 	state_fio->FputUint8(prev_kana);
 	state_fio->FputBool(kana_lock);
-	state_fio->FputUint32(column);
 	state_fio->FputUint32(kb_type);
+#endif
+	state_fio->FputUint32(column);
 }
 
 bool KEYBOARD::load_state(FILEIO* state_fio)
@@ -284,12 +303,14 @@ bool KEYBOARD::load_state(FILEIO* state_fio)
 	if(state_fio->FgetInt32() != this_device_id) {
 		return false;
 	}
+#if defined(_TK80BS)
 	prev_type = state_fio->FgetUint8();
 	prev_brk = state_fio->FgetUint8();
 	prev_kana = state_fio->FgetUint8();
 	kana_lock = state_fio->FgetBool();
-	column = state_fio->FgetUint32();
 	kb_type = state_fio->FgetUint32();
+#endif
+	column = state_fio->FgetUint32();
 	return true;
 }
 

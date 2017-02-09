@@ -1,5 +1,7 @@
 /*
 	NEC TK-80BS (COMPO BS/80) Emulator 'eTK-80BS'
+	NEC TK-80 Emulator 'eTK-80'
+	NEC TK-85 Emulator 'eTK-85'
 
 	Author : Takeda.Toshiya
 	Date   : 2008.08.26 -
@@ -10,30 +12,62 @@
 #ifndef _TK80BS_H_
 #define _TK80BS_H_
 
+#if defined(_TK80BS)
 #define DEVICE_NAME		"NEC TK-80BS"
 #define CONFIG_NAME		"tk80bs"
+#elif defined(_TK80)
+#define DEVICE_NAME		"NEC TK-80"
+#define CONFIG_NAME		"tk80"
+#elif defined(_TK85)
+#define DEVICE_NAME		"NEC TK-85"
+#define CONFIG_NAME		"tk85"
+#endif
 
 // device informations for virtual machine
+#if defined(_TK80BS)
 #define FRAMES_PER_SEC		59.9
 #define LINES_PER_FRAME 	262
+#elif defined(_TK80) || defined(_TK85)
+#define FRAMES_PER_SEC		30
+#define LINES_PER_FRAME 	256
+#endif
+#if defined(_TK80BS) || defined(_TK80)
 #define CPU_CLOCKS		2048000
-#define HAS_I8080
-#define I8255_AUTO_HAND_SHAKE
 #define SCREEN_WIDTH		784
 #define SCREEN_HEIGHT		428
+#define HAS_I8080
+#elif defined(_TK85)
+#define CPU_CLOCKS		2457600
+#define SCREEN_WIDTH		784
+#define SCREEN_HEIGHT		534
+#define HAS_I8085
+#endif
+#define I8255_AUTO_HAND_SHAKE
+
 #define MEMORY_ADDR_MAX		0x10000
 #define MEMORY_BANK_SIZE	0x200
 #define IO_ADDR_MAX		0x10000
 
 // device informations for win32
 #define ONE_BOARD_MICRO_COMPUTER
+#if defined(_TK80BS) || defined(_TK80)
 #define MAX_BUTTONS		25
-//#define MAX_DRAW_RANGES		9
+#elif defined(_TK85)
+#define MAX_BUTTONS		26
+#endif
+#if defined(_TK80) || defined(_TK85)
+#define MAX_DRAW_RANGES		8
+#endif
+#if defined(_TK80BS)
 #define USE_BOOT_MODE		2
-//#define USE_DIPSWITCH
-//#define DIPSWITCH_DEFAULT	0
+#endif
+#define USE_DIPSWITCH
+#define DIPSWITCH_DEFAULT	0
 #define USE_TAPE
+#if defined(_TK80BS)
 #define TAPE_BINARY_ONLY
+#endif
+
 #define USE_BINARY_FILE1
 #define NOTIFY_KEY_DOWN
 #define USE_ALT_F10_KEY
@@ -42,7 +76,11 @@
 #define USE_AUTO_KEY_NO_CAPS
 #define SUPPORT_ROMA_KANA_CONVERSION
 
+#if defined(_TK80BS)
 #define USE_SOUND_VOLUME	2
+#elif defined(_TK80) || defined(_TK85)
+#define USE_SOUND_VOLUME	3
+#endif
 #define USE_DEBUGGER
 #define USE_STATE
 
@@ -52,72 +90,123 @@
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
 	_T("Beep #1"), _T("Beep #2"),
+#if defined(_TK80) || defined(_TK85)
+	_T("CMT"),
+#endif
 };
 #endif
 
+#if defined(_TK80BS) || defined(_TK80)
+#define BUTTON_SPACE_X	46
+#define BUTTON_SPACE_Y	46
+#define BUTTON_SIZE_X	40
+#define BUTTON_SIZE_Y	40
+#define BUTTON_POS_X1	523
+#define BUTTON_POS_X2	(BUTTON_POS_X1 + BUTTON_SPACE_X * 4)
+#define BUTTON_POS_Y1	374
+#define BUTTON_POS_Y2	190
+
+#define LED_SPACE_X	36
+#define LED_SIZE_X	33
+#define LED_SIZE_Y	46
+#define LED_POS_X1	461
+#define LED_POS_X2	618
+#define LED_POS_Y	28
+#else
+#define BUTTON_SPACE_X	47
+#define BUTTON_SPACE_Y	47
+#define BUTTON_SIZE_X	44
+#define BUTTON_SIZE_Y	44
+#define BUTTON_POS_X1	536
+#define BUTTON_POS_X2	729
+#define BUTTON_POS_Y1	488
+#define BUTTON_POS_Y2	296
+
+#define LED_SPACE_X	39
+#define LED_SIZE_X	29
+#define LED_SIZE_Y	39
+#define LED_POS_X1	446
+#define LED_POS_X2	607
+#define LED_POS_Y	130
+#endif
+
 const struct {
-	const _TCHAR* caption;
 	int x, y;
 	int width, height;
-	int font_size;
 	int code;
 } vm_buttons[] = {
 	// virtual key codes 0x80-0x8f and 0x98-0x9f are not used in pc keyboard
-	{_T("0"),		523 + 46 * 0, 190 + 46 * 4, 40, 40, 20, 0x80},
-	{_T("1"),		523 + 46 * 1, 190 + 46 * 4, 40, 40, 20, 0x81},
-	{_T("2"),		523 + 46 * 2, 190 + 46 * 4, 40, 40, 20, 0x82},
-	{_T("3"),		523 + 46 * 3, 190 + 46 * 4, 40, 40, 20, 0x83},
-	{_T("4"),		523 + 46 * 0, 190 + 46 * 3, 40, 40, 20, 0x84},
-	{_T("5"),		523 + 46 * 1, 190 + 46 * 3, 40, 40, 20, 0x85},
-	{_T("6"),		523 + 46 * 2, 190 + 46 * 3, 40, 40, 20, 0x86},
-	{_T("7"),		523 + 46 * 3, 190 + 46 * 3, 40, 40, 20, 0x87},
-	{_T("8"),		523 + 46 * 0, 190 + 46 * 2, 40, 40, 20, 0x88},
-	{_T("9"),		523 + 46 * 1, 190 + 46 * 2, 40, 40, 20, 0x89},
-	{_T("A"),		523 + 46 * 2, 190 + 46 * 2, 40, 40, 20, 0x8a},
-	{_T("B"),		523 + 46 * 3, 190 + 46 * 2, 40, 40, 20, 0x8b},
-	{_T("C"),		523 + 46 * 0, 190 + 46 * 1, 40, 40, 20, 0x8c},
-	{_T("D"),		523 + 46 * 1, 190 + 46 * 1, 40, 40, 20, 0x8d},
-	{_T("E"),		523 + 46 * 2, 190 + 46 * 1, 40, 40, 20, 0x8e},
-	{_T("F"),		523 + 46 * 3, 190 + 46 * 1, 40, 40, 20, 0x8f},
-	{_T("RET"),		523 + 46 * 0, 190 + 46 * 0, 40, 40, 9,  0x98},
-	{_T("RUN"),		523 + 46 * 1, 190 + 46 * 0, 40, 40, 9,  0x99},
-	{_T("STORE\nDATA"),	523 + 46 * 2, 190 + 46 * 0, 40, 40, 9,  0x9a},
-	{_T("LOAD\nDATA"),	523 + 46 * 3, 190 + 46 * 0, 40, 40, 9,  0x9b},
-	{_T("RESET"),		523 + 46 * 4, 190 + 46 * 0, 40, 40, 9,  0x00},
-	{_T("ADRS\nSET"),	523 + 46 * 4, 190 + 46 * 1, 40, 40, 9,  0x9c},
-	{_T("READ\nINCR"),	523 + 46 * 4, 190 + 46 * 2, 40, 40, 9,  0x9d},
-	{_T("READ\nDECR"),	523 + 46 * 4, 190 + 46 * 3, 40, 40, 9,  0x9e},
-	{_T("WRITE\nINCR"),	523 + 46 * 4, 190 + 46 * 4, 40, 40, 9,  0x9f},
+	{BUTTON_POS_X1 + BUTTON_SPACE_X * 0, BUTTON_POS_Y1 - BUTTON_SPACE_Y * 0, BUTTON_SIZE_X, BUTTON_SIZE_Y, 0x80},	// 0
+	{BUTTON_POS_X1 + BUTTON_SPACE_X * 1, BUTTON_POS_Y1 - BUTTON_SPACE_Y * 0, BUTTON_SIZE_X, BUTTON_SIZE_Y, 0x81},	// 1
+	{BUTTON_POS_X1 + BUTTON_SPACE_X * 2, BUTTON_POS_Y1 - BUTTON_SPACE_Y * 0, BUTTON_SIZE_X, BUTTON_SIZE_Y, 0x82},	// 2
+	{BUTTON_POS_X1 + BUTTON_SPACE_X * 3, BUTTON_POS_Y1 - BUTTON_SPACE_Y * 0, BUTTON_SIZE_X, BUTTON_SIZE_Y, 0x83},	// 3
+	{BUTTON_POS_X1 + BUTTON_SPACE_X * 0, BUTTON_POS_Y1 - BUTTON_SPACE_Y * 1, BUTTON_SIZE_X, BUTTON_SIZE_Y, 0x84},	// 4
+	{BUTTON_POS_X1 + BUTTON_SPACE_X * 1, BUTTON_POS_Y1 - BUTTON_SPACE_Y * 1, BUTTON_SIZE_X, BUTTON_SIZE_Y, 0x85},	// 5
+	{BUTTON_POS_X1 + BUTTON_SPACE_X * 2, BUTTON_POS_Y1 - BUTTON_SPACE_Y * 1, BUTTON_SIZE_X, BUTTON_SIZE_Y, 0x86},	// 6
+	{BUTTON_POS_X1 + BUTTON_SPACE_X * 3, BUTTON_POS_Y1 - BUTTON_SPACE_Y * 1, BUTTON_SIZE_X, BUTTON_SIZE_Y, 0x87},	// 7
+	{BUTTON_POS_X1 + BUTTON_SPACE_X * 0, BUTTON_POS_Y1 - BUTTON_SPACE_Y * 2, BUTTON_SIZE_X, BUTTON_SIZE_Y, 0x88},	// 8
+	{BUTTON_POS_X1 + BUTTON_SPACE_X * 1, BUTTON_POS_Y1 - BUTTON_SPACE_Y * 2, BUTTON_SIZE_X, BUTTON_SIZE_Y, 0x89},	// 9
+	{BUTTON_POS_X1 + BUTTON_SPACE_X * 2, BUTTON_POS_Y1 - BUTTON_SPACE_Y * 2, BUTTON_SIZE_X, BUTTON_SIZE_Y, 0x8a},	// A
+	{BUTTON_POS_X1 + BUTTON_SPACE_X * 3, BUTTON_POS_Y1 - BUTTON_SPACE_Y * 2, BUTTON_SIZE_X, BUTTON_SIZE_Y, 0x8b},	// B
+	{BUTTON_POS_X1 + BUTTON_SPACE_X * 0, BUTTON_POS_Y1 - BUTTON_SPACE_Y * 3, BUTTON_SIZE_X, BUTTON_SIZE_Y, 0x8c},	// C
+	{BUTTON_POS_X1 + BUTTON_SPACE_X * 1, BUTTON_POS_Y1 - BUTTON_SPACE_Y * 3, BUTTON_SIZE_X, BUTTON_SIZE_Y, 0x8d},	// D
+	{BUTTON_POS_X1 + BUTTON_SPACE_X * 2, BUTTON_POS_Y1 - BUTTON_SPACE_Y * 3, BUTTON_SIZE_X, BUTTON_SIZE_Y, 0x8e},	// E
+	{BUTTON_POS_X1 + BUTTON_SPACE_X * 3, BUTTON_POS_Y1 - BUTTON_SPACE_Y * 3, BUTTON_SIZE_X, BUTTON_SIZE_Y, 0x8f},	// F
+	{BUTTON_POS_X1 + BUTTON_SPACE_X * 0, BUTTON_POS_Y2                     , BUTTON_SIZE_X, BUTTON_SIZE_Y, 0x98},	// RET
+	{BUTTON_POS_X1 + BUTTON_SPACE_X * 1, BUTTON_POS_Y2                     , BUTTON_SIZE_X, BUTTON_SIZE_Y, 0x99},	// RUN
+	{BUTTON_POS_X1 + BUTTON_SPACE_X * 2, BUTTON_POS_Y2                     , BUTTON_SIZE_X, BUTTON_SIZE_Y, 0x9a},	// STORE DATA
+	{BUTTON_POS_X1 + BUTTON_SPACE_X * 3, BUTTON_POS_Y2                     , BUTTON_SIZE_X, BUTTON_SIZE_Y, 0x9b},	// LOAD DATA
+#if defined(_TK80BS) || defined(_TK80)
+	{BUTTON_POS_X2                     , BUTTON_POS_Y2                     , BUTTON_SIZE_X, BUTTON_SIZE_Y, 0x00},	// RESET
+#elif defined(_TK85)
+	{BUTTON_POS_X2                     , BUTTON_POS_Y2                     , BUTTON_SIZE_X, BUTTON_SIZE_Y, 0x97},	// MON
+#endif
+	{BUTTON_POS_X2                     , BUTTON_POS_Y1 - BUTTON_SPACE_Y * 3, BUTTON_SIZE_X, BUTTON_SIZE_Y, 0x9c},	// ADRS SET
+	{BUTTON_POS_X2                     , BUTTON_POS_Y1 - BUTTON_SPACE_Y * 2, BUTTON_SIZE_X, BUTTON_SIZE_Y, 0x9d},	// READ INCR
+	{BUTTON_POS_X2                     , BUTTON_POS_Y1 - BUTTON_SPACE_Y * 1, BUTTON_SIZE_X, BUTTON_SIZE_Y, 0x9e},	// READ DECR
+	{BUTTON_POS_X2                     , BUTTON_POS_Y1 - BUTTON_SPACE_Y * 0, BUTTON_SIZE_X, BUTTON_SIZE_Y, 0x9f},	// WRITE INCR
+#if defined(_TK85)
+	{727                               , 237                               , 29           , 29           , 0x00},	// RESET
+#endif
 };
 const struct {
 	int x, y;
 	int width, height;
 } vm_ranges[] = {
-	{461 + 36 * 0, 28, 33, 46}, // 7-seg LEDs
-	{461 + 36 * 1, 28, 33, 46},
-	{461 + 36 * 2, 28, 33, 46},
-	{461 + 36 * 3, 28, 33, 46},
-	{618 + 36 * 0, 28, 33, 46},
-	{618 + 36 * 1, 28, 33, 46},
-	{618 + 36 * 2, 28, 33, 46},
-	{618 + 36 * 3, 28, 33, 46},
+	{LED_POS_X1 + LED_SPACE_X * 0, LED_POS_Y, LED_SIZE_X, LED_SIZE_Y}, // 7-seg LEDs
+	{LED_POS_X1 + LED_SPACE_X * 1, LED_POS_Y, LED_SIZE_X, LED_SIZE_Y},
+	{LED_POS_X1 + LED_SPACE_X * 2, LED_POS_Y, LED_SIZE_X, LED_SIZE_Y},
+	{LED_POS_X1 + LED_SPACE_X * 3, LED_POS_Y, LED_SIZE_X, LED_SIZE_Y},
+	{LED_POS_X2 + LED_SPACE_X * 0, LED_POS_Y, LED_SIZE_X, LED_SIZE_Y},
+	{LED_POS_X2 + LED_SPACE_X * 1, LED_POS_Y, LED_SIZE_X, LED_SIZE_Y},
+	{LED_POS_X2 + LED_SPACE_X * 2, LED_POS_Y, LED_SIZE_X, LED_SIZE_Y},
+	{LED_POS_X2 + LED_SPACE_X * 3, LED_POS_Y, LED_SIZE_X, LED_SIZE_Y},
+#if defined(_TK80BS)
 	{4, 158, 512, 256}, // CRT
+#endif
 };
 
 class EMU;
 class DEVICE;
 class EVENT;
 
-class I8251;
-class I8255;
-class IO;
-class MEMORY;
-class PCM1BIT;
 class I8080;
+#if defined(_TK80BS)
+class I8251;
+class IO;
+#elif defined(_TK80) || defined(_TK85)
+class DATAREC;
+#endif
+class I8255;
+//class MEMORY;
+class PCM1BIT;
 
+#if defined(_TK80BS)
 class CMT;
+#endif
 class DISPLAY;
 class KEYBOARD;
+class MEMBUS;
 
 class VM
 {
@@ -127,28 +216,37 @@ protected:
 	// devices
 	EVENT* event;
 	
+	I8080* cpu;
+#if defined(_TK80BS)
 	I8251* sio_b;
 	I8255* pio_b;
-	I8255* pio_t;
 	IO* memio;
-	MEMORY* memory;
+#elif defined(_TK80) || defined(_TK85)
+	DATAREC* drec;
+#endif
+	I8255* pio_t;
+//	MEMORY* memory;
 	PCM1BIT* pcm0;
 	PCM1BIT* pcm1;
-	I8080* cpu;
 	
+#if defined(_TK80BS)
 	CMT* cmt;
+#endif
 	DISPLAY* display;
 	KEYBOARD* keyboard;
+	MEMBUS* memory;
 	
 	// memory
 	uint8_t mon[0x800];
 	uint8_t ext[0x7000];
+	uint8_t ram[0x5000];	// with TK-M20K
+#if defined(_TK80BS)
 	uint8_t basic[0x2000];
 	uint8_t bsmon[0x1000];
-	uint8_t ram[0x5000];	// with TK-M20K
 	uint8_t vram[0x200];
 	
 	int boot_mode;
+#endif
 	
 public:
 	// ----------------------------------------
@@ -173,7 +271,9 @@ public:
 	
 	// draw screen
 	void draw_screen();
+#if defined(_TK80BS)
 	int max_draw_ranges();
+#endif
 	
 	// sound generation
 	void initialize_sound(int rate, int samples);
@@ -194,6 +294,11 @@ public:
 	void rec_tape(const _TCHAR* file_path);
 	void close_tape();
 	bool is_tape_inserted();
+#if defined(_TK80) || defined(_TK85)
+	bool is_tape_playing();
+	bool is_tape_recording();
+	int get_tape_position();
+#endif
 	bool is_frame_skippable();
 	
 	void update_config();
@@ -210,7 +315,9 @@ public:
 	DEVICE* first_device;
 	DEVICE* last_device;
 	
+#if defined(_TK80BS)
 	int draw_ranges;
+#endif
 };
 
 #endif

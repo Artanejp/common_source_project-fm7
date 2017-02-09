@@ -7,7 +7,6 @@
 #define IDR_ACCELERATOR1                103
 #define ID_ACCEL_SCREEN                 104
 #define ID_ACCEL_MOUSE                  105
-#define ID_BITMAP1                      106
 
 #define IDD_VOLUME                      111
 #define IDC_VOLUME_CAPTION0             112
@@ -1324,6 +1323,22 @@
 
 // NEC TK-80BS (COMPO BS/80)
 #ifdef _TK80BS
+#define MENU_POS_CONTROL                0
+#define MENU_POS_BINARY1                1
+#define MENU_POS_TAPE                   2
+#define MENU_POS_SOUND                  3
+#endif
+
+// NEC TK-80
+#ifdef _TK80
+#define MENU_POS_CONTROL                0
+#define MENU_POS_BINARY1                1
+#define MENU_POS_TAPE                   2
+#define MENU_POS_SOUND                  3
+#endif
+
+// NEC TK-85
+#ifdef _TK85
 #define MENU_POS_CONTROL                0
 #define MENU_POS_BINARY1                1
 #define MENU_POS_TAPE                   2
