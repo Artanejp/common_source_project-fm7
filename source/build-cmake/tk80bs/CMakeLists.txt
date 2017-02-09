@@ -28,9 +28,10 @@ set(VMFILES_BASE
 		   io.cpp
 		   memory.cpp
 
+)
+set(VMFILES_LIB
 		   pcm1bit.cpp
 )
-
 
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")

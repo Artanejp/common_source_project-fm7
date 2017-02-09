@@ -18,10 +18,8 @@ set(VM_NAME fmr30)
 set(USE_FMGEN OFF)
 set(EXEC_TARGET emufmr30)
 set(VMFILES
-		   i286.cpp
-		   pcm1bit.cpp
+#		   i286.cpp
 		   i8237.cpp
-		   i8251.cpp
 		   i8253.cpp
 		   i8259.cpp
 		   fmr50/bios.cpp
@@ -37,6 +35,11 @@ set(VMFILES
 		   disk.cpp
 		   event.cpp
 )
+set(VMFILES_LIB
+		   pcm1bit.cpp
+		   i8251.cpp
+)
+set(FLAG_USE_I286 ON)
 
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")

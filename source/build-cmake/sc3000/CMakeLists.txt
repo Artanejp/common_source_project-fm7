@@ -35,6 +35,7 @@ set(VMFILES
 		   event.cpp
 )
 
+
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")

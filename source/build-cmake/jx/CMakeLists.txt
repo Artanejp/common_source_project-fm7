@@ -22,24 +22,28 @@ set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
 
 set(VMFILES_BASE
-      i86.cpp
+#      i86.cpp
   
       hd46505.cpp
-      i8251.cpp
       i8253.cpp
       i8255.cpp
       i8259.cpp
       io.cpp
       memory.cpp
       
-      pcm1bit.cpp
       sn76489an.cpp
-      not.cpp
       upd765a.cpp
       disk.cpp
       
       event.cpp
 )
+set(VMFILES_LIB
+      i8251.cpp
+      pcm1bit.cpp
+      not.cpp
+)
+set(FLAG_USE_I86 ON)
+
 set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger")
 include(detect_target_cpu)
 # set entry

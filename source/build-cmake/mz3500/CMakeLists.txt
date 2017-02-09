@@ -21,18 +21,13 @@ set(WITH_MOUSE ON)
 set(VMFILES
 	   z80.cpp
 	   
-	   i8251.cpp
 	   i8253.cpp
 	   i8255.cpp
 		   
-	   ls244.cpp
-	   not.cpp
-	   
 	   upd1990a.cpp
 	   upd7220.cpp
 	   upd765a.cpp
 	   
-	   pcm1bit.cpp
 	   mz1p17.cpp
 	   prnfile.cpp
 	   
@@ -40,6 +35,12 @@ set(VMFILES
 	   event.cpp
 	   io.cpp
 )
+set(VMFILES_LIB
+	   i8251.cpp
+	   ls244.cpp
+	   not.cpp
+	   pcm1bit.cpp
+)	   
 
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")

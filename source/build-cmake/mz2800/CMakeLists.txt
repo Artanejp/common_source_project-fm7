@@ -25,9 +25,6 @@ set(VMFILES
 		   i8253.cpp
 		   i8255.cpp
 		   i8259.cpp
-		   not.cpp
-		   
-		   pcm1bit.cpp
 		   rp5c01.cpp
 		   upd71071.cpp
 		   ym2203.cpp
@@ -40,7 +37,10 @@ set(VMFILES
 		   event.cpp
 		   io.cpp
 )
-
+set(VMFILES_LIB
+		   not.cpp
+		   pcm1bit.cpp
+)
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")

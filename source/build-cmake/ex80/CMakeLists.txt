@@ -22,14 +22,15 @@ set(WITH_MOUSE ON)
 
 set(VMFILES_BASE
        i8080.cpp
-       i8251.cpp
        i8255.cpp
-       pcm1bit.cpp
        io.cpp
        event.cpp
 )
 
-
+set(VMFILES_LIB
+       i8251.cpp
+       pcm1bit.cpp
+)       
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")

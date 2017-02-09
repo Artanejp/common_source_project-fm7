@@ -20,12 +20,13 @@ set(USE_FMGEN OFF)
 
 set(VMFILES_BASE
   mc6800.cpp
-  mc6820.cpp
-  datarec.cpp
 
+  datarec.cpp
   event.cpp
 )
-
+set(VMFILES_LIB
+  mc6820.cpp
+)
 
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
