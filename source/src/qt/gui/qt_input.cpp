@@ -174,6 +174,7 @@ uint32_t GLDrawClass::get106Scancode2VK(uint32_t data)
 	if((vk == VK_LCONTROL) || (vk == VK_RCONTROL)) vk = VK_CONTROL;
 	return vk;
 }
+extern std::string cpp_confdir;
 
 void GLDrawClass::initKeyCode(void)
 {

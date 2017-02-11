@@ -165,7 +165,7 @@ void GLDrawClass::InitFBO(void)
 		if((_glversion.first >= 3) && (_glversion.second >= 0) &&
 		   (extfunc == NULL) &&
 		   (_major_version >= 3)){
-			extfunc = new GLDraw_3_0(this, using_flags);
+			extfunc = new GLDraw_3_0(this, using_flags, csp_logger);
 			if(extfunc != NULL) {
 				csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Use OpenGL v3.0 Renderer");
 			}
@@ -174,7 +174,7 @@ void GLDrawClass::InitFBO(void)
 			if((_major_version >= 3) || ((_major_version == 2) && (_minor_version >= 1)))  {
 				csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Try to use fallback: OpenGL 2.0");
 			}				
-			extfunc = new GLDraw_2_0(this, using_flags);
+			extfunc = new GLDraw_2_0(this, using_flags, csp_logger);
 			if(extfunc != NULL) {
 				csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Use OpenGL v2.0 Renderer");
 			}

@@ -88,6 +88,7 @@ void GLDrawClass::resizeGL(int width, int height)
 void GLDrawClass::paintGL(void)
 {
 	SaveToPixmap(); // If save requested, then Save to Pixmap.
+	//qWarning("Test");
 	if(extfunc != NULL) {
 		if(delay_update) {
 			extfunc->setVirtualVramSize(vram_width, vram_height);
@@ -104,16 +105,17 @@ void GLDrawClass::paintGL(void)
 #endif
 
 #if defined(_USE_GLAPI_QT5_4)
-GLDrawClass::GLDrawClass(USING_FLAGS *p, QWidget *parent, const QSurfaceFormat &fmt)
+GLDrawClass::GLDrawClass(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent, const QSurfaceFormat &fmt)
 	: QOpenGLWidget(parent, Qt::Widget)
 #else
-GLDrawClass::GLDrawClass(USING_FLAGS *p, QWidget *parent, const QGLFormat &fmt)
+GLDrawClass::GLDrawClass(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent, const QGLFormat &fmt)
 	: QGLWidget(fmt, parent)
 #endif
 {
 #if defined(_USE_GLAPI_QT5_4)
 	this->setFormat(fmt);
 #endif
+	csp_logger = logger;
 	save_pixmap_req = false;
 	enable_mouse = true;
 	p_emu = NULL;

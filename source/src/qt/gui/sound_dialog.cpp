@@ -12,11 +12,11 @@
 
 //extern USING_FLAGS *using_flags;
 
-Ui_SndSliderObject::Ui_SndSliderObject(USING_FLAGS *p, EMU *_emu, Qt::Orientation orientation, QWidget *parent, int num)
+Ui_SndSliderObject::Ui_SndSliderObject(USING_FLAGS *p, Qt::Orientation orientation, QWidget *parent, int num)
 	: QSlider(orientation, parent)
 {
 	using_flags = p;
-	p_emu = emu;
+	p_emu = NULL;
 	bind_num = num;
 	parent_widget = parent;
 }
@@ -93,9 +93,9 @@ void Ui_SndSliderObject::resetBalanceValue()
 	this->setLevelValue(0);
 }
 
-Ui_SoundDialog::Ui_SoundDialog(USING_FLAGS *p, EMU *_emu, QWidget *parent) : QWidget(0)
+Ui_SoundDialog::Ui_SoundDialog(USING_FLAGS *p, QWidget *parent) : QWidget(0)
 {
-	p_emu = _emu;
+	p_emu = NULL;
 	using_flags = p;
 	if(parent != NULL) {
 		parent_widget = parent;
@@ -105,7 +105,7 @@ Ui_SoundDialog::Ui_SoundDialog(USING_FLAGS *p, EMU *_emu, QWidget *parent) : QWi
 	MasterLayout = new QGridLayout;
 	
 	this->setMinimumWidth(620);
-	sliderMasterVolume = new Ui_SndSliderObject(using_flags, _emu, Qt::Horizontal, this, 0);
+	sliderMasterVolume = new Ui_SndSliderObject(using_flags, Qt::Horizontal, this, 0);
 	boxMasterVolume = new QGroupBox(QApplication::translate("Ui_SoundDialog", "Main", 0));
 	
 	connect(sliderMasterVolume, SIGNAL(sig_emu_update_config()),
@@ -143,7 +143,7 @@ Ui_SoundDialog::Ui_SoundDialog(USING_FLAGS *p, EMU *_emu, QWidget *parent) : QWi
 			s_balance = -(l_val - r_val) / 2;
 			lbl = lbl;
 			
-			sliderDeviceVolume[ij] = new Ui_SndSliderObject(using_flags, _emu, Qt::Horizontal, this, ii + 1);
+			sliderDeviceVolume[ij] = new Ui_SndSliderObject(using_flags, Qt::Horizontal, this, ii + 1);
 			sliderDeviceVolume[ij]->setMinimum(-40);
 			sliderDeviceVolume[ij]->setMaximum(0);
 			sliderDeviceVolume[ij]->setSingleStep(1);
@@ -157,7 +157,7 @@ Ui_SoundDialog::Ui_SoundDialog(USING_FLAGS *p, EMU *_emu, QWidget *parent) : QWi
 			connect(sliderDeviceVolume[ij], SIGNAL(sig_emu_update_volume_label(int, int)),
 					this, SLOT(do_update_volume_label(int, int)));
 						
-			sliderDeviceVolume[ij + 1] = new Ui_SndSliderObject(using_flags, _emu, Qt::Horizontal, this, ii + 1);
+			sliderDeviceVolume[ij + 1] = new Ui_SndSliderObject(using_flags, Qt::Horizontal, this, ii + 1);
 			sliderDeviceVolume[ij + 1]->setMinimum(-20);
 			sliderDeviceVolume[ij + 1]->setMaximum(20);
 			sliderDeviceVolume[ij + 1]->setSingleStep(1);

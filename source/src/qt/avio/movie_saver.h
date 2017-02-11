@@ -31,6 +31,7 @@ extern "C" {
 // Copy from FFMPEG-3.0.2; doc/example/muxing.c .
 
 #define STREAM_PIX_FMT	AV_PIX_FMT_YUV420P /* default pix_fmt */
+extern DLL_PREFIX CSP_Logger *csp_logger;
 
 //#define SCALE_FLAGS SWS_BICUBLIN
 #define SCALE_FLAGS SWS_POINT
@@ -75,7 +76,7 @@ typedef struct OutputStream {
 class OSD;
 class QMutex;
 QT_BEGIN_NAMESPACE
-class VIDEO_DATA {
+class DLL_PREFIX VIDEO_DATA {
 
 public:
 	int frames;
@@ -91,7 +92,7 @@ public:
 	~VIDEO_DATA() {};
 };
 
-class MOVIE_SAVER: public QThread
+class DLL_PREFIX MOVIE_SAVER: public QThread
 {
 	Q_OBJECT
 private:

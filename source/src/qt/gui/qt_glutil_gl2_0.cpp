@@ -18,10 +18,11 @@
 #include "qt_glutil_gl2_0.h"
 #include "menu_flags.h"
 
-GLDraw_2_0::GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, EMU *emu) : QObject(parent)
+GLDraw_2_0::GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU *emu) : QObject(parent)
 {
 	p_wid = parent;
 	using_flags = p;
+	csp_logger = logger;
 	
 	gl_grid_horiz = false;
 	gl_grid_vert = false;

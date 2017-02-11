@@ -25,7 +25,7 @@ class GLDraw_2_0;
 class GLDraw_3_0;
 class CSP_KeyTables;
 class USING_FLAGS;
-
+class CSP_Logger;
 struct NativeScanCode {
 	uint32_t vk;
 	uint32_t scan;
@@ -44,6 +44,7 @@ class DLL_PREFIX GLDrawClass: public QGLWidget
 	Q_OBJECT
  private:
 	EMU *p_emu;
+	CSP_Logger *csp_logger;
 	USING_FLAGS *using_flags;
 	bool is_mouse_enabled;
 	
@@ -77,9 +78,9 @@ class DLL_PREFIX GLDrawClass: public QGLWidget
 
 public:
 #if defined(_USE_GLAPI_QT5_4)
-	GLDrawClass(USING_FLAGS *p, QWidget *parent = 0, const QSoufaceFormat &fmt = QSurfaceFormat::defaultFormat());
+	GLDrawClass(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent = 0, const QSoufaceFormat &fmt = QSurfaceFormat::defaultFormat());
 #else
-	GLDrawClass(USING_FLAGS *p, QWidget *parent = 0, const QGLFormat &fmt = QGLFormat::defaultFormat());
+	GLDrawClass(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent = 0, const QGLFormat &fmt = QGLFormat::defaultFormat());
 #endif
 	~GLDrawClass();
 	GLDraw_2_0 *extfunc;

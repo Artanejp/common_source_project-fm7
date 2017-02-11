@@ -45,7 +45,7 @@ void Ui_MainWindowBase::CreateCMTMenu(void)
 	QString desc_rec;
 	
 	listCMT.clear();
-	menu_CMT = new Menu_CMTClass(emu, menubar, "Object_CMT_Menu", using_flags, this, 0);
+	menu_CMT = new Menu_CMTClass(menubar, "Object_CMT_Menu", using_flags, this, 0);
 	menu_CMT->setObjectName(QString::fromUtf8("menuCMT", -1));
 	
 	menu_CMT->create_pulldown_menu();	

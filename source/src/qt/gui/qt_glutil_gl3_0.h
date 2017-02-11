@@ -15,7 +15,7 @@
 #include <QOpenGLFunctions_3_0>
 
 class GLScreenPack;
-
+class CSP_Logger;
 class DLL_PREFIX GLDraw_3_0 : public GLDraw_2_0
 {
 	Q_OBJECT
@@ -80,7 +80,7 @@ protected:
 	virtual void drawButtonsMain(int num, bool f_smoosing);
 
 public:
-	GLDraw_3_0(GLDrawClass *parent, USING_FLAGS *p, EMU *emu = 0);
+	GLDraw_3_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU *emu = 0);
 	~GLDraw_3_0();
 	void drawButtons(void);
 	virtual void initGLObjects();

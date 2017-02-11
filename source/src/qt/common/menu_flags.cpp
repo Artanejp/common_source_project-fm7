@@ -2,7 +2,7 @@
 #include "vm.h"
 #include "emu.h"
 #include "osd.h"
-#include "menu_flags.h"
+#include "menu_flags_ext.h"
 
 #ifndef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {""};
@@ -21,7 +21,7 @@ const int s_freq_table[8] = {
 		96000,
 };
 
-USING_FLAGS::USING_FLAGS(config_t *cfg)
+USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 {
 	p_osd = NULL;
 	use_access_lamp = use_alt_f10_key = false;
@@ -506,11 +506,11 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	p_config = cfg;
 }
 
-USING_FLAGS::~USING_FLAGS()
+USING_FLAGS_EXT::~USING_FLAGS_EXT()
 {
 }
 
-const _TCHAR *USING_FLAGS::get_joy_button_captions(int num)
+const _TCHAR *USING_FLAGS_EXT::get_joy_button_captions(int num)
 {
 #ifdef USE_JOY_BUTTON_CAPTIONS
 	if((num < 0) || (num >= num_joy_button_captions)) {
@@ -523,7 +523,7 @@ const _TCHAR *USING_FLAGS::get_joy_button_captions(int num)
 #endif	
 }
 
-const _TCHAR *USING_FLAGS::get_sound_device_caption(int num)
+const _TCHAR *USING_FLAGS_EXT::get_sound_device_caption(int num)
 {
 #ifdef USE_SOUND_VOLUME
 	if((num < 0) || (num >= USE_SOUND_VOLUME)) {
@@ -536,51 +536,27 @@ const _TCHAR *USING_FLAGS::get_sound_device_caption(int num)
 #endif	
 }
 
-void USING_FLAGS::set_emu(EMU *p)
-{
-	p_emu = p;
-}
 
-EMU *USING_FLAGS::get_emu(void)
-{
-	return p_emu;
-}
-
-void USING_FLAGS::set_osd(OSD *p)
-{
-	p_osd = p;
-}
-
-OSD *USING_FLAGS::get_osd(void)
-{
-	return p_osd;
-}
-
-config_t *USING_FLAGS::get_config_ptr(void)
-{
-	return p_config;
-}
-
-int USING_FLAGS::get_s_freq_table(int num)
+int USING_FLAGS_EXT::get_s_freq_table(int num)
 {
 	if(num < 0) return s_freq_table[0];
 	if(num >= (int)(sizeof(s_freq_table) / sizeof(int))) return s_freq_table[sizeof(s_freq_table) / sizeof(int) - 1];
 	return s_freq_table[num];
 }
 																		
-int USING_FLAGS::get_vm_node_size(void)
+int USING_FLAGS_EXT::get_vm_node_size(void)
 {
 	if(p_emu == NULL) return 0;
 	return p_emu->get_osd()->get_vm_node_size();
 }
 
-void USING_FLAGS::set_vm_node_name(int id, const _TCHAR *name)
+void USING_FLAGS_EXT::set_vm_node_name(int id, const _TCHAR *name)
 {
 	if(p_emu == NULL) return;
 	p_emu->get_osd()->set_vm_node(id, name);
 }
 
-_TCHAR *USING_FLAGS::get_vm_node_name(int id)
+_TCHAR *USING_FLAGS_EXT::get_vm_node_name(int id)
 {
 	if(p_emu == NULL) return NULL;
 	return (_TCHAR *)p_emu->get_osd()->get_vm_node_name(id);

@@ -301,8 +301,8 @@ typedef union {
 	}
 } pair_t;
 
-uint32_t EndianToLittle_DWORD(uint32_t x);
-uint16_t EndianToLittle_WORD(uint16_t x);
+uint32_t DLL_PREFIX EndianToLittle_DWORD(uint32_t x);
+uint16_t DLL_PREFIX EndianToLittle_WORD(uint16_t x);
 
 // max/min
 #ifndef _MSC_VER
@@ -477,15 +477,15 @@ typedef struct {
 #pragma pack()
 
 // file path
-const _TCHAR * DLL_PREFIX get_application_path();
-const _TCHAR * DLL_PREFIX create_local_path(const _TCHAR *format, ...);
-void DLL_PREFIX create_local_path(_TCHAR *file_path, int length, const _TCHAR *format, ...);
-const _TCHAR * DLL_PREFIX create_date_file_path(const _TCHAR *extension);
-void DLL_PREFIX create_date_file_path(_TCHAR *file_path, int length, const _TCHAR *extension);
-bool DLL_PREFIX check_file_extension(const _TCHAR *file_path, const _TCHAR *ext);
-const _TCHAR * DLL_PREFIX get_file_path_without_extensiton(const _TCHAR *file_path);
-void DLL_PREFIX get_long_full_path_name(const _TCHAR* src, _TCHAR* dst, size_t dst_len);
-const _TCHAR* DLL_PREFIX get_parent_dir(const _TCHAR* file);
+const _TCHAR *get_application_path();
+const _TCHAR *create_local_path(const _TCHAR *format, ...);
+void create_local_path(_TCHAR *file_path, int length, const _TCHAR *format, ...);
+const _TCHAR *create_date_file_path(const _TCHAR *extension);
+void create_date_file_path(_TCHAR *file_path, int length, const _TCHAR *extension);
+bool check_file_extension(const _TCHAR *file_path, const _TCHAR *ext);
+const _TCHAR *get_file_path_without_extensiton(const _TCHAR *file_path);
+void get_long_full_path_name(const _TCHAR* src, _TCHAR* dst, size_t dst_len);
+const _TCHAR* get_parent_dir(const _TCHAR* file);
 
 // misc
 const _TCHAR * DLL_PREFIX create_string(const _TCHAR* format, ...);

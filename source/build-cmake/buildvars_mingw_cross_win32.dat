@@ -1,14 +1,14 @@
 #CMAKE=/usr/bin/cmake
 BUILD_TOOLCHAIN="GCC"
 
-BUILD_TYPE="Release"
+BUILD_TYPE="Debug"
 # "No" or "Yes".
-CSP_DEBUG="No"
+CSP_DEBUG="NO"
 # "No" or "Yes".
 USE_LTO="Yes"
 
 # No" or "Yes"
-STRIP_SYMBOLS="Yes"
+STRIP_SYMBOLS="NO"
 # "No" or "Yes"
 USE_RADICAL_OPTIMIZE="No"
 
@@ -20,6 +20,6 @@ ADDITIONAL_MAKEFLAGS_LINK_DLL=""
 ADDITIONAL_MAKEFLAGS_LINK_LIB=""
 
 FFMPEG_DIR="/usr/local/i586-mingw-msvc/ffmpeg-3.2"
-MAKEFLAGS_GENERAL="-j3"
+MAKEFLAGS_GENERAL="-j6"
 MAKEFLAGS_BASE=""
 

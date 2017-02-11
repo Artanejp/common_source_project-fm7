@@ -42,7 +42,7 @@
 //		äeâπåπÇÃâπó Çí≤êﬂÇ∑ÇÈ
 //		íPà ÇÕñÒ 1/2 dB
 //
-class PSG_AY_3_891X : public PSG
+class DLL_PREFIX PSG_AY_3_891X : public PSG
 {
 public:
 	PSG_AY_3_891X();

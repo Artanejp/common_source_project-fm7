@@ -24,12 +24,11 @@
 #include "draw_thread.h"
 #include "qt_glutil_gl2_0.h"
 
-DrawThreadClass::DrawThreadClass(EMU *p, OSD *o, QObject *parent) : QThread(parent) {
+DrawThreadClass::DrawThreadClass(OSD *o, CSP_Logger *logger,QObject *parent) : QThread(parent) {
 	MainWindow = (Ui_MainWindowBase *)parent;
 	glv = MainWindow->getGraphicsView();
-	p_emu = emu;
 	p_osd = o;
-	
+	csp_logger = logger;
 	screen = QGuiApplication::primaryScreen();
 	
 	draw_screen_buffer = NULL;

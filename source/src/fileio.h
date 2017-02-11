@@ -27,7 +27,7 @@
 #define FILEIO_SEEK_CUR			1
 #define FILEIO_SEEK_END			2
 
-class FILEIO
+class DLL_PREFIX FILEIO
 {
 private:
 	FILE* fp;

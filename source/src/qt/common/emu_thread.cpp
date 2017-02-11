@@ -27,7 +27,7 @@
 #define MAX_SKIP_FRAMES 10
 
 extern EMU *emu;
-
+extern CSP_Logger *csp_logger;
 EmuThreadClass::EmuThreadClass(META_MainWindow *rootWindow, USING_FLAGS *p, QObject *parent)
 	: EmuThreadClassBase(rootWindow, p, parent)
 {

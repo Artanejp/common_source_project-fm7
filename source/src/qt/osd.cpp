@@ -19,7 +19,7 @@
 #include "qt_gldraw.h"
 #include "osd.h"
 
-OSD::OSD(USING_FLAGS *p) : OSD_BASE(p)
+OSD::OSD(USING_FLAGS *p, CSP_Logger *logger) : OSD_BASE(p, logger)
 {
 }
 

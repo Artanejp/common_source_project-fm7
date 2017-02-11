@@ -154,7 +154,7 @@ void Ui_MainWindowBase::CreateQuickDiskMenu(int drv, int drv_base)
 	{
 		QString ext = "*.mzt *.q20 *.qdf";
 		QString desc1 = "Quick DIsk";
-		menu_QDs[drv] = new Menu_QDClass(emu, menubar, QString::fromUtf8("Obj_QuickDisk"), using_flags, this, drv);
+		menu_QDs[drv] = new Menu_QDClass(menubar, QString::fromUtf8("Obj_QuickDisk"), using_flags, this, drv);
 		menu_QDs[drv]->create_pulldown_menu();
 		
 		menu_QDs[drv]->do_clear_inner_media();

@@ -64,7 +64,7 @@ class VM;
 class FIFO;
 class CSP_KeyTables;
 class USING_FLAGS;
-
+class CSP_LOGGER;
 QT_BEGIN_NAMESPACE
 
 typedef struct {
@@ -82,6 +82,7 @@ protected:
 	sdl_snddata_t snddata;
 	USING_FLAGS *using_flags;
 	config_t *p_config;
+	CSP_Logger *csp_logger;
 	
 	_TCHAR app_path[_MAX_PATH];
 	QElapsedTimer osd_timer;
@@ -252,7 +253,7 @@ protected:
 	virtual void init_sound_files();
 	virtual void release_sound_files();
 public:
-	OSD_BASE(USING_FLAGS *p);
+	OSD_BASE(USING_FLAGS *p, CSP_Logger *logger);
 	~OSD_BASE();
 	
 	// common

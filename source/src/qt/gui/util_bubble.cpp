@@ -77,7 +77,7 @@ void Ui_MainWindowBase::CreateBubbleMenu(int drv, int drv_base)
 	{
 		QString ext = "*.b77 *.bbl";
 		QString desc1 = "Bubble Casette";
-		menu_bubbles[drv] = new Menu_BubbleClass(emu, menubar, QString::fromUtf8("Obj_Bubble"), using_flags, this, drv);
+		menu_bubbles[drv] = new Menu_BubbleClass(menubar, QString::fromUtf8("Obj_Bubble"), using_flags, this, drv);
 		menu_bubbles[drv]->create_pulldown_menu();
 		
 		menu_bubbles[drv]->do_clear_inner_media();

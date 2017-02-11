@@ -228,18 +228,7 @@ if(DEFINED VM_NAME)
 #   set(DEBUG_LIBS)
 # endif()
 
-if(WIN32)
-	   set(LOCAL_LIBS 
-		   common_emu
-           qt_${VM_NAME}
-		   vm_${VM_NAME}
-		   ${VM_APPEND_LIBS}
-		   ${FMGEN_LIB}
-		   vm_vm
-		   ${DEBUG_LIBS}
-		   common_common
-		   )
-else()
+	if(WIN32)
 	   set(LOCAL_LIBS     
 		   common_emu
            qt_${VM_NAME}
@@ -249,7 +238,17 @@ else()
 		   ${DEBUG_LIBS}
 		   common_common
 		   )
-	   endif()
+	else()
+	   set(LOCAL_LIBS     
+		   common_emu
+           qt_${VM_NAME}
+		   vm_${VM_NAME}
+		   vm_vm
+		   ${VM_APPEND_LIBS}
+		   ${DEBUG_LIBS}
+		   common_common
+		   )
+	endif()
 endif()
 
 include(simd-x86)

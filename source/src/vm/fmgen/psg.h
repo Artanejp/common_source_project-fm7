@@ -41,7 +41,7 @@
 //		Še‰¹Œ¹‚Ì‰¹—Ê‚ğ’²ß‚·‚é
 //		’PˆÊ‚Í–ñ 1/2 dB
 //
-class PSG
+class DLL_PREFIX PSG
 {
 public:
 	typedef PSG_SAMPLETYPE Sample;

@@ -141,7 +141,7 @@ void Ui_MainWindowBase::set_screen_aspect(int num)
 	
 	using_flags->get_config_ptr()->window_stretch_type = num;
 	
-	if(emu) {
+	if(using_flags->get_emu()) {
 		int w, h, n;
 		double nd, ww, hh;
 		n = using_flags->get_config_ptr()->window_mode;

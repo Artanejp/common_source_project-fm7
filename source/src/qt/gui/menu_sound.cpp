@@ -13,7 +13,7 @@
 #include "mainwidget_base.h"
 //#include "menuclasses.h"
 #include "sound_dialog.h"
-#include "../common/menu_flags.h"
+#include "menu_flags.h"
 
 
 // WIP: Will move to another file
@@ -38,7 +38,7 @@ void Ui_MainWindowBase::do_set_sound_strict_rendering(bool f)
 
 void Ui_MainWindowBase::rise_volume_dialog(void)
 {
-	Ui_SoundDialog *dlg = new Ui_SoundDialog(using_flags, emu, this);
+	Ui_SoundDialog *dlg = new Ui_SoundDialog(using_flags, this);
 	QString tmps, s_val;
 	float n;
 	QIcon  img = QIcon(":/icon_speaker.png");

@@ -18,6 +18,7 @@
 #endif
 #if defined(_USE_QT)
 #include "../qt/gui/csp_logger.h"
+extern CSP_Logger *csp_logger;
 #endif
 
 #include <stdarg.h>

@@ -11,6 +11,10 @@
 #include "../vm.h"
 #include "../..//emu.h"
 #include "device.h"
+#if defined(_USE_QT)
+#include "../qt/gui/csp_logger.h"
+extern CSP_Logger *csp_logger;
+#endif
 
 DEVICE::DEVICE(VM* parent_vm, EMU* parent_emu) : vm(parent_vm), emu(parent_emu)
 {

@@ -99,6 +99,7 @@ set(s_qt_gui_srcs
 	  qt_debugger_tmpl.cpp
 
 	  ../../romakana.cpp
+	  menu_flags_tmpl.cpp
 	  csp_logger.cpp
 	  qt_main.cpp
 )
@@ -122,34 +123,41 @@ else()
 endif()
 
 if(WIN32)
-add_library(qt_gui
+#add_library(qt_gui
+#	  ${s_qt_gui_srcs}
+#	  ${s_qt_gui_headers_MOC}
+#	  ${s_qt_gui_RCC}
+#)
+include (GenerateExportHeader)
+add_library(CSPgui SHARED
 	  ${s_qt_gui_srcs}
 	  ${s_qt_gui_headers_MOC}
 	  ${s_qt_gui_RCC}
-)
-#include (GenerateExportHeader)
-#add_library(CSPgui SHARED
-#	  ${s_qt_gui_srcs}
-##	  ${s_qt_gui_headers_MOC}
-#	  )
-#target_link_libraries(CSPgui PUBLIC
-#	   ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPemu_utils/build-win32/qt/emuutils/libemu_utils.a
-#	   ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPavio/build-win32/qt/avio/libqt_avio.a
-#	   ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPosd/build-win32/qt/osd/libqt_osd.a
-#	  Qt5::Core
-#	  Qt5::Gui
-#	  Qt5::OpenGL
-#	  Qt5::Widgets
-#	  ${SDL2_LIBRARIES}
-#	  )
+	  )
 #QT5_USE_MODULES(CSPgui Widgets Core Gui OpenGL)
-#generate_export_header(CSPgui
-#       BASE_NAME CSPgui
-#        EXPORT_MACRO_NAME CSPgui_EXPORT
-#        EXPORT_FILE_NAME CSPgui_Export.h
-#        STATIC_DEFINE CSPgui_BUILT_AS_STATIC
-#)
-
+target_link_libraries(CSPgui 
+	  ${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libqt_osd.a
+	  ${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libqt_avio.a
+	  ${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libqt_osd.a
+	  ${LIBAV_LIBRARIES}
+	  ${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libCSPemu_utils.dll.a
+	  Qt5::Core
+	  Qt5::Gui
+	  Qt5::OpenGL
+	  Qt5::Widgets
+	  ${SDL2_LIBRARIES}
+	  )
+set_target_properties(CSPgui PROPERTIES
+			     SOVERSION 2.5.0
+			     VERSION 2.5.0
+			     LINK_INTERFACE_LIBRARIES ""
+			     )
+generate_export_header(CSPgui
+        BASE_NAME CSPgui
+        EXPORT_MACRO_NAME CSPgui_EXPORT
+        EXPORT_FILE_NAME CSPgui_Export.h
+        STATIC_DEFINE CSPgui_BUILT_AS_STATIC
+)
 else()
 add_library(CSPgui SHARED
 	  ${s_qt_gui_srcs}

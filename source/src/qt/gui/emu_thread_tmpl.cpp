@@ -20,7 +20,7 @@
 #include "../../romakana.h"
 
 //#include "csp_logger.h"
-#include "../common/menu_flags.h"
+#include "menu_flags.h"
 
 EmuThreadClassBase::EmuThreadClassBase(META_MainWindow *rootWindow, USING_FLAGS *p, QObject *parent) : QThread(parent) {
 	MainWindow = rootWindow;

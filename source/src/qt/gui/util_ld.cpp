@@ -32,7 +32,7 @@ void Ui_MainWindowBase::CreateLaserdiscMenu(void)
 	QString ext_play, desc_play;
 	
 	listLaserdisc.clear();
-	menu_Laserdisc = new Menu_LaserdiscClass(emu, menubar, "Object_Laserdisc_Menu", using_flags, this, 0);
+	menu_Laserdisc = new Menu_LaserdiscClass(menubar, "Object_Laserdisc_Menu", using_flags, this, 0);
 	menu_Laserdisc->setObjectName(QString::fromUtf8("menuLaserdisc", -1));
 	
 	menu_Laserdisc->create_pulldown_menu();	

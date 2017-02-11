@@ -37,8 +37,8 @@
 	extern DWORD GetLongPathName(LPCTSTR lpszShortPath, LPTSTR lpszLongPath, DWORD cchBuffer);
 #endif
 #if defined(_USE_QT)
-	extern std::string DLL_PREFIX cpp_homedir;
-	extern std::string DLL_PREFIX my_procname;
+	std::string DLL_PREFIX cpp_homedir;
+	std::string DLL_PREFIX my_procname;
 #endif
 
 uint32_t DLL_PREFIX EndianToLittle_DWORD(uint32_t x)
@@ -141,7 +141,7 @@ char *DLL_PREFIX my_strtok_s(char *strToken, const char *strDelimit, char **cont
 	return strtok(strToken, strDelimit);
 }
 
-_TCHAR *DLL_PREFIX my_tcstok_s(_TCHAR *strToken, const char *strDelimit, _TCHAR **context)
+_TCHAR DLL_PREFIX *my_tcstok_s(_TCHAR *strToken, const char *strDelimit, _TCHAR **context)
 {
 	return _tcstok(strToken, strDelimit);
 }
@@ -359,7 +359,7 @@ UINT DLL_PREFIX MyGetPrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, INT
 #endif
 
 #if defined(_RGB555)
-scrntype_t RGB_COLOR(uint32_t r, uint32_t g, uint32_t b)
+scrntype_t DLL_PREFIX RGB_COLOR(uint32_t r, uint32_t g, uint32_t b)
 {
 	scrntype_t rr = ((scrntype_t)r * 0x1f) / 0xff;
 	scrntype_t gg = ((scrntype_t)g * 0x1f) / 0xff;
@@ -367,26 +367,26 @@ scrntype_t RGB_COLOR(uint32_t r, uint32_t g, uint32_t b)
 	return (rr << 10) | (gg << 5) | bb;
 }
 
-scrntype_t RGBA_COLOR(uint32_t r, uint32_t g, uint b, uint32_t a)
+scrntype_t DLL_PREFIX RGBA_COLOR(uint32_t r, uint32_t g, uint b, uint32_t a)
 {
 	return RGB_COLOR(r, g, b);
 }
 
-uint8_t R_OF_COLOR(scrntype_t c)
+uint8_t DLL_PREFIX R_OF_COLOR(scrntype_t c)
 {
 	c = (c >> 10) & 0x1f;
 	c = (c * 0xff) / 0x1f;
 	return (uint8_t)c;
 }
 
-uint8_t G_OF_COLOR(scrntype_t c)
+uint8_t DLL_PREFIX G_OF_COLOR(scrntype_t c)
 {
 	c = (c >>  5) & 0x1f;
 	c = (c * 0xff) / 0x1f;
 	return (uint8_t)c;
 }
 
-uint8_t B_OF_COLOR(scrntype_t c)
+uint8_t DLL_PREFIX B_OF_COLOR(scrntype_t c)
 {
 	c = (c >>  0) & 0x1f;
 	c = (c * 0xff) / 0x1f;
@@ -398,7 +398,7 @@ uint8_t A_OF_COLOR(scrntype_t c)
 	return 0;
 }
 #elif defined(_RGB565)
-scrntype_t RGB_COLOR(uint32_t r, uint32_t g, uint32_t b)
+scrntype_t DLL_PREFIX RGB_COLOR(uint32_t r, uint32_t g, uint32_t b)
 {
 	scrntype_t rr = ((scrntype_t)r * 0x1f) / 0xff;
 	scrntype_t gg = ((scrntype_t)g * 0x3f) / 0xff;
@@ -406,33 +406,33 @@ scrntype_t RGB_COLOR(uint32_t r, uint32_t g, uint32_t b)
 	return (rr << 11) | (gg << 5) | bb;
 }
 
-scrntype_t RGBA_COLOR(uint32_t r, uint32_t g, uint32_t b, uint32_t a)
+scrntype_t DLL_PREFIX RGBA_COLOR(uint32_t r, uint32_t g, uint32_t b, uint32_t a)
 {
 	return RGB_COLOR(r, g, b);
 }
 
-uint8_t R_OF_COLOR(scrntype_t c)
+uint8_t DLL_PREFIX R_OF_COLOR(scrntype_t c)
 {
 	c = (c >> 11) & 0x1f;
 	c = (c * 0xff) / 0x1f;
 	return (uint8_t)c;
 }
 
-uint8_t G_OF_COLOR(scrntype_t c)
+uint8_t DLL_PREFIX G_OF_COLOR(scrntype_t c)
 {
 	c = (c >>  5) & 0x3f;
 	c = (c * 0xff) / 0x3f;
 	return (uint8_t)c;
 }
 
-uint8_t B_OF_COLOR(scrntype_t c)
+uint8_t DLL_PREFIX B_OF_COLOR(scrntype_t c)
 {
 	c = (c >>  0) & 0x1f;
 	c = (c * 0xff) / 0x1f;
 	return (uint8_t)c;
 }
 
-uint8_t A_OF_COLOR(scrntype_t c)
+uint8_t DLL_PREFIX A_OF_COLOR(scrntype_t c)
 {
 	return 0;
 }

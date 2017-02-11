@@ -13,7 +13,7 @@
 #include "qt_dialogs.h"
 
 
-Menu_BinaryClass::Menu_BinaryClass(EMU *ep, QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent, int drv) : Menu_MetaClass(ep, root_entry, desc, p, parent, drv)
+Menu_BinaryClass::Menu_BinaryClass(QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent, int drv) : Menu_MetaClass(root_entry, desc, p, parent, drv)
 {
 	use_write_protect = false;
 	use_d88_menus = false;

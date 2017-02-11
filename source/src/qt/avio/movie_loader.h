@@ -43,8 +43,9 @@ typedef struct {
 QT_BEGIN_NAMESPACE
 class OSD;
 class QMutex;
+extern DLL_PREFIX CSP_Logger *csp_logger;
 
-class MOVIE_LOADER: public QObject
+class DLL_PREFIX MOVIE_LOADER: public QObject
 {
 	Q_OBJECT
 private:

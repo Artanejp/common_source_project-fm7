@@ -21,7 +21,7 @@
 
 #include "joy_thread.h"
 
-JoyThreadClass::JoyThreadClass(EMU *p, OSD *o, USING_FLAGS *pflags, config_t *cfg, QObject *parent) : QThread(parent)
+JoyThreadClass::JoyThreadClass(EMU *p, OSD *o, USING_FLAGS *pflags, config_t *cfg, CSP_Logger *logger, QObject *parent) : QThread(parent)
 {
 	//int i, j;
 	int i;
@@ -30,6 +30,7 @@ JoyThreadClass::JoyThreadClass(EMU *p, OSD *o, USING_FLAGS *pflags, config_t *cf
 	p_osd = o;
 	p_config = cfg;
 	using_flags = pflags;
+	csp_logger = logger;
 	
 	if(using_flags->is_use_joystick()) {
 # if defined(USE_SDL2)

@@ -30,7 +30,7 @@ class GLDrawClass;
 class QOpenGLFramebufferObject;
 class QOpenGLFramebufferObjectFormat;
 class USING_FLAGS;
-
+class CSP_Logger;
 class DLL_PREFIX GLDraw_2_0 : public QObject
 {
 	Q_OBJECT
@@ -40,6 +40,7 @@ protected:
 	GLDrawClass *p_wid;
 	USING_FLAGS *using_flags;
 	QImage *imgptr;
+	CSP_Logger *csp_logger;
 	bool smoosing;
 	bool gl_grid_horiz;
 	bool gl_grid_vert;
@@ -124,7 +125,7 @@ protected:
 	bool low_resolution_screen;
 	bool emu_launched;
 public:
-	GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, EMU *emu = 0);
+	GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU *emu = 0);
 	~GLDraw_2_0();
 
 	virtual void initGLObjects();

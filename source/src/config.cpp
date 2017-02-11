@@ -15,6 +15,8 @@
 # if defined(Q_OS_WIN)
 # include <windows.h>
 # endif
+
+extern CSP_Logger *csp_logger;
 #endif
 
 #include <stdlib.h>
@@ -32,7 +34,6 @@ config_t config;
 #define CONFIG_NAME "conf"
 #endif
 
-//extern _TCHAR* get_parent_dir(_TCHAR* file);
 BOOL MyWritePrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, int Value, LPCTSTR lpFileName)
 {
 	return MyWritePrivateProfileString(lpAppName, lpKeyName, create_string(_T("%d"), Value), lpFileName);
@@ -734,7 +735,7 @@ void save_config(const _TCHAR *config_path)
 	}
 #endif
 #if defined(_USE_QT) && !defined(Q_OS_WIN)
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Write config done.");
+	//csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Write config done.");
 #endif
 }
 

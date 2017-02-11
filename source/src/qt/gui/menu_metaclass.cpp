@@ -15,14 +15,15 @@
 #include "commonclasses.h"
 #include "qt_main.h"
 
-Menu_MetaClass::Menu_MetaClass(EMU *ep, QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent, int drv) : QMenu(root_entry)
+Menu_MetaClass::Menu_MetaClass(QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent, int drv) : QMenu(root_entry)
 {
 	QString tmps;
 	int ii;
 	
 	p_wid = parent;
 	menu_root = root_entry;
-	p_emu = ep;
+	//p_emu = ep;
+	p_emu = NULL;
 	using_flags = p;
 	
 	media_drive = drv;

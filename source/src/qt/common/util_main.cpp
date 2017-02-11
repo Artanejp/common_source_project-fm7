@@ -23,8 +23,11 @@
 #include "emu.h"
 #include "qt_main.h"
 #include "menu_flags.h"
+#include "../gui/csp_logger.h"
 
-Ui_MainWindow::Ui_MainWindow(USING_FLAGS *p, QWidget *parent) : Ui_MainWindowBase(p, parent)
+extern CSP_Logger *csp_logger;
+
+Ui_MainWindow::Ui_MainWindow(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent) : Ui_MainWindowBase(p, logger, parent)
 {
 }
 

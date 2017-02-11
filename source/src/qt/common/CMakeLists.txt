@@ -29,14 +29,9 @@ set(QT_COMMON_BASE
 )
 
 
-#if(WIN32)
-  QT5_ADD_RESOURCES(s_qt_common_RCC ${RESOURCE}
+ QT5_ADD_RESOURCES(s_qt_common_RCC ${RESOURCE}
 		      ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/i18n_global.qrc
 		      ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/icons.qrc)
-#else()
-#  QT5_ADD_RESOURCES(s_qt_common_RCC ${RESOURCE}
-#                    ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/icons.qrc)
-#endif()
 #include(cotire)
 
 add_executable(${EXEC_TARGET}
@@ -54,23 +49,25 @@ if(USE_QT_5)
   endif()
 endif()
 if(WIN32)
- if(USE_FMGEN)
-   set(BUNDLE_LIBS
-	 ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPfmgen/build-win32/vm/fmgen/libvm_fmgen.a
-	 ${BUNDLE_LIBS}
-   )
- endif()
+ #if(USE_FMGEN)
+   #${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPosd/build-win32/qt/osd/libqt_osd.a
+   #${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPgui/build-win32/qt/gui/libqt_gui.a
+   #${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPavio/build-win32/qt/avio/libqt_avio.a
+   # ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPemu_utils/build-win32/qt/emuutils/libemu_utils.a
+   #${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPgui/build-win32/qt/gui/libqt_gui.a
 
- target_link_libraries(${EXEC_TARGET} 
+ #endif()
+
+ target_link_libraries(${EXEC_TARGET}
  ${LOCAL_LIBS}
- ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPemu_utils/build-win32/qt/emuutils/libemu_utils.a
- ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPosd/build-win32/qt/osd/libqt_osd.a
- ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPgui/build-win32/qt/gui/libqt_gui.a
- ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPavio/build-win32/qt/avio/libqt_avio.a
- ${BUNDLE_LIBS} 
+ ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPemu_utils.dll.a
+ ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libqt_osd.a
+ ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPgui.dll.a
+ ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libqt_avio.a
+ ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPfmgen.dll.a
  ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPcommon_vm/build-win32/vm/common_vm/libvm_common_vm.a
- ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPgui/build-win32/qt/gui/libqt_gui.a
- Qt5::OpenGL
+ ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPemu_utils.dll.a
+ ${BUNDLE_LIBS} 
  )
 else()
  target_link_libraries(${EXEC_TARGET} ${LOCAL_LIBS} ${BUNDLE_LIBS})

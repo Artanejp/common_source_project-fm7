@@ -103,16 +103,7 @@ function build_dll() {
     make clean
     
     make ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
-#    case $? in
-#         0 ) 
-#          cp ./qt/gui/libqt_gui.a ../../bin-win32/ 
-#          cp ./qt/gui/*.lib ../../bin-win32/ 
-#          cp ./qt/gui/*.dll ../../bin-win32/ 
-#         ;;
-#          * ) exit $? ;;
-#    esac
-    #make clean
-    cd ../..
+    cd ../../
 }
 
 case ${BUILD_TYPE} in
@@ -141,18 +132,48 @@ esac
 case ${USE_COMMON_DEVICE_LIB} in
    "Yes" | "yes" | "YES" )
    CMAKE_FLAGS4="-DUSE_DEVICES_SHARED_LIB=ON"
-   build_dll libCSPcommon_vm
    ;;
    * )
    CMAKE_FLAGS4=""
    ;;
 esac
-build_dll libCSPfmgen
-build_dll libCSPavio
-build_dll libCSPgui
-build_dll libCSPosd
-build_dll libCSPemu_utils
 
+build_dll libCSPemu_utils
+echo $PWD
+cp  ./libCSPemu_utils/build-win32/qt/emuutils/*.h   ./bin-win32/
+cp  ./libCSPemu_utils/build-win32/qt/emuutils/*.dll ./bin-win32/
+cp  ./libCSPemu_utils/build-win32/qt/emuutils/*.a   ./bin-win32/
+
+build_dll libCSPfmgen
+cp ./libCSPfmgen/build-win32/vm/fmgen/*.h   ./bin-win32/
+cp ./libCSPfmgen/build-win32/vm/fmgen/*.dll ./bin-win32/
+cp ./libCSPfmgen/build-win32/vm/fmgen/*.a   ./bin-win32/
+
+case ${USE_COMMON_DEVICE_LIB} in
+   "Yes" | "yes" | "YES" )
+   build_dll libCSPcommon_vm
+#   cp ./libCSPcommon_vm/build-win32/vm/common_vm/*.h   ./bin-win32/
+#   cp ./libCSPcommon_vm/build-win32/vm/common_vm/*.dll ./bin-win32/
+   cp ./libCSPcommon_vm/build-win32/vm/common_vm/*.a   ./bin-win32/
+   ;;
+   * )
+   ;;
+esac
+
+build_dll libCSPavio
+#cp ./libCSPavio/build-win32/qt/avio/*.h   ./bin-win32/
+#cp ./libCSPavio/build-win32/qt/avio/*.dll ./bin-win32/
+cp ./libCSPavio/build-win32/qt/avio/*.a   ./bin-win32/
+
+build_dll libCSPosd
+#cp ./libCSPosd/build-win32/qt/*.h   ./bin-win32/
+#cp ./libCSPosd/build-win32/qt/*.dll ./bin-win32/
+cp ./libCSPosd/build-win32/qt/*.a   ./bin-win32/
+
+build_dll libCSPgui
+cp ./libCSPgui/build-win32/qt/gui/*.h   ./bin-win32/
+cp ./libCSPgui/build-win32/qt/gui/*.dll ./bin-win32/
+cp ./libCSPgui/build-win32/qt/gui/*.a   ./bin-win32/
 
 for SRCDATA in $@ ; do\
 

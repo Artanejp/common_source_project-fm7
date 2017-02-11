@@ -25,8 +25,8 @@ extern "C" {
 #endif
 
 #include "config.h"
-
-class SOUND_LOADER
+extern DLL_PREFIX CSP_Logger *csp_logger;
+class DLL_PREFIX SOUND_LOADER
 {
 private:
 #if defined(USE_LIBAV)

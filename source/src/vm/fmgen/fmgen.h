@@ -45,7 +45,7 @@ namespace FM
 	class Chip;
 
 	//	Operator -------------------------------------------------------------
-	class Operator
+	class DLL_PREFIX Operator
 	{
 	public:
 		Operator();
@@ -195,7 +195,7 @@ namespace FM
 	};
 	
 	//	4-op Channel ---------------------------------------------------------
-	class Channel4
+	class DLL_PREFIX Channel4
 	{
 	public:
 		Channel4();
@@ -243,7 +243,7 @@ namespace FM
 	};
 
 	//	Chip resource
-	class Chip
+	class DLL_PREFIX Chip
 	{
 	public:
 		Chip();

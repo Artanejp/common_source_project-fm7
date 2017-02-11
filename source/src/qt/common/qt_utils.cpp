@@ -34,7 +34,7 @@
 
 #include "menu_disk.h"
 #include "menu_bubble.h"
-#include "menu_flags.h"
+#include "menu_flags_ext.h"
 #include "dialog_movie.h"
 #include "../avio/movie_saver.h"
 // emulation core
@@ -45,15 +45,16 @@ QApplication *GuiMain = NULL;
 // Start to define MainWindow.
 class META_MainWindow *rMainWindow;
 
+
 // buttons
 #ifdef MAX_BUTTONS
 #define MAX_FONT_SIZE 32
 #endif
 
 // menu
-std::string cpp_homedir;
-std::string cpp_confdir;
-std::string my_procname;
+extern std::string cpp_homedir;
+extern DLL_PREFIX_I std::string cpp_confdir;
+extern std::string my_procname;
 std::string sRssDir;
 bool now_menuloop = false;
 static int close_notified = 0;
@@ -107,7 +108,6 @@ void Ui_MainWindow::rise_movie_dialog(void)
 	dlg->setWindowTitle(QApplication::translate("CSP_DialogMovie", "Configure movie encodings", 0));
 	dlg->show();
 }
-
 void Ui_MainWindow::LaunchEmuThread(void)
 {
 	QString objNameStr;
@@ -252,7 +252,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	objNameStr = QString("EmuThreadClass");
 	hRunEmu->setObjectName(objNameStr);
 	
-	hDrawEmu = new DrawThreadClass(emu, emu->get_osd(), this);
+	hDrawEmu = new DrawThreadClass(emu->get_osd(), csp_logger, this);
 	emu->set_parent_handler(hRunEmu, hDrawEmu);
 	
 #ifdef ONE_BOARD_MICRO_COMPUTER
@@ -352,7 +352,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 void Ui_MainWindow::LaunchJoyThread(void)
 {
 #if defined(USE_JOYSTICK)
-	hRunJoy = new JoyThreadClass(emu, emu->get_osd(), using_flags, using_flags->get_config_ptr());
+	hRunJoy = new JoyThreadClass(emu, emu->get_osd(), using_flags, using_flags->get_config_ptr(), csp_logger);
 	connect(this, SIGNAL(quit_joy_thread()), hRunJoy, SLOT(doExit()));
 	hRunJoy->setObjectName("JoyThread");
 	hRunJoy->start();
@@ -427,25 +427,29 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 	if(hSaveMovieThread != NULL) {
 		hSaveMovieThread->wait();
 		delete hSaveMovieThread;
+		hSaveMovieThread = NULL;
 	}
    
 	if(hDrawEmu != NULL) {
 		hDrawEmu->wait();
 		delete hDrawEmu;
+		hDrawEmu = NULL;
 	}
 	if(hRunEmu != NULL) {
 		hRunEmu->quit();
 		hRunEmu->wait();
 		delete hRunEmu;
+		save_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
 	}
-	save_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
 #if defined(USE_JOYSTICK)
 	if(hRunJoy != NULL) {
 		hRunJoy->wait();
 		delete hRunJoy;
+		hRunJoy = NULL;
 	}
-#endif	
+#endif
 	do_release_emu_resources();
+	hRunEmu = NULL;
 
 	// release window
 	if(now_fullscreen) {
@@ -477,7 +481,6 @@ void Ui_MainWindow::do_release_emu_resources(void)
 extern void get_long_full_path_name(_TCHAR* src, _TCHAR* dst);
 extern _TCHAR* get_parent_dir(_TCHAR* file);
 extern void get_short_filename(_TCHAR *dst, _TCHAR *file, int maxlen);
-
 
 static void setup_logs(void)
 {
@@ -536,7 +539,9 @@ static void setup_logs(void)
 #endif
 }
 
-int MainLoop(int argc, char *argv[], config_t *cfg)
+CSP_Logger *csp_logger;
+
+int MainLoop(int argc, char *argv[])
 {
 	char homedir[PATH_MAX];
 	std::string archstr;
@@ -586,7 +591,7 @@ int MainLoop(int argc, char *argv[], config_t *cfg)
 			csp_logger->set_device_node_log(ii, 0, jj, config.dev_log_recording[ii][jj]);
 		}
 	}
-	USING_FLAGS *using_flags = new USING_FLAGS(cfg);
+	USING_FLAGS_EXT *using_flags = new USING_FLAGS_EXT(&config);
 	// initialize emulation core
 
 	QTranslator local_translator;
@@ -599,7 +604,7 @@ int MainLoop(int argc, char *argv[], config_t *cfg)
 		GuiMain->installTranslator(&s_translator);
 	}
 	
-	rMainWindow = new META_MainWindow(using_flags);
+	rMainWindow = new META_MainWindow(using_flags, csp_logger);
 	rMainWindow->connect(rMainWindow, SIGNAL(sig_quit_all(void)), rMainWindow, SLOT(deleteLater(void)));
 	rMainWindow->setCoreApplication(GuiMain);
 	rMainWindow->getWindow()->show();
@@ -718,5 +723,87 @@ void Ui_MainWindow::OnCloseDebugger(void )
  		emu->hDebugger = NULL;
  		emu->now_debugging = false;
  	}
+}
+#endif
+extern config_t config;
+
+#include <QApplication>
+#include <qapplication.h>
+#if defined(Q_OS_WIN)
+//DLL_PREFIX_I void CSP_DebugHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg);
+DLL_PREFIX_I void _resource_init(void);
+DLL_PREFIX_I void _resource_free(void);
+#else
+extern void CSP_DebugHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg);
+extern void _resource_init(void);
+extern void _resource_free(void);
+#endif
+void CSP_DebugHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+	QString msg_type;
+    switch (type) {
+    case QtDebugMsg:
+		msg_type = QString::fromUtf8("[Qt:DEBUG]");
+        break;
+    case QtInfoMsg:
+		msg_type = QString::fromUtf8("[Qt:INFO]");
+        break;
+    case QtWarningMsg:
+		msg_type = QString::fromUtf8("[Qt:WARN]");
+        break;
+    case QtCriticalMsg:
+		msg_type = QString::fromUtf8("[Qt:CRITICAL]");
+        break;
+    case QtFatalMsg:
+		msg_type = QString::fromUtf8("[Qt:FATAL]");
+		break;
+    }
+	QString msgString = qFormatLogMessage(type, context, msg);
+	QString nmsg_l1 = msg_type;
+	QString nmsg_l2 = msg_type;
+	nmsg_l2.append(" ");
+	nmsg_l2.append(msgString);
+	nmsg_l1.append(" In line ");
+	nmsg_l1.append(context.line);
+	nmsg_l1.append(" of ");
+	nmsg_l1.append(context.line);
+	nmsg_l1.append(" (Function: ");
+	nmsg_l1.append(context.function);
+	nmsg_l1.append(" )");
+
+	if(csp_logger != NULL) {
+		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GUI, nmsg_l1.toLocal8Bit().constData());
+		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GUI, nmsg_l2.toLocal8Bit().constData());
+	} else {
+		fprintf(stderr,"%s\n", nmsg_l1.toLocal8Bit().constData());
+		fprintf(stderr, "%s\n", nmsg_l2.toLocal8Bit().constData());
+	}		
+}
+
+int main(int argc, char *argv[])
+{
+	int nErrorCode;
+	/*
+	 * Get current DIR
+	 */
+	csp_logger = NULL;
+/*
+ * アプリケーション初期化
+ */
+	_resource_init();
+	qSetMessagePattern(QString::fromUtf8("[%{type}] %{message} \n   at line %{line} of %{file} : function %{function}\nBacktrace:\n %{backtrace separator=\"\n \" }"));
+	qInstallMessageHandler(CSP_DebugHandler);
+	nErrorCode = MainLoop(argc, argv);
+	_resource_free();
+	if(csp_logger != NULL) delete csp_logger;
+	
+	return nErrorCode;
+}
+
+#if defined(Q_OS_WIN) 
+int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
+{
+   char *arg[1] = {""};
+   main(1, arg);
 }
 #endif

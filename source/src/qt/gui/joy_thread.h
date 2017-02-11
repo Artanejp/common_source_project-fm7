@@ -38,6 +38,7 @@ class DLL_PREFIX JoyThreadClass : public QThread {
 	config_t *p_config;
  protected:
 	bool bRunThread;
+	CSP_Logger *csp_logger;
 	void joystick_plugged(int num);
 	void joystick_unplugged(int num);
 	bool EventSDL(SDL_Event *);
@@ -50,7 +51,7 @@ class DLL_PREFIX JoyThreadClass : public QThread {
 	int get_joyid_from_instanceID(SDL_JoystickID id);
 # endif
  public:
-	JoyThreadClass(EMU *p, OSD *o, USING_FLAGS *pflags, config_t *cfg, QObject *parent = 0);
+	JoyThreadClass(EMU *p, OSD *o, USING_FLAGS *pflags, config_t *cfg, CSP_Logger *logger, QObject *parent = 0);
 	~JoyThreadClass();
 	void run() { doWork("");}
 	void SetEmu(EMU *p) {

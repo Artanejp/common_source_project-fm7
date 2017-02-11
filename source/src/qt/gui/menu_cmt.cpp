@@ -14,7 +14,7 @@
 //#include "emu.h"
 
 
-Menu_CMTClass::Menu_CMTClass(EMU *ep, QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent, int drv) : Menu_MetaClass(ep, root_entry, desc, p, parent, drv)
+Menu_CMTClass::Menu_CMTClass(QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent, int drv) : Menu_MetaClass(root_entry, desc, p, parent, drv)
 {
 	use_write_protect = true;
 	use_d88_menus = false;

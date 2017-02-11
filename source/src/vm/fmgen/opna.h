@@ -85,7 +85,7 @@
 namespace FM
 {
 	//	OPN Base -------------------------------------------------------
-	class OPNBase : public Timer
+	class DLL_PREFIX OPNBase : public Timer
 	{
 	public:
 		OPNBase();
@@ -131,7 +131,7 @@ namespace FM
 	};
 
 	//	OPN2 Base ------------------------------------------------------
-	class OPNABase : public OPNBase
+	class DLL_PREFIX OPNABase : public OPNBase
 	{
 	public:
 		OPNABase();
@@ -239,7 +239,7 @@ namespace FM
 	};
 
 	//	YM2203(OPN) ----------------------------------------------------
-	class OPN : public OPNBase
+	class DLL_PREFIX OPN : public OPNBase
 	{
 	public:
 		OPN();
@@ -276,7 +276,7 @@ namespace FM
 	};
 
 	//	YM2608(OPNA) ---------------------------------------------------
-	class OPNA : public OPNABase
+	class DLL_PREFIX OPNA : public OPNABase
 	{
 	public:
 		OPNA();
@@ -330,7 +330,7 @@ namespace FM
 	};
 
 	//	YM2610/B(OPNB) ---------------------------------------------------
-	class OPNB : public OPNABase
+	class DLL_PREFIX OPNB : public OPNABase
 	{
 	public:
 		OPNB();
@@ -392,7 +392,7 @@ namespace FM
 	};
 
 	//	YM2612/3438(OPN2) ----------------------------------------------------
-	class OPN2 : public OPNBase
+	class DLL_PREFIX OPN2 : public OPNBase
 	{
 	public:
 		OPN2();

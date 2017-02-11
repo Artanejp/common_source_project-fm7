@@ -14,7 +14,7 @@
 
 #include "qt_main.h"
 #include "csp_logger.h"
-#include "menu_flags.h"
+#include "gui/menu_flags.h"
 
 #include <QString>
 #include <QDateTime>
@@ -55,9 +55,9 @@ void OSD_BASE::audio_callback(void *udata, Uint8 *stream, int len)
 		}
 		if((*(pData->sound_write_pos) + len2) >= *(pData->sound_buffer_size) ) len2 = *(pData->sound_buffer_size) - *(pData->sound_write_pos);
 		
-		if(*(pData->sound_debug)) csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND,
-														"Callback,sound_write_pos=%d,spos=%d,len=%d,len2=%d",
-														*(pData->sound_write_pos), spos, len, len2);
+		//if(*(pData->sound_debug)) csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND,
+		//												"Callback,sound_write_pos=%d,spos=%d,len=%d,len2=%d",
+		//												*(pData->sound_write_pos), spos, len, len2);
 		if((len2 > 0) && (sndlen > 0)){
 			writepos = *pData->sound_write_pos;
 			p = (Uint8 *)(*pData->sound_buf_ptr);

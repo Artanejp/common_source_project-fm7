@@ -213,7 +213,7 @@ typedef struct {
 #endif
 } config_t;
 
-extern config_t config;
+extern DLL_PREFIX config_t config;
 
 #if defined(_USE_AGAR) || defined(_USE_QT)
 # include <string>

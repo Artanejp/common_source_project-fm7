@@ -29,6 +29,7 @@
 // Please permit at least them m(.. )m
 //extern void get_long_full_path_name(_TCHAR* src, _TCHAR* dst);
 #include <string>
+extern CSP_Logger *csp_logger;
 #endif
 
 #if defined(_USE_QT)
@@ -82,7 +83,7 @@ EMU::EMU()
 	
 	// initialize osd
 #if defined(OSD_QT)
-	osd = new OSD(p);
+	osd = new OSD(p, csp_logger);
 	osd->main_window_handle = hwnd;
 	osd->glv = hinst;
 	osd->host_cpus = 4;
