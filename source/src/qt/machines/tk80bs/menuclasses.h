@@ -10,14 +10,14 @@ QT_BEGIN_NAMESPACE
 
 class Ui_MainWindow;
 class USING_FLAGS;
-
+class CSP_Logger;
 class META_MainWindow : public Ui_MainWindow {
 	Q_OBJECT
 protected:
 	void setupUI_Emu(void);
 	void retranslateUi(void);
 public:
-	META_MainWindow(USING_FLAGS *p, QWidget *parent = 0);
+	META_MainWindow(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent = 0);
 	~META_MainWindow();
 public slots:
 };

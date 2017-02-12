@@ -8,6 +8,7 @@
 // You may use this as 
 QT_BEGIN_NAMESPACE
 class USING_FLAGS;
+class CSP_Logger;
 //  wrote of MZ3500 Specific menu.
 class Object_Menu_Control_MZ3500: public Object_Menu_Control
 {
@@ -41,7 +42,7 @@ protected:
 	Action_Control_MZ3500 *action_Emu_DipSw[3];
   
 public:
-	META_MainWindow(USING_FLAGS *p, QWidget *parent = 0);
+	META_MainWindow(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent = 0);
 	~META_MainWindow();
 public slots:
 };

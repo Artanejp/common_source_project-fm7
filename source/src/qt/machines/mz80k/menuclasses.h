@@ -9,6 +9,7 @@
 QT_BEGIN_NAMESPACE
 
 //  wrote of MZ80 Specific menu.
+class CSP_Logger;
 class USING_FLAGS;
 class Object_Menu_Control_MZ80: public Object_Menu_Control
 {
@@ -40,7 +41,7 @@ protected:
 	void setupUI_Emu(void);
 	void retranslateUi(void);
 public:
-	META_MainWindow(USING_FLAGS *p, QWidget *parent = 0);
+	META_MainWindow(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent = 0);
 	~META_MainWindow();
 public slots:
 };
