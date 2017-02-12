@@ -44,10 +44,15 @@
 //
 class DLL_PREFIX PSG_AY_3_891X : public PSG
 {
+protected:
+	uint32_t clock;
+	uint32_t psgrate;
+	int prescale;
 public:
 	PSG_AY_3_891X();
 	~PSG_AY_3_891X();
 	bool Init(uint c, uint r);
+	void SetPrescaler(int factor);
 	void SetVolume(int vol_l, int vol_r);
 };
 

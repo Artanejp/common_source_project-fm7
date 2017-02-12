@@ -14,6 +14,7 @@
 
 PSG_AY_3_891X::PSG_AY_3_891X() : PSG()
 {
+	prescale = -1;
 }
 
 PSG_AY_3_891X::~PSG_AY_3_891X()
@@ -22,10 +23,24 @@ PSG_AY_3_891X::~PSG_AY_3_891X()
 
 bool PSG_AY_3_891X::Init(uint c, uint r)
 {
-	//clock = c;
-	//psgrate = r;
+	clock = c;
+	psgrate = r;
 	SetClock(c, r);
+	//SetPreScaler(ps);
+	Reset();
 	return true;
+}
+
+void PSG_AY_3_891X::SetPrescaler(int factor)
+{
+	static const char table[3][2] = { { 6, 4 }, { 3, 2 }, { 2, 1 } };
+	static const uint8 table2[8] = { 108,  77,  71,  67,  62,  44,  8,  5 };
+	if((factor < 0) || (factor >= 3)) return;
+	if(prescale != factor)
+	{
+		prescale = factor;
+		SetClock(clock / table[factor][1], psgrate);
+	}
 }
 
 void PSG_AY_3_891X::SetVolume(int volume_l, int volume_r)

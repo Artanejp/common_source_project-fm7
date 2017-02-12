@@ -487,6 +487,7 @@ void VM::reset()
 	}
 #if !defined(_FM77AV_VARIANTS) || defined(_FM8)
 # if defined(USE_AY_3_8910_AS_PSG)
+	psg->set_reg(0x2e, 0);	// set prescaler
 	psg->write_signal(SIG_AY_3_891X_MUTE, 0x00, 0x01); // Okay?
 # else	
 	psg->set_reg(0x27, 0); // stop timer
