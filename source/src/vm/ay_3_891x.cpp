@@ -258,6 +258,10 @@ void AY_3_891X::initialize_sound(int rate, int clock, int samples, int decibel_f
 void AY_3_891X::set_reg(uint32_t addr, uint32_t data)
 {
 	touch_sound();
+	if((addr >= 0x2d) && (addr <= 0x2f)) {
+		psg->SetPrescaler(addr - 0x2d);
+		return;
+	}
 	psg->SetReg(addr, data);
 }
 

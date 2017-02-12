@@ -184,6 +184,7 @@ void GLDrawClass::InitFBO(void)
 		extfunc->initGLObjects();
 		extfunc->initFBO();
 		extfunc->initLocalGLObjects();
+		connect(this, SIGNAL(sig_draw_timing()), extfunc, SLOT(paintGL()));
 	} else {
 		csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "None using OpenGL.Sorry.");
 	}

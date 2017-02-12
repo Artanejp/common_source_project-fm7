@@ -123,6 +123,18 @@ int OSD_BASE::no_draw_screen()
 	return 1;
 }
 
+void OSD_BASE::do_draw(bool flag)
+{
+	int frames;
+	do_decode_movie(1);
+	if(flag) {
+		frames = draw_screen();
+	} else {
+		frames = no_draw_screen();
+	}
+	emit sig_draw_frames(frames);
+}
+
 void OSD_BASE::update_screen()
 {
 	// UpdateScreen

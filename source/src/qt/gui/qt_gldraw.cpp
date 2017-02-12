@@ -95,10 +95,17 @@ void GLDrawClass::paintGL(void)
 			extfunc->resizeGL(draw_width, draw_height);
 			delay_update = false;
 		}
-		extfunc->paintGL();
+		//extfunc->paintGL();
 	}
-//	emit sig_draw_timing(false);
+	emit sig_draw_timing();
 }
+
+
+//void GLDrawClass::paintEvent(QPaintEvent *ev)
+//{
+//	// Do Nothing.
+//	// http://doc.qt.io/qt-5/qopenglwidget.html#Threading
+//}
 
 #ifndef GL_MULTISAMPLE
 #define GL_MULTISAMPLE  0x809D

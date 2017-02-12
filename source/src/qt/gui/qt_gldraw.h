@@ -65,6 +65,7 @@ class DLL_PREFIX GLDrawClass: public QGLWidget
 	void initializeGL();
 	void paintGL();
 	void drawGrids(void);
+	//void paintEvent(QPaintEvent *ev);
 
 	uint32_t get106Scancode2VK(uint32_t data);
 	bool QueryGLExtensions(const char *str);
@@ -150,7 +151,7 @@ signals:
 	void do_notify_button_released(Qt::MouseButton button);
 	void sig_check_grab_mouse(bool);
 	void sig_resize_uibar(int, int);
-//	void sig_draw_timing(bool);
+	void sig_draw_timing(void);
 	int sig_finished(void);
 	int sig_key_down(uint32_t, uint32_t, bool);
 	int sig_key_up(uint32_t, uint32_t);
