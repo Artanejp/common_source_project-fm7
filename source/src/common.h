@@ -504,7 +504,7 @@ int32_t DLL_PREFIX apply_volume(int32_t sample, int volume);
 
 #define LEAP_YEAR(y)	(((y) % 4) == 0 && (((y) % 100) != 0 || ((y) % 400) == 0))
 
-typedef struct cur_time_s {
+typedef DLL_PREFIX struct cur_time_s {
 	int year, month, day, day_of_week, hour, minute, second;
 	bool initialized;
 	cur_time_s()

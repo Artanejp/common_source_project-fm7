@@ -716,7 +716,7 @@ void DLL_PREFIX get_host_time(cur_time_t* cur_time)
 
 
 
-void cur_time_t::increment()
+void DLL_PREFIX cur_time_t::increment()
 {
 	if(++second >= 60) {
 		second = 0;
@@ -746,7 +746,7 @@ void cur_time_t::increment()
 	}
 }
 
-void cur_time_t::update_year()
+void DLL_PREFIX cur_time_t::update_year()
 {
 	// 1970-2069
 	if(year < 70) {
@@ -756,7 +756,7 @@ void cur_time_t::update_year()
 	}
 }
 
-void cur_time_t::update_day_of_week()
+void DLL_PREFIX cur_time_t::update_day_of_week()
 {
 	static const int t[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
 	int y = year - (month < 3);
@@ -765,7 +765,7 @@ void cur_time_t::update_day_of_week()
 
 #define STATE_VERSION	1
 
-void cur_time_t::save_state(void *f)
+void DLL_PREFIX cur_time_t::save_state(void *f)
 {
 	FILEIO *state_fio = (FILEIO *)f;
 	
@@ -781,7 +781,7 @@ void cur_time_t::save_state(void *f)
 	state_fio->FputBool(initialized);
 }
 
-bool cur_time_t::load_state(void *f)
+bool DLL_PREFIX cur_time_t::load_state(void *f)
 {
 	FILEIO *state_fio = (FILEIO *)f;
 	
