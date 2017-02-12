@@ -163,8 +163,8 @@ void initialize_config()
 	config.use_opengl_filters = false;
 	config.opengl_filter_num = 0;
 	config.render_platform = CONFIG_RENDER_PLATFORM_OPENGL_MAIN;
-	config.render_major_version = 3;
-	config.render_minor_version = 0;
+	config.render_major_version = 2; // For crash with some devices.
+	config.render_minor_version = 1;
 	config.log_to_syslog = false;
 	config.log_to_console = true;
 	for(int ii = 0; ii < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1) ; ii++) {
