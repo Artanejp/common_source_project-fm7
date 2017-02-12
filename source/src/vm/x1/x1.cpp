@@ -55,6 +55,9 @@
 #include "../huc6280.h"
 #include "../pcengine/pce.h"
 #endif
+#if defined(Q_OS_WIN)
+DLL_PREFIX_I struct cur_time_s cur_time;
+#endif
 
 // ----------------------------------------------------------------------------
 // initialize

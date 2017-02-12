@@ -274,6 +274,9 @@ void PSUB::update_intr()
 		d_cpu->set_intr_line(false, true, intr_bit);
 	}
 }
+#if defined(Q_OS_WIN)
+DLL_PREFIX_I struct cur_time_s cur_time;
+#endif
 
 void PSUB::event_callback(int event_id, int err)
 {

@@ -19,6 +19,9 @@
 #ifndef MSM58321_START_YEAR
 #define MSM58321_START_YEAR 0
 #endif
+#if defined(Q_OS_WIN)
+DLL_PREFIX_I struct cur_time_s cur_time;
+#endif
 
 void MSM58321::initialize()
 {

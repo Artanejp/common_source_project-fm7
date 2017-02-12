@@ -18,6 +18,9 @@ static const int periodic_intr_rate[3][16] = {
 	{0,   1,   2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384},	// 1.048576 MHz
 	{0, 128, 256, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384}	// 32.768kHz
 };
+#if defined(Q_OS_WIN)
+DLL_PREFIX_I struct cur_time_s cur_time;
+#endif
 
 void HD146818P::initialize()
 {

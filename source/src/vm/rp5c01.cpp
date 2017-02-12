@@ -11,6 +11,9 @@
 
 #define EVENT_1SEC	0
 #define EVENT_16HZ	1
+#if defined(Q_OS_WIN)
+DLL_PREFIX_I struct cur_time_s cur_time;
+#endif
 
 void RP5C01::initialize()
 {
