@@ -12,6 +12,7 @@
 #include <QOpenGLFramebufferObject>
 #include <QOpenGLFramebufferObject>
 #include <QColor>
+#include <QImageReader>
 
 #include "qt_gldraw.h"
 //#include "csp_logger.h"
@@ -92,6 +93,7 @@ GLDraw_2_0::GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, 
 	rec_count = 0;
 	rec_width  = using_flags->get_screen_width();
 	rec_height = using_flags->get_screen_height();
+	ButtonImages.clear();
 }
 
 GLDraw_2_0::~GLDraw_2_0()
@@ -210,6 +212,7 @@ void GLDraw_2_0::initGLObjects()
 void GLDraw_2_0::initButtons(void)
 {
 	button_desc_t *vm_buttons_d = using_flags->get_vm_buttons();
+	
 	if(vm_buttons_d != NULL) {
 		button_shader = new QOpenGLShaderProgram(p_wid);
 		if(button_shader != NULL) {
@@ -217,10 +220,32 @@ void GLDraw_2_0::initButtons(void)
 			button_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/normal_fragment_shader.glsl");
 			button_shader->link();
 		}
-		
+
+		int ip = using_flags->get_max_button();
+		if(ip > 0) {
+			for(int num = 0; num < ip; num++) {
+				QString tmps;
+				tmps = QString::asprintf(":/button%02d.png", num);
+				QImageReader *reader = new QImageReader(tmps);
+				QImage *result = new QImage(reader->read());
+				QImage pic;
+				if(result != NULL) {
+					if(!result->isNull()) {
+						pic = result->convertToFormat(QImage::Format_ARGB32);
+					} else {
+						pic = QImage(10, 10, QImage::Format_RGBA8888);
+						pic.fill(QColor(0,0,0,0));
+					}
+					delete result;
+				}else {
+					pic = QImage(10, 10, QImage::Format_RGBA8888);
+					pic.fill(QColor(0,0,0,0));
+				}
+				ButtonImages.push_back(pic);
+			}
+		}
 		vertexButtons = new QVector<VertexTexCoord_t>;
-		int i;
-		for(i = 0; i < using_flags->get_max_button(); i++) {
+		for(int i = 0; i < using_flags->get_max_button(); i++) {
 			buffer_button_vertex[i] = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
 			buffer_button_vertex[i]->create();
 			fButtonX[i] = -1.0 + (float)(vm_buttons_d[i].x * 2) / (float)using_flags->get_screen_width();
@@ -535,44 +560,17 @@ void GLDraw_2_0::drawGrids(void)
 void GLDraw_2_0::updateButtonTexture(void)
 {
 	int i;
-   	QImage *img;
-   	QPainter *painter;
-	QColor col;
-	QRect rect;
-	QPen *pen;
-	QFont font = QFont(QString::fromUtf8("Sans"));
-	if(button_updated) return;
-	col.setRgb(0, 0, 0, 255);
-	pen = new QPen(col);
 	button_desc_t *vm_buttons_d = using_flags->get_vm_buttons();
+	if(button_updated) return;
 	if(vm_buttons_d != NULL) {
 		for(i = 0; i < using_flags->get_max_button(); i++) {
-			img = new QImage(vm_buttons_d[i].width * 4, vm_buttons_d[i].height * 4, QImage::Format_RGB32);
-			painter = new QPainter(img);
-			painter->setRenderHint(QPainter::Antialiasing, true);
-			col.setRgb(255, 255, 255, 255);
-			if(strlen(vm_buttons_d[i].caption) <= 3) {
-				font.setPixelSize((vm_buttons_d[i].width * 4) / 2); 
-			} else {
-				font.setPixelSize((vm_buttons_d[i].width * 4) / 4); 
-			}
-			painter->fillRect(0, 0, vm_buttons_d[i].width * 4, vm_buttons_d[i].height * 4, col);
-			painter->setFont(font);
-			//painter->setPen(pen);
-			rect.setWidth(vm_buttons_d[i].width * 4);
-			rect.setHeight(vm_buttons_d[i].height * 4);
-			rect.setX(0);
-			rect.setY(0);
-			painter->drawText(rect, Qt::AlignCenter, QString::fromUtf8(vm_buttons_d[i].caption));
+			QImage img = ButtonImages.at(i);
 			if(uButtonTextureID[i] != 0) {
 				p_wid->deleteTexture(uButtonTextureID[i]);
 			}
-			uButtonTextureID[i] = p_wid->bindTexture(*img);
-			delete painter;
-			delete img;
+			uButtonTextureID[i] = p_wid->bindTexture(img);
 		}
 	}
-	delete pen;
 	button_updated = true;
 }
 

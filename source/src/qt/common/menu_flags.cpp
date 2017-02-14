@@ -485,9 +485,14 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 	use_vm_auto_key_table = true;
 #endif
 #if defined(MAX_BUTTONS)
-	max_button = MAX_BUTTONS;
+	max_button = sizeof(vm_buttons) / sizeof(button_desc_t);
 	vm_buttons_d = (button_desc_t *)vm_buttons;
 #endif
+#if defined(MAX_DRAW_RANGES)
+	max_ranges = sizeof(vm_ranges) / sizeof(vm_ranges_t);
+	vm_ranges_d = (vm_ranges_t *)vm_ranges;
+#endif
+	
 #if defined(USE_VERTICAL_PIXEL_LINES)
 	use_vertical_pixel_lines = true;
 #endif

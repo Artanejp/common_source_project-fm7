@@ -13,13 +13,17 @@
 class EMU;
 class OSD;
 
+
 typedef struct {
-	const _TCHAR* caption;
 	int x, y;
 	int width, height;
-	int font_size;
 	int code;
 } button_desc_t;
+
+typedef struct {
+	int x, y;
+	int width, height;
+} vm_ranges_t;
 
 class DLL_PREFIX USING_FLAGS {
 protected:
@@ -120,6 +124,7 @@ protected:
 	bool use_vm_auto_key_table;
 
 	int max_button;
+	int max_ranges;
 	bool use_vertical_pixel_lines;
 
 	int screen_width;
@@ -154,7 +159,7 @@ protected:
 	bool machine_z80tvgame;
 	
 	button_desc_t *vm_buttons_d;
-
+	vm_ranges_t *vm_ranges_d;
 	EMU *p_emu;
 	OSD *p_osd;
 	config_t *p_config;
@@ -205,8 +210,6 @@ public:
 	int get_max_drive() { return max_drive; }
 	int get_max_d88_banks() { return max_d88_banks; }
 
-	int get_max_draw_ranges() { return max_draw_ranges; }
-	
 	bool is_use_joystick() { return use_joystick; }
 	bool is_use_joy_button_captions() { return use_joy_button_captions; }
 	int  get_num_joy_button_captions() { return num_joy_button_captions; }
@@ -270,7 +273,10 @@ public:
 	
 	int get_screen_mode_num() { return screen_mode_num; }
 	int get_max_button() { return max_button; }
+	int get_max_draw_ranges() { return max_ranges; }
 	button_desc_t *get_vm_buttons() { return vm_buttons_d; }
+	vm_ranges_t *get_draw_ranges() { return vm_ranges_d; }
+
 	bool is_notify_key_down_lr_shift() { return notify_key_down_lr_shift; }
 	bool is_datarec_sound() { return use_datarec_sound; }
 	bool is_tape_binary_only() { return tape_binary_only; }

@@ -19,6 +19,7 @@
 #include <QImage>
 #include <QOpenGLFunctions_2_0>
 #include <QTimer>
+#include <QList>
 
 #include "common.h"
 
@@ -90,8 +91,10 @@ protected:
 	GLfloat fButtonHeight[128];
 	QVector<VertexTexCoord_t> *vertexButtons;
 
+	QVector<QImage> ButtonImages;
 	bool button_updated;
 	void updateButtonTexture(void);
+	
 
 	GLfloat fBrightR;
 	GLfloat fBrightG;

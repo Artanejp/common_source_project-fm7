@@ -14,6 +14,7 @@
 #include <QPoint>
 #include <QTextCodec>
 #include <QDateTime>
+#include <QImageReader>
 
 #include "qt_gldraw.h"
 #include "osd.h"
@@ -253,47 +254,37 @@ void OSD_BASE::set_buttons()
 {
 	if(!using_flags->is_use_one_board_computer()) return;
 	
-	int i;
-   	QImage *img;
-   	QPainter *painter;
-	QColor col;
-	QRect rect;
-	QPen *pen;
-	QFont font = QFont(QString::fromUtf8("Sans"));
-	col.setRgb(0, 0, 0, 255);
-	pen = new QPen(col);
-	
 	button_desc_t *vm_buttons_d = using_flags->get_vm_buttons();
 	if(vm_buttons_d != NULL) {
-		for(i = 0; i < using_flags->get_max_button(); i++) {
-			button_images[i] = QImage(vm_buttons_d[i].width, vm_buttons_d[i].height, QImage::Format_RGB32);
-			img = &(button_images[i]);
-			painter = new QPainter(img);
-			painter->setRenderHint(QPainter::Antialiasing, true);
-			col.setRgb(255, 255, 255, 255);
-			if(strlen(vm_buttons_d[i].caption) <= 3) {
-				font.setPixelSize(vm_buttons_d[i].width / 2); 
-			} else {
-				font.setPixelSize(vm_buttons_d[i].width / 4); 
+		for(int i = 0; i < using_flags->get_max_button(); i++) {
+			QString tmps;
+			tmps = QString::asprintf(":/button%02d.png", i);
+			QImageReader *reader = new QImageReader(tmps);
+			QImage *result = new QImage(reader->read());
+			QImage pic;
+			if(result != NULL) {
+				if(!result->isNull()) {
+					pic = result->convertToFormat(QImage::Format_ARGB32);
+				} else {
+					pic = QImage(10, 10, QImage::Format_RGBA8888);
+					pic.fill(QColor(0,0,0,0));
+				}
+				delete result;
+			}else {
+				pic = QImage(10, 10, QImage::Format_RGBA8888);
+				pic.fill(QColor(0,0,0,0));
 			}
-			painter->fillRect(0, 0, vm_buttons_d[i].width, vm_buttons_d[i].height, col);
-			painter->setFont(font);
-			//painter->setPen(pen);
-			rect.setWidth(vm_buttons_d[i].width);
-			rect.setHeight(vm_buttons_d[i].height);
-			rect.setX(0);
-			rect.setY(0);
-			painter->drawText(rect, Qt::AlignCenter, QString::fromUtf8(vm_buttons_d[i].caption));
-			delete painter;
+			button_images[i] = pic;
 		}
 	}
-	delete pen;
 
 	QRgb pixel;
 	if(vm_buttons_d != NULL) {
 		for(int ii = 0; ii < using_flags->get_max_button(); ii++) {
-			for(int yy = 0; yy < vm_buttons_d[ii].width; yy++) {
-				for(int xx = 0; xx < vm_buttons_d[ii].height; xx++) {
+			int ww = button_images[ii].width();
+			int hh = button_images[ii].height();
+			for(int yy = 0; yy < hh; yy++) {
+				for(int xx = 0; xx < ww; xx++) {
 					pixel = button_images[ii].pixel(xx, yy);
 					int xxx = vm_buttons_d[ii].x + xx;
 					int yyy = vm_buttons_d[ii].y + yy;
@@ -302,6 +293,7 @@ void OSD_BASE::set_buttons()
 			}
 		}
 	}
+
 }
 
 int OSD_BASE::add_video_frames()
@@ -345,7 +337,7 @@ int OSD_BASE::add_video_frames()
 		QRgb pixel;
 		int ww = video_result->width();
 		int hh = video_result->height();
-		printf("%d x %d\n", ww, hh);
+		//printf("%d x %d\n", ww, hh);
 		for(int yy = 0; yy < hh; yy++) {
 			for(int xx = 0; xx < ww; xx++) {
 				pixel = video_result->pixel(xx, yy);

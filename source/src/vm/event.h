@@ -197,7 +197,7 @@ public:
 		if(dcount_sound < MAX_SOUND) {
 			d_sound[dcount_sound++] = device;
 		}
-		printf("SOUND %d\n", dcount_sound);
+		//printf("SOUND %d\n", dcount_sound);
 	}
 	void touch_sound(void)
 	{

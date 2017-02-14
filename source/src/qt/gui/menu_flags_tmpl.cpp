@@ -85,7 +85,9 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	screen_height_aspect = WINDOW_HEIGHT_ASPECT;
 	max_button = 0;
 	vm_buttons_d = NULL;
-
+	max_ranges = 0;
+	vm_ranges_d = NULL;
+	
 	use_datarec_sound = false;
 	use_vertical_pixel_lines = false;
 	notify_key_down_lr_shift = false;
