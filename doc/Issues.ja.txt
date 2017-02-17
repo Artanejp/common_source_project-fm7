@@ -1,5 +1,10 @@
 ※既知の問題
-                                           September 23, 2016 K.Ohta
+                                           February 18, 2017 K.Ohta
+
+* Intel HD(Corei5 2440Mあたり)とWindows7なマシンで、OpenGL3.0で起動すると、クラッシュする。
+  http://hanabi.2ch.net/test/read.cgi/i4004/1483504365/30　など参照のこと。
+　→バックトレースが取れないため確定ではないが、QtとOS側（Intel製)GLドライバの相性問題か？
+　　当面、OpenGLv2.0をデフォルトにする。
 
 * 動画のビデオコーデックにH.264を指定すると末尾1秒程度映像がない
 　→　ffmpegのlibx264コーデック側の（終了処理の？）問題。

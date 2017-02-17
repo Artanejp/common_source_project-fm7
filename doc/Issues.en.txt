@@ -1,6 +1,12 @@
 ※ Known Issues
-                                           September 23, 2016 K.Ohta
+                                           February 18, 2017 K.Ohta
 * Note: This is translated from Issues.ja.txt by GOOGLE TRANSLATION.
+
+* Starting with Windows7 and Intel Core i5 (2440M?), crash when starting with OpenGL v3.0.
+  See, http://hanabi.2ch.net/test/read.cgi/i4004/1483504365/30 .
+→This seems to be caused by compatibility both Qt and Intel's OpenGL, but still
+ don't get backtrace, this is uncertainty reason.
+ So, using OpenGLv2.0 by default temporally.
 
 * If you specify a H.264 the video codec of the video there is no end one second about the video
 → of libx264 codec side of ffmpeg (the end of the process?) Problem.
