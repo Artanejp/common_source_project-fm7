@@ -21,7 +21,7 @@ extern EMU *emu;
 
 void OSD_BASE::do_write_inputdata(QString s)
 {
-	emit sig_console_input_string(s);
+	//emit sig_console_input_string(s);
 }
 
 void OSD_BASE::do_set_input_string(QString s)

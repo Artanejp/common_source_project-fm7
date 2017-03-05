@@ -67,10 +67,11 @@ if(WIN32)
  ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPfmgen.dll.a
  ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPcommon_vm/build-win32/vm/common_vm/libvm_common_vm.a
  ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPemu_utils.dll.a
- ${BUNDLE_LIBS} 
+ ${BUNDLE_LIBS}
+ -lpthread
  )
 else()
- target_link_libraries(${EXEC_TARGET} ${LOCAL_LIBS} ${BUNDLE_LIBS})
+ target_link_libraries(${EXEC_TARGET} ${LOCAL_LIBS} ${BUNDLE_LIBS} -lpthread)
 endif()
 install(TARGETS ${EXEC_TARGET} DESTINATION bin)
 

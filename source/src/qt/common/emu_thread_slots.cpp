@@ -759,10 +759,11 @@ void EmuThreadClass::do_open_bubble_casette(int drv, QString path, int bank)
 
 // Debugger
 #if defined(USE_DEBUGGER)
-extern int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command, bool cp932);
+//extern int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command, bool cp932);
 #endif
 void EmuThreadClass::do_call_debugger_command(QString s)
 {
+#if 0
 #if defined(USE_DEBUGGER)
 	_TCHAR command[MAX_COMMAND_LEN + 1];
 
@@ -781,6 +782,7 @@ void EmuThreadClass::do_call_debugger_command(QString s)
 		do_close_debugger();
 	}
 	doing_debug_command = false;
+#endif
 #endif
 }
 

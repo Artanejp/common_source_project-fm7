@@ -362,7 +362,7 @@ public:
 	bool now_debugging;
 	debugger_thread_t debugger_thread_param;
 #if defined(OSD_QT)
-	SDL_Thread *debugger_thread_id;
+	pthread_t debugger_thread_id;
 	CSP_Debugger *hDebugger;
 #elif defined(OSD_WIN32)
 	HANDLE hDebuggerThread;

@@ -46,7 +46,11 @@ void my_printf(OSD *osd, const _TCHAR *format, ...)
 	va_end(ap);
 	
 	if(logfile != NULL && logfile->IsOpened()) {
+#ifdef _MSC_VER
 		logfile->Fwrite(buffer, lstrlen(buffer) * sizeof(_TCHAR), 1);
+#else
+		logfile->Fwrite(buffer, strlen(buffer) * sizeof(_TCHAR), 1);
+#endif
 	}
 	osd->write_console(buffer, _tcslen(buffer));
 }
@@ -136,11 +140,11 @@ void* debugger_thread(void *lpx)
 	
 	debugger->now_going = false;
 	debugger->now_debugging = true;
-#ifndef _USE_QT	
+//#ifndef _USE_QT	
 	while(!debugger->now_suspended) {
 		p->osd->sleep(10);
 	}
-#endif	
+//#endif	
 	uint32_t prog_addr_mask = cpu->get_debug_prog_addr_mask();
 	uint32_t data_addr_mask = cpu->get_debug_data_addr_mask();
 	uint32_t dump_addr = 0;
@@ -150,7 +154,7 @@ void* debugger_thread(void *lpx)
 	_TCHAR buffer[1024];
 	bool cp932 = (p->osd->get_console_code_page() == 932);
 	
-	p->osd->open_console(create_string(_T("Debugger - %s"), _T(DEVICE_NAME)));
+	p->osd->open_console((_TCHAR *)create_string(_T("Debugger - %s"), _T(DEVICE_NAME)));
 	p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
 	cpu->get_debug_regs_info(buffer, 1024);
 	my_printf(p->osd, _T("%s\n"), buffer);
@@ -957,43 +961,11 @@ void EMU::open_debugger(int cpu_index)
 			debugger_thread_param.request_terminate = false;
 #ifdef _MSC_VER
 			if((hDebuggerThread = (HANDLE)_beginthreadex(NULL, 0, debugger_thread, &debugger_thread_param, 0, NULL)) != (HANDLE)0) {
-#elif !defined(_USE_QT)
+#else
+//#elif !defined(_USE_QT)
 			if(pthread_create(&debugger_thread_id, NULL, debugger_thread, &debugger_thread_param) == 0) {
-#else // USE_QT
-			{
-				//debugger_thread_id = -1;
-				volatile debugger_thread_t *p = (debugger_thread_t *)(&debugger_thread_param);
-				p->running = true;
-
-				DEVICE *cpu = p->vm->get_cpu(p->cpu_index);
-				DEBUGGER *debugger = (DEBUGGER *)cpu->get_debugger();
-					
-				debugger->now_going = false;
-				debugger->now_debugging = true;
-				dump_addr = 0;
-				dasm_addr = cpu->get_next_pc();
-	
-				// initialize console
-				_TCHAR buffer[1024];
-				my_stprintf_s(buffer, 1024, _T("Debugger - %s"), _T(DEVICE_NAME));
-					
-				p->osd->open_console(buffer);
-				//bool cp932 = (p->osd->get_console_code_page() == 932);
-				p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-				cpu->get_debug_regs_info(buffer, 1024);
-				my_printf(p->osd, _T("%s\n"), buffer);
-				p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_INTENSITY);
-				my_printf(p->osd, _T("breaked at %08X\n"), cpu->get_next_pc());
-				p->osd->set_console_text_attribute(FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-				cpu->debug_dasm(cpu->get_next_pc(), buffer, 1024);
-				my_printf(p->osd, _T("next\t%08X  %s\n"), cpu->get_next_pc(), buffer);
-				p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-	
-				// initialize logfile
-				//if(logfile != NULL && logfile->IsOpened()) {
-				//	logfile->Fclose();
-				//}
-				//logfile = NULL;
+//#else // USE_QT
+//			{
 #endif
 				stop_record_sound();
 				stop_record_video();
@@ -1012,11 +984,12 @@ void EMU::close_debugger()
 #ifdef _MSC_VER
 		WaitForSingleObject(hDebuggerThread, INFINITE);
 		CloseHandle(hDebuggerThread);
-#elif !defined(_USE_QT)
-		pthread_join(debugger_thread_id, NULL);
+//#elif !defined(_USE_QT)
 #else
-		volatile debugger_thread_t *p = (debugger_thread_t *)(&debugger_thread_param);
-		p->running = false;
+		pthread_join(debugger_thread_id, NULL);
+//#else
+//		volatile debugger_thread_t *p = (debugger_thread_t *)(&debugger_thread_param);
+//		p->running = false;
 		
 		//if(logfile != NULL && logfile->IsOpened()) {
 		//	logfile->Fclose();

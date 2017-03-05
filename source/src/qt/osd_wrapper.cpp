@@ -365,7 +365,7 @@ void OSD::set_draw_thread(DrawThreadClass *handler)
 	connect(parent_thread, SIGNAL(sig_debugger_input(QString)), this, SLOT(do_set_input_string(QString)));
 	connect(parent_thread, SIGNAL(sig_quit_debugger()), this, SLOT(do_close_debugger_thread()));
 	connect(this, SIGNAL(sig_close_window()), parent_thread, SLOT(doExit()));
-	connect(this, SIGNAL(sig_console_input_string(QString)), parent_thread, SLOT(do_call_debugger_command(QString)));
+	//connect(this, SIGNAL(sig_console_input_string(QString)), parent_thread, SLOT(do_call_debugger_command(QString)));
 	
 }
 
