@@ -124,12 +124,23 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 
 uint32_t MEMORY::read_io8(uint32_t addr)
 {
-#ifdef _X1TURBO_FEATURE
 	switch(addr & 0xff00) {
+	case 0x1e00: // thanks Mr.Sato
+		if(romsel) {
+			romsel = 0;
+#ifdef _X1TURBO_FEATURE
+			d_pio->write_signal(SIG_I8255_PORT_B, 0x10, 0x10);
+#else
+			m1_cycle = 0;
+#endif
+			update_map();
+		}
+		break;
+#ifdef _X1TURBO_FEATURE
 	case 0xb00:
 		return bank;
-	}
 #endif
+	}
 	return 0xff;
 }
 

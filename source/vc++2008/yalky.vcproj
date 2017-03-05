@@ -274,7 +274,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\src\filecpp"
+				RelativePath="..\src\fileio.cpp"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"

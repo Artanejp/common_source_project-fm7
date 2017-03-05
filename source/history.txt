@@ -1,4 +1,11 @@
-2/9/2016
+3/1/2017
+
+[EMU/DEBUGGER] support < command (input commands from file)
+
+[X1/MEMORY] support to unmap rom by reading port 1Exxh (thanks Mr.Sato)
+
+
+2/9/2017
 
 [WINMAIN] support to draw bitmap image onto buttons
 [WINMAIN] fix to redraw pcb bitmap image when window is invalidated

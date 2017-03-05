@@ -385,6 +385,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	for(int i = 0x1c00; i <= 0x1cff; i++) {
 		io->set_iomap_alias_w(i, psg, 0);
 	}
+	io->set_iomap_range_r(0x1e00, 0x1eff, memory);
 	io->set_iomap_range_w(0x1d00, 0x1eff, memory);
 #ifndef _X1TURBO_FEATURE
 	io->set_iomap_range_rw(0x1f98, 0x1f9b, sio);	// CZ-8BM2
