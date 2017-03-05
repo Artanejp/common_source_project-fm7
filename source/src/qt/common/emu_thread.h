@@ -95,7 +95,6 @@ public slots:
 	void do_start_auto_key(QString text);
 	void do_stop_auto_key(void);
 
-	void do_call_debugger_command(QString s);
 	void do_close_debugger(void);
 };
 
