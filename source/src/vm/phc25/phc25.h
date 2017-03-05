@@ -69,7 +69,8 @@ class DATAREC;
 class IO;
 class MC6847;
 class NOT;
-class YM2203;
+//class YM2203;
+class AY_3_891X;
 class Z80;
 
 class JOYSTICK;
@@ -89,7 +90,8 @@ protected:
 	IO* io;
 	MC6847* vdp;
 	NOT* not_vsync;
-	YM2203* psg;
+//	YM2203* psg;
+	AY_3_891X* psg;
 	Z80* cpu;
 	
 	JOYSTICK* joystick;

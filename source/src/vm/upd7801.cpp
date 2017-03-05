@@ -2621,7 +2621,7 @@ void UPD7801::OP48()
 	case 0x3f:	// pop h
 		HL = POP16(); break;
 	default:
-		emu->out_debug_log(_T("PC=%4x\tCPU\tUNKNOWN OP : 48 %2x\n"), prevPC, ope);
+		this->out_debug_log(_T("PC=%4x\tCPU\tUNKNOWN OP : 48 %2x\n"), prevPC, ope);
 	}
 }
 
@@ -2659,7 +2659,7 @@ void UPD7801::OP4C()
 			_A = RM8((_B << 8) | ope);
 			UPDATE_PORTC(0);
 		} else {
-			emu->out_debug_log(_T("PC=%4x\tCPU\tUNKNOWN OP : 4c %2x\n"), prevPC, ope);
+			this->out_debug_log(_T("PC=%4x\tCPU\tUNKNOWN OP : 4c %2x\n"), prevPC, ope);
 		}
 	}
 }
@@ -2701,7 +2701,7 @@ void UPD7801::OP4D()
 			WM8((_B << 8) | ope, _A);
 			UPDATE_PORTC(0);
 		} else {
-			emu->out_debug_log(_T("PC=%4x\tCPU\tUNKNOWN OP : 4d %2x\n"), prevPC, ope);
+			this->out_debug_log(_T("PC=%4x\tCPU\tUNKNOWN OP : 4d %2x\n"), prevPC, ope);
 		}
 	}
 }
@@ -3161,7 +3161,7 @@ void UPD7801::OP60()
 	case 0xff:	// eqa a,l
 		EQA(_A, _L); break;
 	default:
-		emu->out_debug_log(_T("PC=%4x\tCPU\tUNKNOWN OP : 60 %2x\n"), prevPC, ope);
+		this->out_debug_log(_T("PC=%4x\tCPU\tUNKNOWN OP : 60 %2x\n"), prevPC, ope);
 	}
 }
 
@@ -3532,7 +3532,7 @@ void UPD7801::OP64()
 	case 0xfb:	// eqi mk,byte
 		EQI(MK); break;
 	default:
-		emu->out_debug_log(_T("PC=%4x\tCPU\tUNKNOWN OP : 64 %2x\n"), prevPC, ope);
+		this->out_debug_log(_T("PC=%4x\tCPU\tUNKNOWN OP : 64 %2x\n"), prevPC, ope);
 	}
 }
 
@@ -3802,7 +3802,7 @@ void UPD7801::OP70()
 	case 0xff:	// eqax h-
 		EQAX(HL--); break;
 	default:
-		emu->out_debug_log(_T("PC=%4x\tCPU\tUNKNOWN OP : 70 %2x\n"), prevPC, ope);
+		this->out_debug_log(_T("PC=%4x\tCPU\tUNKNOWN OP : 70 %2x\n"), prevPC, ope);
 	}
 }
 
@@ -3843,7 +3843,7 @@ void UPD7801::OP74()
 	case 0xf8:	// eqaw wa
 		EQAW(); break;
 	default:
-		emu->out_debug_log(_T("PC=%4x\tCPU\tUNKNOWN OP : 74 %2x\n"), prevPC, ope);
+		this->out_debug_log(_T("PC=%4x\tCPU\tUNKNOWN OP : 74 %2x\n"), prevPC, ope);
 	}
 }
 

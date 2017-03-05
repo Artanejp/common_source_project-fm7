@@ -34,40 +34,56 @@ enum {
 
 #define MAX_HISTORY	8
 
-#if defined(USE_CART2)
-#define MAX_CART	2
-#elif defined(USE_CART1)
-#define MAX_CART	1
+#ifndef MAX_CART
+	#if defined(USE_CART2)
+		#define MAX_CART	2
+	#elif defined(USE_CART1)
+		#define MAX_CART	1
+	#endif
 #endif
 
-#if defined(USE_FD8)
-#define MAX_FD		8
-#elif defined(USE_FD7)
-#define MAX_FD		7
-#elif defined(USE_FD6)
-#define MAX_FD		6
-#elif defined(USE_FD5)
-#define MAX_FD		5
-#elif defined(USE_FD4)
-#define MAX_FD		4
-#elif defined(USE_FD3)
-#define MAX_FD		3
-#elif defined(USE_FD2)
-#define MAX_FD		2
-#elif defined(USE_FD1)
-#define MAX_FD		1
+#ifndef MAX_FD
+	#if defined(USE_FD8)
+		#define MAX_FD		8
+	#elif defined(USE_FD7)
+		#define MAX_FD		7
+	#elif defined(USE_FD6)
+		#define MAX_FD		6
+	#elif defined(USE_FD5)
+		#define MAX_FD		5
+	#elif defined(USE_FD4)
+		#define MAX_FD		4
+	#elif defined(USE_FD3)
+		#define MAX_FD		3
+	#elif defined(USE_FD2)
+		#define MAX_FD		2
+	#elif defined(USE_FD1)
+		#define MAX_FD		1
+	#endif
 #endif
 
-#if defined(USE_QD2)
-#define MAX_QD		2
-#elif defined(USE_QD1)
-#define MAX_QD		1
+#ifndef MAX_QD
+	#if defined(USE_QD2)
+		#define MAX_QD		2
+	#elif defined(USE_QD1)
+		#define MAX_QD		1
+	#endif
 #endif
 
-#if defined(USE_BINARY_FILE2)
-#define MAX_BINARY	2
-#elif defined(USE_BINARY_FILE1)
-#define MAX_BINARY	1
+#ifndef MAX_BINARY
+	#if defined(USE_BINARY_FILE2)
+		#define MAX_BINARY	2
+	#elif defined(USE_BINARY_FILE1)
+		#define MAX_BINARY	1
+	#endif
+#endif
+
+#ifndef MAX_BUBBLE
+	#if defined(USE_BUBBLE2)
+		#define MAX_BUBBLE	2
+	#elif defined(USE_BUBBLE1)
+		#define MAX_BUBBLE	1
+	#endif
 #endif
 
 void DLL_PREFIX initialize_config();

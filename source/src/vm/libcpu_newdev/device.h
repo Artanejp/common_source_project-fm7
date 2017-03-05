@@ -529,7 +529,11 @@ public:
 	// Force render per 1 sample automatically.
 	// See pcm1bit.cpp .
 	// -- 20161010 K.O
-	virtual void set_realtime_render(bool flag);
+	virtual void set_realtime_render(DEVICE *device, bool flag);
+	virtual void set_realtime_render(bool flag)
+	{
+		set_realtime_render(this, flag);
+	}
 	virtual void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame) {}
 	
 	// event callback

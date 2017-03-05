@@ -206,7 +206,9 @@ void MSM5205::vclk_w(int vclk)
 
 void MSM5205::reset_w(int reset)
 {
+	touch_sound();
 	m_reset = reset;
+	set_realtime_render(this, (m_reset == 0));
 }
 
 /*
@@ -238,6 +240,7 @@ void MSM5205::playmode_w(int select)
 
 	if (m_prescaler != prescaler)
 	{
+		touch_sound();
 //		m_stream->update();
 
 		touch_sound();

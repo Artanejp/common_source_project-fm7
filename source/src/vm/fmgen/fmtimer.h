@@ -13,7 +13,7 @@
 
 namespace FM
 {
-	class DLL_PREFIX Timer
+	class Timer
 	{
 	public:
 		void	Reset();

@@ -2,43 +2,40 @@
 	Skelton for retropc emulator
 
 	Author : Takeda.Toshiya
-	Date   : 2017.02.02-
+	Date   : 2006.09.15-
 
-	[ AY-3-8910 / 8912 / 8913 ]
-	History:
-	  2017-02-02: Fork from YM2203.
+	[ AY-3-8910 / AY-3-8912 / AY-3-8913 ]
 */
 
 #include "ay_3_891x.h"
-#include <math.h>
 
-#define EVENT_PSG_TIMER	0
-
+#define EVENT_FM_TIMER	0
 
 void AY_3_891X::initialize()
 {
-	psg = new PSG_AY_3_891X;
-
+	opn = new FM::OPN;
+	opn->is_ay3_891x = true;
+	
 	register_vline_event(this);
 	mute = false;
 	clock_prev = clock_accum = clock_busy = 0;
-
-	left_volume = right_volume = 256;
-	v_left_volume = v_right_volume = 256;
 }
 
 void AY_3_891X::release()
 {
-	delete psg;
+	delete opn;
 }
 
 void AY_3_891X::reset()
 {
 	touch_sound();
-	psg->Reset();
+	opn->Reset();
 	fnum2 = 0;
 	
 	// stop timer
+	timer_event_id = -1;
+	this->set_reg(0x27, 0);
+	
 #ifdef SUPPORT_AY_3_891X_PORT
 	port[0].first = port[1].first = true;
 	port[0].wreg = port[1].wreg = 0;//0xff;
@@ -51,11 +48,9 @@ void AY_3_891X::reset()
 	irq_prev = busy = false;
 }
 
-#define amask 1
-
 void AY_3_891X::write_io8(uint32_t addr, uint32_t data)
 {
-	switch(addr & amask) {
+	switch(addr & 1) {
 	case 0:
 		ch = data & 0x0f;
 		break;
@@ -85,10 +80,21 @@ void AY_3_891X::write_io8(uint32_t addr, uint32_t data)
 #endif
 		}
 #endif
-	     {
+		if(0x2d <= ch && ch <= 0x2f) {
+			// don't write again for prescaler
+		} else if(0xa4 <= ch && ch <= 0xa6) {
+			// XM8 version 1.20
+			fnum2 = data;
+		} else {
 			update_count();
-		// XM8 version 1.20
+			// XM8 version 1.20
+			if(0xa0 <= ch && ch <= 0xa2) {
+				this->set_reg(ch + 4, fnum2);
+			}
 			this->set_reg(ch, data);
+			if(ch == 0x27) {
+				update_event();
+			}
 		}
 		break;
 	}
@@ -96,7 +102,7 @@ void AY_3_891X::write_io8(uint32_t addr, uint32_t data)
 
 uint32_t AY_3_891X::read_io8(uint32_t addr)
 {
-	switch(addr & amask) {
+	switch(addr & 1) {
 	case 1:
 #ifdef SUPPORT_AY_3_891X_PORT
 		if(ch == 14) {
@@ -109,7 +115,7 @@ uint32_t AY_3_891X::read_io8(uint32_t addr)
 #endif
 		}
 #endif
-		return psg->GetReg(ch);
+		return opn->GetReg(ch);
 	}
 	return 0xff;
 }
@@ -137,7 +143,7 @@ void AY_3_891X::event_vline(int v, int clock)
 void AY_3_891X::event_callback(int event_id, int error)
 {
 	update_count();
-	//timer_event_id = -1;
+	timer_event_id = -1;
 	update_event();
 }
 
@@ -146,7 +152,7 @@ void AY_3_891X::update_count()
 	clock_accum += clock_const * get_passed_clock(clock_prev);
 	uint32_t count = clock_accum >> 20;
 	if(count) {
-		//psg->Count(count);
+		opn->Count(count);
 		clock_accum -= count << 20;
 	}
 	clock_prev = get_current_clock();
@@ -154,115 +160,51 @@ void AY_3_891X::update_count()
 
 void AY_3_891X::update_event()
 {
-	//if(timer_event_id != -1) {
-	//	cancel_event(this, timer_event_id);
-	//	timer_event_id = -1;
-	//}
+	if(timer_event_id != -1) {
+		cancel_event(this, timer_event_id);
+		timer_event_id = -1;
+	}
 	
-	//int count;
-	//count = psg->GetNextEvent();
+	int count;
+	count = opn->GetNextEvent();
 	
-	//if(count > 0) {
-	//	register_event(this, EVENT_PSG_TIMER, 1000000.0 / (double)chip_clock * (double)count, false, &timer_event_id);
-	//}
+	if(count > 0) {
+		register_event(this, EVENT_FM_TIMER, 1000000.0 / (double)chip_clock * (double)count, false, &timer_event_id);
+	}
 }
-
-
-inline int32_t VCALC(int32_t x, int32_t y)
-{
-	x = x * y;
-	x = x >> 8;
-	return x;
-}
-
-inline int32_t SATURATION_ADD(int32_t x, int32_t y)
-{
-	x = x + y;
-	if(x < -0x8000) x = -0x8000;
-	if(x >  0x7fff) x =  0x7fff;
-	return x;
-}
-
 
 void AY_3_891X::mix(int32_t* buffer, int cnt)
 {
 	if(cnt > 0 && !mute) {
-		int32_t *dbuffer = (int32_t *)malloc((cnt * 2 + 2) * sizeof(int32_t));
-		memset((void *)dbuffer, 0x00, (cnt * 2 + 2) * sizeof(int32_t));
-	   
-		psg->Mix(dbuffer, cnt);
-		int32_t *p = dbuffer;
-		int32_t *q = buffer;
-		int32_t tmp[8];
-		int32_t tvol[8] = {v_left_volume, v_right_volume,
-				 v_left_volume, v_right_volume,
-				 v_left_volume, v_right_volume,
-				 v_left_volume, v_right_volume};
-		int i;
-		// More EXCEPTS to optimize to SIMD features.
-		for(i = 0; i < cnt / 4; i++) {
-			tmp[0] = VCALC(p[0], tvol[0]);
-			tmp[1] = VCALC(p[1], tvol[1]);
-			tmp[2] = VCALC(p[2], tvol[2]);
-			tmp[3] = VCALC(p[3], tvol[3]);
-			tmp[4] = VCALC(p[4], tvol[4]);
-			tmp[5] = VCALC(p[5], tvol[5]);
-			tmp[6] = VCALC(p[6], tvol[6]);
-			tmp[7] = VCALC(p[7], tvol[7]);
-
-			q[0] = SATURATION_ADD(q[0], tmp[0]);
-			q[1] = SATURATION_ADD(q[1], tmp[1]);
-			q[2] = SATURATION_ADD(q[2], tmp[2]);
-			q[3] = SATURATION_ADD(q[3], tmp[3]);
-		   
-			q[4] = SATURATION_ADD(q[4], tmp[4]);
-			q[5] = SATURATION_ADD(q[5], tmp[5]);
-			q[6] = SATURATION_ADD(q[6], tmp[6]);
-			q[7] = SATURATION_ADD(q[7], tmp[7]);
-			q += 8;
-			p += 8;
-		}
-		if((cnt & 3) != 0) {
-			for(i = 0; i < (cnt & 3); i++) {
-				tmp[0] = VCALC(p[0], tvol[0]);
-				tmp[1] = VCALC(p[1], tvol[1]);
-			   
-				q[0] = SATURATION_ADD(q[0], tmp[0]);
-				q[1] = SATURATION_ADD(q[1], tmp[1]);
-				q += 2;
-				p += 2;
-			}
-		}
-		free(dbuffer);
+		opn->Mix(buffer, cnt);
 	}
 }
 
 void AY_3_891X::set_volume(int ch, int decibel_l, int decibel_r)
 {
-	v_right_volume = (int)(pow(10.0, (double)decibel_vol / 10.0) * (double)right_volume);
-	v_left_volume = (int)(pow(10.0, (double)decibel_vol / 10.0) * (double)left_volume);
 	if(ch == 0) {
-		psg->SetVolume(base_decibel_psg + decibel_l, base_decibel_psg + decibel_r);
+		opn->SetVolumeFM(base_decibel_fm + decibel_l, base_decibel_fm + decibel_r);
+	} else if(ch == 1) {
+		opn->SetVolumePSG(base_decibel_psg + decibel_l, base_decibel_psg + decibel_r);
 	}
 }
 
 void AY_3_891X::initialize_sound(int rate, int clock, int samples, int decibel_fm, int decibel_psg)
 {
-	//psg->Init(clock, rate, false, NULL);
-	psg->Init(clock, rate);
-	psg->SetVolume(decibel_psg, decibel_psg);
+	opn->Init(clock, rate, false, NULL);
+	opn->SetVolumeFM(decibel_fm, decibel_fm);
+	opn->SetVolumePSG(decibel_psg, decibel_psg);
+	
+	base_decibel_fm = decibel_fm;
 	base_decibel_psg = decibel_psg;
+	
 	chip_clock = clock;
 }
 
 void AY_3_891X::set_reg(uint32_t addr, uint32_t data)
 {
 	touch_sound();
-	if((addr >= 0x2d) && (addr <= 0x2f)) {
-		psg->SetPrescaler(addr - 0x2d);
-		return;
-	}
-	psg->SetReg(addr, data);
+	opn->SetReg(addr, data);
 }
 
 void AY_3_891X::update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame)
@@ -270,13 +212,14 @@ void AY_3_891X::update_timing(int new_clocks, double new_frames_per_sec, int new
 	clock_const = (uint32_t)((double)chip_clock * 1024.0 * 1024.0 / (double)new_clocks + 0.5);
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	3
 
 void AY_3_891X::save_state(FILEIO* state_fio)
 {
 	state_fio->FputUint32(STATE_VERSION);
 	state_fio->FputInt32(this_device_id);
-	psg->SaveState((void *)state_fio);
+	
+	opn->SaveState((void *)state_fio);
 	state_fio->FputUint8(ch);
 	state_fio->FputUint8(fnum2);
 #ifdef SUPPORT_AY_3_891X_PORT
@@ -294,13 +237,8 @@ void AY_3_891X::save_state(FILEIO* state_fio)
 	state_fio->FputUint32(clock_accum);
 	state_fio->FputUint32(clock_const);
 	state_fio->FputUint32(clock_busy);
-	//state_fio->FputInt32(timer_event_id);
+	state_fio->FputInt32(timer_event_id);
 	state_fio->FputBool(busy);
-	state_fio->FputInt32(decibel_vol);
-	state_fio->FputInt32(left_volume);
-	state_fio->FputInt32(right_volume);
-	state_fio->FputInt32(v_left_volume);
-	state_fio->FputInt32(v_right_volume);
 }
 
 bool AY_3_891X::load_state(FILEIO* state_fio)
@@ -311,7 +249,7 @@ bool AY_3_891X::load_state(FILEIO* state_fio)
 	if(state_fio->FgetInt32() != this_device_id) {
 		return false;
 	}
-	if(!psg->LoadState((void *)state_fio)) {
+	if(!opn->LoadState((void *)state_fio)) {
 		return false;
 	}
 	ch = state_fio->FgetUint8();
@@ -331,16 +269,8 @@ bool AY_3_891X::load_state(FILEIO* state_fio)
 	clock_accum = state_fio->FgetUint32();
 	clock_const = state_fio->FgetUint32();
 	clock_busy = state_fio->FgetUint32();
-	//timer_event_id = state_fio->FgetInt32();
+	timer_event_id = state_fio->FgetInt32();
 	busy = state_fio->FgetBool();
-
-	decibel_vol = state_fio->FgetInt32();
-	left_volume = state_fio->FgetInt32();
-	right_volume = state_fio->FgetInt32();
-	v_left_volume = state_fio->FgetInt32();
-	v_right_volume = state_fio->FgetInt32();
-	//touch_sound();
-
 	return true;
 }
 

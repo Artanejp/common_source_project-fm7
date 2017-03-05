@@ -214,6 +214,9 @@ BEGIN
         MENUITEM "300msec",                     ID_SOUND_LATE3
         MENUITEM "400msec",                     ID_SOUND_LATE4
         MENUITEM SEPARATOR
+        MENUITEM "Realtime Mix",                ID_SOUND_STRICT_RENDER
+        MENUITEM "Light Weight Mix",            ID_SOUND_LIGHT_RENDER
+        MENUITEM SEPARATOR
         MENUITEM "PC-9801-26 (BIOS Enabled)",   ID_SOUND_DEVICE_TYPE0
         MENUITEM "PC-9801-26 (BIOS Disabled)",  ID_SOUND_DEVICE_TYPE1
         MENUITEM "PC-9801-14 (BIOS Enabled)",   ID_SOUND_DEVICE_TYPE2

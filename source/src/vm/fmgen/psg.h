@@ -41,7 +41,7 @@
 //		äeâπåπÇÃâπó Çí≤êﬂÇ∑ÇÈ
 //		íPà ÇÕñÒ 1/2 dB
 //
-class DLL_PREFIX PSG
+class PSG
 {
 public:
 	typedef PSG_SAMPLETYPE Sample;
@@ -62,7 +62,7 @@ public:
 	void Mix(Sample* dest, int nsamples);
 	void SetClock(int clock, int rate);
 	
-	virtual void SetVolume(int vol_l, int vol_r);
+	void SetVolume(int vol_l, int vol_r, bool is_ay3_891x);
 	void SetChannelMask(int c);
 	
 	void Reset();

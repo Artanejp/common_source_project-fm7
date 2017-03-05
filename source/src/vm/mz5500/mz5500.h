@@ -104,7 +104,8 @@ class NOT;
 class RP5C01;
 class UPD7220;
 class UPD765A;
-class YM2203;
+//class YM2203;
+class AY_3_891X;
 class Z80CTC;
 class Z80SIO;
 
@@ -144,7 +145,8 @@ protected:
 	RP5C01* rtc;
 	UPD7220* gdc;
 	UPD765A* fdc;
-	YM2203* psg;
+//	YM2203* psg;
+	AY_3_891X* psg;
 	Z80CTC* ctc0;
 #if defined(_MZ6500) || defined(_MZ6550)
 	Z80CTC* ctc1;

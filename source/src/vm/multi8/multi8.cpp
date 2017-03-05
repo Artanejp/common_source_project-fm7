@@ -21,7 +21,8 @@
 #include "../i8259.h"
 #include "../io.h"
 #include "../upd765a.h"
-#include "../ym2203.h"
+//#include "../ym2203.h"
+#include "../ay_3_891x.h"
 #include "../z80.h"
 
 #ifdef USE_DEBUGGER
@@ -58,7 +59,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pic = new I8259(this, emu);
 	io = new IO(this, emu);
 	fdc = new UPD765A(this, emu);
-	psg = new YM2203(this, emu);
+//	psg = new YM2203(this, emu);
+	psg = new AY_3_891X(this, emu);
 	cpu = new Z80(this, emu);
 #if defined(_USE_QT)
 	psg->set_device_name(_T("AY-3-8910 PSG"));
@@ -317,7 +319,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void VM::save_state(FILEIO* state_fio)
 {

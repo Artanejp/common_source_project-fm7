@@ -239,6 +239,9 @@ BEGIN
         MENUITEM "300msec",                     ID_SOUND_LATE3
         MENUITEM "400msec",                     ID_SOUND_LATE4
         MENUITEM SEPARATOR
+        MENUITEM "Realtime Mix",                ID_SOUND_STRICT_RENDER
+        MENUITEM "Light Weight Mix",            ID_SOUND_LIGHT_RENDER
+        MENUITEM SEPARATOR
         MENUITEM "PSG",                         ID_SOUND_DEVICE_TYPE0
         MENUITEM "CZ-8BS1 x1",                  ID_SOUND_DEVICE_TYPE1
         MENUITEM "CZ-8BS1 x2",                  ID_SOUND_DEVICE_TYPE2

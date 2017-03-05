@@ -1027,7 +1027,7 @@ write_id:
 	} else if(PC == 0xfffc9) {
 		// cmos
 #ifdef _DEBUG_LOG
-		emu->out_debug_log(_T("%6x\tCMOS BIOS: AH=%2x,AL=%2x,CX=%4x,DX=%4x,BX=%4x,DS=%2x,DI=%2x\n"), get_cpu_pc(0), AH,AL,CX,DX,BX,DS,DI);
+		this->out_debug_log(_T("%6x\tCMOS BIOS: AH=%2x,AL=%2x,CX=%4x,DX=%4x,BX=%4x,DS=%2x,DI=%2x\n"), get_cpu_pc(0), AH,AL,CX,DX,BX,DS,DI);
 #endif
 		if(AH == 0) {
 			// init cmos
@@ -1064,7 +1064,7 @@ write_id:
 	} else if(PC == 0xfffd3) {
 		// wait
 #ifdef _DEBUG_LOG
-		emu->out_debug_log(_T("%6x\tWAIT BIOS: AH=%2x,AL=%2x,CX=%4x,DX=%4x,BX=%4x,DS=%2x,DI=%2x\n"), get_cpu_pc(0), AH,AL,CX,DX,BX,DS,DI);
+		this->out_debug_log(_T("%6x\tWAIT BIOS: AH=%2x,AL=%2x,CX=%4x,DX=%4x,BX=%4x,DS=%2x,DI=%2x\n"), get_cpu_pc(0), AH,AL,CX,DX,BX,DS,DI);
 #endif
 		*CarryFlag = 0;
 		return true;

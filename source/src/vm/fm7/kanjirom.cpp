@@ -45,6 +45,11 @@ KANJIROM::KANJIROM(VM *parent_vm, EMU* parent_emu, bool type_2std): DEVICE(paren
 	} else {
 		set_device_name(_T("FM7_KANJI_CLASS1"));
 	}
+	if(class2) {
+		set_device_name(_T("FM7_KANJI_CLASS2"));
+	} else {
+		set_device_name(_T("FM7_KANJI_CLASS1"));
+	}
 	kanjiaddr.d = 0;
 	delete fio;
 	return;

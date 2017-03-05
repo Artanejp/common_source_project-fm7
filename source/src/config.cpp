@@ -287,6 +287,14 @@ void load_config(const _TCHAR *config_path)
 		}
 	}
 #endif
+#ifdef USE_BUBBLE1
+	MyGetPrivateProfileString(_T("RecentFiles"), _T("InitialBubbleDir"), _T(""), config.initial_bubble_casette_dir, _MAX_PATH, config_path);
+	for(int drv = 0; drv < MAX_BUBBLE; drv++) {
+		for(int i = 0; i < MAX_HISTORY; i++) {
+			MyGetPrivateProfileString(_T("RecentFiles"), create_string(_T("RecentBubblePath%d_%d"), drv + 1, i + 1), _T(""), config.recent_bubble_casette_path[drv][i], _MAX_PATH, config_path);
+		}
+	}
+#endif
 	
 	// screen
 #ifndef ONE_BOARD_MICRO_COMPUTER
@@ -340,6 +348,7 @@ void load_config(const _TCHAR *config_path)
 	// sound
 	config.sound_frequency = MyGetPrivateProfileInt(_T("Sound"), _T("Frequency"), config.sound_frequency, config_path);
 	config.sound_latency = MyGetPrivateProfileInt(_T("Sound"), _T("Latency"), config.sound_latency, config_path);
+	config.sound_strict_rendering = MyGetPrivateProfileBool(_T("Sound"), _T("StrictRendering"), config.sound_strict_rendering, config_path);
 #ifdef USE_SOUND_DEVICE_TYPE
 	config.sound_device_type = MyGetPrivateProfileInt(_T("Sound"), _T("DeviceType"), config.sound_device_type, config_path);
 #endif
@@ -538,6 +547,14 @@ void save_config(const _TCHAR *config_path)
 	MyWritePrivateProfileBool(_T("Control"), _T("DirectLoadMZT"), config.direct_load_mzt, config_path);
 	MyWritePrivateProfileBool(_T("Control"), _T("BaudHigh"), config.baud_high, config_path);
 #endif
+#ifdef USE_BUBBLE1
+	MyWritePrivateProfileString(_T("RecentFiles"), _T("InitialBubbleDir"), config.initial_bubble_casette_dir, config_path);
+	for(int drv = 0; drv < MAX_BUBBLE; drv++) {
+		for(int i = 0; i < MAX_HISTORY; i++) {
+			MyWritePrivateProfileString(_T("RecentFiles"), create_string(_T("RecentBubblePath%d_%d"), drv + 1, i + 1), config.recent_bubble_casette_path[drv][i], config_path);
+		}
+	}
+#endif
 	
 	// recent files
 #ifdef USE_CART1
@@ -640,6 +657,7 @@ void save_config(const _TCHAR *config_path)
 	// sound
 	MyWritePrivateProfileInt(_T("Sound"), _T("Frequency"), config.sound_frequency, config_path);
 	MyWritePrivateProfileInt(_T("Sound"), _T("Latency"), config.sound_latency, config_path);
+	MyWritePrivateProfileBool(_T("Sound"), _T("StrictRendering"), config.sound_strict_rendering, config_path);
 #ifdef USE_SOUND_DEVICE_TYPE
 	MyWritePrivateProfileInt(_T("Sound"), _T("DeviceType"), config.sound_device_type, config_path);
 #endif

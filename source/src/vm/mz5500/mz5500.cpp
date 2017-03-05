@@ -29,7 +29,8 @@
 #include "../rp5c01.h"
 #include "../upd7220.h"
 #include "../upd765a.h"
-#include "../ym2203.h"
+//#include "../ym2203.h"
+#include "../ay_3_891x.h"
 #include "../z80ctc.h"
 #include "../z80sio.h"
 
@@ -106,7 +107,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	rtc = new RP5C01(this, emu);
 	gdc = new UPD7220(this, emu);
 	fdc = new UPD765A(this, emu);
-	psg = new YM2203(this, emu);	// AY-3-8912
+//	psg = new YM2203(this, emu);
+	psg = new AY_3_891X(this, emu);	// AY-3-8912
 	ctc0 = new Z80CTC(this, emu);
 #if defined(_MZ6500) || defined(_MZ6550)
 	ctc1 = new Z80CTC(this, emu);
@@ -432,7 +434,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 void VM::save_state(FILEIO* state_fio)
 {

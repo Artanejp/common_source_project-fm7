@@ -1,3 +1,17 @@
+3/4/2017
+
+[WINMAIN] add interfaces for bubble casette (thanks Mr.Artane.)
+[EMU] add interfaces for bubble casette (thanks Mr.Artane.)
+
+[VM/*] import Mr.Artane.'s fixes (Commits on Feb 18, 2017)
+[VM/AY_3_891X] split YM2203 and AY-3-891X (thanks Mr.Artane.)
+[VM/DISK] fix trim buffer routine for 2D disk image (thanks Mr.Artane.)
+[VM/EVENT] support light weight sound rendering (thanks Mr.Artane.)
+[VM/MB8877] fix seek command for 2D disk image (thanks Mr.Artane.)
+
+[FM77AV] import Mr.Artane.'s fixes (Commits on Feb 18, 2017)
+
+
 3/1/2017
 
 [EMU/DEBUGGER] support < command (input commands from file)

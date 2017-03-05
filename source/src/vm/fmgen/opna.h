@@ -85,7 +85,7 @@
 namespace FM
 {
 	//	OPN Base -------------------------------------------------------
-	class DLL_PREFIX OPNBase : public Timer
+	class OPNBase : public Timer
 	{
 	public:
 		OPNBase();
@@ -98,6 +98,8 @@ namespace FM
 		void	SetVolumeFM(int db_l, int db_r);
 		void	SetVolumePSG(int db_l, int db_r);
 		void	SetLPFCutoff(uint freq) {}	// obsolete
+		
+		bool is_ay3_891x;
 
 	protected:
 		void	SetParameter(Channel4* ch, uint addr, uint data);
@@ -131,7 +133,7 @@ namespace FM
 	};
 
 	//	OPN2 Base ------------------------------------------------------
-	class DLL_PREFIX OPNABase : public OPNBase
+	class OPNABase : public OPNBase
 	{
 	public:
 		OPNABase();
@@ -239,7 +241,7 @@ namespace FM
 	};
 
 	//	YM2203(OPN) ----------------------------------------------------
-	class DLL_PREFIX OPN : public OPNBase
+	class OPN : public OPNBase
 	{
 	public:
 		OPN();
@@ -276,7 +278,7 @@ namespace FM
 	};
 
 	//	YM2608(OPNA) ---------------------------------------------------
-	class DLL_PREFIX OPNA : public OPNABase
+	class OPNA : public OPNABase
 	{
 	public:
 		OPNA();
@@ -330,7 +332,7 @@ namespace FM
 	};
 
 	//	YM2610/B(OPNB) ---------------------------------------------------
-	class DLL_PREFIX OPNB : public OPNABase
+	class OPNB : public OPNABase
 	{
 	public:
 		OPNB();
@@ -392,7 +394,7 @@ namespace FM
 	};
 
 	//	YM2612/3438(OPN2) ----------------------------------------------------
-	class DLL_PREFIX OPN2 : public OPNBase
+	class OPN2 : public OPNBase
 	{
 	public:
 		OPN2();
@@ -436,7 +438,7 @@ inline void FM::OPNBase::RebuildTimeTable()
 
 inline void FM::OPNBase::SetVolumePSG(int db_l, int db_r)
 {
-	psg.SetVolume(db_l, db_r);
+	psg.SetVolume(db_l, db_r, is_ay3_891x);
 }
 
 #endif // FM_OPNA_H

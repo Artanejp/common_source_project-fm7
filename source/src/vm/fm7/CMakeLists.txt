@@ -22,6 +22,7 @@ endif()
 
 if(USE_DEVICES_SHARED_LIB)
 else()
+	set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} dummydevice.cpp)
 	if(FM77AV_VARIANTS)
 		set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} mb61vh010.cpp)
 	endif()

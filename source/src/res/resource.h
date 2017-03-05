@@ -254,6 +254,8 @@
 #define ID_SOUND_LATE2                  41123
 #define ID_SOUND_LATE3                  41124
 #define ID_SOUND_LATE4                  41125
+#define ID_SOUND_STRICT_RENDER          41126
+#define ID_SOUND_LIGHT_RENDER           41127
 
 #define ID_SOUND_DEVICE_TYPE0           41131
 #define ID_SOUND_DEVICE_TYPE1           41132
@@ -401,6 +403,14 @@
 #define ID_CLOSE_LASER_DISC             43072
 #define ID_RECENT_LASER_DISC            43073 // 43073-43080
 
+#define ID_OPEN_BUBBLE1                 43081
+#define ID_CLOSE_BUBBLE1                43082
+#define ID_RECENT_BUBBLE1               43083 // 43083-43090
+
+#define ID_OPEN_BUBBLE2                 43091
+#define ID_CLOSE_BUBBLE2                43092
+#define ID_RECENT_BUBBLE2               43093 // 43093-43100
+
 #define ID_PLAY_TAPE                    44001
 #define ID_REC_TAPE                     44002
 #define ID_CLOSE_TAPE                   44003
@@ -477,9 +487,11 @@
 #define MENU_POS_FD1                    1
 #define MENU_POS_FD2                    2
 #define MENU_POS_TAPE                   3
-#define MENU_POS_SCREEN                 4
-#define MENU_POS_SOUND                  5
-#define MENU_POS_INPUT                  6
+#define MENU_POS_BUBBLE1                4
+#define MENU_POS_BUBBLE2                5
+#define MENU_POS_SCREEN                 6
+#define MENU_POS_SOUND                  7
+#define MENU_POS_INPUT                  8
 #endif
 
 // FUJITSU FM-7

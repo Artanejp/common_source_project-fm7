@@ -80,6 +80,10 @@ EMU::EMU()
 #ifdef USE_PRINTER
 	printer_device_type = config.printer_device_type;
 #endif
+#ifdef USE_BUBBLE1
+	// initialize b77 file info
+	memset(b77_file, 0, sizeof(b77_file));
+#endif
 	
 	// initialize osd
 #if defined(OSD_QT)
@@ -249,6 +253,9 @@ void EMU::reset()
 		osd->lock_vm();		
 		delete vm;
 		osd->vm = vm = new VM(this);
+#if defined(_USE_QT)
+		osd->reset_vm_node();
+#endif
 		vm->initialize_sound(sound_rate, sound_samples);
 # if defined(_USE_QT)
 		osd->reset_vm_node();
@@ -269,8 +276,8 @@ void EMU::reset()
 		osd->unlock_vm();		
 	}
 	
-	// restart recording
 #if !defined(_USE_QT) // Temporally
+	// restart recording
 	osd->restart_record_sound();
 	osd->restart_record_video();
 #endif	
@@ -1188,6 +1195,14 @@ void EMU::update_media()
 		}
 	}
 #endif
+#ifdef USE_BUBBLE1
+	for(int drv = 0; drv < MAX_BUBBLE; drv++) {
+		if(bubble_casette_status[drv].wait_count != 0 && --bubble_casette_status[drv].wait_count == 0) {
+			vm->open_bubble_casette(drv, bubble_casette_status[drv].path, bubble_casette_status[drv].bank);
+			out_message(_T("Bubble%d: %s"), drv, bubble_casette_status[drv].path);
+		}
+	}
+#endif
 }
 
 void EMU::restore_media()
@@ -1235,6 +1250,13 @@ void EMU::restore_media()
 #ifdef USE_LASER_DISC
 	if(laser_disc_status.path[0] != _T('\0')) {
 		vm->open_laser_disc(laser_disc_status.path);
+	}
+#endif
+#ifdef USE_BUBBLE1
+	for(int drv = 0; drv < MAX_BUBBLE; drv++) {
+		if(bubble_casette_status[drv].path[0] != _T('\0')) {
+			vm->open_bubble_casette(drv, bubble_casette_status[drv].path, bubble_casette_status[drv].bank);
+		}
 	}
 #endif
 #ifdef USE_BUBBLE1

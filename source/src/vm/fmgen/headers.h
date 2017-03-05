@@ -16,7 +16,6 @@
 	#undef min
 	#define min _MIN
 #endif
-#include "common.h"
 
 // disable warning C4996 for microsoft visual c++ 2005
 #if defined(_MSC_VER) && (_MSC_VER >= 1400)

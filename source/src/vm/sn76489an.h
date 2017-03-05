@@ -44,7 +44,11 @@ public:
 	SN76489AN(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		volume_l = volume_r = 1024;
+#ifdef HAS_SN76489
+		set_device_name(_T("SN76489 PSG"));
+#else
 		set_device_name(_T("SN76489AN PSG"));
+#endif
 	}
 	~SN76489AN() {}
 	

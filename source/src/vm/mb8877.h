@@ -16,9 +16,10 @@
 #include "device.h"
 
 
-#define SIG_MB8877_DRIVEREG		0
-#define SIG_MB8877_SIDEREG		1
-#define SIG_MB8877_MOTOR		2
+#define SIG_MB8877_ACCESS	0
+#define SIG_MB8877_DRIVEREG	1
+#define SIG_MB8877_SIDEREG	2
+#define SIG_MB8877_MOTOR	3
 
 #if defined(USE_SOUND_FILES)
 #define MB8877_SND_TBL_MAX 256

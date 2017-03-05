@@ -165,6 +165,7 @@
     <ClCompile Include="..\src\win32\osd_screen.cpp" />
     <ClCompile Include="..\src\win32\osd_sound.cpp" />
     <ClCompile Include="..\src\win32\winmain.cpp" />
+    <ClCompile Include="..\src\vm\ay_3_891x.cpp" />
     <ClCompile Include="..\src\vm\datarec.cpp" />
     <ClCompile Include="..\src\vm\disk.cpp" />
     <ClCompile Include="..\src\vm\event.cpp" />
@@ -176,7 +177,6 @@
     <ClCompile Include="..\src\vm\prnfile.cpp" />
     <ClCompile Include="..\src\vm\upd765a.cpp" />
     <ClCompile Include="..\src\vm\upd7752.cpp" />
-    <ClCompile Include="..\src\vm\ym2203.cpp" />
     <ClCompile Include="..\src\vm\z80.cpp" />
     <ClCompile Include="..\src\vm\fmgen\fmgen.cpp" />
     <ClCompile Include="..\src\vm\fmgen\fmtimer.cpp" />
@@ -198,6 +198,7 @@
     <ClInclude Include="..\src\fileio.h" />
     <ClInclude Include="..\src\emu.h" />
     <ClInclude Include="..\src\win32\osd.h" />
+    <ClInclude Include="..\src\vm\ay_3_891x.h" />
     <ClInclude Include="..\src\vm\datarec.h" />
     <ClInclude Include="..\src\vm\debugger.h" />
     <ClInclude Include="..\src\vm\device.h" />
@@ -212,7 +213,6 @@
     <ClInclude Include="..\src\vm\upd765a.h" />
     <ClInclude Include="..\src\vm\upd7752.h" />
     <ClInclude Include="..\src\vm\vm.h" />
-    <ClInclude Include="..\src\vm\ym2203.h" />
     <ClInclude Include="..\src\vm\z80.h" />
     <ClInclude Include="..\src\vm\fmgen\diag.h" />
     <ClInclude Include="..\src\vm\fmgen\fmgen.h" />

@@ -30,6 +30,7 @@ void DATAREC::initialize()
 	ff_rew = 0;
 	in_signal = out_signal = false;
 	register_id = -1;
+	realtime = false;
 	
 	buffer = buffer_bak = NULL;
 #ifdef DATAREC_SOUND
@@ -408,6 +409,7 @@ void DATAREC::update_event()
 
 bool DATAREC::play_tape(const _TCHAR* file_path)
 {
+	touch_sound();
 	close_tape();
 	
 	if(play_fio->Fopen(file_path, FILEIO_READ_BINARY)) {
@@ -1804,6 +1806,7 @@ void DATAREC::save_state(FILEIO* state_fio)
 
 bool DATAREC::load_state(FILEIO* state_fio)
 {
+	touch_sound();
 	close_file();
 	bool pending = false;
 	uint32_t s_version = state_fio->FgetUint32();
@@ -1845,6 +1848,7 @@ bool DATAREC::load_state(FILEIO* state_fio)
 	negative_clocks = state_fio->FgetInt32();
 	signal_changed = state_fio->FgetInt32();
 	register_id = state_fio->FgetInt32();
+	realtime = state_fio->FgetBool();
 	sample_rate = state_fio->FgetInt32();
 	sample_usec = state_fio->FgetDouble();
 	buffer_ptr = state_fio->FgetInt32();

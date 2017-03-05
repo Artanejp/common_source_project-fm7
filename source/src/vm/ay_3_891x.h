@@ -1,36 +1,27 @@
 /*
 	Skelton for retropc emulator
 
-	Author : Kyuma.Ohta <whatisthis.sowhat _at_ gmail.com>
-	Date   : 2017.02.02 -
+	Author : Takeda.Toshiya
+	Date   : 2006.09.15-
 
-	[ AY-3-8910 / 8912 / 8913 ]
-	History:
-	  2017-02-02: Fork from YM2203.
+	[ AY-3-8910 / AY-3-8912 / AY-3-8913 ]
 */
 
 #ifndef _AY_3_891X_H_
 #define _AY_3_891X_H_
 
-//#include "vm.h"
-//#include "../emu.h"
+#include "vm.h"
+#include "../emu.h"
 #include "device.h"
-#include "fmgen/psg_ay_3_891x.h"
-
-//#if !(defined(HAS_AY_3_8910) || defined(HAS_AY_3_8912) || defined(HAS_AY_3_8913))
-//#define HAS_YM_SERIES
-//#ifdef SUPPORT_WIN32_DLL
-//#define SUPPORT_MAME_FM_DLL
-//#include "fmdll/fmdll.h"
-//#endif
-//#endif
+#include "fmgen/opna.h"
 
 #if defined(HAS_AY_3_8913)
-// both port a and port b are not supported
+// AY-3-8913: both port a and port b are not supported
 #elif defined(HAS_AY_3_8912)
-// port b is not supported
+// AY-3-8912: port b is not supported
 #define SUPPORT_AY_3_891X_PORT_A
 #else
+// AY-3-8910: both port a and port b are supported
 #define SUPPORT_AY_3_891X_PORT_A
 #define SUPPORT_AY_3_891X_PORT_B
 #endif
@@ -46,22 +37,15 @@
 #endif
 #define SIG_AY_3_891X_MUTE	2
 
-class VM;
-class EMU;
 class AY_3_891X : public DEVICE
 {
 private:
-	PSG_AY_3_891X* psg;
-	int base_decibel_psg;
-	int decibel_vol;
+	FM::OPN* opn;
+	int base_decibel_fm, base_decibel_psg;
 	
 	uint8_t ch;
 	uint8_t fnum2;
-
-	int32_t right_volume;
-	int32_t left_volume;
-	int32_t v_right_volume;
-	int32_t v_left_volume;
+	
 #ifdef SUPPORT_AY_3_891X_PORT
 	struct {
 		uint8_t wreg;
@@ -79,12 +63,14 @@ private:
 	uint32_t clock_prev;
 	uint32_t clock_accum;
 	uint32_t clock_const;
+	int timer_event_id;
 	
 	uint32_t clock_busy;
 	bool busy;
 	
 	void update_count();
 	void update_event();
+	
 public:
 	AY_3_891X(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -94,9 +80,16 @@ public:
 			port[i].wreg = port[i].rreg = 0;//0xff;
 		}
 #endif
-		base_decibel_psg = 0;
-		decibel_vol = 0 + 5;
-		set_device_name(_T("AY-3-891x PSG"));
+		base_decibel_fm = base_decibel_psg = 0;
+#if defined(HAS_AY_3_8910)
+		set_device_name(_T("AY-3-8910 PSG"));
+#elif defined(HAS_AY_3_8912)
+		set_device_name(_T("AY-3-8912 PSG"));
+#elif defined(HAS_AY_3_8913)
+		set_device_name(_T("AY-3-8913 PSG"));
+#else
+		set_device_name(_T("AY_3_891X PSG"));
+#endif
 	}
 	~AY_3_891X() {}
 	
@@ -109,19 +102,20 @@ public:
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_vline(int v, int clock);
 	void event_callback(int event_id, int error);
-	void mix(int32* buffer, int cnt);
+	void mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	
 	// unique functions
-#ifdef SUPPORT_YM2203_PORT_A
+#ifdef SUPPORT_AY_3_891X_PORT_A
 	void set_context_port_a(DEVICE* device, int id, uint32_t mask, int shift)
 	{
 		register_output_signal(&port[0].outputs, device, id, mask, shift);
 	}
 #endif
-#ifdef SUPPORT_YM2203_PORT_B
+#ifdef SUPPORT_AY_3_891X_PORT_B
 	void set_context_port_b(DEVICE* device, int id, uint32_t mask, int shift)
 	{
 		register_output_signal(&port[1].outputs, device, id, mask, shift);

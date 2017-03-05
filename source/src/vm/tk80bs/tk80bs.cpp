@@ -408,7 +408,9 @@ void VM::close_tape()
 #if defined(_TK80BS)
 	cmt->close_tape();
 #elif defined(_TK80) || defined(_TK85)
+	emu->lock_vm();
 	drec->close_tape();
+	emu->unlock_vm();
 	drec->set_remote(false);
 #endif
 }

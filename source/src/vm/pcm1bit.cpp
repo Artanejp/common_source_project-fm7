@@ -14,6 +14,7 @@ void PCM1BIT::initialize()
 	signal = false;
 	on = true;
 	mute = false;
+	realtime = false;
 	changed = 0;
 	last_vol_l = last_vol_r = 0;
 	
@@ -44,11 +45,11 @@ void PCM1BIT::write_signal(int id, uint32_t data, uint32_t mask)
 	} else if(id == SIG_PCM1BIT_ON) {
 		touch_sound();
 		on = ((data & mask) != 0);
-		set_realtime_render(on & !mute);
+		set_realtime_render(this, on & !mute);
 	} else if(id == SIG_PCM1BIT_MUTE) {
 		touch_sound();
 		mute = ((data & mask) != 0);
-		set_realtime_render(on & !mute);
+		set_realtime_render(this, on & !mute);
 	}
 }
 
@@ -110,7 +111,7 @@ void PCM1BIT::initialize_sound(int rate, int volume)
 	max_vol = volume;
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 void PCM1BIT::save_state(FILEIO* state_fio)
 {
@@ -120,6 +121,7 @@ void PCM1BIT::save_state(FILEIO* state_fio)
 	state_fio->FputBool(signal);
 	state_fio->FputBool(on);
 	state_fio->FputBool(mute);
+	state_fio->FputBool(realtime);
 	state_fio->FputInt32(changed);
 	state_fio->FputUint32(prev_clock);
 	state_fio->FputInt32(positive_clocks);
@@ -137,6 +139,7 @@ bool PCM1BIT::load_state(FILEIO* state_fio)
 	signal = state_fio->FgetBool();
 	on = state_fio->FgetBool();
 	mute = state_fio->FgetBool();
+	realtime = state_fio->FgetBool();
 	changed = state_fio->FgetInt32();
 	prev_clock = state_fio->FgetUint32();
 	positive_clocks = state_fio->FgetInt32();

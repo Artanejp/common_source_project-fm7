@@ -56,6 +56,9 @@ public:
 		dout_changed = false;
 #ifdef HAS_UPD4990A
 		shift_cmd = 0;
+		set_device_name(_T("uPD4990A RTC"));
+#else
+		set_device_name(_T("uPD1990A RTC"));
 #endif
 		set_device_name(_T("uPD1990A RTC"));
 	}

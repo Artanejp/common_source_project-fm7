@@ -71,7 +71,7 @@
 namespace FM
 {
 	//	YM2151(OPM) ----------------------------------------------------
-	class DLL_PREFIX OPM : public Timer
+	class OPM : public Timer
 	{
 	public:
 		OPM();

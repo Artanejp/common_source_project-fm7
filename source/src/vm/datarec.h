@@ -66,6 +66,7 @@ private:
 	int positive_clocks, negative_clocks;
 	int signal_changed;
 	int register_id;
+	bool realtime;
 	
 	int sample_rate;
 	double sample_usec;
@@ -107,6 +108,7 @@ private:
 #endif
 	
 	void update_event();
+	void update_realtime_render();
 	void close_file();
 	
 	int load_wav_image(int offset);

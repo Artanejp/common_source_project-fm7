@@ -29,6 +29,7 @@ private:
 	int positive_clocks, negative_clocks;
 	int max_vol, last_vol_l, last_vol_r;
 	int volume_l, volume_r;
+	bool realtime;
 	
 public:
 	PCM1BIT(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)

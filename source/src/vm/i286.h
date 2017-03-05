@@ -56,6 +56,17 @@ public:
 #elif defined(HAS_I286)
 		set_device_name(_T("i80286 CPU"));
 #endif
+#if defined(HAS_I86)
+		set_device_name(_T("8086 CPU"));
+#elif defined(HAS_I88)
+		set_device_name(_T("8088 CPU"));
+#elif defined(HAS_I186)
+		set_device_name(_T("80186 CPU"));
+#elif defined(HAS_V30)
+		set_device_name(_T("V30 CPU"));
+#elif defined(HAS_I286)
+		set_device_name(_T("80286 CPU"));
+#endif
 	}
 	~I286() {}
 	

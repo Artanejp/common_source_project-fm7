@@ -90,6 +90,9 @@
     <ClCompile Include="..\src\win32\winmain.cpp">
       <Filter>Source Files\OSD Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\vm\ay_3_891x.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\vm\datarec.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
@@ -184,6 +187,9 @@
     </ClInclude>
     <ClInclude Include="..\src\win32\osd.h">
       <Filter>Header Files\OSD Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\ay_3_891x.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\datarec.h">
       <Filter>Header Files\VM Common Header Files</Filter>
