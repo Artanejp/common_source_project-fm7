@@ -26,11 +26,12 @@
 #include "common.h"
 #include "config.h"
 #include "vm/vm.h"
-#include <pthread.h>
 
 #if defined(_USE_QT)
+#include <pthread.h>
 #define OSD_QT
 #elif defined(_USE_SDL)
+#include <pthread.h>
 #define OSD_SDL
 #elif defined(_WIN32)
 #define OSD_WIN32
