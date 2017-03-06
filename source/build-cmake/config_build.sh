@@ -95,8 +95,9 @@ function build_dll() {
     case ${_STATUS} in
 	0 ) sudo make install 2>&1 | tee -a ./make.log ;;
 	* ) 
-	     exit ${_STATUS}
-	     ;;
+	    echo -e "Abort at `date --rfc-2822`." >> ../../${MAKE_STATUS_FILE}
+	    exit ${_STATUS}
+	    ;;
     esac
     
     make clean
@@ -126,7 +127,8 @@ case ${BUILD_TYPE} in
 esac
 
 # libCSPGui
-echo "Make status:" > ${MAKE_STATUS_FILE}
+echo "Make status." > ${MAKE_STATUS_FILE}
+echo "Started at `date --rfc-2822`:" >> ${MAKE_STATUS_FILE}
 case ${USE_COMMON_DEVICE_LIB} in
    "Yes" | "yes" | "YES" )
    CMAKE_FLAGS4="-DUSE_DEVICES_SHARED_LIB=ON"
@@ -178,6 +180,7 @@ for SRCDATA in $@ ; do\
     case ${_STATUS} in
       0 ) sudo make install 2>&1 | tee -a ./make.log ;;
       * ) 
+           echo -e "Abort at `date --rfc-2822`." >> ../../${MAKE_STATUS_FILE}
 	   exit ${_STATUS}
 	   ;;
     esac
@@ -185,6 +188,7 @@ for SRCDATA in $@ ; do\
     make clean
     cd ../..
 done
+echo -e "End at `date --rfc-2822`." >> ../../${MAKE_STATUS_FILE}
 
 exit 0
 
