@@ -1,5 +1,22 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT March 07, 2017
+  * Upstream 2017-03-04
+  * [VM] Some devices have prepared to move to libCSPcommon_vm .
+  * [VM/FMGEN] Move FMGEN to libCSPfmgen .
+  * [WIN32] Ready to build with DLLs contain GUI and AVIO and some features.
+  * [BUILD] Selectable building.
+  * [BUILD] Add logging build-status.
+  * [Qt] Fix break device files when exiting emulator with some situations.
+  * [Win32/OpenGL/WIP] TRY: Fixing crash with OpenGL3.0 at Corei5-2420M (and Windows7) PC. See Issues.txt or Issues.ja.txt.
+  * [DOC] Update Issues.See http://hanabi.2ch.net/test/read.cgi/i4004/1483504365/30 .
+  * [EMU/DEBUGGER] Use pthread_t instead of SDL_Thread.
+  * [Qt/OSD] Remove do_call_debugger_command().
+  * [SOUND/VM] Fix choppy sounds with some devices. i.e. PCM1BIT. Thanks to Takeda-San and Umaiboux-San.
+  * Built with 1014e6fc73aa1fe867da01724a8126aa70331954 or newer.
+
+-- Mar 07, 2017 02:47:32 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT January 30, 2017
   * Upstream 2016-12-31
   * [VM/SOUND] Fix problems voice with PCM (at least MSX and FM-7(Reviver)).

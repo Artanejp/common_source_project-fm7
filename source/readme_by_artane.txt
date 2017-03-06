@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                          Jan 30, 2017
+                                          Mar 07, 2017
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -12,7 +12,7 @@
    
    ソースコード：
    
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20170130
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20170307
 
    追加情報:
    
@@ -151,6 +151,24 @@
 Changes:
 
 ChangeLog:
+
+* SNAPSHOT March 07, 2017
+  * Upstream 2017-03-04
+  * [VM] Some devices have prepared to move to libCSPcommon_vm .
+  * [VM/FMGEN] Move FMGEN to libCSPfmgen .
+  * [WIN32] Ready to build with DLLs contain GUI and AVIO and some features.
+  * [BUILD] Selectable building.
+  * [BUILD] Add logging build-status.
+  * [Qt] Fix break device files when exiting emulator with some situations.
+  * [Win32/OpenGL/WIP] TRY: Fixing crash with OpenGL3.0 at Corei5-2420M (and Windows7) PC. See Issues.txt or Issues.ja.txt.
+  * [DOC] Update Issues.See http://hanabi.2ch.net/test/read.cgi/i4004/1483504365/30 .
+  * [EMU/DEBUGGER] Use pthread_t instead of SDL_Thread.
+  * [Qt/OSD] Remove do_call_debugger_command().
+  * [SOUND/VM] Fix choppy sounds with some devices. i.e. PCM1BIT. Thanks to Takeda-San and Umaiboux-San.
+  * Built with 1014e6fc73aa1fe867da01724a8126aa70331954 or newer.
+
+-- Mar 07, 2017 02:47:32 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT January 30, 2017
   * Upstream 2016-12-31
   * [VM/SOUND] Fix problems voice with PCM (at least MSX and FM-7(Reviver)).
@@ -169,34 +187,53 @@ ChangeLog:
 
 -- Jan 30, 2017 05:04:55 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
-* SNAPSHOT January 24, 2017
-  * Upstream 2016-12-31
-  * [UI/Qt] Add tooltips to menu entries mostly.
-  * [UI/Qt] Add Japanese translations to menu entries mostly.
-  * [SOUND] Add "Strict Rendering" entry to sound menu, for PCM1BIT device.
-  * [VM/FM7] Fix crash without connecting FDDs.
-  * [VM/UPD7752] Fix (´∀｀)＜ぬるぽ sometimes.
-  * [DRAW/FM7] Fix wrong screen aspect on VMs without variable lines.
-  * [Build/Linux] Fix scripts.
-  * [Build/Linux] Fix crash built with gcc-5 (or earlier). Fixed for Ubuntu16.04LTS.
-  * [Build/Linux] Separate builds both Debian/sid and Ubuntu/16.04LTS (expects to work with Debian/stable).
-  * Built with 6e93d6920626193bf37fa6dfc2f41a8e84d8fd78 or newer.
-
--- Jan 24, 2017 01:06:26 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
-
-* SNAPSHOT January 06, 2017
-  * Upstream 2016-12-31
-  * Add Coleco Colecovision and SHARP SM-B-80TE (from upstreeam).
-  * [FM7] Reduce graphic buffer for non-400 lines machines.
-  * [WIN32/Qt] Cross-Build Qt libs: disable EGLFS (not EGL).
-  * [Qt] One board computers: Read correctly background PNG even using indexed colors.
-  * [Qt/GL] One board computers: Correctness drawing with GL3.0.
-  * Built with 9bfdcc78ff194a934a2d57ce6d4f1cbec9f26a58 or newer.
-
--- Jan 06, 2017 19:56:37 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
-
-
 本家の変更:
+
+3/4/2017
+
+[WINMAIN] add interfaces for bubble casette (thanks Mr.Artane.)
+
+[EMU] add interfaces for bubble casette (thanks Mr.Artane.)
+
+[VM/*] import Mr.Artane.'s fixes (Commits on Feb 18, 2017)
+
+[VM/AY_3_891X] split YM2203 and AY-3-891X (thanks Mr.Artane.)
+
+[VM/DISK] fix trim buffer routine for 2D disk image (thanks Mr.Artane.)
+
+[VM/EVENT] support light weight sound rendering (thanks Mr.Artane.)
+
+[VM/MB8877] fix seek command for 2D disk image (thanks Mr.Artane.)
+
+[FM77AV] import Mr.Artane.'s fixes (Commits on Feb 18, 2017)
+
+
+3/1/2017
+
+[EMU/DEBUGGER] support < command (input commands from file)
+
+[X1/MEMORY] support to unmap rom by reading port 1Exxh (thanks Mr.Sato)
+
+
+2/9/2017
+
+[WINMAIN] support to draw bitmap image onto buttons
+
+[WINMAIN] fix to redraw pcb bitmap image when window is invalidated
+
+[WIN32/SCREEN] fix to invalidate rects for 7-seg leds and buttons
+
+[BABBAGE2ND] add bitmap images for buttons
+
+[EX80] add bitmap images for buttons
+
+[SMB80TE] add bitmap images for buttons
+
+[TK80BS] add bitmap images for buttons
+
+[TK85] support NEC TK-85
+
+[YS6464A] add bitmap images for buttons
 
 12/31/2016
 
@@ -212,50 +249,6 @@ ChangeLog:
 12/30/2016
 
 [COLECOVISION] support COLECO ColecoVision (thanks Mr.tanam)
-
-
-12/29/2016
-
-[RESOURCE] recompress png files in https://tinypng.com/
-
-[EMU/DEBUGGER] support p command (trace one opcode, step-over)
-
-[MZ80K/MEMORY] support V-GATE signal (thanks Mr.Suga)
-
-[PASOPIA/DISPLAY] fix graphic color in screen 2 mode (thanks Mr.Kamei)
-
-[SMB80TE] support SHARP SM-B-80TE
-
-
-4/13/2016
-
-[WINMAIN] improve auto key for the case to switch upper/lowercase with capslock
-
-[EMU/DEBUGGER] fix issue that u command may cause the infinite loop
-
-[VM/DATAREC] support to detect the frequency of signal
-
-[VM/DATAREC] fix to always adjust zero position of wave signal
-
-[VM/UPD1990A] fix not to check clk signal is low when stb signal is raised
-
-[VM/UPD7810] support debugger
-
-[VM/UPD7810] support MOV A,S opecode
-
-[VM/UPD7810] fix not to change V register (thanks PockEmul)
-
-[PC2001] support NEC PC-2001
-
-[PC2001] fix cpu clock
-
-[PC2001] support beep sound
-
-[PC2001/IO] support rtc control signals
-
-[YALKY] support Yuasa Kyouiku System YALKY
-
-[YALKY/IO] improve data recorder controller
 
 -----
 
