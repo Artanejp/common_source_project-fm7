@@ -91,7 +91,7 @@ function build_dll() {
     make clean
     make ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
     _STATUS=${PIPESTATUS[0]}
-    echo -e "$1 :" "${_STATUS}" >> ../../${MAKE_STATUS_FILE}
+    echo -e "$1 at `date --rfc-2822`:" "${_STATUS}" >> ../../${MAKE_STATUS_FILE}
     case ${_STATUS} in
 	0 ) sudo make install 2>&1 | tee -a ./make.log ;;
 	* ) 
@@ -175,7 +175,7 @@ for SRCDATA in $@ ; do\
     
     make ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
     _STATUS=${PIPESTATUS[0]}
-    echo -e "${SRCDATA}:" "${_STATUS}" >> ../../${MAKE_STATUS_FILE}
+    echo -e "${SRCDATA} at `date --rfc-2822`:" "${_STATUS}" >> ../../${MAKE_STATUS_FILE}
 
     case ${_STATUS} in
       0 ) sudo make install 2>&1 | tee -a ./make.log ;;
