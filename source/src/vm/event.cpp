@@ -411,7 +411,7 @@ double EVENT::get_event_remaining_usec(int register_id)
 void EVENT::touch_sound(void)
 {
 	if(!config.sound_strict_rendering) {
-		if((need_mix <= 0) && !sound_touched) {
+		if((need_mix <= 0) /* && !sound_touched */) {
 			int samples = mix_counter;
 			if(samples >= (sound_tmp_samples - buffer_ptr)) {
 				samples = sound_tmp_samples - buffer_ptr - 1; 
@@ -420,9 +420,9 @@ void EVENT::touch_sound(void)
 				mix_sound(samples);
 				mix_counter -= samples;
 			}
-			if(mix_counter < 1) {
-				mix_counter = 1;
-			}
+			//if(mix_counter < 1) {
+			//	mix_counter = 1;
+			//}
 			sound_touched = true;
 		}
 	}
@@ -464,18 +464,19 @@ void EVENT::event_callback(int event_id, int err)
 			mix_counter = 1;
 			sound_touched = false;
 		} else {
-			if(/*(need_mix > 0) || */(mix_counter >= mix_limit) || sound_touched) {
+			if((need_mix > 0) || (mix_counter >= mix_limit) /* || sound_touched */) {
 				if(samples > 0) {
 					mix_sound(samples);
 					mix_counter -= samples;
 				}
-				if(mix_counter < 1) {
-					mix_counter = 1;
-				}
+				//	if(mix_counter < 1) {
+				//	mix_counter = 1;
+				//}
 				sound_touched = false;
-			} else {
-				mix_counter++;
+			//} else {
+			//	mix_counter++;
 			}
+			mix_counter++;
 		}
 	}
 }
