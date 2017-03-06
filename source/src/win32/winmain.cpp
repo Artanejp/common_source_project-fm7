@@ -75,7 +75,11 @@ void open_recent_laser_disc(int index);
 void open_binary_dialog(HWND hWnd, int drv, bool load);
 void open_recent_binary(int drv, int index);
 #endif
-#if defined(USE_CART1) || defined(USE_FD1) || defined(USE_TAPE) || defined(USE_COMPACT_DISC) || defined(USE_LASER_DISC) || defined(USE_BINARY_FILE1)
+#ifdef USE_BUBBLE1
+void open_bubble_casette_dialog(HWND hWnd, int drv);
+void open_recent_bubble_casette(int drv, int index);
+#endif
+#if defined(USE_CART1) || defined(USE_FD1) || defined(USE_TAPE) || defined(USE_COMPACT_DISC) || defined(USE_LASER_DISC) || defined(USE_BINARY_FILE1) || defined(USE_BUBBLE1)
 #define SUPPORT_DRAG_DROP
 #endif
 #ifdef SUPPORT_DRAG_DROP
@@ -118,7 +122,7 @@ BOOL CALLBACK JoyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam);
 // buttons
 #ifdef ONE_BOARD_MICRO_COMPUTER
 void create_buttons(HWND hWnd);
-void release_buttons();
+void draw_button(HDC hDC, UINT index, UINT pressed);
 #endif
 
 // misc
@@ -403,9 +407,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			ChangeDisplaySettings(NULL, 0);
 		}
 		now_fullscreen = false;
-#ifdef ONE_BOARD_MICRO_COMPUTER
-		release_buttons();
-#endif
 		if(hMenu != NULL && IsMenu(hMenu)) {
 			DestroyMenu(hMenu);
 		}
@@ -436,10 +437,25 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		if(emu) {
 			PAINTSTRUCT ps;
 			HDC hdc = BeginPaint(hWnd, &ps);
+#ifdef ONE_BOARD_MICRO_COMPUTER
+			// check if self invalidate or not
+			int left = 0, top = 0, right = 0, bottom = 0;
+			emu->get_invalidated_rect(&left, &top, &right, &bottom);
+			if(ps.rcPaint.left != left || ps.rcPaint.top != top || ps.rcPaint.right != right || ps.rcPaint.bottom != bottom) {
+				emu->reload_bitmap();
+			}
+#endif
 			emu->update_screen(hdc);
 			EndPaint(hWnd, &ps);
 		}
 		return 0;
+#ifdef ONE_BOARD_MICRO_COMPUTER
+	case WM_DRAWITEM:
+//		if(((LPDRAWITEMSTRUCT)lParam)->itemAction & (ODA_DRAWENTIRE | ODA_SELECT)) {
+			draw_button(((LPDRAWITEMSTRUCT)lParam)->hDC, (UINT)wParam - ID_BUTTON, ((LPDRAWITEMSTRUCT)lParam)->itemState & ODS_SELECTED);
+//		}
+		return TRUE;
+#endif
 	case WM_MOVING:
 		if(emu) {
 			emu->suspend();
@@ -889,6 +905,29 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 #ifdef USE_BINARY_FILE2
 		BINARY_MENU_ITEMS(1, ID_LOAD_BINARY2, ID_SAVE_BINARY2, ID_RECENT_BINARY2)
 #endif
+#ifdef USE_BUBBLE1
+		#define BUBBLE_CASETTE_MENU_ITEMS(drv, ID_OPEN_BUBBLE, ID_CLOSE_BUBBLE, ID_RECENT_BUBBLE) \
+		case ID_OPEN_BUBBLE: \
+			if(emu) { \
+				open_bubble_casette_dialog(hWnd, drv); \
+			} \
+			break; \
+		case ID_CLOSE_BUBBLE: \
+			if(emu) { \
+				emu->close_bubble_casette(drv); \
+			} \
+			break; \
+		case ID_RECENT_BUBBLE + 0: case ID_RECENT_BUBBLE + 1: case ID_RECENT_BUBBLE + 2: case ID_RECENT_BUBBLE + 3: \
+		case ID_RECENT_BUBBLE + 4: case ID_RECENT_BUBBLE + 5: case ID_RECENT_BUBBLE + 6: case ID_RECENT_BUBBLE + 7: \
+			if(emu) { \
+				open_recent_bubble_casette(drv, LOWORD(wParam) - ID_RECENT_BUBBLE); \
+			} \
+			break;
+		BUBBLE_CASETTE_MENU_ITEMS(0, ID_OPEN_BUBBLE1, ID_CLOSE_BUBBLE1, ID_RECENT_BUBBLE1)
+#endif
+#ifdef USE_BUBBLE2
+		BUBBLE_CASETTE_MENU_ITEMS(1, ID_OPEN_BUBBLE2, ID_CLOSE_BUBBLE2, ID_RECENT_BUBBLE2)
+#endif
 		case ID_SCREEN_REC60: case ID_SCREEN_REC30: case ID_SCREEN_REC15:
 			if(emu) {
 				static const int fps[3] = {60, 30, 15};
@@ -1022,6 +1061,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			break;
 		case ID_SOUND_LATE0: case ID_SOUND_LATE1: case ID_SOUND_LATE2: case ID_SOUND_LATE3: case ID_SOUND_LATE4:
 			config.sound_latency = LOWORD(wParam) - ID_SOUND_LATE0;
+			if(emu) {
+				emu->update_config();
+			}
+			break;
+		case ID_SOUND_STRICT_RENDER: case ID_SOUND_LIGHT_RENDER:
+			config.sound_strict_rendering = (LOWORD(wParam) == ID_SOUND_STRICT_RENDER);
 			if(emu) {
 				emu->update_config();
 			}
@@ -1337,6 +1382,25 @@ void update_binary_menu(HMENU hMenu, int drv, UINT ID_RECENT_BINARY)
 }
 #endif
 
+#ifdef MENU_POS_BUBBLE1
+void update_bubble_casette_menu(HMENU hMenu, int drv, UINT ID_RECENT_BUBBLE)
+{
+	bool flag = false;
+	for(int i = 0; i < MAX_HISTORY; i++) {
+		DeleteMenu(hMenu, ID_RECENT_BUBBLE + i, MF_BYCOMMAND);
+	}
+	for(int i = 0; i < MAX_HISTORY; i++) {
+		if(_tcsicmp(config.recent_bubble_casette_path[drv][i], _T(""))) {
+			AppendMenu(hMenu, MF_STRING, ID_RECENT_BUBBLE + i, config.recent_bubble_casette_path[drv][i]);
+			flag = true;
+		}
+	}
+	if(!flag) {
+		AppendMenu(hMenu, MF_GRAYED | MF_STRING, ID_RECENT_BUBBLE, _T("None"));
+	}
+}
+#endif
+
 #ifdef MENU_POS_SCREEN
 void update_screen_menu(HMENU hMenu)
 {
@@ -1440,6 +1504,7 @@ void update_sound_menu(HMENU hMenu)
 	if(config.sound_latency >= 0 && config.sound_latency < 5) {
 		CheckMenuRadioItem(hMenu, ID_SOUND_LATE0, ID_SOUND_LATE4, ID_SOUND_LATE0 + config.sound_latency, MF_BYCOMMAND);
 	}
+	CheckMenuRadioItem(hMenu, ID_SOUND_STRICT_RENDER, ID_SOUND_LIGHT_RENDER, config.sound_strict_rendering ? ID_SOUND_STRICT_RENDER : ID_SOUND_LIGHT_RENDER, MF_BYCOMMAND);
 #ifdef USE_SOUND_DEVICE_TYPE
 	if(config.sound_device_type >= 0 && config.sound_device_type < USE_SOUND_DEVICE_TYPE) {
 		CheckMenuRadioItem(hMenu, ID_SOUND_DEVICE_TYPE0, ID_SOUND_DEVICE_TYPE0 + USE_SOUND_DEVICE_TYPE - 1, ID_SOUND_DEVICE_TYPE0 + config.sound_device_type, MF_BYCOMMAND);
@@ -1575,6 +1640,16 @@ void update_menu(HWND hWnd, HMENU hMenu, int pos)
 #ifdef MENU_POS_BINARY2
 	case MENU_POS_BINARY2:
 		update_binary_menu(hMenu, 1, ID_RECENT_BINARY2);
+		break;
+#endif
+#ifdef MENU_POS_BUBBLE1
+	case MENU_POS_BUBBLE1:
+		update_bubble_casette_menu(hMenu, 0, ID_RECENT_BUBBLE1);
+		break;
+#endif
+#ifdef MENU_POS_BUBBLE2
+	case MENU_POS_BUBBLE2:
+		update_bubble_casette_menu(hMenu, 1, ID_RECENT_BUBBLE2);
 		break;
 #endif
 #ifdef MENU_POS_SCREEN
@@ -1942,6 +2017,34 @@ void open_recent_binary(int drv, int index)
 }
 #endif
 
+#ifdef USE_BUBBLE1
+void open_bubble_casette_dialog(HWND hWnd, int drv)
+{
+	_TCHAR* path = get_open_file_name(
+		hWnd,
+		_T("Supported Files (*.b77;*.bbl)\0*.b77;*.bll\0All Files (*.*)\0*.*\0\0"),
+		_T("Bubble Casette"),
+		config.initial_bubble_casette_dir, _MAX_PATH
+	);
+	if(path) {
+		UPDATE_HISTORY(path, config.recent_bubble_casette_path[drv]);
+		my_tcscpy_s(config.initial_bubble_casette_dir, _MAX_PATH, get_parent_dir(path));
+		emu->open_bubble_casette(drv, path, 0);
+	}
+}
+
+void open_recent_bubble_casette(int drv, int index)
+{
+	_TCHAR path[_MAX_PATH];
+	my_tcscpy_s(path, _MAX_PATH, config.recent_bubble_casette_path[drv][index]);
+	for(int i = index; i > 0; i--) {
+		my_tcscpy_s(config.recent_bubble_casette_path[drv][i], _MAX_PATH, config.recent_bubble_casette_path[drv][i - 1]);
+	}
+	my_tcscpy_s(config.recent_bubble_casette_path[drv][0], _MAX_PATH, path);
+	emu->open_bubble_casette(drv, path, 0);
+}
+#endif
+
 #ifdef SUPPORT_DRAG_DROP
 void open_dropped_file(HDROP hDrop)
 {
@@ -2044,6 +2147,15 @@ void open_any_file(const _TCHAR* path)
 		UPDATE_HISTORY(path, config.recent_binary_path[0]);
 		my_tcscpy_s(config.initial_binary_dir, _MAX_PATH, get_parent_dir(path));
 		emu->load_binary(0, path);
+		return;
+	}
+#endif
+#if defined(USE_BUBBLE1)
+	if(check_file_extension(path, _T(".b77")) || 
+	   check_file_extension(path, _T(".bbl"))) {
+		UPDATE_HISTORY(path, config.recent_bubble_casette_path[0]);
+		my_tcscpy_s(config.initial_bubble_casette_dir, _MAX_PATH, get_parent_dir(path));
+		emu->open_bubble_casette(0, path, 0);
 		return;
 	}
 #endif
@@ -2817,7 +2929,6 @@ BOOL CALLBACK JoyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
 
 #ifdef ONE_BOARD_MICRO_COMPUTER
 #define MAX_FONT_SIZE 32
-HFONT hFont[MAX_FONT_SIZE];
 HWND hButton[MAX_BUTTONS];
 WNDPROC ButtonOldProc[MAX_BUTTONS];
 
@@ -2847,45 +2958,72 @@ LRESULT CALLBACK ButtonSubProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lPara
 
 void create_buttons(HWND hWnd)
 {
-	memset(hFont, 0, sizeof(hFont));
 	for(int i = 0; i < MAX_BUTTONS; i++) {
-		hButton[i] = CreateWindow(_T("BUTTON"), vm_buttons[i].caption,
-		                          WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | (_tcsstr(vm_buttons[i].caption, _T("\n")) ? BS_MULTILINE : 0),
+		hButton[i] = CreateWindow(_T("BUTTON"), NULL/*vm_buttons[i].caption*/,
+		                          WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_OWNERDRAW/*(_tcsstr(vm_buttons[i].caption, _T("\n")) ? BS_MULTILINE : 0)*/,
 		                          vm_buttons[i].x, vm_buttons[i].y,
 		                          vm_buttons[i].width, vm_buttons[i].height,
 		                          hWnd, (HMENU)(ID_BUTTON + i), (HINSTANCE)GetModuleHandle(0), NULL);
 		ButtonOldProc[i] = (WNDPROC)(LONG_PTR)GetWindowLong(hButton[i], GWL_WNDPROC);
 		SetWindowLong(hButton[i], GWL_WNDPROC, (LONG)(LONG_PTR)ButtonSubProc);
-		//HFONT hFont = GetWindowFont(hButton[i]);
-		if(!hFont[vm_buttons[i].font_size]) {
-			LOGFONT logfont;
-			logfont.lfEscapement = 0;
-			logfont.lfOrientation = 0;
-			logfont.lfWeight = FW_NORMAL;
-			logfont.lfItalic = FALSE;
-			logfont.lfUnderline = FALSE;
-			logfont.lfStrikeOut = FALSE;
-			logfont.lfCharSet = DEFAULT_CHARSET;
-			logfont.lfOutPrecision = OUT_TT_PRECIS;
-			logfont.lfClipPrecision = CLIP_DEFAULT_PRECIS;
-			logfont.lfQuality = DEFAULT_QUALITY;
-			logfont.lfPitchAndFamily = FIXED_PITCH | FF_DONTCARE;
-			my_tcscpy_s(logfont.lfFaceName, LF_FACESIZE, _T("Arial"));
-			logfont.lfHeight = vm_buttons[i].font_size;
-			logfont.lfWidth = vm_buttons[i].font_size >> 1;
-			hFont[vm_buttons[i].font_size] = CreateFontIndirect(&logfont);
-		}
-		SetWindowFont(hButton[i], hFont[vm_buttons[i].font_size], TRUE);
 	}
 }
 
-void release_buttons()
+void draw_button(HDC hDC, UINT index, UINT pressed)
 {
-	for(int i = 0; i < MAX_FONT_SIZE; i++) {
-		if(hFont[i]) {
-			DeleteObject(hFont[i]);
+	HINSTANCE hInstance = (HINSTANCE)GetModuleHandle(0);
+	_TCHAR name[24];
+	
+	_stprintf(name, _T("IDI_BITMAP_BUTTON%02d"), index);
+#if 1
+	// load png from resource
+	HRSRC hResource = FindResource(hInstance, name, _T("IMAGE"));
+	if(hResource != NULL) {
+		const void* pResourceData = LockResource(LoadResource(hInstance, hResource));
+		if(pResourceData != NULL) {
+			DWORD dwResourceSize = SizeofResource(hInstance, hResource);
+			HGLOBAL hResourceBuffer = GlobalAlloc(GMEM_MOVEABLE, dwResourceSize);
+			if(hResourceBuffer != NULL) {
+				void* pResourceBuffer = GlobalLock(hResourceBuffer);
+				if(pResourceBuffer != NULL) {
+					CopyMemory(pResourceBuffer, pResourceData, dwResourceSize);
+					IStream* pIStream = NULL;
+					if(CreateStreamOnHGlobal(hResourceBuffer, FALSE, &pIStream) == S_OK) {
+						Gdiplus::Bitmap *pBitmap = Gdiplus::Bitmap::FromStream(pIStream);
+						if(pBitmap != NULL) {
+							Gdiplus::Graphics graphics(hDC);
+							if(pressed) {
+								graphics.DrawImage(pBitmap, 2,  2, pBitmap->GetWidth() - 2, pBitmap->GetHeight() - 2);
+							} else {
+								graphics.DrawImage(pBitmap, 1, 1);
+							}
+							delete pBitmap;
+						}
+					}
+				}
+				GlobalUnlock(hResourceBuffer);
+			}
+			GlobalFree(hResourceBuffer);
 		}
 	}
+#else
+	// load bitmap from resource
+	HDC hmdc = CreateCompatibleDC(hDC);
+	HBITMAP hBitmap = LoadBitmap(hInstance, name);
+	BITMAP bmp;
+	GetObject(hBitmap, sizeof(BITMAP), &bmp);
+	int w = (int)bmp.bmWidth;
+	int h = (int)bmp.bmHeight;
+	HBITMAP hOldBitmap = (HBITMAP)SelectObject(hmdc, hBitmap);
+	if(pressed) {
+		StretchBlt(hDC, 2, 2, w - 2, h - 2, hmdc, 0, 0, w, h, SRCCOPY);
+	} else {
+		BitBlt(hDC, 1, 1, w, h, hmdc, 0, 0, SRCCOPY);
+	}
+	SelectObject(hmdc, hOldBitmap);
+	DeleteObject(hBitmap);
+	DeleteDC(hmdc);
+#endif
 }
 #endif
 

@@ -23,14 +23,17 @@ set(WITH_MOUSE OFF)
 
 set(VMFILES_BASE
   mc6800.cpp
-  pcm1bit.cpp
+
   sy6522.cpp
-  not.cpp
   datarec.cpp
   
   event.cpp
 )
 
+set(VMFILES_LIB 
+  pcm1bit.cpp
+  not.cpp
+)
 
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")

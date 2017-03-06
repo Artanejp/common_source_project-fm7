@@ -23,7 +23,11 @@
 #include "../i8253.h"
 #include "../i8255.h"
 #include "../i8259.h"
+#if defined(HAS_I86) || defined(HAS_V30)
+#include "../i86.h"
+#else
 #include "../i286.h"
+#endif
 #include "../io.h"
 #include "../ls244.h"
 #include "../memory.h"
@@ -142,7 +146,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio_sys->set_device_name(_T("i8255 PIO(SYSTEM)"));
 #endif	
 	pic = new I8259(this, emu);
+#if defined(HAS_I86) || defined(HAS_V30)
+	cpu = new I86(this, emu);
+#else
 	cpu = new I286(this, emu);
+#endif	
 #if defined(_USE_QT)
   #if defined(HAS_I86)
 	cpu->set_device_name(_T("CPU(i8086)"));

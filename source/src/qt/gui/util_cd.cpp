@@ -32,7 +32,7 @@ void Ui_MainWindowBase::CreateCDROMMenu(void)
 	QString ext_play, desc_play;
 	
 	listCDROM.clear();
-	menu_CDROM = new Menu_CompactDiscClass(emu, menubar, "Object_CDROM_Menu", using_flags, this, 0);
+	menu_CDROM = new Menu_CompactDiscClass(menubar, "Object_CDROM_Menu", using_flags, this, 0);
 	menu_CDROM->setObjectName(QString::fromUtf8("menuCDROM", -1));
 	
 	menu_CDROM->create_pulldown_menu();	
@@ -60,7 +60,6 @@ int Ui_MainWindowBase::set_recent_cdrom(int drv, int num)
 {
 	QString s_path;
 	char path_shadow[PATH_MAX];
-	int i;
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
     
 	s_path = QString::fromLocal8Bit(using_flags->get_config_ptr()->recent_compact_disc_path[num]);
@@ -86,8 +85,6 @@ void Ui_MainWindowBase::do_eject_cdrom(int drv)
 void Ui_MainWindowBase::do_open_cdrom(int drv, QString path) 
 {
 	char path_shadow[PATH_MAX];
-	int i;
-
 	if(path.length() <= 0) return;
 	strncpy(path_shadow, path.toLocal8Bit().constData(), PATH_MAX);
 	UPDATE_HISTORY(path_shadow, using_flags->get_config_ptr()->recent_compact_disc_path, listCDROM);

@@ -22,6 +22,9 @@
 #define POFMI	37
 #define POFH	38
 #define POFD	39
+#if defined(Q_OS_WIN)
+DLL_PREFIX_I struct cur_time_s cur_time;
+#endif
 
 void RTC::initialize()
 {

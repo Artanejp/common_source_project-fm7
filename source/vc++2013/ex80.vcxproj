@@ -203,7 +203,32 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\src\res\ex80.ico" />
-    <Image Include="..\src\res\ex80.png" />
+    <Image Include="..\src\res\ex80\board.png" />
+    <Image Include="..\src\res\ex80\button00.png" />
+    <Image Include="..\src\res\ex80\button01.png" />
+    <Image Include="..\src\res\ex80\button02.png" />
+    <Image Include="..\src\res\ex80\button03.png" />
+    <Image Include="..\src\res\ex80\button04.png" />
+    <Image Include="..\src\res\ex80\button05.png" />
+    <Image Include="..\src\res\ex80\button06.png" />
+    <Image Include="..\src\res\ex80\button07.png" />
+    <Image Include="..\src\res\ex80\button08.png" />
+    <Image Include="..\src\res\ex80\button09.png" />
+    <Image Include="..\src\res\ex80\button10.png" />
+    <Image Include="..\src\res\ex80\button11.png" />
+    <Image Include="..\src\res\ex80\button12.png" />
+    <Image Include="..\src\res\ex80\button13.png" />
+    <Image Include="..\src\res\ex80\button14.png" />
+    <Image Include="..\src\res\ex80\button15.png" />
+    <Image Include="..\src\res\ex80\button16.png" />
+    <Image Include="..\src\res\ex80\button17.png" />
+    <Image Include="..\src\res\ex80\button18.png" />
+    <Image Include="..\src\res\ex80\button19.png" />
+    <Image Include="..\src\res\ex80\button20.png" />
+    <Image Include="..\src\res\ex80\button21.png" />
+    <Image Include="..\src\res\ex80\button22.png" />
+    <Image Include="..\src\res\ex80\button23.png" />
+    <Image Include="..\src\res\ex80\button24.png" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\res\ex80.rc">

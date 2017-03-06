@@ -24,12 +24,11 @@
 #include "draw_thread.h"
 #include "qt_glutil_gl2_0.h"
 
-DrawThreadClass::DrawThreadClass(EMU *p, OSD *o, QObject *parent) : QThread(parent) {
+DrawThreadClass::DrawThreadClass(OSD *o, CSP_Logger *logger,QObject *parent) : QThread(parent) {
 	MainWindow = (Ui_MainWindowBase *)parent;
 	glv = MainWindow->getGraphicsView();
-	p_emu = emu;
 	p_osd = o;
-	
+	csp_logger = logger;
 	screen = QGuiApplication::primaryScreen();
 	
 	draw_screen_buffer = NULL;
@@ -38,6 +37,9 @@ DrawThreadClass::DrawThreadClass(EMU *p, OSD *o, QObject *parent) : QThread(pare
 	connect(screen, SIGNAL(refreshRateChanged(qreal)), this, SLOT(do_change_refresh_rate(qreal)));
 	connect(this, SIGNAL(sig_update_screen(bitmap_t *)), glv, SLOT(update_screen(bitmap_t *)), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_push_frames_to_avio(int, int, int)), glv->extfunc, SLOT(paintGL_OffScreen(int, int, int)));
+	//connect(this, SIGNAL(sig_call_draw_screen()), p_osd, SLOT(draw_screen()));
+	//connect(this, SIGNAL(sig_call_no_draw_screen()), p_osd, SLOT(no_draw_screen()));
+	
 	rec_frame_width = 640;
 	rec_frame_height = 480;
 	rec_frame_count = -1;

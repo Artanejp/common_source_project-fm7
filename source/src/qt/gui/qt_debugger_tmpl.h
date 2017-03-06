@@ -29,7 +29,7 @@
 QT_BEGIN_NAMESPACE	
 
 class CSP_DebuggerThread;
-class CSP_Debugger_Tmpl : public QWidget
+class DLL_PREFIX CSP_Debugger_Tmpl : public QWidget
 {
 	Q_OBJECT
  protected:

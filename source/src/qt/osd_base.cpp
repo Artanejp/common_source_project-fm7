@@ -21,7 +21,7 @@
 #include "csp_logger.h"
 #include "osd_base.h"
 
-OSD_BASE::OSD_BASE(USING_FLAGS *p) : QThread(0)
+OSD_BASE::OSD_BASE(USING_FLAGS *p, CSP_Logger *logger) : QThread(0)
 {
 	using_flags = p;
 	p_config = using_flags->get_config_ptr();
@@ -31,6 +31,7 @@ OSD_BASE::OSD_BASE(USING_FLAGS *p) : QThread(0)
 	screen_mutex = new QMutex(QMutex::Recursive);
 	device_node_list.clear();
 	max_vm_nodes = 0;
+	csp_logger = logger;
 }
 
 OSD_BASE::~OSD_BASE()

@@ -95,7 +95,7 @@ void META_MainWindow::retranslateUi(void)
 
 
 
-META_MainWindow::META_MainWindow(USING_FLAGS *p, QWidget *parent) : Ui_MainWindow(p, parent)
+META_MainWindow::META_MainWindow(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent) : Ui_MainWindow(p, logger, parent)
 {
 	setupUI_Emu();
 	retranslateUi();

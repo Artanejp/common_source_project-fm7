@@ -21,8 +21,7 @@ extern EMU *emu;
 
 void OSD_BASE::do_write_inputdata(QString s)
 {
-	int i;
-	emit sig_console_input_string(s);
+	//emit sig_console_input_string(s);
 }
 
 void OSD_BASE::do_set_input_string(QString s)
@@ -94,7 +93,6 @@ void OSD_BASE::write_console(_TCHAR* buffer, unsigned int length)
 
 int OSD_BASE::read_console_input(_TCHAR* buffer)
 {
-	int i;
 	int count = 0;
 	QString tmps;
 	//DebugSemaphore->acquire(1);

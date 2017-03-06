@@ -21,14 +21,16 @@
 
 #include "joy_thread.h"
 
-JoyThreadClass::JoyThreadClass(EMU *p, OSD *o, USING_FLAGS *pflags, config_t *cfg, QObject *parent) : QThread(parent)
+JoyThreadClass::JoyThreadClass(EMU *p, OSD *o, USING_FLAGS *pflags, config_t *cfg, CSP_Logger *logger, QObject *parent) : QThread(parent)
 {
-	int i, j;
+	//int i, j;
+	int i;
 	int n;
 	p_emu = p;
 	p_osd = o;
 	p_config = cfg;
 	using_flags = pflags;
+	csp_logger = logger;
 	
 	if(using_flags->is_use_joystick()) {
 # if defined(USE_SDL2)
@@ -87,8 +89,9 @@ JoyThreadClass::~JoyThreadClass()
  
 void JoyThreadClass::joystick_plugged(int num)
 {
-	int i,j;
-	bool found = false;
+	//int i,j;
+	int i;
+	//bool found = false;
 # if defined(USE_SDL2)
 	if(SDL_IsGameController(num) == SDL_TRUE) {
 		if(controller_table[num] != NULL) return;
@@ -122,9 +125,8 @@ void JoyThreadClass::joystick_plugged(int num)
 
 void JoyThreadClass::joystick_unplugged(int num)
 {
-	int i, j;
+	//int i, j;
 	if(num < 0) return;
-	
 # if defined(USE_SDL2)
 	if(SDL_IsGameController(num)) {
 		if(controller_table[num] != NULL) {
@@ -240,14 +242,15 @@ bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
 	//	SDL_Surface *p;
 	Sint16 value;
 	unsigned int button;
-	int vk;
-	uint32_t sym;
-	uint32_t mod;
+	//int vk;
+	//uint32_t sym;
+	//uint32_t mod;
 # if defined(USE_SDL2)
 	SDL_JoystickID id;
-	SDL_GameControllerButton cont_button;
+	//SDL_GameControllerButton cont_button;
 # endif   
-	int i, j;
+	//int i, j;
+	int i;
 	if(eventQueue == NULL) return false;
 	/*
 	 * JoyStickなどはSDLが管理する

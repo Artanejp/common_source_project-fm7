@@ -230,16 +230,16 @@ extern "C" {
 int alphabet_to_kana(const _TCHAR *src, wchar_t *dst, int *dstlen)
 {
 	int srclen;
-	bool b_boin = false;
-	bool b_shiin = false;
-	bool b_x = false;
+	//bool b_boin = false;
+	//bool b_shiin = false;
+	//bool b_x = false;
 	bool b_dakuon = false;
 	bool b_handakuon = false;
 	bool b_xya = false;
 	bool b_tsu = false;
 	bool b_chi = false;
 	bool b_kigou = false;
-	int dstp = 0;
+	//int dstp = 0;
 	int dlen;
 	int i, j;
 	wchar_t base_code[4];
@@ -592,7 +592,6 @@ int alphabet_to_kana(const _TCHAR *src, wchar_t *dst, int *dstlen)
 				if((i + 2) < srclen) {
 					if((src[i + 1] == 'H') || (src[i + 1] == 'h')) {
 						int code = detect_boin((const _TCHAR)src[i + 2], base_code[0], &b_xya, &b_tsu);
-						_TCHAR ccode[4] = {0};
 						if(code >= 0) {
 							if(code == 1) {
 								wchar_t tmps[4] = {0};

@@ -4,6 +4,7 @@ CMAKE=/usr/bin/cmake
 CCMAKE_CC=gcc-6
 CCMAKE_CXX=g++-6
 LIB_INSTALL="/usr/local/lib/x86_64-linux-gnu/"
+MAKE_STATUS_FILE="./000_make_status_config_build.log"
 
 BUILD_TYPE="Relwithdebinfo"
 CMAKE_APPENDFLAG=""
@@ -73,6 +74,7 @@ function build_dll() {
 	     ${CMAKE_FLAGS1} \
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
+	     "${CMAKE_FLAGS4}" \
 	     ${CMAKE_APPENDFLAG} \
 	     .. | tee make.log
     
@@ -82,14 +84,20 @@ function build_dll() {
 	     ${CMAKE_FLAGS1} \
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
+	     "${CMAKE_FLAGS4}" \
 	     ${CMAKE_APPENDFLAG} \
 	     .. | tee -a make.log
     
     make clean
     make ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
-    case $? in
+    _STATUS=${PIPESTATUS[0]}
+    echo -e "$1 at `date --rfc-2822`:" "${_STATUS}" >> ../../${MAKE_STATUS_FILE}
+    case ${_STATUS} in
 	0 ) sudo make install 2>&1 | tee -a ./make.log ;;
-	* ) exit $? ;;
+	* ) 
+	    echo -e "Abort at `date --rfc-2822`." >> ../../${MAKE_STATUS_FILE}
+	    exit ${_STATUS}
+	    ;;
     esac
     
     make clean
@@ -119,15 +127,23 @@ case ${BUILD_TYPE} in
 esac
 
 # libCSPGui
+echo "Make status." > ${MAKE_STATUS_FILE}
+echo "Started at `date --rfc-2822`:" >> ${MAKE_STATUS_FILE}
+case ${USE_COMMON_DEVICE_LIB} in
+   "Yes" | "yes" | "YES" )
+   CMAKE_FLAGS4="-DUSE_DEVICES_SHARED_LIB=ON"
+   build_dll libCSPcommon_vm
+   ;;
+   * )
+   CMAKE_FLAGS4=""
+   ;;
+esac
 
+build_dll libCSPfmgen
 build_dll libCSPavio
-
 build_dll libCSPgui
-
 build_dll libCSPosd
-
 build_dll libCSPemu_utils
-
 
 for SRCDATA in $@ ; do\
 
@@ -140,30 +156,39 @@ for SRCDATA in $@ ; do\
 	     ${CMAKE_FLAGS1} \
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_CC}" \
+	     "${CMAKE_FLAGS4}" \
 	     ${CMAKE_APPENDFLAG} \
 	     "-DCMAKE_EXE_LINKER_FLAGS:STRING=${MAKEFLAGS_LINK_BASE}" \
 	     .. | tee make.log
-
     ${CMAKE} -D CMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
              -D CMAKE_CXX_COMPILER:STRING=${CCMAKE_CXX} \
 	     ${CMAKE_FLAGS1} \
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_CC}" \
+	     "${CMAKE_FLAGS4}" \
 	     ${CMAKE_APPENDFLAG} \
 	     "-DCMAKE_EXE_LINKER_FLAGS:STRING=${MAKEFLAGS_LINK_BASE}" \
 	     .. | tee -a make.log
-
+    
+    
     make clean
     
     make ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
-    case $? in
+    _STATUS=${PIPESTATUS[0]}
+    echo -e "${SRCDATA} at `date --rfc-2822`:" "${_STATUS}" >> ../../${MAKE_STATUS_FILE}
+
+    case ${_STATUS} in
       0 ) sudo make install 2>&1 | tee -a ./make.log ;;
-      * ) exit $? ;;
+      * ) 
+           echo -e "Abort at `date --rfc-2822`." >> ../../${MAKE_STATUS_FILE}
+	   exit ${_STATUS}
+	   ;;
     esac
     
     make clean
     cd ../..
 done
+echo -e "End at `date --rfc-2822`." >> ../../${MAKE_STATUS_FILE}
 
 exit 0
 

@@ -24,10 +24,10 @@ set(VMFILES_BASE
 		   
 		   event.cpp
 		   memory.cpp
-
+)
+set(VMFILES_LIB
 		   beep.cpp
 )
-
 
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")

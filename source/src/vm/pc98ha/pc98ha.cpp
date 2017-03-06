@@ -18,7 +18,11 @@
 #include "../i8253.h"
 #include "../i8255.h"
 #include "../i8259.h"
-#include "../i286.h"
+#if defined(HAS_V30) || defined(HAS_I86)
+# include "../i86.h"
+#else
+# include "../i286.h"
+#endif
 #include "../io.h"
 #include "../not.h"
 //#include "../pcpr201.h"
@@ -64,7 +68,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio_sys = new I8255(this, emu);	// for system port
 	pio_prn = new I8255(this, emu);	// for printer
 	pic = new I8259(this, emu);	// V50 internal
+#if defined(HAS_V30) || defined(HAS_I86)
+	cpu = new I86(this, emu);	// V50
+#else
 	cpu = new I286(this, emu);	// V50
+#endif
 	io = new IO(this, emu);
 	not_busy = new NOT(this, emu);
 #ifdef _PC98HA

@@ -8,20 +8,8 @@
  *
  */
 
-#include "emu.h"
+//#include "emu.h"
 #include "dummydevice.h"
-
-DUMMYDEVICE::DUMMYDEVICE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
-{
-	status = 0x00000000;
-	clear_on_reset = true;
-	clear_with_zero = true;
-	p_emu = parent_emu;
-}
-
-DUMMYDEVICE::~DUMMYDEVICE()
-{
-}
 
 uint32_t DUMMYDEVICE::read_signal(int id)
 {

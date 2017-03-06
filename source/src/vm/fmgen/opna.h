@@ -98,6 +98,8 @@ namespace FM
 		void	SetVolumeFM(int db_l, int db_r);
 		void	SetVolumePSG(int db_l, int db_r);
 		void	SetLPFCutoff(uint freq) {}	// obsolete
+		
+		bool is_ay3_891x;
 
 	protected:
 		void	SetParameter(Channel4* ch, uint addr, uint data);
@@ -436,7 +438,7 @@ inline void FM::OPNBase::RebuildTimeTable()
 
 inline void FM::OPNBase::SetVolumePSG(int db_l, int db_r)
 {
-	psg.SetVolume(db_l, db_r);
+	psg.SetVolume(db_l, db_r, is_ay3_891x);
 }
 
 #endif // FM_OPNA_H

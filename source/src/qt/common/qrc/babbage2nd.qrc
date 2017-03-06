@@ -1,7 +1,28 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
-    <file alias="background.png">../../../res/babbage2nd.png</file>
+    <file alias="background.png">../../../res/babbage2nd/board.png</file>
     <file alias="default.ico">../../../res/babbage2nd.ico</file>
     <file alias="bios_and_keys.txt">../../../../../doc/VMs/babbage2nd.txt</file>
+    <file alias="button00.png">../../../res/babbage2nd/button00.png</file>
+    <file alias="button01.png">../../../res/babbage2nd/button01.png</file>
+    <file alias="button02.png">../../../res/babbage2nd/button02.png</file>
+    <file alias="button03.png">../../../res/babbage2nd/button03.png</file>
+    <file alias="button04.png">../../../res/babbage2nd/button04.png</file>
+    <file alias="button05.png">../../../res/babbage2nd/button05.png</file>
+    <file alias="button06.png">../../../res/babbage2nd/button06.png</file>
+    <file alias="button07.png">../../../res/babbage2nd/button07.png</file>
+    <file alias="button08.png">../../../res/babbage2nd/button08.png</file>
+    <file alias="button09.png">../../../res/babbage2nd/button09.png</file>
+    <file alias="button10.png">../../../res/babbage2nd/button10.png</file>
+    <file alias="button11.png">../../../res/babbage2nd/button11.png</file>
+    <file alias="button12.png">../../../res/babbage2nd/button12.png</file>
+    <file alias="button13.png">../../../res/babbage2nd/button13.png</file>
+    <file alias="button14.png">../../../res/babbage2nd/button14.png</file>
+    <file alias="button15.png">../../../res/babbage2nd/button15.png</file>
+    <file alias="button16.png">../../../res/babbage2nd/button16.png</file>
+    <file alias="button17.png">../../../res/babbage2nd/button17.png</file>
+    <file alias="button18.png">../../../res/babbage2nd/button18.png</file>
+    <file alias="button19.png">../../../res/babbage2nd/button19.png</file>
+    <file alias="button20.png">../../../res/babbage2nd/button20.png</file>
 </qresource>
 </RCC>

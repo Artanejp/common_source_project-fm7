@@ -126,7 +126,6 @@ void MOVIE_SAVER::enqueue_video(int frames, int width, int height, QImage *p)
 	if(!recording) return;
 	if(p == NULL) return;
 	if(req_stop) return;
-	uint32_t *pq;
 	VIDEO_DATA *px = new VIDEO_DATA(frames, width, height, p);
 	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "Movie: Enqueue video data %dx%d %d bytes %dx%d %d frames", width, height, p->byteCount(), p->width(), p->height(), frames);
 	//video_queue_mutex->lock();
@@ -144,7 +143,6 @@ bool MOVIE_SAVER::dequeue_video(uint32_t *p)
 #if defined(USE_MOVIE_SAVER)
 	if(pp == NULL) return false;
 	int y;
-	int x;
 	uint32_t *pq;
 	QImage *pp_i = &(pp->frame_data);
 	left_frames = pp->frames;
@@ -154,7 +152,7 @@ bool MOVIE_SAVER::dequeue_video(uint32_t *p)
 		for(y = 0; y < _height; y++) {
 			if(y >= pp_i->height()) break;
 			pq = (uint32_t *)(pp_i->constScanLine(y));
-			memcpy(&(p[_width * y]), pq, ((_width * sizeof(uint32_t)) > pp_i->bytesPerLine()) ? pp_i->bytesPerLine() : _width * sizeof(uint32_t));
+			memcpy(&(p[_width * y]), pq, (((uint)_width * sizeof(uint32_t)) > pp_i->bytesPerLine()) ? pp_i->bytesPerLine() : _width * sizeof(uint32_t));
 		}
 		video_size = _width * y;
 		//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "Movie: Dequeue video data %d bytes", pp->byteCount());
@@ -193,7 +191,7 @@ bool MOVIE_SAVER::dequeue_audio(int16_t *p)
 	audio_size = pp->size();
 	if(audio_size <= 0) return false;
 	// I expect to use SIMD.
-	for(int i = 0; i < audio_size / sizeof(int16_t); i++) {
+	for(int i = 0; i < (int)(audio_size / sizeof(int16_t)); i++) {
 		tmpd = q[i];
 		tmpd <<= 4;
 		tmpd = tmpd / 3;
@@ -202,7 +200,6 @@ bool MOVIE_SAVER::dequeue_audio(int16_t *p)
 	}
 	//memcpy(p, pp->constData(), audio_size);
 	audio_count++;
-	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "Movie: Dequeue audio data %d bytes", pp->size());
 #else
 	audio_size = 0;
 #endif   

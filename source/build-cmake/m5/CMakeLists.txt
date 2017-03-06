@@ -33,7 +33,8 @@ set(VMFILES_BASE
       event.cpp
 )
 
-
+set(VMFILES_LIB
+)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")

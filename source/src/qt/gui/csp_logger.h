@@ -140,7 +140,7 @@ public:
 class QMutex;
 class OSD;
 
-class CSP_Logger: public QObject {
+class DLL_PREFIX CSP_Logger: public QObject {
 	Q_OBJECT
 private:
 	bool syslog_flag;
@@ -211,6 +211,6 @@ public:
 };
 QT_END_NAMESPACE
 
-extern CSP_Logger *csp_logger;
+//extern CSP_Logger DLL_PREFIX *csp_logger;
 
 #endif

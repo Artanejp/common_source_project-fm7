@@ -21,13 +21,12 @@
 class Ui_MainWindowBase;
 class EMU;
 class OSD;
-
+class CSP_Logger;
 QT_BEGIN_NAMESPACE
 
-class DrawThreadClass : public QThread {
+class DLL_PREFIX DrawThreadClass : public QThread {
 	Q_OBJECT
  private:
-	EMU *p_emu;
 	OSD *p_osd;
 	Ui_MainWindowBase *MainWindow;
 	GLDrawClass *glv;
@@ -46,9 +45,9 @@ class DrawThreadClass : public QThread {
 	bool bRunThread;
 	bool bDrawReq;
 	bitmap_t *draw_screen_buffer;
-	
+	CSP_Logger *csp_logger;
  public:
-	DrawThreadClass(EMU *p, OSD *o, QObject *parent = 0);
+	DrawThreadClass(OSD *o, CSP_Logger *logger, QObject *parent = 0);
 	~DrawThreadClass();
 	void run() { doWork("");}
 	void SetEmu(EMU *p);
@@ -63,9 +62,10 @@ signals:
 	int sig_draw_frames(int);
 	int message_changed(QString);
 	int sig_update_screen(bitmap_t *);
-//	int sig_draw_timing(bool);
+	int sig_draw_timing(bool);
 	int sig_push_frames_to_avio(int, int, int);
-
+	int sig_call_draw_screen();
+	int sig_call_no_draw_screen();
 };
 
 QT_END_NAMESPACE

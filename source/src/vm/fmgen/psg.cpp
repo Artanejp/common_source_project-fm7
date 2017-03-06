@@ -7,8 +7,6 @@
 #include "headers.h"
 #include "misc.h"
 #include "psg.h"
-// for AY-3-8190/8192
-#include "../vm.h"
 
 #include "../../fileio.h"
 
@@ -29,7 +27,7 @@ PSG::PSG()
 			enveloptable_l[i][j] = enveloptable_r[i][j] = 0;
 		}
 	}
-	SetVolume(0, 0);
+	SetVolume(0, 0, false);
 	MakeNoiseTable();
 	Reset();
 	mask = 0x3f;
@@ -102,31 +100,35 @@ void PSG::MakeNoiseTable()
 //	出力テーブルを作成
 //	素直にテーブルで持ったほうが省スペース。
 //
-void PSG::SetVolume(int volume_l, int volume_r)
+void PSG::SetVolume(int volume_l, int volume_r, bool is_ay3_891x)
 {
 	double base_l = 0x4000 / 3.0 * pow(10.0, volume_l / 40.0);
 	double base_r = 0x4000 / 3.0 * pow(10.0, volume_r / 40.0);
-#if defined(HAS_AY_3_8910) || defined(HAS_AY_3_8912)
-	// AY-3-8190/8192 (PSG): 16step
-	for (int i=31; i>=3; i-=2)
+	
+	if(is_ay3_891x)
 	{
-		EmitTableL[i] = EmitTableL[i-1] = int(base_l);
-		EmitTableR[i] = EmitTableR[i-1] = int(base_r);
-		base_l /= 1.189207115;
-		base_l /= 1.189207115;
-		base_r /= 1.189207115;
-		base_r /= 1.189207115;
+		// AY-3-8190/8192 (PSG): 16step
+		for (int i=31; i>=3; i-=2)
+		{
+			EmitTableL[i] = EmitTableL[i-1] = int(base_l);
+			EmitTableR[i] = EmitTableR[i-1] = int(base_r);
+			base_l /= 1.189207115;
+			base_l /= 1.189207115;
+			base_r /= 1.189207115;
+			base_r /= 1.189207115;
+		}
 	}
-#else
-	// YM2203 (SSG): 32step
-	for (int i=31; i>=2; i--)
+	else
 	{
-		EmitTableL[i] = int(base_l);
-		EmitTableR[i] = int(base_r);
-		base_l /= 1.189207115;
-		base_r /= 1.189207115;
+		// YM2203 (SSG): 32step
+		for (int i=31; i>=2; i--)
+		{
+			EmitTableL[i] = int(base_l);
+			EmitTableR[i] = int(base_r);
+			base_l /= 1.189207115;
+			base_r /= 1.189207115;
+		}
 	}
-#endif
 	EmitTableL[1] = 0;
 	EmitTableL[0] = 0;
 	EmitTableR[1] = 0;
@@ -423,8 +425,8 @@ void PSG::Mix(Sample* dest, int nsamples)
 //	テーブル
 //
 //uint	PSG::noisetable[noisetablesize] = { 0, };
-//int		PSG::EmitTableL[0x20] = { -1, };
-//int		PSG::EmitTableR[0x20] = { -1, };
+//int	PSG::EmitTableL[0x20] = { -1, };
+//int	PSG::EmitTableR[0x20] = { -1, };
 //uint	PSG::enveloptable_l[16][64] = { 0, };
 //uint	PSG::enveloptable_r[16][64] = { 0, };
 

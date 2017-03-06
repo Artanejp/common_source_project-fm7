@@ -18,6 +18,7 @@
 #endif
 #if defined(_USE_QT)
 #include "../qt/gui/csp_logger.h"
+extern CSP_Logger *csp_logger;
 #endif
 
 #include <stdarg.h>
@@ -188,7 +189,7 @@ public:
 		   return true;
 		}
 #endif		
-		if(drive_num < array_length(config.correct_disk_timing)) {
+		if(drive_num < (int)array_length(config.correct_disk_timing)) {
 			return config.correct_disk_timing[drive_num];
 		}
 #endif
@@ -197,7 +198,7 @@ public:
 	bool ignore_crc()
 	{
 #ifndef _ANY2D88
-		if(drive_num < array_length(config.ignore_disk_crc)) {
+		if(drive_num < (int)array_length(config.ignore_disk_crc)) {
 			return config.ignore_disk_crc[drive_num];
 		}
 #endif

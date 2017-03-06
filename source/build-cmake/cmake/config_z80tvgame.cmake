@@ -9,8 +9,6 @@ set(WITH_JOYSTICK ON)
 
 set(VMFILES_BASE
   z80.cpp
-  pcm1bit.cpp
-
   event.cpp
 )
 
@@ -24,11 +22,13 @@ add_definitions(-D_Z80TVGAME)
 if(BUILD_I8255)
   set(EXEC_TARGET emuz80tvgame_i8255)
   set(VMFILES ${VMFILES_BASE} i8255.cpp)
+  set(VMFILES_LIB   pcm1bit.cpp)
   add_definitions(-D_USE_I8255)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/z80tvgame_i8255.qrc)
 else()
   set(EXEC_TARGET emuz80tvgame_z80pio)
-  set(VMFILES ${VMFILES_BASE} z80pio.cpp)
+  set(VMFILES ${VMFILES_BASE})
+  set(VMFILES_LIB   pcm1bit.cpp z80pio.cpp)
   add_definitions(-D_USE_Z80PIO)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/z80tvgame_z80pio.qrc)
 endif()

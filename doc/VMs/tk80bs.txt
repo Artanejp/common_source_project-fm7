@@ -1,10 +1,13 @@
 "eTK-80BS" - NEC TK-80BS (COMPO BS/80) Emulator for Win32
-								12/15/2015
+"eTK-85" - NEC TK-85 Emulator for Win32
+								2/9/2017
 
 --- Internal ROM images
 
 	TK80.ROM	$0000-$03FF (TK-80 on board)
 			$0000-$07FF (COMPO BS/80)
+	TK85.ROM	$0000-$07FF
+
 	LV1BASIC.ROM	$E000-$EFFF (Lv.1 BASIC)
 	LV2BASIC.COM	$D000-$EFFF (Lv.2 BASIC)
 	BSMON.ROM	$F000-$FFFF
@@ -14,6 +17,9 @@
 
 	To emulate TK-80:
 		TK80.ROM ($0000-$03FF)
+
+	To emulate TK-85:
+		TK85.ROM ($0000-$07FF)
 
 	To emulate TK-80BS:
 		TK80.ROM ($0000-$03FF)
@@ -55,7 +61,7 @@ For TK-80BS keyboard:
 	KANA		KANA
 	KANA KIGOU	(KANA+SHIFT)
 
-For TK-80 on-board keys:
+For TK-80/TK-85 on-board keys:
 
 	Virtual		PC
 	--------------------------------
@@ -72,4 +78,4 @@ For TK-80 on-board keys:
 ----------------------------------------
 TAKEDA, toshiya
 t-takeda@m1.interq.or.jp
-http://homepage3.nifty.com/takeda-toshiya/
+http://takeda-toshiya.my.coocan.jp/

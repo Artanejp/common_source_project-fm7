@@ -15,11 +15,14 @@
 	[ PC-6031 ]
 */
 
+#include "vm.h"
+#include "../emu.h"
 #include "pc6031.h"
 #include "disk.h"
-#if defined(USE_SOUND_FILES)
+
+//#if defined(USE_SOUND_FILES)
 #define EVENT_SEEK_SOUND 2
-#endif
+//#endif
 
 void PC6031::event_callback(int event_id, int err)
 {
@@ -44,6 +47,7 @@ int PC6031::Seek88(int drvno, int trackno, int sectno)
 {
 	if(drvno < 2) {
 #if defined(USE_SOUND_FILES)
+
 		if(cur_trk[drvno] != trackno) {
 			seek_track_num[drvno] = (cur_trk[drvno] & 0xfe);
 			if(seek_event_id[drvno] >= 0) {
@@ -415,7 +419,8 @@ bool PC6031::is_disk_protected(int drv)
 	return false;
 }
 
-#if defined(USE_SOUND_FILES)
+//#if defined(USE_SOUND_FILES)
+
 void PC6031::add_sound(int type)
 {
 	int *p;
@@ -562,7 +567,7 @@ void PC6031::set_volume(int ch, int decibel_l, int decibel_r)
 	snd_level_l = decibel_to_volume(decibel_l);
 	snd_level_r = decibel_to_volume(decibel_r);
 }
-#endif
+//#endif
 
 #define STATE_VERSION	2
 
@@ -584,7 +589,8 @@ void PC6031::save_state(FILEIO* state_fio)
 	state_fio->FputUint8(old_D2H);
 	state_fio->FputUint8(io_D3H);
 	state_fio->FputInt32(DrvNum);
-#if defined(USE_SOUND_FILES)
+//#if defined(USE_SOUND_FILES)
+
 	for(int i = 0; i < 2; i++) {
 		state_fio->FputInt32(seek_event_id[i]);
 		state_fio->FputInt32(seek_track_num[i]);
@@ -600,7 +606,7 @@ void PC6031::save_state(FILEIO* state_fio)
 	state_fio->FputBool(snd_mute);
 	state_fio->FputInt32(snd_level_l);
 	state_fio->FputInt32(snd_level_r);
-#endif
+//#endif
 }
 
 bool PC6031::load_state(FILEIO* state_fio)
@@ -626,7 +632,7 @@ bool PC6031::load_state(FILEIO* state_fio)
 	old_D2H = state_fio->FgetUint8();
 	io_D3H = state_fio->FgetUint8();
 	DrvNum = state_fio->FgetInt32();
-#if defined(USE_SOUND_FILES)
+//#if defined(USE_SOUND_FILES)
 	for(int i = 0; i < 2; i++) {
 		seek_event_id[i] = state_fio->FgetInt32();
 		seek_track_num[i] = state_fio->FgetInt32();
@@ -654,7 +660,7 @@ bool PC6031::load_state(FILEIO* state_fio)
 		strncpy(tmps, snd_head_name, 511);
 		load_sound_data(PC6031_SND_TYPE_HEAD, (const _TCHAR *)tmps);
 	}
-#endif
+//#endif
 	return true;
 }
 

@@ -10,10 +10,11 @@
 #ifndef _TF20_H_
 #define _TF20_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
-
+class VM;
+class EMU;
 class TF20 : public DEVICE
 {
 private:

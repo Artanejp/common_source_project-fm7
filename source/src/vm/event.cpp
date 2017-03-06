@@ -8,9 +8,7 @@
 */
 
 #include "event.h"
-#if defined(_USE_QT)			
-#include "../qt/gui/csp_logger.h"
-#endif
+
 #define EVENT_MIX	0
 
 void EVENT::initialize()
@@ -42,8 +40,8 @@ void EVENT::initialize_sound(int rate, int samples)
 	buffer_ptr = 0;
 	mix_counter = 1;
 	mix_limit = (int)((double)(emu->get_sound_rate() / 2000.0)); // per 0.5ms.
-	//need_mix = false;
 	sound_touched = false;
+	
 	// register event
 	this->register_event(this, EVENT_MIX, 1000000.0 / rate, true, NULL);
 }
@@ -101,11 +99,13 @@ void EVENT::drive()
 		int remain = sum;
 		
 		for(int i = 0; i < lines_per_frame; i++) {
+			assert(i < MAX_LINES);
 			vclocks[i] = (int)(sum / lines_per_frame);
 			remain -= vclocks[i];
 		}
 		for(int i = 0; i < remain; i++) {
 			int index = (int)((double)lines_per_frame * (double)i / (double)remain);
+			assert(index < MAX_LINES);
 			vclocks[index]++;
 		}
 		for(int i = 1; i < dcount_cpu; i++) {
@@ -351,14 +351,7 @@ void EVENT::cancel_event(DEVICE* device, int register_id)
 	if(0 <= register_id && register_id < MAX_EVENT) {
 		event_t *event_handle = &event[register_id];
 		if(device != NULL && device != event_handle->device) {
-#if defined(_USE_QT)			
-
-			csp_logger->output_event_log(device->this_device_id, CSP_LOG_INFO,
-										 _T("Event cannot be canceled by non owned device (device_id=%d register_id=%d) !!!\n"),
-										 device->this_device_id, register_id);
-#else			
 			this->out_debug_log(_T("EVENT: event cannot be canceled by non owned device (id=%d) !!!\n"), device->this_device_id);
-#endif			
 			return;
 		}
 		if(event_handle->active) {
@@ -415,33 +408,77 @@ double EVENT::get_event_remaining_usec(int register_id)
 	return 1000000.0 * get_event_remaining_clock(register_id) / d_cpu[0].cpu_clocks;
 }
 
+void EVENT::touch_sound(void)
+{
+	if(!config.sound_strict_rendering) {
+		if((need_mix <= 0) /* && !sound_touched */) {
+			int samples = mix_counter;
+			if(samples >= (sound_tmp_samples - buffer_ptr)) {
+				samples = sound_tmp_samples - buffer_ptr - 1; 
+			}
+			if(samples > 0) {
+				mix_sound(samples);
+				mix_counter -= samples;
+			}
+			//if(mix_counter < 1) {
+			//	mix_counter = 1;
+			//}
+			sound_touched = true;
+		}
+	}
+}
+
+void EVENT::set_realtime_render(DEVICE* device, bool flag)
+{
+	assert(device != NULL && device->this_device_id < MAX_DEVICE);
+	if(dev_need_mix[device->this_device_id] != flag) {
+		if(flag) {
+			need_mix++;
+		} else {
+			assert(need_mix > 0);
+			need_mix--;
+			if(need_mix < 0) need_mix = 0;
+		}
+		dev_need_mix[device->this_device_id] = flag;
+	}
+}
+
 void EVENT::event_callback(int event_id, int err)
 {
-		// mix sound
-		if(prev_skip && dont_skip_frames == 0 && !sound_changed) {
-			buffer_ptr = 0;
+	// mix sound
+	if(prev_skip && dont_skip_frames == 0 && !sound_changed) {
+		buffer_ptr = 0;
+	}
+	int remain = sound_tmp_samples - buffer_ptr;
+	
+	if(remain > 0) {
+		int samples = mix_counter;
+		if(samples >= remain) {
+			samples = remain - 1;
 		}
-		if(sound_tmp_samples - buffer_ptr > 0) {
-			int t_s = mix_counter;
-			if(t_s >= (sound_tmp_samples - buffer_ptr)) t_s = sound_tmp_samples - buffer_ptr - 1; 
-			if(config.sound_strict_rendering) {
-				if(t_s < 1) t_s = 1;
-				mix_sound(t_s);
-				mix_counter = 1;
-				sound_touched = false;
-				return;
+		if(config.sound_strict_rendering || (need_mix > 0)) {
+			if(samples < 1) {
+				samples = 1;
 			}
-			if((need_mix > 0) || (mix_counter >= mix_limit) || sound_touched) {
-				if(t_s > 0) {
-					mix_sound(t_s);
-					mix_counter = mix_counter - t_s;
+			mix_sound(samples);
+			mix_counter = 1;
+			sound_touched = false;
+		} else {
+			if((need_mix > 0) || (mix_counter >= mix_limit) /* || sound_touched */) {
+				if(samples > 0) {
+					mix_sound(samples);
+					mix_counter -= samples;
 				}
-				if(mix_counter < 1) mix_counter = 1;
+				//	if(mix_counter < 1) {
+				//	mix_counter = 1;
+				//}
 				sound_touched = false;
-			} else {
-				mix_counter++;
+			//} else {
+			//	mix_counter++;
 			}
+			mix_counter++;
 		}
+	}
 }
 
 void EVENT::mix_sound(int samples)
@@ -551,7 +588,7 @@ void EVENT::update_config()
 	}
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 void EVENT::save_state(FILEIO* state_fio)
 {
@@ -586,6 +623,8 @@ void EVENT::save_state(FILEIO* state_fio)
 	state_fio->FputDouble(next_frames_per_sec);
 	state_fio->FputInt32(lines_per_frame);
 	state_fio->FputInt32(next_lines_per_frame);
+	state_fio->Fwrite(dev_need_mix, sizeof(dev_need_mix), 1);
+	state_fio->FputInt32(need_mix);
 }
 
 bool EVENT::load_state(FILEIO* state_fio)
@@ -626,6 +665,8 @@ bool EVENT::load_state(FILEIO* state_fio)
 	next_frames_per_sec = state_fio->FgetDouble();
 	lines_per_frame = state_fio->FgetInt32();
 	next_lines_per_frame = state_fio->FgetInt32();
+	state_fio->Fread(dev_need_mix, sizeof(dev_need_mix), 1);
+	need_mix = state_fio->FgetInt32();
 	
 	// post process
 	if(sound_buffer) {
@@ -637,7 +678,6 @@ bool EVENT::load_state(FILEIO* state_fio)
 	buffer_ptr = 0;
 	mix_counter = 1;
 	mix_limit = (int)((double)(emu->get_sound_rate() / 2000.0));  // per 0.5ms.
-	//need_mix = false;
 	sound_touched = false;
 	return true;
 }

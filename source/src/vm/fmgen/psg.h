@@ -62,7 +62,7 @@ public:
 	void Mix(Sample* dest, int nsamples);
 	void SetClock(int clock, int rate);
 	
-	void SetVolume(int vol_l, int vol_r);
+	void SetVolume(int vol_l, int vol_r, bool is_ay3_891x);
 	void SetChannelMask(int c);
 	
 	void Reset();

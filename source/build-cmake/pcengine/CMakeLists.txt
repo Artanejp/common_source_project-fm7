@@ -24,14 +24,15 @@ set(VMFILES_BASE
 		   scsi_cdrom.cpp
 		   scsi_host.cpp
 		   scsi_dev.cpp
-		   msm5205.cpp
 		   
 		   event.cpp
 		   io.cpp
 		   memory.cpp
 		   
 )
-
+set(VMFILES_LIB
+		   msm5205.cpp
+)
 
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")

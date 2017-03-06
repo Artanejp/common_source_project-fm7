@@ -25,7 +25,7 @@ class GLDraw_2_0;
 class GLDraw_3_0;
 class CSP_KeyTables;
 class USING_FLAGS;
-
+class CSP_Logger;
 struct NativeScanCode {
 	uint32_t vk;
 	uint32_t scan;
@@ -44,6 +44,7 @@ class DLL_PREFIX GLDrawClass: public QGLWidget
 	Q_OBJECT
  private:
 	EMU *p_emu;
+	CSP_Logger *csp_logger;
 	USING_FLAGS *using_flags;
 	bool is_mouse_enabled;
 	
@@ -64,6 +65,7 @@ class DLL_PREFIX GLDrawClass: public QGLWidget
 	void initializeGL();
 	void paintGL();
 	void drawGrids(void);
+	//void paintEvent(QPaintEvent *ev);
 
 	uint32_t get106Scancode2VK(uint32_t data);
 	bool QueryGLExtensions(const char *str);
@@ -77,9 +79,9 @@ class DLL_PREFIX GLDrawClass: public QGLWidget
 
 public:
 #if defined(_USE_GLAPI_QT5_4)
-	GLDrawClass(USING_FLAGS *p, QWidget *parent = 0, const QSoufaceFormat &fmt = QSurfaceFormat::defaultFormat());
+	GLDrawClass(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent = 0, const QSoufaceFormat &fmt = QSurfaceFormat::defaultFormat());
 #else
-	GLDrawClass(USING_FLAGS *p, QWidget *parent = 0, const QGLFormat &fmt = QGLFormat::defaultFormat());
+	GLDrawClass(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent = 0, const QGLFormat &fmt = QGLFormat::defaultFormat());
 #endif
 	~GLDrawClass();
 	GLDraw_2_0 *extfunc;
@@ -149,7 +151,7 @@ signals:
 	void do_notify_button_released(Qt::MouseButton button);
 	void sig_check_grab_mouse(bool);
 	void sig_resize_uibar(int, int);
-//	void sig_draw_timing(bool);
+	void sig_draw_timing(void);
 	int sig_finished(void);
 	int sig_key_down(uint32_t, uint32_t, bool);
 	int sig_key_up(uint32_t, uint32_t);

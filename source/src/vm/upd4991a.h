@@ -10,10 +10,12 @@
 #ifndef _UPD4991A_H_
 #define _UPD4991A_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
+class VM;
+class EMU;
 class UPD4991A : public DEVICE
 {
 private:

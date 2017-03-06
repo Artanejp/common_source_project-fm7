@@ -11,4 +11,5 @@ add_library(vm_fmr50
 	scsi.cpp
 	timer.cpp
 	fmr50.cpp
+	
 )

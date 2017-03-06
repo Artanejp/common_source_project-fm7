@@ -64,7 +64,7 @@ class VM;
 class FIFO;
 class CSP_KeyTables;
 class USING_FLAGS;
-
+class CSP_LOGGER;
 QT_BEGIN_NAMESPACE
 
 typedef struct {
@@ -82,6 +82,7 @@ protected:
 	sdl_snddata_t snddata;
 	USING_FLAGS *using_flags;
 	config_t *p_config;
+	CSP_Logger *csp_logger;
 	
 	_TCHAR app_path[_MAX_PATH];
 	QElapsedTimer osd_timer;
@@ -252,7 +253,7 @@ protected:
 	virtual void init_sound_files();
 	virtual void release_sound_files();
 public:
-	OSD_BASE(USING_FLAGS *p);
+	OSD_BASE(USING_FLAGS *p, CSP_Logger *logger);
 	~OSD_BASE();
 	
 	// common
@@ -332,8 +333,8 @@ public:
 	int get_vm_window_width_aspect();
 	int get_vm_window_height_aspect();
 	scrntype_t* get_vm_screen_buffer(int y);
-	int draw_screen();
-	int no_draw_screen();
+	//int draw_screen();
+	//int no_draw_screen();
 	void reload_bitmap();
 	void capture_screen();
 	bool start_record_video(int fps);
@@ -446,9 +447,13 @@ public slots:
 	void do_video_movie_end(bool flag);
 	void do_video_decoding_error(int num);
 	virtual void do_run_movie_audio_callback(uint8_t *data, long len);
+	int draw_screen();
+	int no_draw_screen();
+	void do_draw(bool flag);
 signals:
 	int sig_update_screen(bitmap_t *);
 	int sig_save_screen(const char *);
+	int sig_draw_frames(int);
 	int sig_close_window(void);
 	int sig_resize_vm_screen(QImage *, int, int);
 	int sig_put_string_debugger(QString);

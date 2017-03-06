@@ -10,10 +10,12 @@
 #ifndef _HD146818P_H_
 #define _HD146818P_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
+class VM;
+class EMU;
 class HD146818P : public DEVICE
 {
 private:

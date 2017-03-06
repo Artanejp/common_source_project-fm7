@@ -14,8 +14,8 @@
 #include "../emu.h"
 #include "device.h"
 
+#define MAX_DEVICE	64
 #define MAX_CPU		8
-// 20161003 K.O
 #define MAX_SOUND	32
 #define MAX_LINES	1024
 #define MAX_EVENT	64
@@ -79,16 +79,19 @@ private:
 	bool prev_skip, next_skip;
 	bool sound_changed;
 	
+	int mix_counter;
+	int mix_limit;
+	bool dev_need_mix[MAX_DEVICE];
+	int need_mix;
+	bool sound_touched;
+	
 	void mix_sound(int samples);
 	void* get_event(int index);
 	
 #ifdef _DEBUG_LOG
 	bool initialize_done;
 #endif
-	int mix_counter;
-	int mix_limit;
-	int need_mix;
-	bool sound_touched;
+	
 public:
 	EVENT(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -113,11 +116,14 @@ public:
 		next_frames_per_sec = FRAMES_PER_SEC;
 		next_lines_per_frame = LINES_PER_FRAME;
 		
+		// reset before other device may call set_realtime_render()
+		memset(dev_need_mix, 0, sizeof(dev_need_mix));
+		need_mix = 0;
+		
 #ifdef _DEBUG_LOG
 		initialize_done = false;
 #endif
-		set_device_name(_T("EVENT"));
-		need_mix = 0;
+		set_device_name(_T("Event Manager"));
 	}
 	~EVENT() {}
 	
@@ -155,6 +161,8 @@ public:
 	double get_passed_usec(uint32_t prev);
 	uint32_t get_cpu_pc(int index);
 	void request_skip_frames();
+	void touch_sound(void);
+	void set_realtime_render(DEVICE* device, bool flag);
 	
 	// unique functions
 	double get_frame_rate()
@@ -169,6 +177,7 @@ public:
 	
 	void set_context_cpu(DEVICE* device, uint32_t clocks)
 	{
+		assert(dcount_cpu < MAX_CPU);
 		int index = dcount_cpu++;
 		d_cpu[index].device = device;
 		d_cpu[index].cpu_clocks = clocks;
@@ -192,34 +201,8 @@ public:
 	}
 	void set_context_sound(DEVICE* device)
 	{
-		if(dcount_sound < MAX_SOUND) {
-			d_sound[dcount_sound++] = device;
-		}
-	}
-	void touch_sound(void)
-	{
-		if(config.sound_strict_rendering) return;
-		if((need_mix <= 0) && !sound_touched) {
-			int t_s = mix_counter;
-			// Do need mix_sound(remain_samples) before?
-			if(t_s >= (sound_tmp_samples - buffer_ptr)) t_s = sound_tmp_samples - buffer_ptr - 1; 
-			if(t_s > 0) {
-					mix_sound(t_s);
-					mix_counter = mix_counter - t_s;
-			}
-			if(mix_counter < 1) mix_counter = 1;
-			sound_touched = true;
-		}
-	}
-	void set_realtime_render(bool flag)
-	{
-		if(flag) {
-			need_mix++;
-			if(need_mix >= (0x7fff - 1)) need_mix = 0x7fff - 1;
-		} else {
-			need_mix--;
-			if(need_mix < 0) need_mix = 0;
-		}
+		assert(dcount_sound < MAX_SOUND);
+		d_sound[dcount_sound++] = device;
 	}
 	bool is_frame_skippable();
 };

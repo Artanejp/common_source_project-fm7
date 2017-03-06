@@ -5,7 +5,9 @@
  * History : 
  *  Feb 12, 2015 : Initial 
  */
-#include "fm7.h"
+
+#include "vm.h"
+#include "emu.h"
 #include "../../fifo.h"
 #include "../device.h"
 #include "fm7_keyboard.h"
@@ -1211,6 +1213,9 @@ KEYBOARD::~KEYBOARD()
 }
 
 #define STATE_VERSION 4
+#if defined(Q_OS_WIN)
+DLL_PREFIX_I struct cur_time_s cur_time;
+#endif
 void KEYBOARD::save_state(FILEIO *state_fio)
 {
 	state_fio->FputUint32_BE(STATE_VERSION);

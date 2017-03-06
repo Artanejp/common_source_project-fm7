@@ -16,7 +16,6 @@
 
 class EMU;
 class VM;
-
 enum {
 	HD6844_EVENT_START_TRANSFER = 0,
 	HD6844_EVENT_DO_TRANSFER = 4,
@@ -47,13 +46,9 @@ enum {
 	HD6844_ACK_DRQ2,
 
 };
-
+class VM;
+class EMU;
 class HD6844: public DEVICE {
-
- protected:
-	EMU *p_emu;
-	VM *p_vm;
-	
  private:
 	DEVICE *src[4];
 	DEVICE *dest[4];
@@ -83,9 +78,18 @@ class HD6844: public DEVICE {
 
 	void do_transfer(int ch);
  public:
-	HD6844(VM *parent_vm, EMU *parent_emu);
-	~HD6844();
-
+	HD6844(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		int i;
+		for(i = 0; i < 4; i++) {
+			src[i] = dest[i] = NULL;
+			initialize_output_signals(&(interrupt_line[i]));
+		}
+		initialize_output_signals(&(drq_line[0]));
+		initialize_output_signals(&(drq_line[1]));
+		set_device_name(_T("HD6844 DMAC"));
+	}
+	~HD6844(){}
 	void event_callback(int event_id, int err);
 	void write_data8(uint32_t id, uint32_t data);
 	uint32_t read_data8(uint32_t addr);

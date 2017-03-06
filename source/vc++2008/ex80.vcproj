@@ -812,10 +812,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\ex80.png"
-				>
-			</File>
-			<File
 				RelativePath="..\src\res\ex80.rc"
 				>
 				<FileConfiguration
@@ -839,6 +835,110 @@
 			</File>
 			<File
 				RelativePath="..\src\res\resource.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ex80\board.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ex80\button00.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ex80\button01.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ex80\button02.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ex80\button03.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ex80\button04.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ex80\button05.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ex80\button06.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ex80\button07.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ex80\button08.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ex80\button09.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ex80\button10.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ex80\button11.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ex80\button12.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ex80\button13.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ex80\button14.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ex80\button15.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ex80\button16.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ex80\button17.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ex80\button18.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ex80\button19.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ex80\button20.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ex80\button21.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ex80\button22.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ex80\button23.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ex80\button24.png"
 				>
 			</File>
 		</Filter>

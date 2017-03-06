@@ -12,7 +12,7 @@
 
 #include "common.h"
 
-class FIFO
+class DLL_PREFIX FIFO
 {
 private:
 	int size;

@@ -41,7 +41,6 @@ int Ui_MainWindowBase::set_recent_binary_load(int drv, int num)
 
 	QString s_path;
 	char path_shadow[PATH_MAX];
-	int i;
 	
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
 	
@@ -64,7 +63,6 @@ int Ui_MainWindowBase::set_recent_binary_save(int drv, int num)
 {
 	QString s_path;
 	char path_shadow[PATH_MAX];
-	int i;
 	
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
 	
@@ -87,7 +85,7 @@ int Ui_MainWindowBase::set_recent_binary_save(int drv, int num)
 void Ui_MainWindowBase::_open_binary_load(int drv, const QString fname)
 {
 	char path_shadow[PATH_MAX];
-	int i;
+
 	if(fname.length() <= 0) return;
 	drv = drv & 7;
 	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX);
@@ -104,7 +102,7 @@ void Ui_MainWindowBase::_open_binary_load(int drv, const QString fname)
 void Ui_MainWindowBase::_open_binary_save(int drv, const QString fname)
 {
 	char path_shadow[PATH_MAX];
-	int i;
+
 	if(fname.length() <= 0) return;
 	drv = drv & 7;
 	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX);
@@ -133,7 +131,7 @@ void Ui_MainWindowBase::CreateBinaryMenu(int drv, int drv_base)
 	} else {
 		desc1 = "Memory Dump";
 	}
-	menu_BINs[drv] = new Menu_BinaryClass(emu, menubar, QString::fromUtf8("Obj_Binary"), using_flags, this, drv);
+	menu_BINs[drv] = new Menu_BinaryClass(menubar, QString::fromUtf8("Obj_Binary"), using_flags, this, drv);
 	menu_BINs[drv]->create_pulldown_menu();
 	
 	menu_BINs[drv]->do_clear_inner_media();

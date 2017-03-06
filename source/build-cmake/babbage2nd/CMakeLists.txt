@@ -23,7 +23,6 @@ set(WITH_MOUSE ON)
 set(VMFILES_BASE
   z80.cpp
   z80ctc.cpp
-  z80pio.cpp
   
   io.cpp
   memory.cpp
@@ -31,6 +30,9 @@ set(VMFILES_BASE
   event.cpp
 )
 
+set(VMFILES_LIB
+  z80pio.cpp
+)
 
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")

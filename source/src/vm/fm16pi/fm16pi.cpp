@@ -16,7 +16,7 @@
 #include "../i8253.h"
 #include "../i8255.h"
 #include "../i8259.h"
-#include "../i286.h"
+#include "../i86.h"
 #include "../io.h"
 #include "../mb8877.h"
 #include "../memory.h"
@@ -45,7 +45,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pit = new I8253(this, emu);
 	pio = new I8255(this, emu);	// for system port
 	pic = new I8259(this, emu);
-	cpu = new I286(this, emu);
+	cpu = new I86(this, emu);
 	io = new IO(this, emu);
 	fdc = new MB8877(this, emu);
 	memory = new MEMORY(this, emu);
@@ -58,7 +58,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));
 	event->set_device_name(_T("EVENT"));
-	cpu->set_device_name(_T("CPU(i286)"));
+	cpu->set_device_name(_T("CPU(MBL8086L)"));
 
 	sio->set_device_name(_T("i8251(RS-232C)"));
 	pio->set_device_name(_T("i8259(SYSTEM PORT)"));
@@ -284,7 +284,7 @@ void VM::reset()
 
 void VM::notify_power_off()
 {
-//	emu->out_debug_log(_T("--- POWER OFF ---\n"));
+//	this->out_debug_log(_T("--- POWER OFF ---\n"));
 	sub->notify_power_off();
 }
 

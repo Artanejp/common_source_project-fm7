@@ -41,22 +41,34 @@
 
 extern EMU *emu;
 //extern USING_FLAGS *using_flags;
-
-Ui_MainWindowBase::Ui_MainWindowBase(USING_FLAGS *p, QWidget *parent) : QMainWindow(parent)
+void DLL_PREFIX _resource_init(void)
 {
+	Q_INIT_RESOURCE(commontexts);
+	Q_INIT_RESOURCE(shaders);
+}
+
+void DLL_PREFIX _resource_free(void)
+{
+	Q_CLEANUP_RESOURCE(shaders);
+	Q_CLEANUP_RESOURCE(commontexts);
+}
+
+Ui_MainWindowBase::Ui_MainWindowBase(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent) : QMainWindow(parent)
+{
+	csp_logger = logger;
 	using_flags = p;
 	p_config = p->get_config_ptr();
 	setupUi();
 	createContextMenu();
 	max_vm_nodes = 0;
 	ui_retranslate_completed = false;
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "GUI OK");
+	//csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "GUI OK");
 }
 
 Ui_MainWindowBase::~Ui_MainWindowBase()
 {
-	delete using_flags;
 	graphicsView->releaseKeyboard();
+	delete using_flags;
 }
 
 void Action_Control::do_check_grab_mouse(bool flag)
@@ -285,8 +297,8 @@ void Ui_MainWindowBase::setupUi(void)
 #endif
 		{
 			int render_type = using_flags->get_config_ptr()->render_platform;
-			int _major_version = using_flags->get_config_ptr()->render_major_version;
-			int _minor_version = using_flags->get_config_ptr()->render_minor_version;
+			//int _major_version = using_flags->get_config_ptr()->render_major_version;
+			//int _minor_version = using_flags->get_config_ptr()->render_minor_version;
 #if defined(_USE_GLAPI_QT5_4)
 				if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_CORE) { 
 					fmt.setProfile(QSurfaceFormat::CoreProfile); // Requires >=Qt-4.8.0
@@ -307,7 +319,7 @@ void Ui_MainWindowBase::setupUi(void)
 				}					
 #endif
 		}
-		graphicsView = new GLDrawClass(using_flags, this, fmt);
+		graphicsView = new GLDrawClass(using_flags, csp_logger, this, fmt);
 		graphicsView->setObjectName(QString::fromUtf8("graphicsView"));
 		graphicsView->setMaximumSize(2560, 2560); // ?
 		graphicsView->setMinimumSize(240, 192); // ?
@@ -715,7 +727,6 @@ void Ui_MainWindowBase::setupUi(void)
 
 void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 {
-	int i;
 	if(using_flags->is_use_joystick()) {
 		action_SetupJoystick->setText(QApplication::translate("MainWindow", "Configure Joysticks", 0));
 		action_SetupJoystick->setToolTip(QApplication::translate("MainWindow", "Configure assigning buttons/directions of joysticks.", 0));
@@ -903,7 +914,7 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	{
 			int render_type = using_flags->get_config_ptr()->render_platform;
 			int _major_version = using_flags->get_config_ptr()->render_major_version;
-			int _minor_version = using_flags->get_config_ptr()->render_minor_version;
+			//int _minor_version = using_flags->get_config_ptr()->render_minor_version; // ToDo
 			for(i = 0; i < MAX_RENDER_PLATFORMS; i++) {
 				tmps = QString::number(i);
 				action_SetRenderPlatform[i] = new Action_Control(this, using_flags);
@@ -949,7 +960,7 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 
 void Ui_MainWindowBase::rise_log_viewer(void)
 {
-	Dlg_LogViewer *dlg = new Dlg_LogViewer(using_flags, NULL);
+	Dlg_LogViewer *dlg = new Dlg_LogViewer(using_flags, csp_logger, NULL);
 	dlg->show();
 }
 
@@ -1101,7 +1112,7 @@ void Ui_MainWindowBase::setCoreApplication(QApplication *p)
 // Move from common/qt_main.cpp
 // menu
 extern std::string cpp_homedir;
-extern std::string cpp_confdir;
+std::string cpp_confdir;
 extern std::string my_procname;
 extern bool now_menuloop;
 // timing control
@@ -1234,7 +1245,7 @@ void Ui_MainWindowBase::OnWindowMove(void)
 
 void Ui_MainWindowBase::OnWindowResize(void)
 {
-	if(emu) {
+	if(using_flags->get_emu()) {
 		set_window(using_flags->get_config_ptr()->window_mode);
 	}
 }
@@ -1264,3 +1275,9 @@ void Ui_MainWindowBase::OnOpenDebugger(int no)
 void Ui_MainWindowBase::OnCloseDebugger(void )
 {
 }
+
+/*
+ * This is main for Qt.
+ */
+DLL_PREFIX CSP_Logger *csp_logger;
+

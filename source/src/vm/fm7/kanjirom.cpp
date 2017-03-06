@@ -6,6 +6,7 @@
  *  Feb 11, 2015 : Initial
  */
 
+#include "vm.h"
 #include "../../fileio.h"
 #include "emu.h"
 #include "fm7_common.h"
@@ -38,6 +39,11 @@ KANJIROM::KANJIROM(VM *parent_vm, EMU* parent_emu, bool type_2std): DEVICE(paren
 			fio->Fclose();
 			read_ok = true;
 		} 
+	}
+	if(class2) {
+		set_device_name(_T("FM7_KANJI_CLASS2"));
+	} else {
+		set_device_name(_T("FM7_KANJI_CLASS1"));
 	}
 	if(class2) {
 		set_device_name(_T("FM7_KANJI_CLASS2"));

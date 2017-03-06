@@ -465,6 +465,16 @@
 #include "tk80bs/tk80bs.h"
 #endif
 
+// NEC TK-80
+#ifdef _TK80
+#include "tk80bs/tk80bs.h"
+#endif
+
+// NEC TK-85
+#ifdef _TK85
+#include "tk80bs/tk80bs.h"
+#endif
+
 // CANON X-07
 #ifdef _X07
 #include "x07/x07.h"
@@ -506,23 +516,31 @@
 #endif
 
 #ifndef WINDOW_MODE_BASE
-#define WINDOW_MODE_BASE 1
+	#define WINDOW_MODE_BASE 1
 #endif
 #ifndef WINDOW_WIDTH
-#define WINDOW_WIDTH SCREEN_WIDTH
+	#ifdef SCREEN_FAKE_WIDTH
+		#define WINDOW_WIDTH SCREEN_FAKE_WIDTH
+	#else
+		#define WINDOW_WIDTH SCREEN_WIDTH
+	#endif
 #endif
 #ifndef WINDOW_HEIGHT
-#define WINDOW_HEIGHT SCREEN_HEIGHT
+	#ifdef SCREEN_FAKE_HEIGHT
+		#define WINDOW_HEIGHT SCREEN_FAKE_HEIGHT
+	#else
+		#define WINDOW_HEIGHT SCREEN_HEIGHT
+	#endif
 #endif
 #ifndef WINDOW_WIDTH_ASPECT
-#define WINDOW_WIDTH_ASPECT WINDOW_WIDTH
+	#define WINDOW_WIDTH_ASPECT WINDOW_WIDTH
 #endif
 #ifndef WINDOW_HEIGHT_ASPECT
-#define WINDOW_HEIGHT_ASPECT WINDOW_HEIGHT
+	#define WINDOW_HEIGHT_ASPECT WINDOW_HEIGHT
 #endif
 
 #ifndef KEY_KEEP_FRAMES
-#define KEY_KEEP_FRAMES 3
+	#define KEY_KEEP_FRAMES 3
 #endif
 
 #endif

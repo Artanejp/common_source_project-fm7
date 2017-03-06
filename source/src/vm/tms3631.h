@@ -11,8 +11,8 @@
 #ifndef _TMS3631_H_
 #define _TMS3631_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 #define SIG_TMS3631_ENVELOP1	0
@@ -20,6 +20,8 @@
 #define SIG_TMS3631_DATAREG	2
 #define SIG_TMS3631_MASKREG	3
 
+class VM;
+class EMU;
 class TMS3631 : public DEVICE
 {
 private:

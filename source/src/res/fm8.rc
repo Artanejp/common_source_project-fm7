@@ -153,6 +153,20 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_TAPE
     END
+    POPUP "Bubble Casette1"
+    BEGIN
+        MENUITEM "Insert",                      ID_OPEN_BUBBLE1
+        MENUITEM "Eject",                       ID_CLOSE_BUBBLE1
+        MENUITEM SEPARATOR
+        MENUITEM "Recent",                      ID_RECENT_BUBBLE1
+    END
+    POPUP "Bubble Casette2"
+    BEGIN
+        MENUITEM "Insert",                      ID_OPEN_BUBBLE2
+        MENUITEM "Eject",                       ID_CLOSE_BUBBLE2
+        MENUITEM SEPARATOR
+        MENUITEM "Recent",                      ID_RECENT_BUBBLE2
+    END
     POPUP "Screen"
     BEGIN
         MENUITEM "Rec 60fps",                   ID_SCREEN_REC60
@@ -235,6 +249,9 @@ BEGIN
         MENUITEM "200msec",                     ID_SOUND_LATE2
         MENUITEM "300msec",                     ID_SOUND_LATE3
         MENUITEM "400msec",                     ID_SOUND_LATE4
+        MENUITEM SEPARATOR
+        MENUITEM "Realtime Mix",                ID_SOUND_STRICT_RENDER
+        MENUITEM "Light Weight Mix",            ID_SOUND_LIGHT_RENDER
         MENUITEM SEPARATOR
         MENUITEM "Beep Only",                   ID_SOUND_DEVICE_TYPE0
         MENUITEM "PSG (Hack)",                  ID_SOUND_DEVICE_TYPE1

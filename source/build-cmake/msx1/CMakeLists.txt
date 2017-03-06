@@ -22,12 +22,8 @@ set(WITH_MOUSE ON)
 set(VMFILES_BASE
   z80.cpp
   tms9918a.cpp
-
-  not.cpp
   i8255.cpp
-  
   ym2203.cpp
-  pcm1bit.cpp
   
   #  
   datarec.cpp
@@ -36,6 +32,10 @@ set(VMFILES_BASE
   memory.cpp
 )
 
+set(VMFILES_LIB
+  pcm1bit.cpp
+  not.cpp
+)
 set(BUILD_PX7 OFF CACHE BOOL "Build for Pioneer PX7")
 set(BUILD_MSX1 ON CACHE BOOL "Build for MSX1")
 set(BUILD_MSX2 OFF CACHE BOOL "Build for MSX2")

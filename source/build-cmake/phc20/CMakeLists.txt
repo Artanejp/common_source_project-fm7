@@ -23,7 +23,8 @@ set(VMFILES
 		   datarec.cpp
 		   event.cpp
 )
-
+set(VMFILES_LIB
+)
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")

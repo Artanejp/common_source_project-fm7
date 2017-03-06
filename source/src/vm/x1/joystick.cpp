@@ -10,7 +10,7 @@
 */
 
 #include "joystick.h"
-#include "../ym2203.h"
+#include "../ay_3_891x.h"
 
 void JOYSTICK::initialize()
 {
@@ -37,9 +37,9 @@ void JOYSTICK::event_frame()
 		}
 #endif
 		if(i == 0) {
-			d_psg->write_signal(SIG_YM2203_PORT_A, val, 0xff);
+			d_psg->write_signal(SIG_AY_3_891X_PORT_A, val, 0xff);
 		} else {
-			d_psg->write_signal(SIG_YM2203_PORT_B, val, 0xff);
+			d_psg->write_signal(SIG_AY_3_891X_PORT_B, val, 0xff);
 		}
 	}
 }

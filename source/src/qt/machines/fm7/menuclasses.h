@@ -49,6 +49,7 @@ public slots:
 	void do_set_frameskip();
 };
 
+class CSP_Logger;
 class Ui_MainWindow;
 //  wrote of Specific menu.
 class META_MainWindow : public Ui_MainWindow {
@@ -87,7 +88,7 @@ protected:
 	void retranslateUi(void);
 	void retranslateVolumeLabels(Ui_SoundDialog *p);
 public:
-	META_MainWindow(USING_FLAGS *p, QWidget *parent = 0);
+	META_MainWindow(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent = 0);
 	~META_MainWindow();
 public slots:
 	void do_set_extram(bool flag);

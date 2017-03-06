@@ -760,10 +760,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\ys6464a.png"
-				>
-			</File>
-			<File
 				RelativePath="..\src\res\ys6464a.rc"
 				>
 				<FileConfiguration
@@ -784,6 +780,94 @@
 						AdditionalIncludeDirectories="..\src\res"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\src\res\ys6464a\board.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ys6464a\button00.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ys6464a\button01.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ys6464a\button02.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ys6464a\button03.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ys6464a\button04.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ys6464a\button05.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ys6464a\button06.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ys6464a\button07.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ys6464a\button08.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ys6464a\button09.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ys6464a\button10.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ys6464a\button11.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ys6464a\button12.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ys6464a\button13.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ys6464a\button14.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ys6464a\button15.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ys6464a\button16.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ys6464a\button17.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ys6464a\button18.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ys6464a\button19.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\ys6464a\button20.png"
+				>
 			</File>
 		</Filter>
 	</Files>

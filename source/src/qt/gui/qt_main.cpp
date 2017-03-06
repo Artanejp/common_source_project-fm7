@@ -18,17 +18,17 @@
 #include "menu_flags.h"
 #include "csp_logger.h"
 
-extern std::string cpp_homedir;
-extern std::string cpp_confdir;
-extern std::string my_procname;
-extern std::string sRssDir;
+extern DLL_PREFIX_I std::string cpp_homedir;
+extern DLL_PREFIX_I std::string cpp_confdir;
+extern DLL_PREFIX_I std::string my_procname;
+//extern DLL_PREFIX_I std::string sRssDir;
 
 void get_long_full_path_name(_TCHAR* src, _TCHAR* dst)
 {
 	QString r_path;
 	QString delim;
 	QString ss;
-	const char *s;
+	//const char *s;
 	QDir mdir;
 	if(src == NULL) {
 		if(dst != NULL) dst[0] = '\0';
@@ -70,7 +70,7 @@ _TCHAR* get_parent_dir(_TCHAR* file)
 	for(ptr = strlen(p) - 1; ptr >= 0; ptr--) { 
 		if(p[ptr] == delim) break;
 	}
-	if(ptr >= 0) for(ptr = ptr + 1; ptr < strlen(p); ptr++) p[ptr] = '\0'; 
+	if(ptr >= 0) for(ptr = ptr + 1; ptr < (int)strlen(p); ptr++) p[ptr] = '\0'; 
 	return p;
 }
 
@@ -86,7 +86,7 @@ void get_short_filename(_TCHAR *dst, _TCHAR *file, int maxlen)
 	for(i = strlen(file) - 1; i <= 0; i--) {
 		if(file[i] == delim) break;
 	}
-	if(i >= (strlen(file) - 1)) {
+	if(i >= ((int)strlen(file) - 1)) {
 		dst[0] = '\0';
 		return;
 	}
@@ -96,37 +96,3 @@ void get_short_filename(_TCHAR *dst, _TCHAR *file, int maxlen)
 	return;
 }
 
-extern int MainLoop(int argc, char *argv[], config_t *cfg);
-extern config_t config;
-
-CSP_Logger *csp_logger;
-
-/*
- * This is main for Qt.
- */
-int main(int argc, char *argv[])
-{
-	int nErrorCode;
-	/*
-	 * Get current DIR
-	 */
-   
-/*
- * アプリケーション初期化
- */
-	Q_INIT_RESOURCE(commontexts);
-	Q_INIT_RESOURCE(shaders);
-	nErrorCode = MainLoop(argc, argv, &config);
-	Q_CLEANUP_RESOURCE(shaders);
-	Q_CLEANUP_RESOURCE(commontexts);
-	if(csp_logger != NULL) delete csp_logger;
-	
-	return nErrorCode;
-}
-#if defined(Q_OS_WIN) 
-int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
-{
-   char *arg[1] = {""};
-   main(1, arg);
-}
-#endif

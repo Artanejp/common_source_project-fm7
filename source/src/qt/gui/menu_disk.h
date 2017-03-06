@@ -20,7 +20,7 @@ protected:
 	class Action_Control *action_correct_timing;
 	QIcon icon_floppy;
 public:
-	Menu_FDClass(EMU *ep, QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent = 0, int drv = 0);
+	Menu_FDClass(QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent = 0, int drv = 0);
 	~Menu_FDClass();
 	void create_pulldown_menu_device_sub();
 	void connect_menu_device_sub(void);

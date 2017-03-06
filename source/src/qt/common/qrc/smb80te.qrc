@@ -1,8 +1,33 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
     <file alias="default.ico">../../../res/smb80te.ico</file>
-    <file alias="background.png">../../../res/smb80te.png</file>
+    <file alias="background.png">../../../res/smb80te/board.png</file>
     <file alias="bios_and_keys.txt">../../../../../doc/VMs/smb80te.txt</file>
     <file alias="csp_qt_machine_ja.qm">../../../res/i18n/ja/smb80te.qm</file>
+    <file alias="button00.png">../../../res/smb80te/button00.png</file>
+    <file alias="button01.png">../../../res/smb80te/button01.png</file>
+    <file alias="button02.png">../../../res/smb80te/button02.png</file>
+    <file alias="button03.png">../../../res/smb80te/button03.png</file>
+    <file alias="button04.png">../../../res/smb80te/button04.png</file>
+    <file alias="button05.png">../../../res/smb80te/button05.png</file>
+    <file alias="button06.png">../../../res/smb80te/button06.png</file>
+    <file alias="button07.png">../../../res/smb80te/button07.png</file>
+    <file alias="button08.png">../../../res/smb80te/button08.png</file>
+    <file alias="button09.png">../../../res/smb80te/button09.png</file>
+    <file alias="button10.png">../../../res/smb80te/button10.png</file>
+    <file alias="button11.png">../../../res/smb80te/button11.png</file>
+    <file alias="button12.png">../../../res/smb80te/button12.png</file>
+    <file alias="button13.png">../../../res/smb80te/button13.png</file>
+    <file alias="button14.png">../../../res/smb80te/button14.png</file>
+    <file alias="button15.png">../../../res/smb80te/button15.png</file>
+    <file alias="button16.png">../../../res/smb80te/button16.png</file>
+    <file alias="button17.png">../../../res/smb80te/button17.png</file>
+    <file alias="button18.png">../../../res/smb80te/button18.png</file>
+    <file alias="button19.png">../../../res/smb80te/button19.png</file>
+    <file alias="button20.png">../../../res/smb80te/button20.png</file>
+    <file alias="button21.png">../../../res/smb80te/button21.png</file>
+    <file alias="button22.png">../../../res/smb80te/button22.png</file>
+    <file alias="button23.png">../../../res/smb80te/button23.png</file>
+    <file alias="button24.png">../../../res/smb80te/button24.png</file>
 </qresource>
 </RCC>

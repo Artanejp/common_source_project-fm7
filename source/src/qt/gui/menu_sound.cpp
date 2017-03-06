@@ -13,7 +13,7 @@
 #include "mainwidget_base.h"
 //#include "menuclasses.h"
 #include "sound_dialog.h"
-#include "../common/menu_flags.h"
+#include "menu_flags.h"
 
 
 // WIP: Will move to another file
@@ -38,7 +38,7 @@ void Ui_MainWindowBase::do_set_sound_strict_rendering(bool f)
 
 void Ui_MainWindowBase::rise_volume_dialog(void)
 {
-	Ui_SoundDialog *dlg = new Ui_SoundDialog(using_flags, emu, this);
+	Ui_SoundDialog *dlg = new Ui_SoundDialog(using_flags, this);
 	QString tmps, s_val;
 	float n;
 	QIcon  img = QIcon(":/icon_speaker.png");
@@ -121,12 +121,9 @@ void Ui_MainWindowBase::ConfigSoundMenu(void)
 	int i;
 	QString tmps;
 	double dval;
-	int freq = 48000;
-
-
+	//int freq = 48000;
 	actionGroup_Sound_Freq = new QActionGroup(this);
 	actionGroup_Sound_Freq->setExclusive(true);
-	
 	for(i = 0; i < 8; i++) {
 		action_Freq[i] = new Action_Control(this, using_flags);
 		tmps.setNum(using_flags->get_s_freq_table(i));
@@ -136,7 +133,7 @@ void Ui_MainWindowBase::ConfigSoundMenu(void)
 		action_Freq[i]->binds->setNumber(i);
 		if(i == using_flags->get_config_ptr()->sound_frequency) {
 			action_Freq[i]->setChecked(true);
-			freq = using_flags->get_s_freq_table(i);
+			//freq = using_flags->get_s_freq_table(i);
 		}
 		actionGroup_Sound_Freq->addAction(action_Freq[i]);
 	}

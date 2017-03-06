@@ -10,8 +10,8 @@
 #ifndef _MC6820_H_
 #define _MC6820_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 #define SIG_MC6820_PORT_A	0
@@ -21,6 +21,8 @@
 #define SIG_MC6820_C2_A		4
 #define SIG_MC6820_C2_B		5
 
+class VM;
+class EMU;
 class MC6820 : public DEVICE
 {
 private:

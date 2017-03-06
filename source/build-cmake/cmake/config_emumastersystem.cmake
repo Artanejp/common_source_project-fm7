@@ -13,10 +13,12 @@ set(WITH_JOYSTICK ON)
 set(VMFILES
 		   z80.cpp
 		   i8255.cpp
-		   i8251.cpp
 		   event.cpp
 		   io.cpp
 		   memory.cpp
+)
+set(VMFILES_LIB
+		   i8251.cpp
 )
 
 set(BUILD_SHARED_LIBS OFF)

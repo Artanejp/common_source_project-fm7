@@ -11,8 +11,8 @@
 #ifndef _MC6840_H_
 #define _MC6840_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 #define SIG_MC6840_CLOCK_0	0
@@ -22,6 +22,8 @@
 #define SIG_MC6840_GATE_1	4
 #define SIG_MC6840_GATE_2	5
 
+class VM;
+class EMU;
 class MC6840 : public DEVICE
 {
 private:

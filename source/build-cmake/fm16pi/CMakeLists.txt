@@ -21,15 +21,12 @@ set(WITH_JOYSTICK OFF)
 set(WITH_MOUSE ON)
 
 set(VMFILES
-		   i286.cpp
+#		   i286.cpp
 #
-		   pcm1bit.cpp
-		   i8251.cpp
 		   i8253.cpp
 		   i8255.cpp
 		   i8259.cpp
 		   msm58321.cpp
-		   not.cpp
 		   mb8877.cpp
 		   
 		   ym2203.cpp
@@ -41,6 +38,13 @@ set(VMFILES
 		   memory.cpp
 )
 
+set(VMFILES_LIB
+		   pcm1bit.cpp
+		   i8251.cpp
+		   not.cpp
+)
+
+set(FLAG_USE_I86 ON)
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")

@@ -10,12 +10,14 @@
 #ifndef _LS244_H_
 #define _LS244_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 #define SIG_LS244_INPUT	0
 
+class VM;
+class EMU;
 class LS244 : public DEVICE
 {
 private:

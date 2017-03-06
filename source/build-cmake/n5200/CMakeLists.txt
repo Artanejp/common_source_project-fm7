@@ -22,11 +22,9 @@ set(WITH_JOYSTICK OFF)
 set(WITH_MOUSE ON)
 
 set(VMFILES_BASE
-                   i386.cpp
+#                  i386.cpp
 		   
-		   beep.cpp
 		   i8237.cpp
-		   i8251.cpp
 		   i8253.cpp
 		   i8255.cpp
 		   i8259.cpp
@@ -39,7 +37,11 @@ set(VMFILES_BASE
 		   disk.cpp
 		   event.cpp
 )
-
+set(VMFILES_LIB
+		   beep.cpp
+		   i8251.cpp
+)
+set(FLAG_USE_I386_VARIANTS ON)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 include(detect_target_cpu)

@@ -12,27 +12,31 @@ set(VM_FM7_LIB_SRCS
 	fm7_mainio.cpp
 	fm7_mainmem.cpp
 	kanjirom.cpp
-	dummydevice.cpp
+#	dummydevice.cpp
 	fm7.cpp
 )
 
-if(FM77AV_VARIANTS)
-	set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} mb61vh010.cpp)
-endif()
 if(BUILD_FM8)
 	set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} fm_bubblecasette.cpp)
 endif()
 
-if(BUILD_FM77AV20EX)
-	set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} 	hd6844.cpp)
-elseif(BUILD_FM77AV40)
-	set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} 	hd6844.cpp)
-elseif(BUILD_FM77AV40EX)
-	set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} 	hd6844.cpp)
-elseif(BUILD_FM77AV40SX)
-	set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} 	hd6844.cpp)
+if(USE_DEVICES_SHARED_LIB)
+else()
+	set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} dummydevice.cpp)
+	if(FM77AV_VARIANTS)
+		set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} mb61vh010.cpp)
+	endif()
+	if(BUILD_FM77AV20EX)
+		set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} 	hd6844.cpp)
+	elseif(BUILD_FM77AV40)
+		set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} 	hd6844.cpp)
+	elseif(BUILD_FM77AV40EX)
+		set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} 	hd6844.cpp)
+	elseif(BUILD_FM77AV40SX)
+		set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} 	hd6844.cpp)
+	endif()
+	set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} dummydevice.cpp)
 endif()
-
 add_library(vm_fm7
 	${VM_FM7_LIB_SRCS}
 )

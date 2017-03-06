@@ -12,8 +12,8 @@ else()
 endif()
  
 add_library(qt_debugger
-          qt_debugger.cpp
+		  qt_debugger.cpp
           debugger_thread.cpp
-	  ${s_qt_debugger_headers_MOC}
+		  ${s_qt_debugger_headers_MOC}
 )
 

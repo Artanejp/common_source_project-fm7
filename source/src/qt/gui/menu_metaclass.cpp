@@ -15,14 +15,15 @@
 #include "commonclasses.h"
 #include "qt_main.h"
 
-Menu_MetaClass::Menu_MetaClass(EMU *ep, QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent, int drv) : QMenu(root_entry)
+Menu_MetaClass::Menu_MetaClass(QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent, int drv) : QMenu(root_entry)
 {
 	QString tmps;
 	int ii;
 	
 	p_wid = parent;
 	menu_root = root_entry;
-	p_emu = ep;
+	//p_emu = ep;
+	p_emu = NULL;
 	using_flags = p;
 	
 	media_drive = drv;
@@ -228,7 +229,6 @@ void Menu_MetaClass::do_clear_inner_media(void)
 void Menu_MetaClass::do_update_inner_media(QStringList lst, int num)
 {
 	QString tmps;
-	int ii;
 	inner_media_list.clear();
 	emit sig_update_inner_fd(media_drive, inner_media_list, action_select_media_list, lst , num, use_d88_menus);
 }
@@ -236,7 +236,6 @@ void Menu_MetaClass::do_update_inner_media(QStringList lst, int num)
 void Menu_MetaClass::do_update_inner_media_bubble(QStringList lst, int num)
 {
 	QString tmps;
-	int ii;
 	inner_media_list.clear();
 	emit sig_update_inner_bubble(media_drive, inner_media_list, action_select_media_list,
 								 lst, num, use_d88_menus);

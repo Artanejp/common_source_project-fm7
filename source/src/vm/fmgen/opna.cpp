@@ -43,6 +43,7 @@ uint32	OPNBase::lfotable[8];			// OPNA/B —p
 
 OPNBase::OPNBase()
 {
+	is_ay3_891x = false;
 	prescale = 0;
 }
 

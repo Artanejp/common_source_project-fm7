@@ -14,38 +14,8 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 project (emutk80bs)
 
-set(VM_NAME tk80bs)
-set(USE_FMGEN OFF)
-set(WITH_JOYSTICK OFF)
-set(WITH_MOUSE ON)
+set(BUILD_TK80BS ON  CACHE BOOL "Build for TK-80 BS")
+set(BUILD_TK80   OFF CACHE BOOL "Build for TK-80")
+set(BUILD_TK85   OFF CACHE BOOL "Build for TK-85")
 
-set(VMFILES_BASE
-		   i8080.cpp
-		   i8251.cpp
-		   i8255.cpp
-		   
-		   event.cpp
-		   io.cpp
-		   memory.cpp
-
-		   pcm1bit.cpp
-)
-
-
-set(BUILD_SHARED_LIBS OFF)
-set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
-set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
-set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")
-
-include(detect_target_cpu)
-#include(windows-mingw-cross)
-# set entry
-set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
-
-
-set(VMFILES ${VMFILES_BASE})
-add_definitions(-D_TK80BS)
-set(EXEC_TARGET emutk80bs)
-set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/tk80bs.qrc)
-
-include(config_commonsource)
+include(config_tk80)

@@ -13,7 +13,7 @@ set(WITH_JOYSTICK ON)
 
 set(VMFILES
 		   z80.cpp
-		   not.cpp
+
 		   mc6847.cpp
 		   ym2203.cpp
 		   
@@ -22,6 +22,10 @@ set(VMFILES
 		   
 		   event.cpp
 )
+set(VMFILES_LIB
+		   not.cpp
+)
+
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")

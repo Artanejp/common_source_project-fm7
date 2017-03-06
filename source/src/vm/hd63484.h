@@ -11,10 +11,12 @@
 #ifndef _HD63484_H_
 #define _HD63484_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
+class VM;
+class EMU;
 class HD63484 : public DEVICE
 {
 private:

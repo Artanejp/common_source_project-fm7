@@ -14,8 +14,8 @@
 #ifndef _MSM5205_H_
 #define _MSM5205_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 /* an interface for the MSM5205 and similar chips */
@@ -37,6 +37,8 @@
 #define MSM6585_S80   (6+8)  /* prescaler 1/80 (8KHz), data 4bit */
 #define MSM6585_S20   (7+8)  /* prescaler 1/20(32KHz), data 4bit */
 
+class VM;
+class EMU;
 class MSM5205 : public DEVICE
 {
 private:

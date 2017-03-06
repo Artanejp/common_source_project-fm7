@@ -28,8 +28,10 @@
 #include "vm/vm.h"
 
 #if defined(_USE_QT)
+#include <pthread.h>
 #define OSD_QT
 #elif defined(_USE_SDL)
+#include <pthread.h>
 #define OSD_SDL
 #elif defined(_WIN32)
 #define OSD_WIN32
@@ -274,6 +276,7 @@ public:
 	void screen_skip_line(bool skip_line);
 #endif
 #ifdef ONE_BOARD_MICRO_COMPUTER
+	void get_invalidated_rect(int *left, int *top, int *right, int *bottom);
 	void reload_bitmap();
 #endif
 #ifdef OSD_WIN32
@@ -361,7 +364,7 @@ public:
 	bool now_debugging;
 	debugger_thread_t debugger_thread_param;
 #if defined(OSD_QT)
-	SDL_Thread *debugger_thread_id;
+	pthread_t debugger_thread_id;
 	CSP_Debugger *hDebugger;
 #elif defined(OSD_WIN32)
 	HANDLE hDebuggerThread;

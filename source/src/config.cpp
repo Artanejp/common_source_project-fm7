@@ -15,6 +15,8 @@
 # if defined(Q_OS_WIN)
 # include <windows.h>
 # endif
+
+extern CSP_Logger *csp_logger;
 #endif
 
 #include <stdlib.h>
@@ -32,10 +34,8 @@ config_t config;
 #define CONFIG_NAME "conf"
 #endif
 
-//extern _TCHAR* get_parent_dir(_TCHAR* file);
 BOOL MyWritePrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, int Value, LPCTSTR lpFileName)
 {
- 	_TCHAR String[32];
 	return MyWritePrivateProfileString(lpAppName, lpKeyName, create_string(_T("%d"), Value), lpFileName);
 }
  
@@ -51,7 +51,6 @@ bool MyGetPrivateProfileBool(LPCTSTR lpAppName, LPCTSTR lpKeyName, bool bDefault
 
 void initialize_config()
 {
-	int i;
 	// initial settings
 	memset(&config, 0, sizeof(config_t));
 	config.window_mode = 1;	
@@ -164,8 +163,8 @@ void initialize_config()
 	config.use_opengl_filters = false;
 	config.opengl_filter_num = 0;
 	config.render_platform = CONFIG_RENDER_PLATFORM_OPENGL_MAIN;
-	config.render_major_version = 3;
-	config.render_minor_version = 0;
+	config.render_major_version = 2; // For crash with some devices.
+	config.render_minor_version = 1;
 	config.log_to_syslog = false;
 	config.log_to_console = true;
 	for(int ii = 0; ii < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1) ; ii++) {
@@ -288,6 +287,14 @@ void load_config(const _TCHAR *config_path)
 		}
 	}
 #endif
+#ifdef USE_BUBBLE1
+	MyGetPrivateProfileString(_T("RecentFiles"), _T("InitialBubbleDir"), _T(""), config.initial_bubble_casette_dir, _MAX_PATH, config_path);
+	for(int drv = 0; drv < MAX_BUBBLE; drv++) {
+		for(int i = 0; i < MAX_HISTORY; i++) {
+			MyGetPrivateProfileString(_T("RecentFiles"), create_string(_T("RecentBubblePath%d_%d"), drv + 1, i + 1), _T(""), config.recent_bubble_casette_path[drv][i], _MAX_PATH, config_path);
+		}
+	}
+#endif
 	
 	// screen
 #ifndef ONE_BOARD_MICRO_COMPUTER
@@ -341,6 +348,7 @@ void load_config(const _TCHAR *config_path)
 	// sound
 	config.sound_frequency = MyGetPrivateProfileInt(_T("Sound"), _T("Frequency"), config.sound_frequency, config_path);
 	config.sound_latency = MyGetPrivateProfileInt(_T("Sound"), _T("Latency"), config.sound_latency, config_path);
+	config.sound_strict_rendering = MyGetPrivateProfileBool(_T("Sound"), _T("StrictRendering"), config.sound_strict_rendering, config_path);
 #ifdef USE_SOUND_DEVICE_TYPE
 	config.sound_device_type = MyGetPrivateProfileInt(_T("Sound"), _T("DeviceType"), config.sound_device_type, config_path);
 #endif
@@ -539,6 +547,14 @@ void save_config(const _TCHAR *config_path)
 	MyWritePrivateProfileBool(_T("Control"), _T("DirectLoadMZT"), config.direct_load_mzt, config_path);
 	MyWritePrivateProfileBool(_T("Control"), _T("BaudHigh"), config.baud_high, config_path);
 #endif
+#ifdef USE_BUBBLE1
+	MyWritePrivateProfileString(_T("RecentFiles"), _T("InitialBubbleDir"), config.initial_bubble_casette_dir, config_path);
+	for(int drv = 0; drv < MAX_BUBBLE; drv++) {
+		for(int i = 0; i < MAX_HISTORY; i++) {
+			MyWritePrivateProfileString(_T("RecentFiles"), create_string(_T("RecentBubblePath%d_%d"), drv + 1, i + 1), config.recent_bubble_casette_path[drv][i], config_path);
+		}
+	}
+#endif
 	
 	// recent files
 #ifdef USE_CART1
@@ -641,6 +657,7 @@ void save_config(const _TCHAR *config_path)
 	// sound
 	MyWritePrivateProfileInt(_T("Sound"), _T("Frequency"), config.sound_frequency, config_path);
 	MyWritePrivateProfileInt(_T("Sound"), _T("Latency"), config.sound_latency, config_path);
+	MyWritePrivateProfileBool(_T("Sound"), _T("StrictRendering"), config.sound_strict_rendering, config_path);
 #ifdef USE_SOUND_DEVICE_TYPE
 	MyWritePrivateProfileInt(_T("Sound"), _T("DeviceType"), config.sound_device_type, config_path);
 #endif
@@ -736,7 +753,7 @@ void save_config(const _TCHAR *config_path)
 	}
 #endif
 #if defined(_USE_QT) && !defined(Q_OS_WIN)
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Write config done.");
+	//csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Write config done.");
 #endif
 }
 
@@ -745,10 +762,8 @@ void save_config(const _TCHAR *config_path)
 void save_config_state(void *f)
 {
 	FILEIO *state_fio = (FILEIO *)f;
-	int drv;
 	
 	state_fio->FputUint32(STATE_VERSION);
-	
 #ifdef USE_BOOT_MODE
 	state_fio->FputInt32(config.boot_mode);
 #endif

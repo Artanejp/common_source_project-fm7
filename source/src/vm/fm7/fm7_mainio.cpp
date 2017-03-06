@@ -28,11 +28,14 @@ FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, paren
 	p_vm = parent_vm;
 	p_emu = parent_emu;
 #if defined(_FM8)
-	opn[0] = NULL;
+    psg = NULL;
 #else
-	for(i = 0; i < 4; i++) {
+	for(i = 0; i < 3; i++) {
 		opn[i] = NULL;
 	}
+# if !defined(_FM77AV_VARIANTS)
+	psg = NULL;
+#endif
 #endif
 	drec = NULL;
 	pcm1bit = NULL;
@@ -408,13 +411,13 @@ void FM7_MAINIO::set_port_fd02(uint8_t val)
 #if !defined(_FM8)	
 	irqmask_reg0 = val;
 	bool syndetirq_bak = irqmask_syndet;
-	bool rxrdyirq_bak = irqmask_rxrdy;
-	bool txrdyirq_bak = irqmask_txrdy;
+	//bool rxrdyirq_bak = irqmask_rxrdy;
+	//bool txrdyirq_bak = irqmask_txrdy;
 	
 	bool keyirq_bak = irqmask_keyboard;
-	bool timerirq_bak = irqmask_timer;
-	bool printerirq_bak = irqmask_printer;
-	bool mfdirq_bak = irqmask_mfd;
+	//bool timerirq_bak = irqmask_timer;
+	//bool printerirq_bak = irqmask_printer;
+	//bool mfdirq_bak = irqmask_mfd;
 	
 	//	if((val & 0b00010000) != 0) {
 	if((val & 0x80) != 0) {
@@ -540,7 +543,6 @@ void FM7_MAINIO::set_irq_txrdy(bool flag)
 void FM7_MAINIO::set_irq_timer(bool flag)
 {
 #if !defined(_FM8)
-	bool backup = irqstat_timer;
 	if(flag) {
 		irqstat_reg0 &= 0xfb; //~0x04;
 		irqstat_timer = true;	   
@@ -548,7 +550,6 @@ void FM7_MAINIO::set_irq_timer(bool flag)
 		irqstat_reg0 |= 0x04;
 		irqstat_timer = false;	   
 	}
-	//if(backup != irqstat_timer) do_irq();
 	do_irq();
 #endif	
 }
@@ -556,7 +557,6 @@ void FM7_MAINIO::set_irq_timer(bool flag)
 void FM7_MAINIO::set_irq_printer(bool flag)
 {
 #if !defined(_FM8)
-	uint8_t backup = irqstat_reg0;
 	irqreq_printer = flag;
 	if(flag && !(irqmask_printer)) {
 		irqstat_reg0 &= ~0x02;

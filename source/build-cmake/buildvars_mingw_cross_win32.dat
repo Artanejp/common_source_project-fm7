@@ -3,12 +3,17 @@ BUILD_TOOLCHAIN="GCC"
 
 BUILD_TYPE="Release"
 # "No" or "Yes".
-CSP_DEBUG="No"
+CSP_DEBUG="NO"
 # "No" or "Yes".
 USE_LTO="Yes"
 
 # No" or "Yes"
 STRIP_SYMBOLS="Yes"
+# "No" or "Yes"
+USE_RADICAL_OPTIMIZE="No"
+
+# "No" or "Yes"
+USE_COMMON_DEVICE_LIB="Yes"
 
 ADDITIONAL_MAKEFLAGS_LINK_EXE=""
 ADDITIONAL_MAKEFLAGS_LINK_DLL=""

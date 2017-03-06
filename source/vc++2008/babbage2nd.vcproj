@@ -756,10 +756,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\babbage2nd.png"
-				>
-			</File>
-			<File
 				RelativePath="..\src\res\babbage2nd.rc"
 				>
 				<FileConfiguration
@@ -783,6 +779,94 @@
 			</File>
 			<File
 				RelativePath="..\src\res\resource.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\babbage2nd\board.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\babbage2nd\button00.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\babbage2nd\button01.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\babbage2nd\button02.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\babbage2nd\button03.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\babbage2nd\button04.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\babbage2nd\button05.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\babbage2nd\button06.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\babbage2nd\button07.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\babbage2nd\button08.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\babbage2nd\button09.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\babbage2nd\button10.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\babbage2nd\button11.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\babbage2nd\button12.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\babbage2nd\button13.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\babbage2nd\button14.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\babbage2nd\button15.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\babbage2nd\button16.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\babbage2nd\button17.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\babbage2nd\button18.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\babbage2nd\button19.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\babbage2nd\button20.png"
 				>
 			</File>
 		</Filter>

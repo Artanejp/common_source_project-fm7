@@ -81,7 +81,8 @@ class I8255;
 class I8259;
 class IO;
 class UPD765A;
-class YM2203;
+//class YM2203;
+class AY_3_891X;
 class Z80;
 
 class CMT;
@@ -107,7 +108,8 @@ protected:
 	I8259* pic;
 	IO* io;
 	UPD765A* fdc;
-	YM2203* psg;
+//	YM2203* psg;
+	AY_3_891X* psg;
 	Z80* cpu;
 	
 	CMT* cmt;

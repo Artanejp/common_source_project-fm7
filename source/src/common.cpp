@@ -37,8 +37,8 @@
 	extern DWORD GetLongPathName(LPCTSTR lpszShortPath, LPTSTR lpszLongPath, DWORD cchBuffer);
 #endif
 #if defined(_USE_QT)
-	extern std::string DLL_PREFIX cpp_homedir;
-	extern std::string DLL_PREFIX my_procname;
+	std::string DLL_PREFIX cpp_homedir;
+	std::string DLL_PREFIX my_procname;
 #endif
 
 uint32_t DLL_PREFIX EndianToLittle_DWORD(uint32_t x)
@@ -141,7 +141,7 @@ char *DLL_PREFIX my_strtok_s(char *strToken, const char *strDelimit, char **cont
 	return strtok(strToken, strDelimit);
 }
 
-_TCHAR *DLL_PREFIX my_tcstok_s(_TCHAR *strToken, const char *strDelimit, _TCHAR **context)
+_TCHAR DLL_PREFIX *my_tcstok_s(_TCHAR *strToken, const char *strDelimit, _TCHAR **context)
 {
 	return _tcstok(strToken, strDelimit);
 }
@@ -241,6 +241,7 @@ BOOL DLL_PREFIX MyWritePrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName
 	return result;
 }
 
+#if 0
 static std::string MyGetPrivateProfileStr(const _TCHAR *lpAppName, const _TCHAR *lpKeyName, _TCHAR *lpFileName)
 {
 	std::string key;
@@ -295,6 +296,7 @@ static std::string MyGetPrivateProfileStr(const _TCHAR *lpAppName, const _TCHAR 
 	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Got: %s Length: %d", got_str.c_str(), got_str.length());
 	return got_str;
 }
+#endif
 
 DWORD DLL_PREFIX MyGetPrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpDefault, LPTSTR lpReturnedString, DWORD nSize, LPCTSTR lpFileName)
 {
@@ -357,7 +359,7 @@ UINT DLL_PREFIX MyGetPrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, INT
 #endif
 
 #if defined(_RGB555)
-scrntype_t RGB_COLOR(uint32_t r, uint32_t g, uint32_t b)
+scrntype_t DLL_PREFIX RGB_COLOR(uint32_t r, uint32_t g, uint32_t b)
 {
 	scrntype_t rr = ((scrntype_t)r * 0x1f) / 0xff;
 	scrntype_t gg = ((scrntype_t)g * 0x1f) / 0xff;
@@ -365,26 +367,26 @@ scrntype_t RGB_COLOR(uint32_t r, uint32_t g, uint32_t b)
 	return (rr << 10) | (gg << 5) | bb;
 }
 
-scrntype_t RGBA_COLOR(uint32_t r, uint32_t g, uint b, uint32_t a)
+scrntype_t DLL_PREFIX RGBA_COLOR(uint32_t r, uint32_t g, uint b, uint32_t a)
 {
 	return RGB_COLOR(r, g, b);
 }
 
-uint8_t R_OF_COLOR(scrntype_t c)
+uint8_t DLL_PREFIX R_OF_COLOR(scrntype_t c)
 {
 	c = (c >> 10) & 0x1f;
 	c = (c * 0xff) / 0x1f;
 	return (uint8_t)c;
 }
 
-uint8_t G_OF_COLOR(scrntype_t c)
+uint8_t DLL_PREFIX G_OF_COLOR(scrntype_t c)
 {
 	c = (c >>  5) & 0x1f;
 	c = (c * 0xff) / 0x1f;
 	return (uint8_t)c;
 }
 
-uint8_t B_OF_COLOR(scrntype_t c)
+uint8_t DLL_PREFIX B_OF_COLOR(scrntype_t c)
 {
 	c = (c >>  0) & 0x1f;
 	c = (c * 0xff) / 0x1f;
@@ -396,7 +398,7 @@ uint8_t A_OF_COLOR(scrntype_t c)
 	return 0;
 }
 #elif defined(_RGB565)
-scrntype_t RGB_COLOR(uint32_t r, uint32_t g, uint32_t b)
+scrntype_t DLL_PREFIX RGB_COLOR(uint32_t r, uint32_t g, uint32_t b)
 {
 	scrntype_t rr = ((scrntype_t)r * 0x1f) / 0xff;
 	scrntype_t gg = ((scrntype_t)g * 0x3f) / 0xff;
@@ -404,33 +406,33 @@ scrntype_t RGB_COLOR(uint32_t r, uint32_t g, uint32_t b)
 	return (rr << 11) | (gg << 5) | bb;
 }
 
-scrntype_t RGBA_COLOR(uint32_t r, uint32_t g, uint32_t b, uint32_t a)
+scrntype_t DLL_PREFIX RGBA_COLOR(uint32_t r, uint32_t g, uint32_t b, uint32_t a)
 {
 	return RGB_COLOR(r, g, b);
 }
 
-uint8_t R_OF_COLOR(scrntype_t c)
+uint8_t DLL_PREFIX R_OF_COLOR(scrntype_t c)
 {
 	c = (c >> 11) & 0x1f;
 	c = (c * 0xff) / 0x1f;
 	return (uint8_t)c;
 }
 
-uint8_t G_OF_COLOR(scrntype_t c)
+uint8_t DLL_PREFIX G_OF_COLOR(scrntype_t c)
 {
 	c = (c >>  5) & 0x3f;
 	c = (c * 0xff) / 0x3f;
 	return (uint8_t)c;
 }
 
-uint8_t B_OF_COLOR(scrntype_t c)
+uint8_t DLL_PREFIX B_OF_COLOR(scrntype_t c)
 {
 	c = (c >>  0) & 0x1f;
 	c = (c * 0xff) / 0x1f;
 	return (uint8_t)c;
 }
 
-uint8_t A_OF_COLOR(scrntype_t c)
+uint8_t DLL_PREFIX A_OF_COLOR(scrntype_t c)
 {
 	return 0;
 }
@@ -492,6 +494,7 @@ const _TCHAR *DLL_PREFIX create_local_path(const _TCHAR *format, ...)
 	static unsigned int table_index = 0;
 	unsigned int output_index = (table_index++) & 7;
 	_TCHAR file_name[_MAX_PATH];
+	//printf("%d %d\n", table_index, output_index);
 	va_list ap;
 	
 	va_start(ap, format);
@@ -530,13 +533,13 @@ bool DLL_PREFIX check_file_extension(const _TCHAR *file_path, const _TCHAR *ext)
 #if defined(_USE_QT)
 	std::string s_fpath = file_path;
 	std::string s_ext = ext;
-	bool f = false;
+	//bool f = false;
 	int pos;
 	std::transform(s_fpath.begin(), s_fpath.end(), s_fpath.begin(), to_upper());
 	std::transform(s_ext.begin(), s_ext.end(), s_ext.begin(), to_upper());
 	if(s_fpath.length() < s_ext.length()) return false;
 	pos = s_fpath.rfind(s_ext.c_str(), s_fpath.length());
-	if((pos != std::string::npos) && (pos >= (s_fpath.length() - s_ext.length()))) return true; 
+	if((pos != (int)std::string::npos) && (pos >= ((int)s_fpath.length() - (int)s_ext.length()))) return true; 
 	return false;
 #else
 	int nam_len = _tcslen(file_path);
@@ -566,9 +569,8 @@ const _TCHAR *DLL_PREFIX get_file_path_without_extensiton(const _TCHAR *file_pat
 
 void DLL_PREFIX get_long_full_path_name(const _TCHAR* src, _TCHAR* dst, size_t dst_len)
 {
-	_TCHAR tmp[_MAX_PATH];
-	
 #ifdef _WIN32
+	_TCHAR tmp[_MAX_PATH];
 	if(GetFullPathName(src, _MAX_PATH, tmp, NULL) == 0) {
 		my_tcscpy_s(dst, dst_len, src);
 	} else if(GetLongPathName(tmp, dst, _MAX_PATH) == 0) {
@@ -714,7 +716,7 @@ void DLL_PREFIX get_host_time(cur_time_t* cur_time)
 
 
 
-void cur_time_t::increment()
+void DLL_PREFIX cur_time_t::increment()
 {
 	if(++second >= 60) {
 		second = 0;
@@ -744,7 +746,7 @@ void cur_time_t::increment()
 	}
 }
 
-void cur_time_t::update_year()
+void DLL_PREFIX cur_time_t::update_year()
 {
 	// 1970-2069
 	if(year < 70) {
@@ -754,7 +756,7 @@ void cur_time_t::update_year()
 	}
 }
 
-void cur_time_t::update_day_of_week()
+void DLL_PREFIX cur_time_t::update_day_of_week()
 {
 	static const int t[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
 	int y = year - (month < 3);
@@ -763,7 +765,7 @@ void cur_time_t::update_day_of_week()
 
 #define STATE_VERSION	1
 
-void cur_time_t::save_state(void *f)
+void DLL_PREFIX cur_time_t::save_state(void *f)
 {
 	FILEIO *state_fio = (FILEIO *)f;
 	
@@ -779,7 +781,7 @@ void cur_time_t::save_state(void *f)
 	state_fio->FputBool(initialized);
 }
 
-bool cur_time_t::load_state(void *f)
+bool DLL_PREFIX cur_time_t::load_state(void *f)
 {
 	FILEIO *state_fio = (FILEIO *)f;
 	

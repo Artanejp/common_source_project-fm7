@@ -90,6 +90,9 @@
     <ClCompile Include="..\src\win32\winmain.cpp">
       <Filter>Source Files\OSD Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\vm\ay_3_891x.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\vm\datarec.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
@@ -141,6 +144,9 @@
     <ClCompile Include="..\src\vm\fm7\dummydevice.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\vm\fm7\fm_bubblecasette.cpp">
+      <Filter>Source Files\VM Driver Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\vm\fm7\fm7.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
@@ -184,6 +190,9 @@
     </ClInclude>
     <ClInclude Include="..\src\win32\osd.h">
       <Filter>Header Files\OSD Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\ay_3_891x.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\datarec.h">
       <Filter>Header Files\VM Common Header Files</Filter>
@@ -247,6 +256,9 @@
     </ClInclude>
     <ClInclude Include="..\src\vm\fmgen\psg.h">
       <Filter>Header Files\VM Common Header Files\fmgen Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\fm7\bubblecasette.h">
+      <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\fm7\dummydevice.h">
       <Filter>Header Files\VM Driver Header Files</Filter>

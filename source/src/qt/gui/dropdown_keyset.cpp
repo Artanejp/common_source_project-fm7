@@ -106,8 +106,8 @@ void CSP_KeyTables::do_set_key_table(const keydef_table_t *tbl)
 		base_table = tbl;
 		memset(using_table, 0x00, KEYDEF_MAXIMUM * sizeof(keydef_table_t));
 		table_size = 0;
-		bool authorised_vk[256];
-		for(i = 0; i < 256; i++) authorised_vk[i] = false;
+		//bool authorised_vk[256];
+		//for(i = 0; i < 256; i++) authorised_vk[i] = false;
 		for(i = 0; i < KEYDEF_MAXIMUM; i++) {
 			if(tbl[i].vk == 0xffffffff) break;
 			if(tbl[i].vk >= 256) continue;
@@ -115,7 +115,7 @@ void CSP_KeyTables::do_set_key_table(const keydef_table_t *tbl)
 			using_table[i].scan = tbl[i].scan;
 			using_table[i].name = tbl[i].name;
 			key_names.append(QString::fromUtf8(tbl[i].name));
-			authorised_vk[tbl[i].vk] = true;
+			//authorised_vk[tbl[i].vk] = true;
 		}
 		table_size = i;
 	}
@@ -194,7 +194,6 @@ uint32_t CSP_KeyTables::get_vk_from_index(int index)
 
 uint32_t CSP_KeyTables::get_scan_from_index(int index)
 {
-	int i;
 	if((index < 0) || (index > table_size)) return 0;
 	if(using_table[index].vk == 0xffffffff) return 0;
 	return using_table[index].scan;
@@ -222,6 +221,7 @@ uint32_t CSP_KeyTables::get_scan_from_vk(uint32_t vk)
 			return using_table[i].scan;
 		}
 	}
+	return 0xffffffff;
 }
 
 uint32_t CSP_KeyTables::get_vk_from_scan(uint32_t scan)
@@ -235,6 +235,7 @@ uint32_t CSP_KeyTables::get_vk_from_scan(uint32_t scan)
 			return using_table[i].vk;
 		}
 	}
+	return 0xffffffff;
 }
 
 keydef_table_t *CSP_KeyTables::get_using_key_table(int index)

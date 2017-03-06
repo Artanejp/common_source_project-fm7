@@ -13,7 +13,7 @@
 //#include "emu.h"
 
 
-Menu_FDClass::Menu_FDClass(EMU *ep, QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent, int drv) : Menu_MetaClass(ep, root_entry, desc, p, parent, drv)
+Menu_FDClass::Menu_FDClass(QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent, int drv) : Menu_MetaClass(root_entry, desc, p, parent, drv)
 {
 	use_write_protect = true;
 	use_d88_menus = true;

@@ -8,9 +8,11 @@
  *   Jun 16, 2015 : Initial, split from sound.cpp.
  *
  */
+#include "../vm.h"
 #include "fm7_mainio.h"
 #include "./joystick.h"
 #include "../../config.h"
+#include "../../emu.h"
 
 JOYSTICK::JOYSTICK(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
 {
@@ -43,7 +45,6 @@ void JOYSTICK::initialize()
 
 void JOYSTICK::reset()
 {
-	int i;
 	joydata[0] = joydata[1] = 0xff;
 	lpt_type = config.printer_device_type;
 #if !defined(_FM8)
@@ -260,9 +261,8 @@ void JOYSTICK::write_signal(int id, uint32_t data, uint32_t mask)
 
 void JOYSTICK::update_config(void)
 {
-	int i;
 #if !defined(_FM8)
-	if(mouse_type == config.device_type) return;
+	if(mouse_type == (uint32_t)config.device_type) return;
 	mouse_type = config.device_type;
 	switch(mouse_type & 0x03){
 	case 1:
@@ -318,7 +318,7 @@ void JOYSTICK::save_state(FILEIO *state_fio)
 bool JOYSTICK::load_state(FILEIO *state_fio)
 {
 	uint32_t version = state_fio->FgetUint32_BE();
-	uint32_t devid = state_fio->FgetInt32_BE();
+	int32_t devid = state_fio->FgetInt32_BE();
 	bool stat = false;
 	int ch;
 	this->out_debug_log("Load State: JOYSTICK: id=%d ver=%d\n", devid, version);

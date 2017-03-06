@@ -48,7 +48,7 @@
 #endif
 #define HAS_AY_3_8910
 // for Flappy Limited '85
-#define YM2203_PORT_MODE	0x80
+#define AY_3_891X_PORT_MODE	0x80
 
 // device informations for win32
 #define USE_CART1
@@ -120,7 +120,8 @@ class IO;
 class LD700;
 #endif
 class NOT;
-class YM2203;
+//class YM2203;
+class AY_3_891X;
 class PCM1BIT;
 #if defined(_MSX2)
 class RP5C01;
@@ -156,7 +157,8 @@ protected:
 	LD700* ldp;
 #endif
 	NOT* not_remote;
-	YM2203* psg;
+//	YM2203* psg;
+	AY_3_891X* psg;
 	PCM1BIT* pcm;
 #if defined(_MSX2)
 	RP5C01* rtc;

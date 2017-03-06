@@ -83,6 +83,9 @@ static const int key_tbl[256] = {
 static const uint8_t dot_tbl[8] = {
 	0x80, 0x40, 0x20, 0x10, 8, 4, 2, 1
 };
+#if defined(Q_OS_WIN)
+DLL_PREFIX_I struct cur_time_s cur_time;
+#endif
 
 void IO::initialize()
 {

@@ -144,7 +144,7 @@ void MB8877::reset()
 		fdc[i].index = 0;
 		fdc[i].access = false;
 	}
-	for(int i = 0; i < array_length(register_id); i++) {
+	for(int i = 0; i < (int)array_length(register_id); i++) {
 		register_id[i] = -1;
 	}
 	now_search = now_seek = drive_sel = false;
@@ -1657,7 +1657,7 @@ bool MB8877::load_sound_data(int type, const _TCHAR *pathname)
 			snd_seek_samples_size = dst_size;
 			break;
 		case MB8877_SND_TYPE_HEAD: // HEAD
-			snd_seek_data = (int16_t *)malloc(alloc_size);
+			snd_head_data = (int16_t *)malloc(alloc_size);
 			memcpy(snd_head_data, data, utl_size);
 			strncpy(snd_head_name, pathname, 511);
 			snd_head_samples_size = dst_size;
@@ -1699,7 +1699,7 @@ bool MB8877::reload_sound_data(int type)
 		if(snd_seek_data != NULL) free(snd_seek_data);
 		break;
 	case MB8877_SND_TYPE_HEAD:
-		if(snd_seek_data != NULL) free(snd_seek_data);
+		if(snd_head_data != NULL) free(snd_head_data);
 		break;
 	default:
 		return false;
@@ -1717,6 +1717,8 @@ void MB8877::mix_main(int32_t *dst, int count, int16_t *src, int *table, int sam
 	int i, j, k;
 	int32_t data[2];
 	int32_t *dst_tmp;
+	if((dst == NULL) || (src == NULL)) return;
+	if((count <= 0) || (samples <= 0)) return;
 	for(i=0; i < MB8877_SND_TBL_MAX; i++) {
 		ptr = table[i];
 		if(ptr >= 0) {
@@ -1813,7 +1815,7 @@ void MB8877::save_state(FILEIO* state_fio)
 bool MB8877::load_state(FILEIO* state_fio)
 {
 	uint32_t s_version = state_fio->FgetUint32();
-	uint32_t desired_version = STATE_VERSION;
+	//uint32_t desired_version = STATE_VERSION;
 	bool pending = false;
 	if(s_version != STATE_VERSION) {
 		if(s_version == 5) {

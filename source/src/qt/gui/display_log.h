@@ -23,15 +23,16 @@ class QGridLayout;
 class QGroupBox;
 class QTimer;
 class USING_FLAGS;
-
+class CSP_Logger;
 class DLL_PREFIX Dlg_LogViewerBind : public QObject
 {
 	Q_OBJECT
 protected:
 	uint32_t bind_int;
 	QString str;
+	CSP_Logger *csp_logger;
 public:
-	Dlg_LogViewerBind(QObject *parent, QString _str, int32_t _bind_int = 0xffffffff);
+	Dlg_LogViewerBind(QObject *parent, CSP_Logger *logger, QString _str, int32_t _bind_int = 0xffffffff);
 	~Dlg_LogViewerBind();
 	int32_t get_int(void);
 	QString get_domain(void);
@@ -52,7 +53,7 @@ class DLL_PREFIX Dlg_LogViewer : public QWidget
 	
 protected:
 	QString log_str;
-	
+	CSP_Logger * csp_logger;
 	QString domain_name;
 	uint32_t level_map;
 	int64_t now_end_line;
@@ -62,7 +63,7 @@ protected:
 	QTimer *UpdateTimer;
 	USING_FLAGS *using_flags;
 public:
-	Dlg_LogViewer(USING_FLAGS *p, QWidget *parent, QString _domain = QString::fromUtf8(""), uint32_t _level = 0xffffffff);
+	Dlg_LogViewer(USING_FLAGS *p, CSP_Logger * logger, QWidget *parent, QString _domain = QString::fromUtf8(""), uint32_t _level = 0xffffffff);
 	~Dlg_LogViewer();
 
 public slots:

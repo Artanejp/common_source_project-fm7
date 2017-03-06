@@ -37,8 +37,8 @@
 #ifndef _UPD7752_H_
 #define _UPD7752_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 typedef	int	D7752_SAMPLE;
@@ -58,6 +58,8 @@ typedef	int	D7752_FIXED;
 #define	D7752E_ERR	(0x10)	// b4 ERR -	1 when error
 #define	D7752E_IDL	(0x00)	// waiting
 
+class VM;
+class EMU;
 class UPD7752 : public DEVICE
 {
 private:

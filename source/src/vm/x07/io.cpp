@@ -21,6 +21,9 @@
 #define EVENT_BEEP	0
 #define EVENT_CMT	1
 #define EVENT_1SEC	2
+#if defined(Q_OS_WIN)
+DLL_PREFIX_I struct cur_time_s cur_time;
+#endif
 
 static const uint8_t sub_cmd_len[0x47] = {
 	1,	// 00	Unknown

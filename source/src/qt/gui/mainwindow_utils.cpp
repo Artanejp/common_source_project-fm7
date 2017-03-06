@@ -141,7 +141,7 @@ void Ui_MainWindowBase::set_screen_aspect(int num)
 	
 	using_flags->get_config_ptr()->window_stretch_type = num;
 	
-	if(emu) {
+	if(using_flags->get_emu()) {
 		int w, h, n;
 		double nd, ww, hh;
 		n = using_flags->get_config_ptr()->window_mode;
@@ -154,7 +154,7 @@ void Ui_MainWindowBase::set_screen_aspect(int num)
 		   (using_flags->get_screen_width_aspect() != using_flags->get_screen_width())) {
 			double par_w = (double)using_flags->get_screen_width_aspect() / (double)using_flags->get_screen_width();
 			double par_h = (double)using_flags->get_screen_height_aspect() / (double)using_flags->get_screen_height();
-			double par = par_h / par_w;
+			//double par = par_h / par_w;
 			if(using_flags->get_config_ptr()->window_stretch_type == 1) { // refer to X, scale Y.
 				hh = hh * par_h;
 			} else if(using_flags->get_config_ptr()->window_stretch_type == 2) { // refer to Y, scale X only
@@ -292,7 +292,7 @@ void Ui_MainWindowBase::set_printer_device(int p_type)
 {
 	// 0 = PRNFILE
 	if(p_type < 0) p_type = 0; // OK?
-	if(p_type >= using_flags->get_use_printer_type() > 0) {
+	if(using_flags->get_use_printer_type() > 0) {
 		if(p_type >= using_flags->get_use_printer_type()) {
 			p_type = using_flags->get_use_printer_type() - 1;
 		}

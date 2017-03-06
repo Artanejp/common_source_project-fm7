@@ -28,6 +28,7 @@ void SCSI_CDROM::initialize()
 		mix_loop_num = 0;
 	}
 	event_cdda = -1;
+	cdda_status = CDDA_OFF;
 }
 
 void SCSI_CDROM::release()
@@ -107,10 +108,18 @@ void SCSI_CDROM::set_cdda_status(uint8_t status)
 				register_event(this, EVENT_CDDA, 1000000.0 / 44100.0, true, &event_cdda);
 			}
 		}
+		if(cdda_status != CDDA_PLAYING) {
+			touch_sound();
+			set_realtime_render(this, true);
+		}
 	} else {
 		if(event_cdda != -1) {
 			cancel_event(this, event_cdda);
 			event_cdda = -1;
+		}
+		if(cdda_status == CDDA_PLAYING) {
+			touch_sound();
+			set_realtime_render(this, false);
 		}
 	}
 	cdda_status = status;

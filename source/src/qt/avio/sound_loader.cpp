@@ -39,7 +39,6 @@ SOUND_LOADER::~SOUND_LOADER()
 
 bool SOUND_LOADER::open(int id, QString filename)
 {
-	int got_frame;
 	int ret = 0;
 	_filename = filename;
 	if(filename.isEmpty()) {
@@ -154,8 +153,8 @@ int SOUND_LOADER::decode_packet(int *got_frame, int cached)
 		decoded = FFMIN(ret, pkt.size);
 			
 		if (*got_frame) {
-			size_t unpadded_linesize = frame->nb_samples * av_get_bytes_per_sample((enum AVSampleFormat)frame->format);
-			char str_buf[AV_TS_MAX_STRING_SIZE] = {0};
+			//size_t unpadded_linesize = frame->nb_samples * av_get_bytes_per_sample((enum AVSampleFormat)frame->format);
+			//char str_buf[AV_TS_MAX_STRING_SIZE] = {0};
 			AVCodecContext *c = audio_stream->codec;
 			int dst_nb_samples = av_rescale_rnd(swr_get_delay(swr_context, c->sample_rate) + frame->nb_samples,
 												c->sample_rate, c->sample_rate,  AV_ROUND_UP);
@@ -187,8 +186,8 @@ int SOUND_LOADER::decode_packet(int *got_frame, int cached)
 				return -1;
 			}
 			_dst_size += dst_nb_samples;
-			if(_data_size <= (_dst_size * 2 * sizeof(int16_t))) {
-				sound_buffer = realloc(sound_buffer, _data_size << 1);
+			if(_data_size <= (uint)(_dst_size * 2 * sizeof(int16_t))) {
+				sound_buffer = (int16_t *)realloc(sound_buffer, _data_size << 1);
 				if(sound_buffer == NULL) {
 					csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Error re-allocate sound buffer");
 					if(_data[0] != NULL) free(_data[0]);
@@ -268,7 +267,7 @@ int SOUND_LOADER::get_format_from_sample_fmt(const char **fmt,
     };
     *fmt = NULL;
 
-    for (i = 0; i < FF_ARRAY_ELEMS(sample_fmt_entries); i++) {
+    for (i = 0; i < (int)FF_ARRAY_ELEMS(sample_fmt_entries); i++) {
         struct sample_fmt_entry *entry = &sample_fmt_entries[i];
         if (sample_fmt == entry->sample_fmt) {
             *fmt = AV_NE(entry->fmt_be, entry->fmt_le);
@@ -286,8 +285,6 @@ int SOUND_LOADER::get_format_from_sample_fmt(const char **fmt,
 int SOUND_LOADER::do_decode_frames(void)
 {
 	int got_frame = 1;
-	bool end_of_frame = false;
-	int real_frames = 0;
 	int decoded;
 	int ret;
 	if(sound_buffer != NULL) {
@@ -302,7 +299,6 @@ int SOUND_LOADER::do_decode_frames(void)
 	}
 	_dst_size = 0;
 	_dataptr = 0;
-	int i = 0;
 	do {
 		ret = av_read_frame(fmt_ctx, &pkt);
 		if(ret < 0) break;

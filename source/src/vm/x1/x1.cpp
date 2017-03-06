@@ -24,7 +24,8 @@
 //#include "../pcpr201.h"
 #include "../prnfile.h"
 #include "../ym2151.h"
-#include "../ym2203.h"
+//#include "../ym2203.h"
+#include "../ay_3_891x.h"
 #include "../z80.h"
 #include "../z80ctc.h"
 #include "../z80sio.h"
@@ -54,6 +55,9 @@
 #include "../huc6280.h"
 #include "../pcengine/pce.h"
 #endif
+#if defined(Q_OS_WIN)
+DLL_PREFIX_I struct cur_time_s cur_time;
+#endif
 
 // ----------------------------------------------------------------------------
 // initialize
@@ -82,7 +86,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	io->set_device_name(_T("I/O"));
 #endif	
 	fdc = new MB8877(this, emu);
-	psg = new YM2203(this, emu);
+	//psg = new YM2203(this, emu);
+	psg = new AY_3_891X(this, emu);
 	cpu = new Z80(this, emu);
 	ctc = new Z80CTC(this, emu);
 	sio = new Z80SIO(this, emu);
@@ -380,6 +385,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	for(int i = 0x1c00; i <= 0x1cff; i++) {
 		io->set_iomap_alias_w(i, psg, 0);
 	}
+	io->set_iomap_range_r(0x1e00, 0x1eff, memory);
 	io->set_iomap_range_w(0x1d00, 0x1eff, memory);
 #ifndef _X1TURBO_FEATURE
 	io->set_iomap_range_rw(0x1f98, 0x1f9b, sio);	// CZ-8BM2
@@ -489,7 +495,7 @@ void VM::reset()
 		device->reset();
 	}
 	pio->write_signal(SIG_I8255_PORT_B, 0x00, 0x08);	// busy = low
-	psg->set_reg(0x2e, 0);	// set prescaler
+	//psg->set_reg(0x2e, 0);	// set prescaler
 }
 
 void VM::special_reset()

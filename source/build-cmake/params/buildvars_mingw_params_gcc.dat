@@ -31,6 +31,8 @@ case ${USE_LTO} in
        ;;
 esac
 
+#CMAKE_APPENDFLAG="-DUSE_QT5_4_APIS=ON -DUSE_MOVIE_LOADER=ON \
+
 CMAKE_APPENDFLAG="-DUSE_QT5_4_APIS=ON -DUSE_MOVIE_LOADER=ON \
                    -DUSE_MOVIE_SAVER=ON \
                    -DCMAKE_AR:STRING=i686-w64-mingw32-gcc-ar \

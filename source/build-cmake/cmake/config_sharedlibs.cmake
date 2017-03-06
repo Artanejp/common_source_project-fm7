@@ -9,6 +9,10 @@ cmake_policy(SET CMP0011 NEW)
 #set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 include(CheckFunctionExists)
+
+if(USE_DEVICES_SHARED_LIB)
+  add_definitions(-DUSE_DEVICES_SHARED_LIB)
+endif()
 # Use cmake if enabled.
   find_program(USE_CCACHE ccache)
   if(USE_CCACHE)

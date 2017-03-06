@@ -6,6 +6,7 @@
 
 	[ debugger console ]
 */
+
 #if !defined(_MSC_VER)
 #include <SDL.h>
 #endif
@@ -16,9 +17,7 @@
 #include "vm/debugger.h"
 #include "vm/vm.h"
 #include "fileio.h"
-#if defined(OSD_QT)
-#include "emu_thread.h"
-#endif
+#include <pthread.h>
 
 #ifdef USE_DEBUGGER
 
@@ -36,6 +35,7 @@
 #endif
 
 static FILEIO* logfile = NULL;
+static FILEIO* cmdfile = NULL;
 
 void my_printf(OSD *osd, const _TCHAR *format, ...)
 {
@@ -45,15 +45,14 @@ void my_printf(OSD *osd, const _TCHAR *format, ...)
 	va_start(ap, format);
 	my_vstprintf_s(buffer, 1024, format, ap);
 	va_end(ap);
-#if defined(_MSC_VER)	
+	
 	if(logfile != NULL && logfile->IsOpened()) {
+#ifdef _MSC_VER
 		logfile->Fwrite(buffer, lstrlen(buffer) * sizeof(_TCHAR), 1);
-	}
-#else	
-	if(logfile != NULL && logfile->IsOpened()) {
+#else
 		logfile->Fwrite(buffer, strlen(buffer) * sizeof(_TCHAR), 1);
-	}
 #endif
+	}
 	osd->write_console(buffer, _tcslen(buffer));
 }
 
@@ -128,22 +127,118 @@ break_point_t *get_break_point(DEBUGGER *debugger, const _TCHAR *command)
 	return NULL;
 }
 
-static uint32_t dump_addr;
-static uint32_t dasm_addr;
-
-int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command, bool cp932)
+#ifdef _MSC_VER
+unsigned __stdcall debugger_thread(void *lpx)
+#else
+void* debugger_thread(void *lpx)
+#endif
 {
+	volatile debugger_thread_t *p = (debugger_thread_t *)lpx;
+	p->running = true;
+	
 	DEVICE *cpu = p->vm->get_cpu(p->cpu_index);
 	DEBUGGER *debugger = (DEBUGGER *)cpu->get_debugger();
+	
+	debugger->now_going = false;
+	debugger->now_debugging = true;
+//#ifndef _USE_QT	
+	while(!debugger->now_suspended) {
+		p->osd->sleep(10);
+	}
+//#endif	
 	uint32_t prog_addr_mask = cpu->get_debug_prog_addr_mask();
 	uint32_t data_addr_mask = cpu->get_debug_data_addr_mask();
-	//while(!debugger->now_suspended) {
-	//		p->osd->sleep(10);
-	//}
+	uint32_t dump_addr = 0;
+	uint32_t dasm_addr = cpu->get_next_pc();
 	
 	// initialize console
 	_TCHAR buffer[1024];
-	if(strlen(command) > 0) {
+	bool cp932 = (p->osd->get_console_code_page() == 932);
+	
+	p->osd->open_console((_TCHAR *)create_string(_T("Debugger - %s"), _T(DEVICE_NAME)));
+	p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+	cpu->get_debug_regs_info(buffer, 1024);
+	my_printf(p->osd, _T("%s\n"), buffer);
+	
+	p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_INTENSITY);
+	my_printf(p->osd, _T("breaked at %08X\n"), cpu->get_next_pc());
+	
+	p->osd->set_console_text_attribute(FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+	cpu->debug_dasm(cpu->get_next_pc(), buffer, 1024);
+	my_printf(p->osd, _T("next\t%08X  %s\n"), cpu->get_next_pc(), buffer);
+	p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+	
+	// initialize files
+	logfile = NULL;
+	cmdfile = NULL;
+	
+	#define MAX_COMMAND_LEN	64
+	
+	_TCHAR command[MAX_COMMAND_LEN + 1];
+	_TCHAR prev_command[MAX_COMMAND_LEN + 1];
+	
+	memset(prev_command, 0, sizeof(prev_command));
+	
+	while(!p->request_terminate) {
+		my_printf(p->osd, _T("- "));
+		
+		// get command
+		int ptr = 0;
+		bool enter_done = false;
+		
+		while(!p->request_terminate && !enter_done) {
+			if(cmdfile != NULL) {
+				if(cmdfile->Fgets(command, array_length(command)) != NULL) {
+					while(_tcslen(command) > 0 && (command[_tcslen(command) - 1] == 0x0d || command[_tcslen(command) - 1] == 0x0a)) {
+						command[_tcslen(command) - 1] = _T('\0');
+					}
+					if(_tcslen(command) > 0) {
+						my_printf(p->osd, _T("%s\n"), command);
+						enter_done = true;
+					}
+				} else {
+					cmdfile->Fclose();
+					delete cmdfile;
+					cmdfile = NULL;
+				}
+			} else {
+				_TCHAR ir[16];
+				int count = p->osd->read_console_input(ir);
+				
+				for(int i = 0; i < count; i++) {
+					_TCHAR chr = ir[i];
+					
+					if(chr == 0x0d || chr == 0x0a) {
+						if(ptr == 0 && prev_command[0] != _T('\0')) {
+							memcpy(command, prev_command, sizeof(command));
+							my_printf(p->osd, _T("%s\n"), command);
+							enter_done = true;
+							break;
+						} else if(ptr > 0) {
+							command[ptr] = _T('\0');
+							memcpy(prev_command, command, sizeof(command));
+							my_printf(p->osd, _T("\n"));
+							enter_done = true;
+							break;
+						}
+					} else if(chr == 0x08) {
+						if(ptr > 0) {
+							ptr--;
+							my_putch(p->osd, chr);
+							my_putch(p->osd, _T(' '));
+							my_putch(p->osd, chr);
+						}
+					} else if(chr >= 0x20 && chr <= 0x7e && ptr < MAX_COMMAND_LEN && !(chr == 0x20 && ptr == 0)) {
+						command[ptr++] = chr;
+						my_putch(p->osd, chr);
+					}
+				}
+				p->osd->sleep(10);
+			}
+		}
+		
+		// process command
+		if(!p->request_terminate && enter_done) {
 			_TCHAR *params[32], *token = NULL, *context = NULL;
 			int num = 0;
 			
@@ -672,8 +767,8 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 						p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
 						cpu->get_debug_regs_info(buffer, 1024);
 						my_printf(p->osd, _T("%s\n"), buffer);
+						
 						if(debugger->hit() || (p->osd->is_console_key_pressed(VK_ESCAPE) && p->osd->is_console_active())) {
-							//p->osd->clear_console_input_string();
 							break;
 						}
 					}
@@ -701,7 +796,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 				}
 			} else if(_tcsicmp(params[0], _T("Q")) == 0) {
 				p->osd->close_debugger_console();
-				return -1;
+				break;
 			} else if(_tcsicmp(params[0], _T(">")) == 0) {
 				if(num == 2) {
 					if(logfile != NULL) {
@@ -713,6 +808,20 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 					}
 					logfile = new FILEIO();
 					logfile->Fopen(params[1], FILEIO_WRITE_ASCII);
+				} else {
+					my_printf(p->osd, _T("invalid parameter number\n"));
+				}
+			} else if(_tcsicmp(params[0], _T("<")) == 0) {
+				if(num == 2) {
+					if(cmdfile != NULL) {
+						if(cmdfile->IsOpened()) {
+							cmdfile->Fclose();
+						}
+						delete cmdfile;
+						cmdfile = NULL;
+					}
+					cmdfile = new FILEIO();
+					cmdfile->Fopen(params[1], FILEIO_READ_ASCII);
 				} else {
 					my_printf(p->osd, _T("invalid parameter number\n"));
 				}
@@ -740,10 +849,12 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 							msec = my_hexatoi(params[3]);
 						}
 #ifdef SUPPORT_VARIABLE_TIMING
-						p->osd->modify_key_buffer(code, max((int)(p->vm->get_frame_rate() * (double)msec / 1000.0 + 0.5), 1));
+						int frames = (int)(p->vm->get_frame_rate() * (double)msec / 1000.0 + 0.5);
 #else
-						p->osd->modify_key_buffer(code, max((int)(FRAMES_PER_SEC * (double)msec / 1000.0 + 0.5), 1));
+						int frames = (int)(FRAMES_PER_SEC * (double)msec / 1000.0 + 0.5);
 #endif
+						p->osd->get_key_buffer()[code] &= 0x7f;
+						p->osd->get_key_buffer()[code] |= max(1, min(127, frames));
 #ifdef NOTIFY_KEY_DOWN
 						p->vm->key_down(code, false);
 #endif
@@ -782,6 +893,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 				my_printf(p->osd, _T("Q - quit\n"));
 				
 				my_printf(p->osd, _T("> <filename> - output logfile\n"));
+				my_printf(p->osd, _T("< <filename> - input commands from file\n"));
 				
 				my_printf(p->osd, _T("! reset [cpu] - reset\n"));
 				my_printf(p->osd, _T("! key <code> [<msec>] - press key\n"));
@@ -791,119 +903,28 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 				my_printf(p->osd, _T("unknown command %s\n"), params[0]);
 			}
 		}
-	return 0;
-}
-   
-#ifdef _MSC_VER
-unsigned __stdcall debugger_thread(void *lpx)
-#else
-int debugger_thread(void *lpx)
-#endif
-{
-	volatile debugger_thread_t *p = (debugger_thread_t *)lpx;
-	p->running = true;
-	
-	DEVICE *cpu = p->vm->get_cpu(p->cpu_index);
-	DEBUGGER *debugger = (DEBUGGER *)cpu->get_debugger();
-	
-	debugger->now_going = false;
-	debugger->now_debugging = true;
-#ifndef _USE_QT	
-	while(!debugger->now_suspended) {
-		p->osd->sleep(10);
 	}
-#endif	
-	uint32_t prog_addr_mask = cpu->get_debug_prog_addr_mask();
-	uint32_t data_addr_mask = cpu->get_debug_data_addr_mask();
-	dump_addr = 0;
-	dasm_addr = cpu->get_next_pc();
 	
-	// initialize console
-	_TCHAR buffer[1024];
-	bool cp932 = (p->osd->get_console_code_page() == 932);
-	
-	p->osd->open_console((_TCHAR *)create_string(_T("Debugger - %s"), _T(DEVICE_NAME)));
-	p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-	cpu->get_debug_regs_info(buffer, 1024);
-	my_printf(p->osd, _T("%s\n"), buffer);
-	
-	p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_INTENSITY);
-	my_printf(p->osd, _T("breaked at %08X\n"), cpu->get_next_pc());
-	
-	p->osd->set_console_text_attribute(FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-	cpu->debug_dasm(cpu->get_next_pc(), buffer, 1024);
-	my_printf(p->osd, _T("next\t%08X  %s\n"), cpu->get_next_pc(), buffer);
-	p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-	
-	// initialize logfile
-	logfile = NULL;
-	
-	#define MAX_COMMAND_LEN	64
-	
-	_TCHAR command[MAX_COMMAND_LEN + 1];
-	_TCHAR prev_command[MAX_COMMAND_LEN + 1];
-	
-	memset(prev_command, 0, sizeof(prev_command));
-	while(!p->request_terminate) {
-		my_printf(p->osd, _T("- "));
-		
-		// get command
-		int ptr = 0;
-		bool enter_done = false;
-		
-		while(!p->request_terminate && !enter_done) {
-			_TCHAR ir[16];
-			int count = p->osd->read_console_input(ir);
-
-			for(int i = 0; i < count; i++) {
-				_TCHAR chr = ir[i];
-				
-				if(chr == '\n' || chr == '\r') {
-					if(ptr == 0 && prev_command[0] != _T('\0')) {
-						memcpy(command, prev_command, sizeof(command));
-						my_printf(p->osd, _T("%s\n"), command);
-						enter_done = true;
-						break;
-					} else if(ptr > 0) {
-						command[ptr] = _T('\0');
-						memcpy(prev_command, command, sizeof(command));
-						my_printf(p->osd, _T("\n"));
-						enter_done = true;
-						break;
-					}
-				} else if(chr == 0x08) {
-					if(ptr > 0) {
-						ptr--;
-						my_putch(p->osd, chr);
-						my_putch(p->osd, _T(' '));
-						my_putch(p->osd, chr);
-					}
-				} else if(chr >= 0x20 && chr <= 0x7e && ptr < MAX_COMMAND_LEN && !(chr == 0x20 && ptr == 0)) {
-					command[ptr++] = chr;
-					my_putch(p->osd, chr);
-				}
-			}
-			p->osd->sleep(10);
-		}
-		// process command
-		if(!p->request_terminate && enter_done) {
-			if(debugger_command((debugger_thread_t *)p, command, prev_command, cp932) < 0) break;
-		}
-	}
-   
 	// stop debugger
 	try {
 		debugger->now_debugging = debugger->now_going = debugger->now_suspended = false;
 	} catch(...) {
 	}
 	
-	// release logfile
+	// release files
 	if(logfile != NULL) {
 		if(logfile->IsOpened()) {
 			logfile->Fclose();
 		}
 		delete logfile;
 		logfile = NULL;
+	}
+	if(cmdfile != NULL) {
+		if(cmdfile->IsOpened()) {
+			cmdfile->Fclose();
+		}
+		delete cmdfile;
+		cmdfile = NULL;
 	}
 	
 	// release console
@@ -914,7 +935,8 @@ int debugger_thread(void *lpx)
 	_endthreadex(0);
 	return 0;
 #else
-	return 0;
+	pthread_exit(NULL);
+	return NULL;
 #endif
 }
 
@@ -940,57 +962,15 @@ void EMU::open_debugger(int cpu_index)
 			debugger_thread_param.request_terminate = false;
 #ifdef _MSC_VER
 			if((hDebuggerThread = (HANDLE)_beginthreadex(NULL, 0, debugger_thread, &debugger_thread_param, 0, NULL)) != (HANDLE)0) {
-#elif !defined(_USE_QT)
-			if((debugger_thread_id = SDL_CreateThread(debugger_thread, "DebuggerThread", (void *)&debugger_thread_param)) != 0) {
-#else // USE_QT
-				{
-					//debugger_thread_id = -1;
-					volatile debugger_thread_t *p = (debugger_thread_t *)(&debugger_thread_param);
-					p->running = true;
-					
-					DEVICE *cpu = p->vm->get_cpu(p->cpu_index);
-					DEBUGGER *debugger = (DEBUGGER *)cpu->get_debugger();
-					
-					debugger->now_going = false;
-					debugger->now_debugging = true;
-					//while(!debugger->now_suspended) {
-					//	p->osd->sleep(10);
-					//}
-					
-					uint32_t prog_addr_mask = cpu->get_debug_prog_addr_mask();
-					uint32_t data_addr_mask = cpu->get_debug_data_addr_mask();
-					dump_addr = 0;
-					dasm_addr = cpu->get_next_pc();
-	
-					// initialize console
-					_TCHAR buffer[1024];
-					my_stprintf_s(buffer, 1024, _T("Debugger - %s"), _T(DEVICE_NAME));
-					
-					p->osd->open_console(buffer);
-					
-					bool cp932 = (p->osd->get_console_code_page() == 932);
-					
-					p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-					cpu->get_debug_regs_info(buffer, 1024);
-					my_printf(p->osd, _T("%s\n"), buffer);
-					
-					p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_INTENSITY);
-					my_printf(p->osd, _T("breaked at %08X\n"), cpu->get_next_pc());
-					
-					p->osd->set_console_text_attribute(FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-					cpu->debug_dasm(cpu->get_next_pc(), buffer, 1024);
-					my_printf(p->osd, _T("next\t%08X  %s\n"), cpu->get_next_pc(), buffer);
-					p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-	
-					// initialize logfile
-					if(logfile != NULL && logfile->IsOpened()) {
-						logfile->Fclose();
-					}
-					logfile = NULL;
+#else
+//#elif !defined(_USE_QT)
+			if(pthread_create(&debugger_thread_id, NULL, debugger_thread, &debugger_thread_param) == 0) {
+//#else // USE_QT
+//			{
 #endif
-					stop_record_sound();
-					stop_record_video();
-					now_debugging = true;
+				stop_record_sound();
+				stop_record_video();
+				now_debugging = true;
 			}
 		}
 	}
@@ -1005,19 +985,18 @@ void EMU::close_debugger()
 #ifdef _MSC_VER
 		WaitForSingleObject(hDebuggerThread, INFINITE);
 		CloseHandle(hDebuggerThread);
-#elif !defined(_USE_QT)
-		//pthread_join(debugger_thread_id, NULL);
-		SDL_DetachThread(debugger_thread_id);
+//#elif !defined(_USE_QT)
 #else
-		volatile debugger_thread_t *p = (debugger_thread_t *)(&debugger_thread_param);
-		p->running = false;
+		pthread_join(debugger_thread_id, NULL);
+//#else
+//		volatile debugger_thread_t *p = (debugger_thread_t *)(&debugger_thread_param);
+//		p->running = false;
 		
-		if(logfile != NULL && logfile->IsOpened()) {
-			logfile->Fclose();
-		}
+		//if(logfile != NULL && logfile->IsOpened()) {
+		//	logfile->Fclose();
+		//}
 		// initialize logfile
-		logfile = NULL;
-		
+		//logfile = NULL;
 #endif
 		now_debugging = false;
 	}

@@ -10,8 +10,8 @@
 #ifndef _OR_H_
 #define _OR_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 #define SIG_OR_BIT_0	0x01
@@ -23,6 +23,8 @@
 #define SIG_OR_BIT_6	0x40
 #define SIG_OR_BIT_7	0x80
 
+class VM;
+class EMU;
 class OR : public DEVICE
 {
 private:

@@ -40,7 +40,7 @@ typedef struct {
 	bool repeat;
 } key_queue_t;
 
-class EmuThreadClassBase : public QThread {
+class DLL_PREFIX EmuThreadClassBase : public QThread {
 	Q_OBJECT
 protected:
 	bool calc_message;

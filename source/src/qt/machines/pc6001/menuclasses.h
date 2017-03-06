@@ -8,6 +8,7 @@
 // You may use this as 
 QT_BEGIN_NAMESPACE
 class USING_FLAGS;
+class CSP_Logger;
 class Object_Menu_Control_60: public Object_Menu_Control
 {
 	Q_OBJECT
@@ -41,7 +42,7 @@ protected:
 	void setupUI_Emu(void);
 	void retranslateUi(void);
 public:
-	META_MainWindow(USING_FLAGS *p, QWidget *parent = 0);
+	META_MainWindow(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent = 0);
 	~META_MainWindow();
 public slots:
 	 void do_set_sound_device(int);

@@ -15,7 +15,8 @@
 */
 
 // Fixed IRQ/FIRQ by Mr.Sasaji at 2011.06.17
-
+#include "vm.h"
+#include "../emu.h"
 #include "mc6809.h"
 #include "mc6809_consts.h"
 //#include "common.h"
@@ -52,14 +53,14 @@ inline pair_t MC6809::RM16_PAIR(uint32_t addr)
 	pair_t b;
 	b.d = 0;
 	b.b.h = RM(addr);
-	b.b.l = RM(addr + 1);
+	b.b.l = RM((addr + 1));
 	return b;
 }
 
 inline void MC6809::WM16(uint32_t Addr, pair_t *p)
 {
 	WM(Addr , p->b.h);
-	WM(Addr + 1, p->b.l);
+	WM((Addr + 1), p->b.l);
 }
 
 /* increment */
@@ -248,10 +249,10 @@ void MC6809::reset()
 	U = 0;
 	S = 0;
 	EA = 0;
-#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+//#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	clr_used = false;
 	write_signals(&outputs_bus_clr, 0x00000000);
-#endif
+//#endif
 	write_signals(&outputs_bus_halt, ((int_state & MC6809_HALT_BIT) != 0) ? 0xffffffff : 0x00000000);
    
 	CC |= CC_II;	/* IRQ disabled */
@@ -302,7 +303,7 @@ void MC6809::write_signal(int id, uint32_t data, uint32_t mask)
 
 void MC6809::cpu_nmi(void)
 {
-	pair_t rpc = pPC;
+	//pair_t rpc = pPC;
 	if ((int_state & MC6809_CWAI_IN) == 0) {
 		CC |= CC_E;
 		PUSHWORD(pPC);
@@ -325,7 +326,7 @@ void MC6809::cpu_nmi(void)
 // Refine from cpu_x86.asm of V3.52a.
 void MC6809::cpu_firq(void)
 {
-	pair_t rpc = pPC;
+	//pair_t rpc = pPC;
 	if ((int_state & MC6809_CWAI_IN) == 0) {
 		/* NORMAL */
 		CC &= ~CC_E;
@@ -342,7 +343,7 @@ void MC6809::cpu_firq(void)
 // Refine from cpu_x86.asm of V3.52a.
 void MC6809::cpu_irq(void)
 {
-	pair_t rpc = pPC;
+	//pair_t rpc = pPC;
 	if ((int_state & MC6809_CWAI_IN) == 0) {
 		CC |= CC_E;
 		PUSHWORD(pPC);
@@ -382,7 +383,8 @@ int MC6809::run(int clock)
 	if(busreq) write_signals(&outputs_bus_halt, 0x00000000);
 	busreq = false;
 	if((int_state & MC6809_INSN_HALT) != 0) {	// 0x80
-		uint8_t dmy = RM(PCD);
+		//uint8_t dmy = RM(PCD); //Will save.Need to keep.
+		RM(PCD); //Will save.Need to keep.
 		icount = 0;
 		icount -= extra_icount;
 		extra_icount = 0;
@@ -392,7 +394,7 @@ int MC6809::run(int clock)
  	/*
 	 * Check Interrupt
 	 */
-check_nmi:
+//check_nmi:
 	if ((int_state & (MC6809_NMI_BIT | MC6809_FIRQ_BIT | MC6809_IRQ_BIT)) != 0) {	// 0x0007
 		if ((int_state & MC6809_NMI_BIT) == 0)
 			goto check_firq;
@@ -531,7 +533,7 @@ void MC6809::run_one_opecode()
 
 void MC6809::op(uint8_t ireg)
 {
-#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+//#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	if(ireg == 0x0f) { // clr_di()
 		write_signals(&outputs_bus_clr, 0x00000001);
 		clr_used = true;
@@ -542,37 +544,49 @@ void MC6809::op(uint8_t ireg)
 		if(clr_used) write_signals(&outputs_bus_clr, 0x00000000);
 		clr_used = false;
 	}
-   
-#endif
+//#endif
 	//printf("CPU(%08x) PC=%04x OP=%02x %02x %02x %02x %02x\n", (void *)this, PC, ireg, RM(PC), RM(PC + 1), RM(PC + 2), RM(PC + 3));
 
 	(this->*m6809_main[ireg])();
 }
 
-#ifdef USE_DEBUGGER
+
 void MC6809::write_debug_data8(uint32_t addr, uint32_t data)
 {
+#ifdef USE_DEBUGGER
 	d_mem_stored->write_data8(addr, data);
+#endif
 }
 
 uint32_t MC6809::read_debug_data8(uint32_t addr)
 {
+#ifdef USE_DEBUGGER
 	return d_mem_stored->read_data8(addr);
+#else
+	return 0xff;
+#endif
 }
 
 void MC6809::write_debug_io8(uint32_t addr, uint32_t data)
 {
+#ifdef USE_DEBUGGER
 	d_mem_stored->write_io8(addr, data);
+#endif
 }
 
 uint32_t MC6809::read_debug_io8(uint32_t addr)
 {
+#ifdef USE_DEBUGGER
 	uint8_t val = d_mem_stored->read_io8(addr);
 	return val;
+#else
+	return 0xff;
+#endif
 }
 
 bool MC6809::write_debug_reg(const _TCHAR *reg, uint32_t data)
 {
+#ifdef USE_DEBUGGER
 	if(_tcsicmp(reg, _T("PC")) == 0) {
 		PC = data;
 	} else if(_tcsicmp(reg, _T("DP")) == 0) {
@@ -596,11 +610,13 @@ bool MC6809::write_debug_reg(const _TCHAR *reg, uint32_t data)
 	} else {
 		return false;
 	}
+#endif
 	return true;
 }
 
 void MC6809::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
+#ifdef USE_DEBUGGER
 	my_stprintf_s(buffer, buffer_len,
 		 _T("PC = %04x PPC = %04x INTR=[%s %s %s %s][%s %s %s %s %s] CC = [%c%c%c%c%c%c%c%c]\nA = %02x B = %02x DP = %02x X = %04x Y = %04x U = %04x S = %04x EA = %04x"),
 		 PC,
@@ -626,6 +642,7 @@ void MC6809::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 		 X, Y, U, S,
 		 EAD
 	 );
+#endif
 }  
 
 // from MAME 0.160
@@ -1027,6 +1044,7 @@ static const _TCHAR *const m6809_regs_te[16] =
 
 uint32_t MC6809::cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_t *oprom, const uint8_t *opram)
 {
+#ifdef USE_DEBUGGER
 	uint8_t opcode, mode, pb, pbm, reg;
 	const uint8_t *operandarray;
 	unsigned int ea;//, flags;
@@ -1279,10 +1297,14 @@ uint32_t MC6809::cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_
 	}
 
 	return p;
+#else
+	return 0;
+#endif
 }
 
 int MC6809::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
+#ifdef USE_DEBUGGER
 	_TCHAR buffer_tmp[1024]; // enough ???
 	uint8_t ops[4];
 	for(int i = 0; i < 4; i++) {
@@ -1291,8 +1313,10 @@ int MC6809::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	int length = cpu_disassemble_m6809(buffer_tmp, pc, ops, ops);
 	my_tcscpy_s(buffer, buffer_len, buffer_tmp);
 	return length;
-}
+#else
+	return 0;
 #endif
+}
 
 
 
@@ -1747,7 +1771,7 @@ inline uint8_t MC6809::SBC8_REG(uint8_t reg, uint8_t data)
 	uint8_t cc_c = CC & CC_C;
 	r = (uint16_t)reg - (uint16_t)data - (uint16_t)cc_c;
 	CLR_HNZVC;
-	SET_FLAGS8(reg, data + cc_c , r);
+	SET_FLAGS8(reg, (data + cc_c) , r);
 	return (uint8_t)r;
 }
 
@@ -1807,7 +1831,7 @@ inline uint8_t MC6809::ADC8_REG(uint8_t reg, uint8_t data)
 	t &= 0x00ff;
 	r = reg + t + c_cc;
 	CLR_HNZVC;
-	SET_HNZVC8(reg, t + c_cc, r);
+	SET_HNZVC8(reg, (t + c_cc), r);
 	return (uint8_t)r;
 }	
 
@@ -1999,7 +2023,7 @@ OP_HANDLER(sync_09)	// Rename 20101110
 OP_HANDLER(trap) {
 	int_state |= MC6809_INSN_HALT;	// HALTフラグ
 	// Debug: トラップ要因
-	this->out_debug_log(_T("TRAP(HALT) @%04x %02x %02x\n"), PC - 1, RM(PC - 1), RM(PC));
+	this->out_debug_log(_T("TRAP(HALT) @%04x %02x %02x\n"), PC - 1, RM((PC - 1)), RM(PC));
 }
 
 /* $15 trap */
@@ -2506,9 +2530,10 @@ OP_HANDLER(leau) {
 
 /* $34 PSHS inherent ----- */
 OP_HANDLER(pshs) {
-		uint8_t t, dmy;
+		uint8_t t;
 		IMMBYTE(t);
-		dmy = RM(S);	// Add 20100825
+		//dmy = RM(S);	// Add 20100825
+		RM(S);	// Add 20100825
 		if (t & 0x80) {
 			PUSHWORD(pPC);
 			icount -= 2;
@@ -2545,7 +2570,7 @@ OP_HANDLER(pshs) {
 
 /* 35 PULS inherent ----- */
 OP_HANDLER(puls) {
-		uint8_t t, dmy;
+		uint8_t t;
 		IMMBYTE(t);
 		if (t & 0x01) {
 			PULLBYTE(CC);
@@ -2579,17 +2604,18 @@ OP_HANDLER(puls) {
 			PULLWORD(pPC);
 			icount -= 2;
 		}
-		dmy = RM(S);	// Add 20100825
-
+		//dmy = RM(S);	// Add 20100825
+		RM(S);	// Add 20100825
 		/* HJB 990225: moved check after all PULLs */
 //  if( t&0x01 ) { check_irq_lines(); }
 	}
 
 /* $36 PSHU inherent ----- */
 OP_HANDLER(pshu) {
-		uint8_t t, dmy;
+		uint8_t t;
 		IMMBYTE(t);
-		dmy = RM(U);	// Add 20100825
+		//dmy = RM(U);	// Add 20100825
+		RM(U);	// Add 20100825
 		if (t & 0x80) {
 			PSHUWORD(pPC);
 			icount -= 2;
@@ -2626,7 +2652,7 @@ OP_HANDLER(pshu) {
 
 /* 37 PULU inherent ----- */
 OP_HANDLER(pulu) {
-		uint8_t t, dmy;
+		uint8_t t;
 		IMMBYTE(t);
 		if (t & 0x01) {
 			PULUBYTE(CC);
@@ -2660,8 +2686,8 @@ OP_HANDLER(pulu) {
 			PULUWORD(pPC);
 			icount -= 2;
 		}
-		dmy = RM(U);	// Add 20100825
-
+		//dmy = RM(U);	// Add 20100825
+		RM(U);	// Add 20100825
 		/* HJB 990225: moved check after all PULLs */
 		//if( t&0x01 ) { check_irq_lines(); }
 }
@@ -3043,9 +3069,10 @@ OP_HANDLER(jmp_ix) {
 
 /* $6F CLR indexed -0100 */
 OP_HANDLER(clr_ix) {
-	uint8_t t, dummy;
+	uint8_t t;
 	t = GET_INDEXED_DATA();
-	dummy = RM(EAD);	// Dummy Read(Alpha etc...)
+	//dummy = RM(EAD);	// Dummy Read(Alpha etc...)
+	RM(EAD);	// Dummy Read(Alpha etc...)
 	CLR_MEM(t);
 }
 
@@ -3229,8 +3256,10 @@ OP_HANDLER(sta_im) {
  */
 OP_HANDLER(flag8_im) {
 		// 20111117
-		uint8_t t;
-		IMMBYTE(t);
+		//uint8_t t;
+		// IMMBYTE(t);
+		ROP_ARG(PCD);
+		PC++;
 		CLR_NZV;
 		CC |= CC_N;
 	}

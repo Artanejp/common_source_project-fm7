@@ -31,6 +31,7 @@ class QTcpSocket2;
 class QUdpSocket2;
 
 QT_BEGIN_NAMESPACE	
+class CSP_Logger;
 class OSD : public OSD_BASE
 {
 	Q_OBJECT
@@ -72,7 +73,7 @@ protected:
 	void release_sound_files();
 #endif
 public:
-	OSD(USING_FLAGS *p);
+	OSD(USING_FLAGS *p, CSP_Logger *logger);
 	~OSD();
 	void initialize(int rate, int samples);
 	void release();

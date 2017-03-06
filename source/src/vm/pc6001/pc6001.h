@@ -149,7 +149,11 @@ class UPD7752;
 class PC6031;
 class PC80S31K;
 class UPD765A;
+#if defined(_PC6001MK2SR) || defined(_PC6601SR)
 class YM2203;
+#else
+class AY_3_891X;
+#endif
 class Z80;
 
 class DATAREC;
@@ -182,7 +186,11 @@ protected:
 	DEVICE* printer;
 	I8255* pio_sub;
 	IO* io;
+#if defined(_PC6001MK2SR) || defined(_PC6601SR)
 	YM2203* psg;
+#else
+	AY_3_891X* psg;
+#endif
 	Z80* cpu;
 #ifdef _PC6001
 	MC6847* vdp;

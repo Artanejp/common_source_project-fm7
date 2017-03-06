@@ -18,11 +18,11 @@
 #ifndef _PC6031_H_
 #define _PC6031_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
-#if defined(USE_SOUND_FILES)
+//#if defined(USE_SOUND_FILES)
 #define PC6031_SND_TBL_MAX 256
 #ifndef SIG_SOUNDER_MUTE
 #define SIG_SOUNDER_MUTE    	(65536 + 0)
@@ -36,17 +36,18 @@
 
 #define PC6031_SND_TYPE_SEEK 0
 #define PC6031_SND_TYPE_HEAD 1
-#endif
+//#endif
 class DISK;
-
+class VM;
+class EMU;
 class PC6031 : public DEVICE
 {
 private:
 	DISK* disk[2];
-#if defined(USE_SOUND_FILES)
+//#if defined(USE_SOUND_FILES)
 	int seek_event_id[2];
 	int seek_track_num[2];
-#endif
+//#endif
 	int cur_trk[2];
 	int cur_sct[2];
 	int cur_pos[2];
@@ -91,7 +92,7 @@ private:
 	unsigned char InD2H_60();
 	unsigned char InD3H_60();
 	
-#if defined(USE_SOUND_FILES)
+//#if defined(USE_SOUND_FILES)
 protected:
 	_TCHAR snd_seek_name[512];
 	_TCHAR snd_head_name[512];
@@ -105,11 +106,11 @@ protected:
 	int snd_level_l, snd_level_r;
 	virtual void mix_main(int32_t *dst, int count, int16_t *src, int *table, int samples);
 	void add_sound(int type);
-#endif
+//#endif
 public:
 	PC6031(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
 		set_device_name(_T("PSEUDO PC-6031 FDD"));
-#if defined(USE_SOUND_FILES)
+//#if defined(USE_SOUND_FILES)
 		seek_event_id[0] = seek_event_id[1] = -1;
 		seek_track_num[0] = seek_track_num[1] = 0;
 		for(int i = 0; i < PC6031_SND_TBL_MAX; i++) {
@@ -122,7 +123,7 @@ public:
 		snd_level_l = snd_level_r = decibel_to_volume(0);
 		memset(snd_seek_name, 0x00, sizeof(snd_seek_name));
 		memset(snd_head_name, 0x00, sizeof(snd_head_name));
-#endif
+//#endif
 	}
 	~PC6031() {}
 	
@@ -141,7 +142,7 @@ public:
 	{
 		return disk[drv];
 	}
-#if defined(USE_SOUND_FILES)
+//#if defined(USE_SOUND_FILES)
 	// Around SOUND. 20161004 K.O
 	bool load_sound_data(int type, const _TCHAR *pathname);
 	void release_sound_data(int type);
@@ -149,7 +150,7 @@ public:
 	
 	void mix(int32_t *buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
-#endif
+//#endif
 	void open_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_disk(int drv);
 	bool is_disk_inserted(int drv);

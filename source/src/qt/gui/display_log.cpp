@@ -22,10 +22,11 @@
 #include "menu_flags.h"
 #include "csp_logger.h"
 
-Dlg_LogViewerBind::Dlg_LogViewerBind(QObject *parent, QString _str, int _bind_int) : QObject(parent)
+Dlg_LogViewerBind::Dlg_LogViewerBind(QObject *parent, CSP_Logger *logger, QString _str, int _bind_int) : QObject(parent)
 {
 	bind_int =_bind_int;
 	str = _str;
+	csp_logger = logger;
 }
 
 Dlg_LogViewerBind::~Dlg_LogViewerBind()
@@ -79,14 +80,14 @@ void Dlg_LogViewerBind::do_update(void)
 	emit sig_throw_desc(str, bind_int);
 }
 
-Dlg_LogViewer::Dlg_LogViewer(USING_FLAGS *p, QWidget *parent, QString _domain, uint32_t level) : QWidget(parent)
+Dlg_LogViewer::Dlg_LogViewer(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent, QString _domain, uint32_t level) : QWidget(parent)
 {
 	log_str.clear();
 	domain_name = _domain;
 	level_map = level;
 	now_end_line = 0;
 	using_flags = p;
-	
+	csp_logger = logger;
 	TextBox = new QTextBrowser();
 	TextBox->setStyleSheet("font: 12pt \"Sans\";");
 	TextBox->setMinimumSize(800, 470);
@@ -155,7 +156,6 @@ void Dlg_LogViewer::do_update(void)
 	do {
 		p = (CSP_LoggerLine *)(csp_logger->get_raw_data(false, line, NULL));
 		if(p == NULL) break;
-		bool f = false;
 		for(int i = 0; i < 8; i++) {
 			if((level_map & (1 << i)) != 0) {  
 				if(p->check_level(domain_name, i)) {
@@ -189,7 +189,6 @@ void Dlg_LogViewer::do_refresh(void)
 	do {
 		p = (CSP_LoggerLine *)(csp_logger->get_raw_data(false, now_end_line, NULL));
 		if(p == NULL) break;
-		bool f = false;
 		for(int i = 0; i < 8; i++) {
 			if((level_map & (1 << i)) != 0) {  
 				if(p->check_level(domain_name, 1 << i)) {

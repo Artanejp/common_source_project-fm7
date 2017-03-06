@@ -12,17 +12,19 @@ set(VMFILES
 		   i8253.cpp
 		   i8255.cpp
 		   i8259.cpp
-		   hd146818p.cpp
-		   
 		   upd7220.cpp
 		   upd765a.cpp
 		   
 		   io.cpp
 		   
-		   pcm1bit.cpp
 		   disk.cpp
 		   event.cpp
 )
+set(VMFILES_LIB
+	   hd146818p.cpp
+	   pcm1bit.cpp
+)		   
+
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")

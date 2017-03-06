@@ -4,9 +4,9 @@
  *  Date  : 2015.01.01-
  *
  */
-
+#include "vm.h"
+#include "emu.h"
 #include "fm7_mainmem.h"
-
 
 void FM7_MAINMEM::reset()
 {

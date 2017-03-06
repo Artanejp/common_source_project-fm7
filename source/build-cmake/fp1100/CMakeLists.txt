@@ -22,11 +22,9 @@ set(WITH_MOUSE OFF)
 set(VMFILES
 		   z80.cpp
 		   upd7801.cpp
-
-#		   pcm1bit.cpp
-		   beep.cpp
-		   upd765a.cpp
 		   hd46505.cpp
+
+		   upd765a.cpp
 		   
 		   ym2203.cpp
 		   
@@ -35,6 +33,10 @@ set(VMFILES
 		   event.cpp
 		   io.cpp
 		   memory.cpp
+)
+set(VMFILES_LIB
+#		   pcm1bit.cpp
+		   beep.cpp
 )
 
 set(BUILD_SHARED_LIBS OFF)

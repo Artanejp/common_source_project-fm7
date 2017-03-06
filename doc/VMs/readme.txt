@@ -1,5 +1,5 @@
 Binary archive of retro pc emulator common source code
-								12/30/2016
+								2/9/2017
 
 --- What's this ?
 
@@ -73,6 +73,7 @@ This archive includes the binaries of the emulators listed below:
 		eHANDY98	PC-98HA
 		ePC-100		PC-100
 		eTK-80BS	TK-80BS (COMPO BS/80)
+		eTK-85		TK-85
 	NEC-HE
 		ePCEngine	PC Engine / SuperGrafx + CD-ROM^2
 	Nintendo

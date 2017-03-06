@@ -19,25 +19,26 @@ set(WITH_JOYSTICK OFF)
 set(WITH_MOUSE ON)
 
 set(VMFILES
-		   i286.cpp
+#		   i286.cpp
 		   
-		   and.cpp
-		   
-		   i8251.cpp
 		   i8255.cpp
 		   i8259.cpp
 		   
 		   msm58321.cpp
 		   upd765a.cpp
 		   
-		   beep.cpp
 		   memory.cpp
-		   pcm1bit.cpp
-		   
 		   disk.cpp
 		   event.cpp
 		   io.cpp
 )
+set(VMFILES_LIB
+		   and.cpp
+		   i8251.cpp
+		   beep.cpp
+		   pcm1bit.cpp
+)
+set(FLAG_USE_I86 ON)
 
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")

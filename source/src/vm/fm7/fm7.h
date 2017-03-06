@@ -24,6 +24,7 @@
 #define USE_JOY_BUTTON_CAPTIONS
 #define USE_PRINTER
 #define USE_PRINTER_TYPE 4
+#define USE_AY_3_8910_AS_PSG
 
 #define NOTIFY_KEY_DOWN
 //#define NOTIFY_KEY_UP
@@ -387,6 +388,9 @@ class YM2203;
 class MB8877;
 class MEMORY;
 class DATAREC;
+#if defined(USE_AY_3_8910_AS_PSG) && !defined(_FM77AV_VARIANTS)
+class AY_3_891X;
+#endif
 #if defined(_FM8)
 class BUBBLECASETTE;
 #endif
@@ -428,11 +432,21 @@ protected:
 #endif
 	MB8877* fdc;
 #if defined(_FM8)
+	// FM8
+# if defined(USE_AY_3_8910_AS_PSG)
+	AY_3_891X *psg;
+# else
 	YM2203* psg;
-#else	
+# endif
+#else
+	// FM7 -
 	YM2203* opn[3];
 # if !defined(_FM77AV_VARIANTS)
+#  if defined(USE_AY_3_8910_AS_PSG)
+	AY_3_891X *psg;
+#else
 	YM2203* psg; // Is right? AY-3-8910 is right device.
+#  endif
 # endif
 #endif
 #if defined(_FM8)

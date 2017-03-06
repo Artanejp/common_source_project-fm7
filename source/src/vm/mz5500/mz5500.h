@@ -93,14 +93,19 @@ class EVENT;
 class I8237;
 class I8255;
 class I8259;
+#if defined(HAS_I286) || defined(HAS_I186)
 class I286;
+#else
+class I86;
+#endif
 class IO;
 class LS393;
 class NOT;
 class RP5C01;
 class UPD7220;
 class UPD765A;
-class YM2203;
+//class YM2203;
+class AY_3_891X;
 class Z80CTC;
 class Z80SIO;
 
@@ -121,7 +126,11 @@ protected:
 	I8237* dma;
 	I8255* pio;
 	I8259* pic;	// includes 2chips
+#if defined(HAS_I286) || defined(HAS_I186)
 	I286* cpu;
+#else
+	I86* cpu;
+#endif
 	IO* io;
 	LS393* div;
 	NOT* not_data1;
@@ -136,7 +145,8 @@ protected:
 	RP5C01* rtc;
 	UPD7220* gdc;
 	UPD765A* fdc;
-	YM2203* psg;
+//	YM2203* psg;
+	AY_3_891X* psg;
 	Z80CTC* ctc0;
 #if defined(_MZ6500) || defined(_MZ6550)
 	Z80CTC* ctc1;

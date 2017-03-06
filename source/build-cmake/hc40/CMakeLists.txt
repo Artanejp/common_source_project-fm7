@@ -24,13 +24,14 @@ set(WITH_MOUSE OFF)
 set(VMFILES_BASE
       z80.cpp
       ptf20.cpp
-      beep.cpp
       disk.cpp
       
       datarec.cpp
       event.cpp
 )
-
+set(VMFILES_LIB
+      beep.cpp
+)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")

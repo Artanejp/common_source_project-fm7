@@ -270,10 +270,10 @@ void *MOVIE_SAVER::get_video_frame(void)
 		AVFrame *qq = ost->tmp_frame;
 		uint32_t *q;
 		uint32_t cacheline[8];
-		int i;
-		int ret;
+		//int ret;
 		if(ost->tmp_frame != NULL) {
-			ret = av_frame_make_writable(ost->tmp_frame);
+			//ret = av_frame_make_writable(ost->tmp_frame);
+			av_frame_make_writable(ost->tmp_frame);
 			//if (ret < 0)
 			//exit(1);
 			for(y = 0; y < h; y++) {

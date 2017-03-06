@@ -1,5 +1,5 @@
 retro pc emulator common source code
-								12/30/2016
+								2/9/2017
 
 --- What's this ?
 
@@ -73,6 +73,7 @@ This archive includes the all source codes of emulators listed below:
 		eHANDY98	PC-98HA
 		ePC-100		PC-100
 		eTK-80BS	TK-80BS / COMPO BS/80
+		eTK-85		TK-85
 		eN5200		N5200 (work in progress)
 	NEC-HE
 		ePCEngine	PC Engine / SuperGrafx + CD-ROM^2
@@ -133,13 +134,16 @@ This archive includes the all source codes of emulators listed below:
 Build the projects with the Microsoft Visual C++ 2008 with Service Pack 1 or
 the Microsoft Visual C++ 2013 with Update 5.
 
-The DirectX 9.0 SDK is required.
+The DirectX SDK is required.
 I recommend the DirectX 9.0 SDK Update (December 2004),
 and dinput.lib included in the DirectX 9.0 SDK Update (October 2004).
 
-If your DirectX 9.0 SDK is newer and does not contain dinput.lib,
-pelase modify src/win32/osd.h to change the definition of DIRECTINPUT_VERSION
-from 0x500 to 0x800.
+If you install the newer DirectX SDK, for example DirectX SDK (June 2010),
+and it does not contain dinput.lib, pelase modify src/win32/osd.h to change
+the definition of DIRECTINPUT_VERSION from 0x500 to 0x800 as follows:
+
+//#define DIRECTINPUT_VERSION	0x500
+#define DIRECTINPUT_VERSION	0x800
 
 When you use the Microsoft Visual C++ 2008 with Service Pack 1,
 the Windows SDK for Windows 8.1 is also required to get the mt.exe utility.
@@ -147,10 +151,11 @@ The mt.exe is used to merge a manifest file for Windows Vista or later.
 
 https://msdn.microsoft.com/en-us/windows/desktop/bg162891.aspx
 
-When you use the Microsoft Visual C++ 2013 with Update 5, the system
-environment variables WindowsSDK_IncludePath, WindowsSDK_LibraryPath_x86,
-and DXSDK_DIR shoud be defined and should specifies the install directories
-of the Windows SDK and the DirectX 9.0 SDK.
+When you use the Microsoft Visual C++ 2013 with Update 5, the dir macros,
+WindowsSDK_IncludePath, WindowsSDK_LibraryPath_x86, and DXSDK_DIR shoud be
+defined and should specifies the install directories of the Windows SDK
+and the DirectX SDK.
+They are usually defined automatically when you install the SDKs.
 
 
 --- License

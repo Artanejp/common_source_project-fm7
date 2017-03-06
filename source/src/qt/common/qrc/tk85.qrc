@@ -1,0 +1,34 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file alias="default.ico">../../../res/tk85.ico</file>
+    <file alias="background.png">../../../res/tk85/board.png</file>
+    <file alias="bios_and_keys.txt">../../../../../doc/VMs/tk80bs.txt</file>
+    <file alias="csp_qt_machine_ja.qm">../../../res/i18n/ja/tk80bs.qm</file>
+    <file alias="button00.png">../../../res/tk85/button00.png</file>
+    <file alias="button01.png">../../../res/tk85/button01.png</file>
+    <file alias="button02.png">../../../res/tk85/button02.png</file>
+    <file alias="button03.png">../../../res/tk85/button03.png</file>
+    <file alias="button04.png">../../../res/tk85/button04.png</file>
+    <file alias="button05.png">../../../res/tk85/button05.png</file>
+    <file alias="button06.png">../../../res/tk85/button06.png</file>
+    <file alias="button07.png">../../../res/tk85/button07.png</file>
+    <file alias="button08.png">../../../res/tk85/button08.png</file>
+    <file alias="button09.png">../../../res/tk85/button09.png</file>
+    <file alias="button10.png">../../../res/tk85/button10.png</file>
+    <file alias="button11.png">../../../res/tk85/button11.png</file>
+    <file alias="button12.png">../../../res/tk85/button12.png</file>
+    <file alias="button13.png">../../../res/tk85/button13.png</file>
+    <file alias="button14.png">../../../res/tk85/button14.png</file>
+    <file alias="button15.png">../../../res/tk85/button15.png</file>
+    <file alias="button16.png">../../../res/tk85/button16.png</file>
+    <file alias="button17.png">../../../res/tk85/button17.png</file>
+    <file alias="button18.png">../../../res/tk85/button18.png</file>
+    <file alias="button19.png">../../../res/tk85/button19.png</file>
+    <file alias="button20.png">../../../res/tk85/button20.png</file>
+    <file alias="button21.png">../../../res/tk85/button21.png</file>
+    <file alias="button22.png">../../../res/tk85/button22.png</file>
+    <file alias="button23.png">../../../res/tk85/button23.png</file>
+    <file alias="button24.png">../../../res/tk85/button24.png</file>
+    <file alias="button25.png">../../../res/tk85/button25.png</file>
+</qresource>
+</RCC>

@@ -185,6 +185,9 @@ BEGIN
         MENUITEM "300msec",                     ID_SOUND_LATE3
         MENUITEM "400msec",                     ID_SOUND_LATE4
         MENUITEM SEPARATOR
+        MENUITEM "Realtime Mix",                ID_SOUND_STRICT_RENDER
+        MENUITEM "Light Weight Mix",            ID_SOUND_LIGHT_RENDER
+        MENUITEM SEPARATOR
         MENUITEM "Volume",                      ID_SOUND_VOLUME
     END
     POPUP "Input"

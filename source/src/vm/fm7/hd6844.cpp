@@ -8,30 +8,12 @@
  *
  */
 
-#include "../memory.h"
-#include "../vm.h"
-#include "../../emu.h"
+//#include "../memory.h"
+//#include "../vm.h"
+//#include "../../emu.h"
 
 #include "hd6844.h"
 
-
-HD6844::HD6844(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
-{
-	int i;
-	p_emu = parent_emu;
-	p_vm = parent_vm;
-	for(i = 0; i < 4; i++) {
-		src[i] = dest[i] = NULL;
-		initialize_output_signals(&(interrupt_line[i]));
-	}
-	initialize_output_signals(&(drq_line[0]));
-	initialize_output_signals(&(drq_line[1]));
-	set_device_name(_T("HD6844 DMAC"));
-}
-
-HD6844::~HD6844()
-{
-}
 
 void HD6844::reset()
 {

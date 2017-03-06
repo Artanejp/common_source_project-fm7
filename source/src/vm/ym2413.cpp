@@ -1998,12 +1998,7 @@ static unsigned char OPLLRead(YM2413C *chip,int a)
   return 0xff;
 }
 
-
-
-
-
 #define MAX_OPLL_CHIPS 4
-
 
 static YM2413C *OPLL_YM2413[MAX_OPLL_CHIPS];  /* array of pointers to the YM2413's */
 static int YM2413NumChips = 0;        /* number of chips */

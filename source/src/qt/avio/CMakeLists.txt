@@ -22,12 +22,12 @@ else()
 endif()
 
 if(WIN32)
-#include (GenerateExportHeader)
 add_library(qt_avio
 	  ${s_qt_avio_srcs}
 	  ${s_qt_avio_headers_MOC}
 )
-#
+
+#include (GenerateExportHeader)
 #add_library(CSPavio SHARED
 #	  ${s_qt_avio_srcs}
 #	  ${s_qt_avio_headers_MOC}
@@ -35,13 +35,16 @@ add_library(qt_avio
 
 #target_link_libraries(CSPavio PUBLIC
 #		   ${LIBAV_LIBRARIES}
-#		   ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPavio/build-win32/qt/avio/CSPavio.dll
 #		   Qt5::Core
 #		   Qt5::Gui
 #		   Qt5::Widgets
 #	  )
 #QT5_USE_MODULES(CSPavio Widgets Core Gui OpenGL)
-#
+
+#set_target_properties(CSPavio PROPERTIES 
+#			     SOVERSION 2.6.0
+#			     VERSION 2.6.0
+#			     )
 #generate_export_header(CSPavio
 #       BASE_NAME CSPavio
 #        EXPORT_MACRO_NAME CSPavio_EXPORT

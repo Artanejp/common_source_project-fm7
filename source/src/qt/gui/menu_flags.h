@@ -13,16 +13,20 @@
 class EMU;
 class OSD;
 
+
 typedef struct {
-	const _TCHAR* caption;
 	int x, y;
 	int width, height;
-	int font_size;
 	int code;
 } button_desc_t;
 
-class USING_FLAGS {
-private:
+typedef struct {
+	int x, y;
+	int width, height;
+} vm_ranges_t;
+
+class DLL_PREFIX USING_FLAGS {
+protected:
 	QString config_name;
 	QString device_name;
 	// USE_* flags
@@ -120,6 +124,7 @@ private:
 	bool use_vm_auto_key_table;
 
 	int max_button;
+	int max_ranges;
 	bool use_vertical_pixel_lines;
 
 	int screen_width;
@@ -154,7 +159,7 @@ private:
 	bool machine_z80tvgame;
 	
 	button_desc_t *vm_buttons_d;
-
+	vm_ranges_t *vm_ranges_d;
 	EMU *p_emu;
 	OSD *p_osd;
 	config_t *p_config;
@@ -164,7 +169,7 @@ public:
 	QString get_config_name() { return config_name; }
 	QString get_device_name() { return device_name; }
 	
-    bool is_use_access_lamp() { return use_access_lamp; }
+	bool is_use_access_lamp() { return use_access_lamp; }
 	bool is_use_alt_f10_key() { return use_alt_f10_key; }
 	
 	bool is_use_auto_key() { return use_auto_key; }
@@ -205,8 +210,6 @@ public:
 	int get_max_drive() { return max_drive; }
 	int get_max_d88_banks() { return max_d88_banks; }
 
-	int get_max_draw_ranges() { return max_draw_ranges; }
-	
 	bool is_use_joystick() { return use_joystick; }
 	bool is_use_joy_button_captions() { return use_joy_button_captions; }
 	int  get_num_joy_button_captions() { return num_joy_button_captions; }
@@ -219,7 +222,7 @@ public:
 	bool is_use_minimum_rendaring() { return use_minimum_rendering; }
 	bool is_use_dig_resolution() { return use_dig_resolution; }
 
-	int get_use_monitor_type() { use_monitor_type; }
+	int get_use_monitor_type() { return use_monitor_type; }
 	
 	bool is_use_mouse() { return use_mouse; }
 	
@@ -270,7 +273,10 @@ public:
 	
 	int get_screen_mode_num() { return screen_mode_num; }
 	int get_max_button() { return max_button; }
+	int get_max_draw_ranges() { return max_ranges; }
 	button_desc_t *get_vm_buttons() { return vm_buttons_d; }
+	vm_ranges_t *get_draw_ranges() { return vm_ranges_d; }
+
 	bool is_notify_key_down_lr_shift() { return notify_key_down_lr_shift; }
 	bool is_datarec_sound() { return use_datarec_sound; }
 	bool is_tape_binary_only() { return tape_binary_only; }
@@ -289,17 +295,17 @@ public:
 	bool is_machine_has_pcengine() { return machine_has_pcengine; }
 	bool is_machine_sc3000() { return machine_sc3000; }
 	bool is_machine_z80tvgame() { return machine_z80tvgame; }
-	const _TCHAR *get_joy_button_captions(int num);
-	const _TCHAR *get_sound_device_caption(int num);
-	int get_s_freq_table(int num);
+	virtual const _TCHAR *get_joy_button_captions(int num);
+	virtual const _TCHAR *get_sound_device_caption(int num);
+	virtual int get_s_freq_table(int num);
 	void set_emu(EMU *p);
 	EMU *get_emu(void);
 	void set_osd(OSD *p);
 	OSD *get_osd(void);
 	
-	int get_vm_node_size();
-	void set_vm_node_name(int id, const _TCHAR *name);
-	_TCHAR *get_vm_node_name(int id);
+	virtual int get_vm_node_size();
+	virtual void set_vm_node_name(int id, const _TCHAR *name);
+	virtual _TCHAR *get_vm_node_name(int id);
 	
 	config_t *get_config_ptr(void);
 };

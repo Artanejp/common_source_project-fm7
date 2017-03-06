@@ -197,7 +197,28 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\src\res\babbage2nd.ico" />
-    <Image Include="..\src\res\babbage2nd.png" />
+    <Image Include="..\src\res\babbage2nd\board.png" />
+    <Image Include="..\src\res\babbage2nd\button00.png" />
+    <Image Include="..\src\res\babbage2nd\button01.png" />
+    <Image Include="..\src\res\babbage2nd\button02.png" />
+    <Image Include="..\src\res\babbage2nd\button03.png" />
+    <Image Include="..\src\res\babbage2nd\button04.png" />
+    <Image Include="..\src\res\babbage2nd\button05.png" />
+    <Image Include="..\src\res\babbage2nd\button06.png" />
+    <Image Include="..\src\res\babbage2nd\button07.png" />
+    <Image Include="..\src\res\babbage2nd\button08.png" />
+    <Image Include="..\src\res\babbage2nd\button09.png" />
+    <Image Include="..\src\res\babbage2nd\button10.png" />
+    <Image Include="..\src\res\babbage2nd\button11.png" />
+    <Image Include="..\src\res\babbage2nd\button12.png" />
+    <Image Include="..\src\res\babbage2nd\button13.png" />
+    <Image Include="..\src\res\babbage2nd\button14.png" />
+    <Image Include="..\src\res\babbage2nd\button15.png" />
+    <Image Include="..\src\res\babbage2nd\button16.png" />
+    <Image Include="..\src\res\babbage2nd\button17.png" />
+    <Image Include="..\src\res\babbage2nd\button18.png" />
+    <Image Include="..\src\res\babbage2nd\button19.png" />
+    <Image Include="..\src\res\babbage2nd\button20.png" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\res\babbage2nd.rc">

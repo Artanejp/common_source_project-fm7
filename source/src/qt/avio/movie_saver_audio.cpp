@@ -66,7 +66,6 @@ bool MOVIE_SAVER::open_audio(void)
  	AVDictionary *opt_arg = raw_options_list;
 	OutputStream *ost = &audio_st;
 	AVCodec *codec = audio_codec;
-	AVFormatContext *oc = output_context;
 	AVCodecContext *c;
 	int nb_samples;
 	int ret;
@@ -138,7 +137,7 @@ void *MOVIE_SAVER::get_audio_frame()
 #if defined(USE_LIBAV)
 	OutputStream *ost = &audio_st;
 	AVFrame *frame = ost->tmp_frame;
-	int j, i, v;
+	int j, i;
 	int16_t *q = (int16_t*)frame->data[0];
 	int offset = 0;
 	

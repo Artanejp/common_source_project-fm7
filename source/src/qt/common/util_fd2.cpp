@@ -47,7 +47,6 @@ int Ui_MainWindow::set_d88_slot(int drive, int num)
 
 void Ui_MainWindow::do_update_recent_disk(int drv)
 {
-	int i;
 	if(emu == NULL) return;
 	menu_fds[drv]->do_update_histories(listFDs[drv]);
 	menu_fds[drv]->do_set_initialize_directory(p_config->initial_floppy_disk_dir);
@@ -58,19 +57,18 @@ void Ui_MainWindow::do_update_recent_disk(int drv)
 	}
 }
 
-
+extern const _TCHAR* get_parent_dir(const _TCHAR* file);
 int Ui_MainWindow::set_recent_disk(int drv, int num) 
 {
 	QString s_path;
 	char path_shadow[PATH_MAX];
-	int i;
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
 	s_path = QString::fromLocal8Bit(p_config->recent_floppy_disk_path[drv][num]);
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
 	UPDATE_HISTORY(path_shadow, p_config->recent_floppy_disk_path[drv], listFDs[drv]);
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
    
-	get_parent_dir(path_shadow);
+	get_parent_dir((const _TCHAR *)path_shadow);
 	strcpy(p_config->initial_floppy_disk_dir, path_shadow);
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
 
@@ -106,13 +104,12 @@ int Ui_MainWindow::set_recent_disk(int drv, int num)
 void Ui_MainWindow::_open_disk(int drv, const QString fname)
 {
 	char path_shadow[PATH_MAX];
-	int i;
 
 	if(fname.length() <= 0) return;
 	drv = drv & 7;
 	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX);
 	UPDATE_HISTORY(path_shadow, p_config->recent_floppy_disk_path[drv], listFDs[drv]);
-	get_parent_dir(path_shadow);
+	get_parent_dir((const _TCHAR *)path_shadow);
 	strcpy(p_config->initial_floppy_disk_dir, path_shadow);
 	// Update List
 	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX);

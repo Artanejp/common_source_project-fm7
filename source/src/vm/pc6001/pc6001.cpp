@@ -29,7 +29,11 @@
 #include "../pc80s31k.h"
 #include "../prnfile.h"
 #include "../upd765a.h"
+#if defined(_PC6001MK2SR) || defined(_PC6601SR)
 #include "../ym2203.h"
+#else
+#include "../ay_3_891x.h"
+#endif
 #include "../z80.h"
 
 #include "../datarec.h"
@@ -70,7 +74,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #endif	
 	pio_sub = new I8255(this, emu);
 	io = new IO(this, emu);
+#if defined(_PC6001MK2SR) || defined(_PC6601SR)
 	psg = new YM2203(this, emu);
+#else
+	psg = new AY_3_891X(this, emu);
+#endif
 	cpu = new Z80(this, emu);
 #if defined(_USE_QT)
 #ifdef _PC6001
@@ -668,7 +676,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 void VM::save_state(FILEIO* state_fio)
 {

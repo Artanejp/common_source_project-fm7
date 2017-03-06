@@ -165,7 +165,82 @@
     <Image Include="..\src\res\smb80te.ico">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\src\res\smb80te.png">
+    <Image Include="..\src\res\smb80te\board.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button00.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button01.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button02.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button03.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button04.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button05.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button06.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button07.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button08.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button09.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button10.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button11.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button12.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button13.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button14.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button15.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button16.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button17.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button18.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button19.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button20.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button21.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button22.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button23.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button24.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

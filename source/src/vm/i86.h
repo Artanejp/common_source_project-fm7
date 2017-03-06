@@ -10,6 +10,9 @@
 
 #ifndef _I86_H_ 
 #define _I86_H_
+#if defined(USE_DEVICES_SHARED_LIB)
+#include "libcpu_newdev/i86.h"
+#else
 
 #include "vm.h"
 #include "../emu.h"
@@ -429,5 +432,5 @@ public:
 	}
 #endif
 };
-
+#endif
 #endif

@@ -468,6 +468,26 @@
 				Filter="cpp"
 				>
 				<File
+					RelativePath="..\src\vm\ay_3_891x.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\src\vm\disk.cpp"
 					>
 					<FileConfiguration
@@ -729,26 +749,6 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\upd765a.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\src\vm\ym2203.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -1042,6 +1042,10 @@
 				Filter="h"
 				>
 				<File
+					RelativePath="..\src\vm\ay_3_891x.h"
+					>
+				</File>
+				<File
 					RelativePath="..\src\vm\debugger.h"
 					>
 				</File>
@@ -1107,10 +1111,6 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\vm.h"
-					>
-				</File>
-				<File
-					RelativePath="..\src\vm\ym2203.h"
 					>
 				</File>
 				<File

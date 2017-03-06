@@ -1,5 +1,7 @@
 /*
 	NEC TK-80BS (COMPO BS/80) Emulator 'eTK-80BS'
+	NEC TK-80 Emulator 'eTK-80'
+	NEC TK-85 Emulator 'eTK-85'
 
 	Author : Takeda.Toshiya
 	Date   : 2008.08.26 -
@@ -20,13 +22,12 @@
 class DISPLAY : public DEVICE
 {
 private:
-	DEVICE* d_key;
-	
+#if defined(_TK80BS)
 	uint8_t font[0x1000];
-	scrntype_t screen[36][256];
-	
-	uint8_t *vram, *led;
+	uint8_t *vram;
 	int mode;
+#endif
+	uint8_t *led;
 	bool dma;
 	
 public:
@@ -40,14 +41,12 @@ public:
 	bool load_state(FILEIO* state_fio);
 	
 	// unique functions
-	void set_context_key(DEVICE* device)
-	{
-		d_key = device;
-	}
+#if defined(_TK80BS)
 	void set_vram_ptr(uint8_t* ptr)
 	{
 		vram = ptr;
 	}
+#endif
 	void set_led_ptr(uint8_t* ptr)
 	{
 		led = ptr;

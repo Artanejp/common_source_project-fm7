@@ -83,7 +83,6 @@ void Ui_MainWindowBase::_open_disk(int drv, const QString fname)
 
 void Ui_MainWindowBase::eject_fd(int drv) 
 {
-	int i;
 	emit sig_close_disk(drv);
 	menu_fds[drv]->do_clear_inner_media();
 }
@@ -95,7 +94,7 @@ void Ui_MainWindowBase::CreateFloppyMenu(int drv, int drv_base)
 	{
 		QString ext = "*.d88 *.d77 *.1dd *.td0 *.imd *.dsk *.fdi *.hdm *.tfd *.xdf *.2d *.sf7 *.img *.ima *.vfd";
 		QString desc1 = "Floppy Disk";
-		menu_fds[drv] = new Menu_FDClass(emu, menubar, QString::fromUtf8("Obj_Floppy"), using_flags, this, drv);
+		menu_fds[drv] = new Menu_FDClass(menubar, QString::fromUtf8("Obj_Floppy"), using_flags, this, drv);
 		menu_fds[drv]->create_pulldown_menu();
 		
 		menu_fds[drv]->do_clear_inner_media();

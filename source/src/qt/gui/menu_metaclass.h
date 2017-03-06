@@ -76,7 +76,7 @@ protected:
 	QStringList history;
 	QStringList inner_media_list;
 public:
-	Menu_MetaClass(EMU *ep, QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent = 0, int drv = 0);
+	Menu_MetaClass(QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent = 0, int drv = 0);
 	~Menu_MetaClass();
 
 	virtual void create_pulldown_menu_device_sub(void);

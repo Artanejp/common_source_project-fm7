@@ -29,6 +29,7 @@
 // Please permit at least them m(.. )m
 //extern void get_long_full_path_name(_TCHAR* src, _TCHAR* dst);
 #include <string>
+extern CSP_Logger *csp_logger;
 #endif
 
 #if defined(_USE_QT)
@@ -79,10 +80,14 @@ EMU::EMU()
 #ifdef USE_PRINTER
 	printer_device_type = config.printer_device_type;
 #endif
+#ifdef USE_BUBBLE1
+	// initialize b77 file info
+	memset(b77_file, 0, sizeof(b77_file));
+#endif
 	
 	// initialize osd
 #if defined(OSD_QT)
-	osd = new OSD(p);
+	osd = new OSD(p, csp_logger);
 	osd->main_window_handle = hwnd;
 	osd->glv = hinst;
 	osd->host_cpus = 4;
@@ -248,6 +253,9 @@ void EMU::reset()
 		osd->lock_vm();		
 		delete vm;
 		osd->vm = vm = new VM(this);
+#if defined(_USE_QT)
+		osd->reset_vm_node();
+#endif
 		vm->initialize_sound(sound_rate, sound_samples);
 # if defined(_USE_QT)
 		osd->reset_vm_node();
@@ -268,8 +276,8 @@ void EMU::reset()
 		osd->unlock_vm();		
 	}
 	
-	// restart recording
 #if !defined(_USE_QT) // Temporally
+	// restart recording
 	osd->restart_record_sound();
 	osd->restart_record_video();
 #endif	
@@ -618,6 +626,25 @@ void EMU::screen_skip_line(bool skip_line)
 #endif
 
 #ifdef ONE_BOARD_MICRO_COMPUTER
+void EMU::get_invalidated_rect(int *left, int *top, int *right, int *bottom)
+{
+#ifdef MAX_DRAW_RANGES
+	for(int i = 0; i < MAX_DRAW_RANGES; i++) {
+#else
+	for(int i = 0; i < vm->max_draw_ranges(); i++) { // for TK-80BS
+#endif
+		int x1 = vm_ranges[i].x;
+		int y1 = vm_ranges[i].y;
+		int x2 = x1 + vm_ranges[i].width;
+		int y2 = y1 + vm_ranges[i].height;
+		
+		*left   = (i == 0) ? x1 : min(x1, *left  );
+		*top    = (i == 0) ? y1 : min(y1, *top   );
+		*right  = (i == 0) ? x2 : max(x2, *right );
+		*bottom = (i == 0) ? y2 : max(y2, *bottom);
+	}
+}
+
 void EMU::reload_bitmap()
 {
 	osd->reload_bitmap();
@@ -1074,8 +1101,8 @@ static bool hex2bin(const _TCHAR* file_path, const _TCHAR* dest_path)
 			if(record_type == 0x01) break;
 			if(record_type != 0x00) continue;
 			for(int i = 0; i < bytes; i++) {
-				if(offset + i < sizeof(buffer)) {
-					if(length < offset + i) {
+				if((offset + i) < (int)sizeof(buffer)) {
+					if(length < (offset + i)) {
 						length = offset + i;
 					}
 					buffer[offset + i] = hex2uint8(line + 9 + 2 * i);
@@ -1168,6 +1195,14 @@ void EMU::update_media()
 		}
 	}
 #endif
+#ifdef USE_BUBBLE1
+	for(int drv = 0; drv < MAX_BUBBLE; drv++) {
+		if(bubble_casette_status[drv].wait_count != 0 && --bubble_casette_status[drv].wait_count == 0) {
+			vm->open_bubble_casette(drv, bubble_casette_status[drv].path, bubble_casette_status[drv].bank);
+			out_message(_T("Bubble%d: %s"), drv, bubble_casette_status[drv].path);
+		}
+	}
+#endif
 }
 
 void EMU::restore_media()
@@ -1215,6 +1250,13 @@ void EMU::restore_media()
 #ifdef USE_LASER_DISC
 	if(laser_disc_status.path[0] != _T('\0')) {
 		vm->open_laser_disc(laser_disc_status.path);
+	}
+#endif
+#ifdef USE_BUBBLE1
+	for(int drv = 0; drv < MAX_BUBBLE; drv++) {
+		if(bubble_casette_status[drv].path[0] != _T('\0')) {
+			vm->open_bubble_casette(drv, bubble_casette_status[drv].path, bubble_casette_status[drv].bank);
+		}
 	}
 #endif
 #ifdef USE_BUBBLE1

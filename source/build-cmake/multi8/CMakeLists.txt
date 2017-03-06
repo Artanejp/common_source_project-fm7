@@ -19,13 +19,11 @@ set(VMFILES_BASE
                    z80.cpp
 		   
 		   hd46505.cpp
-		   i8251.cpp
 		   i8253.cpp
 		   i8255.cpp
 		   i8259.cpp
 		   upd765a.cpp
 		   ym2203.cpp
-		   beep.cpp
 		   
 		   io.cpp
 		   datarec.cpp
@@ -33,7 +31,10 @@ set(VMFILES_BASE
 		   
 		   event.cpp
 )
-
+set(VMFILES_LIB
+	   i8251.cpp
+	   beep.cpp
+)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")

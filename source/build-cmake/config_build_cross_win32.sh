@@ -8,6 +8,8 @@ export WINEDEBUG="-all"
 CMAKE_LINKFLAG=""
 CMAKE_APPENDFLAG=""
 MAKEFLAGS_GENERAL="-j4"
+MAKE_STATUS_FILE="./000_make_status_config_build_cross_win32.log"
+
 export WCLANG_FORCE_CXX_EXCEPTIONS=1
 
 mkdir -p ./bin-win32/
@@ -84,6 +86,7 @@ function build_dll() {
 	     ${CMAKE_FLAGS1} \
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
+	     "${CMAKE_FLAGS4}" \
 	     "-DUSE_SDL2=ON" \
 	     ${CMAKE_APPENDFLAG} \
 	     "-DCMAKE_EXE_LINKER_FLAGS:STRING=${CMAKE_LINKFLAG}" \
@@ -93,6 +96,7 @@ function build_dll() {
     ${CMAKE} ${CMAKE_FLAGS1} \
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
+	     "${CMAKE_FLAGS4}" \
 	     "-DUSE_SDL2=ON" \
 	     ${CMAKE_APPENDFLAG} \
 	     "-DCMAKE_EXE_LINKER_FLAGS:STRING=${CMAKE_LINKFLAG}" \
@@ -101,16 +105,17 @@ function build_dll() {
     make clean
     
     make ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
-#    case $? in
-#         0 ) 
-#          cp ./qt/gui/libqt_gui.a ../../bin-win32/ 
-#          cp ./qt/gui/*.lib ../../bin-win32/ 
-#          cp ./qt/gui/*.dll ../../bin-win32/ 
-#         ;;
-#          * ) exit $? ;;
-#    esac
-    #make clean
-    cd ../..
+    _STATUS=${PIPESTATUS[0]}
+    echo -e "$1 at `date --rfc-2822`:" "${_STATUS}" >> ../../${MAKE_STATUS_FILE}
+   case ${_STATUS} in
+     0 )
+          ;;
+     * ) 
+     	  echo -e "Abort at `date --rfc-2822`." >> ../../${MAKE_STATUS_FILE}
+	  exit ${_STATUS}
+	  ;;
+    esac
+    cd ../../
 }
 
 case ${BUILD_TYPE} in
@@ -136,11 +141,53 @@ case ${BUILD_TYPE} in
 esac
 
 # libCSPGui
-build_dll libCSPavio
-build_dll libCSPgui
-build_dll libCSPosd
-build_dll libCSPemu_utils
+case ${USE_COMMON_DEVICE_LIB} in
+   "Yes" | "yes" | "YES" )
+   CMAKE_FLAGS4="-DUSE_DEVICES_SHARED_LIB=ON"
+   ;;
+   * )
+   CMAKE_FLAGS4=""
+   ;;
+esac
 
+echo "Make status." > ${MAKE_STATUS_FILE}
+echo "Started at `date --rfc-2822`:" >> ${MAKE_STATUS_FILE}
+build_dll libCSPemu_utils
+echo $PWD
+cp  ./libCSPemu_utils/build-win32/qt/emuutils/*.h   ./bin-win32/
+cp  ./libCSPemu_utils/build-win32/qt/emuutils/*.dll ./bin-win32/
+cp  ./libCSPemu_utils/build-win32/qt/emuutils/*.a   ./bin-win32/
+
+build_dll libCSPfmgen
+cp ./libCSPfmgen/build-win32/vm/fmgen/*.h   ./bin-win32/
+cp ./libCSPfmgen/build-win32/vm/fmgen/*.dll ./bin-win32/
+cp ./libCSPfmgen/build-win32/vm/fmgen/*.a   ./bin-win32/
+
+case ${USE_COMMON_DEVICE_LIB} in
+   "Yes" | "yes" | "YES" )
+   build_dll libCSPcommon_vm
+#   cp ./libCSPcommon_vm/build-win32/vm/common_vm/*.h   ./bin-win32/
+#   cp ./libCSPcommon_vm/build-win32/vm/common_vm/*.dll ./bin-win32/
+   cp ./libCSPcommon_vm/build-win32/vm/common_vm/*.a   ./bin-win32/
+   ;;
+   * )
+   ;;
+esac
+
+build_dll libCSPavio
+#cp ./libCSPavio/build-win32/qt/avio/*.h   ./bin-win32/
+#cp ./libCSPavio/build-win32/qt/avio/*.dll ./bin-win32/
+cp ./libCSPavio/build-win32/qt/avio/*.a   ./bin-win32/
+
+build_dll libCSPosd
+#cp ./libCSPosd/build-win32/qt/*.h   ./bin-win32/
+#cp ./libCSPosd/build-win32/qt/*.dll ./bin-win32/
+cp ./libCSPosd/build-win32/qt/*.a   ./bin-win32/
+
+build_dll libCSPgui
+cp ./libCSPgui/build-win32/qt/gui/*.h   ./bin-win32/
+cp ./libCSPgui/build-win32/qt/gui/*.dll ./bin-win32/
+cp ./libCSPgui/build-win32/qt/gui/*.a   ./bin-win32/
 
 for SRCDATA in $@ ; do\
 
@@ -152,6 +199,7 @@ for SRCDATA in $@ ; do\
 	     ${CMAKE_FLAGS1} \
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_CC}" \
+	     "${CMAKE_FLAGS4}" \
 	     "-DUSE_SDL2=ON" \
 	     "-DCMAKE_EXE_LINKER_FLAGS:STRING=${CMAKE_LINKFLAG}" \
 	     ${CMAKE_APPENDFLAG} \
@@ -160,6 +208,7 @@ for SRCDATA in $@ ; do\
     ${CMAKE} ${CMAKE_FLAGS1} \
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_CC}" \
+	     "${CMAKE_FLAGS4}" \
 	     "-DUSE_SDL2=ON" \
 	     "-DCMAKE_EXE_LINKER_FLAGS:STRING=${CMAKE_LINKFLAG}" \
 	     ${CMAKE_APPENDFLAG} \
@@ -168,15 +217,21 @@ for SRCDATA in $@ ; do\
     make clean
     
     make ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
-    case $? in
+    _STATUS=${PIPESTATUS[0]}
+    echo -e "${SRCDATA} at `date --rfc-2822`:" "${_STATUS}" >> ../../${MAKE_STATUS_FILE}
+    case ${_STATUS} in
       0 ) cp ./qt/common/*.exe ../../bin-win32/ ;;
-      * ) exit $? ;;
+      * )
+     	  echo -e "Abort at `date --rfc-2822`." >> ../../${MAKE_STATUS_FILE}
+	  exit ${_STATUS}
+	  ;;
     esac
     
     make clean
     cd ../..
 done
 
+echo -e "End at `date --rfc-2822`." >> ../../${MAKE_STATUS_FILE}
 exit 0
 
 #for ii in libCSPavio libCSPgui libCSPosd libCSPemu_utils; do

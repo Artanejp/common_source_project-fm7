@@ -678,7 +678,6 @@ void *CSP_Logger::get_raw_data(bool forget, int64_t start, int64_t *end_line)
 {
 	QMutexLocker locker(lock_mutex);
 	CSP_LoggerLine *t;
-	int i;
 	int64_t n = squeue.size();
 
 	if(start < 0)  return (void *)NULL;

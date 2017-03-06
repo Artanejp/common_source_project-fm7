@@ -7,14 +7,11 @@ set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
 
 set(VMFILES
-		   i286.cpp
+#		   i286.cpp
 		   
 		   i8237.cpp
 		   i8255.cpp
 		   i8259.cpp
-		   
-		   ls393.cpp
-		   not.cpp
 		   
 		   rp5c01.cpp
 		   upd7220.cpp
@@ -30,6 +27,11 @@ set(VMFILES
 		   io.cpp
 )
 
+set(VMFILES_LIB
+		   ls393.cpp
+		   not.cpp
+   
+)
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
@@ -44,14 +46,17 @@ set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.
 if(BUILD_MZ5500)
   add_definitions(-D_MZ5500)
   set(EXEC_TARGET emumz5500)
+  set(FLAG_USE_I86 ON)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz5500.qrc)
 elseif(BUILD_MZ6500)
   add_definitions(-D_MZ6500)
   set(EXEC_TARGET emumz6500)
+  set(FLAG_USE_I86 ON)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz6500.qrc)
 else()
   add_definitions(-D_MZ6550)
   set(EXEC_TARGET emumz6550)
+  set(FLAG_USE_I286 ON)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz6550.qrc)
 endif()
 

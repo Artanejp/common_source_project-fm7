@@ -479,6 +479,7 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 		}
 	}
 #endif
+	//printf("@@@@@ ADDRESS=%08x DATA=%02x\n", addr, rbank[addr >> 11][addr & 0x7ff]);
 	return rbank[addr >> 11][addr & 0x7ff];
 }
 

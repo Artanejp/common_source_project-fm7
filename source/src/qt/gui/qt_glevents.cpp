@@ -46,9 +46,6 @@ void GLDrawClass::mouseMoveEvent(QMouseEvent *event)
 	if(using_flags->is_use_one_board_computer() || using_flags->is_use_mouse()) {
 		int xpos = event->x();
 		int ypos = event->y();
-		int d_ww, d_hh;
-		int c_ww, c_hh;
-
 		if(!enable_mouse) return;
 		emit do_notify_move_mouse(xpos, ypos);
 	}

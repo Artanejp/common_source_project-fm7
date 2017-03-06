@@ -165,6 +165,7 @@
     <ClCompile Include="..\src\win32\osd_screen.cpp" />
     <ClCompile Include="..\src\win32\osd_sound.cpp" />
     <ClCompile Include="..\src\win32\winmain.cpp" />
+    <ClCompile Include="..\src\vm\ay_3_891x.cpp" />
     <ClCompile Include="..\src\vm\datarec.cpp" />
     <ClCompile Include="..\src\vm\disk.cpp" />
     <ClCompile Include="..\src\vm\event.cpp" />
@@ -182,6 +183,7 @@
     <ClCompile Include="..\src\vm\fm7\display.cpp" />
     <ClCompile Include="..\src\vm\fm7\dummydevice.cpp" />
     <ClCompile Include="..\src\vm\fm7\floppy.cpp" />
+    <ClCompile Include="..\src\vm\fm7\fm_bubblecasette.cpp" />
     <ClCompile Include="..\src\vm\fm7\fm7.cpp" />
     <ClCompile Include="..\src\vm\fm7\fm7_mainio.cpp" />
     <ClCompile Include="..\src\vm\fm7\fm7_mainmem.cpp" />
@@ -198,6 +200,7 @@
     <ClInclude Include="..\src\fileio.h" />
     <ClInclude Include="..\src\emu.h" />
     <ClInclude Include="..\src\win32\osd.h" />
+    <ClInclude Include="..\src\vm\ay_3_891x.h" />
     <ClInclude Include="..\src\vm\datarec.h" />
     <ClInclude Include="..\src\vm\debugger.h" />
     <ClInclude Include="..\src\vm\device.h" />
@@ -219,6 +222,7 @@
     <ClInclude Include="..\src\vm\fmgen\misc.h" />
     <ClInclude Include="..\src\vm\fmgen\opna.h" />
     <ClInclude Include="..\src\vm\fmgen\psg.h" />
+    <ClInclude Include="..\src\vm\fm7\bubblecasette.h" />
     <ClInclude Include="..\src\vm\fm7\dummydevice.h" />
     <ClInclude Include="..\src\vm\fm7\fm7.h" />
     <ClInclude Include="..\src\vm\fm7\fm7_common.h" />

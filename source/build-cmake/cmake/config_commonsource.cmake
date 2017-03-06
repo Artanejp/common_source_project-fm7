@@ -5,6 +5,53 @@
 
 include(CheckFunctionExists)
 
+if(USE_DEVICES_SHARED_LIB)
+  add_definitions(-DUSE_DEVICES_SHARED_LIB)
+  set(I386_CPPS
+	libcpu_newdev/i386.cpp
+	libcpu_newdev/libcpu_i386/i386_real.cpp
+	libcpu_newdev/libcpu_i386/i386op16_real.cpp
+	libcpu_newdev/libcpu_i386/i386dasm.cpp
+	)
+  set(MC6809_CPPS 
+	libcpu_newdev/libcpu_mc6809/mc6809.cpp
+  )
+  set(MCS48_CPPS
+	libcpu_newdev/mcs48.cpp
+	)
+  set(IX86_CPPS
+	libcpu_newdev/i86.cpp
+	)
+else()
+  set(I386_CPPS i386.cpp)
+  set(MC6809_CPPS mc6809.cpp)
+  set(MCS48_CPPS mcs48.cpp)
+  set(IX86_CPPS i86.cpp)
+  set(VMFILES ${VMFILES} ${VMFILES_LIB})
+endif()
+
+if(FLAG_USE_I86)
+  set(VMFILES ${VMFILES} ${IX86_CPPS})
+endif()
+if(FLAG_USE_I286)
+  set(VMFILES ${VMFILES} i286.cpp)
+endif()
+if(FLAG_USE_I386_VARIANTS)
+  set(VMFILES ${VMFILES} ${I386_CPPS})
+endif()
+if(FLAG_USE_Z80)
+  set(VMFILES ${VMFILES} z80.cpp)
+endif()
+if(FLAG_USE_MC6809)
+  set(VMFILES ${VMFILES} ${MC6809_CPPS})
+endif()
+if(FLAG_USE_MCS48)
+  set(VMFILES ${VMFILES} ${MCS48_CPPS})
+endif()
+if(USE_DEVICES_SHARED_LIB)
+  set(VMFILES ${VMFILES}   libcpu_newdev/device.cpp)
+endif()
+
 if(DEFINED QT5_ROOT_PATH)
   SET(CMAKE_FIND_ROOT_PATH  ${QT5_ROOT_PATH} ${CMAKE_FIND_ROOT_PATH})
 endif()
@@ -147,10 +194,13 @@ endif()
 
 if(DEFINED VM_NAME)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/${VM_NAME})
-  if(USE_FMGEN)
+#  if(USE_FMGEN)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-    set(FMGEN_LIB vm_fmgen)
-  endif()
+#    if(WIN32)
+#      set(FMGEN_LIB vm_fmgen)
+#	  set(FMGEN_LIB "-lCSPfmgen")
+#	endif()
+#  endif()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/${VM_NAME})
 endif()
 
@@ -178,29 +228,27 @@ if(DEFINED VM_NAME)
 #   set(DEBUG_LIBS)
 # endif()
 
-if(WIN32)
-	   set(LOCAL_LIBS 
-		   common_emu
-                   qt_${VM_NAME}
-		   vm_${VM_NAME}
-		   ${VM_APPEND_LIBS}
-		   vm_vm
-		   ${FMGEN_LIB}
-		   ${DEBUG_LIBS}
-		   common_common
-		   )
-else()
+	if(WIN32)
 	   set(LOCAL_LIBS     
 		   common_emu
-                   qt_${VM_NAME}
+           qt_${VM_NAME}
 		   vm_${VM_NAME}
-		   ${VM_APPEND_LIBS}
 		   vm_vm
-		   ${FMGEN_LIB}
+		   ${VM_APPEND_LIBS}
 		   ${DEBUG_LIBS}
 		   common_common
 		   )
-	   endif()
+	else()
+	   set(LOCAL_LIBS     
+		   common_emu
+           qt_${VM_NAME}
+		   vm_${VM_NAME}
+		   vm_vm
+		   ${VM_APPEND_LIBS}
+		   ${DEBUG_LIBS}
+		   common_common
+		   )
+	endif()
 endif()
 
 include(simd-x86)
@@ -230,7 +278,7 @@ else()
 #       ${LIBAV_LIBRARIES}
        ${ADDITIONAL_LIBRARIES}
        )
-       set(BUNDLE_LIBS ${BUNDLE_LIBS} -lCSPosd -lCSPgui -lCSPemu_utils -lCSPavio)
+       set(BUNDLE_LIBS ${BUNDLE_LIBS} -lCSPosd -lCSPfmgen -lCSPcommon_vm -lCSPgui -lCSPemu_utils -lCSPavio)
 endif()
 
 if(USE_QT_5)
@@ -241,9 +289,9 @@ set(BUNDLE_LIBS ${BUNDLE_LIBS} ${THREADS_LIBRARY})
 
 if(DEFINED VM_NAME)
 	add_subdirectory(../../src/vm/${VM_NAME} vm/${VM_NAME})
-  if(USE_FMGEN)
-	add_subdirectory(../../src/vm/fmgen vm/fmgen)
-  endif()	
+#  if(USE_FMGEN)
+#	add_subdirectory(../../src/vm/fmgen vm/fmgen)
+#  endif()	
 	add_subdirectory(../../src/qt/machines/${VM_NAME} qt/${VM_NAME})
 	add_subdirectory(../../src/qt/common qt/common)
 endif()

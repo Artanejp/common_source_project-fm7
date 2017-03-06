@@ -26,6 +26,8 @@
 
 #include "../pcm1bit.h"
 #include "../ym2203.h"
+#include "../ay_3_891x.h"
+
 #if defined(_FM77AV_VARIANTS)
 #include "mb61vh010.h"
 #include "../beep.h"
@@ -62,7 +64,8 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 # if defined(_FM77AV_VARIANTS)
 	opn[0] = opn[1] = opn[2] = NULL;
 # else   
-	opn[0] = opn[1] = opn[2] = psg = NULL; 
+	opn[0] = opn[1] = opn[2] = NULL;
+	psg = NULL; 
 # endif
 #endif
 	dummy = new DEVICE(this, emu);	// must be 1st device
@@ -80,14 +83,22 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	dmac = new HD6844(this, emu);
 #endif   
 #if defined(_FM8)
+#  if defined(USE_AY_3_8910_AS_PSG)
+	psg = new AY_3_891X(this, emu);
+#  else
 	psg = new YM2203(this, emu);
+#  endif
 #else	
 	opn[0] = new YM2203(this, emu); // OPN
 	opn[1] = new YM2203(this, emu); // WHG
 	opn[2] = new YM2203(this, emu); // THG
 # if !defined(_FM77AV_VARIANTS)
+#  if defined(USE_AY_3_8910_AS_PSG)
+	psg = new AY_3_891X(this, emu);
+#  else
 	psg = new YM2203(this, emu);
-# endif
+#  endif
+# endif	
 #endif
 #if defined(_FM8)
 	for(int i = 0; i < 2; i++) bubble_casette[i] = new BUBBLECASETTE(this, emu);
@@ -364,6 +375,7 @@ void VM::connect_bus(void)
 #if defined(_FM77AV_VARIANTS)
 	display->set_context_alu(alu);
 	alu->set_context_memory(display);
+	alu->set_direct_access_offset(DISPLAY_VRAM_DIRECT_ACCESS);
 #endif	
 	// Palette, VSYNC, HSYNC, Multi-page, display mode. 
 	mainio->set_context_display(display);
@@ -461,9 +473,6 @@ void VM::connect_bus(void)
 
 void VM::update_config()
 {
-	uint32_t vol1, vol2, tmpv;
-	int ii, i_limit;
-
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->update_config();
 	}
@@ -477,9 +486,14 @@ void VM::reset()
 		device->reset();
 	}
 #if !defined(_FM77AV_VARIANTS) || defined(_FM8)
+# if defined(USE_AY_3_8910_AS_PSG)
+	psg->set_reg(0x2e, 0);	// set prescaler
+	psg->write_signal(SIG_AY_3_891X_MUTE, 0x00, 0x01); // Okay?
+# else	
 	psg->set_reg(0x27, 0); // stop timer
 	psg->set_reg(0x2e, 0);	// set prescaler
 	psg->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
+#endif
 #endif
 #if !defined(_FM8)
 	for(int i = 0; i < 3; i++) {
@@ -872,7 +886,6 @@ void VM::save_state(FILEIO* state_fio)
 bool VM::load_state(FILEIO* state_fio)
 {
 	uint32_t version = state_fio->FgetUint32_BE();
-	int i = 1;
 	if(version != STATE_VERSION) {
 		return false;
 	}

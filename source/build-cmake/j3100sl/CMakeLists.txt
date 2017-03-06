@@ -28,10 +28,14 @@ set(VMFILES
 		   io.cpp
 		   disk.cpp
 		   
-		   pcm1bit.cpp
+#		   pcm1bit.cpp
 		   upd765a.cpp
 		   
 		   event.cpp
+)
+
+set(VMFILES_LIB
+		   pcm1bit.cpp
 )
 
 set(BUILD_J3100GT OFF  CACHE BOOL "Build emuJ3100GT")
@@ -62,9 +66,10 @@ elseif(BUILD_J3100SL)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/j3100sl.qrc)
   add_definitions(-D_J3100SL)
   set(VMFILES ${VMFILES} 
-               i86.cpp 
+#               i86.cpp 
 	       rp5c01.cpp
 	       )
+set(FLAG_USE_I86 ON)
 elseif(BUILD_J3100SS)
   set(EXEC_TARGET emuj3100ss)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/j3100ss.qrc)
@@ -78,9 +83,10 @@ elseif(BUILD_J3100SE)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/j3100se.qrc)
   add_definitions(-D_J3100SE)
   set(VMFILES ${VMFILES} 
-               i86.cpp 
+#               i86.cpp 
 	       rp5c01.cpp
 	       )
+set(FLAG_USE_I86 ON)
 endif()
 
 include(config_commonsource)

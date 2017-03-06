@@ -68,8 +68,6 @@ void GLDrawClass::updateBitmap(QImage *p)
 
 void GLDrawClass::resizeGL(int width, int height)
 {
-	int side = qMin(width, height);
-	double ww, hh;
 	if(extfunc != NULL) {
 		extfunc->resizeGL(width, height);
 	} else {
@@ -89,35 +87,42 @@ void GLDrawClass::resizeGL(int width, int height)
 
 void GLDrawClass::paintGL(void)
 {
-	int i;
-
 	SaveToPixmap(); // If save requested, then Save to Pixmap.
+	//qWarning("Test");
 	if(extfunc != NULL) {
 		if(delay_update) {
 			extfunc->setVirtualVramSize(vram_width, vram_height);
 			extfunc->resizeGL(draw_width, draw_height);
 			delay_update = false;
 		}
-		extfunc->paintGL();
+		//extfunc->paintGL();
 	}
-//	emit sig_draw_timing(false);
+	emit sig_draw_timing();
 }
+
+
+//void GLDrawClass::paintEvent(QPaintEvent *ev)
+//{
+//	// Do Nothing.
+//	// http://doc.qt.io/qt-5/qopenglwidget.html#Threading
+//}
 
 #ifndef GL_MULTISAMPLE
 #define GL_MULTISAMPLE  0x809D
 #endif
 
 #if defined(_USE_GLAPI_QT5_4)
-GLDrawClass::GLDrawClass(USING_FLAGS *p, QWidget *parent, const QSurfaceFormat &fmt)
+GLDrawClass::GLDrawClass(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent, const QSurfaceFormat &fmt)
 	: QOpenGLWidget(parent, Qt::Widget)
 #else
-GLDrawClass::GLDrawClass(USING_FLAGS *p, QWidget *parent, const QGLFormat &fmt)
+GLDrawClass::GLDrawClass(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent, const QGLFormat &fmt)
 	: QGLWidget(fmt, parent)
 #endif
 {
 #if defined(_USE_GLAPI_QT5_4)
 	this->setFormat(fmt);
 #endif
+	csp_logger = logger;
 	save_pixmap_req = false;
 	enable_mouse = true;
 	p_emu = NULL;

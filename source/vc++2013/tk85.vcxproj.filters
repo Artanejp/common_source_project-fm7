@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{24ec3d88-aa5f-47a1-9fa4-adc2376393cb}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
+    </Filter>
+    <Filter Include="Source Files\EMU Source Files">
+      <UniqueIdentifier>{80537760-254d-4808-bbc2-e65b84a0d22e}</UniqueIdentifier>
+      <Extensions>cpp</Extensions>
+    </Filter>
+    <Filter Include="Source Files\OSD Source Files">
+      <UniqueIdentifier>{08cce149-96c9-49a6-9386-8fcc6a8149d9}</UniqueIdentifier>
+      <Extensions>cpp</Extensions>
+    </Filter>
+    <Filter Include="Source Files\VM Common Source Files">
+      <UniqueIdentifier>{cf3a4f3a-e561-4bb8-98b9-db69716f217c}</UniqueIdentifier>
+      <Extensions>cpp</Extensions>
+    </Filter>
+    <Filter Include="Source Files\VM Driver Source Files">
+      <UniqueIdentifier>{f6e91b45-e929-4f14-889e-fbffe465f39c}</UniqueIdentifier>
+      <Extensions>cpp</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{8926f704-4f64-4300-a63f-b2416353db9a}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl</Extensions>
+    </Filter>
+    <Filter Include="Header Files\EMU Header Files">
+      <UniqueIdentifier>{17f68f0b-3db0-4de1-9934-0b5ff4221677}</UniqueIdentifier>
+      <Extensions>h</Extensions>
+    </Filter>
+    <Filter Include="Header Files\OSD Header Files">
+      <UniqueIdentifier>{b1e06718-feaa-4d3e-ab5a-8bf4e8632719}</UniqueIdentifier>
+      <Extensions>h</Extensions>
+    </Filter>
+    <Filter Include="Header Files\VM Common Header Files">
+      <UniqueIdentifier>{574bc49c-5005-4d39-831b-effbce45e51a}</UniqueIdentifier>
+      <Extensions>h</Extensions>
+    </Filter>
+    <Filter Include="Header Files\VM Driver Header Files">
+      <UniqueIdentifier>{2017f0b6-930c-468a-919a-436907452c6e}</UniqueIdentifier>
+      <Extensions>h</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{ca53ed44-16e2-427b-9070-d8a5fda74e66}</UniqueIdentifier>
+      <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\common.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\config.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\fifo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\fileio.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\debugger.cpp">
+      <Filter>Source Files\EMU Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\emu.cpp">
+      <Filter>Source Files\EMU Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win32\osd.cpp">
+      <Filter>Source Files\OSD Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win32\osd_console.cpp">
+      <Filter>Source Files\OSD Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win32\osd_input.cpp">
+      <Filter>Source Files\OSD Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win32\osd_screen.cpp">
+      <Filter>Source Files\OSD Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win32\osd_sound.cpp">
+      <Filter>Source Files\OSD Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win32\winmain.cpp">
+      <Filter>Source Files\OSD Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\datarec.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\event.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\i8080.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\i8255.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\memory.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\pcm1bit.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\tk80bs\display.cpp">
+      <Filter>Source Files\VM Driver Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\tk80bs\keyboard.cpp">
+      <Filter>Source Files\VM Driver Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\tk80bs\membus.cpp">
+      <Filter>Source Files\VM Driver Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\tk80bs\tk80bs.cpp">
+      <Filter>Source Files\VM Driver Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\fifo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\fileio.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\emu.h">
+      <Filter>Header Files\EMU Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\win32\osd.h">
+      <Filter>Header Files\OSD Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\datarec.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\debugger.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\device.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\event.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\i8080.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\i8255.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\memory.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\pcm1bit.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\vm.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\tk80bs\display.h">
+      <Filter>Header Files\VM Driver Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\tk80bs\keyboard.h">
+      <Filter>Header Files\VM Driver Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\tk80bs\membus.h">
+      <Filter>Header Files\VM Driver Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\tk80bs\tk80bs.h">
+      <Filter>Header Files\VM Driver Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\res\resource.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\src\res\tk85.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\tk85\board.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\tk85\button00.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\tk85\button01.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\tk85\button02.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\tk85\button03.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\tk85\button04.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\tk85\button05.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\tk85\button06.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\tk85\button07.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\tk85\button08.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\tk85\button09.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\tk85\button10.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\tk85\button11.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\tk85\button12.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\tk85\button13.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\tk85\button14.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\tk85\button15.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\tk85\button16.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\tk85\button17.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\tk85\button18.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\tk85\button19.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\tk85\button20.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\tk85\button21.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\tk85\button22.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\tk85\button23.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\tk85\button24.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\tk85\button25.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\src\res\tk85.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

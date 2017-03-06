@@ -22,7 +22,7 @@
 #include "menu_flags.h"
 #include "csp_logger.h"
 
-class MOVIE_SAVER;
+class DLL_PREFIX_I MOVIE_SAVER;
 
 #include "qt_main.h"
 #define _MAX_DEBUGGER 8
@@ -75,14 +75,13 @@ class Menu_BubbleClass;
 class Menu_CompactDiscClass;
 class Menu_LaserdiscClass;
 class MOVIE_SAVER;
-
-
 class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 {
 	Q_OBJECT
  protected:
 	USING_FLAGS *using_flags;
 	config_t *p_config;
+	CSP_Logger *csp_logger;
 	QMainWindow *MainWindow;
 	QApplication *CoreApplication;
 	
@@ -413,7 +412,7 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	int max_vm_nodes;
 	bool ui_retranslate_completed;
 public:
-	Ui_MainWindowBase(USING_FLAGS *p, QWidget *parent = 0);
+	Ui_MainWindowBase(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent = 0);
 	~Ui_MainWindowBase();
 
 	// Initializer : using from InitContext.
@@ -454,7 +453,7 @@ public:
 	bool get_wave_shaper(void);
 	bool get_direct_load_mzt(void);
 	virtual bool GetPowerState(void);
-   
+	void set_logger(CSP_Logger *logger) { csp_logger = logger; }
 	// Basic slots
 public slots:
 	void delete_emu_thread(void);
@@ -544,10 +543,7 @@ public slots:
 	void do_write_protect_cmt(int drv, bool flag);
 	int  set_recent_cmt(int drv, int num);
 	void set_wave_shaper(bool f);
-//#if defined(_MZ80A) || defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(_MZ800) || defined(_MZ1500) || \
-//	defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
 	void set_direct_load_from_mzt(bool f);
-//#endif	
 	void do_open_write_cmt(QString);
 	void do_open_read_cmt(int dummy, QString path);
 	void do_change_osd_cmt(QString tmpstr);
