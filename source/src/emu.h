@@ -26,6 +26,7 @@
 #include "common.h"
 #include "config.h"
 #include "vm/vm.h"
+#include <pthread.h>
 
 #if defined(_USE_QT)
 #define OSD_QT

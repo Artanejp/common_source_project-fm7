@@ -17,6 +17,7 @@
 #include "vm/debugger.h"
 #include "vm/vm.h"
 #include "fileio.h"
+#include <pthread.h>
 
 #ifdef USE_DEBUGGER
 
