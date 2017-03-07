@@ -26,14 +26,25 @@ case ${USE_RADICAL_OPTIMIZE} in
    "No" | "no" | "NO" | * )
       MAKEFLAGS_BASE3=" \
                -O2 \
+	       -mtune=generic \
+	       -ftree-vectorize \
 	       -funroll-loops \
 	       -floop-nest-optimize \
 	       -msse -msse2 \
+	       -Wall \
                ${MAKEFLAGS_BASE} \
 	       "
 	       ;;
 esac
 
+case ${USE_WHOLE_PROGRAM_OPTIMIZE} in
+   "Yes" | "yes" | "YES" )
+      LTO_FLAGS="-fwhole-program"
+      ;;
+   * )
+      LTO_FLAGS=""
+      ;;
+esac
 
 case ${CSP_DEBUG} in
    "Yes" | "yes" | "YES" )
@@ -46,7 +57,7 @@ esac
 
 case ${USE_LTO} in
    "Yes" | "yes" | "YES" )
-       MAKEFLAGS_LINK_BASE2="-flto=6 -fwhole-program ${MAKEFLAGS_BASE2}"
+       MAKEFLAGS_LINK_BASE2="-flto=6 ${LTO_FLAGS} ${MAKEFLAGS_BASE2}"
        MAKEFLAGS_BASE2="-flto -ffat-lto-objects ${MAKEFLAGS_BASE2}"
        ;;
    "No" | "no" | "NO" | * )
