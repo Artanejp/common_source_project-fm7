@@ -60,7 +60,7 @@ signals:
 	int sig_update_master_volume(int);
 };
 
-class Ui_SoundDialog : public QWidget
+class DLL_PREFIX Ui_SoundDialog : public QWidget
 {
 	Q_OBJECT
 private:
