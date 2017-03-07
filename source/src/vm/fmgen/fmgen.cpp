@@ -170,7 +170,7 @@ namespace FM
 
 	// fixed equasion-based tables
 	int		pmtable[2][8][FM_LFOENTS];
-	uint	amtable[2][4][FM_LFOENTS];
+	uint	volatile  amtable[2][4][FM_LFOENTS];
 
 	static bool tablemade = false;
 }
@@ -201,7 +201,7 @@ void MakeLFOTable()
 	//	1.000963
 	//	lfofref[level * max * wave];
 	//	pre = lfofref[level][pms * wave >> 8];
-	static const uint8 amt[2][4] = 
+	static const volatile uint8 amt[2][4] = 
 	{
 		{ 31, 6, 4, 3 }, // OPNA
 		{ 31, 2, 1, 0 }, //	OPM
