@@ -278,7 +278,7 @@ else()
 #       ${LIBAV_LIBRARIES}
        ${ADDITIONAL_LIBRARIES}
        )
-       set(BUNDLE_LIBS ${BUNDLE_LIBS} -lCSPosd -lCSPfmgen -lCSPcommon_vm -lCSPgui -lCSPemu_utils -lCSPavio)
+       set(BUNDLE_LIBS ${BUNDLE_LIBS} -lCSPosd -lCSPcommon_vm -lCSPfmgen -lCSPgui -lCSPemu_utils -lCSPavio)
 endif()
 
 if(USE_QT_5)
