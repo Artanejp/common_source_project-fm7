@@ -13,9 +13,11 @@
   * [EMU/DEBUGGER] Use pthread_t instead of SDL_Thread.
   * [Qt/OSD] Remove do_call_debugger_command().
   * [SOUND/VM] Fix choppy sounds with some devices. i.e. PCM1BIT. Thanks to Takeda-San and Umaiboux-San.
-  * Built with 1014e6fc73aa1fe867da01724a8126aa70331954 or newer.
+  * [VM/FMGEN] Fix crash with GCC-5.This is issue of optimization, add "volatile" to any member(s).
+  * [BUILD/LINUX] GCC5: (MAYBE) Enable to set "USE_RADICAL_OPTIMIZE" to "YES".
+  * Built with 2dac70eb1743e2a0b778a57a1f520fce59aa6371 or newer.
 
--- Mar 07, 2017 02:47:32 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Mar 07, 2017 15:55:25 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT January 30, 2017
   * Upstream 2016-12-31
