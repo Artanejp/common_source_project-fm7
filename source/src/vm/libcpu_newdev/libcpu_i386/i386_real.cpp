@@ -19,7 +19,6 @@ int I386_OPS::cpu_translate_i386(void *cpudevice, address_spacenum space, int in
 	return ret;
 }
 
-#include "./cycles.h"
 i386_state *I386_OPS::i386_common_init(int tlbsize)
 {
 	int i, j;
