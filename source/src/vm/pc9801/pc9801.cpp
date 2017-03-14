@@ -62,9 +62,7 @@
 #if defined(SUPPORT_CMT_IF)
 #include "cmt.h"
 #endif
-#if defined(SUPPORT_ITF_ROM)
-#include "itf.h"
-#endif
+
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 #include "../pc80s31k.h"
 #include "../z80.h"
@@ -108,8 +106,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-	dummy->set_device_name(_T("1st Dummy"));
-	event->set_device_name(_T("EVENT"));
 	
 #if defined(SUPPORT_OLD_BUZZER)
 	beep = new BEEP(this, emu);
@@ -119,70 +115,61 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	dma = new I8237(this, emu);
 #if defined(SUPPORT_CMT_IF)
 	sio_cmt = new I8251(this, emu);		// for cmt
-	sio_cmt->set_device_name(_T("i8251 SIO(CMT)"));
+	sio_cmt->set_device_name(_T("8251 SIO (CMT)"));
 #endif
 	sio_rs = new I8251(this, emu);		// for rs232c
+	sio_rs->set_device_name(_T("8251 SIO (RS-232C)"));
 	sio_kbd = new I8251(this, emu);		// for keyboard
-	sio_rs->set_device_name(_T("i8251 SIO (RS-232C)"));
-	sio_kbd->set_device_name(_T("i8251 SIO (KEYBOARD)"));
-
+	sio_kbd->set_device_name(_T("8251 SIO (Keyboard)"));
 	pit = new I8253(this, emu);
 #if defined(SUPPORT_320KB_FDD_IF)
 	pio_fdd = new I8255(this, emu);		// for 320kb fdd i/f
-	pio_fdd->set_device_name(_T("i8255 PIO (320KB FDD)"));
+	pio_fdd->set_device_name(_T("8255 PIO (320KB I/F)"));
 #endif
 	pio_mouse = new I8255(this, emu);	// for mouse
+	pio_mouse->set_device_name(_T("8255 PIO (Mouse)"));
 	pio_sys = new I8255(this, emu);		// for system port
+	pio_sys->set_device_name(_T("8255 PIO (System)"));
 	pio_prn = new I8255(this, emu);		// for printer
-
-	pio_mouse->set_device_name(_T("i8255 PIO (Mouse)"));
-	pio_prn->set_device_name(_T("i8255 PIO (Printer)"));
-	pio_sys->set_device_name(_T("i8255 PIO (System)"));
-
+	pio_prn->set_device_name(_T("8255 PIO (Printer)"));
 	pic = new I8259(this, emu);
 #if defined(HAS_I86) || defined(HAS_V30)
 	cpu = new I86(this, emu);
 #else
 	cpu = new I286(this, emu);
 #endif	
-  #if defined(HAS_I86)
+#if defined(HAS_I86)
 	cpu->set_device_name(_T("CPU(i8086)"));
-  #elif defined(HAS_I386)
+#elif defined(HAS_I386)
 	cpu->set_device_name(_T("CPU(i386)"));
-  #elif defined(HAS_I486)
+#elif defined(HAS_I486)
 	cpu->set_device_name(_T("CPU(i486)"));
-  #elif defined(HAS_PENTIUM)
+#elif defined(HAS_PENTIUM)
 	cpu->set_device_name(_T("CPU(Pentium)"));
-  #elif defined(HAS_V33A)
+#elif defined(HAS_V33A)
 	cpu->set_device_name(_T("CPU(V33A)"));
-  #elif defined(HAS_V30)
+#elif defined(HAS_V30)
 	cpu->set_device_name(_T("CPU(V30)"));
-  #else
+#else
 	cpu->set_device_name(_T("CPU(i286)"));
-  #endif
+#endif
 	io = new IO(this, emu);
 	dmareg1 = new LS244(this, emu);
-	dmareg2 = new LS244(this, emu);
-	dmareg3 = new LS244(this, emu);
-	dmareg0 = new LS244(this, emu);
-	rtcreg = new LS244(this, emu);
-
-	io->set_device_name(_T("I/O BUS"));
 	dmareg1->set_device_name(_T("74LS244 (DMA #1)"));
+	dmareg2 = new LS244(this, emu);
 	dmareg2->set_device_name(_T("74LS244 (DMA #2)"));
+	dmareg3 = new LS244(this, emu);
 	dmareg3->set_device_name(_T("74LS244 (DMA #3)"));
+	dmareg0 = new LS244(this, emu);
 	dmareg0->set_device_name(_T("74LS244 (DMA #0)"));
+	rtcreg = new LS244(this, emu);
 	rtcreg->set_device_name(_T("74LS244 (RTC)"));
-	
 	memory = new MEMORY(this, emu);
 	not_busy = new NOT(this, emu);
-
-	memory->set_device_name(_T("MEMORY"));
-	not_busy->set_device_name(_T("NOT Gate (PRINTER BUSY)"));
-
+	not_busy->set_device_name(_T("NOT Gate (Printer Busy)"));
 #if defined(HAS_I86) || defined(HAS_V30)
 	not_prn = new NOT(this, emu);
-	not_prn->set_device_name(_T("NOT GATE (Printer IRQ)"));
+	not_prn->set_device_name(_T("NOT Gate (Printer IRQ)"));
 #endif
 	rtc = new UPD1990A(this, emu);
 #if defined(SUPPORT_2HD_FDD_IF)
@@ -195,14 +182,14 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #endif
 #if defined(SUPPORT_2HD_2DD_FDD_IF)
 	fdc = new UPD765A(this, emu);
-	fdc->set_device_name(_T("uPD765A FDC (2DD/2HD I/F)"));
+	fdc->set_device_name(_T("uPD765A FDC (2HD/2DD I/F)"));
 #endif
 	noise_seek = new NOISE(this, emu);
 	noise_head_down = new NOISE(this, emu);
 	noise_head_up = new NOISE(this, emu);
 	gdc_chr = new UPD7220(this, emu);
-	gdc_gfx = new UPD7220(this, emu);
 	gdc_chr->set_device_name(_T("uPD7220 GDC (Character)"));
+	gdc_gfx = new UPD7220(this, emu);
 	gdc_gfx->set_device_name(_T("uPD7220 GDC (Graphics)"));
 	
 	if(sound_device_type == 0 || sound_device_type == 1) {
@@ -214,12 +201,12 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		joystick = new JOYSTICK(this, emu);
 	} else if(sound_device_type == 2 || sound_device_type == 3) {
 		tms3631 = new TMS3631(this, emu);
-		pit_14 = new I8253(this, emu);
-		pio_14 = new I8255(this, emu);
-		maskreg_14 = new LS244(this, emu);
 		tms3631->set_device_name(_T("TMS3631 SSG (PC-9801-14)"));
-		pit_14->set_device_name(_T("i8253 PIT (PC-9801-14)"));
-		pio_14->set_device_name(_T("i8255 PIO (PC-9801-14)"));
+		pit_14 = new I8253(this, emu);
+		pit_14->set_device_name(_T("8253 PIT (PC-9801-14)"));
+		pio_14 = new I8255(this, emu);
+		pio_14->set_device_name(_T("8255 PIO (PC-9801-14)"));
+		maskreg_14 = new LS244(this, emu);
 		maskreg_14->set_device_name(_T("74LS244 (PC-9801-14)"));
 	}
 	if(config.printer_device_type == 0) {
@@ -229,9 +216,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	} else {
 		printer = dummy;
 	}
-	event->set_context_sound(noise_seek);
-	event->set_context_sound(noise_head_down);
-	event->set_context_sound(noise_head_up);
 	
 #if defined(SUPPORT_CMT_IF)
 	cmt = new CMT(this, emu);
@@ -240,22 +224,19 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	mouse = new MOUSE(this, emu);
+	
 #if defined(SUPPORT_320KB_FDD_IF)
 	// 320kb fdd drives
 	pio_sub = new I8255(this, emu);
+	pio_sub->set_device_name(_T("8255 PIO (320KB FDD)"));
 	pc80s31k = new PC80S31K(this, emu);
+	pc80s31k->set_device_name(_T("PC-80S31K (320KB FDD)"));
 	fdc_sub = new UPD765A(this, emu);
-	cpu_sub = new Z80(this, emu);
-
-	pio_sub->set_device_name(_T("i8255 PIO (320KB FDD)"));
-	pc80s31k->set_device_name(_T("PC80S-31K (320KB FDD)"));
 	fdc_sub->set_device_name(_T("uPD765A FDC (320KB FDD)"));
+	cpu_sub = new Z80(this, emu);
 	cpu_sub->set_device_name(_T("Z80 CPU (320KB FDD)"));
 #endif
-#if defined(SUPPORT_ITF_ROM)
-	itf = new ITF(this, emu);
-	itf->set_device_name(_T("ITF/BIOS ROM BLOCK"));
-#endif
+	
 	/* IRQ	0  PIT
 		1  KEYBOARD
 		2  CRTV
@@ -285,28 +266,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	} else if(sound_device_type == 2 || sound_device_type == 3) {
 		event->set_context_sound(tms3631);
 	}
-#if defined(USE_SOUND_FILES)
-#if defined(SUPPORT_2HD_FDD_IF)
-	if(fdc_2hd->load_sound_data(UPD765A_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
-		event->set_context_sound(fdc_2hd);
-	}
-#endif
-#if defined(SUPPORT_2DD_FDD_IF)
-	if(fdc_2dd->load_sound_data(UPD765A_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
-		event->set_context_sound(fdc_2dd);
-	}
-#endif
-#if defined(SUPPORT_2HD_2DD_FDD_IF)
-	if(fdc->load_sound_data(UPD765A_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
-		event->set_context_sound(fdc);
-	}
-#endif
-#if defined(SUPPORT_320KB_FDD_IF)
-	if(fdc_sub->load_sound_data(UPD765A_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
-		event->set_context_sound(fdc_sub);
-	}
-#endif
-#endif
+	event->set_context_sound(noise_seek);
+	event->set_context_sound(noise_head_down);
+	event->set_context_sound(noise_head_up);
+	
 	dma->set_context_memory(memory);
 	// dma ch.0: sasi
 	// dma ch.1: memory refresh
@@ -469,11 +432,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	memset(ram, 0, sizeof(ram));
 	memset(ipl, 0xff, sizeof(ipl));
 	memset(sound_bios, 0xff, sizeof(sound_bios));
-	
-#if defined(SUPPORT_ITF_ROM)
-	memset(itf_rom, 0xff, sizeof(itf_rom));
-#endif
-	
 #if defined(_PC9801) || defined(_PC9801E)
 	memset(fd_bios_2hd, 0xff, sizeof(fd_bios_2hd));
 	memset(fd_bios_2dd, 0xff, sizeof(fd_bios_2dd));
@@ -491,6 +449,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	memory->read_bios(_T("2HDIF.ROM"), fd_bios_2hd, sizeof(fd_bios_2hd));
 	memory->read_bios(_T("2DDIF.ROM"), fd_bios_2dd, sizeof(fd_bios_2dd));
 #endif
+	
 	memory->set_memory_rw(0x00000, 0x9ffff, ram);
 	// A0000h - A1FFFh: TEXT VRAM
 	// A2000h - A3FFFh: ATTRIBUTE
@@ -508,20 +467,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// E0000h - E7FFFh: VRAM
 	memory->set_memory_mapped_io_rw(0xe0000, 0xe7fff, display);
 #endif
-	
-	// E8000h - FFFFFh: IPL or ITF ROM
-#if defined(SUPPORT_ITF_ROM)
-	memory->read_bios(_T("ITF.ROM"), itf_rom, sizeof(itf_rom));
-	
-	itf->set_context_itf(itf_rom);
-	itf->set_context_ipl(ipl);
-	memory->set_memory_mapped_io_r(0xe8000, 0xfffff, itf);
-//	memory->set_memory_r(0x1c0000, 0x1c7fff, itf);
-//	memory->set_memory_r(0x1f8000, 0x1fffff, itf);
-//	memory->set_memory_r(0x1e8000, 0x1f7fff, ipl);
-#else
 	memory->set_memory_r(0xe8000, 0xfffff, ipl);
-#endif	
 	
 	// i/o bus
 	io->set_iomap_alias_rw(0x00, pic, 0);
@@ -664,10 +610,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		io->set_iovalue_single_r(0x18e, 0x80); // INT5
 //		io->set_iovalue_single_r(0x18e, 0xc0); // INT6
 	}
-#if defined(SUPPORT_ITF_ROM)
-	io->set_iomap_range_w(0x43c, 0x43d, itf);
-	io->set_iomap_range_r(0x43c, 0x43d, itf);
-#endif
+	
 #if !defined(SUPPORT_OLD_BUZZER)
 	io->set_iomap_alias_rw(0x3fd9, pit, 0);
 	io->set_iomap_alias_rw(0x3fdb, pit, 1);
@@ -685,38 +628,39 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 	pc88event = new EVENT(this, emu);
+	pc88event->set_device_name(_T("Event Manager (PC-8801)"));
 	pc88event->set_frames_per_sec(60);
 	pc88event->set_lines_per_frame(260);
-	pc88event->set_device_name(_T("PC8801 EVENT"));
+	
 	pc88 = new PC88(this, emu);
 	pc88->set_context_event_manager(pc88event);
 	pc88sio = new I8251(this, emu);
+	pc88sio->set_device_name(_T("8251 SIO (PC-8801)"));
 	pc88sio->set_context_event_manager(pc88event);
 	pc88pio = new I8255(this, emu);
+	pc88pio->set_device_name(_T("8255 PIO (PC-8801)"));
 	pc88pio->set_context_event_manager(pc88event);
 	pc88pcm = new PCM1BIT(this, emu);
+	pc88pcm->set_device_name(_T("1-Bit PCM Sound (PC-8801)"));
 	pc88pcm->set_context_event_manager(pc88event);
 	pc88rtc = new UPD1990A(this, emu);
+	pc88rtc->set_device_name(_T("uPD1990A RTC (PC-8801)"));
 	pc88rtc->set_context_event_manager(pc88event);
 	pc88opn = new YM2203(this, emu);
-	pc88opn->set_context_event_manager(pc88event);
-	pc88->set_device_name(_T("PC8801 MAIN"));
-	pc88sio->set_device_name(_T("i8251 SIO (PC8801)"));
-	pc88pio->set_device_name(_T("i8255 PIO (PC8801)"));
-	pc88pcm->set_device_name(_T("1BIT PCM SOUND (PC8801)"));
-	pc88opn->set_device_name(_T("YM2203 OPN (PC8801)"));
-
 #ifdef SUPPORT_PC88_OPNA
+	pc88opn->set_device_name(_T("YM2608 OPNA (PC-8801)"));
 	pc88opn->is_ym2608 = true;
+#else
+	pc88opn->set_device_name(_T("YM2203 OPN (PC-8801)"));
 #endif
+	pc88opn->set_context_event_manager(pc88event);
 	pc88cpu = new Z80(this, emu);
+	pc88cpu->set_device_name(_T("Z80 CPU (PC-8801)"));
 	pc88cpu->set_context_event_manager(pc88event);
-	pc88cpu->set_device_name(_T("Z80 CPU (PC8801)"));
-
+	
 	if(config.printer_device_type == 0) {
 		pc88prn = new PRNFILE(this, emu);
 		pc88prn->set_context_event_manager(pc88event);
-		pc88prn->set_device_name(_T("PRINTER TO FILE(PC8801)"));
 //	} else if(config.printer_device_type == 1) {
 //		pc88prn = new PCPR201(this, emu);
 //		pc88prn->set_context_event_manager(pc88event);
@@ -742,20 +686,14 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pc88cpu_sub = new Z80(this, emu);
 	pc88cpu_sub->set_device_name(_T("Z80 CPU (PC-8801 Sub)"));
 	pc88cpu_sub->set_context_event_manager(pc88event);
-	pc88sub->set_device_name(_T("PC-80S31K (PC8801 FDD)"));
-	pc88pio_sub->set_device_name(_T("i8255 PIO (PC8801 FDD)"));
-	pc88fdc_sub->set_device_name(_T("uPD765A FDC (PC8801 FDD)"));
-	pc88cpu_sub->set_device_name(_T("Z80 CPU (PC8801 FDD)"));
 	
 	pc88event->set_context_cpu(pc88cpu, (config.cpu_type != 0) ? 3993624 : 7987248);
 	pc88event->set_context_cpu(pc88cpu_sub, 3993624);
 	pc88event->set_context_sound(pc88opn);
 	pc88event->set_context_sound(pc88pcm);
-#if defined(USE_SOUND_FILES)
-	if(pc88fdc_sub->load_sound_data(UPD765A_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
-		pc88event->set_context_sound(pc88fdc_sub);
-	}
-#endif
+	pc88event->set_context_sound(pc88noise_seek);
+	pc88event->set_context_sound(pc88noise_head_down);
+	pc88event->set_context_sound(pc88noise_head_up);
 	
 	pc88->set_context_cpu(pc88cpu);
 	pc88->set_context_opn(pc88opn);
@@ -1116,25 +1054,6 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		pc88noise_head_up->set_volume(0, decibel_l, decibel_r);
 #endif
 	}
-#if defined(USE_SOUND_FILES)
-	else if(ch-- == 0) {
-#if defined(SUPPORT_2HD_FDD_IF)
-		fdc_2hd->set_volume(0, decibel_l, decibel_r);
-#endif
-#if defined(SUPPORT_2DD_FDD_IF)
-		fdc_2dd->set_volume(0, decibel_l, decibel_r);
-#endif
-#if defined(SUPPORT_2HD_2DD_FDD_IF)
-		fdc->set_volume(0, decibel_l, decibel_r);
-#endif
-#if defined(SUPPORT_320KB_FDD_IF)
-		fdc_sub->set_volume(0, decibel_l, decibel_r);
-#endif
-#if defined(_PC98DO) || defined(_PC98DOPLUS)
-		pc88fdc_sub->set_volume(0, decibel_l, decibel_r);
-#endif
-#endif
-	}
 }
 #endif
 
@@ -1399,10 +1318,6 @@ bool VM::load_state(FILEIO* state_fio)
 	boot_mode = state_fio->FgetInt32();
 #endif
 	sound_device_type = state_fio->FgetInt32();
-#if defined(SUPPORT_ITF_ROM)
-	itf->set_context_ipl(ipl);
-	itf->set_context_itf(itf_rom);
-#endif	
 	return true;
 }
 

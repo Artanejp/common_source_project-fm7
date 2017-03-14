@@ -35,7 +35,6 @@
 #define SCREEN_WIDTH		320
 #define SCREEN_HEIGHT		128
 #else
-#define SUPPORT_TV_RENDER
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		400
 #define WINDOW_HEIGHT_ASPECT	480
@@ -59,24 +58,7 @@
 #define USE_CRT_FILTER
 #define USE_SCANLINE
 #define USE_ACCESS_LAMP
-#define SUPPORT_ROMA_KANA_CONVERSION
-
-#ifdef _LCD
-#define USE_SOUND_FILES		4
-#else
-#define USE_SOUND_FILES		5
-#endif
-#define USE_SOUND_FILES_FDD
-#ifdef _LCD
-#define USE_SOUND_FILES_BUTTONS
-#else
-#define USE_SOUND_FILES_RELAY
-#endif
-#if defined(USE_SOUND_FILES)
 #define USE_SOUND_VOLUME	6
-#else
-#define USE_SOUND_VOLUME	4
-#endif
 #define USE_JOYSTICK
 #define USE_DEBUGGER
 #define USE_STATE
@@ -86,14 +68,7 @@
 
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
-	_T("PSG #1"), _T("PSG #2"), _T("Beep"), _T("CMT"),
-#if defined(USE_SOUND_FILES)
-#ifdef _LCD
-	_T("FDD SEEK"), _T("CMT Buttons"),
-#else
-	_T("FDD SEEK"), _T("CMT Relay"),
-#endif
-#endif
+	_T("PSG #1"), _T("PSG #2"), _T("Beep"), _T("CMT (Signal)"), _T("Noise (FDD)"), _T("Noise (CMT)"),
 };
 #endif
 

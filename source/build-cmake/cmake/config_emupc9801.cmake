@@ -55,7 +55,7 @@ if(BUILD_PC9801)
        not.cpp
 	   )
    set(FLAG_USE_I86 ON)
-  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc9801.qrc)
+   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc9801.qrc)
 elseif(BUILD_PC9801E)
    add_definitions(-D_PC9801E)
    set(EXEC_TARGET emupc9801e)
@@ -67,7 +67,7 @@ elseif(BUILD_PC9801E)
        beep.cpp
        not.cpp
    )
-   set(FLAG_USE_I86 ON)
+  set(FLAG_USE_I86 ON)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc9801e.qrc)
 elseif(BUILD_PC9801U)
    add_definitions(-D_PC9801U)

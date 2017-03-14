@@ -39,10 +39,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-#if defined(_USE_QT)
-	dummy->set_device_name(_T("1st Dummy"));
-	event->set_device_name(_T("EVENT"));
-#endif	
 	
 	drec = new DATAREC(this, emu);
 	drec->set_context_noise_play(new NOISE(this, emu));
@@ -53,30 +49,19 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	io = new IO(this, emu);
 	pcm = new PCM1BIT(this, emu);
 	rtc = new UPD1990A(this, emu);
-#if defined(_USE_QT)
-	cpu->set_device_name(_T("CPU(i8080)"));
-#endif	
 	
 	cmt = new CMT(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	lcd = new LCD(this, emu);
 	memory = new MEMORY(this, emu);
-#if defined(_USE_QT)
-	cmt->set_device_name(_T("CMT I/F"));
-	keyboard->set_device_name(_T("KEYBOARD I/F"));
-	lcd->set_device_name(_T("LCD I/F"));
-	memory->set_device_name(_T("MEMORY"));
-#endif	
 	
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(pcm);
 	event->set_context_sound(drec);
-#if defined(USE_SOUND_FILES)
-	drec->load_sound_data(DATAREC_SNDFILE_RELAY_ON,  _T("CMTPLAY.WAV"));
-	drec->load_sound_data(DATAREC_SNDFILE_RELAY_OFF, _T("CMTSTOP.WAV"));
-	drec->load_sound_data(DATAREC_SNDFILE_EJECT,     _T("CMTEJECT.WAV"));
-#endif
+	event->set_context_sound(drec->get_context_noise_play());
+	event->set_context_sound(drec->get_context_noise_stop());
+	event->set_context_sound(drec->get_context_noise_fast());
 	
 	drec->set_context_ear(cpu, SIG_I8085_SID, 1);
 	cpu->set_context_sod(cmt, SIG_CMT_SOD, 1);
@@ -118,8 +103,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
-	// Sound:: Force realtime rendering. This is temporally fix. 20161024 K.O
-	pcm->set_realtime_render(true);
 	rtc->write_signal(SIG_UPD1990A_STB, 0, 0);
 }
 
@@ -219,13 +202,6 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		drec->get_context_noise_stop()->set_volume(0, decibel_l, decibel_r);
 		drec->get_context_noise_fast()->set_volume(0, decibel_l, decibel_r);
 	}
-#if defined(USE_SOUND_FILES)
-	 else if(ch == 2) {
-		 for(int i = 0; i < DATAREC_SNDFILE_END; i++) {
-			 drec->set_volume(i + 2, decibel_l, decibel_r);
-		 }
-	 }
-#endif
 }
 #endif
 
@@ -254,19 +230,18 @@ void VM::play_tape(const _TCHAR* file_path)
 
 void VM::rec_tape(const _TCHAR* file_path)
 {
+	emu->lock_vm();
 	drec->close_tape();
+	emu->unlock_vm();
 	cmt->rec_tape(file_path);
 }
 
 void VM::close_tape()
 {
-#if defined(USE_SOUND_FILES)
-	drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_EJECT, 1, 1);
-#endif
 	emu->lock_vm();
 	drec->close_tape();
-	cmt->close_tape();
 	emu->unlock_vm();
+	cmt->close_tape();
 }
 
 bool VM::is_tape_inserted()

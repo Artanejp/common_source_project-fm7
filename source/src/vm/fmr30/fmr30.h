@@ -45,13 +45,7 @@
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_ACCESS_LAMP
-#define USE_SOUND_FILES		1
-#define USE_SOUND_FILES_FDD
-#if defined(USE_SOUND_FILES)
 #define USE_SOUND_VOLUME	2
-#else
-#define USE_SOUND_VOLUME	1
-#endif
 #define USE_DEBUGGER
 #define USE_STATE
 
@@ -60,10 +54,7 @@
 
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
-	_T("PSG"),
-#if defined(USE_SOUND_FILES)
-	_T("FDD SEEK"),
-#endif
+	_T("PSG"), _T("Noise (FDD)"),
 };
 #endif
 
@@ -75,7 +66,11 @@ class I8237;
 class I8251;
 class I8253;
 class I8259;
+#if defined(HAS_I86)
 class I86;
+#else
+class I286;
+#endif
 class IO;
 class MB8877;
 class SCSI_HOST;
@@ -107,7 +102,11 @@ protected:
 	I8251* sio_ch2;
 	I8253* pit;
 	I8259* pic;
+#if defined(HAS_I86)
 	I86* cpu;
+#else
+	I286* cpu;
+#endif
 	IO* io;
 	MB8877* fdc;
 	SCSI_HOST* scsi_host;

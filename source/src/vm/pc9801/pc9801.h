@@ -42,9 +42,6 @@
 #define SUPPORT_2DD_FDD_IF
 #define SUPPORT_320KB_FDD_IF
 #define SUPPORT_OLD_BUZZER
-#elif defined(_PC9801VM)
-//#define SUPPORT_ITF_ROM
-#define SUPPORT_2HD_2DD_FDD_IF
 #elif defined(_PC9801VF) || defined(_PC9801U)
 #define SUPPORT_2DD_FDD_IF
 #else
@@ -119,15 +116,9 @@
 #endif
 #define I8259_MAX_CHIPS		2
 #define SINGLE_MODE_DMA
-#if defined(_PC9801VM)
 #define MEMORY_ADDR_MAX		0x100000
 #define MEMORY_BANK_SIZE	0x800
 #define IO_ADDR_MAX		0x10000
-#else
-#define MEMORY_ADDR_MAX		0x100000
-#define MEMORY_BANK_SIZE	0x800
-#define IO_ADDR_MAX		0x10000
-#endif
 #define OVERRIDE_SOUND_FREQ_48000HZ	55467
 #define SUPPORT_VARIABLE_TIMING
 
@@ -174,12 +165,6 @@
 #define USE_SCREEN_ROTATE
 #define USE_ACCESS_LAMP
 #define USE_SOUND_DEVICE_TYPE	5
-#define USE_SOUND_FILES 3
-#define USE_SOUND_FILES_FDD
-#if defined(USE_TAPE)
-#define USE_SOUND_FILES_RELAY
-#endif
-#if defined(USE_SOUND_FILES)
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 #if    defined(SUPPORT_PC98_OPNA) &&  defined(SUPPORT_PC88_OPNA)
 #define USE_SOUND_VOLUME	(4 + 1 + 1 + 4 + 1 + 1)
@@ -195,25 +180,6 @@
 #define USE_SOUND_VOLUME	(4 + 1 + 1 + 1)
 #else
 #define USE_SOUND_VOLUME	(2 + 1 + 1 + 1)
-#endif
-#endif
-#else
-#if defined(_PC98DO) || defined(_PC98DOPLUS)
-#if    defined(SUPPORT_PC98_OPNA) &&  defined(SUPPORT_PC88_OPNA)
-#define USE_SOUND_VOLUME	(4 + 1 + 1 + 4 + 1 + 1)
-#elif  defined(SUPPORT_PC98_OPNA) && !defined(SUPPORT_PC88_OPNA)
-#define USE_SOUND_VOLUME	(4 + 1 + 1 + 2 + 1 + 1)
-#elif !defined(SUPPORT_PC98_OPNA) &&  defined(SUPPORT_PC88_OPNA)
-#define USE_SOUND_VOLUME	(2 + 1 + 1 + 4 + 1 + 1)
-#elif !defined(SUPPORT_PC98_OPNA) && !defined(SUPPORT_PC88_OPNA)
-#define USE_SOUND_VOLUME	(2 + 1 + 1 + 2 + 1 + 1)
-#endif
-#else
-#if defined(SUPPORT_PC98_OPNA)
-#define USE_SOUND_VOLUME	(4 + 1 + 1 + 1)
-#else
-#define USE_SOUND_VOLUME	(2 + 1 + 1 + 1)
-#endif
 #endif
 #endif
 #define USE_JOYSTICK
@@ -241,9 +207,6 @@ static const _TCHAR *sound_device_caption[] = {
 	_T("PC-88 OPN (FM)"), _T("PC-88 OPN (PSG)"),
 #endif
 	_T("PC-88 Beep"), 
-#endif
-#if defined(USE_SOUND_FILES)
-	_T("FDD"),
 #endif
 	_T("Noise (FDD)"),
 };
@@ -300,12 +263,6 @@ class Z80;
 class PC80S31K;
 class PC88;
 class Z80;
-#endif
-#if defined(SUPPORT_ITF_ROM)
-class ITF;
-#endif
-#if defined(USE_SOUND_FILES)
-class WAV_SOUNDER;
 #endif
 
 class VM
@@ -372,17 +329,6 @@ protected:
 #if defined(SUPPORT_CMT_IF)
 	CMT* cmt;
 #endif
-#if defined(USE_SOUND_FILES)
-#if defined(SUPPORT_2HD_FDD_IF)
-	WAV_SOUNDER* fdc_2hd_seeksnd;
-#endif
-#if defined(SUPPORT_2DD_FDD_IF)
-	WAV_SOUNDER* fdc_2dd_seeksnd;
-#endif
-#if defined(SUPPORT_2HD_2DD_FDD_IF)
-	WAV_SOUNDER* fdc_seeksnd;
-#endif
-#endif
 	DISPLAY* display;
 	FLOPPY* floppy;
 	FMSOUND* fmsound;
@@ -402,20 +348,12 @@ protected:
 	PC80S31K *pc80s31k;
 	UPD765A* fdc_sub;
 	Z80* cpu_sub;
-#if defined(USE_SOUND_FILES)
-	WAV_SOUNDER* fdc_sub_seeksnd;
 #endif
-#endif
-#if defined(SUPPORT_ITF_ROM)
-	ITF* itf;
-#endif	
+	
 	// memory
 	uint8_t ram[0xa0000];
 	uint8_t ipl[0x18000];
 	uint8_t sound_bios[0x4000];
-#if defined(SUPPORT_ITF_ROM)
-	uint8_t itf_rom[0x8000];
-#endif
 #if defined(_PC9801) || defined(_PC9801E)
 	uint8_t fd_bios_2hd[0x1000];
 	uint8_t fd_bios_2dd[0x1000];
@@ -444,9 +382,6 @@ protected:
 	NOISE* pc88noise_head_down;
 	NOISE* pc88noise_head_up;
 	Z80* pc88cpu_sub;
-#if defined(USE_SOUND_FILES)
-	WAV_SOUNDER* pc88fdc_sub_seeksnd;
-#endif
 	
 	int boot_mode;
 #endif

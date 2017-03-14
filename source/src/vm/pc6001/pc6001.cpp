@@ -70,7 +70,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-	dummy->set_device_name(_T("1st Dummy"));
+	
 	pio_sub = new I8255(this, emu);
 	io = new IO(this, emu);
 	noise_seek = new NOISE(this, emu);
@@ -82,12 +82,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	psg = new AY_3_891X(this, emu);
 #endif
 	cpu = new Z80(this, emu);
-#ifdef _PC6001
-	pio_sub->set_device_name(_T("i8255 PIO(PRINTER/SOUND/SUB/VDP)"));
-#else
-	pio_sub->set_device_name(_T("i8255 PIO(PRINTER/SOUND/SUB)"));
-#endif
-
+	
 	if(config.printer_device_type == 0) {
 		printer = new PRNFILE(this, emu);
 	} else {
@@ -103,6 +98,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	joystick = new JOYSTICK(this, emu);
 	memory = new MEMORY(this, emu);
 	timer = new TIMER(this, emu);
+	
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(psg);
@@ -141,12 +137,14 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		sub = new SUB(this, emu);
 		drec = new DATAREC(this, emu);
 		drec->set_device_name(_T("Data Recorder (Sub)"));
+		drec->set_context_noise_play(new NOISE(this, emu));
+		drec->set_context_noise_stop(new NOISE(this, emu));
+		drec->set_context_noise_fast(new NOISE(this, emu));
 		event->set_context_cpu(cpu_sub, 8000000);
 		event->set_context_sound(drec);
-#if defined(USE_SOUND_FILES)
-		drec->load_sound_data(DATAREC_SNDFILE_RELAY_ON, _T("RELAY_ON.WAV"));
-		drec->load_sound_data(DATAREC_SNDFILE_RELAY_OFF, _T("RELAY_OFF.WAV"));
-#endif		
+		event->set_context_sound(drec->get_context_noise_play());
+		event->set_context_sound(drec->get_context_noise_stop());
+		event->set_context_sound(drec->get_context_noise_fast());
 		cpu_sub->set_context_mem(new MCS48MEM(this, emu));
 		cpu_sub->set_context_io(sub);
 #ifdef USE_DEBUGGER
@@ -167,21 +165,16 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	}
 	if(support_pc80s31k) {
 		pio_fdd = new I8255(this, emu);
+		pio_fdd->set_device_name(_T("8255 PIO (FDD I/F)"));
 		pio_pc80s31k = new I8255(this, emu);
+		pio_pc80s31k->set_device_name(_T("8255 PIO (320KB FDD)"));
 		pc80s31k = new PC80S31K(this, emu);
-		fdc_pc80s31k = new UPD765A(this, emu);
-		cpu_pc80s31k = new Z80(this, emu);
-		pio_fdd->set_device_name(_T("i8255 PIO (FDD I/F)"));
-		pio_pc80s31k->set_device_name(_T("i8255 PIO (320KB FDD)"));
 		pc80s31k->set_device_name(_T("PC-80S31K (320KB FDD)"));
+		fdc_pc80s31k = new UPD765A(this, emu);
 		fdc_pc80s31k->set_device_name(_T("uPD765A FDC (320KB FDD)"));
+		cpu_pc80s31k = new Z80(this, emu);
 		cpu_pc80s31k->set_device_name(_T("Z80 CPU (320KB FDD)"));
-
-#if defined(USE_SOUND_FILES)
-		if(fdc_pc80s31k->load_sound_data(UPD765A_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
-			event->set_context_sound(fdc_pc80s31k);
-		}
-#endif		
+		
 		event->set_context_cpu(cpu_pc80s31k, 4000000);
 		
 		pc80s31k->set_context_cpu(cpu_pc80s31k);
@@ -218,20 +211,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #if defined(_PC6601) || defined(_PC6601SR)
 		floppy->set_context_ext(pc6031);
 #endif
-#if defined(USE_SOUND_FILES)
-		if(pc6031->load_sound_data(PC6031_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
-			event->set_context_sound(pc6031);
-		}
-#endif		
 		cpu_pc80s31k = NULL;
 	}
-#if defined(USE_SOUND_FILES)
-#if defined(_PC6601) || defined(_PC6601SR)
-	if(floppy->load_sound_data(FLOPPY_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
-		event->set_context_sound(floppy);
-	}
-#endif
-#endif
+	
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
@@ -434,18 +416,6 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 			drec->get_context_noise_fast()->set_volume(0, decibel_l, decibel_r);
 		}
 	}
-#if defined(USE_SOUND_FILES)
-	 else if(ch-- == 0) {
-#if defined(_PC6601) || defined(_PC6601SR)
-		 if(floppy != NULL) floppy->set_volume(0, decibel_l, decibel_r);
-#endif
-		 if(support_pc80s31k) {
-			 if(fdc_pc80s31k != NULL) fdc_pc80s31k->set_volume(0, decibel_l, decibel_r);
-		 } else {
-			 if(pc6031 != NULL) pc6031->set_volume(0, decibel_l, decibel_r);
-		 }
-	}
-#endif
 }
 #endif
 

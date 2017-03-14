@@ -57,10 +57,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-#if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));
-	event->set_device_name(_T("EVENT"));
-#endif	
 	
 	beep = new BEEP(this, emu);
 	sio_rs = new I8251(this, emu);	// for rs232c
@@ -87,17 +84,13 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #endif
 	dma = new UPD71071(this, emu);	// V50 internal
 	fdc = new UPD765A(this, emu);
-#if defined(_USE_QT)
-	sio_rs->set_device_name(_T("i8251 SIO(RS-232C)"));
-	sio_kbd->set_device_name(_T("i8251 SIO(KEYBOARD)"));
-	pit->set_device_name(_T("V50 PIT(i8253 COMPATIBLE)"));
-	pio_sys->set_device_name(_T("i8255 PIO(SYSTEM)"));
-	pio_prn->set_device_name(_T("i8251 PIO(PRINTER)"));
+	fdc->set_context_noise_seek(new NOISE(this, emu));
+	fdc->set_context_noise_head_down(new NOISE(this, emu));
+	fdc->set_context_noise_head_up(new NOISE(this, emu));
 	pic->set_device_name(_T("V50 PIC(i8259 COMPATIBLE)"));
-	cpu->set_device_name(_T("CPU(V50)"));
+	cpu->set_device_name(_T("CPU (V50)"));
 	io->set_device_name(_T("I/O BUS"));
 	not_busy->set_device_name(_T("NOT GATE(PRINTER BUSY)"));
-#endif	
 	
 	if(config.printer_device_type == 0) {
 		printer = new PRNFILE(this, emu);
@@ -113,22 +106,12 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	keyboard = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
 	note = new NOTE(this, emu);
-#if defined(_USE_QT)
-	bios->set_device_name(_T("BIOS"));
-	calendar->set_device_name(_T("CALENDAR"));
-	floppy->set_device_name(_T("FLOPPY I/F"));
-	keyboard->set_device_name(_T("KEYBOARD I/F"));
-	memory->set_device_name(_T("MEMORY"));
-	note->set_device_name(_T("NOTE I/F"));
-#endif
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(beep);
-#if defined(USE_SOUND_FILES)
-	if(fdc->load_sound_data(UPD765A_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
-		event->set_context_sound(fdc);
-	}
-#endif	
+	event->set_context_sound(fdc->get_context_noise_seek());
+	event->set_context_sound(fdc->get_context_noise_head_down());
+	event->set_context_sound(fdc->get_context_noise_head_up());
 //???	sio_rs->set_context_rxrdy(pic, SIG_I8259_IR4, 1);
 	sio_kbd->set_context_rxrdy(pic, SIG_I8259_IR1, 1);
 //	sio_kbd->set_context_out(keyboard, SIG_KEYBOARD_RECV);
@@ -348,11 +331,6 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		fdc->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
 		fdc->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
 	}
-#if defined(USE_SOUND_FILES)
-	else if(ch == 1) {
-		fdc->set_volume(0, decibel_l, decibel_r);
-	}
-#endif
 }
 #endif
 

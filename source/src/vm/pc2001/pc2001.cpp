@@ -37,10 +37,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-#if defined(_USE_QT)
-	dummy->set_device_name(_T("1st Dummy"));
-	event->set_device_name(_T("EVENT"));
-#endif	
 	
 	drec = new DATAREC(this, emu);
 	drec->set_context_noise_play(new NOISE(this, emu));
@@ -58,27 +54,17 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	lcd[3]->set_device_name(_T("uPD16434 LCD Controller #3"));
 	rtc = new UPD1990A(this, emu);
 	cpu = new UPD7810(this, emu);
-#if defined(_USE_QT)
-	lcd[0]->set_device_name(_T("uPD16434 LCD CONTROLLER #1"));
-	lcd[1]->set_device_name(_T("uPD16434 LCD CONTROLLER #2"));
-	lcd[2]->set_device_name(_T("uPD16434 LCD CONTROLLER #3"));
-	lcd[3]->set_device_name(_T("uPD16434 LCD CONTROLLER #4"));
-	cpu->set_device_name(_T("CPU(uPD7810)"));
-#endif	
 	
 	io = new IO(this, emu);
-#if defined(_USE_QT)
-	io->set_device_name(_T("I/O BUS"));
-#endif	
+	
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(pcm);
 	event->set_context_sound(drec);
-#if defined(USE_SOUND_FILES)
-	drec->load_sound_data(DATAREC_SNDFILE_RELAY_ON,  _T("CMTPLAY.WAV"));
-	drec->load_sound_data(DATAREC_SNDFILE_RELAY_OFF, _T("CMTSTOP.WAV"));
-	drec->load_sound_data(DATAREC_SNDFILE_EJECT,     _T("CMTEJECT.WAV"));
-#endif
+	event->set_context_sound(drec->get_context_noise_play());
+	event->set_context_sound(drec->get_context_noise_stop());
+	event->set_context_sound(drec->get_context_noise_fast());
+	
 	drec->set_context_ear(io, SIG_IO_DREC_IN, 1);
 	rtc->set_context_dout(io, SIG_IO_RTC_IN, 1);
 	cpu->set_context_to(pcm, SIG_PCM1BIT_SIGNAL, 1);
@@ -215,13 +201,6 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		drec->get_context_noise_stop()->set_volume(0, decibel_l, decibel_r);
 		drec->get_context_noise_fast()->set_volume(0, decibel_l, decibel_r);
 	}
-#if defined(USE_SOUND_FILES)
-	 else if(ch == 2) {
-		 for(int i = 0; i < DATAREC_SNDFILE_END; i++) {
-			 drec->set_volume(i + 2, decibel_l, decibel_r);
-		 }
-	 }
-#endif
 }
 #endif
 
@@ -243,9 +222,6 @@ void VM::rec_tape(const _TCHAR* file_path)
 
 void VM::close_tape()
 {
-#if defined(USE_SOUND_FILES)
-	drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_EJECT, 1, 1);
-#endif
 	emu->lock_vm();
 	drec->close_tape();
 	emu->unlock_vm();

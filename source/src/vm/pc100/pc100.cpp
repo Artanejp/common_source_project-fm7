@@ -18,7 +18,7 @@
 #include "../i8251.h"
 #include "../i8255.h"
 #include "../i8259.h"
-#include "../i86.h"
+#include "../i286.h"
 #include "../io.h"
 #include "../memory.h"
 #include "../msm58321.h"
@@ -44,10 +44,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-#if defined(_USE_QT)
-	dummy->set_device_name(_T("1st Dummy"));
-	event->set_device_name(_T("EVENT"));
-#endif	
 	
 	and_drq = new AND(this, emu);
 	beep = new BEEP(this, emu);
@@ -57,36 +53,27 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio1 = new I8255(this, emu);
 	pio1->set_device_name(_T("8255 PIO (CRTC)"));
 	pic = new I8259(this, emu);
-	cpu = new I86(this, emu);
+	cpu = new I286(this, emu);
 	io = new IO(this, emu);
 	memory = new MEMORY(this, emu);
 	rtc = new MSM58321(this, emu);
 	pcm = new PCM1BIT(this, emu);
 	fdc = new UPD765A(this, emu);
-#if defined(_USE_QT)
-	and_drq->set_device_name(_T("AND GATE(FDC DRQ)"));
-	pio0->set_device_name(_T("i8255 PIO(MSM5832 RTC)"));
-	pio1->set_device_name(_T("i8255 PIO(CRTC)"));
-	cpu->set_device_name(_T("CPU(i8086)"));
-#endif	
+	fdc->set_context_noise_seek(new NOISE(this, emu));
+	fdc->set_context_noise_head_down(new NOISE(this, emu));
+	fdc->set_context_noise_head_up(new NOISE(this, emu));
 	
 	crtc = new CRTC(this, emu);
 	ioctrl = new IOCTRL(this, emu);
 	kanji = new KANJI(this, emu);
-#if defined(_USE_QT)
-	crtc->set_device_name(_T("CRTC"));
-	ioctrl->set_device_name(_T("I/O CONTROL"));
-	kanji->set_device_name(_T("KANJI I/F"));
-#endif	
+	
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(beep);
 	event->set_context_sound(pcm);
-#if defined(USE_SOUND_FILES)
-	if(fdc->load_sound_data(UPD765A_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
-		event->set_context_sound(fdc);
-	}
-#endif		
+	event->set_context_sound(fdc->get_context_noise_seek());
+	event->set_context_sound(fdc->get_context_noise_head_down());
+	event->set_context_sound(fdc->get_context_noise_head_up());
 	
 	and_drq->set_context_out(cpu, SIG_CPU_NMI, 1);
 	and_drq->set_mask(SIG_AND_BIT_0 | SIG_AND_BIT_1);
@@ -275,11 +262,6 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		fdc->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
 		fdc->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
 	}
-#if defined(USE_SOUND_FILES)
-	else if(ch == 2) {
-		fdc->set_volume(0, decibel_l, decibel_r);
-	}
-#endif
 }
 #endif
 

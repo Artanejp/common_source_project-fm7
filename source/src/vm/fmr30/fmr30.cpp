@@ -16,7 +16,11 @@
 #include "../i8251.h"
 #include "../i8253.h"
 #include "../i8259.h"
+#if defined(HAS_I86)
 #include "../i86.h"
+#else
+#include "../i286.h"
+#endif
 #include "../io.h"
 #include "../mb8877.h"
 #include "../noise.h"
@@ -61,27 +65,20 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	sio_ch2->set_device_name(_T("8251 SIO (RS-232C #2)"));
 	pit = new I8253(this, emu);
 	pic = new I8259(this, emu);
+#if defined(HAS_I86)
 	cpu = new I86(this, emu);
+#else
+	cpu = new I286(this, emu);
+#endif
 	io = new IO(this, emu);
 	fdc = new MB8877(this, emu);
-#if defined(_USE_QT)
+	fdc->set_context_noise_seek(new NOISE(this, emu));
+	fdc->set_context_noise_head_down(new NOISE(this, emu));
+	fdc->set_context_noise_head_up(new NOISE(this, emu));
 	dummy->set_device_name(_T("1st Dummy"));
-	event->set_device_name(_T("EVENT"));
-
-	dma->set_device_name(_T("i8237 DMAC"));
-	sio_kb->set_device_name(_T("i8251 SIO(KEYBOARD)"));
-	sio_sub->set_device_name(_T("i8251 SIO(SUB SYSTEM)"));
-	sio_ch1->set_device_name(_T("i8251 SIO(RS-232C #1)"));
-	sio_ch2->set_device_name(_T("i8251 SIO(RS-232C #2)"));
-	pit->set_device_name(_T("i8253 PIT"));
-	pic->set_device_name(_T("i8259 PIC"));
 	cpu->set_device_name(_T("CPU(80C86)"));
-#endif
 	
 	scsi_host = new SCSI_HOST(this, emu);
-#if defined(_USE_QT)
-	scsi_host->set_device_name(_T("SCSI HOST"));
-#endif	
 	for(int i = 0; i < 7; i++) {
 		if(FILEIO::IsFileExisting(create_local_path(_T("SCSI%d.DAT"), i))) {
 			SCSI_HDD* scsi_hdd = new SCSI_HDD(this, emu);
@@ -92,16 +89,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		}
 	}
 	psg = new SN76489AN(this, emu);
-#if defined(_USE_QT)
-	psg->set_device_name(_T("SN76489 PSG"));
-#endif	
 	if(FILEIO::IsFileExisting(create_local_path(_T("IPL.ROM")))) {
 		bios = NULL;
 	} else {
 		bios = new BIOS(this, emu);
-#if defined(_USE_QT)
-		bios->set_device_name(_T("PSEUDO BIOS"));
-#endif	
 	}
 	cmos = new CMOS(this, emu);
 	floppy = new FLOPPY(this, emu);
@@ -112,25 +103,12 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	serial = new SERIAL(this, emu);
 	system = new SYSTEM(this, emu);
 	timer = new TIMER(this, emu);
-#if defined(_USE_QT)
-	cmos->set_device_name(_T("CMOS RAM"));
-	floppy->set_device_name(_T("FLOPPY I/F"));
-	keyboard->set_device_name(_T("KEYBOARD"));
-	memory->set_device_name(_T("MEMORY"));
-	rtc->set_device_name(_T("RTC"));
-	scsi->set_device_name(_T("SCSI I/F"));
-	serial->set_device_name(_T("SERIAL I/F"));
-	system->set_device_name(_T("SYSTEM I/O"));
-	timer->set_device_name(_T("TIMER I/F"));
-#endif
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(psg);
-#if defined(USE_SOUND_FILES)
-	if(fdc->load_sound_data(MB8877_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
-		event->set_context_sound(fdc);
-	}
-#endif
+	event->set_context_sound(fdc->get_context_noise_seek());
+	event->set_context_sound(fdc->get_context_noise_head_down());
+	event->set_context_sound(fdc->get_context_noise_head_up());
 	
 	dma->set_context_memory(memory);
 	dma->set_context_ch0(fdc);
@@ -343,11 +321,6 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		fdc->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
 		fdc->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
 	}
-#if defined(USE_SOUND_FILES)
-	else if(ch == 1) {
-		fdc->set_volume(0, decibel_l, decibel_r);
-	}
-#endif
 }
 #endif
 
