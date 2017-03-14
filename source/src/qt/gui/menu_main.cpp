@@ -1013,7 +1013,7 @@ void Ui_MainWindowBase::retranslateUI_Help(void)
 	actionHelp_README->setText(QApplication::translate("MainWindow", "General Document", 0));
 	actionHelp_README_QT->setText(QApplication::translate("MainWindow", "About Qt ports", 0));
 	actionHelp_README_Artane->setText(QApplication::translate("MainWindow", "About Qt ports (Japanese).", 0));
-	actionHelp_README_Umayboux->setText(QApplication::translate("MainWindow", "By Mr. Umaiboux.", 0));
+	actionHelp_README_Umaiboux->setText(QApplication::translate("MainWindow", "By Mr. Umaiboux.", 0));
 	actionHelp_README_MR_TANAM->setText(QApplication::translate("MainWindow", "By Mr. tanam", 0));
 	actionHelp_README_FM7->setText(QApplication::translate("MainWindow", "About eFM-7/8/77/AV.", 0));
 	actionHelp_README_FM7_JP->setText(QApplication::translate("MainWindow", "About eFM-7/8/77/AV (Japanese).", 0));

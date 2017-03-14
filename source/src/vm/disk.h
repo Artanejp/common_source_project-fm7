@@ -74,7 +74,7 @@ private:
 	bool is_solid_image;
 	bool is_fdi_image;
 	uint8_t fdi_header[4096];
-	_TCHAR this_device_name[128];
+	//_TCHAR this_device_name[128];
 	
 	int solid_ncyl, solid_nside, solid_nsec, solid_size;
 	bool solid_mfm;

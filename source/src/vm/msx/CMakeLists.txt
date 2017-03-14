@@ -5,24 +5,73 @@ message("* vm/msx1")
 if(BUILD_PX7)
   add_library(vm_msx
 	joystick.cpp
+	kanjirom.cpp
 	keyboard.cpp
-	memory.cpp
-	msx.cpp
+	memory_ex.cpp
+	printer.cpp
+	scc.cpp
+	sound_cart.cpp
+	msx_ex.cpp
   )
 elseif(BUILD_MSX2)
   add_library(vm_msx
 	joystick.cpp
+	kanjirom.cpp
 	keyboard.cpp
-	memory.cpp
+	memory_ex.cpp
 	rtcif.cpp
-	msx.cpp
-  )
-else()
+	printer.cpp
+	scc.cpp
+	sound_cart.cpp
+	msx_ex.cpp
+	)
+elseif(BUILD_MSX2PLUS)
+  add_library(vm_msx
+	joystick.cpp
+	kanjirom.cpp
+	keyboard.cpp
+	memory_ex.cpp
+	rtcif.cpp
+	printer.cpp
+	scc.cpp
+	sound_cart.cpp
+	msx_ex.cpp
+	)
+elseif(BUILD_FSA1)
   add_library(vm_msx
 	joystick.cpp
 	keyboard.cpp
-	memory.cpp
-	msx.cpp
+	kanjirom.cpp
+	memory_ex.cpp
+	rtcif.cpp
+	printer.cpp
+	scc.cpp
+	sound_cart.cpp
+	msx_ex.cpp
+	)
+elseif(BUILD_HX20)
+  add_library(vm_msx
+	joystick.cpp
+	keyboard.cpp
+	kanjirom.cpp
+	memory_ex.cpp
+	rtcif.cpp
+	printer.cpp
+	scc.cpp
+	sound_cart.cpp
+	psg_stereo.cpp
+	msx_ex.cpp
+	)
+else()
+  add_library(vm_msx
+	joystick.cpp
+	kanjirom.cpp
+	keyboard.cpp
+	memory_ex.cpp
+	printer.cpp
+	scc.cpp
+	sound_cart.cpp
+	msx_ex.cpp
   )
 endif()
 
