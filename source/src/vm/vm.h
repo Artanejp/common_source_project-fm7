@@ -125,6 +125,11 @@
 #include "fp1100/fp1100.h"
 #endif
 
+// Panasonic FS-A1
+#ifdef _FSA1
+#include "msx/msx_ex.h"
+#endif
+
 // SEGA GAME GEAR
 #ifdef _GAMEGEAR
 #include "gamegear/gamegear.h"
@@ -143,6 +148,11 @@
 // EPSON HC-80
 #ifdef _HC80
 #include "hc80/hc80.h"
+#endif
+
+// TOSHIBA HX-20 + FDD
+#ifdef _HX20
+#include "msx/msx_ex.h"
 #endif
 
 // TOSHIBA J-3100GT
@@ -192,12 +202,19 @@
 
 // ASCII MSX
 #ifdef _MSX1
-#include "msx/msx.h"
+//#include "msx/msx.h"
+#include "msx/msx_ex.h"
 #endif
 
 // ASCII MSX2
 #ifdef _MSX2
-#include "msx/msx.h"
+//#include "msx/msx.h"
+#include "msx/msx_ex.h"
+#endif
+
+// ASCII MSX2+
+#ifdef _MSX2P
+#include "msx/msx_ex.h"
 #endif
 
 // MITSUBISHI Elec. MULTI8
@@ -417,7 +434,8 @@
 
 // PIONEER PX-7
 #ifdef _PX7
-#include "msx/msx.h"
+//#include "msx/msx.h"
+#include "msx/msx_ex.h"
 #endif
 
 // TOMY PYUTA

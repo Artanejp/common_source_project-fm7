@@ -183,36 +183,60 @@ void DISK::open(const _TCHAR* file_path, int bank)
 		} else if(check_file_extension(file_path, _T(".td0"))) {
 			// teledisk image
 			try {
-				inserted = changed = teledisk_to_d88(fio);
-				my_stprintf_s(dest_path, _MAX_PATH, _T("%s.D88"), file_path);
+				if(teledisk_to_d88(fio)) {
+					inserted = changed = true;
+					my_stprintf_s(dest_path, _MAX_PATH, _T("%s.D88"), file_path);
+				}
 			} catch(...) {
 				// failed to convert the disk image
 			}
 		} else if(check_file_extension(file_path, _T(".imd"))) {
 			// imagedisk image
 			try {
-				inserted = changed = imagedisk_to_d88(fio);
-				my_stprintf_s(dest_path, _MAX_PATH, _T("%s.D88"), file_path);
+				if(imagedisk_to_d88(fio)) {
+					inserted = changed = true;
+					my_stprintf_s(dest_path, _MAX_PATH, _T("%s.D88"), file_path);
+				}
 			} catch(...) {
 				// failed to convert the disk image
 			}
 		} else if(check_file_extension(file_path, _T(".dsk"))) {
 			// cpdread image
 			try {
-				inserted = changed = cpdread_to_d88(fio);
-				my_stprintf_s(dest_path, _MAX_PATH, _T("%s.D88"), file_path);
+				if(cpdread_to_d88(fio)) {
+					inserted = changed = true;
+					my_stprintf_s(dest_path, _MAX_PATH, _T("%s.D88"), file_path);
+				}
 			} catch(...) {
 				// failed to convert the disk image
 			}
 		} else if(check_file_extension(file_path, _T(".2d"))  && file_size.d == 40 * 2 * 16 * 256) {
 			// 2d image for SHARP X1 series
-			inserted = changed = is_solid_image = solid_to_d88(fio, MEDIA_TYPE_2D, 40, 2, 16, 256, true);
+			try {
+				if(solid_to_d88(fio, MEDIA_TYPE_2D, 40, 2, 16, 256, true)) {
+					inserted = changed = is_solid_image = true;
+				}
+			} catch(...) {
+				// failed to convert the disk image
+			}
 		} else if(check_file_extension(file_path, _T(".img"))  && file_size.d == 70 * 1 * 16 * 256) {
 			// img image for SONY SMC-70/777 series
-			inserted = changed = is_solid_image = solid_to_d88(fio, MEDIA_TYPE_2DD, 70, 1, 16, 256, true);
+			try {
+				if(solid_to_d88(fio, MEDIA_TYPE_2DD, 70, 1, 16, 256, true)) {
+					inserted = changed = is_solid_image = true;
+				}
+			} catch(...) {
+				// failed to convert the disk image
+			}
 		} else if(check_file_extension(file_path, _T(".sf7")) && file_size.d == 40 * 1 * 16 * 256) {
 			// sf7 image for SEGA SC-3000 + SF-7000
-			inserted = changed = is_solid_image = solid_to_d88(fio, MEDIA_TYPE_2D, 40, 1, 16, 256, true);
+			try {
+				if(solid_to_d88(fio, MEDIA_TYPE_2D, 40, 1, 16, 256, true)) {
+					inserted = changed = is_solid_image = true;
+				}
+			} catch(...) {
+				// failed to convert the disk image
+			}
 		}
 		if(!inserted) {
 			// check solid image file format
@@ -252,9 +276,15 @@ void DISK::open(const _TCHAR* file_path, int bank)
 						size = 256;
 					}
 #endif
-//					if(solid_to_d88(fio, p->type, p->ncyl, p->nside, p->nsec, p->size, p->mfm)) {
-					if(solid_to_d88(fio, type, ncyl, nside, nsec, size, p->mfm)) {
-						inserted = changed = is_solid_image = true;
+					try {
+//						if(solid_to_d88(fio, p->type, p->ncyl, p->nside, p->nsec, p->size, p->mfm)) {
+						if(solid_to_d88(fio, type, ncyl, nside, nsec, size, p->mfm)) {
+							inserted = changed = is_solid_image = true;
+						}
+					} catch(...) {
+						// failed to convert the disk image
+					}
+					if(inserted) {
 						break;
 					}
 				}
@@ -300,7 +330,8 @@ void DISK::open(const _TCHAR* file_path, int bank)
 		}
 		
 		// get crc32 for midification check
-		crc32 = get_crc32(buffer, file_size.d);
+		orig_file_size = file_size.d;
+		orig_crc32 = get_crc32(buffer, file_size.d);
 		
 		// check special disk image
 #if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
@@ -525,7 +556,7 @@ void DISK::close()
 		}
 		buffer[0x1a] = write_protected ? 0x10 : 0; // mey be changed
 		
-		if(/*!write_protected &&*/ file_size.d && get_crc32(buffer, file_size.d) != crc32) {
+		if(/*!write_protected &&*/ !(file_size.d == orig_file_size && get_crc32(buffer, file_size.d) == orig_crc32)) {
 			// write image
 			FILEIO* fio = new FILEIO();
 			int pre_size = 0, post_size = 0;
@@ -2079,7 +2110,7 @@ bool DISK::solid_to_d88(FILEIO *fio, int type, int ncyl, int nside, int nsec, in
 	return true;
 }
 
-#define STATE_VERSION	12
+#define STATE_VERSION	13
 
 void DISK::save_state(FILEIO* state_fio)
 {
@@ -2090,7 +2121,8 @@ void DISK::save_state(FILEIO* state_fio)
 	state_fio->Fwrite(dest_path, sizeof(dest_path), 1);
 	state_fio->FputUint32(file_size.d);
 	state_fio->FputInt32(file_bank);
-	state_fio->FputUint32(crc32);
+	state_fio->FputUint32(orig_file_size);
+	state_fio->FputUint32(orig_crc32);
 	state_fio->FputBool(trim_required);
 	state_fio->FputBool(is_1dd_image);
 	state_fio->FputBool(is_solid_image);
@@ -2139,7 +2171,8 @@ bool DISK::load_state(FILEIO* state_fio)
 	state_fio->Fread(dest_path, sizeof(dest_path), 1);
 	file_size.d = state_fio->FgetUint32();
 	file_bank = state_fio->FgetInt32();
-	crc32 = state_fio->FgetUint32();
+	orig_file_size = state_fio->FgetUint32();
+	orig_crc32 = state_fio->FgetUint32();
 	trim_required = state_fio->FgetBool();
 	is_1dd_image = state_fio->FgetBool();
 	is_solid_image = state_fio->FgetBool();

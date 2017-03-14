@@ -87,6 +87,11 @@ BEGIN
         MENUITEM "CPU x8",                      ID_CPU_POWER3
         MENUITEM "CPU x16",                     ID_CPU_POWER4
         MENUITEM SEPARATOR
+        MENUITEM "Write Printer to File",       ID_PRINTER_TYPE0
+        MENUITEM "(MSX Printer)",               ID_PRINTER_TYPE1, GRAYED
+        MENUITEM "PC-PR201",                    ID_PRINTER_TYPE2, GRAYED
+        MENUITEM "None",                        ID_PRINTER_TYPE3
+        MENUITEM SEPARATOR
         MENUITEM "Paste",                       ID_AUTOKEY_START
         MENUITEM "Stop",                        ID_AUTOKEY_STOP
         MENUITEM SEPARATOR
@@ -192,8 +197,12 @@ BEGIN
         MENUITEM "Fullscreen 31",               ID_SCREEN_FULLSCREEN31
         MENUITEM "Fullscreen 32",               ID_SCREEN_FULLSCREEN32
         MENUITEM SEPARATOR
+        MENUITEM "Window Stretch 1",            ID_SCREEN_WINDOW_STRETCH1
+        MENUITEM "Window Stretch 2",            ID_SCREEN_WINDOW_STRETCH2
+        MENUITEM SEPARATOR
         MENUITEM "Fullscreen Stretch 1",        ID_SCREEN_FULLSCREEN_STRETCH1
         MENUITEM "Fullscreen Stretch 2",        ID_SCREEN_FULLSCREEN_STRETCH2
+        MENUITEM "Fullscreen Stretch 3",        ID_SCREEN_FULLSCREEN_STRETCH3
         MENUITEM "Fullscreen Stretch 4",        ID_SCREEN_FULLSCREEN_STRETCH4
         MENUITEM SEPARATOR
         MENUITEM "Use Direct3D9",               ID_SCREEN_USE_D3D9
@@ -252,7 +261,7 @@ IDI_ICON1               ICON    DISCARDABLE     "msx1.ico"
 // Dialog
 //
 
-IDD_VOLUME DIALOG DISCARDABLE  0, 0, 250, 120
+IDD_VOLUME DIALOG DISCARDABLE  0, 0, 250, 210
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Volume"
 FONT 9, "MS PGothic"
@@ -266,8 +275,17 @@ BEGIN
     LTEXT           "Sound Device #3",IDC_VOLUME_CAPTION2,6,66,60,8
     CONTROL         "",IDC_VOLUME_PARAM_L2,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,66,175,12
     CONTROL         "",IDC_VOLUME_PARAM_R2,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,81,175,12
-    DEFPUSHBUTTON   "OK",IDOK,70,100,50,14
-    DEFPUSHBUTTON   "Reset",IDC_VOLUME_RESET,130,100,50,14
+    LTEXT           "Sound Device #4",IDC_VOLUME_CAPTION3,6,96,60,8
+    CONTROL         "",IDC_VOLUME_PARAM_L3,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,96,175,12
+    CONTROL         "",IDC_VOLUME_PARAM_R3,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,111,175,12
+    LTEXT           "Sound Device #5",IDC_VOLUME_CAPTION4,6,126,60,8
+    CONTROL         "",IDC_VOLUME_PARAM_L4,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,126,175,12
+    CONTROL         "",IDC_VOLUME_PARAM_R4,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,141,175,12
+    LTEXT           "Sound Device #6",IDC_VOLUME_CAPTION5,6,156,60,8
+    CONTROL         "",IDC_VOLUME_PARAM_L5,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,156,175,12
+    CONTROL         "",IDC_VOLUME_PARAM_R5,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,171,175,12
+    DEFPUSHBUTTON   "OK",IDOK,70,190,50,14
+    DEFPUSHBUTTON   "Reset",IDC_VOLUME_RESET,130,190,50,14
 END
 
 IDD_JOYSTICK DIALOG DISCARDABLE  0, 0, 175, 120

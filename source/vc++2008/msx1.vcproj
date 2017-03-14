@@ -628,7 +628,47 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\src\vm\prnfile.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\src\vm\tms9918a.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\ym2413.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -778,6 +818,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\src\vm\msx\kanjirom.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\src\vm\msx\keyboard.cpp"
 					>
 					<FileConfiguration
@@ -798,7 +858,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\src\vm\msx\memory.cpp"
+					RelativePath="..\src\vm\msx\memory_ex.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -818,7 +878,67 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\src\vm\msx\msx.cpp"
+					RelativePath="..\src\vm\msx\msx_ex.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\msx\printer.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\msx\scc.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\msx\sound_cart.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -922,11 +1042,19 @@
 					>
 				</File>
 				<File
+					RelativePath="..\src\vm\prnfile.h"
+					>
+				</File>
+				<File
 					RelativePath="..\src\vm\tms9918a.h"
 					>
 				</File>
 				<File
 					RelativePath="..\src\vm\vm.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\ym2413.h"
 					>
 				</File>
 				<File
@@ -979,15 +1107,31 @@
 					>
 				</File>
 				<File
+					RelativePath="..\src\vm\msx\kanjirom.h"
+					>
+				</File>
+				<File
 					RelativePath="..\src\vm\msx\keyboard.h"
 					>
 				</File>
 				<File
-					RelativePath="..\src\vm\msx\memory.h"
+					RelativePath="..\src\vm\msx\memory_ex.h"
 					>
 				</File>
 				<File
-					RelativePath="..\src\vm\msx\msx.h"
+					RelativePath="..\src\vm\msx\msx_ex.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\msx\printer.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\msx\scc.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\msx\sound_cart.h"
 					>
 				</File>
 			</Filter>

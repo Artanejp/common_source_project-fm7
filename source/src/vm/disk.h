@@ -66,7 +66,8 @@ private:
 	_TCHAR dest_path[_MAX_PATH];
 	pair_t file_size;
 	int file_bank;
-	uint32_t crc32;
+	uint32_t orig_file_size;
+	uint32_t orig_crc32;
 	bool trim_required;
 	
 	bool is_1dd_image;

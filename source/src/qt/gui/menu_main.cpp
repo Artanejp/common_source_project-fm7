@@ -533,12 +533,21 @@ void Ui_MainWindowBase::setupUi(void)
 	menuHelp_Readme->addAction(actionHelp_README_QT);
 	connect(actionHelp_README_QT, SIGNAL(triggered()), actionHelp_README_QT, SLOT(do_send_string()));
 	connect(actionHelp_README_QT, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
+
 	actionHelp_README_Artane = new Action_Control(this, using_flags);
 	actionHelp_README_Artane->setObjectName(QString::fromUtf8("menuHelp_README_Artane"));
 	actionHelp_README_Artane->do_set_string(QString::fromUtf8("readme_by_artane.txt"));
 	connect(actionHelp_README_Artane, SIGNAL(triggered()), actionHelp_README_Artane, SLOT(do_send_string()));
 	connect(actionHelp_README_Artane, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
 	menuHelp_Readme->addAction(actionHelp_README_Artane);
+
+	actionHelp_README_Umaiboux = new Action_Control(this, using_flags);
+	actionHelp_README_Umaiboux->setObjectName(QString::fromUtf8("menuHelp_README_Umaiboux"));
+	actionHelp_README_Umaiboux->do_set_string(QString::fromUtf8("readme_by_umaiboux.txt"));
+	connect(actionHelp_README_Umaiboux, SIGNAL(triggered()), actionHelp_README_Umaiboux, SLOT(do_send_string()));
+	connect(actionHelp_README_Umaiboux, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
+	menuHelp_Readme->addAction(actionHelp_README_Umaiboux);
+   
 	menuHelp_Readme->addSeparator();
 	
 	actionHelp_README_BIOS = new Action_Control(this, using_flags);
@@ -1004,6 +1013,7 @@ void Ui_MainWindowBase::retranslateUI_Help(void)
 	actionHelp_README->setText(QApplication::translate("MainWindow", "General Document", 0));
 	actionHelp_README_QT->setText(QApplication::translate("MainWindow", "About Qt ports", 0));
 	actionHelp_README_Artane->setText(QApplication::translate("MainWindow", "About Qt ports (Japanese).", 0));
+	actionHelp_README_Umayboux->setText(QApplication::translate("MainWindow", "By Mr. Umaiboux.", 0));
 	actionHelp_README_MR_TANAM->setText(QApplication::translate("MainWindow", "By Mr. tanam", 0));
 	actionHelp_README_FM7->setText(QApplication::translate("MainWindow", "About eFM-7/8/77/AV.", 0));
 	actionHelp_README_FM7_JP->setText(QApplication::translate("MainWindow", "About eFM-7/8/77/AV (Japanese).", 0));

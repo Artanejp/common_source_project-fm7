@@ -10,8 +10,13 @@
 #ifndef _FMR30_H_
 #define _FMR30_H_
 
-#define DEVICE_NAME		"FUJITSU FMR-30"
-#define CONFIG_NAME		"fmr30"
+#if defined(HAS_I86)
+#define DEVICE_NAME		"FUJITSU FMR-30 (i86)"
+#define CONFIG_NAME		"fmr30_i86"
+#elif defined(HAS_I286)
+#define DEVICE_NAME		"FUJITSU FMR-30 (i286)"
+#define CONFIG_NAME		"fmr30_i286"
+#endif
 
 // device informations for virtual machine
 #define FRAMES_PER_SEC		55.4
@@ -22,8 +27,6 @@
 #define MAX_DRIVE		2
 #define MAX_SCSI		8
 #define MAX_MEMCARD		2
-//#define HAS_I286
-#define HAS_I86
 #define I86_PSEUDO_BIOS
 #define HAS_I8254
 #define I8259_MAX_CHIPS		2

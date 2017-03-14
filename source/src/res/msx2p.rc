@@ -1,0 +1,323 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Japanese resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
+#ifdef _WIN32
+LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
+#pragma code_page(932)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // Japanese resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDR_ACCELERATOR1 ACCELERATORS DISCARDABLE 
+BEGIN
+    VK_RETURN,      ID_ACCEL_SCREEN,        VIRTKEY, ALT, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MENU1 MENU DISCARDABLE 
+BEGIN
+    POPUP "Control"
+    BEGIN
+        MENUITEM "Reset",                       ID_RESET
+        MENUITEM SEPARATOR
+        MENUITEM "CPU x1",                      ID_CPU_POWER0
+        MENUITEM "CPU x2",                      ID_CPU_POWER1
+        MENUITEM "CPU x4",                      ID_CPU_POWER2
+        MENUITEM "CPU x8",                      ID_CPU_POWER3
+        MENUITEM "CPU x16",                     ID_CPU_POWER4
+        MENUITEM SEPARATOR
+        MENUITEM "Write Printer to File",       ID_PRINTER_TYPE0
+        MENUITEM "(MSX Printer)",               ID_PRINTER_TYPE1, GRAYED
+        MENUITEM "PC-PR201",                    ID_PRINTER_TYPE2, GRAYED
+        MENUITEM "None",                        ID_PRINTER_TYPE3
+        MENUITEM SEPARATOR
+        MENUITEM "Paste",                       ID_AUTOKEY_START
+        MENUITEM "Stop",                        ID_AUTOKEY_STOP
+        MENUITEM SEPARATOR
+        MENUITEM "Save State",                  ID_SAVE_STATE
+        MENUITEM "Load State",                  ID_LOAD_STATE
+        MENUITEM SEPARATOR
+        MENUITEM "Debug Main CPU",              ID_OPEN_DEBUGGER0
+        MENUITEM "Close Debugger",              ID_CLOSE_DEBUGGER
+        MENUITEM SEPARATOR
+        MENUITEM "Exit",                        ID_EXIT
+    END
+    POPUP "Cart #1"
+    BEGIN
+        MENUITEM "Insert",                      ID_OPEN_CART1
+        MENUITEM "Eject",                       ID_CLOSE_CART1
+        MENUITEM SEPARATOR
+        MENUITEM "Recent",                      ID_RECENT_CART1
+    END
+    POPUP "Cart #2"
+    BEGIN
+        MENUITEM "Insert",                      ID_OPEN_CART2
+        MENUITEM "Eject",                       ID_CLOSE_CART2
+        MENUITEM SEPARATOR
+        MENUITEM "Recent",                      ID_RECENT_CART2
+    END
+    POPUP "CMT"
+    BEGIN
+        MENUITEM "Play",                        ID_PLAY_TAPE
+        MENUITEM "Rec",                         ID_REC_TAPE
+        MENUITEM "Eject",                       ID_CLOSE_TAPE
+        MENUITEM SEPARATOR
+        MENUITEM "Play Tape Sound",             ID_PLAY_TAPE_SOUND
+        MENUITEM "Waveform Shaper",             ID_USE_WAVE_SHAPER
+        MENUITEM SEPARATOR
+        MENUITEM "Recent",                      ID_RECENT_TAPE
+    END
+    POPUP "FD1"
+    BEGIN
+        MENUITEM "Insert",                      ID_OPEN_FD1
+        MENUITEM "Eject",                       ID_CLOSE_FD1
+        MENUITEM SEPARATOR
+        MENUITEM "Write Protected",             ID_WRITE_PROTECT_FD1
+        MENUITEM "Ignore CRC Errors",           ID_IGNORE_CRC_FD1
+        MENUITEM SEPARATOR
+        MENUITEM "Recent",                      ID_RECENT_FD1
+    END
+    POPUP "FD2"
+    BEGIN
+        MENUITEM "Insert",                      ID_OPEN_FD2
+        MENUITEM "Eject",                       ID_CLOSE_FD2
+        MENUITEM SEPARATOR
+        MENUITEM "Write Protected",             ID_WRITE_PROTECT_FD2
+        MENUITEM "Ignore CRC Errors",           ID_IGNORE_CRC_FD2
+        MENUITEM SEPARATOR
+        MENUITEM "Recent",                      ID_RECENT_FD2
+    END
+    POPUP "Screen"
+    BEGIN
+        MENUITEM "Rec 60fps",                   ID_SCREEN_REC60
+        MENUITEM "Rec 30fps",                   ID_SCREEN_REC30
+        MENUITEM "Rec 15fps",                   ID_SCREEN_REC15
+        MENUITEM "Stop",                        ID_SCREEN_STOP
+        MENUITEM "Capture",                     ID_SCREEN_CAPTURE
+        MENUITEM SEPARATOR
+        MENUITEM "Window x1",                   ID_SCREEN_WINDOW1
+        MENUITEM "Window x2",                   ID_SCREEN_WINDOW2
+        MENUITEM "Window x3",                   ID_SCREEN_WINDOW3
+        MENUITEM "Window x4",                   ID_SCREEN_WINDOW4
+        MENUITEM "Window x5",                   ID_SCREEN_WINDOW5
+        MENUITEM "Window x6",                   ID_SCREEN_WINDOW6
+        MENUITEM "Window x7",                   ID_SCREEN_WINDOW7
+        MENUITEM "Window x8",                   ID_SCREEN_WINDOW8
+        MENUITEM "Fullscreen 1",                ID_SCREEN_FULLSCREEN1
+        MENUITEM "Fullscreen 2",                ID_SCREEN_FULLSCREEN2
+        MENUITEM "Fullscreen 3",                ID_SCREEN_FULLSCREEN3
+        MENUITEM "Fullscreen 4",                ID_SCREEN_FULLSCREEN4
+        MENUITEM "Fullscreen 5",                ID_SCREEN_FULLSCREEN5
+        MENUITEM "Fullscreen 6",                ID_SCREEN_FULLSCREEN6
+        MENUITEM "Fullscreen 7",                ID_SCREEN_FULLSCREEN7
+        MENUITEM "Fullscreen 8",                ID_SCREEN_FULLSCREEN8
+        MENUITEM "Fullscreen 9",                ID_SCREEN_FULLSCREEN9
+        MENUITEM "Fullscreen 10",               ID_SCREEN_FULLSCREEN10
+        MENUITEM "Fullscreen 11",               ID_SCREEN_FULLSCREEN11
+        MENUITEM "Fullscreen 12",               ID_SCREEN_FULLSCREEN12
+        MENUITEM "Fullscreen 13",               ID_SCREEN_FULLSCREEN13
+        MENUITEM "Fullscreen 14",               ID_SCREEN_FULLSCREEN14
+        MENUITEM "Fullscreen 15",               ID_SCREEN_FULLSCREEN15
+        MENUITEM "Fullscreen 16",               ID_SCREEN_FULLSCREEN16
+        MENUITEM "Fullscreen 17",               ID_SCREEN_FULLSCREEN17
+        MENUITEM "Fullscreen 18",               ID_SCREEN_FULLSCREEN18
+        MENUITEM "Fullscreen 19",               ID_SCREEN_FULLSCREEN19
+        MENUITEM "Fullscreen 20",               ID_SCREEN_FULLSCREEN20
+        MENUITEM "Fullscreen 21",               ID_SCREEN_FULLSCREEN21
+        MENUITEM "Fullscreen 22",               ID_SCREEN_FULLSCREEN22
+        MENUITEM "Fullscreen 23",               ID_SCREEN_FULLSCREEN23
+        MENUITEM "Fullscreen 24",               ID_SCREEN_FULLSCREEN24
+        MENUITEM "Fullscreen 25",               ID_SCREEN_FULLSCREEN25
+        MENUITEM "Fullscreen 26",               ID_SCREEN_FULLSCREEN26
+        MENUITEM "Fullscreen 27",               ID_SCREEN_FULLSCREEN27
+        MENUITEM "Fullscreen 28",               ID_SCREEN_FULLSCREEN28
+        MENUITEM "Fullscreen 29",               ID_SCREEN_FULLSCREEN29
+        MENUITEM "Fullscreen 30",               ID_SCREEN_FULLSCREEN30
+        MENUITEM "Fullscreen 31",               ID_SCREEN_FULLSCREEN31
+        MENUITEM "Fullscreen 32",               ID_SCREEN_FULLSCREEN32
+        MENUITEM SEPARATOR
+        MENUITEM "Window Stretch 1",            ID_SCREEN_WINDOW_STRETCH1
+        MENUITEM "Window Stretch 2",            ID_SCREEN_WINDOW_STRETCH2
+        MENUITEM SEPARATOR
+        MENUITEM "Fullscreen Stretch 1",        ID_SCREEN_FULLSCREEN_STRETCH1
+        MENUITEM "Fullscreen Stretch 2",        ID_SCREEN_FULLSCREEN_STRETCH2
+        MENUITEM "Fullscreen Stretch 3",        ID_SCREEN_FULLSCREEN_STRETCH3
+        MENUITEM "Fullscreen Stretch 4",        ID_SCREEN_FULLSCREEN_STRETCH4
+        MENUITEM SEPARATOR
+        MENUITEM "Use Direct3D9",               ID_SCREEN_USE_D3D9
+        MENUITEM "Wait Vsync",                  ID_SCREEN_WAIT_VSYNC
+    END
+    POPUP "Sound"
+    BEGIN
+        MENUITEM "Rec",                         ID_SOUND_REC
+        MENUITEM "Stop",                        ID_SOUND_STOP
+        MENUITEM SEPARATOR
+        MENUITEM "2000Hz",                      ID_SOUND_FREQ0
+        MENUITEM "4000Hz",                      ID_SOUND_FREQ1
+        MENUITEM "8000Hz",                      ID_SOUND_FREQ2
+        MENUITEM "11025Hz",                     ID_SOUND_FREQ3
+        MENUITEM "22050Hz",                     ID_SOUND_FREQ4
+        MENUITEM "44100Hz",                     ID_SOUND_FREQ5
+        MENUITEM "48000Hz",                     ID_SOUND_FREQ6
+        MENUITEM "96000Hz",                     ID_SOUND_FREQ7
+        MENUITEM SEPARATOR
+        MENUITEM "50msec",                      ID_SOUND_LATE0
+        MENUITEM "100msec",                     ID_SOUND_LATE1
+        MENUITEM "200msec",                     ID_SOUND_LATE2
+        MENUITEM "300msec",                     ID_SOUND_LATE3
+        MENUITEM "400msec",                     ID_SOUND_LATE4
+        MENUITEM SEPARATOR
+        MENUITEM "Realtime Mix",                ID_SOUND_STRICT_RENDER
+        MENUITEM "Light Weight Mix",            ID_SOUND_LIGHT_RENDER
+        MENUITEM SEPARATOR
+        MENUITEM "Volume",                      ID_SOUND_VOLUME
+    END
+    POPUP "Input"
+    BEGIN
+        MENUITEM "Use DirectInput",             ID_INPUT_USE_DINPUT
+        MENUITEM "Disable Windows 8 DWM",       ID_INPUT_DISABLE_DWM
+        MENUITEM SEPARATOR
+        MENUITEM "Joystick #1",                 ID_INPUT_JOYSTICK0
+        MENUITEM "Joystick #2",                 ID_INPUT_JOYSTICK1
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON1               ICON    DISCARDABLE     "msx2p.ico"
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_VOLUME DIALOG DISCARDABLE  0, 0, 250, 210
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Volume"
+FONT 9, "MS PGothic"
+BEGIN
+    LTEXT           "Sound Device #1",IDC_VOLUME_CAPTION0,6,6,60,8
+    CONTROL         "",IDC_VOLUME_PARAM_L0,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,6,175,12
+    CONTROL         "",IDC_VOLUME_PARAM_R0,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,21,175,12
+    LTEXT           "Sound Device #2",IDC_VOLUME_CAPTION1,6,36,60,8
+    CONTROL         "",IDC_VOLUME_PARAM_L1,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,36,175,12
+    CONTROL         "",IDC_VOLUME_PARAM_R1,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,51,175,12
+    LTEXT           "Sound Device #3",IDC_VOLUME_CAPTION2,6,66,60,8
+    CONTROL         "",IDC_VOLUME_PARAM_L2,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,66,175,12
+    CONTROL         "",IDC_VOLUME_PARAM_R2,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,81,175,12
+    LTEXT           "Sound Device #4",IDC_VOLUME_CAPTION3,6,96,60,8
+    CONTROL         "",IDC_VOLUME_PARAM_L3,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,96,175,12
+    CONTROL         "",IDC_VOLUME_PARAM_R3,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,111,175,12
+    LTEXT           "Sound Device #5",IDC_VOLUME_CAPTION4,6,126,60,8
+    CONTROL         "",IDC_VOLUME_PARAM_L4,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,126,175,12
+    CONTROL         "",IDC_VOLUME_PARAM_R4,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,141,175,12
+    LTEXT           "Sound Device #6",IDC_VOLUME_CAPTION5,6,156,60,8
+    CONTROL         "",IDC_VOLUME_PARAM_L5,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,156,175,12
+    CONTROL         "",IDC_VOLUME_PARAM_R5,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,171,175,12
+    DEFPUSHBUTTON   "OK",IDOK,70,190,50,14
+    DEFPUSHBUTTON   "Reset",IDC_VOLUME_RESET,130,190,50,14
+END
+
+IDD_JOYSTICK DIALOG DISCARDABLE  0, 0, 175, 120
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Joystick #1"
+FONT 9, "MS PGothic"
+BEGIN
+    LTEXT           "Button #1",IDC_JOYSTICK_CAPTION0,6,6,40,8
+    EDITTEXT        IDC_JOYSTICK_PARAM0,50,4,120,14,ES_MULTILINE
+    LTEXT           "Button #2",IDC_JOYSTICK_CAPTION1,6,21,40,8
+    EDITTEXT        IDC_JOYSTICK_PARAM1,50,19,120,14,ES_MULTILINE
+    LTEXT           "Button #3",IDC_JOYSTICK_CAPTION2,6,36,40,8
+    EDITTEXT        IDC_JOYSTICK_PARAM2,50,34,120,14,ES_MULTILINE
+    LTEXT           "Button #4",IDC_JOYSTICK_CAPTION3,6,51,40,8
+    EDITTEXT        IDC_JOYSTICK_PARAM3,50,49,120,14,ES_MULTILINE
+    LTEXT           "Button #5",IDC_JOYSTICK_CAPTION4,6,66,40,8
+    EDITTEXT        IDC_JOYSTICK_PARAM4,50,64,120,14,ES_MULTILINE
+    LTEXT           "Button #6",IDC_JOYSTICK_CAPTION5,6,81,40,8
+    EDITTEXT        IDC_JOYSTICK_PARAM5,50,79,120,14,ES_MULTILINE
+    DEFPUSHBUTTON   "OK",IDOK,35,100,50,14
+    DEFPUSHBUTTON   "Reset",IDC_JOYSTICK_RESET,90,100,50,14
+END
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

@@ -1,13 +1,14 @@
 retro pc emulator common source code
-								2/9/2017
+								3/8/2017
 
 --- What's this ?
 
 This archive includes the all source codes of emulators listed below:
 
 	ASCII
-		yaMSX1		MSX1 (by Mr.tanam and Mr.umaiboux)
-		yaMSX2		MSX2 (by Mr.tanam and Mr.umaiboux)
+		yayaMSX1	MSX1 (by Mr.tanam and Mr.umaiboux)
+		yayaMSX2	MSX2 (by Mr.tanam and Mr.umaiboux)
+		yayaMSX2+	MSX2+ (by Mr.umaiboux)
 	BANDAI
 		eRX-78		RX-78
 	CANON
@@ -51,7 +52,8 @@ This archive includes the all source codes of emulators listed below:
 		eMYCOMZ-80A	MYCOMZ-80A
 	MITSUBISHI Electric
 		EmuLTI8		MULTI8
-	National
+	National/Panasonic
+		yayaFS-A1	FS-A1 (by Mr.umaiboux)
 		eJR-100		JR-100
 	NEC
 		ePC-2001	PC-2001
@@ -121,6 +123,7 @@ This archive includes the all source codes of emulators listed below:
 		ePyuTa		PyuTa/PyuTa Jr.
 	TOSHIBA
 		eEX-80		EX-80
+		yayaHX-20+	HX-20 + FDD (by Mr.umaiboux)
 		EmuPIA		PASOPIA/PASOPIA5
 		EmuPIA7		PASOPIA7
 		eJ-3100GT	J-3100GT (work in progress)
@@ -247,6 +250,8 @@ See also COPYING.txt for more details about the license.
 	PockEmul uPD16434 core
 - vm/v99x8.*
 	Zodiac V99x8 core, converted to C++ class by Mr.umaiboux
+- vm/v9938.*
+	MAME V99x8 core, converted to C++ class by Mr.umaiboux
 - vm/w3100a.*
 	Mr.Oh!Ishi for the chip specification info
 - vm/z80.*

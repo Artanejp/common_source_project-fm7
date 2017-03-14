@@ -614,6 +614,17 @@
 #define MENU_POS_INPUT                  6
 #endif
 
+// Panasonic FS-A1
+#ifdef _FSA1
+#define MENU_POS_CONTROL                0
+#define MENU_POS_CART1                  1
+#define MENU_POS_CART2                  2
+#define MENU_POS_TAPE                   3
+#define MENU_POS_SCREEN                 4
+#define MENU_POS_SOUND                  5
+#define MENU_POS_INPUT                  6
+#endif
+
 // SEGA GAME GEAR
 #ifdef _GAMEGEAR
 #define MENU_POS_CONTROL                0
@@ -659,6 +670,19 @@
 #define MENU_POS_SCREEN                 5
 #define MENU_POS_SOUND                  6
 #define MENU_POS_INPUT                  7
+#endif
+
+// TOSHIBA HX-20 + FDD
+#ifdef _HX20
+#define MENU_POS_CONTROL                0
+#define MENU_POS_CART1                  1
+#define MENU_POS_CART2                  2
+#define MENU_POS_TAPE                   3
+#define MENU_POS_FD1                    4
+#define MENU_POS_FD2                    5
+#define MENU_POS_SCREEN                 6
+#define MENU_POS_SOUND                  7
+#define MENU_POS_INPUT                  8
 #endif
 
 // National JR-100
@@ -743,6 +767,19 @@
 
 // ASCII MSX2
 #ifdef _MSX2
+#define MENU_POS_CONTROL                0
+#define MENU_POS_CART1                  1
+#define MENU_POS_CART2                  2
+#define MENU_POS_TAPE                   3
+#define MENU_POS_FD1                    4
+#define MENU_POS_FD2                    5
+#define MENU_POS_SCREEN                 6
+#define MENU_POS_SOUND                  7
+#define MENU_POS_INPUT                  8
+#endif
+
+// ASCII MSX2+
+#ifdef _MSX2P
 #define MENU_POS_CONTROL                0
 #define MENU_POS_CART1                  1
 #define MENU_POS_CART2                  2

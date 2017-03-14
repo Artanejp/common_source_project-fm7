@@ -57,9 +57,11 @@ devenv.com fm16pi.vcproj /Rebuild Release
 mkdir build_xp\fm16pi
 copy Release\fm16pi.exe build_xp\fm16pi\.
 
-devenv.com fmr30.vcproj /Rebuild Release
+devenv.com fmr30_i86.vcproj /Rebuild Release
+devenv.com fmr30_i286.vcproj /Rebuild Release
 mkdir build_xp\fmr30
-copy Release\fmr30.exe build_xp\fmr30\.
+copy Release\fmr30_i86.exe build_xp\fmr30\.
+copy Release\fmr30_i286.exe build_xp\fmr30\.
 
 devenv.com fmr50_i286.vcproj /Rebuild Release
 devenv.com fmr50_i386.vcproj /Rebuild Release
@@ -125,9 +127,15 @@ copy Release\mastersystem.exe build_xp\mastersystem\.
 
 devenv.com msx1.vcproj /Rebuild Release
 devenv.com msx2.vcproj /Rebuild Release
+devenv.com msx2p.vcproj /Rebuild Release
+devenv.com fsa1.vcproj /Rebuild Release
+devenv.com hx20.vcproj /Rebuild Release
 mkdir build_xp\msx
 copy Release\msx1.exe build_xp\msx\.
 copy Release\msx2.exe build_xp\msx\.
+copy Release\msx2p.exe build_xp\msx\.
+copy Release\fsa1.exe build_xp\msx\.
+copy Release\hx20.exe build_xp\msx\.
 
 devenv.com multi8.vcproj /Rebuild Release
 mkdir build_xp\multi8

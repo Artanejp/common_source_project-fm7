@@ -69,10 +69,13 @@ call :clean
 mkdir build_vc12\fm16pi
 copy binary_vc12\fm16pi.exe build_vc12\fm16pi\.
 
-devenv.com fmr30.vcxproj /Rebuild Release
+devenv.com fmr30_i86.vcxproj /Rebuild Release
+call :clean
+devenv.com fmr30_i286.vcxproj /Rebuild Release
 call :clean
 mkdir build_vc12\fmr30
-copy binary_vc12\fmr30.exe build_vc12\fmr30\.
+copy binary_vc12\fmr30_i86.exe build_vc12\fmr30\.
+copy binary_vc12\fmr30_i286.exe build_vc12\fmr30\.
 
 devenv.com fmr50_i286.vcxproj /Rebuild Release
 call :clean
@@ -157,9 +160,18 @@ devenv.com msx1.vcxproj /Rebuild Release
 call :clean
 devenv.com msx2.vcxproj /Rebuild Release
 call :clean
+devenv.com msx2p.vcxproj /Rebuild Release
+call :clean
+devenv.com fsa1.vcxproj /Rebuild Release
+call :clean
+devenv.com hx20.vcxproj /Rebuild Release
+call :clean
 mkdir build_vc12\msx
 copy binary_vc12\msx1.exe build_vc12\msx\.
 copy binary_vc12\msx2.exe build_vc12\msx\.
+copy binary_vc12\msx2p.exe build_vc12\msx\.
+copy binary_vc12\fsa1.exe build_vc12\msx\.
+copy binary_vc12\hx20.exe build_vc12\msx\.
 
 devenv.com multi8.vcxproj /Rebuild Release
 call :clean

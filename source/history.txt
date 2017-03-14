@@ -1,3 +1,14 @@
+3/8/2017
+
+[VM/DISK] improve to check if disk image is modified more strictly
+[VM/DISK] import yaya2016-04-13plus1 (thanks Mr.umaiboux)
+[VM/V9938] import yaya2016-04-13plus1 (thanks Mr.umaiboux and MAME)
+[VM/YM2413] import yaya2016-04-13plus1 (thanks Mr.umaiboux)
+
+[FMR30] split project for i86 and i286
+[MSX/*] import yaya2016-04-13plus1 (thanks Mr.umaiboux)
+
+
 3/7/2017
 
 [WIN32/INPUT] improve to accept shift + caps/kana/kanji

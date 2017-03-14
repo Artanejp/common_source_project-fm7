@@ -2205,8 +2205,13 @@ void YM2413::mix(int32_t* buffer, int cnt)
 //		vol2 += buf[1][i];
 //		*buffer++ += vol1<<2; // L
 //		*buffer++ += vol2<<2; // R
+#if defined(_MSX1_VARIANTS) || defined(_MSX2_VARIANTS) || defined(_MSX2P_VARIANTS)
+		*buffer++ += apply_volume((buf[0][i] + buf[1][i]) * 4, volume_l); // L
+		*buffer++ += apply_volume((buf[0][i] + buf[1][i]) * 4, volume_r); // R
+#else
 		*buffer++ += apply_volume(buf[0][i] * 4, volume_l); // L
 		*buffer++ += apply_volume(buf[1][i] * 4, volume_r); // R
+#endif
 	}
 }
 

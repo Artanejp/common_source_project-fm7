@@ -250,6 +250,7 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	class Action_Control *actionHelp_README_QT;
 	class Action_Control *actionHelp_README_MR_TANAM;
 	class Action_Control *actionHelp_README_Artane;
+	class Action_Control *actionHelp_README_Umaiboux;
 	class Action_Control *actionHelp_README_FAQ;
 	class Action_Control *actionHelp_README_FAQ_JP;
 	

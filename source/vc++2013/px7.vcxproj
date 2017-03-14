@@ -174,16 +174,22 @@
     <ClCompile Include="..\src\vm\ld700.cpp" />
     <ClCompile Include="..\src\vm\not.cpp" />
     <ClCompile Include="..\src\vm\pcm1bit.cpp" />
+    <ClCompile Include="..\src\vm\prnfile.cpp" />
     <ClCompile Include="..\src\vm\tms9918a.cpp" />
+    <ClCompile Include="..\src\vm\ym2413.cpp" />
     <ClCompile Include="..\src\vm\z80.cpp" />
     <ClCompile Include="..\src\vm\fmgen\fmgen.cpp" />
     <ClCompile Include="..\src\vm\fmgen\fmtimer.cpp" />
     <ClCompile Include="..\src\vm\fmgen\opna.cpp" />
     <ClCompile Include="..\src\vm\fmgen\psg.cpp" />
     <ClCompile Include="..\src\vm\msx\joystick.cpp" />
+    <ClCompile Include="..\src\vm\msx\kanjirom.cpp" />
     <ClCompile Include="..\src\vm\msx\keyboard.cpp" />
-    <ClCompile Include="..\src\vm\msx\memory.cpp" />
-    <ClCompile Include="..\src\vm\msx\msx.cpp" />
+    <ClCompile Include="..\src\vm\msx\memory_ex.cpp" />
+    <ClCompile Include="..\src\vm\msx\msx_ex.cpp" />
+    <ClCompile Include="..\src\vm\msx\printer.cpp" />
+    <ClCompile Include="..\src\vm\msx\scc.cpp" />
+    <ClCompile Include="..\src\vm\msx\sound_cart.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\common.h" />
@@ -202,8 +208,10 @@
     <ClInclude Include="..\src\vm\ld700.h" />
     <ClInclude Include="..\src\vm\not.h" />
     <ClInclude Include="..\src\vm\pcm1bit.h" />
+    <ClInclude Include="..\src\vm\prnfile.h" />
     <ClInclude Include="..\src\vm\tms9918a.h" />
     <ClInclude Include="..\src\vm\vm.h" />
+    <ClInclude Include="..\src\vm\ym2413.h" />
     <ClInclude Include="..\src\vm\z80.h" />
     <ClInclude Include="..\src\vm\fmgen\diag.h" />
     <ClInclude Include="..\src\vm\fmgen\fmgen.h" />
@@ -214,9 +222,13 @@
     <ClInclude Include="..\src\vm\fmgen\opna.h" />
     <ClInclude Include="..\src\vm\fmgen\psg.h" />
     <ClInclude Include="..\src\vm\msx\joystick.h" />
+    <ClInclude Include="..\src\vm\msx\kanjirom.h" />
     <ClInclude Include="..\src\vm\msx\keyboard.h" />
-    <ClInclude Include="..\src\vm\msx\memory.h" />
-    <ClInclude Include="..\src\vm\msx\msx.h" />
+    <ClInclude Include="..\src\vm\msx\memory_ex.h" />
+    <ClInclude Include="..\src\vm\msx\msx_ex.h" />
+    <ClInclude Include="..\src\vm\msx\printer.h" />
+    <ClInclude Include="..\src\vm\msx\scc.h" />
+    <ClInclude Include="..\src\vm\msx\sound_cart.h" />
     <ClInclude Include="..\src\res\resource.h" />
   </ItemGroup>
   <ItemGroup>

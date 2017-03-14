@@ -49,7 +49,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MSX2"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MSX2;_MSX_VDP_MESS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -145,7 +145,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="2"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MSX2"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MSX2;_MSX_VDP_MESS"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -628,6 +628,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\src\vm\prnfile.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\src\vm\rp5c01.cpp"
 					>
 					<FileConfiguration
@@ -648,7 +668,27 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\src\vm\v99x8.cpp"
+					RelativePath="..\src\vm\v9938.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\ym2413.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -798,6 +838,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\src\vm\msx\kanjirom.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\src\vm\msx\keyboard.cpp"
 					>
 					<FileConfiguration
@@ -818,7 +878,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\src\vm\msx\memory.cpp"
+					RelativePath="..\src\vm\msx\memory_ex.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -838,7 +898,27 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\src\vm\msx\msx.cpp"
+					RelativePath="..\src\vm\msx\msx_ex.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\msx\printer.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -859,6 +939,46 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\msx\rtcif.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\msx\scc.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\msx\sound_cart.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -962,15 +1082,23 @@
 					>
 				</File>
 				<File
+					RelativePath="..\src\vm\prnfile.h"
+					>
+				</File>
+				<File
 					RelativePath="..\src\vm\rp5c01.h"
 					>
 				</File>
 				<File
-					RelativePath="..\src\vm\v99x8.h"
+					RelativePath="..\src\vm\v9938.h"
 					>
 				</File>
 				<File
 					RelativePath="..\src\vm\vm.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\ym2413.h"
 					>
 				</File>
 				<File
@@ -1023,19 +1151,35 @@
 					>
 				</File>
 				<File
+					RelativePath="..\src\vm\msx\kanjirom.h"
+					>
+				</File>
+				<File
 					RelativePath="..\src\vm\msx\keyboard.h"
 					>
 				</File>
 				<File
-					RelativePath="..\src\vm\msx\memory.h"
+					RelativePath="..\src\vm\msx\memory_ex.h"
 					>
 				</File>
 				<File
-					RelativePath="..\src\vm\msx\msx.h"
+					RelativePath="..\src\vm\msx\msx_ex.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\msx\printer.h"
 					>
 				</File>
 				<File
 					RelativePath="..\src\vm\msx\rtcif.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\msx\scc.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\msx\sound_cart.h"
 					>
 				</File>
 			</Filter>

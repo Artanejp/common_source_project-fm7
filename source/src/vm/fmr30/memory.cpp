@@ -96,6 +96,7 @@ void MEMORY::initialize()
 	// set memory
 	SET_BANK(0x000000, 0xffffff, wdmy, rdmy);
 	SET_BANK(0x000000, sizeof(ram) - 1, ram, ram);
+	SET_BANK(0x0f0000, 0x0fffff, wdmy, ipl);
 	SET_BANK(0xff0000, 0xffffff, wdmy, ipl);
 	
 	// register event
@@ -509,7 +510,7 @@ void MEMORY::draw_cg()
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void MEMORY::save_state(FILEIO* state_fio)
 {
