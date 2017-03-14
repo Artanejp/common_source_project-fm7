@@ -1,3 +1,8 @@
+3/12/2017
+
+[VM/DATAREC] fix issue that fast forward noise may not stop
+
+
 3/11/2017
 
 [VM/DATAREC] support to play play/stop/fast-fwd noise

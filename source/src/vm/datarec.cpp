@@ -331,6 +331,15 @@ void DATAREC::set_ff_rew(int value)
 			cancel_event(this, register_id);
 			register_id = -1;
 		}
+		if(value != 0) {
+			if(d_noise_fast != NULL && remote) {
+				d_noise_fast->play();
+			}
+		} else {
+			if(d_noise_fast != NULL) {
+				d_noise_fast->stop();
+			}
+		}
 		ff_rew = value;
 		apss_signals = false;
 		update_event();
