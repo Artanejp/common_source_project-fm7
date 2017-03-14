@@ -46,15 +46,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	apu = new APU(this, emu);
 	ppu = new PPU(this, emu);
 	
-#if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));
-	event->set_device_name(_T("EVENT"));
-	cpu->set_device_name(_T("CPU(M6502)"));
 	
 	apu->set_device_name(_T("APU"));
 	ppu->set_device_name(_T("PPU"));
 	memory->set_device_name(_T("MEMORY"));
-#endif
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(apu);
