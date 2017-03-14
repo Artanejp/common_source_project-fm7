@@ -175,6 +175,7 @@
     <ClCompile Include="..\src\vm\io.cpp" />
     <ClCompile Include="..\src\vm\ls393.cpp" />
     <ClCompile Include="..\src\vm\mz1p17.cpp" />
+    <ClCompile Include="..\src\vm\noise.cpp" />
     <ClCompile Include="..\src\vm\not.cpp" />
     <ClCompile Include="..\src\vm\prnfile.cpp" />
     <ClCompile Include="..\src\vm\rp5c01.cpp" />
@@ -211,6 +212,7 @@
     <ClInclude Include="..\src\vm\io.h" />
     <ClInclude Include="..\src\vm\ls393.h" />
     <ClInclude Include="..\src\vm\mz1p17.h" />
+    <ClInclude Include="..\src\vm\noise.h" />
     <ClInclude Include="..\src\vm\not.h" />
     <ClInclude Include="..\src\vm\prnfile.h" />
     <ClInclude Include="..\src\vm\rp5c01.h" />

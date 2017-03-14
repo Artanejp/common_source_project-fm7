@@ -80,7 +80,7 @@ void Ui_MainWindowBase::CreateSoundMenu(void)
 	menuOutput_Frequency->setObjectName(QString::fromUtf8("menuOutput_Frequency"));
 	menuSound->addAction(menuOutput_Frequency->menuAction());
 	menuSound->addSeparator();
-
+#if 0
 	if(using_flags->is_datarec_sound()) {
 		actionSoundCMT = new Action_Control(this, using_flags);
 		actionSoundCMT->setObjectName(QString::fromUtf8("actionSoundCMT"));
@@ -95,6 +95,7 @@ void Ui_MainWindowBase::CreateSoundMenu(void)
 		menuSound->addAction(actionSoundCMT);
 		menuSound->addSeparator();
 	}
+#endif
 	for(i = 0; i < 8; i++) {
 		menuOutput_Frequency->addAction(action_Freq[i]);
 		connect(action_Freq[i], SIGNAL(triggered()),
@@ -201,10 +202,12 @@ void Ui_MainWindowBase::retranslateSoundMenu(void)
 	actionStart_Record->setText(QApplication::translate("MainWindow", "Start Recording Sound", 0));
 	actionStart_Record->setToolTip(QApplication::translate("MainWindow", "Record sound as WAV file.", 0));
 	
+#if 0
 	if(using_flags->is_datarec_sound()) {
 		actionSoundCMT->setText(QApplication::translate("MainWindow", "Sound CMT", 0));
 		actionSoundCMT->setToolTip(QApplication::translate("MainWindow", "Enable sound of CMT TAPE recorder.", 0));
 	}
+#endif   
 	actionSoundStrictRendering->setText(QApplication::translate("MainWindow", "Strict Rendering", 0));
 	actionSoundStrictRendering->setToolTip(QApplication::translate("MainWindow", "Rendering per a sample.Select to slower, but accurate rendering sound.", 0));
 	

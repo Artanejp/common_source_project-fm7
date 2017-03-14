@@ -80,9 +80,9 @@
 #endif
 #else
 #if defined(_PX7)
-#define USE_SOUND_VOLUME	4
+#define USE_SOUND_VOLUME	5
 #else
-#define USE_SOUND_VOLUME	3
+#define USE_SOUND_VOLUME	4
 #endif
 #endif
 #define SUPPORT_ROMA_KANA_CONVERSION

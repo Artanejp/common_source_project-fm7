@@ -40,7 +40,7 @@ private:
 	uint8_t rec_from_7508();
 	FIFO *cmd7508_buf, *rsp7508_buf;
 	// rtc
-	cur_time_t cur_time;
+	dll_cur_time_t cur_time;
 	int register_id;
 	bool onesec_intr, onesec_intr_enb;
 	bool alarm_intr, alarm_intr_enb;

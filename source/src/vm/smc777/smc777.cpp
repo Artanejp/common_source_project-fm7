@@ -20,6 +20,7 @@
 #if defined(_SMC70)
 #include "../msm58321.h"
 #endif
+#include "../noise.h"
 #include "../pcm1bit.h"
 #if defined(_SMC777)
 #include "../sn76489an.h"
@@ -45,8 +46,14 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	dummy->set_device_name(_T("1st Dummy"));
 	
 	drec = new DATAREC(this, emu);
+	drec->set_context_noise_play(new NOISE(this, emu));
+	drec->set_context_noise_stop(new NOISE(this, emu));
+	drec->set_context_noise_fast(new NOISE(this, emu));
 	crtc = new HD46505(this, emu);
 	fdc = new MB8877(this, emu);
+	fdc->set_context_noise_seek(new NOISE(this, emu));
+	fdc->set_context_noise_head_down(new NOISE(this, emu));
+	fdc->set_context_noise_head_up(new NOISE(this, emu));
 #if defined(_SMC70)
 	rtc = new MSM58321(this, emu);
 #endif
@@ -235,6 +242,14 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		pcm->set_volume(0, decibel_l, decibel_r);
 	} else if(ch-- == 0) {
 		drec->set_volume(0, decibel_l, decibel_r);
+	} else if(ch-- == 0) {
+		fdc->get_context_noise_seek()->set_volume(0, decibel_l, decibel_r);
+		fdc->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
+		fdc->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
+	} else if(ch-- == 0) {
+		drec->get_context_noise_play()->set_volume(0, decibel_l, decibel_r);
+		drec->get_context_noise_stop()->set_volume(0, decibel_l, decibel_r);
+		drec->get_context_noise_fast()->set_volume(0, decibel_l, decibel_r);
 	}
 #if defined(USE_SOUND_FILES)
 	else if(ch-- == 0) {
@@ -364,7 +379,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 void VM::save_state(FILEIO* state_fio)
 {

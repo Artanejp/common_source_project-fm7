@@ -1,0 +1,277 @@
+/*
+	Skelton for retropc emulator
+
+	Origin : MAME
+	Author : Takeda.Toshiya
+	Date   : 2017.03.07-
+
+	[ HD44102 ]
+*/
+
+#include "hd44102.h"
+
+// /src/emu/emucore.h
+#define BIT(x,n) (((x)>>(n))&1)
+
+#define CONTROL_DISPLAY_OFF         0x38
+#define CONTROL_DISPLAY_ON          0x39
+#define CONTROL_COUNT_DOWN_MODE     0x3a
+#define CONTROL_COUNT_UP_MODE       0x3b
+#define CONTROL_Y_ADDRESS_MASK      0x3f
+#define CONTROL_X_ADDRESS_MASK      0xc0
+#define CONTROL_DISPLAY_START_PAGE  0x3e
+
+#define STATUS_BUSY                 0x80    /* not supported */
+#define STATUS_COUNT_UP             0x40
+#define STATUS_DISPLAY_OFF          0x20
+#define STATUS_RESET                0x10    /* not supported */
+
+//**************************************************************************
+//  INLINE HELPERS
+//**************************************************************************
+
+//-------------------------------------------------
+//  count_up_or_down -
+//-------------------------------------------------
+
+inline void HD44102::control_w(data_w data)
+{
+	if (m_status & STATUS_COUNT_UP)
+	{
+		if (++m_y > 49) m_y = 0;
+	}
+	else
+	{
+		if (--m_y < 0) m_y = 49;
+	}
+}
+
+//**************************************************************************
+//  LIVE DEVICE
+//**************************************************************************
+
+//-------------------------------------------------
+//  hd44102_device - constructor
+//-------------------------------------------------
+
+void HD44102::initialize()
+{
+	m_cs2 = 0;
+	m_page = 0;
+	m_x = 0;
+	m_y = 0;
+}
+
+//-------------------------------------------------
+//  device_reset - device-specific reset
+//-------------------------------------------------
+
+void HD44102::reset()
+{
+	m_status = STATUS_DISPLAY_OFF | STATUS_COUNT_UP;
+}
+
+//-------------------------------------------------
+//  read - register read
+//-------------------------------------------------
+
+uint8_t HD44102::read()
+{
+	UINT8 data = 0;
+
+	if (m_cs2)
+	{
+		data = (offset & 0x01) ? data_r(space, offset) : status_r(space, offset);
+	}
+
+	return data;
+}
+
+//-------------------------------------------------
+//  write - register write
+//-------------------------------------------------
+
+void HD44102::write(uint8_t data)
+{
+	if (m_cs2)
+	{
+		(offset & 0x01) ? data_w(/*space, offset, */data) : control_w(/*space, offset, */data);
+	}
+}
+
+//-------------------------------------------------
+//  status_r - status read
+//-------------------------------------------------
+
+uint8_t HD44102::status_r()
+{
+	return m_status;
+}
+
+//-------------------------------------------------
+//  control_w - control write
+//-------------------------------------------------
+
+void HD44102::control_w(uint8_t data)
+{
+	if (m_status & STATUS_BUSY) return;
+
+	switch (data)
+	{
+	case CONTROL_DISPLAY_OFF:
+//		if (LOG) logerror("HD44102 '%s' Display Off\n", tag());
+
+		m_status |= STATUS_DISPLAY_OFF;
+		break;
+
+	case CONTROL_DISPLAY_ON:
+//		if (LOG) logerror("HD44102 '%s' Display On\n", tag());
+
+		m_status &= ~STATUS_DISPLAY_OFF;
+		break;
+
+	case CONTROL_COUNT_DOWN_MODE:
+//		if (LOG) logerror("HD44102 '%s' Count Down Mode\n", tag());
+
+		m_status &= ~STATUS_COUNT_UP;
+		break;
+
+	case CONTROL_COUNT_UP_MODE:
+//		if (LOG) logerror("HD44102 '%s' Count Up Mode\n", tag());
+
+		m_status |= STATUS_COUNT_UP;
+		break;
+
+	default:
+		{
+		int x = (data & CONTROL_X_ADDRESS_MASK) >> 6;
+		int y = data & CONTROL_Y_ADDRESS_MASK;
+
+		if ((data & CONTROL_Y_ADDRESS_MASK) == CONTROL_DISPLAY_START_PAGE)
+		{
+//			if (LOG) logerror("HD44102 '%s' Display Start Page %u\n", tag(), x);
+
+			m_page = x;
+		}
+		else if (y > 49)
+		{
+//			logerror("HD44102 '%s' Invalid Address X %u Y %u (%02x)!\n", tag(), data, x, y);
+		}
+		else
+		{
+//			if (LOG) logerror("HD44102 '%s' Address X %u Y %u (%02x)\n", tag(), data, x, y);
+
+			m_x = x;
+			m_y = y;
+		}
+		}
+	}
+}
+
+//-------------------------------------------------
+//  data_r - data read
+//-------------------------------------------------
+
+uint8_t HD44102::data_r()
+{
+	UINT8 data = m_output;
+
+	m_output = m_ram[m_x][m_y];
+
+	count_up_or_down();
+
+	return data;
+}
+
+//-------------------------------------------------
+//  data_w - data write
+//-------------------------------------------------
+
+void HD44102::data_w(uint8_t data)
+{
+	m_ram[m_x][m_y] = data;
+
+	count_up_or_down();
+}
+
+//-------------------------------------------------
+//  cs2_w - chip select 2 write
+//-------------------------------------------------
+
+void HD44102::write_signal(int id, uint32_t data, uint32_t mask)
+{
+	if(id == SIG_HD44102_CS2) {
+		m_cs2 = data & mask;
+	}
+}
+
+//-------------------------------------------------
+//  update_screen - update screen
+//-------------------------------------------------
+
+void HD44102::screen_update(int m_sx, int m_sy)
+{
+	scrntype_t color_on   = RGB_COLOR( 48,  56,  16);	// dot on
+//	scrntype_t color_off  = RGB_COLOR(144, 150, 144);	// dot off
+	scrntype_t color_back = RGB_COLOR(160, 168, 160);	// back
+	
+	for (int y = 0; y < 50; y++)
+	{
+		int z = m_page << 3;
+
+		for (int x = 0; x < 32; x++)
+		{
+			UINT8 data = m_ram[z / 8][y];
+
+			int sy = m_sy + z;
+			int sx = m_sx + y;
+
+//			if (cliprect.contains(sx, sy))
+			{
+				int color = (m_status & STATUS_DISPLAY_OFF) ? 0 : BIT(data, z % 8);
+
+//				bitmap.pix16(sy, sx) = color;
+				scrntype_t *dest = emu->get_screen_buffer(sy) + sx;
+				*dest = color ? color_on : color_back;
+			}
+
+			z++;
+			z %= 32;
+		}
+	}
+}
+
+#define STATE_VERSION	1
+
+void HD44102::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->Fwrite(m_ram, sizeof(m_ram), 1);
+	state_fio->FputUint8(m_status);
+	state_fio->FputUint8(m_output);
+	state_fio->FputInt32(m_cs2);
+	state_fio->FputInt32(m_page);
+	state_fio->FputInt32(m_x);
+	state_fio->FputInt32(m_y);
+}
+
+bool HD44102::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	state_fio->Fread(m_ram, sizeof(m_ram), 1);
+	m_status = state_fio->FgetUint8();
+	m_output = state_fio->FgetUint8();
+	m_cs2 = state_fio->FgetInt32();
+	m_page = state_fio->FgetInt32();
+	m_x = state_fio->FgetInt32();
+	m_y = state_fio->FgetInt32();
+	return true;
+}
+

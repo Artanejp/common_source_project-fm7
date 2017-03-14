@@ -176,6 +176,7 @@
     <ClCompile Include="..\src\vm\io.cpp" />
     <ClCompile Include="..\src\vm\ls244.cpp" />
     <ClCompile Include="..\src\vm\memory.cpp" />
+    <ClCompile Include="..\src\vm\noise.cpp" />
     <ClCompile Include="..\src\vm\not.cpp" />
     <ClCompile Include="..\src\vm\pc80s31k.cpp" />
     <ClCompile Include="..\src\vm\pcm1bit.cpp" />
@@ -219,6 +220,7 @@
     <ClInclude Include="..\src\vm\io.h" />
     <ClInclude Include="..\src\vm\ls244.h" />
     <ClInclude Include="..\src\vm\memory.h" />
+    <ClInclude Include="..\src\vm\noise.h" />
     <ClInclude Include="..\src\vm\not.h" />
     <ClInclude Include="..\src\vm\pc80s31k.h" />
     <ClInclude Include="..\src\vm\pcm1bit.h" />

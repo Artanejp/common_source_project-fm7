@@ -41,11 +41,6 @@
 #define USE_DIG_RESOLUTION
 #define SUPPORT_ROMA_KANA_CONVERSION
 
-#if defined(_USE_QT)
-#define USE_SOUND_FILES 3
-#define USE_SOUND_FILES_FDD
-#define USE_SOUND_FILES_RELAY
-#endif
 #if defined(_FM8)
 #define DEVICE_NAME		"FUJITSU FM-8"
 #define CONFIG_NAME		"fm8"
@@ -226,18 +221,10 @@
 #define SOUND_DEVICE_TYPE_DEFAULT	1
 #endif
 
-#if defined(USE_SOUND_FILES)
-# if defined(_FM8)
+#if defined(_FM8)
 #define USE_SOUND_VOLUME	5
-# else
-#define USE_SOUND_VOLUME	11
-# endif
 #else
-# if defined(_FM8)
-#define USE_SOUND_VOLUME	3
-# else
-#define USE_SOUND_VOLUME	9
-# endif
+#define USE_SOUND_VOLUME	11
 #endif
 #define SUPPORT_TV_RENDER
 
@@ -342,22 +329,19 @@ static const _TCHAR *sound_device_caption[] = {
 #if defined(_FM8)
 	_T("PSG(Hack)"),
 	_T("Beep"),
-	_T("CMT"),
-# if defined(USE_SOUND_FILES)
-	_T("FDD SEEK"), _T("RELAY"),
-# endif
+	_T("CMT (Signal)"),
+	_T("Noise (FDD)"),
+	_T("Noise (CMT)"),
 #else
 # if !defined(_FM77AV_VARIANTS)
 	_T("PSG"),
 # endif
 	_T("OPN (FM)"), _T("OPN (PSG)"), _T("WHG (FM)"), _T("WHG (PSG)"), _T("THG (FM)"), _T("THG (PSG)"),
-	_T("Beep"), _T("CMT"),
+	_T("Beep"), _T("CMT (Signal)"),
 # if defined(_FM77AV_VARIANTS)
 	_T("Keyboard"),
 # endif
-#if defined(USE_SOUND_FILES)
-	_T("FDD SEEK"), _T("RELAY"),
-#endif
+	_T("Noise (FDD)"), _T("Noise (CMT)"),
 #endif	
 };
 #endif

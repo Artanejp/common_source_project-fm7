@@ -27,7 +27,7 @@ class PSUB : public DEVICE
 private:
 	DEVICE *d_cpu, *d_pio;
 	DATAREC *d_drec;
-	cur_time_t cur_time;
+	dll_cur_time_t cur_time;
 	int time_register_id;
 	
 	uint8_t databuf[32][8], *datap;

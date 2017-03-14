@@ -81,10 +81,8 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 	use_sound_device_type = 0;
 	use_sound_volume = 0;
 	without_sound = false;
-	use_sound_files = false;
 	use_sound_files_fdd = false;
 	use_sound_files_relay = false;
-	use_sound_files_buttons = false;
 	
 	use_special_reset = false;
 
@@ -113,7 +111,6 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 	max_button = 0;
 	vm_buttons_d = NULL;
 
-	use_datarec_sound = false;
 	use_vertical_pixel_lines = false;
 	notify_key_down_lr_shift = false;
 	tape_binary_only = false;
@@ -445,23 +442,11 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 #if defined(WITHOUT_SOUND)
 	without_sound = true;
 #endif
-#if defined(USE_SOUND_FILES)
-	use_sound_files = true;
-# if !defined(USE_SOUND_FILES_FDD) && !defined(USE_SOUND_FILES_RELAY) && !defined(USE_SOUND_FILES_BUTTONS)
+#if defined(USE_FD1)
 	use_sound_files_fdd = true;
+#endif
+#if defined(USE_TAPE)
 	use_sound_files_relay = true;
-	use_sound_files_buttons = true;
-# else
-#  if defined(USE_SOUND_FILES_FDD)
-	use_sound_files_fdd = true;
-#  endif
-#  if defined(USE_SOUND_FILES_RELAY)
-	use_sound_files_relay = true;
-#  endif
-#  if defined(USE_SOUND_FILES_BUTTONS)
-	use_sound_files_buttons = true;
-#  endif
-# endif
 #endif
 #if defined(USE_SPECIAL_RESET)
 	use_special_reset = true;
@@ -477,9 +462,6 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 	#if defined(USE_TAPE_PTR)
 		use_tape_ptr = true;
 	#endif
-	//#if defined(DATAREC_SOUND)
-		use_datarec_sound = true;
-	//#endif
 #endif
 #if defined(USE_VM_AUTO_KEY_TABLE)
 	use_vm_auto_key_table = true;

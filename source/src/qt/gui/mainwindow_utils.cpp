@@ -92,7 +92,7 @@ void Ui_MainWindowBase::set_gl_crt_filter(bool flag)
 
 void Ui_MainWindowBase::set_cmt_sound(bool flag)
 {
-	using_flags->get_config_ptr()->tape_sound = flag;
+	//using_flags->get_config_ptr()->tape_sound = flag;
 	emit sig_emu_update_config();
 }
 

@@ -173,6 +173,7 @@
     <ClCompile Include="..\src\vm\mb8877.cpp" />
     <ClCompile Include="..\src\vm\mc6809.cpp" />
     <ClCompile Include="..\src\vm\memory.cpp" />
+    <ClCompile Include="..\src\vm\noise.cpp" />
     <ClCompile Include="..\src\vm\pcm1bit.cpp" />
     <ClCompile Include="..\src\vm\prnfile.cpp" />
     <ClCompile Include="..\src\vm\ym2203.cpp" />
@@ -211,6 +212,7 @@
     <ClInclude Include="..\src\vm\mb8877.h" />
     <ClInclude Include="..\src\vm\mc6809.h" />
     <ClInclude Include="..\src\vm\memory.h" />
+    <ClInclude Include="..\src\vm\noise.h" />
     <ClInclude Include="..\src\vm\pcm1bit.h" />
     <ClInclude Include="..\src\vm\prnfile.h" />
     <ClInclude Include="..\src\vm\vm.h" />

@@ -16,6 +16,7 @@
 #include "../hd146818p.h"
 #include "../i8255.h"
 #include "../mc6800.h"
+#include "../noise.h"
 #include "../tf20.h"
 #include "../upd765a.h"
 #include "../z80.h"
@@ -37,44 +38,31 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-#if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));
-	event->set_device_name(_T("EVENT"));
-#endif	
 	
 	beep = new BEEP(this, emu);
 	rtc = new HD146818P(this, emu);
 	cpu = new MC6800(this, emu);
-#if defined(_USE_QT)
-	beep->set_device_name(_T("BEEP"));
-	rtc->set_device_name(_T("HD146818P RTC"));
-	cpu->set_device_name(_T("CPU(MC6800)"));
-#endif	
 	tf20 = new TF20(this, emu);
 	pio_tf20 = new I8255(this, emu);
 	fdc_tf20 = new UPD765A(this, emu);
+	fdc_tf20->set_context_noise_seek(new NOISE(this, emu));
+	fdc_tf20->set_context_noise_head_down(new NOISE(this, emu));
+	fdc_tf20->set_context_noise_head_up(new NOISE(this, emu));
 	cpu_tf20 = new Z80(this, emu);
 	sio_tf20 = new Z80SIO(this, emu);
-#if defined(_USE_QT)
-	tf20->set_device_name(_T("TF20 FDD"));
 	pio_tf20->set_device_name(_T("TF20 PIO(i8255)"));
 	cpu_tf20->set_device_name(_T("TF20 CPU(Z80)"));
 	sio_tf20->set_device_name(_T("TF20 SIO(Z80 SIO)"));
 	fdc_tf20->set_device_name(_T("TF20 FDC(uPD765A)"));
-#endif	
 	memory = new MEMORY(this, emu);
-#if defined(_USE_QT)
-	memory->set_device_name(_T("MEMORY"));
-#endif	
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_cpu(cpu_tf20, 4000000);
 	event->set_context_sound(beep);
-#if defined(USE_SOUND_FILES)
-	if(fdc_tf20->load_sound_data(UPD765A_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
-		event->set_context_sound(fdc_tf20);
-	}
-#endif	
+	event->set_context_sound(fdc_tf20->get_context_noise_seek());
+	event->set_context_sound(fdc_tf20->get_context_noise_head_down());
+	event->set_context_sound(fdc_tf20->get_context_noise_head_up());
 	
 /*
 	memory:
@@ -261,12 +249,11 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 {
 	if(ch == 0) {
 		beep->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 1) {
+		fdc_tf20->get_context_noise_seek()->set_volume(0, decibel_l, decibel_r);
+		fdc_tf20->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
+		fdc_tf20->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
 	}
-#if defined(USE_SOUND_FILES)
-	else if(ch == 1) {
-		fdc_tf20->set_volume(0, decibel_l, decibel_r);
-	}
-#endif
 }
 #endif
 
@@ -345,7 +332,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void VM::save_state(FILEIO* state_fio)
 {

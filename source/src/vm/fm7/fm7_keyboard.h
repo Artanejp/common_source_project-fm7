@@ -64,7 +64,7 @@ private:
 	uint8_t datareg;
 	uint32_t older_vk;
 #if defined(_FM77AV_VARIANTS)
-	cur_time_t cur_time; 
+	dll_cur_time_t cur_time; 
 	uint8_t rtc_yy;
 	uint8_t rtc_mm;
 	uint8_t rtc_dd;

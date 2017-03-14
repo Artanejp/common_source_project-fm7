@@ -175,6 +175,7 @@
     <ClCompile Include="..\src\vm\io.cpp" />
     <ClCompile Include="..\src\vm\mb8877.cpp" />
     <ClCompile Include="..\src\vm\msm58321.cpp" />
+    <ClCompile Include="..\src\vm\noise.cpp" />
     <ClCompile Include="..\src\vm\pcm1bit.cpp" />
     <ClCompile Include="..\src\vm\scsi_dev.cpp" />
     <ClCompile Include="..\src\vm\scsi_hdd.cpp" />
@@ -208,6 +209,7 @@
     <ClInclude Include="..\src\vm\io.h" />
     <ClInclude Include="..\src\vm\mb8877.h" />
     <ClInclude Include="..\src\vm\msm58321.h" />
+    <ClInclude Include="..\src\vm\noise.h" />
     <ClInclude Include="..\src\vm\pcm1bit.h" />
     <ClInclude Include="..\src\vm\scsi_dev.h" />
     <ClInclude Include="..\src\vm\scsi_hdd.h" />

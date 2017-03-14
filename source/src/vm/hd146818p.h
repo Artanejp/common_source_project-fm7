@@ -23,7 +23,7 @@ private:
 	outputs_t outputs_intr;
 	outputs_t outputs_sqw;
 	
-	cur_time_t cur_time;
+	dll_cur_time_t cur_time;
 	int register_id_1sec;
 	
 	uint8_t regs[0x40];

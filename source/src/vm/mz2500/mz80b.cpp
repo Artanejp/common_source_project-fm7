@@ -20,6 +20,7 @@
 #include "../io.h"
 #include "../mb8877.h"
 #include "../mz1p17.h"
+#include "../noise.h"
 #include "../pcm1bit.h"
 #include "../prnfile.h"
 #include "../z80.h"
@@ -65,10 +66,16 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #endif	
 	
 	drec = new DATAREC(this, emu);
+	drec->set_context_noise_play(new NOISE(this, emu));
+	drec->set_context_noise_stop(new NOISE(this, emu));
+	drec->set_context_noise_fast(new NOISE(this, emu));
 	pit = new I8253(this, emu);
 	pio_i = new I8255(this, emu);
 	io = new IO(this, emu);
 	fdc = new MB8877(this, emu);
+	fdc->set_context_noise_seek(new NOISE(this, emu));
+	fdc->set_context_noise_head_down(new NOISE(this, emu));
+	fdc->set_context_noise_head_up(new NOISE(this, emu));
 	pcm = new PCM1BIT(this, emu);
 	cpu = new Z80(this, emu);
 	pio = new Z80PIO(this, emu);
@@ -142,6 +149,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pit->set_constant_clock(0, 31250);
 	pio_i->set_context_port_a(cmt, SIG_CMT_PIO_PA, 0xff, 0);
 	pio_i->set_context_port_a(memory, SIG_CRTC_REVERSE, 0x10, 0);
+	pio_i->set_context_port_c(memory, SIG_CRTC_VGATE, 0x01, 0);
 	pio_i->set_context_port_c(cmt, SIG_CMT_PIO_PC, 0xff, 0);
 	pio_i->set_context_port_c(pcm, SIG_PCM1BIT_SIGNAL, 0x04, 0);
 	// Sound:: Force realtime rendering. This is temporally fix. 20161024 K.O
@@ -395,6 +403,14 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		pcm->set_volume(0, decibel_l, decibel_r);
 	} else if(ch == 1) {
 		drec->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 2) {
+		fdc->get_context_noise_seek()->set_volume(0, decibel_l, decibel_r);
+		fdc->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
+		fdc->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 3) {
+		drec->get_context_noise_play()->set_volume(0, decibel_l, decibel_r);
+		drec->get_context_noise_stop()->set_volume(0, decibel_l, decibel_r);
+		drec->get_context_noise_fast()->set_volume(0, decibel_l, decibel_r);
 	}
 }
 #endif
@@ -540,7 +556,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 void VM::save_state(FILEIO* state_fio)
 {

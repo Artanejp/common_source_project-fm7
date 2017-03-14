@@ -590,6 +590,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\src\vm\noise.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\src\vm\tf20.cpp"
 					>
 					<FileConfiguration
@@ -788,6 +808,10 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\mc6800.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\noise.h"
 					>
 				</File>
 				<File

@@ -110,25 +110,14 @@
 #define USE_SOUND_DEVICE_TYPE		3
 // ToDo
 #define DATAREC_SOUND
-#define USE_SOUND_FILES             5
-#define USE_SOUND_FILES_FDD
-#define USE_SOUND_FILES_BUTTONS
 #define SUPPORT_ROMA_KANA_CONVERSION
 // CZ-8BS1 x1
 #define SOUND_DEVICE_TYPE_DEFAULT	1
-#if defined(USE_SOUND_FILES)
 # if defined(_X1TWIN)
 # define USE_SOUND_VOLUME	7
 # else
 # define USE_SOUND_VOLUME	6
 # endif
-#else
-# if defined(_X1TWIN)
-# define USE_SOUND_VOLUME	5
-# else
-# define USE_SOUND_VOLUME	4
-# endif
-#endif
 #define SUPPORT_TV_RENDER
 #define USE_JOYSTICK
 #define USE_JOY_BUTTON_CAPTIONS
@@ -143,12 +132,9 @@
 
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
-	_T("PSG"), _T("CZ-8BS1 #1"), _T("CZ-8BS1 #2"), _T("CMT"),
+	_T("PSG"), _T("CZ-8BS1 #1"), _T("CZ-8BS1 #2"), _T("CMT (Signal)"), _T("Noise (FDD)"), _T("Noise (CMT)"),
 #if defined(_X1TWIN)
-	_T("Voice"),
-#endif
-#if defined(USE_SOUND_FILES)
-	_T("FDD SEEK"), _T("CMT BUTTONS"),
+	_T("PC Engine PSG"),
 #endif
 };
 #endif

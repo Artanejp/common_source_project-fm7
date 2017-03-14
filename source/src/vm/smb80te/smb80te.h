@@ -30,11 +30,18 @@
 #define USE_TAPE
 #define USE_BINARY_FILE1
 #define NOTIFY_KEY_DOWN
+#define USE_SOUND_VOLUME	2
 #define USE_DEBUGGER
 #define USE_STATE
 
 #include "../../common.h"
 #include "../../fileio.h"
+
+#ifdef USE_SOUND_VOLUME
+static const _TCHAR *sound_device_caption[] = {
+	_T("CMT (Signal)"), _T("Noise (CMT)"),
+};
+#endif
 
 #define LED_WIDTH	24
 #define LED_HEIGHT	24
@@ -142,6 +149,9 @@ public:
 	void initialize_sound(int rate, int samples);
 	uint16_t* create_sound(int* extra_frames);
 	int get_sound_buffer_ptr();
+#ifdef USE_SOUND_VOLUME
+	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
+#endif
 	
 	// notify key
 	void key_down(int code, bool repeat);

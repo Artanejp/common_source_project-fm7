@@ -187,9 +187,9 @@
 #define USE_AUTO_KEY		6
 #define USE_AUTO_KEY_RELEASE	10
 #if defined(_PX7)
-#define USE_SOUND_VOLUME	7
+#define USE_SOUND_VOLUME	8
 #else
-#define USE_SOUND_VOLUME	6
+#define USE_SOUND_VOLUME	7
 #endif
 #define USE_JOYSTICK
 #define USE_DEBUGGER
@@ -205,11 +205,11 @@
 
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
-	_T("PSG"), _T("Beep"), _T("CMT"),
+	_T("PSG"), _T("Beep"), _T("CMT (Signal)"),
 #if defined(_PX7)
 	_T("LD-700"),
 #endif
-	_T("Cart#1"), _T("Cart#2"), _T("MSX-MUSIC"),
+	_T("Cart#1"), _T("Cart#2"), _T("MSX-MUSIC"), _T("Noise (CMT)"),
 };
 #endif
 

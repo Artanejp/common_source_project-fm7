@@ -31,8 +31,10 @@ private:
 	uint8_t* rbank[8];
 	
 public:
-	PC80S31K(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
+	PC80S31K(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
 		set_device_name(_T("PC-80S31K FDD"));
+		
 	}
 	~PC80S31K() {}
 	

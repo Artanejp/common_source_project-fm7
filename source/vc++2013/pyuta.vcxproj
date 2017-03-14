@@ -167,6 +167,7 @@
     <ClCompile Include="..\src\win32\winmain.cpp" />
     <ClCompile Include="..\src\vm\datarec.cpp" />
     <ClCompile Include="..\src\vm\event.cpp" />
+    <ClCompile Include="..\src\vm\noise.cpp" />
     <ClCompile Include="..\src\vm\sn76489an.cpp" />
     <ClCompile Include="..\src\vm\tms9918a.cpp" />
     <ClCompile Include="..\src\vm\tms9995.cpp" />
@@ -184,6 +185,7 @@
     <ClInclude Include="..\src\vm\debugger.h" />
     <ClInclude Include="..\src\vm\device.h" />
     <ClInclude Include="..\src\vm\event.h" />
+    <ClInclude Include="..\src\vm\noise.h" />
     <ClInclude Include="..\src\vm\sn76489an.h" />
     <ClInclude Include="..\src\vm\tms9918a.h" />
     <ClInclude Include="..\src\vm\tms9995.h" />

@@ -23,6 +23,7 @@
 #if defined(_PX7)
 #include "../ld700.h"
 #endif
+#include "../noise.h"
 #include "../not.h"
 //#include "../ym2203.h"
 #include "../ay_3_891x.h"
@@ -60,6 +61,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_device_name(_T("EVENT"));
 	
 	drec = new DATAREC(this, emu);
+	drec->set_context_noise_play(new NOISE(this, emu));
+	drec->set_context_noise_stop(new NOISE(this, emu));
+	drec->set_context_noise_fast(new NOISE(this, emu));
 	pio = new I8255(this, emu);
 	io = new IO(this, emu);
 #if defined(_PX7)
@@ -112,6 +116,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	drec->load_sound_data(DATAREC_SNDFILE_RELAY_ON, _T("RELAY_ON.WAV"));
 	drec->load_sound_data(DATAREC_SNDFILE_RELAY_OFF, _T("RELAYOFF.WAV"));
 #endif
+	event->set_context_sound(drec->get_context_noise_play());
+	event->set_context_sound(drec->get_context_noise_stop());
+	event->set_context_sound(drec->get_context_noise_fast());
 	
 	drec->set_context_ear(psg, SIG_AY_3_891X_PORT_A, 0x80);
 	pio->set_context_port_a(memory, SIG_MEMORY_SEL, 0xff, 0);
@@ -431,7 +438,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 void VM::save_state(FILEIO* state_fio)
 {

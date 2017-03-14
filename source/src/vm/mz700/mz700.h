@@ -96,11 +96,11 @@
 #endif
 #else
 #if defined(_MZ700)
-#define USE_SOUND_VOLUME	2
-#elif defined(_MZ800)
 #define USE_SOUND_VOLUME	3
+#elif defined(_MZ800)
+#define USE_SOUND_VOLUME	5
 #elif defined(_MZ1500)
-#define USE_SOUND_VOLUME	4
+#define USE_SOUND_VOLUME	6
 #endif
 #endif
 #if defined(_MZ1500)

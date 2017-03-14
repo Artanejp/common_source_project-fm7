@@ -14,6 +14,7 @@
 
 #include "../beep.h"
 #include "../datarec.h"
+#include "../noise.h"
 #include "../ptf20.h"
 #include "../z80.h"
 
@@ -41,6 +42,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	beep = new BEEP(this, emu);
 	drec = new DATAREC(this, emu);
+	drec->set_context_noise_play(new NOISE(this, emu));
+	drec->set_context_noise_stop(new NOISE(this, emu));
+	drec->set_context_noise_fast(new NOISE(this, emu));
 	tf20 = new PTF20(this, emu);
 	cpu = new Z80(this, emu);
 #if defined(_USE_QT)
@@ -195,6 +199,10 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		beep->set_volume(0, decibel_l, decibel_r);
 	} else if(ch == 1) {
 		drec->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 2) {
+		drec->get_context_noise_play()->set_volume(0, decibel_l, decibel_r);
+		drec->get_context_noise_stop()->set_volume(0, decibel_l, decibel_r);
+		drec->get_context_noise_fast()->set_volume(0, decibel_l, decibel_r);
 	}
 #if defined(USE_SOUND_FILES)
 	else if(ch == 2) {
@@ -309,7 +317,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void VM::save_state(FILEIO* state_fio)
 {

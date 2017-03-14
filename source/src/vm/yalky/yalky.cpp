@@ -16,6 +16,7 @@
 #include "../i8080.h"
 #include "../i8155.h"
 #include "../memory.h"
+#include "../noise.h"
 
 #ifdef USE_DEBUGGER
 #include "../debugger.h"
@@ -29,7 +30,7 @@
 
 VM::VM(EMU* parent_emu) : emu(parent_emu)
 {
-	config.tape_sound = false;
+	config.sound_play_tape = false;
 	config.wave_shaper = false;
 	
 	// create devices
@@ -39,6 +40,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	dummy->set_device_name(_T("1st Dummy"));
 	
 	drec = new DATAREC(this, emu);
+	drec->set_context_noise_play(new NOISE(this, emu));
+	drec->set_context_noise_stop(new NOISE(this, emu));
+	drec->set_context_noise_fast(new NOISE(this, emu));
 	cpu = new I8080(this, emu);	// 8085
 	pio = new I8155(this, emu);	// 8156
 	memory = new MEMORY(this, emu);
@@ -281,7 +285,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 void VM::save_state(FILEIO* state_fio)
 {

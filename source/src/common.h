@@ -10,6 +10,11 @@
 #ifndef _COMMON_H_
 #define _COMMON_H_
 
+// move shared codes to DLL???
+#ifdef _USE_QT
+	#define USE_SHARED_DLL
+#endif
+
 // check environemnt/language
 #ifdef _WIN32
 	#ifdef _MSC_VER
@@ -46,8 +51,10 @@
 	#elif defined(Q_OS_WIN) || defined(__WIN32) || defined(__WIN64)
 		#define CSP_OS_GCC_WINDOWS
 		#define CSP_OS_WINDOWS
-		#define DLL_PREFIX   __declspec(dllexport)
-		#define DLL_PREFIX_I __declspec(dllimport)
+		#ifdef USE_SHARED_DLL
+			#define DLL_PREFIX   __declspec(dllexport)
+			#define DLL_PREFIX_I __declspec(dllimport)
+		#endif
 	#else
 		#define CSP_OS_GCC_GENERIC
 		#define CSP_OS_GENERIC
@@ -73,6 +80,12 @@
 #ifndef SUPPORT_TCHAR_TYPE
 	// secure functions need tchar type
 	#undef SUPPORT_SECURE_FUNCTIONS
+#endif
+#ifndef DLL_PREFIX
+	#define DLL_PREFIX
+#endif
+#ifndef DLL_PREFIX_I
+	#define DLL_PREFIX_I
 #endif
 
 // include common header files
@@ -391,7 +404,7 @@ uint16_t DLL_PREFIX EndianToLittle_WORD(uint16_t x);
 	#ifndef errno_t
 		typedef int errno_t;
 	#endif
-//	errno_t my_tfopen_s(FILE** pFile, const _TCHAR *filename, const _TCHAR *mode);
+//	errno_t DLL_PREFIX my_tfopen_s(FILE** pFile, const _TCHAR *filename, const _TCHAR *mode);
 	errno_t DLL_PREFIX my_strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource);
 	errno_t DLL_PREFIX my_tcscpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource);
 	errno_t DLL_PREFIX my_strncpy_s(char *strDestination, size_t numberOfElements, const char *strSource, size_t count);
@@ -504,6 +517,8 @@ int32_t DLL_PREFIX apply_volume(int32_t sample, int volume);
 #define TO_BCD_HI(v)	(int)(((v) % 100) / 10)
 
 #define LEAP_YEAR(y)	(((y) % 4) == 0 && (((y) % 100) != 0 || ((y) % 400) == 0))
+
+#define dll_cur_time_t DLL_PREFIX_I struct cur_time_s
 
 typedef DLL_PREFIX struct cur_time_s {
 	int year, month, day, day_of_week, hour, minute, second;

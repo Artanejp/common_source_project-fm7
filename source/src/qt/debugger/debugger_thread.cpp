@@ -28,7 +28,7 @@ void CSP_DebuggerThread::quit_debugger()
 }
 
 #if defined(USE_DEBUGGER)	
-extern int debugger_thread(void *p);
+extern void *debugger_thread(void *p);
 #endif
 
 void CSP_DebuggerThread::run()

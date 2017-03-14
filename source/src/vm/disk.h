@@ -16,12 +16,6 @@
 #else
 #include "../common.h"
 #endif
-#if defined(_USE_QT)
-#include "../qt/gui/csp_logger.h"
-extern CSP_Logger *csp_logger;
-#endif
-
-#include <stdarg.h>
 
 // d88 media type
 #define MEDIA_TYPE_2D	0x00
@@ -38,15 +32,15 @@ extern CSP_Logger *csp_logger;
 
 // this value will be stored to the state file,
 // so don't change these definitions
-#define SPECIAL_DISK_X1TURBO_ALPHA	  1
-#define SPECIAL_DISK_X1_BATTEN		  2
-#define SPECIAL_DISK_FM7_GAMBLER	  11
-#define SPECIAL_DISK_FM7_DEATHFORCE   12
-#define SPECIAL_DISK_FM77AV_PSYOBLADE 13
-#define SPECIAL_DISK_FM7_TAIYOU1 14
-#define SPECIAL_DISK_FM7_TAIYOU2 15
-#define SPECIAL_DISK_FM7_XANADU2_D 16
-#define SPECIAL_DISK_FM7_RIGLAS 17
+#define SPECIAL_DISK_X1TURBO_ALPHA	 1
+#define SPECIAL_DISK_X1_BATTEN		 2
+#define SPECIAL_DISK_FM7_GAMBLER	11
+#define SPECIAL_DISK_FM7_DEATHFORCE	12
+#define SPECIAL_DISK_FM77AV_PSYOBLADE	13
+#define SPECIAL_DISK_FM7_TAIYOU1	14
+#define SPECIAL_DISK_FM7_TAIYOU2	15
+#define SPECIAL_DISK_FM7_XANADU2_D	16
+#define SPECIAL_DISK_FM7_RIGLAS		17
 
 // d88 constant
 #define DISK_BUFFER_SIZE	0x380000	// 3.5MB
@@ -74,8 +68,6 @@ private:
 	bool is_solid_image;
 	bool is_fdi_image;
 	uint8_t fdi_header[4096];
-	//_TCHAR this_device_name[128];
-	
 	int solid_ncyl, solid_nside, solid_nsec, solid_size;
 	bool solid_mfm;
 	
@@ -93,6 +85,7 @@ private:
 	
 	// solid image decoder (fdi/tfd/2d/img/sf7)
 	bool solid_to_d88(FILEIO *fio, int type, int ncyl, int nside, int nsec, int size, bool mfm);
+	
 public:
 #ifndef _ANY2D88
 	DISK(EMU* parent_emu) : emu(parent_emu)
@@ -157,7 +150,7 @@ public:
 	pair_t sector_num;
 	bool track_mfm;
 	bool invalid_format;
-	//bool no_skew;
+//	bool no_skew;
 	int cur_track, cur_side;
 	
 	int sync_position[512];
@@ -185,9 +178,9 @@ public:
 #ifndef _ANY2D88
 #if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 		if((is_special_disk == SPECIAL_DISK_FM7_TAIYOU1) || (is_special_disk == SPECIAL_DISK_FM7_TAIYOU2)) {
-		   return true;
+			return true;
 		}
-#endif		
+#endif
 		if(drive_num < (int)array_length(config.correct_disk_timing)) {
 			return config.correct_disk_timing[drive_num];
 		}
@@ -203,28 +196,7 @@ public:
 #endif
 		return false;
 	}
-	void set_device_name(const _TCHAR *p)
-	{
-		if(p == NULL) return;
-		strncpy(this_device_name, p, 128);
-		
-	}
-	void out_debug_log(const char *fmt, ...)
-	{
-		char strbuf[4096];
-		va_list ap;
-		
-		va_start(ap, fmt);
-		vsnprintf(strbuf, 4095, fmt, ap);
-#if defined(_USE_QT)
-		csp_logger->debug_log(CSP_LOG_DEBUG, -1, "[%s] %s", this_device_name, strbuf);
-#else
-		char strbuf2[4096];
-		snprintf(strbuf2, 4095, "[%s] %s", this_device_name, strbuf);
-		emu->out_debug_log("%s", strbuf2);
-#endif
-		va_end(ap);
-	}
+	
 	// state
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);

@@ -241,62 +241,6 @@ BOOL DLL_PREFIX MyWritePrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName
 	return result;
 }
 
-#if 0
-static std::string MyGetPrivateProfileStr(const _TCHAR *lpAppName, const _TCHAR *lpKeyName, _TCHAR *lpFileName)
-{
-	std::string key;
-	char ibuf[4096 + 102];
-	int64_t i;
-	int l_len;
-	int c = '\0';
-	std::string::size_type  pos;
-	std::string key_str;
-	std::string got_str;
-	FILEIO *pf = new FILEIO;
-	
-	key = lpAppName;
-	key = key + ".";
-	key = key + lpKeyName;
-	got_str = "";
-	if(pf->Fopen(lpFileName, FILEIO_READ_ASCII) != true) {
-		delete pf;
-		return got_str;
-	}
-	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Try App: %s Key: %s", lpAppName, lpKeyName);
-	pf->Fseek(0, FILEIO_SEEK_SET);
-	do {
-		key_str = key;
-		ibuf[0] = '\0';
-		i = 0;
-		l_len = 0;
-		while(1) {
-			if(l_len > (4096 + 100)) { // Too long, read dummy.
-				c = (char)pf->Fgetc();
-				if((c != EOF) && (c != '\n') && (c != '\0')) continue;
-				break;
-			}
-			c = (char)pf->Fgetc();
-			if((c == EOF) || (c == '\n') || (c == '\0')) break;
-			ibuf[i] = (char)c;
-			i++;
-			l_len++;
-		}
-		l_len = 0;
-		ibuf[i] = '\0';
-		got_str = ibuf;
-		key_str = key_str + "=";
-		pos = got_str.find(key_str);
-		if(pos != std::string::npos) break;
-		if(c == EOF) return "";
-	} while(c != EOF);
-	pf->Fclose();
-	delete pf;
-	
-	got_str.erase(0, pos + key_str.length());
-	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Got: %s Length: %d", got_str.c_str(), got_str.length());
-	return got_str;
-}
-#endif
 
 DWORD DLL_PREFIX MyGetPrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpDefault, LPTSTR lpReturnedString, DWORD nSize, LPCTSTR lpFileName)
 {

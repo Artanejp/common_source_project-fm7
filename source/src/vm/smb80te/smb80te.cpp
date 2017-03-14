@@ -14,6 +14,7 @@
 
 #include "../datarec.h"
 #include "../io.h"
+#include "../noise.h"
 #include "../not.h"
 #include "../z80.h"
 #include "../z80pio.h"
@@ -36,6 +37,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event = new EVENT(this, emu);	// must be 2nd device
 	
 	drec = new DATAREC(this, emu);
+	drec->set_context_noise_play(new NOISE(this, emu));
+	drec->set_context_noise_stop(new NOISE(this, emu));
+	drec->set_context_noise_fast(new NOISE(this, emu));
 	io = new IO(this, emu);
 	not_ear = new NOT(this, emu);
 	cpu = new Z80(this, emu);
@@ -48,6 +52,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	// set contexts
 	event->set_context_cpu(cpu);
+	event->set_context_sound(drec);
+	event->set_context_sound(drec->get_context_noise_play());
+	event->set_context_sound(drec->get_context_noise_stop());
+	event->set_context_sound(drec->get_context_noise_fast());
 	
 	// PIO1 PA0-7	-> 7seg-LED data
 	pio1->set_context_port_a(memory, SIG_MEMORY_PIO1_PA, 0xff, 0);
@@ -174,6 +182,19 @@ int VM::get_sound_buffer_ptr()
 	return event->get_sound_buffer_ptr();
 }
 
+#ifdef USE_SOUND_VOLUME
+void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
+{
+	if(ch == 0) {
+		drec->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 1) {
+		drec->get_context_noise_play()->set_volume(0, decibel_l, decibel_r);
+		drec->get_context_noise_stop()->set_volume(0, decibel_l, decibel_r);
+		drec->get_context_noise_fast()->set_volume(0, decibel_l, decibel_r);
+	}
+}
+#endif
+
 // ----------------------------------------------------------------------------
 // notify key
 // ----------------------------------------------------------------------------
@@ -259,7 +280,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void VM::save_state(FILEIO* state_fio)
 {

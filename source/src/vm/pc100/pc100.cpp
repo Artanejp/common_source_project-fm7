@@ -22,6 +22,7 @@
 #include "../io.h"
 #include "../memory.h"
 #include "../msm58321.h"
+#include "../noise.h"
 #include "../pcm1bit.h"
 #include "../upd765a.h"
 
@@ -269,6 +270,10 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		beep->set_volume(0, decibel_l, decibel_r);
 	} else if(ch == 1) {
 		pcm->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 2) {
+		fdc->get_context_noise_seek()->set_volume(0, decibel_l, decibel_r);
+		fdc->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
+		fdc->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
 	}
 #if defined(USE_SOUND_FILES)
 	else if(ch == 2) {
@@ -333,7 +338,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void VM::save_state(FILEIO* state_fio)
 {

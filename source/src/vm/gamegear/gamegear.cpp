@@ -17,6 +17,7 @@
 #include "../i8251.h"
 #include "../i8255.h"
 #include "../io.h"
+#include "../noise.h"
 #include "../sn76489an.h"
 #include "../315-5124.h"
 #include "../upd765a.h"
@@ -40,11 +41,12 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-#if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));
-	event->set_device_name(_T("EVENT"));
-#endif	
+
 	drec = new DATAREC(this, emu);
+	drec->set_context_noise_play(new NOISE(this, emu));
+	drec->set_context_noise_stop(new NOISE(this, emu));
+	drec->set_context_noise_fast(new NOISE(this, emu));
 	sio = new I8251(this, emu);
 	pio_k = new I8255(this, emu);
 	pio_k->set_device_name(_T("8255 PIO (Keyboard)"));
@@ -54,34 +56,24 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	psg = new SN76489AN(this, emu);
 	vdp = new _315_5124(this, emu);
 	fdc = new UPD765A(this, emu);
+	fdc->set_context_noise_seek(new NOISE(this, emu));
+	fdc->set_context_noise_head_down(new NOISE(this, emu));
+	fdc->set_context_noise_head_up(new NOISE(this, emu));
 	cpu = new Z80(this, emu);
-#if defined(_USE_QT)
-	sio->set_device_name(_T("i8251(SG SERIAL)"));
-	pio_k->set_device_name(_T("i8255(SG KEYBOARD)"));
-	pio_f->set_device_name(_T("i8255(SG FDD)"));
-	io->set_device_name(_T("I/O BUS"));
-	psg->set_device_name(_T("SN76489AN PSG"));
-	vdp->set_device_name(_T("SEGA 315-5124 VDP"));
-	cpu->set_device_name(_T("CPU(Z80)"));
-#endif	
 	
 	key = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
 	system = new SYSTEM(this, emu);
-#if defined(_USE_QT)
-	key->set_device_name(_T("KEYBOARD"));
-	memory->set_device_name(_T("MEMORY"));
-	system->set_device_name(_T("SYSTEM"));
-#endif
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(psg);
 	event->set_context_sound(drec);
-#if defined(USE_SOUND_FILES)
-	drec->load_sound_data(DATAREC_SNDFILE_RELAY_ON, _T("CMTPLAY.WAV"));
-	drec->load_sound_data(DATAREC_SNDFILE_RELAY_OFF, _T("CMTSTOP.WAV"));
-	drec->load_sound_data(DATAREC_SNDFILE_EJECT, _T("CMTEJECT.WAV"));
-#endif	
+	event->set_context_sound(fdc->get_context_noise_seek());
+	event->set_context_sound(fdc->get_context_noise_head_down());
+	event->set_context_sound(fdc->get_context_noise_head_up());
+	event->set_context_sound(drec->get_context_noise_play());
+	event->set_context_sound(drec->get_context_noise_stop());
+	event->set_context_sound(drec->get_context_noise_fast());
 	
 	drec->set_context_ear(pio_k, SIG_I8255_PORT_B, 0x80);
 	pio_k->set_context_port_c(key, SIG_KEYBOARD_COLUMN, 0x07, 0);
@@ -100,7 +92,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	vdp->set_context_psg(psg);
 	vdp->set_context_key(key);
 ///	vdp->set_context_cpu(cpu);
-
+	
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
@@ -108,7 +100,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-
+	
 	// i/o bus
 	io->set_iomap_range_rw(0x00, 0x06, system);	// GG  START
 	io->set_iomap_single_w(0x80, system);		// COL TENKEY
@@ -121,15 +113,15 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	io->set_iomap_range_rw(0xe0, 0xe3, fdc);	// SG  FDD
 	io->set_iomap_range_rw(0xe4, 0xe7, pio_f);	// SG  FDD
 	io->set_iomap_range_rw(0xe8, 0xe9, sio);	// SG  SERIAL
-
+	
 	// initialize all devices
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
-
+	
 	// BIOS
 	memory->bios();
-
+	
 	for(int i = 0; i < 4; i++) {
 		fdc->set_drive_type(i, DRIVE_TYPE_2D);
 	}
@@ -232,6 +224,14 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		psg->set_volume(0, decibel_l, decibel_r);
 	} else if(ch == 1) {
 		drec->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 2) {
+		fdc->get_context_noise_seek()->set_volume(0, decibel_l, decibel_r);
+		fdc->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
+		fdc->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 3) {
+		drec->get_context_noise_play()->set_volume(0, decibel_l, decibel_r);
+		drec->get_context_noise_stop()->set_volume(0, decibel_l, decibel_r);
+		drec->get_context_noise_fast()->set_volume(0, decibel_l, decibel_r);
 	}
 }
 #endif

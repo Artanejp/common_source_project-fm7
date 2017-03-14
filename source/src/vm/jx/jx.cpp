@@ -21,6 +21,7 @@
 #include "../i86.h"
 #include "../io.h"
 #include "../memory.h"
+#include "../noise.h"
 #include "../pcm1bit.h"
 #include "../sn76489an.h"
 #include "../upd765a.h"
@@ -297,6 +298,10 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 {
 	if(ch == 0) {
 		pcm->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 1) {
+		fdc->get_context_noise_seek()->set_volume(0, decibel_l, decibel_r);
+		fdc->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
+		fdc->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
 	}
 #if defined(USE_SOUND_FILES)
 	else if(ch == 1) {

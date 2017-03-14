@@ -174,6 +174,7 @@
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EnableFastChecks</BasicRuntimeChecks>
     </ClCompile>
+    <ClCompile Include="..\src\vm\noise.cpp" />
     <ClCompile Include="..\src\vm\tf20.cpp" />
     <ClCompile Include="..\src\vm\upd765a.cpp" />
     <ClCompile Include="..\src\vm\z80.cpp" />
@@ -196,6 +197,7 @@
     <ClInclude Include="..\src\vm\hd146818p.h" />
     <ClInclude Include="..\src\vm\i8255.h" />
     <ClInclude Include="..\src\vm\mc6800.h" />
+    <ClInclude Include="..\src\vm\noise.h" />
     <ClInclude Include="..\src\vm\tf20.h" />
     <ClInclude Include="..\src\vm\upd765a.h" />
     <ClInclude Include="..\src\vm\vm.h" />

@@ -790,9 +790,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				emu->close_tape();
 			}
 			break;
-		case ID_PLAY_TAPE_SOUND:
-			config.tape_sound = !config.tape_sound;
-			break;
 		case ID_USE_WAVE_SHAPER:
 			config.wave_shaper = !config.wave_shaper;
 			break;
@@ -1071,6 +1068,25 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				emu->update_config();
 			}
 			break;
+#ifdef USE_FD1
+		case ID_SOUND_NOISE_FDD:
+			config.sound_noise_fdd = !config.sound_noise_fdd;
+			if(emu) {
+				emu->update_config();
+			}
+			break;
+#endif
+#ifdef USE_TAPE
+		case ID_SOUND_NOISE_CMT:
+			config.sound_noise_cmt = !config.sound_noise_cmt;
+			if(emu) {
+				emu->update_config();
+			}
+			break;
+		case ID_SOUND_PLAY_TAPE:
+			config.sound_play_tape = !config.sound_play_tape;
+			break;
+#endif
 #ifdef USE_SOUND_DEVICE_TYPE
 		case ID_SOUND_DEVICE_TYPE0: case ID_SOUND_DEVICE_TYPE1: case ID_SOUND_DEVICE_TYPE2: case ID_SOUND_DEVICE_TYPE3:
 		case ID_SOUND_DEVICE_TYPE4: case ID_SOUND_DEVICE_TYPE5: case ID_SOUND_DEVICE_TYPE6: case ID_SOUND_DEVICE_TYPE7:
@@ -1314,7 +1330,6 @@ void update_tape_menu(HMENU hMenu)
 	EnableMenuItem(hMenu, ID_APSS_FORWARD, emu->is_tape_inserted() ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(hMenu, ID_APSS_REWIND, emu->is_tape_inserted() ? MF_ENABLED : MF_GRAYED);
 #endif
-	CheckMenuItem(hMenu, ID_PLAY_TAPE_SOUND, config.tape_sound ? MF_CHECKED : MF_UNCHECKED);
 	CheckMenuItem(hMenu, ID_USE_WAVE_SHAPER, config.wave_shaper ? MF_CHECKED : MF_UNCHECKED);
 	CheckMenuItem(hMenu, ID_DIRECT_LOAD_MZT, config.direct_load_mzt ? MF_CHECKED : MF_UNCHECKED);
 #ifdef USE_TAPE_BAUD
@@ -1505,6 +1520,13 @@ void update_sound_menu(HMENU hMenu)
 		CheckMenuRadioItem(hMenu, ID_SOUND_LATE0, ID_SOUND_LATE4, ID_SOUND_LATE0 + config.sound_latency, MF_BYCOMMAND);
 	}
 	CheckMenuRadioItem(hMenu, ID_SOUND_STRICT_RENDER, ID_SOUND_LIGHT_RENDER, config.sound_strict_rendering ? ID_SOUND_STRICT_RENDER : ID_SOUND_LIGHT_RENDER, MF_BYCOMMAND);
+#ifdef USE_FD1
+	CheckMenuItem(hMenu, ID_SOUND_NOISE_FDD, config.sound_noise_fdd ? MF_CHECKED : MF_UNCHECKED);
+#endif
+#ifdef USE_TAPE
+	CheckMenuItem(hMenu, ID_SOUND_NOISE_CMT, config.sound_noise_cmt ? MF_CHECKED : MF_UNCHECKED);
+	CheckMenuItem(hMenu, ID_SOUND_PLAY_TAPE, config.sound_play_tape ? MF_CHECKED : MF_UNCHECKED);
+#endif
 #ifdef USE_SOUND_DEVICE_TYPE
 	if(config.sound_device_type >= 0 && config.sound_device_type < USE_SOUND_DEVICE_TYPE) {
 		CheckMenuRadioItem(hMenu, ID_SOUND_DEVICE_TYPE0, ID_SOUND_DEVICE_TYPE0 + USE_SOUND_DEVICE_TYPE - 1, ID_SOUND_DEVICE_TYPE0 + config.sound_device_type, MF_BYCOMMAND);

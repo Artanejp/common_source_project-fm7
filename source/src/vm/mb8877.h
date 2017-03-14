@@ -15,28 +15,14 @@
 #include "../emu.h"
 #include "device.h"
 
-
 #define SIG_MB8877_ACCESS	0
 #define SIG_MB8877_DRIVEREG	1
 #define SIG_MB8877_SIDEREG	2
 #define SIG_MB8877_MOTOR	3
 
-#if defined(USE_SOUND_FILES)
-#define MB8877_SND_TBL_MAX 256
-#ifndef SIG_SOUNDER_MUTE
-#define SIG_SOUNDER_MUTE    	(65536 + 0)
-#endif
-#ifndef SIG_SOUNDER_RELOAD
-#define SIG_SOUNDER_RELOAD    	(65536 + 32)
-#endif
-#ifndef SIG_SOUNDER_ADD
-#define SIG_SOUNDER_ADD     	(65536 + 64)
-#endif
-
-#define MB8877_SND_TYPE_SEEK 0
-#define MB8877_SND_TYPE_HEAD 1
-#endif
 class DISK;
+class NOISE;
+
 class MB8877 : public DEVICE
 {
 private:
@@ -44,11 +30,17 @@ private:
 	outputs_t outputs_irq;
 	outputs_t outputs_drq;
 	
+	// drive noise
+	NOISE* d_noise_seek;
+	NOISE* d_noise_head_down;
+	NOISE* d_noise_head_up;
+	
 	// drive info
 	struct {
 		int track;
 		int index;
 		bool access;
+		bool head_load;
 		// write track
 		bool id_written;
 		bool sector_found;
@@ -64,6 +56,7 @@ private:
 		uint32_t prev_clock;
 	} fdc[MAX_DRIVE];
 	DISK* disk[MAX_DRIVE];
+	
 	// registor
 	uint8_t status, status_tmp;
 	uint8_t cmdreg, cmdreg_tmp;
@@ -128,43 +121,21 @@ private:
 	void cmd_format();
 #endif
 	void cmd_forceint();
+	void update_head_flag(int drv, bool head_load);
 	
 	// irq/dma
 	void set_irq(bool val);
 	void set_drq(bool val);
 	
-#if defined(USE_SOUND_FILES)
-	_TCHAR snd_seek_name[512];
-	_TCHAR snd_head_name[512];
-	int snd_seek_mix_tbl[MB8877_SND_TBL_MAX];
-	int snd_head_mix_tbl[MB8877_SND_TBL_MAX];
-	int16_t *snd_seek_data; // Read only
-	int16_t *snd_head_data; // Read only
-	int snd_seek_samples_size;
-	int snd_head_samples_size;
-	bool snd_mute;
-	int snd_level_l, snd_level_r;
-	virtual void mix_main(int32_t *dst, int count, int16_t *src, int *table, int samples);
-	void add_sound(int type);
-#endif
 public:
 	MB8877(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_irq);
 		initialize_output_signals(&outputs_drq);
+		d_noise_seek = NULL;
+		d_noise_head_down = NULL;
+		d_noise_head_up = NULL;
 		motor_on = false;
-#if defined(USE_SOUND_FILES)
-		for(int i = 0; i < MB8877_SND_TBL_MAX; i++) {
-			snd_seek_mix_tbl[i] = -1;
-			snd_head_mix_tbl[i] = -1;
-		}
-		snd_seek_data = snd_head_data = NULL;
-		snd_seek_samples_size = snd_head_samples_size = 0;
-		snd_mute = false;
-		snd_level_l = snd_level_r = decibel_to_volume(0);
-		memset(snd_seek_name, 0x00, sizeof(snd_seek_name));
-		memset(snd_head_name, 0x00, sizeof(snd_head_name));
-#endif
 #if defined(HAS_MB89311)
 		set_device_name(_T("MB89311 FDC"));
 #elif defined(HAS_MB8866)
@@ -188,6 +159,7 @@ public:
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	uint32_t read_signal(int ch);
 	void event_callback(int event_id, int err);
+	void update_config();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
@@ -200,19 +172,34 @@ public:
 	{
 		register_output_signal(&outputs_drq, device, id, mask);
 	}
+	void set_context_noise_seek(NOISE* device)
+	{
+		d_noise_seek = device;
+	}
+	NOISE* get_context_noise_seek()
+	{
+		return d_noise_seek;
+	}
+	void set_context_noise_head_down(NOISE* device)
+	{
+		d_noise_head_down = device;
+	}
+	NOISE* get_context_noise_head_down()
+	{
+		return d_noise_head_down;
+	}
+	void set_context_noise_head_up(NOISE* device)
+	{
+		d_noise_head_up = device;
+	}
+	NOISE* get_context_noise_head_up()
+	{
+		return d_noise_head_up;
+	}
 	DISK* get_disk_handler(int drv)
 	{
 		return disk[drv];
 	}
-#if defined(USE_SOUND_FILES)
-	// Around SOUND. 20161004 K.O
-	bool load_sound_data(int type, const _TCHAR *pathname);
-	void release_sound_data(int type);
-	bool reload_sound_data(int type);
-	
-	void mix(int32_t *buffer, int cnt);
-	void set_volume(int ch, int decibel_l, int decibel_r);
-#endif
 	void open_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_disk(int drv);
 	bool is_disk_inserted(int drv);

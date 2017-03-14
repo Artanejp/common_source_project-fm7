@@ -170,6 +170,7 @@
     <ClCompile Include="..\src\vm\i8080.cpp" />
     <ClCompile Include="..\src\vm\i8255.cpp" />
     <ClCompile Include="..\src\vm\memory.cpp" />
+    <ClCompile Include="..\src\vm\noise.cpp" />
     <ClCompile Include="..\src\vm\pcm1bit.cpp" />
     <ClCompile Include="..\src\vm\tk80bs\display.cpp" />
     <ClCompile Include="..\src\vm\tk80bs\keyboard.cpp" />
@@ -190,6 +191,7 @@
     <ClInclude Include="..\src\vm\i8080.h" />
     <ClInclude Include="..\src\vm\i8255.h" />
     <ClInclude Include="..\src\vm\memory.h" />
+    <ClInclude Include="..\src\vm\noise.h" />
     <ClInclude Include="..\src\vm\pcm1bit.h" />
     <ClInclude Include="..\src\vm\vm.h" />
     <ClInclude Include="..\src\vm\tk80bs\display.h" />

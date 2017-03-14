@@ -157,6 +157,7 @@ public:
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
 	uint32_t read_signal(int ch);
+	void update_config();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
@@ -165,6 +166,30 @@ public:
 	{
 		d_ext = device;
 	}
+	void set_context_noise_seek(NOISE* device)
+	{
+		d_noise_seek = device;
+	}
+	NOISE* get_context_noise_seek()
+	{
+		return d_noise_seek;
+	}
+//	void set_context_noise_head_down(NOISE* device)
+//	{
+//		d_noise_head_down = device;
+//	}
+//	NOISE* get_context_noise_head_down()
+//	{
+//		return d_noise_head_down;
+//	}
+//	void set_context_noise_head_up(NOISE* device)
+//	{
+//		d_noise_head_up = device;
+//	}
+//	NOISE* get_context_noise_head_up()
+//	{
+//		return d_noise_head_up;
+//	}
 	DISK* get_disk_handler(int drv)
 	{
 		return disk[drv];

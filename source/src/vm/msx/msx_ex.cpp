@@ -23,6 +23,7 @@
 #if defined(LDC_SLOT)
 #include "../ld700.h"
 #endif
+#include "../noise.h"
 #include "../not.h"
 //#include "../ym2203.h"
 #include "../ay_3_891x.h"
@@ -103,6 +104,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event = new EVENT(this, emu);	// must be 2nd device
 	
 	drec = new DATAREC(this, emu);
+	drec->set_context_noise_play(new NOISE(this, emu));
+	drec->set_context_noise_stop(new NOISE(this, emu));
+	drec->set_context_noise_fast(new NOISE(this, emu));
 	pio = new I8255(this, emu);
 	io = new IO(this, emu);
 #if defined(LDC_SLOT)
@@ -186,6 +190,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_sound(ym2413);
 	event->set_context_sound(sound_cart[0]);
 	event->set_context_sound(sound_cart[1]);
+	event->set_context_sound(drec->get_context_noise_play());
+	event->set_context_sound(drec->get_context_noise_stop());
+	event->set_context_sound(drec->get_context_noise_fast());
 	slot_cart[0]->set_context_sound(sound_cart[0]);
 	slot_cart[1]->set_context_sound(sound_cart[1]);
 	
@@ -460,6 +467,10 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		sound_cart[1]->set_volume(0, decibel_l, decibel_r);
 	} else if(ch == 5) {
 		ym2413->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 6) {
+		drec->get_context_noise_play()->set_volume(0, decibel_l, decibel_r);
+		drec->get_context_noise_stop()->set_volume(0, decibel_l, decibel_r);
+		drec->get_context_noise_fast()->set_volume(0, decibel_l, decibel_r);
 	}
 }
 #endif
@@ -583,7 +594,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 void VM::save_state(FILEIO* state_fio)
 {

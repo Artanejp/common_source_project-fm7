@@ -269,7 +269,7 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	QActionGroup   *actionGroup_Sound_Freq;
 	QActionGroup   *actionGroup_Sound_Latency;
 
-	class Action_Control *actionSoundCMT;
+	//class Action_Control *actionSoundCMT;
 
 	class Action_Control *action_Freq[8];
 	class Action_Control *action_Latency[6];
@@ -306,7 +306,6 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	
 	class Action_Control *action_SoundFilesFDD;
 	class Action_Control *action_SoundFilesRelay;
-	class Action_Control *action_SoundFilesButtons;
 	//QMenu *menuLogToConsole;
 	//QMenu *menuLogToSyslog;
 	QMenu *menuDevLogToConsole;
@@ -599,7 +598,6 @@ public slots:
 
 	void do_set_sound_files_fdd(bool f);
 	void do_set_sound_files_relay(bool f);
-	void do_set_sound_files_buttons(bool f);
 	void do_set_conslog(bool);
 	void do_set_syslog(bool);
 	void do_update_device_node_name(int id, const _TCHAR *name);	

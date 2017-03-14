@@ -423,7 +423,7 @@ double EVENT::get_event_remaining_usec(int register_id)
 	return 1000000.0 * get_event_remaining_clock(register_id) / d_cpu[0].cpu_clocks;
 }
 
-void EVENT::touch_sound(void)
+void EVENT::touch_sound()
 {
 	if(!(config.sound_strict_rendering || (need_mix > 0))) {
 		int samples = mix_counter;
@@ -433,7 +433,7 @@ void EVENT::touch_sound(void)
 		if(samples > 0) {
 			mix_sound(samples);
 			mix_counter -= samples;
- 		}
+		}
 	}
 }
 
@@ -462,7 +462,7 @@ void EVENT::event_callback(int event_id, int err)
 	
 	if(remain > 0) {
 		int samples = mix_counter;
-	
+		
 		if(config.sound_strict_rendering || (need_mix > 0)) {
 			if(samples < 1) {
 				samples = 1;

@@ -9,6 +9,7 @@
 
 #include "t3444a.h"
 #include "disk.h"
+#include "noise.h"
 
 // TODO: check status in data lost
 #define FDC_STA_FDC_READY	0x08	// 1=Ready, 0=Busy
@@ -87,6 +88,27 @@ void T3444A::initialize()
 		disk[i]->set_device_name(_T("%s/Disk #%d"), this_device_name, i + 1);
 	}
 	
+	// initialize noise
+	if(d_noise_seek != NULL) {
+		d_noise_seek->set_device_name(_T("Noise Player (FDD Seek)"));
+		if(!d_noise_seek->load_wav_file(_T("FDDSEEK.WAV"))) {
+			if(!d_noise_seek->load_wav_file(_T("FDDSEEK1.WAV"))) {
+				d_noise_seek->load_wav_file(_T("SEEK.WAV"));
+			}
+		}
+		d_noise_seek->set_mute(!config.sound_noise_fdd);
+	}
+	if(d_noise_head_down != NULL) {
+		d_noise_head_down->set_device_name(_T("Noise Player (FDD Head Load)"));
+		d_noise_head_down->load_wav_file(_T("HEADDOWN.WAV"));
+		d_noise_head_down->set_mute(!config.sound_noise_fdd);
+	}
+	if(d_noise_head_up != NULL) {
+		d_noise_head_up->set_device_name(_T("Noise Player (FDD Head Unload)"));
+		d_noise_head_up->load_wav_file(_T("HEADUP.WAV"));
+		d_noise_head_up->set_mute(!config.sound_noise_fdd);
+	}
+	
 	// initialize timing
 	memset(fdc, 0, sizeof(fdc));
 	
@@ -112,7 +134,6 @@ void T3444A::release()
 
 void T3444A::reset()
 {
-	touch_sound();
 	for(int i = 0; i < 4; i++) {
 		fdc[i].track = 0;
 		fdc[i].index = 0;
@@ -260,13 +281,6 @@ void T3444A::write_signal(int id, uint32_t data, uint32_t mask)
 	} else if(id == SIG_T3444A_MOTOR) {
 		motor_on = ((data & mask) != 0);
 	}
-//#if defined(USE_SOUND_FILES)
-	else if((id >= SIG_SOUNDER_MUTE) && (id < (SIG_SOUNDER_MUTE + 2))) {
-		snd_mute = ((data & mask) != 0);
-	} else if((id >= SIG_SOUNDER_RELOAD) && (id < (SIG_SOUNDER_RELOAD + 2))) {
-		reload_sound_data(id - SIG_SOUNDER_RELOAD);
-	}
-//#endif
 }
 
 uint32_t T3444A::read_signal(int ch)
@@ -302,15 +316,10 @@ void T3444A::event_callback(int event_id, int err)
 	case EVENT_SEEK:
 		if(seektrk > fdc[drvreg].track) {
 			fdc[drvreg].track++;
-//#if defined(USE_SOUND_FILES)
-			add_sound(T3444A_SND_TYPE_SEEK);
-//#endif			
+			if(d_noise_seek != NULL) d_noise_seek->play();
 		} else if(seektrk < fdc[drvreg].track) {
 			fdc[drvreg].track--;
-//#if defined(USE_SOUND_FILES)
-
-			add_sound(T3444A_SND_TYPE_SEEK);
-//#endif			
+			if(d_noise_seek != NULL) d_noise_seek->play();
 		}
 		if(seektrk != fdc[drvreg].track) {
 			register_seek_event();
@@ -421,6 +430,7 @@ void T3444A::process_cmd()
 	switch(cmdreg) {
 	case FDC_CMD_SEEK_ZERO:
 		cmd_seek_zero();
+		update_head_flag(drvreg, false);
 		break;
 	case FDC_CMD_SEEK:
 	case FDC_CMD_SEEK_READ:
@@ -428,14 +438,17 @@ void T3444A::process_cmd()
 	case FDC_CMD_SEEK_WRITE_DDM:
 	case FDC_CMD_SEEK_WRITE_ID:
 		cmd_seek();
+		update_head_flag(drvreg, false);
 		break;
 	case FDC_CMD_READ:
 	case FDC_CMD_WRITE:
 	case FDC_CMD_WRITE_DDM:
 		cmd_read_write();
+		update_head_flag(drvreg, true);
 		break;
 	case FDC_CMD_WRITE_ID:
 		cmd_write_id();
+		update_head_flag(drvreg, true);
 		break;
 	case FDC_CMD_SENCE_DRV_STAT:
 		cmd_sence();
@@ -509,6 +522,18 @@ void T3444A::cmd_sence()
 	} else {
 		trkreg = fdc[drvreg].track;
 		status = FDC_STA_FDC_READY | FDC_STA_SUCCESS;
+	}
+}
+
+void T3444A::update_head_flag(int drv, bool head_load)
+{
+	if(fdc[drv].head_load != head_load) {
+		if(head_load) {
+			if(d_noise_head_down != NULL) d_noise_head_down->play();
+		} else {
+			if(d_noise_head_up != NULL) d_noise_head_up->play();
+		}
+		fdc[drv].head_load = head_load;
 	}
 }
 
@@ -700,6 +725,7 @@ void T3444A::close_disk(int drv)
 {
 	if(drv < 4 && drv < MAX_DRIVE) {
 		disk[drv]->close();
+		update_head_flag(drvreg, false);
 	}
 }
 
@@ -754,161 +780,15 @@ void T3444A::set_drive_mfm(int drv, bool mfm)
 		disk[drv]->drive_mfm = mfm;
 	}
 }
-// Set sound data.
-// TYPE=
-//     0: FDD SEEK
-//     1: HEAD ENGAGE (Optional?)
-//#if defined(USE_SOUND_FILES)
 
-void T3444A::add_sound(int type)
+void T3444A::update_config()
 {
-	int *p;
-	if(type == T3444A_SND_TYPE_SEEK) {
-		p = snd_seek_mix_tbl;
-	} else if(type == T3444A_SND_TYPE_HEAD) {
-		p = snd_head_mix_tbl;
-	} else {
-		return;
-	}
-	touch_sound();
-	for(int i = 0; i < T3444A_SND_TBL_MAX; i++) {
-		if(p[i] < 0) {
-			p[i] = 0;
-			break;
-		}
+	if(d_noise_seek != NULL) {
+		d_noise_seek->set_mute(!config.sound_noise_fdd);
 	}
 }
 
-bool T3444A::load_sound_data(int type, const _TCHAR *pathname)
-{
-	if((type < 0) || (type > 1)) return false;
-	int16_t *data = NULL;
-	int dst_size = 0;
-	int id = (this_device_id << 8) + type;
-	const _TCHAR *sp;
-	sp = create_local_path(pathname);
-	emu->load_sound_file(id, sp, &data, &dst_size);
-	if((dst_size <= 0) || (data == NULL)) { // Failed
-		this->out_debug_log("ID=%d : Failed to load SOUND FILE for %s:%s", id, (type == 0) ? _T("SEEK") : _T("HEAD") ,pathname);
-		return false;
-	} else {
-		int utl_size = dst_size * 2 * sizeof(int16_t);
-		int alloc_size = utl_size + 64;
-		switch(type) {
-		case T3444A_SND_TYPE_SEEK: // SEEK
-			snd_seek_data = (int16_t *)malloc(alloc_size);
-			memcpy(snd_seek_data, data, utl_size);
-			strncpy(snd_seek_name, pathname, 511);
-			snd_seek_samples_size = dst_size;
-			break;
-		case T3444A_SND_TYPE_HEAD: // HEAD
-			snd_seek_data = (int16_t *)malloc(alloc_size);
-			memcpy(snd_head_data, data, utl_size);
-			strncpy(snd_head_name, pathname, 511);
-			snd_head_samples_size = dst_size;
-			break;
-		default:
-			this->out_debug_log("ID=%d : Illegal type (%d): 0 (SEEK SOUND) or 1 (HEAD SOUND) is available.",
-								id, type);
-			return false;
-		}
-		this->out_debug_log("ID=%d : Success to load SOUND FILE for %s:%s",
-							id, (type == 0) ? _T("SEEK") : _T("HEAD") ,
-							pathname);
-	}
-	return true;
-}
-
-void T3444A::release_sound_data(int type)
-{
-	switch(type) {
-	case T3444A_SND_TYPE_SEEK: // SEEK
-		if(snd_seek_data != NULL) free(snd_seek_data);
-		memset(snd_seek_name, 0x00, sizeof(snd_seek_name));
-		snd_seek_data = NULL;
-		break;
-	case T3444A_SND_TYPE_HEAD: // HEAD
-		if(snd_head_data != NULL) free(snd_head_data);
-		memset(snd_head_name, 0x00, sizeof(snd_head_name));
-		snd_head_data = NULL;
-			break;
-	default:
-		break;
-	}
-}
-
-bool T3444A::reload_sound_data(int type)
-{
-	switch(type) {
-	case T3444A_SND_TYPE_SEEK: // SEEK
-		if(snd_seek_data != NULL) free(snd_seek_data);
-		break;
-	case T3444A_SND_TYPE_HEAD:
-		if(snd_seek_data != NULL) free(snd_seek_data);
-		break;
-	default:
-		return false;
-		break;
-	}
-	_TCHAR *p = (type == T3444A_SND_TYPE_SEEK) ? snd_seek_name : snd_head_name;
-    _TCHAR tmps[512];
-	strncpy(tmps, p, 511);
-	return load_sound_data(type, tmps);
-}
-
-void T3444A::mix_main(int32_t *dst, int count, int16_t *src, int *table, int samples)
-{
-	int ptr, pp;
-	int i, j, k;
-	int32_t data[2];
-	int32_t *dst_tmp;
-	for(i=0; i < T3444A_SND_TBL_MAX; i++) {
-		ptr = table[i];
-		if(ptr >= 0) {
-			if(ptr < samples) {
-				if(!snd_mute && (config.sound_fdd != 0)) {
-					pp = ptr << 1;
-					dst_tmp = dst;
-					k = 0;
-					for(j = 0; j < count; j++) {
-						if(ptr >= samples) {
-							break;
-						}
-						data[0] = (int32_t)src[pp + 0];
-						data[1] = (int32_t)src[pp + 1];
-						dst_tmp[k + 0] += apply_volume((int32_t)data[0], snd_level_l);
-						dst_tmp[k + 1] += apply_volume((int32_t)data[1], snd_level_r);
-						k += 2;
-						pp += 2;
-						ptr++;
-					}
-				} else {
-					ptr += count;
-				}
-			}
-			if(ptr >= samples) {
-				table[i] = -1;
-			} else {
-				table[i] = ptr;
-			}
-		}
-	}
-}
-
-void T3444A::mix(int32_t *buffer, int cnt)
-{
-	if(snd_seek_data != NULL) mix_main(buffer, cnt, snd_seek_data, snd_seek_mix_tbl, snd_seek_samples_size);
-	if(snd_head_data != NULL) mix_main(buffer, cnt, snd_head_data, snd_head_mix_tbl, snd_head_samples_size);
-}
-
-void T3444A::set_volume(int ch, int decibel_l, int decibel_r)
-{
-	snd_level_l = decibel_to_volume(decibel_l);
-	snd_level_r = decibel_to_volume(decibel_r);
-}
-//#endif
-
-#define STATE_VERSION	2
+#define STATE_VERSION	1
 
 void T3444A::save_state(FILEIO* state_fio)
 {
@@ -935,33 +815,12 @@ void T3444A::save_state(FILEIO* state_fio)
 	state_fio->FputBool(tnd);
 	state_fio->FputBool(motor_on);
 	state_fio->FputUint32(prev_rqm_clock);
-//#if defined(USE_SOUND_FILES)
-
-	state_fio->Fwrite(snd_seek_name, sizeof(snd_seek_name), 1);
-	state_fio->Fwrite(snd_head_name, sizeof(snd_head_name), 1);
-	for(int i = 0; i < T3444A_SND_TBL_MAX; i++) {
-		state_fio->FputInt32(snd_seek_mix_tbl[i]);
-	}
-	for(int i = 0; i < T3444A_SND_TBL_MAX; i++) {
-		state_fio->FputInt32(snd_head_mix_tbl[i]);
-	}
-	state_fio->FputBool(snd_mute);
-	state_fio->FputInt32(snd_level_l);
-	state_fio->FputInt32(snd_level_r);
-//#endif
 }
 
 bool T3444A::load_state(FILEIO* state_fio)
 {
-	bool pending = false;
-	uint32_t s_version = state_fio->FgetUint32();
-	uint32_t desired_version = STATE_VERSION;
-	if(s_version != STATE_VERSION) {
-		if(s_version == 1) {
-			pending = true;
-		} else {
-			return false;
-		}
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
 	}
 	if(state_fio->FgetInt32() != this_device_id) {
 		return false;
@@ -988,34 +847,6 @@ bool T3444A::load_state(FILEIO* state_fio)
 	tnd = state_fio->FgetBool();
 	motor_on = state_fio->FgetBool();
 	prev_rqm_clock = state_fio->FgetUint32();
-//#if defined(USE_SOUND_FILES)
-	if(!pending) {
-		state_fio->Fread(snd_seek_name, sizeof(snd_seek_name), 1);
-		state_fio->Fread(snd_head_name, sizeof(snd_head_name), 1);
-		for(int i = 0; i < T3444A_SND_TBL_MAX; i++) {
-			snd_seek_mix_tbl[i] = state_fio->FgetInt32();
-		}
-		for(int i = 0; i < T3444A_SND_TBL_MAX; i++) {
-			snd_head_mix_tbl[i] = state_fio->FgetInt32();
-		}
-		snd_mute = state_fio->FgetBool();
-		snd_level_l = state_fio->FgetInt32();
-		snd_level_r = state_fio->FgetInt32();
-		if(snd_seek_data != NULL) free(snd_seek_data);
-		if(snd_head_data != NULL) free(snd_head_data);
-		if(strlen(snd_seek_name) > 0) {
-			_TCHAR tmps[512];
-			strncpy(tmps, snd_seek_name, 511);
-			load_sound_data(T3444A_SND_TYPE_SEEK, (const _TCHAR *)tmps);
-		}
-		if(strlen(snd_head_name) > 0) {
-			_TCHAR tmps[512];
-			strncpy(tmps, snd_head_name, 511);
-			load_sound_data(T3444A_SND_TYPE_HEAD, (const _TCHAR *)tmps);
-		}
-	}
-//#endif
-	//touch_sound();
 	return true;
 }
 

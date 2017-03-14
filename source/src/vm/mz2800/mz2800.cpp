@@ -19,6 +19,7 @@
 #include "../io.h"
 #include "../mb8877.h"
 #include "../mz1p17.h"
+#include "../noise.h"
 #include "../not.h"
 #include "../pcm1bit.h"
 //#include "../pcpr201.h"
@@ -68,6 +69,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pic = new I8259(this, emu);
 	io = new IO(this, emu);
 	fdc = new MB8877(this, emu);
+	fdc->set_context_noise_seek(new NOISE(this, emu));
+	fdc->set_context_noise_head_down(new NOISE(this, emu));
+	fdc->set_context_noise_head_up(new NOISE(this, emu));
 	not_busy = new NOT(this, emu);
 #if defined(_USE_QT)
 	not_busy->set_device_name(_T("NOT GATE(PRINTER BUSY)"));
@@ -346,6 +350,10 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		opn->set_volume(1, decibel_l, decibel_r);
 	} else if(ch == 2) {
 		pcm->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 3) {
+		fdc->get_context_noise_seek()->set_volume(0, decibel_l, decibel_r);
+		fdc->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
+		fdc->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
 	}
 #if defined(USE_SOUND_FILES)
 	else if(ch == 3) {
@@ -396,7 +404,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 void VM::save_state(FILEIO* state_fio)
 {

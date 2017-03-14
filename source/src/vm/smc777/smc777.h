@@ -65,9 +65,9 @@
 #endif
 #else
 #if defined(_SMC777)
-#define USE_SOUND_VOLUME	3
+#define USE_SOUND_VOLUME	5
 #else
-#define USE_SOUND_VOLUME	2
+#define USE_SOUND_VOLUME	4
 #endif
 #endif
 #define USE_JOYSTICK

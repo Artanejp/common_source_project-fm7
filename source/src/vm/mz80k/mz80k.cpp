@@ -25,6 +25,7 @@
 #include "../i8255.h"
 #include "../ls393.h"
 #include "../mz1p17.h"
+#include "../noise.h"
 #include "../pcm1bit.h"
 #include "../prnfile.h"
 #include "../z80.h"
@@ -67,6 +68,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	and_int->set_device_name(_T("AND Gate (Interrupts)"));
 #endif
 	drec = new DATAREC(this, emu);
+	drec->set_context_noise_play(new NOISE(this, emu));
+	drec->set_context_noise_stop(new NOISE(this, emu));
+	drec->set_context_noise_fast(new NOISE(this, emu));
 	ctc = new I8253(this, emu);
 	pio = new I8255(this, emu);
 	counter = new LS393(this, emu);
@@ -298,10 +302,20 @@ int VM::get_sound_buffer_ptr()
 #ifdef USE_SOUND_VOLUME
 void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 {
-	if(ch == 0) {
+	if(ch-- == 0) {
 		pcm->set_volume(0, decibel_l, decibel_r);
-	} else if(ch == 1) {
+	} else if(ch-- == 0) {
 		drec->set_volume(0, decibel_l, decibel_r);
+#if defined(SUPPORT_MZ80AIF) || defined(SUPPORT_MZ80FIO)
+	} else if(ch-- == 0) {
+		fdc->get_context_noise_seek()->set_volume(0, decibel_l, decibel_r);
+		fdc->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
+		fdc->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
+#endif
+	} else if(ch-- == 0) {
+		drec->get_context_noise_play()->set_volume(0, decibel_l, decibel_r);
+		drec->get_context_noise_stop()->set_volume(0, decibel_l, decibel_r);
+		drec->get_context_noise_fast()->set_volume(0, decibel_l, decibel_r);
 	}
 #if defined(USE_SOUND_FILES)
 	else if(ch == 2) {
@@ -445,7 +459,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	5
+#define STATE_VERSION	6
 
 void VM::save_state(FILEIO* state_fio)
 {

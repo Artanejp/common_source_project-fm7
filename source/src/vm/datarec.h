@@ -18,31 +18,9 @@
 #define SIG_DATAREC_REMOTE	1
 #define SIG_DATAREC_TRIG	2
 
-#if defined(USE_SOUND_FILES)
-#ifndef SIG_SOUNDER_MUTE
-#define SIG_SOUNDER_MUTE    	(65536 + 0)
-#endif
-#ifndef SIG_SOUNDER_RELOAD
-#define SIG_SOUNDER_RELOAD    	(65536 + 32)
-#endif
-#ifndef SIG_SOUNDER_ADD
-#define SIG_SOUNDER_ADD     	(65536 + 64)
-#endif
-enum {
-	DATAREC_SNDFILE_RELAY_ON = 0,
-	DATAREC_SNDFILE_RELAY_OFF,
-	DATAREC_SNDFILE_PLAY,
-	DATAREC_SNDFILE_STOP,
-	DATAREC_SNDFILE_EJECT,
-	DATAREC_SNDFILE_FF,
-	DATAREC_SNDFILE_REW,
-	DATAREC_SNDFILE_END,
-};
-#define DATAREC_SND_TBL_MAX 256
-#endif
-
 class FILEIO;
-class EMU;
+class NOISE;
+
 class DATAREC : public DEVICE
 {
 private:
@@ -53,6 +31,11 @@ private:
 	outputs_t outputs_end;
 	outputs_t outputs_top;
 	outputs_t outputs_apss;
+	
+	// cmt noise
+	NOISE* d_noise_play;
+	NOISE* d_noise_stop;
+	NOISE* d_noise_fast;
 	
 	// data recorder
 	FILEIO* play_fio;
@@ -76,18 +59,6 @@ private:
 	int sound_buffer_length;
 	int16_t *sound_buffer, sound_sample;
 #endif
-#if defined(USE_SOUND_FILES)
-	_TCHAR snd_file_names[DATAREC_SNDFILE_END][512];
-	int snd_mix_tbls[DATAREC_SNDFILE_END][DATAREC_SND_TBL_MAX];
-	int16_t *snd_datas[DATAREC_SNDFILE_END];
-	int snd_samples[DATAREC_SNDFILE_END];
-	bool snd_mute[DATAREC_SNDFILE_END];
-	int snd_level_l[DATAREC_SNDFILE_END], snd_level_r[DATAREC_SNDFILE_END];
-
-	virtual void mix_sndfiles(int ch, int32_t *dst, int cnt, int16_t *src, int samples);
-	void add_sound(int type);
-#endif
-
 	bool is_wav, is_tap;
 	double ave_hi_freq;
 	
@@ -130,6 +101,9 @@ public:
 		initialize_output_signals(&outputs_end);
 		initialize_output_signals(&outputs_top);
 		initialize_output_signals(&outputs_apss);
+		d_noise_play = NULL;
+		d_noise_stop = NULL;
+		d_noise_fast = NULL;
 #ifdef DATAREC_PCM_VOLUME
 		pcm_max_vol = DATAREC_PCM_VOLUME;
 #else
@@ -139,19 +113,7 @@ public:
 #ifdef DATAREC_SOUND
 		sound_volume_l = sound_volume_r = 1024;
 #endif
-#if defined(USE_SOUND_FILES)
-		for(int j = 0; j < DATAREC_SNDFILE_END; j++) {
-			for(int i = 0; i < DATAREC_SND_TBL_MAX; i++) {
-				snd_mix_tbls[j][i] = -1;
-			}
-			snd_datas[j] = NULL;
-			snd_samples[j] = 0;
-			snd_mute[j] = false;
-			snd_level_l[j] = snd_level_r[j] = decibel_to_volume(0);
-			memset(snd_file_names[j], 0x00, sizeof(_TCHAR) * 512);
-		}
-#endif
-		set_device_name(_T("DATA RECORDER"));
+		set_device_name(_T("Data Recorder"));
 	}
 	~DATAREC() {}
 	
@@ -166,17 +128,12 @@ public:
 	}
 	void event_frame();
 	void event_callback(int event_id, int err);
-#if defined(USE_SOUND_FILES)
-	// Around SOUND. 20161004 K.O
-	bool load_sound_data(int type, const _TCHAR *pathname);
-	void release_sound_data(int type);
-	bool reload_sound_data(int type);
-	
-#endif
 	void mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
+	void update_config();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	
 	// unique functions
 	void initialize_sound(int rate, int volume)
 	{
@@ -205,6 +162,30 @@ public:
 	void set_context_apss(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_apss, device, id, mask);
+	}
+	void set_context_noise_play(NOISE* device)
+	{
+		d_noise_play = device;
+	}
+	NOISE* get_context_noise_play()
+	{
+		return d_noise_play;
+	}
+	void set_context_noise_stop(NOISE* device)
+	{
+		d_noise_stop = device;
+	}
+	NOISE* get_context_noise_stop()
+	{
+		return d_noise_stop;
+	}
+	void set_context_noise_fast(NOISE* device)
+	{
+		d_noise_fast = device;
+	}
+	NOISE* get_context_noise_fast()
+	{
+		return d_noise_fast;
 	}
 	bool play_tape(const _TCHAR* file_path);
 	bool rec_tape(const _TCHAR* file_path);

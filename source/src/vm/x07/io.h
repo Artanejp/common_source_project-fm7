@@ -44,7 +44,7 @@ private:
 	void recv_from_sub();
 	void ack_from_sub();
 	void process_sub();
-	cur_time_t cur_time;
+	dll_cur_time_t cur_time;
 	int register_id_1sec;
 	FIFO* cmd_buf;
 	FIFO* rsp_buf;

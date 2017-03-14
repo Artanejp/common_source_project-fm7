@@ -648,6 +648,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\src\vm\noise.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\src\vm\scsi_dev.cpp"
 					>
 					<FileConfiguration
@@ -1038,6 +1058,10 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\mb8877.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\noise.h"
 					>
 				</File>
 				<File

@@ -171,6 +171,7 @@
     <ClCompile Include="..\src\vm\i8251.cpp" />
     <ClCompile Include="..\src\vm\i8255.cpp" />
     <ClCompile Include="..\src\vm\io.cpp" />
+    <ClCompile Include="..\src\vm\noise.cpp" />
     <ClCompile Include="..\src\vm\sn76489an.cpp" />
     <ClCompile Include="..\src\vm\tms9918a.cpp" />
     <ClCompile Include="..\src\vm\upd765a.cpp" />
@@ -194,6 +195,7 @@
     <ClInclude Include="..\src\vm\i8251.h" />
     <ClInclude Include="..\src\vm\i8255.h" />
     <ClInclude Include="..\src\vm\io.h" />
+    <ClInclude Include="..\src\vm\noise.h" />
     <ClInclude Include="..\src\vm\sn76489an.h" />
     <ClInclude Include="..\src\vm\tms9918a.h" />
     <ClInclude Include="..\src\vm\upd765a.h" />

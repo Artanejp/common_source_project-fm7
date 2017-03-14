@@ -162,7 +162,7 @@ public:
 	double get_passed_usec(uint32_t prev);
 	uint32_t get_cpu_pc(int index);
 	void request_skip_frames();
-	void touch_sound(void);
+	void touch_sound();
 	void set_realtime_render(DEVICE* device, bool flag);
 	
 	// unique functions

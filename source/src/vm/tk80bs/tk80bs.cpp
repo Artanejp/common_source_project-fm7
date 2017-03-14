@@ -20,6 +20,7 @@
 #include "../io.h"
 #elif defined(_TK80) || defined(_TK85)
 #include "../datarec.h"
+#include "../noise.h"
 #endif
 #include "../i8255.h"
 //#include "../memory.h"
@@ -58,6 +59,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	memio = new IO(this, emu);
 #elif defined(_TK80) || defined(_TK85)
 	drec = new DATAREC(this, emu);
+	drec->set_context_noise_play(new NOISE(this, emu));
+	drec->set_context_noise_stop(new NOISE(this, emu));
+	drec->set_context_noise_fast(new NOISE(this, emu));
 #endif
 	pio_t = new I8255(this, emu);	// on TK-80
 //	memory = new MEMORY(this, emu);
@@ -91,6 +95,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_sound(pcm1);
 #if defined(_TK80) || defined(_TK85)
 	event->set_context_sound(drec);
+	event->set_context_sound(drec->get_context_noise_play());
+	event->set_context_sound(drec->get_context_noise_stop());
+	event->set_context_sound(drec->get_context_noise_fast());
 #endif
 	
 /*	8255 on TK-80
@@ -112,6 +119,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio_t->set_context_port_c(drec, SIG_DATAREC_MIC, 1);
 #elif defined(_TK85)
 	drec->set_context_ear(cpu, SIG_I8085_SID, 1);
+	drec->set_context_noise_play(drec->get_context_noise_play());
+	drec->set_context_noise_stop(drec->get_context_noise_stop());
+	drec->set_context_noise_fast(drec->get_context_noise_fast());
 	cpu->set_context_sod(drec, SIG_DATAREC_MIC, 1);
 #endif
 	pio_t->set_context_port_c(pcm0, SIG_PCM1BIT_SIGNAL, 2, 0);
@@ -323,6 +333,10 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 #if defined(_TK80) || defined(_TK85)
 	} else if(ch == 2) {
 		drec->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 3) {
+		drec->get_context_noise_play()->set_volume(0, decibel_l, decibel_r);
+		drec->get_context_noise_stop()->set_volume(0, decibel_l, decibel_r);
+		drec->get_context_noise_fast()->set_volume(0, decibel_l, decibel_r);
 #endif
 	}
 }
@@ -452,7 +466,7 @@ void VM::update_config()
 #endif
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 void VM::save_state(FILEIO* state_fio)
 {

@@ -211,6 +211,8 @@ void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 #ifndef _MZ80B
 		update_green_palette();
 #endif
+	} else if(id == SIG_CRTC_VGATE) {
+		vgate = ((data & mask) != 0);
 	}
 }
 
@@ -411,22 +413,29 @@ void MEMORY::draw_screen()
 		uint8_t* src_txt = screen_txt[y];
 		uint8_t* src_gra = screen_gra[y];
 		
-		if(width80) {
+		// VGATE (Forces display to be blank)
+		if(vgate) {
 			for(int x = 0; x < 640; x++) {
-				uint8_t txt = src_txt[x], gra = src_gra[x >> 1];
-				if(txt | gra) {
-					dest0[x] = reverse ? 0: 1;
-				} else {
-					dest0[x] = reverse ? 1: 0;
-				}
+				dest0[x] =  reverse ? 1: 0;
 			}
 		} else {
-			for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
-				uint8_t txt = src_txt[x], gra = src_gra[x];
-				if(txt | gra) {
-					dest0[x2] = dest0[x2 + 1] = reverse ? 0: 1;
-				} else {
-					dest0[x2] = dest0[x2 + 1] = reverse ? 1: 0;
+			if(width80) {
+				for(int x = 0; x < 640; x++) {
+					uint8_t txt = src_txt[x], gra = src_gra[x >> 1];
+					if(txt | gra) {
+						dest0[x] = reverse ? 0: 1;
+					} else {
+						dest0[x] = reverse ? 1: 0;
+					}
+				}
+			} else {
+				for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
+					uint8_t txt = src_txt[x], gra = src_gra[x];
+					if(txt | gra) {
+						dest0[x2] = dest0[x2 + 1] = reverse ? 0: 1;
+					} else {
+						dest0[x2] = dest0[x2 + 1] = reverse ? 1: 0;
+					}
 				}
 			}
 		}
@@ -483,17 +492,24 @@ void MEMORY::draw_screen()
 			uint8_t* src_txt = screen_txt[y];
 			uint8_t* src_gra = screen_gra[y];
 			
-			if(text_color & 8) {
-				// graphics > text
+			// VGATE (Forces display to be blank) or Reverse
+			if(vgate || reverse) {
 				for(int x = 0; x < 640; x++) {
-					uint8_t txt = src_txt[width80 ? x : (x >> 1)], gra = src_gra[x];
-					dest0[x] = palette_color[gra ? gra : txt ? (txt & 7) : back_color];
+					dest0[x] = 0;
 				}
 			} else {
-				// text > graphics
-				for(int x = 0; x < 640; x++) {
-					uint8_t txt = src_txt[width80 ? x : (x >> 1)], gra = src_gra[x];
-					dest0[x] = palette_color[txt ? (txt & 7) : gra ? gra : back_color];
+				if(text_color & 8) {
+					// graphics > text
+					for(int x = 0; x < 640; x++) {
+						uint8_t txt = src_txt[width80 ? x : (x >> 1)], gra = src_gra[x];
+						dest0[x] = palette_color[gra ? gra : txt ? (txt & 7) : back_color];
+					}
+				} else {
+					// text > graphics
+					for(int x = 0; x < 640; x++) {
+						uint8_t txt = src_txt[width80 ? x : (x >> 1)], gra = src_gra[x];
+						dest0[x] = palette_color[txt ? (txt & 7) : gra ? gra : back_color];
+					}
 				}
 			}
 			if(config.scan_line) {
@@ -506,16 +522,14 @@ void MEMORY::draw_screen()
 	if(config.monitor_type != MONITOR_TYPE_COLOR) {
 		// green monitor
 		int offset = (config.monitor_type == MONITOR_TYPE_COLOR_GREEN) ? 640 : 0;
-		if(vram_mask & 8) {
-			// text only
+		
+		// VGATE (Forces display to be blank)
+		if(vgate) {
 			for(int y = 0; y < 200; y++) {
 				scrntype_t* dest0 = emu->get_screen_buffer(y * 2 + 0) + offset;
 				scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1) + offset;
-				uint8_t* src_txt = screen_txt[y];
-				
 				for(int x = 0; x < 640; x++) {
-					uint8_t txt = src_txt[width80 ? x : (x >> 1)];
-					dest0[x] = palette_green[txt ? 1 : 0];
+					dest0[x] = palette_green[0];
 				}
 				if(config.scan_line) {
 					memset(dest1, 0, 640 * sizeof(scrntype_t));
@@ -524,21 +538,40 @@ void MEMORY::draw_screen()
 				}
 			}
 		} else {
-			// both text and graphic
-			for(int y = 0; y < 200; y++) {
-				scrntype_t* dest0 = emu->get_screen_buffer(y * 2 + 0) + offset;
-				scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1) + offset;
-				uint8_t* src_txt = screen_txt[y];
-				uint8_t* src_gra = screen_gra[y];
-				
-				for(int x = 0; x < 640; x++) {
-					uint8_t txt = src_txt[width80 ? x : (x >> 1)], gra = src_gra[x];
-					dest0[x] = palette_green[(txt || gra) ? 1 : 0];
+			if(vram_mask & 8) {
+				// text only
+				for(int y = 0; y < 200; y++) {
+					scrntype_t* dest0 = emu->get_screen_buffer(y * 2 + 0) + offset;
+					scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1) + offset;
+					uint8_t* src_txt = screen_txt[y];
+					
+					for(int x = 0; x < 640; x++) {
+						uint8_t txt = src_txt[width80 ? x : (x >> 1)];
+						dest0[x] = palette_green[txt ? 1 : 0];
+					}
+					if(config.scan_line) {
+						memset(dest1, 0, 640 * sizeof(scrntype_t));
+					} else {
+						memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
+					}
 				}
-				if(config.scan_line) {
-					memset(dest1, 0, 640 * sizeof(scrntype_t));
-				} else {
-					memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
+			} else {
+				// both text and graphic
+				for(int y = 0; y < 200; y++) {
+					scrntype_t* dest0 = emu->get_screen_buffer(y * 2 + 0) + offset;
+					scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1) + offset;
+					uint8_t* src_txt = screen_txt[y];
+					uint8_t* src_gra = screen_gra[y];
+					
+					for(int x = 0; x < 640; x++) {
+						uint8_t txt = src_txt[width80 ? x : (x >> 1)], gra = src_gra[x];
+						dest0[x] = palette_green[(txt || gra) ? 1 : 0];
+					}
+					if(config.scan_line) {
+						memset(dest1, 0, 640 * sizeof(scrntype_t));
+					} else {
+						memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
+					}
 				}
 			}
 		}
@@ -586,7 +619,7 @@ void MEMORY::draw_screen()
 #endif
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 void MEMORY::save_state(FILEIO* state_fio)
 {
@@ -604,6 +637,7 @@ void MEMORY::save_state(FILEIO* state_fio)
 	state_fio->FputUint8(vram_mask);
 	state_fio->FputBool(width80);
 	state_fio->FputBool(reverse);
+	state_fio->FputBool(vgate);
 	state_fio->FputBool(hblank);
 #ifdef _MZ80B
 	state_fio->Fwrite(pio3039_palette, sizeof(pio3039_palette), 1);
@@ -631,6 +665,7 @@ bool MEMORY::load_state(FILEIO* state_fio)
 	vram_mask = state_fio->FgetUint8();
 	width80 = state_fio->FgetBool();
 	reverse = state_fio->FgetBool();
+	vgate = state_fio->FgetBool();
 	hblank = state_fio->FgetBool();
 #ifdef _MZ80B
 	state_fio->Fread(pio3039_palette, sizeof(pio3039_palette), 1);

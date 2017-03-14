@@ -10,14 +10,16 @@
 
 #include "upd765a.h"
 #include "disk.h"
+#include "noise.h"
 
 #define EVENT_PHASE	0
 #define EVENT_DRQ	1
 #define EVENT_LOST	2
 #define EVENT_RESULT7	3
 #define EVENT_INDEX	4
-#define EVENT_SEEK	5
-#define EVENT_SEEK_SND	9
+#define EVENT_SEEK_STEP	5	// 5-8
+#define EVENT_SEEK_END	9	// 9-12
+#define EVENT_UNLOAD	13	// 13-16
 
 #define PHASE_IDLE	0
 #define PHASE_CMD	1
@@ -111,9 +113,17 @@
 		result7_id = -1; \
 	} \
 	for(int d = 0; d < 4; d++) { \
-		if(seek_id[d] != -1) { \
-			cancel_event(this, seek_id[d]); \
-			seek_id[d] = -1; \
+		if(seek_step_id[d] != -1) { \
+			cancel_event(this, seek_step_id[d]); \
+			seek_step_id[d] = -1; \
+		} \
+		if(seek_end_id[d] != -1) { \
+			cancel_event(this, seek_end_id[d]); \
+			seek_end_id[d] = -1; \
+		} \
+		if(head_unload_id[d] != -1) { \
+			cancel_event(this, head_unload_id[d]); \
+			head_unload_id[d] = -1; \
 		} \
 	} \
 }
@@ -126,6 +136,27 @@ void UPD765A::initialize()
 		disk[i]->set_device_name(_T("%s/Disk #%d"), this_device_name, i + 1);
 	}
 	
+	// initialize noise
+	if(d_noise_seek != NULL) {
+		d_noise_seek->set_device_name(_T("Noise Player (FDD Seek)"));
+		if(!d_noise_seek->load_wav_file(_T("FDDSEEK.WAV"))) {
+			if(!d_noise_seek->load_wav_file(_T("FDDSEEK1.WAV"))) {
+				d_noise_seek->load_wav_file(_T("SEEK.WAV"));
+			}
+		}
+		d_noise_seek->set_mute(!config.sound_noise_fdd);
+	}
+	if(d_noise_head_down != NULL) {
+		d_noise_head_down->set_device_name(_T("Noise Player (FDD Head Load)"));
+		d_noise_head_down->load_wav_file(_T("HEADDOWN.WAV"));
+		d_noise_head_down->set_mute(!config.sound_noise_fdd);
+	}
+	if(d_noise_head_up != NULL) {
+		d_noise_head_up->set_device_name(_T("Noise Player (FDD Head Unload)"));
+		d_noise_head_up->load_wav_file(_T("HEADUP.WAV"));
+		d_noise_head_up->set_mute(!config.sound_noise_fdd);
+	}
+	
 	// initialize fdc
 	memset(fdc, 0, sizeof(fdc));
 	memset(buffer, 0, sizeof(buffer));
@@ -135,12 +166,17 @@ void UPD765A::initialize()
 	seekstat = 0;
 	bufptr = buffer; // temporary
 	phase_id = drq_id = lost_id = result7_id = -1;
-	seek_id[0] = seek_id[1] = seek_id[2] = seek_id[3] = -1;
+	for(int i = 0; i < 4; i++) {
+		seek_step_id[i] = seek_end_id[i] = head_unload_id[i] = -1;
+	}
+	step_rate_time = head_unload_time = 0;
 	no_dma_mode = false;
 	motor_on = false;	// motor off
 	reset_signal = true;
 	irq_masked = drq_masked = false;
+#ifdef UPD765A_DMA_MODE
 	dma_data_lost = false;
+#endif
 	
 	set_irq(false);
 	set_drq(false);
@@ -149,12 +185,7 @@ void UPD765A::initialize()
 #else
 	set_hdu(0);
 #endif
-//#if defined(USE_SOUND_FILES)
-	for(int i = 0; i < 4; i++) {
-		seek_snd_trk[i] = 0;
-		seek_snd_id[i] = -1;
-	}
-//#endif	
+	
 	// index hole event
 	if(outputs_index.count) {
 		register_event(this, EVENT_INDEX, 4, true, NULL);
@@ -174,14 +205,16 @@ void UPD765A::release()
 
 void UPD765A::reset()
 {
-	touch_sound();
 	shift_to_idle();
 //	CANCEL_EVENT();
 	phase_id = drq_id = lost_id = result7_id = -1;
-	seek_id[0] = seek_id[1] = seek_id[2] = seek_id[3] = -1;
-//#if defined(USE_SOUND_FILES)
-	seek_snd_id[0] = seek_snd_id[1] = seek_snd_id[2] = seek_snd_id[3] = -1;
-//#endif	
+	for(int i = 0; i < 4; i++) {
+		if(seek_step_id[i] != -1) {
+			// loop events are not canceled automatically in EVENT::reset()
+			cancel_event(this, seek_step_id[i]);
+		}
+		seek_step_id[i] = seek_end_id[i] = head_unload_id[i] = -1;
+	}
 	set_irq(false);
 	set_drq(false);
 }
@@ -412,13 +445,6 @@ void UPD765A::write_signal(int id, uint32_t data, uint32_t mask)
 		// for NEC PC-98x1 series
 		force_ready = ((data & mask) != 0);
 	}
-//#if defined(USE_SOUND_FILES)
-	else if((id >= SIG_SOUNDER_MUTE) && (id < (SIG_SOUNDER_MUTE + 2))) {
-		snd_mute = ((data & mask) != 0);
-	} else if((id >= SIG_SOUNDER_RELOAD) && (id < (SIG_SOUNDER_RELOAD + 2))) {
-		reload_sound_data(id - SIG_SOUNDER_RELOAD);
-	}
-//#endif
 }
 
 uint32_t UPD765A::read_signal(int ch)
@@ -467,33 +493,36 @@ void UPD765A::event_callback(int event_id, int err)
 			write_signals(&outputs_index, now_index ? 0xffffffff : 0);
 			prev_index = now_index;
 		}
-	} else if(event_id >= EVENT_SEEK && event_id < EVENT_SEEK + 4) {
-		int drv = event_id - EVENT_SEEK;
-		seek_id[drv] = -1;
+	} else if(event_id >= EVENT_SEEK_STEP && event_id < EVENT_SEEK_STEP + 4) {
+		int drv = event_id - EVENT_SEEK_STEP;
+		if(fdc[drv].cur_track < fdc[drv].track) {
+			fdc[drv].cur_track++;
+			if(d_noise_seek != NULL) d_noise_seek->play();
+		} else if(fdc[drv].cur_track > fdc[drv].track) {
+			fdc[drv].cur_track--;
+			if(d_noise_seek != NULL) d_noise_seek->play();
+		}
+		if(fdc[drv].cur_track == fdc[drv].track) {
+			cancel_event(this, seek_step_id[drv]);
+			seek_step_id[drv] = -1;
+		}
+	} else if(event_id >= EVENT_SEEK_END && event_id < EVENT_SEEK_END + 4) {
+		int drv = event_id - EVENT_SEEK_END;
+		if(seek_step_id[drv] != -1) {
+			// to make sure...
+			cancel_event(this, seek_step_id[drv]);
+			seek_step_id[drv] = -1;
+		}
+		seek_end_id[drv] = -1;
 		seek_event(drv);
-	}
-//#if defined(USE_SOUND_FILES)
-	else if(event_id >= EVENT_SEEK_SND && event_id < EVENT_SEEK_SND + 4) {
-		int drv = event_id - EVENT_SEEK_SND;
-		int seektime_snd = (32 - 2 * step_rate_time) * 1000;
-		if(disk[drv]->drive_type == DRIVE_TYPE_2HD) {
-			seektime_snd /= 2;
+	} else if(event_id >= EVENT_UNLOAD && event_id < EVENT_UNLOAD + 4) {
+		int drv = event_id - EVENT_UNLOAD;
+		if(fdc[drv].head_load) {
+			if(d_noise_head_up != NULL) d_noise_head_up->play();
+			fdc[drv].head_load = false;
 		}
-		seektime_snd += 500;
-		if(seek_snd_trk[drv] >= 0) {
-			if(seek_snd_trk[drv] < fdc[drv].track) {
-				seek_snd_trk[drv]++;
-				register_event(this, event_id, seektime_snd, false, &seek_snd_id[drv]);
-			} else if(seek_snd_trk[drv] > fdc[drv].track) {
-				seek_snd_trk[drv]--;
-				register_event(this, event_id, seektime_snd, false, &seek_snd_id[drv]);
-			} else {
-				seek_snd_id[drv] = -1;
-			}
-			add_sound(UPD765A_SND_TYPE_SEEK);
-		}
+		head_unload_id[drv] = -1;
 	}
-//#endif
 }
 
 void UPD765A::set_irq(bool val)
@@ -685,41 +714,37 @@ void UPD765A::cmd_recalib()
 void UPD765A::seek(int drv, int trk)
 {
 	// get distance
-	//int seektime = 32 - 2 * step_rate_time;
-	int seektime = (32 - 2 * step_rate_time) * 1000; // MS? not uS?
+	int steptime = (32 - 2 * step_rate_time) * 1000; // msec -> usec
 	if(disk[drv]->drive_type == DRIVE_TYPE_2HD) {
-		seektime /= 2;
+		steptime /= 2;
 	}
-//#if defined(USE_SOUND_FILES)
-	int seektime_snd = 0;
-	if(drv < 4) {
-		if(trk != fdc[drv].track) seektime_snd = 500 + (32 - 2 * step_rate_time) * 1000;
-		seek_snd_trk[drv] = fdc[drv].track;
-	}
-//#endif			
-	seektime = (trk == fdc[drv].track) ? 120 : seektime * abs(trk - fdc[drv].track) + 500; //usec
+	int seektime = (trk == fdc[drv].track) ? 120 : steptime * abs(trk - fdc[drv].track) + 500; // usec
 	
-	if(drv >= 4) {
+	if(drv >= MAX_DRIVE) {
 		// invalid drive number
 		fdc[drv].result = (drv & DRIVE_MASK) | ST0_SE | ST0_NR | ST0_AT;
 		set_irq(true);
 	} else {
+		fdc[drv].cur_track = fdc[drv].track;
 		fdc[drv].track = trk;
 #ifdef UPD765A_DONT_WAIT_SEEK
+		if(fdc[drv].cur_track != fdc[drv].track) {
+			if(d_noise_seek != NULL) d_noise_seek->play();
+		}
 		seek_event(drv);
-		add_sound(UPD765A_SND_TYPE_SEEK);
 #else
-		if(seek_id[drv] != -1) {
-			cancel_event(this, seek_id[drv]);
+		if(seek_step_id[drv] != -1) {
+			cancel_event(this, seek_step_id[drv]);
 		}
-		register_event(this, EVENT_SEEK + drv, seektime, false, &seek_id[drv]);
-//#if defined(USE_SOUND_FILES)
-		if(seek_snd_id[drv] != -1) {
-			cancel_event(this, seek_snd_id[drv]);
-			seek_snd_id[drv] = -1;
+		if(seek_end_id[drv] != -1) {
+			cancel_event(this, seek_end_id[drv]);
 		}
-		if(seektime_snd > 0) register_event(this, EVENT_SEEK_SND + drv, seektime_snd, false, &seek_snd_id[drv]);
-//#endif
+		if(fdc[drv].cur_track != fdc[drv].track) {
+			register_event(this, EVENT_SEEK_STEP + drv, steptime, true, &seek_step_id[drv]);
+		} else {
+			seek_step_id[drv] = -1;
+		}
+		register_event(this, EVENT_SEEK_END + drv, seektime, false, &seek_end_id[drv]);
 		seekstat |= 1 << drv;
 #endif
 	}
@@ -756,6 +781,7 @@ void UPD765A::cmd_read_data()
 		break;
 	case PHASE_CMD:
 		get_sector_params();
+		start_transfer();
 		REGISTER_PHASE_EVENT_NEW(PHASE_EXEC, get_usec_to_exec_phase());
 		break;
 	case PHASE_EXEC:
@@ -797,6 +823,7 @@ void UPD765A::cmd_write_data()
 		break;
 	case PHASE_CMD:
 		get_sector_params();
+		start_transfer();
 		REGISTER_PHASE_EVENT_NEW(PHASE_EXEC, get_usec_to_exec_phase());
 		break;
 	case PHASE_EXEC:
@@ -863,6 +890,7 @@ void UPD765A::cmd_scan()
 	case PHASE_CMD:
 		get_sector_params();
 		dtl = dtl | 0x100;
+		start_transfer();
 		REGISTER_PHASE_EVENT_NEW(PHASE_EXEC, get_usec_to_exec_phase());
 		break;
 	case PHASE_EXEC:
@@ -905,6 +933,7 @@ void UPD765A::cmd_read_diagnostic()
 		break;
 	case PHASE_CMD:
 		get_sector_params();
+		start_transfer();
 		REGISTER_PHASE_EVENT_NEW(PHASE_EXEC, get_usec_to_exec_phase());
 		break;
 	case PHASE_EXEC:
@@ -1220,6 +1249,7 @@ void UPD765A::cmd_read_id()
 		break;
 	case PHASE_CMD:
 		set_hdu(buffer[0]);
+		start_transfer();
 //		break;
 	case PHASE_EXEC:
 		// XM8 version 1.20
@@ -1264,6 +1294,7 @@ void UPD765A::cmd_write_id()
 			REGISTER_PHASE_EVENT(PHASE_TIMER, 1000000);
 			break;
 		}
+		start_transfer();
 		fdc[hdu & DRIVE_MASK].next_trans_position = get_cur_position(hdu & DRIVE_MASK);
 		shift_to_write(4 * eot);
 		break;
@@ -1355,6 +1386,7 @@ void UPD765A::cmd_specify()
 		break;
 	case PHASE_CMD:
 		step_rate_time = buffer[0] >> 4;
+		head_unload_time = buffer[1] >> 1;
 		no_dma_mode = ((buffer[1] & 1) != 0);
 		shift_to_idle();
 		status = 0x80;//0xff;
@@ -1448,6 +1480,7 @@ void UPD765A::shift_to_result7()
 	} else
 #endif
 	shift_to_result7_event();
+	finish_transfer();
 }
 
 void UPD765A::shift_to_result7_event()
@@ -1465,6 +1498,36 @@ void UPD765A::shift_to_result7_event()
 	buffer[6] = id[3];
 	set_irq(true);
 	shift_to_result(7);
+}
+
+void UPD765A::start_transfer()
+{
+	int drv = hdu & DRIVE_MASK;
+	
+	if(head_unload_id[drv] != -1) {
+		cancel_event(this, head_unload_id[drv]);
+		head_unload_id[drv] = -1;
+	}
+	if(!fdc[drv].head_load) {
+		if(d_noise_head_down != NULL) d_noise_head_down->play();
+		fdc[drv].head_load = true;
+	}
+}
+
+void UPD765A::finish_transfer()
+{
+	int drv = hdu & DRIVE_MASK;
+	
+	if(fdc[drv].head_load) {
+		if(head_unload_id[drv] != -1) {
+			cancel_event(this, head_unload_id[drv]);
+		}
+		int time = (16 * (head_unload_time + 1)) * 1000; // msec -> usec
+		if(disk[drv]->drive_type == DRIVE_TYPE_2HD) {
+			time /= 2;
+		}
+		register_event(this, EVENT_UNLOAD + drv, time, false, &head_unload_id[drv]);
+	}
 }
 
 // ----------------------------------------------------------------------------
@@ -1548,6 +1611,10 @@ void UPD765A::open_disk(int drv, const _TCHAR* file_path, int bank)
 void UPD765A::close_disk(int drv)
 {
 	if(drv < MAX_DRIVE && disk[drv]->inserted) {
+		if(fdc[drv].head_load) {
+			if(d_noise_head_up != NULL) d_noise_head_up->play();
+			fdc[drv].head_load = false;
+		}
 		disk[drv]->close();
 #ifdef _FDC_DEBUG_LOG
 		this->out_debug_log(_T("FDC: Disk Ejected (Drive=%d)\n"), drv);
@@ -1638,156 +1705,21 @@ void UPD765A::set_drive_mfm(int drv, bool mfm)
 		disk[drv]->drive_mfm = mfm;
 	}
 }
-//#if defined(USE_SOUND_FILES)
-void UPD765A::add_sound(int type)
+
+void UPD765A::update_config()
 {
-	int *p;
-	if(type == UPD765A_SND_TYPE_SEEK) {
-		p = snd_seek_mix_tbl;
-	} else if(type == UPD765A_SND_TYPE_HEAD) {
-		p = snd_head_mix_tbl;
-	} else {
-		return;
+	if(d_noise_seek != NULL) {
+		d_noise_seek->set_mute(!config.sound_noise_fdd);
 	}
-	touch_sound();
-	for(int i = 0; i < UPD765A_SND_TBL_MAX; i++) {
-		if(p[i] < 0) {
-			p[i] = 0;
-			break;
-		}
+	if(d_noise_head_down != NULL) {
+		d_noise_head_down->set_mute(!config.sound_noise_fdd);
+	}
+	if(d_noise_head_up != NULL) {
+		d_noise_head_up->set_mute(!config.sound_noise_fdd);
 	}
 }
 
-bool UPD765A::load_sound_data(int type, const _TCHAR *pathname)
-{
-	if((type < 0) || (type > 1)) return false;
-	int16_t *data = NULL;
-	int dst_size = 0;
-	int id = (this_device_id << 8) + type;
-	const _TCHAR *sp;
-	sp = create_local_path(pathname);
-	emu->load_sound_file(id, sp, &data, &dst_size);
-	if((dst_size <= 0) || (data == NULL)) { // Failed
-		this->out_debug_log("ID=%d : Failed to load SOUND FILE for %s:%s", id, (type == 0) ? _T("SEEK") : _T("HEAD") ,pathname);
-		return false;
-	} else {
-		int utl_size = dst_size * 2 * sizeof(int16_t);
-		int alloc_size = utl_size + 64;
-		switch(type) {
-		case UPD765A_SND_TYPE_SEEK: // SEEK
-			snd_seek_data = (int16_t *)malloc(alloc_size);
-			memcpy(snd_seek_data, data, utl_size);
-			strncpy(snd_seek_name, pathname, 511);
-			snd_seek_samples_size = dst_size;
-			break;
-		case UPD765A_SND_TYPE_HEAD: // HEAD
-			snd_seek_data = (int16_t *)malloc(alloc_size);
-			memcpy(snd_head_data, data, utl_size);
-			strncpy(snd_head_name, pathname, 511);
-			snd_head_samples_size = dst_size;
-			break;
-		default:
-			this->out_debug_log("ID=%d : Illegal type (%d): 0 (SEEK SOUND) or 1 (HEAD SOUND) is available.",
-								id, type);
-			return false;
-		}
-		this->out_debug_log("ID=%d : Success to load SOUND FILE for %s:%s",
-							id, (type == 0) ? _T("SEEK") : _T("HEAD") ,
-							pathname);
-	}
-	return true;
-}
-
-void UPD765A::release_sound_data(int type)
-{
-	switch(type) {
-	case UPD765A_SND_TYPE_SEEK: // SEEK
-		if(snd_seek_data != NULL) free(snd_seek_data);
-		memset(snd_seek_name, 0x00, sizeof(snd_seek_name));
-		snd_seek_data = NULL;
-		break;
-	case UPD765A_SND_TYPE_HEAD: // HEAD
-		if(snd_head_data != NULL) free(snd_head_data);
-		memset(snd_head_name, 0x00, sizeof(snd_head_name));
-		snd_head_data = NULL;
-			break;
-	default:
-		break;
-	}
-}
-
-bool UPD765A::reload_sound_data(int type)
-{
-	switch(type) {
-	case UPD765A_SND_TYPE_SEEK: // SEEK
-		if(snd_seek_data != NULL) free(snd_seek_data);
-		break;
-	case UPD765A_SND_TYPE_HEAD:
-		if(snd_seek_data != NULL) free(snd_seek_data);
-		break;
-	default:
-		return false;
-		break;
-	}
-	_TCHAR *p = (type == UPD765A_SND_TYPE_SEEK) ? snd_seek_name : snd_head_name;
-    _TCHAR tmps[512];
-	strncpy(tmps, p, 511);
-	return load_sound_data(type, tmps);
-}
-
-void UPD765A::mix_main(int32_t *dst, int count, int16_t *src, int *table, int samples)
-{
-	int ptr, pp;
-	int i, j, k;
-	int32_t data[2];
-	int32_t *dst_tmp;
-	for(i=0; i < UPD765A_SND_TBL_MAX; i++) {
-		ptr = table[i];
-		if(ptr >= 0) {
-			if(ptr < samples) {
-				if(!snd_mute && (config.sound_fdd != 0)) {
-					pp = ptr << 1;
-					dst_tmp = dst;
-					k = 0;
-					for(j = 0; j < count; j++) {
-						if(ptr >= samples) {
-							break;
-						}
-						data[0] = (int32_t)src[pp + 0];
-						data[1] = (int32_t)src[pp + 1];
-						dst_tmp[k + 0] += apply_volume((int32_t)data[0], snd_level_l);
-						dst_tmp[k + 1] += apply_volume((int32_t)data[1], snd_level_r);
-						k += 2;
-						pp += 2;
-						ptr++;
-					}
-				} else {
-					ptr += count;
-				}
-			}
-			if(ptr >= samples) {
-				table[i] = -1;
-			} else {
-				table[i] = ptr;
-			}
-		}
-	}
-}
-
-void UPD765A::mix(int32_t *buffer, int cnt)
-{
-	if(snd_seek_data != NULL) mix_main(buffer, cnt, snd_seek_data, snd_seek_mix_tbl, snd_seek_samples_size);
-	if(snd_head_data != NULL) mix_main(buffer, cnt, snd_head_data, snd_head_mix_tbl, snd_head_samples_size);
-}
-
-void UPD765A::set_volume(int ch, int decibel_l, int decibel_r)
-{
-	snd_level_l = decibel_to_volume(decibel_l);
-	snd_level_r = decibel_to_volume(decibel_r);
-}
-//#endif
-
-#define STATE_VERSION	3
+#define STATE_VERSION	2
 
 void UPD765A::save_state(FILEIO* state_fio)
 {
@@ -1811,6 +1743,7 @@ void UPD765A::save_state(FILEIO* state_fio)
 	state_fio->FputUint8(command);
 	state_fio->FputUint32(result);
 	state_fio->FputInt32(step_rate_time);
+	state_fio->FputInt32(head_unload_time);
 	state_fio->FputBool(no_dma_mode);
 	state_fio->FputBool(motor_on);
 #ifdef UPD765A_DMA_MODE
@@ -1826,43 +1759,19 @@ void UPD765A::save_state(FILEIO* state_fio)
 	state_fio->FputInt32(drq_id);
 	state_fio->FputInt32(lost_id);
 	state_fio->FputInt32(result7_id);
-	state_fio->Fwrite(seek_id, sizeof(seek_id), 1);
+	state_fio->Fwrite(seek_step_id, sizeof(seek_step_id), 1);
+	state_fio->Fwrite(seek_end_id, sizeof(seek_end_id), 1);
+	state_fio->Fwrite(head_unload_id, sizeof(head_unload_id), 1);
 	state_fio->FputBool(force_ready);
 	state_fio->FputBool(reset_signal);
 	state_fio->FputBool(prev_index);
 	state_fio->FputUint32(prev_drq_clock);
-//#if defined(USE_SOUND_FILES)
-	for(int i = 0; i < 4; i++) {
-		state_fio->FputInt32(seek_snd_trk[i]);
-		state_fio->FputInt32(seek_snd_id[i]);
-	}
-//#endif
-//#if defined(USE_SOUND_FILES)
-	state_fio->Fwrite(snd_seek_name, sizeof(snd_seek_name), 1);
-	state_fio->Fwrite(snd_head_name, sizeof(snd_head_name), 1);
-	for(int i = 0; i < UPD765A_SND_TBL_MAX; i++) {
-		state_fio->FputInt32(snd_seek_mix_tbl[i]);
-	}
-	for(int i = 0; i < UPD765A_SND_TBL_MAX; i++) {
-		state_fio->FputInt32(snd_head_mix_tbl[i]);
-	}
-	state_fio->FputBool(snd_mute);
-	state_fio->FputInt32(snd_level_l);
-	state_fio->FputInt32(snd_level_r);
-//#endif
 }
 
 bool UPD765A::load_state(FILEIO* state_fio)
 {
-	bool pending = false;
-	uint32_t s_version = state_fio->FgetUint32();
-	uint32_t desired_version = STATE_VERSION;
-	if(s_version != STATE_VERSION) {
-		if(s_version == 2) {
-			pending = true;
-		} else {
-			return false;
-		}
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
 	}
 	if(state_fio->FgetInt32() != this_device_id) {
 		return false;
@@ -1886,6 +1795,7 @@ bool UPD765A::load_state(FILEIO* state_fio)
 	command = state_fio->FgetUint8();
 	result = state_fio->FgetUint32();
 	step_rate_time = state_fio->FgetInt32();
+	head_unload_time = state_fio->FgetInt32();
 	no_dma_mode = state_fio->FgetBool();
 	motor_on = state_fio->FgetBool();
 #ifdef UPD765A_DMA_MODE
@@ -1901,43 +1811,13 @@ bool UPD765A::load_state(FILEIO* state_fio)
 	drq_id = state_fio->FgetInt32();
 	lost_id = state_fio->FgetInt32();
 	result7_id = state_fio->FgetInt32();
-	state_fio->Fread(seek_id, sizeof(seek_id), 1);
+	state_fio->Fread(seek_step_id, sizeof(seek_step_id), 1);
+	state_fio->Fread(seek_end_id, sizeof(seek_end_id), 1);
+	state_fio->Fread(head_unload_id, sizeof(head_unload_id), 1);
 	force_ready = state_fio->FgetBool();
 	reset_signal = state_fio->FgetBool();
 	prev_index = state_fio->FgetBool();
 	prev_drq_clock = state_fio->FgetUint32();
-//#if defined(USE_SOUND_FILES)
-	if(!pending) {
-		for(int i = 0; i < 4; i++) {
-			seek_snd_trk[i] = state_fio->FgetInt32();
-			seek_snd_id[i] = state_fio->FgetInt32();
-		}
-		state_fio->Fread(snd_seek_name, sizeof(snd_seek_name), 1);
-		state_fio->Fread(snd_head_name, sizeof(snd_head_name), 1);
-		for(int i = 0; i < UPD765A_SND_TBL_MAX; i++) {
-			snd_seek_mix_tbl[i] = state_fio->FgetInt32();
-		}
-		for(int i = 0; i < UPD765A_SND_TBL_MAX; i++) {
-			snd_head_mix_tbl[i] = state_fio->FgetInt32();
-		}
-		snd_mute = state_fio->FgetBool();
-		snd_level_l = state_fio->FgetInt32();
-		snd_level_r = state_fio->FgetInt32();
-		if(snd_seek_data != NULL) free(snd_seek_data);
-		if(snd_head_data != NULL) free(snd_head_data);
-		if(strlen(snd_seek_name) > 0) {
-			_TCHAR tmps[512];
-			strncpy(tmps, snd_seek_name, 511);
-			load_sound_data(UPD765A_SND_TYPE_SEEK, (const _TCHAR *)tmps);
-		}
-		if(strlen(snd_head_name) > 0) {
-			_TCHAR tmps[512];
-			strncpy(tmps, snd_head_name, 511);
-			load_sound_data(UPD765A_SND_TYPE_HEAD, (const _TCHAR *)tmps);
-		}
-	}
-//#endif
-	//touch_sound();
 	return true;
 }
 

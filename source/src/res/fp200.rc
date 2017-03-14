@@ -107,7 +107,6 @@ BEGIN
         MENUITEM "Rec",                         ID_REC_TAPE
         MENUITEM "Eject",                       ID_CLOSE_TAPE
         MENUITEM SEPARATOR
-        MENUITEM "Play Tape Sound",             ID_PLAY_TAPE_SOUND
         MENUITEM "Waveform Shaper",             ID_USE_WAVE_SHAPER
         MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_TAPE
@@ -191,6 +190,9 @@ BEGIN
         MENUITEM "Realtime Mix",                ID_SOUND_STRICT_RENDER
         MENUITEM "Light Weight Mix",            ID_SOUND_LIGHT_RENDER
         MENUITEM SEPARATOR
+        MENUITEM "Play CMT Noise",              ID_SOUND_NOISE_CMT
+        MENUITEM "Play CMT Sound",              ID_SOUND_PLAY_TAPE
+        MENUITEM SEPARATOR
         MENUITEM "Volume",                      ID_SOUND_VOLUME
     END
     POPUP "Input"
@@ -218,7 +220,7 @@ IDI_ICON1               ICON    DISCARDABLE     "fp200.ico"
 // Dialog
 //
 
-IDD_VOLUME DIALOG DISCARDABLE  0, 0, 250, 60
+IDD_VOLUME DIALOG DISCARDABLE  0, 0, 250, 90
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Volume"
 FONT 9, "MS PGothic"
@@ -226,8 +228,11 @@ BEGIN
     LTEXT           "Sound Device #1",IDC_VOLUME_CAPTION0,6,6,60,8
     CONTROL         "",IDC_VOLUME_PARAM_L0,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,6,175,12
     CONTROL         "",IDC_VOLUME_PARAM_R0,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,21,175,12
-    DEFPUSHBUTTON   "OK",IDOK,70,40,50,14
-    DEFPUSHBUTTON   "Reset",IDC_VOLUME_RESET,130,40,50,14
+    LTEXT           "Sound Device #2",IDC_VOLUME_CAPTION1,6,36,60,8
+    CONTROL         "",IDC_VOLUME_PARAM_L1,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,36,175,12
+    CONTROL         "",IDC_VOLUME_PARAM_R1,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,51,175,12
+    DEFPUSHBUTTON   "OK",IDOK,70,70,50,14
+    DEFPUSHBUTTON   "Reset",IDC_VOLUME_RESET,130,70,50,14
 END
 
 

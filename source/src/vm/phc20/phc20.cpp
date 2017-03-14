@@ -14,6 +14,7 @@
 
 #include "../datarec.h"
 #include "../mc6847.h"
+#include "../noise.h"
 #include "../z80.h"
 
 #ifdef USE_DEBUGGER
@@ -36,6 +37,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	dummy->set_device_name(_T("1st Dummy"));
 #endif	
 	drec = new DATAREC(this, emu);
+	drec->set_context_noise_play(new NOISE(this, emu));
+	drec->set_context_noise_stop(new NOISE(this, emu));
+	drec->set_context_noise_fast(new NOISE(this, emu));
 	vdp = new MC6847(this, emu);
 	cpu = new Z80(this, emu);
 #if defined(_USE_QT)
@@ -166,6 +170,10 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 {
 	if(ch == 0) {
 		drec->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 1) {
+		drec->get_context_noise_play()->set_volume(0, decibel_l, decibel_r);
+		drec->get_context_noise_stop()->set_volume(0, decibel_l, decibel_r);
+		drec->get_context_noise_fast()->set_volume(0, decibel_l, decibel_r);
 	}
 #if defined(USE_SOUND_FILES)
 	else if(ch == 1) {
@@ -233,7 +241,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void VM::save_state(FILEIO* state_fio)
 {

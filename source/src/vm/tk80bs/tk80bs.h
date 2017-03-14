@@ -79,7 +79,7 @@
 #if defined(_TK80BS)
 #define USE_SOUND_VOLUME	2
 #elif defined(_TK80) || defined(_TK85)
-#define USE_SOUND_VOLUME	3
+#define USE_SOUND_VOLUME	4
 #endif
 #define USE_DEBUGGER
 #define USE_STATE
@@ -91,7 +91,7 @@
 static const _TCHAR *sound_device_caption[] = {
 	_T("Beep #1"), _T("Beep #2"),
 #if defined(_TK80) || defined(_TK85)
-	_T("CMT"),
+	_T("CMT (Signal)"), _T("Noise (CMT)"),
 #endif
 };
 #endif

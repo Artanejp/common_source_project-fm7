@@ -33,7 +33,7 @@ private:
 	outputs_t outputs_busy;
 #endif
 	
-	cur_time_t cur_time;
+	dll_cur_time_t cur_time;
 	int register_id;
 	
 	uint8_t regs[16];

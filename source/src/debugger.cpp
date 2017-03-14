@@ -47,11 +47,7 @@ void my_printf(OSD *osd, const _TCHAR *format, ...)
 	va_end(ap);
 	
 	if(logfile != NULL && logfile->IsOpened()) {
-#ifdef _MSC_VER
-		logfile->Fwrite(buffer, lstrlen(buffer) * sizeof(_TCHAR), 1);
-#else
-		logfile->Fwrite(buffer, strlen(buffer) * sizeof(_TCHAR), 1);
-#endif
+		logfile->Fwrite(buffer, _tcslen(buffer) * sizeof(_TCHAR), 1);
 	}
 	osd->write_console(buffer, _tcslen(buffer));
 }

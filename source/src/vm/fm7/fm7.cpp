@@ -23,6 +23,7 @@
 #include "../mc6809.h"
 #include "../z80.h"
 #include "../mb8877.h"
+#include "../noise.h"
 
 #include "../pcm1bit.h"
 #include "../ym2203.h"
@@ -105,6 +106,9 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #endif
 	drec = NULL;
 	drec = new DATAREC(this, emu);
+	drec->set_context_noise_play(new NOISE(this, emu));
+	drec->set_context_noise_stop(new NOISE(this, emu));
+	drec->set_context_noise_fast(new NOISE(this, emu));
 	pcm1bit = new PCM1BIT(this, emu);
 
 	connect_320kfdc = connect_1Mfdc = false;
@@ -114,6 +118,9 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	   ((config.dipswitch & FM7_DIPSW_CONNECT_1MFDC) != 0)) {
 #endif		
 		fdc = new MB8877(this, emu);
+		fdc->set_context_noise_seek(new NOISE(this, emu));
+		fdc->set_context_noise_head_down(new NOISE(this, emu));
+		fdc->set_context_noise_head_up(new NOISE(this, emu));
 #if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
 		if((config.dipswitch & FM7_DIPSW_CONNECT_320KFDC) != 0) {
 			connect_320kfdc = true;
@@ -291,17 +298,16 @@ void VM::connect_bus(void)
 	event->set_context_sound(psg);
 # endif
 	event->set_context_sound(drec);
-#if defined(USE_SOUND_FILES)
 	if(fdc != NULL) {
-		if(fdc->load_sound_data(MB8877_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
-			event->set_context_sound(fdc);
-		}
+		event->set_context_sound(fdc->get_context_noise_seek());
+		event->set_context_sound(fdc->get_context_noise_head_down());
+		event->set_context_sound(fdc->get_context_noise_head_up());
 	}
 	if(drec != NULL) {
-		drec->load_sound_data(DATAREC_SNDFILE_RELAY_ON, _T("RELAY_ON.WAV"));
-		drec->load_sound_data(DATAREC_SNDFILE_RELAY_OFF, _T("RELAYOFF.WAV"));
+		event->set_context_sound(drec->get_context_noise_play());
+		event->set_context_sound(drec->get_context_noise_stop());
+		event->set_context_sound(drec->get_context_noise_fast());
 	}
-#endif
 # if defined(_FM77AV_VARIANTS)
 	event->set_context_sound(keyboard_beep);
 # endif
@@ -645,22 +651,26 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 	if(ch-- == 0) {
 		pcm1bit->set_volume(0, decibel_l, decibel_r);
 	} else if(ch-- == 0) {
-	  if(drec != NULL) drec->set_volume(0, decibel_l, decibel_r);
+		if(drec != NULL) drec->set_volume(0, decibel_l, decibel_r);
 	}
 #if defined(_FM77AV_VARIANTS)
-	 else if(ch-- == 0) {
+	else if(ch-- == 0) {
 		keyboard_beep->set_volume(0, decibel_l, decibel_r);
 	}
 #endif
-#if defined(USE_SOUND_FILES)
-	 else if(ch-- == 0) {
-		 if(fdc != NULL) fdc->set_volume(0, decibel_l, decibel_r);
-	 } else if(ch-- == 0) {
-		 for(int i = 0; i < DATAREC_SNDFILE_END; i++) {
-			if(drec != NULL) drec->set_volume(i + 2, decibel_l, decibel_r);
-		 }
-	 }
-#endif
+	else if(ch-- == 0) {
+		if(fdc != NULL) {
+			fdc->get_context_noise_seek()->set_volume(0, decibel_l, decibel_r);
+			fdc->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
+			fdc->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
+		}
+	} else if(ch-- == 0) {
+		if(drec != NULL) {
+			drec->get_context_noise_play()->set_volume(0, decibel_l, decibel_r);
+			drec->get_context_noise_stop()->set_volume(0, decibel_l, decibel_r);
+			drec->get_context_noise_fast()->set_volume(0, decibel_l, decibel_r);
+		}
+	}
 }
 #endif
 
@@ -872,7 +882,7 @@ void VM::is_bubble_casette_protected(int drv, bool flag)
 #endif
 
 
-#define STATE_VERSION	4
+#define STATE_VERSION	5
 void VM::save_state(FILEIO* state_fio)
 {
 	state_fio->FputUint32_BE(STATE_VERSION);

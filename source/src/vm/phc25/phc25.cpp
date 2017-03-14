@@ -16,6 +16,7 @@
 #include "../datarec.h"
 #include "../io.h"
 #include "../mc6847.h"
+#include "../noise.h"
 #include "../not.h"
 //#include "../ym2203.h"
 #include "../ay_3_891x.h"
@@ -45,6 +46,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #endif	
 	
 	drec = new DATAREC(this, emu);
+	drec->set_context_noise_play(new NOISE(this, emu));
+	drec->set_context_noise_stop(new NOISE(this, emu));
+	drec->set_context_noise_fast(new NOISE(this, emu));
 	io = new IO(this, emu);
 	vdp = new MC6847(this, emu);
 	not_vsync = new NOT(this, emu);
@@ -210,6 +214,10 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		psg->set_volume(1, decibel_l, decibel_r);
 	} else if(ch == 1) {
 		drec->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 2) {
+		drec->get_context_noise_play()->set_volume(0, decibel_l, decibel_r);
+		drec->get_context_noise_stop()->set_volume(0, decibel_l, decibel_r);
+		drec->get_context_noise_fast()->set_volume(0, decibel_l, decibel_r);
 	}
 #if defined(USE_SOUND_FILES)
 	else if(ch == 2) {
@@ -274,7 +282,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 void VM::save_state(FILEIO* state_fio)
 {

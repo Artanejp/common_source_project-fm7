@@ -15,6 +15,7 @@ set(s_vm_common_vm_srcs
 #	../ld700.cpp
 	../ls244.cpp
 	../ls393.cpp
+	../noise.cpp
 
 # MC6809 is temporally.
 	../libcpu_newdev/libcpu_mc6809/mc6809_base.cpp

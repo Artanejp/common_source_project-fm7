@@ -28,6 +28,7 @@
 #include "../io.h"
 #include "../mb8877.h"
 #include "../msm58321.h"
+#include "../noise.h"
 #include "../pcm1bit.h"
 #include "../scsi_hdd.h"
 #include "../scsi_host.h"
@@ -106,37 +107,26 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-#if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));
 	event->set_device_name(_T("EVENT"));
-#endif	
 
 #if defined(HAS_I286)
 	cpu = new I286(this, emu);
 #else
 	cpu = new I386(this, emu);
 #endif
-#if defined(_USE_QT)
-  #if defined(HAS_I286)
+#if defined(HAS_I286)
 	cpu->set_device_name(_T("CPU(i286)"));
-  #elif defined(HAS_I386)
+#elif defined(HAS_I386)
 	cpu->set_device_name(_T("CPU(i386)"));
-  #elif defined(HAS_I486)
+#elif defined(HAS_I486)
 	cpu->set_device_name(_T("CPU(i486)"));
-  #elif defined(HAS_PENTIUM)
+#elif defined(HAS_PENTIUM)
 	cpu->set_device_name(_T("CPU(Pentium)"));
-  #endif
-#endif	
-
+#endif
 	crtc = new HD46505(this, emu);
 #ifdef _FMR60
 	acrtc = new HD63484(this, emu);
-#endif
-#if defined(_USE_QT)
-	crtc->set_device_name(_T("HD46505 CRTC"));
- #ifdef _FMR60
-	acrtc->set_device_name(_T("HD63484 ACRTC"));
- #endif
 #endif
 	
 	sio = new I8251(this, emu);
@@ -147,21 +137,15 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pic = new I8259(this, emu);
 	io = new IO(this, emu);
 	fdc = new MB8877(this, emu);
+	fdc->set_context_noise_seek(new NOISE(this, emu));
+	fdc->set_context_noise_head_down(new NOISE(this, emu));
+	fdc->set_context_noise_head_up(new NOISE(this, emu));
 	rtc = new MSM58321(this, emu);
 	pcm = new PCM1BIT(this, emu);
-#if defined(_USE_QT)	
-	sio->set_device_name(_T("i8251 SIO"));
 	pit0->set_device_name(_T("i8253 PIT #0"));
 	pit1->set_device_name(_T("i8253 PIT #1"));
-	pic->set_device_name(_T("i8259 PIC"));
-	rtc->set_device_name(_T("MSM58321 RTC"));
-	pcm->set_device_name(_T("PCM SOUND"));
-#endif
 	
 	scsi_host = new SCSI_HOST(this, emu);
-#if defined(_USE_QT)	
-	scsi_host->set_device_name(_T("SCSI HOST"));
-#endif	
 	for(int i = 0; i < 7; i++) {
 		if(FILEIO::IsFileExisting(create_local_path(_T("SCSI%d.DAT"), i))) {
 			SCSI_HDD* scsi_hdd = new SCSI_HDD(this, emu);
@@ -172,16 +156,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		}
 	}
 	dma = new UPD71071(this, emu);
-#if defined(_USE_QT)	
-	dma->set_device_name(_T("uPD71071 DMAC"));
-#endif	
 	if(FILEIO::IsFileExisting(create_local_path(_T("IPL.ROM")))) {
 		bios = NULL;
 	} else {
 		bios = new BIOS(this, emu);
-#if defined(_USE_QT)
-		bios->set_device_name(_T("PSEUDO BIOS"));
-#endif
 	}
 	cmos = new CMOS(this, emu);
 	floppy = new FLOPPY(this, emu);
@@ -190,24 +168,12 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	scsi = new SCSI(this, emu);
 //	serial = new SERIAL(this, emu);
 	timer = new TIMER(this, emu);
-#if defined(_USE_QT)
-	cmos->set_device_name(_T("CMOS RAM"));
-	floppy->set_device_name(_T("FLOPPY I/F"));
-	keyboard->set_device_name(_T("KEYBOARD"));
-	memory->set_device_name(_T("MEMORY"));
-	scsi->set_device_name(_T("SCSI I/F"));
-	//serial->set_device_name(_T("SERIAL I/F"));
-	timer->set_device_name(_T("TIMER I/F"));
-#endif
-	
 	// set contexts
 	event->set_context_cpu(cpu, cpu_clock[config.cpu_type & 1]);
 	event->set_context_sound(pcm);
-#if defined(USE_SOUND_FILES)
-	if(fdc->load_sound_data(MB8877_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
-		event->set_context_sound(fdc);
-	}
-#endif
+	event->set_context_sound(fdc->get_context_noise_seek());
+	event->set_context_sound(fdc->get_context_noise_head_down());
+	event->set_context_sound(fdc->get_context_noise_head_up());
 	
 /*	pic	0	timer
 		1	keyboard
@@ -467,12 +433,11 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 {
 	if(ch == 0) {
 		pcm->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 1) {
+		fdc->get_context_noise_seek()->set_volume(0, decibel_l, decibel_r);
+		fdc->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
+		fdc->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
 	}
-#if defined(USE_SOUND_FILES)
-	else if(ch == 1) {
-		fdc->set_volume(0, decibel_l, decibel_r);
-	}
-#endif
 }
 #endif
 
@@ -532,7 +497,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 void VM::save_state(FILEIO* state_fio)
 {

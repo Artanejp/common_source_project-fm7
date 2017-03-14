@@ -173,6 +173,7 @@
     <ClCompile Include="..\src\vm\i8259.cpp" />
     <ClCompile Include="..\src\vm\i86.cpp" />
     <ClCompile Include="..\src\vm\io.cpp" />
+    <ClCompile Include="..\src\vm\noise.cpp" />
     <ClCompile Include="..\src\vm\pcm1bit.cpp" />
     <ClCompile Include="..\src\vm\rp5c01.cpp" />
     <ClCompile Include="..\src\vm\upd765a.cpp" />
@@ -201,6 +202,7 @@
     <ClInclude Include="..\src\vm\i8259.h" />
     <ClInclude Include="..\src\vm\i86.h" />
     <ClInclude Include="..\src\vm\io.h" />
+    <ClInclude Include="..\src\vm\noise.h" />
     <ClInclude Include="..\src\vm\pcm1bit.h" />
     <ClInclude Include="..\src\vm\rp5c01.h" />
     <ClInclude Include="..\src\vm\upd765a.h" />

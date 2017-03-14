@@ -155,6 +155,12 @@ void initialize_config()
 #endif
 	config.fullscreen_stretch_type = 1;	// Stretch (Aspect)
 #endif
+#if defined(_USE_QT)
+	config.render_platform = CONFIG_RENDER_PLATFORM_OPENGL_MAIN;
+	config.render_major_version = 2; // For crash with some devices.
+	config.render_minor_version = 1;
+	config.rendering_type = CONFIG_RENDER_TYPE_STD;
+#endif
 	
 #if defined(_USE_QT)
 	config.use_opengl_scanline = false;
@@ -174,9 +180,6 @@ void initialize_config()
 			config.dev_log_recording[ii][jj] = true;
 		}
 	}
-	config.sound_fdd = 1;
-	config.sound_relay = 0;
-	config.sound_buttons = 0;
 
 	config.roma_kana_conversion = false;
 	config.rendering_type = CONFIG_RENDER_TYPE_STD;
@@ -215,10 +218,16 @@ void load_config(const _TCHAR *config_path)
 #endif
 
 #ifdef USE_TAPE
-	config.tape_sound = MyGetPrivateProfileBool(_T("Control"), _T("TapeSound"), config.tape_sound, config_path);
 	config.wave_shaper = MyGetPrivateProfileBool(_T("Control"), _T("WaveShaper"), config.wave_shaper, config_path);
 	config.direct_load_mzt = MyGetPrivateProfileBool(_T("Control"), _T("DirectLoadMZT"), config.direct_load_mzt, config_path);
 	config.baud_high = MyGetPrivateProfileBool(_T("Control"), _T("BaudHigh"), config.baud_high, config_path);
+#endif
+#if defined(USE_FD1)
+	config.sound_noise_fdd = true;
+#endif
+#if defined(USE_TAPE)
+	config.sound_noise_cmt = true;
+	config.sound_play_tape = true;
 #endif
 	
 	// recent files
@@ -352,6 +361,13 @@ void load_config(const _TCHAR *config_path)
 #ifdef USE_SOUND_DEVICE_TYPE
 	config.sound_device_type = MyGetPrivateProfileInt(_T("Sound"), _T("DeviceType"), config.sound_device_type, config_path);
 #endif
+#ifdef USE_FD1
+	config.sound_noise_fdd = MyGetPrivateProfileBool(_T("Sound"), _T("NoiseFDD"), config.sound_noise_fdd, config_path);;
+#endif
+#ifdef USE_TAPE
+	config.sound_noise_cmt = MyGetPrivateProfileBool(_T("Sound"), _T("NoiseCMT"), config.sound_noise_cmt, config_path);;
+	config.sound_play_tape = MyGetPrivateProfileBool(_T("Sound"), _T("PlayTape"), config.sound_play_tape, config_path);
+#endif
 #ifdef USE_SOUND_VOLUME
 	for(int i = 0; i < USE_SOUND_VOLUME; i++) {
 		int tmp_l = MyGetPrivateProfileInt(_T("Sound"), create_string(_T("VolumeLeft%d"), i + 1), config.sound_volume_l[i], config_path);
@@ -366,7 +382,9 @@ void load_config(const _TCHAR *config_path)
 #endif
 	}
 #endif
+#ifdef _WIN32
  	MyGetPrivateProfileString(_T("Sound"), _T("FMGenDll"), _T("mamefm.dll"), config.fmgen_dll_path, _MAX_PATH, config_path);
+#endif   
 	config.general_sound_level = MyGetPrivateProfileInt(_T("Sound"), _T("GeneralSoundLevel"), config.general_sound_level, config_path);
 	config.sound_strict_rendering = MyGetPrivateProfileBool(_T("Sound"), _T("StrictRendering"), config.sound_strict_rendering, config_path);
 
@@ -375,7 +393,9 @@ void load_config(const _TCHAR *config_path)
 	config.use_direct_input = MyGetPrivateProfileBool(_T("Input"), _T("UseDirectInput"), config.use_direct_input, config_path);
 	config.disable_dwm = MyGetPrivateProfileBool(_T("Input"), _T("DisableDwm"), config.disable_dwm, config_path);
 #endif
+#ifdef USE_KEYBOARD_TYPE
 	config.keyboard_type = MyGetPrivateProfileInt(_T("Input"), _T("KeyboardType"), config.keyboard_type, config_path);
+#endif
 #ifdef USE_JOYSTICK
 	for(int i = 0; i < 4; i++) {
 		for(int j = 0; j < 16; j++) {
@@ -468,10 +488,6 @@ void load_config(const _TCHAR *config_path)
 
 #endif	
 #if defined(_USE_QT)
-	config.sound_fdd = MyGetPrivateProfileInt(_T("Emulator"), _T("SoundFDD"), config.sound_fdd, config_path);
-	config.sound_relay = MyGetPrivateProfileInt(_T("Emulator"), _T("SoundRelay"), config.sound_relay, config_path);
-	config.sound_buttons = MyGetPrivateProfileInt(_T("Emulator"), _T("SoundButtons"), config.sound_buttons, config_path);
-	
 	config.log_to_syslog = MyGetPrivateProfileBool(_T("Emulator"), _T("WriteToSyslog"), config.log_to_syslog, config_path);
 	config.log_to_console = MyGetPrivateProfileBool(_T("Emulator"), _T("WriteToConsole"), config.log_to_console, config_path);
 	config.roma_kana_conversion = MyGetPrivateProfileInt(_T("Emulator"), _T("RomaKana"), config.roma_kana_conversion, config_path);
@@ -542,7 +558,6 @@ void save_config(const _TCHAR *config_path)
 
 #endif
 #ifdef USE_TAPE
-	MyWritePrivateProfileBool(_T("Control"), _T("TapeSound"), config.tape_sound, config_path);
 	MyWritePrivateProfileBool(_T("Control"), _T("WaveShaper"), config.wave_shaper, config_path);
 	MyWritePrivateProfileBool(_T("Control"), _T("DirectLoadMZT"), config.direct_load_mzt, config_path);
 	MyWritePrivateProfileBool(_T("Control"), _T("BaudHigh"), config.baud_high, config_path);
@@ -661,14 +676,22 @@ void save_config(const _TCHAR *config_path)
 #ifdef USE_SOUND_DEVICE_TYPE
 	MyWritePrivateProfileInt(_T("Sound"), _T("DeviceType"), config.sound_device_type, config_path);
 #endif
+#ifdef USE_FD1
+	MyWritePrivateProfileBool(_T("Sound"), _T("NoiseFDD"), config.sound_noise_fdd, config_path);
+#endif
+#ifdef USE_TAPE
+	MyWritePrivateProfileBool(_T("Sound"), _T("NoiseCMT"), config.sound_noise_cmt, config_path);
+	MyWritePrivateProfileBool(_T("Sound"), _T("PlayTape"), config.sound_play_tape, config_path);
+#endif
 #ifdef USE_SOUND_VOLUME
 	for(int i = 0; i < USE_SOUND_VOLUME; i++) {
 		MyWritePrivateProfileInt(_T("Sound"), create_string(_T("VolumeLeft%d"), i + 1), config.sound_volume_l[i], config_path);
 		MyWritePrivateProfileInt(_T("Sound"), create_string(_T("VolumeRight%d"), i + 1), config.sound_volume_r[i], config_path);
 	}
 #endif
-
+#ifdef _WIN32
  	MyWritePrivateProfileString(_T("Sound"), _T("FMGenDll"), config.fmgen_dll_path, config_path);
+#endif
 	MyWritePrivateProfileInt(_T("Sound"), _T("GeneralSoundLevel"), config.general_sound_level, config_path);
 	MyWritePrivateProfileBool(_T("Sound"), _T("StrictRendering"), config.sound_strict_rendering, config_path);;
 	// input
@@ -676,7 +699,9 @@ void save_config(const _TCHAR *config_path)
 	MyWritePrivateProfileBool(_T("Input"), _T("UseDirectInput"), config.use_direct_input, config_path);
 	MyWritePrivateProfileBool(_T("Input"), _T("DisableDwm"), config.disable_dwm, config_path);
 #endif
+#ifdef USE_KEYBOARD_TYPE
 	MyWritePrivateProfileInt(_T("Input"), _T("KeyboardType"), config.keyboard_type, config_path);
+#endif
 #ifdef USE_JOYSTICK   
 	for(int i = 0; i < 4; i++) {
 		for(int j = 0; j < 16; j++) {
@@ -720,10 +745,6 @@ void save_config(const _TCHAR *config_path)
 	MyWritePrivateProfileInt(_T("Video"), _T("VideoFramerate"), config.video_frame_rate, config_path);
 #endif	
 #if defined(_USE_QT)
-	MyWritePrivateProfileInt(_T("Emulator"), _T("SoundFDD"), config.sound_fdd, config_path);
-	MyWritePrivateProfileInt(_T("Emulator"), _T("SoundRelay"), config.sound_relay, config_path);
-	MyWritePrivateProfileInt(_T("Emulator"), _T("SoundButtons"), config.sound_buttons, config_path);
-	
 	MyWritePrivateProfileBool(_T("Emulator"), _T("WriteToSyslog"), config.log_to_syslog, config_path);
 	MyWritePrivateProfileBool(_T("Emulator"), _T("WriteToConsole"), config.log_to_console, config_path);
 	MyWritePrivateProfileInt(_T("Emulator"), _T("RomaKana"), config.roma_kana_conversion, config_path);

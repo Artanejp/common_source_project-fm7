@@ -171,10 +171,8 @@
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EnableFastChecks</BasicRuntimeChecks>
     </ClCompile>
-    <ClCompile Include="..\src\vm\mc6820.cpp">
-      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Disabled</Optimization>
-      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EnableFastChecks</BasicRuntimeChecks>
-    </ClCompile>
+    <ClCompile Include="..\src\vm\mc6820.cpp" />
+    <ClCompile Include="..\src\vm\noise.cpp" />
     <ClCompile Include="..\src\vm\bmjr\bmjr.cpp" />
     <ClCompile Include="..\src\vm\bmjr\memory.cpp" />
   </ItemGroup>
@@ -191,6 +189,7 @@
     <ClInclude Include="..\src\vm\event.h" />
     <ClInclude Include="..\src\vm\mc6800.h" />
     <ClInclude Include="..\src\vm\mc6820.h" />
+    <ClInclude Include="..\src\vm\noise.h" />
     <ClInclude Include="..\src\vm\vm.h" />
     <ClInclude Include="..\src\vm\bmjr\bmjr.h" />
     <ClInclude Include="..\src\vm\bmjr\memory.h" />

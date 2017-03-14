@@ -23,6 +23,7 @@
 #define SIG_MEMORY_VRAM_SEL	0
 #define SIG_CRTC_WIDTH80	1
 #define SIG_CRTC_REVERSE	2
+#define SIG_CRTC_VGATE		3
 
 class Z80;
 
@@ -62,6 +63,7 @@ private:
 	
 	uint8_t back_color, text_color, vram_mask;
 	bool width80, reverse;
+	bool vgate;
 	bool hblank;
 	
 #ifdef _MZ80B

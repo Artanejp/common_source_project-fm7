@@ -34,6 +34,7 @@
 ///#define USE_ACCESS_LAMP
 #define SUPPORT_TV_RENDER
 #define USE_SOUND_VOLUME	2
+///#define USE_SOUND_VOLUME	4
 #define USE_JOYSTICK
 #define USE_DEBUGGER
 

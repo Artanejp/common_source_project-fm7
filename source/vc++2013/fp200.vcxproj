@@ -169,6 +169,7 @@
     <ClCompile Include="..\src\vm\event.cpp" />
     <ClCompile Include="..\src\vm\i8080.cpp" />
     <ClCompile Include="..\src\vm\memory.cpp" />
+    <ClCompile Include="..\src\vm\noise.cpp" />
     <ClCompile Include="..\src\vm\rp5c01.cpp" />
     <ClCompile Include="..\src\vm\fp200\fp200.cpp" />
     <ClCompile Include="..\src\vm\fp200\io.cpp" />
@@ -186,6 +187,7 @@
     <ClInclude Include="..\src\vm\event.h" />
     <ClInclude Include="..\src\vm\i8080.h" />
     <ClInclude Include="..\src\vm\memory.h" />
+    <ClInclude Include="..\src\vm\noise.h" />
     <ClInclude Include="..\src\vm\rp5c01.h" />
     <ClInclude Include="..\src\vm\vm.h" />
     <ClInclude Include="..\src\vm\fp200\fp200.h" />

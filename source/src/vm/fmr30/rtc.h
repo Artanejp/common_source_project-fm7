@@ -19,7 +19,7 @@ class RTC : public DEVICE
 private:
 	DEVICE* d_pic;
 	
-	cur_time_t cur_time;
+	dll_cur_time_t cur_time;
 	int register_id;
 	
 	uint16_t rtcmr, rtdsr, rtadr, rtobr, rtibr;

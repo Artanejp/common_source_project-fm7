@@ -23,6 +23,7 @@
 #include "../z80.h"
 
 #include "../disk.h"
+#include "../noise.h"
 #include "../pc80s31k.h"
 #include "../upd765a.h"
 
@@ -123,6 +124,12 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 //	pc88pio_sub->set_context_event_manager(pc88event);
 	pc88fdc_sub = new UPD765A(this, emu);
 //	pc88fdc_sub->set_context_event_manager(pc88event);
+	pc88noise_seek = new NOISE(this, emu);
+//	pc88noise_seek->set_context_event_manager(pc88event);
+	pc88noise_head_down = new NOISE(this, emu);
+//	pc88noise_head_down->set_context_event_manager(pc88event);
+	pc88noise_head_up = new NOISE(this, emu);
+//	pc88noise_head_up->set_context_event_manager(pc88event);
 	pc88cpu_sub = new Z80(this, emu);
 //	pc88cpu_sub->set_context_event_manager(pc88event);
 
@@ -144,6 +151,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pc88pcm1->set_device_name(_T("SOUND #2 (PCG8100)"));
 	pc88pcm2->set_device_name(_T("SOUND #3 (PCG8100)"));
 #endif
+	pc88event->set_context_sound(pc88noise_seek);
+	pc88event->set_context_sound(pc88noise_head_down);
+	pc88event->set_context_sound(pc88noise_head_up);
 	
 	pc88event->set_context_cpu(dummycpu, 3993624 / 4);
 #ifdef SUPPORT_PC88_HIGH_CLOCK
@@ -164,11 +174,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pc88event->set_context_sound(pc88pcm1);
 	pc88event->set_context_sound(pc88pcm2);
 #endif
-#if defined(USE_SOUND_FILES)
-	if(pc88fdc_sub->load_sound_data(UPD765A_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
-		pc88event->set_context_sound(pc88fdc_sub);
-	}
-#endif	
 	pc88->set_context_cpu(pc88cpu);
 	pc88->set_context_opn(pc88opn);
 #ifdef SUPPORT_PC88_SB2
@@ -214,6 +219,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pc88pio_sub->set_context_port_c(pc88pio, SIG_I8255_PORT_C, 0xf0, -4);
 	pc88pio_sub->clear_ports_by_cmdreg = true;
 	pc88fdc_sub->set_context_irq(pc88cpu_sub, SIG_CPU_IRQ, 1);
+	pc88fdc_sub->set_context_noise_seek(pc88noise_seek);
+	pc88fdc_sub->set_context_noise_head_down(pc88noise_head_down);
+	pc88fdc_sub->set_context_noise_head_up(pc88noise_head_up);
 	pc88cpu_sub->set_context_mem(pc88sub);
 	pc88cpu_sub->set_context_io(pc88sub);
 	pc88cpu_sub->set_context_intr(pc88sub);
@@ -400,12 +408,11 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 #endif
 	} else if(ch-- == 0) {
 		pc88pcm->set_volume(0, decibel_l, decibel_r);
+	} else if(ch-- == 0) {
+		pc88noise_seek->set_volume(0, decibel_l, decibel_r);
+		pc88noise_head_down->set_volume(0, decibel_l, decibel_r);
+		pc88noise_head_up->set_volume(0, decibel_l, decibel_r);
 	}
-#if defined(USE_SOUND_FILES)
-    else if(ch-- == 0) {
-		pc88fdc_sub->set_volume(0, decibel_l, decibel_r);
-	}		
-#endif
 }
 #endif
 
@@ -490,7 +497,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	6
+#define STATE_VERSION	7
 
 void VM::save_state(FILEIO* state_fio)
 {

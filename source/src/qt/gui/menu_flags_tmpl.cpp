@@ -61,10 +61,8 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	use_sound_device_type = 0;
 	use_sound_volume = 0;
 	without_sound = false;
-	use_sound_files = false;
 	use_sound_files_fdd = false;
 	use_sound_files_relay = false;
-	use_sound_files_buttons = false;
 	
 	use_special_reset = false;
 
@@ -88,7 +86,6 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	max_ranges = 0;
 	vm_ranges_d = NULL;
 	
-	use_datarec_sound = false;
 	use_vertical_pixel_lines = false;
 	notify_key_down_lr_shift = false;
 	tape_binary_only = false;

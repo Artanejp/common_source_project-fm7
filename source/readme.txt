@@ -1,9 +1,9 @@
-retro pc emulator common source code
-								3/8/2017
+Binary archive of retro pc emulator common source code
+								3/11/2017
 
 --- What's this ?
 
-This archive includes the all source codes of emulators listed below:
+This archive includes the binaries of the emulators listed below:
 
 	ASCII
 		yayaMSX1	MSX1 (by Mr.tanam and Mr.umaiboux)
@@ -76,7 +76,6 @@ This archive includes the all source codes of emulators listed below:
 		ePC-100		PC-100
 		eTK-80BS	TK-80BS / COMPO BS/80
 		eTK-85		TK-85
-		eN5200		N5200 (work in progress)
 	NEC-HE
 		ePCEngine	PC Engine / SuperGrafx + CD-ROM^2
 	Nintendo
@@ -106,12 +105,10 @@ This archive includes the all source codes of emulators listed below:
 		EmuZ-3500	MZ-3500
 		EmuZ-5500	MZ-5500
 		EmuZ-6500	MZ-6500
-		EmuZ-6550	MZ-6550 (work in progress)
 		eSM-B-80TE	SM-B-80TE
 		eX1		X1
 		eX1twin		X1twin
 		eX1turbo	X1turbo
-		eX1turboZ	X1turboZ (work in progress)
 	Shinko Sangyo
 		eYS-6464A	YS-6464A
 	SONY
@@ -126,47 +123,40 @@ This archive includes the all source codes of emulators listed below:
 		yayaHX-20+	HX-20 + FDD (by Mr.umaiboux)
 		EmuPIA		PASOPIA/PASOPIA5
 		EmuPIA7		PASOPIA7
-		eJ-3100GT	J-3100GT (work in progress)
-		eJ-3100SL	J-3100SL (work in progress)
 	Yuasa Kyouiku System
 		eYALKY		YALKY
 
 
---- How to build
+--- Note
 
-Build the projects with the Microsoft Visual C++ 2008 with Service Pack 1 or
-the Microsoft Visual C++ 2013 with Update 5.
+Floppy disk images:
 
-The DirectX SDK is required.
-I recommend the DirectX 9.0 SDK Update (December 2004),
-and dinput.lib included in the DirectX 9.0 SDK Update (October 2004).
+	Supoort D88, TeleDisk, ImageDisk, and CPDRead format disk images.
 
-If you install the newer DirectX SDK, for example DirectX SDK (June 2010),
-and it does not contain dinput.lib, pelase modify src/win32/osd.h to change
-the definition of DIRECTINPUT_VERSION from 0x500 to 0x800 as follows:
+Cassette tape images:
 
-//#define DIRECTINPUT_VERSION	0x500
-#define DIRECTINPUT_VERSION	0x800
+	Support wav files (PCM only) or special format images for each machine.
 
-When you use the Microsoft Visual C++ 2008 with Service Pack 1,
-the Windows SDK for Windows 8.1 is also required to get the mt.exe utility.
-The mt.exe is used to merge a manifest file for Windows Vista or later.
+CD-ROM images:
 
-https://msdn.microsoft.com/en-us/windows/desktop/bg162891.aspx
+	Support BIN/IMG+CUE or IMG+CCD (CloneCD) format images.
 
-When you use the Microsoft Visual C++ 2013 with Update 5, the dir macros,
-WindowsSDK_IncludePath, WindowsSDK_LibraryPath_x86, and DXSDK_DIR shoud be
-defined and should specifies the install directories of the Windows SDK
-and the DirectX SDK.
-They are usually defined automatically when you install the SDKs.
+FDD noise:
 
+	Place the wave files below: FDDSEEK.WAV. HEADDOWN.WAV. HEADUP.WAV
 
---- License
+CMT noise:
 
-The copyright belongs to the author, but you can use the source codes
-under the GNU GENERAL PUBLIC LICENSE Version 2.
+	Place the wave files below: RELAY_ON.WAV, RELAYOFF.WAV, FAST_FWD.WAV
 
-See also COPYING.txt for more details about the license.
+Save/Load State info:
+
+	The state file contains any disk or other images.
+	Please NEVER upload your state files on the web.
+
+	The state file format will be often changed.
+	Please don't invite your state file can be loaded after you update
+	the emulator binary.
 
 
 --- Thanks
@@ -257,7 +247,7 @@ See also COPYING.txt for more details about the license.
 - vm/z80.*
 	MAME Z80 core
 - vm/z80dma.*
-	MAME Z80DMA core and improved by Mr Y.S.
+	MAME Z80DMA core and improved by Mr.Y.S.
 - vm/bmjr/*
 	bm2 by Mr.maruhiro
 	Mr.Enri for HITACH BASIC Master Jr hardware design info
@@ -331,7 +321,7 @@ See also COPYING.txt for more details about the license.
 - vm/x07/io.*
 	x07_emul by Mr.Jacques Brigaud
 - vm/x1/*
-	Many advices by Mr Y.S.
+	Many advices by Mr.Y.S.
 - vm/x1/psub.*
 	X millenium T-tune by Mr.Sato
 - vm/x1/display.*

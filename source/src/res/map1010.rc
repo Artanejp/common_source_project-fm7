@@ -104,7 +104,6 @@ BEGIN
         MENUITEM "Rec",                         ID_REC_TAPE
         MENUITEM "Eject",                       ID_CLOSE_TAPE
         MENUITEM SEPARATOR
-        MENUITEM "Play Tape Sound",             ID_PLAY_TAPE_SOUND
         MENUITEM "Waveform Shaper",             ID_USE_WAVE_SHAPER
         MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_TAPE
@@ -187,6 +186,9 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Realtime Mix",                ID_SOUND_STRICT_RENDER
         MENUITEM "Light Weight Mix",            ID_SOUND_LIGHT_RENDER
+        MENUITEM SEPARATOR
+        MENUITEM "Play CMT Noise",              ID_SOUND_NOISE_CMT
+        MENUITEM "Play CMT Sound",              ID_SOUND_PLAY_TAPE
         MENUITEM SEPARATOR
         MENUITEM "Volume",                      ID_SOUND_VOLUME
     END

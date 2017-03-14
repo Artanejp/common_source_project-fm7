@@ -1,3 +1,15 @@
+3/11/2017
+
+[VM/DATAREC] support to play play/stop/fast-fwd noise
+[VM/MB8877] support to play seek/load/unload noise
+[VM/HD44102] support HD44102 based on MAME 0.171
+[VM/T3444A] support to play seek/load/unload noise
+[VM/UPD765A] support to play seek/load/unload noise
+[VM/UPD765A] fix seek time (thanks Mr.Artane.)
+
+[MZ80B/MEMORY80B] fix vgate signal (thanks Mr.Suga)
+
+
 3/8/2017
 
 [VM/DISK] improve to check if disk image is modified more strictly

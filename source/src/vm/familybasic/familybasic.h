@@ -32,7 +32,7 @@
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_NO_CAPS
-#define USE_SOUND_VOLUME	2
+#define USE_SOUND_VOLUME	3
 #define USE_JOYSTICK
 #define USE_JOY_BUTTON_CAPTIONS
 #define USE_STATE
@@ -42,7 +42,7 @@
 
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
-	_T("APU"), _T("CMT"),
+	_T("APU"), _T("CMT (Signal)"), _T("Noise (CMT)"),
 };
 #endif
 
