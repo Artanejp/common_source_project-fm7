@@ -27,7 +27,10 @@ private:
 	bool select;
 	
 public:
-	MOUSE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	MOUSE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Mouse I/F"));
+	}
 	~MOUSE() {}
 	
 	// common functions

@@ -50,7 +50,10 @@ private:
 	void draw_cg();
 	
 public:
-	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Memory Bus"));
+	}
 	~MEMORY() {}
 	
 	// common functions

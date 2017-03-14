@@ -30,7 +30,10 @@ private:
 	void create_bg();
 	
 public:
-	VDP(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	VDP(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("VDP"));
+	}
 	~VDP() {}
 	
 	// common functions

@@ -145,6 +145,7 @@ public:
 		memset(snd_seek_name, 0x00, sizeof(snd_seek_name));
 		memset(snd_head_name, 0x00, sizeof(snd_head_name));
 #endif
+		set_device_name(_T("Floppy Drive"));
 	}
 	~FLOPPY() {}
 	

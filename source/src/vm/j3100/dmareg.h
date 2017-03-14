@@ -24,7 +24,10 @@ private:
 #endif
 	
 public:
-	DMAREG(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	DMAREG(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("DMA Register"));
+	}
 	~DMAREG() {}
 	
 	// common function

@@ -21,7 +21,10 @@ private:
 	DEVICE *d_psg_l, *d_psg_r;
 	
 public:
-	PSG(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	PSG(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("PSG"));
+	}
 	~PSG() {}
 	
 	// common function

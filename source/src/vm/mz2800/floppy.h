@@ -20,7 +20,10 @@ private:
 	DEVICE* d_fdc;
 	
 public:
-	FLOPPY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	FLOPPY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Floppy I/F"));
+	}
 	~FLOPPY() {}
 	
 	// common function

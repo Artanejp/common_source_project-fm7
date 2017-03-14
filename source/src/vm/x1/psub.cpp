@@ -6,7 +6,7 @@
 	Author : Takeda.Toshiya
 	Date   : 2009.03.15-
 
-	[ pseudo sub cpu ]
+	[ pseudo sub system ]
 */
 
 #include "psub.h"

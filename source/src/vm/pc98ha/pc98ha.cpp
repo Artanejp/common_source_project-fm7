@@ -63,10 +63,14 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	beep = new BEEP(this, emu);
 	sio_rs = new I8251(this, emu);	// for rs232c
+	sio_rs->set_device_name(_T("8251 SIO (RS-232C)"));
 	sio_kbd = new I8251(this, emu);	// for keyboard
+	sio_kbd->set_device_name(_T("8251 SIO (Keyboard)"));
 	pit = new I8253(this, emu);	// V50 internal
 	pio_sys = new I8255(this, emu);	// for system port
+	pio_sys->set_device_name(_T("8255 PIO (System)"));
 	pio_prn = new I8255(this, emu);	// for printer
+	pio_prn->set_device_name(_T("8251 PIO (Printer)"));
 	pic = new I8259(this, emu);	// V50 internal
 #if defined(HAS_V30) || defined(HAS_I86)
 	cpu = new I86(this, emu);	// V50

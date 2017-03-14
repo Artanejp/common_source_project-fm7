@@ -45,22 +45,16 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-#if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));
 	event->set_device_name(_T("EVENT"));
-#endif	
-	
 	// for main cpu
 	mainio = new IO(this, emu);
 	fdc = new UPD765A(this, emu);
 	maincpu = new Z80(this, emu);
 	mainbus= new MAIN(this, emu);
-#if defined(_USE_QT)
-	mainio->set_device_name(_T("MAIN I/O"));
-	maincpu->set_device_name(_T("MAIN CPU(Z80)"));
+	mainio->set_device_name(_T("I/O Bus (Main)"));
+	maincpu->set_device_name(_T("Z80 CPU (Main)"));
 	mainbus->set_device_name(_T("MAIN BUS"));
-#endif	
-	
 	// for sub cpu
 	if(config.printer_device_type == 0) {
 		printer = new PRNFILE(this, emu);
@@ -73,21 +67,34 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pit = new I8253(this, emu);
 	pio = new I8255(this, emu);
 	subio = new IO(this, emu);
+	subio->set_device_name(_T("I/O Bus (Sub)"));
 	ls244 = new LS244(this, emu);
+	not_data0 = new NOT(this, emu);
+	not_data0->set_device_name(_T("NOT Gate (Printer Bit0)"));
 	not_data1 = new NOT(this, emu);
+	not_data1->set_device_name(_T("NOT Gate (Printer Bit1)"));
 	not_data2 = new NOT(this, emu);
+	not_data2->set_device_name(_T("NOT Gate (Printer Bit2)"));
 	not_data3 = new NOT(this, emu);
+	not_data3->set_device_name(_T("NOT Gate (Printer Bit3)"));
 	not_data4 = new NOT(this, emu);
+	not_data4->set_device_name(_T("NOT Gate (Printer Bit4)"));
 	not_data5 = new NOT(this, emu);
+	not_data5->set_device_name(_T("NOT Gate (Printer Bit5)"));
 	not_data6 = new NOT(this, emu);
+	not_data6->set_device_name(_T("NOT Gate (Printer Bit6)"));
 	not_data7 = new NOT(this, emu);
-	not_data8 = new NOT(this, emu);
+	not_data7->set_device_name(_T("NOT Gate (Printer Bit7)"));
 	not_busy = new NOT(this, emu);
+	not_busy->set_device_name(_T("NOT Gate (Printer Busy)"));
 	pcm = new PCM1BIT(this, emu);
 	rtc = new UPD1990A(this, emu);
 	gdc_chr = new UPD7220(this, emu);
+	gdc_chr->set_device_name(_T("uPD7220 GDC (Character)"));
 	gdc_gfx = new UPD7220(this, emu);
+	gdc_gfx->set_device_name(_T("uPD7220 GDC (Graphics)"));
 	subcpu = new Z80(this, emu);
+	subcpu->set_device_name(_T("Z80 CPU (Sub)"));
 	subbus = new SUB(this, emu);
 	kbd = new KEYBOARD(this, emu);
 #if defined(_USE_QT)
@@ -151,14 +158,14 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pit->set_constant_clock(2, 2450760);
 	
 	// mz3500sm p.78,80,81
-	pio->set_context_port_a(not_data1, SIG_NOT_INPUT, 0x01, 0);
-	pio->set_context_port_a(not_data2, SIG_NOT_INPUT, 0x02, 0);
-	pio->set_context_port_a(not_data3, SIG_NOT_INPUT, 0x04, 0);
-	pio->set_context_port_a(not_data4, SIG_NOT_INPUT, 0x08, 0);
-	pio->set_context_port_a(not_data5, SIG_NOT_INPUT, 0x10, 0);
-	pio->set_context_port_a(not_data6, SIG_NOT_INPUT, 0x20, 0);
-	pio->set_context_port_a(not_data7, SIG_NOT_INPUT, 0x40, 0);
-	pio->set_context_port_a(not_data8, SIG_NOT_INPUT, 0x80, 0);
+	pio->set_context_port_a(not_data0, SIG_NOT_INPUT, 0x01, 0);
+	pio->set_context_port_a(not_data1, SIG_NOT_INPUT, 0x02, 0);
+	pio->set_context_port_a(not_data2, SIG_NOT_INPUT, 0x04, 0);
+	pio->set_context_port_a(not_data3, SIG_NOT_INPUT, 0x08, 0);
+	pio->set_context_port_a(not_data4, SIG_NOT_INPUT, 0x10, 0);
+	pio->set_context_port_a(not_data5, SIG_NOT_INPUT, 0x20, 0);
+	pio->set_context_port_a(not_data6, SIG_NOT_INPUT, 0x40, 0);
+	pio->set_context_port_a(not_data7, SIG_NOT_INPUT, 0x80, 0);
 	pio->set_context_port_b(rtc, SIG_UPD1990A_STB, 0x01, 0);
 	pio->set_context_port_b(rtc, SIG_UPD1990A_C0,  0x02, 0);
 	pio->set_context_port_b(rtc, SIG_UPD1990A_C1,  0x04, 0);
@@ -177,14 +184,14 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio->set_context_port_c(ls244, SIG_LS244_INPUT, 0x80, -6);
 	
 	// mz3500sm p.78
-	not_data1->set_context_out(printer, SIG_PRINTER_DATA, 0x01);
-	not_data2->set_context_out(printer, SIG_PRINTER_DATA, 0x02);
-	not_data3->set_context_out(printer, SIG_PRINTER_DATA, 0x04);
-	not_data4->set_context_out(printer, SIG_PRINTER_DATA, 0x08);
-	not_data5->set_context_out(printer, SIG_PRINTER_DATA, 0x10);
-	not_data6->set_context_out(printer, SIG_PRINTER_DATA, 0x20);
-	not_data7->set_context_out(printer, SIG_PRINTER_DATA, 0x40);
-	not_data8->set_context_out(printer, SIG_PRINTER_DATA, 0x80);
+	not_data0->set_context_out(printer, SIG_PRINTER_DATA, 0x01);
+	not_data1->set_context_out(printer, SIG_PRINTER_DATA, 0x02);
+	not_data2->set_context_out(printer, SIG_PRINTER_DATA, 0x04);
+	not_data3->set_context_out(printer, SIG_PRINTER_DATA, 0x08);
+	not_data4->set_context_out(printer, SIG_PRINTER_DATA, 0x10);
+	not_data5->set_context_out(printer, SIG_PRINTER_DATA, 0x20);
+	not_data6->set_context_out(printer, SIG_PRINTER_DATA, 0x40);
+	not_data7->set_context_out(printer, SIG_PRINTER_DATA, 0x80);
 	not_busy->set_context_out(ls244, SIG_LS244_INPUT, 0x04);
 	
 	// mz3500sm p.80,81

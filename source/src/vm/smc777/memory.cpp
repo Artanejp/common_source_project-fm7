@@ -5,10 +5,10 @@
 	Author : Takeda.Toshiya
 	Date   : 2015.08.13-
 
-	[ i/o and memory bus ]
+	[ memory and i/o bus ]
 */
 
-#include "io.h"
+#include "memory.h"
 #include "../datarec.h"
 #include "../mb8877.h"
 #if defined(_SMC70)
@@ -105,7 +105,7 @@ static const uint8_t keytable_base[68][6] = {
 	{0x7a, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d}	// H -> F11
 };
 
-void IO::initialize()
+void MEMORY::initialize()
 {
 	// initialize memory
 	memset(ram, 0, sizeof(ram));
@@ -176,7 +176,7 @@ void IO::initialize()
 	register_frame_event(this);
 }
 
-void IO::reset()
+void MEMORY::reset()
 {
 	SET_BANK(0x0000, sizeof(rom) - 1, wdmy, rom);
 	SET_BANK(sizeof(rom), 0xffff, ram + sizeof(rom), ram + sizeof(rom));
@@ -195,7 +195,7 @@ void IO::reset()
 	drec_in = false;
 }
 
-void IO::initialize_key()
+void MEMORY::initialize_key()
 {
 	memset(keytable, 0, sizeof(keytable));
 	memset(keytable_shift, 0, sizeof(keytable_shift));
@@ -215,17 +215,17 @@ void IO::initialize_key()
 	key_repeat_interval = 100;
 }
 
-void IO::write_data8(uint32_t addr, uint32_t data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	wbank[(addr >> 14) & 3][addr & 0x3fff] = data;
 }
 
-uint32_t IO::read_data8(uint32_t addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	return rbank[(addr >> 14) & 3][addr & 0x3fff];
 }
 
-uint32_t IO::fetch_op(uint32_t addr, int *wait)
+uint32_t MEMORY::fetch_op(uint32_t addr, int *wait)
 {
 	if(rom_switch_wait) {
 		if(--rom_switch_wait == 0) {
@@ -242,7 +242,7 @@ uint32_t IO::fetch_op(uint32_t addr, int *wait)
 	return read_data8(addr);
 }
 
-void IO::write_io8(uint32_t addr, uint32_t data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 #ifdef _IO_DEBUG_LOG
 	this->out_debug_log(_T("%04x\tOUT8\t%04x,%02x\n"), d_cpu->get_pc(), addr, data);
@@ -461,7 +461,7 @@ void IO::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t IO::read_io8(uint32_t addr)
+uint32_t MEMORY::read_io8(uint32_t addr)
 #ifdef _IO_DEBUG_LOG
 {
 	uint32_t val = read_io8_debug(addr);
@@ -469,7 +469,7 @@ uint32_t IO::read_io8(uint32_t addr)
 	return val;
 }
 
-uint32_t IO::read_io8_debug(uint32_t addr)
+uint32_t MEMORY::read_io8_debug(uint32_t addr)
 #endif
 {
 	uint8_t laddr = addr & 0xff;
@@ -605,31 +605,31 @@ uint32_t IO::read_io8_debug(uint32_t addr)
 }
 
 
-void IO::write_signal(int id, uint32_t data, uint32_t mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
-	if(id == SIG_IO_FDC_IRQ) {
+	if(id == SIG_MEMORY_FDC_IRQ) {
 		fdc_irq = ((data & mask) != 0);
-	} else if(id == SIG_IO_FDC_DRQ) {
+	} else if(id == SIG_MEMORY_FDC_DRQ) {
 		fdc_drq = ((data & mask) != 0);
-	} else if(id == SIG_IO_CRTC_DISP) {
+	} else if(id == SIG_MEMORY_CRTC_DISP) {
 		disp = ((data & mask) != 0);
-	} else if(id == SIG_IO_CRTC_VSYNC) {
+	} else if(id == SIG_MEMORY_CRTC_VSYNC) {
 		vsync = ((data & mask) != 0);
 		if((data & mask) && ief_vsync) {
 			d_cpu->write_signal(SIG_CPU_IRQ, 1, 1);
 		}
-	} else if(id == SIG_IO_DATAREC_IN) {
+	} else if(id == SIG_MEMORY_DATAREC_IN) {
 		drec_in = ((data & mask) != 0);
 #if defined(_SMC70)
-	} else if(id == SIG_IO_RTC_DATA) {
+	} else if(id == SIG_MEMORY_RTC_DATA) {
 		rtc_data = data & mask;
-	} else if(id == SIG_IO_RTC_BUSY) {
+	} else if(id == SIG_MEMORY_RTC_BUSY) {
 		rtc_busy = ((data & mask) != 0);
 #endif
 	}
 }
 
-void IO::key_down_up(int code, bool down)
+void MEMORY::key_down_up(int code, bool down)
 {
 	if(code == 0x14 && down) {
 		caps = !caps;
@@ -703,7 +703,7 @@ void IO::key_down_up(int code, bool down)
 	}
 }
 
-void IO::event_callback(int event_id, int err)
+void MEMORY::event_callback(int event_id, int err)
 {
 	if(event_id == EVENT_KEY_REPEAT) {
 		if(ief_key) {
@@ -714,12 +714,12 @@ void IO::event_callback(int event_id, int err)
 	}
 }
 
-void IO::event_frame()
+void MEMORY::event_frame()
 {
 	cblink = (cblink + 1) & 0x1f;
 }
 
-void IO::draw_screen()
+void MEMORY::draw_screen()
 {
 	emu->screen_skip_line(true);
 	
@@ -773,7 +773,7 @@ void IO::draw_screen()
 	}
 }
 
-void IO::draw_text_80x25()
+void MEMORY::draw_text_80x25()
 {
 	int hz = crtc_regs[1];
 	int vt = crtc_regs[6] & 0x7f;
@@ -842,7 +842,7 @@ void IO::draw_text_80x25()
 	}
 }
 
-void IO::draw_text_40x25()
+void MEMORY::draw_text_40x25()
 {
 	int hz = crtc_regs[1];
 	int vt = crtc_regs[6] & 0x7f;
@@ -912,7 +912,7 @@ void IO::draw_text_40x25()
 	}
 }
 
-void IO::draw_graph_640x200()
+void MEMORY::draw_graph_640x200()
 {
 	static const uint8_t color_table[2][4] = {{0, 4, 2, 1}, {0, 4, 2, 7}};
 	static const uint8_t* color_ptr = color_table[(gcw >> 5) & 1];
@@ -946,7 +946,7 @@ void IO::draw_graph_640x200()
 	}
 }
 
-void IO::draw_graph_320x200()
+void MEMORY::draw_graph_320x200()
 {
 	int hz = crtc_regs[1];
 	int vt = crtc_regs[6] & 0x7f;
@@ -975,7 +975,7 @@ void IO::draw_graph_320x200()
 
 #define STATE_VERSION	2
 
-void IO::save_state(FILEIO* state_fio)
+void MEMORY::save_state(FILEIO* state_fio)
 {
 	state_fio->FputUint32(STATE_VERSION);
 	state_fio->FputInt32(this_device_id);
@@ -1027,7 +1027,7 @@ void IO::save_state(FILEIO* state_fio)
 #endif
 }
 
-bool IO::load_state(FILEIO* state_fio)
+bool MEMORY::load_state(FILEIO* state_fio)
 {
 	if(state_fio->FgetUint32() != STATE_VERSION) {
 		return false;

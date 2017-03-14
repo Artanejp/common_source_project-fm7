@@ -1,3 +1,16 @@
+3/7/2017
+
+[WIN32/INPUT] improve to accept shift + caps/kana/kanji
+
+[VM/DISK] support device name (thanks Mr.Aratane.)
+[VM/EVENT] improve to check abnormal scanline number (thanks Mr.Sato)
+[VM/EVENT] fix light weight sound rendering (thanks Mr.168)
+[VM/*] add device name to all devices of each machine (thanks Mr.Aratane.)
+
+[MZ80B] change floppy drive type from 2D to 2DD (thanks Mr.Suga)
+[MZ80B/MEMORY80B] support I-O DATA PIO-3039 (thanks Mr.Suga)
+
+
 3/4/2017
 
 [WINMAIN] add interfaces for bubble casette (thanks Mr.Artane.)

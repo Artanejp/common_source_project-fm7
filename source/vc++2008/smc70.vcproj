@@ -653,7 +653,7 @@
 				Filter="cpp"
 				>
 				<File
-					RelativePath="..\src\vm\smc777\io.cpp"
+					RelativePath="..\src\vm\smc777\memory.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -790,7 +790,7 @@
 				Filter="h"
 				>
 				<File
-					RelativePath="..\src\vm\smc777\io.h"
+					RelativePath="..\src\vm\smc777\memory.h"
 					>
 				</File>
 				<File

@@ -31,7 +31,10 @@ private:
 	PAC2DEV* dummy;
 	
 public:
-	PAC2(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	PAC2(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("PAC2 Slot"));
+	}
 	~PAC2() {}
 	
 	// common functions

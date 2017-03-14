@@ -52,7 +52,10 @@ private:
 	void stop();
 	
 public:
-	CMT(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	CMT(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("CMT I/F"));
+	}
 	~CMT() {}
 	
 	// common functions

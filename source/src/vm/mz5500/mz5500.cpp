@@ -75,7 +75,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #endif
 	io = new IO(this, emu);
 	div = new LS393(this, emu);
-#if defined(_USE_QT)
 	io->set_device_name(_T("MAIN I/O"));
   #if defined(_MZ6550)
 	cpu->set_device_name(_T("MAIN CPU(i286)"));
@@ -83,27 +82,24 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	cpu->set_device_name(_T("MAIN CPU(i8086)"));
   #endif
 	div->set_device_name(_T("74LS393(DIVIDER)"));
-#endif	
-	not_data1 = new NOT(this, emu);
-	not_data2 = new NOT(this, emu);
-	not_data3 = new NOT(this, emu);
-	not_data4 = new NOT(this, emu);
-	not_data5 = new NOT(this, emu);
-	not_data6 = new NOT(this, emu);
-	not_data7 = new NOT(this, emu);
-	not_data8 = new NOT(this, emu);
-	not_busy = new NOT(this, emu);
-#if defined(_USE_QT)
-	not_data1->set_device_name(_T("NOT GATE #1"));
-	not_data2->set_device_name(_T("NOT GATE #2"));
-	not_data3->set_device_name(_T("NOT GATE #3"));
-	not_data4->set_device_name(_T("NOT GATE #4"));
-	not_data5->set_device_name(_T("NOT GATE #5"));
-	not_data6->set_device_name(_T("NOT GATE #6"));
-	not_data7->set_device_name(_T("NOT GATE #7"));
-	not_data8->set_device_name(_T("NOT GATE #8"));
-	not_busy->set_device_name(_T("NOT GATE(PRINTER BUSY)"));
-#endif
+	not_data0 = new NOT(this, emu);
+	not_data0->set_device_name(_T("NOT Gate (Printer Bit0)"));
+ 	not_data1 = new NOT(this, emu);
+	not_data1->set_device_name(_T("NOT Gate (Printer Bit1)"));
+ 	not_data2 = new NOT(this, emu);
+	not_data2->set_device_name(_T("NOT Gate (Printer Bit2)"));
+ 	not_data3 = new NOT(this, emu);
+	not_data3->set_device_name(_T("NOT Gate (Printer Bit3)"));
+ 	not_data4 = new NOT(this, emu);
+	not_data4->set_device_name(_T("NOT Gate (Printer Bit4)"));
+ 	not_data5 = new NOT(this, emu);
+	not_data5->set_device_name(_T("NOT Gate (Printer Bit5)"));
+ 	not_data6 = new NOT(this, emu);
+	not_data6->set_device_name(_T("NOT Gate (Printer Bit6)"));
+ 	not_data7 = new NOT(this, emu);
+	not_data7->set_device_name(_T("NOT Gate (Printer Bit7)"));
+ 	not_busy = new NOT(this, emu);
+	not_busy->set_device_name(_T("NOT Gate (Printer Busy)"));
 	rtc = new RP5C01(this, emu);
 	gdc = new UPD7220(this, emu);
 	fdc = new UPD765A(this, emu);
@@ -146,14 +142,14 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	}
 	dma->set_context_memory(memory);
 	dma->set_context_ch1(fdc);
-	pio->set_context_port_a(not_data1, SIG_NOT_INPUT, 0x01, 0);
-	pio->set_context_port_a(not_data2, SIG_NOT_INPUT, 0x02, 0);
-	pio->set_context_port_a(not_data3, SIG_NOT_INPUT, 0x04, 0);
-	pio->set_context_port_a(not_data4, SIG_NOT_INPUT, 0x08, 0);
-	pio->set_context_port_a(not_data5, SIG_NOT_INPUT, 0x10, 0);
-	pio->set_context_port_a(not_data6, SIG_NOT_INPUT, 0x20, 0);
-	pio->set_context_port_a(not_data7, SIG_NOT_INPUT, 0x40, 0);
-	pio->set_context_port_a(not_data8, SIG_NOT_INPUT, 0x80, 0);
+	pio->set_context_port_a(not_data0, SIG_NOT_INPUT, 0x01, 0);
+	pio->set_context_port_a(not_data1, SIG_NOT_INPUT, 0x02, 0);
+	pio->set_context_port_a(not_data2, SIG_NOT_INPUT, 0x04, 0);
+	pio->set_context_port_a(not_data3, SIG_NOT_INPUT, 0x08, 0);
+	pio->set_context_port_a(not_data4, SIG_NOT_INPUT, 0x10, 0);
+	pio->set_context_port_a(not_data5, SIG_NOT_INPUT, 0x20, 0);
+	pio->set_context_port_a(not_data6, SIG_NOT_INPUT, 0x40, 0);
+	pio->set_context_port_a(not_data7, SIG_NOT_INPUT, 0x80, 0);
 	pio->set_context_port_c(keyboard, SIG_KEYBOARD_INPUT, 0x03, 0);
 	pio->set_context_port_c(pic, SIG_I8259_IR2 | SIG_I8259_CHIP0, 0x08, 0);
 	pio->set_context_port_c(printer, SIG_PRINTER_STROBE, 0x20, 0);
@@ -185,14 +181,14 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #endif
 	sio->set_context_intr(pic, SIG_I8259_IR1 | SIG_I8259_CHIP0);
 	
-	not_data1->set_context_out(printer, SIG_PRINTER_DATA, 0x01);
-	not_data2->set_context_out(printer, SIG_PRINTER_DATA, 0x02);
-	not_data3->set_context_out(printer, SIG_PRINTER_DATA, 0x04);
-	not_data4->set_context_out(printer, SIG_PRINTER_DATA, 0x08);
-	not_data5->set_context_out(printer, SIG_PRINTER_DATA, 0x10);
-	not_data6->set_context_out(printer, SIG_PRINTER_DATA, 0x20);
-	not_data7->set_context_out(printer, SIG_PRINTER_DATA, 0x40);
-	not_data8->set_context_out(printer, SIG_PRINTER_DATA, 0x80);
+	not_data0->set_context_out(printer, SIG_PRINTER_DATA, 0x01);
+	not_data1->set_context_out(printer, SIG_PRINTER_DATA, 0x02);
+	not_data2->set_context_out(printer, SIG_PRINTER_DATA, 0x04);
+	not_data3->set_context_out(printer, SIG_PRINTER_DATA, 0x08);
+	not_data4->set_context_out(printer, SIG_PRINTER_DATA, 0x10);
+	not_data5->set_context_out(printer, SIG_PRINTER_DATA, 0x20);
+	not_data6->set_context_out(printer, SIG_PRINTER_DATA, 0x40);
+	not_data7->set_context_out(printer, SIG_PRINTER_DATA, 0x80);
 	not_busy->set_context_out(pio, SIG_I8255_PORT_B, 0x01);
 	display->set_vram_ptr(memory->get_vram());
 	display->set_sync_ptr(gdc->get_sync());

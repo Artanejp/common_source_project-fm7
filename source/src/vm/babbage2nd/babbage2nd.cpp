@@ -37,7 +37,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	cpu = new Z80(this, emu);
 	ctc = new Z80CTC(this, emu);
 	pio1 = new Z80PIO(this, emu);
+	pio1->set_device_name(_T("Z80 PIO (LEDs)"));
 	pio2 = new Z80PIO(this, emu);
+	pio2->set_device_name(_T("Z80 PIO (7-Seg/Keyboard)"));
 	
 	display = new DISPLAY(this, emu);
 	keyboard = new KEYBOARD(this, emu);

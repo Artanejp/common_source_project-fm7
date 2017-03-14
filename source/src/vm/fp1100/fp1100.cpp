@@ -62,16 +62,22 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	fdcpack = new FDCPACK(this, emu);
 	rampack1 = new RAMPACK(this, emu);
 	rampack1->index = 1;
+	rampack1->set_device_name(_T("RAM Pack #1"));
 	rampack2 = new RAMPACK(this, emu);
 	rampack2->index = 2;
+	rampack2->set_device_name(_T("RAM Pack #2"));
 	rampack3 = new RAMPACK(this, emu);
 	rampack3->index = 3;
+	rampack3->set_device_name(_T("RAM Pack #3"));
 	rampack4 = new RAMPACK(this, emu);
 	rampack4->index = 4;
+	rampack4->set_device_name(_T("RAM Pack #4"));
 	rampack5 = new RAMPACK(this, emu);
 	rampack5->index = 5;
+	rampack5->set_device_name(_T("RAM Pack #5"));
 	rampack6 = new RAMPACK(this, emu);
 	rampack6->index = 6;
+	rampack6->set_device_name(_T("RAM Pack #6"));
 	rompack = new ROMPACK(this, emu);
 #if defined(_USE_QT)
 	mainbus->set_device_name(_T("MAIN BUS"));

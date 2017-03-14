@@ -43,7 +43,10 @@ private:
 	void update_palette();
 	
 public:
-	DISPLAY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	DISPLAY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Display"));
+	}
 	~DISPLAY() {}
 	
 	// common functions

@@ -26,10 +26,9 @@ private:
 	bool select_kanji;
 	
 public:
-	MZ1R13(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
-#if defined(_USE_QT)		
-		set_device_name(_T("MZ-1R13 KANJI ROM"));
-#endif
+	MZ1R13(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("MZ-1R13 (KANJI ROM)"));
 	}
 	~MZ1R13() {}
 	

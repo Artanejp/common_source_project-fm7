@@ -248,6 +248,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #ifdef SUPPORT_16BIT_BOARD
 	io->set_iomap_range_rw(0xd4, 0xd7, pio_to16);
 #endif
+#ifdef _MZ80B
+	io->set_iomap_range_w(0xb4, 0xb4, memory);
+#endif
 	io->set_iomap_range_rw(0xd8, 0xdb, fdc);
 	io->set_iomap_range_w(0xdc, 0xdd, floppy);
 	io->set_iomap_range_rw(0xe0, 0xe3, pio_i);
@@ -266,8 +269,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		device->initialize();
 	}
 	for(int i = 0; i < MAX_DRIVE; i++) {
-//		fdc->set_drive_type(i, DRIVE_TYPE_2DD);
-		fdc->set_drive_type(i, DRIVE_TYPE_2D);
+		fdc->set_drive_type(i, DRIVE_TYPE_2DD);
+//		fdc->set_drive_type(i, DRIVE_TYPE_2D);
 	}
 }
 

@@ -83,7 +83,6 @@ private:
 	int mix_limit;
 	bool dev_need_mix[MAX_DEVICE];
 	int need_mix;
-	bool sound_touched;
 	
 	void mix_sound(int samples);
 	void* get_event(int index);
@@ -147,7 +146,9 @@ public:
 	}
 	void set_lines_per_frame(int new_lines_per_frame)
 	{
-		next_lines_per_frame = new_lines_per_frame;
+		if(new_lines_per_frame < MAX_LINES) {
+			next_lines_per_frame = new_lines_per_frame;
+		}
 	}
 	void register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id);
 	void register_event_by_clock(DEVICE* device, int event_id, uint64_t clock, bool loop, int* register_id);

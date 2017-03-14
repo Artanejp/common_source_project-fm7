@@ -20,7 +20,10 @@ private:
 	int nmi_mask;
 	
 public:
-	SYSTEM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	SYSTEM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("System I/O"));
+	}
 	~SYSTEM() {}
 	
 	// common functions

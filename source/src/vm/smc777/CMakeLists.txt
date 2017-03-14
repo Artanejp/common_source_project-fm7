@@ -4,5 +4,5 @@ message("* vm/smc777")
 
 add_library(vm_smc777
 	smc777.cpp
-	io.cpp
+	memory.cpp
  )

@@ -33,10 +33,9 @@ private:
 	uint8_t port[2];
 	
 public:
-	MZ1M01(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
-#if defined(_USE_QT)		
-		set_device_name(_T("MZ-1M01 16bit CPU BOARD"));
-#endif
+	MZ1M01(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("MZ-1M01 (16bit CPU Board)"));
 	}
 	~MZ1M01() {}
 	

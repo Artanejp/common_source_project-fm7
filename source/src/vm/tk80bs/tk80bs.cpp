@@ -73,30 +73,18 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	memory = new MEMBUS(this, emu);
 	cpu = new I8080(this, emu);
 
-#if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));
 #if defined(_TK80BS)
-	sio_b->set_device_name(_T("i8251 SIO(TK-80BS/CMT)"));
-	pio_b->set_device_name(_T("i8255 PIO(TK-80BS/DISPLAY)"));
+	sio_b->set_device_name(_T("i8251 SIO (TK-80BS/CMT)"));
+	pio_b->set_device_name(_T("i8255 PIO (TK-80BS/DISPLAY)"));
 	memio->set_device_name(_T("I/O"));
-	pio_t->set_device_name(_T("i8255 PIO(TK-80/SOUND/KEYBOARD/DISPLAY)"));
+	pio_t->set_device_name(_T("i8255 PIO (TK-80/SOUND/KEYBOARD/DISPLAY)"));
 #else
-	pio_t->set_device_name(_T("i8255 PIO(TK-80/SOUND/KEYBOARD)"));
+	pio_t->set_device_name(_T("i8255 PIO (TK-80/SOUND/KEYBOARD)"));
 #endif
-	pcm0->set_device_name(_T("PCM SOUND #1"));
-	pcm1->set_device_name(_T("PCM SOUND #2"));
-	cpu->set_device_name(_T("CPU(i8080)"));
-#endif	
-#if defined(_USE_QT)
-#if defined(_TK80BS)
-	cmt->set_device_name(_T("CMT I/F"));
-#elif defined(_TK80) || defined(_TK85)
-	drec->set_device_name(_T("Data Recorder."));
-#endif
-	display->set_device_name(_T("DISPLAY"));
-	keyboard->set_device_name(_T("KEYBOARD"));
-	memory->set_device_name(_T("MEMORY BUS"));
-#endif	
+	pcm0->set_device_name(_T("1-Bit PCM Sound #1"));
+	pcm1->set_device_name(_T("1-Bit PCM Sound #2"));
+
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(pcm0);

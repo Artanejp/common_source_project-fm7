@@ -20,7 +20,10 @@ private:
 	DEVICE *d_pio;
 	
 public:
-	KEYBOARD(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	KEYBOARD(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Keyboard"));
+	}
 	~KEYBOARD() {}
 	
 	// unique functions

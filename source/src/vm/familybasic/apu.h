@@ -160,6 +160,7 @@ public:
 	APU(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		volume_l = volume_r = 1024;
+		set_device_name(_T("APU"));
 	}
 	~APU() {}
 	

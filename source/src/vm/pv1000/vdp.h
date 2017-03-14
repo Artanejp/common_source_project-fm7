@@ -30,7 +30,10 @@ private:
 	void draw_pcg(int x8, int y8, uint16_t top);
 	
 public:
-	VDP(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	VDP(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("VDP"));
+	}
 	~VDP() {}
 	
 	// common functions

@@ -25,7 +25,14 @@ private:
 #endif
 	
 public:
-	FMSOUND(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	FMSOUND(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+#ifdef SUPPORT_PC98_OPNA
+		set_device_name(_T("PC-9801-86 (FM Sound)"));
+#else
+		set_device_name(_T("PC-9801-26 (FM Sound)"));
+#endif
+	}
 	~FMSOUND() {}
 	
 	// common functions

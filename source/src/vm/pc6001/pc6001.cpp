@@ -69,9 +69,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-#if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));
-#endif	
 	pio_sub = new I8255(this, emu);
 	io = new IO(this, emu);
 #if defined(_PC6001MK2SR) || defined(_PC6601SR)
@@ -80,20 +78,12 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	psg = new AY_3_891X(this, emu);
 #endif
 	cpu = new Z80(this, emu);
-#if defined(_USE_QT)
 #ifdef _PC6001
 	pio_sub->set_device_name(_T("i8255 PIO(PRINTER/SOUND/SUB/VDP)"));
 #else
 	pio_sub->set_device_name(_T("i8255 PIO(PRINTER/SOUND/SUB)"));
 #endif
-#if defined(_PC6601SR) || defined(_PC6001MK2SR)
-	psg->set_device_name(_T("YM2203 OPN"));
-#else
-	psg->set_device_name(_T("AY-3-8910 PSG"));
-#endif
-	cpu->set_device_name(_T("CPU(Z80)"));
-#endif	
-	
+
 	if(config.printer_device_type == 0) {
 		printer = new PRNFILE(this, emu);
 	} else {
@@ -102,19 +92,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 #if defined(_PC6601) || defined(_PC6601SR)
 	floppy = new FLOPPY(this, emu);
-#if defined(_USE_QT)
-	floppy->set_device_name(_T("FLOPPY I/F"));
-#endif
 #endif
 	joystick = new JOYSTICK(this, emu);
 	memory = new MEMORY(this, emu);
 	timer = new TIMER(this, emu);
-#if defined(_USE_QT)
-	joystick->set_device_name(_T("JOYSTICK I/F"));
-	memory->set_device_name(_T("MEMORY"));
-	timer->set_device_name(_T("TIMER"));
-#endif
-	
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(psg);
@@ -132,9 +113,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	vdp->load_font_image(create_local_path(_T("CGROM60.60")));
 	vdp->set_context_cpu(cpu);
 	pio_sub->set_context_port_c(vdp, SIG_MC6847_ENABLE, 0x02, 0);	// CRTKILL
-#if defined(_USE_QT)
-	display->set_device_name(_T("DISPLAY I/F"));
-#endif
 #else
 	voice = new UPD7752(this, emu);
 	event->set_context_sound(voice);
@@ -149,8 +127,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #endif
 	if(support_sub_cpu) {
 		cpu_sub = new MCS48(this, emu);
+		cpu_sub->set_device_name(_T("MCS48 MCU (Sub)"));
 		sub = new SUB(this, emu);
 		drec = new DATAREC(this, emu);
+		drec->set_device_name(_T("Data Recorder (Sub)"));
 		event->set_context_cpu(cpu_sub, 8000000);
 		event->set_context_sound(drec);
 #if defined(USE_SOUND_FILES)
@@ -170,9 +150,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		timer->set_context_sub(sub);
 	} else {
 		psub = new PSUB(this, emu);
-#if defined(_USE_QT)
-		psub->set_device_name(_T("PSEUDO SUB SYSTEM"));
-#endif
 		psub->set_context_pio(pio_sub);
 		psub->set_context_timer(timer);
 		timer->set_context_sub(psub);
@@ -184,13 +161,12 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		pc80s31k = new PC80S31K(this, emu);
 		fdc_pc80s31k = new UPD765A(this, emu);
 		cpu_pc80s31k = new Z80(this, emu);
-#if defined(_USE_QT)
-		pio_fdd->set_device_name(_T("i8255 PIO(FDD)"));
-		pio_pc80s31k->set_device_name(_T("i8255 PIO(PC-80S31K)"));
-		pc80s31k->set_device_name(_T("PC-80S31K FDD"));
-		fdc_pc80s31k->set_device_name(_T("uPD765A FDC(PC-80S31K)"));
-		cpu_pc80s31k->set_device_name(_T("Z80 CPU(PC-80S31K)"));
-#endif
+		pio_fdd->set_device_name(_T("i8255 PIO (FDD I/F)"));
+		pio_pc80s31k->set_device_name(_T("i8255 PIO (320KB FDD)"));
+		pc80s31k->set_device_name(_T("PC-80S31K (320KB FDD)"));
+		fdc_pc80s31k->set_device_name(_T("uPD765A FDC (320KB FDD)"));
+		cpu_pc80s31k->set_device_name(_T("Z80 CPU (320KB FDD)"));
+
 #if defined(USE_SOUND_FILES)
 		if(fdc_pc80s31k->load_sound_data(UPD765A_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
 			event->set_context_sound(fdc_pc80s31k);

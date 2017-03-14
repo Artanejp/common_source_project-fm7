@@ -40,7 +40,6 @@ void EVENT::initialize_sound(int rate, int samples)
 	buffer_ptr = 0;
 	mix_counter = 1;
 	mix_limit = (int)((double)(emu->get_sound_rate() / 2000.0)); // per 0.5ms.
-	sound_touched = false;
 	
 	// register event
 	this->register_event(this, EVENT_MIX, 1000000.0 / rate, true, NULL);
@@ -281,7 +280,7 @@ void EVENT::register_event_by_clock(DEVICE* device, int event_id, uint64_t clock
 {
 #ifdef _DEBUG_LOG
 	if(!initialize_done && !loop) {
-		this->out_debug_log(_T("EVENT: non-loop event is registered before initialize is done\n"));
+		this->out_debug_log(_T("EVENT: device (name=%s, id=%d) registeres non-loop event before initialize is done\n"), device->this_device_name, device->this_device_id);
 	}
 #endif
 	
@@ -351,7 +350,7 @@ void EVENT::cancel_event(DEVICE* device, int register_id)
 	if(0 <= register_id && register_id < MAX_EVENT) {
 		event_t *event_handle = &event[register_id];
 		if(device != NULL && device != event_handle->device) {
-			this->out_debug_log(_T("EVENT: event cannot be canceled by non owned device (id=%d) !!!\n"), device->this_device_id);
+			this->out_debug_log(_T("EVENT: device (name=%s, id=%d) tries to calcel event that is not its own !!!\n"), device->this_device_name, device->this_device_id);
 			return;
 		}
 		if(event_handle->active) {
@@ -370,23 +369,39 @@ void EVENT::cancel_event(DEVICE* device, int register_id)
 	}
 }
 
-void EVENT::register_frame_event(DEVICE* dev)
+void EVENT::register_frame_event(DEVICE* device)
 {
 	if(frame_event_count < MAX_EVENT) {
-		frame_event[frame_event_count++] = dev;
-	} else {
+		for(int i = 0; i < frame_event_count; i++) {
+			if(frame_event[i] == device) {
 #ifdef _DEBUG_LOG
+				this->out_debug_log(_T("EVENT: device (name=%s, id=%d) has already registered frame event !!!\n"), device->this_device_name, device->this_device_id);
+#endif
+				return;
+			}
+		}
+		frame_event[frame_event_count++] = device;
+#ifdef _DEBUG_LOG
+	} else {
 		this->out_debug_log(_T("EVENT: too many frame events !!!\n"));
 #endif
 	}
 }
 
-void EVENT::register_vline_event(DEVICE* dev)
+void EVENT::register_vline_event(DEVICE* device)
 {
 	if(vline_event_count < MAX_EVENT) {
-		vline_event[vline_event_count++] = dev;
-	} else {
+		for(int i = 0; i < vline_event_count; i++) {
+			if (vline_event[i] == device) {
 #ifdef _DEBUG_LOG
+				this->out_debug_log(_T("EVENT: device (name=%s, id=%d) has already registered vline event !!!\n"), device->this_device_name, device->this_device_id);
+#endif
+				return;
+			}
+		}
+		vline_event[vline_event_count++] = device;
+#ifdef _DEBUG_LOG
+	} else {
 		this->out_debug_log(_T("EVENT: too many vline events !!!\n"));
 #endif
 	}
@@ -410,21 +425,15 @@ double EVENT::get_event_remaining_usec(int register_id)
 
 void EVENT::touch_sound(void)
 {
-	if(!config.sound_strict_rendering) {
-		if((need_mix <= 0) /* && !sound_touched */) {
-			int samples = mix_counter;
-			if(samples >= (sound_tmp_samples - buffer_ptr)) {
-				samples = sound_tmp_samples - buffer_ptr - 1; 
-			}
-			if(samples > 0) {
-				mix_sound(samples);
-				mix_counter -= samples;
-			}
-			//if(mix_counter < 1) {
-			//	mix_counter = 1;
-			//}
-			sound_touched = true;
+	if(!(config.sound_strict_rendering || (need_mix > 0))) {
+		int samples = mix_counter;
+		if(samples >= (sound_tmp_samples - buffer_ptr)) {
+			samples = sound_tmp_samples - buffer_ptr;
 		}
+		if(samples > 0) {
+			mix_sound(samples);
+			mix_counter -= samples;
+ 		}
 	}
 }
 
@@ -453,28 +462,24 @@ void EVENT::event_callback(int event_id, int err)
 	
 	if(remain > 0) {
 		int samples = mix_counter;
-		if(samples >= remain) {
-			samples = remain - 1;
-		}
+	
 		if(config.sound_strict_rendering || (need_mix > 0)) {
 			if(samples < 1) {
 				samples = 1;
 			}
-			mix_sound(samples);
+		}
+		if(samples >= remain) {
+			samples = remain;
+		}
+		if(config.sound_strict_rendering || (need_mix > 0)) {
+			if(samples > 0) {
+				mix_sound(samples);
+			}
 			mix_counter = 1;
-			sound_touched = false;
 		} else {
-			if((need_mix > 0) || (mix_counter >= mix_limit) /* || sound_touched */) {
-				if(samples > 0) {
-					mix_sound(samples);
-					mix_counter -= samples;
-				}
-				//	if(mix_counter < 1) {
-				//	mix_counter = 1;
-				//}
-				sound_touched = false;
-			//} else {
-			//	mix_counter++;
+			if(samples > 0 && mix_counter >= mix_limit) {
+				mix_sound(samples);
+				mix_counter -= samples;
 			}
 			mix_counter++;
 		}
@@ -678,7 +683,6 @@ bool EVENT::load_state(FILEIO* state_fio)
 	buffer_ptr = 0;
 	mix_counter = 1;
 	mix_limit = (int)((double)(emu->get_sound_rate() / 2000.0));  // per 0.5ms.
-	sound_touched = false;
 	return true;
 }
 

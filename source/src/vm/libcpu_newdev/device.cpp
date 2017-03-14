@@ -189,13 +189,23 @@ void DEVICE::set_realtime_render(DEVICE *device, bool flag)
 	if(device != event_manager) event_manager->set_realtime_render(device, flag);
 }
 
-#ifdef _USE_QT
-void DEVICE::set_device_name(const _TCHAR *name)
+void DEVICE::set_device_name(const _TCHAR *format, ...)
 {
-	if(name == NULL) return;
-	strncpy(this_device_name, name, 128);
-	emu->get_osd()->set_vm_node(this_device_id, (_TCHAR *)name);
+	if(format != NULL) {
+		va_list ap;
+		_TCHAR buffer[1024];
+		
+		va_start(ap, format);
+		my_vstprintf_s(buffer, 1024, format, ap);
+		va_end(ap);
+
+		my_tcscpy_s(this_device_name, 128, buffer);
+#ifdef _USE_QT
+		emu->get_osd()->set_vm_node(this_device_id, buffer);
+#endif
+	}
 }
+
 void DEVICE::out_debug_log(const char *fmt, ...)
 {
 	char strbuf[4096];
@@ -206,24 +216,6 @@ void DEVICE::out_debug_log(const char *fmt, ...)
 	csp_logger->debug_log(CSP_LOG_DEBUG, this_device_id + CSP_LOG_TYPE_VM_DEVICE_0, "%s", strbuf);
 	va_end(ap);
 }
-#else
-void DEVICE::set_device_name(const _TCHAR *name)
-{
-	if(name == NULL) return;
-	strncpy(this_device_name, name, 128);
-}
-
-void DEVICE::out_debug_log(const char *fmt, ...)
-{
-	char strbuf[4096];
-	va_list ap;
-	
-	va_start(ap, fmt);
-	vsnprintf(strbuf, 4095, fmt, ap);
-	emu->out_debug_log("%s", strbuf);
-	va_end(ap);
-}
-#endif
 
 // debugger
 void *DEVICE::get_debugger()

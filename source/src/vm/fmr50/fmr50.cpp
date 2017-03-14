@@ -141,7 +141,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	sio = new I8251(this, emu);
 	pit0 = new I8253(this, emu);
+	pit0->set_device_name(_T("8253 PIT #0"));
 	pit1 = new I8253(this, emu);
+	pit1->set_device_name(_T("8253 PIT #1"));
 	pic = new I8259(this, emu);
 	io = new IO(this, emu);
 	fdc = new MB8877(this, emu);
@@ -163,11 +165,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	for(int i = 0; i < 7; i++) {
 		if(FILEIO::IsFileExisting(create_local_path(_T("SCSI%d.DAT"), i))) {
 			SCSI_HDD* scsi_hdd = new SCSI_HDD(this, emu);
-#if defined(_USE_QT)
-			char d_name[64] = {0};
-			snprintf(d_name, 64, "SCSI DISK #%d", i + 1);
-			scsi_hdd->set_device_name(d_name);
-#endif			
+			scsi_hdd->set_device_name("SCSI Hard Disk Drive #%d", i + 1);
 			scsi_hdd->scsi_id = i;
 			scsi_hdd->set_context_interface(scsi_host);
 			scsi_host->set_context_target(scsi_hdd);

@@ -21,7 +21,10 @@ private:
 	DEVICE* d_pit;
 	
 public:
-	TIMER(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	TIMER(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Timer I/F"));
+	}
 	~TIMER() {}
 	
 	// common function

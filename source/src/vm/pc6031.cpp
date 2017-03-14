@@ -305,6 +305,7 @@ void PC6031::initialize()
 {
 	for(int i = 0; i < 2; i++) {
 		disk[i] = new DISK(emu);
+		disk[i]->set_device_name(_T("%s/Disk #%d"), this_device_name, i + 1);
 	}
 	DrvNum = 1;
 	memset(&mdisk, 0, sizeof(DISK60));

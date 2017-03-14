@@ -52,7 +52,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	beep = new BEEP(this, emu);
 	sio = new I8251(this, emu);
 	pio0 = new I8255(this, emu);
+	pio0->set_device_name(_T("8255 PIO (RTC)"));
 	pio1 = new I8255(this, emu);
+	pio1->set_device_name(_T("8255 PIO (CRTC)"));
 	pic = new I8259(this, emu);
 	cpu = new I86(this, emu);
 	io = new IO(this, emu);

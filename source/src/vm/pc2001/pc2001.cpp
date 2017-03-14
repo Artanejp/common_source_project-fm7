@@ -45,9 +45,13 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	memory = new MEMORY(this, emu);
 	pcm = new PCM1BIT(this, emu);
 	lcd[0] = new UPD16434(this, emu);
+	lcd[0]->set_device_name(_T("uPD16434 LCD Controller #0"));
 	lcd[1] = new UPD16434(this, emu);
+	lcd[1]->set_device_name(_T("uPD16434 LCD Controller #1"));
 	lcd[2] = new UPD16434(this, emu);
+	lcd[2]->set_device_name(_T("uPD16434 LCD Controller #2"));
 	lcd[3] = new UPD16434(this, emu);
+	lcd[3]->set_device_name(_T("uPD16434 LCD Controller #3"));
 	rtc = new UPD1990A(this, emu);
 	cpu = new UPD7810(this, emu);
 #if defined(_USE_QT)

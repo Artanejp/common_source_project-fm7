@@ -110,7 +110,7 @@
     <ClCompile Include="..\src\vm\z80.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\vm\smc777\io.cpp">
+    <ClCompile Include="..\src\vm\smc777\memory.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\vm\smc777\smc777.cpp">
@@ -172,7 +172,7 @@
     <ClInclude Include="..\src\vm\z80.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\vm\smc777\io.h">
+    <ClInclude Include="..\src\vm\smc777\memory.h">
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\smc777\smc777.h">

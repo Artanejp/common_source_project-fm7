@@ -21,6 +21,8 @@
 
 #if defined(USE_DEVICES_SHARED_LIB)
 #include "libcpu_newdev/device.h"
+
+#else
 // max devices connected to the output port
 #define MAX_OUTPUT	16
 
@@ -49,7 +51,6 @@
 #define SIG_SCSI_ACK		309
 #define SIG_SCSI_RST		310
 
-#else
 class DEVICE
 {
 protected:
@@ -669,27 +670,24 @@ public:
 	// sound
 	virtual void mix(int32_t* buffer, int cnt) {}
 	virtual void set_volume(int ch, int decibel_l, int decibel_r) {} // +1 equals +0.5dB (same as fmgen)
+	virtual void set_device_name(const _TCHAR *format, ...)
+	{
+		if(format != NULL) {
+			va_list ap;
+			_TCHAR buffer[1024];
+			
+			va_start(ap, format);
+			my_vstprintf_s(buffer, 1024, format, ap);
+			va_end(ap);
+			
+			my_tcscpy_s(this_device_name, 128, buffer);
 #ifdef _USE_QT
-	virtual void set_device_name(const _TCHAR *name) {
-		if(name == NULL) return;
-		strncpy(this_device_name, name, 128);
-		emu->get_osd()->set_vm_node(this_device_id, (_TCHAR *)name);
-	}
-	virtual void out_debug_log(const char *fmt, ...) {
-		char strbuf[4096];
-		va_list ap;
-
-		va_start(ap, fmt);
-		vsnprintf(strbuf, 4095, fmt, ap);
-		csp_logger->debug_log(CSP_LOG_DEBUG, this_device_id + CSP_LOG_TYPE_VM_DEVICE_0, "%s", strbuf);
-		va_end(ap);
-	}
-#else
-	virtual void set_device_name(const _TCHAR *name) {
-		if(name == NULL) return;
-		strncpy(this_device_name, name, 128);
-	}
-	virtual void out_debug_log(const char *fmt, ...) {
+			emu->get_osd()->set_vm_node(this_device_id, buffer);
+#endif
+ 		}
+ 	}
+	virtual void out_debug_log(const char *fmt, ...)
+	{
 		char strbuf[4096];
 		va_list ap;
 
@@ -698,7 +696,7 @@ public:
 		emu->out_debug_log("%s", strbuf);
 		va_end(ap);
 	}
-#endif
+
 #ifdef USE_DEBUGGER
 	// debugger
 	virtual void *get_debugger()

@@ -56,14 +56,19 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	drec = new DATAREC(this, emu);
 	crtc = new HD46505(this, emu);
 	pio0 = new I8255(this, emu);
+	pio0->set_device_name(_T("8255 PIO (Display)"));
 	pio1 = new I8255(this, emu);
+	pio1->set_device_name(_T("8255 PIO (Display/Memory)"));
 	pio2 = new I8255(this, emu);
+	pio2->set_device_name(_T("8255 PIO (Sound/Data Recorder)"));
 	io = new IO(this, emu);
 	flipflop = new LS393(this, emu); // LS74
 	not_remote = new NOT(this, emu);
 	pcm = new PCM1BIT(this, emu);
 	psg0 = new SN76489AN(this, emu);
+	psg0->set_device_name(_T("SN76489AN PSG #1"));
 	psg1 = new SN76489AN(this, emu);
+	psg1->set_device_name(_T("SN76489AN PSG #2"));
 	fdc = new UPD765A(this, emu);
 	cpu = new Z80(this, emu);
 	ctc = new Z80CTC(this, emu);

@@ -36,7 +36,10 @@ private:
 	void draw_sprite(int dx, int dy, int sx, int ex, int sy, int ey, int no, uint8_t col);
 	
 public:
-	VDP(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	VDP(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("VDP"));
+	}
 	~VDP() {}
 	
 	// common functions

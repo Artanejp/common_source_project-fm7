@@ -52,7 +52,10 @@ private:
 	drive_t drive[2];
 	
 public:
-	SASI(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	SASI(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("SASI I/F"));
+	}
 	~SASI() {}
 	
 	// common functions

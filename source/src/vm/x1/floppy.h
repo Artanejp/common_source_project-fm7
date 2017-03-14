@@ -34,6 +34,7 @@ public:
 	{
 		prev = 0;
 		motor_on = false;
+		set_device_name(_T("Floppy I/F"));
 	}
 	~FLOPPY() {}
 	

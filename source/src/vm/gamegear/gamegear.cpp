@@ -47,7 +47,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	drec = new DATAREC(this, emu);
 	sio = new I8251(this, emu);
 	pio_k = new I8255(this, emu);
+	pio_k->set_device_name(_T("8255 PIO (Keyboard)"));
 	pio_f = new I8255(this, emu);
+	pio_f->set_device_name(_T("8255 PIO (Floppy I/F)"));
 	io = new IO(this, emu);
 	psg = new SN76489AN(this, emu);
 	vdp = new _315_5124(this, emu);

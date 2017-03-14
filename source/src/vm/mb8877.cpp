@@ -109,9 +109,7 @@ void MB8877::initialize()
 		_TCHAR strbuf[128];
 		_TCHAR strbuf2[128];
 		disk[i] = new DISK(emu);
-		strncpy(strbuf, (_TCHAR *)this->get_device_name(), 128);
-		snprintf(strbuf2, 128, "%s/DRIVE%d", strbuf, i + 1);
-		disk[i]->set_device_name((const _TCHAR *)strbuf2);
+		disk[i]->set_device_name(_T("%s/Disk #%d"), this_device_name, i + 1);
 	}
 	
 	// initialize timing

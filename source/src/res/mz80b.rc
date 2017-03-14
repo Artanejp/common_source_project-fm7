@@ -226,6 +226,11 @@ BEGIN
         MENUITEM "Wait Vsync",                  ID_SCREEN_WAIT_VSYNC
         MENUITEM SEPARATOR
         MENUITEM "Scanline",                    ID_SCREEN_SCANLINE
+        MENUITEM SEPARATOR
+        MENUITEM "Green Monitor",               ID_SCREEN_MONITOR_TYPE0
+        MENUITEM "Color Monitor (PIO-3039)",    ID_SCREEN_MONITOR_TYPE1
+        MENUITEM "Both Green and Color (PIO-3039)", ID_SCREEN_MONITOR_TYPE2
+        MENUITEM "Both Color (PIO-3039) and Green", ID_SCREEN_MONITOR_TYPE3
     END
     POPUP "Sound"
     BEGIN

@@ -259,8 +259,13 @@ private:
 #endif
 	
 public:
-	PC88(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
-		set_device_name(_T("PC88 BASE"));
+	PC88(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+#if defined(_PC8001SR)
+		set_device_name(_T("PC-8001 Core"));
+#else
+		set_device_name(_T("PC-8801 Core"));
+#endif
 	}
 	~PC88() {}
 	

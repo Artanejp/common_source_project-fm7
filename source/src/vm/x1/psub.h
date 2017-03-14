@@ -6,7 +6,7 @@
 	Author : Takeda.Toshiya
 	Date   : 2009.03.15-
 
-	[ pseudo sub cpu ]
+	[ pseudo sub system ]
 */
 
 #ifndef _PSUB_H_
@@ -55,8 +55,9 @@ private:
 	uint16_t get_key(int code, bool repeat);
 	
 public:
-	PSUB(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
-		set_device_name(_T("PSEUDO SUBSYSTEM"));
+	PSUB(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Pseudo Sub System"));
 	}
 	~PSUB() {}
 	

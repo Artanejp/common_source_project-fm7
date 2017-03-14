@@ -22,7 +22,10 @@ private:
 	DEVICE *d_pcm, *d_psg;
 	
 public:
-	SPEAKER(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	SPEAKER(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Speaker"));
+	}
 	~SPEAKER() {}
 	
 	// common functions

@@ -168,7 +168,10 @@ private:
 	void key_update();
 	
 public:
-	SUB(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	SUB(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Sub CPU Bus"));
+	}
 	~SUB() {}
 	
 	// common functions

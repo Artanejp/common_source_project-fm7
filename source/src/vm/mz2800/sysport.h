@@ -20,7 +20,10 @@ private:
 	DEVICE *d_pit, *d_sio;
 	
 public:
-	SYSPORT(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	SYSPORT(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("System I/O"));
+	}
 	~SYSPORT() {}
 	
 	// common functions

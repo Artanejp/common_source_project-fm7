@@ -5,6 +5,11 @@
 	Author : Takeda.Toshiya
 	Date   : 2013.03.14-
 
+	I-O DATA PIO-3039 Emulator
+
+	Author : Mr.Suga
+	Data   : 2017.02.22-
+
 	[ memory/crtc ]
 */
 
@@ -54,13 +59,30 @@ private:
 	uint8_t font[0x800];
 	uint8_t screen_txt[200][640];
 	uint8_t screen_gra[200][640];
+	
 	uint8_t back_color, text_color, vram_mask;
 	bool width80, reverse;
 	bool hblank;
+	
+#ifdef _MZ80B
+	// PIO-3039
+	scrntype_t pio3039_color[8];
+	uint8_t pio3039_palette[8];
+	uint8_t screen_80b_green[200][640];
+	uint8_t screen_80b_vram1[200][640];
+	uint8_t screen_80b_vram2[200][640];
+	
+	bool pio3039_txt_sw;
+	uint8_t pio3039_data;
+#else
 	void update_green_palette();
+#endif
 	
 public:
-	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Memory Bus"));
+	}
 	~MEMORY() {}
 	
 	// common functions

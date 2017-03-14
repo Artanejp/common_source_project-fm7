@@ -165,7 +165,15 @@ public:
 		memset(snd_seek_name, 0x00, sizeof(snd_seek_name));
 		memset(snd_head_name, 0x00, sizeof(snd_head_name));
 #endif
+#if defined(HAS_MB89311)
+		set_device_name(_T("MB89311 FDC"));
+#elif defined(HAS_MB8866)
+		set_device_name(_T("MB8866 FDC"));
+#elif defined(HAS_MB8876)
+		set_device_name(_T("MB8876 FDC"));
+#else
 		set_device_name(_T("MB8877 FDC"));
+#endif
 	}
 	~MB8877() {}
 	

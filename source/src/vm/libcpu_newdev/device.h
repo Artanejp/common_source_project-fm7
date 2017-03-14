@@ -546,8 +546,7 @@ public:
 	// sound
 	virtual void mix(int32_t* buffer, int cnt) {}
 	virtual void set_volume(int ch, int decibel_l, int decibel_r) {} // +1 equals +0.5dB (same as fmgen)
-
-	virtual void set_device_name(const _TCHAR *name);
+	virtual void set_device_name(const _TCHAR *format, ...);
 	virtual void out_debug_log(const char *fmt, ...);
 #if 1
 	// debugger

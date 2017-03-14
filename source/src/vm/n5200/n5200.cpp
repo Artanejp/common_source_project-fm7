@@ -48,15 +48,21 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	cpu = new I386(this, emu);
 	dma = new I8237(this, emu);
 	sio_r = new I8251(this, emu);	// for rs232c
+	sio_r->set_device_name(_T("8251 SIO (RS-232C)"));
 	sio_k = new I8251(this, emu);	// for keyboard
+	sio_k->set_device_name(_T("8251 SIO (Keyboard)"));
 	pit = new I8253(this, emu);
 	pio_s = new I8255(this, emu);	// for system port
+	pio_s->set_device_name(_T("8255 PIO (System)"));
 	pio_p = new I8255(this, emu);	// for printer
+	pio_p->set_device_name(_T("8255 PIO (Printer)"));
 	pic = new I8259(this, emu);
 	io = new IO(this, emu);
 	rtc = new UPD1990A(this, emu);
 	gdc_c = new UPD7220(this, emu);
+	gdc_c->set_device_name(_T("uPD7220 GDC (Character)"));
 	gdc_g = new UPD7220(this, emu);
+	gdc_g->set_device_name(_T("uPD7220 GDC (Graphics)"));
 	fdc = new UPD765A(this, emu);
 #if defined(_USE_QT)
 	cpu->set_device_name(_T("CPU(i386)"));

@@ -60,7 +60,7 @@ public:
 	{
 		intfd = int0 = int1 = int2 = int3 = int4 = false;
 		me = e1 = false;
-		set_device_name(_T("MAIN"));
+		set_device_name(_T("Memory Bus(MAIN)"));
 	}
 	~MAIN() {}
 	

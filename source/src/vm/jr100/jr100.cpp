@@ -42,7 +42,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	drec = new DATAREC(this, emu);
 	cpu = new MC6800(this, emu);	// MB8861N
 	not_mic = new NOT(this, emu);
+	not_mic->set_device_name(_T("NOT Gate (Mic)"));
 	not_ear = new NOT(this, emu);
+	not_ear->set_device_name(_T("NOT Gate (Ear)"));
 	pcm = new PCM1BIT(this, emu);
 	via = new SY6522(this, emu);
 #if defined(_USE_QT)

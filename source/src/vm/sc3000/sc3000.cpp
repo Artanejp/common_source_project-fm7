@@ -39,31 +39,23 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-#if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));
-#endif	
-	
+
 	drec = new DATAREC(this, emu);
 	sio = new I8251(this, emu);
 	pio_k = new I8255(this, emu);
+	pio_k->set_device_name(_T("8255 PIO (Keyboard)"));
 	pio_f = new I8255(this, emu);
+	pio_f->set_device_name(_T("8255 PIO (Floppy I/F)"));
 	io = new IO(this, emu);
 	psg = new SN76489AN(this, emu);
 	vdp = new TMS9918A(this, emu);
 	fdc = new UPD765A(this, emu);
 	cpu = new Z80(this, emu);
-#if defined(_USE_QT)
-	pio_k->set_device_name(_T("i8255 PIO(KEYBOARD)"));
-	pio_f->set_device_name(_T("i8255 PIO(FDC)"));
-	cpu->set_device_name(_T("CPU(Z80)"));
-#endif	
-	
+
 	key = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
-#if defined(_USE_QT)
-	key->set_device_name(_T("KEYBOARD I/F"));
-	memory->set_device_name(_T("MEMORY"));
-#endif	
+   
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(psg);

@@ -20,7 +20,10 @@ private:
 	DEVICE* d_rtc;
 	
 public:
-	CALENDAR(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	CALENDAR(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("RTC I/F"));
+	}
 	~CALENDAR() {}
 	
 	// common functions

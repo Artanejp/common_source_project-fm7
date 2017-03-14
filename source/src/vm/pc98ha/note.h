@@ -22,7 +22,10 @@ private:
 	uint8_t ch, regs[16];
 	
 public:
-	NOTE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	NOTE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("98NOTE I/O"));
+	}
 	~NOTE() {}
 	
 	// common functions

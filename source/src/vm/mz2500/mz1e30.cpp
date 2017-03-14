@@ -4,7 +4,7 @@
 	Author : Takeda.Toshiya
 	Date   : 2004.09.10 -
 
-	[ MZ-1E30 (SASI) ]
+	[ MZ-1E30 (SASI I/F) ]
 */
 
 #include "mz1e30.h"

@@ -51,9 +51,13 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	rtc = new HD146818P(this, emu);
 	dma0 = new I8237(this, emu);
+	dma0->set_device_name(_T("8237 DMAC (FDC/GDC)"));
 	dma1 = new I8237(this, emu);
+	dma1->set_device_name(_T("8237 DMAC (User)"));
 	pit0 = new I8253(this, emu);
+	pit0->set_device_name(_T("8253 PIT (Sound/PIC)"));
 	pit1 = new I8253(this, emu);
+	pit1->set_device_name(_T("8253 PIT (Sound/SIO)"));
 	pio = new I8255(this, emu);
 	pic = new I8259(this, emu);
 	io = new IO(this, emu);

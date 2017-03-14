@@ -40,7 +40,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	not_ear = new NOT(this, emu);
 	cpu = new Z80(this, emu);
 	pio1 = new Z80PIO(this, emu);
+	pio1->set_device_name(_T("8255 PIO (LEDs/Keyboard/CMT)"));
 	pio2 = new Z80PIO(this, emu);
+	pio2->set_device_name(_T("8255 PIO (User)"));
 	
 	memory = new MEMORY(this, emu);
 	

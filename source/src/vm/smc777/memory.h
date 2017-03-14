@@ -5,27 +5,27 @@
 	Author : Takeda.Toshiya
 	Date   : 2015.08.13-
 
-	[ i/o and memory bus ]
+	[ memory and i/o bus ]
 */
 
-#ifndef _IO_H_
-#define _IO_H_
+#ifndef _MEMORY_H_
+#define _MEMORY_H_
 
 #include "../vm.h"
 #include "../../emu.h"
 #include "../device.h"
 
-#define SIG_IO_DATAREC_IN	0
-#define SIG_IO_CRTC_DISP	1
-#define SIG_IO_CRTC_VSYNC	2
-#define SIG_IO_FDC_DRQ		3
-#define SIG_IO_FDC_IRQ		4
+#define SIG_MEMORY_DATAREC_IN	0
+#define SIG_MEMORY_CRTC_DISP	1
+#define SIG_MEMORY_CRTC_VSYNC	2
+#define SIG_MEMORY_FDC_DRQ	3
+#define SIG_MEMORY_FDC_IRQ	4
 #if defined(_SMC70)
-#define SIG_IO_RTC_DATA		5
-#define SIG_IO_RTC_BUSY		6
+#define SIG_MEMORY_RTC_DATA	5
+#define SIG_MEMORY_RTC_BUSY	6
 #endif
 
-class IO : public DEVICE
+class MEMORY : public DEVICE
 {
 private:
 	// contexts
@@ -116,10 +116,11 @@ private:
 #endif
 	
 public:
-	IO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
-		set_device_name(_T("I/O"));
+	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Memory Bus"));
 	}
-	~IO() {}
+	~MEMORY() {}
 	
 	// common functions
 	void initialize();

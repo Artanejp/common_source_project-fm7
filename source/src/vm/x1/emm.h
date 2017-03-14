@@ -25,7 +25,10 @@ private:
 	uint32_t data_addr;
 	
 public:
-	EMM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	EMM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("EMM"));
+	}
 	~EMM() {}
 	
 	// common functions

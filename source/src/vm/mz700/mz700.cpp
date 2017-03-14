@@ -63,46 +63,35 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-#if defined(_USE_QT)
+
 	dummy->set_device_name(_T("1st Dummy"));
 	event->set_device_name(_T("EVENT"));
-#endif	
+
 	and_int = new AND(this, emu);
+	and_int->set_device_name(_T("AND Gate (IRQ)"));
+   
 	drec = new DATAREC(this, emu);
 	pit = new I8253(this, emu);
 	pio = new I8255(this, emu);
 	io = new IO(this, emu);
 	pcm = new PCM1BIT(this, emu);
 	cpu = new Z80(this, emu);
-#if defined(_USE_QT)
-	and_int->set_device_name(_T("AND GATE(INTERRUPT)"));
+
 	cpu->set_device_name(_T("CPU(Z80)"));
-#endif	
-	
 //	cmos = new CMOS(this, emu);
 	emm = new EMM(this, emu);
 	kanji = new KANJI(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
 	ramfile = new RAMFILE(this, emu);
-#if defined(_USE_QT)
-	emm->set_device_name(_T("EMM"));
-	kanji->set_device_name(_T("KANJI ROM"));
-	keyboard->set_device_name(_T("KEYBOARD I/F"));
-	memory->set_device_name(_T("MEMORY"));
-	ramfile->set_device_name(_T("RAM FILES"));
-#endif	
+
 #if defined(_MZ800) || defined(_MZ1500)
 	and_snd = new AND(this, emu);
-  #if defined(_USE_QT)
-	and_snd->set_device_name(_T("AND GATE(SOUND)"));
-  #endif
+	and_snd->set_device_name(_T("AND Gate (Sound)"));
 	fdc = new MB8877(this, emu);	// mb8876
 #if defined(_MZ800)
 	not_pit = new NOT(this, emu);
-  #if defined(_USE_QT)
-	not_pit->set_device_name(_T("NOT GATE(PIT)"));
-  #endif
+	not_pit->set_device_name(_T("NOT Gate (PIT)"));
 	psg = new SN76489AN(this, emu);
 #elif defined(_MZ1500)
 	if(config.printer_device_type == 0) {
@@ -116,31 +105,25 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	not_strobe = new NOT(this, emu);
 	psg_l = new SN76489AN(this, emu);
 	psg_r = new SN76489AN(this, emu);
-  #if defined(_USE_QT)
-	not_reset->set_device_name(_T("NOT GATE(RESET)"));
-	not_strobe->set_device_name(_T("NOT GATE(PRINTER STROBE)"));
-	psg_l->set_device_name(_T("SN76489AN PSG(LEFT)"));
-	psg_r->set_device_name(_T("SN76489AN PSG(RIGHT)"));
-  #endif
+
+	not_reset->set_device_name(_T("NOT Gate (Reset)"));
+	not_strobe->set_device_name(_T("NOT Gate (Prinet Strobe)"));
+	psg_l->set_device_name(_T("SN76489AN PSG (Left)"));
+	psg_r->set_device_name(_T("SN76489AN PSG (Right)"));
+
 #endif
 	pio_int = new Z80PIO(this, emu);
 	sio_rs = new Z80SIO(this, emu);
 	sio_qd = new Z80SIO(this, emu);
 	
 	floppy = new FLOPPY(this, emu);
-#if defined(_USE_QT)
 	floppy->set_device_name(_T("FLOPPY I/F"));
-#endif
 #if defined(_MZ1500)
 	psg = new PSG(this, emu);
-#if defined(_USE_QT)
 	psg->set_device_name(_T("PSG I/F"));
 #endif
-#endif
 	qd = new QUICKDISK(this, emu);
-#if defined(_USE_QT)
 	qd->set_device_name(_T("QUICKDISK I/F"));
-#endif
 #endif
 	
 	// set contexts

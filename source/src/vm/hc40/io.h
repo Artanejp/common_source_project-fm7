@@ -71,8 +71,9 @@ private:
 	scrntype_t pd, pb;
 	
 public:
-	IO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
-		set_device_name(_T("HC40 I/O"));
+	IO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("I/O Bus"));
 	}
 	~IO() {}
 	

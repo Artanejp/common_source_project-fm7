@@ -225,6 +225,7 @@ private:
 	uint8_t key_converted[256];
 	bool key_shift_pressed, key_shift_released;
 #endif
+	bool key_caps_locked;
 	bool lost_focus;
 	
 #ifdef USE_JOYSTICK

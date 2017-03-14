@@ -110,6 +110,7 @@ protected:
 	I8255* pio;
 	IO* subio;
 	LS244* ls244;
+	NOT* not_data0;
 	NOT* not_data1;
 	NOT* not_data2;
 	NOT* not_data3;
@@ -117,7 +118,6 @@ protected:
 	NOT* not_data5;
 	NOT* not_data6;
 	NOT* not_data7;
-	NOT* not_data8;
 	NOT* not_busy;
 	PCM1BIT* pcm;
 	UPD1990A* rtc;

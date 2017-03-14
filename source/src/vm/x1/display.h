@@ -113,7 +113,10 @@ private:
 	uint16_t jis2sjis(uint16_t jis);
 	
 public:
-	DISPLAY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	DISPLAY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Display"));
+	}
 	~DISPLAY() {}
 	
 	// common functions
