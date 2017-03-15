@@ -14,9 +14,18 @@
 #include "fm7_common.h"
 
 
+#if defined(_FM77AV40EX) || defined(_FM77AV40SX)
+#define __FM7_GVRAM_PAG_SIZE (0x8000 * 6)
+#elif defined(_FM77AV40)
+#define __FM7_GVRAM_PAG_SIZE (0x2000 * 18)
+#elif defined(_FM77AV_VARIANTS)
+#define __FM7_GVRAM_PAG_SIZE (0x2000 * 12)
+#else
+#define __FM7_GVRAM_PAG_SIZE (0x4000 * 3)
+#endif
+
 class DEVICE;
 class MC6809;
-
 class DISPLAY: public DEVICE
 {
 private:
@@ -104,10 +113,14 @@ protected:
 	bool clock_fast;
 	int display_mode;
 	bool halt_flag;
-	int active_page;
+	int active_page; // GVRAM is Double-Buffer.
+	
 	uint32_t prev_clock;
-	uint32_t frame_skip_count;
+	uint8_t frame_skip_count_draw;
+	uint8_t frame_skip_count_transfer;
+	bool need_transfer_line;
 	bool palette_changed;
+	
 	// Event handler
 	int nmi_event_id;
 
@@ -205,21 +218,13 @@ protected:
 # endif
 #endif	
 
-#if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	uint8_t gvram[0x8000 * 6];
-	uint8_t gvram_shadow[0x8000 * 6];
-	//uint8_t gvram_shadow2[0x8000 * 6];
-#elif defined(_FM77AV40)
-	uint8_t gvram[0x2000 * 18];
-	uint8_t gvram_shadow[0x2000 * 18];
-	//uint8_t gvram_shadow2[0x2000 * 18];
-#elif defined(_FM77AV_VARIANTS)
-	uint8_t gvram[0x2000 * 12];
-	uint8_t gvram_shadow[0x2000 * 12];
-#else
-	uint8_t gvram[0x4000 * 3];
-	uint8_t gvram_shadow[0x4000 * 3];
-#endif
+	// VRAM Write Page.
+	uint8_t  write_access_page;
+	
+	// ROM/RAM on Sub-System.
+	uint8_t gvram[__FM7_GVRAM_PAG_SIZE];
+	uint8_t gvram_shadow[__FM7_GVRAM_PAG_SIZE];
+	
 	uint8_t console_ram[0x1000];
 	uint8_t work_ram[0x380];
 	uint8_t shared_ram[0x80];
@@ -249,7 +254,9 @@ protected:
 	bool vram_wrote_shadow;
 	bool vram_wrote_table[411];
 	bool vram_draw_table[411];
-
+	uint8_t vram_wrote_pages[411];
+	uint32_t vram_wrote_addr_1[411];
+	uint32_t vram_wrote_addr_2[411];
 #if defined(_FM77AV_VARIANTS)
 	bool use_alu;
 	DEVICE *alu;

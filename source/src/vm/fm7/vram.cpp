@@ -355,7 +355,7 @@ void DISPLAY::GETVRAM_4096(int yoff, scrntype_t *p, uint32_t mask,
 	uint32_t b3, r3, g3;
 	uint8_t  bb[4], rr[4], gg[4];
 	uint16_t pixels[8];
-	
+	uint16_t __masks[8] = {mask, mask, mask, mask, mask, mask, mask, mask};
 	scrntype_t b, r, g;
 	uint32_t idx;;
 	scrntype_t pixel;
@@ -381,7 +381,6 @@ void DISPLAY::GETVRAM_4096(int yoff, scrntype_t *p, uint32_t mask,
 		yoff_d2 += 0x18000;
 	}
 # endif
-#if 1
 	bb[0] = gvram_shadow[yoff_d1];
 	bb[1] = gvram_shadow[yoff_d1 + 0x02000];
 	rr[0] = gvram_shadow[yoff_d1 + 0x04000];
@@ -425,103 +424,14 @@ void DISPLAY::GETVRAM_4096(int yoff, scrntype_t *p, uint32_t mask,
 		tmp_b[i]  = p0[i] | p1[i] | p2[i] | p3[i];
 	}
 	for(int i = 0; i < 8; i++) {
-		pixels[i] = (tmp_g[i] * 16) | tmp_r[i] | (tmp_b[i] / 16);
+		pixels[i] = ((tmp_g[i] * 16) | tmp_r[i] | (tmp_b[i] / 16)) & __masks[i];
 	}
-	for(int i = 0; i < 8; i++) {
-		pixels[i] = pixels[i] & mask;
-	}
+	//for(int i = 0; i < 8; i++) {
+	//	pixels[i] = pixels[i] & mask;
+	//}
 	for(int i = 0; i < 8; i++) {
 		p[i] = analog_palette_pixel[pixels[i]];
 	}
-#else
-	b3  = gvram_shadow[yoff_d1] << 24;
-	b3 |= gvram_shadow[yoff_d1 + 0x02000] << 16;
-	r3  = gvram_shadow[yoff_d1 + 0x04000] << 24;
-	r3 |= gvram_shadow[yoff_d1 + 0x06000] << 16;
-		
-	g3  = gvram_shadow[yoff_d1 + 0x08000] << 24;
-	g3 |= gvram_shadow[yoff_d1 + 0x0a000] << 16;
-		
-	b3 |= gvram_shadow[yoff_d2 + 0x0c000] << 8;
-	b3 |= gvram_shadow[yoff_d2 + 0x0e000] << 0;
-		
-	r3 |= gvram_shadow[yoff_d2 + 0x10000] << 8;
-	r3 |= gvram_shadow[yoff_d2 + 0x12000] << 0;
-	g3 |= gvram_shadow[yoff_d2 + 0x14000] << 8;
-	g3 |= gvram_shadow[yoff_d2 + 0x16000] << 0;
-   
-	g = ((g3 & (0x80 << 24)) >> 20) | ((g3 & (0x80 << 16)) >> 13) | ((g3 & (0x80 << 8)) >> 6)  | ((g3 & 0x80) << 1);
-	r = ((r3 & (0x80 << 24)) >> 24) | ((r3 & (0x80 << 16)) >> 17) | ((r3 & (0x80 << 8)) >> 10) | ((r3 & 0x80) >> 3);
-	b = ((b3 & (0x80 << 24)) >> 28) | ((b3 & (0x80 << 16)) >> 21) | ((b3 & (0x80 << 8)) >> 14) | ((b3 & 0x80) >> 7);
-	   
-	idx = (g  | b | r ) & mask;
-	pixel = analog_palette_pixel[idx];
-	p[0] = pixel;
-	//p[1] = pixel;
-
-	g = ((g3 & (0x40 << 24)) >> 19) | ((g3 & (0x40 << 16)) >> 12) | ((g3 & (0x40 << 8)) >> 5)  | ((g3 & 0x40) << 2);
-	r = ((r3 & (0x40 << 24)) >> 23) | ((r3 & (0x40 << 16)) >> 16) | ((r3 & (0x40 << 8)) >> 9)  | ((r3 & 0x40) >> 2);
-	b = ((b3 & (0x40 << 24)) >> 27) | ((b3 & (0x40 << 16)) >> 20) | ((b3 & (0x40 << 8)) >> 13) | ((b3 & 0x40) >> 6);
-	
-	idx = (g  | b | r ) & mask;
-	pixel = analog_palette_pixel[idx];
-	p[1] = pixel;
-	//p[3] = pixel;
-
-	g = ((g3 & (0x20 << 24)) >> 18) | ((g3 & (0x20 << 16)) >> 11) | ((g3 & (0x20 << 8)) >> 4)  | ((g3 & 0x20) << 3);
-	r = ((r3 & (0x20 << 24)) >> 22) | ((r3 & (0x20 << 16)) >> 15) | ((r3 & (0x20 << 8)) >> 8)  | ((r3 & 0x20) >> 1);
-	b = ((b3 & (0x20 << 24)) >> 26) | ((b3 & (0x20 << 16)) >> 19) | ((b3 & (0x20 << 8)) >> 12) | ((b3 & 0x20) >> 5);
-	   
-	idx = (g  | b | r ) & mask;
-	pixel = analog_palette_pixel[idx];
-	p[2] = pixel;
-	//p[5] = pixel;
-
-	g = ((g3 & (0x10 << 24)) >> 17) | ((g3 & (0x10 << 16)) >> 10) | ((g3 & (0x10 << 8)) >> 3)  | ((g3 & 0x10) << 4);
-	r = ((r3 & (0x10 << 24)) >> 21) | ((r3 & (0x10 << 16)) >> 14) | ((r3 & (0x10 << 8)) >> 7)  | ((r3 & 0x10) >> 0);
-	b = ((b3 & (0x10 << 24)) >> 25) | ((b3 & (0x10 << 16)) >> 18) | ((b3 & (0x10 << 8)) >> 11) | ((b3 & 0x10) >> 4);
-	   
-	idx = (g  | b | r ) & mask;
-	pixel = analog_palette_pixel[idx];
-	p[3] = pixel;
-	//p[7] = pixel;
-
-	g = ((g3 & (0x8 << 24)) >> 16) | ((g3 & (0x8 << 16)) >> 9)  | ((g3 & (0x8 << 8)) >> 2)  | ((g3 & 0x8) << 5);
-	r = ((r3 & (0x8 << 24)) >> 20) | ((r3 & (0x8 << 16)) >> 13) | ((r3 & (0x8 << 8)) >> 6)  | ((r3 & 0x8) << 1);
-	b = ((b3 & (0x8 << 24)) >> 24) | ((b3 & (0x8 << 16)) >> 17) | ((b3 & (0x8 << 8)) >> 10) | ((b3 & 0x8) >> 3);
-	   
-	idx = (g  | b | r ) & mask;
-	pixel = analog_palette_pixel[idx];
-	p[4] = pixel;
-	//p[9] = pixel;
-
-	
-	g = ((g3 & (0x4 << 24)) >> 15) | ((g3 & (0x4 << 16)) >> 8)  | ((g3 & (0x4 << 8)) >> 1) | ((g3 & 0x4) << 6);
-	r = ((r3 & (0x4 << 24)) >> 19) | ((r3 & (0x4 << 16)) >> 12) | ((r3 & (0x4 << 8)) >> 5) | ((r3 & 0x4) << 2);
-	b = ((b3 & (0x4 << 24)) >> 23) | ((b3 & (0x4 << 16)) >> 16) | ((b3 & (0x4 << 8)) >> 9) | ((b3 & 0x4) >> 2);
-	   
-	idx = (g  | b | r ) & mask;
-	pixel = analog_palette_pixel[idx];
-	p[5] = pixel;
-	//p[11] = pixel;
-
-	g = ((g3 & (0x2 << 24)) >> 14) | ((g3 & (0x2 << 16)) >> 7)  | ((g3 & (0x2 << 8)) >> 0) | ((g3 & 0x2) << 7);
-	r = ((r3 & (0x2 << 24)) >> 18) | ((r3 & (0x2 << 16)) >> 11) | ((r3 & (0x2 << 8)) >> 4) | ((r3 & 0x2) << 3);
-	b = ((b3 & (0x2 << 24)) >> 22) | ((b3 & (0x2 << 16)) >> 15) | ((b3 & (0x2 << 8)) >> 8) | ((b3 & 0x2) >> 1);
-	   
-	idx = (g  | b | r ) & mask;
-	pixel = analog_palette_pixel[idx];
-	p[6] = pixel;
-	//p[13] = pixel;
-
-	g = ((g3 & (0x1 << 24)) >> 13) | ((g3 & (0x1 << 16)) >> 6)  | ((g3 & (0x1 << 8)) << 1) | ((g3 & 0x1) << 8);
-	r = ((r3 & (0x1 << 24)) >> 17) | ((r3 & (0x1 << 16)) >> 10) | ((r3 & (0x1 << 8)) >> 3) | ((r3 & 0x1) << 4);
-	b = ((b3 & (0x1 << 24)) >> 21) | ((b3 & (0x1 << 16)) >> 14) | ((b3 & (0x1 << 8)) >> 7) | ((b3 & 0x1) >> 0);
-	   
-	idx = (g  | b | r ) & mask;
-	pixel = analog_palette_pixel[idx];
-	p[7] = pixel;
-#endif	
 	//p[15] = pixel;
 }
 #endif
@@ -559,21 +469,12 @@ void DISPLAY::draw_screen2()
 		if(_flag != window_opened) vram_wrote_shadow = true;
 	}
 #endif
-	frame_skip_count++;
+//	frame_skip_count_draw++;
 #if defined(_FM77AV_VARIANTS)
-	{
-		uint32_t factor = (config.dipswitch & FM7_DIPSW_FRAMESKIP) >> 28;
-		if(frame_skip_count < factor) return;
-		frame_skip_count = 0;
-	}
 	yoff_d2 = 0;
 	yoff_d1 = 0;
 #else
-	{
-		uint32_t factor = (config.dipswitch & FM7_DIPSW_FRAMESKIP) >> 28;
-		if((frame_skip_count < factor) || !(vram_wrote_shadow)) return;
-		frame_skip_count = 0;
-	}
+	//if(!(vram_wrote_shadow)) return;
 	yoff_d1 = yoff_d2 = offset_point;
 #endif
 	  // Set blank
@@ -604,9 +505,19 @@ void DISPLAY::draw_screen2()
 			}
 		}
 		crt_flag_bak = crt_flag;
+//		{
+//			uint32_t factor = ((config.dipswitch & FM7_DIPSW_FRAMESKIP) >> 28) & 3;
+//			if(frame_skip_count_draw < factor) return;
+//			frame_skip_count_draw = 0;
+//		}
 		return;
 	}
 	crt_flag_bak = crt_flag;
+//	{
+//		uint32_t factor = ((config.dipswitch & FM7_DIPSW_FRAMESKIP) >> 28) & 3;
+//		if(frame_skip_count_draw < factor) return;
+//		frame_skip_count_draw = 0;
+//	}
 	if(!vram_wrote_shadow && !palette_changed) return;
 	vram_wrote_shadow = false;
 	if(palette_changed) {
