@@ -1068,6 +1068,14 @@ void DISPLAY::event_callback(int event_id, int err)
 			hblank = false;
 			f = false;
 			mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x02, 0xff);
+  			if(displine == 0) {
+  				if(display_mode == DISPLAY_MODE_8_400L) {
+					usec = 30.0 + 11.0;
+				} else {
+					usec = 39.5 + 24.0;
+				}
+				register_event(this, EVENT_FM7SUB_HDISP, usec, true, &hdisp_event_id);
+			}
 			if(display_mode == DISPLAY_MODE_8_400L) {
 				usec = 30.0;
 				if(displine < 400) f = true;
@@ -1090,20 +1098,23 @@ void DISPLAY::event_callback(int event_id, int err)
 			hblank = true;
 			mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x00, 0xff);
 			f = false;
+			displine++;
 			if(display_mode == DISPLAY_MODE_8_400L) {
 				if((displine < 400)) f = true;
 			} else {
 				if((displine < 200)) f = true;
 			}
-			if(f) {
-				if(display_mode == DISPLAY_MODE_8_400L) {
-					usec = 11.0;
-				} else {
-					usec = 24.0;
-				}
-				register_event(this, EVENT_FM7SUB_HDISP, usec, false, &hdisp_event_id);
+			if(!f && (hdisp_event_id >= 0)) {
+				//if(display_mode == DISPLAY_MODE_8_400L) {
+				//	usec = 11.0;
+				//} else {
+				//	usec = 24.0;
+				//}
+				//register_event(this, EVENT_FM7SUB_HDISP, usec, false, &hdisp_event_id);
+				cancel_event(this, hdisp_event_id);
+				hdisp_event_id = -1;
 			}
-			displine++;
+			//displine++;
 			break;
 		case EVENT_FM7SUB_VSTART: // Call first.
 			vblank = true;
