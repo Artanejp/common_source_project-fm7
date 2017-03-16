@@ -61,7 +61,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
 	dummy->set_device_name(_T("1st Dummy"));
-	event->set_device_name(_T("EVENT"));
 	
 #if defined(_MZ1200) || defined(_MZ80A)
 	and_int = new AND(this, emu);
@@ -84,38 +83,31 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #if defined(SUPPORT_MZ80AIF)
 	io = new IO(this, emu);
 	fdc = new MB8877(this, emu);	// mb8866
+	fdc->set_context_noise_seek(new NOISE(this, emu));
+	fdc->set_context_noise_head_down(new NOISE(this, emu));
+	fdc->set_context_noise_head_up(new NOISE(this, emu));
 	mz80aif = new MZ80AIF(this, emu);
-	io->set_device_name(_T("I/O Bus"));
-
 #elif defined(SUPPORT_MZ80FIO)
 	io = new IO(this, emu);
 	fdc = new T3444A(this, emu);	// t3444m
+	fdc->set_context_noise_seek(new NOISE(this, emu));
+	fdc->set_context_noise_head_down(new NOISE(this, emu));
+	fdc->set_context_noise_head_up(new NOISE(this, emu));
 	mz80fio = new MZ80FIO(this, emu);
-	io->set_device_name(_T("I/O Bus"));
 #endif
 	
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(pcm);
 	event->set_context_sound(drec);
-#if defined(USE_SOUND_FILES)
-
-#if defined(SUPPORT_MZ80AIF)
-	if(fdc->load_sound_data(MB8877_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
-		event->set_context_sound(fdc);
-	}
-#elif defined(SUPPORT_MZ80FIO)
-	if(fdc->load_sound_data(T3444A_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
-		event->set_context_sound(fdc);
-	}
+#if defined(SUPPORT_MZ80AIF) || defined(SUPPORT_MZ80FIO)
+	event->set_context_sound(fdc->get_context_noise_seek());
+	event->set_context_sound(fdc->get_context_noise_head_down());
+	event->set_context_sound(fdc->get_context_noise_head_up());
 #endif
-	
-	drec->load_sound_data(DATAREC_SNDFILE_EJECT, _T("CMTEJECT.WAV"));
-	//drec->load_sound_data(DATAREC_SNDFILE_PLAY, _T("CMTPLAY.WAV"));
-	//drec->load_sound_data(DATAREC_SNDFILE_STOP, _T("CMTSTOP.WAV"));
-	drec->load_sound_data(DATAREC_SNDFILE_RELAY_ON, _T("CMTPLAY.WAV"));
-	drec->load_sound_data(DATAREC_SNDFILE_RELAY_OFF, _T("CMTSTOP.WAV"));
-#endif
+	event->set_context_sound(drec->get_context_noise_play());
+	event->set_context_sound(drec->get_context_noise_stop());
+	event->set_context_sound(drec->get_context_noise_fast());
 	
 #if defined(_MZ1200) || defined(_MZ80A)
 	and_int->set_context_out(cpu, SIG_CPU_IRQ, 1);
@@ -317,19 +309,6 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		drec->get_context_noise_stop()->set_volume(0, decibel_l, decibel_r);
 		drec->get_context_noise_fast()->set_volume(0, decibel_l, decibel_r);
 	}
-#if defined(USE_SOUND_FILES)
-	else if(ch == 2) {
-#if defined(SUPPORT_MZ80AIF)
-		fdc->set_volume(MB8877_SND_TYPE_SEEK, decibel_l, decibel_r);
-#elif defined(SUPPORT_MZ80FIO)
-		fdc->set_volume(T3444A_SND_TYPE_SEEK, decibel_l, decibel_r);
-#endif
-	} else if(ch == 3) {
-		drec->set_volume(2 + DATAREC_SNDFILE_RELAY_ON, decibel_l, decibel_r);
-		drec->set_volume(2 + DATAREC_SNDFILE_RELAY_OFF, decibel_l, decibel_r);
-		drec->set_volume(2 + DATAREC_SNDFILE_EJECT, decibel_l, decibel_r);
-	}		
-#endif
 }
 #endif
 
@@ -394,9 +373,6 @@ void VM::rec_tape(const _TCHAR* file_path)
 
 void VM::close_tape()
 {
-#if defined(USE_SOUND_FILES)
-	drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_EJECT, 1, 1);
-#endif
 	emu->lock_vm();
 	drec->close_tape();
 	emu->unlock_vm();

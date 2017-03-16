@@ -47,7 +47,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
 	dummy->set_device_name(_T("1st Dummy"));
-	event->set_device_name(_T("EVENT"));
+
 	// for main cpu
 	mainio = new IO(this, emu);
 	fdc = new UPD765A(this, emu);
@@ -101,33 +101,14 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	subcpu->set_device_name(_T("Z80 CPU (Sub)"));
 	subbus = new SUB(this, emu);
 	kbd = new KEYBOARD(this, emu);
-#if defined(_USE_QT)
-	subio->set_device_name(_T("SUB I/O"));
-	subcpu->set_device_name(_T("SUB CPU(Z80)"));
-	subbus->set_device_name(_T("SUB BUS"));
-	ls244->set_device_name(_T("74LS244(I/O)"));
-	not_data1->set_device_name(_T("NOT GATE #1"));
-	not_data2->set_device_name(_T("NOT GATE #2"));
-	not_data3->set_device_name(_T("NOT GATE #3"));
-	not_data4->set_device_name(_T("NOT GATE #4"));
-	not_data5->set_device_name(_T("NOT GATE #5"));
-	not_data6->set_device_name(_T("NOT GATE #6"));
-	not_data7->set_device_name(_T("NOT GATE #7"));
-	not_data8->set_device_name(_T("NOT GATE #8"));
-	gdc_chr->set_device_name(_T("uPD7220 GDC(CHARACTER)"));
-	gdc_gfx->set_device_name(_T("uPD7220 GDC(GRAPHICS)"));
-	kbd->set_device_name(_T("KEYBOARD I/F"));
-#endif	
 	
 	// set contexts
 	event->set_context_cpu(maincpu, CPU_CLOCKS);
 	event->set_context_cpu(subcpu, CPU_CLOCKS);
 	event->set_context_sound(pcm);
-#if defined(USE_SOUND_FILES)
-	if(fdc->load_sound_data(UPD765A_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
-		event->set_context_sound(fdc);
-	}
-#endif	
+	event->set_context_sound(fdc->get_context_noise_seek());
+	event->set_context_sound(fdc->get_context_noise_head_down());
+	event->set_context_sound(fdc->get_context_noise_head_up());
 	
 	// mz3500sm p.59
 	fdc->set_context_irq(mainbus, SIG_MAIN_INTFD, 1);
@@ -408,11 +389,6 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		fdc->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
 		fdc->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
 	}
-#if defined(USE_SOUND_FILES)
-	else if(ch == 1) {
-		fdc->set_volume(UPD765A_SND_TYPE_SEEK, decibel_l, decibel_r);
-	}
-#endif
 }
 #endif
 

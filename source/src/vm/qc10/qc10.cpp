@@ -46,9 +46,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-#if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));
-#endif	
 	
 	rtc = new HD146818P(this, emu);
 	dma0 = new I8237(this, emu);
@@ -70,35 +68,19 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	fdc->set_context_noise_head_up(new NOISE(this, emu));
 	cpu = new Z80(this, emu);
 	sio = new Z80SIO(this, emu);	// uPD7201
-#if defined(_USE_QT)
-	dma0->set_device_name(_T("i8237 DMAC(FDC/GDC:MASTER)"));
-	dma1->set_device_name(_T("i8237 DMAC(CHILD)"));
-	pit0->set_device_name(_T("i8253 PIT(SOUND)"));
-	pit1->set_device_name(_T("i8253 PIT(SOUND/KEYBOARD)"));
-	cpu->set_device_name(_T("CPU(Z80)"));
-	sio->set_device_name(_T("uPD7201 SIO(Z80 SIO COMPATIBLE)"));
-#endif	
 	
 	display = new DISPLAY(this, emu);
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
 	mfont = new MFONT(this, emu);
-#if defined(_USE_QT)
-	display->set_device_name(_T("DISPLAY"));
-	floppy->set_device_name(_T("FLOPPY I/F"));
-	keyboard->set_device_name(_T("KEYBOARD I/F"));
-	memory->set_device_name(_T("MEMORY"));
-	mfont->set_device_name(_T("MULTI-FONT ROM"));
-#endif	
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(pcm);
-#if defined(USE_SOUND_FILES)
-	if(fdc->load_sound_data(UPD765A_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
-		event->set_context_sound(fdc);
-	}
-#endif	
+	event->set_context_sound(fdc->get_context_noise_seek());
+	event->set_context_sound(fdc->get_context_noise_head_down());
+	event->set_context_sound(fdc->get_context_noise_head_up());
+	
 	rtc->set_context_intr(pic, SIG_I8259_IR2 | SIG_I8259_CHIP1, 1);
 	dma0->set_context_memory(memory);
 	dma0->set_context_ch0(fdc);
@@ -300,11 +282,6 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		fdc->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
 		fdc->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
 	}
-#if defined(USE_SOUND_FILES)
-	else if(ch == 1) {
-		fdc->set_volume(UPD765A_SND_TYPE_SEEK, decibel_l, decibel_r);
-	}
-#endif
 }
 #endif
 

@@ -35,10 +35,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-#if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));
-	event->set_device_name(_T("EVENT"));
-#endif	
 	
 	drec = new DATAREC(this, emu);
 	drec->set_context_noise_play(new NOISE(this, emu));
@@ -51,26 +48,16 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	not_ear->set_device_name(_T("NOT Gate (Ear)"));
 	pcm = new PCM1BIT(this, emu);
 	via = new SY6522(this, emu);
-#if defined(_USE_QT)
-	cpu->set_device_name(_T("CPU(MC6800)"));
-	not_mic->set_device_name(_T("NOT GATE(MIC)"));
-	not_ear->set_device_name(_T("NOT GATE(EAR PHONE)"));
-	pcm->set_device_name(_T("SOUND DEVICE"));
-	via->set_device_name(_T("SY6522 VIA"));
-#endif	
 	
 	memory = new MEMORY(this, emu);
-#if defined(_USE_QT)
-	memory->set_device_name(_T("MEMORY"));
-#endif	
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(pcm);
 	event->set_context_sound(drec);
-#if defined(USE_SOUND_FILES)
-	drec->load_sound_data(DATAREC_SNDFILE_RELAY_ON, _T("RELAY_ON.WAV"));
-	drec->load_sound_data(DATAREC_SNDFILE_RELAY_OFF, _T("RELAYOFF.WAV"));
-#endif
+	event->set_context_sound(drec->get_context_noise_play());
+	event->set_context_sound(drec->get_context_noise_stop());
+	event->set_context_sound(drec->get_context_noise_fast());
+	
 	via->set_context_port_a(memory, SIG_MEMORY_VIA_PORT_A, 0xff, 0);
 	via->set_context_port_b(memory, SIG_MEMORY_VIA_PORT_B, 0xff, 0);
 	via->set_context_port_b(pcm, SIG_PCM1BIT_SIGNAL, 0x80, 0);	// PB7 -> Speaker
@@ -207,12 +194,6 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		drec->get_context_noise_stop()->set_volume(0, decibel_l, decibel_r);
 		drec->get_context_noise_fast()->set_volume(0, decibel_l, decibel_r);
 	}
-#if defined(USE_SOUND_FILES)
-	else if(ch == 2) {
-		drec->set_volume(2 + DATAREC_SNDFILE_RELAY_ON,  decibel_l, decibel_r);
-		drec->set_volume(2 + DATAREC_SNDFILE_RELAY_OFF, decibel_l, decibel_r);
-	}
-#endif
 }
 #endif
 

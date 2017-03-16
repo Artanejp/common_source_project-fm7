@@ -41,10 +41,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-#if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));
-	event->set_device_name(_T("EVENT"));
-#endif	
+	
 	beep = new BEEP(this, emu);
 	cpu = new I386(this, emu);
 	dma = new I8237(this, emu);
@@ -65,37 +63,22 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	gdc_g = new UPD7220(this, emu);
 	gdc_g->set_device_name(_T("uPD7220 GDC (Graphics)"));
 	fdc = new UPD765A(this, emu);
-#if defined(_USE_QT)
-	cpu->set_device_name(_T("CPU(i386)"));
-	sio_r->set_device_name(_T("i8251 SIO(RS-232C)"));
-	sio_k->set_device_name(_T("i8251 SIO(KEYBOARD)"));
-	pio_s->set_device_name(_T("i8255 PIO(SYSTEM PORT)"));
-	pio_p->set_device_name(_T("i8255 PIO(PRINTER)"));
-	gdc_c->set_device_name(_T("uPD7220 GDC(CHARACTER)"));
-	gdc_g->set_device_name(_T("uPD7220 GDC(GRAPHICS)"));
-#endif	
+	fdc->set_context_noise_seek(new NOISE(this, emu));
+	fdc->set_context_noise_head_down(new NOISE(this, emu));
+	fdc->set_context_noise_head_up(new NOISE(this, emu));
 	
 	display = new DISPLAY(this, emu);
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
 	system = new SYSTEM(this, emu);
-#if defined(_USE_QT)
-	display->set_device_name(_T("DISPLAY I/F"));
-	floppy->set_device_name(_T("FLOPPY I/F"));
-	keyboard->set_device_name(_T("KEYBOARD I/F"));
-	memory->set_device_name(_T("MEMORY"));
-	system->set_device_name(_T("SYSTEM"));
-#endif	
 	
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(beep);
-#if defined(USE_SOUND_FILES)
-	if(fdc->load_sound_data(UPD765A_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
-		event->set_context_sound(fdc);
-	}
-#endif	
+	event->set_context_sound(fdc->get_context_noise_seek());
+	event->set_context_sound(fdc->get_context_noise_head_down());
+	event->set_context_sound(fdc->get_context_noise_head_up());
 	
 //???	sio_r->set_context_rxrdy(pic, SIG_I8259_CHIP0 | SIG_I8259_IR4, 1);
 	sio_k->set_context_rxrdy(pic, SIG_I8259_CHIP0 | SIG_I8259_IR1, 1);

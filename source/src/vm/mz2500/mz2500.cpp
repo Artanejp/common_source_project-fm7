@@ -61,10 +61,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-#if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));
-	event->set_device_name(_T("EVENT"));
-#endif	
 	
 	drec = new DATAREC(this, emu);
 	drec->set_context_noise_play(new NOISE(this, emu));
@@ -84,13 +81,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	cpu = new Z80(this, emu);
 	pio = new Z80PIO(this, emu);
 	sio = new Z80SIO(this, emu);
-#if defined(_USE_QT)
-	opn->set_device_name(_T("YM2203 OPN"));
-	cpu->set_device_name(_T("CPU(Z80)"));
+
 	pio_i->set_device_name(_T("i8255 PIO(CMT/CRTC)"));
 	pio->set_device_name(_T("Z80 PIO(KEYBOARD/CRTC)"));
 	sio->set_device_name(_T("Z80 SIO(MOUSE)"));
-#endif	
+
 	
 	calendar = new CALENDAR(this, emu);
 	cmt = new CMT(this, emu);
@@ -108,33 +103,17 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	printer = new PRINTER(this, emu);
 	serial = new SERIAL(this, emu);
 	timer = new TIMER(this, emu);
-#if defined(_USE_QT)
-	calendar->set_device_name(_T("CALENDAR"));
-	cmt->set_device_name(_T("CMT I/F"));
-	crtc->set_device_name(_T("CRT CONTROLLER"));
-	floppy->set_device_name(_T("FLOPPY I/F"));
-	interrupt->set_device_name(_T("INTERRUPT I/F"));
-	joystick->set_device_name(_T("JOYSTICK I/F"));
-	keyboard->set_device_name(_T("KEYBOARD I/F"));
-	mouse->set_device_name(_T("MOUSE I/F"));
-	printer->set_device_name(_T("PRINTER I/F"));
-	serial->set_device_name(_T("SERIAL I/F"));
-	timer->set_device_name(_T("TIMER I/F"));
-	memory->set_device_name(_T("MEMORY I/F"));
-#endif	
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(opn);
 	event->set_context_sound(pcm);
 	event->set_context_sound(drec);
-#if defined(USE_SOUND_FILES)
-	if(fdc->load_sound_data(MB8877_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
-		event->set_context_sound(fdc);
-	}
-	drec->load_sound_data(DATAREC_SNDFILE_EJECT, _T("CMTEJECT.WAV"));
-	drec->load_sound_data(DATAREC_SNDFILE_PLAY, _T("CMTPLAY.WAV"));
-	drec->load_sound_data(DATAREC_SNDFILE_STOP, _T("CMTSTOP.WAV"));
-#endif
+	event->set_context_sound(fdc->get_context_noise_seek());
+	event->set_context_sound(fdc->get_context_noise_head_down());
+	event->set_context_sound(fdc->get_context_noise_head_up());
+	event->set_context_sound(drec->get_context_noise_play());
+	event->set_context_sound(drec->get_context_noise_stop());
+	event->set_context_sound(drec->get_context_noise_fast());
 	
 	drec->set_context_ear(cmt, SIG_CMT_OUT, 1);
 	drec->set_context_remote(cmt, SIG_CMT_REMOTE, 1);

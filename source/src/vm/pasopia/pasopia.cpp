@@ -48,10 +48,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-#if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));
-	event->set_device_name(_T("EVENT"));
-#endif	
 	
 	drec = new DATAREC(this, emu);
 	drec->set_context_noise_play(new NOISE(this, emu));
@@ -75,45 +72,22 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	cpu = new Z80(this, emu);
 	ctc = new Z80CTC(this, emu);
 	pio = new Z80PIO(this, emu);
-#if defined(_USE_QT)
-	pio0->set_device_name(_T("i8255 PIO(MEMORY)"));
-	pio1->set_device_name(_T("i8255 PIO(DISPLAY/MEMORY)"));
-	pio2->set_device_name(_T("i8255 PIO(DATA RECORDER)"));
-	flipflop->set_device_name(_T("74LS74 F/F(SOUND OUT)"));
-	not_remote->set_device_name(_T("NOT GATE(REMOTE CONTROL)"));
-	cpu->set_device_name(_T("CPU(Z80)"));
-	pio->set_device_name(_T("Z80 PIO(SOUND/KEYBOARD/INTERRUPT)"));
-#endif	
 	
 	floppy = new FLOPPY(this, emu);
 	display = new DISPLAY(this, emu);
 	key = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
 	pac2 = new PAC2(this, emu);
-#if defined(_USE_QT)
-	floppy->set_device_name(_T("FLOPPY I/F"));
-	display->set_device_name(_T("DISPLAY I/F"));
-	key->set_device_name(_T("KEYBOARD I/F"));
-	memory->set_device_name(_T("MEMORY"));
-	pac2->set_device_name(_T("PAC2 I/F"));
-#endif	
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(pcm);
 	event->set_context_sound(drec);
-#if defined(USE_SOUND_FILES)
-	if(fdc->load_sound_data(UPD765A_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
-		event->set_context_sound(fdc);
-	}
-#if defined(_LCD)
-	drec->load_sound_data(DATAREC_SNDFILE_RELAY_ON,  _T("CMTPLAY.WAV"));
-	drec->load_sound_data(DATAREC_SNDFILE_RELAY_OFF, _T("CMTSTOP.WAV"));
-	drec->load_sound_data(DATAREC_SNDFILE_EJECT,     _T("CMTEJECT.WAV"));
-#else
-	drec->load_sound_data(DATAREC_SNDFILE_RELAY_ON, _T("RELAY_ON.WAV"));
-	drec->load_sound_data(DATAREC_SNDFILE_RELAY_OFF, _T("RELAYOFF.WAV"));
-#endif
-#endif
+	event->set_context_sound(fdc->get_context_noise_seek());
+	event->set_context_sound(fdc->get_context_noise_head_down());
+	event->set_context_sound(fdc->get_context_noise_head_up());
+	event->set_context_sound(drec->get_context_noise_play());
+	event->set_context_sound(drec->get_context_noise_stop());
+	event->set_context_sound(drec->get_context_noise_fast());
 	
 	drec->set_context_ear(pio2, SIG_I8255_PORT_B, 0x20);
 	crtc->set_context_disp(pio1, SIG_I8255_PORT_B, 8);
@@ -336,15 +310,6 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		drec->get_context_noise_stop()->set_volume(0, decibel_l, decibel_r);
 		drec->get_context_noise_fast()->set_volume(0, decibel_l, decibel_r);
 	}
-#if defined(USE_SOUND_FILES)
-	 else if(ch == 2) {
-		 fdc->set_volume(0, decibel_l, decibel_r);
-	 } else if(ch == 3) {
-		 for(int i = 0; i < DATAREC_SNDFILE_END; i++) {
-			 drec->set_volume(i + 2, decibel_l, decibel_r);
-		 }
-	 }
-#endif
 }
 #endif
 
@@ -380,24 +345,15 @@ bool VM::is_floppy_disk_protected(int drv)
 void VM::play_tape(const _TCHAR* file_path)
 {
 	drec->play_tape(file_path);
-#if defined(USE_SOUND_FILES) && defined(_LCD)
-	drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_RELAY_ON, 1, 1);
-#endif
 }
 
 void VM::rec_tape(const _TCHAR* file_path)
 {
 	drec->rec_tape(file_path);
-#if defined(USE_SOUND_FILES) && defined(_LCD)
-	drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_RELAY_ON, 1, 1);
-#endif
 }
 
 void VM::close_tape()
 {
-#if defined(USE_SOUND_FILES) && defined(_LCD)
-	drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_EJECT, 1, 1);
-#endif
 	emu->lock_vm();
 	drec->close_tape();
 	emu->unlock_vm();

@@ -38,10 +38,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-#if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));
-	event->set_device_name(_T("EVENT"));
-#endif	
 	
 	drec = new DATAREC(this, emu);
 	drec->set_context_noise_play(new NOISE(this, emu));
@@ -53,29 +50,16 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	vdp = new TMS9918A(this, emu);
 	cpu = new Z80(this, emu);
 	ctc = new Z80CTC(this, emu);
-#if defined(_USE_QT)
-	io->set_device_name(_T("I/O BUS"));
-	memory->set_device_name(_T("MEMORY"));
-	psg->set_device_name(_T("SN76489 PSG"));
-	vdp->set_device_name(_T("TMS9918 VDP"));
-	cpu->set_device_name(_T("CPU(Z80)"));
-	ctc->set_device_name(_T("Z80 CTC"));
-#endif	
 	
 	cmt = new CMT(this, emu);
 	key = new KEYBOARD(this, emu);
-#if defined(_USE_QT)
-	cmt->set_device_name(_T("CMT I/F"));
-	key->set_device_name(_T("KEYBOARD I/F"));
-#endif	
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(psg);
 	event->set_context_sound(drec);
-#if defined(USE_SOUND_FILES)
-	drec->load_sound_data(DATAREC_SNDFILE_RELAY_ON, _T("RELAY_ON.WAV"));
-	drec->load_sound_data(DATAREC_SNDFILE_RELAY_OFF, _T("RELAYOFF.WAV"));
-#endif	
+	event->set_context_sound(drec->get_context_noise_play());
+	event->set_context_sound(drec->get_context_noise_stop());
+	event->set_context_sound(drec->get_context_noise_fast());
 	
 	drec->set_context_ear(cmt, SIG_CMT_IN, 1);
 	drec->set_context_end(cmt, SIG_CMT_EOT, 1);
@@ -225,12 +209,6 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		drec->get_context_noise_stop()->set_volume(0, decibel_l, decibel_r);
 		drec->get_context_noise_fast()->set_volume(0, decibel_l, decibel_r);
 	}
-#if defined(USE_SOUND_FILES)
-	if(ch == 2) {
-		drec->set_volume(2 + DATAREC_SNDFILE_RELAY_ON , decibel_l, decibel_r);
-		drec->set_volume(2 + DATAREC_SNDFILE_RELAY_OFF, decibel_l, decibel_r);
-	}
-#endif
 }
 #endif
 

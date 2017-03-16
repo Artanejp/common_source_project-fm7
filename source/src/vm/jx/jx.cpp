@@ -45,10 +45,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-#if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));
-	event->set_device_name(_T("EVENT"));
-#endif	
+	
 	crtc = new HD46505(this, emu);
 	sio = new I8251(this, emu);
 	pit = new I8253(this, emu);
@@ -60,26 +58,14 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pcm = new PCM1BIT(this, emu);
 	psg = new SN76489AN(this, emu);	// SN76496N
 	fdc = new UPD765A(this, emu);
-#if defined(_USE_QT)
-	crtc->set_device_name(_T("HD46505 CRTC"));
-	sio->set_device_name(_T("i8251 SIO"));
-	cpu->set_device_name(_T("CPU(i8086)"));
-	io->set_device_name(_T("I/O"));
-	mem->set_device_name(_T("MEMORY"));
-	psg->set_device_name(_T("SN76489 PSG"));
-	fdc->set_device_name(_T("uPD765A FDC"));
-#endif	
+	fdc->set_context_noise_seek(new NOISE(this, emu));
+	fdc->set_context_noise_head_down(new NOISE(this, emu));
+	fdc->set_context_noise_head_up(new NOISE(this, emu));
 	
 	display = new DISPLAY(this, emu);
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	speaker = new SPEAKER(this, emu);
-#if defined(_USE_QT)
-	display->set_device_name(_T("DISPLAY"));
-	floppy->set_device_name(_T("FDD I/F"));
-	keyboard->set_device_name(_T("KEYBOARD"));
-	speaker->set_device_name(_T("SPEAKER"));
-#endif	
 	/* IRQ	0 Timer Clock Interrupt
 		1 I/O Channel (Reserved)
 		2 I/O Channel
@@ -93,11 +79,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(pcm);
-#if defined(USE_SOUND_FILES)	
-	if(fdc->load_sound_data(UPD765A_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
-		event->set_context_sound(fdc);
-	}
-#endif	
+	event->set_context_sound(fdc->get_context_noise_seek());
+	event->set_context_sound(fdc->get_context_noise_head_down());
+	event->set_context_sound(fdc->get_context_noise_head_up());
 
 	// cpu bus
 	cpu->set_context_mem(mem);
@@ -303,11 +287,6 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		fdc->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
 		fdc->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
 	}
-#if defined(USE_SOUND_FILES)
-	else if(ch == 1) {
-		fdc->set_volume(0, decibel_l, decibel_r);
-	}
-#endif
 }
 #endif
 

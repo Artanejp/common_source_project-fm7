@@ -32,14 +32,7 @@
 #define USE_AUTO_KEY_RELEASE	8
 #define USE_AUTO_KEY_CAPS
 #define USE_ACCESS_LAMP
-#define USE_SOUND_FILES		3
-#define USE_SOUND_FILES_FDD
-#define USE_SOUND_FILES_RELAY
-#if defined(USE_SOUND_FILES)
 #define USE_SOUND_VOLUME	4
-#else
-#define USE_SOUND_VOLUME	2
-#endif
 #define SUPPORT_TV_RENDER
 #define USE_JOYSTICK
 #define USE_DEBUGGER
@@ -50,10 +43,7 @@
 
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
-	_T("PSG"), _T("CMT"),
-#if defined(USE_SOUND_FILES)
-	_T("FDD SEEK"), _T("CMT Relay"),
-#endif
+	_T("PSG"), _T("CMT (Signal)"), _T("Noise (FDD)"), _T("Noise (CMT)"),
 };
 #endif
 

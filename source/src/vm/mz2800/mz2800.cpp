@@ -56,14 +56,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-#if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));
-	event->set_device_name(_T("EVENT"));
-#endif	
+
 	cpu = new I286(this, emu);
-#if defined(_USE_QT)
-	cpu->set_device_name(_T("CPU(i286)"));
-#endif	
 	pit = new I8253(this, emu);
 	pio0 = new I8255(this, emu);
 	pic = new I8259(this, emu);
@@ -73,9 +68,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	fdc->set_context_noise_head_down(new NOISE(this, emu));
 	fdc->set_context_noise_head_up(new NOISE(this, emu));
 	not_busy = new NOT(this, emu);
-#if defined(_USE_QT)
 	not_busy->set_device_name(_T("NOT GATE(PRINTER BUSY)"));
-#endif
+
 	pcm = new PCM1BIT(this, emu);
 	rtc = new RP5C01(this, emu);	// RP-5C15
 //	sasi = new SASI(this, emu);
@@ -94,27 +88,14 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	rst = new RESET(this, emu);
 	serial = new SERIAL(this, emu);
 	sysport = new SYSPORT(this, emu);
-#if defined(_USE_QT)
-	crtc->set_device_name(_T("CRTC"));
-	floppy->set_device_name(_T("FLOPPY I/F"));
-	joystick->set_device_name(_T("JOYSTICK I/F"));
-	keyboard->set_device_name(_T("KEYBOARD I/F"));
-	memory->set_device_name(_T("MEMORY"));
-	mouse->set_device_name(_T("MOUSE I/F"));
-	printer->set_device_name(_T("PRINTER I/F"));
-	rst->set_device_name(_T("RESET I/F"));
-	serial->set_device_name(_T("SERIAL I/F"));
-	sysport->set_device_name(_T("SYSTEM PORT"));
-#endif	
+	
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(opn);
 	event->set_context_sound(pcm);
-#if defined(USE_SOUND_FILES)
-	if(fdc->load_sound_data(MB8877_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
-		event->set_context_sound(fdc);
-	}
-#endif	
+	event->set_context_sound(fdc->get_context_noise_seek());
+	event->set_context_sound(fdc->get_context_noise_head_down());
+	event->set_context_sound(fdc->get_context_noise_head_up());
 	
 	pit->set_constant_clock(0, 31250);
 	pit->set_constant_clock(2, 31250);
@@ -355,11 +336,6 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		fdc->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
 		fdc->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
 	}
-#if defined(USE_SOUND_FILES)
-	else if(ch == 3) {
-		fdc->set_volume(MB8877_SND_TYPE_SEEK, decibel_l, decibel_r);
-	}
-#endif
 }
 #endif
 

@@ -37,14 +37,7 @@
 #define USE_SCANLINE
 #define SUPPORT_ROMA_KANA_CONVERSION
 
-#define USE_SOUND_FILES		2
-//#define USE_SOUND_FILES_FDD
-#define USE_SOUND_FILES_RELAY
-#if defined(USE_SOUND_FILES)
 #define USE_SOUND_VOLUME	3
-#else
-#define USE_SOUND_VOLUME	2
-#endif
 #define SUPPORT_TV_RENDER
 #define USE_DEBUGGER
 #define USE_STATE
@@ -54,10 +47,7 @@
 
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
-	_T("PSG"), _T("CMT"),
-#if defined(USE_SOUND_FILES)
-	_T("CMT Relay"),
-#endif
+	_T("PSG"), _T("CMT (Signal)"), _T("Noise (CMT)"),
 };
 #endif
 

@@ -57,24 +57,16 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-#if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));
-	event->set_device_name(_T("EVENT"));
-#endif	
 	
 	crtc = new HD46505(this, emu);
 	dma = new I8237(this, emu);
 #ifndef TYPE_SL
 	dma2 = new I8237(this, emu);
 #endif
-#if defined(_USE_QT)
-	crtc->set_device_name(_T("HD46505 CRTC"));
- #ifdef TYPE_SL
-	dma->set_device_name(_T("i8237 DMAC"));
- #else
+#ifndef TYPE_SL
 	dma->set_device_name(_T("i8237 DMAC #1"));
 	dma2->set_device_name(_T("i8237 DMAC #2"));
- #endif
 #endif
 //	sio = new I8250(this, emu);
 	pit = new I8253(this, emu);	// i8254
@@ -95,18 +87,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #else
 	rtc = new HD146818P(this, emu);
 #endif
-#if defined(_USE_QT)
-	pit->set_device_name(_T("i8253 PIT"));
-	pic->set_device_name(_T("i8259 PIC"));
-	cpu->set_device_name(_T("CPU(i86)"));
-	io->set_device_name(_T("I/O BUS"));
-	pcm->set_device_name(_T("SOUND DEVICE"));
-  #ifdef TYPE_SL
-	rtc->set_device_name(_T("RP5C01 RTC"));
-  #else
-	rtc->set_device_name(_T("HD146818P RTC"));
-  #endif
-#endif
+	
 	display = new DISPLAY(this, emu);
 	dmareg = new DMAREG(this, emu);
 	floppy = new FLOPPY(this, emu);
@@ -114,23 +95,13 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	memory = new MEMORY(this, emu);
 	sasi = new SASI(this, emu);
 	system = new SYSTEM(this, emu);
-#if defined(_USE_QT)
-	display->set_device_name(_T("DISPLAY"));
-	dmareg->set_device_name(_T("DMA REG"));
-	floppy->set_device_name(_T("FLOPPY"));
-	keyboard->set_device_name(_T("KEYBOARD"));
-	memory->set_device_name(_T("MEMORY"));
-	sasi->set_device_name(_T("SASI I/F"));
-	system->set_device_name(_T("SYSTEM"));
-#endif
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(pcm);
-#if defined(USE_SOUND_FILES)
-	if(fdc->load_sound_data(UPD765A_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
-		event->set_context_sound(fdc);
-	}
-#endif	
+	event->set_context_sound(fdc->get_context_noise_seek());
+	event->set_context_sound(fdc->get_context_noise_head_down());
+	event->set_context_sound(fdc->get_context_noise_head_up());
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
@@ -366,11 +337,6 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		fdc->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
 		fdc->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
 	}
-#if defined(USE_SOUND_FILES)
-	else if(ch == 1) {
-		fdc->set_volume(0, decibel_l, decibel_r);
-	}
-#endif
 }
 #endif
 

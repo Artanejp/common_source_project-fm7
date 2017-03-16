@@ -47,10 +47,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-#if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));
-	event->set_device_name(_T("EVENT"));
-#endif	
 	
 	beep = new BEEP(this, emu);
 	crtc = new HD46505(this, emu);
@@ -66,11 +63,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 //	psg = new YM2203(this, emu);
 	psg = new AY_3_891X(this, emu);
 	cpu = new Z80(this, emu);
-#if defined(_USE_QT)
-	psg->set_device_name(_T("AY-3-8910 PSG"));
-	io->set_device_name(_T("I/O"));
-	cpu->set_device_name(_T("CPU(Z80)"));
-#endif	
 	
 	cmt = new CMT(this, emu);
 	display = new DISPLAY(this, emu);
@@ -78,23 +70,15 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	kanji = new KANJI(this, emu);
 	key = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
-#if defined(_USE_QT)
-	cmt->set_device_name(_T("CMT I/F"));
-	display->set_device_name(_T("DISPLAY I/F"));
-	floppy->set_device_name(_T("FDD I/F"));
-	kanji->set_device_name(_T("KANJI ROM"));
-	key->set_device_name(_T("KEYBOARD I/F"));
-	memory->set_device_name(_T("MEMORY"));
-#endif
+	
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(beep);
 	event->set_context_sound(psg);
-#if defined(USE_SOUND_FILES)
-	if(fdc->load_sound_data(UPD765A_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
-		event->set_context_sound(fdc);
-	}
-#endif	
+	event->set_context_sound(fdc->get_context_noise_seek());
+	event->set_context_sound(fdc->get_context_noise_head_down());
+	event->set_context_sound(fdc->get_context_noise_head_up());
+
 	crtc->set_context_vsync(pio, SIG_I8255_PORT_A, 0x20);
 	sio->set_context_out(cmt, SIG_CMT_OUT);
 	pit->set_context_ch1(pit, SIG_I8253_CLOCK_2, 1);
@@ -258,11 +242,6 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		fdc->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
 		fdc->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
 	}
-#if defined(USE_SOUND_FILES)
-	else if(ch == 2) {
-		fdc->set_volume(UPD765A_SND_TYPE_SEEK, decibel_l, decibel_r);
-	}
-#endif
 }
 #endif
 

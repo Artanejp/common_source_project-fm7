@@ -41,9 +41,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-#if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));
-#endif	
 	
 	drec = new DATAREC(this, emu);
 	drec->set_context_noise_play(new NOISE(this, emu));
@@ -55,31 +53,19 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 //	psg = new YM2203(this, emu);
 	psg = new AY_3_891X(this, emu);
 	cpu = new Z80(this, emu);
-#if defined(_USE_QT)
-	io->set_device_name(_T("I/O BUS"));
 	not_vsync->set_device_name(_T("NOT GATE(VSYNC)"));
-	psg->set_device_name(_T("AY-3-8910 PSG"));
-	cpu->set_device_name(_T("CPU(Z80)"));
-#endif	
 	
 	joystick = new JOYSTICK(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
 	system = new SYSTEM(this, emu);
-#if defined(_USE_QT)
-	joystick->set_device_name(_T("JOYSTICK I/F"));
-	keyboard->set_device_name(_T("KEYBOARD I/F"));
-	memory->set_device_name(_T("MEMORY"));
-	system->set_device_name(_T("SYSTEM"));
-#endif
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(psg);
 	event->set_context_sound(drec);
-#if defined(USE_SOUND_FILES)
-	drec->load_sound_data(DATAREC_SNDFILE_RELAY_ON,  _T("RELAY_ON.WAV"));
-	drec->load_sound_data(DATAREC_SNDFILE_RELAY_OFF, _T("RELAYOFF.WAV"));
-#endif
+	event->set_context_sound(drec->get_context_noise_play());
+	event->set_context_sound(drec->get_context_noise_stop());
+	event->set_context_sound(drec->get_context_noise_fast());
 	
 	vdp->load_font_image(create_local_path(_T("FONT.ROM")));
 	vdp->set_vram_ptr(memory->get_vram(), 0x1800);
@@ -219,13 +205,6 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		drec->get_context_noise_stop()->set_volume(0, decibel_l, decibel_r);
 		drec->get_context_noise_fast()->set_volume(0, decibel_l, decibel_r);
 	}
-#if defined(USE_SOUND_FILES)
-	else if(ch == 2) {
-		 for(int i = 0; i < DATAREC_SNDFILE_END; i++) {
-			 drec->set_volume(i + 2, decibel_l, decibel_r);
-		 }
-	 }
-#endif
 }
 #endif
 

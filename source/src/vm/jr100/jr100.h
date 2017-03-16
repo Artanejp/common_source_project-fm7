@@ -30,13 +30,7 @@
 #define USE_VM_AUTO_KEY_TABLE
 //#define USE_CRT_FILTER
 //#define USE_SCANLINE
-#define USE_SOUND_FILES		2
-#define USE_SOUND_FILES_RELAY
-#if defined(USE_SOUND_FILES)
 #define USE_SOUND_VOLUME	3
-#else
-#define USE_SOUND_VOLUME	2
-#endif
 #define USE_JOYSTICK
 #define USE_DEBUGGER
 #define USE_STATE
@@ -111,10 +105,7 @@ static const int vm_auto_key_table_base[][2] = {
 
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
-	_T("Beep"), _T("CMT"),
-#if defined(USE_SOUND_FILES)
-	_T("CMT Relay"),
-#endif
+	_T("Beep"), _T("CMT (Signal)"), _T("Noise (CMT)"),
 };
 #endif
 

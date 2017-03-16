@@ -35,10 +35,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-#if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));
-	event->set_device_name(_T("EVENT"));
-#endif	
 	
 	beep = new BEEP(this, emu);
 	drec = new DATAREC(this, emu);
@@ -47,29 +44,17 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	drec->set_context_noise_fast(new NOISE(this, emu));
 	tf20 = new PTF20(this, emu);
 	cpu = new Z80(this, emu);
-#if defined(_USE_QT)
-	beep->set_device_name(_T("BEEP"));
-	tf20->set_device_name(_T("PSEUDO TF20"));
-	cpu->set_device_name(_T("CPU(Z80)"));
-#endif	
 	
 	io = new IO(this, emu);
 	memory = new MEMORY(this, emu);
-#if defined(_USE_QT)
-	io->set_device_name(_T("I/O"));
-	memory->set_device_name(_T("MEMORY"));
-#endif	
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(beep);
 	event->set_context_sound(drec);
-#if defined(USE_SOUND_FILES)
-	drec->load_sound_data(DATAREC_SNDFILE_RELAY_ON,   _T("CMTPLAY.WAV"));
-	drec->load_sound_data(DATAREC_SNDFILE_RELAY_OFF,  _T("CMTSTOP.WAV"));
-	drec->load_sound_data(DATAREC_SNDFILE_PLAY,       _T("CMTPLAY.WAV"));
-	drec->load_sound_data(DATAREC_SNDFILE_STOP,       _T("CMTSTOP.WAV"));
-	drec->load_sound_data(DATAREC_SNDFILE_EJECT,      _T("CMTEJECT.WAV"));
-#endif	
+	event->set_context_sound(drec->get_context_noise_play());
+	event->set_context_sound(drec->get_context_noise_stop());
+	event->set_context_sound(drec->get_context_noise_fast());
+
 	drec->set_context_ear(io, SIG_IO_DREC, 1);
 	tf20->set_context_sio(io, SIG_IO_ART);
 	
@@ -204,15 +189,6 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		drec->get_context_noise_stop()->set_volume(0, decibel_l, decibel_r);
 		drec->get_context_noise_fast()->set_volume(0, decibel_l, decibel_r);
 	}
-#if defined(USE_SOUND_FILES)
-	else if(ch == 2) {
-		drec->set_volume(2 + DATAREC_SNDFILE_RELAY_ON,   decibel_l, decibel_r);
-		drec->set_volume(2 + DATAREC_SNDFILE_RELAY_OFF,  decibel_l, decibel_r);
-		drec->set_volume(2 + DATAREC_SNDFILE_PLAY,       decibel_l, decibel_r);
-		drec->set_volume(2 + DATAREC_SNDFILE_STOP,       decibel_l, decibel_r);
-		drec->set_volume(2 + DATAREC_SNDFILE_EJECT,      decibel_l, decibel_r);
-	}
-#endif
 }
 #endif
 

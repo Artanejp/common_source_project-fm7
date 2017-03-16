@@ -51,7 +51,6 @@
 #endif
 
 // device informations for win32
-#define USE_SOUND_FILES		4
 #if defined(_MZ700)
 #define USE_DIPSWITCH
 #elif defined(_MZ800)
@@ -80,32 +79,13 @@
 #if defined(_MZ800) || defined(_MZ1500)
 #define USE_ACCESS_LAMP
 #endif
-#if defined(USE_SOUND_FILES)
 #if defined(_MZ700)
 #define USE_SOUND_VOLUME	3
-#define USE_SOUND_FILES_BUTTONS
 #elif defined(_MZ800)
 #define USE_SOUND_VOLUME	5
-#define USE_SOUND_FILES_BUTTONS
-#define USE_SOUND_FILES_FDD
 //#define USE_SOUND_FILES_QD
 #elif defined(_MZ1500)
 #define USE_SOUND_VOLUME	6
-#define USE_SOUND_FILES_BUTTONS
-#define USE_SOUND_FILES_FDD
-#endif
-#else
-#if defined(_MZ700)
-#define USE_SOUND_VOLUME	3
-#elif defined(_MZ800)
-#define USE_SOUND_VOLUME	5
-#elif defined(_MZ1500)
-#define USE_SOUND_VOLUME	6
-#endif
-#endif
-#if defined(_MZ1500)
-#define USE_PRINTER
-#define USE_PRINTER_TYPE	4
 #endif
 //#define SUPPORT_ROMA_KANA_CONVERSION
 #define SUPPORT_TV_RENDER
@@ -122,14 +102,11 @@ static const _TCHAR *sound_device_caption[] = {
 #elif defined(_MZ1500)
 	_T("PSG #1"), _T("PSG #2"),
 #endif
-	_T("Beep"), _T("CMT"),
-#if defined(USE_SOUND_FILES)
-#if defined(_MZ1500) || defined(_MZ800)
-	_T("FDD SEEK"),
-	// _T("_QD SEEK"),
+	_T("Beep"), _T("CMT (Signal)"),
+#if defined(_MZ800) || defined(_MZ1500)
+	_T("Noise (FDD)"),
 #endif
-	_T("CMT BUTTONS"),
-#endif
+	_T("Noise (CMT)"),
 };
 #endif
 

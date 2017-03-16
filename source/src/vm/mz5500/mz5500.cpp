@@ -54,10 +54,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-#if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));
-	event->set_device_name(_T("EVENT"));
-#endif	
 	
 	if(config.printer_device_type == 0) {
 		printer = new PRNFILE(this, emu);
@@ -76,13 +73,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #endif
 	io = new IO(this, emu);
 	div = new LS393(this, emu);
-	io->set_device_name(_T("MAIN I/O"));
-  #if defined(_MZ6550)
-	cpu->set_device_name(_T("MAIN CPU(i286)"));
-  #else
-	cpu->set_device_name(_T("MAIN CPU(i8086)"));
-  #endif
-	div->set_device_name(_T("74LS393(DIVIDER)"));
 	not_data0 = new NOT(this, emu);
 	not_data0->set_device_name(_T("NOT Gate (Printer Bit0)"));
  	not_data1 = new NOT(this, emu);
@@ -119,20 +109,13 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	keyboard = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
 	sysport = new SYSPORT(this, emu);
-#if defined(_USE_QT)
-	display->set_device_name(_T("DISPLAY I/F"));
-	keyboard->set_device_name(_T("KEYBOARD I/F"));
-	memory->set_device_name(_T("MEMORY"));
-	sysport->set_device_name(_T("SYSTEM PORT"));
-#endif	
+
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(psg);
-#if defined(USE_SOUND_FILES)
-	if(fdc->load_sound_data(UPD765A_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
-		event->set_context_sound(fdc);
-	}
-#endif	
+	event->set_context_sound(fdc->get_context_noise_seek());
+	event->set_context_sound(fdc->get_context_noise_head_down());
+	event->set_context_sound(fdc->get_context_noise_head_up());
 	
 	if(config.printer_device_type == 0) {
 		PRNFILE *prnfile = (PRNFILE *)printer;
@@ -375,11 +358,6 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		fdc->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
 		fdc->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
 	}
-#if defined(USE_SOUND_FILES)
-	else if(ch == 1) {
-		fdc->set_volume(UPD765A_SND_TYPE_SEEK, decibel_l, decibel_r);
-	}
-#endif
 }
 #endif
 
