@@ -201,6 +201,8 @@ DEVICE *VM::get_cpu(int index)
 {
 	if(index == 0) {
 		return cpu;
+	} else if(index == 1) {
+		return cpu_tf20;
 	}
 	return NULL;
 }
@@ -213,12 +215,6 @@ DEVICE *VM::get_cpu(int index)
 void VM::draw_screen()
 {
 	memory->draw_screen();
-}
-
-uint32_t VM::get_access_lamp_status()
-{
-	uint32_t status = fdc_tf20->read_signal(0);
-	return (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
 }
 
 // ----------------------------------------------------------------------------
@@ -298,6 +294,11 @@ void VM::is_floppy_disk_protected(int drv, bool value)
 bool VM::is_floppy_disk_protected(int drv)
 {
 	return fdc_tf20->is_disk_protected(drv);
+}
+
+uint32_t VM::is_floppy_disk_accessed()
+{
+	return fdc_tf20->read_signal(0);
 }
 
 void VM::play_tape(const _TCHAR* file_path)

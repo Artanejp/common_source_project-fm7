@@ -7,6 +7,7 @@
 #define IDR_ACCELERATOR1                103
 #define ID_ACCEL_SCREEN                 104
 #define ID_ACCEL_MOUSE                  105
+#define ID_STATUS                       106
 
 #define IDD_VOLUME                      111
 #define IDC_VOLUME_RESET                112
@@ -708,6 +709,15 @@
 
 // National JR-100
 #ifdef _JR100
+#define MENU_POS_CONTROL                0
+#define MENU_POS_TAPE                   1
+#define MENU_POS_SCREEN                 2
+#define MENU_POS_SOUND                  3
+#define MENU_POS_INPUT                  4
+#endif
+
+// National JR-800
+#ifdef _JR800
 #define MENU_POS_CONTROL                0
 #define MENU_POS_TAPE                   1
 #define MENU_POS_SCREEN                 2

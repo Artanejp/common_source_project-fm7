@@ -1372,6 +1372,11 @@ bool EMU::is_floppy_disk_protected(int drv)
 		return false;
 	}
 }
+
+uint32_t EMU::is_floppy_disk_accessed()
+{
+	return vm->is_floppy_disk_accessed();
+}
 #endif
 
 #ifdef USE_QD1
@@ -1411,6 +1416,11 @@ bool EMU::is_quick_disk_inserted(int drv)
 	} else {
 		return false;
 	}
+}
+
+uint32_t EMU::is_quick_disk_accessed()
+{
+	return vm->is_quick_disk_accessed();
 }
 #endif
 
@@ -1480,6 +1490,11 @@ int EMU::get_tape_position()
 {
 	return vm->get_tape_position();
 }
+
+const _TCHAR* EMU::get_tape_message()
+{
+	return vm->get_tape_message();
+}
 #endif
 
 #ifdef USE_TAPE_BUTTON
@@ -1545,6 +1560,11 @@ bool EMU::is_compact_disc_inserted()
 {
 	return vm->is_compact_disc_inserted();
 }
+
+uint32_t EMU::is_compact_disc_accessed()
+{
+	return vm->is_compact_disc_accessed();
+}
 #endif
 
 #ifdef USE_LASER_DISC
@@ -1576,6 +1596,11 @@ void EMU::close_laser_disc()
 bool EMU::is_laser_disc_inserted()
 {
 	return vm->is_laser_disc_inserted();
+}
+
+uint32_t EMU::is_laser_disc_accessed()
+{
+	return vm->is_laser_disc_accessed();
 }
 #endif
 
@@ -1660,10 +1685,10 @@ void EMU::is_bubble_casette_protected(int drv, bool flag)
 }
 #endif
 
-#ifdef USE_ACCESS_LAMP
-uint32_t EMU::get_access_lamp_status()
+#ifdef USE_HARD_DISK
+uint32_t EMU::is_hard_disk_accessed()
 {
-	return vm->get_access_lamp_status();
+	return vm->is_hard_disk_accessed();
 }
 #endif
 

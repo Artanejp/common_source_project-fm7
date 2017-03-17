@@ -39,12 +39,12 @@
 // device informations for win32
 #define USE_FD1
 #define USE_FD2
+#define USE_HARD_DISK		7
 #define NOTIFY_KEY_DOWN
 #define USE_SHIFT_NUMPAD_KEY
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
-#define USE_ACCESS_LAMP
 #define USE_SOUND_VOLUME	2
 #define USE_DEBUGGER
 #define USE_STATE
@@ -73,6 +73,7 @@ class I286;
 #endif
 class IO;
 class MB8877;
+class SCSI_HDD;
 class SCSI_HOST;
 class SN76489AN;
 
@@ -109,6 +110,7 @@ protected:
 #endif
 	IO* io;
 	MB8877* fdc;
+	SCSI_HDD* scsi_hdd[7];
 	SCSI_HOST* scsi_host;
 	SN76489AN* psg;
 	
@@ -146,7 +148,6 @@ public:
 	
 	// draw screen
 	void draw_screen();
-	uint32_t get_access_lamp_status();
 	
 	// sound generation
 	void initialize_sound(int rate, int samples);
@@ -166,6 +167,8 @@ public:
 	bool is_floppy_disk_inserted(int drv);
 	void is_floppy_disk_protected(int drv, bool value);
 	bool is_floppy_disk_protected(int drv);
+	uint32_t is_floppy_disk_accessed();
+	uint32_t is_hard_disk_accessed();
 	bool is_frame_skippable();
 	
 	void update_config();

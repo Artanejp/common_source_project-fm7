@@ -312,7 +312,9 @@ int OSD::draw_screen()
 	// invalidate window
 #ifdef ONE_BOARD_MICRO_COMPUTER
 	if(first_invalidate) {
-		InvalidateRect(main_window_handle, NULL, TRUE);
+//		InvalidateRect(main_window_handle, NULL, TRUE);
+		RECT rect = { 0, 0, host_window_width, host_window_height };
+		InvalidateRect(main_window_handle, &rect, TRUE);
 	} else {
 #ifdef MAX_DRAW_RANGES
 		for(int i = 0; i < MAX_DRAW_RANGES; i++) {
@@ -328,7 +330,9 @@ int OSD::draw_screen()
 		}
 	}
 #else
-	InvalidateRect(main_window_handle, NULL, first_invalidate);
+//	InvalidateRect(main_window_handle, NULL, first_invalidate);
+	RECT rect = { 0, 0, host_window_width, host_window_height };
+	InvalidateRect(main_window_handle, &rect, first_invalidate);
 #endif
 	UpdateWindow(main_window_handle);
 	first_draw_screen = self_invalidate = true;
@@ -412,64 +416,22 @@ void OSD::update_screen(HDC hdc)
 	if(first_draw_screen) {
 		int dest_x = (host_window_width - draw_screen_width) / 2;
 		int dest_y = (host_window_height - draw_screen_height) / 2;
-#ifdef USE_ACCESS_LAMP
-		// get access lamps status of drives
-		uint32_t status = vm->get_access_lamp_status() & 7;
-		static uint32_t prev_status = 0;
-		bool render_in = (status != 0);
-		bool render_out = (prev_status != status);
-		prev_status = status;
 		
-		COLORREF crColor = RGB((status & 1) ? 255 : 0, (status & 2) ? 255 : 0, (status & 4) ? 255 : 0);
-		int right_bottom_x = dest_x + draw_screen_width;
-		int right_bottom_y = dest_y + draw_screen_height;
-#endif
 		if(config.use_d3d9) {
 			LPDIRECT3DSURFACE9 lpd3d9BackSurface = NULL;
 			if(lpd3d9Device != NULL && lpd3d9Device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &lpd3d9BackSurface) == D3D_OK && lpd3d9BackSurface != NULL) {
 				RECT rectSrc = { 0, 0, draw_screen_buffer->width, draw_screen_buffer->height };
 				RECT rectDst = { dest_x, dest_y, dest_x + draw_screen_width, dest_y + draw_screen_height };
+				RECT rectWin = { 0, 0, host_window_width, host_window_height };
 				bool stretch_screen = !(draw_screen_buffer->width == draw_screen_width && draw_screen_buffer->height == draw_screen_height);
 				
 				lpd3d9Device->UpdateSurface(lpd3d9OffscreenSurface, NULL, lpd3d9Surface, NULL);
 				lpd3d9Device->StretchRect(lpd3d9Surface, &rectSrc, lpd3d9BackSurface, &rectDst, stretch_screen ? D3DTEXF_LINEAR : D3DTEXF_POINT);
-#ifdef USE_ACCESS_LAMP
-				// draw access lamps
-				if(render_in || render_out) {
-					HDC hDC = 0;
-					for(int y = host_window_height - 6; y < host_window_height; y++) {
-						for(int x = host_window_width - 6; x < host_window_width; x++) {
-							if((x < right_bottom_x && y < right_bottom_y) ? render_in : render_out) {
-								if(hDC == 0 && lpd3d9BackSurface->GetDC(&hDC) != D3D_OK) {
-									goto quit;
-								}
-								SetPixelV(hDC, x, y, crColor);
-							}
-						}
-					}
-quit:
-					if(hDC != 0) {
-						lpd3d9BackSurface->ReleaseDC(hDC);
-					}
-				}
-#endif
-				lpd3d9BackSurface->Release();
-				lpd3d9Device->Present(NULL, NULL, NULL, NULL);
+				lpd3d9BackSurface->Release();				
+				lpd3d9Device->Present(&rectWin, &rectWin, NULL, NULL);
 			}
 		} else {
 			BitBlt(hdc, dest_x, dest_y, draw_screen_width, draw_screen_height, draw_screen_buffer->hdcDib, 0, 0, SRCCOPY);
-#ifdef USE_ACCESS_LAMP
-			// draw access lamps
-			if(render_in || render_out) {
-				for(int y = host_window_height - 6; y < host_window_height; y++) {
-					for(int x = host_window_width - 6; x < host_window_width; x++) {
-						if((x < right_bottom_x && y < right_bottom_y) ? render_in : render_out) {
-							SetPixelV(hdc, x, y, crColor);
-						}
-					}
-				}
-			}
-#endif
 		}
 		first_invalidate = self_invalidate = false;
 	}

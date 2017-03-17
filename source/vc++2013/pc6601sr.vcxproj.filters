@@ -292,6 +292,12 @@
     <Image Include="..\src\res\pc6601sr.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="..\src\res\indicator\access_off.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\indicator\access_on.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\res\pc6601sr.rc">

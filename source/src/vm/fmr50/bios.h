@@ -34,7 +34,7 @@ private:
 	int secnum, timeout;
 	
 	// disk bios
-	bool access_fdd[MAX_DRIVE], access_scsi;
+	bool access_fdd[MAX_DRIVE], access_scsi[MAX_SCSI];
 	int scsi_blocks[MAX_SCSI];
 	
 public:

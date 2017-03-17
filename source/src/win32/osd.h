@@ -21,6 +21,8 @@
 #include <windowsx.h>
 #include <mmsystem.h>
 #include <process.h>
+#include <commctrl.h>
+#include <wingdi.h>
 #include <gdiplus.h>
 #include <d3d9.h>
 #include <d3dx9.h>
@@ -36,7 +38,9 @@
 #include <winsock.h>
 #pragma comment(lib, "wsock32.lib")
 #endif
-#pragma comment(lib, "Gdiplus.lib")
+#pragma comment(lib, "comctl32.lib")
+#pragma comment(lib, "msimg32.lib")
+#pragma comment(lib, "gdiplus.lib")
 using namespace Gdiplus;
 #pragma comment(lib, "d3d9.lib")
 #pragma comment(lib, "d3dx9.lib")

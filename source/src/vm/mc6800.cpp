@@ -85,8 +85,10 @@ void MC6800::WM16(uint32_t Addr, pair_t *p)
 	WM((Addr + 1) & 0xffff, p->b.l);
 }
 
-#define M_RDOP(Addr)		d_mem->read_data8(Addr)
-#define M_RDOP_ARG(Addr)	d_mem->read_data8(Addr)
+//#define M_RDOP(Addr)		d_mem->read_data8(Addr)
+//#define M_RDOP_ARG(Addr)	d_mem->read_data8(Addr)
+#define M_RDOP(Addr)		RM(Addr)
+#define M_RDOP_ARG(Addr)	RM(Addr)
 
 /* macros to access memory */
 #define IMMBYTE(b)	b = M_RDOP_ARG(PCD); PC++
@@ -350,6 +352,7 @@ void MC6800::mc6801_io_w(uint32_t offset, uint32_t data)
 			output_compare.b.h = data;
 			MODIFIED_counters;
 		}
+        tcsr &=~TCSR_OCF;
 		break;
 	case 0x0c:
 		// output compare register (lsb)
@@ -357,6 +360,7 @@ void MC6800::mc6801_io_w(uint32_t offset, uint32_t data)
 			output_compare.b.l = data;
 			MODIFIED_counters;
 		}
+        tcsr &=~TCSR_OCF;
 		break;
 	case 0x0f:
 		// port3 control/status register

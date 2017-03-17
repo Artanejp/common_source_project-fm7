@@ -395,10 +395,12 @@ public:
 	bool is_tape_playing();
 	bool is_tape_recording();
 	int get_tape_position();
+	const _TCHAR* get_tape_message();
 #if defined(LDC_SLOT)
 	void open_laser_disc(const _TCHAR* file_path);
 	void close_laser_disc();
 	bool is_laser_disc_inserted();
+	uint32_t is_laser_disc_accessed();
 #endif
 #if defined(FDD_PATCH_SLOT)
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
@@ -406,6 +408,7 @@ public:
 	bool is_floppy_disk_inserted(int drv);
 	void is_floppy_disk_protected(int drv, bool value);
 	bool is_floppy_disk_protected(int drv);
+	uint32_t is_floppy_disk_accessed();
 #endif
 	bool is_frame_skippable();
 	

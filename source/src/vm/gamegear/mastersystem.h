@@ -31,7 +31,6 @@
 #define USE_AUTO_KEY			5
 #define USE_AUTO_KEY_RELEASE	8
 #define USE_AUTO_KEY_CAPS
-///#define USE_ACCESS_LAMP
 #define SUPPORT_TV_RENDER
 #define USE_SOUND_VOLUME	2
 ///#define USE_SOUND_VOLUME	4
@@ -111,7 +110,6 @@ public:
 	
 	// draw screen
 	void draw_screen();
-///	uint32_t get_access_lamp_status();
 	
 	// sound generation
 	void initialize_sound(int rate, int samples);
@@ -130,13 +128,15 @@ public:
 ///	bool is_floppy_disk_inserted(int drv);
 ///	void is_floppy_disk_protected(int drv, bool value);
 ///	bool is_floppy_disk_protected(int drv);
+///	uint32_t is_floppy_disk_accessed();
 ///	void play_tape(const _TCHAR* file_path);
 ///	void rec_tape(const _TCHAR* file_path);
 ///	void close_tape();
 ///	bool is_tape_inserted();
-//	bool is_tape_playing();
-//	bool is_tape_recording();
-//	int get_tape_position();
+///	bool is_tape_playing();
+///	bool is_tape_recording();
+///	int get_tape_position();
+///	const _TCHAR* get_tape_message();
 	bool is_frame_skippable();
 	
 	void update_config();

@@ -927,23 +927,6 @@ void VM::draw_screen()
 	display->draw_screen();
 }
 
-uint32_t VM::get_access_lamp_status()
-{
-#if defined(_PC9801) || defined(_PC9801E)
-	return (fdc_2hd->read_signal(0) & 3) | (fdc_2dd->read_signal(0) & 3) | (fdc_sub->read_signal(0) & 3);
-#elif defined(_PC9801VF) || defined(_PC9801U)
-	return fdc_2dd->read_signal(0);
-#elif defined(_PC98DO) || defined(_PC98DOPLUS)
-	if(boot_mode != 0) {
-		return pc88fdc_sub->read_signal(0);
-	} else {
-		return fdc->read_signal(0);
-	}
-#else
-	return fdc->read_signal(0);
-#endif
-}
-
 // ----------------------------------------------------------------------------
 // soud manager
 // ----------------------------------------------------------------------------
@@ -1220,6 +1203,23 @@ bool VM::is_floppy_disk_protected(int drv)
 	}
 #endif
 	return false;
+}
+
+uint32_t VM::is_floppy_disk_accessed()
+{
+#if defined(_PC9801) || defined(_PC9801E)
+	return (fdc_2hd->read_signal(0) & 3) | ((fdc_2dd->read_signal(0) & 3) << 2) | ((fdc_sub->read_signal(0) & 3) << 4);
+#elif defined(_PC9801VF) || defined(_PC9801U)
+	return fdc_2dd->read_signal(0);
+#elif defined(_PC98DO) || defined(_PC98DOPLUS)
+	if(boot_mode != 0) {
+		return pc88fdc_sub->read_signal(0);
+	} else {
+		return fdc->read_signal(0);
+	}
+#else
+	return fdc->read_signal(0);
+#endif
 }
 
 #if defined(SUPPORT_CMT_IF) || defined(_PC98DO) || defined(_PC98DOPLUS)

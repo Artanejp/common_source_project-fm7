@@ -230,7 +230,7 @@ uint32_t MZ1E30::read_dma_io8(uint32_t addr)
 uint32_t MZ1E30::read_signal(int ch)
 {
 	// get access status
-	uint32_t stat = (drive[0].access ? 0x10 : 0) | (drive[1].access ? 0x20 : 0);
+	uint32_t stat = (drive[0].access ? 1 : 0) | (drive[1].access ? 2 : 0);
 	drive[0].access = drive[1].access = false;
 	return stat;
 }

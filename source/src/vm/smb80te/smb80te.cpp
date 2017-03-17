@@ -254,6 +254,11 @@ int VM::get_tape_position()
 	return drec->get_tape_position();
 }
 
+const _TCHAR* VM::get_tape_message()
+{
+	return drec->get_message();
+}
+
 void VM::load_binary(int drv, const _TCHAR* file_path)
 {
 	if(drv == 0) {

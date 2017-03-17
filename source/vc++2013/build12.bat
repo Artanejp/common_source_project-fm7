@@ -134,6 +134,11 @@ call :clean
 mkdir build_vc12\jr100
 copy binary_vc12\jr100.exe build_vc12\jr100\.
 
+devenv.com jr800.vcxproj /Rebuild Release
+call :clean
+mkdir build_vc12\jr800
+copy binary_vc12\jr800.exe build_vc12\jr800\.
+
 devenv.com jx.vcxproj /Rebuild Release
 call :clean
 mkdir build_vc12\jx

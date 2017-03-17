@@ -77,6 +77,7 @@ private:
 	int32_t sound_last_vol_l, sound_last_vol_r;
 	int sound_volume_l, sound_volume_r;
 #endif
+	_TCHAR message[1024];
 	
 	void update_event();
 	void update_realtime_render();
@@ -113,6 +114,7 @@ public:
 #ifdef DATAREC_SOUND
 		sound_volume_l = sound_volume_r = 1024;
 #endif
+		my_tcscpy_s(message, 1023, _T("Stop"));
 		set_device_name(_T("Data Recorder"));
 	}
 	~DATAREC() {}
@@ -214,6 +216,10 @@ public:
 			}
 		}
 		return 0;
+	}
+	const _TCHAR* get_message()
+	{
+		return message;
 	}
 	void set_remote(bool value);
 	void set_ff_rew(int value);

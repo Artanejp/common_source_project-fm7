@@ -163,7 +163,6 @@ public:
 	
 	// draw screen
 	void draw_screen();
-//	uint32_t get_access_lamp_status();
 	
 	// sound generation
 	void initialize_sound(int rate, int samples);
@@ -185,6 +184,7 @@ public:
 	bool is_tape_playing();
 	bool is_tape_recording();
 	int get_tape_position();
+	const _TCHAR* get_tape_message();
 	void push_play();
 	void push_stop();
 	void push_fast_forward();

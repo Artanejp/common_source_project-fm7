@@ -129,6 +129,7 @@ public:
 	bool is_tape_playing();
 	bool is_tape_recording();
 	int get_tape_position();
+	const _TCHAR* get_tape_message();
 	void push_play();
 	void push_stop();
 	void push_fast_forward();

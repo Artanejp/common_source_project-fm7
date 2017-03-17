@@ -43,6 +43,14 @@ void update_menu(HWND hWnd, HMENU hMenu, int pos);
 void show_menu_bar(HWND hWnd);
 void hide_menu_bar(HWND hWnd);
 
+// status bar
+HWND hStatus = NULL;
+bool status_bar_visible = false;
+
+void show_status_bar(HWND hWnd);
+void hide_status_bar(HWND hWnd);
+int get_status_bar_height();
+
 // file
 #ifdef USE_CART1
 void open_cart_dialog(HWND hWnd, int drv);
@@ -221,13 +229,17 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdL
 	ShowWindow(hWnd, iCmdShow);
 	UpdateWindow(hWnd);
 	
-	// show menu
+	// show menu bar
 	show_menu_bar(hWnd);
 	
+	// show status bar
+	show_status_bar(hWnd);
+	
+	int status_bar_height = get_status_bar_height();
 	RECT rect_tmp;
 	GetClientRect(hWnd, &rect_tmp);
-	if(rect_tmp.bottom != WINDOW_HEIGHT) {
-		rect.bottom += WINDOW_HEIGHT - rect_tmp.bottom;
+	if(rect_tmp.bottom != WINDOW_HEIGHT + status_bar_height) {
+		rect.bottom += WINDOW_HEIGHT + status_bar_height - rect_tmp.bottom;
 		dest_y = (int)((desktop_height - (rect.bottom - rect.top)) / 2);
 		dest_y = (dest_y < 0) ? 0 : dest_y;
 		SetWindowPos(hWnd, NULL, dest_x, dest_y, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER);
@@ -331,6 +343,10 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdL
 				skip_frames = 0;
 				next_time = timeGetTime();
 			}
+			if(hStatus != NULL && status_bar_visible) {
+				// update status bar
+				SendMessage(hStatus, SB_SETTEXT, (WPARAM)0 | SBT_OWNERDRAW, (LPARAM)NULL);
+			}
 			Sleep(sleep_period);
 			
 			// calc frame rate
@@ -378,6 +394,9 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdL
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 {
+	static HINSTANCE hInstance;
+	LPDRAWITEMSTRUCT lpds;
+	
 	switch(iMsg) {
 	case WM_CREATE:
 		if(config.disable_dwm && win8_or_later) {
@@ -389,6 +408,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 #ifdef SUPPORT_DRAG_DROP
 		DragAcceptFiles(hWnd, TRUE);
 #endif
+		hInstance = (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE);
 		break;
 	case WM_CLOSE:
 #ifdef USE_NOTIFY_POWER_OFF
@@ -409,6 +429,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		now_fullscreen = false;
 		if(hMenu != NULL && IsMenu(hMenu)) {
 			DestroyMenu(hMenu);
+			hMenu = NULL;
+		}
+		if(hStatus != NULL) {
+			DestroyWindow(hStatus);
+			hStatus = NULL;
 		}
 		DestroyWindow(hWnd);
 		// release emulation core
@@ -421,13 +446,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
-#ifdef ONE_BOARD_MICRO_COMPUTER
 	case WM_SIZE:
+		if(hStatus != NULL) {
+			SendMessage(hStatus, WM_SIZE, wParam, lParam);
+		}
+#ifdef ONE_BOARD_MICRO_COMPUTER
 		if(emu) {
 			emu->reload_bitmap();
 		}
-		break;
 #endif
+		break;
 	case WM_KILLFOCUS:
 		if(emu) {
 			emu->key_lost_focus();
@@ -449,13 +477,131 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			EndPaint(hWnd, &ps);
 		}
 		return 0;
-#ifdef ONE_BOARD_MICRO_COMPUTER
 	case WM_DRAWITEM:
-//		if(((LPDRAWITEMSTRUCT)lParam)->itemAction & (ODA_DRAWENTIRE | ODA_SELECT)) {
-			draw_button(((LPDRAWITEMSTRUCT)lParam)->hDC, (UINT)wParam - ID_BUTTON, ((LPDRAWITEMSTRUCT)lParam)->itemState & ODS_SELECTED);
-//		}
+		lpds = (LPDRAWITEMSTRUCT)lParam;
+		if(lpds->CtlID == ID_STATUS) {
+			if(emu) {
+				TEXTMETRIC tm;
+				SIZE size;
+				GetTextMetrics(lpds->hDC, &tm);
+				int text_top = (lpds->rcItem.top + lpds->rcItem.bottom) / 2 - tm.tmHeight / 2;
+				int draw_left = lpds->rcItem.left;
+				
+				SetTextColor(lpds->hDC, RGB(0, 0, 0));
+				SetBkMode(lpds->hDC, TRANSPARENT);
+				
+				#if defined(USE_FD1) || defined(USE_QD1) || defined(USE_HARD_DISK) || defined(USE_COMPACT_DISC) || defined(USE_LASER_DISC)
+					HDC hdcMem = CreateCompatibleDC(lpds->hDC);
+					HBITMAP hBitmap[2];
+					BITMAP bmp[2];
+					hBitmap[0] = LoadBitmap(hInstance, _T("IDI_BITMAP_ACCESS_OFF"));
+					hBitmap[1] = LoadBitmap(hInstance, _T("IDI_BITMAP_ACCESS_ON" ));
+					
+					if(hBitmap[0] != NULL && hBitmap[1] != NULL) {
+						GetObject(hBitmap[0], sizeof(BITMAP), &bmp[0]);
+						GetObject(hBitmap[1], sizeof(BITMAP), &bmp[1]);
+						
+						int bmp_width = bmp[0].bmWidth;
+						int bmp_height = bmp[0].bmHeight;
+						int bmp_top = (lpds->rcItem.top + lpds->rcItem.bottom) / 2 - bmp_height / 2;
+						
+						#ifdef USE_FD1
+							TextOut(lpds->hDC, draw_left, text_top, _T("FD:"), 3);
+							GetTextExtentPoint32(lpds->hDC, _T("FD:"), 3, &size);
+							draw_left += size.cx + 4;
+							
+							uint32_t fd_status = emu->is_floppy_disk_accessed();
+							for(int i = 0; i < MAX_FD; i++) {
+								int idx = (fd_status >> i) & 1;
+								SelectObject(hdcMem, hBitmap[idx]);
+								TransparentBlt(lpds->hDC, draw_left, bmp_top, bmp_width, bmp_height, hdcMem, 0, 0, bmp_width, bmp_height, 0);
+								draw_left += bmp_width + 2;
+							}
+							draw_left += 8;
+						#endif
+						#ifdef USE_QD1
+							TextOut(lpds->hDC, draw_left, text_top, _T("QD:"), 3);
+							GetTextExtentPoint32(lpds->hDC, _T("QD:"), 3, &size);
+							draw_left += size.cx + 4;
+							
+							uint32_t qd_status = emu->is_quick_disk_accessed();
+							for(int i = 0; i < MAX_QD; i++) {
+								int idx = (qd_status >> i) & 1;
+								SelectObject(hdcMem, hBitmap[idx]);
+								TransparentBlt(lpds->hDC, draw_left, bmp_top, bmp_width, bmp_height, hdcMem, 0, 0, bmp_width, bmp_height, 0);
+								draw_left += bmp_width + 2;
+							}
+							draw_left += 8;
+						#endif
+						#ifdef USE_HARD_DISK
+							TextOut(lpds->hDC, draw_left, text_top, _T("HD:"), 3);
+							GetTextExtentPoint32(lpds->hDC, _T("HD:"), 3, &size);
+							draw_left += size.cx + 4;
+							
+							uint32_t hd_status = emu->is_hard_disk_accessed();
+							for (int i = 0; i < USE_HARD_DISK; i++) {
+								int idx = (hd_status >> i) & 1;
+								SelectObject(hdcMem, hBitmap[idx]);
+								TransparentBlt(lpds->hDC, draw_left, bmp_top, bmp_width, bmp_height, hdcMem, 0, 0, bmp_width, bmp_height, 0);
+								draw_left += bmp_width + 2;
+							}
+							draw_left += 8;
+						#endif
+						#ifdef USE_COMPACT_DISC
+							TextOut(lpds->hDC, draw_left, text_top, _T("CD:"), 3);
+							GetTextExtentPoint32(lpds->hDC, _T("CD:"), 3, &size);
+							draw_left += size.cx + 4;
+							
+							uint32_t cd_status = emu->is_compact_disc_accessed();
+							for (int i = 0; i < 1; i++) {
+								int idx = (cd_status >> i) & 1;
+								SelectObject(hdcMem, hBitmap[idx]);
+								TransparentBlt(lpds->hDC, draw_left, bmp_top, bmp_width, bmp_height, hdcMem, 0, 0, bmp_width, bmp_height, 0);
+								draw_left += bmp_width + 2;
+							}
+							draw_left += 8;
+						#endif
+						#ifdef USE_LASER_DISC
+							TextOut(lpds->hDC, draw_left, text_top, _T("LD:"), 3);
+							GetTextExtentPoint32(lpds->hDC, _T("LD:"), 3, &size);
+							draw_left += size.cx + 4;
+							
+							uint32_t ld_status = emu->is_laser_disc_accessed();
+							for (int i = 0; i < 1; i++) {
+								int idx = (ld_status >> i) & 1;
+								SelectObject(hdcMem, hBitmap[idx]);
+								TransparentBlt(lpds->hDC, draw_left, bmp_top, bmp_width, bmp_height, hdcMem, 0, 0, bmp_width, bmp_height, 0);
+								draw_left += bmp_width + 2;
+							}
+							draw_left += 8;
+						#endif
+					}
+					if(hBitmap[0] != NULL) {
+						DeleteObject(hBitmap[0]);
+					}
+					if(hBitmap[1] != NULL) {
+						DeleteObject(hBitmap[1]);
+					}
+					DeleteDC(hdcMem);
+				#endif
+				#if defined(USE_TAPE) && !defined(TAPE_BINARY_ONLY)
+					const _TCHAR* message = emu->get_tape_message();
+					if(message != NULL) {
+						TextOut(lpds->hDC, draw_left, text_top, _T("CMT:"), 4);
+						GetTextExtentPoint32(lpds->hDC, _T("CMT:"), 4, &size);
+						draw_left += size.cx + 4;
+						TextOut(lpds->hDC, draw_left, text_top, message, _tcslen(message));
+					}
+				#endif
+			}
+		} else {
+			#ifdef ONE_BOARD_MICRO_COMPUTER
+//				if(lpds->itemAction & (ODA_DRAWENTIRE | ODA_SELECT)) {
+					draw_button(((LPDRAWITEMSTRUCT)lParam)->hDC, (UINT)wParam - ID_BUTTON, ((LPDRAWITEMSTRUCT)lParam)->itemState & ODS_SELECTED);
+//				}
+			#endif
+		}
 		return TRUE;
-#endif
 	case WM_MOVING:
 		if(emu) {
 			emu->suspend();
@@ -1716,6 +1862,38 @@ void hide_menu_bar(HWND hWnd)
 }
 
 // ----------------------------------------------------------------------------
+// status bar
+// ----------------------------------------------------------------------------
+
+void show_status_bar(HWND hWnd)
+{
+	if(hStatus == NULL) {
+		InitCommonControls();
+		hStatus = CreateStatusWindow(WS_CHILD | WS_VISIBLE | CCS_BOTTOM, NULL, hWnd, ID_STATUS);
+	}
+	ShowWindow(hStatus, SW_SHOW);
+	status_bar_visible = true;
+}
+
+void hide_status_bar(HWND hWnd)
+{
+	if(hStatus != NULL) {
+		ShowWindow(hStatus, SW_HIDE);
+	}
+	status_bar_visible = false;
+}
+
+int get_status_bar_height()
+{
+	if(hStatus != NULL && status_bar_visible) {
+		RECT rect;
+		GetWindowRect(hStatus, &rect);
+		return rect.bottom - rect.top;
+	}
+	return 0;
+}
+
+// ----------------------------------------------------------------------------
 // file
 // ----------------------------------------------------------------------------
 
@@ -2294,16 +2472,20 @@ void set_window(HWND hWnd, int mode)
 			SetWindowPos(hWnd, HWND_TOP, dest_x, dest_y, rect.right - rect.left, rect.bottom - rect.top, SWP_SHOWWINDOW);
 			now_fullscreen = false;
 			
-			// show menu
+			// show menu bar
 			show_menu_bar(hWnd);
+			
+			// show status bar
+			show_status_bar(hWnd);
 		} else {
 			SetWindowPos(hWnd, NULL, dest_x, dest_y, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER);
 		}
 		
+		int status_bar_height = get_status_bar_height();
 		RECT rect_tmp;
 		GetClientRect(hWnd, &rect_tmp);
-		if(rect_tmp.bottom != height) {
-			rect.bottom += height - rect_tmp.bottom;
+		if(rect_tmp.bottom != height + status_bar_height) {
+			rect.bottom += height + status_bar_height - rect_tmp.bottom;
 			dest_y = (int)((desktop_height - (rect.bottom - rect.top)) / 2);
 			dest_y = (dest_y < 0) ? 0 : dest_y;
 			SetWindowPos(hWnd, NULL, dest_x, dest_y, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER);
@@ -2343,8 +2525,11 @@ void set_window(HWND hWnd, int mode)
 			}
 			config.window_mode = mode;
 			
-			// remove menu
+			// hide menu bar
 			hide_menu_bar(hWnd);
+			
+			// hide status bar
+			hide_status_bar(hWnd);
 			
 			// set screen size to emu class
 			emu->set_host_window_size(width, height, false);

@@ -15,7 +15,7 @@
 #include "../emu.h"
 #include "device.h"
 
-#define SIG_HD44102_CS2	0
+//#define SIG_HD44102_CS2	0
 
 class HD44102 : public DEVICE
 {
@@ -25,7 +25,7 @@ private:
 	uint8_t m_status;                // status register
 	uint8_t m_output;                // output register
 	
-	int m_cs2;                      // chip select
+//	int m_cs2;                      // chip select
 	int m_page;                     // display start page
 	int m_x;                        // X address
 	int m_y;                        // Y address
@@ -36,7 +36,7 @@ private:
 	uint8_t status_r();
 	void control_w(uint8_t data);
 	uint8_t data_r();
-	void data_w(data_w data);
+	void data_w(uint8_t data);
 	inline void count_up_or_down();
 	
 public:
@@ -49,14 +49,14 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_signal(int id, uint32_t data, uint32_t mask);
+//	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
 	// unique functions
-	uint8_t read();
-	void write(uint8_t data);
-	void screen_update(int m_sx, int m_sy);
+	uint8_t read(uint32_t offset);
+	void write(uint32_t offset, uint8_t data);
+	void screen_update(int m_sx, int m_sy, bool reverse);
 };
 
 #endif

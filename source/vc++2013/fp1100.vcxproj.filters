@@ -210,6 +210,12 @@
     <Image Include="..\src\res\fp1100.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="..\src\res\indicator\access_off.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\indicator\access_on.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\res\fp1100.rc">

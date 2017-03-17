@@ -379,6 +379,7 @@ private:
 #if defined(FDD_PATCH_SLOT)
 	DISK* disk[MAX_DRIVE];
 	DEVICE *d_fdpat;
+	bool access[MAX_DRIVE];
 #endif
 #if defined(FDD_PATCH_SLOT) && defined(_MSX_VDP_MESS)
 	DEVICE *d_vdp;
@@ -413,6 +414,7 @@ public:
 	void write_io8(uint32_t addr, uint32_t data);
 	void write_signal(int id, uint32_t data, uint32_t mask);
 #if defined(FDD_PATCH_SLOT)
+	uint32_t read_signal(int id);
 	bool bios_ret_z80(uint16_t PC, pair_t* af, pair_t* bc, pair_t* de, pair_t* hl, pair_t* ix, pair_t* iy, uint8_t* iff1);
 #endif
 	void save_state(FILEIO* state_fio);

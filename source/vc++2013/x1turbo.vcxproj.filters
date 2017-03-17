@@ -349,6 +349,12 @@
     <Image Include="..\src\res\x1turbo.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="..\src\res\indicator\access_off.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\indicator\access_on.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\res\x1turbo.rc">

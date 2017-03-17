@@ -148,11 +148,13 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	scsi_host = new SCSI_HOST(this, emu);
 	for(int i = 0; i < 7; i++) {
 		if(FILEIO::IsFileExisting(create_local_path(_T("SCSI%d.DAT"), i))) {
-			SCSI_HDD* scsi_hdd = new SCSI_HDD(this, emu);
-			scsi_hdd->set_device_name("SCSI Hard Disk Drive #%d", i + 1);
-			scsi_hdd->scsi_id = i;
-			scsi_hdd->set_context_interface(scsi_host);
-			scsi_host->set_context_target(scsi_hdd);
+			scsi_hdd[i] = new SCSI_HDD(this, emu);
+			scsi_hdd[i]->set_device_name("SCSI Hard Disk Drive #%d", i + 1);
+			scsi_hdd[i]->scsi_id = i;
+			scsi_hdd[i]->set_context_interface(scsi_host);
+			scsi_host->set_context_target(scsi_hdd[i]);
+		} else {
+			scsi_hdd[i] = NULL;
 		}
 	}
 	dma = new UPD71071(this, emu);
@@ -393,18 +395,6 @@ void VM::draw_screen()
 	memory->draw_screen();
 }
 
-uint32_t VM::get_access_lamp_status()
-{
-	uint32_t status_fdd = fdc->read_signal(0);
-	uint32_t status_hdd = scsi_host->read_signal(0);
-	if(bios) {
-		uint32_t status = bios->read_signal(0);
-		status_fdd |= status & 0x0f;
-		status_hdd |= status >> 4;
-	}
-	return (status_hdd) ? 4 : (status_fdd & (1 | 4)) ? 1 : (status_fdd & (2 | 8)) ? 2 : 0;
-}
-
 // ----------------------------------------------------------------------------
 // soud manager
 // ----------------------------------------------------------------------------
@@ -483,6 +473,29 @@ void VM::is_floppy_disk_protected(int drv, bool value)
 bool VM::is_floppy_disk_protected(int drv)
 {
 	return fdc->is_disk_protected(drv);
+}
+
+uint32_t VM::is_floppy_disk_accessed()
+{
+	uint32_t status = fdc->read_signal(0);
+	if(bios) {
+		status |= bios->read_signal(0);
+	}
+	return status;
+}
+
+uint32_t VM::is_hard_disk_accessed()
+{
+	uint32_t status = 0;
+	for(int i = 0; i < 7; i++) {
+		if(scsi_hdd[i] != NULL && scsi_hdd[i]->read_signal(0) != 0) {
+			status |= 1 << i;
+		}
+	}
+	if(bios) {
+		status |= bios->read_signal(1);
+	}
+	return status;
 }
 
 bool VM::is_frame_skippable()

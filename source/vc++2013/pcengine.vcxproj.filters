@@ -173,5 +173,11 @@
     <Image Include="..\src\res\pcengine.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="..\src\res\indicator\access_off.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\indicator\access_on.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

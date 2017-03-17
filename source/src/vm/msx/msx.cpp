@@ -358,6 +358,11 @@ int VM::get_tape_position()
 	return drec->get_tape_position();
 }
 
+const _TCHAR* VM::get_tape_message()
+{
+	return drec->get_message();
+}
+
 #if defined(_PX7)
 void VM::open_laser_disc(const _TCHAR* file_path)
 {
@@ -372,6 +377,11 @@ void VM::close_laser_disc()
 bool VM::is_laser_disc_inserted()
 {
 	return ldp->is_disc_inserted();
+}
+
+uint32_t VM::is_laser_disc_accessed()
+{
+	return lpd->read_signal(0);
 }
 #else
 void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
@@ -397,6 +407,11 @@ void VM::is_floppy_disk_protected(int drv, bool value)
 bool VM::is_floppy_disk_protected(int drv)
 {
 	return memory->is_disk_protected(drv);
+}
+
+uint32_t VM::is_floppy_disk_accessed()
+{
+	return memory->read_signal(0);
 }
 #endif
 

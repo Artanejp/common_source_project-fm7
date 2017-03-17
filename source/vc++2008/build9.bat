@@ -107,6 +107,10 @@ devenv.com jr100.vcproj /Rebuild Release
 mkdir build_xp\jr100
 copy Release\jr100.exe build_xp\jr100\.
 
+devenv.com jr800.vcproj /Rebuild Release
+mkdir build_xp\jr800
+copy Release\jr800.exe build_xp\jr800\.
+
 devenv.com jx.vcproj /Rebuild Release
 mkdir build_xp\jx
 copy Release\jx.exe build_xp\jx\.

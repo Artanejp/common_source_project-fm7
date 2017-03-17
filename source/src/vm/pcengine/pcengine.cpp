@@ -240,6 +240,11 @@ bool VM::is_compact_disc_inserted()
 	return scsi_cdrom->is_disc_inserted();
 }
 
+uint32_t VM::is_compact_disc_accessed()
+{
+	return scsi_cdrom->read_signal(0);
+}
+
 void VM::update_config()
 {
 	for(DEVICE* device = first_device; device; device = device->next_device) {

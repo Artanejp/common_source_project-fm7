@@ -464,14 +464,6 @@ void VM::draw_screen()
 	memory->draw_screen();
 }
 
-#if defined(_MZ800) || defined(_MZ1500)
-uint32_t VM::get_access_lamp_status()
-{
-	uint32_t status = fdc->read_signal(0) | qd->read_signal(0);
-	return (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
-}
-#endif
-
 // ----------------------------------------------------------------------------
 // soud manager
 // ----------------------------------------------------------------------------
@@ -578,6 +570,11 @@ int VM::get_tape_position()
 	return drec->get_tape_position();
 }
 
+const _TCHAR* VM::get_tape_message()
+{
+	return drec->get_message();
+}
+
 void VM::push_play()
 {
 	drec->set_ff_rew(0);
@@ -625,6 +622,11 @@ bool VM::is_quick_disk_inserted(int drv)
 	}
 }
 
+uint32_t VM::is_quick_disk_accessed()
+{
+	return qd->read_signal(0);
+}
+
 void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	fdc->open_disk(drv, file_path, bank);
@@ -648,6 +650,11 @@ void VM::is_floppy_disk_protected(int drv, bool value)
 bool VM::is_floppy_disk_protected(int drv)
 {
 	return fdc->is_disk_protected(drv);
+}
+
+uint32_t VM::is_floppy_disk_accessed()
+{
+	return fdc->read_signal(0);
 }
 #endif
 

@@ -575,21 +575,6 @@ void VM::draw_screen()
 	display->draw_screen();
 }
 
-uint32_t VM::get_access_lamp_status()
-{
-	// WILLFIX : Multiple FDC for 1M FD.
-#if defined(_FM8) || (_FM7) || (_FMNEW7)
-	if(connect_320kfdc || connect_1Mfdc) {
-#endif		
-		uint32_t status = fdc->read_signal(0xff);
-		return (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
-#if defined(_FM8) || (_FM7) || (_FMNEW7)
-	} else {
-		return 0x00000000;
-	}
-#endif		
-}
-
 void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
@@ -733,6 +718,20 @@ bool VM::is_floppy_disk_protected(int drv)
 	}
 }
 
+uint32_t VM::is_floppy_disk_accessed()
+{
+	// WILLFIX : Multiple FDC for 1M FD.
+#if defined(_FM8) || (_FM7) || (_FMNEW7)
+	if(connect_320kfdc || connect_1Mfdc) {
+#endif		
+		return fdc->read_signal(0);
+#if defined(_FM8) || (_FM7) || (_FMNEW7)
+	} else {
+		return 0x00000000;
+	}
+#endif	
+}
+
 void VM::play_tape(const _TCHAR* file_path)
 {
 	if(drec != NULL) drec->play_tape(file_path);
@@ -780,6 +779,14 @@ int VM::get_tape_position()
 		return drec->get_tape_position();
 	}
 	return 0;
+}
+
+const _TCHAR* VM::get_tape_message()
+{
+	if(drec != NULL) {
+		return drec->get_message();
+	}
+	return NULL;
 }
 
 void VM::push_play()

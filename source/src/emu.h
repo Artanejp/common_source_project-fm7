@@ -413,11 +413,13 @@ public:
 	bool is_floppy_disk_inserted(int drv);
 	void is_floppy_disk_protected(int drv, bool value);
 	bool is_floppy_disk_protected(int drv);
+	uint32_t is_floppy_disk_accessed();
 #endif
 #ifdef USE_QD1
 	void open_quick_disk(int drv, const _TCHAR* file_path);
 	void close_quick_disk(int drv);
 	bool is_quick_disk_inserted(int drv);
+	uint32_t is_quick_disk_accessed();
 #endif
 #ifdef USE_TAPE
 	void play_tape(const _TCHAR* file_path);
@@ -428,6 +430,7 @@ public:
 	bool is_tape_playing();
 	bool is_tape_recording();
 	int get_tape_position();
+	const _TCHAR* get_tape_message();
 # endif
 # ifdef USE_TAPE_BUTTON
 	void push_play();
@@ -442,11 +445,13 @@ public:
 	void open_compact_disc(const _TCHAR* file_path);
 	void close_compact_disc();
 	bool is_compact_disc_inserted();
+	uint32_t is_compact_disc_accessed();
 #endif
 #ifdef USE_LASER_DISC
 	void open_laser_disc(const _TCHAR* file_path);
 	void close_laser_disc();
 	bool is_laser_disc_inserted();
+	uint32_t is_laser_disc_accessed();
 #endif
 #ifdef USE_BINARY_FILE1
 	void load_binary(int drv, const _TCHAR* file_path);
@@ -466,9 +471,8 @@ public:
 	void is_bubble_casette_protected(int drv, bool value);
 #endif
 
-	
-#ifdef USE_ACCESS_LAMP
-	uint32_t get_access_lamp_status(void);
+#ifdef USE_HARD_DISK
+	uint32_t is_hard_disk_accessed();
 #endif	
 #ifdef USE_LED_DEVICE
 	uint32_t get_led_status(void);

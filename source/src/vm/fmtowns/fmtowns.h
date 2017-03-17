@@ -87,7 +87,6 @@
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_CRT_FILTER
-#define USE_ACCESS_LAMP
 #define USE_SOUND_FILES		1
 #define USE_SOUND_FILES_FDD
 #if defined(USE_SOUND_FILES)
@@ -209,7 +208,6 @@ public:
 	
 	// draw screen
 	void draw_screen();
-	uint32_t get_access_lamp_status();
 	
 	// sound generation
 	void initialize_sound(int rate, int samples);

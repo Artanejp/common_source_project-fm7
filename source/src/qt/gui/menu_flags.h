@@ -30,7 +30,6 @@ protected:
 	QString config_name;
 	QString device_name;
 	// USE_* flags
-	bool use_access_lamp;
 	bool use_alt_f10_key;
 	bool use_roma_kana_conversion;
 	
@@ -166,9 +165,7 @@ public:
 	QString get_config_name() { return config_name; }
 	QString get_device_name() { return device_name; }
 	
-	bool is_use_access_lamp() { return use_access_lamp; }
 	bool is_use_alt_f10_key() { return use_alt_f10_key; }
-	
 	bool is_use_auto_key() { return use_auto_key; }
 	bool is_use_auto_key_us() { return use_auto_key_us; }
 	bool is_use_auto_key_caps() { return use_auto_key_caps; }

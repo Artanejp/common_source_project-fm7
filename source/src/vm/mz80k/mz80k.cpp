@@ -260,14 +260,6 @@ void VM::draw_screen()
 	memory->draw_screen();
 }
 
-#if defined(SUPPORT_MZ80AIF) || defined(SUPPORT_MZ80FIO)
-uint32_t VM::get_access_lamp_status()
-{
-	uint32_t status = fdc->read_signal(0);
-	return (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
-}
-#endif
-
 // ----------------------------------------------------------------------------
 // soud manager
 // ----------------------------------------------------------------------------
@@ -357,7 +349,13 @@ bool VM::is_floppy_disk_protected(int drv)
 {
 	return fdc->is_disk_protected(drv);
 }
+
+uint32_t VM::is_floppy_disk_accessed()
+{
+	return fdc->read_signal(0);
+}
 #endif
+
 
 void VM::play_tape(const _TCHAR* file_path)
 {
@@ -398,6 +396,11 @@ bool VM::is_tape_recording()
 int VM::get_tape_position()
 {
 	return drec->get_tape_position();
+}
+
+const _TCHAR* VM::get_tape_message()
+{
+	return drec->get_message();
 }
 
 void VM::push_play()

@@ -163,7 +163,6 @@
 #endif
 #define USE_CRT_FILTER
 #define USE_SCREEN_ROTATE
-#define USE_ACCESS_LAMP
 #define USE_SOUND_DEVICE_TYPE	5
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 #if    defined(SUPPORT_PC98_OPNA) &&  defined(SUPPORT_PC88_OPNA)
@@ -410,7 +409,6 @@ public:
 	
 	// draw screen
 	void draw_screen();
-	uint32_t get_access_lamp_status();
 	
 	// sound generation
 	void initialize_sound(int rate, int samples);
@@ -430,6 +428,7 @@ public:
 	bool is_floppy_disk_inserted(int drv);
 	void is_floppy_disk_protected(int drv, bool value);
 	bool is_floppy_disk_protected(int drv);
+	uint32_t is_floppy_disk_accessed();
 #if defined(SUPPORT_CMT_IF) || defined(_PC98DO) || defined(_PC98DOPLUS)
 	void play_tape(const _TCHAR* file_path);
 	void rec_tape(const _TCHAR* file_path);

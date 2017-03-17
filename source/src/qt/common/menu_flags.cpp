@@ -24,7 +24,7 @@ const int s_freq_table[8] = {
 USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 {
 	p_osd = NULL;
-	use_access_lamp = use_alt_f10_key = false;
+	use_alt_f10_key = false;
 	use_auto_key = use_auto_key_us = use_auto_key_caps = false;
 	use_auto_key_no_caps = use_auto_key_release =
 	use_auto_key_shift = use_binary_file = false;
@@ -202,9 +202,6 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 	machine_z80tvgame = true;
 #endif
 
-#if defined(USE_ACCESS_LAMP)	
-	use_access_lamp = true;
-#endif	
 #if defined(USE_ALT_F10_KEY)	
 	use_alt_f10_key = true;
 #endif

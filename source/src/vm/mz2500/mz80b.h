@@ -69,7 +69,6 @@
 #define USE_CRT_FILTER
 #endif
 #define USE_SCANLINE
-#define USE_ACCESS_LAMP
 #define USE_SOUND_VOLUME	4
 #define USE_PRINTER
 #define USE_PRINTER_TYPE	4
@@ -181,7 +180,6 @@ public:
 	
 	// draw screen
 	void draw_screen();
-	uint32_t get_access_lamp_status();
 	
 	// sound generation
 	void initialize_sound(int rate, int samples);
@@ -197,10 +195,12 @@ public:
 	bool is_floppy_disk_inserted(int drv);
 	void is_floppy_disk_protected(int drv, bool value);
 	bool is_floppy_disk_protected(int drv);
+	uint32_t is_floppy_disk_accessed();
 #ifdef SUPPORT_QUICK_DISK
 	void open_quick_disk(int drv, const _TCHAR* file_path);
 	void close_quick_disk(int drv);
 	bool is_quick_disk_inserted(int drv);
+	uint32_t is_quick_disk_accessed();
 #endif
 	void play_tape(const _TCHAR* file_path);
 	void rec_tape(const _TCHAR* file_path);
@@ -209,6 +209,7 @@ public:
 	bool is_tape_playing();
 	bool is_tape_recording();
 	int get_tape_position();
+	const _TCHAR* get_tape_message();
 	void push_play();
 	void push_stop();
 	void push_fast_forward();

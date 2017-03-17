@@ -152,6 +152,11 @@ void LD700::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
+uint32_t LD700::read_signal(int id)
+{
+	return (status == STATUS_PLAY) ? 1 : 0;
+}
+
 void LD700::event_frame()
 {
 	int prev_frame_raw = cur_frame_raw;

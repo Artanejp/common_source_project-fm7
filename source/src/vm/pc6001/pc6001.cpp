@@ -466,20 +466,6 @@ bool VM::is_cart_inserted(int drv)
 	}
 }
 
-uint32_t VM::get_access_lamp_status()
-{
-	uint32_t status = 0; /// fdc->read_signal(0);
-#if defined(_PC6601) || defined(_PC6601SR)
-	status = floppy->read_signal(0);
-#endif
-	if(support_pc80s31k) {
-		status |= fdc_pc80s31k->read_signal(0);
-	} else {
-		status |= pc6031->read_signal(0);
-	}
-	return status;
-}
-
 void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 #if defined(_PC6601) || defined(_PC6601SR)
@@ -563,6 +549,21 @@ bool VM::is_floppy_disk_protected(int drv)
 	}
 }
 
+uint32_t VM::is_floppy_disk_accessed()
+{
+	uint32_t status = 0; /// fdc->read_signal(0);
+	if(support_pc80s31k) {
+		status |= fdc_pc80s31k->read_signal(0);
+	} else {
+		status |= pc6031->read_signal(0);
+	}
+#if defined(_PC6601) || defined(_PC6601SR)
+	status <<= 2;
+	status |= floppy->read_signal(0);
+#endif
+	return status;
+}
+
 void VM::play_tape(const _TCHAR* file_path)
 {
 	if(support_sub_cpu) {
@@ -634,6 +635,15 @@ int VM::get_tape_position()
 		return drec->get_tape_position();
 	} else {
 		return 0;
+	}
+}
+
+const _TCHAR* VM::get_tape_message()
+{
+	if(support_sub_cpu) {
+		return drec->get_message();
+	} else {
+		return NULL;
 	}
 }
 

@@ -1306,6 +1306,14 @@
 				RelativePath="..\src\res\resource.h"
 				>
 			</File>
+			<File
+				RelativePath="..\src\res\indicator\access_off.bmp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\indicator\access_on.bmp"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>

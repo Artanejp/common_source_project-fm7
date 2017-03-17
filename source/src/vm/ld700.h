@@ -77,6 +77,7 @@ public:
 	void initialize();
 	void release();
 	void write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t read_signal(int id);
 	void event_frame();
 	void event_callback(int event_id, int err);
 	void mix(int32_t* buffer, int cnt);

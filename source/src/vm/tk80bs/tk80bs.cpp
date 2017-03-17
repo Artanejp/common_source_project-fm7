@@ -441,6 +441,11 @@ int VM::get_tape_position()
 {
 	return drec->get_tape_position();
 }
+
+const _TCHAR* VM::get_tape_message()
+{
+	return drec->get_message();
+}
 #endif
 
 bool VM::is_frame_skippable()

@@ -32,6 +32,7 @@ void SCSI_HDD::read_buffer(int length)
 			position += tmp_length;
 		}
 		fio->Fclose();
+		access = true;
 	}
 	delete fio;
 }
@@ -58,6 +59,7 @@ void SCSI_HDD::write_buffer(int length)
 			position += tmp_length;
 		}
 		fio->Fclose();
+		access = true;
 	}
 	delete fio;
 }

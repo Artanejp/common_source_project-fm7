@@ -423,16 +423,9 @@ void VM::draw_screen()
 	memory->draw_screen();
 }
 
-uint32_t VM::get_access_lamp_status()
+uint32_t VM::is_floppy_disk_accessed()
 {
-	uint32_t status_fdd = fdc->read_signal(0);
-	uint32_t status_hdd = scsi_host->read_signal(0);
-	if(bios) {
-		uint32_t status = bios->read_signal(0);
-		status_fdd |= status & 0x0f;
-		status_hdd |= status >> 4;
-	}
-	return (status_hdd) ? 4 : (status_fdd & (1 | 4)) ? 1 : (status_fdd & (2 | 8)) ? 2 : 0;
+	return fdc->read_signal(0);
 }
 
 // ----------------------------------------------------------------------------

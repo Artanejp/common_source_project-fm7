@@ -130,6 +130,7 @@ public:
 	void open_compact_disc(const _TCHAR* file_path);
 	void close_compact_disc();
 	bool is_compact_disc_inserted();
+	uint32_t is_compact_disc_accessed();
 	bool is_frame_skippable()
 	{
 		return false;

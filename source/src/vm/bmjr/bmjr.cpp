@@ -246,6 +246,11 @@ int VM::get_tape_position()
 	return drec->get_tape_position();
 }
 
+const _TCHAR* VM::get_tape_message()
+{
+	return drec->get_message();
+}
+
 void VM::push_play()
 {
 	drec->set_ff_rew(0);

@@ -224,6 +224,8 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\src\res\pc98lt.ico" />
+    <Image Include="..\src\res\indicator\access_off.bmp" />
+    <Image Include="..\src\res\indicator\access_on.bmp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\res\pc98lt.rc">

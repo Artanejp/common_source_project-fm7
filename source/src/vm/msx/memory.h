@@ -217,6 +217,7 @@ private:
 	DEVICE *d_map[4];
 #if !defined(_PX7)
 	DISK* disk[MAX_DRIVE];
+	bool access[MAX_DRIVE]
 #endif
 	uint32_t slot_select;
 	void update_map(uint32_t val);
@@ -240,6 +241,7 @@ public:
 	void write_io8(uint32_t addr, uint32_t data);
 	void write_signal(int id, uint32_t data, uint32_t mask);
 #if !defined(_PX7)
+	uint32_t read_signal(int id);
 	bool bios_ret_z80(uint16_t PC, pair_t* af, pair_t* bc, pair_t* de, pair_t* hl, pair_t* ix, pair_t* iy, uint8_t* iff1);
 #endif
 	void save_state(FILEIO* state_fio);

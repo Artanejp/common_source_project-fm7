@@ -112,6 +112,7 @@ public:
 	bool is_tape_playing();
 	bool is_tape_recording();
 	int get_tape_position();
+	const _TCHAR* get_tape_message();
 	bool is_frame_skippable();
 	
 	void update_config();

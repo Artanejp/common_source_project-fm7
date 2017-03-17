@@ -295,7 +295,9 @@ void BIOS::reset()
 	for(int i = 0; i < MAX_DRIVE; i++) {
 		access_fdd[i] = false;
 	}
-	access_scsi = false;
+	for(int i = 0; i < MAX_SCSI; i++) {
+		access_scsi[i] = false;
+	}
 	secnum = 1;
 	timeout = 0;
 }
@@ -474,7 +476,7 @@ bool BIOS::bios_call_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t
 				fio->Fseek(block * BLOCK_SIZE, FILEIO_SEEK_SET);
 				while(BX > 0) {
 					// check block
-					access_scsi = true;
+					access_scsi[drv] = true;
 					if(!(block++ < scsi_blocks[drv])) {
 						AH = 0x80;
 						CX = ERR_SCSI_PARAMERROR;
@@ -583,7 +585,7 @@ bool BIOS::bios_call_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t
 				fio->Fseek(block * BLOCK_SIZE, FILEIO_SEEK_SET);
 				while(BX > 0) {
 					// check block
-					access_scsi = true;
+					access_scsi[drv] = true;
 					if(!(block++ < scsi_blocks[drv])) {
 						AH = 0x80;
 						CX = ERR_SCSI_PARAMERROR;
@@ -676,7 +678,7 @@ bool BIOS::bios_call_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t
 				int block = (CL << 16) | DX;
 				while(BX > 0) {
 					// check block
-					access_scsi = true;
+					access_scsi[drv] = true;
 					if(!(block++ < scsi_blocks[drv])) {
 						AH = 0x80;
 						CX = ERR_SCSI_PARAMERROR;
@@ -995,7 +997,7 @@ write_id:
 				return true;
 			}
 			// load ipl
-			access_scsi = true;
+			access_scsi[drv] = true;
 			fio->Fread(buffer, BLOCK_SIZE * 4, 1);
 			fio->Fclose();
 			delete fio;
@@ -1088,16 +1090,21 @@ uint32_t BIOS::read_signal(int ch)
 {
 	// get access status
 	uint32_t stat = 0;
-	for(int i = 0; i < MAX_DRIVE; i++) {
-		if(access_fdd[i]) {
-			stat |= 1 << i;
+	if(ch == 0) {
+		for(int i = 0; i < MAX_DRIVE; i++) {
+			if(access_fdd[i]) {
+				stat |= 1 << i;
+			}
+			access_fdd[i] = false;
 		}
-		access_fdd[i] = false;
+	} else if(ch == 1) {
+		for(int i = 0; i < MAX_SCSI; i++) {
+			if(access_scsi[i]) {
+				stat |= 1 << i;
+			}
+			access_scsi[i] = false;
+		}
 	}
-	if(access_scsi) {
-		stat |= 0x10;
-	}
-	access_scsi = false;
 	return stat;
 }
 

@@ -90,7 +90,6 @@
 #define USE_CRT_FILTER
 #define USE_SCANLINE
 #define USE_SCREEN_ROTATE
-#define USE_ACCESS_LAMP
 #ifdef SUPPORT_PC88_OPNA
 #ifdef SUPPORT_PC88_SB2
 #define USE_SOUND_DEVICE_TYPE	3
@@ -226,7 +225,6 @@ public:
 	
 	// draw screen
 	void draw_screen();
-	uint32_t get_access_lamp_status();
 	
 	// sound generation
 	void initialize_sound(int rate, int samples);
@@ -246,6 +244,7 @@ public:
 	bool is_floppy_disk_inserted(int drv);
 	void is_floppy_disk_protected(int drv, bool value);
 	bool is_floppy_disk_protected(int drv);
+	uint32_t is_floppy_disk_accessed();
 	void play_tape(const _TCHAR* file_path);
 	void rec_tape(const _TCHAR* file_path);
 	void close_tape();

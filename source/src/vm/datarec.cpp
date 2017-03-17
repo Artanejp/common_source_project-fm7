@@ -146,11 +146,11 @@ void DATAREC::event_callback(int event_id, int err)
 	if(event_id == EVENT_SIGNAL) {
 		if(play) {
 			if(ff_rew > 0) {
-				emu->out_message(_T("CMT: Fast Forward (%d %%)"), get_tape_position());
+				my_stprintf_s(message, 1024, _T("Fast Forward (%d %%)"), get_tape_position());
 			} else if(ff_rew < 0) {
-				emu->out_message(_T("CMT: Fast Rewind (%d %%)"), get_tape_position());
+				my_stprintf_s(message, 1024, _T("Fast Rewind (%d %%)"), get_tape_position());
 			} else {
-				emu->out_message(_T("CMT: Play (%d %%)"), get_tape_position());
+				my_stprintf_s(message, 1024, _T("Play (%d %%)"), get_tape_position());
 			}
 			bool signal = in_signal;
 			if(is_wav) {
@@ -368,15 +368,15 @@ bool DATAREC::do_apss(int value)
 	
 	if(value > 0) {
 		if(play) {
-			emu->out_message(_T("CMT: APSS Forward (%d %%)"), get_tape_position());
+			my_stprintf_s(message, 1024, _T("APSS Forward (%d %%)"), get_tape_position());
 		} else {
-			emu->out_message(_T("CMT: APSS Forward"));
+			my_stprintf_s(message, 1024, _T("APSS Forward"));
 		}
 	} else {
 		if(play) {
-			emu->out_message(_T("CMT: APSS Rewind (%d %%)"), get_tape_position());
+			my_stprintf_s(message, 1024, _T("APSS Rewind (%d %%)"), get_tape_position());
 		} else {
-			emu->out_message(_T("CMT: APSS Rewind"));
+			my_stprintf_s(message, 1024, _T("APSS Rewind"));
 		}
 	}
 	return result;
@@ -392,7 +392,7 @@ void DATAREC::update_event()
 				register_event(this, EVENT_SIGNAL, sample_usec / DATAREC_FAST_REW_SPEED, true, &register_id);
 			} else {
 				if(rec) {
-					emu->out_message(_T("CMT: Record"));
+					my_stprintf_s(message, 1024, _T("Record"));
 				}
 				register_event(this, EVENT_SIGNAL, sample_usec, true, &register_id);
 			}
@@ -405,14 +405,14 @@ void DATAREC::update_event()
 			register_id = -1;
 			if(play) {
 				if(buffer_ptr >= buffer_length) {
-					emu->out_message(_T("CMT: Stop (End-of-Tape)"));
+					my_stprintf_s(message, 1024, _T("Stop (End-of-Tape)"));
 				} else if(buffer_ptr <= 0) {
-					emu->out_message(_T("CMT: Stop (Beginning-of-Tape)"));
+					my_stprintf_s(message, 1024, _T("Stop (Beginning-of-Tape)"));
 				} else {
-					emu->out_message(_T("CMT: Stop (%d %%)"), get_tape_position());
+					my_stprintf_s(message, 1024, _T("Stop (%d %%)"), get_tape_position());
 				}
 			} else {
-				emu->out_message(_T("CMT: Stop"));
+				my_stprintf_s(message, 1024, _T("Stop"));
 			}
 		}
 		prev_clock = 0;

@@ -1,3 +1,21 @@
+3/15/2017
+
+[WINMAIN] add status bar to draw access lamps
+[EMU] add interfaces to get access status of floppy/quick/hard disk drives
+[EMU] add interface to get cmt status message
+
+[VM/DATAREC] support cmt status message
+[VM/HD44102] fix build error
+[VM/MC6800] fix M_RDOP and M_RDOP_ARG macros (thanks PockEmul)
+[VM/LD700] support access lamp signal
+[VM/SCSI_CDROM] support access lamp signal
+[VM/SCSI_DEV] support access lamp signal
+[VM/SCSI_HDD] support access lamp signal
+
+[HC20] fix issue that we cannot debug TF-20 CPU
+[JR800] support National JR-800 (thanks PockEmul)
+
+
 3/12/2017
 
 [VM/DATAREC] fix issue that fast forward noise may not stop

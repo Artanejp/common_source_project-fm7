@@ -31,6 +31,7 @@ void SCSI_DEV::reset()
 	data_bus = 0;
 	sel_status = atn_status = ack_status = rst_status = false;
 	selected = atn_pending = false;
+	access = false;
 	
 	event_sel = event_phase = event_req = -1;
 	set_phase(SCSI_PHASE_BUS_FREE);
@@ -303,6 +304,13 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 		}
 		break;
 	}
+}
+
+uint32_t SCSI_DEV::read_signal(int id)
+{
+	uint32_t stat = access ? 1 : 0;
+	access = false;
+	return stat;
 }
 
 void SCSI_DEV::event_callback(int event_id, int err)

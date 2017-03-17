@@ -10,9 +10,6 @@
 
 #include "hd44102.h"
 
-// /src/emu/emucore.h
-#define BIT(x,n) (((x)>>(n))&1)
-
 #define CONTROL_DISPLAY_OFF         0x38
 #define CONTROL_DISPLAY_ON          0x39
 #define CONTROL_COUNT_DOWN_MODE     0x3a
@@ -34,8 +31,10 @@
 //  count_up_or_down -
 //-------------------------------------------------
 
-inline void HD44102::control_w(data_w data)
+inline void HD44102::count_up_or_down()
 {
+	m_output = m_ram[m_x][m_y];
+	
 	if (m_status & STATUS_COUNT_UP)
 	{
 		if (++m_y > 49) m_y = 0;
@@ -56,10 +55,11 @@ inline void HD44102::control_w(data_w data)
 
 void HD44102::initialize()
 {
-	m_cs2 = 0;
+//	m_cs2 = 0;
 	m_page = 0;
 	m_x = 0;
 	m_y = 0;
+	memset(m_ram, 0, sizeof(m_ram));
 }
 
 //-------------------------------------------------
@@ -75,13 +75,13 @@ void HD44102::reset()
 //  read - register read
 //-------------------------------------------------
 
-uint8_t HD44102::read()
+uint8_t HD44102::read(uint32_t offset)
 {
-	UINT8 data = 0;
+	uint8_t data = 0;
 
-	if (m_cs2)
+//	if (m_cs2)
 	{
-		data = (offset & 0x01) ? data_r(space, offset) : status_r(space, offset);
+		data = (offset & 0x01) ? data_r() : status_r();
 	}
 
 	return data;
@@ -91,11 +91,11 @@ uint8_t HD44102::read()
 //  write - register write
 //-------------------------------------------------
 
-void HD44102::write(uint8_t data)
+void HD44102::write(uint32_t offset, uint8_t data)
 {
-	if (m_cs2)
+//	if (m_cs2)
 	{
-		(offset & 0x01) ? data_w(/*space, offset, */data) : control_w(/*space, offset, */data);
+		(offset & 0x01) ? data_w(data) : control_w(data);
 	}
 }
 
@@ -174,9 +174,9 @@ void HD44102::control_w(uint8_t data)
 
 uint8_t HD44102::data_r()
 {
-	UINT8 data = m_output;
+	uint8_t data = m_output;
 
-	m_output = m_ram[m_x][m_y];
+//	m_output = m_ram[m_x][m_y];
 
 	count_up_or_down();
 
@@ -198,45 +198,43 @@ void HD44102::data_w(uint8_t data)
 //  cs2_w - chip select 2 write
 //-------------------------------------------------
 
-void HD44102::write_signal(int id, uint32_t data, uint32_t mask)
-{
-	if(id == SIG_HD44102_CS2) {
-		m_cs2 = data & mask;
-	}
-}
+//void HD44102::write_signal(int id, uint32_t data, uint32_t mask)
+//{
+//	if(id == SIG_HD44102_CS2) {
+//		m_cs2 = data & mask;
+//	}
+//}
 
 //-------------------------------------------------
 //  update_screen - update screen
 //-------------------------------------------------
 
-void HD44102::screen_update(int m_sx, int m_sy)
+void HD44102::screen_update(int m_sx, int m_sy, bool reverse)
 {
 	scrntype_t color_on   = RGB_COLOR( 48,  56,  16);	// dot on
 //	scrntype_t color_off  = RGB_COLOR(144, 150, 144);	// dot off
 	scrntype_t color_back = RGB_COLOR(160, 168, 160);	// back
 	
-	for (int y = 0; y < 50; y++)
+	for (int x = 0; x < 50; x++)
 	{
-		int z = m_page << 3;
-
-		for (int x = 0; x < 32; x++)
+		for (int y = 0; y < 4; y++)
 		{
-			UINT8 data = m_ram[z / 8][y];
-
-			int sy = m_sy + z;
-			int sx = m_sx + y;
-
-//			if (cliprect.contains(sx, sy))
+			int sy = (m_page + y) % 4;
+			int sx = reverse ? (49 - x) : x;
+			
+			uint8_t data = m_ram[sy][x];
+			
+			for (int b = 0; b < 8; b++)
 			{
-				int color = (m_status & STATUS_DISPLAY_OFF) ? 0 : BIT(data, z % 8);
-
-//				bitmap.pix16(sy, sx) = color;
-				scrntype_t *dest = emu->get_screen_buffer(sy) + sx;
-				*dest = color ? color_on : color_back;
+				int dy = m_sy + 8 * sy + b;
+				int dx = m_sx + sx;
+				
+				if(dx >= 0 && dx < SCREEN_WIDTH && dy >= 0 && dy < SCREEN_HEIGHT) {
+					int color = (m_status & STATUS_DISPLAY_OFF) ? 0 : ((data >> b) & 0x01);
+					scrntype_t *dest = emu->get_screen_buffer(m_sy + sy * 8 + b) + (m_sx + sx);
+					*dest = color ? color_on : color_back;
+				}
 			}
-
-			z++;
-			z %= 32;
 		}
 	}
 }
@@ -251,7 +249,7 @@ void HD44102::save_state(FILEIO* state_fio)
 	state_fio->Fwrite(m_ram, sizeof(m_ram), 1);
 	state_fio->FputUint8(m_status);
 	state_fio->FputUint8(m_output);
-	state_fio->FputInt32(m_cs2);
+//	state_fio->FputInt32(m_cs2);
 	state_fio->FputInt32(m_page);
 	state_fio->FputInt32(m_x);
 	state_fio->FputInt32(m_y);
@@ -268,7 +266,7 @@ bool HD44102::load_state(FILEIO* state_fio)
 	state_fio->Fread(m_ram, sizeof(m_ram), 1);
 	m_status = state_fio->FgetUint8();
 	m_output = state_fio->FgetUint8();
-	m_cs2 = state_fio->FgetInt32();
+//	m_cs2 = state_fio->FgetInt32();
 	m_page = state_fio->FgetInt32();
 	m_x = state_fio->FgetInt32();
 	m_y = state_fio->FgetInt32();

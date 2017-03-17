@@ -604,6 +604,11 @@ void MEMORY::release()
 
 void MEMORY::reset()
 {
+#if !defined(_PX7)
+	for(int i = 0; i < MAX_DRIVE; i++) {
+		access[i] = false;
+	}
+#endif
 	update_map((0 << 0) | (1 << 2) | (2 << 4) | (3 << 6));
 }
 
@@ -696,6 +701,18 @@ static bool get_boot_sector(DISK *disk)
 	return false;
 }
 
+uint32_t MEMORY::read_signal(int id)
+{
+	uint32_t stat = 0;
+	for(int i = 0; i < MAX_DRIVE; i++) {
+		if(access[i]) {
+			stat |= 1 << i;
+			access[i] = false;
+		}
+	}
+	return stat;
+}
+
 bool MEMORY::bios_ret_z80(uint16_t PC, pair_t* af, pair_t* bc, pair_t* de, pair_t* hl, pair_t* ix, pair_t* iy, uint8_t* iff1)
 {
 	#define AF	af->w.l
@@ -735,6 +752,8 @@ bool MEMORY::bios_ret_z80(uint16_t PC, pair_t* af, pair_t* bc, pair_t* de, pair_
 						AF = 0x0801; // record not found
 						return true;
 					}
+					access[drv] = true;
+					
 					if(disk[drv]->addr_crc_error && !disk[drv]->ignore_crc()) {
 						AF = 0x0801; // record not found
 						return true;
@@ -756,6 +775,8 @@ bool MEMORY::bios_ret_z80(uint16_t PC, pair_t* af, pair_t* bc, pair_t* de, pair_
 						AF = 0x0801; // record not found
 						return true;
 					}
+					access[drv] = true;
+					
 					if(disk[drv]->addr_crc_error && !disk[drv]->ignore_crc()) {
 						AF = 0x0801; // record not found
 						return true;
@@ -791,7 +812,7 @@ bool MEMORY::bios_ret_z80(uint16_t PC, pair_t* af, pair_t* bc, pair_t* de, pair_
 			F &= ~CF;
 			return true;
 		} else if(PC == GETDPB) {
-			// det drive parameter block
+			// get drive parameter block
 			int drv = A;
 			if(!(drv < MAX_DRIVE && disk[drv]->inserted)) {
 				AF = 0x0201; // not ready
@@ -801,6 +822,8 @@ bool MEMORY::bios_ret_z80(uint16_t PC, pair_t* af, pair_t* bc, pair_t* de, pair_
 				AF = 0x0c01; // other error
 				return true;
 			}
+			access[drv] = true;
+			
 			if(disk[drv]->data_crc_error && !disk[drv]->ignore_crc()) {
 				AF = 0x0401; // data crc error
 				return true;
@@ -858,6 +881,8 @@ bool MEMORY::bios_ret_z80(uint16_t PC, pair_t* af, pair_t* bc, pair_t* de, pair_
 				AF = 0x0001; // write protected
 				return true;
 			}
+			access[drv] = true;
+			
 			// physical format
 			int max_trkside = info[desc].sectors / info[desc].per_track;
 			for(int trkside = 0; trkside < max_trkside; trkside++) {

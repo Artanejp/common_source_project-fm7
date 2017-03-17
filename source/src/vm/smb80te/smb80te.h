@@ -165,6 +165,7 @@ public:
 	bool is_tape_playing();
 	bool is_tape_recording();
 	int get_tape_position();
+	const _TCHAR* get_tape_message();
 	void load_binary(int drv, const _TCHAR* file_path);
 	void save_binary(int drv, const _TCHAR* file_path);
 	bool is_frame_skippable();
