@@ -15,7 +15,7 @@
 
 
 #if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-#define __FM7_GVRAM_PAG_SIZE (0x8000 * 6)
+#define __FM7_GVRAM_PAG_SIZE (0x2000 * 24)
 #elif defined(_FM77AV40)
 #define __FM7_GVRAM_PAG_SIZE (0x2000 * 18)
 #elif defined(_FM77AV_VARIANTS)
@@ -42,6 +42,11 @@ protected:
 	EMU *p_emu;
 	VM *p_vm;
 
+	uint32_t (DISPLAY::*read_cpu_func_table[512])(uint32_t);
+	uint32_t (DISPLAY::*read_dma_func_table[512])(uint32_t);
+	void (DISPLAY::*write_cpu_func_table[512])(uint32_t, uint8_t);
+	void (DISPLAY::*write_dma_func_table[512])(uint32_t, uint8_t);
+	
 	int clr_count;
 	bool screen_update_flag;
 	bool crt_flag_bak;
@@ -272,16 +277,39 @@ protected:
 	void GETVRAM_256k(int yoff, scrntype_t *p, uint32_t mask);
 #endif   
 	uint8_t read_vram_l4_400l(uint32_t addr, uint32_t offset);
-	uint8_t read_mmio(uint32_t addr);
+	uint32_t read_mmio(uint32_t addr);
+	
+	void init_read_table(void);
+	void init_write_table(void);
 	
 	uint32_t read_vram_data8(uint32_t addr);
-	uint32_t read_data8_main(uint32_t addr);
-
-	void write_vram_data8(uint32_t addr, uint8_t data);
-	void write_data8_main(uint32_t addr, uint8_t data);
+	uint32_t read_cpu_vram_data8(uint32_t addr);
+	uint32_t read_dma_vram_data8(uint32_t addr);
+	uint32_t read_console_ram(uint32_t addr);
+	uint32_t read_work_ram(uint32_t addr);
+	uint32_t read_shared_ram(uint32_t addr);
+#if defined(_FM77AV_VARIANTS)
+	uint32_t read_hidden_ram(uint32_t addr);
+#endif
+	uint32_t read_cgrom(uint32_t addr);
+	uint32_t read_subsys_monitor(uint32_t addr);
 	
+	void write_vram_data8(uint32_t addr, uint8_t data);
+	void write_cpu_vram_data8(uint32_t addr, uint8_t data);
+	void write_dma_vram_data8(uint32_t addr, uint8_t data);
+	void write_console_ram(uint32_t addr, uint8_t data);
+	void write_work_ram(uint32_t addr, uint8_t data);
+	void write_shared_ram(uint32_t addr, uint8_t data);
+#if defined(_FM77AV_VARIANTS)
+	void write_hidden_ram(uint32_t addr, uint8_t data);
+#endif
+#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
+	void write_subsys_cgram(uint32_t addr, uint8_t data);
+	void write_subsys_ram(uint32_t addr, uint8_t data);
+#endif
 	void write_vram_l4_400l(uint32_t addr, uint32_t offset, uint32_t data);
-	void write_mmio(uint32_t addr, uint32_t data);
+	void write_mmio(uint32_t addr, uint8_t data);
+	void write_dummy(uint32_t addr, uint8_t data);
    
 	uint32_t read_bios(const _TCHAR *name, uint8_t *ptr, uint32_t size);
 	void draw_screen2();
