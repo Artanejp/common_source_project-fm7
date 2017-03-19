@@ -150,7 +150,7 @@ void EmuThreadClass::get_qd_string(void)
 	QString alamp;
 	QString tmpstr;
 	uint32_t access_drv = 0;
-	access_drv = p_emu->is_quickdisk_accessed();
+	access_drv = p_emu->is_quick_disk_accessed();
 	for(i = 0; i < using_flags->get_max_qd(); i++) {
 		if(p_emu->is_quick_disk_inserted(i)) {
 			if(i == (access_drv - 1)) {
