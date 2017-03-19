@@ -88,8 +88,6 @@ void DISPLAY::reset_cpuonly()
 	vram_wrote_shadow = true;
 	for(i = 0; i < 411; i++) vram_wrote_table[i] = true;
 	for(i = 0; i < 411; i++) vram_draw_table[i] = true;
-	write_access_page = 0;
-	for(i = 0; i < 411; i++) vram_wrote_pages[i] = write_access_page;
 	displine = 0;
 	active_page = 0;
 	
@@ -1082,15 +1080,6 @@ void DISPLAY::event_callback(int event_id, int err)
 			hblank = false;
 			f = false;
 			mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x02, 0xff);
-  			if(displine == 0) {
-  				if(display_mode == DISPLAY_MODE_8_400L) {
-					register_event(this, EVENT_FM7SUB_HDISP, 30.0 + 11.0, true, &hdisp_event_id);
-					register_event(this, EVENT_FM7SUB_HBLANK, 30.0, false, &hblank_event_id); // NEXT CYCLE_
-				} else {
-					register_event(this, EVENT_FM7SUB_HDISP, 39.5 + 24.0, true, &hdisp_event_id);
-					register_event(this, EVENT_FM7SUB_HBLANK, 39.5, false, &hblank_event_id); // NEXT CYCLE_
-				}
-			}
 			if(display_mode == DISPLAY_MODE_8_400L) {
 				if(displine < 400) f = true;
 			} else {
@@ -1099,6 +1088,11 @@ void DISPLAY::event_callback(int event_id, int err)
 			if(f) {
 				if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) != 0) {
 					if((vram_wrote_table[displine] || vram_wrote) && need_transfer_line/*|| vram_wrote */) copy_vram_per_line();
+				}
+  				if(display_mode == DISPLAY_MODE_8_400L) {
+					register_event(this, EVENT_FM7SUB_HBLANK, 30.0, false, &hblank_event_id); // NEXT CYCLE_
+				} else {
+					register_event(this, EVENT_FM7SUB_HBLANK, 39.5, false, &hblank_event_id); // NEXT CYCLE_
 				}
 				vsync = false;
 				vblank = false;
@@ -1110,27 +1104,20 @@ void DISPLAY::event_callback(int event_id, int err)
 			hblank = true;
 			mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x00, 0xff);
 			f = false;
-			if(displine == 0) {
-  				if(display_mode == DISPLAY_MODE_8_400L) {
-					usec = 30.0 + 11.0;
-				} else {
-					usec = 39.5 + 24.0;
-				}
-				register_event(this, EVENT_FM7SUB_HBLANK, usec, true, &hblank_event_id); // NEXT CYCLE_
-			}
-			displine++;
 			if(display_mode == DISPLAY_MODE_8_400L) {
 				if((displine < 400)) f = true;
 			} else {
 				if((displine < 200)) f = true;
 			}
-			if(!f && (hdisp_event_id >= 0)) {
-				cancel_event(this, hdisp_event_id);
-				cancel_event(this, hblank_event_id);
-				hdisp_event_id = -1;
-				hblank_event_id = -1;
+			if(f) {
+				if(display_mode == DISPLAY_MODE_8_400L) {
+					usec = 11.0;
+				} else {
+					usec = 24.0;
+				}
+				register_event(this, EVENT_FM7SUB_HDISP, usec, false, &hdisp_event_id);
 			}
-			//displine++;
+			displine++;
 			break;
 		case EVENT_FM7SUB_VSTART: // Call first.
 			vblank = true;
@@ -1172,7 +1159,7 @@ void DISPLAY::event_callback(int event_id, int err)
 		vblank = true;
 		hblank = false;
 		vsync = true;
-		write_access_page = (write_access_page + 1) & 1;
+		//write_access_page = (write_access_page + 1) & 1;
 		displine = 0;
 		if(display_mode == DISPLAY_MODE_8_400L) {
 			usec = 0.33 * 1000.0; 

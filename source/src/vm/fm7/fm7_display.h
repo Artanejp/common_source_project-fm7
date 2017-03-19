@@ -224,7 +224,7 @@ protected:
 #endif	
 
 	// VRAM Write Page.
-	uint8_t  write_access_page;
+	//uint8_t  write_access_page;
 	
 	// ROM/RAM on Sub-System.
 	uint8_t gvram[__FM7_GVRAM_PAG_SIZE];
@@ -259,7 +259,7 @@ protected:
 	bool vram_wrote_shadow;
 	bool vram_wrote_table[411];
 	bool vram_draw_table[411];
-	uint8_t vram_wrote_pages[411];
+	//uint8_t vram_wrote_pages[411];
 	uint32_t vram_wrote_addr_1[411];
 	uint32_t vram_wrote_addr_2[411];
 #if defined(_FM77AV_VARIANTS)
