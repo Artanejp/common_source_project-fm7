@@ -748,8 +748,8 @@ void DISPLAY::copy_vram_per_line(void)
 		addr_d2 = (src_offset + yoff_d2) & 0x1fff;
 		bytes_d1 = 0x2000 - addr_d1;
 		bytes_d2 = 0x2000 - addr_d2;
-		src_base = 0;
 		for(k = 0; k < pages; k++) {
+			src_base = 0;
 			for(i = 0; i < 3; i++) {
 				for(j = 0; j < 2; j++) {
 					uint32_t _addr_base = src_base + src_offset + poff;
@@ -834,10 +834,8 @@ void DISPLAY::copy_vram_per_line(void)
 	}
 	else if(display_mode == DISPLAY_MODE_8_400L) {
 		src_offset = dline * 80;
-# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
+#if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		pages = 2;
-# elif defined(_FM77AV40)
-		pages = 1;
 #endif
 		if(display_page_bak == 1) { // Is this dirty?
 			yoff_d = yoff_d2;
@@ -851,9 +849,11 @@ void DISPLAY::copy_vram_per_line(void)
 			for(j = 0; j < 3; j++) {
 				src_base = i * 0x18000 + j * 0x8000;
 				if(bytes_d < 80) {
-					memcpy(&gvram_shadow[src_offset + src_base],
-						   &gvram[src_offset_d + src_base],
-						   bytes_d);
+					if(bytes_d > 0) {
+						memcpy(&gvram_shadow[src_offset + src_base],
+							   &gvram[src_offset_d + src_base],
+							   bytes_d);
+					}
 					memcpy(&gvram_shadow[src_offset + bytes_d + src_base],
 						   &gvram[src_base],
 						   80 - bytes_d);
@@ -995,14 +995,11 @@ void DISPLAY::copy_vram_all()
 			}
 		}
 	} else if(display_mode == DISPLAY_MODE_8_400L) {
-#if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-		int pages = 2;
-#else
 		int pages = 1;
+		uint32_t yoff_d, bytes_d;
+#if defined(_FM77AV40EX) || defined(_FM77AV40SX)
+		pages = 2;
 #endif
-		uint32_t yoff_d;
-		uint32_t bytes_d;
-		
 		if(display_page_bak == 1) { // Is this dirty?
 			yoff_d = yoff_d2;
 		} else {
@@ -1010,13 +1007,18 @@ void DISPLAY::copy_vram_all()
 		}
 		yoff_d = (yoff_d << 1) & 0x7fff;
 		bytes_d = 0x8000 - yoff_d;
-		for(int k = 0; k < pages; k++) {
-			for(int i = 0; i < 3; i++) {
-				src_offset_1 = i * 0x8000;
-				memcpy(&gvram_shadow[src_offset_1 + poff], &gvram[src_offset_1 + yoff_d + poff], bytes_d);
-				memcpy(&gvram_shadow[src_offset_1 + bytes_d + poff], &gvram[src_offset_1 + poff], 0x8000 - bytes_d);
+		for(int i = 0; i < pages; i++) {
+			for(int j = 0; j < 3; j++) {
+				uint32_t src_base = i * 0x18000 + j * 0x8000;
+				memcpy(&gvram_shadow[src_base],
+					   &gvram[yoff_d + src_base],
+					   bytes_d);
+				if(bytes_d < 0x8000) {
+					memcpy(&gvram_shadow[bytes_d + src_base],
+						   &gvram[src_base],
+						   0x8000 - bytes_d);
+				}
 			}
-			poff += 0x18000;
 		}
 	}
 #endif	
