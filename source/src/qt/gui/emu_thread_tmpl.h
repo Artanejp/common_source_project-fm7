@@ -207,11 +207,7 @@ signals:
 	int sig_check_grab_mouse(bool);
 	int sig_mouse_enable(bool);
 	int sig_update_recent_disk(int);
-	int sig_change_osd_fd(int, QString);
-	int sig_change_osd_qd(int, QString);
-	int sig_change_osd_cmt(QString);
-	int sig_change_osd_cdrom(QString);
-	int sig_change_osd_laserdisc(QString);
+	int sig_change_osd(int, int, QString);
 	int sig_update_recent_bubble(int);
 	int sig_change_osd_bubble(int, QString);
 	int sig_set_grid_vertical(int, bool);

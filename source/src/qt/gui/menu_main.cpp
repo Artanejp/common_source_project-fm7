@@ -17,7 +17,9 @@
 #include <QLocale>
 #include <QTranslator>
 #include <QStatusBar>
-
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QDockWidget>
 
 #include "commonclasses.h"
 #include "display_about.h"
@@ -32,6 +34,7 @@
 #include "menu_compactdisc.h"
 #include "menu_laserdisc.h"
 #include "menu_bubble.h"
+#include "dock_disks.h"
 
 #include "qt_gldraw.h"
 //#include "emu.h"
@@ -325,9 +328,46 @@ void Ui_MainWindowBase::setupUi(void)
 	
    
 	bitmapImage = NULL;
+	driveData = new CSP_DockDisks(this, 0);
+	MainWindow->setDockOptions(QMainWindow::AnimatedDocks | QMainWindow::AllowTabbedDocks | QMainWindow::VerticalTabs);
+	if(using_flags->is_use_fd()) {
+		int i;
+		for(i = 0; i < using_flags->get_max_drive(); i++) driveData->setVisible(CSP_DockDisks_Domain_FD, i, true);
+	}
+	if(using_flags->is_use_qd()) {
+		int i;
+		for(i = 0; i < using_flags->get_max_qd(); i++) driveData->setVisible(CSP_DockDisks_Domain_QD, i, true);
+	}
+	if(using_flags->is_use_tape()) {
+		driveData->setVisible(CSP_DockDisks_Domain_CMT, 0, true);
+	}
+	if(using_flags->is_use_cart()) {
+		int i;
+		for(i = 0; i < using_flags->get_max_cart(); i++) {
+			driveData->setVisible(CSP_DockDisks_Domain_Cart, i, true);
+		}
+	}
+	if(using_flags->is_use_binary_file()) {
+		int i;
+		for(i = 0; i < using_flags->get_max_binary(); i++) {
+			driveData->setVisible(CSP_DockDisks_Domain_Binary, i, true);
+		}
+	}
+	if(using_flags->is_use_compact_disc()) {
+		driveData->setVisible(CSP_DockDisks_Domain_CD, 0, true);
+	}
+	if(using_flags->is_use_laser_disc()) {
+		driveData->setVisible(CSP_DockDisks_Domain_LD, 0, true);
+	}
+	if(using_flags->is_use_bubble()) {
+		int i;
+		for(i = 0; i < using_flags->get_max_qd(); i++) driveData->setVisible(CSP_DockDisks_Domain_Bubble, i, true);
+	}
+
+	
 	MainWindow->setCentralWidget(graphicsView);
 	MainWindow->setFocusProxy(graphicsView);
-	
+	MainWindow->addDockWidget(Qt::RightDockWidgetArea, driveData);
 	MainWindow->centralWidget()->adjustSize();
 	MainWindow->adjustSize();
 

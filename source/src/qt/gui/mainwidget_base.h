@@ -61,6 +61,9 @@ class QWidget;
 class QLabel;
 class QGraphicsEllipseItem;
 class QClipboard;
+class QDockWidget;
+class QHBoxLayout;
+class QVBoxLayout;
 
 class Ui_SoundDialog;
 class GLDrawClass;
@@ -74,6 +77,7 @@ class Menu_BinaryClass;
 class Menu_BubbleClass;
 class Menu_CompactDiscClass;
 class Menu_LaserdiscClass;
+class CSP_DockDisks;
 class MOVIE_SAVER;
 class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 {
@@ -85,7 +89,9 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	QMainWindow *MainWindow;
 	QApplication *CoreApplication;
 	
-	QWidget *centralwidget;
+	CSP_DockDisks *driveData;
+	//QVBoxLayout *sidebarLayout;
+	
 	GLDrawClass *graphicsView;
 	QStatusBar  *statusbar;
 	QMenuBar    *menubar;
@@ -504,7 +510,6 @@ public slots:
 	void OnStartAutoKey(void);
 	void OnStopAutoKey(void);
 	
-	void do_change_osd_fd(int drv, QString tmpstr);
 
 	void eject_cart(int);
 	void set_recent_cart(int, int);
@@ -512,12 +517,10 @@ public slots:
 	int set_recent_cdrom(int drv, int num);
 	void do_eject_cdrom(int drv);
 	void do_open_cdrom(int drv, QString path);
-	void do_change_osd_cdrom(QString tmpstr);
 
 	int set_recent_laserdisc(int drv, int num); 
 	void do_eject_laserdisc(int drv); 
 	void do_open_laserdisc(int drv, QString path);
-	void do_change_osd_laserdisc(QString tmpstr);
 
 	void CreateBinaryMenu(int drv, int drv_base);
 	void CreateBinaryPulldownMenu(int drv);
@@ -533,7 +536,6 @@ public slots:
 	void _open_quick_disk(int drv, const QString fname);
 	void eject_Qd(int drv);
 
-	void do_change_osd_qd(int drv, QString tmpstr);
 
 	virtual void _open_disk(int drv, const QString fname);
 	void _open_cart(int drv, const QString fname);
@@ -546,7 +548,6 @@ public slots:
 	void set_direct_load_from_mzt(bool f);
 	void do_open_write_cmt(QString);
 	void do_open_read_cmt(int dummy, QString path);
-	void do_change_osd_cmt(QString tmpstr);
 
 	void do_push_play_tape(void);
 	void do_push_stop_tape(void);
@@ -569,7 +570,6 @@ public slots:
 	virtual int set_b77_slot(int drive, int num);
 	virtual void do_update_recent_bubble(int drv);
 	virtual int set_recent_bubble(int drv, int num);
-	void do_change_osd_bubble(int drv, QString tmpstr);
 
 	virtual void _open_bubble(int drv, const QString fname);
 	virtual void eject_bubble(int drv);

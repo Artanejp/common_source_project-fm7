@@ -15,6 +15,7 @@
 #include <SDL.h>
 
 #include "emu_thread.h"
+#include "../gui/dock_disks.h"
 
 #include "qt_gldraw.h"
 #include "csp_logger.h"
@@ -121,8 +122,8 @@ void EmuThreadClass::get_fd_string(void)
 				} else {
 					alamp = QString::fromUtf8("○ ");
 				}
-				tmpstr = QString::fromUtf8("FD");
-				tmpstr = alamp + tmpstr + QString::number(i) + QString::fromUtf8(":");
+				tmpstr = alamp;
+				tmpstr = tmpstr + QString::fromUtf8(" ");
 				if(emu->d88_file[i].bank_num > 0) {
 					iname = QString::fromUtf8(emu->d88_file[i].disk_name[emu->d88_file[i].cur_bank]);
 				} else {
@@ -130,11 +131,10 @@ void EmuThreadClass::get_fd_string(void)
 				}
 				tmpstr = tmpstr + iname;
 			} else {
-				tmpstr = QString::fromUtf8("× FD") + QString::number(i) + QString::fromUtf8(":");
-				tmpstr = tmpstr + QString::fromUtf8(" ");
+				tmpstr = QString::fromUtf8("× ");
 			}
 			if(tmpstr != fd_text[i]) {
-				emit sig_change_osd_fd(i, tmpstr);
+				emit sig_change_osd(CSP_DockDisks_Domain_FD, i, tmpstr);
 				fd_text[i] = tmpstr;
 			}
 		}
@@ -158,16 +158,15 @@ void EmuThreadClass::get_qd_string(void)
 			} else {
 				alamp = QString::fromUtf8("○ ");
 			}
-			tmpstr = QString::fromUtf8("QD");
-			tmpstr = alamp + tmpstr + QString::number(i) + QString::fromUtf8(":");
+			tmpstr = alamp;
+			tmpstr = tmpstr + QString::fromUtf8(" ");
 			iname = QString::fromUtf8("*Inserted*");
 			tmpstr = tmpstr + iname;
 		} else {
-			tmpstr = QString::fromUtf8("× QD") + QString::number(i) + QString::fromUtf8(":");
-			tmpstr = tmpstr + QString::fromUtf8(" ");
+			tmpstr = QString::fromUtf8("× ");
 		}
 		if(tmpstr != qd_text[i]) {
-			emit sig_change_osd_qd(i, tmpstr);
+			emit sig_change_osd(CSP_DockDisks_Domain_QD, i, tmpstr);
 			qd_text[i] = tmpstr;
 		}
 	}
@@ -185,10 +184,10 @@ void EmuThreadClass::get_tape_string()
 			tmpstr = QString::fromUtf8(ts);
 		}
 	} else {
-		tmpstr = QString::fromUtf8("EMPTY");
+		tmpstr = QString::fromUtf8("   EMPTY   ");
 	}
 	if(tmpstr != cmt_text) {
-		emit sig_change_osd_cmt(tmpstr);
+		emit sig_change_osd(CSP_DockDisks_Domain_CMT, 0, tmpstr);
 		cmt_text = tmpstr;
 	}
 #endif
@@ -204,7 +203,7 @@ void EmuThreadClass::get_cd_string(void)
 		tmpstr = QString::fromUtf8("Not Inserted");
 	}
 	if(tmpstr != cdrom_text) {
-		emit sig_change_osd_cdrom(tmpstr);
+		emit sig_change_osd(CSP_DockDisks_Domain_CD, 0, tmpstr);
 		cdrom_text = tmpstr;
 	}
 #endif
@@ -220,14 +219,13 @@ void EmuThreadClass::get_bubble_string(void)
 	for(i = 0; i < using_flags->get_max_bubble() ; i++) {
 		if(p_emu->is_bubble_casette_inserted(i)) {
 			alamp = QString::fromUtf8("● ");
-			tmpstr = QString::fromUtf8("BUB");
-			tmpstr = alamp + tmpstr + QString::number(i) + QString::fromUtf8(":");
+			tmpstr = alamp + QString::fromUtf8(" ");
 		} else {
-			tmpstr = QString::fromUtf8("× BUB") + QString::number(i) + QString::fromUtf8(":");
+			tmpstr = QString::fromUtf8("×");
 			tmpstr = tmpstr + QString::fromUtf8(" ");
 		}
 		if(tmpstr != bubble_text[i]) {
-			emit sig_change_osd_bubble(i, tmpstr);
+			emit sig_change_osd(CSP_DockDisks_Domain_Bubble, i, tmpstr);
 			bubble_text[i] = tmpstr;
 		}
 	}

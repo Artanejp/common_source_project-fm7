@@ -32,25 +32,7 @@
 
 int Ui_MainWindowBase::Calc_OSD_Wfactor()
 {
-	float wfactor;
-	if(using_flags->is_use_fd() && using_flags->is_use_qd() && using_flags->is_use_tape()) {
-		wfactor = (1280.0 - 400.0 - 100.0 - 100.0) / ((float)using_flags->get_max_qd() + (float)using_flags->get_max_drive());
-	} else 	if(using_flags->is_use_fd() && using_flags->is_use_bubble() && using_flags->is_use_tape()) {
-		wfactor = (1280.0 - 400.0 - 100.0 - 100.0 - 100.0 * (float)using_flags->get_max_bubble()) /
-			(float)using_flags->get_max_drive();
-	} else if(using_flags->is_use_fd() && using_flags->is_use_tape()) {
-		wfactor = (1280.0 - 400.0 - 100.0 - 100.0) / (float)using_flags->get_max_drive();
-	} else if(using_flags->is_use_qd() && using_flags->is_use_tape()) {
-		wfactor = (1280.0 - 400.0 - 100.0 - 100.0) / (float)using_flags->get_max_qd();
-	} else if(using_flags->is_use_fd()) {
-		wfactor = (1280.0 - 400.0 - 100.0) / (float)using_flags->get_max_drive();
-	} else if(using_flags->is_use_fd()) {	
-		wfactor = (1280.0 - 400.0 - 100.0) / (float)using_flags->get_max_qd();
-	} else if(using_flags->is_use_fd() && using_flags->is_use_qd()) {
-		wfactor = (1280.0 - 400.0 - 100.0) / ((float)using_flags->get_max_qd() + (float)using_flags->get_max_drive());
-	} else {
-		wfactor = 0.0;
-	}
+	float wfactor = 0.0;
 	if(wfactor < 0.0) wfactor = 0.0;
 	return (int)wfactor;
 }
@@ -58,7 +40,6 @@ int Ui_MainWindowBase::Calc_OSD_Wfactor()
 void Ui_MainWindowBase::initStatusBar(void)
 {
 	int i;
-	int wfactor;
 	statusUpdateTimer = new QTimer;
 	messagesStatusBar = new QLabel;
 	//dummyStatusArea1 = new QWidget;
@@ -69,80 +50,19 @@ void Ui_MainWindowBase::initStatusBar(void)
 	//   QHBoxLayout *layout = new QHBoxLayout();
 	
 	//statusbar->addWidget(layout, 0);
-	messagesStatusBar->setFixedWidth(400);
+	messagesStatusBar->setFixedWidth(600);
 	statusbar->addPermanentWidget(messagesStatusBar, 0);
 	messagesStatusBar->setStyleSheet("font: 12pt \"Sans\";");
 	dummyStatusArea1 = new QWidget;
 	statusbar->addPermanentWidget(dummyStatusArea1, 1);
 	
-	wfactor = Calc_OSD_Wfactor();
-	if(using_flags->is_use_fd()) {
-		for(i = 0; i < using_flags->get_max_drive(); i++) osd_str_fd[i].clear();
-	}
-	if(using_flags->is_use_qd()) {
-		for(i = 0; i < using_flags->get_max_qd(); i++) osd_str_qd[i].clear();
-	}
-	if(using_flags->is_use_tape()) {
-		osd_str_cmt.clear();
-	}
-	if(using_flags->is_use_compact_disc()) {
-		osd_str_cdrom.clear();
-	}
-	if(using_flags->is_use_laser_disc()) {
-		osd_str_laserdisc.clear();
-	}
-	if(using_flags->is_use_bubble()) {
-		for(i = 0; i < using_flags->get_max_bubble(); i++) osd_str_bubble[i].clear();
-	}
+	//wfactor = Calc_OSD_Wfactor();
 	osd_led_data = 0x00000000;
 
 	tmps_n = QString::fromUtf8("font: ");
 	n_s.setNum(12);
 	tmps_n = tmps_n + n_s + QString::fromUtf8("pt \"Sans\";");
-	if(using_flags->is_use_fd()) {
-		for(i = 0; i < using_flags->get_max_drive(); i++) { // Will Fix
-			fd_StatusBar[i] = new QLabel;
-			fd_StatusBar[i]->setStyleSheet(tmps_n);
-			fd_StatusBar[i]->setFixedWidth((wfactor > 200) ? 200 : wfactor);
-			//      fd_StatusBar[i]->setAlignment(Qt::AlignRight);
-			statusbar->addPermanentWidget(fd_StatusBar[i]);
-		}
-	}
-	if(using_flags->is_use_qd()) {
-		for(i = 0; i < using_flags->get_max_qd(); i++) {
-			qd_StatusBar[i] = new QLabel;
-			qd_StatusBar[i]->setStyleSheet(tmps_n);
-			qd_StatusBar[i]->setFixedWidth((wfactor > 150) ? 150 : wfactor);
-			//     qd_StatusBar[i]->setAlignment(Qt::AlignRight);
-			statusbar->addPermanentWidget(qd_StatusBar[i]);
-		}
-	}
-	if(using_flags->is_use_bubble()) {
-		for(i = 0; i < using_flags->get_max_bubble(); i++) {
-			bubble_StatusBar[i] = new QLabel;
-			bubble_StatusBar[i]->setFixedWidth(100);
-			bubble_StatusBar[i]->setStyleSheet(tmps_n);
-			statusbar->addPermanentWidget(bubble_StatusBar[i]);
-		}
-	}
-	if(using_flags->is_use_tape()) {
-		cmt_StatusBar = new QLabel;
-		cmt_StatusBar->setFixedWidth(100);
-		cmt_StatusBar->setStyleSheet(tmps_n);;
-		statusbar->addPermanentWidget(cmt_StatusBar);
-	}
-	if(using_flags->is_use_compact_disc()) {
-		cdrom_StatusBar = new QLabel;
-		cdrom_StatusBar->setFixedWidth(100);
-		cdrom_StatusBar->setStyleSheet(tmps_n);
-		statusbar->addPermanentWidget(cdrom_StatusBar);
-	}
-	if(using_flags->is_use_laser_disc()) {
-		laserdisc_StatusBar = new QLabel;
-		laserdisc_StatusBar->setFixedWidth(100);
-		laserdisc_StatusBar->setStyleSheet(tmps_n);
-		statusbar->addPermanentWidget(laserdisc_StatusBar);
-	}
+	
 	dummyStatusArea2 = new QWidget;
 	dummyStatusArea2->setFixedWidth(100);
 	if(using_flags->get_use_led_device() > 0) {
@@ -191,19 +111,17 @@ void Ui_MainWindowBase::initStatusBar(void)
 
 void Ui_MainWindowBase::resize_statusbar(int w, int h)
 {
-	int wfactor;
-	QSize nowSize;
+	//QSize nowSize;
 	//double height, width;
 	double scaleFactor;
 	int ww;
 	int pt;
 	int i;
-	int qd_width, fd_width;
 	int sfactor = 0;;
 	QString n_s;
 	QString tmps;
 
-	nowSize = messagesStatusBar->size();
+	//nowSize = messagesStatusBar->size();
 	//height = (double)(nowSize.height());
 	//width  = (double)(nowSize.width());
 	scaleFactor = (double)w / 1280.0;
@@ -211,52 +129,14 @@ void Ui_MainWindowBase::resize_statusbar(int w, int h)
 	statusbar->setFixedWidth(w);
 	pt = (int)(14.0 * scaleFactor);
 	if(pt < 4) pt = 4;
-	sfactor = (int)(400.0 * scaleFactor);
-	messagesStatusBar->setFixedWidth((int)(400.0 * scaleFactor));
+	sfactor = (int)(600.0 * scaleFactor);
+	messagesStatusBar->setFixedWidth((int)(600.0 * scaleFactor));
 	
 	tmps = QString::fromUtf8("font: ");
 	n_s.setNum(pt);
 	tmps = tmps + n_s + QString::fromUtf8("pt \"Sans\";");
 	messagesStatusBar->setStyleSheet(tmps);
    
-	wfactor = Calc_OSD_Wfactor();
-	
-	fd_width = wfactor;
-	qd_width = wfactor;
-	if(fd_width > 200) fd_width = 200;
-	if(fd_width < 50) fd_width = 50;
-	if(qd_width > 150) qd_width = 150;
-	if(qd_width < 50) qd_width = 50;
-
-	if(using_flags->is_use_fd()) {
-		ww = (int)(scaleFactor * (double)fd_width);
-		for(i = 0; i < using_flags->get_max_drive(); i++) { // Will Fix
-			fd_StatusBar[i]->setStyleSheet(tmps);
-			fd_StatusBar[i]->setFixedWidth(ww);
-			sfactor += ww;
-		}
-	}
-	if(using_flags->is_use_qd()) {
-		ww = (int)(scaleFactor * (double)fd_width);
-		for(i = 0; i < using_flags->get_max_qd(); i++) { // Will Fix
-			qd_StatusBar[i]->setStyleSheet(tmps);
-			qd_StatusBar[i]->setFixedWidth(ww);
-			sfactor += ww;
-		}
-	}
-	if(using_flags->is_use_tape()) {
-		cmt_StatusBar->setFixedWidth((int)(100.0 * scaleFactor));
-		cmt_StatusBar->setStyleSheet(tmps);
-		sfactor += (int)(100.0 * scaleFactor);
-	}
-	if(using_flags->is_use_bubble()) {
-		ww = (int)(scaleFactor * 100.0);
-		for(i = 0; i < using_flags->get_max_bubble(); i++) { // Will Fix
-			bubble_StatusBar[i]->setStyleSheet(tmps);
-			bubble_StatusBar[i]->setFixedWidth(ww);
-			sfactor += ww;
-		}
-	}
 	if(using_flags->get_use_led_device() > 0) {
 		led_graphicsView->setFixedWidth((int)(100.0 * scaleFactor));
 	}
@@ -326,66 +206,9 @@ void Ui_MainWindowBase::redraw_leds(void)
 		led_graphicsView->setScene(led_gScene);
 }	
 
-void Ui_MainWindowBase::do_change_osd_qd(int drv, QString tmpstr)
-{
-	if((drv < 0) || (drv > using_flags->get_max_qd())) return;
-	osd_str_qd[drv] = tmpstr;
-}
-
-void Ui_MainWindowBase::do_change_osd_fd(int drv, QString tmpstr)
-{
-	if((drv < 0) || (drv >= using_flags->get_max_drive())) return;
-	osd_str_fd[drv] = tmpstr;
-}
-void Ui_MainWindowBase::do_change_osd_cdrom(QString tmpstr)
-{
-	osd_str_cdrom = tmpstr;
-}
-void Ui_MainWindowBase::do_change_osd_laserdisc(QString tmpstr)
-{
-	osd_str_laserdisc = tmpstr;
-}
-void Ui_MainWindowBase::do_change_osd_cmt(QString tmpstr)
-{
-	osd_str_cmt = tmpstr;
-}
-void Ui_MainWindowBase::do_change_osd_bubble(int drv, QString tmpstr)
-{
-	if((drv < 0) || (drv > using_flags->get_max_bubble())) return;
-	osd_str_bubble[drv] = tmpstr;
-}
-
-
 void Ui_MainWindowBase::redraw_status_bar(void)
 {
-	//int access_drv;
-	//int tape_counter;
 	int i;
-
-	if(using_flags->is_use_fd()) {
-		for(i = 0; i < using_flags->get_max_drive(); i++) {	   
-			if(osd_str_fd[i] != fd_StatusBar[i]->text()) fd_StatusBar[i]->setText(osd_str_fd[i]);
-		}
-	}
-	if(using_flags->is_use_qd()) {
-		for(i = 0; i < using_flags->get_max_qd(); i++) {	   
-			if(osd_str_qd[i] != qd_StatusBar[i]->text()) qd_StatusBar[i]->setText(osd_str_qd[i]);
-		}
-	}
-	if(using_flags->is_use_tape()) {
-		if(osd_str_cmt != cmt_StatusBar->text()) cmt_StatusBar->setText(osd_str_cmt);
-	}
-	if(using_flags->is_use_compact_disc()) {
-		if(osd_str_cdrom != cdrom_StatusBar->text()) cdrom_StatusBar->setText(osd_str_cdrom);
-	}
-	if(using_flags->is_use_laser_disc()) {
-		if(osd_str_laserdisc != laserdisc_StatusBar->text()) laserdisc_StatusBar->setText(osd_str_laserdisc);
-	}
-	if(using_flags->is_use_bubble()) {
-		for(i = 0; i < using_flags->get_max_bubble(); i++) {
-		if(osd_str_bubble[i] != bubble_StatusBar[i]->text()) bubble_StatusBar[i]->setText(osd_str_bubble[i]);
-		}
-	}
 }
 
 

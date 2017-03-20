@@ -35,6 +35,8 @@ set(s_qt_gui_headers
 	  tab_movie_general.h
 	  tab_movie_h264.h
 	  tab_movie_mpeg4.h
+
+	  dock_disks.h
 	  
 	  draw_thread.h
 	  joy_thread.h
@@ -92,6 +94,8 @@ set(s_qt_gui_srcs
 	  tab_movie_general.cpp
 	  tab_movie_h264.cpp
 	  tab_movie_mpeg4.cpp
+
+	  dock_disks.cpp
 	  
 	  draw_thread.cpp
 	  joy_thread.cpp
@@ -173,8 +177,8 @@ target_link_libraries(CSPgui PUBLIC
 	  )
 
 set_target_properties(CSPgui PROPERTIES 
-			     SOVERSION 2.7.2
-			     VERSION 2.7.2
+			     SOVERSION 2.8.0
+			     VERSION 2.8.0
 			     )
 INSTALL(TARGETS CSPgui DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()
