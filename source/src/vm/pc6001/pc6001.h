@@ -83,7 +83,7 @@
 #define USE_FD3
 #define USE_FD4
 #endif
-#define USE_TAPE
+#define USE_TAPE1
 #define TAPE_PC6001
 #define NOTIFY_KEY_DOWN
 #define USE_SHIFT_NUMPAD_KEY
@@ -250,14 +250,14 @@ public:
 	void is_floppy_disk_protected(int drv, bool value);
 	bool is_floppy_disk_protected(int drv);
 	uint32_t is_floppy_disk_accessed();
-	void play_tape(const _TCHAR* file_path);
-	void rec_tape(const _TCHAR* file_path);
-	void close_tape();
-	bool is_tape_inserted();
-	bool is_tape_playing();
-	bool is_tape_recording();
-	int get_tape_position();
-	const _TCHAR* get_tape_message();
+	void play_tape(int drv, const _TCHAR* file_path);
+	void rec_tape(int drv, const _TCHAR* file_path);
+	void close_tape(int drv);
+	bool is_tape_inserted(int drv);
+	bool is_tape_playing(int drv);
+	bool is_tape_recording(int drv);
+	int get_tape_position(int drv);
+	const _TCHAR* get_tape_message(int drv);
 	bool is_frame_skippable();
 	
 	void update_config();

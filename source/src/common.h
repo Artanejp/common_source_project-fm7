@@ -15,6 +15,13 @@
 	#define USE_SHARED_DLL
 #endif
 
+// use zlib to decompress gzip file???
+#ifdef _WIN32
+	#if defined(_MSC_VER) && (_MSC_VER >= 1500)
+		#define USE_ZLIB
+	#endif
+#endif
+
 // check environemnt/language
 #ifdef _WIN32
 	#ifdef _MSC_VER

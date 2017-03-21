@@ -31,7 +31,7 @@
 #define TV_WINDOW_HEIGHT	TV_SCREEN_HEIGHT
 
 #define WINDOW_MODE_BASE	2
-#define USE_TAPE
+#define USE_TAPE1
 #define TAPE_BINARY_ONLY
 #define NOTIFY_KEY_DOWN
 #define USE_ALT_F10_KEY
@@ -121,10 +121,10 @@ public:
 	void key_up(int code);
 	
 	// user interface
-	void play_tape(const _TCHAR* file_path);
-	void rec_tape(const _TCHAR* file_path);
-	void close_tape();
-	bool is_tape_inserted();
+	void play_tape(int drv, const _TCHAR* file_path);
+	void rec_tape(int drv, const _TCHAR* file_path);
+	void close_tape(int drv);
+	bool is_tape_inserted(int drv);
 	bool is_frame_skippable();
 	
 	void update_config();

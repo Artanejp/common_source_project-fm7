@@ -285,7 +285,7 @@ void CMT::event_callback(int event_id, int err)
 #endif
 		register_id_stop = -1;
 	} else if(event_id == EVENT_EJECT) {
-		emu->close_tape();
+		emu->close_tape(0);
 		register_id_eject = -1;
 #if defined(USE_SOUND_FILES)
 	d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_EJECT, 1, 1);

@@ -137,8 +137,8 @@ private:
 #ifdef USE_QD1
 	media_status_t quick_disk_status[MAX_QD];
 #endif
-#ifdef USE_TAPE
-	media_status_t tape_status;
+#ifdef USE_TAPE1
+	media_status_t tape_status[MAX_TAPE];
 #endif
 #ifdef USE_COMPACT_DISC
 	media_status_t compact_disc_status;
@@ -421,24 +421,24 @@ public:
 	bool is_quick_disk_inserted(int drv);
 	uint32_t is_quick_disk_accessed();
 #endif
-#ifdef USE_TAPE
-	void play_tape(const _TCHAR* file_path);
-	void rec_tape(const _TCHAR* file_path);
-	void close_tape();
-	bool is_tape_inserted();
+#ifdef USE_TAPE1
+	void play_tape(int drv, const _TCHAR* file_path);
+	void rec_tape(int drv, const _TCHAR* file_path);
+	void close_tape(int drv);
+	bool is_tape_inserted(int drv);
 # ifndef TAPE_BINARY_ONLY
-	bool is_tape_playing();
-	bool is_tape_recording();
-	int get_tape_position();
-	const _TCHAR* get_tape_message();
+	bool is_tape_playing(int drv);
+	bool is_tape_recording(int drv);
+	int get_tape_position(int drv);
+	const _TCHAR* get_tape_message(int drv);
 # endif
 # ifdef USE_TAPE_BUTTON
-	void push_play();
-	void push_stop();
-	void push_fast_forward();
-	void push_fast_rewind();
-	void push_apss_forward();
-	void push_apss_rewind();
+	void push_play(int drv);
+	void push_stop(int drv);
+	void push_fast_forward(int drv);
+	void push_fast_rewind(int drv);
+	void push_apss_forward(int drv);
+	void push_apss_rewind(int drv);
 # endif
 #endif
 #ifdef USE_COMPACT_DISC

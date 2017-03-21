@@ -131,20 +131,20 @@ BEGIN
     END
     POPUP "CMT"
     BEGIN
-        MENUITEM "Play",                        ID_PLAY_TAPE
-        MENUITEM "Rec",                         ID_REC_TAPE
-        MENUITEM "Eject",                       ID_CLOSE_TAPE
+        MENUITEM "Play",                        ID_PLAY_TAPE1
+        MENUITEM "Rec",                         ID_REC_TAPE1
+        MENUITEM "Eject",                       ID_CLOSE_TAPE1
         MENUITEM SEPARATOR
-        MENUITEM "Play Button",                 ID_PLAY_BUTTON
-        MENUITEM "Stop Button",                 ID_STOP_BUTTON
-        MENUITEM "Fast Forward",                ID_FAST_FORWARD
-        MENUITEM "Fast Rewind",                 ID_FAST_REWIND
-        MENUITEM "APSS Forward",                ID_APSS_FORWARD
-        MENUITEM "APSS Rewind",                 ID_APSS_REWIND
+        MENUITEM "Play Button",                 ID_PLAY_BUTTON1
+        MENUITEM "Stop Button",                 ID_STOP_BUTTON1
+        MENUITEM "Fast Forward",                ID_FAST_FORWARD1
+        MENUITEM "Fast Rewind",                 ID_FAST_REWIND1
+        MENUITEM "APSS Forward",                ID_APSS_FORWARD1
+        MENUITEM "APSS Rewind",                 ID_APSS_REWIND1
         MENUITEM SEPARATOR
-        MENUITEM "Waveform Shaper",             ID_USE_WAVE_SHAPER
+        MENUITEM "Waveform Shaper",             ID_USE_WAVE_SHAPER1
         MENUITEM SEPARATOR
-        MENUITEM "Recent",                      ID_RECENT_TAPE
+        MENUITEM "Recent",                      ID_RECENT_TAPE1
     END
     POPUP "Screen"
     BEGIN

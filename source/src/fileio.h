@@ -27,15 +27,25 @@
 #define FILEIO_SEEK_CUR			1
 #define FILEIO_SEEK_END			2
 
+#ifdef USE_ZLIB
+struct gzFile_s;
+typedef struct gzFile_s *gzFile;
+#endif
+
 class DLL_PREFIX FILEIO
 {
 private:
+#ifdef USE_ZLIB
+	gzFile gz;
+	long gz_size;
+#endif
 	FILE* fp;
+	_TCHAR path[_MAX_PATH];
 	
 public:
 	FILEIO();
 	~FILEIO();
-
+	
 	static bool IsFileExisting(const _TCHAR *file_path);
 	static bool IsFileProtected(const _TCHAR *file_path);
 	static bool RemoveFile(const _TCHAR *file_path);
@@ -43,8 +53,20 @@ public:
 
 	bool Fopen(const _TCHAR *file_path, int mode);
 	void Fclose();
-	bool IsOpened() { return (fp != NULL); }
-	uint32_t FileLength();
+	bool IsOpened()
+	{
+#ifdef USE_ZLIB
+		if(gz != NULL) {
+			return true;
+		} else
+#endif
+		return (fp != NULL);
+	}
+	const _TCHAR *FilePath()
+	{
+		return path;
+	}
+	long FileLength();
 	
 	bool FgetBool();
 	void FputBool(bool val);
@@ -100,10 +122,10 @@ public:
 	char *Fgets(char *str, int n);
 	int Fprintf(const char* format, ...);
 	
-	uint32_t Fread(void* buffer, uint32_t size, uint32_t count);
-	uint32_t Fwrite(void* buffer, uint32_t size, uint32_t count);
-	uint32_t Fseek(long offset, int origin);
-	uint32_t Ftell();
+	size_t Fread(void* buffer, size_t size, size_t count);
+	size_t Fwrite(void* buffer, size_t size, size_t count);
+	int Fseek(long offset, int origin);
+	long Ftell();
 };
 
 #endif

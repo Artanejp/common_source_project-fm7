@@ -34,9 +34,21 @@
 #include <cstdio>
 #endif
 
+#ifdef USE_ZLIB
+	#ifdef _WIN32
+		#define ZLIB_WINAPI
+	#endif
+	#include "zlib-1.2.11/zlib.h"
+	#include "zlib-1.2.11/zconf.h"
+#endif
+
 FILEIO::FILEIO()
 {
+#ifdef USE_ZLIB
+	gz = NULL;
+#endif
 	fp = NULL;
+	path[0] = _T('\0');
 }
 
 FILEIO::~FILEIO(void)
@@ -119,6 +131,68 @@ bool FILEIO::Fopen(const _TCHAR *file_path, int mode)
 {
 	Fclose();
 	
+	// store file path
+	my_tcscpy_s(path, _MAX_PATH, file_path);
+	
+#ifdef USE_ZLIB
+	if(check_file_extension(file_path, _T(".gz"))) {
+		switch(mode) {
+		case FILEIO_READ_BINARY:
+//		case FILEIO_READ_WRITE_BINARY:
+		case FILEIO_READ_ASCII:
+//		case FILEIO_READ_WRITE_ASCII:
+//		case FILEIO_READ_WRITE_APPEND_ASCII:
+			if((fp = _tfopen(file_path, _T("rb"))) != NULL) {
+				// check gzip header
+				uint8_t data[10], name[_MAX_PATH] = {0};
+				fread(data, 10, 1, fp);
+				if(data[3] & 2) {
+					// skip part number
+					fseek(fp, 2, SEEK_CUR);
+				}
+				if(data[3] & 4) {
+					// skip extra field
+					fread(data + 4, 2, 1, fp);
+					fseek(fp, data[4] | (data[5] << 8), SEEK_CUR);
+				}
+				if(data[3] & 8) {
+					// read original file name
+					fread(name, sizeof(name), 1, fp);
+					my_stprintf_s(path, _MAX_PATH, _T("%s%s"), get_parent_dir(path), (char *)name);
+				}
+				// get uncompressed input size
+				fseek(fp, -4, SEEK_END);
+				fread(data, 4, 1, fp);
+				gz_size = data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24);
+				fclose(fp);
+				fp = NULL;
+			}
+			break;
+		}
+		switch(mode) {
+		case FILEIO_READ_BINARY:
+			return ((gz = gzopen(file_path, _T("rb"))) != NULL);
+//		case FILEIO_WRITE_BINARY:
+//			return ((gz = gzopen(file_path, _T("wb"))) != NULL);
+//		case FILEIO_READ_WRITE_BINARY:
+//			return ((gz = gzopen(file_path, _T("r+b"))) != NULL);
+//		case FILEIO_READ_WRITE_NEW_BINARY:
+//			return ((gz = gzopen(file_path, _T("w+b"))) != NULL);
+		case FILEIO_READ_ASCII:
+			return ((gz = gzopen(file_path, _T("r"))) != NULL);
+//		case FILEIO_WRITE_ASCII:
+//			return ((gz = gzopen(file_path, _T("w"))) != NULL);
+//		case FILEIO_WRITE_APPEND_ASCII:
+//			return ((gz = gzopen(file_path, _T("a"))) != NULL);
+//		case FILEIO_READ_WRITE_ASCII:
+//			return ((gz = gzopen(file_path, _T("r+"))) != NULL);
+//		case FILEIO_READ_WRITE_NEW_ASCII:
+//			return ((gz = gzopen(file_path, _T("w+"))) != NULL);
+//		case FILEIO_READ_WRITE_APPEND_ASCII:
+//			return ((gz = gzopen(file_path, _T("a+"))) != NULL);
+		}
+	} else
+#endif
 	switch(mode) {
 	case FILEIO_READ_BINARY:
 		return ((fp = _tfopen(file_path, _T("rb"))) != NULL);
@@ -146,29 +220,36 @@ bool FILEIO::Fopen(const _TCHAR *file_path, int mode)
 
 void FILEIO::Fclose()
 {
-	if(fp) {
-		fclose(fp);
+#ifdef USE_ZLIB
+	if(gz != NULL) {
+		gzclose(gz);
+		gz = NULL;
 	}
-	fp = NULL;
+#endif
+	if(fp != NULL) {
+ 		fclose(fp);
+		fp = NULL;
+ 	}
+	path[0] = _T('\0');
 }
 
-uint32_t FILEIO::FileLength()
+long FILEIO::FileLength()
 {
-	long pos = ftell(fp);
-	fseek(fp, 0, SEEK_END);
-	long len = ftell(fp);
-	fseek(fp, pos, SEEK_SET);
-	return (uint32_t)len;
+	long pos = Ftell();
+	Fseek(0, FILEIO_SEEK_END);
+	long len = Ftell();
+	Fseek(pos, FILEIO_SEEK_SET);
+	return len;
 }
 
 #define GET_VALUE(type) \
 	uint8_t buffer[sizeof(type)];				\
 	type *tmpv = (type *)buffer;				\
-	fread(buffer, sizeof(buffer), 1, fp);		\
+	Fread(buffer, sizeof(buffer), 1);		\
 	return *tmpv;						
 
 #define PUT_VALUE(type, v) \
-	fwrite(&v, sizeof(type), 1, fp)
+	Fwrite(&v, sizeof(type), 1)
 
 bool FILEIO::FgetBool()
 {
@@ -574,16 +655,31 @@ void FILEIO::FputInt64_BE(int64_t val)
 
 int FILEIO::Fgetc()
 {
+#ifdef USE_ZLIB
+	if(gz != NULL) {
+		return gzgetc(gz);
+	} else
+#endif
 	return fgetc(fp);
 }
 
 int FILEIO::Fputc(int c)
 {
+#ifdef USE_ZLIB
+	if(gz != NULL) {
+		return gzputc(gz, c);
+	} else
+#endif
 	return fputc(c, fp);
 }
 
 char *FILEIO::Fgets(char *str, int n)
 {
+#ifdef USE_ZLIB
+	if(gz != NULL) {
+		return gzgets(gz, str, n);
+	} else
+#endif
 	return fgets(str, n, fp);
 }
 
@@ -596,21 +692,48 @@ int FILEIO::Fprintf(const char* format, ...)
 	my_vsprintf_s(buffer, 1024, format, ap);
 	va_end(ap);
 	
+#ifdef USE_ZLIB
+	if(gz != NULL) {
+		return gzprintf(gz, "%s", buffer);
+	} else
+#endif
 	return my_fprintf_s(fp, "%s", buffer);
 }
 
-uint32_t FILEIO::Fread(void* buffer, uint32_t size, uint32_t count)
+size_t FILEIO::Fread(void* buffer, size_t size, size_t count)
 {
+#ifdef USE_ZLIB
+	if(gz != NULL) {
+		return gzfread(buffer, size, count, gz);
+	} else
+#endif
 	return fread(buffer, size, count, fp);
 }
 
-uint32_t FILEIO::Fwrite(void* buffer, uint32_t size, uint32_t count)
+size_t FILEIO::Fwrite(void* buffer, size_t size, size_t count)
 {
+#ifdef USE_ZLIB
+	if(gz != NULL) {
+		return gzfwrite(buffer, size, count, gz);
+	} else
+#endif
 	return fwrite(buffer, size, count, fp);
 }
 
-uint32_t FILEIO::Fseek(long offset, int origin)
+int FILEIO::Fseek(long offset, int origin)
 {
+#ifdef USE_ZLIB
+	if(gz != NULL) {
+		switch(origin) {
+		case FILEIO_SEEK_CUR:
+			return gzseek(gz, offset, SEEK_CUR);
+		case FILEIO_SEEK_END:
+			return gzseek(gz, offset + gz_size, SEEK_SET);
+		case FILEIO_SEEK_SET:
+			return gzseek(gz, offset, SEEK_SET);
+		}
+	} else
+#endif
 	switch(origin) {
 	case FILEIO_SEEK_CUR:
 		return fseek(fp, offset, SEEK_CUR);
@@ -619,11 +742,16 @@ uint32_t FILEIO::Fseek(long offset, int origin)
 	case FILEIO_SEEK_SET:
 		return fseek(fp, offset, SEEK_SET);
 	}
-	return 0xFFFFFFFF;
+	return -1;
 }
 
-uint32_t FILEIO::Ftell()
+long FILEIO::Ftell()
 {
+#ifdef USE_ZLIB
+	if(gz != NULL) {
+		return gztell(gz);
+	} else
+#endif
 	return ftell(fp);
 }
 

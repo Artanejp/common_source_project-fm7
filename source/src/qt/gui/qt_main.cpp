@@ -23,6 +23,7 @@ extern DLL_PREFIX_I std::string cpp_confdir;
 extern DLL_PREFIX_I std::string my_procname;
 //extern DLL_PREFIX_I std::string sRssDir;
 
+#if 0
 void get_long_full_path_name(_TCHAR* src, _TCHAR* dst)
 {
 	QString r_path;
@@ -73,6 +74,7 @@ _TCHAR* get_parent_dir(_TCHAR* file)
 	if(ptr >= 0) for(ptr = ptr + 1; ptr < (int)strlen(p); ptr++) p[ptr] = '\0'; 
 	return p;
 }
+#endif
 
 void get_short_filename(_TCHAR *dst, _TCHAR *file, int maxlen)
 {

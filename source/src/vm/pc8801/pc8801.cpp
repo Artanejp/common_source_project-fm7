@@ -458,22 +458,22 @@ uint32_t VM::is_floppy_disk_accessed()
 	return pc88fdc_sub->read_signal(0);
 }
 
-void VM::play_tape(const _TCHAR* file_path)
+void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	pc88->play_tape(file_path);
 }
 
-void VM::rec_tape(const _TCHAR* file_path)
+void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
 	pc88->rec_tape(file_path);
 }
 
-void VM::close_tape()
+void VM::close_tape(int drv)
 {
 	pc88->close_tape();
 }
 
-bool VM::is_tape_inserted()
+bool VM::is_tape_inserted(int drv)
 {
 	return pc88->is_tape_inserted();
 }

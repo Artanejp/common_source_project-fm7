@@ -301,22 +301,22 @@ uint32_t VM::is_floppy_disk_accessed()
 	return fdc_tf20->read_signal(0);
 }
 
-void VM::play_tape(const _TCHAR* file_path)
+void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	memory->play_tape(file_path);
 }
 
-void VM::rec_tape(const _TCHAR* file_path)
+void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
 	memory->rec_tape(file_path);
 }
 
-void VM::close_tape()
+void VM::close_tape(int drv)
 {
 	memory->close_tape();
 }
 
-bool VM::is_tape_inserted()
+bool VM::is_tape_inserted(int drv)
 {
 	return memory->is_tape_inserted();
 }

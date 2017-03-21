@@ -1,5 +1,6 @@
 /*
 	NEC TK-80BS (COMPO BS/80) Emulator 'eTK-80BS'
+	NEC TK-80 Emulator 'eTK-80'
 
 	Author : Takeda.Toshiya
 	Date   : 2008.08.26 -
@@ -8,14 +9,27 @@
 */
 
 #include "cmt.h"
+#include "../datarec.h"
+#if defined(_TK80BS)
 #include "../i8251.h"
+#endif
+#include "../i8255.h"
+
+#define EVENT_PULSE	0
 
 void CMT::initialize()
 {
+	mic = ear = pulse = false;
+	pulse_count = 0;
+	register_event(this, EVENT_PULSE, 1000000 / 4000, true, NULL);
+	
+#if defined(_TK80BS)
 	fio = new FILEIO();
 	play = rec = false;
+#endif
 }
 
+#if defined(_TK80BS)
 void CMT::release()
 {
 	release_tape();
@@ -27,19 +41,51 @@ void CMT::reset()
 	close_tape();
 	play = rec = false;
 }
+#endif
 
 void CMT::write_signal(int id, uint32_t data, uint32_t mask)
 {
-	if(rec) {
-		// recv from sio
-		buffer[bufcnt++] = data & mask;
-		if(bufcnt >= BUFFER_SIZE) {
-			fio->Fwrite(buffer, bufcnt, 1);
-			bufcnt = 0;
+	if(id == SIG_CMT_MIC) {
+		// recv mic signal from pio
+		mic = ((data & mask) != 0);
+	} else if(id == SIG_CMT_EAR) {
+		// recv ear signal from datarec
+		bool next = ((data & mask) != 0);
+		if(ear != next) {
+			pulse_count = 0;
+			ear = next;
 		}
+#if defined(_TK80BS)
+	} else if(id == SIG_CMT_OUT) {
+		// recv data from sio
+		if(rec) {
+			buffer[bufcnt++] = data & mask;
+			if(bufcnt >= BUFFER_SIZE) {
+				fio->Fwrite(buffer, bufcnt, 1);
+				bufcnt = 0;
+			}
+		}
+#endif
 	}
 }
 
+void CMT::event_callback(int event_id, int err)
+{
+	// send mic signal to datarec
+	d_drec->write_signal(SIG_DATAREC_MIC, (mic && pulse) ? 1 : 0, 1);
+	pulse = !pulse;
+	
+	// send ear signal to pio
+	if(pulse_count > 4) {
+		// ear signal is not changed for 1 msec or more
+		d_pio->write_signal(SIG_I8255_PORT_B, 0, 1);
+	} else {
+		d_pio->write_signal(SIG_I8255_PORT_B, 1, 1);
+		pulse_count++;
+	}
+}
+
+#if defined(_TK80BS)
 void CMT::play_tape(const _TCHAR* file_path)
 {
 	close_tape();
@@ -92,14 +138,20 @@ void CMT::release_tape()
 	}
 	play = rec = false;
 }
+#endif
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void CMT::save_state(FILEIO* state_fio)
 {
 	state_fio->FputUint32(STATE_VERSION);
 	state_fio->FputInt32(this_device_id);
 	
+	state_fio->FputBool(mic);
+	state_fio->FputBool(ear);
+	state_fio->FputBool(pulse);
+	state_fio->FputInt32(pulse_count);
+#if defined(_TK80BS)
 	state_fio->FputBool(play);
 	state_fio->FputBool(rec);
 	state_fio->Fwrite(rec_file_path, sizeof(rec_file_path), 1);
@@ -119,6 +171,7 @@ void CMT::save_state(FILEIO* state_fio)
 	}
 	state_fio->FputInt32(bufcnt);
 	state_fio->Fwrite(buffer, sizeof(buffer), 1);
+#endif
 }
 
 bool CMT::load_state(FILEIO* state_fio)
@@ -131,6 +184,11 @@ bool CMT::load_state(FILEIO* state_fio)
 	if(state_fio->FgetInt32() != this_device_id) {
 		return false;
 	}
+	mic = state_fio->FgetBool();
+	ear = state_fio->FgetBool();
+	pulse = state_fio->FgetBool();
+	pulse_count = state_fio->FgetInt32();
+#if defined(_TK80BS)
 	play = state_fio->FgetBool();
 	rec = state_fio->FgetBool();
 	state_fio->Fread(rec_file_path, sizeof(rec_file_path), 1);
@@ -149,6 +207,7 @@ bool CMT::load_state(FILEIO* state_fio)
 	}
 	bufcnt = state_fio->FgetInt32();
 	state_fio->Fread(buffer, sizeof(buffer), 1);
+#endif
 	return true;
 }
 

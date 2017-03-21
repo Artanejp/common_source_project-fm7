@@ -98,6 +98,8 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Bank Protect ($FD0F/Hack)",   ID_DIPSWITCH4
         MENUITEM "Kanji ROM",                   ID_DIPSWITCH5
+        MENUITEM "320KB FDD",                   ID_DIPSWITCH6
+        MENUITEM "1MB FDD",                     ID_DIPSWITCH7
         MENUITEM SEPARATOR
         MENUITEM "None",                        ID_DEVICE_TYPE0
         MENUITEM "Mouse JS-Port1",              ID_DEVICE_TYPE1
@@ -139,18 +141,18 @@ BEGIN
     END
     POPUP "CMT"
     BEGIN
-        MENUITEM "Play",                        ID_PLAY_TAPE
-        MENUITEM "Rec",                         ID_REC_TAPE
-        MENUITEM "Eject",                       ID_CLOSE_TAPE
+        MENUITEM "Play",                        ID_PLAY_TAPE1
+        MENUITEM "Rec",                         ID_REC_TAPE1
+        MENUITEM "Eject",                       ID_CLOSE_TAPE1
         MENUITEM SEPARATOR
-        MENUITEM "Play Button",                 ID_PLAY_BUTTON
-        MENUITEM "Stop Button",                 ID_STOP_BUTTON
-        MENUITEM "Fast Forward",                ID_FAST_FORWARD
-        MENUITEM "Fast Rewind",                 ID_FAST_REWIND
+        MENUITEM "Play Button",                 ID_PLAY_BUTTON1
+        MENUITEM "Stop Button",                 ID_STOP_BUTTON1
+        MENUITEM "Fast Forward",                ID_FAST_FORWARD1
+        MENUITEM "Fast Rewind",                 ID_FAST_REWIND1
         MENUITEM SEPARATOR
-        MENUITEM "Waveform Shaper",             ID_USE_WAVE_SHAPER
+        MENUITEM "Waveform Shaper",             ID_USE_WAVE_SHAPER1
         MENUITEM SEPARATOR
-        MENUITEM "Recent",                      ID_RECENT_TAPE
+        MENUITEM "Recent",                      ID_RECENT_TAPE1
     END
     POPUP "Bubble Casette1"
     BEGIN

@@ -520,8 +520,13 @@ void DLL_PREFIX get_long_full_path_name(const _TCHAR* src, _TCHAR* dst, size_t d
 	} else if(GetLongPathName(tmp, dst, _MAX_PATH) == 0) {
 		my_tcscpy_s(dst, dst_len, tmp);
 	}
+#elif defined(_USE_QT)
+	QDir _dir = QDir(QString::fromLocal8Bit(src));
+	QString tmp_path = _dir.absolutePath();
+	strncpy(dst, tmp_path.toUtf8().constData(), dst_len);
 #else
 	// write code for your environment
+	
 #endif
 }
 
@@ -537,6 +542,11 @@ const _TCHAR* DLL_PREFIX get_parent_dir(const _TCHAR* file)
 	if(ptr != NULL) {
 		*ptr = _T('\0');
 	}
+#elif defined(_USE_QT)
+	QDir _dir = QDir(QString::fromLocal8Bit(file));
+	QString tmp_path = _dir.dirName();
+	memset(path[output_index], 0x00, sizeof(_TCHAR) * _MAX_PATH);
+	strncpy(path[output_index], tmp_path.toUtf8().constData(), _MAX_PATH - 1);
 #else
 	// write code for your environment
 #endif

@@ -160,9 +160,9 @@ uint32_t SUB::read_data8(uint32_t addr)
 		// bit4: 1 = FP-1012PR
 		// bit5: 1 = Always ON
 #ifdef _FP1000
-		return config.baud_high ? 0xf0 : 0xf8;
+		return config.baud_high[0] ? 0xf0 : 0xf8;
 #else
-		return config.baud_high ? 0xf4 : 0xfc;
+		return config.baud_high[0] ? 0xf4 : 0xfc;
 #endif
 	case 0xe800:
 		return comm_data;

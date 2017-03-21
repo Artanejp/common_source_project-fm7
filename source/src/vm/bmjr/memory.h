@@ -44,7 +44,8 @@ private:
 	bool screen_reversed;
 	scrntype_t palette_pc[8];
 	
-	bool drec_in;
+	bool drec_bit, drec_in;
+	uint32_t drec_clock;
 	
 	uint8_t key_column, key_data;
 	bool nmi_enb;

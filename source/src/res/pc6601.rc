@@ -153,13 +153,13 @@ BEGIN
     END
     POPUP "CMT"
     BEGIN
-        MENUITEM "Play",                        ID_PLAY_TAPE
-        MENUITEM "Rec",                         ID_REC_TAPE
-        MENUITEM "Close",                       ID_CLOSE_TAPE
+        MENUITEM "Play",                        ID_PLAY_TAPE1
+        MENUITEM "Rec",                         ID_REC_TAPE1
+        MENUITEM "Close",                       ID_CLOSE_TAPE1
         MENUITEM SEPARATOR
-        MENUITEM "Waveform Shaper",             ID_USE_WAVE_SHAPER
+        MENUITEM "Waveform Shaper",             ID_USE_WAVE_SHAPER1
         MENUITEM SEPARATOR
-        MENUITEM "Recent",                      ID_RECENT_TAPE
+        MENUITEM "Recent",                      ID_RECENT_TAPE1
     END
     POPUP "Screen"
     BEGIN

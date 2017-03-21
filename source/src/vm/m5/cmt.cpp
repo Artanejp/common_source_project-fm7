@@ -60,7 +60,7 @@ void CMT::write_signal(int id, uint32_t data, uint32_t mask)
 	if(id == SIG_CMT_IN) {
 		in = ((data & mask) != 0);
 	} else if(id == SIG_CMT_EOT) {
-		if((data & mask) != 0 && vm->is_tape_inserted()) {
+		if((data & mask) != 0 && vm->is_tape_inserted(0)) {
 			eot = true;
 		}
 //	} else if(id == SIG_PRINTER_BUSY) {

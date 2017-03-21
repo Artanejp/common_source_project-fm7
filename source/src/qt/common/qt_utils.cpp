@@ -483,8 +483,8 @@ void Ui_MainWindow::do_release_emu_resources(void)
 	}
 }
 
-extern void get_long_full_path_name(_TCHAR* src, _TCHAR* dst);
-extern _TCHAR* get_parent_dir(_TCHAR* file);
+extern void DLL_PREFIX_I get_long_full_path_name(_TCHAR* src, _TCHAR* dst);
+extern _TCHAR* DLL_PREFIX_I get_parent_dir(_TCHAR* file);
 extern void get_short_filename(_TCHAR *dst, _TCHAR *file, int maxlen);
 
 static void setup_logs(void)

@@ -50,6 +50,7 @@ bool status_bar_visible = false;
 void show_status_bar(HWND hWnd);
 void hide_status_bar(HWND hWnd);
 int get_status_bar_height();
+void update_status_bar(HINSTANCE hInstance, LPDRAWITEMSTRUCT lpDrawItem);
 
 // file
 #ifdef USE_CART1
@@ -67,9 +68,9 @@ void close_floppy_disk(int drv);
 void open_quick_disk_dialog(HWND hWnd, int drv);
 void open_recent_quick_disk(int drv, int index);
 #endif
-#ifdef USE_TAPE
-void open_tape_dialog(HWND hWnd, bool play);
-void open_recent_tape(int index);
+#ifdef USE_TAPE1
+void open_tape_dialog(HWND hWnd, int drv, bool play);
+void open_recent_tape(int drv, int index);
 #endif
 #ifdef USE_COMPACT_DISC
 void open_compact_disc_dialog(HWND hWnd);
@@ -87,7 +88,7 @@ void open_recent_binary(int drv, int index);
 void open_bubble_casette_dialog(HWND hWnd, int drv);
 void open_recent_bubble_casette(int drv, int index);
 #endif
-#if defined(USE_CART1) || defined(USE_FD1) || defined(USE_TAPE) || defined(USE_COMPACT_DISC) || defined(USE_LASER_DISC) || defined(USE_BINARY_FILE1) || defined(USE_BUBBLE1)
+#if defined(USE_CART1) || defined(USE_FD1) || defined(USE_TAPE1) || defined(USE_COMPACT_DISC) || defined(USE_LASER_DISC) || defined(USE_BINARY_FILE1) || defined(USE_BUBBLE1)
 #define SUPPORT_DRAG_DROP
 #endif
 #ifdef SUPPORT_DRAG_DROP
@@ -288,8 +289,9 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdL
 	// main loop
 	int total_frames = 0, draw_frames = 0, skip_frames = 0;
 	DWORD next_time = 0;
-	DWORD update_fps_time = 0;
 	bool prev_skip = false;
+	DWORD update_fps_time = 0;
+	DWORD update_status_bar_time = 0;
 	DWORD disable_screen_saver_time = 0;
 	MSG msg;
 	
@@ -343,29 +345,34 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdL
 				skip_frames = 0;
 				next_time = timeGetTime();
 			}
-			if(hStatus != NULL && status_bar_visible) {
-				// update status bar
-				SendMessage(hStatus, SB_SETTEXT, (WPARAM)0 | SBT_OWNERDRAW, (LPARAM)NULL);
-			}
 			Sleep(sleep_period);
 			
 			// calc frame rate
 			DWORD current_time = timeGetTime();
-			if(update_fps_time <= current_time && update_fps_time != 0) {
-				int ratio = (int)(100.0 * (double)draw_frames / (double)total_frames + 0.5);
-				if(emu->message_count > 0) {
-					SetWindowText(hWnd, create_string(_T("%s - %s"), _T(DEVICE_NAME), emu->message));
-					emu->message_count--;
-				} else if(now_skip) {
-					SetWindowText(hWnd, create_string(_T("%s - Skip Frames"), _T(DEVICE_NAME)));
-				} else {
-					SetWindowText(hWnd, create_string(_T("%s - %d fps (%d %%)"), _T(DEVICE_NAME), draw_frames, ratio));
-				}
-				update_fps_time += 1000;
-				total_frames = draw_frames = 0;
-			}
 			if(update_fps_time <= current_time) {
+				if(update_fps_time != 0) {
+					int ratio = (int)(100.0 * (double)draw_frames / (double)total_frames + 0.5);
+					if(emu->message_count > 0) {
+						SetWindowText(hWnd, create_string(_T("%s - %s"), _T(DEVICE_NAME), emu->message));
+						emu->message_count--;
+					} else if(now_skip) {
+						SetWindowText(hWnd, create_string(_T("%s - Skip Frames"), _T(DEVICE_NAME)));
+					} else {
+						SetWindowText(hWnd, create_string(_T("%s - %d fps (%d %%)"), _T(DEVICE_NAME), draw_frames, ratio));
+					}
+					update_fps_time += 1000;
+					total_frames = draw_frames = 0;
+				}
 				update_fps_time = current_time + 1000;
+			}
+			
+			// update status bar
+			if(update_status_bar_time <= current_time) {
+				if(hStatus != NULL && status_bar_visible) {
+					SendMessage(hStatus, SB_SETTEXT, (WPARAM)0 | SBT_OWNERDRAW, (LPARAM)NULL);
+//					InvalidateRect(hStatus, NULL, FALSE);
+				}
+				update_status_bar_time = current_time + 500;
 			}
 			
 			// disable screen saver
@@ -395,7 +402,6 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdL
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 {
 	static HINSTANCE hInstance;
-	LPDRAWITEMSTRUCT lpds;
 	
 	switch(iMsg) {
 	case WM_CREATE:
@@ -478,128 +484,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		}
 		return 0;
 	case WM_DRAWITEM:
-		lpds = (LPDRAWITEMSTRUCT)lParam;
-		if(lpds->CtlID == ID_STATUS) {
-			if(emu) {
-				TEXTMETRIC tm;
-				SIZE size;
-				GetTextMetrics(lpds->hDC, &tm);
-				int text_top = (lpds->rcItem.top + lpds->rcItem.bottom) / 2 - tm.tmHeight / 2;
-				int draw_left = lpds->rcItem.left;
-				
-				SetTextColor(lpds->hDC, RGB(0, 0, 0));
-				SetBkMode(lpds->hDC, TRANSPARENT);
-				
-				#if defined(USE_FD1) || defined(USE_QD1) || defined(USE_HARD_DISK) || defined(USE_COMPACT_DISC) || defined(USE_LASER_DISC)
-					HDC hdcMem = CreateCompatibleDC(lpds->hDC);
-					HBITMAP hBitmap[2];
-					BITMAP bmp[2];
-					hBitmap[0] = LoadBitmap(hInstance, _T("IDI_BITMAP_ACCESS_OFF"));
-					hBitmap[1] = LoadBitmap(hInstance, _T("IDI_BITMAP_ACCESS_ON" ));
-					
-					if(hBitmap[0] != NULL && hBitmap[1] != NULL) {
-						GetObject(hBitmap[0], sizeof(BITMAP), &bmp[0]);
-						GetObject(hBitmap[1], sizeof(BITMAP), &bmp[1]);
-						
-						int bmp_width = bmp[0].bmWidth;
-						int bmp_height = bmp[0].bmHeight;
-						int bmp_top = (lpds->rcItem.top + lpds->rcItem.bottom) / 2 - bmp_height / 2;
-						
-						#ifdef USE_FD1
-							TextOut(lpds->hDC, draw_left, text_top, _T("FD:"), 3);
-							GetTextExtentPoint32(lpds->hDC, _T("FD:"), 3, &size);
-							draw_left += size.cx + 4;
-							
-							uint32_t fd_status = emu->is_floppy_disk_accessed();
-							for(int i = 0; i < MAX_FD; i++) {
-								int idx = (fd_status >> i) & 1;
-								SelectObject(hdcMem, hBitmap[idx]);
-								TransparentBlt(lpds->hDC, draw_left, bmp_top, bmp_width, bmp_height, hdcMem, 0, 0, bmp_width, bmp_height, 0);
-								draw_left += bmp_width + 2;
-							}
-							draw_left += 8;
-						#endif
-						#ifdef USE_QD1
-							TextOut(lpds->hDC, draw_left, text_top, _T("QD:"), 3);
-							GetTextExtentPoint32(lpds->hDC, _T("QD:"), 3, &size);
-							draw_left += size.cx + 4;
-							
-							uint32_t qd_status = emu->is_quick_disk_accessed();
-							for(int i = 0; i < MAX_QD; i++) {
-								int idx = (qd_status >> i) & 1;
-								SelectObject(hdcMem, hBitmap[idx]);
-								TransparentBlt(lpds->hDC, draw_left, bmp_top, bmp_width, bmp_height, hdcMem, 0, 0, bmp_width, bmp_height, 0);
-								draw_left += bmp_width + 2;
-							}
-							draw_left += 8;
-						#endif
-						#ifdef USE_HARD_DISK
-							TextOut(lpds->hDC, draw_left, text_top, _T("HD:"), 3);
-							GetTextExtentPoint32(lpds->hDC, _T("HD:"), 3, &size);
-							draw_left += size.cx + 4;
-							
-							uint32_t hd_status = emu->is_hard_disk_accessed();
-							for (int i = 0; i < USE_HARD_DISK; i++) {
-								int idx = (hd_status >> i) & 1;
-								SelectObject(hdcMem, hBitmap[idx]);
-								TransparentBlt(lpds->hDC, draw_left, bmp_top, bmp_width, bmp_height, hdcMem, 0, 0, bmp_width, bmp_height, 0);
-								draw_left += bmp_width + 2;
-							}
-							draw_left += 8;
-						#endif
-						#ifdef USE_COMPACT_DISC
-							TextOut(lpds->hDC, draw_left, text_top, _T("CD:"), 3);
-							GetTextExtentPoint32(lpds->hDC, _T("CD:"), 3, &size);
-							draw_left += size.cx + 4;
-							
-							uint32_t cd_status = emu->is_compact_disc_accessed();
-							for (int i = 0; i < 1; i++) {
-								int idx = (cd_status >> i) & 1;
-								SelectObject(hdcMem, hBitmap[idx]);
-								TransparentBlt(lpds->hDC, draw_left, bmp_top, bmp_width, bmp_height, hdcMem, 0, 0, bmp_width, bmp_height, 0);
-								draw_left += bmp_width + 2;
-							}
-							draw_left += 8;
-						#endif
-						#ifdef USE_LASER_DISC
-							TextOut(lpds->hDC, draw_left, text_top, _T("LD:"), 3);
-							GetTextExtentPoint32(lpds->hDC, _T("LD:"), 3, &size);
-							draw_left += size.cx + 4;
-							
-							uint32_t ld_status = emu->is_laser_disc_accessed();
-							for (int i = 0; i < 1; i++) {
-								int idx = (ld_status >> i) & 1;
-								SelectObject(hdcMem, hBitmap[idx]);
-								TransparentBlt(lpds->hDC, draw_left, bmp_top, bmp_width, bmp_height, hdcMem, 0, 0, bmp_width, bmp_height, 0);
-								draw_left += bmp_width + 2;
-							}
-							draw_left += 8;
-						#endif
-					}
-					if(hBitmap[0] != NULL) {
-						DeleteObject(hBitmap[0]);
-					}
-					if(hBitmap[1] != NULL) {
-						DeleteObject(hBitmap[1]);
-					}
-					DeleteDC(hdcMem);
-				#endif
-				#if defined(USE_TAPE) && !defined(TAPE_BINARY_ONLY)
-					const _TCHAR* message = emu->get_tape_message();
-					if(message != NULL) {
-						TextOut(lpds->hDC, draw_left, text_top, _T("CMT:"), 4);
-						GetTextExtentPoint32(lpds->hDC, _T("CMT:"), 4, &size);
-						draw_left += size.cx + 4;
-						TextOut(lpds->hDC, draw_left, text_top, message, _tcslen(message));
-					}
+		{
+			LPDRAWITEMSTRUCT lpDrawItem = (LPDRAWITEMSTRUCT)lParam;
+			if(lpDrawItem->CtlID == ID_STATUS) {
+				if(emu) {
+					update_status_bar(hInstance, lpDrawItem);
+				}
+			} else {
+				#ifdef ONE_BOARD_MICRO_COMPUTER
+//					if(lpDrawItem->itemAction & (ODA_DRAWENTIRE | ODA_SELECT)) {
+						draw_button(lpDrawItem->hDC, (UINT)wParam - ID_BUTTON, lpDrawItem->itemState & ODS_SELECTED);
+//					}
 				#endif
 			}
-		} else {
-			#ifdef ONE_BOARD_MICRO_COMPUTER
-//				if(lpds->itemAction & (ODA_DRAWENTIRE | ODA_SELECT)) {
-					draw_button(((LPDRAWITEMSTRUCT)lParam)->hDC, (UINT)wParam - ID_BUTTON, ((LPDRAWITEMSTRUCT)lParam)->itemState & ODS_SELECTED);
-//				}
-			#endif
 		}
 		return TRUE;
 	case WM_MOVING:
@@ -920,74 +817,89 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 #ifdef USE_QD2
 		QD_MENU_ITEMS(1, ID_OPEN_QD2, ID_CLOSE_QD2, ID_RECENT_QD2)
 #endif
-#ifdef USE_TAPE
-		case ID_PLAY_TAPE:
-			if(emu) {
-				open_tape_dialog(hWnd, true);
-			}
+#ifdef USE_TAPE1
+		#define TAPE_MENU_ITEMS(drv, ID_PLAY_TAPE, ID_REC_TAPE, ID_CLOSE_TAPE, ID_USE_WAVE_SHAPER, ID_DIRECT_LOAD_MZT, ID_RECENT_TAPE) \
+		case ID_PLAY_TAPE: \
+			if(emu) { \
+				open_tape_dialog(hWnd, drv, true); \
+			} \
+			break; \
+		case ID_REC_TAPE: \
+			if(emu) { \
+				open_tape_dialog(hWnd, drv, false); \
+			} \
+			break; \
+		case ID_CLOSE_TAPE: \
+			if(emu) { \
+				emu->close_tape(drv); \
+			} \
+			break; \
+		case ID_USE_WAVE_SHAPER: \
+			config.wave_shaper[drv] = !config.wave_shaper[drv]; \
+			break; \
+		case ID_DIRECT_LOAD_MZT: \
+			config.direct_load_mzt[drv] = !config.direct_load_mzt[drv]; \
+			break; \
+		case ID_RECENT_TAPE + 0: case ID_RECENT_TAPE + 1: case ID_RECENT_TAPE + 2: case ID_RECENT_TAPE + 3: \
+		case ID_RECENT_TAPE + 4: case ID_RECENT_TAPE + 5: case ID_RECENT_TAPE + 6: case ID_RECENT_TAPE + 7: \
+			if(emu) { \
+				open_recent_tape(drv, LOWORD(wParam) - ID_RECENT_TAPE); \
+			} \
 			break;
-		case ID_REC_TAPE:
-			if(emu) {
-				open_tape_dialog(hWnd, false);
-			}
+		TAPE_MENU_ITEMS(0, ID_PLAY_TAPE1, ID_REC_TAPE1, ID_CLOSE_TAPE1, ID_USE_WAVE_SHAPER1, ID_DIRECT_LOAD_MZT1, ID_RECENT_TAPE1)
+	#ifdef USE_TAPE_BUTTON
+		#define TAPE_BUTTON_MENU_ITEMS(drv, ID_PLAY_BUTTON, ID_STOP_BUTTON, ID_FAST_FORWARD, ID_FAST_REWIND, ID_APSS_FORWARD, ID_APSS_REWIND) \
+		case ID_PLAY_BUTTON: \
+			if(emu) { \
+				emu->push_play(drv); \
+			} \
+			break; \
+		case ID_STOP_BUTTON: \
+			if(emu) { \
+				emu->push_stop(drv); \
+			} \
+			break; \
+		case ID_FAST_FORWARD: \
+			if(emu) { \
+				emu->push_fast_forward(drv); \
+			} \
+			break; \
+		case ID_FAST_REWIND: \
+			if(emu) { \
+				emu->push_fast_rewind(drv); \
+			} \
+			break; \
+		case ID_APSS_FORWARD: \
+			if(emu) { \
+				emu->push_apss_forward(drv); \
+			} \
+			break; \
+		case ID_APSS_REWIND: \
+			if(emu) { \
+				emu->push_apss_rewind(drv); \
+			} \
 			break;
-		case ID_CLOSE_TAPE:
-			if(emu) {
-				emu->close_tape();
-			}
+		TAPE_BUTTON_MENU_ITEMS(0, ID_PLAY_BUTTON1, ID_STOP_BUTTON1, ID_FAST_FORWARD1, ID_FAST_REWIND1, ID_APSS_FORWARD1, ID_APSS_REWIND1)
+	#endif
+	#ifdef USE_TAPE_BAUD
+		#define TAPE_BAUD_MENU_ITEMS(drv, ID_TAPE_BAUD_LOW, ID_TAPE_BAUD_HIGH) \
+		case ID_TAPE_BAUD_LOW: \
+			config.baud_high[drv] = false; \
+			break; \
+		case ID_TAPE_BAUD_HIGH: \
+			config.baud_high[drv] = true; \
 			break;
-		case ID_USE_WAVE_SHAPER:
-			config.wave_shaper = !config.wave_shaper;
-			break;
-		case ID_DIRECT_LOAD_MZT:
-			config.direct_load_mzt = !config.direct_load_mzt;
-			break;
-		case ID_RECENT_TAPE + 0: case ID_RECENT_TAPE + 1: case ID_RECENT_TAPE + 2: case ID_RECENT_TAPE + 3:
-		case ID_RECENT_TAPE + 4: case ID_RECENT_TAPE + 5: case ID_RECENT_TAPE + 6: case ID_RECENT_TAPE + 7:
-			if(emu) {
-				open_recent_tape(LOWORD(wParam) - ID_RECENT_TAPE);
-			}
-			break;
+		TAPE_BAUD_MENU_ITEMS(0, ID_TAPE_BAUD_LOW1, ID_TAPE_BAUD_HIGH1)
+	#endif
 #endif
-#ifdef USE_TAPE_BUTTON
-		case ID_PLAY_BUTTON:
-			if(emu) {
-				emu->push_play();
-			}
-			break;
-		case ID_STOP_BUTTON:
-			if(emu) {
-				emu->push_stop();
-			}
-			break;
-		case ID_FAST_FORWARD:
-			if(emu) {
-				emu->push_fast_forward();
-			}
-			break;
-		case ID_FAST_REWIND:
-			if(emu) {
-				emu->push_fast_rewind();
-			}
-			break;
-		case ID_APSS_FORWARD:
-			if(emu) {
-				emu->push_apss_forward();
-			}
-			break;
-		case ID_APSS_REWIND:
-			if(emu) {
-				emu->push_apss_rewind();
-			}
-			break;
-#endif
-#ifdef USE_TAPE_BAUD
-		case ID_TAPE_BAUD_LOW:
-			config.baud_high = false;
-			break;
-		case ID_TAPE_BAUD_HIGH:
-			config.baud_high = true;
-			break;
+#ifdef USE_TAPE2
+		TAPE_MENU_ITEMS(1, ID_PLAY_TAPE2, ID_REC_TAPE2, ID_CLOSE_TAPE2, ID_USE_WAVE_SHAPER2, ID_DIRECT_LOAD_MZT2, ID_RECENT_TAPE2)
+	#ifdef USE_TAPE_BUTTON
+		TAPE_BUTTON_MENU_ITEMS(1, ID_PLAY_BUTTON2, ID_STOP_BUTTON2, ID_FAST_FORWARD2, ID_FAST_REWIND2, ID_APSS_FORWARD2, ID_APSS_REWIND2)
+	#endif
+	#ifdef USE_TAPE_BAUD
+		TAPE_BAUD_MENU_ITEMS(1, ID_TAPE_BAUD_LOW2, ID_TAPE_BAUD_HIGH2)
+	#endif
 #endif
 #ifdef USE_COMPACT_DISC
 		case ID_OPEN_COMPACT_DISC:
@@ -1222,7 +1134,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			}
 			break;
 #endif
-#ifdef USE_TAPE
+#ifdef USE_TAPE1
 		case ID_SOUND_NOISE_CMT:
 			config.sound_noise_cmt = !config.sound_noise_cmt;
 			if(emu) {
@@ -1451,35 +1363,35 @@ void update_quick_disk_menu(HMENU hMenu, int drv, UINT ID_RECENT_QD, UINT ID_CLO
 }
 #endif
 
-#ifdef MENU_POS_TAPE
-void update_tape_menu(HMENU hMenu)
+#ifdef MENU_POS_TAPE1
+void update_tape_menu(HMENU hMenu, int drv, UINT ID_RECENT_TAPE, UINT ID_CLOSE_TAPE, UINT ID_PLAY_BUTTON, UINT ID_STOP_BUTTON, UINT ID_FAST_FORWARD, UINT ID_FAST_REWIND, UINT ID_APSS_FORWARD, UINT ID_APSS_REWIND, UINT ID_USE_WAVE_SHAPER, UINT ID_DIRECT_LOAD_MZT, UINT ID_TAPE_BAUD_LOW, UINT ID_TAPE_BAUD_HIGH)
 {
 	bool flag = false;
 	for(int i = 0; i < MAX_HISTORY; i++) {
 		DeleteMenu(hMenu, ID_RECENT_TAPE + i, MF_BYCOMMAND);
 	}
 	for(int i = 0; i < MAX_HISTORY; i++) {
-		if(_tcsicmp(config.recent_tape_path[i], _T(""))) {
-			AppendMenu(hMenu, MF_STRING, ID_RECENT_TAPE + i, config.recent_tape_path[i]);
+		if(_tcsicmp(config.recent_tape_path[drv][i], _T(""))) {
+			AppendMenu(hMenu, MF_STRING, ID_RECENT_TAPE + i, config.recent_tape_path[drv][i]);
 			flag = true;
 		}
 	}
 	if(!flag) {
 		AppendMenu(hMenu, MF_GRAYED | MF_STRING, ID_RECENT_TAPE, _T("None"));
 	}
-	EnableMenuItem(hMenu, ID_CLOSE_TAPE, emu->is_tape_inserted() ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, ID_CLOSE_TAPE, emu->is_tape_inserted(drv) ? MF_ENABLED : MF_GRAYED);
 #ifdef USE_TAPE_BUTTON
-	EnableMenuItem(hMenu, ID_PLAY_BUTTON, emu->is_tape_inserted() ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(hMenu, ID_STOP_BUTTON, emu->is_tape_inserted() ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(hMenu, ID_FAST_FORWARD, emu->is_tape_inserted() ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(hMenu, ID_FAST_REWIND, emu->is_tape_inserted() ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(hMenu, ID_APSS_FORWARD, emu->is_tape_inserted() ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(hMenu, ID_APSS_REWIND, emu->is_tape_inserted() ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, ID_PLAY_BUTTON, emu->is_tape_inserted(drv) ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, ID_STOP_BUTTON, emu->is_tape_inserted(drv) ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, ID_FAST_FORWARD, emu->is_tape_inserted(drv) ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, ID_FAST_REWIND, emu->is_tape_inserted(drv) ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, ID_APSS_FORWARD, emu->is_tape_inserted(drv) ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, ID_APSS_REWIND, emu->is_tape_inserted(drv) ? MF_ENABLED : MF_GRAYED);
 #endif
-	CheckMenuItem(hMenu, ID_USE_WAVE_SHAPER, config.wave_shaper ? MF_CHECKED : MF_UNCHECKED);
-	CheckMenuItem(hMenu, ID_DIRECT_LOAD_MZT, config.direct_load_mzt ? MF_CHECKED : MF_UNCHECKED);
+	CheckMenuItem(hMenu, ID_USE_WAVE_SHAPER, config.wave_shaper[drv] ? MF_CHECKED : MF_UNCHECKED);
+	CheckMenuItem(hMenu, ID_DIRECT_LOAD_MZT, config.direct_load_mzt[drv] ? MF_CHECKED : MF_UNCHECKED);
 #ifdef USE_TAPE_BAUD
-	CheckMenuRadioItem(hMenu, ID_TAPE_BAUD_LOW, ID_TAPE_BAUD_HIGH, !config.baud_high ? ID_TAPE_BAUD_LOW : ID_TAPE_BAUD_HIGH, MF_BYCOMMAND);
+	CheckMenuRadioItem(hMenu, ID_TAPE_BAUD_LOW, ID_TAPE_BAUD_HIGH, !config.baud_high[drv] ? ID_TAPE_BAUD_LOW : ID_TAPE_BAUD_HIGH, MF_BYCOMMAND);
 #endif
 }
 #endif
@@ -1669,7 +1581,7 @@ void update_sound_menu(HMENU hMenu)
 #ifdef USE_FD1
 	CheckMenuItem(hMenu, ID_SOUND_NOISE_FDD, config.sound_noise_fdd ? MF_CHECKED : MF_UNCHECKED);
 #endif
-#ifdef USE_TAPE
+#ifdef USE_TAPE1
 	CheckMenuItem(hMenu, ID_SOUND_NOISE_CMT, config.sound_noise_cmt ? MF_CHECKED : MF_UNCHECKED);
 	CheckMenuItem(hMenu, ID_SOUND_PLAY_TAPE, config.sound_play_tape ? MF_CHECKED : MF_UNCHECKED);
 #endif
@@ -1785,9 +1697,14 @@ void update_menu(HWND hWnd, HMENU hMenu, int pos)
 		update_quick_disk_menu(hMenu, 1, ID_RECENT_QD2, ID_CLOSE_QD2);
 		break;
 #endif
-#ifdef MENU_POS_TAPE
-	case MENU_POS_TAPE:
-		update_tape_menu(hMenu);
+#ifdef MENU_POS_TAPE1
+	case MENU_POS_TAPE1:
+		update_tape_menu(hMenu, 0, ID_RECENT_TAPE1, ID_CLOSE_TAPE1, ID_PLAY_BUTTON1, ID_STOP_BUTTON1, ID_FAST_FORWARD1, ID_FAST_REWIND1, ID_APSS_FORWARD1, ID_APSS_REWIND1, ID_USE_WAVE_SHAPER1, ID_DIRECT_LOAD_MZT1, ID_TAPE_BAUD_LOW1, ID_TAPE_BAUD_HIGH1);
+		break;
+#endif
+#ifdef MENU_POS_TAPE2
+	case MENU_POS_TAPE2:
+		update_tape_menu(hMenu, 1, ID_RECENT_TAPE2, ID_CLOSE_TAPE2, ID_PLAY_BUTTON2, ID_STOP_BUTTON2, ID_FAST_FORWARD2, ID_FAST_REWIND2, ID_APSS_FORWARD2, ID_APSS_REWIND2, ID_USE_WAVE_SHAPER2, ID_DIRECT_LOAD_MZT2, ID_TAPE_BAUD_LOW2, ID_TAPE_BAUD_HIGH2);
 		break;
 #endif
 #ifdef MENU_POS_COMPACT_DISC
@@ -1867,11 +1784,14 @@ void hide_menu_bar(HWND hWnd)
 
 void show_status_bar(HWND hWnd)
 {
+#if defined(USE_FD1) || defined(USE_QD1) || defined(USE_HARD_DISK) || defined(USE_COMPACT_DISC) || defined(USE_LASER_DISC) || (defined(USE_TAPE1) && !defined(TAPE_BINARY_ONLY))
 	if(hStatus == NULL) {
 		InitCommonControls();
 		hStatus = CreateStatusWindow(WS_CHILD | WS_VISIBLE | CCS_BOTTOM, NULL, hWnd, ID_STATUS);
+		SendMessage(hStatus, SB_SETTEXT, (WPARAM)0 | SBT_OWNERDRAW, (LPARAM)NULL);
 	}
 	ShowWindow(hStatus, SW_SHOW);
+#endif
 	status_bar_visible = true;
 }
 
@@ -1891,6 +1811,131 @@ int get_status_bar_height()
 		return rect.bottom - rect.top;
 	}
 	return 0;
+}
+
+void update_status_bar(HINSTANCE hInstance, LPDRAWITEMSTRUCT lpDrawItem)
+{
+	TEXTMETRIC tm;
+	GetTextMetrics(lpDrawItem->hDC, &tm);
+	int text_top = (lpDrawItem->rcItem.top + lpDrawItem->rcItem.bottom) / 2 - tm.tmHeight / 2;
+	int draw_left = lpDrawItem->rcItem.left;
+	
+	SetTextColor(lpDrawItem->hDC, RGB(0, 0, 0));
+	SetBkMode(lpDrawItem->hDC, TRANSPARENT);
+	
+	#if defined(USE_FD1) || defined(USE_QD1) || defined(USE_HARD_DISK) || defined(USE_COMPACT_DISC) || defined(USE_LASER_DISC)
+	{
+		HDC hdcMem = CreateCompatibleDC(lpDrawItem->hDC);
+		HBITMAP hBitmap[2];
+		BITMAP bmp[2];
+		hBitmap[0] = LoadBitmap(hInstance, _T("IDI_BITMAP_ACCESS_OFF"));
+		hBitmap[1] = LoadBitmap(hInstance, _T("IDI_BITMAP_ACCESS_ON" ));
+		
+		if(hBitmap[0] != NULL && hBitmap[1] != NULL) {
+			GetObject(hBitmap[0], sizeof(BITMAP), &bmp[0]);
+			GetObject(hBitmap[1], sizeof(BITMAP), &bmp[1]);
+			
+			int bmp_width = bmp[0].bmWidth;
+			int bmp_height = bmp[0].bmHeight;
+			int bmp_top = (lpDrawItem->rcItem.top + lpDrawItem->rcItem.bottom) / 2 - bmp_height / 2;
+			SIZE size;
+			
+			#ifdef USE_FD1
+				TextOut(lpDrawItem->hDC, draw_left, text_top, _T("FD:"), 3);
+				GetTextExtentPoint32(lpDrawItem->hDC, _T("FD:"), 3, &size);
+				draw_left += size.cx + 4;
+				
+				uint32_t fd_status = emu->is_floppy_disk_accessed();
+				for(int i = 0; i < MAX_FD; i++) {
+					int idx = (fd_status >> i) & 1;
+					SelectObject(hdcMem, hBitmap[idx]);
+					TransparentBlt(lpDrawItem->hDC, draw_left, bmp_top, bmp_width, bmp_height, hdcMem, 0, 0, bmp_width, bmp_height, 0);
+					draw_left += bmp_width + 2;
+				}
+				draw_left += 8;
+			#endif
+			#ifdef USE_QD1
+				TextOut(lpDrawItem->hDC, draw_left, text_top, _T("QD:"), 3);
+				GetTextExtentPoint32(lpDrawItem->hDC, _T("QD:"), 3, &size);
+				draw_left += size.cx + 4;
+				
+				uint32_t qd_status = emu->is_quick_disk_accessed();
+				for(int i = 0; i < MAX_QD; i++) {
+					int idx = (qd_status >> i) & 1;
+					SelectObject(hdcMem, hBitmap[idx]);
+					TransparentBlt(lpDrawItem->hDC, draw_left, bmp_top, bmp_width, bmp_height, hdcMem, 0, 0, bmp_width, bmp_height, 0);
+					draw_left += bmp_width + 2;
+				}
+				draw_left += 8;
+			#endif
+			#ifdef USE_HARD_DISK
+				TextOut(lpDrawItem->hDC, draw_left, text_top, _T("HD:"), 3);
+				GetTextExtentPoint32(lpDrawItem->hDC, _T("HD:"), 3, &size);
+				draw_left += size.cx + 4;
+				
+				uint32_t hd_status = emu->is_hard_disk_accessed();
+				for (int i = 0; i < USE_HARD_DISK; i++) {
+					int idx = (hd_status >> i) & 1;
+					SelectObject(hdcMem, hBitmap[idx]);
+					TransparentBlt(lpDrawItem->hDC, draw_left, bmp_top, bmp_width, bmp_height, hdcMem, 0, 0, bmp_width, bmp_height, 0);
+					draw_left += bmp_width + 2;
+				}
+				draw_left += 8;
+			#endif
+			#ifdef USE_COMPACT_DISC
+				TextOut(lpDrawItem->hDC, draw_left, text_top, _T("CD:"), 3);
+				GetTextExtentPoint32(lpDrawItem->hDC, _T("CD:"), 3, &size);
+				draw_left += size.cx + 4;
+				
+				uint32_t cd_status = emu->is_compact_disc_accessed();
+				for (int i = 0; i < 1; i++) {
+					int idx = (cd_status >> i) & 1;
+					SelectObject(hdcMem, hBitmap[idx]);
+					TransparentBlt(lpDrawItem->hDC, draw_left, bmp_top, bmp_width, bmp_height, hdcMem, 0, 0, bmp_width, bmp_height, 0);
+					draw_left += bmp_width + 2;
+				}
+				draw_left += 8;
+			#endif
+			#ifdef USE_LASER_DISC
+				TextOut(lpDrawItem->hDC, draw_left, text_top, _T("LD:"), 3);
+				GetTextExtentPoint32(lpDrawItem->hDC, _T("LD:"), 3, &size);
+				draw_left += size.cx + 4;
+				
+				uint32_t ld_status = emu->is_laser_disc_accessed();
+				for (int i = 0; i < 1; i++) {
+					int idx = (ld_status >> i) & 1;
+					SelectObject(hdcMem, hBitmap[idx]);
+					TransparentBlt(lpDrawItem->hDC, draw_left, bmp_top, bmp_width, bmp_height, hdcMem, 0, 0, bmp_width, bmp_height, 0);
+					draw_left += bmp_width + 2;
+				}
+				draw_left += 8;
+			#endif
+		}
+		if(hBitmap[0] != NULL) {
+			DeleteObject(hBitmap[0]);
+		}
+		if(hBitmap[1] != NULL) {
+			DeleteObject(hBitmap[1]);
+		}
+		DeleteDC(hdcMem);
+	}
+	#endif
+	#if defined(USE_TAPE1) && !defined(TAPE_BINARY_ONLY)
+	{
+		for(int drv = 0; drv < MAX_TAPE; drv++) {
+			const _TCHAR* message = emu->get_tape_message(drv);
+			SIZE size;
+			
+			if(message != NULL) {
+				TextOut(lpDrawItem->hDC, draw_left, text_top, _T("CMT:"), 4);
+				GetTextExtentPoint32(lpDrawItem->hDC, _T("CMT:"), 4, &size);
+				draw_left += size.cx + 4;
+				TextOut(lpDrawItem->hDC, draw_left, text_top, message, _tcslen(message));
+				break;
+			}
+		}
+	}
+	#endif
 }
 
 // ----------------------------------------------------------------------------
@@ -2074,54 +2119,65 @@ void open_recent_quick_disk(int drv, int index)
 }
 #endif
 
-#ifdef USE_TAPE
-void open_tape_dialog(HWND hWnd, bool play)
+#ifdef USE_TAPE1
+void open_tape_dialog(HWND hWnd, int drv, bool play)
 {
 	_TCHAR* path = get_open_file_name(
 		hWnd,
 #if defined(_PC6001) || defined(_PC6001MK2) || defined(_PC6001MK2SR) || defined(_PC6601) || defined(_PC6601SR)
-		_T("Supported Files (*.wav;*.cas;*.p6;*.p6t)\0*.wav;*.cas;*.p6;*.p6t\0All Files (*.*)\0*.*\0\0"),
+		play ? _T("Supported Files (*.wav;*.cas;*.p6;*.p6t;*.gz)\0*.wav;*.cas;*.p6;*.p6t;*.gz\0All Files (*.*)\0*.*\0\0")
+		     : _T("Supported Files (*.wav;*.cas;*.p6;*.p6t)\0*.wav;*.cas;*.p6;*.p6t\0All Files (*.*)\0*.*\0\0"),
 #elif defined(_PC8001SR) || defined(_PC8801MA) || defined(_PC98DO)
 		play ? _T("Supported Files (*.cas;*.cmt;*.n80;*.t88)\0*.cas;*.cmt;*.n80;*.t88\0All Files (*.*)\0*.*\0\0")
 		     : _T("Supported Files (*.cas;*.cmt)\0*.cas;*.cmt\0All Files (*.*)\0*.*\0\0"),
 #elif defined(_MZ80A) || defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(_MZ800) || defined(_MZ1500)
-		play ? _T("Supported Files (*.wav;*.cas;*.mzt;*.mzf;*.m12)\0*.wav;*.cas;*.mzt;*.mzf;*.m12\0All Files (*.*)\0*.*\0\0")
+		play ? _T("Supported Files (*.wav;*.cas;*.mzt;*.mzf;*.m12;*.gz)\0*.wav;*.cas;*.mzt;*.mzf;*.m12;*.gz\0All Files (*.*)\0*.*\0\0")
 		     : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
 #elif defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
-		play ? _T("Supported Files (*.wav;*.cas;*.mzt;*.mzf;*.mti;*.mtw;*.dat)\0*.wav;*.cas;*.mzt;*.mzf;*.mti;*.mtw;*.dat\0All Files (*.*)\0*.*\0\0")
+		play ? _T("Supported Files (*.wav;*.cas;*.mzt;*.mzf;*.mti;*.mtw;*.dat;*.gz)\0*.wav;*.cas;*.mzt;*.mzf;*.mti;*.mtw;*.dat;*.gz\0All Files (*.*)\0*.*\0\0")
 		     : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
 #elif defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
-		_T("Supported Files (*.wav;*.cas;*.tap)\0*.wav;*.cas;*.tap\0All Files (*.*)\0*.*\0\0"),
+		play ? _T("Supported Files (*.wav;*.cas;*.tap;*.gz)\0*.wav;*.cas;*.tap;*.gz\0All Files (*.*)\0*.*\0\0")
+		     : _T("Supported Files (*.wav;*.cas;*.tap)\0*.wav;*.cas;*.tap\0All Files (*.*)\0*.*\0\0"),
 #elif defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-		_T("Supported Files (*.wav;*.cas;*.t77)\0*.wav;*.cas;*.t77\0All Files (*.*)\0*.*\0\0"),
-#elif defined(TAPE_BINARY_ONLY)
-		_T("Supported Files (*.cas;*.cmt)\0*.cas;*.cmt\0All Files (*.*)\0*.*\0\0"),
+		play ? _T("Supported Files (*.wav;*.cas;*.t77;*.gz)\0*.wav;*.cas;*.t77;*.gz\0All Files (*.*)\0*.*\0\0")
+		     : _T("Supported Files (*.wav;*.cas;*.t77)\0*.wav;*.cas;*.t77\0All Files (*.*)\0*.*\0\0"),
+#elif defined(_BMJR)
+		play ? _T("Supported Files (*.wav;*.cas;*.bin;*.gz)\0*.wav;*.cas;*.bin;*.gz\0All Files (*.*)\0*.*\0\0")
+		     : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
+#elif defined(_TK80BS)
+		drv == 1 ? _T("Supported Files (*.cas;*.cmt)\0*.cas;*.cmt\0All Files (*.*)\0*.*\0\0")
+		: play   ? _T("Supported Files (*.wav;*.cas;*.gz)\0*.wav;*.cas;*.gz\0All Files (*.*)\0*.*\0\0")
+		         : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
+#elif !defined(TAPE_BINARY_ONLY)
+		play ? _T("Supported Files (*.wav;*.cas;*.gz)\0*.wav;*.cas;*.gz\0All Files (*.*)\0*.*\0\0")
+		     : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
 #else
-		_T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
+		_T("Supported Files (*.cas;*.cmt)\0*.cas;*.cmt\0All Files (*.*)\0*.*\0\0"),
 #endif
 		play ? _T("Data Recorder Tape [Play]") : _T("Data Recorder Tape [Rec]"),
 		config.initial_tape_dir, _MAX_PATH
 	);
 	if(path) {
-		UPDATE_HISTORY(path, config.recent_tape_path);
+		UPDATE_HISTORY(path, config.recent_tape_path[drv]);
 		my_tcscpy_s(config.initial_tape_dir, _MAX_PATH, get_parent_dir(path));
 		if(play) {
-			emu->play_tape(path);
+			emu->play_tape(drv, path);
 		} else {
-			emu->rec_tape(path);
+			emu->rec_tape(drv, path);
 		}
 	}
 }
 
-void open_recent_tape(int index)
+void open_recent_tape(int drv, int index)
 {
 	_TCHAR path[_MAX_PATH];
-	my_tcscpy_s(path, _MAX_PATH, config.recent_tape_path[index]);
+	my_tcscpy_s(path, _MAX_PATH, config.recent_tape_path[drv][index]);
 	for(int i = index; i > 0; i--) {
-		my_tcscpy_s(config.recent_tape_path[i], _MAX_PATH, config.recent_tape_path[i - 1]);
+		my_tcscpy_s(config.recent_tape_path[drv][i], _MAX_PATH, config.recent_tape_path[drv][i - 1]);
 	}
-	my_tcscpy_s(config.recent_tape_path[0], _MAX_PATH, path);
-	emu->play_tape(path);
+	my_tcscpy_s(config.recent_tape_path[drv][0], _MAX_PATH, path);
+	emu->play_tape(drv, path);
 }
 #endif
 
@@ -2297,7 +2353,7 @@ void open_any_file(const _TCHAR* path)
 		return;
 	}
 #endif
-#if defined(USE_TAPE)
+#if defined(USE_TAPE1)
 	if(check_file_extension(path, _T(".wav")) || 
 	   check_file_extension(path, _T(".cas")) || 
 	   check_file_extension(path, _T(".p6" )) || 
@@ -2312,9 +2368,9 @@ void open_any_file(const _TCHAR* path)
 	   check_file_extension(path, _T(".mtw")) || 
 	   check_file_extension(path, _T(".tap")) || 
 	   check_file_extension(path, _T(".t77"))) {
-		UPDATE_HISTORY(path, config.recent_tape_path);
+		UPDATE_HISTORY(path, config.recent_tape_path[0]);
 		my_tcscpy_s(config.initial_tape_dir, _MAX_PATH, get_parent_dir(path));
-		emu->play_tape(path);
+		emu->play_tape(0, path);
 		return;
 	}
 #endif

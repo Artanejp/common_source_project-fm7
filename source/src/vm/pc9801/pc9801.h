@@ -145,7 +145,7 @@
 #define USE_FD4
 #endif
 #if defined(SUPPORT_CMT_IF) || defined(_PC98DO) || defined(_PC98DOPLUS)
-#define USE_TAPE
+#define USE_TAPE1
 #define TAPE_BINARY_ONLY
 #endif
 #define NOTIFY_KEY_DOWN
@@ -430,10 +430,10 @@ public:
 	bool is_floppy_disk_protected(int drv);
 	uint32_t is_floppy_disk_accessed();
 #if defined(SUPPORT_CMT_IF) || defined(_PC98DO) || defined(_PC98DOPLUS)
-	void play_tape(const _TCHAR* file_path);
-	void rec_tape(const _TCHAR* file_path);
-	void close_tape();
-	bool is_tape_inserted();
+	void play_tape(int drv, const _TCHAR* file_path);
+	void rec_tape(int drv, const _TCHAR* file_path);
+	void close_tape(int drv);
+	bool is_tape_inserted(int drv);
 #endif
 	bool is_frame_skippable();
 	

@@ -18,11 +18,12 @@ add_library(CSPemu_utils SHARED
 )
 
 target_link_libraries(CSPemu_utils PUBLIC
-	  Qt5::Core
+		Qt5::Core
+		-lz
 	  )
 set_target_properties(CSPemu_utils PROPERTIES
-			     SOVERSION 2.3.1
-			     VERSION 2.3.1
+			     SOVERSION 2.4.0
+			     VERSION 2.4.0
 			     LINK_INTERFACE_LIBRARIES ""
 			     )
 #QT5_USE_MODULES(CSPgui Widgets Core Gui OpenGL)
@@ -40,8 +41,8 @@ add_library(CSPemu_utils SHARED
 )
 
 set_target_properties(CSPemu_utils PROPERTIES 
-			     SOVERSION 2.3.1
-			     VERSION 2.3.1
+			     SOVERSION 2.4.0
+			     VERSION 2.4.0
 			     )
 INSTALL(TARGETS CSPemu_utils DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

@@ -39,7 +39,7 @@ void DATAREC::initialize()
 #endif
 	apss_buffer = NULL;
 	buffer_ptr = buffer_length = 0;
-	is_wav = is_tap = false;
+	is_wav = is_tap = is_t77 = false;
 	ave_hi_freq = 0;
 	
 	pcm_changed = 0;
@@ -283,6 +283,20 @@ void DATAREC::event_callback(int event_id, int err)
 					}
 					buffer_ptr = 0;
 				}
+			} else if(is_t77) {
+				bool signal = (positive_clocks > negative_clocks);
+				uint16_t data = (buffer[buffer_ptr] << 8) | buffer[buffer_ptr + 1];
+				if(signal != ((data & 0x8000) != 0)) {
+					if((buffer_ptr += 2) >= buffer_length) {
+						rec_fio->Fwrite(buffer, buffer_length, 1);
+						buffer_ptr = 0;
+					}
+					data = signal ? 0x8001 : 0x0001;
+				} else if((data & 0x7fff) < 0x7fff) {
+					data++;
+				}
+				buffer[buffer_ptr + 0] = data >> 8;
+				buffer[buffer_ptr + 1] = data & 0xff;
 			} else {
 				bool prev_signal = ((buffer[buffer_ptr] & 0x80) != 0);
 				bool cur_signal = (positive_clocks > negative_clocks);
@@ -447,33 +461,33 @@ bool DATAREC::play_tape(const _TCHAR* file_path)
 	close_tape();
 	
 	if(play_fio->Fopen(file_path, FILEIO_READ_BINARY)) {
-		if(check_file_extension(file_path, _T(".wav")) || check_file_extension(file_path, _T(".mti"))) {
+		if(check_file_extension(play_fio->FilePath(), _T(".wav")) || check_file_extension(play_fio->FilePath(), _T(".mti"))) {
 			// standard PCM wave file
 			if((buffer_length = load_wav_image(0)) != 0) {
 				play = is_wav = true;
 			}
-		} else if(check_file_extension(file_path, _T(".t77"))) {
+		} else if(check_file_extension(play_fio->FilePath(), _T(".t77"))) {
 			// FUJITSU FM-7 series tape image
 			if((buffer_length = load_t77_image()) != 0) {
 				buffer = (uint8_t *)malloc(buffer_length);
 				load_t77_image();
 				play = is_wav = true;
 			}
-		} else if(check_file_extension(file_path, _T(".tap"))) {
+		} else if(check_file_extension(play_fio->FilePath(), _T(".tap"))) {
 			// SHARP X1 series tape image
 			if((buffer_length = load_tap_image()) != 0) {
 				buffer = (uint8_t *)malloc(buffer_length);
 				load_tap_image();
 				play = is_wav = true;
 			}
-		} else if(check_file_extension(file_path, _T(".mzt")) || check_file_extension(file_path, _T(".mzf")) || check_file_extension(file_path, _T(".m12"))) {
+		} else if(check_file_extension(play_fio->FilePath(), _T(".mzt")) || check_file_extension(play_fio->FilePath(), _T(".mzf")) || check_file_extension(play_fio->FilePath(), _T(".m12"))) {
 			// SHARP MZ series tape image
 			if((buffer_length = load_mzt_image()) != 0) {
 				buffer = (uint8_t *)malloc(buffer_length);
 				load_mzt_image();
 				play = is_wav = true;
 			}
-		} else if(check_file_extension(file_path, _T(".mtw"))) {
+		} else if(check_file_extension(play_fio->FilePath(), _T(".mtw"))) {
 			// skip mzt image
 			uint8_t header[128];
 			play_fio->Fread(header, sizeof(header), 1);
@@ -482,21 +496,28 @@ bool DATAREC::play_tape(const _TCHAR* file_path)
 			if((buffer_length = load_wav_image(sizeof(header) + size)) != 0) {
 				play = is_wav = true;
 			}
-		} else if(check_file_extension(file_path, _T(".p6"))) {
+		} else if(check_file_extension(play_fio->FilePath(), _T(".p6"))) {
 			// NEC PC-6001/6601 series tape image
 			if((buffer_length = load_p6_image(false)) != 0) {
 				buffer = (uint8_t *)malloc(buffer_length);
 				load_p6_image(false);
 				play = is_wav = true;
 			}
-		} else if(check_file_extension(file_path, _T(".p6t"))) {
+		} else if(check_file_extension(play_fio->FilePath(), _T(".p6t"))) {
 			// NEC PC-6001/6601 series tape image
 			if((buffer_length = load_p6_image(true)) != 0) {
 				buffer = (uint8_t *)malloc(buffer_length);
 				load_p6_image(true);
 				play = is_wav = true;
 			}
-		} else if(check_file_extension(file_path, _T(".cas"))) {
+		} else if(check_file_extension(play_fio->FilePath(), _T(".bin"))) {
+			// HITACH BASIC Master Jr tape image (bm2)
+			if((buffer_length = load_bmjr_image()) != 0) {
+				buffer = (uint8_t *)malloc(buffer_length);
+				load_bmjr_image();
+				play = is_wav = true;
+			}
+		} else if(check_file_extension(play_fio->FilePath(), _T(".cas"))) {
 			// standard cas image for my emulator
 			if((buffer_length = load_cas_image()) != 0) {
 				buffer = (uint8_t *)malloc(buffer_length);
@@ -541,7 +562,7 @@ bool DATAREC::rec_tape(const _TCHAR* file_path)
 		sample_rate = 48000;
 		sample_usec = 1000000. / sample_rate;
 		buffer_length = 1024 * 1024;
-		buffer = (uint8_t *)malloc(buffer_length);
+		buffer = (uint8_t *)calloc(buffer_length, 1);
 		
 		if(check_file_extension(file_path, _T(".wav"))) {
 			// write wave header
@@ -553,6 +574,17 @@ bool DATAREC::rec_tape(const _TCHAR* file_path)
 			// write frequency
 			rec_fio->FputUint32((uint32_t)sample_rate);
 			is_wav = is_tap = true;
+		} else if(check_file_extension(file_path, _T(".t77"))) {
+			// 9us/sample
+			sample_usec = 9;
+			sample_rate = (int)(1000000.0 / sample_usec + 0.5);
+			// write header
+			rec_fio->Fwrite("XM7 TAPE IMAGE 0", 16, 1);
+			rec_fio->FputUint16(0); // marker
+			is_t77 = true;
+			// initialize buffer
+			buffer[0] = out_signal ? 0x80 : 0;
+			buffer[1] = 0;
 		} else {
 			// initialize buffer
 			buffer[0] = out_signal ? 0x80 : 0;
@@ -568,7 +600,7 @@ void DATAREC::close_tape()
 	touch_sound();
 	close_file();
 	
-	play = rec = is_wav = is_tap = false;
+	play = rec = is_wav = is_tap = is_t77 = false;
 	buffer_ptr = buffer_length = 0;
 	ave_hi_freq = 0;
 	
@@ -596,6 +628,8 @@ void DATAREC::close_file()
 					}
 					rec_fio->FputUint8(val);
 				}
+			} else if(is_t77) {
+				rec_fio->Fwrite(buffer, buffer_ptr + 2, 1);
 			} else if(is_wav) {
 				save_wav_image();
 			} else {
@@ -706,9 +740,9 @@ int DATAREC::load_wav_image(int offset)
 		}
 		
 #ifdef DATAREC_SOUND
-		if(!config.wave_shaper || header.channels > 1) {
+		if(!config.wave_shaper[drive_num] || header.channels > 1) {
 #else
-		if(!config.wave_shaper) {
+		if(!config.wave_shaper[drive_num]) {
 #endif
 			// load samples
 #ifdef DATAREC_SOUND
@@ -956,7 +990,7 @@ void DATAREC::save_wav_image()
 	int remain = len; \
 	while(remain > 0) { \
 		if(buffer != NULL) { \
-			buffer[ptr++] = (signal) ? 0xff : 0x7f; \
+			buffer[ptr++] = (signal) ? 0xff : 0x00; \
 		} else { \
 			ptr++; \
 		} \
@@ -1344,6 +1378,56 @@ int DATAREC::load_p6_image(bool is_p6t)
 	return ptr;
 }
 
+// HITACH BASIC Master Jr tape image (bm2)
+
+#define BMJR_PUT_1200HZ_X4() { \
+	if(buffer != NULL) { \
+		for(int k = 0; k < 4; k++) { \
+			for(int p = 0; p < 20; p++) buffer[ptr++] = 0xff; \
+			for(int p = 0; p < 20; p++) buffer[ptr++] = 0x00; \
+		} \
+	} else { \
+		ptr += 40 * 4; \
+	} \
+}
+
+#define BMJR_PUT_2400HZ_X8() { \
+	if(buffer != NULL) { \
+		for(int k = 0; k < 8; k++) { \
+			for(int p = 0; p < 10; p++) buffer[ptr++] = 0xff; \
+			for(int p = 0; p < 10; p++) buffer[ptr++] = 0x00; \
+		} \
+	} else { \
+		ptr += 20 * 8; \
+	} \
+}
+
+int DATAREC::load_bmjr_image()
+{
+	sample_rate = 48000;
+	sample_usec = 1000000. / sample_rate;
+	
+	play_fio->Fseek(0, FILEIO_SEEK_SET);
+	
+	int ptr = 0, data;
+	while((data = play_fio->Fgetc()) != EOF) {
+		// start bit = 0
+		BMJR_PUT_1200HZ_X4();
+		// data bits
+		for(int j = 0; j < 8; j++) {
+			if(data & (1 << j)) {
+				BMJR_PUT_2400HZ_X8();
+			} else {
+				BMJR_PUT_1200HZ_X4();
+			}
+		}
+		// stop bits = 1,1
+		BMJR_PUT_2400HZ_X8();
+		BMJR_PUT_2400HZ_X8();
+	}
+	return ptr;
+}
+
 // standard cas image for my emulator
 
 static const uint8_t msx_cas_header[8] = {0x1f, 0xa6, 0xde, 0xba, 0xcc, 0x13, 0x7d, 0x74};
@@ -1653,7 +1737,7 @@ void DATAREC::update_config()
 	update_realtime_render();
 }
 
-#define STATE_VERSION	7
+#define STATE_VERSION	8
 
 void DATAREC::save_state(FILEIO* state_fio)
 {
@@ -1714,6 +1798,7 @@ void DATAREC::save_state(FILEIO* state_fio)
 #endif
 	state_fio->FputBool(is_wav);
 	state_fio->FputBool(is_tap);
+	state_fio->FputBool(is_t77);
 	if(apss_buffer) {
 		state_fio->FputInt32(apss_buffer_length);
 		state_fio->Fwrite(apss_buffer, apss_buffer_length, 1);
@@ -1787,6 +1872,7 @@ bool DATAREC::load_state(FILEIO* state_fio)
 #endif
 	is_wav = state_fio->FgetBool();
 	is_tap = state_fio->FgetBool();
+	is_t77 = state_fio->FgetBool();
 	if((apss_buffer_length = state_fio->FgetInt32()) != 0) {
 		apss_buffer = (bool *)malloc(apss_buffer_length);
 		state_fio->Fread(apss_buffer, apss_buffer_length, 1);

@@ -195,7 +195,7 @@ void SUB::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_SUB_PIO_PORT_C) {
 		if((portc & 0x01) && !(data & 0x01)) {
-			emu->close_tape();
+			emu->close_tape(0);
 		}
 		obf = ((data & 0x80) == 0);
 		portc = data;

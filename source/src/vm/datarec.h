@@ -59,7 +59,7 @@ private:
 	int sound_buffer_length;
 	int16_t *sound_buffer, sound_sample;
 #endif
-	bool is_wav, is_tap;
+	bool is_wav, is_tap, is_t77;
 	double ave_hi_freq;
 	
 	int apss_buffer_length;
@@ -89,6 +89,7 @@ private:
 	int load_tap_image();
 	int load_mzt_image();
 	int load_p6_image(bool is_p6t);
+	int load_bmjr_image();
 	int load_cas_image();
 	int load_m5_cas_image();
 	int load_msx_cas_image();
@@ -225,6 +226,7 @@ public:
 	void set_ff_rew(int value);
 	bool do_apss(int value);
 	double get_ave_hi_freq();
+	int drive_num;
 };
 
 #endif

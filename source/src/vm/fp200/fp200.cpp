@@ -211,19 +211,19 @@ void VM::key_up(int code)
 // user interface
 // ----------------------------------------------------------------------------
 
-void VM::play_tape(const _TCHAR* file_path)
+void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	io->close_tape();
 	drec->play_tape(file_path);
 }
 
-void VM::rec_tape(const _TCHAR* file_path)
+void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
 	drec->close_tape();
 	io->rec_tape(file_path);
 }
 
-void VM::close_tape()
+void VM::close_tape(int drv)
 {
 #if defined(USE_SOUND_FILES)
 	drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_EJECT, 1, 1);
@@ -234,27 +234,27 @@ void VM::close_tape()
 	io->close_tape();
 }
 
-bool VM::is_tape_inserted()
+bool VM::is_tape_inserted(int drv)
 {
 	return drec->is_tape_inserted() || io->is_tape_inserted();
 }
 
-bool VM::is_tape_playing()
+bool VM::is_tape_playing(int drv)
 {
 	return drec->is_tape_playing();
 }
 
-bool VM::is_tape_recording()
+bool VM::is_tape_recording(int drv)
 {
 	return drec->is_tape_recording();
 }
 
-int VM::get_tape_position()
+int VM::get_tape_position(int drv)
 {
 	return drec->get_tape_position();
 }
 
-const _TCHAR* VM::get_tape_message()
+const _TCHAR* VM::get_tape_message(int drv)
 {
 	return drec->get_message();
 }

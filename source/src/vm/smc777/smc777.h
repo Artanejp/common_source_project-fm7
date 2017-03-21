@@ -42,7 +42,7 @@
 #define USE_SPECIAL_RESET
 #define USE_FD1
 #define USE_FD2
-#define USE_TAPE
+#define USE_TAPE1
 #define USE_TAPE_BUTTON
 #define NOTIFY_KEY_DOWN
 //#define USE_SHIFT_NUMPAD_KEY
@@ -231,20 +231,20 @@ public:
 	void is_floppy_disk_protected(int drv, bool value);
 	bool is_floppy_disk_protected(int drv);
 	uint32_t is_floppy_disk_accessed();
-	void play_tape(const _TCHAR* file_path);
-	void rec_tape(const _TCHAR* file_path);
-	void close_tape();
-	bool is_tape_inserted();
-	bool is_tape_playing();
-	bool is_tape_recording();
-	int get_tape_position();
-	const _TCHAR* get_tape_message();
-	void push_play();
-	void push_stop();
-	void push_fast_forward();
-	void push_fast_rewind();
-	void push_apss_forward() {}
-	void push_apss_rewind() {}
+	void play_tape(int drv, const _TCHAR* file_path);
+	void rec_tape(int drv, const _TCHAR* file_path);
+	void close_tape(int drv);
+	bool is_tape_inserted(int drv);
+	bool is_tape_playing(int drv);
+	bool is_tape_recording(int drv);
+	int get_tape_position(int drv);
+	const _TCHAR* get_tape_message(int drv);
+	void push_play(int drv);
+	void push_stop(int drv);
+	void push_fast_forward(int drv);
+	void push_fast_rewind(int drv);
+	void push_apss_forward(int drv) {}
+	void push_apss_rewind(int drv) {}
 	bool is_frame_skippable();
 	
 	void update_config();

@@ -14,23 +14,22 @@
 #include "../device.h"
 #include "../event.h"
 
+#include "../datarec.h"
 #include "../i8080.h"
 #if defined(_TK80BS)
 #include "../i8251.h"
 #include "../io.h"
-#elif defined(_TK80) || defined(_TK85)
-#include "../datarec.h"
-#include "../noise.h"
 #endif
 #include "../i8255.h"
 //#include "../memory.h"
+#include "../noise.h"
 #include "../pcm1bit.h"
 
 #ifdef USE_DEBUGGER
 #include "../debugger.h"
 #endif
 
-#if defined(_TK80BS)
+#if defined(_TK80BS) || defined(_TK80)
 #include "cmt.h"
 #endif
 #include "display.h"
@@ -99,6 +98,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_sound(drec->get_context_noise_stop());
 	event->set_context_sound(drec->get_context_noise_fast());
 #endif
+#if defined(_TK80BS) || defined(_TK80)
+	config.wave_shaper[0] = false;
+#endif
 	
 /*	8255 on TK-80
 	
@@ -113,15 +115,12 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #if defined(_TK80BS)
 	sio_b->set_context_out(cmt, SIG_CMT_OUT);
 	pio_b->set_context_port_c(display, SIG_DISPLAY_MODE, 3, 0);
-#elif defined(_TK80)
-	// FIXME
-	drec->set_context_ear(pio_t, SIG_I8255_PORT_B, 1);
-	pio_t->set_context_port_c(drec, SIG_DATAREC_MIC, 1);
+#endif
+#if defined(_TK80BS) || defined(_TK80)
+	drec->set_context_ear(cmt, SIG_CMT_EAR, 1);
+	pio_t->set_context_port_c(cmt, SIG_CMT_MIC, 1, 0);
 #elif defined(_TK85)
 	drec->set_context_ear(cpu, SIG_I8085_SID, 1);
-	drec->set_context_noise_play(drec->get_context_noise_play());
-	drec->set_context_noise_stop(drec->get_context_noise_stop());
-	drec->set_context_noise_fast(drec->get_context_noise_fast());
 	cpu->set_context_sod(drec, SIG_DATAREC_MIC, 1);
 #endif
 	pio_t->set_context_port_c(pcm0, SIG_PCM1BIT_SIGNAL, 2, 0);
@@ -136,6 +135,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pcm0->set_realtime_render(true);
 	pcm1->set_realtime_render(true);
 	
+#if defined(_TK80BS) || defined(_TK80)
+	cmt->set_context_drec(drec);
+	cmt->set_context_pio(pio_t);
+#endif
 #if defined(_TK80BS)
 	cmt->set_context_sio(sio_b);
 	display->set_vram_ptr(vram);
@@ -330,14 +333,12 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		pcm0->set_volume(0, decibel_l, decibel_r);
 	} else if(ch == 1) {
 		pcm1->set_volume(0, decibel_l, decibel_r);
-#if defined(_TK80) || defined(_TK85)
 	} else if(ch == 2) {
 		drec->set_volume(0, decibel_l, decibel_r);
 	} else if(ch == 3) {
 		drec->get_context_noise_play()->set_volume(0, decibel_l, decibel_r);
 		drec->get_context_noise_stop()->set_volume(0, decibel_l, decibel_r);
 		drec->get_context_noise_fast()->set_volume(0, decibel_l, decibel_r);
-#endif
 	}
 }
 #endif
@@ -385,68 +386,87 @@ void VM::save_binary(int drv, const _TCHAR* file_path)
 	}
 }
 
-void VM::play_tape(const _TCHAR* file_path)
+void VM::play_tape(int drv, const _TCHAR* file_path)
 {
+	if(drv == 0) {
+		drec->play_tape(file_path);
+		drec->set_remote(true);
 #if defined(_TK80BS)
-	cmt->play_tape(file_path);
-#elif defined(_TK80) || defined(_TK85)
-	drec->play_tape(file_path);
-	drec->set_remote(true);
+	} else if(drv == 1) {
+		cmt->play_tape(file_path);
 #endif
+	}
 }
 
-void VM::rec_tape(const _TCHAR* file_path)
+void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
+	if(drv == 0) {
+		drec->rec_tape(file_path);
+		drec->set_remote(true);
 #if defined(_TK80BS)
-	cmt->rec_tape(file_path);
-#elif defined(_TK80) || defined(_TK85)
-	drec->rec_tape(file_path);
-	drec->set_remote(true);
+	} else if(drv == 1) {
+		cmt->rec_tape(file_path);
 #endif
+	}
 }
 
-void VM::close_tape()
+void VM::close_tape(int drv)
 {
+	if(drv == 0) {
+		emu->lock_vm();
+		drec->close_tape();
+		emu->unlock_vm();
+		drec->set_remote(false);
 #if defined(_TK80BS)
-	cmt->close_tape();
-#elif defined(_TK80) || defined(_TK85)
-	emu->lock_vm();
-	drec->close_tape();
-	emu->unlock_vm();
-	drec->set_remote(false);
+	} else if(drv == 1) {
+		cmt->close_tape();
 #endif
+	}
 }
 
-bool VM::is_tape_inserted()
+bool VM::is_tape_inserted(int drv)
 {
+	if(drv == 0) {
+		return drec->is_tape_inserted();
 #if defined(_TK80BS)
-	return cmt->is_tape_inserted();
-#elif defined(_TK80) || defined(_TK85)
-	return drec->is_tape_inserted();
+	} else if(drv == 1) {
+		return cmt->is_tape_inserted();
 #endif
+	}
+	return false;
 }
 
-#if defined(_TK80) || defined(_TK85)
-bool VM::is_tape_playing()
+bool VM::is_tape_playing(int drv)
 {
-	return drec->is_tape_playing();
+	if(drv == 0) {
+		return drec->is_tape_playing();
+	}
+	return false;
 }
 
-bool VM::is_tape_recording()
+bool VM::is_tape_recording(int drv)
 {
-	return drec->is_tape_recording();
+	if(drv == 0) {
+		return drec->is_tape_recording();
+	}
+	return false;
 }
 
-int VM::get_tape_position()
+int VM::get_tape_position(int drv)
 {
-	return drec->get_tape_position();
+	if(drv == 0) {
+		return drec->get_tape_position();
+	}
+	return 0;
 }
 
-const _TCHAR* VM::get_tape_message()
+const _TCHAR* VM::get_tape_message(int drv)
 {
-	return drec->get_message();
+	if(drv == 0) {
+		return drec->get_message();
+	}
+	return NULL;
 }
-#endif
 
 bool VM::is_frame_skippable()
 {
@@ -471,7 +491,7 @@ void VM::update_config()
 #endif
 }
 
-#define STATE_VERSION	4
+#define STATE_VERSION	5
 
 void VM::save_state(FILEIO* state_fio)
 {

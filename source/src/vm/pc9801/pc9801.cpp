@@ -1223,7 +1223,7 @@ uint32_t VM::is_floppy_disk_accessed()
 }
 
 #if defined(SUPPORT_CMT_IF) || defined(_PC98DO) || defined(_PC98DOPLUS)
-void VM::play_tape(const _TCHAR* file_path)
+void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 	pc88->play_tape(file_path);
@@ -1232,7 +1232,7 @@ void VM::play_tape(const _TCHAR* file_path)
 #endif
 }
 
-void VM::rec_tape(const _TCHAR* file_path)
+void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 	pc88->rec_tape(file_path);
@@ -1241,7 +1241,7 @@ void VM::rec_tape(const _TCHAR* file_path)
 #endif
 }
 
-void VM::close_tape()
+void VM::close_tape(int drv)
 {
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 	pc88->close_tape();
@@ -1250,7 +1250,7 @@ void VM::close_tape()
 #endif
 }
 
-bool VM::is_tape_inserted()
+bool VM::is_tape_inserted(int drv)
 {
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 	return pc88->is_tape_inserted();

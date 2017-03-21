@@ -95,6 +95,7 @@
       <DataExecutionPrevention />
       <TargetMachine>MachineX86</TargetMachine>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <IgnoreSpecificDefaultLibraries>Libcmtd.lib</IgnoreSpecificDefaultLibraries>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -165,12 +166,14 @@
     <ClCompile Include="..\src\win32\osd_screen.cpp" />
     <ClCompile Include="..\src\win32\osd_sound.cpp" />
     <ClCompile Include="..\src\win32\winmain.cpp" />
+    <ClCompile Include="..\src\vm\datarec.cpp" />
     <ClCompile Include="..\src\vm\event.cpp" />
     <ClCompile Include="..\src\vm\i8080.cpp" />
     <ClCompile Include="..\src\vm\i8251.cpp" />
     <ClCompile Include="..\src\vm\i8255.cpp" />
     <ClCompile Include="..\src\vm\io.cpp" />
     <ClCompile Include="..\src\vm\memory.cpp" />
+    <ClCompile Include="..\src\vm\noise.cpp" />
     <ClCompile Include="..\src\vm\pcm1bit.cpp" />
     <ClCompile Include="..\src\vm\tk80bs\cmt.cpp" />
     <ClCompile Include="..\src\vm\tk80bs\display.cpp" />
@@ -185,6 +188,7 @@
     <ClInclude Include="..\src\fileio.h" />
     <ClInclude Include="..\src\emu.h" />
     <ClInclude Include="..\src\win32\osd.h" />
+    <ClInclude Include="..\src\vm\datarec.h" />
     <ClInclude Include="..\src\vm\debugger.h" />
     <ClInclude Include="..\src\vm\device.h" />
     <ClInclude Include="..\src\vm\event.h" />
@@ -193,6 +197,7 @@
     <ClInclude Include="..\src\vm\i8255.h" />
     <ClInclude Include="..\src\vm\io.h" />
     <ClInclude Include="..\src\vm\memory.h" />
+    <ClInclude Include="..\src\vm\noise.h" />
     <ClInclude Include="..\src\vm\pcm1bit.h" />
     <ClInclude Include="..\src\vm\vm.h" />
     <ClInclude Include="..\src\vm\tk80bs\cmt.h" />

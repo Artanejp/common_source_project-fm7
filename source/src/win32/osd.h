@@ -32,7 +32,25 @@
 #include <dinput.h>
 #include "../vm/vm.h"
 //#include "../emu.h"
+#include "../common.h"
 #include "../config.h"
+
+#ifdef USE_ZLIB
+// relative path from *.vcproj/*.vcxproj, not from this directory :-(
+	#if defined(_MSC_VER) && (_MSC_VER >= 1800)
+		#ifdef _DEBUG
+			#pragma comment(lib, "../src/zlib-1.2.11/vc++2013/debug/zlibstat.lib")
+		#else
+			#pragma comment(lib, "../src/zlib-1.2.11/vc++2013/release/zlibstat.lib")
+		#endif
+	#else
+		#ifdef _DEBUG
+			#pragma comment(lib, "../src/zlib-1.2.11/vc++2008/debug/zlibstat.lib")
+		#else
+			#pragma comment(lib, "../src/zlib-1.2.11/vc++2008/release/zlibstat.lib")
+		#endif
+	#endif
+#endif
 
 #ifdef USE_SOCKET
 #include <winsock.h>

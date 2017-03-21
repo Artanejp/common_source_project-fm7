@@ -529,19 +529,19 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 // user interface
 // ----------------------------------------------------------------------------
 
-void VM::play_tape(const _TCHAR* file_path)
+void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	drec->play_tape(file_path);
 	drec->set_remote(true);
 }
 
-void VM::rec_tape(const _TCHAR* file_path)
+void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
 	drec->rec_tape(file_path);
 	drec->set_remote(true);
 }
 
-void VM::close_tape()
+void VM::close_tape(int drv)
 {
 	emu->lock_vm();
 	drec->close_tape();
@@ -550,49 +550,49 @@ void VM::close_tape()
 	drec->set_remote(false);
 }
 
-bool VM::is_tape_inserted()
+bool VM::is_tape_inserted(int drv)
 {
 	return drec->is_tape_inserted();
 }
 
-bool VM::is_tape_playing()
+bool VM::is_tape_playing(int drv)
 {
 	return drec->is_tape_playing();
 }
 
-bool VM::is_tape_recording()
+bool VM::is_tape_recording(int drv)
 {
 	return drec->is_tape_recording();
 }
 
-int VM::get_tape_position()
+int VM::get_tape_position(int drv)
 {
 	return drec->get_tape_position();
 }
 
-const _TCHAR* VM::get_tape_message()
+const _TCHAR* VM::get_tape_message(int drv)
 {
 	return drec->get_message();
 }
 
-void VM::push_play()
+void VM::push_play(int drv)
 {
 	drec->set_ff_rew(0);
 	drec->set_remote(true);
 }
 
-void VM::push_stop()
+void VM::push_stop(int drv)
 {
 	drec->set_remote(false);
 }
 
-void VM::push_fast_forward()
+void VM::push_fast_forward(int drv)
 {
 	drec->set_ff_rew(1);
 	drec->set_remote(true);
 }
 
-void VM::push_fast_rewind()
+void VM::push_fast_rewind(int drv)
 {
 	drec->set_ff_rew(-1);
 	drec->set_remote(true);

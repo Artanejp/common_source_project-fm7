@@ -77,9 +77,11 @@ extern const int DLL_PREFIX screen_mode_height[];
 }
 #endif
 
-extern _TCHAR* DLL_PREFIX get_parent_dir(_TCHAR* file);
+extern DLL_PREFIX_I _TCHAR* get_parent_dir(_TCHAR* file);
+extern DLL_PREFIX_I void get_long_full_path_name(_TCHAR* src, _TCHAR* dst);
+//extern _TCHAR* DLL_PREFIX get_parent_dir(_TCHAR* file);
 extern void DLL_PREFIX Convert_CP932_to_UTF8(char *dst, char *src, int n_limit, int i_limit);
-extern void DLL_PREFIX get_long_full_path_name(_TCHAR* src, _TCHAR* dst);
+//extern void DLL_PREFIX get_long_full_path_name(_TCHAR* src, _TCHAR* dst);
 extern void DLL_PREFIX get_short_filename(_TCHAR *dst, _TCHAR *file, int maxlen);
 
 // Important Flags

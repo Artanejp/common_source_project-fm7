@@ -15,13 +15,6 @@
 #include "fifo.h"
 #include "fileio.h"
 
-#ifndef FD_BASE_NUMBER
-#define FD_BASE_NUMBER 1
-#endif
-#ifndef QD_BASE_NUMBER
-#define QD_BASE_NUMBER 1
-#endif
-
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -1135,7 +1128,7 @@ void EMU::initialize_media()
 #ifdef USE_QD1
 	memset(&quick_disk_status, 0, sizeof(quick_disk_status));
 #endif
-#ifdef USE_TAPE
+#ifdef USE_TAPE1
 	memset(&tape_status, 0, sizeof(tape_status));
 #endif
 #ifdef USE_COMPACT_DISC
@@ -1161,18 +1154,28 @@ void EMU::update_media()
 	for(int drv = 0; drv < MAX_QD; drv++) {
 		if(quick_disk_status[drv].wait_count != 0 && --quick_disk_status[drv].wait_count == 0) {
 			vm->open_quick_disk(drv, quick_disk_status[drv].path);
-			out_message(_T("QD%d: %s"), drv + QD_BASE_NUMBER, quick_disk_status[drv].path);
+#if MAX_QD > 1
+ 			out_message(_T("QD%d: %s"), drv + QD_BASE_NUMBER, quick_disk_status[drv].path);
+#else
+			out_message(_T("QD: %s"), quick_disk_status[drv].path);
+#endif
 		}
 	}
 #endif
-#ifdef USE_TAPE
-	if(tape_status.wait_count != 0 && --tape_status.wait_count == 0) {
-		if(tape_status.play) {
-			vm->play_tape(tape_status.path);
-		} else {
-			vm->rec_tape(tape_status.path);
-		}
-		out_message(_T("CMT: %s"), tape_status.path);
+#ifdef USE_TAPE1
+	for(int drv = 0; drv < MAX_TAPE; drv++) {
+		if(tape_status[drv].wait_count != 0 && --tape_status[drv].wait_count == 0) {
+			if(tape_status[drv].play) {
+				vm->play_tape(drv, tape_status[drv].path);
+			} else {
+				vm->rec_tape(drv, tape_status[drv].path);
+			}
+#if MAX_TAPE > 1
+			out_message(_T("CMT%d: %s"), drv + TAPE_BASE_NUMBER, tape_status[drv].path);
+#else
+			out_message(_T("CMT: %s"), tape_status[drv].path);
+#endif
+ 		}
 	}
 #endif
 #ifdef USE_COMPACT_DISC
@@ -1191,15 +1194,11 @@ void EMU::update_media()
 	for(int drv = 0; drv < MAX_BUBBLE; drv++) {
 		if(bubble_casette_status[drv].wait_count != 0 && --bubble_casette_status[drv].wait_count == 0) {
 			vm->open_bubble_casette(drv, bubble_casette_status[drv].path, bubble_casette_status[drv].bank);
-			out_message(_T("Bubble%d: %s"), drv, bubble_casette_status[drv].path);
-		}
-	}
+#if MAX_BUBBLE > 1
+			out_message(_T("Bubble%d: %s"), drv + BUBBLE_BASE_NUMBER, bubble_casette_status[drv].path);
+#else
+			out_message(_T("Bubble: %s"), bubble_casette_status[drv].path);
 #endif
-#ifdef USE_BUBBLE1
-	for(int drv = 0; drv < MAX_BUBBLE; drv++) {
-		if(bubble_casette_status[drv].wait_count != 0 && --bubble_casette_status[drv].wait_count == 0) {
-			vm->open_bubble_casette(drv, bubble_casette_status[drv].path, bubble_casette_status[drv].bank);
-			out_message(_T("Bubble%d: %s"), drv, bubble_casette_status[drv].path);
 		}
 	}
 #endif
@@ -1233,12 +1232,14 @@ void EMU::restore_media()
 		}
 	}
 #endif
-#ifdef USE_TAPE
-	if(tape_status.path[0] != _T('\0')) {
-		if(tape_status.play) {
-			vm->play_tape(tape_status.path);
-		} else {
-			tape_status.path[0] = _T('\0');
+#ifdef USE_TAPE1
+	for(int drv = 0; drv < MAX_TAPE; drv++) {
+		if(tape_status[drv].path[0] != _T('\0')) {
+			if(tape_status[drv].play) {
+				vm->play_tape(drv, tape_status[drv].path);
+			} else {
+				tape_status[drv].path[0] = _T('\0');
+			}
 		}
 	}
 #endif

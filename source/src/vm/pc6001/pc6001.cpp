@@ -564,7 +564,7 @@ uint32_t VM::is_floppy_disk_accessed()
 	return status;
 }
 
-void VM::play_tape(const _TCHAR* file_path)
+void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	if(support_sub_cpu) {
 		// support both p6/p6t and wav
@@ -575,7 +575,7 @@ void VM::play_tape(const _TCHAR* file_path)
 	}
 }
 
-void VM::rec_tape(const _TCHAR* file_path)
+void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
 	if(support_sub_cpu) {
 		// support both p6/p6t and wav
@@ -587,7 +587,7 @@ void VM::rec_tape(const _TCHAR* file_path)
 	}
 }
 
-void VM::close_tape()
+void VM::close_tape(int drv)
 {
 	if(support_sub_cpu) {
 		if(sub->is_tape_inserted()) {
@@ -602,7 +602,7 @@ void VM::close_tape()
 	}
 }
 
-bool VM::is_tape_inserted()
+bool VM::is_tape_inserted(int drv)
 {
 	if(support_sub_cpu) {
 		return drec->is_tape_inserted() || sub->is_tape_inserted();
@@ -611,7 +611,7 @@ bool VM::is_tape_inserted()
 	}
 }
 
-bool VM::is_tape_playing()
+bool VM::is_tape_playing(int drv)
 {
 	if(support_sub_cpu) {
 		return drec->is_tape_playing();
@@ -620,7 +620,7 @@ bool VM::is_tape_playing()
 	}
 }
 
-bool VM::is_tape_recording()
+bool VM::is_tape_recording(int drv)
 {
 	if(support_sub_cpu) {
 		return drec->is_tape_recording();
@@ -629,7 +629,7 @@ bool VM::is_tape_recording()
 	}
 }
 
-int VM::get_tape_position()
+int VM::get_tape_position(int drv)
 {
 	if(support_sub_cpu) {
 		return drec->get_tape_position();
@@ -638,7 +638,7 @@ int VM::get_tape_position()
 	}
 }
 
-const _TCHAR* VM::get_tape_message()
+const _TCHAR* VM::get_tape_message(int drv)
 {
 	if(support_sub_cpu) {
 		return drec->get_message();

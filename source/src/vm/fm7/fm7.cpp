@@ -732,24 +732,24 @@ uint32_t VM::is_floppy_disk_accessed()
 #endif	
 }
 
-void VM::play_tape(const _TCHAR* file_path)
+void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	if(drec != NULL) drec->play_tape(file_path);
 }
 
-void VM::rec_tape(const _TCHAR* file_path)
+void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
 	if(drec != NULL) drec->rec_tape(file_path);
 }
 
-void VM::close_tape()
+void VM::close_tape(int drv)
 {
 	emu->lock_vm();
 	if(drec != NULL) drec->close_tape();
 	emu->unlock_vm();
 }
 
-bool VM::is_tape_inserted()
+bool VM::is_tape_inserted(int drv)
 {
 	if(drec != NULL) {
 		return drec->is_tape_inserted();
@@ -757,7 +757,7 @@ bool VM::is_tape_inserted()
 	return false;
 }
 
-bool VM::is_tape_playing()
+bool VM::is_tape_playing(int drv)
 {
 	if(drec != NULL) {
 		return drec->is_tape_playing();
@@ -765,7 +765,7 @@ bool VM::is_tape_playing()
 	return false;
 }
 
-bool VM::is_tape_recording()
+bool VM::is_tape_recording(int drv)
 {
 	if(drec != NULL) {
 		return drec->is_tape_recording();
@@ -773,7 +773,7 @@ bool VM::is_tape_recording()
 	return false;
 }
 
-int VM::get_tape_position()
+int VM::get_tape_position(int drv)
 {
 	if(drec != NULL) {
 		return drec->get_tape_position();
@@ -781,7 +781,7 @@ int VM::get_tape_position()
 	return 0;
 }
 
-const _TCHAR* VM::get_tape_message()
+const _TCHAR* VM::get_tape_message(int drv)
 {
 	if(drec != NULL) {
 		return drec->get_message();
@@ -789,7 +789,7 @@ const _TCHAR* VM::get_tape_message()
 	return NULL;
 }
 
-void VM::push_play()
+void VM::push_play(int drv)
 {
 	if(drec != NULL) {
 		drec->set_ff_rew(0);
@@ -798,14 +798,14 @@ void VM::push_play()
 }
 
 
-void VM::push_stop()
+void VM::push_stop(int drv)
 {
 	if(drec != NULL) {
 		drec->set_remote(false);
 	}
 }
 
-void VM::push_fast_forward()
+void VM::push_fast_forward(int drv)
 {
 	if(drec != NULL) {
 		drec->set_ff_rew(1);
@@ -813,7 +813,7 @@ void VM::push_fast_forward()
 	}
 }
 
-void VM::push_fast_rewind()
+void VM::push_fast_rewind(int drv)
 {
 	if(drec != NULL) {
 		drec->set_ff_rew(-1);
@@ -821,14 +821,14 @@ void VM::push_fast_rewind()
 	}
 }
 
-void VM::push_apss_forward()
+void VM::push_apss_forward(int drv)
 {
 	if(drec != NULL) {
 		drec->do_apss(1);
 	}
 }
 
-void VM::push_apss_rewind()
+void VM::push_apss_rewind(int drv)
 {
 	if(drec != NULL) {
 		drec->do_apss(-1);

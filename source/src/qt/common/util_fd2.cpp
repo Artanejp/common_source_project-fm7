@@ -57,7 +57,7 @@ void Ui_MainWindow::do_update_recent_disk(int drv)
 	}
 }
 
-extern const _TCHAR* get_parent_dir(const _TCHAR* file);
+extern const _TCHAR* DLL_PREFIX_I get_parent_dir(const _TCHAR* file);
 int Ui_MainWindow::set_recent_disk(int drv, int num) 
 {
 	QString s_path;

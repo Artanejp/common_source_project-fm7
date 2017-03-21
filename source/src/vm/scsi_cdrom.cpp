@@ -513,6 +513,15 @@ void SCSI_CDROM::open_disc(const _TCHAR* file_path)
 		my_stprintf_s(img_file_path, _MAX_PATH, _T("%s.img"), get_file_path_without_extensiton(file_path));
 		if(!FILEIO::IsFileExisting(img_file_path)) {
 			my_stprintf_s(img_file_path, _MAX_PATH, _T("%s.bin"), get_file_path_without_extensiton(file_path));
+			if(!FILEIO::IsFileExisting(img_file_path)) {
+				my_stprintf_s(img_file_path, _MAX_PATH, _T("%s.gz"), get_file_path_without_extensiton(file_path));
+				if(!FILEIO::IsFileExisting(img_file_path)) {
+					my_stprintf_s(img_file_path, _MAX_PATH, _T("%s.img.gz"), get_file_path_without_extensiton(file_path));
+					if(!FILEIO::IsFileExisting(img_file_path)) {
+						my_stprintf_s(img_file_path, _MAX_PATH, _T("%s.bin.gz"), get_file_path_without_extensiton(file_path));
+					}
+				}
+			}
 		}
 		if(fio_img->Fopen(img_file_path, FILEIO_READ_BINARY)) {
 			// get image file size
@@ -586,6 +595,12 @@ void SCSI_CDROM::open_disc(const _TCHAR* file_path)
 	} else if(check_file_extension(file_path, _T(".ccd"))) {
 		// get image file name
 		my_stprintf_s(img_file_path, _MAX_PATH, _T("%s.img"), get_file_path_without_extensiton(file_path));
+		if(!FILEIO::IsFileExisting(img_file_path)) {
+			my_stprintf_s(img_file_path, _MAX_PATH, _T("%s.gz"), get_file_path_without_extensiton(file_path));
+			if(!FILEIO::IsFileExisting(img_file_path)) {
+				my_stprintf_s(img_file_path, _MAX_PATH, _T("%s.img.gz"), get_file_path_without_extensiton(file_path));
+			}
+		}
 		if(fio_img->Fopen(img_file_path, FILEIO_READ_BINARY)) {
 			// get image file size
 			if((max_logical_block_addr = fio_img->FileLength() / 2352) > 0) {

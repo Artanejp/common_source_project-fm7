@@ -174,7 +174,7 @@
 // device informations for win32
 #define USE_CART1
 #define USE_CART2
-#define USE_TAPE
+#define USE_TAPE1
 #if defined(LDC_SLOT)
 #define USE_LASER_DISC
 #define USE_MOVIE_PLAYER
@@ -388,14 +388,14 @@ public:
 	void open_cart(int drv, const _TCHAR* file_path);
 	void close_cart(int drv);
 	bool is_cart_inserted(int drv);
-	void play_tape(const _TCHAR* file_path);
-	void rec_tape(const _TCHAR* file_path);
-	void close_tape();
-	bool is_tape_inserted();
-	bool is_tape_playing();
-	bool is_tape_recording();
-	int get_tape_position();
-	const _TCHAR* get_tape_message();
+	void play_tape(int drv, const _TCHAR* file_path);
+	void rec_tape(int drv, const _TCHAR* file_path);
+	void close_tape(int drv);
+	bool is_tape_inserted(int drv);
+	bool is_tape_playing(int drv);
+	bool is_tape_recording(int drv);
+	int get_tape_position(int drv);
+	const _TCHAR* get_tape_message(int drv);
 #if defined(LDC_SLOT)
 	void open_laser_disc(const _TCHAR* file_path);
 	void close_laser_disc();

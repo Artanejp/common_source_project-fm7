@@ -133,11 +133,11 @@ BEGIN
     END
     POPUP "CMT"
     BEGIN
-        MENUITEM "Play",                        ID_PLAY_TAPE
-        MENUITEM "Rec",                         ID_REC_TAPE
-        MENUITEM "Eject",                       ID_CLOSE_TAPE
+        MENUITEM "Play",                        ID_PLAY_TAPE1
+        MENUITEM "Rec",                         ID_REC_TAPE1
+        MENUITEM "Eject",                       ID_CLOSE_TAPE1
         MENUITEM SEPARATOR
-        MENUITEM "Recent",                      ID_RECENT_TAPE
+        MENUITEM "Recent",                      ID_RECENT_TAPE1
     END
     POPUP "Screen"
     BEGIN

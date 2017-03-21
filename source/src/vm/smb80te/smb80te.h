@@ -27,7 +27,7 @@
 #define MAX_DRAW_RANGES		8
 #define USE_DIPSWITCH
 #define DIPSWITCH_DEFAULT	0x01
-#define USE_TAPE
+#define USE_TAPE1
 #define USE_BINARY_FILE1
 #define NOTIFY_KEY_DOWN
 #define USE_SOUND_VOLUME	2
@@ -158,14 +158,14 @@ public:
 	void key_up(int code);
 	
 	// user interface
-	void play_tape(const _TCHAR* file_path);
-	void rec_tape(const _TCHAR* file_path);
-	void close_tape();
-	bool is_tape_inserted();
-	bool is_tape_playing();
-	bool is_tape_recording();
-	int get_tape_position();
-	const _TCHAR* get_tape_message();
+	void play_tape(int drv, const _TCHAR* file_path);
+	void rec_tape(int drv, const _TCHAR* file_path);
+	void close_tape(int drv);
+	bool is_tape_inserted(int drv);
+	bool is_tape_playing(int drv);
+	bool is_tape_recording(int drv);
+	int get_tape_position(int drv);
+	const _TCHAR* get_tape_message(int drv);
 	void load_binary(int drv, const _TCHAR* file_path);
 	void save_binary(int drv, const _TCHAR* file_path);
 	bool is_frame_skippable();

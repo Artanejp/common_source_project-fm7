@@ -111,7 +111,7 @@ void MEMORY::reset()
 	screen_mode = 0;
 	screen_reversed = false;
 	
-	drec_in = false;
+	drec_bit = drec_in = false;
 	
 	key_column = 0;
 	nmi_enb = break_pressed = false;
@@ -155,7 +155,7 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 		return;
 	}
 	if((addr & 0xf800) == 0xe800 && !(memory_bank & 2)) {
-		// E800h - EDFFh
+		// E800h - EFFFh
 		switch(addr & 0xffff) {
 		case 0xe800:
 		case 0xe801:
@@ -200,7 +200,7 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 #endif
 			return 0x01;
 		case 0xee80:
-			return drec_in ? 0x80 : 0;
+			return drec_bit ? 0x80 : 0;
 		case 0xeec0:
 			return key_data;
 		case 0xef00:
@@ -218,7 +218,7 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 		return 0xff;
 	}
 	if((addr & 0xf800) == 0xe800 && !(memory_bank & 2)) {
-		// E800h - EDFFh
+		// E800h - EFFFh
 		switch(addr & 0xffff) {
 		case 0xe800:
 		case 0xe801:
@@ -240,7 +240,20 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MEMORY_DATAREC_EAR) {
-		drec_in = ((data & mask) != 0);
+		bool new_in = ((data & mask) != 0);
+		if(!drec_in && new_in) {
+			// L -> H
+			drec_clock = get_current_clock();
+		} else if(drec_in && !new_in) {
+			// H -> L
+			int usec = (int)get_passed_usec(drec_clock);
+			if(usec > 417 - 42 && usec < 417 + 42) {
+				drec_bit = false;	// 1200Hz
+			} else if(usec > 208 - 21 && usec < 208 + 21) {
+				drec_bit = true;	// 2400Hz
+			}
+		}
+		drec_in = new_in;
 	}
 }
 
@@ -310,9 +323,12 @@ void MEMORY::mix(int32_t* buffer, int cnt)
 	sound_accum = 0;
 	sound_clock = sound_mix_clock = get_current_clock();
 	
+	int32_t vol_l = apply_volume(volume, volume_l);
+	int32_t vol_r = apply_volume(volume, volume_r);
+	
 	for(int i = 0; i < cnt; i++) {
-		*buffer++ = apply_volume(volume, volume_l); // L
-		*buffer++ = apply_volume(volume, volume_r); // R
+		*buffer++ += vol_l; // L
+		*buffer++ += vol_r; // R
 	}
 }
 
@@ -394,7 +410,7 @@ void MEMORY::draw_screen()
 //	emu->screen_skip_line(false);
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void MEMORY::save_state(FILEIO* state_fio)
 {
@@ -409,7 +425,9 @@ void MEMORY::save_state(FILEIO* state_fio)
 	state_fio->FputUint8(mp1710_enb);
 	state_fio->FputUint8(screen_mode);
 	state_fio->FputBool(screen_reversed);
+	state_fio->FputBool(drec_bit);
 	state_fio->FputBool(drec_in);
+	state_fio->FputUint32(drec_clock);
 	state_fio->FputUint8(key_column);
 	state_fio->FputUint8(key_data);
 	state_fio->FputBool(nmi_enb);
@@ -436,7 +454,9 @@ bool MEMORY::load_state(FILEIO* state_fio)
 	mp1710_enb = state_fio->FgetUint8();
 	screen_mode = state_fio->FgetUint8();
 	screen_reversed = state_fio->FgetBool();
+	drec_bit = state_fio->FgetBool();
 	drec_in = state_fio->FgetBool();
+	drec_clock = state_fio->FgetUint32();
 	key_column = state_fio->FgetUint8();
 	key_data = state_fio->FgetUint8();
 	nmi_enb = state_fio->FgetBool();

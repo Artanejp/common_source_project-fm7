@@ -76,6 +76,9 @@ void PTF20::release()
 
 void PTF20::reset()
 {
+	for(int i = 0; i < MAX_DRIVE; i++) {
+		access[i] = false;
+	}
 	phase = PHASE_IDLE;
 	buflen = 0;
 }
@@ -202,6 +205,19 @@ void PTF20::write_signal(int id, uint32_t data, uint32_t mask)
 		phase = PHASE_FUNC;
 		break;
 	}
+}
+
+uint32_t PTF20::read_signal(int ch)
+{
+	// get access status
+	uint32_t stat = 0;
+	for(int i = 0; i < MAX_DRIVE; i++) {
+		if(access[i]) {
+			stat |= 1 << i;
+		}
+		access[i] = false;
+	}
+	return stat;
 }
 
 #define SET_HEAD(size) { \
@@ -424,6 +440,8 @@ uint8_t* PTF20::get_sector(int drv, int trk, int sec)
 	if(!is_disk_inserted(drv)) {
 		return NULL;
 	}
+	access[drv] = true;
+	
 	if(!disk[drv]->get_sector(phys_trk, phys_side, phys_sec)) {
 		return NULL;
 	}

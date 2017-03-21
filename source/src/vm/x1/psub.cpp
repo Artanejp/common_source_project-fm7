@@ -619,7 +619,7 @@ void PSUB::process_cmd()
 			uint8_t new_status = databuf[0x19][0];
 			switch(databuf[0x19][0]) {
 			case CMT_EJECT:
-				emu->close_tape();
+				emu->close_tape(0);
 				break;
 			case CMT_STOP:
 				d_drec->set_remote(false);
