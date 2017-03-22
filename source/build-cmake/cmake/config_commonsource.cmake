@@ -161,6 +161,12 @@ else()
    endif()
 endif()
 
+include(FindZLIB)
+if(ZLIB_FOUND)
+  add_definitions(-DUSE_ZLIB)
+   include_directories(${ZLIB_INCLUDE_DIRS})
+endif()
+
 # GCC Only?
 if(CMAKE_COMPILER_IS_GNUCC) 
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -flax-vector-conversions")
@@ -263,6 +269,7 @@ if(WIN32)
        ${SDL_LIBS}
        ${LIBAV_LIBRARIES}
        ${ADDITIONAL_LIBRARIES}
+       ${ZLIB_LIBRARIES}
        )
        #SET(CMAKE_C_ARCHIVE_CREATE "<CMAKE_AR> qcs <TARGET>  <LINK_FLAGS> <OBJECTS>")
        #SET(CMAKE_C_ARCHIVE_FINISH   true)
@@ -282,7 +289,7 @@ else()
 endif()
 
 if(USE_QT_5)
-  set(BUNDLE_LIBS ${BUNDLE_LIBS} ${QT_LIBRARIES})
+  set(BUNDLE_LIBS ${BUNDLE_LIBS} ${QT_LIBRARIES} ${ZLIB_LIBRARIES})
 endif()
 
 set(BUNDLE_LIBS ${BUNDLE_LIBS} ${THREADS_LIBRARY})
