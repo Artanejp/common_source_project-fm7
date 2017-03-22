@@ -38,10 +38,46 @@
 	#ifdef _WIN32
 		#define ZLIB_WINAPI
 	#endif
-	#include "zlib-1.2.11/zlib.h"
-	#include "zlib-1.2.11/zconf.h"
+	#if defined(USE_QT)
+		#include <zlib.h>
+		#include <zconf.h>
+	#else
+		#include "zlib-1.2.11/zlib.h"
+		#include "zlib-1.2.11/zconf.h"
+	#endif
 #endif
 
+#if ZLIB_VERNUM < 0x1290
+inline size_t gzfread(void *buffer, size_t size, size_t count, gzFile file)
+{
+	uint8_t *p = (uint8_t *)buffer;
+	int s = 0;
+	int i = 0;
+	for(i = 0; i < count; i++) {
+		for(int j = 0; j < size; j++) {
+			s = gzgetc(file);
+			if(s < 0) return 0; // EOF
+			*p++ = (uint8_t)s; 
+		}
+	}
+	return i + 1;
+}
+inline size_t gzfwrite(void *buffer, size_t size, size_t count, gzFile file)
+{
+	uint8_t *p = (uint8_t *)buffer;
+	uint8_t n;
+	int s = 0;
+	int i = 0;
+	for(i = 0; i < count; i++) {
+		for(int j = 0; j < size; j++) {
+			n = *p++; 
+			s = gzputc(file, n);
+			if(s < 0) return 0; // EOF
+		}
+	}
+	return i + 1;
+}
+#endif			
 FILEIO::FILEIO()
 {
 #ifdef USE_ZLIB
@@ -171,7 +207,18 @@ bool FILEIO::Fopen(const _TCHAR *file_path, int mode)
 		}
 		switch(mode) {
 		case FILEIO_READ_BINARY:
-			return ((gz = gzopen(file_path, _T("rb"))) != NULL);
+			{
+				//memset(path, 0x00, _MAX_PATH);
+				gz = gzopen(file_path, _T("rb"));
+				if(gz != NULL) {
+					my_tcscpy_s(path, _MAX_PATH, get_file_path_without_extensiton(file_path));
+					return true;
+				} else {
+					my_tcscpy_s(path, _MAX_PATH, file_path);
+					return false;
+				}					
+			}
+			break;
 //		case FILEIO_WRITE_BINARY:
 //			return ((gz = gzopen(file_path, _T("wb"))) != NULL);
 //		case FILEIO_READ_WRITE_BINARY:
@@ -179,7 +226,17 @@ bool FILEIO::Fopen(const _TCHAR *file_path, int mode)
 //		case FILEIO_READ_WRITE_NEW_BINARY:
 //			return ((gz = gzopen(file_path, _T("w+b"))) != NULL);
 		case FILEIO_READ_ASCII:
-			return ((gz = gzopen(file_path, _T("r"))) != NULL);
+			{
+				gz = gzopen(file_path, _T("r"));
+				if(gz != NULL) {
+					my_tcscpy_s(path, _MAX_PATH, get_file_path_without_extensiton(file_path));
+					return true;
+				} else {
+					my_tcscpy_s(path, _MAX_PATH, file_path);
+					return false;
+				}
+			}
+			break;
 //		case FILEIO_WRITE_ASCII:
 //			return ((gz = gzopen(file_path, _T("w"))) != NULL);
 //		case FILEIO_WRITE_APPEND_ASCII:
@@ -660,7 +717,13 @@ int FILEIO::Fgetc()
 		return gzgetc(gz);
 	} else
 #endif
-	return fgetc(fp);
+	{
+		if(fp != NULL) {
+			return getc(fp);
+		} else {
+			return 0;
+		}
+	}
 }
 
 int FILEIO::Fputc(int c)
@@ -670,7 +733,13 @@ int FILEIO::Fputc(int c)
 		return gzputc(gz, c);
 	} else
 #endif
-	return fputc(c, fp);
+	{
+		if(fp != NULL) {
+			return fputc(c, fp);
+		} else {
+			return 0;
+		}
+	}
 }
 
 char *FILEIO::Fgets(char *str, int n)
@@ -680,7 +749,13 @@ char *FILEIO::Fgets(char *str, int n)
 		return gzgets(gz, str, n);
 	} else
 #endif
-	return fgets(str, n, fp);
+	{
+		if(fp != NULL) {
+			return fgets(str, n, fp);
+		} else {
+			return 0;
+		}
+	}
 }
 
 int FILEIO::Fprintf(const char* format, ...)
@@ -697,7 +772,13 @@ int FILEIO::Fprintf(const char* format, ...)
 		return gzprintf(gz, "%s", buffer);
 	} else
 #endif
-	return my_fprintf_s(fp, "%s", buffer);
+	{
+		if(fp != NULL) {
+			return my_fprintf_s(fp, "%s", buffer);
+		} else {
+			return 0;
+		}
+	}
 }
 
 size_t FILEIO::Fread(void* buffer, size_t size, size_t count)
@@ -707,7 +788,13 @@ size_t FILEIO::Fread(void* buffer, size_t size, size_t count)
 		return gzfread(buffer, size, count, gz);
 	} else
 #endif
-	return fread(buffer, size, count, fp);
+	{
+		if(fp != NULL) {
+			return fread(buffer, size, count, fp);
+		} else {
+			return 0;
+		}
+	}
 }
 
 size_t FILEIO::Fwrite(void* buffer, size_t size, size_t count)
@@ -717,7 +804,13 @@ size_t FILEIO::Fwrite(void* buffer, size_t size, size_t count)
 		return gzfwrite(buffer, size, count, gz);
 	} else
 #endif
-	return fwrite(buffer, size, count, fp);
+	{
+		if(fp != NULL) {
+			return fwrite(buffer, size, count, fp);
+		} else {
+			return 0;
+		}
+	}
 }
 
 int FILEIO::Fseek(long offset, int origin)
@@ -734,13 +827,16 @@ int FILEIO::Fseek(long offset, int origin)
 		}
 	} else
 #endif
-	switch(origin) {
-	case FILEIO_SEEK_CUR:
-		return fseek(fp, offset, SEEK_CUR);
-	case FILEIO_SEEK_END:
-		return fseek(fp, offset, SEEK_END);
-	case FILEIO_SEEK_SET:
-		return fseek(fp, offset, SEEK_SET);
+	{
+		if(fp == NULL) return -1;
+		switch(origin) {
+		case FILEIO_SEEK_CUR:
+			return fseek(fp, offset, SEEK_CUR);
+		case FILEIO_SEEK_END:
+			return fseek(fp, offset, SEEK_END);
+		case FILEIO_SEEK_SET:
+			return fseek(fp, offset, SEEK_SET);
+		}
 	}
 	return -1;
 }
@@ -752,6 +848,12 @@ long FILEIO::Ftell()
 		return gztell(gz);
 	} else
 #endif
-	return ftell(fp);
+	{
+		if(fp != NULL) {
+			return ftell(fp);
+		} else {
+			return 0;
+		}
+	}
 }
 

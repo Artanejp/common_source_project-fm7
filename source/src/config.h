@@ -89,7 +89,7 @@ typedef struct {
  	bool correct_disk_timing[/*MAX_FD_TMP*/ 16];
  	bool ignore_disk_crc[/*MAX_FD_TMP*/ 16];
 #endif
-#if defined(USE_SHARED_DLL) || defined(USE_TAPE)
+#if defined(USE_SHARED_DLL) || defined(USE_TAPE1)
 	bool wave_shaper[MAX_TAPE_TMP];
 	bool direct_load_mzt[MAX_TAPE_TMP];
 	bool baud_high[MAX_TAPE_TMP];

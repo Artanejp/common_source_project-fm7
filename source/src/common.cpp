@@ -23,6 +23,7 @@
 	#include <algorithm>
 	#include <cctype>
 	#include <QDir>
+	#include <QFileInfo>
 #elif defined(_WIN32)
 	#include <shlwapi.h>
 	#pragma comment(lib, "shlwapi.lib")
@@ -502,11 +503,18 @@ const _TCHAR *DLL_PREFIX get_file_path_without_extensiton(const _TCHAR *file_pat
 	my_tcscpy_s(path[output_index], _MAX_PATH, file_path);
 #if defined(_WIN32) && defined(_MSC_VER)
 	PathRemoveExtension(path[output_index]);
-#else
-	_TCHAR *p = _tcsrchr(path[output_index], _T('.'));
-	if(p != NULL) {
-		*p = _T('\0');
+#elif defined(_USE_QT)
+	QString delim;
+	delim = QString::fromUtf8(".");
+	QString tmp_path = QString::fromUtf8(file_path);
+	int n = tmp_path.lastIndexOf(delim);
+	if(n > 0) {
+		tmp_path = tmp_path.left(n);
 	}
+	//printf("%s\n", tmp_path.toUtf8().constData());
+	memset(path[output_index], 0x00, sizeof(_TCHAR) * _MAX_PATH);
+	strncpy(path[output_index], tmp_path.toUtf8().constData(), _MAX_PATH - 1);
+#else
 #endif
 	return (const _TCHAR *)path[output_index];
 }
@@ -521,9 +529,9 @@ void DLL_PREFIX get_long_full_path_name(const _TCHAR* src, _TCHAR* dst, size_t d
 		my_tcscpy_s(dst, dst_len, tmp);
 	}
 #elif defined(_USE_QT)
-	QDir _dir = QDir(QString::fromLocal8Bit(src));
-	QString tmp_path = _dir.absolutePath();
-	strncpy(dst, tmp_path.toUtf8().constData(), dst_len);
+	QString tmp_path = QString::fromUtf8(src);
+	QFileInfo info(tmp_path);
+	my_tcscpy_s(dst, dst_len, info.absoluteFilePath().toLocal8Bit().constData());
 #else
 	// write code for your environment
 	
@@ -543,8 +551,19 @@ const _TCHAR* DLL_PREFIX get_parent_dir(const _TCHAR* file)
 		*ptr = _T('\0');
 	}
 #elif defined(_USE_QT)
-	QDir _dir = QDir(QString::fromLocal8Bit(file));
-	QString tmp_path = _dir.dirName();
+	QString delim;
+#if defined(Q_OS_WIN)
+	delim = QString::fromUtf8("\\");
+#else
+	delim = QString::fromUtf8("/");
+#endif
+	QString tmp_path = QString::fromUtf8(file);
+	int n = tmp_path.lastIndexOf(delim);
+	if(n > 0) {
+		tmp_path = tmp_path.left(n);
+		tmp_path.append(delim);
+	}
+	//printf("%s\n", tmp_path.toUtf8().constData());
 	memset(path[output_index], 0x00, sizeof(_TCHAR) * _MAX_PATH);
 	strncpy(path[output_index], tmp_path.toUtf8().constData(), _MAX_PATH - 1);
 #else
