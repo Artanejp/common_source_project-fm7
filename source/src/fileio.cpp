@@ -35,13 +35,13 @@
 #endif
 
 #ifdef USE_ZLIB
-	#ifdef _WIN32
-		#define ZLIB_WINAPI
-	#endif
 	#if defined(USE_QT)
 		#include <zlib.h>
 		#include <zconf.h>
 	#else
+		#ifdef _WIN32
+			#define ZLIB_WINAPI
+		#endif
 		#include "zlib-1.2.11/zlib.h"
 		#include "zlib-1.2.11/zconf.h"
 	#endif

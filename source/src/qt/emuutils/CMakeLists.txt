@@ -19,7 +19,7 @@ add_library(CSPemu_utils SHARED
 
 target_link_libraries(CSPemu_utils PUBLIC
 		Qt5::Core
-		-lz
+		libz.a
 	  )
 set_target_properties(CSPemu_utils PROPERTIES
 			     SOVERSION 2.4.0

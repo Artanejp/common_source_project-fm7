@@ -62,6 +62,7 @@ if(USE_GCC_OLD_ABI)
 else()
   add_definitions(-D_GLIBCXX_USE_CXX11_ABI=1)
 endif()
+
 include(FindZLIB)
 if(ZLIB_FOUND)
   add_definitions(-DUSE_ZLIB)
