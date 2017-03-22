@@ -55,20 +55,22 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #if defined(_TK80BS)
 	sio_b = new I8251(this, emu);	// on TK-80BS
 	pio_b = new I8255(this, emu);
+	sio_b->set_device_name(_T("i8251 SIO (TK-80BS/CMT)"));
+	pio_b->set_device_name(_T("i8255 PIO (TK-80BS/DISPLAY)"));
 	memio = new IO(this, emu);
-#elif defined(_TK80) || defined(_TK85)
+ 	memio->set_device_name(_T("Memory Mapped I/O (TK-80BS)"));
+#endif
 	drec = new DATAREC(this, emu);
 	drec->set_context_noise_play(new NOISE(this, emu));
 	drec->set_context_noise_stop(new NOISE(this, emu));
 	drec->set_context_noise_fast(new NOISE(this, emu));
-#endif
 	pio_t = new I8255(this, emu);	// on TK-80
 //	memory = new MEMORY(this, emu);
 	
 	pcm0 = new PCM1BIT(this, emu);
 	pcm1 = new PCM1BIT(this, emu);
 	
-#if defined(_TK80BS)
+#if defined(_TK80BS) || defined(_TK80)
 	cmt = new CMT(this, emu);
 #endif
 	display = new DISPLAY(this, emu);
@@ -78,9 +80,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 
 	dummy->set_device_name(_T("1st Dummy"));
 #if defined(_TK80BS)
-	sio_b->set_device_name(_T("i8251 SIO (TK-80BS/CMT)"));
-	pio_b->set_device_name(_T("i8255 PIO (TK-80BS/DISPLAY)"));
-	memio->set_device_name(_T("I/O"));
 	pio_t->set_device_name(_T("i8255 PIO (TK-80/SOUND/KEYBOARD/DISPLAY)"));
 #else
 	pio_t->set_device_name(_T("i8255 PIO (TK-80/SOUND/KEYBOARD)"));
@@ -92,12 +91,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_cpu(cpu);
 	event->set_context_sound(pcm0);
 	event->set_context_sound(pcm1);
-#if defined(_TK80) || defined(_TK85)
 	event->set_context_sound(drec);
 	event->set_context_sound(drec->get_context_noise_play());
 	event->set_context_sound(drec->get_context_noise_stop());
 	event->set_context_sound(drec->get_context_noise_fast());
-#endif
+
 #if defined(_TK80BS) || defined(_TK80)
 	config.wave_shaper[0] = false;
 #endif

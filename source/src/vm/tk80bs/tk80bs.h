@@ -76,11 +76,7 @@
 #define USE_AUTO_KEY_NO_CAPS
 #define SUPPORT_ROMA_KANA_CONVERSION
 
-#if defined(_TK80BS)
-#define USE_SOUND_VOLUME	2
-#elif defined(_TK80) || defined(_TK85)
 #define USE_SOUND_VOLUME	4
-#endif
 #define USE_DEBUGGER
 #define USE_STATE
 

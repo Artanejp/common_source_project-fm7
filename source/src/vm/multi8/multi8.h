@@ -30,7 +30,7 @@
 
 // device informations for win32
 #define SUPPORT_TV_RENDER
-#define USE_TAPE
+#define USE_TAPE1
 #define TAPE_BINARY_ONLY
 #define USE_FD1
 #define USE_FD2
