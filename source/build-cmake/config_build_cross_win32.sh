@@ -112,7 +112,7 @@ function build_dll() {
           ;;
      * ) 
      	  echo -e "Abort at `date --rfc-2822`." >> ../../${MAKE_STATUS_FILE}
-	  exit ${_STATUS}
+	  #exit ${_STATUS}
 	  ;;
     esac
     cd ../../
@@ -180,9 +180,9 @@ build_dll libCSPavio
 cp ./libCSPavio/build-win32/qt/avio/*.a   ./bin-win32/
 
 build_dll libCSPosd
-#cp ./libCSPosd/build-win32/qt/*.h   ./bin-win32/
-#cp ./libCSPosd/build-win32/qt/*.dll ./bin-win32/
-cp ./libCSPosd/build-win32/qt/*.a   ./bin-win32/
+#cp ./libCSPosd/build-win32/qt/osd/*.h   ./bin-win32/
+#cp ./libCSPosd/build-win32/qt/osd/*.dll ./bin-win32/
+cp ./libCSPosd/build-win32/qt/osd/*.a   ./bin-win32/
 
 build_dll libCSPgui
 cp ./libCSPgui/build-win32/qt/gui/*.h   ./bin-win32/
@@ -223,7 +223,7 @@ for SRCDATA in $@ ; do\
       0 ) cp ./qt/common/*.exe ../../bin-win32/ ;;
       * )
      	  echo -e "Abort at `date --rfc-2822`." >> ../../${MAKE_STATUS_FILE}
-	  exit ${_STATUS}
+	  #exit ${_STATUS}
 	  ;;
     esac
     
@@ -232,13 +232,12 @@ for SRCDATA in $@ ; do\
 done
 
 echo -e "End at `date --rfc-2822`." >> ../../${MAKE_STATUS_FILE}
-exit 0
 
-#for ii in libCSPavio libCSPgui libCSPosd libCSPemu_utils; do
-#    cd $ii/build-win32
-#    make clean
-#    cd ../..
-#done
+for ii in libCSPavio libCSPgui libCSPosd libCSPemu_utils; do
+    cd $ii/build-win32
+    make clean
+    cd ../..
+done
 
 exit 0
 

@@ -181,7 +181,7 @@ for SRCDATA in $@ ; do\
       0 ) sudo make install 2>&1 | tee -a ./make.log ;;
       * ) 
            echo -e "Abort at `date --rfc-2822`." >> ../../${MAKE_STATUS_FILE}
-	   exit ${_STATUS}
+	   #exit ${_STATUS}
 	   ;;
     esac
     
