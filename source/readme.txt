@@ -1,9 +1,9 @@
-Binary archive of retro pc emulator common source code
-								3/11/2017
+retro pc emulator common source code
+								3/15/2017
 
 --- What's this ?
 
-This archive includes the binaries of the emulators listed below:
+This archive includes the all source codes of emulators listed below:
 
 	ASCII
 		yayaMSX1	MSX1 (by Mr.tanam and Mr.umaiboux)
@@ -77,6 +77,7 @@ This archive includes the binaries of the emulators listed below:
 		ePC-100		PC-100
 		eTK-80BS	TK-80BS / COMPO BS/80
 		eTK-85		TK-85
+		eN5200		N5200 (work in progress)
 	NEC-HE
 		ePCEngine	PC Engine / SuperGrafx + CD-ROM^2
 	Nintendo
@@ -106,10 +107,12 @@ This archive includes the binaries of the emulators listed below:
 		EmuZ-3500	MZ-3500
 		EmuZ-5500	MZ-5500
 		EmuZ-6500	MZ-6500
+		EmuZ-6550	MZ-6550 (work in progress)
 		eSM-B-80TE	SM-B-80TE
 		eX1		X1
 		eX1twin		X1twin
 		eX1turbo	X1turbo
+		eX1turboZ	X1turboZ (work in progress)
 	Shinko Sangyo
 		eYS-6464A	YS-6464A
 	SONY
@@ -124,40 +127,47 @@ This archive includes the binaries of the emulators listed below:
 		yayaHX-20+	HX-20 + FDD (by Mr.umaiboux)
 		EmuPIA		PASOPIA/PASOPIA5
 		EmuPIA7		PASOPIA7
+		eJ-3100GT	J-3100GT (work in progress)
+		eJ-3100SL	J-3100SL (work in progress)
 	Yuasa Kyouiku System
 		eYALKY		YALKY
 
 
---- Note
+--- How to build
 
-Floppy disk images:
+Build the projects with the Microsoft Visual C++ 2008 with Service Pack 1 or
+the Microsoft Visual C++ 2013 with Update 5.
 
-	Supoort D88, TeleDisk, ImageDisk, and CPDRead format disk images.
+The DirectX SDK is required.
+I recommend the DirectX 9.0 SDK Update (December 2004),
+and dinput.lib included in the DirectX 9.0 SDK Update (October 2004).
 
-Cassette tape images:
+If you install the newer DirectX SDK, for example DirectX SDK (June 2010),
+and it does not contain dinput.lib, pelase modify src/win32/osd.h to change
+the definition of DIRECTINPUT_VERSION from 0x500 to 0x800 as follows:
 
-	Support wav files (PCM only) or special format images for each machine.
+//#define DIRECTINPUT_VERSION	0x500
+#define DIRECTINPUT_VERSION	0x800
 
-CD-ROM images:
+When you use the Microsoft Visual C++ 2008 with Service Pack 1,
+the Windows SDK for Windows 8.1 is also required to get the mt.exe utility.
+The mt.exe is used to merge a manifest file for Windows Vista or later.
 
-	Support BIN/IMG+CUE or IMG+CCD (CloneCD) format images.
+https://msdn.microsoft.com/en-us/windows/desktop/bg162891.aspx
 
-FDD noise:
+When you use the Microsoft Visual C++ 2013 with Update 5, the dir macros,
+WindowsSDK_IncludePath, WindowsSDK_LibraryPath_x86, and DXSDK_DIR shoud be
+defined and should specifies the install directories of the Windows SDK
+and the DirectX SDK.
+They are usually defined automatically when you install the SDKs.
 
-	Place the wave files below: FDDSEEK.WAV. HEADDOWN.WAV. HEADUP.WAV
 
-CMT noise:
+--- License
 
-	Place the wave files below: RELAY_ON.WAV, RELAYOFF.WAV, FAST_FWD.WAV
+The copyright belongs to the author, but you can use the source codes
+under the GNU GENERAL PUBLIC LICENSE Version 2.
 
-Save/Load State info:
-
-	The state file contains any disk or other images.
-	Please NEVER upload your state files on the web.
-
-	The state file format will be often changed.
-	Please don't invite your state file can be loaded after you update
-	the emulator binary.
+See also COPYING.txt for more details about the license.
 
 
 --- Thanks
