@@ -67,8 +67,7 @@ int Ui_MainWindow::set_recent_bubble(int drv, int num)
 	UPDATE_HISTORY(path_shadow, p_config->recent_bubble_casette_path[drv], listBubbles[drv]);
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
    
-	get_parent_dir((const _TCHAR *)path_shadow);
-	strcpy(p_config->initial_bubble_casette_dir, path_shadow);
+	strcpy(p_config->initial_bubble_casette_dir, get_parent_dir((const _TCHAR *)path_shadow));
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
 
 	if(emu) {
@@ -95,8 +94,7 @@ void Ui_MainWindow::_open_bubble(int drv, const QString fname)
 	drv = drv & 7;
 	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX);
 	UPDATE_HISTORY(path_shadow, p_config->recent_bubble_casette_path[drv], listBubbles[drv]);
-	get_parent_dir((const _TCHAR *)path_shadow);
-	strcpy(p_config->initial_bubble_casette_dir, path_shadow);
+	strcpy(p_config->initial_bubble_casette_dir, get_parent_dir((const _TCHAR *)path_shadow));
 	// Update List
 	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX);
 	if(emu) {

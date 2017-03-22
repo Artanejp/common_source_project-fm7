@@ -229,23 +229,7 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 #if defined(USE_BINARY_FILE1) || defined(USE_BINARY_FILE2) || defined(USE_BINARY_FILE3) || defined(USE_BINARY_FILE4) || \
 	defined(USE_BINARY_FILE5) || defined(USE_BINARY_FILE6) || defined(USE_BINARY_FILE7) || defined(USE_BINARY_FILE8)
 	use_binary_file = true;
-	#if defined(USE_BINARY_FILE8)
-		max_binary = 8;
-	#elif defined(USE_BINARY_FILE7)
-		max_binary = 7;
-	#elif defined(USE_BINARY_FILE6)
-		max_binary = 6;
-	#elif defined(USE_BINARY_FILE5)
-		max_binary = 5;
-	#elif defined(USE_BINARY_FILE4)
-		max_binary = 4;
-	#elif defined(USE_BINARY_FILE3)
-		max_binary = 3;
-	#elif defined(USE_BINARY_FILE2)
-		max_binary = 2;
-	#else
-		max_binary = 1;
-	#endif
+	max_binary = MAX_BINARY;
 #endif
 #if defined(USE_BITMAP)
 	use_bitmap = true;
@@ -256,23 +240,7 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 #if defined(USE_BUBBLE1) || defined(USE_BUBBLE2) || defined(USE_BUBBLE3) || defined(USE_BUBBLE4) || \
 	defined(USE_BUBBLE5) || defined(USE_BUBBLE6) || defined(USE_BUBBLE7) || defined(USE_BUBBLE8)
 	use_bubble = true;
-	#if defined(USE_BUBBLE8)
-		max_bubble = 8;
-	#elif defined(USE_BUBBLE7)
-		max_bubble = 7;
-	#elif defined(USE_BUBBLE6)
-		max_bubble = 6;
-	#elif defined(USE_BUBBLE5)
-		max_bubble = 5;
-	#elif defined(USE_BUBBLE4)
-		max_bubble = 4;
-	#elif defined(USE_BUBBLE3)
-		max_bubble = 3;
-	#elif defined(USE_BUBBLE2)
-		max_bubble = 2;
-	#else
-		max_bubble = 1;
-	#endif
+	max_bubble = MAX_BUBBLE;
 	#if defined(MAX_B77_BANKS)
 		max_b77_banks = MAX_B77_BANKS;
 	#else
@@ -282,23 +250,7 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 #if defined(USE_CART1) || defined(USE_CART2) || defined(USE_CART3) || defined(USE_CART4) || \
 	defined(USE_CART5) || defined(USE_CART6) || defined(USE_CART7) || defined(USE_CART8)
 	use_cart = true;
-	#if defined(USE_CART8)
-		max_cart = 8;
-	#elif defined(USE_CART7)
-		max_cart = 7;
-	#elif defined(USE_CART6)
-		max_cart = 6;
-	#elif defined(USE_CART5)
-		max_cart = 5;
-	#elif defined(USE_CART4)
-		max_cart = 4;
-	#elif defined(USE_CART3)
-		max_cart = 3;
-	#elif defined(USE_CART2)
-		max_cart = 2;
-	#else
-		max_cart = 1;
-	#endif
+	max_cart = MAX_CART;
 #endif
 #if defined(USE_CPU_TYPE)
 	use_cpu_type = USE_CPU_TYPE;
@@ -327,23 +279,7 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 #if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
 	defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
 	use_fd = true;
-	#if defined(USE_FD8)
-		max_drive = 8;
-	#elif defined(USE_FD7)
-		max_drive = 7;
-	#elif defined(USE_FD6)
-		max_drive = 6;
-	#elif defined(USE_FD5)
-		max_drive = 5;
-	#elif defined(USE_FD4)
-		max_drive = 4;
-	#elif defined(USE_FD3)
-		max_drive = 3;
-	#elif defined(USE_FD2)
-		max_drive = 2;
-	#else
-		max_drive = 1;
-	#endif
+	max_drive = MAX_FD;
 	#if defined(MAX_D88_BANKS)
 		max_d88_banks = MAX_D88_BANKS;
 	#else
@@ -400,23 +336,7 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 #if defined(USE_QD1) || defined(USE_QD2) || defined(USE_QD3) ||defined(USE_QD4) || \
 	defined(USE_QD5) || defined(USE_QD6) || defined(USE_QD7) ||defined(USE_QD8)
 	use_qd = true;
-	#if defined(USE_QD8)
-		max_qd = 8;
-	#elif defined(USE_QD7)
-		max_qd = 7;
-	#elif defined(USE_QD6)
-		max_qd = 6;
-	#elif defined(USE_QD5)
-		max_qd = 5;
-	#elif defined(USE_QD4)
-		max_qd = 4;
-	#elif defined(USE_QD3)
-		max_qd = 3;
-	#elif defined(USE_QD2)
-		max_qd = 2;
-	#else
-		max_qd = 1;
-	#endif
+	max_qd = MAX_QD;
 #endif
 #if defined(USE_SCANLINE)
 	use_scanline = true;
@@ -442,13 +362,13 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 #if defined(USE_FD1)
 	use_sound_files_fdd = true;
 #endif
-#if defined(USE_TAPE)
+#if defined(USE_TAPE1)
 	use_sound_files_relay = true;
 #endif
 #if defined(USE_SPECIAL_RESET)
 	use_special_reset = true;
 #endif	
-#if defined(USE_TAPE)
+#if defined(USE_TAPE1)
 	use_tape = true;
 	#if defined(USE_TAPE_BAUD)
 		use_tape_baud = true;
@@ -459,6 +379,7 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 	#if defined(USE_TAPE_PTR)
 		use_tape_ptr = true;
 	#endif
+		max_tape = MAX_TAPE;
 #endif
 #if defined(USE_VM_AUTO_KEY_TABLE)
 	use_vm_auto_key_table = true;

@@ -552,66 +552,66 @@ void EmuThreadClass::do_open_disk(int drv, QString path, int bank)
 	emit sig_update_recent_disk(drv);
 #endif	
 }
-void EmuThreadClass::do_play_tape(QString name)
+void EmuThreadClass::do_play_tape(int drv, QString name)
 {
-#if defined(USE_TAPE)
-	p_emu->play_tape(name.toLocal8Bit().constData());
+#if defined(USE_TAPE1)
+	p_emu->play_tape(drv, name.toLocal8Bit().constData());
 #endif
 }
 
-void EmuThreadClass::do_rec_tape(QString name)
+void EmuThreadClass::do_rec_tape(int drv, QString name)
 {
-#if defined(USE_TAPE)
-	p_emu->rec_tape(name.toLocal8Bit().constData());
+#if defined(USE_TAPE1)
+	p_emu->rec_tape(drv, name.toLocal8Bit().constData());
 #endif
 }
 
-void EmuThreadClass::do_close_tape(void)
+void EmuThreadClass::do_close_tape(int drv)
 {
-#if defined(USE_TAPE)
-	p_emu->close_tape();
+#if defined(USE_TAPE1)
+	p_emu->close_tape(drv);
 #endif
 }
 
-void EmuThreadClass::do_cmt_push_play(void)
+void EmuThreadClass::do_cmt_push_play(int drv)
 {
 #if defined(USE_TAPE_BUTTON)
-	p_emu->push_play();
+	p_emu->push_play(drv);
 #endif
 }
 
-void EmuThreadClass::do_cmt_push_stop(void)
+void EmuThreadClass::do_cmt_push_stop(int drv)
 {
 #if defined(USE_TAPE_BUTTON)
-	p_emu->push_stop();
+	p_emu->push_stop(drv);
 #endif
 }
 
-void EmuThreadClass::do_cmt_push_fast_forward(void)
+void EmuThreadClass::do_cmt_push_fast_forward(int drv)
 {
 #if defined(USE_TAPE_BUTTON)
-	p_emu->push_fast_forward();
+	p_emu->push_fast_forward(drv);
 #endif
 }
 
-void EmuThreadClass::do_cmt_push_fast_rewind(void)
+void EmuThreadClass::do_cmt_push_fast_rewind(int drv)
 {
 #if defined(USE_TAPE_BUTTON)
-	p_emu->push_fast_rewind();
+	p_emu->push_fast_rewind(drv);
 #endif
 }
 
-void EmuThreadClass::do_cmt_push_apss_forward(void)
+void EmuThreadClass::do_cmt_push_apss_forward(int drv)
 {
 #if defined(USE_TAPE_BUTTON)
-	p_emu->push_apss_forward();
+	p_emu->push_apss_forward(drv);
 #endif
 }
 
-void EmuThreadClass::do_cmt_push_apss_rewind(void)
+void EmuThreadClass::do_cmt_push_apss_rewind(int drv)
 {
 #if defined(USE_TAPE_BUTTON)
-	p_emu->push_apss_rewind();
+	p_emu->push_apss_rewind(drv);
 #endif	
 }
 

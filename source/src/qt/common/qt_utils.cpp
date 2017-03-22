@@ -175,18 +175,18 @@ void Ui_MainWindow::LaunchEmuThread(void)
 				this, SLOT(do_update_inner_fd(int ,QStringList , class Action_Control **, QStringList , int, bool)));
 	}
 #endif
-#if defined(USE_TAPE)
-	connect(this, SIGNAL(sig_play_tape(QString)), hRunEmu, SLOT(do_play_tape(QString)));
-	connect(this, SIGNAL(sig_rec_tape(QString)),  hRunEmu, SLOT(do_rec_tape(QString)));
-	connect(this, SIGNAL(sig_close_tape(void)),   hRunEmu, SLOT(do_close_tape(void)));
+#if defined(USE_TAPE1)
+	connect(this, SIGNAL(sig_play_tape(int, QString)), hRunEmu, SLOT(do_play_tape(int, QString)));
+	connect(this, SIGNAL(sig_rec_tape(int, QString)),  hRunEmu, SLOT(do_rec_tape(int, QString)));
+	connect(this, SIGNAL(sig_close_tape(int)),   hRunEmu, SLOT(do_close_tape(int)));
 	//connect(hRunEmu, SIGNAL(sig_change_osd_cmt(QString)), this, SLOT(do_change_osd_cmt(QString)));
 # if defined(USE_TAPE_BUTTON)
-	connect(this, SIGNAL(sig_cmt_push_play(void)), hRunEmu, SLOT(do_cmt_push_play(void)));
-	connect(this, SIGNAL(sig_cmt_push_stop(void)), hRunEmu, SLOT(do_cmt_push_stop(void)));
-	connect(this, SIGNAL(sig_cmt_push_fast_forward(void)), hRunEmu, SLOT(do_cmt_push_fast_forward(void)));
-	connect(this, SIGNAL(sig_cmt_push_fast_rewind(void)),  hRunEmu, SLOT(do_cmt_push_fast_rewind(void)));
-	connect(this, SIGNAL(sig_cmt_push_apss_forward(void)), hRunEmu, SLOT(do_cmt_push_apss_forward(void)));
-	connect(this, SIGNAL(sig_cmt_push_apss_rewind(void)),  hRunEmu, SLOT(do_cmt_push_apss_rewind(void)));
+	connect(this, SIGNAL(sig_cmt_push_play(int)), hRunEmu, SLOT(do_cmt_push_play(int)));
+	connect(this, SIGNAL(sig_cmt_push_stop(int)), hRunEmu, SLOT(do_cmt_push_stop(int)));
+	connect(this, SIGNAL(sig_cmt_push_fast_forward(int)), hRunEmu, SLOT(do_cmt_push_fast_forward(int)));
+	connect(this, SIGNAL(sig_cmt_push_fast_rewind(int)),  hRunEmu, SLOT(do_cmt_push_fast_rewind(int)));
+	connect(this, SIGNAL(sig_cmt_push_apss_forward(int)), hRunEmu, SLOT(do_cmt_push_apss_forward(int)));
+	connect(this, SIGNAL(sig_cmt_push_apss_rewind(int)),  hRunEmu, SLOT(do_cmt_push_apss_rewind(int)));
 # endif
 #endif
 #if defined(USE_QD1)

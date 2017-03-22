@@ -183,10 +183,8 @@ void Menu_MetaClass::do_open_dialog()
 	}
 	dlg.setWindowTitle(tmps);
 	
-	QObject::connect(&dlg, SIGNAL(fileSelected(QString)),
-					 dlg.param, SLOT(_open_disk(QString))); 
-	QObject::connect(dlg.param, SIGNAL(do_open_disk(int, QString)),
-					 this, SLOT(do_open_media(int, QString)));
+	QObject::connect(&dlg, SIGNAL(fileSelected(QString)), dlg.param, SLOT(_open_disk(QString))); 
+	QObject::connect(dlg.param, SIGNAL(do_open_disk(int, QString)), this, SLOT(do_open_media(int, QString)));
 
 	dlg.show();
 	dlg.exec();
@@ -432,6 +430,7 @@ void Menu_MetaClass::retranslate_pulldown_menu_sub(void)
 	menu_history->setTitle(QApplication::translate("MainWindow", "Recent opened", 0));
 
 }
+
 void Menu_MetaClass::retranslate_pulldown_menu_device_sub(void)
 {
 }

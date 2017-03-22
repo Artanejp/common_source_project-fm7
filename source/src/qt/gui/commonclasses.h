@@ -93,8 +93,6 @@ public slots:
 	void set_cpu_type(void);
 	void set_cpupower(void);
 	void open_debugger(void);
-	void do_set_write_protect_cmt(void);
-	void do_unset_write_protect_cmt(void);
 	void insert_fd(void);
 	void eject_fd(void);
 	void on_d88_slot(void);
@@ -138,10 +136,6 @@ public slots:
 	void eject_laserdisc(void);
 	void on_recent_laserdisc();
 	
-	void start_insert_play_cmt(void);
-	void eject_cmt(void);
-	void on_recent_cmt(void);
-   
 	void on_set_freq(void);
 	void on_set_latency(void);
 
@@ -181,10 +175,6 @@ signals:
 	int sig_eject_laserdisc(void);
 	int sig_recent_laserdisc(int);
 	
-	int sig_insert_play_cmt(bool);
-	int sig_eject_cmt(void);
-	int sig_recent_cmt(int);
-	int sig_set_write_protect_cmt(bool);
 	int sig_insert_cart(int);
 	int sig_eject_cart(int);
 	int set_recent_cart(int, int);

@@ -35,6 +35,52 @@ Menu_CMTClass::~Menu_CMTClass()
 {
 }
 
+void Menu_CMTClass::do_push_play_tape(void)
+{
+	emit sig_push_play_tape(media_drive);
+}
+
+void Menu_CMTClass::do_push_stop_tape(void)
+{
+	emit sig_push_stop_tape(media_drive);
+}
+
+void Menu_CMTClass::do_push_fast_forward_tape(void)
+{
+	emit sig_push_fast_forward_tape(media_drive);
+}
+
+void Menu_CMTClass::do_push_rewind_tape(void)
+{
+	emit sig_push_rewind_tape(media_drive);
+}
+
+void Menu_CMTClass::do_push_apss_forward_tape(void)
+{
+	emit sig_push_apss_forward_tape(media_drive);
+}
+
+void Menu_CMTClass::do_push_apss_rewind_tape(void)
+{
+	emit sig_push_apss_rewind_tape(media_drive);
+}
+
+void Menu_CMTClass::set_wave_shaper(bool flag)
+{
+	emit sig_wave_shaper(media_drive, flag);
+}
+
+void Menu_CMTClass::set_direct_load_mzt(bool flag)
+{
+	emit sig_direct_load_mzt(media_drive, flag);
+}
+
+void Menu_CMTClass::do_open_write_cmt(QString s)
+{
+	emit sig_open_write_cmt(media_drive, s);
+}
+
+
 void Menu_CMTClass::create_pulldown_menu_device_sub(void)
 {
 	action_wave_shaper = new Action_Control(p_wid, using_flags);
@@ -120,32 +166,36 @@ void Menu_CMTClass::connect_menu_device_sub(void)
 			this->addSeparator();
 		}
 		this->addAction(action_wave_shaper);
-		connect(action_wave_shaper, SIGNAL(toggled(bool)),
-				p_wid, SLOT(set_wave_shaper(bool)));
+		connect(action_wave_shaper, SIGNAL(toggled(bool)), this, SLOT(set_wave_shaper(bool)));
+		connect(this, SIGNAL(sig_wave_shaper(int, bool)), p_wid, SLOT(set_wave_shaper(int, bool)));
+		
 		if(using_flags->is_machine_cmt_mz_series()) {
 			this->addAction(action_direct_load_mzt);
-			connect(action_direct_load_mzt, SIGNAL(toggled(bool)),
-					p_wid, SLOT(set_direct_load_from_mzt(bool)));
+			connect(action_direct_load_mzt, SIGNAL(toggled(bool)), this, SLOT(set_direct_load_from_mzt(bool)));
+			connect(this, SIGNAL(sig_direct_load_from_mzt(int, bool)), p_wid, SLOT(set_direct_load_from_mzt(int, bool)));
 		}
-		connect(action_recording, SIGNAL(triggered()),
-				this, SLOT(do_open_rec_dialog()));
-		connect(this, SIGNAL(sig_open_media(int, QString)),
-				p_wid, SLOT(do_open_read_cmt(int, QString)));
+		connect(action_recording, SIGNAL(triggered()), this, SLOT(do_open_rec_dialog()));
+		connect(this, SIGNAL(sig_open_media(int, QString)),	p_wid, SLOT(do_open_read_cmt(int, QString)));
 		
-		connect(this, SIGNAL(sig_eject_media(int)),
-				this, SLOT(do_eject_cmt(int)));
-		connect(this, SIGNAL(sig_close_tape()),
-				p_wid, SLOT(eject_cmt()));
+		connect(this, SIGNAL(sig_eject_media(int)),	this, SLOT(do_eject_cmt(int)));
+		connect(this, SIGNAL(sig_close_tape(int)), p_wid, SLOT(eject_cmt(int)));
 		
 		connect(this, SIGNAL(sig_write_protect_media(int, bool)), p_wid, SLOT(do_write_protect_cmt(int, bool)));	
 		connect(this, SIGNAL(sig_set_recent_media(int, int)), p_wid, SLOT(set_recent_cmt(int, int)));
 		if(using_flags->is_use_tape_button()) {
-			connect(action_play_start, SIGNAL(triggered()), p_wid, SLOT(do_push_play_tape(void)));
-			connect(action_play_stop,  SIGNAL(triggered()), p_wid, SLOT(do_push_stop_tape(void)));
-			connect(action_fast_forward,  SIGNAL(triggered()), p_wid, SLOT(do_push_fast_forward_tape(void)));
-			connect(action_fast_rewind,   SIGNAL(triggered()), p_wid, SLOT(do_push_rewind_tape(void)));
-			connect(action_apss_forward,  SIGNAL(triggered()), p_wid, SLOT(do_push_apss_forward_tape(void)));
-			connect(action_apss_rewind,   SIGNAL(triggered()), p_wid, SLOT(do_push_apss_rewind_tape(void)));
+			connect(action_play_start, SIGNAL(triggered()), this, SLOT(do_push_play_tape(void)));
+			connect(action_play_stop,  SIGNAL(triggered()), this, SLOT(do_push_stop_tape(void)));
+			connect(action_fast_forward,  SIGNAL(triggered()), this, SLOT(do_push_fast_forward_tape(void)));
+			connect(action_fast_rewind,   SIGNAL(triggered()), this, SLOT(do_push_rewind_tape(void)));
+			connect(action_apss_forward,  SIGNAL(triggered()), this, SLOT(do_push_apss_forward_tape(void)));
+			connect(action_apss_rewind,   SIGNAL(triggered()), this, SLOT(do_push_apss_rewind_tape(void)));
+
+			connect(this, SIGNAL(sig_push_play_tape(int)), p_wid, SLOT(do_push_play_tape(int)));
+			connect(this,  SIGNAL(sig_push_stop_tape(int)), p_wid, SLOT(do_push_stop_tape(int)));
+			connect(this,  SIGNAL(sig_push_fast_forward_tape(int)), p_wid, SLOT(do_push_fast_forward_tape(int)));
+			connect(this,   SIGNAL(sig_push_rewind_tape(int)), p_wid, SLOT(do_push_rewind_tape(int)));
+			connect(this,  SIGNAL(sig_push_apss_forward_tape(int)), p_wid, SLOT(do_push_apss_forward_tape(int)));
+			connect(this,   SIGNAL(sig_push_apss_rewind_tape(int)), p_wid, SLOT(do_push_apss_rewind_tape(int)));
 		}
 	}
 }
@@ -186,16 +236,17 @@ void Menu_CMTClass::do_open_rec_dialog()
 	dlg.setNameFilters(ext_rec_filter);
 	dlg.setWindowTitle(desc_rec);
 	dlg.setWindowTitle(QApplication::translate("MainWindow", "Save Tape", 0));
-	QObject::connect(&dlg, SIGNAL(fileSelected(QString)),
-					 p_wid, SLOT(do_open_write_cmt(QString))); 
+	
+	QObject::connect(&dlg, SIGNAL(fileSelected(QString)), this, SLOT(do_open_write_cmt(QString))); 
+	QObject::connect(this, SIGNAL(sig_open_write_cmt(int, QString)), p_wid, SLOT(do_open_write_cmt(int, QString))); 
 	dlg.show();
 	dlg.exec();
 	return;
 }
 
-void Menu_CMTClass::do_eject_cmt(int dummy) 
+void Menu_CMTClass::do_eject_cmt(int drive) 
 {
-	emit sig_close_tape();
+	emit sig_close_tape(drive);
 }
 
 void Menu_CMTClass::retranslate_pulldown_menu_device_sub(void)

@@ -117,6 +117,7 @@ protected:
 	bool use_tape_baud;
 	bool use_tape_button;
 	bool use_tape_ptr;
+	int max_tape;
 	
 	bool use_vm_auto_key_table;
 
@@ -250,6 +251,7 @@ public:
 	bool is_use_tape_baud() { return use_tape_baud; }
 	bool is_use_tape_button() { return use_tape_button; }
 	bool is_use_tape_ptr() { return use_tape_ptr; }
+	int get_max_tape() { return max_tape; }
 
 	bool is_use_vm_auto_key_table() { return use_vm_auto_key_table; }
 

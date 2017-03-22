@@ -49,8 +49,7 @@ int Ui_MainWindowBase::set_recent_binary_load(int drv, int num)
 	UPDATE_HISTORY(path_shadow, using_flags->get_config_ptr()->recent_binary_path[drv], listBINs[drv]);
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
 	
-	get_parent_dir(path_shadow);
-	strcpy(using_flags->get_config_ptr()->initial_binary_dir, path_shadow);
+	strcpy(using_flags->get_config_ptr()->initial_binary_dir, get_parent_dir(path_shadow));
 	//strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
 	
 	emit sig_load_binary(drv, s_path);
@@ -71,8 +70,7 @@ int Ui_MainWindowBase::set_recent_binary_save(int drv, int num)
 	UPDATE_HISTORY(path_shadow, using_flags->get_config_ptr()->recent_binary_path[drv], listBINs[drv]);
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
 	
-	get_parent_dir(path_shadow);
-	strcpy(using_flags->get_config_ptr()->initial_binary_dir, path_shadow);
+	strcpy(using_flags->get_config_ptr()->initial_binary_dir, get_parent_dir(path_shadow));
 	//strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
 	
 	emit sig_save_binary(drv, s_path);
@@ -90,8 +88,7 @@ void Ui_MainWindowBase::_open_binary_load(int drv, const QString fname)
 	drv = drv & 7;
 	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX);
 	UPDATE_HISTORY(path_shadow, using_flags->get_config_ptr()->recent_binary_path[drv], listBINs[drv]);
-	get_parent_dir(path_shadow);
-	strcpy(using_flags->get_config_ptr()->initial_binary_dir, path_shadow);
+	strcpy(using_flags->get_config_ptr()->initial_binary_dir, 	get_parent_dir(path_shadow));
 	// Update List
 	emit sig_load_binary(drv, fname);
 		
@@ -107,8 +104,7 @@ void Ui_MainWindowBase::_open_binary_save(int drv, const QString fname)
 	drv = drv & 7;
 	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX);
 	UPDATE_HISTORY(path_shadow, using_flags->get_config_ptr()->recent_binary_path[drv], listBINs[drv]);
-	get_parent_dir(path_shadow);
-	strcpy(using_flags->get_config_ptr()->initial_binary_dir, path_shadow);
+	strcpy(using_flags->get_config_ptr()->initial_binary_dir, get_parent_dir(path_shadow));
 	// Update List
 	emit sig_save_binary(drv, fname);
 

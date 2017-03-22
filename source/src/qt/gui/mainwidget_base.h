@@ -135,10 +135,8 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	void retranslateBubbleMenu(int drv, int basedrv);
 	void ConfigBubbleMenu(void);
 	
-	void CreateCMTMenu(void);
-	void CreateCMTPulldownMenu(void);
-	void ConfigCMTMenuSub(void);
-	void retranslateCMTMenu(void);
+	void CreateCMTMenu(int drive);
+	void retranslateCMTMenu(int drive);
 	void ConfigCMTMenu(void);
    
 	void ConfigQuickDiskMenu(void);
@@ -218,8 +216,8 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 
 	QStringList listQDs[8];
 	
-	QStringList listCMT;
-	bool cmt_write_protect;
+	QStringList listCMT[8];
+	bool cmt_write_protect[8];
 	QStringList listCDROM;
 	QStringList listLaserdisc;
 	QStringList listBINs[8];
@@ -345,7 +343,7 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	
 	Menu_QDClass *menu_QDs[8];
 	
-	Menu_CMTClass *menu_CMT;
+	Menu_CMTClass *menu_CMT[8];
 	
 	Menu_CompactDiscClass *menu_CDROM;
 	Menu_LaserdiscClass *menu_Laserdisc;
@@ -378,15 +376,6 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	QLabel *messagesStatusBar;
 	QWidget *dummyStatusArea2;
 
-	QLabel *fd_StatusBar[16];
-	QString osd_str_fd[16];
-	
-	QLabel *qd_StatusBar[8];
-	QString osd_str_qd[8];
-	
-	QLabel *cmt_StatusBar;
-	QString osd_str_cmt;
-	
 	QLabel *cdrom_StatusBar;
 	QString osd_str_cdrom;
 	
@@ -456,8 +445,8 @@ public:
 	virtual void OnMainWindowClosed(void);
 	// Basic Action Definition
 	void OnCpuPower(int mode);
-	bool get_wave_shaper(void);
-	bool get_direct_load_mzt(void);
+	bool get_wave_shaper(int drive);
+	bool get_direct_load_mzt(int drive);
 	virtual bool GetPowerState(void);
 	void set_logger(CSP_Logger *logger) { csp_logger = logger; }
 	// Basic slots
@@ -539,23 +528,22 @@ public slots:
 
 	virtual void _open_disk(int drv, const QString fname);
 	void _open_cart(int drv, const QString fname);
-	void eject_cmt(void);
+	void eject_cmt(int drv);
 	void do_change_boot_mode(int mode);
 	void do_change_cpu_type(int mode);
 	void do_write_protect_cmt(int drv, bool flag);
 	int  set_recent_cmt(int drv, int num);
-	void set_wave_shaper(bool f);
-	void set_direct_load_from_mzt(bool f);
-	void do_open_write_cmt(QString);
-	void do_open_read_cmt(int dummy, QString path);
+	void set_wave_shaper(int drive, bool f);
+	void set_direct_load_from_mzt(int drive, bool f);
+	void do_open_write_cmt(int drive, QString);
+	void do_open_read_cmt(int drive, QString path);
 
-	void do_push_play_tape(void);
-	void do_push_stop_tape(void);
-	void do_display_tape_play(bool flag);
-	void do_push_fast_forward_tape(void);
-	void do_push_rewind_tape(void);
-	void do_push_apss_forward_tape(void);
-	void do_push_apss_rewind_tape(void);
+	void do_push_play_tape(int drive);
+	void do_push_stop_tape(int drive);
+	void do_push_fast_forward_tape(int drive);
+	void do_push_rewind_tape(int drive);
+	void do_push_apss_forward_tape(int drive);
+	void do_push_apss_rewind_tape(int drive);
 	void set_cmt_sound(bool);
 
 	int write_protect_fd(int drv, bool flag);
@@ -624,7 +612,6 @@ signals:
 	int on_insert_fd(int);
 	int on_eject_fd(int);
 	int do_open_disk(int, QString);
-	int do_recent_cmt(bool);
 	int closed(void);
 	int sig_quit_all(void);
 	int sig_vm_reset(void);
@@ -645,15 +632,15 @@ signals:
 	int sig_write_protect_disk(int drv, bool flag);
 	int sig_open_disk(int, QString, int);
 	int sig_close_disk(int);
-	int sig_play_tape(QString name);
-	int sig_rec_tape(QString name);
-	int sig_close_tape(void);
-	int sig_cmt_push_play(void);
-	int sig_cmt_push_stop(void);
-	int sig_cmt_push_fast_forward(void);
-	int sig_cmt_push_fast_rewind(void);
-	int sig_cmt_push_apss_forward(void);
-	int sig_cmt_push_apss_rewind(void);
+	int sig_play_tape(int ,QString);
+	int sig_rec_tape(int, QString);
+	int sig_close_tape(int);
+	int sig_cmt_push_play(int);
+	int sig_cmt_push_stop(int);
+	int sig_cmt_push_fast_forward(int);
+	int sig_cmt_push_fast_rewind(int);
+	int sig_cmt_push_apss_forward(int);
+	int sig_cmt_push_apss_rewind(int);
 	int sig_write_protect_quickdisk(int drv, bool flag);
 	int sig_close_quickdisk(int drv);
 	int sig_open_quickdisk(int drv, QString path);

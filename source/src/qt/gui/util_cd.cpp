@@ -66,8 +66,7 @@ int Ui_MainWindowBase::set_recent_cdrom(int drv, int num)
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
 	UPDATE_HISTORY(path_shadow, using_flags->get_config_ptr()->recent_compact_disc_path, listCDROM);
    
-	get_parent_dir(path_shadow);
-	strcpy(using_flags->get_config_ptr()->initial_compact_disc_dir, path_shadow);
+	strcpy(using_flags->get_config_ptr()->initial_compact_disc_dir, 	get_parent_dir(path_shadow));
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
 	emit sig_close_cdrom();
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_VFILE_COMPACTDISC + 0, "Open : filename = %s", path_shadow);
@@ -88,8 +87,7 @@ void Ui_MainWindowBase::do_open_cdrom(int drv, QString path)
 	if(path.length() <= 0) return;
 	strncpy(path_shadow, path.toLocal8Bit().constData(), PATH_MAX);
 	UPDATE_HISTORY(path_shadow, using_flags->get_config_ptr()->recent_compact_disc_path, listCDROM);
-	get_parent_dir(path_shadow);
-	strcpy(using_flags->get_config_ptr()->initial_compact_disc_dir, path_shadow);
+	strcpy(using_flags->get_config_ptr()->initial_compact_disc_dir, get_parent_dir(path_shadow));
 	// Copy filename again.
 	strncpy(path_shadow, path.toLocal8Bit().constData(), PATH_MAX);
 

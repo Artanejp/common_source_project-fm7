@@ -31,8 +31,7 @@ void Ui_MainWindowBase::_open_cart(int drv, const QString fname)
 	if(fname.length() <= 0) return;
 	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX);
 	UPDATE_HISTORY(path_shadow, using_flags->get_config_ptr()->recent_cart_path[drv], listCARTs[drv]);
-	get_parent_dir(path_shadow);
-	strcpy(using_flags->get_config_ptr()->initial_cart_dir, path_shadow);
+	strcpy(using_flags->get_config_ptr()->initial_cart_dir, 	get_parent_dir(path_shadow));
 	menu_Cart[drv]->do_update_histories(listCARTs[drv]);
 	menu_Cart[drv]->do_set_initialize_directory(using_flags->get_config_ptr()->initial_cart_dir);
 	
@@ -58,8 +57,7 @@ void Ui_MainWindowBase::set_recent_cart(int drv, int num)
 	UPDATE_HISTORY(path_shadow, using_flags->get_config_ptr()->recent_cart_path[drv], listCARTs[drv]);
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
    
-	get_parent_dir(path_shadow);
-	strcpy(using_flags->get_config_ptr()->initial_cart_dir, path_shadow);
+	strcpy(using_flags->get_config_ptr()->initial_cart_dir, 	get_parent_dir(path_shadow));
 	menu_Cart[drv]->do_update_histories(listCARTs[drv]);
 	menu_Cart[drv]->do_set_initialize_directory(using_flags->get_config_ptr()->initial_cart_dir);
    

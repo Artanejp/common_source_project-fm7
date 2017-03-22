@@ -48,9 +48,28 @@ public:
 public slots:
 	void do_open_rec_dialog();
 	void do_add_rec_media_extension(QString ext, QString description);
-	void do_eject_cmt(int dummy);
+	void do_eject_cmt(int drv);
+	void do_push_play_tape(void);
+	void do_push_stop_tape(void);
+	void do_push_fast_forward_tape(void);
+	void do_push_rewind_tape(void);
+	void do_push_apss_forward_tape(void);
+	void do_push_apss_rewind_tape(void);
+	void set_wave_shaper(bool flag);
+	void set_direct_load_mzt(bool flag);
+	void do_open_write_cmt(QString s);
 signals:
-	int sig_close_tape(void);
+	int sig_close_tape(int);
+	int sig_push_play_tape(int);
+	int sig_push_stop_tape(int);
+	int sig_push_fast_forward_tape(int);
+	int sig_push_rewind_tape(int);
+	int sig_push_apss_forward_tape(int);
+	int sig_push_apss_rewind_tape(int);
+
+	int sig_wave_shaper(int, bool);
+	int sig_direct_load_mzt(int, bool);
+	int sig_open_write_cmt(int, QString);
 };
 
 QT_END_NAMESPACE

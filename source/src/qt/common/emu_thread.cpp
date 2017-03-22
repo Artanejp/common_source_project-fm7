@@ -177,18 +177,20 @@ void EmuThreadClass::get_tape_string()
 {
 	QString tmpstr;
 	
-#if defined(USE_TAPE) && !defined(TAPE_BINARY_ONLY)
-	if(p_emu->is_tape_inserted()) {
-		const _TCHAR *ts = p_emu->get_tape_message();
-		if(ts != NULL) {
-			tmpstr = QString::fromUtf8(ts);
+#if defined(USE_TAPE1) && !defined(TAPE_BINARY_ONLY)
+	for(int i = 0; i < MAX_TAPE; i++) {
+		if(p_emu->is_tape_inserted(i)) {
+			const _TCHAR *ts = p_emu->get_tape_message(i);
+			if(ts != NULL) {
+				tmpstr = QString::fromUtf8(ts);
+			}
+		} else {
+			tmpstr = QString::fromUtf8("   EMPTY   ");
 		}
-	} else {
-		tmpstr = QString::fromUtf8("   EMPTY   ");
-	}
-	if(tmpstr != cmt_text) {
-		emit sig_change_osd(CSP_DockDisks_Domain_CMT, 0, tmpstr);
-		cmt_text = tmpstr;
+		if(tmpstr != cmt_text) {
+			emit sig_change_osd(CSP_DockDisks_Domain_CMT, i, tmpstr);
+			cmt_text = tmpstr;
+		}
 	}
 #endif
 }

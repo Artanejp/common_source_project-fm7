@@ -405,7 +405,7 @@ void Ui_MainWindowBase::setupUi(void)
 		for(i = 0; i < using_flags->get_max_qd(); i++) CreateQuickDiskMenu(i, i + 1);
 	}
 	if(using_flags->is_use_tape()) {
-		CreateCMTMenu();
+		for(int i = 0; i < using_flags->get_max_tape(); i++) CreateCMTMenu(i);
 	}
 	CreateScreenMenu();
 	if(using_flags->is_use_cart()) {
@@ -485,7 +485,7 @@ void Ui_MainWindowBase::setupUi(void)
 		}
 	}
 	if(using_flags->is_use_tape()) {
-		menubar->addAction(menu_CMT->menuAction());
+		for(int i = 0; i < using_flags->get_max_tape(); i++) menubar->addAction(menu_CMT[i]->menuAction());
 	}
 	if(using_flags->is_use_cart()) {
 		int i;
@@ -1096,7 +1096,7 @@ void Ui_MainWindowBase::retranslateUi(void)
 	retranslateControlMenu("NMI Reset",  true);
 	retranslateFloppyMenu(0, 0);
 	retranslateFloppyMenu(1, 1);
-	retranslateCMTMenu();
+	retranslateCMTMenu(0);
 	if(!using_flags->is_without_sound()) {
 		retranslateSoundMenu();
 	}

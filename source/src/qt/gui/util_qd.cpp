@@ -104,8 +104,7 @@ int Ui_MainWindowBase::set_recent_quick_disk(int drv, int num)
 	UPDATE_HISTORY(path_shadow, using_flags->get_config_ptr()->recent_quick_disk_path[drv], listQDs[drv]);
     
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), _MAX_PATH);
-	get_parent_dir(path_shadow);
-	strncpy(using_flags->get_config_ptr()->initial_quick_disk_dir, path_shadow, _MAX_PATH);
+	strncpy(using_flags->get_config_ptr()->initial_quick_disk_dir, 	get_parent_dir(path_shadow), _MAX_PATH);
 	
 	emit sig_close_quickdisk(drv);
 	emit sig_open_quickdisk(drv, s_path);
@@ -130,8 +129,7 @@ void Ui_MainWindowBase::_open_quick_disk(int drv, const QString fname)
 	UPDATE_HISTORY(path_shadow, using_flags->get_config_ptr()->recent_quick_disk_path[drv], listQDs[drv]);
 	
 	strncpy(path_shadow, s_name.toLocal8Bit().constData(), _MAX_PATH);
-	get_parent_dir(path_shadow);
-	strncpy(using_flags->get_config_ptr()->initial_quick_disk_dir, path_shadow, _MAX_PATH);
+	strncpy(using_flags->get_config_ptr()->initial_quick_disk_dir, 	get_parent_dir(path_shadow), _MAX_PATH);
 
 	emit sig_close_quickdisk(drv);
 	emit sig_open_quickdisk(drv, s_name);

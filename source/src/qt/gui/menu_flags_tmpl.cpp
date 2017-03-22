@@ -52,7 +52,7 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 
 	use_qd = false;
 	max_qd = 0;
-
+	max_tape = 0;
 	use_scanline = use_screen_rotate = false;
 	use_shift_numpad_key = false;
 	screen_mode_num = 1;
