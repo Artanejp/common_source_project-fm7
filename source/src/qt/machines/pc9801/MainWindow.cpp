@@ -94,7 +94,7 @@ void META_MainWindow::retranslateUi(void)
 	actionSoundDevice[4]->setToolTip(QApplication::translate("MainWindow", "None sound devices has connected.", 0));
 #endif
 #if defined(USE_TAPE)
-	retranslateCMTMenu();
+	retranslateCMTMenu(0);
 #endif
 	retranslateSoundMenu();
 	retranslateScreenMenu();

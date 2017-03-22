@@ -24,7 +24,7 @@ void META_MainWindow::retranslateUi(void)
 	retranslateControlMenu("", false);
 	retranslateScreenMenu();
 	//retranslateBinaryMenu(0, 1);
-	retranslateCMTMenu();
+	retranslateCMTMenu(0);
 	retranslateMachineMenu();
 	retranslateUI_Help();
 	retranslateEmulatorMenu();

@@ -109,7 +109,7 @@ void META_MainWindow::retranslateUi(void)
 	retranslateFloppyMenu(0, 0);
 	retranslateFloppyMenu(1, 1);
 	retranslateQuickDiskMenu(0, 0);
-	retranslateCMTMenu();
+	retranslateCMTMenu(0);
 	retranslateSoundMenu();
 	retranslateScreenMenu();
 	retranslateMachineMenu();

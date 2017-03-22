@@ -30,7 +30,7 @@ void META_MainWindow::retranslateUi(void)
 {
 
 	retranslateControlMenu("", false);
-	retranslateCMTMenu();
+	retranslateCMTMenu(0);
 	retranslateBinaryMenu(0,1);
 	retranslateSoundMenu();
 	retranslateScreenMenu();

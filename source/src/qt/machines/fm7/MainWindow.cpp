@@ -166,7 +166,7 @@ void META_MainWindow::retranslateUi(void)
 	retranslateControlMenu("Hot Start (BREAK+RESET)", true);
 	retranslateFloppyMenu(0, 0);
 	retranslateFloppyMenu(1, 1);
-	retranslateCMTMenu();
+	retranslateCMTMenu(0);
 #if defined(USE_BUBBLE1)
 	retranslateBubbleMenu(0, 1);
 #endif	

@@ -30,7 +30,7 @@ void META_MainWindow::retranslateUi(void)
 #if defined(USE_QD1)
 	retranslateQuickDiskMenu(0,0);
 #endif   
-	retranslateCMTMenu();
+	retranslateCMTMenu(0);
 	retranslateSoundMenu();
 	retranslateScreenMenu();
 	retranslateMachineMenu();

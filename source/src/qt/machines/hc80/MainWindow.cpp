@@ -28,7 +28,7 @@ void META_MainWindow::retranslateUi(void)
 	retranslateFloppyMenu(1, 2);
 	retranslateFloppyMenu(2, 3);
 	retranslateFloppyMenu(3, 4);
-	retranslateCMTMenu();
+	retranslateCMTMenu(0);
 	retranslateSoundMenu();
 	retranslateScreenMenu();
 	retranslateMachineMenu();

@@ -68,7 +68,7 @@ void META_MainWindow::retranslateUi(void)
 #if defined(USE_CART1)
 	retranslateCartMenu(0, 1);
 #endif   
-	retranslateCMTMenu();
+	retranslateCMTMenu(0);
 	retranslateSoundMenu();
 	retranslateScreenMenu();
 	retranslateMachineMenu();
