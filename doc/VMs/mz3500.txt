@@ -10,9 +10,6 @@
 	KANJI.ROM can be created from Windows font (MS Gothic)
 	by mz3500/mkrom.exe in this arichive.
 
-    Optional:
-	FDDSEEK.WAV     Sound file of FDD SEEKING.
-
 --- Key maps
 
 	Virtual		PC
@@ -30,4 +27,4 @@
 ----------------------------------------
 TAKEDA, toshiya
 t-takeda@m1.interq.or.jp
-http://homepage3.nifty.com/takeda-toshiya/
+http://takeda-toshiya.my.coocan.jp/

@@ -1,7 +1,7 @@
 "eFM77AV" "eFM77AV20" "eFM77AV20EX" "eFM77AV40"
 	  	      "eFM77AV40EX" "eFM77AV40SX"
 				- Fujitsu FM-77AV/20/20EX/40/40EX/40SX
-								10/3/2016
+								2/26/2016
 
 --- Internal ROM image
 
@@ -36,11 +36,6 @@
     In addition, will save on exit:
 	USERDIC.DAT     Learning data of Kana Kanji conversion.
 			to battery backuped CMOS RAM.
-
-    Optional:
-	FDDSEEK.WAV     Sound file of FDD SEEKING.
-	RELAY_ON.WAV    Sound file of turning on a CMT's RELAY.	
-	RELAYOFF.WAV    Sound file of turning off a CMT's RELAY.
 
 --- Key maps
 

@@ -6,10 +6,6 @@
 	IPL.ROM		$0000-$7FFF
 	BASIC.ROM	$8000-$BFFF (if exists)
 
-    Optional:
-	RELAY_ON.WAV    Sound file of turning on a CMT's RELAY.	
-	RELAYOFF.WAV    Sound file of turning off a CMT's RELAY.
-
 --- Cart ROM images
 
 	Cart ROM is mapped to $8000-$BFFF or $4000-$BFFF
@@ -38,4 +34,4 @@
 ----------------------------------------
 TAKEDA, toshiya
 t-takeda@m1.interq.or.jp
-http://homepage3.nifty.com/takeda-toshiya/
+http://takeda-toshiya.my.coocan.jp/

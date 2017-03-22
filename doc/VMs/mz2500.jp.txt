@@ -26,12 +26,6 @@ Windows 2000/XP/Vista/7で動作します。
 IPL.ROMとKANJI.ROMがあれば一通り動作するはずです。
 他のROMイメージは、あれば読み込むようになってはいます。（動作は未確認）
 
-以下のファイルは、あれば効果音を鳴らせられます。
-	FDDSEEK.WAV     FDD シーク音
-	CMTPLAY.WAV		テープレコーダのPLAYボタン
-	CMTSTOP.WAV		テープレコーダのSTOPボタン
-	CMTEJECT.WAV	テープレコーダのEJECTボタン
-
 
 mz2500.exeを実行すると、ディスクが刺さっていない状態で起動します。
 "FDD?" - "Insert" で適当なドライブにディスクを読み込ませてください。
@@ -92,4 +86,4 @@ DirectSound周りの実装の仕方はXM7のコードを参照させて頂きました。
 ----------------------------------------
 TAKEDA, toshiya
 t-takeda@m1.interq.or.jp
-http://homepage3.nifty.com/takeda-toshiya/
+http://takeda-toshiya.my.coocan.jp/

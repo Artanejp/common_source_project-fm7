@@ -14,11 +14,6 @@
 	KANJI.ROM can be created from Windows font (MS Gothic)
 	by multi8/mkfont.exe in this arichive.
 
-    Optional:
-	FDDSEEK.WAV     Sound file of FDD SEEKING.
-	RELAY_ON.WAV    Sound file of turning on a CMT's RELAY.	
-	RELAYOFF.WAV    Sound file of turning off a CMT's RELAY.
-
 --- Key maps
 
 	Virtual		PC
@@ -30,4 +25,4 @@
 ----------------------------------------
 TAKEDA, toshiya
 t-takeda@m1.interq.or.jp
-http://homepage3.nifty.com/takeda-toshiya/
+http://takeda-toshiya.my.coocan.jp/

@@ -8,11 +8,6 @@
 	UTIL.ROM	32KBytes ROM capsule bank2 (usually for UTILITY)
 	EXT.ROM		128KBytes ROM capsule on External RAM disk
 
-    Optional:
-	CMTPLAY.WAV		Sound file of CMT PLAY button.
-	CMTSTOP.WAV		Sound file of CMT Stop button.
-	CMTEJECT.WAV	Sound file of CMT Eject button.
-	
 --- Optional devices
 
 	A:	External RAM disk
@@ -37,4 +32,4 @@
 ----------------------------------------
 TAKEDA, toshiya
 t-takeda@m1.interq.or.jp
-http://homepage3.nifty.com/takeda-toshiya/
+http://takeda-toshiya.my.coocan.jp/

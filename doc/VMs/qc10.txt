@@ -6,9 +6,6 @@
 	qc10.exe	standard (green monitor)
 	qc10cms.exe	with color monitor subboard
 
-    Optional:
-	FDDSEEK.WAV     Sound file of FDD SEEKING.
-
 --- Internal ROM images
 
 	IPL.ROM		IPL 2KB, 4KB or 8KB
@@ -34,4 +31,4 @@
 ----------------------------------------
 TAKEDA, toshiya
 t-takeda@m1.interq.or.jp
-http://homepage3.nifty.com/takeda-toshiya/
+http://takeda-toshiya.my.coocan.jp/

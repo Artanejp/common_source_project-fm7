@@ -24,12 +24,6 @@
 
 	(*) Recommend MSM80C49-262, X1turbo/X1G with integrated cmt device
 
-    Optional:
-	FDDSEEK.WAV     Sound file of FDD SEEKING.
-	CMTPLAY.WAV		Sound file of CMT PLAY button.
-	CMTSTOP.WAV		Sound file of CMT Stop button.
-	CMTEJECT.WAV	Sound file of CMT Eject button.
-
 --- Key maps for HE-system
 
 	Virtual		PC
@@ -46,4 +40,4 @@
 ----------------------------------------
 TAKEDA, toshiya
 t-takeda@m1.interq.or.jp
-http://homepage3.nifty.com/takeda-toshiya/
+http://takeda-toshiya.my.coocan.jp/

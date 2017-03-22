@@ -7,9 +7,6 @@
 	EXT.ROM		8000H-BFFFH (Expansion Unit)
 	TF20.ROM	0000H-07FFH (TF-20 internal)
 
-    Optional:
-	FDDSEEK.WAV     Sound file of FDD SEEKING.
-
 --- Key maps
 
 	Virtual		PC
@@ -26,4 +23,4 @@
 ----------------------------------------
 TAKEDA, toshiya
 t-takeda@m1.interq.or.jp
-http://homepage3.nifty.com/takeda-toshiya/
+http://takeda-toshiya.my.coocan.jp/

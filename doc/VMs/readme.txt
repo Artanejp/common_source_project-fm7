@@ -1,13 +1,14 @@
 Binary archive of retro pc emulator common source code
-								2/9/2017
+								3/15/2017
 
 --- What's this ?
 
 This archive includes the binaries of the emulators listed below:
 
 	ASCII
-		yaMSX1		MSX1 (by Mr.tanam and Mr.umaiboux)
-		yaMSX2		MSX2 (by Mr.tanam and Mr.umaiboux)
+		yayaMSX1	MSX1 (by Mr.tanam and Mr.umaiboux)
+		yayaMSX2	MSX2 (by Mr.tanam and Mr.umaiboux)
+		yayaMSX2+	MSX2+ (by Mr.umaiboux)
 	BANDAI
 		eRX-78		RX-78
 	CANON
@@ -25,7 +26,7 @@ This archive includes the binaries of the emulators listed below:
 		eHC-20		HC-20/HX-20
 		eHC-40		HC-40/PX-4
 		eHC-80		HC-80/PX-8/Geneva
-		eQC-10		QC-10/QX-10
+		eQC-10		QC-10 / QX-10
 	FUJITSU
 		eFM8		FM-8 (by Mr.Artane.)
 		eFM7		FM-7 (by Mr.Artane.)
@@ -51,8 +52,10 @@ This archive includes the binaries of the emulators listed below:
 		eMYCOMZ-80A	MYCOMZ-80A
 	MITSUBISHI Electric
 		EmuLTI8		MULTI8
-	National
+	National/Panasonic
+		yayaFS-A1	FS-A1 (by Mr.umaiboux)
 		eJR-100		JR-100
+		eJR-800		JR-800
 	NEC
 		ePC-2001	PC-2001
 		yaPC-6001	PC-6001 (by Mr.tanam)
@@ -72,7 +75,7 @@ This archive includes the binaries of the emulators listed below:
 		ePC-98LT	PC-98LT
 		eHANDY98	PC-98HA
 		ePC-100		PC-100
-		eTK-80BS	TK-80BS (COMPO BS/80)
+		eTK-80BS	TK-80BS / COMPO BS/80
 		eTK-85		TK-85
 	NEC-HE
 		ePCEngine	PC Engine / SuperGrafx + CD-ROM^2
@@ -118,9 +121,10 @@ This archive includes the binaries of the emulators listed below:
 		ePyuTa		PyuTa/PyuTa Jr.
 	TOSHIBA
 		eEX-80		EX-80
-		EmuPIA		PASOPIA
+		yayaHX-20+	HX-20 + FDD (by Mr.umaiboux)
+		EmuPIA		PASOPIA/PASOPIA5
 		EmuPIA7		PASOPIA7
-	Yuasa Kyouku System
+	Yuasa Kyouiku System
 		eYALKY		YALKY
 
 These binaries are for Windows XP/Vista/7.
@@ -173,7 +177,6 @@ Common menus:
 		Rec		Insert the cassette tape image to record
 		Eject		Eject the cassette tape image
 		-
-		Play Tape Sound	Enable playing tape sound
 		Waveform Shaper	Enable waveform shaping for *.wav data
 		-
 		History		Insert the cassette tape image to play
@@ -218,11 +221,20 @@ Common menus:
 		200msec
 		300msec
 		400msec
+		-
+		Realtime Mix	Mix the sound in realtime
+		Light Weight Mix
+		-
+		Play FDD Noise	Enable playing FDD noise (seek, head up/down)
+		Play CMT Noise	Enable playing CMT noise (relay on/off)
+		Play CMT Sound	Enable playing CMT signal sound
+		-
+		Volume		Set the volume of each sound device
 
 	Input
 		Use DirectInput		Enable DirectInput for keyboard
 		Disable Windows8 DWM	Disable the Desktop Window Manager
-		Swap Joystcik Buttons	Swap the odd and even number buttons
+		Joystcik #1/#2		Setup Joystick buttons
 
 
 --- Note
@@ -239,7 +251,7 @@ For Windows PC environment:
 
 Floppy disk images:
 
-	Supoort D88, TeleDisk, ImageDisk and CPDRead format disk images.
+	Supoort D88, TeleDisk, ImageDisk, and CPDRead format disk images.
 
 Cassette tape images:
 
@@ -248,6 +260,14 @@ Cassette tape images:
 CD-ROM images:
 
 	Support BIN/IMG+CUE or IMG+CCD (CloneCD) format images.
+
+FDD noise:
+
+	Place the wave files below: FDDSEEK.WAV. HEADDOWN.WAV. HEADUP.WAV
+
+CMT noise:
+
+	Place the wave files below: RELAY_ON.WAV, RELAYOFF.WAV, FAST_FWD.WAV
 
 Save/Load State info:
 
@@ -271,6 +291,8 @@ Save/Load State info:
 	TDLZHUF for Teledisk floppy disk image decoder
 	MESS formats/dsk_dsk.c for CPDRead floppy disk image decorder
 	MESS formats/imd_dsk.c for ImageDisk floppy disk image decorder
+- vm/hd44102.*
+	MAME HD44102 core and soem modifications by PockEmul
 - vm/hd63484.*
 	MAME HD63484 core
 - vm/huc6280.*
@@ -340,12 +362,14 @@ Save/Load State info:
 	PockEmul uPD16434 core
 - vm/v99x8.*
 	Zodiac V99x8 core, converted to C++ class by Mr.umaiboux
+- vm/v9938.*
+	MAME V99x8 core, converted to C++ class by Mr.umaiboux
 - vm/w3100a.*
 	Mr.Oh!Ishi for the chip specification info
 - vm/z80.*
 	MAME Z80 core
 - vm/z80dma.*
-	MAME Z80DMA core and improved by Mr Y.S.
+	MAME Z80DMA core and improved by Mr.Y.S.
 - vm/bmjr/*
 	bm2 by Mr.maruhiro
 	Mr.Enri for HITACH BASIC Master Jr hardware design info
@@ -372,6 +396,8 @@ Save/Load State info:
 	Mr.Dennis Heynlein for intelligent ram disk unit
 - vm/jr100/*
 	Mr.Enri for National JR-100 hardware design info
+- vm/jr800/*
+	PockEmul JR-800 driver
 - vm/m5/*
 	MESS sord driver
 	Mr.Moriya for Sord M5 hardware design info
@@ -419,7 +445,7 @@ Save/Load State info:
 - vm/x07/io.*
 	x07_emul by Mr.Jacques Brigaud
 - vm/x1/*
-	Many advices by Mr Y.S.
+	Many advices by Mr.Y.S.
 - vm/x1/psub.*
 	X millenium T-tune by Mr.Sato
 - vm/x1/display.*

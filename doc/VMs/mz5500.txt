@@ -10,9 +10,6 @@
 
 	* Bank can be switched by the port $230.
 
-    Optional:
-	FDDSEEK.WAV     Sound file of FDD SEEKING.
-
 --- Key maps
 
 	Virtual		PC
@@ -28,4 +25,4 @@
 ----------------------------------------
 TAKEDA, toshiya
 t-takeda@m1.interq.or.jp
-http://homepage3.nifty.com/takeda-toshiya/
+http://takeda-toshiya.my.coocan.jp/

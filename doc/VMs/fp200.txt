@@ -5,11 +5,7 @@
 
 	BIOS.ROM	BIOS ROM ($0000-$7FFF)
 
-	Optional:
-	RELAY_ON.WAV    Sound file of turning on a CMT's RELAY.	
-	RELAYOFF.WAV    Sound file of turning off a CMT's RELAY.
-
 ----------------------------------------
 TAKEDA, toshiya
 t-takeda@m1.interq.or.jp
-http://homepage3.nifty.com/takeda-toshiya/
+http://takeda-toshiya.my.coocan.jp/

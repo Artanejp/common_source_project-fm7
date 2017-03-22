@@ -7,12 +7,6 @@
 	FDIF.ROM	$F000-$F3FF (MZ-80FIO Boot ROM)
 	FONT.ROM	8x8 dots font image
 
-    Optional:
-	FDDSEEK.WAV     Sound file of FDD SEEKING.
-	CMTPLAY.WAV		Sound file of CMT PLAY button.
-	CMTSTOP.WAV		Sound file of CMT Stop button.
-	CMTEJECT.WAV	Sound file of CMT Eject button.
-
 --- Key maps
 
 	Virtual		PC
@@ -30,4 +24,4 @@
 ----------------------------------------
 TAKEDA, toshiya
 t-takeda@m1.interq.or.jp
-http://homepage3.nifty.com/takeda-toshiya/
+http://takeda-toshiya.my.coocan.jp/

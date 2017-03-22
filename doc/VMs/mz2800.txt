@@ -7,9 +7,6 @@
 	KANJI.ROM	Kanji ROM 256KB (same as MZ-2500)
 	DICT.ROM	Dictionary ROM 256KB (same as MZ-2500)
 
-    Optional:
-	FDDSEEK.WAV     Sound file of FDD SEEKING.
-
 --- Key maps
 
 	Virtual		PC
@@ -35,4 +32,4 @@
 ----------------------------------------
 TAKEDA, toshiya
 t-takeda@m1.interq.or.jp
-http://homepage3.nifty.com/takeda-toshiya/
+http://takeda-toshiya.my.coocan.jp/
