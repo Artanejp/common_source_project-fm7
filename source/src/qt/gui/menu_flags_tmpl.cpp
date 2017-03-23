@@ -93,6 +93,20 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	config_name = QString::fromUtf8("");
 	
 	machine_pasopia_variants = false;
+	machine_basicmaster_variants = false;
+	machine_tk80_series  = false;
+	machine_cmt_mz_series  = false;
+	machine_pc6001  = false;
+	machine_pc8001_variants = false;
+	machine_mz80a_variants = false;
+	machine_mz80b_variants = false;
+	machine_x1_series = false;
+	machine_fm7_series = false;
+	machine_gamegear = false;
+	machine_mastersystem = false;
+	machine_has_pcengine = false;
+	machine_sc3000 = false;
+	machine_z80tvgame = false;
 	p_config = cfg;
 }
 

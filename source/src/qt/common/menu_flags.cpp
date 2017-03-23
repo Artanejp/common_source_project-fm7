@@ -201,6 +201,9 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 #if defined(_Z80TVGAME)
 	machine_z80tvgame = true;
 #endif
+#if defined(_BMJR)
+	machine_basicmaster_variants = true;
+#endif
 
 #if defined(USE_ALT_F10_KEY)	
 	use_alt_f10_key = true;

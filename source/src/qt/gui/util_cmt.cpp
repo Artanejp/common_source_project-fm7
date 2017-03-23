@@ -53,6 +53,9 @@ void Ui_MainWindowBase::CreateCMTMenu(int drive)
 	} else if(using_flags->is_machine_fm7_series()) {
 		ext_play = "*.wav *.t77 *.gz";
 		ext_rec = "*.wav *.t77";
+	} else if(using_flags->is_machine_basicmaster_variants()) {
+		ext_play = "*.wav *.bin *.gz";
+		ext_rec = "*.wav";
 	} else if(using_flags->is_tape_binary_only()) {
 		ext_play = "*.cas *.cmt *.gz";
 		ext_rec = "*.cas *.cmt";

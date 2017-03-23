@@ -140,6 +140,7 @@ protected:
 
 	bool support_tv_render;
 	
+	bool machine_basicmaster_variants;
 	bool machine_pasopia_variants;
 	bool machine_tk80_series;
 	bool machine_cmt_mz_series;
@@ -274,6 +275,7 @@ public:
 	bool is_notify_key_down_lr_shift() { return notify_key_down_lr_shift; }
 	bool is_tape_binary_only() { return tape_binary_only; }
 
+	bool is_machine_basicmaster_variants() { return machine_basicmaster_variants; }
 	bool is_machine_pasopia_variants() { return machine_pasopia_variants; }
 	bool is_machine_tk80_series() { return machine_tk80_series; }
 	bool is_machine_cmt_mz_series() { return machine_cmt_mz_series; }
