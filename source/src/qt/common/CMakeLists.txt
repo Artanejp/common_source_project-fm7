@@ -65,7 +65,7 @@ if(WIN32)
  ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPgui.dll.a
  ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libqt_avio.a
  ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPfmgen.dll.a
- ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPcommon_vm/build-win32/vm/common_vm/libvm_common_vm.a
+ ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libvm_common_vm.a
  ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPemu_utils.dll.a
  ${BUNDLE_LIBS}
  -lpthread
