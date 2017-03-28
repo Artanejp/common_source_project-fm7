@@ -17,6 +17,12 @@ class DEVICE;
 class MEMORY;
 class FM7_MAINIO;
 
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+#define MAINMEM_TABLE_SIZE (0x100000 >> 7)
+#else
+#define MAINMEM_TABLE_SIZE (0x40000 >> 7)
+#endif
+
 class FM7_MAINMEM : public DEVICE
 {
  private:
@@ -27,6 +33,12 @@ class FM7_MAINMEM : public DEVICE
 	} bank_t;
 	bank_t read_table[FM7_MAINMEM_END];
 	bank_t write_table[FM7_MAINMEM_END];
+
+	uint8_t *addr_r_table_page[MAINMEM_TABLE_SIZE];
+	uint8_t *addr_w_table_page[MAINMEM_TABLE_SIZE];
+	uint8_t (FM7_MAINMEM::*func_r_table_page[MAINMEM_TABLE_SIZE])(uint32_t);
+	void    (FM7_MAINMEM::*func_w_table_page[MAINMEM_TABLE_SIZE])(uint32_t, uint32_t);
+	
 	bool ioaccess_wait;
 	int waitfactor;
 	int waitcount;
