@@ -31,7 +31,12 @@ class FM7_MAINMEM : public DEVICE
 	uint8_t *addr_w_table_page[MAINMEM_TABLE_SIZE];
 	uint8_t (FM7_MAINMEM::*func_r_table_page[MAINMEM_TABLE_SIZE])(uint32_t, bool);
 	void    (FM7_MAINMEM::*func_w_table_page[MAINMEM_TABLE_SIZE])(uint32_t, uint32_t, bool);
-	
+
+	uint8_t *mmr_addr_r_table[0x80 * 0x1000 / 0x80];
+	uint8_t *mmr_addr_w_table[0x80 * 0x1000 / 0x80];
+	uint8_t (FM7_MAINMEM::*mmr_func_r_table[0x80 * 0x1000 / 0x80])(uint32_t, bool);
+	void    (FM7_MAINMEM::*mmr_func_w_table[0x80 * 0x1000 / 0x80])(uint32_t, uint32_t, bool);
+
 	bool ioaccess_wait;
 	int waitfactor;
 	int waitcount;
@@ -150,6 +155,7 @@ class FM7_MAINMEM : public DEVICE
 	void setup_table_page3(void);
 	uint8_t read_pages(uint32_t addr, bool dmamode);
 	void write_pages(uint32_t addr, uint32_t data, bool dmamode);
+	void update_mmr_reg_to_realmap(uint8_t seg);
 
  public:
 	FM7_MAINMEM(VM* parent_vm, EMU* parent_emu);

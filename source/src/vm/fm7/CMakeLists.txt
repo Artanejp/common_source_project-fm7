@@ -11,6 +11,7 @@ set(VM_FM7_LIB_SRCS
 	floppy.cpp
 	fm7_mainio.cpp
 	fm7_mainmem.cpp
+	mainmem_tables.cpp
 	kanjirom.cpp
 #	dummydevice.cpp
 	fm7.cpp

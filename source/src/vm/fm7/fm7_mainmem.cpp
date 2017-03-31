@@ -1,8 +1,9 @@
 /*
- * Main memory without MMR for FM-7 [FM7_MAINMEM]
+ * Main memory without MMR for FM-7/8/77/AV/AV40
+ * [FM7_MAINMEM]
  *  Author: K.Ohta
  *  Date  : 2015.01.01-
- *
+ *  License: GPLv2
  */
 #include "vm.h"
 #include "emu.h"
@@ -48,6 +49,12 @@ void FM7_MAINMEM::reset()
 	window_enabled = false;
 	window_fast = false;
 	refresh_fast = false;
+# if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || \
+     defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
+	for(uint8_t seg = 0; seg < 8; seg++) update_mmr_reg_to_realmap(seg);
+#else
+	for(uint8_t seg = 0; seg < 4; seg++) update_mmr_reg_to_realmap(seg);
+#endif										 
 #endif
 	if((bootmode & 0x03) == 0) { // IF BASIC BOOT THEN ROM
 		basicrom_fd0f = true;
@@ -555,123 +562,6 @@ uint8_t FM7_MAINMEM::read_page3_sharedram(uint32_t addr, bool dmamode)
 	return (uint8_t)(display->read_data8((addr & 0x7f) + 0xd380)); // Okay?
 }
 
-void FM7_MAINMEM::setup_table_extram(void)
-{
-	uint32_t addr, n;
-#if defined(_FM77_VARIANTS)
-	for(addr = 0x00000; addr < 0x30000; addr += 0x80) {
-		n = addr >> 7;
-		addr_w_table_page[n] = NULL;
-		addr_r_table_page[n] = NULL;
-		func_r_table_page[n] = NULL;
-		func_w_table_page[n] = NULL;
-	}
-	if(extram_connected) {
-		for(addr = 0x00000; addr < (0x10000 * extram_pages); addr += 0x80) {
-			n = addr >> 7;
-			addr_w_table_page[n] = &fm7_mainmem_extram[addr];
-			addr_r_table_page[n] = &fm7_mainmem_extram[addr];
-			func_r_table_page[n] = NULL;
-			func_w_table_page[n] = NULL;
-		}
-	}		
-#elif defined(_FM77AV_VARIANTS)
-	for(addr = 0x00000; addr < 0x10000; addr += 0x80) {
-		n = addr >> 7;
-		addr_w_table_page[n] = &fm7_mainmem_mmrbank_0[addr & 0xffff];
-		addr_r_table_page[n] = &fm7_mainmem_mmrbank_0[addr & 0xffff];
-		func_r_table_page[n] = NULL;
-		func_w_table_page[n] = NULL;
-	}
-	
-	for(addr = 0x10000; addr < 0x20000; addr += 0x80) {
-		n = addr >> 7;
-		addr_w_table_page[n] = NULL;
-		addr_r_table_page[n] = NULL;
-		func_r_table_page[n] = &FM7_MAINMEM::read_directaccess;
-		func_w_table_page[n] = &FM7_MAINMEM::write_directaccess;
-	}
-
-	for(addr = 0x20000; addr < 0x30000; addr += 0x80) {
-		n = addr >> 7;
-		addr_w_table_page[n] = NULL;
-		addr_r_table_page[n] = NULL;
-		func_r_table_page[n] = &FM7_MAINMEM::read_page2_extcard;
-		func_w_table_page[n] = &FM7_MAINMEM::write_page2_extcard;
-	}
-#  if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	for(addr = 0x40000; addr < 0x100000; addr += 0x80) {
-		n = addr >> 7;
-		addr_w_table_page[n] = NULL;
-		addr_r_table_page[n] = NULL;
-		func_r_table_page[n] = NULL;
-		func_w_table_page[n] = NULL;
-	}
-	if(extram_connected) {
-		for(addr = 0x40000; addr < (0x10000 * (extram_pages + 4)); addr += 0x80) {
-			n = addr >> 7;
-			addr_w_table_page[n] = &fm7_mainmem_extram[addr - 0x40000];
-			addr_r_table_page[n] = &fm7_mainmem_extram[addr - 0x40000];
-			func_r_table_page[n] = NULL;
-			func_w_table_page[n] = NULL;
-		}
-	}
-# endif		
-#endif	
-}
-
-void FM7_MAINMEM::setup_table_page3(void)
-{
-	uint32_t addr;
-	uint32_t n;
-	memset(addr_r_table_page, 0x00, sizeof(addr_r_table_page));
-	memset(addr_w_table_page, 0x00, sizeof(addr_w_table_page));
-	memset(func_r_table_page, 0x00, sizeof(func_r_table_page));
-	memset(func_w_table_page, 0x00, sizeof(func_w_table_page));
-	
-	for(addr = 0x30000; addr < 0x38000; addr += 0x80) {
-		n = addr >> 7;
-		addr_w_table_page[n] = &fm7_mainmem_omote[addr & 0xffff];
-		addr_r_table_page[n] = &fm7_mainmem_omote[addr & 0xffff];
-		func_r_table_page[n] = NULL;
-		func_w_table_page[n] = NULL;
-	}
-	for(addr = 0x38000; addr < 0x3fc00; addr += 0x80) {
-		n = addr >> 7;
-		addr_w_table_page[n] = NULL;
-		addr_r_table_page[n] = NULL;
-		func_r_table_page[n] = &FM7_MAINMEM::read_page3_basicrom_uraram;
-		func_w_table_page[n] = &FM7_MAINMEM::write_page3_basicrom_uraram;
-	}
-	for(addr = 0x3fc00; addr < 0x3fc80; addr += 0x80) {
-		n = addr >> 7;
-		addr_w_table_page[n] = &fm7_mainmem_bioswork[0];
-		addr_r_table_page[n] = &fm7_mainmem_bioswork[0];
-		func_r_table_page[n] = NULL;
-		func_w_table_page[n] = NULL;
-	}
-	for(addr = 0x3fc80; addr < 0x3fd00; addr += 0x80) {
-		n = addr >> 7;
-		addr_w_table_page[n] = NULL;
-		addr_r_table_page[n] = NULL;
-		func_r_table_page[n] = &FM7_MAINMEM::read_page3_sharedram;
-		func_w_table_page[n] = &FM7_MAINMEM::write_page3_sharedram;
-	}
-	for(addr = 0x3fd00; addr < 0x3fe00; addr += 0x80) {
-		n = addr >> 7;
-		addr_w_table_page[n] = NULL;
-		addr_r_table_page[n] = NULL;
-		func_r_table_page[n] = &FM7_MAINMEM::read_page3_mmio;
-		func_w_table_page[n] = &FM7_MAINMEM::write_page3_mmio;
-	}
-	for(addr = 0x3fe00; addr < 0x40000; addr += 0x80) {
-		n = addr >> 7;
-		addr_w_table_page[n] = NULL;
-		addr_r_table_page[n] = NULL;
-		func_r_table_page[n] = &FM7_MAINMEM::read_page3_bootrom;
-		func_w_table_page[n] = &FM7_MAINMEM::write_page3_bootrom;
-	}
-}	
 
 void FM7_MAINMEM::write_pages(uint32_t addr, uint32_t data, bool dmamode)
 {
@@ -681,28 +571,16 @@ void FM7_MAINMEM::write_pages(uint32_t addr, uint32_t data, bool dmamode)
 	
 #ifdef _FM77AV_VARIANTS
 	if(initiator_enabled) {
-		if(mmr_enabled) realaddr = addr - 0x30000;
-		if((realaddr >= 0x6000) && (realaddr < 0x8000)) {
-			//realaddr = realaddr - 0x6000;
-			//fm7_mainmem_initrom[realaddr] = (uint8_t)data;
+		if((realaddr >= 0x36000) && (realaddr < 0x38000)) {
 			return;
 		}
-		if((realaddr >= 0xfffe) && (realaddr < 0x10000)) {
-			//realaddr = realaddr - 0xe000;
-			//fm7_mainmem_initrom[realaddr] = (uint8_t)data;
+		if((realaddr >= 0x3fffe) && (realaddr < 0x40000)) {
 			return;
 		}
 	}
 #endif
-#if defined(HAS_MMR)
-	if(mmr_enabled) {
-		realaddr = addr & 0xfffff;
-	} else {
-		realaddr = (addr & 0xffff) + 0x30000;
-	}
-#else
-	realaddr = (addr & 0xffff) + 0x30000;
-#endif
+
+	realaddr = addr & 0xfffff;
 	saddr = realaddr >> 7;
 	pdata = addr_w_table_page[saddr];
 	if(pdata == NULL) {
@@ -723,32 +601,23 @@ uint8_t FM7_MAINMEM::read_pages(uint32_t addr, bool dmamode)
 	uint32_t saddr;
 	uint8_t *pdata;
 	uint8_t data;
-#ifdef _FM77AV_VARIANTS
-	if(initiator_enabled) {
-		if(mmr_enabled) realaddr = addr - 0x30000;
-		if((realaddr >= 0x6000) && (realaddr < 0x8000)) {
-			realaddr = realaddr - 0x6000;
-			data = fm7_mainmem_initrom[realaddr];
-			return data;
-		}
-		if((realaddr >= 0xfffe) && (realaddr < 0x10000)) {
-			realaddr = realaddr - 0xe000;
-			data = fm7_mainmem_initrom[realaddr];
-			return data;
-		}
-	}
-#endif
-#if defined(HAS_MMR)
-	if(mmr_enabled) {
-		realaddr = addr & 0xfffff;
-	} else {
-		realaddr = (addr & 0xffff) + 0x30000;
-	}
-#else
-	realaddr = (addr & 0xffff) + 0x30000;
-#endif
+	realaddr = addr & 0xfffff;
 	saddr = realaddr >> 7;
 	pdata = addr_r_table_page[saddr];
+#ifdef _FM77AV_VARIANTS
+	if(initiator_enabled) {
+		if((realaddr >= 0x36000) && (realaddr < 0x38000)) {
+			realaddr = realaddr - 0x36000;
+			data = fm7_mainmem_initrom[realaddr];
+			return data;
+		}
+		if((realaddr >= 0x3fffe) && (realaddr < 0x40000)) {
+			realaddr = realaddr - 0x3e000;
+			data = fm7_mainmem_initrom[realaddr];
+			return data;
+		}
+	}
+#endif
 	if(pdata == NULL) {
 		if(func_r_table_page[saddr] != NULL) {
 			data = (this->*func_r_table_page[saddr])(realaddr & 0xffff, dmamode);
@@ -939,39 +808,101 @@ uint32_t FM7_MAINMEM::read_data8_main(uint32_t addr, bool dmamode)
 	if(mmr_enabled) {
 		int stat;
 		uint32_t raddr;
+		uint32_t saddr = addr & 0x0fff;
+		uint32_t mmr_bank;
+		stat = 0;
+
 		if(addr >= 0xfc00) {
 			raddr = (addr & 0xffff) | 0x30000;
 			return (uint32_t)read_pages(raddr, dmamode);
+		}
+		if(!mmr_extend) {
+			mmr_bank = mmr_map_data[((addr >> 12) & 0x000f) | ((mmr_segment & 0x03) << 4)] & 0x003f;
 		} else {
-			stat = mmr_convert(addr, &raddr, dmamode);
+			mmr_bank = mmr_map_data[((addr >> 12) & 0x000f) | ((mmr_segment & 0x07) << 4)] & 0x007f;
 		}
-		if(stat == 0) {
-			return (uint32_t)read_pages(raddr, dmamode);
-		}
-# if defined(_FM77_VARIANTS)
-		else {
-			switch(stat) {
-			case FM7_MAINMEM_SHADOWRAM:
-				return fm77_shadowram[raddr & 0x1ff];
-				break;
-			case FM7_MAINMEM_BOOTROM_MMR:
-				return fm7_bootroms[2][raddr & 0x1ff];
-				break;
-			case FM7_MAINMEM_BOOTROM_BAS:
-				return fm7_bootroms[0][raddr & 0x1ff];
-				break;
-			case FM7_MAINMEM_BOOTROM_RAM:
-				return fm7_bootram[raddr & 0x1ff];
-				break;
-			default:
+# ifdef _FM77AV_VARIANTS
+		if(mmr_bank == 0x3f) {
+			if((saddr >= 0xd80) && (saddr <= 0xd97)) { // MMR AREA
 				return 0xff;
-				break;
 			}
-		}		
+		}
+#elif defined(_FM77_VARIANTS)
+		if(mmr_bank == 0x3f) {
+			if((saddr >= 0xc00) && (saddr < 0xe00)) {
+				if(is_basicrom) {
+					return 0xff;
+				} else {
+					stat = FM7_MAINMEM_SHADOWRAM;
+				}
+			} else if(saddr >= 0xe00) {
+				if(is_basicrom) {
+					if(diag_load_bootrom_mmr) {
+						stat = FM7_MAINMEM_BOOTROM_MMR;
+					} else {
+						stat = FM7_MAINMEM_BOOTROM_BAS;
+					}
+				} else {
+					stat = FM7_MAINMEM_BOOTROM_RAM;
+				}
+			}
+		}
+		switch(stat) {
+		case 0:
+			break;
+		case FM7_MAINMEM_SHADOWRAM:
+			return fm77_shadowram[saddr & 0x1ff];
+			break;
+		case FM7_MAINMEM_BOOTROM_MMR:
+			return fm7_bootroms[2][saddr & 0x1ff];
+			break;
+		case FM7_MAINMEM_BOOTROM_BAS:
+			return fm7_bootroms[0][saddr & 0x1ff];
+			break;
+		case FM7_MAINMEM_BOOTROM_RAM:
+			return fm7_bootram[saddr & 0x1ff];
+			break;
+		default:
+			return 0xff;
+			break;
+		}
 # endif
+		uint8_t data;
+		uint32_t sraddr = mmr_segment * 0x200;
+		uint8_t *pdata;
+		realaddr = (mmr_bank << 12) | saddr;
+#ifdef _FM77AV_VARIANTS
+		if(initiator_enabled) {
+			//if(mmr_enabled) realaddr = addr - 0x30000;
+			if((realaddr >= 0x36000) && (realaddr < 0x38000)) {
+				realaddr = realaddr - 0x36000;
+				data = fm7_mainmem_initrom[realaddr];
+				return data;
+			}
+			if((realaddr >= 0x3fffe) && (realaddr < 0x40000)) {
+				realaddr = realaddr - 0x3e000;
+				data = fm7_mainmem_initrom[realaddr];
+				return data;
+			}
+		}
+#endif
+		raddr = sraddr + (addr >> 7);
+		pdata = mmr_addr_r_table[raddr];
+		if(pdata == NULL) {
+			if(mmr_func_r_table[raddr] != NULL) {
+				data = (this->*mmr_func_r_table[raddr])(realaddr & 0xffff, dmamode);
+				return data;
+			}
+			//return (uint32_t)read_pages(realaddr, dmamode);
+		} else {
+			data = pdata[addr & 0x7f];
+			return data;
+		}
 	}
 #endif
-	return (uint32_t)read_pages(addr, dmamode);
+	// Not Enabled.
+	realaddr = (addr & 0xffff) | 0x30000;
+	return (uint32_t)read_pages(realaddr, dmamode);
 }	
 
 uint32_t FM7_MAINMEM::read_data8(uint32_t addr)
@@ -1041,38 +972,91 @@ void FM7_MAINMEM::write_data8_main(uint32_t addr, uint32_t data, bool dmamode)
 	}
 	if(mmr_enabled) {
 		int stat;
+		uint32_t saddr = addr & 0x0fff;
+		uint32_t mmr_bank;
 		uint32_t raddr;
 		if(addr >= 0xfc00) {
 			raddr = (addr & 0xffff) | 0x30000;
 			write_pages(raddr, data, dmamode);
 			return;
+		}
+		if(!mmr_extend) {
+			mmr_bank = mmr_map_data[((addr >> 12) & 0x000f) | ((mmr_segment & 0x03) << 4)] & 0x003f;
 		} else {
-			stat = mmr_convert(addr, &raddr, dmamode);
+			mmr_bank = mmr_map_data[((addr >> 12) & 0x000f) | ((mmr_segment & 0x07) << 4)] & 0x007f;
 		}
-		if(stat == 0) {
-			write_pages(raddr, data, dmamode);
-			return;
+# ifdef _FM77AV_VARIANTS
+		if(mmr_bank == 0x3f) {
+			if((raddr >= 0xd80) && (raddr <= 0xd97)) { // MMR AREA
+				return;
+			}
 		}
-# if defined(_FM77_VARIANTS)
-		else {
-			switch(stat) {
+		//if(stat == 0) {
+		//return (uint32_t)read_pages(raddr, dmamode);
+		//}
+#elif defined(_FM77_VARIANTS)
+		stat = 0;
+		if(mmr_bank == 0x3f) {
+			if((saddr >= 0xc00) && (saddr < 0xe00)) {
+				if(is_basicrom) {
+					return;
+				} else {
+					stat = FM7_MAINMEM_SHADOWRAM;
+				}
+			} else if(saddr >= 0xe00) {
+				if(is_basicrom) {
+					if(diag_load_bootrom_mmr) {
+						stat = FM7_MAINMEM_BOOTROM_MMR;
+					} else {
+						stat = FM7_MAINMEM_BOOTROM_BAS;
+					}
+				} else {
+					stat = FM7_MAINMEM_BOOTROM_RAM;
+				}
+			}
+		}
+		switch(stat) {
 			case FM7_MAINMEM_SHADOWRAM:
-				fm77_shadowram[raddr & 0x1ff] = (uint8_t)data;
+				fm77_shadowram[addr & 0x1ff] = (uint8_t)data;
 				break;
-			case FM7_MAINMEM_BOOTROM_RAM:
+		case FM7_MAINMEM_BOOTROM_RAM:
 				if(boot_ram_write) {
-					fm7_bootram[raddr & 0x1ff] = (uint8_t)data;
+					fm7_bootram[addr & 0x1ff] = (uint8_t)data;
 				}
 				break;
-			default:
-				break;
+		default:
+			break;
+		}
+#endif
+		uint32_t sraddr = (uint32_t)mmr_segment * 0x200;
+		raddr = sraddr + (addr >> 7);
+		realaddr = (mmr_bank << 12) | saddr;
+#ifdef _FM77AV_VARIANTS
+		if(initiator_enabled) {
+			//if(mmr_enabled) realaddr = addr - 0x30000;
+			if((realaddr >= 0x36000) && (realaddr < 0x38000)) {
+				return;
 			}
+			if((realaddr >= 0x3fffe) && (realaddr < 0x40000)) {
+				return;
+			}
+		}
+#endif
+		uint8_t *pdata = mmr_addr_w_table[raddr];
+		if(pdata == NULL) {
+			if(mmr_func_w_table[raddr] != NULL) {
+				(this->*mmr_func_w_table[raddr])(realaddr & 0xffff, data, dmamode);
+				return;
+			}
+			//write_pages(realaddr, data, dmamode);
+		} else {
+			pdata[addr & 0x7f] = data;
 			return;
 		}
-# endif
 	}
 #endif
-	write_pages(addr, data, dmamode);
+	realaddr = (addr & 0xffff) | 0x30000;
+	write_pages(realaddr, data, dmamode);
 	return;
 }
 
@@ -1094,6 +1078,9 @@ void FM7_MAINMEM::write_data8(uint32_t addr, uint32_t data)
 		default:
 			if((addr >= FM7_MAINIO_MMR_BANK) && (addr < (FM7_MAINIO_MMR_BANK + 0x80))){
 				mmr_map_data[addr - FM7_MAINIO_MMR_BANK] = (uint8_t)data;
+				uint8_t seg = addr - FM7_MAINIO_MMR_BANK;
+				seg = (seg >> 4) & 0x0f;
+				update_mmr_reg_to_realmap(seg);
 			}
 			break;
 		}
@@ -1419,6 +1406,12 @@ void FM7_MAINMEM::initialize(void)
 	if(read_bios(_T("EXTSUB.ROM"), fm7_mainmem_extrarom, 0xc000) == 0xc000) diag_load_extrarom = true;
 	this->out_debug_log(_T("AV40SX/EX EXTRA ROM READING : %s"), diag_load_extrarom ? "OK" : "NG");
 #endif
+# if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || \
+     defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
+	for(uint8_t seg = 0; seg < 8; seg++) update_mmr_reg_to_realmap(seg);
+#else
+	for(uint8_t seg = 0; seg < 4; seg++) update_mmr_reg_to_realmap(seg);
+#endif										 
 
 	setup_table_page3();
 	setup_table_extram();
@@ -1656,5 +1649,11 @@ bool FM7_MAINMEM::load_state(FILEIO *state_fio)
 	if(version != STATE_VERSION) return false;
 	setup_table_page3();
 	setup_table_extram();
+# if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || \
+     defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
+	for(uint8_t seg = 0; seg < 8; seg++) update_mmr_reg_to_realmap(seg);
+#else
+	for(uint8_t seg = 0; seg < 4; seg++) update_mmr_reg_to_realmap(seg);
+#endif										 
 	return true;
 }
