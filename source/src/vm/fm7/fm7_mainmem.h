@@ -100,11 +100,9 @@ class FM7_MAINMEM : public DEVICE
 	uint8_t fm7_mainmem_dictrom[0x40000]; // $00000-$3ffff, banked
 	uint8_t fm7_mainmem_learndata[0x2000];
 #  endif
-#  if defined(_FM77AV40EX) || defined(_FM77AV40SX)
+#  if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) 
 	bool diag_load_extrarom;
 	uint8_t fm7_mainmem_extrarom[0x10000]; // $20000-$2bfff, banked
-#  endif	
-#  if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	int extram_pages;
 	uint8_t *fm7_mainmem_extram; // $40000- : MAX 768KB ($c0000)
 #  endif
@@ -128,12 +126,9 @@ class FM7_MAINMEM : public DEVICE
 	bool diag_load_bootrom_dos;
 	bool diag_load_bootrom_mmr;
 
-	int getbank(uint32_t addr, uint32_t *realaddr, bool write_state, bool dmamode);
 	int check_extrom(uint32_t raddr, uint32_t *realaddr);
 	
 	int window_convert(uint32_t addr, uint32_t *realaddr);
-	int mmr_convert(uint32_t addr, uint32_t *realaddr, bool write_state, bool dmamode);
-	int nonmmr_convert(uint32_t addr, uint32_t *realaddr);
 	uint32_t read_bios(const _TCHAR *name, uint8_t *ptr, uint32_t size);
 	uint32_t write_bios(const _TCHAR *name, uint8_t *ptr, uint32_t size);
 	void setclock(int mode);
