@@ -53,6 +53,7 @@ protected:
 	
 	void go_subcpu();
 	void halt_subcpu();
+	void setup_display_mode(void);
    
 	void do_nmi(bool);
 	void do_irq(bool);
@@ -119,6 +120,9 @@ protected:
 	int display_mode;
 	bool halt_flag;
 	int active_page; // GVRAM is Double-Buffer.
+	uint32_t page_offset;
+	uint32_t page_mask;
+	uint32_t pagemod_mask;
 	
 	uint32_t prev_clock;
 	uint8_t frame_skip_count_draw;

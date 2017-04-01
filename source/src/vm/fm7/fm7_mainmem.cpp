@@ -870,7 +870,7 @@ uint32_t FM7_MAINMEM::read_data8_main(uint32_t addr, bool dmamode)
 		uint8_t data;
 		uint32_t sraddr = mmr_segment * 0x200;
 		uint8_t *pdata;
-		realaddr = (mmr_bank << 12) | saddr;
+		realaddr = ((mmr_bank << 12) & 0x0ff000) | saddr;
 #ifdef _FM77AV_VARIANTS
 		if(initiator_enabled) {
 			//if(mmr_enabled) realaddr = addr - 0x30000;
@@ -893,7 +893,7 @@ uint32_t FM7_MAINMEM::read_data8_main(uint32_t addr, bool dmamode)
 				data = (this->*mmr_func_r_table[raddr])(realaddr & 0xffff, dmamode);
 				return data;
 			}
-			//return (uint32_t)read_pages(realaddr, dmamode);
+			return (uint32_t)read_pages(realaddr, dmamode);
 		} else {
 			data = pdata[addr & 0x7f];
 			return data;
@@ -1030,7 +1030,7 @@ void FM7_MAINMEM::write_data8_main(uint32_t addr, uint32_t data, bool dmamode)
 #endif
 		uint32_t sraddr = (uint32_t)mmr_segment * 0x200;
 		raddr = sraddr + (addr >> 7);
-		realaddr = (mmr_bank << 12) | saddr;
+		realaddr = ((mmr_bank << 12) & 0x0ff000) | saddr;
 #ifdef _FM77AV_VARIANTS
 		if(initiator_enabled) {
 			//if(mmr_enabled) realaddr = addr - 0x30000;
@@ -1048,7 +1048,7 @@ void FM7_MAINMEM::write_data8_main(uint32_t addr, uint32_t data, bool dmamode)
 				(this->*mmr_func_w_table[raddr])(realaddr & 0xffff, data, dmamode);
 				return;
 			}
-			//write_pages(realaddr, data, dmamode);
+			write_pages(realaddr, data, dmamode);
 		} else {
 			pdata[addr & 0x7f] = data;
 			return;

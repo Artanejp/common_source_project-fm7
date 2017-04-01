@@ -171,6 +171,7 @@ void DISPLAY::reset_cpuonly()
 	frame_skip_count_draw = 3;
 	frame_skip_count_transfer = 3;
 	need_transfer_line = true;
+	setup_display_mode();
 }
 
 
@@ -232,6 +233,66 @@ void DISPLAY::reset()
 	subcpu->reset();
 }
 
+void DISPLAY::setup_display_mode(void)
+{
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+	if(display_mode == DISPLAY_MODE_8_400L) {
+		page_offset = 0x0000;
+		pagemod_mask = 0x18000;
+		page_mask = 0x7fff;
+	} else if(display_mode == DISPLAY_MODE_256k) {
+		if(active_page != 0) {
+			page_offset = 0xc000;
+		} else {
+			page_offset = 0x0000;
+		}
+		pagemod_mask = 0xe000;
+		page_mask = 0x1fff;
+	} else if(display_mode == DISPLAY_MODE_4096) {
+		if(active_page != 0) {
+			page_offset = 0xc000;
+		} else {
+			page_offset = 0x0000;
+		}
+		pagemod_mask = 0xe000;
+		page_mask = 0x1fff;
+	} else { // 200Line
+		if(active_page != 0) {
+			page_offset = 0xc000;
+		} else {
+			page_offset = 0x0000;
+		}
+		pagemod_mask = 0xc000;
+		page_mask = 0x3fff;
+	}		
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
+	if(vram_active_block != 0) page_offset += 0x18000;
+# endif		
+#elif defined(_FM77AV_VARIANTS)
+	if(mode320) {
+		page_mask = 0x1fff;
+		pagemod_mask = 0xe000;
+	} else { // 640x200, 8colors
+		page_mask = 0x3fff;
+		pagemod_mask = 0xc000;
+	}
+	if(active_page != 0) {
+		page_offset = 0xc000;
+	} else {
+		page_offset = 0x0000;
+	}
+#elif defined(_FM77L4)
+	if(display_mode == DISPLAY_MODE_8_400L) {
+		page_mask = 0x1fff;
+		pagemod_mask = 0xe000;
+	} else { // 640x200, 8colors
+		page_mask = 0x3fff;
+		pagemod_mask = 0xc000;
+	}
+	page_offset = 0x0000;
+#else
+#endif
+}
 void DISPLAY::update_config()
 {
 	vram_wrote = true;
@@ -604,6 +665,7 @@ void DISPLAY::set_miscreg(uint8_t val)
 		offset_77av = true;
 	}
 	cgrom_bank = val & 0x03;
+	setup_display_mode();
 }
 
 // Main: FD13
@@ -1428,6 +1490,7 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 					alu->write_signal(SIG_ALU_400LINE, (display_mode == DISPLAY_MODE_8_400L) ? 0xff : 0x00, 0xff);
 					frame_skip_count_draw = 3;
 					frame_skip_count_transfer = 3;
+					setup_display_mode();
 				}
 			}
 #elif defined(_FM77_VARIANTS)
@@ -1445,6 +1508,7 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 					display_mode = DISPLAY_MODE_8_200L;
 				}
 # endif				
+				setup_display_mode();
 			}			
 #endif
 			break;
@@ -1480,6 +1544,7 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 					alu->write_signal(SIG_ALU_X_WIDTH, (mode320) ? 40 :  80, 0xffff);
 					alu->write_signal(SIG_ALU_Y_HEIGHT, 200, 0xffff);
 					alu->write_signal(SIG_ALU_400LINE, 0x00, 0xff);
+					setup_display_mode();
 					//frame_skip_count = 3;
 				}
 			}
@@ -1500,6 +1565,7 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 			alu->write_signal(SIG_ALU_Y_HEIGHT, 200, 0xffff);
 			alu->write_signal(SIG_ALU_400LINE, 0, 0xffffffff);
 			vram_wrote = true;
+			setup_display_mode();
 # endif
 #endif			
 			break;
@@ -1637,10 +1703,8 @@ uint32_t DISPLAY::read_mmio(uint32_t addr)
 uint32_t DISPLAY::read_vram_data8(uint32_t addr)
 {
 	uint32_t offset;
-	uint32_t page_offset = 0;
-	uint32_t page_mask = 0x3fff;
+	uint32_t vramaddr;
 	uint32_t color = (addr >> 14) & 0x03;
-	uint32_t pagemod;
 	
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	if(display_mode == DISPLAY_MODE_8_400L) {
@@ -1664,68 +1728,57 @@ uint32_t DISPLAY::read_vram_data8(uint32_t addr)
 #endif
 		
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	if(vram_active_block != 0) page_offset = 0x18000;
-# endif		
 		if(display_mode == DISPLAY_MODE_8_400L) {
+			uint32_t pagemod;
+			uint32_t page_offset_alt = 0;
 			if(addr >= 0x8000) return 0xff;
 			color = vram_bank & 0x03;
 			if(color > 2) color = 0;
 			offset <<= 1;
 			pagemod = 0x8000 * color;
-			return gvram[(((addr + offset) & 0x7fff) | pagemod) + page_offset];
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
+			if(vram_active_block != 0) page_offset = 0x18000;
+# endif		
+			vramaddr = (((addr + offset) & 0x7fff) | pagemod) + page_offset_alt;
+			return gvram[vramaddr];
 		} else {
 			if(mode256k) {
+				uint32_t page_offset_alt;
 #if defined(_FM77AV40)
 				if(vram_bank < 3) {
-					page_offset = 0xc000 * (vram_bank & 0x03);
+					page_offset_alt = 0xc000 * (vram_bank & 0x03);
 				} else {
-					page_offset = 0; // right?
+					page_offset_alt = 0; // right?
 				}
 #else			
-				page_offset = 0xc000 * (vram_bank & 0x03);
+				page_offset_alt = 0xc000 * (vram_bank & 0x03);
 #endif			
-				page_mask = 0x1fff;
-				pagemod = addr & 0xe000;
+				vramaddr = (((addr + offset) & page_mask) | (pagemod_mask & addr)) + page_offset_alt;
+				//page_mask = 0x1fff;
+				//pagemod = addr & 0xe000;
 			} else {
-				if(mode320) {
-					page_mask = 0x1fff;
-					pagemod = addr & 0xe000;
-				} else {
-					pagemod = addr & 0xc000;
-				}
-				if(active_page != 0) {
-					page_offset += 0xc000;
-				}
+				vramaddr = (((addr + offset) & page_mask) | (pagemod_mask & addr)) + page_offset;
 			}				
-			return gvram[(((addr + offset) & page_mask) | pagemod) + page_offset];
+			return gvram[vramaddr];
 		}
 #elif defined(_FM77AV_VARIANTS)
 		{		
-			if(active_page != 0) {
-				page_offset += 0xc000;
-			}
-			if(mode320) {
-				page_mask = 0x1fff;
-				pagemod = addr & 0xe000;
-			} else {
-				pagemod = addr & 0xc000;
-			}
-			return gvram[(((addr + offset) & page_mask) | pagemod) + page_offset];
+			vramaddr = (((addr + offset) & page_mask) | (pagemod_mask & addr)) + page_offset;
+			return gvram[vramaddr];
 		}
 #elif defined(_FM77L4) //_FM77L4
 		{
 			if(display_mode == DISPLAY_MODE_8_400L) {
 				return (uint32_t)read_vram_l4_400l(addr, offset);
 			} else {
-				pagemod = addr & 0xc000;
-				return gvram[((addr + offset) & 0x3fff) | pagemod];
+				vramaddr = (((addr + offset) & page_mask) | (pagemod_mask & addr)) + page_offset;
+				return gvram[vramaddr];
 			}
 			return 0xff;
 		}
 #else // Others (77/7/8)
-		pagemod = addr & 0xc000;
-		return gvram[((addr + offset) & 0x3fff) | pagemod];
+		vramaddr = (((addr + offset) & page_mask) | (pagemod_mask & addr)) + page_offset;
+		return gvram[vramaddr];
 #endif
 }
 
@@ -1740,10 +1793,8 @@ void DISPLAY::write_dma_data8(uint32_t addr, uint32_t data)
 void DISPLAY::write_vram_data8(uint32_t addr, uint8_t data)
 {
 	uint32_t offset;
-	uint32_t page_offset = 0;
-	uint32_t page_mask = 0x3fff;
 	uint32_t color = (addr >> 14) & 0x03;
-	uint32_t pagemod;
+	uint32_t vramaddr;
 	uint8_t tdata;
 	
 #if defined(_FM77AV_VARIANTS)
@@ -1757,10 +1808,9 @@ void DISPLAY::write_vram_data8(uint32_t addr, uint8_t data)
 #endif
 
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	if(vram_active_block != 0) page_offset = 0x18000;
-# endif		
 		if(display_mode == DISPLAY_MODE_8_400L) {
+			uint32_t pagemod;
+			uint32_t page_offset_alt = 0;
 			if(addr >= 0x8000) {
 				return;
 			}
@@ -1768,74 +1818,83 @@ void DISPLAY::write_vram_data8(uint32_t addr, uint8_t data)
 			if(color > 2) color = 0;
 			offset <<= 1;
 			pagemod = 0x8000 * color;
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
+			if(vram_active_block != 0) page_offset_alt = 0x18000;
+# endif		
+			vramaddr = (((addr + offset) & 0x7fff) | pagemod) + page_offset_alt;
 			// Reduce data transfer.
-			tdata = gvram[(((addr + offset) & 0x7fff) | pagemod) + page_offset];			
+			tdata = gvram[vramaddr];			
 			if(tdata != data) {
-				gvram[(((addr + offset) & 0x7fff) | pagemod) + page_offset] = data;
+				gvram[vramaddr] = data;
 				vram_wrote_table[(addr & 0x7fff) / 80] = true;
 			}
 		} else 	if(display_mode == DISPLAY_MODE_256k) {
+			uint32_t page_offset_alt;
 #if defined(_FM77AV40)
 			if(vram_bank < 3) {
-				page_offset = 0xc000 * (vram_bank & 0x03);
+				page_offset_alt = 0xc000 * (vram_bank & 0x03);
 			} else {
-				page_offset = 0; // right?
+				page_offset_alt = 0; // right?
 			}
 #else			
-			page_offset = 0xc000 * (vram_bank & 0x03);
+			page_offset_alt = 0xc000 * (vram_bank & 0x03);
 #endif			
-			page_mask = 0x1fff;
-			pagemod = addr & 0xe000;
-			tdata = gvram[(((addr + offset) & page_mask) | pagemod) + page_offset];
+			//pagemod = addr & pagemod_mask;
+			vramaddr = (((addr + offset) & page_mask) | (pagemod_mask & addr)) + page_offset_alt;
+			tdata = gvram[vramaddr];
 			if(tdata != data) {
-				gvram[(((addr + offset) & page_mask) | pagemod) + page_offset] = data;
+				gvram[vramaddr] = data;
 				vram_wrote_table[(addr & page_mask) / 40] = true;
 			}
 			return;
 		} else if(display_mode == DISPLAY_MODE_4096) {
-			if(active_page != 0) {
-				page_offset += 0xc000;
-			}
-			page_mask = 0x1fff;
-			pagemod = addr & 0xe000;
-			tdata = gvram[(((addr + offset) & page_mask) | pagemod) + page_offset];
+			//if(active_page != 0) {
+			//	page_offset += 0xc000;
+			//}
+			//page_mask = 0x1fff;
+			//pagemod = addr & 0xe000;
+			vramaddr = (((addr + offset) & page_mask) | (pagemod_mask & addr)) + page_offset;
+			tdata = gvram[vramaddr];
 			if(tdata != data) {
-				gvram[(((addr + offset) & page_mask) | pagemod) + page_offset] = data;
+				gvram[vramaddr] = data;
 				vram_wrote_table[(addr & page_mask) / 40] = true;
 			}
 		} else { // 200line
-			if(active_page != 0) {
-				page_offset += 0xc000;
-			}
-			page_mask = 0x3fff;
-			pagemod = addr & 0xc000;
-			tdata = gvram[(((addr + offset) & page_mask) | pagemod) + page_offset];
+			//if(active_page != 0) {
+			//	page_offset += 0xc000;
+			//}
+			//page_mask = 0x3fff;
+			//pagemod = addr & 0xc000;
+			vramaddr = (((addr + offset) & page_mask) | (pagemod_mask & addr)) + page_offset;
+			tdata = gvram[vramaddr];
 			if(tdata != data) {
-				gvram[(((addr + offset) & page_mask) | pagemod) + page_offset] = data;
+				gvram[vramaddr] = data;
 				vram_wrote_table[(addr & page_mask) / 80] = true;
 			}
-		}				
+		}
 #elif defined(_FM77AV_VARIANTS)
 		if(display_mode == DISPLAY_MODE_4096) {
-			if(active_page != 0) {
-				page_offset = 0xc000;
-			}
-			page_mask = 0x1fff;
-			pagemod = addr & 0xe000;
-			tdata = gvram[(((addr + offset) & page_mask) | pagemod) + page_offset];
+			//if(active_page != 0) {
+			//	page_offset = 0xc000;
+			//}
+			//page_mask = 0x1fff;
+			//pagemod = addr & 0xe000;
+			vramaddr = (((addr + offset) & page_mask) | (pagemod_mask & addr)) + page_offset;
+			tdata = gvram[vramaddr];
 			if(tdata != data) {
-				gvram[(((addr + offset) & page_mask) | pagemod) + page_offset] = data;
+				gvram[vramaddr] = data;
 				vram_wrote_table[(addr & page_mask) / 40] = true;
 			}
 		} else { // 200line
-			if(active_page != 0) {
-				page_offset = 0xc000;
-			}
-			page_mask = 0x3fff;
-			pagemod = addr & 0xc000;
-			tdata = gvram[(((addr + offset) & page_mask) | pagemod) + page_offset];
+			//if(active_page != 0) {
+			//	page_offset = 0xc000;
+			//}
+			//page_mask = 0x3fff;
+			//pagemod = addr & 0xc000;
+			vramaddr = (((addr + offset) & page_mask) | (pagemod_mask & addr)) + page_offset;
+			tdata = gvram[vramaddr];
 			if(tdata != data) {
-				gvram[(((addr + offset) & page_mask) | pagemod) + page_offset] = data;
+				gvram[vramaddr] = data;
 				vram_wrote_table[(addr & page_mask) / 80] = true;
 			}
 		}
@@ -1844,21 +1903,22 @@ void DISPLAY::write_vram_data8(uint32_t addr, uint8_t data)
 			if(display_mode == DISPLAY_MODE_8_400L) {
 				write_vram_l4_400l(addr, data, offset);
 			} else {
-				pagemod = addr & 0xc000;
-				tdata = gvram[((addr + offset) & 0x3fff) | pagemod];
+				vramaddr = (((addr + offset) & page_mask) | (pagemod_mask & addr)) + page_offset;
+				tdata = gvram[vramaddr];
 				if(data != tdata) {
-					gvram[((addr + offset) & 0x3fff) | pagemod] = data;
+					gvram[vramaddr] = data;
 					vram_wrote_table[(addr & 0x3fff) / 80] = true;
 				}
 			}
 		}
 #else // Others (77/7/8)
-		pagemod = addr & 0xc000;
-		tdata = gvram[((addr + offset) & 0x3fff) | pagemod];
+	{
+		vramaddr = (((addr + offset) & page_mask) | (pagemod_mask & addr)) + page_offset;
+		tdata = gvram[vramaddr];
 		if(tdata != data) {
-			gvram[((addr + offset) & 0x3fff) | pagemod] = data;
+			gvram[vramaddr] = data;
 			vram_wrote_table[(addr & 0x3fff) / 80] = true;
-		}
+	}
 #endif
 }
 
@@ -2029,22 +2089,21 @@ uint32_t DISPLAY::read_data8(uint32_t addr)
 		addr = addr - DISPLAY_VRAM_DIRECT_ACCESS;
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)		
 		if(display_mode == DISPLAY_MODE_8_400L) {
-			uint32_t page_offset = 0;
+			uint32_t page_offset_alt = 0;
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-			if(vram_active_block != 0) page_offset = 0x18000;
+			if(vram_active_block != 0) page_offset_alt = 0x18000;
 # endif		
-			uint32_t color = (addr & 0x0c000) >> 14;
+			uint32_t color;
+			uint32_t pagemod;
 			color = (addr & 0x18000) >> 15;
 			if(color > 2) color = 0;
-			
+			pagemod = 0x8000 * color;
 			if (active_page != 0) {
 				offset = offset_point_bank1 << 1;
 			} else {
 				offset = offset_point << 1;
 			}
-			if(color > 2) color = 0;
-			uint32_t pagemod = 0x8000 * color;
-			return gvram[(((addr + offset) & 0x7fff) | pagemod) + page_offset];
+			return gvram[(((addr + offset) & 0x7fff) | pagemod) + page_offset_alt];
 		}
 # endif		
 		return read_vram_data8(addr);
@@ -2217,6 +2276,7 @@ void DISPLAY::write_mmio(uint32_t addr, uint8_t data)
 			vram_active_block = data & 0x01;
 			if(vram_display_block != (((data & 0x10) != 0) ? 1 : 0)) vram_wrote = true;
 			vram_display_block = ((data & 0x10) != 0) ? 1 : 0;
+			setup_display_mode();
 			break;
 			// Window
 		case 0x38: //
@@ -2455,9 +2515,8 @@ void DISPLAY::write_data8(uint32_t addr, uint32_t data)
 {
 	uint32_t offset;
 	uint32_t raddr;
-	uint32_t page_offset = 0x0000;
+	//uint32_t page_offset = 0x0000;
 	uint8_t val8 = data & 0xff;
-	uint32_t pagemod;
 	uint32_t color = (addr & 0xc000) >> 14;
 	uint8_t tdata;
 
@@ -2499,12 +2558,13 @@ void DISPLAY::write_data8(uint32_t addr, uint32_t data)
 		addr = addr - DISPLAY_VRAM_DIRECT_ACCESS; 
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		if(display_mode == DISPLAY_MODE_8_400L) {
-			color = (addr & 0x18000) >> 15;
-			if(color > 2) color = 0;
-			page_offset = 0;
+			uint32_t vramaddr;
+			uint32_t page_offset_alt = 0;
+			uint32_t pagemod;
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-			if(vram_active_block != 0) page_offset = 0x18000;
+			if(vram_active_block != 0) page_offset_alt = 0x18000;
 # endif		
+			color = (addr & 0x18000) >> 15;
 			if(color > 2) color = 0;
 			if (active_page != 0) {
 				offset = offset_point_bank1 << 1;
@@ -2512,9 +2572,10 @@ void DISPLAY::write_data8(uint32_t addr, uint32_t data)
 				offset = offset_point << 1;
 			}
 			pagemod = 0x8000 * color;
-			tdata = gvram[(((addr + offset) & 0x7fff) | pagemod) + page_offset];
+			vramaddr = (((addr + offset) & 0x7fff) | pagemod) + page_offset_alt;
+			tdata = gvram[vramaddr];
 			if(tdata != (uint8_t)data) {
-				gvram[(((addr + offset) & 0x7fff) | pagemod) + page_offset] = data;
+				gvram[vramaddr] = data;
 				vram_wrote_table[(addr & 0x7fff) / 80] = true;
 			}
 			return;
@@ -2643,6 +2704,7 @@ void DISPLAY::initialize()
 	//register_vline_event(this);
 	//register_frame_event(this);
 #endif	
+	setup_display_mode();
 }
 
 void DISPLAY::release()
@@ -2947,6 +3009,7 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 		need_transfer_line = true;
 	}			
 	if(version == STATE_VERSION) return true;
+	setup_display_mode();
 	return false;
 }
 
