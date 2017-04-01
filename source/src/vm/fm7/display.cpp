@@ -291,6 +291,9 @@ void DISPLAY::setup_display_mode(void)
 	}
 	page_offset = 0x0000;
 #else
+	page_offset = 0x0000;
+	pagemod_mask = 0xc000;
+	page_mask = 0x3fff;
 #endif
 }
 void DISPLAY::update_config()
@@ -1920,6 +1923,7 @@ void DISPLAY::write_vram_data8(uint32_t addr, uint8_t data)
 		if(tdata != data) {
 			gvram[vramaddr] = data;
 			vram_wrote_table[(addr & 0x3fff) / 80] = true;
+		}
 	}
 #endif
 }

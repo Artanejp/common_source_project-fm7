@@ -13,6 +13,14 @@
 #include "../device.h"
 #include "../mc6809.h"
 
+# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+#define ADDRESS_SPACE 0x100000
+#elif defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
+#define ADDRESS_SPACE 0x40000
+#else
+#define ADDRESS_SPACE 0x10000
+#endif
+
 class DEVICE;
 class MEMORY;
 class FM7_MAINIO;
@@ -25,6 +33,15 @@ class FM7_MAINMEM : public DEVICE
 		uint8_t* memory;
 		int wait;
 	} bank_t;
+
+	typedef struct {
+		uint8_t *read_data;
+		uint8_t (FM7_MAINMEM::*read_func)(uint32_t, bool);
+		uint8_t *write_data;
+		void (FM7_MAINMEM::*write_func)(uint32_t, uint32_t, bool);
+	} data_func_table_t;
+	
+	data_func_table_t data_table[ADDRESS_SPACE / 0x80];
 	bank_t read_table[FM7_MAINMEM_END];
 	bank_t write_table[FM7_MAINMEM_END];
 	bool ioaccess_wait;
@@ -128,6 +145,28 @@ class FM7_MAINMEM : public DEVICE
 	uint32_t read_bios(const _TCHAR *name, uint8_t *ptr, uint32_t size);
 	uint32_t write_bios(const _TCHAR *name, uint8_t *ptr, uint32_t size);
 	void setclock(int mode);
+	
+	uint8_t read_shared_ram(uint32_t realaddr, bool dmamode);
+	void write_shared_ram(uint32_t realaddr, uint32_t data, bool dmamode);
+	uint8_t read_direct_access(uint32_t realaddr, bool dmamode);
+	void write_direct_access(uint32_t realaddr, uint32_t data, bool dmamode);
+	uint8_t read_kanjirom_level1(uint32_t realaddr, bool dmamode);
+	uint8_t read_kanji_dummyaddr(uint32_t realaddr, bool dmamode);
+	uint8_t read_ura_basicrom(uint32_t addr, bool dmamode);
+	void write_ura_basicrom(uint32_t addr, uint32_t data, bool dmamode);
+	uint8_t read_mmio(uint32_t addr, bool dmamode);
+	void write_mmio(uint32_t addr, uint32_t data, bool dmamode);
+	uint8_t read_bootrom(uint32_t addr, bool dmamode);
+	void write_bootrom(uint32_t addr, uint32_t data, bool dmamode);
+	uint8_t read_page2(uint32_t addr, bool dmamode);
+	void write_page2(uint32_t addr, uint32_t data, bool dmamode);
+	int check_page2(uint32_t addr, uint32_t *realaddr, bool write_state, bool dmamode);
+	
+	void init_data_table(void);
+	uint8_t read_data(uint32_t addr, bool dmamode);
+	void write_data(uint32_t addr, uint32_t data, bool dmamode);
+	uint8_t read_data_tbl(uint32_t addr, bool dmamode);
+	void write_data_tbl(uint32_t addr, uint32_t data, bool dmamode);
 
  public:
 	FM7_MAINMEM(VM* parent_vm, EMU* parent_emu);

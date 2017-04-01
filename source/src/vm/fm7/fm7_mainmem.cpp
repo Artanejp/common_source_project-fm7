@@ -57,6 +57,7 @@ void FM7_MAINMEM::reset()
 	clockmode = (config.cpu_type == 0) ? true : false;
 	is_basicrom = ((bootmode & 0x03) == 0) ? true : false;
 	setclock(clockmode ? 0 : 1);
+	init_data_table();
 	maincpu->reset();
 }
 
@@ -493,7 +494,211 @@ int FM7_MAINMEM::nonmmr_convert(uint32_t addr, uint32_t *realaddr)
 	*realaddr = addr;
 	return FM7_MAINMEM_NULL;
 }
-     
+
+uint8_t FM7_MAINMEM::read_data_tbl(uint32_t addr, bool dmamode)
+{
+	uint32_t paddr = addr >> 7;
+	if(data_table[paddr].read_data != NULL) {
+		return data_table[paddr].read_data[addr & 0x7f];
+	} else if(data_table[paddr].read_func != NULL) {
+		uint8_t (FM7_MAINMEM::*read_func)(uint32_t, bool);
+		read_func = this->data_table[paddr].read_func;
+		return (this->*read_func)(addr, dmamode);
+	}
+	return 0xff;
+}		
+
+uint8_t FM7_MAINMEM::read_data(uint32_t addr, bool dmamode)
+{
+#ifdef HAS_MMR
+	int stat;
+	if(window_enabled) {
+		uint32_t raddr;
+		stat = window_convert(addr, &raddr);
+#if defined(_FM77AV_VARIANTS)
+		if(stat >= 0) {
+			return fm7_mainmem_mmrbank_0[raddr & 0xffff];
+		}
+#elif defined(_FM77_VARIANTS)
+		if(stat >= 0) {
+			if((extram_pages >= 3) && (fm7_mainmem_extram != NULL)) {
+				return fm7_mainmem_extram[raddr];
+			} else {
+				return 0xff;
+			}
+		}
+#endif
+	}
+	if(mmr_enabled) {
+		uint32_t segment = 0x00;
+		uint32_t raddr = (addr & 0x0fff);
+		uint32_t mmr_bank;
+		if(addr < 0xfc00) {
+			if(!dmamode) segment = mmr_segment;
+			if(!mmr_extend) {
+				mmr_bank = mmr_map_data[(addr >> 12) & 0x000f | ((segment & 0x03) << 4)] & 0x003f;
+			} else {
+				mmr_bank = mmr_map_data[(addr >> 12) & 0x000f | ((segment & 0x07) << 4)] & 0x007f;
+			}		
+			// Reallocated by MMR
+			// Bank 3x : Standard memories.
+			if(mmr_bank != 0x3f){
+				raddr = (mmr_bank << 12) | raddr;
+				return read_data_tbl(raddr, dmamode);
+			}
+# ifdef _FM77AV_VARIANTS
+			else if(mmr_bank == 0x3f) {
+				if((raddr >= 0xd80) && (raddr <= 0xd97)) { // MMR AREA
+					return 0xff;
+				} else {
+					raddr = raddr | 0x3f000;
+					return read_data_tbl(raddr, dmamode);
+				}
+			}
+# elif defined(_FM77_VARIANTS)
+			else if(mmr_bank == 0x3f) {
+				if((raddr >= 0xc00) && (raddr < 0xe00)) {
+					if(is_basicrom) {
+						return 0x00;
+					} else {
+						raddr = raddr - 0xc00;
+						return fm77_shadowram[raddr];
+					}
+				} else if(raddr >= 0xe00) {
+					raddr = raddr - 0x0e00;
+					if(is_basicrom) {
+						if(diag_load_bootrom_mmr) {
+							return fm7_bootroms[2][raddr];
+						} else {
+							return fm7_bootroms[0][raddr];
+						}
+					} else {
+						return fm7_bootram[raddr];
+					}
+				} else {
+					raddr = raddr | 0x3f000;
+					return read_data_tbl(raddr, dmamode);
+				} 
+			}
+#endif
+		} else {
+			raddr = 0x30000 | (addr & 0xffff);
+			return read_data_tbl(raddr, dmamode);
+		}
+	}
+#endif
+#if !defined(_FM77AV_VARIANTS) && !defined(_FM77_VARIANTS)
+	uint32_t raddr = (addr & 0xffff);
+	return read_data_tbl(raddr, dmamode);
+#else
+	uint32_t raddr = (addr & 0xffff) | 0x30000;
+	return read_data_tbl(raddr, dmamode);
+#endif
+}
+
+void FM7_MAINMEM::write_data(uint32_t addr, uint32_t data, bool dmamode)
+{
+#ifdef HAS_MMR
+	int stat;
+	if(window_enabled) {
+		uint32_t raddr;
+		stat = window_convert(addr, &raddr);
+#if defined(_FM77AV_VARIANTS)
+		if(stat >= 0) {
+			fm7_mainmem_mmrbank_0[raddr & 0xffff] = (uint8_t)data;
+			return;
+		}
+#elif defined(_FM77_VARIANTS)
+		if(stat >= 0) {
+			if((extram_pages >= 3) && (fm7_mainmem_extram != NULL)) {
+				fm7_mainmem_extram[raddr] = (uint8_t)data;;
+			}
+			return;
+		}
+#endif
+	}
+	if(mmr_enabled) {
+		uint32_t segment = 0x00;
+		uint32_t raddr = (addr & 0xfff);
+		uint32_t mmr_bank;
+		if(addr < 0xfc00) {
+			if(!dmamode) segment = mmr_segment;
+			if(!mmr_extend) {
+				mmr_bank = mmr_map_data[(addr >> 12) & 0x000f | ((segment & 0x03) << 4)] & 0x003f;
+			} else {
+				mmr_bank = mmr_map_data[(addr >> 12) & 0x000f | ((segment & 0x07) << 4)] & 0x007f;
+			}		
+			// Reallocated by MMR
+			// Bank 3x : Standard memories.
+			if(mmr_bank != 0x3f){
+				raddr = (mmr_bank << 12) | raddr;
+				write_data_tbl(raddr, data, dmamode);
+				return;
+			}
+# ifdef _FM77AV_VARIANTS
+			else if(mmr_bank == 0x3f) {
+				if((raddr >= 0xd80) && (raddr <= 0xd97)) { // MMR AREA
+					return;
+				} else {
+					raddr = raddr | 0x3f000;
+					write_data_tbl(raddr, data, dmamode);
+					return;
+				}
+			}
+# elif defined(_FM77_VARIANTS)
+			else if(mmr_bank == 0x3f) {
+				if((raddr >= 0xc00) && (raddr < 0xe00)) {
+					if(is_basicrom) {
+						return;
+					} else {
+						raddr = raddr - 0xc00;
+						fm77_shadowram[raddr] = (uint8_t)data;
+						return;
+					}
+				} else if(raddr >= 0xe00) {
+					raddr = raddr - 0x0e00;
+					if(is_basicrom) {
+						return;
+					} else {
+						fm7_bootram[raddr] = (uint8_t)data;
+						return;
+					}
+				} else {
+					raddr = raddr | 0x3f000;
+					write_data_tbl(raddr, data, dmamode);
+					return;
+				} 
+			}
+#endif
+		} else {
+			raddr = 0x30000 | (addr & 0xffff);
+			write_data_tbl(raddr, data, dmamode);
+		}
+	}
+# endif
+#if !defined(_FM77AV_VARIANTS) && !defined(_FM77_VARIANTS)
+	uint32_t raddr = (addr & 0xffff);
+	write_data_tbl(raddr, data, dmamode);
+#else
+	uint32_t raddr = (addr & 0xffff) | 0x30000;
+	write_data_tbl(raddr, data, dmamode);
+#endif
+}
+
+void FM7_MAINMEM::write_data_tbl(uint32_t addr, uint32_t data, bool dmamode)
+{
+	uint32_t paddr = addr >> 7;
+	if(data_table[paddr].write_data != NULL) {
+		data_table[paddr].write_data[addr & 0x7f] = (uint8_t)data;
+		return;
+	} else if(data_table[paddr].write_func != NULL) {
+		void (FM7_MAINMEM::*write_func)(uint32_t, uint32_t, bool);
+		write_func = this->data_table[paddr].write_func;
+		(this->*write_func)(addr, data, dmamode);
+	}
+	return;
+}		
+
 int FM7_MAINMEM::getbank(uint32_t addr, uint32_t *realaddr, bool write_state, bool dmamode)
 {
 	if(realaddr == NULL) return FM7_MAINMEM_NULL; // Not effect.
@@ -677,45 +882,352 @@ uint32_t FM7_MAINMEM::read_dma_io8(uint32_t addr)
 }
 
 
+uint8_t FM7_MAINMEM::read_shared_ram(uint32_t realaddr, bool dmamode)
+{
+	realaddr = realaddr & 0x7f;
+	if(!sub_halted) return 0xff; // Not halt
+	return display->read_data8(realaddr  + 0xd380); // Okay?
+}
+
+void FM7_MAINMEM::write_shared_ram(uint32_t realaddr, uint32_t data, bool dmamode)
+{
+	realaddr = realaddr & 0x7f;
+	if(!sub_halted) return; // Not halt
+	return display->write_data8(realaddr  + 0xd380, data); // Okay?
+}
+
+uint8_t FM7_MAINMEM::read_direct_access(uint32_t realaddr, bool dmamode)
+{
+#if defined(_FM77AV_VARIANTS)
+	if(!sub_halted) return 0xff; // Not halt
+	if(dmamode) {
+		return display->read_dma_data8(realaddr & 0xffff); // Okay?
+	} else {
+		return display->read_data8(realaddr & 0xffff); // Okay?
+	}
+#else
+	return 0xff;
+#endif	
+}
+
+void FM7_MAINMEM::write_direct_access(uint32_t realaddr, uint32_t data, bool dmamode)
+{
+#if defined(_FM77AV_VARIANTS)
+	if(!sub_halted) return; // Not halt
+	if(dmamode) {
+		return display->write_dma_data8(realaddr & 0xffff, data); // Okay?
+	} else {
+		return display->write_data8(realaddr & 0xffff, data); // Okay?
+	}
+#else
+	return 0xff;
+#endif	
+}
+
+uint8_t FM7_MAINMEM::read_kanjirom_level1(uint32_t realaddr, bool dmamode)
+{
+#if defined(CAPABLE_DICTROM)
+	return kanjiclass1->read_data8(KANJIROM_DIRECTADDR + realaddr);
+#else
+	return 0xff;
+#endif
+}
+
+uint8_t FM7_MAINMEM::read_kanji_dummyaddr(uint32_t realaddr, bool dmamode)
+{
+		return (realaddr & 0x01);
+}
+
+uint8_t FM7_MAINMEM::read_ura_basicrom(uint32_t addr, bool dmamode)
+{
+	addr = addr & 0x7fff;
+	if (basicrom_fd0f) {
+		return fm7_mainmem_basicrom[addr];
+	}
+	return fm7_mainmem_ura[addr];
+}
+
+void FM7_MAINMEM::write_ura_basicrom(uint32_t addr, uint32_t data, bool dmamode)
+{
+	addr = addr & 0x7fff;
+	if (basicrom_fd0f) {
+		return;
+	}
+	fm7_mainmem_ura[addr] = (uint8_t)data;
+	return;
+}
+
+uint8_t FM7_MAINMEM::read_mmio(uint32_t addr, bool dmamode)
+{
+	addr &= 0xff;
+	wait();
+	if(mainio != NULL) {
+		return mainio->read_data8(addr);
+	}
+	return 0xff;
+}
+
+void FM7_MAINMEM::write_mmio(uint32_t addr, uint32_t data, bool dmamode)
+{
+	addr &= 0xff;
+	wait();
+	if(mainio != NULL) {
+		mainio->write_data8(addr, data);
+	}
+	return;
+}
+
+uint8_t FM7_MAINMEM::read_bootrom(uint32_t addr, bool dmamode)
+{
+	addr = addr & 0x1ff;
+	if(addr <  0x1e0) {
+		wait();
+#if defined(_FM77AV_VARIANTS)
+		return fm7_bootram[addr];
+#else
+		switch(bootmode) {
+		case 0:
+		case 1:
+		case 2:
+		case 3:
+			return fm7_bootroms[bootmode][addr];
+			break;
+# if defined(_FM77_VARIANTS)
+		case 4:
+			return fm7_bootram[addr];
+			break;
+# endif				
+		default:
+			return fm7_bootroms[0][addr];
+			break;
+		}
+#endif
+	} else if (addr < 0x1fe) { // VECTOR
+		return fm7_mainmem_bootrom_vector[addr - 0x1e0];
+	}
+#if defined(_FM77AV_VARIANTS)
+	else {
+		wait();
+		return fm7_bootram[addr];
+	}
+#else
+	else {
+		return fm7_mainmem_reset_vector[addr & 1];
+	}
+#endif
+	return 0xff;
+}
+
+void FM7_MAINMEM::write_bootrom(uint32_t addr, uint32_t data, bool dmamode)
+{
+	addr = addr & 0x1ff;
+	if(addr <  0x1e0) {
+		wait();
+#if defined(_FM77AV_VARIANTS)
+		if(!boot_ram_write) return;
+		fm7_bootram[addr] = (uint8_t)data;
+		return;
+#elif defined(_FM77_VARIANTS)
+		if(bootmode == 4) {
+			if(!boot_ram_write) return;
+			fm7_bootram[addr] = (uint8_t)data;
+		}
+#endif
+	} else if (addr < 0x1fe) { // VECTOR
+		fm7_mainmem_bootrom_vector[addr - 0x1e0] = (uint8_t)data;
+		return;
+	}
+#if defined(_FM77AV_VARIANTS)
+	else {
+		wait();
+		if(!boot_ram_write) return;
+		fm7_bootram[addr] = (uint8_t)data;
+	}
+#else
+	else {
+		return;
+	}
+#endif
+	return;
+}
+
+
+int FM7_MAINMEM::check_page2(uint32_t addr, uint32_t *realaddr, bool write_state, bool dmamode)
+{
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
+	defined(_FM77AV20) || defined(_FM77AV20EX)
+	uint32_t mmr_bank = (addr >> 12) & 0x3f;
+	uint32_t raddr = addr & 0x00fff;
+	if((mmr_bank == 0x2e) && (!write_state)) {
+		int banknum = check_extrom(raddr, realaddr);
+		if(banknum >= 0) {
+			return banknum;
+		} else {
+#  if defined(CAPABLE_DICTROM)
+			if(dictrom_connected && dictrom_enabled) { // Dictionary ROM
+				uint32_t dbank = extcard_bank & 0x3f;
+				*realaddr = raddr | (dbank << 12);
+				return FM7_MAINMEM_DICTROM;
+			}
+#  else
+			*realaddr = 0;
+			return FM7_MAINMEM_NULL;
+#  endif			   
+		}
+	}
+#  if defined(CAPABLE_DICTROM)
+	switch(mmr_bank) {
+	case 0x28:
+	case 0x29: // Backuped RAM
+		if(dictrom_connected && dictram_enabled){ // Battery backuped RAM
+			raddr = (((uint32_t)mmr_bank & 0x01) << 12) | raddr;
+			raddr =  raddr & 0x1fff;
+			*realaddr = raddr;
+			return FM7_MAINMEM_BACKUPED_RAM;
+		}
+		break;
+	}
+	*realaddr = (raddr | (mmr_bank << 12)) & 0x0ffff;
+	return FM7_MAINMEM_AV_PAGE2;
+#  else
+	if(use_page2_extram) {
+		*realaddr = ((mmr_bank << 12) | raddr) & 0x0ffff;
+		return FM7_MAINMEM_AV_PAGE2;
+	} else {
+		*realaddr = 0;
+		return FM7_MAINMEM_NULL;
+	}
+#  endif
+#endif
+	return -1;
+}
+
+uint8_t FM7_MAINMEM::read_page2(uint32_t addr, bool dmamode)
+{
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
+	defined(_FM77AV20) || defined(_FM77AV20EX)
+	uint32_t raddr;
+	int stat;
+	addr = (addr & 0xffff) | 0x20000; 
+	stat = check_page2(addr, &raddr, false, dmamode);
+	if(stat < 0) return 0xff;
+	switch(stat) {
+	case FM7_MAINMEM_AV_PAGE2:
+		return fm7_mainmem_mmrbank_2[raddr & 0xffff];
+		break;
+	case FM7_MAINMEM_KANJI_DUMMYADDR:
+		return raddr & 0x01;
+		break;
+	case FM7_MAINMEM_KANJI_LEVEL1:
+		return read_kanjirom_level1(raddr, dmamode);
+		break;
+	case FM7_MAINMEM_77AV40_EXTRAROM:
+		return fm7_mainmem_extrarom[raddr & 0xffff];
+		break;
+	case FM7_MAINMEM_BASICROM:
+		return fm7_mainmem_basicrom[raddr & 0x7fff];
+		break;
+	case FM7_MAINMEM_BOOTROM_MMR:
+		return fm77av_hidden_bootmmr[raddr & 0x01ff];
+		break;
+	case FM7_MAINMEM_RESET_VECTOR:
+		return fm7_mainmem_reset_vector[raddr & 0x01];
+		break;
+	case FM7_MAINMEM_DICTROM:
+		return fm7_mainmem_dictrom[raddr];
+		break;
+	case FM7_MAINMEM_BACKUPED_RAM:
+		return fm7_mainmem_learndata[raddr & 0x1fff];
+		break;
+	case FM7_MAINMEM_NULL:
+		return 0xff;
+		break;
+	default:
+		return 0xff;
+		break;
+	}
+#else
+	return 0xff;
+#endif
+}
+
+void FM7_MAINMEM::write_page2(uint32_t addr, uint32_t data, bool dmamode)
+{
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
+	defined(_FM77AV20) || defined(_FM77AV20EX)
+	uint32_t raddr;
+	int stat;
+	addr = (addr & 0xffff) | 0x20000; 
+	stat = check_page2(addr, &raddr, true, dmamode);
+	if(stat < 0) return;
+	switch(stat) {
+	case FM7_MAINMEM_AV_PAGE2:
+		fm7_mainmem_mmrbank_2[raddr & 0xffff] = (uint8_t)data;
+		break;
+	case FM7_MAINMEM_RESET_VECTOR:
+		fm7_mainmem_reset_vector[raddr & 0x01] = (uint8_t)data;
+		break;
+	case FM7_MAINMEM_BACKUPED_RAM:
+		fm7_mainmem_learndata[raddr & 0x1fff] = (uint8_t)data;
+		break;
+	default:
+		break;
+	}
+#endif
+}
+
 uint32_t FM7_MAINMEM::read_data8_main(uint32_t addr, bool dmamode)
 {
 	uint32_t realaddr;
 	int bank;
-	
+#if 0
 	bank = getbank(addr, &realaddr, false, dmamode);
 	if(bank < 0) {
 		this->out_debug_log(_T("Illegal BANK: ADDR = %04x"), addr);
 		return 0xff; // Illegal
 	}
-	if(bank == FM7_MAINMEM_SHAREDRAM) {
-		if(!sub_halted) return 0xff; // Not halt
-		return display->read_data8(realaddr  + 0xd380); // Okay?
-	} else if(bank == FM7_MAINMEM_NULL) {
+	switch(bank) {
+	case FM7_MAINMEM_NULL:
 		return 0xff;
-	}
-#if defined(_FM77AV_VARIANTS)
-	else if(bank == FM7_MAINMEM_AV_DIRECTACCESS) {
-	   	if(!sub_halted) return 0xff; // Not halt
-		if(dmamode) {
-			return display->read_dma_data8(realaddr); // Okay?
-		} else {
-			return display->read_data8(realaddr); // Okay?
-		}
-	} else if(bank == FM7_MAINMEM_KANJI_DUMMYADDR) {
+		break;
+	case FM7_MAINMEM_SHAREDRAM:
+		return read_shared_ram(realaddr, dmamode);
+		break;
+	case FM7_MAINMEM_DIRECTACCESS:
+		return read_direct_access(realaddr, dmamode);
+		break;
+	case FM7_MAINMEM_KANJI_DUMMYADDR:
 		return (realaddr & 0x01);
+		break;
+	case FM7_MAINMEM_KANJI_LEVEL1:
+		return read_kanjirom_level1(realaddr, dmamode);
+		break;
+	default:
+		break;
 	}
-#endif	
-#if defined(CAPABLE_DICTROM)
-	else if(bank == FM7_MAINMEM_KANJI_LEVEL1) {
-		return kanjiclass1->read_data8(KANJIROM_DIRECTADDR + realaddr);
-	}
-#endif
+		
 	else if(read_table[bank].dev != NULL) {
 		return read_table[bank].dev->read_data8(realaddr);
 	} else if(read_table[bank].memory != NULL) {
 		return read_table[bank].memory[realaddr];
 	}
 	return 0xff; // Dummy
+#else
+#ifdef _FM77AV_VARIANTS
+	if(initiator_enabled) {
+		if((addr >= 0x6000) && (addr < 0x8000)) {
+			uint32_t raddr = addr - 0x6000;
+			return fm7_mainmem_initrom[raddr];
+		}
+		if((addr >= 0xfffe) && (addr < 0x10000)) {
+			uint32_t raddr = addr - 0xe000;
+			//printf("%04x %02x\n", raddr, fm7_mainmem_initrom[raddr]);
+			return fm7_mainmem_initrom[raddr];
+		}
+	}
+#endif
+	return read_data(addr, dmamode);
+#endif
 }	
 
 uint32_t FM7_MAINMEM::read_data8(uint32_t addr)
@@ -761,6 +1273,7 @@ void FM7_MAINMEM::write_dma_io8(uint32_t addr, uint32_t data)
 
 void FM7_MAINMEM::write_data8_main(uint32_t addr, uint32_t data, bool dmamode)
 {
+#if 0
 	uint32_t realaddr;
 	int bank;
 	bank = getbank(addr, &realaddr, true, dmamode);
@@ -802,6 +1315,24 @@ void FM7_MAINMEM::write_data8_main(uint32_t addr, uint32_t data, bool dmamode)
 	} else if(write_table[bank].memory != NULL) {
 		write_table[bank].memory[realaddr] = (uint8_t)data;
 	}
+#else
+
+#ifdef _FM77AV_VARIANTS
+	if(initiator_enabled) {
+		if((addr >= 0x6000) && (addr < 0x8000)) {
+			//uint32_t raddr = addr - 0x6000;
+			//return fm7_mainmen_initrom[raddr];
+			return;
+		}
+		if((addr >= 0xfffe) && (addr < 0x10000)) {
+			//uint32_t raddr = addr - 0xe000;
+			//return fm7_mainmen_initrom[raddr];
+			return;
+		}
+	}
+#endif
+	write_data(addr, data, dmamode);
+#endif
 }
 
 void FM7_MAINMEM::write_data8(uint32_t addr, uint32_t data)
@@ -962,6 +1493,88 @@ FM7_MAINMEM::~FM7_MAINMEM()
 {
 }
 
+void FM7_MAINMEM::init_data_table(void)
+{
+	uint32_t addr;
+	uint32_t paddr;
+	uint32_t main_begin;
+	data_func_table_t *p;
+	memset(data_table, 0x00, sizeof(data_table));
+#if defined(HAS_MMR)
+	main_begin = 0x30000;
+#else
+	main_begin = 0x00000;
+#endif
+	for(addr = main_begin; addr < (main_begin + 0x8000); addr += 0x80) {
+		paddr = addr >> 7;
+		data_table[paddr].read_data  = &fm7_mainmem_omote[addr & 0x7fff];
+		data_table[paddr].write_data = &fm7_mainmem_omote[addr & 0x7fff];
+	}
+	for(addr = main_begin + 0x8000; addr < (main_begin + 0xfc00); addr += 0x80) {
+		paddr = addr >> 7;
+		data_table[paddr].read_func  = &FM7_MAINMEM::read_ura_basicrom;
+		data_table[paddr].write_func = &FM7_MAINMEM::write_ura_basicrom;
+	}
+	{
+		addr = main_begin + 0xfc00;
+		paddr = addr >> 7;
+		data_table[paddr].read_data  = fm7_mainmem_bioswork;
+		data_table[paddr].write_data = fm7_mainmem_bioswork;
+	}
+	{
+		addr = main_begin + 0xfc80;
+		paddr = addr >> 7;
+		data_table[paddr].read_func  = &FM7_MAINMEM::read_shared_ram;
+		data_table[paddr].write_func = &FM7_MAINMEM::write_shared_ram;
+	}
+	for(addr = main_begin + 0xfd00; addr < (main_begin + 0xfe00); addr += 0x80) {
+		paddr = addr >> 7;
+		data_table[paddr].read_func  = &FM7_MAINMEM::read_mmio;
+		data_table[paddr].write_func = &FM7_MAINMEM::write_mmio;
+	}
+	for(addr = main_begin + 0xfe00; addr < (main_begin + 0x10000); addr += 0x80) {
+		paddr = addr >> 7;
+		data_table[paddr].read_func  = &FM7_MAINMEM::read_bootrom;
+		data_table[paddr].write_func = &FM7_MAINMEM::write_bootrom;
+	}
+	
+#if defined(_FM77AV_VARIANTS)
+	for(addr = 0x00000; addr < 0x10000; addr += 0x80) {
+		paddr = addr >> 7;
+		data_table[paddr].read_data  = &fm7_mainmem_mmrbank_0[addr & 0xffff];
+		data_table[paddr].write_data = &fm7_mainmem_mmrbank_0[addr & 0xffff];
+	}
+	for(addr = 0x10000; addr < 0x20000; addr += 0x80) {
+		paddr = addr >> 7;
+		data_table[paddr].read_func = &FM7_MAINMEM::read_direct_access;
+		data_table[paddr].write_func = &FM7_MAINMEM::write_direct_access;
+	}
+	for(addr = 0x20000; addr < 0x30000; addr += 0x80) {
+		paddr = addr >> 7;
+		data_table[paddr].read_func = &FM7_MAINMEM::read_page2;
+		data_table[paddr].write_func = &FM7_MAINMEM::write_page2;
+	}
+# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+	int pages = extram_pages;
+	if((pages > 0) && (pages < 12) && (fm7_mainmem_extram != NULL)) {
+		for(addr = 0x40000; addr < (0x40000 + extram_pages * 0x10000) ; addr += 0x80) {
+			paddr = addr >> 7;
+			data_table[paddr].read_data  = &fm7_mainmem_extram[addr - 0x40000];
+			data_table[paddr].write_data = &fm7_mainmem_extram[addr - 0x40000];
+		}
+	}
+# endif
+#elif defined(_FM77_VARIANTS)
+	int pages = extram_pages;
+	if((pages > 0) && (pages < 4) && (fm7_mainmem_extram != NULL)) {
+		for(addr = 0x10000; addr < (extram_pages * 0x10000) ; addr += 0x80) {
+			paddr = addr >> 7;
+			data_table[paddr].read_data  = &fm7_mainmem_extram[addr];
+			data_table[paddr].write_data = &fm7_mainmem_extram[addr];
+		}
+	}
+#endif	
+}	
 void FM7_MAINMEM::initialize(void)
 {
 	int i;
@@ -1199,6 +1812,7 @@ void FM7_MAINMEM::initialize(void)
 	if(read_bios(_T("EXTSUB.ROM"), read_table[i].memory, 0xc000) == 0xc000) diag_load_extrarom = true;
 	this->out_debug_log(_T("AV40SX/EX EXTRA ROM READING : %s"), diag_load_extrarom ? "OK" : "NG");
 #endif
+	init_data_table();
 }
 
 void FM7_MAINMEM::release()
@@ -1394,7 +2008,14 @@ bool FM7_MAINMEM::load_state(FILEIO *state_fio)
 #  else
 		if(pages > 12) pages = 12;
 #  endif	
-		if(pages > 0) state_fio->Fread(fm7_mainmem_extram, pages * 0x10000, 1);
+		if(fm7_mainmem_extram != NULL) {
+			free(fm7_mainmem_extram);
+			fm7_mainmem_extram = NULL;
+		}
+		if(pages > 0) {
+			fm7_mainmem_extram = malloc(pages * 0x10000);
+			state_fio->Fread(fm7_mainmem_extram, pages * 0x10000, 1);
+		}
 #  if defined(_FM77_VARIANTS)
 		state_fio->Fread(fm77_shadowram, sizeof(fm77_shadowram), 1);
 #  endif
@@ -1430,6 +2051,7 @@ bool FM7_MAINMEM::load_state(FILEIO *state_fio)
 		state_fio->Fread(mmr_map_data, sizeof(mmr_map_data), 1);
 #endif
 	}
+	init_data_table();
 	if(version != STATE_VERSION) return false;
 	return true;
 }
