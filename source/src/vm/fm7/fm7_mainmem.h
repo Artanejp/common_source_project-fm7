@@ -29,12 +29,6 @@ class FM7_MAINMEM : public DEVICE
 {
  private:
 	typedef struct {
-		DEVICE* dev;
-		uint8_t* memory;
-		int wait;
-	} bank_t;
-
-	typedef struct {
 		uint8_t *read_data;
 		uint8_t (FM7_MAINMEM::*read_func)(uint32_t, bool);
 		uint8_t *write_data;
@@ -42,8 +36,6 @@ class FM7_MAINMEM : public DEVICE
 	} data_func_table_t;
 	
 	data_func_table_t data_table[ADDRESS_SPACE / 0x80];
-	bank_t read_table[FM7_MAINMEM_END];
-	bank_t write_table[FM7_MAINMEM_END];
 	bool ioaccess_wait;
 	int waitfactor;
 	int waitcount;
@@ -202,28 +194,12 @@ class FM7_MAINMEM : public DEVICE
 	void set_context_display(DEVICE *p){
 		int i;  
 		display = p;
-		i = FM7_MAINMEM_SHAREDRAM;
-		read_table[i].dev = display;
-		write_table[i].dev = display;
-	
-#if defined(_FM77AV_VARIANTS)
-		i = FM7_MAINMEM_AV_DIRECTACCESS;
-		read_table[i].dev = display;
-		write_table[i].dev = display;
-#endif
 	}
 	void set_context_maincpu(MC6809 *p){
 		maincpu = p;
 	}
 	void set_context_mainio(DEVICE *p){
-		int i;
 		mainio = p;
-		i = FM7_MAINMEM_MMIO;
-		read_table[i].dev = mainio;
-		read_table[i].memory = NULL;
-		write_table[i].dev = mainio;
-		write_table[i].memory = NULL;
-		
 	}
 #if defined(CAPABLE_DICTROM)
 	void set_context_kanjirom_class1(DEVICE *p){
@@ -234,6 +210,9 @@ class FM7_MAINMEM : public DEVICE
 	uint32_t read_signal(int sigid);
 	uint32_t read_io8(uint32_t addr) {
 		return mainio->read_io8(addr);
+	}
+	void write_io8(uint32_t addr, uint32_t data) {
+		return mainio->write_io8(addr, data);
 	}
 };
 
