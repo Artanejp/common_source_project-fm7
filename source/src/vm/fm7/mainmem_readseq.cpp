@@ -1,0 +1,213 @@
+/*
+ * Main memory for FM-7 [FM7_MAINMEM/MAINMEM_READSEQ]
+ *  Author: K.Ohta
+ *  Date  : 2017.04.01-
+ *  License: GPLv2
+ *
+ */
+#include "vm.h"
+#include "emu.h"
+#include "fm7_mainmem.h"
+
+uint8_t FM7_MAINMEM::read_data_tbl(uint32_t addr, bool dmamode)
+{
+	uint32_t paddr = addr >> 7;
+	if(data_table[paddr].read_data != NULL) {
+		return data_table[paddr].read_data[addr & 0x7f];
+	} else if(data_table[paddr].read_func != NULL) {
+		uint8_t (FM7_MAINMEM::*read_func)(uint32_t, bool);
+		read_func = this->data_table[paddr].read_func;
+		return (this->*read_func)(addr, dmamode);
+	}
+	return 0xff;
+}		
+
+uint8_t FM7_MAINMEM::read_data(uint32_t addr, bool dmamode)
+{
+#ifdef HAS_MMR
+	int stat;
+	if(window_enabled) {
+		uint32_t raddr;
+		stat = window_convert(addr, &raddr);
+#if defined(_FM77AV_VARIANTS)
+		if(stat >= 0) {
+			return fm7_mainmem_mmrbank_0[raddr & 0xffff];
+		}
+#elif defined(_FM77_VARIANTS)
+		if(stat >= 0) {
+			if((extram_pages >= 3) && (fm7_mainmem_extram != NULL)) {
+				return fm7_mainmem_extram[raddr];
+			} else {
+				return 0xff;
+			}
+		}
+#endif
+	}
+	if(mmr_enabled) {
+		uint32_t segment = 0x00;
+		uint32_t raddr = (addr & 0x0fff);
+		uint32_t mmr_bank;
+		if(addr < 0xfc00) {
+			if(!dmamode) segment = mmr_segment;
+			if(!mmr_extend) {
+				mmr_bank = mmr_map_data[(addr >> 12) & 0x000f | ((segment & 0x03) << 4)] & 0x003f;
+			} else {
+				mmr_bank = mmr_map_data[(addr >> 12) & 0x000f | ((segment & 0x07) << 4)];
+			}		
+			// Reallocated by MMR
+			// Bank 3x : Standard memories.
+			if(mmr_bank != 0x3f){
+				raddr = (mmr_bank << 12) | raddr;
+				return read_data_tbl(raddr, dmamode);
+			}
+# ifdef _FM77AV_VARIANTS
+			else if(mmr_bank == 0x3f) {
+				if((raddr >= 0xd80) && (raddr <= 0xd97)) { // MMR AREA
+					return 0xff;
+				} else {
+					raddr = raddr | 0x3f000;
+					return read_data_tbl(raddr, dmamode);
+				}
+			}
+# elif defined(_FM77_VARIANTS)
+			else if(mmr_bank == 0x3f) {
+				if((raddr >= 0xc00) && (raddr < 0xe00)) {
+					if(is_basicrom) {
+						return 0x00;
+					} else {
+						raddr = raddr - 0xc00;
+						return fm77_shadowram[raddr];
+					}
+				} else if(raddr >= 0xe00) {
+					raddr = raddr - 0x0e00;
+					if(is_basicrom) {
+						if(diag_load_bootrom_mmr) {
+							return fm7_bootroms[2][raddr];
+						} else {
+							return fm7_bootroms[0][raddr];
+						}
+					} else {
+						return fm7_bootram[raddr];
+					}
+				} else {
+					raddr = raddr | 0x3f000;
+					return read_data_tbl(raddr, dmamode);
+				} 
+			}
+#endif
+		} else {
+			raddr = 0x30000 | (addr & 0xffff);
+			return read_data_tbl(raddr, dmamode);
+		}
+	}
+#endif
+#if !defined(_FM77AV_VARIANTS) && !defined(_FM77_VARIANTS)
+	uint32_t raddr = (addr & 0xffff);
+	return read_data_tbl(raddr, dmamode);
+#else
+	uint32_t raddr = (addr & 0xffff) | 0x30000;
+	return read_data_tbl(raddr, dmamode);
+#endif
+}
+
+uint32_t FM7_MAINMEM::read_data8_main(uint32_t addr, bool dmamode)
+{
+	uint32_t realaddr;
+	int bank;
+#ifdef _FM77AV_VARIANTS
+	if(initiator_enabled) {
+		if((addr >= 0x6000) && (addr < 0x8000)) {
+			uint32_t raddr = addr - 0x6000;
+			return fm7_mainmem_initrom[raddr];
+		}
+		if((addr >= 0xfffe) && (addr < 0x10000)) {
+			uint32_t raddr = addr - 0xe000;
+			//printf("%04x %02x\n", raddr, fm7_mainmem_initrom[raddr]);
+			return fm7_mainmem_initrom[raddr];
+		}
+	}
+#endif
+	return read_data(addr, dmamode);
+}	
+
+
+uint8_t FM7_MAINMEM::read_shared_ram(uint32_t realaddr, bool dmamode)
+{
+	realaddr = realaddr & 0x7f;
+	if(!sub_halted) return 0xff; // Not halt
+	return display->read_data8(realaddr  + 0xd380); // Okay?
+}
+
+uint8_t FM7_MAINMEM::read_direct_access(uint32_t realaddr, bool dmamode)
+{
+#if defined(_FM77AV_VARIANTS)
+	if(!sub_halted) return 0xff; // Not halt
+	if(dmamode) {
+		return display->read_dma_data8(realaddr & 0xffff); // Okay?
+	} else {
+		return display->read_data8(realaddr & 0xffff); // Okay?
+	}
+#else
+	return 0xff;
+#endif	
+}
+
+uint8_t FM7_MAINMEM::read_ura_basicrom(uint32_t addr, bool dmamode)
+{
+	addr = addr & 0x7fff;
+	if (basicrom_fd0f) {
+		return fm7_mainmem_basicrom[addr];
+	}
+	return fm7_mainmem_ura[addr];
+}
+
+uint8_t FM7_MAINMEM::read_mmio(uint32_t addr, bool dmamode)
+{
+	addr &= 0xff;
+	wait();
+	if(mainio != NULL) {
+		return mainio->read_data8(addr);
+	}
+	return 0xff;
+}
+
+uint8_t FM7_MAINMEM::read_bootrom(uint32_t addr, bool dmamode)
+{
+	addr = addr & 0x1ff;
+	if(addr <  0x1e0) {
+		wait();
+#if defined(_FM77AV_VARIANTS)
+		return fm7_bootram[addr];
+#else
+		switch(bootmode) {
+		case 0:
+		case 1:
+		case 2:
+		case 3:
+			return fm7_bootroms[bootmode][addr];
+			break;
+# if defined(_FM77_VARIANTS)
+		case 4:
+			return fm7_bootram[addr];
+			break;
+# endif				
+		default:
+			return fm7_bootroms[0][addr];
+			break;
+		}
+#endif
+	} else if (addr < 0x1fe) { // VECTOR
+		return fm7_mainmem_bootrom_vector[addr - 0x1e0];
+	}
+#if defined(_FM77AV_VARIANTS)
+	else {
+		wait();
+		return fm7_bootram[addr];
+	}
+#else
+	else {
+		return fm7_mainmem_reset_vector[addr & 1];
+	}
+#endif
+	return 0xff;
+}
