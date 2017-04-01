@@ -1415,6 +1415,7 @@ uint32_t DISPLAY::read_signal(int id)
 void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	bool flag = ((data & mask) != 0);
+	bool oldflag;
 	int y;
 	switch(id) {
 		case SIG_FM7_SUB_HALT:
@@ -1549,6 +1550,7 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 				}
 			}
 # else
+			oldflag = mode320;
 			mode320 = flag;
 			{
 		
@@ -1565,7 +1567,7 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 			alu->write_signal(SIG_ALU_Y_HEIGHT, 200, 0xffff);
 			alu->write_signal(SIG_ALU_400LINE, 0, 0xffffffff);
 			vram_wrote = true;
-			setup_display_mode();
+			if(mode320 != oldflag) setup_display_mode();
 # endif
 #endif			
 			break;
@@ -2119,6 +2121,7 @@ uint32_t DISPLAY::read_data8(uint32_t addr)
 void DISPLAY::write_mmio(uint32_t addr, uint8_t data)
 {
 	uint8_t rval = 0;
+	uint8_t active_block_old;
 	pair_t tmpvar;
 	if(addr < 0xd400) return;
 	
@@ -2273,10 +2276,11 @@ void DISPLAY::write_mmio(uint32_t addr, uint8_t data)
 			break;
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		case 0x33: //
+			active_block_old = vram_active_block;
 			vram_active_block = data & 0x01;
 			if(vram_display_block != (((data & 0x10) != 0) ? 1 : 0)) vram_wrote = true;
 			vram_display_block = ((data & 0x10) != 0) ? 1 : 0;
-			setup_display_mode();
+			if(vram_active_block != active_block_old) setup_display_mode();
 			break;
 			// Window
 		case 0x38: //
