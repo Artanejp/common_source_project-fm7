@@ -49,6 +49,9 @@ uint8_t FM7_MAINMEM::read_data(uint32_t addr, bool dmamode)
 		uint32_t mmr_bank;
 		if(addr < 0xfc00) {
 			if(!dmamode) segment = mmr_segment;
+#if 1
+			return read_with_mmr(addr, segment, dmamode);
+#else
 			if(!mmr_extend) {
 				mmr_bank = mmr_map_data[(addr >> 12) & 0x000f | ((segment & 0x03) << 4)] & 0x003f;
 			} else {
@@ -94,6 +97,7 @@ uint8_t FM7_MAINMEM::read_data(uint32_t addr, bool dmamode)
 					return read_data_tbl(raddr, dmamode);
 				} 
 			}
+# endif
 #endif
 		} else {
 			raddr = 0x30000 | (addr & 0xffff);
@@ -101,6 +105,7 @@ uint8_t FM7_MAINMEM::read_data(uint32_t addr, bool dmamode)
 		}
 	}
 #endif
+	
 #if !defined(_FM77AV_VARIANTS) && !defined(_FM77_VARIANTS)
 	uint32_t raddr = (addr & 0xffff);
 	return read_data_tbl(raddr, dmamode);

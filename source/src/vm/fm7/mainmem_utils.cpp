@@ -213,6 +213,7 @@ void FM7_MAINMEM::initialize(void)
 	this->out_debug_log(_T("AV40SX/EX EXTRA ROM READING : %s"), diag_load_extrarom ? "OK" : "NG");
 #endif
 	init_data_table();
+	update_all_mmr_jumptable();
 }
 
 void FM7_MAINMEM::release()

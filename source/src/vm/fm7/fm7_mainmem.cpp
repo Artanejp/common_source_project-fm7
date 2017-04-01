@@ -84,6 +84,7 @@ void FM7_MAINMEM::reset()
 	is_basicrom = ((bootmode & 0x03) == 0) ? true : false;
 	setclock(clockmode ? 0 : 1);
 	init_data_table();
+	update_all_mmr_jumptable();
 	maincpu->reset();
 }
 
@@ -415,10 +416,12 @@ void FM7_MAINMEM::write_data8(uint32_t addr, uint32_t data)
 			} else {
 				mmr_segment = data & 0x03;
 			}
+			update_all_mmr_jumptable();
 			break;
 		default:
 			if((addr >= FM7_MAINIO_MMR_BANK) && (addr < (FM7_MAINIO_MMR_BANK + 0x80))){
 				mmr_map_data[addr - FM7_MAINIO_MMR_BANK] = (uint8_t)data;
+				update_mmr_jumptable(addr - FM7_MAINIO_MMR_BANK);
 			}
 			break;
 		}
@@ -701,6 +704,7 @@ bool FM7_MAINMEM::load_state(FILEIO *state_fio)
 #endif
 	}
 	init_data_table();
+	update_all_mmr_jumptable();
 	if(version != STATE_VERSION) return false;
 	return true;
 }

@@ -124,6 +124,10 @@ void FM7_MAINMEM::write_data(uint32_t addr, uint32_t data, bool dmamode)
 		uint32_t mmr_bank;
 		if(addr < 0xfc00) {
 			if(!dmamode) segment = mmr_segment;
+#if 1
+			write_with_mmr(addr, segment, data, dmamode);
+			return;
+#else
 			if(!mmr_extend) {
 				mmr_bank = mmr_map_data[(addr >> 12) & 0x000f | ((segment & 0x03) << 4)] & 0x003f;
 			} else {
@@ -170,6 +174,7 @@ void FM7_MAINMEM::write_data(uint32_t addr, uint32_t data, bool dmamode)
 					return;
 				} 
 			}
+# endif
 #endif
 		} else {
 			raddr = 0x30000 | (addr & 0xffff);

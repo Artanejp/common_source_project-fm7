@@ -36,6 +36,15 @@ class FM7_MAINMEM : public DEVICE
 	} data_func_table_t;
 	
 	data_func_table_t data_table[ADDRESS_SPACE / 0x80];
+#if defined(HAS_MMR)
+# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)	
+	data_func_table_t mmr_update_table_ext[(0x80 * 0x1000) / 0x80];
+	uint32_t mmr_baseaddr_table_ext[(0x80 * 0x1000) / 0x80];
+# endif
+	data_func_table_t mmr_update_table_nor[(0x80 * 0x1000) / 0x80];
+	uint32_t mmr_bank_table[(0x80 * 0x1000) / 0x80];
+	uint32_t mmr_baseaddr_table_nor[(0x80 * 0x1000) / 0x80];
+#endif
 	bool ioaccess_wait;
 	int waitfactor;
 	int waitcount;
@@ -155,6 +164,13 @@ class FM7_MAINMEM : public DEVICE
 	uint8_t read_data_tbl(uint32_t addr, bool dmamode);
 	void write_data_tbl(uint32_t addr, uint32_t data, bool dmamode);
 
+	void update_mmr_jumptable(uint32_t pos);
+	void update_all_mmr_jumptable(void);
+	uint8_t read_segment_3f(uint32_t addr, bool dmamode);
+	void write_segment_3f(uint32_t addr, uint32_t data, bool dmamode);
+	uint8_t read_with_mmr(uint32_t addr, uint32_t segment, uint32_t dmamode);
+	void write_with_mmr(uint32_t addr, uint32_t segment, uint32_t data, uint32_t dmamode);
+
  public:
 	FM7_MAINMEM(VM* parent_vm, EMU* parent_emu);
 	~FM7_MAINMEM();
@@ -187,7 +203,6 @@ class FM7_MAINMEM : public DEVICE
 	bool load_state(FILEIO *state_fio);
 
 	void set_context_display(DEVICE *p){
-		int i;  
 		display = p;
 	}
 	void set_context_maincpu(MC6809 *p){
