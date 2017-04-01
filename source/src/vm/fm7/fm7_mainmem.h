@@ -17,26 +17,16 @@ class DEVICE;
 class MEMORY;
 class FM7_MAINIO;
 
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-#define MAINMEM_TABLE_SIZE (0x100000 >> 7)
-#else
-#define MAINMEM_TABLE_SIZE (0x40000 >> 7)
-#endif
-
 class FM7_MAINMEM : public DEVICE
 {
  private:
-
-	uint8_t *addr_r_table_page[MAINMEM_TABLE_SIZE];
-	uint8_t *addr_w_table_page[MAINMEM_TABLE_SIZE];
-	uint8_t (FM7_MAINMEM::*func_r_table_page[MAINMEM_TABLE_SIZE])(uint32_t, bool);
-	void    (FM7_MAINMEM::*func_w_table_page[MAINMEM_TABLE_SIZE])(uint32_t, uint32_t, bool);
-
-	uint8_t *mmr_addr_r_table[0x80 * 0x1000 / 0x80];
-	uint8_t *mmr_addr_w_table[0x80 * 0x1000 / 0x80];
-	uint8_t (FM7_MAINMEM::*mmr_func_r_table[0x80 * 0x1000 / 0x80])(uint32_t, bool);
-	void    (FM7_MAINMEM::*mmr_func_w_table[0x80 * 0x1000 / 0x80])(uint32_t, uint32_t, bool);
-
+	typedef struct {
+		DEVICE* dev;
+		uint8_t* memory;
+		int wait;
+	} bank_t;
+	bank_t read_table[FM7_MAINMEM_END];
+	bank_t write_table[FM7_MAINMEM_END];
 	bool ioaccess_wait;
 	int waitfactor;
 	int waitcount;
@@ -129,33 +119,15 @@ class FM7_MAINMEM : public DEVICE
 	bool diag_load_bootrom_dos;
 	bool diag_load_bootrom_mmr;
 
+	int getbank(uint32_t addr, uint32_t *realaddr, bool write_state, bool dmamode);
 	int check_extrom(uint32_t raddr, uint32_t *realaddr);
 	
 	int window_convert(uint32_t addr, uint32_t *realaddr);
-	int mmr_convert(uint32_t addr, uint32_t *realaddr, bool dmamode);
+	int mmr_convert(uint32_t addr, uint32_t *realaddr, bool write_state, bool dmamode);
+	int nonmmr_convert(uint32_t addr, uint32_t *realaddr);
 	uint32_t read_bios(const _TCHAR *name, uint8_t *ptr, uint32_t size);
 	uint32_t write_bios(const _TCHAR *name, uint8_t *ptr, uint32_t size);
 	void setclock(int mode);
-
-	uint8_t read_directaccess(uint32_t addr, bool dmamode);
-	void write_directaccess(uint32_t addr, uint32_t data, bool dmamode);
-	uint8_t read_page2_extcard(uint32_t addr, bool dmamode);
-	void write_page2_extcard(uint32_t addr, uint32_t data, bool dmamode);
-	uint8_t read_page3_basicrom_uraram(uint32_t addr, bool dmamode);
-	void write_page3_basicrom_uraram(uint32_t addr, uint32_t data, bool dmamode);
-	
-	uint8_t read_page3_sharedram(uint32_t addr, bool dmamode);
-	void write_page3_sharedram(uint32_t addr, uint32_t data, bool dmamode);
-	uint8_t read_page3_mmio(uint32_t addr, bool dmamode);
-	void write_page3_mmio(uint32_t addr, uint32_t data, bool dmamode);
-	uint8_t read_page3_bootrom(uint32_t addr, bool dmamode);
-	void write_page3_bootrom(uint32_t addr, uint32_t data, bool dmamode);
-
-	void setup_table_extram(void);
-	void setup_table_page3(void);
-	uint8_t read_pages(uint32_t addr, bool dmamode);
-	void write_pages(uint32_t addr, uint32_t data, bool dmamode);
-	void update_mmr_reg_to_realmap(uint8_t seg);
 
  public:
 	FM7_MAINMEM(VM* parent_vm, EMU* parent_emu);
@@ -191,6 +163,15 @@ class FM7_MAINMEM : public DEVICE
 	void set_context_display(DEVICE *p){
 		int i;  
 		display = p;
+		i = FM7_MAINMEM_SHAREDRAM;
+		read_table[i].dev = display;
+		write_table[i].dev = display;
+	
+#if defined(_FM77AV_VARIANTS)
+		i = FM7_MAINMEM_AV_DIRECTACCESS;
+		read_table[i].dev = display;
+		write_table[i].dev = display;
+#endif
 	}
 	void set_context_maincpu(MC6809 *p){
 		maincpu = p;
@@ -198,6 +179,12 @@ class FM7_MAINMEM : public DEVICE
 	void set_context_mainio(DEVICE *p){
 		int i;
 		mainio = p;
+		i = FM7_MAINMEM_MMIO;
+		read_table[i].dev = mainio;
+		read_table[i].memory = NULL;
+		write_table[i].dev = mainio;
+		write_table[i].memory = NULL;
+		
 	}
 #if defined(CAPABLE_DICTROM)
 	void set_context_kanjirom_class1(DEVICE *p){
