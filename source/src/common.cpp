@@ -157,7 +157,7 @@ int DLL_PREFIX my_sprintf_s(char *buffer, size_t sizeOfBuffer, const char *forma
 {
 	va_list ap;
 	va_start(ap, format);
-	int result = vsprintf(buffer, format, ap);
+	int result = vsnprintf(buffer, sizeOfBuffer, format, ap);
 	va_end(ap);
 	return result;
 }
@@ -166,7 +166,7 @@ int DLL_PREFIX my_swprintf_s(wchar_t *buffer, size_t sizeOfBuffer, const wchar_t
 {
 	va_list ap;
 	va_start(ap, format);
-	int result = vswprintf(buffer, format, ap);
+	int result = vswprintf(buffer, sizeOfBuffer, format, ap);
 	va_end(ap);
 	return result;
 }
@@ -175,19 +175,19 @@ int DLL_PREFIX my_stprintf_s(_TCHAR *buffer, size_t sizeOfBuffer, const _TCHAR *
 {
 	va_list ap;
 	va_start(ap, format);
-	int result = _vstprintf(buffer, format, ap);
+	int result = vsnprintf(buffer, sizeOfBuffer, format, ap);
 	va_end(ap);
 	return result;
 }
 
 int DLL_PREFIX my_vsprintf_s(char *buffer, size_t numberOfElements, const char *format, va_list argptr)
 {
-	return vsprintf(buffer, format, argptr);
+	return vsnprintf(buffer, numberOfElements * sizeof(char), format, argptr);
 }
 
 int DLL_PREFIX my_vstprintf_s(_TCHAR *buffer, size_t numberOfElements, const _TCHAR *format, va_list argptr)
 {
-	return _vstprintf(buffer, format, argptr);
+	return vsnprintf(buffer, numberOfElements * sizeof(_TCHAR), format, argptr);
 }
 #endif
 
