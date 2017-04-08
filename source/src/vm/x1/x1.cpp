@@ -68,7 +68,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 {
 	pseudo_sub_cpu = !(FILEIO::IsFileExisting(create_local_path(SUB_ROM_FILE_NAME)) && FILEIO::IsFileExisting(create_local_path(KBD_ROM_FILE_NAME)));
 	
-	sound_device_type = config.sound_device_type;
+	sound_type = config.sound_type;
 	
 	// create devices
 	first_device = last_device = NULL;
@@ -92,23 +92,23 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	cpu = new Z80(this, emu);
 	ctc = new Z80CTC(this, emu);
 	sio = new Z80SIO(this, emu);
-	if(sound_device_type >= 1) {
+	if(sound_type >= 1) {
 		opm1 = new YM2151(this, emu);
 		ctc1 = new Z80CTC(this, emu);
 		opm1->set_device_name(_T("YM2151 OPM (CZ-8BS1 #1)"));
 		ctc1->set_device_name(_T("Z80 CTC (CZ-8BS1 #1)"));
 	}
-	if(sound_device_type == 2) {
+	if(sound_type == 2) {
 		opm2 = new YM2151(this, emu);
 		ctc2 = new Z80CTC(this, emu);
 		opm2->set_device_name(_T("YM2151 OPM (CZ-8BS1 #2)"));
 		ctc2->set_device_name(_T("Z80 CTC (CZ-8BS1 #2)"));
 	}
-	if(config.printer_device_type == 0) {
+	if(config.printer_type == 0) {
 		printer = new PRNFILE(this, emu);
-	} else if(config.printer_device_type == 1) {
+	} else if(config.printer_type == 1) {
 		printer = new MZ1P17(this, emu);
-//	} else if(config.printer_device_type == 2) {
+//	} else if(config.printer_type == 2) {
 //		printer = new PCPR201(this, emu);
 	} else {
 		printer = dummy;
@@ -151,10 +151,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		event->set_context_cpu(cpu_sub, 6000000);
 		event->set_context_cpu(cpu_kbd, 6000000);
 	}
-	if(sound_device_type >= 1) {
+	if(sound_type >= 1) {
 		event->set_context_sound(opm1);
 	}
-	if(sound_device_type == 2) {
+	if(sound_type == 2) {
 		event->set_context_sound(opm2);
 	}
 	event->set_context_sound(psg);
@@ -191,24 +191,24 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 //	sio->set_tx_clock(1, 4800 * 16);	// 4800 baud for mouse
 //	sio->set_rx_clock(1, 4800 * 16);	// clock is from Z-80CTC ch2 (2MHz/26)
 	
-	if(sound_device_type >= 1) {
+	if(sound_type >= 1) {
 		ctc1->set_context_zc0(ctc1, SIG_Z80CTC_TRIG_3, 1);
 //		ctc1->set_constant_clock(1, CPU_CLOCKS >> 1);
 //		ctc1->set_constant_clock(2, CPU_CLOCKS >> 1);
 	}
-	if(sound_device_type == 2) {
+	if(sound_type == 2) {
 		ctc2->set_context_zc0(ctc2, SIG_Z80CTC_TRIG_3, 1);
 //		ctc2->set_constant_clock(1, CPU_CLOCKS >> 1);
 //		ctc2->set_constant_clock(2, CPU_CLOCKS >> 1);
 	}
-	if(config.printer_device_type == 0) {
+	if(config.printer_type == 0) {
 		PRNFILE *prnfile = (PRNFILE *)printer;
 		prnfile->set_context_busy(pio, SIG_I8255_PORT_B, 0x08);
-	} else if(config.printer_device_type == 1) {
+	} else if(config.printer_type == 1) {
 		MZ1P17 *mz1p17 = (MZ1P17 *)printer;
 		mz1p17->mode = MZ1P17_MODE_X1;
 		mz1p17->set_context_busy(pio, SIG_I8255_PORT_B, 0x08);
-//	} else if(config.printer_device_type == 2) {
+//	} else if(config.printer_type == 2) {
 //		PCPR201 *pcpr201 = (PCPR201 *)printer;
 //		pcpr201->set_context_busy(pio, SIG_I8255_PORT_B, 0x08);
 	}
@@ -297,10 +297,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	Z80_DAISY_CHAIN(sio);	// CZ-8BM2
 	Z80_DAISY_CHAIN(ctc);
 #endif
-	if(sound_device_type >= 1) {
+	if(sound_type >= 1) {
 		Z80_DAISY_CHAIN(ctc1);
 	}
-	if(sound_device_type == 2) {
+	if(sound_type == 2) {
 		Z80_DAISY_CHAIN(ctc2);
 	}
 #ifdef _X1TURBO_FEATURE
@@ -315,7 +315,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	}
 	
 	// i/o bus
-	if(sound_device_type >= 1) {
+	if(sound_type >= 1) {
 		io->set_iomap_single_w(0x700, opm1);
 		io->set_iovalue_single_r(0x700, 0x00);
 		io->set_iomap_single_rw(0x701, opm1);
@@ -325,7 +325,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		io->set_iomap_range_rw(0x704, 0x707, ctc1);
 #endif
 	}
-	if(sound_device_type == 2) {
+	if(sound_type == 2) {
 		io->set_iomap_single_w(0x708, opm2);
 		io->set_iovalue_single_r(0x708, 0x00);
 		io->set_iomap_single_rw(0x709, opm2);
@@ -545,10 +545,10 @@ void VM::initialize_sound(int rate, int samples)
 #endif
 	
 	// init sound gen
-	if(sound_device_type >= 1) {
+	if(sound_type >= 1) {
 		opm1->initialize_sound(rate, 4000000, samples, 0);
 	}
-	if(sound_device_type == 2) {
+	if(sound_type == 2) {
 		opm2->initialize_sound(rate, 4000000, samples, 0);
 	}
 	psg->initialize_sound(rate, 2000000, samples, 0, 0);
@@ -587,11 +587,11 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 	if(ch == 0) {
 		psg->set_volume(1, decibel_l, decibel_r);
 	} else if(ch == 1) {
-		if(sound_device_type >= 1) {
+		if(sound_type >= 1) {
 			opm1->set_volume(0, decibel_l, decibel_r);
 		}
 	} else if(ch == 2) {
-		if(sound_device_type >= 2) {
+		if(sound_type >= 2) {
 			opm2->set_volume(0, decibel_l, decibel_r);
 		}
 	} else if(ch == 3) {
@@ -842,7 +842,7 @@ void VM::save_state(FILEIO* state_fio)
 		device->save_state(state_fio);
 	}
 	state_fio->FputBool(pseudo_sub_cpu);
-	state_fio->FputInt32(sound_device_type);
+	state_fio->FputInt32(sound_type);
 }
 
 bool VM::load_state(FILEIO* state_fio)
@@ -856,7 +856,7 @@ bool VM::load_state(FILEIO* state_fio)
 		}
 	}
 	pseudo_sub_cpu = state_fio->FgetBool();
-	sound_device_type = state_fio->FgetInt32();
+	sound_type = state_fio->FgetInt32();
 	
 #ifdef _X1TURBO_FEATURE
 	// post process

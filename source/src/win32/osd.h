@@ -14,8 +14,8 @@
 #define DIRECT3D_VERSION	0x900
 // XXX: if your DirectX 9.0 SDK is newer and does not contain dinput.lib,
 // please change the definition of DIRECTINPUT_VERSION from 0x500 to 0x800
-//#define DIRECTINPUT_VERSION	0x500
-#define DIRECTINPUT_VERSION	0x800
+#define DIRECTINPUT_VERSION	0x500
+//#define DIRECTINPUT_VERSION	0x800
 
 #include <windows.h>
 #include <windowsx.h>
@@ -151,6 +151,10 @@ public:
 
 #define SUPPORT_WIN32_DLL
 
+#define SCREEN_FILTER_NONE	0
+#define SCREEN_FILTER_RGB	1
+#define SCREEN_FILTER_RF	2
+
 // check memory leaks
 #ifdef _DEBUG
 #define _CRTDBG_MAP_ALLOC
@@ -266,17 +270,17 @@ private:
 	void release_screen();
 	void initialize_screen_buffer(bitmap_t *buffer, int width, int height, int mode);
 	void release_screen_buffer(bitmap_t *buffer);
-#ifdef USE_CRT_FILTER
-	void apply_crt_fileter_to_screen_buffer(bitmap_t *source, bitmap_t *dest);
-	void apply_crt_filter_x3_y3(bitmap_t *source, bitmap_t *dest);
-	void apply_crt_filter_x3_y2(bitmap_t *source, bitmap_t *dest);
-	void apply_crt_filter_x2_y3(bitmap_t *source, bitmap_t *dest);
-	void apply_crt_filter_x2_y2(bitmap_t *source, bitmap_t *dest);
-	void apply_crt_filter_x1_y1(bitmap_t *source, bitmap_t *dest);
+#ifdef USE_SCREEN_FILTER
+	void apply_rgb_filter_to_screen_buffer(bitmap_t *source, bitmap_t *dest);
+	void apply_rgb_filter_x3_y3(bitmap_t *source, bitmap_t *dest);
+	void apply_rgb_filter_x3_y2(bitmap_t *source, bitmap_t *dest);
+	void apply_rgb_filter_x2_y3(bitmap_t *source, bitmap_t *dest);
+	void apply_rgb_filter_x2_y2(bitmap_t *source, bitmap_t *dest);
+	void apply_rgb_filter_x1_y1(bitmap_t *source, bitmap_t *dest);
 #endif
-#ifdef USE_SCREEN_ROTATE
+//#ifdef USE_SCREEN_ROTATE
 	void rotate_screen_buffer(bitmap_t *source, bitmap_t *dest);
-#endif
+//#endif
 	void stretch_screen_buffer(bitmap_t *source, bitmap_t *dest);
 	bool initialize_d3d9();
 	bool initialize_d3d9_surface(bitmap_t *buffer);
@@ -286,13 +290,13 @@ private:
 	int add_video_frames();
 	
 	bitmap_t vm_screen_buffer;
-#ifdef USE_CRT_FILTER
+#ifdef USE_SCREEN_FILTER
 	bitmap_t filtered_screen_buffer;
 	bitmap_t tmp_filtered_screen_buffer;
 #endif
-#ifdef USE_SCREEN_ROTATE
+//#ifdef USE_SCREEN_ROTATE
 	bitmap_t rotated_screen_buffer;
-#endif
+//#endif
 	bitmap_t stretched_screen_buffer;
 	bitmap_t shrinked_screen_buffer;
 	bitmap_t video_screen_buffer;
@@ -510,7 +514,7 @@ public:
 	void restart_record_video();
 	void add_extra_frames(int extra_frames);
 	bool now_record_video;
-#ifdef USE_CRT_FILTER
+#ifdef USE_SCREEN_FILTER
 	bool screen_skip_line;
 #endif
 	
@@ -606,6 +610,7 @@ public:
 #endif
 	
 	// win32 dependent
+	void invalidate_screen();
 	void update_screen(HDC hdc);
 	HWND main_window_handle;
 	HINSTANCE instance_handle;

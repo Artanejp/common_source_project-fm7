@@ -59,7 +59,7 @@ void FM7_MAINIO::reset_sound(void)
 #endif	
 
 #if defined(_FM8)
-	if(config.sound_device_type == 0) {
+	if(config.sound_type == 0) {
 		connect_psg = false;
 	} else {
 		connect_psg = true;
@@ -72,7 +72,7 @@ void FM7_MAINIO::reset_sound(void)
 #else
 	connect_opn = false;
 #endif
-	switch(config.sound_device_type) {
+	switch(config.sound_type) {
 		case 0:
 			break;
 		case 1:

@@ -79,7 +79,7 @@ void OSD::initialize_input()
 	lpdi = NULL;
 	lpdikey = NULL;
 	
-	if(config.use_direct_input) {
+	if(config.use_dinput) {
 #if DIRECTINPUT_VERSION >= 0x0800
 		if(SUCCEEDED(DirectInput8Create(instance_handle, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&lpdi, NULL))) {
 #else

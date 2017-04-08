@@ -537,7 +537,7 @@ void PSUB::process_cmd()
 	case 0xe3:
 		// game key read (for turbo)
 		databuf[0x13][0] = databuf[0x13][1] = databuf[0x13][2] = 0;
-		if(config.device_type != 0) {
+		if(config.keyboard_type != 0) {
 			databuf[0x13][0] |= key_stat[0x51] ? 0x80 : 0;	// q
 			databuf[0x13][0] |= key_stat[0x57] ? 0x40 : 0;	// w
 			databuf[0x13][0] |= key_stat[0x45] ? 0x20 : 0;	// e
@@ -811,14 +811,14 @@ uint16_t PSUB::get_key(int code, bool repeat)
 	if(key_kana_locked) {
 		if(!(l & 0x02)) {
 #ifdef _X1TURBO_FEATURE
-			if(config.device_type != 0) {
+			if(config.keyboard_type != 0) {
 				h = keycode_ksb[code];	// kana+shift (mode b)
 			} else
 #endif
 			h = keycode_ks[code];	// kana+shift
 		} else {
 #ifdef _X1TURBO_FEATURE
-			if(config.device_type != 0) {
+			if(config.keyboard_type != 0) {
 				h = keycode_kb[code];	// kana (mode b)
 			} else
 #endif

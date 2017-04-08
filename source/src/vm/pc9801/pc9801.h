@@ -155,15 +155,14 @@
 // slow enough for N88-“ú–{ŒêBASIC
 #define USE_AUTO_KEY		8
 #define USE_AUTO_KEY_RELEASE	10
-#define USE_MONITOR_TYPE	2
-#define USE_SCANLINE
 #else
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #endif
-#define USE_CRT_FILTER
-#define USE_SCREEN_ROTATE
-#define USE_SOUND_DEVICE_TYPE	5
+#define USE_MONITOR_TYPE	2
+#define USE_SCANLINE
+#define USE_SCREEN_FILTER
+#define USE_SOUND_TYPE		5
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 #if    defined(SUPPORT_PC98_OPNA) &&  defined(SUPPORT_PC88_OPNA)
 #define USE_SOUND_VOLUME	(4 + 1 + 1 + 4 + 1 + 1)
@@ -184,7 +183,7 @@
 #define USE_JOYSTICK
 #define USE_MOUSE
 #define USE_PRINTER
-#define USE_PRINTER_TYPE	4
+#define USE_PRINTER_TYPE	3
 #define USE_DEBUGGER
 #define USE_STATE
 
@@ -360,7 +359,7 @@ protected:
 	bool pit_clock_8mhz;
 	
 	// sound
-	int sound_device_type;
+	int sound_type;
 	
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 	EVENT* pc88event;

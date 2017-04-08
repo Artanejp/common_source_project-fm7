@@ -268,6 +268,7 @@ void EmuThreadClass::doWork(const QString &params)
 	bStartRecordSoundReq = false;
 	bStopRecordSoundReq = false;
 	bStartRecordMovieReq = false;
+	sStateFile.clear();
 	record_fps = -1;
 
 	next_time = 0;
@@ -303,7 +304,10 @@ void EmuThreadClass::doWork(const QString &params)
 			// drive machine
 #ifdef USE_STATE
 			if(bLoadStateReq != false) {
-				p_emu->load_state();
+				if(!sStateFile.isEmpty()) {
+					p_emu->load_state(sStateFile.toLocal8Bit().constData());
+					sStateFile.clear();
+				}
 				bLoadStateReq = false;
 				req_draw = true;
 			}
@@ -321,7 +325,10 @@ void EmuThreadClass::doWork(const QString &params)
 #endif
 #ifdef USE_STATE
 			if(bSaveStateReq != false) {
-				p_emu->save_state();
+				if(!sStateFile.isEmpty()) {
+					p_emu->save_state(sStateFile.toLocal8Bit().constData());
+					sStateFile.clear();
+				}
 				bSaveStateReq = false;
 			}
 #endif

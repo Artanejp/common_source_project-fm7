@@ -74,7 +74,7 @@
 #define CPU_TYPE_DEFAULT	1
 #endif
 #define USE_DIPSWITCH
-#define USE_DEVICE_TYPE		2
+#define USE_JOYSTICK_TYPE	2
 #define USE_FD1
 #define USE_FD2
 #define USE_TAPE1
@@ -87,14 +87,13 @@
 #define USE_AUTO_KEY		8
 #define USE_AUTO_KEY_RELEASE	10
 #define USE_MONITOR_TYPE	2
-#define USE_CRT_FILTER
+#define USE_SCREEN_FILTER
 #define USE_SCANLINE
-#define USE_SCREEN_ROTATE
 #ifdef SUPPORT_PC88_OPNA
 #ifdef SUPPORT_PC88_SB2
-#define USE_SOUND_DEVICE_TYPE	3
+#define USE_SOUND_TYPE		3
 #else
-#define USE_SOUND_DEVICE_TYPE	2
+#define USE_SOUND_TYPE		2
 #endif
 #endif
 #if    defined(SUPPORT_PC88_OPNA) &&  defined(SUPPORT_PC88_SB2) &&  defined(SUPPORT_PC88_PCG8100)
@@ -119,7 +118,7 @@
 #define USE_JOYSTICK
 #define USE_MOUSE
 #define USE_PRINTER
-#define USE_PRINTER_TYPE	4
+#define USE_PRINTER_TYPE	3
 #define USE_DEBUGGER
 #define USE_STATE
 

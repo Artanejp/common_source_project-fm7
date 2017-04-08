@@ -12,41 +12,12 @@
 #include <QVariant>
 #include <QObject>
 #include <QAction>
-
-#if 0
-#if defined(_USE_QT5)
-#include <QVariant>
-#include <QAction>
-#include <QApplication>
-#include <QButtonGroup>
-#include <QGraphicsView>
-#include <QHeaderView>
-#include <QMainWindow>
-#include <QMenu>
-#include <QMenuBar>
-#include <QStatusBar>
-#include <QWidget>
-#include <QIcon>
 #include <QString>
-#endif
-#endif
 
 #include "simd_types.h"
 #include "common.h"
 #include "config.h"
-#if 0
-class QApplication;
-class QButtonGroup;
-class QGraphicsView;
-class QHeaderView;
-class QMainWindow;
-class QMenu;
-class QMenuBar;
-class QStatusBar;
-class QWidget;
-class QIcon;
-class QString;
-#endif
+
 class EMU;
 class USING_FLAGS;
 //extern class EMU* emu;
@@ -64,6 +35,7 @@ Object_Menu_Control(QObject *parent, USING_FLAGS *p) : QObject(parent){
 		using_flags = p;
 		play = true; // Read
 		write_protect = false; // Enable to write
+		_str.clear();
 	}
 	~Object_Menu_Control() {}
 protected:
@@ -73,6 +45,7 @@ protected:
 	bool play;
 	bool write_protect;
 	double double_val;
+	QString _str;
  public:
 	void setValue1(int v) {bindValue = v;}
 	int getValue1(void) {return bindValue;}
@@ -82,12 +55,14 @@ protected:
 	int getNumber(void) { return s_num;}
 	void setDoubleValue(double n) {double_val = n;}
 	double getDoubleValue(void) {return double_val;}
-	
+	QString getStringValue(void) {return _str; }
+	void setStringValue(QString s) { _str = s; }
 	bool isPlay(void) { return play; }
 	void setPlay(bool b) { play = b; }
    
 	bool isWriteProtect(void) { return write_protect; }
 	void setWriteProtect(bool b) {write_protect = b;}
+
 public slots:
 	void set_boot_mode(void);
 	void set_cpu_type(void);
@@ -228,6 +203,8 @@ public slots:
 	void do_set_dev_log_to_console(bool f);
 	void do_set_dev_log_to_syslog(bool f);
 	void do_select_render_platform(void);
+	void do_save_state(void);
+	void do_load_state(void);
 	
 signals:
 	int quit_emu_thread(void);
@@ -235,6 +212,8 @@ signals:
 	int sig_set_dev_log_to_console(int, bool);
 	int sig_set_dev_log_to_syslog(int, bool);
 	int sig_select_render_platform(int);
+	int sig_save_state(QString);
+	int sig_load_state(QString);
 } ActionControl;
 QT_END_NAMESPACE
 

@@ -34,7 +34,7 @@ void Ui_MainWindowBase::set_freq(int num)
 void Ui_MainWindowBase::set_sound_device(int num)
 {
 	if((num < 0) || (num >= using_flags->get_use_sound_device_type())) return;
-	using_flags->get_config_ptr()->sound_device_type = num;
+	using_flags->get_config_ptr()->sound_type = num;
 	emit sig_emu_update_config();
 }
 
@@ -78,11 +78,6 @@ void Ui_MainWindowBase::set_screen_rotate(bool flag)
 	if(actionScreenSize[using_flags->get_config_ptr()->window_mode] != NULL) {
 		actionScreenSize[using_flags->get_config_ptr()->window_mode]->binds->set_screen_size();
 	}
-}
-
-void Ui_MainWindowBase::set_crt_filter(bool flag)
-{
-	using_flags->get_config_ptr()->crt_filter = flag;
 }
 
 void Ui_MainWindowBase::set_gl_crt_filter(bool flag)
@@ -242,7 +237,7 @@ void Ui_MainWindowBase::ConfigSoundDeviceType(void)
 			actionSoundDevice[i] = new Action_Control(this, using_flags);
 			actionSoundDevice[i]->setCheckable(true);
 			actionSoundDevice[i]->binds->setValue1(i);
-			if(i == using_flags->get_config_ptr()->sound_device_type) actionSoundDevice[i]->setChecked(true); // Need to write configure
+			if(i == using_flags->get_config_ptr()->sound_type) actionSoundDevice[i]->setChecked(true); // Need to write configure
 			tmps = QString::fromUtf8("actionSoundDevice_");
 			actionSoundDevice[i]->setObjectName(tmps + QString::number(i));
 			menuSoundDevice->addAction(actionSoundDevice[i]);
@@ -275,7 +270,7 @@ void Ui_MainWindowBase::ConfigPrinterType(void)
 			actionPrintDevice[i] = new Action_Control(this, using_flags);
 			actionPrintDevice[i]->setCheckable(true);
 			actionPrintDevice[i]->binds->setValue1(i);
-			if(i == using_flags->get_config_ptr()->printer_device_type) actionPrintDevice[i]->setChecked(true); // Need to write configure
+			if(i == using_flags->get_config_ptr()->printer_type) actionPrintDevice[i]->setChecked(true); // Need to write configure
 			tmps = QString::fromUtf8("actionPrintDevice_");
 			actionPrintDevice[i]->setObjectName(tmps + QString::number(i));
 			menuPrintDevice->addAction(actionPrintDevice[i]);
@@ -299,6 +294,6 @@ void Ui_MainWindowBase::set_printer_device(int p_type)
 	} else {
 		if(p_type >= 8) p_type = 0;
 	}
-	using_flags->get_config_ptr()->printer_device_type = p_type;
+	using_flags->get_config_ptr()->printer_type = p_type;
 	emit sig_emu_update_config();
 }

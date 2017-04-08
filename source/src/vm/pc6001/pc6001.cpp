@@ -83,7 +83,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #endif
 	cpu = new Z80(this, emu);
 	
-	if(config.printer_device_type == 0) {
+	if(config.printer_type == 0) {
 		printer = new PRNFILE(this, emu);
 	} else {
 		printer = dummy;

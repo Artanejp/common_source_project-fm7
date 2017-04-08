@@ -157,13 +157,13 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	memory->set_context_cpu(cpu);
 	memory->set_context_crtc(crtc);
 	mouse->set_context_sio(sio);
-	if(config.printer_device_type == 0) {  
+	if(config.printer_type == 0) {  
 		printer->set_context_prn(new PRNFILE(this, emu));
-	} else if(config.printer_device_type == 1) {
+	} else if(config.printer_type == 1) {
 		MZ1P17 *mz1p17 = new MZ1P17(this, emu);
 		mz1p17->mode = MZ1P17_MODE_MZ1;
 		printer->set_context_prn(mz1p17);
-//	} else if(config.printer_device_type == 2) {
+//	} else if(config.printer_type == 2) {
 //		printer->set_context_prn(new PCPR201(this, emu));
 	} else {
 		printer->set_context_prn(dummy);

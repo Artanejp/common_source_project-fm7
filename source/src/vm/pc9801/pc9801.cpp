@@ -100,7 +100,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #endif
 	int pit_clocks = pit_clock_8mhz ? 1996812 : 2457600;
 	
-	sound_device_type = config.sound_device_type;
+	sound_type = config.sound_type;
 	
 	// create devices
 	first_device = last_device = NULL;
@@ -192,14 +192,14 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	gdc_gfx = new UPD7220(this, emu);
 	gdc_gfx->set_device_name(_T("uPD7220 GDC (Graphics)"));
 	
-	if(sound_device_type == 0 || sound_device_type == 1) {
+	if(sound_type == 0 || sound_type == 1) {
 		opn = new YM2203(this, emu);
 #ifdef SUPPORT_PC98_OPNA
 		opn->is_ym2608 = true;
 #endif
 		fmsound = new FMSOUND(this, emu);
 		joystick = new JOYSTICK(this, emu);
-	} else if(sound_device_type == 2 || sound_device_type == 3) {
+	} else if(sound_type == 2 || sound_type == 3) {
 		tms3631 = new TMS3631(this, emu);
 		tms3631->set_device_name(_T("TMS3631 SSG (PC-9801-14)"));
 		pit_14 = new I8253(this, emu);
@@ -209,9 +209,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		maskreg_14 = new LS244(this, emu);
 		maskreg_14->set_device_name(_T("74LS244 (PC-9801-14)"));
 	}
-	if(config.printer_device_type == 0) {
+	if(config.printer_type == 0) {
 		printer = new PRNFILE(this, emu);
-//	} else if(config.printer_device_type == 1) {
+//	} else if(config.printer_type == 1) {
 //		printer = new PCPR201(this, emu);
 	} else {
 		printer = dummy;
@@ -261,9 +261,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_cpu(cpu_sub, 4000000);
 #endif
 	event->set_context_sound(beep);
-	if(sound_device_type == 0 || sound_device_type == 1) {
+	if(sound_type == 0 || sound_type == 1) {
 		event->set_context_sound(opn);
-	} else if(sound_device_type == 2 || sound_device_type == 3) {
+	} else if(sound_type == 2 || sound_type == 3) {
 		event->set_context_sound(tms3631);
 	}
 	event->set_context_sound(noise_seek);
@@ -308,10 +308,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// sysport port.c bit0: enable rxrdy interrupt
 	pio_prn->set_context_port_a(printer, SIG_PRINTER_DATA, 0xff, 0);
 	pio_prn->set_context_port_c(printer, SIG_PRINTER_STROBE, 0x80, 0);
-	if(config.printer_device_type == 0) {
+	if(config.printer_type == 0) {
 		PRNFILE *prnfile = (PRNFILE *)printer;
 		prnfile->set_context_busy(not_busy, SIG_NOT_INPUT, 1);
-//	} else if(config.printer_device_type == 1) {
+//	} else if(config.printer_type == 1) {
 //		PRNFILE *pcpr201 = (PCPR201 *)printer;
 //		pcpr201->set_context_busy(not_busy, SIG_NOT_INPUT, 1);
 	}
@@ -331,12 +331,12 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pic->set_context_cpu(cpu);
 	rtc->set_context_dout(pio_sys, SIG_I8255_PORT_B, 1);
 	
-	if(sound_device_type == 0 || sound_device_type == 1) {
+	if(sound_type == 0 || sound_type == 1) {
 		opn->set_context_irq(pic, SIG_I8259_CHIP1 | SIG_I8259_IR4, 1);
 		opn->set_context_port_b(joystick, SIG_JOYSTICK_SELECT, 0xc0, 0);
 		fmsound->set_context_opn(opn);
 		joystick->set_context_opn(opn);
-	} else if(sound_device_type == 2 || sound_device_type == 3) {
+	} else if(sound_type == 2 || sound_type == 3) {
 		pio_14->set_context_port_a(tms3631, SIG_TMS3631_ENVELOP1, 0xff, 0);
 		pio_14->set_context_port_b(tms3631, SIG_TMS3631_ENVELOP2, 0xff, 0);
 		pio_14->set_context_port_c(tms3631, SIG_TMS3631_DATAREG, 0xff, 0);
@@ -438,9 +438,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #endif
 	
 	memory->read_bios(_T("IPL.ROM"), ipl, sizeof(ipl));
-	if(sound_device_type == 0) {
+	if(sound_type == 0) {
 		display->sound_bios_ok = (memory->read_bios(_T("SOUND.ROM"), sound_bios, sizeof(sound_bios)) != 0);
-	} else if(sound_device_type == 2) {
+	} else if(sound_type == 2) {
 		display->sound_bios_ok = (memory->read_bios(_T("MUSIC.ROM"), sound_bios, sizeof(sound_bios)) != 0);
 	} else {
 		display->sound_bios_ok = false;
@@ -456,7 +456,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	memory->set_memory_mapped_io_rw(0xa0000, 0xa3fff, display);
 	// A8000h - BFFFFh: VRAM
 	memory->set_memory_mapped_io_rw(0xa8000, 0xbffff, display);
-	if(sound_device_type == 0 || sound_device_type == 2) {
+	if(sound_type == 0 || sound_type == 2) {
 		memory->set_memory_r(0xcc000, 0xcffff, sound_bios);
 	}
 #if defined(_PC9801) || defined(_PC9801E)
@@ -587,7 +587,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	io->set_iomap_single_rw(0xca, floppy);
 	io->set_iomap_single_rw(0xcc, floppy);
 	
-	if(sound_device_type == 0 || sound_device_type == 1) {
+	if(sound_type == 0 || sound_type == 1) {
 		io->set_iomap_single_rw(0x188, fmsound);
 		io->set_iomap_single_rw(0x18a, fmsound);
 #ifdef SUPPORT_PC98_OPNA
@@ -595,7 +595,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		io->set_iomap_single_rw(0x18e, fmsound);
 		io->set_iomap_single_rw(0xa460, fmsound);
 #endif
-	} else if(sound_device_type == 2 || sound_device_type == 3) {
+	} else if(sound_type == 2 || sound_type == 3) {
 		io->set_iomap_alias_rw(0x88, pio_14, 0);
 		io->set_iomap_alias_rw(0x8a, pio_14, 1);
 		io->set_iomap_alias_rw(0x8c, pio_14, 2);
@@ -658,10 +658,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pc88cpu->set_device_name(_T("Z80 CPU (PC-8801)"));
 	pc88cpu->set_context_event_manager(pc88event);
 	
-	if(config.printer_device_type == 0) {
+	if(config.printer_type == 0) {
 		pc88prn = new PRNFILE(this, emu);
 		pc88prn->set_context_event_manager(pc88event);
-//	} else if(config.printer_device_type == 1) {
+//	} else if(config.printer_type == 1) {
 //		pc88prn = new PCPR201(this, emu);
 //		pc88prn->set_context_event_manager(pc88event);
 	} else {
@@ -843,7 +843,7 @@ void VM::reset()
 	fdc_2dd->write_signal(SIG_UPD765A_FREADY, 1, 1);	// 2DD FDC RDY is pulluped
 #endif
 	
-	if(sound_device_type == 0 || sound_device_type == 1) {
+	if(sound_type == 0 || sound_type == 1) {
 //		opn->write_signal(SIG_YM2203_PORT_A, 0x3f, 0xff);	// PC-9801-26(K) INT0
 //		opn->write_signal(SIG_YM2203_PORT_A, 0xbf, 0xff);	// PC-9801-26(K) INT41
 		opn->write_signal(SIG_YM2203_PORT_A, 0xff, 0xff);	// PC-9801-26(K) INT5
@@ -942,13 +942,13 @@ void VM::initialize_sound(int rate, int samples)
 #else
 	beep->initialize_sound(rate, 8000);
 #endif
-	if(sound_device_type == 0 || sound_device_type == 1) {
+	if(sound_type == 0 || sound_type == 1) {
 #ifdef HAS_YM2608
 		opn->initialize_sound(rate, 7987248, samples, 0, 0);
 #else
 		opn->initialize_sound(rate, 3993624, samples, 0, 0);
 #endif
-	} else if(sound_device_type == 2 || sound_device_type == 3) {
+	} else if(sound_type == 2 || sound_type == 3) {
 		tms3631->initialize_sound(rate, 8000);
 	}
 	
@@ -990,25 +990,25 @@ int VM::get_sound_buffer_ptr()
 void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 {
 	if(ch-- == 0) {
-		if(sound_device_type == 0 || sound_device_type == 1) {
+		if(sound_type == 0 || sound_type == 1) {
 			opn->set_volume(0, decibel_l, decibel_r);
 		}
 	} else if(ch-- == 0) {
-		if(sound_device_type == 0 || sound_device_type == 1) {
+		if(sound_type == 0 || sound_type == 1) {
 			opn->set_volume(1, decibel_l, decibel_r);
 		}
 #if defined(SUPPORT_PC98_OPNA)
 	} else if(ch-- == 0) {
-		if(sound_device_type == 0 || sound_device_type == 1) {
+		if(sound_type == 0 || sound_type == 1) {
 			opn->set_volume(2, decibel_l, decibel_r);
 		}
 	} else if(ch-- == 0) {
-		if(sound_device_type == 0 || sound_device_type == 1) {
+		if(sound_type == 0 || sound_type == 1) {
 			opn->set_volume(3, decibel_l, decibel_r);
 		}
 #endif
 	} else if(ch-- == 0) {
-		if(sound_device_type == 2 || sound_device_type == 3) {
+		if(sound_type == 2 || sound_type == 3) {
 			tms3631->set_volume(0, decibel_l, decibel_r);
 		}
 	} else if(ch-- == 0) {
@@ -1299,7 +1299,7 @@ void VM::save_state(FILEIO* state_fio)
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 	state_fio->FputInt32(boot_mode);
 #endif
-	state_fio->FputInt32(sound_device_type);
+	state_fio->FputInt32(sound_type);
 }
 
 bool VM::load_state(FILEIO* state_fio)
@@ -1317,7 +1317,7 @@ bool VM::load_state(FILEIO* state_fio)
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 	boot_mode = state_fio->FgetInt32();
 #endif
-	sound_device_type = state_fio->FgetInt32();
+	sound_type = state_fio->FgetInt32();
 	return true;
 }
 

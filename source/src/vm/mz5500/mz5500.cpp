@@ -56,9 +56,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event = new EVENT(this, emu);	// must be 2nd device
 	dummy->set_device_name(_T("1st Dummy"));
 	
-	if(config.printer_device_type == 0) {
+	if(config.printer_type == 0) {
 		printer = new PRNFILE(this, emu);
-	} else if(config.printer_device_type == 1) {
+	} else if(config.printer_type == 1) {
 		printer = new MZ1P17(this, emu);
 	} else {
 		printer = dummy;
@@ -117,11 +117,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_sound(fdc->get_context_noise_head_down());
 	event->set_context_sound(fdc->get_context_noise_head_up());
 	
-	if(config.printer_device_type == 0) {
+	if(config.printer_type == 0) {
 		PRNFILE *prnfile = (PRNFILE *)printer;
 		prnfile->set_context_busy(not_busy, SIG_NOT_INPUT, 1);
 		prnfile->set_context_ack(pio, SIG_I8255_PORT_C, 0x40);
-	} else if(config.printer_device_type == 1) {
+	} else if(config.printer_type == 1) {
 		MZ1P17 *mz1p17 = (MZ1P17 *)printer;
 		mz1p17->mode = MZ1P17_MODE_MZ1;
 		mz1p17->set_context_busy(not_busy, SIG_NOT_INPUT, 1);

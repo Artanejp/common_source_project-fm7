@@ -49,7 +49,7 @@
 #define USE_SHIFT_NUMPAD_KEY
 #define USE_ALT_F10_KEY
 #ifdef _COLOR_MONITOR
-#define USE_CRT_FILTER
+#define USE_SCREEN_FILTER
 #endif
 #define USE_SOUND_VOLUME	2
 #define USE_DEBUGGER

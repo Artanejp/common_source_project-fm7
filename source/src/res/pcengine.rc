@@ -87,13 +87,32 @@ BEGIN
         MENUITEM "CPU x8",                      ID_CPU_POWER3
         MENUITEM "CPU x16",                     ID_CPU_POWER4
         MENUITEM SEPARATOR
-        MENUITEM "2-Buttons Joy Pad",           ID_DEVICE_TYPE0
-        MENUITEM "6-Buttons Joy Pad",           ID_DEVICE_TYPE1
-        MENUITEM "2-Buttons with Multi-Tap",    ID_DEVICE_TYPE2
-        MENUITEM "6-Buttons with Multi-Tap",    ID_DEVICE_TYPE3
-        MENUITEM SEPARATOR
-        MENUITEM "Save State",                  ID_SAVE_STATE
-        MENUITEM "Load State",                  ID_LOAD_STATE
+        POPUP "Save State"
+        BEGIN
+            MENUITEM "State 0",                 ID_SAVE_STATE0
+            MENUITEM "State 1",                 ID_SAVE_STATE1
+            MENUITEM "State 2",                 ID_SAVE_STATE2
+            MENUITEM "State 3",                 ID_SAVE_STATE3
+            MENUITEM "State 4",                 ID_SAVE_STATE4
+            MENUITEM "State 5",                 ID_SAVE_STATE5
+            MENUITEM "State 6",                 ID_SAVE_STATE6
+            MENUITEM "State 7",                 ID_SAVE_STATE7
+            MENUITEM "State 8",                 ID_SAVE_STATE8
+            MENUITEM "State 9",                 ID_SAVE_STATE9
+        END
+        POPUP "Load State"
+        BEGIN
+            MENUITEM "State 0",                 ID_LOAD_STATE0
+            MENUITEM "State 1",                 ID_LOAD_STATE1
+            MENUITEM "State 2",                 ID_LOAD_STATE2
+            MENUITEM "State 3",                 ID_LOAD_STATE3
+            MENUITEM "State 4",                 ID_LOAD_STATE4
+            MENUITEM "State 5",                 ID_LOAD_STATE5
+            MENUITEM "State 6",                 ID_LOAD_STATE6
+            MENUITEM "State 7",                 ID_LOAD_STATE7
+            MENUITEM "State 8",                 ID_LOAD_STATE8
+            MENUITEM "State 9",                 ID_LOAD_STATE9
+        END
         MENUITEM SEPARATOR
         MENUITEM "Debug Main CPU",              ID_OPEN_DEBUGGER0
         MENUITEM "Close Debugger",              ID_CLOSE_DEBUGGER
@@ -114,100 +133,78 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_COMPACT_DISC
     END
-    POPUP "Screen"
+    POPUP "Device"
     BEGIN
-        MENUITEM "Rec 60fps",                   ID_SCREEN_REC60
-        MENUITEM "Rec 30fps",                   ID_SCREEN_REC30
-        MENUITEM "Rec 15fps",                   ID_SCREEN_REC15
-        MENUITEM "Stop",                        ID_SCREEN_STOP
-        MENUITEM "Capture",                     ID_SCREEN_CAPTURE
-        MENUITEM SEPARATOR
-        MENUITEM "Window x1",                   ID_SCREEN_WINDOW1
-        MENUITEM "Window x2",                   ID_SCREEN_WINDOW2
-        MENUITEM "Window x3",                   ID_SCREEN_WINDOW3
-        MENUITEM "Window x4",                   ID_SCREEN_WINDOW4
-        MENUITEM "Window x5",                   ID_SCREEN_WINDOW5
-        MENUITEM "Window x6",                   ID_SCREEN_WINDOW6
-        MENUITEM "Window x7",                   ID_SCREEN_WINDOW7
-        MENUITEM "Window x8",                   ID_SCREEN_WINDOW8
-        MENUITEM "Fullscreen 1",                ID_SCREEN_FULLSCREEN1
-        MENUITEM "Fullscreen 2",                ID_SCREEN_FULLSCREEN2
-        MENUITEM "Fullscreen 3",                ID_SCREEN_FULLSCREEN3
-        MENUITEM "Fullscreen 4",                ID_SCREEN_FULLSCREEN4
-        MENUITEM "Fullscreen 5",                ID_SCREEN_FULLSCREEN5
-        MENUITEM "Fullscreen 6",                ID_SCREEN_FULLSCREEN6
-        MENUITEM "Fullscreen 7",                ID_SCREEN_FULLSCREEN7
-        MENUITEM "Fullscreen 8",                ID_SCREEN_FULLSCREEN8
-        MENUITEM "Fullscreen 9",                ID_SCREEN_FULLSCREEN9
-        MENUITEM "Fullscreen 10",               ID_SCREEN_FULLSCREEN10
-        MENUITEM "Fullscreen 11",               ID_SCREEN_FULLSCREEN11
-        MENUITEM "Fullscreen 12",               ID_SCREEN_FULLSCREEN12
-        MENUITEM "Fullscreen 13",               ID_SCREEN_FULLSCREEN13
-        MENUITEM "Fullscreen 14",               ID_SCREEN_FULLSCREEN14
-        MENUITEM "Fullscreen 15",               ID_SCREEN_FULLSCREEN15
-        MENUITEM "Fullscreen 16",               ID_SCREEN_FULLSCREEN16
-        MENUITEM "Fullscreen 17",               ID_SCREEN_FULLSCREEN17
-        MENUITEM "Fullscreen 18",               ID_SCREEN_FULLSCREEN18
-        MENUITEM "Fullscreen 19",               ID_SCREEN_FULLSCREEN19
-        MENUITEM "Fullscreen 20",               ID_SCREEN_FULLSCREEN20
-        MENUITEM "Fullscreen 21",               ID_SCREEN_FULLSCREEN21
-        MENUITEM "Fullscreen 22",               ID_SCREEN_FULLSCREEN22
-        MENUITEM "Fullscreen 23",               ID_SCREEN_FULLSCREEN23
-        MENUITEM "Fullscreen 24",               ID_SCREEN_FULLSCREEN24
-        MENUITEM "Fullscreen 25",               ID_SCREEN_FULLSCREEN25
-        MENUITEM "Fullscreen 26",               ID_SCREEN_FULLSCREEN26
-        MENUITEM "Fullscreen 27",               ID_SCREEN_FULLSCREEN27
-        MENUITEM "Fullscreen 28",               ID_SCREEN_FULLSCREEN28
-        MENUITEM "Fullscreen 29",               ID_SCREEN_FULLSCREEN29
-        MENUITEM "Fullscreen 30",               ID_SCREEN_FULLSCREEN30
-        MENUITEM "Fullscreen 31",               ID_SCREEN_FULLSCREEN31
-        MENUITEM "Fullscreen 32",               ID_SCREEN_FULLSCREEN32
-        MENUITEM SEPARATOR
-        MENUITEM "Window Stretch 1",            ID_SCREEN_WINDOW_STRETCH1
-        MENUITEM "Window Stretch 2",            ID_SCREEN_WINDOW_STRETCH2
-        MENUITEM SEPARATOR
-        MENUITEM "Fullscreen Stretch 1",        ID_SCREEN_FULLSCREEN_STRETCH1
-        MENUITEM "Fullscreen Stretch 2",        ID_SCREEN_FULLSCREEN_STRETCH2
-        MENUITEM "Fullscreen Stretch 3",        ID_SCREEN_FULLSCREEN_STRETCH3
-        MENUITEM "Fullscreen Stretch 4",        ID_SCREEN_FULLSCREEN_STRETCH4
-        MENUITEM SEPARATOR
-        MENUITEM "Use Direct3D9",               ID_SCREEN_USE_D3D9
-        MENUITEM "Wait Vsync",                  ID_SCREEN_WAIT_VSYNC
+        POPUP "Joystick"
+        BEGIN
+            MENUITEM "2-Buttons Joy Pad",           ID_VM_JOYSTICK_TYPE0
+            MENUITEM "6-Buttons Joy Pad",           ID_VM_JOYSTICK_TYPE1
+            MENUITEM "2-Buttons with Multi-Tap",    ID_VM_JOYSTICK_TYPE2
+            MENUITEM "6-Buttons with Multi-Tap",    ID_VM_JOYSTICK_TYPE3
+        END
     END
-    POPUP "Sound"
+    POPUP "Host"
     BEGIN
-        MENUITEM "Rec",                         ID_SOUND_REC
-        MENUITEM "Stop",                        ID_SOUND_STOP
+        MENUITEM "Rec Movie 60fps",             ID_HOST_REC_MOVIE_60FPS
+        MENUITEM "Rec Movie 30fps",             ID_HOST_REC_MOVIE_30FPS
+        MENUITEM "Rec Movie 15fps",             ID_HOST_REC_MOVIE_15FPS
+        MENUITEM "Rec Sound",                   ID_HOST_REC_SOUND
+        MENUITEM "Stop",                        ID_HOST_REC_STOP
+        MENUITEM "Capture Screen",              ID_HOST_CAPTURE_SCREEN
         MENUITEM SEPARATOR
-        MENUITEM "2000Hz",                      ID_SOUND_FREQ0
-        MENUITEM "4000Hz",                      ID_SOUND_FREQ1
-        MENUITEM "8000Hz",                      ID_SOUND_FREQ2
-        MENUITEM "11025Hz",                     ID_SOUND_FREQ3
-        MENUITEM "22050Hz",                     ID_SOUND_FREQ4
-        MENUITEM "44100Hz",                     ID_SOUND_FREQ5
-        MENUITEM "48000Hz",                     ID_SOUND_FREQ6
-        MENUITEM "96000Hz",                     ID_SOUND_FREQ7
+        POPUP "Screen"
+        BEGIN
+            MENUITEM "Window x1",               ID_SCREEN_WINDOW
+            MENUITEM "Fullscreen 640x400",      ID_SCREEN_FULLSCREEN
+            MENUITEM SEPARATOR
+            MENUITEM "Window Stretch 1",        ID_SCREEN_WINDOW_STRETCH
+            MENUITEM "Window Stretch 2",        ID_SCREEN_WINDOW_ASPECT
+            MENUITEM SEPARATOR
+            MENUITEM "Fullscreen Stretch 1",    ID_SCREEN_FULLSCREEN_DOTBYDOT
+            MENUITEM "Fullscreen Stretch 2",    ID_SCREEN_FULLSCREEN_STRETCH
+            MENUITEM "Fullscreen Stretch 3",    ID_SCREEN_FULLSCREEN_ASPECT
+            MENUITEM "Fullscreen Stretch 4",    ID_SCREEN_FULLSCREEN_FILL
+            MENUITEM SEPARATOR
+            MENUITEM "Rotate 0deg",             ID_SCREEN_ROTATE_0
+            MENUITEM "Rotate +90deg",           ID_SCREEN_ROTATE_90
+            MENUITEM "Rotate 180deg",           ID_SCREEN_ROTATE_180
+            MENUITEM "Rotate -90deg",           ID_SCREEN_ROTATE_270
+        END
+        POPUP "Sound"
+        BEGIN
+            MENUITEM "2000Hz",                  ID_SOUND_FREQ0
+            MENUITEM "4000Hz",                  ID_SOUND_FREQ1
+            MENUITEM "8000Hz",                  ID_SOUND_FREQ2
+            MENUITEM "11025Hz",                 ID_SOUND_FREQ3
+            MENUITEM "22050Hz",                 ID_SOUND_FREQ4
+            MENUITEM "44100Hz",                 ID_SOUND_FREQ5
+            MENUITEM "48000Hz",                 ID_SOUND_FREQ6
+            MENUITEM "96000Hz",                 ID_SOUND_FREQ7
+            MENUITEM SEPARATOR
+            MENUITEM "50msec",                  ID_SOUND_LATE0
+            MENUITEM "100msec",                 ID_SOUND_LATE1
+            MENUITEM "200msec",                 ID_SOUND_LATE2
+            MENUITEM "300msec",                 ID_SOUND_LATE3
+            MENUITEM "400msec",                 ID_SOUND_LATE4
+            MENUITEM SEPARATOR
+            MENUITEM "Realtime Mix",            ID_SOUND_STRICT_RENDER
+            MENUITEM "Light Weight Mix",        ID_SOUND_LIGHT_RENDER
+            MENUITEM SEPARATOR
+            MENUITEM "Volume",                  ID_SOUND_VOLUME
+        END
+        POPUP "Input"
+        BEGIN
+            MENUITEM "Joystick #1",             ID_INPUT_JOYSTICK0
+            MENUITEM "Joystick #2",             ID_INPUT_JOYSTICK1
+            MENUITEM "Joystick #3",             ID_INPUT_JOYSTICK3
+            MENUITEM "Joystick #4",             ID_INPUT_JOYSTICK4
+        END
         MENUITEM SEPARATOR
-        MENUITEM "50msec",                      ID_SOUND_LATE0
-        MENUITEM "100msec",                     ID_SOUND_LATE1
-        MENUITEM "200msec",                     ID_SOUND_LATE2
-        MENUITEM "300msec",                     ID_SOUND_LATE3
-        MENUITEM "400msec",                     ID_SOUND_LATE4
-        MENUITEM SEPARATOR
-        MENUITEM "Realtime Mix",                ID_SOUND_STRICT_RENDER
-        MENUITEM "Light Weight Mix",            ID_SOUND_LIGHT_RENDER
-        MENUITEM SEPARATOR
-        MENUITEM "Volume",                      ID_SOUND_VOLUME
-    END
-    POPUP "Input"
-    BEGIN
-        MENUITEM "Use DirectInput",             ID_INPUT_USE_DINPUT
-        MENUITEM "Disable Windows 8 DWM",       ID_INPUT_DISABLE_DWM
-        MENUITEM SEPARATOR
-        MENUITEM "Joystick #1",                 ID_INPUT_JOYSTICK0
-        MENUITEM "Joystick #2",                 ID_INPUT_JOYSTICK1
-        MENUITEM "Joystick #3",                 ID_INPUT_JOYSTICK2
-        MENUITEM "Joystick #4",                 ID_INPUT_JOYSTICK3
+        MENUITEM "Use Direct3D9",               ID_HOST_USE_D3D9
+        MENUITEM "Wait Vsync",                  ID_HOST_WAIT_VSYNC
+        MENUITEM "Use DirectInput",             ID_HOST_USE_DINPUT
+        MENUITEM "Disable Windows 8 DWM",       ID_HOST_DISABLE_DWM
+        MENUITEM "Show Status Bar",             ID_HOST_SHOW_STATUS_BAR
     END
 END
 

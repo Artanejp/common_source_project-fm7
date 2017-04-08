@@ -385,6 +385,15 @@ void Ui_MainWindowBase::setupUi(void)
 	menuState = new QMenu(menuControl);
 	menuState->setToolTipsVisible(true);
 	menuState->setObjectName(QString::fromUtf8("menuState"));
+
+	menuSave_State = new QMenu(menuState);
+	menuSave_State->setToolTipsVisible(true);
+	menuSave_State->setObjectName(QString::fromUtf8("menuSaveState"));
+
+	menuLoad_State = new QMenu(menuState);
+	menuLoad_State->setToolTipsVisible(true);
+	menuLoad_State->setObjectName(QString::fromUtf8("menuLoadState"));
+
 	if(using_flags->is_use_auto_key()) {
 		menuCopy_Paste = new QMenu(menuControl);
 		menuCopy_Paste->setObjectName(QString::fromUtf8("menuCopy_Paste"));

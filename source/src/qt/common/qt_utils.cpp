@@ -126,8 +126,6 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	//connect(hRunEmu, SIGNAL(sig_finished()), this, SLOT(delete_emu_thread()));
 	connect(this, SIGNAL(sig_vm_reset()), hRunEmu, SLOT(do_reset()));
 	connect(this, SIGNAL(sig_vm_specialreset()), hRunEmu, SLOT(do_special_reset()));
-	connect(this, SIGNAL(sig_vm_loadstate()), hRunEmu, SLOT(do_load_state()));
-	connect(this, SIGNAL(sig_vm_savestate()), hRunEmu, SLOT(do_save_state()));
 
 	connect(this, SIGNAL(sig_emu_update_config()), hRunEmu, SLOT(do_update_config()));
 	connect(this, SIGNAL(sig_emu_update_volume_level(int, int)), hRunEmu, SLOT(do_update_volume_level(int, int)));
@@ -136,7 +134,12 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(this, SIGNAL(sig_emu_stop_rec_sound()), hRunEmu, SLOT(do_stop_record_sound()));
 	connect(this, SIGNAL(sig_emu_set_display_size(int, int, int, int)), hRunEmu, SLOT(do_set_display_size(int, int, int, int)));
 	
-
+	if(using_flags->is_use_state()) {
+		for(int i = 0; i < 10; i++) {
+			connect(actionLoad_State[i], SIGNAL(sig_load_state(QString)), hRunEmu, SLOT(do_load_state(QString))); // OK?
+			connect(actionSave_State[i], SIGNAL(sig_save_state(QString)), hRunEmu, SLOT(do_save_state(QString))); // OK?
+		}
+	}
 #if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
     defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
 	connect(this, SIGNAL(sig_write_protect_disk(int, bool)), hRunEmu, SLOT(do_write_protect_disk(int, bool)));

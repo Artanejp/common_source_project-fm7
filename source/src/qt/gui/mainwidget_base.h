@@ -79,6 +79,7 @@ class Menu_CompactDiscClass;
 class Menu_LaserdiscClass;
 class CSP_DockDisks;
 class MOVIE_SAVER;
+class EmuThreadClass;
 class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 {
 	Q_OBJECT
@@ -205,8 +206,10 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	class Action_Control *actionPaste_from_Clipboard;
 	class Action_Control *actionStop_Pasting;
 
-	class Action_Control *actionSave_State;
-	class Action_Control *actionLoad_State;
+	class Action_Control *actionSave_State[10];
+	class Action_Control *actionLoad_State[10];
+	QMenu *menuSave_State;
+	QMenu *menuLoad_State;
 	
 	class Action_Control *actionDebugger[_MAX_DEBUGGER];
 	//class Action_Control *actionClose_Debuggers;
@@ -399,7 +402,7 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	// About Status bar
 	int Calc_OSD_Wfactor(void);
 	// Constructor
-	class EmuThreadClass *hRunEmu;
+	EmuThreadClass *hRunEmu;
 	class DrawThreadClass *hDrawEmu;
 	class JoyThreadClass *hRunJoy;
 	class MOVIE_SAVER *hSaveMovieThread;
@@ -481,15 +484,11 @@ public slots:
 	void do_stop_saving_movie(void);
 	void do_start_saving_movie(void);
 	void do_set_state_saving_movie(bool state);
-	void OnLoadState(void);
-	void OnSaveState(void);
-
 	
 	virtual void OnOpenDebugger(int n);
 	virtual void OnCloseDebugger(void);
 	
 	void set_screen_rotate(bool);
-	void set_crt_filter(bool);
 	void set_gl_crt_filter(bool);
 	void set_cpu_power(int pw) {
 		OnCpuPower(pw);
@@ -616,8 +615,6 @@ signals:
 	int sig_quit_all(void);
 	int sig_vm_reset(void);
 	int sig_vm_specialreset(void);
-	int sig_vm_loadstate(void);
-	int sig_vm_savestate(void);
 	int sig_check_grab_mouse(bool);
 	int sig_resize_uibar(int, int);
 	int sig_resize_screen(int, int);
@@ -661,6 +658,10 @@ signals:
    
 	int quit_debugger_thread(void);
 	int sig_quit_widgets(void);
+
+	int sig_load_state(QString);
+	int sig_save_state(QString);
+	
 };
 QT_END_NAMESPACE
 

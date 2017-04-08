@@ -1,3 +1,11 @@
+4/2/2017
+
+[RESOURCE] improve menu items
+[WINMAIN] improve menu items
+
+[EX80] support to show/hide crt monitor
+
+
 3/30/2017
 
 [COMMON] add functions to convert char, wchar_t, and _TCHAR to each other

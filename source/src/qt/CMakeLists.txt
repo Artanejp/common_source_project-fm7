@@ -61,8 +61,8 @@ target_link_libraries(CSPosd PUBLIC
 	  )
   
   set_target_properties(CSPosd PROPERTIES 
-     SOVERSION 2.6.3
-     VERSION 2.6.3
+     SOVERSION 2.7.0
+     VERSION 2.7.0
   )
   INSTALL(TARGETS CSPosd DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

@@ -42,8 +42,8 @@ add_library(qt_avio
 #QT5_USE_MODULES(CSPavio Widgets Core Gui OpenGL)
 
 #set_target_properties(CSPavio PROPERTIES 
-#			     SOVERSION 2.6.1
-#			     VERSION 2.6.1
+#			     SOVERSION 2.6.3
+#			     VERSION 2.6.3
 #			     )
 #generate_export_header(CSPavio
 #       BASE_NAME CSPavio
@@ -66,8 +66,8 @@ target_link_libraries(CSPavio PUBLIC
 	  )
 
 set_target_properties(CSPavio PROPERTIES 
-			     SOVERSION 2.6.2
-			     VERSION 2.6.2
+			     SOVERSION 2.6.3
+			     VERSION 2.6.3
 			     )
 INSTALL(TARGETS CSPavio DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

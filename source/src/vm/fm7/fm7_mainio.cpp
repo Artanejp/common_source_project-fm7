@@ -182,7 +182,7 @@ void FM7_MAINIO::initialize()
 	event_beep_oneshot = -1;
 	event_timerirq = -1;
 	event_fdc_motor = -1;
-	lpt_type = config.printer_device_type;
+	lpt_type = config.printer_type;
 	fdc_cmdreg = 0x00;
 	
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
@@ -233,7 +233,7 @@ void FM7_MAINIO::reset()
 	cmt_invert = false; // Invert signal
 	lpt_det2 = true;
 	lpt_det1 = true;
-	lpt_type = config.printer_device_type;
+	lpt_type = config.printer_type;
 	reset_printer();
 	
 #if defined(_FM77AV_VARIANTS)

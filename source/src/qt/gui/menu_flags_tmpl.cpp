@@ -22,7 +22,7 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 
 	use_cpu_type = 0;
 
-	use_compact_disc = use_crt_filter = use_debugger = false;
+	use_compact_disc = use_debugger = false;
 	use_device_type = 0;
 	use_dipswitch = false;
 

@@ -82,7 +82,7 @@ uint32_t KEYBOARD::read_io8(uint32_t addr)
 	switch(addr) {
 	case MCS48_PORT_T0:
 #ifdef _X1TURBO_FEATURE
-		if(config.device_type == 0) {
+		if(config.keyboard_type == 0) {
 			return 1;	// mode A
 		} else
 #endif

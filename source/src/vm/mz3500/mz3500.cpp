@@ -60,9 +60,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	maincpu->set_device_name(_T("Z80 CPU (Main)"));
 	mainbus->set_device_name(_T("MAIN BUS"));
 	// for sub cpu
-	if(config.printer_device_type == 0) {
+	if(config.printer_type == 0) {
 		printer = new PRNFILE(this, emu);
-	} else if(config.printer_device_type == 1) {
+	} else if(config.printer_type == 1) {
 		printer = new MZ1P17(this, emu);
 	} else {
 		printer = dummy;
@@ -116,11 +116,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	fdc->set_context_index(mainbus, SIG_MAIN_INDEX, 1);
 	
 	// mz3500sm p.78
-	if(config.printer_device_type == 0) {
+	if(config.printer_type == 0) {
 		PRNFILE *prnfile = (PRNFILE *)printer;
 		prnfile->set_context_busy(not_busy, SIG_NOT_INPUT, 1);
 		prnfile->set_context_ack(pio, SIG_I8255_PORT_C, 0x40);
-	} else if(config.printer_device_type == 1) {
+	} else if(config.printer_type == 1) {
 		MZ1P17 *mz1p17 = (MZ1P17 *)printer;
 		mz1p17->mode = MZ1P17_MODE_MZ1;
 		mz1p17->set_context_busy(not_busy, SIG_NOT_INPUT, 1);

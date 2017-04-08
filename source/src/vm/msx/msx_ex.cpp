@@ -270,22 +270,22 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #endif
 	
 #ifdef USE_PRINTER
-	if(config.printer_device_type == 0) {  
+	if(config.printer_type == 0) {  
 		printer->set_context_prn(new PRNFILE(this, emu));
 #if defined(_MZP)
-	} else if(config.printer_device_type == 1) {
+	} else if(config.printer_type == 1) {
 		MZ1P17 *mz1p17 = new MZ1P17(this, emu);
 		mz1p17->mode = MZ1P17_MODE_X1;
 		printer->set_context_prn(mz1p17);
-	} else if(config.printer_device_type == 2) {
+	} else if(config.printer_type == 2) {
 		MZ1P17 *mz1p17 = new MZ1P17(this, emu);
 		mz1p17->mode = MZ1P17_MODE_MZ80P4;
 		printer->set_context_prn(mz1p17);
 #else
-//	} else if(config.printer_device_type == 1) {
+//	} else if(config.printer_type == 1) {
 //		HXP560 *hxp560 = new HXP560(this, emu);
 //		printer->set_context_prn(hxp560);
-//	} else if(config.printer_device_type == 2) {
+//	} else if(config.printer_type == 2) {
 //		printer->set_context_prn(new PCPR201(this, emu));
 #endif
 	} else {

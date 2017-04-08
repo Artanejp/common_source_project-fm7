@@ -27,13 +27,13 @@ void OSD::initialize_screen()
 	vm_window_height_aspect = WINDOW_HEIGHT_ASPECT;
 	
 	memset(&vm_screen_buffer, 0, sizeof(bitmap_t));
-#ifdef USE_CRT_FILTER
+#ifdef USE_SCREEN_FILTER
 	memset(&filtered_screen_buffer, 0, sizeof(bitmap_t));
 	memset(&tmp_filtered_screen_buffer, 0, sizeof(bitmap_t));
 #endif
-#ifdef USE_SCREEN_ROTATE
+//#ifdef USE_SCREEN_ROTATE
 	memset(&rotated_screen_buffer, 0, sizeof(bitmap_t));
-#endif
+//#endif
 	memset(&stretched_screen_buffer, 0, sizeof(bitmap_t));
 	memset(&shrinked_screen_buffer, 0, sizeof(bitmap_t));
 	memset(&video_screen_buffer, 0, sizeof(bitmap_t));
@@ -59,13 +59,13 @@ void OSD::release_screen()
 	
 	release_d3d9();
 	release_screen_buffer(&vm_screen_buffer);
-#ifdef USE_CRT_FILTER
+#ifdef USE_SCREEN_FILTER
 	release_screen_buffer(&filtered_screen_buffer);
 	release_screen_buffer(&tmp_filtered_screen_buffer);
 #endif
-#ifdef USE_SCREEN_ROTATE
+//#ifdef USE_SCREEN_ROTATE
 	release_screen_buffer(&rotated_screen_buffer);
-#endif
+//#endif
 	release_screen_buffer(&stretched_screen_buffer);
 	release_screen_buffer(&shrinked_screen_buffer);
 	release_screen_buffer(&video_screen_buffer);
@@ -73,21 +73,21 @@ void OSD::release_screen()
 
 int OSD::get_window_mode_width(int mode)
 {
-#ifdef USE_SCREEN_ROTATE
+//#ifdef USE_SCREEN_ROTATE
 	if(config.rotate_type == 1 || config.rotate_type == 3) {
 		return (config.window_stretch_type == 0 ? vm_window_height : vm_window_height_aspect) * (mode + WINDOW_MODE_BASE);
 	}
-#endif
+//#endif
 	return (config.window_stretch_type == 0 ? vm_window_width : vm_window_width_aspect) * (mode + WINDOW_MODE_BASE);
 }
 
 int OSD::get_window_mode_height(int mode)
 {
-#ifdef USE_SCREEN_ROTATE
+//#ifdef USE_SCREEN_ROTATE
 	if(config.rotate_type == 1 || config.rotate_type == 3) {
 		return (config.window_stretch_type == 0 ? vm_window_width : vm_window_width_aspect) * (mode + WINDOW_MODE_BASE);
 	}
-#endif
+//#endif
 	return (config.window_stretch_type == 0 ? vm_window_height : vm_window_height_aspect) * (mode + WINDOW_MODE_BASE);
 }
 
@@ -159,7 +159,7 @@ int OSD::draw_screen()
 		}
 		initialize_screen_buffer(&vm_screen_buffer, vm_screen_width, vm_screen_height, COLORONCOLOR);
 	}
-#ifdef USE_CRT_FILTER
+#ifdef USE_SCREEN_FILTER
 	screen_skip_line = false;
 #endif
 	vm->draw_screen();
@@ -172,17 +172,17 @@ int OSD::draw_screen()
 	draw_screen_buffer = &vm_screen_buffer;
 	
 	// calculate screen size
-#ifdef USE_SCREEN_ROTATE
+//#ifdef USE_SCREEN_ROTATE
 	int tmp_width_aspect = (config.rotate_type == 1 || config.rotate_type == 3) ? vm_window_height_aspect : vm_window_width_aspect;
 	int tmp_height_aspect = (config.rotate_type == 1 || config.rotate_type == 3) ? vm_window_width_aspect : vm_window_height_aspect;
 	int tmp_width = (config.rotate_type == 1 || config.rotate_type == 3) ? vm_window_height : vm_window_width;
 	int tmp_height = (config.rotate_type == 1 || config.rotate_type == 3) ? vm_window_width : vm_window_height;
-#else
-	#define tmp_width_aspect vm_window_width_aspect
-	#define tmp_height_aspect vm_window_height_aspect
-	#define tmp_width vm_window_width
-	#define tmp_height vm_window_height
-#endif
+//#else
+//	#define tmp_width_aspect vm_window_width_aspect
+//	#define tmp_height_aspect vm_window_height_aspect
+//	#define tmp_width vm_window_width
+//	#define tmp_height vm_window_height
+//#endif
 	
 	if(host_window_mode) {
 		// window mode
@@ -226,25 +226,27 @@ int OSD::draw_screen()
 	}
 	int dest_pow_x = (int)ceil((double)draw_screen_width / (double)tmp_width);
 	int dest_pow_y = (int)ceil((double)draw_screen_height / (double)tmp_height);
-#ifdef USE_SCREEN_ROTATE
+//#ifdef USE_SCREEN_ROTATE
 	int tmp_pow_x = (config.rotate_type == 1 || config.rotate_type == 3) ? dest_pow_y : dest_pow_x;
 	int tmp_pow_y = (config.rotate_type == 1 || config.rotate_type == 3) ? dest_pow_x : dest_pow_y;
-#else
-	#define tmp_pow_x dest_pow_x
-	#define tmp_pow_y dest_pow_y
-#endif
+//#else
+//	#define tmp_pow_x dest_pow_x
+//	#define tmp_pow_y dest_pow_y
+//#endif
 	
-#ifdef USE_CRT_FILTER
+#ifdef USE_SCREEN_FILTER
 	// apply crt filter
-	if(config.crt_filter) {
+	if(config.filter_type == SCREEN_FILTER_RGB) {
 		if(filtered_screen_buffer.width != vm_screen_width * tmp_pow_x || filtered_screen_buffer.height != vm_screen_height * tmp_pow_y) {
 			initialize_screen_buffer(&filtered_screen_buffer, vm_screen_width * tmp_pow_x, vm_screen_height * tmp_pow_y, COLORONCOLOR);
 		}
-		apply_crt_fileter_to_screen_buffer(draw_screen_buffer, &filtered_screen_buffer);
+		apply_rgb_filter_to_screen_buffer(draw_screen_buffer, &filtered_screen_buffer);
 		draw_screen_buffer = &filtered_screen_buffer;
+	} else if(config.filter_type == SCREEN_FILTER_RF) {
+		// FIXME
 	}
 #endif
-#ifdef USE_SCREEN_ROTATE
+//#ifdef USE_SCREEN_ROTATE
 	// rotate screen
 	if(config.rotate_type == 1 || config.rotate_type == 3) {
 		if(rotated_screen_buffer.width != draw_screen_buffer->height || rotated_screen_buffer.height != draw_screen_buffer->width) {
@@ -259,7 +261,7 @@ int OSD::draw_screen()
 		rotate_screen_buffer(draw_screen_buffer, &rotated_screen_buffer);
 		draw_screen_buffer = &rotated_screen_buffer;
 	}
-#endif
+//#endif
 	// stretch screen
 	if(draw_screen_buffer->width != tmp_width * dest_pow_x || draw_screen_buffer->height != tmp_height * dest_pow_y) {
 		if(stretched_screen_buffer.width != tmp_width * dest_pow_x || stretched_screen_buffer.height != tmp_height * dest_pow_y) {
@@ -343,6 +345,13 @@ int OSD::draw_screen()
 	} else {
 		return 1;
 	}
+}
+
+void OSD::invalidate_screen()
+{
+//	InvalidateRect(main_window_handle, NULL, TRUE);
+	RECT rect = { 0, 0, host_window_width, host_window_height };
+	InvalidateRect(main_window_handle, &rect, TRUE);
 }
 
 void OSD::update_screen(HDC hdc)
@@ -503,7 +512,7 @@ void OSD::release_screen_buffer(bitmap_t *buffer)
 	memset(buffer, 0, sizeof(bitmap_t));
 }
 
-#ifdef USE_CRT_FILTER
+#ifdef USE_SCREEN_FILTER
 #define _3_8(v) (((((v) * 3) >> 3) * 180) >> 8)
 #define _5_8(v) (((((v) * 3) >> 3) * 180) >> 8)
 #define _8_8(v) (((v) * 180) >> 8)
@@ -511,7 +520,7 @@ void OSD::release_screen_buffer(bitmap_t *buffer)
 static uint8_t r0[2048], g0[2048], b0[2048], t0[2048];
 static uint8_t r1[2048], g1[2048], b1[2048];
 
-void OSD::apply_crt_fileter_to_screen_buffer(bitmap_t *source, bitmap_t *dest)
+void OSD::apply_rgb_filter_to_screen_buffer(bitmap_t *source, bitmap_t *dest)
 {
 	if(source->width * 6 == dest->width && source->height * 6 == dest->height) {
 		// FM-77AV: 320x200 -> 640x400 -> 1920x1200
@@ -520,7 +529,7 @@ void OSD::apply_crt_fileter_to_screen_buffer(bitmap_t *source, bitmap_t *dest)
 		}
 		stretch_screen_buffer(source, &tmp_filtered_screen_buffer);
 		screen_skip_line = true;
-		apply_crt_filter_x3_y3(&tmp_filtered_screen_buffer, dest);
+		apply_rgb_filter_x3_y3(&tmp_filtered_screen_buffer, dest);
 	} else if(source->width * 3 == dest->width && source->height * 6 == dest->height) {
 		// FM-77AV: 640x200 -> 640x400 -> 1920x1200
 		if(tmp_filtered_screen_buffer.width != source->width || tmp_filtered_screen_buffer.height != source->height * 2) {
@@ -528,8 +537,7 @@ void OSD::apply_crt_fileter_to_screen_buffer(bitmap_t *source, bitmap_t *dest)
 		}
 		stretch_screen_buffer(source, &tmp_filtered_screen_buffer);
 		screen_skip_line = true;
-		apply_crt_filter_x3_y3(&tmp_filtered_screen_buffer, dest);
-
+		apply_rgb_filter_x3_y3(&tmp_filtered_screen_buffer, dest);
 	} else if(source->width * 4 == dest->width && source->height * 4 == dest->height) {
 		// FM-77AV: 320x200 -> 640x400 -> 1280x800
 		if(tmp_filtered_screen_buffer.width != source->width * 2 || tmp_filtered_screen_buffer.height != source->height * 2) {
@@ -537,7 +545,7 @@ void OSD::apply_crt_fileter_to_screen_buffer(bitmap_t *source, bitmap_t *dest)
 		}
 		stretch_screen_buffer(source, &tmp_filtered_screen_buffer);
 		screen_skip_line = true;
-		apply_crt_filter_x2_y2(&tmp_filtered_screen_buffer, dest);
+		apply_rgb_filter_x2_y2(&tmp_filtered_screen_buffer, dest);
 	} else if(source->width * 2 == dest->width && source->height * 4 == dest->height) {
 		// FM-77AV: 640x200 -> 640x400 -> 1280x800
 		if(tmp_filtered_screen_buffer.width != source->width || tmp_filtered_screen_buffer.height != source->height * 2) {
@@ -545,27 +553,27 @@ void OSD::apply_crt_fileter_to_screen_buffer(bitmap_t *source, bitmap_t *dest)
 		}
 		stretch_screen_buffer(source, &tmp_filtered_screen_buffer);
 		screen_skip_line = true;
-		apply_crt_filter_x2_y2(&tmp_filtered_screen_buffer, dest);
+		apply_rgb_filter_x2_y2(&tmp_filtered_screen_buffer, dest);
 	} else if(source->width * 3 == dest->width && source->height * 3 == dest->height) {
-		apply_crt_filter_x3_y3(source, dest);
+		apply_rgb_filter_x3_y3(source, dest);
 	} else if(source->width * 3 == dest->width && source->height * 2 == dest->height) {
-		apply_crt_filter_x3_y2(source, dest);
+		apply_rgb_filter_x3_y2(source, dest);
 	} else if(source->width * 2 == dest->width && source->height * 3 == dest->height) {
-		apply_crt_filter_x2_y3(source, dest);
+		apply_rgb_filter_x2_y3(source, dest);
 	} else if(source->width * 2 == dest->width && source->height * 2 == dest->height) {
-		apply_crt_filter_x2_y2(source, dest);
+		apply_rgb_filter_x2_y2(source, dest);
 	} else if(source->width != dest->width || source->height != dest->height) {
 		if(tmp_filtered_screen_buffer.width != source->width || tmp_filtered_screen_buffer.height != source->height) {
 			initialize_screen_buffer(&tmp_filtered_screen_buffer, source->width, source->height, COLORONCOLOR);
 		}
-		apply_crt_filter_x1_y1(source, &tmp_filtered_screen_buffer);
+		apply_rgb_filter_x1_y1(source, &tmp_filtered_screen_buffer);
 		stretch_screen_buffer(&tmp_filtered_screen_buffer, dest);
 	} else {
-		apply_crt_filter_x1_y1(source, dest);
+		apply_rgb_filter_x1_y1(source, dest);
 	}
 }
 
-void OSD::apply_crt_filter_x3_y3(bitmap_t *source, bitmap_t *dest)
+void OSD::apply_rgb_filter_x3_y3(bitmap_t *source, bitmap_t *dest)
 {
 	if(!screen_skip_line) {
 		for(int y = 0, yy = 0; y < source->height; y++, yy += 3) {
@@ -643,7 +651,7 @@ void OSD::apply_crt_filter_x3_y3(bitmap_t *source, bitmap_t *dest)
 	}
 }
 
-void OSD::apply_crt_filter_x3_y2(bitmap_t *source, bitmap_t *dest)
+void OSD::apply_rgb_filter_x3_y2(bitmap_t *source, bitmap_t *dest)
 {
 	if(!screen_skip_line) {
 		for(int y = 0, yy = 0; y < source->height; y++, yy += 2) {
@@ -718,7 +726,7 @@ void OSD::apply_crt_filter_x3_y2(bitmap_t *source, bitmap_t *dest)
 	}
 }
 
-void OSD::apply_crt_filter_x2_y3(bitmap_t *source, bitmap_t *dest)
+void OSD::apply_rgb_filter_x2_y3(bitmap_t *source, bitmap_t *dest)
 {
 	if(!screen_skip_line) {
 		for(int y = 0, yy = 0; y < source->height; y++, yy += 3) {
@@ -790,7 +798,7 @@ void OSD::apply_crt_filter_x2_y3(bitmap_t *source, bitmap_t *dest)
 	}
 }
 
-void OSD::apply_crt_filter_x2_y2(bitmap_t *source, bitmap_t *dest)
+void OSD::apply_rgb_filter_x2_y2(bitmap_t *source, bitmap_t *dest)
 {
 	if(!screen_skip_line) {
 		for(int y = 0, yy = 0; y < source->height; y++, yy += 2) {
@@ -859,7 +867,7 @@ void OSD::apply_crt_filter_x2_y2(bitmap_t *source, bitmap_t *dest)
 	}
 }
 
-void OSD::apply_crt_filter_x1_y1(bitmap_t *source, bitmap_t *dest)
+void OSD::apply_rgb_filter_x1_y1(bitmap_t *source, bitmap_t *dest)
 {
 	if(!screen_skip_line) {
 		for(int y = 0; y < source->height; y++) {
@@ -914,7 +922,7 @@ void OSD::apply_crt_filter_x1_y1(bitmap_t *source, bitmap_t *dest)
 }
 #endif
 
-#ifdef USE_SCREEN_ROTATE
+//#ifdef USE_SCREEN_ROTATE
 void OSD::rotate_screen_buffer(bitmap_t *source, bitmap_t *dest)
 {
 	if(config.rotate_type == 1) {
@@ -956,7 +964,7 @@ void OSD::rotate_screen_buffer(bitmap_t *source, bitmap_t *dest)
 		}
 	}
 }
-#endif
+//#endif
 
 void OSD::stretch_screen_buffer(bitmap_t *source, bitmap_t *dest)
 {

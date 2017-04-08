@@ -86,7 +86,7 @@ void META_MainWindow::retranslateUi(void)
 	retranslateMachineMenu();
 	retranslateEmulatorMenu();
 	retranslateUI_Help();
-	config_sound_device_type = config.sound_device_type;
+	config_sound_device_type = config.sound_type;
 	
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 	

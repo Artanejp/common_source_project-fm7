@@ -71,11 +71,8 @@
 #if defined(_MZ800)
 #define USE_MONITOR_TYPE	2
 #endif
-#define USE_CRT_FILTER
+#define USE_SCREEN_FILTER
 #define USE_SCANLINE
-//#if defined(_MZ1500)
-#define USE_SCREEN_ROTATE
-//#endif
 #if defined(_MZ700)
 #define USE_SOUND_VOLUME	3
 #elif defined(_MZ800)

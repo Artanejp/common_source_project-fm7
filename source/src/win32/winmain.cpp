@@ -39,7 +39,7 @@ int get_interval()
 HMENU hMenu = NULL;
 bool now_menuloop = false;
 
-void update_menu(HWND hWnd, HMENU hMenu, int pos);
+void update_menu(HWND hWnd, HMENU hMenu);
 void show_menu_bar(HWND hWnd);
 void hide_menu_bar(HWND hWnd);
 
@@ -125,8 +125,8 @@ int desktop_bpp;
 int prev_window_mode = 0;
 bool now_fullscreen = false;
 
-#define MAX_WINDOW	8
-#define MAX_FULLSCREEN	32
+#define MAX_WINDOW	10
+#define MAX_FULLSCREEN	50
 
 int screen_mode_count;
 int screen_mode_width[MAX_FULLSCREEN];
@@ -199,6 +199,13 @@ void update_socket(int ch, WPARAM wParam, LPARAM lParam)
 }
 #endif
 
+#ifdef USE_STATE
+const _TCHAR *state_file_path(int num)
+{
+	return create_local_path(_T("%s.sta%d"), _T(CONFIG_NAME), num);
+}
+#endif
+
 // ----------------------------------------------------------------------------
 // window main
 // ----------------------------------------------------------------------------
@@ -254,7 +261,9 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdL
 	show_menu_bar(hWnd);
 	
 	// show status bar
-	show_status_bar(hWnd);
+	if(config.show_status_bar) {
+		show_status_bar(hWnd);
+	}
 	
 	int status_bar_height = get_status_bar_height();
 	RECT rect_tmp;
@@ -271,12 +280,12 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdL
 	
 	// restore screen mode
 	if(config.window_mode >= 0 && config.window_mode < MAX_WINDOW) {
-		PostMessage(hWnd, WM_COMMAND, ID_SCREEN_WINDOW1 + config.window_mode, 0L);
+		PostMessage(hWnd, WM_COMMAND, ID_SCREEN_WINDOW + config.window_mode, 0L);
 	} else if(config.window_mode >= MAX_WINDOW && config.window_mode < screen_mode_count + MAX_WINDOW) {
-		PostMessage(hWnd, WM_COMMAND, ID_SCREEN_FULLSCREEN1 + config.window_mode - MAX_WINDOW, 0L);
+		PostMessage(hWnd, WM_COMMAND, ID_SCREEN_FULLSCREEN + config.window_mode - MAX_WINDOW, 0L);
 	} else {
 		config.window_mode = 0;
-		PostMessage(hWnd, WM_COMMAND, ID_SCREEN_WINDOW1, 0L);
+		PostMessage(hWnd, WM_COMMAND, ID_SCREEN_WINDOW, 0L);
 	}
 	
 	// accelerator
@@ -564,7 +573,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		if(emu) {
 			emu->suspend();
 		}
-		update_menu(hWnd, (HMENU)wParam, LOWORD(lParam));
+		update_menu(hWnd, (HMENU)wParam);
 		break;
 	case WM_ENTERMENULOOP:
 		now_menuloop = true;
@@ -622,73 +631,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			}
 			break;
 #endif
-#ifdef USE_STATE
-		case ID_SAVE_STATE:
-			if(emu) {
-				emu->save_state();
-			}
-			break;
-		case ID_LOAD_STATE:
-			if(emu) {
-				emu->load_state();
-			}
-			break;
-#endif
-#ifdef USE_BOOT_MODE
-		case ID_BOOT_MODE0: case ID_BOOT_MODE1: case ID_BOOT_MODE2: case ID_BOOT_MODE3:
-		case ID_BOOT_MODE4: case ID_BOOT_MODE5: case ID_BOOT_MODE6: case ID_BOOT_MODE7:
-			config.boot_mode = LOWORD(wParam) - ID_BOOT_MODE0;
-			if(emu) {
-				emu->update_config();
-			}
-			break;
-#endif
-#ifdef USE_CPU_TYPE
-		case ID_CPU_TYPE0: case ID_CPU_TYPE1: case ID_CPU_TYPE2: case ID_CPU_TYPE3:
-		case ID_CPU_TYPE4: case ID_CPU_TYPE5: case ID_CPU_TYPE6: case ID_CPU_TYPE7:
-			config.cpu_type = LOWORD(wParam) - ID_CPU_TYPE0;
-			// need to recreate vm class instance
-//			if(emu) {
-//				emu->update_config();
-//			}
-			break;
-#endif
 		case ID_CPU_POWER0: case ID_CPU_POWER1: case ID_CPU_POWER2: case ID_CPU_POWER3: case ID_CPU_POWER4:
 			config.cpu_power = LOWORD(wParam) - ID_CPU_POWER0;
 			if(emu) {
 				emu->update_config();
 			}
 			break;
-#ifdef USE_DIPSWITCH
-		case ID_DIPSWITCH0:  case ID_DIPSWITCH1:  case ID_DIPSWITCH2:  case ID_DIPSWITCH3: 
-		case ID_DIPSWITCH4:  case ID_DIPSWITCH5:  case ID_DIPSWITCH6:  case ID_DIPSWITCH7: 
-		case ID_DIPSWITCH8:  case ID_DIPSWITCH9:  case ID_DIPSWITCH10: case ID_DIPSWITCH11:
-		case ID_DIPSWITCH12: case ID_DIPSWITCH13: case ID_DIPSWITCH14: case ID_DIPSWITCH15:
-		case ID_DIPSWITCH16: case ID_DIPSWITCH17: case ID_DIPSWITCH18: case ID_DIPSWITCH19:
-		case ID_DIPSWITCH20: case ID_DIPSWITCH21: case ID_DIPSWITCH22: case ID_DIPSWITCH23:
-		case ID_DIPSWITCH24: case ID_DIPSWITCH25: case ID_DIPSWITCH26: case ID_DIPSWITCH27:
-		case ID_DIPSWITCH28: case ID_DIPSWITCH29: case ID_DIPSWITCH30: case ID_DIPSWITCH31:
-			config.dipswitch ^= (1 << (LOWORD(wParam) - ID_DIPSWITCH0));
-			break;
-#endif
-#ifdef USE_PRINTER_TYPE
-		case ID_PRINTER_TYPE0: case ID_PRINTER_TYPE1: case ID_PRINTER_TYPE2: case ID_PRINTER_TYPE3:
-			config.printer_device_type = LOWORD(wParam) - ID_PRINTER_TYPE0;
-			break;
-#endif
-#ifdef USE_DEVICE_TYPE
-		case ID_DEVICE_TYPE0: case ID_DEVICE_TYPE1: case ID_DEVICE_TYPE2: case ID_DEVICE_TYPE3:
-			config.device_type = LOWORD(wParam) - ID_DEVICE_TYPE0;
-			break;
-#endif
-#ifdef USE_DRIVE_TYPE
-		case ID_DRIVE_TYPE0: case ID_DRIVE_TYPE1: case ID_DRIVE_TYPE2: case ID_DRIVE_TYPE3:
-			config.drive_type = LOWORD(wParam) - ID_DRIVE_TYPE0;
-			if(emu) {
-				emu->update_config();
-			}
-			break;
-#endif
 #ifdef USE_AUTO_KEY
 		case ID_AUTOKEY_START:
 			if(emu) {
@@ -703,6 +651,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 #endif
 #ifdef USE_DEBUGGER
 		case ID_OPEN_DEBUGGER0: case ID_OPEN_DEBUGGER1: case ID_OPEN_DEBUGGER2: case ID_OPEN_DEBUGGER3:
+		case ID_OPEN_DEBUGGER4: case ID_OPEN_DEBUGGER5: case ID_OPEN_DEBUGGER6: case ID_OPEN_DEBUGGER7:
 			if(emu) {
 				emu->open_debugger(LOWORD(wParam) - ID_OPEN_DEBUGGER0);
 			}
@@ -713,9 +662,326 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			}
 			break;
 #endif
+#ifdef USE_STATE
+		case ID_SAVE_STATE0: case ID_SAVE_STATE1: case ID_SAVE_STATE2: case ID_SAVE_STATE3: case ID_SAVE_STATE4:
+		case ID_SAVE_STATE5: case ID_SAVE_STATE6: case ID_SAVE_STATE7: case ID_SAVE_STATE8: case ID_SAVE_STATE9:
+			if(emu) {
+				emu->save_state(state_file_path(LOWORD(wParam) - ID_SAVE_STATE0));
+			}
+			break;
+		case ID_LOAD_STATE0: case ID_LOAD_STATE1: case ID_LOAD_STATE2: case ID_LOAD_STATE3: case ID_LOAD_STATE4:
+		case ID_LOAD_STATE5: case ID_LOAD_STATE6: case ID_LOAD_STATE7: case ID_LOAD_STATE8: case ID_LOAD_STATE9:
+			if(emu) {
+				emu->load_state(state_file_path(LOWORD(wParam) - ID_LOAD_STATE0));
+			}
+			break;
+#endif
 		case ID_EXIT:
 			SendMessage(hWnd, WM_CLOSE, 0, 0L);
 			break;
+#ifdef USE_BOOT_MODE
+		case ID_VM_BOOT_MODE0: case ID_VM_BOOT_MODE1: case ID_VM_BOOT_MODE2: case ID_VM_BOOT_MODE3:
+		case ID_VM_BOOT_MODE4: case ID_VM_BOOT_MODE5: case ID_VM_BOOT_MODE6: case ID_VM_BOOT_MODE7:
+			config.boot_mode = LOWORD(wParam) - ID_VM_BOOT_MODE0;
+			if(emu) {
+				emu->update_config();
+			}
+			break;
+#endif
+#ifdef USE_CPU_TYPE
+		case ID_VM_CPU_TYPE0: case ID_VM_CPU_TYPE1: case ID_VM_CPU_TYPE2: case ID_VM_CPU_TYPE3:
+		case ID_VM_CPU_TYPE4: case ID_VM_CPU_TYPE5: case ID_VM_CPU_TYPE6: case ID_VM_CPU_TYPE7:
+			config.cpu_type = LOWORD(wParam) - ID_VM_CPU_TYPE0;
+			// need to recreate vm class instance
+//			if(emu) {
+//				emu->update_config();
+//			}
+			break;
+#endif
+#ifdef USE_DIPSWITCH
+		case ID_VM_DIPSWITCH0:  case ID_VM_DIPSWITCH1:  case ID_VM_DIPSWITCH2:  case ID_VM_DIPSWITCH3: 
+		case ID_VM_DIPSWITCH4:  case ID_VM_DIPSWITCH5:  case ID_VM_DIPSWITCH6:  case ID_VM_DIPSWITCH7: 
+		case ID_VM_DIPSWITCH8:  case ID_VM_DIPSWITCH9:  case ID_VM_DIPSWITCH10: case ID_VM_DIPSWITCH11:
+		case ID_VM_DIPSWITCH12: case ID_VM_DIPSWITCH13: case ID_VM_DIPSWITCH14: case ID_VM_DIPSWITCH15:
+		case ID_VM_DIPSWITCH16: case ID_VM_DIPSWITCH17: case ID_VM_DIPSWITCH18: case ID_VM_DIPSWITCH19:
+		case ID_VM_DIPSWITCH20: case ID_VM_DIPSWITCH21: case ID_VM_DIPSWITCH22: case ID_VM_DIPSWITCH23:
+		case ID_VM_DIPSWITCH24: case ID_VM_DIPSWITCH25: case ID_VM_DIPSWITCH26: case ID_VM_DIPSWITCH27:
+		case ID_VM_DIPSWITCH28: case ID_VM_DIPSWITCH29: case ID_VM_DIPSWITCH30: case ID_VM_DIPSWITCH31:
+			config.dipswitch ^= (1 << (LOWORD(wParam) - ID_VM_DIPSWITCH0));
+			break;
+#endif
+#ifdef USE_DEVICE_TYPE
+		case ID_VM_DEVICE_TYPE0: case ID_VM_DEVICE_TYPE1: case ID_VM_DEVICE_TYPE2: case ID_VM_DEVICE_TYPE3:
+		case ID_VM_DEVICE_TYPE4: case ID_VM_DEVICE_TYPE5: case ID_VM_DEVICE_TYPE6: case ID_VM_DEVICE_TYPE7:
+			config.device_type = LOWORD(wParam) - ID_VM_DEVICE_TYPE0;
+			break;
+#endif
+#ifdef USE_DRIVE_TYPE
+		case ID_VM_DRIVE_TYPE0: case ID_VM_DRIVE_TYPE1: case ID_VM_DRIVE_TYPE2: case ID_VM_DRIVE_TYPE3:
+		case ID_VM_DRIVE_TYPE4: case ID_VM_DRIVE_TYPE5: case ID_VM_DRIVE_TYPE6: case ID_VM_DRIVE_TYPE7:
+			config.drive_type = LOWORD(wParam) - ID_VM_DRIVE_TYPE0;
+			if(emu) {
+				emu->update_config();
+			}
+			break;
+#endif
+#ifdef USE_KEYBOARD_TYPE
+		case ID_VM_KEYBOARD_TYPE0: case ID_VM_KEYBOARD_TYPE1: case ID_VM_KEYBOARD_TYPE2: case ID_VM_KEYBOARD_TYPE3:
+		case ID_VM_KEYBOARD_TYPE4: case ID_VM_KEYBOARD_TYPE5: case ID_VM_KEYBOARD_TYPE6: case ID_VM_KEYBOARD_TYPE7:
+			config.keyboard_type = LOWORD(wParam) - ID_VM_KEYBOARD_TYPE0;
+			if(emu) {
+				emu->update_config();
+			}
+			break;
+#endif
+#ifdef USE_MOUSE_TYPE
+		case ID_VM_MOUSE_TYPE0: case ID_VM_MOUSE_TYPE1: case ID_VM_MOUSE_TYPE2: case ID_VM_MOUSE_TYPE3:
+		case ID_VM_MOUSE_TYPE4: case ID_VM_MOUSE_TYPE5: case ID_VM_MOUSE_TYPE6: case ID_VM_MOUSE_TYPE7:
+			config.mouse_type = LOWORD(wParam) - ID_VM_MOUSE_TYPE0;
+			if(emu) {
+				emu->update_config();
+			}
+			break;
+#endif
+#ifdef USE_JOYSTICK_TYPE
+		case ID_VM_JOYSTICK_TYPE0: case ID_VM_JOYSTICK_TYPE1: case ID_VM_JOYSTICK_TYPE2: case ID_VM_JOYSTICK_TYPE3:
+		case ID_VM_JOYSTICK_TYPE4: case ID_VM_JOYSTICK_TYPE5: case ID_VM_JOYSTICK_TYPE6: case ID_VM_JOYSTICK_TYPE7:
+			config.joystick_type = LOWORD(wParam) - ID_VM_JOYSTICK_TYPE0;
+			if(emu) {
+				emu->update_config();
+			}
+			break;
+#endif
+#ifdef USE_SOUND_TYPE
+		case ID_VM_SOUND_TYPE0: case ID_VM_SOUND_TYPE1: case ID_VM_SOUND_TYPE2: case ID_VM_SOUND_TYPE3:
+		case ID_VM_SOUND_TYPE4: case ID_VM_SOUND_TYPE5: case ID_VM_SOUND_TYPE6: case ID_VM_SOUND_TYPE7:
+			config.sound_type = LOWORD(wParam) - ID_VM_SOUND_TYPE0;
+			//if(emu) {
+			//	emu->update_config();
+			//}
+			break;
+#endif
+#ifdef USE_FD1
+		case ID_VM_SOUND_NOISE_FDD:
+			config.sound_noise_fdd = !config.sound_noise_fdd;
+			if(emu) {
+				emu->update_config();
+			}
+			break;
+#endif
+#ifdef USE_TAPE1
+		case ID_VM_SOUND_NOISE_CMT:
+			config.sound_noise_cmt = !config.sound_noise_cmt;
+			if(emu) {
+				emu->update_config();
+			}
+			break;
+		case ID_VM_SOUND_PLAY_TAPE:
+			config.sound_play_tape = !config.sound_play_tape;
+			break;
+#endif
+#ifdef USE_MONITOR_TYPE
+		case ID_VM_MONITOR_TYPE0: case ID_VM_MONITOR_TYPE1: case ID_VM_MONITOR_TYPE2: case ID_VM_MONITOR_TYPE3:
+		case ID_VM_MONITOR_TYPE4: case ID_VM_MONITOR_TYPE5: case ID_VM_MONITOR_TYPE6: case ID_VM_MONITOR_TYPE7:
+			config.monitor_type = LOWORD(wParam) - ID_VM_MONITOR_TYPE0;
+			if(emu) {
+#ifdef ONE_BOARD_MICRO_COMPUTER
+				emu->reload_bitmap();
+				emu->invalidate_screen();
+#endif
+				emu->update_config();
+			}
+			break;
+#endif
+#ifdef USE_SCANLINE
+		case ID_VM_MONITOR_SCANLINE:
+			config.scan_line = !config.scan_line;
+			if(emu) {
+				emu->update_config();
+			}
+			break;
+#endif
+#ifdef USE_PRINTER_TYPE
+		case ID_VM_PRINTER_TYPE0: case ID_VM_PRINTER_TYPE1: case ID_VM_PRINTER_TYPE2: case ID_VM_PRINTER_TYPE3:
+		case ID_VM_PRINTER_TYPE4: case ID_VM_PRINTER_TYPE5: case ID_VM_PRINTER_TYPE6: case ID_VM_PRINTER_TYPE7:
+			config.printer_type = LOWORD(wParam) - ID_VM_PRINTER_TYPE0;
+			break;
+#endif
+		case ID_HOST_REC_MOVIE_60FPS: case ID_HOST_REC_MOVIE_30FPS: case ID_HOST_REC_MOVIE_15FPS:
+			if(emu) {
+				static const int fps[3] = {60, 30, 15};
+				emu->start_record_sound();
+				if(!emu->start_record_video(fps[LOWORD(wParam) - ID_HOST_REC_MOVIE_60FPS])) {
+					emu->stop_record_sound();
+				}
+			}
+			break;
+		case ID_HOST_REC_SOUND:
+			if(emu) {
+				emu->start_record_sound();
+			}
+			break;
+		case ID_HOST_REC_STOP:
+			if(emu) {
+				emu->stop_record_video();
+				emu->stop_record_sound();
+			}
+			break;
+		case ID_HOST_CAPTURE_SCREEN:
+			if(emu) {
+				emu->capture_screen();
+			}
+			break;
+		case ID_HOST_USE_D3D9:
+			config.use_d3d9 = !config.use_d3d9;
+			if(emu) {
+				emu->set_host_window_size(-1, -1, !now_fullscreen);
+			}
+			break;
+		case ID_HOST_WAIT_VSYNC:
+			config.wait_vsync = !config.wait_vsync;
+			if(emu) {
+				emu->set_host_window_size(-1, -1, !now_fullscreen);
+			}
+			break;
+		case ID_HOST_USE_DINPUT:
+			config.use_dinput = !config.use_dinput;
+			break;
+		case ID_HOST_DISABLE_DWM:
+			config.disable_dwm = !config.disable_dwm;
+			break;
+		case ID_HOST_SHOW_STATUS_BAR:
+			config.show_status_bar = !config.show_status_bar;
+			if(emu) {
+				if(!now_fullscreen) {
+					set_window(hWnd, prev_window_mode);
+				}
+			}
+			break;
+		case ID_SCREEN_WINDOW + 0: case ID_SCREEN_WINDOW + 1: case ID_SCREEN_WINDOW + 2: case ID_SCREEN_WINDOW + 3: case ID_SCREEN_WINDOW + 4:
+		case ID_SCREEN_WINDOW + 5: case ID_SCREEN_WINDOW + 6: case ID_SCREEN_WINDOW + 7: case ID_SCREEN_WINDOW + 8: case ID_SCREEN_WINDOW + 9:
+			if(emu) {
+				set_window(hWnd, LOWORD(wParam) - ID_SCREEN_WINDOW);
+			}
+			break;
+		case ID_SCREEN_FULLSCREEN +  0: case ID_SCREEN_FULLSCREEN +  1: case ID_SCREEN_FULLSCREEN +  2: case ID_SCREEN_FULLSCREEN +  3: case ID_SCREEN_FULLSCREEN +  4:
+		case ID_SCREEN_FULLSCREEN +  5: case ID_SCREEN_FULLSCREEN +  6: case ID_SCREEN_FULLSCREEN +  7: case ID_SCREEN_FULLSCREEN +  8: case ID_SCREEN_FULLSCREEN +  9:
+		case ID_SCREEN_FULLSCREEN + 10: case ID_SCREEN_FULLSCREEN + 11: case ID_SCREEN_FULLSCREEN + 12: case ID_SCREEN_FULLSCREEN + 13: case ID_SCREEN_FULLSCREEN + 14:
+		case ID_SCREEN_FULLSCREEN + 15: case ID_SCREEN_FULLSCREEN + 16: case ID_SCREEN_FULLSCREEN + 17: case ID_SCREEN_FULLSCREEN + 18: case ID_SCREEN_FULLSCREEN + 19:
+		case ID_SCREEN_FULLSCREEN + 20: case ID_SCREEN_FULLSCREEN + 21: case ID_SCREEN_FULLSCREEN + 22: case ID_SCREEN_FULLSCREEN + 23: case ID_SCREEN_FULLSCREEN + 24:
+		case ID_SCREEN_FULLSCREEN + 25: case ID_SCREEN_FULLSCREEN + 26: case ID_SCREEN_FULLSCREEN + 27: case ID_SCREEN_FULLSCREEN + 28: case ID_SCREEN_FULLSCREEN + 29:
+		case ID_SCREEN_FULLSCREEN + 30: case ID_SCREEN_FULLSCREEN + 31: case ID_SCREEN_FULLSCREEN + 32: case ID_SCREEN_FULLSCREEN + 33: case ID_SCREEN_FULLSCREEN + 34:
+		case ID_SCREEN_FULLSCREEN + 35: case ID_SCREEN_FULLSCREEN + 36: case ID_SCREEN_FULLSCREEN + 37: case ID_SCREEN_FULLSCREEN + 38: case ID_SCREEN_FULLSCREEN + 39:
+		case ID_SCREEN_FULLSCREEN + 40: case ID_SCREEN_FULLSCREEN + 41: case ID_SCREEN_FULLSCREEN + 42: case ID_SCREEN_FULLSCREEN + 43: case ID_SCREEN_FULLSCREEN + 44:
+		case ID_SCREEN_FULLSCREEN + 45: case ID_SCREEN_FULLSCREEN + 46: case ID_SCREEN_FULLSCREEN + 47: case ID_SCREEN_FULLSCREEN + 48: case ID_SCREEN_FULLSCREEN + 49:
+			if(emu && !now_fullscreen) {
+				set_window(hWnd, LOWORD(wParam) - ID_SCREEN_FULLSCREEN + MAX_WINDOW);
+			}
+			break;
+		case ID_SCREEN_WINDOW_STRETCH:
+		case ID_SCREEN_WINDOW_ASPECT:
+			config.window_stretch_type = LOWORD(wParam) - ID_SCREEN_WINDOW_STRETCH;
+			if(emu) {
+				if(!now_fullscreen) {
+					set_window(hWnd, prev_window_mode);
+				}
+			}
+			break;
+		case ID_SCREEN_FULLSCREEN_DOTBYDOT:
+		case ID_SCREEN_FULLSCREEN_STRETCH:
+		case ID_SCREEN_FULLSCREEN_ASPECT:
+		case ID_SCREEN_FULLSCREEN_FILL:
+			config.fullscreen_stretch_type = LOWORD(wParam) - ID_SCREEN_FULLSCREEN_DOTBYDOT;
+			if(emu) {
+				if(now_fullscreen) {
+					emu->set_host_window_size(-1, -1, false);
+				}
+			}
+			break;
+//#ifdef USE_SCREEN_ROTATE
+		case ID_SCREEN_ROTATE_0: case ID_SCREEN_ROTATE_90: case ID_SCREEN_ROTATE_180: case ID_SCREEN_ROTATE_270:
+			config.rotate_type = LOWORD(wParam) - ID_SCREEN_ROTATE_0;
+			if(emu) {
+				if(now_fullscreen) {
+					emu->set_host_window_size(-1, -1, false);
+				} else {
+					set_window(hWnd, prev_window_mode);
+				}
+			}
+			break;
+//#endif
+#ifdef USE_SCREEN_FILTER
+		case ID_FILTER_RGB:
+			config.filter_type = SCREEN_FILTER_RGB;
+			break;
+		case ID_FILTER_RF:
+			config.filter_type = SCREEN_FILTER_RF;
+			break;
+		case ID_FILTER_NONE:
+			config.filter_type = SCREEN_FILTER_NONE;
+			break;
+#endif
+		case ID_SOUND_FREQ0: case ID_SOUND_FREQ1: case ID_SOUND_FREQ2: case ID_SOUND_FREQ3:
+		case ID_SOUND_FREQ4: case ID_SOUND_FREQ5: case ID_SOUND_FREQ6: case ID_SOUND_FREQ7:
+			config.sound_frequency = LOWORD(wParam) - ID_SOUND_FREQ0;
+			if(emu) {
+				emu->update_config();
+			}
+			break;
+		case ID_SOUND_LATE0: case ID_SOUND_LATE1: case ID_SOUND_LATE2: case ID_SOUND_LATE3: case ID_SOUND_LATE4:
+			config.sound_latency = LOWORD(wParam) - ID_SOUND_LATE0;
+			if(emu) {
+				emu->update_config();
+			}
+			break;
+		case ID_SOUND_STRICT_RENDER: case ID_SOUND_LIGHT_RENDER:
+			config.sound_strict_rendering = (LOWORD(wParam) == ID_SOUND_STRICT_RENDER);
+			if(emu) {
+				emu->update_config();
+			}
+			break;
+#ifdef USE_SOUND_VOLUME
+		case ID_SOUND_VOLUME:
+			DialogBoxParam((HINSTANCE)GetModuleHandle(0), MAKEINTRESOURCE(IDD_VOLUME), hWnd, VolumeWndProc, 0);
+			break;
+#endif
+#ifdef USE_JOYSTICK
+		case ID_INPUT_JOYSTICK0: case ID_INPUT_JOYSTICK1: case ID_INPUT_JOYSTICK2: case ID_INPUT_JOYSTICK3:
+		case ID_INPUT_JOYSTICK4: case ID_INPUT_JOYSTICK5: case ID_INPUT_JOYSTICK6: case ID_INPUT_JOYSTICK7:
+			{
+				LONG index = LOWORD(wParam) - ID_INPUT_JOYSTICK0;
+				DialogBoxParam((HINSTANCE)GetModuleHandle(0), MAKEINTRESOURCE(IDD_JOYSTICK), hWnd, JoyWndProc, (LPARAM)&index);
+			}
+			break;
+#endif
+#ifdef USE_VIDEO_CAPTURE
+		case ID_CAPTURE_FILTER:
+			if(emu) {
+				emu->show_capture_dev_filter();
+			}
+			break;
+		case ID_CAPTURE_PIN:
+			if(emu) {
+				emu->show_capture_dev_pin();
+			}
+			break;
+		case ID_CAPTURE_SOURCE:
+			if(emu) {
+				emu->show_capture_dev_source();
+			}
+			break;
+		case ID_CAPTURE_CLOSE:
+			if(emu) {
+				emu->close_capture_dev();
+			}
+			break;
+		case ID_CAPTURE_DEVICE + 0: case ID_CAPTURE_DEVICE + 1: case ID_CAPTURE_DEVICE + 2: case ID_CAPTURE_DEVICE + 3:
+		case ID_CAPTURE_DEVICE + 4: case ID_CAPTURE_DEVICE + 5: case ID_CAPTURE_DEVICE + 6: case ID_CAPTURE_DEVICE + 7:
+			if(emu) {
+				emu->open_capture_dev(LOWORD(wParam) - ID_CAPTURE_DEVICE, false);
+			}
+			break;
+#endif
 #ifdef USE_CART1
 		#define CART_MENU_ITEMS(drv, ID_OPEN_CART, ID_CLOSE_CART, ID_RECENT_CART) \
 		case ID_OPEN_CART: \
@@ -1005,73 +1271,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 #ifdef USE_BUBBLE2
 		BUBBLE_CASETTE_MENU_ITEMS(1, ID_OPEN_BUBBLE2, ID_CLOSE_BUBBLE2, ID_RECENT_BUBBLE2)
 #endif
-		case ID_SCREEN_REC60: case ID_SCREEN_REC30: case ID_SCREEN_REC15:
-			if(emu) {
-				static const int fps[3] = {60, 30, 15};
-				emu->start_record_sound();
-				if(!emu->start_record_video(fps[LOWORD(wParam) - ID_SCREEN_REC60])) {
-					emu->stop_record_sound();
-				}
-			}
-			break;
-		case ID_SCREEN_STOP:
-			if(emu) {
-				emu->stop_record_video();
-				emu->stop_record_sound();
-			}
-			break;
-		case ID_SCREEN_CAPTURE:
-			if(emu) {
-				emu->capture_screen();
-			}
-			break;
-		case ID_SCREEN_WINDOW1: case ID_SCREEN_WINDOW2: case ID_SCREEN_WINDOW3: case ID_SCREEN_WINDOW4:
-		case ID_SCREEN_WINDOW5: case ID_SCREEN_WINDOW6: case ID_SCREEN_WINDOW7: case ID_SCREEN_WINDOW8:
-			if(emu) {
-				set_window(hWnd, LOWORD(wParam) - ID_SCREEN_WINDOW1);
-			}
-			break;
-		case ID_SCREEN_FULLSCREEN1:  case ID_SCREEN_FULLSCREEN2:  case ID_SCREEN_FULLSCREEN3:  case ID_SCREEN_FULLSCREEN4:
-		case ID_SCREEN_FULLSCREEN5:  case ID_SCREEN_FULLSCREEN6:  case ID_SCREEN_FULLSCREEN7:  case ID_SCREEN_FULLSCREEN8:
-		case ID_SCREEN_FULLSCREEN9:  case ID_SCREEN_FULLSCREEN10: case ID_SCREEN_FULLSCREEN11: case ID_SCREEN_FULLSCREEN12:
-		case ID_SCREEN_FULLSCREEN13: case ID_SCREEN_FULLSCREEN14: case ID_SCREEN_FULLSCREEN15: case ID_SCREEN_FULLSCREEN16:
-		case ID_SCREEN_FULLSCREEN17: case ID_SCREEN_FULLSCREEN18: case ID_SCREEN_FULLSCREEN19: case ID_SCREEN_FULLSCREEN20:
-		case ID_SCREEN_FULLSCREEN21: case ID_SCREEN_FULLSCREEN22: case ID_SCREEN_FULLSCREEN23: case ID_SCREEN_FULLSCREEN24:
-		case ID_SCREEN_FULLSCREEN25: case ID_SCREEN_FULLSCREEN26: case ID_SCREEN_FULLSCREEN27: case ID_SCREEN_FULLSCREEN28:
-		case ID_SCREEN_FULLSCREEN29: case ID_SCREEN_FULLSCREEN30: case ID_SCREEN_FULLSCREEN31: case ID_SCREEN_FULLSCREEN32:
-			if(emu && !now_fullscreen) {
-				set_window(hWnd, LOWORD(wParam) - ID_SCREEN_FULLSCREEN1 + MAX_WINDOW);
-			}
-			break;
-		case ID_SCREEN_WINDOW_STRETCH1: case ID_SCREEN_WINDOW_STRETCH2:
-			config.window_stretch_type = LOWORD(wParam) - ID_SCREEN_WINDOW_STRETCH1;
-			if(emu) {
-				if(!now_fullscreen) {
-					set_window(hWnd, prev_window_mode);
-				}
-			}
-			break;
-		case ID_SCREEN_FULLSCREEN_STRETCH1: case ID_SCREEN_FULLSCREEN_STRETCH2: case ID_SCREEN_FULLSCREEN_STRETCH3: case ID_SCREEN_FULLSCREEN_STRETCH4:
-			config.fullscreen_stretch_type = LOWORD(wParam) - ID_SCREEN_FULLSCREEN_STRETCH1;
-			if(emu) {
-				if(now_fullscreen) {
-					emu->set_host_window_size(-1, -1, false);
-				}
-			}
-			break;
-		case ID_SCREEN_USE_D3D9:
-			config.use_d3d9 = !config.use_d3d9;
-			if(emu) {
-				emu->set_host_window_size(-1, -1, !now_fullscreen);
-			}
-			break;
-		case ID_SCREEN_WAIT_VSYNC:
-			config.wait_vsync = !config.wait_vsync;
-			if(emu) {
-				emu->set_host_window_size(-1, -1, !now_fullscreen);
-			}
-			break;
-		// accelerator
 		case ID_ACCEL_SCREEN:
 			if(emu) {
 				emu->suspend();
@@ -1082,144 +1281,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		case ID_ACCEL_MOUSE:
 			if(emu) {
 				emu->toggle_mouse();
-			}
-			break;
-#endif
-#ifdef USE_MONITOR_TYPE
-		case ID_SCREEN_MONITOR_TYPE0: case ID_SCREEN_MONITOR_TYPE1: case ID_SCREEN_MONITOR_TYPE2: case ID_SCREEN_MONITOR_TYPE3:
-		case ID_SCREEN_MONITOR_TYPE4: case ID_SCREEN_MONITOR_TYPE5: case ID_SCREEN_MONITOR_TYPE6: case ID_SCREEN_MONITOR_TYPE7:
-			config.monitor_type = LOWORD(wParam) - ID_SCREEN_MONITOR_TYPE0;
-			if(emu) {
-				emu->update_config();
-			}
-			break;
-#endif
-#ifdef USE_CRT_FILTER
-		case ID_SCREEN_CRT_FILTER:
-			config.crt_filter = !config.crt_filter;
-			break;
-#endif
-#ifdef USE_SCANLINE
-		case ID_SCREEN_SCANLINE:
-			config.scan_line = !config.scan_line;
-			if(emu) {
-				emu->update_config();
-			}
-			break;
-#endif
-#ifdef USE_SCREEN_ROTATE
-		case ID_SCREEN_ROTATE_0: case ID_SCREEN_ROTATE_90: case ID_SCREEN_ROTATE_180: case ID_SCREEN_ROTATE_270:
-			config.rotate_type = LOWORD(wParam) - ID_SCREEN_ROTATE_0;
-			if(emu) {
-				if(now_fullscreen) {
-					emu->set_host_window_size(-1, -1, false);
-				} else {
-					set_window(hWnd, prev_window_mode);
-				}
-			}
-			break;
-#endif
-		case ID_SOUND_REC:
-			if(emu) {
-				emu->start_record_sound();
-			}
-			break;
-		case ID_SOUND_STOP:
-			if(emu) {
-				emu->stop_record_sound();
-			}
-			break;
-		case ID_SOUND_FREQ0: case ID_SOUND_FREQ1: case ID_SOUND_FREQ2: case ID_SOUND_FREQ3:
-		case ID_SOUND_FREQ4: case ID_SOUND_FREQ5: case ID_SOUND_FREQ6: case ID_SOUND_FREQ7:
-			config.sound_frequency = LOWORD(wParam) - ID_SOUND_FREQ0;
-			if(emu) {
-				emu->update_config();
-			}
-			break;
-		case ID_SOUND_LATE0: case ID_SOUND_LATE1: case ID_SOUND_LATE2: case ID_SOUND_LATE3: case ID_SOUND_LATE4:
-			config.sound_latency = LOWORD(wParam) - ID_SOUND_LATE0;
-			if(emu) {
-				emu->update_config();
-			}
-			break;
-		case ID_SOUND_STRICT_RENDER: case ID_SOUND_LIGHT_RENDER:
-			config.sound_strict_rendering = (LOWORD(wParam) == ID_SOUND_STRICT_RENDER);
-			if(emu) {
-				emu->update_config();
-			}
-			break;
-#ifdef USE_FD1
-		case ID_SOUND_NOISE_FDD:
-			config.sound_noise_fdd = !config.sound_noise_fdd;
-			if(emu) {
-				emu->update_config();
-			}
-			break;
-#endif
-#ifdef USE_TAPE1
-		case ID_SOUND_NOISE_CMT:
-			config.sound_noise_cmt = !config.sound_noise_cmt;
-			if(emu) {
-				emu->update_config();
-			}
-			break;
-		case ID_SOUND_PLAY_TAPE:
-			config.sound_play_tape = !config.sound_play_tape;
-			break;
-#endif
-#ifdef USE_SOUND_DEVICE_TYPE
-		case ID_SOUND_DEVICE_TYPE0: case ID_SOUND_DEVICE_TYPE1: case ID_SOUND_DEVICE_TYPE2: case ID_SOUND_DEVICE_TYPE3:
-		case ID_SOUND_DEVICE_TYPE4: case ID_SOUND_DEVICE_TYPE5: case ID_SOUND_DEVICE_TYPE6: case ID_SOUND_DEVICE_TYPE7:
-			config.sound_device_type = LOWORD(wParam) - ID_SOUND_DEVICE_TYPE0;
-			//if(emu) {
-			//	emu->update_config();
-			//}
-			break;
-#endif
-#ifdef USE_SOUND_VOLUME
-		case ID_SOUND_VOLUME:
-			DialogBoxParam((HINSTANCE)GetModuleHandle(0), MAKEINTRESOURCE(IDD_VOLUME), hWnd, VolumeWndProc, 0);
-			break;
-#endif
-#ifdef USE_VIDEO_CAPTURE
-		case ID_CAPTURE_FILTER:
-			if(emu) {
-				emu->show_capture_dev_filter();
-			}
-			break;
-		case ID_CAPTURE_PIN:
-			if(emu) {
-				emu->show_capture_dev_pin();
-			}
-			break;
-		case ID_CAPTURE_SOURCE:
-			if(emu) {
-				emu->show_capture_dev_source();
-			}
-			break;
-		case ID_CAPTURE_CLOSE:
-			if(emu) {
-				emu->close_capture_dev();
-			}
-			break;
-		case ID_CAPTURE_DEVICE1: case ID_CAPTURE_DEVICE2: case ID_CAPTURE_DEVICE3: case ID_CAPTURE_DEVICE4:
-		case ID_CAPTURE_DEVICE5: case ID_CAPTURE_DEVICE6: case ID_CAPTURE_DEVICE7: case ID_CAPTURE_DEVICE8:
-			if(emu) {
-				emu->open_capture_dev(LOWORD(wParam) - ID_CAPTURE_DEVICE1, false);
-			}
-			break;
-#endif
-		case ID_INPUT_USE_DINPUT:
-			config.use_direct_input = !config.use_direct_input;
-			break;
-		case ID_INPUT_DISABLE_DWM:
-			config.disable_dwm = !config.disable_dwm;
-			break;
-#ifdef USE_JOYSTICK
-		case ID_INPUT_JOYSTICK0: case ID_INPUT_JOYSTICK1: case ID_INPUT_JOYSTICK2: case ID_INPUT_JOYSTICK3:
-			{
-				LONG index = LOWORD(wParam) - ID_INPUT_JOYSTICK0;
-				DialogBoxParam((HINSTANCE)GetModuleHandle(0), MAKEINTRESOURCE(IDD_JOYSTICK), hWnd, JoyWndProc, (LPARAM)&index);
 			}
 			break;
 #endif
@@ -1247,44 +1308,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 // menu
 // ----------------------------------------------------------------------------
 
-#ifdef MENU_POS_CONTROL
 void update_control_menu(HMENU hMenu)
 {
-#ifdef USE_BOOT_MODE
-	if(config.boot_mode >= 0 && config.boot_mode < USE_BOOT_MODE) {
-		CheckMenuRadioItem(hMenu, ID_BOOT_MODE0, ID_BOOT_MODE0 + USE_BOOT_MODE - 1, ID_BOOT_MODE0 + config.boot_mode, MF_BYCOMMAND);
-	}
-#endif
-#ifdef USE_CPU_TYPE
-	if(config.cpu_type >= 0 && config.cpu_type < USE_CPU_TYPE) {
-		CheckMenuRadioItem(hMenu, ID_CPU_TYPE0, ID_CPU_TYPE0 + USE_CPU_TYPE - 1, ID_CPU_TYPE0 + config.cpu_type, MF_BYCOMMAND);
-	}
-#endif
 	if(config.cpu_power >= 0 && config.cpu_power < 5) {
 		CheckMenuRadioItem(hMenu, ID_CPU_POWER0, ID_CPU_POWER4, ID_CPU_POWER0 + config.cpu_power, MF_BYCOMMAND);
 	}
-#ifdef USE_DIPSWITCH
-	for(int i = 0; i < 32; i++) {
-		CheckMenuItem(hMenu, ID_DIPSWITCH0 + i, (config.dipswitch & (1 << i)) ? MF_CHECKED : MF_UNCHECKED);
-	}
-#endif
-#ifdef USE_PRINTER_TYPE
-	if(config.printer_device_type >= 0 && config.printer_device_type < USE_PRINTER_TYPE) {
-		CheckMenuRadioItem(hMenu, ID_PRINTER_TYPE0, ID_PRINTER_TYPE0 + USE_PRINTER_TYPE - 1, ID_PRINTER_TYPE0 + config.printer_device_type, MF_BYCOMMAND);
-	}
-#endif
-#ifdef USE_DEVICE_TYPE
-	if(config.device_type >= 0 && config.device_type < USE_DEVICE_TYPE) {
-		CheckMenuRadioItem(hMenu, ID_DEVICE_TYPE0, ID_DEVICE_TYPE0 + USE_DEVICE_TYPE - 1, ID_DEVICE_TYPE0 + config.device_type, MF_BYCOMMAND);
-	}
-#endif
-#ifdef USE_DRIVE_TYPE
-	if(config.drive_type >= 0 && config.drive_type < USE_DRIVE_TYPE) {
-		CheckMenuRadioItem(hMenu, ID_DRIVE_TYPE0, ID_DRIVE_TYPE0 + USE_DRIVE_TYPE - 1, ID_DRIVE_TYPE0 + config.drive_type, MF_BYCOMMAND);
-	}
-#endif
 #ifdef USE_AUTO_KEY
-	// auto key
 	bool now_paste = true, now_stop = true;
 	if(emu) {
 		now_paste = emu->is_auto_key_running();
@@ -1294,17 +1323,88 @@ void update_control_menu(HMENU hMenu)
 	EnableMenuItem(hMenu, ID_AUTOKEY_STOP, now_stop ? MF_GRAYED : MF_ENABLED);
 #endif
 #ifdef USE_DEBUGGER
-	// debugger
-	EnableMenuItem(hMenu, ID_OPEN_DEBUGGER0, emu && !emu->now_debugging && emu->is_debugger_enabled(0) ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(hMenu, ID_OPEN_DEBUGGER1, emu && !emu->now_debugging && emu->is_debugger_enabled(1) ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(hMenu, ID_OPEN_DEBUGGER2, emu && !emu->now_debugging && emu->is_debugger_enabled(2) ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(hMenu, ID_OPEN_DEBUGGER3, emu && !emu->now_debugging && emu->is_debugger_enabled(3) ? MF_ENABLED : MF_GRAYED);
+	for(int i = 0; i < 8; i++) {
+		EnableMenuItem(hMenu, ID_OPEN_DEBUGGER0 + i, emu && !emu->now_debugging && emu->is_debugger_enabled(i) ? MF_ENABLED : MF_GRAYED);
+	}
 	EnableMenuItem(hMenu, ID_CLOSE_DEBUGGER, emu &&  emu->now_debugging                                ? MF_ENABLED : MF_GRAYED);
 #endif
 }
+
+#ifdef USE_STATE
+void update_save_state_menu(HMENU hMenu)
+{
+	HANDLE hFile;
+	FILETIME ftWrite;
+	FILETIME ftLocal;
+	SYSTEMTIME st;
+	_TCHAR buf[64];
+	MENUITEMINFO info;
+	
+	ZeroMemory(&info, sizeof(info));
+	info.cbSize = sizeof(info);
+	info.fMask = MIIM_TYPE;
+	info.fType = MFT_STRING;
+	info.dwTypeData = buf;
+	
+	for(int i = 0; i < 10; i++) {
+		if((hFile = CreateFile(state_file_path(i), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)) != INVALID_HANDLE_VALUE){
+			GetFileTime(hFile, NULL, NULL, &ftWrite);
+			FileTimeToLocalFileTime(&ftWrite, &ftLocal);
+			FileTimeToSystemTime(&ftLocal, &st);
+//			if(st.wHour < 12) {
+//				my_stprintf_s(buf, 64, _T("%d:  %04d-%02d-%02d  %02d:%02d:%02d AM"), i, st.wYear, st.wMonth, st.wDay, st.wHour % 12, st.wMinute, st.wSecond);
+//			} else {
+//				my_stprintf_s(buf, 64, _T("%d:  %04d-%02d-%02d  %02d:%02d:%02d PM"), i, st.wYear, st.wMonth, st.wDay, st.wHour % 12, st.wMinute, st.wSecond);
+//			}
+			my_stprintf_s(buf, 64, _T("%d:  %04d-%02d-%02d  %02d:%02d:%02d"), i, st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+			CloseHandle(hFile);
+		} else {
+//			my_stprintf_s(buf, 64, _T("%d: ----/--/-- --:--:--"), i);
+			my_stprintf_s(buf, 64, _T("%d: (No Data)"), i);
+		}
+		SetMenuItemInfo(hMenu, ID_SAVE_STATE0 + i, FALSE, &info);
+	}
+}
+
+void update_load_state_menu(HMENU hMenu)
+{
+	HANDLE hFile;
+	FILETIME ftWrite;
+	FILETIME ftLocal;
+	SYSTEMTIME st;
+	_TCHAR buf[64];
+	MENUITEMINFO info;
+	
+	ZeroMemory(&info, sizeof(info));
+	info.cbSize = sizeof(info);
+	info.fMask = MIIM_TYPE;
+	info.fType = MFT_STRING;
+	info.dwTypeData = buf;
+	
+	for(int i = 0; i < 10; i++) {
+		if((hFile = CreateFile(state_file_path(i), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)) != INVALID_HANDLE_VALUE){
+			GetFileTime(hFile, NULL, NULL, &ftWrite);
+			FileTimeToLocalFileTime(&ftWrite, &ftLocal);
+			FileTimeToSystemTime(&ftLocal, &st);
+//			if(st.wHour < 12) {
+//				my_stprintf_s(buf, 64, _T("%d:  %04d-%02d-%02d  %02d:%02d:%02d AM"), i, st.wYear, st.wMonth, st.wDay, st.wHour % 12, st.wMinute, st.wSecond);
+//			} else {
+//				my_stprintf_s(buf, 64, _T("%d:  %04d-%02d-%02d  %02d:%02d:%02d PM"), i, st.wYear, st.wMonth, st.wDay, st.wHour % 12, st.wMinute, st.wSecond);
+//			}
+			my_stprintf_s(buf, 64, _T("%d:  %04d-%02d-%02d  %02d:%02d:%02d"), i, st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+			EnableMenuItem(hMenu, ID_LOAD_STATE0 + i, MF_ENABLED);
+			CloseHandle(hFile);
+		} else {
+//			my_stprintf_s(buf, 64, _T("%d: ----/--/-- --:--:--"), i);
+			my_stprintf_s(buf, 64, _T("%d: (No Data)"), i);
+			EnableMenuItem(hMenu, ID_LOAD_STATE0 + i, MF_GRAYED);
+		}
+		SetMenuItemInfo(hMenu, ID_LOAD_STATE0 + i, FALSE, &info);
+	}
+}
 #endif
 
-#ifdef MENU_POS_CART1
+#ifdef USE_CART1
 void update_cart_menu(HMENU hMenu, int drv, UINT ID_RECENT_CART, UINT ID_CLOSE_CART)
 {
 	bool flag = false;
@@ -1324,7 +1424,7 @@ void update_cart_menu(HMENU hMenu, int drv, UINT ID_RECENT_CART, UINT ID_CLOSE_C
 }
 #endif
 
-#ifdef MENU_POS_FD1
+#ifdef USE_FD1
 void update_floppy_disk_menu(HMENU hMenu, int drv, UINT ID_RECENT_FD, UINT ID_D88_FILE_PATH, UINT ID_SELECT_D88_BANK, UINT ID_EJECT_D88_BANK, UINT ID_CLOSE_FD, UINT ID_WRITE_PROTECT_FD, UINT ID_CORRECT_TIMING_FD, UINT ID_IGNORE_CRC_FD)
 {
 	static int recent_menu_pos[] = {-1, -1, -1, -1, -1, -1, -1, -1};
@@ -1365,7 +1465,7 @@ void update_floppy_disk_menu(HMENU hMenu, int drv, UINT ID_RECENT_FD, UINT ID_D8
 }
 #endif
 
-#ifdef MENU_POS_QD1
+#ifdef USE_QD1
 void update_quick_disk_menu(HMENU hMenu, int drv, UINT ID_RECENT_QD, UINT ID_CLOSE_QD)
 {
 	bool flag = false;
@@ -1385,7 +1485,7 @@ void update_quick_disk_menu(HMENU hMenu, int drv, UINT ID_RECENT_QD, UINT ID_CLO
 }
 #endif
 
-#ifdef MENU_POS_TAPE1
+#ifdef USE_TAPE1
 void update_tape_menu(HMENU hMenu, int drv, UINT ID_RECENT_TAPE, UINT ID_CLOSE_TAPE, UINT ID_PLAY_BUTTON, UINT ID_STOP_BUTTON, UINT ID_FAST_FORWARD, UINT ID_FAST_REWIND, UINT ID_APSS_FORWARD, UINT ID_APSS_REWIND, UINT ID_USE_WAVE_SHAPER, UINT ID_DIRECT_LOAD_MZT, UINT ID_TAPE_BAUD_LOW, UINT ID_TAPE_BAUD_HIGH)
 {
 	bool flag = false;
@@ -1418,7 +1518,7 @@ void update_tape_menu(HMENU hMenu, int drv, UINT ID_RECENT_TAPE, UINT ID_CLOSE_T
 }
 #endif
 
-#ifdef MENU_POS_COMPACT_DISC
+#ifdef USE_COMPACT_DISC
 void update_compact_disc_menu(HMENU hMenu)
 {
 	bool flag = false;
@@ -1438,7 +1538,7 @@ void update_compact_disc_menu(HMENU hMenu)
 }
 #endif
 
-#ifdef MENU_POS_LASER_DISC
+#ifdef USE_LASER_DISC
 void update_laser_disc_menu(HMENU hMenu)
 {
 	bool flag = false;
@@ -1458,7 +1558,7 @@ void update_laser_disc_menu(HMENU hMenu)
 }
 #endif
 
-#ifdef MENU_POS_BINARY1
+#ifdef USE_BINARY1
 void update_binary_menu(HMENU hMenu, int drv, UINT ID_RECENT_BINARY)
 {
 	bool flag = false;
@@ -1477,7 +1577,7 @@ void update_binary_menu(HMENU hMenu, int drv, UINT ID_RECENT_BINARY)
 }
 #endif
 
-#ifdef MENU_POS_BUBBLE1
+#ifdef USE_BUBBLE1
 void update_bubble_casette_menu(HMENU hMenu, int drv, UINT ID_RECENT_BUBBLE)
 {
 	bool flag = false;
@@ -1496,22 +1596,149 @@ void update_bubble_casette_menu(HMENU hMenu, int drv, UINT ID_RECENT_BUBBLE)
 }
 #endif
 
-#ifdef MENU_POS_SCREEN
-void update_screen_menu(HMENU hMenu)
+#ifdef USE_BOOT_MODE
+void update_vm_boot_menu(HMENU hMenu)
 {
-	// recording
+	if(config.boot_mode >= 0 && config.boot_mode < USE_BOOT_MODE) {
+		CheckMenuRadioItem(hMenu, ID_VM_BOOT_MODE0, ID_VM_BOOT_MODE0 + USE_BOOT_MODE - 1, ID_VM_BOOT_MODE0 + config.boot_mode, MF_BYCOMMAND);
+	}
+}
+#endif
+
+#ifdef USE_CPU_TYPE
+void update_vm_cpu_menu(HMENU hMenu)
+{
+	if(config.cpu_type >= 0 && config.cpu_type < USE_CPU_TYPE) {
+		CheckMenuRadioItem(hMenu, ID_VM_CPU_TYPE0, ID_VM_CPU_TYPE0 + USE_CPU_TYPE - 1, ID_VM_CPU_TYPE0 + config.cpu_type, MF_BYCOMMAND);
+	}
+}
+#endif
+
+#ifdef USE_DIPSWITCH
+void update_vm_dipswitch_menu(HMENU hMenu)
+{
+	for(int i = 0; i < 32; i++) {
+		CheckMenuItem(hMenu, ID_VM_DIPSWITCH0 + i, (config.dipswitch & (1 << i)) ? MF_CHECKED : MF_UNCHECKED);
+	}
+}
+#endif
+
+#ifdef USE_DEVICE_TYPE
+void update_vm_device_menu(HMENU hMenu)
+{
+	if(config.device_type >= 0 && config.device_type < USE_DEVICE_TYPE) {
+		CheckMenuRadioItem(hMenu, ID_VM_DEVICE_TYPE0, ID_VM_DEVICE_TYPE0 + USE_DEVICE_TYPE - 1, ID_VM_DEVICE_TYPE0 + config.device_type, MF_BYCOMMAND);
+	}
+}
+#endif
+
+#ifdef USE_DRIVE_TYPE
+void update_vm_drive_menu(HMENU hMenu)
+{
+	if(config.drive_type >= 0 && config.drive_type < USE_DRIVE_TYPE) {
+		CheckMenuRadioItem(hMenu, ID_VM_DRIVE_TYPE0, ID_VM_DRIVE_TYPE0 + USE_DRIVE_TYPE - 1, ID_VM_DRIVE_TYPE0 + config.drive_type, MF_BYCOMMAND);
+	}
+}
+#endif
+
+#ifdef USE_KEYBOARD_TYPE
+void update_vm_keyboard_menu(HMENU hMenu)
+{
+	if(config.keyboard_type >= 0 && config.keyboard_type < USE_KEYBOARD_TYPE) {
+		CheckMenuRadioItem(hMenu, ID_VM_KEYBOARD_TYPE0, ID_VM_KEYBOARD_TYPE0 + USE_KEYBOARD_TYPE - 1, ID_VM_KEYBOARD_TYPE0 + config.keyboard_type, MF_BYCOMMAND);
+	}
+}
+#endif
+
+#ifdef USE_MOUSE_TYPE
+void update_vm_mouse_menu(HMENU hMenu)
+{
+	if(config.mouse_type >= 0 && config.mouse_type < USE_MOUSE_TYPE) {
+		CheckMenuRadioItem(hMenu, ID_VM_MOUSE_TYPE0, ID_VM_MOUSE_TYPE0 + USE_MOUSE_TYPE - 1, ID_VM_MOUSE_TYPE0 + config.mouse_type, MF_BYCOMMAND);
+	}
+}
+#endif
+
+#ifdef USE_JOYSTICK_TYPE
+void update_vm_joystick_menu(HMENU hMenu)
+{
+	if(config.joystick_type >= 0 && config.joystick_type < USE_JOYSTICK_TYPE) {
+		CheckMenuRadioItem(hMenu, ID_VM_JOYSTICK_TYPE0, ID_VM_JOYSTICK_TYPE0 + USE_JOYSTICK_TYPE - 1, ID_VM_JOYSTICK_TYPE0 + config.joystick_type, MF_BYCOMMAND);
+	}
+}
+#endif
+
+#if defined(USE_SOUND_TYPE) || defined(USE_FD1) || defined(USE_TAPE1)
+void update_vm_sound_menu(HMENU hMenu)
+{
+#ifdef USE_SOUND_TYPE
+	if(config.sound_type >= 0 && config.sound_type < USE_SOUND_TYPE) {
+		CheckMenuRadioItem(hMenu, ID_VM_SOUND_TYPE0, ID_VM_SOUND_TYPE0 + USE_SOUND_TYPE - 1, ID_VM_SOUND_TYPE0 + config.sound_type, MF_BYCOMMAND);
+	}
+#endif
+#ifdef USE_FD1
+	CheckMenuItem(hMenu, ID_VM_SOUND_NOISE_FDD, config.sound_noise_fdd ? MF_CHECKED : MF_UNCHECKED);
+#endif
+#ifdef USE_TAPE1
+	CheckMenuItem(hMenu, ID_VM_SOUND_NOISE_CMT, config.sound_noise_cmt ? MF_CHECKED : MF_UNCHECKED);
+	CheckMenuItem(hMenu, ID_VM_SOUND_PLAY_TAPE, config.sound_play_tape ? MF_CHECKED : MF_UNCHECKED);
+#endif
+}
+#endif
+
+#if defined(USE_MONITOR_TYPE) || defined(USE_SCANLINE)
+void update_vm_monitor_menu(HMENU hMenu)
+{
+#ifdef USE_MONITOR_TYPE
+	if(config.monitor_type >= 0 && config.monitor_type < USE_MONITOR_TYPE) {
+		CheckMenuRadioItem(hMenu, ID_VM_MONITOR_TYPE0, ID_VM_MONITOR_TYPE0 + USE_MONITOR_TYPE - 1, ID_VM_MONITOR_TYPE0 + config.monitor_type, MF_BYCOMMAND);
+	}
+#endif
+#ifdef USE_SCANLINE
+	CheckMenuItem(hMenu, ID_VM_MONITOR_SCANLINE, config.scan_line ? MF_CHECKED : MF_UNCHECKED);
+#endif
+}
+#endif
+
+#ifdef USE_PRINTER_TYPE
+void update_vm_printer_menu(HMENU hMenu)
+{
+	if(config.printer_type >= 0 && config.printer_type < USE_PRINTER_TYPE) {
+		CheckMenuRadioItem(hMenu, ID_VM_PRINTER_TYPE0, ID_VM_PRINTER_TYPE0 + USE_PRINTER_TYPE - 1, ID_VM_PRINTER_TYPE0 + config.printer_type, MF_BYCOMMAND);
+	}
+}
+#endif
+
+void update_host_menu(HMENU hMenu)
+{
 	bool now_rec = true, now_stop = true;
 	if(emu) {
-		now_rec = emu->is_video_recording();
+		now_rec = emu->is_video_recording() || emu->is_sound_recording();
 		now_stop = !now_rec;
 	}
-	EnableMenuItem(hMenu, ID_SCREEN_REC60, now_rec ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(hMenu, ID_SCREEN_REC30, now_rec ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(hMenu, ID_SCREEN_REC15, now_rec ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(hMenu, ID_SCREEN_STOP, now_stop ? MF_GRAYED : MF_ENABLED);
+	EnableMenuItem(hMenu, ID_HOST_REC_MOVIE_60FPS, now_rec ? MF_GRAYED : MF_ENABLED);
+	EnableMenuItem(hMenu, ID_HOST_REC_MOVIE_30FPS, now_rec ? MF_GRAYED : MF_ENABLED);
+	EnableMenuItem(hMenu, ID_HOST_REC_MOVIE_15FPS, now_rec ? MF_GRAYED : MF_ENABLED);
+	EnableMenuItem(hMenu, ID_HOST_REC_SOUND, now_rec ? MF_GRAYED : MF_ENABLED);
+	EnableMenuItem(hMenu, ID_HOST_REC_STOP, now_stop ? MF_GRAYED : MF_ENABLED);
 	
-	// screen mode
-	UINT last = ID_SCREEN_WINDOW1;
+	CheckMenuItem(hMenu, ID_HOST_USE_D3D9, config.use_d3d9 ? MF_CHECKED : MF_UNCHECKED);
+	CheckMenuItem(hMenu, ID_HOST_WAIT_VSYNC, config.wait_vsync ? MF_CHECKED : MF_UNCHECKED);
+	EnableMenuItem(hMenu, ID_HOST_WAIT_VSYNC, config.use_d3d9 ? MF_ENABLED : MF_GRAYED);
+	
+	CheckMenuItem(hMenu, ID_HOST_USE_DINPUT, config.use_dinput ? MF_CHECKED : MF_UNCHECKED);
+	
+	CheckMenuItem(hMenu, ID_HOST_DISABLE_DWM, config.disable_dwm ? MF_CHECKED : MF_UNCHECKED);
+	EnableMenuItem(hMenu, ID_HOST_DISABLE_DWM, win8_or_later ? MF_ENABLED : MF_GRAYED);
+	
+	CheckMenuItem(hMenu, ID_HOST_SHOW_STATUS_BAR, config.show_status_bar ? MF_CHECKED : MF_UNCHECKED);
+}
+
+#ifndef ONE_BOARD_MICRO_COMPUTER
+void update_host_screen_menu(HMENU hMenu)
+{
+	UINT position = 0;
+	UINT last = ID_SCREEN_WINDOW;
 	_TCHAR buf[64];
 	MENUITEMINFO info;
 	
@@ -1521,78 +1748,74 @@ void update_screen_menu(HMENU hMenu)
 	info.fType = MFT_STRING;
 	info.dwTypeData = buf;
 	
-	for(int i = 1; i < MAX_WINDOW; i++) {
-		DeleteMenu(hMenu, ID_SCREEN_WINDOW1 + i, MF_BYCOMMAND);
+	for(int i = 0; i < MAX_WINDOW; i++) {
+		DeleteMenu(hMenu, ID_SCREEN_WINDOW + i, MF_BYCOMMAND);
 	}
-	for(int i = 1; i < MAX_WINDOW; i++) {
-		if(emu && emu->get_window_mode_width(i) <= desktop_width && emu->get_window_mode_height(i) <= desktop_height) {
+	for(int i = 0; i < MAX_FULLSCREEN; i++) {
+		DeleteMenu(hMenu, ID_SCREEN_FULLSCREEN + i, MF_BYCOMMAND);
+	}
+	for(int i = 0; i < MAX_WINDOW; i++) {
+		if(i == 0 || (emu && emu->get_window_mode_width(i) <= desktop_width && emu->get_window_mode_height(i) <= desktop_height)) {
 			my_stprintf_s(buf, 64, _T("Window x%d"), i + 1);
-			InsertMenu(hMenu, ID_SCREEN_FULLSCREEN1, MF_BYCOMMAND | MF_STRING, ID_SCREEN_WINDOW1 + i, buf);
-			last = ID_SCREEN_WINDOW1 + i;
+			InsertMenu(hMenu, position++, MF_BYPOSITION | MF_STRING, ID_SCREEN_WINDOW + i, buf);
+			last = ID_SCREEN_WINDOW + i;
 		}
 	}
 	for(int i = 0; i < MAX_FULLSCREEN; i++) {
 		if(i < screen_mode_count) {
 			my_stprintf_s(buf, 64, _T("Fullscreen %dx%d"), screen_mode_width[i], screen_mode_height[i]);
-			SetMenuItemInfo(hMenu, ID_SCREEN_FULLSCREEN1 + i, FALSE, &info);
-			EnableMenuItem(hMenu, ID_SCREEN_FULLSCREEN1 + i, now_fullscreen ? MF_GRAYED : MF_ENABLED);
-			last = ID_SCREEN_FULLSCREEN1 + i;
-		} else {
-			DeleteMenu(hMenu, ID_SCREEN_FULLSCREEN1 + i, MF_BYCOMMAND);
+			InsertMenu(hMenu, position++, MF_BYPOSITION | MF_STRING, ID_SCREEN_FULLSCREEN + i, buf);
+			EnableMenuItem(hMenu, ID_SCREEN_FULLSCREEN + i, now_fullscreen ? MF_GRAYED : MF_ENABLED);
+			last = ID_SCREEN_FULLSCREEN + i;
 		}
 	}
 	if(config.window_mode >= 0 && config.window_mode < MAX_WINDOW) {
-		CheckMenuRadioItem(hMenu, ID_SCREEN_WINDOW1, last, ID_SCREEN_WINDOW1 + config.window_mode, MF_BYCOMMAND);
+		CheckMenuRadioItem(hMenu, ID_SCREEN_WINDOW, last, ID_SCREEN_WINDOW + config.window_mode, MF_BYCOMMAND);
 	} else if(config.window_mode >= MAX_WINDOW && config.window_mode < screen_mode_count + MAX_WINDOW) {
-		CheckMenuRadioItem(hMenu, ID_SCREEN_WINDOW1, last, ID_SCREEN_FULLSCREEN1 + config.window_mode - MAX_WINDOW, MF_BYCOMMAND);
+		CheckMenuRadioItem(hMenu, ID_SCREEN_WINDOW, last, ID_SCREEN_FULLSCREEN + config.window_mode - MAX_WINDOW, MF_BYCOMMAND);
 	}
-	CheckMenuItem(hMenu, ID_SCREEN_USE_D3D9, config.use_d3d9 ? MF_CHECKED : MF_UNCHECKED);
-	CheckMenuItem(hMenu, ID_SCREEN_WAIT_VSYNC, config.wait_vsync ? MF_CHECKED : MF_UNCHECKED);
 	
 	my_stprintf_s(buf, 64, _T("Window: Aspect Ratio %d:%d"), emu->get_vm_window_width(), emu->get_vm_window_height());
-	SetMenuItemInfo(hMenu, ID_SCREEN_WINDOW_STRETCH1, FALSE, &info);
+	SetMenuItemInfo(hMenu, ID_SCREEN_WINDOW_STRETCH, FALSE, &info);
 	my_stprintf_s(buf, 64, _T("Window: Aspect Ratio %d:%d"), emu->get_vm_window_width_aspect(), emu->get_vm_window_height_aspect());
-	SetMenuItemInfo(hMenu, ID_SCREEN_WINDOW_STRETCH2, FALSE, &info);
-	CheckMenuRadioItem(hMenu, ID_SCREEN_WINDOW_STRETCH1, ID_SCREEN_WINDOW_STRETCH2, ID_SCREEN_WINDOW_STRETCH1 + config.window_stretch_type, MF_BYCOMMAND);
+	SetMenuItemInfo(hMenu, ID_SCREEN_WINDOW_ASPECT, FALSE, &info);
+	CheckMenuRadioItem(hMenu, ID_SCREEN_WINDOW_STRETCH, ID_SCREEN_WINDOW_ASPECT, ID_SCREEN_WINDOW_STRETCH + config.window_stretch_type, MF_BYCOMMAND);
 	
 	my_stprintf_s(buf, 64, _T("Fullscreen: Dot By Dot"));
-	SetMenuItemInfo(hMenu, ID_SCREEN_FULLSCREEN_STRETCH1, FALSE, &info);
+	SetMenuItemInfo(hMenu, ID_SCREEN_FULLSCREEN_DOTBYDOT, FALSE, &info);
 	my_stprintf_s(buf, 64, _T("Fullscreen: Stretch (Aspect Ratio %d:%d)"), emu->get_vm_window_width(), emu->get_vm_window_height());
-	SetMenuItemInfo(hMenu, ID_SCREEN_FULLSCREEN_STRETCH2, FALSE, &info);
+	SetMenuItemInfo(hMenu, ID_SCREEN_FULLSCREEN_STRETCH, FALSE, &info);
 	my_stprintf_s(buf, 64, _T("Fullscreen: Stretch (Aspect Ratio %d:%d)"), emu->get_vm_window_width_aspect(), emu->get_vm_window_height_aspect());
-	SetMenuItemInfo(hMenu, ID_SCREEN_FULLSCREEN_STRETCH3, FALSE, &info);
+	SetMenuItemInfo(hMenu, ID_SCREEN_FULLSCREEN_ASPECT, FALSE, &info);
 	my_stprintf_s(buf, 64, _T("Fullscreen: Stretch (Fill)"));
-	SetMenuItemInfo(hMenu, ID_SCREEN_FULLSCREEN_STRETCH4, FALSE, &info);
-	CheckMenuRadioItem(hMenu, ID_SCREEN_FULLSCREEN_STRETCH1, ID_SCREEN_FULLSCREEN_STRETCH4, ID_SCREEN_FULLSCREEN_STRETCH1 + config.fullscreen_stretch_type, MF_BYCOMMAND);
+	SetMenuItemInfo(hMenu, ID_SCREEN_FULLSCREEN_FILL, FALSE, &info);
+	CheckMenuRadioItem(hMenu, ID_SCREEN_FULLSCREEN_DOTBYDOT, ID_SCREEN_FULLSCREEN_FILL, ID_SCREEN_FULLSCREEN_DOTBYDOT + config.fullscreen_stretch_type, MF_BYCOMMAND);
 	
-#ifdef USE_MONITOR_TYPE
-	if(config.monitor_type >= 0 && config.monitor_type < USE_MONITOR_TYPE) {
-		CheckMenuRadioItem(hMenu, ID_SCREEN_MONITOR_TYPE0, ID_SCREEN_MONITOR_TYPE0 + USE_MONITOR_TYPE - 1, ID_SCREEN_MONITOR_TYPE0 + config.monitor_type, MF_BYCOMMAND);
-	}
-#endif
-#ifdef USE_CRT_FILTER
-	CheckMenuItem(hMenu, ID_SCREEN_CRT_FILTER, config.crt_filter ? MF_CHECKED : MF_UNCHECKED);
-#endif
-#ifdef USE_SCANLINE
-	CheckMenuItem(hMenu, ID_SCREEN_SCANLINE, config.scan_line ? MF_CHECKED : MF_UNCHECKED);
-#endif
-#ifdef USE_SCREEN_ROTATE
+//#ifdef USE_SCREEN_ROTATE
 	CheckMenuRadioItem(hMenu, ID_SCREEN_ROTATE_0, ID_SCREEN_ROTATE_270, ID_SCREEN_ROTATE_0 + config.rotate_type, MF_BYCOMMAND);
-#endif
+//#endif
 }
 #endif
 
-#ifdef MENU_POS_SOUND
-void update_sound_menu(HMENU hMenu)
+#ifdef USE_SCREEN_FILTER
+void update_host_filter_menu(HMENU hMenu)
 {
-	bool now_rec = false, now_stop = false;
-	if(emu) {
-		now_rec = emu->is_sound_recording();
-		now_stop = !now_rec;
+	switch(config.filter_type) {
+	case SCREEN_FILTER_RGB:
+		CheckMenuRadioItem(hMenu, ID_FILTER_RGB, ID_FILTER_NONE, ID_FILTER_RGB,  MF_BYCOMMAND);
+		break;
+	case SCREEN_FILTER_RF:
+		CheckMenuRadioItem(hMenu, ID_FILTER_RGB, ID_FILTER_NONE, ID_FILTER_RF,   MF_BYCOMMAND);
+		break;
+	default:
+		CheckMenuRadioItem(hMenu, ID_FILTER_RGB, ID_FILTER_NONE, ID_FILTER_NONE, MF_BYCOMMAND);
+		break;
 	}
-	EnableMenuItem(hMenu, ID_SOUND_REC, now_rec ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(hMenu, ID_SOUND_STOP, now_stop ? MF_GRAYED : MF_ENABLED);
-	
+}
+#endif
+
+void update_host_sound_menu(HMENU hMenu)
+{
 	if(config.sound_frequency >= 0 && config.sound_frequency < 8) {
 		CheckMenuRadioItem(hMenu, ID_SOUND_FREQ0, ID_SOUND_FREQ7, ID_SOUND_FREQ0 + config.sound_frequency, MF_BYCOMMAND);
 	}
@@ -1600,40 +1823,31 @@ void update_sound_menu(HMENU hMenu)
 		CheckMenuRadioItem(hMenu, ID_SOUND_LATE0, ID_SOUND_LATE4, ID_SOUND_LATE0 + config.sound_latency, MF_BYCOMMAND);
 	}
 	CheckMenuRadioItem(hMenu, ID_SOUND_STRICT_RENDER, ID_SOUND_LIGHT_RENDER, config.sound_strict_rendering ? ID_SOUND_STRICT_RENDER : ID_SOUND_LIGHT_RENDER, MF_BYCOMMAND);
-#ifdef USE_FD1
-	CheckMenuItem(hMenu, ID_SOUND_NOISE_FDD, config.sound_noise_fdd ? MF_CHECKED : MF_UNCHECKED);
-#endif
-#ifdef USE_TAPE1
-	CheckMenuItem(hMenu, ID_SOUND_NOISE_CMT, config.sound_noise_cmt ? MF_CHECKED : MF_UNCHECKED);
-	CheckMenuItem(hMenu, ID_SOUND_PLAY_TAPE, config.sound_play_tape ? MF_CHECKED : MF_UNCHECKED);
-#endif
-#ifdef USE_SOUND_DEVICE_TYPE
-	if(config.sound_device_type >= 0 && config.sound_device_type < USE_SOUND_DEVICE_TYPE) {
-		CheckMenuRadioItem(hMenu, ID_SOUND_DEVICE_TYPE0, ID_SOUND_DEVICE_TYPE0 + USE_SOUND_DEVICE_TYPE - 1, ID_SOUND_DEVICE_TYPE0 + config.sound_device_type, MF_BYCOMMAND);
-	}
-#endif
 }
-#endif
 
-#ifdef MENU_POS_CAPTURE
-void update_capture_menu(HMENU hMenu)
+void update_host_input_menu(HMENU hMenu)
+{
+}
+
+#ifdef USE_VIDEO_CAPTURE
+void update_host_capture_menu(HMENU hMenu)
 {
 	int num_devs = emu->get_num_capture_devs();
 	int cur_index = emu->get_cur_capture_dev_index();
 	
 	for(int i = 0; i < 8; i++) {
-		DeleteMenu(hMenu, ID_CAPTURE_DEVICE1 + i, MF_BYCOMMAND);
+		DeleteMenu(hMenu, ID_CAPTURE_DEVICE + i, MF_BYCOMMAND);
 	}
 	for(int i = 0; i < 8; i++) {
 		if(num_devs >= i + 1) {
-			AppendMenu(hMenu, MF_STRING, ID_CAPTURE_DEVICE1 + i, emu->get_capture_dev_name(i));
+			AppendMenu(hMenu, MF_STRING, ID_CAPTURE_DEVICE + i, emu->get_capture_dev_name(i));
 		}
 	}
 	if(num_devs == 0) {
-		AppendMenu(hMenu, MF_GRAYED | MF_STRING, ID_CAPTURE_DEVICE1, _T("None"));
+		AppendMenu(hMenu, MF_GRAYED | MF_STRING, ID_CAPTURE_DEVICE, _T("None"));
 	}
 	if(cur_index != -1) {
-		CheckMenuRadioItem(hMenu, ID_CAPTURE_DEVICE1, ID_CAPTURE_DEVICE1, ID_CAPTURE_DEVICE1 + cur_index, MF_BYCOMMAND);
+		CheckMenuRadioItem(hMenu, ID_CAPTURE_DEVICE, ID_CAPTURE_DEVICE + num_devs - 1, ID_CAPTURE_DEVICE + cur_index, MF_BYCOMMAND);
 	}
 	EnableMenuItem(hMenu, ID_CAPTURE_FILTER, (cur_index != -1) ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(hMenu, ID_CAPTURE_PIN, (cur_index != -1) ? MF_ENABLED : MF_GRAYED);
@@ -1642,142 +1856,164 @@ void update_capture_menu(HMENU hMenu)
 }
 #endif
 
-#ifdef MENU_POS_INPUT
-void update_input_menu(HMENU hMenu)
+void update_menu(HWND hWnd, HMENU hMenu)
 {
-	CheckMenuItem(hMenu, ID_INPUT_USE_DINPUT, config.use_direct_input ? MF_CHECKED : MF_UNCHECKED);
-	CheckMenuItem(hMenu, ID_INPUT_DISABLE_DWM, config.disable_dwm ? MF_CHECKED : MF_UNCHECKED);
-	EnableMenuItem(hMenu, ID_INPUT_DISABLE_DWM, win8_or_later ? MF_ENABLED : MF_GRAYED);
-}
-#endif
-
-void update_menu(HWND hWnd, HMENU hMenu, int pos)
-{
-	switch(pos) {
-#ifdef MENU_POS_CONTROL
-	case MENU_POS_CONTROL:
+	int count = GetMenuItemCount(hMenu);
+	UINT id = -1;
+	for(int pos = 0; pos < count; pos++) {
+		if((id = GetMenuItemID(hMenu, pos)) != -1) {
+			break;
+		}
+	}
+	if(id >= ID_CONTROL_MENU_START && id <= ID_CONTROL_MENU_END) {
 		update_control_menu(hMenu);
-		break;
+#ifdef USE_STATE
+	} else if(id >= ID_SAVE_MENU_START && id <= ID_SAVE_MENU_END) {
+		update_save_state_menu(hMenu);
+	} else if(id >= ID_LOAD_MENU_START && id <= ID_LOAD_MENU_END) {
+		update_load_state_menu(hMenu);
 #endif
-#ifdef MENU_POS_CART1
-	case MENU_POS_CART1:
+#ifdef USE_CART1
+	} else if(id >= ID_CART1_MENU_START && id <= ID_CART1_MENU_END) {
 		update_cart_menu(hMenu, 0, ID_RECENT_CART1, ID_CLOSE_CART1);
-		break;
 #endif
-#ifdef MENU_POS_CART2
-	case MENU_POS_CART2:
+#ifdef USE_CART2
+	} else if(id >= ID_CART2_MENU_START && id <= ID_CART2_MENU_END) {
 		update_cart_menu(hMenu, 1, ID_RECENT_CART2, ID_CLOSE_CART2);
-		break;
 #endif
-#ifdef MENU_POS_FD1
-	case MENU_POS_FD1:
+#ifdef USE_FD1
+	} else if(id >= ID_FD1_MENU_START && id <= ID_FD1_MENU_END) {
 		update_floppy_disk_menu(hMenu, 0, ID_RECENT_FD1, ID_D88_FILE_PATH1, ID_SELECT_D88_BANK1, ID_EJECT_D88_BANK1, ID_CLOSE_FD1, ID_WRITE_PROTECT_FD1, ID_CORRECT_TIMING_FD1, ID_IGNORE_CRC_FD1);
-		break;
 #endif
-#ifdef MENU_POS_FD2
-	case MENU_POS_FD2:
+#ifdef USE_FD2
+	} else if(id >= ID_FD2_MENU_START && id <= ID_FD2_MENU_END) {
 		update_floppy_disk_menu(hMenu, 1, ID_RECENT_FD2, ID_D88_FILE_PATH2, ID_SELECT_D88_BANK2, ID_EJECT_D88_BANK2, ID_CLOSE_FD2, ID_WRITE_PROTECT_FD2, ID_CORRECT_TIMING_FD2, ID_IGNORE_CRC_FD2);
-		break;
 #endif
-#ifdef MENU_POS_FD3
-	case MENU_POS_FD3:
+#ifdef USE_FD3
+	} else if(id >= ID_FD3_MENU_START && id <= ID_FD3_MENU_END) {
 		update_floppy_disk_menu(hMenu, 2, ID_RECENT_FD3, ID_D88_FILE_PATH3, ID_SELECT_D88_BANK3, ID_EJECT_D88_BANK3, ID_CLOSE_FD3, ID_WRITE_PROTECT_FD3, ID_CORRECT_TIMING_FD3, ID_IGNORE_CRC_FD3);
-		break;
 #endif
-#ifdef MENU_POS_FD4
-	case MENU_POS_FD4:
+#ifdef USE_FD4
+	} else if(id >= ID_FD4_MENU_START && id <= ID_FD4_MENU_END) {
 		update_floppy_disk_menu(hMenu, 3, ID_RECENT_FD4, ID_D88_FILE_PATH4, ID_SELECT_D88_BANK4, ID_EJECT_D88_BANK4, ID_CLOSE_FD4, ID_WRITE_PROTECT_FD4, ID_CORRECT_TIMING_FD4, ID_IGNORE_CRC_FD4);
-		break;
 #endif
-#ifdef MENU_POS_FD5
-	case MENU_POS_FD5:
+#ifdef USE_FD5
+	} else if(id >= ID_FD5_MENU_START && id <= ID_FD5_MENU_END) {
 		update_floppy_disk_menu(hMenu, 4, ID_RECENT_FD5, ID_D88_FILE_PATH5, ID_SELECT_D88_BANK5, ID_EJECT_D88_BANK5, ID_CLOSE_FD5, ID_WRITE_PROTECT_FD5, ID_CORRECT_TIMING_FD5, ID_IGNORE_CRC_FD5);
-		break;
 #endif
-#ifdef MENU_POS_FD6
-	case MENU_POS_FD6:
+#ifdef USE_FD6
+	} else if(id >= ID_FD6_MENU_START && id <= ID_FD6_MENU_END) {
 		update_floppy_disk_menu(hMenu, 5, ID_RECENT_FD6, ID_D88_FILE_PATH6, ID_SELECT_D88_BANK6, ID_EJECT_D88_BANK6, ID_CLOSE_FD6, ID_WRITE_PROTECT_FD6, ID_CORRECT_TIMING_FD6, ID_IGNORE_CRC_FD6);
-		break;
 #endif
-#ifdef MENU_POS_FD7
-	case MENU_POS_FD7:
+#ifdef USE_FD7
+	} else if(id >= ID_FD7_MENU_START && id <= ID_FD7_MENU_END) {
 		update_floppy_disk_menu(hMenu, 6, ID_RECENT_FD7, ID_D88_FILE_PATH7, ID_SELECT_D88_BANK7, ID_EJECT_D88_BANK7, ID_CLOSE_FD7, ID_WRITE_PROTECT_FD7, ID_CORRECT_TIMING_FD7, ID_IGNORE_CRC_FD7);
-		break;
 #endif
-#ifdef MENU_POS_FD8
-	case MENU_POS_FD8:
+#ifdef USE_FD8
+	} else if(id >= ID_FD8_MENU_START && id <= ID_FD8_MENU_END) {
 		update_floppy_disk_menu(hMenu, 7, ID_RECENT_FD8, ID_D88_FILE_PATH8, ID_SELECT_D88_BANK8, ID_EJECT_D88_BANK8, ID_CLOSE_FD8, ID_WRITE_PROTECT_FD8, ID_CORRECT_TIMING_FD8, ID_IGNORE_CRC_FD8);
-		break;
 #endif
-#ifdef MENU_POS_QD1
-	case MENU_POS_QD1:
+#ifdef USE_QD1
+	} else if(id >= ID_QD1_MENU_START && id <= ID_QD1_MENU_END) {
 		update_quick_disk_menu(hMenu, 0, ID_RECENT_QD1, ID_CLOSE_QD1);
-		break;
 #endif
-#ifdef MENU_POS_QD2
-	case MENU_POS_QD2:
+#ifdef USE_QD2
+	} else if(id >= ID_QD2_MENU_START && id <= ID_QD2_MENU_END) {
 		update_quick_disk_menu(hMenu, 1, ID_RECENT_QD2, ID_CLOSE_QD2);
-		break;
 #endif
-#ifdef MENU_POS_TAPE1
-	case MENU_POS_TAPE1:
+#ifdef USE_TAPE1
+	} else if(id >= ID_TAPE1_MENU_START && id <= ID_TAPE1_MENU_END) {
 		update_tape_menu(hMenu, 0, ID_RECENT_TAPE1, ID_CLOSE_TAPE1, ID_PLAY_BUTTON1, ID_STOP_BUTTON1, ID_FAST_FORWARD1, ID_FAST_REWIND1, ID_APSS_FORWARD1, ID_APSS_REWIND1, ID_USE_WAVE_SHAPER1, ID_DIRECT_LOAD_MZT1, ID_TAPE_BAUD_LOW1, ID_TAPE_BAUD_HIGH1);
-		break;
 #endif
-#ifdef MENU_POS_TAPE2
-	case MENU_POS_TAPE2:
+#ifdef USE_TAPE2
+	} else if(id >= ID_TAPE2_MENU_START && id <= ID_TAPE2_MENU_END) {
 		update_tape_menu(hMenu, 1, ID_RECENT_TAPE2, ID_CLOSE_TAPE2, ID_PLAY_BUTTON2, ID_STOP_BUTTON2, ID_FAST_FORWARD2, ID_FAST_REWIND2, ID_APSS_FORWARD2, ID_APSS_REWIND2, ID_USE_WAVE_SHAPER2, ID_DIRECT_LOAD_MZT2, ID_TAPE_BAUD_LOW2, ID_TAPE_BAUD_HIGH2);
-		break;
 #endif
-#ifdef MENU_POS_COMPACT_DISC
-	case MENU_POS_COMPACT_DISC:
+#ifdef USE_COMPACT_DISC
+	} else if(id >= ID_COMPACT_DISC_MENU_START && id <= ID_COMPACT_DISC_MENU_END) {
 		update_compact_disc_menu(hMenu);
-		break;
 #endif
-#ifdef MENU_POS_LASER_DISC
-	case MENU_POS_LASER_DISC:
+#ifdef USE_LASER_DISC
+	} else if(id >= ID_LASER_DISC_MENU_START && id <= ID_LASER_DISC_MENU_END) {
 		update_laser_disc_menu(hMenu);
-		break;
 #endif
-#ifdef MENU_POS_BINARY1
-	case MENU_POS_BINARY1:
+#ifdef USE_BINARY1
+	} else if(id >= ID_BINARY1_MENU_START && id <= ID_BINARY1_MENU_END) {
 		update_binary_menu(hMenu, 0, ID_RECENT_BINARY1);
-		break;
 #endif
-#ifdef MENU_POS_BINARY2
-	case MENU_POS_BINARY2:
+#ifdef USE_BINARY2
+	} else if(id >= ID_BINARY2_MENU_START && id <= ID_BINARY2_MENU_END) {
 		update_binary_menu(hMenu, 1, ID_RECENT_BINARY2);
-		break;
 #endif
-#ifdef MENU_POS_BUBBLE1
-	case MENU_POS_BUBBLE1:
+#ifdef USE_BUBBLE1
+	} else if(id >= ID_BUBBLE1_MENU_START && id <= ID_BUBBLE1_MENU_END) {
 		update_bubble_casette_menu(hMenu, 0, ID_RECENT_BUBBLE1);
-		break;
 #endif
-#ifdef MENU_POS_BUBBLE2
-	case MENU_POS_BUBBLE2:
+#ifdef USE_BUBBLE2
+	} else if(id >= ID_BUBBLE2_MENU_START && id <= ID_BUBBLE2_MENU_END) {
 		update_bubble_casette_menu(hMenu, 1, ID_RECENT_BUBBLE2);
-		break;
 #endif
-#ifdef MENU_POS_SCREEN
-	case MENU_POS_SCREEN:
-		update_screen_menu(hMenu);
-		break;
+#ifdef USE_BOOT_MODE
+	} else if(id >= ID_VM_BOOT_MENU_START && id <= ID_VM_BOOT_MENU_END) {
+		 update_vm_boot_menu(hMenu);
 #endif
-#ifdef MENU_POS_SOUND
-	case MENU_POS_SOUND:
-		update_sound_menu(hMenu);
-		break;
+#ifdef USE_CPU_TYPE
+	} else if(id >= ID_VM_CPU_MENU_START && id <= ID_VM_CPU_MENU_END) {
+		 update_vm_cpu_menu(hMenu);
 #endif
-#ifdef MENU_POS_CAPTURE
-	case MENU_POS_CAPTURE:
-		update_capture_menu(hMenu);
-		break;
+#ifdef USE_DIPSWITCH
+	} else if(id >= ID_VM_DIPSWITCH_MENU_START && id <= ID_VM_DIPSWITCH_MENU_END) {
+		 update_vm_dipswitch_menu(hMenu);
 #endif
-#ifdef MENU_POS_INPUT
-	case MENU_POS_INPUT:
-		update_input_menu(hMenu);
-		break;
+#ifdef USE_DEVICE_TYPE
+	} else if(id >= ID_VM_DEVICE_MENU_START && id <= ID_VM_DEVICE_MENU_END) {
+		 update_vm_device_menu(hMenu);
+#endif
+#ifdef USE_DRIVE_TYPE
+	} else if(id >= ID_VM_DRIVE_MENU_START && id <= ID_VM_DRIVE_MENU_END) {
+		 update_vm_drive_menu(hMenu);
+#endif
+#ifdef USE_KEYBOARD_TYPE
+	} else if(id >= ID_VM_KEYBOARD_MENU_START && id <= ID_VM_KEYBOARD_MENU_END) {
+		 update_vm_keyboard_menu(hMenu);
+#endif
+#ifdef USE_MOUSE_TYPE
+	} else if(id >= ID_VM_MOUSE_MENU_START && id <= ID_VM_MOUSE_MENU_END) {
+		 update_vm_mouse_menu(hMenu);
+#endif
+#ifdef USE_JOYSTICK_TYPE
+	} else if(id >= ID_VM_JOYSTICK_MENU_START && id <= ID_VM_JOYSTICK_MENU_END) {
+		 update_vm_joystick_menu(hMenu);
+#endif
+#if defined(USE_SOUND_TYPE) || defined(USE_FD1) || defined(USE_TAPE1)
+	} else if(id >= ID_VM_SOUND_MENU_START && id <= ID_VM_SOUND_MENU_END) {
+		 update_vm_sound_menu(hMenu);
+#endif
+#if defined(USE_MONITOR_TYPE) || defined(USE_SCANLINE)
+	} else if(id >= ID_VM_MONITOR_MENU_START && id <= ID_VM_MONITOR_MENU_END) {
+		 update_vm_monitor_menu(hMenu);
+#endif
+#ifdef USE_PRINTER_TYPE
+	} else if(id >= ID_VM_PRINTER_MENU_START && id <= ID_VM_PRINTER_MENU_START) {
+		 update_vm_printer_menu(hMenu);
+#endif
+	} else if(id >= ID_HOST_MENU_START && id <= ID_HOST_MENU_END) {
+		update_host_menu(hMenu);
+#ifndef ONE_BOARD_MICRO_COMPUTER
+	} else if(id >= ID_SCREEN_MENU_START && id <= ID_SCREEN_MENU_END) {
+		update_host_screen_menu(hMenu);
+#endif
+#ifdef USE_SCREEN_FILTER
+	} else if(id >= ID_FILTER_MENU_START && id <= ID_FILTER_MENU_END) {
+		update_host_filter_menu(hMenu);
+#endif
+	} else if(id >= ID_SOUND_MENU_START && id <= ID_SOUND_MENU_END) {
+		update_host_sound_menu(hMenu);
+	} else if(id >= ID_INPUT_MENU_START && id <= ID_INPUT_MENU_END) {
+		update_host_input_menu(hMenu);
+#ifdef USE_VIDEO_CAPTURE
+	} else if(id >= ID_CAPTURE_MENU_START && id <= ID_CAPTURE_MENU_END) {
+		update_host_capture_menu(hMenu);
 #endif
 	}
 	DrawMenuBar(hWnd);
@@ -1806,14 +2042,14 @@ void hide_menu_bar(HWND hWnd)
 
 void show_status_bar(HWND hWnd)
 {
-#if defined(USE_FD1) || defined(USE_QD1) || defined(USE_HARD_DISK) || defined(USE_COMPACT_DISC) || defined(USE_LASER_DISC) || (defined(USE_TAPE1) && !defined(TAPE_BINARY_ONLY))
+//#if defined(USE_FD1) || defined(USE_QD1) || defined(USE_HARD_DISK) || defined(USE_COMPACT_DISC) || defined(USE_LASER_DISC) || (defined(USE_TAPE1) && !defined(TAPE_BINARY_ONLY))
 	if(hStatus == NULL) {
 		InitCommonControls();
 		hStatus = CreateStatusWindow(WS_CHILD | WS_VISIBLE | CCS_BOTTOM, NULL, hWnd, ID_STATUS);
 		SendMessage(hStatus, SB_SETTEXT, (WPARAM)0 | SBT_OWNERDRAW, (LPARAM)NULL);
 	}
 	ShowWindow(hStatus, SW_SHOW);
-#endif
+//#endif
 	status_bar_visible = true;
 }
 
@@ -2598,10 +2834,15 @@ void set_window(HWND hWnd, int mode)
 			// show menu bar
 			show_menu_bar(hWnd);
 			
+		} else {
+			SetWindowPos(hWnd, NULL, dest_x, dest_y, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER);
+		}
+		if(config.show_status_bar) {
 			// show status bar
 			show_status_bar(hWnd);
 		} else {
-			SetWindowPos(hWnd, NULL, dest_x, dest_y, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER);
+			// hide status bar
+			hide_status_bar(hWnd);
 		}
 		
 		int status_bar_height = get_status_bar_height();

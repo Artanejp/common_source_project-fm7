@@ -42,7 +42,7 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 
 	use_cpu_type = 0;
 
-	use_compact_disc = use_crt_filter = use_debugger = false;
+	use_compact_disc = use_debugger = false;
 	use_device_type = 0;
 	use_dipswitch = false;
 
@@ -261,9 +261,6 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 #if defined(USE_COMPACT_DISC)
 	use_compact_disc = true;
 #endif
-#if defined(USE_CRT_FILTER)
-	use_crt_filter = true;
-#endif
 #if defined(SUPPORT_TV_RENDER)
 	support_tv_render = true;
 #endif
@@ -353,8 +350,8 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 #if defined(MAX_SCSI)
 	max_scsi = MAX_SCSI;
 #endif
-#if defined(USE_SOUND_DEVICE_TYPE)
-	use_sound_device_type = USE_SOUND_DEVICE_TYPE;
+#if defined(USE_SOUND_TYPE)
+	use_sound_device_type = USE_SOUND_TYPE;
 #endif	
 #if defined(USE_SOUND_VOLUME)
 	use_sound_volume = USE_SOUND_VOLUME;

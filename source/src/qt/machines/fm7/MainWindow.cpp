@@ -254,7 +254,7 @@ void META_MainWindow::retranslateUi(void)
 	actionCycleSteal->setToolTip(QApplication::translate("Machine", "Enabling cycle steal to be faster drawing.", 0));
 #endif							  
 	menuSoundDevice->setTitle(QApplication::translate("Machine", "Sound Boards", 0));
-#if defined(USE_SOUND_DEVICE_TYPE)
+#if defined(USE_SOUND_TYPE)
 # if defined(_FM8)
 	actionSoundDevice[0]->setVisible(true);
 	actionSoundDevice[1]->setVisible(true);

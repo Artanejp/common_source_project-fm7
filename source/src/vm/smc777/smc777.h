@@ -51,7 +51,7 @@
 #define USE_AUTO_KEY_RELEASE	10
 #define AUTO_KEY_US
 #define USE_VM_AUTO_KEY_TABLE
-#define USE_CRT_FILTER
+#define USE_SCREEN_FILTER
 #define USE_SCANLINE
 #if defined(_SMC70)
 #define USE_SOUND_FILES		5

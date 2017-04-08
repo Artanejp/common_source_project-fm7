@@ -49,7 +49,7 @@
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_SOUND_VOLUME	2
 #define USE_PRINTER
-#define USE_PRINTER_TYPE	4
+#define USE_PRINTER_TYPE	3
 #define USE_DEBUGGER
 #define USE_STATE
 

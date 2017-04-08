@@ -157,8 +157,8 @@ void PSG_STEREO::set_volume(int ch, int decibel_l, int decibel_r)
 
 void PSG_STEREO::update_config()
 {
-	if (m_stereo != config.sound_device_type) {
-		m_stereo = config.sound_device_type;
+	if (m_stereo != config.sound_type) {
+		m_stereo = config.sound_type;
 		set_volume(1, m_decibel_l, m_decibel_r);
 	}
 }

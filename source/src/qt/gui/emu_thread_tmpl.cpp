@@ -327,13 +327,15 @@ void EmuThreadClassBase::do_special_reset()
 	bSpecialResetReq = true;
 }
 
-void EmuThreadClassBase::do_load_state()
+void EmuThreadClassBase::do_load_state(QString s)
 {
+	sStateFile = s;
 	bLoadStateReq = true;
 }
 
-void EmuThreadClassBase::do_save_state()
+void EmuThreadClassBase::do_save_state(QString s)
 {
+	sStateFile = s;
 	bSaveStateReq = true;
 }
 

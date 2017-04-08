@@ -47,8 +47,8 @@ Action_Control_60::~Action_Control_60()
 void META_MainWindow::do_set_sound_device(int num)
 {
 	if((num < 0) || (num >= 2)) return;
-#ifdef USE_SOUND_DEVICE_TYPE
-	config.sound_device_type = num;
+#ifdef USE_SOUND_TYPE
+	config.sound_type = num;
 	this->do_emu_update_config();
 #endif
 }

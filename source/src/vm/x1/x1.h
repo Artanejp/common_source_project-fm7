@@ -85,9 +85,9 @@
 // device informations for win32
 #define USE_SPECIAL_RESET
 #ifdef _X1TURBO_FEATURE
-#define USE_DEVICE_TYPE		2
+#define USE_KEYBOARD_TYPE	2
 // Keyboard mode B
-#define DEVICE_TYPE_DEFAULT	1
+#define KEYBOARD_TYPE_DEFAULT	1
 #define USE_DRIVE_TYPE		2
 #endif
 #define USE_FD1
@@ -104,14 +104,14 @@
 #define USE_AUTO_KEY		8
 #define USE_AUTO_KEY_RELEASE	10
 #define USE_MONITOR_TYPE	2
-#define USE_CRT_FILTER
+#define USE_SCREEN_FILTER
 #define USE_SCANLINE
-#define USE_SOUND_DEVICE_TYPE		3
+#define USE_SOUND_TYPE		3
 // ToDo
 #define DATAREC_SOUND
 #define SUPPORT_ROMA_KANA_CONVERSION
 // CZ-8BS1 x1
-#define SOUND_DEVICE_TYPE_DEFAULT	1
+#define SOUND_TYPE_DEFAULT	1
 # if defined(_X1TWIN)
 # define USE_SOUND_VOLUME	7
 # else
@@ -322,7 +322,7 @@ protected:
 	KEYBOARD* kbd;
 	
 	bool pseudo_sub_cpu;
-	int sound_device_type;
+	int sound_type;
 	
 #ifdef _X1TWIN
 	// device for pce

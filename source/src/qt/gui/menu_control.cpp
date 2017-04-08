@@ -41,6 +41,16 @@ void Object_Menu_Control::do_set_drive_type(void)
 	emit sig_drive_type(getValue1());
 }
 
+void Action_Control::do_load_state(void)
+{
+	emit sig_load_state(binds->getStringValue());
+}
+
+void Action_Control::do_save_state(void)
+{
+	emit sig_save_state(binds->getStringValue());
+}
+
 void Ui_MainWindowBase::ConfigCpuSpeed(void)
 {
 	actionSpeed_x1 = new Action_Control(this, using_flags);
@@ -181,15 +191,36 @@ void Ui_MainWindowBase::ConfigControlMenu(void)
 				this, SLOT(OnStopAutoKey())); // OK?
 	}
 	if(using_flags->is_use_state()) {
-		actionSave_State = new Action_Control(this, using_flags);
-		actionSave_State->setObjectName(QString::fromUtf8("actionSave_State"));
-		connect(actionSave_State, SIGNAL(triggered()),
-				this, SLOT(OnSaveState())); // OK?  
+		for(i = 0; i < 10; i++) {
+			QString tmps;
+			QString tmpss;
+			_TCHAR tmpbuf[_MAX_PATH];
+			actionSave_State[i] = new Action_Control(this, using_flags);
+
+			strncpy(tmpbuf, create_local_path(_T("%s.sta%d"), using_flags->get_config_name().toLocal8Bit().constData(), i), _MAX_PATH);
+				
+			tmps = QString::fromUtf8("");
+			tmpss = QString::fromUtf8("");
+			tmpss.setNum(i);
+			tmps = QString::fromUtf8("actionSave_State") + tmpss;
+			actionSave_State[i]->setObjectName(tmps);
+			connect(actionSave_State[i], SIGNAL(triggered()),
+					this, SLOT(OnSaveState())); // OK?  
+			
+			actionLoad_State[i] = new Action_Control(this, using_flags);
+			tmps = QString::fromUtf8("actionLoad_State") + tmpss;
+			actionLoad_State[i]->setObjectName(tmps);
+			tmps = QString::fromLocal8Bit(tmpbuf);
+			actionSave_State[i]->binds->setStringValue(tmps);
+			actionLoad_State[i]->binds->setStringValue(tmps);
+				
 		
-		actionLoad_State = new Action_Control(this, using_flags);
-		actionLoad_State->setObjectName(QString::fromUtf8("actionLoad_State"));
-		connect(actionLoad_State, SIGNAL(triggered()),
-				this, SLOT(OnLoadState())); // OK?
+			connect(actionLoad_State[i], SIGNAL(triggered()),
+					actionLoad_State[i], SLOT(do_load_state())); // OK?
+			connect(actionSave_State[i], SIGNAL(triggered()),
+					actionSave_State[i], SLOT(do_save_state())); // OK?
+			
+		}
 	}
 	if(using_flags->is_use_debugger()) {
 		for(i = 0; i < _MAX_DEBUGGER; i++) {
@@ -230,9 +261,13 @@ void Ui_MainWindowBase::connectActions_ControlMenu(void)
 	menuControl->addAction(actionExit_Emulator);
 
 	if(using_flags->is_use_state()) {
-		menuState->addAction(actionSave_State);
+		for(int i = 0; i < 10; i++) {
+			menuLoad_State->addAction(actionLoad_State[i]);
+			menuSave_State->addAction(actionSave_State[i]);
+		}
+		menuState->addAction(menuSave_State->menuAction());
 		menuState->addSeparator();
-		menuState->addAction(actionLoad_State);
+		menuState->addAction(menuLoad_State->menuAction());
 	}
 
 	if(using_flags->is_use_auto_key()) {
@@ -304,12 +339,20 @@ void Ui_MainWindowBase::retranslateControlMenu(const char *SpecialResetTitle,  b
 		actionStop_Pasting->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogCancelButton));
 	}
 	if(using_flags->is_use_state()) {
-		actionSave_State->setText(QApplication::translate("MainWindow", "Save State", 0));
-		actionSave_State->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogSaveButton));
-		actionSave_State->setToolTip(QApplication::translate("MainWindow", "Save snapshot to fixed bin file.", 0));
-		actionLoad_State->setText(QApplication::translate("MainWindow", "Load State", 0));
-		actionLoad_State->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton));
-		actionLoad_State->setToolTip(QApplication::translate("MainWindow", "Load snapshot from fixed bin file.", 0));
+		menuSave_State->setTitle(QApplication::translate("MainWindow", "Save State", 0));
+		menuSave_State->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogSaveButton));
+		menuSave_State->setToolTip(QApplication::translate("MainWindow", "Save snapshot to fixed bin file.", 0));
+		menuLoad_State->setTitle(QApplication::translate("MainWindow", "Load State", 0));
+		menuLoad_State->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton));
+		menuLoad_State->setToolTip(QApplication::translate("MainWindow", "Load snapshot from fixed bin file.", 0));
+		for(int i = 0; i < 10; i++) {
+			QString tmps;
+			tmps.clear();
+			tmps.setNum(i);
+			tmps = QString::fromUtf8("Slot #") + tmps;
+			actionSave_State[i]->setText(tmps);
+			actionLoad_State[i]->setText(tmps);
+		}
 	}
 	if(using_flags->is_use_debugger()) {
 		actionDebugger[0]->setText(QApplication::translate("MainWindow", "Main CPU", 0));
@@ -334,6 +377,6 @@ void Ui_MainWindowBase::retranslateControlMenu(const char *SpecialResetTitle,  b
 void Ui_MainWindowBase::do_set_sound_device(int num)
 {
 	if((num < 0) || (num >= using_flags->get_use_sound_device_type())) return;
-	using_flags->get_config_ptr()->sound_device_type = num;
+	using_flags->get_config_ptr()->sound_type = num;
 	emit sig_emu_update_config();
 }

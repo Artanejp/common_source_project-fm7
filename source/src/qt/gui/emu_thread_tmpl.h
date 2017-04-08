@@ -84,6 +84,7 @@ protected:
 	bool bStartRecordSoundReq;
 	bool bStopRecordSoundReq;
 	bool bStartRecordMovieReq;
+	QString sStateFile;
 
 //	bool draw_timing;
 	bool doing_debug_command;
@@ -181,8 +182,8 @@ public slots:
 	
 	void do_reset();
 	void do_special_reset();
-	void do_load_state();
-	void do_save_state();
+	void do_load_state(QString name);
+	void do_save_state(QString name);
 	void do_update_config();
 	void do_start_record_sound();
 	void do_stop_record_sound();

@@ -80,7 +80,7 @@ void META_MainWindow::retranslateUi(void)
 	menu_fds[2]->setTitle(QApplication::translate("MainWindow", "PC88-1", 0));
 	menu_fds[3]->setTitle(QApplication::translate("MainWindow", "PC88-2", 0));
 #endif
-#ifdef USE_SOUND_DEVICE_TYPE
+#ifdef USE_SOUND_TYPE
 	menuSoundDevice->setTitle(QApplication::translate("MainWindow", "Sound Card", 0));
 	actionSoundDevice[0]->setText(QApplication::translate("MainWindow", "PC-9801-26 (BIOS Enabled)", 0));
 	actionSoundDevice[1]->setText(QApplication::translate("MainWindow", "PC-9801-26 (BIOS Disabled)", 0));

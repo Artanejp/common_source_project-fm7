@@ -28,7 +28,7 @@
 #define USE_AUTO_KEY		8
 #define USE_AUTO_KEY_RELEASE	10
 #define USE_VM_AUTO_KEY_TABLE
-//#define USE_CRT_FILTER
+//#define USE_SCREEN_FILTER
 //#define USE_SCANLINE
 #define USE_SOUND_VOLUME	3
 #define USE_JOYSTICK

@@ -87,8 +87,32 @@ BEGIN
         MENUITEM "CPU x8",                      ID_CPU_POWER3
         MENUITEM "CPU x16",                     ID_CPU_POWER4
         MENUITEM SEPARATOR
-        MENUITEM "Save State",                  ID_SAVE_STATE
-        MENUITEM "Load State",                  ID_LOAD_STATE
+        POPUP "Save State"
+        BEGIN
+            MENUITEM "State 0",                 ID_SAVE_STATE0
+            MENUITEM "State 1",                 ID_SAVE_STATE1
+            MENUITEM "State 2",                 ID_SAVE_STATE2
+            MENUITEM "State 3",                 ID_SAVE_STATE3
+            MENUITEM "State 4",                 ID_SAVE_STATE4
+            MENUITEM "State 5",                 ID_SAVE_STATE5
+            MENUITEM "State 6",                 ID_SAVE_STATE6
+            MENUITEM "State 7",                 ID_SAVE_STATE7
+            MENUITEM "State 8",                 ID_SAVE_STATE8
+            MENUITEM "State 9",                 ID_SAVE_STATE9
+        END
+        POPUP "Load State"
+        BEGIN
+            MENUITEM "State 0",                 ID_LOAD_STATE0
+            MENUITEM "State 1",                 ID_LOAD_STATE1
+            MENUITEM "State 2",                 ID_LOAD_STATE2
+            MENUITEM "State 3",                 ID_LOAD_STATE3
+            MENUITEM "State 4",                 ID_LOAD_STATE4
+            MENUITEM "State 5",                 ID_LOAD_STATE5
+            MENUITEM "State 6",                 ID_LOAD_STATE6
+            MENUITEM "State 7",                 ID_LOAD_STATE7
+            MENUITEM "State 8",                 ID_LOAD_STATE8
+            MENUITEM "State 9",                 ID_LOAD_STATE9
+        END
         MENUITEM SEPARATOR
         MENUITEM "Debug Main CPU",              ID_OPEN_DEBUGGER0
         MENUITEM "Close Debugger",              ID_CLOSE_DEBUGGER
@@ -101,6 +125,38 @@ BEGIN
         MENUITEM "Save",                        ID_SAVE_BINARY1
         MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_BINARY1
+    END
+    POPUP "Host"
+    BEGIN
+        MENUITEM "Rec Sound",                   ID_HOST_REC_SOUND
+        MENUITEM "Stop",                        ID_HOST_REC_STOP
+        MENUITEM SEPARATOR
+        POPUP "Sound"
+        BEGIN
+            MENUITEM "2000Hz",                  ID_SOUND_FREQ0
+            MENUITEM "4000Hz",                  ID_SOUND_FREQ1
+            MENUITEM "8000Hz",                  ID_SOUND_FREQ2
+            MENUITEM "11025Hz",                 ID_SOUND_FREQ3
+            MENUITEM "22050Hz",                 ID_SOUND_FREQ4
+            MENUITEM "44100Hz",                 ID_SOUND_FREQ5
+            MENUITEM "48000Hz",                 ID_SOUND_FREQ6
+            MENUITEM "96000Hz",                 ID_SOUND_FREQ7
+            MENUITEM SEPARATOR
+            MENUITEM "50msec",                  ID_SOUND_LATE0
+            MENUITEM "100msec",                 ID_SOUND_LATE1
+            MENUITEM "200msec",                 ID_SOUND_LATE2
+            MENUITEM "300msec",                 ID_SOUND_LATE3
+            MENUITEM "400msec",                 ID_SOUND_LATE4
+            MENUITEM SEPARATOR
+            MENUITEM "Realtime Mix",            ID_SOUND_STRICT_RENDER
+            MENUITEM "Light Weight Mix",        ID_SOUND_LIGHT_RENDER
+            MENUITEM SEPARATOR
+            MENUITEM "Volume",                  ID_SOUND_VOLUME, GRAYED
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "Use DirectInput",             ID_HOST_USE_DINPUT
+        MENUITEM "Disable Windows 8 DWM",       ID_HOST_DISABLE_DWM
+        MENUITEM "Show Status Bar",             ID_HOST_SHOW_STATUS_BAR
     END
 END
 

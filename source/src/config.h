@@ -68,85 +68,101 @@ bool DLL_PREFIX load_config_state(void *f);
  */ 
 typedef struct {
 	// control
-#if defined(USE_SHARED_DLL) || defined(USE_BOOT_MODE)
-	int boot_mode;
-#endif
-#if defined(USE_SHARED_DLL) || defined(USE_CPU_TYPE)
-	int cpu_type;
-#endif
-	int cpu_power;
-#if defined(USE_SHARED_DLL) || defined(USE_DIPSWITCH)
-	uint32_t dipswitch;
-#endif
-#if defined(USE_SHARED_DLL) || defined(USE_DEVICE_TYPE)
-	int device_type;
-#endif
-#if defined(USE_SHARED_DLL) || defined(USE_DRIVE_TYPE)
-	int drive_type;
-#endif
+	#if defined(USE_SHARED_DLL) || defined(USE_BOOT_MODE)
+		int boot_mode;
+	#endif
+	#if defined(USE_SHARED_DLL) || defined(USE_CPU_TYPE)
+		int cpu_type;
+	#endif
+	#if defined(USE_SHARED_DLL) || defined(USE_DIPSWITCH)
+		uint32_t dipswitch;
+	#endif
+	#if defined(USE_SHARED_DLL) || defined(USE_DEVICE_TYPE)
+		int device_type;
+	#endif
+	#if defined(USE_SHARED_DLL) || defined(USE_DRIVE_TYPE)
+		int drive_type;
+	#endif
+	#if defined(USE_SHARED_DLL) || defined(USE_KEYBOARD_TYPE)
+		int keyboard_type;
+	#endif
+	#if defined(USE_SHARED_DLL) || defined(USE_MOUSE_TYPE)
+		int mouse_type;
+	#endif
+	#if defined(USE_SHARED_DLL) || defined(USE_JOYSTICK_TYPE)
+		int joystick_type;
+	#endif
+	#if defined(USE_SHARED_DLL) || defined(USE_SOUND_TYPE)
+		int sound_type;
+	#endif
+	#if defined(USE_SHARED_DLL) || defined(USE_MONITOR_TYPE)
+		int monitor_type;
+	#endif
+	#if defined(USE_SHARED_DLL) || defined(USE_SCANLINE)
+		bool scan_line;
+	#endif
+	#if defined(USE_SHARED_DLL) || defined(USE_PRINTER_TYPE)
+		int printer_type;
+	#endif
+	#if defined(USE_SHARED_DLL) || defined(USE_FD1)
+		bool correct_disk_timing[/*MAX_FD_TMP*/16];
+		bool ignore_disk_crc[/*MAX_FD_TMP*/16];
+	#endif
+	#if defined(USE_SHARED_DLL) || defined(USE_TAPE1)
+		bool wave_shaper[MAX_TAPE_TMP];
+		bool direct_load_mzt[MAX_TAPE_TMP];
+		bool baud_high[MAX_TAPE_TMP];
+	#endif
 	
-#if defined(USE_SHARED_DLL) || defined(USE_FD1)
- 	bool correct_disk_timing[/*MAX_FD_TMP*/ 16];
- 	bool ignore_disk_crc[/*MAX_FD_TMP*/ 16];
-#endif
-#if defined(USE_SHARED_DLL) || defined(USE_TAPE1)
-	bool wave_shaper[MAX_TAPE_TMP];
-	bool direct_load_mzt[MAX_TAPE_TMP];
-	bool baud_high[MAX_TAPE_TMP];
-#endif
+	int cpu_power;
+	
 	// recent files
-#if defined(USE_SHARED_DLL) || defined(USE_CART1)
-	_TCHAR initial_cart_dir[_MAX_PATH];
-	_TCHAR recent_cart_path[MAX_CART_TMP][MAX_HISTORY][_MAX_PATH];
-#endif
-#if defined(USE_SHARED_DLL) || defined(USE_FD1)
-	_TCHAR initial_floppy_disk_dir[_MAX_PATH];
-	_TCHAR recent_floppy_disk_path[MAX_FD_TMP][MAX_HISTORY][_MAX_PATH];
-#endif
-#if defined(USE_SHARED_DLL) || defined(USE_QD1)
-	_TCHAR initial_quick_disk_dir[_MAX_PATH];
-	_TCHAR recent_quick_disk_path[MAX_QD_TMP][MAX_HISTORY][_MAX_PATH];
-#endif
-#if defined(USE_SHARED_DLL) || defined(USE_TAPE1)
-	_TCHAR initial_tape_dir[_MAX_PATH];
-	_TCHAR recent_tape_path[MAX_TAPE_TMP][MAX_HISTORY][_MAX_PATH];
-#endif
-#if defined(USE_SHARED_DLL) || defined(USE_COMPACT_DISC)
-	_TCHAR initial_compact_disc_dir[_MAX_PATH];
-	_TCHAR recent_compact_disc_path[MAX_HISTORY][_MAX_PATH];
-#endif
-#if defined(USE_SHARED_DLL) || defined(USE_LASER_DISC)
-	_TCHAR initial_laser_disc_dir[_MAX_PATH];
-	_TCHAR recent_laser_disc_path[MAX_HISTORY][_MAX_PATH];
-#endif
-#if defined(USE_SHARED_DLL) || defined(USE_BINARY_FILE1)
-	_TCHAR initial_binary_dir[_MAX_PATH];
-	_TCHAR recent_binary_path[MAX_BINARY_TMP][MAX_HISTORY][_MAX_PATH];
-#endif
-#if defined(USE_SHARED_DLL) || defined(USE_BUBBLE1)
- 	_TCHAR initial_bubble_casette_dir[_MAX_PATH];
-	_TCHAR recent_bubble_casette_path[MAX_BUBBLE_TMP][MAX_HISTORY][_MAX_PATH];
-#endif
+	#if defined(USE_SHARED_DLL) || defined(USE_CART1)
+		_TCHAR initial_cart_dir[_MAX_PATH];
+		_TCHAR recent_cart_path[MAX_CART_TMP][MAX_HISTORY][_MAX_PATH];
+	#endif
+	#if defined(USE_SHARED_DLL) || defined(USE_FD1)
+		_TCHAR initial_floppy_disk_dir[_MAX_PATH];
+		_TCHAR recent_floppy_disk_path[MAX_FD_TMP][MAX_HISTORY][_MAX_PATH];
+	#endif
+	#if defined(USE_SHARED_DLL) || defined(USE_QD1)
+		_TCHAR initial_quick_disk_dir[_MAX_PATH];
+		_TCHAR recent_quick_disk_path[MAX_QD_TMP][MAX_HISTORY][_MAX_PATH];
+	#endif
+	#if defined(USE_SHARED_DLL) || defined(USE_TAPE1)
+		_TCHAR initial_tape_dir[_MAX_PATH];
+		_TCHAR recent_tape_path[MAX_TAPE_TMP][MAX_HISTORY][_MAX_PATH];
+	#endif
+	#if defined(USE_SHARED_DLL) || defined(USE_COMPACT_DISC)
+		_TCHAR initial_compact_disc_dir[_MAX_PATH];
+		_TCHAR recent_compact_disc_path[MAX_HISTORY][_MAX_PATH];
+	#endif
+	#if defined(USE_SHARED_DLL) || defined(USE_LASER_DISC)
+		_TCHAR initial_laser_disc_dir[_MAX_PATH];
+		_TCHAR recent_laser_disc_path[MAX_HISTORY][_MAX_PATH];
+	#endif
+	#if defined(USE_SHARED_DLL) || defined(USE_BINARY_FILE1)
+		_TCHAR initial_binary_dir[_MAX_PATH];
+		_TCHAR recent_binary_path[MAX_BINARY_TMP][MAX_HISTORY][_MAX_PATH];
+	#endif
+	#if defined(USE_SHARED_DLL) || defined(USE_BUBBLE1)
+		_TCHAR initial_bubble_casette_dir[_MAX_PATH];
+		_TCHAR recent_bubble_casette_path[MAX_BUBBLE_TMP][MAX_HISTORY][_MAX_PATH];
+	#endif
+
 	// screen
 	int window_mode;
-#ifdef _WIN32
-	bool use_d3d9;
-	bool wait_vsync;
-#endif
 	int window_stretch_type;
 	int fullscreen_stretch_type;
-#if defined(USE_SHARED_DLL) || defined(USE_MONITOR_TYPE)
- 	int monitor_type;
-#endif
-#if defined(USE_SHARED_DLL) || defined(USE_CRT_FILTER)
- 	bool crt_filter;
-#endif
-#if defined(USE_SHARED_DLL) || defined(USE_SCANLINE)
-	bool scan_line;
-#endif
-#if defined(USE_SHARED_DLL) || defined(USE_SCREEN_ROTATE)
- 	int rotate_type;
-#endif
+	//	#if defined(USE_SHARED_DLL) || defined(USE_SCREEN_ROTATE)
+		int rotate_type;
+	//	#endif
+	
+	// filter
+	#if defined(USE_SHARED_DLL) || defined(USE_SCREEN_FILTER)
+		int filter_type;
+	#endif
+
 #if defined(_USE_QT)
 	bool use_opengl_scanline;
 	bool opengl_scanline_vert;
@@ -178,9 +194,6 @@ typedef struct {
 #if defined(_USE_QT)	
 	int general_sound_level;
 #endif
-#if defined(USE_SHARED_DLL) || defined(USE_SOUND_DEVICE_TYPE)
-	int sound_device_type;
-#endif
 #if defined(USE_SHARED_DLL) || defined(USE_FD1)
 	bool sound_noise_fdd;
 #endif
@@ -197,9 +210,6 @@ typedef struct {
 	_TCHAR fmgen_dll_path[_MAX_PATH];
 	bool use_direct_input;
 	bool disable_dwm;
-#endif
-#if defined(USE_SHARED_DLL) || defined(USE_KEYBOARD_TYPE)
-	int keyboard_type;
 #endif
 #if defined(USE_SHARED_DLL) || defined(USE_JOYSTICK)
 	int joy_buttons[4][16];
@@ -232,7 +242,6 @@ typedef struct {
 	
 	// printer
 #if defined(USE_SHARED_DLL) || defined(USE_PRINTER)
-	int printer_device_type;
 	_TCHAR printer_dll_path[_MAX_PATH];
 #endif
 

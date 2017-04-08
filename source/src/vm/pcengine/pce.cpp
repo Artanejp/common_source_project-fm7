@@ -365,13 +365,8 @@ void PCE::open_cart(const _TCHAR* file_path)
 {
 	FILEIO* fio = new FILEIO();
 	
-#ifdef _X1TWIN
-	// XXX: config.device_type is used for X1 keyboard type :-(
-	support_6btn_pad = support_multi_tap = false;
-#else
-	support_6btn_pad = ((config.device_type & 1) != 0);
-	support_multi_tap = ((config.device_type & 2) != 0);
-#endif
+	support_6btn_pad = ((config.joystick_type & 1) != 0);
+	support_multi_tap = ((config.joystick_type & 2) != 0);
 #ifdef SUPPORT_SUPER_GFX
 	support_sgfx = false;
 #endif

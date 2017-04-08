@@ -195,14 +195,6 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 		connect(actionRotate, SIGNAL(toggled(bool)),
 				this, SLOT(set_screen_rotate(bool)));
 	}
-	if(using_flags->is_use_crt_filter()) {
-		actionCRT_Filter = new Action_Control(this, using_flags);
-		actionCRT_Filter->setObjectName(QString::fromUtf8("actionCRT_Filter"));
-		actionCRT_Filter->setEnabled(true);
-		actionCRT_Filter->setCheckable(true);
-		if(using_flags->get_config_ptr()->crt_filter == 0) actionCRT_Filter->setChecked(true);
-		connect(actionCRT_Filter, SIGNAL(toggled(bool)), this, SLOT(set_crt_filter(bool)));
-	}
 	actionOpenGL_Filter = new Action_Control(this, using_flags);
 	actionOpenGL_Filter->setObjectName(QString::fromUtf8("actionOpenGL_Filter"));
 	actionOpenGL_Filter->setEnabled(true);
@@ -359,10 +351,6 @@ void Ui_MainWindowBase::CreateScreenMenu(void)
 	if(using_flags->is_use_screen_rotate()) {
 		menuScreen->addAction(actionRotate);
 	}
-	if(using_flags->is_use_crt_filter()) {
-		menuScreen->addAction(actionCRT_Filter);
-	}
-
 	menuScreen->addAction(actionOpenGL_Filter);
 	menuScreen->addAction(actionCapture_Screen);
 	menuScreen->addSeparator();
@@ -385,10 +373,6 @@ void Ui_MainWindowBase::retranslateScreenMenu(void)
 	if(using_flags->is_use_screen_rotate()) {
 		actionRotate->setText(QApplication::translate("MainWindow", "Rotate Screen", 0));
 		actionRotate->setToolTip(QApplication::translate("MainWindow", "Rotate screen.", 0));
-	}
-	if(using_flags->is_use_crt_filter()) {
-		actionCRT_Filter->setText(QApplication::translate("MainWindow", "Software Filter", 0));
-		actionCRT_Filter->setToolTip(QApplication::translate("MainWindow", "Use display filter by software.", 0));
 	}
 	if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
 		actionGLScanLineHoriz->setText(QApplication::translate("MainWindow", "OpenGL Scan Line", 0));

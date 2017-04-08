@@ -1082,9 +1082,9 @@ uint32_t PC88::read_io8_debug(uint32_t addr)
 	case 0x45:
 		if(Port44_OPNCH == 14) {
 #ifdef SUPPORT_PC88_JOYSTICK
-			if(config.device_type == DEVICE_JOYSTICK) {
+			if(config.joystick_type == DEVICE_JOYSTICK) {
 				return (~(joystick_status[0] >> 0) & 0x0f) | 0xf0;
-			} else if(config.device_type == DEVICE_MOUSE) {
+			} else if(config.joystick_type == DEVICE_MOUSE) {
 				switch(mouse_phase) {
 				case 0:
 					return ((mouse_lx >> 4) & 0x0f) | 0xf0;
@@ -1101,9 +1101,9 @@ uint32_t PC88::read_io8_debug(uint32_t addr)
 			return 0xff;
 		} else if(Port44_OPNCH == 15) {
 #ifdef SUPPORT_PC88_JOYSTICK
-			if(config.device_type == DEVICE_JOYSTICK) {
+			if(config.joystick_type == DEVICE_JOYSTICK) {
 				return (~(joystick_status[0] >> 4) & 0x03) | 0xfc;
-			} else if(config.device_type == DEVICE_MOUSE) {
+			} else if(config.joystick_type == DEVICE_MOUSE) {
 				return (~mouse_status[2] & 0x03) | 0xfc;
 			}
 #endif
@@ -1158,9 +1158,9 @@ uint32_t PC88::read_io8_debug(uint32_t addr)
 		if(d_sb2 != NULL) {
 			if(PortA8_OPNCH == 14) {
 #ifdef SUPPORT_PC88_JOYSTICK
-				if(config.device_type == DEVICE_JOYSTICK) {
+				if(config.joystick_type == DEVICE_JOYSTICK) {
 					return (~(joystick_status[0] >> 0) & 0x0f) | 0xf0;
-				} else if(config.device_type == DEVICE_MOUSE) {
+				} else if(config.joystick_type == DEVICE_MOUSE) {
 					switch(mouse_phase) {
 					case 0:
 						return ((mouse_lx >> 4) & 0x0f) | 0xf0;
@@ -1177,9 +1177,9 @@ uint32_t PC88::read_io8_debug(uint32_t addr)
 				return 0xff;
 			} else if(PortA8_OPNCH == 15) {
 #ifdef SUPPORT_PC88_JOYSTICK
-				if(config.device_type == DEVICE_JOYSTICK) {
+				if(config.joystick_type == DEVICE_JOYSTICK) {
 					return (~(joystick_status[0] >> 4) & 0x03) | 0xfc;
-				} else if(config.device_type == DEVICE_MOUSE) {
+				} else if(config.joystick_type == DEVICE_MOUSE) {
 					return (~mouse_status[2] & 0x03) | 0xfc;
 				}
 #endif

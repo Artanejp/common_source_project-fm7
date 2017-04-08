@@ -33,7 +33,7 @@
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
-#define USE_CRT_FILTER
+#define USE_SCREEN_FILTER
 #define USE_STATE
 #define USE_DEBUGGER
 #define DATAREC_SOUND
@@ -172,10 +172,10 @@
 #endif
 
 #if defined(_FM8)
-#define USE_SOUND_DEVICE_TYPE   2
+#define USE_SOUND_TYPE		2
 #else
-#define USE_DEVICE_TYPE		3
-#define USE_SOUND_DEVICE_TYPE   8
+#define USE_MOUSE_TYPE		3
+#define USE_SOUND_TYPE		8
 #endif
 
 #ifdef _FM77AV_VARIANTS
@@ -211,13 +211,13 @@
 // 7 = THG + WHG + OPN (+PSG)
 #if defined(_FM8)
 // WITHOUT PSG?
-#define SOUND_DEVICE_TYPE_DEFAULT	0
+#define SOUND_TYPE_DEFAULT	0
 #elif defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
 // PSG ONLY
-#define SOUND_DEVICE_TYPE_DEFAULT	0
+#define SOUND_TYPE_DEFAULT	0
 #elif defined(_FM77AV_VARIANTS)
 // OPN
-#define SOUND_DEVICE_TYPE_DEFAULT	1
+#define SOUND_TYPE_DEFAULT	1
 #endif
 
 #if defined(_FM8)

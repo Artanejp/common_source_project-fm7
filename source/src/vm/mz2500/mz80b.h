@@ -66,7 +66,7 @@
 #define USE_AUTO_KEY_CAPS
 #define USE_MONITOR_TYPE	4
 #ifndef _MZ80B
-#define USE_CRT_FILTER
+#define USE_SCREEN_FILTER
 #endif
 #define USE_SCANLINE
 #define USE_SOUND_VOLUME	4

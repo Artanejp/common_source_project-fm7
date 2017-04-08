@@ -56,8 +56,6 @@ protected:
 
 	bool use_compact_disc;
 
-	bool use_crt_filter;
-
 	bool use_debugger;
 
 	int use_device_type;
@@ -192,8 +190,6 @@ public:
 	int get_use_cpu_type() { return use_cpu_type; }
 
 	bool is_use_compact_disc() { return use_compact_disc; }
-
-	bool is_use_crt_filter() { return use_crt_filter; }
 
 	bool is_use_debugger() { return use_debugger; }
 

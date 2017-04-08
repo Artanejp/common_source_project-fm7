@@ -25,15 +25,6 @@ void Ui_MainWindowBase::OnSpecialReset(void)
 	emit sig_vm_specialreset();
 }
 
-void Ui_MainWindowBase::OnLoadState(void) // Final entry of load state.
-{
-	emit sig_vm_loadstate();
-}
-
-void Ui_MainWindowBase::OnSaveState(void)
-{
-	emit sig_vm_savestate();
-}
 
 void Ui_MainWindowBase::OnCpuPower(int mode)
 {

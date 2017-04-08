@@ -27,7 +27,7 @@
 // device informations for win32
 #define ONE_BOARD_MICRO_COMPUTER
 #define MAX_BUTTONS		25
-#define MAX_DRAW_RANGES		9
+//#define MAX_DRAW_RANGES	9
 /*
 SW1	ON = STEP / OFF = AUTO
 SW2	ON = CHAR / OFF = BIT
@@ -45,6 +45,7 @@ SW3-1/2	ON ,ON  = 8000H-81FFH
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_NO_CAPS
+#define USE_MONITOR_TYPE	2
 #define USE_SOUND_VOLUME	1
 #define USE_DEBUGGER
 #define USE_STATE
@@ -165,6 +166,7 @@ public:
 	
 	// draw screen
 	void draw_screen();
+	int max_draw_ranges();
 	
 	// sound generation
 	void initialize_sound(int rate, int samples);

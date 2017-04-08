@@ -92,7 +92,7 @@
 #define USE_AUTO_KEY_RELEASE	10
 #define USE_AUTO_KEY_CAPS
 #if !defined(_PC6001)
-#define USE_CRT_FILTER
+#define USE_SCREEN_FILTER
 #define USE_SCANLINE
 #endif
 #if defined(_PC6001)
@@ -102,6 +102,7 @@
 #endif
 #define USE_JOYSTICK
 #define USE_PRINTER
+#define USE_PRINTER_TYPE	3
 #define USE_DEBUGGER
 #define USE_STATE
 

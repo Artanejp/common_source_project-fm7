@@ -100,11 +100,11 @@ private:
 #ifdef USE_CPU_TYPE
 	int cpu_type;
 #endif
-#ifdef USE_SOUND_DEVICE_TYPE
-	int sound_device_type;
+#ifdef USE_SOUND_TYPE
+	int sound_type;
 #endif
-#ifdef USE_PRINTER
-	int printer_device_type;
+#ifdef USE_PRINTER_TYPE
+	int printer_type;
 #endif
 	bool now_suspended;
 	// input
@@ -162,7 +162,6 @@ private:
 	
 	// state
 #ifdef USE_STATE
-	void save_state_tmp(const _TCHAR* file_path);
 	bool load_state_tmp(const _TCHAR* file_path);
 #endif
 
@@ -272,7 +271,7 @@ public:
 #endif
 	int draw_screen();
 	scrntype_t* get_screen_buffer(int y);
-#ifdef USE_CRT_FILTER
+#ifdef USE_SCREEN_FILTER
 	void screen_skip_line(bool skip_line);
 #endif
 #ifdef ONE_BOARD_MICRO_COMPUTER
@@ -280,6 +279,7 @@ public:
 	void reload_bitmap();
 #endif
 #ifdef OSD_WIN32
+	void invalidate_screen();
 	void update_screen(HDC hdc);
 #endif
 	void capture_screen();
@@ -483,8 +483,8 @@ public:
 	void update_config();
 	// state
 #ifdef USE_STATE
-	void save_state();
-	void load_state();
+	void save_state(const _TCHAR* file_path);
+	void load_state(const _TCHAR* file_path);
 #endif
 #ifdef OSD_QT
 	// New APIs

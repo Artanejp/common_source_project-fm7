@@ -197,7 +197,7 @@
 #define USE_PRINTER
 #define USE_PRINTER_TYPE	4
 #if defined(MSX_PSG_STEREO)
-#define USE_SOUND_DEVICE_TYPE	2
+#define USE_SOUND_TYPE		2
 #endif
 
 #include "../../common.h"
