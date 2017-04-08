@@ -64,6 +64,7 @@ public:
 		memset(&wbp, 0, sizeof(wbp));
 		memset(&ibp, 0, sizeof(ibp));
 		memset(&obp, 0, sizeof(obp));
+		first_symbol = last_symbol = NULL;
 		my_tcscpy_s(file_path, _MAX_PATH, _T("debug.bin"));
 		now_debugging = now_going = now_suspended = false;
 		set_device_name(_T("Debugger"));
@@ -71,6 +72,10 @@ public:
 	~DEBUGGER() {}
 	
 	// common functions
+	void release()
+	{
+		release_symbols();
+	}
 	void write_data8(uint32_t addr, uint32_t data)
 	{
 		check_mem_break_points(&wbp, addr, 1);
@@ -235,7 +240,34 @@ public:
 	{
 		return (bp.hit || rbp.hit || wbp.hit || ibp.hit || obp.hit);
 	}
+	void add_symbol(uint32_t addr, const _TCHAR *name)
+	{
+		symbol_t *symbol = (symbol_t *)calloc(sizeof(symbol_t), 1);
+		symbol->addr = addr;
+		symbol->name = (_TCHAR *)calloc(sizeof(_TCHAR), _tcslen(name) + 1);
+		my_tcscpy_s(symbol->name, _tcslen(name) + 1, name);
+		
+		if(first_symbol == NULL) {
+			first_symbol = symbol;
+		} else {
+			last_symbol->next_symbol = symbol;
+		}
+		last_symbol = symbol;
+	}
+	void release_symbols()
+	{
+		for(symbol_t* symbol = first_symbol; symbol;) {
+			symbol_t *next_symbol = symbol->next_symbol;
+			if(symbol->name != NULL) {
+				free(symbol->name);
+			}
+			free(symbol);
+			symbol = next_symbol;
+		}
+		first_symbol = last_symbol = NULL;
+	}
 	break_point_t bp, rbp, wbp, ibp, obp;
+	symbol_t *first_symbol, *last_symbol;
 	_TCHAR file_path[_MAX_PATH];
 	bool now_debugging, now_going, now_suspended;
 };

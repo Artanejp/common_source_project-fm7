@@ -1091,7 +1091,7 @@ static const UINT8 table[0x102][3] = {
 #define ARG2    opram[2]
 #define ARGW    (opram[1]<<8) + opram[2]
 
-static unsigned Dasm680x (int subtype, _TCHAR *buf, unsigned pc, const UINT8 *oprom, const UINT8 *opram)
+static unsigned Dasm680x (int subtype, _TCHAR *buf, unsigned pc, const UINT8 *oprom, const UINT8 *opram, symbol_t *first_symbol)
 {
 //	UINT32 flags = 0;
 	int invalid_mask;
@@ -1142,13 +1142,13 @@ static unsigned Dasm680x (int subtype, _TCHAR *buf, unsigned pc, const UINT8 *op
 	switch( args )
 	{
 		case rel:  /* relative */
-			_stprintf (buf, _T("$%04X"), pc + (INT8)ARG1 + 2);
+			_stprintf (buf, _T("%s"), get_value_or_symbol(first_symbol, _T("$%04X"), pc + (INT8)ARG1 + 2));
 			return 2;// | flags | DASMFLAG_SUPPORTED;
 		case imb:  /* immediate (byte) */
 			_stprintf (buf, _T("#$%02X"), ARG1);
 			return 2;// | flags | DASMFLAG_SUPPORTED;
 		case imw:  /* immediate (word) */
-			_stprintf (buf, _T("#$%04X"), ARGW);
+			_stprintf (buf, _T("#%s"), get_value_or_symbol(first_symbol, _T("$%04X"), ARGW));
 			return 3;// | flags | DASMFLAG_SUPPORTED;
 		case idx:  /* indexed + byte offset */
 			_stprintf (buf, _T("(x+$%02X)"), ARG1 );
@@ -1163,7 +1163,7 @@ static unsigned Dasm680x (int subtype, _TCHAR *buf, unsigned pc, const UINT8 *op
 			_stprintf (buf, _T("#$%02X,$%02X"), ARG1, ARG2);
 			return 3;// | flags | DASMFLAG_SUPPORTED;
 		case ext:  /* extended address */
-			_stprintf (buf, _T("$%04X"), ARGW);
+			_stprintf (buf, _T("%s"), get_value_or_symbol(first_symbol, _T("$%04X"), ARGW));
 			return 3;// | flags | DASMFLAG_SUPPORTED;
 		case sx1:  /* byte from address (s + 1) */
 			_stprintf (buf, _T("(s+1)"));
@@ -1181,13 +1181,13 @@ int MC6800::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 		ops[i] = d_mem_stored->read_data8w(pc + i, &wait);
 	}
 #if defined(HAS_MC6800)
-	return Dasm680x(6800, buffer, pc, ops, ops);
+	return Dasm680x(6800, buffer, pc, ops, ops, d_debugger->first_symbol);
 #elif defined(HAS_MC6801)
-	return Dasm680x(6801, buffer, pc, ops, ops);
+	return Dasm680x(6801, buffer, pc, ops, ops, d_debugger->first_symbol);
 #elif defined(HAS_HD6301)
-	return Dasm680x(6301, buffer, pc, ops, ops);
+	return Dasm680x(6301, buffer, pc, ops, ops, d_debugger->first_symbol);
 #elif defined(HAS_MB8861)
-	return Dasm680x(6800, buffer, pc, ops, ops);	// FIXME
+	return Dasm680x(6800, buffer, pc, ops, ops, d_debugger->first_symbol);	// FIXME
 #endif
 	return 0;
 }

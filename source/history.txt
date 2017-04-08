@@ -1,3 +1,16 @@
+3/28/2017
+
+[COMMON] add _tcscat and my_tcscat_s
+[COMMON] add structure and functions to support symbols
+[EMU/DEBUGGER] improve debugger to support symbols (thanks Mr.Kei Moroboshi)
+
+[VM/MC6800] improve disassembler to support symbols (thanks Mr.Kei Moroboshi)
+[VM/MC6809] improve disassembler to support symbols (thanks Mr.Kei Moroboshi)
+[VM/TMS9995] improve disassembler to support symbols (thanks Mr.Kei Moroboshi)
+[VM/UPD7801] improve disassembler to support symbols (thanks Mr.Kei Moroboshi)
+[VM/Z80] improve disassembler to support symbols (thanks Mr.Kei Moroboshi)
+
+
 3/26/2017
 
 [VM/YM2413] support mute

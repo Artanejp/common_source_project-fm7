@@ -591,6 +591,7 @@ uint32_t MC6809::cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_
 	int i, p = 0, page = 0;
 	bool opcode_found = false;
 	bool indirect;
+	const _TCHAR *name = NULL;
 
 	do {
 		opcode = oprom[p++];
@@ -685,17 +686,17 @@ uint32_t MC6809::cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_
 
 	case REL:
 		offset = (int8_t)operandarray[0];
-		buffer += _stprintf(buffer, _T("$%04X"), (pc + offset) & 0xffff);
+		buffer += _stprintf(buffer, _T("%s"), get_value_or_symbol(d_debugger->first_symbol, _T("$%04X"), (pc + offset) & 0xffff));
 		break;
 
 	case LREL:
 		offset = (int16_t)((operandarray[0] << 8) + operandarray[1]);
-		buffer += _stprintf(buffer, _T("$%04X"), (pc + offset) & 0xffff);
+		buffer += _stprintf(buffer, _T("%s"), get_value_or_symbol(d_debugger->first_symbol, _T("$%04X"), (pc + offset) & 0xffff));
 		break;
 
 	case EXT:
 		ea = (operandarray[0] << 8) + operandarray[1];
-		buffer += _stprintf(buffer, _T("$%04X"), ea);
+		buffer += _stprintf(buffer, _T("%s"), get_value_or_symbol(d_debugger->first_symbol, _T("$%04X"), ea));
 		break;
 
 	case IND:
@@ -776,15 +777,23 @@ uint32_t MC6809::cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_
 
 		case 0x8c:  // (+/- 7 bit offset),PC
 			offset = (int8_t)opram[p++];
-			buffer += _stprintf(buffer, _T("%s"), (offset < 0) ? "-" : "");
-			buffer += _stprintf(buffer, _T("$%02X,PC"), (offset < 0) ? -offset : offset);
+			if((name = get_symbol(d_debugger->first_symbol, (p - 1 + offset) & 0xffff)) != NULL) {
+				buffer += _stprintf(buffer, _T("%s,PCR"), name);
+			} else {
+				buffer += _stprintf(buffer, _T("%s"), (offset < 0) ? "-" : "");
+				buffer += _stprintf(buffer, _T("$%02X,PC"), (offset < 0) ? -offset : offset);
+			}
 			break;
 
 		case 0x8d:  // (+/- 15 bit offset),PC
 			offset = (int16_t)((opram[p+0] << 8) + opram[p+1]);
 			p += 2;
-			buffer += _stprintf(buffer, _T("%s"), (offset < 0) ? "-" : "");
-			buffer += _stprintf(buffer, _T("$%04X,PC"), (offset < 0) ? -offset : offset);
+			if((name = get_symbol(d_debugger->first_symbol, (p - 2 + offset) & 0xffff)) != NULL) {
+				buffer += _stprintf(buffer, _T("%s,PCR"), name);
+			} else {
+				buffer += _stprintf(buffer, _T("%s"), (offset < 0) ? "-" : "");
+				buffer += _stprintf(buffer, _T("$%04X,PC"), (offset < 0) ? -offset : offset);
+			}
 			break;
 
 		case 0x8e: // $FFFFF
@@ -797,7 +806,7 @@ uint32_t MC6809::cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_
 		case 0x8f:  // address
 			ea = (uint16_t)((opram[p+0] << 8) + opram[p+1]);
 			p += 2;
-			buffer += _stprintf(buffer, _T("$%04X"), ea);
+			buffer += _stprintf(buffer, _T("%s"), get_value_or_symbol(d_debugger->first_symbol, _T("$%04X"), ea));
 			break;
 
 		default:    // (+/- 4 bit offset),R
@@ -819,7 +828,7 @@ uint32_t MC6809::cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_
 		if (numoperands == 2)
 		{
 			ea = (operandarray[0] << 8) + operandarray[1];
-			buffer += _stprintf(buffer, _T("#$%04X"), ea);
+			buffer += _stprintf(buffer, _T("#%s"), get_value_or_symbol(d_debugger->first_symbol, _T("$%04X"), ea));
 		}
 		else
 		if (numoperands == 1)
@@ -856,3 +865,4 @@ int MC6809::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	return 0;
 #endif
 }
+

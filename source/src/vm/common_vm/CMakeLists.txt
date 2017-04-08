@@ -96,8 +96,8 @@ else()
     ${s_vm_common_vm_srcs}
   )
   set_target_properties(CSPcommon_vm PROPERTIES 
-     SOVERSION 1.0.3
-     VERSION 1.0.3
+     SOVERSION 1.0.4
+     VERSION 1.0.4
   )
   INSTALL(TARGETS CSPcommon_vm DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

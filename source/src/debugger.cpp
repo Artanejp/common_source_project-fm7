@@ -60,7 +60,7 @@ void my_putch(OSD *osd, _TCHAR c)
 	osd->write_console(&c, 1);
 }
 
-uint32_t my_hexatoi(const _TCHAR *str)
+uint32_t my_hexatoi(symbol_t *first_symbol, const _TCHAR *str)
 {
 	_TCHAR tmp[1024], *s;
 	
@@ -69,13 +69,18 @@ uint32_t my_hexatoi(const _TCHAR *str)
 	}
 	my_tcscpy_s(tmp, 1024, str);
 	
+	for(symbol_t* symbol = first_symbol; symbol; symbol = symbol->next_symbol) {
+		if(stricmp(symbol->name, str) == 0) {
+			return symbol->addr;
+		}
+	}
 	if(_tcslen(tmp) == 3 && tmp[0] == _T('\'') && tmp[2] == _T('\'')) {
 		// ank
 		return tmp[1] & 0xff;
 	} else if((s = _tcsstr(tmp, _T(":"))) != NULL) {
 		// 0000:0000
 		s[0] = _T('\0');
-		return (my_hexatoi(tmp) << 4) + my_hexatoi(s + 1);
+		return (my_hexatoi(first_symbol, tmp) << 4) + my_hexatoi(first_symbol, s + 1);
 	} else if(tmp[0] == _T('%')) {
 		// decimal
 #if defined(__MINGW32__)
@@ -157,11 +162,11 @@ void* debugger_thread(void *lpx)
 	my_printf(p->osd, _T("%s\n"), buffer);
 	
 	p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_INTENSITY);
-	my_printf(p->osd, _T("breaked at %08X\n"), cpu->get_next_pc());
+	my_printf(p->osd, _T("breaked at %s\n"), get_value_and_symbol(debugger->first_symbol, _T("%08X"), cpu->get_next_pc()));
 	
 	p->osd->set_console_text_attribute(FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
 	cpu->debug_dasm(cpu->get_next_pc(), buffer, 1024);
-	my_printf(p->osd, _T("next\t%08X  %s\n"), cpu->get_next_pc(), buffer);
+	my_printf(p->osd, _T("next\t%s  %s\n"), get_value_and_symbol(debugger->first_symbol, _T("%08X"), cpu->get_next_pc()), buffer);
 	p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
 	
 	// initialize files
@@ -248,13 +253,13 @@ void* debugger_thread(void *lpx)
 				if(num <= 3) {
 					uint32_t start_addr = dump_addr;
 					if(num >= 2) {
-						start_addr = my_hexatoi(params[1]);
+						start_addr = my_hexatoi(debugger->first_symbol, params[1]);
 					}
 					start_addr &= data_addr_mask;
 					
 					uint32_t end_addr = start_addr + 8 * 16 - 1;
 					if(num == 3) {
-						end_addr = my_hexatoi(params[2]);
+						end_addr = my_hexatoi(debugger->first_symbol, params[2]);
 					}
 					end_addr &= data_addr_mask;
 					
@@ -295,9 +300,9 @@ void* debugger_thread(void *lpx)
 				}
 			} else if(_tcsicmp(params[0], _T("E")) == 0 || _tcsicmp(params[0], _T("EB")) == 0) {
 				if(num >= 3) {
-					uint32_t addr = my_hexatoi(params[1]) & data_addr_mask;
+					uint32_t addr = my_hexatoi(debugger->first_symbol, params[1]) & data_addr_mask;
 					for(int i = 2; i < num; i++) {
-						cpu->write_debug_data8(addr, my_hexatoi(params[i]) & 0xff);
+						cpu->write_debug_data8(addr, my_hexatoi(debugger->first_symbol, params[i]) & 0xff);
 						addr = (addr + 1) & data_addr_mask;
 					}
 				} else {
@@ -305,9 +310,9 @@ void* debugger_thread(void *lpx)
 				}
 			} else if(_tcsicmp(params[0], _T("EW")) == 0) {
 				if(num >= 3) {
-					uint32_t addr = my_hexatoi(params[1]) & data_addr_mask;
+					uint32_t addr = my_hexatoi(debugger->first_symbol, params[1]) & data_addr_mask;
 					for(int i = 2; i < num; i++) {
-						cpu->write_debug_data16(addr, my_hexatoi(params[i]) & 0xffff);
+						cpu->write_debug_data16(addr, my_hexatoi(debugger->first_symbol, params[i]) & 0xffff);
 						addr = (addr + 2) & data_addr_mask;
 					}
 				} else {
@@ -315,9 +320,9 @@ void* debugger_thread(void *lpx)
 				}
 			} else if(_tcsicmp(params[0], _T("ED")) == 0) {
 				if(num >= 3) {
-					uint32_t addr = my_hexatoi(params[1]) & data_addr_mask;
+					uint32_t addr = my_hexatoi(debugger->first_symbol, params[1]) & data_addr_mask;
 					for(int i = 2; i < num; i++) {
-						cpu->write_debug_data32(addr, my_hexatoi(params[i]));
+						cpu->write_debug_data32(addr, my_hexatoi(debugger->first_symbol, params[i]));
 						addr = (addr + 4) & data_addr_mask;
 					}
 				} else {
@@ -325,7 +330,7 @@ void* debugger_thread(void *lpx)
 				}
 			} else if(_tcsicmp(params[0], _T("EA")) == 0) {
 				if(num >= 3) {
-					uint32_t addr = my_hexatoi(params[1]) & data_addr_mask;
+					uint32_t addr = my_hexatoi(debugger->first_symbol, params[1]) & data_addr_mask;
 					my_tcscpy_s(buffer, 1024, prev_command);
 					if((token = my_tcstok_s(buffer, _T("\""), &context)) != NULL && (token = my_tcstok_s(NULL, _T("\""), &context)) != NULL) {
 						int len = _tcslen(token);
@@ -341,37 +346,37 @@ void* debugger_thread(void *lpx)
 				}
 			} else if(_tcsicmp(params[0], _T("I")) == 0 || _tcsicmp(params[0], _T("IB")) == 0) {
 				if(num == 2) {
-					my_printf(p->osd, _T("%02X\n"), cpu->read_debug_io8(my_hexatoi(params[1])) & 0xff);
+					my_printf(p->osd, _T("%02X\n"), cpu->read_debug_io8(my_hexatoi(debugger->first_symbol, params[1])) & 0xff);
 				} else {
 					my_printf(p->osd, _T("invalid parameter number\n"));
 				}
 			} else if(_tcsicmp(params[0], _T("IW")) == 0) {
 				if(num == 2) {
-					my_printf(p->osd, _T("%02X\n"), cpu->read_debug_io16(my_hexatoi(params[1])) & 0xffff);
+					my_printf(p->osd, _T("%02X\n"), cpu->read_debug_io16(my_hexatoi(debugger->first_symbol, params[1])) & 0xffff);
 				} else {
 					my_printf(p->osd, _T("invalid parameter number\n"));
 				}
 			} else if(_tcsicmp(params[0], _T("ID")) == 0) {
 				if(num == 2) {
-					my_printf(p->osd, _T("%02X\n"), cpu->read_debug_io32(my_hexatoi(params[1])));
+					my_printf(p->osd, _T("%02X\n"), cpu->read_debug_io32(my_hexatoi(debugger->first_symbol, params[1])));
 				} else {
 					my_printf(p->osd, _T("invalid parameter number\n"));
 				}
 			} else if(_tcsicmp(params[0], _T("O")) == 0 || _tcsicmp(params[0], _T("OB")) == 0) {
 				if(num == 3) {
-					cpu->write_debug_io8(my_hexatoi(params[1]), my_hexatoi(params[2]) & 0xff);
+					cpu->write_debug_io8(my_hexatoi(debugger->first_symbol, params[1]), my_hexatoi(debugger->first_symbol, params[2]) & 0xff);
 				} else {
 					my_printf(p->osd, _T("invalid parameter number\n"));
 				}
 			} else if(_tcsicmp(params[0], _T("OW")) == 0) {
 				if(num == 3) {
-					cpu->write_debug_io16(my_hexatoi(params[1]), my_hexatoi(params[2]) & 0xffff);
+					cpu->write_debug_io16(my_hexatoi(debugger->first_symbol, params[1]), my_hexatoi(debugger->first_symbol, params[2]) & 0xffff);
 				} else {
 					my_printf(p->osd, _T("invalid parameter number\n"));
 				}
 			} else if(_tcsicmp(params[0], _T("OD")) == 0) {
 				if(num == 3) {
-					cpu->write_debug_io32(my_hexatoi(params[1]), my_hexatoi(params[2]));
+					cpu->write_debug_io32(my_hexatoi(debugger->first_symbol, params[1]), my_hexatoi(debugger->first_symbol, params[2]));
 				} else {
 					my_printf(p->osd, _T("invalid parameter number\n"));
 				}
@@ -380,7 +385,7 @@ void* debugger_thread(void *lpx)
 					cpu->get_debug_regs_info(buffer, 1024);
 					my_printf(p->osd, _T("%s\n"), buffer);
 				} else if(num == 3) {
-					if(!cpu->write_debug_reg(params[1], my_hexatoi(params[2]))) {
+					if(!cpu->write_debug_reg(params[1], my_hexatoi(debugger->first_symbol, params[2]))) {
 						my_printf(p->osd, _T("unknown register %s\n"), params[1]);
 					}
 				} else {
@@ -388,11 +393,11 @@ void* debugger_thread(void *lpx)
 				}
 			} else if(_tcsicmp(params[0], _T("S")) == 0) {
 				if(num >= 4) {
-					uint32_t start_addr = my_hexatoi(params[1]) & data_addr_mask;
-					uint32_t end_addr = my_hexatoi(params[2]) & data_addr_mask;
+					uint32_t start_addr = my_hexatoi(debugger->first_symbol, params[1]) & data_addr_mask;
+					uint32_t end_addr = my_hexatoi(debugger->first_symbol, params[2]) & data_addr_mask;
 					uint8_t list[32];
 					for(int i = 3, j = 0; i < num; i++, j++) {
-						list[j] = my_hexatoi(params[i]);
+						list[j] = my_hexatoi(debugger->first_symbol, params[i]);
 					}
 					for(uint64_t addr = start_addr; addr <= end_addr; addr++) {
 						bool found = true;
@@ -403,7 +408,7 @@ void* debugger_thread(void *lpx)
 							}
 						}
 						if(found) {
-							my_printf(p->osd, _T("%08X\n"), addr);
+							my_printf(p->osd, _T("%s\n"), get_value_and_symbol(debugger->first_symbol, _T("%08X"), (uint32_t)addr));
 						}
 					}
 				} else {
@@ -412,12 +417,19 @@ void* debugger_thread(void *lpx)
 			} else if(_tcsicmp(params[0], _T("U")) == 0) {
 				if(num <= 3) {
 					if(num >= 2) {
-						dasm_addr = my_hexatoi(params[1]) & prog_addr_mask;
+						dasm_addr = my_hexatoi(debugger->first_symbol, params[1]) & prog_addr_mask;
 					}
 					if(num == 3) {
-						uint32_t end_addr = my_hexatoi(params[2]) & prog_addr_mask;
+						uint32_t end_addr = my_hexatoi(debugger->first_symbol, params[2]) & prog_addr_mask;
 						while(dasm_addr <= end_addr) {
+							const _TCHAR *name = get_symbol(debugger->first_symbol, dasm_addr & prog_addr_mask);
 							int len = cpu->debug_dasm(dasm_addr & prog_addr_mask, buffer, 1024);
+							if(name != NULL) {
+								my_printf(p->osd, _T("%08X                  "), dasm_addr & prog_addr_mask);
+								p->osd->set_console_text_attribute(FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+								my_printf(p->osd, _T("%s:\n"), name);
+								p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+							}
 							my_printf(p->osd, _T("%08X  "), dasm_addr & prog_addr_mask);
 							for(int i = 0; i < len; i++) {
 								my_printf(p->osd, _T("%02X"), cpu->read_debug_data8((dasm_addr + i) & data_addr_mask));
@@ -430,7 +442,14 @@ void* debugger_thread(void *lpx)
 						}
 					} else {
 						for(int i = 0; i < 16; i++) {
+							const _TCHAR *name = get_symbol(debugger->first_symbol, dasm_addr & prog_addr_mask);
 							int len = cpu->debug_dasm(dasm_addr & prog_addr_mask, buffer, 1024);
+							if(name != NULL) {
+								my_printf(p->osd, _T("%08X                  "), dasm_addr & prog_addr_mask);
+								p->osd->set_console_text_attribute(FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+								my_printf(p->osd, _T("%s:\n"), name);
+								p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+							}
 							my_printf(p->osd, _T("%08X  "), dasm_addr & prog_addr_mask);
 							for(int i = 0; i < len; i++) {
 								my_printf(p->osd, _T("%02X"), cpu->read_debug_data8((dasm_addr + i) & data_addr_mask));
@@ -448,8 +467,8 @@ void* debugger_thread(void *lpx)
 				}
 			} else if(_tcsicmp(params[0], _T("H")) == 0) {
 				if(num == 3) {
-					uint32_t l = my_hexatoi(params[1]);
-					uint32_t r = my_hexatoi(params[2]);
+					uint32_t l = my_hexatoi(debugger->first_symbol, params[1]);
+					uint32_t r = my_hexatoi(debugger->first_symbol, params[2]);
 					my_printf(p->osd, _T("%08X  %08X\n"), l + r, l - r);
 				} else {
 					my_printf(p->osd, _T("invalid parameter number\n"));
@@ -469,11 +488,39 @@ void* debugger_thread(void *lpx)
 				}
 			} else if(_tcsicmp(params[0], _T("L")) == 0) {
 				FILEIO* fio = new FILEIO();
-				if(check_file_extension(debugger->file_path, _T(".hex"))) {
+				if(check_file_extension(debugger->file_path, _T(".sym"))) {
+					if(fio->Fopen(debugger->file_path, FILEIO_READ_ASCII)) {
+						debugger->release_symbols();
+						char line[1024];
+						while(fio->Fgets(line, sizeof(line)) != NULL) {
+							char *next = NULL;
+							char *addr = my_strtok_s(line, "\t #$*,;", &next);
+							while(addr != NULL) {
+								if(strlen(addr) > 0) {
+									char *name = my_strtok_s(NULL, "\t #$*,;", &next);
+									while(name != NULL) {
+										while(strlen(name) > 0 && (name[strlen(name) - 1] == 0x0d || name[strlen(name) - 1] == 0x0a)) {
+											name[strlen(name) - 1] = _T('\0');
+										}
+										if(strlen(name) > 0) {
+											debugger->add_symbol(my_hexatoi(NULL, addr), name);
+											break;
+										}
+										name = my_strtok_s(NULL, "\t #$*,;", &next);
+									}
+								}
+								addr = my_strtok_s(NULL, "\t #$*,;", &next);
+							}
+						}
+						fio->Fclose();
+					} else {
+						my_printf(p->osd, _T("can't open %s\n"), debugger->file_path);
+					}
+				} else if(check_file_extension(debugger->file_path, _T(".hex"))) {
 					if(fio->Fopen(debugger->file_path, FILEIO_READ_ASCII)) {
 						uint32_t start_addr = 0, linear = 0, segment = 0;
 						if(num >= 2) {
-							start_addr = my_hexatoi(params[1]);
+							start_addr = my_hexatoi(debugger->first_symbol, params[1]);
 						}
 						char line[1024];
 						while(fio->Fgets(line, sizeof(line)) != NULL) {
@@ -503,10 +550,10 @@ void* debugger_thread(void *lpx)
 					if(fio->Fopen(debugger->file_path, FILEIO_READ_BINARY)) {
 						uint32_t start_addr = 0x100, end_addr = data_addr_mask;
 						if(num >= 2) {
-							start_addr = my_hexatoi(params[1]) & data_addr_mask;
+							start_addr = my_hexatoi(debugger->first_symbol, params[1]) & data_addr_mask;
 						}
 						if(num >= 3) {
-							end_addr = my_hexatoi(params[2]) & data_addr_mask;
+							end_addr = my_hexatoi(debugger->first_symbol, params[2]) & data_addr_mask;
 						}
 						for(uint32_t addr = start_addr; addr <= end_addr; addr++) {
 							int data = fio->Fgetc();
@@ -523,7 +570,7 @@ void* debugger_thread(void *lpx)
 				delete fio;
 			} else if(_tcsicmp(params[0], _T("W")) == 0) {
 				if(num == 3) {
-					uint32_t start_addr = my_hexatoi(params[1]) & data_addr_mask, end_addr = my_hexatoi(params[2]) & data_addr_mask;
+					uint32_t start_addr = my_hexatoi(debugger->first_symbol, params[1]) & data_addr_mask, end_addr = my_hexatoi(debugger->first_symbol, params[2]) & data_addr_mask;
 					FILEIO* fio = new FILEIO();
 					if(check_file_extension(debugger->file_path, _T(".hex"))) {
 						// write intel hex format file
@@ -559,10 +606,24 @@ void* debugger_thread(void *lpx)
 				} else {
 					my_printf(p->osd, _T("invalid parameter number\n"));
 				}
+			} else if(_tcsicmp(params[0], _T("SC")) == 0) {
+				if(num == 1) {
+					debugger->release_symbols();
+				} else {
+					my_printf(p->osd, _T("invalid parameter number\n"));
+				}
+			} else if(_tcsicmp(params[0], _T("SL")) == 0) {
+				if(num == 1) {
+					for(symbol_t* symbol = debugger->first_symbol; symbol; symbol = symbol->next_symbol) {
+						my_printf(p->osd, _T("%08X %s\n"), symbol->addr, symbol->name);
+					}
+				} else {
+					my_printf(p->osd, _T("invalid parameter number\n"));
+				}
 			} else if(_tcsicmp(params[0], _T( "BP")) == 0 || _tcsicmp(params[0], _T("RBP")) == 0 || _tcsicmp(params[0], _T("WBP")) == 0) {
 				break_point_t *bp = get_break_point(debugger, params[0]);
 				if(num == 2) {
-					uint32_t addr = my_hexatoi(params[1]);
+					uint32_t addr = my_hexatoi(debugger->first_symbol, params[1]);
 					bool found = false;
 					for(int i = 0; i < MAX_BREAK_POINTS && !found; i++) {
 						if(bp->table[i].status == 0 || (bp->table[i].addr == addr && bp->table[i].mask == prog_addr_mask)) {
@@ -581,9 +642,9 @@ void* debugger_thread(void *lpx)
 			} else if(_tcsicmp(params[0], _T("IBP")) == 0 || _tcsicmp(params[0], _T("OBP")) == 0) {
 				break_point_t *bp = get_break_point(debugger, params[0]);
 				if(num == 2 || num == 3) {
-					uint32_t addr = my_hexatoi(params[1]), mask = 0xff;
+					uint32_t addr = my_hexatoi(debugger->first_symbol, params[1]), mask = 0xff;
 					if(num == 3) {
-						mask = my_hexatoi(params[2]);
+						mask = my_hexatoi(debugger->first_symbol, params[2]);
 					}
 					bool found = false;
 					for(int i = 0; i < MAX_BREAK_POINTS && !found; i++) {
@@ -606,7 +667,7 @@ void* debugger_thread(void *lpx)
 					memset(bp->table, 0, sizeof(bp->table));
 				} else if(num >= 2) {
 					for(int i = 1; i < num; i++) {
-						int index = my_hexatoi(params[i]);
+						int index = my_hexatoi(debugger->first_symbol, params[i]);
 						if(!(index >= 1 && index <= MAX_BREAK_POINTS)) {
 							my_printf(p->osd, _T("invalid index %x\n"), index);
 						} else {
@@ -629,7 +690,7 @@ void* debugger_thread(void *lpx)
 					}
 				} else if(num >= 2) {
 					for(int i = 1; i < num; i++) {
-						int index = my_hexatoi(params[i]);
+						int index = my_hexatoi(debugger->first_symbol, params[i]);
 						if(!(index >= 1 && index <= MAX_BREAK_POINTS)) {
 							my_printf(p->osd, _T("invalid index %x\n"), index);
 						} else if(bp->table[index - 1].status == 0) {
@@ -646,7 +707,7 @@ void* debugger_thread(void *lpx)
 					break_point_t *bp = get_break_point(debugger, params[0]);
 					for(int i = 0; i < MAX_BREAK_POINTS; i++) {
 						if(bp->table[i].status) {
-							my_printf(p->osd, _T("%d %c %08X\n"), i + 1, bp->table[i].status == 1 ? _T('e') : _T('d'), bp->table[i].addr);
+							my_printf(p->osd, _T("%d %c %s\n"), i + 1, bp->table[i].status == 1 ? _T('e') : _T('d'), get_value_and_symbol(debugger->first_symbol, _T("%08X"), bp->table[i].addr));
 						}
 					}
 				} else {
@@ -674,7 +735,7 @@ void* debugger_thread(void *lpx)
 						break_points_stored = true;
 					} else if(num >= 2) {
 						debugger->store_break_points();
-						debugger->bp.table[0].addr = my_hexatoi(params[1]) & prog_addr_mask;
+						debugger->bp.table[0].addr = my_hexatoi(debugger->first_symbol, params[1]) & prog_addr_mask;
 						debugger->bp.table[0].mask = prog_addr_mask;
 						debugger->bp.table[0].status = 1;
 						break_points_stored = true;
@@ -706,7 +767,7 @@ void* debugger_thread(void *lpx)
 					
 					p->osd->set_console_text_attribute(FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
 					cpu->debug_dasm(cpu->get_pc(), buffer, 1024);
-					my_printf(p->osd, _T("done\t%08X  %s\n"), cpu->get_pc(), buffer);
+					my_printf(p->osd, _T("done\t%s  %s\n"), get_value_and_symbol(debugger->first_symbol, _T("%08X"), cpu->get_pc()), buffer);
 					
 					p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
 					cpu->get_debug_regs_info(buffer, 1024);
@@ -716,28 +777,36 @@ void* debugger_thread(void *lpx)
 						p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_INTENSITY);
 						if(debugger->bp.hit) {
 							if(_tcsicmp(params[0], _T("G")) == 0) {
-								my_printf(p->osd, _T("breaked at %08X\n"), cpu->get_next_pc());
+								my_printf(p->osd, _T("breaked at %s\n"), get_value_and_symbol(debugger->first_symbol, _T("%08X"), cpu->get_next_pc()));
 							}
 						} else if(debugger->rbp.hit) {
-							my_printf(p->osd, _T("breaked at %08X: memory %08X was read at %08X\n"), cpu->get_next_pc(), debugger->rbp.hit_addr, cpu->get_pc());
+							my_printf(p->osd, _T("breaked at %s: memory %s was read at %s\n"), get_value_and_symbol(debugger->first_symbol, _T("%08X"), cpu->get_next_pc()),
+								get_value_and_symbol(debugger->first_symbol, _T("%08X"), debugger->rbp.hit_addr),
+								get_value_and_symbol(debugger->first_symbol, _T("%08X"), cpu->get_pc()));
 						} else if(debugger->wbp.hit) {
-							my_printf(p->osd, _T("breaked at %08X: memory %08X was written at %08X\n"), cpu->get_next_pc(), debugger->wbp.hit_addr, cpu->get_pc());
+							my_printf(p->osd, _T("breaked at %s: memory %s was written at %s\n"), get_value_and_symbol(debugger->first_symbol, _T("%08X"), cpu->get_next_pc()),
+								get_value_and_symbol(debugger->first_symbol, _T("%08X"), debugger->wbp.hit_addr),
+								get_value_and_symbol(debugger->first_symbol, _T("%08X"), cpu->get_pc()));
 						} else if(debugger->ibp.hit) {
-							my_printf(p->osd, _T("breaked at %08X: port %08X was read at %08X\n"), cpu->get_next_pc(), debugger->ibp.hit_addr, cpu->get_pc());
+							my_printf(p->osd, _T("breaked at %s: port %s was read at %s\n"), get_value_and_symbol(debugger->first_symbol, _T("%08X"), cpu->get_next_pc()),
+								get_value_and_symbol(debugger->first_symbol, _T("%08X"), debugger->ibp.hit_addr),
+								get_value_and_symbol(debugger->first_symbol, _T("%08X"), cpu->get_pc()));
 						} else if(debugger->obp.hit) {
-							my_printf(p->osd, _T("breaked at %08X: port %08X was written at %08X\n"), cpu->get_next_pc(), debugger->obp.hit_addr, cpu->get_pc());
+							my_printf(p->osd, _T("breaked at %s: port %s was written at %s\n"), get_value_and_symbol(debugger->first_symbol, _T("%08X"), cpu->get_next_pc()),
+								get_value_and_symbol(debugger->first_symbol, _T("%08X"), debugger->obp.hit_addr),
+								get_value_and_symbol(debugger->first_symbol, _T("%08X"), cpu->get_pc()));
 						}
 						debugger->bp.hit = debugger->rbp.hit = debugger->wbp.hit = debugger->ibp.hit = debugger->obp.hit = false;
 					} else {
 						p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_INTENSITY);
-						my_printf(p->osd, _T("breaked at %08X: esc key was pressed\n"), cpu->get_next_pc());
+						my_printf(p->osd, _T("breaked at %s: esc key was pressed\n"), get_value_and_symbol(debugger->first_symbol, _T("%08X"), cpu->get_next_pc()));
 					}
 					if(break_points_stored) {
 						debugger->restore_break_points();
 					}
 					p->osd->set_console_text_attribute(FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
 					cpu->debug_dasm(cpu->get_next_pc(), buffer, 1024);
-					my_printf(p->osd, _T("next\t%08X  %s\n"), cpu->get_next_pc(), buffer);
+					my_printf(p->osd, _T("next\t%s  %s\n"), get_value_and_symbol(debugger->first_symbol, _T("%08X"), cpu->get_next_pc()), buffer);
 					p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
 				} else {
 					my_printf(p->osd, _T("invalid parameter number\n"));
@@ -746,7 +815,7 @@ void* debugger_thread(void *lpx)
 				if(num == 1 || num == 2) {
 					int steps = 1;
 					if(num >= 2) {
-						steps = my_hexatoi(params[1]);
+						steps = my_hexatoi(debugger->first_symbol, params[1]);
 					}
 					for(int i = 0; i < steps; i++) {
 						debugger->now_going = false;
@@ -758,7 +827,7 @@ void* debugger_thread(void *lpx)
 						
 						p->osd->set_console_text_attribute(FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
 						cpu->debug_dasm(cpu->get_pc(), buffer, 1024);
-						my_printf(p->osd, _T("done\t%08X  %s\n"), cpu->get_pc(), buffer);
+						my_printf(p->osd, _T("done\t%s  %s\n"), get_value_and_symbol(debugger->first_symbol, _T("%08X"), cpu->get_pc()), buffer);
 						
 						p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
 						cpu->get_debug_regs_info(buffer, 1024);
@@ -771,21 +840,29 @@ void* debugger_thread(void *lpx)
 					if(debugger->hit()) {
 						p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_INTENSITY);
 						if(debugger->bp.hit) {
-							my_printf(p->osd, _T("breaked at %08X\n"), cpu->get_next_pc());
+							my_printf(p->osd, _T("breaked at %s\n"), get_value_and_symbol(debugger->first_symbol, _T("%08X"), cpu->get_next_pc()));
 						} else if(debugger->rbp.hit) {
-							my_printf(p->osd, _T("breaked at %08X: memory %08X was read at %08X\n"), cpu->get_next_pc(), debugger->rbp.hit_addr, cpu->get_pc());
+							my_printf(p->osd, _T("breaked at %s: memory %s was read at %s\n"), get_value_and_symbol(debugger->first_symbol, _T("%08X"), cpu->get_next_pc()),
+								get_value_and_symbol(debugger->first_symbol, _T("%08X"), debugger->rbp.hit_addr),
+								get_value_and_symbol(debugger->first_symbol, _T("%08X"), cpu->get_pc()));
 						} else if(debugger->wbp.hit) {
-							my_printf(p->osd, _T("breaked at %08X: memory %08X was written at %08X\n"), cpu->get_next_pc(), debugger->wbp.hit_addr, cpu->get_pc());
+							my_printf(p->osd, _T("breaked at %s: memory %s was written at %s\n"), get_value_and_symbol(debugger->first_symbol, _T("%08X"), cpu->get_next_pc()),
+								get_value_and_symbol(debugger->first_symbol, _T("%08X"), debugger->wbp.hit_addr),
+								get_value_and_symbol(debugger->first_symbol, _T("%08X"), cpu->get_pc()));
 						} else if(debugger->ibp.hit) {
-							my_printf(p->osd, _T("breaked at %08X: port %08X was read at %08X\n"), cpu->get_next_pc(), debugger->ibp.hit_addr, cpu->get_pc());
+							my_printf(p->osd, _T("breaked at %s: port %s was read at %s\n"), get_value_and_symbol(debugger->first_symbol, _T("%08X"), cpu->get_next_pc()),
+								get_value_and_symbol(debugger->first_symbol, _T("%08X"), debugger->ibp.hit_addr),
+								get_value_and_symbol(debugger->first_symbol, _T("%08X"), cpu->get_pc()));
 						} else if(debugger->obp.hit) {
-							my_printf(p->osd, _T("breaked at %08X: port %08X was written at %08X\n"), cpu->get_next_pc(), debugger->obp.hit_addr, cpu->get_pc());
+							my_printf(p->osd, _T("breaked at %s: port %s was written at %s\n"), get_value_and_symbol(debugger->first_symbol, _T("%08X"), cpu->get_next_pc()),
+								get_value_and_symbol(debugger->first_symbol, _T("%08X"), debugger->obp.hit_addr),
+								get_value_and_symbol(debugger->first_symbol, _T("%08X"), cpu->get_pc()));
 						}
 						debugger->bp.hit = debugger->rbp.hit = debugger->wbp.hit = debugger->ibp.hit = debugger->obp.hit = false;
 					}
 					p->osd->set_console_text_attribute(FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
 					cpu->debug_dasm(cpu->get_next_pc(), buffer, 1024);
-					my_printf(p->osd, _T("next\t%08X  %s\n"), cpu->get_next_pc(), buffer);
+					my_printf(p->osd, _T("next\t%s  %s\n"), get_value_and_symbol(debugger->first_symbol, _T("%08X"), cpu->get_next_pc()), buffer);
 					p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
 				} else {
 					my_printf(p->osd, _T("invalid parameter number\n"));
@@ -840,9 +917,9 @@ void* debugger_thread(void *lpx)
 					}
 				} else if(_tcsicmp(params[1], _T("KEY")) == 0) {
 					if(num == 3 || num == 4) {
-						int code =  my_hexatoi(params[2]) & 0xff, msec = 100;
+						int code =  my_hexatoi(debugger->first_symbol, params[2]) & 0xff, msec = 100;
 						if(num == 4) {
-							msec = my_hexatoi(params[3]);
+							msec = my_hexatoi(debugger->first_symbol, params[3]);
 						}
 #ifdef SUPPORT_VARIABLE_TIMING
 						int frames = (int)(p->vm->get_frame_rate() * (double)msec / 1000.0 + 0.5);
@@ -873,8 +950,11 @@ void* debugger_thread(void *lpx)
 				
 				my_printf(p->osd, _T("H <value> <value> - hexadd\n"));
 				my_printf(p->osd, _T("N <filename> - name\n"));
-				my_printf(p->osd, _T("L [<range>] - load file\n"));
-				my_printf(p->osd, _T("W <range> - write file\n"));
+				my_printf(p->osd, _T("L [<range>] - load binary/hex/symbol file\n"));
+				my_printf(p->osd, _T("W <range> - write binary/hex file\n"));
+				
+				my_printf(p->osd, _T("SC - clear symbol(s)\n"));
+				my_printf(p->osd, _T("SL - list symbol(s)\n"));
 				
 				my_printf(p->osd, _T("BP <address> - set breakpoint\n"));
 				my_printf(p->osd, _T("{R,W}BP <address> - set breakpoint (break at memory access)\n"));

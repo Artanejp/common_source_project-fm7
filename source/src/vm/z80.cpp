@@ -2434,13 +2434,13 @@ F'= [--------]  A'= 00  BC'= 0000  DE'= 0000  HL'= 0000  SP = 0000  PC = 0000
 
 // disassembler
 
-int dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
-void dasm_cb(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
-void dasm_dd(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
-void dasm_ed(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
-void dasm_fd(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
-void dasm_ddcb(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
-void dasm_fdcb(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
+int dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len, symbol_t *first_symbol);
+void dasm_cb(uint32_t pc, _TCHAR *buffer, size_t buffer_len, symbol_t *first_symbol);
+void dasm_dd(uint32_t pc, _TCHAR *buffer, size_t buffer_len, symbol_t *first_symbol);
+void dasm_ed(uint32_t pc, _TCHAR *buffer, size_t buffer_len, symbol_t *first_symbol);
+void dasm_fd(uint32_t pc, _TCHAR *buffer, size_t buffer_len, symbol_t *first_symbol);
+void dasm_ddcb(uint32_t pc, _TCHAR *buffer, size_t buffer_len, symbol_t *first_symbol);
+void dasm_fdcb(uint32_t pc, _TCHAR *buffer, size_t buffer_len, symbol_t *first_symbol);
 
 uint8_t z80_dasm_ops[4];
 int z80_dasm_ptr;
@@ -2451,7 +2451,7 @@ int Z80::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 		int wait;
 		z80_dasm_ops[i] = d_mem_stored->read_data8w(pc + i, &wait);
 	}
-	return dasm(pc, buffer, buffer_len);
+	return dasm(pc, buffer, buffer_len, d_debugger->first_symbol);
 }
 
 inline uint8_t dasm_fetchop()
@@ -2482,7 +2482,7 @@ inline uint16_t debug_fetch8_relpc(uint32_t pc)
 	return pc + z80_dasm_ptr + res;
 }
 
-int dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
+int dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len, symbol_t *first_symbol)
 {
 	buffer[0] = _T('\0');
 	z80_dasm_ptr = 0;
@@ -2490,7 +2490,7 @@ int dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	
 	switch(code) {
 	case 0x00: my_stprintf_s(buffer, buffer_len, _T("NOP")); break;
-	case 0x01: my_stprintf_s(buffer, buffer_len, _T("LD BC, %04x"), debug_fetch16()); break;
+	case 0x01: my_stprintf_s(buffer, buffer_len, _T("LD BC, %s"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
 	case 0x02: my_stprintf_s(buffer, buffer_len, _T("LD (BC), A")); break;
 	case 0x03: my_stprintf_s(buffer, buffer_len, _T("INC BC")); break;
 	case 0x04: my_stprintf_s(buffer, buffer_len, _T("INC B")); break;
@@ -2505,15 +2505,15 @@ int dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	case 0x0d: my_stprintf_s(buffer, buffer_len, _T("DEC C")); break;
 	case 0x0e: my_stprintf_s(buffer, buffer_len, _T("LD C, %02x"), debug_fetch8()); break;
 	case 0x0f: my_stprintf_s(buffer, buffer_len, _T("RRCA")); break;
-	case 0x10: my_stprintf_s(buffer, buffer_len, _T("DJNZ %04x"), debug_fetch8_relpc(pc)); break;
-	case 0x11: my_stprintf_s(buffer, buffer_len, _T("LD DE, %04x"), debug_fetch16()); break;
+	case 0x10: my_stprintf_s(buffer, buffer_len, _T("DJNZ %s"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch8_relpc(pc))); break;
+	case 0x11: my_stprintf_s(buffer, buffer_len, _T("LD DE, %s"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
 	case 0x12: my_stprintf_s(buffer, buffer_len, _T("LD (DE), A")); break;
 	case 0x13: my_stprintf_s(buffer, buffer_len, _T("INC DE")); break;
 	case 0x14: my_stprintf_s(buffer, buffer_len, _T("INC D")); break;
 	case 0x15: my_stprintf_s(buffer, buffer_len, _T("DEC D")); break;
 	case 0x16: my_stprintf_s(buffer, buffer_len, _T("LD D, %02x"), debug_fetch8()); break;
 	case 0x17: my_stprintf_s(buffer, buffer_len, _T("RLA")); break;
-	case 0x18: my_stprintf_s(buffer, buffer_len, _T("JR %04x"), debug_fetch8_relpc(pc)); break;
+	case 0x18: my_stprintf_s(buffer, buffer_len, _T("JR %s"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch8_relpc(pc))); break;
 	case 0x19: my_stprintf_s(buffer, buffer_len, _T("ADD HL, DE")); break;
 	case 0x1a: my_stprintf_s(buffer, buffer_len, _T("LD A, (DE)")); break;
 	case 0x1b: my_stprintf_s(buffer, buffer_len, _T("DEC DE")); break;
@@ -2521,33 +2521,33 @@ int dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	case 0x1d: my_stprintf_s(buffer, buffer_len, _T("DEC E")); break;
 	case 0x1e: my_stprintf_s(buffer, buffer_len, _T("LD E, %02x"), debug_fetch8()); break;
 	case 0x1f: my_stprintf_s(buffer, buffer_len, _T("RRA")); break;
-	case 0x20: my_stprintf_s(buffer, buffer_len, _T("JR NZ, %04x"), debug_fetch8_relpc(pc)); break;
-	case 0x21: my_stprintf_s(buffer, buffer_len, _T("LD HL, %04x"), debug_fetch16()); break;
-	case 0x22: my_stprintf_s(buffer, buffer_len, _T("LD (%04x), HL"), debug_fetch16()); break;
+	case 0x20: my_stprintf_s(buffer, buffer_len, _T("JR NZ, %s"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch8_relpc(pc))); break;
+	case 0x21: my_stprintf_s(buffer, buffer_len, _T("LD HL, %s"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
+	case 0x22: my_stprintf_s(buffer, buffer_len, _T("LD (%s), HL"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
 	case 0x23: my_stprintf_s(buffer, buffer_len, _T("INC HL")); break;
 	case 0x24: my_stprintf_s(buffer, buffer_len, _T("INC H")); break;
 	case 0x25: my_stprintf_s(buffer, buffer_len, _T("DEC H")); break;
 	case 0x26: my_stprintf_s(buffer, buffer_len, _T("LD H, %02x"), debug_fetch8()); break;
 	case 0x27: my_stprintf_s(buffer, buffer_len, _T("DAA")); break;
-	case 0x28: my_stprintf_s(buffer, buffer_len, _T("JR Z, %04x"), debug_fetch8_relpc(pc)); break;
+	case 0x28: my_stprintf_s(buffer, buffer_len, _T("JR Z, %s"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch8_relpc(pc))); break;
 	case 0x29: my_stprintf_s(buffer, buffer_len, _T("ADD HL, HL")); break;
-	case 0x2a: my_stprintf_s(buffer, buffer_len, _T("LD HL, (%04x)"), debug_fetch16()); break;
+	case 0x2a: my_stprintf_s(buffer, buffer_len, _T("LD HL, (%s)"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
 	case 0x2b: my_stprintf_s(buffer, buffer_len, _T("DEC HL")); break;
 	case 0x2c: my_stprintf_s(buffer, buffer_len, _T("INC L")); break;
 	case 0x2d: my_stprintf_s(buffer, buffer_len, _T("DEC L")); break;
 	case 0x2e: my_stprintf_s(buffer, buffer_len, _T("LD L, %02x"), debug_fetch8()); break;
 	case 0x2f: my_stprintf_s(buffer, buffer_len, _T("CPL")); break;
-	case 0x30: my_stprintf_s(buffer, buffer_len, _T("JR NC, %04x"), debug_fetch8_relpc(pc)); break;
-	case 0x31: my_stprintf_s(buffer, buffer_len, _T("LD SP, %04x"), debug_fetch16()); break;
-	case 0x32: my_stprintf_s(buffer, buffer_len, _T("LD (%04x), A"), debug_fetch16()); break;
+	case 0x30: my_stprintf_s(buffer, buffer_len, _T("JR NC, %s"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch8_relpc(pc))); break;
+	case 0x31: my_stprintf_s(buffer, buffer_len, _T("LD SP, %s"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
+	case 0x32: my_stprintf_s(buffer, buffer_len, _T("LD (%s), A"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
 	case 0x33: my_stprintf_s(buffer, buffer_len, _T("INC SP")); break;
 	case 0x34: my_stprintf_s(buffer, buffer_len, _T("INC (HL)")); break;
 	case 0x35: my_stprintf_s(buffer, buffer_len, _T("DEC (HL)")); break;
 	case 0x36: my_stprintf_s(buffer, buffer_len, _T("LD (HL), %02x"), debug_fetch8()); break;
 	case 0x37: my_stprintf_s(buffer, buffer_len, _T("SCF")); break;
-	case 0x38: my_stprintf_s(buffer, buffer_len, _T("JR C, %04x"), debug_fetch8_relpc(pc)); break;
+	case 0x38: my_stprintf_s(buffer, buffer_len, _T("JR C, %s"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch8_relpc(pc))); break;
 	case 0x39: my_stprintf_s(buffer, buffer_len, _T("ADD HL, SP")); break;
-	case 0x3a: my_stprintf_s(buffer, buffer_len, _T("LD A, (%04x)"), debug_fetch16()); break;
+	case 0x3a: my_stprintf_s(buffer, buffer_len, _T("LD A, (%s)"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
 	case 0x3b: my_stprintf_s(buffer, buffer_len, _T("DEC SP")); break;
 	case 0x3c: my_stprintf_s(buffer, buffer_len, _T("INC A")); break;
 	case 0x3d: my_stprintf_s(buffer, buffer_len, _T("DEC A")); break;
@@ -2683,68 +2683,68 @@ int dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	case 0xbf: my_stprintf_s(buffer, buffer_len, _T("CP A")); break;
 	case 0xc0: my_stprintf_s(buffer, buffer_len, _T("RET NZ")); break;
 	case 0xc1: my_stprintf_s(buffer, buffer_len, _T("POP BC")); break;
-	case 0xc2: my_stprintf_s(buffer, buffer_len, _T("JP NZ, %04x"), debug_fetch16()); break;
-	case 0xc3: my_stprintf_s(buffer, buffer_len, _T("JP %04x"), debug_fetch16()); break;
-	case 0xc4: my_stprintf_s(buffer, buffer_len, _T("CALL NZ, %04x"), debug_fetch16()); break;
+	case 0xc2: my_stprintf_s(buffer, buffer_len, _T("JP NZ, %s"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
+	case 0xc3: my_stprintf_s(buffer, buffer_len, _T("JP %s"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
+	case 0xc4: my_stprintf_s(buffer, buffer_len, _T("CALL NZ, %s"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
 	case 0xc5: my_stprintf_s(buffer, buffer_len, _T("PUSH BC")); break;
 	case 0xc6: my_stprintf_s(buffer, buffer_len, _T("ADD A, %02x"), debug_fetch8()); break;
-	case 0xc7: my_stprintf_s(buffer, buffer_len, _T("RST 0")); break;
+	case 0xc7: my_stprintf_s(buffer, buffer_len, _T("RST 00H")); break;
 	case 0xc8: my_stprintf_s(buffer, buffer_len, _T("RET Z")); break;
 	case 0xc9: my_stprintf_s(buffer, buffer_len, _T("RET")); break;
-	case 0xca: my_stprintf_s(buffer, buffer_len, _T("JP Z, %04x"), debug_fetch16()); break;
-	case 0xcb: dasm_cb(pc, buffer, buffer_len); break;
-	case 0xcc: my_stprintf_s(buffer, buffer_len, _T("CALL Z, %04x"), debug_fetch16()); break;
-	case 0xcd: my_stprintf_s(buffer, buffer_len, _T("CALL %04x"), debug_fetch16()); break;
+	case 0xca: my_stprintf_s(buffer, buffer_len, _T("JP Z, %s"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
+	case 0xcb: dasm_cb(pc, buffer, buffer_len, first_symbol); break;
+	case 0xcc: my_stprintf_s(buffer, buffer_len, _T("CALL Z, %s"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
+	case 0xcd: my_stprintf_s(buffer, buffer_len, _T("CALL %s"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
 	case 0xce: my_stprintf_s(buffer, buffer_len, _T("ADC A, %02x"), debug_fetch8()); break;
-	case 0xcf: my_stprintf_s(buffer, buffer_len, _T("RST 1")); break;
+	case 0xcf: my_stprintf_s(buffer, buffer_len, _T("RST 08H")); break;
 	case 0xd0: my_stprintf_s(buffer, buffer_len, _T("RET NC")); break;
 	case 0xd1: my_stprintf_s(buffer, buffer_len, _T("POP DE")); break;
-	case 0xd2: my_stprintf_s(buffer, buffer_len, _T("JP NC, %04x"), debug_fetch16()); break;
+	case 0xd2: my_stprintf_s(buffer, buffer_len, _T("JP NC, %s"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
 	case 0xd3: my_stprintf_s(buffer, buffer_len, _T("OUT (%02x), A"), debug_fetch8()); break;
-	case 0xd4: my_stprintf_s(buffer, buffer_len, _T("CALL NC, %04x"), debug_fetch16()); break;
+	case 0xd4: my_stprintf_s(buffer, buffer_len, _T("CALL NC, %s"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
 	case 0xd5: my_stprintf_s(buffer, buffer_len, _T("PUSH DE")); break;
 	case 0xd6: my_stprintf_s(buffer, buffer_len, _T("SUB %02x"), debug_fetch8()); break;
-	case 0xd7: my_stprintf_s(buffer, buffer_len, _T("RST 2")); break;
+	case 0xd7: my_stprintf_s(buffer, buffer_len, _T("RST 10H")); break;
 	case 0xd8: my_stprintf_s(buffer, buffer_len, _T("RET C")); break;
 	case 0xd9: my_stprintf_s(buffer, buffer_len, _T("EXX")); break;
-	case 0xda: my_stprintf_s(buffer, buffer_len, _T("JP C, %04x"), debug_fetch16()); break;
+	case 0xda: my_stprintf_s(buffer, buffer_len, _T("JP C, %s"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
 	case 0xdb: my_stprintf_s(buffer, buffer_len, _T("IN A, (%02x)"), debug_fetch8()); break;
-	case 0xdc: my_stprintf_s(buffer, buffer_len, _T("CALL C, %04x"), debug_fetch16()); break;
-	case 0xdd: dasm_dd(pc, buffer, buffer_len); break;
+	case 0xdc: my_stprintf_s(buffer, buffer_len, _T("CALL C, %s"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
+	case 0xdd: dasm_dd(pc, buffer, buffer_len, first_symbol); break;
 	case 0xde: my_stprintf_s(buffer, buffer_len, _T("SBC A, %02x"), debug_fetch8()); break;
-	case 0xdf: my_stprintf_s(buffer, buffer_len, _T("RST 3")); break;
+	case 0xdf: my_stprintf_s(buffer, buffer_len, _T("RST 18H")); break;
 	case 0xe0: my_stprintf_s(buffer, buffer_len, _T("RET PO")); break;
 	case 0xe1: my_stprintf_s(buffer, buffer_len, _T("POP HL")); break;
-	case 0xe2: my_stprintf_s(buffer, buffer_len, _T("JP PO, %04x"), debug_fetch16()); break;
+	case 0xe2: my_stprintf_s(buffer, buffer_len, _T("JP PO, %s"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
 	case 0xe3: my_stprintf_s(buffer, buffer_len, _T("EX HL, (SP)")); break;
-	case 0xe4: my_stprintf_s(buffer, buffer_len, _T("CALL PO, %04x"), debug_fetch16()); break;
+	case 0xe4: my_stprintf_s(buffer, buffer_len, _T("CALL PO, %s"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
 	case 0xe5: my_stprintf_s(buffer, buffer_len, _T("PUSH HL")); break;
 	case 0xe6: my_stprintf_s(buffer, buffer_len, _T("AND %02x"), debug_fetch8()); break;
-	case 0xe7: my_stprintf_s(buffer, buffer_len, _T("RST 4")); break;
+	case 0xe7: my_stprintf_s(buffer, buffer_len, _T("RST 20H")); break;
 	case 0xe8: my_stprintf_s(buffer, buffer_len, _T("RET PE")); break;
 	case 0xe9: my_stprintf_s(buffer, buffer_len, _T("JP (HL)")); break;
-	case 0xea: my_stprintf_s(buffer, buffer_len, _T("JP PE, %04x"), debug_fetch16()); break;
+	case 0xea: my_stprintf_s(buffer, buffer_len, _T("JP PE, %s"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
 	case 0xeb: my_stprintf_s(buffer, buffer_len, _T("EX DE, HL")); break;
-	case 0xec: my_stprintf_s(buffer, buffer_len, _T("CALL PE, %04x"), debug_fetch16()); break;
-	case 0xed: dasm_ed(pc, buffer, buffer_len); break;
+	case 0xec: my_stprintf_s(buffer, buffer_len, _T("CALL PE, %s"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
+	case 0xed: dasm_ed(pc, buffer, buffer_len, first_symbol); break;
 	case 0xee: my_stprintf_s(buffer, buffer_len, _T("XOR %02x"), debug_fetch8()); break;
-	case 0xef: my_stprintf_s(buffer, buffer_len, _T("RST 5")); break;
+	case 0xef: my_stprintf_s(buffer, buffer_len, _T("RST 28H")); break;
 	case 0xf0: my_stprintf_s(buffer, buffer_len, _T("RET P")); break;
 	case 0xf1: my_stprintf_s(buffer, buffer_len, _T("POP AF")); break;
-	case 0xf2: my_stprintf_s(buffer, buffer_len, _T("JP P, %04x"), debug_fetch16()); break;
+	case 0xf2: my_stprintf_s(buffer, buffer_len, _T("JP P, %s"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
 	case 0xf3: my_stprintf_s(buffer, buffer_len, _T("DI")); break;
-	case 0xf4: my_stprintf_s(buffer, buffer_len, _T("CALL P, %04x"), debug_fetch16()); break;
+	case 0xf4: my_stprintf_s(buffer, buffer_len, _T("CALL P, %s"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
 	case 0xf5: my_stprintf_s(buffer, buffer_len, _T("PUSH AF")); break;
 	case 0xf6: my_stprintf_s(buffer, buffer_len, _T("OR %02x"), debug_fetch8()); break;
-	case 0xf7: my_stprintf_s(buffer, buffer_len, _T("RST 6")); break;
+	case 0xf7: my_stprintf_s(buffer, buffer_len, _T("RST 30H")); break;
 	case 0xf8: my_stprintf_s(buffer, buffer_len, _T("RET M")); break;
 	case 0xf9: my_stprintf_s(buffer, buffer_len, _T("LD SP, HL")); break;
-	case 0xfa: my_stprintf_s(buffer, buffer_len, _T("JP M, %04x"), debug_fetch16()); break;
+	case 0xfa: my_stprintf_s(buffer, buffer_len, _T("JP M, %s"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
 	case 0xfb: my_stprintf_s(buffer, buffer_len, _T("EI")); break;
-	case 0xfc: my_stprintf_s(buffer, buffer_len, _T("CALL M, %04x"), debug_fetch16()); break;
-	case 0xfd: dasm_fd(pc, buffer, buffer_len); break;
+	case 0xfc: my_stprintf_s(buffer, buffer_len, _T("CALL M, %s"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
+	case 0xfd: dasm_fd(pc, buffer, buffer_len, first_symbol); break;
 	case 0xfe: my_stprintf_s(buffer, buffer_len, _T("CP %02x"), debug_fetch8()); break;
-	case 0xff: my_stprintf_s(buffer, buffer_len, _T("RST 7")); break;
+	case 0xff: my_stprintf_s(buffer, buffer_len, _T("RST 38H")); break;
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 	default: __assume(0);
 #endif
@@ -2752,7 +2752,7 @@ int dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	return z80_dasm_ptr;
 }
 
-void dasm_cb(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
+void dasm_cb(uint32_t pc, _TCHAR *buffer, size_t buffer_len, symbol_t *first_symbol)
 {
 	uint8_t code = dasm_fetchop();
 	
@@ -3019,7 +3019,7 @@ void dasm_cb(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	}
 }
 
-void dasm_dd(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
+void dasm_dd(uint32_t pc, _TCHAR *buffer, size_t buffer_len, symbol_t *first_symbol)
 {
 	uint8_t code = dasm_fetchop();
 	int8_t ofs;
@@ -3027,14 +3027,14 @@ void dasm_dd(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	switch(code) {
 	case 0x09: my_stprintf_s(buffer, buffer_len, _T("ADD IX, BC")); break;
 	case 0x19: my_stprintf_s(buffer, buffer_len, _T("ADD IX, DE")); break;
-	case 0x21: my_stprintf_s(buffer, buffer_len, _T("LD IX, %04x"), debug_fetch16()); break;
-	case 0x22: my_stprintf_s(buffer, buffer_len, _T("LD (%04x), IX"), debug_fetch16()); break;
+	case 0x21: my_stprintf_s(buffer, buffer_len, _T("LD IX, %s"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
+	case 0x22: my_stprintf_s(buffer, buffer_len, _T("LD (%s), IX"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
 	case 0x23: my_stprintf_s(buffer, buffer_len, _T("INC IX")); break;
 	case 0x24: my_stprintf_s(buffer, buffer_len, _T("INC HX")); break;
 	case 0x25: my_stprintf_s(buffer, buffer_len, _T("DEC HX")); break;
 	case 0x26: my_stprintf_s(buffer, buffer_len, _T("LD HX, %02x"), debug_fetch8()); break;
 	case 0x29: my_stprintf_s(buffer, buffer_len, _T("ADD IX, IX")); break;
-	case 0x2a: my_stprintf_s(buffer, buffer_len, _T("LD IX, (%04x)"), debug_fetch16()); break;
+	case 0x2a: my_stprintf_s(buffer, buffer_len, _T("LD IX, (%s)"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
 	case 0x2b: my_stprintf_s(buffer, buffer_len, _T("DEC IX")); break;
 	case 0x2c: my_stprintf_s(buffer, buffer_len, _T("INC LX")); break;
 	case 0x2d: my_stprintf_s(buffer, buffer_len, _T("DEC LX")); break;
@@ -3105,7 +3105,7 @@ void dasm_dd(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	case 0xbc: my_stprintf_s(buffer, buffer_len, _T("CP HX")); break;
 	case 0xbd: my_stprintf_s(buffer, buffer_len, _T("CP LX")); break;
 	case 0xbe: my_stprintf_s(buffer, buffer_len, _T("CP (IX+(%d))"), debug_fetch8_rel()); break;
-	case 0xcb: dasm_ddcb(pc, buffer, buffer_len); break;
+	case 0xcb: dasm_ddcb(pc, buffer, buffer_len, first_symbol); break;
 	case 0xe1: my_stprintf_s(buffer, buffer_len, _T("POP IX")); break;
 	case 0xe3: my_stprintf_s(buffer, buffer_len, _T("EX (SP), IX")); break;
 	case 0xe5: my_stprintf_s(buffer, buffer_len, _T("PUSH IX")); break;
@@ -3115,7 +3115,7 @@ void dasm_dd(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	}
 }
 
-void dasm_ed(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
+void dasm_ed(uint32_t pc, _TCHAR *buffer, size_t buffer_len, symbol_t *first_symbol)
 {
 	uint8_t code = dasm_fetchop();
 	
@@ -3123,7 +3123,7 @@ void dasm_ed(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	case 0x40: my_stprintf_s(buffer, buffer_len, _T("IN B, (C)")); break;
 	case 0x41: my_stprintf_s(buffer, buffer_len, _T("OUT (C), B")); break;
 	case 0x42: my_stprintf_s(buffer, buffer_len, _T("SBC HL, BC")); break;
-	case 0x43: my_stprintf_s(buffer, buffer_len, _T("LD (%04x), BC"), debug_fetch16()); break;
+	case 0x43: my_stprintf_s(buffer, buffer_len, _T("LD (%s), BC"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
 	case 0x44: my_stprintf_s(buffer, buffer_len, _T("NEG")); break;
 	case 0x45: my_stprintf_s(buffer, buffer_len, _T("RETN")); break;
 	case 0x46: my_stprintf_s(buffer, buffer_len, _T("IM 0")); break;
@@ -3131,7 +3131,7 @@ void dasm_ed(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	case 0x48: my_stprintf_s(buffer, buffer_len, _T("IN C, (C)")); break;
 	case 0x49: my_stprintf_s(buffer, buffer_len, _T("OUT (C), C")); break;
 	case 0x4a: my_stprintf_s(buffer, buffer_len, _T("ADC HL, BC")); break;
-	case 0x4b: my_stprintf_s(buffer, buffer_len, _T("LD BC, (%04x)"), debug_fetch16()); break;
+	case 0x4b: my_stprintf_s(buffer, buffer_len, _T("LD BC, (%s)"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
 	case 0x4c: my_stprintf_s(buffer, buffer_len, _T("NEG")); break;
 	case 0x4d: my_stprintf_s(buffer, buffer_len, _T("RETI")); break;
 	case 0x4e: my_stprintf_s(buffer, buffer_len, _T("IM 0")); break;
@@ -3139,7 +3139,7 @@ void dasm_ed(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	case 0x50: my_stprintf_s(buffer, buffer_len, _T("IN D, (C)")); break;
 	case 0x51: my_stprintf_s(buffer, buffer_len, _T("OUT (C), D")); break;
 	case 0x52: my_stprintf_s(buffer, buffer_len, _T("SBC HL, DE")); break;
-	case 0x53: my_stprintf_s(buffer, buffer_len, _T("LD (%04x), DE"), debug_fetch16()); break;
+	case 0x53: my_stprintf_s(buffer, buffer_len, _T("LD (%s), DE"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
 	case 0x54: my_stprintf_s(buffer, buffer_len, _T("NEG")); break;
 	case 0x55: my_stprintf_s(buffer, buffer_len, _T("RETN")); break;
 	case 0x56: my_stprintf_s(buffer, buffer_len, _T("IM 1")); break;
@@ -3147,7 +3147,7 @@ void dasm_ed(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	case 0x58: my_stprintf_s(buffer, buffer_len, _T("IN E, (C)")); break;
 	case 0x59: my_stprintf_s(buffer, buffer_len, _T("OUT (C), E")); break;
 	case 0x5a: my_stprintf_s(buffer, buffer_len, _T("ADC HL, DE")); break;
-	case 0x5b: my_stprintf_s(buffer, buffer_len, _T("LD DE, (%04x)"), debug_fetch16()); break;
+	case 0x5b: my_stprintf_s(buffer, buffer_len, _T("LD DE, (%s)"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
 	case 0x5c: my_stprintf_s(buffer, buffer_len, _T("NEG")); break;
 	case 0x5d: my_stprintf_s(buffer, buffer_len, _T("RETI")); break;
 	case 0x5e: my_stprintf_s(buffer, buffer_len, _T("IM 2")); break;
@@ -3155,7 +3155,7 @@ void dasm_ed(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	case 0x60: my_stprintf_s(buffer, buffer_len, _T("IN H, (C)")); break;
 	case 0x61: my_stprintf_s(buffer, buffer_len, _T("OUT (C), H")); break;
 	case 0x62: my_stprintf_s(buffer, buffer_len, _T("SBC HL, HL")); break;
-	case 0x63: my_stprintf_s(buffer, buffer_len, _T("LD (%04x), HL"), debug_fetch16()); break;
+	case 0x63: my_stprintf_s(buffer, buffer_len, _T("LD (%s), HL"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
 	case 0x64: my_stprintf_s(buffer, buffer_len, _T("NEG")); break;
 	case 0x65: my_stprintf_s(buffer, buffer_len, _T("RETN")); break;
 	case 0x66: my_stprintf_s(buffer, buffer_len, _T("IM 0")); break;
@@ -3163,7 +3163,7 @@ void dasm_ed(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	case 0x68: my_stprintf_s(buffer, buffer_len, _T("IN L, (C)")); break;
 	case 0x69: my_stprintf_s(buffer, buffer_len, _T("OUT (C), L")); break;
 	case 0x6a: my_stprintf_s(buffer, buffer_len, _T("ADC HL, HL")); break;
-	case 0x6b: my_stprintf_s(buffer, buffer_len, _T("LD HL, (%04x)"), debug_fetch16()); break;
+	case 0x6b: my_stprintf_s(buffer, buffer_len, _T("LD HL, (%s)"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
 	case 0x6c: my_stprintf_s(buffer, buffer_len, _T("NEG")); break;
 	case 0x6d: my_stprintf_s(buffer, buffer_len, _T("RETI")); break;
 	case 0x6e: my_stprintf_s(buffer, buffer_len, _T("IM 0")); break;
@@ -3171,14 +3171,14 @@ void dasm_ed(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	case 0x70: my_stprintf_s(buffer, buffer_len, _T("IN F, (C)")); break;
 	case 0x71: my_stprintf_s(buffer, buffer_len, _T("OUT (C), 0")); break;
 	case 0x72: my_stprintf_s(buffer, buffer_len, _T("SBC HL, SP")); break;
-	case 0x73: my_stprintf_s(buffer, buffer_len, _T("LD (%04x), SP"), debug_fetch16()); break;
+	case 0x73: my_stprintf_s(buffer, buffer_len, _T("LD (%s), SP"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
 	case 0x74: my_stprintf_s(buffer, buffer_len, _T("NEG")); break;
 	case 0x75: my_stprintf_s(buffer, buffer_len, _T("RETN")); break;
 	case 0x76: my_stprintf_s(buffer, buffer_len, _T("IM 1")); break;
 	case 0x78: my_stprintf_s(buffer, buffer_len, _T("IN A, (C)")); break;
 	case 0x79: my_stprintf_s(buffer, buffer_len, _T("OUT (C), A")); break;
 	case 0x7a: my_stprintf_s(buffer, buffer_len, _T("ADC HL, SP")); break;
-	case 0x7b: my_stprintf_s(buffer, buffer_len, _T("LD SP, (%04x)"), debug_fetch16()); break;
+	case 0x7b: my_stprintf_s(buffer, buffer_len, _T("LD SP, (%s)"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
 	case 0x7c: my_stprintf_s(buffer, buffer_len, _T("NEG")); break;
 	case 0x7d: my_stprintf_s(buffer, buffer_len, _T("RETI")); break;
 	case 0x7e: my_stprintf_s(buffer, buffer_len, _T("IM 2")); break;
@@ -3202,7 +3202,7 @@ void dasm_ed(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	}
 }
 
-void dasm_fd(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
+void dasm_fd(uint32_t pc, _TCHAR *buffer, size_t buffer_len, symbol_t *first_symbol)
 {
 	uint8_t code = dasm_fetchop();
 	int8_t ofs;
@@ -3210,14 +3210,14 @@ void dasm_fd(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	switch(code) {
 	case 0x09: my_stprintf_s(buffer, buffer_len, _T("ADD IY, BC")); break;
 	case 0x19: my_stprintf_s(buffer, buffer_len, _T("ADD IY, DE")); break;
-	case 0x21: my_stprintf_s(buffer, buffer_len, _T("LD IY, %04x"), debug_fetch16()); break;
-	case 0x22: my_stprintf_s(buffer, buffer_len, _T("LD (%04x), IY"), debug_fetch16()); break;
+	case 0x21: my_stprintf_s(buffer, buffer_len, _T("LD IY, %s"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
+	case 0x22: my_stprintf_s(buffer, buffer_len, _T("LD (%s), IY"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
 	case 0x23: my_stprintf_s(buffer, buffer_len, _T("INC IY")); break;
 	case 0x24: my_stprintf_s(buffer, buffer_len, _T("INC HY")); break;
 	case 0x25: my_stprintf_s(buffer, buffer_len, _T("DEC HY")); break;
 	case 0x26: my_stprintf_s(buffer, buffer_len, _T("LD HY, %02x"), debug_fetch8()); break;
 	case 0x29: my_stprintf_s(buffer, buffer_len, _T("ADD IY, IY")); break;
-	case 0x2a: my_stprintf_s(buffer, buffer_len, _T("LD IY, (%04x)"), debug_fetch16()); break;
+	case 0x2a: my_stprintf_s(buffer, buffer_len, _T("LD IY, (%s)"), get_value_or_symbol(first_symbol, _T("%04x"), debug_fetch16())); break;
 	case 0x2b: my_stprintf_s(buffer, buffer_len, _T("DEC IY")); break;
 	case 0x2c: my_stprintf_s(buffer, buffer_len, _T("INC LY")); break;
 	case 0x2d: my_stprintf_s(buffer, buffer_len, _T("DEC LY")); break;
@@ -3288,7 +3288,7 @@ void dasm_fd(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	case 0xbc: my_stprintf_s(buffer, buffer_len, _T("CP HY")); break;
 	case 0xbd: my_stprintf_s(buffer, buffer_len, _T("CP LY")); break;
 	case 0xbe: my_stprintf_s(buffer, buffer_len, _T("CP (IY+(%d))"), debug_fetch8_rel()); break;
-	case 0xcb: dasm_fdcb(pc, buffer, buffer_len); break;
+	case 0xcb: dasm_fdcb(pc, buffer, buffer_len, first_symbol); break;
 	case 0xe1: my_stprintf_s(buffer, buffer_len, _T("POP IY")); break;
 	case 0xe3: my_stprintf_s(buffer, buffer_len, _T("EX (SP), IY")); break;
 	case 0xe5: my_stprintf_s(buffer, buffer_len, _T("PUSH IY")); break;
@@ -3298,7 +3298,7 @@ void dasm_fd(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	}
 }
 
-void dasm_ddcb(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
+void dasm_ddcb(uint32_t pc, _TCHAR *buffer, size_t buffer_len, symbol_t *first_symbol)
 {
 	int8_t ofs = debug_fetch8_rel();
 	uint8_t code = debug_fetch8();
@@ -3566,7 +3566,7 @@ void dasm_ddcb(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	}
 }
 
-void dasm_fdcb(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
+void dasm_fdcb(uint32_t pc, _TCHAR *buffer, size_t buffer_len, symbol_t *first_symbol)
 {
 	int8_t ofs = debug_fetch8_rel();
 	uint8_t code = debug_fetch8();

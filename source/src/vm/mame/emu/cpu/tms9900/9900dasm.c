@@ -320,7 +320,7 @@ INLINE UINT16 readop_arg(const UINT8 *opram, unsigned pc)
 	return result | opram[PC++ - pc];
 }
 
-static int print_arg (char *dest, int mode, int arg, const UINT8 *opram, unsigned pc)
+static int print_arg (char *dest, int mode, int arg, const UINT8 *opram, unsigned pc, symbol_t *first_symbol)
 {
 	int base;
 
@@ -333,9 +333,9 @@ static int print_arg (char *dest, int mode, int arg, const UINT8 *opram, unsigne
 		case 0x2:   /* symbolic|indexed */
 			base = readop_arg(opram, pc);
 			if (arg)    /* indexed */
-				return sprintf (dest, "@>%04x(R%d)", base, arg);
+				return sprintf (dest, "@>%s(R%d)", get_value_or_symbol(first_symbol, "%04x", base), arg);
 			else        /* symbolic (direct) */
-				return sprintf (dest, "@>%04x", base);
+				return sprintf (dest, "@>%s", get_value_or_symbol(first_symbol, "%04x", base));
 		case 0x3:   /* workspace register indirect auto increment */
 			return sprintf (dest, "*R%d+", arg);
 	}
@@ -347,7 +347,7 @@ static int print_arg (char *dest, int mode, int arg, const UINT8 *opram, unsigne
 /*****************************************************************************
  *  Disassemble a single command and return the number of bytes it uses.
  *****************************************************************************/
-unsigned Dasm9900 (char *buffer, unsigned pc, int model_id, const UINT8 *oprom, const UINT8 *opram)
+unsigned Dasm9900 (char *buffer, unsigned pc, int model_id, const UINT8 *oprom, const UINT8 *opram, symbol_t *first_symbol)
 {
 	int OP, OP2, opc;
 	int sarg, darg, smode, dmode;
@@ -500,14 +500,14 @@ unsigned Dasm9900 (char *buffer, unsigned pc, int model_id, const UINT8 *oprom, 
 		darg = BITS(OP,6,9);
 
 		buffer += sprintf (buffer, "%-4s ", mnemonic);
-		buffer += print_arg (buffer, smode, sarg, opram, pc);
+		buffer += print_arg (buffer, smode, sarg, opram, pc, first_symbol);
 		buffer += sprintf (buffer, ",");
-		buffer += print_arg (buffer, dmode, darg, opram, pc);
+		buffer += print_arg (buffer, dmode, darg, opram, pc, first_symbol);
 		break;
 
 	case format_2a:     /* jump instructions */
 		displacement = (signed char)BITS(OP,8,15);
-		sprintf (buffer, "%-4s >%04x", mnemonic, 0xffff & (PC + displacement * 2));
+		sprintf (buffer, "%-4s >%s", mnemonic, get_value_or_symbol(first_symbol, "%04x", 0xffff & (PC + displacement * 2)));
 		break;
 
 	case format_2b:     /* bit I/O instructions */
@@ -528,13 +528,13 @@ unsigned Dasm9900 (char *buffer, unsigned pc, int model_id, const UINT8 *oprom, 
 		if (format == format_3_9)
 		{
 			buffer += sprintf (buffer, "%-4s ", mnemonic);
-			buffer += print_arg (buffer, smode, sarg, opram, pc);
+			buffer += print_arg (buffer, smode, sarg, opram, pc, first_symbol);
 			buffer += sprintf (buffer, ",R%d", darg);
 		}
 		else
 		{
 			buffer += sprintf (buffer, "%-4s ", mnemonic);
-			buffer += print_arg (buffer, smode, sarg, opram, pc);
+			buffer += print_arg (buffer, smode, sarg, opram, pc, first_symbol);
 			buffer += sprintf (buffer, ",%d", darg);
 		}
 		break;
@@ -551,7 +551,7 @@ unsigned Dasm9900 (char *buffer, unsigned pc, int model_id, const UINT8 *oprom, 
 		sarg = BITS(OP,12,15);
 
 		buffer += sprintf (buffer, "%-4s ", mnemonic);
-		buffer += print_arg (buffer, smode, sarg, opram, pc);
+		buffer += print_arg (buffer, smode, sarg, opram, pc, first_symbol);
 		break;
 
 	case format_7:      /* instructions without operands */
@@ -562,13 +562,13 @@ unsigned Dasm9900 (char *buffer, unsigned pc, int model_id, const UINT8 *oprom, 
 		darg = BITS(OP,12,15);
 		sarg = readop_arg(opram, pc);
 
-		sprintf (buffer, "%-4s R%d,>%04x", mnemonic, darg, sarg);
+		sprintf (buffer, "%-4s R%d,>%s", mnemonic, darg, get_value_or_symbol(first_symbol, "%04x", sarg));
 		break;
 
 	case format_8b:     /* immediate instructions (no destination register) */
 		sarg = readop_arg(opram, pc);
 
-		sprintf (buffer, "%-4s >%04x", mnemonic, sarg);
+		sprintf (buffer, "%-4s >%s", mnemonic, get_value_or_symbol(first_symbol, "%04x", sarg));
 		break;
 
 	case format_10:     /* memory map file instruction */
@@ -588,9 +588,9 @@ unsigned Dasm9900 (char *buffer, unsigned pc, int model_id, const UINT8 *oprom, 
 		byte_count = BITS(OP2,0,3);
 
 		buffer += sprintf (buffer, "%-4s ", mnemonic);
-		buffer += print_arg (buffer, smode, sarg, opram, pc);
+		buffer += print_arg (buffer, smode, sarg, opram, pc, first_symbol);
 		buffer += sprintf (buffer, ",");
-		buffer += print_arg (buffer, dmode, darg, opram, pc);
+		buffer += print_arg (buffer, dmode, darg, opram, pc, first_symbol);
 		buffer += sprintf (buffer, byte_count ? ",%d" : ",R%d", byte_count);
 		break;
 
@@ -605,9 +605,9 @@ unsigned Dasm9900 (char *buffer, unsigned pc, int model_id, const UINT8 *oprom, 
 		checkpoint = BITS(OP,12,15);
 
 		buffer += sprintf (buffer, "%-4s ", mnemonic);
-		buffer += print_arg (buffer, smode, sarg, opram, pc);
+		buffer += print_arg (buffer, smode, sarg, opram, pc, first_symbol);
 		buffer += sprintf (buffer, ",");
-		buffer += print_arg (buffer, dmode, darg, opram, pc);
+		buffer += print_arg (buffer, dmode, darg, opram, pc, first_symbol);
 		buffer += sprintf (buffer, byte_count ? ",%d,R%d" : ",R%d,R%d", byte_count, checkpoint);
 		break;
 
@@ -620,7 +620,7 @@ unsigned Dasm9900 (char *buffer, unsigned pc, int model_id, const UINT8 *oprom, 
 		byte_count = BITS(OP2,0,3);
 
 		buffer += sprintf (buffer, "%-4s ", mnemonic);
-		buffer += print_arg (buffer, smode, sarg, opram, pc);
+		buffer += print_arg (buffer, smode, sarg, opram, pc, first_symbol);
 		buffer += sprintf (buffer, byte_count ? ",%d" : ",R%d", byte_count);
 		buffer += sprintf (buffer, darg ? ",%d" : ",R%d", darg);
 		break;
@@ -633,7 +633,7 @@ unsigned Dasm9900 (char *buffer, unsigned pc, int model_id, const UINT8 *oprom, 
 		darg = BITS(OP2,0,9);
 
 		buffer += sprintf (buffer, "%-4s ", mnemonic);
-		buffer += print_arg (buffer, smode, sarg, opram, pc);
+		buffer += print_arg (buffer, smode, sarg, opram, pc, first_symbol);
 		if (darg == 0x3ff)
 			buffer += sprintf (buffer, ",R0");
 		else
@@ -649,7 +649,7 @@ unsigned Dasm9900 (char *buffer, unsigned pc, int model_id, const UINT8 *oprom, 
 		bit_width = BITS(OP,12,15);
 
 		buffer += sprintf (buffer, "%-4s ", mnemonic);
-		buffer += print_arg (buffer, smode, sarg, opram, pc);
+		buffer += print_arg (buffer, smode, sarg, opram, pc, first_symbol);
 		buffer += sprintf (buffer, bit_position ? ",(%d," : ",(R%d,", bit_position);
 		buffer += sprintf (buffer, bit_width ? "%d)" : "R%d)", bit_width);
 		break;
@@ -665,9 +665,9 @@ unsigned Dasm9900 (char *buffer, unsigned pc, int model_id, const UINT8 *oprom, 
 		bit_width = BITS(OP,12,15);
 
 		buffer += sprintf (buffer, "%-4s ", mnemonic);
-		buffer += print_arg (buffer, smode, sarg, opram, pc);
+		buffer += print_arg (buffer, smode, sarg, opram, pc, first_symbol);
 		buffer += sprintf (buffer, ",");
-		buffer += print_arg (buffer, dmode, darg, opram, pc);
+		buffer += print_arg (buffer, dmode, darg, opram, pc, first_symbol);
 		buffer += sprintf (buffer, bit_position ? ",(%d," : ",(%d,", bit_position);
 		buffer += sprintf (buffer, bit_width ? "%d)" : "R%d)", bit_width);
 		break;
@@ -679,8 +679,8 @@ unsigned Dasm9900 (char *buffer, unsigned pc, int model_id, const UINT8 *oprom, 
 		sarg = BITS(OP2,4,7);
 		darg = BITS(OP2,0,3);
 		if (darg)
-		sprintf (buffer, darg ? "%-4s >%04x,%d,R%d" : "%-4s >%04x,R%d,R%d",
-							mnemonic, 0xffff & (PC + displacement * 2), sarg, darg);
+		sprintf (buffer, darg ? "%-4s >%s,%d,R%d" : "%-4s >%s,R%d,R%d",
+							mnemonic, get_value_or_symbol(first_symbol, "%04x", 0xffff & (PC + displacement * 2)), sarg, darg);
 		break;
 
 	case format_18:     /* single register operand instructions */
@@ -704,9 +704,9 @@ unsigned Dasm9900 (char *buffer, unsigned pc, int model_id, const UINT8 *oprom, 
 		darg = BITS(OP2,6,9);
 
 		buffer += sprintf (buffer, "%-4s ", mnemonic);
-		buffer += print_arg (buffer, smode, sarg, opram, pc);
+		buffer += print_arg (buffer, smode, sarg, opram, pc, first_symbol);
 		buffer += sprintf (buffer, ",");
-		buffer += print_arg (buffer, dmode, darg, opram, pc);
+		buffer += print_arg (buffer, dmode, darg, opram, pc, first_symbol);
 				break;
 
 	case format_20:     /* list search instructions */
@@ -758,9 +758,9 @@ unsigned Dasm9900 (char *buffer, unsigned pc, int model_id, const UINT8 *oprom, 
 			}
 
 			buffer += sprintf (buffer, "%-4s %s,", mnemonic, condition_code);
-			buffer += print_arg (buffer, smode, sarg, opram, pc);
+			buffer += print_arg (buffer, smode, sarg, opram, pc, first_symbol);
 			buffer += sprintf (buffer, ",");
-			buffer += print_arg (buffer, dmode, darg, opram, pc);
+			buffer += print_arg (buffer, dmode, darg, opram, pc, first_symbol);
 			break;
 	}
 
@@ -778,9 +778,9 @@ unsigned Dasm9900 (char *buffer, unsigned pc, int model_id, const UINT8 *oprom, 
 		dest_byte_count = BITS(OP,12,15);
 
 		buffer += sprintf (buffer, "%-4s ", mnemonic);
-		buffer += print_arg (buffer, smode, sarg, opram, pc);
+		buffer += print_arg (buffer, smode, sarg, opram, pc, first_symbol);
 		buffer += sprintf (buffer, ",");
-		buffer += print_arg (buffer, dmode, darg, opram, pc);
+		buffer += print_arg (buffer, dmode, darg, opram, pc, first_symbol);
 		buffer += sprintf (buffer, byte_count ? ",%d" : ",R%d", byte_count);
 		buffer += sprintf (buffer, dest_byte_count ? ",%d" : ",R%d", dest_byte_count);
 		break;
@@ -798,15 +798,15 @@ unsigned Dasm9900 (char *buffer, unsigned pc, int model_id, const UINT8 *oprom, 
 
 CPU_DISASSEMBLE( tms9900 )
 {
-	return Dasm9900(buffer, pc, TMS9900_ID, oprom, opram);
+	return Dasm9900(buffer, pc, TMS9900_ID, oprom, opram, first_symbol);
 }
 
 CPU_DISASSEMBLE( tms9980 )
 {
-	return Dasm9900(buffer, pc, TMS9980_ID, oprom, opram);
+	return Dasm9900(buffer, pc, TMS9980_ID, oprom, opram, first_symbol);
 }
 
 CPU_DISASSEMBLE( tms9995 )
 {
-	return Dasm9900(buffer, pc, TMS9995_ID, oprom, opram);
+	return Dasm9900(buffer, pc, TMS9995_ID, oprom, opram, first_symbol);
 }

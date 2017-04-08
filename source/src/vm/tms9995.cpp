@@ -1645,8 +1645,8 @@ typedef UINT32	offs_t;
 #endif
 
 #define CPU_DISASSEMBLE_NAME(name)	cpu_disassemble_##name
-#define CPU_DISASSEMBLE(name)		int CPU_DISASSEMBLE_NAME(name)(_TCHAR *buffer, offs_t pc, const UINT8 *oprom, const UINT8 *opram)
-#define CPU_DISASSEMBLE_CALL(name)	CPU_DISASSEMBLE_NAME(name)(buffer, pc, oprom, opram)
+#define CPU_DISASSEMBLE(name)		int CPU_DISASSEMBLE_NAME(name)(_TCHAR *buffer, offs_t pc, const UINT8 *oprom, const UINT8 *opram, symbol_t *first_symbol)
+#define CPU_DISASSEMBLE_CALL(name)	CPU_DISASSEMBLE_NAME(name)(buffer, pc, oprom, opram, d_debugger->first_symbol)
 
 const UINT32 DASMFLAG_SUPPORTED     = 0x80000000;   // are disassembly flags supported?
 const UINT32 DASMFLAG_STEP_OUT      = 0x40000000;   // this instruction should be the end of a step out sequence

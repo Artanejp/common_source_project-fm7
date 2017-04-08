@@ -357,6 +357,9 @@ uint16_t DLL_PREFIX EndianToLittle_WORD(uint16_t x);
 	#ifndef _tcslen
 		#define _tcslen strlen
 	#endif
+	#ifndef _tcscat
+		#define _tcscat strcat
+	#endif
 	#ifndef _tcsncat
 		#define _tcsncat strncat
 	#endif
@@ -412,6 +415,7 @@ uint16_t DLL_PREFIX EndianToLittle_WORD(uint16_t x);
 		typedef int errno_t;
 	#endif
 //	errno_t DLL_PREFIX my_tfopen_s(FILE** pFile, const _TCHAR *filename, const _TCHAR *mode);
+	errno_t DLL_PREFIX my_tcscat_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource);
 	errno_t DLL_PREFIX my_strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource);
 	errno_t DLL_PREFIX my_tcscpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource);
 	errno_t DLL_PREFIX my_strncpy_s(char *strDestination, size_t numberOfElements, const char *strSource, size_t count);
@@ -425,6 +429,7 @@ uint16_t DLL_PREFIX EndianToLittle_WORD(uint16_t x);
 	int DLL_PREFIX my_vstprintf_s(_TCHAR *buffer, size_t numberOfElements, const _TCHAR *format, va_list argptr);
 #else
 //	#define my_tfopen_s _tfopen_s
+	#define my_tcscat_s _tcscat_s
 	#define my_strcpy_s strcpy_s
 	#define my_tcscpy_s _tcscpy_s
 	#define my_strncpy_s strncpy_s
@@ -542,5 +547,17 @@ typedef DLL_PREFIX struct cur_time_s {
 } cur_time_t;
 
 void DLL_PREFIX get_host_time(cur_time_t* cur_time);
+
+// symbol
+
+typedef struct symbol_s {
+	uint32_t addr;
+	_TCHAR *name;
+	struct symbol_s *next_symbol;
+} symbol_t;
+
+const _TCHAR *get_symbol(symbol_t *first_symbol, uint32_t addr);
+const _TCHAR *get_value_or_symbol(symbol_t *first_symbol, const _TCHAR *format, uint32_t addr);
+const _TCHAR *get_value_and_symbol(symbol_t *first_symbol, const _TCHAR *format, uint32_t addr);
 
 #endif

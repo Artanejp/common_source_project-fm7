@@ -113,6 +113,12 @@ unsigned int DLL_PREFIX min(unsigned int a, unsigned int b)
 //	}
 //}
 
+errno_t DLL_PREFIX my_tcscat_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource)
+{
+	_tcscat(strDestination, strSource);
+	return 0;
+}
+
 errno_t DLL_PREFIX my_strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource)
 {
 	strcpy(strDestination, strSource);
@@ -772,3 +778,47 @@ bool DLL_PREFIX cur_time_t::load_state(void *f)
 	return true;
 }
 
+const _TCHAR *get_symbol(symbol_t *first_symbol, uint32_t addr)
+{
+	static _TCHAR name[1024];
+	
+	for(symbol_t* symbol = first_symbol; symbol; symbol = symbol->next_symbol) {
+		if(symbol->addr == addr) {
+			my_tcscpy_s(name, 1024, symbol->name);
+			return name;
+		}
+	}
+	return NULL;
+}
+
+const _TCHAR *get_value_or_symbol(symbol_t *first_symbol, const _TCHAR *format, uint32_t addr)
+{
+	static _TCHAR name[1024];
+	
+	for(symbol_t* symbol = first_symbol; symbol; symbol = symbol->next_symbol) {
+		if(symbol->addr == addr) {
+			my_tcscpy_s(name, 1024, symbol->name);
+			return name;
+		}
+	}
+	my_stprintf_s(name, 1024, format, addr);
+	return name;
+}
+
+const _TCHAR *get_value_and_symbol(symbol_t *first_symbol, const _TCHAR *format, uint32_t addr)
+{
+	static _TCHAR name[1024];
+	
+	my_stprintf_s(name, 1024, format, addr);
+	
+	for(symbol_t* symbol = first_symbol; symbol; symbol = symbol->next_symbol) {
+		if(symbol->addr == addr) {
+			_TCHAR temp[1024];
+//			my_stprintf_s(temp, 1024, _T(" (%s)"), symbol->name);
+			my_stprintf_s(temp, 1024, _T(";%s"), symbol->name);
+			my_tcscat_s(name, 1024, temp);
+			return name;
+		}
+	}
+	return name;
+}
