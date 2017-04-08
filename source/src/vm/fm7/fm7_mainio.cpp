@@ -1639,7 +1639,7 @@ void FM7_MAINIO::save_state(FILEIO *state_fio)
 	int addr;
 	state_fio->FputUint32_BE(STATE_VERSION);
 	state_fio->FputInt32_BE(this_device_id);
-	this->out_debug_log("Save State: MAINIO: id=%d ver=%d\n", this_device_id, STATE_VERSION);
+	this->out_debug_log(_T("Save State: MAINIO: id=%d ver=%d\n"), this_device_id, STATE_VERSION);
 
 	// Version 1
 	{
@@ -1800,7 +1800,7 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 	
 	version = state_fio->FgetUint32_BE();
 	if(this_device_id != state_fio->FgetInt32_BE()) return false;
-	this->out_debug_log("Load State: MAINIO: id=%d ver=%d\n", this_device_id, version);
+	this->out_debug_log(_T("Load State: MAINIO: id=%d ver=%d\n"), this_device_id, version);
 
 	if(version >= 1) {
 		for(addr = 0; addr < 0x100; addr++) io_w_latch[addr] = state_fio->FgetUint8();

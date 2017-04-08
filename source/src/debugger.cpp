@@ -70,7 +70,7 @@ uint32_t my_hexatoi(symbol_t *first_symbol, const _TCHAR *str)
 	my_tcscpy_s(tmp, 1024, str);
 	
 	for(symbol_t* symbol = first_symbol; symbol; symbol = symbol->next_symbol) {
-		if(stricmp(symbol->name, str) == 0) {
+		if(_tcsicmp(symbol->name, str) == 0) {
 			return symbol->addr;
 		}
 	}
@@ -189,7 +189,7 @@ void* debugger_thread(void *lpx)
 		
 		while(!p->request_terminate && !enter_done) {
 			if(cmdfile != NULL) {
-				if(cmdfile->Fgets(command, array_length(command)) != NULL) {
+				if(cmdfile->Fgetts(command, array_length(command)) != NULL) {
 					while(_tcslen(command) > 0 && (command[_tcslen(command) - 1] == 0x0d || command[_tcslen(command) - 1] == 0x0a)) {
 						command[_tcslen(command) - 1] = _T('\0');
 					}
@@ -491,25 +491,25 @@ void* debugger_thread(void *lpx)
 				if(check_file_extension(debugger->file_path, _T(".sym"))) {
 					if(fio->Fopen(debugger->file_path, FILEIO_READ_ASCII)) {
 						debugger->release_symbols();
-						char line[1024];
-						while(fio->Fgets(line, sizeof(line)) != NULL) {
-							char *next = NULL;
-							char *addr = my_strtok_s(line, "\t #$*,;", &next);
+						_TCHAR line[1024];
+						while(fio->Fgetts(line, array_length(line)) != NULL) {
+							_TCHAR *next = NULL;
+							_TCHAR *addr = my_tcstok_s(line, _T("\t #$*,;"), &next);
 							while(addr != NULL) {
-								if(strlen(addr) > 0) {
-									char *name = my_strtok_s(NULL, "\t #$*,;", &next);
+								if(_tcslen(addr) > 0) {
+									_TCHAR *name = my_tcstok_s(NULL, _T("\t #$*,;"), &next);
 									while(name != NULL) {
-										while(strlen(name) > 0 && (name[strlen(name) - 1] == 0x0d || name[strlen(name) - 1] == 0x0a)) {
-											name[strlen(name) - 1] = _T('\0');
+										while(_tcslen(name) > 0 && (name[_tcslen(name) - 1] == 0x0d || name[_tcslen(name) - 1] == 0x0a)) {
+											name[_tcslen(name) - 1] = _T('\0');
 										}
-										if(strlen(name) > 0) {
+										if(_tcslen(name) > 0) {
 											debugger->add_symbol(my_hexatoi(NULL, addr), name);
 											break;
 										}
-										name = my_strtok_s(NULL, "\t #$*,;", &next);
+										name = my_tcstok_s(NULL, _T("\t #$*,;"), &next);
 									}
 								}
-								addr = my_strtok_s(NULL, "\t #$*,;", &next);
+								addr = my_tcstok_s(NULL, _T("\t #$*,;"), &next);
 							}
 						}
 						fio->Fclose();

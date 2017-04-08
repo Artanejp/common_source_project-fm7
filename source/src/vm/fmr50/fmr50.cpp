@@ -149,7 +149,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	for(int i = 0; i < 7; i++) {
 		if(FILEIO::IsFileExisting(create_local_path(_T("SCSI%d.DAT"), i))) {
 			scsi_hdd[i] = new SCSI_HDD(this, emu);
-			scsi_hdd[i]->set_device_name("SCSI Hard Disk Drive #%d", i + 1);
+			scsi_hdd[i]->set_device_name(_T("SCSI Hard Disk Drive #%d"), i + 1);
 			scsi_hdd[i]->scsi_id = i;
 			scsi_hdd[i]->set_context_interface(scsi_host);
 			scsi_host->set_context_target(scsi_hdd[i]);

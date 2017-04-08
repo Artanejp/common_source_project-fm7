@@ -342,6 +342,12 @@ uint16_t DLL_PREFIX EndianToLittle_WORD(uint16_t x);
 #endif
 
 #ifndef SUPPORT_TCHAR_TYPE
+	#ifndef _fgetts
+		#define _fgetts fgets
+	#endif
+	#ifndef _ftprintf
+		#define _ftprintf printf
+	#endif
 	#ifndef _tfopen
 		#define _tfopen fopen
 	#endif
@@ -423,7 +429,9 @@ uint16_t DLL_PREFIX EndianToLittle_WORD(uint16_t x);
 	char * DLL_PREFIX my_strtok_s(char *strToken, const char *strDelimit, char **context);
 	_TCHAR * DLL_PREFIX my_tcstok_s(_TCHAR *strToken, const char *strDelimit, _TCHAR **context);
 	#define my_fprintf_s fprintf
+	#define my_ftprintf_s fprintf
 	int DLL_PREFIX my_sprintf_s(char *buffer, size_t sizeOfBuffer, const char *format, ...);
+	int DLL_PREFIX my_swprintf_s(wchar_t *buffer, size_t sizeOfBuffer, const wchar_t *format, ...);
 	int DLL_PREFIX my_stprintf_s(_TCHAR *buffer, size_t sizeOfBuffer, const _TCHAR *format, ...);
 	int DLL_PREFIX my_vsprintf_s(char *buffer, size_t numberOfElements, const char *format, va_list argptr);
 	int DLL_PREFIX my_vstprintf_s(_TCHAR *buffer, size_t numberOfElements, const _TCHAR *format, va_list argptr);
@@ -437,7 +445,9 @@ uint16_t DLL_PREFIX EndianToLittle_WORD(uint16_t x);
 	#define my_strtok_s strtok_s
 	#define my_tcstok_s _tcstok_s
 	#define my_fprintf_s fprintf_s
+	#define my_ftprintf_s _ftprintf_s
 	#define my_sprintf_s sprintf_s
+	#define my_swprintf_s swprintf_s
 	#define my_stprintf_s _stprintf_s
 	#define my_vsprintf_s vsprintf_s
 	#define my_vstprintf_s _vstprintf_s
@@ -513,8 +523,16 @@ const _TCHAR *get_file_path_without_extensiton(const _TCHAR *file_path);
 void get_long_full_path_name(const _TCHAR* src, _TCHAR* dst, size_t dst_len);
 const _TCHAR* get_parent_dir(const _TCHAR* file);
 
+// string
+const _TCHAR *DLL_PREFIX create_string(const _TCHAR* format, ...);
+const wchar_t *DLL_PREFIX char_to_wchar(const char *cs);
+const char *DLL_PREFIX wchar_to_char(const wchar_t *ws);
+const _TCHAR *DLL_PREFIX char_to_tchar(const char *cs);
+const char *DLL_PREFIX tchar_to_char(const _TCHAR *ts);
+const _TCHAR *DLL_PREFIX wchar_to_tchar(const wchar_t *ws);
+const wchar_t *DLL_PREFIX tchar_to_wchar(const _TCHAR *ts);
+
 // misc
-const _TCHAR * DLL_PREFIX create_string(const _TCHAR* format, ...);
 uint32_t DLL_PREFIX get_crc32(uint8_t data[], int size);
 uint16_t DLL_PREFIX jis_to_sjis(uint16_t jis);
 
@@ -528,6 +546,7 @@ int32_t DLL_PREFIX apply_volume(int32_t sample, int volume);
 #define TO_BCD_LO(v)	((v) % 10)
 #define TO_BCD_HI(v)	(int)(((v) % 100) / 10)
 
+// time
 #define LEAP_YEAR(y)	(((y) % 4) == 0 && (((y) % 100) != 0 || ((y) % 400) == 0))
 
 #define dll_cur_time_t DLL_PREFIX_I struct cur_time_s
@@ -549,7 +568,6 @@ typedef DLL_PREFIX struct cur_time_s {
 void DLL_PREFIX get_host_time(cur_time_t* cur_time);
 
 // symbol
-
 typedef struct symbol_s {
 	uint32_t addr;
 	_TCHAR *name;

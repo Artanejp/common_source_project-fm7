@@ -162,6 +162,15 @@ int DLL_PREFIX my_sprintf_s(char *buffer, size_t sizeOfBuffer, const char *forma
 	return result;
 }
 
+int DLL_PREFIX my_swprintf_s(wchar_t *buffer, size_t sizeOfBuffer, const wchar_t *format, ...)
+{
+	va_list ap;
+	va_start(ap, format);
+	int result = vswprintf(buffer, format, ap);
+	va_end(ap);
+	return result;
+}
+
 int DLL_PREFIX my_stprintf_s(_TCHAR *buffer, size_t sizeOfBuffer, const _TCHAR *format, ...)
 {
 	va_list ap;
@@ -576,6 +585,80 @@ const _TCHAR* DLL_PREFIX get_parent_dir(const _TCHAR* file)
 	// write code for your environment
 #endif
 	return path[output_index];
+}
+
+const wchar_t *DLL_PREFIX char_to_wchar(const char *cs)
+{
+	// char to wchar_t
+	static wchar_t ws[4096];
+	
+#ifdef _WIN32
+	mbstowcs(ws, cs, strlen(cs));
+#elif defined(_USE_QT)
+	mbstowcs(ws, cs, strlen(cs));
+#else
+	// write code for your environment
+#endif
+	return ws;
+}
+
+const char *DLL_PREFIX wchar_to_char(const wchar_t *ws)
+{
+	// wchar_t to char
+	static char cs[4096];
+	
+#ifdef _WIN32
+	wcstombs(cs, ws, wcslen(ws));
+#elif defined(_USE_QT)
+	wcstombs(cs, ws, wcslen(ws));
+#else
+	// write code for your environment
+#endif
+	return cs;
+}
+
+const _TCHAR *DLL_PREFIX char_to_tchar(const char *cs)
+{
+#if defined(_UNICODE) && defined(SUPPORT_TCHAR_TYPE)
+	// char to wchar_t
+	return char_to_wchar(cs);
+#else
+	// char to char
+	return cs;
+#endif
+}
+
+const char *DLL_PREFIX tchar_to_char(const _TCHAR *ts)
+{
+#if defined(_UNICODE) && defined(SUPPORT_TCHAR_TYPE)
+	// wchar_t to char
+	return wchar_to_char(ts);
+#else
+	// char to char
+	return ts;
+#endif
+}
+
+const _TCHAR *DLL_PREFIX wchar_to_tchar(const wchar_t *ws)
+{
+#if defined(_UNICODE) && defined(SUPPORT_TCHAR_TYPE)
+	// wchar_t to wchar_t
+	return ws;
+#else
+	// wchar_t to char
+	return wchar_to_char(ws);
+#endif
+}
+
+const wchar_t *DLL_PREFIX tchar_to_wchar(const _TCHAR *ts)
+{
+#if defined(_UNICODE) && defined(SUPPORT_TCHAR_TYPE)
+	// wchar_t to wchar_t
+	return ts;
+#else
+	// char to wchar_t
+	return char_to_wchar(ts);
+#endif
 }
 
 const _TCHAR *DLL_PREFIX create_string(const _TCHAR* format, ...)

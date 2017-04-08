@@ -368,7 +368,7 @@ void BUBBLECASETTE::open(_TCHAR* file_path, int bank)
 	fio = new FILEIO;
 	if(fio == NULL) return;
 	memset(image_path, 0x00, _MAX_PATH * sizeof(_TCHAR));
-	strncpy(image_path, file_path, _MAX_PATH);
+	_tcsncpy(image_path, file_path, _MAX_PATH);
 	
 	if(fio->IsFileExisting(file_path)) {
 		fio->Fopen(file_path, FILEIO_READ_WRITE_BINARY);
@@ -640,7 +640,7 @@ void BUBBLECASETTE::save_state(FILEIO *state_fio)
 	int i, j;
 	state_fio->FputUint32_BE(STATE_VERSION);
 	state_fio->FputInt32_BE(this_device_id);
-	this->out_debug_log("Save State: BUBBLE: id=%d ver=%d\n", this_device_id, STATE_VERSION);
+	this->out_debug_log(_T("Save State: BUBBLE: id=%d ver=%d\n"), this_device_id, STATE_VERSION);
 
 	// Attributes
 	state_fio->FputUint32_BE(file_length);
@@ -699,7 +699,7 @@ bool BUBBLECASETTE::load_state(FILEIO *state_fio)
 	int i, j;
 	if(state_fio->FgetUint32_BE() != STATE_VERSION) return false;
 	if(state_fio->FgetInt32_BE() != this_device_id) return false;
-	this->out_debug_log("Load State: BUBBLE: id=%d ver=%d\n", this_device_id, STATE_VERSION);
+	this->out_debug_log(_T("Load State: BUBBLE: id=%d ver=%d\n"), this_device_id, STATE_VERSION);
 
 	// Attributes
 	file_length = state_fio->FgetUint32_BE();
@@ -741,7 +741,7 @@ bool BUBBLECASETTE::load_state(FILEIO *state_fio)
 	header_changed = false;
 	
 	if(state_fio->Fread(image_path, _MAX_PATH * sizeof(_TCHAR), 1) != (_MAX_PATH * sizeof(_TCHAR))) return false;
-	if(strlen(image_path) > 0) {
+	if(_tcslen(image_path) > 0) {
 		this->open(image_path, (int)media_num);
 	}
 	return true;

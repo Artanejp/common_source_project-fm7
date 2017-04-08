@@ -77,7 +77,7 @@ enum
 
 struct description_t
 {
-	const char *mnemonic;
+	const _TCHAR *mnemonic;
 	format_t format;
 	int flags;
 };
@@ -122,96 +122,96 @@ enum opcodes {
 static const description_t descriptions[144+3+1] =
 {
 	/* basic instruction set */
-	{ "a",      format_1,   ps_any },           { "ab",     format_1,   ps_any },
-	{ "c",      format_1,   ps_any },           { "cb",     format_1,   ps_any },
-	{ "s",      format_1,   ps_any },           { "sb",     format_1,   ps_any },
-	{ "soc",    format_1,   ps_any },           { "socb",   format_1,   ps_any },
-	{ "szc",    format_1,   ps_any },           { "szcb",   format_1,   ps_any },
-	{ "mov",    format_1,   ps_any },           { "movb",   format_1,   ps_any },
-	{ "coc",    format_3_9, ps_any },           { "czc",    format_3_9, ps_any },
-	{ "xor",    format_3_9, ps_any },           { "mpy",    format_3_9, ps_any },
-	{ "div",    format_3_9, ps_any },           { "xop",    format_9,   ps_any },
-	{ "b",      format_6,   ps_any },           { "bl",     format_6,   ps_any },
-	{ "blwp",   format_6,   ps_any },           { "clr",    format_6,   ps_any },
-	{ "seto",   format_6,   ps_any },           { "inv",    format_6,   ps_any },
-	{ "neg",    format_6,   ps_any },           { "abs",    format_6,   ps_any },
-	{ "swpb",   format_6,   ps_any },           { "inc",    format_6,   ps_any },
-	{ "inct",   format_6,   ps_any },           { "dec",    format_6,   ps_any },
-	{ "dect",   format_6,   ps_any },           { "x",      format_6,   ps_any },
-	{ "ldcr",   format_4,   ps_any },           { "stcr",   format_4,   ps_any },
-	{ "sbo",    format_2b,  ps_any },           { "sbz",    format_2b,  ps_any },
-	{ "tb",     format_2b,  ps_any },           { "jeq",    format_2a,  ps_any },
-	{ "jgt",    format_2a,  ps_any },           { "jh",     format_2a,  ps_any },
-	{ "jhe",    format_2a,  ps_any },           { "jl",     format_2a,  ps_any },
-	{ "jle",    format_2a,  ps_any },           { "jlt",    format_2a,  ps_any },
-	{ "jmp",    format_2a,  ps_any },           { "jnc",    format_2a,  ps_any },
-	{ "jne",    format_2a,  ps_any },           { "jno",    format_2a,  ps_any },
-	{ "joc",    format_2a,  ps_any },           { "jop",    format_2a,  ps_any },
-	{ "sla",    format_5,   ps_any },           { "sra",    format_5,   ps_any },
-	{ "src",    format_5,   ps_any },           { "srl",    format_5,   ps_any },
-	{ "ai",     format_8a,  ps_any|sd_11 },     { "andi",   format_8a,  ps_any|sd_11 },
-	{ "ci",     format_8a,  ps_any|sd_11 },     { "li",     format_8a,  ps_any|sd_11 },
-	{ "ori",    format_8a,  ps_any|sd_11 },     { "lwpi",   format_8b,  ps_any|sd_11|sd_11_15 },
-	{ "limi",   format_8b,  ps_any|sd_11|sd_11_15 },    { "stst",   format_18,  ps_any|sd_11 },
-	{ "stwp",   format_18,  ps_any|sd_11 },     { "rtwp",   format_7,   ps_any|sd_11|sd_11_15 },
-	{ "idle",   format_7,   ps_any|sd_11|sd_11_15 },    { "rset",   format_7,   ps_any|sd_11|sd_11_15 },
-	{ "ckof",   format_7,   ps_any|sd_11|sd_11_15 },    { "ckon",   format_7,   ps_any|sd_11|sd_11_15 },
-	{ "lrex",   format_7,   ps_any|sd_11|sd_11_15 },
+	{ _T("a"),      format_1,   ps_any },           { _T("ab"),     format_1,   ps_any },
+	{ _T("c"),      format_1,   ps_any },           { _T("cb"),     format_1,   ps_any },
+	{ _T("s"),      format_1,   ps_any },           { _T("sb"),     format_1,   ps_any },
+	{ _T("soc"),    format_1,   ps_any },           { _T("socb"),   format_1,   ps_any },
+	{ _T("szc"),    format_1,   ps_any },           { _T("szcb"),   format_1,   ps_any },
+	{ _T("mov"),    format_1,   ps_any },           { _T("movb"),   format_1,   ps_any },
+	{ _T("coc"),    format_3_9, ps_any },           { _T("czc"),    format_3_9, ps_any },
+	{ _T("xor"),    format_3_9, ps_any },           { _T("mpy"),    format_3_9, ps_any },
+	{ _T("div"),    format_3_9, ps_any },           { _T("xop"),    format_9,   ps_any },
+	{ _T("b"),      format_6,   ps_any },           { _T("bl"),     format_6,   ps_any },
+	{ _T("blwp"),   format_6,   ps_any },           { _T("clr"),    format_6,   ps_any },
+	{ _T("seto"),   format_6,   ps_any },           { _T("inv"),    format_6,   ps_any },
+	{ _T("neg"),    format_6,   ps_any },           { _T("abs"),    format_6,   ps_any },
+	{ _T("swpb"),   format_6,   ps_any },           { _T("inc"),    format_6,   ps_any },
+	{ _T("inct"),   format_6,   ps_any },           { _T("dec"),    format_6,   ps_any },
+	{ _T("dect"),   format_6,   ps_any },           { _T("x"),      format_6,   ps_any },
+	{ _T("ldcr"),   format_4,   ps_any },           { _T("stcr"),   format_4,   ps_any },
+	{ _T("sbo"),    format_2b,  ps_any },           { _T("sbz"),    format_2b,  ps_any },
+	{ _T("tb"),     format_2b,  ps_any },           { _T("jeq"),    format_2a,  ps_any },
+	{ _T("jgt"),    format_2a,  ps_any },           { _T("jh"),     format_2a,  ps_any },
+	{ _T("jhe"),    format_2a,  ps_any },           { _T("jl"),     format_2a,  ps_any },
+	{ _T("jle"),    format_2a,  ps_any },           { _T("jlt"),    format_2a,  ps_any },
+	{ _T("jmp"),    format_2a,  ps_any },           { _T("jnc"),    format_2a,  ps_any },
+	{ _T("jne"),    format_2a,  ps_any },           { _T("jno"),    format_2a,  ps_any },
+	{ _T("joc"),    format_2a,  ps_any },           { _T("jop"),    format_2a,  ps_any },
+	{ _T("sla"),    format_5,   ps_any },           { _T("sra"),    format_5,   ps_any },
+	{ _T("src"),    format_5,   ps_any },           { _T("srl"),    format_5,   ps_any },
+	{ _T("ai"),     format_8a,  ps_any|sd_11 },     { _T("andi"),   format_8a,  ps_any|sd_11 },
+	{ _T("ci"),     format_8a,  ps_any|sd_11 },     { _T("li"),     format_8a,  ps_any|sd_11 },
+	{ _T("ori"),    format_8a,  ps_any|sd_11 },     { _T("lwpi"),   format_8b,  ps_any|sd_11|sd_11_15 },
+	{ _T("limi"),   format_8b,  ps_any|sd_11|sd_11_15 },    { _T("stst"),   format_18,  ps_any|sd_11 },
+	{ _T("stwp"),   format_18,  ps_any|sd_11 },     { _T("rtwp"),   format_7,   ps_any|sd_11|sd_11_15 },
+	{ _T("idle"),   format_7,   ps_any|sd_11|sd_11_15 },    { _T("rset"),   format_7,   ps_any|sd_11|sd_11_15 },
+	{ _T("ckof"),   format_7,   ps_any|sd_11|sd_11_15 },    { _T("ckon"),   format_7,   ps_any|sd_11|sd_11_15 },
+	{ _T("lrex"),   format_7,   ps_any|sd_11|sd_11_15 },
 
 	/* mapper instruction set */
-	{ "lds",    format_6,   ps_mapper },        { "ldd",    format_6,   ps_mapper },
-	{ "lmf",    format_10,  ps_mapper },
+	{ _T("lds"),    format_6,   ps_mapper },        { _T("ldd"),    format_6,   ps_mapper },
+	{ _T("lmf"),    format_10,  ps_mapper },
 
 	/* tms9995 instruction set */
-	{ "divs",   format_6,   ps_tms9995 },       { "mpys",   format_6,   ps_tms9995 },
-	{ "lst",    format_18,  ps_tms9995 },       { "lwp",    format_18,  ps_tms9995 },
+	{ _T("divs"),   format_6,   ps_tms9995 },       { _T("mpys"),   format_6,   ps_tms9995 },
+	{ _T("lst"),    format_18,  ps_tms9995 },       { _T("lwp"),    format_18,  ps_tms9995 },
 
 	/* tms99000 instruction set */
-	{ "bind",   format_6,   ps_tms99000 },
+	{ _T("bind"),   format_6,   ps_tms99000 },
 
 	/* ti990/12 instruction set */
-	{ "sram",   format_13,  ps_ti990_12 },      { "slam",   format_13,  ps_ti990_12 },
-	{ "rto",    format_11,  ps_ti990_12 },      { "lto",    format_11,  ps_ti990_12 },
-	{ "cnto",   format_11,  ps_ti990_12 },      { "slsl",   format_20,  ps_ti990_12 },
-	{ "slsp",   format_20,  ps_ti990_12 },      { "bdc",    format_11,  ps_ti990_12 },
-	{ "dbc",    format_11,  ps_ti990_12 },      { "swpm",   format_11,  ps_ti990_12 },
-	{ "xorm",   format_11,  ps_ti990_12 },      { "orm",    format_11,  ps_ti990_12 },
-	{ "andm",   format_11,  ps_ti990_12 },      { "sm",     format_11,  ps_ti990_12 },
-	{ "am",     format_11,  ps_ti990_12 },      { "mova",   format_19,  ps_ti990_12 },
-	{ "emd",    format_7,   ps_ti990_12 },      { "eint",   format_7,   ps_ti990_12 },
-	{ "dint",   format_7,   ps_ti990_12 },      { "stpc",   format_18,  ps_ti990_12 },
-	{ "cs",     format_12,  ps_ti990_12 },      { "seqb",   format_12,  ps_ti990_12 },
-	{ "movs",   format_12,  ps_ti990_12 },      { "lim",    format_18,  ps_ti990_12 },
-	{ "lcs",    format_18,  ps_ti990_12 },      { "blsk",   format_8a,  ps_ti990_12 },
-	{ "mvsr",   format_12,  ps_ti990_12 },      { "mvsk",   format_12,  ps_ti990_12 },
-	{ "pops",   format_12,  ps_ti990_12 },      { "pshs",   format_12,  ps_ti990_12 },
-	{ "cri",    format_7,   ps_ti990_12 },      { "cdi",    format_7,   ps_ti990_12 },
-	{ "negr",   format_7,   ps_ti990_12 },      { "negd",   format_7,   ps_ti990_12 },
-	{ "cre",    format_7,   ps_ti990_12 },      { "cde",    format_7,   ps_ti990_12 },
-	{ "cer",    format_7,   ps_ti990_12 },      { "ced",    format_7,   ps_ti990_12 },
-	{ "nrm",    format_11,  ps_ti990_12 },      { "tmb",    format_14,  ps_ti990_12 },
-	{ "tcmb",   format_14,  ps_ti990_12 },      { "tsmb",   format_14,  ps_ti990_12 },
-	{ "srj",    format_17,  ps_ti990_12 },      { "arj",    format_17,  ps_ti990_12 },
-	{ "xit",    format_7,   ps_ti990_12 },      { "insf",   format_16,  ps_ti990_12 },
-	{ "xv",     format_16,  ps_ti990_12 },      { "xf",     format_16,  ps_ti990_12 },
-	{ "ar",     format_6,   ps_ti990_12 },      { "cir",    format_6,   ps_ti990_12 },
-	{ "sr",     format_6,   ps_ti990_12 },      { "mr",     format_6,   ps_ti990_12 },
-	{ "dr",     format_6,   ps_ti990_12 },      { "lr",     format_6,   ps_ti990_12 },
-	{ "str",    format_6,   ps_ti990_12 },      { "iof",    format_15,  ps_ti990_12 },
-	{ "sneb",   format_12,  ps_ti990_12 },      { "crc",    format_12,  ps_ti990_12 },
-	{ "ts",     format_12,  ps_ti990_12 },      { "ad",     format_6,   ps_ti990_12 },
-	{ "cid",    format_6,   ps_ti990_12 },      { "sd",     format_6,   ps_ti990_12 },
-	{ "md",     format_6,   ps_ti990_12 },      { "dd",     format_6,   ps_ti990_12 },
-	{ "ld",     format_6,   ps_ti990_12 },      { "std",    format_6,   ps_ti990_12 },
-	{ "ep",     format_21,  ps_ti990_12 },
+	{ _T("sram"),   format_13,  ps_ti990_12 },      { _T("slam"),   format_13,  ps_ti990_12 },
+	{ _T("rto"),    format_11,  ps_ti990_12 },      { _T("lto"),    format_11,  ps_ti990_12 },
+	{ _T("cnto"),   format_11,  ps_ti990_12 },      { _T("slsl"),   format_20,  ps_ti990_12 },
+	{ _T("slsp"),   format_20,  ps_ti990_12 },      { _T("bdc"),    format_11,  ps_ti990_12 },
+	{ _T("dbc"),    format_11,  ps_ti990_12 },      { _T("swpm"),   format_11,  ps_ti990_12 },
+	{ _T("xorm"),   format_11,  ps_ti990_12 },      { _T("orm"),    format_11,  ps_ti990_12 },
+	{ _T("andm"),   format_11,  ps_ti990_12 },      { _T("sm"),     format_11,  ps_ti990_12 },
+	{ _T("am"),     format_11,  ps_ti990_12 },      { _T("mova"),   format_19,  ps_ti990_12 },
+	{ _T("emd"),    format_7,   ps_ti990_12 },      { _T("eint"),   format_7,   ps_ti990_12 },
+	{ _T("dint"),   format_7,   ps_ti990_12 },      { _T("stpc"),   format_18,  ps_ti990_12 },
+	{ _T("cs"),     format_12,  ps_ti990_12 },      { _T("seqb"),   format_12,  ps_ti990_12 },
+	{ _T("movs"),   format_12,  ps_ti990_12 },      { _T("lim"),    format_18,  ps_ti990_12 },
+	{ _T("lcs"),    format_18,  ps_ti990_12 },      { _T("blsk"),   format_8a,  ps_ti990_12 },
+	{ _T("mvsr"),   format_12,  ps_ti990_12 },      { _T("mvsk"),   format_12,  ps_ti990_12 },
+	{ _T("pops"),   format_12,  ps_ti990_12 },      { _T("pshs"),   format_12,  ps_ti990_12 },
+	{ _T("cri"),    format_7,   ps_ti990_12 },      { _T("cdi"),    format_7,   ps_ti990_12 },
+	{ _T("negr"),   format_7,   ps_ti990_12 },      { _T("negd"),   format_7,   ps_ti990_12 },
+	{ _T("cre"),    format_7,   ps_ti990_12 },      { _T("cde"),    format_7,   ps_ti990_12 },
+	{ _T("cer"),    format_7,   ps_ti990_12 },      { _T("ced"),    format_7,   ps_ti990_12 },
+	{ _T("nrm"),    format_11,  ps_ti990_12 },      { _T("tmb"),    format_14,  ps_ti990_12 },
+	{ _T("tcmb"),   format_14,  ps_ti990_12 },      { _T("tsmb"),   format_14,  ps_ti990_12 },
+	{ _T("srj"),    format_17,  ps_ti990_12 },      { _T("arj"),    format_17,  ps_ti990_12 },
+	{ _T("xit"),    format_7,   ps_ti990_12 },      { _T("insf"),   format_16,  ps_ti990_12 },
+	{ _T("xv"),     format_16,  ps_ti990_12 },      { _T("xf"),     format_16,  ps_ti990_12 },
+	{ _T("ar"),     format_6,   ps_ti990_12 },      { _T("cir"),    format_6,   ps_ti990_12 },
+	{ _T("sr"),     format_6,   ps_ti990_12 },      { _T("mr"),     format_6,   ps_ti990_12 },
+	{ _T("dr"),     format_6,   ps_ti990_12 },      { _T("lr"),     format_6,   ps_ti990_12 },
+	{ _T("str"),    format_6,   ps_ti990_12 },      { _T("iof"),    format_15,  ps_ti990_12 },
+	{ _T("sneb"),   format_12,  ps_ti990_12 },      { _T("crc"),    format_12,  ps_ti990_12 },
+	{ _T("ts"),     format_12,  ps_ti990_12 },      { _T("ad"),     format_6,   ps_ti990_12 },
+	{ _T("cid"),    format_6,   ps_ti990_12 },      { _T("sd"),     format_6,   ps_ti990_12 },
+	{ _T("md"),     format_6,   ps_ti990_12 },      { _T("dd"),     format_6,   ps_ti990_12 },
+	{ _T("ld"),     format_6,   ps_ti990_12 },      { _T("std"),    format_6,   ps_ti990_12 },
+	{ _T("ep"),     format_21,  ps_ti990_12 },
 
 	/* tms9940-only instruction set */
 	/* these instructions are said to be format 9 (xop), but since the xop
 	level is interpreted as part of the opcode, dca and dcs should be handled
 	like format 6.  liim looks like format 18, but slightly different,
 	therefore it is handled like a special format. */
-	{ "liim",   format_liim,/*ps_tms9940*/0 },  { "dca",    format_6,   /*ps_tms9940*/0 },
-	{ "dcs",    format_6,   /*ps_tms9940*/0 },
+	{ _T("liim"),   format_liim,/*ps_tms9940*/0 },  { _T("dca"),    format_6,   /*ps_tms9940*/0 },
+	{ _T("dcs"),    format_6,   /*ps_tms9940*/0 },
 
 	{ NULL,     illegal,    ps_any }
 };
@@ -320,24 +320,24 @@ INLINE UINT16 readop_arg(const UINT8 *opram, unsigned pc)
 	return result | opram[PC++ - pc];
 }
 
-static int print_arg (char *dest, int mode, int arg, const UINT8 *opram, unsigned pc, symbol_t *first_symbol)
+static int print_arg (_TCHAR *dest, int mode, int arg, const UINT8 *opram, unsigned pc, symbol_t *first_symbol)
 {
 	int base;
 
 	switch (mode)
 	{
 		case 0x0:   /* workspace register */
-			return sprintf (dest, "R%d", arg);
+			return _stprintf (dest, _T("R%d"), arg);
 		case 0x1:   /* workspace register indirect */
-			return sprintf (dest, "*R%d", arg);
+			return _stprintf (dest, _T("*R%d"), arg);
 		case 0x2:   /* symbolic|indexed */
 			base = readop_arg(opram, pc);
 			if (arg)    /* indexed */
-				return sprintf (dest, "@>%s(R%d)", get_value_or_symbol(first_symbol, "%04x", base), arg);
+				return _stprintf (dest, _T("@>%s(R%d)"), get_value_or_symbol(first_symbol, _T("%04x"), base), arg);
 			else        /* symbolic (direct) */
-				return sprintf (dest, "@>%s", get_value_or_symbol(first_symbol, "%04x", base));
+				return _stprintf (dest, _T("@>%s"), get_value_or_symbol(first_symbol, _T("%04x"), base));
 		case 0x3:   /* workspace register indirect auto increment */
-			return sprintf (dest, "*R%d+", arg);
+			return _stprintf (dest, _T("*R%d+"), arg);
 	}
 
 	return 0;
@@ -347,7 +347,7 @@ static int print_arg (char *dest, int mode, int arg, const UINT8 *opram, unsigne
 /*****************************************************************************
  *  Disassemble a single command and return the number of bytes it uses.
  *****************************************************************************/
-unsigned Dasm9900 (char *buffer, unsigned pc, int model_id, const UINT8 *oprom, const UINT8 *opram, symbol_t *first_symbol)
+unsigned Dasm9900 (_TCHAR *buffer, unsigned pc, int model_id, const UINT8 *oprom, const UINT8 *opram, symbol_t *first_symbol)
 {
 	int OP, OP2, opc;
 	int sarg, darg, smode, dmode;
@@ -356,7 +356,7 @@ unsigned Dasm9900 (char *buffer, unsigned pc, int model_id, const UINT8 *oprom, 
 	int bit_position, bit_width;
 	unsigned dasmflags = 0;
 
-	const char *mnemonic;
+	const _TCHAR *mnemonic;
 	format_t format;
 	int flags;
 
@@ -484,11 +484,11 @@ unsigned Dasm9900 (char *buffer, unsigned pc, int model_id, const UINT8 *oprom, 
 	format = descriptions[opc].format;
 
 	/* bl and blwp instructions are subroutines */
-	if (mnemonic != NULL && mnemonic[0] == 'b' && mnemonic[1] == 'l')
+	if (mnemonic != NULL && mnemonic[0] == _T('b') && mnemonic[1] == _T('l'))
 		dasmflags = DASMFLAG_STEP_OVER;
 
 	/* b *r11 and rtwp are returns */
-	else if (opc == 0x045b || (mnemonic != NULL && strcmp(mnemonic, "rtwp") == 0))
+	else if (opc == 0x045b || (mnemonic != NULL && _tcscmp(mnemonic, _T("rtwp")) == 0))
 		dasmflags = DASMFLAG_STEP_OUT;
 
 	switch (format)
@@ -499,20 +499,20 @@ unsigned Dasm9900 (char *buffer, unsigned pc, int model_id, const UINT8 *oprom, 
 		dmode = BITS(OP,4,5);
 		darg = BITS(OP,6,9);
 
-		buffer += sprintf (buffer, "%-4s ", mnemonic);
+		buffer += _stprintf (buffer, _T("%-4s "), mnemonic);
 		buffer += print_arg (buffer, smode, sarg, opram, pc, first_symbol);
-		buffer += sprintf (buffer, ",");
+		buffer += _stprintf (buffer, _T(","));
 		buffer += print_arg (buffer, dmode, darg, opram, pc, first_symbol);
 		break;
 
 	case format_2a:     /* jump instructions */
 		displacement = (signed char)BITS(OP,8,15);
-		sprintf (buffer, "%-4s >%s", mnemonic, get_value_or_symbol(first_symbol, "%04x", 0xffff & (PC + displacement * 2)));
+		_stprintf (buffer, _T("%-4s >%s"), mnemonic, get_value_or_symbol(first_symbol, _T("%04x"), 0xffff & (PC + displacement * 2)));
 		break;
 
 	case format_2b:     /* bit I/O instructions */
 		displacement = (signed char)BITS(OP,8,15);
-		sprintf (buffer, "%-4s >%04x", mnemonic, 0xffff & displacement);
+		_stprintf (buffer, _T("%-4s >%04x"), mnemonic, 0xffff & displacement);
 		break;
 
 	case format_3_9:    /* logical, multiply, and divide instructions */
@@ -527,15 +527,15 @@ unsigned Dasm9900 (char *buffer, unsigned pc, int model_id, const UINT8 *oprom, 
 
 		if (format == format_3_9)
 		{
-			buffer += sprintf (buffer, "%-4s ", mnemonic);
+			buffer += _stprintf (buffer, _T("%-4s "), mnemonic);
 			buffer += print_arg (buffer, smode, sarg, opram, pc, first_symbol);
-			buffer += sprintf (buffer, ",R%d", darg);
+			buffer += _stprintf (buffer, _T(",R%d"), darg);
 		}
 		else
 		{
-			buffer += sprintf (buffer, "%-4s ", mnemonic);
+			buffer += _stprintf (buffer, _T("%-4s "), mnemonic);
 			buffer += print_arg (buffer, smode, sarg, opram, pc, first_symbol);
-			buffer += sprintf (buffer, ",%d", darg);
+			buffer += _stprintf (buffer, _T(",%d"), darg);
 		}
 		break;
 
@@ -543,39 +543,39 @@ unsigned Dasm9900 (char *buffer, unsigned pc, int model_id, const UINT8 *oprom, 
 		sarg = BITS(OP,12,15);
 		darg = BITS(OP,8,11);
 
-		sprintf (buffer, darg ? "%-4s R%d,%d" : "%-4s R%d,R%d", mnemonic, sarg, darg);
+		_stprintf (buffer, darg ? _T("%-4s R%d,%d") : _T("%-4s R%d,R%d"), mnemonic, sarg, darg);
 		break;
 
 	case format_6:      /* single address instructions */
 		smode = BITS(OP,10,11);
 		sarg = BITS(OP,12,15);
 
-		buffer += sprintf (buffer, "%-4s ", mnemonic);
+		buffer += _stprintf (buffer, _T("%-4s "), mnemonic);
 		buffer += print_arg (buffer, smode, sarg, opram, pc, first_symbol);
 		break;
 
 	case format_7:      /* instructions without operands */
-		sprintf (buffer, "%s", mnemonic);
+		_stprintf (buffer, _T("%s"), mnemonic);
 		break;
 
 	case format_8a:     /* immediate instructions (destination register) */
 		darg = BITS(OP,12,15);
 		sarg = readop_arg(opram, pc);
 
-		sprintf (buffer, "%-4s R%d,>%s", mnemonic, darg, get_value_or_symbol(first_symbol, "%04x", sarg));
+		_stprintf (buffer, _T("%-4s R%d,>%s"), mnemonic, darg, get_value_or_symbol(first_symbol, _T("%04x"), sarg));
 		break;
 
 	case format_8b:     /* immediate instructions (no destination register) */
 		sarg = readop_arg(opram, pc);
 
-		sprintf (buffer, "%-4s >%s", mnemonic, get_value_or_symbol(first_symbol, "%04x", sarg));
+		_stprintf (buffer, _T("%-4s >%s"), mnemonic, get_value_or_symbol(first_symbol, _T("%04x"), sarg));
 		break;
 
 	case format_10:     /* memory map file instruction */
 		sarg = BITS(OP,12,15);
 		darg = BITS(OP,11,11);
 
-		sprintf (buffer, "%-4s R%d,%d", mnemonic, sarg, darg);
+		_stprintf (buffer, _T("%-4s R%d,%d"), mnemonic, sarg, darg);
 		break;
 
 	case format_11:     /* multiple precision instructions */
@@ -587,11 +587,11 @@ unsigned Dasm9900 (char *buffer, unsigned pc, int model_id, const UINT8 *oprom, 
 		darg = BITS(OP2,6,9);
 		byte_count = BITS(OP2,0,3);
 
-		buffer += sprintf (buffer, "%-4s ", mnemonic);
+		buffer += _stprintf (buffer, _T("%-4s "), mnemonic);
 		buffer += print_arg (buffer, smode, sarg, opram, pc, first_symbol);
-		buffer += sprintf (buffer, ",");
+		buffer += _stprintf (buffer, _T(","));
 		buffer += print_arg (buffer, dmode, darg, opram, pc, first_symbol);
-		buffer += sprintf (buffer, byte_count ? ",%d" : ",R%d", byte_count);
+		buffer += _stprintf (buffer, byte_count ? _T(",%d") : _T(",R%d"), byte_count);
 		break;
 
 	case format_12:     /* string instructions */
@@ -604,11 +604,11 @@ unsigned Dasm9900 (char *buffer, unsigned pc, int model_id, const UINT8 *oprom, 
 		byte_count = BITS(OP2,0,3);
 		checkpoint = BITS(OP,12,15);
 
-		buffer += sprintf (buffer, "%-4s ", mnemonic);
+		buffer += _stprintf (buffer, _T("%-4s "), mnemonic);
 		buffer += print_arg (buffer, smode, sarg, opram, pc, first_symbol);
-		buffer += sprintf (buffer, ",");
+		buffer += _stprintf (buffer, _T(","));
 		buffer += print_arg (buffer, dmode, darg, opram, pc, first_symbol);
-		buffer += sprintf (buffer, byte_count ? ",%d,R%d" : ",R%d,R%d", byte_count, checkpoint);
+		buffer += _stprintf (buffer, byte_count ? _T(",%d,R%d") : _T(",R%d,R%d"), byte_count, checkpoint);
 		break;
 
 	case format_13:     /* multiple precision shift instructions */
@@ -619,10 +619,10 @@ unsigned Dasm9900 (char *buffer, unsigned pc, int model_id, const UINT8 *oprom, 
 		darg = BITS(OP2,6,9);
 		byte_count = BITS(OP2,0,3);
 
-		buffer += sprintf (buffer, "%-4s ", mnemonic);
+		buffer += _stprintf (buffer, _T("%-4s "), mnemonic);
 		buffer += print_arg (buffer, smode, sarg, opram, pc, first_symbol);
-		buffer += sprintf (buffer, byte_count ? ",%d" : ",R%d", byte_count);
-		buffer += sprintf (buffer, darg ? ",%d" : ",R%d", darg);
+		buffer += _stprintf (buffer, byte_count ? _T(",%d") : _T(",R%d"), byte_count);
+		buffer += _stprintf (buffer, darg ? _T(",%d") : _T(",R%d"), darg);
 		break;
 
 	case format_14:     /* bit testing instructions */
@@ -632,12 +632,12 @@ unsigned Dasm9900 (char *buffer, unsigned pc, int model_id, const UINT8 *oprom, 
 		sarg = BITS(OP2,12,15);
 		darg = BITS(OP2,0,9);
 
-		buffer += sprintf (buffer, "%-4s ", mnemonic);
+		buffer += _stprintf (buffer, _T("%-4s "), mnemonic);
 		buffer += print_arg (buffer, smode, sarg, opram, pc, first_symbol);
 		if (darg == 0x3ff)
-			buffer += sprintf (buffer, ",R0");
+			buffer += _stprintf (buffer, _T(",R0"));
 		else
-			buffer += sprintf (buffer, ",%d", darg);
+			buffer += _stprintf (buffer, _T(",%d"), darg);
 		break;
 
 	case format_15:     /* invert order of field instruction */
@@ -648,10 +648,10 @@ unsigned Dasm9900 (char *buffer, unsigned pc, int model_id, const UINT8 *oprom, 
 		bit_position = BITS(OP2,0,3);
 		bit_width = BITS(OP,12,15);
 
-		buffer += sprintf (buffer, "%-4s ", mnemonic);
+		buffer += _stprintf (buffer, _T("%-4s "), mnemonic);
 		buffer += print_arg (buffer, smode, sarg, opram, pc, first_symbol);
-		buffer += sprintf (buffer, bit_position ? ",(%d," : ",(R%d,", bit_position);
-		buffer += sprintf (buffer, bit_width ? "%d)" : "R%d)", bit_width);
+		buffer += _stprintf (buffer, bit_position ? _T(",(%d,") : _T(",(R%d,"), bit_position);
+		buffer += _stprintf (buffer, bit_width ? _T("%d)") : _T("R%d)"), bit_width);
 		break;
 
 	case format_16:     /* field instructions */
@@ -664,12 +664,12 @@ unsigned Dasm9900 (char *buffer, unsigned pc, int model_id, const UINT8 *oprom, 
 		bit_position = BITS(OP2,0,3);
 		bit_width = BITS(OP,12,15);
 
-		buffer += sprintf (buffer, "%-4s ", mnemonic);
+		buffer += _stprintf (buffer, _T("%-4s "), mnemonic);
 		buffer += print_arg (buffer, smode, sarg, opram, pc, first_symbol);
-		buffer += sprintf (buffer, ",");
+		buffer += _stprintf (buffer, _T(","));
 		buffer += print_arg (buffer, dmode, darg, opram, pc, first_symbol);
-		buffer += sprintf (buffer, bit_position ? ",(%d," : ",(%d,", bit_position);
-		buffer += sprintf (buffer, bit_width ? "%d)" : "R%d)", bit_width);
+		buffer += _stprintf (buffer, bit_position ? _T(",(%d,") : _T(",(%d,"), bit_position);
+		buffer += _stprintf (buffer, bit_width ? _T("%d)") : _T("R%d)"), bit_width);
 		break;
 
 	case format_17:     /* alter register and jump instructions */
@@ -679,20 +679,20 @@ unsigned Dasm9900 (char *buffer, unsigned pc, int model_id, const UINT8 *oprom, 
 		sarg = BITS(OP2,4,7);
 		darg = BITS(OP2,0,3);
 		if (darg)
-		sprintf (buffer, darg ? "%-4s >%s,%d,R%d" : "%-4s >%s,R%d,R%d",
-							mnemonic, get_value_or_symbol(first_symbol, "%04x", 0xffff & (PC + displacement * 2)), sarg, darg);
+		_stprintf (buffer, darg ? _T("%-4s >%s,%d,R%d") : _T("%-4s >%s,R%d,R%d"),
+							mnemonic, get_value_or_symbol(first_symbol, _T("%04x"), 0xffff & (PC + displacement * 2)), sarg, darg);
 		break;
 
 	case format_18:     /* single register operand instructions */
 		sarg = BITS(OP,12,15);
 
-		sprintf (buffer, "%-4s R%d", mnemonic, sarg);
+		_stprintf (buffer, _T("%-4s R%d"), mnemonic, sarg);
 				break;
 
 	case format_liim:   /* liim instruction */
 		sarg = BITS(OP,14,15);
 
-		sprintf (buffer, "%-4s %d", mnemonic, sarg);
+		_stprintf (buffer, _T("%-4s %d"), mnemonic, sarg);
 		break;
 
 	case format_19:     /* move address instruction */
@@ -703,15 +703,15 @@ unsigned Dasm9900 (char *buffer, unsigned pc, int model_id, const UINT8 *oprom, 
 		dmode = BITS(OP2,4,5);
 		darg = BITS(OP2,6,9);
 
-		buffer += sprintf (buffer, "%-4s ", mnemonic);
+		buffer += _stprintf (buffer, _T("%-4s "), mnemonic);
 		buffer += print_arg (buffer, smode, sarg, opram, pc, first_symbol);
-		buffer += sprintf (buffer, ",");
+		buffer += _stprintf (buffer, _T(","));
 		buffer += print_arg (buffer, dmode, darg, opram, pc, first_symbol);
 				break;
 
 	case format_20:     /* list search instructions */
 	{
-			const char *condition_code;
+			const _TCHAR *condition_code;
 
 			OP2 = readop_arg(opram, pc);
 
@@ -723,43 +723,43 @@ unsigned Dasm9900 (char *buffer, unsigned pc, int model_id, const UINT8 *oprom, 
 			switch (BITS(OP2,0,3))
 			{
 			case 0:
-				condition_code = "eq";
+				condition_code = _T("eq");
 				break;
 			case 1:
-				condition_code = "ne";
+				condition_code = _T("ne");
 				break;
 			case 2:
-				condition_code = "he";
+				condition_code = _T("he");
 				break;
 			case 3:
-				condition_code = "l";
+				condition_code = _T("l");
 				break;
 			case 4:
-				condition_code = "ge";
+				condition_code = _T("ge");
 				break;
 			case 5:
-				condition_code = "lt";
+				condition_code = _T("lt");
 				break;
 			case 6:
-				condition_code = "le";
+				condition_code = _T("le");
 				break;
 			case 7:
-				condition_code = "h";
+				condition_code = _T("h");
 				break;
 			case 8:
-				condition_code = "lte";
+				condition_code = _T("lte");
 				break;
 			case 9:
-				condition_code = "gt";
+				condition_code = _T("gt");
 				break;
 			default:
-				condition_code = "??";
+				condition_code = _T("??");
 				break;
 			}
 
-			buffer += sprintf (buffer, "%-4s %s,", mnemonic, condition_code);
+			buffer += _stprintf (buffer, _T("%-4s %s,"), mnemonic, condition_code);
 			buffer += print_arg (buffer, smode, sarg, opram, pc, first_symbol);
-			buffer += sprintf (buffer, ",");
+			buffer += _stprintf (buffer, _T(","));
 			buffer += print_arg (buffer, dmode, darg, opram, pc, first_symbol);
 			break;
 	}
@@ -777,19 +777,19 @@ unsigned Dasm9900 (char *buffer, unsigned pc, int model_id, const UINT8 *oprom, 
 		byte_count = BITS(OP2,0,3);
 		dest_byte_count = BITS(OP,12,15);
 
-		buffer += sprintf (buffer, "%-4s ", mnemonic);
+		buffer += _stprintf (buffer, _T("%-4s "), mnemonic);
 		buffer += print_arg (buffer, smode, sarg, opram, pc, first_symbol);
-		buffer += sprintf (buffer, ",");
+		buffer += _stprintf (buffer, _T(","));
 		buffer += print_arg (buffer, dmode, darg, opram, pc, first_symbol);
-		buffer += sprintf (buffer, byte_count ? ",%d" : ",R%d", byte_count);
-		buffer += sprintf (buffer, dest_byte_count ? ",%d" : ",R%d", dest_byte_count);
+		buffer += _stprintf (buffer, byte_count ? _T(",%d") : _T(",R%d"), byte_count);
+		buffer += _stprintf (buffer, dest_byte_count ? _T(",%d") : _T(",R%d"), dest_byte_count);
 		break;
 	}
 
 	default:
-		logerror("debbugger internal error, file %s, line %d\n", __FILE__, __LINE__);
+		logerror(_T("debbugger internal error, file %s, line %d\n"), __FILE__, __LINE__);
 	case illegal:
-		sprintf (buffer, "data >%04x", OP);
+		_stprintf (buffer, _T("data >%04x"), OP);
 		break;
 	}
 

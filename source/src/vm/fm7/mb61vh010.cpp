@@ -462,7 +462,7 @@ void MB61VH010::do_line(void)
 	}
 	xcount = abs(ax);
 	ycount = abs(ay);
-	//this->out_debug_log("LINE: (%d,%d)-(%d,%d) CMD=%02x STYLE=%04x, \n", x_begin, y_begin, x_end , y_end, command_reg, line_style.w.l); 
+	//this->out_debug_log(_T("LINE: (%d,%d)-(%d,%d) CMD=%02x STYLE=%04x, \n"), x_begin, y_begin, x_end , y_end, command_reg, line_style.w.l); 
 	if(ycount == 0) {
 		if((cpy_t < 0) || (cpy_t >= 512)) goto _finish;
 		if(xcount == 0) {
@@ -745,7 +745,7 @@ inline bool MB61VH010::put_dot8(int x, int y)
 
 void MB61VH010::write_data8(uint32_t id, uint32_t data)
 {
-	//this->out_debug_log("ALU: ADDR=%02x DATA=%02x\n", id, data);
+	//this->out_debug_log(_T("ALU: ADDR=%02x DATA=%02x\n"), id, data);
 	if(id == ALU_CMDREG) {
 		command_reg = data;
 		return;
@@ -975,7 +975,7 @@ void MB61VH010::save_state(FILEIO *state_fio)
 	int i;
 	state_fio->FputUint32(STATE_VERSION);
 	state_fio->FputInt32(this_device_id);
-	this->out_debug_log("Save State: MB61VH010 : id=%d ver=%d\n", this_device_id, STATE_VERSION);
+	this->out_debug_log(_T("Save State: MB61VH010 : id=%d ver=%d\n"), this_device_id, STATE_VERSION);
 
 	{ // V1
 		state_fio->FputUint8(command_reg);
@@ -1015,7 +1015,7 @@ bool MB61VH010::load_state(FILEIO *state_fio)
 {
 	uint32_t version = state_fio->FgetUint32();
 	int i;
-	this->out_debug_log("Load State: MB61VH010 : id=%d ver=%d\n", this_device_id, version);
+	this->out_debug_log(_T("Load State: MB61VH010 : id=%d ver=%d\n"), this_device_id, version);
 	if(this_device_id != state_fio->FgetInt32()) return false;
 	if(version >= 1) {
 		command_reg = state_fio->FgetUint8();

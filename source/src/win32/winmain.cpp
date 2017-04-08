@@ -47,9 +47,29 @@ void hide_menu_bar(HWND hWnd);
 HWND hStatus = NULL;
 bool status_bar_visible = false;
 
+#ifdef USE_FD1
+uint32_t fd_status = 0x80000000;
+#endif
+#ifdef USE_QD1
+uint32_t qd_status = 0x80000000;
+#endif
+#ifdef USE_HARD_DISK
+uint32_t hd_status = 0x80000000;
+#endif
+#ifdef USE_COMPACT_DISC
+uint32_t cd_status = 0x80000000;
+#endif
+#ifdef USE_LASER_DISC
+uint32_t ld_status = 0x80000000;
+#endif
+#if defined(USE_TAPE1) && !defined(TAPE_BINARY_ONLY)
+_TCHAR tape_status[1024] = _T("uninitialized");
+#endif
+
 void show_status_bar(HWND hWnd);
 void hide_status_bar(HWND hWnd);
 int get_status_bar_height();
+bool get_status_bar_updated();
 void update_status_bar(HINSTANCE hInstance, LPDRAWITEMSTRUCT lpDrawItem);
 
 // file
@@ -369,10 +389,12 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdL
 			// update status bar
 			if(update_status_bar_time <= current_time) {
 				if(hStatus != NULL && status_bar_visible) {
-					SendMessage(hStatus, SB_SETTEXT, (WPARAM)0 | SBT_OWNERDRAW, (LPARAM)NULL);
-//					InvalidateRect(hStatus, NULL, FALSE);
+					if(get_status_bar_updated()) {
+						SendMessage(hStatus, SB_SETTEXT, (WPARAM)0 | SBT_OWNERDRAW, (LPARAM)NULL);
+//						InvalidateRect(hStatus, NULL, FALSE);
+					}
 				}
-				update_status_bar_time = current_time + 500;
+				update_status_bar_time = current_time + 200;
 			}
 			
 			// disable screen saver
@@ -1813,6 +1835,62 @@ int get_status_bar_height()
 	return 0;
 }
 
+bool get_status_bar_updated()
+{
+	bool updated = false;
+	
+#ifdef USE_FD1
+	uint32_t new_fd_status = emu->is_floppy_disk_accessed();
+	if(fd_status != new_fd_status) {
+		updated = true;
+		fd_status = new_fd_status;
+	}
+#endif
+#ifdef USE_QD1
+	uint32_t new_qd_status = emu->is_quick_disk_accessed();
+	if(qd_status != new_qd_status) {
+		updated = true;
+		qd_status = new_qd_status;
+	}
+#endif
+#ifdef USE_HARD_DISK
+	uint32_t new_hd_status = emu->is_hard_disk_accessed();
+	if(hd_status != new_hd_status) {
+		updated = true;
+		hd_status = new_hd_status;
+	}
+#endif
+#ifdef USE_COMPACT_DISC
+	uint32_t new_cd_status = emu->is_compact_disc_accessed();
+	if(cd_status != new_cd_status) {
+		updated = true;
+		cd_status = new_cd_status;
+	}
+#endif
+#ifdef USE_LASER_DISC
+	uint32_t new_ld_status = emu->is_laser_disc_accessed();
+	if(ld_status != new_ld_status) {
+		updated = true;
+		ld_status = new_ld_status;
+	}
+#endif
+#if defined(USE_TAPE1) && !defined(TAPE_BINARY_ONLY)
+	_TCHAR new_tape_status[array_length(tape_status)] = {0};
+	for(int drv = 0; drv < MAX_TAPE; drv++) {
+		const _TCHAR* message = emu->get_tape_message(drv);
+		if(message != NULL) {
+			my_tcscpy_s(new_tape_status, array_length(new_tape_status), message);
+			break;
+		}
+	}
+	if(_tcsicmp(tape_status, new_tape_status) != 0) {
+		updated = true;
+		my_tcscpy_s(tape_status, array_length(tape_status), new_tape_status);
+	}
+#endif
+	return updated;
+}
+
 void update_status_bar(HINSTANCE hInstance, LPDRAWITEMSTRUCT lpDrawItem)
 {
 	TEXTMETRIC tm;
@@ -1845,7 +1923,6 @@ void update_status_bar(HINSTANCE hInstance, LPDRAWITEMSTRUCT lpDrawItem)
 				GetTextExtentPoint32(lpDrawItem->hDC, _T("FD:"), 3, &size);
 				draw_left += size.cx + 4;
 				
-				uint32_t fd_status = emu->is_floppy_disk_accessed();
 				for(int i = 0; i < MAX_FD; i++) {
 					int idx = (fd_status >> i) & 1;
 					SelectObject(hdcMem, hBitmap[idx]);
@@ -1859,7 +1936,6 @@ void update_status_bar(HINSTANCE hInstance, LPDRAWITEMSTRUCT lpDrawItem)
 				GetTextExtentPoint32(lpDrawItem->hDC, _T("QD:"), 3, &size);
 				draw_left += size.cx + 4;
 				
-				uint32_t qd_status = emu->is_quick_disk_accessed();
 				for(int i = 0; i < MAX_QD; i++) {
 					int idx = (qd_status >> i) & 1;
 					SelectObject(hdcMem, hBitmap[idx]);
@@ -1873,7 +1949,6 @@ void update_status_bar(HINSTANCE hInstance, LPDRAWITEMSTRUCT lpDrawItem)
 				GetTextExtentPoint32(lpDrawItem->hDC, _T("HD:"), 3, &size);
 				draw_left += size.cx + 4;
 				
-				uint32_t hd_status = emu->is_hard_disk_accessed();
 				for (int i = 0; i < USE_HARD_DISK; i++) {
 					int idx = (hd_status >> i) & 1;
 					SelectObject(hdcMem, hBitmap[idx]);
@@ -1887,7 +1962,6 @@ void update_status_bar(HINSTANCE hInstance, LPDRAWITEMSTRUCT lpDrawItem)
 				GetTextExtentPoint32(lpDrawItem->hDC, _T("CD:"), 3, &size);
 				draw_left += size.cx + 4;
 				
-				uint32_t cd_status = emu->is_compact_disc_accessed();
 				for (int i = 0; i < 1; i++) {
 					int idx = (cd_status >> i) & 1;
 					SelectObject(hdcMem, hBitmap[idx]);
@@ -1901,7 +1975,6 @@ void update_status_bar(HINSTANCE hInstance, LPDRAWITEMSTRUCT lpDrawItem)
 				GetTextExtentPoint32(lpDrawItem->hDC, _T("LD:"), 3, &size);
 				draw_left += size.cx + 4;
 				
-				uint32_t ld_status = emu->is_laser_disc_accessed();
 				for (int i = 0; i < 1; i++) {
 					int idx = (ld_status >> i) & 1;
 					SelectObject(hdcMem, hBitmap[idx]);
@@ -1922,18 +1995,12 @@ void update_status_bar(HINSTANCE hInstance, LPDRAWITEMSTRUCT lpDrawItem)
 	#endif
 	#if defined(USE_TAPE1) && !defined(TAPE_BINARY_ONLY)
 	{
-		for(int drv = 0; drv < MAX_TAPE; drv++) {
-			const _TCHAR* message = emu->get_tape_message(drv);
-			SIZE size;
-			
-			if(message != NULL) {
-				TextOut(lpDrawItem->hDC, draw_left, text_top, _T("CMT:"), 4);
-				GetTextExtentPoint32(lpDrawItem->hDC, _T("CMT:"), 4, &size);
-				draw_left += size.cx + 4;
-				TextOut(lpDrawItem->hDC, draw_left, text_top, message, _tcslen(message));
-				break;
-			}
-		}
+		SIZE size;
+		
+		TextOut(lpDrawItem->hDC, draw_left, text_top, _T("CMT:"), 4);
+		GetTextExtentPoint32(lpDrawItem->hDC, _T("CMT:"), 4, &size);
+		draw_left += size.cx + 4;
+		TextOut(lpDrawItem->hDC, draw_left, text_top, tape_status, _tcslen(tape_status));
 	}
 	#endif
 }

@@ -149,12 +149,12 @@ CPU_DISASSEMBLE( h6280 )
 	PC++;
 
 	opc = op6280[OP];
-    arg = op6280[OP+1];
+	arg = op6280[OP+1];
 
-    if (opc == _jsr || opc == _bsr)
-    	flags = DASMFLAG_STEP_OVER;
-    else if (opc == _rts)
-    	flags = DASMFLAG_STEP_OUT;
+	if (opc == _jsr || opc == _bsr)
+		flags = DASMFLAG_STEP_OVER;
+	else if (opc == _rts)
+		flags = DASMFLAG_STEP_OUT;
 
 	switch(arg)
 	{
@@ -165,7 +165,7 @@ CPU_DISASSEMBLE( h6280 )
 			_stprintf(buffer,_T("%s"), token[opc]);
 			break;
 		case _rel:
-			_stprintf(buffer,_T("%-5s$%04X"), token[opc], (PC + 1 + (signed char)_RDBYTE(PC)) & 0xffff);
+			_stprintf(buffer,_T("%-5s%s"), token[opc], get_value_or_symbol(first_symbol, _T("$%04X"), (PC + 1 + (signed char)_RDBYTE(PC)) & 0xffff));
 			PC+=1;
 			break;
 		case _imm:
@@ -194,34 +194,34 @@ CPU_DISASSEMBLE( h6280 )
 			break;
 		case _zpi:
 			_stprintf(buffer,_T("%-5s($%02X)"), token[opc], _RDBYTE(PC));
-            PC+=1;
-            break;
+			PC+=1;
+			break;
 		case _abs:
-			_stprintf(buffer,_T("%-5s$%04X"), token[opc], _RDWORD(PC));
+			_stprintf(buffer,_T("%-5s%s"), token[opc], get_value_or_symbol(first_symbol, _T("$%04X"), _RDWORD(PC)));
 			PC+=2;
 			break;
 		case _abx:
-			_stprintf(buffer,_T("%-5s$%04X,x"), token[opc], _RDWORD(PC));
+			_stprintf(buffer,_T("%-5s%s,x"), token[opc], get_value_or_symbol(first_symbol, _T("$%04X"), _RDWORD(PC)));
 			PC+=2;
 			break;
 		case _aby:
-			_stprintf(buffer,_T("%-5s$%04X,y"), token[opc], _RDWORD(PC));
+			_stprintf(buffer,_T("%-5s%s,y"), token[opc], get_value_or_symbol(first_symbol, _T("$%04X"), _RDWORD(PC)));
 			PC+=2;
 			break;
 		case _ind:
-			_stprintf(buffer,_T("%-5s($%04X)"), token[opc], _RDWORD(PC));
+			_stprintf(buffer,_T("%-5s(%s)"), token[opc], get_value_or_symbol(first_symbol, _T("$%04X"), _RDWORD(PC)));
 			PC+=2;
 			break;
 		case _iax:
-			_stprintf(buffer,_T("%-5s($%04X),X"), token[opc], _RDWORD(PC));
+			_stprintf(buffer,_T("%-5s(%s),X"), token[opc], get_value_or_symbol(first_symbol, _T("$%04X"), _RDWORD(PC)));
 			PC+=2;
-            break;
+			break;
 		case _blk:
-			_stprintf(buffer,_T("%-5s$%04X $%04X $%04X"), token[opc], _RDWORD(PC), _RDWORD(PC+2), _RDWORD(PC+4));
+			_stprintf(buffer,_T("%-5s%s %s %s"), token[opc], get_value_or_symbol(first_symbol, _T("$%04X"), _RDWORD(PC)), get_value_or_symbol(first_symbol, _T("$%04X"), _RDWORD(PC+2)), get_value_or_symbol(first_symbol, _T("$%04X"), _RDWORD(PC+4)));
 			PC+=6;
-            break;
+			break;
 		case _zrl:
-			_stprintf(buffer,_T("%-5s$%02X $%04X"), token[opc], _RDBYTE(PC), (PC + 2 + (signed char)_RDBYTE(PC+1)) & 0xffff);
+			_stprintf(buffer,_T("%-5s$%02X %s"), token[opc], _RDBYTE(PC), get_value_or_symbol(first_symbol, _T("$%04X"), (PC + 2 + (signed char)_RDBYTE(PC+1)) & 0xffff));
 			PC+=2;
 			break;
 		case _imz:
@@ -233,11 +233,11 @@ CPU_DISASSEMBLE( h6280 )
 			PC+=2;
 			break;
 		case _ima:
-			_stprintf(buffer,_T("%-5s#$%02X $%04X"), token[opc], _RDBYTE(PC), _RDWORD(PC+1));
+			_stprintf(buffer,_T("%-5s#$%02X %s"), token[opc], _RDBYTE(PC), get_value_or_symbol(first_symbol, _T("$%04X"), _RDWORD(PC+1)));
 			PC+=3;
 			break;
 		case _imx:
-			_stprintf(buffer,_T("%-5s#$%02X $%04X,x"), token[opc], _RDBYTE(PC), _RDWORD(PC+1));
+			_stprintf(buffer,_T("%-5s#$%02X %s,x"), token[opc], _RDBYTE(PC), get_value_or_symbol(first_symbol, _T("$%04X"), _RDWORD(PC+1)));
 			PC+=3;
 			break;
 

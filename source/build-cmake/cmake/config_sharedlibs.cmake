@@ -50,6 +50,7 @@ else()
 endif()
 
 add_definitions(-D_USE_QT5)
+add_definitions(-D_UNICODE)
 
 if(USE_QT5_4_APIS)
   add_definitions(-D_USE_QT_5_4)

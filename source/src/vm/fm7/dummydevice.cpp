@@ -65,7 +65,7 @@ void DUMMYDEVICE::save_state(FILEIO *state_fio)
 {
 	state_fio->FputUint32_BE(STATE_VERSION);
 	state_fio->FputInt32_BE(this_device_id);
-	this->out_debug_log("Save State: id=%d ver=%d\n", this_device_id, STATE_VERSION);
+	this->out_debug_log(_T("Save State: id=%d ver=%d\n"), this_device_id, STATE_VERSION);
 	// Version 1
 	{
 		state_fio->FputUint32_BE(status);
@@ -78,7 +78,7 @@ bool DUMMYDEVICE::load_state(FILEIO *state_fio)
 {
 	uint32_t version;
 	version = state_fio->FgetUint32_BE();
-	this->out_debug_log("Load State: id=%d ver=%d\n", this_device_id, version);
+	this->out_debug_log(_T("Load State: id=%d ver=%d\n"), this_device_id, version);
 	if(this_device_id != state_fio->FgetInt32_BE()) return false;
 	// Version 1
 	{

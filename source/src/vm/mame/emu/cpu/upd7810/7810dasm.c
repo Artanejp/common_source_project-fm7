@@ -4596,7 +4596,7 @@ static const struct dasm_s dasmXX_7801[256] = {
 
 	{ _illegal, 0 },     { _DCR, "A" },       { _DCR, "B" },       { _DCR, "C" },
 	{ _JMP, "%w" },      { _OFFIW, "%a,%b" }, { _ACI, "A,%b" },    { _OFFI, "A,%b" },
-	{ _BIT, "0,%a" },    { _BIT, "1,%a" },    { _BIT," 2,%a" },    { _BIT, "3,%a" },
+	{ _BIT, "0,%a" },    { _BIT, "1,%a" },    { _BIT, "2,%a" },    { _BIT, "3,%a" },
 	{ _BIT, "4,%a" },    { _BIT, "5,%a" },    { _BIT, "6,%a" },    { _BIT, "7,%a" },
 
 	{ 0, dasm60_7801 }, { _DAA, 0 },         { _RETI, 0 },        { _CALB, 0 },
@@ -6054,13 +6054,14 @@ static const char *const regname[32] =
 	"illegal", "TMM",     "PT",      "illegal"
 };
 
-static offs_t Dasm( char *buffer, offs_t pc, const struct dasm_s *dasmXX, const UINT8 *oprom, const UINT8 *opram, int is_7810 )
+static offs_t Dasm( _TCHAR *buffer, offs_t pc, const struct dasm_s *dasmXX, const UINT8 *oprom, const UINT8 *opram, int is_7810, symbol_t *first_symbol )
 {
 	int idx = 0;
 	UINT8 op = oprom[idx++], op2, t;
 	int offset;
 	UINT16 ea;
 	const char *a;
+	char c2t[2] = {0};
 	UINT32 flags = 0;
 
 	t = dasmXX[op].token;
@@ -6076,7 +6077,7 @@ static offs_t Dasm( char *buffer, offs_t pc, const struct dasm_s *dasmXX, const 
 		a = (const char *)p_dasm[op2].args;
 	}
 
-	buffer += sprintf(buffer, "%-8.8s", token[t]);
+	buffer += _stprintf(buffer, _T("%-8.8s"), char_to_tchar(token[t]));
 
 	if (t == _CALB || t == _CALF || t == _CALL || t == _CALT)
 		flags = DASMFLAG_STEP_OVER;
@@ -6092,72 +6093,78 @@ static offs_t Dasm( char *buffer, offs_t pc, const struct dasm_s *dasmXX, const 
 			{
 			case 'a':   /* address V * 256 + offset */
 				op2 = opram[idx++];
-				buffer += sprintf(buffer, "VV:%02X", op2);
+				buffer += _stprintf(buffer, _T("VV:%02X"), op2);
 				break;
 			case 'b':   /* immediate byte */
-				buffer += sprintf(buffer, "$%02X", opram[idx++]);
+				buffer += _stprintf(buffer, _T("$%02X"), opram[idx++]);
 				break;
 			case 'w':   /* immediate word */
 				ea = opram[idx++];
 				ea += opram[idx++] << 8;
-				buffer += sprintf(buffer, "$%04X", ea);
+				buffer += _stprintf(buffer, _T("%s"), get_value_or_symbol(first_symbol, _T("$%04X"), ea));
 				break;
 			case 'd':   /* JRE address */
 				op2 = oprom[idx++];
 				offset = (op & 1) ? -(256 - op2): + op2;
-				buffer += sprintf(buffer, "$%04X", ( pc + idx + offset ) & 0xFFFF );
+				buffer += _stprintf(buffer, _T("%s"), get_value_or_symbol(first_symbol, _T("$%04X"), ( pc + idx + offset ) & 0xFFFF));
 				break;
 			case 't':   /* CALT address */
 				ea = 0x80 + 2 * (op & (is_7810 ? 0x1f : 0x3f));
-				buffer += sprintf(buffer, "($%04X)", ea);
+				buffer += _stprintf(buffer, _T("(%s)"), get_value_or_symbol(first_symbol, _T("$%04X"), ea));
 				break;
 			case 'f':   /* CALF address */
 				op2 = oprom[idx++];
 				ea = 0x800 + 0x100 * (op & 0x07) + op2;
-				buffer += sprintf(buffer, "$%04X", ea);
+				buffer += _stprintf(buffer, _T("%s"), get_value_or_symbol(first_symbol, _T("$%04X"), ea));
 				break;
 			case 'o':   /* JR offset */
 				offset = ( ( op & 0x20 ) ? -0x20 : 0 ) + ( op & 0x1F );
-				buffer += sprintf(buffer, "$%04X", ( pc + idx + offset ) & 0xFFFF );
+				buffer += _stprintf(buffer, _T("%s"), get_value_or_symbol(first_symbol, _T("$%04X"), ( pc + idx + offset ) & 0xFFFF));
 				break;
 			case 'i':   /* bit manipulation */
 				op2 = oprom[idx++];
-				buffer += sprintf(buffer, "%s,%d", regname[op2 & 0x1f], op2 >> 5);
+				buffer += _stprintf(buffer, _T("%s,%d"), char_to_tchar(regname[op2 & 0x1f]), op2 >> 5);
 				break;
 			default:
-				*buffer++ = *a;
+//				*buffer++ = *a;
+				c2t[0] = *a;
+				*buffer++ = char_to_tchar(c2t)[0];
 			}
 		}
 		else
-			*buffer++ = *a;
+		{
+//			*buffer++ = *a;
+			c2t[0] = *a;
+			*buffer++ = char_to_tchar(c2t)[0];
+		}
 		a++;
 	}
-	*buffer = '\0';
+	*buffer = _T('\0');
 
 	return idx | flags | DASMFLAG_SUPPORTED;
 }
 
 CPU_DISASSEMBLE( upd7810 )
 {
-	return Dasm( buffer, pc, dasmXX_7810, oprom, opram, 1 );
+	return Dasm( buffer, pc, dasmXX_7810, oprom, opram, 1, first_symbol );
 }
 
 CPU_DISASSEMBLE( upd7807 )
 {
-	return Dasm( buffer, pc, dasmXX_7807, oprom, opram, 1 );
+	return Dasm( buffer, pc, dasmXX_7807, oprom, opram, 1, first_symbol );
 }
 
 CPU_DISASSEMBLE( upd7801 )
 {
-	return Dasm( buffer, pc, dasmXX_7801, oprom, opram, 0 );
+	return Dasm( buffer, pc, dasmXX_7801, oprom, opram, 0, first_symbol );
 }
 
 CPU_DISASSEMBLE( upd78c05 )
 {
-	return Dasm( buffer, pc, dasmXX_78c05, oprom, opram, 0 );
+	return Dasm( buffer, pc, dasmXX_78c05, oprom, opram, 0, first_symbol );
 }
 
 CPU_DISASSEMBLE( upd7907 )
 {
-	return Dasm( buffer, pc, dasmXX_7907, oprom, opram, 0 );
+	return Dasm( buffer, pc, dasmXX_7907, oprom, opram, 0, first_symbol );
 }

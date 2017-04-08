@@ -27,6 +27,8 @@
 #define MAX_BUTTONS		21
 #define MAX_DRAW_RANGES		6
 #define USE_BINARY_FILE1
+#define USE_DEBUGGER
+#define USE_STATE
 
 #include "../../common.h"
 #include "../../fileio.h"
@@ -120,6 +122,11 @@ public:
 	void reset();
 	void run();
 	
+#ifdef USE_DEBUGGER
+	// debugger
+	DEVICE *get_cpu(int index);
+#endif
+	
 	// draw screen
 	void draw_screen();
 	
@@ -134,6 +141,8 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// ----------------------------------------
 	// for each device

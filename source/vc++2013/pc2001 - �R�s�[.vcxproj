@@ -11,8 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{F62D036D-7569-431B-9C55-C056A4D3145A}</ProjectGuid>
-    <RootNamespace>ys6464a</RootNamespace>
+    <ProjectGuid>{E189B8CC-341D-4715-9266-08610C61015A}</ProjectGuid>
+    <RootNamespace>pc2001</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -62,16 +62,16 @@
       <MkTypLibCompatible>true</MkTypLibCompatible>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TargetEnvironment>Win32</TargetEnvironment>
-      <TypeLibraryName>.\Debug/ys6464a.tlb</TypeLibraryName>
+      <TypeLibraryName>.\Debug/pc2001.tlb</TypeLibraryName>
       <HeaderFileName />
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_YS6464A;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_PC2001;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <PrecompiledHeaderOutputFile>.\Debug/ys6464a.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeaderOutputFile>.\Debug/pc2001.pch</PrecompiledHeaderOutputFile>
       <AssemblerListingLocation>.\Debug/</AssemblerListingLocation>
       <ObjectFileName>.\Debug/</ObjectFileName>
       <ProgramDataBaseFileName>.\Debug/</ProgramDataBaseFileName>
@@ -86,10 +86,10 @@
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>odbc32.lib;odbccp32.lib;winmm.lib;imm32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>.\Debug/ys6464a.exe</OutputFile>
+      <OutputFile>.\Debug/pc2001.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ProgramDatabaseFile>.\Debug/ys6464a.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>.\Debug/pc2001.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
@@ -99,7 +99,7 @@
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <OutputFile>.\Debug/ys6464a.bsc</OutputFile>
+      <OutputFile>.\Debug/pc2001.bsc</OutputFile>
     </Bscmake>
     <Manifest>
       <AdditionalManifestFiles>..\src\res\vista.manifest</AdditionalManifestFiles>
@@ -111,18 +111,18 @@
       <MkTypLibCompatible>true</MkTypLibCompatible>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TargetEnvironment>Win32</TargetEnvironment>
-      <TypeLibraryName>.\Release/ys6464a.tlb</TypeLibraryName>
+      <TypeLibraryName>.\Release/pc2001.tlb</TypeLibraryName>
       <HeaderFileName />
     </Midl>
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_YS6464A;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_PC2001;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
-      <PrecompiledHeaderOutputFile>.\Release/ys6464a.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeaderOutputFile>.\Release/pc2001.pch</PrecompiledHeaderOutputFile>
       <AssemblerListingLocation>.\Release/</AssemblerListingLocation>
       <ObjectFileName>.\Release/</ObjectFileName>
       <ProgramDataBaseFileName>.\Release/</ProgramDataBaseFileName>
@@ -136,9 +136,9 @@
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>odbc32.lib;odbccp32.lib;winmm.lib;imm32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>.\Release/ys6464a.exe</OutputFile>
+      <OutputFile>.\Release/pc2001.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <ProgramDatabaseFile>.\Release/ys6464a.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>.\Release/pc2001.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
@@ -147,7 +147,7 @@
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <OutputFile>.\Release/ys6464a.bsc</OutputFile>
+      <OutputFile>.\Release/pc2001.bsc</OutputFile>
     </Bscmake>
     <Manifest>
       <AdditionalManifestFiles>..\src\res\vista.manifest</AdditionalManifestFiles>
@@ -166,15 +166,16 @@
     <ClCompile Include="..\src\win32\osd_screen.cpp" />
     <ClCompile Include="..\src\win32\osd_sound.cpp" />
     <ClCompile Include="..\src\win32\winmain.cpp" />
+    <ClCompile Include="..\src\vm\datarec.cpp" />
     <ClCompile Include="..\src\vm\event.cpp" />
-    <ClCompile Include="..\src\vm\i8255.cpp" />
-    <ClCompile Include="..\src\vm\io.cpp" />
     <ClCompile Include="..\src\vm\memory.cpp" />
+    <ClCompile Include="..\src\vm\noise.cpp" />
     <ClCompile Include="..\src\vm\pcm1bit.cpp" />
-    <ClCompile Include="..\src\vm\z80.cpp" />
-    <ClCompile Include="..\src\vm\ys6464a\display.cpp" />
-    <ClCompile Include="..\src\vm\ys6464a\keyboard.cpp" />
-    <ClCompile Include="..\src\vm\ys6464a\ys6464a.cpp" />
+    <ClCompile Include="..\src\vm\upd16434.cpp" />
+    <ClCompile Include="..\src\vm\upd1990a.cpp" />
+    <ClCompile Include="..\src\vm\upd7810.cpp" />
+    <ClCompile Include="..\src\vm\pc2001\io.cpp" />
+    <ClCompile Include="..\src\vm\pc2001\pc2001.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\common.h" />
@@ -183,47 +184,26 @@
     <ClInclude Include="..\src\fileio.h" />
     <ClInclude Include="..\src\emu.h" />
     <ClInclude Include="..\src\win32\osd.h" />
+    <ClInclude Include="..\src\vm\atarec.h" />
     <ClInclude Include="..\src\vm\debugger.h" />
     <ClInclude Include="..\src\vm\device.h" />
     <ClInclude Include="..\src\vm\event.h" />
-    <ClInclude Include="..\src\vm\i8255.h" />
-    <ClInclude Include="..\src\vm\io.h" />
     <ClInclude Include="..\src\vm\memory.h" />
+    <ClInclude Include="..\src\vm\noise.h" />
     <ClInclude Include="..\src\vm\pcm1bit.h" />
     <ClInclude Include="..\src\vm\vm.h" />
-    <ClInclude Include="..\src\vm\z80.h" />
-    <ClInclude Include="..\src\vm\ys6464a\display.h" />
-    <ClInclude Include="..\src\vm\ys6464a\keyboard.h" />
-    <ClInclude Include="..\src\vm\ys6464a\ys6464a.h" />
+    <ClInclude Include="..\src\vm\upd16434.h" />
+    <ClInclude Include="..\src\vm\upd1990a.h" />
+    <ClInclude Include="..\src\vm\upd7810.h" />
+    <ClInclude Include="..\src\vm\pc2001\io.h" />
+    <ClInclude Include="..\src\vm\pc2001\pc2001.h" />
     <ClInclude Include="..\src\res\resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\src\res\ys6464a.ico" />
-    <Image Include="..\src\res\ys6464a\board.png" />
-    <Image Include="..\src\res\ys6464a\button00.png" />
-    <Image Include="..\src\res\ys6464a\button01.png" />
-    <Image Include="..\src\res\ys6464a\button02.png" />
-    <Image Include="..\src\res\ys6464a\button03.png" />
-    <Image Include="..\src\res\ys6464a\button04.png" />
-    <Image Include="..\src\res\ys6464a\button05.png" />
-    <Image Include="..\src\res\ys6464a\button06.png" />
-    <Image Include="..\src\res\ys6464a\button07.png" />
-    <Image Include="..\src\res\ys6464a\button08.png" />
-    <Image Include="..\src\res\ys6464a\button09.png" />
-    <Image Include="..\src\res\ys6464a\button10.png" />
-    <Image Include="..\src\res\ys6464a\button11.png" />
-    <Image Include="..\src\res\ys6464a\button12.png" />
-    <Image Include="..\src\res\ys6464a\button13.png" />
-    <Image Include="..\src\res\ys6464a\button14.png" />
-    <Image Include="..\src\res\ys6464a\button15.png" />
-    <Image Include="..\src\res\ys6464a\button16.png" />
-    <Image Include="..\src\res\ys6464a\button17.png" />
-    <Image Include="..\src\res\ys6464a\button18.png" />
-    <Image Include="..\src\res\ys6464a\button19.png" />
-    <Image Include="..\src\res\ys6464a\button20.png" />
+    <Image Include="..\src\res\pc2001.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\src\res\ys6464a.rc">
+    <ResourceCompile Include="..\src\res\pc2001.rc">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\src\res;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\src\res;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>

@@ -17,10 +17,18 @@
 
 #define SIG_M6502_OVERFLOW	0
 
+#ifdef USE_DEBUGGER
+class DEBUGGER;
+#endif
+
 class M6502 : public DEVICE
 {
 private:
 	DEVICE *d_mem, *d_pic;
+#ifdef USE_DEBUGGER
+	DEBUGGER *d_debugger;
+	DEVICE *d_mem_stored;
+#endif
 	
 	pair_t pc, sp, zp, ea;
 	uint16_t prev_pc;
@@ -55,6 +63,29 @@ public:
 	{
 		return prev_pc;
 	}
+	uint32_t get_next_pc()
+	{
+		return pc.w.l;
+	}
+#ifdef USE_DEBUGGER
+	void *get_debugger()
+	{
+		return d_debugger;
+	}
+	uint32_t get_debug_prog_addr_mask()
+	{
+		return 0xffff;
+	}
+	uint32_t get_debug_data_addr_mask()
+	{
+		return 0xffff;
+	}
+	void write_debug_data8(uint32_t addr, uint32_t data);
+	uint32_t read_debug_data8(uint32_t addr);
+	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
+	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
+#endif
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
@@ -67,6 +98,12 @@ public:
 	{
 		d_pic = device;
 	}
+#ifdef USE_DEBUGGER
+	void set_context_debugger(DEBUGGER* device)
+	{
+		d_debugger = device;
+	}
+#endif
 };
 
 #endif

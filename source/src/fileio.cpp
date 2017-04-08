@@ -209,7 +209,7 @@ bool FILEIO::Fopen(const _TCHAR *file_path, int mode)
 		case FILEIO_READ_BINARY:
 			{
 				//memset(path, 0x00, _MAX_PATH);
-				gz = gzopen(file_path, _T("rb"));
+				gz = gzopen(tchar_to_char(file_path), _T("rb"));
 				if(gz != NULL) {
 					my_tcscpy_s(path, _MAX_PATH, get_file_path_without_extensiton(file_path));
 					return true;
@@ -220,14 +220,14 @@ bool FILEIO::Fopen(const _TCHAR *file_path, int mode)
 			}
 			break;
 //		case FILEIO_WRITE_BINARY:
-//			return ((gz = gzopen(file_path, _T("wb"))) != NULL);
+//			return ((gz = gzopen(tchar_to_char(file_path), _T("wb"))) != NULL);
 //		case FILEIO_READ_WRITE_BINARY:
-//			return ((gz = gzopen(file_path, _T("r+b"))) != NULL);
+//			return ((gz = gzopen(tchar_to_char(file_path), _T("r+b"))) != NULL);
 //		case FILEIO_READ_WRITE_NEW_BINARY:
-//			return ((gz = gzopen(file_path, _T("w+b"))) != NULL);
+//			return ((gz = gzopen(tchar_to_char(file_path), _T("w+b"))) != NULL);
 		case FILEIO_READ_ASCII:
 			{
-				gz = gzopen(file_path, _T("r"));
+				gz = gzopen(tchar_to_char(file_path), _T("r"));
 				if(gz != NULL) {
 					my_tcscpy_s(path, _MAX_PATH, get_file_path_without_extensiton(file_path));
 					return true;
@@ -238,15 +238,15 @@ bool FILEIO::Fopen(const _TCHAR *file_path, int mode)
 			}
 			break;
 //		case FILEIO_WRITE_ASCII:
-//			return ((gz = gzopen(file_path, _T("w"))) != NULL);
+//			return ((gz = gzopen(tchar_to_char(file_path), _T("w"))) != NULL);
 //		case FILEIO_WRITE_APPEND_ASCII:
-//			return ((gz = gzopen(file_path, _T("a"))) != NULL);
+//			return ((gz = gzopen(tchar_to_char(file_path), _T("a"))) != NULL);
 //		case FILEIO_READ_WRITE_ASCII:
-//			return ((gz = gzopen(file_path, _T("r+"))) != NULL);
+//			return ((gz = gzopen(tchar_to_char(file_path), _T("r+"))) != NULL);
 //		case FILEIO_READ_WRITE_NEW_ASCII:
-//			return ((gz = gzopen(file_path, _T("w+"))) != NULL);
+//			return ((gz = gzopen(tchar_to_char(file_path), _T("w+"))) != NULL);
 //		case FILEIO_READ_WRITE_APPEND_ASCII:
-//			return ((gz = gzopen(file_path, _T("a+"))) != NULL);
+//			return ((gz = gzopen(tchar_to_char(file_path), _T("a+"))) != NULL);
 		}
 	} else
 #endif
@@ -758,6 +758,24 @@ char *FILEIO::Fgets(char *str, int n)
 	}
 }
 
+_TCHAR *FILEIO::Fgetts(_TCHAR *str, int n)
+{
+#ifdef USE_ZLIB
+	if(gz != NULL) {
+#if defined(_UNICODE) && defined(SUPPORT_TCHAR_TYPE)
+		char *str_mb = (char *)calloc(sizeof(char), n + 1);
+		gzgets(gz, str_mb, n);
+		my_swprintf_s(str, n, L"%s", char_to_wchar(str_mb));
+		free(str_mb);
+		return str;
+#else
+		return gzgets(gz, str, n);
+#endif
+	} else
+#endif
+	return _fgetts(str, n, fp);
+}
+
 int FILEIO::Fprintf(const char* format, ...)
 {
 	va_list ap;
@@ -779,6 +797,23 @@ int FILEIO::Fprintf(const char* format, ...)
 			return 0;
 		}
 	}
+}
+
+int FILEIO::Ftprintf(const _TCHAR* format, ...)
+{
+	va_list ap;
+	_TCHAR buffer[1024];
+	
+	va_start(ap, format);
+	my_vstprintf_s(buffer, 1024, format, ap);
+	va_end(ap);
+	
+#ifdef USE_ZLIB
+	if(gz != NULL) {
+		return gzprintf(gz, "%s", tchar_to_char(buffer));
+	} else
+#endif
+	return my_ftprintf_s(fp, _T("%s"), buffer);
 }
 
 size_t FILEIO::Fread(void* buffer, size_t size, size_t count)

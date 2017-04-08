@@ -491,7 +491,7 @@ void FM7_MAINMEM::save_state(FILEIO *state_fio)
 {
 	state_fio->FputUint32_BE(STATE_VERSION);
 	state_fio->FputInt32_BE(this_device_id);
-	this->out_debug_log("Save State: MAINMEM: id=%d ver=%d\n", this_device_id, STATE_VERSION);
+	this->out_debug_log(_T("Save State: MAINMEM: id=%d ver=%d\n"), this_device_id, STATE_VERSION);
 
 	// V1
 	state_fio->FputBool(ioaccess_wait);
@@ -596,7 +596,7 @@ bool FM7_MAINMEM::load_state(FILEIO *state_fio)
 	uint32_t version;
 	version = state_fio->FgetUint32_BE();
 	if(this_device_id != state_fio->FgetInt32_BE()) return false;
-	this->out_debug_log("Load State: MAINMEM: id=%d ver=%d\n", this_device_id, version);
+	this->out_debug_log(_T("Load State: MAINMEM: id=%d ver=%d\n"), this_device_id, version);
 	if(version >= 1) {
 		// V1
 		ioaccess_wait = state_fio->FgetBool();

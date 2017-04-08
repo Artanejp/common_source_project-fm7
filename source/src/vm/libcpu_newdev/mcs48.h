@@ -65,7 +65,7 @@ public:
 		return 0xff;
 	}
 #endif
-	
+	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 	// unique functions
 #ifdef USE_DEBUGGER
 	void set_context_debugger(DEBUGGER* device)

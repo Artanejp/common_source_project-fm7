@@ -9,6 +9,9 @@
 */
 
 #include "m6502.h"
+#ifdef USE_DEBUGGER
+#include "debugger.h"
+#endif
 
 // vectors
 #define NMI_VEC	0xfffa
@@ -988,6 +991,10 @@ void M6502::initialize()
 {
 	A = X = Y = P = 0;
 	SPD = EAD = ZPD = PCD = 0;
+#ifdef USE_DEBUGGER
+	d_mem_stored = d_mem;
+	d_debugger->set_context_mem(d_mem);
+#endif
 }
 
 void M6502::reset()
@@ -1011,7 +1018,36 @@ int M6502::run(int clock)
 		} else {
 			// run only one opcode
 			icount = 0;
-			run_one_opecode();
+#ifdef USE_DEBUGGER
+			bool now_debugging = d_debugger->now_debugging;
+			if(now_debugging) {
+				d_debugger->check_break_points(PCW);
+				if(d_debugger->now_suspended) {
+					emu->mute_sound();
+					while(d_debugger->now_debugging && d_debugger->now_suspended) {
+						emu->sleep(10);
+					}
+				}
+				if(d_debugger->now_debugging) {
+					d_mem = d_debugger;
+				} else {
+					now_debugging = false;
+				}
+				
+				run_one_opecode();
+				
+				if(now_debugging) {
+					if(!d_debugger->now_going) {
+						d_debugger->now_suspended = true;
+					}
+					d_mem = d_mem_stored;
+				}
+			} else {
+#endif
+				run_one_opecode();
+#ifdef USE_DEBUGGER
+			}
+#endif
 			return -icount;
 		}
 	} else {
@@ -1020,7 +1056,36 @@ int M6502::run(int clock)
 		
 		// run cpu while given clocks
 		while(icount > 0 && !busreq) {
-			run_one_opecode();
+#ifdef USE_DEBUGGER
+			bool now_debugging = d_debugger->now_debugging;
+			if(now_debugging) {
+				d_debugger->check_break_points(PCW);
+				if(d_debugger->now_suspended) {
+					emu->mute_sound();
+					while(d_debugger->now_debugging && d_debugger->now_suspended) {
+						emu->sleep(10);
+					}
+				}
+				if(d_debugger->now_debugging) {
+					d_mem = d_debugger;
+				} else {
+					now_debugging = false;
+				}
+				
+				run_one_opecode();
+				
+				if(now_debugging) {
+					if(!d_debugger->now_going) {
+						d_debugger->now_suspended = true;
+					}
+					d_mem = d_mem_stored;
+				}
+			} else {
+#endif
+				run_one_opecode();
+#ifdef USE_DEBUGGER
+			}
+#endif
 		}
 		// if busreq is raised, spin cpu while remained clock
 		if(icount > 0 && busreq) {
@@ -1046,7 +1111,7 @@ void M6502::run_one_opecode()
 	} else if(pending_irq) {
 		update_irq();
 	}
-	prev_pc = pc.w.l;
+	prev_pc = PCW;
 	uint8_t code = RDOP();
 	OP(code);
 	
@@ -1081,6 +1146,86 @@ void M6502::write_signal(int id, uint32_t data, uint32_t mask)
 		busreq = ((data & mask) != 0);
 	}
 }
+
+#ifdef USE_DEBUGGER
+void M6502::write_debug_data8(uint32_t addr, uint32_t data)
+{
+	int wait;
+	d_mem_stored->write_data8w(addr, data, &wait);
+}
+
+uint32_t M6502::read_debug_data8(uint32_t addr)
+{
+	int wait;
+	return d_mem_stored->read_data8w(addr, &wait);
+}
+
+bool M6502::write_debug_reg(const _TCHAR *reg, uint32_t data)
+{
+	if(_tcsicmp(reg, _T("PC")) == 0) {
+		PCW = data;
+	} else if(_tcsicmp(reg, _T("A")) == 0) {
+		A = data;
+	} else if(_tcsicmp(reg, _T("X")) == 0) {
+		X = data;
+	} else if(_tcsicmp(reg, _T("Y")) == 0) {
+		Y = data;
+	} else if(_tcsicmp(reg, _T("S")) == 0) {
+		S = data;
+	} else if(_tcsicmp(reg, _T("P")) == 0) {
+		P = data;
+	} else {
+		return false;
+	}
+	return true;
+}
+
+void M6502::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+{
+	my_stprintf_s(buffer, buffer_len,
+	_T("PC = %04X  A = %02X  X = %02X  Y = %02X  S = %02X  P = %02X [%c%c%c%c%c%c%c%c]"),
+	PCW, A, X, Y, S, P,
+	(P & F_N) ? _T('N') : _T('-'), (P & F_V) ? _T('V') : _T('-'), (P & F_T) ? _T('T') : _T('-'), (P & F_B) ? _T('B') : _T('-'), 
+	(P & F_D) ? _T('D') : _T('-'), (P & F_I) ? _T('I') : _T('-'), (P & F_Z) ? _T('Z') : _T('-'), (P & F_C) ? _T('C') : _T('-'));
+}
+
+// disassembler
+
+#define offs_t UINT16
+
+/*****************************************************************************/
+/* src/emu/devcpu.h */
+
+// CPU interface functions
+#define CPU_DISASSEMBLE_NAME(name)		cpu_disassemble_##name
+#define CPU_DISASSEMBLE(name)			int CPU_DISASSEMBLE_NAME(name)(_TCHAR *buffer, offs_t pc, const UINT8 *oprom, const UINT8 *opram, symbol_t *first_symbol)
+#define CPU_DISASSEMBLE_CALL(name)		CPU_DISASSEMBLE_NAME(name)(buffer, pc, oprom, oprom, d_debugger->first_symbol)
+
+/*****************************************************************************/
+/* src/emu/didisasm.h */
+
+// Disassembler constants
+const UINT32 DASMFLAG_SUPPORTED     = 0x80000000;   // are disassembly flags supported?
+const UINT32 DASMFLAG_STEP_OUT      = 0x40000000;   // this instruction should be the end of a step out sequence
+const UINT32 DASMFLAG_STEP_OVER     = 0x20000000;   // this instruction should be stepped over by setting a breakpoint afterwards
+const UINT32 DASMFLAG_OVERINSTMASK  = 0x18000000;   // number of extra instructions to skip when stepping over
+const UINT32 DASMFLAG_OVERINSTSHIFT = 27;           // bits to shift after masking to get the value
+const UINT32 DASMFLAG_LENGTHMASK    = 0x0000ffff;   // the low 16-bits contain the actual length
+
+#include "mame/emu/cpu/m6502/6502dasm.c"
+
+int M6502::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
+{
+	uint8_t oprom[4];
+	uint8_t *opram = oprom;
+	
+	for(int i = 0; i < 4; i++) {
+		int wait;
+		oprom[i] = d_mem->read_data8w(pc + i, &wait);
+	}
+	return CPU_DISASSEMBLE_CALL(m6502) & DASMFLAG_LENGTHMASK;
+}
+#endif
 
 #define STATE_VERSION	1
 

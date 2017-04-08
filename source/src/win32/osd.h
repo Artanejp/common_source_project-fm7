@@ -14,8 +14,8 @@
 #define DIRECT3D_VERSION	0x900
 // XXX: if your DirectX 9.0 SDK is newer and does not contain dinput.lib,
 // please change the definition of DIRECTINPUT_VERSION from 0x500 to 0x800
-#define DIRECTINPUT_VERSION	0x500
-//#define DIRECTINPUT_VERSION	0x800
+//#define DIRECTINPUT_VERSION	0x500
+#define DIRECTINPUT_VERSION	0x800
 
 #include <windows.h>
 #include <windowsx.h>

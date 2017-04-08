@@ -1,3 +1,25 @@
+3/30/2017
+
+[COMMON] add functions to convert char, wchar_t, and _TCHAR to each other
+[COMMON] add _fgetts, _ftprintf, my_ftprintf_s, and my_swprintf_s
+[COMMON/FILEIO] add Fgetts and Ftprintf for _TCHAR
+[COMMON/FILEIO] fix functions using ZLIB for _UNICODE case
+[EMU/DEBUGGER] fix for _UNICODE case
+[WINMAIN] improve to update status only when status is changed
+
+[VM/HUC6280] improve disassembler to support symbols (thanks Mr.Kei Moroboshi)
+[VM/I8080] improve disassembler to support symbols
+[VM/M6502] support debugger and disassembler (thanks MAME)
+[VM/MCS48] improve disassembler to support symbols
+[VM/TMS9995] fix disassembler for _UNICODE case
+[VM/UPD7810] improve disassembler to support symbols
+[VM/UPD7810] fix disassembler for _UNICODE case
+
+[BABBAGE2ND] support debugger and save/load state
+[FAMILYBASIC] support debugger
+[YS6464A] support debugger and save/load state
+
+
 3/28/2017
 
 [COMMON] add _tcscat and my_tcscat_s

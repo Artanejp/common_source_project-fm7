@@ -120,7 +120,9 @@ public:
 	int Fgetc();
 	int Fputc(int c);
 	char *Fgets(char *str, int n);
+	_TCHAR *Fgetts(_TCHAR *str, int n);
 	int Fprintf(const char* format, ...);
+	int Ftprintf(const _TCHAR* format, ...);
 	
 	size_t Fread(void* buffer, size_t size, size_t count);
 	size_t Fwrite(void* buffer, size_t size, size_t count);

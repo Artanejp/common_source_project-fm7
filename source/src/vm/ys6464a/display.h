@@ -34,6 +34,8 @@ public:
 	void initialize();
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_vline(int v, int clock);
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// unique function
 	void draw_screen();

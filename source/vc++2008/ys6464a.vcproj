@@ -697,6 +697,10 @@
 				Filter="h"
 				>
 				<File
+					RelativePath="..\src\vm\debugger.h"
+					>
+				</File>
+				<File
 					RelativePath="..\src\vm\device.h"
 					>
 				</File>
