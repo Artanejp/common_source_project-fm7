@@ -696,6 +696,12 @@ void APU::event_frame()
 
 void APU::event_vline(int v, int clock)
 {
+	// 525 -> 262.5
+	if(v & 1) {
+		return;
+	}
+	v >>= 1;
+	
 	bool irq_occurred = false;
 	
 	dmc.phaseacc_cur -= clock;

@@ -44,11 +44,11 @@ set(s_vm_common_vm_srcs
 #	../sn76489an.cpp
 #	../sy6522.cpp
 #	../t3444a.cpp
-#	../tf20.cpp
+	../tf20.cpp
 	../tms3631.cpp
 #	../tms9918a.cpp
 #	../tms9995.cpp
-#	../upd16434.cpp
+	../upd16434.cpp
 #	../upd1990a.cpp
 	../upd4991a.cpp
 #	../upd71071.cpp
@@ -57,9 +57,9 @@ set(s_vm_common_vm_srcs
 	../upd7752.cpp
 #	../upd7801.cpp
 #	../upd7810.cpp
+#	../v9938.cpp
 #	../v99x8.cpp
 #	../w3100a.cpp
-#	../wav_sounder.cpp
 	../ym2151.cpp
 #	../ym2203.cpp
 	../ym2413.cpp
@@ -96,8 +96,8 @@ else()
     ${s_vm_common_vm_srcs}
   )
   set_target_properties(CSPcommon_vm PROPERTIES 
-     SOVERSION 1.0.2
-     VERSION 1.0.2
+     SOVERSION 1.0.3
+     VERSION 1.0.3
   )
   INSTALL(TARGETS CSPcommon_vm DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

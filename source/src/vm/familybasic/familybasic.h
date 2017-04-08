@@ -15,8 +15,9 @@
 #define CONFIG_NAME		"familybasic"
 
 // device informations for virtual machine
-#define FRAMES_PER_SEC		60
-#define LINES_PER_FRAME		262
+#define FRAMES_PER_SEC		59.98
+//#define LINES_PER_FRAME	262
+#define LINES_PER_FRAME		525 // 262.5*2
 #define CPU_CLOCKS		1789772
 #define SCREEN_WIDTH		256
 #define SCREEN_HEIGHT		240
@@ -26,13 +27,13 @@
 
 // device informations for win32
 #define SUPPORT_TV_RENDER
-#define USE_BOOT_MODE		3
+#define USE_BOOT_MODE		6
 #define USE_TAPE1
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_NO_CAPS
-#define USE_SOUND_VOLUME	3
+#define USE_SOUND_VOLUME	4
 #define USE_JOYSTICK
 #define USE_JOY_BUTTON_CAPTIONS
 #define USE_STATE
@@ -42,7 +43,7 @@
 
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
-	_T("APU"), _T("CMT (Signal)"), _T("Noise (CMT)"),
+	_T("APU"), _T("VRC7"), _T("CMT (Signal)"), _T("Noise (CMT)"),
 };
 #endif
 
@@ -59,12 +60,35 @@ static const _TCHAR *joy_button_captions[] = {
 };
 #endif
 
+typedef struct header_s {
+	uint8_t id[3];	// 'NES'
+	uint8_t ctrl_z;	// control-z
+	uint8_t dummy;
+	uint8_t num_8k_vrom_banks;
+	uint8_t flags_1;
+	uint8_t flags_2;
+	uint8_t reserved[8];
+	uint32_t num_16k_rom_banks()
+	{
+		return (dummy != 0) ? dummy : 256;
+	}
+	uint32_t num_8k_rom_banks()
+	{
+		return num_16k_rom_banks() * 2;
+	}
+	uint8_t mapper()
+	{
+		return (flags_1 >> 4) | (flags_2 & 0xf0);
+	}
+} header_t;
+
 class EMU;
 class DEVICE;
 class EVENT;
 
 class DATAREC;
 class M6502;
+class YM2413;
 
 class MEMORY;
 class APU;
@@ -80,6 +104,7 @@ protected:
 	
 	DATAREC* drec;
 	M6502* cpu;
+	YM2413* opll;
 	
 	MEMORY* memory;
 	APU* apu;

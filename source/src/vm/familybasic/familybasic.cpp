@@ -16,6 +16,7 @@
 #include "../datarec.h"
 #include "../m6502.h"
 #include "../noise.h"
+#include "../ym2413.h"
 
 #include "memory.h"
 #include "apu.h"
@@ -40,11 +41,14 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	drec->set_context_noise_play(new NOISE(this, emu));
 	drec->set_context_noise_stop(new NOISE(this, emu));
 	drec->set_context_noise_fast(new NOISE(this, emu));
-	cpu = new M6502(this, emu);
+//	cpu = new M6502(this, emu);
+	opll = new YM2413(this, emu);
 	
 	memory = new MEMORY(this, emu);
 	apu = new APU(this, emu);
 	ppu = new PPU(this, emu);
+
+	cpu = new M6502(this, emu); // cpu shoud be reset after other device
 	
 	dummy->set_device_name(_T("1st Dummy"));
 	
@@ -55,6 +59,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_cpu(cpu);
 	event->set_context_sound(apu);
 	event->set_context_sound(drec);
+	event->set_context_sound(opll);
 	event->set_context_sound(drec->get_context_noise_play());
 	event->set_context_sound(drec->get_context_noise_stop());
 	event->set_context_sound(drec->get_context_noise_fast());
@@ -63,10 +68,12 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	memory->set_context_apu(apu);
 	memory->set_context_ppu(ppu);
 	memory->set_context_drec(drec);
+	memory->set_context_opll(opll);
 	memory->set_spr_ram_ptr(ppu->get_spr_ram());
 	apu->set_context_cpu(cpu);
 	apu->set_context_memory(memory);
 	ppu->set_context_cpu(cpu);
+	ppu->set_context_memory(memory);
 	
 	// cpu bus
 	cpu->set_context_mem(memory);
@@ -116,9 +123,18 @@ void VM::reset()
 		} else if(config.boot_mode == 1) {
 			memory->load_rom_image(_T("BASIC_V3.NES"));
 			ppu->load_rom_image(_T("BASIC_V3.NES"));
-		} else {
+		} else if(config.boot_mode == 2) {
 			memory->load_rom_image(_T("PLAYBOX_BASIC.NES"));
 			ppu->load_rom_image(_T("PLAYBOX_BASIC.NES"));
+		} else if(config.boot_mode == 3) {
+			memory->load_rom_image(_T("VRC7_BASIC_V2.NES"));
+			ppu->load_rom_image(_T("VRC7_BASIC_V2.NES"));
+		} else if(config.boot_mode == 4) {
+			memory->load_rom_image(_T("VRC7_BASIC_V3.NES"));
+			ppu->load_rom_image(_T("VRC7_BASIC_V3.NES"));
+		} else if(config.boot_mode == 5) {
+			memory->load_rom_image(_T("MMC5_BASIC_V3.NES"));
+			ppu->load_rom_image(_T("MMC5_BASIC_V3.NES"));
 		}
 		boot_mode = config.boot_mode;
 	}
@@ -154,6 +170,7 @@ void VM::initialize_sound(int rate, int samples)
 	
 	// init sound gen
 	apu->initialize_sound(rate, samples);
+	opll->initialize_sound(rate, 3579545, samples);
 }
 
 uint16_t* VM::create_sound(int* extra_frames)
@@ -172,8 +189,10 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 	if(ch == 0) {
 		apu->set_volume(0, decibel_l, decibel_r);
 	} else if(ch == 1) {
-		drec->set_volume(0, decibel_l, decibel_r);
+		opll->set_volume(0, decibel_l, decibel_r);
 	} else if(ch == 2) {
+		drec->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 3) {
 		drec->get_context_noise_play()->set_volume(0, decibel_l, decibel_r);
 		drec->get_context_noise_stop()->set_volume(0, decibel_l, decibel_r);
 		drec->get_context_noise_fast()->set_volume(0, decibel_l, decibel_r);
@@ -248,7 +267,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 void VM::save_state(FILEIO* state_fio)
 {

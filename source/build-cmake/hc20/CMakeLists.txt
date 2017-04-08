@@ -23,7 +23,7 @@ set(WITH_MOUSE OFF)
 
 set(VMFILES_BASE
       mc6800.cpp
-      tf20.cpp
+#      tf20.cpp
   
       z80.cpp
       z80sio.cpp
@@ -40,6 +40,7 @@ set(VMFILES_BASE
 set(VMFILES_LIB
       hd146818p.cpp
       beep.cpp
+      tf20.cpp
 )
 
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")

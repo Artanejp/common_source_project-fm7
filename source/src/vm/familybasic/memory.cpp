@@ -9,14 +9,14 @@
 */
 
 #include "memory.h"
+#include "ppu.h"
 #include "../datarec.h"
+#include "../ym2413.h"
 
 #define EVENT_DMA_DONE	0
 
 void MEMORY::initialize()
 {
-	memset(ram, 0, sizeof(ram));
-	
 	key_stat = emu->get_key_buffer();
 	joy_stat = emu->get_joy_buffer();
 	
@@ -27,10 +27,10 @@ void MEMORY::initialize()
 void MEMORY::load_rom_image(const _TCHAR *file_name)
 {
 	FILEIO* fio = new FILEIO();
-	bool file_open = false;
+	
+	memset(save_ram, 0, sizeof(save_ram));
 	
 	if(fio->Fopen(create_local_path(file_name), FILEIO_READ_BINARY)) {
-		file_open = true;
 		// create save file name
 		_TCHAR tmp_file_name[_MAX_PATH];
 		my_tcscpy_s(tmp_file_name, _MAX_PATH, file_name);
@@ -39,31 +39,39 @@ void MEMORY::load_rom_image(const _TCHAR *file_name)
 		my_stprintf_s(save_file_name, _MAX_PATH, _T("%s.SAV"), tmp_file_name);
 	} else {
 		// for compatibility
-		if(fio->Fopen(create_local_path(_T("BASIC.NES")), FILEIO_READ_BINARY)) {
-			file_open = true;
-		}
+		fio->Fopen(create_local_path(_T("BASIC.NES")), FILEIO_READ_BINARY);
 		my_tcscpy_s(save_file_name, _MAX_PATH, _T("BACKUP.BIN"));
 	}
-	if(file_open) {
+	if(fio->IsOpened()) {
 		// read header
-		fio->Fread(header, sizeof(header), 1);
-		// read program rom (max 32kb)
-		fio->Fread(rom, 0x4000, 1);
-		memcpy(rom + 0x4000, rom, 0x4000);
-		fio->Fread(rom + 0x4000, 0x4000, 1);
+		fio->Fread(&header, sizeof(header), 1);
+		// read program rom
+		rom_size = 0x2000 * header.num_8k_rom_banks();
+		for(uint32_t bit = 0x80000; bit != 0; bit >>= 1) {
+			if(rom_size & bit) {
+				if(rom_size & (bit - 1)) {
+					rom_size = (rom_size | (bit - 1)) + 1;
+				}
+				break;
+			}
+		}
+		rom = (uint8_t *)calloc(rom_size, 1);
+		fio->Fread(rom, 0x2000 * header.num_8k_rom_banks(), 1);
 		fio->Fclose();
 	} else {
-		memset(header, 0, sizeof(header));
-		memset(rom, 0xff, sizeof(rom));
+		memset(&header, 0, sizeof(header));
+		header.dummy = 2; // 32KB
+		rom_size = 0x2000 * header.num_8k_rom_banks();
+		rom = (uint8_t *)calloc(rom_size, 1);
+		memset(rom, 0xff, 0x2000 * header.num_8k_rom_banks());
 	}
 	if(fio->Fopen(create_local_path(save_file_name), FILEIO_READ_BINARY)) {
 		fio->Fread(save_ram, sizeof(save_ram), 1);
 		fio->Fclose();
-	} else {
-		memset(save_ram, 0, sizeof(save_ram));
 	}
 	delete fio;
 	
+	rom_mask = (rom_size / 0x2000) - 1;
 	save_ram_crc32 = get_crc32(save_ram, sizeof(save_ram));
 }
 
@@ -81,11 +89,22 @@ void MEMORY::save_backup()
 
 void MEMORY::release()
 {
+	if(rom != NULL) {
+		free(rom);
+		rom = NULL;
+	}
 	save_backup();
 }
 
 void MEMORY::reset()
 {
+	memset(ram, 0, sizeof(ram));
+	
+	for(int i = 4; i < 8; i++) {
+		set_rom_bank(i, i);
+	}
+	bank_ptr[3] = save_ram;
+	
 	dma_addr = 0x80;
 	frame_irq_enabled = 0xff;
 	
@@ -94,12 +113,15 @@ void MEMORY::reset()
 	
 	kb_out = false;
 	kb_scan = 0;
+	
+	mmc5_reset();
+	vrc7_reset();
 }
 
 void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
-
+	
 	if(addr < 0x2000) {
 		ram[addr & 0x7ff] = data;
 	} else if(addr < 0x4000) {
@@ -149,26 +171,44 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 		} else if((data & 0x07) == 0x06) {
 			kb_out = !kb_out;
 		}
-		// data recorder
-		d_drec->write_signal(SIG_DATAREC_MIC, data, 2);
+		// data recorder (thanks MESS)
+		if((data & 0x07) == 0x07) {
+			d_drec->write_signal(SIG_DATAREC_MIC, 1, 1);
+		} else {
+			d_drec->write_signal(SIG_DATAREC_MIC, 0, 0);
+		}
 	} else if(addr < 0x4018) {
 		if(addr == 0x4017) {
 			frame_irq_enabled = data;
 		}
 		d_apu->write_data8(addr, data);
 	} else if(addr < 0x6000) {
-		// mapper independent
+		if(header.mapper() == 5) {
+			mmc5_lo_write(addr, data);
+//		} else if(header.mapper() == 85) {
+//			vrc7_lo_write(addr, data);
+		}
 	} else if(addr < 0x8000) {
-		save_ram[addr & 0x1fff] = data;
+		if(header.mapper() == 5) {
+			mmc5_save_write(addr, data);
+//		} else if(header.mapper() == 85) {
+//			vrc7_save_write(addr, data);
+		} else {
+			bank_ptr[3][addr & 0x1fff] = data;
+		}
 	} else {
-		// mapper independent
+		if(header.mapper() == 5) {
+			mmc5_hi_write(addr, data);
+		} else if(header.mapper() == 85) {
+			vrc7_hi_write(addr, data);
+		}
 	}
 }
 
 uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
-
+	
 	if(addr < 0x2000) {
 		return ram[addr & 0x7ff];
 	} else if(addr < 0x4000) {
@@ -312,21 +352,51 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 		}
 		return val;
 	} else if(addr < 0x6000) {
-		// mapper independent
-		return 0xff;
+		if(header.mapper() == 5) {
+			return mmc5_lo_read(addr);
+//		} else if(header.mapper() == 85) {
+//			return vrc7_lo_read(addr);
+		} else {
+			return 0xff;
+		}
 	} else if(addr < 0x8000) {
-		return save_ram[addr & 0x1fff];
+//		if(header.mapper() == 5) {
+//			return mmc5_save_read(addr);
+//		} else if(header.mapper() == 85) {
+//			return vrc7_save_read(addr);
+//		} else {
+			return bank_ptr[3][addr & 0x1fff];
+//		}
+	} else if(addr < 0xa000) {
+		return bank_ptr[4][addr & 0x1fff];
+	} else if(addr < 0xc000) {
+		return bank_ptr[5][addr & 0x1fff];
+	} else if(addr < 0xe000) {
+		return bank_ptr[6][addr & 0x1fff];
 	} else {
-		return rom[addr & 0x7fff];
+		return bank_ptr[7][addr & 0x1fff];
 	}
 }
 
 void MEMORY::event_vline(int v, int clock)
 {
+	// 525 -> 262.5
+	if(v & 1) {
+		return;
+	}
+	v >>= 1;
+	
 	// fram irq
 	if(v == 240 && !(frame_irq_enabled & 0xc0)) {
 		// pending
 		d_cpu->write_signal(SIG_CPU_IRQ, 1, 1);
+	}
+	
+	// mapper irq
+	if(header.mapper() == 5) {
+		mmc5_hsync(v);
+	} else if(header.mapper() == 85) {
+		vrc7_hsync(v);
 	}
 }
 
@@ -336,7 +406,475 @@ void MEMORY::event_callback(int event_id, int err)
 	d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 }
 
-#define STATE_VERSION	1
+void MEMORY::set_rom_bank(uint8_t bank, uint32_t bank_num)
+{
+	bank_ptr[bank] = rom + 0x2000 * (bank_num & rom_mask);
+	banks[bank] = bank_num;
+	
+	// mmc5
+	mmc5_wram_bank[bank] = 8;
+}
+
+// mmc5
+
+void MEMORY::mmc5_reset()
+{
+	if(header.mapper() == 5) {
+		mmc5_set_wram_bank(3, 0);
+		set_rom_bank(4, header.num_8k_rom_banks() - 1);
+		set_rom_bank(5, header.num_8k_rom_banks() - 1);
+		set_rom_bank(6, header.num_8k_rom_banks() - 1);
+		set_rom_bank(7, header.num_8k_rom_banks() - 1);
+		
+		for(int i = 0; i < 8; i++) {
+			mmc5_chr_reg[i][0] = i;
+			mmc5_chr_reg[i][1] = (i & 0x03) + 4;
+		}
+		mmc5_wram_protect0 = 0x02;
+		mmc5_wram_protect1 = 0x01;
+		mmc5_prg_size = 3;
+		mmc5_chr_size = 3;
+		mmc5_gfx_mode = 0;
+//		mmc5_split_control = 0;
+//		mmc5_split_bank = 0;
+		mmc5_irq_enabled = 0;
+		mmc5_irq_status = 0;
+		mmc5_irq_line = 0;
+	}
+}
+
+uint32_t MEMORY::mmc5_lo_read(uint32_t addr)
+{
+	uint8_t data = (uint8_t)(addr >> 8);
+	
+	if(addr == 0x5204) {
+		data = mmc5_irq_status;
+		mmc5_irq_status &= ~0x80;
+	} else if(addr == 0x5205) {
+		data = (uint8_t)(((mmc5_value0 * mmc5_value1) & 0x00ff) >> 0);
+	} else if(addr == 0x5206) {
+		data = (uint8_t)(((mmc5_value0 * mmc5_value1) & 0xff00) >> 8);
+	} else if(addr >= 0x5c00 && addr < 0x6000) {
+		if(mmc5_gfx_mode == 2 || mmc5_gfx_mode == 3) {
+			data = (d_ppu->get_name_tables() + 0x800)[addr & 0x3ff];
+		}
+	}
+	return data;
+}
+
+void MEMORY::mmc5_lo_write(uint32_t addr, uint32_t data)
+{
+	switch(addr) {
+	case 0x5100:
+		mmc5_prg_size = data & 0x03;
+		break;
+	case 0x5101:
+		mmc5_chr_size = data & 0x03;
+		break;
+	case 0x5102:
+		mmc5_wram_protect0 = data & 0x03;
+		break;
+	case 0x5103:
+		mmc5_wram_protect1 = data & 0x03;
+		break;
+	case 0x5104:
+		mmc5_gfx_mode = data & 0x03;
+		break;
+	case 0x5105:
+		for(int i = 0; i < 4; i++) {
+			d_ppu->set_ppu_bank(8 + i, data & 0x03);
+			data >>= 2;
+		}
+		break;
+	case 0x5106:
+		for(int i = 0; i < 0x3c0; i++) {
+			(d_ppu->get_name_tables() + 0xc00)[i] = data;
+		}
+		break;
+	case 0x5107:
+		for(int i = 0x3c0; i < 0x400; i++) {
+			(d_ppu->get_name_tables() + 0xc00)[i] = 0x55 * (data & 3);
+		}
+		break;
+	case 0x5113:
+		mmc5_set_wram_bank(3, data & 0x07);
+		break;
+	case 0x5114:
+	case 0x5115:
+	case 0x5116:
+	case 0x5117:
+		mmc5_set_cpu_bank(addr & 0x07, data);
+		break;
+	case 0x5120:
+	case 0x5121:
+	case 0x5122:
+	case 0x5123:
+	case 0x5124:
+	case 0x5125:
+	case 0x5126:
+	case 0x5127:
+		mmc5_chr_reg[addr & 0x07][0] = data;
+		mmc5_set_ppu_bank(0);
+		break;
+	case 0x5128:
+	case 0x5129:
+	case 0x512a:
+	case 0x512b:
+		mmc5_chr_reg[(addr & 0x03) + 0][1] = data;
+		mmc5_chr_reg[(addr & 0x03) + 4][1] = data;
+		break;
+	case 0x5200:
+//		mmc5_split_control = data;
+		break;
+	case 0x5201:
+//		mmc5_split_scroll = data;
+		break;
+	case 0x5202:
+//		mmc5_split_bank = data & 0x3f;
+		break;
+	case 0x5203:
+		mmc5_irq_line = data;
+		break;
+	case 0x5204:
+		mmc5_irq_enabled = data;
+		break;
+	case 0x5205:
+		mmc5_value0 = data;
+		break;
+	case 0x5206:
+		mmc5_value1 = data;
+		break;
+	default:
+		if(addr >= 0x5000 && addr <= 0x5015) {
+//			d_mmc5->write_io8(addr, data);
+		} else if(addr >= 0x5c00 && addr <= 0x5fff) {
+			if(mmc5_gfx_mode != 3) {
+				(d_ppu->get_name_tables() + 0x800)[addr & 0x3ff] = data; //(mmc5_irq_status & 0) ? data : 0x40;
+			}
+		}
+		break;
+	}
+}
+
+//uint32_t MEMORY::mmc5_save_read(uint32_t addr)
+//{
+//	return bank_ptr[3][addr & 0x1fff];
+//}
+
+void MEMORY::mmc5_save_write(uint32_t addr, uint32_t data)
+{
+	if(mmc5_wram_protect0 == 0x02 && mmc5_wram_protect1 == 0x01) {
+		if(mmc5_wram_bank[3] < 8) {
+			bank_ptr[3][addr & 0x1fff] = data;
+		}
+	}
+}
+
+void MEMORY::mmc5_hi_write(uint32_t addr, uint32_t data)
+{
+	if(mmc5_wram_protect0 == 0x02 && mmc5_wram_protect1 == 0x01) {
+		if(addr < 0xa000) {
+			if(mmc5_wram_bank[4] < 8) {
+				bank_ptr[4][addr & 0x1fff] = data;
+			}
+		} else if(addr < 0xc000) {
+			if(mmc5_wram_bank[5] < 8) {
+				bank_ptr[5][addr & 0x1fff] = data;
+			}
+		} else if(addr < 0xe000) {
+			if(mmc5_wram_bank[6] < 8) {
+				bank_ptr[6][addr & 0x1fff] = data;
+			}
+		} else {
+			if(mmc5_wram_bank[7] < 8) {
+				bank_ptr[7][addr & 0x1fff] = data;
+			}
+		}
+	}
+}
+
+void MEMORY::mmc5_hsync(int v)
+{
+	if(v <= 240) {
+		if(v == mmc5_irq_line) {
+			if(d_ppu->spr_enabled() && d_ppu->bg_enabled()) {
+				mmc5_irq_status |= 0x80;
+			}
+		}
+		if((mmc5_irq_status & 0x80) && (mmc5_irq_enabled & 0x80)) {
+			d_cpu->write_signal(SIG_CPU_IRQ, 1, 1);
+		}
+	} else {
+		mmc5_irq_status |= 0x40;
+	}
+}
+
+void MEMORY::mmc5_set_cpu_bank(uint8_t bank, uint32_t bank_num)
+{
+	if(bank_num & 0x80) {
+		if(mmc5_prg_size == 0) {
+			if(bank == 7) {
+				set_rom_bank(4, (bank_num & 0x7c) + 0);
+				set_rom_bank(5, (bank_num & 0x7c) + 1);
+				set_rom_bank(6, (bank_num & 0x7c) + 2);
+				set_rom_bank(7, (bank_num & 0x7c) + 3);
+			}
+		} else if(mmc5_prg_size == 1) {
+			if(bank == 5) {
+				set_rom_bank(4, (bank_num & 0x7e) + 0);
+				set_rom_bank(5, (bank_num & 0x7e) + 1);
+			} else if(bank == 7) {
+				set_rom_bank(6, (bank_num & 0x7e) + 0);
+				set_rom_bank(7, (bank_num & 0x7e) + 1);
+			}
+		} else if(mmc5_prg_size == 2) {
+			if(bank == 5) {
+				set_rom_bank(4, (bank_num & 0x7e) + 0);
+				set_rom_bank(5, (bank_num & 0x7e) + 1);
+			} else if(bank == 6) {
+				set_rom_bank(6, bank_num & 0x7f);
+			} else if(bank == 7) {
+				set_rom_bank(7, bank_num & 0x7f);
+			}
+		} else if(mmc5_prg_size == 3) {
+			if(bank == 4) {
+				set_rom_bank(4, bank_num & 0x7f);
+			} else if(bank == 5) {
+				set_rom_bank(5, bank_num & 0x7f);
+			} else if(bank == 6) {
+				set_rom_bank(6, bank_num & 0x7f);
+			} else if(bank == 7) {
+				set_rom_bank(7, bank_num & 0x7f);
+			}
+		}
+	} else {
+		if(mmc5_prg_size == 1) {
+			if(bank == 5) {
+				mmc5_set_wram_bank(4, (bank_num & 0x06)+0);
+				mmc5_set_wram_bank(5, (bank_num & 0x06)+1);
+			}
+		} else if(mmc5_prg_size == 2) {
+			if(bank == 5) {
+				mmc5_set_wram_bank(4, (bank_num & 0x06)+0);
+				mmc5_set_wram_bank(5, (bank_num & 0x06)+1);
+			} else  if(bank == 6)
+			{
+				mmc5_set_wram_bank(6, bank_num & 0x07);
+			}
+		} else if(mmc5_prg_size == 3) {
+			if(bank == 4) {
+				mmc5_set_wram_bank(4, bank_num & 0x07);
+			} else if(bank == 5) {
+				mmc5_set_wram_bank(5, bank_num & 0x07);
+			} else if(bank == 6) {
+				mmc5_set_wram_bank(6, bank_num & 0x07);
+			}
+		}
+	}
+}
+
+void MEMORY::mmc5_set_wram_bank(uint8_t bank, uint32_t bank_num)
+{
+	if(bank_num < 8) {
+		bank_ptr[bank] = save_ram + 0x2000 * bank_num;
+		mmc5_wram_bank[bank] = bank_num;
+	} else {
+		set_rom_bank(bank, banks[bank]);
+	}
+}
+
+void MEMORY::mmc5_set_ppu_bank(uint8_t mode)
+{
+	if(mmc5_chr_size == 0) {
+		d_ppu->set_ppu_bank(0, mmc5_chr_reg[7][mode] * 8 + 0);
+		d_ppu->set_ppu_bank(1, mmc5_chr_reg[7][mode] * 8 + 1);
+		d_ppu->set_ppu_bank(2, mmc5_chr_reg[7][mode] * 8 + 2);
+		d_ppu->set_ppu_bank(3, mmc5_chr_reg[7][mode] * 8 + 3);
+		d_ppu->set_ppu_bank(4, mmc5_chr_reg[7][mode] * 8 + 4);
+		d_ppu->set_ppu_bank(5, mmc5_chr_reg[7][mode] * 8 + 5);
+		d_ppu->set_ppu_bank(6, mmc5_chr_reg[7][mode] * 8 + 6);
+		d_ppu->set_ppu_bank(7, mmc5_chr_reg[7][mode] * 8 + 7);
+	} else if(mmc5_chr_size == 1) {
+		d_ppu->set_ppu_bank(0, mmc5_chr_reg[3][mode] * 4 + 0);
+		d_ppu->set_ppu_bank(1, mmc5_chr_reg[3][mode] * 4 + 1);
+		d_ppu->set_ppu_bank(2, mmc5_chr_reg[3][mode] * 4 + 2);
+		d_ppu->set_ppu_bank(3, mmc5_chr_reg[3][mode] * 4 + 3);
+		d_ppu->set_ppu_bank(4, mmc5_chr_reg[7][mode] * 4 + 0);
+		d_ppu->set_ppu_bank(5, mmc5_chr_reg[7][mode] * 4 + 1);
+		d_ppu->set_ppu_bank(6, mmc5_chr_reg[7][mode] * 4 + 2);
+		d_ppu->set_ppu_bank(7, mmc5_chr_reg[7][mode] * 4 + 3);
+	} else if(mmc5_chr_size == 2) {
+		d_ppu->set_ppu_bank(0, mmc5_chr_reg[1][mode] * 2 + 0);
+		d_ppu->set_ppu_bank(1, mmc5_chr_reg[1][mode] * 2 + 1);
+		d_ppu->set_ppu_bank(2, mmc5_chr_reg[3][mode] * 2 + 0);
+		d_ppu->set_ppu_bank(3, mmc5_chr_reg[3][mode] * 2 + 1);
+		d_ppu->set_ppu_bank(4, mmc5_chr_reg[5][mode] * 2 + 0);
+		d_ppu->set_ppu_bank(5, mmc5_chr_reg[5][mode] * 2 + 1);
+		d_ppu->set_ppu_bank(6, mmc5_chr_reg[7][mode] * 2 + 0);
+		d_ppu->set_ppu_bank(7, mmc5_chr_reg[7][mode] * 2 + 1);
+	} else {
+		d_ppu->set_ppu_bank(0, mmc5_chr_reg[0][mode]);
+		d_ppu->set_ppu_bank(1, mmc5_chr_reg[1][mode]);
+		d_ppu->set_ppu_bank(2, mmc5_chr_reg[2][mode]);
+		d_ppu->set_ppu_bank(3, mmc5_chr_reg[3][mode]);
+		d_ppu->set_ppu_bank(4, mmc5_chr_reg[4][mode]);
+		d_ppu->set_ppu_bank(5, mmc5_chr_reg[5][mode]);
+		d_ppu->set_ppu_bank(6, mmc5_chr_reg[6][mode]);
+		d_ppu->set_ppu_bank(7, mmc5_chr_reg[7][mode]);
+	}
+}
+
+uint8_t MEMORY::mmc5_ppu_latch_render(uint8_t mode, uint32_t addr)
+{
+	uint8_t data = 0;
+	
+	if(mmc5_gfx_mode == 1 && mode == 1) {
+		// ex gfx mode
+		uint32_t bank_num = ((d_ppu->get_name_tables() + 0x800)[addr] & 0x3f) << 2;
+		d_ppu->set_ppu_bank(0, bank_num + 0);
+		d_ppu->set_ppu_bank(1, bank_num + 1);
+		d_ppu->set_ppu_bank(2, bank_num + 2);
+		d_ppu->set_ppu_bank(3, bank_num + 3);
+		d_ppu->set_ppu_bank(4, bank_num + 0);
+		d_ppu->set_ppu_bank(5, bank_num + 1);
+		d_ppu->set_ppu_bank(6, bank_num + 2);
+		d_ppu->set_ppu_bank(7, bank_num + 3);
+		data = (((d_ppu->get_name_tables() + 0x800)[addr] & 0xc0) >> 4) | 0x01;
+	} else {
+		// normal
+		mmc5_set_ppu_bank(mode);
+	}
+	return data;
+}
+
+// vrc7
+
+void MEMORY::vrc7_reset()
+{
+	if(header.mapper() == 85) {
+		vrc7_irq_enabled = 0;
+		vrc7_irq_counter = 0;
+		vrc7_irq_latch = 0;
+		d_opll->write_signal(SIG_YM2413_MUTE, 0, 0);
+		set_rom_bank(4, 0);
+		set_rom_bank(5, 1);
+		set_rom_bank(6, header.num_8k_rom_banks() - 2);
+		set_rom_bank(7, header.num_8k_rom_banks() - 1);
+	} else {
+		d_opll->write_signal(SIG_YM2413_MUTE, 1, 1);
+	}
+}
+
+//uint32_t MEMORY::vrc7_lo_read(uint32_t addr)
+//{
+//	return 0xff;
+//}
+
+//void MEMORY::vrc7_lo_write(uint32_t addr, uint32_t data)
+//{
+//}
+
+//uint32_t MEMORY::vrc7_save_read(uint32_t addr)
+//{
+//	return bank_ptr[3][addr & 0x1fff];
+//}
+
+//void MEMORY::vrc7_save_write(uint32_t addr, uint32_t data)
+//{
+//	bank_ptr[3][addr & 0x1fff] = data;
+//}
+
+void MEMORY::vrc7_hi_write(uint32_t addr, uint32_t data)
+{
+	switch(addr & 0xf038) {
+	case 0x8000:
+		set_rom_bank(4, data);
+		break;
+	case 0x8008:
+	case 0x8010:
+		set_rom_bank(5, data);
+		break;
+	case 0x9000:
+		set_rom_bank(6, data);
+		break;
+	case 0x9010:
+	case 0x9030:
+		d_opll->write_io8(addr >> 5, data);
+		break;
+	case 0xa000:
+		d_ppu->set_ppu_bank(0, data);
+		break;
+	case 0xa008:
+	case 0xa010:
+		d_ppu->set_ppu_bank(1, data);
+		break;
+	case 0xb000:
+		d_ppu->set_ppu_bank(2, data);
+		break;
+	case 0xb008:
+	case 0xb010:
+		d_ppu->set_ppu_bank(3, data);
+		break;
+	case 0xc000:
+		d_ppu->set_ppu_bank(4, data);
+		break;
+	case 0xc008:
+	case 0xc010:
+		d_ppu->set_ppu_bank(5, data);
+		break;
+	case 0xd000:
+		d_ppu->set_ppu_bank(6, data);
+		break;
+	case 0xd008:
+	case 0xd010:
+		d_ppu->set_ppu_bank(7, data);
+		break;
+	case 0xe000:
+		switch(data & 0x03) {
+		case 0x00:
+			d_ppu->set_mirroring(MIRROR_VERT);
+			break;
+		case 0x01:
+			d_ppu->set_mirroring(MIRROR_HORIZ);
+			break;
+		case 0x02:
+			d_ppu->set_mirroring(0, 0, 0, 0);
+			break;
+		case 0x03:
+			d_ppu->set_mirroring(1, 1, 1, 1);
+			break;
+		}
+		break;
+	case 0xe008:
+	case 0xe010:
+		vrc7_irq_latch = data;
+		break;
+	case 0xf000:
+		if(data & 0x02) {
+			vrc7_irq_counter = vrc7_irq_latch;
+		}
+		vrc7_irq_enabled = data & 0x03;
+		break;
+	case 0xf008:
+	case 0xf010:
+		vrc7_irq_enabled = (vrc7_irq_enabled & 0x01) * 3;
+		break;
+	}
+}
+
+void MEMORY::vrc7_hsync(int v)
+{
+	if(vrc7_irq_enabled & 0x02) {
+		if(vrc7_irq_counter == 0xff) {
+			d_cpu->write_signal(SIG_CPU_IRQ, 1, 1);
+			vrc7_irq_counter = vrc7_irq_latch;
+		} else {
+			vrc7_irq_counter++;
+		}
+	}
+}
+
+#define STATE_VERSION	2
 
 void MEMORY::save_state(FILEIO* state_fio)
 {
@@ -344,13 +882,33 @@ void MEMORY::save_state(FILEIO* state_fio)
 	state_fio->FputInt32(this_device_id);
 	
 	state_fio->Fwrite(save_file_name, sizeof(save_file_name), 1);
-	state_fio->Fwrite(header, sizeof(header), 1);
-	state_fio->Fwrite(rom, sizeof(rom), 1);
+	state_fio->Fwrite(&header, sizeof(header), 1);
+	state_fio->FputUint32(rom_size);
+//	state_fio->FputUint32(rom_mask);
+	state_fio->Fwrite(rom, rom_size, 1);
 	state_fio->Fwrite(ram, sizeof(ram), 1);
 	state_fio->Fwrite(save_ram, sizeof(save_ram), 1);
 	state_fio->FputUint32(save_ram_crc32);
+	state_fio->Fwrite(banks, sizeof(banks), 1);
 	state_fio->FputUint16(dma_addr);
 	state_fio->FputUint8(frame_irq_enabled);
+	state_fio->Fwrite(mmc5_wram_bank, sizeof(mmc5_wram_bank), 1);
+	state_fio->Fwrite(mmc5_chr_reg, sizeof(mmc5_chr_reg), 1);
+	state_fio->FputUint32(mmc5_value0);
+	state_fio->FputUint32(mmc5_value0);
+	state_fio->FputUint8(mmc5_wram_protect0);
+	state_fio->FputUint8(mmc5_wram_protect1);
+	state_fio->FputUint8(mmc5_prg_size);
+	state_fio->FputUint8(mmc5_chr_size);
+	state_fio->FputUint8(mmc5_gfx_mode);
+//	state_fio->FputUint8(mmc5_split_control);
+//	state_fio->FputUint8(mmc5_split_bank);
+	state_fio->FputUint8(mmc5_irq_enabled);
+	state_fio->FputUint8(mmc5_irq_status);
+	state_fio->FputUint32(mmc5_irq_line);
+	state_fio->FputUint8(vrc7_irq_enabled);
+	state_fio->FputUint8(vrc7_irq_counter);
+	state_fio->FputUint8(vrc7_irq_latch);
 	state_fio->FputBool(pad_strobe);
 	state_fio->FputUint8(pad1_bits);
 	state_fio->FputUint8(pad2_bits);
@@ -367,18 +925,55 @@ bool MEMORY::load_state(FILEIO* state_fio)
 		return false;
 	}
 	state_fio->Fread(save_file_name, sizeof(save_file_name), 1);
-	state_fio->Fread(header, sizeof(header), 1);
-	state_fio->Fread(rom, sizeof(rom), 1);
+	state_fio->Fread(&header, sizeof(header), 1);
+	rom_size = state_fio->FgetUint32();
+//	rom_mask = state_fio->FgetUint32();
+	rom_mask = (rom_size / 0x2000) - 1;
+	if(rom != NULL) {
+		free(rom);
+	}
+	rom = (uint8_t *)malloc(rom_size);
+	state_fio->Fread(rom, rom_size, 1);
 	state_fio->Fread(ram, sizeof(ram), 1);
 	state_fio->Fread(save_ram, sizeof(save_ram), 1);
 	save_ram_crc32 = state_fio->FgetUint32();
+	state_fio->Fread(banks, sizeof(banks), 1);
 	dma_addr = state_fio->FgetUint16();
 	frame_irq_enabled = state_fio->FgetUint8();
+	state_fio->Fread(mmc5_wram_bank, sizeof(mmc5_wram_bank), 1);
+	state_fio->Fread(mmc5_chr_reg, sizeof(mmc5_chr_reg), 1);
+	mmc5_value0 = state_fio->FgetUint32();
+	mmc5_value0 = state_fio->FgetUint32();
+	mmc5_wram_protect0 = state_fio->FgetUint8();
+	mmc5_wram_protect1 = state_fio->FgetUint8();
+	mmc5_prg_size = state_fio->FgetUint8();
+	mmc5_chr_size = state_fio->FgetUint8();
+	mmc5_gfx_mode = state_fio->FgetUint8();
+//	mmc5_split_control = state_fio->FgetUint8();
+//	mmc5_split_bank = state_fio->FgetUint8();
+	mmc5_irq_enabled = state_fio->FgetUint8();
+	mmc5_irq_status = state_fio->FgetUint8();
+	mmc5_irq_line = state_fio->FgetUint32();
+	vrc7_irq_enabled = state_fio->FgetUint8();
+	vrc7_irq_counter = state_fio->FgetUint8();
+	vrc7_irq_latch = state_fio->FgetUint8();
 	pad_strobe = state_fio->FgetBool();
 	pad1_bits = state_fio->FgetUint8();
 	pad2_bits = state_fio->FgetUint8();
 	kb_out = state_fio->FgetBool();
 	kb_scan = state_fio->FgetUint8();
+	
+	// post process
+	if(header.mapper() == 5) {
+		for(int i = 3; i < 8; i++) {
+			mmc5_set_wram_bank(i, mmc5_wram_bank[i]);
+		}
+	} else {
+		for(int i = 4; i < 8; i++) {
+			set_rom_bank(i, banks[i]);
+		}
+		bank_ptr[3] = save_ram;
+	}
 	return true;
 }
 

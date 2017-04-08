@@ -31,6 +31,7 @@ set(VMFILES
 )
 
 set(VMFILES_LIB
+#		   pc6031.cpp
 )
 set(FLAG_USE_MCS48 ON)
 set(FLAG_USE_Z80 ON)

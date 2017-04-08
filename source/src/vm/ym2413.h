@@ -14,6 +14,8 @@
 //#include "../emu.h"
 #include "device.h"
 
+#define SIG_YM2413_MUTE		0
+
 typedef INT16 SAMP;
 typedef void (*OPLL_UPDATEHANDLER)(int param,int min_interval_us);
 void YM2413SetUpdateHandler(int which, OPLL_UPDATEHANDLER UpdateHandler, int param);
@@ -43,6 +45,7 @@ public:
 	void reset();
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	// unique functions

@@ -1,3 +1,13 @@
+3/26/2017
+
+[VM/YM2413] support mute
+
+[FAMILYBASIC] support Family BASIC MMC5/VRC7 MOD
+[FAMILYBASIC] support correct scanlines
+[FAMILYBASIC/MEMORY] support MMC5/ VRC7 based on unofficial nester
+[FAMILYBASIC/MEMORY] fix data recorder signal (thanks MESS)
+
+
 3/20/2017
 
 [COMMON] suport to read ascii/binary file compressed by gzip

@@ -2192,6 +2192,13 @@ uint32_t YM2413::read_io8(uint32_t addr)
 	return latch;
 }
 
+void YM2413::write_signal(int id, uint32_t data, uint32_t mask)
+{
+	if(id == SIG_YM2413_MUTE) {
+		mute = ((data & mask) != 0);
+	}
+}
+
 void YM2413::mix(int32_t* buffer, int cnt)
 {
 	if(mute) {
