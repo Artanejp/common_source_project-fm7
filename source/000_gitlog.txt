@@ -1,3 +1,9 @@
+commit b3bb57059155cd344d5b563e3dd9e0949008a193
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Apr 9 23:05:58 2017 +0900
+
+    [DOC] Updated.
+
 commit f3c1e9299a7570557798c9fd12fb5992519c31c0
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sun Apr 9 23:00:26 2017 +0900

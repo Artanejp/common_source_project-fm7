@@ -20,7 +20,7 @@ void META_MainWindow::setupUI_Emu(void)
 	menuBootMode = new QMenu(menuMachine);
 	menuBootMode->setObjectName(QString::fromUtf8("menuControl_BootMode"));
 	menuMachine->addAction(menuBootMode->menuAction());
-	ConfigCPUBootMode(3);
+	ConfigCPUBootMode(6);
 }
 
 void META_MainWindow::retranslateUi(void)
