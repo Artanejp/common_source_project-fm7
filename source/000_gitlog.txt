@@ -1,3 +1,15 @@
+commit 0fc72e5984f6a6dd0b04dfdbd5cda0bfc98d3c89
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Apr 10 03:56:55 2017 +0900
+
+    [VM][CONFIG] Fix not loading some setting values.
+
+commit 3e1dde3694c75a0f75e4aced4094b3d16ad9b78c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Apr 9 23:34:19 2017 +0900
+
+    [Qt] Fix crash with familybasic.
+
 commit b3bb57059155cd344d5b563e3dd9e0949008a193
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sun Apr 9 23:05:58 2017 +0900
