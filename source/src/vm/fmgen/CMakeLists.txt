@@ -24,8 +24,8 @@ target_link_libraries(CSPfmgen
 	${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libCSPemu_utils.dll.a
 	)
 set_target_properties(CSPfmgen PROPERTIES
-			     SOVERSION 1.0.1
-			     VERSION 1.0.1
+			     SOVERSION 1.1.0
+			     VERSION 1.1.0
 			     LINK_INTERFACE_LIBRARIES ""
 			     )
 generate_export_header(CSPfmgen
@@ -40,8 +40,8 @@ else()
     ${s_vm_fmgen_srcs}
   )
   set_target_properties(CSPfmgen PROPERTIES 
-     SOVERSION 1.0.1
-     VERSION 1.0.1
+     SOVERSION 1.1.0
+     VERSION 1.1.0
   )
   INSTALL(TARGETS CSPfmgen DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

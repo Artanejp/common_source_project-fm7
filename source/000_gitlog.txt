@@ -1,3 +1,324 @@
+commit 58df3502c496a8109a49e86be332fc97477d3e02
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Apr 9 21:44:35 2017 +0900
+
+    [General][Qt] Fix FTBFSs.
+
+commit 89e8e07cf3b2446094fadd477e3707b84d122390
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Apr 9 02:42:26 2017 +0900
+
+    [General] Merge Upstream 2017-04-02.
+
+commit 2ef68d1cc9f4d59d166952f5bb10dbd011e1664c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Apr 9 00:02:37 2017 +0900
+
+    [VM][General] common.cpp : Use buffer sized functions for some string functions.
+
+commit 6cb889b364c5b808716c504e083e3606539f8bce
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Apr 9 00:01:21 2017 +0900
+
+    [VM][General] Merge Upstream 2017-03-30.
+    [General][BUILD] Use -D_UNICODE to build.
+
+commit 3588804e1d5e7fccb2ff05f38c3edfab862ab838
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Apr 8 22:48:32 2017 +0900
+
+    [VM][General] Merge Upstream 2017-03-28.
+
+commit eeedca4e3c5974b19812c180678e3d722b361e82
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Apr 8 22:06:13 2017 +0900
+
+    [VM][General] Merge Upstream 2017-03-26.
+
+commit 7cb20ae535ab0ccbaf8d5dd44050e75d6ec4081a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Apr 2 16:05:28 2017 +0900
+
+    [VM][GAMEGEAR][HC40] Fix FTBFS.
+
+commit 1ef2f58dd361d4e05e079cd70259f54d369d64be
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Apr 2 03:21:56 2017 +0900
+
+    [VM][FM7][MAINMEM] MMR: Use jump tables.
+
+commit c8ee7c56570314655d7037af7e4b0479784edc1e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Apr 2 00:43:18 2017 +0900
+
+    [VM][FM7][MAINMEM] Split a class to some files.
+
+commit 13068233c275ff35be8013c8651cf879706786b4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Apr 2 00:19:24 2017 +0900
+
+    [VM][FM7][MAINMEM] Remove unused functions.
+
+commit 18dfbd25db1ae453a6c884d753bc3b07bfd58ec7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Apr 1 23:11:00 2017 +0900
+
+    [VM][FM7][MAINMEM] Remove read_table, write_table.
+
+commit 7576b7cfabf694b0788fcbb3f80eb71d6e6de732
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Apr 1 23:02:19 2017 +0900
+
+    [VM][FM7][MAINMEM] Use jump-table to access memory.
+
+commit f6c08ef9f903d2d9197527a90b0d49372b2dfae3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Apr 1 19:11:45 2017 +0900
+
+    [VM][FM7][DISPLAY] Reduce re-calculate parameters.
+
+commit f2731620879a5be0ef9527954fa4704384670ecc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Apr 1 19:03:57 2017 +0900
+
+    [VM][FM7][MAINMEM] Revert to d4c1b2504afa59c20b4228d2545b2d4fb5a2f841 (only FM7_MAINMEM::).
+
+commit e83408b5b86dc5eb421aaf958b5724ce9230caf6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Apr 1 16:45:49 2017 +0900
+
+    [VM][FM7][DISPLAY] Reduce address calculation.
+
+commit 7e03302b489f8403f15956c596f2e12864c42449
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Apr 1 06:23:29 2017 +0900
+
+    [VM][FM7] Add conversion table MMR to REAL; Maybe made faster.
+
+commit 7520ffcc318fefe5e6198e3a6320ca79423f8067
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 29 18:15:33 2017 +0900
+
+    [VM][FM7][MEMORY] Use tables instead of *mmr_convert().
+
+commit 917b1f7a6f4df61938e6100eb38c2852de00ee15
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 29 05:41:41 2017 +0900
+
+    [VM][FM7][WIP] Faster memory access.WIP.
+
+commit d4c1b2504afa59c20b4228d2545b2d4fb5a2f841
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 23 11:55:47 2017 +0900
+
+    [UI][Qt] Update USING_FLAGS.
+
+commit 0f42cf798217a957c0fb79f6b6f3a99b8d0e366b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 23 11:54:30 2017 +0900
+
+    [BUILD][WIN32] Fix FTBFS
+
+commit a5018bdd59c295d158157b35bd3778ff91a16c3f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 23 02:25:26 2017 +0900
+
+    [DOC] Update documents to Upstream 2017-03-20.
+
+commit 153861fe26b29f1aef284ecebd29ddc6f268f46f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 23 02:21:12 2017 +0900
+
+    [DOC] Update upstream's readme.
+
+commit ae87c2eff7eb8510f4470912cdb6a763ff5b98ae
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 23 02:16:36 2017 +0900
+
+    [BUILD] Update batch files.
+
+commit 5d3bc69e3f448a12ff4110e3113faf3b4eef9b35
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 23 02:15:50 2017 +0900
+
+    [WIN32][Qt] Fix FTBFS with ZLIB.
+
+commit aebf1100644e1e8c6998fe6192f8d2fab10fec56
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 22 21:47:39 2017 +0900
+
+    [VM] Merge Upstream 2017-03-20.
+
+commit a7566e659ebdb16158448deb15cdcd0561dcf6c3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 22 21:46:30 2017 +0900
+
+    [UI][Qt] Update qt/machines/ .
+
+commit ee8c85e065af8e9a3a70f76681baf6092da30789
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 22 21:45:42 2017 +0900
+
+    [Build][CMake] Add supporting for ZLIB.
+
+commit bee22160131980144b18529294b71e1049d10107
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 22 21:45:05 2017 +0900
+
+    [UI][OSD][Qt] Prepare to support Upstream 2017-03-20.
+
+commit 2b991f3cb3407fbdcab573c935174ee68f168cb8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 22 21:43:03 2017 +0900
+
+    [VM][General] EMU/COMMON : Fix bugs around handling filename and directories.
+    [FILEIO] Fix FTBFS with ZLIB 1.2.8 or earlier.
+    [CONFIG] Sync to upstream 2017-03-20.
+
+commit cc2b9790802b16aeea5bc7b53f16cf3d21844f50
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 22 06:08:24 2017 +0900
+
+    [General][WIP] Merge upstream 2017-03-20.Still not implement UIs.
+
+commit 8911d942aa5301c3fc6436e479e6598aeb5c8947
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 20 19:01:52 2017 +0900
+
+    [UI][Qt] Move drive status from status-bar to right dock.
+
+commit f6c408c91deddc69b88998d8f170eb3845711511
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 20 00:00:15 2017 +0900
+
+    [VM][FM77AV40EX] Fix wrong display timing.
+
+commit 8c0a726f33ea309724a17169cefa403b13c143dd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 19 23:37:28 2017 +0900
+
+    [WIP][VM][FM77AV40EX][DISPLAY] Fix weird display with 4096 colors.
+
+commit b159d891dd84ef85587eb1c4f337c3c15390911c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 19 23:05:48 2017 +0900
+
+    [Qt][EMU] Update emu_thread.
+
+commit 005e1714867fe94c98bb25ce8b281093c6fbc83c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 19 22:19:26 2017 +0900
+
+    [VM][FM7][DISPLAY] Use function table to access memories within display sub-system.
+
+commit 5f6cf75c70fc5720b528fb655988b7b863700614
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 17 14:49:57 2017 +0900
+
+    [General] Merge Updtream 2017-03-15 . Still not build all of VMs.
+
+commit 69c1dfe417c2f52cbc25730d2131f39c3bcac16f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 17 14:08:04 2017 +0900
+
+    [VM][YALKY] Fix FTBFS.
+
+commit 2087d21109aa2260891c6effb6d28611055be888
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 17 13:49:24 2017 +0900
+
+    [VM][MZ1500] Fix FTBFS.
+
+commit 013021daa27e7c1f9854b685259f3ee061a0b1a7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 17 04:02:57 2017 +0900
+
+    [VM] Fix FTBFS for Upstream 2017-03-12.
+
+commit c8bbd85433c3865f3642fbb64089614836470002
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 17 04:01:57 2017 +0900
+
+    [Build][CMAKE] Delete HBF1XDJ.
+
+commit f7db518ecbb5552250df4781f9dbfd9f6172cebc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 16 03:55:42 2017 +0900
+
+    [VM][FM7][DISPLAY] Fix auto skip feature.
+
+commit 75bf52a1b5f467c4c1e6500ed6c5ea8e530e4d80
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 15 23:28:05 2017 +0900
+
+    [VM][FM77AV][DISPLAY] HSYNC:Don't register event(s) per HDISP.
+
+commit 36c0032433abfeb8e54394de1c078ce59a461ef6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 15 06:12:54 2017 +0900
+
+    [VM] Add MSX and FAMILY BASIC.
+
+commit 4807163f7e97c793c4943cc26a8634078c7d0261
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 15 05:51:44 2017 +0900
+
+    [VM][Qt] Add FM-R30, PASOPIA7, and PC* .
+
+commit 445fbef1892fed8303fb3d7a275510447f09272f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 15 05:09:35 2017 +0900
+
+    [General][WIP] Merge Upstream 2017-03-12.
+
+commit 6925c333eaf7045a3ed63a6684cd0d277baa5f72
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 15 05:07:03 2017 +0900
+
+    [General][WIP] Merge Upstream 2017-03-11.
+
+commit cf5d44dca0c28b73632775bcea737cec5bdd9267
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 15 02:26:07 2017 +0900
+
+    [Build][CMAKE][MSX] Working with MSX1/2.
+
+commit 60402cc88adbbe9ebe6614c6154d7d2bba31bad9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 15 00:43:04 2017 +0900
+
+    [General] Merge upstream 2017-03-08 1/2.
+
+commit 651bea8d1de06452186be96006d6953407b30294
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 15 00:27:50 2017 +0900
+
+    [General] Merge Upstream 2017-03-07.
+
+commit 386e25cf7354c75e82aca9fa8f5934d125d7f880
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 8 01:56:49 2017 +0900
+
+    [Build][WIN32] Fix FTBFS with PC-8001MK2SR.
+
+commit 5f04f9f628a96a1271a6a02eaf92d2e800281607
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Mar 7 21:54:40 2017 +0900
+
+    [BULD][WIN32] I386: Fix FTBFS with MinGW/Win32.
+
+commit d52c2ce00ed106de0820bf867355d23c45ba677b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Mar 7 07:08:26 2017 +0000
+
+    [BUILD][LINUX] Fix linking order.
+
+commit b8454c9699f2c37b1505b6a440f8ffa8f649c07e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Mar 7 15:58:03 2017 +0900
+
+    [DOC] Update for newer, maybe these are for release.
+
 commit 2dac70eb1743e2a0b778a57a1f520fce59aa6371
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Tue Mar 7 15:51:51 2017 +0900

@@ -1,5 +1,22 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT April 09, 2017
+  * Upstream 2017-04-02
+  * [UI/Qt] Move drive status from status-bar to right dock.
+  * [FILEIO] Fix FTBFS with ZLIB 1.2.8 or earlier.
+  * [VM/General] EMU/COMMON : Fix bugs around handling filename and directories.
+  * [VM/General] common.cpp : Use buffer sized functions for some string functions.
+  * [VM/FM77AV] DISPLAY: HSYNC:Don't register event(s) per HDISP.
+  * [VM/FM7] DISPLAY: Reduce address calculation.
+  * [VM/FM7] DISPLAY: Fix auto skip feature.
+  * [VM/FM7] Use function table(s) to access memories within display sub-system and main-system.
+  * [VM/FM77AV40EX] Fix wrong display timing.
+  * [Build/CMake] Add supporting for ZLIB.
+  * [BUILD/LINUX] Fix linking order.
+  * [General/BUILD] Linux: Use -D_UNICODE to build.
+
+-- Apr 09, 2017 21:52:45 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+  
 * SNAPSHOT March 07, 2017
   * Upstream 2017-03-04
   * [VM] Some devices have prepared to move to libCSPcommon_vm .

@@ -206,6 +206,15 @@ typedef struct {
 	int sound_volume_r[MAX_VOLUME_TMP];
 #endif
 	// input
+#if defined(USE_SHARED_DLL) || defined(USE_JOYSTICK)
+	int joy_buttons[4][16];
+#endif
+
+	// printer
+#if defined(USE_SHARED_DLL) || defined(USE_PRINTER)
+	_TCHAR printer_dll_path[_MAX_PATH];
+#endif
+
 #if defined(_WIN32) && !defined(_USE_QT)
 	_TCHAR fmgen_dll_path[_MAX_PATH];
 	bool use_direct_input;
@@ -215,9 +224,6 @@ typedef struct {
 	bool wait_vsync;
 	bool use_dinput;
 	bool show_status_bar;
-#endif
-#if defined(USE_SHARED_DLL) || defined(USE_JOYSTICK)
-	int joy_buttons[4][16];
 #endif
 
 #ifdef _USE_QT
@@ -243,15 +249,6 @@ typedef struct {
 	int video_threads;
 	int audio_bitrate;
 	int video_frame_rate; // FPS * 1000.0
-#endif
-	
-	// printer
-#if defined(USE_SHARED_DLL) || defined(USE_PRINTER)
-	_TCHAR printer_dll_path[_MAX_PATH];
-#endif
-
-	// General
-#ifdef _USE_QT
 	bool log_to_syslog;
 	bool log_to_console;
 	bool dev_log_to_syslog[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1][8];
@@ -261,6 +258,7 @@ typedef struct {
 	bool roma_kana_conversion;
 	int rendering_type;
 #endif
+	
 } config_t;
 
 extern DLL_PREFIX config_t config;
