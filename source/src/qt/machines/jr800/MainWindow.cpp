@@ -1,6 +1,6 @@
 /*
  * Common Source code Project:
- * Ui->Qt->MainWindow for JR100 .
+ * Ui->Qt->MainWindow for JR800 .
  * (C) 2015 K.Ohta <whatisthis.sowhat _at_ gmail.com>
  *   License : GPLv2
  *   History :
@@ -17,10 +17,7 @@
 
 void META_MainWindow::setupUI_Emu(void)
 {
-	menuBootMode = new QMenu(menuMachine);
-	menuBootMode->setObjectName(QString::fromUtf8("menuControl_BootMode"));
-	menuMachine->addAction(menuBootMode->menuAction());
-	ConfigCPUBootMode(3);
+   
 }
 
 void META_MainWindow::retranslateUi(void)
@@ -33,15 +30,14 @@ void META_MainWindow::retranslateUi(void)
 	retranslateMachineMenu();
 	retranslateEmulatorMenu();
 	retranslateUI_Help();
-	
-	menuBootMode->setTitle(QApplication::translate("Machine", "BOOT Mode", 0));
-	menuBootMode->setToolTipsVisible(true);
-	actionBootMode[0]->setText(QString::fromUtf8("BASIC V1"));
-	actionBootMode[1]->setText(QString::fromUtf8("BASIC V2"));	
-	actionBootMode[2]->setText(QString::fromUtf8("Playbox BASIC"));
-	actionBootMode[3]->setText(QString::fromUtf8("VRC7 BASIC V2"));
-	actionBootMode[4]->setText(QString::fromUtf8("VRC7 BASIC V3"));
-	actionBootMode[5]->setText(QString::fromUtf8("MMC5 BASIC V3"));
+   
+	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
+#ifdef USE_DEBUGGER
+	actionDebugger[0]->setVisible(true);
+	actionDebugger[1]->setVisible(false);
+	actionDebugger[2]->setVisible(false);
+	actionDebugger[3]->setVisible(false);
+#endif
 	// Set Labels
 } // retranslateUi
 
