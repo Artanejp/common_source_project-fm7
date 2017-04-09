@@ -1,11 +1,17 @@
 "eFamilyBASIC" - Nintendo Family BASIC Emulator for Win32
-								7/23/2013
+								3/26/2013
 
 --- Family BASIC Cart image
 
 	BASIC_V2.NES		Family BASIC V2
 	BASIC_V3.NES		Family BASIC V3
 	PLAYBOX_BASIC.NES	Playbox BASIC
+	VRC7_BASIC_V2.NES	VRC7 BASIC V2.1A
+	VRC7_BASIC_V3.NES	VRC7 BASIC V3
+	MMC5_BASIC_V3.NES	MMC5 BASIC
+
+NOTE: VRC7/MMC5 BASIC is developed by Mr.Makimura:
+	http://rdev.php.xdomain.jp/makimura/archive/family-basic
 
 NOTE: This is the limited Family Computer emulator only for Family BASIC.
 

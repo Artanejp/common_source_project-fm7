@@ -1,5 +1,5 @@
 Binary archive of retro pc emulator common source code
-								3/15/2017
+								4/2/2017
 
 --- What's this ?
 
@@ -136,77 +136,95 @@ They are tested on Windows 7 Home Premium with SP1.
 
 Common menus:
 
-	Control
-		Reset		Reset the virtual machine
-		-
-		CPU x1		Set CPU clock multipler
-		CPU x2
-		CPU x4
-		CPU x8
-		CPU x16
-		-
-		Paste		Auto key hitting from the clip board text
-		Stop		Stop the auto key hitting
-		-
-		Save State	Save the virtual machine state
-		Load State	Load the virtual machine state
-		-
-		Debug CPU	Open console and debug target CPU like SYMDEB
-		Close Debugger	Close debugger console
-		-
-		Exit		Terminate the emulator
+Control
+	Reset			Reset the virtual machine
+	--------
+	CPU x1			Set CPU clock multipler
+	CPU x2
+	CPU x4
+	CPU x8
+	CPU x16
+	--------
+	Paste			Auto key hitting from the clip board text
+	Stop			Stop the auto key hitting
+	--------
+	Save State		Save the virtual machine state
+	Load State		Load the virtual machine state
+	--------
+	Debug Main CPU		Open console and debug target CPU like SYMDEB
+	Close Debugger		Close debugger console
+	--------
+	Exit			Terminate the emulator
 
-	Cart
-		Insert		Insert the cart image
-		Eject		Eject the cart image
-		-
-		History		Insert the cart image
+Cart
+	Insert			Insert the cart image
+	Eject			Eject the cart image
+	--------
+	History			Insert the cart image
 
-	FD*
-		Insert		Insert the floppy disk image
-		Eject		Eject the floppy disk image
-		-
-		Write Protected		Set the write protection of the inserted disk
-		Correct Timing		Emulate FDC with correct timing
-		Ignore CRC Errors	Ignore crc error status
-		-
-		History		Insert the floppy disk image
+FD
+	Insert			Insert the floppy disk image
+	Eject			Eject the floppy disk image
+	--------
+	Write Protected		Set the write protection of the inserted disk
+	Correct Timing		Emulate FDC with correct timing
+	Ignore CRC Errors	Ignore crc error status
+	----
+	History			Insert the floppy disk image
 
-	CMT
-		Play		Insert the cassette tape image to play
-		Rec		Insert the cassette tape image to record
-		Eject		Eject the cassette tape image
-		-
-		Waveform Shaper	Enable waveform shaping for *.wav data
-		-
-		History		Insert the cassette tape image to play
+CMT
+	Play			Insert the cassette tape image to play
+	Rec			Insert the cassette tape image to record
+	Eject			Eject the cassette tape image
+	--------
+	Play Button		Control the cassette tape recorder
+	Stop Button
+	Fast Foward
+	Fast Rewind
+	--------
+	Waveform Shaper		Enable waveform shaping for *.wav data
+	--------
+	History			Insert the cassette tape image to play
 
+Device
+	Sound
+		Sound Device Types
+		--------
+		Play FDD Noise	Enable playing FDD noise (seek, head up/down)
+		Play CMT Noise	Enable playing CMT noise (relay on/off)
+		Play CMT Sound	Enable playing CMT signal sound
+	Display
+		Monitor Types
+		--------
+		Scanline	Draw scanline
+
+Host
+	Rec Movie 60fps		Record the movie to avi and wav files
+	Rec Movie 30fps
+	Rec Movie 15fps
+	Rec Sound		Record the wave file
+	Stop			Stop recording
+	Capture Screen		Capture the screen to png file
+	--------
 	Screen
-		Rec 60fps	Record the movie to avi and wav files
-		Rec 30fps
-		Rec 15fps
-		Rec 10fps
-		Stop		Stop recording the movie
-		Capture		Capture the screen to png file
 		-
 		Window x1	Set the window size
 			:
 		Window x8
 		Fullscreen ?x?	Set the fullscreen size
-		-
+		--------
 		Dot By Dot	Set the stretch screen mode in the fullscreen
 		Stretch (Aspect)
 		Stretch (Fill)
-		-
-		Use Direct3D9	Enable Direct3D9 to render screen
-		Wait Vsync	Wait Vsync when Direct3D9 is enabled
-		-
-		CRT Filter	Enable the CRT filter
-
+		--------
+		Rotate 0deg	Rotate the screen
+		Rotate +90deg
+		Rotate 180deg
+		Rotate -90deg
+	Filter
+		RGB Filter	Enable the RGB CRT filter
+		None
 	Sound
-		Rec		Record the sound to wav file
-		Stop		Stop recording the sound
-		-
 		2000Hz		Set the sound frequency
 		4000Hz		You need to restart the emulator
 		8000Hz
@@ -215,26 +233,25 @@ Common menus:
 		44100Hz
 		48000Hz
 		96000Hz
-		-
+		--------
 		50msec		Set the sound buffer size (latency)
 		100msec		You need to restart the emulator
 		200msec
 		300msec
 		400msec
-		-
+		--------
 		Realtime Mix	Mix the sound in realtime
 		Light Weight Mix
-		-
-		Play FDD Noise	Enable playing FDD noise (seek, head up/down)
-		Play CMT Noise	Enable playing CMT noise (relay on/off)
-		Play CMT Sound	Enable playing CMT signal sound
-		-
+		--------
 		Volume		Set the volume of each sound device
-
 	Input
-		Use DirectInput		Enable DirectInput for keyboard
-		Disable Windows8 DWM	Disable the Desktop Window Manager
-		Joystcik #1/#2		Setup Joystick buttons
+		Joystcik #1/#2	Setup Joystick buttons
+	--------
+	Use Direct3D9		Enable Direct3D9 to render screen
+	Wait Vsync		Wait Vsync when Direct3D9 is enabled
+	Use DirectInput		Enable DirectInput for keyboard
+	Disable Windows8 DWM	Disable the Desktop Window Manager
+	Show Status Bar		Show/Hide the status bar in windwo mode
 
 
 --- Note
@@ -458,6 +475,10 @@ Save/Load State info:
 - res/*.ico
 	Mr.Temmaru, Mr.Marukun, and Mr.Yoshikun
 	See also res/icon.txt
+
+- emulation core design
+	nester by Mr.Darren Ranalli
+	XM6 by Mr.PI.
 
 - emulation core design
 	nester by Mr.Darren Ranalli
