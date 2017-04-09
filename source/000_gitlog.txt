@@ -1,3 +1,16 @@
+commit 5ba865a904a8df4632c35b0053adb24081107d1d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Apr 9 22:11:37 2017 +0900
+
+    [DOC] Update from upstream.
+
+commit 8aee15f95d698f7815e58233e60e5307789c28f9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Apr 9 22:01:30 2017 +0900
+
+    [General][FMGEN] Update SOVERSION .
+    [DOC] Update for release.
+
 commit 58df3502c496a8109a49e86be332fc97477d3e02
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sun Apr 9 21:44:35 2017 +0900
