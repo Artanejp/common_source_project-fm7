@@ -203,7 +203,7 @@ bool OSD_BASE::start_record_video(int fps)
 	QString tmps = nowTime.toString(QString::fromUtf8("yyyy-MM-dd_hh-mm-ss.zzz."));
 	QString path = QString::fromUtf8("Saved_Movie_") + tmps + QString::fromUtf8("mp4");
 	//QString path = QString::fromUtf8("Saved_Movie_") + tmps + QString::fromUtf8("mkv");
-	path = QString::fromLocal8Bit(this->get_app_path()) + path;
+	path = QString::fromLocal8Bit((const char *)this->get_app_path()) + path;
 	int rate = this->get_sound_rate();
 
 	emit sig_save_as_movie(path, fps, rate);
@@ -396,14 +396,14 @@ void OSD_BASE::release_bitmap(bitmap_t *bitmap)
 void OSD_BASE::create_font(font_t *font, const _TCHAR *family, int width, int height, int rotate, bool bold, bool italic)
 {
 	QString fontName;
-	fontName = QString::fromUtf8(family);
+	fontName = QString::fromUtf8((const char *)family);
 	if(fontName == QString::fromUtf8("Gothic")) {
 		fontName = QString::fromUtf8("Sans Serif");
 	} else if(fontName == QString::fromUtf8("Mincho")) {
 		fontName = QString::fromUtf8("Serif");
 	} else {
 		//fontName = QString::fromUtf8("Sans Serif");
-		fontName = QString::fromUtf8(family);
+		fontName = QString::fromUtf8((const char *)family);
 	}
 	font->hFont = QFont(fontName);
 	font->hFont.setPixelSize(height);
@@ -463,7 +463,7 @@ void OSD_BASE::draw_text_to_bitmap(bitmap_t *bitmap, font_t *font, int x, int y,
 	QPoint loc = QPoint(x, y);
 	
 	QTextCodec *codec = QTextCodec::codecForName("Shift-JIS");
-	QString str = codec->toUnicode(text);
+	QString str = codec->toUnicode((char *)text);
 	bitmap->hPainter.begin(&(bitmap->pImage));
 	//bitmap->hPainter.setBackgroundMode(Qt::OpaqueMode);
 	bitmap->hPainter.setPen(col);
@@ -527,7 +527,7 @@ void OSD_BASE::stretch_bitmap(bitmap_t *dest, int dest_x, int dest_y, int dest_w
 void OSD_BASE::write_bitmap_to_file(bitmap_t *bitmap, const _TCHAR *file_path)
 {
 	int comp_quality = 0;
-	bitmap->pImage.save(QString::fromUtf8(file_path), "PNG", comp_quality);
+	bitmap->pImage.save(QString::fromUtf8((const char *)file_path), "PNG", comp_quality);
 	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_PRINTER, "Save (print outed) bitmap %08x to %s", bitmap, file_path);
 }
 

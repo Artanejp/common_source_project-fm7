@@ -141,7 +141,7 @@ void initialize_config()
 	#endif
 	
 	// win32
-	#ifdef _WIN32
+	#if defined(_WIN32) && !defined(_USE_QT)
 		#ifndef ONE_BOARD_MICRO_COMPUTER
 			config.use_d3d9 = true;
 		#endif
@@ -335,10 +335,7 @@ void load_config(const _TCHAR *config_path)
 			#endif
 		}
 	#endif
-	#ifdef _WIN32
-		MyGetPrivateProfileString(_T("Sound"), _T("FMGenDll"), _T("mamefm.dll"), config.fmgen_dll_path, _MAX_PATH, config_path);
-	#endif
-	#ifdef _WIN32
+	#if defined(_WIN32) && !defined(_USE_QT)
 		MyGetPrivateProfileString(_T("Sound"), _T("FMGenDll"), _T("mamefm.dll"), config.fmgen_dll_path, _MAX_PATH, config_path);
 	#endif
 	
@@ -357,7 +354,7 @@ void load_config(const _TCHAR *config_path)
 	#endif
 
 	// win32
-	#ifdef _WIN32
+	#if defined(_WIN32) && !defined(_USE_QT)
 		#ifndef ONE_BOARD_MICRO_COMPUTER
 			config.use_d3d9 = MyGetPrivateProfileBool(_T("Win32"), _T("UseDirect3D9"), config.use_d3d9, config_path);
 			config.wait_vsync = MyGetPrivateProfileBool(_T("Win32"), _T("WaitVSync"), config.wait_vsync, config_path);
@@ -662,7 +659,7 @@ void save_config(const _TCHAR *config_path)
 	#endif
 	
 	// win32
-	#ifdef _WIN32
+	#if defined(_WIN32) && !defined(_USE_QT)
 		#ifndef ONE_BOARD_MICRO_COMPUTER
 			MyWritePrivateProfileBool(_T("Win32"), _T("UseDirect3D9"), config.use_d3d9, config_path);
 			MyWritePrivateProfileBool(_T("Win32"), _T("WaitVSync"), config.wait_vsync, config_path);

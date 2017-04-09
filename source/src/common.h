@@ -329,10 +329,10 @@ uint16_t DLL_PREFIX EndianToLittle_WORD(uint16_t x);
 #ifndef _MSC_VER
 	#undef max
 	#undef min
-	int max(int a, int b);
-	unsigned int max(unsigned int a, unsigned int b);
-	int min(int a, int b);
-	unsigned int min(unsigned int a, unsigned int b);
+	int DLL_PREFIX max(int a, int b);
+	unsigned int DLL_PREFIX max(unsigned int a, unsigned int b);
+	int DLL_PREFIX min(int a, int b);
+	unsigned int DLL_PREFIX min(unsigned int a, unsigned int b);
 #endif
 
 // string
@@ -474,12 +474,12 @@ uint16_t DLL_PREFIX EndianToLittle_WORD(uint16_t x);
 
 #if defined(_RGB555) || defined(_RGB565)
 	typedef uint16_t scrntype_t;
-	scrntype_t RGB_COLOR(uint32_t r, uint32_t g, uint32_t b);
-	scrntype_t RGBA_COLOR(uint32_t r, uint32_t g, uint32_t b, uint32_t a);
-	uint8_t R_OF_COLOR(scrntype_t c);
-	uint8_t G_OF_COLOR(scrntype_t c);
-	uint8_t B_OF_COLOR(scrntype_t c);
-	uint8_t A_OF_COLOR(scrntype_t c);
+	scrntype_t DLL_PREFIX RGB_COLOR(uint32_t r, uint32_t g, uint32_t b);
+	scrntype_t DLL_PREFIX RGBA_COLOR(uint32_t r, uint32_t g, uint32_t b, uint32_t a);
+	uint8_t DLL_PREFIX R_OF_COLOR(scrntype_t c);
+	uint8_t DLL_PREFIX G_OF_COLOR(scrntype_t c);
+	uint8_t DLL_PREFIX B_OF_COLOR(scrntype_t c);
+	uint8_t DLL_PREFIX A_OF_COLOR(scrntype_t c);
 #elif defined(_RGB888)
 	typedef uint32_t scrntype_t;
 	#define RGB_COLOR(r, g, b)	(((uint32_t)(r) << 16) | ((uint32_t)(g) << 8) | ((uint32_t)(b) << 0))
@@ -513,15 +513,15 @@ typedef struct {
 #pragma pack()
 
 // file path
-const _TCHAR *get_application_path();
-const _TCHAR *create_local_path(const _TCHAR *format, ...);
-void create_local_path(_TCHAR *file_path, int length, const _TCHAR *format, ...);
-const _TCHAR *create_date_file_path(const _TCHAR *extension);
-void create_date_file_path(_TCHAR *file_path, int length, const _TCHAR *extension);
-bool check_file_extension(const _TCHAR *file_path, const _TCHAR *ext);
-const _TCHAR *get_file_path_without_extensiton(const _TCHAR *file_path);
-void get_long_full_path_name(const _TCHAR* src, _TCHAR* dst, size_t dst_len);
-const _TCHAR* get_parent_dir(const _TCHAR* file);
+const _TCHAR *DLL_PREFIX get_application_path();
+const _TCHAR *DLL_PREFIX create_local_path(const _TCHAR *format, ...);
+void DLL_PREFIX create_local_path(_TCHAR *file_path, int length, const _TCHAR *format, ...);
+const _TCHAR *DLL_PREFIX create_date_file_path(const _TCHAR *extension);
+void DLL_PREFIX create_date_file_path(_TCHAR *file_path, int length, const _TCHAR *extension);
+bool DLL_PREFIX check_file_extension(const _TCHAR *file_path, const _TCHAR *ext);
+const _TCHAR *DLL_PREFIX get_file_path_without_extensiton(const _TCHAR *file_path);
+void DLL_PREFIX get_long_full_path_name(const _TCHAR* src, _TCHAR* dst, size_t dst_len);
+const _TCHAR* DLL_PREFIX get_parent_dir(const _TCHAR* file);
 
 // string
 const _TCHAR *DLL_PREFIX create_string(const _TCHAR* format, ...);
@@ -574,8 +574,8 @@ typedef struct symbol_s {
 	struct symbol_s *next_symbol;
 } symbol_t;
 
-const _TCHAR *get_symbol(symbol_t *first_symbol, uint32_t addr);
-const _TCHAR *get_value_or_symbol(symbol_t *first_symbol, const _TCHAR *format, uint32_t addr);
-const _TCHAR *get_value_and_symbol(symbol_t *first_symbol, const _TCHAR *format, uint32_t addr);
+const _TCHAR* DLL_PREFIX get_symbol(symbol_t *first_symbol, uint32_t addr);
+const _TCHAR* DLL_PREFIX get_value_or_symbol(symbol_t *first_symbol, const _TCHAR *format, uint32_t addr);
+const _TCHAR* DLL_PREFIX get_value_and_symbol(symbol_t *first_symbol, const _TCHAR *format, uint32_t addr);
 
 #endif

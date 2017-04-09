@@ -87,7 +87,7 @@ void OSD_BASE::set_console_text_attribute(unsigned short attr)
 
 void OSD_BASE::write_console(_TCHAR* buffer, unsigned int length)
 {
-	QString s = QString::fromLocal8Bit(buffer, length);
+	QString s = QString::fromLocal8Bit((const char *)buffer, length);
 	emit sig_put_string_debugger(s);
 }
 
@@ -117,7 +117,7 @@ int OSD_BASE::read_console_input(_TCHAR* buffer)
 	int l = console_cmd_str.length();
 	
 	console_cmd_str = console_cmd_str.right(l - count);	
-	strncpy(buffer, tmps.toLocal8Bit().constData(), count);
+	strncpy((char *)buffer, tmps.toLocal8Bit().constData(), count);
 	//DebugSemaphore->release(1);
 
 	return count;

@@ -94,7 +94,7 @@ _TCHAR *OSD_BASE::get_app_path(void)
 _TCHAR* OSD_BASE::bios_path(const _TCHAR* file_name)
 {
 	static _TCHAR file_path[_MAX_PATH];
-	snprintf(file_path, _MAX_PATH, _T("%s%s"), app_path, file_name);
+	snprintf((char *)file_path, _MAX_PATH, "%s%s", app_path, (const char *)file_name);
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_OSD, "BIOS PATH:%s", file_path);
 	return file_path;
 }
@@ -128,8 +128,8 @@ void OSD_BASE::create_date_file_name(_TCHAR *name, int length, const _TCHAR *ext
 	tmps = tmps + get_vm_config_name();
 	tmps = tmps + QString::fromUtf8("_");
 	tmps = tmps + nowTime.toString(QString::fromUtf8("yyyy-MM-dd_hh-mm-ss.zzz."));
-	tmps = tmps + QString::fromUtf8(extension);
-	snprintf(name, length, _T("%s"), tmps.toLocal8Bit().constData());
+	tmps = tmps + QString::fromUtf8((const char *)extension);
+	snprintf((char *)name, length, "%s", tmps.toLocal8Bit().constData());
 }
 
 _TCHAR* OSD_BASE::application_path()

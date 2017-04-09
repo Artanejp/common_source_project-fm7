@@ -89,7 +89,6 @@ else()
 endif()
 
 add_definitions(-D_USE_QT5)
-add_definitions(-D_UNICODE)
 
 if(USE_QT5_4_APIS)
   add_definitions(-D_USE_QT_5_4)
@@ -260,6 +259,7 @@ endif()
 
 include(simd-x86)
 
+
 if(WIN32)
    set(BUNDLE_LIBS 
        ${OPENGL_LIBRARY}
@@ -277,6 +277,7 @@ if(WIN32)
        #SET(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> qcs <TARGET> <LINK_FLAGS> <OBJECTS>")
        #SET(CMAKE_CXX_ARCHIVE_FINISH   true)
 else()
+   add_definitions(-D_UNICODE)
    set(BUNDLE_LIBS 
 #       ${OPENGL_LIBRARY}
        ${OPENCL_LIBRARY}

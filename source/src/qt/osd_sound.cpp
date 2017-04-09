@@ -337,7 +337,7 @@ void OSD_BASE::start_record_sound()
 		tmps = tmps + QString::fromUtf8("_");
 		tmps = tmps + nowTime.toString(QString::fromUtf8("yyyy-MM-dd_hh-mm-ss.zzz"));
 		tmps = tmps + QString::fromUtf8(".wav");
-		strncpy(sound_file_name, tmps.toLocal8Bit().constData(), sizeof(sound_file_name));
+		strncpy((char *)sound_file_name, tmps.toLocal8Bit().constData(), sizeof(sound_file_name));
 		// create wave file
 		rec_sound_fio = new FILEIO();
 		if(rec_sound_fio->Fopen(bios_path(sound_file_name), FILEIO_WRITE_BINARY)) {

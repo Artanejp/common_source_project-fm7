@@ -206,10 +206,15 @@ typedef struct {
 	int sound_volume_r[MAX_VOLUME_TMP];
 #endif
 	// input
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(_USE_QT)
 	_TCHAR fmgen_dll_path[_MAX_PATH];
 	bool use_direct_input;
 	bool disable_dwm;
+
+	bool use_d3d9;
+	bool wait_vsync;
+	bool use_dinput;
+	bool show_status_bar;
 #endif
 #if defined(USE_SHARED_DLL) || defined(USE_JOYSTICK)
 	int joy_buttons[4][16];

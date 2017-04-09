@@ -861,7 +861,7 @@ bool DLL_PREFIX cur_time_t::load_state(void *f)
 	return true;
 }
 
-const _TCHAR *get_symbol(symbol_t *first_symbol, uint32_t addr)
+const _TCHAR* DLL_PREFIX get_symbol(symbol_t *first_symbol, uint32_t addr)
 {
 	static _TCHAR name[1024];
 	
@@ -874,7 +874,7 @@ const _TCHAR *get_symbol(symbol_t *first_symbol, uint32_t addr)
 	return NULL;
 }
 
-const _TCHAR *get_value_or_symbol(symbol_t *first_symbol, const _TCHAR *format, uint32_t addr)
+const _TCHAR* DLL_PREFIX get_value_or_symbol(symbol_t *first_symbol, const _TCHAR *format, uint32_t addr)
 {
 	static _TCHAR name[1024];
 	
@@ -888,7 +888,7 @@ const _TCHAR *get_value_or_symbol(symbol_t *first_symbol, const _TCHAR *format, 
 	return name;
 }
 
-const _TCHAR *get_value_and_symbol(symbol_t *first_symbol, const _TCHAR *format, uint32_t addr)
+const _TCHAR* DLL_PREFIX get_value_and_symbol(symbol_t *first_symbol, const _TCHAR *format, uint32_t addr)
 {
 	static _TCHAR name[1024];
 	
