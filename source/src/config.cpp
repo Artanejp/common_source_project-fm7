@@ -219,6 +219,27 @@ void load_config(const _TCHAR *config_path)
 	#ifdef USE_DRIVE_TYPE
 		config.drive_type = MyGetPrivateProfileInt(_T("Control"), _T("DriveType"), config.drive_type, config_path);
 	#endif
+	#ifdef USE_KEYBOARD_TYPE
+		config.keyboard_type = MyGetPrivateProfileInt(_T("Control"), _T("KeyboardType"), config.keyboard_type, config_path);
+	#endif
+	#ifdef USE_MOUSE_TYPE
+		config.mouse_type = MyGetPrivateProfileInt(_T("Control"), _T("MouseType"), config.mouse_type, config_path);
+	#endif
+	#ifdef USE_JOYSTICK_TYPE
+		config.joystick_type = MyGetPrivateProfileInt(_T("Control"), _T("JoystickType"), config.joystick_type, config_path);
+	#endif
+	#ifdef USE_SOUND_TYPE
+		config.sound_type = MyGetPrivateProfileInt(_T("Control"), _T("SoundType"), config.sound_type, config_path);
+	#endif
+	#ifdef USE_MONITOR_TYPE
+		config.monitor_type = MyGetPrivateProfileInt(_T("Control"), _T("MonitorType"), config.monitor_type, config_path);
+	#endif
+	#ifdef USE_SCANLINE
+		config.scan_line = MyGetPrivateProfileBool(_T("Control"), _T("ScanLine"), config.scan_line, config_path);
+	#endif
+	#ifdef USE_PRINTER
+		config.printer_type = MyGetPrivateProfileInt(_T("Control"), _T("PrinterType"), config.printer_type, config_path);
+	#endif
 	#ifdef USE_FD1
 		for(int drv = 0; drv < MAX_FD; drv++) {
 			config.correct_disk_timing[drv] = MyGetPrivateProfileBool(_T("Control"), create_string(_T("CorrectDiskTiming%d"), drv + 1), config.correct_disk_timing[drv], config_path);
@@ -277,8 +298,8 @@ void load_config(const _TCHAR *config_path)
 		for(int i = 0; i < MAX_HISTORY; i++) {
 			MyGetPrivateProfileString(_T("RecentFiles"), create_string(_T("RecentLaserDiscPath1_%d"), i + 1), _T(""), config.recent_laser_disc_path[i], _MAX_PATH, config_path);
 		}
-#endif
-#ifdef USE_BINARY_FILE1
+	#endif
+	#ifdef USE_BINARY_FILE1
 		MyGetPrivateProfileString(_T("RecentFiles"), _T("InitialBinaryDir"), _T(""), config.initial_binary_dir, _MAX_PATH, config_path);
 		for(int drv = 0; drv < MAX_BINARY; drv++) {
 			for(int i = 0; i < MAX_HISTORY; i++) {
@@ -642,12 +663,15 @@ void save_config(const _TCHAR *config_path)
 		MyWritePrivateProfileBool(_T("Sound"), _T("NoiseCMT"), config.sound_noise_cmt, config_path);
 		MyWritePrivateProfileBool(_T("Sound"), _T("PlayTape"), config.sound_play_tape, config_path);
 	#endif
-#ifdef USE_SOUND_VOLUME
+	#ifdef USE_SOUND_VOLUME
 		for(int i = 0; i < USE_SOUND_VOLUME; i++) {
 			MyWritePrivateProfileInt(_T("Sound"), create_string(_T("VolumeLeft%d"), i + 1), config.sound_volume_l[i], config_path);
 			MyWritePrivateProfileInt(_T("Sound"), create_string(_T("VolumeRight%d"), i + 1), config.sound_volume_r[i], config_path);
-	}
-#endif
+		}
+	#endif
+	#if defined(_WIN32) && !defined(_USE_QT)
+		MyWritePrivateProfileString(_T("Sound"), _T("FMGenDll"), config.fmgen_dll_path, config_path);
+	#endif
 	
 	// input
 	#ifdef USE_JOYSTICK
@@ -657,6 +681,11 @@ void save_config(const _TCHAR *config_path)
 			}
 		}
 	#endif
+	// printer
+	#ifdef USE_PRINTER
+		MyWritePrivateProfileString(_T("Printer"), _T("PrinterDll"), config.printer_dll_path, config_path);
+	#endif
+
 	
 	// win32
 	#if defined(_WIN32) && !defined(_USE_QT)
