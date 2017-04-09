@@ -1,3 +1,21 @@
+commit f3c1e9299a7570557798c9fd12fb5992519c31c0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Apr 9 23:00:26 2017 +0900
+
+    [Qt][JR800] Fix FTBFS.
+
+commit 565b7aff33ea5839f9af8f881b9c063b593986d7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Apr 9 22:57:22 2017 +0900
+
+    [VM] Add National JR-800.
+
+commit d75eb5ce75deb5aed81aeba4ef78980fc0ba772f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Apr 9 22:13:39 2017 +0900
+
+    [DOC] Update credits.
+
 commit 5ba865a904a8df4632c35b0053adb24081107d1d
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sun Apr 9 22:11:37 2017 +0900

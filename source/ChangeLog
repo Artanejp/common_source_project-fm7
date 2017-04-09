@@ -2,6 +2,7 @@
 
 * SNAPSHOT April 09, 2017
   * Upstream 2017-04-02
+  * [General] Add National JR-800.
   * [UI/Qt] Move drive status from status-bar to right dock.
   * [FILEIO] Fix FTBFS with ZLIB 1.2.8 or earlier.
   * [VM/General] EMU/COMMON : Fix bugs around handling filename and directories.
@@ -15,7 +16,7 @@
   * [BUILD/LINUX] Fix linking order.
   * [General/BUILD] Linux: Use -D_UNICODE to build.
 
--- Apr 09, 2017 21:52:45 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Apr 09, 2017 23:04:45 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
   
 * SNAPSHOT March 07, 2017
   * Upstream 2017-03-04
