@@ -1,3 +1,21 @@
+commit 16ce89bae2170ea8990fa640cf1a84c4d5d9a21b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Apr 10 14:00:10 2017 +0900
+
+    [UI][Qt] Fix unconnected event.
+
+commit 168cbc3a2ecd452bd9b872cd5ff025c7eab14ca6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Apr 10 04:17:03 2017 +0000
+
+    . Remove unnedded vcproj.
+
+commit 153c9eb616c3529d6a26c26b1ea3c7063712d021
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Apr 10 13:07:34 2017 +0900
+
+    [DOC] Updated.
+
 commit 3805ad41608ed51081d916a1b494688d5d3e7eac
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Mon Apr 10 12:11:39 2017 +0900
