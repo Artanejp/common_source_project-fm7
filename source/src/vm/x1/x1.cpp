@@ -419,7 +419,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		uint8_t *rom = cpu_sub->get_rom_ptr();
 		sub->rom_crc32 = get_crc32(rom, 0x800);	// 2KB
 		if(rom[0x23] == 0xb9 && rom[0x24] == 0x35 && rom[0x25] == 0xb1) {
-			dll_cur_time_t cur_time;
+			//dll_cur_time_t cur_time;
+			cur_time_t cur_time;
 			get_host_time(&cur_time);
 			rom[0x26] = TO_BCD(cur_time.year);
 		}
