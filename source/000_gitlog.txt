@@ -1,3 +1,15 @@
+commit 3805ad41608ed51081d916a1b494688d5d3e7eac
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Apr 10 12:11:39 2017 +0900
+
+    [VM][PC9801][X1][WIN32] Fix FTBFS with MinGW.
+
+commit fbd5191a9c8cbcd3c7923c05effcb0c039a72499
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Apr 10 03:59:10 2017 +0900
+
+    [DOC] .
+
 commit 0fc72e5984f6a6dd0b04dfdbd5cda0bfc98d3c89
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Mon Apr 10 03:56:55 2017 +0900
