@@ -204,9 +204,6 @@ void Ui_MainWindowBase::ConfigControlMenu(void)
 			tmpss.setNum(i);
 			tmps = QString::fromUtf8("actionSave_State") + tmpss;
 			actionSave_State[i]->setObjectName(tmps);
-			connect(actionSave_State[i], SIGNAL(triggered()),
-					this, SLOT(OnSaveState())); // OK?  
-			
 			actionLoad_State[i] = new Action_Control(this, using_flags);
 			tmps = QString::fromUtf8("actionLoad_State") + tmpss;
 			actionLoad_State[i]->setObjectName(tmps);
