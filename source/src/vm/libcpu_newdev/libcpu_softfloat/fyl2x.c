@@ -155,7 +155,7 @@ INLINE int floatx80_is_nan(floatx80 a)
 | `b' is a signaling NaN, the invalid exception is raised.
 *----------------------------------------------------------------------------*/
 
-static floatx80 propagateFloatx80NaN(floatx80 a, floatx80 b)
+floatx80 propagateFloatx80NaN(floatx80 a, floatx80 b)
 {
 	int aIsNaN = floatx80_is_nan(a);
 	int aIsSignalingNaN = floatx80_is_signaling_nan(a);

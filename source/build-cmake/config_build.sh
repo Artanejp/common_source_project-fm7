@@ -3,6 +3,7 @@
 CMAKE=/usr/bin/cmake
 CCMAKE_CC=gcc-6
 CCMAKE_CXX=g++-6
+LLVM_VERSION=3.9
 LIB_INSTALL="/usr/local/lib/x86_64-linux-gnu/"
 MAKE_STATUS_FILE="./000_make_status_config_build.log"
 

@@ -355,7 +355,7 @@ void DISPLAY::GETVRAM_4096(int yoff, scrntype_t *p, uint32_t mask,
 	uint32_t b3, r3, g3;
 	uint8_t  bb[4], rr[4], gg[4];
 	uint16_t pixels[8];
-	uint16_t __masks[8] = {mask, mask, mask, mask, mask, mask, mask, mask};
+	uint16_t __masks[8] = {(uint16_t)mask, (uint16_t)mask, (uint16_t)mask, (uint16_t)mask, (uint16_t)mask, (uint16_t)mask, (uint16_t)mask, (uint16_t)mask};
 	scrntype_t b, r, g;
 	uint32_t idx;;
 	scrntype_t pixel;
