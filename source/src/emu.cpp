@@ -1742,9 +1742,10 @@ bool EMU::is_bubble_casette_protected(int drv)
 void EMU::is_bubble_casette_protected(int drv, bool flag)
 {
 	if(drv < MAX_BUBBLE) {
-		return vm->is_bubble_casette_protected(drv, flag);
+		vm->is_bubble_casette_protected(drv, flag);
+		return;
 	} else {
-		return false;
+		return;
 	}
 }
 #endif

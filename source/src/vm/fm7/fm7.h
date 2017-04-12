@@ -536,7 +536,7 @@ public:
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 #if defined(USE_BUBBLE1)
-	void open_bubble_casette(int drv, _TCHAR *path, int bank);
+	void open_bubble_casette(int drv, const _TCHAR *path, int bank);
 	void close_bubble_casette(int drv);
 	bool is_bubble_casette_inserted(int drv);
 	bool is_bubble_casette_protected(int drv);

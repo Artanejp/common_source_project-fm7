@@ -665,7 +665,7 @@ bool FM7_MAINMEM::load_state(FILEIO *state_fio)
 			fm7_mainmem_extram = NULL;
 		}
 		if(pages > 0) {
-			fm7_mainmem_extram = malloc(pages * 0x10000);
+			fm7_mainmem_extram = (uint8_t *)malloc(pages * 0x10000);
 			state_fio->Fread(fm7_mainmem_extram, pages * 0x10000, 1);
 		}
 #  if defined(_FM77_VARIANTS)
