@@ -10,7 +10,7 @@
 
 #ifndef _I86_H_ 
 #define _I86_H_
-#if defined(USE_DEVICES_SHARED_LIB)
+#if defined(USE_SHARED_DLL)
 #include "libcpu_newdev/i86.h"
 #else
 
@@ -432,5 +432,5 @@ public:
 	}
 #endif
 };
-#endif
+#endif // USE_SHARED_DLL
 #endif

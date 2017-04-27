@@ -11,7 +11,7 @@
 #ifndef _MC6809_H_
 #define _MC6809_H_
 
-#if defined(USE_DEVICES_SHARED_LIB)
+#if defined(USE_SHARED_DLL)
 //#if 0
 #include "libcpu_newdev/libcpu_mc6809/mc6809.h"
 #else
@@ -562,6 +562,6 @@ public:
 	}
 
 };
-#endif
+#endif // USE_SHARED_DLL
 #endif
 

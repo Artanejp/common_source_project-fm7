@@ -19,7 +19,7 @@
 #define USE_DEVICE_NAME
 #endif
 
-#if defined(USE_DEVICES_SHARED_LIB)
+#if defined(USE_SHARED_DLL)
 #include "libcpu_newdev/device.h"
 
 #else
@@ -781,6 +781,6 @@ public:
 	DEVICE* next_device;
 	int this_device_id;
 };
-#endif //USE_DEVICES_SHARED_LIB
+#endif // USE_SHARED_DLL
 
 #endif

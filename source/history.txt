@@ -1,3 +1,21 @@
+4/16/2017
+
+[VM/IO] revert the fix in 4/15/2017
+[VM/SN76489AN] revert the fix in 4/15/2017
+
+
+4/15/2017
+
+[COMMON] add muldiv_s32 and muldiv_u32 to multiple 32bit integer
+[COMMON] fix functions to support symbols
+
+[VM/IO] improve to use read/write_io8/16/32w() to get wait clock from device
+[VM/SN76489AN] improve to return 32 + 16 * n for wait clock
+
+[MZ700] improve correct cpu clock and frame rate
+[MZ800] improve correct cpu clock and frame rate
+
+
 4/2/2017
 
 [RESOURCE] improve menu items
