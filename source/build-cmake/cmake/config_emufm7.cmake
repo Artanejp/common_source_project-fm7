@@ -17,7 +17,7 @@ set(VMFILES
 		   mb8877.cpp
 		   
 		   ym2203.cpp
-
+		   mc6809_debugup.cpp
 		   prnfile.cpp
 		   datarec.cpp
 		   disk.cpp

@@ -18,7 +18,8 @@ set(s_vm_common_vm_srcs
 	../noise.cpp
 
 # MC6809 is temporally.
-	../libcpu_newdev/libcpu_mc6809/mc6809_base.cpp
+#	../libcpu_newdev/libcpu_mc6809/mc6809_base.cpp
+	../mc6809.cpp
 	../mc6820.cpp
 	../mc6840.cpp
 	../libcpu_newdev/mcs48_base.cpp
@@ -96,8 +97,8 @@ else()
     ${s_vm_common_vm_srcs}
   )
   set_target_properties(CSPcommon_vm PROPERTIES 
-     SOVERSION 1.1.0
-     VERSION 1.1.0
+     SOVERSION 1.1.1
+     VERSION 1.1.1
   )
   INSTALL(TARGETS CSPcommon_vm DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

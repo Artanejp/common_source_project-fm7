@@ -6,7 +6,7 @@
 include(CheckFunctionExists)
 
 if(USE_DEVICES_SHARED_LIB)
-  //add_definitions(-DUSE_DEVICES_SHARED_LIB)
+  #add_definitions(-DUSE_DEVICES_SHARED_LIB)
   add_definitions(-DUSE_SHARED_DLL)
   set(I386_CPPS
 	libcpu_newdev/i386.cpp
@@ -15,7 +15,7 @@ if(USE_DEVICES_SHARED_LIB)
 	libcpu_newdev/libcpu_i386/i386dasm.cpp
 	)
   set(MC6809_CPPS 
-	libcpu_newdev/libcpu_mc6809/mc6809.cpp
+#	mc6809.cpp
   )
   set(MCS48_CPPS
 	libcpu_newdev/mcs48.cpp
