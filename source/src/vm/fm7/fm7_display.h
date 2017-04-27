@@ -105,7 +105,7 @@ protected:
 #endif // _FM77AV_VARIANTS
 	
 	void copy_vram_all();
-	void copy_vram_per_line(void);
+	void copy_vram_per_line(int begin, int end);
 	void copy_vram_blank_area(void);
 
  private:
@@ -261,7 +261,7 @@ protected:
 	DEVICE *kanjiclass1;
 #endif
 	bool vram_wrote_shadow;
-	bool vram_wrote_table[411];
+	bool vram_wrote_table[411 * 5];
 	bool vram_draw_table[411];
 	//uint8_t vram_wrote_pages[411];
 	uint32_t vram_wrote_addr_1[411];

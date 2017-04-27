@@ -643,13 +643,13 @@ void MB61VH010::do_line(void)
 _finish:   
 	//if(total_bytes == 0) total_bytes = 1;
 	mask_reg = 0xff;
-	if(total_bytes >= 8) { // Only greater than 8bytes.
-		usec = (double)total_bytes / 16.0;
-		if(eventid_busy >= 0) cancel_event(this, eventid_busy) ;
-		register_event(this, EVENT_MB61VH010_BUSY_OFF, usec, false, &eventid_busy);
-	} else {
-		busy_flag = false;
-	}
+	//if(total_bytes >= 8) { // Only greater than 8bytes.
+	usec = (double)total_bytes / 16.0;
+	if(eventid_busy >= 0) cancel_event(this, eventid_busy) ;
+	register_event(this, EVENT_MB61VH010_BUSY_OFF, usec, false, &eventid_busy);
+	//} else {
+	//	busy_flag = false;
+	//}
 }
 
 inline bool MB61VH010::put_dot(int x, int y)
