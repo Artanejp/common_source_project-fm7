@@ -225,9 +225,6 @@ void VM::rec_tape(int drv, const _TCHAR* file_path)
 
 void VM::close_tape(int drv)
 {
-#if defined(USE_SOUND_FILES)
-	drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_EJECT, 1, 1);
-#endif
 	emu->lock_vm();
 	drec->close_tape();
 	emu->unlock_vm();

@@ -74,7 +74,6 @@
 #define USE_SOUND_VOLUME	3
 #elif defined(_MZ800)
 #define USE_SOUND_VOLUME	5
-//#define USE_SOUND_FILES_QD
 #elif defined(_MZ1500)
 #define USE_SOUND_VOLUME	6
 #endif

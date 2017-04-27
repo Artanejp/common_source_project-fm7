@@ -278,15 +278,6 @@ void IO::write_io8(uint32_t addr, uint32_t data)
 				cmt_selected = ((data & 2) == 0);
 				bool tmp_val = (CMT_PLAYING || CMT_RECORDING);
 				d_drec->write_signal(SIG_DATAREC_REMOTE, tmp_val ? 1 : 0, 1);
-#if defined(USE_SOUND_FILES)
-				if(cmt_selected != cmt_selected_old) {
-					if(tmp_val) {
-						d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_PLAY, 1, 1);
-					} else {
-						d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_STOP, 1, 1);
-					}
-				}
-#endif
 			}
 			break;
 		case 0x21:
@@ -316,15 +307,6 @@ void IO::write_io8(uint32_t addr, uint32_t data)
 				cmt_mode = data & 7;
 				int tmp_val = (CMT_PLAYING || CMT_RECORDING);
 				d_drec->write_signal(SIG_DATAREC_REMOTE, tmp_val ? 1 : 0, 1);
-#if defined(USE_SOUND_FILES)
-				if(cmt_mode_old != cmt_mode) {
-					if(tmp_val) {
-						d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_PLAY, 1, 1);
-					} else {
-						d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_STOP, 1, 1);
-					}
-				}
-#endif
 			}
 			break;
 		}
