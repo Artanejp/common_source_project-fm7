@@ -9,7 +9,7 @@ CCMAKE_CXX=clang++-${LLVM_VERSION}
 
 case ${CSP_DEBUG} in
    "Yes" | "yes" | "YES" )
-      MAKEFLAGS_BASE3="-gdwarf-4 \
+      MAKEFLAGS_BASE3="-ggdb \
  	        -Wreserved-user-defined-literal \
  	        -fslp-vectorize \
  	        -fvectorize \
@@ -35,13 +35,13 @@ case ${CSP_DEBUG} in
 esac
 case ${USE_LTO} in
    "Yes" | "yes" | "YES" )
-        MAKEFLAGS_BASE2="${MAKEFLAGS_BASE3} -O2 -flto=thin -std=c++11 -msse -msse2 -DNDEBUG" 
-        #MAKEFLAGS_CC_BASE2="${MAKEFLAGS_BASE3} -O2 -flto=thin -std=c11  -msse -msse2 -DNDEBUG"
-	MAKEFLAGS_LINK_BASE2="${MAKEFLAGS_BASE3} -O2 -flto=thin -fwhole-program-vtables -msse -msse2"
+        MAKEFLAGS_BASE2="${MAKEFLAGS_BASE3} -O3 -flto=thin -std=c++11 -msse -msse2 -DNDEBUG" 
+        #MAKEFLAGS_CC_BASE2="${MAKEFLAGS_BASE3} -O3 -flto=thin -std=c11  -msse -msse2 -DNDEBUG"
+	MAKEFLAGS_LINK_BASE2="${MAKEFLAGS_BASE3} -O3 -flto=thin -fwhole-program-vtables -msse -msse2"
 	;;
    "No" | "no" | "NO" | * )
-        MAKEFLAGS_BASE2="-Os -std=c++11 ${MAKEFLAGS_BASE3} -DNDEBUG" 
-        #MAKEFLAGS_CC_BASE2="-Os -std=c11 ${MAKEFLAGS_BASE3} -DNDEBUG"
+        MAKEFLAGS_BASE2="-O3 -std=c++11 ${MAKEFLAGS_BASE3} -DNDEBUG" 
+        #MAKEFLAGS_CC_BASE2="-O3 -std=c11 ${MAKEFLAGS_BASE3} -DNDEBUG"
 	MAKEFLAGS_LINK_BASE2="${MAKEFLAGS_BASE3}"
 	;;
 esac	
