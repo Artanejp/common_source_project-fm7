@@ -14,7 +14,6 @@ set(WITH_JOYSTICK OFF)
 set(WITH_MOUSE OFF)
 
 set(VMFILES_BASE
-		   z80.cpp
 		   i8253.cpp
 		   i8255.cpp
 		   datarec.cpp
@@ -30,7 +29,7 @@ set(VMFILES_LIB
 	   ls393.cpp
 	   pcm1bit.cpp
 )		   
-		   
+set(FLAG_USE_Z80 ON)		   
 
 set(BUILD_MZ80A OFF CACHE BOOL "Build EMU-MZ80A")
 set(BUILD_MZ80K OFF CACHE BOOL "Build EMU-MZ80A")

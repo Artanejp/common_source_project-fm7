@@ -8,7 +8,6 @@ message("** Start of configure CommonSourceProject,MSX Series Qt **")
 message("")
 
 set(VMFILES_BASE
-	z80.cpp
 	i8255.cpp
 	prnfile.cpp
 	datarec.cpp
@@ -23,6 +22,7 @@ set(VMFILES_LIB
 	pcm1bit.cpp
 	not.cpp
 )
+set(FLAG_USE_Z80 ON)
 
 #set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")
 

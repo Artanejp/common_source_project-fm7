@@ -9,8 +9,8 @@ set(VM_NAME mz700)
 set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
 
+set(FLAG_USE_Z80 ON)
 set(VMFILES_BASE
-		   z80.cpp
 
 		   i8255.cpp
 		   i8253.cpp

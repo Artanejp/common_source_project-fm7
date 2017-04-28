@@ -10,7 +10,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 set(VM_NAME mz2500)
 set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
-
+set(FLAG_USE_Z80 ON)
 set(VMFILES_2500
 		   z80sio.cpp
 		   
@@ -29,8 +29,6 @@ set(VMFILES_BASE
 		   i8255.cpp
 		   mb8877.cpp
 
-		   z80.cpp
-		   
 		   prnfile.cpp
 		   mz1p17.cpp
 		   

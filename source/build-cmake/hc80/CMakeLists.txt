@@ -21,8 +21,8 @@ set(EXEC_TARGET emuhc80)
 set(WITH_JOYSTICK OFF)
 set(WITH_MOUSE OFF)
 
+set(FLAG_USE_Z80 ON)
 set(VMFILES_BASE
-      z80.cpp
       ptf20.cpp
       disk.cpp
       i8251.cpp

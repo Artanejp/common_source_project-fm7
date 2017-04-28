@@ -15,8 +15,8 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 project (mycomz80a)
 set(VM_NAME mycomz80a)
 set(USE_FMGEN OFF)
+set(FLAG_USE_Z80 ON)
 set(VMFILES
-	z80.cpp
 	hd46505.cpp
 	
 	i8255.cpp

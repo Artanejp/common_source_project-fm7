@@ -13,8 +13,6 @@ set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
 
 set(VMFILES
-		   z80.cpp
-
 		   pc6031.cpp
 		   pc80s31k.cpp
 		   i8255.cpp

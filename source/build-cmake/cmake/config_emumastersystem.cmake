@@ -10,8 +10,8 @@ set(USE_FMGEN ON)
 set(WITH_MOUSE OFF)
 set(WITH_JOYSTICK ON)
 
+set(FLAG_USE_Z80 ON)
 set(VMFILES
-		   z80.cpp
 		   i8255.cpp
 		   event.cpp
 		   io.cpp

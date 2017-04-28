@@ -8,9 +8,9 @@ set(WITH_MOUSE OFF)
 set(WITH_JOYSTICK ON)
 
 set(VMFILES_BASE
-  z80.cpp
   event.cpp
 )
+set(FLAG_USE_Z80 ON)
 
 set(BUILD_I8255  OFF CACHE BOOL "Build I8255 version")
 set(BUILD_Z80PIO OFF CACHE BOOL "Build Z80 PIO version")

@@ -15,7 +15,7 @@ if(USE_DEVICES_SHARED_LIB)
 	libcpu_newdev/libcpu_i386/i386dasm.cpp
 	)
   set(MC6809_CPPS 
-#	mc6809.cpp
+	mc6809.cpp
   )
   set(MCS48_CPPS
 	libcpu_newdev/mcs48.cpp
@@ -23,11 +23,15 @@ if(USE_DEVICES_SHARED_LIB)
   set(IX86_CPPS
 	libcpu_newdev/i86.cpp
 	)
+  set(Z80_CPPS 
+       z80.cpp
+  )
 else()
   set(I386_CPPS i386.cpp)
-  set(MC6809_CPPS mc6809.cpp)
+  set(MC6809_CPPS mc6809_base.cpp mc6809.cpp)
   set(MCS48_CPPS mcs48.cpp)
   set(IX86_CPPS i86.cpp)
+  set(Z80_CPPS   z80_base.cpp z80.cpp)
   set(VMFILES ${VMFILES} ${VMFILES_LIB})
 endif()
 
@@ -48,6 +52,9 @@ if(FLAG_USE_MC6809)
 endif()
 if(FLAG_USE_MCS48)
   set(VMFILES ${VMFILES} ${MCS48_CPPS})
+endif()
+if(FLAG_USE_Z80)
+  set(VMFILES ${VMFILES} ${Z80_CPPS})
 endif()
 if(USE_DEVICES_SHARED_LIB)
   set(VMFILES ${VMFILES}   libcpu_newdev/device.cpp)

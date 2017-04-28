@@ -47,9 +47,7 @@ set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.
 if(BUILD_PC9801)
    add_definitions(-D_PC9801)
    set(EXEC_TARGET emupc9801)
-   set(VMFILES ${VMFILES}
-       z80.cpp
-   )
+   set(FLAG_USE_Z80 ON)
    set(VMFILES_LIB 
        beep.cpp
        not.cpp
@@ -61,8 +59,8 @@ elseif(BUILD_PC9801E)
    set(EXEC_TARGET emupc9801e)
    set(VMFILES ${VMFILES}
 #       i286.cpp
-       z80.cpp
    )
+   set(FLAG_USE_Z80 ON)
    set(VMFILES_LIB 
        beep.cpp
        not.cpp
@@ -74,8 +72,8 @@ elseif(BUILD_PC9801U)
    set(EXEC_TARGET emupc9801u)
    set(VMFILES ${VMFILES}
 #       i286.cpp
-       z80.cpp
    )
+   set(FLAG_USE_Z80 ON)
    set(VMFILES_LIB 
        beep.cpp
        not.cpp
@@ -114,8 +112,8 @@ elseif(BUILD_PC98DO)
  #      i286.cpp
        
        pc80s31k.cpp
-       z80.cpp
    )
+   set(FLAG_USE_Z80 ON)
    set(VMFILES_LIB 
        beep.cpp
        not.cpp

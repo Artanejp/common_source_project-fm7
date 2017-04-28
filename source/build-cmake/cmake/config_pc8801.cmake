@@ -8,7 +8,6 @@ set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
 
 set(VMFILES
-		   z80.cpp
 		   z80dma.cpp
 #
 		   i8251.cpp
@@ -34,6 +33,7 @@ set(VMFILES_LIB
 		   pcm1bit.cpp
 		   z80pio.cpp
 )
+set(FLAG_USE_Z80 ON)
 
 set(BUILD_SHARED_LIBS OFF)
 

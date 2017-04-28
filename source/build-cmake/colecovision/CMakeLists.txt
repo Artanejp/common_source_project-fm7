@@ -18,8 +18,8 @@ set(USE_FMGEN OFF)
 set(WITH_JOYSTICK ON)
 set(WITH_MOUSE OFF)
 
+set(FLAG_USE_Z80 ON)
 set(VMFILES
-		   z80.cpp
 		   sn76489an.cpp
 		   tms9918a.cpp
 		   

@@ -12,9 +12,7 @@ set(VM_NAME x1)
 set(USE_FMGEN ON)
 set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
-
 set(VMFILES
-		   z80.cpp
 		   
 		   hd46505.cpp
 		   i8255.cpp
@@ -42,6 +40,7 @@ set(VMFILES_LIB
 		   ay_3_891x.cpp
 )
 set(FLAG_USE_MCS48 ON)
+set(FLAG_USE_Z80 ON)
 
 set(BUILD_X1 OFF CACHE BOOL "Build for X1")
 set(BUILD_X1TURBO OFF CACHE BOOL "Build for X1 Turbo")

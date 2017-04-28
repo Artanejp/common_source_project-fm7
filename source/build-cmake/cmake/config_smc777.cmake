@@ -13,11 +13,10 @@ set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger")
 include(detect_target_cpu)
 set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
 
-
+set(FLAG_USE_Z80 ON)
 if(BUILD_SMC70)
   set(EXEC_TARGET emusmc70)
   set(VMFILES_BASE
-                   z80.cpp
 		   hd46505.cpp
 		   
 		   mb8877.cpp
@@ -36,7 +35,6 @@ elseif(BUILD_SMC777)
   
   set(EXEC_TARGET emusmc777)
   set(VMFILES_BASE
-                   z80.cpp
 		   
 		   hd46505.cpp
 		   mb8877.cpp

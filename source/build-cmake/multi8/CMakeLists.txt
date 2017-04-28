@@ -15,8 +15,8 @@ project (emumulti8)
 set(VM_NAME multi8)
 set(USE_FMGEN ON)
 set(EXEC_TARGET emumulti8)
+set(FLAG_USE_Z80 ON)
 set(VMFILES_BASE
-                   z80.cpp
 		   
 		   hd46505.cpp
 		   i8253.cpp
