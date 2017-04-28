@@ -11,40 +11,51 @@
 #ifndef _Z80_H_ 
 #define _Z80_H_
 
-#include "vm.h"
-#include "../emu.h"
 #include "device.h"
 
-#ifdef HAS_NSC800
+//#ifdef HAS_NSC800
 #define SIG_NSC800_INT	0
 #define SIG_NSC800_RSTA	1
 #define SIG_NSC800_RSTB	2
 #define SIG_NSC800_RSTC	3
+//#endif
+#if defined(USE_SHARED_DLL)
+#define Z80_INLINE
+#else
+#define Z80_INLINE inline
 #endif
-
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 class DEBUGGER;
-#endif
+//#endif
 
-class Z80 : public DEVICE
+class Z80_BASE : public DEVICE
 {
-private:
+protected:
 	/* ---------------------------------------------------------------------------
 	contexts
 	--------------------------------------------------------------------------- */
 	
 	DEVICE *d_mem, *d_io, *d_pic;
-#ifdef Z80_PSEUDO_BIOS
+//#ifdef Z80_PSEUDO_BIOS
 	DEVICE *d_bios;
-#endif
-#ifdef SINGLE_MODE_DMA
+//#endif
+//#ifdef SINGLE_MODE_DMA
 	DEVICE *d_dma;
-#endif
-#ifdef USE_DEBUGGER
+//#endif
+//#ifdef USE_DEBUGGER
 	DEBUGGER *d_debugger;
 	DEVICE *d_mem_stored, *d_io_stored;
-#endif
+//#endif
 	outputs_t outputs_busack;
+
+	bool has_nsc800;
+	bool has_memory_wait;
+	bool has_io_wait;
+	bool has_pseudo_bios;
+	bool has_ldair_quirk;
+	bool has_single_mode_dma;
+	bool flags_initialized;
+	
 	
 	/* ---------------------------------------------------------------------------
 	registers
@@ -63,30 +74,30 @@ private:
 	bool after_ei, after_ldair;
 	uint32_t intr_req_bit, intr_pend_bit;
 	
-	inline uint8_t RM8(uint32_t addr);
-	inline void WM8(uint32_t addr, uint8_t val);
-	inline void RM16(uint32_t addr, pair_t *r);
-	inline void WM16(uint32_t addr, pair_t *r);
-	inline uint8_t FETCHOP();
-	inline uint8_t FETCH8();
-	inline uint32_t FETCH16();
-	inline uint8_t IN8(uint32_t addr);
-	inline void OUT8(uint32_t addr, uint8_t val);
+	Z80_INLINE uint8_t RM8(uint32_t addr);
+	Z80_INLINE void WM8(uint32_t addr, uint8_t val);
+	Z80_INLINE void RM16(uint32_t addr, pair_t *r);
+	Z80_INLINE void WM16(uint32_t addr, pair_t *r);
+	Z80_INLINE uint8_t FETCHOP();
+	Z80_INLINE uint8_t FETCH8();
+	Z80_INLINE uint32_t FETCH16();
+	Z80_INLINE uint8_t IN8(uint32_t addr);
+	Z80_INLINE void OUT8(uint32_t addr, uint8_t val);
 	
-	inline uint8_t INC(uint8_t value);
-	inline uint8_t DEC(uint8_t value);
+	Z80_INLINE uint8_t INC(uint8_t value);
+	Z80_INLINE uint8_t DEC(uint8_t value);
 	
-	inline uint8_t RLC(uint8_t value);
-	inline uint8_t RRC(uint8_t value);
-	inline uint8_t RL(uint8_t value);
-	inline uint8_t RR(uint8_t value);
-	inline uint8_t SLA(uint8_t value);
-	inline uint8_t SRA(uint8_t value);
-	inline uint8_t SLL(uint8_t value);
-	inline uint8_t SRL(uint8_t value);
+	Z80_INLINE uint8_t RLC(uint8_t value);
+	Z80_INLINE uint8_t RRC(uint8_t value);
+	Z80_INLINE uint8_t RL(uint8_t value);
+	Z80_INLINE uint8_t RR(uint8_t value);
+	Z80_INLINE uint8_t SLA(uint8_t value);
+	Z80_INLINE uint8_t SRA(uint8_t value);
+	Z80_INLINE uint8_t SLL(uint8_t value);
+	Z80_INLINE uint8_t SRL(uint8_t value);
 	
-	inline uint8_t RES(uint8_t bit, uint8_t value);
-	inline uint8_t SET(uint8_t bit, uint8_t value);
+	Z80_INLINE uint8_t RES(uint8_t bit, uint8_t value);
+	Z80_INLINE uint8_t SET(uint8_t bit, uint8_t value);
 	
 	void OP_CB(uint8_t code);
 	void OP_XY(uint8_t code);
@@ -94,30 +105,165 @@ private:
 	void OP_FD(uint8_t code);
 	void OP_ED(uint8_t code);
 	void OP(uint8_t code);
-	void run_one_opecode();
+	virtual void run_one_opecode();
 	
+
+	uint8_t SZ[256];		/* zero and sign flags */
+	uint8_t SZ_BIT[256];	/* zero, sign and parity/overflow (=zero) flags for BIT opcode */
+	uint8_t SZP[256];		/* zero, sign and parity flags */
+	uint8_t SZHV_inc[256];	/* zero, sign, half carry and overflow flags INC r8 */
+	uint8_t SZHV_dec[256];	/* zero, sign, half carry and overflow flags DEC r8 */
+
+	uint8_t SZHVC_add[2 * 256 * 256];
+	uint8_t SZHVC_sub[2 * 256 * 256];
+
+	const uint8_t cc_op[0x100] = {
+		4,10, 7, 6, 4, 4, 7, 4, 4,11, 7, 6, 4, 4, 7, 4,
+		8,10, 7, 6, 4, 4, 7, 4,12,11, 7, 6, 4, 4, 7, 4,
+		7,10,16, 6, 4, 4, 7, 4, 7,11,16, 6, 4, 4, 7, 4,
+		7,10,13, 6,11,11,10, 4, 7,11,13, 6, 4, 4, 7, 4,
+		4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 4, 7, 4,
+		4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 4, 7, 4,
+		4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 4, 7, 4,
+		7, 7, 7, 7, 7, 7, 4, 7, 4, 4, 4, 4, 4, 4, 7, 4,
+		4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 4, 7, 4,
+		4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 4, 7, 4,
+		4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 4, 7, 4,
+		4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 4, 7, 4,
+		5,10,10,10,10,11, 7,11, 5,10,10, 0,10,17, 7,11,
+		5,10,10,11,10,11, 7,11, 5, 4,10,11,10, 0, 7,11,
+		5,10,10,19,10,11, 7,11, 5, 4,10, 4,10, 0, 7,11,
+		5,10,10, 4,10,11, 7,11, 5, 6,10, 4,10, 0, 7,11
+	};
+
+	 const uint8_t cc_cb[0x100] = {
+		8, 8, 8, 8, 8, 8,15, 8, 8, 8, 8, 8, 8, 8,15, 8,
+		8, 8, 8, 8, 8, 8,15, 8, 8, 8, 8, 8, 8, 8,15, 8,
+		8, 8, 8, 8, 8, 8,15, 8, 8, 8, 8, 8, 8, 8,15, 8,
+		8, 8, 8, 8, 8, 8,15, 8, 8, 8, 8, 8, 8, 8,15, 8,
+		8, 8, 8, 8, 8, 8,12, 8, 8, 8, 8, 8, 8, 8,12, 8,
+		8, 8, 8, 8, 8, 8,12, 8, 8, 8, 8, 8, 8, 8,12, 8,
+		8, 8, 8, 8, 8, 8,12, 8, 8, 8, 8, 8, 8, 8,12, 8,
+		8, 8, 8, 8, 8, 8,12, 8, 8, 8, 8, 8, 8, 8,12, 8,
+		8, 8, 8, 8, 8, 8,15, 8, 8, 8, 8, 8, 8, 8,15, 8,
+		8, 8, 8, 8, 8, 8,15, 8, 8, 8, 8, 8, 8, 8,15, 8,
+		8, 8, 8, 8, 8, 8,15, 8, 8, 8, 8, 8, 8, 8,15, 8,
+		8, 8, 8, 8, 8, 8,15, 8, 8, 8, 8, 8, 8, 8,15, 8,
+		8, 8, 8, 8, 8, 8,15, 8, 8, 8, 8, 8, 8, 8,15, 8,
+		8, 8, 8, 8, 8, 8,15, 8, 8, 8, 8, 8, 8, 8,15, 8,
+		8, 8, 8, 8, 8, 8,15, 8, 8, 8, 8, 8, 8, 8,15, 8,
+		8, 8, 8, 8, 8, 8,15, 8, 8, 8, 8, 8, 8, 8,15, 8
+	};
+	
+	 const uint8_t cc_ed[0x100] = {
+		8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+		8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+		8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+		8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+		12,12,15,20, 8,14, 8, 9,12,12,15,20, 8,14, 8, 9,
+		12,12,15,20, 8,14, 8, 9,12,12,15,20, 8,14, 8, 9,
+		12,12,15,20, 8,14, 8,18,12,12,15,20, 8,14, 8,18,
+		12,12,15,20, 8,14, 8, 8,12,12,15,20, 8,14, 8, 8,
+		8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+		8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+		16,16,16,16, 8, 8, 8, 8,16,16,16,16, 8, 8, 8, 8,
+		16,16,16,16, 8, 8, 8, 8,16,16,16,16, 8, 8, 8, 8,
+		8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+		8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+		8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+		8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8
+	};
+	
+	 const uint8_t cc_xy[0x100] = {
+		4, 4, 4, 4, 4, 4, 4, 4, 4,15, 4, 4, 4, 4, 4, 4,
+		4, 4, 4, 4, 4, 4, 4, 4, 4,15, 4, 4, 4, 4, 4, 4,
+		4,14,20,10, 9, 9,11, 4, 4,15,20,10, 9, 9,11, 4,
+		4, 4, 4, 4,23,23,19, 4, 4,15, 4, 4, 4, 4, 4, 4,
+		4, 4, 4, 4, 9, 9,19, 4, 4, 4, 4, 4, 9, 9,19, 4,
+		4, 4, 4, 4, 9, 9,19, 4, 4, 4, 4, 4, 9, 9,19, 4,
+		9, 9, 9, 9, 9, 9,19, 9, 9, 9, 9, 9, 9, 9,19, 9,
+		19,19,19,19,19,19, 4,19, 4, 4, 4, 4, 9, 9,19, 4,
+		4, 4, 4, 4, 9, 9,19, 4, 4, 4, 4, 4, 9, 9,19, 4,
+		4, 4, 4, 4, 9, 9,19, 4, 4, 4, 4, 4, 9, 9,19, 4,
+		4, 4, 4, 4, 9, 9,19, 4, 4, 4, 4, 4, 9, 9,19, 4,
+		4, 4, 4, 4, 9, 9,19, 4, 4, 4, 4, 4, 9, 9,19, 4,
+		4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4,
+		4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+		4,14, 4,23, 4,15, 4, 4, 4, 8, 4, 4, 4, 4, 4, 4,
+		4, 4, 4, 4, 4, 4, 4, 4, 4,10, 4, 4, 4, 4, 4, 4
+	};
+
+	 const uint8_t cc_xycb[0x100] = {
+		23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,
+		23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,
+		23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,
+		23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,
+		20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,
+		20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,
+		20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,
+		20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,
+		23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,
+		23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,
+		23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,
+		23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,
+		23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,
+		23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,
+		23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,
+		23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23
+	};
+	
+	const uint8_t cc_ex[0x100] = {
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	/* DJNZ */
+		5, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0,	/* JR NZ/JR Z */
+		5, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0,	/* JR NC/JR C */
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		5, 5, 5, 5, 0, 0, 0, 0, 5, 5, 5, 5, 0, 0, 0, 0,	/* LDIR/CPIR/INIR/OTIR LDDR/CPDR/INDR/OTDR */
+		6, 0, 0, 0, 7, 0, 0, 2, 6, 0, 0, 0, 7, 0, 0, 2,
+		6, 0, 0, 0, 7, 0, 0, 2, 6, 0, 0, 0, 7, 0, 0, 2,
+		6, 0, 0, 0, 7, 0, 0, 2, 6, 0, 0, 0, 7, 0, 0, 2,
+		6, 0, 0, 0, 7, 0, 0, 2, 6, 0, 0, 0, 7, 0, 0, 2
+	};
+
 	/* ---------------------------------------------------------------------------
 	debug
 	--------------------------------------------------------------------------- */
 	
 public:
-	Z80(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	Z80_BASE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+		flags_initialized = false;
 		busreq = false;
-#ifdef Z80_PSEUDO_BIOS
+//#ifdef Z80_PSEUDO_BIOS
 		d_bios = NULL;
-#endif
-#ifdef SINGLE_MODE_DMA
+//#endif
+//#ifdef SINGLE_MODE_DMA
 		d_dma = NULL;
-#endif
+//#endif
+		d_debugger = NULL;
+		d_mem_stored = NULL;
+		d_io_stored = NULL;
+		
+		has_nsc800 = false;
+		has_io_wait = false;
+		has_memory_wait = false;
+		has_pseudo_bios = false;
+		has_ldair_quirk = false;
+		has_single_mode_dma = false;
 		initialize_output_signals(&outputs_busack);
 		set_device_name(_T("Z80 CPU"));
 	}
-	~Z80() {}
+	~Z80_BASE() {}
 	
 	// common functions
-	void initialize();
-	void reset();
+	virtual void initialize();
+	virtual void reset();
 	int run(int clock);
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void set_intr_line(bool line, bool pending, uint32_t bit)
@@ -142,7 +288,7 @@ public:
 	{
 		return pc.w.l;
 	}
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 	void *get_debugger()
 	{
 		return d_debugger;
@@ -155,14 +301,10 @@ public:
 	{
 		return 0xffff;
 	}
-	void write_debug_data8(uint32_t addr, uint32_t data);
-	uint32_t read_debug_data8(uint32_t addr);
-	void write_debug_io8(uint32_t addr, uint32_t data);
-	uint32_t read_debug_io8(uint32_t addr);
 	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
 	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
-#endif
+	virtual int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
+//#endif
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	// unique functions
@@ -178,6 +320,36 @@ public:
 	{
 		d_pic = device;
 	}
+	void set_context_busack(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_busack, device, id, mask);
+	}
+	void set_pc(uint16_t value)
+	{
+		pc.w.l = value;
+	}
+	void set_sp(uint16_t value)
+	{
+		sp.w.l = value;
+	}
+};
+
+class Z80 : public Z80_BASE 
+{
+protected:
+	void run_one_opecode();
+public:
+	Z80(VM* parent_vm, EMU* parent_emu);
+	~Z80();
+	void initialize();
+	void reset();
+	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
+#ifdef USE_DEBUGGER
+	void write_debug_data8(uint32_t addr, uint32_t data);
+	uint32_t read_debug_data8(uint32_t addr);
+	void write_debug_io8(uint32_t addr, uint32_t data);
+	uint32_t read_debug_io8(uint32_t addr);
+#endif
 #ifdef Z80_PSEUDO_BIOS
 	void set_context_bios(DEVICE* device)
 	{
@@ -196,19 +368,8 @@ public:
 		d_debugger = device;
 	}
 #endif
-	void set_context_busack(DEVICE* device, int id, uint32_t mask)
-	{
-		register_output_signal(&outputs_busack, device, id, mask);
-	}
-	void set_pc(uint16_t value)
-	{
-		pc.w.l = value;
-	}
-	void set_sp(uint16_t value)
-	{
-		sp.w.l = value;
-	}
 };
+
 
 #endif
 
