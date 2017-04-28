@@ -73,13 +73,8 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	event = new EVENT(this, emu);	// must be 2nd device
 	
 	dummycpu = new DEVICE(this, emu);
-#if defined(USE_DEBUGGER)   
-	maincpu = new MC6809_DEBUG(this, emu);
-	subcpu = new MC6809_DEBUG(this, emu);
-#else
 	maincpu = new MC6809(this, emu);
 	subcpu = new MC6809(this, emu);
-#endif
 #ifdef WITH_Z80
 	z80cpu = new Z80(this, emu);
 #endif
