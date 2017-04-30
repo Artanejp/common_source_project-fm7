@@ -398,6 +398,7 @@ static const uint16_t DAA[2048] = {
 
 void I8080::initialize()
 {
+	DEVICE::initialize();
 #ifdef USE_DEBUGGER
 	d_mem_stored = d_mem;
 	d_io_stored = d_io;

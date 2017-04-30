@@ -17,6 +17,7 @@ static bool dont_create_multiple_chips = false;
 
 void YM2151::initialize()
 {
+	DEVICE::initialize();
 	opm = new FM::OPM;
 #ifdef SUPPORT_MAME_FM_DLL
 //	fmdll = new CFMDLL(_T("mamefm.dll"));

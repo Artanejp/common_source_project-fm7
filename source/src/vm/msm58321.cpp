@@ -25,6 +25,7 @@ DLL_PREFIX_I struct cur_time_s cur_time;
 
 void MSM58321::initialize()
 {
+	DEVICE::initialize();
 	// init rtc
 	memset(regs, 0, sizeof(regs));
 	regs[5] = 8; // 24h

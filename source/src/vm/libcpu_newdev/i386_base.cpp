@@ -13,6 +13,7 @@
 
 void I386_BASE::initialize()
 {
+	DEVICE::initialize();
 	cpucore = new I386_OPS_BASE;
 	cpucore->cpu_init_i386();
 	cpucore->set_context_pic(d_pic);

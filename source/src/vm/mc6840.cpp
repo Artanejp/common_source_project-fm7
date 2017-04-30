@@ -68,6 +68,7 @@ typedef double attotime;
 
 void MC6840::initialize()
 {
+	DEVICE::initialize();
 	for (int i = 0; i < 3; i++)
 	{
 //		if ( m_external_clock[i] == 0 )

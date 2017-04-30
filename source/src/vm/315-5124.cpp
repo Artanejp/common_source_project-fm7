@@ -94,6 +94,7 @@ static const uint8_t tms_crom[] =
 
 void _315_5124::initialize()
 {
+	DEVICE::initialize();
 	// Game Gear : console = 0x40, vdp_mode = 4
 	// Mark3     : console = 0x20, vdp_mode = 4
 	// SC-3000   : console = 0x10, vdp_mode = 0

@@ -1851,6 +1851,7 @@ void Z80_BASE::OP(uint8_t code)
 
 void Z80_BASE::initialize()
 {
+	DEVICE::initialize();
 	if(!flags_initialized) {
 		uint8_t *padd = SZHVC_add;
 		uint8_t *padc = SZHVC_add + 256 * 256;

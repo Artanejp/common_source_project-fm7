@@ -101,6 +101,7 @@ void MB8877::register_lost_event(int bytes)
 
 void MB8877::initialize()
 {
+	DEVICE::initialize();
 	// initialize d88 handler
 	for(int i = 0; i < MAX_DRIVE; i++) {
 		disk[i] = new DISK(emu);

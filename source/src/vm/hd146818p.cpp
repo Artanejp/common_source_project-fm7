@@ -24,6 +24,7 @@ DLL_PREFIX_I struct cur_time_s cur_time;
 
 void HD146818P::initialize()
 {
+	DEVICE::initialize();
 	// load ram image
 	memset(regs, 0, sizeof(regs));
 	modified = false;

@@ -13,6 +13,7 @@
 
 void NOISE::initialize()
 {
+	DEVICE::initialize();
 	register_id = -1;
 	ptr = 0;
 	sample_l = sample_r = 0;

@@ -27,6 +27,7 @@
 
 void MC6809::initialize()
 {
+	DEVICE::initialize();
 	int_state = 0;
 	busreq = false;
 #ifdef USE_DEBUGGER
@@ -42,9 +43,9 @@ void MC6809::run_one_opecode()
 	if(now_debugging) {
 		d_debugger->check_break_points(PC);
 		if(d_debugger->now_suspended) {
-			emu->mute_sound();
+			osd->mute_sound();
 			while(d_debugger->now_debugging && d_debugger->now_suspended) {
-				emu->sleep(10);
+				osd->sleep(10);
 			}
 		}
 		if(d_debugger->now_debugging) {

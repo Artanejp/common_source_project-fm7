@@ -24,6 +24,7 @@
 
 void SN76489AN::initialize()
 {
+	DEVICE::initialize();
 	mute = false;
 	cs = we = true;
 }

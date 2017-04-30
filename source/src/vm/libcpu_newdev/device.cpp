@@ -20,6 +20,7 @@ DEVICE::DEVICE(VM* parent_vm, EMU* parent_emu) : vm(parent_vm), emu(parent_emu)
 {
 	vm = parent_vm;
 	emu = parent_emu;
+	osd = NULL;
 	strncpy(this_device_name, "Base Device", 128);
 	prev_device = vm->last_device;
 	next_device = NULL;

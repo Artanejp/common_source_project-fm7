@@ -624,6 +624,7 @@ static const uint8_t cycles[] = {
 
 void MC6800::initialize()
 {
+	DEVICE::initialize();
 #if defined(HAS_MC6801) || defined(HAS_HD6301)
 	recv_buffer = new FIFO(0x10000);
 	ram_ctrl = 0xc0;

@@ -33,6 +33,7 @@
 #endif
 void LD700::initialize()
 {
+	DEVICE::initialize();
 	prev_remote_signal = false;
 	prev_remote_time = 0;
 	command = num_bits = 0;

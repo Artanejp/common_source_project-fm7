@@ -989,6 +989,7 @@ inline void M6502::update_irq()
 
 void M6502::initialize()
 {
+	DEVICE::initialize();
 	A = X = Y = P = 0;
 	SPD = EAD = ZPD = PCD = 0;
 #ifdef USE_DEBUGGER

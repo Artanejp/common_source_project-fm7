@@ -358,6 +358,7 @@ int UPD7752::VGetStatus(void)
 
 void UPD7752::initialize()
 {
+	DEVICE::initialize();
 	mute=true;
 	voicebuf=NULL;
 	Fbuf = NULL;

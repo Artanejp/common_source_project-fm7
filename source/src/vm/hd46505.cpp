@@ -15,6 +15,7 @@
 
 void HD46505::initialize()
 {
+	DEVICE::initialize();
 	memset(regs, 0, sizeof(regs));
 	memset(regs_written, 0, sizeof(regs_written));
 	

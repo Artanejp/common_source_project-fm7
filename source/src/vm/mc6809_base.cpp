@@ -173,6 +173,7 @@ void MC6809_BASE::reset()
 
 void MC6809_BASE::initialize()
 {
+	DEVICE::initialize();
 	int_state = 0;
 	busreq = false;
 #ifdef USE_DEBUGGER

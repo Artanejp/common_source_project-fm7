@@ -40,6 +40,7 @@
 
 void MZ1P17::initialize()
 {
+	DEVICE::initialize();
 	// initialize bitmap
 	int width = (int)(PIXEL_PER_INCH * 8.27);
 	int height = (int)(PIXEL_PER_INCH * 11.69);

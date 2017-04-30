@@ -21,6 +21,8 @@ set(s_vm_common_vm_srcs
 	../mc6809_base.cpp
 	../mc6820.cpp
 	../mc6840.cpp
+	../mc6847_base.cpp
+	
 	../libcpu_newdev/mcs48_base.cpp
 	../libcpu_newdev/i86_base.cpp
 
@@ -57,7 +59,7 @@ set(s_vm_common_vm_srcs
 	../upd7752.cpp
 #	../upd7801.cpp
 #	../upd7810.cpp
-#	../v9938.cpp
+#	../v9938_base.cpp
 #	../v99x8.cpp
 #	../w3100a.cpp
 	../ym2151.cpp

@@ -11,6 +11,7 @@
 
 void UPD4991A::initialize()
 {
+	DEVICE::initialize();
 	// initialize rtc
 	memset(regs, 0, sizeof(regs));
 	ctrl1 = ctrl2 = mode = 0;

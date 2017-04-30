@@ -55,6 +55,7 @@ inline void HD44102::count_up_or_down()
 
 void HD44102::initialize()
 {
+	DEVICE::initialize();
 //	m_cs2 = 0;
 	m_page = 0;
 	m_x = 0;

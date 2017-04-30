@@ -17,6 +17,7 @@ DLL_PREFIX_I struct cur_time_s cur_time;
 
 void RP5C01::initialize()
 {
+	DEVICE::initialize();
 #ifndef HAS_RP5C15
 	// load ram image
 	memset(ram, 0, sizeof(ram));

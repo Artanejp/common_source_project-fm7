@@ -57,6 +57,7 @@
 
 void MSM5205::initialize()
 {
+	DEVICE::initialize();
 //	m_mod_clock = clock();
 //	m_vclk_cb.resolve();
 

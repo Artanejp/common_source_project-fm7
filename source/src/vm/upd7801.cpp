@@ -1082,6 +1082,7 @@ inline void UPD7801::UPDATE_PORTC(uint8_t IOM)
 
 void UPD7801::initialize()
 {
+	DEVICE::initialize();
 #ifdef USE_DEBUGGER
 	d_mem_stored = d_mem;
 	d_io_stored = d_io;

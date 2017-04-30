@@ -82,6 +82,7 @@ void T3444A::register_lost_event(int bytes)
 
 void T3444A::initialize()
 {
+	DEVICE::initialize();
 	// initialize d88 handler
 	for(int i = 0; i < 4; i++) {
 		disk[i] = new DISK(emu);

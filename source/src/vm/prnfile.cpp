@@ -14,6 +14,7 @@
 
 void PRNFILE::initialize()
 {
+	DEVICE::initialize();
 	fio = new FILEIO();
 	
 	value = busy_id = ack_id = wait_frames = -1;

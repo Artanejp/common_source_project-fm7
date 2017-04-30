@@ -18,6 +18,7 @@ static bool dont_create_multiple_chips = false;
 
 void YM2203::initialize()
 {
+	DEVICE::initialize();
 #ifdef HAS_YM2608
 	if(is_ym2608) {
 		opna = new FM::OPNA;

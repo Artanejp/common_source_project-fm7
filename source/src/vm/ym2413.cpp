@@ -2154,6 +2154,7 @@ void YM2413UpdateOne(int which, INT16 **buffers, int length)
 
 void YM2413::initialize()
 {
+	DEVICE::initialize();
 	buf[0] = buf[1] = NULL;
 	mute = false;
 }

@@ -13,6 +13,7 @@
 
 void EVENT::initialize()
 {
+	DEVICE::initialize();
 	// load config
 	if(!(0 <= config.cpu_power && config.cpu_power <= 4)) {
 		config.cpu_power = 0;

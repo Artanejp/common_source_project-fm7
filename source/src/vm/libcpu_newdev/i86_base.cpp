@@ -21,6 +21,7 @@ void I86_BASE::initialize()
 {
 	static const BREGS reg_name[8] = {AL, CL, DL, BL, AH, CH, DH, BH};
 	
+	DEVICE::initialize();
 	for(int i = 0; i < 256; i++) {
 		Mod_RM.reg.b[i] = reg_name[(i & 0x38) >> 3];
 		Mod_RM.reg.w[i] = (WREGS)((i & 0x38) >> 3);

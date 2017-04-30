@@ -23,6 +23,7 @@
 
 void DATAREC::initialize()
 {
+	DEVICE::initialize();
 	play_fio = new FILEIO();
 	rec_fio = new FILEIO();
 	

@@ -11,6 +11,7 @@
 
 void UPD71071::initialize()
 {
+	DEVICE::initialize();
 	for(int i = 0; i < 4; i++) {
 		dma[i].areg = dma[i].bareg = 0;
 		dma[i].creg = dma[i].bcreg = 0;
