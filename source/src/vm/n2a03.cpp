@@ -15,6 +15,7 @@
 #endif
 
 #undef HAS_N2A03
+#define HAS_N2A03
 
 // vectors
 #define NMI_VEC	0xfffa
@@ -703,7 +704,7 @@
 #define TOP PCW += 2
 #define KIL PCW--
 
-void M6502::OP(uint8_t code)
+void N2A03::OP(uint8_t code)
 {
 	int tmp;
 	
@@ -972,7 +973,7 @@ void M6502::OP(uint8_t code)
 
 // main
 
-void M6502::initialize()
+void N2A03::initialize()
 {
 	DEVICE::initialize();
 	A = X = Y = P = 0;
@@ -983,7 +984,7 @@ void M6502::initialize()
 #endif
 }
 
-void M6502::reset()
+void N2A03::reset()
 {
 	PCL = RDMEM(RST_VEC);
 	PCH = RDMEM(RST_VEC + 1);
@@ -995,7 +996,7 @@ void M6502::reset()
 	irq_state = nmi_state = so_state = false;
 }
 
-int M6502::run(int clock)
+int N2A03::run(int clock)
 {
 	if(clock == -1) {
 		if (busreq) {
@@ -1087,9 +1088,10 @@ int M6502::run(int clock)
 #define CPU_DISASSEMBLE(name)			int CPU_DISASSEMBLE_NAME(name)(_TCHAR *buffer, offs_t pc, const UINT8 *oprom, const UINT8 *opram, symbol_t *first_symbol)
 #define CPU_DISASSEMBLE_CALL(name)		CPU_DISASSEMBLE_NAME(name)(buffer, pc, oprom, oprom, d_debugger->first_symbol)
 const UINT32 DASMFLAG_LENGTHMASK    = 0x0000ffff;   // the low 16-bits contain the actual length
-extern CPU_DISASSEMBLE(m6502);
 
-int M6502::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
+extern CPU_DISASSEMBLE(m6502);
+	
+int N2A03::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
 #ifdef USE_DEBUGGER
 	uint8_t oprom[4];

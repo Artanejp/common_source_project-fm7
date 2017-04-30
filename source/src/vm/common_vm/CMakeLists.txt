@@ -16,8 +16,9 @@ set(s_vm_common_vm_srcs
 	../ls244.cpp
 	../ls393.cpp
 	../noise.cpp
-
-# MC6809 is temporally.
+	../m6502_base.cpp
+	# MC6809 is temporally.
+	
 	../mc6809_base.cpp
 	../mc6820.cpp
 	../mc6840.cpp

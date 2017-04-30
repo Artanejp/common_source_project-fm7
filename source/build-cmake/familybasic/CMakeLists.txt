@@ -22,7 +22,7 @@ set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
 
 set(VMFILES_BASE
-       m6502.cpp
+       n2a03.cpp
        datarec.cpp
        event.cpp
 )
