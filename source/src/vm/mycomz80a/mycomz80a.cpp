@@ -53,7 +53,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio3 = new I8255(this, emu);
 	pio3->set_device_name(_T("8255 PIO (FDC/RTC)"));
 	io = new IO(this, emu);
-	rtc = new MSM58321(this, emu);	// MSM5832
+	rtc = new MSM5832(this, emu);	// MSM5832
 	psg = new SN76489AN(this, emu);
 	cpu = new Z80(this, emu);
 	

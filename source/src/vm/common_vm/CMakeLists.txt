@@ -27,6 +27,7 @@ set(s_vm_common_vm_srcs
 	../libcpu_newdev/i86_base.cpp
 
 	../msm5205.cpp
+	../msm58321_base.cpp
 	
 	../nand.cpp
 	../nor.cpp

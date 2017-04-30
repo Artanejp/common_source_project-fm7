@@ -20,7 +20,7 @@ set(VMFILES
 	hd46505.cpp
 	
 	i8255.cpp
-	msm58321.cpp
+	msm5832.cpp
 	sn76489an.cpp
 	
 	datarec.cpp

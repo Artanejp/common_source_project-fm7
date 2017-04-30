@@ -59,7 +59,7 @@ class DATAREC;
 class HD46505;
 class I8255;
 class IO;
-class MSM58321;
+class MSM5832;
 class SN76489AN;
 class Z80;
 
@@ -81,7 +81,7 @@ protected:
 	I8255* pio2;
 	I8255* pio3;
 	IO* io;
-	MSM58321* rtc;
+	MSM5832* rtc;
 	SN76489AN* psg;
 	Z80* cpu;
 	
