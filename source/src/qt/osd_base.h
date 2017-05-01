@@ -26,6 +26,7 @@
 #include "simd_types.h"
 
 #include <ctime>
+#include <limits>
 
 //#include "../vm/vm.h"
 //#include "../emu.h"
@@ -72,6 +73,12 @@ typedef struct {
 	const _TCHAR *name;
 } device_node_t;
 
+typedef struct {
+	QString string;
+	int64_t ivalue;
+	double  fvalue;
+} supportedlist_t;
+
 class DLL_PREFIX OSD_BASE : public QThread
 {
 	Q_OBJECT
@@ -83,6 +90,8 @@ protected:
 	USING_FLAGS *using_flags;
 	config_t *p_config;
 	CSP_Logger *csp_logger;
+
+	QList<supportedlist_t> SupportedFeatures;
 	
 	_TCHAR app_path[_MAX_PATH];
 	QElapsedTimer osd_timer;
@@ -433,7 +442,22 @@ public:
 	virtual void set_vm_node(int id, const _TCHAR *name);
 	virtual const _TCHAR *get_vm_node_name(int id);
 	virtual int get_vm_node_size(void);
-
+	
+	// Get #define S to value.You may use inside of VM/ .
+	virtual void set_features(void) {}
+	void add_feature(const _TCHAR *key, double value);
+	void add_feature(const _TCHAR *key, float value);
+	void add_feature(const _TCHAR *key, int value = 1);
+	void add_feature(const _TCHAR *key, int64_t value);
+	void add_feature(const _TCHAR *key, uint32_t value);
+	void add_feature(const _TCHAR *key, uint16_t value);
+	void add_feature(const _TCHAR *key, uint8_t value);
+	bool check_feature(const _TCHAR *key);
+	double get_feature_double_value(const _TCHAR *key);
+	int64_t get_feature_int_value(const _TCHAR *key);
+	uint32_t get_feature_uint32_value(const _TCHAR *key);
+	uint16_t get_feature_uint16_value(const _TCHAR *key);
+	uint8_t get_feature_uint8_value(const _TCHAR *key);
 public slots:
 	void do_write_inputdata(QString s);
 	void do_set_input_string(QString s);
@@ -450,6 +474,7 @@ public slots:
 	int draw_screen();
 	int no_draw_screen();
 	void do_draw(bool flag);
+
 signals:
 	int sig_update_screen(bitmap_t *);
 	int sig_save_screen(const char *);

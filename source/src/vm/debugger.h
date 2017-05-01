@@ -10,11 +10,11 @@
 #ifndef _DEBUGGER_H_
 #define _DEBUGGER_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 
 #define MAX_BREAK_POINTS	8
 
@@ -272,6 +272,6 @@ public:
 	bool now_debugging, now_going, now_suspended;
 };
 
-#endif
+//#endif
 #endif
 
