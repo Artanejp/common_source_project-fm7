@@ -26,12 +26,10 @@ set(VMFILES
 		   
 	   upd1990a.cpp
 	   upd7220.cpp
-	   upd765a.cpp
-	   
+   
 	   mz1p17.cpp
 	   prnfile.cpp
 	   
-	   disk.cpp
 	   event.cpp
 	   io.cpp
 )
@@ -40,6 +38,8 @@ set(VMFILES_LIB
 	   ls244.cpp
 	   not.cpp
 	   pcm1bit.cpp
+	   upd765a.cpp
+	   disk.cpp
 )	   
 
 set(BUILD_SHARED_LIBS OFF)

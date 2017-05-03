@@ -27,12 +27,10 @@ set(VMFILES
 		   i8255.cpp
 		   i8259.cpp
 		   msm58321.cpp
-		   mb8877.cpp
 		   
 		   ym2203.cpp
 		   
 #		   datarec.cpp
-		   disk.cpp
 		   event.cpp
 		   io.cpp
 		   memory.cpp
@@ -42,6 +40,8 @@ set(VMFILES_LIB
 		   pcm1bit.cpp
 		   i8251.cpp
 		   not.cpp
+		   mb8877.cpp
+		   disk.cpp
 )
 
 set(FLAG_USE_I86 ON)

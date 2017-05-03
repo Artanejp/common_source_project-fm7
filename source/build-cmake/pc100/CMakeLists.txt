@@ -25,10 +25,8 @@ set(VMFILES
 		   i8259.cpp
 		   
 		   msm58321.cpp
-		   upd765a.cpp
 		   
 		   memory.cpp
-		   disk.cpp
 		   event.cpp
 		   io.cpp
 )
@@ -37,6 +35,8 @@ set(VMFILES_LIB
 		   i8251.cpp
 		   beep.cpp
 		   pcm1bit.cpp
+		   upd765a.cpp
+		   disk.cpp
 )
 set(FLAG_USE_I86 ON)
 

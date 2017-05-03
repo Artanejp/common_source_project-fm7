@@ -18,8 +18,8 @@
 #ifndef _PC6031_H_
 #define _PC6031_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 class DISK;

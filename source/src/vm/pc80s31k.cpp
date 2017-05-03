@@ -31,6 +31,9 @@
 
 void PC80S31K::initialize()
 {
+	DEVICE::initialize();
+	pc80s31k_no_wait = osd->check_feature(_T("PC80S31K_NO_WAIT"));
+	_debug_pc80s31k = osd->check_feature(_T("_DEBUG_PC80S31K"));
 	// init memory
 	memset(rom, 0xff, sizeof(rom));
 	memset(ram, 0, sizeof(ram));
@@ -81,13 +84,16 @@ uint32_t PC80S31K::read_data8(uint32_t addr)
 uint32_t PC80S31K::fetch_op(uint32_t addr, int *wait)
 {
 	addr &= 0xffff;
-#ifdef PC80S31K_NO_WAIT
-	// XM8 version 1.20
-	// no access wait (both ROM and RAM)
-	*wait = 0;
-#else
-	*wait = (addr < 0x2000) ? 1 : 0;
-#endif
+//#ifdef PC80S31K_NO_WAIT
+	if(pc80s31k_no_wait) {
+		// XM8 version 1.20
+		// no access wait (both ROM and RAM)
+		*wait = 0;
+	} else {
+//#else
+		*wait = (addr < 0x2000) ? 1 : 0;
+	}
+//#endif
 	return rbank[addr >> 13][addr & 0x1fff];
 }
 
@@ -115,21 +121,21 @@ uint32_t PC80S31K::read_io8(uint32_t addr)
 	case 0xfc:
 	case 0xfd:
 		val = d_pio->read_io8(addr & 3);
-#ifdef _DEBUG_PC80S31K
-		this->out_debug_log(_T("SUB\tIN RECV(%d)=%2x\n"), addr & 3, val);
-#endif
+//#ifdef _DEBUG_PC80S31K
+		if(_debug_pc80s31k) this->out_debug_log(_T("SUB\tIN RECV(%d)=%2x\n"), addr & 3, val);
+//#endif
 		return val;
 	case 0xfe:
 		val = d_pio->read_io8(addr & 3);
-#ifdef _DEBUG_PC80S31K
-		{
+//#ifdef _DEBUG_PC80S31K
+		if(_debug_pc80s31k) {
 			static uint32_t prev = -1;
 			if(prev != val) {
 //				this->out_debug_log(_T("SUB\tIN DAV=%d,RFD=%d,DAC=%d,ATN=%d\n"), val&1, (val>>1)&1, (val>>2)&1, (val>>3)&1);
 				prev = val;
 			}
 		}
-#endif
+//#endif
 		return val;
 	}
 	return 0xff;
@@ -166,9 +172,9 @@ void PC80S31K::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0xfc:
 	case 0xfd:
-#ifdef _DEBUG_PC80S31K
-		this->out_debug_log(_T("SUB\tOUT SEND(%d)=%2x\n"), addr & 3, data);
-#endif
+//#ifdef _DEBUG_PC80S31K
+		if(_debug_pc80s31k) this->out_debug_log(_T("SUB\tOUT SEND(%d)=%2x\n"), addr & 3, data);
+//#endif
 		d_pio->write_io8(addr & 3, data);
 		break;
 	case 0xfe:

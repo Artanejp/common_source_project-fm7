@@ -56,7 +56,7 @@ set(VMFILES ${VMFILES_BASE}
 	    )
 set(VMFILES_LIB ${VMFILES_LIB}
 	    disk.cpp
-}
+)
 add_definitions(-D_MZ1200)
 set(EXEC_TARGET emumz1200)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz1200.qrc)
@@ -85,7 +85,7 @@ set(VMFILES ${VMFILES_BASE}
 	    )
 set(VMFILES_LIB ${VMFILES_LIB}
 	    disk.cpp
-}
+)
 endif()
 
 if(BUILD_MZ80A)
@@ -97,7 +97,7 @@ set(VMFILES ${VMFILES}
 set(VMFILES_LIB ${VMFILES_LIB}
 		mb8877.cpp
 	    disk.cpp
-}
+)
 endif()
 
 include(config_commonsource)

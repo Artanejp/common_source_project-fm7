@@ -11,8 +11,8 @@ set(VMFILES
 		   z80dma.cpp
 #
 		   i8251.cpp
-		   pc80s31k.cpp
-		   upd765a.cpp
+#		   pc80s31k.cpp
+#		   upd765a.cpp
 		   
 		   ym2203.cpp
 		   
@@ -29,10 +29,12 @@ set(VMFILES
 		   prnfile.cpp
 )
 set(VMFILES_LIB
-		   beep.cpp
-		   pcm1bit.cpp
-		   z80pio.cpp
-		   disk.cpp
+			pc80s31k.cpp
+			upd765a.cpp
+			beep.cpp
+			pcm1bit.cpp
+			z80pio.cpp
+			disk.cpp
 )
 set(FLAG_USE_Z80 ON)
 

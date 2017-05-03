@@ -20,21 +20,21 @@ set(WITH_MOUSE ON)
 
 set(FLAG_USE_Z80 ON)
 set(VMFILES
-
-		   i8251.cpp
 		   i8255.cpp
 		   
 		   sn76489an.cpp
 		   tms9918a.cpp
-		   upd765a.cpp
-		   
 		   datarec.cpp
-		   disk.cpp
 		   
 		   io.cpp
 		   event.cpp
 )
 
+set(VMFILES_LIB
+  		   upd765a.cpp
+		   disk.cpp
+		   i8251.cpp
+)		   
 
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")

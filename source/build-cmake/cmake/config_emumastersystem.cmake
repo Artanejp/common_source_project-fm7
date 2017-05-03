@@ -45,11 +45,15 @@ if(BUILD_GAMEGEAR)
 #		   ym2413.cpp
 		   sn76489an.cpp
 		   315-5124.cpp
-		   upd765a.cpp
+#		   upd765a.cpp
 		   
 		   datarec.cpp
-		   disk.cpp
+#		   disk.cpp
 		   )
+ set(VMFILES_LIB ${VMFILES_LIB}
+		   upd765a.cpp
+		   disk.cpp
+)		   
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/gamegear.qrc)
 elseif(BUILD_MARK3)
   set(EXEC_TARGET emumark3)

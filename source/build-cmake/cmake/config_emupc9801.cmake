@@ -10,20 +10,23 @@ set(VMFILES
 		   i8255.cpp
 		   i8259.cpp
 		   
-		   pc80s31k.cpp
+#		   pc80s31k.cpp
 		   upd1990a.cpp
-		   upd765a.cpp
+#		   upd765a.cpp
 		   upd7220.cpp
 #		   tms3631.cpp
 		   ym2203.cpp
 		   
-		   disk.cpp
+#		   disk.cpp
 		   event.cpp
 		   io.cpp
 		   memory.cpp
 		   prnfile.cpp
 )
 set(VMFILES_LIB
+		   pc80s31k.cpp
+		   upd765a.cpp
+		   disk.cpp
 #		   i8251.cpp
 #		   ls244.cpp
 )
@@ -108,7 +111,7 @@ elseif(BUILD_PC9801VF)
 elseif(BUILD_PC98DO)
    add_definitions(-D_PC98DO)
    set(EXEC_TARGET emupc98do)
-   set(VMFILES ${VMFILES}
+   set(VMFILES_LIB ${VMFILES_LIB}
  #      i286.cpp
        
        pc80s31k.cpp

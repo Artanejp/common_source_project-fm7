@@ -24,19 +24,21 @@ set(VMFILES
 		   upd7801.cpp
 		   hd46505.cpp
 
-		   upd765a.cpp
+#		   upd765a.cpp
 		   
 		   ym2203.cpp
 		   
 		   datarec.cpp
-		   disk.cpp
+#		   disk.cpp
 		   event.cpp
 		   io.cpp
 		   memory.cpp
 )
 set(VMFILES_LIB
+		   upd765a.cpp
 #		   pcm1bit.cpp
 		   beep.cpp
+		   disk.cpp
 )
 
 set(BUILD_SHARED_LIBS OFF)

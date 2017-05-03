@@ -10,10 +10,10 @@ set(VMFILES
 		   i8259.cpp
 		   i8255.cpp
 		   
-		   upd765a.cpp
+#		   upd765a.cpp
 		   upd71071.cpp
 		   
-		   disk.cpp
+#		   disk.cpp
 		   event.cpp
 		   io.cpp
 		   memory.cpp
@@ -24,6 +24,8 @@ set(VMFILES_LIB
 		   ls244.cpp
 		   not.cpp
 		   i8251.cpp
+		   upd765a.cpp
+		   disk.cpp
 		   
 )
 

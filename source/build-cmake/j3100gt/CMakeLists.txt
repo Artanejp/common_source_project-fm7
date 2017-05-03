@@ -26,14 +26,13 @@ set(VMFILES
 		   hd46505.cpp
 
 		   io.cpp
-		   disk.cpp
-		   
-		   upd765a.cpp
 		   
 		   event.cpp
 )
 set(VMFILES_LIB
 		   pcm1bit.cpp
+		   upd765a.cpp
+		   disk.cpp
 )
 
 set(BUILD_J3100GT ON  CACHE BOOL "Build emuJ3100GT")

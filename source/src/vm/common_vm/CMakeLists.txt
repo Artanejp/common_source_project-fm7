@@ -35,8 +35,8 @@ set(s_vm_common_vm_srcs
 	../not.cpp
 	../or.cpp
 
-#	../pc6031.cpp
-#	../pc80s31k.cpp
+	../pc6031.cpp
+	../pc80s31k.cpp
 	../pcm1bit.cpp
 #	../prnfile.cpp
 #	../ptf20.cpp
@@ -57,7 +57,7 @@ set(s_vm_common_vm_srcs
 	../upd4991a.cpp
 #	../upd71071.cpp
 #	../upd7220.cpp
-#	../upd765a.cpp
+	../upd765a.cpp
 	../upd7752.cpp
 #	../upd7801.cpp
 #	../upd7810.cpp

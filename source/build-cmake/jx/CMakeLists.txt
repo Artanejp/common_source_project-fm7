@@ -32,8 +32,6 @@ set(VMFILES_BASE
       memory.cpp
       
       sn76489an.cpp
-      upd765a.cpp
-      disk.cpp
       
       event.cpp
 )
@@ -41,6 +39,9 @@ set(VMFILES_LIB
       i8251.cpp
       pcm1bit.cpp
       not.cpp
+	  
+      upd765a.cpp
+      disk.cpp
 )
 set(FLAG_USE_I86 ON)
 

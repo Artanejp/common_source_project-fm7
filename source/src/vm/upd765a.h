@@ -11,8 +11,8 @@
 #ifndef _UPD765A_H_
 #define _UPD765A_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 #define SIG_UPD765A_RESET	0
@@ -63,9 +63,9 @@ private:
 	int step_rate_time;
 	int head_unload_time;
 	bool no_dma_mode, motor_on;
-#ifdef UPD765A_DMA_MODE
+//#ifdef UPD765A_DMA_MODE
 	bool dma_data_lost;
-#endif
+//#endif
 	bool irq_masked, drq_masked;
 	
 	uint8_t* bufptr;
@@ -76,6 +76,16 @@ private:
 	bool force_ready;
 	bool reset_signal;
 	bool prev_index;
+
+	int _max_drive;
+	bool _fdc_debug_log;
+	bool _upd765a_dma_mode;
+	bool _upd765a_ext_drvsel;
+	bool _upd765a_sence_intstat_result;
+	bool _upd765a_dont_wait_seek;
+	bool _upd765a_no_st0_at_for_seek;
+	bool _upd765a_wait_result7;
+	bool _upd765a_no_st1_en_or_for_result7;
 	
 	// timing
 	uint32_t prev_drq_clock;
@@ -143,6 +153,12 @@ public:
 		d_noise_head_up = NULL;
 		force_ready = false;
 		raise_irq_when_media_changed = false;
+		
+		_max_drive = 4;
+		_fdc_debug_log = false;
+		_upd765a_dma_mode = _upd765a_ext_drvsel = _upd765a_sence_intstat_result = false;
+		_upd765a_dont_wait_seek = _upd765a_no_st0_at_for_seek = false;
+		_upd765a_wait_result7 = _upd765a_no_st1_en_or_for_result7 = false;
 		set_device_name(_T("uPD765A FDC"));
 	}
 	~UPD765A() {}

@@ -27,10 +27,7 @@ set(VMFILES_BASE
   
       z80.cpp
       z80sio.cpp
-      upd765a.cpp
       i8255.cpp
-      
-      disk.cpp
       
       datarec.cpp
       event.cpp
@@ -38,9 +35,11 @@ set(VMFILES_BASE
       memory.cpp
 )
 set(VMFILES_LIB
+      upd765a.cpp
       hd146818p.cpp
       beep.cpp
       tf20.cpp
+      disk.cpp
 )
 
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")

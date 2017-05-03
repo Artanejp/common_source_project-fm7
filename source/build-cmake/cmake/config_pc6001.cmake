@@ -13,11 +13,11 @@ set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
 
 set(VMFILES
-		   pc6031.cpp
-		   pc80s31k.cpp
+#		   pc6031.cpp
+#		   pc80s31k.cpp
 		   i8255.cpp
 		   
-		   upd765a.cpp
+#		   upd765a.cpp
 		   ym2203.cpp
 		   
 #		   disk.cpp
@@ -29,8 +29,10 @@ set(VMFILES
 )
 
 set(VMFILES_LIB
-#		   pc6031.cpp
-		   disk.cpp
+			pc6031.cpp
+			pc80s31k.cpp
+			upd765a.cpp
+			disk.cpp
 )
 set(FLAG_USE_MCS48 ON)
 set(FLAG_USE_Z80 ON)

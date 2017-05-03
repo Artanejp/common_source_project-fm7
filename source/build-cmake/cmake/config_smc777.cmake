@@ -19,15 +19,15 @@ if(BUILD_SMC70)
   set(VMFILES_BASE
 		   hd46505.cpp
 		   
-		   mb8877.cpp
 		   msm58321.cpp
 		   
 		   datarec.cpp
-		   disk.cpp
 		   event.cpp
 		   )
 set(VMFILES_LIB
 	   pcm1bit.cpp
+	   mb8877.cpp
+	   disk.cpp
 )
  add_definitions(-D_SMC70)
  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/smc70.qrc)
@@ -37,15 +37,15 @@ elseif(BUILD_SMC777)
   set(VMFILES_BASE
 		   
 		   hd46505.cpp
-		   mb8877.cpp
 		   sn76489an.cpp
 		   
 		   datarec.cpp
-		   disk.cpp
 		   event.cpp
 		   )
 set(VMFILES_LIB
 	   pcm1bit.cpp
+	   mb8877.cpp
+	   disk.cpp
 )
   add_definitions(-D_SMC777)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/smc777.qrc)
