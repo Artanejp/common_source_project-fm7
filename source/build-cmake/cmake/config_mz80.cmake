@@ -51,10 +51,11 @@ if(BUILD_MZ1200)
 
 set(VMFILES ${VMFILES_BASE}
             and.cpp
-	    t3444a.cpp
+#	    t3444a.cpp
 #	    disk.cpp
 	    )
 set(VMFILES_LIB ${VMFILES_LIB}
+	    t3444a.cpp
 	    disk.cpp
 )
 add_definitions(-D_MZ1200)
@@ -80,10 +81,11 @@ add_definitions(-D_MZ80K)
 set(EXEC_TARGET emumz80k)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz80k.qrc)
 set(VMFILES ${VMFILES_BASE}
-	    t3444a.cpp
+#	    t3444a.cpp
 #	    disk.cpp
 	    )
 set(VMFILES_LIB ${VMFILES_LIB}
+	    t3444a.cpp
 	    disk.cpp
 )
 endif()

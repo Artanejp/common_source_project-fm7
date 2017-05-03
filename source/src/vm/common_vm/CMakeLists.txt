@@ -47,7 +47,7 @@ set(s_vm_common_vm_srcs
 #	../scsi_host.cpp
 #	../sn76489an.cpp
 #	../sy6522.cpp
-#	../t3444a.cpp
+	../t3444a.cpp
 	../tf20.cpp
 	../tms3631.cpp
 #	../tms9918a.cpp

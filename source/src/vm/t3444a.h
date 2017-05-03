@@ -10,8 +10,8 @@
 #ifndef _T3444A_H_ 
 #define _T3444A_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 #define SIG_T3444A_DRIVE	0
@@ -23,11 +23,11 @@
 #define SIG_T3444A_CRDY		5
 #define SIG_T3444A_RQM		6
 
-#ifdef HAS_T3444M
-#define SECTORS_IN_TRACK	16
-#else
-#define SECTORS_IN_TRACK	26
-#endif
+//#ifdef HAS_T3444M
+//#define SECTORS_IN_TRACK	16
+//#else
+//#define SECTORS_IN_TRACK	26
+//#endif
 
 class DISK;
 class NOISE;
@@ -67,7 +67,7 @@ private:
 	uint8_t drvreg;
 	uint8_t sidereg;
 	bool timerflag;
-	uint8_t sector_id[SECTORS_IN_TRACK * 4];
+	uint8_t sector_id[26 * 4]; // SECTORS_IN_TRACK
 	
 	// event
 	int register_id[5];
@@ -87,6 +87,12 @@ private:
 	
 	// timing
 	uint32_t prev_rqm_clock;
+
+
+	int _max_drive;
+	int _sectors_in_track;
+	bool _has_t3444m;
+	bool _fdc_debug_log;
 	
 	int get_cur_position();
 	double get_usec_to_start_trans();
@@ -117,6 +123,9 @@ public:
 		d_noise_head_up = NULL;
 		tnd = true;
 		motor_on = false;
+		_max_drive = 4;
+		_sectors_in_track = 26;
+		_has_t3444m = _fdc_debug_log = false;
 		set_device_name(_T("T3444A FDC"));
 	}
 	~T3444A() {}

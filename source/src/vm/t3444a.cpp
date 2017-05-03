@@ -83,6 +83,11 @@ void T3444A::register_lost_event(int bytes)
 void T3444A::initialize()
 {
 	DEVICE::initialize();
+	_max_drive = osd->get_feature_int_value(_T("MAX_DRIVE"));
+	if((_max_drive <= 0) || (_max_drive >= 4)) _max_drive = 4;
+	_has_t3444m = osd->check_feature(_T("HAS_T3444M"));
+	_fdc_debug_log = osd->check_feature(_T("_FDC_DEBUG_LOG"));
+	_sectors_in_track = (_has_t3444m) ? 16 : 26;
 	// initialize d88 handler
 	for(int i = 0; i < 4; i++) {
 		disk[i] = new DISK(emu);
@@ -163,9 +168,9 @@ void T3444A::write_io8(uint32_t addr, uint32_t data)
 	case 2:
 		// sector reg
 		secreg = data & 0x7f;
-#ifdef HAS_T3444M
-		sidereg = (data >> 7) & 1;
-#endif
+//#ifdef HAS_T3444M
+		if(_has_t3444m) sidereg = (data >> 7) & 1;
+//#endif
 		break;
 	case 3:
 		// data reg
@@ -182,9 +187,9 @@ void T3444A::write_io8(uint32_t addr, uint32_t data)
 				cancel_my_event(EVENT_LOST);
 				
 				if(fdc[drvreg].index >= disk[drvreg]->sector_size.sd) {
-#ifdef _FDC_DEBUG_LOG
-					this->out_debug_log(_T("FDC\tWRITE DATA FINISHED\n"));
-#endif
+//#ifdef _FDC_DEBUG_LOG
+					if(_fdc_debug_log) this->out_debug_log(_T("FDC\tWRITE DATA FINISHED\n"));
+//#endif
 					// 2S: 300rpm, 3100bytes/track -> 0.0155bytes/us
 					register_my_event(EVENT_TND, 100); // 0.0155bytes/us * 100us = 1.55bytes < GAP3
 				} else {
@@ -196,19 +201,19 @@ void T3444A::write_io8(uint32_t addr, uint32_t data)
 				}
 			} else if(cmdreg == FDC_CMD_WRITE_ID) {
 				// write index/id
-				if(fdc[drvreg].index < SECTORS_IN_TRACK * 4) {
+				if(fdc[drvreg].index < _sectors_in_track * 4) {
 					sector_id[fdc[drvreg].index++] = datareg;
 				}
 				set_rqm(false);
 				cancel_my_event(EVENT_LOST);
 				
-				if(fdc[drvreg].index >= SECTORS_IN_TRACK * 4) {
+				if(fdc[drvreg].index >= _sectors_in_track * 4) {
 					// format in single-density
 					bool drive_mfm = disk[drvreg]->drive_mfm;
 					disk[drvreg]->drive_mfm = false;
 					disk[drvreg]->format_track(fdc[drvreg].track, sidereg);
 					disk[drvreg]->drive_mfm = drive_mfm;
-					for(int i = 0; i < SECTORS_IN_TRACK; i++) {
+					for(int i = 0; i < _sectors_in_track; i++) {
 						disk[drvreg]->insert_sector(sector_id[i * 4], sector_id[i * 4 + 1], sector_id[i * 4 + 2], sector_id[i * 4 + 3], false, false, 0xff, 128);
 					}
 					status |= FDC_STA_FDC_READY;
@@ -226,9 +231,9 @@ uint32_t T3444A::read_io8(uint32_t addr)
 	switch(addr & 3) {
 	case 0:
 		// status reg
-#ifdef _FDC_DEBUG_LOG
-		this->out_debug_log(_T("FDC\tSTATUS=%02x\n"),status);
-#endif
+//#ifdef _FDC_DEBUG_LOG
+		if(_fdc_debug_log) this->out_debug_log(_T("FDC\tSTATUS=%02x\n"),status);
+//#endif
 		return status;
 	case 3:
 		// data reg
@@ -243,9 +248,9 @@ uint32_t T3444A::read_io8(uint32_t addr)
 				cancel_my_event(EVENT_LOST);
 				
 				if(fdc[drvreg].index >= disk[drvreg]->sector_size.sd) {
-#ifdef _FDC_DEBUG_LOG
-					this->out_debug_log(_T("FDC\tREAD DATA FINISHED\n"));
-#endif
+//#ifdef _FDC_DEBUG_LOG
+					if(_fdc_debug_log) this->out_debug_log(_T("FDC\tREAD DATA FINISHED\n"));
+//#endif
 //					if(status == FDC_STA_DATA_ERROR) {
 //						status |= FDC_STA_FDC_READY;
 //					} else {
@@ -377,17 +382,17 @@ void T3444A::event_callback(int event_id, int err)
 		break;
 	case EVENT_TND:
 		if(!tnd) {
-			if(secreg < SECTORS_IN_TRACK) {
+			if(secreg < _sectors_in_track) {
 				secreg++;
-#ifdef _FDC_DEBUG_LOG
-				this->out_debug_log(_T("FDC\tTND AND CONTINUE SEC=%d\n"), secreg);
-#endif
+//#ifdef _FDC_DEBUG_LOG
+				if(_fdc_debug_log) this->out_debug_log(_T("FDC\tTND AND CONTINUE SEC=%d\n"), secreg);
+//#endif
 				cmd_read_write();
 			} else {
 //				secreg = 1;
-#ifdef _FDC_DEBUG_LOG
-				this->out_debug_log(_T("FDC\tTND BUT TERMINATED SEC=%d\n"), secreg);
-#endif
+//#ifdef _FDC_DEBUG_LOG
+				if(_fdc_debug_log) this->out_debug_log(_T("FDC\tTND BUT TERMINATED SEC=%d\n"), secreg);
+//#endif
 				status = FDC_STA_FDC_READY | FDC_STA_LAST_SECTOR;
 			}
 		} else {
@@ -403,7 +408,7 @@ void T3444A::event_callback(int event_id, int err)
 
 void T3444A::process_cmd()
 {
-#ifdef _FDC_DEBUG_LOG
+//#ifdef _FDC_DEBUG_LOG
 	static const _TCHAR *cmdstr[0x10] = {
 		_T("Seek to Zero"),
 		_T("Sence Drive Status"),
@@ -422,10 +427,12 @@ void T3444A::process_cmd()
 		_T("Unknown"),
 		_T("Seek and Write Data with Deleted Data Address Mark"),
 	};
-	if(cmdreg == cmdreg) {
-		this->out_debug_log(_T("FDC\tCMD=%2xh (%s) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, cmdstr[cmdreg], datareg, drvreg, trkreg, sidereg, secreg);
+	if(_fdc_debug_log)  {
+		if(cmdreg == cmdreg) {
+			this->out_debug_log(_T("FDC\tCMD=%2xh (%s) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, cmdstr[cmdreg], datareg, drvreg, trkreg, sidereg, secreg);
+		}
 	}
-#endif
+//#endif
 	status = 0; // FDC is busy
 	
 	switch(cmdreg) {
@@ -613,13 +620,13 @@ uint8_t T3444A::search_sector()
 		}
 		fdc[drvreg].next_sync_position = disk[drvreg]->sync_position[index];
 		fdc[drvreg].index = 0;
-#ifdef _FDC_DEBUG_LOG
-		this->out_debug_log(_T("FDC\tSECTOR FOUND SIZE=$%04x ID=%02x %02x %02x %02x CRC=%02x %02x CRC_ERROR=%d\n"),
+//#ifdef _FDC_DEBUG_LOG
+		if(_fdc_debug_log) this->out_debug_log(_T("FDC\tSECTOR FOUND SIZE=$%04x ID=%02x %02x %02x %02x CRC=%02x %02x CRC_ERROR=%d\n"),
 			disk[drvreg]->sector_size.sd,
 			disk[drvreg]->id[0], disk[drvreg]->id[1], disk[drvreg]->id[2], disk[drvreg]->id[3],
 			disk[drvreg]->id[4], disk[drvreg]->id[5],
 			disk[drvreg]->data_crc_error ? 1 : 0);
-#endif
+//#endif
 		if(disk[drvreg]->data_crc_error && !disk[drvreg]->ignore_crc()) {
 			return FDC_STA_DATA_ERROR;
 		} else if(disk[drvreg]->deleted || cmdreg == FDC_CMD_WRITE_DDM) {
@@ -717,14 +724,14 @@ void T3444A::set_rqm(bool val)
 
 void T3444A::open_disk(int drv, const _TCHAR* file_path, int bank)
 {
-	if(drv < 4 && drv < MAX_DRIVE) {
+	if(drv < 4 && drv < _max_drive) {
 		disk[drv]->open(file_path, bank);
 	}
 }
 
 void T3444A::close_disk(int drv)
 {
-	if(drv < 4 && drv < MAX_DRIVE) {
+	if(drv < 4 && drv < _max_drive) {
 		disk[drv]->close();
 		update_head_flag(drvreg, false);
 	}
@@ -732,7 +739,7 @@ void T3444A::close_disk(int drv)
 
 bool T3444A::is_disk_inserted(int drv)
 {
-	if(drv < 4 && drv < MAX_DRIVE) {
+	if(drv < 4 && drv < _max_drive) {
 		return disk[drv]->inserted;
 	}
 	return false;
@@ -740,14 +747,14 @@ bool T3444A::is_disk_inserted(int drv)
 
 void T3444A::is_disk_protected(int drv, bool value)
 {
-	if(drv < 4 && drv < MAX_DRIVE) {
+	if(drv < 4 && drv < _max_drive) {
 		disk[drv]->write_protected = value;
 	}
 }
 
 bool T3444A::is_disk_protected(int drv)
 {
-	if(drv < 4 && drv < MAX_DRIVE) {
+	if(drv < 4 && drv < _max_drive) {
 		return disk[drv]->write_protected;
 	}
 	return false;
@@ -755,14 +762,14 @@ bool T3444A::is_disk_protected(int drv)
 
 void T3444A::set_drive_type(int drv, uint8_t type)
 {
-	if(drv < 4 && drv < MAX_DRIVE) {
+	if(drv < 4 && drv < _max_drive) {
 		disk[drv]->drive_type = type;
 	}
 }
 
 uint8_t T3444A::get_drive_type(int drv)
 {
-	if(drv < 4 && drv < MAX_DRIVE) {
+	if(drv < 4 && drv < _max_drive) {
 		return disk[drv]->drive_type;
 	}
 	return DRIVE_TYPE_UNK;
@@ -770,14 +777,14 @@ uint8_t T3444A::get_drive_type(int drv)
 
 void T3444A::set_drive_rpm(int drv, int rpm)
 {
-	if(drv < 4 && drv < MAX_DRIVE) {
+	if(drv < 4 && drv < _max_drive) {
 		disk[drv]->drive_rpm = rpm;
 	}
 }
 
 void T3444A::set_drive_mfm(int drv, bool mfm)
 {
-	if(drv < 4 && drv < MAX_DRIVE) {
+	if(drv < 4 && drv < _max_drive) {
 		disk[drv]->drive_mfm = mfm;
 	}
 }
@@ -797,7 +804,7 @@ void T3444A::save_state(FILEIO* state_fio)
 	state_fio->FputInt32(this_device_id);
 	
 	state_fio->Fwrite(fdc, sizeof(fdc), 1);
-	for(int i = 0; i < MAX_DRIVE; i++) {
+	for(int i = 0; i < _max_drive; i++) {
 		disk[i]->save_state(state_fio);
 	}
 	state_fio->FputUint8(status);
@@ -808,7 +815,7 @@ void T3444A::save_state(FILEIO* state_fio)
 	state_fio->FputUint8(drvreg);
 	state_fio->FputUint8(sidereg);
 	state_fio->FputBool(timerflag);
-	state_fio->Fwrite(sector_id, sizeof(sector_id), 1);
+	state_fio->Fwrite(sector_id, sizeof(uint8_t) * _sectors_in_track, 1);
 	state_fio->Fwrite(register_id, sizeof(register_id), 1);
 	state_fio->FputBool(now_search);
 	state_fio->FputInt32(seektrk);
@@ -827,7 +834,7 @@ bool T3444A::load_state(FILEIO* state_fio)
 		return false;
 	}
 	state_fio->Fread(fdc, sizeof(fdc), 1);
-	for(int i = 0; i < MAX_DRIVE; i++) {
+	for(int i = 0; i < _max_drive; i++) {
 		if(!disk[i]->load_state(state_fio)) {
 			return false;
 		}
@@ -840,7 +847,8 @@ bool T3444A::load_state(FILEIO* state_fio)
 	drvreg = state_fio->FgetUint8();
 	sidereg = state_fio->FgetUint8();
 	timerflag = state_fio->FgetBool();
-	state_fio->Fread(sector_id, sizeof(sector_id), 1);
+	state_fio->Fread(sector_id, sizeof(uint8_t) * _sectors_in_track, 1);
+	//state_fio->Fread(sector_id, sizeof(sector_id), 1);
 	state_fio->Fread(register_id, sizeof(register_id), 1);
 	now_search = state_fio->FgetBool();
 	seektrk = state_fio->FgetInt32();
