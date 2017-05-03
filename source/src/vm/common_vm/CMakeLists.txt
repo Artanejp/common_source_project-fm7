@@ -73,6 +73,9 @@ set(s_vm_common_vm_srcs
 	../z80pio.cpp
 #	../z80sio.cpp
 
+	../disk.cpp
+	../mb8877.cpp
+
 	../libcpu_newdev/libcpu_i386/i386_opdef.cpp
 	../libcpu_newdev/libcpu_i386/i386_base_ext.cpp
 	../libcpu_newdev/libcpu_i386/i386op16.cpp

@@ -16,7 +16,6 @@ set(VMFILES
 		   
 		   hd46505.cpp
 		   i8255.cpp
-		   mb8877.cpp
 		   upd1990a.cpp
 		   z80ctc.cpp
 
@@ -24,7 +23,6 @@ set(VMFILES
 		   
 		   prnfile.cpp
 		   datarec.cpp
-		   disk.cpp
 		   event.cpp
 		   
 		   io.cpp
@@ -38,6 +36,8 @@ set(VMFILES_LIB
 		   ym2151.cpp
 		   ym2203.cpp
 		   ay_3_891x.cpp
+		   mb8877.cpp
+		   disk.cpp
 )
 set(FLAG_USE_MCS48 ON)
 set(FLAG_USE_Z80 ON)

@@ -23,8 +23,8 @@ set(VMFILES_BASE
 )
 
 set(VMFILES_MZ800 ${VMFILES_BASE}
-	   mb8877.cpp
-	   disk.cpp
+#	   mb8877.cpp
+#	   disk.cpp
 		   
 	   sn76489an.cpp
 	   z80sio.cpp
@@ -42,6 +42,8 @@ set(VMFILES_LIB
 	   and.cpp
 )
 set(VMFILES_LIB_MZ800 
+	   mb8877.cpp
+	   disk.cpp
 	   not.cpp
 	   z80pio.cpp
 )

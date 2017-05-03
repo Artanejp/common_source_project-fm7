@@ -13,7 +13,7 @@ set(WITH_MOUSE ON)
 set(FLAG_USE_Z80 ON)
 set(VMFILES_2500
 		   z80sio.cpp
-		   
+   
 		   w3100a.cpp
 		   rp5c01.cpp
 		   
@@ -27,7 +27,6 @@ set(VMFILES_BASE
 		   datarec.cpp
 		   i8253.cpp
 		   i8255.cpp
-		   mb8877.cpp
 
 		   prnfile.cpp
 		   mz1p17.cpp
@@ -35,12 +34,13 @@ set(VMFILES_BASE
 		   event.cpp
 		   memory.cpp
 		   io.cpp
-		   disk.cpp
 		   
 		   )
 set(VMFILES_LIB
 		   pcm1bit.cpp
 		   z80pio.cpp
+		   mb8877.cpp
+		   disk.cpp
 )
 set(VMFILES_QD
 		   z80sio.cpp

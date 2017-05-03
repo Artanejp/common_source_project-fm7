@@ -11,8 +11,8 @@
 #ifndef _MB8877_H_ 
 #define _MB8877_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 #define SIG_MB8877_ACCESS	0
@@ -54,8 +54,8 @@ private:
 		int bytes_before_2nd_drq;
 		int next_am1_position;
 		uint32_t prev_clock;
-	} fdc[MAX_DRIVE];
-	DISK* disk[MAX_DRIVE];
+	} fdc[16];
+	DISK* disk[16];
 	
 	// registor
 	uint8_t status, status_tmp;
@@ -86,14 +86,28 @@ private:
 	bool motor_on;
 	bool drive_sel;
 	
-#ifdef HAS_MB89311
+//#ifdef HAS_MB89311
 	// MB89311
 	bool extended_mode;
-#endif
+//#endif
 	
 	// timing
 	uint32_t prev_drq_clock;
 	uint32_t seekend_clock;
+
+	// flags
+	bool fdc_debug_log;
+	bool invert_registers;
+	bool type_fm77av_2dd;
+	bool type_mb8866;
+	bool type_mb89311;
+	bool type_x1;
+	bool type_fm7;
+	bool type_fmr50;
+	bool type_fmr60;
+	bool mb8877_no_busy_after_seek;
+	int _max_drive;
+	int _drive_mask;
 	
 	int get_cur_position();
 	double get_usec_to_start_trans(bool first_sector);
@@ -117,9 +131,9 @@ private:
 	void cmd_readaddr();
 	void cmd_readtrack();
 	void cmd_writetrack();
-#ifdef HAS_MB89311
+//#ifdef HAS_MB89311
 	void cmd_format();
-#endif
+//#endif
 	void cmd_forceint();
 	void update_head_flag(int drv, bool head_load);
 	
@@ -136,15 +150,22 @@ public:
 		d_noise_head_down = NULL;
 		d_noise_head_up = NULL;
 		motor_on = false;
-#if defined(HAS_MB89311)
-		set_device_name(_T("MB89311 FDC"));
-#elif defined(HAS_MB8866)
-		set_device_name(_T("MB8866 FDC"));
-#elif defined(HAS_MB8876)
-		set_device_name(_T("MB8876 FDC"));
-#else
-		set_device_name(_T("MB8877 FDC"));
-#endif
+		//
+		fdc_debug_log = invert_registers = type_fm77av_2dd = false;
+		type_mb8866 = type_mb89311 = false;
+		type_x1 = type_fm7 = type_fmr50 = type_fmr60 = false;
+		mb8877_no_busy_after_seek = false;
+		_max_drive = 4;
+		_drive_mask = _max_drive - 1;
+//#if defined(HAS_MB89311)
+//		set_device_name(_T("MB89311 FDC"));
+//#elif defined(HAS_MB8866)
+//		set_device_name(_T("MB8866 FDC"));
+//#elif defined(HAS_MB8876)
+//		set_device_name(_T("MB8876 FDC"));
+//#else
+//		set_device_name(_T("MB8877 FDC"));
+//#endif
 	}
 	~MB8877() {}
 	

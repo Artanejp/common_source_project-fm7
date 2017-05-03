@@ -103,6 +103,9 @@ void OSD::set_features_machine(void)
 #ifdef _FP200
 	add_feature(_T("_FP200"), 1);
 #endif
+#ifdef _M5
+	add_feature(_T("_M5"), 1);
+#endif
 #ifdef _MSX1_VARIANTS
 	add_feature(_T("_MSX1_VARIANTS"), 1);
 #endif
@@ -112,8 +115,38 @@ void OSD::set_features_machine(void)
 #ifdef _MSX2P_VARIANTS
 	add_feature(_T("_MSX2P_VARIANTS"), 1);
 #endif
+#ifdef _MZ2000
+	add_feature(_T("_MZ2000"), 1);
+#endif
+#ifdef _MZ2200
+	add_feature(_T("_MZ2200"), 1);
+#endif
+#ifdef _MZ2500
+	add_feature(_T("_MZ2500"), 1);
+#endif
+#ifdef _MZ80B
+	add_feature(_T("_MZ80B"), 1);
+#endif
 #ifdef _QC10
 	add_feature(_T("_QC10"), 1);
+#endif
+#ifdef _SMC70
+	add_feature(_T("_SMC70"), 1);
+#endif
+#ifdef _SMC777
+	add_feature(_T("_SMC777"), 1);
+#endif
+#ifdef _X1
+	add_feature(_T("_X1"), 1);
+#endif
+#ifdef _X1TWIN
+	add_feature(_T("_X1TWIN"), 1);
+#endif
+#ifdef _X1TURBO
+	add_feature(_T("_X1TURBO"), 1);
+#endif
+#ifdef _X1TURBOZ
+	add_feature(_T("_X1TURBOZ"), 1);
 #endif
 }
 
@@ -188,6 +221,9 @@ void OSD::set_features_cpu(void)
 
 void OSD::set_features_vm(void)
 {
+#ifdef MAX_DRIVE
+	add_feature(_T("MAX_DRIVE"), (int)MAX_DRIVE);
+#endif
 #ifdef HD46505_CHAR_CLOCK
 	add_feature(_T("HD46505_CHAR_CLOCK"), (float)HD46505_CHAR_CLOCK);
 #endif

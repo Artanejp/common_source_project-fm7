@@ -43,7 +43,7 @@
 #define EVENT_MULTI2		5
 #define EVENT_LOST		6
 
-#define DRIVE_MASK		(MAX_DRIVE - 1)
+//#define DRIVE_MASK		(MAX_DRIVE - 1)
 
 #define DELAY_TIME		(disk[drvreg]->drive_type == DRIVE_TYPE_2HD ? 15000 : 30000)
 
@@ -83,12 +83,14 @@ void MB8877::register_drq_event(int bytes)
 	if(usec < 4) {
 		usec = 4;
 	}
-#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-	if((disk[drvreg]->is_special_disk == SPECIAL_DISK_FM7_GAMBLER) ||
-	   (disk[drvreg]->is_special_disk == SPECIAL_DISK_FM77AV_PSYOBLADE)) {
-		usec = 4;
+//#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+	if(type_fm7) {
+		if((disk[drvreg]->is_special_disk == SPECIAL_DISK_FM7_GAMBLER) ||
+		   (disk[drvreg]->is_special_disk == SPECIAL_DISK_FM77AV_PSYOBLADE)) {
+			usec = 4;
+		}
 	}
-#endif
+//#endif
 	cancel_my_event(EVENT_DRQ);
 	register_event(this, (EVENT_DRQ << 8) | (cmdtype & 0xff), usec, false, &register_id[EVENT_DRQ]);
 }
@@ -103,9 +105,51 @@ void MB8877::initialize()
 {
 	DEVICE::initialize();
 	// initialize d88 handler
-	for(int i = 0; i < MAX_DRIVE; i++) {
+	_max_drive = osd->get_feature_int_value(_T("MAX_DRIVE"));
+	_drive_mask = _max_drive - 1;
+	for(int i = 0; i < _max_drive; i++) {
 		disk[i] = new DISK(emu);
 		disk[i]->set_device_name(_T("%s/Disk #%d"), this_device_name, i + 1);
+	}
+	
+	if(osd->check_feature(_T("MB8877_NO_BUSY_AFTER_SEEK"))) {
+		mb8877_no_busy_after_seek = true;
+	}
+	if(osd->check_feature(_T("_FDC_DEBUG_LOG"))) {
+		fdc_debug_log = true;
+	}
+	if(osd->check_feature(_T("HAS_MB8866"))) {
+		type_mb8866 = true;
+		invert_registers = true;
+		set_device_name(_T("MB8866 FDC"));
+	}
+	if(osd->check_feature(_T("HAS_MB8876"))) {
+		invert_registers = true;
+		set_device_name(_T("MB8876 FDC"));
+	} else if(osd->check_feature(_T("HAS_MB89311"))) {
+		type_mb89311 = true;
+		set_device_name(_T("MB89311 FDC"));
+	} else {
+		set_device_name(_T("MB8877 FDC"));
+	}		
+	if(osd->check_feature(_T("_X1")) || osd->check_feature(_T("_X1TWIN")) ||
+		osd->check_feature(_T("_X1TURBO")) || osd->check_feature(_T("_X1TURBOZ"))) {
+		type_x1 = true;
+	}
+	if(osd->check_feature(_T("_FM7")) || osd->check_feature(_T("_FM8")) ||
+		osd->check_feature(_T("_FM77_VARIANTS")) || osd->check_feature(_T("_FM77AV_VARIANTS"))) {
+		type_fm7 = true;
+		if(osd->check_feature(_T("_FM77AV40")) || osd->check_feature(_T("_FM77AV40EX")) ||
+		   osd->check_feature(_T("_FM77AV40SX")) ||
+		   osd->check_feature(_T("_FM77AV20")) || osd->check_feature(_T("_FM77AV20EX"))) {
+			type_fm77av_2dd = true;
+		}
+	}
+	if(osd->check_feature(_T("_FMR50"))) {
+		type_fmr50 = true;
+	}
+	if(osd->check_feature(_T("_FMR60"))) {
+		type_fmr60 = true;
 	}
 	
 	// initialize noise
@@ -143,7 +187,7 @@ void MB8877::initialize()
 void MB8877::release()
 {
 	// release d88 handler
-	for(int i = 0; i < MAX_DRIVE; i++) {
+	for(int i = 0; i < _max_drive; i++) {
 		if(disk[i]) {
 			disk[i]->close();
 			delete disk[i];
@@ -153,7 +197,7 @@ void MB8877::release()
 
 void MB8877::reset()
 {
-	for(int i = 0; i < MAX_DRIVE; i++) {
+	for(int i = 0; i < _max_drive; i++) {
 		fdc[i].track = 0;
 		fdc[i].index = 0;
 		fdc[i].access = false;
@@ -164,9 +208,13 @@ void MB8877::reset()
 	now_search = now_seek = drive_sel = false;
 	no_command = 0;
 	
-#ifdef HAS_MB89311
-	extended_mode = true;
-#endif
+//#ifdef HAS_MB89311
+	if(type_mb89311) {
+		extended_mode = true;
+	} else {
+		extended_mode = false;
+	}
+//#endif
 }
 
 void MB8877::write_io8(uint32_t addr, uint32_t data)
@@ -177,21 +225,27 @@ void MB8877::write_io8(uint32_t addr, uint32_t data)
 	case 0:
 		// command reg
 		cmdreg_tmp = cmdreg;
-#if defined(HAS_MB8866) || defined(HAS_MB8876)
-		cmdreg = (~data) & 0xff;
-#else
-		cmdreg = data;
-#endif
+//#if defined(HAS_MB8866) || defined(HAS_MB8876)
+		if(invert_registers) {
+			cmdreg = (~data) & 0xff;
+		} else {
+//#else
+			cmdreg = data;
+		}
+//#endif
 		process_cmd();
 		no_command = 0;
 		break;
 	case 1:
 		// track reg
-#if defined(HAS_MB8866) || defined(HAS_MB8876)
-		trkreg = (~data) & 0xff;
-#else
-		trkreg = data;
-#endif
+//#if defined(HAS_MB8866) || defined(HAS_MB8876)
+		if(invert_registers) {
+			trkreg = (~data) & 0xff;
+		} else {
+//#else
+			trkreg = data;
+		}
+//#endif
 		if((status & FDC_ST_BUSY) && (fdc[drvreg].index == 0)) {
 			// track reg is written after command starts
 			if(cmdtype == FDC_CMD_RD_SEC || cmdtype == FDC_CMD_RD_MSEC || cmdtype == FDC_CMD_WR_SEC || cmdtype == FDC_CMD_WR_MSEC) {
@@ -201,11 +255,14 @@ void MB8877::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 2:
 		// sector reg
-#if defined(HAS_MB8866) || defined(HAS_MB8876)
-		secreg = (~data) & 0xff;
-#else
-		secreg = data;
-#endif
+//#if defined(HAS_MB8866) || defined(HAS_MB8876)
+		if(invert_registers) {
+			secreg = (~data) & 0xff;
+		} else {
+//#else
+			secreg = data;
+		}
+//#endif
 		if((status & FDC_ST_BUSY) && (fdc[drvreg].index == 0)) {
 			// sector reg is written after command starts
 			if(cmdtype == FDC_CMD_RD_SEC || cmdtype == FDC_CMD_RD_MSEC || cmdtype == FDC_CMD_WR_SEC || cmdtype == FDC_CMD_WR_MSEC) {
@@ -215,15 +272,22 @@ void MB8877::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 3:
 		// data reg
-#if defined(HAS_MB8866) || defined(HAS_MB8876)
-		datareg = (~data) & 0xff;
-#else
-		datareg = data;
-#endif
+//#if defined(HAS_MB8866) || defined(HAS_MB8876)
+		if(invert_registers) {
+			datareg = (~data) & 0xff;
+		} else {
+//#else
+			datareg = data;
+		}
+//#endif
 		ready = ((status & FDC_ST_DRQ) && !now_search);
-#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-		if(disk[drvreg]->is_special_disk != SPECIAL_DISK_FM7_RIGLAS)
-#endif
+//#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+		if(type_fm7) {
+			if(disk[drvreg]->is_special_disk != SPECIAL_DISK_FM7_RIGLAS) {
+				if(!motor_on) ready = false;
+			}
+		} else 
+//#endif
 		{
 			if(!motor_on) ready = false;
 		}
@@ -250,17 +314,17 @@ void MB8877::write_io8(uint32_t addr, uint32_t data)
 				if((fdc[drvreg].index + 1) >= disk[drvreg]->sector_size.sd) {
 					if(cmdtype == FDC_CMD_WR_SEC) {
 						// single sector
-#ifdef _FDC_DEBUG_LOG
-						this->out_debug_log(_T("FDC\tEND OF SECTOR\n"));
-#endif
+//#ifdef _FDC_DEBUG_LOG
+						if(fdc_debug_log) this->out_debug_log(_T("FDC\tEND OF SECTOR\n"));
+//#endif
 						status &= ~FDC_ST_BUSY;
 						cmdtype = 0;
 						set_irq(true);
 					} else {
 						// multisector
-#ifdef _FDC_DEBUG_LOG
-						this->out_debug_log(_T("FDC\tEND OF SECTOR (SEARCH NEXT)\n"));
-#endif
+//#ifdef _FDC_DEBUG_LOG
+						if(fdc_debug_log) this->out_debug_log(_T("FDC\tEND OF SECTOR (SEARCH NEXT)\n"));
+//#endif
 						// 2HD: 360rpm, 10410bytes/track -> 0.06246bytes/us
 						register_my_event(EVENT_MULTI1, 30); // 0.06246bytes/us * 30us = 1.8738bytes < GAP3
 						register_my_event(EVENT_MULTI2, 60); // 0.06246bytes/us * 60us = 3.7476bytes < GAP3
@@ -389,9 +453,13 @@ uint32_t MB8877::read_io8(uint32_t addr)
 		} else {
 			// disk not inserted, motor stop
 			not_ready = !disk[drvreg]->inserted;
-#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-			if(disk[drvreg]->is_special_disk != SPECIAL_DISK_FM7_RIGLAS)
-#endif
+//#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+			if(type_fm7){
+				if(disk[drvreg]->is_special_disk != SPECIAL_DISK_FM7_RIGLAS) {
+					if(!motor_on) not_ready = true;
+				}
+			} else
+//#endif
 			{
 				if(!motor_on) not_ready = true;
 			}
@@ -429,14 +497,20 @@ uint32_t MB8877::read_io8(uint32_t addr)
 			val = status;
 			if(cmdtype == FDC_CMD_TYPE1 && !now_seek) {
 				status &= ~FDC_ST_BUSY;
-#ifdef MB8877_NO_BUSY_AFTER_SEEK
-	#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-				if(disk[0]->is_special_disk != SPECIAL_DISK_FM7_XANADU2_D)
-	#endif
-				{
-					val &= ~FDC_ST_BUSY;
+//#ifdef MB8877_NO_BUSY_AFTER_SEEK
+				if(mb8877_no_busy_after_seek) {
+					//#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+					if(type_fm7) {
+						if(disk[0]->is_special_disk != SPECIAL_DISK_FM7_XANADU2_D) {
+							val &= ~FDC_ST_BUSY;
+						}
+					} else
+						//#endif
+					{
+						val &= ~FDC_ST_BUSY;
+					}
 				}
-#endif
+//#endif
 			}
 		}
 		if(cmdtype == 0 && !(status & FDC_ST_NOTREADY)) {
@@ -454,34 +528,47 @@ uint32_t MB8877::read_io8(uint32_t addr)
 		if(!(status & FDC_ST_BUSY)) {
 			set_irq(false);
 		}
-#ifdef _FDC_DEBUG_LOG
-		this->out_debug_log(_T("FDC\tSTATUS=%2x\n"), val);
-#endif
-#if defined(HAS_MB8866) || defined(HAS_MB8876)
-		return (~val) & 0xff;
-#else
-		return val;
-#endif
+//#ifdef _FDC_DEBUG_LOG
+		if(fdc_debug_log) this->out_debug_log(_T("FDC\tSTATUS=%2x\n"), val);
+//#endif
+//#if defined(HAS_MB8866) || defined(HAS_MB8876)
+			if(invert_registers) {
+				return (~val) & 0xff;
+//#else
+			} else {
+				return val;
+			}
+//#endif
 	case 1:
 		// track reg
-#if defined(HAS_MB8866) || defined(HAS_MB8876)
-		return (~trkreg) & 0xff;
-#else
-		return trkreg;
-#endif
+//#if defined(HAS_MB8866) || defined(HAS_MB8876)
+			if(invert_registers) {
+				return (~trkreg) & 0xff;
+			} else {
+//#else
+				return trkreg;
+			}
+//#endif
 	case 2:
 		// sector reg
-#if defined(HAS_MB8866) || defined(HAS_MB8876)
-		return (~secreg) & 0xff;
-#else
-		return secreg;
-#endif
+//#if defined(HAS_MB8866) || defined(HAS_MB8876)
+			if(invert_registers) {
+				return (~secreg) & 0xff;
+			} else {
+//#else
+				return secreg;
+			}
+//#endif
 	case 3:
 		// data reg
 		ready = ((status & FDC_ST_DRQ) && !now_search);
-#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-		if(disk[drvreg]->is_special_disk != SPECIAL_DISK_FM7_RIGLAS)
-#endif
+//#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+		if(type_fm7) {
+			if(disk[drvreg]->is_special_disk != SPECIAL_DISK_FM7_RIGLAS) {
+				if(!motor_on) ready = false;
+			}
+		} else
+//#endif
 		{
 			if(!motor_on) ready = false;
 		}
@@ -497,26 +584,26 @@ uint32_t MB8877::read_io8(uint32_t addr)
 
 					if(disk[drvreg]->data_crc_error && !disk[drvreg]->ignore_crc()) {
 						// data crc error
-#ifdef _FDC_DEBUG_LOG
-						this->out_debug_log(_T("FDC\tEND OF SECTOR (DATA CRC ERROR)\n"));
-#endif
+//#ifdef _FDC_DEBUG_LOG
+						if(fdc_debug_log) this->out_debug_log(_T("FDC\tEND OF SECTOR (DATA CRC ERROR)\n"));
+//#endif
 						status |= FDC_ST_CRCERR;
 						status &= ~FDC_ST_BUSY;
 						cmdtype = 0;
 						set_irq(true);
 					} else if(cmdtype == FDC_CMD_RD_SEC) {
 						// single sector
-#ifdef _FDC_DEBUG_LOG
-						this->out_debug_log(_T("FDC\tEND OF SECTOR\n"));
-#endif
+//#ifdef _FDC_DEBUG_LOG
+						if(fdc_debug_log) this->out_debug_log(_T("FDC\tEND OF SECTOR\n"));
+//#endif
 						status &= ~FDC_ST_BUSY;
 						cmdtype = 0;
 						set_irq(true);
 					} else {
 						// multisector
-#ifdef _FDC_DEBUG_LOG
-						this->out_debug_log(_T("FDC\tEND OF SECTOR (SEARCH NEXT)\n"));
-#endif
+//#ifdef _FDC_DEBUG_LOG
+						if(fdc_debug_log) this->out_debug_log(_T("FDC\tEND OF SECTOR (SEARCH NEXT)\n"));
+//#endif
 						register_my_event(EVENT_MULTI1, 30);
 						register_my_event(EVENT_MULTI2, 60);
 					}
@@ -538,9 +625,9 @@ uint32_t MB8877::read_io8(uint32_t addr)
 					status &= ~FDC_ST_BUSY;
 					cmdtype = 0;
 					set_irq(true);
-#ifdef _FDC_DEBUG_LOG
-					this->out_debug_log(_T("FDC\tEND OF ID FIELD\n"));
-#endif
+//#ifdef _FDC_DEBUG_LOG
+					if(fdc_debug_log) this->out_debug_log(_T("FDC\tEND OF ID FIELD\n"));
+//#endif
 				} else {
 					register_drq_event(1);
 				}
@@ -552,9 +639,9 @@ uint32_t MB8877::read_io8(uint32_t addr)
 					//fdc[drvreg].index++;
 				}
 				if((fdc[drvreg].index + 1) >= disk[drvreg]->get_track_size()) {
-#ifdef _FDC_DEBUG_LOG
-					this->out_debug_log(_T("FDC\tEND OF TRACK\n"));
-#endif
+//#ifdef _FDC_DEBUG_LOG
+					if(fdc_debug_log) this->out_debug_log(_T("FDC\tEND OF TRACK\n"));
+///#endif
 					status &= ~FDC_ST_BUSY;
 					status |= FDC_ST_LOSTDATA;
 					cmdtype = 0;
@@ -570,14 +657,17 @@ uint32_t MB8877::read_io8(uint32_t addr)
 				fdc[drvreg].access = true;
 			}
 		}
-#ifdef _FDC_DEBUG_LOG
-		this->out_debug_log(_T("FDC\tDATA=%2x\n"), datareg);
-#endif
-#if defined(HAS_MB8866) || defined(HAS_MB8876)
-		return (~datareg) & 0xff;
-#else
-		return datareg;
-#endif
+//#ifdef _FDC_DEBUG_LOG
+		if(fdc_debug_log) this->out_debug_log(_T("FDC\tDATA=%2x\n"), datareg);
+//#endif
+//#if defined(HAS_MB8866) || defined(HAS_MB8876)
+		if(invert_registers) {
+			return (~datareg) & 0xff;
+		} else {
+//#else
+			return datareg;
+		}
+//#endif
 	}
 	return 0xff;
 }
@@ -595,7 +685,7 @@ uint32_t MB8877::read_dma_io8(uint32_t addr)
 void MB8877::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MB8877_DRIVEREG) {
-		drvreg = data & DRIVE_MASK;
+		drvreg = data & _drive_mask;
 		drive_sel = true;
 		seekend_clock = get_current_clock();
 	} else if(id == SIG_MB8877_SIDEREG) {
@@ -608,7 +698,7 @@ void MB8877::write_signal(int id, uint32_t data, uint32_t mask)
 uint32_t MB8877::read_signal(int ch)
 {
 	if(ch == SIG_MB8877_DRIVEREG) {
-		return drvreg & DRIVE_MASK;
+		return drvreg & _drive_mask;
 	} else if(ch == SIG_MB8877_SIDEREG) {
 		return sidereg & 1;
 	} else if(ch == SIG_MB8877_MOTOR) {
@@ -617,7 +707,7 @@ uint32_t MB8877::read_signal(int ch)
 	
 	// get access status
 	uint32_t stat = 0;
-	for(int i = 0; i < MAX_DRIVE; i++) {
+	for(int i = 0; i < _max_drive; i++) {
 		if(fdc[i].access) {
 			stat |= 1 << i;
 		}
@@ -647,9 +737,9 @@ void MB8877::event_callback(int event_id, int err)
 	
 	switch(event) {
 	case EVENT_SEEK:
-#ifdef _FDC_DEBUG_LOG
+//#ifdef _FDC_DEBUG_LOG
 		//this->out_debug_log(_T("FDC\tSEEK START\n"));
-#endif
+//#endif
 		if(seektrk > fdc[drvreg].track) {
 			fdc[drvreg].track++;
 			if(d_noise_seek != NULL) d_noise_seek->play();
@@ -665,19 +755,21 @@ void MB8877::event_callback(int event_id, int err)
 			break;
 		}
 		seekend_clock = get_current_clock();
-#ifdef HAS_MB89311
-		if(extended_mode) {
-			if((cmdreg & 0xf4) == 0x44) {
-				// read-after-seek
-				cmd_readdata(true);
-				break;
-			} else if((cmdreg & 0xf4) == 0x64) {
-				// write-after-seek
-				cmd_writedata(true);
-				break;
+//#ifdef HAS_MB89311
+		if(type_mb89311) {
+			if(extended_mode) {
+				if((cmdreg & 0xf4) == 0x44) {
+					// read-after-seek
+					cmd_readdata(true);
+					break;
+				} else if((cmdreg & 0xf4) == 0x64) {
+					// write-after-seek
+					cmd_writedata(true);
+					break;
+				}
 			}
 		}
-#endif
+//#endif
 		status_tmp = status;
 		if(cmdreg & 4) {
 			// verify
@@ -695,29 +787,31 @@ void MB8877::event_callback(int event_id, int err)
 		now_seek = false;
 		status = status_tmp;
 		set_irq(true);
-#ifdef _FDC_DEBUG_LOG
+//#ifdef _FDC_DEBUG_LOG
 		//this->out_debug_log(_T("FDC\tSEEK END\n"));
-#endif
+//#endif
 		break;
 	case EVENT_SEARCH:
 		now_search = false;
 		if(status_tmp & FDC_ST_RECNFND) {
-#if defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
-			// for SHARP X1 Batten Tanuki
-			if(disk[drvreg]->is_special_disk == SPECIAL_DISK_X1_BATTEN && drive_sel) {
+//#if defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
+			if(type_x1) {
+				// for SHARP X1 Batten Tanuki
+				if(disk[drvreg]->is_special_disk == SPECIAL_DISK_X1_BATTEN && drive_sel) {
 				status_tmp &= ~FDC_ST_RECNFND;
 			}
-#endif
-#ifdef _FDC_DEBUG_LOG
-			this->out_debug_log(_T("FDC\tSEARCH NG\n"));
-#endif
+			}
+//#endif
+//#ifdef _FDC_DEBUG_LOG
+				if(fdc_debug_log) this->out_debug_log(_T("FDC\tSEARCH NG\n"));
+//#endif
 			status = status_tmp & ~(FDC_ST_BUSY | FDC_ST_DRQ);
 			cmdtype = 0;
 			set_irq(true);
 		} else if(status_tmp & FDC_ST_WRITEFAULT) {
-#ifdef _FDC_DEBUG_LOG
-			this->out_debug_log(_T("FDC\tWRITE PROTECTED\n"));
-#endif
+//#ifdef _FDC_DEBUG_LOG
+				if(fdc_debug_log) this->out_debug_log(_T("FDC\tWRITE PROTECTED\n"));
+//#endif
 			status = status_tmp & ~(FDC_ST_BUSY | FDC_ST_DRQ);
 			cmdtype = 0;
 			set_irq(true);
@@ -734,9 +828,9 @@ void MB8877::event_callback(int event_id, int err)
 			fdc[drvreg].prev_clock = prev_drq_clock = get_current_clock();
 			set_drq(true);
 			drive_sel = false;
-#ifdef _FDC_DEBUG_LOG
-			this->out_debug_log(_T("FDC\tSEARCH OK\n"));
-#endif
+//#ifdef _FDC_DEBUG_LOG
+			if(fdc_debug_log) this->out_debug_log(_T("FDC\tSEARCH OK\n"));
+//#endif
 		}
 		break;
 	case EVENT_DRQ:
@@ -756,9 +850,9 @@ void MB8877::event_callback(int event_id, int err)
 			}
 			fdc[drvreg].prev_clock = prev_drq_clock = get_current_clock();
 			set_drq(true);
-#ifdef _FDC_DEBUG_LOG
+//#ifdef _FDC_DEBUG_LOG
 			//this->out_debug_log(_T("FDC\tDRQ!\n"));
-#endif
+//#endif
 		}
 		break;
 	case EVENT_MULTI1:
@@ -773,9 +867,9 @@ void MB8877::event_callback(int event_id, int err)
 		break;
 	case EVENT_LOST:
 		if(status & FDC_ST_BUSY) {
-#ifdef _FDC_DEBUG_LOG
-			this->out_debug_log(_T("FDC\tDATA LOST\n"));
-#endif
+//#ifdef _FDC_DEBUG_LOG
+				if(fdc_debug_log) this->out_debug_log(_T("FDC\tDATA LOST\n"));
+//#endif
 			if(cmdtype == FDC_CMD_WR_SEC || cmdtype == FDC_CMD_WR_MSEC || cmdtype == FDC_CMD_WR_TRK) {
 				if(fdc[drvreg].index == 0) {
 					status &= ~FDC_ST_BUSY;
@@ -804,89 +898,91 @@ void MB8877::process_cmd()
 	set_irq(false);
 	set_drq(false);
 	
-#ifdef HAS_MB89311
+//#ifdef HAS_MB89311
 	// MB89311 mode commands
-	if(cmdreg == 0xfc) {
-		// delay (may be only in extended mode)
-		#ifdef _FDC_DEBUG_LOG
-			this->out_debug_log(_T("FDC\tCMD=%2xh (DELAY   ) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
-		#endif
-		cmdtype = status = 0;
-		return;
-	} else if(cmdreg == 0xfd) {
-		// assign parameter
-		#ifdef _FDC_DEBUG_LOG
-			this->out_debug_log(_T("FDC\tCMD=%2xh (ASGN PAR) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
-		#endif
-		cmdtype = status = 0;
-		return;
-	} else if(cmdreg == 0xfe) {
-		// assign mode
-		#ifdef _FDC_DEBUG_LOG
-			this->out_debug_log(_T("FDC\tCMD=%2xh (ASGN MOD) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
-		#endif
-		extended_mode = !extended_mode;
-		cmdtype = status = 0;
-		return;
-	} else if(cmdreg == 0xff) {
-		// reset (may be only in extended mode)
-		#ifdef _FDC_DEBUG_LOG
-			this->out_debug_log(_T("FDC\tCMD=%2xh (RESET   ) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
-		#endif
-		cmd_forceint();
-		extended_mode = true;
-		return;
-	} else if(extended_mode) {
-		// type-1
-		if((cmdreg & 0xeb) == 0x21) {
-			#ifdef _FDC_DEBUG_LOG
-				this->out_debug_log(_T("FDC\tCMD=%2xh (STEP IN ) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
-			#endif
-			cmd_stepin();
+	if(type_mb89311) {
+				if(cmdreg == 0xfc) {
+				// delay (may be only in extended mode)
+//#ifdef _FDC_DEBUG_LOG
+				if(fdc_debug_log) this->out_debug_log(_T("FDC\tCMD=%2xh (DELAY   ) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
+//#endif
+				cmdtype = status = 0;
+				return;
+			} else if(cmdreg == 0xfd) {
+				// assign parameter
+//#ifdef _FDC_DEBUG_LOG
+				if(fdc_debug_log) this->out_debug_log(_T("FDC\tCMD=%2xh (ASGN PAR) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
+//#endif
+				cmdtype = status = 0;
+				return;
+			} else if(cmdreg == 0xfe) {
+				// assign mode
+//#ifdef _FDC_DEBUG_LOG
+				if(fdc_debug_log) this->out_debug_log(_T("FDC\tCMD=%2xh (ASGN MOD) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
+//#endif
+				extended_mode = !extended_mode;
+				cmdtype = status = 0;
+				return;
+			} else if(cmdreg == 0xff) {
+				// reset (may be only in extended mode)
+//#ifdef _FDC_DEBUG_LOG
+				if(fdc_debug_log) this->out_debug_log(_T("FDC\tCMD=%2xh (RESET   ) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
+//#endif
+				cmd_forceint();
+				extended_mode = true;
+				return;
+			} else if(extended_mode) {
+				// type-1
+				if((cmdreg & 0xeb) == 0x21) {
+//#ifdef _FDC_DEBUG_LOG
+				if(fdc_debug_log) this->out_debug_log(_T("FDC\tCMD=%2xh (STEP IN ) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
+//#endif
+				cmd_stepin();
+				return;
+			} else if((cmdreg & 0xeb) == 0x22) {
+//#ifdef _FDC_DEBUG_LOG
+				if(fdc_debug_log) this->out_debug_log(_T("FDC\tCMD=%2xh (STEP OUT) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
+//#endif
+				cmd_stepout();
+				return;
+				// type-2
+			} else if((cmdreg & 0xf4) == 0x44) {
+				// read-after-seek
+//#ifdef _FDC_DEBUG_LOG
+					if(fdc_debug_log) this->out_debug_log(_T("FDC\tCMD=%2xh (RDaftSEK) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
+//#endif
+					cmd_seek();
+					return;
+				} else if((cmdreg & 0xf4) == 0x64) {
+					// write-after-seek
+//#ifdef _FDC_DEBUG_LOG
+				if(fdc_debug_log) this->out_debug_log(_T("FDC\tCMD=%2xh (WRaftSEK) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
+//#endif
+				cmd_seek();
 			return;
-		} else if((cmdreg & 0xeb) == 0x22) {
-			#ifdef _FDC_DEBUG_LOG
-				this->out_debug_log(_T("FDC\tCMD=%2xh (STEP OUT) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
-			#endif
-			cmd_stepout();
-			return;
-		// type-2
-		} else if((cmdreg & 0xf4) == 0x44) {
-			// read-after-seek
-			#ifdef _FDC_DEBUG_LOG
-				this->out_debug_log(_T("FDC\tCMD=%2xh (RDaftSEK) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
-			#endif
-			cmd_seek();
-			return;
-		} else if((cmdreg & 0xf4) == 0x64) {
-			// write-after-seek
-			#ifdef _FDC_DEBUG_LOG
-				this->out_debug_log(_T("FDC\tCMD=%2xh (WRaftSEK) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
-			#endif
-			cmd_seek();
-			return;
-		// type-3
-		} else if((cmdreg & 0xfb) == 0xf1) {
-			// format
-			#ifdef _FDC_DEBUG_LOG
-				this->out_debug_log(_T("FDC\tCMD=%2xh (FORMAT  ) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
-			#endif
-			cmd_format();
-			return;
-		}
+			// type-3
+			} else if((cmdreg & 0xfb) == 0xf1) {
+					// format
+//#ifdef _FDC_DEBUG_LOG
+				if(fdc_debug_log) this->out_debug_log(_T("FDC\tCMD=%2xh (FORMAT  ) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
+//#endif
+				cmd_format();
+				return;
+				}
+				}
 	}
-#endif
+//#endif
 	
 	// MB8877 mode commands
-#ifdef _FDC_DEBUG_LOG
+//#ifdef _FDC_DEBUG_LOG
 	static const _TCHAR *cmdstr[0x10] = {
 		_T("RESTORE "),	_T("SEEK    "),	_T("STEP    "),	_T("STEP    "),
 		_T("STEP IN "),	_T("STEP IN "),	_T("STEP OUT"),	_T("STEP OUT"),
 		_T("RD DATA "),	_T("RD DATA "),	_T("RD DATA "),	_T("WR DATA "),
 		_T("RD ADDR "),	_T("FORCEINT"),	_T("RD TRACK"),	_T("WR TRACK")
 	};
-	this->out_debug_log(_T("FDC\tCMD=%2xh (%s) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, cmdstr[cmdreg >> 4], datareg, drvreg, trkreg, sidereg, secreg);
-#endif
+	if(fdc_debug_log) this->out_debug_log(_T("FDC\tCMD=%2xh (%s) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, cmdstr[cmdreg >> 4], datareg, drvreg, trkreg, sidereg, secreg);
+//#endif
 	
 	switch(cmdreg & 0xf8) {
 	// type-1
@@ -969,15 +1065,25 @@ void MB8877::cmd_seek()
 	
 //	seektrk = (uint8_t)(fdc[drvreg].track + datareg - trkreg);
 	seektrk = datareg;
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV20) || defined(_FM77AV20EX)
-	if(disk[drvreg]->drive_type != DRIVE_TYPE_2D) {
-#else
-	if(disk[drvreg]->media_type != MEDIA_TYPE_2D){
-#endif
+//#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV20) || defined(_FM77AV20EX)
+	if(type_fm77av_2dd) {
+		if(disk[drvreg]->drive_type != DRIVE_TYPE_2D) {
+			seektrk = (seektrk > 83) ? 83 : (seektrk < 0) ? 0 : seektrk;
+		} else {
+			seektrk = (seektrk > 41) ? 41 : (seektrk < 0) ? 0 : seektrk;
+		}
+	} else 	if(disk[drvreg]->media_type != MEDIA_TYPE_2D){
 		seektrk = (seektrk > 83) ? 83 : (seektrk < 0) ? 0 : seektrk;
 	} else {
 		seektrk = (seektrk > 41) ? 41 : (seektrk < 0) ? 0 : seektrk;
-	}
+	}		
+//#else
+//	if(disk[drvreg]->media_type != MEDIA_TYPE_2D){
+//#endif
+//		seektrk = (seektrk > 83) ? 83 : (seektrk < 0) ? 0 : seektrk;
+//	} else {
+//		seektrk = (seektrk > 41) ? 41 : (seektrk < 0) ? 0 : seektrk;
+//	}
 //	seekvct = !(datareg > trkreg);
 	seekvct = !(seektrk > fdc[drvreg].track);
 	
@@ -1008,15 +1114,26 @@ void MB8877::cmd_stepin()
 	status = FDC_ST_HEADENG | FDC_ST_BUSY;
 	
 	seektrk = fdc[drvreg].track + 1;
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV20) || defined(_FM77AV20EX)
-	if(disk[drvreg]->drive_type != DRIVE_TYPE_2D) {
-#else
-	if(disk[drvreg]->media_type != MEDIA_TYPE_2D){
-#endif
+//#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV20) || defined(_FM77AV20EX)
+//	if(disk[drvreg]->drive_type != DRIVE_TYPE_2D) {
+//#else
+//	if(disk[drvreg]->media_type != MEDIA_TYPE_2D){
+//#endif
+//		seektrk = (seektrk > 83) ? 83 : (seektrk < 0) ? 0 : seektrk;
+//	} else {
+//		seektrk = (seektrk > 41) ? 41 : (seektrk < 0) ? 0 : seektrk;
+//	}
+	if(type_fm77av_2dd) {
+		if(disk[drvreg]->drive_type != DRIVE_TYPE_2D) {
+			seektrk = (seektrk > 83) ? 83 : (seektrk < 0) ? 0 : seektrk;
+		} else {
+			seektrk = (seektrk > 41) ? 41 : (seektrk < 0) ? 0 : seektrk;
+		}
+	} else 	if(disk[drvreg]->media_type != MEDIA_TYPE_2D){
 		seektrk = (seektrk > 83) ? 83 : (seektrk < 0) ? 0 : seektrk;
 	} else {
 		seektrk = (seektrk > 41) ? 41 : (seektrk < 0) ? 0 : seektrk;
-	}
+	}		
 	seekvct = false;
 	
 	if(cmdreg & 4) {
@@ -1036,15 +1153,26 @@ void MB8877::cmd_stepout()
 	status = FDC_ST_HEADENG | FDC_ST_BUSY;
 	
 	seektrk = fdc[drvreg].track - 1;
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV20) || defined(_FM77AV20EX)
-	if(disk[drvreg]->drive_type != DRIVE_TYPE_2D) {
-#else
-	if(disk[drvreg]->media_type != MEDIA_TYPE_2D){
-#endif
+	if(type_fm77av_2dd) {
+		if(disk[drvreg]->drive_type != DRIVE_TYPE_2D) {
+			seektrk = (seektrk > 83) ? 83 : (seektrk < 0) ? 0 : seektrk;
+		} else {
+			seektrk = (seektrk > 41) ? 41 : (seektrk < 0) ? 0 : seektrk;
+		}
+	} else 	if(disk[drvreg]->media_type != MEDIA_TYPE_2D){
 		seektrk = (seektrk > 83) ? 83 : (seektrk < 0) ? 0 : seektrk;
 	} else {
 		seektrk = (seektrk > 41) ? 41 : (seektrk < 0) ? 0 : seektrk;
-	}
+	}		
+//#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV20) || defined(_FM77AV20EX)
+//	if(disk[drvreg]->drive_type != DRIVE_TYPE_2D) {
+//#else
+//	if(disk[drvreg]->media_type != MEDIA_TYPE_2D){
+//#endif
+//		seektrk = (seektrk > 83) ? 83 : (seektrk < 0) ? 0 : seektrk;
+//	} else {
+//		seektrk = (seektrk > 41) ? 41 : (seektrk < 0) ? 0 : seektrk;
+//	}
 	seekvct = true;
 	
 	if(cmdreg & 4) {
@@ -1166,25 +1294,27 @@ void MB8877::cmd_writetrack()
 	cancel_my_event(EVENT_LOST);
 }
 
-#ifdef HAS_MB89311
+//#ifdef HAS_MB89311
 void MB8877::cmd_format()
 {
-	// type-3 format (FIXME: need to implement)
-	cmdtype = FDC_CMD_WR_TRK;
-	status = FDC_ST_BUSY;
-	status_tmp = 0;
-	
-	fdc[drvreg].index = 0;
-	fdc[drvreg].id_written = false;
-	now_search = true;
-	
-	status_tmp = FDC_ST_WRITEFAULT;
-	double time = (cmdreg & 4) ? DELAY_TIME : 1;
-	
-	register_my_event(EVENT_SEARCH, time);
-	cancel_my_event(EVENT_LOST);
+	if(type_mb89311) {
+		// type-3 format (FIXME: need to implement)
+		cmdtype = FDC_CMD_WR_TRK;
+		status = FDC_ST_BUSY;
+		status_tmp = 0;
+		
+		fdc[drvreg].index = 0;
+		fdc[drvreg].id_written = false;
+		now_search = true;
+		
+		status_tmp = FDC_ST_WRITEFAULT;
+		double time = (cmdreg & 4) ? DELAY_TIME : 1;
+		
+		register_my_event(EVENT_SEARCH, time);
+		cancel_my_event(EVENT_LOST);
+	}
 }
-#endif
+//#endif
 
 void MB8877::cmd_forceint()
 {
@@ -1218,13 +1348,13 @@ void MB8877::cmd_forceint()
 	}
 	now_search = now_seek = sector_changed = false;
 	
-#ifdef HAS_MB89311
-	if(cmdreg == 0xff) {
+//#ifdef HAS_MB89311
+	if((cmdreg == 0xff) && (type_mb89311)) {
 		// reset command
 		cmdtype = FDC_CMD_TYPE1;
 		status = FDC_ST_HEADENG;
 	} else {
-#endif
+//#endif
 		if(cmdtype == 0 || !(status & FDC_ST_BUSY)) {
 			cmdtype = FDC_CMD_TYPE1;
 			status = FDC_ST_HEADENG;
@@ -1235,9 +1365,9 @@ void MB8877::cmd_forceint()
 		if(cmdreg & 0x0f) {
 			set_irq(true);
 		}
-#ifdef HAS_MB89311
+//#ifdef HAS_MB89311
 	}
-#endif
+//#endif
 	
 	cancel_my_event(EVENT_SEEK);
 	cancel_my_event(EVENT_SEEKEND);
@@ -1268,15 +1398,17 @@ uint8_t MB8877::search_track()
 {
 	// get track
 	int track = fdc[drvreg].track;
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV20) || defined(_FM77AV20EX)
-	if(disk[drvreg]->media_type == MEDIA_TYPE_2D) {
-		if((disk[drvreg]->drive_type == DRIVE_TYPE_2DD) ||
-		   (disk[drvreg]->drive_type == DRIVE_TYPE_2HD) ||
-		   (disk[drvreg]->drive_type == DRIVE_TYPE_144)) {
-			track >>= 1;
+//#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV20) || defined(_FM77AV20EX)
+	if(type_fm77av_2dd) {
+		if(disk[drvreg]->media_type == MEDIA_TYPE_2D) {
+			if((disk[drvreg]->drive_type == DRIVE_TYPE_2DD) ||
+			   (disk[drvreg]->drive_type == DRIVE_TYPE_2HD) ||
+			   (disk[drvreg]->drive_type == DRIVE_TYPE_144)) {
+				track >>= 1;
+			}
 		}
 	}
-#endif
+//#endif
 	if(!disk[drvreg]->get_track(track, sidereg)){
 		return FDC_ST_SEEKERR;
 	}
@@ -1321,15 +1453,17 @@ uint8_t MB8877::search_sector()
 	
 	// get track
 	int track = fdc[drvreg].track;
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV20) || defined(_FM77AV20EX)
-	if(disk[drvreg]->media_type == MEDIA_TYPE_2D) {
-		if((disk[drvreg]->drive_type == DRIVE_TYPE_2DD) ||
-		   (disk[drvreg]->drive_type == DRIVE_TYPE_2HD) ||
-		   (disk[drvreg]->drive_type == DRIVE_TYPE_144)) {
-			track >>= 1;
+//#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV20) || defined(_FM77AV20EX)
+	if(type_fm77av_2dd) {
+		if(disk[drvreg]->media_type == MEDIA_TYPE_2D) {
+			if((disk[drvreg]->drive_type == DRIVE_TYPE_2DD) ||
+			   (disk[drvreg]->drive_type == DRIVE_TYPE_2HD) ||
+			   (disk[drvreg]->drive_type == DRIVE_TYPE_144)) {
+				track >>= 1;
+			}
 		}
 	}
-#endif
+//#endif
 	if(!disk[drvreg]->get_track(track, sidereg)) {
 		return FDC_ST_RECNFND;
 	}
@@ -1361,11 +1495,13 @@ uint8_t MB8877::search_sector()
 		if(disk[drvreg]->id[0] != trkreg) {
 			continue;
 		}
-#if !defined(HAS_MB8866)
-		if((cmdreg & 2) && (disk[drvreg]->id[1] & 1) != ((cmdreg >> 3) & 1)) {
-			continue;
+//#if !defined(HAS_MB8866)
+		if(!type_mb8866) {
+			if((cmdreg & 2) && (disk[drvreg]->id[1] & 1) != ((cmdreg >> 3) & 1)) {
+				continue;
+			}
 		}
-#endif
+//#endif
 		if(disk[drvreg]->id[2] != secreg) {
 			continue;
 		}
@@ -1387,13 +1523,13 @@ uint8_t MB8877::search_sector()
 		}
 		fdc[drvreg].next_am1_position = disk[drvreg]->am1_position[index];
 		fdc[drvreg].index = 0;
-#ifdef _FDC_DEBUG_LOG
-		this->out_debug_log(_T("FDC\tSECTOR FOUND SIZE=$%04x ID=%02x %02x %02x %02x CRC=%02x %02x CRC_ERROR=%d\n"),
+//#ifdef _FDC_DEBUG_LOG
+	    if(fdc_debug_log) this->out_debug_log(_T("FDC\tSECTOR FOUND SIZE=$%04x ID=%02x %02x %02x %02x CRC=%02x %02x CRC_ERROR=%d\n"),
 			disk[drvreg]->sector_size.sd,
 			disk[drvreg]->id[0], disk[drvreg]->id[1], disk[drvreg]->id[2], disk[drvreg]->id[3],
 			disk[drvreg]->id[4], disk[drvreg]->id[5],
 			disk[drvreg]->data_crc_error ? 1 : 0);
-#endif
+//#endif
 		return (disk[drvreg]->deleted ? FDC_ST_RECTYPE : 0);
 	}
 	
@@ -1406,15 +1542,17 @@ uint8_t MB8877::search_addr()
 {
 	// get track
 	int track = fdc[drvreg].track;
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV20) || defined(_FM77AV20EX)
-	if(disk[drvreg]->media_type == MEDIA_TYPE_2D) {
-		if((disk[drvreg]->drive_type == DRIVE_TYPE_2DD) ||
-		   (disk[drvreg]->drive_type == DRIVE_TYPE_2HD) ||
-		   (disk[drvreg]->drive_type == DRIVE_TYPE_144)) {
-			track >>= 1;
+//#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV20) || defined(_FM77AV20EX)
+	if(type_fm77av_2dd) {
+		if(disk[drvreg]->media_type == MEDIA_TYPE_2D) {
+			if((disk[drvreg]->drive_type == DRIVE_TYPE_2DD) ||
+			   (disk[drvreg]->drive_type == DRIVE_TYPE_2HD) ||
+			   (disk[drvreg]->drive_type == DRIVE_TYPE_144)) {
+				track >>= 1;
+			}
 		}
 	}
-#endif
+//#endif
 	if(!disk[drvreg]->get_track(track, sidereg)) {
 		return FDC_ST_RECNFND;
 	}
@@ -1555,14 +1693,14 @@ void MB8877::set_drq(bool val)
 
 void MB8877::open_disk(int drv, const _TCHAR* file_path, int bank)
 {
-	if(drv < MAX_DRIVE) {
+	if(drv < _max_drive) {
 		disk[drv]->open(file_path, bank);
 	}
 }
 
 void MB8877::close_disk(int drv)
 {
-	if(drv < MAX_DRIVE) {
+	if(drv < _max_drive) {
 		disk[drv]->close();
 		cmdtype = 0;
 		update_head_flag(drvreg, false);
@@ -1571,7 +1709,7 @@ void MB8877::close_disk(int drv)
 
 bool MB8877::is_disk_inserted(int drv)
 {
-	if(drv < MAX_DRIVE) {
+	if(drv < _max_drive) {
 		return disk[drv]->inserted;
 	}
 	return false;
@@ -1579,14 +1717,14 @@ bool MB8877::is_disk_inserted(int drv)
 
 void MB8877::is_disk_protected(int drv, bool value)
 {
-	if(drv < MAX_DRIVE) {
+	if(drv < _max_drive) {
 		disk[drv]->write_protected = value;
 	}
 }
 
 bool MB8877::is_disk_protected(int drv)
 {
-	if(drv < MAX_DRIVE) {
+	if(drv < _max_drive) {
 		return disk[drv]->write_protected;
 	}
 	return false;
@@ -1594,14 +1732,14 @@ bool MB8877::is_disk_protected(int drv)
 
 void MB8877::set_drive_type(int drv, uint8_t type)
 {
-	if(drv < MAX_DRIVE) {
+	if(drv < _max_drive) {
 		disk[drv]->drive_type = type;
 	}
 }
 
 uint8_t MB8877::get_drive_type(int drv)
 {
-	if(drv < MAX_DRIVE) {
+	if(drv < _max_drive) {
 		return disk[drv]->drive_type;
 	}
 	return DRIVE_TYPE_UNK;
@@ -1609,14 +1747,14 @@ uint8_t MB8877::get_drive_type(int drv)
 
 void MB8877::set_drive_rpm(int drv, int rpm)
 {
-	if(drv < MAX_DRIVE) {
+	if(drv < _max_drive) {
 		disk[drv]->drive_rpm = rpm;
 	}
 }
 
 void MB8877::set_drive_mfm(int drv, bool mfm)
 {
-	if(drv < MAX_DRIVE) {
+	if(drv < _max_drive) {
 		disk[drv]->drive_mfm = mfm;
 	}
 }
@@ -1624,11 +1762,13 @@ void MB8877::set_drive_mfm(int drv, bool mfm)
 uint8_t MB8877::fdc_status()
 {
 	// for each virtual machines
-#if defined(_FMR50) || defined(_FMR60)
-	return disk[drvreg]->inserted ? 2 : 0;
-#else
+//#if defined(_FMR50) || defined(_FMR60)
+	if(type_fmr50 || type_fmr60) {
+		return disk[drvreg]->inserted ? 2 : 0;
+	}
+//#else
 	return 0;
-#endif
+//#endif
 }
 
 void MB8877::update_config()
@@ -1652,7 +1792,7 @@ void MB8877::save_state(FILEIO* state_fio)
 	state_fio->FputInt32(this_device_id);
 	
 	state_fio->Fwrite(fdc, sizeof(fdc), 1);
-	for(int i = 0; i < MAX_DRIVE; i++) {
+	for(int i = 0; i < _max_drive; i++) {
 		disk[i]->save_state(state_fio);
 	}
 	state_fio->FputUint8(status);
@@ -1687,7 +1827,7 @@ bool MB8877::load_state(FILEIO* state_fio)
 		return false;
 	}
 	state_fio->Fread(fdc, sizeof(fdc), 1);
-	for(int i = 0; i < MAX_DRIVE; i++) {
+	for(int i = 0; i < _max_drive; i++) {
 		if(!disk[i]->load_state(state_fio)) {
 			return false;
 		}

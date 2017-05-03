@@ -22,7 +22,7 @@ set(VMFILES
   
 		   prnfile.cpp
 		   datarec.cpp
-		   disk.cpp
+#		   disk.cpp
 		   event.cpp
 		   io.cpp
 		   memory.cpp
@@ -32,6 +32,7 @@ set(VMFILES_LIB
 		   beep.cpp
 		   pcm1bit.cpp
 		   z80pio.cpp
+		   disk.cpp
 )
 set(FLAG_USE_Z80 ON)
 

@@ -20,7 +20,7 @@ set(VMFILES
 		   upd765a.cpp
 		   ym2203.cpp
 		   
-		   disk.cpp
+#		   disk.cpp
 		   event.cpp
 		   io.cpp
 		   memory.cpp
@@ -30,6 +30,7 @@ set(VMFILES
 
 set(VMFILES_LIB
 #		   pc6031.cpp
+		   disk.cpp
 )
 set(FLAG_USE_MCS48 ON)
 set(FLAG_USE_Z80 ON)
