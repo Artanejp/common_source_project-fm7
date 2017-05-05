@@ -117,8 +117,8 @@ extern void vram_write(int addr, uint8_t n);
 */
 
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 
@@ -129,8 +129,12 @@ private:
 	outputs_t outputs_irq;
 	
 	uint8_t vram[1024*128];
-	scrntype_t screen[SCREEN_WIDTH*SCREEN_HEIGHT];
+//	scrntype_t screen[SCREEN_WIDTH*SCREEN_HEIGHT];
+	scrntype_t *screen;
 	bool intstat;
+	
+	int _SCREEN_WIDTH;
+	int _SCREEN_HEIGHT;
 	
 	void set_intstat(bool val);
 
@@ -165,6 +169,7 @@ public:
 	
 	// common functions
 	void initialize();
+	void release();
 	void reset();
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);

@@ -11,30 +11,53 @@
 
 #include "tms9918a.h"
 
-#define ADDR_MASK (TMS9918A_VRAM_SIZE - 1)
+//#define ADDR_MASK (TMS9918A_VRAM_SIZE - 1)
 
-static const scrntype_t palette_pc[16] = {
-#if defined(USE_ALPHA_BLENDING_TO_IMPOSE)
-	RGBA_COLOR( 0,   0,   0,  0), 
-#else
+static const scrntype_t palette_pc_noalpha[16] = {
 	RGB_COLOR(  0,   0,   0), 
-#endif
 	                          RGB_COLOR(  0,   0,   0), RGB_COLOR( 33, 200,  66), RGB_COLOR( 94, 220, 120),
 	RGB_COLOR( 84,  85, 237), RGB_COLOR(125, 118, 252), RGB_COLOR(212,  82,  77), RGB_COLOR( 66, 235, 245),
 	RGB_COLOR(252,  85,  84), RGB_COLOR(255, 121, 120), RGB_COLOR(212, 193,  84), RGB_COLOR(230, 206, 128),
 	RGB_COLOR( 33, 176,  59), RGB_COLOR(201,  91, 186), RGB_COLOR(204, 204, 204), RGB_COLOR(255, 255, 255)
 };
 
+static const scrntype_t palette_pc_alpha[16] = {
+	RGBA_COLOR( 0,   0,   0,  0), RGBA_COLOR(  0,   0,   0, 255), RGBA_COLOR( 33, 200,  66, 255), RGBA_COLOR( 94, 220, 120, 255),
+	RGBA_COLOR( 84,  85, 237, 255), RGBA_COLOR(125, 118, 252, 255), RGBA_COLOR(212,  82,  77, 255), RGBA_COLOR( 66, 235, 245, 255),
+	RGBA_COLOR(252,  85,  84, 255), RGBA_COLOR(255, 121, 120, 255), RGBA_COLOR(212, 193,  84, 255), RGBA_COLOR(230, 206, 128, 255),
+	RGBA_COLOR( 33, 176,  59, 255), RGBA_COLOR(201,  91, 186, 255), RGBA_COLOR(204, 204, 204, 255), RGBA_COLOR(255, 255, 255, 255)
+};
+
 void TMS9918A::initialize()
 {
 	DEVICE::initialize();
 	// register event
+	_use_alpha_blending_to_impose = osd->check_feature(_T("USE_ALPHA_BLENDING_TO_IMPOSE"));
+	_tms9918a_super_impose  = osd->check_feature(_T("TMS9918A_SUPER_IMPOSE"));
+	_tms9918a_limit_sprites = osd->check_feature(_T("TMS9918A_LIMIT_SPRITES"));
+	_VRAM_SIZE = osd->get_feature_uint32_value(_T("TMS9918A_VRAM_SIZE"));
+	_SCREEN_WIDTH = osd->get_feature_int_value(_T("SCREEN_WIDTH"));
+	
+	if(_VRAM_SIZE == 0) _VRAM_SIZE = 0x4000;
+	_ADDR_MASK = _VRAM_SIZE - 1; 
+	vram = (uint8_t *)malloc(_VRAM_SIZE * sizeof(uint8_t));
+	
+	if(_use_alpha_blending_to_impose) {
+		palette_pc = palette_pc_alpha;
+	} else {
+		palette_pc = palette_pc_noalpha;
+	}
+	
 	register_vline_event(this);
 }
 
+void TMS9918A::release()
+{
+	if(vram != NULL) free(vram);
+}
 void TMS9918A::reset()
 {
-	memset(vram, 0, sizeof(vram));
+	memset(vram, 0, _VRAM_SIZE * sizeof(uint8_t));
 	memset(regs, 0, sizeof(regs));
 	status_reg = read_ahead = first_byte = 0;
 	vram_addr = 0;
@@ -54,13 +77,13 @@ void TMS9918A::write_io8(uint32_t addr, uint32_t data)
 				case 0:
 					regs[0] = first_byte & 3;
 					if(regs[0] & 2) {
-						color_table = ((regs[3] & 0x80) * 64) & ADDR_MASK;
+						color_table = ((regs[3] & 0x80) * 64) & _ADDR_MASK;
 						color_mask = ((regs[3] & 0x7f) * 8) | 7;
-						pattern_table = ((regs[4] & 4) * 2048) & ADDR_MASK;
+						pattern_table = ((regs[4] & 4) * 2048) & _ADDR_MASK;
 						pattern_mask = ((regs[4] & 3) * 256) | (color_mask & 0xff);
 					} else {
-						color_table = (regs[3] * 64) & ADDR_MASK;
-						pattern_table = (regs[4] * 2048) & ADDR_MASK;
+						color_table = (regs[3] * 64) & _ADDR_MASK;
+						pattern_table = (regs[4] * 2048) & _ADDR_MASK;
 					}
 					break;
 				case 1:
@@ -69,41 +92,41 @@ void TMS9918A::write_io8(uint32_t addr, uint32_t data)
 					break;
 				case 2:
 					regs[2] = first_byte & 0x0f;
-					name_table = (regs[2] * 1024) & ADDR_MASK;
+					name_table = (regs[2] * 1024) & _ADDR_MASK;
 					break;
 				case 3:
 					regs[3] = first_byte;
 					if(regs[0] & 2) {
-						color_table = ((regs[3] & 0x80) * 64) & ADDR_MASK;
+						color_table = ((regs[3] & 0x80) * 64) & _ADDR_MASK;
 						color_mask = ((regs[3] & 0x7f) * 8) | 7;
 					} else {
-						color_table = (regs[3] * 64) & ADDR_MASK;
+						color_table = (regs[3] * 64) & _ADDR_MASK;
 					}
 					pattern_mask = ((regs[4] & 3) * 256) | (color_mask & 0xff);
 					break;
 				case 4:
 					regs[4] = first_byte & 7;
 					if(regs[0] & 2) {
-						pattern_table = ((regs[4] & 4) * 2048) & ADDR_MASK;
+						pattern_table = ((regs[4] & 4) * 2048) & _ADDR_MASK;
 						pattern_mask = ((regs[4] & 3) * 256) | 255;
 					} else {
-						pattern_table = (regs[4] * 2048) & ADDR_MASK;
+						pattern_table = (regs[4] * 2048) & _ADDR_MASK;
 					}
 					break;
 				case 5:
 					regs[5] = first_byte & 0x7f;
-					sprite_attrib = (regs[5] * 128) & ADDR_MASK;
+					sprite_attrib = (regs[5] * 128) & _ADDR_MASK;
 					break;
 				case 6:
 					regs[6] = first_byte & 7;
-					sprite_pattern = (regs[6] * 2048) & ADDR_MASK;
+					sprite_pattern = (regs[6] * 2048) & _ADDR_MASK;
 					break;
 				case 7:
 					regs[7] = first_byte;
 					break;
 				}
 			} else {
-				vram_addr = ((data * 256) | first_byte) & ADDR_MASK;
+				vram_addr = ((data * 256) | first_byte) & _ADDR_MASK;
 				if(!(data & 0x40)) {
 					read_io8(0);	// read ahead
 				}
@@ -116,7 +139,7 @@ void TMS9918A::write_io8(uint32_t addr, uint32_t data)
 	} else {
 		// vram
 		vram[vram_addr] = data;
-		vram_addr = (vram_addr + 1) & ADDR_MASK;
+		vram_addr = (vram_addr + 1) & _ADDR_MASK;
 		read_ahead = data;
 		latch = false;
 	}
@@ -135,35 +158,30 @@ uint32_t TMS9918A::read_io8(uint32_t addr)
 		// vram
 		uint8_t val = read_ahead;
 		read_ahead = vram[vram_addr];
-		vram_addr = (vram_addr + 1) & ADDR_MASK;
+		vram_addr = (vram_addr + 1) & _ADDR_MASK;
 		latch = false;
 		return val;
 	}
 }
 
-#ifdef TMS9918A_SUPER_IMPOSE
+//#ifdef TMS9918A_SUPER_IMPOSE
 void TMS9918A::write_signal(int id, uint32_t data, uint32_t mask)
 {
-	if(id == SIG_TMS9918A_SUPER_IMPOSE) {
-		now_super_impose = ((data & mask) != 0);
+	if(_tms9918a_super_impose) {
+		if(id == SIG_TMS9918A_SUPER_IMPOSE) {
+			now_super_impose = ((data & mask) != 0);
+		}
 	}
 }
-#endif
+//#endif
 
-void TMS9918A::draw_screen()
+inline void TMS9918A::draw_screen_512_impose()
 {
-#ifdef TMS9918A_SUPER_IMPOSE
-	if(now_super_impose) {
-		emu->get_video_buffer();
-	}
-#endif
-	// update screen buffer
-#if SCREEN_WIDTH == 512
 	for(int y = 0, y2 = 0; y < 192; y++, y2 += 2) {
-		scrntype_t* dest0 = emu->get_screen_buffer(y2 + 0);
-		scrntype_t* dest1 = emu->get_screen_buffer(y2 + 1);
+		scrntype_t* dest0 = osd->get_vm_screen_buffer(y2 + 0);
+		scrntype_t* dest1 = osd->get_vm_screen_buffer(y2 + 1);
 		uint8_t* src = screen[y];
-#if defined(TMS9918A_SUPER_IMPOSE) && !defined(USE_ALPHA_BLENDING_TO_IMPOSE)
+//#if defined(TMS9918A_SUPER_IMPOSE) && !defined(USE_ALPHA_BLENDING_TO_IMPOSE)
 		if(now_super_impose) {
 			for(int x = 0, x2 = 0; x < 256; x++, x2 += 2) {
 				uint8_t c = src[x] & 0x0f;
@@ -171,20 +189,35 @@ void TMS9918A::draw_screen()
 					dest0[x2] = dest0[x2 + 1] = dest1[x2] = dest1[x2 + 1] = palette_pc[c];
 				}
 			}
-		} else
-#endif
-		{
+		} else {
 			for(int x = 0, x2 = 0; x < 256; x++, x2 += 2) {
 				dest0[x2] = dest0[x2 + 1] = palette_pc[src[x] & 0x0f];
 			}
 			memcpy(dest1, dest0, 512 * sizeof(scrntype_t));
 		}
 	}
-#else
-	for(int y = 0; y < 192; y++) {
-		scrntype_t* dest = emu->get_screen_buffer(y);
+//#endif
+}
+
+inline void TMS9918A::draw_screen_512_nonimpose()
+{
+	for(int y = 0, y2 = 0; y < 192; y++, y2 += 2) {
+		scrntype_t* dest0 = osd->get_vm_screen_buffer(y2 + 0);
+		scrntype_t* dest1 = osd->get_vm_screen_buffer(y2 + 1);
 		uint8_t* src = screen[y];
-#if defined(TMS9918A_SUPER_IMPOSE) && !defined(USE_ALPHA_BLENDING_TO_IMPOSE)
+		for(int x = 0, x2 = 0; x < 256; x++, x2 += 2) {
+			dest0[x2] = dest0[x2 + 1] = palette_pc[src[x] & 0x0f];
+		}
+		memcpy(dest1, dest0, 512 * sizeof(scrntype_t));
+	}
+}
+
+inline void TMS9918A::draw_screen_256_impose()
+{
+	for(int y = 0; y < 192; y++) {
+		scrntype_t* dest = osd->get_vm_screen_buffer(y);
+		uint8_t* src = screen[y];
+//#if defined(TMS9918A_SUPER_IMPOSE) && !defined(USE_ALPHA_BLENDING_TO_IMPOSE)
 		if(now_super_impose) {
 			for(int x = 0; x < 256; x++) {
 				uint8_t c = src[x] & 0x0f;
@@ -192,13 +225,52 @@ void TMS9918A::draw_screen()
 					dest[x] = palette_pc[c];
 				}
 			}
-		} else
-#endif
+		} else {
+//#endif
+			for(int x = 0; x < 256; x++) {
+				dest[x] = palette_pc[src[x] & 0x0f];
+			}
+		}
+	}
+}
+
+inline void TMS9918A::draw_screen_256_nonimpose()
+{
+	for(int y = 0; y < 192; y++) {
+		scrntype_t* dest = osd->get_vm_screen_buffer(y);
+		uint8_t* src = screen[y];
 		for(int x = 0; x < 256; x++) {
 			dest[x] = palette_pc[src[x] & 0x0f];
 		}
+	}					
+}
+
+//#endif
+
+void TMS9918A::draw_screen()
+{
+//#ifdef TMS9918A_SUPER_IMPOSE
+	if(_tms9918a_super_impose) {
+		if(now_super_impose) {
+			osd->get_video_buffer();
+		}
 	}
-#endif
+//#endif
+	// update screen buffer
+//#if SCREEN_WIDTH == 512
+	if(_SCREEN_WIDTH == 512) {
+		if(_tms9918a_super_impose && !_use_alpha_blending_to_impose) {
+			draw_screen_512_impose();
+		} else {
+			draw_screen_512_nonimpose();
+		}
+	} else {
+		if(_tms9918a_super_impose && !_use_alpha_blending_to_impose) {
+			draw_screen_256_impose();
+		} else {
+			draw_screen_256_nonimpose();
+		}
+	}
 }
 
 void TMS9918A::event_vline(int v, int clock)
@@ -461,9 +533,9 @@ void TMS9918A::draw_sprites()
 							illegal_sprite = p;
 						}
 					}
-#ifdef TMS9918A_LIMIT_SPRITES
-					continue;
-#endif
+//#ifdef TMS9918A_LIMIT_SPRITES
+					if(_tms9918a_limit_sprites) continue;
+//#endif
 				} else {
 					limit[yy]--;
 				}
@@ -502,9 +574,9 @@ void TMS9918A::draw_sprites()
 									illegal_sprite = p;
 								}
 							}
-#ifdef TMS9918A_LIMIT_SPRITES
-							continue;
-#endif
+//#ifdef TMS9918A_LIMIT_SPRITES
+							if(_tms9918a_limit_sprites) continue;
+//#endif
 						} else {
 							limit[yy]--;
 						}
@@ -556,7 +628,7 @@ void TMS9918A::save_state(FILEIO* state_fio)
 	state_fio->FputUint32(STATE_VERSION);
 	state_fio->FputInt32(this_device_id);
 	
-	state_fio->Fwrite(vram, sizeof(vram), 1);
+	state_fio->Fwrite(vram, _VRAM_SIZE * sizeof(uint8_t), 1);
 	state_fio->Fwrite(regs, sizeof(regs), 1);
 	state_fio->FputUint8(status_reg);
 	state_fio->FputUint8(read_ahead);
@@ -571,9 +643,11 @@ void TMS9918A::save_state(FILEIO* state_fio)
 	state_fio->FputUint16(sprite_attrib);
 	state_fio->FputUint16(color_mask);
 	state_fio->FputUint16(pattern_mask);
-#ifdef TMS9918A_SUPER_IMPOSE
-	state_fio->FputBool(now_super_impose);
-#endif
+//#ifdef TMS9918A_SUPER_IMPOSE
+	if(_tms9918a_super_impose) {
+		state_fio->FputBool(now_super_impose);
+	}
+//#endif
 }
 
 bool TMS9918A::load_state(FILEIO* state_fio)
@@ -584,7 +658,7 @@ bool TMS9918A::load_state(FILEIO* state_fio)
 	if(state_fio->FgetInt32() != this_device_id) {
 		return false;
 	}
-	state_fio->Fread(vram, sizeof(vram), 1);
+	state_fio->Fread(vram, _VRAM_SIZE * sizeof(uint8_t), 1);
 	state_fio->Fread(regs, sizeof(regs), 1);
 	status_reg = state_fio->FgetUint8();
 	read_ahead = state_fio->FgetUint8();
@@ -599,9 +673,11 @@ bool TMS9918A::load_state(FILEIO* state_fio)
 	sprite_attrib = state_fio->FgetUint16();
 	color_mask = state_fio->FgetUint16();
 	pattern_mask = state_fio->FgetUint16();
-#ifdef TMS9918A_SUPER_IMPOSE
-	now_super_impose = state_fio->FgetBool();
-#endif
+//#ifdef TMS9918A_SUPER_IMPOSE
+	if(_tms9918a_super_impose) {
+		now_super_impose = state_fio->FgetBool();
+	}
+//#endif
 	return true;
 }
 
