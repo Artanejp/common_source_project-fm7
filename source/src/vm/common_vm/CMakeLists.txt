@@ -50,7 +50,7 @@ set(s_vm_common_vm_srcs
 	../t3444a.cpp
 	../tf20.cpp
 	../tms3631.cpp
-#	../tms9918a.cpp
+	../tms9918a.cpp
 #	../tms9995.cpp
 	../upd16434.cpp
 #	../upd1990a.cpp
@@ -62,7 +62,7 @@ set(s_vm_common_vm_srcs
 #	../upd7801.cpp
 #	../upd7810.cpp
 #	../v9938_base.cpp
-#	../v99x8.cpp
+	../v99x8.cpp
 #	../w3100a.cpp
 	../ym2151.cpp
 #	../ym2203.cpp
