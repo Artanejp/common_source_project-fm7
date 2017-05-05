@@ -355,6 +355,9 @@ void OSD::set_features_vm(void)
 	add_feature(_T("HAS_T3444M"), 1);
 #endif
 
+#ifdef TMS9918A_VRAM_SIZE
+	add_feature(_T("TMS9918A_VRAM_SIZE"), (uint32_t)TMS9918A_VRAM_SIZE);
+#endif
 #ifdef TMS9918A_SUPER_IMPOSE
 	add_feature(_T("TMS9918A_SUPER_IMPOSE"), 1);
 #endif
