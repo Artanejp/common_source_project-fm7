@@ -10,8 +10,8 @@
 #ifndef _PTF20_H_
 #define _PTF20_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 #define SIGNAL_TF20_SIO	0
@@ -22,10 +22,12 @@ class PTF20 : public DEVICE
 {
 private:
 	outputs_t outputs_sio;
-	DISK* disk[MAX_DRIVE];
-	bool access[MAX_DRIVE];
+	DISK* disk[8];
+	bool access[8];
 	uint8_t bufr[256], bufs[256];
 	int buflen, phase;
+
+	int _MAX_DRIVE;
 	
 	bool process_cmd();
 	bool disk_protected(int drv);

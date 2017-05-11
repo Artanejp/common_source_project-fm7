@@ -16,7 +16,6 @@ set(WITH_JOYSTICK ON)
 set(VMFILES
 #		   mb8877.cpp
 		   
-		   ym2203.cpp
 		   prnfile.cpp
 		   datarec.cpp
 #		   disk.cpp
@@ -25,6 +24,7 @@ set(VMFILES
 )
 
 set(VMFILES_LIB
+		   ym2203.cpp
 		   pcm1bit.cpp
 		   disk.cpp
 		   mb8877.cpp

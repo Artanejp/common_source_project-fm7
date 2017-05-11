@@ -65,7 +65,7 @@ set(s_vm_common_vm_srcs
 	../v99x8.cpp
 #	../w3100a.cpp
 	../ym2151.cpp
-#	../ym2203.cpp
+	../ym2203.cpp
 	../ym2413.cpp
 	../z80_base.cpp
 #	../z80ctc.cpp

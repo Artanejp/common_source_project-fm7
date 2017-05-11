@@ -10,11 +10,9 @@ set(WITH_MOUSE ON)
 set(VMFILES
 		   z80dma.cpp
 #
-		   i8251.cpp
 #		   pc80s31k.cpp
 #		   upd765a.cpp
 		   
-		   ym2203.cpp
 		   
 		   z80ctc.cpp
 		   z80sio.cpp
@@ -35,6 +33,8 @@ set(VMFILES_LIB
 			pcm1bit.cpp
 			z80pio.cpp
 			disk.cpp
+			ym2203.cpp
+			i8251.cpp
 )
 set(FLAG_USE_Z80 ON)
 

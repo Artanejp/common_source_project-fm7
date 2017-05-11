@@ -18,7 +18,8 @@
 
 #define U64(v) UINT64(v)
 
-#define fatalerror(...) exit(1)
+//#define fatalerror(...) exit(1)
+#define fatalerror(...)
 #define logerror(...)
 #define popmessage(...)
 

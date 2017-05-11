@@ -38,7 +38,6 @@ static int cmdtime_m;
 //#endif
 static int latch1;
 static int latch2;
-static bool _use_cmdtime;
 
 // from "md.h.in" of Zodiac
 #if defined(_MSC_VER)
@@ -1524,9 +1523,9 @@ void v99x8_command(int m)
 #endif
 
 	v99x8.status[2] |= 0x01;
-//#ifdef USE_CMDTIME
-	if(_use_cmdtime) cmdtime_set(m);
-//#endif
+#ifdef USE_CMDTIME
+	cmdtime_set(m);
+#endif
 
 
 	vcom.lop = m & 0xf;
@@ -1549,16 +1548,13 @@ void v99x8_command(int m)
 	}
 
 	v99x8.ctrl[46] &= 0x0f;
-//#ifdef USE_CMDTIME
-	if(_use_cmdtime) {
-		if (((m >> 4) != 0xb) && ((m >> 4) != 0xf) && (0 == cmdtime_t)) v99x8.status[2] &= ~0x01;
+#ifdef USE_CMDTIME
+	if (((m >> 4) != 0xb) && ((m >> 4) != 0xf) && (0 == cmdtime_t)) v99x8.status[2] &= ~0x01;
 	//cmdtime_chk();
-//#else
-	} else {
-		if ((m >> 4) != 0xb && (m >> 4) != 0xf)
-			v99x8.status[2] &= ~0x01;
-	}
-//#endif
+#else
+	if ((m >> 4) != 0xb && (m >> 4) != 0xf)
+		v99x8.status[2] &= ~0x01;
+#endif
 }
 
 // from "v99x8_refresh.c" of Zodiac
@@ -2724,7 +2720,6 @@ void V99X8::initialize()
 	_SCREEN_WIDTH = osd->get_feature_int_value(_T("SCREEN_WIDTH"));
 	_SCREEN_HEIGHT = osd->get_feature_int_value(_T("SCREEN_HEIGHT"));
 	//_use_cmdtime = osd->check_feature(_T("USE_CMDTIME"));
-	_use_cmdtime = true;
 
 	screen = (scrntype_t *)malloc(_SCREEN_WIDTH * _SCREEN_HEIGHT * sizeof(scrntype_t));
 	// register event
@@ -2744,12 +2739,10 @@ void V99X8::release()
 void V99X8::reset()
 {
 	v99x8_init();
-//#ifdef USE_CMDTIME
-	if(_use_cmdtime) {
+#ifdef USE_CMDTIME
 		cmdtime_t = 0;
 		cmdtime_m = 0;
-	}
-//#endif
+#endif
 	latch1 = -1;
 	latch2 = -1;
 }
@@ -2794,9 +2787,9 @@ void V99X8::draw_screen()
 
 void V99X8::event_vline(int v, int clock)
 {
-//#ifdef USE_CMDTIME
-	if(_use_cmdtime) cmdtime_chk();
-//#endif
+#ifdef USE_CMDTIME
+	cmdtime_chk();
+#endif
 	hsync(v);
 }
 
@@ -2872,12 +2865,10 @@ static void lmcm(void)
 
 static void stop(void)
 {
-//#ifdef USE_CMDTIME
-	if(_use_cmdtime) {
+#ifdef USE_CMDTIME
 		cmdtime_t = 0;
 		v99x8.status[2] &= ~0x01;
-	}
-//#endif
+#endif
 }
 
 
@@ -2981,10 +2972,10 @@ static void lmmm_(void)
 	vcom_setny(0);
 }
 
-//#ifdef USE_CMDTIME
+
 void cmdtime_set(int m)
 {
-	if(!_use_cmdtime) return;
+#ifdef USE_CMDTIME
 	cmdtime_m = m>>4;
 	cmdtime_t = 0;
 
@@ -3008,17 +2999,19 @@ void cmdtime_set(int m)
 	//cmdtime_t = cmdtime_t*60*262/1000000/100;
 	cmdtime_t = cmdtime_t/6361;
 	if (cmdtime_t<0) cmdtime_t=0;
+#endif
 }
 
 void cmdtime_chk(void)
 {
-	if(!_use_cmdtime) return;
+#ifdef USE_CMDTIME
 	if (cmdtime_t) {
 		cmdtime_t--;
 		if (0 == cmdtime_t) v99x8.status[2] &= ~0x01;
 	}
+#endif
 }
-//#endif
+
 
 #define STATE_VERSION	1
 
@@ -3028,12 +3021,10 @@ void V99X8::save_state(FILEIO* state_fio)
 	state_fio->FputInt32(this_device_id);
 	
 	state_fio->Fwrite(&v99x8, sizeof(v99x8), 1);
-//#ifdef USE_CMDTIME
-	if(_use_cmdtime) {
+#ifdef USE_CMDTIME
 		state_fio->FputInt32(cmdtime_t);
 		state_fio->FputInt32(cmdtime_m);
-	}
-//#endif
+#endif
 	state_fio->FputInt32(latch1);
 	state_fio->FputInt32(latch2);
 	state_fio->FputInt32(vram_addr);
@@ -3068,12 +3059,10 @@ bool V99X8::load_state(FILEIO* state_fio)
 		return false;
 	}
 	state_fio->Fread(&v99x8, sizeof(v99x8), 1);
-//#ifdef USE_CMDTIME
-	if(_use_cmdtime) {
+#ifdef USE_CMDTIME
 		cmdtime_t = state_fio->FgetInt32();
 		cmdtime_m = state_fio->FgetInt32();
-	}
-//#endif
+#endif
 	latch1 = state_fio->FgetInt32();
 	latch2 = state_fio->FgetInt32();
 	vram_addr = state_fio->FgetInt32();

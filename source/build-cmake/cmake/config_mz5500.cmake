@@ -15,7 +15,6 @@ set(VMFILES
 		   rp5c01.cpp
 		   
 		   upd7220.cpp
-		   ym2203.cpp
 		   z80ctc.cpp
 		   z80sio.cpp
 		   mz1p17.cpp
@@ -30,6 +29,7 @@ set(VMFILES_LIB
 		   not.cpp
 		   upd765a.cpp
 		   disk.cpp
+		   ym2203.cpp
 )
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")

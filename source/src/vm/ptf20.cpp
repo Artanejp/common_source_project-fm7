@@ -59,7 +59,10 @@ void PTF20::initialize()
 {
 	DEVICE::initialize();
 	// initialize d88 handler
-	for(int i = 0; i < MAX_DRIVE; i++) {
+	_MAX_DRIVE = osd->get_feature_int_value(_T("MAX_DRIVE"));
+	if(_MAX_DRIVE <= 0) _MAX_DRIVE = 1;
+	if(_MAX_DRIVE > 8) _MAX_DRIVE = 8;
+	for(int i = 0; i < _MAX_DRIVE; i++) {
 		disk[i] = new DISK(emu);
 		disk[i]->set_device_name(_T("%s/Disk #%d"), this_device_name, i + 1);
 	}
@@ -67,7 +70,7 @@ void PTF20::initialize()
 
 void PTF20::release()
 {
-	for(int i = 0; i < MAX_DRIVE; i++) {
+	for(int i = 0; i < _MAX_DRIVE; i++) {
 		if(disk[i]) {
 			disk[i]->close();
 			delete disk[i];
@@ -77,7 +80,7 @@ void PTF20::release()
 
 void PTF20::reset()
 {
-	for(int i = 0; i < MAX_DRIVE; i++) {
+	for(int i = 0; i < _MAX_DRIVE; i++) {
 		access[i] = false;
 	}
 	phase = PHASE_IDLE;
@@ -212,7 +215,7 @@ uint32_t PTF20::read_signal(int ch)
 {
 	// get access status
 	uint32_t stat = 0;
-	for(int i = 0; i < MAX_DRIVE; i++) {
+	for(int i = 0; i < _MAX_DRIVE; i++) {
 		if(access[i]) {
 			stat |= 1 << i;
 		}
@@ -421,7 +424,7 @@ bool PTF20::process_cmd()
 
 bool PTF20::disk_protected(int drv)
 {
-	if(drv < MAX_DRIVE) {
+	if(drv < _MAX_DRIVE) {
 		return disk[drv]->write_protected;
 	}
 	return false;
@@ -455,21 +458,21 @@ uint8_t* PTF20::get_sector(int drv, int trk, int sec)
 
 void PTF20::open_disk(int drv, const _TCHAR* file_path, int bank)
 {
-	if(drv < MAX_DRIVE) {
+	if(drv < _MAX_DRIVE) {
 		disk[drv]->open(file_path, bank);
 	}
 }
 
 void PTF20::close_disk(int drv)
 {
-	if(drv < MAX_DRIVE) {
+	if(drv < _MAX_DRIVE) {
 		disk[drv]->close();
 	}
 }
 
 bool PTF20::is_disk_inserted(int drv)
 {
-	if(drv < MAX_DRIVE) {
+	if(drv < _MAX_DRIVE) {
 		return disk[drv]->inserted;
 	}
 	return false;
@@ -477,14 +480,14 @@ bool PTF20::is_disk_inserted(int drv)
 
 void PTF20::is_disk_protected(int drv, bool value)
 {
-	if(drv < MAX_DRIVE) {
+	if(drv < _MAX_DRIVE) {
 		disk[drv]->write_protected = value;
 	}
 }
 
 bool PTF20::is_disk_protected(int drv)
 {
-	if(drv < MAX_DRIVE) {
+	if(drv < _MAX_DRIVE) {
 		return disk[drv]->write_protected;
 	}
 	return false;
@@ -497,7 +500,7 @@ void PTF20::save_state(FILEIO* state_fio)
 	state_fio->FputUint32(STATE_VERSION);
 	state_fio->FputInt32(this_device_id);
 	
-	for(int i = 0; i < MAX_DRIVE; i++) {
+	for(int i = 0; i < _MAX_DRIVE; i++) {
 		disk[i]->save_state(state_fio);
 	}
 	state_fio->Fwrite(bufr, sizeof(bufr), 1);
@@ -514,7 +517,7 @@ bool PTF20::load_state(FILEIO* state_fio)
 	if(state_fio->FgetInt32() != this_device_id) {
 		return false;
 	}
-	for(int i = 0; i < MAX_DRIVE; i++) {
+	for(int i = 0; i < _MAX_DRIVE; i++) {
 		if(!disk[i]->load_state(state_fio)) {
 			return false;
 		}

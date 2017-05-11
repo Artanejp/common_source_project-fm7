@@ -18,7 +18,6 @@ set(VMFILES
 		   i8255.cpp
 		   
 #		   upd765a.cpp
-		   ym2203.cpp
 		   
 #		   disk.cpp
 		   event.cpp
@@ -29,10 +28,11 @@ set(VMFILES
 )
 
 set(VMFILES_LIB
-			pc6031.cpp
-			pc80s31k.cpp
-			upd765a.cpp
-			disk.cpp
+		pc6031.cpp
+		pc80s31k.cpp
+		upd765a.cpp
+		disk.cpp
+		ym2203.cpp
 )
 set(FLAG_USE_MCS48 ON)
 set(FLAG_USE_Z80 ON)

@@ -22,7 +22,6 @@ set(VMFILES_BASE
 		   i8253.cpp
 		   i8255.cpp
 		   i8259.cpp
-		   ym2203.cpp
 		   
 		   io.cpp
 		   datarec.cpp
@@ -30,6 +29,7 @@ set(VMFILES_BASE
 		   event.cpp
 )
 set(VMFILES_LIB
+	   ym2203.cpp
 	   i8251.cpp
 	   beep.cpp
 	   upd765a.cpp

@@ -15,7 +15,6 @@ set(VMFILES
 #		   upd765a.cpp
 		   upd7220.cpp
 #		   tms3631.cpp
-		   ym2203.cpp
 		   
 #		   disk.cpp
 		   event.cpp
@@ -27,6 +26,7 @@ set(VMFILES_LIB
 		   pc80s31k.cpp
 		   upd765a.cpp
 		   disk.cpp
+		   ym2203.cpp
 #		   i8251.cpp
 #		   ls244.cpp
 )

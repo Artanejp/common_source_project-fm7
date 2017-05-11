@@ -17,10 +17,10 @@ set(VMFILES_2500
 		   w3100a.cpp
 		   rp5c01.cpp
 		   
-		   ym2203.cpp
 )
 set(VMFILES_LIB_2500
 		   ls393.cpp
+		   ym2203.cpp
 )
 
 set(VMFILES_BASE
