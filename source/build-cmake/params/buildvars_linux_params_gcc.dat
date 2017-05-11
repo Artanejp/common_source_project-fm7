@@ -6,6 +6,19 @@
 CCMAKE_CC=gcc
 CCMAKE_CXX=g++
 
+if [ -v CC_SUFFIX ] ; then
+   CCMAKE_CC=${CCMAKE_CC}-${CC_SUFFIX}
+   CCMAKE_CXX=${CCMAKE_CXX}-${CC_SUFFIX}
+fi
+if [ -v CC_PREFIX ] ; then
+   CCMAKE_CC=${CC_PREFIX}-${CCMAKE_CC}
+   CCMAKE_CXX=${CC_PREFIX}-${CCMAKE_CXX}
+fi
+if [ -v CC_PATH ] ; then
+   CCMAKE_CC=${CC_PATH}/${CCMAKE_CC}
+   CCMAKE_CXX=${CC_PATH}/${CCMAKE_CXX}
+fi
+
 case ${USE_RADICAL_OPTIMIZE} in
    "Yes" | "yes" | "YES" )
       MAKEFLAGS_BASE3=" \

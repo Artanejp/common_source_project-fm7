@@ -4,8 +4,21 @@
 # Neither for LLVM/MinGW and GCC.
 #
 ## CLANG
-CCMAKE_CC=clang-${LLVM_VERSION}
-CCMAKE_CXX=clang++-${LLVM_VERSION}
+CCMAKE_CC=clang
+CCMAKE_CXX=clang++
+
+if [ -v CC_SUFFIX ] ; then
+   CCMAKE_CC=${CCMAKE_CC}-${CC_SUFFIX}
+   CCMAKE_CXX=${CCMAKE_CXX}-${CC_SUFFIX}
+fi
+if [ -v CC_PREFIX ] ; then
+   CCMAKE_CC=${CC_PREFIX}-${CCMAKE_CC}
+   CCMAKE_CXX=${CC_PREFIX}-${CCMAKE_CXX}
+fi
+if [ -v CC_PATH ] ; then
+   CCMAKE_CC=${CC_PATH}/${CCMAKE_CC}
+   CCMAKE_CXX=${CC_PATH}/${CCMAKE_CXX}
+fi
 
 case ${CSP_DEBUG} in
    "Yes" | "yes" | "YES" )
