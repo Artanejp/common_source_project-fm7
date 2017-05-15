@@ -70,7 +70,7 @@ static const uint32_t atex[4] =
 	0x30303030,
 };
 
-#ifdef _MASTERSYSTEM
+//#ifdef _MASTERSYSTEM
 static const uint8_t tms_crom[] =
 {
 	0x00, 0x00, 0x08, 0x0C,
@@ -78,7 +78,7 @@ static const uint8_t tms_crom[] =
 	0x02, 0x03, 0x05, 0x0F,
 	0x04, 0x33, 0x15, 0x3F
 };
-#endif
+//#endif
 
 /* Mark a pattern as dirty */
 #define MARK_BG_DIRTY(addr)								\
@@ -95,6 +95,8 @@ static const uint8_t tms_crom[] =
 void _315_5124::initialize()
 {
 	DEVICE::initialize();
+	__MASTERSYSTEM = osd->check_feature(_T("_MASTERSYSTEM"));
+	__315_5124_LIMIT_SPRITES = osd->check_feature(_T("_315_5124_LIMIT_SPRITES"));
 	// Game Gear : console = 0x40, vdp_mode = 4
 	// Mark3     : console = 0x20, vdp_mode = 4
 	// SC-3000   : console = 0x10, vdp_mode = 0
@@ -235,19 +237,21 @@ void _315_5124::reset()
 	palette_pc[29]=RGB_COLOR(0,   0,   0);
 	palette_pc[30]=RGB_COLOR(0,   0,   0);
 	palette_pc[31]=RGB_COLOR(0,   0,   0);
-#ifdef _MASTERSYSTEM // 315-5124 palette
-	if (console) {   // without COLECO
-		for (i = 0; i < 32; i++) {
-			int r = (tms_crom[i & 0x0F] >> 0) & 3;
-			int g = (tms_crom[i & 0x0F] >> 2) & 3;
-			int b = (tms_crom[i & 0x0F] >> 4) & 3;
-			r = sms_cram_expand_table[r];
-			g = sms_cram_expand_table[g];
-			b = sms_cram_expand_table[b];
-			palette_pc[i]=RGB_COLOR(r, g, b);
+//#ifdef _MASTERSYSTEM // 315-5124 palette
+	if(__MASTERSYSTEM) {
+		if (console) {   // without COLECO
+			for (i = 0; i < 32; i++) {
+				int r = (tms_crom[i & 0x0F] >> 0) & 3;
+				int g = (tms_crom[i & 0x0F] >> 2) & 3;
+				int b = (tms_crom[i & 0x0F] >> 4) & 3;
+				r = sms_cram_expand_table[r];
+				g = sms_cram_expand_table[g];
+				b = sms_cram_expand_table[b];
+				palette_pc[i]=RGB_COLOR(r, g, b);
+			}
 		}
 	}
-#endif
+//#endif
 	vp_x = (console == 0x40) ? 48 : 0;
 	vp_y = (console == 0x40) ? 24 : 0;
 	vp_w = (console == 0x40) ? 160 : 256;
@@ -474,7 +478,8 @@ void _315_5124::draw_screen()
 {
 	// update screen buffer
 	for(int y = 0; y < 192; y++) {
-		scrntype_t* dest = emu->get_screen_buffer(y);
+		//scrntype_t* dest = emu->get_screen_buffer(y);
+		scrntype_t* dest = osd->get_vm_screen_buffer(y);
 		uint8_t* src = screen[y];
 		for(int x = 0; x < 256; x++) {
 			if (x>=vp_x && x<vp_x+vp_w && y>=vp_y && y<vp_y+vp_h) {
@@ -797,9 +802,11 @@ void _315_5124::draw_sprites()
 							illegal_sprite = p;
 						}
 					}
-#ifdef _315_5124_LIMIT_SPRITES
-					continue;
-#endif
+//#ifdef _315_5124_LIMIT_SPRITES
+					if(__315_5124_LIMIT_SPRITES) {
+						continue;
+					}
+//#endif
 				} else {
 					limit[yy]--;
 				}
@@ -838,9 +845,11 @@ void _315_5124::draw_sprites()
 									illegal_sprite = p;
 								}
 							}
-#ifdef _315_5124_LIMIT_SPRITES
-							continue;
-#endif
+//#ifdef _315_5124_LIMIT_SPRITES
+							if(__315_5124_LIMIT_SPRITES) {
+								continue;
+							}
+//#endif
 						} else {
 							limit[yy]--;
 						}

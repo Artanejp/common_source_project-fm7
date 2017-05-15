@@ -11,8 +11,8 @@
 #ifndef _Z80DMA_H_
 #define _Z80DMA_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 #define SIG_Z80DMA_READY	0
@@ -49,6 +49,9 @@ private:
 	bool req_intr;
 	bool in_service;
 	uint8_t vector;
+
+	bool _SINGLE_MODE_DMA;
+	bool _DMA_DEBUG;
 	
 	bool now_ready();
 	void request_bus();
@@ -68,6 +71,7 @@ public:
 		for(int i = 0; i < 6 * 8 + 1 + 1; i++) {
 			regs.t[i] = 0;
 		}
+		_SINGLE_MODE_DMA = _DMA_DEBUG = false;
 		d_cpu = d_child = NULL;
 		set_device_name(_T("Z80 DMA"));
 	}
@@ -75,6 +79,7 @@ public:
 	
 	// common functions
 	void reset();
+	void initialize();
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
 	void write_signal(int id, uint32_t data, uint32_t mask);

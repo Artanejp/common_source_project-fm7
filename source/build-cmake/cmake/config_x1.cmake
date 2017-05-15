@@ -14,7 +14,7 @@ set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
 set(VMFILES
 		   
-		   hd46505.cpp
+#		   hd46505.cpp
 		   i8255.cpp
 		   upd1990a.cpp
 		   z80ctc.cpp
@@ -30,6 +30,7 @@ set(VMFILES
 		   mz1p17.cpp
 )
 set(VMFILES_LIB
+		   hd46505.cpp
 		   mcs48.cpp
 		   beep.cpp
 		   z80pio.cpp
@@ -65,12 +66,12 @@ if(BUILD_X1)
 elseif(BUILD_X1TURBO)
   set(EXEC_TARGET emux1turbo)
   add_definitions(-D_X1TURBO)
-  set(VMFILES ${VMFILES} z80dma.cpp)
+  set(VMFILES_LIB ${VMFILES_LIB} z80dma.cpp)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/x1turbo.qrc)
 elseif(BUILD_X1TURBOZ)
   set(EXEC_TARGET emux1turboz)
   add_definitions(-D_X1TURBOZ)
-  set(VMFILES ${VMFILES} z80dma.cpp)
+  set(VMFILES_LIB ${VMFILES_LIB} z80dma.cpp)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/x1turboz.qrc)
 elseif(BUILD_X1TWIN)
   set(EXEC_TARGET emux1twin)

@@ -21,14 +21,14 @@ set(WITH_MOUSE ON)
 
 set(VMFILES_BASE
 		   tms9995.cpp
-		   sn76489an.cpp
-		   tms9918a.cpp
-		   
 		   datarec.cpp
-		   
 		   event.cpp
 		   memory.cpp
 )
+set(VMFILES_LIB
+		   sn76489an.cpp
+		   tms9918a.cpp
+)		   
 
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")

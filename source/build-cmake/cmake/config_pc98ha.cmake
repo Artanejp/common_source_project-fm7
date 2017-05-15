@@ -11,8 +11,7 @@ set(VMFILES
 		   i8255.cpp
 		   
 #		   upd765a.cpp
-		   upd71071.cpp
-		   
+ 
 #		   disk.cpp
 		   event.cpp
 		   io.cpp
@@ -20,6 +19,7 @@ set(VMFILES
 		   prnfile.cpp
 )
 set(VMFILES_LIB
+		   upd71071.cpp
 		   beep.cpp
 		   ls244.cpp
 		   not.cpp

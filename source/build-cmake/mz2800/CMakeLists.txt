@@ -23,7 +23,7 @@ set(VMFILES
 		   i8255.cpp
 		   i8259.cpp
 		   rp5c01.cpp
-		   upd71071.cpp
+
 		   z80pio.cpp
 		   z80sio.cpp
 		   mz1p17.cpp
@@ -34,11 +34,12 @@ set(VMFILES
 )
 set(VMFILES_LIB
 #		   i286.cpp
-   		   mb8877.cpp
-		   not.cpp
-		   pcm1bit.cpp
-		   ym2203.cpp
-		   disk.cpp
+		upd71071.cpp
+		mb8877.cpp
+		not.cpp
+		pcm1bit.cpp
+		ym2203.cpp
+		disk.cpp
 )
 set(FLAG_USE_I286 ON)
 

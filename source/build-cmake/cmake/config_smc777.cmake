@@ -17,14 +17,13 @@ set(FLAG_USE_Z80 ON)
 if(BUILD_SMC70)
   set(EXEC_TARGET emusmc70)
   set(VMFILES_BASE
-		   hd46505.cpp
-		   
 		   msm58321.cpp
 		   
 		   datarec.cpp
 		   event.cpp
 		   )
 set(VMFILES_LIB
+	   hd46505.cpp
 	   pcm1bit.cpp
 	   mb8877.cpp
 	   disk.cpp
@@ -35,18 +34,17 @@ elseif(BUILD_SMC777)
   
   set(EXEC_TARGET emusmc777)
   set(VMFILES_BASE
-		   
-		   hd46505.cpp
-		   sn76489an.cpp
-		   
-		   datarec.cpp
-		   event.cpp
-		   )
-set(VMFILES_LIB
-	   pcm1bit.cpp
-	   mb8877.cpp
-	   disk.cpp
-)
+			hd46505.cpp
+			datarec.cpp
+			event.cpp
+   )
+   set(VMFILES_LIB
+		hd46505.cpp
+		sn76489an.cpp	
+		pcmibit.cpp
+		mb8877.cpp
+		disk.cpp
+	)
   add_definitions(-D_SMC777)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/smc777.qrc)
 endif()

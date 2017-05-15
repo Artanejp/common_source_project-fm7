@@ -56,6 +56,8 @@ inline void HD44102::count_up_or_down()
 void HD44102::initialize()
 {
 	DEVICE::initialize();
+	_SCREEN_WIDTH = osd->get_feature_int_value(_T("SCREEN_WIDTH"));
+	_SCREEN_HEIGHT = osd->get_feature_int_value(_T("SCREEN_HEIGHT"));
 //	m_cs2 = 0;
 	m_page = 0;
 	m_x = 0;
@@ -230,9 +232,10 @@ void HD44102::screen_update(int m_sx, int m_sy, bool reverse)
 				int dy = m_sy + 8 * sy + b;
 				int dx = m_sx + sx;
 				
-				if(dx >= 0 && dx < SCREEN_WIDTH && dy >= 0 && dy < SCREEN_HEIGHT) {
+				if(dx >= 0 && dx < _SCREEN_WIDTH && dy >= 0 && dy < _SCREEN_HEIGHT) {
 					int color = (m_status & STATUS_DISPLAY_OFF) ? 0 : ((data >> b) & 0x01);
-					scrntype_t *dest = emu->get_screen_buffer(m_sy + sy * 8 + b) + (m_sx + sx);
+					//scrntype_t *dest = emu->get_screen_buffer(m_sy + sy * 8 + b) + (m_sx + sx);
+					scrntype_t *dest = osd->get_vm_screen_buffer(m_sy + sy * 8 + b) + (m_sx + sx);
 					*dest = color ? color_on : color_back;
 				}
 			}

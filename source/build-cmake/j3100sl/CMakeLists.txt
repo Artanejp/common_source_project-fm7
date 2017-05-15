@@ -20,7 +20,6 @@ set(WITH_JOYSTICK OFF)
 set(WITH_MOUSE ON)
 
 set(VMFILES
-		   hd46505.cpp
 		   i8237.cpp
 		   i8253.cpp
 		   i8259.cpp
@@ -30,6 +29,7 @@ set(VMFILES
 )
 
 set(VMFILES_LIB
+		   hd46505.cpp
 		   pcm1bit.cpp
 		   upd765a.cpp
 		   disk.cpp
@@ -56,8 +56,10 @@ if(BUILD_J3100GT)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/j3100gt.qrc)
   set(VMFILES ${VMFILES} 
                i286.cpp 
-	       hd146818p.cpp
 	       )
+  set(VMFILES_LIB ${VMFILES_LIB}
+		   hd146818p.cpp
+  )
 elseif(BUILD_J3100SL)
   set(EXEC_TARGET emuj3100sl)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/j3100sl.qrc)

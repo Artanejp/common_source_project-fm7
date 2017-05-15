@@ -22,14 +22,12 @@ set(WITH_MOUSE OFF)
 set(FLAG_USE_Z80 ON)
 set(VMFILES
 		   upd7801.cpp
-		   hd46505.cpp
-
+#		   hd46505.cpp
 #		   upd765a.cpp
-		   
-		   ym2203.cpp
-		   
+#		   ym2203.cpp
+#		   disk.cpp		   
 		   datarec.cpp
-#		   disk.cpp
+
 		   event.cpp
 		   io.cpp
 		   memory.cpp
@@ -37,6 +35,8 @@ set(VMFILES
 set(VMFILES_LIB
 		   upd765a.cpp
 #		   pcm1bit.cpp
+		   ym2203.cpp
+		   hd46505.cpp
 		   beep.cpp
 		   disk.cpp
 )

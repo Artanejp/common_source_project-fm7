@@ -11,7 +11,6 @@ set(WITH_MOUSE ON)
 
 set(FLAG_USE_Z80 ON)
 set(VMFILES_BASE
-
 		   i8255.cpp
 		   i8253.cpp
 		   
@@ -26,9 +25,9 @@ set(VMFILES_MZ800 ${VMFILES_BASE}
 #	   mb8877.cpp
 #	   disk.cpp
 		   
-	   sn76489an.cpp
 	   z80sio.cpp
 )
+
 
 set(VMFILES_MZ1500 ${VMFILES_MZ800}
 	   prnfile.cpp
@@ -45,7 +44,9 @@ set(VMFILES_LIB_MZ800
 	   disk.cpp
 	   not.cpp
 	   z80pio.cpp
+	   sn76489an.cpp
 )
+	 
 set(VMFILES_LIB_MZ1500 ${VMFILES_LIB_MZ800}
 	   ym2203.cpp
 )

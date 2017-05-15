@@ -22,20 +22,20 @@ set(VMFILES
 		   i8259.cpp
 		   fmr50/bios.cpp
 		   
-		   sn76489an.cpp
-		   mb8877.cpp
 		   scsi_dev.cpp
 		   scsi_host.cpp
 		   scsi_hdd.cpp
 		   
 		   io.cpp
 
-		   disk.cpp
 		   event.cpp
 )
 set(VMFILES_LIB
 		   pcm1bit.cpp
 		   i8251.cpp
+		   sn76489an.cpp
+		   mb8877.cpp
+		   disk.cpp
 )
 
 set(BUILD_FMR30_86 ON CACHE BOOL "Build for FM-R30, i86 version")

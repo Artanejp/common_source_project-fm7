@@ -15,9 +15,7 @@ set(VMFILES
 #
 		   i8253.cpp
 		   i8259.cpp
-		   hd46505.cpp
 		   msm58321.cpp
-		   upd71071.cpp
 #		   mb8877.cpp
 		   scsi_dev.cpp
 		   scsi_host.cpp
@@ -32,6 +30,8 @@ set(VMFILES
 set(VMFILES_LIB
 		   pcm1bit.cpp
 		   mb8877.cpp
+		   hd46505.cpp
+		   upd71071.cpp
 
 		   i8251.cpp
 		   hd63484.cpp

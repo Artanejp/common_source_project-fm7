@@ -11,8 +11,8 @@
 #ifndef _HD44102_H_
 #define _HD44102_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 //#define SIG_HD44102_CS2	0
@@ -32,6 +32,8 @@ private:
 	
 //	int m_sx;
 //	int m_sy;
+	int _SCREEN_WIDTH;
+	int _SCREEN_HEIGHT;
 	
 	uint8_t status_r();
 	void control_w(uint8_t data);
@@ -42,6 +44,8 @@ private:
 public:
 	HD44102(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+		_SCREEN_WIDTH = 192;
+		_SCREEN_HEIGHT = 64;
 		set_device_name(_T("HD44102 LCD Controller"));
 	}
 	~HD44102() {}

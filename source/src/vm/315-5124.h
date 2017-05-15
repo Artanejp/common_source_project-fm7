@@ -11,8 +11,8 @@
 #ifndef _315_5124_H_
 #define _315_5124_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 #define read_dword(address) *(uint32_t *)address
@@ -22,6 +22,7 @@
 
 #define CYCLES_PER_LINE 228
 
+class KEYBOARD;
 class _315_5124 : public DEVICE
 {
 private:
@@ -88,6 +89,9 @@ private:
 	int vp_w;
 	int vp_h;
 	int console;
+	bool __MASTERSYSTEM;
+	bool __315_5124_LIMIT_SPRITES;
+
 public:
 	_315_5124(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{

@@ -42,15 +42,11 @@ if(BUILD_GAMEGEAR)
   set(EXEC_TARGET emugamegear)
   add_definitions(-D_GAMEGEAR)
   set(VMFILES ${VMFILES}
-#		   ym2413.cpp
-		   sn76489an.cpp
-		   315-5124.cpp
-#		   upd765a.cpp
-		   
 		   datarec.cpp
-#		   disk.cpp
 		   )
  set(VMFILES_LIB ${VMFILES_LIB}
+		   sn76489an.cpp
+		   315-5124.cpp
 		   upd765a.cpp
 		   disk.cpp
 )		   
@@ -58,7 +54,7 @@ if(BUILD_GAMEGEAR)
 elseif(BUILD_MARK3)
   set(EXEC_TARGET emumark3)
   add_definitions(-D_MASTERSYSTEM)
-  set(VMFILES ${VMFILES}
+  set(VMFILES_LIB ${VMFILES_LIB}
 		   315-5124.cpp
 		   ym2413.cpp
 		   sn76489an.cpp
@@ -67,7 +63,7 @@ elseif(BUILD_MARK3)
 elseif(BUILD_MASTERSYSTEM)
   set(EXEC_TARGET emumastersystem)
   add_definitions(-D_MASTERSYSTEM)
-  set(VMFILES ${VMFILES}
+  set(VMFILES_LIB ${VMFILES_LIB}
 		   315-5124.cpp
 		   ym2413.cpp
 		   sn76489an.cpp

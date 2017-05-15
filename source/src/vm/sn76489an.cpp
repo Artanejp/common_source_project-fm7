@@ -9,22 +9,32 @@
 
 #include "sn76489an.h"
 
-#ifdef HAS_SN76489
+//#ifdef HAS_SN76489
 // SN76489
-#define NOISE_FB	0x4000
-#define NOISE_DST_TAP	1
-#define NOISE_SRC_TAP	2
-#else
+//#define NOISE_FB	0x4000
+//#define NOISE_DST_TAP	1
+//#define NOISE_SRC_TAP	2
+//#else
 // SN76489A, SN76496
-#define NOISE_FB	0x10000
-#define NOISE_DST_TAP	4
-#define NOISE_SRC_TAP	8
-#endif
+//#define NOISE_FB	0x10000
+//#define NOISE_DST_TAP	4
+//#define NOISE_SRC_TAP	8
+//#endif
 #define NOISE_MODE	((regs[6] & 4) ? 1 : 0)
 
 void SN76489AN::initialize()
 {
 	DEVICE::initialize();
+	if(osd->check_feature(_T("HAS_SN76489"))) {
+		_NOISE_FB = 0x4000;
+		_NOISE_DST_TAP = 1;
+		_NOISE_SRC_TAP = 1;
+	} else {
+		_NOISE_FB = 0x10000;
+		_NOISE_DST_TAP = 4;
+		_NOISE_SRC_TAP = 8;
+		set_device_name(_T("SN76489AN PSG"));
+	}
 	mute = false;
 	cs = we = true;
 }
@@ -42,7 +52,7 @@ void SN76489AN::reset()
 		regs[i + 0] = 0;
 		regs[i + 1] = 0x0f;	// volume = 0
 	}
-	noise_gen = NOISE_FB;
+	noise_gen = _NOISE_FB;
 	ch[3].signal = false;
 }
 
@@ -73,7 +83,7 @@ void SN76489AN::write_io8(uint32_t addr, uint32_t data)
 			data &= 3;
 			ch[3].period = (data == 3) ? (ch[2].period << 1) : (1 << (data + 5));
 //			ch[3].count = 0;
-			noise_gen = NOISE_FB;
+			noise_gen = _NOISE_FB;
 			ch[3].signal = false;
 			break;
 		}
@@ -147,9 +157,9 @@ void SN76489AN::mix(int32_t* buffer, int cnt)
 			if(ch[j].count < 0) {
 				ch[j].count += ch[j].period << 8;
 				if(j == 3) {
-					if(((noise_gen & NOISE_DST_TAP) ? 1 : 0) ^ (((noise_gen & NOISE_SRC_TAP) ? 1 : 0) * NOISE_MODE)) {
+					if(((noise_gen & _NOISE_DST_TAP) ? 1 : 0) ^ (((noise_gen & _NOISE_SRC_TAP) ? 1 : 0) * NOISE_MODE)) {
 						noise_gen >>= 1;
-						noise_gen |= NOISE_FB;
+						noise_gen |= _NOISE_FB;
 					} else {
 						noise_gen >>= 1;
 					}
