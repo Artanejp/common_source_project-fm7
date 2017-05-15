@@ -43,17 +43,17 @@ void YM2203::initialize()
 		_YM2203_PORT_MODE = osd->get_feature_uint8_value(_T("YM2203_PORT_MODE"));
 	}
 //#ifdef SUPPORT_YM2203_PORT
-	if(_SUPPORT_YM2203_PORT) {
-		for(int i = 0; i < 2; i++) {
-			initialize_output_signals(&port[i].outputs);
-			port[i].wreg = port[i].rreg = 0;//0xff;
-		}
-	}
+//	if(_SUPPORT_YM2203_PORT) {
+//		for(int i = 0; i < 2; i++) {
+//			initialize_output_signals(&port[i].outputs);
+//			port[i].wreg = port[i].rreg = 0;//0xff;
+//		}
+//	}
 //#endif
 //#ifdef HAS_YM_SERIES
-	if(_HAS_YM_SERIES) {
-		initialize_output_signals(&outputs_irq);
-	}
+//	if(_HAS_YM_SERIES) {
+//		initialize_output_signals(&outputs_irq);
+//	}
 //#endif
 //#ifdef HAS_YM2608
 //		is_ym2608 = true;
@@ -384,6 +384,19 @@ void YM2203::write_signal(int id, uint32_t data, uint32_t mask)
 //#endif
 	}
 }
+
+uint32_t YM2203::read_signal(int id)
+{
+	if((id == SIG_YM2203_PORT_A) && _SUPPORT_YM2203_PORT_A) {
+		return (uint32_t)port[0].rreg;
+//#endif
+//#ifdef SUPPORT_YM2203_PORT_B
+	} else if((id == SIG_YM2203_PORT_B) && _SUPPORT_YM2203_PORT_B) {
+		return (uint32_t)port[1].rreg;
+//#endif
+	}
+	return 0x00;
+}	
 
 void YM2203::event_vline(int v, int clock)
 {

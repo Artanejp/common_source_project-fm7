@@ -130,6 +130,7 @@ public:
 			initialize_output_signals(&port[i].outputs);
 			port[i].wreg = port[i].rreg = 0;//0xff;
 		}
+		initialize_output_signals(&outputs_irq);
 		//}
 	}
 	~YM2203() {}
@@ -141,6 +142,7 @@ public:
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
 	void write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t read_signal(int ch);
 	void event_vline(int v, int clock);
 	void event_callback(int event_id, int error);
 	void mix(int32* buffer, int cnt);
