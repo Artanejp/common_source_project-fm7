@@ -70,6 +70,9 @@ void JOYSTICK::reset()
 	}
 	mouse_state = p_emu->get_mouse_buffer();
 #endif	
+	if(opn != NULL) {
+		opn->write_signal(SIG_YM2203_PORT_A, 0xff, 0xff);
+	}
 }
 
 void JOYSTICK::event_frame()
