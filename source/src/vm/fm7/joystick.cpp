@@ -10,6 +10,7 @@
  */
 #include "../vm.h"
 #include "fm7_mainio.h"
+#include "../ym2203.h"
 #include "./joystick.h"
 #include "../../config.h"
 #include "../../emu.h"
@@ -117,6 +118,32 @@ void JOYSTICK::event_frame()
 			joydata[ch] = retval;
 		} else { // MOUSE
 		}
+	}
+	uint32_t opnval = (uint32_t)port_b_val;
+	if(emulate_mouse[0]) {
+		if((opnval & 0xc0) == 0x00) {
+			if(opn != NULL) opn->write_signal(SIG_YM2203_PORT_A, update_mouse((opnval & 0x03) << 4), 0xff);
+			return;
+		}
+	} else if(emulate_mouse[1]) {
+		if((opnval & 0xc0) == 0x40) {
+			if(opn != NULL) opn->write_signal(SIG_YM2203_PORT_A, update_mouse((opnval & 0x0c) << 2), 0xff);
+			return;
+		}
+	}
+	switch(opnval & 0xf0) {
+	case 0x20:
+		if(lpt_type != 1) {
+			val = joydata[0];
+			if(opn != NULL) opn->write_signal(SIG_YM2203_PORT_A, val, 0xff);
+		}
+		break;
+	case 0x50:
+		if(lpt_type != 2) {
+			val = joydata[1];
+			if(opn != NULL) opn->write_signal(SIG_YM2203_PORT_A, val, 0xff);
+		}
+		break;
 	}
 }
 

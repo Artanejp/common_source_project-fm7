@@ -405,7 +405,7 @@ void VM::connect_bus(void)
 # endif
 	opn[0]->set_context_irq(mainio, FM7_MAINIO_OPN_IRQ, 0xffffffff);
 	mainio->set_context_opn(opn[0], 0);
-	//joystick->set_context_opn(opn[0]);
+	joystick->set_context_opn(opn[0]);
 	mainio->set_context_joystick(joystick);
 	opn[0]->set_context_port_b(joystick, FM7_JOYSTICK_MOUSE_STROBE, 0xff, 0);
 	

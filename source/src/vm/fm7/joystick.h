@@ -34,7 +34,7 @@ class JOYSTICK : public DEVICE {
  protected:
 	VM* p_vm;
 	EMU* p_emu;
-	//DEVICE *opn;
+	DEVICE *opn;
  private:
 	uint32_t update_mouse(uint32_t mask);
 	void   update_strobe(bool flag);
@@ -56,9 +56,9 @@ class JOYSTICK : public DEVICE {
 	void save_state(FILEIO *state_fio);
 	bool load_state(FILEIO *state_fio);
 	
-	//void set_context_opn(DEVICE *p) {
-	//	opn = p;
-	//}
+	void set_context_opn(DEVICE *p) {
+		opn = p;
+	}
 };
 
 #endif

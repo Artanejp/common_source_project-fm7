@@ -11,63 +11,12 @@
 
 #include "mb61vh010.h"
 
-uint8_t MB61VH010::do_read(uint32_t addr, uint32_t bank)
-{
-	uint32_t raddr;
-	
-	if(((1 << bank) & multi_page) != 0) return 0xff;
-	if(is_400line) {
-		if((addr & 0xffff) < 0x8000) {
-			raddr = (addr  & 0x7fff) | (0x8000 * bank);
-			return target->read_data8(raddr + direct_access_offset);
-		}
-	} else {
-		raddr = (addr & 0x3fff) | (0x4000 * bank);
-		return target->read_data8(raddr + direct_access_offset);
-	}
-	return 0xff;
-}
-
-void MB61VH010::do_write(uint32_t addr, uint32_t bank, uint8_t data)
-{
-	uint32_t raddr;
-	uint8_t readdata;
-
-	if(((1 << bank) & multi_page) != 0) return;
-	if((command_reg & 0x40) != 0) { // Calculate before writing
-	  	readdata = do_read(addr, bank);
-		//readdata = data;
-		if((command_reg & 0x20) != 0) { // NAND
-			readdata = readdata & cmp_status_reg;
-			data = data & (~cmp_status_reg);
-		} else { // AND
-			readdata = readdata & (~cmp_status_reg);
-			data = data & cmp_status_reg;
-		}
-		readdata = readdata | data;
-	} else {
-		readdata = data;
-	}
-	if(is_400line) {
-		if((addr & 0xffff) < 0x8000) {
-			raddr = (addr & 0x7fff) | (0x8000 * bank);
-			target->write_data8(raddr + direct_access_offset, readdata);
-		}
-	} else {
-		raddr = (addr & 0x3fff) | (0x4000 * bank);
-		target->write_data8(raddr + direct_access_offset, readdata);
-	}
-	return;
-}
-
-
 void MB61VH010::do_pset(uint32_t addr)
 {
 	int i;
-	uint32_t raddr = addr;  // Use banked ram.
+	//uint32_t raddr = addr;  // Use banked ram.
 	uint8_t bitmask[4] = {0};
 	uint8_t srcdata[4] = {0};
-	uint8_t mask_p[4] = {mask_reg, mask_reg, mask_reg, mask_reg};
 	int planes_b = planes;
 	
 	if(planes_b >= 4) planes_b = 4;
@@ -83,11 +32,9 @@ void MB61VH010::do_pset(uint32_t addr)
 		//srcdata[i] = do_read(addr, i) & mask_reg;
 		srcdata[i] = do_read(addr, i);
 	}
-	srcdata[0] = (srcdata[0] & mask_p[0]) | bitmask[0];
-	srcdata[1] = (srcdata[1] & mask_p[1]) | bitmask[1];
-	srcdata[2] = (srcdata[2] & mask_p[2]) | bitmask[2];
-	srcdata[3] = (srcdata[3] & mask_p[3]) | bitmask[3];
-
+	for(i = 0; i < 4; i++) {
+		srcdata[i] = (srcdata[i] & mask_p[i]) | bitmask[i];
+	}
 	for(i = 0; i < planes_b; i++) {
 		if((bank_disable_reg & (1 << i)) != 0) {
 			continue;
@@ -119,9 +66,6 @@ void MB61VH010::do_or(uint32_t addr)
 	uint32_t i;
 	uint8_t bitmask[4] = {0};
 	uint8_t srcdata[4] = {0};
-	uint8_t mask_p[4] = {mask_reg, mask_reg, mask_reg, mask_reg};
-	uint8_t mask_n[4] = {(uint8_t)~mask_reg, (uint8_t)~mask_reg, (uint8_t)~mask_reg, (uint8_t)~mask_reg};
-	
 	if(planes >= 4) planes = 4;
 	for(i = 0; i < planes; i++) {
 		if((bank_disable_reg & (1 << i)) != 0) {
@@ -133,14 +77,10 @@ void MB61VH010::do_or(uint32_t addr)
 		} else {
 			bitmask[i] = 0xff; // srcdata | 0xff
 		}
-		//bitmask = bitmask & ~mask_reg;
-		//srcdata = (srcdata & mask_reg) | bitmask;
-		//do_write(addr, i, srcdata);
 	}
-	srcdata[0] = (srcdata[0] & mask_p[0]) | (bitmask[0] & mask_n[0]);
-	srcdata[1] = (srcdata[1] & mask_p[1]) | (bitmask[1] & mask_n[1]);
-	srcdata[2] = (srcdata[2] & mask_p[2]) | (bitmask[2] & mask_n[2]);
-	srcdata[3] = (srcdata[3] & mask_p[3]) | (bitmask[3] & mask_n[3]);
+	for(i = 0; i < 4; i++) {
+		srcdata[i] = (srcdata[i] & mask_p[i]) | (bitmask[i] & mask_n[i]);
+	}
 	for(i = 0; i < planes; i++) {
 		if((bank_disable_reg & (1 << i)) != 0) {
 			continue;
@@ -155,8 +95,6 @@ void MB61VH010::do_and(uint32_t addr)
 	uint32_t i;
 	uint8_t bitmask[4] = {0};
 	uint8_t srcdata[4] = {0};
-	uint8_t mask_p[4] = {mask_reg, mask_reg, mask_reg, mask_reg};
-	uint8_t mask_n[4] = {(uint8_t)~mask_reg, (uint8_t)~mask_reg, (uint8_t)~mask_reg, (uint8_t)~mask_reg};
 
 	if(planes >= 4) planes = 4;
 	for(i = 0; i < planes; i++) {
@@ -173,10 +111,9 @@ void MB61VH010::do_and(uint32_t addr)
 		//srcdata = (srcdata & mask_reg) | bitmask;
 		//do_write(addr, i, srcdata);
 	}
-	srcdata[0] = (srcdata[0] & mask_p[0]) | (bitmask[0] & mask_n[0]);
-	srcdata[1] = (srcdata[1] & mask_p[1]) | (bitmask[1] & mask_n[1]);
-	srcdata[2] = (srcdata[2] & mask_p[2]) | (bitmask[2] & mask_n[2]);
-	srcdata[3] = (srcdata[3] & mask_p[3]) | (bitmask[3] & mask_n[3]);
+	for(i = 0; i < 4; i++) {
+		srcdata[i] = (srcdata[i] & mask_p[i]) | (bitmask[i] & mask_n[i]);
+	}
 	for(i = 0; i < planes; i++) {
 		if((bank_disable_reg & (1 << i)) != 0) {
 			continue;
@@ -193,8 +130,6 @@ void MB61VH010::do_xor(uint32_t addr)
 	//uint8_t srcdata;
 	uint8_t bitmask[4] = {0};
 	uint8_t srcdata[4] = {0};
-	uint8_t mask_p[4] = {mask_reg, mask_reg, mask_reg, mask_reg};
-	uint8_t mask_n[4] = {(uint8_t)~mask_reg, (uint8_t)~mask_reg, (uint8_t)~mask_reg, (uint8_t)~mask_reg};
 
 	if(planes >= 4) planes = 4;
 	for(i = 0; i < planes; i++) {
@@ -208,21 +143,13 @@ void MB61VH010::do_xor(uint32_t addr)
 		}
 		
 		srcdata[i] = do_read(addr, i);
-		//bitmask = bitmask ^ srcdata;
-		//bitmask = bitmask & (~mask_reg);
-		//srcdata = srcdata & mask_reg;
-		//srcdata = srcdata | bitmask;
-		//do_write(addr, i, srcdata);
 	}
-	bitmask[0] = bitmask[0] ^ srcdata[0];
-	bitmask[1] = bitmask[1] ^ srcdata[1];
-	bitmask[2] = bitmask[2] ^ srcdata[2];
-	bitmask[3] = bitmask[3] ^ srcdata[3];
-	
-	srcdata[0] = (srcdata[0] & mask_p[0]) | (bitmask[0] & mask_n[0]);
-	srcdata[1] = (srcdata[1] & mask_p[1]) | (bitmask[1] & mask_n[1]);
-	srcdata[2] = (srcdata[2] & mask_p[2]) | (bitmask[2] & mask_n[2]);
-	srcdata[3] = (srcdata[3] & mask_p[3]) | (bitmask[3] & mask_n[3]);
+	for(i = 0; i < 4; i++) {
+		bitmask[i] = bitmask[i] ^ srcdata[i];
+	}
+	for(i = 0; i < 4; i++) {
+		srcdata[i] = (srcdata[i] & mask_p[i]) | (bitmask[i] & mask_n[i]);
+	}
 	for(i = 0; i < planes; i++) {
 		if((bank_disable_reg & (1 << i)) != 0) {
 			continue;
@@ -237,24 +164,22 @@ void MB61VH010::do_not(uint32_t addr)
 	uint32_t i;
 	uint8_t bitmask[4] = {0};
 	uint8_t srcdata[4] = {0};
-	uint8_t mask_p[4] = {mask_reg, mask_reg, mask_reg, mask_reg};
-	uint8_t mask_n[4] = {(uint8_t)~mask_reg, (uint8_t)~mask_reg, (uint8_t)~mask_reg, (uint8_t)~mask_reg};
-
 	if(planes >= 4) planes = 4;
 	for(i = 0; i < planes; i++) {
 		if((bank_disable_reg & (1 << i)) != 0) {
 			continue;
 		}
 		srcdata[i] = do_read(addr, i);
-		bitmask[i] = ~srcdata[i];
 		//bitmask = bitmask & ~mask_reg;
 		//srcdata = (srcdata & mask_reg) | bitmask;
 		//do_write(addr, i, srcdata);
 	}
-	srcdata[0] = (srcdata[0] & mask_p[0]) | (bitmask[0] & mask_n[0]);
-	srcdata[1] = (srcdata[1] & mask_p[1]) | (bitmask[1] & mask_n[1]);
-	srcdata[2] = (srcdata[2] & mask_p[2]) | (bitmask[2] & mask_n[2]);
-	srcdata[3] = (srcdata[3] & mask_p[3]) | (bitmask[3] & mask_n[3]);
+	for(i = 0; i < 4; i++) {
+		bitmask[i] = ~srcdata[i];
+	}
+	for(i = 0; i < 4; i++) {
+		srcdata[i] = (srcdata[i] & mask_p[i]) | (bitmask[i] & mask_n[i]);
+	}
 	for(i = 0; i < planes; i++) {
 		if((bank_disable_reg & (1 << i)) != 0) {
 			continue;
@@ -270,8 +195,6 @@ void MB61VH010::do_tilepaint(uint32_t addr)
 	uint32_t i;
 	uint8_t bitmask[4] = {0};
 	uint8_t srcdata[4] = {0};
-	uint8_t mask_p[4] = {mask_reg, mask_reg, mask_reg, mask_reg};
-	uint8_t mask_n[4] = {(uint8_t)~mask_reg, (uint8_t)~mask_reg, (uint8_t)~mask_reg, (uint8_t)~mask_reg};
 
 	if(planes > 4) planes = 4;
 	for(i = 0; i < planes; i++) {
@@ -279,15 +202,16 @@ void MB61VH010::do_tilepaint(uint32_t addr)
 			continue;
 		}
 		srcdata[i] = do_read(addr, i);
-		bitmask[i] = tile_reg[i];
 		//bitmask = tile_reg[i] & (~mask_reg);
 		//srcdata = (srcdata & mask_reg) | bitmask;
 		//do_write(addr, i, srcdata);
 	}
-	srcdata[0] = (srcdata[0] & mask_p[0]) | (bitmask[0] & mask_n[0]);
-	srcdata[1] = (srcdata[1] & mask_p[1]) | (bitmask[1] & mask_n[1]);
-	srcdata[2] = (srcdata[2] & mask_p[2]) | (bitmask[2] & mask_n[2]);
-	srcdata[3] = (srcdata[3] & mask_p[3]) | (bitmask[3] & mask_n[3]);
+	for(i = 0; i < 4; i++) {
+		bitmask[i] = tile_reg[i];
+	}	
+	for(i = 0; i < 4; i++) {
+		srcdata[i] = (srcdata[i] & mask_p[i]) | (bitmask[i] & mask_n[i]);
+	}
 	for(i = 0; i < planes; i++) {
 		if((bank_disable_reg & (1 << i)) != 0) {
 			continue;
@@ -299,7 +223,7 @@ void MB61VH010::do_tilepaint(uint32_t addr)
 
 void MB61VH010::do_compare(uint32_t addr)
 {
-	uint32_t offset = 0x4000;
+	//uint32_t offset = 0x4000;
 	uint8_t r, g, b;
 	uint8_t disables = ~bank_disable_reg;
 
@@ -344,93 +268,6 @@ _l0:
 	return;
 }
 
-void MB61VH010::do_alucmds_dmyread(uint32_t addr)
-{
-	if(!is_400line) {
-		addr = addr & 0x3fff;
-	} else {
-		if(addr >= 0x8000) {
-			mask_reg = 0xff;
-			return;
-		}
-		addr = addr & 0x7fff;
-	}
-	if((command_reg & 0x80) == 0) {
-		return;
-	}
-	//busy_flag = true;
-	//cmp_status_reg = 0x00;
-	if((command_reg & 0x40) != 0) do_compare(addr);
-	switch(command_reg & 0x07) {
-		case 0:
-			do_pset(addr);
-			break;
-		case 1:
-			do_blank(addr);
-			break;
-		case 2:
-			do_or(addr);
-			break;
-		case 3:
-			do_and(addr);
-			break;
-		case 4:
-			do_xor(addr);
-			break;
-		case 5:
-			do_not(addr);
-			break;
-		case 6:
-			do_tilepaint(addr);
-			break;
-		case 7:
-			do_compare(addr);
-			break;
-	}
-	//printf("ALU DMYREAD ADDR=%04x, CMD=%02x CMP STATUS=%02x DISABLE=%01x\n", addr, command_reg, cmp_status_reg, bank_disable_reg);
-	//if(eventid_busy >= 0) cancel_event(this, eventid_busy) ;
-	//register_event(this, EVENT_MB61VH010_BUSY_OFF, 1.0 / 16.0, false, &eventid_busy) ;
-}  
-
-void MB61VH010::do_alucmds(uint32_t addr)
-{
-	if(addr >= 0x8000) {
-		mask_reg = 0xff;
-		return;
-	}
-
-	//cmp_status_reg = 0xff;
-	if((command_reg & 0x40) != 0) do_compare(addr);
-	switch(command_reg & 0x07) {
-		case 0:
-			do_pset(addr);
-			break;
-		case 1:
-			do_blank(addr);
-			break;
-		case 2:
-			do_or(addr);
-			break;
-		case 3:
-			do_and(addr);
-			break;
-		case 4:
-			do_xor(addr);
-			break;
-		case 5:
-			do_not(addr);
-			break;
-		case 6:
-			do_tilepaint(addr);
-			break;
-		case 7:
-			do_compare(addr);
-			break;
-	}
-	//printf("ALU CMDS ADDR=%04x, CMD=%02x CMP STATUS=%02x\n", addr, command_reg, cmp_status_reg);
-	return;
-}
-
 void MB61VH010::do_line(void)
 {
 	uint32_t x_begin = line_xbegin.w.l;
@@ -447,8 +284,11 @@ void MB61VH010::do_line(void)
 	int xcount;
 	int ycount;
 	bool updated = false;
-	uint16_t tmp8a;
-	uint8_t vmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
+	//uint16_t tmp8a;
+	const uint8_t vmask[8] = {(uint8_t)~0x80, (uint8_t)~0x40,
+							  (uint8_t)~0x20, (uint8_t)~0x10,
+							  (uint8_t)~0x08, (uint8_t)~0x04,
+							  (uint8_t)~0x02, (uint8_t)~0x01};
 	double usec;
 	oldaddr = 0xffffffff;
 	alu_addr = 0xffffffff;
@@ -458,7 +298,11 @@ void MB61VH010::do_line(void)
 	
 	mask_reg = 0xff;
 	if ((line_style.b.h & 0x80) != 0) {
-		mask_reg &= ~vmask[cpx_t & 7];
+		mask_reg &= vmask[cpx_t & 7];
+		for(int i = 0; i < 4; i++) {
+			mask_p[i] = (uint8_t)mask_reg;
+			mask_n[i] = (uint8_t)~mask_reg;
+		}
 	}
 	xcount = abs(ax);
 	ycount = abs(ay);
@@ -643,6 +487,10 @@ void MB61VH010::do_line(void)
 _finish:   
 	//if(total_bytes == 0) total_bytes = 1;
 	mask_reg = 0xff;
+	for(int i = 0; i < 4; i++) {
+		mask_p[i] = (uint8_t)mask_reg;
+		mask_n[i] = (uint8_t)~mask_reg;
+	}
 	//if(total_bytes >= 8) { // Only greater than 8bytes.
 	usec = (double)total_bytes / 16.0;
 	if(eventid_busy >= 0) cancel_event(this, eventid_busy) ;
@@ -652,96 +500,6 @@ _finish:
 	//}
 }
 
-inline bool MB61VH010::put_dot(int x, int y)
-{
-	uint8_t vmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
-	uint16_t tmp16a;
-	uint8_t tmp8a;
-	uint8_t mask8;
-	
-	bool updated;
-   
-	if((command_reg & 0x80) == 0) return false; // Not compare.
-	if((x < 0) || (y < 0)) {
-		return false; // Lower address
-	}
-   
-	//if(y >= (int)screen_height) return; // Workaround of overflow
-	
-	alu_addr = (y * screen_width + x)  >> 3;
-	alu_addr = alu_addr + line_addr_offset.w.l;
-	if(!is_400line) {
-		alu_addr = alu_addr & 0x3fff;
-	} else {
-		alu_addr = alu_addr & 0x7fff;
-	}
-	
-	mask8 = ~vmask[x & 7];
-	updated = false;
-	tmp8a = line_style.b.h & 0x80;
-	
-  	if(oldaddr != alu_addr) {
-		if(oldaddr == 0xffffffff) {
-			if(tmp8a != 0) {
-				mask_reg &= mask8;
-			}
-			oldaddr = alu_addr;
-		}
-		do_alucmds(oldaddr);
-		mask_reg = 0xff;
-		oldaddr = alu_addr;
-		updated = true;
-	}
-	if(tmp8a != 0) {
-	  	mask_reg &= mask8;
-	}
-	line_style.w.l <<= 1;
-	if(tmp8a != 0) line_style.w.l |= 0x01; 
-	return updated;
-}
-
-inline bool MB61VH010::put_dot8(int x, int y)
-{
-	uint8_t vmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
-	uint8_t tmp8a;
-	int xx;
-	uint16_t tmp16a;
-	bool updated;
-   
-	if((command_reg & 0x80) == 0) return false; // Not compare.
-	if((x < 0) || (y < 0)) {
-		return false; // Lower address
-	}
-   
-	//if(y >= (int)screen_height) return; // Workaround of overflow
-	
-	alu_addr = (y * screen_width + x)  >> 3;
-	alu_addr = alu_addr + line_addr_offset.w.l;
-	if(!is_400line) {
-		alu_addr = alu_addr & 0x3fff;
-	} else {
-		alu_addr = alu_addr & 0x7fff;
-	}
-	updated = false;
-	if(oldaddr != alu_addr) {
-		if(oldaddr == 0xffffffff) {
-			if((line_style.b.h & 0x80) != 0) {
-				mask_reg &= ~vmask[x & 7];
-			}
-			oldaddr = alu_addr;
-		}
-		do_alucmds(oldaddr);
-		mask_reg = 0xff;
-		oldaddr = alu_addr;
-		updated = true;
-	}
-	tmp8a = line_style.b.h;
-	mask_reg = mask_reg & ~tmp8a;
-	tmp8a = line_style.b.l;
-	line_style.b.l = line_style.b.h;
-	line_style.b.h = tmp8a;
-	return updated;
-}
 
 void MB61VH010::write_data8(uint32_t id, uint32_t data)
 {
@@ -756,6 +514,10 @@ void MB61VH010::write_data8(uint32_t id, uint32_t data)
 			break;
 		case ALU_WRITE_MASKREG:
 			mask_reg = data;
+			for(int i = 0; i < 4; i++) {
+				mask_p[i] = (uint8_t)mask_reg;
+				mask_n[i] = (uint8_t)~mask_reg;
+			}
 			break;
 		case ALU_BANK_DISABLE:
 			bank_disable_reg = data;
@@ -932,6 +694,10 @@ void MB61VH010::initialize(void)
 	color_reg = 0;          // D411 (RW)
 	mask_reg = 0;           // D412 (RW)
 	cmp_status_reg = 0;     // D413 (RO)
+	for(i = 0; i < 4; i++) {
+		mask_p[i] = (uint8_t)mask_reg;
+		mask_n[i] = (uint8_t)~mask_reg;
+	}
 	for(i = 0; i < 8; i++) cmp_color_data[i] = 0x80; // D413-D41A (WO)
 	bank_disable_reg = 0;   // D41B (RW)
 	for(i = 0; i < 4; i++) tile_reg[i] = 0;        // D41C-D41F (WO)
@@ -954,6 +720,10 @@ void MB61VH010::reset(void)
 	color_reg = 0;          // D411 (RW)
 	mask_reg = 0;           // D412 (RW)
 	cmp_status_reg = 0;     // D413 (RO)
+	for(i = 0; i < 4; i++) {
+		mask_p[i] = (uint8_t)mask_reg;
+		mask_n[i] = (uint8_t)~mask_reg;
+	}
 	for(i = 0; i < 8; i++) cmp_color_data[i] = 0x80; // D413-D41A (WO)
 	bank_disable_reg = 0;   // D41B (RW)
 	for(i = 0; i < 4; i++) tile_reg[i] = 0;        // D41C-D41F (WO)
@@ -1021,6 +791,10 @@ bool MB61VH010::load_state(FILEIO *state_fio)
 		command_reg = state_fio->FgetUint8();
 		color_reg = state_fio->FgetUint8();
 		mask_reg = state_fio->FgetUint8();
+		for(i = 0; i < 4; i++) {
+			mask_p[i] = (uint8_t)mask_reg;
+			mask_n[i] = (uint8_t)~mask_reg;
+		}
 		cmp_status_reg = state_fio->FgetUint8();
 		for(i = 0; i < 8; i++) 	cmp_color_data[i] = state_fio->FgetUint8();
 		bank_disable_reg = state_fio->FgetUint8();
