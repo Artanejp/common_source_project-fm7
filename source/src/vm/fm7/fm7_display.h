@@ -211,6 +211,8 @@ protected:
 #endif
 	uint8_t multimode_accessmask;
 	uint8_t multimode_dispmask;
+	bool multimode_accessflags[4];
+	bool multimode_dispflags[4];
    
 	uint32_t offset_point;
 	pair_t tmp_offset_point[2];
@@ -274,11 +276,11 @@ protected:
 	DEVICE *subcpu;
 	DEVICE *keyboard;
 	bool vram_wrote;
-	void GETVRAM_8_200L(int yoff, scrntype_t *p, uint32_t rgbmask, bool window_inv);
+	void GETVRAM_8_200L(int yoff, scrntype_t *p, bool window_inv);
 	void GETVRAM_4096(int yoff, scrntype_t *p, uint32_t rgbmask, bool window_inv);
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	void GETVRAM_8_400L(int yoff, scrntype_t *p, uint32_t mask, bool window_inv);
-	void GETVRAM_256k(int yoff, scrntype_t *p, uint32_t mask);
+	void GETVRAM_8_400L(int yoff, scrntype_t *p, bool window_inv);
+	void GETVRAM_256k(int yoff, scrntype_t *p);
 #endif   
 	uint8_t read_vram_l4_400l(uint32_t addr, uint32_t offset);
 	uint32_t read_mmio(uint32_t addr);

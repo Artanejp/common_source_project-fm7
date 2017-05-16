@@ -67,6 +67,10 @@ void DISPLAY::reset_cpuonly()
 	palette_changed = true;
 	multimode_accessmask = 0;
 	multimode_dispmask = 0;
+	for(i = 0; i < 4; i++) {
+		multimode_accessflags[i] = ((multimode_accessmask & (1 << i)) != 0) ? true : false;
+		multimode_dispflags[i] = ((multimode_dispmask & (1 << i)) != 0) ? true : false;
+	}
 	firq_mask = false;
 	//cancel_request = false;
 	switch(config.cpu_type){
@@ -221,8 +225,12 @@ void DISPLAY::reset()
 #else
 # if defined(_FM8)
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
-	multimode_accessmask = 0x00;
-	multimode_dispmask = 0x00;
+	//multimode_accessmask = 0x00;
+	//multimode_dispmask = 0x00;
+	//for(i = 0; i < 4; i++) {
+	//	multimode_accessflags[i] = ((multimode_accessmask & (1 << color)) != 0) ? true : false;
+	//	multimode_dispflags[i] = ((multimode_dispmask & (1 << color)) != 0) ? true : false;
+	//}
 # endif
 #endif	
 	//enter_display();
@@ -332,6 +340,10 @@ void DISPLAY::set_multimode(uint8_t val)
 #if !defined(_FM8)	
 	multimode_accessmask = val & 0x07;
 	multimode_dispmask = (val & 0x70) >> 4;
+	for(int i = 0; i < 4; i++) {
+		multimode_accessflags[i] = ((multimode_accessmask & (1 << i)) != 0) ? true : false;
+		multimode_dispflags[i] = ((multimode_dispmask & (1 << i)) != 0) ? true : false;
+	}
 	vram_wrote = true;
 # if defined(_FM77AV_VARIANTS)
 	alu->write_signal(SIG_ALU_MULTIPAGE, multimode_accessmask, 0x07);
@@ -1269,26 +1281,37 @@ void DISPLAY::event_callback(int event_id, int err)
 		mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x00, 0xff);
 		register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
 		if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) == 0) {
-				bool ff = false;
-				if(vram_wrote) {
-					if(need_transfer_line) ff = true;
-				}
-				if(ff) {
-					int lines = 200;
-					if(display_mode == DISPLAY_MODE_8_400L) lines = 400;
-					for(int yy = 0; yy < lines; yy++) {
-						//if(!vram_draw_table[yy]) {
-							displine = yy;
-							copy_vram_per_line(0, 4);
-							vram_draw_table[yy] = true;
-						//}
+			bool ff = false;
+			int lines = 200;
+			if(display_mode == DISPLAY_MODE_8_400L) lines = 400;
+			if(need_transfer_line) {
+				if(vram_wrote) ff = true;
+				//if(need_transfer_line) ff = true;
+				//}
+				for(displine = 0; displine < lines; displine++) {
+					if(ff) break;
+					for(int iii = 0; iii < 5 ; iii++) {
+						if(vram_wrote_table[iii + displine * 5]) {
+							ff = true;
+							break;
+						}
 					}
-				   
-					//copy_vram_all();
-					vram_wrote_shadow = true;
-					screen_update_flag = true;
-					vram_wrote = false;
 				}
+				displine = 0;
+			}
+			if(ff) {
+				for(int yy = 0; yy < lines; yy++) {
+					if(!vram_draw_table[yy]) {
+						displine = yy;
+						copy_vram_per_line(0, 4);
+						vram_draw_table[yy] = true;
+					}
+				}
+				//copy_vram_all();
+				vram_wrote_shadow = true;
+				screen_update_flag = true;
+				vram_wrote = false;
+			}
 		} else {
 			int lines = 200;
 			if(display_mode == DISPLAY_MODE_8_400L) lines = 400;
@@ -1296,9 +1319,9 @@ void DISPLAY::event_callback(int event_id, int err)
 				if(vram_wrote) {
 					for(int yy = 0; yy < lines; yy++) {
 						//if(!vram_draw_table[yy]) {
-							displine = yy;
-							copy_vram_per_line(0, 4);
-						//}
+						displine = yy;
+						copy_vram_per_line(0, 4);
+							//}
 					}
 					displine = 0;
 					vram_wrote = false;
@@ -1775,7 +1798,8 @@ uint32_t DISPLAY::read_vram_data8(uint32_t addr)
 	}
 # endif
 # if !defined(_FM8)		
-	if((multimode_accessmask & (1 << color)) != 0) return 0xff;
+	//if((multimode_accessmask & (1 << color)) != 0) return 0xff;
+	if(multimode_accessflags[color]) return 0xff;
 # endif		
 #if defined(_FM77AV_VARIANTS)
 	if (active_page != 0) {
@@ -2545,7 +2569,8 @@ void DISPLAY::write_cpu_vram_data8(uint32_t addr, uint8_t data)
 	}
 #endif
 #if !defined(_FM8)
-	if((multimode_accessmask & (1 << color)) != 0) return;
+	//if((multimode_accessmask & (1 << color)) != 0) return;
+	if(multimode_accessflags[color]) return;
 #endif		
 	write_vram_data8(addr & 0xffff, data);
 }
@@ -2560,7 +2585,8 @@ void DISPLAY::write_dma_vram_data8(uint32_t addr, uint8_t data)
 	}
 #endif
 #if !defined(_FM8)
-	if((multimode_accessmask & (1 << color)) != 0) return;
+	//if((multimode_accessmask & (1 << color)) != 0) return;
+	if(multimode_accessflags[color]) return;
 #endif		
 	write_vram_data8(addr & 0xffff, data);
 }
@@ -2749,7 +2775,12 @@ void DISPLAY::initialize()
 	is_cyclesteal = true;
 #else
 	is_cyclesteal = false;
-#endif	
+#endif
+	multimode_accessmask = multimode_dispmask = 0;
+	for(i = 0; i < 4; i++) {
+		multimode_accessflags[i] = ((multimode_accessmask & (1 << i)) != 0) ? true : false;
+		multimode_dispflags[i] = ((multimode_dispmask & (1 << i)) != 0) ? true : false;
+	}
 //	emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 	emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 	enter_display();
@@ -2954,6 +2985,10 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 		for(addr = 0; addr < 8; addr++) set_dpalette(addr, dpalette_data[addr]);
 		multimode_accessmask = state_fio->FgetUint8();
 		multimode_dispmask = state_fio->FgetUint8();
+		for(i = 0; i < 4; i++) {
+			multimode_accessflags[i] = ((multimode_accessmask & (1 << i)) != 0) ? true : false;
+			multimode_dispflags[i] = ((multimode_dispmask & (1 << i)) != 0) ? true : false;
+		}
 #endif
 		offset_point = state_fio->FgetUint32_BE();
 #if defined(_FM77AV_VARIANTS)
