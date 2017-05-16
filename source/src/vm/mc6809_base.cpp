@@ -283,20 +283,32 @@ int MC6809_BASE::run(int clock)
 	first_icount = icount;
 
 	if ((int_state & MC6809_HALT_BIT) != 0) {	// 0x80
-		icount = 0;
-		icount -= extra_icount;
-		extra_icount = 0;
 	   	if(!busreq) write_signals(&outputs_bus_halt, 0xffffffff);
-		busreq = true;
-		return first_icount - icount;
+		if(clock < 0) {
+			int passed_icount;
+			passed_icount = max(1, extra_icount);
+			extra_icount = 0;
+			busreq = true;
+			return passed_icount;
+		} else {
+			//icount = 0;
+			icount -= extra_icount;
+			extra_icount = 0;
+			busreq = true;
+			return first_icount - icount;
+		}
 	}
 	if(busreq) write_signals(&outputs_bus_halt, 0x00000000);
 	busreq = false;
 	if((int_state & MC6809_INSN_HALT) != 0) {	// 0x80
 		//uint8_t dmy = RM(PCD); //Will save.Need to keep.
 		RM(PCD); //Will save.Need to keep.
-		icount = 0;
-		icount -= extra_icount;
+		if(clock < 0) {
+			icount = -extra_icount;
+			first_icount = 0;
+		} else {
+			icount -= extra_icount;
+		}
 		extra_icount = 0;
 		PC++;
 		return first_icount - icount;
@@ -380,8 +392,7 @@ check_ok:
 	} else { // CWAI_IN
 		if (clock >= 0) {
 			icount -= clock;
-		}
-		else {
+		} else {
 			icount = 0;
 		}
 		return first_icount - icount;
