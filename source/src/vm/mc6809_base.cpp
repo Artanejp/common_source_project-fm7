@@ -284,12 +284,13 @@ int MC6809_BASE::run(int clock)
 
 	if ((int_state & MC6809_HALT_BIT) != 0) {	// 0x80
 	   	if(!busreq) write_signals(&outputs_bus_halt, 0xffffffff);
+#if 0
 		if(clock < 0) {
 			int passed_icount;
 			passed_icount = max(1, extra_icount);
 			extra_icount = 0;
 			busreq = true;
-			return passed_icount;
+			return first_icount - passed_icount;
 		} else {
 			//icount = 0;
 			icount -= extra_icount;
@@ -297,6 +298,13 @@ int MC6809_BASE::run(int clock)
 			busreq = true;
 			return first_icount - icount;
 		}
+#else
+		icount = 0;
+		icount -= extra_icount;
+		extra_icount = 0;
+		busreq = true;
+		return first_icount - icount;
+#endif
 	}
 	if(busreq) write_signals(&outputs_bus_halt, 0x00000000);
 	busreq = false;
