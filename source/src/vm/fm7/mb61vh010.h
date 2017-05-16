@@ -17,7 +17,8 @@
 //#include "fm7_common.h"
 
 enum {
-	ALU_CMDREG = 0,
+	ALU_WRITE_PROXY = 0x00000,
+	ALU_CMDREG = 0x10000,
 	ALU_LOGICAL_COLOR,
 	ALU_WRITE_MASKREG,
 	ALU_CMP_STATUS_REG,
@@ -38,8 +39,7 @@ enum {
 	ALU_LINEPOS_END_X_LOW,  
 	ALU_LINEPOS_END_Y_HIGH,
 	ALU_LINEPOS_END_Y_LOW,
-	ALU_CMPDATA_REG = 0x10000,
-	ALU_WRITE_PROXY = 0x20000,
+	ALU_CMPDATA_REG,
 };
 
 enum {
@@ -180,11 +180,11 @@ inline void MB61VH010::put_dot(int x, int y)
 		oldaddr = alu_addr;
 		//updated = true;
 	}
+	line_style.w.l <<= 1;
 	if(tmp8a != 0) {
 	  	mask_reg &= mask8;
+		line_style.w.l |= 0x01;
 	}
-	line_style.w.l <<= 1;
-	if(tmp8a != 0) line_style.w.l |= 0x01; 
 	return;
 }
 

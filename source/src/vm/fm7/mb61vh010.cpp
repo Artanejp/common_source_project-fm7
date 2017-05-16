@@ -18,13 +18,12 @@ void MB61VH010::do_pset(uint32_t addr)
 	uint32_t raddr = addr;  // Use banked ram.
 	uint8_t bitmask[4] = {0};
 	uint8_t srcdata[4] = {0};
-	uint8_t mask_p[4] = {mask_reg, mask_reg, mask_reg, mask_reg};
+	const uint8_t mask_p[4] = {mask_reg, mask_reg, mask_reg, mask_reg};
 	int planes_b = planes;
 	uint32_t *pbm = (uint32_t *)bitmask;
 	uint32_t *pmp = (uint32_t *)mask_p;
 	uint32_t *psd = (uint32_t *)srcdata;
 	
-	//if(planes_b >= 4) planes_b = 4;
 	for(i = 0; i < 4; i++) { // planes_b
 		if((bank_disable_reg & (1 << i)) != 0) {
 			continue;
@@ -34,7 +33,6 @@ void MB61VH010::do_pset(uint32_t addr)
 		} else {
 			bitmask[i] = ~mask_reg;
 		}
-		//srcdata[i] = do_read(addr, i) & mask_reg;
 		srcdata[i] = do_read(addr, i);
 	}
 	*psd = (*psd & *pmp) | *pbm;
@@ -74,8 +72,8 @@ void MB61VH010::do_or(uint32_t addr)
 	uint32_t i;
 	uint8_t bitmask[4] = {0};
 	uint8_t srcdata[4] = {0};
-	uint8_t mask_p[4] = {mask_reg, mask_reg, mask_reg, mask_reg};
-	uint8_t mask_n[4] = {(uint8_t)~mask_reg, (uint8_t)~mask_reg, (uint8_t)~mask_reg, (uint8_t)~mask_reg};
+	const uint8_t mask_p[4] = {mask_reg, mask_reg, mask_reg, mask_reg};
+	const uint8_t mask_n[4] = {(uint8_t)~mask_reg, (uint8_t)~mask_reg, (uint8_t)~mask_reg, (uint8_t)~mask_reg};
 	uint32_t *pbm = (uint32_t *)bitmask;
 	uint32_t *pmp = (uint32_t *)mask_p;
 	uint32_t *pmn = (uint32_t *)mask_n;
@@ -115,8 +113,8 @@ void MB61VH010::do_and(uint32_t addr)
 	uint32_t i;
 	uint8_t bitmask[4] = {0};
 	uint8_t srcdata[4] = {0};
-	uint8_t mask_p[4] = {mask_reg, mask_reg, mask_reg, mask_reg};
-	uint8_t mask_n[4] = {(uint8_t)~mask_reg, (uint8_t)~mask_reg, (uint8_t)~mask_reg, (uint8_t)~mask_reg};
+	const uint8_t mask_p[4] = {mask_reg, mask_reg, mask_reg, mask_reg};
+	const uint8_t mask_n[4] = {(uint8_t)~mask_reg, (uint8_t)~mask_reg, (uint8_t)~mask_reg, (uint8_t)~mask_reg};
 	uint32_t *pbm = (uint32_t *)bitmask;
 	uint32_t *pmp = (uint32_t *)mask_p;
 	uint32_t *pmn = (uint32_t *)mask_n;
@@ -158,8 +156,8 @@ void MB61VH010::do_xor(uint32_t addr)
 	//uint8_t srcdata;
 	uint8_t bitmask[4] = {0};
 	uint8_t srcdata[4] = {0};
-	uint8_t mask_p[4] = {mask_reg, mask_reg, mask_reg, mask_reg};
-	uint8_t mask_n[4] = {(uint8_t)~mask_reg, (uint8_t)~mask_reg, (uint8_t)~mask_reg, (uint8_t)~mask_reg};
+	const uint8_t mask_p[4] = {mask_reg, mask_reg, mask_reg, mask_reg};
+	const uint8_t mask_n[4] = {(uint8_t)~mask_reg, (uint8_t)~mask_reg, (uint8_t)~mask_reg, (uint8_t)~mask_reg};
 	uint32_t *pbm = (uint32_t *)bitmask;
 	uint32_t *pmp = (uint32_t *)mask_p;
 	uint32_t *pmn = (uint32_t *)mask_n;
@@ -208,8 +206,8 @@ void MB61VH010::do_not(uint32_t addr)
 	uint32_t i;
 	uint8_t bitmask[4] = {0};
 	uint8_t srcdata[4] = {0};
-	uint8_t mask_p[4] = {mask_reg, mask_reg, mask_reg, mask_reg};
-	uint8_t mask_n[4] = {(uint8_t)~mask_reg, (uint8_t)~mask_reg, (uint8_t)~mask_reg, (uint8_t)~mask_reg};
+	const uint8_t mask_p[4] = {mask_reg, mask_reg, mask_reg, mask_reg};
+	const uint8_t mask_n[4] = {(uint8_t)~mask_reg, (uint8_t)~mask_reg, (uint8_t)~mask_reg, (uint8_t)~mask_reg};
 	uint32_t *pbm = (uint32_t *)bitmask;
 	uint32_t *pmp = (uint32_t *)mask_p;
 	uint32_t *pmn = (uint32_t *)mask_n;
@@ -246,8 +244,8 @@ void MB61VH010::do_tilepaint(uint32_t addr)
 	uint32_t i;
 	uint8_t bitmask[4] = {0};
 	uint8_t srcdata[4] = {0};
-	uint8_t mask_p[4] = {mask_reg, mask_reg, mask_reg, mask_reg};
-	uint8_t mask_n[4] = {(uint8_t)~mask_reg, (uint8_t)~mask_reg, (uint8_t)~mask_reg, (uint8_t)~mask_reg};
+	const uint8_t mask_p[4] = {mask_reg, mask_reg, mask_reg, mask_reg};
+	const uint8_t mask_n[4] = {(uint8_t)~mask_reg, (uint8_t)~mask_reg, (uint8_t)~mask_reg, (uint8_t)~mask_reg};
 	uint32_t *pbm = (uint32_t *)bitmask;
 	uint32_t *pmp = (uint32_t *)mask_p;
 	uint32_t *pmn = (uint32_t *)mask_n;
@@ -637,11 +635,19 @@ _finish:
 void MB61VH010::write_data8(uint32_t id, uint32_t data)
 {
 	//this->out_debug_log(_T("ALU: ADDR=%02x DATA=%02x\n"), id, data);
-	if(id == ALU_CMDREG) {
-		command_reg = data;
-		return;
+	if(id < 0xc000) {
+		uint32_t raddr = id;
+		if(is_400line) {
+			if(raddr >= 0x8000) return;
+		} else {
+			raddr = raddr & 0x3fff;
+		}
+		do_alucmds_dmyread(raddr);
 	}
 	switch(id) {
+		case ALU_CMDREG:
+			command_reg = data;
+			break;
 		case ALU_LOGICAL_COLOR:
 			color_reg = data;
 			break;
@@ -649,10 +655,22 @@ void MB61VH010::write_data8(uint32_t id, uint32_t data)
 			mask_reg = data;
 			break;
 		case ALU_BANK_DISABLE:
-			if(planes >= 4) {
-				data |= 0xf0;
-			} else {
+			switch(planes) {    // D41B (RW)
+			case 1:
+				data |= 0xfe;
+				break;
+			case 2:
+				data |= 0xfc;
+				break;
+			case 3:
 				data |= 0xf8;
+				break;
+			case 4:
+				data |= 0xf0;
+				break;
+			default:
+			    data |= 0xff;
+				break;
 			}
 			bank_disable_reg = data;
 			break;
@@ -708,18 +726,17 @@ void MB61VH010::write_data8(uint32_t id, uint32_t data)
 			line_yend.b.l = data;
 			do_line();
 			break;
+		case ALU_CMPDATA_REG + 0:
+		case ALU_CMPDATA_REG + 1:
+		case ALU_CMPDATA_REG + 2:
+		case ALU_CMPDATA_REG + 3:
+		case ALU_CMPDATA_REG + 4:
+		case ALU_CMPDATA_REG + 5:
+		case ALU_CMPDATA_REG + 6:
+		case ALU_CMPDATA_REG + 7:
+			cmp_color_data[id - ALU_CMPDATA_REG] = data;
+			break;
 		default:
-			if((id >= (ALU_CMPDATA_REG + 0)) && (id < (ALU_CMPDATA_REG + 8))) {
-				cmp_color_data[id - ALU_CMPDATA_REG] = data;
-			} else 	if((id >= ALU_WRITE_PROXY) && (id < (ALU_WRITE_PROXY + 0xc000))) {
-				uint32_t raddr = id - ALU_WRITE_PROXY;
-				if(is_400line) {
-					if(raddr >= 0x8000) return;
-				} else {
-					raddr = raddr & 0x3fff;
-				}
-				do_alucmds_dmyread(raddr);
-			}
 			break;
 	}
 }
@@ -727,6 +744,19 @@ void MB61VH010::write_data8(uint32_t id, uint32_t data)
 uint32_t MB61VH010::read_data8(uint32_t id)
 {
 	uint32_t raddr;  
+	if(id < 0xc000) {
+		uint32_t dmydata;
+		raddr = id;
+		if(is_400line) {
+			if(raddr >= 0x8000) return 0xffffffff;
+		} else {
+			raddr = raddr & 0x3fff;
+		}
+		do_alucmds_dmyread(raddr);
+		//raddr = id & 0xffff;
+		dmydata = target->read_data8(raddr + direct_access_offset);
+		return dmydata;
+	}
 	switch(id) {
 		case ALU_CMDREG:
 			return (uint32_t)command_reg;
@@ -744,19 +774,7 @@ uint32_t MB61VH010::read_data8(uint32_t id)
 			return (uint32_t)bank_disable_reg;
 			break;
 		default:
-			if((id >= ALU_WRITE_PROXY) && (id < (ALU_WRITE_PROXY + 0xc000))) {
-				uint32_t dmydata;
-				raddr = id - ALU_WRITE_PROXY;
-				if(is_400line) {
-					if(raddr >= 0x8000) return 0xffffffff;
-				} else {
-					raddr = raddr & 0x3fff;
-				}
-				do_alucmds_dmyread(raddr);
-				raddr = (id - ALU_WRITE_PROXY) % 0xc000;
-				dmydata = target->read_data8(raddr + direct_access_offset);
-				return dmydata;
-			}
+//			if((id >= ALU_WRITE_PROXY) && (id < (ALU_WRITE_PROXY + 0xc000))) {
 			return 0xffffffff;
 			break;
 	}
@@ -826,10 +844,10 @@ void MB61VH010::initialize(void)
 	screen_height = 200;
   	command_reg = 0;        // D410 (RW)
 	color_reg = 0;          // D411 (RW)
-	mask_reg = 0;           // D412 (RW)
+	mask_reg = 0x00;        // D412 (RW)
 	cmp_status_reg = 0;     // D413 (RO)
 	for(i = 0; i < 8; i++) cmp_color_data[i] = 0x80; // D413-D41A (WO)
-	bank_disable_reg = 0;   // D41B (RW)
+	bank_disable_reg = 0xf8;// D41B (RW)
 	for(i = 0; i < 4; i++) tile_reg[i] = 0;        // D41C-D41F (WO)
 	
 	line_addr_offset.d = 0; // D420-D421 (WO)
@@ -851,7 +869,6 @@ void MB61VH010::reset(void)
 	mask_reg = 0;           // D412 (RW)
 	cmp_status_reg = 0;     // D413 (RO)
 	for(i = 0; i < 8; i++) cmp_color_data[i] = 0x80; // D413-D41A (WO)
-	bank_disable_reg = 0;   // D41B (RW)
 	for(i = 0; i < 4; i++) tile_reg[i] = 0;        // D41C-D41F (WO)
 	
 	line_addr_offset.d = 0; // D420-D421 (WO)
@@ -863,6 +880,23 @@ void MB61VH010::reset(void)
 	oldaddr = 0xffffffff;
 	
 	if(planes >= 4) planes = 4;
+	switch(planes) {    // D41B (RW)
+	case 1:
+		bank_disable_reg = 0xfe;
+		break;
+	case 2:
+		bank_disable_reg = 0xfc;
+		break;
+	case 3:
+		bank_disable_reg = 0xf8;
+		break;
+	case 4:
+		bank_disable_reg = 0xf0;
+		break;
+	default:
+		bank_disable_reg = 0xff;
+		break;
+	}
 }
 
 #define STATE_VERSION 1
