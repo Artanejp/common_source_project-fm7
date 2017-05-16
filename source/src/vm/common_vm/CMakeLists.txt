@@ -9,6 +9,7 @@ set(s_vm_common_vm_srcs
 	../disk.cpp
 	
 	../hd146818p.cpp
+	../hd44102.cpp
 	../hd46505.cpp
 	../hd63484.cpp
 #	../huc6280.cpp
@@ -115,8 +116,8 @@ else()
     ${s_vm_common_vm_srcs}
   )
   set_target_properties(CSPcommon_vm PROPERTIES 
-     SOVERSION 1.1.3
-     VERSION 1.1.3
+     SOVERSION 1.1.4
+     VERSION 1.1.4
   )
   INSTALL(TARGETS CSPcommon_vm DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()
