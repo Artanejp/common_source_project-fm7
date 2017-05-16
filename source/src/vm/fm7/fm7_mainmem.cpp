@@ -411,12 +411,20 @@ void FM7_MAINMEM::write_data8(uint32_t addr, uint32_t data)
 			window_offset = data;
 			break;
 		case FM7_MAINIO_MMR_SEGMENT:
+#if 0
+			for(uint32_t ni = 0; ni < 0x10; ni++) {
+# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)	
+				update_mmr_jumptable(ni + ((data & 0x07) << 4));
+#endif	
+				update_mmr_jumptable(ni + ((data & 0x03) << 4));
+			}
+#endif
 			if(mmr_extend) {
 				mmr_segment = data & 0x07;
 			} else {
 				mmr_segment = data & 0x03;
 			}
-			update_all_mmr_jumptable();
+			//update_all_mmr_jumptable();
 			break;
 		default:
 			if((addr >= FM7_MAINIO_MMR_BANK) && (addr < (FM7_MAINIO_MMR_BANK + 0x80))){
