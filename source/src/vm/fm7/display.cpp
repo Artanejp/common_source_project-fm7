@@ -1983,7 +1983,7 @@ uint32_t DISPLAY::read_cpu_vram_data8(uint32_t addr)
 	uint8_t color;
 #if defined(_FM77AV_VARIANTS)
 	if(use_alu) {
-		alu->read_data8(addr + ALU_WRITE_PROXY);
+		alu->read_data8(addr);
 	}
 #endif
 	return read_vram_data8(addr);
@@ -2534,7 +2534,7 @@ void DISPLAY::write_cpu_vram_data8(uint32_t addr, uint8_t data)
 	uint32_t color = (addr & 0xc000) >> 14;
 #if defined(_FM77AV_VARIANTS)
 	if(use_alu) {
-		alu->read_data8(addr + ALU_WRITE_PROXY);
+		alu->read_data8(addr);
 		return;
 	}
 #endif	
