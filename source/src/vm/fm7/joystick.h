@@ -45,7 +45,7 @@ class JOYSTICK : public DEVICE {
 
 	void initialize(void);
 	void event_frame(void);
-	void event_vline(int v, int clock);
+	//void event_vline(int v, int clock);
 	
 	uint32_t read_data8(uint32_t addr);
 	void write_data8(uint32_t addr, uint32_t data);

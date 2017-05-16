@@ -43,7 +43,7 @@ void JOYSTICK::initialize()
 	lpt_type = config.printer_type;
 	port_b_val = 0;
 	register_frame_event(this);
-	register_vline_event(this);
+	//register_vline_event(this);
 }
 
 void JOYSTICK::reset()
@@ -164,6 +164,7 @@ void JOYSTICK::event_frame()
 #endif
 }
 
+#if 0
 void JOYSTICK::event_vline(int v, int clock)
 {
 #if 0
@@ -188,6 +189,7 @@ void JOYSTICK::event_vline(int v, int clock)
 	}
 #endif
 }
+#endif
 
 uint32_t JOYSTICK::update_mouse(uint32_t mask)
 {
