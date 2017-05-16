@@ -25,9 +25,9 @@ void MB61VH010::do_pset(uint32_t addr)
 	uint32_t *psd = (uint32_t *)srcdata;
 	
 	for(i = 0; i < 4; i++) { // planes_b
-		if((bank_disable_reg & (1 << i)) != 0) {
-			continue;
-		}
+		//if((bank_disable_reg & (1 << i)) != 0) {
+		if(disable_flags[i]) continue;
+		//}
 		if((color_reg & (1 << i)) == 0) {
 			bitmask[i] = 0x00;
 		} else {
@@ -42,9 +42,10 @@ void MB61VH010::do_pset(uint32_t addr)
 	//srcdata[3] = (srcdata[3] & mask_p[3]) | bitmask[3];
 
 	for(i = 0; i < 4; i++) {
-		if((bank_disable_reg & (1 << i)) != 0) {
-			continue;
-		}
+		if(disable_flags[i]) continue;
+		//if((bank_disable_reg & (1 << i)) != 0) {
+		//	continue;
+		//}
 		do_write(addr, i, srcdata[i]);
 	}
 	return;
@@ -57,9 +58,10 @@ void MB61VH010::do_blank(uint32_t addr)
 
 	//if(planes >= 4) planes = 4;
 	for(i = 0; i < 4; i++) {
-		if((bank_disable_reg & (1 << i)) != 0) {
-			continue;
-		}
+		if(disable_flags[i]) continue;
+		//if((bank_disable_reg & (1 << i)) != 0) {
+		//	continue;
+		//}
 		srcdata = do_read(addr, i);
 		srcdata = srcdata & mask_reg;
 		do_write(addr, i, srcdata);
@@ -81,9 +83,10 @@ void MB61VH010::do_or(uint32_t addr)
 	
 	//if(planes >= 4) planes = 4;
 	for(i = 0; i < 4; i++) {
-		if((bank_disable_reg & (1 << i)) != 0) {
-			continue;
-		}
+		if(disable_flags[i]) continue;
+		//if((bank_disable_reg & (1 << i)) != 0) {
+		//	continue;
+		//}
 		srcdata[i] = do_read(addr, i);
 		if((color_reg & (1 << i)) == 0) {
 			bitmask[i] = srcdata[i]; // srcdata | 0x00
@@ -100,9 +103,10 @@ void MB61VH010::do_or(uint32_t addr)
 	//srcdata[2] = (srcdata[2] & mask_p[2]) | (bitmask[2] & mask_n[2]);
 	//srcdata[3] = (srcdata[3] & mask_p[3]) | (bitmask[3] & mask_n[3]);
 	for(i = 0; i < 4; i++) {
-		if((bank_disable_reg & (1 << i)) != 0) {
-			continue;
-		}
+		if(disable_flags[i]) continue;
+		//if((bank_disable_reg & (1 << i)) != 0) {
+		//	continue;
+		//}
 		do_write(addr, i, srcdata[i]);
 	}
 	return;
@@ -122,9 +126,10 @@ void MB61VH010::do_and(uint32_t addr)
 
 	//if(planes >= 4) planes = 4;
 	for(i = 0; i < 4; i++) {
-		if((bank_disable_reg & (1 << i)) != 0) {
-			continue;
-		}
+		if(disable_flags[i]) continue;
+		//if((bank_disable_reg & (1 << i)) != 0) {
+		//	continue;
+		//}
 		srcdata[i] = do_read(addr, i);
 		if((color_reg & (1 << i)) == 0) {
 			bitmask[i] = 0x00; // srcdata & 0x00
@@ -165,9 +170,10 @@ void MB61VH010::do_xor(uint32_t addr)
 
 	//if(planes >= 4) planes = 4;
 	for(i = 0; i < 4; i++) {
-		if((bank_disable_reg & (1 << i)) != 0) {
-			continue;
-		}
+		if(disable_flags[i]) continue;
+		//if((bank_disable_reg & (1 << i)) != 0) {
+		//	continue;
+		//}
 		if((color_reg & (1 << i)) == 0) {
 			bitmask[i] = 0x00;
 		} else {
@@ -193,9 +199,10 @@ void MB61VH010::do_xor(uint32_t addr)
 	//srcdata[2] = (srcdata[2] & mask_p[2]) | (bitmask[2] & mask_n[2]);
 	//srcdata[3] = (srcdata[3] & mask_p[3]) | (bitmask[3] & mask_n[3]);
 	for(i = 0; i < 4; i++) {
-		if((bank_disable_reg & (1 << i)) != 0) {
-			continue;
-		}
+		if(disable_flags[i]) continue;
+		//if((bank_disable_reg & (1 << i)) != 0) {
+		//	continue;
+		//}
 		do_write(addr, i, srcdata[i]);
 	}
 	return;
@@ -215,9 +222,10 @@ void MB61VH010::do_not(uint32_t addr)
 
 	//if(planes >= 4) planes = 4;
 	for(i = 0; i < 4; i++) {
-		if((bank_disable_reg & (1 << i)) != 0) {
-			continue;
-		}
+		if(disable_flags[i]) continue;
+		//if((bank_disable_reg & (1 << i)) != 0) {
+		//	continue;
+		//}
 		srcdata[i] = do_read(addr, i);
 		bitmask[i] = ~srcdata[i];
 		//bitmask = bitmask & ~mask_reg;
@@ -253,9 +261,10 @@ void MB61VH010::do_tilepaint(uint32_t addr)
 
 	//if(planes > 4) planes = 4;
 	for(i = 0; i < 4; i++) {
-		if((bank_disable_reg & (1 << i)) != 0) {
-			continue;
-		}
+		if(disable_flags[i]) continue;
+		//if((bank_disable_reg & (1 << i)) != 0) {
+		//	continue;
+		//}
 		srcdata[i] = do_read(addr, i);
 		bitmask[i] = tile_reg[i];
 		//bitmask = tile_reg[i] & (~mask_reg);
@@ -268,9 +277,10 @@ void MB61VH010::do_tilepaint(uint32_t addr)
 	//srcdata[2] = (srcdata[2] & mask_p[2]) | (bitmask[2] & mask_n[2]);
 	//srcdata[3] = (srcdata[3] & mask_p[3]) | (bitmask[3] & mask_n[3]);
 	for(i = 0; i < 4; i++) {
-		if((bank_disable_reg & (1 << i)) != 0) {
-			continue;
-		}
+		if(disable_flags[i]) continue;
+		//if((bank_disable_reg & (1 << i)) != 0) {
+		//	continue;
+		//}
 		do_write(addr, i, srcdata[i]);
 	}
 	return;
@@ -673,6 +683,9 @@ void MB61VH010::write_data8(uint32_t id, uint32_t data)
 				break;
 			}
 			bank_disable_reg = data;
+			for(int i = 0; i < 4; i++) {
+				disable_flags[i] = ((bank_disable_reg & (1 << i)) != 0) ? true : false;
+			}
 			break;
 		case ALU_TILEPAINT_B:
 			tile_reg[0] = data;
@@ -803,6 +816,9 @@ void MB61VH010::write_signal(int id, uint32_t data, uint32_t mask)
 			break;
 		case SIG_ALU_MULTIPAGE:
 			multi_page = (data & mask) & 0x07;
+			for(int i = 0; i < 4; i++) {
+				multi_flags[i] = (((1 << i) & multi_page) != 0) ? true : false;
+			}
 			break;
 		case SIG_ALU_PLANES:
 			planes = (data & mask) & 0x07;
@@ -839,6 +855,9 @@ void MB61VH010::initialize(void)
 	is_400line = false;
 	eventid_busy = -1;
 	multi_page = 0x00;
+	for(i = 0; i < 4; i++) {
+		multi_flags[i] = (((1 << i) & multi_page) != 0) ? true : false;
+	}
 	planes = 3;
 	screen_width = 640;
 	screen_height = 200;
@@ -848,6 +867,9 @@ void MB61VH010::initialize(void)
 	cmp_status_reg = 0;     // D413 (RO)
 	for(i = 0; i < 8; i++) cmp_color_data[i] = 0x80; // D413-D41A (WO)
 	bank_disable_reg = 0xf8;// D41B (RW)
+	for(i = 0; i < 4; i++) {
+		disable_flags[i] = ((bank_disable_reg & (1 << i)) != 0) ? true : false;
+	}
 	for(i = 0; i < 4; i++) tile_reg[i] = 0;        // D41C-D41F (WO)
 	
 	line_addr_offset.d = 0; // D420-D421 (WO)
@@ -896,6 +918,12 @@ void MB61VH010::reset(void)
 	default:
 		bank_disable_reg = 0xff;
 		break;
+	}
+	for(i = 0; i < 4; i++) {
+		disable_flags[i] = ((bank_disable_reg & (1 << i)) != 0) ? true : false;
+	}
+	for(i = 0; i < 4; i++) {
+		multi_flags[i] = (((1 << i) & multi_page) != 0) ? true : false;
 	}
 }
 
@@ -984,6 +1012,13 @@ bool MB61VH010::load_state(FILEIO *state_fio)
 
 		line_style.d = 0;
 		line_style.w.l = state_fio->FgetUint16_BE();
+		// Update
+		for(i = 0; i < 4; i++) {
+			disable_flags[i] = ((bank_disable_reg & (1 << i)) != 0) ? true : false;
+		}
+		for(i = 0; i < 4; i++) {
+			multi_flags[i] = (((1 << i) & multi_page) != 0) ? true : false;
+		}
 	}
 	if(version != STATE_VERSION) return false;
 	return true;

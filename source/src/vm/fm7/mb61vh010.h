@@ -91,7 +91,8 @@ class MB61VH010: public DEVICE {
 	uint32_t oldaddr;
 	uint32_t alu_addr;
 	pair_t line_style;
-	
+	bool disable_flags[4];
+	bool multi_flags[4];
 	// ALU COMMANDS
 	inline uint8_t do_read(uint32_t addr,  uint32_t bank);
 	inline void do_write(uint32_t addr, uint32_t bank, uint8_t data);
@@ -235,7 +236,8 @@ inline uint8_t MB61VH010::do_read(uint32_t addr, uint32_t bank)
 {
 	uint32_t raddr;
 	
-	if(((1 << bank) & multi_page) != 0) return 0xff;
+	//if(((1 << bank) & multi_page) != 0) return 0xff;
+	if(multi_flags[bank]) return 0xff;
 	if(is_400line) {
 		if((addr & 0xffff) < 0x8000) {
 			raddr = (addr  & 0x7fff) | (0x8000 * bank);
@@ -253,7 +255,8 @@ inline void MB61VH010::do_write(uint32_t addr, uint32_t bank, uint8_t data)
 	uint32_t raddr;
 	uint8_t readdata;
 
-	if(((1 << bank) & multi_page) != 0) return;
+	//if(((1 << bank) & multi_page) != 0) return;
+	if(multi_flags[bank]) return;
 	if((command_reg & 0x40) != 0) { // Calculate before writing
 	  	readdata = do_read(addr, bank);
 		//readdata = data;
