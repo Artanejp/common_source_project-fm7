@@ -17,7 +17,8 @@
 //#include "fm7_common.h"
 
 enum {
-	ALU_CMDREG = 0,
+	ALU_WRITE_PROXY = 0x00000,
+	ALU_CMDREG = 0x10000,
 	ALU_LOGICAL_COLOR,
 	ALU_WRITE_MASKREG,
 	ALU_CMP_STATUS_REG,
@@ -38,8 +39,7 @@ enum {
 	ALU_LINEPOS_END_X_LOW,  
 	ALU_LINEPOS_END_Y_HIGH,
 	ALU_LINEPOS_END_Y_LOW,
-	ALU_CMPDATA_REG = 0x10000,
-	ALU_WRITE_PROXY = 0x20000,
+	ALU_CMPDATA_REG,
 };
 
 enum {
@@ -91,10 +91,11 @@ class MB61VH010: public DEVICE {
 	uint32_t oldaddr;
 	uint32_t alu_addr;
 	pair_t line_style;
-	
+	bool disable_flags[4];
+	bool multi_flags[4];
 	// ALU COMMANDS
-	uint8_t do_read(uint32_t addr,  uint32_t bank);
-	void do_write(uint32_t addr, uint32_t bank, uint8_t data);
+	inline uint8_t do_read(uint32_t addr,  uint32_t bank);
+	inline void do_write(uint32_t addr, uint32_t bank, uint8_t data);
 	void do_pset(uint32_t addr);
 	void do_blank(uint32_t addr);
 	void do_or(uint32_t addr);
@@ -105,8 +106,8 @@ class MB61VH010: public DEVICE {
 	void do_compare(uint32_t addr);
 	void do_alucmds(uint32_t addr);
 	void do_alucmds_dmyread(uint32_t addr);
-	inline bool put_dot(int x, int y);
-	inline bool put_dot8(int x, int y);
+	inline void put_dot(int x, int y);
+	inline void put_dot8(int x, int y);
 
 	// LINE
 	void do_line(void);
@@ -140,5 +141,145 @@ class MB61VH010: public DEVICE {
 	}
 };	
 
+inline void MB61VH010::put_dot(int x, int y)
+{
+	const uint8_t vmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
+	uint16_t tmp16a;
+	uint8_t tmp8a;
+	uint8_t mask8;
+	
+	//bool updated;
+   
+	if((command_reg & 0x80) == 0) return; // Not compare.
+	if((x < 0) || (y < 0)) {
+		return; // Lower address
+	}
+   
+	//if(y >= (int)screen_height) return; // Workaround of overflow
+	
+	alu_addr = (y * screen_width + x)  >> 3;
+	alu_addr = alu_addr + line_addr_offset.w.l;
+	if(!is_400line) {
+		alu_addr = alu_addr & 0x3fff;
+	} else {
+		alu_addr = alu_addr & 0x7fff;
+	}
+	
+	mask8 = ~vmask[x & 7];
+	//updated = false;
+	tmp8a = line_style.b.h & 0x80;
+	
+  	if(oldaddr != alu_addr) {
+		if(oldaddr == 0xffffffff) {
+			if(tmp8a != 0) {
+				mask_reg &= mask8;
+			}
+			oldaddr = alu_addr;
+		}
+		do_alucmds(oldaddr);
+		mask_reg = 0xff;
+		oldaddr = alu_addr;
+		//updated = true;
+	}
+	line_style.w.l <<= 1;
+	if(tmp8a != 0) {
+	  	mask_reg &= mask8;
+		line_style.w.l |= 0x01;
+	}
+	return;
+}
 
+inline void MB61VH010::put_dot8(int x, int y)
+{
+	const uint8_t vmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
+	uint8_t tmp8a;
+	int xx;
+	uint16_t tmp16a;
+	//bool updated;
+   
+	if((command_reg & 0x80) == 0) return; // Not compare.
+	if((x < 0) || (y < 0)) {
+		return; // Lower address
+	}
+   
+	//if(y >= (int)screen_height) return; // Workaround of overflow
+	
+	alu_addr = (y * screen_width + x)  >> 3;
+	alu_addr = alu_addr + line_addr_offset.w.l;
+	if(!is_400line) {
+		alu_addr = alu_addr & 0x3fff;
+	} else {
+		alu_addr = alu_addr & 0x7fff;
+	}
+	//updated = false;
+	if(oldaddr != alu_addr) {
+		if(oldaddr == 0xffffffff) {
+			if((line_style.b.h & 0x80) != 0) {
+				mask_reg &= ~vmask[x & 7];
+			}
+			oldaddr = alu_addr;
+		}
+		do_alucmds(oldaddr);
+		mask_reg = 0xff;
+		oldaddr = alu_addr;
+		//updated = true;
+	}
+	tmp8a = line_style.b.h;
+	mask_reg = mask_reg & ~tmp8a;
+	tmp8a = line_style.b.l;
+	line_style.b.l = line_style.b.h;
+	line_style.b.h = tmp8a;
+	return;
+}
+
+inline uint8_t MB61VH010::do_read(uint32_t addr, uint32_t bank)
+{
+	uint32_t raddr;
+	
+	//if(((1 << bank) & multi_page) != 0) return 0xff;
+	if(multi_flags[bank]) return 0xff;
+	if(is_400line) {
+		if((addr & 0xffff) < 0x8000) {
+			raddr = (addr  & 0x7fff) | (0x8000 * bank);
+			return target->read_data8(raddr + direct_access_offset);
+		}
+	} else {
+		raddr = (addr & 0x3fff) | (0x4000 * bank);
+		return target->read_data8(raddr + direct_access_offset);
+	}
+	return 0xff;
+}
+
+inline void MB61VH010::do_write(uint32_t addr, uint32_t bank, uint8_t data)
+{
+	uint32_t raddr;
+	uint8_t readdata;
+
+	//if(((1 << bank) & multi_page) != 0) return;
+	if(multi_flags[bank]) return;
+	if((command_reg & 0x40) != 0) { // Calculate before writing
+	  	readdata = do_read(addr, bank);
+		//readdata = data;
+		if((command_reg & 0x20) != 0) { // NAND
+			readdata = readdata & cmp_status_reg;
+			data = data & (~cmp_status_reg);
+		} else { // AND
+			readdata = readdata & (~cmp_status_reg);
+			data = data & cmp_status_reg;
+		}
+		readdata = readdata | data;
+	} else {
+		readdata = data;
+	}
+	if(is_400line) {
+		if((addr & 0xffff) < 0x8000) {
+			raddr = (addr & 0x7fff) | (0x8000 * bank);
+			target->write_data8(raddr + direct_access_offset, readdata);
+		}
+	} else {
+		raddr = (addr & 0x3fff) | (0x4000 * bank);
+		target->write_data8(raddr + direct_access_offset, readdata);
+	}
+	return;
+}
 #endif // _VM_FM77AV_16beta_ALU_H_

@@ -100,6 +100,7 @@ enum
 
 void UPD7810::initialize()
 {
+	DEVICE::initialize();
 	opaque = CPU_INIT_CALL(upd7810);
 	
 	upd7810_state *cpustate = (upd7810_state *)opaque;

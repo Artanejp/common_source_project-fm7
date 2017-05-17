@@ -19,7 +19,7 @@
 #define USE_DEVICE_NAME
 #endif
 
-#if defined(USE_DEVICES_SHARED_LIB)
+#if defined(USE_SHARED_DLL)
 #include "libcpu_newdev/device.h"
 
 #else
@@ -56,9 +56,11 @@ class DEVICE
 protected:
 	VM* vm;
 	EMU* emu;
+	OSD* osd;
 public:
 	DEVICE(VM* parent_vm, EMU* parent_emu) : vm(parent_vm), emu(parent_emu)
 	{
+		osd = NULL;
 		strncpy(this_device_name, "Base Device", 128);
 		prev_device = vm->last_device;
 		next_device = NULL;
@@ -82,7 +84,7 @@ public:
 	// destructor might cause undefined behavior [-Wdelete-non-virtual-dtor]".
 	~DEVICE(void) {}
 	
-	virtual void initialize() {}
+	virtual void initialize() {	osd = emu->get_osd(); /* Initializing VM must be after initializing OSD. */ }
 	virtual void release() {}
 	
 	virtual void update_config() {}
@@ -781,6 +783,6 @@ public:
 	DEVICE* next_device;
 	int this_device_id;
 };
-#endif //USE_DEVICES_SHARED_LIB
+#endif // USE_SHARED_DLL
 
 #endif

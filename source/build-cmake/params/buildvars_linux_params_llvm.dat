@@ -4,12 +4,25 @@
 # Neither for LLVM/MinGW and GCC.
 #
 ## CLANG
-CCMAKE_CC=clang-3.9
-CCMAKE_CXX=clang++-3.9
+CCMAKE_CC=clang
+CCMAKE_CXX=clang++
+
+if [ -v CC_SUFFIX ] ; then
+   CCMAKE_CC=${CCMAKE_CC}-${CC_SUFFIX}
+   CCMAKE_CXX=${CCMAKE_CXX}-${CC_SUFFIX}
+fi
+if [ -v CC_PREFIX ] ; then
+   CCMAKE_CC=${CC_PREFIX}-${CCMAKE_CC}
+   CCMAKE_CXX=${CC_PREFIX}-${CCMAKE_CXX}
+fi
+if [ -v CC_PATH ] ; then
+   CCMAKE_CC=${CC_PATH}/${CCMAKE_CC}
+   CCMAKE_CXX=${CC_PATH}/${CCMAKE_CXX}
+fi
 
 case ${CSP_DEBUG} in
    "Yes" | "yes" | "YES" )
-      MAKEFLAGS_BASE3="-gdwarf-4 \
+      MAKEFLAGS_BASE3="-ggdb \
  	        -Wreserved-user-defined-literal \
  	        -fslp-vectorize \
  	        -fvectorize \
@@ -35,18 +48,18 @@ case ${CSP_DEBUG} in
 esac
 case ${USE_LTO} in
    "Yes" | "yes" | "YES" )
-        MAKEFLAGS_BASE2="${MAKEFLAGS_BASE3} -O2 -flto=thin -std=c++11 -msse -msse2 -DNDEBUG" 
-        #MAKEFLAGS_CC_BASE2="${MAKEFLAGS_BASE3} -O2 -flto=thin -std=c11  -msse -msse2 -DNDEBUG"
-	MAKEFLAGS_LINK_BASE2="${MAKEFLAGS_BASE3} -O2 -flto=thin -fwhole-program-vtables -msse -msse2"
+        MAKEFLAGS_BASE2="${MAKEFLAGS_BASE3} -O3 -flto=thin -std=c++11 -msse -msse2 -DNDEBUG" 
+        #MAKEFLAGS_CC_BASE2="${MAKEFLAGS_BASE3} -O3 -flto=thin -std=c11  -msse -msse2 -DNDEBUG"
+	MAKEFLAGS_LINK_BASE2="${MAKEFLAGS_BASE3} -O3 -flto=thin -fwhole-program-vtables -msse -msse2"
 	;;
    "No" | "no" | "NO" | * )
-        MAKEFLAGS_BASE2="-Os -std=c++11 ${MAKEFLAGS_BASE3} -DNDEBUG" 
-        #MAKEFLAGS_CC_BASE2="-Os -std=c11 ${MAKEFLAGS_BASE3} -DNDEBUG"
+        MAKEFLAGS_BASE2="-O3 -std=c++11 ${MAKEFLAGS_BASE3} -DNDEBUG" 
+        #MAKEFLAGS_CC_BASE2="-O3 -std=c11 ${MAKEFLAGS_BASE3} -DNDEBUG"
 	MAKEFLAGS_LINK_BASE2="${MAKEFLAGS_BASE3}"
 	;;
 esac	
 
-CMAKE_APPENDFLAG="${CMAKE_APPENDFLAG} -DCMAKE_AR:STRING=llvm-ar-3.9 -DCMAKE_NM:STRING=llvm-nm-3.9 -DCMAKE_RANLIB:STRING=llvm-ranlib-3.9"
-CMAKE_APPENDFLAG="${CMAKE_APPENDFLAG} -DCMAKE_AS:STRING=llvm-as-3.9"
+CMAKE_APPENDFLAG="${CMAKE_APPENDFLAG} -DCMAKE_AR:STRING=llvm-ar-${LLVM_VERSION} -DCMAKE_NM:STRING=llvm-nm-${LLVM_VERSION} -DCMAKE_RANLIB:STRING=llvm-ranlib-${LLVM_VERSION}"
+CMAKE_APPENDFLAG="${CMAKE_APPENDFLAG} -DCMAKE_AS:STRING=llvm-as-${LLVM_VERSION}"
 
 

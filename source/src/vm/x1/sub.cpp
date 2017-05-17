@@ -14,9 +14,6 @@
 #include "../i8255.h"
 #include "../mcs48.h"
 #include "../upd1990a.h"
-#if defined(USE_SOUND_FILES)
-#include "../wav_sounder.h"
-#endif
 
 /*
 SUB CPU
@@ -90,9 +87,6 @@ void SUB::reset()
 
 void SUB::write_io8(uint32_t addr, uint32_t data)
 {
-#if defined(USE_SOUND_FILES)
-	bool ffrew_comp = false;
-#endif
 	// FIXME: this function is referred from both 80c48 and z80
 	if((addr & 0xff00) == 0x1900) {
 		// for z80
@@ -116,35 +110,18 @@ void SUB::write_io8(uint32_t addr, uint32_t data)
 			if((p2_out & 0x02) && !(data & 0x02)) {
 				d_drec->set_ff_rew(0);
 				d_drec->set_remote(true);
-#if defined(USE_SOUND_FILES)
-				ffrew_comp = true;
-#endif
 			}
 			if((p2_out & 0x04) && !(data & 0x04)) {
 				d_drec->set_ff_rew(1);
 				d_drec->set_remote(true);
-#if defined(USE_SOUND_FILES)
-				ffrew_comp = true;
-#endif
 			}
 			if((p2_out & 0x08) && !(data & 0x08)) {
 				d_drec->set_ff_rew(-1);
 				d_drec->set_remote(true);
-#if defined(USE_SOUND_FILES)
-				ffrew_comp = true;
-#endif
 			}
 			if((p2_out & 0x10) && !(data & 0x10)) {
 				d_drec->set_remote(false);
-#if defined(USE_SOUND_FILES)
-				d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_STOP, 1, 1);
-#endif
 			}
-#if defined(USE_SOUND_FILES)
-			if(ffrew_comp) {
-				d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_FF, 1, 1);
-			}
-#endif
 			intr = ((data & 0x40) == 0);
 			update_intr();
 			p2_out = data;
@@ -201,14 +178,6 @@ void SUB::write_signal(int id, uint32_t data, uint32_t mask)
 		portc = data;
 		update_intr();
 	} else if(id == SIG_SUB_TAPE_END) {
-#if defined(USE_SOUND_FILES)
-		{
-			bool f = ((data & mask) != 0);
-			if((f != tape_eot) && (f)) {
-				d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_STOP, 1, 1);
-			}
-		}
-#endif
 		tape_eot = ((data & mask) != 0);
 		update_tape();
 	} else if(id == SIG_SUB_TAPE_APSS) {
@@ -219,15 +188,6 @@ void SUB::write_signal(int id, uint32_t data, uint32_t mask)
 
 void SUB::play_tape(bool value)
 {
-#if defined(USE_SOUND_FILES)
-	if(tape_play != value) {
-		if(value) {
-			d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_PLAY, 1, 1);
-		} else {
-			d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_STOP, 1, 1);
-		}
-	}			
-#endif
 	tape_play = value;
 	tape_rec = tape_eot = tape_apss = false;
 	update_tape();
@@ -235,15 +195,6 @@ void SUB::play_tape(bool value)
 
 void SUB::rec_tape(bool value)
 {
-#if defined(USE_SOUND_FILES)
-	if(tape_rec != value) {
-		if(value) {
-			d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_PLAY, 1, 1);
-		} else {
-			d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_STOP, 1, 1);
-		}
-	}			
-#endif
 	tape_rec = value;
 	tape_play = tape_eot = tape_apss = false;
 	update_tape();
@@ -251,9 +202,6 @@ void SUB::rec_tape(bool value)
 
 void SUB::close_tape()
 {
-#if defined(USE_SOUND_FILES)
-	d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_EJECT, 1, 1);
-#endif
 	tape_play = tape_rec = tape_eot = tape_apss = false;
 	update_tape();
 }

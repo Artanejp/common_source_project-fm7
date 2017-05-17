@@ -158,19 +158,19 @@ void META_MainWindow::retranslateUi(void)
 #ifdef USE_MOUSE
 	actionMouseEnable->setVisible(false);
 #endif
-	menuDipSW1->setTitle(QApplication::translate("MainWindow", "SW1", 0));
-	actionDipSW1_ON->setText(QApplication::translate("MainWindow", "STEP", 0));
-	actionDipSW1_OFF->setText(QApplication::translate("MainWindow", "AUTO", 0));
+	menuDipSW1->setTitle(QApplication::translate("Machine", "SW1", 0));
+	actionDipSW1_ON->setText(QApplication::translate("Machine", "STEP", 0));
+	actionDipSW1_OFF->setText(QApplication::translate("Machine", "AUTO", 0));
 
-	menuDipSW2->setTitle(QApplication::translate("MainWindow", "SW2", 0));
-	actionDipSW2_ON->setText(QApplication::translate("MainWindow", "CHAR", 0));
-	actionDipSW2_OFF->setText(QApplication::translate("MainWindow", "BIT", 0));
+	menuDipSW2->setTitle(QApplication::translate("Machine", "SW2", 0));
+	actionDipSW2_ON->setText(QApplication::translate("Machine", "CHAR", 0));
+	actionDipSW2_OFF->setText(QApplication::translate("Machine", "BIT", 0));
 
-	menuVramAddr->setTitle(QApplication::translate("MainWindow", "VRAM Address", 0));
-	actionVramAddr[0]->setText(QApplication::translate("MainWindow", "$8000-$81FF", 0));
-	actionVramAddr[1]->setText(QApplication::translate("MainWindow", "$8200-$83FF", 0));
-	actionVramAddr[2]->setText(QApplication::translate("MainWindow", "$8400-$85FF", 0));
-	actionVramAddr[3]->setText(QApplication::translate("MainWindow", "$8600-$87FF", 0));
+	menuVramAddr->setTitle(QApplication::translate("Machine", "VRAM Address", 0));
+	actionVramAddr[0]->setText(QApplication::translate("Machine", "$8000-$81FF", 0));
+	actionVramAddr[1]->setText(QApplication::translate("Machine", "$8200-$83FF", 0));
+	actionVramAddr[2]->setText(QApplication::translate("Machine", "$8400-$85FF", 0));
+	actionVramAddr[3]->setText(QApplication::translate("Machine", "$8600-$87FF", 0));
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(false);

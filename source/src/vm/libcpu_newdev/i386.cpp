@@ -38,6 +38,7 @@
 
 void I386::initialize()
 {
+	DEVICE::initialize();
 	cpucore = new I386_OPS;
 #if defined(HAS_I386)
 	cpucore->cpu_init_i386();

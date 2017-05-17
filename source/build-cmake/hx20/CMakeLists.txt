@@ -12,8 +12,8 @@ message("")
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
-project (emumsx2plus)
-set(EXEC_TARGET emumsx2plus)
+project (emuhx20)
+set(EXEC_TARGET emuhx20)
 set(VM_NAME msx)
 set(USE_FMGEN ON)
 set(WITH_JOYSTICK ON)

@@ -3,8 +3,8 @@ set(USE_FMGEN OFF)
 set(WITH_JOYSTICK OFF)
 set(WITH_MOUSE OFF)
 
+set(FLAG_USE_Z80 ON)
 set(VMFILES
-		   z80.cpp
 		   #
 		   z80sio.cpp
 

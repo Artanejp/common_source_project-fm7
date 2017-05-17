@@ -24,6 +24,7 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 
 	use_compact_disc = use_debugger = false;
 	use_device_type = 0;
+	use_mouse_type = -1;
 	use_dipswitch = false;
 
 	use_drive_type = 0;

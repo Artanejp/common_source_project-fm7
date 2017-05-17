@@ -10,8 +10,8 @@
 #ifndef _MSM58321_H_
 #define _MSM58321_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 #define SIG_MSM58321_DATA	0
@@ -24,14 +24,13 @@
 #define SIG_MSM5832_ADDR	5
 #define SIG_MSM5832_HOLD	6
 
-class MSM58321 : public DEVICE
+class VM;
+class EMU;
+class MSM58321_BASE : public DEVICE
 {
-private:
+protected:
 	// output signals
 	outputs_t outputs_data;
-#ifndef HAS_MSM5832
-	outputs_t outputs_busy;
-#endif
 	
 	dll_cur_time_t cur_time;
 	int register_id;
@@ -41,28 +40,27 @@ private:
 	bool cs, rd, wr, addr_wr, busy, hold;
 	int count_1024hz, count_1s, count_1m, count_1h;
 	
-	void read_from_cur_time();
-	void write_to_cur_time();
+	virtual void read_from_cur_time();
+	virtual void write_to_cur_time();
 	void output_data();
-	void set_busy(bool val);
-	
+	virtual void set_busy(bool val);
+	int start_day;
+	int start_year;
 public:
-	MSM58321(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MSM58321_BASE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_data);
-#ifndef HAS_MSM5832
-		initialize_output_signals(&outputs_busy);
-		set_device_name(_T("MSM58321 RTC"));
-#else
 		set_device_name(_T("MSM5832 RTC"));
-#endif
+		start_day = 0;
+		start_year = 0;
 	}
-	~MSM58321() {}
+	~MSM58321_BASE() {}
 	
 	// common functions
-	void initialize();
+	virtual void initialize();
 	void event_callback(int event_id, int err);
 	void write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t read_signal(int ch);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
@@ -71,13 +69,39 @@ public:
 	{
 		register_output_signal(&outputs_data, device, id, mask, shift);
 	}
-#ifndef HAS_MSM5832
+};
+
+class MSM58321: public MSM58321_BASE
+{
+protected:
+	outputs_t outputs_busy;
+	void read_from_cur_time();
+	void write_to_cur_time();
+	void set_busy(bool val);
+public:
+	MSM58321(VM* parent_vm, EMU* parent_emu);
+	~MSM58321() {}
+	
+	void initialize();
 	void set_context_busy(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_busy, device, id, mask);
 	}
-#endif
 };
 
+class MSM5832: public MSM58321_BASE
+{
+protected:
+	void read_from_cur_time();
+	void write_to_cur_time();
+	void set_busy(bool val);
+
+public:
+	MSM5832(VM* parent_vm, EMU* parent_emu);
+	~MSM5832() {}
+	
+	void initialize();
+};
+	
 #endif
 

@@ -17,6 +17,7 @@ DLL_PREFIX_I struct cur_time_s cur_time;
 
 void UPD1990A::initialize()
 {
+	DEVICE::initialize();
 	// initialize rtc
 	get_host_time(&cur_time);
 	

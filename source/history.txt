@@ -1,3 +1,44 @@
+5/15/2017
+
+[X1TURBOZ] support SHARP X1turboZ
+[X1TURBOZ/DISPLAY] support X1turboZ enhanced graphic modes
+[X1TURBOZ/IOSUB] support analog palette access wait
+
+
+5/13/2017
+
+[WIN32/SCREEN] fix not to move window position unnecessarily
+
+[VM/AM9511] support AM9511 (thanks Xep128)
+[VM/DISK] support to specify raw track size
+[VM/MB8877] support to specify raw track size
+[VM/MC6844] support MC6844
+[VM/MC6850] support MC6850
+[VM/MSM58321] add read_signal()
+[VM/MEMORY] improve that dma controller does not read/write memory mapped i/o
+[VM/NOISE] fix not to restart from first sample if already playing noise
+
+[YIS] support YAMAHA YIS
+
+
+4/16/2017
+
+[VM/IO] revert the fix in 4/15/2017
+[VM/SN76489AN] revert the fix in 4/15/2017
+
+
+4/15/2017
+
+[COMMON] add muldiv_s32 and muldiv_u32 to multiple 32bit integer
+[COMMON] fix functions to support symbols
+
+[VM/IO] improve to use read/write_io8/16/32w() to get wait clock from device
+[VM/SN76489AN] improve to return 32 + 16 * n for wait clock
+
+[MZ700] improve correct cpu clock and frame rate
+[MZ800] improve correct cpu clock and frame rate
+
+
 4/2/2017
 
 [RESOURCE] improve menu items

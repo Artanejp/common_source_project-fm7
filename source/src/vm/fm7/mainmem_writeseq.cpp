@@ -35,12 +35,12 @@ void FM7_MAINMEM::write_direct_access(uint32_t realaddr, uint32_t data, bool dma
 #if defined(_FM77AV_VARIANTS)
 	if(!sub_halted) return; // Not halt
 	if(dmamode) {
-		return display->write_dma_data8(realaddr & 0xffff, data); // Okay?
+		display->write_dma_data8(realaddr & 0xffff, data); // Okay?
 	} else {
-		return display->write_data8(realaddr & 0xffff, data); // Okay?
+		display->write_data8(realaddr & 0xffff, data); // Okay?
 	}
 #else
-	return 0xff;
+	return;
 #endif	
 }
 

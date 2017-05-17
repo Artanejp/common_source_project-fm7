@@ -11,6 +11,7 @@
 
 void I8253::initialize()
 {
+	DEVICE::initialize();
 	for(int ch = 0; ch < 3; ch++) {
 		counter[ch].prev_out = true;
 		counter[ch].prev_in = false;

@@ -516,6 +516,7 @@ int necv_dasm_one(_TCHAR *buffer, UINT32 eip, const UINT8 *oprom);
 
 void I86::initialize()
 {
+	DEVICE::initialize();
 	static const BREGS reg_name[8] = {AL, CL, DL, BL, AH, CH, DH, BH};
 	
 	for(int i = 0; i < 256; i++) {

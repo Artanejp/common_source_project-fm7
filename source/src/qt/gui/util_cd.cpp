@@ -41,7 +41,7 @@ void Ui_MainWindowBase::CreateCDROMMenu(void)
 	menu_CDROM->do_update_histories(listCDROM);
 	menu_CDROM->do_set_initialize_directory(using_flags->get_config_ptr()->initial_compact_disc_dir);
 	
-	ext_play = "*.ccd *.cue";
+	ext_play = "*.ccd *.cue *.gz";
 	desc_play = "Compact Disc";
 	menu_CDROM->do_add_media_extension(ext_play, desc_play);
 

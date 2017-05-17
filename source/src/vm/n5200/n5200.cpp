@@ -327,11 +327,6 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		fdc->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
 		fdc->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
 	}
-#if defined(USE_SOUND_FILES)
-	else if(ch == 1) {
-		fdc->set_volume(UPD765A_SND_TYPE_SEEK, decibel_l, decibel_r);
-	}
-#endif
 }
 #endif
 

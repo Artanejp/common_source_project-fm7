@@ -10,46 +10,46 @@
 #ifndef _YM2203_H_
 #define _YM2203_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 #include "fmgen/opna.h"
 
-#if !(defined(HAS_AY_3_8910) || defined(HAS_AY_3_8912) || defined(HAS_AY_3_8913))
-#define HAS_YM_SERIES
+//#if !(defined(HAS_AY_3_8910) || defined(HAS_AY_3_8912) || defined(HAS_AY_3_8913))
+//#define HAS_YM_SERIES
 #ifdef SUPPORT_WIN32_DLL
 #define SUPPORT_MAME_FM_DLL
 #include "fmdll/fmdll.h"
 #endif
-#endif
+//#endif
 
-#if defined(HAS_AY_3_8913)
+//#if defined(HAS_AY_3_8913)
 // both port a and port b are not supported
-#elif defined(HAS_AY_3_8912)
+//#elif defined(HAS_AY_3_8912)
 // port b is not supported
-#define SUPPORT_YM2203_PORT_A
-#else
-#define SUPPORT_YM2203_PORT_A
-#define SUPPORT_YM2203_PORT_B
-#endif
-#if defined(SUPPORT_YM2203_PORT_A) || defined(SUPPORT_YM2203_PORT_B)
-#define SUPPORT_YM2203_PORT
-#endif
+//#define SUPPORT_YM2203_PORT_A
+//#else
+//#define SUPPORT_YM2203_PORT_A
+//#define SUPPORT_YM2203_PORT_B
+//#endif
+//#if defined(SUPPORT_YM2203_PORT_A) || defined(SUPPORT_YM2203_PORT_B)
+//#define SUPPORT_YM2203_PORT
+//#endif
 
-#ifdef SUPPORT_YM2203_PORT_A
+//#ifdef SUPPORT_YM2203_PORT_A
 #define SIG_YM2203_PORT_A	0
-#endif
-#ifdef SUPPORT_YM2203_PORT_B
+//#endif
+//#ifdef SUPPORT_YM2203_PORT_B
 #define SIG_YM2203_PORT_B	1
-#endif
+//#endif
 #define SIG_YM2203_MUTE		2
 
 class YM2203 : public DEVICE
 {
 private:
-#ifdef HAS_YM2608
+//#ifdef HAS_YM2608
 	FM::OPNA* opna;
-#endif
+//#endif
 	FM::OPN* opn;
 #ifdef SUPPORT_MAME_FM_DLL
 	CFMDLL* fmdll;
@@ -64,16 +64,16 @@ private:
 	
 	uint8_t ch;
 	uint8_t fnum2;
-#ifdef HAS_YM2608
+//#ifdef HAS_YM2608
 	uint8_t ch1, data1;
 	uint8_t fnum21;
-#endif
+//#endif
 
 	int32_t right_volume;
 	int32_t left_volume;
 	int32_t v_right_volume;
 	int32_t v_left_volume;
-#ifdef SUPPORT_YM2203_PORT
+//#ifdef SUPPORT_YM2203_PORT
 	struct {
 		uint8_t wreg;
 		uint8_t rreg;
@@ -82,7 +82,7 @@ private:
 		outputs_t outputs;
 	} port[2];
 	uint8_t mode;
-#endif
+//#endif
 	
 	int chip_clock;
 	bool irq_prev, mute;
@@ -94,36 +94,44 @@ private:
 	
 	uint32_t clock_busy;
 	bool busy;
-	
+
+	bool _HAS_YM2608;
+	bool _SUPPORT_YM2203_PORT;
+	bool _HAS_YM_SERIES;
+	bool _HAS_AY_3_8910;
+	bool _HAS_AY_3_8912;
+	bool _HAS_AY_3_8913;
+	bool _IS_YM2203_PORT_MODE;
+	uint8_t _YM2203_PORT_MODE;
+	bool _SUPPORT_YM2203_PORT_A;
+	bool _SUPPORT_YM2203_PORT_B;
+	uint32_t _amask;
 	void update_count();
 	void update_event();
-#ifdef HAS_YM_SERIES
+//#ifdef HAS_YM_SERIES
 	// output signals
 	outputs_t outputs_irq;
 	void update_interrupt();
-#endif
+//#endif
 public:
 	YM2203(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-#ifdef SUPPORT_YM2203_PORT
+		base_decibel_fm = base_decibel_psg = 0;
+		decibel_vol = 0 + 5;
+		_amask = 1;
+		_HAS_YM2608 = false;
+		_HAS_AY_3_8910 = _HAS_AY_3_8912 = _HAS_AY_3_8913 = false;
+		_SUPPORT_YM2203_PORT = _HAS_YM_SERIES = false;
+		_IS_YM2203_PORT_MODE = false;
+		_YM2203_PORT_MODE = 0xff;
+		_SUPPORT_YM2203_PORT_A = _SUPPORT_YM2203_PORT_B = false;
+		//if(_SUPPORT_YM2203_PORT) {
 		for(int i = 0; i < 2; i++) {
 			initialize_output_signals(&port[i].outputs);
 			port[i].wreg = port[i].rreg = 0;//0xff;
 		}
-#endif
-#ifdef HAS_YM_SERIES
 		initialize_output_signals(&outputs_irq);
-#endif
-#ifdef HAS_YM2608
-		is_ym2608 = true;
-#endif
-		base_decibel_fm = base_decibel_psg = 0;
-		decibel_vol = 0 + 5;
-#ifdef HAS_YM2608
-		set_device_name(_T("YM2608 OPNA"));
-#else		
-		set_device_name(_T("YM2203 OPN"));
-#endif		
+		//}
 	}
 	~YM2203() {}
 	
@@ -134,6 +142,7 @@ public:
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
 	void write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t read_signal(int ch);
 	void event_vline(int v, int clock);
 	void event_callback(int event_id, int error);
 	void mix(int32* buffer, int cnt);
@@ -142,29 +151,29 @@ public:
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	// unique functions
-#ifdef HAS_YM_SERIES
+//#ifdef HAS_YM_SERIES
 	void set_context_irq(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_irq, device, id, mask);
 	}
-#endif
-#ifdef SUPPORT_YM2203_PORT_A
+//#endif
+//#ifdef SUPPORT_YM2203_PORT_A
 	void set_context_port_a(DEVICE* device, int id, uint32_t mask, int shift)
 	{
 		register_output_signal(&port[0].outputs, device, id, mask, shift);
 	}
-#endif
-#ifdef SUPPORT_YM2203_PORT_B
+//#endif
+//#ifdef SUPPORT_YM2203_PORT_B
 	void set_context_port_b(DEVICE* device, int id, uint32_t mask, int shift)
 	{
 		register_output_signal(&port[1].outputs, device, id, mask, shift);
 	}
-#endif
+//#endif
 	void initialize_sound(int rate, int clock, int samples, int decibel_fm, int decibel_psg);
 	void set_reg(uint32_t addr, uint32_t data); // for patch
-#ifdef HAS_YM2608
+//#ifdef HAS_YM2608
 	bool is_ym2608;
-#endif
+//#endif
 };
 
 #endif

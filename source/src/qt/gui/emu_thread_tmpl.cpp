@@ -150,6 +150,7 @@ void EmuThreadClassBase::button_pressed_mouse(Qt::MouseButton button)
 void EmuThreadClassBase::button_released_mouse(Qt::MouseButton button)
 {
 	if(using_flags->is_use_mouse()) {
+		button_released_mouse_sub(button);
 	} else {
 		if(using_flags->get_max_button() > 0) {
 			button_desc_t *vm_buttons_d = using_flags->get_vm_buttons();

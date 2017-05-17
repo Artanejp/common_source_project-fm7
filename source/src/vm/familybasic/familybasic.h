@@ -88,7 +88,7 @@ class DEVICE;
 class EVENT;
 
 class DATAREC;
-class M6502;
+class N2A03;
 class YM2413;
 
 class MEMORY;
@@ -104,7 +104,7 @@ protected:
 	EVENT* event;
 	
 	DATAREC* drec;
-	M6502* cpu;
+	N2A03* cpu;
 	YM2413* opll;
 	
 	MEMORY* memory;

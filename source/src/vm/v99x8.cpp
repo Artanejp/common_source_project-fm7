@@ -30,12 +30,12 @@
 #include "v99x8.h"
 v99x8_t v99x8;
 
-#ifdef USE_CMDTIME
+//#ifdef USE_CMDTIME
 void cmdtime_set(int m);
 void cmdtime_chk(void);
 static int cmdtime_t;
 static int cmdtime_m;
-#endif
+//#endif
 static int latch1;
 static int latch2;
 
@@ -2716,6 +2716,12 @@ void	V99X8::v99x8_refresh_scx(int y, int h)
 
 void V99X8::initialize()
 {
+	DEVICE::initialize();
+	_SCREEN_WIDTH = osd->get_feature_int_value(_T("SCREEN_WIDTH"));
+	_SCREEN_HEIGHT = osd->get_feature_int_value(_T("SCREEN_HEIGHT"));
+	//_use_cmdtime = osd->check_feature(_T("USE_CMDTIME"));
+
+	screen = (scrntype_t *)malloc(_SCREEN_WIDTH * _SCREEN_HEIGHT * sizeof(scrntype_t));
 	// register event
 	register_vline_event(this);
 
@@ -2724,12 +2730,18 @@ void V99X8::initialize()
 	//v99x8_init();
 }
 
+void V99X8::release()
+{
+	if(screen != NULL) free(screen);
+}
+
+
 void V99X8::reset()
 {
 	v99x8_init();
 #ifdef USE_CMDTIME
-	cmdtime_t = 0;
-	cmdtime_m = 0;
+		cmdtime_t = 0;
+		cmdtime_m = 0;
 #endif
 	latch1 = -1;
 	latch2 = -1;
@@ -2796,12 +2808,12 @@ void V99X8::z80_intreq(int a)
 
 int V99X8::md_video_pitch(void)
 {
-	return SCREEN_WIDTH*4;
+	return _SCREEN_WIDTH*4;
 }
 
 uint8_t *V99X8::md_video_lockline(int x, int y, int w, int h)
 {
-	return (uint8_t*)(screen+y*SCREEN_WIDTH+x);
+	return (uint8_t*)(screen+y*_SCREEN_WIDTH+x);
 #if 0
 	if (SDL_MUSTLOCK(video.screen))
 		SDL_LockSurface(video.screen); /* 戻り値チェック？ */
@@ -2817,13 +2829,13 @@ void V99X8::md_video_update(int n, /*md_video_rect_t*/void *rp)
 	if (rp == NULL) {
 		scrntype_t *dst;
 		int y = 0;
-		int h = SCREEN_HEIGHT;
+		int h = _SCREEN_HEIGHT;
 		for(;h>0; h-=2) {
 			if((dst = emu->get_screen_buffer(y)) != NULL) {
-				memcpy(dst, screen+y*SCREEN_WIDTH, SCREEN_WIDTH*4);
+				memcpy(dst, screen+y*_SCREEN_WIDTH, _SCREEN_WIDTH*4);
 			}
 			if((dst = emu->get_screen_buffer(y + 1)) != NULL) {
-				memcpy(dst, screen+y*SCREEN_WIDTH, SCREEN_WIDTH*4);
+				memcpy(dst, screen+y*_SCREEN_WIDTH, _SCREEN_WIDTH*4);
 			}
 			y+=2;
 		}
@@ -2837,7 +2849,7 @@ void V99X8::md_video_fill(int x, int y, int w, int h, uint32_t c)
 {
 	int w2;
 	for(;h>0; h--) {
-		scrntype_t *p = screen+y*SCREEN_WIDTH+x;
+		scrntype_t *p = screen+y*_SCREEN_WIDTH+x;
 		for(w2=w;w2>0; w2--) {
 			*p++ = c;
 		}
@@ -2854,8 +2866,8 @@ static void lmcm(void)
 static void stop(void)
 {
 #ifdef USE_CMDTIME
-	cmdtime_t = 0;
-	v99x8.status[2] &= ~0x01;
+		cmdtime_t = 0;
+		v99x8.status[2] &= ~0x01;
 #endif
 }
 
@@ -2960,9 +2972,10 @@ static void lmmm_(void)
 	vcom_setny(0);
 }
 
-#ifdef USE_CMDTIME
+
 void cmdtime_set(int m)
 {
+#ifdef USE_CMDTIME
 	cmdtime_m = m>>4;
 	cmdtime_t = 0;
 
@@ -2986,16 +2999,19 @@ void cmdtime_set(int m)
 	//cmdtime_t = cmdtime_t*60*262/1000000/100;
 	cmdtime_t = cmdtime_t/6361;
 	if (cmdtime_t<0) cmdtime_t=0;
+#endif
 }
 
 void cmdtime_chk(void)
 {
+#ifdef USE_CMDTIME
 	if (cmdtime_t) {
 		cmdtime_t--;
 		if (0 == cmdtime_t) v99x8.status[2] &= ~0x01;
 	}
-}
 #endif
+}
+
 
 #define STATE_VERSION	1
 
@@ -3006,8 +3022,8 @@ void V99X8::save_state(FILEIO* state_fio)
 	
 	state_fio->Fwrite(&v99x8, sizeof(v99x8), 1);
 #ifdef USE_CMDTIME
-	state_fio->FputInt32(cmdtime_t);
-	state_fio->FputInt32(cmdtime_m);
+		state_fio->FputInt32(cmdtime_t);
+		state_fio->FputInt32(cmdtime_m);
 #endif
 	state_fio->FputInt32(latch1);
 	state_fio->FputInt32(latch2);
@@ -3044,8 +3060,8 @@ bool V99X8::load_state(FILEIO* state_fio)
 	}
 	state_fio->Fread(&v99x8, sizeof(v99x8), 1);
 #ifdef USE_CMDTIME
-	cmdtime_t = state_fio->FgetInt32();
-	cmdtime_m = state_fio->FgetInt32();
+		cmdtime_t = state_fio->FgetInt32();
+		cmdtime_m = state_fio->FgetInt32();
 #endif
 	latch1 = state_fio->FgetInt32();
 	latch2 = state_fio->FgetInt32();

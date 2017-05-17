@@ -13,6 +13,7 @@
 
 void I8259::initialize()
 {
+	DEVICE::initialize();
 	for(int c = 0; c < I8259_MAX_CHIPS; c++) {
 		pic[c].imr = 0xff;
 		pic[c].irr = pic[c].isr = pic[c].prio = 0;

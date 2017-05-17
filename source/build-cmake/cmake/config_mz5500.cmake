@@ -12,25 +12,24 @@ set(VMFILES
 		   i8237.cpp
 		   i8255.cpp
 		   i8259.cpp
-		   
 		   rp5c01.cpp
+		   
 		   upd7220.cpp
-		   upd765a.cpp
-		   ym2203.cpp
 		   z80ctc.cpp
 		   z80sio.cpp
 		   mz1p17.cpp
-		   prnfile.cpp
 		   
-		   disk.cpp
 		   event.cpp
 		   io.cpp
 )
 
 set(VMFILES_LIB
+		   prnfile.cpp
 		   ls393.cpp
 		   not.cpp
-   
+		   upd765a.cpp
+		   disk.cpp
+		   ym2203.cpp
 )
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")

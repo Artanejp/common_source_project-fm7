@@ -674,6 +674,44 @@ const _TCHAR *DLL_PREFIX create_string(const _TCHAR* format, ...)
 	return (const _TCHAR *)buffer[output_index];
 }
 
+int32_t DLL_PREFIX muldiv_s32(int32_t nNumber, int32_t nNumerator, int32_t nDenominator)
+{
+	try {
+		int64_t tmp;
+		tmp  = (int64_t)nNumber;
+		tmp *= (int64_t)nNumerator;
+		tmp /= (int64_t)nDenominator;
+		return (int32_t)tmp;
+	} catch(...) {
+		double tmp;
+		tmp  = (double)nNumber;
+		tmp *= (double)nNumerator;
+		tmp /= (double)nDenominator;
+		if(tmp < 0) {
+			return (int32_t)(tmp - 0.5);
+		} else {
+			return (int32_t)(tmp + 0.5);
+		}
+	}
+}
+
+uint32_t DLL_PREFIX muldiv_u32(uint32_t nNumber, uint32_t nNumerator, uint32_t nDenominator)
+{
+	try {
+		uint64_t tmp;
+		tmp  = (uint64_t)nNumber;
+		tmp *= (uint64_t)nNumerator;
+		tmp /= (uint64_t)nDenominator;
+		return (uint32_t)tmp;
+	} catch(...) {
+		double tmp;
+		tmp  = (double)nNumber;
+		tmp *= (double)nNumerator;
+		tmp /= (double)nDenominator;
+		return (uint32_t)(tmp + 0.5);
+	}
+}
+
 uint32_t DLL_PREFIX get_crc32(uint8_t data[], int size)
 {
 	static bool initialized = false;
@@ -863,12 +901,14 @@ bool DLL_PREFIX cur_time_t::load_state(void *f)
 
 const _TCHAR* DLL_PREFIX get_symbol(symbol_t *first_symbol, uint32_t addr)
 {
-	static _TCHAR name[1024];
+	static _TCHAR name[8][1024];
+	static unsigned int table_index = 0;
+	unsigned int output_index = (table_index++) & 7;
 	
 	for(symbol_t* symbol = first_symbol; symbol; symbol = symbol->next_symbol) {
 		if(symbol->addr == addr) {
-			my_tcscpy_s(name, 1024, symbol->name);
-			return name;
+			my_tcscpy_s(name[output_index], 1024, symbol->name);
+			return name[output_index];
 		}
 	}
 	return NULL;
@@ -876,32 +916,40 @@ const _TCHAR* DLL_PREFIX get_symbol(symbol_t *first_symbol, uint32_t addr)
 
 const _TCHAR* DLL_PREFIX get_value_or_symbol(symbol_t *first_symbol, const _TCHAR *format, uint32_t addr)
 {
-	static _TCHAR name[1024];
+	static _TCHAR name[8][1024];
+	static unsigned int table_index = 0;
+	unsigned int output_index = (table_index++) & 7;
 	
 	for(symbol_t* symbol = first_symbol; symbol; symbol = symbol->next_symbol) {
 		if(symbol->addr == addr) {
-			my_tcscpy_s(name, 1024, symbol->name);
-			return name;
+//			my_tcscpy_s(name, 1024, symbol->name);
+			my_tcscpy_s(name[output_index], 1024, symbol->name);
+			return name[output_index];
+//			return name;
 		}
 	}
-	my_stprintf_s(name, 1024, format, addr);
-	return name;
+//	my_stprintf_s(name, 1024, format, addr);
+//	return name;
+	my_stprintf_s(name[output_index], 1024, format, addr);
+	return name[output_index];
 }
 
 const _TCHAR* DLL_PREFIX get_value_and_symbol(symbol_t *first_symbol, const _TCHAR *format, uint32_t addr)
 {
-	static _TCHAR name[1024];
+	static _TCHAR name[8][1024];
+	static unsigned int table_index = 0;
+	unsigned int output_index = (table_index++) & 7;
 	
-	my_stprintf_s(name, 1024, format, addr);
+	my_stprintf_s(name[output_index], 1024, format, addr);
 	
 	for(symbol_t* symbol = first_symbol; symbol; symbol = symbol->next_symbol) {
 		if(symbol->addr == addr) {
 			_TCHAR temp[1024];
 //			my_stprintf_s(temp, 1024, _T(" (%s)"), symbol->name);
 			my_stprintf_s(temp, 1024, _T(";%s"), symbol->name);
-			my_tcscat_s(name, 1024, temp);
-			return name;
+			my_tcscat_s(name[output_index], 1024, temp);
+			return name[output_index];
 		}
 	}
-	return name;
+	return name[output_index];
 }

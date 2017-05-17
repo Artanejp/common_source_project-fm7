@@ -405,7 +405,7 @@ void VM::connect_bus(void)
 # endif
 	opn[0]->set_context_irq(mainio, FM7_MAINIO_OPN_IRQ, 0xffffffff);
 	mainio->set_context_opn(opn[0], 0);
-	//joystick->set_context_opn(opn[0]);
+	joystick->set_context_opn(opn[0]);
 	mainio->set_context_joystick(joystick);
 	opn[0]->set_context_port_b(joystick, FM7_JOYSTICK_MOUSE_STROBE, 0xff, 0);
 	
@@ -852,11 +852,11 @@ void VM::set_cpu_clock(DEVICE *cpu, uint32_t clocks) {
 }
 
 #if defined(USE_BUBBLE1)
-void VM::open_bubble_casette(int drv, _TCHAR *path, int bank)
+void VM::open_bubble_casette(int drv, const _TCHAR *path, int bank)
 {
 	if((drv >= 2) || (drv < 0)) return;
 	if(bubble_casette[drv] == NULL) return;
-	bubble_casette[drv]->open(path, bank);
+	bubble_casette[drv]->open((_TCHAR *)path, bank);
 }
 
 void VM::close_bubble_casette(int drv)

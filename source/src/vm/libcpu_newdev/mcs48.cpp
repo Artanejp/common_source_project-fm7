@@ -116,6 +116,7 @@ INLINE void update_regptr(mcs48_state *cpustate)
 
 void MCS48::initialize()
 {
+	DEVICE::initialize();
 	opaque = calloc(1, sizeof(mcs48_state));
 	
 	mcs48_state *cpustate = (mcs48_state *)opaque;

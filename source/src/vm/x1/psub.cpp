@@ -490,9 +490,6 @@ void PSUB::close_tape()
 		databuf[0x1a][0] = CMT_EJECT;
 		play = rec = false;
 		d_drec->set_remote(false);
-#if defined(USE_SOUND_FILES)
-		d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_EJECT, 1, 1);
-#endif
 	}
 }
 
@@ -628,9 +625,6 @@ void PSUB::process_cmd()
 				if(play) {
 					d_drec->set_ff_rew(0);
 					d_drec->set_remote(true);
-#if defined(USE_SOUND_FILES)
-					d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_PLAY, 1, 1);
-#endif
 				} else if(rec) {
 					new_status = CMT_STOP;
 				} else {
@@ -641,9 +635,6 @@ void PSUB::process_cmd()
 				if(play) {
 					d_drec->set_ff_rew(1);
 					d_drec->set_remote(true);
-#if defined(USE_SOUND_FILES)
-					//d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_FF, 1, 1);
-#endif
 				} else if(rec) {
 					new_status = CMT_STOP;
 				} else {
@@ -654,9 +645,6 @@ void PSUB::process_cmd()
 				if(play) {
 					d_drec->set_ff_rew(-1);
 					d_drec->set_remote(true);
-#if defined(USE_SOUND_FILES)
-					//d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_REW, 1, 1);
-#endif
 				} else if(rec) {
 					new_status = CMT_STOP;
 				} else {
@@ -666,9 +654,6 @@ void PSUB::process_cmd()
 			case CMT_APSS_PLUS:
 			case CMT_APSS_MINUS:
 				if(play) {
-#if defined(USE_SOUND_FILES)
-					//d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_REW, 1, 1);
-#endif
 					d_drec->do_apss((databuf[0x19][0] == CMT_APSS_PLUS) ? 1 : -1);
 					new_status = CMT_STOP;
 				} else if(rec) {
@@ -681,9 +666,6 @@ void PSUB::process_cmd()
 				if(play) {
 					new_status = CMT_STOP;
 				} else if(rec) {
-#if defined(USE_SOUND_FILES)
-					d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_PLAY, 1, 1);
-#endif
 					d_drec->set_remote(true);
 				} else {
 					new_status = CMT_EJECT;
@@ -695,16 +677,8 @@ void PSUB::process_cmd()
 				break;
 #endif
 			}
-#if defined(USE_SOUND_FILES)
-			if(new_status == CMT_EJECT) {
-				d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_EJECT, 1, 1);
-			} else if(new_status == CMT_STOP) {
-				d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_STOP, 1, 1);
-			}
-#endif
 
 			databuf[0x1a][0] = new_status;
-			
 		}
 		break;
 	case 0xea:

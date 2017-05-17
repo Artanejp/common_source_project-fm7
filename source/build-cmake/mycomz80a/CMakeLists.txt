@@ -15,19 +15,20 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 project (mycomz80a)
 set(VM_NAME mycomz80a)
 set(USE_FMGEN OFF)
+set(FLAG_USE_Z80 ON)
 set(VMFILES
-	z80.cpp
-	hd46505.cpp
 	
 	i8255.cpp
-	msm58321.cpp
-	sn76489an.cpp
-	
+	msm5832.cpp
 	datarec.cpp
 	
 	event.cpp
 	io.cpp
 )
+set(VMFILES_LIB
+  	hd46505.cpp
+	sn76489an.cpp
+)	
 
 set(BUILD_MYCOMZ80A ON CACHE BOOL "Build EMU-MYCOMZ80A")
 set(BUILD_SHARED_LIBS OFF)

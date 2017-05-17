@@ -38,6 +38,7 @@
 
 void I8251::initialize()
 {
+	DEVICE::initialize();
 	recv_buffer = new FIFO(BUFFER_SIZE);
 	send_buffer = new FIFO(4);
 	status = TXRDY | TXE;

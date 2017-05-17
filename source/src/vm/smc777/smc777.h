@@ -54,13 +54,10 @@
 #define USE_SCREEN_FILTER
 #define USE_SCANLINE
 #if defined(_SMC70)
-#define USE_SOUND_FILES		5
-#else
-#define USE_SOUND_FILES		4
-#endif
-#define USE_SOUND_FILES_FDD
-#define USE_SOUND_FILES_RELAY
 #define USE_SOUND_VOLUME	4
+#else
+#define USE_SOUND_VOLUME	5
+#endif
 #define USE_JOYSTICK
 #define USE_DEBUGGER
 #define USE_STATE

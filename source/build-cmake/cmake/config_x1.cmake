@@ -12,36 +12,35 @@ set(VM_NAME x1)
 set(USE_FMGEN ON)
 set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
-
 set(VMFILES
-		   z80.cpp
 		   
-		   hd46505.cpp
+#		   hd46505.cpp
 		   i8255.cpp
-		   mb8877.cpp
 		   upd1990a.cpp
 		   z80ctc.cpp
 
 		   z80sio.cpp
-		   
-		   prnfile.cpp
+
 		   datarec.cpp
-		   disk.cpp
 		   event.cpp
 		   
 		   io.cpp
-		   prnfile.cpp
 		   mz1p17.cpp
 )
 set(VMFILES_LIB
+		   hd46505.cpp
 		   mcs48.cpp
 		   beep.cpp
 		   z80pio.cpp
 		   ym2151.cpp
 		   ym2203.cpp
 		   ay_3_891x.cpp
+		   mb8877.cpp
+		   disk.cpp
+		   prnfile.cpp
 )
 set(FLAG_USE_MCS48 ON)
+set(FLAG_USE_Z80 ON)
 
 set(BUILD_X1 OFF CACHE BOOL "Build for X1")
 set(BUILD_X1TURBO OFF CACHE BOOL "Build for X1 Turbo")
@@ -66,12 +65,12 @@ if(BUILD_X1)
 elseif(BUILD_X1TURBO)
   set(EXEC_TARGET emux1turbo)
   add_definitions(-D_X1TURBO)
-  set(VMFILES ${VMFILES} z80dma.cpp)
+  set(VMFILES_LIB ${VMFILES_LIB} z80dma.cpp)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/x1turbo.qrc)
 elseif(BUILD_X1TURBOZ)
   set(EXEC_TARGET emux1turboz)
   add_definitions(-D_X1TURBOZ)
-  set(VMFILES ${VMFILES} z80dma.cpp)
+  set(VMFILES_LIB ${VMFILES_LIB} z80dma.cpp)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/x1turboz.qrc)
 elseif(BUILD_X1TWIN)
   set(EXEC_TARGET emux1twin)

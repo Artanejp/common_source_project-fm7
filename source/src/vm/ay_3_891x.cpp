@@ -13,6 +13,7 @@
 
 void AY_3_891X::initialize()
 {
+	DEVICE::initialize();
 	opn = new FM::OPN;
 	opn->is_ay3_891x = true;
 	

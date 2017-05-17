@@ -22,12 +22,14 @@ set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
 
 set(VMFILES_BASE
-       m6502.cpp
+       n2a03.cpp
        datarec.cpp
        event.cpp
 )
 
-
+set(VMFILES_LIB
+		ym2413.cpp
+)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 set(WITH_DEBUGGER OFF CACHE BOOL "Build with debugger.")

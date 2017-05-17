@@ -675,7 +675,7 @@ void save_config(const _TCHAR *config_path)
 	
 	// input
 	#ifdef USE_JOYSTICK
-		for(int i = 0; i < 8; i++) {
+		for(int i = 0; i < 4; i++) {
 			for(int j = 0; j < 16; j++) {
 				MyWritePrivateProfileInt(_T("Input"), create_string(_T("JoyButtons%d_%d"), i + 1, j + 1), config.joy_buttons[i][j], config_path);
 			}

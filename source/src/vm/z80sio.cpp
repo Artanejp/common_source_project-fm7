@@ -84,6 +84,7 @@
 
 void Z80SIO::initialize()
 {
+	DEVICE::initialize();
 	for(int ch = 0; ch < 2; ch++) {
 #ifdef HAS_UPD7201
 		port[ch].send = new FIFO(16);

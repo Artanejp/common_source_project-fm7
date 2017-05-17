@@ -303,6 +303,7 @@ void TMS9995::WCRU(uint16_t addr, int bits, uint16_t val)
 
 void TMS9995::initialize()
 {
+	DEVICE::initialize();
 #ifdef USE_DEBUGGER
 	d_mem_tmp = d_io_tmp = this;
 	d_debugger->set_context_mem(this);

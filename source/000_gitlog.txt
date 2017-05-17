@@ -1,3 +1,342 @@
+commit 8067b89f01c21ee29c1b4bb4af8e7c112f88577c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 17 22:51:15 2017 +0900
+
+    [General] Rename "emumsx2plus" -> "emumsx2p".
+
+commit aef81ddec42016c7166c00bdb3030478f725a3de
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 17 22:49:29 2017 +0900
+
+    [DOC] .
+
+commit ed240ea314744483227c75e78f840e658992ce13
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 17 22:48:52 2017 +0900
+
+    [DOC] Update for release.
+
+commit 8750c2f22305773b13d00be46302643b579d09b9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 17 22:43:35 2017 +0900
+
+    [DOC] Update documents.
+
+commit 43ab8be3a799285b7497f7ffe5e07d479cabb45b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 17 22:39:14 2017 +0900
+
+    [VM] Add YAMAHA YIS.
+
+commit 4573bef979ccb9e88f4216962d67493e6bda134e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 17 22:21:12 2017 +0900
+
+    [UI][Qt] Uodate UI.
+
+commit 41bb820314674c15f4d804ce05c1bb963b7c6e88
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 17 22:20:21 2017 +0900
+
+    [UI][Qt][FM7] Re-enable "Mouse" menu in "Emulator" menu.
+
+commit 5d424b2ecac58fe55570c2e9fc0db0edd0d94471
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 17 21:13:46 2017 +0900
+
+    [UI][Qt] .
+
+commit 742c56579ff6a3c94e6f3a7fa3eb0eb4891410f4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 17 21:12:31 2017 +0900
+
+    [UI][Qt] I forgot to add a "*.gz" extension to opening of Cartridges, CDs and Binaries.
+
+commit 57237a83e310019da3621b21ed4f8eb509ea65f0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 17 20:12:42 2017 +0900
+
+    [Build][CMAKE][HX20] Fix FTBFS.
+    [VM][LIBCOMMONVM] Add PRNFILE::.Fix FTBFS with dome devices.
+
+commit 82813e52719cdbf9792423520b2c9be09d8b4041
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 17 17:17:07 2017 +0900
+
+    [VM][X1] Merge Upstream 2017-05-15.Still not test building.
+
+commit 7d0e43eeee51ec42e34468f2e9cdc4230e1b2baa
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 17 17:12:44 2017 +0900
+
+    [VM] Merge Updtream 2017-05-13. Still not build test.
+
+commit ecbd1b3cc501db14037d24b1e6b43b8b426a9e46
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 16 22:20:27 2017 +0900
+
+    [VM][FM8][JOYSTICK] Fix crash with FM-8.
+
+commit 65b3003b652f774b6cd209eb6d69f904a282ae09
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 16 22:20:05 2017 +0900
+
+    [VM][MB61VH010] A little faster.
+
+commit c9b4e6a23770e88dc6b9867725d1281a66e444ab
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 16 22:19:27 2017 +0900
+
+    [VM][FM7][DISPLAY] Use flags array to determine not accessble.
+
+commit 1ada7346dc1375fd5fc7c5d832f46a5cb4ab47e4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 16 22:18:41 2017 +0900
+
+    [VM][FM7][MEMORY] MMR: Fix clash with NULL function(s).
+
+commit da4e0b9f7f828e4003ec3e5179ea8dde4942e7b2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 16 22:17:40 2017 +0900
+
+    [VM][MC6809] Revert around BUSREQ. Workaround for FLICKY.
+
+commit a26fd5bb7fe7ea65e8bfb6e4f224f781712ccc23
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 16 19:53:14 2017 +0900
+
+    [VM][FM7][MOUSE] Temporally remove event_vline() of JOYSTICK:: .
+
+commit 3d360a46be06db6d74dba98d0b4240cb24b5d7ad
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 16 19:52:34 2017 +0900
+
+    [VM][MB61VH010] Update FM7::DISPLAY.
+
+commit cd4005512474f61335c7807ae6ce5b684afa48df
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 16 19:51:31 2017 +0900
+
+    [VM][MB61VH010][FM77AV] Re-order addrsss of read_data8() and write_data8(). You must re-build some VMs (FM77AV series etc.)
+
+commit 638a30834ec96687f833b7faab79b7f313e9f7d6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 16 19:39:36 2017 +0900
+
+    [BUILD][LIBCOMMON_VM] .
+
+commit f950f4ba82748762f4963bf05354f8f99263acda
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 16 19:38:51 2017 +0900
+
+    [VM][MC6809] Fix clock sount around BUSREQ (BUS HALT).
+
+commit a70b1f43e8df4d96083c82023c8936bcbfcdbd34
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 16 19:37:37 2017 +0900
+
+    [VM][FM77AV] DO NOT update MMR-Table when updating segment of MMR.Fix slowdown with PSY-O-BLADE and Ys2 (and others).
+
+commit 60efb2dfff799ccf9289c4922c8709b05c190241
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 16 08:35:20 2017 +0900
+
+    [VM][FM7][MOUSE] Fix wrong with mouse.Temporally fix.
+
+commit 78e57067c0e276d5e1707a1d299e4c14597e7aa0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 16 08:34:41 2017 +0900
+
+    [EMU][Qt][MOUSE] Fix not effect with button-up.
+
+commit 3b6360de602bee160e65f7f4b7701ab2f4db39cc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 16 05:19:28 2017 +0900
+
+    [VM][FM7][JOYSTICK] Fix OPN:PORTA value on reset.
+
+commit 21201e93735e0db3f4eda57580fcdaf365db48ca
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 16 05:03:28 2017 +0900
+
+    [VM] Add some devices to libCSPcommon_vm .
+
+commit a71bc9ad7963fd5c1ccf9585f9edbf20b1425be6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 16 05:01:27 2017 +0900
+
+    [VM][MB61VH010] Expect to faster.
+
+commit b6d75837300011278d6f0a57854001ea215173a9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 16 04:25:42 2017 +0900
+
+    [VM][MB61VH010] Revert before commit.
+
+commit 0cf834b5df14d1ce42021f9b74539a34b5d97d57
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 16 04:00:06 2017 +0900
+
+    [VM][FM7] Joystick: Use opn[0]->read_signal() instead of JOYSTICK->read_data(0).
+    [VM][MB61VH010] Expect to be faster rendering.
+
+commit 5d8e32e35f84016ac3e6325703cb7e57dc3b894a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 16 03:59:14 2017 +0900
+
+    [VM][YM2203] Fix double-initializeing output signals.
+
+commit 61ea8665bebef0f121ce683feb39d933e526c724
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 16 03:58:46 2017 +0900
+
+    [CONFIG] Fix over loop.
+
+commit de77eef8913a5f236bf72eb90cd4c34660d4d20f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri May 12 01:11:44 2017 +0900
+
+    [VM] Update PTF20, V99X8 and YM2203.
+
+commit 4252aac1f0607b77f834c096b5d8361eb865ee23
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri May 12 01:10:01 2017 +0900
+
+    [BUILD] Update script.
+
+commit 6a7f552a34aa0f1a90d3580009801be41f4d6180
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 6 04:55:31 2017 +0900
+
+    .
+
+commit b08d2107f9be721410c59f714d04c35093db81c3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 6 04:55:18 2017 +0900
+
+    .
+
+commit e5aed8438f763b7f5261edee9f7833a4d9757991
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 6 04:54:40 2017 +0900
+
+    [VM][V99X8][TMS9918A] Move to shared lib.
+
+commit 08211c6385a004efa2c42af377ea5831e5985eac
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 3 22:45:26 2017 +0900
+
+    [VM] Move T3444A to shared lib.
+
+commit b223e91b003c7cb761cc8230e99d1f45a0c4b51e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 3 22:02:41 2017 +0900
+
+    [VM] Move UPD765A, PC80S31K and PC6031 to libCSPcommon_vm .
+
+commit 212494fb6a81d6c840cecc1a5e4dd66b11b60b49
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 3 20:26:43 2017 +0900
+
+    [VM] LibCSPcommon_vm : TRY: Without #ifdef. Now still MB8877 and DISK only.
+
+commit d6401a3ae802ef36536d73310b8d4abdc503abe4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 1 22:10:52 2017 +0900
+
+    [OSD][Qt] Add *_features_* functions. It needs for *NEW* device emulation.Pls. port to win32/ .
+
+commit 2d22cf24f1e309281435c8b9233a527b7fc1cb15
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Apr 30 21:44:52 2017 +0900
+
+    [VM][M6502] Split M6502 to N2A03 and M6502.
+
+commit 52e04585692c7500e2c262888ae3076bec5eb4a0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Apr 30 21:02:11 2017 +0900
+
+    [VM][DEVICE] Split MSM5832:: from MSM58321:: .
+
+commit 1fb74b44746d8e42b05451df11cba2cc5b771125
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Apr 30 20:00:21 2017 +0900
+
+    [VM][DEVICE] You should add "DECVICE::initialize()" to top of initialize().
+    [VM][DEVICE] Move some devices to shared lib.
+
+commit 73d1d7b7eac1d0449963bcfffcdbe8bbf7920784
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Apr 29 06:40:27 2017 +0900
+
+    [VM][LIBNEWDEV] Remove libcpu_newdev/libcpu_mc6809/* .
+
+commit ba7448bc67b5aa7e10f6707ded5b52c121ce8da7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Apr 29 06:27:31 2017 +0900
+
+    [VM][MC6809] Rename due to changing policy.
+
+commit 4adc5a1f353348c74a378f98647cb51ad4cd30a2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Apr 29 06:25:29 2017 +0900
+
+    [VM][Build][CMAKE] Build supporting to Z80.
+
+commit 510217d5834876ec7acac2b1abe3c642299f503f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Apr 29 06:24:19 2017 +0900
+
+    [VM] Move Z80 to shared lib.
+
+commit 18f06d2d28361126352948a3de4571da4f81706a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 28 06:48:33 2017 +0900
+
+    [VM][FM7] Faster transferring.
+
+commit 9d90ce75262a2bc050f8cc692847d9fb71c56311
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 28 03:25:02 2017 +0900
+
+    [BUILD][Linux] Update LLVM's parameter.
+
+commit 49c0ed25d714b6cd0e1a235d2ce42e44f5b14ef0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 28 03:23:44 2017 +0900
+
+    [VM] I forgot to update (and remove USE_SOUND_FILES*) defines.
+
+commit e78ee2f9720281ed0f54bdc92cb96e25d6861e3b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 28 03:21:52 2017 +0900
+
+    [VM][MC6809] Build shared library without libnewdev/. Use vm/mc6809.cpp and vm/mc6809_debugup.cpp . See, fm7.cpp.
+
+commit a3d44eb0d674170fc6b417e6b47ef903826c5eee
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 28 01:49:25 2017 +0900
+
+    [General] Merge upstream 2017-04-16.
+
+commit 082d2f093877b91dd3bfbc557f257eb6b43818a8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 13 04:57:12 2017 +0900
+
+    [BUILD][LLVM] Fix FTBFS.
+
+commit 1ff4eaa1cc34c468e28ba87c5a55f82fa3224319
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Apr 12 18:54:37 2017 +0900
+
+    [VM][LIB][FM7] Fix FTBFSs with LLVM (4.0).
+
+commit 4089d79b3734c5feb0b824d3a9d32d3d0873fbee
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Apr 10 14:12:55 2017 +0900
+
+    [DOC] .
+
 commit 16ce89bae2170ea8990fa640cf1a84c4d5d9a21b
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Mon Apr 10 14:00:10 2017 +0900

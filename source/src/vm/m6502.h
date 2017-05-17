@@ -11,24 +11,24 @@
 #ifndef _M6502_H_ 
 #define _M6502_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 #define SIG_M6502_OVERFLOW	0
 
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 class DEBUGGER;
-#endif
+//#endif
 
-class M6502 : public DEVICE
+class M6502_BASE : public DEVICE
 {
-private:
+protected:
 	DEVICE *d_mem, *d_pic;
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 	DEBUGGER *d_debugger;
 	DEVICE *d_mem_stored;
-#endif
+//#endif
 	
 	pair_t pc, sp, zp, ea;
 	uint16_t prev_pc;
@@ -39,21 +39,21 @@ private:
 	bool busreq;
 	
 	void run_one_opecode();
-	void OP(uint8_t code);
+	virtual void OP(uint8_t code);
 	void update_irq();
 	
 public:
-	M6502(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	M6502_BASE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		busreq = false;
 		set_device_name(_T("M6502 CPU"));
 	}
-	~M6502() {}
+	~M6502_BASE() {}
 	
 	// common functions
-	void initialize();
-	void reset();
-	int run(int clock);
+	virtual void initialize();
+	virtual void reset();
+	virtual int run(int clock);
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void set_intr_line(bool line, bool pending, uint32_t bit)
 	{
@@ -67,7 +67,7 @@ public:
 	{
 		return pc.w.l;
 	}
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 	void *get_debugger()
 	{
 		return d_debugger;
@@ -84,8 +84,8 @@ public:
 	uint32_t read_debug_data8(uint32_t addr);
 	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
 	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
-#endif
+	virtual int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
+//#endif
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
@@ -98,13 +98,43 @@ public:
 	{
 		d_pic = device;
 	}
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 	void set_context_debugger(DEBUGGER* device)
 	{
 		d_debugger = device;
 	}
-#endif
+//#endif
 };
+
+class M6502 : public M6502_BASE
+{
+protected:
+	void OP(uint8_t code);
+public:
+	M6502(VM* parent_vm, EMU* parent_emu) : M6502_BASE(parent_vm, parent_emu)
+	{
+	}
+	~M6502() {}
+	void initialize();
+	void reset();
+	int run(int clock);
+	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
+};	
+
+class N2A03 : public M6502_BASE
+{
+protected:
+	void OP(uint8_t code);
+public:
+	N2A03(VM* parent_vm, EMU* parent_emu) : M6502_BASE(parent_vm, parent_emu)
+	{
+	}
+	~N2A03() {}
+	void initialize();
+	void reset();
+	int run(int clock);
+	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
+};	
 
 #endif
 

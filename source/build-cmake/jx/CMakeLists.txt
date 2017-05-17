@@ -23,24 +23,22 @@ set(WITH_MOUSE ON)
 
 set(VMFILES_BASE
 #      i86.cpp
-  
-      hd46505.cpp
+
       i8253.cpp
       i8255.cpp
       i8259.cpp
       io.cpp
       memory.cpp
-      
-      sn76489an.cpp
-      upd765a.cpp
-      disk.cpp
-      
       event.cpp
 )
 set(VMFILES_LIB
       i8251.cpp
+      hd46505.cpp
       pcm1bit.cpp
       not.cpp
+      upd765a.cpp
+      sn76489an.cpp
+      disk.cpp
 )
 set(FLAG_USE_I86 ON)
 

@@ -523,6 +523,11 @@
 #include "yalky/yalky.h"
 #endif
 
+// YAMAHA YIS
+#ifdef _YIS
+#include "yis/yis.h"
+#endif
+
 // SHINKO SANGYO YS-6464A
 #ifdef _YS6464A
 #include "ys6464a/ys6464a.h"

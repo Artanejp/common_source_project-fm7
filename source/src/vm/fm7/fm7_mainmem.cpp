@@ -416,7 +416,6 @@ void FM7_MAINMEM::write_data8(uint32_t addr, uint32_t data)
 			} else {
 				mmr_segment = data & 0x03;
 			}
-			update_all_mmr_jumptable();
 			break;
 		default:
 			if((addr >= FM7_MAINIO_MMR_BANK) && (addr < (FM7_MAINIO_MMR_BANK + 0x80))){
@@ -665,7 +664,7 @@ bool FM7_MAINMEM::load_state(FILEIO *state_fio)
 			fm7_mainmem_extram = NULL;
 		}
 		if(pages > 0) {
-			fm7_mainmem_extram = malloc(pages * 0x10000);
+			fm7_mainmem_extram = (uint8_t *)malloc(pages * 0x10000);
 			state_fio->Fread(fm7_mainmem_extram, pages * 0x10000, 1);
 		}
 #  if defined(_FM77_VARIANTS)

@@ -10,39 +10,37 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 set(VM_NAME mz2500)
 set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
-
+set(FLAG_USE_Z80 ON)
 set(VMFILES_2500
 		   z80sio.cpp
-		   
+   
 		   w3100a.cpp
 		   rp5c01.cpp
 		   
-		   ym2203.cpp
 )
 set(VMFILES_LIB_2500
 		   ls393.cpp
+		   ym2203.cpp
 )
 
 set(VMFILES_BASE
 		   datarec.cpp
 		   i8253.cpp
 		   i8255.cpp
-		   mb8877.cpp
 
-		   z80.cpp
-		   
-		   prnfile.cpp
 		   mz1p17.cpp
 		   
 		   event.cpp
 		   memory.cpp
 		   io.cpp
-		   disk.cpp
 		   
 		   )
 set(VMFILES_LIB
 		   pcm1bit.cpp
 		   z80pio.cpp
+		   mb8877.cpp
+		   disk.cpp
+		   prnfile.cpp
 )
 set(VMFILES_QD
 		   z80sio.cpp

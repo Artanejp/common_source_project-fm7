@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                          Apr 09, 2017
+                                          May 18, 2017
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -12,7 +12,7 @@
    
    ソースコード：
    
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20170409
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20170518
 
    追加情報:
    
@@ -151,183 +151,71 @@
 Changes:
 
 ChangeLog:
+* SNAPSHOT May 18, 2017
+  * Upstream 2017-05-15
+  * [General] Rename "emumsx2plus" -> "emumsx2p".
+  * [UI/Qt] Fix unconnected event.
+  * [UI/Qt] I forgot to add a "*.gz" extension to opening of Cartridges, CDs and Binaries.
+  * [OSD/Qt] Add *_features_* functions. It needs for *NEW* device emulation.Pls. port to win32/ .
+  * [EMU][Qt][MOUSE] Fix not effect with button-up.
+  * [VM] LibCSPcommon_vm : Without #ifdef.
+  * [VM] LibCSPcommon_vm : Add some devices.See src/vm/common_vm/CmakeLists.txt .
+  * [VM] Fix FTBFSs with LLVM (4.0).
+  * [VM/MC6809] Build shared library without libnewdev/. Use vm/mc6809.cpp and vm/mc6809_debugup.cpp . See, fm7.cpp.
+  * [VM/FM7] Faster address transferring.
+  * [VM/DEVICE] You should add "DECVICE::initialize()" to top of initialize().
+  * [VM/DEVICE] Move some devices to shared lib.
+  * [VM/DEVICE] Split MSM5832:: from MSM58321:: .
+  * [VM/M6502] Split M6502 to N2A03 and M6502.
+  * [VM/MB61VH010] Expect to be faster rendering.
+  * [VM/MB61VH010][FM77AV] Re-order addrsss of read_data8() and write_data8(). You must re-build some VMs (FM77AV series etc.)
+  * [CONFIG] Fix over loop.
+  * Build with 8067b89f01c21ee29c1b4bb4af8e7c112f88577c or later.
 
-* SNAPSHOT April 09, 2017
-  * Upstream 2017-04-02
-  * [General] Add National JR-800.
-  * [UI/Qt] Move drive status from status-bar to right dock.
-  * [FILEIO] Fix FTBFS with ZLIB 1.2.8 or earlier.
-  * [VM/General] EMU/COMMON : Fix bugs around handling filename and directories.
-  * [VM/General] common.cpp : Use buffer sized functions for some string functions.
-  * [VM/FM77AV] DISPLAY: HSYNC:Don't register event(s) per HDISP.
-  * [VM/FM7] DISPLAY: Reduce address calculation.
-  * [VM/FM7] DISPLAY: Fix auto skip feature.
-  * [VM/FM7] Use function table(s) to access memories within display sub-system and main-system.
-  * [VM/FM77AV40EX] Fix wrong display timing.
-  * [Build/CMake] Add supporting for ZLIB.
-  * [BUILD/LINUX] Fix linking order.
-  * [General/BUILD] Linux: Use -D_UNICODE to build.
-
--- Apr 09, 2017 23:04:45 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
-
-* SNAPSHOT March 07, 2017
-  * Upstream 2017-03-04
-  * [VM] Some devices have prepared to move to libCSPcommon_vm .
-  * [VM/FMGEN] Move FMGEN to libCSPfmgen .
-  * [WIN32] Ready to build with DLLs contain GUI and AVIO and some features.
-  * [BUILD] Selectable building.
-  * [BUILD] Add logging build-status.
-  * [Qt] Fix break device files when exiting emulator with some situations.
-  * [Win32/OpenGL/WIP] TRY: Fixing crash with OpenGL3.0 at Corei5-2420M (and Windows7) PC. See Issues.txt or Issues.ja.txt.
-  * [DOC] Update Issues.See http://hanabi.2ch.net/test/read.cgi/i4004/1483504365/30 .
-  * [EMU/DEBUGGER] Use pthread_t instead of SDL_Thread.
-  * [Qt/OSD] Remove do_call_debugger_command().
-  * [SOUND/VM] Fix choppy sounds with some devices. i.e. PCM1BIT. Thanks to Takeda-San and Umaiboux-San.
-  * [VM/FMGEN] Fix crash with GCC-5.This is issue of optimization, add "volatile" to any member(s).
-  * [BUILD/LINUX] GCC5: (MAYBE) Enable to set "USE_RADICAL_OPTIMIZE" to "YES".
-  * Built with 2dac70eb1743e2a0b778a57a1f520fce59aa6371 or newer.
-
--- Mar 07, 2017 15:55:25 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
-
+-- May 17, 2017 22:52:55 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 本家の変更:
 
-4/2/2017
+-----
+5/15/2017
 
-[RESOURCE] improve menu items
-[WINMAIN] improve menu items
-
-[EX80] support to show/hide crt monitor
-
-
-3/30/2017
-
-[COMMON] add functions to convert char, wchar_t, and _TCHAR to each other
-[COMMON] add _fgetts, _ftprintf, my_ftprintf_s, and my_swprintf_s
-[COMMON/FILEIO] add Fgetts and Ftprintf for _TCHAR
-[COMMON/FILEIO] fix functions using ZLIB for _UNICODE case
-[EMU/DEBUGGER] fix for _UNICODE case
-[WINMAIN] improve to update status only when status is changed
-
-[VM/HUC6280] improve disassembler to support symbols (thanks Mr.Kei Moroboshi)
-[VM/I8080] improve disassembler to support symbols
-[VM/M6502] support debugger and disassembler (thanks MAME)
-[VM/MCS48] improve disassembler to support symbols
-[VM/TMS9995] fix disassembler for _UNICODE case
-[VM/UPD7810] improve disassembler to support symbols
-[VM/UPD7810] fix disassembler for _UNICODE case
-
-[BABBAGE2ND] support debugger and save/load state
-[FAMILYBASIC] support debugger
-[YS6464A] support debugger and save/load state
+[X1TURBOZ] support SHARP X1turboZ
+[X1TURBOZ/DISPLAY] support X1turboZ enhanced graphic modes
+[X1TURBOZ/IOSUB] support analog palette access wait
 
 
-3/28/2017
+5/13/2017
 
-[COMMON] add _tcscat and my_tcscat_s
-[COMMON] add structure and functions to support symbols
-[EMU/DEBUGGER] improve debugger to support symbols (thanks Mr.Kei Moroboshi)
+[WIN32/SCREEN] fix not to move window position unnecessarily
 
-[VM/MC6800] improve disassembler to support symbols (thanks Mr.Kei Moroboshi)
-[VM/MC6809] improve disassembler to support symbols (thanks Mr.Kei Moroboshi)
-[VM/TMS9995] improve disassembler to support symbols (thanks Mr.Kei Moroboshi)
-[VM/UPD7801] improve disassembler to support symbols (thanks Mr.Kei Moroboshi)
-[VM/Z80] improve disassembler to support symbols (thanks Mr.Kei Moroboshi)
+[VM/AM9511] support AM9511 (thanks Xep128)
+[VM/DISK] support to specify raw track size
+[VM/MB8877] support to specify raw track size
+[VM/MC6844] support MC6844
+[VM/MC6850] support MC6850
+[VM/MSM58321] add read_signal()
+[VM/MEMORY] improve that dma controller does not read/write memory mapped i/o
+[VM/NOISE] fix not to restart from first sample if already playing noise
 
-
-3/26/2017
-
-[VM/YM2413] support mute
-
-[FAMILYBASIC] support Family BASIC MMC5/VRC7 MOD
-[FAMILYBASIC] support correct scanlines
-[FAMILYBASIC/MEMORY] support MMC5/ VRC7 based on unofficial nester
-[FAMILYBASIC/MEMORY] fix data recorder signal (thanks MESS)
+[YIS] support YAMAHA YIS
 
 
-3/20/2017
+4/16/2017
 
-[COMMON] suport to read ascii/binary file compressed by gzip
-[RESOURCE] fix fm8/fm7/fm77 dipswitch menu items
-[WINMAIN] fix to update status bar twice/second to supress flickar
-
-[VM/SCSI_CDROM] support CD-ROM bin/img file compressed by gzip
-[VM/DATAREC] support tape image file compressed by gzip
-[VM/DATAREC] support to save FUJITSU FM-7/77 t77 format tape image
-
-[BMJR/MEMORY] fix sound mixer not to clear previously mixed sound
+[VM/IO] revert the fix in 4/15/2017
+[VM/SN76489AN] revert the fix in 4/15/2017
 
 
-3/18/2017
+4/15/2017
 
-[WINMAIN] support multiple data recorder
-[EMU] support multiple data recorder
+[COMMON] add muldiv_s32 and muldiv_u32 to multiple 32bit integer
+[COMMON] fix functions to support symbols
 
-[VM/DATAREC] support HITACH BASIC Master Jr bin format tape image
-[VM/PTF20] support access lamp signal
+[VM/IO] improve to use read/write_io8/16/32w() to get wait clock from device
+[VM/SN76489AN] improve to return 32 + 16 * n for wait clock
 
-[BMJR/MEMORY] fix reading cmt signal
-[BMJR/MEMORY] fix sound mixer
-[TK80BS/CMT] support TK-80 cmt i/f
-
-
-3/15/2017
-
-[WINMAIN] add status bar to draw access lamps
-[EMU] add interfaces to get access status of floppy/quick/hard disk drives
-[EMU] add interface to get cmt status message
-
-[VM/DATAREC] support cmt status message
-[VM/HD44102] fix build error
-[VM/MC6800] fix M_RDOP and M_RDOP_ARG macros (thanks PockEmul)
-[VM/LD700] support access lamp signal
-[VM/SCSI_CDROM] support access lamp signal
-[VM/SCSI_DEV] support access lamp signal
-[VM/SCSI_HDD] support access lamp signal
-
-[HC20] fix issue that we cannot debug TF-20 CPU
-[JR800] support National JR-800 (thanks PockEmul)
-
-
-3/12/2017
-
-[VM/DATAREC] fix issue that fast forward noise may not stop
-
-
-3/11/2017
-
-[VM/DATAREC] support to play play/stop/fast-fwd noise
-[VM/MB8877] support to play seek/load/unload noise
-[VM/HD44102] support HD44102 based on MAME 0.171
-[VM/T3444A] support to play seek/load/unload noise
-[VM/UPD765A] support to play seek/load/unload noise
-[VM/UPD765A] fix seek time (thanks Mr.Artane.)
-
-[MZ80B/MEMORY80B] fix vgate signal (thanks Mr.Suga)
-
-
-3/8/2017
-
-[VM/DISK] improve to check if disk image is modified more strictly
-[VM/DISK] import yaya2016-04-13plus1 (thanks Mr.umaiboux)
-[VM/V9938] import yaya2016-04-13plus1 (thanks Mr.umaiboux and MAME)
-[VM/YM2413] import yaya2016-04-13plus1 (thanks Mr.umaiboux)
-
-[FMR30] split project for i86 and i286
-[MSX/*] import yaya2016-04-13plus1 (thanks Mr.umaiboux)
-
-
-3/7/2017
-
-[WIN32/INPUT] improve to accept shift + caps/kana/kanji
-
-[VM/DISK] support device name (thanks Mr.Aratane.)
-[VM/EVENT] improve to check abnormal scanline number (thanks Mr.Sato)
-[VM/EVENT] fix light weight sound rendering (thanks Mr.168)
-[VM/*] add device name to all devices of each machine (thanks Mr.Aratane.)
-
-[MZ80B] change floppy drive type from 2D to 2DD (thanks Mr.Suga)
-[MZ80B/MEMORY80B] support I-O DATA PIO-3039 (thanks Mr.Suga)
+[MZ700] improve correct cpu clock and frame rate
+[MZ800] improve correct cpu clock and frame rate
 
 -----
 

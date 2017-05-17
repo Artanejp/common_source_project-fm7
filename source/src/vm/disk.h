@@ -10,12 +10,13 @@
 #ifndef _DISK_H_
 #define _DISK_H_
 
-#ifndef _ANY2D88
-#include "vm.h"
-#include "../emu.h"
-#else
+//#ifndef _ANY2D88
+//#include "vm.h"
+//#include "../emu.h"
 #include "../common.h"
-#endif
+//#else
+//#include "../common.h"
+//#endif
 
 // d88 media type
 #define MEDIA_TYPE_2D	0x00
@@ -46,18 +47,28 @@
 #define DISK_BUFFER_SIZE	0x380000	// 3.5MB
 #define TRACK_BUFFER_SIZE	0x080000	// 0.5MB
 
-class FILEIO;
+// physical format table for solid image
+typedef struct {
+	int type;
+	int ncyl, nside, nsec, size;
+	bool mfm;
+} fd_format_t;
 
+class FILEIO;
+class OSD;
 class DISK
 {
 #ifndef _ANY2D88
 protected:
 	EMU* emu;
+	OSD* osd;
 #endif
 private:
 	uint8_t buffer[DISK_BUFFER_SIZE + TRACK_BUFFER_SIZE];
 	_TCHAR orig_path[_MAX_PATH];
 	_TCHAR dest_path[_MAX_PATH];
+	fd_format_t fd_formats[32];
+
 	pair_t file_size;
 	int file_bank;
 	uint32_t orig_file_size;
@@ -70,6 +81,20 @@ private:
 	uint8_t fdi_header[4096];
 	int solid_ncyl, solid_nside, solid_nsec, solid_size;
 	bool solid_mfm;
+
+	bool type_sc3000;
+	bool type_smc70;
+	bool type_x1;
+	bool type_x1turbo;
+	bool type_m5;
+	bool type_mz80b;
+	bool type_fm7;
+	bool type_fm77;
+	bool type_fm77av;
+	bool type_fm77av_2dd;
+	bool type_yis;
+	bool type_1dd;
+	bool type_any2d88;
 	
 	void set_sector_info(uint8_t *t);
 	void trim_buffer();
@@ -85,6 +110,7 @@ private:
 	
 	// solid image decoder (fdi/tfd/2d/img/sf7)
 	bool solid_to_d88(FILEIO *fio, int type, int ncyl, int nside, int nsec, int size, bool mfm);
+	void setup_fd_formats(void);
 	
 public:
 #ifndef _ANY2D88
@@ -100,26 +126,37 @@ public:
 		drive_type = DRIVE_TYPE_UNK;
 		drive_rpm = 0;
 		drive_mfm = true;
+		track_size = 0;
 		static int num = 0;
 		drive_num = num++;
 		set_device_name(_T("Floppy Disk Drive #%d"), drive_num + 1);
+		type_sc3000 = type_smc70 = type_x1 = type_x1turbo = false;
+		type_m5 = type_mz80b = false;
+		type_fm7 = type_fm77 = type_fm77av =false;
+		type_fm77av_2dd = type_1dd = type_any2d88 = false;
+		type_yis = false;
+		open_as_1dd = false;
+		open_as_256 = false;
+		setup_fd_formats();
 	}
 	~DISK()
 	{
-#ifndef _ANY2D88
-		if(inserted) {
-			close();
+//#ifndef _ANY2D88
+		if(!type_any2d88) {
+			if(inserted) {
+				close();
+			}
 		}
-#endif
+//#endif
 	}
 	
 	void open(const _TCHAR* file_path, int bank);
 	void close();
-#ifdef _ANY2D88
+//#ifdef _ANY2D88
 	bool open_as_1dd;
 	bool open_as_256;
 	void save_as_d88(const _TCHAR* file_path);
-#endif
+//#endif
 	bool get_track(int trk, int side);
 	bool make_track(int trk, int side);
 	bool get_sector(int trk, int side, int index);
@@ -172,28 +209,33 @@ public:
 	uint8_t drive_type;
 	int drive_rpm;
 	bool drive_mfm;
+	int track_size; // hack for YIS :-(
 	int drive_num;
 	bool correct_timing()
 	{
-#ifndef _ANY2D88
-#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-		if((is_special_disk == SPECIAL_DISK_FM7_TAIYOU1) || (is_special_disk == SPECIAL_DISK_FM7_TAIYOU2)) {
-			return true;
+		if(type_any2d88) return false;
+//#ifndef _ANY2D88
+		if(type_fm7) {
+//#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+			if((is_special_disk == SPECIAL_DISK_FM7_TAIYOU1) || (is_special_disk == SPECIAL_DISK_FM7_TAIYOU2)) {
+				return true;
+			}
 		}
-#endif
+//#endif
 		if(drive_num < (int)array_length(config.correct_disk_timing)) {
 			return config.correct_disk_timing[drive_num];
 		}
-#endif
+//#endif
 		return false;
 	}
 	bool ignore_crc()
 	{
-#ifndef _ANY2D88
+		if(type_any2d88) return false;
+//#ifndef _ANY2D88
 		if(drive_num < (int)array_length(config.ignore_disk_crc)) {
 			return config.ignore_disk_crc[drive_num];
 		}
-#endif
+//#endif
 		return false;
 	}
 	

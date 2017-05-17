@@ -6,25 +6,22 @@ set(WITH_MOUSE ON)
 
 set(VMFILES
 		   i8253.cpp
-
 		   i8259.cpp
 		   i8255.cpp
-		   
-		   upd765a.cpp
-		   upd71071.cpp
-		   
-		   disk.cpp
+ 
 		   event.cpp
 		   io.cpp
 		   memory.cpp
-		   prnfile.cpp
 )
 set(VMFILES_LIB
+		   upd71071.cpp
 		   beep.cpp
 		   ls244.cpp
 		   not.cpp
 		   i8251.cpp
-		   
+		   upd765a.cpp
+		   disk.cpp
+		   prnfile.cpp
 )
 
 set(BUILD_SHARED_LIBS OFF)
@@ -44,7 +41,7 @@ set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.
 if(BUILD_PC98HA)
    add_definitions(-D_PC98HA)
    set(EXEC_TARGET emupc98ha)
-   set(VMFILES ${VMFILES}
+   set(VMFILES_LIB ${VMFILES_LIB}
 		   upd4991a.cpp
    )
    set(FLAG_USE_I86 ON)

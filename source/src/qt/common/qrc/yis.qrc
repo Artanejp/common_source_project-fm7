@@ -1,0 +1,6 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file alias="default.ico">../../../res/yis.ico</file>
+    <file alias="bios_and_keys.txt">../../../../../doc/VMs/yis.txt</file>
+</qresource>
+</RCC>

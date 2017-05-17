@@ -8,32 +8,34 @@ set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
 
 set(VMFILES
-		   z80.cpp
-		   z80dma.cpp
+#		   z80dma.cpp
 #
-		   i8251.cpp
-		   pc80s31k.cpp
-		   upd765a.cpp
+#		   pc80s31k.cpp
+#		   upd765a.cpp
 		   
-		   ym2203.cpp
 		   
 		   z80ctc.cpp
 		   z80sio.cpp
 		   i8255.cpp
   
-		   prnfile.cpp
 		   datarec.cpp
-		   disk.cpp
 		   event.cpp
 		   io.cpp
 		   memory.cpp
-		   prnfile.cpp
 )
 set(VMFILES_LIB
-		   beep.cpp
-		   pcm1bit.cpp
-		   z80pio.cpp
+		z80dma.cpp
+		pc80s31k.cpp
+		upd765a.cpp
+		beep.cpp
+		pcm1bit.cpp
+		z80pio.cpp
+		disk.cpp
+		prnfile.cpp
+		ym2203.cpp
+		i8251.cpp
 )
+set(FLAG_USE_Z80 ON)
 
 set(BUILD_SHARED_LIBS OFF)
 

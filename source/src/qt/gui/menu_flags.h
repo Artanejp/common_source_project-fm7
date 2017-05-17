@@ -59,6 +59,7 @@ protected:
 	bool use_debugger;
 
 	int use_device_type;
+	int use_mouse_type;
 	bool use_dipswitch;
 
 	int use_drive_type;
@@ -194,6 +195,7 @@ public:
 	bool is_use_debugger() { return use_debugger; }
 
 	int get_use_device_type() { return use_device_type; }
+	int get_use_mouse_type() { return use_mouse_type; }
 	bool is_use_dipswitch() { return use_dipswitch; }
 
 	int get_use_drive_type() { return use_drive_type; }

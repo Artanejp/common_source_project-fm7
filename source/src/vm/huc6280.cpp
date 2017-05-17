@@ -86,6 +86,7 @@ enum
 
 void HUC6280::initialize()
 {
+	DEVICE::initialize();
 	opaque = CPU_INIT_CALL(h6280);
 	
 	h6280_Regs *cpustate = (h6280_Regs *)opaque;

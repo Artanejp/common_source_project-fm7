@@ -11,7 +11,8 @@ cmake_policy(SET CMP0011 NEW)
 include(CheckFunctionExists)
 
 if(USE_DEVICES_SHARED_LIB)
-  add_definitions(-DUSE_DEVICES_SHARED_LIB)
+  #add_definitions(-DUSE_DEVICES_SHARED_LIB)
+  add_definitions(-DUSE_SHARED_DLL)
 endif()
 # Use cmake if enabled.
   find_program(USE_CCACHE ccache)

@@ -82,6 +82,14 @@ public:
 	void write_data16w(uint32_t addr, uint32_t data, int* wait);
 	uint32_t read_data32w(uint32_t addr, int* wait);
 	void write_data32w(uint32_t addr, uint32_t data, int* wait);
+#ifdef MEMORY_DISABLE_DMA_MMIO
+	uint32_t read_dma_data8(uint32_t addr);
+	void write_dma_data8(uint32_t addr, uint32_t data);
+	uint32_t read_dma_data16(uint32_t addr);
+	void write_dma_data16(uint32_t addr, uint32_t data);
+	uint32_t read_dma_data32(uint32_t addr);
+	void write_dma_data32(uint32_t addr, uint32_t data);
+#endif
 	
 	// unique functions
 	void set_memory_r(uint32_t start, uint32_t end, uint8_t *memory);

@@ -30,11 +30,13 @@ private:
 	bool mute;
 	INT16 *buf[2];
 	int volume_l, volume_r;
+	bool __MSX;
 	
 public:
 	YM2413(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		volume_l = volume_r = 1024;
+		__MSX = false;
 		set_device_name(_T("YM2413 OPLL"));
 	}
 	~YM2413() {}

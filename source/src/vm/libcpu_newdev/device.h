@@ -49,11 +49,13 @@
 
 class VM;
 class EMU;
+class OSD;
 class DEVICE
 {
 protected:
 	VM* vm;
 	EMU* emu;
+	OSD* osd;
 public:
 	DEVICE(VM* parent_vm, EMU* parent_emu);
 	//ToDo: Will implement real destructor per real classes and below destructor decl. with "virtual".
@@ -63,7 +65,7 @@ public:
 	//~DEVICE(void);
 	~DEVICE(void) {}
 	
-	virtual void initialize() {}
+	virtual void initialize() { osd = emu->get_osd(); }
 	virtual void release() {}
 	
 	virtual void update_config() {}

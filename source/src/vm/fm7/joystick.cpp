@@ -10,6 +10,7 @@
  */
 #include "../vm.h"
 #include "fm7_mainio.h"
+#include "../ym2203.h"
 #include "./joystick.h"
 #include "../../config.h"
 #include "../../emu.h"
@@ -21,6 +22,7 @@ JOYSTICK::JOYSTICK(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_em
 	rawdata = NULL;
 	mouse_state = NULL;
 	lpt_type = 0;
+	opn = NULL;
 	set_device_name(_T("JOYSTICK"));
 }
 
@@ -41,6 +43,8 @@ void JOYSTICK::initialize()
 	lpmask = 0x00;
 	lpt_type = config.printer_type;
 	port_b_val = 0;
+	register_frame_event(this);
+	//register_vline_event(this);
 }
 
 void JOYSTICK::reset()
@@ -69,6 +73,9 @@ void JOYSTICK::reset()
 	}
 	mouse_state = p_emu->get_mouse_buffer();
 #endif	
+	if(opn != NULL) {
+		opn->write_signal(SIG_YM2203_PORT_A, 0xff, 0xff);
+	}
 }
 
 void JOYSTICK::event_frame()
@@ -80,8 +87,10 @@ void JOYSTICK::event_frame()
 #if !defined(_FM8)
 	mouse_state = p_emu->get_mouse_buffer();
 	if(mouse_state != NULL) {
-		dx += (mouse_state[0] / 2);
-		dy += (mouse_state[1] / 2);
+		//dx += (mouse_state[0] / 2);
+		//dy += (mouse_state[1] / 2);
+		dx += (mouse_state[0] / 6);
+		dy += (mouse_state[1] / 6);
 		if(dx < -127) {
 			dx = -127;
 		} else if(dx > 127) {
@@ -92,11 +101,13 @@ void JOYSTICK::event_frame()
 		} else if(dy > 127) {
 			dy = 127;
 		}
-		stat = mouse_state[2];
 	}		
-	mouse_button = 0x00;
-	if((stat & 0x01) == 0) mouse_button |= 0x10; // left
-	if((stat & 0x02) == 0) mouse_button |= 0x20; // right
+	if(mouse_state != NULL) {
+		stat = mouse_state[2];
+		mouse_button = 0x00;
+		if((stat & 0x01) == 0) mouse_button |= 0x10; // left
+		if((stat & 0x02) == 0) mouse_button |= 0x20; // right
+	}
 #endif	
 	rawdata = p_emu->get_joy_buffer();
 	if(rawdata == NULL) return;
@@ -118,8 +129,68 @@ void JOYSTICK::event_frame()
 		} else { // MOUSE
 		}
 	}
+#if 0
+	uint32_t opnval = (uint32_t)port_b_val;
+	if(emulate_mouse[0]) {
+		if((opnval & 0xc0) == 0x00) {
+			if(opn != NULL) opn->write_signal(SIG_YM2203_PORT_A, update_mouse((opnval & 0x03) << 4), 0xff);
+			return;
+		} else {
+			if(opn != NULL) opn->write_signal(SIG_YM2203_PORT_A, ((opnval & 0x03) << 4) & mouse_button, 0xff);
+			return;
+		}			
+	} else if(emulate_mouse[1]) {
+		if((opnval & 0xc0) == 0x40) {
+			if(opn != NULL) opn->write_signal(SIG_YM2203_PORT_A, update_mouse((opnval & 0x0c) << 2), 0xff);
+			return;
+		} else {
+			if(opn != NULL) opn->write_signal(SIG_YM2203_PORT_A, ((opnval & 0x0c) << 2) & mouse_button, 0xff);
+			return;
+		}			
+	}
+	switch(opnval & 0xf0) {
+	case 0x20:
+		if(lpt_type != 1) {
+			val = joydata[0];
+			if(opn != NULL) opn->write_signal(SIG_YM2203_PORT_A, val, 0xff);
+		}
+		break;
+	case 0x50:
+		if(lpt_type != 2) {
+			val = joydata[1];
+			if(opn != NULL) opn->write_signal(SIG_YM2203_PORT_A, val, 0xff);
+		}
+		break;
+	}
+#endif
 }
 
+#if 0
+void JOYSTICK::event_vline(int v, int clock)
+{
+#if 0
+	//if((v % 5) != 0) return;
+	uint32_t opnval = (uint32_t)port_b_val;
+	if(emulate_mouse[0]) {
+		if((opnval & 0xc0) == 0x00) {
+			if(opn != NULL) opn->write_signal(SIG_YM2203_PORT_A, update_mouse((opnval & 0x03) << 4), 0xff);
+			return;
+		} else {
+			if(opn != NULL) opn->write_signal(SIG_YM2203_PORT_A, ((opnval & 0x03) << 4) & mouse_button, 0xff);
+			return;
+		}			
+	} else if(emulate_mouse[1]) {
+		if((opnval & 0xc0) == 0x40) {
+			if(opn != NULL) opn->write_signal(SIG_YM2203_PORT_A, update_mouse((opnval & 0x0c) << 2), 0xff);
+			return;
+		} else {
+			if(opn != NULL) opn->write_signal(SIG_YM2203_PORT_A, ((opnval & 0x0c) << 2) & mouse_button, 0xff);
+			return;
+		}			
+	}
+#endif
+}
+#endif
 
 uint32_t JOYSTICK::update_mouse(uint32_t mask)
 {
@@ -140,6 +211,7 @@ uint32_t JOYSTICK::update_mouse(uint32_t mask)
 				break;
 	}
 	//mouse_button = 0x00;
+	//printf("%02x\n", (mouse_data | (mask & button) | 0xc0));
 	return (mouse_data | (mask & button) | 0xc0);
 #else
 	return 0x00;
@@ -156,6 +228,28 @@ void JOYSTICK::event_callback(int event_id, int err)
 		mouse_timeout_event = -1;
 		dx = dy = lx = ly = 0;
 		mouse_data = ly & 0x0f;
+#if 0
+		{
+			uint32_t opnval = (uint32_t)port_b_val;
+			if(emulate_mouse[0]) {
+				if((opnval & 0xc0) == 0x00) {
+					if(opn != NULL) opn->write_signal(SIG_YM2203_PORT_A, update_mouse((opnval & 0x03) << 4), 0xff);
+					return;
+				} else {
+					if(opn != NULL) opn->write_signal(SIG_YM2203_PORT_A, ((opnval & 0x03) << 4) & mouse_button, 0xff);
+					return;
+				}
+			} else if(emulate_mouse[1]) {
+				if((opnval & 0xc0) == 0x40) {
+					if(opn != NULL) opn->write_signal(SIG_YM2203_PORT_A, update_mouse((opnval & 0x0c) << 2), 0xff);
+					return;
+				} else {
+					if(opn != NULL) opn->write_signal(SIG_YM2203_PORT_A, ((opnval & 0x0c) << 2) & mouse_button, 0xff);
+					return;
+				}
+			}
+		}
+#endif
 		break;
 	}
 #endif	
@@ -165,15 +259,48 @@ void JOYSTICK::update_strobe(bool flag)
 {
 	if(mouse_strobe != flag) {
 		mouse_strobe = flag;
-		if(mouse_phase == 0) {
+		if((mouse_phase == 0)) {
 			lx = -dx;
 			ly = -dy;
 			dx = 0;
 			dy = 0;
+			//if(mouse_state != NULL) {
+			//	uint8_t stat = mouse_state[2];
+			//	mouse_button = 0x00;
+			//	if((stat & 0x01) == 0) mouse_button |= 0x10; // left
+			//	if((stat & 0x02) == 0) mouse_button |= 0x20; // right
+			//}
 			register_event(this, EVENT_MOUSE_TIMEOUT, 2000.0, false, &mouse_timeout_event);
 		}
-		mouse_phase++;
-		if(mouse_phase >= 4) mouse_phase = 0;
+#if 0
+		{
+			uint32_t opnval = (uint32_t)port_b_val;
+			if(emulate_mouse[0]) {
+				if((opnval & 0xc0) == 0x00) {
+					if(opn != NULL) opn->write_signal(SIG_YM2203_PORT_A, update_mouse((opnval & 0x03) << 4), 0xff);
+					return;
+				} else {
+					if(opn != NULL) opn->write_signal(SIG_YM2203_PORT_A, ((opnval & 0x03) << 4) & mouse_button, 0xff);
+					return;
+				}
+			} else if(emulate_mouse[1]) {
+				if((opnval & 0xc0) == 0x40) {
+					if(opn != NULL) opn->write_signal(SIG_YM2203_PORT_A, update_mouse((opnval & 0x0c) << 2), 0xff);
+					return;
+				} else {
+					if(opn != NULL) opn->write_signal(SIG_YM2203_PORT_A, ((opnval & 0x0c) << 2) & mouse_button, 0xff);
+					return;
+				}
+			}
+		}
+#endif
+		{
+			mouse_phase++;
+			if(mouse_phase >= 4) {
+				mouse_phase = 0;
+				//cancel_event(this, mouse_timeout_event);
+			}
+		}
 	}
 }
 

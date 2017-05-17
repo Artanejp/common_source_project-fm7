@@ -11,6 +11,7 @@
 
 void PCM1BIT::initialize()
 {
+	DEVICE::initialize();
 	signal = false;
 	on = true;
 	mute = false;

@@ -105,7 +105,7 @@ protected:
 #endif // _FM77AV_VARIANTS
 	
 	void copy_vram_all();
-	void copy_vram_per_line(void);
+	void copy_vram_per_line(int begin, int end);
 	void copy_vram_blank_area(void);
 
  private:
@@ -211,6 +211,8 @@ protected:
 #endif
 	uint8_t multimode_accessmask;
 	uint8_t multimode_dispmask;
+	bool multimode_accessflags[4];
+	bool multimode_dispflags[4];
    
 	uint32_t offset_point;
 	pair_t tmp_offset_point[2];
@@ -261,7 +263,7 @@ protected:
 	DEVICE *kanjiclass1;
 #endif
 	bool vram_wrote_shadow;
-	bool vram_wrote_table[411];
+	bool vram_wrote_table[411 * 5];
 	bool vram_draw_table[411];
 	//uint8_t vram_wrote_pages[411];
 	uint32_t vram_wrote_addr_1[411];
@@ -274,11 +276,11 @@ protected:
 	DEVICE *subcpu;
 	DEVICE *keyboard;
 	bool vram_wrote;
-	void GETVRAM_8_200L(int yoff, scrntype_t *p, uint32_t rgbmask, bool window_inv);
+	void GETVRAM_8_200L(int yoff, scrntype_t *p, bool window_inv);
 	void GETVRAM_4096(int yoff, scrntype_t *p, uint32_t rgbmask, bool window_inv);
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	void GETVRAM_8_400L(int yoff, scrntype_t *p, uint32_t mask, bool window_inv);
-	void GETVRAM_256k(int yoff, scrntype_t *p, uint32_t mask);
+	void GETVRAM_8_400L(int yoff, scrntype_t *p, bool window_inv);
+	void GETVRAM_256k(int yoff, scrntype_t *p);
 #endif   
 	uint8_t read_vram_l4_400l(uint32_t addr, uint32_t offset);
 	uint32_t read_mmio(uint32_t addr);

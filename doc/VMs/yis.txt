@@ -1,0 +1,20 @@
+"eYIS" - YAMAHA YIS emulator for Win32
+								5/13/2017
+
+--- Internal ROM image
+
+	BIOS.ROM	$F000 - $FFFF ($F000-$F0FF is null)
+	FONT.ROM	8x8 dots font image
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	LF		Back Space
+	RUB OUT		Delete
+	CLEAR		Home
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://takeda-toshiya.my.coocan.jp/

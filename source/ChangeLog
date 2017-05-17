@@ -1,5 +1,28 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT May 18, 2017
+  * Upstream 2017-05-15
+  * [General] Rename "emumsx2plus" -> "emumsx2p".
+  * [UI/Qt] Fix unconnected event.
+  * [UI/Qt] I forgot to add a "*.gz" extension to opening of Cartridges, CDs and Binaries.
+  * [OSD/Qt] Add *_features_* functions. It needs for *NEW* device emulation.Pls. port to win32/ .
+  * [EMU][Qt][MOUSE] Fix not effect with button-up.
+  * [VM] LibCSPcommon_vm : Without #ifdef.
+  * [VM] LibCSPcommon_vm : Add some devices.See src/vm/common_vm/CmakeLists.txt .
+  * [VM] Fix FTBFSs with LLVM (4.0).
+  * [VM/MC6809] Build shared library without libnewdev/. Use vm/mc6809.cpp and vm/mc6809_debugup.cpp . See, fm7.cpp.
+  * [VM/FM7] Faster address transferring.
+  * [VM/DEVICE] You should add "DECVICE::initialize()" to top of initialize().
+  * [VM/DEVICE] Move some devices to shared lib.
+  * [VM/DEVICE] Split MSM5832:: from MSM58321:: .
+  * [VM/M6502] Split M6502 to N2A03 and M6502.
+  * [VM/MB61VH010] Expect to be faster rendering.
+  * [VM/MB61VH010][FM77AV] Re-order addrsss of read_data8() and write_data8(). You must re-build some VMs (FM77AV series etc.)
+  * [CONFIG] Fix over loop.
+  * Build with 8067b89f01c21ee29c1b4bb4af8e7c112f88577c or later.
+
+-- May 17, 2017 22:52:55 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT April 09, 2017
   * Upstream 2017-04-02
   * [General] Add National JR-800.

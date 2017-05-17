@@ -9,25 +9,25 @@ message("")
 
 set(WITH_JOYSTICK ON)
 set(WITH_MOUSE OFF)
-set(VMFILES
-		   z80.cpp
 
+set(FLAG_USE_Z80 ON)
+set(VMFILES
 		   i8255.cpp
 		   
 		   z80ctc.cpp
-		   upd765a.cpp
-		   hd46505.cpp
 		   
 		   datarec.cpp
 		   io.cpp
 		   event.cpp
-		   disk.cpp
 )
 set(VMFILES_LIB
 	   ls393.cpp
 	   not.cpp
 	   z80pio.cpp
 	   pcm1bit.cpp
+	   upd765a.cpp
+	   disk.cpp
+	   hd46505.cpp
 )
 
 if(NOT BUILD_PASOPIA)
@@ -75,7 +75,7 @@ elseif(BUILD_PASOPIA7)
   add_definitions(-D_PASOPIA7)
   
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pasopia7.qrc)
-  set(VMFILES ${VMFILES} sn76489an.cpp)
+  set(VMFILES_LIB ${VMFILES_LIB} sn76489an.cpp)
 
 elseif(BUILD_PASOPIA7_LCD)
   set(VM_NAME pasopia7)
@@ -84,7 +84,7 @@ elseif(BUILD_PASOPIA7_LCD)
   add_definitions(-D_LCD)
   
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pasopia7_lcd.qrc)
-  set(VMFILES ${VMFILES} sn76489an.cpp)
+  set(VMFILES_LIB ${VMFILES_LIB} sn76489an.cpp)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/pasopia7)
 endif()
  			   

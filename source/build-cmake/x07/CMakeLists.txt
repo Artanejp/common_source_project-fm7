@@ -19,8 +19,8 @@ set(USE_FMGEN OFF)
 set(WITH_JOYSTICK OFF)
 set(WITH_MOUSE ON)
 
+set(FLAG_USE_Z80 ON)
 set(VMFILES_BASE
-		   z80.cpp
 		   
 		   event.cpp
 		   memory.cpp

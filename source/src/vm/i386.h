@@ -10,7 +10,7 @@
 
 #ifndef _I386_H_ 
 #define _I386_H_
-#if defined(USE_DEVICES_SHARED_LIB)
+#if defined(USE_SHARED_DLL)
 //#if 0
 #include "libcpu_newdev/i386.h"
 #else
@@ -168,5 +168,5 @@ public:
 	void set_shutdown_flag(int shutdown);
 	int get_shutdown_flag();
 };
-#endif
+#endif // USE_SHARED_DLL
 #endif

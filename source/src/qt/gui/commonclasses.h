@@ -87,6 +87,7 @@ public slots:
 	void set_screen_aspect(void);
 	void set_screen_size(void);
 	void do_set_device_type(void);
+	void do_set_mouse_type(void);
 	void do_set_drive_type(void);
 	void do_set_sound_device(void);
 	void do_set_printer_device(void);
@@ -132,6 +133,7 @@ signals:
 	int set_recent_disk(int, int);
 	int sig_write_protect_fd(int, bool);
 	int sig_device_type(int);
+	int sig_mouse_type(int);
 	int sig_sound_device(int);
 	int sig_printer_device(int);
 	int sig_drive_type(int);

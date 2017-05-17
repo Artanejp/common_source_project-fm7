@@ -28,6 +28,7 @@
 
 void TF20::initialize()
 {
+	DEVICE::initialize();
 	// init memory
 	memset(rom, 0xff, sizeof(rom));
 	memset(ram, 0, sizeof(ram));

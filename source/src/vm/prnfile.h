@@ -10,8 +10,8 @@
 #ifndef _PRNFILE_H_
 #define _PRNFILE_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 class FILEIO;
@@ -26,7 +26,9 @@ private:
 	FILEIO *fio;
 	int value, busy_id, ack_id, wait_frames;
 	bool strobe, res, busy, ack;
-	
+
+	bool _PRINTER_STROBE_RISING_EDGE;
+
 	void set_busy(bool value);
 	void set_ack(bool value);
 	void open_file();
@@ -37,6 +39,7 @@ public:
 	{
 		initialize_output_signals(&outputs_busy);
 		initialize_output_signals(&outputs_ack);
+		_PRINTER_STROBE_RISING_EDGE = false;
 		set_device_name(_T("DUMMY PRINTER DEVICE"));
 	}
 	~PRNFILE() {}

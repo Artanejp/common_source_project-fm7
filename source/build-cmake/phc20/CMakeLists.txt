@@ -15,8 +15,8 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 project (phc20)
 set(VM_NAME phc20)
 set(USE_FMGEN OFF)
+set(FLAG_USE_Z80 ON)
 set(VMFILES
-		   z80.cpp
   
 		   mc6847.cpp
 

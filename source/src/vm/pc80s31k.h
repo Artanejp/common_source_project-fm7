@@ -10,8 +10,8 @@
 #ifndef _PC80S31K_H_
 #define _PC80S31K_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 class UPD765A;
@@ -29,7 +29,9 @@ private:
 	uint8_t rdmy[0x2000];
 	uint8_t* wbank[8];
 	uint8_t* rbank[8];
-	
+
+	bool _debug_pc80s31k;
+	bool pc80s31k_no_wait;
 public:
 	PC80S31K(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{

@@ -23,6 +23,7 @@
 
 void DATAREC::initialize()
 {
+	DEVICE::initialize();
 	play_fio = new FILEIO();
 	rec_fio = new FILEIO();
 	
@@ -579,7 +580,7 @@ bool DATAREC::rec_tape(const _TCHAR* file_path)
 			sample_usec = 9;
 			sample_rate = (int)(1000000.0 / sample_usec + 0.5);
 			// write header
-			rec_fio->Fwrite("XM7 TAPE IMAGE 0", 16, 1);
+			rec_fio->Fwrite((void *)("XM7 TAPE IMAGE 0"), 16, 1);
 			rec_fio->FputUint16(0); // marker
 			is_t77 = true;
 			// initialize buffer

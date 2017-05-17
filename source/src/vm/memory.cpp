@@ -148,6 +148,83 @@ void MEMORY::write_data32w(uint32_t addr, uint32_t data, int* wait)
 	*wait = wait_l + wait_h;
 }
 
+#ifdef MEMORY_DISABLE_DMA_MMIO
+uint32_t MEMORY::read_dma_data8(uint32_t addr)
+{
+	int bank = (addr & ADDR_MASK) >> addr_shift;
+	
+	if(read_table[bank].dev != NULL) {
+//		return read_table[bank].dev->read_memory_mapped_io8(addr);
+		return 0xff;
+	} else {
+		return read_table[bank].memory[addr & BANK_MASK];
+	}
+}
+
+void MEMORY::write_dma_data8(uint32_t addr, uint32_t data)
+{
+	int bank = (addr & ADDR_MASK) >> addr_shift;
+	
+	if(write_table[bank].dev != NULL) {
+//		write_table[bank].dev->write_memory_mapped_io8(addr, data);
+	} else {
+		write_table[bank].memory[addr & BANK_MASK] = data;
+	}
+}
+
+uint32_t MEMORY::read_dma_data16(uint32_t addr)
+{
+	int bank = (addr & ADDR_MASK) >> addr_shift;
+	
+	if(read_table[bank].dev != NULL) {
+//		return read_table[bank].dev->read_memory_mapped_io16(addr);
+		return 0xffff;
+	} else {
+		uint32_t val = read_dma_data8(addr);
+		val |= read_dma_data8(addr + 1) << 8;
+		return val;
+	}
+}
+
+void MEMORY::write_dma_data16(uint32_t addr, uint32_t data)
+{
+	int bank = (addr & ADDR_MASK) >> addr_shift;
+	
+	if(write_table[bank].dev != NULL) {
+//		write_table[bank].dev->write_memory_mapped_io16(addr, data);
+	} else {
+		write_dma_data8(addr, data & 0xff);
+		write_dma_data8(addr + 1, (data >> 8) & 0xff);
+	}
+}
+
+uint32_t MEMORY::read_dma_data32(uint32_t addr)
+{
+	int bank = (addr & ADDR_MASK) >> addr_shift;
+	
+	if(read_table[bank].dev != NULL) {
+//		return read_table[bank].dev->read_memory_mapped_io32(addr);
+		return 0xffffffff;
+	} else {
+		uint32_t val = read_dma_data16(addr);
+		val |= read_dma_data16(addr + 2) << 16;
+		return val;
+	}
+}
+
+void MEMORY::write_dma_data32(uint32_t addr, uint32_t data)
+{
+	int bank = (addr & ADDR_MASK) >> addr_shift;
+	
+	if(write_table[bank].dev != NULL) {
+//		write_table[bank].dev->write_memory_mapped_io32(addr, data);
+	} else {
+		write_dma_data16(addr, data & 0xffff);
+		write_dma_data16(addr + 2, (data >> 16) & 0xffff);
+	}
+}
+#endif
+
 // register
 
 void MEMORY::set_memory_r(uint32_t start, uint32_t end, uint8_t *memory)

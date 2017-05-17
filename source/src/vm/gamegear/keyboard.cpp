@@ -7,6 +7,8 @@
 	[ keyboard ]
 */
 
+#include "../vm.h"
+#include "../../emu.h"
 #include "keyboard.h"
 #include "../i8255.h"
 

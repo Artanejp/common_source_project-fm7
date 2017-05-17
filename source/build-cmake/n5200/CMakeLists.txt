@@ -31,15 +31,15 @@ set(VMFILES_BASE
 		   
 		   upd1990a.cpp
 		   upd7220.cpp
-		   upd765a.cpp
 		   
 		   io.cpp
-		   disk.cpp
 		   event.cpp
 )
 set(VMFILES_LIB
 		   beep.cpp
 		   i8251.cpp
+		   upd765a.cpp
+		   disk.cpp
 )
 set(FLAG_USE_I386_VARIANTS ON)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")

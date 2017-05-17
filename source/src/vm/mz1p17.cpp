@@ -40,6 +40,7 @@
 
 void MZ1P17::initialize()
 {
+	DEVICE::initialize();
 	// initialize bitmap
 	int width = (int)(PIXEL_PER_INCH * 8.27);
 	int height = (int)(PIXEL_PER_INCH * 11.69);
@@ -339,11 +340,13 @@ void MZ1P17::write_signal(int id, uint32_t data, uint32_t mask)
 			set_busy(true);
 			
 			// wait 1sec and finish printing
-#ifdef SUPPORT_VARIABLE_TIMING
-			wait_frames = (int)(vm->get_frame_rate() * 1.0 + 0.5);
-#else
-			wait_frames = (int)(FRAMES_PER_SEC * 1.0 + 0.5);
-#endif
+//#ifdef SUPPORT_VARIABLE_TIMING
+//			wait_frames = (int)(vm->get_frame_rate() * 1.0 + 0.5);
+//#else
+//			wait_frames = (int)(FRAMES_PER_SEC * 1.0 + 0.5);
+//#endif
+			wait_frames = (int)(osd->vm_frame_rate() * 1.0 + 0.5);
+			
 		}
 	} else if(id == SIG_PRINTER_RESET) {
 		bool new_res = ((data & mask) != 0);

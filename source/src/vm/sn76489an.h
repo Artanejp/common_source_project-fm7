@@ -10,8 +10,8 @@
 #ifndef _SN76489AN_H_
 #define _SN76489AN_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 #define SIG_SN76489AN_MUTE	0
@@ -39,16 +39,19 @@ private:
 	bool mute, cs, we;
 	uint8_t val;
 	int volume_l, volume_r;
-	
+
+	uint32_t _NOISE_FB;
+	uint32_t _NOISE_DST_TAP;
+	uint32_t _NOISE_SRC_TAP;
 public:
 	SN76489AN(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		volume_l = volume_r = 1024;
-#ifdef HAS_SN76489
+//#ifdef HAS_SN76489
 		set_device_name(_T("SN76489 PSG"));
-#else
-		set_device_name(_T("SN76489AN PSG"));
-#endif
+//#else
+		//set_device_name(_T("SN76489AN PSG"));
+//#endif
 	}
 	~SN76489AN() {}
 	

@@ -184,6 +184,7 @@ uint16_t SY6522::get_counter1_value()
 
 void SY6522::initialize()
 {
+	DEVICE::initialize();
 	m_t1ll = 0xf3; /* via at 0x9110 in vic20 show these values */
 	m_t1lh = 0xb5; /* ports are not written by kernel! */
 	m_t2ll = 0xff; /* taken from vice */

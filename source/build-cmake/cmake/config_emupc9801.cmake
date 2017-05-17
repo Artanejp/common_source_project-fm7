@@ -10,22 +10,21 @@ set(VMFILES
 		   i8255.cpp
 		   i8259.cpp
 		   
-		   pc80s31k.cpp
 		   upd1990a.cpp
-		   upd765a.cpp
 		   upd7220.cpp
-#		   tms3631.cpp
-		   ym2203.cpp
 		   
-		   disk.cpp
 		   event.cpp
 		   io.cpp
 		   memory.cpp
-		   prnfile.cpp
 )
 set(VMFILES_LIB
-#		   i8251.cpp
-#		   ls244.cpp
+		   pc80s31k.cpp
+		   upd765a.cpp
+		   disk.cpp
+		   ym2203.cpp
+		   i8251.cpp
+		   ls244.cpp
+		   prnfile.cpp
 )
 
 set(BUILD_SHARED_LIBS OFF)
@@ -47,9 +46,7 @@ set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.
 if(BUILD_PC9801)
    add_definitions(-D_PC9801)
    set(EXEC_TARGET emupc9801)
-   set(VMFILES ${VMFILES}
-       z80.cpp
-   )
+   set(FLAG_USE_Z80 ON)
    set(VMFILES_LIB 
        beep.cpp
        not.cpp
@@ -61,8 +58,8 @@ elseif(BUILD_PC9801E)
    set(EXEC_TARGET emupc9801e)
    set(VMFILES ${VMFILES}
 #       i286.cpp
-       z80.cpp
    )
+   set(FLAG_USE_Z80 ON)
    set(VMFILES_LIB 
        beep.cpp
        not.cpp
@@ -74,8 +71,8 @@ elseif(BUILD_PC9801U)
    set(EXEC_TARGET emupc9801u)
    set(VMFILES ${VMFILES}
 #       i286.cpp
-       z80.cpp
    )
+   set(FLAG_USE_Z80 ON)
    set(VMFILES_LIB 
        beep.cpp
        not.cpp
@@ -110,12 +107,12 @@ elseif(BUILD_PC9801VF)
 elseif(BUILD_PC98DO)
    add_definitions(-D_PC98DO)
    set(EXEC_TARGET emupc98do)
-   set(VMFILES ${VMFILES}
+   set(VMFILES_LIB ${VMFILES_LIB}
  #      i286.cpp
        
        pc80s31k.cpp
-       z80.cpp
    )
+   set(FLAG_USE_Z80 ON)
    set(VMFILES_LIB 
        beep.cpp
        not.cpp

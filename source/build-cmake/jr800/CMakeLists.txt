@@ -25,13 +25,13 @@ set(VMFILES_BASE
   mc6800.cpp
 
   memory.cpp
-  hd44102.cpp
   datarec.cpp
   
   event.cpp
 )
 
 set(VMFILES_LIB 
+  hd44102.cpp
   pcm1bit.cpp
 )
 

@@ -222,6 +222,7 @@ static CPU_TRANSLATE(i386);
 
 void I386::initialize()
 {
+	DEVICE::initialize();
 	opaque = CPU_INIT_CALL(CPU_MODEL);
 	
 	i386_state *cpustate = (i386_state *)opaque;

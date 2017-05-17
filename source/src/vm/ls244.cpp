@@ -11,6 +11,7 @@
 
 void LS244::initialize()
 {
+	DEVICE::initialize();
 	din = 0xff;
 }
 

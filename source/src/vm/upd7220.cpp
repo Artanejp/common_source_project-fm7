@@ -59,6 +59,7 @@ static const int vectdir[16][4] = {
 
 void UPD7220::initialize()
 {
+	DEVICE::initialize();
 	for(int i = 0; i <= RT_TABLEMAX; i++) {
 		rt[i] = (int)((double)(1 << RT_MULBIT) * (1 - sqrt(1 - pow((0.70710678118654 * i) / RT_TABLEMAX, 2))));
 	}

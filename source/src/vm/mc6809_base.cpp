@@ -15,135 +15,11 @@
 */
 
 // Fixed IRQ/FIRQ by Mr.Sasaji at 2011.06.17
-#include "../../../common.h"
-#include "../device.h"
-#include "./mc6809_base.h"
+#include "./mc6809.h"
 #include "./mc6809_consts.h"
-//#include "common.h"
+#include "common.h"
 
 #define OP_HANDLER(_name) void MC6809_BASE::_name (void)
-
-/* macros for branch instructions */
-inline void MC6809_BASE::BRANCH(bool cond)
-{
-	uint8_t t;
-	IMMBYTE(t);
-	if(!cond) return;
-	PC = PC + SIGNED(t);
-	PC = PC & 0xffff;
-}
-
-inline void MC6809_BASE::LBRANCH(bool cond)
-{
-	pair_t t;
-	IMMWORD(t);
-	if(!cond) return;
-	icount -= 1;
-	PC += t.w.l;
-	PC = PC & 0xffff;
-}
-
-/* macros for setting/getting registers in TFR/EXG instructions */
-
-inline pair_t MC6809_BASE::RM16_PAIR(uint32_t addr)
-{
-	pair_t b;
-	b.d = 0;
-	b.b.h = RM(addr);
-	b.b.l = RM((addr + 1));
-	return b;
-}
-
-inline void MC6809_BASE::WM16(uint32_t Addr, pair_t *p)
-{
-	WM(Addr , p->b.h);
-	WM((Addr + 1), p->b.l);
-}
-
-/* increment */
-const uint8_t mc6809_flags8i[256] = {
-	CC_Z,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	CC_N|CC_V,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,
-	CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,
-	CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,
-	CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,
-	CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,
-	CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,
-	CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,
-	CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N
-};
-
-/* decrement */
-const uint8_t mc6809_flags8d[256] = {
-	CC_Z,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,CC_V,
-	CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,
-	CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,
-	CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,
-	CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,
-	CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,
-	CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,
-	CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,
-	CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N
-};
-
-/* FIXME: Cycles differ slighly from hd6309 emulation */
-static const int index_cycle_em[256] = {	/* Index Loopup cycle counts */
-/*           0xX0, 0xX1, 0xX2, 0xX3, 0xX4, 0xX5, 0xX6, 0xX7, 0xX8, 0xX9, 0xXA, 0xXB, 0xXC, 0xXD, 0xXE, 0xXF */
-
-/* 0x0X */ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-/* 0x1X */ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-/* 0x2X */ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-/* 0x3X */ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-/* 0x4X */ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-/* 0x5X */ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-/* 0x6X */ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-/* 0x7X */ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-/* 0x8X */ 2, 3, 2, 3, 0, 1, 1, 1, 1, 4, 0, 4, 1, 5, 0, 2,
-/* 0x9X */ 5, 6, 5, 6, 3, 4, 4, 4, 4, 7, 3, 7, 4, 8, 3, 3,
-/* 0xAX */ 2, 3, 2, 3, 0, 1, 1, 1, 1, 4, 0, 4, 1, 5, 0, 2,
-/* 0xBX */ 5, 6, 5, 6, 3, 4, 4, 4, 4, 7, 3, 7, 4, 8, 3, 5,
-/* 0xCX */ 2, 3, 2, 3, 0, 1, 1, 1, 1, 4, 0, 4, 1, 5, 0, 2,
-/* 0xDX */ 5, 6, 5, 6, 3, 4, 4, 4, 4, 7, 3, 7, 4, 8, 3, 5,
-/* 0xEX */ 2, 3, 2, 3, 0, 1, 1, 1, 1, 4, 0, 4, 1, 5, 0, 2,
-/* 0xFX */ 4, 6, 5, 6, 3, 4, 4, 4, 4, 7, 3, 7, 4, 8, 3, 5
-};
-
-/* timings for 1-byte opcodes */
-/* 20100731 Fix to XM7 */
-const int mc6809_cycles1[] = {
-/*   0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F */
-/*0 */ 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 3, 6,
-/*1 */ 0, 0, 2, 2, 0, 0, 5, 9, 3, 2, 3, 2, 3, 2, 8, 6,
-/*2 */ 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-/*3 */ 4, 4, 4, 4, 5, 5, 5, 5, 4, 5, 3, 6, 20, 11, 1, 19,
-/*4 */ 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-/*5 */ 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-/*6 */ 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 3, 6,
-/*7 */ 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 4, 7,
-/*8 */ 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 2, 4, 7, 3, 3,
-/*9 */ 4, 4, 4, 6, 4, 4, 4, 4, 4, 4, 4, 4, 6, 7, 5, 5,
- /*A*/ 4, 4, 4, 6, 4, 4, 4, 4, 4, 4, 4, 4, 6, 7, 5, 5,
- /*B*/ 5, 5, 5, 7, 5, 5, 5, 5, 5, 5, 5, 5, 7, 8, 6, 6,
- /*C*/ 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 2, 3, 0, 3, 3,
- /*D*/ 4, 4, 4, 6, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5,
- /*E*/ 4, 4, 4, 6, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5,
- /*F*/ 5, 5, 5, 7, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6
-};
-
 
 static void (MC6809_BASE::*m6809_main[0x100]) (void) = {
 /*          0xX0,   0xX1,     0xX2,    0xX3,    0xX4,    0xX5,    0xX6,    0xX7,
@@ -229,7 +105,43 @@ static void (MC6809_BASE::*m6809_main[0x100]) (void) = {
 	&MC6809_BASE::andb_ex, &MC6809_BASE::bitb_ex, &MC6809_BASE::ldb_ex, &MC6809_BASE::stb_ex,
 	&MC6809_BASE::eorb_ex, &MC6809_BASE::adcb_ex, &MC6809_BASE::orb_ex, &MC6809_BASE::addb_ex,
 	&MC6809_BASE::ldd_ex, &MC6809_BASE::std_ex, &MC6809_BASE::ldu_ex, &MC6809_BASE::stu_ex
-};
+	};
+/* macros for branch instructions */
+inline void MC6809_BASE::BRANCH(bool cond)
+{
+	uint8_t t;
+	IMMBYTE(t);
+	if(!cond) return;
+	PC = PC + SIGNED(t);
+	PC = PC & 0xffff;
+}
+
+inline void MC6809_BASE::LBRANCH(bool cond)
+{
+	pair_t t;
+	IMMWORD(t);
+	if(!cond) return;
+	icount -= 1;
+	PC += t.w.l;
+	PC = PC & 0xffff;
+}
+
+/* macros for setting/getting registers in TFR/EXG instructions */
+
+inline pair_t MC6809_BASE::RM16_PAIR(uint32_t addr)
+{
+	pair_t b;
+	b.d = 0;
+	b.b.h = RM(addr);
+	b.b.l = RM((addr + 1));
+	return b;
+}
+
+inline void MC6809_BASE::WM16(uint32_t Addr, pair_t *p)
+{
+	WM(Addr , p->b.h);
+	WM((Addr + 1), p->b.l);
+}
 
 void MC6809_BASE::reset()
 {
@@ -261,9 +173,13 @@ void MC6809_BASE::reset()
 
 void MC6809_BASE::initialize()
 {
+	DEVICE::initialize();
 	int_state = 0;
 	busreq = false;
-	d_mem_stored = NULL;
+#ifdef USE_DEBUGGER
+	d_mem_stored = d_mem;
+	d_debugger->set_context_mem(d_mem);
+#endif
 }
 
 void MC6809_BASE::write_signal(int id, uint32_t data, uint32_t mask)
@@ -367,20 +283,40 @@ int MC6809_BASE::run(int clock)
 	first_icount = icount;
 
 	if ((int_state & MC6809_HALT_BIT) != 0) {	// 0x80
+	   	if(!busreq) write_signals(&outputs_bus_halt, 0xffffffff);
+#if 0
+		if(clock < 0) {
+			int passed_icount;
+			passed_icount = max(1, extra_icount);
+			extra_icount = 0;
+			busreq = true;
+			return first_icount - passed_icount;
+		} else {
+			//icount = 0;
+			icount -= extra_icount;
+			extra_icount = 0;
+			busreq = true;
+			return first_icount - icount;
+		}
+#else
 		icount = 0;
 		icount -= extra_icount;
 		extra_icount = 0;
-	   	if(!busreq) write_signals(&outputs_bus_halt, 0xffffffff);
 		busreq = true;
 		return first_icount - icount;
+#endif
 	}
 	if(busreq) write_signals(&outputs_bus_halt, 0x00000000);
 	busreq = false;
 	if((int_state & MC6809_INSN_HALT) != 0) {	// 0x80
 		//uint8_t dmy = RM(PCD); //Will save.Need to keep.
 		RM(PCD); //Will save.Need to keep.
-		icount = 0;
-		icount -= extra_icount;
+		if(clock < 0) {
+			icount = -extra_icount;
+			first_icount = 0;
+		} else {
+			icount -= extra_icount;
+		}
 		extra_icount = 0;
 		PC++;
 		return first_icount - icount;
@@ -464,8 +400,7 @@ check_ok:
 	} else { // CWAI_IN
 		if (clock >= 0) {
 			icount -= clock;
-		}
-		else {
+		} else {
 			icount = 0;
 		}
 		return first_icount - icount;
@@ -478,7 +413,7 @@ void MC6809_BASE::run_one_opecode()
 	pPPC = pPC;
 	uint8_t ireg = ROP(PCD);
 	PC++;
-	icount -= mc6809_cycles1[ireg];
+	icount -= cycles1[ireg];
 	icount -= extra_icount;
 	extra_icount = 0;
 	op(ireg);
@@ -486,7 +421,6 @@ void MC6809_BASE::run_one_opecode()
 
 void MC6809_BASE::op(uint8_t ireg)
 {
-//#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	if(ireg == 0x0f) { // clr_di()
 		write_signals(&outputs_bus_clr, 0x00000001);
 		clr_used = true;
@@ -524,13 +458,64 @@ uint32_t MC6809_BASE::read_debug_io8(uint32_t addr)
 
 bool MC6809_BASE::write_debug_reg(const _TCHAR *reg, uint32_t data)
 {
+//#ifdef USE_DEBUGGER
+	if(_tcsicmp(reg, _T("PC")) == 0) {
+		PC = data;
+	} else if(_tcsicmp(reg, _T("DP")) == 0) {
+		DP = data;
+	} else if(_tcsicmp(reg, _T("A")) == 0) {
+		A = data;
+	} else if(_tcsicmp(reg, _T("B")) == 0) {
+		B = data;
+	} else if(_tcsicmp(reg, _T("D")) == 0) {
+		D = data;
+	} else if(_tcsicmp(reg, _T("U")) == 0) {
+		U = data;
+	} else if(_tcsicmp(reg, _T("X")) == 0) {
+		X = data;
+	} else if(_tcsicmp(reg, _T("Y")) == 0) {
+		Y = data;
+	} else if(_tcsicmp(reg, _T("S")) == 0) {
+		S = data;
+	} else if(_tcsicmp(reg, _T("CC")) == 0) {
+		CC = data;
+	} else {
+		return false;
+	}
+//#endif
 	return true;
 }
 
 void MC6809_BASE::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
+//#ifdef USE_DEBUGGER
+	my_stprintf_s(buffer, buffer_len,
+		 _T("PC = %04x PPC = %04x INTR=[%s %s %s %s][%s %s %s %s %s] CC = [%c%c%c%c%c%c%c%c]\nA = %02x B = %02x DP = %02x X = %04x Y = %04x U = %04x S = %04x EA = %04x"),
+		 PC,
+		 PPC,
+		 ((int_state & MC6809_IRQ_BIT) == 0)   ? _T("----") : _T(" IRQ"),
+		 ((int_state & MC6809_FIRQ_BIT) == 0)  ? _T("----") : _T("FIRQ"),
+		 ((int_state & MC6809_NMI_BIT) == 0)   ? _T("----") : _T(" NMI"),
+		 ((int_state & MC6809_HALT_BIT) == 0)  ? _T("----") : _T("HALT"),
+		 ((int_state & MC6809_CWAI_IN) == 0)   ? _T("--") : _T("CI"),
+		 ((int_state & MC6809_CWAI_OUT) == 0)  ? _T("--") : _T("CO"),
+		 ((int_state & MC6809_SYNC_IN) == 0)   ? _T("--") : _T("SI"),
+		 ((int_state & MC6809_SYNC_OUT) == 0)  ? _T("--") : _T("SO"),
+		 ((int_state & MC6809_INSN_HALT) == 0) ? _T("----") : _T("TRAP"),
+		 ((CC & CC_E) == 0)  ? _T('-') : _T('E'), 
+		 ((CC & CC_IF) == 0) ? _T('-') : _T('F'), 
+		 ((CC & CC_H) == 0)  ? _T('-') : _T('H'), 
+		 ((CC & CC_II) == 0) ? _T('-') : _T('I'), 
+		 ((CC & CC_N) == 0)  ? _T('-') : _T('N'), 
+		 ((CC & CC_Z) == 0)  ? _T('-') : _T('Z'), 
+		 ((CC & CC_V) == 0)  ? _T('-') : _T('V'), 
+		 ((CC & CC_C) == 0)  ? _T('-') : _T('C'),
+		 A, B, DP,
+		 X, Y, U, S,
+		 EAD
+	 );
+//#endif
 }  
-
 
 uint32_t MC6809_BASE::cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_t *oprom, const uint8_t *opram)
 {
@@ -541,7 +526,6 @@ int MC6809_BASE::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
 	return 0;
 }
-
 
 
 

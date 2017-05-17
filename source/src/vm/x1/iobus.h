@@ -43,6 +43,10 @@ private:
 	uint8_t crtc_regs[18];
 	int crtc_ch;
 	bool hireso;
+#ifdef _X1TURBOZ
+	uint8_t zmode1;
+	uint8_t zmode2;
+#endif
 #endif
 	void write_port8(uint32_t addr, uint32_t data, bool is_dma, int* wait);
 	uint32_t read_port8(uint32_t addr, bool is_dma, int* wait);

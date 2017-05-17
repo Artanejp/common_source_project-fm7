@@ -1,7 +1,11 @@
 ###
 #
-#BUILD_TOOLCHAIN="LLVM"
+
 BUILD_TOOLCHAIN="GCC"
+CC_SUFFIX=7
+#BUILD_TOOLCHAIN="LLVM"
+#CC_SUFFIX=4.0
+
 
 BUILD_TYPE="Relwithdebinfo"
 # "No" or "Yes".

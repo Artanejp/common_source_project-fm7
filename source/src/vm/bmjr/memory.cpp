@@ -191,13 +191,6 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 		case 0xee00:
 		case 0xee20:
 			d_drec->write_signal(SIG_DATAREC_REMOTE, addr, 0x20);
-#if defined(USE_SOUND_FILES)
-			if(addr & 0x20) {
-				d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_RELAY_ON, 1, 1);
-			} else {
-				d_drec->write_signal(SIG_SOUNDER_ADD + DATAREC_SNDFILE_RELAY_OFF, 1, 1);
-			}
-#endif
 			return 0x01;
 		case 0xee80:
 			return drec_bit ? 0x80 : 0;

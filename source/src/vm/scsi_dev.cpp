@@ -16,6 +16,7 @@
 
 void SCSI_DEV::initialize()
 {
+	DEVICE::initialize();
 	buffer = new FIFO(SCSI_BUFFER_SIZE);
 	phase = SCSI_PHASE_BUS_FREE;
 }

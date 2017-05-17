@@ -30,6 +30,7 @@
 
 void I8155::initialize()
 {
+	DEVICE::initialize();
 	// initialize timer
 	count = countreg = 0x3fff;
 	prev_out = true;

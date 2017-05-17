@@ -146,7 +146,7 @@ namespace FM
 
 		uint	key_scale_rate_;		// key scale rate
 		EGPhase	eg_phase_;
-		uint*	ams_;
+		volatile uint*	ams_;
 		uint	ms_;
 		
 		uint	tl_;			// Total Level	 (0-127)

@@ -289,6 +289,7 @@ uint8_t FM7_MAINIO::get_opn(int index)
 		case 0x09:
 			if(index != 0) return 0xff;
 			if(opn_address[0] == 0x0e) {
+				//return opn[0]->read_signal(SIG_YM2203_PORT_A);
 				return joystick->read_data8(0);
 			}
 			return 0x00;

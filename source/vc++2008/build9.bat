@@ -348,14 +348,20 @@ copy Release\x07.exe build_xp\x07\.
 devenv.com x1.vcproj /Rebuild Release
 devenv.com x1twin.vcproj /Rebuild Release
 devenv.com x1turbo.vcproj /Rebuild Release
+devenv.com x1turboz.vcproj /Rebuild Release
 mkdir build_xp\x1
 copy Release\x1.exe build_xp\x1\.
 copy Release\x1twin.exe build_xp\x1\.
 copy Release\x1turbo.exe build_xp\x1\.
+copy Release\x1turboz.exe build_xp\x1\.
 
 devenv.com yalky.vcproj /Rebuild Release
 mkdir build_xp\yalky
 copy Release\yalky.exe build_xp\yalky\.
+
+devenv.com yis.vcproj /Rebuild Release
+mkdir build_xp\yis
+copy Release\yis.exe build_xp\yis\.
 
 devenv.com ys6464a.vcproj /Rebuild Release
 mkdir build_xp\ys6464a

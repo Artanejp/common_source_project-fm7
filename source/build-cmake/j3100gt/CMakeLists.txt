@@ -23,17 +23,14 @@ set(VMFILES
 		   i8237.cpp
 		   i8253.cpp
 		   i8259.cpp
-		   hd46505.cpp
-
 		   io.cpp
-		   disk.cpp
-		   
-		   upd765a.cpp
-		   
 		   event.cpp
 )
 set(VMFILES_LIB
+		   hd46505.cpp
 		   pcm1bit.cpp
+		   upd765a.cpp
+		   disk.cpp
 )
 
 set(BUILD_J3100GT ON  CACHE BOOL "Build emuJ3100GT")
@@ -56,9 +53,11 @@ if(BUILD_J3100GT)
   add_definitions(-D_J3100GT)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/j3100gt.qrc)
   set(VMFILES ${VMFILES} 
-               i286.cpp 
-	       hd146818p.cpp
-	       )
+        i286.cpp 
+  )
+  set(VMFILES_LIB ${VMFILES_LIB}
+		   hd146818p.cpp
+  )
 elseif(BUILD_J3100SL)
   set(EXEC_TARGET emuj3100sl)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/j3100sl.qrc)

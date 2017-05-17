@@ -67,6 +67,10 @@ void DISPLAY::reset_cpuonly()
 	palette_changed = true;
 	multimode_accessmask = 0;
 	multimode_dispmask = 0;
+	for(i = 0; i < 4; i++) {
+		multimode_accessflags[i] = ((multimode_accessmask & (1 << i)) != 0) ? true : false;
+		multimode_dispflags[i] = ((multimode_dispmask & (1 << i)) != 0) ? true : false;
+	}
 	firq_mask = false;
 	//cancel_request = false;
 	switch(config.cpu_type){
@@ -86,7 +90,7 @@ void DISPLAY::reset_cpuonly()
 	}
 
 	vram_wrote_shadow = true;
-	for(i = 0; i < 411; i++) vram_wrote_table[i] = true;
+	for(i = 0; i < 411 * 5; i++) vram_wrote_table[i] = true;
 	for(i = 0; i < 411; i++) vram_draw_table[i] = true;
 	displine = 0;
 	active_page = 0;
@@ -216,13 +220,17 @@ void DISPLAY::reset()
 	
 #if defined(_FM77AV_VARIANTS)
 	power_on_reset = false;
-	for(i = 0; i < 411; i++) vram_wrote_table[i] = false;
+	for(i = 0; i < 411 * 5; i++) vram_wrote_table[i] = false;
 	nmi_enable = true;
 #else
 # if defined(_FM8)
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
-	multimode_accessmask = 0x00;
-	multimode_dispmask = 0x00;
+	//multimode_accessmask = 0x00;
+	//multimode_dispmask = 0x00;
+	//for(i = 0; i < 4; i++) {
+	//	multimode_accessflags[i] = ((multimode_accessmask & (1 << color)) != 0) ? true : false;
+	//	multimode_dispflags[i] = ((multimode_dispmask & (1 << color)) != 0) ? true : false;
+	//}
 # endif
 #endif	
 	//enter_display();
@@ -332,6 +340,10 @@ void DISPLAY::set_multimode(uint8_t val)
 #if !defined(_FM8)	
 	multimode_accessmask = val & 0x07;
 	multimode_dispmask = (val & 0x70) >> 4;
+	for(int i = 0; i < 4; i++) {
+		multimode_accessflags[i] = ((multimode_accessmask & (1 << i)) != 0) ? true : false;
+		multimode_dispflags[i] = ((multimode_dispmask & (1 << i)) != 0) ? true : false;
+	}
 	vram_wrote = true;
 # if defined(_FM77AV_VARIANTS)
 	alu->write_signal(SIG_ALU_MULTIPAGE, multimode_accessmask, 0x07);
@@ -771,7 +783,7 @@ void DISPLAY::copy_vram_blank_area(void)
 {
 }
 
-void DISPLAY::copy_vram_per_line(void)
+void DISPLAY::copy_vram_per_line(int begin, int end)
 {
 	uint32_t src_offset;
 	uint32_t yoff_d1;
@@ -788,12 +800,19 @@ void DISPLAY::copy_vram_per_line(void)
 	uint32_t bytes_d;
 
 	uint32_t addr_d1, addr_d2;
+	int sectors;
 	
 	int i, j, k;
 	//int dline = (int)displine - 1;
 	int dline = (int)displine;
 
+	if((begin  < 0) || (begin > 4)) return;
+	if((end  < 0) || (end > 4)) return;
+	if(begin > end) return;
 	if(dline < 0) return;
+	
+	sectors = end - begin + 1;
+	
 	if(display_mode == DISPLAY_MODE_8_400L) {
 		if(dline >= 400) return;
 	} else {
@@ -803,7 +822,8 @@ void DISPLAY::copy_vram_per_line(void)
 	yoff_d1 = offset_point;
 	yoff_d2 = offset_point_bank1;
 	if(display_mode == DISPLAY_MODE_4096) {
-		src_offset = dline * 40;
+		src_offset = dline * 40 + begin * 8;
+		sectors = sectors * 8;
 #if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		pages = 2;
 #endif
@@ -816,30 +836,30 @@ void DISPLAY::copy_vram_per_line(void)
 			for(i = 0; i < 3; i++) {
 				for(j = 0; j < 2; j++) {
 					uint32_t _addr_base = src_base + src_offset + poff;
-					if(bytes_d1 < 40) {
+					if(bytes_d1 < sectors) {
 						memcpy(&gvram_shadow[_addr_base],
 							   &gvram[addr_d1 + src_base + poff],
 							   bytes_d1);
 						memcpy(&gvram_shadow[_addr_base + bytes_d1],
 							   &gvram[src_base + poff],
-							   40 - bytes_d1);
+							   sectors - bytes_d1);
 					} else {
 						memcpy(&gvram_shadow[_addr_base],
 							   &gvram[addr_d1 + src_base + poff],
-							   40);
+							   sectors);
 					}
 					_addr_base += 0xc000;
-					if(bytes_d2 < 40) {
+					if(bytes_d2 < sectors) {
 						memcpy(&gvram_shadow[_addr_base],
 							   &gvram[addr_d2 + src_base + poff + 0xc000],
 							   bytes_d2);
 						memcpy(&gvram_shadow[_addr_base + bytes_d2],
 							   &gvram[src_base + poff + 0xc000],
-							   40 - bytes_d2);
+							   sectors - bytes_d2);
 					} else {
 						memcpy(&gvram_shadow[_addr_base],
 							   &gvram[addr_d2 + src_base + poff + 0xc000],
-							   40);
+							   sectors);
 					}
 					src_base += 0x2000;
 				}
@@ -848,11 +868,12 @@ void DISPLAY::copy_vram_per_line(void)
 			poff += 0x18000;
 		}
 		vram_draw_table[dline] = true;
-		vram_wrote_table[dline] = false;
+		for(int ii = begin; ii <= end; ii++) vram_wrote_table[(dline * 5) + ii] = false;
 	}
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV40)
 	else if(display_mode == DISPLAY_MODE_256k) {
-		src_offset = dline * 40;
+		src_offset = dline * 40 + begin * 8;
+		sectors = sectors * 8;
 		
 #if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		pages = 4;
@@ -877,26 +898,27 @@ void DISPLAY::copy_vram_per_line(void)
 						src_offset_d = src_offset_d2;
 						bytes_d = bytes_d2;
 					}						
-					if(bytes_d < 40) {
+					if(bytes_d < sectors) {
 						memcpy(&gvram_shadow[src_offset + src_base],
 							   &gvram[src_offset_d + src_base],
 							   bytes_d);
 						memcpy(&gvram_shadow[src_offset + bytes_d + src_base],
 							   &gvram[src_base],
-							   40 - bytes_d);
+							   sectors - bytes_d);
 					} else {
 						memcpy(&gvram_shadow[src_offset + src_base],
 							   &gvram[src_offset_d + src_base],
-							   40);
+							   sectors);
 					}
 				}
 			}
 		}
 		vram_draw_table[dline] = true;
-		vram_wrote_table[dline] = false;
+		for(int ii = begin; ii <= end; ii++) vram_wrote_table[(dline * 5) + ii] = false;
 	}
 	else if(display_mode == DISPLAY_MODE_8_400L) {
-		src_offset = dline * 80;
+		src_offset = dline * 80 + begin * 16;
+		sectors = sectors * 16;
 #if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		pages = 2;
 #endif
@@ -911,7 +933,7 @@ void DISPLAY::copy_vram_per_line(void)
 		for(i = 0; i < pages; i++) {
 			for(j = 0; j < 3; j++) {
 				src_base = i * 0x18000 + j * 0x8000;
-				if(bytes_d < 80) {
+				if(bytes_d < sectors) {
 					if(bytes_d > 0) {
 						memcpy(&gvram_shadow[src_offset + src_base],
 							   &gvram[src_offset_d + src_base],
@@ -919,20 +941,21 @@ void DISPLAY::copy_vram_per_line(void)
 					}
 					memcpy(&gvram_shadow[src_offset + bytes_d + src_base],
 						   &gvram[src_base],
-						   80 - bytes_d);
+						   sectors - bytes_d);
 				} else {
 					memcpy(&gvram_shadow[src_offset + src_base + poff],
 						   &gvram[src_offset_d + src_base],
-						   80);
+						   sectors);
 				}
 			}
 		}
 		vram_draw_table[dline] = true;
-		vram_wrote_table[dline] = false;
+		for(int ii = begin; ii <= end; ii++) vram_wrote_table[(dline * 5) + ii] = false;
 	}
 #endif	
 	else { // 200line
-		src_offset = dline * 80;
+		src_offset = dline * 80 + begin * 16;
+		sectors = sectors * 16;
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		pages = 4;
 #elif defined(_FM77AV40)
@@ -957,28 +980,30 @@ void DISPLAY::copy_vram_per_line(void)
 			}
 			src_base = 0;
 			for(j = 0; j < 3; j++) {
-				if(bytes_d < 80) {
+				if(bytes_d < sectors) {
 					memcpy(&gvram_shadow[src_offset + src_base + poff],
 						   &gvram[src_offset_d + src_base + poff],
 						   bytes_d);
 					memcpy(&gvram_shadow[src_offset + bytes_d + src_base + poff],
 						   &gvram[src_base + poff],
-						   80 - bytes_d);
+						   sectors - bytes_d);
 				} else {
 					memcpy(&gvram_shadow[src_offset + src_base + poff],
 						   &gvram[src_offset_d + src_base + poff],
-						   80);
+						   sectors);
 				}
 				src_base += 0x4000;
 			}
 			poff += 0xc000;
 		}
 		vram_draw_table[dline] = true;
-		vram_wrote_table[dline] = false;
+		for(int ii = begin; ii <= end; ii++) vram_wrote_table[(dline * 5) + ii] = false;
+		//vram_wrote_table[dline] = false;
 	}
 #else // FM-8/7/77
 	{ // 200line
-		src_offset = dline * 80;
+		src_offset = dline * 80 + begin * 16;
+		sectors = sectors * 16;
 		pages = 1;
 		poff = 0;
 		yoff_d = offset_point;
@@ -986,21 +1011,22 @@ void DISPLAY::copy_vram_per_line(void)
 		bytes_d = 0x4000 - ((src_offset + yoff_d) & 0x3fff);
 		for(j = 0; j < 3; j++) {
 			src_base = j * 0x4000;
-			if(bytes_d < 80) {
+			if(bytes_d < sectors) {
 				memcpy(&gvram_shadow[src_offset + src_base + poff],
 					   &gvram[src_offset_d + src_base + poff],
 					   bytes_d);
 				memcpy(&gvram_shadow[src_offset + bytes_d + src_base + poff],
 					   &gvram[src_base + poff],
-					   80 - bytes_d);
+					   sectors - bytes_d);
 			} else {
 				memcpy(&gvram_shadow[src_offset + src_base + poff],
 					   &gvram[src_offset_d + src_base + poff],
-					   80);
+					   sectors);
 			}
 		}
 		vram_draw_table[dline] = true;
-		vram_wrote_table[dline] = false;
+		for(int ii = begin; ii <= end; ii++) vram_wrote_table[(dline * 5) + ii] = false;
+		//vram_wrote_table[dline] = false;
 	}
 
 #endif
@@ -1152,7 +1178,27 @@ void DISPLAY::event_callback(int event_id, int err)
 			}
 			if(f) {
 				if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) != 0) {
-					if((vram_wrote_table[displine] || vram_wrote) && need_transfer_line/*|| vram_wrote */) copy_vram_per_line();
+					if(vram_wrote) {
+						//copy_vram_per_line(0, 4);
+					} else if(need_transfer_line) {
+						int begin = -1;
+						int end = -1;
+						for(int iii = 0; iii < 5 ; iii++) {
+							if(vram_wrote_table[iii + displine * 5]) {
+								if(begin < 0) begin = iii;
+							} else {
+								if(begin >= 0) {
+									end = iii - 1;
+									if(end < begin) end = begin;
+									copy_vram_per_line(begin, end);
+									begin = -1;
+									end = -1;
+								}
+							}
+						}
+						if(begin >= 0) end = 4;
+						copy_vram_per_line(begin, end);
+					}
 				}
   				if(display_mode == DISPLAY_MODE_8_400L) {
 					register_event(this, EVENT_FM7SUB_HBLANK, 30.0, false, &hblank_event_id); // NEXT CYCLE_
@@ -1235,42 +1281,53 @@ void DISPLAY::event_callback(int event_id, int err)
 		mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x00, 0xff);
 		register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
 		if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) == 0) {
-				bool ff = false;
-				if(!vram_wrote) {
-					if(need_transfer_line) {
-						int lines = 200;
-						if(display_mode == DISPLAY_MODE_8_400L) lines = 400;
-						for(int yy = 0; yy < lines; yy++) {
-							if(vram_wrote_table[yy]) {
-								vram_wrote_table[yy] = false;
-								ff = true;
-							}
+			bool ff = false;
+			int lines = 200;
+			if(display_mode == DISPLAY_MODE_8_400L) lines = 400;
+			if(need_transfer_line) {
+				if(vram_wrote) ff = true;
+				//if(need_transfer_line) ff = true;
+				//}
+				for(displine = 0; displine < lines; displine++) {
+					if(ff) break;
+					for(int iii = 0; iii < 5 ; iii++) {
+						if(vram_wrote_table[iii + displine * 5]) {
+							ff = true;
+							break;
 						}
 					}
-				} else {
-					if(need_transfer_line) ff = true;
 				}
-				if(ff) {
-					for(int yy = 0; yy < 400; yy++) vram_draw_table[yy] = true;
-					copy_vram_all();
-					vram_wrote_shadow = true;
-					screen_update_flag = true;
-					vram_wrote = false;
+				displine = 0;
+			}
+			if(ff) {
+				for(int yy = 0; yy < lines; yy++) {
+					if(!vram_draw_table[yy]) {
+						displine = yy;
+						copy_vram_per_line(0, 4);
+						vram_draw_table[yy] = true;
+					}
 				}
+				//copy_vram_all();
+				vram_wrote_shadow = true;
+				screen_update_flag = true;
+				vram_wrote = false;
+			}
 		} else {
+			int lines = 200;
+			if(display_mode == DISPLAY_MODE_8_400L) lines = 400;
 			if(need_transfer_line) {
 				if(vram_wrote) {
-					for(int yy = 0; yy < 400; yy++) {
-						if(!vram_draw_table[yy]) {
-							displine = yy;
-							copy_vram_per_line();
-						}
+					for(int yy = 0; yy < lines; yy++) {
+						//if(!vram_draw_table[yy]) {
+						displine = yy;
+						copy_vram_per_line(0, 4);
+							//}
 					}
 					displine = 0;
 					vram_wrote = false;
 				}
 			}
-			for(int yy = 0; yy < 400; yy++) {
+			for(int yy = 0; yy < lines; yy++) {
 				if(vram_draw_table[yy]) {
 					vram_wrote_shadow = true;
 					screen_update_flag = true;
@@ -1305,18 +1362,20 @@ void DISPLAY::event_frame()
 #if !defined(_FM77AV_VARIANTS) && !defined(_FM77L4)
 	int yy;
 	bool f = false;
+	int lines = 200;
+	if(display_mode == DISPLAY_MODE_8_400L) lines = 400;
 	if(need_transfer_line && vram_wrote) {
-		for(yy = 0; yy < 400; yy++) {
-			if(!vram_draw_table[yy]) {
+		for(yy = 0; yy < lines; yy++) {
+			//if(!vram_draw_table[yy]) {
 				displine = yy;
-				copy_vram_per_line();
-			}
+				copy_vram_per_line(0, 4);
+			//}
 		}
 		vram_wrote = false;
 		displine = 0;
 	}
 	{
-		for(yy = 0; yy < 400; yy++) {
+		for(yy = 0; yy < lines; yy++) {
 			if(vram_draw_table[yy]) {
 				f = true;
 				break;
@@ -1349,9 +1408,28 @@ void DISPLAY::event_vline(int v, int clock)
 #if !defined(_FM77AV_VARIANTS) && !defined(_FM77L4)
 	if(need_transfer_line == false) return;
 	displine = v;
-	if(vram_wrote_table[displine] || vram_wrote) {
-		copy_vram_per_line();
-	}		
+	bool ff = false;
+	if(vram_wrote) {
+		//copy_vram_per_line(0, 4);
+	} else {
+		int begin = -1;
+		int end = -1;
+		for(int iii = 0; iii < 5 ; iii++) {
+			if(vram_wrote_table[displine * 5 + iii]) {
+				if(begin < 0) begin = iii;
+			} else {
+				if(begin >= 0) {
+					end = iii - 1;
+					if(end < begin) end = begin;
+					copy_vram_per_line(begin, end);
+					begin = -1;
+					end = -1;
+				}
+			}
+		}
+		if(begin >= 0) end = 4;
+		copy_vram_per_line(begin, end);
+	}
 	enter_display();
 #endif	
 }
@@ -1720,7 +1798,8 @@ uint32_t DISPLAY::read_vram_data8(uint32_t addr)
 	}
 # endif
 # if !defined(_FM8)		
-	if((multimode_accessmask & (1 << color)) != 0) return 0xff;
+	//if((multimode_accessmask & (1 << color)) != 0) return 0xff;
+	if(multimode_accessflags[color]) return 0xff;
 # endif		
 #if defined(_FM77AV_VARIANTS)
 	if (active_page != 0) {
@@ -1816,6 +1895,7 @@ void DISPLAY::write_vram_data8(uint32_t addr, uint8_t data)
 		if(display_mode == DISPLAY_MODE_8_400L) {
 			uint32_t pagemod;
 			uint32_t page_offset_alt = 0;
+			uint32_t naddr;
 			if(addr >= 0x8000) {
 				return;
 			}
@@ -1830,11 +1910,13 @@ void DISPLAY::write_vram_data8(uint32_t addr, uint8_t data)
 			// Reduce data transfer.
 			tdata = gvram[vramaddr];			
 			if(tdata != data) {
+				naddr = (addr & 0x7fff) >> 4;
 				gvram[vramaddr] = data;
-				vram_wrote_table[(addr & 0x7fff) / 80] = true;
+				vram_wrote_table[naddr] = true;
 			}
 		} else 	if(display_mode == DISPLAY_MODE_256k) {
 			uint32_t page_offset_alt;
+			uint32_t naddr;
 #if defined(_FM77AV40)
 			if(vram_bank < 3) {
 				page_offset_alt = 0xc000 * (vram_bank & 0x03);
@@ -1843,86 +1925,78 @@ void DISPLAY::write_vram_data8(uint32_t addr, uint8_t data)
 			}
 #else			
 			page_offset_alt = 0xc000 * (vram_bank & 0x03);
-#endif			
-			//pagemod = addr & pagemod_mask;
+#endif
 			vramaddr = (((addr + offset) & page_mask) | (pagemod_mask & addr)) + page_offset_alt;
 			tdata = gvram[vramaddr];
 			if(tdata != data) {
+				naddr = (addr & page_mask) >> 3;
 				gvram[vramaddr] = data;
-				vram_wrote_table[(addr & page_mask) / 40] = true;
+				vram_wrote_table[naddr] = true;
 			}
 			return;
 		} else if(display_mode == DISPLAY_MODE_4096) {
-			//if(active_page != 0) {
-			//	page_offset += 0xc000;
-			//}
-			//page_mask = 0x1fff;
-			//pagemod = addr & 0xe000;
+			uint32_t naddr;
 			vramaddr = (((addr + offset) & page_mask) | (pagemod_mask & addr)) + page_offset;
 			tdata = gvram[vramaddr];
 			if(tdata != data) {
+				naddr = (addr & page_mask) >> 3;
 				gvram[vramaddr] = data;
-				vram_wrote_table[(addr & page_mask) / 40] = true;
+				vram_wrote_table[naddr] = true;
 			}
 		} else { // 200line
-			//if(active_page != 0) {
-			//	page_offset += 0xc000;
-			//}
-			//page_mask = 0x3fff;
-			//pagemod = addr & 0xc000;
+			uint32_t naddr;
 			vramaddr = (((addr + offset) & page_mask) | (pagemod_mask & addr)) + page_offset;
 			tdata = gvram[vramaddr];
 			if(tdata != data) {
+				naddr = (addr & page_mask) >> 4;
 				gvram[vramaddr] = data;
-				vram_wrote_table[(addr & page_mask) / 80] = true;
+				vram_wrote_table[naddr] = true;
 			}
 		}
 #elif defined(_FM77AV_VARIANTS)
 		if(display_mode == DISPLAY_MODE_4096) {
-			//if(active_page != 0) {
-			//	page_offset = 0xc000;
-			//}
-			//page_mask = 0x1fff;
-			//pagemod = addr & 0xe000;
+			uint32_t naddr;
 			vramaddr = (((addr + offset) & page_mask) | (pagemod_mask & addr)) + page_offset;
 			tdata = gvram[vramaddr];
 			if(tdata != data) {
+				naddr = (addr & page_mask) >> 3;
 				gvram[vramaddr] = data;
-				vram_wrote_table[(addr & page_mask) / 40] = true;
+				vram_wrote_table[naddr] = true;
 			}
 		} else { // 200line
-			//if(active_page != 0) {
-			//	page_offset = 0xc000;
-			//}
-			//page_mask = 0x3fff;
-			//pagemod = addr & 0xc000;
+			uint32_t naddr;
 			vramaddr = (((addr + offset) & page_mask) | (pagemod_mask & addr)) + page_offset;
 			tdata = gvram[vramaddr];
 			if(tdata != data) {
+				naddr = (addr & page_mask) >> 4;
 				gvram[vramaddr] = data;
-				vram_wrote_table[(addr & page_mask) / 80] = true;
+				vram_wrote_table[naddr] = true;
 			}
 		}
 #elif defined(_FM77L4) //_FM77L4
 		{
+			uint32_t naddr;
 			if(display_mode == DISPLAY_MODE_8_400L) {
 				write_vram_l4_400l(addr, data, offset);
 			} else {
 				vramaddr = (((addr + offset) & page_mask) | (pagemod_mask & addr)) + page_offset;
 				tdata = gvram[vramaddr];
 				if(data != tdata) {
+					naddr = (addr & 0x3fff) >> 4;
 					gvram[vramaddr] = data;
-					vram_wrote_table[(addr & 0x3fff) / 80] = true;
+					vram_wrote_table[naddr] = true;
 				}
 			}
 		}
 #else // Others (77/7/8)
 	{
+		uint32_t naddr;
 		vramaddr = (((addr + offset) & page_mask) | (pagemod_mask & addr)) + page_offset;
 		tdata = gvram[vramaddr];
 		if(tdata != data) {
+			naddr = (addr & 0x3fff) >> 4;
 			gvram[vramaddr] = data;
-			vram_wrote_table[(addr & 0x3fff) / 80] = true;
+			vram_wrote_table[naddr] = true;
 		}
 	}
 #endif
@@ -1933,7 +2007,7 @@ uint32_t DISPLAY::read_cpu_vram_data8(uint32_t addr)
 	uint8_t color;
 #if defined(_FM77AV_VARIANTS)
 	if(use_alu) {
-		alu->read_data8(addr + ALU_WRITE_PROXY);
+		alu->read_data8(addr);
 	}
 #endif
 	return read_vram_data8(addr);
@@ -2484,7 +2558,7 @@ void DISPLAY::write_cpu_vram_data8(uint32_t addr, uint8_t data)
 	uint32_t color = (addr & 0xc000) >> 14;
 #if defined(_FM77AV_VARIANTS)
 	if(use_alu) {
-		alu->read_data8(addr + ALU_WRITE_PROXY);
+		alu->read_data8(addr);
 		return;
 	}
 #endif	
@@ -2495,7 +2569,8 @@ void DISPLAY::write_cpu_vram_data8(uint32_t addr, uint8_t data)
 	}
 #endif
 #if !defined(_FM8)
-	if((multimode_accessmask & (1 << color)) != 0) return;
+	//if((multimode_accessmask & (1 << color)) != 0) return;
+	if(multimode_accessflags[color]) return;
 #endif		
 	write_vram_data8(addr & 0xffff, data);
 }
@@ -2510,7 +2585,8 @@ void DISPLAY::write_dma_vram_data8(uint32_t addr, uint8_t data)
 	}
 #endif
 #if !defined(_FM8)
-	if((multimode_accessmask & (1 << color)) != 0) return;
+	//if((multimode_accessmask & (1 << color)) != 0) return;
+	if(multimode_accessflags[color]) return;
 #endif		
 	write_vram_data8(addr & 0xffff, data);
 }
@@ -2567,6 +2643,7 @@ void DISPLAY::write_data8(uint32_t addr, uint32_t data)
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		if(display_mode == DISPLAY_MODE_8_400L) {
 			uint32_t vramaddr;
+			uint32_t naddr;
 			uint32_t page_offset_alt = 0;
 			uint32_t pagemod;
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -2579,12 +2656,13 @@ void DISPLAY::write_data8(uint32_t addr, uint32_t data)
 			} else {
 				offset = offset_point << 1;
 			}
+			naddr = (addr & 0x7fff) >> 4;
 			pagemod = 0x8000 * color;
 			vramaddr = (((addr + offset) & 0x7fff) | pagemod) + page_offset_alt;
 			tdata = gvram[vramaddr];
 			if(tdata != (uint8_t)data) {
 				gvram[vramaddr] = data;
-				vram_wrote_table[(addr & 0x7fff) / 80] = true;
+				vram_wrote_table[naddr] = true;
 			}
 			return;
 		}
@@ -2625,7 +2703,7 @@ void DISPLAY::initialize()
 	memset(gvram, 0x00, sizeof(gvram));
 	vram_wrote_shadow = false;
 	memset(gvram_shadow, 0x00, sizeof(gvram_shadow));
-	for(i = 0; i < 411; i++) vram_wrote_table[i] = false;
+	for(i = 0; i < 411 * 5; i++) vram_wrote_table[i] = false;
 	for(i = 0; i < 411; i++) vram_draw_table[i] = false;
 
 	memset(console_ram, 0x00, sizeof(console_ram));
@@ -2697,7 +2775,12 @@ void DISPLAY::initialize()
 	is_cyclesteal = true;
 #else
 	is_cyclesteal = false;
-#endif	
+#endif
+	multimode_accessmask = multimode_dispmask = 0;
+	for(i = 0; i < 4; i++) {
+		multimode_accessflags[i] = ((multimode_accessmask & (1 << i)) != 0) ? true : false;
+		multimode_dispflags[i] = ((multimode_dispmask & (1 << i)) != 0) ? true : false;
+	}
 //	emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 	emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 	enter_display();
@@ -2879,7 +2962,7 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 		crt_flag = state_fio->FgetBool();
 		vram_wrote = state_fio->FgetBool();
 		crt_flag_bak = true;
-		for(i = 0; i < 411; i++) vram_wrote_table[i] = true;
+		for(i = 0; i < 411 * 5; i++) vram_wrote_table[i] = true;
 		for(i = 0; i < 411; i++) vram_draw_table[i] = true;
 		is_cyclesteal = state_fio->FgetBool();
 	
@@ -2902,6 +2985,10 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 		for(addr = 0; addr < 8; addr++) set_dpalette(addr, dpalette_data[addr]);
 		multimode_accessmask = state_fio->FgetUint8();
 		multimode_dispmask = state_fio->FgetUint8();
+		for(i = 0; i < 4; i++) {
+			multimode_accessflags[i] = ((multimode_accessmask & (1 << i)) != 0) ? true : false;
+			multimode_dispflags[i] = ((multimode_dispmask & (1 << i)) != 0) ? true : false;
+		}
 #endif
 		offset_point = state_fio->FgetUint32_BE();
 #if defined(_FM77AV_VARIANTS)

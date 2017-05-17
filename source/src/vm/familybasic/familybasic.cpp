@@ -52,7 +52,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	apu = new APU(this, emu);
 	ppu = new PPU(this, emu);
 
-	cpu = new M6502(this, emu); // cpu shoud be reset after other device
+	cpu = new N2A03(this, emu); // cpu shoud be reset after other device
 	
 	dummy->set_device_name(_T("1st Dummy"));
 	

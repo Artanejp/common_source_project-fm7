@@ -35,8 +35,8 @@ void META_MainWindow::retranslateUi(void)
 	menuBootMode->setToolTipsVisible(true);
 	actionBootMode[0]->setText(QString::fromUtf8("BASIC"));
 	actionBootMode[1]->setText(QString::fromUtf8("CETL"));	
-	actionBootMode[0]->setToolTip(QApplication::translate("MainWindow", "Run as BASIC machine.", 0));
-	actionBootMode[1]->setToolTip(QApplication::translate("MainWindow", "Run as CETL (Spread-sheet language) machine.", 0));
+	actionBootMode[0]->setToolTip(QApplication::translate("Machine", "Run as BASIC machine.", 0));
+	actionBootMode[1]->setToolTip(QApplication::translate("Machine", "Run as CETL (Spread-sheet language) machine.", 0));
 	
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);
@@ -44,8 +44,8 @@ void META_MainWindow::retranslateUi(void)
 	actionDebugger[2]->setVisible(false);
 	actionDebugger[3]->setVisible(false);
 #endif
-	//	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Record Movie", 0));
-	//      actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0));
+	//	actionStart_Record_Movie->setText(QApplication::translate("Machine", "Start Record Movie", 0));
+	//      actionStop_Record_Movie->setText(QApplication::translate("Machine", "Stop Record Movie", 0));
 	// 
 	// FP1100 Specified
 	

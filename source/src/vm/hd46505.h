@@ -10,8 +10,8 @@
 #ifndef _HD46505_H_
 #define _HD46505_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 class HD46505 : public DEVICE
@@ -30,11 +30,11 @@ private:
 	bool timing_changed;
 	
 	int cpu_clocks;
-#if defined(HD46505_CHAR_CLOCK)
+//#if defined(HD46505_CHAR_CLOCK)
 	double char_clock, next_char_clock;
-#elif defined(HD46505_HORIZ_FREQ)
+//#elif defined(HD46505_HORIZ_FREQ)
 	double horiz_freq, next_horiz_freq;
-#endif
+//#endif
 	double frames_per_sec;
 	
 	int hz_total, hz_disp;
@@ -47,6 +47,13 @@ private:
 	int hs_start_clock, hs_end_clock;
 	
 	bool display, vblank, vsync, hsync;
+
+	int _SCREEN_WIDTH;
+	int _SCREEN_HEIGHT;
+	int _CHARS_PER_LINE;
+	int _LINES_PER_FRAME;
+	int _HD46505_CHAR_CLOCK;
+	int _HD46505_HORIZ_FREQ;
 	
 	void set_display(bool val);
 	void set_vblank(bool val);
@@ -60,6 +67,12 @@ public:
 		initialize_output_signals(&outputs_vblank);
 		initialize_output_signals(&outputs_vsync);
 		initialize_output_signals(&outputs_hsync);
+		_SCREEN_WIDTH = 640;
+		_SCREEN_HEIGHT = 200;
+		_CHARS_PER_LINE = 80;
+		_LINES_PER_FRAME = 200;
+		_HD46505_CHAR_CLOCK = 0;
+		_HD46505_HORIZ_FREQ = 0;
 		set_device_name(_T("HD46505 CRTC"));
 	}
 	~HD46505() {}
@@ -94,17 +107,17 @@ public:
 	{
 		register_output_signal(&outputs_hsync, device, id, mask);
 	}
-#if defined(HD46505_CHAR_CLOCK)
+//#if defined(HD46505_CHAR_CLOCK)
 	void set_char_clock(double clock)
 	{
 		next_char_clock = clock;
 	}
-#elif defined(HD46505_HORIZ_FREQ)
+//#elif defined(HD46505_HORIZ_FREQ)
 	void set_horiz_freq(double freq)
 	{
 		next_horiz_freq = freq;
 	}
-#endif
+//#endif
 	uint8_t* get_regs()
 	{
 		return regs;

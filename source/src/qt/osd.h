@@ -35,6 +35,12 @@ class CSP_Logger;
 class OSD : public OSD_BASE
 {
 	Q_OBJECT
+private:
+	void set_features_machine(void);
+	void set_features_cpu(void);
+	void set_features_vm(void);
+	void set_features_misc(void);
+	void set_features_debug(void);
 protected:
 	void vm_draw_screen(void);
 	Sint16* create_sound(int *extra_frames);
@@ -59,6 +65,7 @@ protected:
 	int get_screen_height(void);
 	int get_vm_buttons_code(int num);
 
+	void set_features(void);
 	MOVIE_LOADER *movie_loader;
 
 	QTcpSocket2 *tcp_socket[SOCKET_MAX];

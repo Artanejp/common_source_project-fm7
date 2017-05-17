@@ -19,28 +19,30 @@ set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON) 
 
 set(VMFILES
-		   i286.cpp
-		   mb8877.cpp
-		   
 		   i8253.cpp
 		   i8255.cpp
 		   i8259.cpp
 		   rp5c01.cpp
-		   upd71071.cpp
-		   ym2203.cpp
-		   z80pio.cpp
+
 		   z80sio.cpp
 		   mz1p17.cpp
-		   prnfile.cpp
 		   
-		   disk.cpp
 		   event.cpp
 		   io.cpp
 )
 set(VMFILES_LIB
-		   not.cpp
-		   pcm1bit.cpp
+	z80pio.cpp
+	prnfile.cpp
+#		i286.cpp
+	upd71071.cpp
+	mb8877.cpp
+	not.cpp
+	pcm1bit.cpp
+	ym2203.cpp
+	disk.cpp
 )
+set(FLAG_USE_I286 ON)
+
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")

@@ -14,19 +14,17 @@ set(WITH_MOUSE ON)
 set(WITH_JOYSTICK ON)
 
 set(VMFILES
-		   mb8877.cpp
-		   
-		   ym2203.cpp
-
-		   prnfile.cpp
 		   datarec.cpp
-		   disk.cpp
 		   event.cpp
 		   io.cpp
 )
 
 set(VMFILES_LIB
+		   ym2203.cpp
 		   pcm1bit.cpp
+		   disk.cpp
+		   mb8877.cpp
+		   prnfile.cpp
 )
 
 set(FLAG_USE_MC6809 ON)

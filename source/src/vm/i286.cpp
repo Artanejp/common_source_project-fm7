@@ -146,6 +146,7 @@ typedef UINT32	offs_t;
 
 void I286::initialize()
 {
+	DEVICE::initialize();
 	opaque = CPU_INIT_CALL(CPU_MODEL);
 	
 	cpu_state *cpustate = (cpu_state *)opaque;

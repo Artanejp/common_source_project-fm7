@@ -443,15 +443,23 @@ devenv.com x1twin.vcxproj /Rebuild Release
 call :clean
 devenv.com x1turbo.vcxproj /Rebuild Release
 call :clean
+devenv.com x1turboz.vcxproj /Rebuild Release
+call :clean
 mkdir build_vc12\x1
 copy binary_vc12\x1.exe build_vc12\x1\.
 copy binary_vc12\x1twin.exe build_vc12\x1\.
 copy binary_vc12\x1turbo.exe build_vc12\x1\.
+copy binary_vc12\x1turboz.exe build_vc12\x1\.
 
 devenv.com yalky.vcxproj /Rebuild Release
 call :clean
 mkdir build_vc12\yalky
 copy binary_vc12\yalky.exe build_vc12\yalky\.
+
+devenv.com yis.vcxproj /Rebuild Release
+call :clean
+mkdir build_vc12\yis
+copy binary_vc12\yis.exe build_vc12\yis\.
 
 devenv.com ys6464a.vcxproj /Rebuild Release
 call :clean

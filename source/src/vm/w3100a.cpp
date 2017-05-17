@@ -11,6 +11,7 @@
 
 void W3100A::initialize()
 {
+	DEVICE::initialize();
 	idm_or = idm_ar0 = idm_ar1 = 0;
 	memset(regs, 0, sizeof(regs));
 	memset(cx_rw_pr, 0, sizeof(cx_rw_pr));

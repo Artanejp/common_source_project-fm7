@@ -603,6 +603,7 @@ const mcs48_ophandler _mcs48_opcode_table[256]=
 
 void MCS48_BASE::initialize()
 {
+	DEVICE::initialize();
 	opaque = calloc(1, sizeof(mcs48_state));
 	
 	mcs48_state *cpustate = (mcs48_state *)opaque;

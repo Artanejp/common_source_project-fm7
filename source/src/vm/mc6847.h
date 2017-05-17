@@ -10,8 +10,8 @@
 #ifndef _MC6847_H_
 #define _MC6847_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 #define SIG_MC6847_AG		0
@@ -23,9 +23,9 @@
 #define SIG_MC6847_ENABLE	6
 #define SIG_MC6847_DISABLE	7
 
-class MC6847 : public DEVICE
+class MC6847_BASE : public DEVICE
 {
-private:
+protected:
 	DEVICE *d_cpu;
 	
 	// output signals
@@ -54,10 +54,10 @@ private:
 	void set_disp(bool val);
 	void draw_cg(int xofs, int yofs);
 	void draw_rg(int xofs, int yofs);
-	void draw_alpha();
+	virtual void draw_alpha();
 	
 public:
-	MC6847(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MC6847_BASE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		d_cpu = NULL;
 		ag = as = intext = css = inv = false;
@@ -66,10 +66,10 @@ public:
 		initialize_output_signals(&outputs_hsync);
 		set_device_name(_T("MC6847 VIDEO DISPLAY CONTOROLLER"));
 	}
-	~MC6847() {}
+	~MC6847_BASE() {}
 	
 	// common functions
-	void initialize();
+	virtual void initialize();
 	void reset();
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_vline(int v, int clock);
@@ -96,6 +96,19 @@ public:
 	}
 	void load_font_image(const _TCHAR *file_path);
 	void draw_screen();
+};
+
+class MC6847 : public MC6847_BASE
+{
+protected:
+	void draw_alpha();
+public:
+	MC6847(VM* parent_vm, EMU* parent_emu) : MC6847_BASE(parent_vm, parent_emu)
+	{
+	}
+	~MC6847() {};
+
+	void initialize();
 };
 
 #endif

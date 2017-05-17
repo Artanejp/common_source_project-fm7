@@ -11,9 +11,8 @@ set(USE_FMGEN ON)
 set(WITH_MOUSE OFF)
 set(WITH_JOYSTICK ON)
 
+set(FLAG_USE_Z80 ON)
 set(VMFILES
-		   z80.cpp
-
 		   mc6847.cpp
 		   ym2203.cpp
 		   

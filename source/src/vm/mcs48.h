@@ -11,7 +11,7 @@
 #ifndef _MCS84_H_ 
 #define _MCS48_H_
 
-#if defined(USE_DEVICES_SHARED_LIB)
+#if defined(USE_SHARED_DLL)
 #include "libcpu_newdev/mcs48.h"
 #else
 #include "vm.h"
@@ -130,6 +130,6 @@ public:
 	void load_rom_image(const _TCHAR *file_path);
 	uint8_t *get_rom_ptr();
 };
-#endif
+#endif // USE_SHARED_DLL
 #endif
 

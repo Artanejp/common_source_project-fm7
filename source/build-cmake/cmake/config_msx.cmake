@@ -8,9 +8,7 @@ message("** Start of configure CommonSourceProject,MSX Series Qt **")
 message("")
 
 set(VMFILES_BASE
-	z80.cpp
 	i8255.cpp
-	prnfile.cpp
 	datarec.cpp
 	event.cpp
 	io.cpp
@@ -18,11 +16,13 @@ set(VMFILES_BASE
 )
 
 set(VMFILES_LIB
+	prnfile.cpp
 	ym2413.cpp
 	ay_3_891x.cpp
 	pcm1bit.cpp
 	not.cpp
 )
+set(FLAG_USE_Z80 ON)
 
 #set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")
 
@@ -39,69 +39,95 @@ add_definitions(-D_CONFIGURE_WITH_CMAKE)
 
 set(VMFILES_MSX2 ${VMFILES_BASE}
 	rp5c01.cpp
-	v99x8.cpp
-	disk.cpp
 )
+
+set(VMFILES_MSX2_LIB ${VMFILES_LIB}
+	v99x8.cpp
+)
+
+set(VMFILES_LIB ${VMFILES_LIB}	disk.cpp)
 
 set(VMFILES_MSX1 ${VMFILES_BASE}	
+)
+set(VMFILES_LIB_MSX1 ${VMFILES_LIB}	
 	tms9918a.cpp
 	disk.cpp
 )
 
+
 set(VMFILES_PX7 ${VMFILES_BASE}
-	tms9918a.cpp
 	ld700.cpp
+)
+set(VMFILES_LIB_PX7 ${VMFILES_LIB}
+	tms9918a.cpp
 )
 
 set(VMFILES_HX20 ${VMFILES_BASE}	
+)
+
+set(VMFILES_LIB_HX20 ${VMFILES_LIB}	
 	tms9918a.cpp
 	disk.cpp
 )
 
 set(VMFILES_FSA1 ${VMFILES_BASE}
 	rp5c01.cpp
+)
+set(VMFILES_LIB_FSA1 ${VMFILES_LIB}
 	v99x8.cpp
 	disk.cpp
 )
 
 set(VMFILES_HBF1XDJ ${VMFILES_BASE}
 	rp5c01.cpp
+)
+set(VMFILES_LIB_HBF1XDJ ${VMFILES_LIB}
 	v99x8.cpp
 	disk.cpp
 )
 
 set(VMFILES_MSX2PLUS ${VMFILES_BASE}
 	rp5c01.cpp
+)
+
+set(VMFILES_LIB_MSX2PLUS ${VMFILES_LIB}
 	v99x8.cpp
 	disk.cpp
 )
 
 if(BUILD_PX7)
   set(VMFILES ${VMFILES_PX7})
+  set(VMFILES_LIB ${VMFILES_LIB_PX7})
   add_definitions(-D_PX7)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/px7.qrc)
 elseif(BUILD_MSX2)
   set(VMFILES ${VMFILES_MSX2})
+  set(VMFILES_LIB ${VMFILES_LIB_MSX2})
   add_definitions(-D_MSX2)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/msx2.qrc)
 elseif(BUILD_MSX2PLUS)
   set(VMFILES ${VMFILES_MSX2PLUS})
+  set(VMFILES_LIB ${VMFILES_LIB_MSX2PLUS})
   add_definitions(-D_MSX2P)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/msx2plus.qrc)
 elseif(BUILD_HX20)
   set(VMFILES ${VMFILES_HX20})
+  set(VMFILES_LIB ${VMFILES_LIB_HX20})
   add_definitions(-D_HX20)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/hx20.qrc)
 elseif(BUILD_FSA1)
   set(VMFILES ${VMFILES_FSA1})
+  set(VMFILES_LIB ${VMFILES_LIB_FSA1})
   add_definitions(-D_FSA1)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fsa1.qrc)
 elseif(BUILD_HBF1XDJ)
   set(VMFILES ${VMFILES_HBF1XDJ})
+  set(VMFILES_LIB ${VMFILES_LIB_HBF1XDJ})
   add_definitions(-D_HBF1XDJ)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/hbf1xdj.qrc)
 else()
   set(VMFILES ${VMFILES_MSX1})
+  set(VMFILES_LIB ${VMFILES_LIB_MSX1})
   add_definitions(-D_MSX1)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/msx1.qrc)
 endif()

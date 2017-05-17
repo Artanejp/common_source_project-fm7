@@ -49,9 +49,6 @@
 #define PRINTER_STROBE_RISING_EDGE
 
 // device informations for win32
-#define USE_SOUND_FILES 4
-#define USE_SOUND_FILES_FDD
-#define USE_SOUND_FILES_BUTTONS
 #define USE_DIPSWITCH
 #define USE_TAPE1
 #define USE_TAPE_BUTTON
@@ -61,11 +58,6 @@
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_NO_CAPS
-#if defined(USE_SOUND_FILES)
-#define USE_SOUND_VOLUME	4
-#else
-#define USE_SOUND_VOLUME	2
-#endif
 #define USE_PRINTER
 #define USE_PRINTER_TYPE	4
 #define USE_DEBUGGER
@@ -75,6 +67,9 @@
 #define USE_FD2
 #define USE_FD3
 #define USE_FD4
+#define USE_SOUND_VOLUME	4
+#else
+#define USE_SOUND_VOLUME	3
 #endif
 #if defined(_MZ80K)
 #define USE_MONITOR_TYPE	2
@@ -85,10 +80,11 @@
 
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
-	_T("Beep"), _T("CMT"),
-#if defined(USE_SOUND_FILES)
-	_T("FDD SEEK"), _T("CMT Buttons"),
+	_T("Beep"), _T("CMT (Signal)"),
+#if defined(SUPPORT_MZ80AIF) || defined(SUPPORT_MZ80FIO)
+	_T("Noise (FDD)"),
 #endif
+	_T("Noise (CMT)"),
 };
 #endif
 
