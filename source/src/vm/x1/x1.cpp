@@ -362,14 +362,13 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	}
 	io->set_iomap_range_r(0x1e00, 0x1eff, memory);
 	io->set_iomap_range_w(0x1d00, 0x1eff, memory);
-#ifndef _X1TURBO_FEATURE
-	io->set_iomap_range_rw(0x1f98, 0x1f9b, sio);	// CZ-8BM2
-	io->set_iomap_range_rw(0x1fa8, 0x1fab, ctc);
-#else
+#ifdef _X1TURBO_FEATURE
 	io->set_iomap_range_rw(0x1f80, 0x1f8f, dma);
 	io->set_iomap_range_rw(0x1f90, 0x1f93, sio);
 	io->set_iomap_range_rw(0x1fa0, 0x1fa3, ctc);
 #ifdef _X1TURBOZ
+	io->set_iomap_single_rw(0x1fb0, display);
+	io->set_iomap_range_rw(0x1fb9, 0x1fc5, display);
 	io->set_iomap_single_rw(0x1fd0, display);
 	io->set_iomap_single_rw(0x1fe0, display);
 #else
@@ -379,6 +378,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// 0x1ff0: dipswitch
 //	io->set_iovalue_single_r(0x1ff0, 0x00);
 	update_dipswitch();
+#else
+	io->set_iomap_range_rw(0x1f98, 0x1f9b, sio);	// CZ-8BM2
+	io->set_iomap_range_rw(0x1fa8, 0x1fab, ctc);
 #endif
 	io->set_iomap_range_rw(0x2000, 0x3fff, display);	// tvram
 	

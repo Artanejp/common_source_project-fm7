@@ -17,6 +17,7 @@
 
 #ifdef _X1TURBOZ
 #define AEN	((zmode1 & 0x80) != 0)
+#define C64	((zmode1 & 0x10) != 0)
 #define APEN	((zmode2 & 0x80) != 0)
 #define APRD	((zmode2 & 0x08) != 0)
 #endif
@@ -110,8 +111,9 @@ void DISPLAY::reset()
 #endif
 #ifdef _X1TURBOZ
 	for(int i = 0; i < 8; i++) {
-		palette_pc[i    ] = RGB_COLOR((i & 2) ? 255 : 0, (i & 4) ? 255 : 0, (i & 1) ? 255 : 0);	// text
-		ztpal[i] = ((i & 1) ? 0x03 : 0) | ((i & 2) ? 3 : 0x0c) | ((i & 4) ? 0x30 : 0);
+		ztpal[i] = ((i & 1) ? 0x03 : 0) | ((i & 2) ? 0x0c : 0) | ((i & 4) ? 0x30 : 0);
+		zpalette_pc[i    ] = RGB_COLOR((i & 2) ? 255 : 0, (i & 4) ? 255 : 0, (i & 1) ? 255 : 0);	// text
+		zpalette_pc[i + 8] = RGB_COLOR((i & 2) ? 255 : 0, (i & 4) ? 255 : 0, (i & 1) ? 255 : 0);	// digital
 	}
 	for(int g = 0; g < 16; g++) {
 		for(int r = 0; r < 16; r++) {
@@ -120,11 +122,17 @@ void DISPLAY::reset()
 				zpal[num].b = b;
 				zpal[num].r = r;
 				zpal[num].g = g;
-				palette_pc[num + 16] = RGB_COLOR((r * 255) / 15, (g * 255) / 15, (b * 255) / 15);
+				zpalette_pc[num + 16] = RGB_COLOR((r * 255) / 15, (g * 255) / 15, (b * 255) / 15);
 			}
 		}
 	}
-	zmode1 = zpriority = zscroll = zmode2 = 0;
+	zmode1 = 0;
+	zpriority = 0;
+	zadjust = 0;
+	zmosaic = 0;
+	zchromakey = 0;
+	zscroll = 0;
+	zmode2 = 0;
 	zpal_num = 0;
 #endif
 	cur_line = cur_code = 0;
@@ -134,6 +142,27 @@ void DISPLAY::reset()
 	kanji_ptr = &kanji[0];
 }
 
+#ifdef _X1TURBOZ
+int DISPLAY::get_zpal_num(uint32_t addr, uint32_t data)
+{
+	int num = ((data >> 4) & 0x0f) | ((addr << 4) & 0xff0);
+	
+	if(hireso && !column40) {
+		// 8 colors
+//		num = ((num & 0x00f) ? 0x00f : 0) | ((num & 0x0f0) ? 0x0f0 : 0) | ((num & 0xf00) ? 0xf00 : 0);
+		num &= 0x888;
+		num |= num >> 1;
+		num |= num >> 2;
+	} else
+	if(!(!C64 && !hireso && column40)) {
+		// 64 colors
+		num &= 0xccc;
+		num |= num >> 2;
+	}
+	return num;
+}
+#endif
+
 void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff00) {
@@ -142,51 +171,54 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0x1000:
 #ifdef _X1TURBOZ
-		if(AEN && APEN && !APRD) {
-			int num = ((data >> 4) & 0x0f) | ((addr << 4) & 0xff0);
-			zpal[num].b = data & 0x0f;
-			palette_pc[num + 16] = RGB_COLOR((zpal[num].r * 255) / 15, (zpal[num].g * 255) / 15, (zpal[num].b * 255) / 15);
-		} else if(AEN && APEN && APRD) {
-			zpal_num = ((data >> 4) & 0x0f) | ((addr << 4) & 0xff0);
-		} else if(!AEN) {
+		if(AEN) {
+			if(APEN && !APRD) {
+				int num = get_zpal_num(addr, data);
+				zpal[num].b = data & 0x0f;
+				zpalette_pc[num + 16] = RGB_COLOR((zpal[num].r * 255) / 15, (zpal[num].g * 255) / 15, (zpal[num].b * 255) / 15);
+			} else if(APEN && APRD) {
+				zpal_num = get_zpal_num(addr, data);
+			}
+		} else
 #endif
+		{
 			pal[0] = data;
 			update_pal();
-#ifdef _X1TURBOZ
 		}
-#endif
 		break;
 	case 0x1100:
 #ifdef _X1TURBOZ
-		if(AEN && APEN && !APRD) {
-			int num = ((data >> 4) & 0x0f) | ((addr << 4) & 0xff0);
-			zpal[num].r = data & 0x0f;
-			palette_pc[num + 16] = RGB_COLOR((zpal[num].r * 255) / 15, (zpal[num].g * 255) / 15, (zpal[num].b * 255) / 15);
-//		} else if(AEN && APEN && APRD) {
-//			zpal_num = ((data >> 4) & 0x0f) | ((addr << 4) & 0xff0);
-		} else if(!AEN) {
+		if(AEN) {
+			if(APEN && !APRD) {
+				int num = get_zpal_num(addr, data);
+				zpal[num].r = data & 0x0f;
+				zpalette_pc[num + 16] = RGB_COLOR((zpal[num].r * 255) / 15, (zpal[num].g * 255) / 15, (zpal[num].b * 255) / 15);
+			} else if(APEN && APRD) {
+//				zpal_num = get_zpal_num(addr, data);
+			}
+		} else
 #endif
+		{
 			pal[1] = data;
 			update_pal();
-#ifdef _X1TURBOZ
 		}
-#endif
 		break;
 	case 0x1200:
 #ifdef _X1TURBOZ
-		if(AEN && APEN && !APRD) {
-			int num = ((data >> 4) & 0x0f) | ((addr << 4) & 0xff0);
-			zpal[num].g = data & 0x0f;
-			palette_pc[num + 16] = RGB_COLOR((zpal[num].r * 255) / 15, (zpal[num].g * 255) / 15, (zpal[num].b * 255) / 15);
-//		} else if(AEN && APEN && APRD) {
-//			zpal_num = ((data >> 4) & 0x0f) | ((addr << 4) & 0xff0);
-		} else if(!AEN) {
+		if(AEN) {
+			if(APEN && !APRD) {
+				int num = get_zpal_num(addr, data);
+				zpal[num].g = data & 0x0f;
+				zpalette_pc[num + 16] = RGB_COLOR((zpal[num].r * 255) / 15, (zpal[num].g * 255) / 15, (zpal[num].b * 255) / 15);
+			} else if(APEN && APRD) {
+//				zpal_num = get_zpal_num(addr, data);
+			}
+		} else
 #endif
+		{
 			pal[2] = data;
 			update_pal();
-#ifdef _X1TURBOZ
 		}
-#endif
 		break;
 	case 0x1300:
 		priority = data;
@@ -220,24 +252,48 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 		case 0x1fb0:
 			zmode1 = data;
 			break;
-		case 0x1fb1:
-		case 0x1fb2:
-		case 0x1fb3:
-		case 0x1fb4:
-		case 0x1fb5:
-		case 0x1fb6:
-		case 0x1fb7:
-			ztpal[addr & 7] = data;
-			palette_pc[addr & 7] = RGB_COLOR((((data >> 2) & 3) * 255) / 3, (((data >> 4) & 3) * 255) / 3, (((data >> 0) & 3) * 255) / 3);
+//		case 0x1fb8:
+		case 0x1fb9:
+		case 0x1fba:
+		case 0x1fbb:
+		case 0x1fbc:
+		case 0x1fbd:
+		case 0x1fbe:
+		case 0x1fbf:
+			if(AEN) {
+				ztpal[addr & 7] = data;
+				zpalette_pc[addr & 7] = RGB_COLOR((((data >> 2) & 3) * 255) / 3, (((data >> 4) & 3) * 255) / 3, (((data >> 0) & 3) * 255) / 3);
+			}
 			break;
 		case 0x1fc0:
-			zpriority = data;
+			if(AEN) {
+				zpriority = data;
+			}
+			break;
+		case 0x1fc1:
+			if(AEN) {
+				zadjust = data;
+			}
+			break;
+		case 0x1fc2:
+			if(AEN) {
+				zmosaic = data;
+			}
+			break;
+		case 0x1fc3:
+			if(AEN) {
+				zchromakey = data;
+			}
 			break;
 		case 0x1fc4:
-			zscroll = data;
+			if(AEN) {
+				zscroll = data;
+			}
 			break;
 		case 0x1fc5:
-			zmode2 = data;
+			if(AEN) {
+				zmode2 = data;
+			}
 			break;
 #endif
 		case 0x1fd0:
@@ -339,20 +395,48 @@ uint32_t DISPLAY::read_io8(uint32_t addr)
 		switch(addr) {
 		case 0x1fb0:
 			return zmode1;
-		case 0x1fb1:
-		case 0x1fb2:
-		case 0x1fb3:
-		case 0x1fb4:
-		case 0x1fb5:
-		case 0x1fb6:
-		case 0x1fb7:
-			return ztpal[addr & 7];
+//		case 0x1fb8:
+		case 0x1fb9:
+		case 0x1fba:
+		case 0x1fbb:
+		case 0x1fbc:
+		case 0x1fbd:
+		case 0x1fbe:
+		case 0x1fbf:
+			if(AEN) {
+				return ztpal[addr & 7];
+			}
+			break;
 		case 0x1fc0:
-			return zpriority;
+			if(AEN) {
+				return zpriority;
+			}
+			break;
+		case 0x1fc1:
+			if(AEN) {
+				return zadjust;
+			}
+			break;
+		case 0x1fc2:
+			if(AEN) {
+				return zmosaic;
+			}
+			break;
+		case 0x1fc3:
+			if(AEN) {
+				return zchromakey;
+			}
+			break;
 		case 0x1fc4:
-			return zscroll;
+			if(AEN) {
+				return zscroll;
+			}
+			break;
 		case 0x1fc5:
-			return zmode2;
+			if(AEN) {
+				return zmode2;
+			}
+			break;
 		case 0x1fd0:
 			return mode1;
 		case 0x1fe0:
@@ -599,6 +683,9 @@ void DISPLAY::draw_line(int v)
 	if(v == 0) {
 		memset(text, 0, sizeof(text));
 		memset(cg, 0, sizeof(cg));
+#ifdef _X1TURBOZ
+		memset(zcg, 0, sizeof(zcg));
+#endif
 		prev_vert_double = false;
 		raster = 0;
 	}
@@ -606,16 +693,186 @@ void DISPLAY::draw_line(int v)
 		if((v % ch_height) == 0) {
 			draw_text(v / ch_height);
 		}
-		draw_cg(v);
+#ifdef _X1TURBOZ
+		if(AEN) {
+			if(!hireso && column40) {
+				draw_cg(v, 1);
+			}
+			zpri_line[v] = zpriority;
+		}
+#endif
+		draw_cg(v, 0);
 		memcpy(&pri_line[v][0][0], &pri[0][0], sizeof(pri));
 	} else {
 		memset(&pri_line[v][0][0], 0, sizeof(pri));
 	}
 }
 
+#ifdef _X1TURBOZ
+scrntype_t DISPLAY::get_zpriority(uint8_t zpri, uint16_t text, uint16_t cg0, uint16_t cg1)
+{
+	uint16_t fore = ((zpri & 0x18) != 0x18) ? cg0 : cg1;
+	uint16_t back = ((zpri & 0x18) != 0x18) ? cg1 : cg0;
+	uint16_t value;
+	
+	switch(zpri & 0x13) {
+	case 0x00:
+	case 0x02:
+		value = text ? text : (fore + 16);
+		break;
+	case 0x01:
+	case 0x03:
+		value =  fore ? (fore + 16) : text;
+		break;
+	case 0x10:
+		value =  text ? text : fore ? (fore + 16) : (back + 16);
+		break;
+	case 0x11:
+		value =  fore ? (fore + 16) : back ? (back + 16) : text;
+		break;
+	case 0x12:
+		value =  fore ? (fore + 16) : text ? text : (back + 16);
+		break;
+	default: // undefined case :-(
+		value =  text ? text : fore ? (fore + 16) : (back + 16);
+		break;
+	}
+//	if((mode2 & 0x10) && value == (0x000 + 16)) {
+//		return 0;
+//	}
+//	if((mode2 & 0x20) && value == (0x00f + 16)) {
+//		return 0;
+//	}
+	return zpalette_pc[value];
+}
+#endif
+
+#define A2D(a) ((((a) >> 9) & 4) | (((a) >> 6) & 2) | (((a) >> 3) & 1))
+
 void DISPLAY::draw_screen()
 {
 	// copy to real screen
+#ifdef _X1TURBOZ
+	zpalette_pc[8 + 0] = zpalette_pc[16 + 0x000];
+	zpalette_pc[8 + 1] = zpalette_pc[16 + 0x00f];
+	zpalette_pc[8 + 2] = zpalette_pc[16 + 0x0f0];
+	zpalette_pc[8 + 3] = zpalette_pc[16 + 0x0ff];
+	zpalette_pc[8 + 4] = zpalette_pc[16 + 0xf00];
+	zpalette_pc[8 + 5] = zpalette_pc[16 + 0xf0f];
+	zpalette_pc[8 + 6] = zpalette_pc[16 + 0xff0];
+	zpalette_pc[8 + 7] = zpalette_pc[16 + 0xfff];
+	
+	if(AEN) {
+		if(hireso) {
+			// 400 lines
+			if(column40) {
+				// 40 columns
+				for(int y = 0; y < 400; y++) {
+					scrntype_t* dest = emu->get_screen_buffer(y);
+					uint8_t* src_text = text[y];
+					uint16_t* src_cg0 = zcg[0][y];
+					
+					for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
+						uint16_t text = src_text[x];
+						uint16_t cg00 = src_cg0[x] | (src_cg0[x] >> 2);
+						
+						if((mode2 & 8) && (src_text[x] == (mode2 & 7)) && !(priority & (1 << A2D(src_cg0[x])))) {
+							dest[x2] = dest[x2 + 1] = 0;
+						} else {
+							dest[x2] = dest[x2 + 1] = get_zpriority(zpri_line[y], text, cg00, cg00);
+						}
+					}
+				}
+			} else {
+				// 80 columns
+				for(int y = 0; y < 400; y++) {
+					scrntype_t* dest = emu->get_screen_buffer(y);
+					uint8_t* src_text = text[y];
+					uint16_t* src_cg0 = zcg[0][y];
+					
+					for(int x = 0; x < 640; x++) {
+						uint16_t text = src_text[x];
+						uint16_t cg00 = src_cg0[x] | (src_cg0[x] >> 2);
+						
+						if((mode2 & 8) && (src_text[x] == (mode2 & 7)) && !(priority & (1 << A2D(src_cg0[x])))) {
+							dest[x] = 0;
+						} else {
+							dest[x] = get_zpriority(zpri_line[y], text, cg00, cg00);
+						}
+					}
+				}
+			}
+			emu->screen_skip_line(false);
+		} else {
+			// 200 lines
+			if(column40) {
+				// 40 columns
+				for(int y = 0; y < 200; y++) {
+					scrntype_t* dest0 = emu->get_screen_buffer(y * 2 + 0);
+					scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1);
+					uint8_t* src_text = text[y];
+					uint16_t* src_cg0 = zcg[0][y];
+					uint16_t* src_cg1 = zcg[1][y];
+					
+					if(C64) {
+						for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
+							uint16_t text = src_text[x];
+							uint16_t cg00 = src_cg0[x] | (src_cg0[x] >> 2);
+							uint16_t cg11 = src_cg1[x] | (src_cg1[x] >> 2);
+							
+							if((mode2 & 8) && (src_text[x] == (mode2 & 7)) && !(priority & (1 << A2D(src_cg0[x])))) {
+								dest0[x2] = dest0[x2 + 1] = 0;
+							} else {
+								dest0[x2] = dest0[x2 + 1] = get_zpriority(zpri_line[y], text, cg00, cg11);
+							}
+						}
+					} else {
+						for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
+							uint16_t text = src_text[x];
+							uint16_t cg01 = src_cg0[x] | (src_cg1[x] >> 2);
+							
+							if((mode2 & 8) && (src_text[x] == (mode2 & 7)) && !(priority & (1 << A2D(src_cg0[x])))) {
+								dest0[x2] = dest0[x2 + 1] = 0;
+							} else {
+								dest0[x2] = dest0[x2 + 1] = get_zpriority(zpri_line[y], text, cg01, cg01);
+							}
+						}
+					}
+					if(!config.scan_line) {
+						memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
+					} else {
+						memset(dest1, 0, 640 * sizeof(scrntype_t));
+					}
+				}
+			} else {
+				// 80 columns
+				for(int y = 0; y < 200; y++) {
+					scrntype_t* dest0 = emu->get_screen_buffer(y * 2 + 0);
+					scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1);
+					uint8_t* src_text = text[y];
+					uint16_t* src_cg0 = zcg[0][y];
+					
+					for(int x = 0; x < 640; x++) {
+						uint16_t text = src_text[x];
+						uint16_t cg00 = src_cg0[x] | (src_cg0[x] >> 2);
+						
+						if((mode2 & 8) && (src_text[x] == (mode2 & 7)) && !(priority & (1 << A2D(src_cg0[x])))) {
+							dest0[x] = 0;
+						} else {
+							dest0[x] = get_zpriority(zpri_line[y], text, cg00, cg00);
+						}
+					}
+					if(!config.scan_line) {
+						memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
+					} else {
+						memset(dest1, 0, 640 * sizeof(scrntype_t));
+					}
+				}
+			}
+			emu->screen_skip_line(true);
+		}
+	} else
+#endif
 #ifdef _X1TURBO_FEATURE
 	if(hireso) {
 		// 400 lines
@@ -627,7 +884,11 @@ void DISPLAY::draw_screen()
 				uint8_t* src_cg = cg[y];
 				
 				for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
-					dest[x2] = dest[x2 + 1] = palette_pc[pri_line[y][src_cg[x]][src_text[x]]];
+#ifdef _X1TURBOZ
+					dest[x2] = dest[x2 + 1] = zpalette_pc[pri_line[y][src_cg[x]][src_text[x]]];
+#else
+					dest[x2] = dest[x2 + 1] =  palette_pc[pri_line[y][src_cg[x]][src_text[x]]];
+#endif
 				}
 			}
 		} else {
@@ -638,13 +899,18 @@ void DISPLAY::draw_screen()
 				uint8_t* src_cg = cg[y];
 				
 				for(int x = 0; x < 640; x++) {
-					dest[x] = palette_pc[pri_line[y][src_cg[x]][src_text[x]]];
+//#ifdef _X1TURBOZ
+//					dest[x] = zpalette_pc[pri_line[y][src_cg[x]][src_text[x]]];
+//#else
+					dest[x] =  palette_pc[pri_line[y][src_cg[x]][src_text[x]]];
+//#endif
 				}
 			}
 		}
 		emu->screen_skip_line(false);
-	} else {
+	} else
 #endif
+	{
 		// 200 lines
 		if(column40) {
 			// 40 columns
@@ -655,7 +921,11 @@ void DISPLAY::draw_screen()
 				uint8_t* src_cg = cg[y];
 				
 				for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
-					dest0[x2] = dest0[x2 + 1] = palette_pc[pri_line[y][src_cg[x]][src_text[x]]];
+#ifdef _X1TURBOZ
+					dest0[x2] = dest0[x2 + 1] = zpalette_pc[pri_line[y][src_cg[x]][src_text[x]]];
+#else
+					dest0[x2] = dest0[x2 + 1] =  palette_pc[pri_line[y][src_cg[x]][src_text[x]]];
+#endif
 				}
 				if(!config.scan_line) {
 					memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
@@ -672,7 +942,11 @@ void DISPLAY::draw_screen()
 				uint8_t* src_cg = cg[y];
 				
 				for(int x = 0; x < 640; x++) {
-					dest0[x] = palette_pc[pri_line[y][src_cg[x]][src_text[x]]];
+#ifdef _X1TURBOZ
+					dest0[x] = zpalette_pc[pri_line[y][src_cg[x]][src_text[x]]];
+#else
+					dest0[x] =  palette_pc[pri_line[y][src_cg[x]][src_text[x]]];
+#endif
 				}
 				if(!config.scan_line) {
 					memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
@@ -682,9 +956,7 @@ void DISPLAY::draw_screen()
 			}
 		}
 		emu->screen_skip_line(true);
-#ifdef _X1TURBO_FEATURE
 	}
-#endif
 }
 
 void DISPLAY::draw_text(int y)
@@ -834,7 +1106,7 @@ void DISPLAY::draw_text(int y)
 	}
 }
 
-void DISPLAY::draw_cg(int line)
+void DISPLAY::draw_cg(int line, int plane)
 {
 	int width = column40 ? 40 : 80;
 	
@@ -851,30 +1123,73 @@ void DISPLAY::draw_cg(int line)
 	if(mode1 & 4) {
 		ofs = (0x400 * (ll & 15)) + (page ? 0xc000 : 0);
 	} else {
-		ofs = (0x800 * (ll & 7)) + (page ? 0xc000 : 0);
+		ofs = (0x800 * (ll &  7)) + (page ? 0xc000 : 0);
 	}
 #else
 	ofs = 0x800 * (l & 7);
 #endif
-	int ofs_b = ofs + 0x0000;
-	int ofs_r = ofs + 0x4000;
-	int ofs_g = ofs + 0x8000;
-	
-	for(int x = 0; x < hz_disp && x < width; x++) {
-		src &= 0x7ff;
-		uint8_t b = vram_ptr[ofs_b | src];
-		uint8_t r = vram_ptr[ofs_r | src];
-		uint8_t g = vram_ptr[ofs_g | src++];
-		uint8_t* d = &cg[line][x << 3];
+#ifdef _X1TURBOZ
+	if(AEN) {
+/*
+		HIRESO=0, WIDTH=40, C64=0: 320x200, 4096	PAGE0:(ADDR 000h-3FFh) + PAGE0:(ADDR 400h-7FFh) + PAGE1:(ADDR 000h-3FFh) + PAGE1:(ADDR 400h-7FFh)
+		HIRESO=0, WIDTH=40, C64=1: 320x200, 64,64	PAGE0:(ADDR 000h-3FFh) + PAGE0:(ADDR 400h-7FFh) + PAGE1:(ADDR 000h-3FFh) + PAGE1:(ADDR 400h-7FFh)
+		HIRESO=1, WIDTH=40, C64=*: 320x200, 64		PAGE*:(ADDR 000h-3FFh) + PAGE*:(ADDR 400h-7FFh)
+		HIRESO=0, WIDTH=80, C64=*: 640x200, 64		PAGE0:(ADDR 000h-7FFh) + PAGE1:(ADDR 000h-7FFh)
+		HIRESO=1, WIDTH=80, C64=*: 640x200, 8		PAGE0:(ADDR 000h-7FFh) + PAGE0:(ADDR 000h-7FFh)
+*/
+		if(!hireso && column40 && plane) {
+			ofs = (ofs < 0xc000) ? (ofs + 0xc000) : (ofs - 0xc000);
+		}
+		int ofs_b0 = ofs + 0x0000;
+		int ofs_r0 = ofs + 0x4000;
+		int ofs_g0 = ofs + 0x8000;
+		int ofs_b1 = column40 ? (ofs_b0 ^ 0x400) : hireso ? ofs_b0 : ((ofs_b0 < 0xc000) ? (ofs_b0 + 0xc000) : (ofs_b0 - 0xc000));
+		int ofs_r1 = column40 ? (ofs_r0 ^ 0x400) : hireso ? ofs_r0 : ((ofs_r0 < 0xc000) ? (ofs_r0 + 0xc000) : (ofs_r0 - 0xc000));
+		int ofs_g1 = column40 ? (ofs_g0 ^ 0x400) : hireso ? ofs_g0 : ((ofs_g0 < 0xc000) ? (ofs_g0 + 0xc000) : (ofs_g0 - 0xc000));
 		
-		d[0] = ((b & 0x80) >> 7) | ((r & 0x80) >> 6) | ((g & 0x80) >> 5);
-		d[1] = ((b & 0x40) >> 6) | ((r & 0x40) >> 5) | ((g & 0x40) >> 4);
-		d[2] = ((b & 0x20) >> 5) | ((r & 0x20) >> 4) | ((g & 0x20) >> 3);
-		d[3] = ((b & 0x10) >> 4) | ((r & 0x10) >> 3) | ((g & 0x10) >> 2);
-		d[4] = ((b & 0x08) >> 3) | ((r & 0x08) >> 2) | ((g & 0x08) >> 1);
-		d[5] = ((b & 0x04) >> 2) | ((r & 0x04) >> 1) | ((g & 0x04) >> 0);
-		d[6] = ((b & 0x02) >> 1) | ((r & 0x02) >> 0) | ((g & 0x02) << 1);
-		d[7] = ((b & 0x01) >> 0) | ((r & 0x01) << 1) | ((g & 0x01) << 2);
+		for(int x = 0; x < hz_disp && x < width; x++) {
+			src &= column40 ? 0x3ff : 0x7ff;
+			uint16_t b0 = vram_ptr[ofs_b0 | src];
+			uint16_t r0 = vram_ptr[ofs_r0 | src];
+			uint16_t g0 = vram_ptr[ofs_g0 | src];
+			uint16_t b1 = vram_ptr[ofs_b1 | src];
+			uint16_t r1 = vram_ptr[ofs_r1 | src];
+			uint16_t g1 = vram_ptr[ofs_g1 | src++];
+			uint16_t* d = &zcg[plane][line][x << 3];
+			
+			// MSB <- G0,G1,0,0, R0,R1,0,0, B0,B1,0,0 -> LSB
+			d[0] = ((b0 & 0x80) >> 4) | ((b1 & 0x80) >> 5) | ((r0 & 0x80) >> 0) | ((r1 & 0x80) >> 1) | ((g0 & 0x80) <<  4) | ((g0 & 0x80) <<  3);
+			d[1] = ((b0 & 0x40) >> 3) | ((b1 & 0x40) >> 4) | ((r0 & 0x40) << 1) | ((r1 & 0x40) >> 0) | ((g0 & 0x40) <<  5) | ((g0 & 0x40) <<  4);
+			d[2] = ((b0 & 0x20) >> 2) | ((b1 & 0x20) >> 3) | ((r0 & 0x20) << 2) | ((r1 & 0x20) << 1) | ((g0 & 0x20) <<  6) | ((g0 & 0x20) <<  5);
+			d[3] = ((b0 & 0x10) >> 1) | ((b1 & 0x10) >> 2) | ((r0 & 0x10) << 3) | ((r1 & 0x10) << 2) | ((g0 & 0x10) <<  7) | ((g0 & 0x10) <<  6);
+			d[4] = ((b0 & 0x08) >> 0) | ((b1 & 0x08) >> 1) | ((r0 & 0x08) << 4) | ((r1 & 0x08) << 3) | ((g0 & 0x08) <<  8) | ((g0 & 0x08) <<  7);
+			d[5] = ((b0 & 0x04) << 1) | ((b1 & 0x04) >> 0) | ((r0 & 0x04) << 5) | ((r1 & 0x04) << 4) | ((g0 & 0x04) <<  9) | ((g0 & 0x04) <<  8);
+			d[6] = ((b0 & 0x02) << 2) | ((b1 & 0x02) << 1) | ((r0 & 0x02) << 6) | ((r1 & 0x02) << 5) | ((g0 & 0x02) << 10) | ((g0 & 0x02) <<  9);
+			d[7] = ((b0 & 0x01) << 3) | ((b1 & 0x01) << 2) | ((r0 & 0x01) << 7) | ((r1 & 0x01) << 6) | ((g0 & 0x01) << 11) | ((g0 & 0x01) << 10);
+		}
+	} else
+#endif
+	{
+		int ofs_b = ofs + 0x0000;
+		int ofs_r = ofs + 0x4000;
+		int ofs_g = ofs + 0x8000;
+		
+		for(int x = 0; x < hz_disp && x < width; x++) {
+			src &= 0x7ff;
+			uint8_t b = vram_ptr[ofs_b | src];
+			uint8_t r = vram_ptr[ofs_r | src];
+			uint8_t g = vram_ptr[ofs_g | src++];
+			uint8_t* d = &cg[line][x << 3];
+			
+			d[0] = ((b & 0x80) >> 7) | ((r & 0x80) >> 6) | ((g & 0x80) >> 5);
+			d[1] = ((b & 0x40) >> 6) | ((r & 0x40) >> 5) | ((g & 0x40) >> 4);
+			d[2] = ((b & 0x20) >> 5) | ((r & 0x20) >> 4) | ((g & 0x20) >> 3);
+			d[3] = ((b & 0x10) >> 4) | ((r & 0x10) >> 3) | ((g & 0x10) >> 2);
+			d[4] = ((b & 0x08) >> 3) | ((r & 0x08) >> 2) | ((g & 0x08) >> 1);
+			d[5] = ((b & 0x04) >> 2) | ((r & 0x04) >> 1) | ((g & 0x04) >> 0);
+			d[6] = ((b & 0x02) >> 1) | ((r & 0x02) >> 0) | ((g & 0x02) << 1);
+			d[7] = ((b & 0x01) >> 0) | ((r & 0x01) << 1) | ((g & 0x01) << 2);
+		}
 	}
 }
 
@@ -1055,7 +1370,7 @@ uint16_t DISPLAY::jis2sjis(uint16_t jis)
 	return (c1 << 8) | c2;
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 void DISPLAY::save_state(FILEIO* state_fio)
 {
@@ -1093,12 +1408,15 @@ void DISPLAY::save_state(FILEIO* state_fio)
 #ifdef _X1TURBOZ
 	state_fio->FputUint8(zmode1);
 	state_fio->FputUint8(zpriority);
+	state_fio->FputUint8(zadjust);
+	state_fio->FputUint8(zmosaic);
+	state_fio->FputUint8(zchromakey);
 	state_fio->FputUint8(zscroll);
 	state_fio->FputUint8(zmode2);
 	state_fio->Fwrite(ztpal, sizeof(ztpal), 1);
 	state_fio->Fwrite(zpal, sizeof(zpal), 1);
 	state_fio->FputInt32(zpal_num);
-	state_fio->Fwrite(palette_pc, sizeof(palette_pc), 1);
+	state_fio->Fwrite(zpalette_pc, sizeof(zpalette_pc), 1);
 #endif
 	state_fio->FputBool(prev_vert_double);
 	state_fio->FputInt32(raster);
@@ -1150,12 +1468,15 @@ bool DISPLAY::load_state(FILEIO* state_fio)
 #ifdef _X1TURBOZ
 	zmode1 = state_fio->FgetUint8();
 	zpriority = state_fio->FgetUint8();
+	zadjust = state_fio->FgetUint8();
+	zmosaic = state_fio->FgetUint8();
+	zchromakey = state_fio->FgetUint8();
 	zscroll = state_fio->FgetUint8();
 	zmode2 = state_fio->FgetUint8();
 	state_fio->Fread(ztpal, sizeof(ztpal), 1);
 	state_fio->Fread(zpal, sizeof(zpal), 1);
 	zpal_num = state_fio->FgetInt32();
-	state_fio->Fread(palette_pc, sizeof(palette_pc), 1);
+	state_fio->Fread(zpalette_pc, sizeof(zpalette_pc), 1);
 #endif
 	prev_vert_double = state_fio->FgetBool();
 	raster = state_fio->FgetInt32();

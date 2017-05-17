@@ -1,5 +1,5 @@
 Binary archive of retro pc emulator common source code
-								5/13/2017
+								5/15/2017
 
 --- What's this ?
 
@@ -110,6 +110,7 @@ This archive includes the binaries of the emulators listed below:
 		eX1		X1
 		eX1twin		X1twin
 		eX1turbo	X1turbo
+		eX1turboZ	X1turboZ
 	Shinko Sangyo
 		eYS-6464A	YS-6464A
 	SONY
@@ -473,6 +474,7 @@ Save/Load State info:
 	X millenium T-tune by Mr.Sato
 - vm/x1/display.*
 	KANJI ROM support by X1EMU
+	X1tuboZ graphic info by Mr.Sato
 - vm/yis/*
 	YAMAHA provided me some YIS manuals and software disks
 	Mr.Moriya analyzed the YIS hardware

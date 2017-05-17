@@ -16,6 +16,12 @@
 #endif
 #include "display.h"
 
+#ifdef _X1TURBOZ
+#define AEN	((zmode1 & 0x80) != 0)
+#define APEN	((zmode2 & 0x80) != 0)
+#define APRD	((zmode2 & 0x08) != 0)
+#endif
+
 void IOBUS::initialize()
 {
 	prev_clock = vram_wait_index = 0;
@@ -123,6 +129,14 @@ void IOBUS::write_port8(uint32_t addr, uint32_t data, bool is_dma, int* wait)
 		int ch_height = (crtc_regs[9] & 0x1f) + 1;
 		int vt_total = ((crtc_regs[4] & 0x7f) + 1) * ch_height + (crtc_regs[5] & 0x1f);
 		hireso = (vt_total > 400);
+#ifdef _X1TURBOZ
+	} else if(addr == 0x1fb0) {
+		zmode1 = data;
+	} else if(addr == 0x1fc5) {
+		if(AEN) {
+			zmode2 = data;
+		}
+#endif
 	}
 #endif
 	if(is_dma) {
@@ -131,6 +145,18 @@ void IOBUS::write_port8(uint32_t addr, uint32_t data, bool is_dma, int* wait)
 		d_io->write_io8(addr, data & 0xff);
 	}
 	switch(addr & 0xff00) {
+#ifdef _X1TURBOZ
+	case 0x1000:	// analog palette
+	case 0x1100:
+	case 0x1200:
+		if(AEN && APEN && !APRD) {
+//		if(AEN) {
+			*wait = get_vram_wait(); // temporary
+		} else {
+			*wait = 0;
+		}
+		break;
+#endif
 	case 0x1900:	// sub cpu
 	case 0x1b00:	// psg
 	case 0x1c00:	// psg
@@ -166,6 +192,18 @@ uint32_t IOBUS::read_port8(uint32_t addr, bool is_dma, int* wait)
 		vdisp = val;
 	}
 	switch(addr & 0xff00) {
+#ifdef _X1TURBOZ
+	case 0x1000:	// analog palette
+	case 0x1100:
+	case 0x1200:
+		if(AEN && APEN && APRD) {
+//		if(AEN) {
+			*wait = get_vram_wait(); // temporary
+		} else {
+			*wait = 0;
+		}
+		break;
+#endif
 	case 0x1900:	// sub cpu
 	case 0x1b00:	// psg
 	case 0x1c00:	// psg
@@ -194,7 +232,7 @@ int IOBUS::get_vram_wait()
 	return column40 ? vram_wait_40[tmp_index] : vram_wait_80[tmp_index];
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 void IOBUS::save_state(FILEIO* state_fio)
 {
@@ -215,6 +253,10 @@ void IOBUS::save_state(FILEIO* state_fio)
 	state_fio->Fwrite(crtc_regs, sizeof(crtc_regs), 1);
 	state_fio->FputInt32(crtc_ch);
 	state_fio->FputBool(hireso);
+#ifdef _X1TURBOZ
+	state_fio->FputUint8(zmode1);
+	state_fio->FputUint8(zmode2);
+#endif
 #endif
 }
 
@@ -240,6 +282,10 @@ bool IOBUS::load_state(FILEIO* state_fio)
 	state_fio->Fread(crtc_regs, sizeof(crtc_regs), 1);
 	crtc_ch = state_fio->FgetInt32();
 	hireso = state_fio->FgetBool();
+#ifdef _X1TURBOZ
+	zmode1 = state_fio->FgetUint8();
+	zmode2 = state_fio->FgetUint8();
+#endif
 #endif
 	return true;
 }

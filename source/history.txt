@@ -1,3 +1,10 @@
+5/15/2017
+
+[X1TURBOZ] support SHARP X1turboZ
+[X1TURBOZ/DISPLAY] support X1turboZ enhanced graphic modes
+[X1TURBOZ/IOSUB] support analog palette access wait
+
+
 5/13/2017
 
 [WIN32/SCREEN] fix not to move window position unnecessarily

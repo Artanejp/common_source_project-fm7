@@ -61,11 +61,19 @@ private:
 	bool hireso;
 #endif
 #ifdef _X1TURBOZ
-	uint8_t zmode1, zpriority, zscroll, zmode2, ztpal[8];
+	uint8_t zmode1;
+	uint8_t zpriority;
+	uint8_t zadjust;
+	uint8_t zmosaic;
+	uint8_t zchromakey;
+	uint8_t zscroll;
+	uint8_t zmode2;
+	uint8_t ztpal[8];
 	struct {
 		uint8_t b, r, g;
 	} zpal[4096];
 	int zpal_num;
+	int get_zpal_num(uint32_t addr, uint32_t data);
 #endif
 	
 #ifdef _X1TURBO_FEATURE
@@ -78,10 +86,11 @@ private:
 	uint8_t pri_line[200][8][8];
 #endif
 #ifdef _X1TURBOZ
-	scrntype_t palette_pc[8+8+4096];	// 0-7:text, 8-15:cg, 16-:4096cg
-#else
-	scrntype_t palette_pc[8+8];	// 0-7:text, 8-15:cg
+	uint16_t zcg[2][400][640];
+	uint8_t zpri_line[400];
+	scrntype_t zpalette_pc[8+8+4096];	// 0-7:text, 8-15:cg, 16-:4096cg
 #endif
+	scrntype_t palette_pc[8+8];		// 0-7:text, 8-15:cg
 	bool prev_vert_double;
 	int raster, cblink;
 	
@@ -98,7 +107,10 @@ private:
 	
 	void draw_line(int v);
 	void draw_text(int y);
-	void draw_cg(int line);
+	void draw_cg(int line, int plane);
+#ifdef _X1TURBOZ
+	scrntype_t get_zpriority(uint8_t zpri, uint16_t text, uint16_t cg0, uint16_t cg1);
+#endif
 	
 	// kanji rom (from X1EMU by KM)
 	void write_kanji(uint32_t addr, uint32_t data);
