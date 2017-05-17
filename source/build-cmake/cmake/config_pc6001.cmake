@@ -13,18 +13,11 @@ set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
 
 set(VMFILES
-#		   pc6031.cpp
-#		   pc80s31k.cpp
 		   i8255.cpp
-		   
-#		   upd765a.cpp
-		   
-#		   disk.cpp
 		   event.cpp
 		   io.cpp
 		   memory.cpp
 		   datarec.cpp
-		   prnfile.cpp
 )
 
 set(VMFILES_LIB
@@ -33,6 +26,7 @@ set(VMFILES_LIB
 		upd765a.cpp
 		disk.cpp
 		ym2203.cpp
+		prnfile.cpp
 )
 set(FLAG_USE_MCS48 ON)
 set(FLAG_USE_Z80 ON)
@@ -62,28 +56,28 @@ if(BUILD_PC6001)
 elseif(BUILD_PC6001MK2)
    add_definitions(-D_PC6001MK2)
    set(EXEC_TARGET emupc6001mk2)
-   set(VMFILES ${VMFILES}
+   set(VMFILES_LIB ${VMFILES_LIB}
        upd7752.cpp
    )
    set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc6001mk2.qrc)
 elseif(BUILD_PC6001MK2SR)
    add_definitions(-D_PC6001MK2SR)
    set(EXEC_TARGET emupc6001mk2sr)
-   set(VMFILES ${VMFILES}
+   set(VMFILES_LIB ${VMFILES_LIB}
        upd7752.cpp
    )
    set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc6001mk2sr.qrc)
 elseif(BUILD_PC6601)
    add_definitions(-D_PC6601)
    set(EXEC_TARGET emupc6601)
-   set(VMFILES ${VMFILES}
+   set(VMFILES_LIB ${VMFILES_LIB}
        upd7752.cpp
    )
    set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc6601.qrc)
 elseif(BUILD_PC6601SR)
    add_definitions(-D_PC6601SR)
    set(EXEC_TARGET emupc6601sr)
-   set(VMFILES ${VMFILES}
+   set(VMFILES_LIB ${VMFILES_LIB}
        upd7752.cpp
    )
    set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc6601sr.qrc)

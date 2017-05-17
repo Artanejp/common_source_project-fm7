@@ -18,13 +18,13 @@ set(VMFILES
 		   z80ctc.cpp
 		   z80sio.cpp
 		   mz1p17.cpp
-		   prnfile.cpp
 		   
 		   event.cpp
 		   io.cpp
 )
 
 set(VMFILES_LIB
+		   prnfile.cpp
 		   ls393.cpp
 		   not.cpp
 		   upd765a.cpp

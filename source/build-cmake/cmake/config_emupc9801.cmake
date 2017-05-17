@@ -10,25 +10,21 @@ set(VMFILES
 		   i8255.cpp
 		   i8259.cpp
 		   
-#		   pc80s31k.cpp
 		   upd1990a.cpp
-#		   upd765a.cpp
 		   upd7220.cpp
-#		   tms3631.cpp
 		   
-#		   disk.cpp
 		   event.cpp
 		   io.cpp
 		   memory.cpp
-		   prnfile.cpp
 )
 set(VMFILES_LIB
 		   pc80s31k.cpp
 		   upd765a.cpp
 		   disk.cpp
 		   ym2203.cpp
-#		   i8251.cpp
-#		   ls244.cpp
+		   i8251.cpp
+		   ls244.cpp
+		   prnfile.cpp
 )
 
 set(BUILD_SHARED_LIBS OFF)

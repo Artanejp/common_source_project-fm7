@@ -2,6 +2,7 @@ message("* vm/common_vm")
 
 set(s_vm_common_vm_srcs
 	../315-5124.cpp
+	../am9511.cpp
 	../and.cpp
 	../ay_3_891x.cpp
 	../beep.cpp
@@ -36,7 +37,9 @@ set(s_vm_common_vm_srcs
 	../mc6809_base.cpp
 	../mc6820.cpp
 	../mc6840.cpp
+	../mc6844.cpp
 	../mc6847_base.cpp
+	../mc6850.cpp
 #	../mcs48.cpp
 	../msm5205.cpp
 	../msm58321_base.cpp
@@ -50,7 +53,7 @@ set(s_vm_common_vm_srcs
 	../pc6031.cpp
 	../pc80s31k.cpp
 	../pcm1bit.cpp
-#	../prnfile.cpp
+	../prnfile.cpp
 	../ptf20.cpp
 #	../rp5c01.cpp
 #	../scsi_cdrom.cpp
@@ -116,8 +119,8 @@ else()
     ${s_vm_common_vm_srcs}
   )
   set_target_properties(CSPcommon_vm PROPERTIES 
-     SOVERSION 1.1.4
-     VERSION 1.1.4
+     SOVERSION 1.1.5
+     VERSION 1.1.5
   )
   INSTALL(TARGETS CSPcommon_vm DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

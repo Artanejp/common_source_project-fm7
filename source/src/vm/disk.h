@@ -213,7 +213,7 @@ public:
 	int drive_num;
 	bool correct_timing()
 	{
-		if(any2d88) return false;
+		if(type_any2d88) return false;
 //#ifndef _ANY2D88
 		if(type_fm7) {
 //#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
@@ -230,7 +230,7 @@ public:
 	}
 	bool ignore_crc()
 	{
-		if(any2d88) return false;
+		if(type_any2d88) return false;
 //#ifndef _ANY2D88
 		if(drive_num < (int)array_length(config.ignore_disk_crc)) {
 			return config.ignore_disk_crc[drive_num];

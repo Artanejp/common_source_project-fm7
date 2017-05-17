@@ -28,7 +28,6 @@ set(VMFILES_BASE
 		   i8253.cpp
 		   i8255.cpp
 
-		   prnfile.cpp
 		   mz1p17.cpp
 		   
 		   event.cpp
@@ -41,6 +40,7 @@ set(VMFILES_LIB
 		   z80pio.cpp
 		   mb8877.cpp
 		   disk.cpp
+		   prnfile.cpp
 )
 set(VMFILES_QD
 		   z80sio.cpp

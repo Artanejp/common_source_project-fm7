@@ -20,13 +20,11 @@ set(VMFILES
 		   z80ctc.cpp
 
 		   z80sio.cpp
-		   
-		   prnfile.cpp
+
 		   datarec.cpp
 		   event.cpp
 		   
 		   io.cpp
-		   prnfile.cpp
 		   mz1p17.cpp
 )
 set(VMFILES_LIB
@@ -39,6 +37,7 @@ set(VMFILES_LIB
 		   ay_3_891x.cpp
 		   mb8877.cpp
 		   disk.cpp
+		   prnfile.cpp
 )
 set(FLAG_USE_MCS48 ON)
 set(FLAG_USE_Z80 ON)

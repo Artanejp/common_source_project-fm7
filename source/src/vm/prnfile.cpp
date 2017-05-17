@@ -18,11 +18,15 @@ void PRNFILE::initialize()
 	fio = new FILEIO();
 	
 	value = busy_id = ack_id = wait_frames = -1;
-#ifdef PRINTER_STROBE_RISING_EDGE
-	strobe = false;
-#else
+	_PRINTER_STROBE_RISING_EDGE = osd->check_feature(_T("PRINTER_STROBE_RISING_EDGE"));
+//#ifdef PRINTER_STROBE_RISING_EDGE
+	if(_PRINTER_STROBE_RISING_EDGE) {
+		strobe = false;
+	} else {
+//#else
 	strobe = true;
-#endif
+	}
+//#endif
 	res = busy = false;
 	set_busy(false);
 	set_ack(true);
@@ -62,11 +66,15 @@ void PRNFILE::write_signal(int id, uint32_t data, uint32_t mask)
 		value |= (data & mask);
 	} else if(id == SIG_PRINTER_STROBE) {
 		bool new_strobe = ((data & mask) != 0);
-#ifdef PRINTER_STROBE_RISING_EDGE
-		bool edge = (!strobe && new_strobe);
-#else
-		bool edge = (strobe && !new_strobe);
-#endif
+//#ifdef PRINTER_STROBE_RISING_EDGE
+		bool edge;
+		if(_PRINTER_STROBE_RISING_EDGE) {
+			edge = (!strobe && new_strobe);
+		} else {
+//#else
+			edge = (strobe && !new_strobe);
+		}
+//#endif
 		strobe = new_strobe;
 		
 		if(edge && value != -1) {

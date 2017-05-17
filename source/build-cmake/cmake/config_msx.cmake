@@ -9,7 +9,6 @@ message("")
 
 set(VMFILES_BASE
 	i8255.cpp
-	prnfile.cpp
 	datarec.cpp
 	event.cpp
 	io.cpp
@@ -17,6 +16,7 @@ set(VMFILES_BASE
 )
 
 set(VMFILES_LIB
+	prnfile.cpp
 	ym2413.cpp
 	ay_3_891x.cpp
 	pcm1bit.cpp
@@ -60,6 +60,9 @@ set(VMFILES_PX7 ${VMFILES_BASE}
 )
 set(VMFILES_LIB_PX7 ${VMFILES_LIB}
 	tms9918a.cpp
+)
+
+set(VMFILES_HX20 ${VMFILES_BASE}	
 )
 
 set(VMFILES_LIB_HX20 ${VMFILES_LIB}	

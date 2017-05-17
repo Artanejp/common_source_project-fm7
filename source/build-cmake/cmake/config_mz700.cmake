@@ -22,9 +22,6 @@ set(VMFILES_BASE
 )
 
 set(VMFILES_MZ800 ${VMFILES_BASE}
-#	   mb8877.cpp
-#	   disk.cpp
-		   
 	   z80sio.cpp
 )
 
@@ -49,7 +46,9 @@ set(VMFILES_LIB_MZ800
 	 
 set(VMFILES_LIB_MZ1500 ${VMFILES_LIB_MZ800}
 	   ym2203.cpp
+	   prnfile.cpp
 )
+
 set(BUILD_MZ700 OFF CACHE BOOL "Build EMU-MZ800")
 set(BUILD_MZ800 OFF CACHE BOOL "Build EMU-MZ800")
 set(BUILD_MZ1500 OFF CACHE BOOL "Build EMU-MZ1500")
