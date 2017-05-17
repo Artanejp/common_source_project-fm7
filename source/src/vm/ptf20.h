@@ -27,7 +27,7 @@ private:
 	uint8_t bufr[256], bufs[256];
 	int buflen, phase;
 
-	int _MAX_DRIVE;
+	int __MAX_DRIVE;
 	
 	bool process_cmd();
 	bool disk_protected(int drv);
