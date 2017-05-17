@@ -1,3 +1,28 @@
+commit c1e7c4d2340f1ef5fa1fcceea8ee42e0d52de2cc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 17 22:39:45 2017 +0000
+
+    [Build] Remove buildvars.dat . Please copy from *.dat.tmpl to *.dat and edit *.dat .
+
+commit 3ae6a96dfcdf63407ff526af96d8565eb45e196b
+Merge: 343ef188 f018a71e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 17 22:38:17 2017 +0000
+
+    Merge branch 'master' of github.com:Artanejp/common_source_project-fm7
+
+commit 343ef18896be19061fd14477ece46d240381e5c2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 17 22:36:40 2017 +0000
+
+    .
+
+commit f018a71e42b069ed345f185d9e23f4ed973faa4e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 18 07:35:04 2017 +0900
+
+    [DOC] Update gitlog.
+
 commit 17f98b42aad9b3a505b21b6e60fa0a4f6ce54112
 Merge: 2de8ab84 9c4805b2
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
