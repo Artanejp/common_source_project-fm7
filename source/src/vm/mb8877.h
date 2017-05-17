@@ -230,6 +230,7 @@ public:
 	uint8_t get_drive_type(int drv);
 	void set_drive_rpm(int drv, int rpm);
 	void set_drive_mfm(int drv, bool mfm);
+	void set_track_size(int drv, int size);
 	uint8_t fdc_status();
 };
 

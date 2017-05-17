@@ -453,6 +453,11 @@ call :clean
 mkdir build_vc12\yalky
 copy binary_vc12\yalky.exe build_vc12\yalky\.
 
+devenv.com yis.vcxproj /Rebuild Release
+call :clean
+mkdir build_vc12\yis
+copy binary_vc12\yis.exe build_vc12\yis\.
+
 devenv.com ys6464a.vcxproj /Rebuild Release
 call :clean
 mkdir build_vc12\ys6464a

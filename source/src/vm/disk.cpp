@@ -115,10 +115,14 @@ void DISK::setup_fd_formats(void)
 		type_m5 = true;
 		nt = { MEDIA_TYPE_2D,  40, 2, 18,  256, MFM };	// 2D	360KB
 	} else if(osd->check_feature(_T("_MZ80B")) || osd->check_feature(_T("_MZ2000")) ||
-			osd->check_feature(_T("_MZ2200")) || osd->check_feature(_T("_MZ2500"))) {
+			  osd->check_feature(_T("_MZ2200")) || osd->check_feature(_T("_MZ2500"))) {
 		checked = true;
 		type_mz80b = true;
 		nt = { MEDIA_TYPE_2DD, 80, 2, 16,  256, MFM };	// 2DD	640KB
+	} else if (osd->check_feature(_T("_YIS"))) {
+		checked = true;
+		type_yis = true;
+		nt = { MEDIA_TYPE_2DD,  80, 1, 16,  256, MFM };	// 1DD	320KB
 	}
 	if(osd->check_feature(_T("_FM7")) || osd->check_feature(_T("_FM8"))) {
 		checked = false;
@@ -726,7 +730,7 @@ void DISK::close()
 //#ifdef _ANY2D88
 void DISK::save_as_d88(const _TCHAR* file_path)
 {
-#ifdef _ANY2D88
+//#ifdef _ANY2D88
 	if(inserted) {
 		FILEIO* fio = new FILEIO();
 		if(fio->Fopen(file_path, FILEIO_WRITE_BINARY)) {
@@ -743,7 +747,7 @@ void DISK::save_as_d88(const _TCHAR* file_path)
 		}
 		delete fio;
 	}
-#endif
+//#endif
 }
 //#endif
 
@@ -1239,7 +1243,9 @@ int DISK::get_rpm()
 
 int DISK::get_track_size()
 {
-	if(inserted) {
+	if(track_size != 0) {
+		return track_size;
+	} else if(inserted) {
 		return media_type == MEDIA_TYPE_144 ? 12500 : media_type == MEDIA_TYPE_2HD ? 10410 : track_mfm ? 6250 : 3100;
 	} else {
 		return drive_type == DRIVE_TYPE_144 ? 12500 : drive_type == DRIVE_TYPE_2HD ? 10410 : drive_mfm ? 6250 : 3100;

@@ -7,7 +7,7 @@
 	[ Qt dependent ]
 */
 
-//#include "emu.h"
+#include "emu.h"
 #include <string>
 #include <QDateTime>
 #include <QDate>
@@ -30,82 +30,215 @@ OSD::~OSD()
 
 void OSD::set_features_machine(void)
 {
-#ifdef _MASTERSYSTEM
-	add_feature(_T("_MASTERSYSTEM"), 1);
-#endif
-#ifdef _SC3000
-	add_feature(_T("_SC3000"), 1);
+// GIJUTSU-HYORON-SHA Babbase-2nd
+#ifdef _BABBAGE2ND
+	add_feature(_T("_BABBAGE2ND"), 1);
 #endif
 
-#ifdef _MZ80A
-	add_feature(_T("_MZ80A"), 1);
+// HITACHI BASIC Master Jr
+#ifdef _BMJR
+	add_feature(_T("_BMJR"), 1);
 #endif
-#ifdef _MZ80K
-	add_feature(_T("_MZ80K"), 1);
+
+// COLECO ColecoVision
+#ifdef _COLECOVISION
+	add_feature(_T("_COLECOVISION"), 1);
 #endif
-#ifdef _MZ80B
-	add_feature(_T("_MZ80B"), 1);
+
+// TOSHIBA EX-80
+#ifdef _EX80
+	add_feature(_T("_EX80"), 1);
 #endif
-#ifdef _MZ2000
-	add_feature(_T("_MZ2000"), 1);
+
+// Nintendo Family BASIC
+#ifdef _FAMILYBASIC
+	add_feature(_T("_FAMILYBASIC"), 1);
 #endif
-#ifdef _MZ2200
-	add_feature(_T("_MZ2200"), 1);
-#endif
-#ifdef _MZ2500
-	add_feature(_T("_MZ2500"), 1);
-#endif
-#ifdef _MZ1200
-	add_feature(_T("_MZ1200"), 1);
-#endif
-#ifdef _MZ1500
-	add_feature(_T("_MZ1500"), 1);
-#endif
-#ifdef _MZ700
-	add_feature(_T("_MZ700"), 1);
-#endif
-#ifdef _FM7
-	add_feature(_T("_FM7"), 1);
-#endif
+
+// FUJITSU FM-8
 #ifdef _FM8
 	add_feature(_T("_FM8"), 1);
 #endif
+
+// FUJITSU FM-7
+#ifdef _FM7
+	add_feature(_T("_FM7"), 1);
+#endif
+
+// FUJITSU FM-NEW7
+#ifdef _FMNEW7
+	add_feature(_T("_FM7"), 1);
+	add_feature(_T("_FMNEW7"), 1);
+#endif
+
+// FUJITSU FM-77 SERIES
+#ifdef _FM77
+	add_feature(_T("_FM77"), 1);
+#endif
+
+#ifdef _FM77L2
+	add_feature(_T("_FM77L2"), 1);
+#endif
+	
+#ifdef _FM77L4
+	add_feature(_T("_FM77L4"), 1);
+#endif
+	
 #ifdef _FM77_VARIANTS
 	add_feature(_T("_FM77_VARIANTS"), 1);
 #endif
-#ifdef _FM77AV_VARIANTS
-	add_feature(_T("_FM77AV_VARIANTS"), 1);
+
+// FUJITSU FM77AV SERIES
+#ifdef _FM77AV
+	add_feature(_T("_FM77AV"), 1);
 #endif
+
 #ifdef _FM77AV20
 	add_feature(_T("_FM77AV20"), 1);
 #endif
+
 #ifdef _FM77AV20EX
 	add_feature(_T("_FM77AV20EX"), 1);
 #endif
+
 #ifdef _FM77AV40
 	add_feature(_T("_FM77AV40"), 1);
 #endif
+
 #ifdef _FM77AV40SX
 	add_feature(_T("_FM77AV40SX"), 1);
 #endif
+
 #ifdef _FM77AV40EX
 	add_feature(_T("_FM77AV40EX"), 1);
 #endif
+
+#ifdef _FM77AV_VARIANTS
+	add_feature(_T("_FM77AV_VARIANTS"), 1);
+#endif
+
+// FUJITSU FM16pi
+#ifdef _FM16PI
+	add_feature(_T("_FM16PI"), 1);
+#endif
+
+
+// FUJITSU FMR-30
 #ifdef _FMR30
 	add_feature(_T("_FMR30"), 1);
 #endif
+
+// FUJITSU FMR-50
 #ifdef _FMR50
 	add_feature(_T("_FMR50"), 1);
 #endif
+
+// FUJITSU FMR-60
 #ifdef _FMR60
 	add_feature(_T("_FMR60"), 1);
 #endif
+
+// CASIO FP-200
 #ifdef _FP200
 	add_feature(_T("_FP200"), 1);
 #endif
+
+// CASIO FP-1100
+#ifdef _FP1100
+	add_feature(_T("_FP1100"), 1);
+#endif
+
+// Panasonic FS-A1
+#ifdef _FSA1
+	add_feature(_T("_FSA1"), 1);
+#endif
+
+// SEGA GAME GEAR
+#ifdef _GAMEGEAR
+	add_feature(_T("_GAMEGEAR"), 1);
+#endif
+
+// EPSON HC-20
+#ifdef _HC20
+	add_feature(_T("_HC20"), 1);
+#endif
+
+// EPSON HC-40
+#ifdef _HC40
+	add_feature(_T("_HC40"), 1);
+#endif
+
+// EPSON HC-80
+#ifdef _HC80
+	add_feature(_T("_HC80"), 1);
+#endif
+
+// TOSHIBA HX-20 + FDD
+#ifdef _HX20
+	add_feature(_T("_HX20"), 1);
+#endif
+
+// TOSHIBA J-3100GT
+#ifdef _J3100GT
+	add_feature(_T("_J3100GT"), 1);
+#endif
+
+// TOSHIBA J-3100SL
+#ifdef _J3100SL
+	add_feature(_T("_J3100SL"), 1);
+#endif
+
+// National JR-100
+#ifdef _JR100
+	add_feature(_T("_JR100"), 1);
+#endif
+
+// National JR-200
+#ifdef _JR200
+	add_feature(_T("_JR200"), 1);
+#endif
+
+// National JR-800
+#ifdef _JR800
+	add_feature(_T("_JR800"), 1);
+#endif
+
+// IBM Japan Ltd PC/JX
+#ifdef _JX
+	add_feature(_T("_JX"), 1);
+#endif
+
+// SORD m5
 #ifdef _M5
 	add_feature(_T("_M5"), 1);
 #endif
+
+// SEIKO MAP-1010
+#ifdef _MAP1010
+	add_feature(_T("_MAP1010"), 1);
+#endif
+
+// SEGA MASTER SYSTEM
+#ifdef _MASTERSYSTEM
+	add_feature(_T("_MASTERSYSTEM"), 1);
+#endif
+
+
+// ASCII MSX
+#ifdef _MSX1
+	add_feature(_T("_MSX1"), 1);
+#endif
+
+// ASCII MSX2
+#ifdef _MSX2
+	add_feature(_T("_MSX2"), 1);
+#endif
+
+// ASCII MSX2+
+#ifdef _MSX2P
+	add_feature(_T("_MSX2P"), 1);
+#endif
+
 #ifdef _MSX1_VARIANTS
 	add_feature(_T("_MSX1_VARIANTS"), 1);
 #endif
@@ -115,38 +248,331 @@ void OSD::set_features_machine(void)
 #ifdef _MSX2P_VARIANTS
 	add_feature(_T("_MSX2P_VARIANTS"), 1);
 #endif
-#ifdef _MZ2000
-	add_feature(_T("_MZ2000"), 1);
+
+// MITSUBISHI Elec. MULTI8
+#ifdef _MULTI8
+	add_feature(_T("_MULTI8"), 1);
 #endif
-#ifdef _MZ2200
-	add_feature(_T("_MZ2200"), 1);
+
+// Japan Electronics College MYCOMZ-80A
+#ifdef _MYCOMZ80A
+	add_feature(_T("_MYCOMZ80A"), 1);
 #endif
-#ifdef _MZ2500
-	add_feature(_T("_MZ2500"), 1);
+
+// SHARP MZ-80A
+#ifdef _MZ80A
+	add_feature(_T("_MZ80A"), 1);
 #endif
+
+// SHARP MZ-80B
 #ifdef _MZ80B
 	add_feature(_T("_MZ80B"), 1);
 #endif
+
+// SHARP MZ-80K
+#ifdef _MZ80K
+	add_feature(_T("_MZ80K"), 1);
+#endif
+	
+// SHARP MZ-700
+#ifdef _MZ700
+	add_feature(_T("_MZ700"), 1);
+#endif
+
+// SHARP MZ-800
+#ifdef _MZ800
+	add_feature(_T("_MZ800"), 1);
+#endif
+
+// SHARP MZ-1200
+#ifdef _MZ1200
+	add_feature(_T("_MZ1200"), 1);
+#endif
+
+// SHARP MZ-1500
+#ifdef _MZ1500
+	add_feature(_T("_MZ1500"), 1);
+#endif
+	
+// SHARP MZ-2000
+#ifdef _MZ2000
+	add_feature(_T("_MZ2000"), 1);
+#endif
+
+// SHARP MZ-2200
+#ifdef _MZ2200
+	add_feature(_T("_MZ2200"), 1);
+#endif
+
+// SHARP MZ-2500
+#ifdef _MZ2500
+	add_feature(_T("_MZ2500"), 1);
+#endif
+
+// SHARP MZ-2800
+#ifdef _MZ2800
+	add_feature(_T("_MZ2800"), 1);
+#endif
+
+// SHARP MZ-3500
+#ifdef _MZ3500
+	add_feature(_T("_MZ3500"), 1);
+#endif
+
+// SHARP MZ-5500
+#ifdef _MZ5500
+	add_feature(_T("_MZ5500"), 1);
+#endif
+
+// SHARP MZ-6500
+#ifdef _MZ6500
+	add_feature(_T("_MZ6500"), 1);
+#endif
+	
+// SHARP MZ-6550
+#ifdef _MZ6550
+	add_feature(_T("_MZ6550"), 1);
+#endif
+
+// NEC N5200
+#ifdef _N5200
+	add_feature(_T("_N5200"), 1);
+#endif
+
+// TOSHIBA PASOPIA
+#ifdef _PASOPIA
+	add_feature(_T("_PASOPIA"), 1);
+#endif
+
+// TOSHIBA PASOPIA 7
+#ifdef _PASOPIA7
+	add_feature(_T("_PASOPIA7"), 1);
+#endif
+
+// NEC PC-2001
+#ifdef _PC2001
+	add_feature(_T("_PC2001"), 1);
+#endif
+
+// NEC PC-6001
+#ifdef _PC6001
+	add_feature(_T("_PC6001"), 1);
+#endif
+
+// NEC PC-6001mkII
+#ifdef _PC6001MK2
+	add_feature(_T("_PC6001MK2"), 1);
+#endif
+
+// NEC PC-6001mkIISR
+#ifdef _PC6001MK2SR
+	add_feature(_T("_PC6001MK2SR"), 1);
+#endif
+
+// NEC PC-6601
+#ifdef _PC6601
+	add_feature(_T("_PC6601"), 1);
+#endif
+
+// NEC PC-6601SR
+#ifdef _PC6601SR
+	add_feature(_T("_PC6601SR"), 1);
+#endif
+
+// NEC PC-8001mkIISR
+#ifdef _PC8001SR
+	add_feature(_T("_PC8001SR"), 1);
+#endif
+
+// NEC PC-8201
+#ifdef _PC8201
+	add_feature(_T("_PC8201"), 1);
+#endif
+
+// NEC PC-8201A
+#ifdef _PC8201A
+	add_feature(_T("_PC8201A"), 1);
+#endif
+
+// NEC PC-8801MA
+#ifdef _PC8801MA
+	add_feature(_T("_PC8801MA"), 1);
+#endif
+
+// NEC PC-9801
+#ifdef _PC9801
+	add_feature(_T("_PC9801"), 1);
+#endif
+
+// NEC PC-9801E/F/M
+#ifdef _PC9801E
+	add_feature(_T("_PC9801E"), 1);
+#endif
+
+// NEC PC-9801U
+#ifdef _PC9801U
+	add_feature(_T("_PC9801U"), 1);
+#endif
+
+// NEC PC-9801VF
+#ifdef _PC9801VF
+	add_feature(_T("_PC9801VF"), 1);
+#endif
+
+// NEC PC-9801VM
+#ifdef _PC9801VM
+	add_feature(_T("_PC9801VM"), 1);
+#endif
+
+// NEC PC-98DO
+#ifdef _PC98DO
+	add_feature(_T("_PC98DO"), 1);
+#endif
+
+// NEC PC-98HA
+#ifdef _PC98HA
+	add_feature(_T("_PC98HA"), 1);
+#endif
+
+// NEC PC-98LT
+#ifdef _PC98LT
+	add_feature(_T("_PC98LT"), 1);
+#endif
+
+// NEC PC-100
+#ifdef _PC100
+	add_feature(_T("_PC100"), 1);
+#endif
+
+// NEC-HE PC Engine
+#ifdef _PCENGINE
+	add_feature(_T("_PCENGINE"), 1);
+#endif
+
+// SANYO PHC-20
+#ifdef _PHC20
+	add_feature(_T("_PHC20"), 1);
+#endif
+
+// SANYO PHC-25
+#ifdef _PHC25
+	add_feature(_T("_PHC25"), 1);
+#endif
+
+// CASIO PV-1000
+#ifdef _PV1000
+	add_feature(_T("_PV1000"), 1);
+#endif
+
+// CASIO PV-2000
+#ifdef _PV2000
+	add_feature(_T("_PV2000"), 1);
+#endif
+
+// PIONEER PX-7
+#ifdef _PX7
+	add_feature(_T("_PX7"), 1);
+#endif
+
+// TOMY PYUTA
+#ifdef _PYUTA
+	add_feature(_T("_PYUTA"), 1);
+#endif
+
+// EPSON QC-10
 #ifdef _QC10
 	add_feature(_T("_QC10"), 1);
 #endif
+
+// BANDAI RX-78
+#ifdef _RX78
+	add_feature(_T("_RX78"), 1);
+#endif
+
+// SEGA SC-3000
+#ifdef _SC3000
+	add_feature(_T("_SC3000"), 1);
+#endif
+
+// EPOCH Super Cassette Vision
+#ifdef _SCV
+	add_feature(_T("_SCV"), 1);
+#endif
+
+// SHARP SM-B-80TE
+#ifdef _SMB80TE
+	add_feature(_T("_SMB80TE"), 1);
+#endif
+
+// SONY SMC-70
 #ifdef _SMC70
 	add_feature(_T("_SMC70"), 1);
 #endif
+
+// SONY SMC-777
 #ifdef _SMC777
 	add_feature(_T("_SMC777"), 1);
 #endif
+
+
+// NEC TK-80BS (COMPO BS/80)
+#ifdef _TK80BS
+	add_feature(_T("_TK80BS"), 1);
+#endif
+
+// NEC TK-80
+#ifdef _TK80
+	add_feature(_T("_TK80"), 1);
+#endif
+
+// NEC TK-85
+#ifdef _TK85
+	add_feature(_T("_TK85"), 1);
+#endif
+
+// CANON X-07
+#ifdef _X07
+	add_feature(_T("_X07"), 1);
+#endif
+
+// SHARP X1
 #ifdef _X1
 	add_feature(_T("_X1"), 1);
 #endif
+
+// SHARP X1twin
 #ifdef _X1TWIN
 	add_feature(_T("_X1TWIN"), 1);
 #endif
+
+// SHARP X1turbo
 #ifdef _X1TURBO
 	add_feature(_T("_X1TURBO"), 1);
 #endif
+	
+// SHARP X1turboz
 #ifdef _X1TURBOZ
 	add_feature(_T("_X1TURBOZ"), 1);
+#endif
+	
+// Yuasa Kyouiku System YALKY
+#ifdef _YALKY
+	add_feature(_T("_YALKY"), 1);
+#endif
+
+// YAMAHA YIS
+#ifdef _YIS
+	add_feature(_T("_YIS"), 1);
+#endif
+
+// SHINKO SANGYO YS-6464A
+#ifdef _YS6464A
+	add_feature(_T("_YS6464A"), 1);
+#endif
+
+// Homebrew Z80 TV GAME SYSTEM
+#ifdef _Z80TVGAME
+	add_feature(_T("_Z80TVGAME"), 1);
 #endif
 }
 
@@ -221,9 +647,66 @@ void OSD::set_features_cpu(void)
 
 void OSD::set_features_vm(void)
 {
+// Begin vm.h
+#ifdef MAX_CART
+	add_feature(_T("MAX_CART"), (int)MAX_CART);
+#endif
+#ifdef CART_BASE_NUMBER
+	add_feature(_T("CART_BASE_NUMBER"), (int)CART_BASE_NUMBER);
+#endif
+	
+#ifdef MAX_FD
+	add_feature(_T("MAX_FD"), (int)MAX_FD);
+#endif
+#ifdef FD_BASE_NUMBER
+	add_feature(_T("FD_BASE_NUMBER"), (int)FD_BASE_NUMBER);
+#endif
+
+#ifdef MAX_QD
+	add_feature(_T("MAX_QD"), (int)MAX_QD);
+#endif
+#ifdef QD_BASE_NUMBER
+	add_feature(_T("QD_BASE_NUMBER"), (int)QD_BASE_NUMBER);
+#endif
+
+#ifdef MAX_TAPE
+	add_feature(_T("MAX_TAPE"), (int)MAX_TAPE);
+#endif
+#ifdef TAPE_BASE_NUMBER
+	add_feature(_T("TAPE_BASE_NUMBER"), (int)TAPE_BASE_NUMBER);
+#endif
+
+#ifdef MAX_BINARY
+	add_feature(_T("MAX_BINARY"), (int)MAX_BINARY);
+#endif
+#ifdef BINARY_BASE_NUMBER
+	add_feature(_T("BINARY_BASE_NUMBER"), (int)BINARY_BASE_NUMBER);
+#endif
+
+#ifdef MAX_BUBBLE
+	add_feature(_T("MAX_BUBBLE"), (int)MAX_BUBBLE);
+#endif
+#ifdef BUBBLE_BASE_NUMBER
+	add_feature(_T("BUBBLE_BASE_NUMBER"), (int)BUBBLE_BASE_NUMBER);
+#endif
+
+#ifndef KEY_KEEP_FRAMES
+	add_feature(_T("KEY_KEEP_FRAMES"), (int)KEY_KEEP_FRAMES);
+#endif
+// End vm.h
+
+#ifdef CPU_CLOCKS
+	add_feature(_T("CPU_CLOCKS"), (int64_t)CPU_CLOCKS);
+#endif
+#ifdef APU_CLOCK
+	add_feature(_T("APU_CLOCK"), (int64_t)APU_CLOCK);
+#endif
+
+	
 #ifdef MAX_DRIVE
 	add_feature(_T("MAX_DRIVE"), (int)MAX_DRIVE);
 #endif
+
 #ifdef HD46505_CHAR_CLOCK
 	add_feature(_T("HD46505_CHAR_CLOCK"), (float)HD46505_CHAR_CLOCK);
 #endif
@@ -279,6 +762,7 @@ void OSD::set_features_vm(void)
 #ifdef I8080_IO_WAIT
 	add_feature(_T("I8080_IO_WAIT"), 1);
 #endif
+
 #ifdef MC6847_VRAM_OFS
 	add_feature(_T("MC6847_VRAM_OFS"), (uint32_t)MC6847_VRAM_OFS);
 #endif
@@ -441,7 +925,6 @@ void OSD::set_features_vm(void)
 #endif
 
 }
-
 
 void OSD::set_features_debug(void)
 {

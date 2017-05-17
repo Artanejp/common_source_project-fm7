@@ -135,11 +135,11 @@ bool NOISE::load_wav_file(const _TCHAR *file_name)
 
 void NOISE::play()
 {
-	if(samples > 0 && !mute) {
+	if(samples > 0 && register_id == -1 && !mute) {
 		touch_sound();
-		if(register_id == -1) {
+//		if(register_id == -1) {
 			register_event(this, EVENT_SAMPLE, 1000000.0 / sample_rate, true, &register_id);
-		}
+//		}
 		ptr = 0;
 		get_sample();
 		set_realtime_render(this, true);
@@ -148,12 +148,12 @@ void NOISE::play()
 
 void NOISE::stop()
 {
-	if(samples > 0) {
+	if(samples > 0 && register_id != -1) {
 		touch_sound();
-		if(register_id != -1) {
+//		if(register_id != -1) {
 			cancel_event(this, register_id);
 			register_id = -1;
-		}
+//		}
 		sample_l = sample_r = 0;
 		set_realtime_render(this, false);
 	}

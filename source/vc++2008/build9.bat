@@ -357,6 +357,10 @@ devenv.com yalky.vcproj /Rebuild Release
 mkdir build_xp\yalky
 copy Release\yalky.exe build_xp\yalky\.
 
+devenv.com yis.vcproj /Rebuild Release
+mkdir build_xp\yis
+copy Release\yis.exe build_xp\yis\.
+
 devenv.com ys6464a.vcproj /Rebuild Release
 mkdir build_xp\ys6464a
 copy Release\ys6464a.exe build_xp\ys6464a\.

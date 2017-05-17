@@ -10,13 +10,13 @@
 #ifndef _DISK_H_
 #define _DISK_H_
 
-#ifndef _ANY2D88
+//#ifndef _ANY2D88
 //#include "vm.h"
 //#include "../emu.h"
 #include "../common.h"
-#else
-#include "../common.h"
-#endif
+//#else
+//#include "../common.h"
+//#endif
 
 // d88 media type
 #define MEDIA_TYPE_2D	0x00
@@ -92,6 +92,7 @@ private:
 	bool type_fm77;
 	bool type_fm77av;
 	bool type_fm77av_2dd;
+	bool type_yis;
 	bool type_1dd;
 	bool type_any2d88;
 	
@@ -125,6 +126,7 @@ public:
 		drive_type = DRIVE_TYPE_UNK;
 		drive_rpm = 0;
 		drive_mfm = true;
+		track_size = 0;
 		static int num = 0;
 		drive_num = num++;
 		set_device_name(_T("Floppy Disk Drive #%d"), drive_num + 1);
@@ -132,17 +134,20 @@ public:
 		type_m5 = type_mz80b = false;
 		type_fm7 = type_fm77 = type_fm77av =false;
 		type_fm77av_2dd = type_1dd = type_any2d88 = false;
+		type_yis = false;
 		open_as_1dd = false;
 		open_as_256 = false;
 		setup_fd_formats();
 	}
 	~DISK()
 	{
-#ifndef _ANY2D88
-		if(inserted) {
-			close();
+//#ifndef _ANY2D88
+		if(!type_any2d88) {
+			if(inserted) {
+				close();
+			}
 		}
-#endif
+//#endif
 	}
 	
 	void open(const _TCHAR* file_path, int bank);
@@ -204,10 +209,12 @@ public:
 	uint8_t drive_type;
 	int drive_rpm;
 	bool drive_mfm;
+	int track_size; // hack for YIS :-(
 	int drive_num;
 	bool correct_timing()
 	{
-#ifndef _ANY2D88
+		if(any2d88) return false;
+//#ifndef _ANY2D88
 		if(type_fm7) {
 //#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 			if((is_special_disk == SPECIAL_DISK_FM7_TAIYOU1) || (is_special_disk == SPECIAL_DISK_FM7_TAIYOU2)) {
@@ -218,16 +225,17 @@ public:
 		if(drive_num < (int)array_length(config.correct_disk_timing)) {
 			return config.correct_disk_timing[drive_num];
 		}
-#endif
+//#endif
 		return false;
 	}
 	bool ignore_crc()
 	{
-#ifndef _ANY2D88
+		if(any2d88) return false;
+//#ifndef _ANY2D88
 		if(drive_num < (int)array_length(config.ignore_disk_crc)) {
 			return config.ignore_disk_crc[drive_num];
 		}
-#endif
+//#endif
 		return false;
 	}
 	

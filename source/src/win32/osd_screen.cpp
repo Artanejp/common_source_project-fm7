@@ -122,13 +122,19 @@ void OSD::set_vm_screen_size(int screen_width, int screen_height, int window_wid
 		}
 		vm_screen_width = screen_width;
 		vm_screen_height = screen_height;
-		vm_window_width = window_width;
-		vm_window_height = window_height;
-		vm_window_width_aspect = window_width_aspect;
-		vm_window_height_aspect = window_height_aspect;
 		
-		// change the window size
-		PostMessage(main_window_handle, WM_RESIZE, 0L, 0L);
+		if(vm_window_width != window_width || vm_window_height != window_height || vm_window_width_aspect != window_width_aspect || vm_window_height_aspect != window_height_aspect) {
+			vm_window_width = window_width;
+			vm_window_height = window_height;
+			vm_window_width_aspect = window_width_aspect;
+			vm_window_height_aspect = window_height_aspect;
+			
+			// change the window size
+			PostMessage(main_window_handle, WM_RESIZE, 0L, 0L);
+		} else {
+			// to make sure
+			set_host_window_size(-1, -1, host_window_mode);
+		}
 	}
 	if(vm_screen_buffer.width != vm_screen_width || vm_screen_buffer.height != vm_screen_height) {
 		if(now_record_video) {
