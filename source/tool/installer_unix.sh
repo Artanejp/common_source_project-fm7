@@ -7,7 +7,7 @@ LDCONFIG=/sbin/ldconfig
 CSP_ARCH="x86_64-linux-gnu"
 MULTIARCH="Yes"
 CSP_PREFIX=/usr/local
-CSP_GUILIB="libCSPgui.so.2.9.0 libCSPosd.so.2.7.0 libCSPemu_utils.so.2.5.0 libCSPavio.2.6.3 libCSPfmgen.so.1.1.0 libCSPcommon_vm.so.1.1.0"
+CSP_GUILIB="libCSPgui.so.2.9.1 libCSPosd.so.2.8.0 libCSPemu_utils.so.2.5.0 libCSPavio.2.6.3 libCSPfmgen.so.1.1.0 libCSPcommon_vm.so.1.1.5"
 
 for i in "$@"; do
   case "$1" in 
