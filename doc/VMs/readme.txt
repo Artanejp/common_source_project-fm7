@@ -1,5 +1,5 @@
 Binary archive of retro pc emulator common source code
-								4/2/2017
+								5/15/2017
 
 --- What's this ?
 
@@ -110,6 +110,7 @@ This archive includes the binaries of the emulators listed below:
 		eX1		X1
 		eX1twin		X1twin
 		eX1turbo	X1turbo
+		eX1turboZ	X1turboZ
 	Shinko Sangyo
 		eYS-6464A	YS-6464A
 	SONY
@@ -124,6 +125,8 @@ This archive includes the binaries of the emulators listed below:
 		yayaHX-20+	HX-20 + FDD (by Mr.umaiboux)
 		EmuPIA		PASOPIA/PASOPIA5
 		EmuPIA7		PASOPIA7
+	YAMAHA
+		eYIS		YIS
 	Yuasa Kyouiku System
 		eYALKY		YALKY
 
@@ -304,6 +307,8 @@ Save/Load State info:
 	XM6 by Mr.PI.
 - vm/fmgen/*
 	M88/fmgen by Mr.CISC
+- vm/am9511.*
+	Xep128 APU core
 - vm/disk.*
 	TDLZHUF for Teledisk floppy disk image decoder
 	MESS formats/dsk_dsk.c for CPDRead floppy disk image decorder
@@ -467,6 +472,10 @@ Save/Load State info:
 	X millenium T-tune by Mr.Sato
 - vm/x1/display.*
 	KANJI ROM support by X1EMU
+	X1tuboZ graphic info by Mr.Sato
+- vm/yis/*
+	YAMAHA provided me some YIS manuals and software disks
+	Mr.Moriya analyzed the YIS hardware
 - vm/z80tvgame/*
 	This homebrew cnosole is designed by Mr.Ishizu
 	http://w01.tp1.jp/~a571632211/z80tvgame/index.html
@@ -475,10 +484,6 @@ Save/Load State info:
 - res/*.ico
 	Mr.Temmaru, Mr.Marukun, and Mr.Yoshikun
 	See also res/icon.txt
-
-- emulation core design
-	nester by Mr.Darren Ranalli
-	XM6 by Mr.PI.
 
 - emulation core design
 	nester by Mr.Darren Ranalli
