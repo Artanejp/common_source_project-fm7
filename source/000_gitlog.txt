@@ -1,3 +1,45 @@
+commit 8067b89f01c21ee29c1b4bb4af8e7c112f88577c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 17 22:51:15 2017 +0900
+
+    [General] Rename "emumsx2plus" -> "emumsx2p".
+
+commit aef81ddec42016c7166c00bdb3030478f725a3de
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 17 22:49:29 2017 +0900
+
+    [DOC] .
+
+commit ed240ea314744483227c75e78f840e658992ce13
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 17 22:48:52 2017 +0900
+
+    [DOC] Update for release.
+
+commit 8750c2f22305773b13d00be46302643b579d09b9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 17 22:43:35 2017 +0900
+
+    [DOC] Update documents.
+
+commit 43ab8be3a799285b7497f7ffe5e07d479cabb45b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 17 22:39:14 2017 +0900
+
+    [VM] Add YAMAHA YIS.
+
+commit 4573bef979ccb9e88f4216962d67493e6bda134e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 17 22:21:12 2017 +0900
+
+    [UI][Qt] Uodate UI.
+
+commit 41bb820314674c15f4d804ce05c1bb963b7c6e88
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 17 22:20:21 2017 +0900
+
+    [UI][Qt][FM7] Re-enable "Mouse" menu in "Emulator" menu.
+
 commit 5d424b2ecac58fe55570c2e9fc0db0edd0d94471
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Wed May 17 21:13:46 2017 +0900

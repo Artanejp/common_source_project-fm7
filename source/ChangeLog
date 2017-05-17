@@ -2,6 +2,7 @@
 
 * SNAPSHOT May 18, 2017
   * Upstream 2017-05-15
+  * [General] Rename "emumsx2plus" -> "emumsx2p".
   * [UI/Qt] Fix unconnected event.
   * [UI/Qt] I forgot to add a "*.gz" extension to opening of Cartridges, CDs and Binaries.
   * [OSD/Qt] Add *_features_* functions. It needs for *NEW* device emulation.Pls. port to win32/ .
@@ -18,9 +19,9 @@
   * [VM/MB61VH010] Expect to be faster rendering.
   * [VM/MB61VH010][FM77AV] Re-order addrsss of read_data8() and write_data8(). You must re-build some VMs (FM77AV series etc.)
   * [CONFIG] Fix over loop.
-  * Build with 5d424b2ecac58fe55570c2e9fc0db0edd0d94471 or later.
+  * Build with 8067b89f01c21ee29c1b4bb4af8e7c112f88577c or later.
 
--- May 17, 2017 22:44:25 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- May 17, 2017 22:52:55 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT April 09, 2017
   * Upstream 2017-04-02
