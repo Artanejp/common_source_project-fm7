@@ -172,6 +172,7 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	void ConfigScreenMenu_List(void);
 	void CreateScreenMenu(void);
 	void ConfigDeviceType(void);
+	void ConfigMouseType(void);
 	void ConfigDriveType(void);
 	void ConfigSoundDeviceType(void);
 	void ConfigPrinterType(void);
@@ -295,6 +296,10 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	QMenu *menuDeviceType;
 	class Action_Control *actionDeviceType[16];
 
+	QActionGroup *actionGroup_MouseType;
+	QMenu *menuMouseType;
+	class Action_Control *actionMouseType[8];
+	
 	QActionGroup *actionGroup_DriveType;
 	QMenu *menuDriveType;
 	class Action_Control *actionDriveType[8];
@@ -573,6 +578,7 @@ public slots:
 	virtual void do_release_emu_resources(void);
 	virtual void set_window_title();
 	void set_device_type(int);
+	void set_mouse_type(int);
 	void set_drive_type(int);
 	void set_scan_line(bool);
 	void set_gl_scan_line_vert(bool);

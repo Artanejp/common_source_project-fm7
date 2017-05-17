@@ -179,13 +179,10 @@
 #endif
 
 #ifdef _FM77AV_VARIANTS
-
 //#define CAPABLE_KANJI_CLASS2
 #define HAS_MMR
 #define HAS_CYCLESTEAL
-
 #elif defined(_FM77_VARIANTS)
-
 #define HAS_MMR
 #define HAS_CYCLESTEAL
 #define CAPABLE_Z80

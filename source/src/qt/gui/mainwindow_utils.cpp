@@ -91,6 +91,13 @@ void Ui_MainWindowBase::set_cmt_sound(bool flag)
 	emit sig_emu_update_config();
 }
 
+void Ui_MainWindowBase::set_mouse_type(int num)
+{
+	if((num >= using_flags->get_use_mouse_type()) && (num < 0)) return;
+	using_flags->get_config_ptr()->mouse_type = num;
+	emit sig_emu_update_config();
+}
+
 void Ui_MainWindowBase::set_device_type(int num)
 {
 	if((num >= using_flags->get_use_device_type()) && (num < 0)) return;
@@ -189,6 +196,33 @@ void Ui_MainWindowBase::ConfigDeviceType(void)
 				actionDeviceType[ii]->binds, SLOT(do_set_device_type()));
 			connect(actionDeviceType[ii]->binds, SIGNAL(sig_device_type(int)),
 				this, SLOT(set_device_type(int)));
+		}
+	}
+}
+
+void Ui_MainWindowBase::ConfigMouseType(void)
+{
+	if(using_flags->get_use_mouse_type() > 0) {
+		int ii;
+		menuMouseType = new QMenu(menuMachine);
+		menuMouseType->setObjectName(QString::fromUtf8("menuMouseType"));
+		menuMachine->addAction(menuMouseType->menuAction());
+		menuMouseType->setToolTipsVisible(true);
+      
+		actionGroup_MouseType = new QActionGroup(this);
+		actionGroup_MouseType->setExclusive(true);
+		for(ii = 0; ii < using_flags->get_use_mouse_type(); ii++) {
+			actionMouseType[ii] = new Action_Control(this, using_flags);
+			actionGroup_MouseType->addAction(actionMouseType[ii]);
+			actionMouseType[ii]->setCheckable(true);
+			actionMouseType[ii]->setVisible(true);
+			actionMouseType[ii]->binds->setValue1(ii);
+			if(using_flags->get_config_ptr()->mouse_type == ii) actionMouseType[ii]->setChecked(true);
+			menuMouseType->addAction(actionMouseType[ii]);
+			connect(actionMouseType[ii], SIGNAL(triggered()),
+				actionMouseType[ii]->binds, SLOT(do_set_mouse_type()));
+			connect(actionMouseType[ii]->binds, SIGNAL(sig_mouse_type(int)),
+				this, SLOT(set_mouse_type(int)));
 		}
 	}
 }

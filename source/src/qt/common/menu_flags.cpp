@@ -270,6 +270,9 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 #if defined(USE_DEVICE_TYPE)
 	use_device_type = USE_DEVICE_TYPE;
 #endif
+#if defined(USE_MOUSE_TYPE)
+	use_mouse_type = USE_MOUSE_TYPE;
+#endif
 #if defined(USE_DIPSWITCH)
 	use_dipswitch = true;
 #endif

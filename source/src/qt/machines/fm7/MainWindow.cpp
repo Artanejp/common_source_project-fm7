@@ -180,27 +180,27 @@ void META_MainWindow::retranslateUi(void)
 	retranslateEmulatorMenu();
 	retranslateUI_Help();
 	
-	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
-	actionSpecial_Reset->setText(QApplication::translate("MainWindow", "Hot Start(BREAK+RESET)", 0));
-	actionSpecial_Reset->setToolTip(QApplication::translate("MainWindow", "Do HOT START.\nReset with pressing BREAK key.", 0));
+	this->setWindowTitle(QApplication::translate("Machine", "MainWindow", 0));
+	actionSpecial_Reset->setText(QApplication::translate("Machine", "Hot Start(BREAK+RESET)", 0));
+	actionSpecial_Reset->setToolTip(QApplication::translate("Machine", "Do HOT START.\nReset with pressing BREAK key.", 0));
 	
 #if defined(USE_PRINTER_TYPE)
-	actionPrintDevice[1]->setText(QApplication::translate("MainWindow", "Dempa Joystick with #1", 0));
-	actionPrintDevice[1]->setToolTip(QApplication::translate("MainWindow", "Use joystick #1 as DEMPA's joystick.", 0));
-	actionPrintDevice[2]->setText(QApplication::translate("MainWindow", "Dempa Joystick with #2", 0));
-	actionPrintDevice[2]->setToolTip(QApplication::translate("MainWindow", "Use joystick #2 as DEMPA's joystick.", 0));
+	actionPrintDevice[1]->setText(QApplication::translate("Machine", "Dempa Joystick with #1", 0));
+	actionPrintDevice[1]->setToolTip(QApplication::translate("Machine", "Use joystick #1 as DEMPA's joystick.", 0));
+	actionPrintDevice[2]->setText(QApplication::translate("Machine", "Dempa Joystick with #2", 0));
+	actionPrintDevice[2]->setToolTip(QApplication::translate("Machine", "Use joystick #2 as DEMPA's joystick.", 0));
 #endif
 #ifdef USE_DEBUGGER
-	actionDebugger[0]->setText(QApplication::translate("MainWindow", "Main CPU", 0));
-	actionDebugger[1]->setText(QApplication::translate("MainWindow", "Sub  CPU", 0));
+	actionDebugger[0]->setText(QApplication::translate("Machine", "Main CPU", 0));
+	actionDebugger[1]->setText(QApplication::translate("Machine", "Sub  CPU", 0));
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(true);
 	
 	actionDebugger[2]->setVisible(false);
 	actionDebugger[3]->setVisible(false);
 #endif	
-	//	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Record Movie", 0));
-	//      actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0));
+	//	actionStart_Record_Movie->setText(QApplication::translate("Machine", "Start Record Movie", 0));
+	//      actionStop_Record_Movie->setText(QApplication::translate("Machine", "Stop Record Movie", 0));
 	// 
 	// FM-7 Specified
 
@@ -297,14 +297,15 @@ void META_MainWindow::retranslateUi(void)
 # endif
 #endif
 #if !defined(_FM8)
-# if defined(USE_DEVICE_TYPE)
-	menuDeviceType->setTitle(QApplication::translate("Machine", "Mouse", 0));
-	actionDeviceType[0]->setText(QApplication::translate("Machine", "none", 0));
-	actionDeviceType[1]->setText(QApplication::translate("Machine", "JS port1", 0));
-	actionDeviceType[1]->setToolTip(QApplication::translate("Machine", "Connect mouse to JOYSTICK port #1.", 0));
-	actionDeviceType[2]->setText(QApplication::translate("Machine", "JS port2", 0));
-	actionDeviceType[2]->setToolTip(QApplication::translate("Machine", "Connect mouse to JOYSTICK port #2.", 0));
+# if defined(USE_MOUSE_TYPE)
+	menuMouseType->setTitle(QApplication::translate("Machine", "Mouse", 0));
+	actionMouseType[0]->setText(QApplication::translate("Machine", "none", 0));
+	actionMouseType[1]->setText(QApplication::translate("Machine", "JS port1", 0));
+	actionMouseType[1]->setToolTip(QApplication::translate("Machine", "Connect mouse to JOYSTICK port #1.", 0));
+	actionMouseType[2]->setText(QApplication::translate("Machine", "JS port2", 0));
+	actionMouseType[2]->setToolTip(QApplication::translate("Machine", "Connect mouse to JOYSTICK port #2.", 0));
 # endif	
+
 # if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
 	actionExtRam->setText(QApplication::translate("Machine", "Use Extra RAM (Need reboot)", 0));
 	actionExtRam->setToolTip(QApplication::translate("Machine", "Using extra ram block.\nNeed to reboot if changed.", 0));
@@ -328,8 +329,8 @@ void META_MainWindow::retranslateUi(void)
 	menuMachine->setToolTipsVisible(true);
 	menuAuto5_8Key->setToolTipsVisible(true);
 #if !defined(_FM8)
-# if defined(USE_DEVICE_TYPE)
-	menuDeviceType->setToolTipsVisible(true);
+# if defined(USE_MOUSE_TYPE)
+	menuMouseType->setToolTipsVisible(true);
 # endif
 #endif
 	menuCpuType->setToolTipsVisible(true);

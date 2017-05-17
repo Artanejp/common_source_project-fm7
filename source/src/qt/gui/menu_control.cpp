@@ -30,6 +30,9 @@ void Object_Menu_Control::open_debugger(void) {
 void Object_Menu_Control::do_set_device_type(void){
 	emit sig_device_type(this->getValue1());
 }
+void Object_Menu_Control::do_set_mouse_type(void){
+	emit sig_mouse_type(this->getValue1());
+}
 void Object_Menu_Control::do_set_printer_device(void){
 	emit sig_printer_device(this->getValue1());
 }
