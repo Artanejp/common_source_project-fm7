@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                          Apr 09, 2017
+                                          Mar 17, 2017
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -12,7 +12,7 @@
    
    ソースコード：
    
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20170409
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20170517
 
    追加情報:
    
