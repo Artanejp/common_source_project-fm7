@@ -1,3 +1,53 @@
+commit 17f98b42aad9b3a505b21b6e60fa0a4f6ce54112
+Merge: 2de8ab84 9c4805b2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 18 07:34:01 2017 +0900
+
+    Merge branch 'master' of github.com:Artanejp/common_source_project-fm7
+
+commit 2de8ab8460df806cea0e442aacc70474029737cd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 18 07:33:14 2017 +0900
+
+    .
+
+commit 9c4805b23c31939558d26b0391aa60c57d1742f0
+Merge: 83b72213 8361a2fb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 17 20:03:37 2017 +0000
+
+    Merge branch 'master' of github.com:Artanejp/common_source_project-fm7
+
+commit 83b72213e439ef53e81b8e1dba4f8dcde9d4c513
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 17 20:02:42 2017 +0000
+
+    .
+
+commit 8361a2fbce1958683c33bdf6bf18201a5d78d550
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 18 04:59:01 2017 +0900
+
+    [Build] Add templete of buildvars.dat.
+
+commit 63874dada8b007a66bb0bd959710756e78043f99
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 18 02:09:54 2017 +0900
+
+    [VM][PTF20] Fix FTBFS with MinGW.
+
+commit b1eb19c325d07ce31a0f43e4dd829bceda361bec
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 18 01:56:56 2017 +0900
+
+    [Linux] I forgot to update installer X-)
+
+commit 145f6728be7d5ff818fb17e9b164148e446949cb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 17 22:55:15 2017 +0900
+
+    [DOC] re-Update.
+
 commit 8067b89f01c21ee29c1b4bb4af8e7c112f88577c
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Wed May 17 22:51:15 2017 +0900
