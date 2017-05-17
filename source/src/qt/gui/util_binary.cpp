@@ -118,9 +118,9 @@ void Ui_MainWindowBase::CreateBinaryMenu(int drv, int drv_base)
 	QString drv_base_name = QString::number(drv_base);
 	QString ext, desc1;
 	if(using_flags->is_machine_tk80_series()) {
-		ext = "*.ram *.bin *.tk8";
+		ext = "*.ram *.bin *.tk8 *.gz";
 	} else {
-		ext = "*.ram *.bin";
+		ext = "*.ram *.bin *.gz";
 	}
 	if(using_flags->is_machine_pasopia_variants()) {
 		desc1 = "RAM Pack Cartridge";

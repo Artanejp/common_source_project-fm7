@@ -73,25 +73,25 @@ void Ui_MainWindowBase::CreateCartMenu(int drv, int drv_base)
 	QString drv_base_name = QString::number(drv_base); 
 	
 	if(using_flags->is_machine_gamegear()) {
-		ext = "*.rom *.bin *.gg *.col";
+		ext = "*.rom *.bin *.gg *.col *.gz";
 		desc = "Game Cartridge";
 	} else if(using_flags->is_machine_mastersystem()) {
-		ext = "*.rom *.bin *.sms";
+		ext = "*.rom *.bin *.sms *.gz";
 		desc = "Game Cartridge";
 	} else if(using_flags->is_machine_pc6001()) {
-		ext = "*.rom *.bin *.60";
+		ext = "*.rom *.bin *.60 *.gz";
 		desc = "Game Cartridge";
 	} else if(using_flags->is_machine_has_pcengine()) {
-		ext = "*.rom *.bin *.pce";
+		ext = "*.rom *.bin *.pce *.gz";
 		desc = "HuCARD";
 	} else if(using_flags->is_machine_z80tvgame()) {
-		ext = "*.rom *.bin *.hex";
+		ext = "*.rom *.bin *.hex *.gz";
 		desc = "GameData";
 	} else if(using_flags->is_machine_sc3000()) {
-		ext = "*.rom *.bin *.sms *.sg";
+		ext = "*.rom *.bin *.sms *.sg *.gz";
 		desc = "SC-3000/1000 Game Cartridge";
 	} else {
-		ext = "*.rom *.bin";
+		ext = "*.rom *.bin *.gz";
 		desc = "Game Cartridge";
 	}
 	
