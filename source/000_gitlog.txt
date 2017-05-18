@@ -1,3 +1,15 @@
+commit 2d337bdf6eb8a168efa1e219d81bb007da5e9d65
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 18 10:08:49 2017 +0000
+
+    [VM][V9938] Fix FTBFS with GCC5 causes internal compiler error.
+
+commit e11fc8e568e4b60f9898c1dd336ca29273bd4dad
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 18 18:45:05 2017 +0900
+
+    [DOC] Update for HOTFIX1.
+
 commit 5328467b46323eaa67c5f3af2657aff1481d954c
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu May 18 18:37:29 2017 +0900

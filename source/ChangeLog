@@ -4,9 +4,10 @@
   * MSX FIX only release.
   * [VM/MSX] I missed changes; using v9938.cpp instead of v99x8.cpp .
   * [BUILD] Add comments to buildvars*.dat.tmpl .
-  * Build with 5328467b46323eaa67c5f3af2657aff1481d954c (or later).
+  * [BUILD/Ubunts16.04LTS][V9938] Fix internal compiler error with gcc-5.
+  * Build with 2d337bdf6eb8a168efa1e219d81bb007da5e9d65 (or later).
 
--- May 18, 2017 18:42:12 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- May 18, 2017 19:13:23 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT May 18, 2017
   * Upstream 2017-05-15
