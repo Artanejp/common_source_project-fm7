@@ -42,7 +42,6 @@ case ${USE_RADICAL_OPTIMIZE} in
 	       -mtune=generic \
 	       -ftree-vectorize \
 	       -funroll-loops \
-	       -floop-nest-optimize \
 	       -msse -msse2 \
 	       -Wall \
                ${MAKEFLAGS_BASE} \
