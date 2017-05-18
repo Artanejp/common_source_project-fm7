@@ -76,8 +76,9 @@ set(s_vm_common_vm_srcs
 	../upd7752.cpp
 #	../upd7801.cpp
 #	../upd7810.cpp
-#	../v9938_base.cpp
-	../v99x8.cpp
+# 20170518/MSX: Use v9938.cpp and define "-D_MSX_VDP_MESS" instead of v99x8.cpp .
+	../v9938.cpp
+##	../v99x8.cpp
 #	../w3100a.cpp
 	../ym2151.cpp
 	../ym2203.cpp
@@ -119,8 +120,8 @@ else()
     ${s_vm_common_vm_srcs}
   )
   set_target_properties(CSPcommon_vm PROPERTIES 
-     SOVERSION 1.1.5
-     VERSION 1.1.5
+     SOVERSION 1.1.6
+     VERSION 1.1.6
   )
   INSTALL(TARGETS CSPcommon_vm DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

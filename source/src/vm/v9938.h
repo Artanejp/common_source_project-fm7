@@ -11,8 +11,8 @@
 #ifndef __V9938_H__
 #define __V9938_H__
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 
@@ -77,6 +77,8 @@
 class v99x8_device :    public DEVICE
 {
 protected:
+	int __SCREEN_WIDTH;
+	int __SCREEN_HEIGHT;
 	// construction/destruction
 	//v99x8_device(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu){}
 	v99x8_device(VM* parent_vm, EMU* parent_emu);

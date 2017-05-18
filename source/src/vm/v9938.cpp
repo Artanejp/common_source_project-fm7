@@ -35,7 +35,7 @@ todo:
 - make vdp engine work in exp. ram
 */
 
-#include "../emu.h"
+//#include "../emu.h"
 #include "v9938.h"
 
 #define m_vram_space this
@@ -3116,15 +3116,22 @@ void v99x8_device::draw_screen()
 {
 	scrntype_t *dst;
 	int y;
-	for(y=0; y<SCREEN_HEIGHT; y++) {
-		if((dst = emu->get_screen_buffer(y)) != NULL) {
-			memcpy(dst, screen+(y+18)*LONG_WIDTH+2, SCREEN_WIDTH*sizeof(scrntype_t));
+	if(osd == NULL) return;
+	for(y=0; y< __SCREEN_HEIGHT; y++) {
+		if((dst = osd->get_vm_screen_buffer(y)) != NULL) {
+			memcpy(dst, screen+(y+18)*LONG_WIDTH+2, __SCREEN_WIDTH*sizeof(scrntype_t));
 		}
 	}
 }
 
 void v99x8_device::initialize()
 {
+	DEVICE::initialize();
+	__SCREEN_WIDTH = osd->get_feature_int_value(_T("SCREEN_WIDTH"));
+	__SCREEN_HEIGHT = osd->get_feature_int_value(_T("SCREEN_HEIGHT"));
+	if(__SCREEN_WIDTH <= 0) __SCREEN_WIDTH = 256;
+	if(__SCREEN_HEIGHT <= 0) __SCREEN_HEIGHT = 192;
+	
 	device_start();
 	register_vline_event(this);
 }

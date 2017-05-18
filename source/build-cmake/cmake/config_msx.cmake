@@ -36,13 +36,14 @@ include(detect_target_cpu)
 set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
 
 add_definitions(-D_CONFIGURE_WITH_CMAKE)
+add_definitions(-D_MSX_VDP_MESS)
 
 set(VMFILES_MSX2 ${VMFILES_BASE}
 	rp5c01.cpp
 )
 
 set(VMFILES_MSX2_LIB ${VMFILES_LIB}
-	v99x8.cpp
+	v9938.cpp
 )
 
 set(VMFILES_LIB ${VMFILES_LIB}	disk.cpp)
@@ -74,7 +75,7 @@ set(VMFILES_FSA1 ${VMFILES_BASE}
 	rp5c01.cpp
 )
 set(VMFILES_LIB_FSA1 ${VMFILES_LIB}
-	v99x8.cpp
+	v9938.cpp
 	disk.cpp
 )
 
@@ -82,7 +83,7 @@ set(VMFILES_HBF1XDJ ${VMFILES_BASE}
 	rp5c01.cpp
 )
 set(VMFILES_LIB_HBF1XDJ ${VMFILES_LIB}
-	v99x8.cpp
+	v9938.cpp
 	disk.cpp
 )
 
@@ -91,7 +92,7 @@ set(VMFILES_MSX2PLUS ${VMFILES_BASE}
 )
 
 set(VMFILES_LIB_MSX2PLUS ${VMFILES_LIB}
-	v99x8.cpp
+	v9938.cpp
 	disk.cpp
 )
 
