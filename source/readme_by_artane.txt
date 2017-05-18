@@ -13,6 +13,7 @@
    ソースコード：
    
      https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20170518
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20170518_HOTFIX1
 
    追加情報:
    
@@ -151,6 +152,14 @@
 Changes:
 
 ChangeLog:
+* SNAPSHOT HOTFIX1 May 18, 2017
+  * MSX FIX only release.
+  * [VM/MSX] I missed changes; using v9938.cpp instead of v99x8.cpp .
+  * [BUILD] Add comments to buildvars*.dat.tmpl .
+  * Build with 5328467b46323eaa67c5f3af2657aff1481d954c (or later).
+
+-- May 18, 2017 18:42:12 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT May 18, 2017
   * Upstream 2017-05-15
   * [General] Rename "emumsx2plus" -> "emumsx2p".

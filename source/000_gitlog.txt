@@ -1,3 +1,21 @@
+commit 5328467b46323eaa67c5f3af2657aff1481d954c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 18 18:37:29 2017 +0900
+
+    [VM][MSX] I missed changes; using v9938.cpp instead of v99x8.cpp .
+
+commit eab8deec489ba0d0e30cc89a86e0c0181fbc82fa
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 18 18:03:15 2017 +0900
+
+    [BUILD] Add comments to buildvars*.dat.tmpl .
+
+commit 26088335095b03dd5fbb1ea6dba20a6883767df1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 18 07:47:58 2017 +0900
+
+    [DOC] .
+
 commit c1e7c4d2340f1ef5fa1fcceea8ee42e0d52de2cc
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Wed May 17 22:39:45 2017 +0000
