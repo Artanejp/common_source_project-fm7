@@ -2789,7 +2789,7 @@ void DISPLAY::initialize()
 //	emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 	emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 	prev_clock = SUBCLOCK_NORMAL;
-	enter_display();
+	//enter_display();
 	nmi_event_id = -1;
 	firq_mask = false;
 	key_firq_req = false;	//firq_mask = true;

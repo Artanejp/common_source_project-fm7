@@ -248,7 +248,8 @@ void FM7_MAINIO::set_opn(int index, uint8_t val)
 #endif
 			}
 			break;
-	   
+		default:
+			break;
 	}
 }
 
