@@ -66,11 +66,15 @@ Ui_MainWindowBase::Ui_MainWindowBase(USING_FLAGS *p, CSP_Logger *logger, QWidget
 	max_vm_nodes = 0;
 	ui_retranslate_completed = false;
 	//csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "GUI OK");
+	driveData = NULL;
+	ledUpdateTimer = NULL;
 }
 
 Ui_MainWindowBase::~Ui_MainWindowBase()
 {
 	graphicsView->releaseKeyboard();
+	if(ledUpdateTimer != NULL) delete ledUpdateTimer;
+	if(driveData != NULL) delete driveData;
 	delete using_flags;
 }
 

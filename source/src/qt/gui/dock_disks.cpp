@@ -26,8 +26,15 @@
 		}											\
 	}
 
-	
-
+#define RELEASE_LABELS(lim,_l,_p)	{			\
+		for(int i = 0; i < lim; i++) {			\
+			if(_l[i] != NULL) delete _l[i];		\
+			if(_p[i] != NULL) delete _p[i];		\
+			_l[i] = NULL;						\
+			_p[i] = NULL;						\
+		}										\
+	}
+			
 CSP_DockDisks::CSP_DockDisks(QWidget *parent, Qt::WindowFlags flags) :  QDockWidget(parent, flags)
 {
 	QString ns, ms;
@@ -79,6 +86,15 @@ CSP_DockDisks::CSP_DockDisks(QWidget *parent, Qt::WindowFlags flags) :  QDockWid
 			
 CSP_DockDisks::~CSP_DockDisks()
 {
+	RELEASE_LABELS(8,lBinary,pBinary);
+	RELEASE_LABELS(8,lFloppyDisk,pFloppyDisk);
+	RELEASE_LABELS(2,lCMT,pCMT);
+	RELEASE_LABELS(8,lBubble,pBubble);
+	RELEASE_LABELS(8,lCart,pCart);
+	RELEASE_LABELS(8,lQuickDisk,pQuickDisk);
+	RELEASE_LABELS(2,lCompactDisc,pCompactDisc);
+	RELEASE_LABELS(8,lHardDisk,pHardDisk);
+	RELEASE_LABELS(2,lLaserDisc,pLaserDisc);
 }
 
 void CSP_DockDisks::updateLabel(int dom, int localnum, QString str)

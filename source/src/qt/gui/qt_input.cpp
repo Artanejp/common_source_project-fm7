@@ -230,6 +230,7 @@ void GLDrawClass::releaseKeyCode(void)
 		delete key_table;
 		key_table = NULL;
 	}
+	delete fio;
 }
 
 void GLDrawClass::keyReleaseEvent(QKeyEvent *event)
