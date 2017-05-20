@@ -74,6 +74,24 @@ void DISPLAY::initialize()
 		palette_pc[i    ] = RGB_COLOR((i & 2) ? 255 : 0, (i & 4) ? 255 : 0, (i & 1) ? 255 : 0);	// text
 		palette_pc[i + 8] = RGB_COLOR((i & 2) ? 255 : 0, (i & 4) ? 255 : 0, (i & 1) ? 255 : 0);	// cg
 	}
+#ifdef _X1TURBOZ
+	for(int i = 0; i < 8; i++) {
+		ztpal[i] = ((i & 1) ? 0x03 : 0) | ((i & 2) ? 0x0c : 0) | ((i & 4) ? 0x30 : 0);
+		zpalette_pc[i    ] = RGB_COLOR((i & 2) ? 255 : 0, (i & 4) ? 255 : 0, (i & 1) ? 255 : 0);	// text
+		zpalette_pc[i + 8] = RGB_COLOR((i & 2) ? 255 : 0, (i & 4) ? 255 : 0, (i & 1) ? 255 : 0);	// digital
+	}
+	for(int g = 0; g < 16; g++) {
+		for(int r = 0; r < 16; r++) {
+			for(int b = 0; b < 16; b++) {
+				int num = b + r * 16 + g * 256;
+				zpal[num].b = b;
+				zpal[num].r = r;
+				zpal[num].g = g;
+				zpalette_pc[num + 16] = RGB_COLOR((r * 255) / 15, (g * 255) / 15, (b * 255) / 15);
+			}
+		}
+	}
+#endif
 	
 	// initialize regs
 	pal[0] = 0xaa;
@@ -110,22 +128,6 @@ void DISPLAY::reset()
 	hireso = true;
 #endif
 #ifdef _X1TURBOZ
-	for(int i = 0; i < 8; i++) {
-		ztpal[i] = ((i & 1) ? 0x03 : 0) | ((i & 2) ? 0x0c : 0) | ((i & 4) ? 0x30 : 0);
-		zpalette_pc[i    ] = RGB_COLOR((i & 2) ? 255 : 0, (i & 4) ? 255 : 0, (i & 1) ? 255 : 0);	// text
-		zpalette_pc[i + 8] = RGB_COLOR((i & 2) ? 255 : 0, (i & 4) ? 255 : 0, (i & 1) ? 255 : 0);	// digital
-	}
-	for(int g = 0; g < 16; g++) {
-		for(int r = 0; r < 16; r++) {
-			for(int b = 0; b < 16; b++) {
-				int num = b + r * 16 + g * 256;
-				zpal[num].b = b;
-				zpal[num].r = r;
-				zpal[num].g = g;
-				zpalette_pc[num + 16] = RGB_COLOR((r * 255) / 15, (g * 255) / 15, (b * 255) / 15);
-			}
-		}
-	}
 	zmode1 = 0;
 	zpriority = 0;
 	zadjust = 0;
@@ -141,27 +143,6 @@ void DISPLAY::reset()
 	kaddr = kofs = kflag = 0;
 	kanji_ptr = &kanji[0];
 }
-
-#ifdef _X1TURBOZ
-int DISPLAY::get_zpal_num(uint32_t addr, uint32_t data)
-{
-	int num = ((data >> 4) & 0x0f) | ((addr << 4) & 0xff0);
-	
-	if(hireso && !column40) {
-		// 8 colors
-//		num = ((num & 0x00f) ? 0x00f : 0) | ((num & 0x0f0) ? 0x0f0 : 0) | ((num & 0xf00) ? 0xf00 : 0);
-		num &= 0x888;
-		num |= num >> 1;
-		num |= num >> 2;
-	} else
-	if(!(!C64 && !hireso && column40)) {
-		// 64 colors
-		num &= 0xccc;
-		num |= num >> 2;
-	}
-	return num;
-}
-#endif
 
 void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 {
@@ -694,11 +675,8 @@ void DISPLAY::draw_line(int v)
 			draw_text(v / ch_height);
 		}
 #ifdef _X1TURBOZ
-		if(AEN) {
-			if(!hireso && column40) {
-				draw_cg(v, 1);
-			}
-			zpri_line[v] = zpriority;
+		if(AEN && !hireso && column40) {
+			draw_cg(v, 1);
 		}
 #endif
 		draw_cg(v, 0);
@@ -707,47 +685,6 @@ void DISPLAY::draw_line(int v)
 		memset(&pri_line[v][0][0], 0, sizeof(pri));
 	}
 }
-
-#ifdef _X1TURBOZ
-scrntype_t DISPLAY::get_zpriority(uint8_t zpri, uint16_t text, uint16_t cg0, uint16_t cg1)
-{
-	uint16_t fore = ((zpri & 0x18) != 0x18) ? cg0 : cg1;
-	uint16_t back = ((zpri & 0x18) != 0x18) ? cg1 : cg0;
-	uint16_t value;
-	
-	switch(zpri & 0x13) {
-	case 0x00:
-	case 0x02:
-		value = text ? text : (fore + 16);
-		break;
-	case 0x01:
-	case 0x03:
-		value =  fore ? (fore + 16) : text;
-		break;
-	case 0x10:
-		value =  text ? text : fore ? (fore + 16) : (back + 16);
-		break;
-	case 0x11:
-		value =  fore ? (fore + 16) : back ? (back + 16) : text;
-		break;
-	case 0x12:
-		value =  fore ? (fore + 16) : text ? text : (back + 16);
-		break;
-	default: // undefined case :-(
-		value =  text ? text : fore ? (fore + 16) : (back + 16);
-		break;
-	}
-//	if((mode2 & 0x10) && value == (0x000 + 16)) {
-//		return 0;
-//	}
-//	if((mode2 & 0x20) && value == (0x00f + 16)) {
-//		return 0;
-//	}
-	return zpalette_pc[value];
-}
-#endif
-
-#define A2D(a) ((((a) >> 9) & 4) | (((a) >> 6) & 2) | (((a) >> 3) & 1))
 
 void DISPLAY::draw_screen()
 {
@@ -773,14 +710,9 @@ void DISPLAY::draw_screen()
 					uint16_t* src_cg0 = zcg[0][y];
 					
 					for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
-						uint16_t text = src_text[x];
 						uint16_t cg00 = src_cg0[x] | (src_cg0[x] >> 2);
 						
-						if((mode2 & 8) && (src_text[x] == (mode2 & 7)) && !(priority & (1 << A2D(src_cg0[x])))) {
-							dest[x2] = dest[x2 + 1] = 0;
-						} else {
-							dest[x2] = dest[x2 + 1] = get_zpriority(zpri_line[y], text, cg00, cg00);
-						}
+						dest[x2] = dest[x2 + 1] = get_zpriority(src_text[x], cg00, cg00);
 					}
 				}
 			} else {
@@ -791,14 +723,9 @@ void DISPLAY::draw_screen()
 					uint16_t* src_cg0 = zcg[0][y];
 					
 					for(int x = 0; x < 640; x++) {
-						uint16_t text = src_text[x];
 						uint16_t cg00 = src_cg0[x] | (src_cg0[x] >> 2);
 						
-						if((mode2 & 8) && (src_text[x] == (mode2 & 7)) && !(priority & (1 << A2D(src_cg0[x])))) {
-							dest[x] = 0;
-						} else {
-							dest[x] = get_zpriority(zpri_line[y], text, cg00, cg00);
-						}
+						dest[x] = get_zpriority(src_text[x], cg00, cg00);
 					}
 				}
 			}
@@ -816,26 +743,16 @@ void DISPLAY::draw_screen()
 					
 					if(C64) {
 						for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
-							uint16_t text = src_text[x];
 							uint16_t cg00 = src_cg0[x] | (src_cg0[x] >> 2);
 							uint16_t cg11 = src_cg1[x] | (src_cg1[x] >> 2);
 							
-							if((mode2 & 8) && (src_text[x] == (mode2 & 7)) && !(priority & (1 << A2D(src_cg0[x])))) {
-								dest0[x2] = dest0[x2 + 1] = 0;
-							} else {
-								dest0[x2] = dest0[x2 + 1] = get_zpriority(zpri_line[y], text, cg00, cg11);
-							}
+							dest0[x2] = dest0[x2 + 1] = get_zpriority(src_text[x], cg00, cg11);
 						}
 					} else {
 						for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
-							uint16_t text = src_text[x];
 							uint16_t cg01 = src_cg0[x] | (src_cg1[x] >> 2);
 							
-							if((mode2 & 8) && (src_text[x] == (mode2 & 7)) && !(priority & (1 << A2D(src_cg0[x])))) {
-								dest0[x2] = dest0[x2 + 1] = 0;
-							} else {
-								dest0[x2] = dest0[x2 + 1] = get_zpriority(zpri_line[y], text, cg01, cg01);
-							}
+							dest0[x2] = dest0[x2 + 1] = get_zpriority(src_text[x], cg01, cg01);
 						}
 					}
 					if(!config.scan_line) {
@@ -853,14 +770,9 @@ void DISPLAY::draw_screen()
 					uint16_t* src_cg0 = zcg[0][y];
 					
 					for(int x = 0; x < 640; x++) {
-						uint16_t text = src_text[x];
 						uint16_t cg00 = src_cg0[x] | (src_cg0[x] >> 2);
 						
-						if((mode2 & 8) && (src_text[x] == (mode2 & 7)) && !(priority & (1 << A2D(src_cg0[x])))) {
-							dest0[x] = 0;
-						} else {
-							dest0[x] = get_zpriority(zpri_line[y], text, cg00, cg00);
-						}
+						dest0[x] = get_zpriority(src_text[x], cg00, cg00);
 					}
 					if(!config.scan_line) {
 						memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
@@ -899,11 +811,11 @@ void DISPLAY::draw_screen()
 				uint8_t* src_cg = cg[y];
 				
 				for(int x = 0; x < 640; x++) {
-//#ifdef _X1TURBOZ
-//					dest[x] = zpalette_pc[pri_line[y][src_cg[x]][src_text[x]]];
-//#else
+#ifdef _X1TURBOZ
+					dest[x] = zpalette_pc[pri_line[y][src_cg[x]][src_text[x]]];
+#else
 					dest[x] =  palette_pc[pri_line[y][src_cg[x]][src_text[x]]];
-//#endif
+#endif
 				}
 			}
 		}
@@ -1121,9 +1033,9 @@ void DISPLAY::draw_cg(int line, int plane)
 	int ll = hireso ? (l >> 1) : l;
 	
 	if(mode1 & 4) {
-		ofs = (0x400 * (ll & 15)) + (page ? 0xc000 : 0);
+		ofs = (0x400 * (ll & 15));// + (page ? 0xc000 : 0);
 	} else {
-		ofs = (0x800 * (ll &  7)) + (page ? 0xc000 : 0);
+		ofs = (0x800 * (ll &  7));// + (page ? 0xc000 : 0);
 	}
 #else
 	ofs = 0x800 * (l & 7);
@@ -1132,20 +1044,41 @@ void DISPLAY::draw_cg(int line, int plane)
 	if(AEN) {
 /*
 		HIRESO=0, WIDTH=40, C64=0: 320x200, 4096	PAGE0:(ADDR 000h-3FFh) + PAGE0:(ADDR 400h-7FFh) + PAGE1:(ADDR 000h-3FFh) + PAGE1:(ADDR 400h-7FFh)
-		HIRESO=0, WIDTH=40, C64=1: 320x200, 64,64	PAGE0:(ADDR 000h-3FFh) + PAGE0:(ADDR 400h-7FFh) + PAGE1:(ADDR 000h-3FFh) + PAGE1:(ADDR 400h-7FFh)
+		HIRESO=0, WIDTH=40, C64=1: 320x200, 64x2	PAGE0:(ADDR 000h-3FFh) + PAGE0:(ADDR 400h-7FFh) / PAGE1:(ADDR 000h-3FFh) + PAGE1:(ADDR 400h-7FFh)
 		HIRESO=1, WIDTH=40, C64=*: 320x200, 64		PAGE*:(ADDR 000h-3FFh) + PAGE*:(ADDR 400h-7FFh)
 		HIRESO=0, WIDTH=80, C64=*: 640x200, 64		PAGE0:(ADDR 000h-7FFh) + PAGE1:(ADDR 000h-7FFh)
 		HIRESO=1, WIDTH=80, C64=*: 640x200, 8		PAGE0:(ADDR 000h-7FFh) + PAGE0:(ADDR 000h-7FFh)
+
+		HIRESO=0, WIDTH=40, C64=1: 320x200, 64x2
+				mode1	zpriority	
+		SCREEN 0	00	00		PAGE0
+		SCREEM 2	18	08		PAGE1
+		SCREEN 4	00	10		PAGE0 > PAGE1
+		SCREEN 6	18	18		PAGE0 < PAGE1
 */
-		if(!hireso && column40 && plane) {
-			ofs = (ofs < 0xc000) ? (ofs + 0xc000) : (ofs - 0xc000);
+		if(!hireso) {
+			if(column40) {
+				if(C64 && !(zpriority & 0x10)) {
+					if(plane) {
+						memcpy(zcg[plane][1], zcg[plane][0], sizeof(uint16_t) * 640);
+						return;
+					}
+				} else {
+					page = plane;
+				}
+			} else {
+				page = 0;
+			}
+		}
+		if(page) {
+			ofs += 0xc000;
 		}
 		int ofs_b0 = ofs + 0x0000;
 		int ofs_r0 = ofs + 0x4000;
 		int ofs_g0 = ofs + 0x8000;
-		int ofs_b1 = column40 ? (ofs_b0 ^ 0x400) : hireso ? ofs_b0 : ((ofs_b0 < 0xc000) ? (ofs_b0 + 0xc000) : (ofs_b0 - 0xc000));
-		int ofs_r1 = column40 ? (ofs_r0 ^ 0x400) : hireso ? ofs_r0 : ((ofs_r0 < 0xc000) ? (ofs_r0 + 0xc000) : (ofs_r0 - 0xc000));
-		int ofs_g1 = column40 ? (ofs_g0 ^ 0x400) : hireso ? ofs_g0 : ((ofs_g0 < 0xc000) ? (ofs_g0 + 0xc000) : (ofs_g0 - 0xc000));
+		int ofs_b1 = column40 ? (ofs_b0 ^ 0x400) : hireso ? ofs_b0 : (ofs_b0 + 0xc000);
+		int ofs_r1 = column40 ? (ofs_r0 ^ 0x400) : hireso ? ofs_r0 : (ofs_r0 + 0xc000);
+		int ofs_g1 = column40 ? (ofs_g0 ^ 0x400) : hireso ? ofs_g0 : (ofs_g0 + 0xc000);
 		
 		for(int x = 0; x < hz_disp && x < width; x++) {
 			src &= column40 ? 0x3ff : 0x7ff;
@@ -1158,18 +1091,23 @@ void DISPLAY::draw_cg(int line, int plane)
 			uint16_t* d = &zcg[plane][line][x << 3];
 			
 			// MSB <- G0,G1,0,0, R0,R1,0,0, B0,B1,0,0 -> LSB
-			d[0] = ((b0 & 0x80) >> 4) | ((b1 & 0x80) >> 5) | ((r0 & 0x80) >> 0) | ((r1 & 0x80) >> 1) | ((g0 & 0x80) <<  4) | ((g0 & 0x80) <<  3);
-			d[1] = ((b0 & 0x40) >> 3) | ((b1 & 0x40) >> 4) | ((r0 & 0x40) << 1) | ((r1 & 0x40) >> 0) | ((g0 & 0x40) <<  5) | ((g0 & 0x40) <<  4);
-			d[2] = ((b0 & 0x20) >> 2) | ((b1 & 0x20) >> 3) | ((r0 & 0x20) << 2) | ((r1 & 0x20) << 1) | ((g0 & 0x20) <<  6) | ((g0 & 0x20) <<  5);
-			d[3] = ((b0 & 0x10) >> 1) | ((b1 & 0x10) >> 2) | ((r0 & 0x10) << 3) | ((r1 & 0x10) << 2) | ((g0 & 0x10) <<  7) | ((g0 & 0x10) <<  6);
-			d[4] = ((b0 & 0x08) >> 0) | ((b1 & 0x08) >> 1) | ((r0 & 0x08) << 4) | ((r1 & 0x08) << 3) | ((g0 & 0x08) <<  8) | ((g0 & 0x08) <<  7);
-			d[5] = ((b0 & 0x04) << 1) | ((b1 & 0x04) >> 0) | ((r0 & 0x04) << 5) | ((r1 & 0x04) << 4) | ((g0 & 0x04) <<  9) | ((g0 & 0x04) <<  8);
-			d[6] = ((b0 & 0x02) << 2) | ((b1 & 0x02) << 1) | ((r0 & 0x02) << 6) | ((r1 & 0x02) << 5) | ((g0 & 0x02) << 10) | ((g0 & 0x02) <<  9);
-			d[7] = ((b0 & 0x01) << 3) | ((b1 & 0x01) << 2) | ((r0 & 0x01) << 7) | ((r1 & 0x01) << 6) | ((g0 & 0x01) << 11) | ((g0 & 0x01) << 10);
+			d[0] = ((b0 & 0x80) >> 4) | ((b1 & 0x80) >> 5) | ((r0 & 0x80) >> 0) | ((r1 & 0x80) >> 1) | ((g0 & 0x80) <<  4) | ((g1 & 0x80) <<  3);
+			d[1] = ((b0 & 0x40) >> 3) | ((b1 & 0x40) >> 4) | ((r0 & 0x40) << 1) | ((r1 & 0x40) >> 0) | ((g0 & 0x40) <<  5) | ((g1 & 0x40) <<  4);
+			d[2] = ((b0 & 0x20) >> 2) | ((b1 & 0x20) >> 3) | ((r0 & 0x20) << 2) | ((r1 & 0x20) << 1) | ((g0 & 0x20) <<  6) | ((g1 & 0x20) <<  5);
+			d[3] = ((b0 & 0x10) >> 1) | ((b1 & 0x10) >> 2) | ((r0 & 0x10) << 3) | ((r1 & 0x10) << 2) | ((g0 & 0x10) <<  7) | ((g1 & 0x10) <<  6);
+			d[4] = ((b0 & 0x08) >> 0) | ((b1 & 0x08) >> 1) | ((r0 & 0x08) << 4) | ((r1 & 0x08) << 3) | ((g0 & 0x08) <<  8) | ((g1 & 0x08) <<  7);
+			d[5] = ((b0 & 0x04) << 1) | ((b1 & 0x04) >> 0) | ((r0 & 0x04) << 5) | ((r1 & 0x04) << 4) | ((g0 & 0x04) <<  9) | ((g1 & 0x04) <<  8);
+			d[6] = ((b0 & 0x02) << 2) | ((b1 & 0x02) << 1) | ((r0 & 0x02) << 6) | ((r1 & 0x02) << 5) | ((g0 & 0x02) << 10) | ((g1 & 0x02) <<  9);
+			d[7] = ((b0 & 0x01) << 3) | ((b1 & 0x01) << 2) | ((r0 & 0x01) << 7) | ((r1 & 0x01) << 6) | ((g0 & 0x01) << 11) | ((g1 & 0x01) << 10);
 		}
 	} else
 #endif
 	{
+#ifdef _X1TURBO_FEATURE
+		if(page) {
+			ofs += 0xc000;
+		}
+#endif
 		int ofs_b = ofs + 0x0000;
 		int ofs_r = ofs + 0x4000;
 		int ofs_g = ofs + 0x8000;
@@ -1192,6 +1130,68 @@ void DISPLAY::draw_cg(int line, int plane)
 		}
 	}
 }
+
+#ifdef _X1TURBOZ
+int DISPLAY::get_zpal_num(uint32_t addr, uint32_t data)
+{
+	int num = ((data >> 4) & 0x0f) | ((addr << 4) & 0xff0);
+	
+	if(hireso && !column40) {
+		// 8 colors
+		num &= 0x888;
+		num |= num >> 1;
+		num |= num >> 2;
+	} else if(!(!hireso && column40 && !C64)) {
+		// 64 colors
+		num &= 0xccc;
+		num |= num >> 2;
+	}
+	return num;
+}
+
+scrntype_t DISPLAY::get_zpriority(uint8_t text, uint16_t cg0, uint16_t cg1)
+{
+	if((mode2 & 8) && (text == (mode2 & 7))) {
+		int digital = ((cg0 >> 9) & 4) | ((cg0 >> 6) & 2) | ((cg0 >> 3) & 1);
+		if(!(priority & (1 << digital))) {
+			return 0;
+		}
+	}
+	uint16_t fore = ((zpriority & 0x18) != 0x18) ? cg0 : cg1;
+	uint16_t back = ((zpriority & 0x18) != 0x18) ? cg1 : cg0;
+	uint16_t disp;
+	
+	switch(zpriority & 0x13) {
+	case 0x00:
+	case 0x02:
+		disp = text ? text : (fore + 16);
+		break;
+	case 0x01:
+	case 0x03:
+		disp = fore ? (fore + 16) : text;
+		break;
+	case 0x10:
+		disp = text ? text : fore ? (fore + 16) : (back + 16);
+		break;
+	case 0x11:
+		disp = fore ? (fore + 16) : back ? (back + 16) : text;
+		break;
+	case 0x12:
+		disp = fore ? (fore + 16) : text ? text : (back + 16);
+		break;
+	default: // undefined case :-(
+		disp = text ? text : fore ? (fore + 16) : (back + 16);
+		break;
+	}
+//	if((mode2 & 0x10) && disp == (0x000 + 16)) {
+//		return 0;
+//	}
+//	if((mode2 & 0x20) && disp == (0x00f + 16)) {
+//		return 0;
+//	}
+	return zpalette_pc[disp];
+}
+#endif
 
 // kanji rom (from X1EMU by KM)
 

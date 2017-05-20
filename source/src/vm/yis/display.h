@@ -30,17 +30,31 @@ private:
 	int cursor_x, cursor_y;
 	int read_x, read_y;
 	uint8_t mode1, mode2, mode3;
-	uint16_t report;
+	uint32_t report;
 	bool write_cr;
 	
 	struct {
 		uint8_t code;
 		uint8_t attr;
 	} cvram[25][80];
+	uint8_t gvram[480][640];
 	
-	uint8_t screen[200][640];
-	uint8_t font[0x1000];
-	scrntype_t palette_pc[8];
+	int window_x0, window_y0, window_x1, window_y1;
+	int view_x0, view_y0, view_x1, view_y1;
+	
+	double expand;
+	int rotate;
+	int translate_x, translate_y;
+	int point_x, point_y;
+	int fore_color, back_color;
+	bool erase;
+	int texture, texture_index;
+	int pattern;
+	
+	uint8_t screen[480][640];
+	uint8_t font[0x2000];
+	scrntype_t palette_text[8];
+	scrntype_t palette_graph[8];
 	int blink;
 	
 	void process_cmd();
@@ -48,6 +62,20 @@ private:
 	uint8_t get_code();
 	void scroll();
 	void draw_text();
+	
+	void transform(double world_x, double world_y, double *x, double *y);
+	void world_to_view(double world_x, double world_y, double *x, double *y);
+	void view_to_vram(double view_x, double view_y, int *x, int *y);
+	void transform_to_vram(double world_x, double world_y, int *x, int *y);
+	
+	void draw_solid_pixel(int x, int y);
+	void draw_texture_pixel(int x, int y);
+	void draw_pattern_pixel(int x, int y);
+	void draw_solid_line(int x0, int y0, int x1, int y1);
+	void draw_solid_cont_line(int x0, int y0, int x1, int y1);
+	void draw_texture_line(int x0, int y0, int x1, int y1);
+	void draw_texture_cont_line(int x0, int y0, int x1, int y1);
+	void draw_char(int x, int y, int pow, int rot, int code);
 	
 public:
 	DISPLAY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)

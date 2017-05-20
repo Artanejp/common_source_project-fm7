@@ -155,8 +155,6 @@ BEGIN
             MENUITEM "PU-1-10",                 ID_VM_MONITOR_TYPE0
             MENUITEM "PU-1-20",                 ID_VM_MONITOR_TYPE1
             MENUITEM "PU-10",                   ID_VM_MONITOR_TYPE2, GRAYED
-            MENUITEM SEPARATOR
-            MENUITEM "Scanline",                ID_VM_MONITOR_SCANLINE
         END
     END
     POPUP "Host"

@@ -73,7 +73,6 @@ private:
 		uint8_t b, r, g;
 	} zpal[4096];
 	int zpal_num;
-	int get_zpal_num(uint32_t addr, uint32_t data);
 #endif
 	
 #ifdef _X1TURBO_FEATURE
@@ -87,7 +86,6 @@ private:
 #endif
 #ifdef _X1TURBOZ
 	uint16_t zcg[2][400][640];
-	uint8_t zpri_line[400];
 	scrntype_t zpalette_pc[8+8+4096];	// 0-7:text, 8-15:cg, 16-:4096cg
 #endif
 	scrntype_t palette_pc[8+8];		// 0-7:text, 8-15:cg
@@ -108,8 +106,10 @@ private:
 	void draw_line(int v);
 	void draw_text(int y);
 	void draw_cg(int line, int plane);
+	
 #ifdef _X1TURBOZ
-	scrntype_t get_zpriority(uint8_t zpri, uint16_t text, uint16_t cg0, uint16_t cg1);
+	int get_zpal_num(uint32_t addr, uint32_t data);
+	scrntype_t get_zpriority(uint8_t text, uint16_t cg0, uint16_t cg1);
 #endif
 	
 	// kanji rom (from X1EMU by KM)

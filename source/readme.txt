@@ -1,5 +1,5 @@
-Binary archive of retro pc emulator common source code
-								5/15/2017
+retro pc emulator common source code
+								5/20/2017
 
 --- What's this ?
 
@@ -478,6 +478,8 @@ Save/Load State info:
 - vm/yis/*
 	YAMAHA provided me some YIS manuals and software disks
 	Mr.Moriya analyzed the YIS hardware
+- vm/yis/display.*
+	KST32B stroke font and its decoder by Mr.Saka.N
 - vm/z80tvgame/*
 	This homebrew cnosole is designed by Mr.Ishizu
 	http://w01.tp1.jp/~a571632211/z80tvgame/index.html

@@ -1,3 +1,17 @@
+5/20/2017
+
+[YIS/DISPLAY] support correct font rom (thanks Mr.Moriya)
+[YIS/DISPLAY] support native graphic commands
+[YIS/DISPLAY] include KST32B stroke font and its decoder (thanks Mr.Saka.N)
+
+[X1TURBOZ/DISPLAY] fix 8 color mode with 4096 palette (thanks Mr.Sato)
+
+
+5/17/2017
+
+[X1TURBOZ/DISPLAY] fix 64/4096 color mode (thanks Mr.Sato)
+
+
 5/15/2017
 
 [X1TURBOZ] support SHARP X1turboZ
@@ -18,7 +32,7 @@
 [VM/MEMORY] improve that dma controller does not read/write memory mapped i/o
 [VM/NOISE] fix not to restart from first sample if already playing noise
 
-[YIS] support YAMAHA YIS
+[YIS] support YAMAHA YIS (thanks YAMAHA and Mr.Moriya)
 
 
 4/16/2017
