@@ -128,6 +128,7 @@ public:
 		drive_mfm = true;
 		track_size = 0;
 		static int num = 0;
+		is_special_disk = 0;
 		drive_num = num++;
 		set_device_name(_T("Floppy Disk Drive #%d"), drive_num + 1);
 		type_sc3000 = type_smc70 = type_x1 = type_x1turbo = false;

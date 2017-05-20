@@ -176,6 +176,8 @@ void MC6809_BASE::initialize()
 	DEVICE::initialize();
 	int_state = 0;
 	busreq = false;
+	icount = 0;
+	extra_icount = 0;
 #ifdef USE_DEBUGGER
 	d_mem_stored = d_mem;
 	d_debugger->set_context_mem(d_mem);

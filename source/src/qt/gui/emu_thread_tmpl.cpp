@@ -74,6 +74,14 @@ EmuThreadClassBase::EmuThreadClassBase(META_MainWindow *rootWindow, USING_FLAGS 
 EmuThreadClassBase::~EmuThreadClassBase() {
 	delete drawCond;
 	
+	key_up_code_fifo->release();
+	key_up_mod_fifo->release();
+	key_up_repeat_fifo->release();
+	
+	key_down_code_fifo->release();
+	key_down_mod_fifo->release();
+	key_down_repeat_fifo->release();
+	
 	delete key_up_code_fifo;
 	delete key_up_mod_fifo;
 	delete key_up_repeat_fifo;

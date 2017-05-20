@@ -281,7 +281,7 @@ void CSP_Logger::debug_log(int level, int domain_num, char *strbuf)
 		
 		do {
 			if(p != NULL) {
-				CSP_LoggerLine *tmps;
+				CSP_LoggerLine *tmps = NULL;
 				tmps = new CSP_LoggerLine(linenum, level, domain_s, time_s, QString::fromUtf8(p));
 				if(log_onoff) {
 					if(cons_log_level_n != 0) {
@@ -295,6 +295,7 @@ void CSP_Logger::debug_log(int level, int domain_num, char *strbuf)
 							   tmps->get_element_syslog().toLocal8Bit().constData());
 					}
 #endif
+					
 				}
 				{
 					QMutexLocker locker(lock_mutex);
@@ -316,6 +317,7 @@ void CSP_Logger::debug_log(int level, int domain_num, char *strbuf)
 						linenum++;
 					}
 				}
+				if(tmps != NULL) delete tmps;
 			}
 #if defined(Q_OS_WIN)
 			{

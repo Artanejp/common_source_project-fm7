@@ -4,6 +4,7 @@
 USING_FLAGS::USING_FLAGS(config_t *cfg)
 {
 	p_osd = NULL;
+	p_emu = NULL;
 	use_alt_f10_key = false;
 	use_auto_key = use_auto_key_us = use_auto_key_caps = false;
 	use_auto_key_no_caps = use_auto_key_release =
