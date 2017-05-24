@@ -8,8 +8,8 @@
 	[ uPD16434 ]
 */
 
-#include "vm.h"
-#include "emu.h"
+//#include "vm.h"
+//#include "emu.h"
 #include "upd16434.h"
 
 /*
@@ -326,6 +326,11 @@ static const uint8_t font[5 * 256] = {
 	0x00, 0x00, 0x00, 0x00, 0x00,
 };
 
+void UPD16434::initialize()
+{
+   DEVICE::initialize();
+}
+
 void UPD16434::reset()
 {
 	pointer = 0;
@@ -437,14 +442,14 @@ void UPD16434::draw(int xoffset)
 	scrntype_t color_back = RGB_COLOR(160, 168, 160);	// back
 	
 	for(int y = 0; y < 24; y++) {
-		scrntype_t* dest = emu->get_screen_buffer(y) + xoffset;
+		scrntype_t* dest = osd->get_vm_screen_buffer(y) + xoffset;
 		for(int x = 0; x < 60; x++) {
 			dest[x] = color_back;
 		}
 	}
 	for(int b = 0; b < 8; b++) {
-		scrntype_t* dest_u = emu->get_screen_buffer(b + (b == 7) +  2) + xoffset;
-		scrntype_t* dest_l = emu->get_screen_buffer(b + (b == 7) + 13) + xoffset;
+		scrntype_t* dest_u = osd->get_vm_screen_buffer(b + (b == 7) +  2) + xoffset;
+		scrntype_t* dest_l = osd->get_vm_screen_buffer(b + (b == 7) + 13) + xoffset;
 		uint8_t bit = 0x01 << b;
 		
 		for(int j = 0; j < 0x32; j++) {

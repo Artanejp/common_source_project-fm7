@@ -63,7 +63,7 @@ elseif(BUILD_J3100SL)
   set(EXEC_TARGET emuj3100sl)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/j3100sl.qrc)
   add_definitions(-D_J3100SL)
-  set(VMFILES ${VMFILES} 
+  set(VMFILES_LIB ${VMFILES_LIB} 
 #               i86.cpp 
 	       rp5c01.cpp
 	       )
@@ -72,7 +72,7 @@ elseif(BUILD_J3100SS)
   set(EXEC_TARGET emuj3100ss)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/j3100ss.qrc)
   add_definitions(-D_J3100SS)
-  set(VMFILES ${VMFILES} 
+  set(VMFILES_LIB ${VMFILES_LIB} 
 #               i86.cpp 
 	       rp5c01.cpp
 	       )
@@ -80,7 +80,7 @@ elseif(BUILD_J3100SE)
   set(EXEC_TARGET emuj3100se)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/j3100se.qrc)
   add_definitions(-D_J3100SE)
-  set(VMFILES ${VMFILES} 
+  set(VMFILES_LIB ${VMFILES_LIB} 
 #               i86.cpp 
 	       rp5c01.cpp
 	       )

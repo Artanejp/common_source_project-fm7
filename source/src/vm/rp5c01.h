@@ -10,12 +10,12 @@
 #ifndef _RP5C01_H_
 #define _RP5C01_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
-//class VM;
-//class EMU;
+class VM;
+class EMU;
 class RP5C01 : public DEVICE
 {
 private:
@@ -28,12 +28,14 @@ private:
 	
 	uint8_t regs[16];
 	uint8_t time[13];
-#ifndef HAS_RP5C15
+//#ifndef HAS_RP5C15
 	uint8_t ram[26];
 	bool modified;
-#endif
+//#endif
 	bool alarm, pulse_1hz, pulse_16hz;
 	int count_16hz;
+
+	bool __HAS_RP5C15;
 	
 	void update_pulse();
 	void read_from_cur_time();

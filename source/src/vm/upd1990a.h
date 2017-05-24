@@ -18,8 +18,8 @@
 #define SIG_UPD1990A_C2		5
 #define SIG_UPD1990A_DIN	6
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 class UPD1990A : public DEVICE
@@ -39,10 +39,10 @@ private:
 	bool dout_changed;
 	int register_id_tp;
 	
-#ifdef HAS_UPD4990A
+//#ifdef HAS_UPD4990A
 	uint8_t shift_cmd;
-#endif
-	
+//#endif
+	bool __HAS_UPD4990A;	
 public:
 	UPD1990A(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -54,13 +54,13 @@ public:
 		hold = false;
 		dout = 0;
 		dout_changed = false;
-#ifdef HAS_UPD4990A
+		__HAS_UPD4990A = false;
+//#ifdef HAS_UPD4990A
 		shift_cmd = 0;
-		set_device_name(_T("uPD4990A RTC"));
-#else
+//		set_device_name(_T("uPD4990A RTC"));
+//#else
 		set_device_name(_T("uPD1990A RTC"));
-#endif
-		set_device_name(_T("uPD1990A RTC"));
+//#endif
 	}
 	~UPD1990A() {}
 	

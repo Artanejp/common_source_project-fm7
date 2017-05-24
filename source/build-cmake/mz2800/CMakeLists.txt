@@ -19,8 +19,6 @@ set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON) 
 
 set(VMFILES
-		   rp5c01.cpp
-
 		   mz1p17.cpp
 		   
 		   event.cpp
@@ -30,6 +28,7 @@ set(VMFILES_LIB
 		   i8253.cpp
 		   i8255.cpp
 		   i8259.cpp
+		   rp5c01.cpp
 		   z80sio.cpp
 		   z80pio.cpp
 		   prnfile.cpp

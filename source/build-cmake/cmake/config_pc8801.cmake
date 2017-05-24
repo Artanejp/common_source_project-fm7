@@ -8,12 +8,6 @@ set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
 
 set(VMFILES
-#		   z80dma.cpp
-#
-#		   pc80s31k.cpp
-#		   upd765a.cpp
-		   
-		   
 		   z80ctc.cpp
 		   datarec.cpp
 		   event.cpp
@@ -21,19 +15,21 @@ set(VMFILES
 		   memory.cpp
 )
 set(VMFILES_LIB
-		z80dma.cpp
-		z80sio.cpp
-  
-		pc80s31k.cpp
-		upd765a.cpp
 		beep.cpp
-		pcm1bit.cpp
-		z80pio.cpp
-		disk.cpp
-		prnfile.cpp
-		ym2203.cpp
 		i8251.cpp
 		i8255.cpp
+  
+		pc80s31k.cpp
+		pcm1bit.cpp
+		upd1990a.cpp
+		upd765a.cpp
+		ym2203.cpp
+		z80pio.cpp
+		z80dma.cpp
+		z80sio.cpp
+		disk.cpp
+		
+		prnfile.cpp
 )
 set(FLAG_USE_Z80 ON)
 
@@ -61,22 +57,18 @@ add_definitions(-D_CONFIGURE_WITH_CMAKE)
 if(BUILD_PC8001SR)
   set(EXEC_TARGET emupc8001sr)
   add_definitions(-D_PC8001SR)
-  set(VMFILES ${VMFILES}  upd1990a.cpp)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc8001mk2sr.qrc)
   
 elseif(BUILD_PC8801MA)
   set(EXEC_TARGET emupc8801ma)
   add_definitions(-D_PC8801MA)
-  set(VMFILES ${VMFILES}
-              upd1990a.cpp
-  )
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc8801ma.qrc)
 endif()
 
 add_definitions(-DPC88_EXRAM_BANKS=${PC88_EXTRAM_PAGES})
 
 if(USE_PCG)
-  set(VMFILES ${VMFILES}
+  set(VMFILES_LIB ${VMFILES_LIB}
             i8253.cpp
       )      
   add_definitions(-DSUPPORT_PC88_PCG8100)

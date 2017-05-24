@@ -21,13 +21,13 @@ set(WITH_MOUSE OFF)
 
 set(VMFILES
 		   i8080.cpp
-		   rp5c01.cpp
 		   
 		   datarec.cpp
 		   memory.cpp
 		   event.cpp
 )
 set(VMFILES_LIB
+		   rp5c01.cpp
 )
 
 set(BUILD_SHARED_LIBS OFF)

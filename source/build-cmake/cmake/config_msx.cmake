@@ -8,7 +8,6 @@ message("** Start of configure CommonSourceProject,MSX Series Qt **")
 message("")
 
 set(VMFILES_BASE
-	i8255.cpp
 	datarec.cpp
 	event.cpp
 	io.cpp
@@ -16,11 +15,12 @@ set(VMFILES_BASE
 )
 
 set(VMFILES_LIB
-	prnfile.cpp
-	ym2413.cpp
 	ay_3_891x.cpp
-	pcm1bit.cpp
+	i8255.cpp
 	not.cpp
+	pcm1bit.cpp
+	ym2413.cpp
+	prnfile.cpp
 )
 set(FLAG_USE_Z80 ON)
 
@@ -39,11 +39,11 @@ add_definitions(-D_CONFIGURE_WITH_CMAKE)
 add_definitions(-D_MSX_VDP_MESS)
 
 set(VMFILES_MSX2 ${VMFILES_BASE}
-	rp5c01.cpp
 )
 
 set(VMFILES_MSX2_LIB ${VMFILES_LIB}
 	v9938.cpp
+	rp5c01.cpp
 )
 
 set(VMFILES_LIB ${VMFILES_LIB}	disk.cpp)
@@ -72,26 +72,26 @@ set(VMFILES_LIB_HX20 ${VMFILES_LIB}
 )
 
 set(VMFILES_FSA1 ${VMFILES_BASE}
-	rp5c01.cpp
 )
 set(VMFILES_LIB_FSA1 ${VMFILES_LIB}
+	rp5c01.cpp
 	v9938.cpp
 	disk.cpp
 )
 
 set(VMFILES_HBF1XDJ ${VMFILES_BASE}
-	rp5c01.cpp
 )
 set(VMFILES_LIB_HBF1XDJ ${VMFILES_LIB}
+	rp5c01.cpp
 	v9938.cpp
 	disk.cpp
 )
 
 set(VMFILES_MSX2PLUS ${VMFILES_BASE}
-	rp5c01.cpp
 )
 
 set(VMFILES_LIB_MSX2PLUS ${VMFILES_LIB}
+	rp5c01.cpp
 	v9938.cpp
 	disk.cpp
 )

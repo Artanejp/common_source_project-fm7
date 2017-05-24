@@ -13,7 +13,6 @@ set(USE_FMGEN ON)
 set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
 set(VMFILES
-		   upd1990a.cpp
 		   z80ctc.cpp
 
 		   datarec.cpp
@@ -23,17 +22,17 @@ set(VMFILES
 		   mz1p17.cpp
 )
 set(VMFILES_LIB
-		   z80sio.cpp
-		   z80pio.cpp
-
+		   ay_3_891x.cpp
+		   beep.cpp
 		   i8255.cpp
 		   hd46505.cpp
-		   mcs48.cpp
-		   beep.cpp
-		   ym2151.cpp
-		   ym2203.cpp
-		   ay_3_891x.cpp
 		   mb8877.cpp
+		   upd1990a.cpp
+		   ym2151.cpp
+#		   ym2203.cpp
+		   z80sio.cpp
+		   z80pio.cpp
+		   
 		   disk.cpp
 		   prnfile.cpp
 )

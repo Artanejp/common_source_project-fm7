@@ -18,19 +18,23 @@ DLL_PREFIX_I struct cur_time_s cur_time;
 void RP5C01::initialize()
 {
 	DEVICE::initialize();
-#ifndef HAS_RP5C15
-	// load ram image
-	memset(ram, 0, sizeof(ram));
-	modified = false;
-	
-	// FIXME: we need to consider the multiple chips case
-	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(create_local_path(_T("RP5C01.BIN")), FILEIO_READ_BINARY)) {
-		fio->Fread(ram, sizeof(ram), 1);
-		fio->Fclose();
+	__HAS_RP5C15 = osd->check_feature(_T("HAS_RP5C15"));
+	if(__HAS_RP5C15) set_device_name(_T("RP-5C15 RTC"));
+//#ifndef HAS_RP5C15
+	if(!__HAS_RP5C15) {
+		// load ram image
+		memset(ram, 0, sizeof(ram));
+		modified = false;
+		
+		// FIXME: we need to consider the multiple chips case
+		FILEIO* fio = new FILEIO();
+		if(fio->Fopen(create_local_path(_T("RP5C01.BIN")), FILEIO_READ_BINARY)) {
+			fio->Fread(ram, sizeof(ram), 1);
+			fio->Fclose();
+		}
+		delete fio;
 	}
-	delete fio;
-#endif
+//#endif
 	
 	// initialize rtc
 	memset(regs, 0, sizeof(regs));
@@ -50,49 +54,59 @@ void RP5C01::initialize()
 
 void RP5C01::release()
 {
-#ifndef HAS_RP5C15
-	// save ram image
-	if(modified) {
-		// FIXME: we need to consider the multiple chips case
-		FILEIO* fio = new FILEIO();
-		if(fio->Fopen(create_local_path(_T("RP5C01.BIN")), FILEIO_WRITE_BINARY)) {
-			fio->Fwrite(ram, sizeof(ram), 1);
-			fio->Fclose();
+//#ifndef HAS_RP5C15
+	if(!__HAS_RP5C15) {
+		// save ram image
+		if(modified) {
+			// FIXME: we need to consider the multiple chips case
+			FILEIO* fio = new FILEIO();
+			if(fio->Fopen(create_local_path(_T("RP5C01.BIN")), FILEIO_WRITE_BINARY)) {
+				fio->Fwrite(ram, sizeof(ram), 1);
+				fio->Fclose();
+			}
+			delete fio;
 		}
-		delete fio;
 	}
-#endif
+//#endif
 }
 
 void RP5C01::write_io8(uint32_t addr, uint32_t data)
 {
 	addr &= 0x0f;
 	if(addr <= 0x0c) {
-#ifndef HAS_RP5C15
-		switch(regs[0x0d] & 3) {
-#else
-		switch(regs[0x0d] & 1) {
-#endif
+		uint8_t nmask;
+		if(!__HAS_RP5C15) {
+			nmask = 3;
+		} else {
+			nmask = 1;
+		}
+//#ifndef HAS_RP5C15
+//		switch(regs[0x0d] & 3) {
+//#else
+		switch(regs[0x0d] & nmask) {
+//#endif
 		case 0:
 			if(time[addr] != data) {
 				time[addr] = data;
 				write_to_cur_time();
 			}
 			return;
-#ifndef HAS_RP5C15
+//#ifndef HAS_RP5C15
 		case 2:
+			if(__HAS_RP5C15) break;
 			if(ram[addr] != data) {
 				ram[addr] = data;
 				modified = true;
 			}
 			return;
 		case 3:
+			if(__HAS_RP5C15) break;
 			if(ram[addr + 13] != data) {
 				ram[addr + 13] = data;
 				modified = true;
 			}
 			return;
-#endif
+//#endif
 		}
 	}
 	
@@ -105,21 +119,28 @@ void RP5C01::write_io8(uint32_t addr, uint32_t data)
 			read_from_cur_time();
 		}
 	} else if(addr == 0x0f) {
-#ifndef HAS_RP5C15
-		switch(regs[0x0d] & 3) {
-#else
-		switch(regs[0x0d] & 1) {
-#endif
+		uint8_t nmask;
+		if(!__HAS_RP5C15) {
+			nmask = 3;
+		} else {
+			nmask = 1;
+		}
+//#ifndef HAS_RP5C15
+//		switch(regs[0x0d] & 3) {
+//#else
+		switch(regs[0x0d] & nmask) {
+//#endif
 		case 0:
 			if(data & 3) {
 				// timer reset
 			}
 			break;
 		case 1:
-#ifndef HAS_RP5C15
+//#ifndef HAS_RP5C15
 		case 2:
 		case 3:
-#endif
+//#endif
+			if(__HAS_RP5C15) break;
 			if(data & 2) {
 				// timer reset
 			}
@@ -138,19 +159,27 @@ uint32_t RP5C01::read_io8(uint32_t addr)
 {
 	addr &= 0x0f;
 	if(addr <= 0x0c) {
-#ifndef HAS_RP5C15
-		switch(regs[0x0d] & 3) {
-#else
-		switch(regs[0x0d] & 1) {
-#endif
+		uint8_t nmask;
+		if(!__HAS_RP5C15) {
+			nmask = 3;
+		} else {
+			nmask = 1;
+		}
+//#ifndef HAS_RP5C15
+//		switch(regs[0x0d] & 3) {
+//#else
+		switch(regs[0x0d] & nmask) {
+//#endif
 		case 0:
 			return time[addr];
-#ifndef HAS_RP5C15
+//#ifndef HAS_RP5C15
 		case 2:
+			if(__HAS_RP5C15) return regs[addr];
 			return ram[addr];
 		case 3:
+			if(__HAS_RP5C15) return regs[addr];
 			return ram[addr + 13];
-#endif
+//#endif
 		}
 	}
 	if(addr == 0x0b) {
@@ -286,10 +315,12 @@ void RP5C01::save_state(FILEIO* state_fio)
 	state_fio->FputInt32(register_id);
 	state_fio->Fwrite(regs, sizeof(regs), 1);
 	state_fio->Fwrite(time, sizeof(time), 1);
-#ifndef HAS_RP5C15
-	state_fio->Fwrite(ram, sizeof(ram), 1);
-	state_fio->FputBool(modified);
-#endif
+//#ifndef HAS_RP5C15
+	if(!__HAS_RP5C15) {
+		state_fio->Fwrite(ram, sizeof(ram), 1);
+		state_fio->FputBool(modified);
+	}
+//#endif
 	state_fio->FputBool(alarm);
 	state_fio->FputBool(pulse_1hz);
 	state_fio->FputBool(pulse_16hz);
@@ -310,10 +341,12 @@ bool RP5C01::load_state(FILEIO* state_fio)
 	register_id = state_fio->FgetInt32();
 	state_fio->Fread(regs, sizeof(regs), 1);
 	state_fio->Fread(time, sizeof(time), 1);
-#ifndef HAS_RP5C15
-	state_fio->Fread(ram, sizeof(ram), 1);
-	modified = state_fio->FgetBool();
-#endif
+//#ifndef HAS_RP5C15
+	if(!__HAS_RP5C15) {
+		state_fio->Fread(ram, sizeof(ram), 1);
+		modified = state_fio->FgetBool();
+	}
+//#endif
 	alarm = state_fio->FgetBool();
 	pulse_1hz = state_fio->FgetBool();
 	pulse_16hz = state_fio->FgetBool();

@@ -55,7 +55,7 @@ set(s_vm_common_vm_srcs
 	../pcm1bit.cpp
 	../prnfile.cpp
 	../ptf20.cpp
-#	../rp5c01.cpp
+	../rp5c01.cpp
 #	../scsi_cdrom.cpp
 #	../scsi_dev.cpp
 #	../scsi_hdd.cpp
@@ -68,7 +68,7 @@ set(s_vm_common_vm_srcs
 	../tms9918a.cpp
 #	../tms9995.cpp
 	../upd16434.cpp
-#	../upd1990a.cpp
+	../upd1990a.cpp
 	../upd4991a.cpp
 	../upd71071.cpp
 	../upd7220_base.cpp
@@ -120,8 +120,8 @@ else()
     ${s_vm_common_vm_srcs}
   )
   set_target_properties(CSPcommon_vm PROPERTIES 
-     SOVERSION 1.1.7
-     VERSION 1.1.7
+     SOVERSION 1.1.8
+     VERSION 1.1.8
   )
   INSTALL(TARGETS CSPcommon_vm DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

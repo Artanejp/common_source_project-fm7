@@ -13,13 +13,12 @@ set(WITH_MOUSE ON)
 set(FLAG_USE_Z80 ON)
 set(VMFILES_2500
 		   w3100a.cpp
-		   rp5c01.cpp
-		   
 )
 set(VMFILES_LIB_2500
-		   z80sio.cpp
 		   ls393.cpp
+		   rp5c01.cpp
 		   ym2203.cpp
+		   z80sio.cpp
 )
 
 set(VMFILES_BASE

@@ -6,7 +6,6 @@ set(WITH_MOUSE ON)
 
 set(VMFILES
 		   i8237.cpp
-		   upd1990a.cpp
 		   upd7220.cpp
 		   
 		   event.cpp
@@ -21,6 +20,7 @@ set(VMFILES_LIB
 		   i8259.cpp
 		   ls244.cpp
 		   pc80s31k.cpp
+		   upd1990a.cpp
 		   upd7220_base.cpp
 		   upd765a.cpp
 		   ym2203.cpp

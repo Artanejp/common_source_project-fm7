@@ -10,8 +10,8 @@
 #ifndef _NOISE_H_
 #define _NOISE_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 class NOISE : public DEVICE

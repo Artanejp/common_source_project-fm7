@@ -36,6 +36,7 @@ public:
 	~UPD16434() {}
 	
 	// common functions
+	void initialize();
 	void reset();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);

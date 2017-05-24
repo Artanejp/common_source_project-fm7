@@ -21,7 +21,6 @@ set(WITH_DEBUGGER ON)
 
 set(VMFILES
 #		   upd16434.cpp
-		   upd1990a.cpp
 		   upd7810.cpp
 		   
 		   datarec.cpp
@@ -31,6 +30,7 @@ set(VMFILES
 )
 set(VMFILES_LIB
 		   upd16434.cpp
+		   upd1990a.cpp
 		   pcm1bit.cpp
 )
 set(BUILD_SHARED_LIBS OFF)

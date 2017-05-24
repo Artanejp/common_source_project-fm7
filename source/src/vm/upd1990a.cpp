@@ -18,6 +18,8 @@ DLL_PREFIX_I struct cur_time_s cur_time;
 void UPD1990A::initialize()
 {
 	DEVICE::initialize();
+	__HAS_UPD4990A = osd->check_feature(_T("HAS_UPD4990A"));
+	if(__HAS_UPD4990A) set_device_name(_T("uPD4990A_RTC"));
 	// initialize rtc
 	get_host_time(&cur_time);
 	
@@ -33,15 +35,19 @@ void UPD1990A::write_signal(int id, uint32_t data, uint32_t mask)
 		if(!clk && next) {
 			if((mode & 0x0f) == 1) {
 				uint64_t bit = 1;
-#ifdef HAS_UPD4990A
-				if(mode & 0x80) {
-					bit <<= (52 - 1);
+//#ifdef HAS_UPD4990A
+				if(__HAS_UPD4990A) {
+					if(mode & 0x80) {
+						bit <<= (52 - 1);
+					} else {
+//#endif
+						bit <<= (40 - 1);
+//#ifdef HAS_UPD4990A
+					}
 				} else {
-#endif
+//#endif
 					bit <<= (40 - 1);
-#ifdef HAS_UPD4990A
-				}
-#endif
+				}					
 				shift_data >>= 1;
 				if(din) {
 					shift_data |= bit;
@@ -53,23 +59,27 @@ void UPD1990A::write_signal(int id, uint32_t data, uint32_t mask)
 				dout_changed = true;
 				write_signals(&outputs_dout, (shift_data & 1) ? 0xffffffff : 0);
 			}
-#ifdef HAS_UPD4990A
-			shift_cmd = (shift_cmd >> 1) | (din ? 8 : 0);
-#endif
+//#ifdef HAS_UPD4990A
+			if(__HAS_UPD4990A) shift_cmd = (shift_cmd >> 1) | (din ? 8 : 0);
+//#endif
 		}
 		clk = next;
 	} else if(id == SIG_UPD1990A_STB) {
 		bool next = ((data & mask) != 0);
 		if(!stb && next/* && !clk*/) {
-#ifdef HAS_UPD4990A
-			if(cmd == 7) {
-				mode = shift_cmd | 0x80;
+//#ifdef HAS_UPD4990A
+			if(__HAS_UPD4990A) {
+				if(cmd == 7) {
+					mode = shift_cmd | 0x80;
+				} else {
+//#endif
+					mode = cmd;
+//#ifdef HAS_UPD4990A
+				}
 			} else {
-#endif
 				mode = cmd;
-#ifdef HAS_UPD4990A
 			}
-#endif
+//#endif
 			switch(mode & 0x0f) {
 			case 0x02:
 				{
@@ -85,14 +95,16 @@ void UPD1990A::write_signal(int id, uint32_t data, uint32_t mask)
 					cur_time.day_of_week = tmp & 0x0f;
 					tmp >>= 4;
 					cur_time.month = tmp & 0x0f;
-#ifdef HAS_UPD4990A
-					if(mode & 0x80) {
-						tmp >>= 4;
-						cur_time.year = FROM_BCD(tmp);
-						cur_time.update_year();
-						cur_time.update_day_of_week();
+//#ifdef HAS_UPD4990A
+					if(__HAS_UPD4990A) {
+						if(mode & 0x80) {
+							tmp >>= 4;
+							cur_time.year = FROM_BCD(tmp);
+							cur_time.update_year();
+							cur_time.update_day_of_week();
+						}
 					}
-#endif
+//#endif
 				}
 				hold = true;
 				break;
@@ -100,12 +112,14 @@ void UPD1990A::write_signal(int id, uint32_t data, uint32_t mask)
 				// after all bits are read, lsb of second data can be read
 				shift_data = TO_BCD(cur_time.second);
 				//shift_data = 0;
-#ifdef HAS_UPD4990A
-				if(mode & 0x80) {
-					shift_data <<= 8;
-					shift_data |= TO_BCD(cur_time.year);
+//#ifdef HAS_UPD4990A
+				if(__HAS_UPD4990A) {
+					if(mode & 0x80) {
+						shift_data <<= 8;
+						shift_data |= TO_BCD(cur_time.year);
+					}
 				}
-#endif
+//#endif
 				shift_data <<= 4;
 				shift_data |= cur_time.month;
 				shift_data <<= 4;
@@ -126,26 +140,28 @@ void UPD1990A::write_signal(int id, uint32_t data, uint32_t mask)
 			case 0x04:
 			case 0x05:
 			case 0x06:
-#ifdef HAS_UPD4990A
+//#ifdef HAS_UPD4990A
 			case 0x07:
 			case 0x08:
 			case 0x09:
 			case 0x0a:
 			case 0x0b:
-#endif
+//#endif
+				if(!__HAS_UPD4990A && ((mode & 0x0f) > 0x06)) break;
+
 				if(tpmode != (mode & 0x0f)) {
 					if(outputs_tp.count != 0) {
 						static const double tbl[] = {
 							1000000.0 / 128.0,	// 64Hz
 							1000000.0 / 512.0,	// 256Hz
 							1000000.0 / 2048.0,	// 2048Hz
-#ifdef HAS_UPD4990A
+//#ifdef HAS_UPD4990A
 							1000000.0 / 4098.0,	// 4096Hz
 							1000000.0,		// 1sec
 							1000000.0 * 10,		// 10sec
 							1000000.0 * 30,		// 30sec
 							1000000.0 * 60		// 60sec
-#endif
+//#endif
 						};
 						if(register_id_tp != -1) {
 							cancel_event(this, register_id_tp);
@@ -155,6 +171,8 @@ void UPD1990A::write_signal(int id, uint32_t data, uint32_t mask)
 					}
 					tpmode = mode & 0x0f;
 				}
+				break;
+			default:
 				break;
 			}
 			// reset counter hold
@@ -233,9 +251,9 @@ void UPD1990A::save_state(FILEIO* state_fio)
 	state_fio->FputUint32(dout);
 	state_fio->FputBool(dout_changed);
 	state_fio->FputInt32(register_id_tp);
-#ifdef HAS_UPD4990A
-	state_fio->FputUint8(shift_cmd);
-#endif
+//#ifdef HAS_UPD4990A
+	if(__HAS_UPD4990A) state_fio->FputUint8(shift_cmd);
+//#endif
 }
 
 bool UPD1990A::load_state(FILEIO* state_fio)
@@ -262,9 +280,9 @@ bool UPD1990A::load_state(FILEIO* state_fio)
 	dout = state_fio->FgetUint32();
 	dout_changed = state_fio->FgetBool();
 	register_id_tp = state_fio->FgetInt32();
-#ifdef HAS_UPD4990A
-	shift_cmd = state_fio->FgetUint8();
-#endif
+//#ifdef HAS_UPD4990A
+	if(__HAS_UPD4990A) shift_cmd = state_fio->FgetUint8();
+//#endif
 	return true;
 }
 

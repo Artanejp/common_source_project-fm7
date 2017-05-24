@@ -21,7 +21,6 @@ set(WITH_MOUSE ON)
 set(VMFILES
 #	   z80.cpp
 	   
-	   upd1990a.cpp
 	   upd7220.cpp
    
 	   mz1p17.cpp
@@ -36,6 +35,7 @@ set(VMFILES_LIB
 	   ls244.cpp
 	   not.cpp
 	   pcm1bit.cpp
+	   upd1990a.cpp
 	   upd765a.cpp
 	   upd7220_base.cpp
 	   
