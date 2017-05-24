@@ -10,8 +10,8 @@
 #ifndef _Z80SIO_H_
 #define _Z80SIO_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 #define SIG_Z80SIO_RECV_CH0	0
@@ -49,10 +49,10 @@ private:
 		bool abort;
 		bool sync;
 		uint8_t sync_bit;
-#ifdef HAS_UPD7201
+//#ifdef HAS_UPD7201
 		uint16_t tx_count;
 		uint8_t tx_count_hi;
-#endif
+//#endif
 		double tx_clock, tx_interval;
 		double rx_clock, rx_interval;
 		int tx_data_bits;
@@ -94,6 +94,9 @@ private:
 	DEVICE *d_cpu, *d_child;
 	bool iei, oei;
 	uint32_t intr_bit;
+
+	bool __HAS_UPD7201;
+	bool __SIO_DEBUG;
 	void update_intr();
 	
 public:
@@ -113,6 +116,8 @@ public:
 			initialize_output_signals(&port[i].outputs_rxdone);
 		}
 		d_cpu = d_child = NULL;
+		__HAS_UPD7201 = false;
+		__SIO_DEBUG = false;
 		set_device_name(_T("Z80 SIO"));
 	}
 	~Z80SIO() {}

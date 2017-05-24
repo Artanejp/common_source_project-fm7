@@ -7,6 +7,8 @@
 	[ memory and crtc ]
 */
 
+#include "../vm.h"
+#include "../../emu.h"
 #include "memory.h"
 #include "../i8237.h"
 #include "../i286.h"

@@ -11,8 +11,8 @@
 #ifndef _UPD7220_H_
 #define _UPD7220_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 #define MODE_MIX	((sync[0] & 0x22) == 0x00)
@@ -25,9 +25,9 @@
 
 class FIFO;
 
-class UPD7220 : public DEVICE
+class UPD7220_BASE : public DEVICE
 {
-private:
+protected:
 	// output signals
 	outputs_t outputs_drq;
 	outputs_t outputs_vsync;
@@ -64,9 +64,6 @@ private:
 	bool cmd_write_done;
 	
 	int cpu_clocks;
-#ifdef UPD7220_HORIZ_FREQ
-	int horiz_freq, next_horiz_freq;
-#endif
 	double frames_per_sec;
 	int lines_per_frame;
 	
@@ -80,10 +77,16 @@ private:
 	int dx, dy;	// from ead, dad
 	int dir, dif, sl, dc, d, d2, d1, dm;
 	uint16_t pattern;
+	const int vectdir[16][4] = {
+		{ 0, 1, 1, 0}, { 1, 1, 1,-1}, { 1, 0, 0,-1}, { 1,-1,-1,-1},
+		{ 0,-1,-1, 0}, {-1,-1,-1, 1}, {-1, 0, 0, 1}, {-1, 1, 1, 1},
+		{ 0, 1, 1, 1}, { 1, 1, 1, 0}, { 1, 0, 1,-1}, { 1,-1, 0,-1},
+		{ 0,-1,-1,-1}, {-1,-1,-1, 0}, {-1, 0,-1, 1}, {-1, 1, 0, 1}
+	};
 	
 	// command
-	void check_cmd();
-	void process_cmd();
+	//void check_cmd();
+	//void process_cmd();
 	
 	void cmd_reset();
 	void cmd_sync();
@@ -94,11 +97,11 @@ private:
 	void cmd_zoom();
 	void cmd_scroll();
 	void cmd_csrform();
-	void cmd_pitch();
+	//void cmd_pitch();
 	void cmd_lpen();
 	void cmd_vectw();
-	void cmd_vecte();
-	void cmd_texte();
+	//void cmd_vecte();
+	//void cmd_texte();
 	void cmd_csrw();
 	void cmd_csrr();
 	void cmd_mask();
@@ -114,15 +117,10 @@ private:
 	void update_vect();
 	void reset_vect();
 	
-	void draw_vectl();
-	void draw_vectt();
-	void draw_vectc();
-	void draw_vectr();
-	void draw_text();
-	void draw_pset(int x, int y);
-	
+	//virtual void draw_text();
+	//virtual void draw_pset(int x, int y);
 public:
-	UPD7220(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	UPD7220_BASE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_drq);
 		initialize_output_signals(&outputs_vsync);
@@ -131,23 +129,23 @@ public:
 		vram_data_mask = 0xffff;
 		set_device_name(_T("uPD7220 GDC"));
 	}
-	~UPD7220() {}
+	~UPD7220_BASE() {}
 	
 	// common functions
-	void initialize();
+	virtual void initialize();
 	void release();
 	void reset();
 	void write_dma_io8(uint32_t addr, uint32_t data);
 	uint32_t read_dma_io8(uint32_t addr);
-	void write_io8(uint32_t addr, uint32_t data);
+	virtual void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
-	void event_pre_frame();
+	virtual void event_pre_frame();
 	void event_frame();
 	void event_vline(int v, int clock);
 	void event_callback(int event_id, int err);
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	virtual void save_state(FILEIO* state_fio) {}
+	virtual bool load_state(FILEIO* state_fio) { return false; }
 	
 	// unique functions
 	void set_context_drq(DEVICE* device, int id, uint32_t mask)
@@ -169,12 +167,6 @@ public:
 		vram_size = size;
 		vram_data_mask = mask;
 	}
-#ifdef UPD7220_HORIZ_FREQ
-	void set_horiz_freq(int freq)
-	{
-		next_horiz_freq = freq;
-	}
-#endif
 	uint8_t* get_sync()
 	{
 		return sync;
@@ -206,6 +198,48 @@ public:
 	{
 		return (blink_attr < (blink_rate * 3 / 4));
 	}
+};
+
+
+class UPD7220 : public UPD7220_BASE
+{
+private:
+#ifdef UPD7220_HORIZ_FREQ
+	int horiz_freq, next_horiz_freq;
+#endif
+private:
+	void check_cmd();
+	void process_cmd();
+	
+	void draw_vectl();
+	void draw_vectt();
+	void draw_vectc();
+	void draw_vectr();
+	
+	void cmd_vecte();
+	void cmd_texte();
+	void cmd_pitch();
+	
+	void draw_text();
+	void draw_pset(int x, int y);
+public:
+	UPD7220(VM* parent_vm, EMU* parent_emu) : UPD7220_BASE(parent_vm, parent_emu)
+	{
+	}
+	~UPD7220() {}
+	void initialize();
+	void event_pre_frame();
+	virtual void write_io8(uint32_t addr, uint32_t data);
+	
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
+
+#ifdef UPD7220_HORIZ_FREQ
+	void set_horiz_freq(int freq)
+	{
+		next_horiz_freq = freq;
+	}
+#endif
 };
 
 #endif

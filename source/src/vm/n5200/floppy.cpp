@@ -7,6 +7,8 @@
 	[ floppy ]
 */
 
+#include "../vm.h"
+#include "../../emu.h"
 #include "floppy.h"
 #include "../i8237.h"
 

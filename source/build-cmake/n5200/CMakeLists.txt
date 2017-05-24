@@ -23,11 +23,7 @@ set(WITH_MOUSE ON)
 
 set(VMFILES_BASE
 #                  i386.cpp
-		   
 		   i8237.cpp
-		   i8253.cpp
-		   i8255.cpp
-		   i8259.cpp
 		   
 		   upd1990a.cpp
 		   upd7220.cpp
@@ -37,7 +33,12 @@ set(VMFILES_BASE
 )
 set(VMFILES_LIB
 		   beep.cpp
+		   i8237_base.cpp
 		   i8251.cpp
+		   i8253.cpp
+		   i8255.cpp
+		   i8259.cpp
+		   upd7220_base.cpp
 		   upd765a.cpp
 		   disk.cpp
 )

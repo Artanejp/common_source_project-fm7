@@ -13,13 +13,8 @@ set(USE_FMGEN ON)
 set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
 set(VMFILES
-		   
-#		   hd46505.cpp
-		   i8255.cpp
 		   upd1990a.cpp
 		   z80ctc.cpp
-
-		   z80sio.cpp
 
 		   datarec.cpp
 		   event.cpp
@@ -28,10 +23,13 @@ set(VMFILES
 		   mz1p17.cpp
 )
 set(VMFILES_LIB
+		   z80sio.cpp
+		   z80pio.cpp
+
+		   i8255.cpp
 		   hd46505.cpp
 		   mcs48.cpp
 		   beep.cpp
-		   z80pio.cpp
 		   ym2151.cpp
 		   ym2203.cpp
 		   ay_3_891x.cpp

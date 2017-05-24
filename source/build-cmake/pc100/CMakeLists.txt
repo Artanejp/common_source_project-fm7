@@ -20,10 +20,6 @@ set(WITH_MOUSE ON)
 
 set(VMFILES
 #		   i286.cpp
-		   
-		   i8255.cpp
-		   i8259.cpp
-		   
 		   msm58321.cpp
 		   
 		   memory.cpp
@@ -31,9 +27,13 @@ set(VMFILES
 		   io.cpp
 )
 set(VMFILES_LIB
+		   beep.cpp
 		   and.cpp
 		   i8251.cpp
-		   beep.cpp
+		   i8255.cpp
+		   i8259.cpp
+		   msm58321_base.cpp
+		   
 		   pcm1bit.cpp
 		   upd765a.cpp
 		   disk.cpp

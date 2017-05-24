@@ -23,6 +23,12 @@
 #define BIT_INTR_A	0x08	// PC3
 #define BIT_INTR_B	0x01	// PC0
 
+void I8255::initialize()
+{
+	DEVICE::initialize();
+	__I8255_AUTO_HAND_SHAKE = osd->check_feature(_T("I8255_AUTO_HAND_SHAKE"));
+}
+
 void I8255::reset()
 {
 	for(int i = 0; i < 3; i++) {
@@ -44,7 +50,8 @@ void I8255::write_io8(uint32_t addr, uint32_t data)
 			write_signals(&port[ch].outputs, port[ch].wreg = data);
 			port[ch].first = false;
 		}
-#ifndef I8255_AUTO_HAND_SHAKE
+//#ifndef I8255_AUTO_HAND_SHAKE
+		if(__I8255_AUTO_HAND_SHAKE) break;
 		if(ch == 0) {
 			if(port[0].mode == 1 || port[0].mode == 2) {
 				uint32_t val = port[2].wreg & ~BIT_OBF_A;
@@ -62,7 +69,7 @@ void I8255::write_io8(uint32_t addr, uint32_t data)
 				write_io8(2, val);
 			}
 		}
-#endif
+//#endif
 		break;
 	case 3:
 		if(data & 0x80) {
@@ -144,7 +151,8 @@ void I8255::write_signal(int id, uint32_t data, uint32_t mask)
 	switch(id) {
 	case SIG_I8255_PORT_A:
 		port[0].rreg = (port[0].rreg & ~mask) | (data & mask);
-#ifdef I8255_AUTO_HAND_SHAKE
+//#ifdef I8255_AUTO_HAND_SHAKE
+		if(!__I8255_AUTO_HAND_SHAKE) break;
 		if(port[0].mode == 1 || port[0].mode == 2) {
 			uint32_t val = port[2].wreg | BIT_IBF_A;
 			if(port[2].wreg & BIT_STB_A) {
@@ -152,11 +160,12 @@ void I8255::write_signal(int id, uint32_t data, uint32_t mask)
 			}
 			write_io8(2, val);
 		}
-#endif
+//#endif
 		break;
 	case SIG_I8255_PORT_B:
 		port[1].rreg = (port[1].rreg & ~mask) | (data & mask);
-#ifdef I8255_AUTO_HAND_SHAKE
+//#ifdef I8255_AUTO_HAND_SHAKE
+		if(!__I8255_AUTO_HAND_SHAKE) break;
 		if(port[1].mode == 1) {
 			uint32_t val = port[2].wreg | BIT_IBF_B;
 			if(port[2].wreg & BIT_STB_B) {
@@ -164,54 +173,56 @@ void I8255::write_signal(int id, uint32_t data, uint32_t mask)
 			}
 			write_io8(2, val);
 		}
-#endif
+//#endif
 		break;
 	case SIG_I8255_PORT_C:
-#ifndef I8255_AUTO_HAND_SHAKE
-		if(port[0].mode == 1 || port[0].mode == 2) {
-			if(mask & BIT_STB_A) {
-				if((port[2].rreg & BIT_STB_A) && !(data & BIT_STB_A)) {
-					write_io8(2, port[2].wreg | BIT_IBF_A);
-				} else if(!(port[2].rreg & BIT_STB_A) && (data & BIT_STB_A)) {
-					if(port[2].wreg & BIT_STB_A) {
-						write_io8(2, port[2].wreg | BIT_INTR_A);
-					}
-				}
-			}
-			if(mask & BIT_ACK_A) {
-				if((port[2].rreg & BIT_ACK_A) && !(data & BIT_ACK_A)) {
-					write_io8(2, port[2].wreg | BIT_OBF_A);
-				} else if(!(port[2].rreg & BIT_ACK_A) && (data & BIT_ACK_A)) {
-					if(port[2].wreg & BIT_ACK_A) {
-						write_io8(2, port[2].wreg | BIT_INTR_A);
-					}
-				}
-			}
-		}
-		if(port[1].mode == 1) {
-			if(port[0].rmask == 0xff) {
-				if(mask & BIT_STB_B) {
-					if((port[2].rreg & BIT_STB_B) && !(data & BIT_STB_B)) {
-						write_io8(2, port[2].wreg | BIT_IBF_B);
-					} else if(!(port[2].rreg & BIT_STB_B) && (data & BIT_STB_B)) {
-						if(port[2].wreg & BIT_STB_B) {
-							write_io8(2, port[2].wreg | BIT_INTR_B);
+//#ifndef I8255_AUTO_HAND_SHAKE
+		if(!__I8255_AUTO_HAND_SHAKE) {
+			if(port[0].mode == 1 || port[0].mode == 2) {
+				if(mask & BIT_STB_A) {
+					if((port[2].rreg & BIT_STB_A) && !(data & BIT_STB_A)) {
+						write_io8(2, port[2].wreg | BIT_IBF_A);
+					} else if(!(port[2].rreg & BIT_STB_A) && (data & BIT_STB_A)) {
+						if(port[2].wreg & BIT_STB_A) {
+							write_io8(2, port[2].wreg | BIT_INTR_A);
 						}
 					}
 				}
-			} else {
-				if(mask & BIT_ACK_B) {
-					if((port[2].rreg & BIT_ACK_B) && !(data & BIT_ACK_B)) {
-						write_io8(2, port[2].wreg | BIT_OBF_B);
-					} else if(!(port[2].rreg & BIT_ACK_B) && (data & BIT_ACK_B)) {
-						if(port[2].wreg & BIT_ACK_B) {
-							write_io8(2, port[2].wreg | BIT_INTR_B);
+				if(mask & BIT_ACK_A) {
+					if((port[2].rreg & BIT_ACK_A) && !(data & BIT_ACK_A)) {
+						write_io8(2, port[2].wreg | BIT_OBF_A);
+					} else if(!(port[2].rreg & BIT_ACK_A) && (data & BIT_ACK_A)) {
+						if(port[2].wreg & BIT_ACK_A) {
+							write_io8(2, port[2].wreg | BIT_INTR_A);
 						}
 					}
 				}
 			}
+			if(port[1].mode == 1) {
+				if(port[0].rmask == 0xff) {
+					if(mask & BIT_STB_B) {
+						if((port[2].rreg & BIT_STB_B) && !(data & BIT_STB_B)) {
+							write_io8(2, port[2].wreg | BIT_IBF_B);
+						} else if(!(port[2].rreg & BIT_STB_B) && (data & BIT_STB_B)) {
+							if(port[2].wreg & BIT_STB_B) {
+								write_io8(2, port[2].wreg | BIT_INTR_B);
+							}
+						}
+					}
+				} else {
+					if(mask & BIT_ACK_B) {
+						if((port[2].rreg & BIT_ACK_B) && !(data & BIT_ACK_B)) {
+							write_io8(2, port[2].wreg | BIT_OBF_B);
+						} else if(!(port[2].rreg & BIT_ACK_B) && (data & BIT_ACK_B)) {
+							if(port[2].wreg & BIT_ACK_B) {
+								write_io8(2, port[2].wreg | BIT_INTR_B);
+							}
+						}
+					}
+				}
+			}
 		}
-#endif
+//#endif
 		port[2].rreg = (port[2].rreg & ~mask) | (data & mask);
 		break;
 	}

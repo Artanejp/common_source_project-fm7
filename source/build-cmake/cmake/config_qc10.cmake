@@ -5,24 +5,25 @@ set(WITH_MOUSE OFF)
 
 set(FLAG_USE_Z80 ON)
 set(VMFILES
-		   #
-		   z80sio.cpp
-
 		   i8237.cpp
-		   i8253.cpp
-		   i8255.cpp
-		   i8259.cpp
 		   upd7220.cpp
-		   upd765a.cpp
 		   
 		   io.cpp
 		   
-		   disk.cpp
 		   event.cpp
 )
 set(VMFILES_LIB
-	   hd146818p.cpp
-	   pcm1bit.cpp
+		   i8237_base.cpp
+		   i8253.cpp
+		   i8255.cpp
+		   i8259.cpp
+		   upd7220_base.cpp
+		   hd146818p.cpp
+		   pcm1bit.cpp
+		   upd765a.cpp
+		   z80sio.cpp
+
+		   disk.cpp
 )		   
 
 set(BUILD_SHARED_LIBS OFF)

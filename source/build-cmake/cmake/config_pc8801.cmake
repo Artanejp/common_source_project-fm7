@@ -15,9 +15,6 @@ set(VMFILES
 		   
 		   
 		   z80ctc.cpp
-		   z80sio.cpp
-		   i8255.cpp
-  
 		   datarec.cpp
 		   event.cpp
 		   io.cpp
@@ -25,6 +22,8 @@ set(VMFILES
 )
 set(VMFILES_LIB
 		z80dma.cpp
+		z80sio.cpp
+  
 		pc80s31k.cpp
 		upd765a.cpp
 		beep.cpp
@@ -34,6 +33,7 @@ set(VMFILES_LIB
 		prnfile.cpp
 		ym2203.cpp
 		i8251.cpp
+		i8255.cpp
 )
 set(FLAG_USE_Z80 ON)
 

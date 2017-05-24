@@ -10,8 +10,8 @@
 #ifndef _MEMORY_H_
 #define _MEMORY_H_
 
-//#include "vm.h"
-//#include "../emu.h"
+#include "vm.h"
+#include "../emu.h"
 #include "device.h"
 
 #ifndef MEMORY_ADDR_MAX

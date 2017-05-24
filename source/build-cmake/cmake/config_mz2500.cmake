@@ -12,22 +12,18 @@ set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
 set(FLAG_USE_Z80 ON)
 set(VMFILES_2500
-		   z80sio.cpp
-   
 		   w3100a.cpp
 		   rp5c01.cpp
 		   
 )
 set(VMFILES_LIB_2500
+		   z80sio.cpp
 		   ls393.cpp
 		   ym2203.cpp
 )
 
 set(VMFILES_BASE
 		   datarec.cpp
-		   i8253.cpp
-		   i8255.cpp
-
 		   mz1p17.cpp
 		   
 		   event.cpp
@@ -36,6 +32,9 @@ set(VMFILES_BASE
 		   
 		   )
 set(VMFILES_LIB
+		   i8253.cpp
+		   i8255.cpp
+
 		   pcm1bit.cpp
 		   z80pio.cpp
 		   mb8877.cpp
@@ -43,15 +42,18 @@ set(VMFILES_LIB
 		   prnfile.cpp
 )
 set(VMFILES_QD
-		   z80sio.cpp
 		   mz700/quickdisk.cpp
-		   )
+)
+set(VMFILES_LIB_QD
+		   z80sio.cpp
+)
 
 set(VMFILES_16BIT
 		   i286.cpp
-		   i8259.cpp
 		   )
-
+set(VMFILES_LIB_16BIT
+		   i8259.cpp
+)
 
 set(BUILD_MZ2500 OFF CACHE BOOL "Build EMU-MZ2500")
 set(BUILD_MZ2200 OFF CACHE BOOL "Build EMU-MZ2200")
@@ -82,6 +84,7 @@ set(USE_FMGEN ON)
 
 elseif(BUILD_MZ2000)
 set(VMFILES ${VMFILES_BASE} ${VMFILES_QD} ${VMFILES_16BIT})
+set(VMFILES_LIB ${VMFILES_LIB_BASE} ${VMFILES_LIB_QD} ${VMFILES_LIB_16BIT})
 add_definitions(-D_MZ2000)
 set(EXEC_TARGET emumz2000)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz2000.qrc)
@@ -89,6 +92,7 @@ set(USE_FMGEN OFF)
 
 elseif(BUILD_MZ2200)
 set(VMFILES ${VMFILES_BASE} ${VMFILES_QD} ${VMFILES_16BIT})
+set(VMFILES_LIB ${VMFILES_LIB_BASE} ${VMFILES_LIB_QD} ${VMFILES_LIB_16BIT})
 set(LOCAL_LIBS ${LOCAL_LIBS})
 add_definitions(-D_MZ2200)
 set(EXEC_TARGET emumz2200)

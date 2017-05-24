@@ -17,23 +17,21 @@ set(USE_FMGEN ON)
 set(EXEC_TARGET emumulti8)
 set(FLAG_USE_Z80 ON)
 set(VMFILES_BASE
-		   
-		   hd46505.cpp
-		   i8253.cpp
-		   i8255.cpp
-		   i8259.cpp
-		   
 		   io.cpp
 		   datarec.cpp
 		   
 		   event.cpp
 )
 set(VMFILES_LIB
-	   ym2203.cpp
-	   i8251.cpp
-	   beep.cpp
-	   upd765a.cpp
-	   disk.cpp
+		   hd46505.cpp
+		   i8251.cpp
+		   i8253.cpp
+		   i8255.cpp
+		   i8259.cpp
+		   beep.cpp
+		   upd765a.cpp
+		   ym2203.cpp
+		   disk.cpp
 )
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")

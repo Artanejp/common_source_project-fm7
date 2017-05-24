@@ -18,11 +18,11 @@ set(WITH_MOUSE ON)
 
 set(VMFILES_BASE
 		   i8080.cpp
-		   i8255.cpp
 		   memory.cpp
 		   event.cpp
 )
 set(VMFILES_LIB
+		   i8255.cpp
 		   pcm1bit.cpp
 )
 

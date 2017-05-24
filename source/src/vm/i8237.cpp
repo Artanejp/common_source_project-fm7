@@ -8,13 +8,23 @@
 	[ i8237 ]
 */
 
+#include "vm.h"
+#include "../emu.h"
 #include "i8237.h"
 
-void I8237::reset()
+
+I8237::I8237(VM* parent_vm, EMU* parent_emu) : I8237_BASE(parent_vm, parent_emu)
 {
-	low_high = false;
-	cmd = req = tc = 0;
-	mask = 0xff;
+	for(int i = 0; i < 4; i++) {
+		dma[i].dev = vm->dummy;
+	}
+#ifdef SINGLE_MODE_DMA
+		d_dma = NULL;
+#endif
+}
+
+I8237::~I8237()
+{
 }
 
 void I8237::write_io8(uint32_t addr, uint32_t data)
@@ -86,40 +96,6 @@ void I8237::write_io8(uint32_t addr, uint32_t data)
 		mask = data & 0x0f;
 		break;
 	}
-}
-
-uint32_t I8237::read_io8(uint32_t addr)
-{
-	int ch = (addr >> 1) & 3;
-	uint32_t val = 0xff;
-	
-	switch(addr & 0x0f) {
-	case 0x00: case 0x02: case 0x04: case 0x06:
-		if(low_high) {
-			val = dma[ch].areg >> 8;
-		} else {
-			val = dma[ch].areg & 0xff;
-		}
-		low_high = !low_high;
-		return val;
-	case 0x01: case 0x03: case 0x05: case 0x07:
-		if(low_high) {
-			val = dma[ch].creg >> 8;
-		} else {
-			val = dma[ch].creg & 0xff;
-		}
-		low_high = !low_high;
-		return val;
-	case 0x08:
-		// status register
-		val = (req << 4) | tc;
-		tc = 0;
-		return val;
-	case 0x0d:
-		// temporary register
-		return tmp & 0xff;
-	}
-	return 0xff;
 }
 
 void I8237::write_signal(int id, uint32_t data, uint32_t mask)
@@ -205,42 +181,6 @@ void I8237::do_dma()
 		d_dma->do_dma();
 	}
 #endif
-}
-
-void I8237::write_mem(uint32_t addr, uint32_t data)
-{
-	if(mode_word) {
-		d_mem->write_dma_data16(addr << 1, data);
-	} else {
-		d_mem->write_dma_data8(addr, data);
-	}
-}
-
-uint32_t I8237::read_mem(uint32_t addr)
-{
-	if(mode_word) {
-		return d_mem->read_dma_data16(addr << 1);
-	} else {
-		return d_mem->read_dma_data8(addr);
-	}
-}
-
-void I8237::write_io(int ch, uint32_t data)
-{
-	if(mode_word) {
-		dma[ch].dev->write_dma_io16(0, data);
-	} else {
-		dma[ch].dev->write_dma_io8(0, data);
-	}
-}
-
-uint32_t I8237::read_io(int ch)
-{
-	if(mode_word) {
-		return dma[ch].dev->read_dma_io16(0);
-	} else {
-		return dma[ch].dev->read_dma_io8(0);
-	}
 }
 
 #define STATE_VERSION	1

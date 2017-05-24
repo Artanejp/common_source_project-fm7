@@ -5,20 +5,20 @@ set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
 
 set(VMFILES
-		   i8253.cpp
-		   i8259.cpp
-		   i8255.cpp
- 
 		   event.cpp
 		   io.cpp
 		   memory.cpp
 )
 set(VMFILES_LIB
-		   upd71071.cpp
 		   beep.cpp
+		   i8251.cpp
+		   i8253.cpp
+		   i8255.cpp
+		   i8259.cpp
 		   ls244.cpp
 		   not.cpp
-		   i8251.cpp
+ 
+		   upd71071.cpp
 		   upd765a.cpp
 		   disk.cpp
 		   prnfile.cpp

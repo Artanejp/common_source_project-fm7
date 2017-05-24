@@ -7,6 +7,8 @@
 	[ system i/o ]
 */
 
+#include "../vm.h"
+#include "../../emu.h"
 #include "system.h"
 #include "../i8237.h"
 

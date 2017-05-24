@@ -23,14 +23,13 @@ set(WITH_MOUSE OFF)
 
 set(FLAG_USE_Z80 ON)
 set(VMFILES_BASE
-      ptf20.cpp
-      disk.cpp
-      i8251.cpp
-
       event.cpp
 )
 set(VMFILES_LIB
       beep.cpp
+      i8251.cpp
+      ptf20.cpp
+      disk.cpp
 )
 
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")

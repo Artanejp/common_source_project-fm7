@@ -20,25 +20,23 @@ set(VM_NAME hc20)
 set(USE_FMGEN OFF)
 set(WITH_JOYSTICK OFF)
 set(WITH_MOUSE OFF)
+set(FLAG_USE_Z80 ON)
 
 set(VMFILES_BASE
       mc6800.cpp
-#      tf20.cpp
-  
-      z80.cpp
-      z80sio.cpp
-      i8255.cpp
-      
       datarec.cpp
       event.cpp
       io.cpp
       memory.cpp
 )
 set(VMFILES_LIB
-      upd765a.cpp
-      hd146818p.cpp
       beep.cpp
+      i8255.cpp
+      hd146818p.cpp
+      
       tf20.cpp
+      upd765a.cpp
+      z80sio.cpp
       disk.cpp
 )
 

@@ -8,6 +8,8 @@
 	[ dma bank register ]
 */
 
+#include "../vm.h"
+#include "../../emu.h"
 #include "dmareg.h"
 #include "../i8237.h"
 

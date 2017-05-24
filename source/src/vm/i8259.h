@@ -10,8 +10,8 @@
 #ifndef _I8259_H_
 #define _I8259_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 /*
@@ -36,19 +36,23 @@
 //#define I8259_ADDR_CHIP2	4
 //#define I8259_ADDR_CHIP3	6
 
+struct  i8259_pic_t {
+	uint8_t imr, isr, irr, irr_tmp, prio;
+	uint8_t icw1, icw2, icw3, icw4, ocw3;
+	uint8_t icw2_r, icw3_r, icw4_r;
+	int irr_tmp_id;
+};
+
 class I8259 : public DEVICE
 {
 private:
 	DEVICE* d_cpu;
-	
-	struct {
-		uint8_t imr, isr, irr, irr_tmp, prio;
-		uint8_t icw1, icw2, icw3, icw4, ocw3;
-		uint8_t icw2_r, icw3_r, icw4_r;
-		int irr_tmp_id;
-	} pic[I8259_MAX_CHIPS];
+
+	struct i8259_pic_t pic[2];
 	int req_chip, req_level;
 	uint8_t req_bit;
+	uint32_t __I8259_MAX_CHIPS;
+	uint32_t __CHIP_MASK;
 	
 	void update_intr();
 	
@@ -56,6 +60,8 @@ public:
 	I8259(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		d_cpu = NULL;
+		__I8259_MAX_CHIPS = 0;
+		__CHIP_MASK = 0xffffffff;
 		set_device_name(_T("i8259 PIC"));
 	}
 	~I8259() {}

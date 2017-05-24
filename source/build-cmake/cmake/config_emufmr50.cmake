@@ -13,10 +13,8 @@ set(WITH_MOUSE ON)
 
 set(VMFILES
 #
-		   i8253.cpp
-		   i8259.cpp
-		   msm58321.cpp
 #		   mb8877.cpp
+		   msm58321.cpp
 		   scsi_dev.cpp
 		   scsi_host.cpp
 		   scsi_hdd.cpp
@@ -34,8 +32,12 @@ set(VMFILES_LIB
 		   upd71071.cpp
 
 		   i8251.cpp
+		   i8253.cpp
+		   i8259.cpp
+		   msm58321_base.cpp
+		   
 		   hd63484.cpp
-		   i386.cpp  
+#		   i386.cpp  
 		   disk.cpp
 		   )
 		 
@@ -97,7 +99,7 @@ elseif(BUILD_FMR60)
   add_definitions(-DHAS_I286)
   set(FLAG_USE_I386_VARIANTS OFF)
   set(FLAG_USE_I286 ON)
-  set(VMFILES ${VMFILES} hd63484.cpp)
+  set(VMFILES_LIB ${VMFILES_LIB} hd63484.cpp)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fmr60.qrc)
 elseif(BUILD_FMR70)
   set(EXEC_TARGET emufmr70)

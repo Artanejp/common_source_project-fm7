@@ -11,9 +11,6 @@ set(WITH_MOUSE ON)
 
 set(FLAG_USE_Z80 ON)
 set(VMFILES_BASE
-		   i8255.cpp
-		   i8253.cpp
-		   
 		   datarec.cpp
 		   
 		   event.cpp
@@ -22,7 +19,6 @@ set(VMFILES_BASE
 )
 
 set(VMFILES_MZ800 ${VMFILES_BASE}
-	   z80sio.cpp
 )
 
 
@@ -32,11 +28,15 @@ set(VMFILES_MZ1500 ${VMFILES_MZ800}
 )
 
 set(VMFILES_LIB
+	   i8255.cpp
+	   i8253.cpp
+		   
 	   beep.cpp
 	   pcm1bit.cpp
 	   and.cpp
 )
 set(VMFILES_LIB_MZ800 
+	   z80sio.cpp
 	   mb8877.cpp
 	   disk.cpp
 	   not.cpp

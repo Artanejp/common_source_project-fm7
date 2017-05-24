@@ -11,8 +11,8 @@
 #ifndef _I8237_H_
 #define _I8237_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 #define SIG_I8237_CH0	0
@@ -28,13 +28,11 @@
 #define SIG_I8237_MASK2	10
 #define SIG_I8237_MASK3	11
 
-class I8237 : public DEVICE
+
+class I8237_BASE : public DEVICE
 {
-private:
+protected:
 	DEVICE* d_mem;
-#ifdef SINGLE_MODE_DMA
-	DEVICE* d_dma;
-#endif
 	
 	struct {
 		DEVICE* dev;
@@ -57,36 +55,35 @@ private:
 	uint8_t tc;
 	uint32_t tmp;
 	bool mode_word;
-	
+
 	void write_mem(uint32_t addr, uint32_t data);
 	uint32_t read_mem(uint32_t addr);
 	void write_io(int ch, uint32_t data);
 	uint32_t read_io(int ch);
 	
 public:
-	I8237(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	I8237_BASE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		for(int i = 0; i < 4; i++) {
-			dma[i].dev = vm->dummy;
+			//dma[i].dev = vm->dummy;
+			dma[i].dev = NULL;
 			dma[i].bankreg = dma[i].incmask = 0;
 			initialize_output_signals(&dma[i].outputs_tc);
 		}
-#ifdef SINGLE_MODE_DMA
-		d_dma = NULL;
-#endif
 		mode_word = false;
 		set_device_name(_T("i8237 DMAC"));
 	}
-	~I8237() {}
+	~I8237_BASE() {}
 	
 	// common functions
+	void initialize();
 	void reset();
-	void write_io8(uint32_t addr, uint32_t data);
+	virtual void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
-	void write_signal(int id, uint32_t data, uint32_t mask);
-	void do_dma();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	virtual void write_signal(int id, uint32_t data, uint32_t mask);
+	virtual void do_dma();
+	virtual void save_state(FILEIO* state_fio) {};
+	virtual bool load_state(FILEIO* state_fio) { return false;}
 	
 	// unique functions
 	void set_context_memory(DEVICE* device)
@@ -125,16 +122,32 @@ public:
 	{
 		register_output_signal(&dma[0].outputs_tc, device, id, mask);
 	}
+	void set_mode_word(bool val)
+	{
+		mode_word = val;
+	}
+};
+
+class I8237 : public I8237_BASE {
+private:
+#ifdef SINGLE_MODE_DMA
+	DEVICE* d_dma;
+#endif
+public:
+	I8237(VM* parent_vm, EMU* parent_emu);
+	~I8237();
+
+	virtual void write_io8(uint32_t addr, uint32_t data);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	void do_dma();
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 #ifdef SINGLE_MODE_DMA
 	void set_context_child_dma(DEVICE* device)
 	{
 		d_dma = device;
 	}
 #endif
-	void set_mode_word(bool val)
-	{
-		mode_word = val;
-	}
 };
 
 #endif

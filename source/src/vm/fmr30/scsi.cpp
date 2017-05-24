@@ -7,6 +7,8 @@
 	[ scsi ]
 */
 
+#include "../vm.h"
+#include "../../emu.h"
 #include "scsi.h"
 #include "../i8237.h"
 #include "../i8259.h"

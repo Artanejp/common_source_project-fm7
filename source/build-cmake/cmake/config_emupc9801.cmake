@@ -6,10 +6,6 @@ set(WITH_MOUSE ON)
 
 set(VMFILES
 		   i8237.cpp
-		   i8253.cpp
-		   i8255.cpp
-		   i8259.cpp
-		   
 		   upd1990a.cpp
 		   upd7220.cpp
 		   
@@ -18,13 +14,18 @@ set(VMFILES
 		   memory.cpp
 )
 set(VMFILES_LIB
-		   pc80s31k.cpp
-		   upd765a.cpp
-		   disk.cpp
-		   ym2203.cpp
+		   i8237_base.cpp
 		   i8251.cpp
+		   i8253.cpp
+		   i8255.cpp
+		   i8259.cpp
 		   ls244.cpp
+		   pc80s31k.cpp
+		   upd7220_base.cpp
+		   upd765a.cpp
+		   ym2203.cpp
 		   prnfile.cpp
+		   disk.cpp
 )
 
 set(BUILD_SHARED_LIBS OFF)

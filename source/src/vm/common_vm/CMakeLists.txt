@@ -19,11 +19,11 @@ set(s_vm_common_vm_srcs
 #	../i8080.cpp
 
 	../i8155.cpp
-#	../i8237.cpp
+	../i8237_base.cpp
 	../i8251.cpp
-#	../i8253.cpp
-#	../i8255.cpp
-#	../i8259.cpp
+	../i8253.cpp
+	../i8255.cpp
+	../i8259.cpp
 #	../i86.cpp
 #	../io.cpp
 #	../ld700.cpp
@@ -71,7 +71,7 @@ set(s_vm_common_vm_srcs
 #	../upd1990a.cpp
 	../upd4991a.cpp
 	../upd71071.cpp
-#	../upd7220.cpp
+	../upd7220_base.cpp
 	../upd765a.cpp
 	../upd7752.cpp
 #	../upd7801.cpp
@@ -87,7 +87,7 @@ set(s_vm_common_vm_srcs
 #	../z80ctc.cpp
 	../z80dma.cpp
 	../z80pio.cpp
-#	../z80sio.cpp
+	../z80sio.cpp
 
 
 	../libcpu_newdev/mcs48_base.cpp
@@ -120,8 +120,8 @@ else()
     ${s_vm_common_vm_srcs}
   )
   set_target_properties(CSPcommon_vm PROPERTIES 
-     SOVERSION 1.1.6
-     VERSION 1.1.6
+     SOVERSION 1.1.7
+     VERSION 1.1.7
   )
   INSTALL(TARGETS CSPcommon_vm DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

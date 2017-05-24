@@ -10,8 +10,8 @@
 #ifndef _I8255_H_
 #define _I8255_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 #define SIG_I8255_PORT_A	0
@@ -30,6 +30,7 @@ private:
 		// output signals
 		outputs_t outputs;
 	} port[3];
+	bool __I8255_AUTO_HAND_SHAKE;
 	
 public:
 	I8255(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -39,11 +40,13 @@ public:
 			port[i].wreg = port[i].rreg = 0;//0xff;
 		}
 		clear_ports_by_cmdreg = false;
+		__I8255_AUTO_HAND_SHAKE = false;
 		set_device_name(_T("i8255 PIO"));
 	}
 	~I8255() {}
 	
 	// common functions
+	void initialize();
 	void reset();
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
