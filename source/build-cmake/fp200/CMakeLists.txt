@@ -27,6 +27,7 @@ set(VMFILES
 		   event.cpp
 )
 set(VMFILES_LIB
+		   i8080_base.cpp
 		   rp5c01.cpp
 )
 

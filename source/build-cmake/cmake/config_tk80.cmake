@@ -22,6 +22,7 @@ set(VMFILES_BASE
 		   event.cpp
 )
 set(VMFILES_LIB
+		   i8080_base.cpp
 		   i8255.cpp
 		   pcm1bit.cpp
 )

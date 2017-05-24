@@ -29,6 +29,7 @@ set(VMFILES_BASE
 )
 
 set(VMFILES_LIB
+	i8080_base.cpp
 	i8155.cpp
 	not.cpp
 )
