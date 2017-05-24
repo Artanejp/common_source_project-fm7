@@ -31,7 +31,7 @@
 #include "qt_gldraw.h"
 #include "qt_glutil_gl2_0.h"
 #include "csp_logger.h"
-
+#include "dock_disks.h"
 #include "menu_disk.h"
 #include "menu_bubble.h"
 #include "menu_flags_ext.h"
@@ -237,7 +237,6 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	}
 #endif
 	
-	connect(hRunEmu, SIGNAL(sig_change_osd(int, int, QString)), (QObject *)driveData, SLOT(updateMessage(int, int, QString)));
 	connect(this, SIGNAL(quit_emu_thread()), hRunEmu, SLOT(doExit()));
 	connect(hRunEmu, SIGNAL(sig_mouse_enable(bool)),
 			this, SLOT(do_set_mouse_enable(bool)));
@@ -348,7 +347,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "MovieThread : Launch done.");
 
 	connect(action_SetupMovie, SIGNAL(triggered()), this, SLOT(rise_movie_dialog()));
-
+	connect(hRunEmu, SIGNAL(sig_change_osd(int, int, QString)), driveData, SLOT(updateMessage(int, int, QString)));
 
 	hRunEmu->start();
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "EmuThread : Launch done.");
@@ -636,6 +635,7 @@ int MainLoop(int argc, char *argv[])
 	
 	QObject::connect(GuiMain, SIGNAL(lastWindowClosed()),
 					 rMainWindow, SLOT(on_actionExit_triggered()));
+
 	GuiMain->exec();
 	return 0;
 }

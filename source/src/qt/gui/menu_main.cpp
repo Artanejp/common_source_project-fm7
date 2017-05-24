@@ -61,13 +61,13 @@ Ui_MainWindowBase::Ui_MainWindowBase(USING_FLAGS *p, CSP_Logger *logger, QWidget
 	csp_logger = logger;
 	using_flags = p;
 	p_config = p->get_config_ptr();
+	driveData = NULL;
+	ledUpdateTimer = NULL;
 	setupUi();
 	createContextMenu();
 	max_vm_nodes = 0;
 	ui_retranslate_completed = false;
 	//csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "GUI OK");
-	driveData = NULL;
-	ledUpdateTimer = NULL;
 }
 
 Ui_MainWindowBase::~Ui_MainWindowBase()
