@@ -18,13 +18,12 @@
 #include <QMutex>
 
 #include "qt_gldraw.h"
-#include "csp_logger.h"
+//#include "csp_logger.h"
 #include "osd_base.h"
 
 OSD_BASE::OSD_BASE(USING_FLAGS *p, CSP_Logger *logger) : QThread(0)
 {
 	using_flags = p;
-	p_config = using_flags->get_config_ptr();
    	VMSemaphore = new QSemaphore(1);
    	DebugSemaphore = new QSemaphore(1);
 	locked_vm = false;
@@ -87,6 +86,33 @@ void OSD_BASE::restore()
 	}
 }
 
+
+void OSD_BASE::debug_log(int level, const char *fmt, ...)
+{
+	char strbuf[4096];
+	va_list ap;
+	
+	va_start(ap, fmt);	
+	vsnprintf(strbuf, 4095, fmt, ap);
+	debug_log(level, 0, strbuf);
+	va_end(ap);
+}
+
+void OSD_BASE::debug_log(int level, int domain_num, const char *fmt, ...)
+{
+	char strbuf[4096];
+	va_list ap;
+	
+	va_start(ap, fmt);	
+	vsnprintf(strbuf, 4095, fmt, ap);
+	debug_log(level, domain_num, strbuf);
+	va_end(ap);
+}
+
+void OSD_BASE::debug_log(int level, int domain_num, char *strbuf)
+{
+}
+
 _TCHAR *OSD_BASE::get_app_path(void)
 {
 	return app_path;
@@ -96,7 +122,7 @@ _TCHAR* OSD_BASE::bios_path(const _TCHAR* file_name)
 {
 	static _TCHAR file_path[_MAX_PATH];
 	snprintf((char *)file_path, _MAX_PATH, "%s%s", app_path, (const char *)file_name);
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_OSD, "BIOS PATH:%s", file_path);
+	debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_OSD, "BIOS PATH:%s", file_path);
 	return file_path;
 }
 
@@ -303,8 +329,12 @@ int OSD_BASE::get_window_mode_height(int mode)
 void OSD_BASE::reset_vm_node(void)
 {
 	device_node_list.clear();
-	csp_logger->reset();
+//	csp_logger->reset();
 	max_vm_nodes = 0;
+}
+
+void OSD_BASE::set_device_name(int id, char *name)
+{
 }
 
 void OSD_BASE::set_vm_node(int id, const _TCHAR *name)
@@ -316,7 +346,7 @@ void OSD_BASE::set_vm_node(int id, const _TCHAR *name)
 		if(id == sp.id) {
 			sp.id = id;
 			sp.name = name;
-			csp_logger->set_device_name(id, (char *)name);
+			set_device_name(id, (char *)name);
 			device_node_list.replace(i, sp);
 			if(id >= max_vm_nodes) max_vm_nodes = id + 1;
 			return;
@@ -325,7 +355,7 @@ void OSD_BASE::set_vm_node(int id, const _TCHAR *name)
 	// Not Found
 	sp.id = id;
 	sp.name = name;
-	csp_logger->set_device_name(id, (char *)name);
+	set_device_name(id, (char *)name);
 	device_node_list.append(sp);
 	if(id >= max_vm_nodes) max_vm_nodes = id + 1;
 }

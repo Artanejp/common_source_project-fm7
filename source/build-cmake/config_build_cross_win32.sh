@@ -37,27 +37,7 @@ esac
 
 CMAKE_APPENDFLAG="${CMAKE_APPENDFLAG} -DLIBAV_ROOT_DIR=${FFMPEG_DIR}"
 
-case ${USE_LTO} in
-   "Yes" | "yes" | "YES" )
-     MAKEFLAGS_BASE2="-flto ${MAKEFLAGS_BASE2}"
-     MAKEFLAGS_LINK_BASE="-flto ${MAKEFLAGS_BASE2}"
-   ;;
-   "No" | "no" | "NO" | * )
-     MAKEFLAGS_BASE2="-flto ${MAKEFLAGS_BASE2}"
-     MAKEFLAGS_LINK_BASE="-flto ${MAKEFLAGS_BASE2}"
-   ;;
-esac
 
-case ${STRIP_SYMBOLS} in
-   "Yes" | "yes" | "YES" )
-     MAKEFLAGS_BASE2="-s ${MAKEFLAGS_BASE2}"
-     MAKEFLAGS_LINK_BASE="-s ${MAKEFLAGS_LINK_BASE}"
-   ;;
-   "No" | "no" | "NO" | * )
-     MAKEFLAGS_BASE2="-g -ggdb ${MAKEFLAGS_BASE2}"
-     MAKEFLAGS_LINK_BASE="-g -ggdb ${MAKEFLAGS_LINK_BASE}"
-   ;;
-esac
 ###########################
 #
 #
@@ -163,16 +143,6 @@ cp ./libCSPfmgen/build-win32/vm/fmgen/*.h   ./bin-win32/
 cp ./libCSPfmgen/build-win32/vm/fmgen/*.dll ./bin-win32/
 cp ./libCSPfmgen/build-win32/vm/fmgen/*.a   ./bin-win32/
 
-case ${USE_COMMON_DEVICE_LIB} in
-   "Yes" | "yes" | "YES" )
-   build_dll libCSPcommon_vm
-#   cp ./libCSPcommon_vm/build-win32/vm/common_vm/*.h   ./bin-win32/
-#   cp ./libCSPcommon_vm/build-win32/vm/common_vm/*.dll ./bin-win32/
-   cp ./libCSPcommon_vm/build-win32/vm/common_vm/*.a   ./bin-win32/
-   ;;
-   * )
-   ;;
-esac
 
 build_dll libCSPavio
 #cp ./libCSPavio/build-win32/qt/avio/*.h   ./bin-win32/
@@ -180,9 +150,20 @@ build_dll libCSPavio
 cp ./libCSPavio/build-win32/qt/avio/*.a   ./bin-win32/
 
 build_dll libCSPosd
-#cp ./libCSPosd/build-win32/qt/osd/*.h   ./bin-win32/
-#cp ./libCSPosd/build-win32/qt/osd/*.dll ./bin-win32/
+cp ./libCSPosd/build-win32/qt/osd/*.h   ./bin-win32/
+cp ./libCSPosd/build-win32/qt/osd/*.dll ./bin-win32/
 cp ./libCSPosd/build-win32/qt/osd/*.a   ./bin-win32/
+
+case ${USE_COMMON_DEVICE_LIB} in
+   "Yes" | "yes" | "YES" )
+   build_dll libCSPcommon_vm
+   cp ./libCSPcommon_vm/build-win32/vm/common_vm/*.h   ./bin-win32/
+   cp ./libCSPcommon_vm/build-win32/vm/common_vm/*.dll ./bin-win32/
+   cp ./libCSPcommon_vm/build-win32/vm/common_vm/*.a   ./bin-win32/
+   ;;
+   * )
+   ;;
+esac
 
 build_dll libCSPgui
 cp ./libCSPgui/build-win32/qt/gui/*.h   ./bin-win32/

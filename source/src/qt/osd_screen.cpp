@@ -17,9 +17,9 @@
 #include <QImageReader>
 
 #include "qt_gldraw.h"
-#include "osd.h"
+#include "osd_base.h"
 #include "menu_flags.h"
-#include "csp_logger.h"
+//#include "csp_logger.h"
 
 #define REC_VIDEO_SUCCESS	1
 #define REC_VIDEO_FULL		2
@@ -369,7 +369,7 @@ int OSD_BASE::add_video_frames()
 			emit sig_enqueue_video(i, vm_screen_width, vm_screen_height, &video_result);
 			//i--;
 		}
-		csp_logger->debug_log(CSP_LOG_DEBUG2, CSP_LOG_TYPE_SCREEN,  "Push Video %d frames\n", counter);
+		debug_log(CSP_LOG_DEBUG2, CSP_LOG_TYPE_SCREEN,  "Push Video %d frames\n", counter);
 	}
 	return counter;
 }
@@ -384,13 +384,13 @@ void OSD_BASE::create_bitmap(bitmap_t *bitmap, int width, int height)
 	bitmap->hPainter.begin(&(bitmap->pImage));
 	bitmap->hPainter.fillRect(0, 0, width, height, col);
 	bitmap->hPainter.end();
-	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_PRINTER, "Create bitmap: %08x %d x %d", bitmap, width, height);
+	debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_PRINTER, "Create bitmap: %08x %d x %d", bitmap, width, height);
 }
 
 void OSD_BASE::release_bitmap(bitmap_t *bitmap)
 {
 	release_screen_buffer(bitmap);
-	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_PRINTER, "Release bitmap: %08x", bitmap);
+	debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_PRINTER, "Release bitmap: %08x", bitmap);
 }
 
 void OSD_BASE::create_font(font_t *font, const _TCHAR *family, int width, int height, int rotate, bool bold, bool italic)
@@ -414,13 +414,13 @@ void OSD_BASE::create_font(font_t *font, const _TCHAR *family, int width, int he
 	font->hFont.setStretch((width * 10000) / (metric.width("F") * 100));
 	font->rotate = rotate;
 	font->init_flag = true;
-	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_PRINTER, "Create Font: Family=%s WIDTH=%d HEIGHT=%d",fontName.toUtf8().constData(), width, height);
+	//debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_PRINTER, "Create Font: Family=%s WIDTH=%d HEIGHT=%d",fontName.toUtf8().constData(), width, height);
 	// Qt uses substitution font if not found.
 }
 
 void OSD_BASE::release_font(font_t *font)
 {
-	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_PRINTER, "Release Font");
+	//debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_PRINTER, "Release Font");
 }
 
 void OSD_BASE::create_pen(pen_t *pen, int width, uint8_t r, uint8_t g, uint8_t b)
@@ -433,18 +433,18 @@ void OSD_BASE::create_pen(pen_t *pen, int width, uint8_t r, uint8_t g, uint8_t b
 	QColor color = QColor(r, g, b, 255);
 	pen->hPen.setColor(color);
 	pen->hPen.setWidth(width);
-	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_PRINTER, "Create PEN %08x to width=%d (RGB)=(%d,%d,%d)\n", pen, width, r, g, b);
+	//debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_PRINTER, "Create PEN %08x to width=%d (RGB)=(%d,%d,%d)\n", pen, width, r, g, b);
 }
 
 void OSD_BASE::release_pen(pen_t *pen)
 {
-	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_PRINTER, "Release Pen %08x", pen);
+	//debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_PRINTER, "Release Pen %08x", pen);
 }
 
 void OSD_BASE::clear_bitmap(bitmap_t *bitmap, uint8_t r, uint8_t g, uint8_t b)
 {
 	//lock_vm();
-	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_PRINTER, "Clear bitmap %08x", bitmap);
+	//debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_PRINTER, "Clear bitmap %08x", bitmap);
 	draw_rectangle_to_bitmap(bitmap, 0, 0, bitmap->width, bitmap->height, r, g, b);
 	//unlock_vm();
 }
@@ -472,7 +472,7 @@ void OSD_BASE::draw_text_to_bitmap(bitmap_t *bitmap, font_t *font, int x, int y,
 	bitmap->hPainter.setFont(font->hFont);
 	bitmap->hPainter.drawText(loc, str);
 	bitmap->hPainter.end();
-	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_PRINTER, "Draw Text to BITMAP %08x : (%d,%d) %s : Color(%d,%d,%d)", bitmap, x, y, str.toUtf8().constData(), r, g, b);
+	//debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_PRINTER, "Draw Text to BITMAP %08x : (%d,%d) %s : Color(%d,%d,%d)", bitmap, x, y, str.toUtf8().constData(), r, g, b);
 }
 
 void OSD_BASE::draw_line_to_bitmap(bitmap_t *bitmap, pen_t *pen, int sx, int sy, int ex, int ey)
@@ -483,7 +483,7 @@ void OSD_BASE::draw_line_to_bitmap(bitmap_t *bitmap, pen_t *pen, int sx, int sy,
 	bitmap->hPainter.setPen(pen->hPen);
 	bitmap->hPainter.drawLine(line);
 	bitmap->hPainter.end();
-	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_PRINTER, "Draw Line from (%d,%d) to (%d,%d) to BITMAP %08x", sx, sy, ex, ey, bitmap);
+	//debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_PRINTER, "Draw Line from (%d,%d) to (%d,%d) to BITMAP %08x", sx, sy, ex, ey, bitmap);
 }
 
 void OSD_BASE::draw_point_to_bitmap(bitmap_t *bitmap, int x, int y, uint8_t r, uint8_t g, uint8_t b)
@@ -496,7 +496,7 @@ void OSD_BASE::draw_point_to_bitmap(bitmap_t *bitmap, int x, int y, uint8_t r, u
 	bitmap->hPainter.setPen(d_pen);
 	bitmap->hPainter.drawPoint(point);
 	bitmap->hPainter.end();
-	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_PRINTER, "Draw Point to BITMAP %08x :(%d,%d) Color=(%d,%d,%d)", bitmap, x, y, r, g, b);
+	//debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_PRINTER, "Draw Point to BITMAP %08x :(%d,%d) Color=(%d,%d,%d)", bitmap, x, y, r, g, b);
 }
 
 void OSD_BASE::draw_rectangle_to_bitmap(bitmap_t *bitmap, int x, int y, int width, int height, uint8_t r, uint8_t g, uint8_t b)
@@ -507,7 +507,7 @@ void OSD_BASE::draw_rectangle_to_bitmap(bitmap_t *bitmap, int x, int y, int widt
 	//bitmap->hPainter.setBackgroundMode(Qt::OpaqueMode);
 	bitmap->hPainter.fillRect(x, y, width, height, d_brush);
 	bitmap->hPainter.end();
-	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_PRINTER, "Draw Rect BITMAP %08x :from (%d,%d) size=(%d,%d) Color=(%d,%d,%d)", bitmap, x, y, width, height, r, g, b);
+	//debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_PRINTER, "Draw Rect BITMAP %08x :from (%d,%d) size=(%d,%d) Color=(%d,%d,%d)", bitmap, x, y, width, height, r, g, b);
 }
 
 void OSD_BASE::stretch_bitmap(bitmap_t *dest, int dest_x, int dest_y, int dest_width, int dest_height, bitmap_t *source, int source_x, int source_y, int source_width, int source_height)
@@ -518,7 +518,7 @@ void OSD_BASE::stretch_bitmap(bitmap_t *dest, int dest_x, int dest_y, int dest_w
 	//dest->hPainter.setBackgroundMode(Qt::OpaqueMode);
 	dest->hPainter.drawImage(dest_r, source->pImage, src_r);
 	dest->hPainter.end();
-	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_PRINTER, "Scale (%d,%d, %d, %d) to (%d,%d, %d, %d)", source_x, source_y, source_width, source_height,
+	//debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_PRINTER, "Scale (%d,%d, %d, %d) to (%d,%d, %d, %d)", source_x, source_y, source_width, source_height,
 	//	     dest_x, dest_y, dest_width, dest_height);
 }
 //#endif
@@ -528,7 +528,7 @@ void OSD_BASE::write_bitmap_to_file(bitmap_t *bitmap, const _TCHAR *file_path)
 {
 	int comp_quality = 0;
 	bitmap->pImage.save(QString::fromUtf8((const char *)file_path), "PNG", comp_quality);
-	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_PRINTER, "Save (print outed) bitmap %08x to %s", bitmap, file_path);
+	debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_PRINTER, "Save (print outed) bitmap %08x to %s", bitmap, file_path);
 }
 
 int OSD_BASE::get_vm_window_width()

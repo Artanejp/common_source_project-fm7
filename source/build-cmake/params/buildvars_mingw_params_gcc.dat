@@ -3,33 +3,70 @@
 # This is build-parameters fo GCC/MinGW.
 # Neither for GCC/Linux and LLVM.
 #
-
+case ${LOCAL_ARCH_TYPE} in 
+   "SSE2" | "sse2" )
+      ARCH_FLAGS="-march=pentium4 -mfpmath=sse"
+      ;;
+   "SSE3" | "sse3" )
+      ARCH_FLAGS="-march=prescott  -mfpmath=sse"
+      ;;
+   "AVX" | "avx" )
+      ARCH_FLAGS="-march=pentium4 -msse3  -mssse3 -msse4.1 -msse4.2 -mavx -mfpmath=sse"
+      ;;
+   "SSE1" | "sse1" | "pentium3" | "PENTIUM3" )
+      ARCH_FLAGS="-march=pentium3 -mfpmath=sse"
+      ;;
+   "No" | "no" | "686" )
+      ARCH_FLAGS="-march=i686"
+      ;;
+   * )
+      ARCH_FLAGS="-march=generic -mtune=generic"
+      ;;
+ esac
 
 case ${CSP_DEBUG} in
    "Yes" | "yes" | "YES" )
-     MAKEFLAGS_BASE2="-g -ggdb ${MAKEFLAGS_BASE} -DNDEBUG"
+     MAKEFLAGS_BASE2="-g -ggdb ${ARCH_FLAGS} ${MAKEFLAGS_BASE} -DNDEBUG"
      ;;
    "No" | "no" | "NO" | * )
      MAKEFLAGS_BASE2="${MAKEFLAGS_BASE} -O3 \
-                -fvect-cost-model=dynamic -ftree-vectorize \
-		-ftree-loop-optimize -ftree-loop-if-convert-stores \
-		-fselective-scheduling -fsel-sched-pipelining -fsel-sched-pipelining-outer-loops \
-		-funroll-loops \
+                ${ARCH_FLAGS} \
+                -ftree-vectorize \
+		-ftree-loop-optimize \
 		-floop-nest-optimize \
-		-march=i686 \
-	        -msse -msse2 -mfpmath=sse \
 		-std=c++11 \
 		-DNDEBUG "
      ;;
 esac
 
+case ${USE_WHOLE_PROGRAM_OPTIMIZE} in
+   "Yes" | "yes" | "YES" )
+      LTO_FLAGS="-fwhole-program"
+      ;;
+   * )
+      LTO_FLAGS=""
+      ;;
+esac
+
 case ${USE_LTO} in
    "Yes" | "yes" | "YES" )
-       MAKEFLAGS_LINK_BASE="-flto -fwhole-program ${MAKEFLAGS_BASE2}"
+       MAKEFLAGS_LINK_BASE="-flto ${LTO_FLAGS} ${MAKEFLAGS_BASE2}"
+       MAKEFLAGS_BASE2="-flto -ffat-lto-objects ${MAKEFLAGS_BASE2}"
        ;;
    "No" | "no" | "NO" | * )
        MAKEFLAGS_LINK_BASE="${MAKEFLAGS_BASE2}"
+       MAKEFLAGS_BASE2="${MAKEFLAGS_BASE2}"
        ;;
+esac
+case ${STRIP_SYMBOLS} in
+   "Yes" | "yes" | "YES" )
+     MAKEFLAGS_BASE2="-s ${MAKEFLAGS_BASE2}"
+     MAKEFLAGS_LINK_BASE="-s ${MAKEFLAGS_LINK_BASE}"
+   ;;
+   "No" | "no" | "NO" | * )
+     MAKEFLAGS_BASE2="-g -ggdb ${MAKEFLAGS_BASE2}"
+     MAKEFLAGS_LINK_BASE="-g -ggdb ${MAKEFLAGS_LINK_BASE}"
+   ;;
 esac
 
 #CMAKE_APPENDFLAG="-DUSE_QT5_4_APIS=ON -DUSE_MOVIE_LOADER=ON \

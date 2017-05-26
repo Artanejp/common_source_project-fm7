@@ -21,11 +21,23 @@
 
 OSD::OSD(USING_FLAGS *p, CSP_Logger *logger) : OSD_BASE(p, logger)
 {
+	p_config = using_flags->get_config_ptr();
 	set_features();
 }
 
 OSD::~OSD()
 {
+}
+
+void OSD::debug_log(int level, int domain_num, char *strbuf)
+{
+	if(csp_logger != NULL) csp_logger->debug_log(level, domain_num, strbuf);
+}
+
+
+void OSD::set_device_name(int id, char *name)
+{
+	if(csp_logger != NULL)	csp_logger->set_device_name(id, (char *)name);
 }
 
 void OSD::set_features_machine(void)

@@ -27,6 +27,7 @@
 
 #include <ctime>
 #include <limits>
+#include <osd_base.h>
 
 //#include "../vm/vm.h"
 //#include "../emu.h"
@@ -437,8 +438,9 @@ public:
 	virtual void set_draw_thread(DrawThreadClass *handler);
 	virtual QString get_vm_config_name(void);
 	virtual double vm_frame_rate(void);
-	
 	virtual void reset_vm_node(void);
+	virtual void set_device_name(int id, char *name);
+	
 	virtual void set_vm_node(int id, const _TCHAR *name);
 	virtual const _TCHAR *get_vm_node_name(int id);
 	virtual int get_vm_node_size(void);
@@ -458,6 +460,11 @@ public:
 	uint32_t get_feature_uint32_value(const _TCHAR *key);
 	uint16_t get_feature_uint16_value(const _TCHAR *key);
 	uint8_t get_feature_uint8_value(const _TCHAR *key);
+
+	void debug_log(int level, const char *fmt, ...);
+	void debug_log(int level, int domain_num, const char *fmt, ...);
+	virtual void debug_log(int level, int domain_num, char *strbuf);
+ 
 public slots:
 	void do_write_inputdata(QString s);
 	void do_set_input_string(QString s);

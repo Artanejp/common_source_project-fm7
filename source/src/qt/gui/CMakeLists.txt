@@ -140,9 +140,8 @@ add_library(CSPgui SHARED
 	  )
 #QT5_USE_MODULES(CSPgui Widgets Core Gui OpenGL)
 target_link_libraries(CSPgui 
-	  ${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libqt_osd.a
+	  ${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libCSPosd.dll.a
 	  ${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libqt_avio.a
-	  ${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libqt_osd.a
 	  ${LIBAV_LIBRARIES}
 	  ${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libCSPemu_utils.dll.a
 	  Qt5::Core
@@ -152,8 +151,8 @@ target_link_libraries(CSPgui
 	  ${SDL2_LIBRARIES}
 	  )
 set_target_properties(CSPgui PROPERTIES
-			     SOVERSION 2.9.0
-			     VERSION 2.9.0
+			     SOVERSION 2.9.3
+			     VERSION 2.9.3
 			     LINK_INTERFACE_LIBRARIES ""
 			     )
 generate_export_header(CSPgui
@@ -177,8 +176,8 @@ target_link_libraries(CSPgui PUBLIC
 	  )
 
 set_target_properties(CSPgui PROPERTIES 
-			     SOVERSION 2.9.2
-			     VERSION 2.9.2
+			     SOVERSION 2.9.3
+			     VERSION 2.9.3
 			     )
 INSTALL(TARGETS CSPgui DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

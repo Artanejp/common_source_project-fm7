@@ -180,7 +180,6 @@ private:
 	int max_devices;
 	int max_cpus;
 protected:
-	void debug_log(int level, int domain_num, char *strbuf);
 
 public:
 	CSP_Logger(bool b_syslog, bool cons, const char *devname);
@@ -190,6 +189,7 @@ public:
 	void reset(void);
 	void debug_log(int level, const char *fmt, ...);
 	void debug_log(int level, int domain_num, const char *fmt, ...);
+	void debug_log(int level, int domain_num, char *strbuf);
 	void close(void);
 	void set_log_status(bool sw);
 	void set_log_syslog(int level, bool sw);

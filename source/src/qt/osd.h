@@ -66,6 +66,7 @@ protected:
 	int get_vm_buttons_code(int num);
 
 	void set_features(void);
+	void set_device_name(int id, char *name);
 	MOVIE_LOADER *movie_loader;
 
 	QTcpSocket2 *tcp_socket[SOCKET_MAX];
@@ -136,6 +137,7 @@ public:
 	void load_sound_file(int id, const _TCHAR *name, int16_t **data, int *dst_size);
 	void free_sound_file(int id, int16_t **data);
 #endif
+	void debug_log(int level, int domain_num, char *strbuf);
 public slots:
 	void do_decode_movie(int frames);
 	void do_run_movie_audio_callback(uint8_t *data, long len);

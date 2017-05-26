@@ -13,7 +13,7 @@
 #include <SDL.h>
 
 #include "qt_main.h"
-#include "csp_logger.h"
+//#include "csp_logger.h"
 #include "gui/menu_flags.h"
 
 #include <QString>
@@ -55,7 +55,7 @@ void OSD_BASE::audio_callback(void *udata, Uint8 *stream, int len)
 		}
 		if((*(pData->sound_write_pos) + len2) >= *(pData->sound_buffer_size) ) len2 = *(pData->sound_buffer_size) - *(pData->sound_write_pos);
 		
-		//if(*(pData->sound_debug)) csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND,
+		//if(*(pData->sound_debug)) debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND,
 		//												"Callback,sound_write_pos=%d,spos=%d,len=%d,len2=%d",
 		//												*(pData->sound_write_pos), spos, len, len2);
 		if((len2 > 0) && (sndlen > 0)){
@@ -126,7 +126,7 @@ void OSD_BASE::initialize_sound(int rate, int samples)
 	for(i = 0; i < SDL_GetNumAudioDevices(0); i++) {
 		//devname = SDL_GetAudioDeviceName(i, 0);
 		QString tmps = QString::fromUtf8(SDL_GetAudioDeviceName(i, 0));
-		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND,
+		debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND,
 							  "Audio Device: %s", tmps.toLocal8Bit().constData());
 	}
 #endif   
@@ -150,7 +150,7 @@ void OSD_BASE::initialize_sound(int rate, int samples)
 		sound_buf_ptr = NULL;
 		return;
 	}
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND,
+	debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND,
 						  "Sound OK: BufSize = %d", sound_buffer_size);
 	memset(sound_buf_ptr, 0x00, sound_buffer_size * sizeof(Sint16));
 #if defined(USE_SDL2)   
@@ -194,7 +194,7 @@ void OSD_BASE::update_sound(int* extra_frames)
 		// start play
 		// check current position
 		play_c = sound_write_pos;
-		if(sound_debug) csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND,
+		if(sound_debug) debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND,
 											  "Called time=%d sound_write_pos=%d\n", osd_timer.elapsed(), play_c);
 		if(!sound_first_half) {
 			if((int)play_c < (sound_buffer_size / 2)) {

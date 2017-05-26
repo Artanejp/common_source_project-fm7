@@ -61,11 +61,12 @@ if(WIN32)
  target_link_libraries(${EXEC_TARGET}
  ${LOCAL_LIBS}
  ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPemu_utils.dll.a
- ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libqt_osd.a
+ ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPosd.dll.a
  ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPgui.dll.a
  ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libqt_avio.a
  ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPfmgen.dll.a
  ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libvm_common_vm.a
+ #${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPcommon_vm.dll.a
  ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPemu_utils.dll.a
  ${BUNDLE_LIBS}
  -lpthread

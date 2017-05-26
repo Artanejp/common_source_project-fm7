@@ -7,13 +7,13 @@
 	[ win32 console ]
 */
 
-#include "emu.h"
+//#include "emu.h"
 #include "fifo.h"
+#include "./osd.h"
 //#include "emu_thread.h"
-#include "emu.h"
 #include <QString>
 
-extern EMU *emu;
+//extern EMU *emu;
 //BOOL WINAPI ctrl_c_handler(DWORD type)
 //{
 //	return TRUE;
