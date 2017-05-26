@@ -21,18 +21,13 @@ set(WITH_MOUSE OFF)
 
 set(FLAG_USE_Z80 ON)
 set(VMFILES
-		   upd7801.cpp
-#		   hd46505.cpp
-#		   upd765a.cpp
-#		   ym2203.cpp
-#		   disk.cpp		   
-		   datarec.cpp
-
-		   event.cpp
-		   io.cpp
-		   memory.cpp
+		  event.cpp
+		  io.cpp
+		  memory.cpp
 )
 set(VMFILES_LIB
+		   datarec.cpp
+		   upd7801.cpp
 		   upd765a.cpp
 #		   pcm1bit.cpp
 		   ym2203.cpp

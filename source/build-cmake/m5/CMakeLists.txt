@@ -26,12 +26,12 @@ set(VMFILES_BASE
       z80ctc.cpp
       memory.cpp
   
-      datarec.cpp
       io.cpp
       event.cpp
 )
 
 set(VMFILES_LIB
+      datarec.cpp
       sn76489an.cpp
       tms9918a.cpp
 )

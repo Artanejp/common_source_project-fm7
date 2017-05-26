@@ -16,18 +16,18 @@ set(VMFILES
 		   
 		   z80ctc.cpp
 		   
-		   datarec.cpp
 		   io.cpp
 		   event.cpp
 )
 set(VMFILES_LIB
-	   ls393.cpp
-	   not.cpp
-	   z80pio.cpp
-	   pcm1bit.cpp
-	   upd765a.cpp
-	   disk.cpp
-	   hd46505.cpp
+		   datarec.cpp
+		   ls393.cpp
+		   not.cpp
+		   z80pio.cpp
+		   pcm1bit.cpp
+		   upd765a.cpp
+		   disk.cpp
+		   hd46505.cpp
 )
 
 if(NOT BUILD_PASOPIA)

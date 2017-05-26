@@ -23,12 +23,12 @@ set(WITH_DEBUGGER ON)
 
 set(VMFILES_BASE
 	i8080.cpp
-	datarec.cpp
 	memory.cpp
 	event.cpp
 )
 
 set(VMFILES_LIB
+	datarec.cpp
 	i8080_base.cpp
 	i8155.cpp
 	not.cpp

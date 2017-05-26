@@ -19,13 +19,14 @@ if(BUILD_SMC70)
   set(VMFILES_BASE
 		   msm58321.cpp
 		   
-		   datarec.cpp
 		   event.cpp
 		   )
 set(VMFILES_LIB
+	   datarec.cpp
 	   hd46505.cpp
-	   pcm1bit.cpp
 	   mb8877.cpp
+	   msm58321_base.cpp
+	   pcm1bit.cpp
 	   disk.cpp
 )
  add_definitions(-D_SMC70)
@@ -34,11 +35,10 @@ elseif(BUILD_SMC777)
   
   set(EXEC_TARGET emusmc777)
   set(VMFILES_BASE
-			hd46505.cpp
-			datarec.cpp
 			event.cpp
    )
    set(VMFILES_LIB
+		datarec.cpp
 		hd46505.cpp
 		sn76489an.cpp	
 		pcmibit.cpp

@@ -42,11 +42,11 @@ if(BUILD_GAMEGEAR)
   set(EXEC_TARGET emugamegear)
   add_definitions(-D_GAMEGEAR)
   set(VMFILES ${VMFILES}
-		   datarec.cpp
 		   )
  set(VMFILES_LIB ${VMFILES_LIB}
-		   sn76489an.cpp
 		   315-5124.cpp
+		   datarec.cpp
+		   sn76489an.cpp
 		   upd765a.cpp
 		   disk.cpp
 )		   

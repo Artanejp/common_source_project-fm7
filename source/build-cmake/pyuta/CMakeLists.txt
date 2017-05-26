@@ -21,11 +21,11 @@ set(WITH_MOUSE ON)
 
 set(VMFILES_BASE
 		   tms9995.cpp
-		   datarec.cpp
 		   event.cpp
 		   memory.cpp
 )
 set(VMFILES_LIB
+		   datarec.cpp
 		   sn76489an.cpp
 		   tms9918a.cpp
 )		   

@@ -17,17 +17,18 @@ set(VM_NAME mycomz80a)
 set(USE_FMGEN OFF)
 set(FLAG_USE_Z80 ON)
 set(VMFILES
+		msm5832.cpp
+		datarec.cpp
 	
-	i8255.cpp
-	msm5832.cpp
-	datarec.cpp
-	
-	event.cpp
-	io.cpp
+		event.cpp
+		io.cpp
 )
 set(VMFILES_LIB
-  	hd46505.cpp
-	sn76489an.cpp
+		datarec.cpp
+  		hd46505.cpp
+		i8255.cpp
+		msm58321_base.cpp
+		sn76489an.cpp
 )	
 
 set(BUILD_MYCOMZ80A ON CACHE BOOL "Build EMU-MYCOMZ80A")

@@ -23,13 +23,13 @@ set(WITH_MOUSE ON)
 set(FLAG_USE_Z80 ON)
 set(VMFILES_BASE
        io.cpp
-       datarec.cpp
        event.cpp
 )
 
 set(VMFILES_LIB
-       z80pio.cpp
+       datarec.cpp
        not.cpp
+       z80pio.cpp
 )   
 
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")

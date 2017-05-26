@@ -8,22 +8,41 @@
 */
 
 #include "datarec.h"
-#include "event.h"
+//#include "event.h"
 #include "noise.h"
 
 #define EVENT_SIGNAL	0
 #define EVENT_SOUND	1
 
-#ifndef DATAREC_FAST_FWD_SPEED
-#define DATAREC_FAST_FWD_SPEED	10
-#endif
-#ifndef DATAREC_FAST_REW_SPEED
-#define DATAREC_FAST_REW_SPEED	10
-#endif
+//#ifndef DATAREC_FAST_FWD_SPEED
+//#define DATAREC_FAST_FWD_SPEED	10
+//#endif
+//#ifndef DATAREC_FAST_REW_SPEED
+//#define DATAREC_FAST_REW_SPEED	10
+//#endif
 
 void DATAREC::initialize()
 {
 	DEVICE::initialize();
+	__DATAREC_SOUND = osd->check_feature(_T("DATAREC_SOUND"));
+	if(osd->check_feature(_T("DATAREC_PCM_VOLUME"))) {
+		pcm_max_vol = (int)osd->get_feature_int_value(_T("DATAREC_PCM_VOLUME"));
+	}
+	__DATAREC_SOUND_LEFT  = osd->check_feature(_T("DATAREC_SOUND_LEFT"));
+	__DATAREC_SOUND_RIGHT = osd->check_feature(_T("DATAREC_SOUND_RIGHT"));
+
+	__DATAREC_FAST_FWD_SPEED = 10.0;
+	if(osd->check_feature(_T("DATAREC_FAST_FWD_SPEED"))) {
+		__DATAREC_FAST_FWD_SPEED = osd->get_feature_double_value(_T("DATAREC_FAST_FWD_SPEED"));
+	}
+	__DATAREC_FAST_REW_SPEED = 10.0;
+	if(osd->check_feature(_T("DATAREC_FAST_REW_SPEED"))) {
+		__DATAREC_FAST_REW_SPEED = osd->get_feature_double_value(_T("DATAREC_FAST_REW_SPEED"));
+	}
+	__TYPE_MZ80B = false;
+	if(osd->check_feature(_T("_MZ80B")))  __TYPE_MZ80B = true;
+	if(osd->check_feature(_T("_MZ2000"))) __TYPE_MZ80B = true;
+	if(osd->check_feature(_T("_MZ2200"))) __TYPE_MZ80B = true;
 	play_fio = new FILEIO();
 	rec_fio = new FILEIO();
 	
@@ -35,9 +54,9 @@ void DATAREC::initialize()
 	realtime = false;
 	
 	buffer = buffer_bak = NULL;
-#ifdef DATAREC_SOUND
+//#ifdef DATAREC_SOUND
 	sound_buffer = NULL;
-#endif
+//#endif
 	apss_buffer = NULL;
 	buffer_ptr = buffer_length = 0;
 	is_wav = is_tap = is_t77 = false;
@@ -45,9 +64,9 @@ void DATAREC::initialize()
 	
 	pcm_changed = 0;
 	pcm_last_vol_l = pcm_last_vol_r = 0;
-#ifdef DATAREC_SOUND
+//#ifdef DATAREC_SOUND
 	sound_last_vol_l = sound_last_vol_r = 0;
-#endif
+//#endif
 	
 	// initialize noise
 	if(d_noise_play != NULL) {
@@ -132,12 +151,17 @@ void DATAREC::event_frame()
 	if(pcm_changed) {
 		pcm_changed--;
 	}
-#ifdef DATAREC_SOUND
-	if(remote && (play || rec) && ff_rew == 0 && signal_changed > 10 && !config.sound_play_tape && sound_sample == 0) {
-#else
-	if(remote && (play || rec) && ff_rew == 0 && signal_changed > 10 && !config.sound_play_tape) {
-#endif
-		request_skip_frames();
+//#ifdef DATAREC_SOUND
+	if(__DATAREC_SOUND) {
+		if(remote && (play || rec) && ff_rew == 0 && signal_changed > 10 && !config.sound_play_tape && sound_sample == 0) {
+			request_skip_frames();
+		}
+	} else {
+//#else
+		if(remote && (play || rec) && ff_rew == 0 && signal_changed > 10 && !config.sound_play_tape) {
+//#endif
+			request_skip_frames();
+		}
 	}
 	signal_changed = 0;
 }
@@ -161,13 +185,15 @@ void DATAREC::event_callback(int event_id, int err)
 					} else {
 						signal = false;
 					}
-#ifdef DATAREC_SOUND
-					if(sound_buffer != NULL && ff_rew == 0) {
-						sound_sample = sound_buffer[buffer_ptr];
-					} else {
-						sound_sample = 0;
+//#ifdef DATAREC_SOUND
+					if(__DATAREC_SOUND) {
+						if(sound_buffer != NULL && ff_rew == 0) {
+							sound_sample = sound_buffer[buffer_ptr];
+						} else {
+							sound_sample = 0;
+						}
 					}
-#endif
+//#endif
 				}
 				if(ff_rew < 0) {
 					if((buffer_ptr = max(buffer_ptr - 1, 0)) == 0) {
@@ -402,9 +428,9 @@ void DATAREC::update_event()
 	if(remote && (play || rec)) {
 		if(register_id == -1) {
 			if(ff_rew > 0) {
-				register_event(this, EVENT_SIGNAL, sample_usec / DATAREC_FAST_FWD_SPEED, true, &register_id);
+				register_event(this, EVENT_SIGNAL, sample_usec / __DATAREC_FAST_FWD_SPEED, true, &register_id);
 			} else if(ff_rew < 0) {
-				register_event(this, EVENT_SIGNAL, sample_usec / DATAREC_FAST_REW_SPEED, true, &register_id);
+				register_event(this, EVENT_SIGNAL, sample_usec / __DATAREC_FAST_REW_SPEED, true, &register_id);
 			} else {
 				if(rec) {
 					my_stprintf_s(message, 1024, _T("Record"));
@@ -434,11 +460,13 @@ void DATAREC::update_event()
 	}
 	
 	// update signals
-#ifdef DATAREC_SOUND
-	if(!(play && remote)) {
-		sound_sample = 0;
+//#ifdef DATAREC_SOUND
+	if(__DATAREC_SOUND) {
+		if(!(play && remote)) {
+			sound_sample = 0;
+		}
 	}
-#endif
+//#endif
 	write_signals(&outputs_remote, remote ? 0xffffffff : 0);
 	write_signals(&outputs_rotate, (register_id != -1) ? 0xffffffff : 0);
 	write_signals(&outputs_end, (buffer_ptr == buffer_length) ? 0xffffffff : 0);
@@ -647,12 +675,14 @@ void DATAREC::close_file()
 		free(buffer_bak);
 		buffer_bak = NULL;
 	}
-#ifdef DATAREC_SOUND
-	if(sound_buffer != NULL) {
-		free(sound_buffer);
-		sound_buffer = NULL;
+//#ifdef DATAREC_SOUND
+	if(__DATAREC_SOUND) {
+		if(sound_buffer != NULL) {
+			free(sound_buffer);
+			sound_buffer = NULL;
+		}
 	}
-#endif
+//#endif
 	if(apss_buffer != NULL) {
 		free(apss_buffer);
 		apss_buffer = NULL;
@@ -683,7 +713,6 @@ void adjust_zero_position(int16_t *wav_buffer, int samples, int sample_rate)
 	}
 	free(zero_buffer);
 }
-
 int DATAREC::load_wav_image(int offset)
 {
 	// check wave header
@@ -739,34 +768,52 @@ int DATAREC::load_wav_image(int offset)
 				tmp_ptr = 0; \
 			} \
 		}
-		
-#ifdef DATAREC_SOUND
-		if(!config.wave_shaper[drive_num] || header.channels > 1) {
-#else
-		if(!config.wave_shaper[drive_num]) {
-#endif
-			// load samples
-#ifdef DATAREC_SOUND
-			if(header.channels > 1) {
-				sound_buffer_length = samples * sizeof(int16_t);
-				sound_buffer = (int16_t *)malloc(sound_buffer_length);
+
+		bool __t = false;
+		if(__DATAREC_SOUND) {
+		   if(!config.wave_shaper[drive_num] || header.channels > 1) {
+			   __t = true;
+		   }
+		} else {
+			if(!config.wave_shaper[drive_num]) {
+				__t = true;
 			}
-#endif
+		}
+//#ifdef DATAREC_SOUND
+//		if(!config.wave_shaper[drive_num] || header.channels > 1) {
+//#else
+//		if(!config.wave_shaper[drive_num]) {
+//#endif
+		if(__t) {
+			// load samples
+//#ifdef DATAREC_SOUND
+			if(__DATAREC_SOUND) {
+				if(header.channels > 1) {
+					sound_buffer_length = samples * sizeof(int16_t);
+					sound_buffer = (int16_t *)malloc(sound_buffer_length);
+				}
+			}
+//#endif
 			int16_t *wav_buffer = (int16_t *)malloc(samples * sizeof(int16_t));
 			for(int i = 0, tmp_ptr = 0; i < samples; i++) {
 				int16_t sample[16];
 				GET_SAMPLE
 				int16_t sample_signal = sample[0];
-#ifdef DATAREC_SOUND
-				if(header.channels > 1) {
-#ifdef DATAREC_SOUND_LEFT
-					sample_signal = sample[1];
-					sound_buffer[i] = sample[0];
-#else
-					sound_buffer[i] = sample[1];
-#endif
+//#ifdef DATAREC_SOUND
+				if(__DATAREC_SOUND) {
+					if(header.channels > 1) {
+//#ifdef DATAREC_SOUND_LEFT
+						if(__DATAREC_SOUND_LEFT) {
+							sample_signal = sample[1];
+							sound_buffer[i] = sample[0];
+						} else {
+//#else
+							sound_buffer[i] = sample[1];
+						}
+//#endif
+					}
 				}
-#endif
+//#endif
 				wav_buffer[i] = sample_signal;
 			}
 			adjust_zero_position(wav_buffer, samples, header.sample_rate);
@@ -777,7 +824,7 @@ int DATAREC::load_wav_image(int offset)
 			int top_index = 0;
 			int16_t max_sample = 0, min_sample = 0;
 			
-			for(int i = 0, tmp_ptr = 0; i < samples; i++) {
+			for(int i = 0 /*, tmp_ptr = 0 */; i < samples; i++) {
 				int16_t sample_signal = wav_buffer[i];
 				bool signal = (sample_signal > 0);
 				
@@ -937,12 +984,14 @@ int DATAREC::load_wav_image(int offset)
 				}
 				if(t == 1) {
 					buffer = (uint8_t *)malloc(loaded_samples);
-#ifdef DATAREC_SOUND
-					if(header.channels > 1) {
-						sound_buffer_length = loaded_samples * sizeof(int16_t);
-						sound_buffer = (int16_t *)malloc(sound_buffer_length);
+//#ifdef DATAREC_SOUND
+					if(__DATAREC_SOUND) {
+						if(header.channels > 1) {
+							sound_buffer_length = loaded_samples * sizeof(int16_t);
+							sound_buffer = (int16_t *)malloc(sound_buffer_length);
+						}
 					}
-#endif
+//#endif
 					loaded_samples = 0;
 				}
 			}
@@ -953,6 +1002,7 @@ int DATAREC::load_wav_image(int offset)
 	}
 	return loaded_samples;
 }
+
 
 void DATAREC::save_wav_image()
 {
@@ -1056,7 +1106,7 @@ int DATAREC::load_tap_image()
 {
 	// get file size
 	play_fio->Fseek(0, FILEIO_SEEK_END);
-	int file_size = play_fio->Ftell();
+	//int file_size = play_fio->Ftell();
 	play_fio->Fseek(0, FILEIO_SEEK_SET);
 	
 	// check header
@@ -1124,31 +1174,17 @@ int DATAREC::load_tap_image()
 	} \
 }
 
-#if defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
 #define MZT_PUT_BIT(bit, len) { \
 	for(int l = 0; l < (len); l++) { \
 		if(bit) { \
-			MZT_PUT_SIGNAL(1, (int)(120.0 / 16.0 * sample_rate / 22050.0 + 0.5)); \
-			MZT_PUT_SIGNAL(0, (int)(120.0 / 16.0 * sample_rate / 22050.0 + 0.5)); \
+			MZT_PUT_SIGNAL(1, len1); \
+			MZT_PUT_SIGNAL(0, len2); \
 		} else { \
-			MZT_PUT_SIGNAL(1, (int)(60.0 / 16.0 * sample_rate / 22050.0 + 0.5)); \
-			MZT_PUT_SIGNAL(0, (int)(60.0 / 16.0 * sample_rate / 22050.0 + 0.5)); \
+			MZT_PUT_SIGNAL(1, len3); \
+			MZT_PUT_SIGNAL(0, len4); \
 		} \
 	} \
 }
-#else
-#define MZT_PUT_BIT(bit, len) { \
-	for(int l = 0; l < (len); l++) { \
-		if(bit) { \
-			MZT_PUT_SIGNAL(1, (int)(24.0 * sample_rate / 48000.0 + 0.5)); \
-			MZT_PUT_SIGNAL(0, (int)(29.0 * sample_rate / 48000.0 + 0.5)); \
-		} else { \
-			MZT_PUT_SIGNAL(1, (int)(11.0 * sample_rate / 48000.0 + 0.5)); \
-			MZT_PUT_SIGNAL(0, (int)(15.0 * sample_rate / 48000.0 + 0.5)); \
-		} \
-	} \
-}
-#endif
 
 #define MZT_PUT_BYTE(byte) { \
 	MZT_PUT_BIT(1, 1); \
@@ -1175,8 +1211,19 @@ int DATAREC::load_tap_image()
 
 int DATAREC::load_mzt_image()
 {
+	int len1, len2, len3, len4;
+	if(__TYPE_MZ80B) {
+		len1 = len2 = (int)(120.0 / 16.0 * sample_rate / 22050.0 + 0.5);
+		len3 = len4 = (int)(60.0 / 16.0 * sample_rate / 22050.0 + 0.5);
+	} else {
+		len1 = (int)(24.0 * sample_rate / 48000.0 + 0.5);
+		len2 = (int)(29.0 * sample_rate / 48000.0 + 0.5);
+		len3 = (int)(11.0 * sample_rate / 48000.0 + 0.5);
+		len4 = (int)(15.0 * sample_rate / 48000.0 + 0.5);
+	}
 	sample_rate = 48000;
 	sample_usec = 1000000. / sample_rate;
+	
 	
 	// get file size
 	play_fio->Fseek(0, FILEIO_SEEK_END);
@@ -1219,40 +1266,43 @@ int DATAREC::load_mzt_image()
 #endif
 		// output to buffer
 		MZT_PUT_SIGNAL(0, sample_rate);
-#if defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
+//#if defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
+		if(__TYPE_MZ80B) {
 		// Bin2Wav Ver 0.03
-		MZT_PUT_BIT(0, 22000);
-		MZT_PUT_BIT(1, 40);
-		MZT_PUT_BIT(0, 41);
-		MZT_PUT_BLOCK(header, 128);
-		MZT_PUT_BIT(1, 1);
-		MZT_PUT_SIGNAL(1, (int)(22.0 * sample_rate / 22050.0 + 0.5));
-		MZT_PUT_SIGNAL(0, (int)(22.0 * sample_rate / 22050.0 + 0.5));
-		MZT_PUT_SIGNAL(0, sample_rate);
-		MZT_PUT_BIT(0, 11000);
-		MZT_PUT_BIT(1, 20);
-		MZT_PUT_BIT(0, 21);
-		MZT_PUT_BLOCK(ram + offs, size);
-		MZT_PUT_BIT(1, 1);
-#else
-		// format info written in ééå±Ç…èoÇÈX1
-		MZT_PUT_BIT(0, 10000);
-		MZT_PUT_BIT(1, 40);
-		MZT_PUT_BIT(0, 40);
-		MZT_PUT_BIT(1, 1);
-		MZT_PUT_BLOCK(header, 128);
-		MZT_PUT_BIT(1, 1);
-		MZT_PUT_BIT(0, 256);
-		MZT_PUT_BLOCK(header, 128);
-		MZT_PUT_BIT(1, 1);
-		MZT_PUT_SIGNAL(0, sample_rate);
-		MZT_PUT_BIT(0, 10000);
-		MZT_PUT_BIT(1, 20);
-		MZT_PUT_BIT(0, 20);
-		MZT_PUT_BIT(1, 1);
-		MZT_PUT_BLOCK(ram + offs, size);
-		MZT_PUT_BIT(1, 1);
-#endif
+			MZT_PUT_BIT(0, 22000);
+			MZT_PUT_BIT(1, 40);
+			MZT_PUT_BIT(0, 41);
+			MZT_PUT_BLOCK(header, 128);
+			MZT_PUT_BIT(1, 1);
+			MZT_PUT_SIGNAL(1, (int)(22.0 * sample_rate / 22050.0 + 0.5));
+			MZT_PUT_SIGNAL(0, (int)(22.0 * sample_rate / 22050.0 + 0.5));
+			MZT_PUT_SIGNAL(0, sample_rate);
+			MZT_PUT_BIT(0, 11000);
+			MZT_PUT_BIT(1, 20);
+			MZT_PUT_BIT(0, 21);
+			MZT_PUT_BLOCK(ram + offs, size);
+			MZT_PUT_BIT(1, 1);
+		} else {
+//#else
+			// format info written in ééå±Ç…èoÇÈX1
+			MZT_PUT_BIT(0, 10000);
+			MZT_PUT_BIT(1, 40);
+			MZT_PUT_BIT(0, 40);
+			MZT_PUT_BIT(1, 1);
+			MZT_PUT_BLOCK(header, 128);
+			MZT_PUT_BIT(1, 1);
+			MZT_PUT_BIT(0, 256);
+			MZT_PUT_BLOCK(header, 128);
+			MZT_PUT_BIT(1, 1);
+			MZT_PUT_SIGNAL(0, sample_rate);
+			MZT_PUT_BIT(0, 10000);
+			MZT_PUT_BIT(1, 20);
+			MZT_PUT_BIT(0, 20);
+			MZT_PUT_BIT(1, 1);
+			MZT_PUT_BLOCK(ram + offs, size);
+			MZT_PUT_BIT(1, 1);
+		}
+//#endif
 	}
 	return ptr;
 }
@@ -1642,34 +1692,36 @@ void DATAREC::mix(int32_t* buffer, int cnt)
 	pcm_prev_clock = get_current_clock();
 	pcm_positive_clocks = pcm_negative_clocks = 0;
 	
-#ifdef DATAREC_SOUND
-	if(/*config.sound_play_tape && */remote && play && ff_rew == 0) {
-		sound_last_vol_l = apply_volume(sound_sample, sound_volume_l);
-		sound_last_vol_r = apply_volume(sound_sample, sound_volume_r);
-		buffer = buffer_tmp; // restore
-		for(int i = 0; i < cnt; i++) {
-			*buffer += sound_last_vol_l; // L
-			*buffer += sound_last_vol_r; // R
-		}
-	} else if(sound_last_vol_l || sound_last_vol_r) {
-		// suppress petite noise when go to mute
-		for(int i = 0; i < cnt; i++) {
-			*buffer++ += sound_last_vol_l; // L
-			*buffer++ += sound_last_vol_r; // R
-			
-			if(sound_last_vol_l > 0) {
-				sound_last_vol_l--;
-			} else if(sound_last_vol_l < 0) {
-				sound_last_vol_l++;
+//#ifdef DATAREC_SOUND
+	if(__DATAREC_SOUND) {
+		if(/*config.sound_play_tape && */remote && play && ff_rew == 0) {
+			sound_last_vol_l = apply_volume(sound_sample, sound_volume_l);
+			sound_last_vol_r = apply_volume(sound_sample, sound_volume_r);
+			buffer = buffer_tmp; // restore
+			for(int i = 0; i < cnt; i++) {
+				*buffer += sound_last_vol_l; // L
+				*buffer += sound_last_vol_r; // R
 			}
-			if(sound_last_vol_r > 0) {
-				sound_last_vol_r--;
-			} else if(sound_last_vol_r < 0) {
-				sound_last_vol_r++;
+		} else if(sound_last_vol_l || sound_last_vol_r) {
+			// suppress petite noise when go to mute
+			for(int i = 0; i < cnt; i++) {
+				*buffer++ += sound_last_vol_l; // L
+				*buffer++ += sound_last_vol_r; // R
+				
+				if(sound_last_vol_l > 0) {
+					sound_last_vol_l--;
+				} else if(sound_last_vol_l < 0) {
+					sound_last_vol_l++;
+				}
+				if(sound_last_vol_r > 0) {
+					sound_last_vol_r--;
+				} else if(sound_last_vol_r < 0) {
+					sound_last_vol_r++;
+				}
 			}
 		}
 	}
-#endif
+//#endif
 }
 
 void DATAREC::set_volume(int ch, int decibel_l, int decibel_r)
@@ -1677,11 +1729,13 @@ void DATAREC::set_volume(int ch, int decibel_l, int decibel_r)
 	if(ch == 0) {
 		pcm_volume_l = decibel_to_volume(decibel_l);
 		pcm_volume_r = decibel_to_volume(decibel_r);
-#ifdef DATAREC_SOUND
+//#ifdef DATAREC_SOUND
 	} else if(ch == 1) {
-		sound_volume_l = decibel_to_volume(decibel_l);
-		sound_volume_r = decibel_to_volume(decibel_r);
-#endif
+		if(__DATAREC_SOUND) {
+			sound_volume_l = decibel_to_volume(decibel_l);
+			sound_volume_r = decibel_to_volume(decibel_r);
+		}
+//#endif
 	}
 }
 
@@ -1788,15 +1842,17 @@ void DATAREC::save_state(FILEIO* state_fio)
 	} else {
 		state_fio->FputInt32(0);
 	}
-#ifdef DATAREC_SOUND
-	if(sound_buffer) {
-		state_fio->FputInt32(sound_buffer_length);
-		state_fio->Fwrite(sound_buffer, sound_buffer_length, 1);
-	} else {
-		state_fio->FputInt32(0);
+//#ifdef DATAREC_SOUND
+	if(__DATAREC_SOUND) {
+		if(sound_buffer) {
+			state_fio->FputInt32(sound_buffer_length);
+			state_fio->Fwrite(sound_buffer, sound_buffer_length, 1);
+		} else {
+			state_fio->FputInt32(0);
+		}
+		state_fio->FputInt16(sound_sample);
 	}
-	state_fio->FputInt16(sound_sample);
-#endif
+//#endif
 	state_fio->FputBool(is_wav);
 	state_fio->FputBool(is_tap);
 	state_fio->FputBool(is_t77);
@@ -1864,13 +1920,15 @@ bool DATAREC::load_state(FILEIO* state_fio)
 		buffer_bak = (uint8_t *)malloc(length_tmp);
 		state_fio->Fread(buffer_bak, length_tmp, 1);
 	}
-#ifdef DATAREC_SOUND
-	if((sound_buffer_length = state_fio->FgetInt32()) != 0) {
-		sound_buffer = (int16_t *)malloc(sound_buffer_length);
-		state_fio->Fread(sound_buffer, sound_buffer_length, 1);
+//#ifdef DATAREC_SOUND
+	if(__DATAREC_SOUND) {
+		if((sound_buffer_length = state_fio->FgetInt32()) != 0) {
+			sound_buffer = (int16_t *)malloc(sound_buffer_length);
+			state_fio->Fread(sound_buffer, sound_buffer_length, 1);
+		}
+		sound_sample = state_fio->FgetInt16();
 	}
-	sound_sample = state_fio->FgetInt16();
-#endif
+//#endif
 	is_wav = state_fio->FgetBool();
 	is_tap = state_fio->FgetBool();
 	is_t77 = state_fio->FgetBool();
@@ -1889,9 +1947,9 @@ bool DATAREC::load_state(FILEIO* state_fio)
 	
 	// post process
 	pcm_last_vol_l = pcm_last_vol_r = 0;
-#ifdef DATAREC_SOUND
+//#ifdef DATAREC_SOUND
 	sound_last_vol_l = sound_last_vol_r = 0;
-#endif
+//#endif
 	return true;
 }
 

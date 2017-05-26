@@ -14,12 +14,12 @@ set(WITH_MOUSE ON)
 set(WITH_JOYSTICK ON)
 
 set(VMFILES
-		   datarec.cpp
 		   event.cpp
 		   io.cpp
 )
 
 set(VMFILES_LIB
+		   datarec.cpp
 		   ym2203.cpp
 		   pcm1bit.cpp
 		   disk.cpp

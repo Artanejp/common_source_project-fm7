@@ -22,11 +22,11 @@ set(WITH_MOUSE OFF)
 set(VMFILES
 		   i8080.cpp
 		   
-		   datarec.cpp
 		   memory.cpp
 		   event.cpp
 )
 set(VMFILES_LIB
+		   datarec.cpp
 		   i8080_base.cpp
 		   rp5c01.cpp
 )

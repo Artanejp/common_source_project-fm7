@@ -23,11 +23,11 @@ set(WITH_MOUSE OFF)
 
 set(FLAG_USE_Z80 ON)
 set(VMFILES_BASE
-      datarec.cpp
       event.cpp
 )
 set(VMFILES_LIB
       beep.cpp
+      datarec.cpp
       ptf20.cpp
       disk.cpp
       

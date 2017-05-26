@@ -16,7 +16,6 @@ set(WITH_MOUSE OFF)
 set(VMFILES_BASE
 		   i8253.cpp
 		   i8255.cpp
-		   datarec.cpp
 		   prnfile.cpp
 		   mz1p17.cpp
 		   event.cpp
@@ -26,6 +25,7 @@ set(VMFILES_BASE
 
 set(VMFILES_LIB
 	   beep.cpp
+	   datarec.cpp
 	   ls393.cpp
 	   pcm1bit.cpp
 )		   

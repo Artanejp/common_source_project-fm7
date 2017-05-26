@@ -18,11 +18,11 @@ set(EXEC_TARGET emumulti8)
 set(FLAG_USE_Z80 ON)
 set(VMFILES_BASE
 		   io.cpp
-		   datarec.cpp
 		   
 		   event.cpp
 )
 set(VMFILES_LIB
+		   datarec.cpp
 		   hd46505.cpp
 		   i8251.cpp
 		   i8253.cpp

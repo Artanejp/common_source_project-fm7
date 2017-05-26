@@ -8,13 +8,13 @@ message("** Start of configure CommonSourceProject,MSX Series Qt **")
 message("")
 
 set(VMFILES_BASE
-	datarec.cpp
 	event.cpp
 	io.cpp
 	memory.cpp
 )
 
 set(VMFILES_LIB
+	datarec.cpp
 	ay_3_891x.cpp
 	i8255.cpp
 	not.cpp

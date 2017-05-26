@@ -23,13 +23,13 @@ set(WITH_MOUSE ON)
 set(VMFILES
 #		   i286.cpp
 		   msm58321.cpp
-#		   datarec.cpp
 		   event.cpp
 		   io.cpp
 		   memory.cpp
 )
 
 set(VMFILES_LIB
+#		   datarec.cpp
 		   i8253.cpp
 		   i8255.cpp
 		   i8259.cpp

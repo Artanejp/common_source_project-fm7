@@ -22,17 +22,15 @@ set(WITH_JOYSTICK ON)
 set(WITH_MOUSE OFF)
 
 set(VMFILES_BASE
-  mc6800.cpp
-
-  memory.cpp
-  datarec.cpp
-  
-  event.cpp
+		mc6800.cpp
+		memory.cpp
+		event.cpp
 )
 
 set(VMFILES_LIB 
-  hd44102.cpp
-  pcm1bit.cpp
+		datarec.cpp
+		hd44102.cpp
+		pcm1bit.cpp
 )
 
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")

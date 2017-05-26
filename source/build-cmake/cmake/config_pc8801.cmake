@@ -9,13 +9,13 @@ set(WITH_MOUSE ON)
 
 set(VMFILES
 		   z80ctc.cpp
-		   datarec.cpp
 		   event.cpp
 		   io.cpp
 		   memory.cpp
 )
 set(VMFILES_LIB
 		beep.cpp
+		datarec.cpp
 		i8251.cpp
 		i8255.cpp
   

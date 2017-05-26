@@ -10,8 +10,8 @@
 #ifndef _DREC_H_
 #define _DREC_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 #define SIG_DATAREC_MIC		0
@@ -55,10 +55,10 @@ private:
 	double sample_usec;
 	int buffer_ptr, buffer_length;
 	uint8_t *buffer, *buffer_bak;
-#ifdef DATAREC_SOUND
+//#ifdef DATAREC_SOUND
 	int sound_buffer_length;
 	int16_t *sound_buffer, sound_sample;
-#endif
+//#endif
 	bool is_wav, is_tap, is_t77;
 	double ave_hi_freq;
 	
@@ -73,11 +73,19 @@ private:
 	int pcm_max_vol;
 	int32_t pcm_last_vol_l, pcm_last_vol_r;
 	int pcm_volume_l, pcm_volume_r;
-#ifdef DATAREC_SOUND
+//#ifdef DATAREC_SOUND
 	int32_t sound_last_vol_l, sound_last_vol_r;
 	int sound_volume_l, sound_volume_r;
-#endif
+//#endif
 	_TCHAR message[1024];
+
+
+	bool __DATAREC_SOUND;
+	bool __DATAREC_SOUND_LEFT;
+	bool __DATAREC_SOUND_RIGHT;
+	bool __TYPE_MZ80B;
+	double __DATAREC_FAST_FWD_SPEED;
+	double __DATAREC_FAST_REW_SPEED;
 	
 	void update_event();
 	void update_realtime_render();
@@ -106,15 +114,18 @@ public:
 		d_noise_play = NULL;
 		d_noise_stop = NULL;
 		d_noise_fast = NULL;
-#ifdef DATAREC_PCM_VOLUME
-		pcm_max_vol = DATAREC_PCM_VOLUME;
-#else
+//#ifdef DATAREC_PCM_VOLUME
+//		pcm_max_vol = DATAREC_PCM_VOLUME;
+//#else
 		pcm_max_vol = 8000;
-#endif
+//#endif
 		pcm_volume_l = pcm_volume_r = 1024;
-#ifdef DATAREC_SOUND
+//#ifdef DATAREC_SOUND
 		sound_volume_l = sound_volume_r = 1024;
-#endif
+//#endif
+		__TYPE_MZ80B = false;
+		__DATAREC_SOUND = __DATAREC_SOUND_LEFT = __DATAREC_SOUND_RIGHT = false;
+		__DATAREC_FAST_FWD_SPEED = __DATAREC_FAST_REW_SPEED = 10.0;
 		my_tcscpy_s(message, 1023, _T("Stop"));
 		set_device_name(_T("Data Recorder"));
 	}

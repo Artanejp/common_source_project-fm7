@@ -24,13 +24,14 @@ set(FLAG_USE_Z80 ON)
 
 set(VMFILES_BASE
       mc6800.cpp
-      datarec.cpp
+
       event.cpp
       io.cpp
       memory.cpp
 )
 set(VMFILES_LIB
       beep.cpp
+      datarec.cpp
       i8255.cpp
       hd146818p.cpp
       

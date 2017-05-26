@@ -20,18 +20,17 @@ set(WITH_MOUSE OFF)
 set(WITH_DEBUGGER ON)
 
 set(VMFILES
-#		   upd16434.cpp
 		   upd7810.cpp
 		   
-		   datarec.cpp
 		   memory.cpp
 
 		   event.cpp
 )
 set(VMFILES_LIB
+		   datarec.cpp
+		   pcm1bit.cpp
 		   upd16434.cpp
 		   upd1990a.cpp
-		   pcm1bit.cpp
 )
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")

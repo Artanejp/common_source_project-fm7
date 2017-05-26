@@ -11,8 +11,6 @@ set(WITH_MOUSE ON)
 
 set(FLAG_USE_Z80 ON)
 set(VMFILES_BASE
-		   datarec.cpp
-		   
 		   event.cpp
 		   io.cpp
 		   memory.cpp
@@ -28,6 +26,7 @@ set(VMFILES_MZ1500 ${VMFILES_MZ800}
 )
 
 set(VMFILES_LIB
+	   datarec.cpp
 	   i8255.cpp
 	   i8253.cpp
 		   

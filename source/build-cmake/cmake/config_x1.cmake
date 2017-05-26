@@ -15,7 +15,6 @@ set(WITH_MOUSE ON)
 set(VMFILES
 		   z80ctc.cpp
 
-		   datarec.cpp
 		   event.cpp
 		   
 		   io.cpp
@@ -24,8 +23,9 @@ set(VMFILES
 set(VMFILES_LIB
 		   ay_3_891x.cpp
 		   beep.cpp
-		   i8255.cpp
+		   datarec.cpp
 		   hd46505.cpp
+		   i8255.cpp
 		   mb8877.cpp
 		   upd1990a.cpp
 		   ym2151.cpp

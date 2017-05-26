@@ -6,7 +6,7 @@ set(s_vm_common_vm_srcs
 	../and.cpp
 	../ay_3_891x.cpp
 	../beep.cpp
-#	../datarec.cpp
+	../datarec.cpp
 	../disk.cpp
 	
 	../hd146818p.cpp
@@ -40,7 +40,7 @@ set(s_vm_common_vm_srcs
 	../mc6844.cpp
 	../mc6847_base.cpp
 	../mc6850.cpp
-#	../mcs48.cpp
+	../mcs48_base.cpp
 	../msm5205.cpp
 	../msm58321_base.cpp
 #	../mz1p17.cpp
@@ -74,8 +74,9 @@ set(s_vm_common_vm_srcs
 	../upd7220_base.cpp
 	../upd765a.cpp
 	../upd7752.cpp
-#	../upd7801.cpp
-#	../upd7810.cpp
+	../upd7801.cpp
+# 20170527 UPD7180 will not add to lbCSP_common_vm.
+##	../upd7810.cpp
 # 20170518/MSX: Use v9938.cpp and define "-D_MSX_VDP_MESS" instead of v99x8.cpp .
 	../v9938.cpp
 ##	../v99x8.cpp
@@ -89,8 +90,6 @@ set(s_vm_common_vm_srcs
 	../z80pio.cpp
 	../z80sio.cpp
 
-
-	../libcpu_newdev/mcs48_base.cpp
 	../libcpu_newdev/i86_base.cpp
 
 	../libcpu_newdev/libcpu_i386/i386_opdef.cpp
@@ -120,8 +119,8 @@ else()
     ${s_vm_common_vm_srcs}
   )
   set_target_properties(CSPcommon_vm PROPERTIES 
-     SOVERSION 1.1.9
-     VERSION 1.1.9
+     SOVERSION 1.1.10
+     VERSION 1.1.10
   )
   INSTALL(TARGETS CSPcommon_vm DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

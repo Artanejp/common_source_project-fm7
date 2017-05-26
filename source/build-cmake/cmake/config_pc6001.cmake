@@ -17,16 +17,16 @@ set(VMFILES
 		   event.cpp
 		   io.cpp
 		   memory.cpp
-		   datarec.cpp
 )
 
 set(VMFILES_LIB
+	    datarec.cpp
 		pc6031.cpp
 		pc80s31k.cpp
 		upd765a.cpp
-		disk.cpp
 		ym2203.cpp
 		prnfile.cpp
+		disk.cpp
 )
 set(FLAG_USE_MCS48 ON)
 set(FLAG_USE_Z80 ON)

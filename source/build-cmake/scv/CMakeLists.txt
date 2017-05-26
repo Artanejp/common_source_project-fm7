@@ -19,10 +19,11 @@ set(WITH_JOYSTICK ON)
 set(WITH_MOUSE OFF)
 
 set(VMFILES
-		   upd7801.cpp
-		   
 		   event.cpp
 )
+set(VMFILES_LIB
+  		   upd7801.cpp
+)		   
 
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")

@@ -732,10 +732,10 @@ void OSD::set_features_vm(void)
 	add_feature(_T("SUPPORT_AY_3_891X_PORT_B"), 1);
 #endif
 #ifdef DATAREC_FAST_FWD_SPEED
-	add_feature(_T("DATAREC_FAST_FWD_SPEED"), (int)DATAREC_FAST_FWD_SPEED);
+	add_feature(_T("DATAREC_FAST_FWD_SPEED"), (double)DATAREC_FAST_FWD_SPEED);
 #endif
 #ifdef DATAREC_FAST_REW_SPEED
-	add_feature(_T("DATAREC_FAST_REW_SPEED"), (int)DATAREC_FAST_REW_SPEED);
+	add_feature(_T("DATAREC_FAST_REW_SPEED"), (double)DATAREC_FAST_REW_SPEED);
 #endif
 #ifdef DATAREC_PCM_VOLUME
 	add_feature(_T("DATAREC_PCM_VOLUME"), (int)DATAREC_PCM_VOLUME);
@@ -1016,6 +1016,9 @@ void OSD::set_features_misc(void)
 #endif
 #ifdef DATAREC_SOUND_LEFT
 	add_feature(_T("DATAREC_SOUND_LEFT"), 1);
+#endif
+#ifdef DATAREC_SOUND_RIGHT
+	add_feature(_T("DATAREC_SOUND_RIGHT"), 1);
 #endif
 }
 

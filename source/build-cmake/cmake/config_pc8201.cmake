@@ -14,11 +14,11 @@ set(VMFILES
 	   i8080.cpp
 		   
 	   io.cpp
-	   datarec.cpp
 		   
 	   event.cpp
 )
 set(VMFILES_LIB
+	   datarec.cpp
 	   i8155.cpp
 	   pcm1bit.cpp
 	   upd1990a.cpp

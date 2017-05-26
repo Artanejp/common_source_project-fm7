@@ -17,13 +17,11 @@ set(VM_NAME phc20)
 set(USE_FMGEN OFF)
 set(FLAG_USE_Z80 ON)
 set(VMFILES
-  
-		   mc6847.cpp
-
-		   datarec.cpp
 		   event.cpp
 )
 set(VMFILES_LIB
+		   mc6847.cpp
+		   datarec.cpp
 )
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
