@@ -195,8 +195,10 @@ int DLL_PREFIX my_vstprintf_s(_TCHAR *buffer, size_t numberOfElements, const _TC
 
 void DLL_PREFIX *my_memcpy(void *dst, void *src, size_t len)
 {
-	register size_t len1;
+	size_t len1;
 	register size_t len2;
+	register uint32_t s_align = (uint32_t)(((size_t)src) & 0x1f);
+	register uint32_t d_align = (uint32_t)(((size_t)dst) & 0x1f);
 	int i;
 	
 	if(len == 0) return dst;
@@ -204,9 +206,9 @@ void DLL_PREFIX *my_memcpy(void *dst, void *src, size_t len)
 		return memcpy(dst, src, len);
 	}
 	len1 = len;
-	size_t s_align = ((size_t)src) & 0x1f;
-	size_t d_align = ((size_t)dst) & 0x1f;
-#if 1
+
+#if defined(WITHOUT_UNALIGNED_SIMD)
+// Using SIMD without un-aligned instructions.
 	switch(s_align) {
 	case 0: // Align 256
 		{
@@ -526,59 +528,56 @@ void DLL_PREFIX *my_memcpy(void *dst, void *src, size_t len)
 		break;
 	}
 
-#else	
-	// Check align(preamble)
-	if(((size_t)s & 0x0f) != 0) { // Src not align 16
-		if(((size_t)s & 0x07) != 0) { // Src not Align 8
-			return memcpy(d, s, len1);
-		} else { // Align 8 (at least src)
-			if(((size_t)d & 0x07) != 0) { // Dst not align 8
-				return memcpy(d, s, len1);
-			}
-__src_dst_align_8:
-			uint32_t b64[2];
-			register uint32_t *s64 = (uint32_t *)s;
-			register uint32_t *d64 = (uint32_t *)d;
-			
-			// Src and Dst align 8 (at least)
-			len2 = len1 >> 3;
-			i = 0;
-			while(len2 > 0) {
-				for(i = 0; i < 2; i++) b64[i] = s64[i];
-				for(i = 0; i < 2; i++) d64[i] = b64[i];
-				s64 += 2;
-				d64 += 2;
-				--len2;
-			}
-			len1 = len1 & 7;
-			if(len1 != 0) return memcpy((uint8_t *)d64, (uint8_t *)s64, len1);
-			return dst;
-		}
-	} else { // Src align 16
-		if(((size_t)d & 0x0f) != 0) { // Dst not align 16
-			if(((size_t)d & 0x07) != 0) { // Dst not align 8
-				return memcpy(d, s, len1);
-			}
-			// Dst align 8
-			goto __src_dst_align_8;
-		} else { // Src and Dst align 16
-__src_dst_align_16:
-			len2 = len1 >> 4;
-			uint32_t b128[4];
-			register uint32_t *s128 = (uint32_t *)s;
-			register uint32_t *d128 = (uint32_t *)d;
-			while(len2 > 0) {
-				for(i = 0; i < 4; i++) b128[i] = s128[i];
-				for(i = 0; i < 4; i++) d128[i] = b128[i];
-				s128 += 4;
-				d128 += 4;
-				--len2;
-			}
-			len1 = len1 & 0x0f;
-			if(len1 != 0) return memcpy((uint8_t *)d128, (uint8_t *)s128, len1);
-			return dst;
-		}
+#else
+// Using SIMD *with* un-aligned instructions.
+	register uint32_t *s32 = (uint32_t *)src;
+	register uint32_t *d32 = (uint32_t *)dst;
+	if(((s_align & 0x07) != 0x0) && ((d_align & 0x07) != 0x0)) { // None align.
+		return memcpy(dst, src, len);
 	}
+	if((s_align == 0x0) || (d_align == 0x0)) { // Align to 256bit
+		uint32_t b256[8];
+		len2 = len1 >> 5;
+		while(len2 > 0) {
+			for(i = 0; i < 8; i++) b256[i] = s32[i];
+			for(i = 0; i < 8; i++) d32[i] = b256[i];
+			s32 += 8;
+			d32 += 8;
+			--len2;
+		}
+		len1 = len1 & 0x1f;
+		if(len1 != 0) return memcpy(d32, s32, len1);
+		return dst;
+	}
+	if(((s_align & 0x0f) == 0x0) || ((d_align & 0x0f) == 0x0)) { // Align to 128bit
+		uint32_t b128[4];
+		len2 = len1 >> 4;
+		while(len2 > 0) {
+			for(i = 0; i < 4; i++) b128[i] = s32[i];
+			for(i = 0; i < 4; i++) d32[i] = b128[i];
+			s32 += 4;
+			d32 += 4;
+			--len2;
+		}
+		len1 = len1 & 0x0f;
+		if(len1 != 0) return memcpy(d32, s32, len1);
+		return dst;
+	}		
+	if(((s_align & 0x07) == 0x0) || ((d_align & 0x07) == 0x0)) { // Align to 64bit
+		uint32_t b64[2];
+		len2 = len1 >> 3;
+		while(len2 > 0) {
+			for(i = 0; i < 2; i++) b64[i] = s32[i];
+			for(i = 0; i < 2; i++) d32[i] = b64[i];
+			s32 += 2;
+			d32 += 2;
+			--len2;
+		}
+		len1 = len1 & 0x07;
+		if(len1 != 0) return memcpy(d32, s32, len1);
+		return dst;
+	}		
+	//if(len1 != 0) return memcpy(dst, src, len1);
 #endif
 	// Trap
 	return dst;
