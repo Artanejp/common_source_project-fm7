@@ -672,7 +672,7 @@ void MOVIE_LOADER::do_dequeue_audio()
 				if(tmpq->data[0] != NULL) {
 					if((tmpq->unpadded_linesize != 0) && (dptr < audio_data_size)) {
 						if(tmpdata != NULL) {
-							memcpy(&tmpdata[dptr], tmpq->data[0], tmpq->unpadded_linesize);
+							my_memcpy(&tmpdata[dptr], tmpq->data[0], tmpq->unpadded_linesize);
 						}
 						dptr += tmpq->unpadded_linesize;
 					}

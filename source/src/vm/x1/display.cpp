@@ -756,7 +756,7 @@ void DISPLAY::draw_screen()
 						}
 					}
 					if(!config.scan_line) {
-						memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
+						my_memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
 					} else {
 						memset(dest1, 0, 640 * sizeof(scrntype_t));
 					}
@@ -775,7 +775,7 @@ void DISPLAY::draw_screen()
 						dest0[x] = get_zpriority(src_text[x], cg00, cg00);
 					}
 					if(!config.scan_line) {
-						memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
+						my_memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
 					} else {
 						memset(dest1, 0, 640 * sizeof(scrntype_t));
 					}
@@ -840,7 +840,7 @@ void DISPLAY::draw_screen()
 #endif
 				}
 				if(!config.scan_line) {
-					memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
+					my_memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
 				} else {
 					memset(dest1, 0, 640 * sizeof(scrntype_t));
 				}
@@ -861,7 +861,7 @@ void DISPLAY::draw_screen()
 #endif
 				}
 				if(!config.scan_line) {
-					memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
+					my_memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
 				} else {
 					memset(dest1, 0, 640 * sizeof(scrntype_t));
 				}
@@ -1060,7 +1060,7 @@ void DISPLAY::draw_cg(int line, int plane)
 			if(column40) {
 				if(C64 && !(zpriority & 0x10)) {
 					if(plane) {
-						memcpy(zcg[plane][1], zcg[plane][0], sizeof(uint16_t) * 640);
+						my_memcpy(zcg[plane][1], zcg[plane][0], sizeof(uint16_t) * 640);
 						return;
 					}
 				} else {

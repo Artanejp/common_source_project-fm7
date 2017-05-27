@@ -191,6 +191,401 @@ int DLL_PREFIX my_vstprintf_s(_TCHAR *buffer, size_t numberOfElements, const _TC
 }
 #endif
 
+//#ifdef USE_FAST_MEMCPY
+
+void DLL_PREFIX *my_memcpy(void *dst, void *src, size_t len)
+{
+	register size_t len1;
+	register size_t len2;
+	int i;
+	
+	if(len == 0) return dst;
+	if(len < 8) {
+		return memcpy(dst, src, len);
+	}
+	len1 = len;
+	size_t s_align = ((size_t)src) & 0x1f;
+	size_t d_align = ((size_t)dst) & 0x1f;
+#if 1
+	switch(s_align) {
+	case 0: // Align 256
+		{
+			uint64_t b64[4];
+			register uint64_t *s64 = (uint64_t *)src;
+			register uint64_t *d64 = (uint64_t *)dst;
+			switch(d_align) {
+			case 0: // 256 vs 256
+				{
+					len2 = len1 >> 5;
+					while(len2 > 0) {
+						for(i = 0; i < 4; i++) b64[i] = s64[i];
+						for(i = 0; i < 4; i++) d64[i] = b64[i];
+						s64 += 4;
+						d64 += 4;
+						--len2;
+					}
+					len1 = len1 & 0x1f;
+					if(len1 != 0) return memcpy(d64, s64, len1);
+					return dst;
+				}
+				break;
+			case 0x10: // 256 vs 128
+				{
+					len2 = len1 >> 5;
+					while(len2 > 0) {
+						for(i = 0; i < 4; i++) b64[i] = s64[i];
+						for(i = 0; i < 2; i++) d64[i] = b64[i];
+						d64 += 2;
+						for(i = 2; i < 4; i++) d64[i - 2] = b64[i];
+						d64 += 2;
+						s64 += 4;
+						--len2;
+					}
+					len1 = len1 & 0x1f;
+					if(len1 != 0) return memcpy(d64, s64, len1);
+					return dst;
+				}
+				break;
+			case 0x08:
+			case 0x18: // 256 vs 64
+				{
+					len2 = len1 >> 5;
+					while(len2 > 0) {
+						for(i = 0; i < 4; ++i) b64[i] = s64[i];
+						for(i = 0; i < 4; ++i) {
+							*d64 = b64[i];
+							++d64;
+						}
+						s64 += 4;
+						--len2;
+					}
+					len1 = len1 & 0x1f;
+					if(len1 != 0) return memcpy(d64, s64, len1);
+					return dst;
+				}
+				break;
+			case 0x04:
+			case 0x0c: 
+			case 0x14:
+			case 0x1c: // 256 vs 32
+				{
+					uint32_t b32[8];
+					register uint32_t *s32 = (uint32_t *)src;
+					register uint32_t *d32 = (uint32_t *)dst;
+					len2 = len1 >> 5;
+					while(len2 > 0) {
+						for(i = 0; i < 8; ++i) b32[i] = s32[i];
+						*d32 = b32[0];
+						++d32;
+						*d32 = b32[1];
+						++d32;
+						*d32 = b32[2];
+						++d32;
+						*d32 = b32[3];
+						++d32;
+						*d32 = b32[4];
+						++d32;
+						*d32 = b32[5];
+						++d32;
+						*d32 = b32[6];
+						++d32;
+						*d32 = b32[7];
+						++d32;
+						s32 += 8;
+						--len2;
+					}
+					len1 = len1 & 0x1f;
+					if(len1 != 0) return memcpy(d32, s32, len1);
+					return dst;
+				}
+				break;
+			default:
+				return memcpy(dst, src, len1);
+				break;
+			}
+		}
+		break;
+	case 0x10: // Src alignn to 16.
+		{
+			uint32_t b32[4];
+			register uint32_t *s32 = (uint32_t *)src;
+			register uint32_t *d32 = (uint32_t *)dst;
+			switch(d_align) {
+			case 0: // 128 vs 256/128
+			case 0x10:
+				{
+					len2 = len1 >> 4;
+					while(len2 > 0) {
+						for(i = 0; i < 4; i++) b32[i] = s32[i];
+						for(i = 0; i < 4; i++) d32[i] = b32[i];
+						s32 += 4;
+						d32 += 4;
+						--len2;
+					}
+					len1 = len1 & 0x0f;
+					if(len1 != 0) return memcpy(d32, s32, len1);
+					return dst;
+				}
+				break;
+			case 0x08:
+			case 0x18: // 128 vs 64
+				{
+					len2 = len1 >> 4;
+					while(len2 > 0) {
+						for(i = 0; i < 4; ++i) b32[i] = s32[i];
+						for(i = 0; i < 2; ++i) {
+							d32[i] = b32[i];
+						}
+						d32 += 2;
+						for(i = 2; i < 4; ++i) {
+							d32[i - 2] = b32[i];
+						}
+						d32 += 2;
+						s32 += 4;
+						--len2;
+					}
+					len1 = len1 & 0x0f;
+					if(len1 != 0) return memcpy(d32, s32, len1);
+					return dst;
+				}
+				break;
+			case 0x04:
+			case 0x0c:
+			case 0x14:
+			case 0x1c: // 128 vs 32
+				{
+					len2 = len1 >> 4;
+					while(len2 > 0) {
+						for(i = 0; i < 4; ++i) b32[i] = s32[i];
+						*d32 = b32[0];
+						++d32;
+						*d32 = b32[1];
+						++d32;
+						*d32 = b32[2];
+						++d32;
+						*d32 = b32[3];
+						++d32;
+						s32 += 4;
+						--len2;
+					}
+					len1 = len1 & 0x0f;
+					if(len1 != 0) return memcpy(d32, s32, len1);
+					return dst;
+				}
+				break;
+			default:
+				return memcpy(dst, src, len1);
+				break;
+			}
+		}
+		break;
+	case 0x08:
+	case 0x18: // Src alignn to 64.
+		{
+			register uint32_t *s32 = (uint32_t *)src;
+			register uint32_t *d32 = (uint32_t *)dst;
+			register uint64_t *s64 = (uint64_t *)src;
+			register uint64_t *d64 = (uint64_t *)dst;
+			switch(d_align) {
+			case 0:
+			case 0x10: // 64 vs 128
+				{
+					uint64_t b128[2];
+					len2 = len1 >> 4;
+					while(len2 > 0) {
+						b128[0] = *s64;
+						++s64;
+						b128[1] = *s64;
+						++s64;
+						for(i = 0; i < 2; i++) d64[i] = b128[i];
+						d64 += 2;
+						--len2;
+					}
+					len1 = len1 & 0x0f;
+					if(len1 != 0) return memcpy(d64, s64, len1);
+					return dst;
+				}
+				break;
+			case 0x08:
+			case 0x18: // 64 vs 64
+				{
+					len2 = len1 >> 3;
+					while(len2 > 0) {
+						*d64 = *s64;
+						++s64;
+						++d64;
+						--len2;
+					}
+					len1 = len1 & 0x07;
+					if(len1 != 0) return memcpy(d64, s64, len1);
+					return dst;
+				}
+				break;
+			case 0x04:
+			case 0x0c: // 64 vs 32
+			case 0x14:
+			case 0x1c: // 64 vs 32
+				{
+					uint32_t b32[2];
+					len2 = len1 >> 3;
+					while(len2 > 0) {
+						for(i = 0; i < 2; ++i) b32[i] = s32[i];
+						d32[0] = b32[0];
+						d32[1] = b32[1];
+						s32 += 2;
+						d32 += 2;
+						--len2;
+					}
+					len1 = len1 & 0x07;
+					if(len1 != 0) return memcpy(d32, s32, len1);
+					return dst;
+				}
+				break;
+			default:
+				return memcpy(dst, src, len1);
+				break;
+			}
+		}
+	case 0x04:
+	case 0x0c:
+	case 0x14:
+	case 0x1c:  // Src align 32
+		{
+			register uint32_t *s32 = (uint32_t *)src;
+			register uint32_t *d32 = (uint32_t *)dst;
+			register uint64_t *d64 = (uint64_t *)dst;
+			switch(d_align) {
+			case 0:
+			case 0x10: // 32 vs 128
+				{
+					uint32_t b128[4];
+					len2 = len1 >> 4;
+					while(len2 > 0) {
+						b128[0] = *s32;
+						++s32;
+						b128[1] = *s32;
+						++s32;
+						b128[3] = *s32;
+						++s32;
+						b128[4] = *s32;
+						++s32;
+						for(i = 0; i < 4; i++) d32[i] = b128[i];
+						d32 += 4;
+						--len2;
+					}
+					len1 = len1 & 0x0f;
+					if(len1 != 0) return memcpy(d32, s32, len1);
+					return dst;
+				}
+				break;
+			case 0x08:
+			case 0x18: // 32 vs 64
+				{
+					uint32_t b64[2];
+					len2 = len1 >> 3;
+					while(len2 > 0) {
+						b64[0] = *s32;
+						++s32;
+						b64[1] = *s32;
+						++s32;
+
+						for(i = 0; i < 2; i++) d32[i] = b64[i];
+						d32 += 2;
+						--len2;
+					}
+					len1 = len1 & 0x07;
+					if(len1 != 0) return memcpy(d32, s32, len1);
+					return dst;
+				}
+				break;
+			case 0x04:
+			case 0x0c: 
+			case 0x14:
+			case 0x1c: // 32 vs 32
+				{
+					len2 = len1 >> 2;
+					while(len2 > 0) {
+						*d32 = *s32;
+						++s32;
+						++d32;
+						--len2;
+					}
+					len1 = len1 & 0x03;
+					if(len1 != 0) return memcpy(d32, s32, len1);
+					return dst;
+				}
+				break;
+			default:
+				return memcpy(dst, src, len1);
+				break;
+			}
+		}
+		break;
+	default:
+		if(len1 != 0) return memcpy(dst, src, len1);
+		break;
+	}
+
+#else	
+	// Check align(preamble)
+	if(((size_t)s & 0x0f) != 0) { // Src not align 16
+		if(((size_t)s & 0x07) != 0) { // Src not Align 8
+			return memcpy(d, s, len1);
+		} else { // Align 8 (at least src)
+			if(((size_t)d & 0x07) != 0) { // Dst not align 8
+				return memcpy(d, s, len1);
+			}
+__src_dst_align_8:
+			uint32_t b64[2];
+			register uint32_t *s64 = (uint32_t *)s;
+			register uint32_t *d64 = (uint32_t *)d;
+			
+			// Src and Dst align 8 (at least)
+			len2 = len1 >> 3;
+			i = 0;
+			while(len2 > 0) {
+				for(i = 0; i < 2; i++) b64[i] = s64[i];
+				for(i = 0; i < 2; i++) d64[i] = b64[i];
+				s64 += 2;
+				d64 += 2;
+				--len2;
+			}
+			len1 = len1 & 7;
+			if(len1 != 0) return memcpy((uint8_t *)d64, (uint8_t *)s64, len1);
+			return dst;
+		}
+	} else { // Src align 16
+		if(((size_t)d & 0x0f) != 0) { // Dst not align 16
+			if(((size_t)d & 0x07) != 0) { // Dst not align 8
+				return memcpy(d, s, len1);
+			}
+			// Dst align 8
+			goto __src_dst_align_8;
+		} else { // Src and Dst align 16
+__src_dst_align_16:
+			len2 = len1 >> 4;
+			uint32_t b128[4];
+			register uint32_t *s128 = (uint32_t *)s;
+			register uint32_t *d128 = (uint32_t *)d;
+			while(len2 > 0) {
+				for(i = 0; i < 4; i++) b128[i] = s128[i];
+				for(i = 0; i < 4; i++) d128[i] = b128[i];
+				s128 += 4;
+				d128 += 4;
+				--len2;
+			}
+			len1 = len1 & 0x0f;
+			if(len1 != 0) return memcpy((uint8_t *)d128, (uint8_t *)s128, len1);
+			return dst;
+		}
+	}
+#endif
+	// Trap
+	return dst;
+}
+//#endif
+
+
 #ifndef _WIN32
 BOOL DLL_PREFIX MyWritePrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpString, LPCTSTR lpFileName)
 {

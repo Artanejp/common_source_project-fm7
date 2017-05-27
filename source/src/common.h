@@ -541,6 +541,8 @@ const char *DLL_PREFIX tchar_to_char(const _TCHAR *ts);
 const _TCHAR *DLL_PREFIX wchar_to_tchar(const wchar_t *ws);
 const wchar_t *DLL_PREFIX tchar_to_wchar(const _TCHAR *ts);
 
+void *DLL_PREFIX my_memcpy(void *dst, void *src, size_t len);
+
 // misc
 int32_t DLL_PREFIX muldiv_s32(int32_t nNumber, int32_t nNumerator, int32_t nDenominator);
 uint32_t DLL_PREFIX muldiv_u32(uint32_t nNumber, uint32_t nNumerator, uint32_t nDenominator);

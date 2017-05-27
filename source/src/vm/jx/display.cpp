@@ -233,7 +233,7 @@ void DISPLAY::draw_screen()
 				}
 			}
 			if(!config.scan_line) {
-				memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
+				my_memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
 			} else {
 				memset(dest1, 0, 640 * sizeof(scrntype_t));
 			}

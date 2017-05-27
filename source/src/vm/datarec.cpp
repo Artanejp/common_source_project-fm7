@@ -210,7 +210,7 @@ void DATAREC::event_callback(int event_id, int err)
 			} else {
 				if(ff_rew < 0) {
 					if((buffer_bak != NULL) && (buffer != NULL)) {
-						memcpy(buffer, buffer_bak, buffer_length);
+						my_memcpy(buffer, buffer_bak, buffer_length);
 					}
 					buffer_ptr = 0;
 					set_remote(false);	// top of tape
@@ -559,7 +559,7 @@ bool DATAREC::play_tape(const _TCHAR* file_path)
 	if(play) {
 		if(!is_wav && buffer_length != 0) {
 			buffer_bak = (uint8_t *)malloc(buffer_length);
-			memcpy(buffer_bak, buffer, buffer_length);
+			my_memcpy(buffer_bak, buffer, buffer_length);
 		}
 		
 		// get the first signal

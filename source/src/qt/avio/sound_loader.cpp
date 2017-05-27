@@ -196,7 +196,7 @@ int SOUND_LOADER::decode_packet(int *got_frame, int cached)
 				}
 				_data_size <<= 1;
 			}
-			memcpy(&sound_buffer[_dataptr], _data[0], (long)dst_nb_samples * 2 * sizeof(int16_t));
+			my_memcpy(&sound_buffer[_dataptr], _data[0], (long)dst_nb_samples * 2 * sizeof(int16_t));
 			_dataptr += (dst_nb_samples * 2);
 			free(_data[0]);
 			_data[0] = NULL;

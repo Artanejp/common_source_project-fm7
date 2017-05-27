@@ -152,7 +152,7 @@ bool MOVIE_SAVER::dequeue_video(uint32_t *p)
 		for(y = 0; y < _height; y++) {
 			if(y >= pp_i->height()) break;
 			pq = (uint32_t *)(pp_i->constScanLine(y));
-			memcpy(&(p[_width * y]), pq, (((uint)_width * sizeof(uint32_t)) > pp_i->bytesPerLine()) ? pp_i->bytesPerLine() : _width * sizeof(uint32_t));
+			my_memcpy(&(p[_width * y]), pq, (((uint)_width * sizeof(uint32_t)) > pp_i->bytesPerLine()) ? pp_i->bytesPerLine() : _width * sizeof(uint32_t));
 		}
 		video_size = _width * y;
 		//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "Movie: Dequeue video data %d bytes", pp->byteCount());

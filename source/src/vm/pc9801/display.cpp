@@ -743,7 +743,7 @@ void DISPLAY::draw_gfx_screen()
 			if(modereg1[MODE1_200LINE]) {
 				memset(dest, 0, 640);
 			} else {
-				memcpy(dest, dest - 640, 640);
+				my_memcpy(dest, dest - 640, 640);
 			}
 			dest += 640;
 			y++;

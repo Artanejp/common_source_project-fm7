@@ -139,7 +139,7 @@ void DISPLAY::draw_screen()
 					dest0[x] = palette_pc[src[x]];
 				}
 			}
-			memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
+			my_memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
 		}
 	} else {
 		// 640x400

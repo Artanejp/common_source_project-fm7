@@ -842,27 +842,27 @@ void DISPLAY::copy_vram_per_line(int begin, int end)
 				for(j = 0; j < 2; j++) {
 					uint32_t _addr_base = src_base + src_offset + poff;
 					if(bytes_d1 < sectors) {
-						memcpy(&gvram_shadow[_addr_base],
+						my_memcpy(&gvram_shadow[_addr_base],
 							   &gvram[addr_d1 + src_base + poff],
 							   bytes_d1);
-						memcpy(&gvram_shadow[_addr_base + bytes_d1],
+						my_memcpy(&gvram_shadow[_addr_base + bytes_d1],
 							   &gvram[src_base + poff],
 							   sectors - bytes_d1);
 					} else {
-						memcpy(&gvram_shadow[_addr_base],
+						my_memcpy(&gvram_shadow[_addr_base],
 							   &gvram[addr_d1 + src_base + poff],
 							   sectors);
 					}
 					_addr_base += 0xc000;
 					if(bytes_d2 < sectors) {
-						memcpy(&gvram_shadow[_addr_base],
+						my_memcpy(&gvram_shadow[_addr_base],
 							   &gvram[addr_d2 + src_base + poff + 0xc000],
 							   bytes_d2);
-						memcpy(&gvram_shadow[_addr_base + bytes_d2],
+						my_memcpy(&gvram_shadow[_addr_base + bytes_d2],
 							   &gvram[src_base + poff + 0xc000],
 							   sectors - bytes_d2);
 					} else {
-						memcpy(&gvram_shadow[_addr_base],
+						my_memcpy(&gvram_shadow[_addr_base],
 							   &gvram[addr_d2 + src_base + poff + 0xc000],
 							   sectors);
 					}
@@ -904,14 +904,14 @@ void DISPLAY::copy_vram_per_line(int begin, int end)
 						bytes_d = bytes_d2;
 					}						
 					if(bytes_d < sectors) {
-						memcpy(&gvram_shadow[src_offset + src_base],
+						my_memcpy(&gvram_shadow[src_offset + src_base],
 							   &gvram[src_offset_d + src_base],
 							   bytes_d);
-						memcpy(&gvram_shadow[src_offset + bytes_d + src_base],
+						my_memcpy(&gvram_shadow[src_offset + bytes_d + src_base],
 							   &gvram[src_base],
 							   sectors - bytes_d);
 					} else {
-						memcpy(&gvram_shadow[src_offset + src_base],
+						my_memcpy(&gvram_shadow[src_offset + src_base],
 							   &gvram[src_offset_d + src_base],
 							   sectors);
 					}
@@ -940,15 +940,15 @@ void DISPLAY::copy_vram_per_line(int begin, int end)
 				src_base = i * 0x18000 + j * 0x8000;
 				if(bytes_d < sectors) {
 					if(bytes_d > 0) {
-						memcpy(&gvram_shadow[src_offset + src_base],
+						my_memcpy(&gvram_shadow[src_offset + src_base],
 							   &gvram[src_offset_d + src_base],
 							   bytes_d);
 					}
-					memcpy(&gvram_shadow[src_offset + bytes_d + src_base],
+					my_memcpy(&gvram_shadow[src_offset + bytes_d + src_base],
 						   &gvram[src_base],
 						   sectors - bytes_d);
 				} else {
-					memcpy(&gvram_shadow[src_offset + src_base + poff],
+					my_memcpy(&gvram_shadow[src_offset + src_base + poff],
 						   &gvram[src_offset_d + src_base],
 						   sectors);
 				}
@@ -986,14 +986,14 @@ void DISPLAY::copy_vram_per_line(int begin, int end)
 			src_base = 0;
 			for(j = 0; j < 3; j++) {
 				if(bytes_d < sectors) {
-					memcpy(&gvram_shadow[src_offset + src_base + poff],
+					my_memcpy(&gvram_shadow[src_offset + src_base + poff],
 						   &gvram[src_offset_d + src_base + poff],
 						   bytes_d);
-					memcpy(&gvram_shadow[src_offset + bytes_d + src_base + poff],
+					my_memcpy(&gvram_shadow[src_offset + bytes_d + src_base + poff],
 						   &gvram[src_base + poff],
 						   sectors - bytes_d);
 				} else {
-					memcpy(&gvram_shadow[src_offset + src_base + poff],
+					my_memcpy(&gvram_shadow[src_offset + src_base + poff],
 						   &gvram[src_offset_d + src_base + poff],
 						   sectors);
 				}
@@ -1017,14 +1017,14 @@ void DISPLAY::copy_vram_per_line(int begin, int end)
 		for(j = 0; j < 3; j++) {
 			src_base = j * 0x4000;
 			if(bytes_d < sectors) {
-				memcpy(&gvram_shadow[src_offset + src_base + poff],
+				my_memcpy(&gvram_shadow[src_offset + src_base + poff],
 					   &gvram[src_offset_d + src_base + poff],
 					   bytes_d);
-				memcpy(&gvram_shadow[src_offset + bytes_d + src_base + poff],
+				my_memcpy(&gvram_shadow[src_offset + bytes_d + src_base + poff],
 					   &gvram[src_base + poff],
 					   sectors - bytes_d);
 			} else {
-				memcpy(&gvram_shadow[src_offset + src_base + poff],
+				my_memcpy(&gvram_shadow[src_offset + src_base + poff],
 					   &gvram[src_offset_d + src_base + poff],
 					   sectors);
 			}
@@ -1057,10 +1057,10 @@ void DISPLAY::copy_vram_all()
 				for(int j = 0; j < 2; j++) {
 					src_offset_1 = i * 0x4000 + j * 0x2000;
 					src_offset_2 = src_offset_1 + 0xc000;
-					memcpy(&gvram_shadow[src_offset_1 + poff], &gvram[src_offset_1 + (yoff_d1 & 0x1fff) + poff], bytes_d1);
-					memcpy(&gvram_shadow[src_offset_1 + bytes_d1 + poff], &gvram[src_offset_1 + poff], 0x2000 - bytes_d1);
-					memcpy(&gvram_shadow[src_offset_2 + poff], &gvram[src_offset_2 + (yoff_d2 & 0x1fff) + poff], bytes_d2);
-					memcpy(&gvram_shadow[src_offset_2 + bytes_d2 + poff], &gvram[src_offset_2 + poff], 0x2000 - bytes_d2);
+					my_memcpy(&gvram_shadow[src_offset_1 + poff], &gvram[src_offset_1 + (yoff_d1 & 0x1fff) + poff], bytes_d1);
+					my_memcpy(&gvram_shadow[src_offset_1 + bytes_d1 + poff], &gvram[src_offset_1 + poff], 0x2000 - bytes_d1);
+					my_memcpy(&gvram_shadow[src_offset_2 + poff], &gvram[src_offset_2 + (yoff_d2 & 0x1fff) + poff], bytes_d2);
+					my_memcpy(&gvram_shadow[src_offset_2 + bytes_d2 + poff], &gvram[src_offset_2 + poff], 0x2000 - bytes_d2);
 				}
 			}
 			poff += 0x18000;
@@ -1074,18 +1074,18 @@ void DISPLAY::copy_vram_all()
 			for(int j = 0; j < 2; j++) {
 				src_offset_1 = i * 0x4000 + j * 0x2000;
 				src_offset_2 = src_offset_1 + 0xc000;
-				memcpy(&gvram_shadow[src_offset_1 + poff], &gvram[src_offset_1 + (yoff_d1 & 0x1fff) + poff], bytes_d1);
-				memcpy(&gvram_shadow[src_offset_1 + bytes_d1 + poff], &gvram[src_offset_1 + poff], 0x2000 - bytes_d1);
-				memcpy(&gvram_shadow[src_offset_2 + poff], &gvram[src_offset_2 + (yoff_d2 & 0x1fff) + poff], bytes_d2);
-				memcpy(&gvram_shadow[src_offset_2 + bytes_d2 + poff], &gvram[src_offset_2 + poff], 0x2000 - bytes_d2);
+				my_memcpy(&gvram_shadow[src_offset_1 + poff], &gvram[src_offset_1 + (yoff_d1 & 0x1fff) + poff], bytes_d1);
+				my_memcpy(&gvram_shadow[src_offset_1 + bytes_d1 + poff], &gvram[src_offset_1 + poff], 0x2000 - bytes_d1);
+				my_memcpy(&gvram_shadow[src_offset_2 + poff], &gvram[src_offset_2 + (yoff_d2 & 0x1fff) + poff], bytes_d2);
+				my_memcpy(&gvram_shadow[src_offset_2 + bytes_d2 + poff], &gvram[src_offset_2 + poff], 0x2000 - bytes_d2);
 			}
 		}
 		poff += 0x18000;
 		for(int i = 0; i < 3; i++) {
 			for(int j = 0; j < 2; j++) {
 				src_offset_1 = i * 0x4000 + j * 0x2000;
-				memcpy(&gvram_shadow[src_offset_1 + poff], &gvram[src_offset_1 + (yoff_d1 & 0x1fff) + poff], bytes_d1);
-				memcpy(&gvram_shadow[src_offset_1 + bytes_d1 + poff], &gvram[src_offset_1 + poff], 0x2000 - bytes_d1);
+				my_memcpy(&gvram_shadow[src_offset_1 + poff], &gvram[src_offset_1 + (yoff_d1 & 0x1fff) + poff], bytes_d1);
+				my_memcpy(&gvram_shadow[src_offset_1 + bytes_d1 + poff], &gvram[src_offset_1 + poff], 0x2000 - bytes_d1);
 			}
 		}
 	} else if(display_mode == DISPLAY_MODE_8_400L) {
@@ -1104,11 +1104,11 @@ void DISPLAY::copy_vram_all()
 		for(int i = 0; i < pages; i++) {
 			for(int j = 0; j < 3; j++) {
 				uint32_t src_base = i * 0x18000 + j * 0x8000;
-				memcpy(&gvram_shadow[src_base],
+				my_memcpy(&gvram_shadow[src_base],
 					   &gvram[yoff_d + src_base],
 					   bytes_d);
 				if(bytes_d < 0x8000) {
-					memcpy(&gvram_shadow[bytes_d + src_base],
+					my_memcpy(&gvram_shadow[bytes_d + src_base],
 						   &gvram[src_base],
 						   0x8000 - bytes_d);
 				}
@@ -1132,8 +1132,8 @@ void DISPLAY::copy_vram_all()
 			bytes_d = ((k & 1) == 0) ? bytes_d1 : bytes_d2;
 			for(int j = 0; j < 3; j++) {
 				src_offset_1 = k * 0xc000 + j * 0x4000;
-				memcpy(&gvram_shadow[src_offset_1], &gvram[src_offset_1 + yoff_d], bytes_d);
-				memcpy(&gvram_shadow[src_offset_1 + bytes_d], &gvram[src_offset_1], 0x4000 - bytes_d);
+				my_memcpy(&gvram_shadow[src_offset_1], &gvram[src_offset_1 + yoff_d], bytes_d);
+				my_memcpy(&gvram_shadow[src_offset_1 + bytes_d], &gvram[src_offset_1], 0x4000 - bytes_d);
 			}
 		}
 	}
@@ -1144,8 +1144,8 @@ void DISPLAY::copy_vram_all()
 		uint32_t src_offset_1;
 		for(int j = 0; j < 3; j++) {
 			src_offset_1 = j * 0x4000;
-			memcpy(&gvram_shadow[src_offset_1], &gvram[src_offset_1 + yoff_d], bytes_d);
-			memcpy(&gvram_shadow[src_offset_1 + bytes_d], &gvram[src_offset_1], 0x4000 - bytes_d);
+			my_memcpy(&gvram_shadow[src_offset_1], &gvram[src_offset_1 + yoff_d], bytes_d);
+			my_memcpy(&gvram_shadow[src_offset_1 + bytes_d], &gvram[src_offset_1], 0x4000 - bytes_d);
 		}
 	}
 #endif

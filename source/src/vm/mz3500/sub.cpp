@@ -195,7 +195,7 @@ void SUB::draw_screen()
 			if(config.scan_line) {
 				memset(dest1, 0, 640 * sizeof(scrntype_t));
 			} else {
-				memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
+				my_memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
 			}
 		}
 		emu->screen_skip_line(true);

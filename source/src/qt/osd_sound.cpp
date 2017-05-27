@@ -256,10 +256,10 @@ void OSD_BASE::update_sound(int* extra_frames)
 						ptr2 = NULL;
 					}
 					if(ptr1) {
-						memcpy(ptr1, sound_buffer, size1 * sizeof(Sint16));
+						my_memcpy(ptr1, sound_buffer, size1 * sizeof(Sint16));
 					}
 					if(ptr2) {
-						memcpy(ptr2, &sound_buffer[size1], size2 * sizeof(Sint16));
+						my_memcpy(ptr2, &sound_buffer[size1], size2 * sizeof(Sint16));
 					}
 					sound_data_len = sound_data_len + ssize;
 					if(sound_data_len >= sound_buffer_size) sound_data_len = sound_buffer_size;

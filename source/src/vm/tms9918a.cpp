@@ -193,7 +193,7 @@ inline void TMS9918A::draw_screen_512_impose()
 			for(int x = 0, x2 = 0; x < 256; x++, x2 += 2) {
 				dest0[x2] = dest0[x2 + 1] = palette_pc[src[x] & 0x0f];
 			}
-			memcpy(dest1, dest0, 512 * sizeof(scrntype_t));
+			my_memcpy(dest1, dest0, 512 * sizeof(scrntype_t));
 		}
 	}
 //#endif
@@ -208,7 +208,7 @@ inline void TMS9918A::draw_screen_512_nonimpose()
 		for(int x = 0, x2 = 0; x < 256; x++, x2 += 2) {
 			dest0[x2] = dest0[x2 + 1] = palette_pc[src[x] & 0x0f];
 		}
-		memcpy(dest1, dest0, 512 * sizeof(scrntype_t));
+		my_memcpy(dest1, dest0, 512 * sizeof(scrntype_t));
 	}
 }
 

@@ -515,7 +515,7 @@ void MEMORY::draw_screen()
 			if(config.scan_line) {
 				memset(dest1, 0, 640 * sizeof(scrntype_t));
 			} else {
-				memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
+				my_memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
 			}
 		}
 	}
@@ -534,7 +534,7 @@ void MEMORY::draw_screen()
 				if(config.scan_line) {
 					memset(dest1, 0, 640 * sizeof(scrntype_t));
 				} else {
-					memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
+					my_memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
 				}
 			}
 		} else {
@@ -552,7 +552,7 @@ void MEMORY::draw_screen()
 					if(config.scan_line) {
 						memset(dest1, 0, 640 * sizeof(scrntype_t));
 					} else {
-						memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
+						my_memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
 					}
 				}
 			} else {
@@ -570,7 +570,7 @@ void MEMORY::draw_screen()
 					if(config.scan_line) {
 						memset(dest1, 0, 640 * sizeof(scrntype_t));
 					} else {
-						memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
+						my_memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
 					}
 				}
 			}
@@ -594,7 +594,7 @@ void MEMORY::draw_screen()
 			if(config.scan_line) {
 				memset(dest1, 0, 640 * sizeof(scrntype_t));
 			} else {
-				memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
+				my_memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
 			}
 		}
 	}
@@ -612,7 +612,7 @@ void MEMORY::draw_screen()
 			if(config.scan_line) {
 				memset(dest1, 0, 640 * sizeof(scrntype_t));
 			} else {
-				memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
+				my_memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
 			}
 		}
 	}
