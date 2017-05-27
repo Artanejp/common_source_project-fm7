@@ -768,6 +768,9 @@ void OSD::set_features_vm(void)
 #ifdef HAS_MB89311
 	add_feature(_T("HAS_MB89311"), 1);
 #endif
+#ifdef I8259_MAX_CHIPS
+	add_feature(_T("I8259_MAX_CHIPS"), (uint32_t)I8259_MAX_CHIPS);
+#endif
 #ifdef I8080_MEMORY_WAIT
 	add_feature(_T("I8080_MEMORY_WAIT"), 1);
 #endif
