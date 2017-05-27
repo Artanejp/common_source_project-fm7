@@ -13,13 +13,14 @@ set(WITH_JOYSTICK ON)
 
 set(FLAG_USE_Z80 ON)
 set(VMFILES
+		   mc6847.cpp
 		   io.cpp
 		   
 		   event.cpp
 )
 set(VMFILES_LIB
 		   datarec.cpp
-		   mc6847.cpp
+		   mc6847_base.cpp
 		   not.cpp
 		   ym2203.cpp
 )

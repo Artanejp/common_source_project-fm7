@@ -17,10 +17,11 @@ set(VM_NAME phc20)
 set(USE_FMGEN OFF)
 set(FLAG_USE_Z80 ON)
 set(VMFILES
+		   mc6847.cpp
 		   event.cpp
 )
 set(VMFILES_LIB
-		   mc6847.cpp
+		   mc6847_base.cpp
 		   datarec.cpp
 )
 set(BUILD_SHARED_LIBS OFF)
