@@ -1,5 +1,5 @@
 // license:BSD-3-Clause
-// copyright-holders:Ville Linde, Barry Rodewald, Carl, Phil Bennett
+// copyright-holders:Ville Linde, Barry Rodewald, Carl, Philp Bennett
 static UINT8 I386OP(shift_rotate8)(i386_state *cpustate, UINT8 modrm, UINT32 value, UINT8 shift)
 {
 	UINT32 src = value & 0xff;
@@ -1224,7 +1224,8 @@ static void I386OP(repeat)(i386_state *cpustate, int invert_flag)
 			return;
 
 		default:
-			fatalerror("i386: Invalid REP/opcode %02X combination\n",opcode);
+			logerror("i386: Invalid REP/opcode %02X combination at %08x\n",opcode, cpustate->pc - 2);
+			cpustate->pc--;
 			break;
 	}
 
@@ -2507,7 +2508,66 @@ static void I386OP(mov_tr_r32)(i386_state *cpustate)        // Opcode 0x0f 26
 
 static void I386OP(loadall)(i386_state *cpustate)       // Opcode 0x0f 0x07 (0x0f 0x05 on 80286), undocumented
 {
-	fatalerror("i386: LOADALL unimplemented at %08X\n", cpustate->pc - 1);
+	if(PROTECTED_MODE && (cpustate->CPL != 0))
+		FAULT(FAULT_GP,0)
+	UINT32 ea = i386_translate(cpustate, ES, REG32(EDI), 0);
+	cpustate->cr[0] = READ32(cpustate, ea) & 0xfffeffff; // wp not supported on 386
+	set_flags(cpustate, READ32(cpustate, ea + 0x04));
+	cpustate->eip = READ32(cpustate, ea + 0x08);
+	REG32(EDI) = READ32(cpustate, ea + 0x0c);
+	REG32(ESI) = READ32(cpustate, ea + 0x10);
+	REG32(EBP) = READ32(cpustate, ea + 0x14);
+	REG32(ESP) = READ32(cpustate, ea + 0x18);
+	REG32(EBX) = READ32(cpustate, ea + 0x1c);
+	REG32(EDX) = READ32(cpustate, ea + 0x20);
+	REG32(ECX) = READ32(cpustate, ea + 0x24);
+	REG32(EAX) = READ32(cpustate, ea + 0x28);
+	cpustate->dr[6] = READ32(cpustate, ea + 0x2c);
+	cpustate->dr[7] = READ32(cpustate, ea + 0x30);
+	cpustate->task.segment = READ16(cpustate, ea + 0x34);
+	cpustate->ldtr.segment = READ16(cpustate, ea + 0x38);
+	cpustate->sreg[GS].selector = READ16(cpustate, ea + 0x3c);
+	cpustate->sreg[FS].selector = READ16(cpustate, ea + 0x40);
+	cpustate->sreg[DS].selector = READ16(cpustate, ea + 0x44);
+	cpustate->sreg[SS].selector = READ16(cpustate, ea + 0x48);
+	cpustate->sreg[CS].selector = READ16(cpustate, ea + 0x4c);
+	cpustate->sreg[ES].selector = READ16(cpustate, ea + 0x50);
+	cpustate->task.flags = READ32(cpustate, ea + 0x54) >> 8;
+	cpustate->task.base = READ32(cpustate, ea + 0x58);
+	cpustate->task.limit = READ32(cpustate, ea + 0x5c);
+	cpustate->idtr.base = READ32(cpustate, ea + 0x64);
+	cpustate->idtr.limit = READ32(cpustate, ea + 0x68);
+	cpustate->gdtr.base = READ32(cpustate, ea + 0x70);
+	cpustate->gdtr.limit = READ32(cpustate, ea + 0x74);
+	cpustate->ldtr.flags = READ32(cpustate, ea + 0x78) >> 8;
+	cpustate->ldtr.base = READ32(cpustate, ea + 0x7c);
+	cpustate->ldtr.limit = READ32(cpustate, ea + 0x80);
+	cpustate->sreg[GS].flags = READ32(cpustate, ea + 0x84) >> 8;
+	cpustate->sreg[GS].base = READ32(cpustate, ea + 0x88);
+	cpustate->sreg[GS].limit = READ32(cpustate, ea + 0x8c);
+	cpustate->sreg[FS].flags = READ32(cpustate, ea + 0x90) >> 8;
+	cpustate->sreg[FS].base = READ32(cpustate, ea + 0x94);
+	cpustate->sreg[FS].limit = READ32(cpustate, ea + 0x98);
+	cpustate->sreg[DS].flags = READ32(cpustate, ea + 0x9c) >> 8;
+	cpustate->sreg[DS].base = READ32(cpustate, ea + 0xa0);
+	cpustate->sreg[DS].limit = READ32(cpustate, ea + 0xa4);
+	cpustate->sreg[SS].flags = READ32(cpustate, ea + 0xa8) >> 8;
+	cpustate->sreg[SS].base = READ32(cpustate, ea + 0xac);
+	cpustate->sreg[SS].limit = READ32(cpustate, ea + 0xb0);
+	cpustate->sreg[CS].flags = READ32(cpustate, ea + 0xb4) >> 8;
+	cpustate->sreg[CS].base = READ32(cpustate, ea + 0xb8);
+	cpustate->sreg[CS].limit = READ32(cpustate, ea + 0xbc);
+	cpustate->sreg[ES].flags = READ32(cpustate, ea + 0xc0) >> 8;
+	cpustate->sreg[ES].base = READ32(cpustate, ea + 0xc4);
+	cpustate->sreg[ES].limit = READ32(cpustate, ea + 0xc8);
+	cpustate->CPL = (cpustate->sreg[SS].flags >> 5) & 3; // cpl == dpl of ss
+
+	for(int i = 0; i <= GS; i++)
+	{
+		cpustate->sreg[i].valid = (cpustate->sreg[i].flags & 0x80) ? true : false;
+		cpustate->sreg[i].d = (cpustate->sreg[i].flags & 0x4000) ? 1 : 0;
+	}
+	CHANGE_PC(cpustate, cpustate->eip);
 }
 
 static void I386OP(invalid)(i386_state *cpustate)

@@ -1,5 +1,5 @@
 // license:BSD-3-Clause
-// copyright-holders:Ville Linde, Barry Rodewald, Carl, Phil Bennett
+// copyright-holders:Ville Linde, Barry Rodewald, Carl, Philp Bennett
 #pragma once
 
 #ifndef __I386_H__
@@ -774,7 +774,7 @@ INLINE UINT16 FETCH16(i386_state *cpustate)
 	UINT16 value;
 	UINT32 address = cpustate->pc, error;
 
-	if( address & 0x1 ) {       /* Unaligned read */
+	if( !WORD_ALIGNED(address) ) {       /* Unaligned read */
 		value = (FETCH(cpustate) << 0);
 		value |= (FETCH(cpustate) << 8);
 	} else {
@@ -792,7 +792,7 @@ INLINE UINT32 FETCH32(i386_state *cpustate)
 	UINT32 value;
 	UINT32 address = cpustate->pc, error;
 
-	if( cpustate->pc & 0x3 ) {      /* Unaligned read */
+	if( !DWORD_ALIGNED(cpustate->pc) ) {      /* Unaligned read */
 		value = (FETCH(cpustate) << 0);
 		value |= (FETCH(cpustate) << 8);
 		value |= (FETCH(cpustate) << 16);
@@ -824,7 +824,7 @@ INLINE UINT16 READ16(i386_state *cpustate,UINT32 ea)
 	UINT16 value;
 	UINT32 address = ea, error;
 
-	if( ea & 0x1 ) {        /* Unaligned read */
+	if( !WORD_ALIGNED(ea) ) {        /* Unaligned read */
 		value = (READ8( cpustate, address+0 ) << 0);
 		value |= (READ8( cpustate, address+1 ) << 8);
 	} else {
@@ -841,7 +841,7 @@ INLINE UINT32 READ32(i386_state *cpustate,UINT32 ea)
 	UINT32 value;
 	UINT32 address = ea, error;
 
-	if( ea & 0x3 ) {        /* Unaligned read */
+	if( !DWORD_ALIGNED(ea) ) {        /* Unaligned read */
 		value = (READ8( cpustate, address+0 ) << 0);
 		value |= (READ8( cpustate, address+1 ) << 8);
 		value |= (READ8( cpustate, address+2 ) << 16),
@@ -861,7 +861,7 @@ INLINE UINT64 READ64(i386_state *cpustate,UINT32 ea)
 	UINT64 value;
 	UINT32 address = ea, error;
 
-	if( ea & 0x7 ) {        /* Unaligned read */
+	if( !QWORD_ALIGNED(ea) ) {        /* Unaligned read */
 		value = (((UINT64) READ8( cpustate, address+0 )) << 0);
 		value |= (((UINT64) READ8( cpustate, address+1 )) << 8);
 		value |= (((UINT64) READ8( cpustate, address+2 )) << 16);
@@ -895,7 +895,7 @@ INLINE UINT16 READ16PL0(i386_state *cpustate,UINT32 ea)
 	UINT16 value;
 	UINT32 address = ea, error;
 
-	if( ea & 0x1 ) {        /* Unaligned read */
+	if( !WORD_ALIGNED(ea) ) {        /* Unaligned read */
 		value = (READ8PL0( cpustate, address+0 ) << 0);
 		value |= (READ8PL0( cpustate, address+1 ) << 8);
 	} else {
@@ -913,7 +913,7 @@ INLINE UINT32 READ32PL0(i386_state *cpustate,UINT32 ea)
 	UINT32 value;
 	UINT32 address = ea, error;
 
-	if( ea & 0x3 ) {        /* Unaligned read */
+	if( !DWORD_ALIGNED(ea) ) {        /* Unaligned read */
 		value = (READ8PL0( cpustate, address+0 ) << 0);
 		value |= (READ8PL0( cpustate, address+1 ) << 8);
 		value |= (READ8PL0( cpustate, address+2 ) << 16);
@@ -949,7 +949,7 @@ INLINE void WRITE16(i386_state *cpustate,UINT32 ea, UINT16 value)
 {
 	UINT32 address = ea, error;
 
-	if( ea & 0x1 ) {        /* Unaligned write */
+	if( !WORD_ALIGNED(ea) ) {        /* Unaligned write */
 		WRITE8( cpustate, address+0, value & 0xff );
 		WRITE8( cpustate, address+1, (value >> 8) & 0xff );
 	} else {
@@ -964,7 +964,7 @@ INLINE void WRITE32(i386_state *cpustate,UINT32 ea, UINT32 value)
 {
 	UINT32 address = ea, error;
 
-	if( ea & 0x3 ) {        /* Unaligned write */
+	if( !DWORD_ALIGNED(ea) ) {        /* Unaligned write */
 		WRITE8( cpustate, address+0, value & 0xff );
 		WRITE8( cpustate, address+1, (value >> 8) & 0xff );
 		WRITE8( cpustate, address+2, (value >> 16) & 0xff );
@@ -982,7 +982,7 @@ INLINE void WRITE64(i386_state *cpustate,UINT32 ea, UINT64 value)
 {
 	UINT32 address = ea, error;
 
-	if( ea & 0x7 ) {        /* Unaligned write */
+	if( !QWORD_ALIGNED(ea) ) {        /* Unaligned write */
 		WRITE8( cpustate, address+0, value & 0xff );
 		WRITE8( cpustate, address+1, (value >> 8) & 0xff );
 		WRITE8( cpustate, address+2, (value >> 16) & 0xff );
@@ -1217,6 +1217,23 @@ INLINE void PUSH32(i386_state *cpustate,UINT32 value)
 		REG16(SP) = new_esp;
 	}
 }
+
+INLINE void PUSH32SEG(i386_state *cpustate,UINT32 value)
+{
+	UINT32 ea, new_esp;
+	if( STACK_32BIT ) {
+		new_esp = REG32(ESP) - 4;
+		ea = i386_translate(cpustate, SS, new_esp, 1);
+		((cpustate->cpu_version & 0xf00) == 0x300) ? WRITE16(cpustate, ea, value) : WRITE32(cpustate, ea, value ); // 486 also?
+		REG32(ESP) = new_esp;
+	} else {
+		new_esp = (REG16(SP) - 4) & 0xffff;
+		ea = i386_translate(cpustate, SS, new_esp, 1);
+		((cpustate->cpu_version & 0xf00) == 0x300) ? WRITE16(cpustate, ea, value) : WRITE32(cpustate, ea, value );
+		REG16(SP) = new_esp;
+	}
+}
+
 INLINE void PUSH8(i386_state *cpustate,UINT8 value)
 {
 	if( cpustate->operand_size ) {

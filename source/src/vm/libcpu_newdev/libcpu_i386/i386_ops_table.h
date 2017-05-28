@@ -283,6 +283,7 @@ const X86_OPCODE x86_opcode_table[] =
 	{ 0x03,     OP_2BYTE|OP_I386,           &I386_OPS_BASE::i386_lsl_r16_rm16,           &I386_OPS_BASE::i386_lsl_r32_rm32,       false},
 	{ 0x06,     OP_2BYTE|OP_I386,           &I386_OPS_BASE::i386_clts,                   &I386_OPS_BASE::i386_clts,               false},
 	{ 0x07,     OP_2BYTE|OP_I386,           &I386_OPS_BASE::i386_loadall,                &I386_OPS_BASE::i386_loadall,            false},
+	{ 0x07,     OP_2BYTE|OP_I486,           &I386_OPS_BASE::i386_invalid,                &I386_OPS_BASE::i386_invalid,            false},
 	{ 0x08,     OP_2BYTE|OP_I486,           &I386_OPS_BASE::i486_invd,                   &I386_OPS_BASE::i486_invd,               false},
 	{ 0x09,     OP_2BYTE|OP_I486,           &I386_OPS_BASE::i486_wbinvd,                 &I386_OPS_BASE::i486_wbinvd,             false},
 	{ 0x0B,     OP_2BYTE|OP_PENTIUM,        &I386_OPS_BASE::pentium_ud2,                 &I386_OPS_BASE::pentium_ud2,             false},

@@ -3,7 +3,7 @@
 /*
    i386 Disassembler
 
-   Written by Ville Linde
+   Written by Ville Linde, Peter Ferrie
 */
 
 //#include "emu.h"

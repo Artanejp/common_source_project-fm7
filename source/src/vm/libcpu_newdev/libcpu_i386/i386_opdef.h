@@ -1758,6 +1758,7 @@ protected:
 	INLINE void PUSH16(UINT16 value);
 	INLINE UINT16 POP16();
 	INLINE void PUSH32(UINT32 value);
+	INLINE void PUSH32SEG(UINT32 value);
 	INLINE UINT32 POP32();
 	
 	INLINE UINT8 OR8(UINT8 dst, UINT8 src);
@@ -1986,7 +1987,7 @@ INLINE UINT16 I386_OPS_BASE::FETCH16()
 	UINT16 value;
 	UINT32 address = cpustate->pc, error;
 
-	if( address & 0x1 ) {       /* Unaligned read */
+	if( !WORD_ALIGNED(address) ) {       /* Unaligned read */
 		value = (FETCH() << 0);
 		value |= (FETCH() << 8);
 	} else {
@@ -2004,7 +2005,7 @@ INLINE UINT32 I386_OPS_BASE::FETCH32()
 	UINT32 value;
 	UINT32 address = cpustate->pc, error;
 
-	if( cpustate->pc & 0x3 ) {      /* Unaligned read */
+	if( !DWORD_ALIGNED(cpustate->pc) ) {      /* Unaligned read */
 		value = (FETCH() << 0);
 		value |= (FETCH() << 8);
 		value |= (FETCH() << 16);
@@ -2037,7 +2038,7 @@ INLINE UINT16 I386_OPS_BASE::READ16(UINT32 ea)
 	UINT16 value;
 	UINT32 address = ea, error;
 
-	if( ea & 0x1 ) {        /* Unaligned read */
+	if( !WORD_ALIGNED(ea) ) {      /* Unaligned read */
 		value = (READ8(address+0) << 0);
 		value |= (READ8(address+1) << 8);
 	} else {
@@ -2054,7 +2055,7 @@ INLINE UINT32 I386_OPS_BASE::READ32(UINT32 ea)
 	UINT32 value;
 	UINT32 address = ea, error;
 
-	if( ea & 0x3 ) {        /* Unaligned read */
+	if( !DWORD_ALIGNED(ea) ) {      /* Unaligned read */
 		value = (READ8(address+0) << 0);
 		value |= (READ8(address+1) << 8);
 		value |= (READ8(address+2) << 16),
@@ -2074,7 +2075,7 @@ INLINE UINT64 I386_OPS_BASE::READ64(UINT32 ea)
 	UINT64 value;
 	UINT32 address = ea, error;
 
-	if( ea & 0x7 ) {        /* Unaligned read */
+	if( !QWORD_ALIGNED(ea) ) {      /* Unaligned read */
 		value = (((UINT64) READ8( address+0 )) << 0);
 		value |= (((UINT64) READ8( address+1 )) << 8);
 		value |= (((UINT64) READ8( address+2 )) << 16);
@@ -2110,7 +2111,7 @@ INLINE UINT16 I386_OPS_BASE::READ16PL0(UINT32 ea)
 	UINT16 value;
 	UINT32 address = ea, error;
 
-	if( ea & 0x1 ) {        /* Unaligned read */
+	if( !WORD_ALIGNED(ea) ) {      /* Unaligned read */
 		value = (READ8PL0( address+0 ) << 0);
 		value |= (READ8PL0( address+1 ) << 8);
 	} else {
@@ -2128,7 +2129,7 @@ INLINE UINT32 I386_OPS_BASE::READ32PL0(UINT32 ea)
 	UINT32 value;
 	UINT32 address = ea, error;
 
-	if( ea & 0x3 ) {        /* Unaligned read */
+	if( !DWORD_ALIGNED(ea) ) {      /* Unaligned read */
 		value = (READ8PL0( address+0 ) << 0);
 		value |= (READ8PL0( address+1 ) << 8);
 		value |= (READ8PL0( address+2 ) << 16);
@@ -2165,7 +2166,7 @@ INLINE void I386_OPS_BASE::WRITE16(UINT32 ea, UINT16 value)
 {
 	UINT32 address = ea, error;
 
-	if( ea & 0x1 ) {        /* Unaligned write */
+	if( !WORD_ALIGNED(ea) ) {      /* Unaligned write */
 		WRITE8( address+0, value & 0xff );
 		WRITE8( address+1, (value >> 8) & 0xff );
 	} else {
@@ -2181,7 +2182,7 @@ INLINE void I386_OPS_BASE::WRITE32(UINT32 ea, UINT32 value)
 {
 	UINT32 address = ea, error;
 
-	if( ea & 0x3 ) {        /* Unaligned write */
+	if( !DWORD_ALIGNED(ea) ) {      /* Unaligned write */
 		WRITE8( address+0, value & 0xff );
 		WRITE8( address+1, (value >> 8) & 0xff );
 		WRITE8( address+2, (value >> 16) & 0xff );
@@ -2199,7 +2200,7 @@ INLINE void I386_OPS_BASE::WRITE64(UINT32 ea, UINT64 value)
 {
 	UINT32 address = ea, error;
 
-	if( ea & 0x7 ) {        /* Unaligned write */
+	if( !QWORD_ALIGNED(ea) ) {      /* Unaligned write */
 		WRITE8( address+0, value & 0xff );
 		WRITE8( address+1, (value >> 8) & 0xff );
 		WRITE8( address+2, (value >> 16) & 0xff );
@@ -2436,6 +2437,23 @@ INLINE void I386_OPS_BASE::PUSH32(UINT32 value)
 		REG16(SP) = new_esp;
 	}
 }
+
+INLINE void I386_OPS_BASE::PUSH32SEG(UINT32 value)
+{
+	UINT32 ea, new_esp;
+	if( STACK_32BIT ) {
+		new_esp = REG32(ESP) - 4;
+		ea = i386_translate(SS, new_esp, 1);
+		((cpustate->cpu_version & 0xf00) == 0x300) ? WRITE16(ea, value) : WRITE32(ea, value ); // 486 also?
+		REG32(ESP) = new_esp;
+	} else {
+		new_esp = (REG16(SP) - 4) & 0xffff;
+		ea = i386_translate(SS, new_esp, 1);
+		((cpustate->cpu_version & 0xf00) == 0x300) ? WRITE16(ea, value) : WRITE32(ea, value );
+		REG16(SP) = new_esp;
+	}
+}
+
 INLINE void I386_OPS_BASE::PUSH8(UINT8 value)
 {
 	if( cpustate->operand_size ) {

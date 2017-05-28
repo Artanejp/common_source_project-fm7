@@ -154,6 +154,14 @@ const endianness_t ENDIANNESS_NATIVE = ENDIANNESS_BIG;
 #define ENDIAN_VALUE_NE_NNE(endian,leval,beval)	(((endian) == ENDIANNESS_NATIVE) ? (neval) : (nneval))
 
 /*****************************************************************************/
+/* src/emu/emumem.h */
+
+// helpers for checking address alignment
+#define WORD_ALIGNED(a)                 (((a) & 1) == 0)
+#define DWORD_ALIGNED(a)                (((a) & 3) == 0)
+#define QWORD_ALIGNED(a)                (((a) & 7) == 0)
+
+/*****************************************************************************/
 /* src/emu/memory.h */
 
 // address spaces

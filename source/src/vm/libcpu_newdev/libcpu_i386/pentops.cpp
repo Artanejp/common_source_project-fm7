@@ -1,5 +1,5 @@
 // license:BSD-3-Clause
-// copyright-holders:Ville Linde, Barry Rodewald, Carl, Phil Bennett
+// copyright-holders:Ville Linde, Barry Rodewald, Carl, Philp Bennett
 // Pentium+ specific opcodes
 #include "./i386_opdef.h"
 
@@ -122,7 +122,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 
 	cpustate->CPL = (cpustate->sreg[SS].flags >> 13) & 3; // cpl == dpl of ss
 
-	for(int i = 0; i < GS; i++)
+	for(int i = 0; i <= GS; i++)
 	{
 		if(PROTECTED_MODE && !V8086_MODE)
 		{
@@ -3554,19 +3554,19 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
  void I386_OPS_BASE::SSEOP(rcpps_r128_rm128)() // Opcode 0f 53
 {
 	UINT8 modrm = FETCH();
-	if( modrm >= 0xc0 ) {
-		XMM((modrm >> 3) & 0x7).f[0] = 1.0 / XMM(modrm & 0x7).f[0];
-		XMM((modrm >> 3) & 0x7).f[1] = 1.0 / XMM(modrm & 0x7).f[1];
-		XMM((modrm >> 3) & 0x7).f[2] = 1.0 / XMM(modrm & 0x7).f[2];
-		XMM((modrm >> 3) & 0x7).f[3] = 1.0 / XMM(modrm & 0x7).f[3];
+	if( modrm >= 0xc0 ) {	
+		XMM((modrm >> 3) & 0x7).f[0] = 1.0f / XMM(modrm & 0x7).f[0];
+		XMM((modrm >> 3) & 0x7).f[1] = 1.0f / XMM(modrm & 0x7).f[1];
+		XMM((modrm >> 3) & 0x7).f[2] = 1.0f / XMM(modrm & 0x7).f[2];
+		XMM((modrm >> 3) & 0x7).f[3] = 1.0f / XMM(modrm & 0x7).f[3];
 	} else {
 		XMM_REG src;
 		UINT32 ea = GetEA(modrm, 0);
 		READXMM( ea, src);
-		XMM((modrm >> 3) & 0x7).f[0] = 1.0 / src.f[0];
-		XMM((modrm >> 3) & 0x7).f[1] = 1.0 / src.f[1];
-		XMM((modrm >> 3) & 0x7).f[2] = 1.0 / src.f[2];
-		XMM((modrm >> 3) & 0x7).f[3] = 1.0 / src.f[3];
+		XMM((modrm >> 3) & 0x7).f[0] = 1.0f / src.f[0];
+		XMM((modrm >> 3) & 0x7).f[1] = 1.0f / src.f[1];
+		XMM((modrm >> 3) & 0x7).f[2] = 1.0f / src.f[2];
+		XMM((modrm >> 3) & 0x7).f[3] = 1.0f / src.f[3];
 	}
 	CYCLES(1);     // TODO: correct cycle count
 }
@@ -3893,12 +3893,12 @@ INLINE double sse_max_double(double src1, double src2)
 {
 	UINT8 modrm = FETCH();
 	if( modrm >= 0xc0 ) {
-		XMM((modrm >> 3) & 0x7).f[0] = 1.0 / XMM(modrm & 0x7).f[0];
+		XMM((modrm >> 3) & 0x7).f[0] = 1.0f / XMM(modrm & 0x7).f[0];
 	} else {
 		XMM_REG s;
 		UINT32 ea = GetEA(modrm, 0);
 		s.d[0]=READ32(ea);
-		XMM((modrm >> 3) & 0x7).f[0] = 1.0 / s.f[0];
+		XMM((modrm >> 3) & 0x7).f[0] = 1.0f / s.f[0];
 	}
 	CYCLES(1);     // TODO: correct cycle count
 }
@@ -4335,41 +4335,41 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 
  void I386_OPS_BASE::SSEOP(predicate_compare_double)(UINT8 imm8, XMM_REG d, XMM_REG s)
 {
-	switch (imm8 & 7)
-	{
-	case 0:
-		d.q[0]=d.f64[0] == s.f64[0] ? 0xffffffffffffffff : 0;
-		d.q[1]=d.f64[1] == s.f64[1] ? 0xffffffffffffffff : 0;
-		break;
-	case 1:
-		d.q[0]=d.f64[0] < s.f64[0] ? 0xffffffffffffffff : 0;
-		d.q[1]=d.f64[1] < s.f64[1] ? 0xffffffffffffffff : 0;
-		break;
-	case 2:
-		d.q[0]=d.f64[0] <= s.f64[0] ? 0xffffffffffffffff : 0;
-		d.q[1]=d.f64[1] <= s.f64[1] ? 0xffffffffffffffff : 0;
-		break;
-	case 3:
-		d.q[0]=sse_isdoubleunordered(d.f64[0], s.f64[0]) ? 0xffffffffffffffff : 0;
-		d.q[1]=sse_isdoubleunordered(d.f64[1], s.f64[1]) ? 0xffffffffffffffff : 0;
-		break;
-	case 4:
-		d.q[0]=d.f64[0] != s.f64[0] ? 0xffffffffffffffff : 0;
-		d.q[1]=d.f64[1] != s.f64[1] ? 0xffffffffffffffff : 0;
-		break;
-	case 5:
-		d.q[0]=d.f64[0] < s.f64[0] ? 0 : 0xffffffffffffffff;
-		d.q[1]=d.f64[1] < s.f64[1] ? 0 : 0xffffffffffffffff;
-		break;
-	case 6:
-		d.q[0]=d.f64[0] <= s.f64[0] ? 0 : 0xffffffffffffffff;
-		d.q[1]=d.f64[1] <= s.f64[1] ? 0 : 0xffffffffffffffff;
-		break;
-	case 7:
-		d.q[0]=sse_isdoubleordered(d.f64[0], s.f64[0]) ? 0xffffffffffffffff : 0;
-		d.q[1]=sse_isdoubleordered(d.f64[1], s.f64[1]) ? 0xffffffffffffffff : 0;
-		break;
-	}
+ 	switch (imm8 & 7)
+ 	{
+ 	case 0:
+		d.q[0]=d.f64[0] == s.f64[0] ? U64(0xffffffffffffffff) : 0;
+		d.q[1]=d.f64[1] == s.f64[1] ? U64(0xffffffffffffffff) : 0;
+ 		break;
+ 	case 1:
+		d.q[0]=d.f64[0] < s.f64[0] ? U64(0xffffffffffffffff) : 0;
+		d.q[1]=d.f64[1] < s.f64[1] ? U64(0xffffffffffffffff) : 0;
+ 		break;
+ 	case 2:
+		d.q[0]=d.f64[0] <= s.f64[0] ? U64(0xffffffffffffffff) : 0;
+		d.q[1]=d.f64[1] <= s.f64[1] ? U64(0xffffffffffffffff) : 0;
+ 		break;
+ 	case 3:
+		d.q[0]=sse_isdoubleunordered(d.f64[0], s.f64[0]) ? U64(0xffffffffffffffff) : 0;
+		d.q[1]=sse_isdoubleunordered(d.f64[1], s.f64[1]) ? U64(0xffffffffffffffff) : 0;
+ 		break;
+ 	case 4:
+		d.q[0]=d.f64[0] != s.f64[0] ? U64(0xffffffffffffffff) : 0;
+		d.q[1]=d.f64[1] != s.f64[1] ? U64(0xffffffffffffffff) : 0;
+ 		break;
+ 	case 5:
+		d.q[0]=d.f64[0] < s.f64[0] ? 0 : U64(0xffffffffffffffff);
+		d.q[1]=d.f64[1] < s.f64[1] ? 0 : U64(0xffffffffffffffff);
+ 		break;
+ 	case 6:
+		d.q[0]=d.f64[0] <= s.f64[0] ? 0 : U64(0xffffffffffffffff);
+		d.q[1]=d.f64[1] <= s.f64[1] ? 0 : U64(0xffffffffffffffff);
+ 		break;
+ 	case 7:
+		d.q[0]=sse_isdoubleordered(d.f64[0], s.f64[0]) ? U64(0xffffffffffffffff) : 0;
+		d.q[1]=sse_isdoubleordered(d.f64[1], s.f64[1]) ? U64(0xffffffffffffffff) : 0;
+ 		break;
+ 	}
 }
 
  void I386_OPS_BASE::SSEOP(predicate_compare_single_scalar)(UINT8 imm8, XMM_REG d, XMM_REG s)

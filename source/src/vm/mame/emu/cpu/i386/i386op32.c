@@ -1,5 +1,5 @@
 // license:BSD-3-Clause
-// copyright-holders:Ville Linde, Barry Rodewald, Carl, Phil Bennett
+// copyright-holders:Ville Linde, Barry Rodewald, Carl, Philp Bennett
 static UINT32 I386OP(shift_rotate32)(i386_state *cpustate, UINT8 modrm, UINT32 value, UINT8 shift)
 {
 	UINT32 dst, src;
@@ -475,7 +475,7 @@ static void I386OP(call_abs32)(i386_state *cpustate)        // Opcode 0x9a
 	}
 	else
 	{
-		PUSH32(cpustate, cpustate->sreg[CS].selector );
+		PUSH32SEG(cpustate, cpustate->sreg[CS].selector );
 		PUSH32(cpustate, cpustate->eip );
 		cpustate->sreg[CS].selector = ptr;
 		cpustate->performed_intersegment_jump = 1;
@@ -1717,7 +1717,7 @@ static void I386OP(push_cs32)(i386_state *cpustate)         // Opcode 0x0e
 	else
 		offset = (REG16(SP) - 4) & 0xffff;
 	if(i386_limit_check(cpustate,SS,offset) == 0)
-		PUSH32(cpustate, cpustate->sreg[CS].selector );
+		PUSH32SEG(cpustate, cpustate->sreg[CS].selector );
 	else
 		FAULT(FAULT_SS,0)
 	CYCLES(cpustate,CYCLES_PUSH_SREG);
@@ -1731,7 +1731,7 @@ static void I386OP(push_ds32)(i386_state *cpustate)         // Opcode 0x1e
 	else
 		offset = (REG16(SP) - 4) & 0xffff;
 	if(i386_limit_check(cpustate,SS,offset) == 0)
-		PUSH32(cpustate, cpustate->sreg[DS].selector );
+		PUSH32SEG(cpustate, cpustate->sreg[DS].selector );
 	else
 		FAULT(FAULT_SS,0)
 	CYCLES(cpustate,CYCLES_PUSH_SREG);
@@ -1745,7 +1745,7 @@ static void I386OP(push_es32)(i386_state *cpustate)         // Opcode 0x06
 	else
 		offset = (REG16(SP) - 4) & 0xffff;
 	if(i386_limit_check(cpustate,SS,offset) == 0)
-		PUSH32(cpustate, cpustate->sreg[ES].selector );
+		PUSH32SEG(cpustate, cpustate->sreg[ES].selector );
 	else
 		FAULT(FAULT_SS,0)
 	CYCLES(cpustate,CYCLES_PUSH_SREG);
@@ -1759,7 +1759,7 @@ static void I386OP(push_fs32)(i386_state *cpustate)         // Opcode 0x0f a0
 	else
 		offset = (REG16(SP) - 4) & 0xffff;
 	if(i386_limit_check(cpustate,SS,offset) == 0)
-		PUSH32(cpustate, cpustate->sreg[FS].selector );
+		PUSH32SEG(cpustate, cpustate->sreg[FS].selector );
 	else
 		FAULT(FAULT_SS,0)
 	CYCLES(cpustate,CYCLES_PUSH_SREG);
@@ -1773,7 +1773,7 @@ static void I386OP(push_gs32)(i386_state *cpustate)         // Opcode 0x0f a8
 	else
 		offset = (REG16(SP) - 4) & 0xffff;
 	if(i386_limit_check(cpustate,SS,offset) == 0)
-		PUSH32(cpustate, cpustate->sreg[GS].selector );
+		PUSH32SEG(cpustate, cpustate->sreg[GS].selector );
 	else
 		FAULT(FAULT_SS,0)
 	CYCLES(cpustate,CYCLES_PUSH_SREG);
@@ -1787,7 +1787,7 @@ static void I386OP(push_ss32)(i386_state *cpustate)         // Opcode 0x16
 	else
 		offset = (REG16(SP) - 4) & 0xffff;
 	if(i386_limit_check(cpustate,SS,offset) == 0)
-		PUSH32(cpustate, cpustate->sreg[SS].selector );
+		PUSH32SEG(cpustate, cpustate->sreg[SS].selector );
 	else
 		FAULT(FAULT_SS,0)
 	CYCLES(cpustate,CYCLES_PUSH_SREG);
@@ -2104,7 +2104,7 @@ static void I386OP(sub_r32_rm32)(i386_state *cpustate)      // Opcode 0x2b
 		STORE_REG32(modrm, dst);
 		CYCLES(cpustate,CYCLES_ALU_REG_REG);
 	} else {
-		UINT32 ea = GetEA(cpustate,modrm,1);
+		UINT32 ea = GetEA(cpustate,modrm,0);
 		src = READ32(cpustate,ea);
 		dst = LOAD_REG32(modrm);
 		dst = SUB32(cpustate,dst, src);
@@ -2845,7 +2845,7 @@ static void I386OP(groupFF_32)(i386_state *cpustate)        // Opcode 0xff
 					}
 					else
 					{
-						PUSH32(cpustate, cpustate->sreg[CS].selector );
+						PUSH32SEG(cpustate, cpustate->sreg[CS].selector );
 						PUSH32(cpustate, cpustate->eip );
 						cpustate->sreg[CS].selector = selector;
 						cpustate->performed_intersegment_jump = 1;
