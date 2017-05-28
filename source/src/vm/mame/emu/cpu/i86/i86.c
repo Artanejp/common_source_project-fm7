@@ -105,6 +105,14 @@ static UINT8 parity_table[256];
 #undef I8086
 
 
+bool i86_call_pseudo_bios(i8086_state *cpustate, uint32_t PC)
+{
+#ifdef I86_PSEUDO_BIOS
+	if(cpustate->bios != NULL) return cpustate->bios->bios_call_i86(PC, cpustate->regs.w, cpustate->sregs, &cpustate->ZeroVal, &cpustate->CarryVal);
+#endif
+	return false;
+}
+
 /***************************************************************************/
 static CPU_INIT( i8086 )
 {
@@ -228,7 +236,7 @@ static void set_test_line(i8086_state *cpustate, int state)
 	cpustate->test_state = !state;
 }
 
-static CPU_EXECUTE( i8086 )
+CPU_EXECUTE( i8086 )
 {
 	if (cpustate->halted || cpustate->busreq)
 	{
@@ -326,7 +334,7 @@ static CPU_EXECUTE( i8086 )
 	return base_icount - cpustate->icount;
 }
 
-static CPU_EXECUTE( i8088 )
+CPU_EXECUTE( i8088 )
 {
 	return CPU_EXECUTE_CALL(i8086);
 }
@@ -345,7 +353,7 @@ static CPU_EXECUTE( i8088 )
 #include "instr186.c"
 #undef I80186
 
-static CPU_EXECUTE( i80186 )
+CPU_EXECUTE( i80186 )
 {
 	if (cpustate->halted || cpustate->busreq)
 	{
@@ -457,7 +465,7 @@ static CPU_EXECUTE( i80186 )
 #include "instrv30.c"
 #undef I80186
 
-static CPU_EXECUTE( v30 )
+CPU_EXECUTE( v30 )
 {
 	if (cpustate->halted || cpustate->busreq)
 	{

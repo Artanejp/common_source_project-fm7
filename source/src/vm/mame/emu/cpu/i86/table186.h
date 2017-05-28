@@ -1,4 +1,4 @@
-static void (*const PREFIX186(_instruction)[256])(i8086_state *cpustate) =
+void (*const PREFIX186(_instruction)[256])(i8086_state *cpustate) =
 {
 		PREFIX86(_add_br8),           /* 0x00 */
 		PREFIX86(_add_wr16),          /* 0x01 */

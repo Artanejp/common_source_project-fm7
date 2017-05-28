@@ -100,6 +100,13 @@ static UINT8 parity_table[256];
 
 static struct i80x86_timing timing;
 
+bool i286_call_pseudo_bios(i80286_state *cpustate, uint32_t PC)
+{
+#ifdef I86_PSEUDO_BIOS
+	if(cpustate->bios != NULL) return cpustate->bios->bios_call_i86(PC, cpustate->regs.w, cpustate->sregs, &cpustate->ZeroVal, &cpustate->CarryVal);
+#endif
+	return false;
+}
 /***************************************************************************/
 
 #define I80286
