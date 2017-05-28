@@ -863,6 +863,14 @@ void OSD::set_features_vm(void)
 #ifdef TMS9918A_LIMIT_SPRITES
 	add_feature(_T("TMS9918A_LIMIT_SPRITES"), 1);
 #endif
+	
+#ifdef TIMER_HACK
+	add_feature(_T("TIMER_HACK"));
+#endif
+#ifdef KEYBOARD_HACK
+	add_feature(_T("KEYBOARD_HACK"));
+#endif
+	
 #ifdef HAS_UPD7907
 	add_feature(_T("HAS_UPD7907"), 1);
 #endif
