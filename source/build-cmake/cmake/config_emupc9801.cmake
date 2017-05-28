@@ -48,30 +48,33 @@ if(BUILD_PC9801)
    add_definitions(-D_PC9801)
    set(EXEC_TARGET emupc9801)
    set(FLAG_USE_Z80 ON)
+   set(VMFILES ${VMFILES}
+       i286.cpp
+   )
    set(VMFILES_LIB 
        beep.cpp
        not.cpp
 	   )
-   set(FLAG_USE_I86 ON)
+#   set(FLAG_USE_I86 ON)
    set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc9801.qrc)
 elseif(BUILD_PC9801E)
    add_definitions(-D_PC9801E)
    set(EXEC_TARGET emupc9801e)
    set(VMFILES ${VMFILES}
-#       i286.cpp
+       i286.cpp
    )
    set(FLAG_USE_Z80 ON)
    set(VMFILES_LIB 
        beep.cpp
        not.cpp
    )
-  set(FLAG_USE_I86 ON)
+#  set(FLAG_USE_I86 ON)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc9801e.qrc)
 elseif(BUILD_PC9801U)
    add_definitions(-D_PC9801U)
    set(EXEC_TARGET emupc9801u)
    set(VMFILES ${VMFILES}
-#       i286.cpp
+       i286.cpp
    )
    set(FLAG_USE_Z80 ON)
    set(VMFILES_LIB 
@@ -79,37 +82,37 @@ elseif(BUILD_PC9801U)
        not.cpp
        pcm1bit.cpp
    )
-    set(FLAG_USE_I86 ON)
+#    set(FLAG_USE_I86 ON)
  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc9801u.qrc)
 elseif(BUILD_PC9801VM)
    add_definitions(-D_PC9801VM)
    set(EXEC_TARGET emupc9801vm)
    set(VMFILES ${VMFILES}
-#       i286.cpp
+       i286.cpp
        )
    set(VMFILES_LIB 
        not.cpp
        pcm1bit.cpp
    )
-   set(FLAG_USE_I86 ON)
+#   set(FLAG_USE_I86 ON)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc9801vm.qrc)
 elseif(BUILD_PC9801VF)
    add_definitions(-D_PC9801VF)
    set(EXEC_TARGET emupc9801vf)
    set(VMFILES ${VMFILES}
-#       i286.cpp
+       i286.cpp
        )
    set(VMFILES_LIB 
        not.cpp
        pcm1bit.cpp
    )
-    set(FLAG_USE_I86 ON)
+#    set(FLAG_USE_I86 ON)
  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc9801vf.qrc)
 elseif(BUILD_PC98DO)
    add_definitions(-D_PC98DO)
    set(EXEC_TARGET emupc98do)
    set(VMFILES_LIB ${VMFILES_LIB}
- #      i286.cpp
+       i286.cpp
        
        pc80s31k.cpp
    )
@@ -120,7 +123,7 @@ elseif(BUILD_PC98DO)
        pcm1bit.cpp
        upd4991a.cpp
    )
-   set(FLAG_USE_I86 ON)
+#   set(FLAG_USE_I86 ON)
    set(VM_APPEND_LIBS vm_pc8801)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc98do.qrc)
 endif()

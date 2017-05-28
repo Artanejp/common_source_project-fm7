@@ -24,7 +24,7 @@
 #include "../i8255.h"
 #include "../i8259.h"
 #if defined(HAS_I86) || defined(HAS_V30)
-#include "../i86.h"
+#include "../i286.h"
 #else
 #include "../i286.h"
 #endif
@@ -134,7 +134,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio_prn->set_device_name(_T("8255 PIO (Printer)"));
 	pic = new I8259(this, emu);
 #if defined(HAS_I86) || defined(HAS_V30)
-	cpu = new I86(this, emu);
+	cpu = new I286(this, emu);
 #else
 	cpu = new I286(this, emu);
 #endif	

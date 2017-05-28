@@ -223,7 +223,7 @@ class I8253;
 class I8255;
 class I8259;
 #if defined(HAS_I86) || defined(HAS_V30)
-class I86;
+class I286;
 #else
 class I286;
 #endif
@@ -292,7 +292,7 @@ protected:
 	I8255* pio_prn;
 	I8259* pic;
 #if defined(HAS_I86) || defined(HAS_V30)
-	I86 *cpu;
+	I286 *cpu;
 #else
 	I286* cpu;
 #endif
