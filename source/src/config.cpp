@@ -55,6 +55,7 @@ void initialize_config()
 	memset(&config, 0, sizeof(config_t));
 	config.window_mode = 1;	
 	// memo: set only non zero value
+	config.full_speed = false;	
 	
 	// control
 	

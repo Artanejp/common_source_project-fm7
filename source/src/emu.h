@@ -203,6 +203,7 @@ public:
 #endif
 	
 	// drive machine
+	double get_frame_rate();
 	int get_frame_interval();
 	bool is_frame_skippable();
 	int run();

@@ -238,7 +238,6 @@ void EmuThreadClass::doWork(const QString &params)
 {
 	int interval = 0, sleep_period = 0;
 	int run_frames;
-	bool now_skip;
 	qint64 current_time;
 	bool first = true;
 	// LED
@@ -435,7 +434,7 @@ void EmuThreadClass::doWork(const QString &params)
 
 			interval += get_interval();
 			now_skip = p_emu->is_frame_skippable() && !p_emu->is_video_recording();
-
+			if(config.full_speed) interval = 1; 
 			if((prev_skip && !now_skip) || next_time == 0) {
 				next_time = tick_timer.elapsed();
 			}
@@ -478,7 +477,11 @@ void EmuThreadClass::doWork(const QString &params)
 				no_draw_count = 0;
 				skip_frames = 0;
 				qint64 tt = tick_timer.elapsed();
-				next_time = tt + get_interval();
+				if(config.full_speed) {
+					next_time = tt + 1;
+				} else {
+					next_time = tt + get_interval();
+				}
 				sleep_period = next_time - tt;
 			}
 		}
@@ -512,15 +515,19 @@ void EmuThreadClass::print_framerate(int frames)
 		if(update_fps_time <= current_time && update_fps_time != 0) {
 			_TCHAR buf[256];
 			QString message;
-			int ratio = (int)(100.0 * (double)draw_frames / (double)total_frames + 0.5);
+			//int ratio = (int)(100.0 * (double)draw_frames / (double)total_frames + 0.5);
 
 				if(MainWindow->GetPowerState() == false){ 	 
 					snprintf(buf, 255, _T("*Power OFF*"));
+				} else if(now_skip) {
+					int ratio = (int)(100.0 * (double)total_frames / emu->get_frame_rate() + 0.5);
+					snprintf(buf, 255, create_string(_T("%s - Skip Frames (%d %%)"), _T(DEVICE_NAME), ratio));
 				} else {
 					if(p_emu->message_count > 0) {
 						snprintf(buf, 255, _T("%s - %s"), DEVICE_NAME, p_emu->message);
 						p_emu->message_count--;
 					} else {
+						int ratio = (int)(100.0 * (double)draw_frames / (double)total_frames + 0.5);
 						snprintf(buf, 255, _T("%s - %d fps (%d %%)"), DEVICE_NAME, draw_frames, ratio);
 					}
 				}

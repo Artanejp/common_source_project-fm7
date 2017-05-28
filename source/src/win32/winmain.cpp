@@ -23,18 +23,6 @@
 // emulation core
 EMU* emu;
 
-// timing control
-#define MAX_SKIP_FRAMES 10
-
-int get_interval()
-{
-	static int accum = 0;
-	accum += emu->get_frame_interval();
-	int interval = accum >> 10;
-	accum -= interval << 10;
-	return interval;
-}
-
 // menu
 HMENU hMenu = NULL;
 bool now_menuloop = false;
@@ -344,16 +332,17 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdL
 			total_frames += run_frames;
 			
 			// timing controls
-			int interval = 0, sleep_period = 0;
-//			for(int i = 0; i < run_frames; i++) {
-				interval += get_interval();
-//			}
-			bool now_skip = emu->is_frame_skippable() && !emu->is_video_recording();
+			int sleep_period = 0;
+			bool now_skip = (config.full_speed || emu->is_frame_skippable()) && !emu->is_video_recording() && !emu->is_sound_recording();
 			
 			if((prev_skip && !now_skip) || next_time == 0) {
 				next_time = timeGetTime();
 			}
 			if(!now_skip) {
+				static int accum = 0;
+				accum += emu->get_frame_interval();
+				int interval = accum >> 10;
+				accum -= interval << 10;
 				next_time += interval;
 			}
 			prev_skip = now_skip;
@@ -368,8 +357,8 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdL
 				if((int)(next_time - current_time) >= 10) {
 					sleep_period = next_time - current_time;
 				}
-			} else if(++skip_frames > MAX_SKIP_FRAMES) {
-				// update window at least once per 10 frames
+			} else if(++skip_frames > (int)emu->get_frame_rate()) {
+				// update window at least once per 1 sec in virtual machine time
 				draw_frames += emu->draw_screen();
 				skip_frames = 0;
 				next_time = timeGetTime();
@@ -380,13 +369,14 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdL
 			DWORD current_time = timeGetTime();
 			if(update_fps_time <= current_time) {
 				if(update_fps_time != 0) {
-					int ratio = (int)(100.0 * (double)draw_frames / (double)total_frames + 0.5);
 					if(emu->message_count > 0) {
 						SetWindowText(hWnd, create_string(_T("%s - %s"), _T(DEVICE_NAME), emu->message));
 						emu->message_count--;
 					} else if(now_skip) {
-						SetWindowText(hWnd, create_string(_T("%s - Skip Frames"), _T(DEVICE_NAME)));
+						int ratio = (int)(100.0 * (double)total_frames / emu->get_frame_rate() + 0.5);
+						SetWindowText(hWnd, create_string(_T("%s - Skip Frames (%d %%)"), _T(DEVICE_NAME), ratio));
 					} else {
+						int ratio = (int)(100.0 * (double)draw_frames / (double)total_frames + 0.5);
 						SetWindowText(hWnd, create_string(_T("%s - %d fps (%d %%)"), _T(DEVICE_NAME), draw_frames, ratio));
 					}
 					update_fps_time += 1000;
@@ -636,6 +626,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			if(emu) {
 				emu->update_config();
 			}
+			break;
+		case ID_FULL_SPEED:
+			config.full_speed = !config.full_speed;
 			break;
 #ifdef USE_AUTO_KEY
 		case ID_AUTOKEY_START:
@@ -1313,6 +1306,7 @@ void update_control_menu(HMENU hMenu)
 	if(config.cpu_power >= 0 && config.cpu_power < 5) {
 		CheckMenuRadioItem(hMenu, ID_CPU_POWER0, ID_CPU_POWER4, ID_CPU_POWER0 + config.cpu_power, MF_BYCOMMAND);
 	}
+	CheckMenuItem(hMenu, ID_FULL_SPEED, config.full_speed ? MF_CHECKED : MF_UNCHECKED);
 #ifdef USE_AUTO_KEY
 	bool now_paste = true, now_stop = true;
 	if(emu) {

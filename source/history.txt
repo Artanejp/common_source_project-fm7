@@ -1,3 +1,10 @@
+5/28/2017
+
+[WINMAIN] support to run simulation at full speed
+
+[VM/I386] improve i386 core based on MAME 0.185
+
+
 5/20/2017
 
 [YIS/DISPLAY] support correct font rom (thanks Mr.Moriya)

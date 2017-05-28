@@ -115,6 +115,7 @@ typedef struct {
 	#endif
 	
 	int cpu_power;
+	bool full_speed;
 	
 	// recent files
 	#if defined(USE_SHARED_DLL) || defined(USE_CART1)

@@ -87,6 +87,7 @@ BEGIN
         MENUITEM "CPU x4",                      ID_CPU_POWER2
         MENUITEM "CPU x8",                      ID_CPU_POWER3
         MENUITEM "CPU x16",                     ID_CPU_POWER4
+        MENUITEM "Full Speed",                  ID_FULL_SPEED
         MENUITEM SEPARATOR
         MENUITEM "Paste",                       ID_AUTOKEY_START
         MENUITEM "Stop",                        ID_AUTOKEY_STOP

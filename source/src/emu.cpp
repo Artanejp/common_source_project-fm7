@@ -166,6 +166,15 @@ int EMU::get_host_cpus()
 // drive machine
 // ----------------------------------------------------------------------------
 
+double EMU::get_frame_rate()
+{
+#ifdef SUPPORT_VARIABLE_TIMING
+	return vm->get_frame_rate();
+#else
+	return FRAMES_PER_SEC;
+#endif
+}
+
 int EMU::get_frame_interval()
 {
 #ifdef SUPPORT_VARIABLE_TIMING

@@ -43,7 +43,8 @@ class EmuThreadClass : public EmuThreadClassBase {
 	Q_OBJECT
 protected:
 	char dbg_prev_command[MAX_COMMAND_LEN];
-
+	bool now_skip;
+  
 	void button_pressed_mouse_sub(Qt::MouseButton button);
 	void button_released_mouse_sub(Qt::MouseButton button);
 	void get_qd_string(void);
