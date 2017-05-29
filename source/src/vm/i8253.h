@@ -10,8 +10,8 @@
 #ifndef _I8253_H_
 #define _I8253_H_
 
-//#include "vm.h"
-//#include "../emu.h"
+#include "vm.h"
+#include "../emu.h"
 #include "device.h"
 
 #define SIG_I8253_CLOCK_0	0
@@ -38,11 +38,11 @@ private:
 		int mode;
 		bool delay;
 		bool start;
-//#ifdef HAS_I8254
+#ifdef HAS_I8254
 		bool null_count;
 		bool status_latched;
 		uint8_t status;
-//#endif
+#endif
 		// constant clock
 		uint64_t freq;
 		int register_id;
@@ -53,8 +53,6 @@ private:
 		outputs_t outputs;
 	} counter[3];
 	uint64_t cpu_clocks;
-
-	bool __HAS_I8254;
 	
 	void input_clock(int ch, int clock);
 	void input_gate(int ch, bool signal);
@@ -71,7 +69,7 @@ public:
 			initialize_output_signals(&counter[i].outputs);
 			counter[i].freq = 0;
 		}
-		set_device_name(_T("i8253 PIT"));
+		set_device_name(_T("8253 PIT"));
 	}
 	~I8253() {}
 	
@@ -88,6 +86,7 @@ public:
 	}
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	
 	// unique functions
 	void set_context_ch0(DEVICE* device, int id, uint32_t mask)
 	{

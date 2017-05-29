@@ -13,7 +13,7 @@ ITF::ITF(VM *parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
 	itf = NULL;
 	ipl = NULL;
-	itf_bank = PC98_ITF_ITF;
+	itf_bank = PC98_ITF_IPL;
 }
 
 ITF::~ITF()
@@ -22,14 +22,15 @@ ITF::~ITF()
 
 void ITF::reset(void)
 {
-	itf_bank = PC98_ITF_ITF;
+	itf_bank = PC98_ITF_IPL;
 }
 
 // See: http://www.webtech.co.jp/company/doc/undocumented_mem/io_mem.txt .
 void ITF::write_io8(uint32_t addr, uint32_t data)
 {
-	switch(addr & 0x1) {
+	switch(addr & 0x3) {
 	case 0x1:
+#if 0
 		printf("SET %05x %02x\n", addr, data);
 		if((data & 0xff) == 0x10) {
 #if defined(_PCH98S)
@@ -44,6 +45,19 @@ void ITF::write_io8(uint32_t addr, uint32_t data)
 		else if((data & 0xff) == 0x18) {
 			itf_bank = PC98_ITF_ITF;
 		}
+#endif
+#else
+		// From MAME0185
+		if(((data & 0xf0) == 0x00) || ((data & 0xf0) == 0x10)) {
+			if((data & 0xed) == 0x00) {
+				if((data & 0x02) == 0) {
+					itf_bank = PC98_ITF_ITF;
+				} else {
+					itf_bank = PC98_ITF_IPL;
+				}
+			}
+		}
+	   
 #endif
 		break;
 	default:
@@ -74,7 +88,7 @@ uint32_t ITF::read_memory_mapped_io8(uint32_t addr)
 {
 	uint32_t raddr = addr & 0xfffff;
 	// ToDo: Address with i286/i386/i486.
-	//if(raddr < 0xe8000) return 0xff; // OK?
+	if(raddr < 0xe8000) return 0xff; // OK?
 	switch(itf_bank) {
 	case PC98_ITF_IPL:
 		if(ipl == NULL) return 0xff;
@@ -82,9 +96,10 @@ uint32_t ITF::read_memory_mapped_io8(uint32_t addr)
 		break;
 	case PC98_ITF_ITF:
 		if(itf == NULL) return 0xff;
-		raddr = raddr & 0x7fff;
-		printf("DATA: %05x %02x\n", addr, itf[raddr]);
-		return itf[raddr];
+//   printf("%05x\n", raddr);
+		if(raddr < 0xf8000) return 0xff;
+		//printf("DATA: %05x %02x\n", addr, itf[raddr]);
+		return itf[raddr & 0x7fff];
 		break;
 #if defined(_PCH98S)
 	case PC98_ITF_ITF:

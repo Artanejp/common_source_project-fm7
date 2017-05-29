@@ -21,7 +21,7 @@ set(s_vm_common_vm_srcs
 	../i8155.cpp
 	../i8237_base.cpp
 	../i8251.cpp
-	../i8253.cpp
+#	../i8253.cpp
 	../i8255.cpp
 	../i8259.cpp
 #	../i86.cpp
@@ -126,8 +126,8 @@ if(WIN32)
 #	  ${SDL2_LIBRARIES}
 #	  )
 #set_target_properties(CSPcommon_vm PROPERTIES
-#			     SOVERSION 1.1.10
-#			     VERSION 1.1.10
+#			     SOVERSION 1.1.11
+#			     VERSION 1.1.11
 #			     LINK_INTERFACE_LIBRARIES ""
 #			     )
 #generate_export_header(CSPcommon_vm
@@ -144,8 +144,8 @@ else()
     ${s_vm_common_vm_srcs}
   )
   set_target_properties(CSPcommon_vm PROPERTIES 
-     SOVERSION 1.1.10
-     VERSION 1.1.10
+     SOVERSION 1.1.11
+     VERSION 1.1.11
   )
   INSTALL(TARGETS CSPcommon_vm DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

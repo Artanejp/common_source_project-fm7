@@ -17,6 +17,7 @@ set(USE_FMGEN ON)
 set(EXEC_TARGET emumulti8)
 set(FLAG_USE_Z80 ON)
 set(VMFILES_BASE
+		   i8253.cpp
 		   io.cpp
 		   
 		   event.cpp
@@ -25,7 +26,7 @@ set(VMFILES_LIB
 		   datarec.cpp
 		   hd46505.cpp
 		   i8251.cpp
-		   i8253.cpp
+#		   i8253.cpp
 		   i8255.cpp
 		   i8259.cpp
 		   beep.cpp

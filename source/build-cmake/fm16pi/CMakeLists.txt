@@ -22,6 +22,7 @@ set(WITH_MOUSE ON)
 
 set(VMFILES
 #		   i286.cpp
+		   i8253.cpp
 		   msm58321.cpp
 		   event.cpp
 		   io.cpp

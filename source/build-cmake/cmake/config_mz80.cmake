@@ -25,6 +25,7 @@ set(VMFILES_BASE
 
 set(VMFILES_LIB
 	   beep.cpp
+#	   i8253.cpp
 	   datarec.cpp
 	   ls393.cpp
 	   pcm1bit.cpp

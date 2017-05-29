@@ -20,6 +20,7 @@ set(WITH_MOUSE ON)
 
 set(VMFILES
 #	   z80.cpp
+	   i8253.cpp
 	   
 	   upd7220.cpp
    
@@ -29,7 +30,7 @@ set(VMFILES
 )
 set(VMFILES_LIB
 	   i8251.cpp
-	   i8253.cpp
+#	   i8253.cpp
 	   i8255.cpp
 		   
 	   ls244.cpp

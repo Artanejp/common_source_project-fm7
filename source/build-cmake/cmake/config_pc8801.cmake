@@ -68,7 +68,7 @@ endif()
 add_definitions(-DPC88_EXRAM_BANKS=${PC88_EXTRAM_PAGES})
 
 if(USE_PCG)
-  set(VMFILES_LIB ${VMFILES_LIB}
+  set(VMFILES ${VMFILES}
             i8253.cpp
       )      
   add_definitions(-DSUPPORT_PC88_PCG8100)

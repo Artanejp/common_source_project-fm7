@@ -18,6 +18,7 @@ set(USE_FMGEN OFF)
 set(VMFILES
 #		   i286.cpp
 		   i8237.cpp
+		   i8253.cpp
 		   fmr50/bios.cpp
 		   
 		   scsi_dev.cpp
@@ -31,7 +32,7 @@ set(VMFILES
 set(VMFILES_LIB
 		   pcm1bit.cpp
 		   i8251.cpp
-		   i8253.cpp
+#		   i8253.cpp
 		   i8259.cpp
 		   i8237_base.cpp
 		   sn76489an.cpp
