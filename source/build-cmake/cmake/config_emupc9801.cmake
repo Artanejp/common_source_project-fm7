@@ -112,13 +112,13 @@ elseif(BUILD_PC9801VF)
 elseif(BUILD_PC98DO)
    add_definitions(-D_PC98DO)
    set(EXEC_TARGET emupc98do)
-   set(VMFILES_LIB ${VMFILES_LIB}
+   set(VMFILES ${VMFILES}
        i286.cpp
        
-       pc80s31k.cpp
    )
    set(FLAG_USE_Z80 ON)
-   set(VMFILES_LIB 
+   set(VMFILES_LIB ${VMFILES_LIB}
+       pc80s31k.cpp
        beep.cpp
        not.cpp
        pcm1bit.cpp
