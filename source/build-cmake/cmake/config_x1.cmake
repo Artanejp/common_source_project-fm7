@@ -13,10 +13,7 @@ set(USE_FMGEN ON)
 set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
 set(VMFILES
-		   z80ctc.cpp
-
 		   event.cpp
-		   
 		   io.cpp
 		   mz1p17.cpp
 )
@@ -30,6 +27,7 @@ set(VMFILES_LIB
 		   upd1990a.cpp
 		   ym2151.cpp
 #		   ym2203.cpp
+		   z80ctc.cpp
 		   z80sio.cpp
 		   z80pio.cpp
 		   

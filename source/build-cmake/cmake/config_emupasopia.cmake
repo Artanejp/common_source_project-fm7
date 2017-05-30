@@ -13,9 +13,6 @@ set(WITH_MOUSE OFF)
 set(FLAG_USE_Z80 ON)
 set(VMFILES
 		   i8255.cpp
-		   
-		   z80ctc.cpp
-		   
 		   io.cpp
 		   event.cpp
 )
@@ -24,6 +21,7 @@ set(VMFILES_LIB
 		   ls393.cpp
 		   not.cpp
 		   z80pio.cpp
+		   z80ctc.cpp
 		   pcm1bit.cpp
 		   upd765a.cpp
 		   disk.cpp

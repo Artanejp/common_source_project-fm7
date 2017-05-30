@@ -10,8 +10,8 @@
 #ifndef _Z80CTC_H_
 #define _Z80CTC_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 #define SIG_Z80CTC_TRIG_0	0
@@ -49,6 +49,9 @@ private:
 		outputs_t outputs;
 	} counter[4];
 	uint64_t cpu_clocks;
+
+	bool   _E_Z80CTC_CLOCKS;
+	double __Z80CTC_CLOCKS;
 	
 	void input_clock(int ch, int clock);
 	void input_sysclock(int ch, int clock);
@@ -70,6 +73,8 @@ public:
 			counter[i].prev_in = false;
 		}
 		d_cpu = d_child = NULL;
+		_E_Z80CTC_CLOCKS = false;
+		__Z80CTC_CLOCKS = 1.0;
 		set_device_name(_T("Z80 CTC"));
 	}
 	~Z80CTC() {}

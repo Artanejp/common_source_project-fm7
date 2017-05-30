@@ -14,9 +14,6 @@ set(WITH_JOYSTICK OFF)
 set(WITH_MOUSE OFF)
 
 set(VMFILES_BASE
-		   i8253.cpp
-		   i8255.cpp
-		   prnfile.cpp
 		   mz1p17.cpp
 		   event.cpp
 		   io.cpp
@@ -25,10 +22,12 @@ set(VMFILES_BASE
 
 set(VMFILES_LIB
 	   beep.cpp
-#	   i8253.cpp
 	   datarec.cpp
+	   i8253.cpp
+	   i8255.cpp
 	   ls393.cpp
 	   pcm1bit.cpp
+	   prnfile.cpp
 )		   
 set(FLAG_USE_Z80 ON)		   
 

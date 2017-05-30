@@ -23,15 +23,13 @@ set(WITH_MOUSE ON)
 
 set(VMFILES_BASE
 #      i86.cpp
-
-      i8253.cpp
       io.cpp
       memory.cpp
       event.cpp
 )
 set(VMFILES_LIB
       i8251.cpp
-#      i8253.cpp
+      i8253.cpp
       i8255.cpp
       i8259.cpp
 	  

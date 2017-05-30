@@ -12,6 +12,15 @@
 #define EVENT_COUNTER	0
 #define EVENT_TIMER	4
 
+void Z80CTC::initialize()
+{
+	DEVICE::initialize();
+	_E_Z80CTC_CLOCKS = osd->check_feature(_T("Z80CTC_CLOCKS"));
+	if(_E_Z80CTC_CLOCKS) {
+		__Z80CTC_CLOCKS = osd->get_feature_double_value(_T("Z80CTC_CLOCKS"));
+	}
+}
+
 void Z80CTC::reset()
 {
 	for(int ch = 0; ch < 4; ch++) {
@@ -90,11 +99,15 @@ uint32_t Z80CTC::read_io8(uint32_t addr)
 		}
 	} else if(counter[ch].sysclock_id != -1) {
 		int passed = get_passed_clock(counter[ch].prev);
-#ifdef Z80CTC_CLOCKS
-		uint32_t input = (uint32_t)(passed * Z80CTC_CLOCKS / cpu_clocks);
-#else
-		uint32_t input = passed;
-#endif
+		uint32_t input;
+//#ifdef Z80CTC_CLOCKS
+		if(_E_Z80CTC_CLOCKS) {
+			input = (uint32_t)(passed * __Z80CTC_CLOCKS / cpu_clocks);
+		} else {		
+//#else
+			input = passed;
+		}
+//#endif
 		if(counter[ch].input <= input) {
 			input = counter[ch].input - 1;
 		}
@@ -233,11 +246,14 @@ void Z80CTC::update_event(int ch, int err)
 		}
 		if(counter[ch].sysclock_id == -1) {
 			counter[ch].input = counter[ch].count * counter[ch].prescaler - counter[ch].clocks;
-#ifdef Z80CTC_CLOCKS
-			counter[ch].period = (uint32_t)(counter[ch].input * cpu_clocks / Z80CTC_CLOCKS) + err;
-#else
-			counter[ch].period = counter[ch].input + err;
-#endif
+//#ifdef Z80CTC_CLOCKS
+			if(_E_Z80CTC_CLOCKS) {
+				counter[ch].period = (uint32_t)(counter[ch].input * cpu_clocks / __Z80CTC_CLOCKS) + err;
+			} else {
+//#else
+				counter[ch].period = counter[ch].input + err;
+			}
+//#endif
 			counter[ch].prev = get_current_clock() + err;
 			register_event_by_clock(this, EVENT_TIMER + ch, counter[ch].period, false, &counter[ch].sysclock_id);
 		}

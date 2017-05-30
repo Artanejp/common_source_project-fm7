@@ -22,7 +22,6 @@ set(VMFILES_LIB_2500
 )
 
 set(VMFILES_BASE
-		   i8253.cpp		   
 		   mz1p17.cpp
 
 		   event.cpp
@@ -32,7 +31,7 @@ set(VMFILES_BASE
 		   )
 set(VMFILES_LIB
 		   datarec.cpp
-#		   i8253.cpp
+		   i8253.cpp
 		   i8255.cpp
 
 		   pcm1bit.cpp

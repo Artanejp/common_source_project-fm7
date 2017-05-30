@@ -23,7 +23,6 @@ set(WITH_MOUSE ON)
 
 set(FLAG_USE_Z80 ON)
 set(VMFILES_BASE
-      z80ctc.cpp
       memory.cpp
   
       io.cpp
@@ -34,6 +33,7 @@ set(VMFILES_LIB
       datarec.cpp
       sn76489an.cpp
       tms9918a.cpp
+      z80ctc.cpp
 )
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")

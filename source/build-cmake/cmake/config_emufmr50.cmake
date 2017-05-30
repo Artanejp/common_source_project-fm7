@@ -12,8 +12,6 @@ set(WITH_JOYSTICK OFF)
 set(WITH_MOUSE ON)
 
 set(VMFILES
-
-		   i8253.cpp
 		   msm58321.cpp
 		   scsi_dev.cpp
 		   scsi_host.cpp
@@ -30,8 +28,7 @@ set(VMFILES_LIB
 		   mb8877.cpp
 		   hd46505.cpp
 		   upd71071.cpp
-#		   i8253.cpp
-
+		   i8253.cpp
 		   i8251.cpp
 		   i8253.cpp
 		   i8259.cpp

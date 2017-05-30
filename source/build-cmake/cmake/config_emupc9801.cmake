@@ -6,7 +6,6 @@ set(WITH_MOUSE ON)
 
 set(VMFILES
 		   i8237.cpp
-		   i8253.cpp
 		   upd7220.cpp
 
 		   event.cpp

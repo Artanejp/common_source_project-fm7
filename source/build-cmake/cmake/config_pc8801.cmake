@@ -8,10 +8,9 @@ set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
 
 set(VMFILES
-		   z80ctc.cpp
-		   event.cpp
-		   io.cpp
-		   memory.cpp
+		event.cpp
+		io.cpp
+		memory.cpp
 )
 set(VMFILES_LIB
 		beep.cpp
@@ -24,8 +23,9 @@ set(VMFILES_LIB
 		upd1990a.cpp
 		upd765a.cpp
 		ym2203.cpp
-		z80pio.cpp
+		z80ctc.cpp
 		z80dma.cpp
+		z80pio.cpp
 		z80sio.cpp
 		disk.cpp
 		
@@ -68,7 +68,7 @@ endif()
 add_definitions(-DPC88_EXRAM_BANKS=${PC88_EXTRAM_PAGES})
 
 if(USE_PCG)
-  set(VMFILES ${VMFILES}
+  set(VMFILES_LIB ${VMFILES_LIB}
             i8253.cpp
       )      
   add_definitions(-DSUPPORT_PC88_PCG8100)

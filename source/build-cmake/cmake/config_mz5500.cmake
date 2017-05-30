@@ -8,12 +8,10 @@ set(WITH_MOUSE ON)
 
 set(VMFILES
 #		   i286.cpp
-		   
 		   i8237.cpp
+		   mz1p17.cpp
 		   
 		   upd7220.cpp
-		   z80ctc.cpp
-		   mz1p17.cpp
 		   
 		   event.cpp
 		   io.cpp
@@ -31,6 +29,7 @@ set(VMFILES_LIB
 		   upd7220_base.cpp
 		   upd765a.cpp
 		   ym2203.cpp
+		   z80ctc.cpp
 		   z80sio.cpp
 		   
 		   disk.cpp

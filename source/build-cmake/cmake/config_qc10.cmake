@@ -6,16 +6,13 @@ set(WITH_MOUSE OFF)
 set(FLAG_USE_Z80 ON)
 set(VMFILES
 		   i8237.cpp
-		   i8253.cpp
 		   upd7220.cpp
-		   
 		   io.cpp
-		   
 		   event.cpp
 )
 set(VMFILES_LIB
 		   i8237_base.cpp
-#		   i8253.cpp
+		   i8253.cpp
 		   i8255.cpp
 		   i8259.cpp
 		   upd7220_base.cpp

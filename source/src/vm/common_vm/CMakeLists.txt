@@ -21,7 +21,7 @@ set(s_vm_common_vm_srcs
 	../i8155.cpp
 	../i8237_base.cpp
 	../i8251.cpp
-#	../i8253.cpp
+	../i8253.cpp
 	../i8255.cpp
 	../i8259.cpp
 #	../i86.cpp
@@ -85,7 +85,7 @@ set(s_vm_common_vm_srcs
 	../ym2203.cpp
 	../ym2413.cpp
 	../z80_base.cpp
-#	../z80ctc.cpp
+	../z80ctc.cpp
 	../z80dma.cpp
 	../z80pio.cpp
 	../z80sio.cpp
@@ -144,8 +144,8 @@ else()
     ${s_vm_common_vm_srcs}
   )
   set_target_properties(CSPcommon_vm PROPERTIES 
-     SOVERSION 1.1.11
-     VERSION 1.1.11
+     SOVERSION 1.1.12
+     VERSION 1.1.12
   )
   INSTALL(TARGETS CSPcommon_vm DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

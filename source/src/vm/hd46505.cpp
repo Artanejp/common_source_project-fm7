@@ -21,10 +21,10 @@ void HD46505::initialize()
 	} else {
 		_CHARS_PER_LINE = -1;
 	}
-	if(osd->cehck_feature(_T("SCREEN_WIDTH"))) {
+	if(osd->check_feature(_T("SCREEN_WIDTH"))) {
 		_SCREEN_WIDTH = osd->get_feature_int_value(_T("SCREEN_WIDTH"));
 	}
-	if(osd->cehck_feature(_T("SCREEN_HEIGHT"))) {
+	if(osd->check_feature(_T("SCREEN_HEIGHT"))) {
 		_SCREEN_HEIGHT = osd->get_feature_int_value(_T("SCREEN_HEIGHT"));
 	}
 	if(osd->check_feature(_T("LINES_PER_FRAME"))) {
@@ -32,11 +32,11 @@ void HD46505::initialize()
 	} else {
 		_LINES_PER_FRAME = 64;
 	}
-	if(osd->chack_keature(_T("HD46505_CHAR_CLOCK"))) {
+	if(osd->check_feature(_T("HD46505_CHAR_CLOCK"))) {
 		_E_HD46505_CHAR_CLOCK = true;
 		_HD46505_CHAR_CLOCK = osd->get_feature_double_value(_T("HD46505_CHAR_CLOCK"));
 	}
-	if(osd->chack_keature(_T("HD46505_HORIZ_FREQ"))) {
+	if(osd->check_feature(_T("HD46505_HORIZ_FREQ"))) {
 		_E_HD46505_HORIZ_FREQ = true;
 		_HD46505_HORIZ_FREQ = osd->get_feature_double_value(_T("HD46505_HORIZ_FREQ"));
 	}
@@ -80,7 +80,7 @@ void HD46505::reset()
 	disp_end_clock = 0;
 	
 //#if defined(HD46505_CHAR_CLOCK)
-	if(_E__HD46505_CHAR_CLOCK) {
+	if(_E_HD46505_CHAR_CLOCK) {
 		char_clock = 0;
 		next_char_clock = _HD46505_CHAR_CLOCK;
 	} else 
@@ -174,7 +174,7 @@ void HD46505::update_timing(int new_clocks, double new_frames_per_sec, int new_l
 {
 	cpu_clocks = new_clocks;
 //#if !defined(HD46505_CHAR_CLOCK) && !defined(HD46505_HORIZ_FREQ)
-	if((!_E_HD46505_CHAR_CLOCK) && (!_E_HD46505_HORIZ_FREQ) {
+	if((!_E_HD46505_CHAR_CLOCK) && (!_E_HD46505_HORIZ_FREQ)) {
 		frames_per_sec = new_frames_per_sec;
 	}
 //#endif
