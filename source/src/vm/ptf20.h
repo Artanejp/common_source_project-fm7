@@ -37,7 +37,7 @@ public:
 	PTF20(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_sio);
-		set_device_name(_T("PSEUDO TF-20 FDD"));
+		set_device_name(_T("Pseudo TF-20 FDD"));
 	}
 	~PTF20() {}
 	

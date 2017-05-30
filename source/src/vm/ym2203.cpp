@@ -4,7 +4,7 @@
 	Author : Takeda.Toshiya
 	Date   : 2006.09.15-
 
-	[ AY-3-8910 / YM2203 / YM2608 ]
+	[ YM2203 / YM2608 ]
 */
 
 #include "ym2203.h"
@@ -237,12 +237,12 @@ void YM2203::write_io8(uint32_t addr, uint32_t data)
 		break;
 //#ifdef HAS_YM2608
 	case 2:
-		if(_HAS_YM2608 && is_ym2608) {
+		if(_HAS_YM2608) {
 			ch1 = data1 = data;
 		}
 		break;
 	case 3:
-		if(_HAS_YM2608 && is_ym2608) {
+		if(_HAS_YM2608) {
 			if(0xa4 <= ch1 && ch1 <= 0xa6) {
 				// XM8 version 1.20
 				fnum21 = data;

@@ -31,7 +31,7 @@ private:
 	
 public:
 	UPD16434(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
-		set_device_name(_T("uPD16434 LCD CONTROLLER"));
+		set_device_name(_T("uPD16434 LCD Controller"));
 	}
 	~UPD16434() {}
 	

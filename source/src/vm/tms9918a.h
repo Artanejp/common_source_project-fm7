@@ -72,7 +72,7 @@ public:
 		_tms9918a_super_impose = _tms9918a_limit_sprites = false;
 		_VRAM_SIZE = 0x4000;
 		_ADDR_MASK = 0x3fff;
-		set_device_name(_T("TMS9918a VDP"));
+		set_device_name(_T("TMS9918A VDP"));
 	}
 	~TMS9918A() {}
 	
