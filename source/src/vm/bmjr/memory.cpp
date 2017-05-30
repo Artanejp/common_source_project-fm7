@@ -262,16 +262,16 @@ void MEMORY::event_frame()
 
 #if defined(_USE_QT)
 	// If same as bm2, not effect below keys at Qt version.
-	if(key_stat[VK_LCONTROL]) key_data &= ~0x10; // ‰p”     -> LCTRL
-	if(key_stat[VK_LSHIFT  ]) key_data &= ~0x20; // ‰p‹L†   -> L-SHIFT
--	if(key_stat[VK_RWIN    ]) key_data &= ~0x40; // ƒJƒi‹L† -> R-Win
-	if(key_stat[VK_KANA    ]) key_data &= ~0x80; // ƒJƒi     -> ƒJƒ^ƒJƒi‚Ð‚ç‚ª‚È
+	if(key_stat[VK_LCONTROL]) key_data &= ~0x10; // è‹±æ•°     -> LCTRL
+	if(key_stat[VK_LSHIFT  ]) key_data &= ~0x20; // è‹±è¨˜å·   -> L-SHIFT
+	if(key_stat[VK_RWIN    ]) key_data &= ~0x40; // ã‚«ãƒŠè¨˜å· -> R-Win
+	if(key_stat[VK_KANA    ]) key_data &= ~0x80; // ã‚«ãƒŠ     -> ã‚«ã‚¿ã‚«ãƒŠã²ã‚‰ãŒãª
 #else
-	// this is same as "“ú—§ƒx[ƒVƒbƒNƒ}ƒXƒ^[Jr.(MB-6885)ƒGƒ~ƒ…ƒŒ[ƒ^ bm2"
-	if(key_stat[0xa2]) key_data &= ~0x10; // ‰p”     -> L-CTRL
-	if(key_stat[0xa0]) key_data &= ~0x20; // ‰p‹L†   -> L-SHIFT
-	if(key_stat[0xa1]) key_data &= ~0x40; // ƒJƒi‹L† -> R-SHIFT
-	if(key_stat[0xa3]) key_data &= ~0x80; // ƒJƒi     -> R-CTRL
+	// this is same as "æ—¥ç«‹ãƒ™ãƒ¼ã‚·ãƒƒã‚¯ãƒžã‚¹ã‚¿ãƒ¼Jr.(MB-6885)ã‚¨ãƒŸãƒ¥ãƒ¬ãƒ¼ã‚¿ bm2"
+	if(key_stat[0xa2]) key_data &= ~0x10; // è‹±æ•°     -> L-CTRL
+	if(key_stat[0xa0]) key_data &= ~0x20; // è‹±è¨˜å·   -> L-SHIFT
+	if(key_stat[0xa1]) key_data &= ~0x40; // ã‚«ãƒŠè¨˜å· -> R-SHIFT
+	if(key_stat[0xa3]) key_data &= ~0x80; // ã‚«ãƒŠ     -> R-CTRL
 #endif
 }
 
