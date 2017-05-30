@@ -158,7 +158,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio->set_context_port_b(rtc, SIG_UPD1990A_DIN, 0x10, 0);
 	pio->set_context_port_b(rtc, SIG_UPD1990A_CLK, 0x20, 0);
 	pio->set_context_port_b(mainbus, SIG_MAIN_SRDY, 0x40, 0);
-//	pio->set_context_port_b(sub, SIG_SUB_PIO_PM, 0x80, 0);	// P/M: CG Selection
+//	pio->set_context_port_b(subbus, SIG_SUB_PIO_PM, 0x80, 0);	// P/M: CG Selection
 	pio->set_context_port_c(kbd, SIG_KEYBOARD_DC, 0x01, 0);
 	pio->set_context_port_c(kbd, SIG_KEYBOARD_STC, 0x02, 0);
 	pio->set_context_port_c(kbd, SIG_KEYBOARD_ACKC, 0x04, 0);
@@ -210,17 +210,17 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	// mz3500sm p.17
 	mainio->set_iomap_range_rw(0xec, 0xef, mainbus);	// reset int0
-	mainio->set_iomap_range_rw(0xf4, 0xf7, fdc);	// fdc: f4h,f6h = status, f5h,f7h = data
+	mainio->set_iomap_range_rw(0xf4, 0xf7, fdc);		// fdc: f4h,f6h = status, f5h,f7h = data
 	mainio->set_iomap_range_rw(0xf8, 0xfb, mainbus);	// mfd interface
 	mainio->set_iomap_range_rw(0xfc, 0xff, mainbus);	// memory mpaper
 	
 	// mz3500sm p.18
-	subio->set_iomap_range_w(0x00, 0x0f, subbus);	// int0 to main (set flipflop)
+	subio->set_iomap_range_w(0x00, 0x0f, subbus);		// int0 to main (set flipflop)
 	subio->set_iomap_range_rw(0x10, 0x1f, sio);
 	subio->set_iomap_range_rw(0x20, 0x2f, pit);
 	subio->set_iomap_range_rw(0x30, 0x3f, pio);
-	subio->set_iomap_range_r(0x40, 0x4f, ls244);	// input port
-	subio->set_iomap_range_rw(0x50, 0x5f, subbus);	// crt control i/o
+	subio->set_iomap_range_r(0x40, 0x4f, ls244);		// input port
+	subio->set_iomap_range_rw(0x50, 0x5f, subbus);		// crt control i/o
 	subio->set_iomap_range_rw(0x60, 0x6f, gdc_gfx);
 	subio->set_iomap_range_rw(0x70, 0x7f, gdc_chr);
 #ifdef _IO_DEBUG_LOG

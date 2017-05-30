@@ -46,16 +46,22 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// check configs
 //	boot_mode = config.boot_mode;
 	boot_mode = -1;
-#endif	
+#endif
+#if defined(_TK80BS) || defined(_TK80)
+	config.wave_shaper[0] = false;
+#endif
+
 	// create devices
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
+	dummy->set_device_name(_T("1st Dummy"));
 	event = new EVENT(this, emu);	// must be 2nd device
 	
+	cpu = new I8080(this, emu);
 #if defined(_TK80BS)
 	sio_b = new I8251(this, emu);	// on TK-80BS
-	pio_b = new I8255(this, emu);
 	sio_b->set_device_name(_T("i8251 SIO (TK-80BS/CMT)"));
+	pio_b = new I8255(this, emu);
 	pio_b->set_device_name(_T("i8255 PIO (TK-80BS/DISPLAY)"));
 	memio = new IO(this, emu);
  	memio->set_device_name(_T("Memory Mapped I/O (TK-80BS)"));
@@ -68,7 +74,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 //	memory = new MEMORY(this, emu);
 	
 	pcm0 = new PCM1BIT(this, emu);
+	pcm0->set_device_name(_T("1-Bit PCM Sound #1"));
 	pcm1 = new PCM1BIT(this, emu);
+	pcm1->set_device_name(_T("1-Bit PCM Sound #2"));
 	
 #if defined(_TK80BS) || defined(_TK80)
 	cmt = new CMT(this, emu);
@@ -76,16 +84,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	display = new DISPLAY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	memory = new MEMBUS(this, emu);
-	cpu = new I8080(this, emu);
-
-	dummy->set_device_name(_T("1st Dummy"));
 #if defined(_TK80BS)
 	pio_t->set_device_name(_T("i8255 PIO (TK-80/SOUND/KEYBOARD/DISPLAY)"));
 #else
 	pio_t->set_device_name(_T("i8255 PIO (TK-80/SOUND/KEYBOARD)"));
 #endif
-	pcm0->set_device_name(_T("1-Bit PCM Sound #1"));
-	pcm1->set_device_name(_T("1-Bit PCM Sound #2"));
 
 	// set contexts
 	event->set_context_cpu(cpu);
@@ -95,10 +98,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_sound(drec->get_context_noise_play());
 	event->set_context_sound(drec->get_context_noise_stop());
 	event->set_context_sound(drec->get_context_noise_fast());
-
-#if defined(_TK80BS) || defined(_TK80)
-	config.wave_shaper[0] = false;
-#endif
 	
 /*	8255 on TK-80
 	
@@ -130,8 +129,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio_t->set_context_port_c(memory, SIG_MEMBUS_PC7, 0x80, 0);
 #endif
 	// Sound:: Force realtime rendering. This is temporally fix. 20161024 K.O
-	pcm0->set_realtime_render(true);
-	pcm1->set_realtime_render(true);
+	//pcm0->set_realtime_render(true);
+	//pcm1->set_realtime_render(true);
 	
 #if defined(_TK80BS) || defined(_TK80)
 	cmt->set_context_drec(drec);

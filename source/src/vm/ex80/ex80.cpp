@@ -51,18 +51,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// Set names
 #if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));
-	event->set_device_name(_T("EVENT"));
-	cpu->set_device_name(_T("CPU(i8080)"));
 	
 	pio->set_device_name(_T("i8255(SOUND/KEY/DISPLAY)"));
 	sio->set_device_name(_T("i8251(CMT)"));
-	io->set_device_name(_T("I/O PORT"));
 	pcm->set_device_name(_T("SOUND OUT"));
-	
-	cmt->set_device_name(_T("CMT Unit"));
-	display->set_device_name(_T("DISPLAY"));
-	keyboard->set_device_name(_T("KEYBOARD"));
-	memory->set_device_name(_T("MEMORY"));
 #endif
 	
 	// set contexts
@@ -74,7 +66,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio->set_context_port_c(keyboard, SIG_KEYBOARD_COLUMN, 0x70, 0);
 	pio->set_context_port_c(display, SIG_DISPLAY_DMA, 0x80, 0);
 	// Sound:: Force realtime rendering. This is temporally fix. 20161024 K.O
-	pcm->set_realtime_render(true);
+	//pcm->set_realtime_render(true);
 	
 	cmt->set_context_sio(sio);
 	display->set_context_cpu(cpu);

@@ -53,10 +53,10 @@
 #define USE_VM_AUTO_KEY_TABLE
 #define USE_SCREEN_FILTER
 #define USE_SCANLINE
-#if defined(_SMC70)
-#define USE_SOUND_VOLUME	4
-#else
+#if defined(_SMC777)
 #define USE_SOUND_VOLUME	5
+#else
+#define USE_SOUND_VOLUME	4
 #endif
 #define USE_JOYSTICK
 #define USE_DEBUGGER

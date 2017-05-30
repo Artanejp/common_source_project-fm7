@@ -58,6 +58,11 @@
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_NO_CAPS
+#if defined(SUPPORT_MZ80AIF) || defined(SUPPORT_MZ80FIO)
+#define USE_SOUND_VOLUME	4
+#else
+#define USE_SOUND_VOLUME	3
+#endif
 #define USE_PRINTER
 #define USE_PRINTER_TYPE	4
 #define USE_DEBUGGER
@@ -67,9 +72,6 @@
 #define USE_FD2
 #define USE_FD3
 #define USE_FD4
-#define USE_SOUND_VOLUME	4
-#else
-#define USE_SOUND_VOLUME	3
 #endif
 #if defined(_MZ80K)
 #define USE_MONITOR_TYPE	2

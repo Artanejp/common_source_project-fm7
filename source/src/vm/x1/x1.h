@@ -108,7 +108,7 @@
 #define USE_SCANLINE
 #define USE_SOUND_TYPE		3
 // ToDo
-#define DATAREC_SOUND
+//#define DATAREC_SOUND
 #define SUPPORT_ROMA_KANA_CONVERSION
 // CZ-8BS1 x1
 #define SOUND_TYPE_DEFAULT	1
@@ -119,6 +119,10 @@
 # endif
 #define SUPPORT_TV_RENDER
 #define USE_JOYSTICK
+#ifdef _X1TWIN
+#define USE_JOYSTICK_TYPE	4
+#define JOYSTICK_TYPE_DEFAULT	0
+#endif
 #define USE_JOY_BUTTON_CAPTIONS
 #define USE_MOUSE
 #define USE_PRINTER
@@ -294,7 +298,7 @@ protected:
 	MB8877* fdc;
 	YM2151* opm1;
 	YM2151* opm2;
-	//YM2203* psg;
+//	YM2203* psg;
 	AY_3_891X* psg;
 	Z80* cpu;
 	Z80CTC* ctc;

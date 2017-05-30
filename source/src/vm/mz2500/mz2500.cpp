@@ -129,7 +129,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio_i->set_context_port_c(crtc, SIG_CRTC_MASK, 0x01, 0);
 	pio_i->set_context_port_c(pcm, SIG_PCM1BIT_SIGNAL, 0x04, 0);
 	// Sound:: Force realtime rendering. This is temporally fix. 20161024 K.O
-	pcm->set_realtime_render(true);
+	//pcm->set_realtime_render(true);
 
 	
 	rtc->set_context_alarm(interrupt, SIG_INTERRUPT_RP5C15, 1);
@@ -452,8 +452,8 @@ void VM::close_tape(int drv)
 {
 	emu->lock_vm();
 	drec->close_tape();
-	cmt->close_tape();
 	emu->unlock_vm();
+	cmt->close_tape();
 }
 
 bool VM::is_tape_inserted(int drv)

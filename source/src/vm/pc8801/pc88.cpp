@@ -176,7 +176,7 @@ static const int key_conv_table[9][3] = {
 	{0x1d, 0x20, 0}, // Œˆ’è-> SPACE
 };
 
-static const int8_t intr_mask2_table[8] = {
+static const uint8_t intr_mask2_table[8] = {
 	~7, ~3, ~5, ~1, ~6, ~2, ~4, ~0
 };
 
@@ -786,31 +786,24 @@ void PC88::write_io8(uint32_t addr, uint32_t data)
 		if(mod & 0x10) {
 			update_gvram_wait();
 		}
-		{
-			bool ff = beep_on;
-			bool fy = sing_signal;
-			beep_on = ((data & 0x20) != 0);
+		beep_on = ((data & 0x20) != 0);
 #ifdef SUPPORT_PC88_JOYSTICK
-			if(mod & 0x40) {
-				if(Port40_JOP1 && (mouse_phase == -1 || get_passed_clock(mouse_strobe_clock) > mouse_strobe_clock_lim)) {
-					mouse_phase = 0;//mouse_dx = mouse_dy = 0;
-				} else {
-					mouse_phase = (mouse_phase + 1) & 3;
-				}
-				if(mouse_phase == 0) {
-					// latch position
-					mouse_lx = -((mouse_dx > 127) ? 127 : (mouse_dx < -127) ? -127 : mouse_dx);
-					mouse_ly = -((mouse_dy > 127) ? 127 : (mouse_dy < -127) ? -127 : mouse_dy);
-					mouse_dx = mouse_dy = 0;
-				}
-				mouse_strobe_clock = get_current_clock();
+		if(mod & 0x40) {
+			if(Port40_JOP1 && (mouse_phase == -1 || get_passed_clock(mouse_strobe_clock) > mouse_strobe_clock_lim)) {
+				mouse_phase = 0;//mouse_dx = mouse_dy = 0;
+			} else {
+				mouse_phase = (mouse_phase + 1) & 3;
 			}
-#endif
-			sing_signal = ((data & 0x80) != 0);
-			if((ff != beep_on) || (sing_signal != fy)) {
-				d_pcm->set_realtime_render(beep_on | sing_signal);
+			if(mouse_phase == 0) {
+				// latch position
+				mouse_lx = -((mouse_dx > 127) ? 127 : (mouse_dx < -127) ? -127 : mouse_dx);
+				mouse_ly = -((mouse_dy > 127) ? 127 : (mouse_dy < -127) ? -127 : mouse_dy);
+				mouse_dx = mouse_dy = 0;
 			}
+			mouse_strobe_clock = get_current_clock();
 		}
+#endif
+		sing_signal = ((data & 0x80) != 0);
 		d_pcm->write_signal(SIG_PCM1BIT_SIGNAL, ((beep_on && beep_signal) || sing_signal) ? 1 : 0, 1);
 		break;
 	case 0x44:
@@ -973,10 +966,10 @@ void PC88::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0xe6:
 		// for Romancia (XM8 version 1.00)
-		if((uint8_t)intr_mask2_table[data & 7] != intr_mask2) {
-			intr_req &= ((uint8_t)intr_mask2_table[data & 7] & intr_mask2);
+		if(intr_mask2_table[data & 7] != intr_mask2) {
+			intr_req &= (intr_mask2_table[data & 7] & intr_mask2);
 		}
-		intr_mask2 = (uint8_t)intr_mask2_table[data & 7];
+		intr_mask2 = intr_mask2_table[data & 7];
 		intr_req &= intr_mask2;
 		update_intr();
 		break;

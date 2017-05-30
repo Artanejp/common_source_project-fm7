@@ -51,14 +51,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	memory = new MEMORY(this, emu);
 	apu = new APU(this, emu);
 	ppu = new PPU(this, emu);
-
 	cpu = new N2A03(this, emu); // cpu shoud be reset after other device
 	
 	dummy->set_device_name(_T("1st Dummy"));
 	
-	apu->set_device_name(_T("APU"));
-	ppu->set_device_name(_T("PPU"));
-	memory->set_device_name(_T("MEMORY"));
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(apu);

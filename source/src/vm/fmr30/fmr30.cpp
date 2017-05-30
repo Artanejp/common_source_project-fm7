@@ -52,6 +52,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// create devices
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
+	sio_kb->set_device_name(_T("1st dummy"));
 	event = new EVENT(this, emu);	// must be 2nd device
 	
 	dma = new I8237(this, emu);
@@ -75,7 +76,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	fdc->set_context_noise_seek(new NOISE(this, emu));
 	fdc->set_context_noise_head_down(new NOISE(this, emu));
 	fdc->set_context_noise_head_up(new NOISE(this, emu));
-	dummy->set_device_name(_T("1st Dummy"));
 	cpu->set_device_name(_T("CPU(80C86)"));
 	
 	scsi_host = new SCSI_HOST(this, emu);

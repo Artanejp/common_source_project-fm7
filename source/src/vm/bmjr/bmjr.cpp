@@ -46,10 +46,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// Set names
 #if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));
-	event->set_device_name(_T("EVENT"));
-	cpu->set_device_name(_T("CPU(MC6800)"));
-	pia->set_device_name(_T("MC6820 PIA"));
-	memory->set_device_name(_T("MEMORY"));
 #endif
 	// set contexts
 	event->set_context_cpu(cpu);
@@ -183,7 +179,6 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		drec->get_context_noise_stop()->set_volume(0, decibel_l, decibel_r);
 		drec->get_context_noise_fast()->set_volume(0, decibel_l, decibel_r);
  	}
-
 }
 #endif
 

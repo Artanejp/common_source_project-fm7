@@ -108,7 +108,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
 	dummy->set_device_name(_T("1st Dummy"));
-	event->set_device_name(_T("EVENT"));
 
 #if defined(HAS_I286)
 	cpu = new I286(this, emu);
@@ -142,8 +141,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	fdc->set_context_noise_head_up(new NOISE(this, emu));
 	rtc = new MSM58321(this, emu);
 	pcm = new PCM1BIT(this, emu);
-	pit0->set_device_name(_T("i8253 PIT #0"));
-	pit1->set_device_name(_T("i8253 PIT #1"));
 	
 	scsi_host = new SCSI_HOST(this, emu);
 	for(int i = 0; i < 7; i++) {

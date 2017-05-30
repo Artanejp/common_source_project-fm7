@@ -133,7 +133,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio->set_context_port_c(drec, SIG_DATAREC_TRIG, 8, 0);
 	counter->set_context_1qa(pcm, SIG_PCM1BIT_SIGNAL, 1);
 	// Sound:: Force realtime rendering. This is temporally fix. 20161024 K.O
-	pcm->set_realtime_render(true);
+	//pcm->set_realtime_render(true);
 	
 	keyboard->set_context_pio(pio);
 	memory->set_context_ctc(ctc);

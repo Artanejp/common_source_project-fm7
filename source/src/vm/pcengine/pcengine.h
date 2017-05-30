@@ -29,13 +29,13 @@
 
 // device informations for win32
 #define SOUND_RATE_DEFAULT	5	// 44100Hz
-#define USE_DEVICE_TYPE		4
-#define DEVICE_TYPE_DEFAULT	0
 #define SUPPORT_TV_RENDER
 #define USE_CART1
 #define USE_COMPACT_DISC
 #define USE_SOUND_VOLUME	3
 #define USE_JOYSTICK
+#define USE_JOYSTICK_TYPE	4
+#define JOYSTICK_TYPE_DEFAULT	0
 #define USE_JOY_BUTTON_CAPTIONS
 #define USE_DEBUGGER
 #define USE_STATE

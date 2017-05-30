@@ -224,6 +224,14 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		psg->set_volume(0, decibel_l, decibel_r);
 	} else if(ch == 1) {
 		fm->set_volume(0, decibel_l, decibel_r);
+///	} else if(ch == 2) {
+///		fdc->get_context_noise_seek()->set_volume(0, decibel_l, decibel_r);
+///		fdc->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
+///		fdc->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
+///	} else if(ch == 3) {
+///		drec->get_context_noise_play()->set_volume(0, decibel_l, decibel_r);
+///		drec->get_context_noise_stop()->set_volume(0, decibel_l, decibel_r);
+///		drec->get_context_noise_fast()->set_volume(0, decibel_l, decibel_r);
 	}
 }
 #endif

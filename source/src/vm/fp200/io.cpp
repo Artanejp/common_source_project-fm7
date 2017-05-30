@@ -272,13 +272,8 @@ void IO::write_io8(uint32_t addr, uint32_t data)
 			lcd_addr = (lcd_addr & 0xff00) | data;
 			break;
 		case 0x10:
-
-			{
-				bool cmt_selected_old = cmt_selected;; 
-				cmt_selected = ((data & 2) == 0);
-				bool tmp_val = (CMT_PLAYING || CMT_RECORDING);
-				d_drec->write_signal(SIG_DATAREC_REMOTE, tmp_val ? 1 : 0, 1);
-			}
+			cmt_selected = ((data & 2) == 0);
+			d_drec->write_signal(SIG_DATAREC_REMOTE, CMT_MODE_PLAY ? 1 : 0, 1);
 			break;
 		case 0x21:
 			key_column = data & 0x0f;
@@ -302,12 +297,8 @@ void IO::write_io8(uint32_t addr, uint32_t data)
 			}
 			break;
 		case 0x43:
-			{
-				uint8_t cmt_mode_old = cmt_mode & 7;
-				cmt_mode = data & 7;
-				int tmp_val = (CMT_PLAYING || CMT_RECORDING);
-				d_drec->write_signal(SIG_DATAREC_REMOTE, tmp_val ? 1 : 0, 1);
-			}
+			cmt_mode = data & 7;
+			d_drec->write_signal(SIG_DATAREC_REMOTE, CMT_MODE_PLAY ? 1 : 0, 1);
 			break;
 		}
 	} else {

@@ -51,13 +51,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// Set names
 #if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));
-	event->set_device_name(_T("EVENT"));
-	cpu->set_device_name(_T("CPU(Z80)"));
-	ctc->set_device_name(_T("Z80 CTC"));
 	pio1->set_device_name(_T("Z80 PIO(LEDs)"));
 	pio2->set_device_name(_T("Z80 PIO(7SEG/KEYBOARD)"));
-	display->set_device_name(_T("7SEG/LEDs"));
-	keyboard->set_device_name(_T("KEYBOARD"));
 #endif
 	// set contexts
 	event->set_context_cpu(cpu);

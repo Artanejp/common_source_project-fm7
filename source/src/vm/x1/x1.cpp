@@ -87,21 +87,21 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	fdc->set_context_noise_seek(new NOISE(this, emu));
 	fdc->set_context_noise_head_down(new NOISE(this, emu));
 	fdc->set_context_noise_head_up(new NOISE(this, emu));
-	//psg = new YM2203(this, emu);
+//	psg = new YM2203(this, emu);
 	psg = new AY_3_891X(this, emu);
 	cpu = new Z80(this, emu);
 	ctc = new Z80CTC(this, emu);
 	sio = new Z80SIO(this, emu);
 	if(sound_type >= 1) {
 		opm1 = new YM2151(this, emu);
-		ctc1 = new Z80CTC(this, emu);
 		opm1->set_device_name(_T("YM2151 OPM (CZ-8BS1 #1)"));
+		ctc1 = new Z80CTC(this, emu);
 		ctc1->set_device_name(_T("Z80 CTC (CZ-8BS1 #1)"));
 	}
 	if(sound_type == 2) {
 		opm2 = new YM2151(this, emu);
-		ctc2 = new Z80CTC(this, emu);
 		opm2->set_device_name(_T("YM2151 OPM (CZ-8BS1 #2)"));
+		ctc2 = new Z80CTC(this, emu);
 		ctc2->set_device_name(_T("Z80 CTC (CZ-8BS1 #2)"));
 	}
 	if(config.printer_type == 0) {
@@ -124,6 +124,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	joy = new JOYSTICK(this, emu);
 	memory = new MEMORY(this, emu);
 	mouse = new MOUSE(this, emu);
+	
 	if(pseudo_sub_cpu) {
 		psub = new PSUB(this, emu);
 		cpu_sub = NULL;
@@ -131,18 +132,17 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	} else {
 		// sub cpu
 		cpu_sub = new MCS48(this, emu);
+		cpu_sub->set_device_name(_T("MCS48 MCU (Sub)"));
 		pio_sub = new I8255(this, emu);
+		pio_sub->set_device_name(_T("i8255 PIO (Sub)"));
 		rtc_sub = new UPD1990A(this, emu);
+		rtc_sub->set_device_name(_T("uPD1990A RTC (Sub)"));
 		sub = new SUB(this, emu);
 
-		cpu_sub->set_device_name(_T("MCS48 MCU (Sub)"));
-		pio_sub->set_device_name(_T("i8255 PIO (Sub)"));
-		rtc_sub->set_device_name(_T("uPD1990A RTC (Sub)"));
 		// keyboard
 		cpu_kbd = new MCS48(this, emu);
-		kbd = new KEYBOARD(this, emu);
-
 		cpu_kbd->set_device_name(_T("MCS48 MCU (Keyboard)"));
+		kbd = new KEYBOARD(this, emu);
 	}
 	
 	// set contexts
@@ -391,11 +391,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pceevent->set_lines_per_frame(PCE_LINES_PER_FRAME);
 	pceevent->set_device_name(_T("EVENT (PC-ENGINE)"));
 	pcecpu = new HUC6280(this, emu);
+	pcecpu->set_device_name(_T("HuC6820 CPU (PC-ENGINE)"));
 	pcecpu->set_context_event_manager(pceevent);
 	pce = new PCE(this, emu);
-	pce->set_context_event_manager(pceevent);
-	pcecpu->set_device_name(_T("HuC6820 CPU (PC-ENGINE)"));
 	pce->set_device_name(_T("SUB SYSTEM (PC-ENGINE)"));
+	pce->set_context_event_manager(pceevent);
 
 	pceevent->set_context_cpu(pcecpu, PCE_CPU_CLOCKS);
 	pceevent->set_context_sound(pce);
@@ -470,7 +470,7 @@ void VM::reset()
 		device->reset();
 	}
 	pio->write_signal(SIG_I8255_PORT_B, 0x00, 0x08);	// busy = low
-	//psg->set_reg(0x2e, 0);	// set prescaler
+	psg->set_reg(0x2e, 0);	// set prescaler
 }
 
 void VM::special_reset()
@@ -711,12 +711,12 @@ void VM::close_tape(int drv)
 {
 	emu->lock_vm();
 	drec->close_tape();
+	emu->unlock_vm();
 	if(pseudo_sub_cpu) {
 		psub->close_tape();
 	} else {
 		sub->close_tape();
 	}
-	emu->unlock_vm();
 }
 
 bool VM::is_tape_inserted(int drv)

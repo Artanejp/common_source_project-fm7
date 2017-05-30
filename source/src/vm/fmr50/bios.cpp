@@ -1080,7 +1080,6 @@ bool BIOS::bios_int_i86(int intnum, uint16_t regs[], uint16_t sregs[], int32_t* 
 	
 	if(intnum == 0x93) {
 		// disk bios
-	printf("INT 93H\n");
 		return bios_call_i86(0xfffc4, regs, sregs, ZeroFlag, CarryFlag);
 	}
 	return false;

@@ -66,11 +66,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 
 	sio->set_device_name(_T("i8251(RS-232C)"));
 	pio->set_device_name(_T("i8259(SYSTEM PORT)"));
-	
-	rtc->set_device_name(_T("MSM58321(RTC)"));
-	memory->set_device_name(_T("MEMORY"));
-
-	sub->set_device_name(_T("SUB SYSTEM"));
 #endif
 	
 	// set contexts
@@ -79,6 +74,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_sound(fdc->get_context_noise_seek());
 	event->set_context_sound(fdc->get_context_noise_head_down());
 	event->set_context_sound(fdc->get_context_noise_head_up());
+
 /*
 	IRQ 0	PIT CH.0
 	IRQ 1	SIO RXRDY
@@ -241,7 +237,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
-	pcm->set_realtime_render(true);
+	//pcm->set_realtime_render(true);
 }
 
 VM::~VM()

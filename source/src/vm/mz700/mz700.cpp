@@ -80,7 +80,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pcm = new PCM1BIT(this, emu);
 	cpu = new Z80(this, emu);
 
-	cpu->set_device_name(_T("CPU(Z80)"));
 //	cmos = new CMOS(this, emu);
 	emm = new EMM(this, emu);
 	kanji = new KANJI(this, emu);
@@ -108,19 +107,20 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		printer = dummy;
 	}
 	not_reset = new NOT(this, emu);
-	not_strobe = new NOT(this, emu);
-	psg_l = new SN76489AN(this, emu);
-	psg_r = new SN76489AN(this, emu);
-
 	not_reset->set_device_name(_T("NOT Gate (Reset)"));
+	not_strobe = new NOT(this, emu);
 	not_strobe->set_device_name(_T("NOT Gate (Prinet Strobe)"));
+	psg_l = new SN76489AN(this, emu);
 	psg_l->set_device_name(_T("SN76489AN PSG (Left)"));
+	psg_r = new SN76489AN(this, emu);
 	psg_r->set_device_name(_T("SN76489AN PSG (Right)"));
-
 #endif
 	pio_int = new Z80PIO(this, emu);
+	pio_int->set_device_name(_T("Z80 PIO(Interrupt)"));
 	sio_rs = new Z80SIO(this, emu);
+	sio_rs->set_device_name(_T("Z80 SIO(RS-232C)"));
 	sio_qd = new Z80SIO(this, emu);
+	sio_qd->set_device_name(_T("Z80 SIO(Quick Disk)"));
 	
 	floppy = new FLOPPY(this, emu);
 #if defined(_MZ1500)
@@ -387,7 +387,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
-	pcm->set_realtime_render(true);
+	//pcm->set_realtime_render(true);
 #if defined(_MZ800) || defined(_MZ1500)
 	for(int i = 0; i < MAX_DRIVE; i++) {
 		fdc->set_drive_type(i, DRIVE_TYPE_2DD);

@@ -89,7 +89,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	fdc->set_context_noise_head_up(new NOISE(this, emu));
 	pic->set_device_name(_T("V50 PIC(i8259 COMPATIBLE)"));
 	cpu->set_device_name(_T("CPU (V50)"));
-	io->set_device_name(_T("I/O BUS"));
 	not_busy->set_device_name(_T("NOT GATE(PRINTER BUSY)"));
 	
 	if(config.printer_type == 0) {

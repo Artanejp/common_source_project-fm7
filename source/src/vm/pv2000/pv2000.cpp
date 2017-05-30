@@ -36,27 +36,16 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-#if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));
-#endif	
 	
 	io = new IO(this, emu);
 	memory = new MEMORY(this, emu);
 	psg = new SN76489AN(this, emu);
 	vdp = new TMS9918A(this, emu);
 	cpu = new Z80(this, emu);
-#if defined(_USE_QT)
-	cpu->set_device_name(_T("CPU(Z80)"));
-#endif	
-	
 	cmt = new CMT(this, emu);
 	key = new KEYBOARD(this, emu);
 	prt = new PRINTER(this, emu);
-#if defined(_USE_QT)
-	cmt->set_device_name(_T("CMT I/F"));
-	key->set_device_name(_T("KEYBOARD I/F"));
-	prt->set_device_name(_T("PRINTER I/F"));
-#endif	
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(psg);

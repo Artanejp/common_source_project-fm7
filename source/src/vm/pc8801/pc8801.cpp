@@ -75,7 +75,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pc88rtc = new UPD1990A(this, emu);
 //	pc88rtc->set_device_name(_T("uPD1990A RTC (PC-8801)"));
 //	pc88rtc->set_context_event_manager(pc88event);
-	// config.sound_device_type
+	// config.sound_type
 	// 	0: 44h:OPNA A4h:None		PC-8801FH/MH or later
 	// 	1: 44h:OPN  A4h:None		PC-8801mkIISR/TR/MR/FR
 	// 	2: 44h:OPN  A4h:OPNA		PC-8801mkIISR/TR/MR/FR + PC-8801-23
@@ -83,19 +83,22 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 //	pc88opn->set_context_event_manager(pc88event);
 #ifdef USE_SOUND_TYPE
 #ifdef SUPPORT_PC88_OPNA
+	if(config.sound_type == 0) {
+		pc88opn->set_device_name(_T("YM2608 OPNA"));
+	} else {
+		pc88opn->set_device_name(_T("YM2203 OPN"));
+	}
 	pc88opn->is_ym2608 = (config.sound_type == 0);
 #endif
 #ifdef SUPPORT_PC88_SB2
 	if(config.sound_type == 2) {
 		pc88sb2 = new YM2203(this, emu);
 #ifdef SUPPORT_PC88_OPNA
+		pc88sb2->set_device_name(_T("YM2608 OPNA (SB2)"));
 		pc88sb2->is_ym2608 = true;
+#else
+		pc88sb2->set_device_name(_T("YM2203 OPN (SB2)"));
 #endif
-    #ifdef SUPPORT_PC88_OPNA
-		pc88sb2->set_device_name(_T("YM2608 OPNA(SB2)"));
-    #else
-		pc88sb2->set_device_name(_T("YM2203 OPN(SB2)"));
-    #endif
 //		pc88sb2->set_context_event_manager(pc88event);
 	} else {
 		pc88sb2 = NULL;
@@ -119,10 +122,13 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pc88cpu->set_device_name(_T("MAIN CPU(Z80)"));
 	
 	pc88sub = new PC80S31K(this, emu);
+	pc88sub->set_device_name(_T("PC-80S31K (Sub)"));
 //	pc88sub->set_context_event_manager(pc88event);
 	pc88pio_sub = new I8255(this, emu);
+	pc88pio_sub->set_device_name(_T("8255 PIO (Sub)"));
 //	pc88pio_sub->set_context_event_manager(pc88event);
 	pc88fdc_sub = new UPD765A(this, emu);
+	pc88fdc_sub->set_device_name(_T("uPD765A FDC (Sub)"));
 //	pc88fdc_sub->set_context_event_manager(pc88event);
 	pc88noise_seek = new NOISE(this, emu);
 //	pc88noise_seek->set_context_event_manager(pc88event);
@@ -131,29 +137,23 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pc88noise_head_up = new NOISE(this, emu);
 //	pc88noise_head_up->set_context_event_manager(pc88event);
 	pc88cpu_sub = new Z80(this, emu);
+	pc88cpu_sub->set_device_name(_T("Z80 CPU (Sub)"));
 //	pc88cpu_sub->set_context_event_manager(pc88event);
 
-	pc88sub->set_device_name(_T("PC-80S31K FDD I/F"));
-	pc88pio_sub->set_device_name(_T("i8255 PIO(FDD)"));
-	pc88fdc_sub->set_device_name(_T("uPD765A FDC(FDD)"));
-	pc88cpu_sub->set_device_name(_T("Z80 CPU(FDD)"));
 #ifdef SUPPORT_PC88_PCG8100
 	pc88pit = new I8253(this, emu);
 //	pc88pit->set_context_event_manager(pc88event);
 	pc88pcm0 = new PCM1BIT(this, emu);
-//	pc88pcm->set_context_event_manager(pc88event);
+//	pc88pcm0->set_context_event_manager(pc88event);
 	pc88pcm1 = new PCM1BIT(this, emu);
-//	pc88pcm->set_context_event_manager(pc88event);
+//	pc88pcm1->set_context_event_manager(pc88event);
 	pc88pcm2 = new PCM1BIT(this, emu);
-//	pc88pcm->set_context_event_manager(pc88event);
+//	pc88pcm2->set_context_event_manager(pc88event);
 	pc88pit->set_device_name(_T("i8253 PIT (PCG8100)"));
 	pc88pcm0->set_device_name(_T("SOUND #1 (PCG8100)"));
 	pc88pcm1->set_device_name(_T("SOUND #2 (PCG8100)"));
 	pc88pcm2->set_device_name(_T("SOUND #3 (PCG8100)"));
 #endif
-	pc88event->set_context_sound(pc88noise_seek);
-	pc88event->set_context_sound(pc88noise_head_down);
-	pc88event->set_context_sound(pc88noise_head_up);
 	
 	pc88event->set_context_cpu(dummycpu, 3993624 / 4);
 #ifdef SUPPORT_PC88_HIGH_CLOCK
@@ -174,6 +174,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pc88event->set_context_sound(pc88pcm1);
 	pc88event->set_context_sound(pc88pcm2);
 #endif
+	pc88event->set_context_sound(pc88noise_seek);
+	pc88event->set_context_sound(pc88noise_head_down);
+	pc88event->set_context_sound(pc88noise_head_up);
 	pc88->set_context_cpu(pc88cpu);
 	pc88->set_context_opn(pc88opn);
 #ifdef SUPPORT_PC88_SB2

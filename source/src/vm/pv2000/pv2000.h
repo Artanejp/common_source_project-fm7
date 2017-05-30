@@ -34,7 +34,7 @@
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_CAPS
-#define USE_SOUND_VOLUME	2
+#define USE_SOUND_VOLUME	1
 #define USE_JOYSTICK
 #define USE_DEBUGGER
 #define USE_STATE

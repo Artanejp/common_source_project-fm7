@@ -107,7 +107,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio0->set_context_port_c(crtc, SIG_CRTC_MASK, 0x01, 0);
 	pio0->set_context_port_c(pcm, SIG_PCM1BIT_SIGNAL, 0x04, 0);
 	// Sound:: Force realtime rendering. This is temporally fix. 20161024 K.O
-	pcm->set_realtime_render(true);
+	//pcm->set_realtime_render(true);
 
 	
 	pic->set_context_cpu(cpu);
@@ -141,7 +141,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	keyboard->set_context_pio1(pio1);
 	memory->set_context_crtc(crtc);
 	mouse->set_context_sio(sio);
-	if(config.printer_type == 0) {  
+	if(config.printer_type == 0) {
 		PRNFILE *prnfile = new PRNFILE(this, emu);
 		prnfile->set_context_busy(not_busy, SIG_NOT_INPUT, 1);
 		printer->set_context_prn(prnfile);

@@ -45,8 +45,7 @@
 
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
-	_T("CMT (Voice)"),
-	_T("Noise (CMT)"),
+	_T("CMT (Voice)"),	_T("Noise (CMT)"),
 };
 #endif
 

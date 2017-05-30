@@ -80,7 +80,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_sound(drec->get_context_noise_fast());
 	
 	// Sound:: Force realtime rendering. This is temporally fix. 20161024 K.O
-	pcm->set_realtime_render(true);
+	//pcm->set_realtime_render(true);
 
 	drec->set_context_ear(memory, SIG_MEMORY_DATAREC_IN, 1);
 	crtc->set_context_disp(memory, SIG_MEMORY_CRTC_DISP, 1);
