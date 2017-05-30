@@ -76,8 +76,10 @@ typedef struct {
 
 typedef struct {
 	QString string;
-	int64_t ivalue;
-	double  fvalue;
+	union {
+		int64_t ivalue;
+		double  fvalue;
+	} v;
 } supportedlist_t;
 
 class DLL_PREFIX OSD_BASE : public QThread

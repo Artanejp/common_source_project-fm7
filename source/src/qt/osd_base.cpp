@@ -385,8 +385,7 @@ void OSD_BASE::add_feature(const _TCHAR *key, double value)
 	tmps = QString::fromUtf8(key);
 	if(!check_feature(key)) {
 		l.string = tmps;
-		l.fvalue = value;
-		l.ivalue = 0;
+		l.v.fvalue = value;
 		SupportedFeatures.append(l);
 	}
 }
@@ -397,8 +396,7 @@ void OSD_BASE::add_feature(const _TCHAR *key, int64_t value)
 	tmps = QString::fromUtf8(key);
 	if(!check_feature(key)) {
 		l.string = tmps;
-		l.fvalue = 0.0;
-		l.ivalue = value;
+		l.v.ivalue = value;
 		SupportedFeatures.append(l);
 	}
 }
@@ -451,7 +449,7 @@ double OSD_BASE::get_feature_double_value(const _TCHAR *key)
 	for(int i = 0; i < SupportedFeatures.size(); i++) {
 		l = SupportedFeatures.at(i);
 		if(l.string == tmps) {
-			return l.fvalue;
+			return l.v.fvalue;
 		}
 	}
 	return std::numeric_limits<double>::quiet_NaN(); // You don't use (0.0 / 0.0). 
@@ -465,7 +463,7 @@ int64_t OSD_BASE::get_feature_int_value(const _TCHAR *key)
 	for(int i = 0; i < SupportedFeatures.size(); i++) {
 		l = SupportedFeatures.at(i);
 		if(l.string == tmps) {
-			return l.ivalue;
+			return l.v.ivalue;
 		}
 	}
 	return 0;

@@ -941,7 +941,7 @@ void OSD::set_features_vm(void)
 	add_feature(_T("HAS_LDAIR_QUIRK"), 1);
 #endif
 #ifdef Z80CTC_CLOCKS
-	add_feature(_T("Z80CTC_CLOCKS"), (int)Z80CTC_CLOCKS);
+	add_feature(_T("Z80CTC_CLOCKS"), (double)Z80CTC_CLOCKS);
 #endif
 #ifdef HAS_UPD7201
 	add_feature(_T("HAS_UPD7201"), 1);
