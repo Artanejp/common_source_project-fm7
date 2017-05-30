@@ -21,16 +21,25 @@ void HD46505::initialize()
 	} else {
 		_CHARS_PER_LINE = -1;
 	}
-	_SCREEN_WIDTH = osd->get_feature_int_value(_T("SCREEN_WIDTH"));
-	_SCREEN_HEIGHT = osd->get_feature_int_value(_T("SCREEN_HEIGHT"));
+	if(osd->cehck_feature(_T("SCREEN_WIDTH"))) {
+		_SCREEN_WIDTH = osd->get_feature_int_value(_T("SCREEN_WIDTH"));
+	}
+	if(osd->cehck_feature(_T("SCREEN_HEIGHT"))) {
+		_SCREEN_HEIGHT = osd->get_feature_int_value(_T("SCREEN_HEIGHT"));
+	}
 	if(osd->check_feature(_T("LINES_PER_FRAME"))) {
 		_LINES_PER_FRAME = osd->get_feature_int_value(_T("LINES_PER_FRAME"));
 	} else {
 		_LINES_PER_FRAME = 64;
 	}
-	_HD46505_CHAR_CLOCK = osd->get_feature_int_value(_T("HD46505_CHAR_CLOCK"));
-	_HD46505_HORIZ_FREQ = osd->get_feature_int_value(_T("HD46505_HORIZ_FREQ"));
-	
+	if(osd->chack_keature(_T("HD46505_CHAR_CLOCK"))) {
+		_E_HD46505_CHAR_CLOCK = true;
+		_HD46505_CHAR_CLOCK = osd->get_feature_double_value(_T("HD46505_CHAR_CLOCK"));
+	}
+	if(osd->chack_keature(_T("HD46505_HORIZ_FREQ"))) {
+		_E_HD46505_HORIZ_FREQ = true;
+		_HD46505_HORIZ_FREQ = osd->get_feature_double_value(_T("HD46505_HORIZ_FREQ"));
+	}
 	memset(regs, 0, sizeof(regs));
 	memset(regs_written, 0, sizeof(regs_written));
 	
@@ -50,7 +59,7 @@ void HD46505::reset()
 	
 	// initial settings for 1st frame
 //#ifdef CHARS_PER_LINE
-	if(_CHARS_PER_LINE >= 0) {
+	if(_CHARS_PER_LINE > 0) {
 		hz_total = (_CHARS_PER_LINE > 54) ? _CHARS_PER_LINE : 54;
 	} else {
 		hz_total = 54;
@@ -71,12 +80,12 @@ void HD46505::reset()
 	disp_end_clock = 0;
 	
 //#if defined(HD46505_CHAR_CLOCK)
-	if(_HD46505_CHAR_CLOCK > 0) {
+	if(_E__HD46505_CHAR_CLOCK) {
 		char_clock = 0;
 		next_char_clock = _HD46505_CHAR_CLOCK;
 	} else 
 //#elif defined(HD46505_HORIZ_FREQ)
-		if(_HD46505_HORIZ_FREQ > 0) {
+		if(_E_HD46505_HORIZ_FREQ) {
 			horiz_freq = 0;
 			next_horiz_freq = _HD46505_HORIZ_FREQ;
 		}
@@ -130,14 +139,14 @@ void HD46505::event_pre_frame()
 			timing_changed = false;
 			disp_end_clock = 0;
 //#if defined(HD46505_CHAR_CLOCK)
-			char_clock = 0;
+			if(_E_HD46505_CHAR_CLOCK) char_clock = 0.0;
 //#elif defined(HD46505_HORIZ_FREQ)
-			horiz_freq = 0;
+			if(_E_HD46505_HORIZ_FREQ) horiz_freq = 0.0;
 //#endif
 		}
 	}
 //#if defined(HD46505_CHAR_CLOCK)
-	if(_HD46505_CHAR_CLOCK > 0) {
+	if(_E_HD46505_CHAR_CLOCK) {
 		if(char_clock != next_char_clock) {
 			char_clock = next_char_clock;
 			frames_per_sec = char_clock / (double)vt_total / (double)hz_total;
@@ -148,7 +157,7 @@ void HD46505::event_pre_frame()
 		}
 	}
 //#elif defined(HD46505_HORIZ_FREQ)
-	else if(_HD46505_HORIZ_FREQ > 0) {
+	else if(_E_HD46505_HORIZ_FREQ) {
 		if(horiz_freq != next_horiz_freq) {
 			horiz_freq = next_horiz_freq;
 			frames_per_sec = horiz_freq / (double)vt_total;
@@ -165,7 +174,7 @@ void HD46505::update_timing(int new_clocks, double new_frames_per_sec, int new_l
 {
 	cpu_clocks = new_clocks;
 //#if !defined(HD46505_CHAR_CLOCK) && !defined(HD46505_HORIZ_FREQ)
-	if((_HD46505_CHAR_CLOCK <= 0) && (_HD46505_HORIZ_FREQ <= 0)) {
+	if((!_E_HD46505_CHAR_CLOCK) && (!_E_HD46505_HORIZ_FREQ) {
 		frames_per_sec = new_frames_per_sec;
 	}
 //#endif
@@ -267,10 +276,10 @@ void HD46505::save_state(FILEIO* state_fio)
 	state_fio->FputBool(timing_changed);
 	state_fio->FputInt32(cpu_clocks);
 //#if defined(HD46505_CHAR_CLOCK)
-	if(_HD46505_CHAR_CLOCK > 0) {
+	if(_E_HD46505_CHAR_CLOCK) {
 		state_fio->FputDouble(char_clock);
 		state_fio->FputDouble(next_char_clock);
-	} else if(_HD46505_HORIZ_FREQ > 0) {
+	} else if(_E_HD46505_HORIZ_FREQ) {
 //#elif defined(HD46505_HORIZ_FREQ)
 		state_fio->FputDouble(horiz_freq);
 		state_fio->FputDouble(next_horiz_freq);
@@ -308,10 +317,10 @@ bool HD46505::load_state(FILEIO* state_fio)
 	timing_changed = state_fio->FgetBool();
 	cpu_clocks = state_fio->FgetInt32();
 //#if defined(HD46505_CHAR_CLOCK)
-	if(_HD46505_CHAR_CLOCK > 0) {
+	if(_E_HD46505_CHAR_CLOCK) {
 		char_clock = state_fio->FgetDouble();
 		next_char_clock = state_fio->FgetDouble();
-	} else if(_HD46505_HORIZ_FREQ > 0) {
+	} else if(_E_HD46505_HORIZ_FREQ) {
 //#elif defined(HD46505_HORIZ_FREQ)
 		horiz_freq = state_fio->FgetDouble();
 		next_horiz_freq = state_fio->FgetDouble();

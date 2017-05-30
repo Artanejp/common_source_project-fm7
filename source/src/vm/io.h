@@ -59,7 +59,7 @@ public:
 #ifdef _IO_DEBUG_LOG
 		cpu_index = 0;
 #endif
-		set_device_name(_T("GENERIC I/O"));
+		set_device_name(_T("Generic I/O" Bus));
 	}
 	~IO() {}
 	

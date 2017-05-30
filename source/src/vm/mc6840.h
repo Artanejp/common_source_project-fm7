@@ -87,7 +87,7 @@ public:
 		initialize_output_signals(&outputs_irq);
 		m_internal_clock = 0.0;
 		m_external_clock[0] = m_external_clock[1] = m_external_clock[2] = 0.0;
-		set_device_name(_T("MC6840 COUNTER/TIMER"));
+		set_device_name(_T("MC6840 Counter/Timer"));
 	}
 	~MC6840() {}
 	

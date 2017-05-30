@@ -69,7 +69,7 @@ public:
 		initialize_output_signals(&outputs_sound);
 		volume_l = volume_r = 1024;
 		sound_mute_l = sound_mute_r = true;
-		set_device_name(_T("LASERDISC LD700"));
+		set_device_name(_T("LD-700 Laser Disc Player"));
 	}
 	~LD700() {}
 	

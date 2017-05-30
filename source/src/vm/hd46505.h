@@ -52,8 +52,10 @@ private:
 	int _SCREEN_HEIGHT;
 	int _CHARS_PER_LINE;
 	int _LINES_PER_FRAME;
-	int _HD46505_CHAR_CLOCK;
-	int _HD46505_HORIZ_FREQ;
+	bool _E_HD46505_CHAR_CLOCK;
+	bool _E_HD46505_HORIZ_FREQ;
+	double _HD46505_CHAR_CLOCK;
+	double _HD46505_HORIZ_FREQ;
 	
 	void set_display(bool val);
 	void set_vblank(bool val);
@@ -71,8 +73,10 @@ public:
 		_SCREEN_HEIGHT = 200;
 		_CHARS_PER_LINE = 80;
 		_LINES_PER_FRAME = 200;
-		_HD46505_CHAR_CLOCK = 0;
-		_HD46505_HORIZ_FREQ = 0;
+		_HD46505_CHAR_CLOCK = 0.0;
+		_HD46505_HORIZ_FREQ = 0.0;
+		_E_HD46505_CHAR_CLOCK = false;
+		_E_HD46505_HORIZ_FREQ = false;
 		set_device_name(_T("HD46505 CRTC"));
 	}
 	~HD46505() {}
