@@ -26,14 +26,32 @@ enum
 };
 
 
-class i8086_common_cpu_device : public cpu_device
+class i8086_common_cpu_device : public DEVICE
 {
 public:
 	// construction/destruction
-	i8086_common_cpu_device(const machine_config &mconfig, device_type type, const char *name, const char *tag, device_t *owner, uint32_t clock, const char *shortname, const char *source);
+	i8086_common_cpu_device(VM *prev_vm, EMU* prev_emu);
+	~i8086_common_cpu_device();
 
-	template<class _Object> static devcb_base &set_lock_handler(device_t &device, _Object object)
-		{ return downcast<i8086_common_cpu_device &>(device).m_lock_handler.set_callback(object); }
+	virtual void initialize();
+	virtual void reset();
+
+	void set_context_mem(DEVICE *device)
+	{
+		m_program = m_opcodes = device;
+	}
+	void set_context_io(DEVICE* device)
+	{
+		m_io = device;
+	}
+	void set_context_intr(DEVICE* device)
+	{
+		d_pic = device;
+	}
+	void set_context_dma(DEVICE* device)
+	{
+		d_direct = m_direct_opcodes = device;
+	}
 
 protected:
 	enum
@@ -111,10 +129,6 @@ protected:
 	enum SREGS { ES=0, CS, SS, DS };
 	enum WREGS { AX=0, CX, DX, BX, SP, BP, SI, DI };
 
-	// device-level overrides
-	virtual void device_start() override;
-	virtual void device_reset() override;
-
 	// device_execute_interface overrides
 	virtual uint32_t execute_min_cycles() const override { return 1; }
 	virtual uint32_t execute_max_cycles() const override { return 50; }
@@ -126,8 +140,8 @@ protected:
 	virtual offs_t disasm_disassemble(std::ostream &stream, offs_t pc, const uint8_t *oprom, const uint8_t *opram, uint32_t options) override;
 
 	// device_state_interface overrides
-	virtual void state_import(const device_state_entry &entry) override;
-	virtual void state_string_export(const device_state_entry &entry, std::string &str) const override;
+	//virtual void state_import(const device_state_entry &entry) override;
+	//virtual void state_string_export(const device_state_entry &entry, std::string &str) const override;
 
 	virtual void interrupt(int int_num, int trap = 1);
 	virtual bool common_op(uint8_t op);
@@ -296,10 +310,11 @@ protected:
 	uint8_t   m_no_interrupt;
 	uint8_t   m_fire_trap;
 	uint8_t   m_test_state;
+	int m_extra_cycles;
 
-	address_space *m_program, *m_opcodes;
-	direct_read_data *m_direct, *m_direct_opcodes;
-	address_space *m_io;
+	DEVICE *m_program, *m_opcodes;
+	DEVICE *m_direct, *m_direct_opcodes;
+	DEVICE *m_io;
 	offs_t m_fetch_xor;
 	int m_icount;
 
@@ -334,18 +349,17 @@ protected:
 	bool m_halt;
 
 	bool m_lock;
-	devcb_write_line m_lock_handler;
+	bool m_busreq;
 };
 
 class i8086_cpu_device : public i8086_common_cpu_device
 {
 public:
 	// construction/destruction
-	i8086_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
-	i8086_cpu_device(const machine_config &mconfig, device_type type, const char *name, const char *tag, device_t *owner, uint32_t clock, const char *shortname, const char *source, int data_bus_size);
+	i8086_cpu_device(VM* prev_vm, EMU* prev_emu);
+	~i8086_cpu_device();
 
 	// device_memory_interface overrides
-	virtual const address_space_config *memory_space_config(address_spacenum spacenum = AS_0) const override;
 
 protected:
 	virtual void execute_run() override;
@@ -354,6 +368,7 @@ protected:
 	virtual uint8_t fetch_op() override;
 	virtual uint8_t fetch() override;
 	uint32_t pc() { return m_pc = (m_sregs[CS] << 4) + m_ip; }
+	uint32_t prev_pc() { return (m_sregs[CS] << 4) + m_prev_ip; }
 
 	address_space_config m_program_config;
 	address_space_config m_opcodes_config;

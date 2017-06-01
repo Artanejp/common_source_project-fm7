@@ -17,23 +17,31 @@
 
 uint8_t i8086_common_cpu_device::read_byte(uint32_t addr)
 {
-	return m_program->read_byte(addr);
+	if(m_program == NULL) return 0xff;
+	//return m_program->read_byte(addr);
+	return m_program->read_data8(addr);
 }
 
 uint16_t i8086_common_cpu_device::read_word(uint32_t addr)
 {
-	return m_program->read_word_unaligned(addr);
+	if(m_program == NULL) return 0xffff;
+	//return m_program->read_word_unaligned(addr);
+	return m_program->read_data16(addr);
 }
 
 void i8086_common_cpu_device::write_byte(uint32_t addr, uint8_t data)
 {
-	m_program->write_byte(addr, data);
+	if(m_program == NULL) return;
+	m_program->write_data8(addr, data);
+	//m_program->write_byte(addr, data);
 }
 
 
 void i8086_common_cpu_device::write_word(uint32_t addr, uint16_t data)
 {
-	m_program->write_word_unaligned(addr, data);
+	if(m_program == NULL) return;
+	//m_program->write_word_unaligned(addr, data);
+	m_program->write_data16(addr, data);
 }
 
 inline uint16_t i8086_common_cpu_device::fetch_word()

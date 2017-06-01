@@ -84,51 +84,34 @@ const uint8_t i8086_cpu_device::m_i8086_timing[] =
 /* cpu state                                                               */
 /***************************************************************************/
 
-
 /***************************************************************************/
 
-const device_type I8086 = device_creator<i8086_cpu_device>;
-const device_type I8088 = device_creator<i8088_cpu_device>;
-
-i8088_cpu_device::i8088_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
-	: i8086_cpu_device(mconfig, I8088, "I8088", tag, owner, clock, "i8088", __FILE__, 8)
+i8088_cpu_device::i8088_cpu_device(VM* prev_vm, EMU* prev_emu) : i8086_cpu_device(prev_vm, prev_emu)
 {
 	memcpy(m_timing, m_i8086_timing, sizeof(m_i8086_timing));
 	m_fetch_xor = 0;
 }
 
-i8086_cpu_device::i8086_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
-	: i8086_common_cpu_device(mconfig, I8086, "I8086", tag, owner, clock, "i8086", __FILE__)
-	, m_program_config("program", ENDIANNESS_LITTLE, 16, 20, 0)
-	, m_opcodes_config("opcodes", ENDIANNESS_LITTLE, 16, 20, 0)
-	, m_io_config("io", ENDIANNESS_LITTLE, 16, 16, 0)
+i8086_cpu_device::i8086_cpu_device(VM* prev_vm, EMU* prev_emu) : i8086_common_cpu_device(prev_vm, prev_emu)
 {
 	memcpy(m_timing, m_i8086_timing, sizeof(m_i8086_timing));
 	m_fetch_xor = BYTE_XOR_LE(0);
+
+	
+	m_extra_cycles = 0;
+	m_busreq = false;
+	m_test = 0;
 }
 
-i8086_cpu_device::i8086_cpu_device(const machine_config &mconfig, device_type type, const char *name, const char *tag, device_t *owner, uint32_t clock, const char *shortname, const char *source, int data_bus_size)
-	: i8086_common_cpu_device(mconfig, type, name, tag, owner, clock, shortname, source)
-	, m_program_config("program", ENDIANNESS_LITTLE, data_bus_size, 20, 0)
-	, m_opcodes_config("opcodes", ENDIANNESS_LITTLE, data_bus_size, 20, 0)
-	, m_io_config("io", ENDIANNESS_LITTLE, data_bus_size, 16, 0)
+i8086_cpu_device::~i8086_cpu_device()
 {
 }
 
-const address_space_config *i8086_cpu_device::memory_space_config(address_spacenum spacenum) const
-{
-	switch(spacenum)
-	{
-	case AS_PROGRAM:           return &m_program_config;
-	case AS_IO:                return &m_io_config;
-	case AS_DECRYPTED_OPCODES: return has_configured_map(AS_DECRYPTED_OPCODES) ? &m_opcodes_config : nullptr;
-	default:                   return nullptr;
-	}
-}
 
 uint8_t i8086_cpu_device::fetch_op()
 {
 	uint8_t data;
+	
 	data = m_direct_opcodes->read_byte(pc(), m_fetch_xor);
 	m_ip++;
 	return data;
@@ -291,8 +274,8 @@ void i8086_cpu_device::device_start()
 	state_add( I8086_HALT, "HALT", m_halt ).mask(1);
 }
 
-i8086_common_cpu_device::i8086_common_cpu_device(const machine_config &mconfig, device_type type, const char *name, const char *tag, device_t *owner, uint32_t clock, const char *shortname, const char *source)
-	: cpu_device(mconfig, type, name, tag, owner, clock, shortname, source)
+i8086_common_cpu_device::i8086_common_cpu_device(VM* prev_vm, EMU* prev_emu)
+	: DEVICE(prev_vm, prev_emu)
 	, m_ip(0)
 	, m_TF(0)
 	, m_int_vector(0)
@@ -301,6 +284,8 @@ i8086_common_cpu_device::i8086_common_cpu_device(const machine_config &mconfig, 
 	, m_irq_state(0)
 	, m_test_state(1)
 	, m_pc(0)
+	, m_busreq(false)
+	, m_extra_cycles(0)
 	, m_lock(false)
 	, m_lock_handler(*this)
 {
@@ -331,120 +316,14 @@ i8086_common_cpu_device::i8086_common_cpu_device(const machine_config &mconfig, 
 
 	memset(&m_regs, 0x00, sizeof(m_regs));
 	memset(m_sregs, 0x00, sizeof(m_sregs));
+
+	m_program = m_opcodes = NULL;
+	m_direct = m_direct_opcodes = NULL;
+	m_io = NULL;
 }
 
 
-//-------------------------------------------------
-//  state_import - import state into the device,
-//  after it has been set
-//-------------------------------------------------
-
-void i8086_common_cpu_device::state_import(const device_state_entry &entry)
-{
-	switch (entry.index())
-	{
-	case I8086_IP:
-	case I8086_CS:
-		m_pc = (m_sregs[CS] << 4) + m_ip;
-		break;
-
-	case STATE_GENPC:
-	case STATE_GENPCBASE:
-		if (m_pc - (m_sregs[CS] << 4) > 0xffff)
-			m_sregs[CS] = m_pc >> 4;
-		m_ip = m_pc - (m_sregs[CS] << 4);
-		break;
-	}
-}
-
-
-//-------------------------------------------------
-//  state_string_export - export state as a string
-//  for the debugger
-//-------------------------------------------------
-
-void i8086_common_cpu_device::state_string_export(const device_state_entry &entry, std::string &str) const
-{
-	switch (entry.index())
-	{
-		case STATE_GENFLAGS:
-			{
-				uint16_t flags = CompressFlags();
-				str = string_format("%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c",
-					flags & 0x8000 ? '1':'.',
-					flags & 0x4000 ? '1':'.',
-					flags & 0x2000 ? '1':'.',
-					flags & 0x1000 ? '1':'.',
-					flags & 0x0800 ? 'O':'.',
-					flags & 0x0400 ? 'D':'.',
-					flags & 0x0200 ? 'I':'.',
-					flags & 0x0100 ? 'T':'.',
-					flags & 0x0080 ? 'S':'.',
-					flags & 0x0040 ? 'Z':'.',
-					flags & 0x0020 ? '0':'.',
-					flags & 0x0010 ? 'A':'.',
-					flags & 0x0008 ? '0':'.',
-					flags & 0x0004 ? 'P':'.',
-					flags & 0x0002 ? '1':'.',
-					flags & 0x0001 ? 'C':'.');
-			}
-			break;
-	}
-}
-
-void i8086_common_cpu_device::device_start()
-{
-	m_program = &space(AS_PROGRAM);
-	m_opcodes = has_space(AS_DECRYPTED_OPCODES) ? &space(AS_DECRYPTED_OPCODES) : m_program;
-	m_direct = &m_program->direct();
-	m_direct_opcodes = &m_opcodes->direct();
-	m_io = &space(AS_IO);
-
-	save_item(NAME(m_regs.w));
-	save_item(NAME(m_sregs));
-	save_item(NAME(m_ip));
-	save_item(NAME(m_prev_ip));
-	save_item(NAME(m_TF));
-	save_item(NAME(m_IF));
-	save_item(NAME(m_DF));
-	save_item(NAME(m_MF));
-	save_item(NAME(m_NT));
-	save_item(NAME(m_IOPL));
-	save_item(NAME(m_SignVal));
-	save_item(NAME(m_int_vector));
-	save_item(NAME(m_pending_irq));
-	save_item(NAME(m_nmi_state));
-	save_item(NAME(m_irq_state));
-	save_item(NAME(m_AuxVal));
-	save_item(NAME(m_OverVal));
-	save_item(NAME(m_ZeroVal));
-	save_item(NAME(m_CarryVal));
-	save_item(NAME(m_ParityVal));
-	save_item(NAME(m_seg_prefix));
-	save_item(NAME(m_seg_prefix_next));
-	save_item(NAME(m_prefix_seg));
-	save_item(NAME(m_halt));
-
-	// Register state for debugger
-	state_add( I8086_IP, "IP", m_ip         ).callimport().formatstr("%04X");
-	state_add( I8086_AX, "AX", m_regs.w[AX] ).formatstr("%04X");
-	state_add( I8086_CX, "CX", m_regs.w[CS] ).formatstr("%04X");
-	state_add( I8086_DX, "DX", m_regs.w[DX] ).formatstr("%04X");
-	state_add( I8086_BX, "BX", m_regs.w[BX] ).formatstr("%04X");
-	state_add( I8086_SP, "SP", m_regs.w[SP] ).formatstr("%04X");
-	state_add( I8086_BP, "BP", m_regs.w[BP] ).formatstr("%04X");
-	state_add( I8086_SI, "SI", m_regs.w[SI] ).formatstr("%04X");
-	state_add( I8086_DI, "DI", m_regs.w[DI] ).formatstr("%04X");
-
-	state_add(STATE_GENFLAGS, "GENFLAGS", m_TF).formatstr("%16s").noshow();
-
-	m_icountptr = &m_icount;
-
-	m_lock_handler.resolve_safe();
-}
-
-
-void i8086_common_cpu_device::device_reset()
+void i8086_common_cpu_device::reset()
 {
 	m_ZeroVal = 1;
 	m_ParityVal = 1;
@@ -1796,8 +1675,14 @@ bool i8086_common_cpu_device::common_op(uint8_t op)
 			break;
 
 		case 0xcd: // i_int
-			interrupt(fetch(), 0);
-			CLK(INT_IMM);
+			{
+				int int_num = fetch();
+				if(call_bios_int_i86(int_num, m_regs.w, m_sregs, &m_ZeroVal, &m_CarryVal)) {
+					return;
+				}
+				interrupt(int_num, 0);
+				CLK(INT_IMM);
+			}
 			break;
 
 		case 0xce: // i_into
@@ -1996,7 +1881,11 @@ bool i8086_common_cpu_device::common_op(uint8_t op)
 		case 0xe8: // i_call_d16
 			{
 				int16_t tmp = (int16_t)fetch_word();
-
+				if(call_pseudo_bios((m_pc + tmp) & m_amask)) {
+					CLK(CALL_NEAR);
+					//m_ip = m_ip + tmp;
+					return;
+				}
 				PUSH(m_ip);
 				m_ip = m_ip + tmp;
 				CLK(CALL_NEAR);
@@ -2414,6 +2303,11 @@ bool i8086_common_cpu_device::common_op(uint8_t op)
 					CLKM(INCDEC_R16,INCDEC_M16);
 					break;
 				case 0x10:  /* CALL */
+					if(call_pseudo_bios((m_base[m_CS] + (uint16_t)tmp) & m_amask)) {
+						CLK(CALL_R16,CALL_M16);
+						//m_ip = m_ip + tmp;
+						return;
+					}
 					PUSH(m_ip);
 					m_ip = tmp;
 					CLKM(CALL_R16,CALL_M16);
@@ -2421,6 +2315,11 @@ bool i8086_common_cpu_device::common_op(uint8_t op)
 				case 0x18:  /* CALL FAR */
 					tmp1 = m_sregs[CS];
 					m_sregs[CS] = GetnextRMWord();
+					if(call_pseudo_bios(((m_sregs[CS] << 4) + tmp1) & m_amask) {
+						CLK(CALL_M32);
+						//m_ip = m_ip + tmp;
+						return;
+					}
 					PUSH(tmp1);
 					PUSH(m_ip);
 					m_ip = tmp;

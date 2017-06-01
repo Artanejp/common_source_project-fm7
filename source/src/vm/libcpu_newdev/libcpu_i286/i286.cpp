@@ -1,9 +1,82 @@
 // license:BSD-3-Clause
 // copyright-holders:Carl
-#include "emu.h"
-#include "i286.h"
-#include "debugger.h"
+#include "../../device.h"
+#include "./i286.h"
+#include "../../debugger.h"
 #include "i86inline.h"
+
+
+#ifndef __BIG_ENDIAN__
+#define LSB_FIRST
+#endif
+
+#ifndef INLINE
+#define INLINE inline
+#endif
+/*****************************************************************************/
+/* src/emu/emucore.h */
+
+// constants for expression endianness
+enum endianness_t
+{
+	ENDIANNESS_LITTLE,
+	ENDIANNESS_BIG
+};
+
+// declare native endianness to be one or the other
+#ifdef LSB_FIRST
+const endianness_t ENDIANNESS_NATIVE = ENDIANNESS_LITTLE;
+#else
+const endianness_t ENDIANNESS_NATIVE = ENDIANNESS_BIG;
+#endif
+// endian-based value: first value is if 'endian' is little-endian, second is if 'endian' is big-endian
+#define ENDIAN_VALUE_LE_BE(endian,leval,beval)	(((endian) == ENDIANNESS_LITTLE) ? (leval) : (beval))
+// endian-based value: first value is if native endianness is little-endian, second is if native is big-endian
+#define NATIVE_ENDIAN_VALUE_LE_BE(leval,beval)	ENDIAN_VALUE_LE_BE(ENDIANNESS_NATIVE, leval, beval)
+// endian-based value: first value is if 'endian' matches native, second is if 'endian' doesn't match native
+#define ENDIAN_VALUE_NE_NNE(endian,leval,beval)	(((endian) == ENDIANNESS_NATIVE) ? (neval) : (nneval))
+
+/* emumem.h */
+// macros for accessing bytes and words within larger chunks
+
+// read/write a byte to a 16-bit space
+#define BYTE_XOR_BE(a)                  ((a) ^ NATIVE_ENDIAN_VALUE_LE_BE(1,0))
+#define BYTE_XOR_LE(a)                  ((a) ^ NATIVE_ENDIAN_VALUE_LE_BE(0,1))
+
+// read/write a byte to a 32-bit space
+#define BYTE4_XOR_BE(a)                 ((a) ^ NATIVE_ENDIAN_VALUE_LE_BE(3,0))
+#define BYTE4_XOR_LE(a)                 ((a) ^ NATIVE_ENDIAN_VALUE_LE_BE(0,3))
+
+// read/write a word to a 32-bit space
+#define WORD_XOR_BE(a)                  ((a) ^ NATIVE_ENDIAN_VALUE_LE_BE(2,0))
+#define WORD_XOR_LE(a)                  ((a) ^ NATIVE_ENDIAN_VALUE_LE_BE(0,2))
+
+// read/write a byte to a 64-bit space
+#define BYTE8_XOR_BE(a)                 ((a) ^ NATIVE_ENDIAN_VALUE_LE_BE(7,0))
+#define BYTE8_XOR_LE(a)                 ((a) ^ NATIVE_ENDIAN_VALUE_LE_BE(0,7))
+
+// read/write a word to a 64-bit space
+#define WORD2_XOR_BE(a)                 ((a) ^ NATIVE_ENDIAN_VALUE_LE_BE(6,0))
+#define WORD2_XOR_LE(a)                 ((a) ^ NATIVE_ENDIAN_VALUE_LE_BE(0,6))
+
+// read/write a dword to a 64-bit space
+#define DWORD_XOR_BE(a)                 ((a) ^ NATIVE_ENDIAN_VALUE_LE_BE(4,0))
+#define DWORD_XOR_LE(a)                 ((a) ^ NATIVE_ENDIAN_VALUE_LE_BE(0,4))
+
+
+// helpers for checking address alignment
+#define WORD_ALIGNED(a)                 (((a) & 1) == 0)
+#define DWORD_ALIGNED(a)                (((a) & 3) == 0)
+#define QWORD_ALIGNED(a)                (((a) & 7) == 0)
+
+// I/O line states
+enum line_state
+{
+	CLEAR_LINE = 0,				// clear (a fired or held) line
+	ASSERT_LINE,				// assert an interrupt immediately
+	HOLD_LINE,				// hold interrupt line until acknowledged
+	PULSE_LINE				// pulse interrupt line instantaneously (only for NMI, RESET)
+};
 
 /*
  * Descriptor format
@@ -165,13 +238,8 @@ const uint8_t i80286_cpu_device::m_i80286_timing[] =
 	13,             /* (80186) BOUND */
 };
 
-const device_type I80286 = device_creator<i80286_cpu_device>;
 
-i80286_cpu_device::i80286_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
-	: i8086_common_cpu_device(mconfig, I80286, "I80286", tag, owner, clock, "i80286", __FILE__)
-	, m_program_config("program", ENDIANNESS_LITTLE, 16, 24, 0)
-	, m_io_config("io", ENDIANNESS_LITTLE, 16, 16, 0)
-	, m_out_shutdown_func(*this)
+i80286_cpu_device::i80286_cpu_device(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
 	memcpy(m_timing, m_i80286_timing, sizeof(m_i80286_timing));
 	m_amask = 0xffffff;
@@ -190,11 +258,16 @@ i80286_cpu_device::i80286_cpu_device(const machine_config &mconfig, const char *
 	memset(&m_ldtr, 0x00, sizeof(m_ldtr));
 	memset(&m_tr, 0x00, sizeof(m_tr));
 	m_msw = 0xfff0;
+
+	//m_test = 0;
+	//m_busreq = false;
+	//m_extra_cycles = 0;
+	initialize_output_signals(&out_shutdown);
 }
 
-void i80286_cpu_device::device_reset()
+void i80286_cpu_device::reset()
 {
-	i8086_common_cpu_device::device_reset();
+	i8086_common_cpu_device::reset();
 	m_MF = 0;
 	m_NT = 0;
 	m_IOPL = 0;
@@ -216,33 +289,15 @@ void i80286_cpu_device::device_reset()
 	m_ip = 0xfff0;
 	m_trap_level = 0;
 	m_shutdown = false;
-	m_out_shutdown_func(false);
+	m_extra_cycles = 0;
+	//m_out_shutdown_func(false);
+	write_signals(&out_shutdown, 0);
 }
 
 void i80286_cpu_device::device_start()
 {
 	i8086_common_cpu_device::device_start();
-	save_item(NAME(m_trap_level));
-	save_item(NAME(m_msw));
-	save_item(NAME(m_base));
-	save_item(NAME(m_limit));
-	save_item(NAME(m_rights));
-	save_item(NAME(m_valid));
-	save_item(NAME(m_gdtr.base));
-	save_item(NAME(m_gdtr.limit));
-	save_item(NAME(m_idtr.base));
-	save_item(NAME(m_idtr.limit));
-	save_item(NAME(m_ldtr.sel));
-	save_item(NAME(m_ldtr.base));
-	save_item(NAME(m_ldtr.limit));
-	save_item(NAME(m_ldtr.rights));
-	save_item(NAME(m_tr.sel));
-	save_item(NAME(m_tr.base));
-	save_item(NAME(m_tr.limit));
-	save_item(NAME(m_tr.rights));
-	save_item(NAME(m_amask));
-	save_item(NAME(m_shutdown));
-
+	// ToDo
 	state_add( I286_ES, "ES", m_sregs[ES] ).formatstr("%04X");
 	state_add( I286_ES_BASE, "ESBASE", m_base[ES]).formatstr("%06X");
 	state_add( I286_ES_LIMIT, "ESLIMIT", m_limit[ES]).formatstr("%04X");
@@ -278,7 +333,8 @@ void i80286_cpu_device::device_start()
 	state_add( STATE_GENPCBASE, "CURPC", m_pc ).callimport().formatstr("%06X").noshow();
 	state_add( I8086_HALT, "HALT", m_halt ).mask(1);
 
-	m_out_shutdown_func.resolve_safe();
+	//m_out_shutdown_func.resolve_safe();
+	write_signals(&out_shutdown, 0);
 }
 
 const address_space_config *i80286_cpu_device::memory_space_config(address_spacenum spacenum) const
@@ -374,33 +430,66 @@ bool i80286_cpu_device::memory_translate(address_spacenum spacenum, int intentio
 	return true;
 }
 
-void i80286_cpu_device::execute_set_input(int inptnum, int state)
+void i80286_cpu_device::set_irq_line(int irqline, int state)
 {
-	if(inptnum == INPUT_LINE_NMI)
+	if (state != CLEAR_LINE && cpustate->halted)
 	{
-		if(m_nmi_state == state)
+		cpustate->halted = 0;
+	}
+	try
+	{
+		if (irqline == INPUT_LINE_NMI)
 		{
-			return;
-		}
-		m_nmi_state = state;
-		if(state != CLEAR_LINE)
-		{
-			m_pending_irq |= NMI_IRQ;
+			if (state != CLEAR_LINE) {
+				m_pending_irq |= NMI_IRQ;
+			} else {
+				//m_pending_irq &= ~NMI_IRQ;
+			}
+			if (m_nmi_state == (uint32_t)state) {
+				return;
+			}
+			m_nmi_state = (uint32_t)state;
+
+			/* on a rising edge, signal the NMI */
+			if (state != CLEAR_LINE) {
+				interrupt(I8086_NMI_INT_VECTOR, 2, -1);
+				m_nmi_state = CLEAR_LINE;
+			}
+		} else {
+			if(state == CLEAR_LINE)	{
+				m_pending_irq &= ~INT_IRQ;
+			} else {
+				m_pending_irq |= INT_IRQ;
+			}
+			m_irq_state = state;
+			/* if the IF is set, signal an interrupt */
+			if (state != CLEAR_LINE && m_IF) {
+				if(m_pic != NULL) {
+					interrupt(m_pic->get_intr_ack(), 2, -1);
+				}
+				m_irq_state = CLEAR_LINE;
+			}
 		}
 	}
-	else if(inptnum == INPUT_LINE_A20)
-		m_amask = m_a20_callback.isnull() ? 0xffffff : m_a20_callback(state);
-	else
+	catch (UINT32 e)
 	{
-		m_irq_state = state;
-		if(state == CLEAR_LINE)
-		{
-			m_pending_irq &= ~INT_IRQ;
-		}
-		else
-		{
-			m_pending_irq |= INT_IRQ;
-		}
+		trap(e);
+	}
+}
+
+void i80286_cpu_device::write_signal(int id, uint32_t data, uint32_t mask)
+{
+	uint32_t state = (data & mask) ? HOLD_LINE : CLEARLINE;
+	if(id == SIG_CPU_NMI) {
+		set_irq_line(INPUT_LINE_NMI, state);
+	} else if(id == SIG_CPU_IRQ) 	{
+		set_irq_line(INPUT_LINE_IRQ, state);
+	} else if(id == SIG_I86_A20) {
+		m_amask = (data & mask) ? 0x00ffffff : 0x000fffff; // i80286_set_a20_line()
+	} else if(id == SIG_CPU_BUSREQ) {
+		m_busreq = (data & mask);
+	} else if(id == SIG_I86_TEST) {
+		m_test = (data & mask);
 	}
 }
 // when a cpu reset happens on a AT the bios checks for 9 in byte 0xf
@@ -411,8 +500,9 @@ void i80286_cpu_device::trap(uint32_t error)
 {
 	int error_code = error & 0xffff;
 	uint16_t number = error >> 16;
-	if(error_code == 0xffff)
+	if(error_code == 0xffff) {
 		error_code = -1;
+	}
 	m_ip = m_prev_ip;
 	try
 	{
@@ -444,7 +534,8 @@ void i80286_cpu_device::trap(uint32_t error)
 	if(m_trap_level == 3)
 	{
 		m_shutdown = true;
-		m_out_shutdown_func(true);
+		//m_out_shutdown_func(true);
+		write_signals(&out_shutdown, 0xffffffff);
 	}
 	m_trap_level = 0;
 }
@@ -991,48 +1082,63 @@ uint8_t i80286_cpu_device::read_port_byte(uint16_t port)
 {
 	if(PM && (CPL > m_IOPL))
 		throw TRAP(FAULT_GP, 0);
-	return m_io->read_byte(port);
+	if(m_io != NULL) {
+		return m_io->read_io8((uint32_t)port);
+	}
+	return 0xff;
+	//return m_io->read_byte(port);
 }
 
 uint16_t i80286_cpu_device::read_port_word(uint16_t port)
 {
 	if(PM && (CPL > m_IOPL))
 		throw TRAP(FAULT_GP, 0);
-	return m_io->read_word_unaligned(port);
+	if(m_io != NULL) {
+		return m_io->read_io16((uint32_t)port);
+	}
+	//return m_io->read_byte_unaligned(port);
+	return 0xff;
 }
 
 void i80286_cpu_device::write_port_byte(uint16_t port, uint8_t data)
 {
 	if(PM && (CPL > m_IOPL))
 		throw TRAP(FAULT_GP, 0);
-	m_io->write_byte(port, data);
+	if(m_io != NULL) {
+		m_io->write_io8((uint32_t)port, (uint32_t)data);
+	}
 }
 
 void i80286_cpu_device::write_port_word(uint16_t port, uint16_t data)
 {
 	if(PM && (CPL > m_IOPL))
 		throw TRAP(FAULT_GP, 0);
-	m_io->write_word_unaligned(port, data);
+	//m_io->write_word_unaligned(port, data);
+	if(m_io != NULL) {
+		m_io->write_io16((uint32_t)port, (uint32_t)data);
+	}
 }
 
 uint8_t i80286_cpu_device::fetch_op()
 {
-	uint8_t data;
+	uint8_t data = 0xff;
 	if(m_ip > m_limit[CS])
 		throw TRAP(FAULT_GP, 0);
-
-	data = m_direct_opcodes->read_byte( pc() & m_amask, m_fetch_xor );
+   
+	//data = m_direct_opcodes->read_byte( pc() & m_amask, m_fetch_xor );
+	if(m_program != NULL) data = m_program->read_data8(pc() & m_amask);
 	m_ip++;
 	return data;
 }
 
 uint8_t i80286_cpu_device::fetch()
 {
-	uint8_t data;
+	uint8_t data = 0xff;
 	if(m_ip > m_limit[CS])
 		throw TRAP(FAULT_GP, 0);
 
-	data = m_direct_opcodes->read_byte( pc() & m_amask, m_fetch_xor );
+	//data = m_direct_opcodes->read_byte( pc() & m_amask, m_fetch_xor );
+	if(m_program != NULL) data = m_program->read_data8(pc() & m_amask);
 	m_ip++;
 	return data;
 }
@@ -1046,11 +1152,938 @@ uint32_t i80286_cpu_device::calc_addr(int seg, uint16_t offset, int size, int op
 	return (m_base[seg] + offset) & (op != I8086_NONE ? m_amask : 0xffffff);
 }
 
-void i80286_cpu_device::execute_run()
+void i80286_cpu_device::set_extra_clock(int icount)
 {
-	while(m_icount > 0 )
+	m_extra_cycles += icount;
+}
+
+int i80286_cpu_device::get_extra_clock()
+{
+	return m_extra_cycles;
+}
+
+uint32_t i80286_cpu_device::get_pc()
+{
+	return prev_pc();
+}
+
+uint32_t i80286_cpu_device::get_next_pc()
+{
+	return pc();
+}
+
+void i80286_cpu_device::debugger_hook()
+{
+	if(d_debugger != NULL) {
+		bool now_debugging = d_debugger->now_debugging;
+		if(now_debugging) {
+			d_debugger->check_break_points(pc);
+			if(d_debugger->now_suspended) {
+				emu->mute_sound();
+				while(d_debugger->now_debugging && d_debugger->now_suspended) {
+					emu->sleep(10);
+				}
+			}
+			if(d_debugger->now_debugging) {
+				d_program = d_io = d_debugger;
+			} else {
+				now_debugging = false;
+			}
+			try
+			{
+				if (PM && ((m_pc - base[CS]) > limit[CS]))
+					throw TRAP(FAULT_GP, sregs[CS] & ~3);
+				m_prev_ip = m_ip;
+				execute_opcode(); // call instruction
+			}
+			catch (UINT32 e)
+			{
+				trap(e);
+			}
+			
+			if(now_debugging) {
+				if(!d_debugger->now_going) {
+					d_debugger->now_suspended = true;
+				}
+				d_program = d_program_stored;
+				d_io = d_io_stored;
+			}
+		} else {
+			exec_opcode();
+		}
+	} else {
+		exec_opcode();
+	}
+}
+
+void i80286_cpu_device:: exec_opcode()
+{
+	uint8_t op = fetch_op();
+	try {
+	switch(op)
 	{
-		try
+	case 0x07: // i_pop_es
+		pop_seg(ES);
+		CLK(POP_SEG);
+		break;
+		
+	case 0x0f:
+		{
+			unsigned next = fetch_op();
+			uint16_t desc[3], tmp, msw, sel;
+			uint8_t r;
+			uint32_t addr;
+			
+			switch (next)
+			{
+			case 0:
+				if(!PM)
+					throw TRAP(FAULT_UD, (uint16_t)-1);
+				m_modrm = fetch();
+				switch (m_modrm & 0x38)
+				{
+				case 0: /* sldt */
+					PutRMWord(m_ldtr.sel);
+					break;
+					
+				case 8: /* str */
+					PutRMWord(m_tr.sel);
+					break;
+									
+				case 0x10: /* lldt */
+					if(CPL != 0)
+						throw TRAP(FAULT_GP, 0);
+					sel = GetRMWord();
+					if(TBL(sel))
+						throw TRAP(FAULT_GP, IDXTBL(sel));
+					if(IDXTBL(sel))
+					{
+						if(IDX(sel) >= m_gdtr.limit)
+							throw TRAP(FAULT_GP, IDXTBL(sel));
+						addr = m_gdtr.base + IDX(sel);
+						desc[0] = read_word(addr);
+						desc[1] = read_word(addr + 2);
+						desc[2] = read_word(addr + 4);
+						r = RIGHTS(desc);
+						if(SEGDESC(r) || (GATE(r) != LDTDESC))
+							throw TRAP(FAULT_GP, IDXTBL(sel));
+						if(!PRES(r))
+							throw TRAP(FAULT_NP, IDXTBL(sel));
+					}
+					else
+					{
+						desc[0] = 0;
+						desc[1] = 0;
+						desc[2] = 0;
+					}
+					m_ldtr.sel = sel;
+					m_ldtr.limit = LIMIT(desc);
+					m_ldtr.base = BASE(desc);
+					m_ldtr.rights = RIGHTS(desc);
+					break;
+					
+				case 0x18: /* ltr */
+					if(CPL != 0)
+						throw TRAP(FAULT_GP, 0);
+					sel = GetRMWord();
+					if((addr = selector_address(sel)) == -1)
+						throw TRAP(FAULT_GP, IDXTBL(sel));
+					desc[0] = read_word(addr);
+					desc[1] = read_word(addr + 2);
+					desc[2] = read_word(addr + 4);
+					r = RIGHTS(desc);
+					if(SEGDESC(r) || (GATE(r) != TSSDESCIDLE))
+						throw TRAP(FAULT_GP, IDXTBL(sel));
+					if(!PRES(r))
+						throw TRAP(FAULT_NP, IDXTBL(sel));
+					desc[2] |= 0x200; // mark busy
+					write_word(addr + 4, desc[2]);
+					m_tr.sel = sel;
+					m_tr.limit = LIMIT(desc);
+					m_tr.base = BASE(desc);
+					m_tr.rights = RIGHTS(desc);
+					break;
+
+				case 0x20: /* verr */
+					tmp = GetRMWord();
+					if((addr = selector_address(tmp)) == -1)
+						m_ZeroVal = 1;
+					else
+					{
+						desc[2] = read_word(addr + 4);
+						r = RIGHTS(desc);
+						m_ZeroVal = verify(tmp, I8086_READ, RIGHTS(desc), 0);
+						m_ZeroVal = m_ZeroVal || (CODE(r) && CONF(r) ? 0 : (DPL(r) < PMAX(RPL(tmp),CPL)));
+					}
+					break;
+
+				case 0x28: /* verw */
+					tmp = GetRMWord();
+					if((addr = selector_address(tmp)) == -1)
+						m_ZeroVal = 1;
+					else
+					{
+						desc[2] = read_word(addr + 4);
+						r = RIGHTS(desc);
+						m_ZeroVal = verify(tmp, I8086_WRITE, RIGHTS(desc), 0);
+						m_ZeroVal = m_ZeroVal || (DPL(r) < PMAX(RPL(tmp),CPL));
+					}
+					break;
+
+				default:
+					throw TRAP(FAULT_UD, (uint16_t)-1);
+				}
+				break;
+			case 1:
+				{
+					uint32_t ea;
+					m_modrm = fetch();
+					if((m_modrm >= 0xc0) && (m_modrm < 0xe0))
+						throw TRAP(FAULT_UD, (uint16_t)-1);
+					switch (m_modrm & 0x38)
+					{
+					case 0: /* sgdt */
+						ea = get_ea(6, I8086_WRITE);
+						write_word(ea, m_gdtr.limit);
+						write_word(ea + 2, m_gdtr.base & 0xffff);
+						write_word(ea + 4, 0xff00 | m_gdtr.base >> 16);
+						break;
+					case 8: /* sidt */
+						ea = get_ea(6, I8086_WRITE);
+						write_word(ea, m_idtr.limit);
+						write_word(ea + 2, m_idtr.base & 0xffff);
+						write_word(ea + 4, 0xff00 | m_idtr.base >> 16);
+						break;
+					case 0x10: /* lgdt */
+						if(PM && (CPL != 0))
+							throw TRAP(FAULT_GP, 0);
+						ea = get_ea(6, I8086_READ);
+						m_gdtr.limit = read_word(ea);
+						m_gdtr.base = read_word(ea + 2) | (read_byte(ea + 4) << 16);
+						break;
+					case 0x18: /* lidt */
+						if(PM && (CPL != 0))
+							throw TRAP(FAULT_GP, 0);
+						ea = get_ea(6, I8086_READ);
+						m_idtr.limit = read_word(ea);
+						m_idtr.base = read_word(ea + 2) | (read_byte(ea + 4) << 16);
+						break;
+					case 0x20: /* smsw */
+						PutRMWord(m_msw);
+						break;
+					case 0x30: /* lmsw */
+						if(PM && (CPL != 0))
+							throw TRAP(FAULT_GP, 0);
+						msw = GetRMWord();
+						m_msw = (m_msw & 1) | msw;
+						break;
+					default:
+						throw TRAP(FAULT_UD, (uint16_t)-1);
+					}
+					break;
+				}
+			case 2: /* LAR */
+				if(!PM)
+					throw TRAP(FAULT_UD, (uint16_t)-1);
+				m_modrm = fetch_op();
+				tmp = GetRMWord();
+				if((addr = selector_address(tmp)) == -1)
+					m_ZeroVal = 1;
+				else
+				{
+					desc[2] = read_word(addr + 4);
+					r = RIGHTS(desc);
+					if(!SEGDESC(r) && ((GATE(r) > TRAPGATE) || !GATE(r)))
+						m_ZeroVal = 1;
+					else if(DPL(r) >= PMAX(RPL(tmp),CPL) || (SEGDESC(r) && CODE(r) && CONF(r)))
+					{
+						m_ZeroVal = 0;
+						// rights are expected to be in upper byte
+						RegWord(r << 8);
+					}
+					else
+						m_ZeroVal = 1;
+				}
+				break;
+			case 3: /* LSL */
+				if(!PM)
+					throw TRAP(FAULT_UD, (uint16_t)-1);
+				m_modrm = fetch_op();
+				tmp = GetRMWord();
+				if((addr = selector_address(tmp)) == -1)
+					m_ZeroVal = 1;
+				else
+				{
+					desc[2] = read_word(addr + 4);
+					r = RIGHTS(desc);
+					if(!SEGDESC(r) && ((GATE(r) >= CALLGATE) || !GATE(r)))
+						m_ZeroVal = 1; // not valid for gates
+					else if(DPL(r) >= PMAX(RPL(tmp),CPL) || (SEGDESC(r) && CODE(r) && CONF(r)))
+					{
+						m_ZeroVal = 0;
+						RegWord(read_word(addr));
+					}
+					else
+						m_ZeroVal = 1;
+				}
+				break;
+			case 5: /* loadall */
+				if(PM && (CPL != 0))
+					throw TRAP(FAULT_GP, 0);
+				m_msw = (m_msw & 1) | read_word(0x806);
+				m_tr.sel = read_word(0x816);
+				ExpandFlags(read_word(0x818));
+				m_ip = read_word(0x81a);
+				m_ldtr.sel = read_word(0x81c);
+				m_sregs[DS] = read_word(0x81e);
+				m_sregs[SS] = read_word(0x820);
+				m_sregs[CS] = read_word(0x822);
+				m_sregs[ES] = read_word(0x824);
+				m_regs.w[DI] = read_word(0x826);
+				m_regs.w[SI] = read_word(0x828);
+				m_regs.w[BP] = read_word(0x82a);
+				m_regs.w[SP] = read_word(0x82c);
+				m_regs.w[BX] = read_word(0x82e);
+				m_regs.w[DX] = read_word(0x830);
+				m_regs.w[CX] = read_word(0x832);
+				m_regs.w[AX] = read_word(0x834);
+				// loadall uses base-rights-limit order
+#define LOADDESC(addr, sreg) {  desc[1] = read_word(addr); desc[2] = read_word(addr+2); desc[0] = read_word(addr+4); \
+					m_base[sreg] = BASE(desc); m_rights[sreg] = RIGHTS(desc); \
+					m_limit[sreg] = LIMIT(desc); }
+				LOADDESC(0x836, ES);
+				LOADDESC(0x83C, CS);
+				LOADDESC(0x842, SS);
+				LOADDESC(0x848, DS);
+#undef LOADDESC
+				// void cast supresses warning
+#define LOADDESC(addr, reg, r) { desc[1] = read_word(addr); desc[2] = read_word(addr + 2); desc[0] = read_word(addr + 4); \
+					reg.base = BASE(desc); (void)(r); reg.limit = LIMIT(desc); }
+				LOADDESC(0x84e, m_gdtr, 1);
+				LOADDESC(0x854, m_ldtr, m_ldtr.rights = RIGHTS(desc));
+				LOADDESC(0x85a, m_idtr, 1);
+				LOADDESC(0x860, m_tr, m_tr.rights = RIGHTS(desc));
+#undef LOADDESC
+				break;
+
+			case 6: /* clts */
+				if(PM && (CPL != 0))
+					throw TRAP(FAULT_GP, 0);
+				m_msw &= ~8;
+				break;
+			default:
+				throw TRAP(FAULT_UD, (uint16_t)-1);
+			}
+			break;
+		}
+
+	case 0x17: // i_pop_ss
+		pop_seg(SS);
+		CLK(POP_SEG);
+		m_no_interrupt = 1;
+		break;
+
+	case 0x1f: // i_pop_ds
+		pop_seg(DS);
+		CLK(POP_SEG);
+		break;
+
+	case 0x54: // i_push_sp
+		PUSH(m_regs.w[SP]);
+		CLK(PUSH_R16);
+		break;
+
+	case 0x60: // i_pusha
+		{
+			check_permission(SS, m_regs.w[SP]-16, 16, I8086_WRITE);
+			uint32_t tmp = m_regs.w[SP];
+			PUSH(m_regs.w[AX]);
+			PUSH(m_regs.w[CX]);
+			PUSH(m_regs.w[DX]);
+			PUSH(m_regs.w[BX]);
+			PUSH(tmp);
+			PUSH(m_regs.w[BP]);
+			PUSH(m_regs.w[SI]);
+			PUSH(m_regs.w[DI]);
+			CLK(PUSHA);
+		}
+		break;
+
+	case 0x61: // i_popa
+		check_permission(SS, m_regs.w[SP], 16, I8086_READ);
+		m_regs.w[DI] = POP();
+		m_regs.w[SI] = POP();
+		m_regs.w[BP] = POP();
+		POP();
+		m_regs.w[BX] = POP();
+		m_regs.w[DX] = POP();
+		m_regs.w[CX] = POP();
+		m_regs.w[AX] = POP();
+		CLK(POPA);
+		break;
+
+	case 0x62: // i_bound
+		{
+			uint32_t low,high,tmp;
+			m_modrm = fetch();
+			low = GetRMWord();
+			high = GetnextRMWord();
+			tmp = RegWord();
+			if (tmp<low || tmp>high)
+				interrupt(5);
+			CLK(BOUND);
+			logerror("%06x: bound %04x high %04x low %04x tmp\n", pc(), high, low, tmp);
+		}
+		break;
+
+	case 0x63: // arpl
+		{
+			uint16_t tmp, source;
+			if (!PM) throw TRAP(FAULT_UD,(uint16_t)-1);
+
+			m_modrm=fetch_op();
+			tmp=GetRMWord();
+			source=RegWord();
+
+			if (RPL(tmp)<RPL(source))
+			{
+				m_ZeroVal = 0;
+				PutbackRMWord(IDXTBL(tmp)|RPL(source));
+			}
+			else
+				m_ZeroVal = 1;
+			break;
+		}
+
+	case 0x68: // i_push_d16
+		PUSH( fetch_word() );
+		CLK(PUSH_IMM);
+		break;
+
+	case 0x69: // i_imul_d16
+		{
+			uint32_t tmp;
+			DEF_r16w();
+			tmp = fetch_word();
+			m_dst = (int32_t)((int16_t)m_src)*(int32_t)((int16_t)tmp);
+			m_CarryVal = m_OverVal = (((int32_t)m_dst) >> 15 != 0) && (((int32_t)m_dst) >> 15 != -1);
+			RegWord(m_dst);
+			CLKM(IMUL_RRI16, IMUL_RMI16);
+		}
+		break;
+
+	case 0x6a: // i_push_d8
+		PUSH( (uint16_t)((int16_t)((int8_t)fetch())) );
+		CLK(PUSH_IMM);
+		break;
+
+	case 0x6b: // i_imul_d8
+		{
+			uint32_t src2;
+			DEF_r16w();
+			src2= (uint16_t)((int16_t)((int8_t)fetch()));
+			m_dst = (int32_t)((int16_t)m_src)*(int32_t)((int16_t)src2);
+			m_CarryVal = m_OverVal = (((int32_t)m_dst) >> 15 != 0) && (((int32_t)m_dst) >> 15 != -1);
+			RegWord(m_dst);
+			CLKM(IMUL_RRI8, IMUL_RMI8);
+		}
+		break;
+
+	case 0x6c: // i_insb
+		i_insb();
+		break;
+
+	case 0x6d: // i_insw
+		i_insw();
+		break;
+
+	case 0x6e: // i_outsb
+		i_outsb();
+		break;
+
+	case 0x6f: // i_outsw
+		i_outsw();
+		break;
+
+	case 0x8c: // i_mov_wsreg
+		m_modrm = fetch();
+		if((m_modrm & 0x38) > 0x18)
+		{
+			logerror("%06x: Mov Sreg - Invalid register\n", pc());
+			throw TRAP(FAULT_UD, (uint16_t)-1);
+		}
+		PutRMWord(m_sregs[(m_modrm & 0x38) >> 3]);
+		CLKM(MOV_RS,MOV_MS);
+		break;
+
+	case 0x8e: // i_mov_sregw
+		m_modrm = fetch();
+		m_src = GetRMWord();
+		CLKM(MOV_SR,MOV_SM);
+		switch (m_modrm & 0x38)
+		{
+		case 0x00:  /* mov es,ew */
+			data_descriptor(ES, m_src);
+			break;
+		case 0x10:  /* mov ss,ew */
+			data_descriptor(SS, m_src);
+			m_no_interrupt = 1;
+			break;
+		case 0x18:  /* mov ds,ew */
+			data_descriptor(DS, m_src);
+			break;
+		default:
+			logerror("%06x: Mov Sreg - Invalid register\n", pc());
+			throw TRAP(FAULT_UD, (uint16_t)-1);
+		}
+		break;
+
+	case 0x8f: // i_popw
+		{
+			m_modrm = fetch();
+			uint16_t tmp = read_word(calc_addr(SS, m_regs.w[SP], 2, I8086_READ, false));
+			PutRMWord( tmp );
+			m_regs.w[SP] += 2;
+			CLKM(POP_R16,POP_M16);
+			break;
+		}
+
+	case 0x9a: // i_call_far
+		{
+			uint16_t cs = m_sregs[CS];
+			uint16_t tmp = fetch_word();
+			uint16_t tmp2 = fetch_word();
+			uint16_t ip = m_ip;
+			code_descriptor(tmp2, tmp, NT_CALL);
+			if(call_pseudo_bios(((tmp2 << 4) + tmp) & m_amask)) {
+				CLK(CALL_FAR);
+				return;
+			}
+			PUSH(cs);
+			PUSH(ip);
+			CLK(CALL_FAR);
+		}
+		break;
+
+	case 0x9b: // i_wait
+		if((m_msw & 0x0a) == 0x0a)
+			throw TRAP(FAULT_NM, (uint16_t)-1);
+		if (m_test_state != 0) {
+			m_icount = 0;
+			m_ip--; // pc?
+		} else {
+			CLK(WAIT);
+		}
+		break;
+
+	case 0x9c: // pushf
+		{
+			uint16_t flags = CompressFlags();
+			if(!PM)
+				flags &= ~0xf000;
+			PUSH(flags);
+			CLK(PUSHF);
+			break;
+		}
+
+	case 0x9d: // popf
+		{
+			uint16_t flags;
+			flags = POP();
+			CLK(POPF);
+			load_flags(flags, CPL);
+			break;
+		}
+
+	case 0xc0: // i_rotshft_bd8
+		{
+			uint8_t c;
+			m_modrm = fetch();
+			m_src = GetRMByte();
+			m_dst = m_src;
+			c = fetch() & 0x1f;
+			CLKM(ROT_REG_BASE,ROT_M8_BASE);
+			m_icount -= m_timing[ROT_REG_BIT] * c;
+			if (c)
+			{
+				switch ( m_modrm & 0x38 )
+				{
+				case 0x00: do { ROL_BYTE();  c--; } while (c>0); PutbackRMByte(m_dst); break;
+				case 0x08: do { ROR_BYTE();  c--; } while (c>0); PutbackRMByte(m_dst); break;
+				case 0x10: do { ROLC_BYTE(); c--; } while (c>0); PutbackRMByte(m_dst); break;
+				case 0x18: do { RORC_BYTE(); c--; } while (c>0); PutbackRMByte(m_dst); break;
+				case 0x30:
+				case 0x20: SHL_BYTE(c); break;
+				case 0x28: SHR_BYTE(c); break;
+				case 0x38: SHRA_BYTE(c); break;
+				}
+			}
+		}
+		break;
+
+	case 0xc1: // i_rotshft_wd8
+		{
+			uint8_t c;
+			m_modrm = fetch();
+			m_src = GetRMWord();
+			m_dst = m_src;
+			c = fetch() & 0x1f;
+			CLKM(ROT_REG_BASE,ROT_M16_BASE);
+			m_icount -= m_timing[ROT_REG_BIT] * c;
+			if (c)
+			{
+				switch ( m_modrm & 0x38 )
+				{
+				case 0x00: do { ROL_WORD();  c--; } while (c>0); PutbackRMWord(m_dst); break;
+				case 0x08: do { ROR_WORD();  c--; } while (c>0); PutbackRMWord(m_dst); break;
+				case 0x10: do { ROLC_WORD(); c--; } while (c>0); PutbackRMWord(m_dst); break;
+				case 0x18: do { RORC_WORD(); c--; } while (c>0); PutbackRMWord(m_dst); break;
+				case 0x30:
+				case 0x20: SHL_WORD(c); break;
+				case 0x28: SHR_WORD(c); break;
+				case 0x38: SHRA_WORD(c); break;
+				}
+			}
+		}
+		break;
+
+	case 0xc4: // i_les_dw
+		{
+			m_modrm = fetch();
+			if(m_modrm >= 0xc0)
+				throw TRAP(FAULT_UD, (uint16_t)-1);
+			uint16_t tmp = GetRMWord();
+			data_descriptor(ES, GetnextRMWord());
+			RegWord(tmp);
+			CLK(LOAD_PTR);
+			break;
+		}
+
+	case 0xc5: // i_lds_dw
+		{
+			m_modrm = fetch();
+			if(m_modrm >= 0xc0)
+				throw TRAP(FAULT_UD, (uint16_t)-1);
+			uint16_t tmp = GetRMWord();
+			data_descriptor(DS, GetnextRMWord());
+			RegWord(tmp);
+			CLK(LOAD_PTR);
+			break;
+		}
+
+	case 0xc8: // i_enter
+		{
+			uint16_t nb = fetch();
+			uint32_t level;
+
+			nb |= fetch() << 8;
+			level = fetch();
+			CLK(!level ? ENTER0 : (level == 1) ? ENTER1 : ENTER_BASE);
+			if(level > 1)
+				m_icount -= level * m_timing[ENTER_COUNT];
+			PUSH(m_regs.w[BP]);
+			m_regs.w[BP] = m_regs.w[SP];
+			m_regs.w[SP] -= nb;
+			for (int i=1; i<level; i++)
+			{
+				PUSH( GetMemW(SS,m_regs.w[BP] - i*2) );
+			}
+			if (level)
+			{
+				PUSH(m_regs.w[BP]);
+			}
+		}
+		break;
+
+	case 0xc9: // i_leave
+		m_regs.w[SP] = m_regs.w[BP];
+		m_regs.w[BP] = POP();
+		CLK(LEAVE);
+		break;
+
+	case 0xca: // ret far imm
+		{
+			unsigned count = fetch_word();
+			far_return(0, count);
+			CLK(RET_FAR_IMM);
+			break;
+		}
+	case 0xcb: // ret far
+		far_return(0, 0);
+		CLK(RET_FAR);
+		break;
+
+	case 0xcf: // iret
+		{
+			int oldcpl = (PM) ? CPL : 0;
+			uint16_t flags = far_return(1, 0);
+			CLK(IRET);
+			load_flags(flags, oldcpl);
+			break;
+		}
+
+	case 0xd2: // i_rotshft_bcl
+		{
+			uint8_t c;
+
+			m_modrm = fetch();
+			m_src = GetRMByte();
+			m_dst = m_src;
+			c = m_regs.b[CL] & 0x1f;
+			CLKM(ROT_REG_BASE,ROT_M16_BASE);
+			m_icount -= m_timing[ROT_REG_BIT] * c;
+			if (c)
+			{
+				switch ( m_modrm & 0x38 )
+				{
+				case 0x00: do { ROL_BYTE();  c--; } while (c>0); PutbackRMByte(m_dst); break;
+				case 0x08: do { ROR_BYTE();  c--; } while (c>0); PutbackRMByte(m_dst); break;
+				case 0x10: do { ROLC_BYTE(); c--; } while (c>0); PutbackRMByte(m_dst); break;
+				case 0x18: do { RORC_BYTE(); c--; } while (c>0); PutbackRMByte(m_dst); break;
+				case 0x30:
+				case 0x20: SHL_BYTE(c); break;
+				case 0x28: SHR_BYTE(c); break;
+				case 0x38: SHRA_BYTE(c); break;
+				}
+			}
+		}
+		break;
+
+	case 0xd3: // i_rotshft_wcl
+		{
+			uint8_t c;
+
+			m_modrm = fetch();
+			m_src = GetRMWord();
+			m_dst = m_src;
+			c = m_regs.b[CL] & 0x1f;
+			CLKM(ROT_REG_BASE,ROT_M16_BASE);
+			m_icount -= m_timing[ROT_REG_BIT] * c;
+			if (c)
+			{
+				switch ( m_modrm & 0x38 )
+				{
+				case 0x00: do { ROL_WORD();  c--; } while (c>0); PutbackRMWord(m_dst); break;
+				case 0x08: do { ROR_WORD();  c--; } while (c>0); PutbackRMWord(m_dst); break;
+				case 0x10: do { ROLC_WORD(); c--; } while (c>0); PutbackRMWord(m_dst); break;
+				case 0x18: do { RORC_WORD(); c--; } while (c>0); PutbackRMWord(m_dst); break;
+				case 0x30:
+				case 0x20: SHL_WORD(c); break;
+				case 0x28: SHR_WORD(c); break;
+				case 0x38: SHRA_WORD(c); break;
+				}
+			}
+		}
+		break;
+
+	case 0xd8: // i_esc
+	case 0xd9:
+	case 0xda:
+	case 0xdb:
+	case 0xdc:
+	case 0xdd:
+	case 0xde:
+	case 0xdf:
+		if((m_msw & 8) || (m_msw & 4))
+			throw TRAP(FAULT_NM, (uint16_t)-1);
+		m_modrm = fetch();
+		GetRMByte();
+		CLK(NOP);
+		if((m_modrm == 0xe0) && (op == 0xdf))
+			m_regs.w[AX] = 0xffff;  // FPU not present
+		break;
+
+	case 0xea: // i_jmp_far
+		{
+			uint16_t tmp = fetch_word();
+			uint16_t tmp1 = fetch_word();
+			code_descriptor(tmp1, tmp, NT_JMP);
+			CLK(JMP_FAR);
+			break;
+		}
+
+	case 0xf0: // i_lock
+		if(PM && (CPL > m_IOPL))
+			throw TRAP(FAULT_GP, 0);
+		logerror("%06x: Warning - BUSLOCK\n", pc());
+		m_no_interrupt = 1;
+		CLK(NOP);
+		break;
+
+	case 0xf4: // i_hlt
+		if(PM && CPL)
+			throw TRAP(FAULT_GP, 0);
+		m_icount = 0;
+		m_halt = true;
+		break;
+
+	case 0xfa: // i_cli
+		if(PM && (CPL > m_IOPL))
+			throw TRAP(FAULT_GP, 0);
+		m_IF = 0;
+		CLK(FLAG_OPS);
+		break;
+
+	case 0xfb: // i_sti
+		if(PM && (CPL > m_IOPL))
+			throw TRAP(FAULT_GP, 0);
+		m_IF = 1;
+		CLK(FLAG_OPS);
+		break;
+
+	case 0xff: // i_ffpre
+		{
+			uint32_t tmp, tmp1;
+			m_modrm = fetch();
+			tmp = GetRMWord();
+			switch ( m_modrm & 0x38 )
+			{
+			case 0x00:  /* INC */
+				tmp1 = tmp+1;
+				m_OverVal = (tmp==0x7fff);
+				set_AF(tmp1,tmp,1);
+				set_SZPF_Word(tmp1);
+				PutbackRMWord(tmp1);
+				CLKM(INCDEC_R16,INCDEC_M16);
+				break;
+			case 0x08:  /* DEC */
+				tmp1 = tmp-1;
+				m_OverVal = (tmp==0x8000);
+				set_AF(tmp1,tmp,1);
+				set_SZPF_Word(tmp1);
+				PutbackRMWord(tmp1);
+				CLKM(INCDEC_R16,INCDEC_M16);
+				break;
+			case 0x10:  /* CALL */
+				if(call_pseudo_bios((m_base[m_CS] + (uint16_t)tmp) & m_amask)) {
+					CLK(CALL_R16,CALL_M16);
+					//m_ip = m_ip + tmp;
+					return;
+				}
+				PUSH(m_ip);
+				m_ip = tmp;
+				CLKM(CALL_R16,CALL_M16);
+				break;
+			case 0x18:  /* CALL FAR */
+				{
+					uint16_t ip = m_ip;
+					tmp1 = m_sregs[CS];
+					code_descriptor(GetnextRMWord(), tmp, NT_CALL);
+					if(call_pseudo_bios(((m_sregs[CS] << 4) + tmp1) & m_amask) { // OK?
+						CLK(CALL_M32);
+						//m_ip = m_ip + tmp;
+						return;
+					}
+					PUSH(tmp1);
+					PUSH(ip);
+					CLK(CALL_M32);
+					break;
+				}
+			case 0x20:  /* JMP */
+				m_ip = tmp;
+				CLKM(JMP_R16,JMP_M16);
+				break;
+			case 0x28:  /* JMP FAR */
+				code_descriptor(GetnextRMWord(), tmp, NT_JMP);
+				CLK(JMP_M32);
+				break;
+			case 0x30:
+				PUSH(tmp);
+				CLKM(PUSH_R16,PUSH_M16);
+				break;
+			default:
+				logerror("%06x: FF Pre with unimplemented mod\n", pc());
+				throw TRAP(FAULT_UD,(uint16_t)-1);
+			}
+		}
+		break;
+
+	case 0xf2: // i_repne
+	case 0xf3:
+		{
+			bool pass = false;
+			uint8_t next = repx_op();
+			uint16_t c = m_regs.w[CX];
+
+			switch (next)
+			{
+			case 0x6c:  CLK(OVERRIDE); if (c) do { i_insb();  c--; } while (c>0 && m_icount>0);          m_regs.w[CX]=c; m_seg_prefix = false; m_seg_prefix_next = false; break;
+			case 0x6d:  CLK(OVERRIDE); if (c) do { i_insw();  c--; } while (c>0 && m_icount>0);          m_regs.w[CX]=c; m_seg_prefix = false; m_seg_prefix_next = false; break;
+			case 0x6e:  CLK(OVERRIDE); if (c) do { i_outsb(); c--; } while (c>0 && m_icount>0);          m_regs.w[CX]=c; m_seg_prefix = false; m_seg_prefix_next = false; break;
+			case 0x6f:  CLK(OVERRIDE); if (c) do { i_outsw(); c--; } while (c>0 && m_icount>0);          m_regs.w[CX]=c; m_seg_prefix = false; m_seg_prefix_next = false; break;
+			default:
+				// Decrement IP and pass on
+				m_ip -= 1 + (m_seg_prefix_next ? 1 : 0);
+				pass = true;
+			}
+			if(!pass)
+			{
+				if(c)
+					m_ip = m_prev_ip;
+				break;
+			}
+		}
+
+	default:
+		if(!common_op(op))
+		{
+			m_icount -= 10; // UD fault timing?
+			logerror("%06x: Invalid Opcode %02x\n", pc(), op);
+			m_ip = m_prev_ip;
+			throw TRAP(FAULT_UD, (uint16_t)-1);
+		}
+		break;
+	}
+	catch(uint32_t e)
+	{
+		trap(e);
+	}
+}
+
+void i80286_cpu_device::execute_run(int icount)
+{
+	if (m_halt || m_busreq)
+	{
+//#ifdef SINGLE_MODE_DMA
+		if (d_dma != NULL) {
+			d_dma->do_dma();
+		}
+//#endif
+		if (icount == -1) {
+			int passed_icount = max(1, m_extra_cycles);
+			// this is main cpu, cpustate->icount is not used
+			/*cpustate->icount = */m_extra_cycles = 0;
+			return passed_icount;
+		} else {
+			cpustate->icount += icount;
+			int base_icount = m_icount;
+
+			/* adjust for any interrupts that came in */
+			m_icount -= m_extra_cycles;
+			m_extra_cycles = 0;
+
+			/* if busreq is raised, spin cpu while remained clock */
+			if (m_icount > 0) {
+				m_icount = 0;
+			}
+			return base_icount - m_icount;
+		}
+	}
+
+	if (icount == -1) {
+		m_icount = 1;
+	} else {
+		m_icount += icount;
+	}
+	int base_icount = m_icount;
+
+	/* adjust for any interrupts that came in */
+	m_icount -= m_extra_cycles;
+	m_extra_cycles = 0;
+
+	while(m_icount > 0 && !m_busreq)
+	{
+//		try
 		{
 			if ( m_seg_prefix_next )
 			{
@@ -1071,7 +2104,8 @@ void i80286_cpu_device::execute_run()
 						m_pending_irq &= ~NMI_IRQ;
 						m_halt = false;
 						m_shutdown = false;
-						m_out_shutdown_func(false);
+						//m_out_shutdown_func(false);
+						write_signals(&out_shutdown, 0);
 					}
 					else if ( m_IF )
 					{
@@ -1106,812 +2140,26 @@ void i80286_cpu_device::execute_run()
 					}
 				}
 			}
-
-			debugger_instruction_hook( this, pc() & m_amask );
-
-			uint8_t op = fetch_op();
-
-			switch(op)
-			{
-				case 0x07: // i_pop_es
-					pop_seg(ES);
-					CLK(POP_SEG);
-					break;
-
-				case 0x0f:
-				{
-					unsigned next = fetch_op();
-					uint16_t desc[3], tmp, msw, sel;
-					uint8_t r;
-					uint32_t addr;
-
-					switch (next)
-					{
-						case 0:
-							if(!PM)
-								throw TRAP(FAULT_UD, (uint16_t)-1);
-							m_modrm = fetch();
-							switch (m_modrm & 0x38)
-							{
-								case 0: /* sldt */
-									PutRMWord(m_ldtr.sel);
-									break;
-
-								case 8: /* str */
-									PutRMWord(m_tr.sel);
-									break;
-
-								case 0x10: /* lldt */
-									if(CPL != 0)
-										throw TRAP(FAULT_GP, 0);
-									sel = GetRMWord();
-									if(TBL(sel))
-										throw TRAP(FAULT_GP, IDXTBL(sel));
-									if(IDXTBL(sel))
-									{
-										if(IDX(sel) >= m_gdtr.limit)
-											throw TRAP(FAULT_GP, IDXTBL(sel));
-										addr = m_gdtr.base + IDX(sel);
-										desc[0] = read_word(addr);
-										desc[1] = read_word(addr + 2);
-										desc[2] = read_word(addr + 4);
-										r = RIGHTS(desc);
-										if(SEGDESC(r) || (GATE(r) != LDTDESC))
-											throw TRAP(FAULT_GP, IDXTBL(sel));
-										if(!PRES(r))
-											throw TRAP(FAULT_NP, IDXTBL(sel));
-									}
-									else
-									{
-										desc[0] = 0;
-										desc[1] = 0;
-										desc[2] = 0;
-									}
-									m_ldtr.sel = sel;
-									m_ldtr.limit = LIMIT(desc);
-									m_ldtr.base = BASE(desc);
-									m_ldtr.rights = RIGHTS(desc);
-									break;
-
-								case 0x18: /* ltr */
-									if(CPL != 0)
-										throw TRAP(FAULT_GP, 0);
-									sel = GetRMWord();
-									if((addr = selector_address(sel)) == -1)
-										throw TRAP(FAULT_GP, IDXTBL(sel));
-									desc[0] = read_word(addr);
-									desc[1] = read_word(addr + 2);
-									desc[2] = read_word(addr + 4);
-									r = RIGHTS(desc);
-									if(SEGDESC(r) || (GATE(r) != TSSDESCIDLE))
-										throw TRAP(FAULT_GP, IDXTBL(sel));
-									if(!PRES(r))
-										throw TRAP(FAULT_NP, IDXTBL(sel));
-									desc[2] |= 0x200; // mark busy
-									write_word(addr + 4, desc[2]);
-									m_tr.sel = sel;
-									m_tr.limit = LIMIT(desc);
-									m_tr.base = BASE(desc);
-									m_tr.rights = RIGHTS(desc);
-									break;
-
-								case 0x20: /* verr */
-									tmp = GetRMWord();
-									if((addr = selector_address(tmp)) == -1)
-										m_ZeroVal = 1;
-									else
-									{
-										desc[2] = read_word(addr + 4);
-										r = RIGHTS(desc);
-										m_ZeroVal = verify(tmp, I8086_READ, RIGHTS(desc), 0);
-										m_ZeroVal = m_ZeroVal || (CODE(r) && CONF(r) ? 0 : (DPL(r) < PMAX(RPL(tmp),CPL)));
-									}
-									break;
-
-								case 0x28: /* verw */
-									tmp = GetRMWord();
-									if((addr = selector_address(tmp)) == -1)
-										m_ZeroVal = 1;
-									else
-									{
-										desc[2] = read_word(addr + 4);
-										r = RIGHTS(desc);
-										m_ZeroVal = verify(tmp, I8086_WRITE, RIGHTS(desc), 0);
-										m_ZeroVal = m_ZeroVal || (DPL(r) < PMAX(RPL(tmp),CPL));
-									}
-									break;
-
-								default:
-									throw TRAP(FAULT_UD, (uint16_t)-1);
-							}
-							break;
-						case 1:
-						{
-							uint32_t ea;
-							m_modrm = fetch();
-							if((m_modrm >= 0xc0) && (m_modrm < 0xe0))
-								throw TRAP(FAULT_UD, (uint16_t)-1);
-							switch (m_modrm & 0x38)
-							{
-								case 0: /* sgdt */
-									ea = get_ea(6, I8086_WRITE);
-									write_word(ea, m_gdtr.limit);
-									write_word(ea + 2, m_gdtr.base & 0xffff);
-									write_word(ea + 4, 0xff00 | m_gdtr.base >> 16);
-									break;
-								case 8: /* sidt */
-									ea = get_ea(6, I8086_WRITE);
-									write_word(ea, m_idtr.limit);
-									write_word(ea + 2, m_idtr.base & 0xffff);
-									write_word(ea + 4, 0xff00 | m_idtr.base >> 16);
-									break;
-								case 0x10: /* lgdt */
-									if(PM && (CPL != 0))
-										throw TRAP(FAULT_GP, 0);
-									ea = get_ea(6, I8086_READ);
-									m_gdtr.limit = read_word(ea);
-									m_gdtr.base = read_word(ea + 2) | (read_byte(ea + 4) << 16);
-									break;
-								case 0x18: /* lidt */
-									if(PM && (CPL != 0))
-										throw TRAP(FAULT_GP, 0);
-									ea = get_ea(6, I8086_READ);
-									m_idtr.limit = read_word(ea);
-									m_idtr.base = read_word(ea + 2) | (read_byte(ea + 4) << 16);
-									break;
-								case 0x20: /* smsw */
-									PutRMWord(m_msw);
-									break;
-								case 0x30: /* lmsw */
-									if(PM && (CPL != 0))
-										throw TRAP(FAULT_GP, 0);
-									msw = GetRMWord();
-									m_msw = (m_msw & 1) | msw;
-									break;
-								default:
-									throw TRAP(FAULT_UD, (uint16_t)-1);
-							}
-							break;
-						}
-						case 2: /* LAR */
-							if(!PM)
-								throw TRAP(FAULT_UD, (uint16_t)-1);
-							m_modrm = fetch_op();
-							tmp = GetRMWord();
-							if((addr = selector_address(tmp)) == -1)
-								m_ZeroVal = 1;
-							else
-							{
-								desc[2] = read_word(addr + 4);
-								r = RIGHTS(desc);
-								if(!SEGDESC(r) && ((GATE(r) > TRAPGATE) || !GATE(r)))
-									m_ZeroVal = 1;
-								else if(DPL(r) >= PMAX(RPL(tmp),CPL) || (SEGDESC(r) && CODE(r) && CONF(r)))
-								{
-									m_ZeroVal = 0;
-									// rights are expected to be in upper byte
-									RegWord(r << 8);
-								}
-								else
-									m_ZeroVal = 1;
-							}
-							break;
-						case 3: /* LSL */
-							if(!PM)
-								throw TRAP(FAULT_UD, (uint16_t)-1);
-							m_modrm = fetch_op();
-							tmp = GetRMWord();
-							if((addr = selector_address(tmp)) == -1)
-								m_ZeroVal = 1;
-							else
-							{
-								desc[2] = read_word(addr + 4);
-								r = RIGHTS(desc);
-								if(!SEGDESC(r) && ((GATE(r) >= CALLGATE) || !GATE(r)))
-									m_ZeroVal = 1; // not valid for gates
-								else if(DPL(r) >= PMAX(RPL(tmp),CPL) || (SEGDESC(r) && CODE(r) && CONF(r)))
-								{
-									m_ZeroVal = 0;
-									RegWord(read_word(addr));
-								}
-								else
-									m_ZeroVal = 1;
-							}
-							break;
-						case 5: /* loadall */
-							if(PM && (CPL != 0))
-								throw TRAP(FAULT_GP, 0);
-							m_msw = (m_msw & 1) | read_word(0x806);
-							m_tr.sel = read_word(0x816);
-							ExpandFlags(read_word(0x818));
-							m_ip = read_word(0x81a);
-							m_ldtr.sel = read_word(0x81c);
-							m_sregs[DS] = read_word(0x81e);
-							m_sregs[SS] = read_word(0x820);
-							m_sregs[CS] = read_word(0x822);
-							m_sregs[ES] = read_word(0x824);
-							m_regs.w[DI] = read_word(0x826);
-							m_regs.w[SI] = read_word(0x828);
-							m_regs.w[BP] = read_word(0x82a);
-							m_regs.w[SP] = read_word(0x82c);
-							m_regs.w[BX] = read_word(0x82e);
-							m_regs.w[DX] = read_word(0x830);
-							m_regs.w[CX] = read_word(0x832);
-							m_regs.w[AX] = read_word(0x834);
-							// loadall uses base-rights-limit order
-#define LOADDESC(addr, sreg) {  desc[1] = read_word(addr); desc[2] = read_word(addr+2); desc[0] = read_word(addr+4); \
-m_base[sreg] = BASE(desc); m_rights[sreg] = RIGHTS(desc); \
-m_limit[sreg] = LIMIT(desc); }
-							LOADDESC(0x836, ES);
-							LOADDESC(0x83C, CS);
-							LOADDESC(0x842, SS);
-							LOADDESC(0x848, DS);
-#undef LOADDESC
-							// void cast supresses warning
-#define LOADDESC(addr, reg, r) { desc[1] = read_word(addr); desc[2] = read_word(addr + 2); desc[0] = read_word(addr + 4); \
-reg.base = BASE(desc); (void)(r); reg.limit = LIMIT(desc); }
-							LOADDESC(0x84e, m_gdtr, 1);
-							LOADDESC(0x854, m_ldtr, m_ldtr.rights = RIGHTS(desc));
-							LOADDESC(0x85a, m_idtr, 1);
-							LOADDESC(0x860, m_tr, m_tr.rights = RIGHTS(desc));
-#undef LOADDESC
-							break;
-
-						case 6: /* clts */
-							if(PM && (CPL != 0))
-								throw TRAP(FAULT_GP, 0);
-							m_msw &= ~8;
-							break;
-						default:
-							throw TRAP(FAULT_UD, (uint16_t)-1);
-					}
-					break;
-				}
-
-				case 0x17: // i_pop_ss
-					pop_seg(SS);
-					CLK(POP_SEG);
-					m_no_interrupt = 1;
-					break;
-
-				case 0x1f: // i_pop_ds
-					pop_seg(DS);
-					CLK(POP_SEG);
-					break;
-
-				case 0x54: // i_push_sp
-					PUSH(m_regs.w[SP]);
-					CLK(PUSH_R16);
-					break;
-
-				case 0x60: // i_pusha
-				{
-					check_permission(SS, m_regs.w[SP]-16, 16, I8086_WRITE);
-					uint32_t tmp = m_regs.w[SP];
-					PUSH(m_regs.w[AX]);
-					PUSH(m_regs.w[CX]);
-					PUSH(m_regs.w[DX]);
-					PUSH(m_regs.w[BX]);
-					PUSH(tmp);
-					PUSH(m_regs.w[BP]);
-					PUSH(m_regs.w[SI]);
-					PUSH(m_regs.w[DI]);
-					CLK(PUSHA);
-				}
-				break;
-
-				case 0x61: // i_popa
-					check_permission(SS, m_regs.w[SP], 16, I8086_READ);
-					m_regs.w[DI] = POP();
-					m_regs.w[SI] = POP();
-					m_regs.w[BP] = POP();
-					POP();
-					m_regs.w[BX] = POP();
-					m_regs.w[DX] = POP();
-					m_regs.w[CX] = POP();
-					m_regs.w[AX] = POP();
-					CLK(POPA);
-					break;
-
-				case 0x62: // i_bound
-				{
-					uint32_t low,high,tmp;
-					m_modrm = fetch();
-					low = GetRMWord();
-					high = GetnextRMWord();
-					tmp = RegWord();
-					if (tmp<low || tmp>high)
-						interrupt(5);
-					CLK(BOUND);
-					logerror("%06x: bound %04x high %04x low %04x tmp\n", pc(), high, low, tmp);
-				}
-				break;
-
-				case 0x63: // arpl
-				{
-					uint16_t tmp, source;
-					if (!PM) throw TRAP(FAULT_UD,(uint16_t)-1);
-
-					m_modrm=fetch_op();
-					tmp=GetRMWord();
-					source=RegWord();
-
-					if (RPL(tmp)<RPL(source))
-					{
-						m_ZeroVal = 0;
-						PutbackRMWord(IDXTBL(tmp)|RPL(source));
-					}
-					else
-						m_ZeroVal = 1;
-					break;
-				}
-
-				case 0x68: // i_push_d16
-					PUSH( fetch_word() );
-					CLK(PUSH_IMM);
-					break;
-
-				case 0x69: // i_imul_d16
-				{
-					uint32_t tmp;
-					DEF_r16w();
-					tmp = fetch_word();
-					m_dst = (int32_t)((int16_t)m_src)*(int32_t)((int16_t)tmp);
-					m_CarryVal = m_OverVal = (((int32_t)m_dst) >> 15 != 0) && (((int32_t)m_dst) >> 15 != -1);
-					RegWord(m_dst);
-					CLKM(IMUL_RRI16, IMUL_RMI16);
-				}
-				break;
-
-				case 0x6a: // i_push_d8
-					PUSH( (uint16_t)((int16_t)((int8_t)fetch())) );
-					CLK(PUSH_IMM);
-					break;
-
-				case 0x6b: // i_imul_d8
-				{
-					uint32_t src2;
-					DEF_r16w();
-					src2= (uint16_t)((int16_t)((int8_t)fetch()));
-					m_dst = (int32_t)((int16_t)m_src)*(int32_t)((int16_t)src2);
-					m_CarryVal = m_OverVal = (((int32_t)m_dst) >> 15 != 0) && (((int32_t)m_dst) >> 15 != -1);
-					RegWord(m_dst);
-					CLKM(IMUL_RRI8, IMUL_RMI8);
-				}
-				break;
-
-				case 0x6c: // i_insb
-					i_insb();
-					break;
-
-				case 0x6d: // i_insw
-					i_insw();
-					break;
-
-				case 0x6e: // i_outsb
-					i_outsb();
-					break;
-
-				case 0x6f: // i_outsw
-					i_outsw();
-					break;
-
-				case 0x8c: // i_mov_wsreg
-					m_modrm = fetch();
-					if((m_modrm & 0x38) > 0x18)
-					{
-						logerror("%06x: Mov Sreg - Invalid register\n", pc());
-						throw TRAP(FAULT_UD, (uint16_t)-1);
-					}
-					PutRMWord(m_sregs[(m_modrm & 0x38) >> 3]);
-					CLKM(MOV_RS,MOV_MS);
-					break;
-
-				case 0x8e: // i_mov_sregw
-					m_modrm = fetch();
-					m_src = GetRMWord();
-					CLKM(MOV_SR,MOV_SM);
-					switch (m_modrm & 0x38)
-					{
-						case 0x00:  /* mov es,ew */
-							data_descriptor(ES, m_src);
-							break;
-						case 0x10:  /* mov ss,ew */
-							data_descriptor(SS, m_src);
-							m_no_interrupt = 1;
-							break;
-						case 0x18:  /* mov ds,ew */
-							data_descriptor(DS, m_src);
-							break;
-						default:
-							logerror("%06x: Mov Sreg - Invalid register\n", pc());
-							throw TRAP(FAULT_UD, (uint16_t)-1);
-					}
-					break;
-
-				case 0x8f: // i_popw
-				{
-					m_modrm = fetch();
-					uint16_t tmp = read_word(calc_addr(SS, m_regs.w[SP], 2, I8086_READ, false));
-					PutRMWord( tmp );
-					m_regs.w[SP] += 2;
-					CLKM(POP_R16,POP_M16);
-					break;
-				}
-
-				case 0x9a: // i_call_far
-				{
-					uint16_t cs = m_sregs[CS];
-					uint16_t tmp = fetch_word();
-					uint16_t tmp2 = fetch_word();
-					uint16_t ip = m_ip;
-					code_descriptor(tmp2, tmp, NT_CALL);
-					PUSH(cs);
-					PUSH(ip);
-					CLK(CALL_FAR);
-				}
-				break;
-
-				case 0x9b: // i_wait
-					if((m_msw & 0x0a) == 0x0a)
-						throw TRAP(FAULT_NM, (uint16_t)-1);
-					CLK(WAIT);
-					break;
-
-				case 0x9c: // pushf
-				{
-					uint16_t flags = CompressFlags();
-					if(!PM)
-						flags &= ~0xf000;
-					PUSH(flags);
-					CLK(PUSHF);
-					break;
-				}
-
-				case 0x9d: // popf
-				{
-					uint16_t flags;
-					flags = POP();
-					CLK(POPF);
-					load_flags(flags, CPL);
-					break;
-				}
-
-				case 0xc0: // i_rotshft_bd8
-				{
-					uint8_t c;
-					m_modrm = fetch();
-					m_src = GetRMByte();
-					m_dst = m_src;
-					c = fetch() & 0x1f;
-					CLKM(ROT_REG_BASE,ROT_M8_BASE);
-					m_icount -= m_timing[ROT_REG_BIT] * c;
-					if (c)
-					{
-						switch ( m_modrm & 0x38 )
-						{
-							case 0x00: do { ROL_BYTE();  c--; } while (c>0); PutbackRMByte(m_dst); break;
-							case 0x08: do { ROR_BYTE();  c--; } while (c>0); PutbackRMByte(m_dst); break;
-							case 0x10: do { ROLC_BYTE(); c--; } while (c>0); PutbackRMByte(m_dst); break;
-							case 0x18: do { RORC_BYTE(); c--; } while (c>0); PutbackRMByte(m_dst); break;
-							case 0x30:
-							case 0x20: SHL_BYTE(c); break;
-							case 0x28: SHR_BYTE(c); break;
-							case 0x38: SHRA_BYTE(c); break;
-						}
-					}
-				}
-				break;
-
-				case 0xc1: // i_rotshft_wd8
-				{
-					uint8_t c;
-					m_modrm = fetch();
-					m_src = GetRMWord();
-					m_dst = m_src;
-					c = fetch() & 0x1f;
-					CLKM(ROT_REG_BASE,ROT_M16_BASE);
-					m_icount -= m_timing[ROT_REG_BIT] * c;
-					if (c)
-					{
-						switch ( m_modrm & 0x38 )
-						{
-							case 0x00: do { ROL_WORD();  c--; } while (c>0); PutbackRMWord(m_dst); break;
-							case 0x08: do { ROR_WORD();  c--; } while (c>0); PutbackRMWord(m_dst); break;
-							case 0x10: do { ROLC_WORD(); c--; } while (c>0); PutbackRMWord(m_dst); break;
-							case 0x18: do { RORC_WORD(); c--; } while (c>0); PutbackRMWord(m_dst); break;
-							case 0x30:
-							case 0x20: SHL_WORD(c); break;
-							case 0x28: SHR_WORD(c); break;
-							case 0x38: SHRA_WORD(c); break;
-						}
-					}
-				}
-				break;
-
-				case 0xc4: // i_les_dw
-				{
-					m_modrm = fetch();
-					if(m_modrm >= 0xc0)
-						throw TRAP(FAULT_UD, (uint16_t)-1);
-					uint16_t tmp = GetRMWord();
-					data_descriptor(ES, GetnextRMWord());
-					RegWord(tmp);
-					CLK(LOAD_PTR);
-					break;
-				}
-
-				case 0xc5: // i_lds_dw
-				{
-					m_modrm = fetch();
-					if(m_modrm >= 0xc0)
-						throw TRAP(FAULT_UD, (uint16_t)-1);
-					uint16_t tmp = GetRMWord();
-					data_descriptor(DS, GetnextRMWord());
-					RegWord(tmp);
-					CLK(LOAD_PTR);
-					break;
-				}
-
-				case 0xc8: // i_enter
-				{
-					uint16_t nb = fetch();
-					uint32_t level;
-
-					nb |= fetch() << 8;
-					level = fetch();
-					CLK(!level ? ENTER0 : (level == 1) ? ENTER1 : ENTER_BASE);
-					if(level > 1)
-						m_icount -= level * m_timing[ENTER_COUNT];
-					PUSH(m_regs.w[BP]);
-					m_regs.w[BP] = m_regs.w[SP];
-					m_regs.w[SP] -= nb;
-					for (int i=1; i<level; i++)
-					{
-						PUSH( GetMemW(SS,m_regs.w[BP] - i*2) );
-					}
-					if (level)
-					{
-						PUSH(m_regs.w[BP]);
-					}
-				}
-				break;
-
-				case 0xc9: // i_leave
-					m_regs.w[SP] = m_regs.w[BP];
-					m_regs.w[BP] = POP();
-					CLK(LEAVE);
-					break;
-
-				case 0xca: // ret far imm
-				{
-					unsigned count = fetch_word();
-					far_return(0, count);
-					CLK(RET_FAR_IMM);
-					break;
-				}
-				case 0xcb: // ret far
-					far_return(0, 0);
-					CLK(RET_FAR);
-					break;
-
-				case 0xcf: // iret
-				{
-					int oldcpl = (PM) ? CPL : 0;
-					uint16_t flags = far_return(1, 0);
-					CLK(IRET);
-					load_flags(flags, oldcpl);
-					break;
-				}
-
-				case 0xd2: // i_rotshft_bcl
-				{
-					uint8_t c;
-
-					m_modrm = fetch();
-					m_src = GetRMByte();
-					m_dst = m_src;
-					c = m_regs.b[CL] & 0x1f;
-					CLKM(ROT_REG_BASE,ROT_M16_BASE);
-					m_icount -= m_timing[ROT_REG_BIT] * c;
-					if (c)
-					{
-						switch ( m_modrm & 0x38 )
-						{
-							case 0x00: do { ROL_BYTE();  c--; } while (c>0); PutbackRMByte(m_dst); break;
-							case 0x08: do { ROR_BYTE();  c--; } while (c>0); PutbackRMByte(m_dst); break;
-							case 0x10: do { ROLC_BYTE(); c--; } while (c>0); PutbackRMByte(m_dst); break;
-							case 0x18: do { RORC_BYTE(); c--; } while (c>0); PutbackRMByte(m_dst); break;
-							case 0x30:
-							case 0x20: SHL_BYTE(c); break;
-							case 0x28: SHR_BYTE(c); break;
-							case 0x38: SHRA_BYTE(c); break;
-						}
-					}
-				}
-				break;
-
-				case 0xd3: // i_rotshft_wcl
-				{
-					uint8_t c;
-
-					m_modrm = fetch();
-					m_src = GetRMWord();
-					m_dst = m_src;
-					c = m_regs.b[CL] & 0x1f;
-					CLKM(ROT_REG_BASE,ROT_M16_BASE);
-					m_icount -= m_timing[ROT_REG_BIT] * c;
-					if (c)
-					{
-						switch ( m_modrm & 0x38 )
-						{
-							case 0x00: do { ROL_WORD();  c--; } while (c>0); PutbackRMWord(m_dst); break;
-							case 0x08: do { ROR_WORD();  c--; } while (c>0); PutbackRMWord(m_dst); break;
-							case 0x10: do { ROLC_WORD(); c--; } while (c>0); PutbackRMWord(m_dst); break;
-							case 0x18: do { RORC_WORD(); c--; } while (c>0); PutbackRMWord(m_dst); break;
-							case 0x30:
-							case 0x20: SHL_WORD(c); break;
-							case 0x28: SHR_WORD(c); break;
-							case 0x38: SHRA_WORD(c); break;
-						}
-					}
-				}
-				break;
-
-				case 0xd8: // i_esc
-				case 0xd9:
-				case 0xda:
-				case 0xdb:
-				case 0xdc:
-				case 0xdd:
-				case 0xde:
-				case 0xdf:
-					if((m_msw & 8) || (m_msw & 4))
-						throw TRAP(FAULT_NM, (uint16_t)-1);
-					m_modrm = fetch();
-					GetRMByte();
-					CLK(NOP);
-					if((m_modrm == 0xe0) && (op == 0xdf))
-						m_regs.w[AX] = 0xffff;  // FPU not present
-					break;
-
-				case 0xea: // i_jmp_far
-				{
-					uint16_t tmp = fetch_word();
-					uint16_t tmp1 = fetch_word();
-					code_descriptor(tmp1, tmp, NT_JMP);
-					CLK(JMP_FAR);
-					break;
-				}
-
-				case 0xf0: // i_lock
-					if(PM && (CPL > m_IOPL))
-						throw TRAP(FAULT_GP, 0);
-					logerror("%06x: Warning - BUSLOCK\n", pc());
-					m_no_interrupt = 1;
-					CLK(NOP);
-					break;
-
-				case 0xf4: // i_hlt
-					if(PM && CPL)
-						throw TRAP(FAULT_GP, 0);
-					m_icount = 0;
-					m_halt = true;
-					break;
-
-				case 0xfa: // i_cli
-					if(PM && (CPL > m_IOPL))
-						throw TRAP(FAULT_GP, 0);
-					m_IF = 0;
-					CLK(FLAG_OPS);
-					break;
-
-				case 0xfb: // i_sti
-					if(PM && (CPL > m_IOPL))
-						throw TRAP(FAULT_GP, 0);
-					m_IF = 1;
-					CLK(FLAG_OPS);
-					break;
-
-				case 0xff: // i_ffpre
-					{
-						uint32_t tmp, tmp1;
-						m_modrm = fetch();
-						tmp = GetRMWord();
-						switch ( m_modrm & 0x38 )
-						{
-						case 0x00:  /* INC */
-							tmp1 = tmp+1;
-							m_OverVal = (tmp==0x7fff);
-							set_AF(tmp1,tmp,1);
-							set_SZPF_Word(tmp1);
-							PutbackRMWord(tmp1);
-							CLKM(INCDEC_R16,INCDEC_M16);
-							break;
-						case 0x08:  /* DEC */
-							tmp1 = tmp-1;
-							m_OverVal = (tmp==0x8000);
-							set_AF(tmp1,tmp,1);
-							set_SZPF_Word(tmp1);
-							PutbackRMWord(tmp1);
-							CLKM(INCDEC_R16,INCDEC_M16);
-							break;
-						case 0x10:  /* CALL */
-							PUSH(m_ip);
-							m_ip = tmp;
-							CLKM(CALL_R16,CALL_M16);
-							break;
-						case 0x18:  /* CALL FAR */
-						{
-							uint16_t ip = m_ip;
-							tmp1 = m_sregs[CS];
-							code_descriptor(GetnextRMWord(), tmp, NT_CALL);
-							PUSH(tmp1);
-							PUSH(ip);
-							CLK(CALL_M32);
-							break;
-						}
-						case 0x20:  /* JMP */
-							m_ip = tmp;
-							CLKM(JMP_R16,JMP_M16);
-							break;
-						case 0x28:  /* JMP FAR */
-							code_descriptor(GetnextRMWord(), tmp, NT_JMP);
-							CLK(JMP_M32);
-							break;
-						case 0x30:
-							PUSH(tmp);
-							CLKM(PUSH_R16,PUSH_M16);
-							break;
-						default:
-							logerror("%06x: FF Pre with unimplemented mod\n", pc());
-							throw TRAP(FAULT_UD,(uint16_t)-1);
-						}
-					}
-					break;
-
-				case 0xf2: // i_repne
-				case 0xf3:
-				{
-					bool pass = false;
-					uint8_t next = repx_op();
-					uint16_t c = m_regs.w[CX];
-
-					switch (next)
-					{
-						case 0x6c:  CLK(OVERRIDE); if (c) do { i_insb();  c--; } while (c>0 && m_icount>0);          m_regs.w[CX]=c; m_seg_prefix = false; m_seg_prefix_next = false; break;
-						case 0x6d:  CLK(OVERRIDE); if (c) do { i_insw();  c--; } while (c>0 && m_icount>0);          m_regs.w[CX]=c; m_seg_prefix = false; m_seg_prefix_next = false; break;
-						case 0x6e:  CLK(OVERRIDE); if (c) do { i_outsb(); c--; } while (c>0 && m_icount>0);          m_regs.w[CX]=c; m_seg_prefix = false; m_seg_prefix_next = false; break;
-						case 0x6f:  CLK(OVERRIDE); if (c) do { i_outsw(); c--; } while (c>0 && m_icount>0);          m_regs.w[CX]=c; m_seg_prefix = false; m_seg_prefix_next = false; break;
-						default:
-							// Decrement IP and pass on
-							m_ip -= 1 + (m_seg_prefix_next ? 1 : 0);
-							pass = true;
-					}
-					if(!pass)
-					{
-						if(c)
-							m_ip = m_prev_ip;
-						break;
-					}
-				}
-
-				default:
-					if(!common_op(op))
-					{
-						m_icount -= 10; // UD fault timing?
-						logerror("%06x: Invalid Opcode %02x\n", pc(), op);
-						m_ip = m_prev_ip;
-						throw TRAP(FAULT_UD, (uint16_t)-1);
-					}
-					break;
-			}
+			
+			/* debugger_instruction_hook( this, pc() & m_amask ); */
+			debugger_hook();
+			//exec_opcode();
 		}
-		catch(uint32_t e)
-		{
-			trap(e);
+//		catch(uint32_t e)
+//		{
+//			trap(e);
+//		}
+//#ifdef SINGLE_MODE_DMA
+		if (d_dma != NULL) {
+			d_dma->do_dma();
 		}
+//#endif
 	}
+	/* if busreq is raised, spin cpu while remained clock */
+	if (m_icount > 0 && m_busreq) {
+		m_icount = 0;
+	}
+	return base_icount - m_icount;
 }
 
 
@@ -2032,14 +2280,41 @@ void i80286_cpu_device::check_permission(uint8_t check_seg, uint32_t offset, uin
 	{
 		rights = m_rights[check_seg];
 		trap = verify(m_sregs[check_seg], operation, rights, m_valid[check_seg]);
-		if((CODE(rights) || !EXPDOWN(rights)) && ((offset+size-1) > m_limit[check_seg]))
+		if((CODE(rights) || !EXPDOWN(rights)) && ((offset+size-1) > m_limit[check_seg])) {
 			trap = FAULT_GP;
-		if(!CODE(rights) && EXPDOWN(rights) && ((offset <= m_limit[check_seg]) || ((offset + size - 1) > 0xffff)))
+		}
+		if(!CODE(rights) && EXPDOWN(rights) && ((offset <= m_limit[check_seg]) || ((offset + size - 1) > 0xffff))) {
 			trap = FAULT_GP;
-
-		if((trap == FAULT_GP) && (check_seg == SS))
+		}
+		if((trap == FAULT_GP) && (check_seg == SS)) {
 			trap = FAULT_SS;
-		if(trap)
+		}
+		if(trap) {
 			throw TRAP(trap, 0);
+		}
 	}
+}
+
+int i80286_cpu_device::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
+{
+
+	std::ostringstream ostbuf;
+	extern int i386_dasm_one(std::ostream &stream, uint64_t eip, const uint8_t *oprom, int mode);
+	
+	cpu_state *cpustate = (cpu_state *)opaque;
+	UINT64 eip = pc - base[CS];
+	UINT8 ops[16];
+	for(int i = 0; i < 16; i++) {
+		int wait;
+		ops[i] = d_mem->read_data8w(pc + i, &wait);
+	}
+	const uint8_t *oprom = ops;
+	i386_dasm_one(ostbuf, eip, oprom, 1);
+	ostbuf.str().copy((char *)buffer, buffer_len);
+}
+
+bool i80286_cpu_device::call_pseudo_bios(uint32_t pc)
+{
+	// blank
+	return false; // Not hit
 }
