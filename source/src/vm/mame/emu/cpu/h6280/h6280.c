@@ -109,7 +109,7 @@
 ******************************************************************************/
 
 //#include "emu.h"
-//#include "debugger.h"
+#include "debugger.h"
 #include "h6280.h"
 
 static void set_irq_line(h6280_Regs* cpustate, int irqline, int state);
@@ -121,14 +121,14 @@ static void set_irq_line(h6280_Regs* cpustate, int irqline, int state);
 #include "tblh6280.c"
 
 /*****************************************************************************/
-static CPU_INIT( h6280 )
+CPU_INIT( h6280 )
 {
 	h6280_Regs *cpustate = (h6280_Regs *)calloc(1, sizeof(h6280_Regs));
 
 	return cpustate;
 }
 
-static CPU_RESET( h6280 )
+CPU_RESET( h6280 )
 {
 	int i;
 
@@ -164,7 +164,52 @@ static CPU_RESET( h6280 )
 	cpustate->irq_pending = 0;
 }
 
-static CPU_EXECUTE( h6280 )
+CPU_EXECUTE( h6280 )
+{
+	int in;
+
+	if ( cpustate->irq_pending == 2 ) {
+		cpustate->irq_pending--;
+	}
+
+	/* Execute instructions */
+	cpustate->ICount = 0;
+	cpustate->ppc = cpustate->pc;
+			
+	/* Execute 1 instruction */
+	in=RDOP();
+	PCW++;
+	insnh6280[in](cpustate);
+
+	if ( cpustate->irq_pending ) {
+		if ( cpustate->irq_pending == 1 ) {
+			if ( !(P & _fI) ) {
+				cpustate->irq_pending--;
+				CHECK_AND_TAKE_IRQ_LINES;
+			}
+		} else {
+			cpustate->irq_pending--;
+		}
+	}
+
+	/* Check internal timer */
+	if(cpustate->timer_status)
+	{
+		if(cpustate->timer_value<=0)
+		{
+			if ( ! cpustate->irq_pending )
+				cpustate->irq_pending = 1;
+			while( cpustate->timer_value <= 0 )
+				cpustate->timer_value += cpustate->timer_load;
+			set_irq_line(cpustate, 2,ASSERT_LINE);
+		}
+	}
+//	} while (cpustate->ICount > 0);
+	return -cpustate->ICount;
+}
+
+/* Run with debugger */
+CPU_EXECUTE( h6280_debug )
 {
 	int in;
 
@@ -176,7 +221,7 @@ static CPU_EXECUTE( h6280 )
 	cpustate->ICount = 0;
 //	do
 //    {
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 		bool now_debugging = cpustate->debugger->now_debugging;
 		if(now_debugging) {
 			cpustate->debugger->check_break_points(cpustate->pc.w.l);
@@ -207,16 +252,16 @@ static CPU_EXECUTE( h6280 )
 				cpustate->io = cpustate->io_stored;
 			}
 		} else {
-#endif
+//#endif
 			cpustate->ppc = cpustate->pc;
 			
 			/* Execute 1 instruction */
 			in=RDOP();
 			PCW++;
 			insnh6280[in](cpustate);
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 		}
-#endif
+//#endif
 
 		if ( cpustate->irq_pending ) {
 			if ( cpustate->irq_pending == 1 ) {

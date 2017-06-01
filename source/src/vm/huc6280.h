@@ -15,36 +15,38 @@
 #include "../emu.h"
 #include "device.h"
 
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 class DEBUGGER;
-#endif
+//#endif
 
-class HUC6280 : public DEVICE
+class HUC6280_BASE : public DEVICE
 {
-private:
+protected:
 	DEVICE *d_mem, *d_io;
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 	DEBUGGER *d_debugger;
-#endif
+//#endif
 	void *opaque;
 	int icount;
 	bool busreq;
+	int exec_call(void);
+	int exec_call_debug(void);
 	
 public:
-	HUC6280(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
+	HUC6280_BASE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
 		set_device_name(_T("HuC6280 CPU"));
 	}
-	~HUC6280() {}
+	~HUC6280_BASE() {}
 	
 	// common functions
-	void initialize();
-	void release();
-	void reset();
-	int run(int clock);
+	virtual void initialize();
+	virtual void release();
+	virtual void reset();
+	virtual int run(int clock);
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	uint32_t get_pc();
 	uint32_t get_next_pc();
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 	void *get_debugger()
 	{
 		return d_debugger;
@@ -64,9 +66,9 @@ public:
 	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
 	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
-#endif
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+//#endif
+	void save_state_registers(FILEIO* state_fio);
+	void load_state_registers(FILEIO* state_fio);
 	
 	// unique function
 	void set_context_mem(DEVICE* device)
@@ -77,16 +79,37 @@ public:
 	{
 		d_io = device;
 	}
+	uint8_t irq_status_r(uint16_t offset);
+	void irq_status_w(uint16_t offset, uint8_t data);
+	uint8_t timer_r(uint16_t offset);
+	void timer_w(uint16_t offset, uint8_t data);
+};
+
+class HUC6280 : public HUC6280_BASE
+{
+private:
+	
+public:
+	HUC6280(VM* parent_vm, EMU* parent_emu) : HUC6280_BASE(parent_vm, parent_emu) {
+		set_device_name(_T("HuC6280 CPU"));
+	}
+	~HUC6280() {}
+	
+	// common functions
+	void initialize();
+	void release();
+	void reset();
+	int run(int clock);
+	
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
+	
 #ifdef USE_DEBUGGER
 	void set_context_debugger(DEBUGGER* device)
 	{
 		d_debugger = device;
 	}
 #endif
-	uint8_t irq_status_r(uint16_t offset);
-	void irq_status_w(uint16_t offset, uint8_t data);
-	uint8_t timer_r(uint16_t offset);
-	void timer_w(uint16_t offset, uint8_t data);
 };
 
 #endif
