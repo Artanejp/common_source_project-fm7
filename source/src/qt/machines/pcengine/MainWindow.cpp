@@ -34,11 +34,11 @@ void META_MainWindow::retranslateUi(void)
 	retranslateEmulatorMenu();
 	retranslateUI_Help();
 
-	menuDeviceType->setTitle(QApplication::translate("MainWindow", "Joy PAD Type", 0));
-	actionDeviceType[0]->setText(QApplication::translate("MainWindow", "2-Buttons Joy Pad", 0));
-	actionDeviceType[1]->setText(QApplication::translate("MainWindow", "6-Buttons Joy Pad", 0));
-	actionDeviceType[2]->setText(QApplication::translate("MainWindow", "2-Buttons with Multi-Tap", 0));
-	actionDeviceType[3]->setText(QApplication::translate("MainWindow", "6-Buttons with Multi-Tap", 0));
+	menuJoystickType->setTitle(QApplication::translate("MainWindow", "Joy PAD Type", 0));
+	actionJoystickType[0]->setText(QApplication::translate("MainWindow", "2-Buttons Joy Pad", 0));
+	actionJoystickType[1]->setText(QApplication::translate("MainWindow", "6-Buttons Joy Pad", 0));
+	actionJoystickType[2]->setText(QApplication::translate("MainWindow", "2-Buttons with Multi-Tap", 0));
+	actionJoystickType[3]->setText(QApplication::translate("MainWindow", "6-Buttons with Multi-Tap", 0));
 
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));

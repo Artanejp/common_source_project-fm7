@@ -466,6 +466,8 @@ void Ui_MainWindowBase::setupUi(void)
 
 	ConfigDeviceType();
 	ConfigMouseType();
+	ConfigKeyboardType();
+	ConfigJoystickType();
 	ConfigDriveType();
 	ConfigSoundDeviceType();
 	ConfigPrinterType();

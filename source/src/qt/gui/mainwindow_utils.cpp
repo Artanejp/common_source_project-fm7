@@ -105,6 +105,20 @@ void Ui_MainWindowBase::set_device_type(int num)
 	emit sig_emu_update_config();
 }
 
+void Ui_MainWindowBase::set_keyboard_type(int num)
+{
+	if((num >= using_flags->get_use_keyboard_type()) && (num < 0)) return;
+	using_flags->get_config_ptr()->keyboard_type = num;
+	emit sig_emu_update_config();
+}
+
+void Ui_MainWindowBase::set_joystick_type(int num)
+{
+	if((num >= using_flags->get_use_joystick_type()) && (num < 0)) return;
+	using_flags->get_config_ptr()->joystick_type = num;
+	emit sig_emu_update_config();
+}
+
 void Ui_MainWindowBase::set_drive_type(int num)
 {
 	if((num >= using_flags->get_use_drive_type()) && (num < 0)) return;
@@ -196,6 +210,60 @@ void Ui_MainWindowBase::ConfigDeviceType(void)
 				actionDeviceType[ii]->binds, SLOT(do_set_device_type()));
 			connect(actionDeviceType[ii]->binds, SIGNAL(sig_device_type(int)),
 				this, SLOT(set_device_type(int)));
+		}
+	}
+}
+
+void Ui_MainWindowBase::ConfigJoystickType(void)
+{
+	if(using_flags->get_use_joystick_type() > 0) {
+		int ii;
+		menuJoystickType = new QMenu(menuMachine);
+		menuJoystickType->setObjectName(QString::fromUtf8("menuJoystickType"));
+		menuMachine->addAction(menuJoystickType->menuAction());
+		menuJoystickType->setToolTipsVisible(true);
+      
+		actionGroup_JoystickType = new QActionGroup(this);
+		actionGroup_JoystickType->setExclusive(true);
+		for(ii = 0; ii < using_flags->get_use_joystick_type(); ii++) {
+			actionJoystickType[ii] = new Action_Control(this, using_flags);
+			actionGroup_JoystickType->addAction(actionJoystickType[ii]);
+			actionJoystickType[ii]->setCheckable(true);
+			actionJoystickType[ii]->setVisible(true);
+			actionJoystickType[ii]->binds->setValue1(ii);
+			if(using_flags->get_config_ptr()->joystick_type == ii) actionJoystickType[ii]->setChecked(true);
+			menuJoystickType->addAction(actionJoystickType[ii]);
+			connect(actionJoystickType[ii], SIGNAL(triggered()),
+				actionJoystickType[ii]->binds, SLOT(do_set_joystick_type()));
+			connect(actionJoystickType[ii]->binds, SIGNAL(sig_joystick_type(int)),
+				this, SLOT(set_joystick_type(int)));
+		}
+	}
+}
+
+void Ui_MainWindowBase::ConfigKeyboardType(void)
+{
+	if(using_flags->get_use_keyboard_type() > 0) {
+		int ii;
+		menuKeyboardType = new QMenu(menuMachine);
+		menuKeyboardType->setObjectName(QString::fromUtf8("menuKeyboardType"));
+		menuMachine->addAction(menuKeyboardType->menuAction());
+		menuKeyboardType->setToolTipsVisible(true);
+      
+		actionGroup_KeyboardType = new QActionGroup(this);
+		actionGroup_KeyboardType->setExclusive(true);
+		for(ii = 0; ii < using_flags->get_use_keyboard_type(); ii++) {
+			actionKeyboardType[ii] = new Action_Control(this, using_flags);
+			actionGroup_KeyboardType->addAction(actionKeyboardType[ii]);
+			actionKeyboardType[ii]->setCheckable(true);
+			actionKeyboardType[ii]->setVisible(true);
+			actionKeyboardType[ii]->binds->setValue1(ii);
+			if(using_flags->get_config_ptr()->keyboard_type == ii) actionKeyboardType[ii]->setChecked(true);
+			menuKeyboardType->addAction(actionKeyboardType[ii]);
+			connect(actionKeyboardType[ii], SIGNAL(triggered()),
+				actionKeyboardType[ii]->binds, SLOT(do_set_keyboard_type()));
+			connect(actionKeyboardType[ii]->binds, SIGNAL(sig_keyboard_type(int)),
+				this, SLOT(set_keyboard_type(int)));
 		}
 	}
 }

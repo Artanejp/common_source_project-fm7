@@ -30,6 +30,12 @@ void Object_Menu_Control::open_debugger(void) {
 void Object_Menu_Control::do_set_device_type(void){
 	emit sig_device_type(this->getValue1());
 }
+void Object_Menu_Control::do_set_joystick_type(void){
+	emit sig_joystick_type(this->getValue1());
+}
+void Object_Menu_Control::do_set_keyboard_type(void){
+	emit sig_keyboard_type(this->getValue1());
+}
 void Object_Menu_Control::do_set_mouse_type(void){
 	emit sig_mouse_type(this->getValue1());
 }

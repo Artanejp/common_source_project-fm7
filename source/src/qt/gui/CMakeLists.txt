@@ -151,8 +151,8 @@ target_link_libraries(CSPgui
 	  ${SDL2_LIBRARIES}
 	  )
 set_target_properties(CSPgui PROPERTIES
-			     SOVERSION 2.9.3
-			     VERSION 2.9.3
+			     SOVERSION 2.9.4
+			     VERSION 2.9.4
 			     LINK_INTERFACE_LIBRARIES ""
 			     )
 generate_export_header(CSPgui
@@ -176,8 +176,8 @@ target_link_libraries(CSPgui PUBLIC
 	  )
 
 set_target_properties(CSPgui PROPERTIES 
-			     SOVERSION 2.9.3
-			     VERSION 2.9.3
+			     SOVERSION 2.9.4
+			     VERSION 2.9.4
 			     )
 INSTALL(TARGETS CSPgui DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

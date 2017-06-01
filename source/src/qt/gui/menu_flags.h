@@ -71,8 +71,12 @@ protected:
 	int max_draw_ranges;
 	
 	bool use_joystick;
+	int use_joystick_type;
 	bool use_joy_button_captions;
 	int num_joy_button_captions;
+
+	int use_keyboard_type;
+
 	bool use_laser_disc;
 	int use_led_device;
 
@@ -207,7 +211,10 @@ public:
 	bool is_use_joystick() { return use_joystick; }
 	bool is_use_joy_button_captions() { return use_joy_button_captions; }
 	int  get_num_joy_button_captions() { return num_joy_button_captions; }
+	int  get_use_joystick_type() { return use_joystick_type; }
 
+	int  get_use_keyboard_type() { return use_keyboard_type; }
+	
 	bool is_use_laser_disc() {return use_laser_disc; }
 	int get_use_led_device() { return use_led_device; }
 

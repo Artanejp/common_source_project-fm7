@@ -273,6 +273,12 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 #if defined(USE_MOUSE_TYPE)
 	use_mouse_type = USE_MOUSE_TYPE;
 #endif
+#if defined(USE_JOYSTICK_TYPE)
+	use_joystick_type = USE_JOYSTICK_TYPE;
+#endif
+#if defined(USE_KEYBOARD_TYPE)
+	use_keyboard_type = USE_KEYBOARD_TYPE;
+#endif
 #if defined(USE_DIPSWITCH)
 	use_dipswitch = true;
 #endif

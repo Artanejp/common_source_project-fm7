@@ -101,10 +101,17 @@ void META_MainWindow::retranslateUi(void)
 	action_Emu_DisplayMode[0]->setText(QApplication::translate("MainWindow", "High Resolution (400line)", 0));
 	action_Emu_DisplayMode[1]->setText(QApplication::translate("MainWindow", "Standarsd Resolution (200line)", 0));
 #endif
-#if defined(USE_DEVICE_TYPE)
-	menuDeviceType->setTitle(QApplication::translate("MainWindow", "Keyboard Mode", 0));
-	actionDeviceType[0]->setText(QApplication::translate("MainWindow", "Mode A", 0));
-	actionDeviceType[1]->setText(QApplication::translate("MainWindow", "Mode B", 0));
+#if defined(USE_KEYBOARD_TYPE)
+	menuKeyboardType->setTitle(QApplication::translate("MainWindow", "Keyboard Mode", 0));
+	actionKeyboardType[0]->setText(QApplication::translate("MainWindow", "Mode A", 0));
+	actionKeyboardType[1]->setText(QApplication::translate("MainWindow", "Mode B", 0));
+#endif
+#if defined(USE_JOYSTICK_TYPE)
+	menuJoystickType->setTitle(QApplication::translate("MainWindow", "Joy PAD Type", 0));
+	actionJoystickType[0]->setText(QApplication::translate("MainWindow", "2-Buttons Joy Pad", 0));
+	actionJoystickType[1]->setText(QApplication::translate("MainWindow", "6-Buttons Joy Pad", 0));
+	actionJoystickType[2]->setText(QApplication::translate("MainWindow", "2-Buttons with Multi-Tap", 0));
+	actionJoystickType[3]->setText(QApplication::translate("MainWindow", "6-Buttons with Multi-Tap", 0));
 #endif
 #if defined(USE_DRIVE_TYPE)
 	menuDriveType->setTitle(QApplication::translate("MainWindow", "Floppy Type", 0));

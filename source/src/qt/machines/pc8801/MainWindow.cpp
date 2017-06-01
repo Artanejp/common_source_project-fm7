@@ -153,12 +153,12 @@ void META_MainWindow::retranslateUi(void)
 	actionDebugger[2]->setVisible(false);
 	actionDebugger[3]->setVisible(false);
 #endif	
-#if defined(USE_DEVICE_TYPE)
-	actionDeviceType[0]->setText(QApplication::translate("MainWindow", "Joystick", 0));
-	actionDeviceType[1]->setText(QApplication::translate("MainWindow", "Bus Mouse", 0));
-	actionDeviceType[0]->setToolTip(QApplication::translate("MainWindow", "Connect joystick to JOY PORT.", 0));
-	actionDeviceType[1]->setToolTip(QApplication::translate("MainWindow", "Connect bus-mouse to JOY PORT.", 0));
-	menuDeviceType->setTitle(QApplication::translate("MainWindow", "Joy Port", 0));
+#if defined(USE_JOYSTICK_TYPE)
+	actionJoystickType[0]->setText(QApplication::translate("MainWindow", "Joystick", 0));
+	actionJoystickType[1]->setText(QApplication::translate("MainWindow", "Bus Mouse", 0));
+	actionJoystickType[0]->setToolTip(QApplication::translate("MainWindow", "Connect joystick to JOY PORT.", 0));
+	actionJoystickType[1]->setToolTip(QApplication::translate("MainWindow", "Connect bus-mouse to JOY PORT.", 0));
+	menuJoystickType->setTitle(QApplication::translate("MainWindow", "Joy Port", 0));
 #endif
 #if defined(USE_PRINTER)
 	actionPrintDevice[1]->setText(QString::fromUtf8("PC-PR201"));
