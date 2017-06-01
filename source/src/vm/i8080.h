@@ -15,13 +15,13 @@
 
 class I8080 : public I8080_BASE
 {
-private:
+protected:
 	/* ---------------------------------------------------------------------------
 	virtual machine interfaces
 	--------------------------------------------------------------------------- */
 	
 	// memory
-	inline uint8_t RM8(uint16_t addr)
+	uint8_t RM8(uint16_t addr)  override
 	{
 #ifdef I8080_MEMORY_WAIT
 		int wait;
@@ -32,7 +32,7 @@ private:
 		return d_mem->read_data8(addr);
 #endif
 	}
-	inline void WM8(uint16_t addr, uint8_t val)
+	void WM8(uint16_t addr, uint8_t val)  override
 	{
 #ifdef I8080_MEMORY_WAIT
 		int wait;
@@ -43,7 +43,7 @@ private:
 #endif
 	}
 	
-	inline uint16_t RM16(uint16_t addr)
+	uint16_t RM16(uint16_t addr) override
 	{
 #ifdef I8080_MEMORY_WAIT
 		int wait;
@@ -54,7 +54,7 @@ private:
 		return d_mem->read_data16(addr);
 #endif
 	}
-	inline void WM16(uint16_t addr, uint16_t val)
+	void WM16(uint16_t addr, uint16_t val)  override
 	{
 #ifdef I8080_MEMORY_WAIT
 		int wait;
@@ -64,7 +64,7 @@ private:
 		d_mem->write_data16(addr, val);
 #endif
 	}
-	inline uint8_t FETCHOP()
+	uint8_t FETCHOP()  override
 	{
 		int wait;
 		uint8_t val = d_mem->fetch_op(PC++, &wait);
@@ -73,7 +73,7 @@ private:
 #endif
 		return val;
 	}
-	inline uint8_t FETCH8()
+	uint8_t FETCH8()  override
 	{
 #ifdef I8080_MEMORY_WAIT
 		int wait;
@@ -85,7 +85,7 @@ private:
 #endif
 	}
 	
-	inline uint16_t FETCH16()
+	uint16_t FETCH16()  override
 	{
 #ifdef I8080_MEMORY_WAIT
 		int wait;
@@ -97,7 +97,7 @@ private:
 		PC += 2;
 		return val;
 	}
-	inline uint16_t POP16()
+	uint16_t POP16()  override
 	{
 #ifdef I8080_MEMORY_WAIT
 		int wait;
@@ -109,7 +109,7 @@ private:
 		SP += 2;
 		return val;
 	}
-	inline void PUSH16(uint16_t val)
+	void PUSH16(uint16_t val)  override
 	{
 		SP -= 2;
 #ifdef I8080_MEMORY_WAIT
@@ -122,7 +122,7 @@ private:
 	}
 	
 	// i/o
-	inline uint8_t IN8(uint8_t addr)
+	uint8_t IN8(uint8_t addr)  override
 	{
 #ifdef I8080_IO_WAIT
 		int wait;
@@ -133,7 +133,7 @@ private:
 		return d_io->read_io8(addr);
 #endif
 	}
-	inline void OUT8(uint8_t addr, uint8_t val)
+	void OUT8(uint8_t addr, uint8_t val)  override
 	{
 #ifdef I8080_IO_WAIT
 		int wait;
@@ -145,16 +145,41 @@ private:
 	}
 	
 	// interrupt
-	inline uint32_t ACK_INTR()
+	uint32_t ACK_INTR()  override
 	{
 		return d_pic->get_intr_ack();
 	}
+
+	
+	void dec_count(uint8_t code) override;
+	void check_reg_c(uint8_t val) override;
+	void check_reg_e(uint8_t val) override;
+	void check_reg_l(uint8_t val) override;
+	void check_reg_sp(uint8_t val) override;
+	void INSN_0x08(void) override;
+	void INSN_0x10(void) override;
+	void RLDE(void) override;
+	void RIM(void) override;
+	void _DAA(void) override;
+	void LDEH(void) override;
+	void CMA(void) override;
+	void SIM(void) override;
+	void LDES(void) override;
+	void INSN_0xcb(void) override;
+	void INSN_0xd9(void) override;
+	void INSN_0xdd(void) override;
+	void INSN_0xed(void) override;
+	void INSN_0xfd(void) override;
+
+
+	void JMP(uint8_t c) override;
+	void CALL(uint8_t c) override;
+	void ANA(uint8_t n) override;
 	/* ---------------------------------------------------------------------------
 	opecodes
 	--------------------------------------------------------------------------- */
 	void run_one_opecode();
-	void OP(uint8_t code);
-	
+	//void OP(uint8_t code);
 public:
 	I8080(VM* parent_vm, EMU* parent_emu) : I8080_BASE(parent_vm, parent_emu)
 	{

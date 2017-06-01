@@ -54,7 +54,58 @@ protected:
 	uint16_t SP, PC, prevPC;
 	uint16_t IM, RIM_IEN;
 	bool HALT, BUSREQ, SID, afterEI;
+	
+	static const int cc_op_8080[0x100];
+	static const int cc_op_8085[0x100];
+	
+	static const uint8_t ZS[256];
+	static const uint8_t ZSP[256];
+	static const uint16_t DAA[2048];
 
+	virtual void dec_count(uint8_t code) {}
+	virtual void check_reg_c(uint8_t val) {}
+	virtual void check_reg_e(uint8_t val) {}
+	virtual void check_reg_l(uint8_t val) {}
+	virtual void check_reg_sp(uint8_t val) {}
+	virtual void INSN_0x08(void) {}
+	virtual void INSN_0x10(void) {}
+	virtual void RLDE(void) {}
+	virtual void RIM(void) {}
+	virtual void _DAA(void) {}
+	virtual void LDEH(void) {}
+	virtual void CMA(void) {}
+	virtual void SIM(void) {}
+	virtual void LDES(void) {}
+	virtual void INSN_0xcb(void) {}
+	virtual void INSN_0xd9(void) {}
+	virtual void INSN_0xdd(void) {}
+	virtual void INSN_0xed(void) {}
+	virtual void INSN_0xfd(void) {}
+
+
+	virtual void JMP(uint8_t c);
+	virtual void CALL(uint8_t c);
+	virtual void ANA(uint8_t n);
+
+	virtual uint8_t RM8(uint16_t addr) { return 0xff;}
+	virtual void WM8(uint16_t addr, uint8_t val) {}
+	virtual uint16_t RM16(uint16_t addr) { return 0xffff;}
+	virtual void WM16(uint16_t addr, uint16_t val) {}
+	virtual uint8_t IN8(uint8_t addr) { return 0xff; }
+	virtual void OUT8(uint8_t addr, uint8_t val) {}
+	virtual uint8_t FETCHOP() { return 0xff;}
+	virtual uint8_t FETCH8() { return 0xff;}
+	virtual uint16_t FETCH16()  { return 0xffff; }
+	virtual uint16_t POP16() { return 0xff;}
+	virtual void PUSH16(uint16_t val) {}
+	virtual uint32_t ACK_INTR() {}
+	
+	void DSUB();
+
+	inline void INT(uint16_t v);
+	inline void RST(uint16_t n);
+
+	void OP(uint8_t code);
 public:
 	I8080_BASE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -126,4 +177,19 @@ public:
 	}
 
 };
+
+inline void I8080_BASE::INT(uint16_t v)
+{												\
+	if(HALT) {
+		PC++; HALT = 0;
+	}
+	PUSH16(PC); PC = (v);
+}
+
+inline void I8080_BASE::RST(uint16_t n)
+{				
+	PUSH16(PC); 
+	PC = 8 * n; 
+}
+
 #endif
