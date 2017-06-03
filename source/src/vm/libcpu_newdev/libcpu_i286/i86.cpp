@@ -11,10 +11,11 @@
 
 ****************************************************************************/
 
-#include "emu.h"
+#include "../../device.h"
+#include "../../fmr50/bios.h"
 #include "debugger.h"
-#include "i86.h"
-#include "i86inline.h"
+#include "./i86.h"
+#include "./i86inline.h"
 
 #define I8086_NMI_INT_VECTOR 2
 
@@ -86,21 +87,24 @@ const uint8_t i8086_cpu_device::m_i8086_timing[] =
 
 /***************************************************************************/
 
-i8088_cpu_device::i8088_cpu_device(VM* prev_vm, EMU* prev_emu) : i8086_cpu_device(prev_vm, prev_emu)
+i8088_cpu_device::i8088_cpu_device(VM* parent_vm, EMU* parent_emu) : i8086_cpu_device(parent_vm, parent_emu)
 {
 	memcpy(m_timing, m_i8086_timing, sizeof(m_i8086_timing));
-	m_fetch_xor = 0;
+	m_amask = 0x000fffff;
 }
 
-i8086_cpu_device::i8086_cpu_device(VM* prev_vm, EMU* prev_emu) : i8086_common_cpu_device(prev_vm, prev_emu)
+i8088_cpu_device::~i8088_cpu_device()
+{
+}
+
+
+i8086_cpu_device::i8086_cpu_device(VM* parent_vm, EMU* parent_emu) : i8086_common_cpu_device(parent_vm, parent_emu)
 {
 	memcpy(m_timing, m_i8086_timing, sizeof(m_i8086_timing));
-	m_fetch_xor = BYTE_XOR_LE(0);
-
-	
 	m_extra_cycles = 0;
 	m_busreq = false;
 	m_test = 0;
+	m_amask = 0x000fffff;
 }
 
 i8086_cpu_device::~i8086_cpu_device()
@@ -111,8 +115,8 @@ i8086_cpu_device::~i8086_cpu_device()
 uint8_t i8086_cpu_device::fetch_op()
 {
 	uint8_t data;
-	
-	data = m_direct_opcodes->read_byte(pc(), m_fetch_xor);
+	if(d_program == NULL) return 0xff;
+	data = d_program->read_data8(pc());
 	m_ip++;
 	return data;
 }
@@ -120,15 +124,87 @@ uint8_t i8086_cpu_device::fetch_op()
 uint8_t i8086_cpu_device::fetch()
 {
 	uint8_t data;
-	data = m_direct_opcodes->read_byte(pc(), m_fetch_xor);
+	if(d_program == NULL) return 0xff;
+	data = d_program->read_data8(pc());
 	m_ip++;
 	return data;
 }
 
+void i8086_cpu_device::run(int clock)
+{
+		/* return now if BUSREQ */
+	if(busreq) {
+#ifdef SINGLE_MODE_DMA
+		if(d_dma) {
+			d_dma->do_dma();
+		}
+#endif
+		if(clock == -1) {
+			int passed_icount = max(1, m_extra_icount);
+			// this is main cpu, icount is not used
+			/*icount = */
+			m_extra_icount = 0;
+			return passed_icount;
+		} else {
+			m_icount += clock;
+			int first_icount = m_icount;
+			
+			/* adjust for any interrupts that came in */
+			m_icount -= m_extra_icount;
+			m_extra_icount = 0;
+			
+			/* if busreq is raised, spin cpu while remained clock */
+			if(m_icount > 0) {
+				m_icount = 0;
+			}
+			return first_icount - m_icount;
+		}
+	}
+	if(clock == -1) {
+		/* run only one opcode */
+		m_icount = -m_extra_icount;
+		m_extra_icount = 0;
+#ifdef USE_DEBUGGER
+		execute_run();
+		//execute_run_debugger();
+#else
+		execute_run();
+#endif
+		return -m_icount;
+	} else {
+		icount += clock;
+		int first_icount = icount;
+		
+		/* adjust for any interrupts that came in */
+		icount -= extra_icount;
+		extra_icount = 0;
+		
+		/* run cpu while given clocks */
+		while(m_icount > 0 && !busreq) {
+#ifdef USE_DEBUGGER
+			execute_run();
+			//execute_run_debugger();
+#else
+			execute_run();
+#endif
+		}
+		/* if busreq is raised, spin cpu while remained clock */
+		if(m_icount > 0 && busreq) {
+			m_icount = 0;
+		}
+		return first_icount - m_icount;
+	}
+}
+
+void i8086_cpu_device::debugger_instruction_hook()
+{
+	
+}
+
 void i8086_cpu_device::execute_run()
 {
-	while(m_icount > 0 )
-	{
+//	while(m_icount > 0 )
+//	{
 		if ( m_seg_prefix_next )
 		{
 			m_seg_prefix = true;
@@ -182,7 +258,7 @@ void i8086_cpu_device::execute_run()
 
 		if (!m_seg_prefix)
 		{
-			debugger_instruction_hook( this, pc() );
+//			debugger_instruction_hook( this, pc() );
 		}
 
 		uint8_t op = fetch_op();
@@ -257,21 +333,14 @@ void i8086_cpu_device::execute_run()
 				}
 				break;
 		}
+//	}
+#ifdef SINGLE_MODE_DMA
+	if(d_dma) {
+		d_dma->do_dma();
 	}
-}
-
-void i8086_cpu_device::device_start()
-{
-	i8086_common_cpu_device::device_start();
-	state_add( I8086_ES, "ES", m_sregs[ES] ).formatstr("%04X");
-	state_add( I8086_CS, "CS", m_sregs[CS] ).callimport().formatstr("%04X");
-	state_add( I8086_SS, "SS", m_sregs[SS] ).formatstr("%04X");
-	state_add( I8086_DS, "DS", m_sregs[DS] ).formatstr("%04X");
-	state_add( I8086_VECTOR, "V", m_int_vector).formatstr("%02X");
-
-	state_add( I8086_PC, "PC", m_pc ).callimport().formatstr("%05X");
-	state_add( STATE_GENPCBASE, "CURPC", m_pc ).callimport().formatstr("%05X").noshow();
-	state_add( I8086_HALT, "HALT", m_halt ).mask(1);
+#endif
+	m_icount -= m_extra_icount;
+	m_extra_icount = 0;
 }
 
 i8086_common_cpu_device::i8086_common_cpu_device(VM* prev_vm, EMU* prev_emu)
@@ -317,11 +386,31 @@ i8086_common_cpu_device::i8086_common_cpu_device(VM* prev_vm, EMU* prev_emu)
 	memset(&m_regs, 0x00, sizeof(m_regs));
 	memset(m_sregs, 0x00, sizeof(m_sregs));
 
-	m_program = m_opcodes = NULL;
-	m_direct = m_direct_opcodes = NULL;
-	m_io = NULL;
+	d_program =  NULL;
+	d_dma = NULL;
+	d_io = NULL;
+	d_bios = NULL;
+
+	d_debugger = NULL;
+	d_mem_stored = NULL;
+	d_io_stored = NULL;
 }
 
+bool i8086_common_cpu_device::call_pseudo_bios(uint32_t PC)
+{
+	if(d_bios == NULL) return false;
+	bool stat;
+	stat = d_bios->bios_call_i86(PC, &(m_regs.w[0]), sregs, &m_ZeroVal, &m_CarryVal);
+	return stat;
+}
+
+bool i8086_common_cpu_device::call_pseudo_bios_int(int intnum)
+{
+	if(d_bios == NULL) return false;
+	bool stat;
+	stat = d_bios->bios_int_i86(intnum, n_regs, n_sregs, &m_ZeroVal, &m_CarryVal);
+	return stat;
+}
 
 void i8086_common_cpu_device::reset()
 {
@@ -377,19 +466,26 @@ void i8086_common_cpu_device::interrupt(int int_num, int trap)
 	PUSH( CompressFlags() );
 	m_TF = m_IF = 0;
 
-	if (int_num == -1)
-	{
+	if (int_num == -1) {
 		int_num = standard_irq_callback(0);
 
 		m_irq_state = CLEAR_LINE;
 		m_pending_irq &= ~INT_IRQ;
 	}
 
-	uint16_t dest_off = read_word( int_num * 4 + 0 );
-	uint16_t dest_seg = read_word( int_num * 4 + 2 );
-
 	PUSH(m_sregs[CS]);
 	PUSH(m_ip);
+
+	if(call_pseudo_bios_int(int_num)) {
+		// i_iret
+		m_ip = POP();
+		m_sregs[CS] = POP();
+		i_popf();
+		CLK(IRET);
+		return;
+	}
+	uint16_t dest_off = read_word( int_num * 4 + 0 );
+	uint16_t dest_seg = read_word( int_num * 4 + 2 );
 	m_ip = dest_off;
 	m_sregs[CS] = dest_seg;
 }
@@ -435,23 +531,24 @@ offs_t i8086_common_cpu_device::disasm_disassemble(std::ostream &stream, offs_t 
 
 uint8_t i8086_common_cpu_device::read_port_byte(uint16_t port)
 {
-	return m_io->read_byte(port);
+	return d_io->read_io8(port);
 }
 
 uint16_t i8086_common_cpu_device::read_port_word(uint16_t port)
 {
-	return m_io->read_word_unaligned(port);
+	return d_io->read_io16(port);
 }
 
 void i8086_common_cpu_device::write_port_byte(uint16_t port, uint8_t data)
 {
-	m_io->write_byte(port, data);
+	d_io->write_io8(port, data);
 }
 
 void i8086_common_cpu_device::write_port_word(uint16_t port, uint16_t data)
 {
-	m_io->write_word_unaligned(port, data);
+	d_io->write_io16(port, data);
 }
+
 
 uint32_t i8086_common_cpu_device::calc_addr(int seg, uint16_t offset, int size, int op, bool override)
 {
@@ -1396,6 +1493,11 @@ bool i8086_common_cpu_device::common_op(uint8_t op)
 				PUSH(m_ip);
 				m_ip = tmp;
 				m_sregs[CS] = tmp2;
+				if(call_pseudo_bios(((m_sregs[CS] << 4) + tmp) & m_amask)) {
+					m_ip = POP();
+					m_sregs[CS] = POP();
+					CLK(RET_FAR);
+				}
 				CLK(CALL_FAR);
 			}
 			break;
@@ -1658,7 +1760,7 @@ bool i8086_common_cpu_device::common_op(uint8_t op)
 				m_ip = POP();
 				m_sregs[CS] = POP();
 				m_regs.w[SP] += count;
-				CLK(RET_FAR_IMM);
+				CLK(RET_FAR_IMM);		
 			}
 			break;
 
@@ -1677,9 +1779,6 @@ bool i8086_common_cpu_device::common_op(uint8_t op)
 		case 0xcd: // i_int
 			{
 				int int_num = fetch();
-				if(call_bios_int_i86(int_num, m_regs.w, m_sregs, &m_ZeroVal, &m_CarryVal)) {
-					return;
-				}
 				interrupt(int_num, 0);
 				CLK(INT_IMM);
 			}
@@ -1881,12 +1980,13 @@ bool i8086_common_cpu_device::common_op(uint8_t op)
 		case 0xe8: // i_call_d16
 			{
 				int16_t tmp = (int16_t)fetch_word();
+				PUSH(m_ip);
 				if(call_pseudo_bios((m_pc + tmp) & m_amask)) {
 					CLK(CALL_NEAR);
-					//m_ip = m_ip + tmp;
-					return;
+					POP(m_ip);
+					CLK(RET_NEAR);
+					return true;
 				}
-				PUSH(m_ip);
 				m_ip = m_ip + tmp;
 				CLK(CALL_NEAR);
 			}
@@ -2303,26 +2403,29 @@ bool i8086_common_cpu_device::common_op(uint8_t op)
 					CLKM(INCDEC_R16,INCDEC_M16);
 					break;
 				case 0x10:  /* CALL */
-					if(call_pseudo_bios((m_base[m_CS] + (uint16_t)tmp) & m_amask)) {
-						CLK(CALL_R16,CALL_M16);
-						//m_ip = m_ip + tmp;
-						return;
-					}
 					PUSH(m_ip);
 					m_ip = tmp;
+					if(call_pseudo_bios(m_ip & m_amask)) {
+						CLK(CALL_R16,CALL_M16);
+						m_ip = POP();
+						CLK(RET_NEAR);
+						return true;
+					}
 					CLKM(CALL_R16,CALL_M16);
 					break;
 				case 0x18:  /* CALL FAR */
 					tmp1 = m_sregs[CS];
 					m_sregs[CS] = GetnextRMWord();
-					if(call_pseudo_bios(((m_sregs[CS] << 4) + tmp1) & m_amask) {
-						CLK(CALL_M32);
-						//m_ip = m_ip + tmp;
-						return;
-					}
 					PUSH(tmp1);
 					PUSH(m_ip);
 					m_ip = tmp;
+					if(call_pseudo_bios(((m_sregs[CS] << 4) + tmp1) & m_amask)) {
+						CLK(CALL_M32);
+						m_ip = POP();
+						m_sregs[CS] = POP();
+						CLK(RET_FAR);
+						return true;
+					}
 					CLK(CALL_M32);
 					break;
 				case 0x20:  /* JMP */
@@ -2349,3 +2452,4 @@ bool i8086_common_cpu_device::common_op(uint8_t op)
 	}
 	return true;
 }
+

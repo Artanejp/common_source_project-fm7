@@ -12,6 +12,10 @@ extern const device_type I8088;
 #define INPUT_LINE_INT0         INPUT_LINE_IRQ0
 #define INPUT_LINE_TEST         20
 
+class DEVICE;
+class BIOS;
+class DEBUGGER;
+
 
 #define MCFG_I8086_LOCK_HANDLER(_write) \
 	devcb = &i8086_common_cpu_device::set_lock_handler(*device, DEVCB_##_write);
@@ -35,22 +39,70 @@ public:
 
 	virtual void initialize();
 	virtual void reset();
-
-	void set_context_mem(DEVICE *device)
+	
+	void *get_debugger()
 	{
-		m_program = m_opcodes = device;
+		return d_debugger;
+	}
+	uint32_t get_debug_prog_addr_mask()
+	{
+		return m_amask;
+	}
+	uint32_t get_debug_data_addr_mask()
+	{
+		return m_amask;
+	}
+	void write_debug_data8(uint32_t addr, uint32_t data);
+	uint32_t read_debug_data8(uint32_t addr);
+	void write_debug_data16(uint32_t addr, uint32_t data);
+	uint32_t read_debug_data16(uint32_t addr);
+	void write_debug_io8(uint32_t addr, uint32_t data);
+	uint32_t read_debug_io8(uint32_t addr);
+	void write_debug_io16(uint32_t addr, uint32_t data);
+	uint32_t read_debug_io16(uint32_t addr);
+	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
+	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
+
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
+	
+	// unique function
+	void set_context_mem(DEVICE* device)
+	{
+		d_program = device;
 	}
 	void set_context_io(DEVICE* device)
 	{
-		m_io = device;
+		d_io = device;
 	}
 	void set_context_intr(DEVICE* device)
 	{
 		d_pic = device;
 	}
+	void set_context_bios(DEVICE* device)
+	{
+		d_bios = device;
+	}
+#ifdef SINGLE_MODE_DMA
 	void set_context_dma(DEVICE* device)
 	{
-		d_direct = m_direct_opcodes = device;
+		d_dma = device;
+	}
+#endif
+#ifdef USE_DEBUGGER
+	void set_context_debugger(DEBUGGER* device)
+	{
+		d_debugger = device;
+	}
+#endif
+	void set_extra_clock(int clock)
+	{
+		m_extra_icount += clock;
+	}
+	int get_extra_clock()
+	{
+		return m_extra_icount;
 	}
 
 protected:
@@ -298,9 +350,10 @@ protected:
 
 	uint16_t  m_ip;
 	uint16_t  m_prev_ip;
-
+	uint32_t  m_amask;
+	
 	int32_t   m_SignVal;
-	uint32_t  m_AuxVal, m_OverVal, m_ZeroVal, m_CarryVal, m_ParityVal; /* 0 or non-0 valued flags */
+	int32_t   m_AuxVal, m_OverVal, m_ZeroVal, m_CarryVal, m_ParityVal; /* 0 or non-0 valued flags */
 	uint8_t   m_TF, m_IF, m_DF;     /* 0 or 1 valued flags */
 	uint8_t   m_IOPL, m_NT, m_MF;
 	uint32_t  m_int_vector;
@@ -312,10 +365,14 @@ protected:
 	uint8_t   m_test_state;
 	int m_extra_cycles;
 
-	DEVICE *m_program, *m_opcodes;
-	DEVICE *m_direct, *m_direct_opcodes;
-	DEVICE *m_io;
-	offs_t m_fetch_xor;
+	DEVICE *d_program;
+	DEVICE *d_io;
+	DEVICE *d_dma;
+	BIOS   *d_bios;
+	DEBUGGER *debugger;
+	DEVICE *d_mem_stored;
+	DEVICE *d_io_stored;
+
 	int m_icount;
 
 	uint32_t m_prefix_seg;   /* the latest prefix segment */
@@ -350,6 +407,10 @@ protected:
 
 	bool m_lock;
 	bool m_busreq;
+
+	bool call_pseudo_bios(uint32_t PC);
+	bool call_pseudo_bios_int(int intnum);
+
 };
 
 class i8086_cpu_device : public i8086_common_cpu_device
@@ -360,19 +421,23 @@ public:
 	~i8086_cpu_device();
 
 	// device_memory_interface overrides
+	uint32_t get_pc()
+	{
+		return prev_pc();
+	}
+	uint32_t get_next_pc()
+	{
+		return pc();
+	}
 
 protected:
 	virtual void execute_run() override;
-	virtual void device_start() override;
 	virtual uint32_t execute_input_lines() const override { return 1; }
 	virtual uint8_t fetch_op() override;
 	virtual uint8_t fetch() override;
 	uint32_t pc() { return m_pc = (m_sregs[CS] << 4) + m_ip; }
 	uint32_t prev_pc() { return (m_sregs[CS] << 4) + m_prev_ip; }
 
-	address_space_config m_program_config;
-	address_space_config m_opcodes_config;
-	address_space_config m_io_config;
 	static const uint8_t m_i8086_timing[200];
 };
 

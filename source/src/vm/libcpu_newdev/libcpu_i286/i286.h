@@ -67,11 +67,8 @@ public:
 	i80286_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
 
 	// device_memory_interface overrides
-	virtual const address_space_config *memory_space_config(address_spacenum spacenum = AS_0) const override;
 
 	typedef delegate<uint32_t (bool)> a20_cb;
-	static void static_set_a20_callback(device_t &device, a20_cb object) { downcast<i80286_cpu_device &>(device).m_a20_callback = object; }
-	template<class _Object> static devcb_base &static_set_shutdown_callback(device_t &device, _Object object) { return downcast<i80286_cpu_device &>(device).m_out_shutdown_func.set_callback(object); }
 
 protected:
 	virtual void execute_run() override;
@@ -111,15 +108,19 @@ private:
 	void trap(uint32_t error);
 	int verify(uint16_t selector, int operation, uint8_t rights, bool valid);
 	uint32_t pc() { return m_pc = m_base[CS] + m_ip; }
-
+	
+	outputs_t out_a20;
+	outputs_t out_shutdown;
 	int m_trap_level;
 	uint16_t m_msw;
 	uint32_t m_base[4];
 	uint16_t m_limit[4];
 	uint8_t m_rights[4];
 	bool m_valid[4];
+	
 	uint32_t m_amask;
-
+	bool m_shutdown;
+	
 	struct {
 		uint32_t base;
 		uint16_t limit;
@@ -155,9 +156,7 @@ private:
 		FAULT_GP
 	};
 
-	a20_cb m_a20_callback;
-	bool m_shutdown;
-	devcb_write_line m_out_shutdown_func;
+
 };
 
 #define MCFG_80286_A20(_class, _a20_cb) \

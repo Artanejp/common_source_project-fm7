@@ -155,16 +155,6 @@ i80186_cpu_device::i80186_cpu_device(const machine_config &mconfig, device_type 
 }
 
 
-const address_space_config *i80186_cpu_device::memory_space_config(address_spacenum spacenum) const
-{
-	switch(spacenum)
-	{
-	case AS_PROGRAM:           return &m_program_config;
-	case AS_IO:                return &m_io_config;
-	case AS_DECRYPTED_OPCODES: return has_configured_map(AS_DECRYPTED_OPCODES) ? &m_opcodes_config : nullptr;
-	default:                   return nullptr;
-	}
-}
 
 uint8_t i80186_cpu_device::fetch_op()
 {

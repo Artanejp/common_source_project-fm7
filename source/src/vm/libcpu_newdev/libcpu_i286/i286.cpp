@@ -262,6 +262,7 @@ i80286_cpu_device::i80286_cpu_device(VM* parent_vm, EMU* parent_emu) : DEVICE(pa
 	//m_test = 0;
 	//m_busreq = false;
 	//m_extra_cycles = 0;
+	initialize_output_signals(&out_a20);
 	initialize_output_signals(&out_shutdown);
 }
 
@@ -292,6 +293,7 @@ void i80286_cpu_device::reset()
 	m_extra_cycles = 0;
 	//m_out_shutdown_func(false);
 	write_signals(&out_shutdown, 0);
+	write_signals(&out_a20, (m_amask > 0x0fffff) ? 0xffffffff : 0x00000000);
 }
 
 void i80286_cpu_device::device_start()
@@ -336,18 +338,6 @@ void i80286_cpu_device::device_start()
 	//m_out_shutdown_func.resolve_safe();
 	write_signals(&out_shutdown, 0);
 }
-
-const address_space_config *i80286_cpu_device::memory_space_config(address_spacenum spacenum) const
-{
-	switch(spacenum)
-	{
-	case AS_PROGRAM:           return &m_program_config;
-	case AS_IO:                return &m_io_config;
-	case AS_DECRYPTED_OPCODES: return has_configured_map(AS_DECRYPTED_OPCODES) ? &m_opcodes_config : nullptr;
-	default:                   return nullptr;
-	}
-}
-
 
 //-------------------------------------------------
 //  state_import - import state into the device,
@@ -479,13 +469,15 @@ void i80286_cpu_device::set_irq_line(int irqline, int state)
 
 void i80286_cpu_device::write_signal(int id, uint32_t data, uint32_t mask)
 {
-	uint32_t state = (data & mask) ? HOLD_LINE : CLEARLINE;
+	bool b_state = (data & mask);
+	uint32_t state = b_state ? HOLD_LINE : CLEARLINE;
 	if(id == SIG_CPU_NMI) {
 		set_irq_line(INPUT_LINE_NMI, state);
 	} else if(id == SIG_CPU_IRQ) 	{
 		set_irq_line(INPUT_LINE_IRQ, state);
 	} else if(id == SIG_I86_A20) {
-		m_amask = (data & mask) ? 0x00ffffff : 0x000fffff; // i80286_set_a20_line()
+		m_amask = b_state ? 0x00ffffff : 0x000fffff; // i80286_set_a20_line()
+		write_signals(&out_a20, (b_state) ? 0xffffffff : 0x00000000);
 	} else if(id == SIG_CPU_BUSREQ) {
 		m_busreq = (data & mask);
 	} else if(id == SIG_I86_TEST) {
