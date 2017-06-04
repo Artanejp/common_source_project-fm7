@@ -19,12 +19,11 @@ set(EXEC_TARGET emubmjr)
 set(USE_FMGEN OFF)
 
 set(VMFILES_BASE
-  mc6800.cpp
-
-  event.cpp
+	event.cpp
 )
 set(VMFILES_LIB
 	  datarec.cpp
+	  mc6800.cpp
 	  mc6820.cpp
 )
 

@@ -23,8 +23,6 @@ set(WITH_MOUSE OFF)
 set(FLAG_USE_Z80 ON)
 
 set(VMFILES_BASE
-      mc6800.cpp
-
       event.cpp
       io.cpp
       memory.cpp
@@ -32,6 +30,7 @@ set(VMFILES_BASE
 set(VMFILES_LIB
       beep.cpp
       datarec.cpp
+      hd6301.cpp
       i8255.cpp
       hd146818p.cpp
       

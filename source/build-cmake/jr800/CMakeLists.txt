@@ -22,7 +22,6 @@ set(WITH_JOYSTICK ON)
 set(WITH_MOUSE OFF)
 
 set(VMFILES_BASE
-		mc6800.cpp
 		memory.cpp
 		event.cpp
 )
@@ -30,6 +29,7 @@ set(VMFILES_BASE
 set(VMFILES_LIB 
 		datarec.cpp
 		hd44102.cpp
+		hd6301.cpp
 		pcm1bit.cpp
 )
 

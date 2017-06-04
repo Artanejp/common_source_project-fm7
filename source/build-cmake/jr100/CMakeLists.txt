@@ -22,13 +22,13 @@ set(WITH_JOYSTICK ON)
 set(WITH_MOUSE OFF)
 
 set(VMFILES_BASE
-		mc6800.cpp
 		sy6522.cpp
 
 		event.cpp
 )
 
 set(VMFILES_LIB 
+		mb8861.cpp
 		datarec.cpp
 		not.cpp
 		pcm1bit.cpp
