@@ -15,7 +15,8 @@
 #include "../beep.h"
 #include "../hd146818p.h"
 #include "../i8255.h"
-#include "../mc6800.h"
+//#include "../mc6800.h"
+#include "../hd6301.h"
 #include "../noise.h"
 #include "../tf20.h"
 #include "../upd765a.h"
@@ -42,7 +43,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	beep = new BEEP(this, emu);
 	rtc = new HD146818P(this, emu);
-	cpu = new MC6800(this, emu);
+	//cpu = new MC6800(this, emu);
+	cpu = new HD6301(this, emu);
 	tf20 = new TF20(this, emu);
 	pio_tf20 = new I8255(this, emu);
 	fdc_tf20 = new UPD765A(this, emu);

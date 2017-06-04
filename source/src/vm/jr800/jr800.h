@@ -48,7 +48,8 @@ class EVENT;
 
 class DATAREC;
 class HD44102;
-class MC6800;
+//class MC6800;
+class HD6301;
 class MEMORY;
 class PCM1BIT;
 
@@ -64,7 +65,8 @@ protected:
 	
 	DATAREC* drec;
 	HD44102* lcd[8];
-	MC6800* cpu;
+	//MC6800* cpu;
+	HD6301* cpu;
 	MEMORY* memory;
 	PCM1BIT* pcm;
 	

@@ -14,7 +14,8 @@
 
 #include "../datarec.h"
 #include "../hd44102.h"
-#include "../mc6800.h"
+//#include "../mc6800.h"
+#include "../hd6301.h"
 #include "../memory.h"
 #include "../noise.h"
 #include "../pcm1bit.h"
@@ -43,7 +44,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	for(int i = 0; i < 8; i++) {
 		lcd[i] = new HD44102(this, emu);
 	}
-	cpu = new MC6800(this, emu);
+//	cpu = new MC6800(this, emu);
+	cpu = new HD6301(this, emu);
 	memory = new MEMORY(this, emu);
 	pcm = new PCM1BIT(this, emu);
 	

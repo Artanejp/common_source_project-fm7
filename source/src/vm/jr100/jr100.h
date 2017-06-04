@@ -114,7 +114,8 @@ class DEVICE;
 class EVENT;
 
 class DATAREC;
-class MC6800;
+//class MC6800;
+class MB8861;
 class NOT;
 class PCM1BIT;
 class SY6522;
@@ -130,7 +131,8 @@ protected:
 	EVENT* event;
 	
 	DATAREC* drec;
-	MC6800* cpu;
+	//MC6800* cpu;
+	MB8861* cpu;
 	NOT* not_mic;
 	NOT* not_ear;
 	PCM1BIT* pcm;

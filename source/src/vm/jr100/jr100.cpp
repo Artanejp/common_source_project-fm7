@@ -13,7 +13,8 @@
 #include "../event.h"
 
 #include "../datarec.h"
-#include "../mc6800.h"
+//#include "../mc6800.h"
+#include "../mb8861.h"
 #include "../noise.h"
 #include "../not.h"
 #include "../pcm1bit.h"
@@ -41,7 +42,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	drec->set_context_noise_play(new NOISE(this, emu));
 	drec->set_context_noise_stop(new NOISE(this, emu));
 	drec->set_context_noise_fast(new NOISE(this, emu));
-	cpu = new MC6800(this, emu);	// MB8861N
+	//cpu = new MC6800(this, emu);	// MB8861N
+	cpu = new MB8861(this, emu);	// MB8861N
 	not_mic = new NOT(this, emu);
 	not_mic->set_device_name(_T("NOT Gate (Mic)"));
 	not_ear = new NOT(this, emu);

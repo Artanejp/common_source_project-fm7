@@ -32,7 +32,10 @@ set(s_vm_common_vm_srcs
 
 	../m6502_base.cpp
 	../mb8877.cpp
-#	../mc6800.cpp
+	../mc6800.cpp
+	../mc6801.cpp
+	../hd6301.cpp
+	../mb8861.cpp
 	# MC6809 is temporally.
 	../mc6809_base.cpp
 	../mc6820.cpp
@@ -126,8 +129,8 @@ if(WIN32)
 #	  ${SDL2_LIBRARIES}
 #	  )
 #set_target_properties(CSPcommon_vm PROPERTIES
-#			     SOVERSION 1.1.11
-#			     VERSION 1.1.11
+#			     SOVERSION 1.1.14
+#			     VERSION 1.1.14
 #			     LINK_INTERFACE_LIBRARIES ""
 #			     )
 #generate_export_header(CSPcommon_vm
@@ -144,8 +147,8 @@ else()
     ${s_vm_common_vm_srcs}
   )
   set_target_properties(CSPcommon_vm PROPERTIES 
-     SOVERSION 1.1.13
-     VERSION 1.1.13
+     SOVERSION 1.1.14
+     VERSION 1.1.14
   )
   INSTALL(TARGETS CSPcommon_vm DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

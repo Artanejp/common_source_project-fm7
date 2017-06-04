@@ -11,34 +11,59 @@
 #ifndef _MC6800_H_ 
 #define _MC6800_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-#define SIG_MC6801_PORT_1	0
-#define SIG_MC6801_PORT_2	1
-#define SIG_MC6801_PORT_3	2
-#define SIG_MC6801_PORT_4	3
-#define SIG_MC6801_PORT_3_SC1	4
-#define SIG_MC6801_PORT_3_SC2	5
-#define SIG_MC6801_SIO_RECV	6
+//#if defined(HAS_MC6801) || defined(HAS_HD6301)
+//#define SIG_MC6801_PORT_1	0
+//#define SIG_MC6801_PORT_2	1
+//#define SIG_MC6801_PORT_3	2
+//#define SIG_MC6801_PORT_4	3
+//#define SIG_MC6801_PORT_3_SC1	4
+//#define SIG_MC6801_PORT_3_SC2	5
+//#define SIG_MC6801_SIO_RECV	6
 
-class FIFO;
-#endif
+//class FIFO;
+//#endif
 
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 class DEBUGGER;
-#endif
+//#endif
 
 class MC6800 : public DEVICE
 {
 private:
+
+protected:
 	DEVICE *d_mem;
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 	DEBUGGER *d_debugger;
 	DEVICE *d_mem_stored;
-#endif
+//#endif
+	static const uint8_t flags8i[256];
+	static const uint8_t flags8d[256];
+#define XX 5 // invalid opcode unknown cc
+	const uint8_t cycles[256] = {
+//#if defined(HAS_MC6800)
+		XX, 2,XX,XX,XX,XX, 2, 2, 4, 4, 2, 2, 2, 2, 2, 2,
+		2, 2,XX,XX,XX,XX, 2, 2,XX, 2,XX, 2,XX,XX,XX,XX,
+		4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+		4, 4, 4, 4, 4, 4, 4, 4,XX, 5,XX,10,XX,XX, 9,12,
+		2,XX,XX, 2, 2,XX, 2, 2, 2, 2, 2,XX, 2, 2,XX, 2,
+		2,XX,XX, 2, 2,XX, 2, 2, 2, 2, 2,XX, 2, 2,XX, 2,
+		7,XX,XX, 7, 7,XX, 7, 7, 7, 7, 7,XX, 7, 7, 4, 7,
+		6,XX,XX, 6, 6,XX, 6, 6, 6, 6, 6,XX, 6, 6, 3, 6,
+		2, 2, 2,XX, 2, 2, 2, 3, 2, 2, 2, 2, 3, 8, 3, 4,
+		3, 3, 3,XX, 3, 3, 3, 4, 3, 3, 3, 3, 4, 6, 4, 5,
+		5, 5, 5,XX, 5, 5, 5, 6, 5, 5, 5, 5, 6, 8, 6, 7,
+		4, 4, 4,XX, 4, 4, 4, 5, 4, 4, 4, 4, 5, 9, 5, 6,
+		2, 2, 2,XX, 2, 2, 2, 3, 2, 2, 2, 2,XX,XX, 3, 4,
+		3, 3, 3,XX, 3, 3, 3, 4, 3, 3, 3, 3,XX,XX, 4, 5,
+		5, 5, 5,XX, 5, 5, 5, 6, 5, 5, 5, 5,XX,XX, 6, 7,
+		4, 4, 4,XX, 4, 4, 4, 5, 4, 4, 4, 4,XX,XX, 5, 6
+	};
+#undef XX // invalid opcode unknown cc
 	
 	pair_t pc;
 	uint16_t prevpc;
@@ -53,64 +78,17 @@ private:
 	
 	int icount;
 	
-	uint32_t RM(uint32_t Addr);
-	void WM(uint32_t Addr, uint32_t Value);
+	virtual uint32_t RM(uint32_t Addr);
+	virtual void WM(uint32_t Addr, uint32_t Value);
 	uint32_t RM16(uint32_t Addr);
 	void WM16(uint32_t Addr, pair_t *p);
 	
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-	// data
-	struct {
-		uint8_t wreg;
-		uint8_t rreg;
-		uint8_t ddr;
-		uint8_t latched_data;
-		bool latched;
-		// output signals
-		outputs_t outputs;
-		bool first_write;
-	} port[4];
 	
-	uint8_t p3csr;
-	bool p3csr_is3_flag_read;
-	bool sc1_state;
-	bool sc2_state;
-	
-	// timer
-	pair_t counter;
-	pair_t output_compare;
-	pair_t timer_over;
-	uint8_t tcsr;
-	uint8_t pending_tcsr;
-	uint16_t input_capture;
-#ifdef HAS_HD6301
-	uint16_t latch09;
-#endif
-	uint32_t timer_next;
-	
-	// serial i/o
-	outputs_t outputs_sio;
-	FIFO *recv_buffer;
-	uint8_t trcsr, rdr, tdr;
-	bool trcsr_read_tdre, trcsr_read_orfe, trcsr_read_rdrf;
-	uint8_t rmcr;
-	int sio_counter;
-	
-	// memory controller
-	uint8_t ram_ctrl;
-	uint8_t ram[128];
-	
-	uint32_t mc6801_io_r(uint32_t offset);
-	void mc6801_io_w(uint32_t offset, uint32_t data);
-	void increment_counter(int amount);
-#endif
-	
-	void run_one_opecode();
+	virtual void run_one_opecode();
 	void enter_interrupt(uint16_t irq_vector);
-	void insn(uint8_t code);
+	virtual void insn(uint8_t code);
 	
 	void aba();
-	void abx();
 	void adca_di();
 	void adca_ex();
 	void adca_im();
@@ -127,15 +105,7 @@ private:
 	void addb_ex();
 	void addb_im();
 	void addb_ix();
-	void addd_di();
-	void addd_ex();
-	void addd_im();
-	void addd_ix();
-	void adx_ex();
-	void adx_im();
-	void aim_di();
-	void aim_ix();
-	void nim_ix();
+
 	void anda_di();
 	void anda_ex();
 	void anda_im();
@@ -148,7 +118,7 @@ private:
 	void asl_ix();
 	void asla();
 	void aslb();
-	void asld();
+
 	void asr_ex();
 	void asr_ix();
 	void asra();
@@ -209,9 +179,7 @@ private:
 	void decb();
 	void des();
 	void dex();
-	void eim_di();
-	void eim_ix();
-	void xim_ix();
+
 	void eora_di();
 	void eora_ex();
 	void eora_im();
@@ -220,7 +188,7 @@ private:
 	void eorb_ex();
 	void eorb_im();
 	void eorb_ix();
-	void illegal();
+	virtual void illegal();
 	void inc_ex();
 	void inc_ix();
 	void inca();
@@ -240,10 +208,6 @@ private:
 	void ldb_ex();
 	void ldb_im();
 	void ldb_ix();
-	void ldd_di();
-	void ldd_ex();
-	void ldd_im();
-	void ldd_ix();
 	void lds_di();
 	void lds_ex();
 	void lds_im();
@@ -256,16 +220,12 @@ private:
 	void lsr_ix();
 	void lsra();
 	void lsrb();
-	void lsrd();
-	void mul();
 	void neg_ex();
 	void neg_ix();
 	void nega();
 	void negb();
 	void nop();
-	void oim_di();
-	void oim_ix();
-	void oim_ix_mb8861();
+
 	void ora_di();
 	void ora_ex();
 	void ora_im();
@@ -276,10 +236,8 @@ private:
 	void orb_ix();
 	void psha();
 	void pshb();
-	void pshx();
 	void pula();
 	void pulb();
-	void pulx();
 	void rol_ex();
 	void rol_ix();
 	void rola();
@@ -302,7 +260,6 @@ private:
 	void sec();
 	void sei();
 	void sev();
-	void slp();
 	void sta_di();
 	void sta_ex();
 	void sta_im();
@@ -311,10 +268,6 @@ private:
 	void stb_ex();
 	void stb_im();
 	void stb_ix();
-	void std_di();
-	void std_ex();
-	void std_im();
-	void std_ix();
 	void sts_di();
 	void sts_ex();
 	void sts_im();
@@ -331,17 +284,11 @@ private:
 	void subb_ex();
 	void subb_im();
 	void subb_ix();
-	void subd_di();
-	void subd_ex();
-	void subd_im();
-	void subd_ix();
 	void swi();
 	void tab();
 	void tap();
 	void tba();
-	void tim_di();
-	void tim_ix();
-	void tmm_ix();
+
 	void tpa();
 	void tst_ex();
 	void tst_ix();
@@ -349,50 +296,40 @@ private:
 	void tstb();
 	void tsx();
 	void txs();
-	void undoc1();
-	void undoc2();
 	void wai();
-	void xgdx();
-	void cpx_di();
-	void cpx_ex();
-	void cpx_im();
-	void cpx_ix();
-	
+	unsigned Dasm680x(int subtype, _TCHAR *buf, unsigned pc, const UINT8 *oprom, const UINT8 *opram, symbol_t *first_symbol);
+
+	bool __USE_DEBUGGER;
 public:
 	MC6800(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-		for(int i = 0; i < 4; i++) {
-			initialize_output_signals(&port[i].outputs);
-			port[i].wreg = port[i].rreg = 0;//0xff;
-		}
-		initialize_output_signals(&outputs_sio);
-#endif
-#if defined(HAS_MC6801)
-		set_device_name(_T("MC6801 MPU"));
-#elif  defined(HAS_HD6301)
-		set_device_name(_T("HD6301 MPU"));
-#else
+		d_mem = NULL;
+		d_debugger = NULL;
+		d_mem_stored = NULL;
+		__USE_DEBUGGER = false;
+//#if defined(HAS_MC6801) || defined(HAS_HD6301)
+//		for(int i = 0; i < 4; i++) {
+//			initialize_output_signals(&port[i].outputs);
+//			port[i].wreg = port[i].rreg = 0;//0xff;
+//		}
+//		initialize_output_signals(&outputs_sio);
+//#endif
+//#if defined(HAS_MC6801)
+//		set_device_name(_T("MC6801 MPU"));
+//#elif defined(HAS_HD6301)
+//		set_device_name(_T("HD6301 MPU"));
+//#else
 		set_device_name(_T("MC6800 MPU"));
-#endif
-#if defined(HAS_MC6801)
-		set_device_name(_T("MC6801 MPU"));
-#elif defined(HAS_HD6301)
-		set_device_name(_T("HD6301 MPU"));
-#else
-		set_device_name(_T("MC6800 MPU"));
-#endif
+//#endif
 	}
 	~MC6800() {}
 	
 	// common functions
-	void initialize();
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-	void release();
-#endif
-	void reset();
-	int run(int clock);
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	virtual void initialize();
+	virtual void reset();
+	virtual int run(int clock);
+	
+	virtual void write_signal(int id, uint32_t data, uint32_t mask);
 	uint32_t get_pc()
 	{
 		return prevpc;
@@ -401,7 +338,7 @@ public:
 	{
 		return pc.w.l;
 	}
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 	void *get_debugger()
 	{
 		return d_debugger;
@@ -423,44 +360,22 @@ public:
 	uint32_t read_debug_data32(uint32_t addr);
 	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
 	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
-#endif
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	virtual int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
+//#endif
+	virtual void save_state(FILEIO* state_fio);
+	virtual bool load_state(FILEIO* state_fio);
 	
 	// unique functions
 	void set_context_mem(DEVICE* device)
 	{
 		d_mem = device;
 	}
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 	void set_context_debugger(DEBUGGER* device)
 	{
 		d_debugger = device;
 	}
-#endif
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-	void set_context_port1(DEVICE* device, int id, uint32_t mask, int shift)
-	{
-		register_output_signal(&port[0].outputs, device, id, mask, shift);
-	}
-	void set_context_port2(DEVICE* device, int id, uint32_t mask, int shift)
-	{
-		register_output_signal(&port[1].outputs, device, id, mask, shift);
-	}
-	void set_context_port3(DEVICE* device, int id, uint32_t mask, int shift)
-	{
-		register_output_signal(&port[2].outputs, device, id, mask, shift);
-	}
-	void set_context_port4(DEVICE* device, int id, uint32_t mask, int shift)
-	{
-		register_output_signal(&port[2].outputs, device, id, mask, shift);
-	}
-	void set_context_sio(DEVICE* device, int id)
-	{
-		register_output_signal(&outputs_sio, device, id, 0xff);
-	}
-#endif
+//#endif
 };
 
 #endif

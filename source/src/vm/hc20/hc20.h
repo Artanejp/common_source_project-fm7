@@ -58,7 +58,8 @@ class EVENT;
 class BEEP;
 class HD146818P;
 class I8255;
-class MC6800;
+//class MC6800;
+class HD6301;
 class TF20;
 class UPD765A;
 class Z80;
@@ -76,7 +77,8 @@ protected:
 	
 	BEEP* beep;
 	HD146818P* rtc;
-	MC6800* cpu;
+	//MC6800* cpu;
+	HD6301* cpu;
 	
 	TF20* tf20;
 	I8255* pio_tf20;

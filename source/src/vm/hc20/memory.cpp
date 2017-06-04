@@ -9,7 +9,7 @@
 
 #include "memory.h"
 #include "../beep.h"
-#include "../mc6800.h"
+#include "../hd6301.h"
 #include "../z80sio.h"
 #include "../../fifo.h"
 

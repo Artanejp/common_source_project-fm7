@@ -13,37 +13,14 @@
 #endif
 
 #include "mc6800.h"
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-#include "../fifo.h"
-#endif
-#ifdef USE_DEBUGGER
+//#if defined(HAS_MC6801) || defined(HAS_HD6301)
+//#include "../fifo.h"
+//#endif
+//#ifdef USE_DEBUGGER
 #include "debugger.h"
-#endif
+//#endif
+#include "mc6800_consts.h"
 
-#define INT_REQ_BIT	1
-#define NMI_REQ_BIT	2
-
-#define MC6800_WAI	8
-#define HD6301_SLP	0x10
-
-#define pPC	pc
-#define pS	sp
-#define pX	ix
-#define pD	acc_d
-#define pEA	ea
-
-#define PC	pc.w.l
-#define PCD	pc.d
-#define S	sp.w.l
-#define SD	sp.d
-#define X	ix.w.l
-#define D	acc_d.w.l
-#define A	acc_d.b.h
-#define B	acc_d.b.l
-#define CC	cc
-
-#define EAD	ea.d
-#define EA	ea.w.l
 
 /****************************************************************************/
 /* memory                                                                   */
@@ -51,25 +28,25 @@
 
 uint32_t MC6800::RM(uint32_t Addr)
 {
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-	if(Addr < 0x20) {
-		return mc6801_io_r(Addr);
-	} else if(Addr >= 0x80 && Addr < 0x100 && (ram_ctrl & 0x40)) {
-		return ram[Addr & 0x7f];
-	}
-#endif
+//#if defined(HAS_MC6801) || defined(HAS_HD6301)
+//	if(Addr < 0x20) {
+//		return mc6801_io_r(Addr);
+//	} else if(Addr >= 0x80 && Addr < 0x100 && (ram_ctrl & 0x40)) {
+//		return ram[Addr & 0x7f];
+//	}
+//#endif
 	return d_mem->read_data8(Addr);
 }
 
 void MC6800::WM(uint32_t Addr, uint32_t Value)
 {
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-	if(Addr < 0x20) {
-		mc6801_io_w(Addr, Value);
-	} else if(Addr >= 0x80 && Addr < 0x100 && (ram_ctrl & 0x40)) {
-		ram[Addr & 0x7f] = Value;
-	} else
-#endif
+//#if defined(HAS_MC6801) || defined(HAS_HD6301)
+//	if(Addr < 0x20) {
+//		mc6801_io_w(Addr, Value);
+//	} else if(Addr >= 0x80 && Addr < 0x100 && (ram_ctrl & 0x40)) {
+//		ram[Addr & 0x7f] = Value;
+//	} else
+//#endif
 	d_mem->write_data8(Addr, Value);
 }
 
@@ -85,381 +62,14 @@ void MC6800::WM16(uint32_t Addr, pair_t *p)
 	WM((Addr + 1) & 0xffff, p->b.l);
 }
 
-//#define M_RDOP(Addr)		d_mem->read_data8(Addr)
-//#define M_RDOP_ARG(Addr)	d_mem->read_data8(Addr)
-#define M_RDOP(Addr)		RM(Addr)
-#define M_RDOP_ARG(Addr)	RM(Addr)
-
-/* macros to access memory */
-#define IMMBYTE(b)	b = M_RDOP_ARG(PCD); PC++
-#define IMMWORD(w)	w.b.h = M_RDOP_ARG(PCD); w.b.l = M_RDOP_ARG((PCD + 1) & 0xffff); PC += 2
-
-#define PUSHBYTE(b)	WM(SD, b); --S
-#define PUSHWORD(w)	WM(SD, w.b.l); --S; WM(SD, w.b.h); --S
-#define PULLBYTE(b)	S++; b = RM(SD)
-#define PULLWORD(w)	S++; w.b.h = RM(SD); S++; w.b.l = RM(SD)
-
-/****************************************************************************/
-/* MC6801/HD6301 internal i/o port                                          */
-/****************************************************************************/
-
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-
-#define CT	counter.w.l
-#define CTH	counter.w.h
-#define CTD	counter.d
-#define OC	output_compare.w.l
-#define OCH	output_compare.w.h
-#define OCD	output_compare.d
-#define TOH	timer_over.w.l
-#define TOD	timer_over.d
-
-#define SET_TIMER_EVENT { \
-	timer_next = (OCD - CTD < TOD - CTD) ? OCD : TOD; \
-}
-
-#define CLEANUP_COUNTERS() { \
-	OCH -= CTH; \
-	TOH -= CTH; \
-	CTH = 0; \
-	SET_TIMER_EVENT; \
-}
-
-#define MODIFIED_counters { \
-	OCH = (OC >= CT) ? CTH : CTH + 1; \
-	SET_TIMER_EVENT; \
-}
-
-#define TCSR_OLVL	0x01
-#define TCSR_IEDG	0x02
-#define TCSR_ETOI	0x04
-#define TCSR_EOCI	0x08
-#define TCSR_EICI	0x10
-#define TCSR_TOF	0x20
-#define TCSR_OCF	0x40
-#define TCSR_ICF	0x80
-
-#define TRCSR_WU	0x01
-#define TRCSR_TE	0x02
-#define TRCSR_TIE	0x04
-#define TRCSR_RE	0x08
-#define TRCSR_RIE	0x10
-#define TRCSR_TDRE	0x20
-#define TRCSR_ORFE	0x40
-#define TRCSR_RDRF	0x80
-
-#define P3CSR_LE		0x08
-#define P3CSR_IS3_ENABLE	0x40
-#define P3CSR_IS3_FLAG		0x80
-
-static const int RMCR_SS[] = { 16, 128, 1024, 4096 };
-
-/* take interrupt */
-#define TAKE_ICI	enter_interrupt(0xfff6)
-#define TAKE_OCI	enter_interrupt(0xfff4)
-#define TAKE_TOI	enter_interrupt(0xfff2)
-#define TAKE_SCI	enter_interrupt(0xfff0)
-#define TAKE_TRAP	enter_interrupt(0xffee)
-
-uint32_t MC6800::mc6801_io_r(uint32_t offset)
-{
-	switch (offset) {
-	case 0x00:
-		// port1 data direction register
-		return port[0].ddr;
-	case 0x01:
-		// port2 data direction register
-		return port[1].ddr;
-	case 0x02:
-		// port1 data register
-		return (port[0].rreg & ~port[0].ddr) | (port[0].wreg & port[0].ddr);
-	case 0x03:
-		// port2 data register
-		return (port[1].rreg & ~port[1].ddr) | (port[1].wreg & port[1].ddr);
-	case 0x04:
-		// port3 data direction register (write only???)
-		return port[2].ddr;
-	case 0x05:
-		// port4 data direction register
-		return port[3].ddr;
-	case 0x06:
-		// port3 data register
-		if(p3csr_is3_flag_read) {
-			p3csr_is3_flag_read = false;
-			p3csr &= ~P3CSR_IS3_FLAG;
-		}
-		if(port[2].latched) {
-			port[2].latched = false;
-			return (port[2].latched_data & ~port[2].ddr) | (port[2].wreg & port[2].ddr);
-		}
-		return (port[2].rreg & ~port[2].ddr) | (port[2].wreg & port[2].ddr);
-	case 0x07:
-		// port4 data register
-		return (port[3].rreg & ~port[3].ddr) | (port[3].wreg & port[3].ddr);
-	case 0x08:
-		// timer control register
-		pending_tcsr = 0;
-		return tcsr;
-	case 0x09:
-		// free running counter (msb)
-		if(!(pending_tcsr & TCSR_TOF)) {
-			tcsr &= ~TCSR_TOF;
-		}
-		return counter.b.h;
-	case 0x0a:
-		// free running counter (lsb)
-		return counter.b.l;
-	case 0x0b:
-		// output compare register (msb)
-		if(!(pending_tcsr & TCSR_OCF)) {
-			tcsr &= ~TCSR_OCF;
-		}
-		return output_compare.b.h;
-	case 0x0c:
-		// output compare register (lsb)
-		if(!(pending_tcsr & TCSR_OCF)) {
-			tcsr &= ~TCSR_OCF;
-		}
-		return output_compare.b.l;
-	case 0x0d:
-		// input capture register (msb)
-		if(!(pending_tcsr & TCSR_ICF)) {
-			tcsr &= ~TCSR_ICF;
-		}
-		return (input_capture >> 0) & 0xff;
-	case 0x0e:
-		// input capture register (lsb)
-		return (input_capture >> 8) & 0xff;
-	case 0x0f:
-		// port3 control/status register
-		p3csr_is3_flag_read = true;
-		return p3csr;
-	case 0x10:
-		// rate and mode control register
-		return rmcr;
-	case 0x11:
-		if(trcsr & TRCSR_TDRE) {
-			trcsr_read_tdre = true;
-		}
-		if(trcsr & TRCSR_ORFE) {
-			trcsr_read_orfe = true;
-		}
-		if(trcsr & TRCSR_RDRF) {
-			trcsr_read_rdrf = true;
-		}
-		return trcsr;
-	case 0x12:
-		// receive data register
-		if(trcsr_read_orfe) {
-			trcsr_read_orfe = false;
-			trcsr &= ~TRCSR_ORFE;
-		}
-		if(trcsr_read_rdrf) {
-			trcsr_read_rdrf = false;
-			trcsr &= ~TRCSR_RDRF;
-		}
-		return rdr;
-	case 0x13:
-		// transmit data register
-		return tdr;
-	case 0x14:
-		// ram control register
-		return (ram_ctrl & 0x40) | 0x3f;
-	}
-	return 0;
-}
-
-void MC6800::mc6801_io_w(uint32_t offset, uint32_t data)
-{
-	switch(offset) {
-	case 0x00:
-		// port1 data direction register
-		port[0].ddr = data;
-		break;
-	case 0x01:
-		// port2 data direction register
-		port[1].ddr = data;
-		break;
-	case 0x02:
-		// port1 data register
-		if(port[0].wreg != data || port[0].first_write) {
-			write_signals(&port[0].outputs, data);
-			port[0].wreg = data;
-			port[0].first_write = false;
-		}
-		break;
-	case 0x03:
-		// port2 data register
-		if(port[1].wreg != data || port[1].first_write) {
-			write_signals(&port[1].outputs, data);
-			port[1].wreg = data;
-			port[1].first_write = false;
-		}
-		break;
-	case 0x04:
-		// port3 data direction register
-		port[2].ddr = data;
-		break;
-	case 0x05:
-		// port4 data direction register
-		port[3].ddr = data;
-		break;
-	case 0x06:
-		// port3 data register
-		if(p3csr_is3_flag_read) {
-			p3csr_is3_flag_read = false;
-			p3csr &= ~P3CSR_IS3_FLAG;
-		}
-		if(port[2].wreg != data || port[2].first_write) {
-			write_signals(&port[2].outputs, data);
-			port[2].wreg = data;
-			port[2].first_write = false;
-		}
-		break;
-	case 0x07:
-		// port4 data register
-		if(port[3].wreg != data || port[3].first_write) {
-			write_signals(&port[3].outputs, data);
-			port[3].wreg = data;
-			port[3].first_write = false;
-		}
-		break;
-	case 0x08:
-		// timer control/status register
-		tcsr = data;
-		pending_tcsr &= tcsr;
-		break;
-	case 0x09:
-		// free running counter (msb)
-#ifdef HAS_HD6301
-		latch09 = data & 0xff;
-#endif
-		CT = 0xfff8;
-		TOH = CTH;
-		MODIFIED_counters;
-		break;
-#ifdef HAS_HD6301
-	case 0x0a:
-		// free running counter (lsb)
-		CT = (latch09 << 8) | (data & 0xff);
-		TOH = CTH;
-		MODIFIED_counters;
-		break;
-#endif
-	case 0x0b:
-		// output compare register (msb)
-		if(output_compare.b.h != data) {
-			output_compare.b.h = data;
-			MODIFIED_counters;
-		}
-        tcsr &=~TCSR_OCF;
-		break;
-	case 0x0c:
-		// output compare register (lsb)
-		if(output_compare.b.l != data) {
-			output_compare.b.l = data;
-			MODIFIED_counters;
-		}
-        tcsr &=~TCSR_OCF;
-		break;
-	case 0x0f:
-		// port3 control/status register
-		p3csr = (p3csr & P3CSR_IS3_FLAG) | (data & ~P3CSR_IS3_FLAG);
-		break;
-	case 0x10:
-		// rate and mode control register
-		rmcr = data;
-		break;
-	case 0x11:
-		// transmit/receive control/status register
-		trcsr = (trcsr & 0xe0) | (data & 0x1f);
-		break;
-	case 0x13:
-		// transmit data register
-		if(trcsr_read_tdre) {
-			trcsr_read_tdre = false;
-			trcsr &= ~TRCSR_TDRE;
-		}
-		tdr = data;
-		break;
-	case 0x14:
-		// ram control register
-		ram_ctrl = data;
-		break;
-	}
-}
-
-void MC6800::increment_counter(int amount)
-{
-	icount -= amount;
-	
-	// timer
-	if((CTD += amount) >= timer_next) {
-		/* OCI */
-		if( CTD >= OCD) {
-			OCH++;	// next IRQ point
-			tcsr |= TCSR_OCF;
-			pending_tcsr |= TCSR_OCF;
-		}
-		/* TOI */
-		if( CTD >= TOD) {
-			TOH++;	// next IRQ point
-			tcsr |= TCSR_TOF;
-			pending_tcsr |= TCSR_TOF;
-		}
-		/* set next event */
-		SET_TIMER_EVENT;
-	}
-	
-	// serial i/o
-	if((sio_counter -= amount) <= 0) {
-		if((trcsr & TRCSR_TE) && !(trcsr & TRCSR_TDRE)) {
-			write_signals(&outputs_sio, tdr);
-			trcsr |= TRCSR_TDRE;
-		}
-		if((trcsr & TRCSR_RE) && !recv_buffer->empty()) {
-			if(trcsr & TRCSR_WU) {
-				// skip 10 bits
-				trcsr &= ~TRCSR_WU;
-				recv_buffer->read();
-			} else if(!(trcsr & TRCSR_RDRF)) {
-				// note: wait reveived data is read by cpu, so overrun framing error never occurs
-				rdr = recv_buffer->read();
-				trcsr |= TRCSR_RDRF;
-			}
-		}
-		sio_counter += RMCR_SS[rmcr & 3];
-	}
-}
-
-#else
+//#if defined(HAS_MC6801) || defined(HAS_HD6301)
+//#else
 
 #define increment_counter(amount) icount -= amount
+//#endif
 
-#endif
 
-#define CLR_HNZVC	CC &= 0xd0
-#define CLR_NZV		CC &= 0xf1
-#define CLR_HNZC	CC &= 0xd2
-#define CLR_NZVC	CC &= 0xf0
-#define CLR_NZ		CC &= 0xf3
-#define CLR_Z		CC &= 0xfb
-#define CLR_NZC		CC &= 0xf2
-#define CLR_ZC		CC &= 0xfa
-#define CLR_C		CC &= 0xfe
-
-#define SET_Z(a)	if(!(a)) SEZ
-#define SET_Z8(a)	SET_Z((uint8_t)(a))
-#define SET_Z16(a)	SET_Z((uint16_t)(a))
-#define SET_N8(a)	CC |= (((a) & 0x80) >> 4)
-#define SET_N16(a)	CC |= (((a) & 0x8000) >> 12)
-#define SET_H(a,b,r)	CC |= ((((a) ^ (b) ^ (r)) & 0x10) << 1)
-#define SET_C8(a)	CC |= (((a) & 0x100) >> 8)
-#define SET_C16(a)	CC |= (((a) & 0x10000) >> 16)
-#define SET_V8(a,b,r)	CC |= ((((a) ^ (b) ^ (r) ^ ((r) >> 1)) & 0x80) >> 6)
-#define SET_V16(a,b,r)	CC |= ((((a) ^ (b) ^ (r) ^ ((r) >> 1)) & 0x8000) >> 14)
-
-static const uint8_t flags8i[256] = {
+static const uint8_t MC6800::flags8i[256] = {
 	/* increment */
 	0x04,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
@@ -479,7 +89,7 @@ static const uint8_t flags8i[256] = {
 	0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08
 };
 
-static const uint8_t flags8d[256] = {
+static const uint8_t MC6800::flags8d[256] = {
 	/* decrement */
 	0x04,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
@@ -499,149 +109,29 @@ static const uint8_t flags8d[256] = {
 	0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08
 };
 
-#define SET_FLAGS8I(a)		{CC |= flags8i[(a) & 0xff];}
-#define SET_FLAGS8D(a)		{CC |= flags8d[(a) & 0xff];}
-
-/* combos */
-#define SET_NZ8(a)		{SET_N8(a);  SET_Z8(a);}
-#define SET_NZ16(a)		{SET_N16(a); SET_Z16(a);}
-#define SET_FLAGS8(a,b,r)	{SET_N8(r);  SET_Z8(r);  SET_V8(a,b,r);  SET_C8(r); }
-#define SET_FLAGS16(a,b,r)	{SET_N16(r); SET_Z16(r); SET_V16(a,b,r); SET_C16(r);}
-
-/* for treating an uint8_t as a signed int16_t */
-#define SIGNED(b)	((int16_t)(b & 0x80 ? b | 0xff00 : b))
-
-/* Macros for addressing modes */
-#define DIRECT		IMMBYTE(EAD)
-#define IMM8		EA = PC++
-#define IMM16		{EA = PC; PC += 2;}
-#define EXTENDED	IMMWORD(pEA)
-#define INDEXED		{EA = X + (uint8_t)M_RDOP_ARG(PCD); PC++;}
-
-/* macros to set status flags */
-#define SEC	CC |= 0x01
-#define CLC	CC &= 0xfe
-#define SEZ	CC |= 0x04
-#define CLZ	CC &= 0xfb
-#define SEN	CC |= 0x08
-#define CLN	CC &= 0xf7
-#define SEV	CC |= 0x02
-#define CLV	CC &= 0xfd
-#define SEH	CC |= 0x20
-#define CLH	CC &= 0xdf
-#define SEI	CC |= 0x10
-#define CLI	CC &= ~0x10
-
-/* macros for convenience */
-#define DIRBYTE(b)	{DIRECT;   b   = RM(EAD);  }
-#define DIRWORD(w)	{DIRECT;   w.d = RM16(EAD);}
-#define EXTBYTE(b)	{EXTENDED; b   = RM(EAD);  }
-#define EXTWORD(w)	{EXTENDED; w.d = RM16(EAD);}
-
-#define IDXBYTE(b)	{INDEXED;  b   = RM(EAD);  }
-#define IDXWORD(w)	{INDEXED;  w.d = RM16(EAD);}
-
-/* Macros for branch instructions */
-#define BRANCH(f)	{IMMBYTE(t); if(f) {PC += SIGNED(t);}}
-#define NXORV		((CC & 0x08) ^ ((CC & 0x02) << 2))
-
-/* Note: don't use 0 cycles here for invalid opcodes so that we don't */
-/* hang in an infinite loop if we hit one */
-#define XX 5 // invalid opcode unknown cc
-static const uint8_t cycles[] = {
-#if defined(HAS_MC6800)
-	XX, 2,XX,XX,XX,XX, 2, 2, 4, 4, 2, 2, 2, 2, 2, 2,
-	 2, 2,XX,XX,XX,XX, 2, 2,XX, 2,XX, 2,XX,XX,XX,XX,
-	 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-	 4, 4, 4, 4, 4, 4, 4, 4,XX, 5,XX,10,XX,XX, 9,12,
-	 2,XX,XX, 2, 2,XX, 2, 2, 2, 2, 2,XX, 2, 2,XX, 2,
-	 2,XX,XX, 2, 2,XX, 2, 2, 2, 2, 2,XX, 2, 2,XX, 2,
-	 7,XX,XX, 7, 7,XX, 7, 7, 7, 7, 7,XX, 7, 7, 4, 7,
-	 6,XX,XX, 6, 6,XX, 6, 6, 6, 6, 6,XX, 6, 6, 3, 6,
-	 2, 2, 2,XX, 2, 2, 2, 3, 2, 2, 2, 2, 3, 8, 3, 4,
-	 3, 3, 3,XX, 3, 3, 3, 4, 3, 3, 3, 3, 4, 6, 4, 5,
-	 5, 5, 5,XX, 5, 5, 5, 6, 5, 5, 5, 5, 6, 8, 6, 7,
-	 4, 4, 4,XX, 4, 4, 4, 5, 4, 4, 4, 4, 5, 9, 5, 6,
-	 2, 2, 2,XX, 2, 2, 2, 3, 2, 2, 2, 2,XX,XX, 3, 4,
-	 3, 3, 3,XX, 3, 3, 3, 4, 3, 3, 3, 3,XX,XX, 4, 5,
-	 5, 5, 5,XX, 5, 5, 5, 6, 5, 5, 5, 5,XX,XX, 6, 7,
-	 4, 4, 4,XX, 4, 4, 4, 5, 4, 4, 4, 4,XX,XX, 5, 6
-#elif defined(HAS_MC6801)
-	XX, 2,XX,XX, 3, 3, 2, 2, 3, 3, 2, 2, 2, 2, 2, 2,
-	 2, 2,XX,XX,XX,XX, 2, 2,XX, 2,XX, 2,XX,XX,XX,XX,
-	 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-	 3, 3, 4, 4, 3, 3, 3, 3, 5, 5, 3,10, 4,10, 9,12,
-	 2,XX,XX, 2, 2,XX, 2, 2, 2, 2, 2,XX, 2, 2,XX, 2,
-	 2,XX,XX, 2, 2,XX, 2, 2, 2, 2, 2,XX, 2, 2,XX, 2,
-	 6,XX,XX, 6, 6,XX, 6, 6, 6, 6, 6,XX, 6, 6, 3, 6,
-	 6,XX,XX, 6, 6,XX, 6, 6, 6, 6, 6,XX, 6, 6, 3, 6,
-	 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 2, 4, 6, 3, 3,
-	 3, 3, 3, 5, 3, 3, 3, 3, 3, 3, 3, 3, 5, 5, 4, 4,
-	 4, 4, 4, 6, 4, 4, 4, 4, 4, 4, 4, 4, 6, 6, 5, 5,
-	 4, 4, 4, 6, 4, 4, 4, 4, 4, 4, 4, 4, 6, 6, 5, 5,
-	 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 2, 3,XX, 3, 3,
-	 3, 3, 3, 5, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4,
-	 4, 4, 4, 6, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5,
-	 4, 4, 4, 6, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5
-#elif defined(HAS_HD6301)
-	XX, 1,XX,XX, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	 1, 1,XX,XX,XX,XX, 1, 1, 2, 2, 4, 1,XX,XX,XX,XX,
-	 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-	 1, 1, 3, 3, 1, 1, 4, 4, 4, 5, 1,10, 5, 7, 9,12,
-	 1,XX,XX, 1, 1,XX, 1, 1, 1, 1, 1,XX, 1, 1,XX, 1,
-	 1,XX,XX, 1, 1,XX, 1, 1, 1, 1, 1,XX, 1, 1,XX, 1,
-	 6, 7, 7, 6, 6, 7, 6, 6, 6, 6, 6, 5, 6, 4, 3, 5,
-	 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 4, 6, 4, 3, 5,
-	 2, 2, 2, 3, 2, 2, 2, 2, 2, 2, 2, 2, 3, 5, 3, 3,
-	 3, 3, 3, 4, 3, 3, 3, 3, 3, 3, 3, 3, 4, 5, 4, 4,
-	 4, 4, 4, 5, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5,
-	 4, 4, 4, 5, 4, 4, 4, 4, 4, 4, 4, 4, 5, 6, 5, 5,
-	 2, 2, 2, 3, 2, 2, 2, 2, 2, 2, 2, 2, 3,XX, 3, 3,
-	 3, 3, 3, 4, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4,
-	 4, 4, 4, 5, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5,
-	 4, 4, 4, 5, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5
-#elif defined(HAS_MB8861)
-	XX, 2,XX,XX,XX,XX, 2, 2, 4, 4, 2, 2, 2, 2, 2, 2,
-	 2, 2,XX,XX,XX,XX, 2, 2,XX, 2,XX, 2,XX,XX,XX,XX,
-	 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-	 4, 4, 4, 4, 4, 4, 4, 4,XX, 5,XX,10,XX,XX, 9,12,
-	 2,XX,XX, 2, 2,XX, 2, 2, 2, 2, 2,XX, 2, 2,XX, 2,
-	 2,XX,XX, 2, 2,XX, 2, 2, 2, 2, 2,XX, 2, 2,XX, 2,
-	 7,XX,XX, 7, 7,XX, 7, 7, 7, 7, 7,XX, 7, 7, 4, 7,
-	 6, 8, 8, 6, 6, 8, 6, 6, 6, 6, 6, 7, 6, 6, 3, 6,
-	 2, 2, 2,XX, 2, 2, 2, 3, 2, 2, 2, 2, 3, 8, 3, 4,
-	 3, 3, 3,XX, 3, 3, 3, 4, 3, 3, 3, 3, 4, 6, 4, 5,
-	 5, 5, 5,XX, 5, 5, 5, 6, 5, 5, 5, 5, 6, 8, 6, 7,
-	 4, 4, 4,XX, 4, 4, 4, 5, 4, 4, 4, 4, 5, 9, 5, 6,
-	 2, 2, 2,XX, 2, 2, 2, 3, 2, 2, 2, 2,XX,XX, 3, 4,
-	 3, 3, 3,XX, 3, 3, 3, 4, 3, 3, 3, 3,XX,XX, 4, 5,
-	 5, 5, 5,XX, 5, 5, 5, 6, 5, 5, 5, 5, 4,XX, 6, 7,
-	 4, 4, 4,XX, 4, 4, 4, 5, 4, 4, 4, 4, 7,XX, 5, 6
-#endif
-};
-#undef XX // invalid opcode unknown cc
 
 
 void MC6800::initialize()
 {
 	DEVICE::initialize();
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-	recv_buffer = new FIFO(0x10000);
-	ram_ctrl = 0xc0;
-#endif
-#ifdef USE_DEBUGGER
-	d_mem_stored = d_mem;
-	d_debugger->set_context_mem(d_mem);
-#endif
+	__USE_DEBUGGER = osd->check_feature(_T("USE_DEBUGGER"));
+	if(__USE_DEBUGGER) {
+//#ifdef USE_DEBUGGER
+		d_mem_stored = d_mem;
+		d_debugger->set_context_mem(d_mem);
+//#endif
+	} else {
+		d_mem_stored = NULL;
+	}
 }
 
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-void MC6800::release()
-{
-	recv_buffer->release();
-	delete recv_buffer;
-}
-#endif
+//#if defined(HAS_MC6801) || defined(HAS_HD6301)
+//void MC6800::release()
+//{
+//	recv_buffer->release();
+//	delete recv_buffer;
+//}
+//#endif
 
 void MC6800::reset()
 {
@@ -655,29 +145,6 @@ void MC6800::reset()
 	
 	icount = 0;
 	
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-	for(int i = 0; i < 4; i++) {
-		port[i].ddr = 0x00;
-		port[i].first_write = true;
-		port[i].latched = false;
-	}
-	p3csr = 0x00;
-	p3csr_is3_flag_read = false;
-	sc1_state = sc2_state = false;
-	
-	tcsr = pending_tcsr = 0x00;
-	CTD = 0x0000;
-	OCD = 0xffff;
-	TOD = 0xffff;
-	
-	recv_buffer->clear();
-	trcsr = TRCSR_TDRE;
-	trcsr_read_tdre = trcsr_read_orfe = trcsr_read_rdrf = false;
-	rmcr = 0x00;
-	sio_counter = RMCR_SS[rmcr & 3];
-	
-	ram_ctrl |= 0x40;
-#endif
 }
 
 void MC6800::write_signal(int id, uint32_t data, uint32_t mask)
@@ -697,43 +164,6 @@ void MC6800::write_signal(int id, uint32_t data, uint32_t mask)
 			int_state &= ~NMI_REQ_BIT;
 		}
 		break;
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-	case SIG_MC6801_PORT_1:
-		port[0].rreg = (port[0].rreg & ~mask) | (data & mask);
-		break;
-	case SIG_MC6801_PORT_2:
-		if((mask & 1) && (port[1].rreg & 1) != (data & 1) && (tcsr & 2) == ((data << 1) & 2)) {
-			// active TIN edge in
-			tcsr |= TCSR_ICF;
-			pending_tcsr |= TCSR_ICF;
-			input_capture = CT;
-		}
-		port[1].rreg = (port[1].rreg & ~mask) | (data & mask);
-		break;
-	case SIG_MC6801_PORT_3:
-		port[2].rreg = (port[2].rreg & ~mask) | (data & mask);
-		break;
-	case SIG_MC6801_PORT_4:
-		port[3].rreg = (port[3].rreg & ~mask) | (data & mask);
-		break;
-	case SIG_MC6801_PORT_3_SC1:
-		if(sc1_state && !(data & mask)) {
-			// SC1: H -> L
-			if(!port[2].latched && (p3csr & P3CSR_LE)) {
-				port[2].latched_data = port[2].rreg;
-				port[2].latched = true;
-				p3csr |= P3CSR_IS3_FLAG;
-			}
-		}
-		sc1_state = ((data & mask) != 0);
-		break;
-	case SIG_MC6801_PORT_3_SC2:
-		sc2_state = ((data & mask) != 0);
-		break;
-	case SIG_MC6801_SIO_RECV:
-		recv_buffer->write(data & mask);
-		break;
-#endif
 	}
 }
 
@@ -742,51 +172,12 @@ int MC6800::run(int clock)
 	// run cpu
 	if(clock == -1) {
 		// run only one opcode
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-		CLEANUP_COUNTERS();
-#endif
+//#if defined(HAS_MC6801) || defined(HAS_HD6301)
+//		CLEANUP_COUNTERS();
+//#endif
 		icount = 0;
-#ifdef USE_DEBUGGER
-		bool now_debugging = d_debugger->now_debugging;
-		if(now_debugging) {
-			d_debugger->check_break_points(PC);
-			if(d_debugger->now_suspended) {
-				emu->mute_sound();
-				while(d_debugger->now_debugging && d_debugger->now_suspended) {
-					emu->sleep(10);
-				}
-			}
-			if(d_debugger->now_debugging) {
-				d_mem = d_debugger;
-			} else {
-				now_debugging = false;
-			}
-			
-			run_one_opecode();
-			
-			if(now_debugging) {
-				if(!d_debugger->now_going) {
-					d_debugger->now_suspended = true;
-				}
-				d_mem = d_mem_stored;
-			}
-		} else {
-#endif
-			run_one_opecode();
-#ifdef USE_DEBUGGER
-		}
-#endif
-		return -icount;
-	} else {
-		/* run cpu while given clocks */
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-		CLEANUP_COUNTERS();
-#endif
-		icount += clock;
-		int first_icount = icount;
-		
-		while(icount > 0) {
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
+		if(__USE_DEBUGGER) {
 			bool now_debugging = d_debugger->now_debugging;
 			if(now_debugging) {
 				d_debugger->check_break_points(PC);
@@ -810,16 +201,64 @@ int MC6800::run(int clock)
 					}
 					d_mem = d_mem_stored;
 				}
+
 			} else {
-#endif
+//#endif
 				run_one_opecode();
-#ifdef USE_DEBUGGER
 			}
-#endif
+		} else {
+			run_one_opecode();
+//#ifdef USE_DEBUGGER
+		}
+//#endif
+		return -icount;
+	}
+	/* run cpu while given clocks */
+//#if defined(HAS_MC6801) || defined(HAS_HD6301)
+//		CLEANUP_COUNTERS();
+//#endif
+		icount += clock;
+		int first_icount = icount;
+		
+		while(icount > 0) {
+//#ifdef USE_DEBUGGER
+			if(__USE_DEBUGGER) {
+				bool now_debugging = d_debugger->now_debugging;
+				if(now_debugging) {
+					d_debugger->check_break_points(PC);
+					if(d_debugger->now_suspended) {
+						emu->mute_sound();
+						while(d_debugger->now_debugging && d_debugger->now_suspended) {
+							emu->sleep(10);
+						}
+					}
+					if(d_debugger->now_debugging) {
+						d_mem = d_debugger;
+					} else {
+						now_debugging = false;
+					}
+					
+					run_one_opecode();
+					
+					if(now_debugging) {
+						if(!d_debugger->now_going) {
+							d_debugger->now_suspended = true;
+						}
+						d_mem = d_mem_stored;
+					}
+				} else {
+//#endif
+					run_one_opecode();
+				}
+			} else {
+				run_one_opecode();
+//#ifdef USE_DEBUGGER
+			}
+//#endif
 		}
 		return first_icount - icount;
-	}
 }
+
 
 void MC6800::run_one_opecode()
 {
@@ -844,54 +283,34 @@ void MC6800::run_one_opecode()
 			int_state &= ~INT_REQ_BIT;
 			enter_interrupt(0xfff8);
 		}
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-	} else if((tcsr & (TCSR_EICI | TCSR_ICF)) == (TCSR_EICI | TCSR_ICF)) {
-		wai_state &= ~HD6301_SLP;
-		if(!(CC & 0x10)) {
-			TAKE_ICI;
-		}
-	} else if((tcsr & (TCSR_EOCI | TCSR_OCF)) == (TCSR_EOCI | TCSR_OCF)) {
-		wai_state &= ~HD6301_SLP;
-		if(!(CC & 0x10)) {
-			TAKE_OCI;
-		}
-	} else if((tcsr & (TCSR_ETOI | TCSR_TOF)) == (TCSR_ETOI | TCSR_TOF)) {
-		wai_state &= ~HD6301_SLP;
-		if(!(CC & 0x10)) {
-			TAKE_TOI;
-		}
-	} else if(((trcsr & (TRCSR_RIE | TRCSR_RDRF)) == (TRCSR_RIE | TRCSR_RDRF)) ||
-	          ((trcsr & (TRCSR_RIE | TRCSR_ORFE)) == (TRCSR_RIE | TRCSR_ORFE)) ||
-	          ((trcsr & (TRCSR_TIE | TRCSR_TDRE)) == (TRCSR_TIE | TRCSR_TDRE))) {
-		wai_state &= ~HD6301_SLP;
-		if(!(CC & 0x10)) {
-			TAKE_SCI;
-		}
-#endif
 	}
 }
 
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 void MC6800::write_debug_data8(uint32_t addr, uint32_t data)
 {
 	int wait;
+	if(d_mem_stored == NULL) return;
 	d_mem_stored->write_data8w(addr, data, &wait);
 }
 
 uint32_t MC6800::read_debug_data8(uint32_t addr)
 {
 	int wait;
+	if(d_mem_stored == NULL) return 0xff;
 	return d_mem_stored->read_data8w(addr, &wait);
 }
 
 void MC6800::write_debug_data16(uint32_t addr, uint32_t data)
 {
+	if(d_mem_stored == NULL) return;
 	write_debug_data8(addr, (data >> 8) & 0xff);
 	write_debug_data8(addr + 1, data & 0xff);
 }
 
 uint32_t MC6800::read_debug_data16(uint32_t addr)
 {
+	if(d_mem_stored == NULL) return 0xffff;
 	uint32_t val = read_debug_data8(addr) << 8;
 	val |= read_debug_data8(addr + 1);
 	return val;
@@ -899,12 +318,14 @@ uint32_t MC6800::read_debug_data16(uint32_t addr)
 
 void MC6800::write_debug_data32(uint32_t addr, uint32_t data)
 {
+	if(d_mem_stored == NULL) return;
 	write_debug_data16(addr, (data >> 16) & 0xffff);
 	write_debug_data16(addr + 2, data & 0xffff);
 }
 
 uint32_t MC6800::read_debug_data32(uint32_t addr)
 {
+	if(d_mem_stored == NULL) return 0xffffffff;
 	uint32_t val = read_debug_data16(addr) << 16;
 	val |= read_debug_data16(addr + 2);
 	return val;
@@ -1092,7 +513,7 @@ static const UINT8 table[0x102][3] = {
 #define ARG2    opram[2]
 #define ARGW    (opram[1]<<8) + opram[2]
 
-static unsigned Dasm680x (int subtype, _TCHAR *buf, unsigned pc, const UINT8 *oprom, const UINT8 *opram, symbol_t *first_symbol)
+unsigned MC6800::Dasm680x(int subtype, _TCHAR *buf, unsigned pc, const UINT8 *oprom, const UINT8 *opram, symbol_t *first_symbol)
 {
 //	UINT32 flags = 0;
 	int invalid_mask;
@@ -1177,22 +598,24 @@ static unsigned Dasm680x (int subtype, _TCHAR *buf, unsigned pc, const UINT8 *op
 int MC6800::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
 	uint8_t ops[4];
-	for(int i = 0; i < 4; i++) {
-		int wait;
-		ops[i] = d_mem_stored->read_data8w(pc + i, &wait);
+	if(d_mem_stored != NULL) {
+		for(int i = 0; i < 4; i++) {
+			int wait;
+			ops[i] = d_mem_stored->read_data8w(pc + i, &wait);
+		}
 	}
-#if defined(HAS_MC6800)
+//#if defined(HAS_MC6800)
 	return Dasm680x(6800, buffer, pc, ops, ops, d_debugger->first_symbol);
-#elif defined(HAS_MC6801)
-	return Dasm680x(6801, buffer, pc, ops, ops, d_debugger->first_symbol);
-#elif defined(HAS_HD6301)
-	return Dasm680x(6301, buffer, pc, ops, ops, d_debugger->first_symbol);
-#elif defined(HAS_MB8861)
-	return Dasm680x(6800, buffer, pc, ops, ops, d_debugger->first_symbol);	// FIXME
-#endif
+//#elif defined(HAS_MC6801)
+//	return Dasm680x(6801, buffer, pc, ops, ops, d_debugger->first_symbol);
+//#elif defined(HAS_HD6301)
+//	return Dasm680x(6301, buffer, pc, ops, ops, d_debugger->first_symbol);
+//#elif defined(HAS_MB8861)
+//	return Dasm680x(6800, buffer, pc, ops, ops, d_debugger->first_symbol);	// FIXME
+//#endif
 	return 0;
 }
-#endif
+//#endif
 
 void MC6800::enter_interrupt(uint16_t irq_vector)
 {
@@ -1220,13 +643,13 @@ void MC6800::insn(uint8_t code)
 	case 0x01: nop(); break;
 	case 0x02: illegal(); break;
 	case 0x03: illegal(); break;
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-	case 0x04: lsrd(); break;
-	case 0x05: asld(); break;
-#else
+//#if defined(HAS_MC6801) || defined(HAS_HD6301)
+//	case 0x04: lsrd(); break;
+//	case 0x05: asld(); break;
+//#else
 	case 0x04: illegal(); break;
 	case 0x05: illegal(); break;
-#endif
+//#endif
 	case 0x06: tap(); break;
 	case 0x07: tpa(); break;
 	case 0x08: inx(); break;
@@ -1239,28 +662,28 @@ void MC6800::insn(uint8_t code)
 	case 0x0f: sei(); break;
 	case 0x10: sba(); break;
 	case 0x11: cba(); break;
-#if defined(HAS_HD6301)
-	case 0x12: undoc1(); break;
-	case 0x13: undoc2(); break;
-#else
+//#if defined(HAS_HD6301)
+//	case 0x12: undoc1(); break;
+//	case 0x13: undoc2(); break;
+//#else
 	case 0x12: illegal(); break;
 	case 0x13: illegal(); break;
-#endif
+//#endif
 	case 0x14: illegal(); break;
 	case 0x15: illegal(); break;
 	case 0x16: tab(); break;
 	case 0x17: tba(); break;
-#if defined(HAS_HD6301)
-	case 0x18: xgdx(); break;
-#else
+//#if defined(HAS_HD6301)
+//	case 0x18: xgdx(); break;
+//#else
 	case 0x18: illegal(); break;
-#endif
+//#endif
 	case 0x19: daa(); break;
-#if defined(HAS_HD6301)
-	case 0x1a: slp(); break;
-#else
+//#if defined(HAS_HD6301)
+//	case 0x1a: slp(); break;
+//#else
 	case 0x1a: illegal(); break;
-#endif
+//#endif
 	case 0x1b: aba(); break;
 	case 0x1c: illegal(); break;
 	case 0x1d: illegal(); break;
@@ -1290,25 +713,25 @@ void MC6800::insn(uint8_t code)
 	case 0x35: txs(); break;
 	case 0x36: psha(); break;
 	case 0x37: pshb(); break;
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-	case 0x38: pulx(); break;
-#else
+//#if defined(HAS_MC6801) || defined(HAS_HD6301)
+//	case 0x38: pulx(); break;
+//#else
 	case 0x38: illegal(); break;
-#endif
+//#endif
 	case 0x39: rts(); break;
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-	case 0x3a: abx(); break;
-#else
+//#if defined(HAS_MC6801) || defined(HAS_HD6301)
+//	case 0x3a: abx(); break;
+//#else
 	case 0x3a: illegal(); break;
-#endif
+//#endif
 	case 0x3b: rti(); break;
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-	case 0x3c: pshx(); break;
-	case 0x3d: mul(); break;
-#else
+//#if defined(HAS_MC6801) || defined(HAS_HD6301)
+//	case 0x3c: pshx(); break;
+//	case 0x3d: mul(); break;
+//#else
 	case 0x3c: illegal(); break;
 	case 0x3d: illegal(); break;
-#endif
+//#endif
 	case 0x3e: wai(); break;
 	case 0x3f: swi(); break;
 	case 0x40: nega(); break;
@@ -1344,66 +767,66 @@ void MC6800::insn(uint8_t code)
 	case 0x5e: illegal(); break;
 	case 0x5f: clrb(); break;
 	case 0x60: neg_ix(); break;
-#if defined(HAS_HD6301)
-	case 0x61: aim_ix(); break;
-	case 0x62: oim_ix(); break;
-#else
+//#if defined(HAS_HD6301)
+//	case 0x61: aim_ix(); break;
+//	case 0x62: oim_ix(); break;
+//#else
 	case 0x61: illegal(); break;
 	case 0x62: illegal(); break;
-#endif
+//#endif
 	case 0x63: com_ix(); break;
 	case 0x64: lsr_ix(); break;
-#if defined(HAS_HD6301)
-	case 0x65: eim_ix(); break;
-#else
+//#if defined(HAS_HD6301)
+//	case 0x65: eim_ix(); break;
+//#else
 	case 0x65: illegal(); break;
-#endif
+//#endif
 	case 0x66: ror_ix(); break;
 	case 0x67: asr_ix(); break;
 	case 0x68: asl_ix(); break;
 	case 0x69: rol_ix(); break;
 	case 0x6a: dec_ix(); break;
-#if defined(HAS_HD6301)
-	case 0x6b: tim_ix(); break;
-#else
+//#if defined(HAS_HD6301)
+//	case 0x6b: tim_ix(); break;
+//#else
 	case 0x6b: illegal(); break;
-#endif
+//#endif
 	case 0x6c: inc_ix(); break;
 	case 0x6d: tst_ix(); break;
 	case 0x6e: jmp_ix(); break;
 	case 0x6f: clr_ix(); break;
 	case 0x70: neg_ex(); break;
-#if defined(HAS_HD6301)
-	case 0x71: aim_di(); break;
-	case 0x72: oim_di(); break;
-#elif defined(HAS_MB8861)
-	case 0x71: nim_ix(); break;
-	case 0x72: oim_ix_mb8861(); break;
-#else
+//#if defined(HAS_HD6301)
+//	case 0x71: aim_di(); break;
+//	case 0x72: oim_di(); break;
+//#elif defined(HAS_MB8861)
+//	case 0x71: nim_ix(); break;
+//	case 0x72: oim_ix_mb8861(); break;
+//#else
 	case 0x71: illegal(); break;
 	case 0x72: illegal(); break;
-#endif
+//#endif
 	case 0x73: com_ex(); break;
 	case 0x74: lsr_ex(); break;
-#if defined(HAS_HD6301)
-	case 0x75: eim_di(); break;
-#elif defined(HAS_MB8861)
-	case 0x75: xim_ix(); break;
-#else
+//#if defined(HAS_HD6301)
+//	case 0x75: eim_di(); break;
+//#elif defined(HAS_MB8861)
+//	case 0x75: xim_ix(); break;
+//#else
 	case 0x75: illegal(); break;
-#endif
+//#endif
 	case 0x76: ror_ex(); break;
 	case 0x77: asr_ex(); break;
 	case 0x78: asl_ex(); break;
 	case 0x79: rol_ex(); break;
 	case 0x7a: dec_ex(); break;
-#if defined(HAS_HD6301)
-	case 0x7b: tim_di(); break;
-#elif defined(HAS_MB8861)
-	case 0x7b: tmm_ix(); break;
-#else
+//#if defined(HAS_HD6301)
+//	case 0x7b: tim_di(); break;
+//#elif defined(HAS_MB8861)
+//	case 0x7b: tmm_ix(); break;
+//#else
 	case 0x7b: illegal(); break;
-#endif
+//#endif
 	case 0x7c: inc_ex(); break;
 	case 0x7d: tst_ex(); break;
 	case 0x7e: jmp_ex(); break;
@@ -1411,11 +834,11 @@ void MC6800::insn(uint8_t code)
 	case 0x80: suba_im(); break;
 	case 0x81: cmpa_im(); break;
 	case 0x82: sbca_im(); break;
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-	case 0x83: subd_im(); break;
-#else
+//#if defined(HAS_MC6801) || defined(HAS_HD6301)
+//	case 0x83: subd_im(); break;
+//#else
 	case 0x83: illegal(); break;
-#endif
+//#endif
 	case 0x84: anda_im(); break;
 	case 0x85: bita_im(); break;
 	case 0x86: lda_im(); break;
@@ -1424,22 +847,22 @@ void MC6800::insn(uint8_t code)
 	case 0x89: adca_im(); break;
 	case 0x8a: ora_im(); break;
 	case 0x8b: adda_im(); break;
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-	case 0x8c: cpx_im (); break;
-#else
+//#if defined(HAS_MC6801) || defined(HAS_HD6301)
+//	case 0x8c: cpx_im (); break;
+//#else
 	case 0x8c: cmpx_im(); break;
-#endif
+//#endif
 	case 0x8d: bsr(); break;
 	case 0x8e: lds_im(); break;
 	case 0x8f: sts_im(); break;
 	case 0x90: suba_di(); break;
 	case 0x91: cmpa_di(); break;
 	case 0x92: sbca_di(); break;
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-	case 0x93: subd_di(); break;
-#else
+//#if defined(HAS_MC6801) || defined(HAS_HD6301)
+//	case 0x93: subd_di(); break;
+//#else
 	case 0x93: illegal(); break;
-#endif
+//#endif
 	case 0x94: anda_di(); break;
 	case 0x95: bita_di(); break;
 	case 0x96: lda_di(); break;
@@ -1448,22 +871,22 @@ void MC6800::insn(uint8_t code)
 	case 0x99: adca_di(); break;
 	case 0x9a: ora_di(); break;
 	case 0x9b: adda_di(); break;
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-	case 0x9c: cpx_di (); break;
-#else
+//#if defined(HAS_MC6801) || defined(HAS_HD6301)
+//	case 0x9c: cpx_di (); break;
+//#else
 	case 0x9c: cmpx_di(); break;
-#endif
+//#endif
 	case 0x9d: jsr_di(); break;
 	case 0x9e: lds_di(); break;
 	case 0x9f: sts_di(); break;
 	case 0xa0: suba_ix(); break;
 	case 0xa1: cmpa_ix(); break;
 	case 0xa2: sbca_ix(); break;
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-	case 0xa3: subd_ix(); break;
-#else
+//#if defined(HAS_MC6801) || defined(HAS_HD6301)
+//	case 0xa3: subd_ix(); break;
+//#else
 	case 0xa3: illegal(); break;
-#endif
+//#endif
 	case 0xa4: anda_ix(); break;
 	case 0xa5: bita_ix(); break;
 	case 0xa6: lda_ix(); break;
@@ -1472,22 +895,22 @@ void MC6800::insn(uint8_t code)
 	case 0xa9: adca_ix(); break;
 	case 0xaa: ora_ix(); break;
 	case 0xab: adda_ix(); break;
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-	case 0xac: cpx_ix (); break;
-#else
+//#if defined(HAS_MC6801) || defined(HAS_HD6301)
+//	case 0xac: cpx_ix (); break;
+//#else
 	case 0xac: cmpx_ix(); break;
-#endif
+//#endif
 	case 0xad: jsr_ix(); break;
 	case 0xae: lds_ix(); break;
 	case 0xaf: sts_ix(); break;
 	case 0xb0: suba_ex(); break;
 	case 0xb1: cmpa_ex(); break;
 	case 0xb2: sbca_ex(); break;
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-	case 0xb3: subd_ex(); break;
-#else
+//#if defined(HAS_MC6801) || defined(HAS_HD6301)
+//	case 0xb3: subd_ex(); break;
+//#else
 	case 0xb3: illegal(); break;
-#endif
+//#endif
 	case 0xb4: anda_ex(); break;
 	case 0xb5: bita_ex(); break;
 	case 0xb6: lda_ex(); break;
@@ -1496,22 +919,22 @@ void MC6800::insn(uint8_t code)
 	case 0xb9: adca_ex(); break;
 	case 0xba: ora_ex(); break;
 	case 0xbb: adda_ex(); break;
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-	case 0xbc: cpx_ex (); break;
-#else
+//#if defined(HAS_MC6801) || defined(HAS_HD6301)
+//	case 0xbc: cpx_ex (); break;
+//#else
 	case 0xbc: cmpx_ex(); break;
-#endif
+//#endif
 	case 0xbd: jsr_ex(); break;
 	case 0xbe: lds_ex(); break;
 	case 0xbf: sts_ex(); break;
 	case 0xc0: subb_im(); break;
 	case 0xc1: cmpb_im(); break;
 	case 0xc2: sbcb_im(); break;
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-	case 0xc3: addd_im(); break;
-#else
+//#if defined(HAS_MC6801) || defined(HAS_HD6301)
+//	case 0xc3: addd_im(); break;
+//#else
 	case 0xc3: illegal(); break;
-#endif
+//#endif
 	case 0xc4: andb_im(); break;
 	case 0xc5: bitb_im(); break;
 	case 0xc6: ldb_im(); break;
@@ -1520,23 +943,23 @@ void MC6800::insn(uint8_t code)
 	case 0xc9: adcb_im(); break;
 	case 0xca: orb_im(); break;
 	case 0xcb: addb_im(); break;
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-	case 0xcc: ldd_im(); break;
-	case 0xcd: std_im(); break;
-#else
+//#if defined(HAS_MC6801) || defined(HAS_HD6301)
+//	case 0xcc: ldd_im(); break;
+//	case 0xcd: std_im(); break;
+//#else
 	case 0xcc: illegal(); break;
 	case 0xcd: illegal(); break;
-#endif
+//#endif
 	case 0xce: ldx_im(); break;
 	case 0xcf: stx_im(); break;
 	case 0xd0: subb_di(); break;
 	case 0xd1: cmpb_di(); break;
 	case 0xd2: sbcb_di(); break;
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-	case 0xd3: addd_di(); break;
-#else
+//#if defined(HAS_MC6801) || defined(HAS_HD6301)
+//	case 0xd3: addd_di(); break;
+//#else
 	case 0xd3: illegal(); break;
-#endif
+//#endif
 	case 0xd4: andb_di(); break;
 	case 0xd5: bitb_di(); break;
 	case 0xd6: ldb_di(); break;
@@ -1545,23 +968,23 @@ void MC6800::insn(uint8_t code)
 	case 0xd9: adcb_di(); break;
 	case 0xda: orb_di(); break;
 	case 0xdb: addb_di(); break;
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-	case 0xdc: ldd_di(); break;
-	case 0xdd: std_di(); break;
-#else
+//#if defined(HAS_MC6801) || defined(HAS_HD6301)
+//	case 0xdc: ldd_di(); break;
+//	case 0xdd: std_di(); break;
+//#else
 	case 0xdc: illegal(); break;
 	case 0xdd: illegal(); break;
-#endif
+//#endif
 	case 0xde: ldx_di(); break;
 	case 0xdf: stx_di(); break;
 	case 0xe0: subb_ix(); break;
 	case 0xe1: cmpb_ix(); break;
 	case 0xe2: sbcb_ix(); break;
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-	case 0xe3: addd_ix(); break;
-#else
+//#if defined(HAS_MC6801) || defined(HAS_HD6301)
+//	case 0xe3: addd_ix(); break;
+//#else
 	case 0xe3: illegal(); break;
-#endif
+//#endif
 	case 0xe4: andb_ix(); break;
 	case 0xe5: bitb_ix(); break;
 	case 0xe6: ldb_ix(); break;
@@ -1570,26 +993,26 @@ void MC6800::insn(uint8_t code)
 	case 0xe9: adcb_ix(); break;
 	case 0xea: orb_ix(); break;
 	case 0xeb: addb_ix(); break;
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-	case 0xec: ldd_ix(); break;
-	case 0xed: std_ix(); break;
-#elif defined(HAS_MB8861)
-	case 0xec: adx_im(); break;
-	case 0xed: illegal(); break;
-#else
+//#if defined(HAS_MC6801) || defined(HAS_HD6301)
+//	case 0xec: ldd_ix(); break;
+//	case 0xed: std_ix(); break;
+//#elif defined(HAS_MB8861)
+//	case 0xec: adx_im(); break;
+//	case 0xed: illegal(); break;
+//#else
 	case 0xec: illegal(); break;
 	case 0xed: illegal(); break;
-#endif
+//#endif
 	case 0xee: ldx_ix(); break;
 	case 0xef: stx_ix(); break;
 	case 0xf0: subb_ex(); break;
 	case 0xf1: cmpb_ex(); break;
 	case 0xf2: sbcb_ex(); break;
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-	case 0xf3: addd_ex(); break;
-#else
+//#if defined(HAS_MC6801) || defined(HAS_HD6301)
+//	case 0xf3: addd_ex(); break;
+//#else
 	case 0xf3: illegal(); break;
-#endif
+//#endif
 	case 0xf4: andb_ex(); break;
 	case 0xf5: bitb_ex(); break;
 	case 0xf6: ldb_ex(); break;
@@ -1598,16 +1021,16 @@ void MC6800::insn(uint8_t code)
 	case 0xf9: adcb_ex(); break;
 	case 0xfa: orb_ex(); break;
 	case 0xfb: addb_ex(); break;
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-	case 0xfc: ldd_ex(); break;
-	case 0xfd: std_ex(); break;
-#elif defined(HAS_MB8861)
-	case 0xfc: adx_ex(); break;
-	case 0xfd: illegal(); break;
-#else
+//#if defined(HAS_MC6801) || defined(HAS_HD6301)
+//	case 0xfc: ldd_ex(); break;
+//	case 0xfd: std_ex(); break;
+//#elif defined(HAS_MB8861)
+//	case 0xfc: adx_ex(); break;
+//	case 0xfd: illegal(); break;
+//#else
 	case 0xfc: illegal(); break;
 	case 0xfd: illegal(); break;
-#endif
+//#endif
 	case 0xfe: ldx_ex(); break;
 	case 0xff: stx_ex(); break;
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
@@ -1628,9 +1051,9 @@ void MC6800::insn(uint8_t code)
 /* $00 ILLEGAL */
 void MC6800::illegal()
 {
-#ifdef HAS_HD6301
-	TAKE_TRAP;
-#endif
+//#ifdef HAS_HD6301
+//	TAKE_TRAP;
+//#endif
 }
 
 /* $01 NOP */
@@ -1643,29 +1066,6 @@ void MC6800::nop()
 
 /* $03 ILLEGAL */
 
-/* $04 LSRD inherent -0*-* */
-void MC6800::lsrd()
-{
-	uint16_t t;
-	CLR_NZC;
-	t = D;
-	CC |= (t & 0x0001);
-	t >>= 1;
-	SET_Z16(t);
-	D = t;
-}
-
-/* $05 ASLD inherent ?**** */
-void MC6800::asld()
-{
-	int r;
-	uint16_t t;
-	t = D;
-	r = t << 1;
-	CLR_NZVC;
-	SET_FLAGS16(t, t, r);
-	D = r;
-}
 
 /* $06 TAP inherent ##### */
 void MC6800::tap()
@@ -1753,18 +1153,6 @@ void MC6800::cba()
 	SET_FLAGS8(A, B, t);
 }
 
-/* $12 ILLEGAL */
-void MC6800::undoc1()
-{
-	X += RM(S + 1);
-}
-
-/* $13 ILLEGAL */
-void MC6800::undoc2()
-{
-	X += RM(S + 1);
-}
-
 /* $14 ILLEGAL */
 
 /* $15 ILLEGAL */
@@ -1785,13 +1173,6 @@ void MC6800::tba()
 	SET_NZ8(A);
 }
 
-/* $18 XGDX inherent ----- */ /* HD6301 only */
-void MC6800::xgdx()
-{
-	uint16_t t = X;
-	X = D;
-	D = t;
-}
 
 /* $19 DAA inherent (A) -**0* */
 void MC6800::daa()
@@ -1818,12 +1199,6 @@ void MC6800::daa()
 
 /* $1a ILLEGAL */
 
-/* $1a SLP */ /* HD6301 only */
-void MC6800::slp()
-{
-	/* wait for next IRQ (same as waiting of wai) */
-	wai_state |= HD6301_SLP;
-}
 
 /* $1b ABA inherent ***** */
 void MC6800::aba()
@@ -2005,11 +1380,6 @@ void MC6800::pshb()
 	PUSHBYTE(B);
 }
 
-/* $38 PULX inherent ----- */
-void MC6800::pulx()
-{
-	PULLWORD(pX);
-}
 
 /* $39 RTS inherent ----- */
 void MC6800::rts()
@@ -2017,11 +1387,6 @@ void MC6800::rts()
 	PULLWORD(pPC);
 }
 
-/* $3a ABX inherent ----- */
-void MC6800::abx()
-{
-	X += B;
-}
 
 /* $3b RTI inherent ##### */
 void MC6800::rti()
@@ -2033,21 +1398,6 @@ void MC6800::rti()
 	PULLWORD(pPC);
 }
 
-/* $3c PSHX inherent ----- */
-void MC6800::pshx()
-{
-	PUSHWORD(pX);
-}
-
-/* $3d MUL inherent --*-@ */
-void MC6800::mul()
-{
-	uint16_t t;
-	t = A*B;
-	CLR_C;
-	if(t & 0x80) SEC;
-	D = t;
-}
 
 /* $3e WAI inherent ----- */
 void MC6800::wai()
@@ -2313,29 +1663,6 @@ void MC6800::neg_ix()
 	WM(EAD, r);
 }
 
-/* $61 AIM --**0- */ /* HD6301 only */
-void MC6800::aim_ix()
-{
-	uint8_t t, r;
-	IMMBYTE(t);
-	IDXBYTE(r);
-	r &= t;
-	CLR_NZV;
-	SET_NZ8(r);
-	WM(EAD, r);
-}
-
-/* $62 OIM --**0- */ /* HD6301 only */
-void MC6800::oim_ix()
-{
-	uint8_t t, r;
-	IMMBYTE(t);
-	IDXBYTE(r);
-	r |= t;
-	CLR_NZV;
-	SET_NZ8(r);
-	WM(EAD, r);
-}
 
 /* $63 COM indexed -**01 */
 void MC6800::com_ix()
@@ -2361,17 +1688,6 @@ void MC6800::lsr_ix()
 	WM(EAD, t);
 }
 
-/* $65 EIM --**0- */ /* HD6301 only */
-void MC6800::eim_ix()
-{
-	uint8_t t, r;
-	IMMBYTE(t);
-	IDXBYTE(r);
-	r ^= t;
-	CLR_NZV;
-	SET_NZ8(r);
-	WM(EAD, r);
-}
 
 /* $66 ROR indexed -**-* */
 void MC6800::ror_ix()
@@ -2433,16 +1749,6 @@ void MC6800::dec_ix()
 	WM(EAD, t);
 }
 
-/* $6b TIM --**0- */ /* HD6301 only */
-void MC6800::tim_ix()
-{
-	uint8_t t, r;
-	IMMBYTE(t);
-	IDXBYTE(r);
-	r &= t;
-	CLR_NZV;
-	SET_NZ8(r);
-}
 
 /* $6c INC indexed -***- */
 void MC6800::inc_ix()
@@ -2491,61 +1797,7 @@ void MC6800::neg_ex()
 	WM(EAD, r);
 }
 
-/* $71 AIM --**0- */ /* HD6301 only */
-void MC6800::aim_di()
-{
-	uint8_t t, r;
-	IMMBYTE(t);
-	DIRBYTE(r);
-	r &= t;
-	CLR_NZV;
-	SET_NZ8(r);
-	WM(EAD, r);
-}
 
-/* $71 NIM --**0- */ /* MB8861 only */
-void MC6800::nim_ix()
-{
-	uint8_t t, r;
-	IMMBYTE(t);
-	IDXBYTE(r);
-	r &= t;
-	CLR_NZV;
-	if(!r) {
-		SEZ;
-	} else {
-		SEN;
-	}
-	WM(EAD, r);
-}
-
-/* $72 OIM --**0- */ /* HD6301 only */
-void MC6800::oim_di()
-{
-	uint8_t t, r;
-	IMMBYTE(t);
-	DIRBYTE(r);
-	r |= t;
-	CLR_NZV;
-	SET_NZ8(r);
-	WM(EAD, r);
-}
-
-/* $72 OIM --**0- */ /* MB8861 only */
-void MC6800::oim_ix_mb8861()
-{
-	uint8_t t, r;
-	IMMBYTE(t);
-	IDXBYTE(r);
-	r |= t;
-	CLR_NZV;
-	if(!r) {
-		SEZ;
-	} else {
-		SEN;
-	}
-	WM(EAD, r);
-}
 
 /* $73 COM extended -**01 */
 void MC6800::com_ex()
@@ -2571,33 +1823,7 @@ void MC6800::lsr_ex()
 	WM(EAD, t);
 }
 
-/* $75 EIM --**0- */ /* HD6301 only */
-void MC6800::eim_di()
-{
-	uint8_t t, r;
-	IMMBYTE(t);
-	DIRBYTE(r);
-	r ^= t;
-	CLR_NZV;
-	SET_NZ8(r);
-	WM(EAD, r);
-}
 
-/* $75 XIM --**-- */ /* MB8861 only */
-void MC6800::xim_ix()
-{
-	uint8_t t, r;
-	IMMBYTE(t);
-	IDXBYTE(r);
-	r ^= t;
-	CLR_NZ;
-	if(!r) {
-		SEZ;
-	} else {
-		SEN;
-	}
-	WM(EAD, r);
-}
 
 /* $76 ROR extended -**-* */
 void MC6800::ror_ex()
@@ -2659,33 +1885,7 @@ void MC6800::dec_ex()
 	WM(EAD, t);
 }
 
-/* $7b TIM --**0- */ /* HD6301 only */
-void MC6800::tim_di()
-{
-	uint8_t t, r;
-	IMMBYTE(t);
-	DIRBYTE(r);
-	r &= t;
-	CLR_NZV;
-	SET_NZ8(r);
-}
 
-/* $7b TMM --***- */ /* MB8861 only */
-void MC6800::tmm_ix()
-{
-	uint8_t t, r;
-	IMMBYTE(t);
-	IDXBYTE(r);
-	r &= t;
-	CLR_NZV;
-	if(!t || !r) {
-		SEZ;
-	} else if(r == t) {
-		SEV;
-	} else {
-		SEN;
-	}
-}
 
 /* $7c INC extended -***- */
 void MC6800::inc_ex()
@@ -2753,19 +1953,6 @@ void MC6800::sbca_im()
 	CLR_NZVC;
 	SET_FLAGS8(A, t, r);
 	A = (uint8_t)r;
-}
-
-/* $83 SUBD immediate -**** */
-void MC6800::subd_im()
-{
-	uint32_t r, d;
-	pair_t b;
-	IMMWORD(b);
-	d = D;
-	r = d - b.d;
-	CLR_NZVC;
-	SET_FLAGS16(d, b.d, r);
-	D = r;
 }
 
 /* $84 ANDA immediate -**0- */
@@ -2863,18 +2050,6 @@ void MC6800::cmpx_im()
 	SET_V16(d, b.d, r);
 }
 
-/* $8c CPX immediate -**** (6801) */
-void MC6800::cpx_im()
-{
-	uint32_t r, d;
-	pair_t b;
-	IMMWORD(b);
-	d = X;
-	r = d - b.d;
-	CLR_NZVC;
-	SET_FLAGS16(d, b.d, r);
-}
-
 
 /* $8d BSR ----- */
 void MC6800::bsr()
@@ -2932,19 +2107,6 @@ void MC6800::sbca_di()
 	CLR_NZVC;
 	SET_FLAGS8(A, t, r);
 	A = (uint8_t)r;
-}
-
-/* $93 SUBD direct -**** */
-void MC6800::subd_di()
-{
-	uint32_t r, d;
-	pair_t b;
-	DIRWORD(b);
-	d = D;
-	r = d - b.d;
-	CLR_NZVC;
-	SET_FLAGS16(d, b.d, r);
-	D = r;
 }
 
 /* $94 ANDA direct -**0- */
@@ -3041,17 +2203,6 @@ void MC6800::cmpx_di()
 	SET_V16(d, b.d, r);
 }
 
-/* $9c CPX direct -**** (6801) */
-void MC6800::cpx_di()
-{
-	uint32_t r, d;
-	pair_t b;
-	DIRWORD(b);
-	d = X;
-	r = d - b.d;
-	CLR_NZVC;
-	SET_FLAGS16(d, b.d, r);
-}
 
 /* $9d JSR direct ----- */
 void MC6800::jsr_di()
@@ -3110,18 +2261,6 @@ void MC6800::sbca_ix()
 	A = (uint8_t)r;
 }
 
-/* $a3 SUBD indexed -**** */
-void MC6800::subd_ix()
-{
-	uint32_t r, d;
-	pair_t b;
-	IDXWORD(b);
-	d = D;
-	r = d - b.d;
-	CLR_NZVC;
-	SET_FLAGS16(d, b.d, r);
-	D = r;
-}
 
 /* $a4 ANDA indexed -**0- */
 void MC6800::anda_ix()
@@ -3217,17 +2356,6 @@ void MC6800::cmpx_ix()
 	SET_V16(d, b.d, r);
 }
 
-/* $ac CPX indexed -**** (6801)*/
-void MC6800::cpx_ix()
-{
-	uint32_t r, d;
-	pair_t b;
-	IDXWORD(b);
-	d = X;
-	r = d - b.d;
-	CLR_NZVC;
-	SET_FLAGS16(d, b.d, r);
-}
 
 /* $ad JSR indexed ----- */
 void MC6800::jsr_ix()
@@ -3286,18 +2414,6 @@ void MC6800::sbca_ex()
 	A = (uint8_t)r;
 }
 
-/* $b3 SUBD extended -**** */
-void MC6800::subd_ex()
-{
-	uint32_t r, d;
-	pair_t b;
-	EXTWORD(b);
-	d = D;
-	r = d - b.d;
-	CLR_NZVC;
-	SET_FLAGS16(d, b.d, r);
-	D = r;
-}
 
 /* $b4 ANDA extended -**0- */
 void MC6800::anda_ex()
@@ -3393,18 +2509,6 @@ void MC6800::cmpx_ex()
 	SET_V16(d, b.d, r);
 }
 
-/* $bc CPX extended -**** (6801) */
-void MC6800::cpx_ex()
-{
-	uint32_t r, d;
-	pair_t b;
-	EXTWORD(b);
-	d = X;
-	r = d - b.d;
-	CLR_NZVC;
-	SET_FLAGS16(d, b.d, r);
-}
-
 /* $bd JSR extended ----- */
 void MC6800::jsr_ex()
 {
@@ -3462,18 +2566,6 @@ void MC6800::sbcb_im()
 	B = (uint8_t)r;
 }
 
-/* $c3 ADDD immediate -**** */
-void MC6800::addd_im()
-{
-	uint32_t r, d;
-	pair_t b;
-	IMMWORD(b);
-	d = D;
-	r = d + b.d;
-	CLR_NZVC;
-	SET_FLAGS16(d, b.d, r);
-	D = r;
-}
 
 /* $c4 ANDB immediate -**0- */
 void MC6800::andb_im()
@@ -3557,24 +2649,6 @@ void MC6800::addb_im()
 	B = (uint8_t)r;
 }
 
-/* $CC LDD immediate -**0- */
-void MC6800::ldd_im()
-{
-	IMMWORD(pD);
-	CLR_NZV;
-	SET_NZ16(D);
-}
-
-/* is this a legal instruction? */
-/* $cd STD immediate -**0- */
-void MC6800::std_im()
-{
-	IMM16;
-	CLR_NZV;
-	SET_NZ16(D);
-	WM16(EAD, &pD);
-}
-
 /* $ce LDX immediate -**0- */
 void MC6800::ldx_im()
 {
@@ -3624,18 +2698,6 @@ void MC6800::sbcb_di()
 	B = (uint8_t)r;
 }
 
-/* $d3 ADDD direct -**** */
-void MC6800::addd_di()
-{
-	uint32_t r, d;
-	pair_t b;
-	DIRWORD(b);
-	d = D;
-	r = d + b.d;
-	CLR_NZVC;
-	SET_FLAGS16(d, b.d, r);
-	D = r;
-}
 
 /* $d4 ANDB direct -**0- */
 void MC6800::andb_di()
@@ -3718,23 +2780,6 @@ void MC6800::addb_di()
 	B = (uint8_t)r;
 }
 
-/* $dc LDD direct -**0- */
-void MC6800::ldd_di()
-{
-	DIRWORD(pD);
-	CLR_NZV;
-	SET_NZ16(D);
-}
-
-/* $dd STD direct -**0- */
-void MC6800::std_di()
-{
-	DIRECT;
-	CLR_NZV;
-	SET_NZ16(D);
-	WM16(EAD, &pD);
-}
-
 /* $de LDX direct -**0- */
 void MC6800::ldx_di()
 {
@@ -3784,18 +2829,6 @@ void MC6800::sbcb_ix()
 	B = (uint8_t)r;
 }
 
-/* $e3 ADDD indexed -**** */
-void MC6800::addd_ix()
-{
-	uint32_t r, d;
-	pair_t b;
-	IDXWORD(b);
-	d = D;
-	r = d + b.d;
-	CLR_NZVC;
-	SET_FLAGS16(d, b.d, r);
-	D = r;
-}
 
 /* $e4 ANDB indexed -**0- */
 void MC6800::andb_ix()
@@ -3878,34 +2911,8 @@ void MC6800::addb_ix()
 	B = (uint8_t)r;
 }
 
-/* $ec LDD indexed -**0- */
-void MC6800::ldd_ix()
-{
-	IDXWORD(pD);
-	CLR_NZV;
-	SET_NZ16(D);
-}
 
-/* $ec ADX immediate -**** */ /* MB8861 only */
-void MC6800::adx_im()
-{
-	uint32_t r, d, t;
-	IMMBYTE(t);
-	d = X;
-	r = d + t;
-	CLR_NZVC;
-	SET_FLAGS16(d, t, r);
-	X = r;
-}
 
-/* $ed STD indexed -**0- */
-void MC6800::std_ix()
-{
-	INDEXED;
-	CLR_NZV;
-	SET_NZ16(D);
-	WM16(EAD, &pD);
-}
 
 /* $ee LDX indexed -**0- */
 void MC6800::ldx_ix()
@@ -3956,18 +2963,6 @@ void MC6800::sbcb_ex()
 	B = (uint8_t)r;
 }
 
-/* $f3 ADDD extended -**** */
-void MC6800::addd_ex()
-{
-	uint32_t r, d;
-	pair_t b;
-	EXTWORD(b);
-	d = D;
-	r = d + b.d;
-	CLR_NZVC;
-	SET_FLAGS16(d, b.d, r);
-	D = r;
-}
 
 /* $f4 ANDB extended -**0- */
 void MC6800::andb_ex()
@@ -4050,35 +3045,7 @@ void MC6800::addb_ex()
 	B = (uint8_t)r;
 }
 
-/* $fc LDD extended -**0- */
-void MC6800::ldd_ex()
-{
-	EXTWORD(pD);
-	CLR_NZV;
-	SET_NZ16(D);
-}
 
-/* $fc ADX immediate -**** */ /* MB8861 only */
-void MC6800::adx_ex()
-{
-	uint32_t r, d;
-	pair_t b;
-	EXTWORD(b);
-	d = X;
-	r = d + b.d;
-	CLR_NZVC;
-	SET_FLAGS16(d, b.d, r);
-	X = r;
-}
-
-/* $fd STD extended -**0- */
-void MC6800::std_ex()
-{
-	EXTENDED;
-	CLR_NZV;
-	SET_NZ16(D);
-	WM16(EAD, &pD);
-}
 
 /* $fe LDX extended -**0- */
 void MC6800::ldx_ex()
@@ -4114,41 +3081,6 @@ void MC6800::save_state(FILEIO* state_fio)
 	state_fio->FputInt32(wai_state);
 	state_fio->FputInt32(int_state);
 	state_fio->FputInt32(icount);
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-	for(int i = 0; i < 4; i++) {
-		state_fio->FputUint8(port[i].wreg);
-		state_fio->FputUint8(port[i].rreg);
-		state_fio->FputUint8(port[i].ddr);
-		state_fio->FputUint8(port[i].latched_data);
-		state_fio->FputBool(port[i].latched);
-		state_fio->FputBool(port[i].first_write);
-	}
-	state_fio->FputUint8(p3csr);
-	state_fio->FputBool(p3csr_is3_flag_read);
-	state_fio->FputBool(sc1_state);
-	state_fio->FputBool(sc2_state);
-	state_fio->FputUint32(counter.d);
-	state_fio->FputUint32(output_compare.d);
-	state_fio->FputUint32(timer_over.d);
-	state_fio->FputUint8(tcsr);
-	state_fio->FputUint8(pending_tcsr);
-	state_fio->FputUint16(input_capture);
-#ifdef HAS_HD6301
-	state_fio->FputUint16(latch09);
-#endif
-	state_fio->FputUint32(timer_next);
-	recv_buffer->save_state((void *)state_fio);
-	state_fio->FputUint8(trcsr);
-	state_fio->FputUint8(rdr);
-	state_fio->FputUint8(tdr);
-	state_fio->FputBool(trcsr_read_tdre);
-	state_fio->FputBool(trcsr_read_orfe);
-	state_fio->FputBool(trcsr_read_rdrf);
-	state_fio->FputUint8(rmcr);
-	state_fio->FputInt32(sio_counter);
-	state_fio->FputUint8(ram_ctrl);
-	state_fio->Fwrite(ram, sizeof(ram), 1);
-#endif
 }
 
 bool MC6800::load_state(FILEIO* state_fio)
@@ -4169,43 +3101,6 @@ bool MC6800::load_state(FILEIO* state_fio)
 	wai_state = state_fio->FgetInt32();
 	int_state = state_fio->FgetInt32();
 	icount = state_fio->FgetInt32();
-#if defined(HAS_MC6801) || defined(HAS_HD6301)
-	for(int i = 0; i < 4; i++) {
-		port[i].wreg = state_fio->FgetUint8();
-		port[i].rreg = state_fio->FgetUint8();
-		port[i].ddr = state_fio->FgetUint8();
-		port[i].latched_data = state_fio->FgetUint8();
-		port[i].latched = state_fio->FgetBool();
-		port[i].first_write = state_fio->FgetBool();
-	}
-	p3csr = state_fio->FgetUint8();
-	p3csr_is3_flag_read = state_fio->FgetBool();
-	sc1_state = state_fio->FgetBool();
-	sc2_state = state_fio->FgetBool();
-	counter.d = state_fio->FgetUint32();
-	output_compare.d = state_fio->FgetUint32();
-	timer_over.d = state_fio->FgetUint32();
-	tcsr = state_fio->FgetUint8();
-	pending_tcsr = state_fio->FgetUint8();
-	input_capture = state_fio->FgetUint16();
-#ifdef HAS_HD6301
-	latch09 = state_fio->FgetUint16();
-#endif
-	timer_next = state_fio->FgetUint32();
-	if(!recv_buffer->load_state((void *)state_fio)) {
-		return false;
-	}
-	trcsr = state_fio->FgetUint8();
-	rdr = state_fio->FgetUint8();
-	tdr = state_fio->FgetUint8();
-	trcsr_read_tdre = state_fio->FgetBool();
-	trcsr_read_orfe = state_fio->FgetBool();
-	trcsr_read_rdrf = state_fio->FgetBool();
-	rmcr = state_fio->FgetUint8();
-	sio_counter = state_fio->FgetInt32();
-	ram_ctrl = state_fio->FgetUint8();
-	state_fio->Fread(ram, sizeof(ram), 1);
-#endif
 	return true;
 }
 
