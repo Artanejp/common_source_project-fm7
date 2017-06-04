@@ -337,7 +337,7 @@ public:
 class Z80 : public Z80_BASE 
 {
 protected:
-	void run_one_opecode();
+	void run_one_opecode() override;
 public:
 	Z80(VM* parent_vm, EMU* parent_emu);
 	~Z80();

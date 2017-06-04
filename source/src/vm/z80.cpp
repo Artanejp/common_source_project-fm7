@@ -102,15 +102,6 @@
 	} \
 } while(0)
 
-#define EAX() do { \
-	ea = (uint32_t)(uint16_t)(IX + (int8_t)FETCH8()); \
-	WZ = ea; \
-} while(0)
-
-#define EAY() do { \
-	ea = (uint32_t)(uint16_t)(IY + (int8_t)FETCH8()); \
-	WZ = ea; \
-} while(0)
 
 #define POP(DR) do { \
 	RM16(SPD, &DR); \
@@ -120,100 +111,6 @@
 #define PUSH(SR) do { \
 	SP -= 2; \
 	WM16(SPD, &SR); \
-} while(0)
-
-#define JP() do { \
-	PCD = FETCH16(); \
-	WZ = PCD; \
-} while(0)
-
-#define JP_COND(cond) do { \
-	if(cond) { \
-		PCD = FETCH16(); \
-		WZ = PCD; \
-	} else { \
-		WZ = FETCH16(); /* implicit do PC += 2 */ \
-	} \
-} while(0)
-
-#define JR() do { \
-	int8_t arg = (int8_t)FETCH8(); /* FETCH8() also increments PC */ \
-	PC += arg; /* so don't do PC += FETCH8() */ \
-	WZ = PC; \
-} while(0)
-
-#define JR_COND(cond, opcode) do { \
-	if(cond) { \
-		JR(); \
-		icount -= cc_ex[opcode]; \
-	} else PC++; \
-} while(0)
-
-#define CALL() do { \
-	ea = FETCH16(); \
-	WZ = ea; \
-	PUSH(pc); \
-	PCD = ea; \
-} while(0)
-
-#define CALL_COND(cond, opcode) do { \
-	if(cond) { \
-		ea = FETCH16(); \
-		WZ = ea; \
-		PUSH(pc); \
-		PCD = ea; \
-		icount -= cc_ex[opcode]; \
-	} else { \
-		WZ = FETCH16(); /* implicit call PC+=2; */ \
-	} \
-} while(0)
-
-#define RET_COND(cond, opcode) do { \
-	if(cond) { \
-		POP(pc); \
-		WZ = PC; \
-		icount -= cc_ex[opcode]; \
-	} \
-} while(0)
-
-#define RETN() do { \
-	POP(pc); \
-	WZ = PC; \
-	iff1 = iff2; \
-} while(0)
-
-#define RETI() do { \
-	POP(pc); \
-	WZ = PC; \
-	iff1 = iff2; \
-	d_pic->notify_intr_reti(); \
-} while(0)
-
-#define LD_R_A() do { \
-	R = A; \
-	R2 = A & 0x80; /* keep bit 7 of r */ \
-} while(0)
-
-#define LD_A_R() do { \
-	A = (R & 0x7f) | R2; \
-	F = (F & CF) | SZ[A] | (iff2 << 2); \
-	after_ldair = true; \
-} while(0)
-
-#define LD_I_A() do { \
-	I = A; \
-} while(0)
-
-#define LD_A_I() do { \
-	A = I; \
-	F = (F & CF) | SZ[A] | (iff2 << 2); \
-	after_ldair = true; \
-} while(0)
-
-#define RST(addr) do { \
-	PUSH(pc); \
-	PCD = addr; \
-	WZ = PC; \
 } while(0)
 
 // main
@@ -245,76 +142,7 @@ Z80::~Z80()
 
 void Z80::initialize()
 {
-	DEVICE::initialize();
-	if(!flags_initialized) {
-		uint8_t *padd = SZHVC_add;
-		uint8_t *padc = SZHVC_add + 256 * 256;
-		uint8_t *psub = SZHVC_sub;
-		uint8_t *psbc = SZHVC_sub + 256 * 256;
-		
-		for(int oldval = 0; oldval < 256; oldval++) {
-			for(int newval = 0; newval < 256; newval++) {
-				/* add or adc w/o carry set */
-				int val = newval - oldval;
-				*padd = (newval) ? ((newval & 0x80) ? SF : 0) : ZF;
-				*padd |= (newval & (YF | XF));	/* undocumented flag bits 5+3 */
-				if((newval & 0x0f) < (oldval & 0x0f)) *padd |= HF;
-				if(newval < oldval) *padd |= CF;
-				if((val ^ oldval ^ 0x80) & (val ^ newval) & 0x80) *padd |= VF;
-				padd++;
-				
-				/* adc with carry set */
-				val = newval - oldval - 1;
-				*padc = (newval) ? ((newval & 0x80) ? SF : 0) : ZF;
-				*padc |= (newval & (YF | XF));	/* undocumented flag bits 5+3 */
-				if((newval & 0x0f) <= (oldval & 0x0f)) *padc |= HF;
-				if(newval <= oldval) *padc |= CF;
-				if((val ^ oldval ^ 0x80) & (val ^ newval) & 0x80) *padc |= VF;
-				padc++;
-				
-				/* cp, sub or sbc w/o carry set */
-				val = oldval - newval;
-				*psub = NF | ((newval) ? ((newval & 0x80) ? SF : 0) : ZF);
-				*psub |= (newval & (YF | XF));	/* undocumented flag bits 5+3 */
-				if((newval & 0x0f) > (oldval & 0x0f)) *psub |= HF;
-				if(newval > oldval) *psub |= CF;
-				if((val ^ oldval) & (oldval ^ newval) & 0x80) *psub |= VF;
-				psub++;
-				
-				/* sbc with carry set */
-				val = oldval - newval - 1;
-				*psbc = NF | ((newval) ? ((newval & 0x80) ? SF : 0) : ZF);
-				*psbc |= (newval & (YF | XF));	/* undocumented flag bits 5+3 */
-				if((newval & 0x0f) >= (oldval & 0x0f)) *psbc |= HF;
-				if(newval >= oldval) *psbc |= CF;
-				if((val ^ oldval) & (oldval ^ newval) & 0x80) *psbc |= VF;
-				psbc++;
-			}
-		}
-		for(int i = 0; i < 256; i++) {
-			int p = 0;
-			if(i & 0x01) ++p;
-			if(i & 0x02) ++p;
-			if(i & 0x04) ++p;
-			if(i & 0x08) ++p;
-			if(i & 0x10) ++p;
-			if(i & 0x20) ++p;
-			if(i & 0x40) ++p;
-			if(i & 0x80) ++p;
-			SZ[i] = i ? i & SF : ZF;
-			SZ[i] |= (i & (YF | XF));	/* undocumented flag bits 5+3 */
-			SZ_BIT[i] = i ? i & SF : ZF | PF;
-			SZ_BIT[i] |= (i & (YF | XF));	/* undocumented flag bits 5+3 */
-			SZP[i] = SZ[i] | ((p & 1) ? 0 : PF);
-			SZHV_inc[i] = SZ[i];
-			if(i == 0x80) SZHV_inc[i] |= VF;
-			if((i & 0x0f) == 0x00) SZHV_inc[i] |= HF;
-			SZHV_dec[i] = SZ[i] | NF;
-			if(i == 0x7f) SZHV_dec[i] |= VF;
-			if((i & 0x0f) == 0x0f) SZHV_dec[i] |= HF;
-		}
-		flags_initialized = true;
-	}
+	Z80_BASE::initialize();
 #ifdef USE_DEBUGGER
 	d_mem_stored = d_mem;
 	d_io_stored = d_io;
