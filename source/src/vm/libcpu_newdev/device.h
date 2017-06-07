@@ -63,7 +63,7 @@ public:
 	//"deleting object of polymorphic class type 'DEVICE' which has non-virtual
 	// destructor might cause undefined behavior [-Wdelete-non-virtual-dtor]".
 	//~DEVICE(void);
-	~DEVICE(void) {}
+	virtual ~DEVICE() {}
 	
 	virtual void initialize() { osd = emu->get_osd(); }
 	virtual void release() {}

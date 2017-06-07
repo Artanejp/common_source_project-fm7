@@ -21,17 +21,19 @@ set(WITH_MOUSE OFF)
 
 set(VMFILES_BASE
 		   huc6280.cpp
-		   scsi_cdrom.cpp
 		   scsi_host.cpp
 		   scsi_dev.cpp
+		   scsi_cdrom.cpp
 		   
 		   event.cpp
 		   io.cpp
 		   memory.cpp
-		   
 )
 set(VMFILES_LIB
+		   huc6280_base.cpp
 		   msm5205.cpp
+#		   scsi_cdrom.cpp
+#		   scsi_dev_base.cpp
 )
 
 set(BUILD_SHARED_LIBS OFF)

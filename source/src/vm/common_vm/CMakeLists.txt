@@ -60,7 +60,7 @@ set(s_vm_common_vm_srcs
 	../ptf20.cpp
 	../rp5c01.cpp
 #	../scsi_cdrom.cpp
-#	../scsi_dev.cpp
+#	../scsi_dev_base.cpp
 #	../scsi_hdd.cpp
 #	../scsi_host.cpp
 	../sn76489an.cpp
@@ -129,8 +129,8 @@ if(WIN32)
 #	  ${SDL2_LIBRARIES}
 #	  )
 #set_target_properties(CSPcommon_vm PROPERTIES
-#			     SOVERSION 1.1.14
-#			     VERSION 1.1.14
+#			     SOVERSION 1.1.15
+#			     VERSION 1.1.15
 #			     LINK_INTERFACE_LIBRARIES ""
 #			     )
 #generate_export_header(CSPcommon_vm
@@ -147,8 +147,8 @@ else()
     ${s_vm_common_vm_srcs}
   )
   set_target_properties(CSPcommon_vm PROPERTIES 
-     SOVERSION 1.1.14
-     VERSION 1.1.14
+     SOVERSION 1.1.15
+     VERSION 1.1.15
   )
   INSTALL(TARGETS CSPcommon_vm DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

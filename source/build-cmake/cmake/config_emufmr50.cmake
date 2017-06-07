@@ -36,6 +36,8 @@ set(VMFILES_LIB
 		   
 		   hd63484.cpp
 #		   i386.cpp  
+#		   scsi_dev_base.cpp
+#		   scsi_hdd.cpp
 		   disk.cpp
 		   )
 		 
