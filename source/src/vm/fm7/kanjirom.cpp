@@ -55,6 +55,10 @@ KANJIROM::KANJIROM(VM *parent_vm, EMU* parent_emu, bool type_2std): DEVICE(paren
 	return;
 }
 
+KANJIROM::~KANJIROM()
+{
+}
+
 void KANJIROM::reset(void)
 {
 	kanjiaddr.d = 0;
