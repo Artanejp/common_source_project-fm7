@@ -65,7 +65,7 @@ public:
 	//~DEVICE(void);
 	virtual ~DEVICE() {}
 	
-	virtual void initialize() { osd = emu->get_osd(); }
+	virtual void initialize() { /* osd = emu->get_osd(); */}
 	virtual void release() {}
 	
 	virtual void update_config() {}

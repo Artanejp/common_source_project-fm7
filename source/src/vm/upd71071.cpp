@@ -229,20 +229,14 @@ void UPD71071::do_dma()
 					if((dma[c].mode & 0x0c) == 4) {
 						// io -> memory
 						uint32_t val;
-						if(dma[c].dev != NULL) {
-							val = dma[c].dev->read_dma_io8(0);
-						} else {
-							val = 0xff;
-						}
+						val = dma[c].dev->read_dma_io8(0);
 						d_mem->write_dma_data8(dma[c].areg, val);
 						// update temporary register
 						tmp = (tmp >> 8) | (val << 8);
 					} else if((dma[c].mode & 0x0c) == 8) {
 						// memory -> io
 						uint32_t val = d_mem->read_dma_data8(dma[c].areg);
-						if(dma[c].dev != NULL) {
-							dma[c].dev->write_dma_io8(0, val);
-						}
+						dma[c].dev->write_dma_io8(0, val);
 						// update temporary register
 						tmp = (tmp >> 8) | (val << 8);
 					}

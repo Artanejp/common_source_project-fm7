@@ -134,13 +134,13 @@ void MC6844::transfer(int ch)
 	if(priority_ctrl_reg & (1 << ch)) {
 		if(dma[ch].byte_count_reg.w.l != 0) {
 			if(dma[ch].channel_ctrl_reg & 0x01) {
-				uint8_t data = 0xff;
-				if(d_memory != NULL) data = d_memory->read_dma_data8(dma[ch].address_reg.w.l);
-				if(dma[ch].device != NULL) dma[ch].device->write_dma_io8(0, data);
+				uint8_t data;
+				data = d_memory->read_dma_data8(dma[ch].address_reg.w.l);
+				dma[ch].device->write_dma_io8(0, data);
 			} else {
-				uint8_t data = 0xff;
-				if(dma[ch].device != NULL) dma[ch].device->read_dma_io8(0);
-				if(d_memory != NULL) d_memory->write_dma_data8(dma[ch].address_reg.w.l, data);
+				uint8_t data;
+				data = dma[ch].device->read_dma_io8(0);
+				d_memory->write_dma_data8(dma[ch].address_reg.w.l, data);
 			}
 			if(dma[ch].channel_ctrl_reg & 0x08) {
 				dma[ch].address_reg.d--;

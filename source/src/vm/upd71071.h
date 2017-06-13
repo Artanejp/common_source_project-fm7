@@ -43,10 +43,17 @@ private:
 public:
 	UPD71071(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+		// TIP: if((DEVICE::prev_device == NULL) || (DEVICE::this_device_id == 0)) DEVICE must be DUMMY.
+		// And, at this device, should not be FIRST DEVICE. 20170613 Ohta.
+		DEVICE *__dev = this;
+		while((__dev->prev_device != NULL) && (__dev->this_device_id > 0)) {
+			__dev = __dev->prev_device;
+		}
 		for(int i = 0; i < 4; i++) {
 			//dma[i].dev = vm->dummy;
-			dma[i].dev = NULL;
+			dma[i].dev = __dev;
 		}
+		d_mem = __dev;
 //#ifdef SINGLE_MODE_DMA
 		d_dma = NULL;
 //#endif

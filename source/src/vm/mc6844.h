@@ -43,14 +43,21 @@ private:
 public:
 	MC6844(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+		// TIP: if((DEVICE::prev_device == NULL) || (DEVICE::this_device_id == 0)) DEVICE must be DUMMY.
+		// And, at this device, should not be FIRST DEVICE. 20170613 Ohta.
+		DEVICE *__dev = this;
+		while((__dev->prev_device != NULL) && (__dev->this_device_id > 0)) {
+			__dev = __dev->prev_device;
+		}
+		
 //		for(int i = 0; i < 4; i++) {
 //			dma[i].device = vm->dummy;
 //		}
 //		d_memory = vm->dummy;
 		for(int i = 0; i < 4; i++) {
-			dma[i].device = NULL;
+			dma[i].device = __dev;
 		}
-		d_memory = NULL;
+		d_memory = __dev;
 		initialize_output_signals(&outputs_irq);
 		set_device_name(_T("MC6844 DMAC"));
 	}
