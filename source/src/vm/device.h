@@ -84,7 +84,7 @@ public:
 	// destructor might cause undefined behavior [-Wdelete-non-virtual-dtor]".
 	~DEVICE(void) {}
 	
-	virtual void initialize() {	osd = emu->get_osd(); /* Initializing VM must be after initializing OSD. */ }
+	virtual void initialize() {	/* osd = emu->get_osd(); */ /* Initializing VM must be after initializing OSD. */ }
 	virtual void release() {}
 	
 	virtual void update_config() {}
