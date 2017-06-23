@@ -3115,15 +3115,15 @@ int i386_dasm_one(_TCHAR *buffer, offs_t eip, const UINT8 *oprom, int mode)
 
 CPU_DISASSEMBLE( x86_16 )
 {
-	return i386_dasm_one_ex(buffer, pc, oprom, 16);
+	return i386_dasm_one_ex(buffer, eip, oprom, 16);
 }
 
 CPU_DISASSEMBLE( x86_32 )
 {
-	return i386_dasm_one_ex(buffer, pc, oprom, 32);
+	return i386_dasm_one_ex(buffer, eip, oprom, 32);
 }
 
 CPU_DISASSEMBLE( x86_64 )
 {
-	return i386_dasm_one_ex(buffer, pc, oprom, 64);
+	return i386_dasm_one_ex(buffer, eip, oprom, 64);
 }

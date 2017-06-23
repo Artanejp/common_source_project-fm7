@@ -1570,7 +1570,8 @@ static void PREFIX86(_jl)(i8086_state *cpustate)    /* Opcode 0x7c */
 static void PREFIX86(_jnl)(i8086_state *cpustate)    /* Opcode 0x7d */
 {
 	int tmp = (int)((INT8)FETCH);
-	if (ZF||(SF==OF)) {
+//	if (ZF||(SF==OF)) {
+	if (SF==OF) {
 		cpustate->pc += tmp;
 		ICOUNT -= timing.jcc_t;
 /* ASG - can probably assume this is safe
@@ -1888,12 +1889,16 @@ static void PREFIX86(_mov_wsreg)(i8086_state *cpustate)    /* Opcode 0x8c */
 {
 	unsigned ModRM = FETCH;
 	ICOUNT -= (ModRM >= 0xc0) ? timing.mov_rs : timing.mov_ms;
+#ifndef I8086
 	if (ModRM & 0x20) { /* HJB 12/13/98 1xx is invalid */
 		cpustate->pc = cpustate->prevpc;
 		return PREFIX86(_invalid)(cpustate);
 	}
 
 	PutRMWord(ModRM,cpustate->sregs[(ModRM & 0x38) >> 3]);
+#else
+	PutRMWord(ModRM,cpustate->sregs[(ModRM & 0x18) >> 3]); /* confirmed on hw: modrm bit 5 ignored */
+#endif
 }
 
 static void PREFIX86(_lea)(i8086_state *cpustate)    /* Opcode 0x8d */
@@ -2818,7 +2823,11 @@ static void PREFIX(_mov_sregw)(i8086_state *cpustate)    /* Opcode 0x8e */
 		break;  /* doesn't do a jump far */
 	}
 #else
+#ifndef I80186
+	switch (ModRM & 0x18) /* confirmed on hw: modrm bit 5 ignored */
+#else
 	switch (ModRM & 0x38)
+#endif
 	{
 	case 0x00:  /* mov es,ew */
 		cpustate->sregs[ES] = src;
@@ -2841,6 +2850,8 @@ static void PREFIX(_mov_sregw)(i8086_state *cpustate)    /* Opcode 0x8e */
 		cpustate->base[CS] = SegBase(CS);
 		cpustate->pc = (ip + cpustate->base[CS]) & AMASK;
 		CHANGE_PC(cpustate->pc);
+#else
+		PREFIX86(_invalid)(cpustate);
 #endif
 		break;
 	}
