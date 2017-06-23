@@ -1064,6 +1064,26 @@ void VM::key_up(int code)
 	keyboard->key_up(code);
 }
 
+bool VM::get_caps_locked()
+{
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
+	if(boot_mode != 0) {
+		return pc88->get_caps_locked();
+	} else
+#endif
+	return keyboard->get_caps_locked();
+}
+
+bool VM::get_kana_locked()
+{
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
+	if(boot_mode != 0) {
+		return pc88->get_kana_locked();
+	} else
+#endif
+	return keyboard->get_kana_locked();
+}
+
 // ----------------------------------------------------------------------------
 // user interface
 // ----------------------------------------------------------------------------

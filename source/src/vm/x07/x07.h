@@ -34,6 +34,7 @@
 #define USE_TAPE1
 #define TAPE_BINARY_ONLY
 #define NOTIFY_KEY_DOWN
+#define USE_KEY_LOCKED
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		6
 #define USE_AUTO_KEY_RELEASE	10
@@ -119,6 +120,8 @@ public:
 	// notify key
 	void key_down(int code, bool repeat);
 	void key_up(int code);
+	bool get_caps_locked();
+	bool get_kana_locked();
 	
 	// user interface
 	void play_tape(int drv, const _TCHAR* file_path);

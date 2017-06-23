@@ -32,16 +32,33 @@
 #define USE_FD1
 #define USE_FD2
 #define NOTIFY_KEY_DOWN
+#define USE_KEY_LOCKED
 #define USE_SHIFT_NUMPAD_KEY
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
+#define USE_AUTO_KEY_CAPS_LOCK	(0xf0 | 0x100)
+#define USE_VM_AUTO_KEY_TABLE
 #define USE_MONITOR_TYPE	3
 #define USE_SCREEN_FILTER
 //#define USE_SCANLINE
 #define USE_SOUND_VOLUME	2
 #define USE_DEBUGGER
 #define USE_STATE
+
+static const int vm_auto_key_table_base[][2] = {
+	{0xb0,	0x300 | 0xba},	// '°' -> ':'+SHIFT
+	{0xb9,	0x200 | 0x4c},	// '¹' -> 'L'
+	{0xcd,	0x200 | 0xbd},	// 'Í' -> '-'
+	{0xce,	0x200 | 0xba},	// 'Î' -> ':'
+	{0xd1,	0x200 | 0xbb},	// 'Ñ' -> ';'
+	{0xd8,	0x300 | 0x4b},	// 'Ø' -> 'K'+SHIFT
+	{0xdb,	0x300 | 0xbb},	// 'Û' -> ';'+SHIFT
+	{0xda,	0x300 | 0x4c},	// 'Ú' -> 'L'+SHIFT
+	{0xde,	0x300 | 0x4f},	// 'Þ' -> 'O'+SHIFT
+	{0xdf,	0x300 | 0x50},	// 'ß' -> 'P'+SHIFT
+	{-1,	-1},
+};
 
 #include "../../common.h"
 #include "../../fileio.h"
@@ -138,6 +155,8 @@ public:
 	// notify key
 	void key_down(int code, bool repeat);
 	void key_up(int code);
+	bool get_caps_locked();
+	bool get_kana_locked();
 	
 	// user interface
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);

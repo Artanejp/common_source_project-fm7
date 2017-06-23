@@ -304,9 +304,12 @@ void PC88::initialize()
 		dest[6] = dest[7] = ((i & 8) ? 0xf0 : 0) | ((i & 0x80) ? 0x0f : 0);
 	}
 	
-	// initialize text palette
+	// initialize text/graph palette
 	for(int i = 0; i < 9; i++) {
 		palette_text_pc[i] = RGBA_COLOR((i & 2) ? 255 : 0, (i & 4) ? 255 : 0, (i & 1) ? 255 : 0, 255); // A is a flag for crt filter
+	}
+	for(int i = 0; i < 8; i++) {
+		palette_graph_pc[i] = RGB_COLOR((i & 2) ? 255 : 0, (i & 4) ? 255 : 0, (i & 1) ? 255 : 0);
 	}
 	
 #ifdef SUPPORT_PC88_HIGH_CLOCK
@@ -1496,7 +1499,7 @@ void PC88::update_low_memmap()
 			SET_BANK_R(0x0000, 0x7fff, exram + 0x8000 * PortE3_ERAMSL);
 		} else {
 #endif
-			SET_BANK_R(0x0000, 0x7fff, rdmy);
+//			SET_BANK_R(0x0000, 0x7fff, rdmy);
 #ifdef PC88_EXRAM_BANKS
 		}
 #endif
@@ -1525,7 +1528,8 @@ void PC88::update_low_memmap()
 			SET_BANK_W(0x0000, 0x7fff, exram + 0x8000 * PortE3_ERAMSL);
 		} else {
 #endif
-			SET_BANK_W(0x0000, 0x7fff, wdmy);
+//			SET_BANK_W(0x0000, 0x7fff, wdmy);
+			SET_BANK_W(0x0000, 0x7fff, ram);
 #ifdef PC88_EXRAM_BANKS
 		}
 #endif
@@ -1950,6 +1954,7 @@ void PC88::draw_screen()
 #endif
 		for(int y = 0; y < 200; y++) {
 			// for Xak2 opening (XM8 version 1.00)
+/*
 			if(crtc.char_height == 0x10) {
 				if(y >= (crtc.height * crtc.char_height / 2)) {
 					while(y < 200) {
@@ -1962,6 +1967,7 @@ void PC88::draw_screen()
 					break;
 				}
 			}
+*/
 			scrntype_t* dest0 = emu->get_screen_buffer(y * 2);
 			scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1);
 			uint8_t* src_t = text[y];
@@ -2027,12 +2033,26 @@ void PC88::draw_screen()
 
 void PC88::draw_text()
 {
+	uint8_t ct = 0;
+	
+	if(crtc.status & 0x88) {
+		crtc.status &= ~0x80;
+		ct = crtc.reverse ? 3 : 2;
+	}
 	// for Advanced Fantasian Opening (20line) (XM8 version 1.00)
 	if(!(crtc.status & 0x10) || Port53_TEXTDS) {
 //	if(!(crtc.status & 0x10) || (crtc.status & 8) || Port53_TEXTDS) {
-		memset(text, 0, sizeof(text));
-		return;
+//		memset(text, 0, sizeof(text));
+//		return;
+		ct = 2;
 	}
+	if(ct) {
+		memset(crtc.text.expand, 0, 200 * 80);
+		memset(crtc.attrib.expand, ct, 200 * 80);
+	}
+	
+	// for Xak2 opening
+	memset(text, 8, sizeof(text));
 	
 	int char_height = crtc.char_height;
 	uint8_t color_mask = Port30_COLOR ? 0 : 7;
@@ -2040,10 +2060,14 @@ void PC88::draw_text()
 	if(!hireso) {
 		char_height <<= 1;
 	}
-	if(Port31_400LINE || !crtc.skip_line) {
-		char_height >>= 1;
+//	if(Port31_400LINE || !crtc.skip_line) {
+//		char_height >>= 1;
+//	}
+	if(crtc.skip_line) {
+		char_height <<= 1;
 	}
-	for(int cy = 0, ytop = 0; cy < crtc.height && ytop < 200; cy++, ytop += char_height) {
+//	for(int cy = 0, ytop = 0; cy < 64 && ytop < 400; cy++, ytop += char_height) {
+	for(int cy = 0, ytop = 0; cy < crtc.height && ytop < 400; cy++, ytop += char_height) {
 		for(int x = 0, cx = 0; cx < crtc.width; x += 8, cx++) {
 			if(Port30_40 && (cx & 1)) {
 				continue;
@@ -2062,7 +2086,7 @@ void PC88::draw_text()
 			uint8_t *pattern = ((attrib & 0x10) ? sg_pattern : kanji1 + 0x1000) + code * 8;
 #endif
 			
-			for(int l = 0, y = ytop; l < char_height && y < 200; l++, y++) {
+			for(int l = 0, y = ytop; l < char_height / 2 && y < 400; l++, y += 2) {
 				uint8_t pat = (l < 8) ? pattern[l] : 0;
 				if((upper_line && l == 0) || (under_line && l >= 7)) {
 					pat = 0xff;
@@ -2071,7 +2095,7 @@ void PC88::draw_text()
 					pat = ~pat;
 				}
 				
-				uint8_t *dest = &text[y][x];
+				uint8_t *dest = &text[y >> 1][x];
 				if(Port30_40) {
 					dest[ 0] = dest[ 1] = (pat & 0x80) ? color : 0;
 					dest[ 2] = dest[ 3] = (pat & 0x40) ? color : 0;
@@ -2478,16 +2502,19 @@ void pc88_crtc_t::write_cmd(uint8_t data)
 	switch(cmd) {
 	case 0:	// reset
 		status &= ~0x16;
+		status |= 0x80;	// fix
 		cursor.x = cursor.y = -1;
 		break;
 	case 1:	// start display
 		reverse = data & 1;
-		status |= 0x10;
+//		status |= 0x10;
+		status |= 0x90;	// fix
 		status &= ~8;
 		break;
 	case 2:	// set interrupt mask
 		if(!(data & 1)) {
-			status = 0; // from M88
+//			status = 0; // from M88
+			status = 0x80; // fix
 		}
 		intr_mask = data & 3;
 		break;
@@ -2550,6 +2577,9 @@ void pc88_crtc_t::write_param(uint8_t data)
 			cursor.y = data;
 			break;
 		}
+		break;
+	case 6:
+		status = 0;
 		break;
 	}
 	cmd_ptr++;

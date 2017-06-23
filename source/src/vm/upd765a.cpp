@@ -712,7 +712,7 @@ uint8_t UPD765A::get_devstat(int drv)
 		return 0x80 | drv;
 	}
 	// XM8 version 1.20
-	if(!force_ready && !disk[drv]->inserted) {
+	if(force_ready && !disk[drv]->inserted) {
 		return drv;
 	}
 	return 0x28 | drv | (fdc[drv].track ? 0 : 0x10) | ((fdc[drv].track & 1) ? 0x04 : 0) | (disk[drv]->write_protected ? 0x40 : 0);

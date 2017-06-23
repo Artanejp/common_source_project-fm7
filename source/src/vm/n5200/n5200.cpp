@@ -342,7 +342,16 @@ void VM::key_down(int code, bool repeat)
 void VM::key_up(int code)
 {
 	keyboard->key_up(code);
-//	this->out_debug_log(_T("-----\n"));
+}
+
+bool VM::get_caps_locked()
+{
+	return keyboard->get_caps_locked();
+}
+
+bool VM::get_kana_locked()
+{
+	return keyboard->get_kana_locked();
 }
 
 // ----------------------------------------------------------------------------

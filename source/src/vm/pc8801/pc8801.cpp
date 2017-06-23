@@ -427,6 +427,16 @@ void VM::key_up(int code)
 {
 }
 
+bool VM::get_caps_locked()
+{
+	return pc88->get_caps_locked();
+}
+
+bool VM::get_kana_locked()
+{
+	return pc88->get_kana_locked();
+}
+
 // ----------------------------------------------------------------------------
 // user interface
 // ----------------------------------------------------------------------------

@@ -30,6 +30,7 @@
 //#define NOTIFY_KEY_UP
 #define NOTIFY_KEY_DOWN_LR_SHIFT
 #define NOTIFY_KEY_DOWN_LR_MENU
+#define USE_KEY_LOCKED
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
@@ -504,6 +505,8 @@ public:
 	// notify key
 	void key_down(int code, bool repeat);
 	void key_up(int code);
+	bool get_caps_locked();
+	bool get_kana_locked();
 	
 	// user interface
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);

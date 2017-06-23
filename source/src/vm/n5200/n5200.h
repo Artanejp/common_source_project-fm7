@@ -29,6 +29,7 @@
 #define USE_FD1
 #define USE_FD2
 #define NOTIFY_KEY_DOWN
+#define USE_KEY_LOCKED
 #define USE_SHIFT_NUMPAD_KEY
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5
@@ -125,6 +126,8 @@ public:
 	// notify key
 	void key_down(int code, bool repeat);
 	void key_up(int code);
+	bool get_caps_locked();
+	bool get_kana_locked();
 	
 	// user interface
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);

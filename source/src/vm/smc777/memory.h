@@ -173,6 +173,14 @@ public:
 	}
 #endif
 	void key_down_up(int code, bool down);
+	bool get_caps_locked()
+	{
+		return caps;
+	}
+	bool get_kana_locked()
+	{
+		return kana;
+	}
 	void draw_screen();
 	bool warm_start;
 };

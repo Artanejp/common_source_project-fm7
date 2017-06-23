@@ -357,6 +357,14 @@ public:
 	}
 #endif
 	void key_down(int code, bool repeat);
+	bool get_caps_locked()
+	{
+		return (key_caps != 0);
+	}
+	bool get_kana_locked()
+	{
+		return (key_kana != 0);
+	}
 	
 	void play_tape(const _TCHAR* file_path);
 	void rec_tape(const _TCHAR* file_path);

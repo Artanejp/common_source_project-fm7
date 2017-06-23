@@ -126,6 +126,14 @@ private:
    
 	void key_up(uint32_t vk);
 	void key_down(uint32_t vk);
+	bool get_caps_locked()
+	{
+		return caps_pressed;
+	}
+	bool get_kana_locked()
+	{
+		return kana_pressed;
+	}
 	void event_callback(int event_id, int err);
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	uint32_t read_signal(int id);

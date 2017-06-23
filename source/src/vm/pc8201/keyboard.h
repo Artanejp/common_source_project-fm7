@@ -38,8 +38,16 @@ public:
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
-	// unique function
+	// unique functions
 	void key_down(int code);
+	bool get_caps_locked()
+	{
+		return caps;
+	}
+	bool get_kana_locked()
+	{
+		return kana;
+	}
 };
 
 #endif

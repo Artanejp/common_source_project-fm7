@@ -70,6 +70,7 @@
 
 #define USE_BINARY_FILE1
 #define NOTIFY_KEY_DOWN
+#define USE_KEY_LOCKED
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
@@ -277,6 +278,8 @@ public:
 	// notify key
 	void key_down(int code, bool repeat);
 	void key_up(int code);
+	bool get_caps_locked();
+	bool get_kana_locked();
 	
 	// user interface
 	void load_binary(int drv, const _TCHAR* file_path);

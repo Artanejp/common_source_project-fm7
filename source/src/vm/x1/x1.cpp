@@ -649,6 +649,38 @@ void VM::key_up(int code)
 #endif
 }
 
+bool VM::get_caps_locked()
+{
+#ifdef _X1TWIN
+	if(!pce->is_cart_inserted()) {
+#endif
+		if(pseudo_sub_cpu) {
+			return psub->get_caps_locked();
+		} else {
+			return kbd->get_caps_locked();
+		}
+#ifdef _X1TWIN
+	}
+	return false;
+#endif
+}
+
+bool VM::get_kana_locked()
+{
+#ifdef _X1TWIN
+	if(!pce->is_cart_inserted()) {
+#endif
+		if(pseudo_sub_cpu) {
+			return psub->get_kana_locked();
+		} else {
+			return kbd->get_kana_locked();
+		}
+#ifdef _X1TWIN
+	}
+	return false;
+#endif
+}
+
 // ----------------------------------------------------------------------------
 // user interface
 // ----------------------------------------------------------------------------

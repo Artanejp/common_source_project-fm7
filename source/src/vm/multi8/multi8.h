@@ -36,6 +36,7 @@
 #define USE_FD2
 //#define USE_FD3
 //#define USE_FD4
+#define USE_KEY_LOCKED
 #define USE_SHIFT_NUMPAD_KEY
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5
@@ -140,6 +141,10 @@ public:
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
+	
+	// notify key
+	bool get_caps_locked();
+	bool get_kana_locked();
 	
 	// user interface
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);

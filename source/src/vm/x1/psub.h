@@ -93,6 +93,14 @@ public:
 	}
 	void key_down(int code, bool repeat);
 	void key_up(int code);
+	bool get_caps_locked()
+	{
+		return key_caps_locked;
+	}
+	bool get_kana_locked()
+	{
+		return key_kana_locked;
+	}
 	void play_tape(bool value);
 	void rec_tape(bool value);
 	void close_tape();

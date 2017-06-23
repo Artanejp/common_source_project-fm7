@@ -44,6 +44,14 @@ public:
 		d_cpu = device;
 	}
 	void key_down(int code, bool repeat);
+	bool get_caps_locked()
+	{
+		return (caps_locked != 0);
+	}
+	bool get_kana_locked()
+	{
+		return (kana_locked != 0);
+	}
 };
 
 #endif

@@ -273,6 +273,16 @@ void VM::key_up(int code)
 	ioctrl->key_up(code);
 }
 
+bool VM::get_caps_locked()
+{
+	return ioctrl->get_caps_locked();
+}
+
+bool VM::get_kana_locked()
+{
+	return ioctrl->get_kana_locked();
+}
+
 // ----------------------------------------------------------------------------
 // user interface
 // ----------------------------------------------------------------------------

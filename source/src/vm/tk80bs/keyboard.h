@@ -74,6 +74,19 @@ public:
 	}
 	void key_down(int code);
 	void key_up(int code);
+	bool get_caps_locked()
+	{
+//		return caps_lock;
+		return true;
+	}
+	bool get_kana_locked()
+	{
+#if defined(_TK80BS)
+		return kana_lock;
+#else
+		return false;
+#endif
+	}
 };
 
 #endif

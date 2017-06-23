@@ -113,6 +113,8 @@ private:
 	int auto_key_phase, auto_key_shift;
 	void initialize_auto_key();
 	void release_auto_key();
+	int get_auto_key_code(int code);
+	void set_auto_key_code(int code);
 	void update_auto_key();
 #endif
 #ifdef USE_JOYSTICK
@@ -226,8 +228,13 @@ public:
 #ifdef OSD_QT
 	void key_modifiers(uint32_t mod);
 #endif
-	void key_down(int code, bool repeat);
-	void key_up(int code);
+	void key_down(int code, bool extended, bool repeat);
+	void key_up(int code, bool extended);
+	void key_char(char code);
+#ifdef USE_KEY_LOCKED
+	bool get_caps_locked();
+	bool get_kana_locked();
+#endif
 	void key_lost_focus();
 #ifdef ONE_BOARD_MICRO_COMPUTER
 	void press_button(int num);
@@ -239,6 +246,8 @@ public:
 	bool is_mouse_enabled();
 #endif	
 #ifdef USE_AUTO_KEY
+	void set_auto_key_list(char *buf, int size);
+	void set_auto_key_char(char code);
 	void start_auto_key();
 	void stop_auto_key();
 	bool is_auto_key_running()

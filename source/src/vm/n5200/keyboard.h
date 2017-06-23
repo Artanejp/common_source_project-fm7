@@ -44,6 +44,14 @@ public:
 	}
 	void key_down(int code);
 	void key_up(int code);
+	bool get_caps_locked()
+	{
+		return caps;
+	}
+	bool get_kana_locked()
+	{
+		return kana;
+	}
 };
 
 #endif

@@ -184,6 +184,16 @@ void VM::key_up(int code)
 	io->key_up(code);
 }
 
+bool VM::get_caps_locked()
+{
+	return io->get_caps_locked();
+}
+
+bool VM::get_kana_locked()
+{
+	return io->get_kana_locked();
+}
+
 // ----------------------------------------------------------------------------
 // user interface
 // ----------------------------------------------------------------------------

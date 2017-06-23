@@ -113,6 +113,9 @@ typedef struct {
 		bool direct_load_mzt[MAX_TAPE_TMP];
 		bool baud_high[MAX_TAPE_TMP];
 	#endif
+	#if defined(USE_SHARED_DLL) || defined(USE_AUTO_KEY)
+		bool romaji_to_kana;
+	#endif
 	
 	int cpu_power;
 	bool full_speed;

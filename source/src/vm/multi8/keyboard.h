@@ -39,6 +39,16 @@ public:
 	void event_frame();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	
+	// unique functions
+	bool get_caps_locked()
+	{
+		return caps;
+	}
+	bool get_kana_locked()
+	{
+		return kana;
+	}
 };
 
 #endif
