@@ -67,6 +67,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 IDR_ACCELERATOR1 ACCELERATORS DISCARDABLE 
 BEGIN
     VK_RETURN,      ID_ACCEL_SCREEN,        VIRTKEY, ALT, NOINVERT
+    VK_RETURN,      ID_ACCEL_SPEED,         VIRTKEY, CONTROL, ALT, NOINVERT
 END
 
 
@@ -87,9 +88,6 @@ BEGIN
         MENUITEM "CPU x8",                      ID_CPU_POWER3
         MENUITEM "CPU x16",                     ID_CPU_POWER4
         MENUITEM "Full Speed",                  ID_FULL_SPEED
-        MENUITEM SEPARATOR
-        MENUITEM "Paste",                       ID_AUTOKEY_START
-        MENUITEM "Stop",                        ID_AUTOKEY_STOP
         MENUITEM SEPARATOR
         POPUP "Save State"
         BEGIN

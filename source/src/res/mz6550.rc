@@ -68,6 +68,8 @@ IDR_ACCELERATOR1 ACCELERATORS DISCARDABLE
 BEGIN
     VK_RETURN,      ID_ACCEL_MOUSE,         VIRTKEY, CONTROL, NOINVERT
     VK_RETURN,      ID_ACCEL_SCREEN,        VIRTKEY, ALT, NOINVERT
+    VK_RETURN,      ID_ACCEL_SPEED,         VIRTKEY, CONTROL, ALT, NOINVERT
+    VK_APPS,        ID_ACCEL_ROMAJI,        VIRTKEY, NOINVERT
 END
 
 
@@ -92,6 +94,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Paste",                       ID_AUTOKEY_START
         MENUITEM "Stop",                        ID_AUTOKEY_STOP
+        MENUITEM "Romaji to Kana",              ID_ROMAJI_TO_KANA
         MENUITEM SEPARATOR
         POPUP "Save State"
         BEGIN

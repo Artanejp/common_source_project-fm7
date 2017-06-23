@@ -7,6 +7,8 @@
 #define IDR_ACCELERATOR1                103
 #define ID_ACCEL_SCREEN                 104
 #define ID_ACCEL_MOUSE                  105
+#define ID_ACCEL_SPEED                  106
+#define ID_ACCEL_ROMAJI                 107
 
 #define IDD_VOLUME                      111
 #define IDC_VOLUME_RESET                112
@@ -108,6 +110,7 @@
 #define ID_FULL_SPEED                   40016
 #define ID_AUTOKEY_START                40021
 #define ID_AUTOKEY_STOP                 40022
+#define ID_ROMAJI_TO_KANA               40023
 #define ID_OPEN_DEBUGGER0               40031
 #define ID_OPEN_DEBUGGER1               40032
 #define ID_OPEN_DEBUGGER2               40033
