@@ -43,6 +43,15 @@ EmuThreadClass::~EmuThreadClass()
 {
 }
 
+void EmuThreadClass::set_romakana(void)
+{
+	romakana_conversion_mode = !romakana_conversion_mode;
+	p_config->romaji_to_kana = !p_config->romaji_to_kana;
+#if defined(USE_AUTO_KEY)
+	p_emu->set_auto_key_char(romakana_conversion_mode ? 1 : 0);
+#endif
+}
+
 int EmuThreadClass::get_interval(void)
 {
 	static int accum = 0;
@@ -382,7 +391,16 @@ void EmuThreadClass::doWork(const QString &params)
 				}
 			}
 #endif
-			if(roma_kana_conv) {
+			if(p_config->romaji_to_kana) {
+				//FIFO *dmy = p_emu->get_auto_key_buffer();
+				//if(dmy != NULL) {
+				//	if(!dmy->empty()) {
+				//		p_emu->stop_auto_key();		
+				//		p_emu->start_auto_key();
+				//	}
+				//}
+			   
+#if 0
 				if(!roma_kana_queue.isEmpty()) {
 #if defined(USE_AUTO_KEY)
 					FIFO *dmy = emu->get_auto_key_buffer();
@@ -399,6 +417,7 @@ void EmuThreadClass::doWork(const QString &params)
 				if(roma_kana_queue.isEmpty()) {
 					roma_kana_conv = false;
 				}
+#endif
 			}
 			// else
 			{
@@ -406,14 +425,21 @@ void EmuThreadClass::doWork(const QString &params)
 					key_queue_t sp;
 					dequeue_key_up(&sp);
 					key_mod = sp.mod;
-					p_emu->key_modifiers(sp.mod);
-					p_emu->key_up(sp.code);
+					{
+						p_emu->key_modifiers(sp.mod);
+						p_emu->key_up(sp.code, true); // need decicion of extend.
+					}
 				}
 				while(!is_empty_key_down()) {
 					key_queue_t sp;
 					dequeue_key_down(&sp);
-					p_emu->key_modifiers(sp.mod);
-					p_emu->key_down(sp.code, sp.repeat);
+					if(p_config->romaji_to_kana) {
+						p_emu->key_modifiers(sp.mod);
+						p_emu->key_char(sp.code);
+					} else {
+						p_emu->key_modifiers(sp.mod);
+						p_emu->key_down(sp.code, true, sp.repeat);
+					}
 				}
 			}
 			run_frames = p_emu->run();

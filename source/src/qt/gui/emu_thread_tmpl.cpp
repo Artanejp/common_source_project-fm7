@@ -17,7 +17,7 @@
 #include "emu_thread_tmpl.h"
 
 #include "qt_gldraw.h"
-#include "../../romakana.h"
+//#include "../../romakana.h"
 
 //#include "csp_logger.h"
 #include "menu_flags.h"
@@ -199,6 +199,7 @@ void EmuThreadClassBase::do_key_down(uint32_t vk, uint32_t mod, bool repeat)
 	sp.repeat = repeat;
 	//key_changed = true;
 	if(using_flags->is_use_roma_kana_conversion()) {
+#if 0
 		if(p_config->roma_kana_conversion) {
 			if((vk == VK_F12)) {
 				romakana_conversion_mode = !romakana_conversion_mode;
@@ -214,6 +215,12 @@ void EmuThreadClassBase::do_key_down(uint32_t vk, uint32_t mod, bool repeat)
 				return;
 			}
 		}
+#else
+	if(vk == VK_F12) {
+		set_romakana();
+		return;
+	}
+#endif
 	}
 	enqueue_key_down(sp);
 	key_mod = mod;
@@ -225,7 +232,7 @@ void EmuThreadClassBase::do_key_up(uint32_t vk, uint32_t mod)
 	sp.code = vk;
 	sp.mod = mod;
 	sp.repeat = false;
-
+#if 0
 	if(using_flags->is_use_roma_kana_conversion()) {
 		if(p_config->roma_kana_conversion && romakana_conversion_mode) {
 			if(roma_kana_ptr < (int)(sizeof(roma_kana_buffer) / sizeof(_TCHAR)) &&
@@ -288,6 +295,7 @@ void EmuThreadClassBase::do_key_up(uint32_t vk, uint32_t mod)
 			}
 		}
 	}
+#endif
 	enqueue_key_up(sp);
 	key_mod = mod;
 }

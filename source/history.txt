@@ -1,3 +1,18 @@
+6/22/2017
+
+[EMU] move auto key codes from winmain to emu class
+[EMU] support to convert roman letters to kana letters
+[WINMAIN] support APPLICATION accelerator to enable/disable roman to kana
+[WINMAIN] support CTRL+ALT+ENTER accelerator to enable/disable full speed
+
+[VM/I386] improve i86/i286 core based on MAME 0.185
+[VM/UPD765A] fix device status (thanks annonymus guy)
+[VM/YM2203] fix to mask YM2608 ports in YM2203 case (thanks annonymus guy)
+
+[PC8801/PC88] fix bank switch of extend ram (thanks annonymus guy)
+[PC8801/PC88] fix crtc for dma underrun case (thanks annonymus guy)
+
+
 5/28/2017
 
 [WINMAIN] support to run simulation at full speed

@@ -32,7 +32,7 @@ class QWaitCondition;
 class USING_FLAGS;
 
 QT_BEGIN_NAMESPACE
-#include "../../romakana.h"
+//#include "../../romakana.h"
 
 typedef struct {
 	uint32_t code;
@@ -168,7 +168,8 @@ protected:
 		key_down_code_fifo->clear();
 		key_down_mod_fifo->clear();
 		key_down_repeat_fifo->clear();
-	};		
+	};
+	virtual void set_romakana(void) { };
 public:
 	EmuThreadClassBase(META_MainWindow *rootWindow, USING_FLAGS *p, QObject *parent = 0);
 	~EmuThreadClassBase();

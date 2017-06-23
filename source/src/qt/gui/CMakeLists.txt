@@ -102,7 +102,7 @@ set(s_qt_gui_srcs
 	  emu_thread_tmpl.cpp
 	  qt_debugger_tmpl.cpp
 
-	  ../../romakana.cpp
+#	  ../../romakana.cpp
 	  menu_flags_tmpl.cpp
 	  csp_logger.cpp
 	  qt_main.cpp
@@ -176,8 +176,8 @@ target_link_libraries(CSPgui PUBLIC
 	  )
 
 set_target_properties(CSPgui PROPERTIES 
-			     SOVERSION 2.9.4
-			     VERSION 2.9.4
+			     SOVERSION 2.9.5
+			     VERSION 2.9.5
 			     )
 INSTALL(TARGETS CSPgui DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

@@ -53,6 +53,7 @@ protected:
 	void get_cd_string(void);
 	void get_bubble_string(void);
 
+	void set_romakana(void) override;
 public:
 	EmuThreadClass(META_MainWindow *rootWindow, USING_FLAGS *p, QObject *parent = 0);
 	~EmuThreadClass();
