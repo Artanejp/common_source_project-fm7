@@ -10,6 +10,9 @@
 #ifndef _WIN32_OSD_H_
 #define _WIN32_OSD_H_
 
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT		0x500
+#endif
 #define DIRECTSOUND_VERSION	0x900
 #define DIRECT3D_VERSION	0x900
 // XXX: if your DirectX 9.0 SDK is newer and does not contain dinput.lib,
@@ -248,7 +251,6 @@ private:
 	uint8_t key_status[256];	// windows key code mapping
 	uint8_t key_dik_prev[256];
 #ifdef USE_SHIFT_NUMPAD_KEY
-	uint8_t key_converted[256];
 	bool key_shift_pressed, key_shift_released;
 #endif
 	bool key_caps_locked;
@@ -442,8 +444,8 @@ public:
 	
 	// common input
 	void update_input();
-	void key_down(int code, bool repeat);
-	void key_up(int code);
+	void key_down(int code, bool extended, bool repeat);
+	void key_up(int code, bool extended);
 	void key_down_native(int code, bool repeat);
 	void key_up_native(int code);
 	void key_lost_focus()
