@@ -245,7 +245,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 #ifdef USE_TAPE_BUTTON
 	hRunEmu->set_tape_play(false);
 #endif
-#ifdef USE_LED_DEVICE
+#if defined(USE_KEY_LOCKED) || defined(USE_EXTRA_LEDS)
 	connect(hRunEmu, SIGNAL(sig_send_data_led(quint32)), this, SLOT(do_recv_data_led(quint32)));
 #endif
 #ifdef USE_AUTO_KEY
@@ -422,7 +422,7 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 	}
 #endif
 	if(statusUpdateTimer != NULL) statusUpdateTimer->stop();
-#ifdef USE_LED_DEVICE
+#if defined(USE_KEY_LOCKED) || defined(USE_EXTRA_LEDS)
 	if(ledUpdateTimer != NULL) ledUpdateTimer->stop();
 #endif
 	emit quit_draw_thread();

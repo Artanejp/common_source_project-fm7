@@ -41,7 +41,9 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	num_joy_button_captions = 0;
 
 	use_laser_disc = false;
-	use_led_device = 0;
+	use_key_locked = false;
+	use_extra_leds = 0;
+	independent_caps_kana_led = false;
 
 	max_memcard = 0;
 	use_minimum_rendering = use_dig_resolution = false;

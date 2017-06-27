@@ -57,7 +57,6 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 	num_joy_button_captions = 0;
 
 	use_laser_disc = false;
-	use_led_device = 0;
 
 	max_memcard = 0;
 	use_minimum_rendering = use_dig_resolution = false;
@@ -308,8 +307,14 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 #if defined(USE_LASER_DISC)
 	use_laser_disc = true;
 #endif
-#if defined(USE_LED_DEVICE)
-	use_led_device = USE_LED_DEVICE;
+#if defined(USE_KEY_LOCKED)
+	use_key_locked = true;
+#endif
+#if defined(USE_EXTRA_LEDS)
+	use_extra_leds = USE_EXTRA_LEDS;
+#endif
+#if defined(INDEPENDENT_CAPS_KANA_LED)
+	independent_caps_kana_led = true;
 #endif
 #if defined(USE_MEMCARD)
 	use_memcard = USE_MEMCARD;

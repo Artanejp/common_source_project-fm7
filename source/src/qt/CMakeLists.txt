@@ -47,8 +47,8 @@ generate_export_header(CSPosd
        STATIC_DEFINE CSPgosd_BUILT_AS_STATIC
 )
   set_target_properties(CSPosd PROPERTIES 
-     SOVERSION 2.9.4
-     VERSION 2.9.4
+     SOVERSION 2.9.5
+     VERSION 2.9.5
   )
 
 else()
@@ -64,8 +64,8 @@ target_link_libraries(CSPosd PUBLIC
 	  )
   
   set_target_properties(CSPosd PROPERTIES 
-     SOVERSION 2.9.4
-     VERSION 2.9.4
+     SOVERSION 2.9.5
+     VERSION 2.9.5
   )
   INSTALL(TARGETS CSPosd DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

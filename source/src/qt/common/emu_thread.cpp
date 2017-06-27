@@ -303,7 +303,7 @@ void EmuThreadClass::doWork(const QString &params)
 			continue;
 		}
 		if(first) {
-			if(using_flags->get_use_led_device() > 0) emit sig_send_data_led((quint32)led_data);
+			if((using_flags->get_use_extra_leds() > 0) || (using_flags->get_use_key_locked())) emit sig_send_data_led((quint32)led_data);
 			first = false;
 		}
 		interval = 0;
@@ -448,9 +448,20 @@ void EmuThreadClass::doWork(const QString &params)
 			req_draw |= p_emu->is_screen_changed();
 #else
 			req_draw = true;
-#endif			
-#ifdef USE_LED_DEVICE
-	   		led_data = p_emu->get_led_status();
+#endif
+#if defined(USE_KEY_LOCKED) && !defined(INDEPENDENT_CAPS_KANA_LED)
+			led_data = p_emu->get_caps_locked() ? 0x01 : 0x00;
+			led_data |= (p_emu->get_kana_locked() ? 0x02 : 0x00);
+#else
+			led_data = 0x00;
+#endif
+#if defined(USE_EXTRA_LEDS)
+  #if !defined(INDEPENDENT_CAPS_KANA_LED)
+			led_data <<= USE_EXTRA_LEDS;
+  #endif
+	   		led_data |= p_emu->get_extra_leds();
+#endif
+#if defined(USE_EXTRA_LEDS) || defined(USE_KEY_LOCKED)
 			if(led_data != led_data_old) {
 				emit sig_send_data_led((quint32)led_data);
 				led_data_old = led_data;

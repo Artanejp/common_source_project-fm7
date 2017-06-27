@@ -78,7 +78,11 @@ protected:
 	int use_keyboard_type;
 
 	bool use_laser_disc;
-	int use_led_device;
+
+	bool use_key_locked;
+	bool independent_caps_kana_led;
+
+	int use_extra_leds;
 
 	int max_memcard;
 	
@@ -216,7 +220,10 @@ public:
 	int  get_use_keyboard_type() { return use_keyboard_type; }
 	
 	bool is_use_laser_disc() {return use_laser_disc; }
-	int get_use_led_device() { return use_led_device; }
+
+	bool get_use_key_locked() { return use_key_locked; }
+	int get_use_extra_leds() { return use_extra_leds; }
+	bool get_independent_caps_kana_led() { return independent_caps_kana_led; }
 
 	int get_max_memcard() { return max_memcard; }
 	

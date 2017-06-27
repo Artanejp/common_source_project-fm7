@@ -65,8 +65,12 @@ void Ui_MainWindowBase::initStatusBar(void)
 	
 	dummyStatusArea2 = new QWidget;
 	dummyStatusArea2->setFixedWidth(100);
-	if(using_flags->get_use_led_device() > 0) {
-		for(i = 0; i < using_flags->get_use_led_device(); i++) {
+	if((using_flags->get_use_extra_leds() > 0) || (using_flags->get_use_key_locked())) {
+		int _leds = using_flags->get_use_extra_leds();
+		if(_leds < 0) _leds = 0;
+		if((using_flags->get_use_key_locked()) && (!using_flags->get_independent_caps_kana_led())) _leds += 2;
+		
+		for(i = 0; i < _leds ;i++) {
 			flags_led[i] = false;
 			flags_led_bak[i] = false;
 		}
@@ -79,15 +83,18 @@ void Ui_MainWindowBase::initStatusBar(void)
 		connect(this, SIGNAL(sig_led_update(QRectF)), led_graphicsView, SLOT(updateSceneRect(QRectF)));
 		{
 			QBrush rbrush = QBrush(QColor(Qt::red));
-			float bitwidth = (float)dummyStatusArea2->width() / ((float)using_flags->get_use_led_device() * 2.0);
-			float start = -(float)dummyStatusArea2->width()  / 2.0f + bitwidth * 3.0f;
+			float bitwidth;
+			float start;
+
+			bitwidth = (float)dummyStatusArea2->width() / ((float)_leds * 2.0);
+			start = -(float)dummyStatusArea2->width()  / 2.0f + bitwidth * 3.0f;
 			
 			pen.setColor(Qt::black);
 			led_gScene->addRect(0, 0, 
 								-(float)dummyStatusArea2->width(),
 								(float)dummyStatusArea2->height(),
 								pen, bbrush);
-			for(i = 0; i < using_flags->get_use_led_device(); i++) {
+			for(i = 0; i < _leds; i++) {
 				led_leds[i] = NULL;
 				pen.setColor(Qt::red);
 				led_leds[i] = led_gScene->addEllipse(start,
@@ -102,7 +109,7 @@ void Ui_MainWindowBase::initStatusBar(void)
 	//   statusbar->addWidget(dummyStatusArea2);
 	connect(statusUpdateTimer, SIGNAL(timeout()), this, SLOT(redraw_status_bar()));
 	statusUpdateTimer->start(33);
-	if(using_flags->get_use_led_device() > 0) {
+	if((using_flags->get_use_extra_leds() > 0) || (using_flags->get_use_key_locked())) {
 		ledUpdateTimer = new QTimer;
 		connect(statusUpdateTimer, SIGNAL(timeout()), this, SLOT(redraw_leds()));
 		statusUpdateTimer->start(5);
@@ -137,7 +144,7 @@ void Ui_MainWindowBase::resize_statusbar(int w, int h)
 	tmps = tmps + n_s + QString::fromUtf8("pt \"Sans\";");
 	messagesStatusBar->setStyleSheet(tmps);
    
-	if(using_flags->get_use_led_device() > 0) {
+	if((using_flags->get_use_extra_leds() > 0) || (using_flags->get_use_key_locked())) {
 		led_graphicsView->setFixedWidth((int)(100.0 * scaleFactor));
 	}
 	dummyStatusArea2->setFixedWidth((int)(108.0 * scaleFactor));
@@ -150,12 +157,18 @@ void Ui_MainWindowBase::resize_statusbar(int w, int h)
 		sfactor = 10;
 	}
 	dummyStatusArea1->setFixedWidth(sfactor);   
-	if(using_flags->get_use_led_device() > 0) {
+	if((using_flags->get_use_extra_leds() > 0) || (using_flags->get_use_key_locked())) {
 		QPen pen;
 		QBrush rbrush = QBrush(QColor(Qt::red));
 		QBrush bbrush = QBrush(QColor(Qt::black));
-		float bitwidth = (float)dummyStatusArea2->width() / ((float)using_flags->get_use_led_device() * 2.0);
-		float start = -(float)dummyStatusArea2->width()  / 2.0f + bitwidth * 3.0f;
+		int _leds = using_flags->get_use_extra_leds();
+		float bitwidth;
+		float start;
+		
+		if(_leds < 0) _leds = 0;
+		if((using_flags->get_use_key_locked()) && (!using_flags->get_independent_caps_kana_led())) _leds += 2;
+		bitwidth = (float)dummyStatusArea2->width() / ((float)_leds * 2.0);
+		start = -(float)dummyStatusArea2->width()  / 2.0f + bitwidth * 3.0f;
 
 		led_gScene->clear();
 
@@ -164,7 +177,7 @@ void Ui_MainWindowBase::resize_statusbar(int w, int h)
 				    -(float)dummyStatusArea2->width(),
 				    (float)dummyStatusArea2->height(),
 				    pen, bbrush);
-		for(i = 0; i < using_flags->get_use_led_device(); i++) {
+		for(i = 0; i < _leds; i++) {
 			led_leds[i] = NULL;
 			pen.setColor(Qt::red);
 			led_leds[i] = led_gScene->addEllipse(start,
@@ -186,11 +199,17 @@ void Ui_MainWindowBase::redraw_leds(void)
 {
 		uint32_t drawflags;
 		int i;
-		float bitwidth = (float)dummyStatusArea2->width() / ((float)using_flags->get_use_led_device() * 2.0);
-		float start = -(float)dummyStatusArea2->width() + bitwidth * 4.0f;
+		int _leds = using_flags->get_use_extra_leds();
+		float bitwidth;
+		float start;
+		
+		if(_leds < 0) _leds = 0;
+		if((using_flags->get_use_key_locked()) && (!using_flags->get_independent_caps_kana_led())) _leds += 2;
+		bitwidth = (float)dummyStatusArea2->width() / ((float)_leds * 2.0);
+		start = -(float)dummyStatusArea2->width() + bitwidth * 4.0f;
 		drawflags = osd_led_data;
 		
-		for(i = 0; i < using_flags->get_use_led_device(); i++) {
+		for(i = 0; i < _leds; i++) {
 			flags_led[i] = ((drawflags & (1 << i)) != 0);
 			if(led_leds[i] != NULL) {
 				if(flags_led[i]) {
