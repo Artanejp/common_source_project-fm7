@@ -225,6 +225,14 @@ void I8080::INSN_0xcb(void)
 #endif
 }
 
+#ifndef HAS_I8085
+#define RET(c) { \
+	if(c) { \
+		count -= 6; \
+		PC = POP16(); \
+	}	\
+}
+#endif
 void I8080::INSN_0xd9(void)
 {
 #ifdef HAS_I8085
