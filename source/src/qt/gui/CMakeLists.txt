@@ -107,7 +107,7 @@ set(s_qt_gui_srcs
 	  csp_logger.cpp
 	  qt_main.cpp
 )
-
+set(THIS_LIB_VERSION 2.9.6)
 if(USE_QT_5)
   QT5_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})
 #  if(WIN32)
@@ -151,8 +151,8 @@ target_link_libraries(CSPgui
 	  ${SDL2_LIBRARIES}
 	  )
 set_target_properties(CSPgui PROPERTIES
-			     SOVERSION 2.9.6
-			     VERSION 2.9.6
+			     SOVERSION ${THIS_LIB_VERSION}
+			     VERSION ${THIS_LIB_VERSION}
 			     LINK_INTERFACE_LIBRARIES ""
 			     )
 generate_export_header(CSPgui
@@ -176,8 +176,8 @@ target_link_libraries(CSPgui PUBLIC
 	  )
 
 set_target_properties(CSPgui PROPERTIES 
-			     SOVERSION 2.9.6
-			     VERSION 2.9.6
+			     SOVERSION ${THIS_LIB_VERSION}
+			     VERSION ${THIS_LIB_VERSION}
 			     )
 INSTALL(TARGETS CSPgui DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

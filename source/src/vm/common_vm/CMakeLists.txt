@@ -110,8 +110,9 @@ set(s_vm_common_vm_srcs
 	# FM-7/77/AV
 	../fm7/hd6844.cpp
 	../fm7/mb61vh010.cpp
-	../fm7/dummydevice.cpp
+#	../fm7/dummydevice.cpp
 )
+SET(THIS_LIB_VERSION 1.1.16)
 
 if(WIN32)
 #include (GenerateExportHeader)
@@ -129,8 +130,8 @@ if(WIN32)
 #	  ${SDL2_LIBRARIES}
 #	  )
 #set_target_properties(CSPcommon_vm PROPERTIES
-#			     SOVERSION 1.1.15
-#			     VERSION 1.1.15
+#			     SOVERSION ${THIS_LIB_VERSION}
+#			     VERSION ${THIS_LIB_VERSION}
 #			     LINK_INTERFACE_LIBRARIES ""
 #			     )
 #generate_export_header(CSPcommon_vm
@@ -147,8 +148,8 @@ else()
     ${s_vm_common_vm_srcs}
   )
   set_target_properties(CSPcommon_vm PROPERTIES 
-     SOVERSION 1.1.15
-     VERSION 1.1.15
+     SOVERSION ${THIS_LIB_VERSION}
+     VERSION ${THIS_LIB_VERSION}
   )
   INSTALL(TARGETS CSPcommon_vm DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

@@ -15,6 +15,8 @@ set(s_qt_avio_srcs
 	  sound_loader.cpp
 )
 
+SET(THIS_LIB_VERSION 2.6.6)
+
 if(USE_QT_5)
   QT5_WRAP_CPP(s_qt_avio_headers_MOC ${s_qt_avio_headers})
 else()
@@ -66,8 +68,8 @@ target_link_libraries(CSPavio PUBLIC
 	  )
 
 set_target_properties(CSPavio PROPERTIES 
-			     SOVERSION 2.6.6
-			     VERSION 2.6.6
+			     SOVERSION ${THIS_LIB_VERSION}
+			     VERSION ${THIS_LIB_VERSION}
 			     )
 INSTALL(TARGETS CSPavio DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

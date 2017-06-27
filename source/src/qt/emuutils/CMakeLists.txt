@@ -5,7 +5,9 @@ set(s_qt_emuutils_srcs
 	  ../../common.cpp
 	  ../../fifo.cpp
 	  ../../fileio.cpp
-)
+	  )
+	
+SET(THIS_LIB_VERSION 2.6.0) 
 
 if(WIN32)
 include (GenerateExportHeader)
@@ -22,8 +24,8 @@ target_link_libraries(CSPemu_utils PUBLIC
 		libz.a
 	  )
 set_target_properties(CSPemu_utils PROPERTIES
-			     SOVERSION 2.6.0
-			     VERSION 2.6.0
+			     SOVERSION ${THIS_LIB_VERSION}
+			     VERSION ${THIS_LIB_VERSION}
 			     LINK_INTERFACE_LIBRARIES ""
 			     )
 #QT5_USE_MODULES(CSPgui Widgets Core Gui OpenGL)
@@ -41,8 +43,8 @@ add_library(CSPemu_utils SHARED
 )
 
 set_target_properties(CSPemu_utils PROPERTIES 
-			     SOVERSION 2.6.0
-			     VERSION 2.6.0
+			     SOVERSION ${THIS_LIB_VERSION}
+			     VERSION ${THIS_LIB_VERSION}
 			     )
 INSTALL(TARGETS CSPemu_utils DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

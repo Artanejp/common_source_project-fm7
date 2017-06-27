@@ -7,7 +7,8 @@ if(USE_QT_5)
 else()
   QT4_WRAP_CPP(s_qt_osd_headers_MOC ${s_qt_osd_headers})
 endif()
- 
+
+SET(THIS_LIB_VERSION 2.9.5) 
 SET(s_qt_osd_srcs
 	  osd_base.cpp
 	  osd_screen.cpp
@@ -19,6 +20,7 @@ SET(s_qt_osd_srcs
 	  osd_video.cpp
 	  ${s_qt_osd_headers_MOC}
 )
+add_definitions(-D_LIBOSD_VERSION=${THIS_LIB_VERSION})
 
 if(WIN32)
 #add_library(qt_osd
@@ -47,8 +49,8 @@ generate_export_header(CSPosd
        STATIC_DEFINE CSPgosd_BUILT_AS_STATIC
 )
   set_target_properties(CSPosd PROPERTIES 
-     SOVERSION 2.9.5
-     VERSION 2.9.5
+     SOVERSION ${THIS_LIB_VERSION}
+     VERSION ${THIS_LIB_VERSION}
   )
 
 else()
@@ -64,8 +66,8 @@ target_link_libraries(CSPosd PUBLIC
 	  )
   
   set_target_properties(CSPosd PROPERTIES 
-     SOVERSION 2.9.5
-     VERSION 2.9.5
+     SOVERSION ${THIS_LIB_VERSION}
+     VERSION ${THIS_LIB_VERSION}
   )
   INSTALL(TARGETS CSPosd DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()
