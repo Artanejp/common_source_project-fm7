@@ -1212,6 +1212,8 @@ int DATAREC::load_tap_image()
 int DATAREC::load_mzt_image()
 {
 	int len1, len2, len3, len4;
+	sample_rate = 48000;
+	sample_usec = 1000000. / sample_rate;
 	if(__TYPE_MZ80B) {
 		len1 = len2 = (int)(120.0 / 16.0 * sample_rate / 22050.0 + 0.5);
 		len3 = len4 = (int)(60.0 / 16.0 * sample_rate / 22050.0 + 0.5);
@@ -1221,8 +1223,6 @@ int DATAREC::load_mzt_image()
 		len3 = (int)(11.0 * sample_rate / 48000.0 + 0.5);
 		len4 = (int)(15.0 * sample_rate / 48000.0 + 0.5);
 	}
-	sample_rate = 48000;
-	sample_usec = 1000000. / sample_rate;
 	
 	
 	// get file size
