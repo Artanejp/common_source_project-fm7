@@ -40,13 +40,6 @@
 #include "./bubblecasette.h"
 #endif
 
-#if defined(USE_LED_DEVICE)
-#include "./dummydevice.h"
-#else
-#define SIG_DUMMYDEVICE_BIT0 0
-#define SIG_DUMMYDEVICE_BIT1 1
-#define SIG_DUMMYDEVICE_BIT2 2
-#endif
 #include "./fm7_mainio.h"
 #include "./fm7_mainmem.h"
 #include "./fm7_display.h"
@@ -164,11 +157,6 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #ifdef CAPABLE_KANJI_CLASS2
 	kanjiclass2 = new KANJIROM(this, emu, true);
 #endif
-#if defined(USE_LED_DEVICE)
-	led_terminate = new DUMMYDEVICE(this, emu);
-#else
-	led_terminate = new DEVICE(this, emu);
-#endif
 #if defined(_USE_QT)
 	event->set_device_name(_T("EVENT"));
 	dummy->set_device_name(_T("1st Dummy"));
@@ -179,7 +167,6 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 # ifdef WITH_Z80
 	z80cpu->set_device_name(_T("Z80 CPU"));
 # endif
-	led_terminate->set_device_name(_T("LEDs"));
 	if(fdc != NULL) fdc->set_device_name(_T("MB8877 FDC(320KB)"));
 						
 	// basic devices
@@ -347,9 +334,6 @@ void VM::connect_bus(void)
 #endif	
 	keyboard->set_context_rxrdy(display, SIG_FM7KEY_RXRDY, 0x01);
 	keyboard->set_context_key_ack(display, SIG_FM7KEY_ACK, 0x01);
-	keyboard->set_context_ins_led( led_terminate, SIG_DUMMYDEVICE_BIT0, 0xffffffff);
-	keyboard->set_context_caps_led(led_terminate, SIG_DUMMYDEVICE_BIT1, 0xffffffff);
-	keyboard->set_context_kana_led(led_terminate, SIG_DUMMYDEVICE_BIT2, 0xffffffff);
    
 	if(drec != NULL) {
 		drec->set_context_ear(mainio, FM7_MAINIO_CMT_RECV, 0xffffffff);
@@ -537,12 +521,6 @@ double VM::get_frame_rate()
 	return event->get_frame_rate();
 }
 
-#if defined(USE_LED_DEVICE)
-uint32_t VM::get_led_status()
-{
-	return led_terminate->read_signal(SIG_DUMMYDEVICE_READWRITE);
-}
-#endif // USE_LED_DEVICE
 
 
 // ----------------------------------------------------------------------------
@@ -684,6 +662,13 @@ bool VM::get_kana_locked()
 {
 	return keyboard->get_kana_locked();
 }
+
+// Get INS status.Important with FM-7 series (^_^;
+uint32_t VM::get_extra_leds()
+{
+	return keyboard->read_signal(SIG_FM7KEY_LED_STATUS);
+}
+
 
 // ----------------------------------------------------------------------------
 // user interface
@@ -899,7 +884,7 @@ void VM::is_bubble_casette_protected(int drv, bool flag)
 #endif
 
 
-#define STATE_VERSION	5
+#define STATE_VERSION	6
 void VM::save_state(FILEIO* state_fio)
 {
 	state_fio->FputUint32_BE(STATE_VERSION);

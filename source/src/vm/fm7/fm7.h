@@ -17,7 +17,7 @@
 #define USE_DIPSWITCH
 #define USE_CPU_TYPE 2
 #define USE_SPECIAL_RESET
-#define USE_LED_DEVICE 3
+#define USE_EXTRA_LEDS 3
 #define USE_MINIMUM_RENDERING 1
 #define USE_MOUSE
 #define USE_JOYSTICK
@@ -26,6 +26,7 @@
 #define USE_PRINTER_TYPE 4
 #define USE_AY_3_8910_AS_PSG
 
+#define INDEPENDENT_CAPS_KANA_LED
 #define NOTIFY_KEY_DOWN
 //#define NOTIFY_KEY_UP
 #define NOTIFY_KEY_DOWN_LR_SHIFT
@@ -375,10 +376,6 @@ class AY_3_891X;
 #if defined(_FM8)
 class BUBBLECASETTE;
 #endif
-#if defined(USE_LED_DEVICE)
-class DUMMYDEVICE;
-#endif
-
 class DISPLAY;
 #if defined(_FM77AV_VARIANTS)
 class MB61VH010;
@@ -406,11 +403,6 @@ protected:
 	MC6809* maincpu;
 	FM7_MAINMEM* mainmem;
 	FM7_MAINIO* mainio;
-#if defined(USE_LED_DEVICE)
-	DUMMYDEVICE* led_terminate;
-#else
-	DEVICE* led_terminate;
-#endif
 	MB8877* fdc;
 #if defined(_FM8)
 	// FM8
@@ -479,9 +471,6 @@ public:
 	void special_reset();
 	void run();
 	double get_frame_rate();
-#if defined(USE_LED_DEVICE)
-	uint32_t get_led_status();
-#endif
 	
 #ifdef USE_DEBUGGER
 	// debugger
@@ -507,6 +496,7 @@ public:
 	void key_up(int code);
 	bool get_caps_locked();
 	bool get_kana_locked();
+	uint32_t get_extra_leds(); 
 	
 	// user interface
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);

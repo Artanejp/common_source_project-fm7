@@ -426,6 +426,12 @@ bool EMU::get_kana_locked()
 	return vm->get_kana_locked();
 }
 #endif
+#ifdef USE_EXTRA_LEDS
+uint32_t EMU::get_extra_leds()
+{
+	return vm->get_extra_leds();
+}
+#endif
 
 void EMU::key_lost_focus()
 {
@@ -2606,12 +2612,6 @@ uint32_t EMU::is_hard_disk_accessed()
 }
 #endif
 
-#ifdef USE_LED_DEVICE
-uint32_t EMU::get_led_status()
-{
-	return vm->get_led_status();
-}
-#endif
 
 #ifdef USE_SOUND_VOLUME
 void EMU::set_sound_device_volume(int ch, int decibel_l, int decibel_r)

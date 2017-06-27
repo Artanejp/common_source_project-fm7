@@ -235,6 +235,9 @@ public:
 	bool get_caps_locked();
 	bool get_kana_locked();
 #endif
+#ifdef USE_EXTRA_LEDS
+	uint32_t get_extra_leds();
+#endif
 	void key_lost_focus();
 #ifdef ONE_BOARD_MICRO_COMPUTER
 	void press_button(int num);
@@ -484,9 +487,6 @@ public:
 #ifdef USE_HARD_DISK
 	uint32_t is_hard_disk_accessed();
 #endif	
-#ifdef USE_LED_DEVICE
-	uint32_t get_led_status(void);
-#endif
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
