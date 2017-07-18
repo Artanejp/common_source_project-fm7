@@ -20,6 +20,7 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QDockWidget>
+#include <QToolBar>
 
 #include "commonclasses.h"
 #include "display_about.h"
@@ -332,8 +333,9 @@ void Ui_MainWindowBase::setupUi(void)
 	
    
 	bitmapImage = NULL;
-	driveData = new CSP_DockDisks(this, 0);
-	MainWindow->setDockOptions(QMainWindow::AnimatedDocks | QMainWindow::AllowTabbedDocks | QMainWindow::VerticalTabs);
+	driveData = new CSP_DockDisks(this, 0, true);
+	//driveData = new CSP_DockDisks(this, 0);
+	MainWindow->setDockOptions(QMainWindow::AnimatedDocks);
 	if(using_flags->is_use_fd()) {
 		int i;
 		for(i = 0; i < using_flags->get_max_drive(); i++) driveData->setVisible(CSP_DockDisks_Domain_FD, i, true);
@@ -371,7 +373,10 @@ void Ui_MainWindowBase::setupUi(void)
 	
 	MainWindow->setCentralWidget(graphicsView);
 	MainWindow->setFocusProxy(graphicsView);
-	MainWindow->addDockWidget(Qt::RightDockWidgetArea, driveData);
+	//driveData->setAllowedAreas(Qt::RightToolBarArea | Qt::BottomToolBarArea);
+	//MainWindow->addToolBar(Qt::BottomToolBarArea, driveData);
+	MainWindow->addDockWidget(Qt::LeftDockWidgetArea, driveData);
+	//MainWindow->setCorner(Qt::BottomRightCorner, Qt::BottomDockWidgetArea);
 	MainWindow->centralWidget()->adjustSize();
 	MainWindow->adjustSize();
 

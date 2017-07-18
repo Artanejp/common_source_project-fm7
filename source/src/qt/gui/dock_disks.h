@@ -2,6 +2,7 @@
 #define _CSP_QT_DOCKWIDGET_BASE_H
 
 #include <QObject>
+#include <QToolBar>
 #include <QDockWidget>
 #include <QIcon>
 #include <QString>
@@ -24,11 +25,16 @@ enum {
 	
 QT_BEGIN_NAMESPACE
 class QVBoxLayout;
+class QHBoxLayout;
 
 class CSP_DockDisks : public QDockWidget {
 	Q_OBJECT
 protected:
 	QVBoxLayout *VBox;
+	QHBoxLayout *HBox;
+	QWidget *WidgetV;
+	QWidget *WidgetH;
+
 	QLabel *lBinary[8];
 	QLabel *lBubble[8];
 	QLabel *lCart[8];
@@ -39,17 +45,18 @@ protected:
 	QLabel *lLaserDisc[2];
 	QLabel *lQuickDisk[8];
 	
+	QString pBinary[8];
+	QString pBubble[8];
+	QString pCart[8];
+	QString pCMT[2];
+	QString pCompactDisc[2];
+	QString pFloppyDisk[8];
+	QString pHardDisk[8];
+	QString pLaserDisc[2];
+	QString pQuickDisk[8];
+	
 public:
-	QLabel *pBinary[8];
-	QLabel *pBubble[8];
-	QLabel *pCart[8];
-	QLabel *pCMT[2];
-	QLabel *pCompactDisc[2];
-	QLabel *pFloppyDisk[8];
-	QLabel *pHardDisk[8];
-	QLabel *pLaserDisc[2];
-	QLabel *pQuickDisk[8];
-	CSP_DockDisks(QWidget *parent, Qt::WindowFlags flags = 0);
+	CSP_DockDisks(QWidget *parent, Qt::WindowFlags flags = 0, bool vertical = false);
 	~CSP_DockDisks();
 
 public slots:
