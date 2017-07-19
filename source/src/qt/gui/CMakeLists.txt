@@ -107,7 +107,7 @@ set(s_qt_gui_srcs
 	  csp_logger.cpp
 	  qt_main.cpp
 )
-set(THIS_LIB_VERSION 2.9.6)
+set(THIS_LIB_VERSION 2.9.7)
 if(USE_QT_5)
   QT5_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})
 #  if(WIN32)

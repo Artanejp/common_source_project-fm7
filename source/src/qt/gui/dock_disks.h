@@ -2,8 +2,9 @@
 #define _CSP_QT_DOCKWIDGET_BASE_H
 
 #include <QObject>
-#include <QToolBar>
-#include <QDockWidget>
+#include <QWidget>
+//#include <QToolBar>
+//#include <QDockWidget>
 #include <QIcon>
 #include <QString>
 #include <QStringList>
@@ -24,16 +25,9 @@ enum {
 };
 	
 QT_BEGIN_NAMESPACE
-class QVBoxLayout;
-class QHBoxLayout;
-
-class CSP_DockDisks : public QDockWidget {
+class CSP_DockDisks : public QWidget {
 	Q_OBJECT
 protected:
-	QVBoxLayout *VBox;
-	QHBoxLayout *HBox;
-	QWidget *WidgetV;
-	QWidget *WidgetH;
 
 	QLabel *lBinary[8];
 	QLabel *lBubble[8];
@@ -56,13 +50,13 @@ protected:
 	QString pQuickDisk[8];
 	
 public:
-	CSP_DockDisks(QWidget *parent, Qt::WindowFlags flags = 0, bool vertical = false);
+	CSP_DockDisks(QWidget *parent);
 	~CSP_DockDisks();
 
 public slots:
 	void updateLabel(int dom, int localnum, QString str);
 	void updateMessage(int dom, int localnum, QString str);
-	void setVisible(int dom, int localNum, bool enabled);
+	void setVisibleLabel(int dom, int localNum, bool enabled);
 	void setPixmap(int dom, int localNum, const QPixmap &); 
 };
 QT_END_NAMESPACE

@@ -1,12 +1,11 @@
 
 #include <QApplication>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
 #include <QLabel>
 #include <QPixmap>
+#include <QHBoxLayout>
 #include "dock_disks.h"
 
-#define NEW_LABELS(lim,_l,name,_p,mes,zero) {			\
+#define NEW_LABELS(lim,_l,name,_p,mes,zero) {		\
 		QString tmps, tmpss;							\
 		for(int i = 0; i < lim; i++) {					\
 			if(zero) {								\
@@ -19,7 +18,8 @@
 			_p[i] = tmps;							\
 			_l[i] = new QLabel(tmps, this);			\
 			_l[i]->setVisible(false);				\
-			VBox->addWidget(_l[i]);					\
+			_l[i]->setStyleSheet("font: 12pt \"Sans\";"); \
+			HBox->addWidget(_l[i]);					\
 		}											\
 	}
 
@@ -30,60 +30,47 @@
 		}										\
 	}
 			
-CSP_DockDisks::CSP_DockDisks(QWidget *parent, Qt::WindowFlags flags, bool vertical) :  QDockWidget(parent, flags)
+CSP_DockDisks::CSP_DockDisks(QWidget *parent) :  QWidget(parent)
 {
 	QString ns, ms;
-	WidgetV = new QWidget(this);
-	WidgetH = new QWidget(this);
-	VBox = new QVBoxLayout(WidgetV);
-	HBox = new QHBoxLayout(WidgetH);
-	VBox->setAlignment(Qt::AlignTop);
+	QHBoxLayout *HBox = new QHBoxLayout(this);
 	HBox->setAlignment(Qt::AlignRight);
-	
 	ns = QApplication::translate("DockDisks", "Binary", 0);
 	ms =  QApplication::translate("DockDisks", "*EMPTY*", 0);
-	NEW_LABELS(8,lBinary,ns,pBinary,ms,false);
+	NEW_LABELS(8, lBinary, ns, pBinary, ms, false);
 	
 	ns = QApplication::translate("DockDisks", "FD", 0);
 	ms =  QApplication::translate("DockDisks", "     *EMPTY*      ", 0);
-	NEW_LABELS(8,lFloppyDisk,ns,pFloppyDisk,ms,true);
+	NEW_LABELS(8, lFloppyDisk, ns, pFloppyDisk, ms, true);
 	
 	ns = QApplication::translate("DockDisks", "CMT", 0);
 	ms =  QApplication::translate("DockDisks", "     *EJECT*      ", 0);
-	NEW_LABELS(2,lCMT,ns,pCMT,ms,false);
+	NEW_LABELS(2, lCMT, ns, pCMT, ms, false);
 	
 	ns = QApplication::translate("DockDisks", "Bubble", 0);
 	ms =  QApplication::translate("DockDisks", "*EMPTY*", 0);
-	NEW_LABELS(8,lBubble,ns,pBubble,ms,false);
+	NEW_LABELS(8, lBubble, ns, pBubble, ms, false);
 	
 	ns = QApplication::translate("DockDisks", "Cartridge", 0);
 	ms =  QApplication::translate("DockDisks", "*EMPTY*", 0);
-	NEW_LABELS(8,lCart,ns,pCart,ms,false);
+	NEW_LABELS(8, lCart, ns, pCart, ms, false);
 	
 	ns = QApplication::translate("DockDisks", "Quick Disk", 0);
 	ms =  QApplication::translate("DockDisks", "*EMPTY*", 0);
-	NEW_LABELS(8,lQuickDisk,ns,pQuickDisk,ms,false);
+	NEW_LABELS(8, lQuickDisk, ns, pQuickDisk, ms, false);
 
 	ns = QApplication::translate("DockDisks", "CD", 0);
 	ms =  QApplication::translate("DockDisks", "*EJECT*", 0);
-	NEW_LABELS(2,lCompactDisc,ns,pCompactDisc,ms,false);
+	NEW_LABELS(2, lCompactDisc, ns, pCompactDisc, ms, false);
 	
 	ns = QApplication::translate("DockDisks", "HDD", 0);
 	ms =  QApplication::translate("DockDisks", "*EMPTY*", 0);
-	NEW_LABELS(8,lHardDisk,ns,pHardDisk,ms,true);
+	NEW_LABELS(8, lHardDisk, ns, pHardDisk, ms, true);
 	
 	ns = QApplication::translate("DockDisks", "Laser Disc", 0);
 	ms =  QApplication::translate("DockDisks", "*EMPTY*", 0);
-	NEW_LABELS(2,lLaserDisc,ns,pLaserDisc,ms,false);
-
-	this->setFloating(true);
-	WidgetV->setLayout(VBox);
-	//WidgetH->setLayout(HBox);
-	//if(vertical) {
-		this->setWidget(WidgetV);
-		//} else {
-		//	this->setWidget(WidgetH);
-		//}
+	NEW_LABELS(2, lLaserDisc, ns, pLaserDisc, ms, false);
+	this->setLayout(HBox);
 }
 
 
@@ -225,7 +212,7 @@ void CSP_DockDisks::updateMessage(int dom, int localnum, QString str)
 	}
 }
 
-void CSP_DockDisks::setVisible(int dom, int localnum, bool enabled)
+void CSP_DockDisks::setVisibleLabel(int dom, int localnum, bool enabled)
 {
 	switch(dom) {
 	case CSP_DockDisks_Domain_Binary:

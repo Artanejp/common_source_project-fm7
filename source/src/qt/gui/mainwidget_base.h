@@ -94,6 +94,8 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	//QVBoxLayout *sidebarLayout;
 	
 	GLDrawClass *graphicsView;
+	QWidget *pCentralWidget;
+	QVBoxLayout *pCentralLayout;
 	QStatusBar  *statusbar;
 	QMenuBar    *menubar;
 	QTimer *statusUpdateTimer;
@@ -337,6 +339,7 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	class Action_Control *action_SetRenderPlatform[MAX_RENDER_PLATFORMS];
 	QActionGroup *actionGroup_SetRenderPlatform;
 
+	class Action_Control *action_DispVirtualMedias;
 	class Action_Control *action_UseRomaKana;
 	class Action_Control *action_LogToSyslog;
 	class Action_Control *action_LogToConsole;
@@ -612,7 +615,7 @@ public slots:
 	void do_set_render_mode_std(void);
 	void do_set_render_mode_tv(void);
 	void do_select_render_platform(int num);
-	
+	void do_set_visible_virtual_medias(bool f);
 signals:
 	int message_changed(QString);
 	int quit_emu_thread();

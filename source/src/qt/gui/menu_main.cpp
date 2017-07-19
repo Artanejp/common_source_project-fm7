@@ -331,51 +331,57 @@ void Ui_MainWindowBase::setupUi(void)
 		//this->setFocusPolicy(Qt::ClickFocus);
 	}
 	
-   
 	bitmapImage = NULL;
-	driveData = new CSP_DockDisks(this, 0, true);
+	driveData = new CSP_DockDisks(this);
 	//driveData = new CSP_DockDisks(this, 0);
 	MainWindow->setDockOptions(QMainWindow::AnimatedDocks);
 	if(using_flags->is_use_fd()) {
 		int i;
-		for(i = 0; i < using_flags->get_max_drive(); i++) driveData->setVisible(CSP_DockDisks_Domain_FD, i, true);
+		for(i = 0; i < using_flags->get_max_drive(); i++) driveData->setVisibleLabel(CSP_DockDisks_Domain_FD, i, true);
 	}
 	if(using_flags->is_use_qd()) {
 		int i;
-		for(i = 0; i < using_flags->get_max_qd(); i++) driveData->setVisible(CSP_DockDisks_Domain_QD, i, true);
+		for(i = 0; i < using_flags->get_max_qd(); i++) driveData->setVisibleLabel(CSP_DockDisks_Domain_QD, i, true);
 	}
 	if(using_flags->is_use_tape()) {
-		driveData->setVisible(CSP_DockDisks_Domain_CMT, 0, true);
+		driveData->setVisibleLabel(CSP_DockDisks_Domain_CMT, 0, true);
 	}
 	if(using_flags->is_use_cart()) {
 		int i;
 		for(i = 0; i < using_flags->get_max_cart(); i++) {
-			driveData->setVisible(CSP_DockDisks_Domain_Cart, i, true);
+			driveData->setVisibleLabel(CSP_DockDisks_Domain_Cart, i, true);
 		}
 	}
 	if(using_flags->is_use_binary_file()) {
 		int i;
 		for(i = 0; i < using_flags->get_max_binary(); i++) {
-			driveData->setVisible(CSP_DockDisks_Domain_Binary, i, true);
+			driveData->setVisibleLabel(CSP_DockDisks_Domain_Binary, i, true);
 		}
 	}
 	if(using_flags->is_use_compact_disc()) {
-		driveData->setVisible(CSP_DockDisks_Domain_CD, 0, true);
+		driveData->setVisibleLabel(CSP_DockDisks_Domain_CD, 0, true);
 	}
 	if(using_flags->is_use_laser_disc()) {
-		driveData->setVisible(CSP_DockDisks_Domain_LD, 0, true);
+		driveData->setVisibleLabel(CSP_DockDisks_Domain_LD, 0, true);
 	}
 	if(using_flags->is_use_bubble()) {
 		int i;
-		for(i = 0; i < using_flags->get_max_qd(); i++) driveData->setVisible(CSP_DockDisks_Domain_Bubble, i, true);
+		for(i = 0; i < using_flags->get_max_qd(); i++) driveData->setVisibleLabel(CSP_DockDisks_Domain_Bubble, i, true);
 	}
 
-	
-	MainWindow->setCentralWidget(graphicsView);
+	pCentralWidget = new QWidget(this);
+	pCentralLayout = new QVBoxLayout(pCentralWidget);
+	pCentralLayout->addWidget(graphicsView);
+	pCentralLayout->addWidget(driveData);
+	pCentralLayout->setContentsMargins(0, 0, 0, 0);
+	pCentralWidget->setLayout(pCentralLayout);
+	//MainWindow->setCentralWidget(graphicsView);
+	MainWindow->setCentralWidget(pCentralWidget);
+	connect(action_DispVirtualMedias, SIGNAL(toggled(bool)), this, SLOT(do_set_visible_virtual_medias(bool)));
+
 	MainWindow->setFocusProxy(graphicsView);
 	//driveData->setAllowedAreas(Qt::RightToolBarArea | Qt::BottomToolBarArea);
-	//MainWindow->addToolBar(Qt::BottomToolBarArea, driveData);
-	MainWindow->addDockWidget(Qt::LeftDockWidgetArea, driveData);
+	//MainWindow->addToolBar(driveData);
 	//MainWindow->setCorner(Qt::BottomRightCorner, Qt::BottomDockWidgetArea);
 	MainWindow->centralWidget()->adjustSize();
 	MainWindow->adjustSize();
@@ -825,7 +831,8 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL3_MAIN]->setToolTip(QApplication::translate("MainWindow", "Using OpenGL v3.0(MAIN).\nThis is recommanded.\nIf changed, need to restart this emulator.", 0));
 	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL2_MAIN]->setToolTip(QApplication::translate("MainWindow", "Using OpenGLv2.\nThis is fallback of some systems.\nIf changed, need to restart this emulator.", 0));
 	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL_CORE]->setToolTip(QApplication::translate("MainWindow", "Using OpenGL core profile.\nThis still not implement.\nIf changed, need to restart this emulator.", 0));
-	
+
+	action_DispVirtualMedias->setText(QApplication::translate("MainWindow", "Show Virtual Medias.", 0));
 	action_LogView->setText(QApplication::translate("MainWindow", "View Log", 0));
 	action_LogView->setToolTip(QApplication::translate("MainWindow", "View emulator logs with a dialog.", 0));
 }
@@ -842,6 +849,8 @@ void Ui_MainWindowBase::retranselateUi_Depended_OSD(void)
 void Ui_MainWindowBase::CreateEmulatorMenu(void)
 {
 	//menuEmulator->addAction(action_LogRecord);
+	menuEmulator->addAction(action_DispVirtualMedias);
+	menuEmulator->addSeparator();
 	if(using_flags->is_use_roma_kana_conversion()) {
 		menuEmulator->addAction(action_UseRomaKana);
 		menuEmulator->addSeparator();
@@ -870,10 +879,34 @@ void Ui_MainWindowBase::CreateEmulatorMenu(void)
 	menuEmulator->addAction(action_SetupMovie);
 }
 
+void Ui_MainWindowBase::do_set_visible_virtual_medias(bool f)
+{
+	if(f) {
+		driveData->setVisible(true);
+		pCentralLayout->addWidget(driveData);
+		pCentralWidget->setGeometry(graphicsView->width() + driveData->width(),
+									graphicsView->height() + driveData->height(),
+									0,0);
+		set_screen_size(graphicsView->width(), graphicsView->height());
+	} else {
+		driveData->setVisible(false);
+		pCentralLayout->removeWidget(driveData);
+		pCentralWidget->setGeometry(graphicsView->width(),
+									graphicsView->height(),
+									0,0);
+		set_screen_size(graphicsView->width(), graphicsView->height());
+	}		
+}
+
 void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 {
 	int i;
 	QString tmps;
+	action_DispVirtualMedias = new Action_Control(this, using_flags);
+	action_DispVirtualMedias->setCheckable(true);
+	action_DispVirtualMedias->setChecked(true);
+	action_DispVirtualMedias->setEnabled(true);
+	
 	if(using_flags->is_use_roma_kana_conversion()) {
 		action_UseRomaKana = new Action_Control(this, using_flags);
 		action_UseRomaKana->setCheckable(true);

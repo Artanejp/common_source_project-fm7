@@ -59,10 +59,6 @@ void Ui_MainWindowBase::initStatusBar(void)
 	//wfactor = Calc_OSD_Wfactor();
 	osd_led_data = 0x00000000;
 
-	tmps_n = QString::fromUtf8("font: ");
-	n_s.setNum(12);
-	tmps_n = tmps_n + n_s + QString::fromUtf8("pt \"Sans\";");
-	
 	dummyStatusArea2 = new QWidget;
 	dummyStatusArea2->setFixedWidth(100);
 	if((using_flags->get_use_extra_leds() > 0) || (using_flags->get_use_key_locked())) {
