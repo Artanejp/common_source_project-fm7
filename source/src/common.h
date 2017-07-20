@@ -11,9 +11,9 @@
 #define _COMMON_H_
 
 // move shared codes to DLL???
-#ifdef _USE_QT
-	#define USE_SHARED_DLL
-#endif
+//#ifdef _USE_QT
+//	#define USE_SHARED_DLL
+//#endif
 
 // use zlib to decompress gzip file???
 #ifdef _WIN32
