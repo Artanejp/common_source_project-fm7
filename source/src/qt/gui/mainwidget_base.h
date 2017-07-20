@@ -83,26 +83,7 @@ class EmuThreadClass;
 class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 {
 	Q_OBJECT
- protected:
-	USING_FLAGS *using_flags;
-	config_t *p_config;
-	CSP_Logger *csp_logger;
-	QMainWindow *MainWindow;
-	QApplication *CoreApplication;
-	
-	CSP_DockDisks *driveData;
-	//QVBoxLayout *sidebarLayout;
-	
-	GLDrawClass *graphicsView;
-	QWidget *pCentralWidget;
-	QVBoxLayout *pCentralLayout;
-	QStatusBar  *statusbar;
-	QMenuBar    *menubar;
-	QTimer *statusUpdateTimer;
-
-	QTimer *ledUpdateTimer;
-
-	int screen_mode_count;
+private:
 	QIcon WindowIcon;
 	QIcon InsertIcon;
 	QIcon EjectIcon;
@@ -114,11 +95,95 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	QIcon VolumeLowIcon;
 	QIcon VolumeMidIcon;
 	QIcon VolumeHighIcon;
-	// Some Functions
+
+	// File
+	QActionGroup *actionGroup_CpuSpeed;
+	class Action_Control *actionSpeed_x1;
+	class Action_Control *actionSpeed_x2;
+	class Action_Control *actionSpeed_x4;
+	class Action_Control *actionSpeed_x8;
+	class Action_Control *actionSpeed_x16;
+	class Action_Control *actionPaste_from_Clipboard;
+	class Action_Control *actionStop_Pasting;
+	QMenu *menuSave_State;
+	QMenu *menuLoad_State;
+
+	// Screen
+	QActionGroup *actionGroup_Stretch;
+	QActionGroup *actionGroup_SetRenderPlatform;
+	class Action_Control *actionZoom;
+	class Action_Control *actionDisplay_Mode;
+	class Action_Control *actionScanLine;
+	class Action_Control *actionGLScanLineHoriz;
+	class Action_Control *actionGLScanLineVert;
+	class Action_Control *actionRotate;
+	class Action_Control *actionCRT_Filter;
+	class Action_Control *actionOpenGL_Filter;
+	class Action_Control *actionDot_by_Dot;
+	class Action_Control *actionReferToX_Display;
+	class Action_Control *actionReferToY_Display;
+	class Action_Control *actionFill_Display;
+	QActionGroup *actionGroup_ScreenSize;
+	QActionGroup *actionGroup_RenderMode;
+
+	// Sound
+	QActionGroup   *actionGroup_Sound_Freq;
+	QActionGroup   *actionGroup_Sound_Latency;
+	//class Action_Control *actionSoundCMT;
+	class Action_Control *action_VolumeDialog;
+	class Action_Control *actionSoundStrictRendering;
+	class Action_Control *action_SoundFilesFDD;
+	class Action_Control *action_SoundFilesRelay;
+	//QMenu *menuLogToConsole;
+	//QMenu *menuLogToSyslog;
+	QMenu *menuDevLogToConsole;
+	QMenu *menuDevLogToSyslog;
+	QMenu *menu_SetRenderPlatform;
+
+	// Misc
+	class Action_Control *action_DispVirtualMedias;
+	class Action_Control *action_UseRomaKana;
+	class Action_Control *action_LogToSyslog;
+	class Action_Control *action_LogToConsole;
+	class Action_Control *action_LogRecord;
+	class Action_Control *action_DevLogToSyslog[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1];
+	class Action_Control *action_DevLogToConsole[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1];
+	class Action_Control *action_DevLogRecord[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1];
+	// Emulator
+	class Action_Control *action_SetupJoystick;
+	class Action_Control *action_SetupKeyboard;
+	class Action_Control *action_LogView;
+
+	// Help
+	class Action_Control *actionHelp_README_BIOS;
+	class Action_Control *actionHelp_README;
+	class Action_Control *actionHelp_README_QT;
+	class Action_Control *actionHelp_README_MR_TANAM;
+	class Action_Control *actionHelp_README_Artane;
+	class Action_Control *actionHelp_README_Umaiboux;
+	class Action_Control *actionHelp_README_FAQ;
+	class Action_Control *actionHelp_README_FAQ_JP;
+	class Action_Control *actionHelp_README_FM7;
+	class Action_Control *actionHelp_README_FM7_JP;
+	class Action_Control *actionHelp_History;
+	class Action_Control *actionHelp_History_Relnote;
+	class Action_Control *actionHelp_History_ChangeLog;
+	class Action_Control *actionHelp_History_MR_TANAM;
+	class Action_Control *actionHelp_License;
+	class Action_Control *actionHelp_License_JP;
+	
+	// Led: OSD.
+	bool flags_led[32];
+	bool flags_led_bak[32];
+	QGraphicsView *led_graphicsView;
+	QGraphicsScene *led_gScene;
+	QGraphicsEllipseItem *led_leds[32];
+	uint32_t osd_led_data;
+
+	// Inner functions
 	void ConfigCpuSpeed(void);
 	void ConfigControlMenu(void);
 	void connectActions_ControlMenu(void);
-	void retranslateControlMenu(const char *SpecialResetTitle,  bool WithSpecialReset);
 	void ConfigFloppyMenu(void);
 	void ConfigSoundMenu(void);
 	void CreateSoundMenu(void);
@@ -129,21 +194,16 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	void CreateFloppyMenu(int drv, int drv_base);
 	void CreateFloppyPulldownMenu(int drv);
 	void ConfigFloppyMenuSub(int drv);
-	void retranslateFloppyMenu(int drv, int basedrv);
-
 	// Bubble
 	void CreateBubbleMenu(int drv, int drv_base);
 	void CreateBubblePulldownMenu(int drv);
 	void ConfigBubbleMenuSub(int drv);
-	void retranslateBubbleMenu(int drv, int basedrv);
 	void ConfigBubbleMenu(void);
 	
 	void CreateCMTMenu(int drive);
-	void retranslateCMTMenu(int drive);
 	void ConfigCMTMenu(void);
    
 	void ConfigQuickDiskMenu(void);
-	void retranslateQuickDiskMenu(int drv, int basedrv);
 	void ConfigQuickDiskMenuSub(int drv);
 	void CreateQuickDiskPulldownMenu(int drv);
 	void CreateQuickDiskMenu(int drv, int drv_base);
@@ -157,19 +217,13 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	void ConfigCDROMMenu(void);
 	void ConfigCDROMMenuSub(void);
 	void CreateCDROMPulldownMenu(void);
-	void retranslateCDROMMenu(void);
-
+	
 	void CreateLaserdiscMenu(void);
 	void ConfigLaserdiscMenu(void);
 	void ConfigLaserdiscMenuSub(void);
 	void CreateLaserdiscPulldownMenu(void);
-	void retranslateLaserdiscMenu(void);
 
 	void ConfigBinaryMenu(void);
-	void retranslateBinaryMenu(int drv, int basedrv);
-	
-	void retranslateSoundMenu(void);
-
 	void ConfigScreenMenu(void);
 	void ConfigScreenMenu_List(void);
 	void CreateScreenMenu(void);
@@ -180,207 +234,107 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	void ConfigDriveType(void);
 	void ConfigSoundDeviceType(void);
 	void ConfigPrinterType(void);
+
+	// About Status bar
+	int Calc_OSD_Wfactor(void);
+protected:
+	USING_FLAGS *using_flags;
+	config_t *p_config;
+	CSP_Logger *csp_logger;
+	QMainWindow *MainWindow;
+	QApplication *CoreApplication;
 	
-	void retranslateScreenMenu(void);
-	void retranslateMachineMenu(void);
+	GLDrawClass *graphicsView;
+	CSP_DockDisks *driveData;
+	QWidget *pCentralWidget;
+	QVBoxLayout *pCentralLayout;
+	QStatusBar  *statusbar;
+	QMenuBar    *menubar;
 
-	class Action_Control *actionReset;
-	class Action_Control *actionSpecial_Reset;
-	class Action_Control *actionExit_Emulator;
+	QTimer *statusUpdateTimer;
+	QTimer *ledUpdateTimer;
 
-	// Pls.Override
-	QActionGroup *actionGroup_CpuType;
-	QMenu *menuCpuType;
-	class Action_Control *actionCpuType[8];
-	void ConfigCPUTypes(int num);
-
-	QActionGroup *actionGroup_CpuSpeed;
-	class Action_Control *actionSpeed_x1;
-	class Action_Control *actionSpeed_x2;
-	class Action_Control *actionSpeed_x4;
-	class Action_Control *actionSpeed_x8;
-	class Action_Control *actionSpeed_x16;
-
-
-	// Pls.Override
-	QActionGroup *actionGroup_BootMode;
-	QMenu *menuBootMode;
-	class Action_Control *actionBootMode[8];
-	void ConfigCPUBootMode(int num);
-
-	class Action_Control *actionPaste_from_Clipboard;
-	class Action_Control *actionStop_Pasting;
-
-	class Action_Control *actionSave_State[10];
-	class Action_Control *actionLoad_State[10];
-	QMenu *menuSave_State;
-	QMenu *menuLoad_State;
-	
-	class Action_Control *actionDebugger[_MAX_DEBUGGER];
-	//class Action_Control *actionClose_Debuggers;
-
-
+	int screen_mode_count;
+	// Virtual medias.
 	QStringList listCARTs[8];
-
 	QStringList listQDs[8];
-	
 	QStringList listCMT[8];
 	bool cmt_write_protect[8];
 	QStringList listCDROM;
 	QStringList listLaserdisc;
 	QStringList listBINs[8];
-	// Screen
-	class Action_Control *actionZoom;
-	class Action_Control *actionDisplay_Mode;
+	QStringList listFDs[16];
+	QStringList listD88[16];
+	QStringList listBubbles[8];
+	QStringList listB77[8];
 
-	class Action_Control *actionScanLine;
-
-	class Action_Control *actionGLScanLineHoriz;
-	class Action_Control *actionGLScanLineVert;
-	class Action_Control *actionRotate;
-
-	class Action_Control *actionCRT_Filter;
-	class Action_Control *actionOpenGL_Filter;
-
-	QActionGroup *actionGroup_Stretch;
-	class Action_Control *actionDot_by_Dot;
-	class Action_Control *actionReferToX_Display;
-	class Action_Control *actionReferToY_Display;
-	class Action_Control *actionFill_Display;
-
-	class Action_Control *actionCapture_Screen;
-
-	QActionGroup *actionGroup_ScreenSize;
+	// Some Functions
+	QActionGroup *actionGroup_BootMode;
+	QActionGroup *actionGroup_CpuType;
+	class Action_Control *actionReset;
+	class Action_Control *actionSpecial_Reset;
+	class Action_Control *actionExit_Emulator;
+	class Action_Control *actionCpuType[8];
+	class Action_Control *actionBootMode[8];
+	class Action_Control *actionDebugger[_MAX_DEBUGGER];
+	class Action_Control *actionSave_State[10];
+	class Action_Control *actionLoad_State[10];
+	//class Action_Control *actionClose_Debuggers;
 	class Action_Control *actionScreenSize[32];
-
-	QActionGroup *actionGroup_RenderMode;
-	class Action_Control *action_SetRenderMode[8];
-	
 	class Action_Control *actionAbout;
-	class Action_Control *actionHelp_README_BIOS;
-	class Action_Control *actionHelp_README;
-	class Action_Control *actionHelp_README_QT;
-	class Action_Control *actionHelp_README_MR_TANAM;
-	class Action_Control *actionHelp_README_Artane;
-	class Action_Control *actionHelp_README_Umaiboux;
-	class Action_Control *actionHelp_README_FAQ;
-	class Action_Control *actionHelp_README_FAQ_JP;
-	
-	class Action_Control *actionHelp_README_FM7;
-	class Action_Control *actionHelp_README_FM7_JP;
+	class Action_Control *actionMouseEnable;
+	class Action_Control *actionHelp_AboutQt;
 
-	class Action_Control *actionHelp_History;
-	class Action_Control *actionHelp_History_Relnote;
-	class Action_Control *actionHelp_History_ChangeLog;
-	class Action_Control *actionHelp_History_MR_TANAM;
-
-	class Action_Control *actionHelp_License;
-	class Action_Control *actionHelp_License_JP;
-	
-	
-	QActionGroup   *actionGroup_Sound_Freq;
-	QActionGroup   *actionGroup_Sound_Latency;
-
-	//class Action_Control *actionSoundCMT;
-
+	// Screen
+	class Action_Control *actionCapture_Screen;
+	class Action_Control *action_SetRenderMode[8];
+	// Sound
 	class Action_Control *action_Freq[8];
 	class Action_Control *action_Latency[6];
 	class Action_Control *actionStart_Record;
 	class Action_Control *actionStop_Record;
+
+	// Emulator
+	QActionGroup *actionGroup_DeviceType;
+	QActionGroup *actionGroup_KeyboardType;
+	QActionGroup *actionGroup_JoystickType;
+	QActionGroup *actionGroup_MouseType;
+	QActionGroup *actionGroup_DriveType;
+	QActionGroup *actionGroup_SoundDevice;
+	QActionGroup *actionGroup_PrintDevice;
+	QMenu *menuDeviceType;
+	QMenu *menuKeyboardType;
+	QMenu *menuJoystickType;
+	QMenu *menuMouseType;
+	QMenu *menuDriveType;
+	QMenu *menuSoundDevice;
+	QMenu *menuPrintDevice;
+	class Action_Control *actionDeviceType[16];
+	class Action_Control *actionKeyboardType[16];
+	class Action_Control *actionJoystickType[16];
+	class Action_Control *actionMouseType[8];
+	class Action_Control *actionDriveType[8];
+	class Action_Control *actionSoundDevice[32]; //
+	class Action_Control *actionPrintDevice[16];
+	class Action_Control *action_SetRenderPlatform[MAX_RENDER_PLATFORMS];
+	
 	class Action_Control *actionStart_Record_Movie;
 	class Action_Control *actionStop_Record_Movie;
-	class Action_Control *action_VolumeDialog;
-	class Action_Control *actionSoundStrictRendering;
-
-	class Action_Control *actionMouseEnable;
-	class Action_Control *actionHelp_AboutQt;
-
-
-	QActionGroup *actionGroup_DeviceType;
-	QMenu *menuDeviceType;
-	class Action_Control *actionDeviceType[16];
-
-	QActionGroup *actionGroup_KeyboardType;
-	QMenu *menuKeyboardType;
-	class Action_Control *actionKeyboardType[16];
-	
-	QActionGroup *actionGroup_JoystickType;
-	QMenu *menuJoystickType;
-	class Action_Control *actionJoystickType[16];
-	
-	QActionGroup *actionGroup_MouseType;
-	QMenu *menuMouseType;
-	class Action_Control *actionMouseType[8];
-	
-	QActionGroup *actionGroup_DriveType;
-	QMenu *menuDriveType;
-	class Action_Control *actionDriveType[8];
-
-	QActionGroup   *actionGroup_SoundDevice;
-	QMenu *menuSoundDevice;
-	class Action_Control *actionSoundDevice[32]; //
-
-	QActionGroup *actionGroup_PrintDevice;
-	QMenu *menuPrintDevice;
-	class Action_Control *actionPrintDevice[16];
-	// Emulator
-	class Action_Control *action_SetupJoystick;
-	class Action_Control *action_SetupKeyboard;
-	class Action_Control *action_LogView;
-	
-	class Action_Control *action_SoundFilesFDD;
-	class Action_Control *action_SoundFilesRelay;
-	//QMenu *menuLogToConsole;
-	//QMenu *menuLogToSyslog;
-	QMenu *menuDevLogToConsole;
-	QMenu *menuDevLogToSyslog;
-	QMenu *menu_SetRenderPlatform;
-	
-	class Action_Control *action_SetRenderPlatform[MAX_RENDER_PLATFORMS];
-	QActionGroup *actionGroup_SetRenderPlatform;
-
-	class Action_Control *action_DispVirtualMedias;
-	class Action_Control *action_UseRomaKana;
-	class Action_Control *action_LogToSyslog;
-	class Action_Control *action_LogToConsole;
-	class Action_Control *action_LogRecord;
-	class Action_Control *action_DevLogToSyslog[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1];
-	class Action_Control *action_DevLogToConsole[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1];
-	class Action_Control *action_DevLogRecord[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1];
-
 	class Action_Control *action_SetupMovie; // 15, 24, 30, 60
 
-	
 	// Menus    
 	QMenu *menuControl;
 	QMenu *menuState;
 	QMenu *menuCopy_Paste;
 	QMenu *menuCpu_Speed;
 	QMenu *menuDebugger;
-	
-	Menu_FDClass *menu_fds[16];
-	QStringList listFDs[16];
-	QStringList listD88[16];
-	
-	Menu_QDClass *menu_QDs[8];
-	
-	Menu_CMTClass *menu_CMT[8];
-	
-	Menu_CompactDiscClass *menu_CDROM;
-	Menu_LaserdiscClass *menu_Laserdisc;
-	Menu_CartClass *menu_Cart[8];
-	Menu_BinaryClass *menu_BINs[8];
-	Menu_BubbleClass *menu_bubbles[8];
-	
-	QStringList listBubbles[8];
-	QStringList listB77[8];
-
 	QMenu *menuScreen;
-
 	QMenu *menuStretch_Mode;
 	QMenu *menuScreenSize;
 	QMenu *menuScreen_Render;
-  
+	
+	QMenu *menuCpuType;
+	QMenu *menuBootMode;
 	QMenu *menuSound;
 	QMenu *menuOutput_Frequency;
 	QMenu *menuSound_Latency;
@@ -392,6 +346,14 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	QMenu *menuHELP;
 	QMenu *menuHelp_Readme;
 	QMenu *menuHelp_Histories;
+	Menu_FDClass *menu_fds[16];
+	Menu_QDClass *menu_QDs[8];
+	Menu_CMTClass *menu_CMT[8];
+	Menu_CompactDiscClass *menu_CDROM;
+	Menu_LaserdiscClass *menu_Laserdisc;
+	Menu_CartClass *menu_Cart[8];
+	Menu_BinaryClass *menu_BINs[8];
+	Menu_BubbleClass *menu_bubbles[8];
 	// Status Bar
 	QWidget *dummyStatusArea1;
 	QLabel *messagesStatusBar;
@@ -402,23 +364,10 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	
 	QLabel *laserdisc_StatusBar;
 	QString osd_str_laserdisc;
-	
 	QLabel *bubble_StatusBar[8];
 	QString osd_str_bubble[8];
-	
 	QImage *bitmapImage;
-	
-	bool flags_led[32];
-	bool flags_led_bak[32];
-	QGraphicsView *led_graphicsView;
-	QGraphicsScene *led_gScene;
-	QGraphicsEllipseItem *led_leds[32];
-	uint32_t osd_led_data;
-	
 	QClipboard *ClipBoard;
-
-	// About Status bar
-	int Calc_OSD_Wfactor(void);
 	// Constructor
 	EmuThreadClass *hRunEmu;
 	class DrawThreadClass *hDrawEmu;
@@ -427,6 +376,23 @@ class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 	
 	int max_vm_nodes;
 	bool ui_retranslate_completed;
+
+	// CPU Type
+	void ConfigCPUTypes(int num);
+	void ConfigCPUBootMode(int num);
+	// Translate UIs.
+	void retranslateControlMenu(const char *SpecialResetTitle,  bool WithSpecialReset);
+	void retranslateFloppyMenu(int drv, int basedrv);
+	void retranslateBubbleMenu(int drv, int basedrv);
+	void retranslateCMTMenu(int drive);
+	void retranslateQuickDiskMenu(int drv, int basedrv);
+
+	void retranslateCDROMMenu(void);
+	void retranslateLaserdiscMenu(void);
+	void retranslateScreenMenu(void);
+	void retranslateMachineMenu(void);
+	void retranslateBinaryMenu(int drv, int basedrv);
+	void retranslateSoundMenu(void);
 public:
 	Ui_MainWindowBase(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent = 0);
 	~Ui_MainWindowBase();
@@ -492,11 +458,8 @@ public slots:
 	void do_emu_update_volume_balance(int num, int level);
 	void do_emu_update_volume_level(int num, int level);
 	void rise_log_viewer(void);
-	
 	void rise_volume_dialog(void);
-
 	void rise_joystick_dialog(void);
-
 	void rise_keyboard_dialog(void);
 	virtual void rise_movie_dialog(void);
 	void do_stop_saving_movie(void);
@@ -515,8 +478,6 @@ public slots:
 
 	void OnStartAutoKey(void);
 	void OnStopAutoKey(void);
-	
-
 	void eject_cart(int);
 	void set_recent_cart(int, int);
 

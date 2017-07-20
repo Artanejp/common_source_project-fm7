@@ -879,25 +879,6 @@ void Ui_MainWindowBase::CreateEmulatorMenu(void)
 	menuEmulator->addAction(action_SetupMovie);
 }
 
-void Ui_MainWindowBase::do_set_visible_virtual_medias(bool f)
-{
-	if(f) {
-		driveData->setVisible(true);
-		pCentralLayout->addWidget(driveData);
-		pCentralWidget->setGeometry(graphicsView->width() + driveData->width(),
-									graphicsView->height() + driveData->height(),
-									0,0);
-		set_screen_size(graphicsView->width(), graphicsView->height());
-	} else {
-		driveData->setVisible(false);
-		pCentralLayout->removeWidget(driveData);
-		pCentralWidget->setGeometry(graphicsView->width(),
-									graphicsView->height(),
-									0,0);
-		set_screen_size(graphicsView->width(), graphicsView->height());
-	}		
-}
-
 void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 {
 	int i;
@@ -1222,7 +1203,16 @@ void Ui_MainWindowBase::doChangeMessage_EmuThread(QString message)
       emit message_changed(message);
 }
 
-
+void Ui_MainWindowBase::do_set_visible_virtual_medias(bool f)
+{
+	if(f) {
+		driveData->setVisible(true);
+		set_screen_size(graphicsView->width(), graphicsView->height());
+	} else {
+		driveData->setVisible(false);
+		set_screen_size(graphicsView->width(), graphicsView->height());
+	}		
+}
 
 void Ui_MainWindowBase::StopEmuThread(void)
 {
