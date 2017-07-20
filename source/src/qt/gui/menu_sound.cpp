@@ -36,6 +36,13 @@ void Ui_MainWindowBase::do_set_sound_strict_rendering(bool f)
 	}
 }
 
+void Ui_MainWindowBase::do_set_sound_play_tape(bool f)
+{
+	if(using_flags != NULL) {
+		using_flags->get_config_ptr()->sound_play_tape = f;
+	}
+}
+
 void Ui_MainWindowBase::rise_volume_dialog(void)
 {
 	Ui_SoundDialog *dlg = new Ui_SoundDialog(using_flags, this);
@@ -68,34 +75,25 @@ void Ui_MainWindowBase::CreateSoundMenu(void)
   
 	menuSound->addAction(actionStart_Record);
 	menuSound->addSeparator();
-	actionSoundStrictRendering = new Action_Control(this, using_flags);
-	actionSoundStrictRendering->setObjectName(QString::fromUtf8("actionSoundStrictRendering"));
-	actionSoundStrictRendering->setCheckable(true);
-	if(using_flags->get_config_ptr()->sound_strict_rendering) actionSoundStrictRendering->setChecked(true);
-	connect(actionSoundStrictRendering, SIGNAL(toggled(bool)),
-			this, SLOT(do_set_sound_strict_rendering(bool)));
-	menuSound->addAction(actionSoundStrictRendering);
+	SET_ACTION_CHECKABLE_SINGLE_CONNECT(menuSound, actionSoundStrictRendering,
+										"actionSoundStrictRendering", using_flags->get_config_ptr()->sound_strict_rendering,
+										SIGNAL(toggled(bool)), SLOT(do_set_sound_strict_rendering(bool)));
+	SET_ACTION_CHECKABLE_SINGLE_CONNECT(menuSound, actionSoundPlayTape,
+										"actionSoundPlayTape", using_flags->get_config_ptr()->sound_play_tape,
+										SIGNAL(toggled(bool)), SLOT(do_set_sound_play_tape(bool)));
+	
+	//actionSoundStrictRendering = new Action_Control(this, using_flags);
+	//actionSoundStrictRendering->setObjectName(QString::fromUtf8("actionSoundStrictRendering"));
+	//actionSoundStrictRendering->setCheckable(true);
+	//if(using_flags->get_config_ptr()->sound_strict_rendering) actionSoundStrictRendering->setChecked(true);
+	//connect(actionSoundStrictRendering, SIGNAL(toggled(bool)),
+	//		this, SLOT(do_set_sound_strict_rendering(bool)));
+	//menuSound->addAction(actionSoundStrictRendering);
 	
 	menuOutput_Frequency = new QMenu(menuSound);
 	menuOutput_Frequency->setObjectName(QString::fromUtf8("menuOutput_Frequency"));
 	menuSound->addAction(menuOutput_Frequency->menuAction());
 	menuSound->addSeparator();
-#if 0
-	if(using_flags->is_datarec_sound()) {
-		actionSoundCMT = new Action_Control(this, using_flags);
-		actionSoundCMT->setObjectName(QString::fromUtf8("actionSoundCMT"));
-		actionSoundCMT->setCheckable(true);
-		if(using_flags->get_config_ptr()->tape_sound != 0) {
-			actionSoundCMT->setChecked(true);
-		} else {
-			actionSoundCMT->setChecked(false);
-		}
-		connect(actionSoundCMT, SIGNAL(toggled(bool)),
-				this, SLOT(set_cmt_sound(bool)));
-		menuSound->addAction(actionSoundCMT);
-		menuSound->addSeparator();
-	}
-#endif
 	for(i = 0; i < 8; i++) {
 		menuOutput_Frequency->addAction(action_Freq[i]);
 		connect(action_Freq[i], SIGNAL(triggered()),
@@ -154,10 +152,11 @@ void Ui_MainWindowBase::ConfigSoundMenu(void)
 		actionGroup_Sound_Latency->addAction(action_Latency[i]);
 	}
 
-	actionStart_Record = new Action_Control(this, using_flags);
-	actionStart_Record->setObjectName(QString::fromUtf8("actionStart_Record"));
-	actionStart_Record->setCheckable(true);
-	actionStart_Record->setChecked(false);
+	SET_ACTION_SINGLE(actionStart_Record, true, true, false);
+	//actionStart_Record = new Action_Control(this, using_flags);
+	//actionStart_Record->setObjectName(QString::fromUtf8("actionStart_Record"));
+	//actionStart_Record->setCheckable(true);
+	//actionStart_Record->setChecked(false);
 	connect(actionStart_Record, SIGNAL(toggled(bool)), this, SLOT(start_record_sound(bool)));
 
 	action_VolumeDialog = new Action_Control(this, using_flags);
@@ -202,14 +201,10 @@ void Ui_MainWindowBase::retranslateSoundMenu(void)
 	actionStart_Record->setText(QApplication::translate("MainWindow", "Start Recording Sound", 0));
 	actionStart_Record->setToolTip(QApplication::translate("MainWindow", "Record sound as WAV file.", 0));
 	
-#if 0
-	if(using_flags->is_datarec_sound()) {
-		actionSoundCMT->setText(QApplication::translate("MainWindow", "Sound CMT", 0));
-		actionSoundCMT->setToolTip(QApplication::translate("MainWindow", "Enable sound of CMT TAPE recorder.", 0));
-	}
-#endif   
 	actionSoundStrictRendering->setText(QApplication::translate("MainWindow", "Strict Rendering", 0));
 	actionSoundStrictRendering->setToolTip(QApplication::translate("MainWindow", "Rendering per a sample.Select to slower, but accurate rendering sound.", 0));
+	actionSoundPlayTape->setText(QApplication::translate("MainWindow", "Play CMT sound", 0));
+	actionSoundPlayTape->setToolTip(QApplication::translate("MainWindow", "Play sound from CMTs.", 0));
 	
 	menuSound->setTitle(QApplication::translate("MainWindow", "Sound", 0));
 	menuOutput_Frequency->setTitle(QApplication::translate("MainWindow", "Output Frequency", 0));

@@ -575,131 +575,35 @@ void Ui_MainWindowBase::setupUi(void)
 	menuHelp_Readme = new QMenu(menuHELP);
 	menuHelp_Readme->setObjectName(QString::fromUtf8("menuHelp_Readme_menu"));;
 	menuHelp_Readme->setToolTipsVisible(true);
-	
 	menuHELP->addAction(menuHelp_Readme->menuAction());
 
-	actionHelp_README = new Action_Control(this, using_flags);
-	actionHelp_README->setObjectName(QString::fromUtf8("menuHelp_README"));
-	actionHelp_README->do_set_string(QString::fromUtf8("readme.txt"));
-	connect(actionHelp_README, SIGNAL(triggered()), actionHelp_README, SLOT(do_send_string()));
-	connect(actionHelp_README, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
-	menuHelp_Readme->addAction(actionHelp_README);
-	
-	actionHelp_README_QT = new Action_Control(this, using_flags);
-	actionHelp_README_QT->setObjectName(QString::fromUtf8("menuHelp_README_QT"));
-	actionHelp_README_QT->do_set_string(QString::fromUtf8("readme.qt.txt"));
-	menuHelp_Readme->addAction(actionHelp_README_QT);
-	connect(actionHelp_README_QT, SIGNAL(triggered()), actionHelp_README_QT, SLOT(do_send_string()));
-	connect(actionHelp_README_QT, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
-
-	actionHelp_README_Artane = new Action_Control(this, using_flags);
-	actionHelp_README_Artane->setObjectName(QString::fromUtf8("menuHelp_README_Artane"));
-	actionHelp_README_Artane->do_set_string(QString::fromUtf8("readme_by_artane.txt"));
-	connect(actionHelp_README_Artane, SIGNAL(triggered()), actionHelp_README_Artane, SLOT(do_send_string()));
-	connect(actionHelp_README_Artane, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
-	menuHelp_Readme->addAction(actionHelp_README_Artane);
-
-	actionHelp_README_Umaiboux = new Action_Control(this, using_flags);
-	actionHelp_README_Umaiboux->setObjectName(QString::fromUtf8("menuHelp_README_Umaiboux"));
-	actionHelp_README_Umaiboux->do_set_string(QString::fromUtf8("readme_by_umaiboux.txt"));
-	connect(actionHelp_README_Umaiboux, SIGNAL(triggered()), actionHelp_README_Umaiboux, SLOT(do_send_string()));
-	connect(actionHelp_README_Umaiboux, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
-	menuHelp_Readme->addAction(actionHelp_README_Umaiboux);
-   
+	SET_HELP_MENUENTRY(menuHelp_Readme, actionHelp_README, "menuHelp_README", "readme.txt");
+	SET_HELP_MENUENTRY(menuHelp_Readme, actionHelp_README_QT, "menuHelp_README_QT", "readme.qt.txt");
+	SET_HELP_MENUENTRY(menuHelp_Readme, actionHelp_README_Artane, "menuHelp_README_Artane", "readme_by_artane.txt");
+	SET_HELP_MENUENTRY(menuHelp_Readme, actionHelp_README_Umaiboux, "menuHelp_README_Umaiboux", "readme_by_umaiboux.txt");
 	menuHelp_Readme->addSeparator();
-	
-	actionHelp_README_BIOS = new Action_Control(this, using_flags);
-	actionHelp_README_BIOS->setObjectName(QString::fromUtf8("menuHelp_README_BIOS"));
-	actionHelp_README_BIOS->do_set_string(QString::fromUtf8("bios_and_keys.txt"));
-	connect(actionHelp_README_BIOS, SIGNAL(triggered()), actionHelp_README_BIOS, SLOT(do_send_string()));
-	connect(actionHelp_README_BIOS, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
-	menuHelp_Readme->addAction(actionHelp_README_BIOS);
+	SET_HELP_MENUENTRY(menuHelp_Readme, actionHelp_README_BIOS, "menuHelp_README_BIOS", "bios_and_keys.txt");
 	menuHelp_Readme->addSeparator();
-	
-	actionHelp_README_MR_TANAM = new Action_Control(this, using_flags);
-	actionHelp_README_MR_TANAM->setObjectName(QString::fromUtf8("menuHelp_README_MR_TANAM"));
-	actionHelp_README_MR_TANAM->do_set_string(QString::fromUtf8("readme_by_mr_tanam.txt"));
-	connect(actionHelp_README_MR_TANAM, SIGNAL(triggered()), actionHelp_README_MR_TANAM, SLOT(do_send_string()));
-	connect(actionHelp_README_MR_TANAM, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
-	menuHelp_Readme->addAction(actionHelp_README_MR_TANAM);
-	
+	SET_HELP_MENUENTRY(menuHelp_Readme, actionHelp_README_MR_TANAM, "menuHelp_README_MR_TANAM", "readme_by_mr_tanam.txt");
 	menuHelp_Readme->addSeparator();
-	
-	actionHelp_README_FAQ = new Action_Control(this, using_flags);
-	actionHelp_README_FAQ->setObjectName(QString::fromUtf8("menuHelp_README_FAQ"));
-	actionHelp_README_FAQ->do_set_string(QString::fromUtf8("FAQ.html"));
-	connect(actionHelp_README_FAQ, SIGNAL(triggered()), actionHelp_README_FAQ, SLOT(do_send_string()));
-	connect(actionHelp_README_FAQ, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
-	menuHelp_Readme->addAction(actionHelp_README_FAQ);
-
-	actionHelp_README_FAQ_JP = new Action_Control(this, using_flags);
-	actionHelp_README_FAQ_JP->setObjectName(QString::fromUtf8("menuHelp_README_FAQ_JP"));
-	actionHelp_README_FAQ_JP->do_set_string(QString::fromUtf8("FAQ.ja.html"));
-	connect(actionHelp_README_FAQ_JP, SIGNAL(triggered()), actionHelp_README_FAQ_JP, SLOT(do_send_string()));
-	connect(actionHelp_README_FAQ_JP, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
-	menuHelp_Readme->addAction(actionHelp_README_FAQ_JP);
+	SET_HELP_MENUENTRY(menuHelp_Readme, actionHelp_README_FAQ, "menuHelp_README_FAQ", "FAQ.html");
+	SET_HELP_MENUENTRY(menuHelp_Readme, actionHelp_README_FAQ_JP, "menuHelp_README_FAQ_JP", "FAQ.ja.html");
 	menuHelp_Readme->addSeparator();
-	
-	actionHelp_README_FM7 = new Action_Control(this, using_flags);
-	actionHelp_README_FM7->setObjectName(QString::fromUtf8("menuHelp_README_FM7"));
-	actionHelp_README_FM7->do_set_string(QString::fromUtf8("readme_fm7.txt"));
-	connect(actionHelp_README_FM7, SIGNAL(triggered()), actionHelp_README_FM7, SLOT(do_send_string()));
-	connect(actionHelp_README_FM7, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
-	menuHelp_Readme->addAction(actionHelp_README_FM7);
-	
-	actionHelp_README_FM7_JP = new Action_Control(this, using_flags);
-	actionHelp_README_FM7_JP->setObjectName(QString::fromUtf8("menuHelp_README_FM7_JP"));
-	actionHelp_README_FM7_JP->do_set_string(QString::fromUtf8("readme_fm7.jp.txt"));
-	connect(actionHelp_README_FM7_JP, SIGNAL(triggered()), actionHelp_README_FM7_JP, SLOT(do_send_string()));
-	connect(actionHelp_README_FM7_JP, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
-	menuHelp_Readme->addAction(actionHelp_README_FM7_JP);
+	SET_HELP_MENUENTRY(menuHelp_Readme, actionHelp_README_FM7, "menuHelp_README_FM7", "readme_fm7.txt");
+	SET_HELP_MENUENTRY(menuHelp_Readme, actionHelp_README_FM7_JP, "menuHelp_README_FM7_JP", "readme_fm7.jp.txt");
 
 	menuHelp_Histories = new QMenu(menuHELP);
 	menuHelp_Histories->setObjectName(QString::fromUtf8("menuHelp_Histories"));;
 	menuHelp_Histories->setToolTipsVisible(true);
 	menuHELP->addAction(menuHelp_Histories->menuAction());
 
-	actionHelp_History = new Action_Control(this, using_flags);
-	actionHelp_History->setObjectName(QString::fromUtf8("menuHelp_History"));
-	actionHelp_History->do_set_string(QString::fromUtf8("history.txt"));
-	connect(actionHelp_History, SIGNAL(triggered()), actionHelp_History, SLOT(do_send_string()));
-	connect(actionHelp_History, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
-	menuHelp_Histories->addAction(actionHelp_History);
+	SET_HELP_MENUENTRY(menuHelp_Histories, actionHelp_History, "menuHelp_History", "history.txt");
+	SET_HELP_MENUENTRY(menuHelp_Histories, actionHelp_History_Relnote, "menuHelp_History_Relnote", "RELEASENOTE.txt");
+	SET_HELP_MENUENTRY(menuHelp_Histories, actionHelp_History_ChangeLog, "menuHelp_History_Changelog", "ChangeLog.txt");
+	SET_HELP_MENUENTRY(menuHelp_Histories, actionHelp_History_MR_TANAM, "menuHelp_History_MR_TANAM", "history_by_mr_tanam.txt");
 	
-	actionHelp_History_Relnote = new Action_Control(this, using_flags);
-	actionHelp_History_Relnote->setObjectName(QString::fromUtf8("menuHelp_History_Relnote"));
-	actionHelp_History_Relnote->do_set_string(QString::fromUtf8("RELEASENOTE.txt"));
-	connect(actionHelp_History_Relnote, SIGNAL(triggered()), actionHelp_History_Relnote, SLOT(do_send_string()));
-	connect(actionHelp_History_Relnote, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
-	menuHelp_Histories->addAction(actionHelp_History_Relnote);
-	
-	actionHelp_History_ChangeLog = new Action_Control(this, using_flags);
-	actionHelp_History_ChangeLog->setObjectName(QString::fromUtf8("menuHelp_History_ChangeLog"));
-	actionHelp_History_ChangeLog->do_set_string(QString::fromUtf8("ChangeLog.txt"));
-	connect(actionHelp_History_ChangeLog, SIGNAL(triggered()), actionHelp_History_ChangeLog, SLOT(do_send_string()));
-	connect(actionHelp_History_ChangeLog, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
-	menuHelp_Histories->addAction(actionHelp_History_ChangeLog);
-
-	actionHelp_History_MR_TANAM = new Action_Control(this, using_flags);
-	actionHelp_History_MR_TANAM->setObjectName(QString::fromUtf8("menuHelp_History_MR_TANAM"));
-	actionHelp_History_MR_TANAM->do_set_string(QString::fromUtf8("history_by_mr_tanam.txt"));
-	connect(actionHelp_History_MR_TANAM, SIGNAL(triggered()), actionHelp_History_MR_TANAM, SLOT(do_send_string()));
-	connect(actionHelp_History_MR_TANAM, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
-	menuHelp_Histories->addAction(actionHelp_History_MR_TANAM);
-	
-	actionHelp_License = new Action_Control(this, using_flags);
-	actionHelp_License->setObjectName(QString::fromUtf8("menuHelp_License"));
-	actionHelp_License->do_set_string(QString::fromUtf8("LICENSE.txt"));
-	connect(actionHelp_License, SIGNAL(triggered()), actionHelp_License, SLOT(do_send_string()));
-	connect(actionHelp_License, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
-	menuHELP->addAction(actionHelp_License);
-	
-	actionHelp_License_JP = new Action_Control(this, using_flags);
-	actionHelp_License_JP->setObjectName(QString::fromUtf8("menuHelp_License_JP"));
-	actionHelp_License_JP->do_set_string(QString::fromUtf8("LICENSE.ja.txt"));
-	connect(actionHelp_License_JP, SIGNAL(triggered()), actionHelp_License_JP, SLOT(do_send_string()));
-	connect(actionHelp_License_JP, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
-	menuHELP->addAction(actionHelp_License_JP);
+	SET_HELP_MENUENTRY(menuHELP, actionHelp_License, "menuHelp_License", "LICENSE.txt");
+	SET_HELP_MENUENTRY(menuHELP, actionHelp_License_JP, "menuHelp_License_JP", "LICENSE.ja.txt");
 	
 	if(using_flags->get_config_ptr()->window_mode <= 0) using_flags->get_config_ptr()->window_mode = 0;
 	if(using_flags->get_config_ptr()->window_mode >= using_flags->get_screen_mode_num()) using_flags->get_config_ptr()->window_mode = using_flags->get_screen_mode_num() - 1;
@@ -883,21 +787,26 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 {
 	int i;
 	QString tmps;
+	
 	action_DispVirtualMedias = new Action_Control(this, using_flags);
 	action_DispVirtualMedias->setCheckable(true);
 	action_DispVirtualMedias->setChecked(true);
 	action_DispVirtualMedias->setEnabled(true);
 	
+	//SET_ACTION_SINGLE(action_DispVirtualMedias, true, true, (using_flags->get_config_ptr()->sound_noise_cmt != 0));
+	
 	if(using_flags->is_use_roma_kana_conversion()) {
-		action_UseRomaKana = new Action_Control(this, using_flags);
-		action_UseRomaKana->setCheckable(true);
-		if(using_flags->get_config_ptr()->roma_kana_conversion) action_UseRomaKana->setChecked(true);
+		//action_UseRomaKana = new Action_Control(this, using_flags);
+		//action_UseRomaKana->setCheckable(true);
+		//if(using_flags->get_config_ptr()->roma_kana_conversion) action_UseRomaKana->setChecked(true);
+		SET_ACTION_SINGLE(action_UseRomaKana, true, true, (using_flags->get_config_ptr()->roma_kana_conversion));
 		connect(action_UseRomaKana, SIGNAL(toggled(bool)), this, SLOT(do_set_roma_kana(bool)));
 	}
 	if(using_flags->is_use_joystick()) {
 		action_SetupJoystick = new Action_Control(this, using_flags);
 	}
 	if(using_flags->is_use_sound_files_fdd()) {
+		/*
 		action_SoundFilesFDD = new Action_Control(this, using_flags);
 		action_SoundFilesFDD->setCheckable(true);
 		action_SoundFilesFDD->setEnabled(true);
@@ -905,8 +814,11 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 		if(using_flags->get_config_ptr()->sound_noise_fdd != 0) {
 			action_SoundFilesFDD->setChecked(true);
 		}
+		*/
+		SET_ACTION_SINGLE(action_SoundFilesFDD, true, true, (using_flags->get_config_ptr()->sound_noise_fdd != 0));
 	}
 	if(using_flags->is_use_sound_files_relay()) {
+		/*
 		action_SoundFilesRelay = new Action_Control(this, using_flags);
 		action_SoundFilesRelay->setCheckable(true);
 		action_SoundFilesRelay->setEnabled(true);
@@ -914,6 +826,8 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 		if(using_flags->get_config_ptr()->sound_noise_cmt != 0) {
 			action_SoundFilesRelay->setChecked(true);
 		}
+		*/
+		SET_ACTION_SINGLE(action_SoundFilesRelay, true, true, (using_flags->get_config_ptr()->sound_noise_cmt != 0));
 	}
 #if !defined(Q_OS_WIN)
 	action_LogToSyslog = new Action_Control(this, using_flags);
@@ -943,6 +857,16 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	//menuDevLogToConsole = new QMenu(menuEmulator);
 	menuDevLogToConsole = new QMenu(this);
 	menuDevLogToConsole->setToolTipsVisible(true);
+
+	SET_ACTION_CONTROL_ARRAY(0, (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1),
+							 this, using_flags,
+							 menuDevLogToConsole, action_DevLogToConsole, true, false,
+							 dev_log_to_console,
+							 SIGNAL(toggled(bool)),
+							 SLOT(do_set_dev_log_to_console(bool)),
+							 SIGNAL(sig_set_dev_log_to_console(int, bool)),
+							 SLOT(do_set_dev_log_to_console(int, bool)));
+	/*
 	for(int i = 0; i < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1); i++) {
 		action_DevLogToConsole[i] = new Action_Control(this, using_flags);
 		action_DevLogToConsole[i]->setCheckable(true);
@@ -955,6 +879,7 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 		connect(action_DevLogToConsole[i], SIGNAL(sig_set_dev_log_to_console(int, bool)),
 				this, SLOT(do_set_dev_log_to_console(int, bool)));
 	}
+	*/
 	action_LogView = new Action_Control(this, using_flags);
 	connect(action_LogView, SIGNAL(triggered()),
 			this, SLOT(rise_log_viewer()));

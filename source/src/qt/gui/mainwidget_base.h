@@ -48,6 +48,51 @@ enum {
 QT_BEGIN_NAMESPACE
 
 
+#define SET_ACTION_SINGLE(__action,__checkable,__enabled,__cfgif) \
+		__action = new Action_Control(this, using_flags);		  \
+		__action->setCheckable(__checkable);					  \
+		__action->setEnabled(__enabled);						  \
+		__action->setChecked(false);							  \
+		if(__cfgif) {											  \
+			__action->setChecked(true);							  \
+		}														  \
+
+#define SET_ACTION_CHECKABLE_SINGLE_CONNECT(__menu,__action,__objname,__cond,__signal1,__slot1) \
+	__action = new Action_Control(this, using_flags);					\
+	__action->setObjectName(QString::fromUtf8(__objname));				\
+	__action->setCheckable(true);										\
+	if(__cond) __action->setChecked(true);								\
+	connect(__action, __signal1, this, __slot1);						\
+	__menu->addAction(__action);
+
+
+#define SET_HELP_MENUENTRY(__menu,__action,__objname,__txtname) \
+	__action = new Action_Control(this, using_flags); \
+	__action->setObjectName(QString::fromUtf8(__objname)); \
+	__action->do_set_string(QString::fromUtf8(__txtname)); \
+	connect(__action, SIGNAL(triggered()), __action, SLOT(do_send_string())); \
+	connect(__action, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString))); \
+	__menu->addAction(__action);
+	
+
+#define SET_ACTION_CONTROL_ARRAY(__start,__end,							\
+								 __parent,__using_flags,				\
+								 __menu,__action,						\
+								 __checkable,__enabled,__cnf,			\
+								 __signal1,__slot1,						\
+								 __signal2,__slot2) 					\
+	for(int _i = __start; _i < __end;  _i++) {							\
+		__action[_i] = new Action_Control(__parent, __using_flags);		\
+		__action[_i]->setCheckable(__checkable);						\
+		__action[_i]->setEnabled(__enabled);							\
+		__action[_i]->binds->setValue1(_i);								\
+		__menu->addAction(__action[_i]);								\
+		if(using_flags->get_config_ptr()->__cnf[_i][0]) __action[_i]->setChecked(true); \
+		connect(__action[_i], __signal1, __action[_i], __slot1);		\
+		connect(__action[_i], __signal2, this, __slot2);				\
+	}																	\
+
+
 class QVariant;
 class QAction;
 class QActionGroup;
@@ -131,6 +176,7 @@ private:
 	QActionGroup   *actionGroup_Sound_Latency;
 	//class Action_Control *actionSoundCMT;
 	class Action_Control *action_VolumeDialog;
+	class Action_Control *actionSoundPlayTape;
 	class Action_Control *actionSoundStrictRendering;
 	class Action_Control *action_SoundFilesFDD;
 	class Action_Control *action_SoundFilesRelay;
@@ -545,6 +591,7 @@ public slots:
 	void set_latency(int);
 	void set_sound_device(int);
 	void do_set_sound_strict_rendering(bool f);
+	void do_set_sound_play_tape(bool f);
 	
 	void set_monitor_type(int);
 	void message_status_bar(QString);
