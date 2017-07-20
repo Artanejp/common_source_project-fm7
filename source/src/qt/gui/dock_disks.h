@@ -39,6 +39,16 @@ protected:
 	QLabel *lLaserDisc[2];
 	QLabel *lQuickDisk[8];
 	
+	QLabel *dBinary[8];
+	QLabel *dBubble[8];
+	QLabel *dCart[8];
+	QLabel *dCMT[2];
+	QLabel *dCompactDisc[2];
+	QLabel *dFloppyDisk[8];
+	QLabel *dHardDisk[8];
+	QLabel *dLaserDisc[2];
+	QLabel *dQuickDisk[8];
+
 	QString pBinary[8];
 	QString pBubble[8];
 	QString pCart[8];
