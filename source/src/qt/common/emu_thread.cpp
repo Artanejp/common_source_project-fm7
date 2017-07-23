@@ -125,22 +125,30 @@ void EmuThreadClass::get_fd_string(void)
 	access_drv = p_emu->is_floppy_disk_accessed();
 	{
 		for(i = 0; i < (int)using_flags->get_max_drive(); i++) {
+			tmpstr.clear();
+			alamp.clear();
 			if(p_emu->is_floppy_disk_inserted(i)) {
 				if(i == (access_drv - 1)) {
 					alamp = QString::fromUtf8("<FONT COLOR=RED>●</FONT> ");
 				} else {
 					alamp = QString::fromUtf8("○ ");
 				}
-				tmpstr = alamp;
-				tmpstr = tmpstr + QString::fromUtf8(" ");
+				//tmpstr = alamp;
+				//tmpstr = tmpstr + QString::fromUtf8(" ");
+				//tmpstr = tmpstr + iname;
 				if(emu->d88_file[i].bank_num > 0) {
 					iname = QString::fromUtf8(emu->d88_file[i].disk_name[emu->d88_file[i].cur_bank]);
 				} else {
 					iname = QString::fromUtf8("*Inserted*");
 				}
-				tmpstr = tmpstr + iname;
+				tmpstr = iname;
 			} else {
-				tmpstr = QString::fromUtf8("× ");
+				tmpstr.clear();
+				alamp = QString::fromUtf8("×");
+			}
+			if(alamp != fd_lamp[i]) {
+				emit sig_change_access_lamp(CSP_DockDisks_Domain_FD, i, alamp);
+				fd_lamp[i] = alamp;
 			}
 			if(tmpstr != fd_text[i]) {
 				emit sig_change_osd(CSP_DockDisks_Domain_FD, i, tmpstr);
@@ -161,21 +169,22 @@ void EmuThreadClass::get_qd_string(void)
 	uint32_t access_drv = 0;
 	access_drv = p_emu->is_quick_disk_accessed();
 	for(i = 0; i < using_flags->get_max_qd(); i++) {
+		tmpstr.clear();
 		if(p_emu->is_quick_disk_inserted(i)) {
 			if(i == (access_drv - 1)) {
-				alamp = QString::fromUtf8("● ");
+				alamp = QString::fromUtf8("●");
 			} else {
-				alamp = QString::fromUtf8("○ ");
+				alamp = QString::fromUtf8("○");
 			}
 			tmpstr = alamp;
-			tmpstr = tmpstr + QString::fromUtf8(" ");
-			iname = QString::fromUtf8("*Inserted*");
-			tmpstr = tmpstr + iname;
+			//tmpstr = tmpstr + QString::fromUtf8(" ");
+			//iname = QString::fromUtf8("*Inserted*");
+			//tmpstr = tmpstr + iname;
 		} else {
-			tmpstr = QString::fromUtf8("× ");
+			tmpstr = QString::fromUtf8("×");
 		}
 		if(tmpstr != qd_text[i]) {
-			emit sig_change_osd(CSP_DockDisks_Domain_QD, i, tmpstr);
+			emit sig_change_access_lamp(CSP_DockDisks_Domain_QD, i, tmpstr);
 			qd_text[i] = tmpstr;
 		}
 	}
@@ -189,6 +198,7 @@ void EmuThreadClass::get_tape_string()
 #if defined(USE_TAPE1) && !defined(TAPE_BINARY_ONLY)
 	for(int i = 0; i < MAX_TAPE; i++) {
 		if(p_emu->is_tape_inserted(i)) {
+			tmpstr.clear();
 			const _TCHAR *ts = p_emu->get_tape_message(i);
 			if(ts != NULL) {
 				tmpstr = QString::fromUtf8(ts);
@@ -196,9 +206,9 @@ void EmuThreadClass::get_tape_string()
 		} else {
 			tmpstr = QString::fromUtf8("   EMPTY   ");
 		}
-		if(tmpstr != cmt_text) {
+		if(tmpstr != cmt_text[i]) {
 			emit sig_change_osd(CSP_DockDisks_Domain_CMT, i, tmpstr);
-			cmt_text = tmpstr;
+			cmt_text[i] = tmpstr;
 		}
 	}
 #endif
@@ -211,10 +221,10 @@ void EmuThreadClass::get_cd_string(void)
 	if(p_emu->is_compact_disc_inserted()) {
 		tmpstr = QString::fromUtf8("○");
 	} else {
-		tmpstr = QString::fromUtf8("Not Inserted");
+		tmpstr = QString::fromUtf8("×");
 	}
 	if(tmpstr != cdrom_text) {
-		emit sig_change_osd(CSP_DockDisks_Domain_CD, 0, tmpstr);
+		emit sig_change_access_lamp(CSP_DockDisks_Domain_CD, 0, tmpstr);
 		cdrom_text = tmpstr;
 	}
 #endif
@@ -230,14 +240,14 @@ void EmuThreadClass::get_bubble_string(void)
 	for(i = 0; i < using_flags->get_max_bubble() ; i++) {
 		if(p_emu->is_bubble_casette_inserted(i)) {
 			alamp = QString::fromUtf8("● ");
-			tmpstr = alamp + QString::fromUtf8(" ");
+			//tmpstr = alamp + QString::fromUtf8(" ");
 		} else {
 			tmpstr = QString::fromUtf8("×");
-			tmpstr = tmpstr + QString::fromUtf8(" ");
+			//tmpstr = tmpstr + QString::fromUtf8(" ");
 		}
-		if(tmpstr != bubble_text[i]) {
-			emit sig_change_osd(CSP_DockDisks_Domain_Bubble, i, tmpstr);
-			bubble_text[i] = tmpstr;
+		if(alamp != bubble_text[i]) {
+			emit sig_change_access_lamp(CSP_DockDisks_Domain_Bubble, i, tmpstr);
+			bubble_text[i] = alamp;
 		}
 	}
 #endif
@@ -287,9 +297,14 @@ void EmuThreadClass::doWork(const QString &params)
 	//key_down_queue.clear();
 	clear_key_queue();
 
-	for(int i = 0; i < using_flags->get_max_drive(); i++) qd_text[i].clear();
-	for(int i = 0; i < using_flags->get_max_drive(); i++) fd_text[i].clear();
-	cmt_text.clear();
+	for(int i = 0; i < using_flags->get_max_qd(); i++) qd_text[i].clear();
+	for(int i = 0; i < using_flags->get_max_drive(); i++) {
+		fd_text[i].clear();
+		fd_lamp[i] = QString::fromUtf8("×");
+	}
+	for(int i = 0; i < using_flags->get_max_tape(); i++) {
+		cmt_text[i].clear();
+	}
 	cdrom_text.clear();
 	for(int i = 0; i < using_flags->get_max_bubble(); i++) bubble_text[i].clear();
 	
@@ -304,6 +319,9 @@ void EmuThreadClass::doWork(const QString &params)
 		}
 		if(first) {
 			if((using_flags->get_use_extra_leds() > 0) || (using_flags->get_use_key_locked())) emit sig_send_data_led((quint32)led_data);
+			for(int ii = 0; ii < using_flags->get_max_drive(); ii++ ) {
+				emit sig_change_access_lamp(CSP_DockDisks_Domain_FD, ii, fd_lamp[ii]);
+			}
 			first = false;
 		}
 		interval = 0;
@@ -400,24 +418,6 @@ void EmuThreadClass::doWork(const QString &params)
 				//	}
 				//}
 			   
-#if 0
-				if(!roma_kana_queue.isEmpty()) {
-#if defined(USE_AUTO_KEY)
-					FIFO *dmy = emu->get_auto_key_buffer();
-					if(dmy != NULL) {
-						if(dmy->empty()) {
-							QString tmps = roma_kana_queue.dequeue();
-							this->do_start_auto_key(tmps);
-						}
-					}
-#else
-						roma_kana_queue.clear();
-#endif
-				}
-				if(roma_kana_queue.isEmpty()) {
-					roma_kana_conv = false;
-				}
-#endif
 			}
 			// else
 			{

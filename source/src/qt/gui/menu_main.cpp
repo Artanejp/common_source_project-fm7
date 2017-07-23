@@ -366,7 +366,7 @@ void Ui_MainWindowBase::setupUi(void)
 	}
 	if(using_flags->is_use_bubble()) {
 		int i;
-		for(i = 0; i < using_flags->get_max_qd(); i++) driveData->setVisibleLabel(CSP_DockDisks_Domain_Bubble, i, true);
+		for(i = 0; i < using_flags->get_max_bubble(); i++) driveData->setVisibleLabel(CSP_DockDisks_Domain_Bubble, i, true);
 	}
 
 	pCentralWidget = new QWidget(this);

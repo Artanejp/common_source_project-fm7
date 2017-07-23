@@ -25,8 +25,8 @@
 			_d[i] = new QLabel("  ", this);			\
 			_d[i]->setVisible(false);				\
 			_d[i]->setStyleSheet("font: 12pt \"Sans\";"); \
-			_d[i]->setMinimumSize(12 * 1, 20);			  \
-			_d[i]->setMaximumSize(12 * 1, 20);			  \
+			_d[i]->setMinimumSize(12 * 2, 20);			  \
+			_d[i]->setMaximumSize(12 * 2, 20);			  \
 			HBox->addWidget(_d[i]);					\
 			HBox->addWidget(_l[i]);					\
 		}											\
@@ -48,68 +48,72 @@ CSP_DockDisks::CSP_DockDisks(QWidget *parent) :  QWidget(parent)
 	ms =  QApplication::translate("DockDisks", "*EMPTY*", 0);
 	NEW_LABELS(8, lBinary, ns, dBinary, pBinary, ms, false);
 	for(int ii = 0; ii < 8; ii++) {
-		lBinary[ii]->setMinimumSize(12 * 10, 20);
-		lBinary[ii]->setMaximumSize(12 * 10, 20);
+		lBinary[ii]->setMinimumSize(12 * 6, 20);
+		lBinary[ii]->setMaximumSize(12 * 6, 20);
 	}
 	
 	ns = QApplication::translate("DockDisks", "FD", 0);
 	ms =  QApplication::translate("DockDisks", "", 0);
 	NEW_LABELS(8, lFloppyDisk, ns, dFloppyDisk, pFloppyDisk, ms, true);
 	for(int ii = 0; ii < 8; ii++) {
-		lFloppyDisk[ii]->setMinimumSize(12 * 22, 20);
-		lFloppyDisk[ii]->setMaximumSize(12 * 22, 20);
+		lFloppyDisk[ii]->setMinimumSize(12 * 14, 20);
+		lFloppyDisk[ii]->setMaximumSize(12 * 14, 20);
 	}
 
 	ns = QApplication::translate("DockDisks", "CMT", 0);
 	ms =  QApplication::translate("DockDisks", "     *EJECT*      ", 0);
 	NEW_LABELS(2, lCMT, ns, dCMT, pCMT, ms, false);
 	for(int ii = 0; ii < 2; ii++) {
-		lCMT[ii]->setMinimumSize(12 * 12, 20);
-		lCMT[ii]->setMaximumSize(12 * 12, 20);
+		lCMT[ii]->setMinimumSize(12 * 14, 20);
+		lCMT[ii]->setMaximumSize(12 * 14, 20);
 	}
 
 	ns = QApplication::translate("DockDisks", "BUBBLE", 0);
 	ms =  QApplication::translate("DockDisks", "*EMPTY*", 0);
 	NEW_LABELS(8, lBubble, ns, dBubble, pBubble, ms, false);
 	for(int ii = 0; ii < 8; ii++) {
-		lBubble[ii]->setMinimumSize(12 * 10, 20);
-		lBubble[ii]->setMaximumSize(12 * 10, 20);
+		lBubble[ii]->setMinimumSize(12 * 8, 20);
+		lBubble[ii]->setMaximumSize(12 * 8, 20);
 	}
 	
-	ns = QApplication::translate("DockDisks", "CARTRIDGE", 0);
+	ns = QApplication::translate("DockDisks", "CART", 0);
 	ms =  QApplication::translate("DockDisks", "**", 0);
 	NEW_LABELS(8, lCart, ns, dCart, pCart, ms, false);
 	for(int ii = 0; ii < 8; ii++) {
-		lCart[ii]->setMinimumSize(12 * 12, 20);
-		lCart[ii]->setMaximumSize(12 * 12, 20);
+		lCart[ii]->setMinimumSize(12 * 6, 20);
+		lCart[ii]->setMaximumSize(12 * 6, 20);
 	}
 	
 	ns = QApplication::translate("DockDisks", "QD", 0);
 	ms =  QApplication::translate("DockDisks", "*EJECT*", 0);
 	NEW_LABELS(8, lQuickDisk, ns, dQuickDisk, pQuickDisk, ms, false);
 	for(int ii = 0; ii < 8; ii++) {
-		lQuickDisk[ii]->setMinimumSize(12 * 10, 20);
-		lQuickDisk[ii]->setMaximumSize(12 * 10, 20);
+		lQuickDisk[ii]->setMinimumSize(12 * 8, 20);
+		lQuickDisk[ii]->setMaximumSize(12 * 8, 20);
 	}
 	ns = QApplication::translate("DockDisks", "CD", 0);
 	ms =  QApplication::translate("DockDisks", "*EJECT*", 0);
 	NEW_LABELS(2, lCompactDisc, ns, dCompactDisc, pCompactDisc, ms, false);
 	for(int ii = 0; ii < 2; ii++) {
-		lCompactDisc[ii]->setMinimumSize(12 * 10, 20);
-		lCompactDisc[ii]->setMaximumSize(12 * 10, 20);
+		lCompactDisc[ii]->setMinimumSize(12 * 4, 20);
+		lCompactDisc[ii]->setMaximumSize(12 * 4, 20);
 	}		
 	
 	ns = QApplication::translate("DockDisks", "HDD", 0);
 	ms =  QApplication::translate("DockDisks", "", 0);
 	NEW_LABELS(8, lHardDisk, ns, dHardDisk, pHardDisk, ms, true);
 	for(int ii = 0; ii < 8; ii++) {
-		lHardDisk[ii]->setMinimumSize(12 * 4, 20);
-		lHardDisk[ii]->setMaximumSize(12 * 4, 20);
+		lHardDisk[ii]->setMinimumSize(12 * 6, 20);
+		lHardDisk[ii]->setMaximumSize(12 * 6, 20);
 	}		
 	
-	ns = QApplication::translate("DockDisks", "Laser Disc", 0);
+	ns = QApplication::translate("DockDisks", "LD", 0);
 	ms =  QApplication::translate("DockDisks", "*EMPTY*", 0);
 	NEW_LABELS(2, lLaserDisc, ns, dLaserDisc, pLaserDisc, ms, false);
+	for(int ii = 0; ii < 2; ii++) {
+		lLaserDisc[ii]->setMinimumSize(12 * 4, 20);
+		lLaserDisc[ii]->setMaximumSize(12 * 4, 20);
+	}
 	this->setLayout(HBox);
 }
 
@@ -258,7 +262,8 @@ void CSP_DockDisks::setVisibleLabel(int dom, int localnum, bool enabled)
 	case CSP_DockDisks_Domain_Binary:
 		if((localnum < 8) && (localnum >= 0)) {
 			lBinary[localnum]->setVisible(enabled);
-			dBinary[localnum]->setVisible(enabled);
+			//dBinary[localnum]->setVisible(enabled);
+			dBinary[localnum]->setVisible(false);
 		}
 		break;
 	case CSP_DockDisks_Domain_Bubble:
@@ -270,13 +275,13 @@ void CSP_DockDisks::setVisibleLabel(int dom, int localnum, bool enabled)
 	case CSP_DockDisks_Domain_Cart:
 		if((localnum < 8) && (localnum >= 0)) {
 			lCart[localnum]->setVisible(enabled);
-			dCart[localnum]->setVisible(enabled);
+			dCart[localnum]->setVisible(false);
 		}
 		break;
 	case CSP_DockDisks_Domain_CMT:
 		if((localnum < 2) && (localnum >= 0)) {
 			lCMT[localnum]->setVisible(enabled);
-			dCMT[localnum]->setVisible(enabled);
+			dCMT[localnum]->setVisible(false);
 		}
 		break;
 	case CSP_DockDisks_Domain_CD:

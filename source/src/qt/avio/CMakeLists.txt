@@ -15,7 +15,7 @@ set(s_qt_avio_srcs
 	  sound_loader.cpp
 )
 
-SET(THIS_LIB_VERSION 2.6.7)
+SET(THIS_LIB_VERSION 2.6.8)
 
 if(USE_QT_5)
   QT5_WRAP_CPP(s_qt_avio_headers_MOC ${s_qt_avio_headers})

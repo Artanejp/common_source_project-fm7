@@ -62,9 +62,7 @@ protected:
 	FIFO *key_down_repeat_fifo;
 
 	
-	QQueue <QString>roma_kana_queue;
 	uint32_t key_mod;
-	bool roma_kana_conv;
 	bool romakana_conversion_mode;
 
 	EMU *p_emu;
@@ -99,9 +97,10 @@ protected:
 	int total_frames;
 	int draw_frames;
 	int skip_frames;
-	QString qd_text[8];
-	QString fd_text[16];
-	QString cmt_text;
+	QString qd_text[4];
+	QString fd_text[8];
+	QString fd_lamp[8];
+	QString cmt_text[4];
 	QString cdrom_text;
 	QString laserdisc_text;
 	QString bubble_text[16];
@@ -209,7 +208,11 @@ signals:
 	int sig_check_grab_mouse(bool);
 	int sig_mouse_enable(bool);
 	int sig_update_recent_disk(int);
+	
 	int sig_change_osd(int, int, QString);
+	int sig_change_access_lamp(int, int, QString);
+	int sig_change_virtual_media(int, int, QString);
+	
 	int sig_update_recent_bubble(int);
 	int sig_change_osd_bubble(int, QString);
 	int sig_set_grid_vertical(int, bool);

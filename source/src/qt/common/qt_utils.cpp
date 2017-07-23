@@ -348,6 +348,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 
 	connect(action_SetupMovie, SIGNAL(triggered()), this, SLOT(rise_movie_dialog()));
 	connect(hRunEmu, SIGNAL(sig_change_osd(int, int, QString)), driveData, SLOT(updateMessage(int, int, QString)));
+	connect(hRunEmu, SIGNAL(sig_change_access_lamp(int, int, QString)), driveData, SLOT(updateLabel(int, int, QString)));
 
 	hRunEmu->start();
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "EmuThread : Launch done.");

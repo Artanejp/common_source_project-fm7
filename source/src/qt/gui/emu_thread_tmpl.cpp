@@ -56,12 +56,6 @@ EmuThreadClassBase::EmuThreadClassBase(META_MainWindow *rootWindow, USING_FLAGS 
 								 using_flags->get_config_ptr()->sound_volume_l[i]) / 2;
 		}
 	}
-	memset(roma_kana_buffer, 0x00, sizeof(roma_kana_buffer));
-	roma_kana_ptr = 0;
-	roma_kana_queue.clear();
-	roma_kana_conv = false;
-	romakana_conversion_mode = false;
-
 	key_up_code_fifo = new FIFO(4096);
 	key_up_mod_fifo = new FIFO(4096);
 	key_up_repeat_fifo = new FIFO(4096);
@@ -199,28 +193,10 @@ void EmuThreadClassBase::do_key_down(uint32_t vk, uint32_t mod, bool repeat)
 	sp.repeat = repeat;
 	//key_changed = true;
 	if(using_flags->is_use_roma_kana_conversion()) {
-#if 0
-		if(p_config->roma_kana_conversion) {
-			if((vk == VK_F12)) {
-				romakana_conversion_mode = !romakana_conversion_mode;
-				//emit sig_romakana_mode(romakana_conversion_mode);
-				return;
-			}
-			if(roma_kana_ptr < (int)(sizeof(roma_kana_buffer) / sizeof(_TCHAR)) &&
-			   (((vk >= 'A') && (vk <= 'z')) ||
-				(vk == VK_OEM_4) || (vk == VK_OEM_6) ||
-				(vk == VK_OEM_2) || (vk == VK_OEM_COMMA) ||
-				(vk == VK_OEM_PERIOD) || (vk == VK_OEM_MINUS)) &&
-				romakana_conversion_mode) {
-				return;
-			}
+		if(vk == VK_F12) {
+			set_romakana();
+			return;
 		}
-#else
-	if(vk == VK_F12) {
-		set_romakana();
-		return;
-	}
-#endif
 	}
 	enqueue_key_down(sp);
 	key_mod = mod;
@@ -232,70 +208,6 @@ void EmuThreadClassBase::do_key_up(uint32_t vk, uint32_t mod)
 	sp.code = vk;
 	sp.mod = mod;
 	sp.repeat = false;
-#if 0
-	if(using_flags->is_use_roma_kana_conversion()) {
-		if(p_config->roma_kana_conversion && romakana_conversion_mode) {
-			if(roma_kana_ptr < (int)(sizeof(roma_kana_buffer) / sizeof(_TCHAR)) &&
-			   (((vk >= 'A') && (vk <= 'z')) ||
-				(vk == VK_OEM_4) || (vk == VK_OEM_6) ||
-				(vk == VK_OEM_2) || (vk == VK_OEM_COMMA) ||
-				(vk == VK_OEM_PERIOD) || (vk == VK_OEM_MINUS))) {
-				wchar_t kana_buffer[12];
-				int kana_len = 10;
-				memset(kana_buffer, 0x00, sizeof(kana_buffer));
-				uint32_t vvk = vk;
-				switch(vk) {
-				case VK_OEM_MINUS:
-					vvk = '-';
-					break;
-				case VK_OEM_4:
-					vvk = '[';
-					break;
-				case VK_OEM_6:
-					vvk = ']';
-					break;
-				case VK_OEM_COMMA:
-					vvk = ',';
-					break;
-				case VK_OEM_PERIOD:
-					vvk = '.';
-					break;
-				case VK_OEM_2:
-					vvk = '/';
-					break;
-				}
-				roma_kana_shadow[roma_kana_ptr] = vk;
-				roma_kana_buffer[roma_kana_ptr++] = (_TCHAR)vvk;
-				if(alphabet_to_kana((const _TCHAR *)roma_kana_buffer, kana_buffer, &kana_len) > 0) {
-					if(kana_len > 0) {
-						QString kana_str = QString::fromWCharArray((const wchar_t *)kana_buffer, kana_len);
-						roma_kana_queue.enqueue(kana_str);
-						//printf("%s\n", kana_str.toUtf8().constData());
-					}
-					roma_kana_ptr = 0;
-					memset(roma_kana_buffer, 0x00, sizeof(roma_kana_buffer));
-					memset(roma_kana_shadow, 0x00, sizeof(roma_kana_shadow));
-					roma_kana_conv = true;
-				}
-				return;
-			} else {
-				if(roma_kana_ptr > 0) {
-					for(int i = 0; i < roma_kana_ptr; i++) {
-						key_queue_t sss;
-						sss.code = roma_kana_shadow[i];
-						sss.mod = mod;
-						sss.repeat = false;
-						enqueue_key_down(sss);
-						enqueue_key_up(sss);
-					}
-					memset(roma_kana_buffer, 0x00, sizeof(roma_kana_buffer));
-					memset(roma_kana_shadow, 0x00, sizeof(roma_kana_shadow));
-					roma_kana_ptr = 0;
-				}
-			}
-		}
-	}
-#endif
 	enqueue_key_up(sp);
 	key_mod = mod;
 }
