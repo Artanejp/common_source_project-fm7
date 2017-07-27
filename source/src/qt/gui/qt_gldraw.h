@@ -141,7 +141,8 @@ public slots:
 	void do_stop_run_vm();
 	void do_enable_mouse(void);
 	void do_disable_mouse(void);
-	
+	void do_set_display_osd(bool onoff);
+	void do_display_osd_leds(int lednum,bool onoff);
 signals:
 	void update_screenChanged(int tick);
 	void do_notify_move_mouse(int x, int y);
@@ -155,6 +156,8 @@ signals:
 	int sig_finished(void);
 	int sig_key_down(uint32_t, uint32_t, bool);
 	int sig_key_up(uint32_t, uint32_t);
+	int sig_set_display_osd(bool);
+	int sig_display_osd_leds(int,bool);
 };
 
 #endif // End.

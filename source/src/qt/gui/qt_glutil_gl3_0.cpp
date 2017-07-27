@@ -973,6 +973,70 @@ void GLDraw_3_0::drawBitmapTexture(void)
 	}
 }
 
+void GLDraw_3_0::drawOsdLeds()
+{
+	QVector4D color_on;
+	QVector4D color_off;
+	VertexTexCoord_t vertex[4];
+	float xbase, ybase, zbase;
+	if(osd_onoff) {
+		color_on = QVector4D(0.95, 0.0, 0.05, 1.0);
+		color_off = QVector4D(0.05,0.05, 0.05, 0.10);
+	} else {
+		color_on = QVector4D(0.00,0.00, 0.00, 0.0);
+		color_off = QVector4D(0.00,0.00, 0.00, 0.0);
+	}
+	xbase = 0.0f + (1.0f / 32.0f) * 31.0f + (1.0f / 128.0f);
+	ybase = -1.0f + (2.0f / 64.0f) * 1.5f;
+	zbase = -0.999f;
+	
+	extfunc->glEnable(GL_BLEND);
+	extfunc->glDisable(GL_TEXTURE_2D);
+	extfunc->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	extfunc->glDisable(GL_DEPTH_TEST);
+	extfunc->glViewport(0, 0, p_wid->width(), p_wid->height());
+	extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
+	if(osd_onoff) {
+		uint32_t _bit = 0x00000001;
+		
+		xbase = 0.0f + (1.0f / 32.0f) * 31.0f + (1.0f / 128.0f);
+		ybase = -1.0f + (2.0f / 64.0f) * 1.5f;
+		ybase = 0.0f;
+		xbase = -1.0f + 0.1f;
+		zbase = -0.999f;
+		for(int ii = 0; ii < 32; ii++) {
+			
+			vertex[0].x = xbase;
+			vertex[0].y = ybase;
+			vertex[0].z = zbase;
+			
+			vertex[1].x = xbase + (1.0f / 64.0f);
+			vertex[1].y = ybase;
+			vertex[1].z = zbase;
+			
+			vertex[2].x = xbase + (1.0f / 64.0f);
+			vertex[2].y = ybase - (1.0f / 64.0f);
+			vertex[2].z = zbase;
+			
+			vertex[3].x = xbase;
+			vertex[3].y = ybase - (1.0f / 64.0f);
+			vertex[3].z = zbase;
+			if(_bit & osd_led_status) {
+				extfunc->glColor4f(color_on.x(), color_on.y(), color_on.z(), color_on.w());
+			} else {
+				extfunc->glColor4f(color_off.x(), color_off.y(), color_off.z(), color_off.w());
+			}
+			extfunc->glBegin(GL_POLYGON);
+			for(int j = 0; j < 4; j++) {
+				extfunc->glVertex3f(vertex[j].x, vertex[j].y, vertex[j].z);
+			}
+			extfunc->glEnd();
+			xbase = xbase - (1.0f / 32.0f);
+			_bit <<= 1;
+		}
+	}
+}
+
 void GLDraw_3_0::paintGL(void)
 {
 	//p_wid->makeCurrent();
@@ -1001,6 +1065,7 @@ void GLDraw_3_0::paintGL(void)
 		if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
 			drawGrids();
 		}
+		drawOsdLeds();
 		extfunc->glFlush();
 	}
 	//p_wid->doneCurrent();

@@ -187,7 +187,9 @@ private:
 	QMenu *menu_SetRenderPlatform;
 
 	// Misc
-	class Action_Control *action_DispVirtualMedias;
+	QMenu *menu_DispVirtualMedias;
+	QActionGroup *actionGroup_DispVirtualMedias;
+	class Action_Control *action_DispVirtualMedias[5];
 	class Action_Control *action_UseRomaKana;
 	class Action_Control *action_LogToSyslog;
 	class Action_Control *action_LogToConsole;
@@ -623,7 +625,11 @@ public slots:
 	void do_set_render_mode_std(void);
 	void do_set_render_mode_tv(void);
 	void do_select_render_platform(int num);
-	void do_set_visible_virtual_medias(bool f);
+	void do_set_visible_virtual_media_none();
+	void do_set_visible_virtual_media_upper();
+	void do_set_visible_virtual_media_lower();
+	void do_set_visible_virtual_media_left();
+	void do_set_visible_virtual_media_right();
 signals:
 	int message_changed(QString);
 	int quit_emu_thread();
@@ -684,6 +690,8 @@ signals:
 	int sig_led_update(QRectF);
 	int sig_start_auto_key(QString);
 	int sig_stop_auto_key(void);
+	int sig_set_display_osd(bool);
+	int sig_display_osd_leds(int,bool);
    
 	int quit_debugger_thread(void);
 	int sig_quit_widgets(void);

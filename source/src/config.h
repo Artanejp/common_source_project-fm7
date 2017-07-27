@@ -261,6 +261,8 @@ typedef struct {
 
 	bool roma_kana_conversion;
 	int rendering_type;
+
+	int virtual_media_position; // -1 = none, 1, 2, 3, 4 = LRUD
 #endif
 	
 } config_t;

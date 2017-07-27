@@ -46,6 +46,8 @@ GLDraw_2_0::GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, 
 	screen_texture_height_old = using_flags->get_screen_height();
 	extfunc_2 = NULL;
 	redraw_required = false;
+	osd_led_status = 0x00000000;
+	osd_onoff = true;
 
 	uBitmapTextureID = 0;
 	bitmap_uploaded = false;
@@ -128,6 +130,84 @@ GLDraw_2_0::~GLDraw_2_0()
 
 void GLDraw_2_0::initializeGL(void)
 {
+}
+
+void GLDraw_2_0::do_set_display_osd(bool onoff)
+{
+	osd_onoff = onoff;
+}
+
+void GLDraw_2_0::do_display_osd_leds(int lednum, bool onoff)
+{
+	if(lednum == -1) {
+		osd_led_status = (onoff) ? 0xffffffff : 0x00000000;
+	} else if((lednum >= 0) && (lednum < 32)) {
+		uint32_t nn;
+		nn = 0x00000001 << lednum;
+		if(onoff) {
+			osd_led_status |= nn;
+		} else {
+			osd_led_status &= ~nn;
+		}
+	}
+}
+
+void GLDraw_2_0::drawOsdLeds()
+{
+	QVector4D color_on;
+	QVector4D color_off;
+	VertexTexCoord_t vertex[4];
+	float xbase, ybase, zbase;
+	if(osd_onoff) {
+		color_on = QVector4D(0.95, 0.0, 0.05, 1.0);
+		color_off = QVector4D(0.05,0.05, 0.05, 0.10);
+	} else {
+		color_on = QVector4D(0.00,0.00, 0.00, 0.0);
+		color_off = QVector4D(0.00,0.00, 0.00, 0.0);
+	}
+	xbase = 0.0f + (1.0f / 32.0f) * 31.0f + (1.0f / 128.0f);
+	ybase = -1.0f + (2.0f / 64.0f) * 1.5f;
+	zbase = -0.999f;
+	
+	extfunc_2->glEnable(GL_BLEND);
+	extfunc_2->glDisable(GL_TEXTURE_2D);
+	extfunc_2->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	extfunc_2->glDisable(GL_DEPTH_TEST);
+	extfunc_2->glViewport(0, 0, p_wid->width(), p_wid->height());
+	extfunc_2->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
+	if(osd_onoff) {
+		uint32_t _bit = 0x00000001;
+		for(int ii = 0; ii < 32; ii++) {
+			
+			vertex[0].x = xbase;
+			vertex[0].y = ybase;
+			vertex[0].z = zbase;
+			
+			vertex[1].x = xbase + (1.0f / 64.0f);
+			vertex[1].y = ybase;
+			vertex[1].z = zbase;
+			
+			vertex[2].x = xbase + (1.0f / 64.0f);
+			vertex[2].y = ybase - (1.0f / 64.0f);
+			vertex[2].z = zbase;
+			
+			vertex[3].x = xbase;
+			vertex[3].y = ybase - (1.0f / 64.0f);
+			vertex[3].z = zbase;
+			if(_bit & osd_led_status) {
+				extfunc_2->glColor4f(color_on.x(), color_on.y(), color_on.z(), color_on.w());
+			} else {
+				extfunc_2->glColor4f(color_off.x(), color_off.y(), color_off.z(), color_off.w());
+			}			
+			extfunc_2->glBegin(GL_POLYGON);
+			for(int j = 0; j < 4; j++) {
+				extfunc_2->glVertex3f(vertex[j].x, vertex[j].y, vertex[j].z);
+			}
+			extfunc_2->glEnd();
+			xbase = xbase - (1.0f / 32.0f);
+			_bit <<= 1;
+		}
+	}
 }
 
 void GLDraw_2_0::setNormalVAO(QOpenGLShaderProgram *prg,
@@ -933,6 +1013,7 @@ void GLDraw_2_0::paintGL(void)
 		 */
 		drawScreenTexture();
 		extfunc_2->glDisable(GL_BLEND);
+		drawOsdLeds();
 		if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
 			drawGrids();
 		}

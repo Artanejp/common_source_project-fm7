@@ -224,6 +224,7 @@ signals:
 	int sig_debugger_input(QString);
 	int sig_quit_debugger();
 	int sig_romakana_mode(bool);
+	int sig_set_access_lamp(int, bool);
 };
 
 QT_END_NAMESPACE

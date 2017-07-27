@@ -195,6 +195,7 @@ void initialize_config()
 		
 		config.roma_kana_conversion = false;
 		config.rendering_type = CONFIG_RENDER_TYPE_STD;
+		config.virtual_media_position = 4; // Down.
 #endif	
 }
 
@@ -504,6 +505,7 @@ void load_config(const _TCHAR *config_path)
 			flags >>= 1;
 			}
 		}
+		config.virtual_media_position = MyGetPrivateProfileInt(_T("Qt"), _T("UiVirtualMediaPosition%d"), config.virtual_media_position, config_path);
 		//csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Read config done.");
 	#endif
 }
@@ -765,6 +767,7 @@ void save_config(const _TCHAR *config_path)
 			}
 			MyWritePrivateProfileInt(_T("Qt"), create_string(_T("RecordLogEnabled%d"), ii), flags, config_path);
 		}
+		MyWritePrivateProfileInt(_T("Qt"), _T("UiVirtualMediaPosition%d"), config.virtual_media_position, config_path);
 		//csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Write config done.");
 	#endif	
 }

@@ -121,12 +121,18 @@ protected:
 	bool crt_flag;
 	bool redraw_required;
 
+	virtual void drawOsdLeds();
+
 	QOpenGLFramebufferObject *offscreen_frame_buffer;
 	QOpenGLFramebufferObjectFormat *offscreen_frame_buffer_format;
 	QImage offscreen_image;
 	GLint texture_max_size;
+	
 	bool low_resolution_screen;
 	bool emu_launched;
+
+	uint32_t osd_led_status;
+	bool osd_onoff;
 public:
 	GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU *emu = 0);
 	~GLDraw_2_0();
@@ -167,7 +173,8 @@ public slots:
 	void updateBitmap(QImage *);
 	void paintGL_OffScreen(int count, int w, int h);
 	void set_emu_launched(void);
-
+	void do_set_display_osd(bool onoff);
+	void do_display_osd_leds(int lednum, bool onoff);
 signals:
 	int sig_push_image_to_movie(int, int, int, QImage *);
 };

@@ -100,6 +100,17 @@ void GLDrawClass::paintGL(void)
 	emit sig_draw_timing();
 }
 
+void GLDrawClass::do_set_display_osd(bool onoff)
+{
+	emit sig_set_display_osd(onoff);
+}
+
+void GLDrawClass::do_display_osd_leds(int lednum, bool onoff)
+{
+	if((lednum >= -1) && (lednum < 32)) {
+		emit sig_display_osd_leds(lednum, onoff);
+	}
+}
 
 //void GLDrawClass::paintEvent(QPaintEvent *ev)
 //{

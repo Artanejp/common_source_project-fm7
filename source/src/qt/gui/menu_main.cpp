@@ -368,6 +368,11 @@ void Ui_MainWindowBase::setupUi(void)
 		int i;
 		for(i = 0; i < using_flags->get_max_bubble(); i++) driveData->setVisibleLabel(CSP_DockDisks_Domain_Bubble, i, true);
 	}
+	if(using_flags->get_config_ptr()->virtual_media_position > 0) {
+		driveData->setVisible(true);
+	} else {	
+		driveData->setVisible(false);
+	}	
 
 	pCentralWidget = new QWidget(this);
 	pCentralLayout = new QVBoxLayout(pCentralWidget);
@@ -377,7 +382,6 @@ void Ui_MainWindowBase::setupUi(void)
 	pCentralWidget->setLayout(pCentralLayout);
 	//MainWindow->setCentralWidget(graphicsView);
 	MainWindow->setCentralWidget(pCentralWidget);
-	connect(action_DispVirtualMedias, SIGNAL(toggled(bool)), this, SLOT(do_set_visible_virtual_medias(bool)));
 
 	MainWindow->setFocusProxy(graphicsView);
 	//driveData->setAllowedAreas(Qt::RightToolBarArea | Qt::BottomToolBarArea);
@@ -736,7 +740,12 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL2_MAIN]->setToolTip(QApplication::translate("MainWindow", "Using OpenGLv2.\nThis is fallback of some systems.\nIf changed, need to restart this emulator.", 0));
 	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL_CORE]->setToolTip(QApplication::translate("MainWindow", "Using OpenGL core profile.\nThis still not implement.\nIf changed, need to restart this emulator.", 0));
 
-	action_DispVirtualMedias->setText(QApplication::translate("MainWindow", "Show Virtual Medias.", 0));
+	menu_DispVirtualMedias->setTitle(QApplication::translate("MainWindow", "Show Virtual Medias.", 0));
+	action_DispVirtualMedias[0]->setText(QApplication::translate("MainWindow", "None.", 0));
+	action_DispVirtualMedias[1]->setText(QApplication::translate("MainWindow", "Upper.", 0));
+	action_DispVirtualMedias[2]->setText(QApplication::translate("MainWindow", "Lower.", 0));
+	action_DispVirtualMedias[3]->setText(QApplication::translate("MainWindow", "Left.", 0));
+	action_DispVirtualMedias[4]->setText(QApplication::translate("MainWindow", "Right.", 0));
 	action_LogView->setText(QApplication::translate("MainWindow", "View Log", 0));
 	action_LogView->setToolTip(QApplication::translate("MainWindow", "View emulator logs with a dialog.", 0));
 }
@@ -753,7 +762,7 @@ void Ui_MainWindowBase::retranselateUi_Depended_OSD(void)
 void Ui_MainWindowBase::CreateEmulatorMenu(void)
 {
 	//menuEmulator->addAction(action_LogRecord);
-	menuEmulator->addAction(action_DispVirtualMedias);
+	menuEmulator->addAction(menu_DispVirtualMedias->menuAction());
 	menuEmulator->addSeparator();
 	if(using_flags->is_use_roma_kana_conversion()) {
 		menuEmulator->addAction(action_UseRomaKana);
@@ -787,12 +796,25 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 {
 	int i;
 	QString tmps;
-	
-	action_DispVirtualMedias = new Action_Control(this, using_flags);
-	action_DispVirtualMedias->setCheckable(true);
-	action_DispVirtualMedias->setChecked(true);
-	action_DispVirtualMedias->setEnabled(true);
-	
+	actionGroup_DispVirtualMedias = new QActionGroup(this);
+	actionGroup_DispVirtualMedias->setExclusive(true);
+	menu_DispVirtualMedias = new QMenu(this);
+	menu_DispVirtualMedias->setToolTipsVisible(true);
+	for(i = 0; i < 5; i++) {
+		action_DispVirtualMedias[i] = new Action_Control(this, using_flags);
+		action_DispVirtualMedias[i]->setCheckable(true);
+		action_DispVirtualMedias[i]->setChecked(false);
+		if(i == using_flags->get_config_ptr()->virtual_media_position) action_DispVirtualMedias[i]->setChecked(true);
+		action_DispVirtualMedias[i]->setEnabled(true);
+		actionGroup_DispVirtualMedias->addAction(action_DispVirtualMedias[i]);
+		menu_DispVirtualMedias->addAction(action_DispVirtualMedias[i]);
+	}
+	connect(action_DispVirtualMedias[0], SIGNAL(triggered()), this, SLOT(do_set_visible_virtual_media_none()));
+	connect(action_DispVirtualMedias[1], SIGNAL(triggered()), this, SLOT(do_set_visible_virtual_media_upper()));
+	connect(action_DispVirtualMedias[2], SIGNAL(triggered()), this, SLOT(do_set_visible_virtual_media_lower()));
+	connect(action_DispVirtualMedias[3], SIGNAL(triggered()), this, SLOT(do_set_visible_virtual_media_left()));
+	connect(action_DispVirtualMedias[4], SIGNAL(triggered()), this, SLOT(do_set_visible_virtual_media_right()));
+
 	//SET_ACTION_SINGLE(action_DispVirtualMedias, true, true, (using_flags->get_config_ptr()->sound_noise_cmt != 0));
 	
 	if(using_flags->is_use_roma_kana_conversion()) {
@@ -1128,15 +1150,44 @@ void Ui_MainWindowBase::doChangeMessage_EmuThread(QString message)
       emit message_changed(message);
 }
 
-void Ui_MainWindowBase::do_set_visible_virtual_medias(bool f)
+void Ui_MainWindowBase::do_set_visible_virtual_media_none()
 {
-	if(f) {
-		driveData->setVisible(true);
-		set_screen_size(graphicsView->width(), graphicsView->height());
-	} else {
-		driveData->setVisible(false);
-		set_screen_size(graphicsView->width(), graphicsView->height());
-	}		
+	driveData->setVisible(false);
+	using_flags->get_config_ptr()->virtual_media_position = 0;
+	set_screen_size(graphicsView->width(), graphicsView->height());
+	emit sig_set_display_osd(true);
+}
+
+void Ui_MainWindowBase::do_set_visible_virtual_media_upper()
+{
+	driveData->setVisible(true);
+	using_flags->get_config_ptr()->virtual_media_position = 1;
+	set_screen_size(graphicsView->width(), graphicsView->height());
+	emit sig_set_display_osd(false);
+}
+
+void Ui_MainWindowBase::do_set_visible_virtual_media_lower()
+{
+	driveData->setVisible(true);
+	using_flags->get_config_ptr()->virtual_media_position = 2;
+	set_screen_size(graphicsView->width(), graphicsView->height());
+	emit sig_set_display_osd(false);
+}
+
+void Ui_MainWindowBase::do_set_visible_virtual_media_left()
+{
+	driveData->setVisible(true);
+	using_flags->get_config_ptr()->virtual_media_position = 3;
+	set_screen_size(graphicsView->width(), graphicsView->height());
+	emit sig_set_display_osd(false);
+}
+
+void Ui_MainWindowBase::do_set_visible_virtual_media_right()
+{
+	driveData->setVisible(true);
+	using_flags->get_config_ptr()->virtual_media_position = 4;
+	set_screen_size(graphicsView->width(), graphicsView->height());
+	emit sig_set_display_osd(false);
 }
 
 void Ui_MainWindowBase::StopEmuThread(void)

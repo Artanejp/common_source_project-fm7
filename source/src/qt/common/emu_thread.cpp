@@ -129,8 +129,10 @@ void EmuThreadClass::get_fd_string(void)
 			alamp.clear();
 			if(p_emu->is_floppy_disk_inserted(i)) {
 				if(i == (access_drv - 1)) {
+					emit sig_set_access_lamp(i + 10, true);
 					alamp = QString::fromUtf8("<FONT COLOR=RED>●</FONT> ");
 				} else {
+					emit sig_set_access_lamp(i + 10, false);
 					alamp = QString::fromUtf8("○ ");
 				}
 				//tmpstr = alamp;

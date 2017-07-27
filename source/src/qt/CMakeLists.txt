@@ -1,4 +1,6 @@
 message("* qt/osd")
+SET(THIS_LIB_VERSION 2.9.8) 
+
 set(s_qt_osd_headers
 	osd_base.h
 )
@@ -8,7 +10,6 @@ else()
   QT4_WRAP_CPP(s_qt_osd_headers_MOC ${s_qt_osd_headers})
 endif()
 
-SET(THIS_LIB_VERSION 2.9.7) 
 SET(s_qt_osd_srcs
 	  osd_base.cpp
 	  osd_screen.cpp

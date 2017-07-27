@@ -78,6 +78,7 @@ protected:
 										  bool use_chromakey = false);
 	virtual void drawBitmapTexture(void);
 	virtual void drawButtonsMain(int num, bool f_smoosing);
+	virtual void drawOsdLeds();
 
 public:
 	GLDraw_3_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU *emu = 0);
