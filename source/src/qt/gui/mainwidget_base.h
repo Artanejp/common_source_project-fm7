@@ -109,7 +109,7 @@ class QClipboard;
 class QDockWidget;
 class QHBoxLayout;
 class QVBoxLayout;
-
+class QGridLayout;
 class Ui_SoundDialog;
 class GLDrawClass;
 class Action_Control;
@@ -295,7 +295,7 @@ protected:
 	GLDrawClass *graphicsView;
 	CSP_DockDisks *driveData;
 	QWidget *pCentralWidget;
-	QVBoxLayout *pCentralLayout;
+	QGridLayout *pCentralLayout;
 	QStatusBar  *statusbar;
 	QMenuBar    *menubar;
 
@@ -692,7 +692,8 @@ signals:
 	int sig_stop_auto_key(void);
 	int sig_set_display_osd(bool);
 	int sig_display_osd_leds(int,bool);
-   
+	int sig_set_orientation_osd(int);
+
 	int quit_debugger_thread(void);
 	int sig_quit_widgets(void);
 

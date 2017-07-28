@@ -3,9 +3,10 @@
 #include <QLabel>
 #include <QPixmap>
 #include <QHBoxLayout>
+#include <QVBoxLayout>
 #include "dock_disks.h"
 
-#define NEW_LABELS(lim,_l,name,_d,_p,mes,zero) {		\
+#define NEW_LABELS(_from,lim,_l,name,_d,_p,mes,zero) {	\
 		QString tmps, tmpss;							\
 		for(int i = 0; i < lim; i++) {					\
 			if(zero) {								\
@@ -18,19 +19,42 @@
 			tmps = tmps + ": ";				\
 			_p[i] = tmps;							\
 			_l[i] = new QLabel(tmps, this);			\
-			_l[i]->setVisible(false);				\
-			_l[i]->setStyleSheet("font: 12pt \"Sans\";"); \
-			_l[i]->setMinimumSize(12 * 8, 20);			  \
-			_l[i]->setMaximumSize(12 * 8, 20);			  \
-			_d[i] = new QLabel("  ", this);			\
-			_d[i]->setVisible(false);				\
-			_d[i]->setStyleSheet("font: 12pt \"Sans\";"); \
-			_d[i]->setMinimumSize(12 * 2, 20);			  \
-			_d[i]->setMaximumSize(12 * 2, 20);			  \
-			HBox->addWidget(_d[i]);					\
-			HBox->addWidget(_l[i]);					\
-		}											\
+			_l[i]->setVisible(false);									\
+			_l[i]->setStyleSheet("font: 12pt \"Sans\";");				\
+			_l[i]->setMinimumSize(12 * 8, 20);							\
+			_l[i]->setMaximumSize(12 * 8, 20);							\
+			_d[i] = new QLabel("  ", this);								\
+			_d[i]->setVisible(false);									\
+			_d[i]->setStyleSheet("font: 12pt \"Sans\";");				\
+			_d[i]->setMinimumSize(12 * 2, 20);							\
+			_d[i]->setMaximumSize(12 * 2, 20);							\
+			_l[i]->setVisible(false);									\
+			_d[i]->setVisible(false);									\
+		}																\
 	}
+
+#define ADD_LABELS(_d,_l,pos) { \
+	{																	\
+		int i = pos;													\
+		QWidget *_sub_hwidget, *_sub_vwidget;							\
+		QHBoxLayout *_sub_hlayout;										\
+		QVBoxLayout *_sub_vlayout;										\
+		_sub_hlayout = new QHBoxLayout(this);							\
+		_sub_vlayout = new QVBoxLayout(this);							\
+		_sub_hlayout->setAlignment(Qt::AlignLeft);						\
+		_sub_vlayout->setAlignment(Qt::AlignTop);						\
+		_sub_hlayout->addWidget(_d[i]);									\
+		_sub_hlayout->addWidget(_l[i]);									\
+		_sub_vlayout->addWidget(_d[i]);									\
+		_sub_vlayout->addWidget(_l[i]);									\
+		_sub_hwidget = new QWidget(this);								\
+		_sub_vwidget = new QWidget(this);								\
+		_sub_hwidget->setLayout(_sub_hlayout);							\
+		_sub_vwidget->setLayout(_sub_vlayout);							\
+		HBox->addWidget(_sub_vwidget);									\
+		VBox->addWidget(_sub_hwidget);									\
+	}																	\
+}
 
 #define RELEASE_LABELS(lim,_l)	{			\
 		for(int i = 0; i < lim; i++) {			\
@@ -42,81 +66,91 @@
 CSP_DockDisks::CSP_DockDisks(QWidget *parent) :  QWidget(parent)
 {
 	QString ns, ms;
-	QHBoxLayout *HBox = new QHBoxLayout(this);
+	HBox = new QHBoxLayout(this);
+	VBox = new QVBoxLayout(this);
 	HBox->setAlignment(Qt::AlignRight);
+	VBox->setAlignment(Qt::AlignTop);
 	ns = QApplication::translate("DockDisks", "BINARY", 0);
 	ms =  QApplication::translate("DockDisks", "*EMPTY*", 0);
-	NEW_LABELS(8, lBinary, ns, dBinary, pBinary, ms, false);
+	NEW_LABELS(0, 8, lBinary, ns, dBinary, pBinary, ms, false);
 	for(int ii = 0; ii < 8; ii++) {
-		lBinary[ii]->setMinimumSize(12 * 6, 20);
-		lBinary[ii]->setMaximumSize(12 * 6, 20);
+		wBinary = 12 * 6;
+		lBinary[ii]->setMinimumSize(wBinary, 20);
+		lBinary[ii]->setMaximumSize(wBinary, 20);
 	}
 	
 	ns = QApplication::translate("DockDisks", "FD", 0);
 	ms =  QApplication::translate("DockDisks", "", 0);
-	NEW_LABELS(8, lFloppyDisk, ns, dFloppyDisk, pFloppyDisk, ms, true);
+	NEW_LABELS(8, 8, lFloppyDisk, ns, dFloppyDisk, pFloppyDisk, ms, true);
 	for(int ii = 0; ii < 8; ii++) {
-		lFloppyDisk[ii]->setMinimumSize(12 * 14, 20);
-		lFloppyDisk[ii]->setMaximumSize(12 * 14, 20);
+		wFloppyDisk = 12 * 14;
+		lFloppyDisk[ii]->setMinimumSize(wFloppyDisk, 20);
+		lFloppyDisk[ii]->setMaximumSize(wFloppyDisk, 20);
 	}
 
 	ns = QApplication::translate("DockDisks", "CMT", 0);
 	ms =  QApplication::translate("DockDisks", "     *EJECT*      ", 0);
-	NEW_LABELS(2, lCMT, ns, dCMT, pCMT, ms, false);
+	NEW_LABELS(16, 2, lCMT, ns, dCMT, pCMT, ms, false);
 	for(int ii = 0; ii < 2; ii++) {
-		lCMT[ii]->setMinimumSize(12 * 14, 20);
-		lCMT[ii]->setMaximumSize(12 * 14, 20);
+		wCMT = 12 * 14;
+		lCMT[ii]->setMinimumSize(wCMT, 20);
+		lCMT[ii]->setMaximumSize(wCMT, 20);
 	}
 
 	ns = QApplication::translate("DockDisks", "BUBBLE", 0);
 	ms =  QApplication::translate("DockDisks", "*EMPTY*", 0);
-	NEW_LABELS(8, lBubble, ns, dBubble, pBubble, ms, false);
+	NEW_LABELS(18, 8, lBubble, ns, dBubble, pBubble, ms, false);
 	for(int ii = 0; ii < 8; ii++) {
-		lBubble[ii]->setMinimumSize(12 * 8, 20);
-		lBubble[ii]->setMaximumSize(12 * 8, 20);
+		wBubble = 12 * 8;
+		lBubble[ii]->setMinimumSize(wBubble, 20);
+		lBubble[ii]->setMaximumSize(wBubble, 20);
 	}
 	
 	ns = QApplication::translate("DockDisks", "CART", 0);
 	ms =  QApplication::translate("DockDisks", "**", 0);
-	NEW_LABELS(8, lCart, ns, dCart, pCart, ms, false);
+	NEW_LABELS(26, 8, lCart, ns, dCart, pCart, ms, false);
 	for(int ii = 0; ii < 8; ii++) {
-		lCart[ii]->setMinimumSize(12 * 6, 20);
-		lCart[ii]->setMaximumSize(12 * 6, 20);
+		wCart = 12 * 6;
+		lCart[ii]->setMinimumSize(wCart, 20);
+		lCart[ii]->setMaximumSize(wCart, 20);
 	}
 	
 	ns = QApplication::translate("DockDisks", "QD", 0);
 	ms =  QApplication::translate("DockDisks", "*EJECT*", 0);
-	NEW_LABELS(8, lQuickDisk, ns, dQuickDisk, pQuickDisk, ms, false);
+	NEW_LABELS(34, 8, lQuickDisk, ns, dQuickDisk, pQuickDisk, ms, false);
 	for(int ii = 0; ii < 8; ii++) {
-		lQuickDisk[ii]->setMinimumSize(12 * 8, 20);
-		lQuickDisk[ii]->setMaximumSize(12 * 8, 20);
+		wQuickDisk = 12 * 8;
+		lQuickDisk[ii]->setMinimumSize(wQuickDisk, 20);
+		lQuickDisk[ii]->setMaximumSize(wQuickDisk, 20);
 	}
 	ns = QApplication::translate("DockDisks", "CD", 0);
 	ms =  QApplication::translate("DockDisks", "*EJECT*", 0);
-	NEW_LABELS(2, lCompactDisc, ns, dCompactDisc, pCompactDisc, ms, false);
+	NEW_LABELS(42, 2, lCompactDisc, ns, dCompactDisc, pCompactDisc, ms, false);
 	for(int ii = 0; ii < 2; ii++) {
-		lCompactDisc[ii]->setMinimumSize(12 * 4, 20);
-		lCompactDisc[ii]->setMaximumSize(12 * 4, 20);
+		wCompactDisc = 12 * 4;
+		lCompactDisc[ii]->setMinimumSize(wCompactDisc, 20);
+		lCompactDisc[ii]->setMaximumSize(wCompactDisc, 20);
 	}		
 	
 	ns = QApplication::translate("DockDisks", "HDD", 0);
 	ms =  QApplication::translate("DockDisks", "", 0);
-	NEW_LABELS(8, lHardDisk, ns, dHardDisk, pHardDisk, ms, true);
+	NEW_LABELS(44, 8, lHardDisk, ns, dHardDisk, pHardDisk, ms, true);
 	for(int ii = 0; ii < 8; ii++) {
-		lHardDisk[ii]->setMinimumSize(12 * 6, 20);
-		lHardDisk[ii]->setMaximumSize(12 * 6, 20);
+		wHardDisk = 12 * 6;
+		lHardDisk[ii]->setMinimumSize(wHardDisk, 20);
+		lHardDisk[ii]->setMaximumSize(wHardDisk, 20);
 	}		
 	
 	ns = QApplication::translate("DockDisks", "LD", 0);
 	ms =  QApplication::translate("DockDisks", "*EMPTY*", 0);
-	NEW_LABELS(2, lLaserDisc, ns, dLaserDisc, pLaserDisc, ms, false);
+	NEW_LABELS(52, 2, lLaserDisc, ns, dLaserDisc, pLaserDisc, ms, false);
 	for(int ii = 0; ii < 2; ii++) {
-		lLaserDisc[ii]->setMinimumSize(12 * 4, 20);
-		lLaserDisc[ii]->setMaximumSize(12 * 4, 20);
+		wLaserDisc = 12 * 4;
+		lLaserDisc[ii]->setMinimumSize(wLaserDisc, 20);
+		lLaserDisc[ii]->setMaximumSize(wLaserDisc, 20);
 	}
 	this->setLayout(HBox);
 }
-
 
 			
 CSP_DockDisks::~CSP_DockDisks()
@@ -264,54 +298,63 @@ void CSP_DockDisks::setVisibleLabel(int dom, int localnum, bool enabled)
 			lBinary[localnum]->setVisible(enabled);
 			//dBinary[localnum]->setVisible(enabled);
 			dBinary[localnum]->setVisible(false);
+			ADD_LABELS(dBinary, lBinary, localnum);
 		}
 		break;
 	case CSP_DockDisks_Domain_Bubble:
 		if((localnum < 8) && (localnum >= 0)) {
 			lBubble[localnum]->setVisible(enabled);
 			dBubble[localnum]->setVisible(enabled);
+			ADD_LABELS(dBubble, lBubble, localnum);
 		}
 		break;
 	case CSP_DockDisks_Domain_Cart:
 		if((localnum < 8) && (localnum >= 0)) {
 			lCart[localnum]->setVisible(enabled);
 			dCart[localnum]->setVisible(false);
+			ADD_LABELS(dCart, lCart, localnum);
 		}
 		break;
 	case CSP_DockDisks_Domain_CMT:
 		if((localnum < 2) && (localnum >= 0)) {
 			lCMT[localnum]->setVisible(enabled);
 			dCMT[localnum]->setVisible(false);
+			ADD_LABELS(dCMT, lCMT, localnum);
 		}
 		break;
 	case CSP_DockDisks_Domain_CD:
 		if((localnum < 2) && (localnum >= 0)) {
 			lCompactDisc[localnum]->setVisible(enabled);
 			dCompactDisc[localnum]->setVisible(enabled);
+			ADD_LABELS(dCompactDisc, lCompactDisc, localnum);
 		}
 		break;
 	case CSP_DockDisks_Domain_FD:
 		if((localnum < 8) && (localnum >= 0)) {
 			lFloppyDisk[localnum]->setVisible(enabled);
 			dFloppyDisk[localnum]->setVisible(enabled);
+			ADD_LABELS(dFloppyDisk, lFloppyDisk, localnum);
 		}
 		break;
 	case CSP_DockDisks_Domain_HD:
 		if((localnum < 8) && (localnum >= 0)) {
 			lHardDisk[localnum]->setVisible(enabled);
 			dHardDisk[localnum]->setVisible(enabled);
+			ADD_LABELS(dHardDisk, lHardDisk, localnum);
 		}
 		break;
 	case CSP_DockDisks_Domain_LD:
 		if((localnum < 2) && (localnum >= 0)) {
 			lLaserDisc[localnum]->setVisible(enabled);
 			dLaserDisc[localnum]->setVisible(enabled);
+			ADD_LABELS(dLaserDisc, lLaserDisc, localnum);
 		}
 		break;
 	case CSP_DockDisks_Domain_QD:
 		if((localnum < 8) && (localnum >= 0)) {
 			lQuickDisk[localnum]->setVisible(enabled);
 			dQuickDisk[localnum]->setVisible(enabled);
+			ADD_LABELS(dQuickDisk, lQuickDisk, localnum);
 		}
 		break;
 	default:
@@ -370,4 +413,26 @@ void CSP_DockDisks::setPixmap(int dom, int localnum, const QPixmap &pix)
 	default:
 		break;
 	}
+}
+
+void CSP_DockDisks::setOrientation(int loc)
+{
+	return;
+#if 0
+	QLayout *p = this->layout();
+	switch(loc) {
+	case 1: // Upper
+	case 2: // Lower
+		delete p;
+		this->setLayout(HBox);
+		break;
+	case 3:
+	case 4:
+		delete p;
+		this->setLayout(VBox);
+		break;
+	default:
+		break;
+	}
+#endif
 }

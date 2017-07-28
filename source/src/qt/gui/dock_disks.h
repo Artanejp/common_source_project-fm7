@@ -11,6 +11,9 @@
 #include <QPixmap>
 
 class QLabel;
+class QGridLayout;
+class QHBoxLayout;
+class QVBoxLayout;
 
 enum {
 	CSP_DockDisks_Domain_Binary = 0,
@@ -27,8 +30,9 @@ enum {
 QT_BEGIN_NAMESPACE
 class CSP_DockDisks : public QWidget {
 	Q_OBJECT
-protected:
-
+private:
+	QHBoxLayout *HBox;
+	QVBoxLayout *VBox;
 	QLabel *lBinary[8];
 	QLabel *lBubble[8];
 	QLabel *lCart[8];
@@ -58,7 +62,16 @@ protected:
 	QString pHardDisk[8];
 	QString pLaserDisc[2];
 	QString pQuickDisk[8];
-	
+
+	int wBinary;
+	int wBubble;
+	int wCart;
+	int wCMT;
+	int wCompactDisc;
+	int wFloppyDisk;
+	int wHardDisk;
+	int wLaserDisc;
+	int wQuickDisk;
 public:
 	CSP_DockDisks(QWidget *parent);
 	~CSP_DockDisks();
@@ -67,7 +80,8 @@ public slots:
 	void updateLabel(int dom, int localnum, QString str);
 	void updateMessage(int dom, int localnum, QString str);
 	void setVisibleLabel(int dom, int localNum, bool enabled);
-	void setPixmap(int dom, int localNum, const QPixmap &); 
+	void setPixmap(int dom, int localNum, const QPixmap &);
+	void setOrientation(int loc);
 };
 QT_END_NAMESPACE
 
