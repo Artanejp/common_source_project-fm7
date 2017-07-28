@@ -130,10 +130,10 @@ void EmuThreadClass::get_fd_string(void)
 			if(p_emu->is_floppy_disk_inserted(i)) {
 				if(i == (access_drv - 1)) {
 					emit sig_set_access_lamp(i + 10, true);
-					alamp = QString::fromUtf8("<FONT COLOR=RED>●</FONT> ");
+					alamp = QString::fromUtf8("<FONT COLOR=RED>●</FONT>"); // 💾U+1F4BE Floppy Disk
 				} else {
 					emit sig_set_access_lamp(i + 10, false);
-					alamp = QString::fromUtf8("○ ");
+					alamp = QString::fromUtf8("<FONT COLOR=BLUE>○</FONT>"); // 💾U+1F4BE Floppy Disk
 				}
 				//tmpstr = alamp;
 				//tmpstr = tmpstr + QString::fromUtf8(" ");
@@ -174,9 +174,9 @@ void EmuThreadClass::get_qd_string(void)
 		tmpstr.clear();
 		if(p_emu->is_quick_disk_inserted(i)) {
 			if(i == (access_drv - 1)) {
-				alamp = QString::fromUtf8("●");
+				alamp = QString::fromUtf8("<FONT COLOR=RED>●</FONT>"); // 💽　U+1F4BD MiniDisc
 			} else {
-				alamp = QString::fromUtf8("○");
+				alamp = QString::fromUtf8("<FONT COLOR=BLUE>○</FONT>"); // 💽U+1F4BD MiniDisc
 			}
 			tmpstr = alamp;
 			//tmpstr = tmpstr + QString::fromUtf8(" ");
@@ -204,9 +204,10 @@ void EmuThreadClass::get_tape_string()
 			const _TCHAR *ts = p_emu->get_tape_message(i);
 			if(ts != NULL) {
 				tmpstr = QString::fromUtf8(ts);
+				tmpstr = QString::fromUtf8("<FONT COLOR=RED>") + tmpstr + QString::fromUtf8("</FONT>");
 			}
 		} else {
-			tmpstr = QString::fromUtf8("   EMPTY   ");
+			tmpstr = QString::fromUtf8("<FONT COLOR=BLUE>   EMPTY   </FONT>");
 		}
 		if(tmpstr != cmt_text[i]) {
 			emit sig_change_osd(CSP_DockDisks_Domain_CMT, i, tmpstr);
@@ -221,7 +222,7 @@ void EmuThreadClass::get_cd_string(void)
 #if defined(USE_COMPACT_DISC)
 	QString tmpstr;
 	if(p_emu->is_compact_disc_inserted()) {
-		tmpstr = QString::fromUtf8("○");
+		tmpstr = QString::fromUtf8("<FONT COLOR=BLUE>💿</FONT>");  // U+1F4BF OPTICAL DISC
 	} else {
 		tmpstr = QString::fromUtf8("×");
 	}
