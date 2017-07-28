@@ -1026,11 +1026,10 @@ void GLDraw_3_0::drawOsdLeds()
 			} else {
 				extfunc->glColor4f(color_off.x(), color_off.y(), color_off.z(), color_off.w());
 			}
-			extfunc->glBegin(GL_POLYGON);
-			for(int j = 0; j < 4; j++) {
-				extfunc->glVertex3f(vertex[j].x, vertex[j].y, vertex[j].z);
-			}
-			extfunc->glEnd();
+			extfunc->glEnableClientState(GL_VERTEX_ARRAY);
+			extfunc->glVertexPointer(3, GL_FLOAT, sizeof(VertexTexCoord_t),(void *)vertex);
+			extfunc->glDrawArrays(GL_POLYGON, 0, 16);
+			extfunc->glDisableClientState(GL_VERTEX_ARRAY);
 			xbase = xbase - (1.0f / 32.0f);
 			_bit <<= 1;
 		}
