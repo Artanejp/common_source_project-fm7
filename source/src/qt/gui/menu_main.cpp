@@ -332,41 +332,8 @@ void Ui_MainWindowBase::setupUi(void)
 	}
 	
 	bitmapImage = NULL;
-	driveData = new CSP_DockDisks(this);
+	driveData = new CSP_DockDisks(this, using_flags);
 	MainWindow->setDockOptions(QMainWindow::AnimatedDocks);
-	if(using_flags->is_use_fd()) {
-		int i;
-		for(i = 0; i < using_flags->get_max_drive(); i++) driveData->setVisibleLabel(CSP_DockDisks_Domain_FD, i, true);
-	}
-	if(using_flags->is_use_qd()) {
-		int i;
-		for(i = 0; i < using_flags->get_max_qd(); i++) driveData->setVisibleLabel(CSP_DockDisks_Domain_QD, i, true);
-	}
-	if(using_flags->is_use_tape()) {
-		driveData->setVisibleLabel(CSP_DockDisks_Domain_CMT, 0, true);
-	}
-	if(using_flags->is_use_cart()) {
-		int i;
-		for(i = 0; i < using_flags->get_max_cart(); i++) {
-			driveData->setVisibleLabel(CSP_DockDisks_Domain_Cart, i, true);
-		}
-	}
-	if(using_flags->is_use_binary_file()) {
-		int i;
-		for(i = 0; i < using_flags->get_max_binary(); i++) {
-			driveData->setVisibleLabel(CSP_DockDisks_Domain_Binary, i, true);
-		}
-	}
-	if(using_flags->is_use_compact_disc()) {
-		driveData->setVisibleLabel(CSP_DockDisks_Domain_CD, 0, true);
-	}
-	if(using_flags->is_use_laser_disc()) {
-		driveData->setVisibleLabel(CSP_DockDisks_Domain_LD, 0, true);
-	}
-	if(using_flags->is_use_bubble()) {
-		int i;
-		for(i = 0; i < using_flags->get_max_bubble(); i++) driveData->setVisibleLabel(CSP_DockDisks_Domain_Bubble, i, true);
-	}
 	if(using_flags->get_config_ptr()->virtual_media_position > 0) {
 		driveData->setVisible(true);
 	} else {	
@@ -374,26 +341,26 @@ void Ui_MainWindowBase::setupUi(void)
 	}	
 
 	pCentralWidget = new QWidget(this);
-	pCentralLayout = new QGridLayout(pCentralWidget);
+	pCentralLayout = new QVBoxLayout(pCentralWidget);
 	pCentralLayout->setContentsMargins(0, 0, 0, 0);
 	pCentralWidget->setLayout(pCentralLayout);
 	MainWindow->setCentralWidget(pCentralWidget);
 	switch(using_flags->get_config_ptr()->virtual_media_position) {
 	case 0:
-		pCentralLayout->addWidget(graphicsView, 0, 0);
-		pCentralLayout->addWidget(driveData, 1, 0);
+		pCentralLayout->addWidget(graphicsView);
+		pCentralLayout->addWidget(driveData);
 		driveData->setVisible(false);
 		graphicsView->setVisible(true);
 		break;
 	case 1:
-		pCentralLayout->addWidget(graphicsView, 1, 0);
-		pCentralLayout->addWidget(driveData, 0, 0);
+		pCentralLayout->addWidget(driveData);
+		pCentralLayout->addWidget(graphicsView);
 		driveData->setVisible(true);
 		graphicsView->setVisible(true);
 		break;
 	case 2:
-		pCentralLayout->addWidget(graphicsView, 0, 0);
-		pCentralLayout->addWidget(driveData, 1, 0);
+		pCentralLayout->addWidget(graphicsView);
+		pCentralLayout->addWidget(driveData);
 		driveData->setVisible(true);
 		graphicsView->setVisible(true);
 		break;
@@ -1175,8 +1142,8 @@ void Ui_MainWindowBase::do_set_visible_virtual_media_none()
 	set_screen_size(graphicsView->width(), graphicsView->height());
 	pCentralLayout->removeWidget(driveData);
 	pCentralLayout->removeWidget(graphicsView);
-	pCentralLayout->addWidget(driveData, 1, 0);
-	pCentralLayout->addWidget(graphicsView, 0, 0);
+	pCentralLayout->addWidget(driveData);
+	pCentralLayout->addWidget(graphicsView);
 	emit sig_set_display_osd(true);
 }
 
@@ -1188,8 +1155,8 @@ void Ui_MainWindowBase::do_set_visible_virtual_media_upper()
 	emit sig_set_orientation_osd(1);
 	pCentralLayout->removeWidget(driveData);
 	pCentralLayout->removeWidget(graphicsView);
-	pCentralLayout->addWidget(driveData, 0, 0);
-	pCentralLayout->addWidget(graphicsView, 1, 0);
+	pCentralLayout->addWidget(driveData);
+	pCentralLayout->addWidget(graphicsView);
 	emit sig_set_display_osd(false);
 }
 
@@ -1201,13 +1168,14 @@ void Ui_MainWindowBase::do_set_visible_virtual_media_lower()
 	emit sig_set_orientation_osd(2);
 	pCentralLayout->removeWidget(driveData);
 	pCentralLayout->removeWidget(graphicsView);
-	pCentralLayout->addWidget(graphicsView, 0, 0);
-	pCentralLayout->addWidget(driveData, 1, 0);
+	pCentralLayout->addWidget(graphicsView);
+	pCentralLayout->addWidget(driveData);
 	emit sig_set_display_osd(false);
 }
 
 void Ui_MainWindowBase::do_set_visible_virtual_media_left()
 {
+#if 0
 	driveData->setVisible(true);
 	using_flags->get_config_ptr()->virtual_media_position = 3;
 	set_screen_size(graphicsView->width(), graphicsView->height());
@@ -1215,10 +1183,12 @@ void Ui_MainWindowBase::do_set_visible_virtual_media_left()
 	pCentralLayout->removeWidget(driveData);
 	pCentralLayout->addWidget(driveData, 1, 0);
 	emit sig_set_display_osd(false);
+#endif
 }
 
 void Ui_MainWindowBase::do_set_visible_virtual_media_right()
 {
+#if 0
 	driveData->setVisible(true);
 	using_flags->get_config_ptr()->virtual_media_position = 4;
 	set_screen_size(graphicsView->width(), graphicsView->height());
@@ -1226,6 +1196,7 @@ void Ui_MainWindowBase::do_set_visible_virtual_media_right()
 	pCentralLayout->removeWidget(driveData);
 	pCentralLayout->addWidget(driveData, 1, 2);
 	emit sig_set_display_osd(false);
+#endif
 }
 
 void Ui_MainWindowBase::StopEmuThread(void)

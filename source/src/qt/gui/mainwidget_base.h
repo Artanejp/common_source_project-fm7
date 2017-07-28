@@ -295,7 +295,7 @@ protected:
 	GLDrawClass *graphicsView;
 	CSP_DockDisks *driveData;
 	QWidget *pCentralWidget;
-	QGridLayout *pCentralLayout;
+	QVBoxLayout *pCentralLayout;
 	QStatusBar  *statusbar;
 	QMenuBar    *menubar;
 

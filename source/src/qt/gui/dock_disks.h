@@ -14,7 +14,7 @@ class QLabel;
 class QGridLayout;
 class QHBoxLayout;
 class QVBoxLayout;
-
+class USING_FLAGS;
 enum {
 	CSP_DockDisks_Domain_Binary = 0,
 	CSP_DockDisks_Domain_Bubble,
@@ -28,52 +28,64 @@ enum {
 };
 	
 QT_BEGIN_NAMESPACE
-class CSP_DockDisks : public QWidget {
+
+class CSP_LabelVirtualDevice : public QWidget {
 	Q_OBJECT
 private:
 	QHBoxLayout *HBox;
-	QVBoxLayout *VBox;
-	QLabel *lBinary[8];
-	QLabel *lBubble[8];
-	QLabel *lCart[8];
-	QLabel *lCMT[2];
-	QLabel *lCompactDisc[2];
-	QLabel *lFloppyDisk[8];
-	QLabel *lHardDisk[8];
-	QLabel *lLaserDisc[2];
-	QLabel *lQuickDisk[8];
+	QLabel *Indicator;
+	QLabel *Message;
+
+	QString sDesc;
+	QString sMES;
+
+	QString sStat;
 	
-	QLabel *dBinary[8];
-	QLabel *dBubble[8];
-	QLabel *dCart[8];
-	QLabel *dCMT[2];
-	QLabel *dCompactDisc[2];
-	QLabel *dFloppyDisk[8];
-	QLabel *dHardDisk[8];
-	QLabel *dLaserDisc[2];
-	QLabel *dQuickDisk[8];
+	int _height;
+	int _width;
+	float _base_pt;
 
-	QString pBinary[8];
-	QString pBubble[8];
-	QString pCart[8];
-	QString pCMT[2];
-	QString pCompactDisc[2];
-	QString pFloppyDisk[8];
-	QString pHardDisk[8];
-	QString pLaserDisc[2];
-	QString pQuickDisk[8];
-
-	int wBinary;
-	int wBubble;
-	int wCart;
-	int wCMT;
-	int wCompactDisc;
-	int wFloppyDisk;
-	int wHardDisk;
-	int wLaserDisc;
-	int wQuickDisk;
+	int _now_width;
+	int _now_height;
+	float _now_pt;
+	int local_num;
 public:
-	CSP_DockDisks(QWidget *parent);
+	CSP_LabelVirtualDevice(QWidget *parent = 0,
+							int width = 6, float point = 12.0f,
+							QString baseName = QString::fromUtf8("DMY"), int num = 0);
+	~CSP_LabelVirtualDevice();
+
+	QString getMessage(void) { return sMES; }
+	QString getLabel(void)   { return sDesc; }
+	int getDeviceNum(void)   { return local_num; }
+public slots:
+	void setDeviceNum(int n);
+	void setLabel(QString s);
+	void setMessage(QString s);
+	void setIndicatorStatus(QString s);
+	void setVisibleIndicator(bool f);
+	void setVisibleMessage(bool f);
+	void setScreenWidth(int width, int basewidth);
+};
+
+class CSP_DockDisks : public QWidget {
+	Q_OBJECT
+private:
+	USING_FLAGS *using_flags;
+	QHBoxLayout *HBox;
+	QVBoxLayout *VBox;
+	CSP_LabelVirtualDevice *pBinary[8];
+	CSP_LabelVirtualDevice *pBubble[8];
+	CSP_LabelVirtualDevice *pCart[8];
+	CSP_LabelVirtualDevice *pCMT[2];
+	CSP_LabelVirtualDevice *pCompactDisc[2];
+	CSP_LabelVirtualDevice *pFloppyDisk[8];
+	CSP_LabelVirtualDevice *pHardDisk[8];
+	CSP_LabelVirtualDevice *pLaserDisc[2];
+	CSP_LabelVirtualDevice *pQuickDisk[2];
+	
+public:
+	CSP_DockDisks(QWidget *parent, USING_FLAGS *p);
 	~CSP_DockDisks();
 
 public slots:
