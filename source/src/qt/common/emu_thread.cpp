@@ -122,6 +122,7 @@ void EmuThreadClass::get_fd_string(void)
 	QString iname;
 	QString alamp;
 	uint32_t access_drv = 0;
+	bool lamp_stat = false;
 	access_drv = p_emu->is_floppy_disk_accessed();
 	{
 		for(i = 0; i < (int)using_flags->get_max_drive(); i++) {
@@ -129,10 +130,9 @@ void EmuThreadClass::get_fd_string(void)
 			alamp.clear();
 			if(p_emu->is_floppy_disk_inserted(i)) {
 				if(i == (access_drv - 1)) {
-					emit sig_set_access_lamp(i + 10, true);
+					lamp_stat = true;
 					alamp = QString::fromUtf8("<FONT COLOR=RED>●</FONT>"); // 💾U+1F4BE Floppy Disk
 				} else {
-					emit sig_set_access_lamp(i + 10, false);
 					alamp = QString::fromUtf8("<FONT COLOR=BLUE>○</FONT>"); // 💾U+1F4BE Floppy Disk
 				}
 				//tmpstr = alamp;
@@ -149,6 +149,7 @@ void EmuThreadClass::get_fd_string(void)
 				alamp = QString::fromUtf8("×");
 			}
 			if(alamp != fd_lamp[i]) {
+				emit sig_set_access_lamp(i + 2, lamp_stat);
 				emit sig_change_access_lamp(CSP_DockDisks_Domain_FD, i, alamp);
 				fd_lamp[i] = alamp;
 			}
@@ -156,6 +157,7 @@ void EmuThreadClass::get_fd_string(void)
 				emit sig_change_osd(CSP_DockDisks_Domain_FD, i, tmpstr);
 				fd_text[i] = tmpstr;
 			}
+			lamp_stat = false;
 		}
 	}
 #endif
@@ -169,12 +171,14 @@ void EmuThreadClass::get_qd_string(void)
 	QString alamp;
 	QString tmpstr;
 	uint32_t access_drv = 0;
+	bool lamp_stat = false;
 	access_drv = p_emu->is_quick_disk_accessed();
 	for(i = 0; i < using_flags->get_max_qd(); i++) {
 		tmpstr.clear();
 		if(p_emu->is_quick_disk_inserted(i)) {
 			if(i == (access_drv - 1)) {
 				alamp = QString::fromUtf8("<FONT COLOR=RED>●</FONT>"); // 💽　U+1F4BD MiniDisc
+				lamp_stat = true;
 			} else {
 				alamp = QString::fromUtf8("<FONT COLOR=BLUE>○</FONT>"); // 💽U+1F4BD MiniDisc
 			}
@@ -188,7 +192,9 @@ void EmuThreadClass::get_qd_string(void)
 		if(tmpstr != qd_text[i]) {
 			emit sig_change_access_lamp(CSP_DockDisks_Domain_QD, i, tmpstr);
 			qd_text[i] = tmpstr;
+			emit sig_set_access_lamp(i + 10, lamp_stat);
 		}
+		lamp_stat = false;
 	}
 #endif
 }	
@@ -204,7 +210,11 @@ void EmuThreadClass::get_tape_string()
 			const _TCHAR *ts = p_emu->get_tape_message(i);
 			if(ts != NULL) {
 				tmpstr = QString::fromUtf8(ts);
-				tmpstr = QString::fromUtf8("<FONT COLOR=RED>") + tmpstr + QString::fromUtf8("</FONT>");
+				if(p_emu->is_tape_recording(i)) {
+					tmpstr = QString::fromUtf8("<FONT COLOR=RED><B>") + tmpstr + QString::fromUtf8("</B></FONT>");
+				} else {
+					tmpstr = QString::fromUtf8("<FONT COLOR=GREEN><B>") + tmpstr + QString::fromUtf8("</B></FONT>");
+				}					
 			}
 		} else {
 			tmpstr = QString::fromUtf8("<FONT COLOR=BLUE>   EMPTY   </FONT>");

@@ -62,6 +62,7 @@ signals:
 	int sig_draw_frames(int);
 	int message_changed(QString);
 	int sig_update_screen(bitmap_t *);
+	int sig_update_osd(void);
 	int sig_draw_timing(bool);
 	int sig_push_frames_to_avio(int, int, int);
 	int sig_call_draw_screen();

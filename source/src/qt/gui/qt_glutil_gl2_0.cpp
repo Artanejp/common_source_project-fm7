@@ -47,6 +47,8 @@ GLDraw_2_0::GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, 
 	extfunc_2 = NULL;
 	redraw_required = false;
 	osd_led_status = 0x00000000;
+	osd_led_status_bak = 0x00000000;
+	osd_led_bit_width = 12;
 	osd_onoff = true;
 
 	uBitmapTextureID = 0;
@@ -175,37 +177,44 @@ void GLDraw_2_0::drawOsdLeds()
 	extfunc_2->glDisable(GL_DEPTH_TEST);
 	extfunc_2->glViewport(0, 0, p_wid->width(), p_wid->height());
 	extfunc_2->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
-	if(osd_onoff) {
-		uint32_t _bit = 0x00000001;
-		for(int ii = 0; ii < 32; ii++) {
+	if(osd_led_status != osd_led_status_bak) {
+		if(osd_onoff) {
+			uint32_t _bit = 0x00000001;
+			for(int ii = 0; ii < osd_led_bit_width; ii++) {
+				if((_bit & osd_led_status) == (_bit & osd_led_status_bak)) {
+					xbase = xbase - (1.0f / 32.0f);
+					_bit <<= 1;
+					continue;
+				}
+				vertex[0].x = xbase;
+				vertex[0].y = ybase;
+				vertex[0].z = zbase;
+				
+				vertex[1].x = xbase + (1.0f / 64.0f);
+				vertex[1].y = ybase;
+				vertex[1].z = zbase;
+				
+				vertex[2].x = xbase + (1.0f / 64.0f);
+				vertex[2].y = ybase - (1.0f / 64.0f);
+				vertex[2].z = zbase;
 			
-			vertex[0].x = xbase;
-			vertex[0].y = ybase;
-			vertex[0].z = zbase;
-			
-			vertex[1].x = xbase + (1.0f / 64.0f);
-			vertex[1].y = ybase;
-			vertex[1].z = zbase;
-			
-			vertex[2].x = xbase + (1.0f / 64.0f);
-			vertex[2].y = ybase - (1.0f / 64.0f);
-			vertex[2].z = zbase;
-			
-			vertex[3].x = xbase;
-			vertex[3].y = ybase - (1.0f / 64.0f);
-			vertex[3].z = zbase;
-			if(_bit & osd_led_status) {
-				extfunc_2->glColor4f(color_on.x(), color_on.y(), color_on.z(), color_on.w());
-			} else {
-				extfunc_2->glColor4f(color_off.x(), color_off.y(), color_off.z(), color_off.w());
-			}			
-			extfunc_2->glBegin(GL_POLYGON);
-			for(int j = 0; j < 4; j++) {
-				extfunc_2->glVertex3f(vertex[j].x, vertex[j].y, vertex[j].z);
+				vertex[3].x = xbase;
+				vertex[3].y = ybase - (1.0f / 64.0f);
+				vertex[3].z = zbase;
+				if(_bit & osd_led_status) {
+					extfunc_2->glColor4f(color_on.x(), color_on.y(), color_on.z(), color_on.w());
+				} else {
+					extfunc_2->glColor4f(color_off.x(), color_off.y(), color_off.z(), color_off.w());
+				}			
+				extfunc_2->glBegin(GL_POLYGON);
+				for(int j = 0; j < 4; j++) {
+					extfunc_2->glVertex3f(vertex[j].x, vertex[j].y, vertex[j].z);
+				}
+				extfunc_2->glEnd();
+				xbase = xbase - (1.0f / 32.0f);
+				_bit <<= 1;
 			}
-			extfunc_2->glEnd();
-			xbase = xbase - (1.0f / 32.0f);
-			_bit <<= 1;
+			osd_led_status_bak = osd_led_status;
 		}
 	}
 }
@@ -983,10 +992,13 @@ void GLDraw_2_0::paintGL(void)
 		 */
 		drawScreenTexture();
 		extfunc_2->glDisable(GL_BLEND);
-		drawOsdLeds();
 		if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
 			drawGrids();
 		}
+		drawOsdLeds();
+		extfunc_2->glFlush();
+	} else {
+		drawOsdLeds();
 		extfunc_2->glFlush();
 	}
 	//p_wid->doneCurrent();
@@ -1041,4 +1053,9 @@ void GLDraw_2_0::do_set_texture_size(QImage *p, int w, int h)
 	}		
 	this->doSetGridsHorizonal(h, true);
 	this->doSetGridsVertical(w, true);
+}
+
+void GLDraw_2_0::do_set_led_width(int bitwidth)
+{
+	if((bitwidth >= 0) && (bitwidth < 32)) osd_led_bit_width = bitwidth;
 }

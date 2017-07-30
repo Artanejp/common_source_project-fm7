@@ -162,6 +162,12 @@ GLDrawClass::~GLDrawClass()
 
 }
 
+void GLDrawClass::do_set_led_width(int bitwidth)
+{
+	if(extfunc != NULL) {
+		extfunc->do_set_led_width(bitwidth);
+	}
+}
 void GLDrawClass::set_emu_launched()
 {
 	emu_launched = true;

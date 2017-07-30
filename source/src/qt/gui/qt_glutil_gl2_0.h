@@ -132,6 +132,8 @@ protected:
 	bool emu_launched;
 
 	uint32_t osd_led_status;
+	uint32_t osd_led_status_bak;
+	int osd_led_bit_width;
 	bool osd_onoff;
 public:
 	GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU *emu = 0);
@@ -175,6 +177,7 @@ public slots:
 	void set_emu_launched(void);
 	void do_set_display_osd(bool onoff);
 	void do_display_osd_leds(int lednum, bool onoff);
+	void do_set_led_width(int bitwidth);
 signals:
 	int sig_push_image_to_movie(int, int, int, QImage *);
 };

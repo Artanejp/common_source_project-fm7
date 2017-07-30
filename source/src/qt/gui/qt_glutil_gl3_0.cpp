@@ -199,7 +199,9 @@ GLDraw_3_0::GLDraw_3_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, 
 	std_pass = NULL;
 	ntsc_pass1 = NULL;
 	ntsc_pass2 = NULL;
-	
+	for(int i = 0; i < 32; i++) {
+		led_pass[i] = NULL;
+	}
 	grids_horizonal_buffer = NULL;
 	grids_horizonal_vertex = NULL;
 	
@@ -215,6 +217,9 @@ GLDraw_3_0::~GLDraw_3_0()
 	if(std_pass   != NULL) delete std_pass;
 	if(ntsc_pass1 != NULL) delete ntsc_pass1;
 	if(ntsc_pass2 != NULL) delete ntsc_pass2;
+	for(int i = 0; i < 32; i++) {
+		if(led_pass[i] != NULL) delete led_pass[i];
+	}
 	
 	if(grids_horizonal_buffer != NULL) {
 		if(grids_horizonal_buffer->isCreated()) grids_horizonal_buffer->destroy();
@@ -448,6 +453,13 @@ void GLDraw_3_0::initLocalGLObjects(void)
 					   using_flags->get_screen_width(), using_flags->get_screen_height(),
 					   ":/vertex_shader.glsl" , ":/chromakey_fragment_shader.glsl",
 					   "Standard Shader");
+	for(int i = 0; i < 32; i++) {
+		initPackedGLObject(&(led_pass[i]),
+					   10, 10,
+					   ":/led_vertex_shader.glsl" , ":/led_fragment_shader.glsl",
+					   "LED Shader");
+		set_led_vertex(i);
+	}
 
 	initPackedGLObject(&ntsc_pass1,
 					   _width, _height,
@@ -772,7 +784,6 @@ void GLDraw_3_0::drawScreenTexture(void)
 	if(using_flags->is_use_one_board_computer()) {
 		extfunc->glEnable(GL_BLEND);
 		extfunc->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		//extfunc->glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
 	} else {
 		extfunc->glDisable(GL_BLEND);
 	}
@@ -973,12 +984,48 @@ void GLDraw_3_0::drawBitmapTexture(void)
 	}
 }
 
+void GLDraw_3_0::drawLedMain(GLScreenPack *obj,
+							 QVector4D color)
+{
+	QOpenGLShaderProgram *prg = obj->getShader();
+	QOpenGLVertexArrayObject *vp = obj->getVAO();
+	QOpenGLBuffer *bp = obj->getVertexBuffer();
+	int ii;
+		
+	{
+		extfunc->glDisable(GL_TEXTURE_2D);
+		extfunc->glEnable(GL_BLEND);
+		extfunc->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		vp->bind();
+		bp->bind();
+		prg->bind();
+		extfunc->glViewport(0, 0, p_wid->width(), p_wid->height());
+		extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
+		ii = prg->uniformLocation("color");
+		if(ii >= 0) {
+			prg->setUniformValue(ii,  color);
+		}
+		
+		prg->enableAttributeArray("vertex");
+		int vertex_loc = prg->attributeLocation("vertex");
+		extfunc->glEnableVertexAttribArray(vertex_loc);
+		extfunc->glEnable(GL_VERTEX_ARRAY);
+		extfunc->glDrawArrays(GL_POLYGON, 0, 4);
+		bp->release();
+		vp->release();
+		
+		prg->release();
+		extfunc->glDisable(GL_TEXTURE_2D);
+		extfunc->glDisable(GL_BLEND);
+	}
+
+}
+
 void GLDraw_3_0::drawOsdLeds()
 {
 	QVector4D color_on;
 	QVector4D color_off;
-	VertexTexCoord_t vertex[4];
-	float xbase, ybase, zbase;
+	uint32_t bit = 0x00000001;
 	if(osd_onoff) {
 		color_on = QVector4D(0.95, 0.0, 0.05, 1.0);
 		color_off = QVector4D(0.05,0.05, 0.05, 0.10);
@@ -986,52 +1033,18 @@ void GLDraw_3_0::drawOsdLeds()
 		color_on = QVector4D(0.00,0.00, 0.00, 0.0);
 		color_off = QVector4D(0.00,0.00, 0.00, 0.0);
 	}
-	xbase = 0.0f + (1.0f / 32.0f) * 31.0f + (1.0f / 128.0f);
-	ybase = -1.0f + (2.0f / 64.0f) * 1.5f;
-	zbase = -0.999f;
-	
-	extfunc->glEnable(GL_BLEND);
-	extfunc->glDisable(GL_TEXTURE_2D);
-	extfunc->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	extfunc->glDisable(GL_DEPTH_TEST);
-	extfunc->glViewport(0, 0, p_wid->width(), p_wid->height());
-	extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
 	if(osd_onoff) {
-		uint32_t _bit = 0x00000001;
-		
-		xbase = 0.0f + (1.0f / 32.0f) * 31.0f + (1.0f / 128.0f);
-		ybase = -1.0f + (2.0f / 64.0f) * 1.5f;
-		ybase = 0.0f;
-		xbase = -1.0f + 0.1f;
-		zbase = -0.999f;
-		for(int ii = 0; ii < 32; ii++) {
-			
-			vertex[0].x = xbase;
-			vertex[0].y = ybase;
-			vertex[0].z = zbase;
-			
-			vertex[1].x = xbase + (1.0f / 64.0f);
-			vertex[1].y = ybase;
-			vertex[1].z = zbase;
-			
-			vertex[2].x = xbase + (1.0f / 64.0f);
-			vertex[2].y = ybase - (1.0f / 64.0f);
-			vertex[2].z = zbase;
-			
-			vertex[3].x = xbase;
-			vertex[3].y = ybase - (1.0f / 64.0f);
-			vertex[3].z = zbase;
-			if(_bit & osd_led_status) {
-				extfunc->glColor4f(color_on.x(), color_on.y(), color_on.z(), color_on.w());
-			} else {
-				extfunc->glColor4f(color_off.x(), color_off.y(), color_off.z(), color_off.w());
+		if(osd_led_status_bak != osd_led_status) {
+			for(int i = 0; i < osd_led_bit_width; i++) {
+				if((bit & osd_led_status) == (bit & osd_led_status_bak)) {
+					bit <<= 1;
+					continue;
+				}
+				drawLedMain(led_pass[i],
+							((osd_led_status & bit) != 0) ? color_on : color_off);
+				bit <<= 1;
 			}
-			extfunc->glEnableClientState(GL_VERTEX_ARRAY);
-			extfunc->glVertexPointer(3, GL_FLOAT, sizeof(VertexTexCoord_t),(void *)vertex);
-			extfunc->glDrawArrays(GL_POLYGON, 0, 16);
-			extfunc->glDisableClientState(GL_VERTEX_ARRAY);
-			xbase = xbase - (1.0f / 32.0f);
-			_bit <<= 1;
+			osd_led_status_bak = osd_led_status;
 		}
 	}
 }
@@ -1066,7 +1079,12 @@ void GLDraw_3_0::paintGL(void)
 		}
 		drawOsdLeds();
 		extfunc->glFlush();
-	}
+	} else {
+		extfunc->glViewport(0, 0, p_wid->width(), p_wid->height());
+		extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
+		drawOsdLeds();
+		extfunc->glFlush();
+	}		
 	//p_wid->doneCurrent();
 }
 
@@ -1119,6 +1137,44 @@ void GLDraw_3_0::set_texture_vertex(float wmul, float hmul)
 	vertexTmpTexture[3].z = -0.1f;
 	vertexTmpTexture[3].s = 0.0f;
 	vertexTmpTexture[3].t = hmul;
+}
+
+void GLDraw_3_0::set_led_vertex(int xbit)
+{
+	float xbase, ybase, zbase;
+	VertexTexCoord_t vertex[4];
+
+	if((xbit < 0) || (xbit >=32)) return;
+	xbase = 0.0f + (1.0f / 32.0f) * 31.0f - ((1.0f * (float)xbit) / 32.0f) + (1.0f / 128.0f);
+	ybase = -1.0f + (2.0f / 64.0f) * 1.5f;
+	zbase = -0.999f;
+	vertex[0].x = xbase;
+	vertex[0].y = ybase;
+	vertex[0].z = zbase;
+	vertex[0].s = 0.0f;
+	vertex[0].t = 0.0f;
+	
+	vertex[1].x = xbase + (1.0f / 64.0f);
+	vertex[1].y = ybase;
+	vertex[1].z = zbase;
+	vertex[1].s = 1.0f;
+	vertex[1].t = 0.0f;
+	
+	vertex[2].x = xbase + (1.0f / 64.0f);
+	vertex[2].y = ybase - (1.0f / 64.0f);
+	vertex[2].z = zbase;
+	vertex[2].s = 1.0f;
+	vertex[2].t = 1.0f;
+	
+	vertex[3].x = xbase;
+	vertex[3].y = ybase - (1.0f / 64.0f);
+	vertex[3].z = zbase;
+	vertex[3].s = 0.0f;
+	vertex[3].t = 1.0f;
+	
+	setNormalVAO(led_pass[xbit]->getShader(), led_pass[xbit]->getVAO(),
+				 led_pass[xbit]->getVertexBuffer(),
+				 vertex, 4);
 }
 
 void GLDraw_3_0::do_set_screen_multiply(float mul)

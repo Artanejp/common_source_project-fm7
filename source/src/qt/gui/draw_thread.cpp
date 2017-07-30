@@ -36,6 +36,7 @@ DrawThreadClass::DrawThreadClass(OSD *o, CSP_Logger *logger,QObject *parent) : Q
 	do_change_refresh_rate(screen->refreshRate());
 	connect(screen, SIGNAL(refreshRateChanged(qreal)), this, SLOT(do_change_refresh_rate(qreal)));
 	connect(this, SIGNAL(sig_update_screen(bitmap_t *)), glv, SLOT(update_screen(bitmap_t *)), Qt::QueuedConnection);
+	connect(this, SIGNAL(sig_update_osd()), glv, SLOT(update_osd()), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_push_frames_to_avio(int, int, int)), glv->extfunc, SLOT(paintGL_OffScreen(int, int, int)));
 	//connect(this, SIGNAL(sig_call_draw_screen()), p_osd, SLOT(draw_screen()));
 	//connect(this, SIGNAL(sig_call_no_draw_screen()), p_osd, SLOT(no_draw_screen()));
@@ -78,15 +79,21 @@ void DrawThreadClass::doExit(void)
 
 void DrawThreadClass::doWork(const QString &param)
 {
-
+	int ncount = 0;
 	bRunThread = true;
 	do {
 		if(bDrawReq) {
 			if(draw_screen_buffer != NULL) {
 				bDrawReq = false;
 				emit sig_update_screen(draw_screen_buffer);
+			} else {
+				if(ncount == 0) emit sig_update_osd();
 			}
+		} else {
+			if(ncount == 0) emit sig_update_osd();
 		}
+		ncount++;
+		if(ncount >= 8) ncount = 0; 
 		if(rec_frame_count > 0) {
 			emit sig_push_frames_to_avio(rec_frame_count,
 										 rec_frame_width, rec_frame_height);

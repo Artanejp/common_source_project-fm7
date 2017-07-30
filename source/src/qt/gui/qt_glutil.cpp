@@ -41,6 +41,11 @@ void GLDrawClass::update_screen(bitmap_t *p)
 	}
 }
 
+void GLDrawClass::update_osd(void)
+{
+		this->update();
+}
+
 void GLDrawClass::InitContextCL(void)
 {
 }

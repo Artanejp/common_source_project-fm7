@@ -113,6 +113,7 @@ public slots:
 	void releaseKeyCode(void);
 	
 	void update_screen(bitmap_t *);
+	void update_osd(void);
 	void resizeGL(int width, int height);
 	void mouseMoveEvent(QMouseEvent *event);
 	void mousePressEvent(QMouseEvent *event);
@@ -143,6 +144,8 @@ public slots:
 	void do_disable_mouse(void);
 	void do_set_display_osd(bool onoff);
 	void do_display_osd_leds(int lednum,bool onoff);
+	void do_set_led_width(int bitwidth);
+
 signals:
 	void update_screenChanged(int tick);
 	void do_notify_move_mouse(int x, int y);

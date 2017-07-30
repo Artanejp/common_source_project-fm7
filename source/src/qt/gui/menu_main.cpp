@@ -326,7 +326,8 @@ void Ui_MainWindowBase::setupUi(void)
 		graphicsView->setAttribute(Qt::WA_InputMethodEnabled, false); // Disable [Zenkaku / Hankaku] with IM.
 		graphicsView->setAttribute(Qt::WA_KeyboardFocusChange, false);
 		graphicsView->setAttribute(Qt::WA_KeyCompression, false);
-		
+		connect(this, SIGNAL(sig_set_display_osd(bool)), graphicsView, SLOT(do_set_display_osd(bool)));
+		connect(this, SIGNAL(sig_set_led_width(int)), graphicsView, SLOT(do_set_led_width(int)));
 		//graphicsView->setFocusPolicy(Qt::StrongFocus);
 		//this->setFocusPolicy(Qt::ClickFocus);
 	}
@@ -351,29 +352,35 @@ void Ui_MainWindowBase::setupUi(void)
 		pCentralLayout->addWidget(driveData);
 		driveData->setVisible(false);
 		graphicsView->setVisible(true);
+		//emit sig_set_display_osd(true);
 		break;
 	case 1:
 		pCentralLayout->addWidget(driveData);
 		pCentralLayout->addWidget(graphicsView);
 		driveData->setVisible(true);
 		graphicsView->setVisible(true);
+		//emit sig_set_display_osd(false);
 		break;
 	case 2:
 		pCentralLayout->addWidget(graphicsView);
 		pCentralLayout->addWidget(driveData);
 		driveData->setVisible(true);
 		graphicsView->setVisible(true);
+		//emit sig_set_display_osd(false);
 		break;
-	}	
+	default:
+		pCentralLayout->addWidget(graphicsView);
+		pCentralLayout->addWidget(driveData);
+		driveData->setVisible(true);
+		graphicsView->setVisible(true);
+		//emit sig_set_display_osd(false);
+		break;
+	}
 	driveData->setOrientation(using_flags->get_config_ptr()->virtual_media_position);
 	connect(this, SIGNAL(sig_set_orientation_osd(int)), driveData, SLOT(setOrientation(int)));
-	//connect(this, SIGNAL(sig_resize_osd(int)), driveData, SLOT(setScreenWidth(int)));
 	connect(graphicsView, SIGNAL(sig_resize_osd(int)), driveData, SLOT(setScreenWidth(int)));
 
 	MainWindow->setFocusProxy(graphicsView);
-	//driveData->setAllowedAreas(Qt::RightToolBarArea | Qt::BottomToolBarArea);
-	//MainWindow->addToolBar(driveData);
-	//MainWindow->setCorner(Qt::BottomRightCorner, Qt::BottomDockWidgetArea);
 	MainWindow->centralWidget()->adjustSize();
 	MainWindow->adjustSize();
 
@@ -411,17 +418,26 @@ void Ui_MainWindowBase::setupUi(void)
 	menuDebugger = new QMenu(menuControl);
 	menuDebugger->setObjectName(QString::fromUtf8("menuDebugger"));
 	menuDebugger->setToolTipsVisible(true);
+	int _led_width = 0;
 	if(using_flags->is_use_fd()) {
 		int i;
 		for(i = 0; i < using_flags->get_max_drive(); i++) CreateFloppyMenu(i, i + 1);
+		_led_width = _led_width + 8;
 	}
 	if(using_flags->is_use_qd()) {
 		int i;
 		for(i = 0; i < using_flags->get_max_qd(); i++) CreateQuickDiskMenu(i, i + 1);
+		_led_width = _led_width + 2;
 	}
 	if(using_flags->is_use_tape()) {
 		for(int i = 0; i < using_flags->get_max_tape(); i++) CreateCMTMenu(i);
+		_led_width = _led_width + 2;
 	}
+	if(using_flags->get_max_scsi() > 0) {
+		_led_width = _led_width + using_flags->get_max_scsi() - 1;
+	}
+	emit sig_set_led_width(_led_width);
+	
 	CreateScreenMenu();
 	if(using_flags->is_use_cart()) {
 		int i;
@@ -1146,7 +1162,7 @@ void Ui_MainWindowBase::do_set_visible_virtual_media_none()
 	pCentralLayout->removeWidget(graphicsView);
 	pCentralLayout->addWidget(driveData);
 	pCentralLayout->addWidget(graphicsView);
-	emit sig_set_display_osd(true);
+	//emit sig_set_display_osd(true);
 }
 
 void Ui_MainWindowBase::do_set_visible_virtual_media_upper()
@@ -1159,7 +1175,7 @@ void Ui_MainWindowBase::do_set_visible_virtual_media_upper()
 	pCentralLayout->removeWidget(graphicsView);
 	pCentralLayout->addWidget(driveData);
 	pCentralLayout->addWidget(graphicsView);
-	emit sig_set_display_osd(false);
+	//emit sig_set_display_osd(false);
 }
 
 void Ui_MainWindowBase::do_set_visible_virtual_media_lower()
@@ -1172,7 +1188,7 @@ void Ui_MainWindowBase::do_set_visible_virtual_media_lower()
 	pCentralLayout->removeWidget(graphicsView);
 	pCentralLayout->addWidget(graphicsView);
 	pCentralLayout->addWidget(driveData);
-	emit sig_set_display_osd(false);
+	//emit sig_set_display_osd(false);
 }
 
 void Ui_MainWindowBase::do_set_visible_virtual_media_left()
@@ -1184,7 +1200,7 @@ void Ui_MainWindowBase::do_set_visible_virtual_media_left()
 	emit sig_set_orientation_osd(3);
 	pCentralLayout->removeWidget(driveData);
 	pCentralLayout->addWidget(driveData, 1, 0);
-	emit sig_set_display_osd(false);
+	//emit sig_set_display_osd(false);
 #endif
 }
 
@@ -1197,7 +1213,7 @@ void Ui_MainWindowBase::do_set_visible_virtual_media_right()
 	emit sig_set_orientation_osd(4);
 	pCentralLayout->removeWidget(driveData);
 	pCentralLayout->addWidget(driveData, 1, 2);
-	emit sig_set_display_osd(false);
+	//emit sig_set_display_osd(false);
 #endif
 }
 

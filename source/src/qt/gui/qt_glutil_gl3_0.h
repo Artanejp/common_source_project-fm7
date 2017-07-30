@@ -28,6 +28,7 @@ protected:
 	GLScreenPack *ntsc_pass1;
 	GLScreenPack *ntsc_pass2;
 	GLScreenPack *bitmap_block;
+	GLScreenPack *led_pass[32];
 
 	VertexTexCoord_t vertexTmpTexture[4];
 	
@@ -79,6 +80,8 @@ protected:
 	virtual void drawBitmapTexture(void);
 	virtual void drawButtonsMain(int num, bool f_smoosing);
 	virtual void drawOsdLeds();
+	virtual void drawLedMain(GLScreenPack *obj, QVector4D color);
+	virtual void set_led_vertex(int bit);
 
 public:
 	GLDraw_3_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU *emu = 0);
