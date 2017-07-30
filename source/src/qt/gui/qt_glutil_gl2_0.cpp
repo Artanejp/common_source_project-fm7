@@ -755,6 +755,7 @@ void GLDraw_2_0::drawMain(QOpenGLShaderProgram *prg,
 						   
 {
 	if(texid != 0) {
+		QImage *p = imgptr;
 		extfunc_2->glEnable(GL_TEXTURE_2D);
 
 		extfunc_2->glViewport(0, 0, p_wid->width(), p_wid->height());
@@ -776,8 +777,10 @@ void GLDraw_2_0::drawMain(QOpenGLShaderProgram *prg,
 				prg->bind();
 				prg->setUniformValue("a_texture", 0);
 				prg->setUniformValue("color", color);
-				prg->setUniformValue("tex_width",  (float)screen_texture_width); 
-				prg->setUniformValue("tex_height", (float)screen_texture_height);
+				//prg->setUniformValue("tex_width",  (float)screen_texture_width); 
+				//prg->setUniformValue("tex_height", (float)screen_texture_height);
+				prg->setUniformValue("tex_width",  (float)p->width()); 
+				prg->setUniformValue("tex_height", (float)p->height());
 				if(using_flags->is_use_screen_rotate()) {
 					if(using_flags->get_config_ptr()->rotate_type) {
 						prg->setUniformValue("rotate", GL_TRUE);
@@ -865,39 +868,6 @@ void GLDraw_2_0::uploadMainTexture(QImage *p, bool use_chromakey)
 	if(p == NULL) return;
 	{
 		if(use_chromakey) {
-#if 0
-			bool checkf = false;
-			if(vertex_screen == NULL) {
-				checkf = true;
-			} else {
-				if(!vertex_screen->isCreated()) checkf = true;
-			}
-			if(buffer_screen_vertex == NULL) {
-				checkf = true;
-			} else {
-				if(!buffer_screen_vertex->isCreated()) checkf = true;
-			}
-			if(main_shader == NULL) {
-				checkf = true;
-			} else {
-				if(!main_shader->isLinked()) checkf = true;
-			}
-			if(checkf) {
-				QColor mask = QColor(0, 0, 0, 255);
-				QImage pp = p->QImage::createMaskFromColor(mask.rgba(), Qt::MaskOutColor);
-				if(uVramTextureID == 0) {
-					uVramTextureID = p_wid->bindTexture(pp);
-				}
-				extfunc_2->glBindTexture(GL_TEXTURE_2D, uVramTextureID);
-				extfunc_2->glTexSubImage2D(GL_TEXTURE_2D, 0,
-										 0, 0,
-										 pp.width(), pp.height(),
-										 GL_BGRA, GL_UNSIGNED_BYTE, pp.constBits());
-				extfunc_2->glBindTexture(GL_TEXTURE_2D, 0);
-				crt_flag = true;
-				return;
-			}
-#endif
 		}
 		// Upload to main texture
 		if(uVramTextureID == 0) {
@@ -1033,25 +1003,29 @@ void GLDraw_2_0::do_set_screen_multiply(float mul)
 {
 	screen_multiply = mul;
 	do_set_texture_size(imgptr, screen_texture_width, screen_texture_height);
+	//do_set_texture_size(imgptr, -1, -1);
 }
 
 
 void GLDraw_2_0::do_set_texture_size(QImage *p, int w, int h)
 {
-	//if(w <= 0) w = using_flags->get_screen_width();
-	//if(h <= 0) h = using_flags->get_screen_height();
 	if(w <= 0) w = using_flags->get_real_screen_width();
 	if(h <= 0) h = using_flags->get_real_screen_height();
+	float iw;
+	float ih;
+	imgptr = p;
 	if(p != NULL) {
-		float iw;
-		float ih;
-		imgptr = p;
 		iw = (float)p->width();
 		ih = (float)p->height();
-		//if(screen_multiply < 1.0f) {
+	} else {
+		iw = (float)using_flags->get_real_screen_width();
+		ih = (float)using_flags->get_real_screen_height();
+	}
+	screen_texture_width = w;
+	screen_texture_height = h;
+
+	if(p_wid != NULL) {
 		p_wid->makeCurrent();
-		screen_texture_width = w;
-		screen_texture_height = h;
 		vertexFormat[0].s = 0.0f;
 		vertexFormat[0].t = (float)h / ih;
 		vertexFormat[1].s = (float)w / iw;
@@ -1060,7 +1034,6 @@ void GLDraw_2_0::do_set_texture_size(QImage *p, int w, int h)
 		vertexFormat[2].t = 0.0f;
 		vertexFormat[3].s = 0.0f;
 		vertexFormat[3].t = 0.0f;
-		
 		setNormalVAO(main_shader, vertex_screen,
 					 buffer_screen_vertex,
 					 vertexFormat, 4);

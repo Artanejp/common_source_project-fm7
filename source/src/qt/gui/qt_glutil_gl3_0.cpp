@@ -1129,8 +1129,6 @@ void GLDraw_3_0::do_set_screen_multiply(float mul)
 
 void GLDraw_3_0::do_set_texture_size(QImage *p, int w, int h)
 {
-	//if(w <= 0) w = using_flags->get_screen_width();
-	//if(h <= 0) h = using_flags->get_screen_height();
 	if(w <= 0) w = using_flags->get_real_screen_width();
 	if(h <= 0) h = using_flags->get_real_screen_height();
 	imgptr = p;
