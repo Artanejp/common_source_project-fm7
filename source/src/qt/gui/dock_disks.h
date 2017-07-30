@@ -72,8 +72,8 @@ class CSP_DockDisks : public QWidget {
 	Q_OBJECT
 private:
 	USING_FLAGS *using_flags;
-	QHBoxLayout *HBox;
-	QVBoxLayout *VBox;
+	//QHBoxLayout *HBox;
+	QGridLayout *HVBox;
 	CSP_LabelVirtualDevice *pBinary[8];
 	CSP_LabelVirtualDevice *pBubble[8];
 	CSP_LabelVirtualDevice *pCart[8];
@@ -83,7 +83,11 @@ private:
 	CSP_LabelVirtualDevice *pHardDisk[8];
 	CSP_LabelVirtualDevice *pLaserDisc[2];
 	CSP_LabelVirtualDevice *pQuickDisk[2];
-	
+
+	bool two_rows;
+	int initial_width;
+	int initial_height;
+	int base_width;
 public:
 	CSP_DockDisks(QWidget *parent, USING_FLAGS *p);
 	~CSP_DockDisks();
@@ -94,6 +98,7 @@ public slots:
 	void setVisibleLabel(int dom, int localNum, bool enabled);
 	void setPixmap(int dom, int localNum, const QPixmap &);
 	void setOrientation(int loc);
+	void setScreenWidth(int width);
 };
 QT_END_NAMESPACE
 

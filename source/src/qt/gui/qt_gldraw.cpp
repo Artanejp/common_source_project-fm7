@@ -78,6 +78,7 @@ void GLDrawClass::resizeGL(int width, int height)
 	//do_set_texture_size(imgptr, screen_texture_width, screen_texture_height);
 	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "ResizeGL: %dx%d", width , height);
 	emit sig_resize_uibar(width, height);
+	emit sig_resize_osd(width);
 }
 
 

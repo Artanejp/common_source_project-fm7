@@ -466,7 +466,6 @@ public:
 	virtual void StopJoyThread(void);
 	virtual void LaunchJoyThread(void);
 	// Screen
-	virtual void OnWindowResize(void);
 	virtual void OnWindowMove(void);
 	virtual void OnWindowRedraw(void);
    
@@ -660,6 +659,8 @@ signals:
 	int sig_emu_set_display_size(int, int, int, int);
 	int sig_emu_update_volume_level(int, int);
 	int sig_emu_update_volume_balance(int, int);
+
+	int sig_resize_osd(int);
 	
 	int sig_write_protect_disk(int drv, bool flag);
 	int sig_open_disk(int, QString, int);

@@ -62,7 +62,7 @@ void Ui_MainWindow::set_window(int mode)
 		
 		// set screen size to emu class
 		emit sig_emu_set_display_size(width, height, width, height);
-		//emit sig_resize_screen(width, height);
+		emit sig_resize_osd(width);
 		this->resize_statusbar(width, height);
 	} else if(!now_fullscreen) {
 		// fullscreen
@@ -88,7 +88,7 @@ void Ui_MainWindow::set_window(int mode)
 		}
 		p_config->window_mode = mode;
 		emit sig_emu_set_display_size(using_flags->get_screen_width(), using_flags->get_screen_height(), width, height);
-		//emit sig_resize_screen(width, height);
+		emit sig_resize_osd(width);
 		this->resize_statusbar(width, height);
 	}
 }

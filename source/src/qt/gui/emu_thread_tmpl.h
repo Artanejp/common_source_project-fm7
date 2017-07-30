@@ -220,6 +220,7 @@ signals:
 	int sig_send_data_led(quint32);
 	int sig_resize_screen(int, int);
 	int sig_resize_uibar(int, int);
+	int sig_resize_osd(int);
 	int sig_is_enable_mouse(bool);
 	int sig_debugger_input(QString);
 	int sig_quit_debugger();

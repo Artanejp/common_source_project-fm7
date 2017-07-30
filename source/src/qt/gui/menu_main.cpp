@@ -367,6 +367,8 @@ void Ui_MainWindowBase::setupUi(void)
 	}	
 	driveData->setOrientation(using_flags->get_config_ptr()->virtual_media_position);
 	connect(this, SIGNAL(sig_set_orientation_osd(int)), driveData, SLOT(setOrientation(int)));
+	//connect(this, SIGNAL(sig_resize_osd(int)), driveData, SLOT(setScreenWidth(int)));
+	connect(graphicsView, SIGNAL(sig_resize_osd(int)), driveData, SLOT(setScreenWidth(int)));
 
 	MainWindow->setFocusProxy(graphicsView);
 	//driveData->setAllowedAreas(Qt::RightToolBarArea | Qt::BottomToolBarArea);
@@ -1290,12 +1292,6 @@ void Ui_MainWindowBase::OnWindowMove(void)
 {
 }
 
-void Ui_MainWindowBase::OnWindowResize(void)
-{
-	if(using_flags->get_emu()) {
-		set_window(using_flags->get_config_ptr()->window_mode);
-	}
-}
 
 void Ui_MainWindowBase::OnWindowRedraw(void)
 {

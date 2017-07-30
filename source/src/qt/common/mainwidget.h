@@ -39,7 +39,6 @@ public:
 	void StopJoyThread(void);
 	void LaunchJoyThread(void);
 	// Screen
-	//void OnWindowResize(void);
 	void OnWindowMove(void);
 	void OnWindowRedraw(void);
 	void OnMainWindowClosed(void);

@@ -134,13 +134,16 @@ void Ui_MainWindowBase::set_screen_size(int w, int h)
 		if(using_flags->get_config_ptr()->rotate_type) {
 			this->graphicsView->setFixedSize(h, w);
 			this->resize_statusbar(h, w);
+			//emit sig_resize_osd(h);
 		} else {
 			this->graphicsView->setFixedSize(w, h);
 			this->resize_statusbar(w, h);
+			//emit sig_resize_osd(w);
 		}
 	} else 	{
 		this->graphicsView->setFixedSize(w, h);
 		this->resize_statusbar(w, h);
+		//emit sig_resize_osd(w);
 	}
    
 	MainWindow->centralWidget()->adjustSize();

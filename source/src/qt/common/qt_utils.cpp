@@ -294,6 +294,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 #endif
 	connect(hRunEmu, SIGNAL(sig_resize_screen(int, int)),
 			glv, SLOT(resizeGL(int, int)));
+	connect(hRunEmu, SIGNAL(sig_resize_osd(int)), driveData, SLOT(setScreenWidth(int)));
 	
 	connect(glv, SIGNAL(sig_resize_uibar(int, int)),
 			this, SLOT(resize_statusbar(int, int)));

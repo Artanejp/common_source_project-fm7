@@ -158,6 +158,7 @@ signals:
 	int sig_key_up(uint32_t, uint32_t);
 	int sig_set_display_osd(bool);
 	int sig_display_osd_leds(int,bool);
+	int sig_resize_osd(int);
 };
 
 #endif // End.

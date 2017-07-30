@@ -3,7 +3,7 @@
 #include <QLabel>
 #include <QPixmap>
 #include <QHBoxLayout>
-#include <QVBoxLayout>
+#include <QGridLayout>
 #include <math.h>
 #include "dock_disks.h"
 #include "menu_flags.h"
@@ -120,7 +120,7 @@ void CSP_LabelVirtualDevice::setScreenWidth(int width, int basewidth)
 	_mul = _w / _bw;
 	_now_width = (int)((float)_width * _mul);
 	_now_height = (int)((float)_height * _mul);
-	_now_pt = round(_base_pt * 100.0) / 100.0;
+	_now_pt = round((_base_pt * _mul) * 100.0) / 100.0;
 
 	Message->setMinimumSize(_now_width, _now_height);
 	Message->setMaximumSize(_now_width, _now_height);
@@ -129,7 +129,7 @@ void CSP_LabelVirtualDevice::setScreenWidth(int width, int basewidth)
 	Indicator->setMaximumSize((int)(_now_pt * 1.2f), _now_height);
 	
 	cssstr = QString::fromUtf8("font: ");
-	ptstr.setNum(_base_pt);
+	ptstr.setNum(_now_pt);
 	cssstr = cssstr + ptstr + QString::fromUtf8("pt \"Sans\"; ");
 	
 	Message->setStyleSheet(cssstr);
@@ -139,12 +139,16 @@ void CSP_LabelVirtualDevice::setScreenWidth(int width, int basewidth)
 CSP_DockDisks::CSP_DockDisks(QWidget *parent, USING_FLAGS *p) :  QWidget(parent)
 {
 	QString ns, ms;
-	const float font_pt = 12.0f;
+	const float font_pt = 14.0f;
 	using_flags = p;
-	HBox = new QHBoxLayout(this);
-	VBox = new QVBoxLayout(this);
-	HBox->setAlignment(Qt::AlignRight);
-	VBox->setAlignment(Qt::AlignTop);
+	int _x, _y;
+	int _wlots;
+	int _wmod;
+	two_rows = false;
+	_x = 0;
+	_y = 0;
+	HVBox = new QGridLayout(this);
+	HVBox->setAlignment(Qt::AlignRight);
 
 	
 	for(int i = 0; i < 8; i++) {
@@ -162,63 +166,151 @@ CSP_DockDisks::CSP_DockDisks(QWidget *parent, USING_FLAGS *p) :  QWidget(parent)
 	}
 	if(using_flags->is_use_laser_disc()) {
 			pLaserDisc[0] = new CSP_LabelVirtualDevice(this, 4, font_pt, QString::fromUtf8("CD"), 0);
-			HBox->addWidget(pLaserDisc[0]);
+			HVBox->addWidget(pLaserDisc[0], 0, _x);
 			pLaserDisc[0]->setVisible(true);
+			_x++;
 	}
 	if(using_flags->is_use_compact_disc()) {
 			pCompactDisc[0] = new CSP_LabelVirtualDevice(this, 4, font_pt, QString::fromUtf8("CD"), 0);
-			HBox->addWidget(pCompactDisc[0]);
+			HVBox->addWidget(pCompactDisc[0], 0, _x);
 			pCompactDisc[0]->setVisible(true);
+			_x++;
 	}
 	
 	if(using_flags->is_use_cart()) {
+		if(using_flags->get_max_cart() >= 4) {
+			_wlots = 4;
+			_wmod = using_flags->get_max_cart() - 4;
+			two_rows = true;
+		} else {
+			_wlots = using_flags->get_max_cart();
+			_wmod = 0;
+		}
 		for(int i = 0; i < using_flags->get_max_cart(); i++) {
 			pCart[i] = new CSP_LabelVirtualDevice(this, 6, font_pt, QString::fromUtf8("CART"), i);
-			HBox->addWidget(pCart[i]);
 			pCart[i]->setVisible(true);
+		}
+		int _xtmp = _x;
+		for(int i = 0; i < _wlots; i++) {
+			HVBox->addWidget(pCart[i], 0, _x);
+			_x++;
+		}
+		for(int i = 0; i < _wmod; i++) {
+			HVBox->addWidget(pCart[i + 4], 1, _xtmp);
+			_xtmp++;
 		}
 	}
 	if(using_flags->is_use_binary_file()) {
+		if(using_flags->get_max_binary() >= 4) {
+			_wlots = 4;
+			_wmod = using_flags->get_max_binary() - 4;
+			two_rows = true;
+		} else {
+			_wlots = using_flags->get_max_binary();
+			_wmod = 0;
+		}
 		for(int i = 0; i < using_flags->get_max_binary(); i++) {
 			pBinary[i] = new CSP_LabelVirtualDevice(this, 6, font_pt, QString::fromUtf8("BIN"), i);
-			HBox->addWidget(pBinary[i]);
 			pBinary[i]->setVisible(true);
+		}
+		int _xtmp = _x;
+		for(int i = 0; i < _wlots; i++) {
+			HVBox->addWidget(pBinary[i], 0, _x);
+			_x++;
+		}
+		for(int i = 0; i < _wmod; i++) {
+			HVBox->addWidget(pBinary[i + 4], 1, _xtmp);
+			_xtmp++;
 		}
 	}
 	if(using_flags->is_use_bubble()) {
+		if(using_flags->get_max_bubble() >= 4) {
+			_wlots = 4;
+			_wmod = using_flags->get_max_bubble() - 4;
+			two_rows = true;
+		} else {
+			_wlots = using_flags->get_max_bubble();
+			_wmod = 0;
+		}
 		for(int i = 0; i < using_flags->get_max_bubble(); i++) {
 			pBubble[i] = new CSP_LabelVirtualDevice(this, 6, font_pt, QString::fromUtf8("BUB"), i);
-			HBox->addWidget(pBubble[i]);
 			pBubble[i]->setVisible(true);
+		}
+		int _xtmp = _x;
+		for(int i = 0; i < _wlots; i++) {
+			HVBox->addWidget(pBubble[i], 0, _x);
+			_x++;
+		}
+		for(int i = 0; i < _wmod; i++) {
+			HVBox->addWidget(pBubble[i + 4], 1, _xtmp);
+			_xtmp++;
 		}
 	}
 	if(using_flags->is_use_fd()) {
+		if(using_flags->get_max_drive() >= 4) {
+			_wlots = 4;
+			_wmod = using_flags->get_max_drive() - 4;
+			two_rows = true;
+		} else {
+			_wlots = using_flags->get_max_drive();
+			_wmod = 0;
+		}
 		for(int i = 0; i < using_flags->get_max_drive(); i++) {
 			pFloppyDisk[i] = new CSP_LabelVirtualDevice(this, 12, font_pt, QString::fromUtf8("FD"), i);
-			HBox->addWidget(pFloppyDisk[i]);
 			pFloppyDisk[i]->setVisible(true);
+		}
+		int _xtmp = _x;
+		for(int i = 0; i < _wlots; i++) {
+			HVBox->addWidget(pFloppyDisk[i], 0, _x);
+			_x++;
+		}
+		for(int i = 0; i < _wmod; i++) {
+			HVBox->addWidget(pFloppyDisk[i + 4], 1, _xtmp);
+			_xtmp++;
 		}
 	}
 	if(using_flags->is_use_qd()) {
+		if(using_flags->get_max_qd() >= 4) {
+			_wlots = 4;
+			_wmod = using_flags->get_max_qd() - 4;
+			two_rows = true;
+		} else {
+			_wlots = using_flags->get_max_qd();
+			_wmod = 0;
+		}
 		for(int i = 0; i < using_flags->get_max_qd(); i++) {
 			pQuickDisk[i] = new CSP_LabelVirtualDevice(this, 4, font_pt, QString::fromUtf8("QD"), i);
-			HBox->addWidget(pQuickDisk[i]);
 			pQuickDisk[i]->setVisible(true);
 		}
+		int _xtmp = _x;
+		for(int i = 0; i < _wlots; i++) {
+			HVBox->addWidget(pQuickDisk[i], 0, _x);
+			_x++;
+		}
+		for(int i = 0; i < _wmod; i++) {
+			HVBox->addWidget(pQuickDisk[i + 4], 1, _xtmp);
+			_xtmp++;
+		}
+
 	}
 	if(using_flags->is_use_tape()) {
 		for(int i = 0; i < using_flags->get_max_tape(); i++) {
 			pCMT[i] = new CSP_LabelVirtualDevice(this, 12, font_pt, QString::fromUtf8("CMT"), i);
-			HBox->addWidget(pCMT[i]);
+			//HBox->addWidget(pCMT[i]);
+			HVBox->addWidget(pCMT[i], 0, _x);
 			pCMT[i]->setVisible(true);
+			_x++;
 		}
 	}
 	{
 		// ToDo: HDD.
 	}
-	HBox->setContentsMargins(0, 0, 0, 0);
-	this->setLayout(HBox);
-	this->setGeometry(0, 0, this->width(), (int)(font_pt * 1.5));
+	HVBox->setContentsMargins(0, 0, 0, 0);
+	initial_width = this->width();
+	initial_height = (two_rows) ? (int)(font_pt * 3.0) : (int)(font_pt * 1.5);
+	base_width = 1280;
+	this->setLayout(HVBox);
+	this->setGeometry(0, 0, initial_width, initial_height);
 }
 
 			
@@ -461,4 +553,36 @@ void CSP_DockDisks::setOrientation(int loc)
 		break;
 	}
 #endif
+}
+
+void CSP_DockDisks::setScreenWidth(int width)
+{
+	float _mul = (float)width / (float)base_width;
+	int now_width = (int)((float)initial_width * _mul);
+	int now_height = (int)((float)initial_height * _mul);
+	for(int i = 0; i < 8; i++) {
+		if(pBinary[i] != NULL) pBinary[i]->setScreenWidth(width, -1);
+	}
+	for(int i = 0; i < 8; i++) {
+		if(pCart[i] != NULL) pCart[i]->setScreenWidth(width, -1);
+	}
+	for(int i = 0; i < 8; i++) {
+		if(pFloppyDisk[i] != NULL) pFloppyDisk[i]->setScreenWidth(width, -1);
+	}
+	for(int i = 0; i < 8; i++) {
+		if(pBubble[i] != NULL) pBubble[i]->setScreenWidth(width, -1);
+	}
+	for(int i = 0; i < 2; i++) {
+		if(pCMT[i] != NULL) pCMT[i]->setScreenWidth(width, -1);
+	}
+	for(int i = 0; i < 2; i++) {
+		if(pCompactDisc[i] != NULL) pCompactDisc[i]->setScreenWidth(width, -1);
+	}
+	for(int i = 0; i < 2; i++) {
+		if(pLaserDisc[i] != NULL) pLaserDisc[i]->setScreenWidth(width, -1);
+	}
+	for(int i = 0; i < 2; i++) {
+		if(pQuickDisk[i] != NULL) pQuickDisk[i]->setScreenWidth(width, -1);
+	}
+	this->setGeometry(0, 0, now_width, now_height);
 }

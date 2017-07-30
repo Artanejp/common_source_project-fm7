@@ -220,6 +220,7 @@ void EmuThreadClassBase::set_tape_play(bool flag)
 void EmuThreadClassBase::resize_screen(int screen_width, int screen_height, int stretched_width, int stretched_height)
 {
 	emit sig_resize_screen(screen_width, screen_height);
+	emit sig_resize_osd(screen_width);
 }
 
 void EmuThreadClassBase::sample_access_drv(void)
