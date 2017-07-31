@@ -66,6 +66,8 @@ public slots:
 	void setVisibleIndicator(bool f);
 	void setVisibleMessage(bool f);
 	void setScreenWidth(int width, int basewidth);
+	void setPixmapLabel(QPixmap p);
+	void setPixmapIndicator(QPixmap p);
 };
 
 class CSP_DockDisks : public QWidget {

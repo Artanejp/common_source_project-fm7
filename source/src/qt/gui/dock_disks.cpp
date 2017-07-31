@@ -7,6 +7,10 @@
 #include <math.h>
 #include "dock_disks.h"
 #include "menu_flags.h"
+// Test
+#include "qt_drawitem.h"
+#include <QPixmap>
+#include <QColor>
 
 CSP_LabelVirtualDevice::CSP_LabelVirtualDevice(QWidget *parent,
 											   int width, float point,
@@ -136,10 +140,22 @@ void CSP_LabelVirtualDevice::setScreenWidth(int width, int basewidth)
 	Indicator->setStyleSheet(cssstr);
 }
 
+void CSP_LabelVirtualDevice::setPixmapLabel(QPixmap p)
+{
+	Message->setPixmap(p);
+}
+
+void CSP_LabelVirtualDevice::setPixmapIndicator(QPixmap p)
+{
+	Indicator->setPixmap(p);
+}
+
+
 CSP_DockDisks::CSP_DockDisks(QWidget *parent, USING_FLAGS *p) :  QWidget(parent)
 {
 	QString ns, ms;
 	const float font_pt = 14.0f;
+	//const float font_pt = 32.0f;
 	using_flags = p;
 	int _x, _y;
 	int _wlots;
@@ -246,6 +262,13 @@ CSP_DockDisks::CSP_DockDisks(QWidget *parent, USING_FLAGS *p) :  QWidget(parent)
 			_xtmp++;
 		}
 	}
+	QColor bg = QColor(Qt::green);
+	QColor fg = QColor(Qt::black);
+	QColor tg = QColor(Qt::white);
+	QPixmap fdIcon;
+	CSP_DrawItem *fdItem = new CSP_DrawItem(48, 48);
+	fdItem->drawFloppy5Inch(bg, fg, tg, 12.0, QString::fromUtf8("1:"));
+	fdIcon = QPixmap::fromImage(*fdItem);
 	if(using_flags->is_use_fd()) {
 		if(using_flags->get_max_drive() >= 4) {
 			_wlots = 4;
@@ -257,6 +280,7 @@ CSP_DockDisks::CSP_DockDisks(QWidget *parent, USING_FLAGS *p) :  QWidget(parent)
 		}
 		for(int i = 0; i < using_flags->get_max_drive(); i++) {
 			pFloppyDisk[i] = new CSP_LabelVirtualDevice(this, 12, font_pt, QString::fromUtf8("FD"), i);
+			//pFloppyDisk[i]->setPixmapLabel(fdIcon); // Test
 			pFloppyDisk[i]->setVisible(true);
 		}
 		int _xtmp = _x;
@@ -293,6 +317,7 @@ CSP_DockDisks::CSP_DockDisks(QWidget *parent, USING_FLAGS *p) :  QWidget(parent)
 		}
 
 	}
+	delete fdItem;
 	if(using_flags->is_use_tape()) {
 		for(int i = 0; i < using_flags->get_max_tape(); i++) {
 			pCMT[i] = new CSP_LabelVirtualDevice(this, 12, font_pt, QString::fromUtf8("CMT"), i);
@@ -586,3 +611,4 @@ void CSP_DockDisks::setScreenWidth(int width)
 	}
 	this->setGeometry(0, 0, now_width, now_height);
 }
+

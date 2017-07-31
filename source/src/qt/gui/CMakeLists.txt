@@ -38,6 +38,7 @@ set(s_qt_gui_headers
 	  tab_movie_mpeg4.h
 
 	  dock_disks.h
+#	  qt_drawitem.h
 	  
 	  draw_thread.h
 	  joy_thread.h
@@ -56,7 +57,8 @@ set(s_qt_gui_srcs
 	  qt_glevents.cpp
 	  qt_dialogs.cpp
 
-      qt_input.cpp
+	  qt_input.cpp
+	  qt_drawitem.cpp
 	  menu_control.cpp
 	  menu_metaclass.cpp
 	  menu_disk.cpp
