@@ -903,17 +903,28 @@ void GLDraw_2_0::resizeGL_Screen(void)
 
 void GLDraw_2_0::resizeGL_SetVertexs(void)
 {
+	float iw = (float)using_flags->get_real_screen_width();
+	float ih = (float)using_flags->get_real_screen_height();
 	vertexFormat[0].x = -screen_width;
 	vertexFormat[0].y = -screen_height;
-	
+	//vertexFormat[0].s = 0.0f;
+	//vertexFormat[0].t = ih / screen_texture_height;
+
 	vertexFormat[1].x = +screen_width;
 	vertexFormat[1].y = -screen_height;
+	//vertexFormat[1].s = iw / screen_texture_width;
+	//vertexFormat[1].t = ih / screen_texture_height;
 	
 	vertexFormat[2].x = +screen_width;
 	vertexFormat[2].y = +screen_height;
+	//vertexFormat[2].s = iw / screen_texture_width;
+	//vertexFormat[2].t = 0.0f;
 	
 	vertexFormat[3].x = -screen_width;
 	vertexFormat[3].y = +screen_height;
+	//vertexFormat[3].s = 0.0f;
+	//vertexFormat[3].t = 0.0f;
+	
 	if(using_flags->is_use_one_board_computer()) {
 #if !defined(BITMAP_OFFSET_X)
 		#define BITMAP_OFFSET_X 0

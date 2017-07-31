@@ -255,7 +255,7 @@
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		200
 #define SCREEN_FAKE_WIDTH   640
-#define SCREEN_FAKE_HEIGHT  400
+#define SCREEN_FAKE_HEIGHT  200
 #endif
 #define WINDOW_HEIGHT_ASPECT 480
 #define HAS_MC6809              
