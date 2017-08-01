@@ -154,8 +154,8 @@ void CSP_LabelVirtualDevice::setPixmapIndicator(QPixmap p)
 CSP_DockDisks::CSP_DockDisks(QWidget *parent, USING_FLAGS *p) :  QWidget(parent)
 {
 	QString ns, ms;
-	const float font_pt = 14.0f;
-	//const float font_pt = 32.0f;
+	//const float font_pt = 14.0f;
+	const float font_pt = 20.0f;
 	using_flags = p;
 	int _x, _y;
 	int _wlots;
@@ -180,6 +180,45 @@ CSP_DockDisks::CSP_DockDisks(QWidget *parent, USING_FLAGS *p) :  QWidget(parent)
 		pLaserDisc[i] = NULL;
 		pQuickDisk[i] = NULL;
 	}
+#if 1 /* TEST */
+	{
+		QColor bg = QColor(Qt::green);
+		QColor fg = QColor(Qt::black);
+		QColor tg = QColor(Qt::white);
+		QPixmap fdIcon1, fdIcon2;
+		CSP_DrawItem *fdItem1 = new CSP_DrawItem(32, 32);
+		fdItem1->drawFloppy5Inch(bg, fg, tg, 12.0, QString::fromUtf8("0:"));
+		fdIcon1 = QPixmap::fromImage(*fdItem1);
+		fdItem1->drawFloppy3_5Inch(bg, fg, tg, 12.0, QString::fromUtf8("1:"));
+		fdIcon2 = QPixmap::fromImage(*fdItem1);
+		CSP_LabelVirtualDevice *n = new CSP_LabelVirtualDevice(this, 2, font_pt, QString::fromUtf8(""), 0);
+		n->setPixmapLabel(fdIcon1);
+		n->setVisible(true);
+		HVBox->addWidget(n, 0, _x);
+		_x++;
+		CSP_LabelVirtualDevice *nn = new CSP_LabelVirtualDevice(this, 2, font_pt, QString::fromUtf8(""), 1);
+		nn->setPixmapLabel(fdIcon2);
+		nn->setVisible(true);
+		HVBox->addWidget(nn, 0, _x);
+		_x++;
+		delete fdItem1;
+	}
+	{
+		QColor bg = QColor(Qt::green);
+		QColor fg = QColor(Qt::black);
+		QColor tg = QColor(Qt::white);
+		QPixmap CMTIcon1;
+		CSP_DrawItem *CMTItem1 = new CSP_DrawItem(32, 32);
+		CMTItem1->drawCasetteTape(bg, fg, tg, 12.0, QString::fromUtf8("0"));
+		CMTIcon1 = QPixmap::fromImage(*CMTItem1);
+		CSP_LabelVirtualDevice *n = new CSP_LabelVirtualDevice(this, 2, font_pt, QString::fromUtf8(""), 2);
+		n->setPixmapLabel(CMTIcon1);
+		n->setVisible(true);
+		HVBox->addWidget(n, 0, _x);
+		delete CMTItem1;
+		_x++;
+	}
+#endif
 	if(using_flags->is_use_laser_disc()) {
 			pLaserDisc[0] = new CSP_LabelVirtualDevice(this, 4, font_pt, QString::fromUtf8("CD"), 0);
 			HVBox->addWidget(pLaserDisc[0], 0, _x);
@@ -262,13 +301,7 @@ CSP_DockDisks::CSP_DockDisks(QWidget *parent, USING_FLAGS *p) :  QWidget(parent)
 			_xtmp++;
 		}
 	}
-	QColor bg = QColor(Qt::green);
-	QColor fg = QColor(Qt::black);
-	QColor tg = QColor(Qt::white);
-	QPixmap fdIcon;
-	CSP_DrawItem *fdItem = new CSP_DrawItem(48, 48);
-	fdItem->drawFloppy5Inch(bg, fg, tg, 12.0, QString::fromUtf8("1:"));
-	fdIcon = QPixmap::fromImage(*fdItem);
+
 	if(using_flags->is_use_fd()) {
 		if(using_flags->get_max_drive() >= 4) {
 			_wlots = 4;
@@ -280,7 +313,6 @@ CSP_DockDisks::CSP_DockDisks(QWidget *parent, USING_FLAGS *p) :  QWidget(parent)
 		}
 		for(int i = 0; i < using_flags->get_max_drive(); i++) {
 			pFloppyDisk[i] = new CSP_LabelVirtualDevice(this, 12, font_pt, QString::fromUtf8("FD"), i);
-			//pFloppyDisk[i]->setPixmapLabel(fdIcon); // Test
 			pFloppyDisk[i]->setVisible(true);
 		}
 		int _xtmp = _x;
@@ -317,7 +349,7 @@ CSP_DockDisks::CSP_DockDisks(QWidget *parent, USING_FLAGS *p) :  QWidget(parent)
 		}
 
 	}
-	delete fdItem;
+	
 	if(using_flags->is_use_tape()) {
 		for(int i = 0; i < using_flags->get_max_tape(); i++) {
 			pCMT[i] = new CSP_LabelVirtualDevice(this, 12, font_pt, QString::fromUtf8("CMT"), i);
