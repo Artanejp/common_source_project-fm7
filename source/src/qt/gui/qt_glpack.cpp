@@ -20,6 +20,7 @@ GLScreenPack::GLScreenPack(int _width, int _height, QObject *parent) : QObject(p
 		Vertexs[i].s = 0.0;
 		Vertexs[i].t = 0.0;
 	}
+	
 	if(_width <= 0) {
 		_width = 640;
 	}

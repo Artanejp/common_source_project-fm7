@@ -28,7 +28,9 @@ protected:
 	GLScreenPack *ntsc_pass1;
 	GLScreenPack *ntsc_pass2;
 	GLScreenPack *bitmap_block;
-	GLScreenPack *led_pass[32];
+	GLScreenPack *led_pass;
+	QOpenGLBuffer *led_pass_vbuffer[32];
+	QOpenGLVertexArrayObject *led_pass_vao[32];
 
 	VertexTexCoord_t vertexTmpTexture[4];
 	
@@ -41,7 +43,7 @@ protected:
 	GLuint uTmpTextureID;
 	
 	virtual void setNormalVAO(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
-					  QOpenGLBuffer *bp, VertexTexCoord_t *tp, int size = 4);
+							  QOpenGLBuffer *bp, VertexTexCoord_t *tp, int size = 4);
 	virtual bool initGridShaders(const QString vertex_fixed, const QString vertex_rotate, const QString fragment);
 	virtual bool initGridVertexObject(QOpenGLBuffer **vbo, QOpenGLVertexArrayObject **vao, int alloc_size);
 	virtual void set_texture_vertex(float wmul = 1.0f, float hmul = 1.0f);
@@ -65,11 +67,19 @@ protected:
 	virtual void drawGridsHorizonal(void);
 	virtual void drawGridsVertical(void);
 
+	virtual void drawMain(QOpenGLShaderProgram *prg,
+						  QOpenGLVertexArrayObject *vp,
+						  QOpenGLBuffer *bp,
+						  GLuint texid,
+						  QVector4D color,
+						  bool f_smoosing,
+						  bool do_chromakey = false,
+						  QVector3D chromakey = QVector3D(0.0f, 0.0f, 0.0f));
 	virtual void drawMain(GLScreenPack *obj,
-				  GLuint texid,
-				  QVector4D color, bool f_smoosing,
-				  bool do_chromakey = false,
-				  QVector3D chromakey = QVector3D(0.0f, 0.0f, 0.0f));
+						  GLuint texid,
+						  QVector4D color, bool f_smoosing,
+						  bool do_chromakey = false,
+						  QVector3D chromakey = QVector3D(0.0f, 0.0f, 0.0f));
 	virtual void renderToTmpFrameBuffer_nPass(GLuint src_texture,
 										  GLuint src_w,
 										  GLuint src_h,
@@ -80,7 +90,7 @@ protected:
 	virtual void drawBitmapTexture(void);
 	virtual void drawButtonsMain(int num, bool f_smoosing);
 	virtual void drawOsdLeds();
-	virtual void drawLedMain(GLScreenPack *obj, QVector4D color);
+	virtual void drawLedMain(GLScreenPack *obj, int num, QVector4D color);
 	virtual void set_led_vertex(int bit);
 
 public:

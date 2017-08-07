@@ -199,8 +199,10 @@ GLDraw_3_0::GLDraw_3_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, 
 	std_pass = NULL;
 	ntsc_pass1 = NULL;
 	ntsc_pass2 = NULL;
+	led_pass = NULL;
 	for(int i = 0; i < 32; i++) {
-		led_pass[i] = NULL;
+		led_pass_vao[i] = NULL;
+		led_pass_vbuffer[i] = NULL;
 	}
 	grids_horizonal_buffer = NULL;
 	grids_horizonal_vertex = NULL;
@@ -217,8 +219,10 @@ GLDraw_3_0::~GLDraw_3_0()
 	if(std_pass   != NULL) delete std_pass;
 	if(ntsc_pass1 != NULL) delete ntsc_pass1;
 	if(ntsc_pass2 != NULL) delete ntsc_pass2;
+	if(led_pass   != NULL) delete led_pass;
 	for(int i = 0; i < 32; i++) {
-		if(led_pass[i] != NULL) delete led_pass[i];
+		if(led_pass_vao[i] != NULL) delete led_pass_vao[i];	
+		if(led_pass_vbuffer[i] != NULL) delete led_pass_vbuffer[i];
 	}
 	
 	if(grids_horizonal_buffer != NULL) {
@@ -266,33 +270,6 @@ void GLDraw_3_0::setNormalVAO(QOpenGLShaderProgram *prg,
 	bp->bind();
 
 	if(tp == NULL) {
-#if 0
-		VertexTexCoord_t tv[4];
-		tv[0].x = -1.0f;
-		tv[0].y = -1.0f;
-		tv[0].z = -0.9f;
-		tv[0].s = 0.0f;
-		tv[0].t = 1.0f;
-		
-		tv[1].x = +1.0f;
-		tv[1].y = -1.0f;
-		tv[1].z = -0.9f;
-		tv[1].s = 1.0f;
-		tv[1].t = 1.0f;
-		
-		tv[2].x = +1.0f;
-		tv[2].y = +1.0f;
-		tv[2].z = -0.9f;
-		tv[2].s = 1.0f;
-		tv[2].t = 0.0f;
-
-		tv[3].x = -1.0f;
-		tv[3].y = +1.0f;
-		tv[3].z = -0.9f;
-		tv[3].s = 0.0f;
-		tv[3].t = 0.0f;
-		bp->write(0, tv, sizeof(VertexTexCoord_t) * 4);
-#endif
 	} else {
 		bp->write(0, tp, sizeof(VertexTexCoord_t) * size);
 	}
@@ -453,12 +430,24 @@ void GLDraw_3_0::initLocalGLObjects(void)
 					   using_flags->get_screen_width(), using_flags->get_screen_height(),
 					   ":/vertex_shader.glsl" , ":/chromakey_fragment_shader.glsl",
 					   "Standard Shader");
-	for(int i = 0; i < 32; i++) {
-		initPackedGLObject(&(led_pass[i]),
+	initPackedGLObject(&led_pass,
 					   10, 10,
 					   ":/led_vertex_shader.glsl" , ":/led_fragment_shader.glsl",
 					   "LED Shader");
-		set_led_vertex(i);
+	for(int i = 0; i < 32; i++) {
+		led_pass_vao[i] = new QOpenGLVertexArrayObject;
+		led_pass_vbuffer[i] = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+		if(led_pass_vao[i]->create()) {
+			if(led_pass_vbuffer[i]->create()) {
+				led_pass_vbuffer[i]->setUsagePattern(QOpenGLBuffer::DynamicDraw);
+				led_pass_vao[i]->bind();
+				led_pass_vbuffer[i]->bind();
+				led_pass_vbuffer[i]->allocate(sizeof(VertexTexCoord_t) * 4);
+				led_pass_vbuffer[i]->release();
+				led_pass_vao[i]->release();
+				set_led_vertex(i);
+			}
+		}
 	}
 
 	initPackedGLObject(&ntsc_pass1,
@@ -808,20 +797,16 @@ void GLDraw_3_0::drawScreenTexture(void)
 	}
 }
 
-
-void GLDraw_3_0::drawMain(GLScreenPack *obj,
+void GLDraw_3_0::drawMain(QOpenGLShaderProgram *prg,
+						  QOpenGLVertexArrayObject *vp,
+						  QOpenGLBuffer *bp,
 						  GLuint texid,
 						  QVector4D color,
 						  bool f_smoosing,
 						  bool do_chromakey,
 						  QVector3D chromakey)
-						   
 {
-	QOpenGLShaderProgram *prg = obj->getShader();
-	QOpenGLVertexArrayObject *vp = obj->getVAO();
-	QOpenGLBuffer *bp = obj->getVertexBuffer();
 	int ii;
-		
 	if(texid != 0) {
 		extfunc->glEnable(GL_TEXTURE_2D);
 		vp->bind();
@@ -894,7 +879,70 @@ void GLDraw_3_0::drawMain(GLScreenPack *obj,
 		prg->release();
 		extfunc->glBindTexture(GL_TEXTURE_2D, 0);
 		extfunc->glDisable(GL_TEXTURE_2D);
-	}
+	} else {
+		extfunc->glDisable(GL_TEXTURE_2D);
+		vp->bind();
+		bp->bind();
+		prg->bind();
+		extfunc->glViewport(0, 0, p_wid->width(), p_wid->height());
+		extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
+		ii = prg->uniformLocation("color");
+		if(ii >= 0) {
+			prg->setUniformValue(ii,  color);
+		}
+		if(using_flags->is_use_screen_rotate()) {
+			if(using_flags->get_config_ptr()->rotate_type) {
+				prg->setUniformValue("rotate", GL_TRUE);
+			} else {
+				prg->setUniformValue("rotate", GL_FALSE);
+			}
+		} else {
+			prg->setUniformValue("rotate", GL_FALSE);
+		}
+
+		if(do_chromakey) {
+			ii = prg->uniformLocation("chromakey");
+			if(ii >= 0) {
+				prg->setUniformValue(ii, chromakey);
+			}
+			ii = prg->uniformLocation("do_chromakey");
+			if(ii >= 0) {
+				prg->setUniformValue(ii, GL_TRUE);
+			}
+		} else {
+			ii = prg->uniformLocation("do_chromakey");
+			if(ii >= 0) {
+				prg->setUniformValue(ii, GL_FALSE);
+			}
+		}
+		
+		prg->enableAttributeArray("vertex");
+		int vertex_loc = prg->attributeLocation("vertex");
+		extfunc->glEnableVertexAttribArray(vertex_loc);
+		extfunc->glEnable(GL_VERTEX_ARRAY);
+		extfunc->glDrawArrays(GL_POLYGON, 0, 4);
+		extfunc->glDisable(GL_VERTEX_ARRAY);
+		bp->release();
+		vp->release();
+		prg->release();
+		extfunc->glBindTexture(GL_TEXTURE_2D, 0);
+		extfunc->glDisable(GL_TEXTURE_2D);
+	}		
+}
+
+void GLDraw_3_0::drawMain(GLScreenPack *obj,
+						  GLuint texid,
+						  QVector4D color,
+						  bool f_smoosing,
+						  bool do_chromakey,
+						  QVector3D chromakey)
+						   
+{
+	QOpenGLShaderProgram *prg = obj->getShader();
+	QOpenGLVertexArrayObject *vp = obj->getVAO();
+	QOpenGLBuffer *bp = obj->getVertexBuffer();
+
+	drawMain(prg, vp, bp, texid, color, f_smoosing, do_chromakey, chromakey);
 }
 
 void GLDraw_3_0::drawButtonsMain(int num, bool f_smoosing)
@@ -984,12 +1032,11 @@ void GLDraw_3_0::drawBitmapTexture(void)
 	}
 }
 
-void GLDraw_3_0::drawLedMain(GLScreenPack *obj,
-							 QVector4D color)
+void GLDraw_3_0::drawLedMain(GLScreenPack *obj, int num, QVector4D color)
 {
 	QOpenGLShaderProgram *prg = obj->getShader();
-	QOpenGLVertexArrayObject *vp = obj->getVAO();
-	QOpenGLBuffer *bp = obj->getVertexBuffer();
+	QOpenGLVertexArrayObject *vp = led_pass_vao[num];
+	QOpenGLBuffer *bp = led_pass_vbuffer[num];
 	int ii;
 		
 	{
@@ -1008,6 +1055,9 @@ void GLDraw_3_0::drawLedMain(GLScreenPack *obj,
 		
 		prg->enableAttributeArray("vertex");
 		int vertex_loc = prg->attributeLocation("vertex");
+		prg->setAttributeBuffer(vertex_loc, GL_FLOAT, 0, 3, sizeof(VertexTexCoord_t));
+		extfunc->glVertexAttribPointer(vertex_loc, 3, GL_FLOAT, GL_FALSE, sizeof(VertexTexCoord_t), 0); 
+
 		extfunc->glEnableVertexAttribArray(vertex_loc);
 		extfunc->glEnable(GL_VERTEX_ARRAY);
 		extfunc->glDrawArrays(GL_POLYGON, 0, 4);
@@ -1040,7 +1090,7 @@ void GLDraw_3_0::drawOsdLeds()
 					bit <<= 1;
 					continue;
 				}
-				drawLedMain(led_pass[i],
+				drawLedMain(led_pass, i,
 							((osd_led_status & bit) != 0) ? color_on : color_off);
 				bit <<= 1;
 			}
@@ -1172,8 +1222,8 @@ void GLDraw_3_0::set_led_vertex(int xbit)
 	vertex[3].s = 0.0f;
 	vertex[3].t = 1.0f;
 	
-	setNormalVAO(led_pass[xbit]->getShader(), led_pass[xbit]->getVAO(),
-				 led_pass[xbit]->getVertexBuffer(),
+	setNormalVAO(led_pass->getShader(), led_pass_vao[xbit],
+				 led_pass_vbuffer[xbit],
 				 vertex, 4);
 }
 
