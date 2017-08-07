@@ -154,15 +154,14 @@ void CSP_LabelVirtualDevice::setPixmapIndicator(QPixmap p)
 CSP_DockDisks::CSP_DockDisks(QWidget *parent, USING_FLAGS *p) :  QWidget(parent)
 {
 	QString ns, ms;
-	//const float font_pt = 14.0f;
-	const float font_pt = 20.0f;
+	const float font_pt = 14.0f;
+	//const float font_pt = 20.0f;
 	using_flags = p;
-	int _x, _y;
+	int _x;
 	int _wlots;
 	int _wmod;
 	two_rows = false;
 	_x = 0;
-	_y = 0;
 	HVBox = new QGridLayout(this);
 	HVBox->setAlignment(Qt::AlignRight);
 
@@ -180,24 +179,28 @@ CSP_DockDisks::CSP_DockDisks(QWidget *parent, USING_FLAGS *p) :  QWidget(parent)
 		pLaserDisc[i] = NULL;
 		pQuickDisk[i] = NULL;
 	}
-#if 1 /* TEST */
+#if 0 /* TEST */
 	{
 		QColor bg = QColor(Qt::green);
 		QColor fg = QColor(Qt::black);
 		QColor tg = QColor(Qt::white);
-		QPixmap fdIcon1, fdIcon2;
+		QColor lg = QColor(Qt::red);
+		QPixmap fdIcon1, fdIcon2, fdIcon3;
 		CSP_DrawItem *fdItem1 = new CSP_DrawItem(32, 32);
 		fdItem1->drawFloppy5Inch(bg, fg, tg, 12.0, QString::fromUtf8("0:"));
 		fdIcon1 = QPixmap::fromImage(*fdItem1);
-		fdItem1->drawFloppy3_5Inch(bg, fg, tg, 12.0, QString::fromUtf8("1:"));
+		fdItem1->drawCompactDisc(bg, fg, lg, tg, 12.0, QString::fromUtf8("1:"));
+		//fdItem1->drawFloppy3_5Inch(bg, fg, tg, 12.0, QString::fromUtf8("1:"));
 		fdIcon2 = QPixmap::fromImage(*fdItem1);
+		fdItem1->drawLaserDisc(bg, fg, lg, tg, 12.0, QString::fromUtf8(""));
+		fdIcon3 = QPixmap::fromImage(*fdItem1);
 		CSP_LabelVirtualDevice *n = new CSP_LabelVirtualDevice(this, 2, font_pt, QString::fromUtf8(""), 0);
 		n->setPixmapLabel(fdIcon1);
 		n->setVisible(true);
 		HVBox->addWidget(n, 0, _x);
 		_x++;
 		CSP_LabelVirtualDevice *nn = new CSP_LabelVirtualDevice(this, 2, font_pt, QString::fromUtf8(""), 1);
-		nn->setPixmapLabel(fdIcon2);
+		nn->setPixmapLabel(fdIcon3);
 		nn->setVisible(true);
 		HVBox->addWidget(nn, 0, _x);
 		_x++;
@@ -220,7 +223,7 @@ CSP_DockDisks::CSP_DockDisks(QWidget *parent, USING_FLAGS *p) :  QWidget(parent)
 	}
 #endif
 	if(using_flags->is_use_laser_disc()) {
-			pLaserDisc[0] = new CSP_LabelVirtualDevice(this, 4, font_pt, QString::fromUtf8("CD"), 0);
+			pLaserDisc[0] = new CSP_LabelVirtualDevice(this, 4, font_pt, QString::fromUtf8("LD"), 0);
 			HVBox->addWidget(pLaserDisc[0], 0, _x);
 			pLaserDisc[0]->setVisible(true);
 			_x++;
@@ -326,28 +329,12 @@ CSP_DockDisks::CSP_DockDisks(QWidget *parent, USING_FLAGS *p) :  QWidget(parent)
 		}
 	}
 	if(using_flags->is_use_qd()) {
-		if(using_flags->get_max_qd() >= 4) {
-			_wlots = 4;
-			_wmod = using_flags->get_max_qd() - 4;
-			two_rows = true;
-		} else {
-			_wlots = using_flags->get_max_qd();
-			_wmod = 0;
-		}
 		for(int i = 0; i < using_flags->get_max_qd(); i++) {
 			pQuickDisk[i] = new CSP_LabelVirtualDevice(this, 4, font_pt, QString::fromUtf8("QD"), i);
 			pQuickDisk[i]->setVisible(true);
-		}
-		int _xtmp = _x;
-		for(int i = 0; i < _wlots; i++) {
 			HVBox->addWidget(pQuickDisk[i], 0, _x);
 			_x++;
 		}
-		for(int i = 0; i < _wmod; i++) {
-			HVBox->addWidget(pQuickDisk[i + 4], 1, _xtmp);
-			_xtmp++;
-		}
-
 	}
 	
 	if(using_flags->is_use_tape()) {

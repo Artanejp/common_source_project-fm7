@@ -20,14 +20,21 @@ protected:
 	QBrush *toned_brush_light;
 	QBrush *toned_brush_mid;
 	QBrush *toned_brush_deep;
+
+	void drawRectItem(int _x, int _y, int _w, int _h, QBrush *brush, QColor &_color1, QColor &_color2, Qt::PenStyle style = Qt::SolidLine);
+	void drawCircleItem(int _x, int _y, int _r, int _begin, int _end, QBrush *brush, QColor &_color1, QColor &_color2, Qt::PenStyle style = Qt::SolidLine);
+	void drawPolygonItem(QPointF _points[], int members, QBrush *brush, QColor &_color1, QColor &_color2, Qt::PenStyle style = Qt::SolidLine);
+	void drawTextItem(int x, int y, int w, int h, QString &_str, QBrush *brush, QColor &_color1, QColor & _color2);
 public:
+	QPainter painter;
 	CSP_DrawItem(int width, int height, Format fmt = QImage::Format_RGBA8888);
 	~CSP_DrawItem();
-	QPainter painter;
 	void drawFloppy5Inch(QColor &BGColor, QColor &FGColor, QColor &TextColor, float text_pt, QString text);
 	void drawFloppy3_5Inch(QColor &BGColor, QColor &FGColor, QColor &TextColor, float text_pt, QString text);
 	void drawCasetteTape(QColor &BGColor, QColor &FGColor, QColor &TextColor, float text_pt, QString text);
-
+	void drawQuickDisk(QColor &BGColor, QColor &FGColor, QColor &TextColor, float text_pt, QString text);
+	void drawCompactDisc(QColor &BGColor, QColor &FGColor, QColor &LabelColor, QColor &TextColor, float text_pt, QString text);
+	void drawLaserDisc(QColor &BGColor, QColor &FGColor, QColor &LabelColor, QColor &TextColor, float text_pt, QString text);
 };
 //QT_END_NAMESPACE
 #endif /* _CSP_QT_DRAWITEM_H_ */
