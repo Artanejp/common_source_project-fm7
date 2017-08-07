@@ -60,6 +60,10 @@ protected:
 	int screen_texture_height;
 	int screen_texture_height_old;
 
+	bool icon_uploaded[8][8];
+	bool icon_reqdraw[8][8];
+	GLuint icon_texid[8][8];
+
 	int rec_count;
 	int rec_width;
 	int rec_height;
@@ -161,6 +165,7 @@ public slots:
 	virtual void setBrightness(GLfloat r, GLfloat g, GLfloat b);
 	virtual void do_set_texture_size(QImage *p, int w, int h);
 	virtual void do_set_screen_multiply(float mul);
+	virtual void uploadIconTexture(QPixmap *p, int icon_type, int localnum);
 	
 	void initializeGL();
 	virtual void paintGL();

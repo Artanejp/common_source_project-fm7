@@ -441,3 +441,8 @@ void CSP_DrawItem::drawLaserDisc(QColor &BGColor, QColor &FGColor, QColor &Label
 		painter.end();
 	}
 }
+
+void CSP_DrawItem::clearCanvas(QColor &clColor)
+{
+	this->fill(clColor);
+}

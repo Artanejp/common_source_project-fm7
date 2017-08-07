@@ -210,6 +210,7 @@ GLDraw_3_0::GLDraw_3_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, 
 	grids_vertical_buffer = NULL;
 	grids_vertical_vertex = NULL;
 	ringing_phase = 0.0f;
+
 }
 
 GLDraw_3_0::~GLDraw_3_0()
@@ -1307,6 +1308,34 @@ void GLDraw_3_0::do_set_texture_size(QImage *p, int w, int h)
 		this->doSetGridsVertical(w, true);
 		p_wid->doneCurrent();
 	}
+}
+
+void GLDraw_3_0::uploadIconTexture(QPixmap *p, int icon_type, int localnum)
+{
+	if((icon_type >  7) || (icon_type < 0)) return;
+	if((localnum  >= 8) || (localnum  < 0)) return;
+	if(p == NULL) return;
+	p_wid->makeCurrent();
+
+	QImage image = p->toImage();
+	GLuint texid = icon_texid[icon_type][localnum];
+
+	icon_uploaded[icon_type][localnum] = true;
+	if(texid == 0) {
+		icon_texid[icon_type][localnum] = p_wid->bindTexture(*p);
+		texid = icon_texid[icon_type][localnum];
+	}
+	{
+		// Upload to main texture
+		extfunc->glBindTexture(GL_TEXTURE_2D, texid);
+		extfunc->glTexSubImage2D(GL_TEXTURE_2D, 0,
+								 0, 0,
+								 image.width(), image.height(),
+								 GL_BGRA, GL_UNSIGNED_BYTE, image.constBits());
+		extfunc->glBindTexture(GL_TEXTURE_2D, 0);
+	}
+	p_wid->doneCurrent();
+
 }
 
 void GLDraw_3_0::resizeGL_Screen(void)

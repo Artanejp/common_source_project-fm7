@@ -19,6 +19,10 @@
 #include <QGLFormat>
 #include <QGLWidget>
 #endif
+#include <QColor>
+#include <QPixmap>
+#include <QString>
+
 class EMU;
 class QEvent;
 class GLDraw_2_0;
@@ -26,6 +30,7 @@ class GLDraw_3_0;
 class CSP_KeyTables;
 class USING_FLAGS;
 class CSP_Logger;
+class CSP_DrawItem;
 struct NativeScanCode {
 	uint32_t vk;
 	uint32_t scan;
@@ -34,7 +39,6 @@ struct NativeVirtualKeyCode {
 	uint32_t vk;
 	uint32_t key;
 };
-
 #if defined(_USE_GLAPI_QT5_4)
 class DLL_PREFIX GLDrawClass: public QOpenGLWidget 
 #else
@@ -76,6 +80,7 @@ class DLL_PREFIX GLDrawClass: public QGLWidget
 	bool save_pixmap_req;
 	void SaveToPixmap(void);
 	CSP_KeyTables *key_table;
+	CSP_DrawItem *draw_item;
 
 public:
 #if defined(_USE_GLAPI_QT5_4)
@@ -145,6 +150,8 @@ public slots:
 	void do_set_display_osd(bool onoff);
 	void do_display_osd_leds(int lednum,bool onoff);
 	void do_set_led_width(int bitwidth);
+	void do_update_icon(int icon_type,  int localnum, QPixmap *p);
+	void do_update_icon(int icon_type, int localnum, QString message, QColor bg, QColor fg, QColor lg, QColor tg, float pt);
 
 signals:
 	void update_screenChanged(int tick);

@@ -29,6 +29,7 @@ public:
 	QPainter painter;
 	CSP_DrawItem(int width, int height, Format fmt = QImage::Format_RGBA8888);
 	~CSP_DrawItem();
+	void clearCanvas(QColor &clColor);
 	void drawFloppy5Inch(QColor &BGColor, QColor &FGColor, QColor &TextColor, float text_pt, QString text);
 	void drawFloppy3_5Inch(QColor &BGColor, QColor &FGColor, QColor &TextColor, float text_pt, QString text);
 	void drawCasetteTape(QColor &BGColor, QColor &FGColor, QColor &TextColor, float text_pt, QString text);

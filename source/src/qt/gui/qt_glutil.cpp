@@ -15,6 +15,7 @@
 #include <QOpenGLFunctions_4_1_Core>
 #include <QOpenGLFunctions_3_2_Core>
 #include <QApplication>
+#include "./qt_drawitem.h"
 
 #if defined(_WINDOWS) || defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
 #include <GL/wglext.h>
@@ -41,6 +42,49 @@ void GLDrawClass::update_screen(bitmap_t *p)
 	}
 }
 
+void GLDrawClass::do_update_icon(int icon_type,  int localnum, QPixmap *p)
+{
+	if(extfunc != NULL) {
+		extfunc->uploadIconTexture(p, icon_type, localnum);
+	}
+}
+
+void GLDrawClass::do_update_icon(int icon_type, int localnum, QString message, QColor bg, QColor fg, QColor lg, QColor tg, float pt)
+{
+	if(draw_item != NULL) {
+		QPixmap icon;
+		QColor nullColor = QColor(0, 0, 0, 0);
+		switch(icon_type) {
+		case 0:
+			draw_item->clearCanvas(nullColor);
+			break;
+		case 1: 
+			draw_item->drawFloppy5Inch(bg, fg, tg, pt, message);
+			break;
+		case 2:
+			draw_item->drawFloppy3_5Inch(bg, fg, tg, pt, message);
+			break;
+		case 3:
+			draw_item->drawQuickDisk(bg, fg, tg, pt, message);
+			break;
+		case 4:
+		case 5:
+			draw_item->drawCasetteTape(bg, fg, tg, pt, message);
+			break;
+		case 6:
+			draw_item->drawCompactDisc(bg, fg, lg, tg, pt, message);
+			break;
+		case 7:
+			draw_item->drawLaserDisc(bg, fg, lg, tg, pt, message);
+			break;
+		default:
+			break;
+		}
+		icon = QPixmap::fromImage(*draw_item);
+		do_update_icon(icon_type, localnum, &icon);
+	}
+}
+
 void GLDrawClass::update_osd(void)
 {
 		this->update();
@@ -57,6 +101,55 @@ void GLDrawClass::initializeGL(void)
 	 */
 	InitFBO(); // 拡張の有無を調べてからFBOを初期化する。
 	InitGLExtensionVars();
+
+	QColor BG = QColor(0, 250, 0, 196);
+	QColor TG = QColor(0, 0, 250, 255);
+	QColor LG = QColor(250, 0, 0, 196);
+	QColor FG = QColor(255, 255, 255, 196);
+
+	do_update_icon(0, 0, QString::fromUtf8(""), BG, FG, LG, TG, 12.0f);
+	if(using_flags->is_use_laser_disc()) {
+		do_update_icon(7, 0, QString::fromUtf8("LD"), BG, FG, LG, TG, 12.0f);
+	}
+	if(using_flags->is_use_compact_disc()) {
+		do_update_icon(6, 0, QString::fromUtf8("CD"), BG, FG, LG, TG, 12.0f);
+	}
+	if(using_flags->is_use_fd()) {
+		int drvs = using_flags->get_max_drive();
+		QString ts, tmps;
+		for(int i = 0; i < drvs; i++) {
+			tmps = QString::fromUtf8("");
+			ts.setNum(i);
+			tmps = tmps + ts + QString::fromUtf8(":");
+			do_update_icon(1, i, tmps, BG, FG, LG, TG, 12.0f); // Dedicate to 3.5/5/8? and startnum.
+		}
+	}
+	if(using_flags->is_use_qd()) {
+		int drvs = using_flags->get_max_qd();
+		QString ts, tmps;
+		for(int i = 0; i < drvs; i++) {
+			tmps = QString::fromUtf8("");
+			ts.setNum(i);
+			tmps = tmps + ts + QString::fromUtf8(":");
+			do_update_icon(3, i, tmps, BG, FG, LG, TG, 12.0f); // Dedicate to 3.5/5/8? and startnum.
+		}
+	}
+	if(using_flags->is_use_tape()) {
+		int drvs = using_flags->get_max_tape();
+		QColor R_BG = QColor(0, 0, 255, 192);
+		QColor W_BG = QColor(255, 0, 0, 192);
+		QColor C_FG = QColor(255, 255, 255, 192);
+		QColor C_TG = QColor(0, 255, 0, 255);
+		QString ts, tmps;
+		for(int i = 0; i < drvs; i++) {
+			tmps = QString::fromUtf8("");
+			ts.setNum(i + 1);
+			tmps = tmps + ts;
+			do_update_icon(4, i, tmps, R_BG, C_FG, LG, C_TG, 12.0f); // Dedicate to 3.5/5/8? and startnum.
+			do_update_icon(5, i, tmps, W_BG, C_FG, LG, C_TG, 12.0f); // Dedicate to 3.5/5/8? and startnum.
+		}
+	}	
+
 }
 
 void GLDrawClass::setChangeBrightness(bool flag)

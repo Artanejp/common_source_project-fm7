@@ -71,6 +71,15 @@ GLDraw_2_0::GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, 
 			fButtonHeight[i] = (float)(vm_buttons_d[i].height * 2) / (float)using_flags->get_screen_height();
 		} // end of will fix.
 	}
+
+	for(int i = 0; i < 8; i++) {
+		for(int j = 0; j < 8; j++) {
+			icon_texid[i][j] = 0;
+			icon_uploaded[i][j] = false;
+			icon_reqdraw[i][j] = false;
+		}
+	}
+
 	button_updated = false;
 	button_drawn = false;
 
@@ -859,6 +868,34 @@ void GLDraw_2_0::uploadBitmapTexture(QImage *p)
 		bitmap_uploaded = true;
 		crt_flag = true;
 	}
+}
+
+void GLDraw_2_0::uploadIconTexture(QPixmap *p, int icon_type, int localnum)
+{
+	if((icon_type >  7) || (icon_type <= 0)) return;
+	if((localnum  >= 8) || (localnum  <  0)) return;
+	if(p == NULL) return;
+	p_wid->makeCurrent();
+
+	QImage image = p->toImage();
+	GLuint texid = icon_texid[icon_type][localnum];
+
+	icon_uploaded[icon_type][localnum] = true;
+	if(texid == 0) {
+		icon_texid[icon_type][localnum] = p_wid->bindTexture(*p);
+		texid = icon_texid[icon_type][localnum];
+	}
+	{
+		// Upload to main texture
+		extfunc_2->glBindTexture(GL_TEXTURE_2D, texid);
+		extfunc_2->glTexSubImage2D(GL_TEXTURE_2D, 0,
+								 0, 0,
+								 image.width(), image.height(),
+								 GL_BGRA, GL_UNSIGNED_BYTE, image.constBits());
+		extfunc_2->glBindTexture(GL_TEXTURE_2D, 0);
+	}
+	p_wid->doneCurrent();
+
 }
 
 void GLDraw_2_0::updateBitmap(QImage *p)

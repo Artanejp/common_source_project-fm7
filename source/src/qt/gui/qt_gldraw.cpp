@@ -35,7 +35,7 @@
 
 #include "csp_logger.h"
 #include "../osd.h"
-
+#include "./qt_drawitem.h"
 //extern USING_FLAGS *using_flags;
 
 void GLDrawClass::drawGrids(void)
@@ -147,16 +147,21 @@ GLDrawClass::GLDrawClass(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent, co
 	vram_height = using_flags->get_screen_height();
 	draw_width = using_flags->get_screen_width();
 	draw_height = using_flags->get_screen_height();
+	draw_item = new CSP_DrawItem(64, 64);
+	
 	delay_update = false;
 	is_mouse_enabled = false;
 	emu_launched = false;
 	run_vm = true;
+
+	
 	this->initKeyCode();
 }
 
 GLDrawClass::~GLDrawClass()
 {
 	if(extfunc != NULL) delete extfunc;
+	if(draw_item != NULL) delete draw_item;
 //	this->releaseKeyCode();
 	emit sig_finished();
 
