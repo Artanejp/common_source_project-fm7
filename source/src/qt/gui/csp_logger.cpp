@@ -317,7 +317,7 @@ void CSP_Logger::debug_log(int level, int domain_num, char *strbuf)
 						linenum++;
 					}
 				}
-				if(tmps != NULL) delete tmps;
+				//if(tmps != NULL) delete tmps;
 			}
 #if defined(Q_OS_WIN)
 			{

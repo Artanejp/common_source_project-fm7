@@ -22,6 +22,7 @@ class QVBoxLayout;
 class QGridLayout;
 class QGroupBox;
 class QTimer;
+class QMutex;
 class USING_FLAGS;
 class CSP_Logger;
 class DLL_PREFIX Dlg_LogViewerBind : public QObject
@@ -62,6 +63,7 @@ protected:
 	QGridLayout *MasterLayout;
 	QTimer *UpdateTimer;
 	USING_FLAGS *using_flags;
+	QMutex *lock_mutex;
 public:
 	Dlg_LogViewer(USING_FLAGS *p, CSP_Logger * logger, QWidget *parent, QString _domain = QString::fromUtf8(""), uint32_t _level = 0xffffffff);
 	~Dlg_LogViewer();

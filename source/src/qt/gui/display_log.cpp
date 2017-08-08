@@ -16,6 +16,7 @@
 #include <QFont>
 #include <QGridLayout>
 #include <QTimer>
+#include <QMutexLocker>
 
 #include "mainwidget_base.h"
 #include "display_log.h"
@@ -82,6 +83,7 @@ void Dlg_LogViewerBind::do_update(void)
 
 Dlg_LogViewer::Dlg_LogViewer(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent, QString _domain, uint32_t level) : QWidget(parent)
 {
+	lock_mutex = new QMutex(QMutex::Recursive);
 	log_str.clear();
 	domain_name = _domain;
 	level_map = level;
@@ -98,8 +100,11 @@ Dlg_LogViewer::Dlg_LogViewer(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent
 		QString beforestr;
 		bool first = true;
 		do {
-			p = (CSP_LoggerLine *)(csp_logger->get_raw_data(false, now_end_line, NULL));
-			if(p == NULL) break;
+			{
+				QMutexLocker locker(lock_mutex);
+				p = (CSP_LoggerLine *)(csp_logger->get_raw_data(false, now_end_line, NULL));
+				if(p == NULL) break;
+			}
 			if(p->check_level(_domain, -1)) {
 				tmpstr = p->get_element_console();
 				if(!beforestr.endsWith("\n") && !first) log_str.append("\n");
@@ -154,8 +159,11 @@ void Dlg_LogViewer::do_update(void)
 	QString beforestr;
 	bool first = true;
 	do {
-		p = (CSP_LoggerLine *)(csp_logger->get_raw_data(false, line, NULL));
-		if(p == NULL) break;
+		{
+			QMutexLocker locker(lock_mutex);
+			p = (CSP_LoggerLine *)(csp_logger->get_raw_data(false, line, NULL));
+			if(p == NULL) break;
+		}
 		for(int i = 0; i < 8; i++) {
 			if((level_map & (1 << i)) != 0) {  
 				if(p->check_level(domain_name, i)) {
@@ -187,8 +195,11 @@ void Dlg_LogViewer::do_refresh(void)
 	log_str.clear();
 	now_end_line = 0;
 	do {
-		p = (CSP_LoggerLine *)(csp_logger->get_raw_data(false, now_end_line, NULL));
-		if(p == NULL) break;
+		{
+			QMutexLocker locker(lock_mutex);
+			p = (CSP_LoggerLine *)(csp_logger->get_raw_data(false, now_end_line, NULL));
+			if(p == NULL) break;
+		}
 		for(int i = 0; i < 8; i++) {
 			if((level_map & (1 << i)) != 0) {  
 				if(p->check_level(domain_name, 1 << i)) {
