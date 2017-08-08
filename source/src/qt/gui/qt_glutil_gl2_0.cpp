@@ -797,8 +797,10 @@ void GLDraw_2_0::drawMain(QOpenGLShaderProgram *prg,
 				prg->setUniformValue("color", color);
 				//prg->setUniformValue("tex_width",  (float)screen_texture_width); 
 				//prg->setUniformValue("tex_height", (float)screen_texture_height);
-				prg->setUniformValue("tex_width",  (float)p->width()); 
-				prg->setUniformValue("tex_height", (float)p->height());
+				if(p != NULL) {
+					prg->setUniformValue("tex_width",  (float)p->width()); 
+					prg->setUniformValue("tex_height", (float)p->height());
+				}
 				if(using_flags->is_use_screen_rotate()) {
 					if(using_flags->get_config_ptr()->rotate_type) {
 						prg->setUniformValue("rotate", GL_TRUE);
@@ -872,11 +874,10 @@ void GLDraw_2_0::uploadBitmapTexture(QImage *p)
 
 void GLDraw_2_0::uploadIconTexture(QPixmap *p, int icon_type, int localnum)
 {
-	if((icon_type >  7) || (icon_type <= 0)) return;
+	if((icon_type >  7) || (icon_type < 0)) return;
 	if((localnum  >= 8) || (localnum  <  0)) return;
 	if(p == NULL) return;
 	p_wid->makeCurrent();
-
 	QImage image = p->toImage();
 	GLuint texid = icon_texid[icon_type][localnum];
 

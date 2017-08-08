@@ -880,7 +880,8 @@ void GLDraw_3_0::drawMain(QOpenGLShaderProgram *prg,
 		prg->release();
 		extfunc->glBindTexture(GL_TEXTURE_2D, 0);
 		extfunc->glDisable(GL_TEXTURE_2D);
-	} else {
+	}
+	else {
 		extfunc->glDisable(GL_TEXTURE_2D);
 		vp->bind();
 		bp->bind();
@@ -928,7 +929,7 @@ void GLDraw_3_0::drawMain(QOpenGLShaderProgram *prg,
 		prg->release();
 		extfunc->glBindTexture(GL_TEXTURE_2D, 0);
 		extfunc->glDisable(GL_TEXTURE_2D);
-	}		
+	}
 }
 
 void GLDraw_3_0::drawMain(GLScreenPack *obj,
@@ -956,7 +957,6 @@ void GLDraw_3_0::drawButtonsMain(int num, bool f_smoosing)
 	int ii;
 	
 	color = QVector4D(1.0, 1.0, 1.0, 1.0);
-	
 	if((bp != NULL) && (vp != NULL) && (prg != NULL)) {
 		if((bp->isCreated()) && (vp->isCreated()) && (prg->isLinked())) {
 			bp->bind();
@@ -994,8 +994,8 @@ void GLDraw_3_0::drawButtonsMain(int num, bool f_smoosing)
 			}
 			int vertex_loc = prg->attributeLocation("vertex");
 			int texcoord_loc = prg->attributeLocation("texcoord");
-			//prg->setAttributeBuffer(vertex_loc, GL_FLOAT, 0, 3, sizeof(VertexTexCoord_t));
-			//prg->setAttributeBuffer(texcoord_loc, GL_FLOAT, 3 * sizeof(GLfloat), 2, sizeof(VertexTexCoord_t));
+			prg->setAttributeBuffer(vertex_loc, GL_FLOAT, 0, 3, sizeof(VertexTexCoord_t));
+			prg->setAttributeBuffer(texcoord_loc, GL_FLOAT, 3 * sizeof(GLfloat), 2, sizeof(VertexTexCoord_t));
 			prg->enableAttributeArray(vertex_loc);
 			prg->enableAttributeArray(texcoord_loc);
 			extfunc->glEnableVertexAttribArray(vertex_loc);
@@ -1325,6 +1325,7 @@ void GLDraw_3_0::uploadIconTexture(QPixmap *p, int icon_type, int localnum)
 		icon_texid[icon_type][localnum] = p_wid->bindTexture(*p);
 		texid = icon_texid[icon_type][localnum];
 	}
+	printf("TYPE=%d LOCALNUM=%d TEXID=%d\n", icon_type, localnum, texid);
 	{
 		// Upload to main texture
 		extfunc->glBindTexture(GL_TEXTURE_2D, texid);

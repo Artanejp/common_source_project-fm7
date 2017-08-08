@@ -107,6 +107,7 @@ void GLDrawClass::initializeGL(void)
 	QColor LG = QColor(250, 0, 0, 196);
 	QColor FG = QColor(255, 255, 255, 196);
 
+#if 0
 	do_update_icon(0, 0, QString::fromUtf8(""), BG, FG, LG, TG, 12.0f);
 	if(using_flags->is_use_laser_disc()) {
 		do_update_icon(7, 0, QString::fromUtf8("LD"), BG, FG, LG, TG, 12.0f);
@@ -149,7 +150,7 @@ void GLDrawClass::initializeGL(void)
 			do_update_icon(5, i, tmps, W_BG, C_FG, LG, C_TG, 12.0f); // Dedicate to 3.5/5/8? and startnum.
 		}
 	}	
-
+#endif
 }
 
 void GLDrawClass::setChangeBrightness(bool flag)

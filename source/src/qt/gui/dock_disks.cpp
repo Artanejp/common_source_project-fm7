@@ -11,6 +11,7 @@
 #include "qt_drawitem.h"
 #include <QPixmap>
 #include <QColor>
+#include <QImageReader>
 
 CSP_LabelVirtualDevice::CSP_LabelVirtualDevice(QWidget *parent,
 											   int width, float point,
