@@ -418,26 +418,19 @@ void Ui_MainWindowBase::setupUi(void)
 	menuDebugger = new QMenu(menuControl);
 	menuDebugger->setObjectName(QString::fromUtf8("menuDebugger"));
 	menuDebugger->setToolTipsVisible(true);
-	int _led_width = 0;
 	if(using_flags->is_use_fd()) {
 		int i;
 		for(i = 0; i < using_flags->get_max_drive(); i++) CreateFloppyMenu(i, i + 1);
-		_led_width = _led_width + 8;
 	}
 	if(using_flags->is_use_qd()) {
 		int i;
 		for(i = 0; i < using_flags->get_max_qd(); i++) CreateQuickDiskMenu(i, i + 1);
-		_led_width = _led_width + 2;
 	}
 	if(using_flags->is_use_tape()) {
 		for(int i = 0; i < using_flags->get_max_tape(); i++) CreateCMTMenu(i);
-		_led_width = _led_width + 2;
 	}
 	if(using_flags->get_max_scsi() > 0) {
-		_led_width = _led_width + using_flags->get_max_scsi() - 1;
 	}
-	emit sig_set_led_width(_led_width);
-	
 	CreateScreenMenu();
 	if(using_flags->is_use_cart()) {
 		int i;

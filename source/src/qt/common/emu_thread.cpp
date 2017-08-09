@@ -128,6 +128,7 @@ void EmuThreadClass::get_fd_string(void)
 		for(i = 0; i < (int)using_flags->get_max_drive(); i++) {
 			tmpstr.clear();
 			alamp.clear();
+			lamp_stat = false;
 			if(p_emu->is_floppy_disk_inserted(i)) {
 				if(i == (access_drv - 1)) {
 					lamp_stat = true;
@@ -154,6 +155,7 @@ void EmuThreadClass::get_fd_string(void)
 				fd_lamp[i] = alamp;
 			}
 			if(tmpstr != fd_text[i]) {
+				emit sig_set_access_lamp(i + 2, lamp_stat);
 				emit sig_change_osd(CSP_DockDisks_Domain_FD, i, tmpstr);
 				fd_text[i] = tmpstr;
 			}
@@ -175,6 +177,7 @@ void EmuThreadClass::get_qd_string(void)
 	access_drv = p_emu->is_quick_disk_accessed();
 	for(i = 0; i < using_flags->get_max_qd(); i++) {
 		tmpstr.clear();
+		lamp_stat = false;
 		if(p_emu->is_quick_disk_inserted(i)) {
 			if(i == (access_drv - 1)) {
 				alamp = QString::fromUtf8("<FONT COLOR=RED>●</FONT>"); // 💽　U+1F4BD MiniDisc
@@ -202,15 +205,19 @@ void EmuThreadClass::get_qd_string(void)
 void EmuThreadClass::get_tape_string()
 {
 	QString tmpstr;
-	
+	bool readwrite;
+	bool inserted;
 #if defined(USE_TAPE1) && !defined(TAPE_BINARY_ONLY)
 	for(int i = 0; i < MAX_TAPE; i++) {
-		if(p_emu->is_tape_inserted(i)) {
+		inserted = p_emu->is_tape_inserted(i);
+		readwrite = false;
+		if(inserted) {
 			tmpstr.clear();
 			const _TCHAR *ts = p_emu->get_tape_message(i);
 			if(ts != NULL) {
 				tmpstr = QString::fromUtf8(ts);
-				if(p_emu->is_tape_recording(i)) {
+				readwrite = p_emu->is_tape_recording(i);
+				if(readwrite) {
 					tmpstr = QString::fromUtf8("<FONT COLOR=RED><B>") + tmpstr + QString::fromUtf8("</B></FONT>");
 				} else {
 					tmpstr = QString::fromUtf8("<FONT COLOR=GREEN><B>") + tmpstr + QString::fromUtf8("</B></FONT>");
@@ -220,6 +227,7 @@ void EmuThreadClass::get_tape_string()
 			tmpstr = QString::fromUtf8("<FONT COLOR=BLUE>   EMPTY   </FONT>");
 		}
 		if(tmpstr != cmt_text[i]) {
+			//emit sig_set_access_lamp(i + 12 + ((readwrite) ? 2 : 0), inserted);
 			emit sig_change_osd(CSP_DockDisks_Domain_CMT, i, tmpstr);
 			cmt_text[i] = tmpstr;
 		}

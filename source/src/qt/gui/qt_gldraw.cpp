@@ -147,7 +147,7 @@ GLDrawClass::GLDrawClass(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent, co
 	vram_height = using_flags->get_screen_height();
 	draw_width = using_flags->get_screen_width();
 	draw_height = using_flags->get_screen_height();
-	draw_item = new CSP_DrawItem(64, 64);
+	draw_item = new CSP_DrawItem(48, 48);
 	
 	delay_update = false;
 	is_mouse_enabled = false;

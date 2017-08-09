@@ -29,8 +29,11 @@ protected:
 	GLScreenPack *ntsc_pass2;
 	GLScreenPack *bitmap_block;
 	GLScreenPack *led_pass;
+	GLScreenPack *osd_pass;
 	QOpenGLBuffer *led_pass_vbuffer[32];
 	QOpenGLVertexArrayObject *led_pass_vao[32];
+	QOpenGLBuffer *osd_pass_vbuffer[32];
+	QOpenGLVertexArrayObject *osd_pass_vao[32];
 
 	VertexTexCoord_t vertexTmpTexture[4];
 	
@@ -90,9 +93,10 @@ protected:
 	virtual void drawBitmapTexture(void);
 	virtual void drawButtonsMain(int num, bool f_smoosing);
 	virtual void drawOsdLeds();
+	virtual void drawOsdIcons();
 	virtual void drawLedMain(GLScreenPack *obj, int num, QVector4D color);
 	virtual void set_led_vertex(int bit);
-
+	virtual void set_osd_vertex(int bit);
 public:
 	GLDraw_3_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU *emu = 0);
 	~GLDraw_3_0();

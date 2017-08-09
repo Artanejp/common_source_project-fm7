@@ -49,6 +49,19 @@ GLDraw_2_0::GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, 
 	osd_led_status = 0x00000000;
 	osd_led_status_bak = 0x00000000;
 	osd_led_bit_width = 12;
+	if(using_flags->is_use_fd()) {
+		osd_led_bit_width = 10;
+	}
+	if(using_flags->is_use_qd()) {
+		osd_led_bit_width = 12;
+	}
+	if(using_flags->is_use_tape()) {
+		osd_led_bit_width = 16;
+	}
+	if(using_flags->get_max_scsi() > 0) {
+		osd_led_bit_width = 24;
+	}
+
 	osd_onoff = true;
 
 	uBitmapTextureID = 0;
@@ -1107,4 +1120,5 @@ void GLDraw_2_0::do_set_texture_size(QImage *p, int w, int h)
 void GLDraw_2_0::do_set_led_width(int bitwidth)
 {
 	if((bitwidth >= 0) && (bitwidth < 32)) osd_led_bit_width = bitwidth;
+	printf("%d\n", bitwidth);
 }
