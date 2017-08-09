@@ -227,7 +227,7 @@ void EmuThreadClass::get_tape_string()
 			tmpstr = QString::fromUtf8("<FONT COLOR=BLUE>   EMPTY   </FONT>");
 		}
 		if(tmpstr != cmt_text[i]) {
-			//emit sig_set_access_lamp(i + 12 + ((readwrite) ? 2 : 0), inserted);
+			emit sig_set_access_lamp(i + 12 + ((readwrite) ? 2 : 0), inserted);
 			emit sig_change_osd(CSP_DockDisks_Domain_CMT, i, tmpstr);
 			cmt_text[i] = tmpstr;
 		}

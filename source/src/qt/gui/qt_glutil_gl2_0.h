@@ -60,9 +60,7 @@ protected:
 	int screen_texture_height;
 	int screen_texture_height_old;
 
-	bool icon_uploaded[8][8];
-	bool icon_reqdraw[8][8];
-	GLuint icon_texid[8][8];
+	GLuint icon_texid[9][8];
 
 	int rec_count;
 	int rec_width;
@@ -82,6 +80,10 @@ protected:
 	QOpenGLVertexArrayObject *vertex_button[128];
 	QOpenGLBuffer *buffer_button_vertex[128];
 	QOpenGLShaderProgram *button_shader;
+	VertexTexCoord_t vertexOSD[32][4];
+	QOpenGLVertexArrayObject *vertex_osd[32];
+	QOpenGLBuffer *buffer_osd[32];
+	QOpenGLShaderProgram *osd_shader;
 
 	virtual void initButtons(void);
 	virtual void initBitmapVertex(void);
@@ -126,6 +128,8 @@ protected:
 	bool redraw_required;
 
 	virtual void drawOsdLeds();
+	virtual void drawOsdIcons();
+	virtual void set_osd_vertex(int xbit);
 
 	QOpenGLFramebufferObject *offscreen_frame_buffer;
 	QOpenGLFramebufferObjectFormat *offscreen_frame_buffer_format;
@@ -146,6 +150,8 @@ public:
 	virtual void initGLObjects();
 	virtual void initFBO(void);
 	virtual void initLocalGLObjects(void);
+	virtual void initOsdObjects(void);
+
 	virtual void uploadMainTexture(QImage *p, bool chromakey);
 
 	virtual void drawScreenTexture(void);

@@ -456,7 +456,7 @@ void GLDraw_3_0::initLocalGLObjects(void)
 	}
 	initPackedGLObject(&osd_pass,
 					   48.0, 48.0,
-					   ":/vertex_shader.glsl" , ":/chromakey_fragment_shader.glsl",
+					   ":/vertex_shader.glsl" , ":/icon_fragment_shader.glsl",
 					   "OSD Shader");
 	for(int i = 0; i < 32; i++) {
 		osd_pass_vao[i] = new QOpenGLVertexArrayObject;
@@ -1130,8 +1130,8 @@ void GLDraw_3_0::drawOsdIcons()
 	QVector4D color_off;
 	uint32_t bit = 0x00000001;
 	if(osd_onoff) {
-		color_on = QVector4D(1.0,  1.0, 1.0, 0.3);
-		color_off = QVector4D(1.0, 1.0, 1.0, 0.05);
+		color_on = QVector4D(1.0,  1.0, 1.0, 0.8);
+		color_off = QVector4D(1.0, 1.0, 1.0, 0.00);
 	} else {
 		color_on = QVector4D(0.00,0.00, 0.00, 0.0);
 		color_off = QVector4D(0.00,0.00, 0.00, 0.0);
@@ -1147,7 +1147,7 @@ void GLDraw_3_0::drawOsdIcons()
 					}
 				}
 				if((i >= 2) && (i < 10)) { // FD
-					major = 1;
+					major = 2;
 					minor = i - 2;
 				} else if((i >= 10) && (i < 12)) { // QD
 					major = 3;
@@ -1457,27 +1457,6 @@ void GLDraw_3_0::do_set_texture_size(QImage *p, int w, int h)
 		this->doSetGridsVertical(w, true);
 		p_wid->doneCurrent();
 	}
-}
-
-void GLDraw_3_0::uploadIconTexture(QPixmap *p, int icon_type, int localnum)
-{
-	if((icon_type >  7) || (icon_type < 0)) return;
-	if((localnum  >= 8) || (localnum  < 0)) return;
-	if(p == NULL) return;
-	p_wid->makeCurrent();
-
-	QImage image = p->toImage();
-	GLuint texid = icon_texid[icon_type][localnum];
-
-	icon_uploaded[icon_type][localnum] = true;
-	if(texid != 0) p_wid->deleteTexture(texid);
-	{
-		icon_texid[icon_type][localnum] = p_wid->bindTexture(image);
-	}
-	texid = icon_texid[icon_type][localnum];
-	printf("TYPE=%d LOCALNUM=%d TEXID=%d w=%d h=%d\n", icon_type, localnum, texid, image.width(), image.height());
-	p_wid->doneCurrent();
-
 }
 
 void GLDraw_3_0::resizeGL_Screen(void)

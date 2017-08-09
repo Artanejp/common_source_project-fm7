@@ -88,8 +88,6 @@ GLDraw_2_0::GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, 
 	for(int i = 0; i < 8; i++) {
 		for(int j = 0; j < 8; j++) {
 			icon_texid[i][j] = 0;
-			icon_uploaded[i][j] = false;
-			icon_reqdraw[i][j] = false;
 		}
 	}
 
@@ -160,6 +158,70 @@ void GLDraw_2_0::do_set_display_osd(bool onoff)
 {
 	osd_onoff = onoff;
 }
+
+void GLDraw_2_0::set_osd_vertex(int xbit)
+{
+	float xbase, ybase, zbase;
+	int major, minor, nl;
+	int i = xbit;
+	if((xbit < 0) || (xbit >= 32)) return;
+	if((i >= 2) && (i < 10)) { // FD
+		major = 0;
+		minor = i - 2;
+		nl = using_flags->get_max_drive();
+	} else if((i >= 10) && (i < 12)) { // QD
+		major = 2;
+		minor = i - 10;
+		nl = using_flags->get_max_qd();
+	} else if((i >= 12) && (i < 14)) { // CMT(R)
+		major = 1;
+		minor = i - 12;
+		nl = using_flags->get_max_tape();
+	} else if((i >= 14) && (i < 16)) { // CMT(W)
+		major = 1;
+		minor = i - 14;
+		nl = using_flags->get_max_tape();
+	} else if(i >= 16) {
+		major = 4 + (i / 8) - 2;
+		minor = i % 8;
+		nl = 8;
+	} else {
+		major = 6;
+		minor = i;
+		nl = 2;
+	}
+	xbase =  1.0f - (1.0f * 48.0f / 640.0f) * (float)(nl - minor) - (4.0f / 640.0f);;
+	ybase = -1.0f + (1.0f * 48.0f / 400.0f) * (float)(major + 1) + (4.0f / 400.0f);
+	zbase = -0.998f;
+	vertexOSD[i][0].x = xbase;
+	vertexOSD[i][0].y = ybase;
+	vertexOSD[i][0].z = zbase;
+	vertexOSD[i][0].s = 0.0f;
+	vertexOSD[i][0].t = 1.0f;
+	
+	vertexOSD[i][1].x = xbase + (48.0f / 640.0f);
+	vertexOSD[i][1].y = ybase;
+	vertexOSD[i][1].z = zbase;
+	vertexOSD[i][1].s = 1.0f;
+	vertexOSD[i][1].t = 1.0f;
+	
+	vertexOSD[i][2].x = xbase + (48.0f / 640.0f);
+	vertexOSD[i][2].y = ybase - (48.0f / 400.0f);
+	vertexOSD[i][2].z = zbase;
+	vertexOSD[i][2].s = 1.0f;
+	vertexOSD[i][2].t = 0.0f;
+	
+	vertexOSD[i][3].x = xbase;
+	vertexOSD[i][3].y = ybase - (48.0f / 400.0f);
+	vertexOSD[i][3].z = zbase;
+	vertexOSD[i][3].s = 0.0f;
+	vertexOSD[i][3].t = 0.0f;
+	
+	setNormalVAO(osd_shader, vertex_osd[xbit],
+				 buffer_osd[xbit],
+				 &(vertexOSD[i][0]), 4);
+}
+
 
 void GLDraw_2_0::do_display_osd_leds(int lednum, bool onoff)
 {
@@ -238,6 +300,74 @@ void GLDraw_2_0::drawOsdLeds()
 			}
 			osd_led_status_bak = osd_led_status;
 		}
+	}
+}
+
+
+void GLDraw_2_0::drawOsdIcons()
+{
+	QVector4D color_on;
+	QVector4D color_off;
+	int major, minor;
+	if(osd_onoff) {
+		color_on = QVector4D(1.0, 1.0, 1.0, 0.8);
+		color_off = QVector4D(1.0, 1.0, 1.0, 0.00);
+	} else {
+		color_on = QVector4D(0.00,0.00, 0.00, 0.0);
+		color_off = QVector4D(0.00,0.00, 0.00, 0.0);
+	}
+	extfunc_2->glEnable(GL_BLEND);
+	extfunc_2->glEnable(GL_TEXTURE_2D);
+	extfunc_2->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	extfunc_2->glDisable(GL_DEPTH_TEST);
+	extfunc_2->glViewport(0, 0, p_wid->width(), p_wid->height());
+	extfunc_2->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
+	if(osd_onoff) {
+		uint32_t _bit = 0x00000001;
+		bool checkf;
+		for(int ii = 0; ii < osd_led_bit_width; ii++) {
+			checkf = ((_bit & osd_led_status) != 0); 
+			if(checkf == ((_bit & osd_led_status_bak) != 0)) {
+				if(!checkf) {
+					_bit <<= 1;
+					continue;
+				}
+			}
+			if((ii >= 2) && (ii < 10)) { // FD
+				major = 2;
+				minor = ii - 2;
+			} else if((ii >= 10) && (ii < 12)) { // QD
+				major = 3;
+				minor = ii - 10;
+			} else if((ii >= 12) && (ii < 14)) { // CMT(R)
+				major = 4;
+				minor = ii - 12;
+			} else if((ii >= 14) && (ii < 16)) { // CMT(W)
+				major = 5;
+				minor = ii - 14;
+			} else if(ii >= 16) {
+				major = 4 + (ii / 8) - 2;
+				minor = ii % 8;
+			} else {
+				major = 6;
+				minor = ii;
+			}
+			if(checkf) {
+				drawMain(osd_shader, vertex_osd[ii],
+						 buffer_osd[ii],
+						 vertexOSD[ii],
+						 icon_texid[major][minor],
+						 color_on, false);
+			} else {
+				drawMain(osd_shader, vertex_osd[ii],
+						 buffer_osd[ii],
+						 vertexOSD[ii],
+						 icon_texid[major][minor],
+						 color_off, false);
+			}			
+			_bit <<= 1;
+		}
+		osd_led_status_bak = osd_led_status;
 	}
 }
 
@@ -553,6 +683,42 @@ void GLDraw_2_0::initLocalGLObjects(void)
 		}
 	}
 	initBitmapVAO();
+	initOsdObjects();
+}
+
+void GLDraw_2_0::initOsdObjects(void)
+{
+	osd_shader = new QOpenGLShaderProgram(p_wid);
+	if(osd_shader != NULL) {
+		osd_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertex_shader.glsl");
+		osd_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/icon_fragment_shader.glsl");
+		osd_shader->link();
+	}
+	for(int i = 0; i < 32; i++) {
+		buffer_osd[i] = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+		vertex_osd[i] = new QOpenGLVertexArrayObject;
+		
+		if(buffer_osd[i] != NULL) {
+			if(buffer_osd[i]->create()) {
+				{
+					QVector4D c;
+					c = QVector4D(1.0, 1.0, 1.0, 1.0);
+					osd_shader->setUniformValue("color", c);
+				}
+				
+				//buffer_screen_vertex->create();
+				buffer_osd[i]->setUsagePattern(QOpenGLBuffer::StaticDraw);
+				vertex_osd[i]->create();
+				
+				if(vertex_osd[i] != NULL) vertex_osd[i]->bind();
+				buffer_osd[i]->bind();
+				buffer_osd[i]->allocate(sizeof(VertexTexCoord_t) * 4);
+				if(vertex_osd[i] != NULL) vertex_osd[i]->release();
+				buffer_osd[i]->release();
+				set_osd_vertex(i);
+			}
+		}
+	}
 }
 
 void GLDraw_2_0::doSetGridsHorizonal(int lines, bool force)
@@ -888,25 +1054,15 @@ void GLDraw_2_0::uploadBitmapTexture(QImage *p)
 void GLDraw_2_0::uploadIconTexture(QPixmap *p, int icon_type, int localnum)
 {
 	if((icon_type >  7) || (icon_type < 0)) return;
-	if((localnum  >= 8) || (localnum  <  0)) return;
+	if((localnum  >= 9) || (localnum  <  0)) return;
 	if(p == NULL) return;
 	p_wid->makeCurrent();
 	QImage image = p->toImage();
 	GLuint texid = icon_texid[icon_type][localnum];
 
-	icon_uploaded[icon_type][localnum] = true;
-	if(texid == 0) {
-		icon_texid[icon_type][localnum] = p_wid->bindTexture(*p);
-		texid = icon_texid[icon_type][localnum];
-	}
+	if(texid != 0) p_wid->deleteTexture(texid);
 	{
-		// Upload to main texture
-		extfunc_2->glBindTexture(GL_TEXTURE_2D, texid);
-		extfunc_2->glTexSubImage2D(GL_TEXTURE_2D, 0,
-								 0, 0,
-								 image.width(), image.height(),
-								 GL_BGRA, GL_UNSIGNED_BYTE, image.constBits());
-		extfunc_2->glBindTexture(GL_TEXTURE_2D, 0);
+		icon_texid[icon_type][localnum] = p_wid->bindTexture(*p);
 	}
 	p_wid->doneCurrent();
 
@@ -927,8 +1083,6 @@ void GLDraw_2_0::uploadMainTexture(QImage *p, bool use_chromakey)
 	imgptr = p;
 	if(p == NULL) return;
 	{
-		if(use_chromakey) {
-		}
 		// Upload to main texture
 		if(uVramTextureID == 0) {
 			uVramTextureID = p_wid->bindTexture(*p);
@@ -1032,7 +1186,7 @@ void GLDraw_2_0::resizeGL(int width, int height)
 void GLDraw_2_0::paintGL(void)
 {
 	//p_wid->makeCurrent();
-	if(crt_flag || redraw_required) { //return;
+	//if(crt_flag || redraw_required) { //return;
 		if(emu_launched) {
 			crt_flag = false;
 		}
@@ -1057,12 +1211,14 @@ void GLDraw_2_0::paintGL(void)
 		if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
 			drawGrids();
 		}
-		drawOsdLeds();
+		//drawOsdLeds();
+		drawOsdIcons();
 		extfunc_2->glFlush();
-	} else {
-		drawOsdLeds();
-		extfunc_2->glFlush();
-	}
+		//} else {	
+	//drawOsdLeds();
+	//	drawOsdIcons();
+	//	extfunc_2->glFlush();
+	//}
 	//p_wid->doneCurrent();
 }
 

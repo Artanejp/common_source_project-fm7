@@ -151,7 +151,7 @@ public slots:
 	void do_display_osd_leds(int lednum,bool onoff);
 	void do_set_led_width(int bitwidth);
 	void do_update_icon(int icon_type,  int localnum, QPixmap *p);
-	void do_update_icon(int icon_type, int localnum, QString message, QColor bg, QColor fg, QColor lg, QColor tg, float pt);
+	void do_update_icon(int icon_type, int localnum, QString message, QColor bg, QColor fg, QColor fg2, QColor fg3, QColor lg, QColor tg, float pt);
 
 signals:
 	void update_screenChanged(int tick);

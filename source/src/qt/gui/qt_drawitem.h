@@ -30,12 +30,12 @@ public:
 	CSP_DrawItem(int width, int height, Format fmt = QImage::Format_RGBA8888);
 	~CSP_DrawItem();
 	void clearCanvas(QColor &clColor);
-	void drawFloppy5Inch(QColor &BGColor, QColor &FGColor, QColor &TextColor, float text_pt, QString text);
-	void drawFloppy3_5Inch(QColor &BGColor, QColor &FGColor, QColor &TextColor, float text_pt, QString text);
-	void drawCasetteTape(QColor &BGColor, QColor &FGColor, QColor &TextColor, float text_pt, QString text);
-	void drawQuickDisk(QColor &BGColor, QColor &FGColor, QColor &TextColor, float text_pt, QString text);
-	void drawCompactDisc(QColor &BGColor, QColor &FGColor, QColor &LabelColor, QColor &TextColor, float text_pt, QString text);
-	void drawLaserDisc(QColor &BGColor, QColor &FGColor, QColor &LabelColor, QColor &TextColor, float text_pt, QString text);
+	void drawFloppy5Inch(QColor &BGColor, QColor &FGColor, QColor &FGColor2, QColor &TextColor, float text_pt, QString text);
+	void drawFloppy3_5Inch(QColor &BGColor, QColor &FGColor, QColor &FGColor2, QColor &FGColor3, QColor &TextColor, float text_pt, QString text);
+	void drawCasetteTape(QColor &BGColor, QColor &FGColor, QColor &FGColor2, QColor &FGColor3, QColor &TextColor, float text_pt, QString text);
+	void drawQuickDisk(QColor &BGColor, QColor &FGColor, QColor &FGColor2, QColor &TextColor, float text_pt, QString text);
+	void drawCompactDisc(QColor &BGColor, QColor &FGColor, QColor &FGColor2, QColor &FGColor3, QColor &LabelColor, QColor &TextColor, float text_pt, QString text);
+	void drawLaserDisc(QColor &BGColor, QColor &FGColor, QColor &FGColor2, QColor &LabelColor, QColor &TextColor, float text_pt, QString text);
 };
 //QT_END_NAMESPACE
 #endif /* _CSP_QT_DRAWITEM_H_ */

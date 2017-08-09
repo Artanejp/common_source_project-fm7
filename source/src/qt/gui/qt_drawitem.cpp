@@ -90,7 +90,7 @@ void CSP_DrawItem::drawPolygonItem(QPointF _points[], int members,
 }
 
 
-void CSP_DrawItem::drawFloppy5Inch(QColor &BGColor, QColor &FGColor, QColor &TextColor, float text_pt, QString text)
+void CSP_DrawItem::drawFloppy5Inch(QColor &BGColor, QColor &FGColor, QColor &FGColor2, QColor &TextColor, float text_pt, QString text)
 {
 	double __width = (double)_width;
 	double __height = (double)_height;
@@ -103,12 +103,12 @@ void CSP_DrawItem::drawFloppy5Inch(QColor &BGColor, QColor &FGColor, QColor &Tex
 		int ybase = (int)((__height - _nwidth) * 0.5);
 		int wbase = (int)_nwidth;
 		int hbase = wbase;
-		drawRectItem(xbase, ybase, wbase, hbase, toned_brush_mid, FGColor, FGColor);
+		drawRectItem(xbase, ybase, wbase, hbase, fill_brush, FGColor, FGColor);
 		{
 			int r = (int)((_nwidth * 0.35) / 2.0);
 			int x = xbase + wbase / 2 - r;
 			int y = ybase + hbase / 2 - r;
-			drawCircleItem(x, y, r, 0, 360 * 16, fill_brush, FGColor, FGColor);
+			drawCircleItem(x, y, r, 0, 360 * 16, fill_brush, FGColor2, FGColor2);
 		}
 		{
 			int r = (int)((_nwidth * 0.15) / 2.0);
@@ -121,7 +121,7 @@ void CSP_DrawItem::drawFloppy5Inch(QColor &BGColor, QColor &FGColor, QColor &Tex
 			double h = _nwidth * (1.0 - 0.35 - 0.2) / 2.0;
 			int x = (xbase + wbase / 2) - (int)(w / 2.0); 
 			int y = (ybase + wbase / 2) + (int)(_nwidth * 0.45 / 2.0); 
-			drawRectItem(x, y, w, h, fill_brush, FGColor, FGColor);
+			drawRectItem(x, y, w, h, fill_brush, FGColor2, FGColor2);
 		}
 		if(!text.isEmpty()) {
 			int x = xbase + (int)(_nwidth * 0.65); 
@@ -136,7 +136,7 @@ void CSP_DrawItem::drawFloppy5Inch(QColor &BGColor, QColor &FGColor, QColor &Tex
 }
 	
 
-void CSP_DrawItem::drawFloppy3_5Inch(QColor &BGColor, QColor &FGColor, QColor &TextColor, float text_pt, QString text)
+void CSP_DrawItem::drawFloppy3_5Inch(QColor &BGColor, QColor &FGColor, QColor &FGColor2, QColor &FGColor3, QColor &TextColor, float text_pt, QString text)
 {
 	double __width = (double)_width;
 	double __height = (double)_height;
@@ -159,7 +159,7 @@ void CSP_DrawItem::drawFloppy3_5Inch(QColor &BGColor, QColor &FGColor, QColor &T
 				QPointF((float)xbase + (float)_nwidth, (float)ybase + (float)_nheight),
 				QPointF((float)xbase,  (float)ybase + (float)_nheight)
 			};
-			drawPolygonItem(points, 5, toned_brush_mid, FGColor, FGColor);
+			drawPolygonItem(points, 5, fill_brush, FGColor, FGColor);
 		}
 		{
 			float xoffset = (float)(_nwidth * 0.25);
@@ -172,7 +172,7 @@ void CSP_DrawItem::drawFloppy3_5Inch(QColor &BGColor, QColor &FGColor, QColor &T
 				QPointF((float)xbase + xoffset, (float)ybase + _h), 
 			};
 			drawPolygonItem(points, 4, fill_brush, BGColor, BGColor);
-			drawPolygonItem(points, 4, toned_brush_light, FGColor, FGColor);
+			drawPolygonItem(points, 4, fill_brush, FGColor2, FGColor2);
 		
 			{
 				xoffset = xoffset + _w * 0.65;
@@ -185,11 +185,11 @@ void CSP_DrawItem::drawFloppy3_5Inch(QColor &BGColor, QColor &FGColor, QColor &T
 					QPointF((float)xbase + xoffset + _w2, (float)ybase + yoffset + _h2), 
 					QPointF((float)xbase + xoffset, (float)ybase + yoffset + _h2), 
 				};
-				drawPolygonItem(points2, 4, toned_brush_mid, FGColor, FGColor);
+				drawPolygonItem(points2, 4, fill_brush, FGColor3, FGColor3);
 			}
 		}
 		if(!text.isEmpty()) {
-			int x = xbase + + (int)(_nwidth * 0.23); 
+			int x = xbase + + (int)(_nwidth * 0.65); 
 			int y = ybase + (int)(_nwidth * 0.55);
 			int w = (int)(_nwidth * 0.40);
 			int h = w;
@@ -199,7 +199,7 @@ void CSP_DrawItem::drawFloppy3_5Inch(QColor &BGColor, QColor &FGColor, QColor &T
 	}
 }
 
-void CSP_DrawItem::drawCasetteTape(QColor &BGColor, QColor &FGColor, QColor &TextColor, float text_pt, QString text)
+void CSP_DrawItem::drawCasetteTape(QColor &BGColor, QColor &FGColor, QColor &FGColor2, QColor &FGColor3, QColor &TextColor, float text_pt, QString text)
 {
 	double __width = (double)_width;
 	double __height = (double)_height;
@@ -218,59 +218,59 @@ void CSP_DrawItem::drawCasetteTape(QColor &BGColor, QColor &FGColor, QColor &Tex
 			int y = ybase;
 			int w = wbase;
 			int h = hbase;
-			drawRectItem(x, y, w, h, fill_brush, BGColor, FGColor);
+			drawRectItem(x, y, w, h, fill_brush, BGColor, BGColor);
 		}
 		{
 			int r = (int)((_nwidth * 0.45) / 2.0);
 			int x = xbase + (int)(_nwidth * 0.25) - r;
 			int y = ybase + (int)(_nheight * 0.5) - r;
-			drawCircleItem(x, y, r, 0, 360 * 16,  fill_brush, FGColor, FGColor);
+			drawCircleItem(x, y, r, 0, 360 * 16,  fill_brush, FGColor, FGColor, Qt::NoPen);
 		}
 		{
 			int r = (int)((_nwidth * 0.10) / 2.0);
 			int x = xbase + (int)(_nwidth * 0.25) - r;
 			int y = ybase + (int)(_nheight * 0.5) - r;
-			drawCircleItem(x, y, r, 0, 360 * 16, fill_brush, BGColor, BGColor);
+			drawCircleItem(x, y, r, 0, 360 * 16, fill_brush, BGColor, BGColor, Qt::NoPen);
 		}
 		{
 			int r = (int)((_nwidth * 0.25) / 2.0);
 			int x = xbase + (int)(_nwidth * 0.75) - r;
 			int y = ybase + (int)(_nheight * 0.5) - r;
-			drawCircleItem(x, y, r, 0, 360 * 16, fill_brush, FGColor, FGColor);
+			drawCircleItem(x, y, r, 0, 360 * 16, fill_brush, FGColor, FGColor, Qt::NoPen);
 		}
 		{
 			int r = (int)((_nwidth * 0.10) / 2.0);
 			int x = xbase + (int)(_nwidth * 0.75) - r;
 			int y = ybase + (int)(_nheight * 0.5) - r;
-			drawCircleItem(x, y, r, 0, 360 * 16, fill_brush, BGColor, BGColor);
+			drawCircleItem(x, y, r, 0, 360 * 16, fill_brush, BGColor, BGColor, Qt::NoPen);
 		}
 		{
 			int x = xbase;
 			int y = ybase;
 			int w = wbase;
 			int h = (int)(_nheight * 0.35);
-			drawRectItem(x, y, w, h, toned_brush_mid, FGColor, FGColor, Qt::NoPen);
+			drawRectItem(x, y, w, h, fill_brush, FGColor2, FGColor2, Qt::NoPen);
 		}
 		{
 			int x = xbase;
 			int y = ybase + (int)(_nheight * 0.65);
 			int w = wbase;
 			int h = (int)(_nheight * 0.3);
-			drawRectItem(x, y, w, h, toned_brush_mid, FGColor, FGColor, Qt::NoPen);
+			drawRectItem(x, y, w, h, fill_brush, FGColor2, FGColor2, Qt::NoPen);
 		}
 		{
 			int x = xbase;
 			int y = ybase;
-			int w = (int)(_nwidth * 0.2);
+			int w = (int)(_nwidth * 0.1);
 			int h = hbase;
-			drawRectItem(x, y, w, h, toned_brush_mid, FGColor, FGColor, Qt::NoPen);
+			drawRectItem(x, y, w, h, fill_brush, FGColor2, FGColor2, Qt::NoPen);
 		}
 		{
-			int w = (int)(_nwidth * 0.2);
+			int w = (int)(_nwidth * 0.1);
 			int x = xbase + wbase - w;
 			int y = ybase;
 			int h = hbase;
-			drawRectItem(x, y, w, h, toned_brush_mid, FGColor, FGColor, Qt::NoPen);
+			drawRectItem(x, y, w, h, fill_brush, FGColor2, FGColor2, Qt::NoPen);
 		}
 		if(!text.isEmpty()) {
 			int x = 0 + (int)(__width * 0.7); 
@@ -284,7 +284,7 @@ void CSP_DrawItem::drawCasetteTape(QColor &BGColor, QColor &FGColor, QColor &Tex
 	}
 }
 
-void CSP_DrawItem::drawQuickDisk(QColor &BGColor, QColor &FGColor, QColor &TextColor, float text_pt, QString text)
+void CSP_DrawItem::drawQuickDisk(QColor &BGColor, QColor &FGColor, QColor &FGColor2, QColor &TextColor, float text_pt, QString text)
 {
 	double __width = (double)_width;
 	double __height = (double)_height;
@@ -297,7 +297,7 @@ void CSP_DrawItem::drawQuickDisk(QColor &BGColor, QColor &FGColor, QColor &TextC
 		int ybase = (int)((__height - _nwidth) * 0.5);
 		int wbase = (int)_nwidth;
 		int hbase = wbase;
-		drawRectItem(xbase, ybase, wbase, hbase, toned_brush_mid, FGColor, FGColor);
+		drawRectItem(xbase, ybase, wbase, hbase, fill_brush, FGColor2, FGColor2);
 		{
 			int r = (int)((_nwidth * 0.40) / 2.0);
 			int x = xbase + wbase / 2 - r;
@@ -322,7 +322,7 @@ void CSP_DrawItem::drawQuickDisk(QColor &BGColor, QColor &FGColor, QColor &TextC
 	}
 }
 
-void CSP_DrawItem::drawCompactDisc(QColor &BGColor, QColor &FGColor, QColor &LabelColor, QColor &TextColor, float text_pt, QString text)
+void CSP_DrawItem::drawCompactDisc(QColor &BGColor, QColor &FGColor, QColor &FGColor2, QColor &FGColor3, QColor &LabelColor, QColor &TextColor, float text_pt, QString text)
 {
 	double __width = (double)_width;
 	double __height = (double)_height;
@@ -339,13 +339,13 @@ void CSP_DrawItem::drawCompactDisc(QColor &BGColor, QColor &FGColor, QColor &Lab
 			int r = (int)_nr;
 			int x = xbase - rbase;
 			int y = ybase - rbase;
-			drawCircleItem(x, y, r, 0, 360 * 16, toned_brush_mid, FGColor, FGColor, Qt::NoPen);
+			drawCircleItem(x, y, r, 0, 360 * 16, fill_brush, FGColor2, FGColor2, Qt::NoPen);
 		}
 		{
 			int r = (int)(_nr * 0.41 * 1.2);
 			int x = xbase - r;
 			int y = ybase - r;
-			drawCircleItem(x, y, r, 0, 360 * 16, fill_brush, FGColor, FGColor);
+			drawCircleItem(x, y, r, 0, 360 * 16, fill_brush, FGColor3, FGColor3);
 		}
 		{
 			int r = (int)(_nr * 0.35 * 1.2);
@@ -357,7 +357,7 @@ void CSP_DrawItem::drawCompactDisc(QColor &BGColor, QColor &FGColor, QColor &Lab
 			int r = (int)(_nr * 0.22 * 1.2);
 			int x = xbase - r;
 			int y = ybase - r;
-			drawCircleItem(x, y, r, 0, 360 * 16, fill_brush, FGColor, FGColor);
+			drawCircleItem(x, y, r, 0, 360 * 16, fill_brush, FGColor2, FGColor2);
 		}
 		{
 			int r = (int)(_nr * 0.15 * 1.2);
@@ -388,7 +388,7 @@ void CSP_DrawItem::drawCompactDisc(QColor &BGColor, QColor &FGColor, QColor &Lab
 	}
 }
 
-void CSP_DrawItem::drawLaserDisc(QColor &BGColor, QColor &FGColor, QColor &LabelColor, QColor &TextColor, float text_pt, QString text)
+void CSP_DrawItem::drawLaserDisc(QColor &BGColor, QColor &FGColor, QColor &FGColor2, QColor &LabelColor, QColor &TextColor, float text_pt, QString text)
 {
 	double __width = (double)_width;
 	double __height = (double)_height;
@@ -405,13 +405,13 @@ void CSP_DrawItem::drawLaserDisc(QColor &BGColor, QColor &FGColor, QColor &Label
 			int r = (int)_nr;
 			int x = xbase - rbase;
 			int y = ybase - rbase;
-			drawCircleItem(x, y, r, 0, 360 * 16, toned_brush_mid, FGColor, FGColor, Qt::NoPen);
+			drawCircleItem(x, y, r, 0, 360 * 16, fill_brush, FGColor2, FGColor2, Qt::NoPen);
 		}
 		{
 			int r = (int)(_nr * 0.30 * 1.2);
 			int x = xbase - r;
 			int y = ybase - r;
-			drawCircleItem(x, y, r, 0, 360 * 16, toned_brush_deep, FGColor, FGColor, Qt::NoPen);
+			drawCircleItem(x, y, r, 0, 360 * 16, fill_brush, FGColor, FGColor, Qt::NoPen);
 		}
 		{
 			int r = (int)(_nr * 0.15 * 1.2);

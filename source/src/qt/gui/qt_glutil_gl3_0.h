@@ -116,6 +116,5 @@ public slots:
 	void do_set_texture_size(QImage *p, int w, int h);
 	virtual void paintGL(void);
 	virtual void resizeGL(int width, int height);
-	virtual void uploadIconTexture(QPixmap *p, int icon_type, int localnum);
 };
 #endif

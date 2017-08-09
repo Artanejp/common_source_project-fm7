@@ -49,7 +49,7 @@ void GLDrawClass::do_update_icon(int icon_type,  int localnum, QPixmap *p)
 	}
 }
 
-void GLDrawClass::do_update_icon(int icon_type, int localnum, QString message, QColor bg, QColor fg, QColor lg, QColor tg, float pt)
+void GLDrawClass::do_update_icon(int icon_type, int localnum, QString message, QColor bg, QColor fg, QColor fg2, QColor fg3, QColor lg, QColor tg, float pt)
 {
 	if(draw_item != NULL) {
 		QPixmap icon;
@@ -59,23 +59,23 @@ void GLDrawClass::do_update_icon(int icon_type, int localnum, QString message, Q
 			draw_item->clearCanvas(nullColor);
 			break;
 		case 1: 
-			draw_item->drawFloppy5Inch(bg, fg, tg, pt, message);
+			draw_item->drawFloppy5Inch(bg, fg, fg2, tg, pt, message);
 			break;
 		case 2:
-			draw_item->drawFloppy3_5Inch(bg, fg, tg, pt, message);
+			draw_item->drawFloppy3_5Inch(bg, fg3, fg2, fg, tg, pt, message);
 			break;
 		case 3:
-			draw_item->drawQuickDisk(bg, fg, tg, pt, message);
+			draw_item->drawQuickDisk(bg, fg, fg2, tg, pt, message);
 			break;
 		case 4:
 		case 5:
-			draw_item->drawCasetteTape(bg, fg, tg, pt, message);
+			draw_item->drawCasetteTape(bg, fg, fg2, fg3, tg, pt, message);
 			break;
 		case 6:
-			draw_item->drawCompactDisc(bg, fg, lg, tg, pt, message);
+			draw_item->drawCompactDisc(bg, fg, fg2, fg3, lg, tg, pt, message);
 			break;
 		case 7:
-			draw_item->drawLaserDisc(bg, fg, lg, tg, pt, message);
+			draw_item->drawLaserDisc(bg, fg, fg2, lg, tg, pt, message);
 			break;
 		default:
 			break;
@@ -102,17 +102,20 @@ void GLDrawClass::initializeGL(void)
 	InitFBO(); // 拡張の有無を調べてからFBOを初期化する。
 	InitGLExtensionVars();
 
-	QColor BG = QColor(0, 250, 0, 196);
-	QColor TG = QColor(0, 0, 250, 196);
-	QColor LG = QColor(250, 0, 0, 196);
-	QColor FG = QColor(255, 255, 255, 196);
+	QColor BG = QColor(0, 250, 0, 255);
+	QColor TG = QColor(0, 0, 250, 255);
+	QColor TG2 = QColor(250, 250, 250, 255);
+	QColor LG = QColor(250, 0, 0, 255);
+	QColor FG = QColor(255, 255, 255, 255);
+	QColor FG2 = QColor(128, 128, 128, 255);
+	QColor FG3 = QColor(64, 64, 64, 255);
 
-	do_update_icon(0, 0, QString::fromUtf8(""), BG, FG, LG, TG, 12.0f);
+	do_update_icon(0, 0, QString::fromUtf8(""), BG, FG, FG2, FG3, LG, TG, 12.0f);
 	if(using_flags->is_use_laser_disc()) {
-		do_update_icon(7, 0, QString::fromUtf8("LD"), BG, FG, LG, TG, 12.0f);
+		do_update_icon(7, 0, QString::fromUtf8("LD"), BG, FG, FG2, FG3, LG, TG, 12.0f);
 	}
 	if(using_flags->is_use_compact_disc()) {
-		do_update_icon(6, 0, QString::fromUtf8("CD"), BG, FG, LG, TG, 12.0f);
+		do_update_icon(6, 0, QString::fromUtf8("CD"), BG, FG, FG2, FG3, LG, TG, 12.0f);
 	}
 	if(using_flags->is_use_fd()) {
 		int drvs = using_flags->get_max_drive();
@@ -121,7 +124,8 @@ void GLDrawClass::initializeGL(void)
 			tmps = QString::fromUtf8("");
 			ts.setNum(i);
 			tmps = tmps + ts + QString::fromUtf8(":");
-			do_update_icon(1, i, tmps, BG, FG, LG, TG, 12.0f); // Dedicate to 3.5/5/8? and startnum.
+			do_update_icon(1, i, tmps, BG, FG, FG2, FG3, LG, TG, 12.0f); // Dedicate to 3.5/5/8? and startnum.
+			do_update_icon(2, i, tmps, BG, FG, FG2, FG3, LG, TG2, 12.0f); // Dedicate to 3.5/5/8? and startnum.
 		}
 	}
 	if(using_flags->is_use_qd()) {
@@ -131,22 +135,24 @@ void GLDrawClass::initializeGL(void)
 			tmps = QString::fromUtf8("");
 			ts.setNum(i);
 			tmps = tmps + ts + QString::fromUtf8(":");
-			do_update_icon(3, i, tmps, BG, FG, LG, TG, 12.0f); // Dedicate to 3.5/5/8? and startnum.
+			do_update_icon(3, i, tmps, BG, FG, FG2, FG3, LG, TG, 12.0f); // Dedicate to 3.5/5/8? and startnum.
 		}
 	}
 	if(using_flags->is_use_tape()) {
 		int drvs = using_flags->get_max_tape();
-		QColor R_BG = QColor(0, 0, 255, 192);
-		QColor W_BG = QColor(255, 0, 0, 192);
-		QColor C_FG = QColor(255, 255, 255, 192);
-		QColor C_TG = QColor(0, 255, 0, 255);
+		QColor R_BG  = QColor(0, 0, 255, 255);
+		QColor W_BG  = QColor(255, 0, 0, 255);
+		QColor C_FG  = QColor(255, 255, 255, 255);
+		QColor C_FG2 = QColor(64, 64, 64, 255);
+		QColor C_FG3 = QColor(128, 128, 128, 255);
+		QColor C_TG  = QColor(0, 255, 0, 255);
 		QString ts, tmps;
 		for(int i = 0; i < drvs; i++) {
 			tmps = QString::fromUtf8("");
 			ts.setNum(i + 1);
 			tmps = tmps + ts;
-			do_update_icon(4, i, tmps, R_BG, C_FG, LG, C_TG, 12.0f); // Dedicate to 3.5/5/8? and startnum.
-			do_update_icon(5, i, tmps, W_BG, C_FG, LG, C_TG, 12.0f); // Dedicate to 3.5/5/8? and startnum.
+			do_update_icon(4, i, tmps, R_BG, C_FG, C_FG2, C_FG3, LG, C_TG, 12.0f); // Dedicate to 3.5/5/8? and startnum.
+			do_update_icon(5, i, tmps, W_BG, C_FG, C_FG2, C_FG3, LG, C_TG, 12.0f); // Dedicate to 3.5/5/8? and startnum.
 		}
 	}	
 }
