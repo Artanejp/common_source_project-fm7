@@ -106,7 +106,13 @@ void MB8877::initialize()
 {
 	DEVICE::initialize();
 	// initialize d88 handler
-	_max_drive = osd->get_feature_int_value(_T("MAX_DRIVE"));
+	if(osd->check_feature(_T("MAX_DRIVE"))) {
+		_max_drive = osd->get_feature_int_value(_T("MAX_DRIVE"));
+	} else if(osd->check_feature(_T("MAX_FD"))) {
+		_max_drive = osd->get_feature_int_value(_T("MAX_FD"));
+	} else {
+		_max_drive = 1;
+	}
 	_drive_mask = _max_drive - 1;
 	for(int i = 0; i < _max_drive; i++) {
 		disk[i] = new DISK(emu);

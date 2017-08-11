@@ -51,25 +51,26 @@
 #define USE_BUBBLE1
 #define USE_BUBBLE2
 #define MAX_BUBBLE 2
-
+#define MAX_DRIVE  4
 #elif defined(_FM7)
 #define DEVICE_NAME		"FUJITSU FM-7"
 #define CONFIG_NAME		"fm7"
 #define CAPABLE_Z80
 #define DIPSWITCH_DEFAULT 0x000000000 
+#define MAX_DRIVE  4
 
 #elif defined(_FMNEW7)
 #define DEVICE_NAME		"FUJITSU FM-NEW7"
 #define CONFIG_NAME		"fmnew7"
 #define CAPABLE_Z80
 #define DIPSWITCH_DEFAULT 0x000000000 
+#define MAX_DRIVE  4
 
 #elif defined(_FM77) || defined(_FM77L2)
 # if defined(_FM77)
 #define DEVICE_NAME		"FUJITSU FM-77"
 #define CONFIG_NAME		"fm77"
 #define DIPSWITCH_DEFAULT 0x00000001
-
 # else
 #define DEVICE_NAME		"FUJITSU FM-77L2"
 #define CONFIG_NAME		"fm77l2"
@@ -81,6 +82,7 @@
 # ifndef FM77_EXRAM_BANKS
 #   define FM77_EXRAM_BANKS	3
 # endif
+#define MAX_DRIVE  4
 
 #elif defined(_FM77L4)
 #define DEVICE_NAME		"FUJITSU FM-77L4"
@@ -97,12 +99,14 @@
 #  define FM77_EXRAM_BANKS	3
 # endif
 #define DIPSWITCH_DEFAULT 0x00000003 
+#define MAX_DRIVE  4
 
 #elif defined(_FM77AV)
 #define DEVICE_NAME		"FUJITSU FM77AV"
 #define CONFIG_NAME		"fm77av"
 #define _FM77AV_VARIANTS
 #define DIPSWITCH_DEFAULT 0x80000001 
+#define MAX_DRIVE  2
 
 #elif defined(_FM77AV20)
 #define DEVICE_NAME		"FUJITSU FM77AV20"
@@ -114,6 +118,7 @@
 //#define USE_DRIVE_TYPE 2
 #define CAPABLE_KANJI_CLASS2
 #define DIPSWITCH_DEFAULT 0x80000001 
+#define MAX_DRIVE  2
 
 #elif defined(_FM77AV20EX)
 #define DEVICE_NAME		"FUJITSU FM77AV20EX"
@@ -126,6 +131,7 @@
 #define CAPABLE_DICTROM
 #define CAPABLE_KANJI_CLASS2
 #define DIPSWITCH_DEFAULT 0x80000001 
+#define MAX_DRIVE  4
 
 #elif defined(_FM77AV40)
 #define DEVICE_NAME		"FUJITSU FM77AV40"
@@ -141,6 +147,7 @@
 #define FM77_EXRAM_BANKS	12
 #endif
 #define DIPSWITCH_DEFAULT 0x8000000d 
+#define MAX_DRIVE  4
 
 #elif defined(_FM77AV40EX)
 #define DEVICE_NAME		"FUJITSU FM77AV40EX"
@@ -156,6 +163,7 @@
 #define FM77_EXRAM_BANKS	12
 #endif
 #define DIPSWITCH_DEFAULT 0x8000000d 
+#define MAX_DRIVE  4
 
 #elif defined(_FM77AV40SX)
 #define DEVICE_NAME		"FUJITSU FM77AV40SX"
@@ -171,6 +179,7 @@
 #  define FM77_EXRAM_BANKS	12
 # endif
 #define DIPSWITCH_DEFAULT 0x8000000d 
+#define MAX_DRIVE  4
 
 #endif
 
