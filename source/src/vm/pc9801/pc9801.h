@@ -317,6 +317,8 @@ class I8255;
 class I8259;
 #if defined(HAS_I86) || defined(HAS_V30)
 class I286;
+#elif defined(HAS_I386) || defined(HAS_I486)
+class I386;
 #else
 class I286;
 #endif

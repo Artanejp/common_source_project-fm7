@@ -62,11 +62,7 @@ void Ui_MainWindowBase::set_monitor_type(int num)
 
 void Ui_MainWindowBase::set_scan_line(bool flag)
 {
-	if(flag) {
-		using_flags->get_config_ptr()->scan_line = ~0;
-	} else {
-		using_flags->get_config_ptr()->scan_line = 0;
-	}
+	using_flags->get_config_ptr()->scan_line = flag;
 	emit sig_emu_update_config();
 }
 

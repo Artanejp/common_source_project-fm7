@@ -166,7 +166,7 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 		actionScanLine = new Action_Control(this, using_flags);
 		actionScanLine->setObjectName(QString::fromUtf8("actionScanLine"));
 		actionScanLine->setCheckable(true);
-		if(using_flags->get_config_ptr()->scan_line != 0) {
+		if(using_flags->get_config_ptr()->scan_line) {
 			actionScanLine->setChecked(true);
 		} else {
 			actionScanLine->setChecked(false);

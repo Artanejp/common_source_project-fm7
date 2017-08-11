@@ -2400,7 +2400,11 @@ void DISPLAY::draw_gfx_screen()
 			// 200 line
 			if(modereg1[MODE1_200LINE]) {
 				//memset(dest, 0, 640);
-				memset(dest, 0, SCREEN_WIDTH);
+				if(config.scan_line) {
+					memset(dest, 0, SCREEN_WIDTH);
+				} else {
+					my_memcpy(dest, dest - SCREEN_WIDTH, SCREEN_WIDTH);
+				}					
 			} else {
 				//my_memcpy(dest, dest - 640, 640);
 				my_memcpy(dest, dest - SCREEN_WIDTH, SCREEN_WIDTH);

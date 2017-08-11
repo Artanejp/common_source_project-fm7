@@ -3,8 +3,9 @@
 "ePC-9801U" - NEC PC-9801U emulator for Win32
 "ePC-9801VF" - NEC PC-9801VF emulator for Win32
 "ePC-9801VM" - NEC PC-9801VM emulator for Win32
+"ePC-9801VX" - NEC PC-9801VX emulator for Win32
 "ePC-98DO" - NEC PC-98DO emulator for Win32
-								12/9/2015
+								8/10/2017
 
 --- Internal ROM images
 
@@ -41,6 +42,15 @@ PC-98DO (PC-88 mode)
 	DISK.ROM	Sub-System ROM
 	KANJI1.ROM	Kanji ROM
 	KANJI2.ROM	Kanji ROM
+
+PC-9801VX
+
+	SOUND.ROM (*)	PC-9801-26 ROM (CC000H - CDFFFH)
+	IPL.ROM		IPL ROM (E8000H - FFFFFH)
+	ITF.ROM		ITF ROM (F8000H - FFFFFH)
+	FONT.ROM	FONT 288768bytes
+
+	(*) optional
 
 --- Key maps
 
