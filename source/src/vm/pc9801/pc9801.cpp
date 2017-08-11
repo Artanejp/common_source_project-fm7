@@ -626,7 +626,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	io->set_iomap_single_rw(0xa3, display);
 	io->set_iomap_single_rw(0xa5, display);
 	io->set_iomap_single_rw(0xa9, display);
-#if defined(SUPPORT_EGC) && !(SUPPORT_HIRESO)
+#if defined(SUPPORT_EGC) && !defined(SUPPORT_HIRESO)
 	io->set_iomap_range_rw(0x04a0, 0x04af, display);
 #endif
 	
