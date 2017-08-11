@@ -4,7 +4,7 @@
 <context>
     <name>CSP_DropDownJoysticks</name>
     <message>
-        <location filename="menu_main.cpp" line="893"/>
+        <location filename="menu_main.cpp" line="967"/>
         <source>Configure Joysticks</source>
         <translation>ジョイステックを設定する</translation>
     </message>
@@ -40,7 +40,7 @@
         <translation>＊未定義＊</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="907"/>
+        <location filename="menu_main.cpp" line="981"/>
         <source>Configure Keyboard</source>
         <translation>キーボードの設定</translation>
     </message>
@@ -48,13 +48,13 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="mainwindow_utils.cpp" line="44"/>
+        <location filename="mainwindow_utils.cpp" line="46"/>
         <source>Stop Recorded Sound</source>
         <translation>録音停止</translation>
     </message>
     <message>
-        <location filename="mainwindow_utils.cpp" line="48"/>
-        <location filename="menu_sound.cpp" line="202"/>
+        <location filename="mainwindow_utils.cpp" line="50"/>
+        <location filename="menu_sound.cpp" line="201"/>
         <source>Start Recording Sound</source>
         <translation>録音開始する</translation>
     </message>
@@ -95,13 +95,13 @@
     </message>
     <message>
         <location filename="menu_cart.cpp" line="50"/>
-        <location filename="menu_metaclass.cpp" line="417"/>
+        <location filename="menu_metaclass.cpp" line="412"/>
         <source>Insert</source>
         <translation>さしこむ</translation>
     </message>
     <message>
         <location filename="menu_cart.cpp" line="51"/>
-        <location filename="menu_metaclass.cpp" line="419"/>
+        <location filename="menu_metaclass.cpp" line="414"/>
         <source>Eject</source>
         <translation>取り出す</translation>
     </message>
@@ -121,96 +121,96 @@
         <translation>最近開いた物</translation>
     </message>
     <message>
-        <location filename="menu_cmt.cpp" line="188"/>
+        <location filename="menu_cmt.cpp" line="238"/>
         <source>Save Tape</source>
         <translation>テープをサーブします</translation>
     </message>
     <message>
-        <location filename="menu_cmt.cpp" line="203"/>
+        <location filename="menu_cmt.cpp" line="254"/>
         <source>Insert CMT</source>
         <translation>テープを入れる</translation>
     </message>
     <message>
-        <location filename="menu_cmt.cpp" line="204"/>
+        <location filename="menu_cmt.cpp" line="255"/>
         <source>Insert a TAPE image file.</source>
         <translation>テープのイメージファイルを読み込みます。</translation>
     </message>
     <message>
-        <location filename="menu_cmt.cpp" line="205"/>
+        <location filename="menu_cmt.cpp" line="256"/>
         <source>Eject CMT</source>
         <translation>テープを取り出す</translation>
     </message>
     <message>
-        <location filename="menu_cmt.cpp" line="206"/>
+        <location filename="menu_cmt.cpp" line="257"/>
         <source>Eject a TAPE image file.</source>
         <translation>テープのイメージファイルを取り出します。</translation>
     </message>
     <message>
-        <location filename="menu_cmt.cpp" line="208"/>
+        <location filename="menu_cmt.cpp" line="259"/>
         <source>Enable Wave Shaper</source>
         <translation>Wave Shaper</translation>
     </message>
     <message>
-        <location filename="menu_cmt.cpp" line="209"/>
+        <location filename="menu_cmt.cpp" line="260"/>
         <source>Enable wave shaping.
 Useful for some images.</source>
         <translation>波形整形を行います。
 いくらかのイメージファイル等で効果があるでしょう。</translation>
     </message>
     <message>
-        <location filename="menu_cmt.cpp" line="212"/>
+        <location filename="menu_cmt.cpp" line="263"/>
         <source>Direct load from MZT</source>
         <translation>MZTから直接読む</translation>
     </message>
     <message>
-        <location filename="menu_cmt.cpp" line="213"/>
+        <location filename="menu_cmt.cpp" line="264"/>
         <source>Direct loading to memory.
 Only for MZT image file.</source>
         <translation>テープイメージから直接メモリに読み込みます。
 MZTファイルのみサポートしています。</translation>
     </message>
     <message>
-        <location filename="menu_cmt.cpp" line="215"/>
+        <location filename="menu_cmt.cpp" line="266"/>
         <source>Cassette Tape</source>
         <translation>カセットテープ</translation>
     </message>
     <message>
-        <location filename="menu_cmt.cpp" line="226"/>
+        <location filename="menu_cmt.cpp" line="277"/>
         <source>Play Stop</source>
         <translation>停止</translation>
     </message>
     <message>
-        <location filename="menu_cmt.cpp" line="227"/>
+        <location filename="menu_cmt.cpp" line="278"/>
         <source>Play Start</source>
         <translation>開始</translation>
     </message>
     <message>
-        <location filename="menu_cmt.cpp" line="228"/>
+        <location filename="menu_cmt.cpp" line="279"/>
         <source>Fast Forward</source>
         <translation>早送り</translation>
     </message>
     <message>
-        <location filename="menu_cmt.cpp" line="229"/>
+        <location filename="menu_cmt.cpp" line="280"/>
         <source>Rewind</source>
         <translation>巻き戻し</translation>
     </message>
     <message>
-        <location filename="menu_cmt.cpp" line="230"/>
+        <location filename="menu_cmt.cpp" line="281"/>
         <source>APSS Forward</source>
         <translation>APSSで前に</translation>
     </message>
     <message>
-        <location filename="menu_cmt.cpp" line="231"/>
+        <location filename="menu_cmt.cpp" line="282"/>
         <source>APSS Rewind</source>
         <translation>APSSで後ろに</translation>
     </message>
     <message>
-        <location filename="menu_cmt.cpp" line="234"/>
+        <location filename="menu_cmt.cpp" line="285"/>
         <source>Record to a WAV File</source>
         <translation>WAVファイルに録音</translation>
     </message>
     <message>
-        <location filename="menu_cmt.cpp" line="235"/>
+        <location filename="menu_cmt.cpp" line="286"/>
         <source>Record CMT output to a file.</source>
         <translation>マシンからテープに書かれる音声データを、WAVファイルに書き出します。</translation>
     </message>
@@ -241,146 +241,146 @@ CD-ROMやCDなどです。</translation>
         <translation>CD ROM</translation>
     </message>
     <message>
-        <location filename="menu_control.cpp" line="278"/>
+        <location filename="menu_control.cpp" line="321"/>
         <source>Reset</source>
         <translation>リセット</translation>
     </message>
     <message>
-        <location filename="menu_control.cpp" line="279"/>
+        <location filename="menu_control.cpp" line="322"/>
         <source>Reset virtual machine.</source>
         <translation>仮想マシンをリセットします。</translation>
     </message>
     <message>
-        <location filename="menu_control.cpp" line="286"/>
+        <location filename="menu_control.cpp" line="329"/>
         <source>Exit Emulator</source>
         <translation>終了</translation>
     </message>
     <message>
-        <location filename="menu_control.cpp" line="287"/>
+        <location filename="menu_control.cpp" line="330"/>
         <source>Exit emulator.
 **WARN: WITHOUT confirming.**</source>
         <translation>エミュレータを終了します。
 ＊注意：確認せずに終了します＊</translation>
     </message>
     <message>
-        <location filename="menu_control.cpp" line="290"/>
+        <location filename="menu_control.cpp" line="333"/>
         <source>Speed x1</source>
         <translation>１倍</translation>
     </message>
     <message>
-        <location filename="menu_control.cpp" line="291"/>
+        <location filename="menu_control.cpp" line="334"/>
         <source>Speed x2</source>
         <translation>２倍</translation>
     </message>
     <message>
-        <location filename="menu_control.cpp" line="292"/>
+        <location filename="menu_control.cpp" line="335"/>
         <source>Speed x4</source>
         <translation>４倍</translation>
     </message>
     <message>
-        <location filename="menu_control.cpp" line="293"/>
+        <location filename="menu_control.cpp" line="336"/>
         <source>Speed x8</source>
         <translation>８倍</translation>
     </message>
     <message>
-        <location filename="menu_control.cpp" line="294"/>
+        <location filename="menu_control.cpp" line="337"/>
         <source>Speed x16</source>
         <translation>１６倍</translation>
     </message>
     <message>
-        <location filename="menu_control.cpp" line="297"/>
+        <location filename="menu_control.cpp" line="340"/>
         <source>Paste from Clipboard</source>
         <translation>クリップボードから貼り付け</translation>
     </message>
     <message>
-        <location filename="menu_control.cpp" line="298"/>
+        <location filename="menu_control.cpp" line="341"/>
         <source>Paste ANK text to virtual machine from desktop&apos;s clop board.</source>
         <translation>デスクトップのクリップボードにある、
 ANK(アルファベットと数字と半角カタカナ）のテキストを、
 仮想マシンにコピペします。</translation>
     </message>
     <message>
-        <location filename="menu_control.cpp" line="300"/>
+        <location filename="menu_control.cpp" line="343"/>
         <source>Stop Pasting</source>
         <translation>貼り付け中止</translation>
     </message>
     <message>
-        <location filename="menu_control.cpp" line="301"/>
+        <location filename="menu_control.cpp" line="344"/>
         <source>Abort pasting ANK text to virtual machine.</source>
         <translation>仮想マシンへのANKテキストの貼り付けを中止します。</translation>
     </message>
     <message>
-        <location filename="menu_control.cpp" line="305"/>
+        <location filename="menu_control.cpp" line="348"/>
         <source>Save State</source>
         <translation>ステートを保存</translation>
     </message>
     <message>
-        <location filename="menu_control.cpp" line="307"/>
+        <location filename="menu_control.cpp" line="350"/>
         <source>Save snapshot to fixed bin file.</source>
         <translation>仮想マシンのスナップショットを定位置のbinファイルにセーブします。</translation>
     </message>
     <message>
-        <location filename="menu_control.cpp" line="308"/>
+        <location filename="menu_control.cpp" line="351"/>
         <source>Load State</source>
         <translation>ステートロード</translation>
     </message>
     <message>
-        <location filename="menu_control.cpp" line="310"/>
+        <location filename="menu_control.cpp" line="353"/>
         <source>Load snapshot from fixed bin file.</source>
         <translation>仮想マシンのスナップショットを定位置のbinファイルから読み込みます。</translation>
     </message>
     <message>
-        <location filename="menu_control.cpp" line="313"/>
+        <location filename="menu_control.cpp" line="364"/>
         <source>Main CPU</source>
         <translation>メインCPU</translation>
     </message>
     <message>
-        <location filename="menu_control.cpp" line="314"/>
+        <location filename="menu_control.cpp" line="365"/>
         <source>Sub CPU</source>
         <translation>サブCPU</translation>
     </message>
     <message>
-        <location filename="menu_control.cpp" line="315"/>
+        <location filename="menu_control.cpp" line="366"/>
         <source>Debugger 3</source>
         <translation>デバッガ3</translation>
     </message>
     <message>
-        <location filename="menu_control.cpp" line="316"/>
+        <location filename="menu_control.cpp" line="367"/>
         <source>Debugger 4</source>
         <translation>デバッガ4</translation>
     </message>
     <message>
-        <location filename="menu_control.cpp" line="317"/>
+        <location filename="menu_control.cpp" line="368"/>
         <source>Debugger</source>
         <translation>デバッガ</translation>
     </message>
     <message>
-        <location filename="menu_control.cpp" line="319"/>
+        <location filename="menu_control.cpp" line="370"/>
         <source>Control</source>
         <translation>操作</translation>
     </message>
     <message>
-        <location filename="menu_control.cpp" line="320"/>
+        <location filename="menu_control.cpp" line="371"/>
         <source>State</source>
         <translation>ステート</translation>
     </message>
     <message>
-        <location filename="menu_control.cpp" line="323"/>
+        <location filename="menu_control.cpp" line="374"/>
         <source>Copy/Paste</source>
         <translation>コピペ</translation>
     </message>
     <message>
-        <location filename="menu_control.cpp" line="325"/>
+        <location filename="menu_control.cpp" line="376"/>
         <source>CPU Speed</source>
         <translation>CPU速度</translation>
     </message>
     <message>
-        <location filename="menu_control.cpp" line="327"/>
+        <location filename="menu_control.cpp" line="378"/>
         <source>Grab MOUSE</source>
         <translation>マウスを取り込む</translation>
     </message>
     <message>
-        <location filename="menu_control.cpp" line="328"/>
+        <location filename="menu_control.cpp" line="379"/>
         <source>Grabbing host&apos;s mouse.
 Press RIGHT Application key (or another) to toggle enable/disable.</source>
         <translation>ホスト側のマウスを取り込みます。
@@ -453,67 +453,67 @@ Useful for some softwares
         <translation>レーザディスク</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="674"/>
+        <location filename="menu_main.cpp" line="697"/>
         <source>Configure Joysticks</source>
         <translation>ジョイスティックの設定</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="675"/>
+        <location filename="menu_main.cpp" line="698"/>
         <source>Configure assigning buttons/directions of joysticks.</source>
         <translation>ジョイスティックの方向やボタンの割当を設定します。</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="679"/>
+        <location filename="menu_main.cpp" line="702"/>
         <source>ROMA-KANA Conversion</source>
         <translation>ローマ字かな変換</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="680"/>
+        <location filename="menu_main.cpp" line="703"/>
         <source>Use romaji-kana conversion assistant of emulator.</source>
         <translation>エミュレータ上のローマ字かな変換を使用します。</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="682"/>
+        <location filename="menu_main.cpp" line="705"/>
         <source>Emulator</source>
         <translation>エミュレータ</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="683"/>
+        <location filename="menu_main.cpp" line="706"/>
         <source>Configure Keyboard</source>
         <translation>キーボード設定</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="684"/>
+        <location filename="menu_main.cpp" line="707"/>
         <source>Set addignation of keyboard.</source>
         <translation>キーの割当を設定します。</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="686"/>
+        <location filename="menu_main.cpp" line="709"/>
         <source>Configure movie encoding</source>
         <translation>動画保存設定</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="687"/>
+        <location filename="menu_main.cpp" line="710"/>
         <source>Configure parameters of movie encoding.</source>
         <translation>動画保存での、エンコーディングのパラメータを設定します。</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="689"/>
+        <location filename="menu_main.cpp" line="712"/>
         <source>Log to Console</source>
         <translation>コンソールに記録</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="690"/>
+        <location filename="menu_main.cpp" line="713"/>
         <source>Enable logging to STDOUT if checked.</source>
         <translation>チェックすると、標準出力にログが出ます。</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="691"/>
+        <location filename="menu_main.cpp" line="715"/>
         <source>Log to Syslog</source>
         <translation>SYSLOGに記録</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="692"/>
+        <location filename="menu_main.cpp" line="716"/>
         <source>Enable logging to SYSTEM log.
 May be having permission to system and using *nix OS.</source>
         <translation>ホストのシステムログにログを記録します。
@@ -521,12 +521,12 @@ May be having permission to system and using *nix OS.</source>
 つ*nix OSでないと使えないかもしれません。</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="696"/>
+        <location filename="menu_main.cpp" line="720"/>
         <source>Sound FDD Seek</source>
         <translation>FDシーク音を鳴らす</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="697"/>
+        <location filename="menu_main.cpp" line="721"/>
         <source>Enable FDD HEAD seeking sound.
 Needs sound file.
 See HELP-&gt;READMEs-&gt;Bios and Key assigns</source>
@@ -535,60 +535,71 @@ See HELP-&gt;READMEs-&gt;Bios and Key assigns</source>
 ヘルプのREADMEsの「BIOSとキー割り当て」項目をお読み下さい</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="700"/>
         <source>Sound CMT Relay</source>
-        <translation>レコーダのリレー音を鳴らす</translation>
+        <translation type="vanished">レコーダのリレー音を鳴らす</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="701"/>
         <source>Enable CMT relay&apos;s sound.
 Needs sound file.
 See HELP-&gt;READMEs-&gt;Bios and Key assigns</source>
-        <translation>データレコーダのリレー音を鳴らします。
+        <translation type="vanished">データレコーダのリレー音を鳴らします。
 音声ファイルが必要です。
 ヘルプのREADMEsの「BIOSとキー割り当て」項目をお読み下さい</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="704"/>
         <source>Sound CMT Buttons</source>
-        <translation>ボタン音を鳴らす</translation>
+        <translation type="vanished">ボタン音を鳴らす</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="705"/>
         <source>Enable CMT button&apos;s sound.
 Needs sound file.
 See HELP-&gt;READMEs-&gt;Bios and Key assigns</source>
-        <translation>データレコーダのボタンの音を鳴らします。
+        <translation type="vanished">データレコーダのボタンの音を鳴らします。
 音声ファイルが必要です。
 ヘルプのREADMEsの「BIOSとキー割り当て」項目をお読み下さい</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="708"/>
+        <location filename="menu_main.cpp" line="724"/>
+        <source>Sound CMT Relay and Buttons</source>
+        <translation>テープのリレーと音のボタンを鳴らす</translation>
+    </message>
+    <message>
+        <location filename="menu_main.cpp" line="725"/>
+        <source>Enable CMT relay&apos;s sound and buttons&apos;s sounds.
+Needs sound file.
+See HELP-&gt;READMEs-&gt;Bios and Key assigns</source>
+        <translation>カセットテープレコーダのボタンの音と、リレーの音を鳴らします。
+音声ファイルが必要です。
+詳しくは、「ヘルプ」→「READMEs」→「BIOSとキー割り当て」の項目をお読みください。</translation>
+    </message>
+    <message>
+        <location filename="menu_main.cpp" line="727"/>
+        <location filename="menu_main.cpp" line="729"/>
         <source>Per Device</source>
         <translation>デバイスごと</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="710"/>
+        <location filename="menu_main.cpp" line="731"/>
         <source>Video Platform(need restart)</source>
         <translation>表示基盤(要再起動)</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="711"/>
+        <location filename="menu_main.cpp" line="732"/>
         <source>OpenGLv3.0</source>
         <translation>OpenGL v3.0</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="712"/>
+        <location filename="menu_main.cpp" line="733"/>
         <source>OpenGLv2.0</source>
         <translation>OpenGL v2.0</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="713"/>
+        <location filename="menu_main.cpp" line="734"/>
         <source>OpenGL(Core profile)</source>
         <translation>OpenGL(Core Profile)</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="714"/>
+        <location filename="menu_main.cpp" line="735"/>
         <source>Using OpenGL v3.0(MAIN).
 This is recommanded.
 If changed, need to restart this emulator.</source>
@@ -597,7 +608,7 @@ If changed, need to restart this emulator.</source>
 変更した場合は、エミュレータの再起動が必要です。</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="715"/>
+        <location filename="menu_main.cpp" line="736"/>
         <source>Using OpenGLv2.
 This is fallback of some systems.
 If changed, need to restart this emulator.</source>
@@ -607,7 +618,7 @@ If changed, need to restart this emulator.</source>
 変更した場合は、エミュレータの再起動が必要です。</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="716"/>
+        <location filename="menu_main.cpp" line="737"/>
         <source>Using OpenGL core profile.
 This still not implement.
 If changed, need to restart this emulator.</source>
@@ -616,397 +627,420 @@ If changed, need to restart this emulator.</source>
 変更した場合は、エミュレータの再起動が必要です。</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="718"/>
+        <location filename="menu_main.cpp" line="739"/>
+        <source>Show Virtual Medias.</source>
+        <translation>仮想メディアを表示する</translation>
+    </message>
+    <message>
+        <location filename="menu_main.cpp" line="740"/>
+        <source>None.</source>
+        <translation>表示しない</translation>
+    </message>
+    <message>
+        <location filename="menu_main.cpp" line="741"/>
+        <source>Upper.</source>
+        <translation>上に表示する</translation>
+    </message>
+    <message>
+        <location filename="menu_main.cpp" line="742"/>
+        <source>Lower.</source>
+        <translation>下に表示する</translation>
+    </message>
+    <message>
+        <location filename="menu_main.cpp" line="745"/>
         <source>View Log</source>
         <translation>ログを見る</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="719"/>
+        <location filename="menu_main.cpp" line="746"/>
         <source>View emulator logs with a dialog.</source>
         <translation>エミュレータのログを、ダイアログで見ます。</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="914"/>
+        <location filename="menu_main.cpp" line="988"/>
         <source>Help</source>
         <translation>ヘルプ</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="915"/>
+        <location filename="menu_main.cpp" line="989"/>
         <source>About Qt</source>
         <translation>Qtについて</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="916"/>
+        <location filename="menu_main.cpp" line="990"/>
         <source>Display Qt version.</source>
         <translation>Qtのヴァージョンを表示します。</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="919"/>
+        <location filename="menu_main.cpp" line="993"/>
         <source>About...</source>
         <translation>このソフトについて...</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="921"/>
+        <location filename="menu_main.cpp" line="995"/>
         <source>About this emulator.</source>
         <translation>このエミュレータについて。
 クレジット表記などです。</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="923"/>
+        <location filename="menu_main.cpp" line="997"/>
         <source>READMEs</source>
         <translation>READMEs</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="925"/>
+        <location filename="menu_main.cpp" line="999"/>
         <source>General Document</source>
         <translation>総合的な文書</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="926"/>
+        <location filename="menu_main.cpp" line="1000"/>
         <source>About Qt ports</source>
         <translation>Qt移植版について(英語)</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="927"/>
+        <location filename="menu_main.cpp" line="1001"/>
         <source>About Qt ports (Japanese).</source>
         <translation>Qt移植版について(日本語）。</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="928"/>
+        <location filename="menu_main.cpp" line="1002"/>
+        <source>By Mr. Umaiboux.</source>
+        <translation>Umaibouxさんによる文書</translation>
+    </message>
+    <message>
+        <location filename="menu_main.cpp" line="1003"/>
         <source>By Mr. tanam</source>
         <translation>Tanamさんによる文書</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="929"/>
+        <location filename="menu_main.cpp" line="1004"/>
         <source>About eFM-7/8/77/AV.</source>
         <translation>eFM-7/8/77/AVについて。</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="930"/>
+        <location filename="menu_main.cpp" line="1005"/>
         <source>About eFM-7/8/77/AV (Japanese).</source>
         <translation>eFM-7/8/77/AVについて（日本語）。</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="931"/>
+        <location filename="menu_main.cpp" line="1006"/>
         <source>FAQs(English)</source>
         <translation>FAQs(英語)</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="932"/>
+        <location filename="menu_main.cpp" line="1007"/>
         <source>FAQs(Japanese)</source>
         <translation>FAQs(日本語)</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="933"/>
+        <location filename="menu_main.cpp" line="1008"/>
         <source>BIOS and Key assigns</source>
         <translation>BIOSとキー割り当てについて</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="935"/>
+        <location filename="menu_main.cpp" line="1010"/>
         <source>Histories</source>
         <translation>履歴・歴史</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="936"/>
+        <location filename="menu_main.cpp" line="1011"/>
         <source>General History</source>
         <translation>全体の歴史</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="937"/>
+        <location filename="menu_main.cpp" line="1012"/>
         <source>Release Note</source>
         <translation>リリースノート</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="938"/>
+        <location filename="menu_main.cpp" line="1013"/>
         <source>Change Log</source>
         <translation>チェンジログ</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="939"/>
+        <location filename="menu_main.cpp" line="1014"/>
         <source>History by Tanam</source>
         <translation>Tanamさん部分の履歴</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="941"/>
+        <location filename="menu_main.cpp" line="1016"/>
         <source>Show License</source>
         <translation>ライセンス</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="942"/>
+        <location filename="menu_main.cpp" line="1017"/>
         <source>Show general license (GPLv2).</source>
         <translation>ライセンスを読みます。GPL2です。</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="943"/>
+        <location filename="menu_main.cpp" line="1018"/>
         <source>Show License (Japanese)</source>
         <translation>ライセンス(日本語)</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="944"/>
+        <location filename="menu_main.cpp" line="1019"/>
         <source>Show general license (GPLv2).
 Translated to Japanese.</source>
         <translation>日本語に翻訳されたライセンスを読みます(GPL2)。</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="955"/>
+        <location filename="menu_main.cpp" line="1030"/>
         <source>Machine</source>
         <translation>仮想マシン</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="957"/>
+        <location filename="menu_main.cpp" line="1032"/>
         <source>Device Type</source>
         <translation>デバイス</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="965"/>
+        <location filename="menu_main.cpp" line="1040"/>
         <source>Sound Cards</source>
         <translation>サウンドカード</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="973"/>
+        <location filename="menu_main.cpp" line="1048"/>
         <source>Drive Type</source>
         <translation>ドライブタイプ</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="981"/>
+        <location filename="menu_main.cpp" line="1056"/>
         <source>Printer (Need RESET)</source>
         <translation>プリンタ（リセットが必要）</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="983"/>
+        <location filename="menu_main.cpp" line="1058"/>
         <source>Dump to File</source>
         <translation>ファイルに書き込む</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="984"/>
+        <location filename="menu_main.cpp" line="1059"/>
         <source>Dump printer output to file.
 Maybe output only ascii text.</source>
         <translation>プリンタ出力をファイルに書き込みます。
 書き込まれるのは、多分、アスキーテキストだけです。</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="988"/>
+        <location filename="menu_main.cpp" line="1063"/>
         <source>Printer</source>
         <translation>プリンター</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="993"/>
+        <location filename="menu_main.cpp" line="1068"/>
         <source>Not Connect</source>
         <translation>未接続</translation>
     </message>
     <message>
-        <location filename="menu_main.cpp" line="994"/>
+        <location filename="menu_main.cpp" line="1069"/>
         <source>None devices connect to printer port.</source>
         <translation>プリンタポートに何も繋がってない状態です。</translation>
     </message>
     <message>
-        <location filename="menu_metaclass.cpp" line="179"/>
+        <location filename="menu_metaclass.cpp" line="178"/>
         <source>Open</source>
         <translation>開く-</translation>
     </message>
     <message>
-        <location filename="menu_metaclass.cpp" line="418"/>
+        <location filename="menu_metaclass.cpp" line="413"/>
         <source>Insert a virtual image file.</source>
         <translation>仮想イメージファイルを入れます。</translation>
     </message>
     <message>
-        <location filename="menu_metaclass.cpp" line="420"/>
+        <location filename="menu_metaclass.cpp" line="415"/>
         <source>Eject a inserted virtual image file.</source>
         <translation>入れてあった仮想イメージファイルを取り出します。</translation>
     </message>
     <message>
-        <location filename="menu_metaclass.cpp" line="422"/>
+        <location filename="menu_metaclass.cpp" line="417"/>
         <source>Write Protection</source>
         <translation>書き込み保護</translation>
     </message>
     <message>
-        <location filename="menu_metaclass.cpp" line="424"/>
+        <location filename="menu_metaclass.cpp" line="419"/>
         <source>On</source>
         <translation>オン</translation>
     </message>
     <message>
-        <location filename="menu_metaclass.cpp" line="425"/>
+        <location filename="menu_metaclass.cpp" line="420"/>
         <source>Enable write protection.
 You can&apos;t write any data to this media.</source>
         <translation>書き込み保護をします。
 このメディアには、如何なるデータも*書き込めません*。</translation>
     </message>
     <message>
-        <location filename="menu_metaclass.cpp" line="426"/>
+        <location filename="menu_metaclass.cpp" line="421"/>
         <source>Off</source>
         <translation>オフ</translation>
     </message>
     <message>
-        <location filename="menu_metaclass.cpp" line="427"/>
+        <location filename="menu_metaclass.cpp" line="422"/>
         <source>Disable write protection.
 You *can* write datas to this media.</source>
         <translation>書き込み保護を解除します。
 このメディアには、データを書き込むことが出来ます。</translation>
     </message>
     <message>
-        <location filename="menu_metaclass.cpp" line="431"/>
+        <location filename="menu_metaclass.cpp" line="426"/>
         <source>Select D88 Image</source>
         <translation>D88イメージ選択</translation>
     </message>
     <message>
-        <location filename="menu_metaclass.cpp" line="435"/>
+        <location filename="menu_metaclass.cpp" line="430"/>
         <source>Recent opened</source>
         <translation>最近開いたファイル</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="379"/>
+        <location filename="menu_screen.cpp" line="381"/>
         <source>Zoom Screen</source>
         <translation>画面ズーム</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="380"/>
+        <location filename="menu_screen.cpp" line="382"/>
         <source>Display Mode</source>
         <translation>表示モード</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="383"/>
+        <location filename="menu_screen.cpp" line="385"/>
         <source>Software Scan Line</source>
         <translation>スキャンライン（ソフト）</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="384"/>
+        <location filename="menu_screen.cpp" line="386"/>
         <source>Display scan line by software.</source>
         <translation>ソフトウェアでスキャンラインを表示します。</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="387"/>
+        <location filename="menu_screen.cpp" line="389"/>
         <source>Rotate Screen</source>
         <translation>画面回転</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="388"/>
+        <location filename="menu_screen.cpp" line="390"/>
         <source>Rotate screen.</source>
         <translation>画面を回転します。</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="391"/>
         <source>Software Filter</source>
-        <translation>画面フィルタ（ソフト）</translation>
+        <translation type="vanished">画面フィルタ（ソフト）</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="392"/>
         <source>Use display filter by software.</source>
-        <translation>ソフトウェアの画面フィルタを使います。</translation>
+        <translation type="vanished">ソフトウェアの画面フィルタを使います。</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="395"/>
+        <location filename="menu_screen.cpp" line="393"/>
         <source>OpenGL Scan Line</source>
         <translation>スキャンライン(OpenGL)</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="396"/>
+        <location filename="menu_screen.cpp" line="394"/>
         <source>Display scan line by OpenGL.</source>
         <translation>OpenGLのスキャンラインを表示します。</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="398"/>
+        <location filename="menu_screen.cpp" line="396"/>
         <source>OpenGL Pixel Line</source>
         <translation>ピクセルライン(OpenGL)</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="399"/>
+        <location filename="menu_screen.cpp" line="397"/>
         <source>Display pixel line by OpenGL.</source>
         <translation>OpenGLのピクセルラインを表示します。</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="403"/>
+        <location filename="menu_screen.cpp" line="401"/>
         <source>OpenGL Filter</source>
         <translation>OpenGLフィルタ</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="404"/>
+        <location filename="menu_screen.cpp" line="402"/>
         <source>Use display filter by OpenGL</source>
         <translation>OpenGLの画面フィルタを使用します（多少ぼやける）</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="408"/>
+        <location filename="menu_screen.cpp" line="406"/>
         <source>Dot by Dot</source>
         <translation>ドット拡大なし</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="409"/>
+        <location filename="menu_screen.cpp" line="407"/>
         <source>Keep Aspect: Refer to X</source>
         <translation>アスペクト比保存／横に合わせる</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="410"/>
+        <location filename="menu_screen.cpp" line="408"/>
         <source>Keep Aspect: Refer to Y</source>
         <translation>アスペクト比保存／縦にあわせる</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="411"/>
+        <location filename="menu_screen.cpp" line="409"/>
         <source>Keep Aspect: Fill</source>
         <translation>アスペクト比保存／画面を満たす</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="412"/>
+        <location filename="menu_screen.cpp" line="410"/>
         <source>Stretch Mode</source>
         <translation>拡大モード</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="415"/>
+        <location filename="menu_screen.cpp" line="413"/>
         <source>Capture Screen</source>
         <translation>画面取り込み</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="416"/>
+        <location filename="menu_screen.cpp" line="414"/>
         <source>Capture screen to a PNG file.</source>
         <translation>画面を、PNGファイルとして取り込みます。</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="418"/>
+        <location filename="menu_screen.cpp" line="416"/>
         <source>Screen</source>
         <translation>画面</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="419"/>
-        <location filename="menu_screen.cpp" line="420"/>
+        <location filename="menu_screen.cpp" line="417"/>
+        <location filename="menu_screen.cpp" line="418"/>
         <source>Start Recording Movie</source>
         <translation>動画記録開始</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="421"/>
-        <location filename="menu_screen.cpp" line="422"/>
+        <location filename="menu_screen.cpp" line="419"/>
+        <location filename="menu_screen.cpp" line="420"/>
         <source>Stop Recording Movie</source>
         <translation>動画記録終了</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="425"/>
+        <location filename="menu_screen.cpp" line="423"/>
         <source>Record as Movie</source>
         <translation>動画として記録する</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="428"/>
+        <location filename="menu_screen.cpp" line="426"/>
         <source>Screen Size</source>
         <translation>画面サイズ</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="440"/>
+        <location filename="menu_screen.cpp" line="438"/>
         <source>Render Mode</source>
         <translation>画面描画モード</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="442"/>
+        <location filename="menu_screen.cpp" line="440"/>
         <source>Standard</source>
         <translation>標準</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="443"/>
+        <location filename="menu_screen.cpp" line="441"/>
         <source>Standard render.</source>
         <translation>通常のレンダラです。</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="445"/>
+        <location filename="menu_screen.cpp" line="443"/>
         <source>TV</source>
         <translation>TV</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="446"/>
+        <location filename="menu_screen.cpp" line="444"/>
         <source>Rendering like tubed  television with RF modulator.
 Needs OpenGL 3.0 or later.Not effect with OpenGL 2.0.</source>
         <translation>昔のブラウン管テレビにRFモジュレータを通して映したように表示します。
@@ -1014,69 +1048,74 @@ OpenGL 3.0以上が必要です。
 OpenGL 2.0では無効です。</translation>
     </message>
     <message>
-        <location filename="menu_sound.cpp" line="191"/>
+        <location filename="menu_sound.cpp" line="190"/>
         <source>Hz</source>
         <translation>Hz</translation>
     </message>
     <message>
-        <location filename="menu_sound.cpp" line="198"/>
+        <location filename="menu_sound.cpp" line="197"/>
         <source>mSec</source>
         <translation>mSec</translation>
     </message>
     <message>
-        <location filename="menu_sound.cpp" line="203"/>
+        <location filename="menu_sound.cpp" line="202"/>
         <source>Record sound as WAV file.</source>
         <translation>音声をWAVファイルとして記録します。</translation>
     </message>
     <message>
         <location filename="menu_sound.cpp" line="206"/>
-        <source>Sound CMT</source>
-        <translation>カセットレコーダを鳴らす</translation>
+        <source>Play CMT sound</source>
+        <oldsource>Sound CMT</oldsource>
+        <translation>カセットレコーダの音を出す</translation>
     </message>
     <message>
-        <location filename="menu_sound.cpp" line="207"/>
         <source>Enable sound of CMT TAPE recorder.</source>
-        <translation>カセットテープレコーダに記録されている音を鳴らします。</translation>
+        <translation type="vanished">カセットテープレコーダに記録されている音を鳴らします。</translation>
     </message>
     <message>
-        <location filename="menu_sound.cpp" line="209"/>
+        <location filename="menu_sound.cpp" line="204"/>
         <source>Strict Rendering</source>
         <translation>厳密なレンダリング</translation>
     </message>
     <message>
-        <location filename="menu_sound.cpp" line="210"/>
+        <location filename="menu_sound.cpp" line="205"/>
         <source>Rendering per a sample.Select to slower, but accurate rendering sound.</source>
         <translation>音声１サンプルごと（サンプルレートが44100Hzならば、1/44100秒ごと)に、
 音のレンダリングをします。これを選択すると動作が重くなる場合がありますが、
 音声のレンダリングが正確になります。</translation>
     </message>
     <message>
-        <location filename="menu_sound.cpp" line="212"/>
+        <location filename="menu_sound.cpp" line="207"/>
+        <source>Play sound from CMTs.</source>
+        <translation>カセットレコーダの音を鳴らす</translation>
+    </message>
+    <message>
+        <location filename="menu_sound.cpp" line="209"/>
         <source>Sound</source>
         <translation>音</translation>
     </message>
     <message>
-        <location filename="menu_sound.cpp" line="213"/>
+        <location filename="menu_sound.cpp" line="210"/>
         <source>Output Frequency</source>
         <translation>出力周波数（サンプルレート）</translation>
     </message>
     <message>
-        <location filename="menu_sound.cpp" line="214"/>
+        <location filename="menu_sound.cpp" line="211"/>
         <source>Sound Latency</source>
         <translation>音声（遅延）バッファサイズ</translation>
     </message>
     <message>
-        <location filename="menu_sound.cpp" line="216"/>
+        <location filename="menu_sound.cpp" line="213"/>
         <source>Set Volumes</source>
         <translation>音量設定</translation>
     </message>
     <message>
-        <location filename="menu_sound.cpp" line="217"/>
+        <location filename="menu_sound.cpp" line="214"/>
         <source>Open a VOLUME dialog.</source>
         <translation>音量調整ダイアログを開きます。</translation>
     </message>
     <message>
-        <location filename="util_binary.cpp" line="164"/>
+        <location filename="util_binary.cpp" line="158"/>
         <source>Binary</source>
         <translation>バイナリ</translation>
     </message>
@@ -1086,12 +1125,12 @@ OpenGL 2.0では無効です。</translation>
         <translation>バブルカセット</translation>
     </message>
     <message>
-        <location filename="util_fd.cpp" line="126"/>
+        <location filename="util_fd.cpp" line="125"/>
         <source>Floppy </source>
         <translation>フロッピーディスク</translation>
     </message>
     <message>
-        <location filename="util_qd.cpp" line="178"/>
+        <location filename="util_qd.cpp" line="175"/>
         <source>Quick Disk </source>
         <translation>クイックディスク</translation>
     </message>
@@ -1336,7 +1375,7 @@ Larger value is better, but slowly.</source>
 <context>
     <name>Ui_SoundDialog</name>
     <message>
-        <location filename="menu_sound.cpp" line="49"/>
+        <location filename="menu_sound.cpp" line="58"/>
         <location filename="sound_dialog.cpp" line="38"/>
         <source>Set Volume</source>
         <translation>音量設定</translation>
