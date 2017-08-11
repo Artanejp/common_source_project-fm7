@@ -105,16 +105,22 @@ void META_MainWindow::retranslateUi(void)
 	retranslateScreenMenu();
 	retranslateEmulatorMenu();
 #ifdef USE_CPU_TYPE
-	menuCpuType->setTitle("CPU Frequency");
+	menuCpuType->setTitle(QApplication::translate("MainWindow", "CPU Frequency", 0));
 # if  defined(_PC98DO)
 	actionCpuType[0]->setText(QString::fromUtf8("10/8MHz"));
-	actionCpuType[1]->setText(QString::fromUtf8("5/4MHz"));
-# elif  defined(_PC9801E) || defined(_PC9801VM)
+	actionCpuType[1]->setText(QString::fromUtf8("8/4MHz"));
+# elif  defined(_PC98DOPLUS)
+	actionCpuType[0]->setText(QString::fromUtf8("16/8MHz"));
+	actionCpuType[1]->setText(QString::fromUtf8("8/4MHz"));
+# elif  defined(_PC9801E) || defined(_PC9801F) || defined(_PC9801M)
 	actionCpuType[0]->setText(QString::fromUtf8("8MHz"));
 	actionCpuType[1]->setText(QString::fromUtf8("5MHz"));
-# elif  defined(_PC9801VX)
+# elif  defined(_PC9801VX) || defined(_PC9801VM) || defined(_PC9801XL)
 	actionCpuType[0]->setText(QString::fromUtf8("10MHz"));
 	actionCpuType[1]->setText(QString::fromUtf8("8MHz"));
+# elif  defined(_PC9801RA) || defined(_PC98RL)
+	actionCpuType[0]->setText(QString::fromUtf8("20MHz"));
+	actionCpuType[1]->setText(QString::fromUtf8("16MHz"));
 # endif
 #endif
 	

@@ -115,12 +115,17 @@ TI TMS3631-RI104 シンセサイザチップを搭載しています。
         <translation>拡張サウンドデバイスを接続しません。</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="123"/>
+        <location filename="MainWindow.cpp" line="108"/>
+        <source>CPU Frequency</source>
+        <translation>CPU周波数</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="129"/>
         <source>Machine Mode</source>
         <translation>起動モード</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="130"/>
+        <location filename="MainWindow.cpp" line="136"/>
         <source>PC-9801 Mode.
 You can run softwares of PC-9801 series.
 May be earlier than PC-9801VM.</source>
@@ -128,80 +133,80 @@ May be earlier than PC-9801VM.</source>
 （たぶん）PC-9801VM以前のソフトウェアが実行可能です。</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="131"/>
+        <location filename="MainWindow.cpp" line="137"/>
         <source>PC8801 V1(Standard) Mode.
 You can run softwares of PC-8801/mk2.</source>
         <translation>PC-8801 V1(標準)モード。
 PC-8801/mk2のソフトウェアが実行可能です。</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="132"/>
+        <location filename="MainWindow.cpp" line="138"/>
         <source>PC8801 V1(High Speed) Mode.
 You can run softwares of PC-8801/mk2 faster.</source>
         <translation>PC-8801 V1(高速)モード。
 PC-8801/mk2のソフトウェアがより高速に実行可能です。</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="133"/>
+        <location filename="MainWindow.cpp" line="139"/>
         <source>PC8801 V2 Mode.
 You can run only softwares for PC-8801SR or later.</source>
         <translation>PC-8801 V2モード。
 PC-8801mk2SR以降専用のソフトウェアが実行できます。</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="134"/>
+        <location filename="MainWindow.cpp" line="140"/>
         <source>PC8801 N Mode.
 You can run softwares of PC-8001/mk2.</source>
         <translation>PC-8801 Nモード。
 PC-8001/mk2向けのソフトウェアが実行できます。</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="138"/>
+        <location filename="MainWindow.cpp" line="144"/>
         <source>Memory Wait</source>
         <translation>メモリウェイト</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="139"/>
+        <location filename="MainWindow.cpp" line="145"/>
         <source>Simulate waiting memory.</source>
         <translation>メモリウェイトをシミュレートします。</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="143"/>
+        <location filename="MainWindow.cpp" line="149"/>
         <source>NEC PC-PR201 kanji serial printer.</source>
         <translation>NEC PC-PR201漢字シリアルプリンタを接続します。</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="154"/>
+        <location filename="MainWindow.cpp" line="160"/>
         <source>PC-80S31K CPU</source>
         <translation>PC-80S31K(外付けドライブ)のCPU</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="157"/>
+        <location filename="MainWindow.cpp" line="163"/>
         <source>PC-98 Main CPU</source>
         <translation>PC-98のメインCPU(ix86)</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="158"/>
+        <location filename="MainWindow.cpp" line="164"/>
         <source>PC-88 Main CPU</source>
         <translation>PC-88のメインCPU(Z80)</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="159"/>
+        <location filename="MainWindow.cpp" line="165"/>
         <source>PC-88 Sub CPU</source>
         <translation>PC-88のサブCPU(Z80)</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="166"/>
+        <location filename="MainWindow.cpp" line="172"/>
         <source>Display Mode</source>
         <translation>表示モード</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="167"/>
+        <location filename="MainWindow.cpp" line="173"/>
         <source>High Resolution</source>
         <translation>ハイレゾ</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="168"/>
+        <location filename="MainWindow.cpp" line="174"/>
         <source>Standard Resolution</source>
         <oldsource>Standarsd Resolution</oldsource>
         <translation>標準</translation>
