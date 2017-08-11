@@ -52,7 +52,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// create devices
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
-	sio_kb->set_device_name(_T("1st dummy"));
+	dummy->set_device_name(_T("1st dummy"));
 	event = new EVENT(this, emu);	// must be 2nd device
 	
 	dma = new I8237(this, emu);
