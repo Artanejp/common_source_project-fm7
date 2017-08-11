@@ -1,4 +1,4 @@
-retro pc emulator common source code
+Binary archive of retro pc emulator common source code
 								8/10/2017
 
 --- What's this ?
@@ -126,8 +126,6 @@ This archive includes the binaries of the emulators listed below:
 		yayaHX-20+	HX-20 + FDD (by Mr.umaiboux)
 		EmuPIA		PASOPIA/PASOPIA5
 		EmuPIA7		PASOPIA7
- 		eJ-3100GT	J-3100GT (work in progress)
- 		eJ-3100SL	J-3100SL (work in progress)
 	YAMAHA
 		eYIS		YIS
 	Yuasa Kyouiku System
@@ -150,9 +148,11 @@ Control
 	CPU x4
 	CPU x8
 	CPU x16
+	Full Speed		Run simulation at full speed
 	--------
 	Paste			Auto key hitting from the clip board text
 	Stop			Stop the auto key hitting
+	Romaji to Kana		Enter kana letters with alphabet keys
 	--------
 	Save State		Save the virtual machine state
 	Load State		Load the virtual machine state
@@ -258,6 +258,13 @@ Host
 	Use DirectInput		Enable DirectInput for keyboard
 	Disable Windows8 DWM	Disable the Desktop Window Manager
 	Show Status Bar		Show/Hide the status bar in windwo mode
+
+Accelerator Keys:
+
+	Alt+Enter	Fullscreen
+	Ctrl+Enter	Grab the mouse cursor
+	Alt+Ctrl+Enter	Run simulation at full speed
+	Application	Enter kana letters with alphabet keys
 
 
 --- Note
@@ -491,10 +498,6 @@ Save/Load State info:
 - res/*.ico
 	Mr.Temmaru, Mr.Marukun, and Mr.Yoshikun
 	See also res/icon.txt
-
-- emulation core design
-	nester by Mr.Darren Ranalli
-	XM6 by Mr.PI.
 
 - emulation core design
 	nester by Mr.Darren Ranalli

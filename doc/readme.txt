@@ -1,5 +1,5 @@
 Binary archive of retro pc emulator common source code
-								4/2/2017
+								8/10/2017
 
 --- What's this ?
 
@@ -71,6 +71,7 @@ This archive includes the binaries of the emulators listed below:
 		ePC-9801U	PC-9801U
 		ePC-9801VF	PC-9801VF
 		ePC-9801VM	PC-9801VM
+		ePC-9801VX	PC-9801VX
 		ePC-98DO	PC-98DO
 		ePC-98LT	PC-98LT
 		eHANDY98	PC-98HA
@@ -110,6 +111,7 @@ This archive includes the binaries of the emulators listed below:
 		eX1		X1
 		eX1twin		X1twin
 		eX1turbo	X1turbo
+		eX1turboZ	X1turboZ
 	Shinko Sangyo
 		eYS-6464A	YS-6464A
 	SONY
@@ -124,6 +126,8 @@ This archive includes the binaries of the emulators listed below:
 		yayaHX-20+	HX-20 + FDD (by Mr.umaiboux)
 		EmuPIA		PASOPIA/PASOPIA5
 		EmuPIA7		PASOPIA7
+	YAMAHA
+		eYIS		YIS
 	Yuasa Kyouiku System
 		eYALKY		YALKY
 
@@ -144,9 +148,11 @@ Control
 	CPU x4
 	CPU x8
 	CPU x16
+	Full Speed		Run simulation at full speed
 	--------
 	Paste			Auto key hitting from the clip board text
 	Stop			Stop the auto key hitting
+	Romaji to Kana		Enter kana letters with alphabet keys
 	--------
 	Save State		Save the virtual machine state
 	Load State		Load the virtual machine state
@@ -253,6 +259,13 @@ Host
 	Disable Windows8 DWM	Disable the Desktop Window Manager
 	Show Status Bar		Show/Hide the status bar in windwo mode
 
+Accelerator Keys:
+
+	Alt+Enter	Fullscreen
+	Ctrl+Enter	Grab the mouse cursor
+	Alt+Ctrl+Enter	Run simulation at full speed
+	Application	Enter kana letters with alphabet keys
+
 
 --- Note
 
@@ -304,6 +317,8 @@ Save/Load State info:
 	XM6 by Mr.PI.
 - vm/fmgen/*
 	M88/fmgen by Mr.CISC
+- vm/am9511.*
+	Xep128 APU core
 - vm/disk.*
 	TDLZHUF for Teledisk floppy disk image decoder
 	MESS formats/dsk_dsk.c for CPDRead floppy disk image decorder
@@ -442,6 +457,8 @@ Save/Load State info:
 	M88 by Mr.CISC
 	XM8 by Mr.PI.
 	MESS PC-8801 driver
+- vm/pc9801/display.*
+	Neko Project 2 by Mr.Yui
 - vm/pcengine/pce.*
 	Ootake (joypad)
 	xpce (psg)
@@ -467,6 +484,12 @@ Save/Load State info:
 	X millenium T-tune by Mr.Sato
 - vm/x1/display.*
 	KANJI ROM support by X1EMU
+	X1tuboZ graphic info by Mr.Sato
+- vm/yis/*
+	YAMAHA provided me some YIS manuals and software disks
+	Mr.Moriya analyzed the YIS hardware
+- vm/yis/display.*
+	KST32B stroke font and its decoder by Mr.Saka.N
 - vm/z80tvgame/*
 	This homebrew cnosole is designed by Mr.Ishizu
 	http://w01.tp1.jp/~a571632211/z80tvgame/index.html
@@ -475,10 +498,6 @@ Save/Load State info:
 - res/*.ico
 	Mr.Temmaru, Mr.Marukun, and Mr.Yoshikun
 	See also res/icon.txt
-
-- emulation core design
-	nester by Mr.Darren Ranalli
-	XM6 by Mr.PI.
 
 - emulation core design
 	nester by Mr.Darren Ranalli
