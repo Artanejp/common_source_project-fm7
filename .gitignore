@@ -16,7 +16,6 @@ build-win32/
 bld/
 [Bb]in/
 [Oo]bj/
-
 # Roslyn cache directories
 *.ide/
 
@@ -192,6 +191,7 @@ ModelManifest.xml
 # CMake
 source/build-cmake/*/build/*
 source/build-cmake/*/build-win32/*
+source/src/vm/libcpu_newdev/mame0185/*
 
 #gtags
 GPATH
