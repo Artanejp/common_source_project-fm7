@@ -64,6 +64,7 @@
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_CAPS
+#define USE_AUTO_KEY_NUMPAD
 #define USE_MONITOR_TYPE	4
 #ifndef _MZ80B
 #define USE_SCREEN_FILTER

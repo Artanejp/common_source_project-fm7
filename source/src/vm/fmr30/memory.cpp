@@ -137,19 +137,23 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 	switch(addr & 0xffff) {
 	// memory controller
 	case 0x1d:
+#ifdef HAS_I286
+		// protect mode ???
+//		d_cpu->write_signal(SIG_I286_A20, data, 0x10);
+#endif
 		mcr1 = data;
 		update_bank();
-		// protect mode ???
-//		d_cpu->write_signal(SIG_I86_A20, data, 0x10);
 		break;
 	case 0x1e:
 		mcr2 = data;
 		update_bank();
 		break;
 	case 0x26:
-		a20 = data;
+#ifdef HAS_I286
 		// protect mode ???
-		d_cpu->write_signal(SIG_I86_A20, data, 0x80);
+		d_cpu->write_signal(SIG_I286_A20, data, 0x80);
+#endif
+		a20 = data;
 		break;
 	// dma bank
 	case 0x120:

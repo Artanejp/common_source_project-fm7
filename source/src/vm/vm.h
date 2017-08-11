@@ -387,6 +387,16 @@
 #include "pc9801/pc9801.h"
 #endif
 
+// NEC PC-9801VX
+#ifdef _PC9801VX
+#include "pc9801/pc9801.h"
+#endif
+
+// NEC PC-9801RA
+#ifdef _PC9801RA
+#include "pc9801/pc9801.h"
+#endif
+
 // NEC PC-98DO
 #ifdef _PC98DO
 #include "pc9801/pc9801.h"

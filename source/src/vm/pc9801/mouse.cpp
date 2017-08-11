@@ -1,6 +1,10 @@
 /*
 	NEC PC-9801 Emulator 'ePC-9801'
 	NEC PC-9801E/F/M Emulator 'ePC-9801E'
+	NEC PC-9801U Emulator 'ePC-9801U'
+	NEC PC-9801VF Emulator 'ePC-9801VF'
+	NEC PC-9801VM Emulator 'ePC-9801VM'
+	NEC PC-9801VX Emulator 'ePC-9801VX'
 	NEC PC-98DO Emulator 'ePC-98DO'
 
 	Author : Takeda.Toshiya
@@ -34,25 +38,35 @@ void MOUSE::reset()
 	lx = ly = -1;
 }
 
+#if !(defined(_PC9801) || defined(_PC9801E) || defined(SUPPORT_HIRESO))
 void MOUSE::write_io8(uint32_t addr, uint32_t data)
 {
-	switch(addr & 0xffff) {
+	switch(addr) {
 	case 0xbfdb:
-		// this port is not available on PC-9801/E/F/M
-		freq = data & 3;
+		freq = data;
 		break;
 	}
 }
+
+uint32_t MOUSE::read_io8(uint32_t addr)
+{
+	switch(addr) {
+	case 0xbfdb:
+		return freq;
+	}
+	return 0xff;
+}
+#endif
 
 void MOUSE::event_callback(int event_id, int err)
 {
 	if(!(ctrlreg & 0x10)) {
 		d_pic->write_signal(SIG_I8259_CHIP1 | SIG_I8259_IR5, 1, 1);
 	}
-	if(cur_freq != freq) {
+	if(cur_freq != (freq & 3)) {
 		cancel_event(this, register_id);
-		register_event(this, EVENT_TIMER, 1000000.0 / freq_table[freq] + err, true, &register_id);
-		cur_freq = freq;
+		register_event(this, EVENT_TIMER, 1000000.0 / freq_table[freq & 3] + err, true, &register_id);
+		cur_freq = freq & 3;
 	}
 }
 
@@ -105,7 +119,7 @@ void MOUSE::update_mouse()
 	d_pio->write_signal(SIG_I8255_PORT_A, val, 0xff);
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void MOUSE::save_state(FILEIO* state_fio)
 {

@@ -219,7 +219,7 @@ void I286::write_signal(int id, uint32_t data, uint32_t mask)
 	} else if(id == SIG_I86_TEST) {
 		cpustate->test_state = (data & mask) ? 1 : 0;
 #ifdef HAS_I286
-	} else if(id == SIG_I86_A20) {
+	} else if(id == SIG_I286_A20) {
 		i80286_set_a20_line(cpustate, data & mask);
 #endif
 	}

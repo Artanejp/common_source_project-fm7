@@ -369,9 +369,11 @@ void I8080::run_one_opecode()
 		d_debugger->check_break_points(PC);
 		if(d_debugger->now_suspended) {
 			emu->mute_sound();
+			d_debugger->now_waiting = true;
 			while(d_debugger->now_debugging && d_debugger->now_suspended) {
 				emu->sleep(10);
 			}
+			d_debugger->now_waiting = false;
 		}
 		if(d_debugger->now_debugging) {
 			d_mem = d_io = d_debugger;
@@ -379,8 +381,11 @@ void I8080::run_one_opecode()
 			now_debugging = false;
 		}
 		
-		afterEI = false;
+		afterHALT = afterEI = false;
 		OP(FETCHOP());
+		if(!afterEI) {
+			check_interrupt();
+		}
 		
 		if(now_debugging) {
 			if(!d_debugger->now_going) {
@@ -391,8 +396,11 @@ void I8080::run_one_opecode()
 		}
 	} else {
 #endif
-		afterEI = false;
+		afterHALT = afterEI = false;
 		OP(FETCHOP());
+		if(!afterEI) {
+			check_interrupt();
+		}
 #ifdef USE_DEBUGGER
 	}
 #endif
@@ -405,9 +413,11 @@ void I8080::run_one_opecode()
 			d_debugger->check_break_points(PC);
 			if(d_debugger->now_suspended) {
 				emu->mute_sound();
+				d_debugger->now_waiting = true;
 				while(d_debugger->now_debugging && d_debugger->now_suspended) {
 					emu->sleep(10);
 				}
+				d_debugger->now_waiting = false;
 			}
 			if(d_debugger->now_debugging) {
 				d_mem = d_io = d_debugger;
@@ -415,8 +425,10 @@ void I8080::run_one_opecode()
 				now_debugging = false;
 			}
 			
+			afterHALT = false;
 			OP(FETCHOP());
 			d_pic->notify_intr_ei();
+			check_interrupt();
 			
 			if(now_debugging) {
 				if(!d_debugger->now_going) {
@@ -427,13 +439,18 @@ void I8080::run_one_opecode()
 			}
 		} else {
 #endif
+			afterHALT = false;
 			OP(FETCHOP());
 			d_pic->notify_intr_ei();
+			check_interrupt();
 #ifdef USE_DEBUGGER
 		}
 #endif
 	}
-	
+}
+
+void I8080::check_interrupt()
+{
 	// check interrupt
 	if(IM & IM_REQ) {
 		if(IM & IM_NMI) {
@@ -538,7 +555,7 @@ void I8080::save_state(FILEIO* state_fio)
 	state_fio->FputUint16(prevPC);
 	state_fio->FputUint16(IM);
 	state_fio->FputUint16(RIM_IEN);
-	state_fio->FputBool(HALT);
+	state_fio->FputBool(afterHALT);
 	state_fio->FputBool(BUSREQ);
 	state_fio->FputBool(SID);
 	state_fio->FputBool(afterEI);
@@ -559,7 +576,7 @@ bool I8080::load_state(FILEIO* state_fio)
 	prevPC = state_fio->FgetUint16();
 	IM = state_fio->FgetUint16();
 	RIM_IEN = state_fio->FgetUint16();
-	HALT = state_fio->FgetBool();
+	afterHALT = state_fio->FgetBool();
 	BUSREQ = state_fio->FgetBool();
 	SID = state_fio->FgetBool();
 	afterEI = state_fio->FgetBool();

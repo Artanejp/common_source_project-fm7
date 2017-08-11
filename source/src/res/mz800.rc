@@ -92,7 +92,6 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Paste",                       ID_AUTOKEY_START
         MENUITEM "Stop",                        ID_AUTOKEY_STOP
-        MENUITEM "Romaji to Kana",              ID_ROMAJI_TO_KANA
         MENUITEM SEPARATOR
         POPUP "Save State"
         BEGIN

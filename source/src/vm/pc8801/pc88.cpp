@@ -308,7 +308,7 @@ void PC88::initialize()
 	for(int i = 0; i < 9; i++) {
 		palette_text_pc[i] = RGBA_COLOR((i & 2) ? 255 : 0, (i & 4) ? 255 : 0, (i & 1) ? 255 : 0, 255); // A is a flag for crt filter
 	}
-	for(int i = 0; i < 8; i++) {
+	for(int i = 0; i < 9; i++) {
 		palette_graph_pc[i] = RGB_COLOR((i & 2) ? 255 : 0, (i & 4) ? 255 : 0, (i & 1) ? 255 : 0);
 	}
 	
@@ -1850,7 +1850,6 @@ void PC88::draw_screen()
 	draw_text();
 	
 	// render graph screen
-	scrntype_t *palette_pc = palette_graph_pc;
 	bool disp_color_graph = true;
 #if defined(_PC8001SR)
 	if(config.boot_mode != MODE_PC80_V2) {
@@ -1860,7 +1859,6 @@ void PC88::draw_screen()
 			draw_640x200_mono_graph();
 		} else {
 			draw_640x200_attrib_graph();
-			palette_pc = palette_text_pc;
 		}
 	} else {
 		if(Port31_COLOR) {
@@ -1875,17 +1873,15 @@ void PC88::draw_screen()
 			} else {
 				draw_640x200_attrib_graph();
 			}
-			palette_pc = palette_text_pc;
 		}
 	}
 #else
 	if(Port31_HCOLOR) {
 		disp_color_graph = draw_640x200_color_graph();
 	} else if(!Port31_400LINE) {
-		draw_640x200_mono_graph();
+		draw_640x200_attrib_graph();
 	} else {
 		draw_640x400_attrib_graph();
-		palette_pc = palette_text_pc;
 	}
 #endif
 	
@@ -1894,7 +1890,6 @@ void PC88::draw_screen()
 		static const int pex[8] = {
 			0,  36,  73, 109, 146, 182, 219, 255 // from m88
 		};
-		scrntype_t back_color = 0;
 #if defined(_PC8001SR)
 		if(config.boot_mode != MODE_PC80_V2) {
 			if(Port31_V1_320x200) {
@@ -1909,34 +1904,37 @@ void PC88::draw_screen()
 				palette_graph_pc[0] = 0;
 				palette_graph_pc[1] = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
 			} else {
-				back_color = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
+				for(int i = 1; i < 9; i++) {
+					palette_graph_pc[i] = RGB_COLOR((i & 2) ? 255 : 0, (i & 4) ? 255 : 0, (i & 1) ? 255 : 0);
+				}
+				palette_graph_pc[0] = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
+			}
+			if(Port31_V1_320x200) {
+				palette_text_pc[0] = 0;
+			} else {
+				palette_text_pc[0] = palette_graph_pc[0];
 			}
 		} else {
-			if(Port31_COLOR) {
-				for(int i = 0; i < 8; i++) {
-					uint8_t b = (port[0x54 + i] & 1) ? 7 : 0;
-					uint8_t r = (port[0x54 + i] & 2) ? 7 : 0;
-					uint8_t g = (port[0x54 + i] & 4) ? 7 : 0;
-					palette_graph_pc[i] = RGB_COLOR(pex[r], pex[g], pex[b]);
-				}
-				back_color = palette_graph_pc[0];
-			} else {
-				back_color = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
+			for(int i = 0; i < 9; i++) {
+				uint8_t b = (port[0x54 + (i & 7)] & 1) ? 7 : 0;
+				uint8_t r = (port[0x54 + (i & 7)] & 2) ? 7 : 0;
+				uint8_t g = (port[0x54 + (i & 7)] & 4) ? 7 : 0;
+				palette_graph_pc[i] = RGB_COLOR(pex[r], pex[g], pex[b]);
 			}
+			if(!Port31_COLOR) {
+				palette_graph_pc[0] = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
+			}
+			palette_text_pc[0] = palette_graph_pc[0];
 		}
 #else
-		if(Port31_HCOLOR) {
-			for(int i = 0; i < 8; i++) {
-				palette_graph_pc[i] = RGB_COLOR(pex[palette[i].r], pex[palette[i].g], pex[palette[i].b]);
-			}
-		} else if(!Port31_400LINE) {
-			palette_graph_pc[0] = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
-			palette_graph_pc[1] = RGB_COLOR(255, 255, 255);
+		for(int i = 0; i < 9; i++) {
+			palette_graph_pc[i] = RGB_COLOR(pex[palette[i & 7].r], pex[palette[i & 7].g], pex[palette[i & 7].b]);
 		}
-		back_color = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
+		if(!Port31_HCOLOR) {
+			palette_graph_pc[0] = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
+		}
+		palette_text_pc[0] = palette_graph_pc[0];
 #endif
-		// back color for attrib mode
-		palette_text_pc[0] = back_color;
 		update_palette = false;
 	}
 	
@@ -1977,13 +1975,13 @@ void PC88::draw_screen()
 			if(port[0x33] & 8) {
 				for(int x = 0; x < 640; x++) {
 					uint32_t g = src_g[x];
-					dest0[x] = g ? palette_pc[g] : palette_text_pc[src_t[x]];
+					dest0[x] = g ? palette_graph_pc[g] : palette_text_pc[src_t[x]];
 				}
 			} else {
 #endif
 				for(int x = 0; x < 640; x++) {
 					uint32_t t = src_t[x];
-					dest0[x] = t ? palette_text_pc[t] : palette_pc[src_g[x]];
+					dest0[x] = t ? palette_text_pc[t] : palette_graph_pc[src_g[x]];
 				}
 #if defined(_PC8001SR)
 			}
@@ -2006,7 +2004,7 @@ void PC88::draw_screen()
 			
 			for(int x = 0; x < 640; x++) {
 				uint32_t t = src_t[x];
-				dest[x] = t ? palette_text_pc[t] : palette_pc[src_g[x]];
+				dest[x] = t ? palette_text_pc[t] : palette_graph_pc[src_g[x]];
 			}
 		}
 		emu->screen_skip_line(false);
@@ -2053,6 +2051,7 @@ void PC88::draw_text()
 	
 	// for Xak2 opening
 	memset(text, 8, sizeof(text));
+	memset(text_color, 7, sizeof(text_color));
 	
 	int char_height = crtc.char_height;
 	uint8_t color_mask = Port30_COLOR ? 0 : 7;
@@ -2073,6 +2072,7 @@ void PC88::draw_text()
 				continue;
 			}
 			uint8_t attrib = crtc.attrib.expand[cy][cx];
+//			uint8_t color = !(Port30_COLOR && (attrib & 8)) ? 7 : (attrib & 0xe0) ? (attrib >> 5) : 8;
 			uint8_t color = (attrib & 0xe0) ? ((attrib >> 5) | color_mask) : 8;
 			bool under_line = ((attrib & 8) != 0);
 			bool upper_line = ((attrib & 4) != 0);
@@ -2105,6 +2105,10 @@ void PC88::draw_text()
 					dest[10] = dest[11] = (pat & 0x04) ? color : 0;
 					dest[12] = dest[13] = (pat & 0x02) ? color : 0;
 					dest[14] = dest[15] = (pat & 0x01) ? color : 0;
+					
+					// store text color for monocolor graph screen
+					text_color[y >> 1][cx + 0] = 
+					text_color[y >> 1][cx + 1] = color;
 				} else {
 					dest[0] = (pat & 0x80) ? color : 0;
 					dest[1] = (pat & 0x40) ? color : 0;
@@ -2114,6 +2118,9 @@ void PC88::draw_text()
 					dest[5] = (pat & 0x04) ? color : 0;
 					dest[6] = (pat & 0x02) ? color : 0;
 					dest[7] = (pat & 0x01) ? color : 0;
+					
+					// store text color for monocolor graph screen
+					text_color[y >> 1][cx] = color;
 				}
 			}
 		}
@@ -2219,15 +2226,10 @@ void PC88::draw_320x200_attrib_graph()
 	uint8_t *gvram_r1 = Port53_G4DS ? gvram_null : (gvram + 0x6000);
 	uint8_t *gvram_g1 = Port53_G5DS ? gvram_null : (gvram + 0xa000);
 	
-	int char_height = crtc.char_height ? crtc.char_height : 8;
-	uint8_t color_mask = Port30_COLOR ? 0 : 7;
-	
 	if(Port30_40) {
 		for(int y = 0, addr = 0; y < 200; y++) {
-			int cy = y / char_height;
 			for(int x = 0, cx = 0; x < 640; x += 16, cx += 2) {
-				uint8_t attrib = crtc.attrib.expand[cy][cx];
-				uint8_t color = (attrib & 0xe0) ? ((attrib >> 5) | color_mask) : 8;
+				uint8_t color = text_color[y][cx];
 				uint8_t brg = gvram_b0[addr] | gvram_r0[addr] | gvram_g0[addr] |
 				            gvram_b1[addr] | gvram_r1[addr] | gvram_g1[addr];
 				addr++;
@@ -2244,12 +2246,9 @@ void PC88::draw_320x200_attrib_graph()
 		}
 	} else {
 		for(int y = 0, addr = 0; y < 200; y++) {
-			int cy = y / char_height;
 			for(int x = 0, cx = 0; x < 640; x += 16, cx += 2) {
-				uint8_t attrib_l = crtc.attrib.expand[cy][cx];
-				uint8_t color_l = (attrib_l & 0xe0) ? ((attrib_l >> 5) | color_mask) : 8;
-				uint8_t attrib_r = crtc.attrib.expand[cy][cx + 1];
-				uint8_t color_r = (attrib_r & 0xe0) ? ((attrib_r >> 5) | color_mask) : 8;
+				uint8_t color_l = text_color[y][cx + 0];
+				uint8_t color_r = text_color[y][cx + 1];
 				uint8_t brg = gvram_b0[addr] | gvram_r0[addr] | gvram_g0[addr] |
 				            gvram_b1[addr] | gvram_r1[addr] | gvram_g1[addr];
 				addr++;
@@ -2263,6 +2262,33 @@ void PC88::draw_320x200_attrib_graph()
 				dest[12] = dest[13] = (brg & 0x02) ? color_r : 0;
 				dest[14] = dest[15] = (brg & 0x01) ? color_r : 0;
 			}
+		}
+	}
+}
+
+void PC88::draw_640x200_mono_graph()
+{
+	if(!Port31_GRAPH || (Port53_G0DS && Port53_G1DS && Port53_G2DS)) {
+		memset(graph, 0, sizeof(graph));
+		return;
+	}
+	uint8_t *gvram_b = Port53_G0DS ? gvram_null : (gvram + 0x0000);
+	uint8_t *gvram_r = Port53_G1DS ? gvram_null : (gvram + 0x4000);
+	uint8_t *gvram_g = Port53_G2DS ? gvram_null : (gvram + 0x8000);
+	
+	for(int y = 0, addr = 0; y < 200; y++) {
+		for(int x = 0; x < 640; x += 8) {
+			uint8_t brg = gvram_b[addr] | gvram_r[addr] | gvram_g[addr];
+			addr++;
+			uint8_t *dest = &graph[y][x];
+			dest[0] = (brg & 0x80) >> 7;
+			dest[1] = (brg & 0x40) >> 6;
+			dest[2] = (brg & 0x20) >> 5;
+			dest[3] = (brg & 0x10) >> 4;
+			dest[4] = (brg & 0x08) >> 3;
+			dest[5] = (brg & 0x04) >> 2;
+			dest[6] = (brg & 0x02) >> 1;
+			dest[7] = (brg & 0x01)     ;
 		}
 	}
 }
@@ -2302,34 +2328,6 @@ bool PC88::draw_640x200_color_graph()
 	return true;
 }
 
-void PC88::draw_640x200_mono_graph()
-{
-	if(!Port31_GRAPH || (Port53_G0DS && Port53_G1DS && Port53_G2DS)) {
-		memset(graph, 0, sizeof(graph));
-		return;
-	}
-	uint8_t *gvram_b = Port53_G0DS ? gvram_null : (gvram + 0x0000);
-	uint8_t *gvram_r = Port53_G1DS ? gvram_null : (gvram + 0x4000);
-	uint8_t *gvram_g = Port53_G2DS ? gvram_null : (gvram + 0x8000);
-	
-	for(int y = 0, addr = 0; y < 200; y++) {
-		for(int x = 0; x < 640; x += 8) {
-			uint8_t brg = gvram_b[addr] | gvram_r[addr] | gvram_g[addr];
-			addr++;
-			uint8_t *dest = &graph[y][x];
-			dest[0] = (brg & 0x80) >> 7;
-			dest[1] = (brg & 0x40) >> 6;
-			dest[2] = (brg & 0x20) >> 5;
-			dest[3] = (brg & 0x10) >> 4;
-			dest[4] = (brg & 0x08) >> 3;
-			dest[5] = (brg & 0x04) >> 2;
-			dest[6] = (brg & 0x02) >> 1;
-			dest[7] = (brg & 0x01)     ;
-		}
-	}
-}
-
-#if defined(_PC8001SR)
 void PC88::draw_640x200_attrib_graph()
 {
 	if(!Port31_GRAPH || (Port53_G0DS && Port53_G1DS && Port53_G2DS)) {
@@ -2340,18 +2338,9 @@ void PC88::draw_640x200_attrib_graph()
 	uint8_t *gvram_r = Port53_G1DS ? gvram_null : (gvram + 0x4000);
 	uint8_t *gvram_g = Port53_G2DS ? gvram_null : (gvram + 0x8000);
 	
-	int char_height = crtc.char_height ? crtc.char_height : 8;
-	uint8_t color_mask = Port30_COLOR ? 0 : 7, color;
-	
 	for(int y = 0, addr = 0; y < 200; y++) {
-		int cy = y / char_height;
 		for(int x = 0, cx = 0; x < 640; x += 8, cx++) {
-			if(Port30_40 && (cx & 1)) {
-				// don't update color
-			} else {
-				uint8_t attrib = crtc.attrib.expand[cy][cx];
-				color = (attrib & 0xe0) ? ((attrib >> 5) | color_mask) : 8;
-			}
+			uint8_t color = text_color[y][cx];
 			uint8_t brg = gvram_b[addr] | gvram_r[addr] | gvram_g[addr];
 			addr++;
 			uint8_t *dest = &graph[y][x];
@@ -2366,7 +2355,8 @@ void PC88::draw_640x200_attrib_graph()
 		}
 	}
 }
-#else
+
+#if !defined(_PC8001SR)
 void PC88::draw_640x400_attrib_graph()
 {
 	if(!Port31_GRAPH || (Port53_G0DS && Port53_G1DS)) {
@@ -2376,20 +2366,9 @@ void PC88::draw_640x400_attrib_graph()
 	uint8_t *gvram_b = Port53_G0DS ? gvram_null : (gvram + 0x0000);
 	uint8_t *gvram_r = Port53_G1DS ? gvram_null : (gvram + 0x4000);
 	
-	int char_height = crtc.char_height ? crtc.char_height : 16;
-	uint8_t color_mask = Port30_COLOR ? 0 : 7, color;
-	
 	for(int y = 0, addr = 0; y < 200; y++) {
-		int cy = y / char_height;
 		for(int x = 0, cx = 0; x < 640; x += 8, cx++) {
-			if(Port30_40 && (cx & 1)) {
-				// don't update color
-			} else {
-				uint8_t attrib = crtc.attrib.expand[cy][cx];
-				// for SORCERIAN music library (XM8 version 1.20)
-				color = (attrib >> 5) | color_mask;
-//				color = (attrib & 0xe0) ? ((attrib >> 5) | color_mask) : 8;
-			}
+			uint8_t color = text_color[y >> 1][cx];
 			uint8_t b = gvram_b[addr];
 			addr++;
 			uint8_t *dest = &graph[y][x];
@@ -2404,16 +2383,8 @@ void PC88::draw_640x400_attrib_graph()
 		}
 	}
 	for(int y = 200, addr = 0; y < 400; y++) {
-		int cy = y / char_height;
 		for(int x = 0, cx = 0; x < 640; x += 8, cx++) {
-			if(Port30_40 && (cx & 1)) {
-				// don't update color
-			} else {
-				uint8_t attrib = crtc.attrib.expand[cy][cx];
-				// for SORCERIAN music library (XM8 version 1.20)
-				color = (attrib >> 5) | color_mask;
-//				color = (attrib & 0xe0) ? ((attrib >> 5) | color_mask) : 8;
-			}
+			uint8_t color = text_color[y >> 1][cx];
 			uint8_t r = gvram_r[addr];
 			addr++;
 			uint8_t *dest = &graph[y][x];
@@ -2898,7 +2869,7 @@ void pc88_dmac_t::finish(int c)
 	}
 }
 
-#define STATE_VERSION	5
+#define STATE_VERSION	6
 
 void PC88::save_state(FILEIO* state_fio)
 {

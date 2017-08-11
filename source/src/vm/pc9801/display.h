@@ -1,6 +1,10 @@
 /*
 	NEC PC-9801 Emulator 'ePC-9801'
 	NEC PC-9801E/F/M Emulator 'ePC-9801E'
+	NEC PC-9801U Emulator 'ePC-9801U'
+	NEC PC-9801VF Emulator 'ePC-9801VF'
+	NEC PC-9801VM Emulator 'ePC-9801VM'
+	NEC PC-9801VX Emulator 'ePC-9801VX'
 	NEC PC-98DO Emulator 'ePC-98DO'
 
 	Author : Takeda.Toshiya
@@ -27,10 +31,19 @@ private:
 	uint8_t *ra_gfx, *cs_gfx;
 	
 	uint8_t tvram[0x4000];
+#if !defined(SUPPORT_HIRESO)
 #if defined(SUPPORT_2ND_VRAM)
 	uint8_t vram[0x40000];
 #else
 	uint8_t vram[0x20000];
+#endif
+#else
+	uint8_t vram[0x80000];
+#endif
+	
+#if defined(SUPPORT_2ND_VRAM) && !defined(SUPPORT_HIRESO)
+	uint8_t vram_disp_sel;
+	uint8_t vram_draw_sel;
 #endif
 	uint8_t *vram_disp_b;
 	uint8_t *vram_disp_r;
@@ -53,22 +66,107 @@ private:
 	uint8_t modereg1[8];
 #if defined(SUPPORT_16_COLORS)
 	uint8_t modereg2[128];
+#endif
+#if defined(SUPPORT_GRCG)
 	uint8_t grcg_mode, grcg_tile_ptr, grcg_tile[4];
+#endif
+#if defined(SUPPORT_EGC)
+	typedef union {
+		uint8_t b[2];
+		uint16_t w;
+	} egcword_t;
+	typedef union {
+		uint8_t b[4][2];
+		uint16_t w[4];
+		uint32_t d[2];
+		uint64_t q;
+	} egcquad_t;
+	
+	uint16_t egc_access;
+	uint16_t egc_fgbg;
+	uint16_t egc_ope;
+	uint16_t egc_fg;
+	egcword_t egc_mask;
+	uint16_t egc_bg;
+	uint16_t egc_sft;
+	uint16_t egc_leng;
+	egcquad_t egc_lastvram;
+	egcquad_t egc_patreg;
+	egcquad_t egc_fgc;
+	egcquad_t egc_bgc;
+	int egc_func;
+	uint32_t egc_remain;
+	uint32_t egc_stack;
+	uint8_t* egc_inptr;
+	uint8_t* egc_outptr;
+	egcword_t egc_mask2;
+	egcword_t egc_srcmask;
+	uint8_t egc_srcbit;
+	uint8_t egc_dstbit;
+	uint8_t egc_sft8bitl;
+	uint8_t egc_sft8bitr;
+	uint8_t egc_buf[528];	/* 4096/8 + 4*4 */
+	egcquad_t egc_vram_src;
+	egcquad_t egc_vram_data;
 #endif
 	
 	uint8_t font[0x84000];
 	uint16_t font_code;
 	uint8_t font_line;
-	uint16_t font_lr;
+//	uint16_t font_lr;
 	
 	uint8_t screen_chr[400][641];
 	uint8_t screen_gfx[400][640];
 	uint32_t gdc_addr[480][80];
 	
 	void kanji_copy(uint8_t *dst, uint8_t *src, int from, int to);
-#if defined(SUPPORT_16_COLORS)
-	void write_grcg(uint32_t addr, uint32_t data);
-	uint32_t read_grcg(uint32_t addr);
+#if defined(SUPPORT_GRCG)
+	void grcg_writeb(uint32_t addr1, uint32_t data);
+	void grcg_writew(uint32_t addr1, uint32_t data);
+	uint32_t grcg_readb(uint32_t addr1);
+	uint32_t grcg_readw(uint32_t addr1);
+#endif
+#if defined(SUPPORT_EGC)
+	void egc_shift();
+	void egc_sftb_upn_sub(uint32_t ext);
+	void egc_sftb_dnn_sub(uint32_t ext);
+	void egc_sftb_upr_sub(uint32_t ext);
+	void egc_sftb_dnr_sub(uint32_t ext);
+	void egc_sftb_upl_sub(uint32_t ext);
+	void egc_sftb_dnl_sub(uint32_t ext);
+	void egc_sftb_upn0(uint32_t ext);
+	void egc_sftw_upn0();
+	void egc_sftb_dnn0(uint32_t ext);
+	void egc_sftw_dnn0();
+	void egc_sftb_upr0(uint32_t ext);
+	void egc_sftw_upr0();
+	void egc_sftb_dnr0(uint32_t ext);
+	void egc_sftw_dnr0();
+	void egc_sftb_upl0(uint32_t ext);
+	void egc_sftw_upl0();
+	void egc_sftb_dnl0(uint32_t ext);
+	void egc_sftw_dnl0();
+	void egc_sftb(int func, uint32_t ext);
+	void egc_sftw(int func);
+	void egc_shiftinput_byte(uint32_t ext);
+	void egc_shiftinput_incw();
+	void egc_shiftinput_decw();
+	uint64_t egc_ope_00(uint8_t ope, uint32_t addr);
+	uint64_t egc_ope_0f(uint8_t ope, uint32_t addr);
+	uint64_t egc_ope_c0(uint8_t ope, uint32_t addr);
+	uint64_t egc_ope_f0(uint8_t ope, uint32_t addr);
+	uint64_t egc_ope_fc(uint8_t ope, uint32_t addr);
+	uint64_t egc_ope_ff(uint8_t ope, uint32_t addr);
+	uint64_t egc_ope_nd(uint8_t ope, uint32_t addr);
+	uint64_t egc_ope_np(uint8_t ope, uint32_t addr);
+	uint64_t egc_ope_xx(uint8_t ope, uint32_t addr);
+	uint64_t egc_opefn(uint32_t func, uint8_t ope, uint32_t addr);
+	uint64_t egc_opeb(uint32_t addr, uint8_t value);
+	uint64_t egc_opew(uint32_t addr, uint16_t value);
+	uint32_t egc_readb(uint32_t addr1);
+	uint32_t egc_readw(uint32_t addr1);
+	void egc_writeb(uint32_t addr1, uint8_t value);
+	void egc_writew(uint32_t addr1, uint16_t value);
 #endif
 	void draw_chr_screen();
 	void draw_gfx_screen();
@@ -87,7 +185,13 @@ public:
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
 	void write_memory_mapped_io8(uint32_t addr, uint32_t data);
+	void write_memory_mapped_io16(uint32_t addr, uint32_t data);
 	uint32_t read_memory_mapped_io8(uint32_t addr);
+	uint32_t read_memory_mapped_io16(uint32_t addr);
+	void write_dma_io8(uint32_t addr, uint32_t data);
+	void write_dma_io16(uint32_t addr, uint32_t data);
+	uint32_t read_dma_io8(uint32_t addr);
+	uint32_t read_dma_io16(uint32_t addr);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

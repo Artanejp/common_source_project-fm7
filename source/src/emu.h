@@ -111,6 +111,7 @@ private:
 #ifdef USE_AUTO_KEY
 	FIFO* auto_key_buffer;
 	int auto_key_phase, auto_key_shift;
+	bool shift_pressed;
 	void initialize_auto_key();
 	void release_auto_key();
 	int get_auto_key_code(int code);

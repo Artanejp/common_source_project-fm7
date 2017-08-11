@@ -222,7 +222,7 @@ void I8080_BASE::reset()
 	PC = 0;
 	SP = 0;
 	IM = IM_M5 | IM_M6 | IM_M7;
-	HALT = BUSREQ = false;
+	afterHALT = BUSREQ = false;
 	
 	count = 0;
 }
@@ -791,7 +791,7 @@ void I8080_BASE::OP(uint8_t code)
 		break;
 	case 0x76: // HLT
 		PC--;
-		HALT = 1;
+		afterHALT = 1;
 		break;
 	case 0x77: // MOV M,A
 		WM8(HL, _A);

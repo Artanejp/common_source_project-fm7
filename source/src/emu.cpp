@@ -381,11 +381,18 @@ int EMU::get_mouse_button()
 void EMU::key_down(int code, bool extended, bool repeat)
 {
 #ifdef USE_AUTO_KEY
+	if(code == 0x10) {
+		shift_pressed = true;
+	}
 	if(config.romaji_to_kana) {
 		if(!repeat) {
 			// Page Up, Page Down, End, Home, Left, Up, Right, Down, Ins, Del, Help, and F1-F12
 			if((code >= 0x21 && code <= 0x2f) || (code >= 0x70 && code <= 0x7b)) {
-				auto_key_buffer->write(code);
+				if(shift_pressed) {
+					auto_key_buffer->write(code | 0x100);
+				} else {
+					auto_key_buffer->write(code);
+				}
 				if(!is_auto_key_running()) {
 					start_auto_key();
 				}
@@ -399,6 +406,9 @@ void EMU::key_down(int code, bool extended, bool repeat)
 void EMU::key_up(int code, bool extended)
 {
 #ifdef USE_AUTO_KEY
+	if(code == 0x10) {
+		shift_pressed = false;
+	}
 	if(config.romaji_to_kana) {
 		// do nothing
 	} else if(!is_auto_key_running())
@@ -484,6 +494,7 @@ static const int auto_key_table_base[][2] = {
 	{0x08,	0x000 | 0x08},	// BS
 	{0x09,	0x000 | 0x09},	// Tab
 	{0x0d,	0x000 | 0x0d},	// Enter
+	{0x1b,	0x000 | 0x1b},	// Escape
 	{0x20,	0x000 | 0x20},	// ' '
 #ifdef AUTO_KEY_US
 	{0x21,	0x100 | 0x31},	// '!'
@@ -1048,6 +1059,7 @@ void EMU::initialize_auto_key()
 	auto_key_buffer = new FIFO(65536);
 	auto_key_buffer->clear();
 	auto_key_phase = auto_key_shift = 0;
+	shift_pressed = false;
 	osd->now_auto_key = false;
 }
 
@@ -1112,8 +1124,13 @@ int EMU::get_auto_key_code(int code)
 void EMU::set_auto_key_code(int code)
 {
 	if(code == 0xf2 || (code = get_auto_key_code(code)) != 0) {
-		if(code == 0x08 || code == 0x09 || code == 0x0d || code == 0x20 || code == 0xf2) {
+		if(code == 0x08 || code == 0x09 || code == 0x0d || code == 0x1b || code == 0x20 || code == 0xf2) {
 			auto_key_buffer->write(code);
+#ifdef USE_AUTO_KEY_NUMPAD
+		} else if(code >= 0x30 && code <= 0x39) {
+			// numpad
+			auto_key_buffer->write(code - 0x30 + 0x60);
+#endif
 		} else if(code & 0x200) {
 			// kana
 			auto_key_buffer->write(code & 0x1ff);
@@ -1228,12 +1245,20 @@ void EMU::set_auto_key_char(char code)
 		}
 		set_auto_key_code(0xf2);
 		memset(codes, 0, sizeof(codes));
-	} else if(code == 0x08 || code == 0x09 || code == 0x0d || code == 0x20) {
+	} else if(code == 0x08 || code == 0x09 || code == 0x0d || code == 0x1b || code == 0x20) {
 		if(codes[3] == 'n') {
 			set_auto_key_code(0xdd); // 'Ý'
 		}
 		set_auto_key_code(code);
 		memset(codes, 0, sizeof(codes));
+#ifdef USE_AUTO_KEY_NUMPAD
+	} else if(code >= 0x30 && code <= 0x39) {
+		if(codes[3] == 'n') {
+			set_auto_key_code(0xdd); // 'Ý'
+		}
+		set_auto_key_code(code);
+		memset(codes, 0, sizeof(codes));
+#endif
 	} else {
 		codes[0] = codes[1];
 		codes[1] = codes[2];

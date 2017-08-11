@@ -1,6 +1,10 @@
 /*
 	NEC PC-9801 Emulator 'ePC-9801'
 	NEC PC-9801E/F/M Emulator 'ePC-9801E'
+	NEC PC-9801U Emulator 'ePC-9801U'
+	NEC PC-9801VF Emulator 'ePC-9801VF'
+	NEC PC-9801VM Emulator 'ePC-9801VM'
+	NEC PC-9801VX Emulator 'ePC-9801VX'
 	NEC PC-98DO Emulator 'ePC-98DO'
 
 	Author : Takeda.Toshiya
@@ -12,87 +16,188 @@
 #ifndef _PC9801_H_
 #define _PC9801_H_
 
+/*
+	PC-9801		8086	5MHz
+	PC-9801E/F/M	8086	5/8MHz
+
+	PC-9801U/VF	V30	8MHz
+	PC-9801VM	V30	8/10MHz
+	PC-98DO		V30	8/10MHz
+	PC-98DO+	V33	8/16MHz
+
+	PC-9801VX	80286	8/10MHz
+	PC-9801RX/DX	80286	12MHz
+
+	PC-9801RA	80386	16MHz
+	PC-9801DA	80386	20MHz
+
+	PC-98XA		80286	8MHz
+	PC-98XL		80286	8MHz/10MHz
+
+	PC-98XL^2	80386	16MHz
+	PC-98RL		80386	20MHz
+*/
+
 #if defined(_PC9801)
-#define DEVICE_NAME		"NEC PC-9801"
-#define CONFIG_NAME		"pc9801"
+	#define DEVICE_NAME		"NEC PC-9801"
+	#define CONFIG_NAME		"pc9801"
+	#define HAS_I86
+	#define CPU_CLOCKS		4992030
+	#define PIT_CLOCK_5MHZ
 #elif defined(_PC9801E)
-#define DEVICE_NAME		"NEC PC-9801E/F/M"
-#define CONFIG_NAME		"pc9801e"
-#elif defined(_PC9801U)
-#define DEVICE_NAME		"NEC PC-9801U"
-#define CONFIG_NAME		"pc9801u"
-#elif defined(_PC9801VF)
-#define DEVICE_NAME		"NEC PC-9801VF"
-#define CONFIG_NAME		"pc9801vf"
-#elif defined(_PC9801VM)
-#define DEVICE_NAME		"NEC PC-9801VM"
-#define CONFIG_NAME		"pc9801vm"
-#elif defined(_PC98DO)
-#define DEVICE_NAME		"NEC PC-98DO"
-#define CONFIG_NAME		"pc98do"
+	#define DEVICE_NAME		"NEC PC-9801E/F/M"
+	#define CONFIG_NAME		"pc9801e"
+	#define HAS_I86
+	#define CPU_CLOCKS		7987248
+	#define PIT_CLOCK_8MHZ
+//	#define CPU_CLOCKS		4992030
+//	#define PIT_CLOCK_5MHZ
+	#define USE_CPU_TYPE		2
+#elif defined(_PC9801U) || defined(_PC9801VF)
+	#if defined(_PC9801U)
+		#define DEVICE_NAME	"NEC PC-9801U"
+		#define CONFIG_NAME	"pc9801u"
+	#elif defined(_PC9801VF)
+		#define DEVICE_NAME	"NEC PC-9801VF"
+		#define CONFIG_NAME	"pc9801vf"
+	#endif
+	#define HAS_V30
+	#define CPU_CLOCKS		7987248
+	#define PIT_CLOCK_8MHZ
+#elif defined(_PC9801VM) || defined(_PC98DO)
+	#if defined(_PC9801VM)
+		#define DEVICE_NAME	"NEC PC-9801VM"
+		#define CONFIG_NAME	"pc9801vm"
+	#elif defined(_PC98DO)
+		#define DEVICE_NAME	"NEC PC-98DO"
+		#define CONFIG_NAME	"pc98do"
+	#endif
+	#define HAS_V30
+	#define CPU_CLOCKS		9984060
+	#define PIT_CLOCK_5MHZ
+//	#define CPU_CLOCKS		7987248
+//	#define PIT_CLOCK_8MHZ
+	#define USE_CPU_TYPE		2
 #elif defined(_PC98DOPLUS)
-#define DEVICE_NAME		"NEC PC-98DO+"
-#define CONFIG_NAME		"pc98do+"
+	#define DEVICE_NAME		"NEC PC-98DO+"
+	#define CONFIG_NAME		"pc98do+"
+	#define HAS_V33A
+	#define CPU_CLOCKS		15974496
+	#define PIT_CLOCK_8MHZ
+//	#define CPU_CLOCKS		7987248
+//	#define PIT_CLOCK_8MHZ
+	#define USE_CPU_TYPE		2
+#elif defined(_PC9801VX) || defined(_PC98XL)
+	#if defined(_PC9801VX)
+		#define DEVICE_NAME	"NEC PC-9801VX"
+		#define CONFIG_NAME	"pc9801vx"
+	#elif defined(_PC98XL)
+		#define DEVICE_NAME	"NEC PC-98XL/XA"
+		#define CONFIG_NAME	"pc98xl"
+	#endif
+	#define HAS_I286
+	#define CPU_CLOCKS		9984060
+	#define PIT_CLOCK_5MHZ
+//	#define CPU_CLOCKS		7987248
+//	#define PIT_CLOCK_8MHZ
+	#define USE_CPU_TYPE		2
+#elif defined(_PC9801RA) || defined(_PC98RL)
+	#if defined(_PC9801RA)
+		#define DEVICE_NAME	"NEC PC-9801RA/DA"
+		#define CONFIG_NAME	"pc9801ra"
+	#elif defined(_PC98RL)
+		#define DEVICE_NAME	"NEC PC-98RL/XL^2"
+		#define CONFIG_NAME	"pc98rl"
+	#endif
+	#define HAS_I386
+	#define CPU_CLOCKS		19968120
+	#define PIT_CLOCK_5MHZ
+//	#define CPU_CLOCKS		15974496
+//	#define PIT_CLOCK_8MHZ
+	#define USE_CPU_TYPE		2
 #else
+	// unknown machines
 #endif
 
 #if defined(_PC9801) || defined(_PC9801E)
-#define SUPPORT_CMT_IF
-#define SUPPORT_2HD_FDD_IF
-#define SUPPORT_2DD_FDD_IF
-#define SUPPORT_320KB_FDD_IF
-#define SUPPORT_OLD_BUZZER
+	#define SUPPORT_CMT_IF
+	#define SUPPORT_2HD_FDD_IF
+	#define SUPPORT_2DD_FDD_IF
+	#define SUPPORT_320KB_FDD_IF
+	#define SUPPORT_OLD_BUZZER
 #elif defined(_PC9801VF) || defined(_PC9801U)
-#define SUPPORT_2DD_FDD_IF
+	#define SUPPORT_2DD_FDD_IF
 #else
-#define SUPPORT_2HD_2DD_FDD_IF
+	#define SUPPORT_2HD_2DD_FDD_IF
 #endif
 
-#if !(defined(_PC9801) || defined(_PC9801U))
-#define SUPPORT_2ND_VRAM
+#if defined(_PC98XA) || defined(_PC98XL) || defined(_PC98RL)
+	#define SUPPORT_HIRESO
+#endif
+#if !(defined(_PC9801) || defined(_PC9801U) || defined(SUPPORT_HIRESO))
+	#define SUPPORT_2ND_VRAM
 #endif
 #if !(defined(_PC9801) || defined(_PC9801E))
-#define SUPPORT_16_COLORS
+	#define SUPPORT_16_COLORS
+	#define SUPPORT_GRCG
 #endif
+#if !(defined(HAS_I86) || defined(HAS_V30))
+	#define SUPPORT_EGC
+	#define SUPPORT_ITF_ROM
+//	#if !defined(_PC98XA)
+	#define HAS_UPD4990A
+//	#endif
+#endif
+
+#if defined(HAS_I286)
+	#define SUPPORT_24BIT_ADDRESS
+#elif defined(HAS_I386) || defined(HAS_I486)
+	#define SUPPORT_32BIT_ADDRESS
+#endif
+#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
+	#define MEMORY_ADDR_MAX		0x1000000	// 16MB
+#else
+	#define MEMORY_ADDR_MAX		0x100000	// 1MB
+#endif
+//#if defined(SUPPORT_32BIT_ADDRESS)
+//	#define SUPPORT_SYSTEM_16MB
+//#endif
+#define MEMORY_BANK_SIZE		0x800
+#define IO_ADDR_MAX			0x10000
 
 // PC-9801-86
 //#define SUPPORT_PC98_OPNA
 
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
-#define MODE_PC98	0
-#define MODE_PC88_V1S	1
-#define MODE_PC88_V1H	2
-#define MODE_PC88_V2	3
-#define MODE_PC88_N	4
-//#define SUPPORT_PC88_DICTIONARY
-#define SUPPORT_PC88_HIGH_CLOCK
-//#define SUPPORT_PC88_JOYSTICK
-#define PC88_EXRAM_BANKS	4
+	#define MODE_PC98	0
+	#define MODE_PC88_V1S	1
+	#define MODE_PC88_V1H	2
+	#define MODE_PC88_V2	3
+	#define MODE_PC88_N	4
+	//#define SUPPORT_PC88_DICTIONARY
+	#define SUPPORT_PC88_HIGH_CLOCK
+	//#define SUPPORT_PC88_JOYSTICK
+	#define PC88_EXRAM_BANKS	4
 #endif
 #if defined(_PC98DOPLUS)
-#define SUPPORT_PC88_OPNA
-#define SUPPORT_PC88_SB2
+	#define SUPPORT_PC88_OPNA
+	#define SUPPORT_PC88_SB2
 #endif
 
 // device informations for virtual machine
-#define FRAMES_PER_SEC		56.4
-#define LINES_PER_FRAME 	440
-#if defined(_PC9801)
-#define CPU_CLOCKS		4992030
-#define PIT_CLOCK_5MHZ
-#elif defined(_PC9801E) || defined(_PC9801U) || defined(_PC9801VF)
-#define CPU_CLOCKS		7987248
-#define PIT_CLOCK_8MHZ
-#elif defined(_PC98DOPLUS)
-#define CPU_CLOCKS		15974496
-#define PIT_CLOCK_8MHZ
+#if !defined(SUPPORT_HIRESO)
+	#define FRAMES_PER_SEC		56.42
+	#define LINES_PER_FRAME 	440
+	#define SCREEN_WIDTH		640
+	#define SCREEN_HEIGHT		400
+	#define WINDOW_HEIGHT_ASPECT	480
 #else
-#define CPU_CLOCKS		9984060
-#define PIT_CLOCK_5MHZ
+	#define FRAMES_PER_SEC		79.09
+	#define LINES_PER_FRAME 	784
+	#define SCREEN_WIDTH		1120
+	#define SCREEN_HEIGHT		750
+	#define WINDOW_HEIGHT_ASPECT	840
 #endif
-#define SCREEN_WIDTH		640
-#define SCREEN_HEIGHT		400
-#define WINDOW_HEIGHT_ASPECT	480
 #define MAX_DRIVE		2
 #define UPD765A_NO_ST1_EN_OR_FOR_RESULT7
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
@@ -100,15 +205,7 @@
 #endif
 #define UPD7220_MSB_FIRST
 #define UPD7220_HORIZ_FREQ	24830
-#if defined(_PC9801) || defined(_PC9801E)
-#define HAS_I86
-#elif defined(_PC98DOPLUS)
-#define HAS_V33A
-#else
-#define HAS_V30
-#endif
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
-#define HAS_UPD4990A
 #define Z80_MEMORY_WAIT
 #endif
 #if defined(SUPPORT_PC98_OPNA) || defined(SUPPORT_PC88_OPNA)
@@ -116,9 +213,6 @@
 #endif
 #define I8259_MAX_CHIPS		2
 #define SINGLE_MODE_DMA
-#define MEMORY_ADDR_MAX		0x100000
-#define MEMORY_BANK_SIZE	0x800
-#define IO_ADDR_MAX		0x10000
 #define OVERRIDE_SOUND_FREQ_48000HZ	55467
 #define SUPPORT_VARIABLE_TIMING
 
@@ -126,9 +220,6 @@
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 #define USE_BOOT_MODE		5
 #define USE_DIPSWITCH
-#endif
-#if defined(_PC9801E) || defined(_PC9801VM) || defined(_PC98DO) || defined(_PC98DOPLUS)
-#define USE_CPU_TYPE		2
 #endif
 #define USE_FD1
 #define USE_FD2
@@ -160,6 +251,7 @@
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #endif
+#define USE_AUTO_KEY_NUMPAD
 #define USE_MONITOR_TYPE	2
 #define USE_SCANLINE
 #define USE_SCREEN_FILTER
@@ -230,7 +322,7 @@ class I286;
 #endif
 class IO;
 class LS244;
-class MEMORY;
+//class MEMORY;
 class NOISE;
 class NOT;
 #if !defined(SUPPORT_OLD_BUZZER)
@@ -245,11 +337,16 @@ class YM2203;
 #if defined(SUPPORT_CMT_IF)
 class CMT;
 #endif
+#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
+class CPUREG;
+#endif
 class DISPLAY;
+class DMAREG;
 class FLOPPY;
 class FMSOUND;
 class JOYSTICK;
 class KEYBOARD;
+class MEMBUS;
 class MOUSE;
 
 #if defined(SUPPORT_320KB_FDD_IF)
@@ -292,18 +389,16 @@ protected:
 	I8255* pio_sys;
 	I8255* pio_prn;
 	I8259* pic;
-#if defined(HAS_I86) || defined(HAS_V30)
+#if defined(HAS_I386) || defined(HAS_I486)
+	I386* cpu;
+#elif defined(HAS_I86) || defined(HAS_V30)
 	I286 *cpu;
 #else
 	I286* cpu;
 #endif
 	IO* io;
-	LS244* dmareg1;
-	LS244* dmareg2;
-	LS244* dmareg3;
-	LS244* dmareg0;
 	LS244* rtcreg;
-	MEMORY* memory;
+	//MEMORY* memory;
 	NOT* not_busy;
 #if defined(HAS_I86) || defined(HAS_V30)
 	NOT* not_prn;
@@ -328,11 +423,16 @@ protected:
 #if defined(SUPPORT_CMT_IF)
 	CMT* cmt;
 #endif
+#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
+	CPUREG* cpureg;
+#endif
 	DISPLAY* display;
+	DMAREG* dmareg;
 	FLOPPY* floppy;
 	FMSOUND* fmsound;
 	JOYSTICK* joystick;
 	KEYBOARD* keyboard;
+	MEMBUS* memory;
 	MOUSE* mouse;
 	
 	// PC-9801-14
@@ -350,8 +450,12 @@ protected:
 #endif
 	
 	// memory
-	uint8_t ram[0xa0000];
-	uint8_t ipl[0x18000];
+#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
+	uint8_t ram[0x400000]; // 4MB
+#else
+	uint8_t ram[0x100000]; // 1MB
+#endif
+//	uint8_t ipl[0x18000];
 	uint8_t sound_bios[0x4000];
 #if defined(_PC9801) || defined(_PC9801E)
 	uint8_t fd_bios_2hd[0x1000];

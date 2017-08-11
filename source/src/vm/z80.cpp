@@ -92,12 +92,12 @@
 
 #define ENTER_HALT() do { \
 	PC--; \
-	halt = true; \
+	after_halt = true; \
 } while(0)
 
 #define LEAVE_HALT() do { \
-	if(halt) { \
-		halt = false; \
+	if(after_halt) { \
+		after_halt = false; \
 		PC++; \
 	} \
 } while(0)
@@ -164,7 +164,7 @@ void Z80::reset()
 	ea = 0;
 	
 	im = iff1 = iff2 = icr = 0;
-	halt = false;
+	after_halt = false;
 	after_ei = after_ldair = false;
 	intr_req_bit = intr_pend_bit = 0;
 	
@@ -180,9 +180,11 @@ void Z80::run_one_opecode()
 		d_debugger->check_break_points(PC);
 		if(d_debugger->now_suspended) {
 			emu->mute_sound();
+			d_debugger->now_waiting = true;
 			while(d_debugger->now_debugging && d_debugger->now_suspended) {
 				emu->sleep(10);
 			}
+			d_debugger->now_waiting = false;
 		}
 		if(d_debugger->now_debugging) {
 			d_mem = d_io = d_debugger;
@@ -190,11 +192,24 @@ void Z80::run_one_opecode()
 			now_debugging = false;
 		}
 		
-		after_ei = after_ldair = false;
+		after_halt = after_ei = false;
+#if HAS_LDAIR_QUIRK
+		after_ldair = false;
+#endif
 		OP(FETCHOP());
 #if HAS_LDAIR_QUIRK
-		if(after_ldair) F &= ~PF;	// reset parity flag after LD A,I or LD A,R
+		if(after_ldair) {
+			F &= ~PF;	// reset parity flag after LD A,I or LD A,R
+		}
 #endif
+#ifdef SINGLE_MODE_DMA
+		if(d_dma) {
+			d_dma->do_dma();
+		}
+#endif
+		if(!after_ei) {
+			check_interrupt();
+		}
 		
 		if(now_debugging) {
 			if(!d_debugger->now_going) {
@@ -205,11 +220,24 @@ void Z80::run_one_opecode()
 		}
 	} else {
 #endif
-		after_ei = after_ldair = false;
+		after_halt = after_ei = false;
+#if HAS_LDAIR_QUIRK
+		after_ldair = false;
+#endif
 		OP(FETCHOP());
 #if HAS_LDAIR_QUIRK
-		if(after_ldair) F &= ~PF;	// reset parity flag after LD A,I or LD A,R
+		if(after_ldair) {
+			F &= ~PF;	// reset parity flag after LD A,I or LD A,R
+		}
 #endif
+#ifdef SINGLE_MODE_DMA
+		if(d_dma) {
+			d_dma->do_dma();
+		}
+#endif
+		if(!after_ei) {
+			check_interrupt();
+		}
 #ifdef USE_DEBUGGER
 	}
 #endif
@@ -222,9 +250,11 @@ void Z80::run_one_opecode()
 			d_debugger->check_break_points(PC);
 			if(d_debugger->now_suspended) {
 				emu->mute_sound();
+				d_debugger->now_waiting = true;
 				while(d_debugger->now_debugging && d_debugger->now_suspended) {
 					emu->sleep(10);
 				}
+				d_debugger->now_waiting = false;
 			}
 			if(d_debugger->now_debugging) {
 				d_mem = d_io = d_debugger;
@@ -232,12 +262,23 @@ void Z80::run_one_opecode()
 				now_debugging = false;
 			}
 			
+			after_halt = false;
+#if HAS_LDAIR_QUIRK
 			after_ldair = false;
+#endif
 			OP(FETCHOP());
 #if HAS_LDAIR_QUIRK
-			if(after_ldair) F &= ~PF;	// reset parity flag after LD A,I or LD A,R
+			if(after_ldair) {
+				F &= ~PF;	// reset parity flag after LD A,I or LD A,R
+			}
+#endif
+#ifdef SINGLE_MODE_DMA
+			if(d_dma) {
+				d_dma->do_dma();
+			}
 #endif
 			d_pic->notify_intr_ei();
+			check_interrupt();
 			
 			if(now_debugging) {
 				if(!d_debugger->now_going) {
@@ -248,17 +289,33 @@ void Z80::run_one_opecode()
 			}
 		} else {
 #endif
+			after_halt = false;
+#if HAS_LDAIR_QUIRK
 			after_ldair = false;
+#endif
 			OP(FETCHOP());
 #if HAS_LDAIR_QUIRK
-			if(after_ldair) F &= ~PF;	// reset parity flag after LD A,I or LD A,R
+			if(after_ldair) {
+				F &= ~PF;	// reset parity flag after LD A,I or LD A,R
+			}
+#endif
+#ifdef SINGLE_MODE_DMA
+			if(d_dma) {
+				d_dma->do_dma();
+			}
 #endif
 			d_pic->notify_intr_ei();
+			check_interrupt();
 #ifdef USE_DEBUGGER
 		}
 #endif
 	}
-	
+	icount -= extra_icount;
+	extra_icount = 0;
+}
+
+void Z80::check_interrupt()
+{
 	// check interrupt
 	if(intr_req_bit) {
 		if(intr_req_bit & NMI_REQ_BIT) {
@@ -347,13 +404,6 @@ void Z80::run_one_opecode()
 //#else
 		}
 	}
-//#ifdef SINGLE_MODE_DMA
-	if(d_dma) {
-		d_dma->do_dma();
-	}
-//#endif
-	icount -= extra_icount;
-	extra_icount = 0;
 }
 
 #ifdef USE_DEBUGGER

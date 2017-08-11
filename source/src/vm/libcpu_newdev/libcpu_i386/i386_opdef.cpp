@@ -3091,6 +3091,8 @@ void I386_OPS_BASE::zero_state()
 	memset( &cpustate->ldtr, 0, sizeof(cpustate->ldtr) );
 	cpustate->ext = 0;
 	cpustate->halted = 0;
+	cpustate->busreq = 0;
+	cpustate->shutdown = 0;
 	cpustate->operand_size = 0;
 	cpustate->xmm_operand_size = 0;
 	cpustate->address_size = 0;

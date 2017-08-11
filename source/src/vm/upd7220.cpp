@@ -60,10 +60,11 @@ void UPD7220::initialize()
 	v1 = 16;
 	v2 = vtotal - v1;
 #ifdef CHARS_PER_LINE
-	h1 = (CHARS_PER_LINE > 80) ? 80 : 40;	// CHARS_PER_LINE > 40 ???
+//	h1 = (CHARS_PER_LINE > 80) ? 80 : 40;	// CHARS_PER_LINE > 40 ???
+	h1 = (CHARS_PER_LINE > width) ? width : (width >> 2);
 	h2 = CHARS_PER_LINE - h1;
 #else
-	h1 = 80;
+	h1 = width;
 	h2 = 29;
 #endif
 	sync_changed = false;
@@ -441,7 +442,7 @@ void UPD7220::draw_pset(int x, int y)
 {
 	uint16_t dot = pattern & 1;
 	pattern = (pattern >> 1) | (dot << 15);
-	uint32_t addr = y * 80 + (x >> 3);
+	uint32_t addr = y * width + (x >> 3);
 #ifdef UPD7220_MSB_FIRST
 	uint8_t bit = 0x80 >> (x & 7);
 #else

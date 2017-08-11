@@ -184,21 +184,21 @@ private:
 	
 	uint8_t sg_pattern[0x800];
 	uint8_t text[200][640];
+	uint8_t text_color[200][80];
 	uint8_t graph[400][640];
 	scrntype_t palette_text_pc[9];	// 0 = back color for attrib mode, 8 = black
-	scrntype_t palette_graph_pc[8];
+	scrntype_t palette_graph_pc[9];
 	
 	void draw_text();
 #if defined(_PC8001SR)
 	bool draw_320x200_color_graph();
 	bool draw_320x200_4color_graph();
 	void draw_320x200_attrib_graph();
+	void draw_640x200_mono_graph();
 #endif
 	bool draw_640x200_color_graph();
-	void draw_640x200_mono_graph();
-#if defined(_PC8001SR)
 	void draw_640x200_attrib_graph();
-#else
+#if !defined(_PC8001SR)
 	void draw_640x400_attrib_graph();
 #endif
 	

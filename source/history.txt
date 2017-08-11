@@ -1,3 +1,24 @@
+8/10/2017
+
+[EMU] support to enter 0-9 by numpad key while roman to kana is enabled
+[EMU] support to enter shift + function key while roman to kana is enabled
+[EMU/DEBUGGER] fix to wait until cpu is suspended and enters into waiting loop
+
+[VM/I386] fix to flush vtlb after modifying address mask
+[VM/UPD7220] support to specify device class to access vram
+[VM/Z80] fix to run dma before checking interrupts
+
+[PC8801/PC88] fix monocolor graph screen to get color index from text attribute
+[PC8801/PC88] fix monocolor graph screen to render with graph palette
+
+[PC9801VX] support NEC PC-9801VX
+[PC9801/CPUREG] support address mask i/o
+[PC9801/DISPLAY] support EGC (thanks Neko Project 2)
+[PC9801/DISPLAY] support EGC/GRCG access from graphic GDC
+[PC9801/MEMBUS] support 24bit/32bit address memory bus
+[PC9801/MEMBUS] support ITF rom
+
+
 6/22/2017
 
 [EMU] move auto key codes from winmain to emu class

@@ -179,6 +179,7 @@ protected:
 	opecodes
 	--------------------------------------------------------------------------- */
 	void run_one_opecode();
+	void check_interrupt();
 	//void OP(uint8_t code);
 public:
 	I8080(VM* parent_vm, EMU* parent_emu) : I8080_BASE(parent_vm, parent_emu)

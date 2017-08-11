@@ -227,9 +227,11 @@ CPU_EXECUTE( h6280_debug )
 			cpustate->debugger->check_break_points(cpustate->pc.w.l);
 			if(cpustate->debugger->now_suspended) {
 				cpustate->emu->mute_sound();
+				cpustate->debugger->now_waiting = true;
 				while(cpustate->debugger->now_debugging && cpustate->debugger->now_suspended) {
 					cpustate->emu->sleep(10);
 				}
+				cpustate->debugger->now_waiting = false;
 			}
 			if(cpustate->debugger->now_debugging) {
 				cpustate->program = cpustate->io = cpustate->debugger;
@@ -243,6 +245,30 @@ CPU_EXECUTE( h6280_debug )
 			in=RDOP();
 			PCW++;
 			insnh6280[in](cpustate);
+			
+			if ( cpustate->irq_pending ) {
+				if ( cpustate->irq_pending == 1 ) {
+					if ( !(P & _fI) ) {
+						cpustate->irq_pending--;
+						CHECK_AND_TAKE_IRQ_LINES;
+					}
+				} else {
+					cpustate->irq_pending--;
+				}
+			}
+			
+			/* Check internal timer */
+			if(cpustate->timer_status)
+			{
+				if(cpustate->timer_value<=0)
+				{
+					if ( ! cpustate->irq_pending )
+						cpustate->irq_pending = 1;
+					while( cpustate->timer_value <= 0 )
+						cpustate->timer_value += cpustate->timer_load;
+					set_irq_line(cpustate, 2,ASSERT_LINE);
+				}
+			}
 			
 			if(now_debugging) {
 				if(!cpustate->debugger->now_going) {

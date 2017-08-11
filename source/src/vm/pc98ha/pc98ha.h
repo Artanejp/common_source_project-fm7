@@ -49,6 +49,7 @@
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
+#define USE_AUTO_KEY_NUMPAD
 #define USE_SOUND_VOLUME	2
 #define USE_PRINTER
 #define USE_PRINTER_TYPE	3

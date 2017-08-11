@@ -638,9 +638,11 @@ void I86::run_one_opecode_debugger()
 		d_debugger->check_break_points(pc);
 		if(d_debugger->now_suspended) {
 			emu->mute_sound();
+			d_debugger->now_waiting = true;
 			while(d_debugger->now_debugging && d_debugger->now_suspended) {
 				emu->sleep(10);
 			}
+			d_debugger->now_waiting = false;
 		}
 		if(d_debugger->now_debugging) {
 			d_mem = d_io = d_debugger;
@@ -677,6 +679,11 @@ void I86::run_one_opecode()
 #endif
 #endif
 	instruction(FETCHOP);
+#ifdef SINGLE_MODE_DMA
+	if(d_dma) {
+		d_dma->do_dma();
+	}
+#endif
 	if(int_state & NMI_REQ_BIT) {
 		if(halted) {
 			pc++;
@@ -691,11 +698,6 @@ void I86::run_one_opecode()
 		}
 		interrupt(-1);
 	}
-#ifdef SINGLE_MODE_DMA
-	if(d_dma) {
-		d_dma->do_dma();
-	}
-#endif
 	icount -= extra_icount;
 	extra_icount = 0;
 }

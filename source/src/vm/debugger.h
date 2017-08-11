@@ -66,7 +66,7 @@ public:
 		memset(&obp, 0, sizeof(obp));
 		first_symbol = last_symbol = NULL;
 		my_tcscpy_s(file_path, _MAX_PATH, _T("debug.bin"));
-		now_debugging = now_going = now_suspended = false;
+		now_debugging = now_going = now_suspended = now_waiting = false;
 		set_device_name(_T("Debugger"));
 	}
 	~DEBUGGER() {}
@@ -269,7 +269,7 @@ public:
 	break_point_t bp, rbp, wbp, ibp, obp;
 	symbol_t *first_symbol, *last_symbol;
 	_TCHAR file_path[_MAX_PATH];
-	bool now_debugging, now_going, now_suspended;
+	bool now_debugging, now_going, now_suspended, now_waiting;
 };
 
 //#endif

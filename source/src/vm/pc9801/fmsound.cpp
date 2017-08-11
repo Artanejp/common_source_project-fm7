@@ -1,6 +1,10 @@
 /*
 	NEC PC-9801 Emulator 'ePC-9801'
 	NEC PC-9801E/F/M Emulator 'ePC-9801E'
+	NEC PC-9801U Emulator 'ePC-9801U'
+	NEC PC-9801VF Emulator 'ePC-9801VF'
+	NEC PC-9801VM Emulator 'ePC-9801VM'
+	NEC PC-9801VX Emulator 'ePC-9801VX'
 	NEC PC-98DO Emulator 'ePC-98DO'
 
 	Author : Takeda.Toshiya
@@ -23,20 +27,20 @@ void FMSOUND::reset()
 
 void FMSOUND::write_io8(uint32_t addr, uint32_t data)
 {
-	switch(addr & 0xffff) {
-	case 0x188:
+	switch(addr) {
+	case 0x0188:
 		d_opn->write_io8(0, data);
 		break;
-	case 0x18a:
+	case 0x018a:
 		d_opn->write_io8(1, data);
 		break;
 #ifdef SUPPORT_PC98_OPNA
-	case 0x18c:
+	case 0x018c:
 		if(mask & 1) {
 			d_opn->write_io8(2, data);
 		}
 		break;
-	case 0x18e:
+	case 0x018e:
 		if(mask & 1) {
 			d_opn->write_io8(3, data);
 		}
@@ -50,18 +54,18 @@ void FMSOUND::write_io8(uint32_t addr, uint32_t data)
 
 uint32_t FMSOUND::read_io8(uint32_t addr)
 {
-	switch(addr & 0xffff) {
-	case 0x188:
+	switch(addr) {
+	case 0x0188:
 		return d_opn->read_io8(0);
-	case 0x18a:
+	case 0x018a:
 		return d_opn->read_io8(1);
 #ifdef SUPPORT_PC98_OPNA
-	case 0x18c:
+	case 0x018c:
 		if(mask & 1) {
 			return d_opn->read_io8(2);
 		}
 		break;
-	case 0x18e:
+	case 0x018e:
 		if(mask & 1) {
 			return d_opn->read_io8(3);
 		}

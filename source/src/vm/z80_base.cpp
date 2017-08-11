@@ -91,12 +91,12 @@
 
 #define ENTER_HALT() do { \
 	PC--; \
-	halt = true; \
+	after_halt = true; \
 } while(0)
 
 #define LEAVE_HALT() do { \
-	if(halt) { \
-		halt = false; \
+	if(after_halt) { \
+		after_halt = false; \
 		PC++; \
 	} \
 } while(0)
@@ -1943,7 +1943,7 @@ void Z80_BASE::reset()
 	ea = 0;
 	
 	im = iff1 = iff2 = icr = 0;
-	halt = false;
+	after_halt = false;
 	after_ei = after_ldair = false;
 	intr_req_bit = intr_pend_bit = 0;
 	
@@ -3669,7 +3669,7 @@ void Z80_BASE::save_state(FILEIO* state_fio)
 	state_fio->FputUint8(R2);
 	state_fio->FputUint32(ea);
 	state_fio->FputBool(busreq);
-	state_fio->FputBool(halt);
+	state_fio->FputBool(after_halt);
 	state_fio->FputUint8(im);
 	state_fio->FputUint8(iff1);
 	state_fio->FputUint8(iff2);
@@ -3709,7 +3709,7 @@ bool Z80_BASE::load_state(FILEIO* state_fio)
 	R2 = state_fio->FgetUint8();
 	ea = state_fio->FgetUint32();
 	busreq = state_fio->FgetBool();
-	halt = state_fio->FgetBool();
+	after_halt = state_fio->FgetBool();
 	im = state_fio->FgetUint8();
 	iff1 = state_fio->FgetUint8();
 	iff2 = state_fio->FgetUint8();

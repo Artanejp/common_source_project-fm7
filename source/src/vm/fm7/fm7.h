@@ -35,6 +35,7 @@
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
+#define USE_AUTO_KEY_NUMPAD
 #define USE_SCREEN_FILTER
 #define USE_STATE
 #define USE_DEBUGGER
@@ -256,6 +257,7 @@
 #define SCREEN_HEIGHT		200
 #define SCREEN_FAKE_WIDTH   640
 #define SCREEN_FAKE_HEIGHT  200
+#define SCREEN_Y_ZOOM       2.0
 #endif
 #define WINDOW_HEIGHT_ASPECT 480
 #define HAS_MC6809              

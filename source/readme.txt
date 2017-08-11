@@ -1,5 +1,5 @@
 retro pc emulator common source code
-								5/20/2017
+								8/10/2017
 
 --- What's this ?
 
@@ -71,6 +71,7 @@ This archive includes the binaries of the emulators listed below:
 		ePC-9801U	PC-9801U
 		ePC-9801VF	PC-9801VF
 		ePC-9801VM	PC-9801VM
+		ePC-9801VX	PC-9801VX
 		ePC-98DO	PC-98DO
 		ePC-98LT	PC-98LT
 		eHANDY98	PC-98HA
@@ -449,6 +450,8 @@ Save/Load State info:
 	M88 by Mr.CISC
 	XM8 by Mr.PI.
 	MESS PC-8801 driver
+- vm/pc9801/display.*
+	Neko Project 2 by Mr.Yui
 - vm/pcengine/pce.*
 	Ootake (joypad)
 	xpce (psg)

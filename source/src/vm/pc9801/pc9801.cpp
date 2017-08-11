@@ -1,6 +1,10 @@
 /*
 	NEC PC-9801 Emulator 'ePC-9801'
 	NEC PC-9801E/F/M Emulator 'ePC-9801E'
+	NEC PC-9801U Emulator 'ePC-9801U'
+	NEC PC-9801VF Emulator 'ePC-9801VF'
+	NEC PC-9801VM Emulator 'ePC-9801VM'
+	NEC PC-9801VX Emulator 'ePC-9801VX'
 	NEC PC-98DO Emulator 'ePC-98DO'
 
 	Author : Takeda.Toshiya
@@ -23,7 +27,9 @@
 #include "../i8253.h"
 #include "../i8255.h"
 #include "../i8259.h"
-#if defined(HAS_I86) || defined(HAS_V30)
+#if defined(HAS_I386) || defined(HAS_I486)
+#include "../i386.h"
+#elif defined(HAS_I86) || defined(HAS_V30)
 #include "../i286.h"
 #else
 #include "../i286.h"
@@ -48,11 +54,16 @@
 #include "../debugger.h"
 #endif
 
+#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
+#include "cpureg.h"
+#endif
 #include "display.h"
+#include "dmareg.h"
 #include "floppy.h"
 #include "fmsound.h"
 #include "joystick.h"
 #include "keyboard.h"
+#include "membus.h"
 #include "mouse.h"
 
 #if defined(SUPPORT_320KB_FDD_IF)
@@ -91,10 +102,16 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		cpu_clocks = 4992030;
 		pit_clock_8mhz = false;
 	}
-#elif defined(_PC9801VM) || defined(_PC98DO)
+#elif defined(_PC9801VM) || defined(_PC98DO) || defined(_PC98DOPLUS) || defined(_PC9801VX) || defined(_PC98XL)
 	if(config.cpu_type != 0) {
-		// 10MHz -> 8MHz
+		// 10MHz/16MHz -> 8MHz
 		cpu_clocks = 7987248;
+		pit_clock_8mhz = true;
+	}
+#elif defined(_PC9801RA) || defined(_PC98RL)
+	if(config.cpu_type != 0) {
+		// 20MHz -> 16MHz
+		cpu_clocks = 15974496;
 		pit_clock_8mhz = true;
 	}
 #endif
@@ -133,8 +150,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio_prn = new I8255(this, emu);		// for printer
 	pio_prn->set_device_name(_T("8255 PIO (Printer)"));
 	pic = new I8259(this, emu);
-#if defined(HAS_I86) || defined(HAS_V30)
-	cpu = new I286(this, emu);
+#if defined(HAS_I386) || defined(HAS_I486)
+	cpu = new I386(this, emu); // 80386, 80486
+#elif defined(HAS_I86) || defined(HAS_V30)
+	cpu = new I286(this, emu);// 8086, V30, 80286
 #else
 	cpu = new I286(this, emu);
 #endif	
@@ -154,17 +173,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	cpu->set_device_name(_T("CPU(i286)"));
 #endif
 	io = new IO(this, emu);
-	dmareg1 = new LS244(this, emu);
-	dmareg1->set_device_name(_T("74LS244 (DMA #1)"));
-	dmareg2 = new LS244(this, emu);
-	dmareg2->set_device_name(_T("74LS244 (DMA #2)"));
-	dmareg3 = new LS244(this, emu);
-	dmareg3->set_device_name(_T("74LS244 (DMA #3)"));
-	dmareg0 = new LS244(this, emu);
-	dmareg0->set_device_name(_T("74LS244 (DMA #0)"));
 	rtcreg = new LS244(this, emu);
 	rtcreg->set_device_name(_T("74LS244 (RTC)"));
-	memory = new MEMORY(this, emu);
+	//memory = new MEMORY(this, emu);
+	memory = new MEMBUS(this, emu);
 	not_busy = new NOT(this, emu);
 	not_busy->set_device_name(_T("NOT Gate (Printer Busy)"));
 #if defined(HAS_I86) || defined(HAS_V30)
@@ -220,7 +232,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #if defined(SUPPORT_CMT_IF)
 	cmt = new CMT(this, emu);
 #endif
+#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
+	cpureg = new CPUREG(this, emu);
+#endif
 	display = new DISPLAY(this, emu);
+	dmareg = new DMAREG(this, emu);
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	mouse = new MOUSE(this, emu);
@@ -280,8 +296,12 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	dma->set_context_ch3(fdc_2dd);
 #endif
 #if defined(SUPPORT_2HD_2DD_FDD_IF)
+#if !defined(SUPPORT_HIRESO)
 	dma->set_context_ch2(fdc);
 	dma->set_context_ch3(fdc);
+#else
+	dma->set_context_ch1(fdc);
+#endif
 #endif
 //	sio_rs->set_context_rxrdy(pic, SIG_I8259_CHIP0 | SIG_I8259_IR4, 1);
 	sio_kbd->set_context_rxrdy(pic, SIG_I8259_CHIP0 | SIG_I8259_IR1, 1);
@@ -297,11 +317,16 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pit->set_constant_clock(1, pit_clocks);
 	pit->set_constant_clock(2, pit_clocks);
 	pio_mouse->set_context_port_c(mouse, SIG_MOUSE_PORT_C, 0xf0, 0);
+#if defined(SUPPORT_HIRESO)
+	// sysport port.c bit7,5: sysport port.b bit4,3
+	pio_sys->set_context_port_c(pio_sys, SIG_I8255_PORT_B, 0x80, -3); // SHUT0
+	pio_sys->set_context_port_c(pio_sys, SIG_I8255_PORT_B, 0x20, -2); // SHUT1
+#endif
 	// sysport port.c bit6: printer strobe
 #if defined(SUPPORT_OLD_BUZZER)
-	pio_sys->set_context_port_c(beep, SIG_BEEP_MUTE, 8, 0);
+	pio_sys->set_context_port_c(beep, SIG_BEEP_MUTE, 0x08, 0);
 #else
-	pio_sys->set_context_port_c(beep, SIG_PCM1BIT_MUTE, 8, 0);
+	pio_sys->set_context_port_c(beep, SIG_PCM1BIT_MUTE, 0x08, 0);
 #endif
 	// sysport port.c bit2: enable txrdy interrupt
 	// sysport port.c bit1: enable txempty interrupt
@@ -320,10 +345,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio_prn->set_context_port_c(not_prn, SIG_NOT_INPUT, 8, 0);
 	not_prn->set_context_out(pic, SIG_I8259_CHIP1 | SIG_I8259_IR0, 1);
 #endif
-	dmareg1->set_context_output(dma, SIG_I8237_BANK1, 0x0f, 0);
-	dmareg2->set_context_output(dma, SIG_I8237_BANK2, 0x0f, 0);
-	dmareg3->set_context_output(dma, SIG_I8237_BANK3, 0x0f, 0);
-	dmareg0->set_context_output(dma, SIG_I8237_BANK0, 0x0f, 0);
 	rtcreg->set_context_output(rtc, SIG_UPD1990A_CMD, 0x07, 0);
 	rtcreg->set_context_output(rtc, SIG_UPD1990A_DIN, 0x20, 0);
 	rtcreg->set_context_output(rtc, SIG_UPD1990A_STB, 0x08, 0);
@@ -345,9 +366,13 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		pit_14->set_context_ch2(pic, SIG_I8259_CHIP1 | SIG_I8259_IR4, 1);
 	}
 	
+#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
+	cpureg->set_context_cpu(cpu);
+#endif
 	display->set_context_pic(pic);
 	display->set_context_gdc_chr(gdc_chr, gdc_chr->get_ra());
 	display->set_context_gdc_gfx(gdc_gfx, gdc_gfx->get_ra(), gdc_gfx->get_cs());
+	dmareg->set_context_dma(dma);
 	keyboard->set_context_sio(sio_kbd);
 	mouse->set_context_pic(pic);
 	mouse->set_context_pio(pio_mouse);
@@ -429,102 +454,134 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #endif
 	
 	// memory bus
+/*
+	NORMAL PC-9801
+		00000h - 9FFFFh: RAM
+		A0000h - A1FFFh: TEXT VRAM
+		A2000h - A3FFFh: ATTRIBUTE
+		A4000h - A4FFFh: CG WINDOW
+		A8000h - BFFFFh: VRAM (BRG)
+		E0000h - E7FFFh: VRAM (I)
+		E8000h - FFFFFh: IPL
+
+	HIRESO PC-98XA/XL/XL^2/RL
+		00000h - 7FFFFh: RAM
+		80000h - BFFFFh: MEMORY WINDOW
+		C0000h - DFFFFh: VRAM
+		E0000h - E1FFFh: TEXT VRAM
+		E2000h - E3FFFh: ATTRIBUTE
+		E4000h - E4FFFh: CG WINDOW
+		F0000h - FFFFFh: IPL
+*/
+	// ram
 	memset(ram, 0, sizeof(ram));
-	memset(ipl, 0xff, sizeof(ipl));
-	memset(sound_bios, 0xff, sizeof(sound_bios));
-#if defined(_PC9801) || defined(_PC9801E)
-	memset(fd_bios_2hd, 0xff, sizeof(fd_bios_2hd));
-	memset(fd_bios_2dd, 0xff, sizeof(fd_bios_2dd));
+//	set_memory_r(0x100000 - sizeof(ipl), 0x0fffff, ipl);
+#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
+	memory->set_memory_rw(0x100000, sizeof(ram) - 1, ram + 0x100000);
 #endif
-	
-	memory->read_bios(_T("IPL.ROM"), ipl, sizeof(ipl));
-	if(sound_type == 0) {
-		display->sound_bios_ok = (memory->read_bios(_T("SOUND.ROM"), sound_bios, sizeof(sound_bios)) != 0);
-	} else if(sound_type == 2) {
-		display->sound_bios_ok = (memory->read_bios(_T("MUSIC.ROM"), sound_bios, sizeof(sound_bios)) != 0);
-	} else {
-		display->sound_bios_ok = false;
-	}
-#if defined(_PC9801) || defined(_PC9801E)
-	memory->read_bios(_T("2HDIF.ROM"), fd_bios_2hd, sizeof(fd_bios_2hd));
-	memory->read_bios(_T("2DDIF.ROM"), fd_bios_2dd, sizeof(fd_bios_2dd));
-#endif
-	
-	memory->set_memory_rw(0x00000, 0x9ffff, ram);
-	// A0000h - A1FFFh: TEXT VRAM
-	// A2000h - A3FFFh: ATTRIBUTE
-	memory->set_memory_mapped_io_rw(0xa0000, 0xa3fff, display);
-	// A8000h - BFFFFh: VRAM
+	// vram
+#if !defined(SUPPORT_HIRESO)
+	memory->set_memory_rw(0x000000, 0x09ffff, ram);
+	memory->set_memory_mapped_io_rw(0xa0000, 0xa4fff, display);
 	memory->set_memory_mapped_io_rw(0xa8000, 0xbffff, display);
-	if(sound_type == 0 || sound_type == 2) {
-		memory->set_memory_r(0xcc000, 0xcffff, sound_bios);
-	}
-#if defined(_PC9801) || defined(_PC9801E)
-	memory->set_memory_r(0xd6000, 0xd6fff, fd_bios_2dd);
-	memory->set_memory_r(0xd7000, 0xd7fff, fd_bios_2hd);
-#endif
 #if defined(SUPPORT_16_COLORS)
-	// E0000h - E7FFFh: VRAM
 	memory->set_memory_mapped_io_rw(0xe0000, 0xe7fff, display);
 #endif
-	memory->set_memory_r(0xe8000, 0xfffff, ipl);
+#else
+	memory->set_memory_rw(0x00000, 0xbffff, ram);
+	memory->set_memory_mapped_io_rw(0xc0000, 0xe4fff, display);
+#endif
+	// bios
+#if defined(_PC9801) || defined(_PC9801E)
+	memset(fd_bios_2hd, 0xff, sizeof(fd_bios_2hd));
+	memory->read_bios(_T("2HDIF.ROM"), fd_bios_2hd, sizeof(fd_bios_2hd));
+	memory->set_memory_r(0xd6000, 0xd6fff, fd_bios_2dd);
+	
+	memset(fd_bios_2dd, 0xff, sizeof(fd_bios_2dd));
+	memory->read_bios(_T("2DDIF.ROM"), fd_bios_2dd, sizeof(fd_bios_2dd));
+	memory->set_memory_r(0xd7000, 0xd7fff, fd_bios_2hd);
+#endif
+#if !defined(SUPPORT_HIRESO)
+	memset(sound_bios, 0xff, sizeof(sound_bios));
+	if(sound_type == 0) {
+		display->sound_bios_ok = (memory->read_bios(_T("SOUND.ROM"), sound_bios, sizeof(sound_bios)) != 0);
+		memory->set_memory_r(0xcc000, 0xcffff, sound_bios);
+	} else if(sound_type == 2) {
+		display->sound_bios_ok = (memory->read_bios(_T("MUSIC.ROM"), sound_bios, sizeof(sound_bios)) != 0);
+		memory->set_memory_r(0xcc000, 0xcffff, sound_bios);
+	} else
+#endif
+	display->sound_bios_ok = false;
+//	memory->set_memory_r(0x100000 - sizeof(ipl), 0xfffff, ipl);
 	
 	// i/o bus
-	io->set_iomap_alias_rw(0x00, pic, 0);
-	io->set_iomap_alias_rw(0x02, pic, 1);
-	io->set_iomap_alias_rw(0x08, pic, 2);
-	io->set_iomap_alias_rw(0x0a, pic, 3);
+	io->set_iomap_alias_rw(0x0000, pic, 0);
+	io->set_iomap_alias_rw(0x0002, pic, 1);
+	io->set_iomap_alias_rw(0x0008, pic, 2);
+	io->set_iomap_alias_rw(0x000a, pic, 3);
 	
-	io->set_iomap_alias_rw(0x01, dma, 0x00);
-	io->set_iomap_alias_rw(0x03, dma, 0x01);
-	io->set_iomap_alias_rw(0x05, dma, 0x02);
-	io->set_iomap_alias_rw(0x07, dma, 0x03);
-	io->set_iomap_alias_rw(0x09, dma, 0x04);
-	io->set_iomap_alias_rw(0x0b, dma, 0x05);
-	io->set_iomap_alias_rw(0x0d, dma, 0x06);
-	io->set_iomap_alias_rw(0x0f, dma, 0x07);
-	io->set_iomap_alias_rw(0x11, dma, 0x08);
-	io->set_iomap_alias_w(0x13, dma, 0x09);
-	io->set_iomap_alias_w(0x15, dma, 0x0a);
-	io->set_iomap_alias_w(0x17, dma, 0x0b);
-	io->set_iomap_alias_w(0x19, dma, 0x0c);
-	io->set_iomap_alias_rw(0x1b, dma, 0x0d);
-	io->set_iomap_alias_w(0x1d, dma, 0x0e);
-	io->set_iomap_alias_w(0x1f, dma, 0x0f);
-	io->set_iomap_single_w(0x21, dmareg1);
-	io->set_iomap_single_w(0x23, dmareg2);
-	io->set_iomap_single_w(0x25, dmareg3);
-	io->set_iomap_single_w(0x27, dmareg0);
-	
-	io->set_iomap_single_w(0x20, rtcreg);
-	
-	io->set_iomap_alias_rw(0x30, sio_rs, 0);
-	io->set_iomap_alias_rw(0x32, sio_rs, 1);
-	
-	io->set_iomap_alias_rw(0x31, pio_sys, 0);
-	io->set_iomap_alias_rw(0x33, pio_sys, 1);
-	io->set_iomap_alias_rw(0x35, pio_sys, 2);
-	io->set_iomap_alias_w(0x37, pio_sys, 3);
-	
-	io->set_iomap_alias_rw(0x40, pio_prn, 0);
-	io->set_iomap_alias_rw(0x42, pio_prn, 1);
-	io->set_iomap_alias_rw(0x44, pio_prn, 2);
-	io->set_iomap_alias_w(0x46, pio_prn, 3);
-	
-	io->set_iomap_alias_rw(0x41, sio_kbd, 0);
-	io->set_iomap_alias_rw(0x43, sio_kbd, 1);
-	
-	// 50h, 52h: NMI Flip Flop
-	
-#if defined(SUPPORT_320KB_FDD_IF)
-	io->set_iomap_alias_rw(0x51, pio_fdd, 0);
-	io->set_iomap_alias_rw(0x53, pio_fdd, 1);
-	io->set_iomap_alias_rw(0x55, pio_fdd, 2);
-	io->set_iomap_alias_w(0x57, pio_fdd, 3);
+	io->set_iomap_alias_rw(0x0001, dma, 0x00);
+	io->set_iomap_alias_rw(0x0003, dma, 0x01);
+	io->set_iomap_alias_rw(0x0005, dma, 0x02);
+	io->set_iomap_alias_rw(0x0007, dma, 0x03);
+	io->set_iomap_alias_rw(0x0009, dma, 0x04);
+	io->set_iomap_alias_rw(0x000b, dma, 0x05);
+	io->set_iomap_alias_rw(0x000d, dma, 0x06);
+	io->set_iomap_alias_rw(0x000f, dma, 0x07);
+	io->set_iomap_alias_rw(0x0011, dma, 0x08);
+	io->set_iomap_alias_w (0x0013, dma, 0x09);
+	io->set_iomap_alias_w (0x0015, dma, 0x0a);
+	io->set_iomap_alias_w (0x0017, dma, 0x0b);
+	io->set_iomap_alias_w (0x0019, dma, 0x0c);
+	io->set_iomap_alias_rw(0x001b, dma, 0x0d);
+	io->set_iomap_alias_w (0x001d, dma, 0x0e);
+	io->set_iomap_alias_w (0x001f, dma, 0x0f);
+	io->set_iomap_single_w(0x0021, dmareg);
+	io->set_iomap_single_w(0x0023, dmareg);
+	io->set_iomap_single_w(0x0025, dmareg);
+	io->set_iomap_single_w(0x0027, dmareg);
+#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
+	io->set_iomap_single_w(0x0029, dmareg);
+#endif
+#if defined(SUPPORT_32BIT_ADDRESS)
+	io->set_iomap_single_w(0x0e05, dmareg);
+	io->set_iomap_single_w(0x0e07, dmareg);
+	io->set_iomap_single_w(0x0e09, dmareg);
+	io->set_iomap_single_w(0x0e0b, dmareg);
 #endif
 	
-	io->set_iomap_alias_rw(0x60, gdc_chr, 0);
-	io->set_iomap_alias_rw(0x62, gdc_chr, 1);
+	io->set_iomap_single_w(0x0020, rtcreg);
+	
+	io->set_iomap_alias_rw(0x0030, sio_rs, 0);
+	io->set_iomap_alias_rw(0x0032, sio_rs, 1);
+	
+	io->set_iomap_alias_rw(0x0031, pio_sys, 0);
+	io->set_iomap_alias_rw(0x0033, pio_sys, 1);
+	io->set_iomap_alias_rw(0x0035, pio_sys, 2);
+	io->set_iomap_alias_w (0x0037, pio_sys, 3);
+	
+	io->set_iomap_alias_rw(0x0040, pio_prn, 0);
+	io->set_iomap_alias_rw(0x0042, pio_prn, 1);
+	io->set_iomap_alias_rw(0x0044, pio_prn, 2);
+	io->set_iomap_alias_w (0x0046, pio_prn, 3);
+	
+	io->set_iomap_alias_rw(0x0041, sio_kbd, 0);
+	io->set_iomap_alias_rw(0x0043, sio_kbd, 1);
+	
+#if !defined(_PC9801U)
+	io->set_iomap_single_w(0x0050, dummy); // NMI disabled
+	io->set_iomap_single_w(0x0052, dummy); // NMI enabled
+#endif
+	
+#if defined(SUPPORT_320KB_FDD_IF)
+	io->set_iomap_alias_rw(0x0051, pio_fdd, 0);
+	io->set_iomap_alias_rw(0x0053, pio_fdd, 1);
+	io->set_iomap_alias_rw(0x0055, pio_fdd, 2);
+	io->set_iomap_alias_w (0x0057, pio_fdd, 3);
+#endif
+	
+	io->set_iomap_alias_rw(0x0060, gdc_chr, 0);
+	io->set_iomap_alias_rw(0x0062, gdc_chr, 1);
 	
 	io->set_iomap_single_w(0x64, display);
 	io->set_iomap_single_w(0x68, display);
@@ -540,90 +597,135 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	io->set_iomap_single_w(0x76, display);
 	io->set_iomap_single_w(0x78, display);
 	io->set_iomap_single_w(0x7a, display);
-#if defined(SUPPORT_16_COLORS)
-	io->set_iomap_single_w(0x7c, display);
-	io->set_iomap_single_w(0x7e, display);
+#if defined(SUPPORT_GRCG)
+#if !defined(SUPPORT_HIRESO)
+	io->set_iomap_single_w(0x007c, display);
+	io->set_iomap_single_w(0x007e, display);
+#else
+	io->set_iomap_single_w(0x00a4, display);
+	io->set_iomap_single_w(0x00a6, display);
+#endif
 #endif
 	
-	io->set_iomap_alias_rw(0x71, pit, 0);
-	io->set_iomap_alias_rw(0x73, pit, 1);
-	io->set_iomap_alias_rw(0x75, pit, 2);
-	io->set_iomap_alias_w(0x77, pit, 3);
+	io->set_iomap_alias_rw(0x00a0, gdc_gfx, 0);
+	io->set_iomap_alias_rw(0x00a2, gdc_gfx, 1);
 	
-	// 80h, 82h: SASI
-	
-	io->set_iomap_single_rw(0x90, floppy);
-	io->set_iomap_single_rw(0x92, floppy);
-	io->set_iomap_single_rw(0x94, floppy);
-	
-#if defined(SUPPORT_CMT_IF)
-	io->set_iomap_alias_rw(0x91, sio_cmt, 0);
-	io->set_iomap_alias_rw(0x93, sio_cmt, 1);
-	io->set_iomap_single_w(0x95, cmt);
-	io->set_iomap_single_w(0x97, cmt);
-#endif
-	
-	io->set_iomap_alias_rw(0xa0, gdc_gfx, 0);
-	io->set_iomap_alias_rw(0xa2, gdc_gfx, 1);
-	
-#if defined(SUPPORT_2ND_VRAM)
-	io->set_iomap_single_w(0xa4, display);
-	io->set_iomap_single_w(0xa6, display);
+#if defined(SUPPORT_2ND_VRAM) && !defined(SUPPORT_HIRESO)
+	io->set_iomap_single_rw(0x00a4, display);
+	io->set_iomap_single_rw(0x00a6, display);
 #endif
 	io->set_iomap_single_rw(0xa8, display);
 	io->set_iomap_single_rw(0xaa, display);
 	io->set_iomap_single_rw(0xac, display);
 	io->set_iomap_single_rw(0xae, display);
 	
-	io->set_iomap_single_w(0xa1, display);
-	io->set_iomap_single_w(0xa3, display);
-	io->set_iomap_single_w(0xa5, display);
+//	io->set_iomap_single_w(0xa1, display);
+//	io->set_iomap_single_w(0xa3, display);
+//	io->set_iomap_single_w(0xa5, display);
+	io->set_iomap_single_rw(0xa1, display);
+	io->set_iomap_single_rw(0xa3, display);
+	io->set_iomap_single_rw(0xa5, display);
 	io->set_iomap_single_rw(0xa9, display);
-	
-#if defined(SUPPORT_2HD_2DD_FDD_IF)
-	io->set_iomap_single_rw(0xbe, floppy);
+#if defined(SUPPORT_EGC) && !(SUPPORT_HIRESO)
+	io->set_iomap_range_rw(0x04a0, 0x04af, display);
 #endif
-	io->set_iomap_single_rw(0xc8, floppy);
-	io->set_iomap_single_rw(0xca, floppy);
-	io->set_iomap_single_rw(0xcc, floppy);
+	
+	io->set_iomap_alias_rw(0x0071, pit, 0);
+	io->set_iomap_alias_rw(0x0073, pit, 1);
+	io->set_iomap_alias_rw(0x0075, pit, 2);
+	io->set_iomap_alias_w (0x0077, pit, 3);
+	
+	// 80h, 82h: SASI
+	
+	io->set_iomap_single_rw(0x0090, floppy);
+	io->set_iomap_single_rw(0x0092, floppy);
+	io->set_iomap_single_rw(0x0094, floppy);
+#if defined(SUPPORT_2HD_2DD_FDD_IF)
+#if !defined(SUPPORT_HIRESO)
+	io->set_iomap_single_rw(0x00be, floppy);
+#else
+	io->set_iomap_single_w (0x00be, floppy);
+#endif
+#endif
+#if !defined(SUPPORT_HIRESO)
+	io->set_iomap_single_rw(0x00c8, floppy);
+	io->set_iomap_single_rw(0x00ca, floppy);
+	io->set_iomap_single_rw(0x00cc, floppy);
+#endif
+	
+#if defined(SUPPORT_CMT_IF)
+	io->set_iomap_alias_rw(0x0091, sio_cmt, 0);
+	io->set_iomap_alias_rw(0x0093, sio_cmt, 1);
+	io->set_iomap_single_w(0x0095, cmt);
+	io->set_iomap_single_w(0x0097, cmt);
+#endif
+	
+#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
+	io->set_iomap_single_rw(0x00f0, cpureg);
+	io->set_iomap_single_rw(0x00f2, cpureg);
+#endif
+#if defined(SUPPORT_32BIT_ADDRESS)
+	io->set_iomap_single_rw(0x00f6, cpureg);
+#endif
 	
 	if(sound_type == 0 || sound_type == 1) {
-		io->set_iomap_single_rw(0x188, fmsound);
-		io->set_iomap_single_rw(0x18a, fmsound);
+		io->set_iomap_single_rw(0x0188, fmsound);
+		io->set_iomap_single_rw(0x018a, fmsound);
 #ifdef SUPPORT_PC98_OPNA
-		io->set_iomap_single_rw(0x18c, fmsound);
-		io->set_iomap_single_rw(0x18e, fmsound);
+		io->set_iomap_single_rw(0x018c, fmsound);
+		io->set_iomap_single_rw(0x018e, fmsound);
 		io->set_iomap_single_rw(0xa460, fmsound);
 #endif
 	} else if(sound_type == 2 || sound_type == 3) {
-		io->set_iomap_alias_rw(0x88, pio_14, 0);
-		io->set_iomap_alias_rw(0x8a, pio_14, 1);
-		io->set_iomap_alias_rw(0x8c, pio_14, 2);
-		io->set_iomap_alias_w(0x8e, pio_14, 3);
-		io->set_iovalue_single_r(0x8e, 0x08);
-		io->set_iomap_single_w(0x188, maskreg_14);
-		io->set_iomap_single_w(0x18a, maskreg_14);
-		io->set_iomap_alias_rw(0x18c, pit_14, 2);
-		io->set_iomap_alias_w(0x18e, pit_14, 3);
-//		io->set_iovalue_single_r(0x18e, 0x00); // INT0
-//		io->set_iovalue_single_r(0x18e, 0x40); // INT41
-		io->set_iovalue_single_r(0x18e, 0x80); // INT5
-//		io->set_iovalue_single_r(0x18e, 0xc0); // INT6
+		io->set_iomap_alias_rw(0x0088, pio_14, 0);
+		io->set_iomap_alias_rw(0x008a, pio_14, 1);
+		io->set_iomap_alias_rw(0x008c, pio_14, 2);
+		io->set_iomap_alias_w(0x008e, pio_14, 3);
+		io->set_iovalue_single_r(0x008e, 0x08);
+		io->set_iomap_single_w(0x0188, maskreg_14);
+		io->set_iomap_single_w(0x018a, maskreg_14);
+		io->set_iomap_alias_rw(0x018c, pit_14, 2);
+		io->set_iomap_alias_w(0x018e, pit_14, 3);
+//		io->set_iovalue_single_r(0x018e, 0x00); // INT0
+//		io->set_iovalue_single_r(0x018e, 0x40); // INT41
+		io->set_iovalue_single_r(0x018e, 0x80); // INT5
+//		io->set_iovalue_single_r(0x018e, 0xc0); // INT6
 	}
 	
-#if !defined(SUPPORT_OLD_BUZZER)
+#if defined(SUPPORT_ITF_ROM)
+	io->set_iomap_single_w(0x043d, memory);
+#endif
+#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
+	io->set_iomap_single_rw(0x0439, memory);
+#if !defined(SUPPORT_HIRESO)
+	io->set_iomap_single_rw(0x0461, memory);
+	io->set_iomap_single_rw(0x0463, memory);
+#else
+	io->set_iomap_single_rw(0x0091, memory);
+	io->set_iomap_single_rw(0x0093, memory);
+#endif
+#endif
+	
+#if !(defined(_PC9801) || defined(_PC9801E) || defined(SUPPORT_HIRESO))
 	io->set_iomap_alias_rw(0x3fd9, pit, 0);
 	io->set_iomap_alias_rw(0x3fdb, pit, 1);
 	io->set_iomap_alias_rw(0x3fdd, pit, 2);
-	io->set_iomap_alias_w(0x3fdf, pit, 3);
+	io->set_iomap_alias_w (0x3fdf, pit, 3);
 #endif
 	
+#if !defined(SUPPORT_HIRESO)
 	io->set_iomap_alias_rw(0x7fd9, pio_mouse, 0);
 	io->set_iomap_alias_rw(0x7fdb, pio_mouse, 1);
 	io->set_iomap_alias_rw(0x7fdd, pio_mouse, 2);
-	io->set_iomap_alias_w(0x7fdf, pio_mouse, 3);
-#if !(defined(_PC9801) || defined(_PC9801E))
-	io->set_iomap_single_w(0xbfdb, mouse);
+	io->set_iomap_alias_w (0x7fdf, pio_mouse, 3);
+#else
+	io->set_iomap_alias_rw(0x0061, pio_mouse, 0);
+	io->set_iomap_alias_rw(0x0063, pio_mouse, 1);
+	io->set_iomap_alias_rw(0x0065, pio_mouse, 2);
+	io->set_iomap_alias_rw(0x0067, pio_mouse, 3);
+#endif
+#if !(defined(_PC9801) || defined(_PC9801E) || defined(SUPPORT_HIRESO))
+	io->set_iomap_single_rw(0xbfdb, mouse);
 #endif
 	
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
@@ -810,6 +912,7 @@ void VM::reset()
 	
 	pio_sys->write_signal(SIG_I8255_PORT_A, 0xe3, 0xff);
 	pio_sys->write_signal(SIG_I8255_PORT_B, 0xf8, 0xff);//0xe8??
+	pio_sys->write_signal(SIG_I8255_PORT_C, 0xff, 0xff);
 	
 #if defined(_PC9801)
 	uint8_t prn_b = 0x00;	// system type = first PC-9801
@@ -1305,7 +1408,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	8
+#define STATE_VERSION	9
 
 void VM::save_state(FILEIO* state_fio)
 {

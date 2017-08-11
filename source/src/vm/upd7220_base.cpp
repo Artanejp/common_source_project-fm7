@@ -473,17 +473,25 @@ void UPD7220_BASE::cmd_write_sub(uint32_t addr, uint8_t data)
 
 void UPD7220_BASE::write_vram(uint32_t addr, uint8_t data)
 {
-	if(vram != NULL && addr < vram_size) {
-		vram[addr] = data;
+	if(addr < vram_size) {
+		if(vram != NULL) {
+			vram[addr] = data;
+		} else if(d_vram_bus != NULL) {
+			d_vram_bus->write_dma_io8(addr, data);
+		}
 	}
 }
 
 uint8_t UPD7220_BASE::read_vram(uint32_t addr)
 {
-	if(vram != NULL && addr < vram_size) {
-		uint8_t mask = (addr & 1) ? (vram_data_mask >> 8) : (vram_data_mask & 0xff);
-		return (vram[addr] & mask) | ~mask;
-	}
+	if(addr < vram_size) {
+ 		uint8_t mask = (addr & 1) ? (vram_data_mask >> 8) : (vram_data_mask & 0xff);
+		if(vram != NULL) {
+			return (vram[addr] & mask) | ~mask;
+		} else if(d_vram_bus != NULL) {
+			return (d_vram_bus->read_dma_io8(addr) & mask) | ~mask;
+		}
+ 	}
 	return 0xff;
 }
 

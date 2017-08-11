@@ -112,7 +112,7 @@ set(s_vm_common_vm_srcs
 	../fm7/mb61vh010.cpp
 #	../fm7/dummydevice.cpp
 )
-SET(THIS_LIB_VERSION 1.1.16)
+SET(THIS_LIB_VERSION 1.1.17)
 
 if(WIN32)
 #include (GenerateExportHeader)

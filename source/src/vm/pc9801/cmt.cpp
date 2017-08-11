@@ -31,7 +31,12 @@ void CMT::reset()
 
 void CMT::write_io8(uint32_t addr, uint32_t data)
 {
-	remote = ((data & 0x20) != 0);
+	switch(addr) {
+	case 0x0095:
+	case 0x0097:
+		remote = ((data & 0x20) != 0);
+		break;
+	}
 }
 
 void CMT::write_signal(int id, uint32_t data, uint32_t mask)

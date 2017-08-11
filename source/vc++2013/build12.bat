@@ -329,6 +329,11 @@ copy binary_vc12\pc9801u.exe build_vc12\pc9801vm\.
 copy binary_vc12\pc9801vf.exe build_vc12\pc9801vm\.
 copy binary_vc12\pc9801vm.exe build_vc12\pc9801vm\.
 
+devenv.com pc9801vx.vcxproj /Rebuild Release
+call :clean
+mkdir build_vc12\pc9801vx
+copy binary_vc12\pc9801vx.exe build_vc12\pc9801vx\.
+
 devenv.com pc98do.vcxproj /Rebuild Release
 call :clean
 mkdir build_vc12\pc98do

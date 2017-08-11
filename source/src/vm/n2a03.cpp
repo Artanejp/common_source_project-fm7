@@ -1011,9 +1011,11 @@ int N2A03::run(int clock)
 				d_debugger->check_break_points(PCW);
 				if(d_debugger->now_suspended) {
 					emu->mute_sound();
+					d_debugger->now_waiting = true;
 					while(d_debugger->now_debugging && d_debugger->now_suspended) {
 						emu->sleep(10);
 					}
+					d_debugger->now_waiting = false;
 				}
 				if(d_debugger->now_debugging) {
 					d_mem = d_debugger;
@@ -1049,9 +1051,11 @@ int N2A03::run(int clock)
 				d_debugger->check_break_points(PCW);
 				if(d_debugger->now_suspended) {
 					emu->mute_sound();
+					d_debugger->now_waiting = true;
 					while(d_debugger->now_debugging && d_debugger->now_suspended) {
 						emu->sleep(10);
 					}
+					d_debugger->now_waiting = false;
 				}
 				if(d_debugger->now_debugging) {
 					d_mem = d_debugger;

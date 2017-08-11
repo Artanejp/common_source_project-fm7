@@ -165,6 +165,9 @@
     <ClCompile Include="..\src\vm\pc9801\display.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\vm\pc9801\dmareg.cpp">
+      <Filter>Source Files\VM Driver Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\vm\pc9801\floppy.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
@@ -175,6 +178,9 @@
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\vm\pc9801\keyboard.cpp">
+      <Filter>Source Files\VM Driver Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\pc9801\membus.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\vm\pc9801\mouse.cpp">
@@ -299,6 +305,9 @@
     <ClInclude Include="..\src\vm\pc9801\display.h">
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\vm\pc9801\dmareg.h">
+      <Filter>Header Files\VM Driver Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\vm\pc9801\floppy.h">
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
@@ -309,6 +318,9 @@
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\pc9801\keyboard.h">
+      <Filter>Header Files\VM Driver Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\pc9801\membus.h">
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\pc9801\mouse.h">

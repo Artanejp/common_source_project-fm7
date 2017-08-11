@@ -1038,6 +1038,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\src\vm\pc9801\dmareg.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\src\vm\pc9801\floppy.cpp"
 					>
 					<FileConfiguration
@@ -1099,6 +1119,26 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\pc9801\keyboard.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\pc9801\membus.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -1351,6 +1391,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\src\vm\pc9801\dmareg.h"
+					>
+				</File>
+				<File
 					RelativePath="..\src\vm\pc9801\floppy.h"
 					>
 				</File>
@@ -1364,6 +1408,10 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\pc9801\keyboard.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\pc9801\membus.h"
 					>
 				</File>
 				<File

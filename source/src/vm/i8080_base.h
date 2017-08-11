@@ -53,7 +53,7 @@ protected:
 	pair_t regs[4];
 	uint16_t SP, PC, prevPC;
 	uint16_t IM, RIM_IEN;
-	bool HALT, BUSREQ, SID, afterEI;
+	bool afterHALT, BUSREQ, SID, afterEI;
 	
 	static const int cc_op_8080[0x100];
 	static const int cc_op_8085[0x100];
@@ -180,8 +180,8 @@ public:
 
 inline void I8080_BASE::INT(uint16_t v)
 {												\
-	if(HALT) {
-		PC++; HALT = 0;
+	if(afterHALT) {
+		PC++; afterHALT = 0;
 	}
 	PUSH16(PC); PC = (v);
 }

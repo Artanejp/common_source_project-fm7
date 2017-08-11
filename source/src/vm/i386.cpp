@@ -467,6 +467,9 @@ void I386::set_address_mask(uint32_t mask)
 {
 	i386_state *cpustate = (i386_state *)opaque;
 	cpustate->a20_mask = mask;
+	
+	// TODO: how does A20M and the tlb interact
+	vtlb_flush_dynamic(cpustate->vtlb);
 }
 
 uint32_t I386::get_address_mask()

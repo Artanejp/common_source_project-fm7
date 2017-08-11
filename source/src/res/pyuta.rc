@@ -121,32 +121,8 @@ BEGIN
             MENUITEM "State 9",                 ID_LOAD_STATE9
         END
         MENUITEM SEPARATOR
-        POPUP "Save State"
-        BEGIN
-            MENUITEM "State 0",                 ID_SAVE_STATE0
-            MENUITEM "State 1",                 ID_SAVE_STATE1
-            MENUITEM "State 2",                 ID_SAVE_STATE2
-            MENUITEM "State 3",                 ID_SAVE_STATE3
-            MENUITEM "State 4",                 ID_SAVE_STATE4
-            MENUITEM "State 5",                 ID_SAVE_STATE5
-            MENUITEM "State 6",                 ID_SAVE_STATE6
-            MENUITEM "State 7",                 ID_SAVE_STATE7
-            MENUITEM "State 8",                 ID_SAVE_STATE8
-            MENUITEM "State 9",                 ID_SAVE_STATE9
-        END
-        POPUP "Load State"
-        BEGIN
-            MENUITEM "State 0",                 ID_LOAD_STATE0
-            MENUITEM "State 1",                 ID_LOAD_STATE1
-            MENUITEM "State 2",                 ID_LOAD_STATE2
-            MENUITEM "State 3",                 ID_LOAD_STATE3
-            MENUITEM "State 4",                 ID_LOAD_STATE4
-            MENUITEM "State 5",                 ID_LOAD_STATE5
-            MENUITEM "State 6",                 ID_LOAD_STATE6
-            MENUITEM "State 7",                 ID_LOAD_STATE7
-            MENUITEM "State 8",                 ID_LOAD_STATE8
-            MENUITEM "State 9",                 ID_LOAD_STATE9
-        END
+        MENUITEM "Debug Main CPU",              ID_OPEN_DEBUGGER0
+        MENUITEM "Close Debugger",              ID_CLOSE_DEBUGGER
         MENUITEM SEPARATOR
         MENUITEM "Exit",                        ID_EXIT
     END

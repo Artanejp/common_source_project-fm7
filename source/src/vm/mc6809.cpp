@@ -44,9 +44,11 @@ void MC6809::run_one_opecode()
 		d_debugger->check_break_points(PC);
 		if(d_debugger->now_suspended) {
 			osd->mute_sound();
+			d_debugger->now_waiting = true;
 			while(d_debugger->now_debugging && d_debugger->now_suspended) {
 				osd->sleep(10);
 			}
+			d_debugger->now_waiting = false;
 		}
 		if(d_debugger->now_debugging) {
 			d_mem = d_debugger;

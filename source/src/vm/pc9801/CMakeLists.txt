@@ -10,6 +10,8 @@ set(BASIC_VM_FILES
 	   joystick.cpp
 	   mouse.cpp
 	   keyboard.cpp
+	   dmareg.cpp
+	   membus.cpp
 	   )
 	   
 if(BUILD_PC9801) 

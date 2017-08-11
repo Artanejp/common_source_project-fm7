@@ -15,7 +15,7 @@
 #include "device.h"
 
 #define SIG_I86_TEST	0
-#define SIG_I86_A20	1
+#define SIG_I286_A20	1
 
 #ifdef USE_DEBUGGER
 class DEBUGGER;

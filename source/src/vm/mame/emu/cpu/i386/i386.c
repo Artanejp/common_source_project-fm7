@@ -2958,7 +2958,7 @@ static i386_state *i386_common_init(int tlbsize)
 	static const int regs8[8] = {AL,CL,DL,BL,AH,CH,DH,BH};
 	static const int regs16[8] = {AX,CX,DX,BX,SP,BP,SI,DI};
 	static const int regs32[8] = {EAX,ECX,EDX,EBX,ESP,EBP,ESI,EDI};
-	i386_state *cpustate = (i386_state *)malloc(sizeof(i386_state));
+	i386_state *cpustate = (i386_state *)calloc(1, sizeof(i386_state));
 
 	assert((sizeof(XMM_REG)/sizeof(double)) == 2);
 
@@ -3140,6 +3140,8 @@ static void zero_state(i386_state *cpustate)
 	memset( &cpustate->ldtr, 0, sizeof(cpustate->ldtr) );
 	cpustate->ext = 0;
 	cpustate->halted = 0;
+	cpustate->busreq = 0;
+	cpustate->shutdown = 0;
 	cpustate->operand_size = 0;
 	cpustate->xmm_operand_size = 0;
 	cpustate->address_size = 0;
@@ -3405,9 +3407,11 @@ static CPU_EXECUTE( i386 )
 			cpustate->debugger->check_break_points(cpustate->pc);
 			if(cpustate->debugger->now_suspended) {
 				cpustate->emu->mute_sound();
+				cpustate->debugger->now_waiting = true;
 				while(cpustate->debugger->now_debugging && cpustate->debugger->now_suspended) {
 					cpustate->emu->sleep(10);
 				}
+				cpustate->debugger->now_waiting = false;
 			}
 			if(cpustate->debugger->now_debugging) {
 				cpustate->program = cpustate->io = cpustate->debugger;

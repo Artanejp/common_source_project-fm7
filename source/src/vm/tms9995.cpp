@@ -355,9 +355,11 @@ void TMS9995::run_one_opecode()
 		d_debugger->check_break_points(PC);
 		if(d_debugger->now_suspended) {
 			emu->mute_sound();
+			d_debugger->now_waiting = true;
 			while(d_debugger->now_debugging && d_debugger->now_suspended) {
 				emu->sleep(10);
 			}
+			d_debugger->now_waiting = false;
 		}
 		if(d_debugger->now_debugging) {
 			d_mem_tmp = d_io_tmp = d_debugger;

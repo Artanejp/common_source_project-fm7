@@ -1916,9 +1916,11 @@ static CPU_EXECUTE( upd7810 )
 		cpustate->debugger->check_break_points(cpustate->pc.w.l);
 		if(cpustate->debugger->now_suspended) {
 			cpustate->emu->mute_sound();
+			cpustate->debugger->now_waiting = true;
 			while(cpustate->debugger->now_debugging && cpustate->debugger->now_suspended) {
 				cpustate->emu->sleep(10);
 			}
+			cpustate->debugger->now_waiting = false;
 		}
 		if(cpustate->debugger->now_debugging) {
 			cpustate->program = cpustate->io = cpustate->debugger;

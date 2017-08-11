@@ -191,10 +191,12 @@
     <ClCompile Include="..\src\vm\fmgen\opna.cpp" />
     <ClCompile Include="..\src\vm\fmgen\psg.cpp" />
     <ClCompile Include="..\src\vm\pc9801\display.cpp" />
+    <ClCompile Include="..\src\vm\pc9801\dmareg.cpp" />
     <ClCompile Include="..\src\vm\pc9801\floppy.cpp" />
     <ClCompile Include="..\src\vm\pc9801\fmsound.cpp" />
     <ClCompile Include="..\src\vm\pc9801\joystick.cpp" />
     <ClCompile Include="..\src\vm\pc9801\keyboard.cpp" />
+    <ClCompile Include="..\src\vm\pc9801\membus.cpp" />
     <ClCompile Include="..\src\vm\pc9801\mouse.cpp" />
     <ClCompile Include="..\src\vm\pc9801\pc9801.cpp" />
   </ItemGroup>
@@ -237,10 +239,12 @@
     <ClInclude Include="..\src\vm\fmgen\opna.h" />
     <ClInclude Include="..\src\vm\fmgen\psg.h" />
     <ClInclude Include="..\src\vm\pc9801\display.h" />
+    <ClInclude Include="..\src\vm\pc9801\dmareg.h" />
     <ClInclude Include="..\src\vm\pc9801\floppy.h" />
     <ClInclude Include="..\src\vm\pc9801\fmsound.h" />
     <ClInclude Include="..\src\vm\pc9801\joystick.h" />
     <ClInclude Include="..\src\vm\pc9801\keyboard.h" />
+    <ClInclude Include="..\src\vm\pc9801\membus.h" />
     <ClInclude Include="..\src\vm\pc9801\mouse.h" />
     <ClInclude Include="..\src\vm\pc9801\pc9801.h" />
     <ClInclude Include="..\src\res\resource.h" />

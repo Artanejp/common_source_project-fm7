@@ -69,7 +69,7 @@ protected:
 	uint8_t I, R, R2;
 	uint32_t ea;
 	
-	bool busreq, halt;
+	bool busreq, after_halt;
 	uint8_t im, iff1, iff2, icr;
 	bool after_ei, after_ldair;
 	uint32_t intr_req_bit, intr_pend_bit;
@@ -107,7 +107,6 @@ protected:
 	void OP(uint8_t code);
 	virtual void run_one_opecode();
 	
-
 	uint8_t SZ[256];		/* zero and sign flags */
 	uint8_t SZ_BIT[256];	/* zero, sign and parity/overflow (=zero) flags for BIT opcode */
 	uint8_t SZP[256];		/* zero, sign and parity flags */
@@ -337,6 +336,7 @@ public:
 class Z80 : public Z80_BASE 
 {
 protected:
+	void check_interrupt();
 	void run_one_opecode() override;
 public:
 	Z80(VM* parent_vm, EMU* parent_emu);
