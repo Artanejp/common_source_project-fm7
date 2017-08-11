@@ -80,6 +80,9 @@ uint32_t I386_BASE::get_next_pc()
 void I386_BASE::set_address_mask(uint32_t mask)
 {
 	cpucore->set_address_mask(mask);
+       
+	// TODO: how does A20M and the tlb interact
+	cpucore->vtlb_flush_dynamic();
 }
 
 uint32_t I386_BASE::get_address_mask()
