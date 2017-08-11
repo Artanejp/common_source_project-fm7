@@ -137,6 +137,9 @@ protected:
 	
 	int real_screen_width;
 	int real_screen_height;
+
+	float screen_x_zoom;
+	float screen_y_zoom;
 	
 	int screen_width_aspect;
 	int screen_height_aspect;
@@ -277,6 +280,8 @@ public:
 	int get_screen_height_aspect() { return screen_height_aspect; }
 	int get_real_screen_width() { return real_screen_width; }
 	int get_real_screen_height() { return real_screen_height; }
+	float get_screen_x_zoom() { return screen_x_zoom; }
+	float get_screen_y_zoom() { return screen_y_zoom; }
 	
 	int get_screen_mode_num() { return screen_mode_num; }
 	int get_max_button() { return max_button; }

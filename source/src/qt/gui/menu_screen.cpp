@@ -30,24 +30,39 @@ void Object_Menu_Control::set_screen_aspect(void) {
 
 void Object_Menu_Control::set_screen_size(void) {
 	int w, h;
-	double nd, ww, hh;
+	float nd, ww, hh;
+	float xzoom = using_flags->get_screen_x_zoom();
+	float yzoom = using_flags->get_screen_y_zoom();
 	using_flags->get_config_ptr()->window_mode = getNumber();
 	nd = getDoubleValue();
-	ww = nd * (double)using_flags->get_screen_width();
-	hh = nd * (double)using_flags->get_screen_height();
+	ww = (float)using_flags->get_screen_width();
+	hh = (float)using_flags->get_screen_height();
 	if((using_flags->get_screen_height_aspect() != using_flags->get_screen_height()) ||
 	   (using_flags->get_screen_width_aspect() != using_flags->get_screen_width())) {
-		double par_w = (double)using_flags->get_screen_width_aspect() / (double)using_flags->get_screen_width();
-		double par_h = (double)using_flags->get_screen_height_aspect() / (double)using_flags->get_screen_height();
-		//double par = par_h / par_w;
-		if(using_flags->get_config_ptr()->window_stretch_type == 1) { // refer to X, scale Y.
-			hh = hh * par_h;
-		} else if(using_flags->get_config_ptr()->window_stretch_type == 2) { // refer to Y, scale X only
-			ww = ww / par_h;
-		} else if(using_flags->get_config_ptr()->window_stretch_type == 3) { // Scale both X, Y
-			ww = ww * par_w;
-			hh = hh * par_h;
+		float par_w = (float)using_flags->get_screen_width_aspect() / ww;
+		float par_h = (float)using_flags->get_screen_height_aspect() / hh;
+		//float par = par_h / par_w;
+		switch(using_flags->get_config_ptr()->window_stretch_type) {
+		case 0: // refer to X and Y.
+			ww = ww * nd * xzoom;
+			hh = hh * nd * yzoom;
+			break;
+		case 1: // refer to X, scale Y only
+			ww = ww * nd * xzoom;
+			hh = hh * nd * par_h;
+			break;
+		case 2: // refer to Y, scale X only
+			ww = (ww * nd) / par_h * yzoom;
+			hh = hh * nd * yzoom;
+			break;
+		case 3:
+			ww = ((ww * nd) / par_h) * yzoom;
+			hh = ((hh * nd) / par_w) * xzoom;
+			break;
 		}
+	} else {
+		ww = ww * nd * xzoom;
+		hh = hh * nd * yzoom;
 	}
 	w = (int)ww;
 	h = (int)hh;

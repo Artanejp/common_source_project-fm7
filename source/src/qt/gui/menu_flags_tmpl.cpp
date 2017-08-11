@@ -84,7 +84,9 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	
 	screen_width = SCREEN_WIDTH;
 	screen_height = SCREEN_HEIGHT;
-	
+
+	screen_x_zoom = 1.0f;
+	screen_y_zoom = 1.0f;
 	screen_width_aspect = WINDOW_WIDTH_ASPECT;
 	screen_height_aspect = WINDOW_HEIGHT_ASPECT;
 	max_button = 0;

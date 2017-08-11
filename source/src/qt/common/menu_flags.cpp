@@ -104,7 +104,12 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 #else
 	screen_height = SCREEN_HEIGHT;
 #endif
-	
+#if defined(SCREEN_X_ZOOM)
+	screen_x_zoom = SCREEN_X_ZOOM;
+#endif
+#if defined(SCREEN_Y_ZOOM)
+	screen_y_zoom = SCREEN_Y_ZOOM;
+#endif
 	screen_width_aspect = WINDOW_WIDTH_ASPECT;
 	screen_height_aspect = WINDOW_HEIGHT_ASPECT;
 	max_button = 0;
