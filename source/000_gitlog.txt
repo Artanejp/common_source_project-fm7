@@ -1,3 +1,624 @@
+commit 6641d48a10c3d3b864f3b11f35a7e2ba07cef55d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 11 19:25:42 2017 +0900
+
+    [DOC] Update readme.
+
+commit 4ad90bb9acd1e68975164c0943160830d3b3c3e6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 11 19:22:37 2017 +0900
+
+    [DOC] Update revision.
+
+commit cae8f92fa46e8f6129cac80fc08cdc913c1b6ae8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 11 19:22:06 2017 +0900
+
+    [UI][Qt] OSD: Temporally disable displaying CMTs.
+
+commit 7be0eab8ff76727cf4ff456ac1a3f1aaaab6c181
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 11 17:51:09 2017 +0900
+
+    [UI][Qt][PC9801][MENU] Update frequency values.
+    [UI][Qt][PC9801][MENU] Update translations.
+
+commit f9e1f154521f2a2ccec96a84568694f43c20250c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 11 17:08:17 2017 +0900
+
+    [VM][PC9801] Fix FTBFS with some VMs.
+
+commit 0a9b2651f3fa7068d8e35391317be95155df16c4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 11 17:07:49 2017 +0900
+
+    [VM][FMR30] Fix crash when booting.
+
+commit d2a7125149a75a3e9cbf2d2ec66a764618c26645
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 11 17:07:20 2017 +0900
+
+    [VM][LIBCPU_NEWDEV][i386] Fix FTBFS.
+
+commit fb2553dedb8835c01428fd50f56979ba2c190c54
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 11 17:06:34 2017 +0900
+
+    [VM][LIBNEWDEV][i86] Fix FTBFS.
+
+commit 5b95b9ce1271b3eddd506c77e7873797f14c3496
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 11 17:05:58 2017 +0900
+
+    [General] Update SOVERSION.
+
+commit 3ea47ae2367bda4913435e8e92bddd9d7a292ac8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 11 15:54:49 2017 +0900
+
+    [General] Update .gitignore.
+
+commit 91f0822753d2c1892ef95aaa09012d051c73afee
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 11 15:54:16 2017 +0900
+
+    [Build][CMake][PC9801] Update CMakeLists.txt .
+
+commit b6dbaafd6eee0eed56af172408eb9999aca6fcfe
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 11 15:53:31 2017 +0900
+
+    [Build][CMAKE][PC9801] Update common definition.
+
+commit 8eaab373131f128b431c0ede8ae9f63aa79ab6dd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 11 15:53:03 2017 +0900
+
+    [Build][CMake] Fix FTBFS with updating tool-chain(s).
+
+commit c07adc2a9717f130e1df1cf29510b686ff091f35
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 11 15:52:00 2017 +0900
+
+    [VM][Qt] Add PC-9801RA, PC-9801VX, PC98RL, PC98XA and PC98XL.
+    [UI][Qt] Update translates.
+
+commit f6307a36e36253c9ccaeca9f5638cad54a5272fd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 11 13:47:29 2017 +0900
+
+    [UI][Qt] Update messages.
+
+commit d2f8d2bf84c5864a7b5a2bcd3076d98e0ed96fad
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 11 13:39:56 2017 +0900
+
+    [Qt][Draw][GL] Fix screen aspect problem(s).
+
+commit dcdb595c64721f68929fd650560884265dc8f6ec
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 11 13:38:31 2017 +0900
+
+    [General] Merge Upstream 2017-08-10.
+
+commit c1ee28e9aa76185778a9c5820f5f057d009b81af
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Aug 10 03:12:41 2017 +0900
+
+    [Ui][Qt][OpenGL] OSD: Make icons transparent.
+    [Ui][Qt][OpenGL] OSD: Add support OpenGL 2.0.
+
+commit 84183e30df5b0dc826e19b6e9ee1d3ca691cc4a7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Aug 9 20:30:30 2017 +0900
+
+    [Draw][Qt] OSD: Display Icon(s).
+
+commit a748e8c33d8c7a4d11cf43c586ac71f3cf40f718
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Aug 8 16:32:48 2017 +0900
+
+    [UI][Qt][LOG] Fix crash when displaying logs.
+
+commit 294e68dd4ccdcec0ff422009f06ee5e62804839a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Aug 8 15:58:12 2017 +0900
+
+    [Qt][Draw][GL] I embedded BUGs to shader, not display background and buttons X-) Fixed.
+
+commit 9b3f324aa7a0b2b9dfabb9dea191131442095bff
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Aug 8 06:17:11 2017 +0900
+
+    [Draw][Qt][ICON] Prepare to display Icons to screen as OSD.
+
+commit 1e6b834e10f4c5cbe8b8fd984a58d718056a940c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Aug 8 04:40:04 2017 +0900
+
+    [Draw][GL3] LED::Using VAO and VBO even not be related by Shader-Program.
+
+commit e458c4a5dab085f2b21fe61b70d9da0a75cc75cc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Aug 8 00:51:32 2017 +0900
+
+    [Qt][CSP_DrawItem] Add Quick Disk, Laser Disc and Compact Disc.
+
+commit 4f3f474f74e049d65f46eb8c94e37129e92f84e9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Aug 1 21:48:57 2017 +0900
+
+    [Draw][OSD][Qt] Add Icon: Casette Tape.
+
+commit 4dcae5bfd870d3ed3ca7771e701ab150debc9c38
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 31 21:40:30 2017 +0900
+
+    [VM][FM7][OpenGL2] Fix wrong display area at FM-7/8/77Av (not AV40 series) with OpenGL 2.0.
+
+commit bf4a5e7019b4b90969ffb9544b29d77e483ced23
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 31 21:39:23 2017 +0900
+
+    [Qt][Draw][OSD] Add CSP_DrawItem:: class to draw item icons.
+
+commit df43fabf7da5566bdd54b293a1a371ca65b1332e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 31 00:57:29 2017 +0900
+
+    [Qt][OSD][LAMP] Improbe LED displaying.
+
+commit 1857c28f9908afdfd388705b7edddcc5ed4d0c53
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jul 30 19:35:09 2017 +0900
+
+    [Draw][Qt][FM7][GL2.0] Fix scaling issue with resize screen.
+
+commit 0fa31f642a7eca6e28536d20af1c1060213b0c29
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jul 30 18:33:47 2017 +0900
+
+    [UI][Qt][CONFIG] OSD:Fix wring initial value.
+
+commit 150a4971a3ada23bec58339eb065ec4fc16c9e45
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jul 30 18:21:27 2017 +0900
+
+    [UI][Qt][OSD] Adjust font size.
+    [UI][Qt][OSD] Use two columns too manuy virtual medias.
+
+commit f94a56fc6bdd313e505a90110a9567c8c11666c6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jul 29 06:34:32 2017 +0900
+
+    [EMU] Update access lamp color.
+
+commit e78797424760f885266b36f2d7a9d336bd71a546
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jul 29 06:16:10 2017 +0900
+
+    [UI][Qt] OSD: Re-design internal of CSP_DockDisks:: .
+
+commit d6ec6baffc1a7854388ff5bab8c963aa1c232fd3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 28 19:59:36 2017 +0900
+
+    [Qt][OSD][Draw][GL3] .
+
+commit 0be73689efece0def819321c9aebb8c1cd9913ff
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 28 19:59:14 2017 +0900
+
+    [UI][Qt][OSD] Improve display type.
+
+commit cfc0e43d60dc63a63f9522a940b226923744709f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 28 06:28:53 2017 +0900
+
+    [UI][Qt][OpenGL] Add small OSD for access lamps.
+
+commit 7b3a7ad44399825afd2c00f25a51c51853384550
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jul 23 18:41:04 2017 +0900
+
+    [UI][Qt] dock_disks: Adjust layout.Not docking feature.
+
+commit 276d68813edea50a73e2b0ebcbe13698ca2287f4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 21 07:45:48 2017 +0900
+
+    [UI][Qt] Menu: Make macro to be easier constructing.
+
+commit f2c6520c98403dd65e7a5435272704fb5cc730b8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 21 07:45:16 2017 +0900
+
+    [UI][Qt] Refine layout of virtual media display.
+
+commit 272990915cfc09542fe44f4d81b9edfd1953304c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jul 20 17:18:43 2017 +0900
+
+    [Build][CMake] Update version of shared DLL.
+
+commit 24c9ede8c11e80b9337fc531b9ac0f1c79e84aef
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jul 20 17:17:37 2017 +0900
+
+    [COMMON] Comment USE_SHARED_DLL at common.h .
+
+commit c96ba3a1b91f3ea9c99fb2aa91836c4c7ecd059f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jul 20 17:15:52 2017 +0900
+
+    [UI][Qt] Ui_MainWindowBase:: Make private variables/functions not accessed from Ui_MainWindow:: .
+
+commit 50d9479a84bd9122c4d552bdc68c80a9f65a261c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jul 20 04:17:08 2017 +0900
+
+    [UI][Qt] Show/hide virtual medias.
+
+commit 8515ed64b59c2be25e11fbae8668b7fe54f511ad
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jul 18 16:42:13 2017 +0900
+
+    [UI][Qt][WIP] Modifing virtual medias displaying area.
+
+commit 10c85acd7d9583d67001f70c1872ec37ebdafd0e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 28 15:22:37 2017 +0900
+
+    [VM][PC9801][DISPLAY] Fix FTBFS with display.cpp .
+
+commit 2cf175ed1b69852cd341274869eff2a143a09b81
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 28 08:05:14 2017 +0900
+
+    [VM][I8080] Fix FTBFS.
+
+commit f03b028f1dd142208e86d9c7643ba80248bc0b1e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 28 08:04:04 2017 +0900
+
+    [VM][DATAREC] Fix crash with MZT data.
+
+commit 935c56c1dd3eb416e6f35e58940b420749ef36a7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 27 19:24:55 2017 +0900
+
+    [BUILD][CMake] .
+
+commit f2e801a2456e30a501be53799c7e61786185d841
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 27 18:53:49 2017 +0900
+
+    [UI][Qt] Display LEDs with USE_EXTRA_LEDS or USE_KEY_LOCKED.See common/emu_thread.cpp for details.
+
+commit 2e57531e86c58e1f8ad90f8e44dff29609610649
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 27 18:51:02 2017 +0900
+
+    [EMU] Add EMU::get_extra_leds() to get led status.
+    [VM][FM7] Stop using DUMMYDEVICE:: . Use VM::get_extra_leds() to get led status.
+    [VM][FM7][KEYBOARD] Update state version.
+
+commit d880655d43209f50c7535180b7bc3c3dedcf7135
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jun 23 10:02:30 2017 +0900
+
+    [UI][Qt] Update to upstream 2017-06-22.Some parts are temporally.
+
+commit 3729c2ba178e4c35f9009f40fab4f87f678ba349
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jun 23 10:01:06 2017 +0900
+
+    [UI][Windows] Add Upstream's ui files.
+
+commit 9dbe7613e6496e051a14463c7955c89420c6cdce
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jun 23 10:00:12 2017 +0900
+
+    [VM][Ix86] Add lacked files on Upstream 2017-06-22.
+
+commit 69476578375457a7741234df894c3a8411dd7a3e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jun 23 09:59:20 2017 +0900
+
+    [General] Add lacked RCs.
+
+commit cb772dac13d12126c3b0cf77c2a47fc53f5b705e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jun 23 09:55:44 2017 +0900
+
+    [VM][EMU] Merge Upstream 2017-06-22.
+    [EMU][ROMAKANA] Fix not convert with Qt.
+    [EMU][ROMAKANA] Use functions within EMU:: , not use original ROMAKANA functions.
+
+commit 784b584193c71453b4321e5a884358c00dc8ea06
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 14 02:41:55 2017 +0900
+
+    [VM][DEVICE] Get OSD:: at constructor, not initialize().
+
+commit 8be76f299aa9dd4b28ee241c7f8eb6c349dc8e37
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 14 02:08:05 2017 +0900
+
+    [VM][MB8877][DISK] Fix not apply workaround to Gambler Jiko Chusin-ha for FM-7 series.
+
+commit 6ae296cd7a67ada4bdcacd4ec2417949e8c3d7ee
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 14 02:06:25 2017 +0900
+
+    [VM][FM7] Fix linking error with KANJIROM::
+
+commit 1c91781b902b735cc7d06517a10f0fa0e70cc622
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 8 06:00:22 2017 +0900
+
+    [VM][SCSI] .
+
+commit 17c60202bb932b69053e535ce726f06d750d1136
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jun 4 14:50:34 2017 +0900
+
+    [VM][Z80] Remove unused code.
+
+commit 2c3c80381b20b2d83480513ab9970318f6045f96
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jun 4 14:43:31 2017 +0900
+
+    [VM][NEWDEV] Remove unused files related I286.
+
+commit 6d2792b33ed4dbca0c0b5d164922f37fab5ff4ea
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jun 4 14:18:36 2017 +0900
+
+    [Build]CMake] Fix CMakeLists.txt; BMJr, HC20, JR100 and JR800.
+
+commit ab22efe1da9768679abfca33992e430a7031aa30
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jun 4 14:08:43 2017 +0900
+
+    [VM][MC6800] Split mc6800.[cpp|h] to MC6800, mC6801, MB8861 and HD6301.
+
+commit 4d89b4083b4377b23318402822558a5dd5548e52
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 3 14:35:30 2017 +0900
+
+    [VM][NEWDEV][I286][WIP] .
+
+commit 952842c2e896730f72d6f871b8720794884b1771
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jun 2 05:20:39 2017 +0900
+
+    [VM][I8080][COMMON_VM] Move OP() and around INSNs to library.
+
+commit b063ae843d0e8cb5b288486c24444d633820c3b9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jun 2 00:22:39 2017 +0900
+
+    [VM][I286][WIP] Merging from MAME 0185.
+
+commit 4294c79209904c57a78d8550c83c9f8485a68da2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 1 15:46:14 2017 +0900
+
+    [NEWDEV][VM][I286] Add Ix86 classes from MAME 0.185.
+
+commit e35d66a9b8d9416e3e20dbace7f7f7f52bed2e40
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 1 15:45:06 2017 +0900
+
+    [VM][I286] Remove older I286 classes.
+
+commit eeaa700e0db9ae6fc7fbb2b2ef4480e435ed43a1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 1 15:37:22 2017 +0900
+
+    [UI][Qt] Fix lacked entries; Joystick and Keyboard.
+
+commit a17b19e7c491ee2f2bf828d1ed61888755d862ba
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 1 15:31:34 2017 +0900
+
+    [VM][HuC6280] Add HUC6280:: to libCSPcommon_vm .
+
+commit e9cc5279f60f6ed628ede8d88ea2efca7c3364b5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 30 20:50:42 2017 +0900
+
+    [OSD][Qt] Save memory with query tables.
+
+commit e1a5aa848d8bab569ed27ebf6eaefc32434e07ff
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 30 20:49:20 2017 +0900
+
+    [VM][PC8801][PC9801] You should not use uint8_t foo = ~signed_int_constant. This causes FTBFS with GCC.
+
+commit e505d53952d260bd88af5d048468aea169eeded3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 30 20:48:50 2017 +0900
+
+    [BMJr] Fix FTBFS caused by differnce of text-encoding.
+
+commit e98b8ad663a397fdbdddc5ddfe18b1e205dada25
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 30 20:48:28 2017 +0900
+
+    [COMMON_VM] .
+
+commit b4c905d190ec0051391fb0271a777c0e190a78bd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 30 20:47:37 2017 +0900
+
+    [VM][COMMON_VM] (Re) Add I8253 and Z80CTC to libCSPcommon_vm.
+
+commit 33a472d1924d1173a56c75468775483328f4afdc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 30 18:28:45 2017 +0900
+
+    [VM][DEVICE] Refactoring.
+
+commit ab44084936d906e6ca1adaffbcf564113e5eed2c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 30 17:35:22 2017 +0900
+
+    [VM][DEVICE] Refactoring #1.
+
+commit 876abe285d288971e70d4ca8267cf5bf13d2a498
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 30 16:49:25 2017 +0900
+
+    [General][VM] Re-factoring VMs, sync to Upstream.
+
+commit 419b82a3cc301dd1a1b89292c280bf2ab1a18a50
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 30 01:40:33 2017 +0900
+
+    [Build][N5200][PC98DO] Fix link error.
+
+commit c9bbdab16069f848a269ab4cf6e9677e9fcee53c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 29 11:08:55 2017 +0900
+
+    [VM][I8253][PC9801] Revert changes for i8253, and apply Upstream changes to PC9801 correctly.PC9801VM works.
+
+commit cbf4bb5e0feb5700bbbec937e333dec1521d22a7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 29 07:04:18 2017 +0900
+
+    [VM][PC9801] Temporally revert using to I286:: from I86:: .
+
+commit 72cf4e043e9aa0ffa318fe7fa5e42e8f69479569
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 29 02:58:57 2017 +0900
+
+    [EMU][General] Merge Upsteream 2017-05-28. GUI still not implement.
+
+commit c481e8b539230f4b19b9ad3fc5927d0675ee009c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 29 02:56:53 2017 +0900
+
+    [VM][I386] Merge Upstream 2017-05-28.
+
+commit 54955499e3daf54215838c917b013c82222a462e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 28 18:53:04 2017 +0900
+
+    [VM][ix86] Use pseudo-bios calling tou BIOS_CALL_86() macro.
+
+commit b334c4878793741b1e3983ed9a1e9da994176a8a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 28 17:57:09 2017 +0900
+
+    [VM][i286] Save CPUSTATE per method(s).Not use saving as one block.
+
+commit 4d047654891f1130606bb63cbc18cf3bc1eaf54d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 27 21:36:29 2017 +0900
+
+    [OSD][I8259] I lacked I8259_MAX_CHIPS (；´Д｀)
+
+commit bd69099c7c3486b13e11aecc425870b4b1987dc3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 27 20:10:56 2017 +0900
+
+    [COMMON] my_memcpy: With some HOST CPU i.e. x86, GCC use unaligend SIMD instructions to read/write memory.
+
+commit 1e7c0d85f02e10b182ee30a3c0966ae58c91eefe
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 27 19:31:18 2017 +0900
+
+    [VM][NEWDEV] Revert re-commits missed to remove.
+
+commit cddf1efbce6666ffc5910d15a874b9a11b5f4d92
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 27 19:29:02 2017 +0900
+
+    [VM][EMU] Add common function; my_memcpy() instead of memcpy() using SIMD.Recommend to expect faster data transfer (i.e. Data transfer of vram).
+
+commit a00dd692c9b380c3b8ef4c114881869f57158dff
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 27 13:46:12 2017 +0900
+
+    [Build][CMake][PHC20][PHC25][MAP1010] Fix link error.
+
+commit 6ccafb2370a55b5e03cc0d2d8c6fedf6bc2843bf
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 27 07:57:01 2017 +0900
+
+    [Windows][General] Make OSD to be DLL.
+    [Build][Windows] Adjust optimize parameters.
+
+commit 218ef45c6d54ca02750ac235bdc681f198717337
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 27 04:16:58 2017 +0900
+
+    [VM][COMMON_VM] Remove libcpu_newdev/mcs48*.[cpp|h] .
+
+commit 5dbfccfa7f620c1bc59f7f0b9fdea2bcfd4e9875
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 27 04:14:19 2017 +0900
+
+    [VM][COMMON_VM] Add DATAREC, MCS48 and UPD7801 to libCSPcommon_vm .UPD7810 will not add (perhaps).
+
+commit a8238f9745636fc7f31fdd13b5fadf0e13066d68
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 25 05:59:35 2017 +0900
+
+    [VM][COMMON_VM] Add i8080.
+
+commit ba0423ef5cd0720795d12ac871c9d5603be3c736
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 25 05:58:08 2017 +0900
+
+    [UI][Qt] Fix not-connected to sub-display.
+
+commit 745384533370cb866f97aa894614bee8bf32512e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 24 23:54:41 2017 +0900
+
+    [VM][COMMON_VM] Add RP5C01, uPD1990A and uPD16434.
+
+commit 6b3e6fc721c95cc9e7f8eb941f9139f711a2205e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 24 23:03:34 2017 +0900
+
+    [VM][COMMON_VM] Move I8237, I8253, I8255, I8259, UPD7220 and Z80SIO to common dll.
+
+commit ea62c2bf7bb845cea37c6eae8402ad78b8aa35e0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 21 02:53:37 2017 +0900
+
+    .
+
+commit f33d03d047f06b7e1335b96c70d35ec6cd20faa7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 21 02:36:09 2017 +0900
+
+    [VM] Merge Upstream 2017-05-20.
+
+commit 1e86f8a44f02918d95863ae7ccebde3f73ae1584
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 21 02:34:42 2017 +0900
+
+    [UI][Qt] Fix some memory leaks.
+
+commit bf38f044664f1a2856a2953097a7924c19f08fbc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 21 01:40:35 2017 +0900
+
+    .
+
+commit bec5bbb67d4293b6d9b520c1168633b1c774802d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 21 01:39:41 2017 +0900
+
+    [UI][VM][Qt] Fix uncondition branch found by valgrind (but some points has not fixed (；´Д｀))
+
 commit 86dc766129a82af3eb4d853ffddbcda5043e50eb
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu May 18 19:16:27 2017 +0900

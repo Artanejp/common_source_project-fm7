@@ -1,5 +1,27 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT Aug 11, 2017
+  * Upstream 2017-08-10.
+  * [EMU/ROMAKANA] Fix not convert with Qt.Use functions within EMU:: , not use original ROMAKANA functions.
+  * [VM] Add PC-9801RA and PC-9801VX.
+  * [VM] Add devices to libCSPcommon_vm mostly.
+  * [VM] Fix FTBFS and bugs a lot.
+  * [VM/FM7] Stop using DUMMYDEVICE:: . Use VM::get_extra_leds() to get led status.
+  * [VM/MB8877] DISK:Fix not apply workaround to Gambler Jiko Chusin-ha for FM-7 series.
+  * [VM/DATAREC] Fix crash with MZT data.
+  * [Qt/UI] OpenGL: Display ICONs when accessing to virtual medias.
+  * [Qt/UI]  Separate status bar display:Accessing to virtual medias.
+  * [Qt/UI] Menu: Make macro to be easier constructing.
+  * [Qt/UI] Ui_MainWindowBase:: Make private variables/functions not accessed from Ui_MainWindow:: .
+  * [Qt/UI] Display LEDs with USE_EXTRA_LEDS or USE_KEY_LOCKED.See common/emu_thread.cpp for details.
+  * [Qt/UI] Fix some memory leaks.
+  * [Qt/OpenGL] Fix aspect ratio with some zoom type.
+  * [Qt/FM7] Fix wrong scaling at VMs (only FM-8/7/77/AV) has only 200line (not have 400line). 
+  * [BUILD/CMake] CCACHE: Fix SEGFAULT at linking after upgrade GNU toolchain.
+  * Build with 6641d48a10c3d3b864f3b11f35a7e2ba07cef55d (or later).
+
+-- Aug 11, 2017 19:40:03 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT HOTFIX1 May 18, 2017
   * MSX FIX only release.
   * [VM/MSX] I missed changes; using v9938.cpp instead of v99x8.cpp .
