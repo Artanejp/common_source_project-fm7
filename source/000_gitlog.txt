@@ -1,3 +1,15 @@
+commit 04e08d2708a595c518ae0bd92c1713e1854c4310
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 11 23:32:34 2017 +0900
+
+    [UI][Qt] VirtualMedia: Fix wrong layout at startup when width == 1280 and ASPECT=1:1 and using QuickDisk.This is workaround.
+
+commit 40ff35f15288348469f0845445a2d50f117b83d8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 11 19:44:16 2017 +0900
+
+    [DOC] Update readmes.
+
 commit 6641d48a10c3d3b864f3b11f35a7e2ba07cef55d
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Fri Aug 11 19:25:42 2017 +0900

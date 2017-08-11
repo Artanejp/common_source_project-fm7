@@ -313,7 +313,7 @@ CSP_DockDisks::CSP_DockDisks(QWidget *parent, USING_FLAGS *p) :  QWidget(parent)
 	initial_height = this->height();
 	//initial_height = (two_rows) ? (int)(font_pt * 3.0) : (int)(font_pt * 1.5);
 	this->setGeometry(0, 0, initial_width, initial_height);
-	setScreenWidth(640); // This is workaround.Will fix.
+	setScreenWidth(640); // This is workaround at 04e08d2708a595c518ae0bd92c1713e1854c4310. Will fix.
 }
 
 			
