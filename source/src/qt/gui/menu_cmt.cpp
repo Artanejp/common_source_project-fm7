@@ -171,8 +171,8 @@ void Menu_CMTClass::connect_menu_device_sub(void)
 		
 		if(using_flags->is_machine_cmt_mz_series()) {
 			this->addAction(action_direct_load_mzt);
-			connect(action_direct_load_mzt, SIGNAL(toggled(bool)), this, SLOT(set_direct_load_from_mzt(bool)));
-			connect(this, SIGNAL(sig_direct_load_from_mzt(int, bool)), p_wid, SLOT(set_direct_load_from_mzt(int, bool)));
+			connect(action_direct_load_mzt, SIGNAL(toggled(bool)), this, SLOT(set_direct_load_mzt(bool)));
+			connect(this, SIGNAL(sig_direct_load_mzt(int, bool)), p_wid, SLOT(set_direct_load_from_mzt(int, bool)));
 		}
 		connect(action_recording, SIGNAL(triggered()), this, SLOT(do_open_rec_dialog()));
 		connect(this, SIGNAL(sig_open_media(int, QString)),	p_wid, SLOT(do_open_read_cmt(int, QString)));

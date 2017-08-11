@@ -166,63 +166,19 @@ CSP_DockDisks::CSP_DockDisks(QWidget *parent, USING_FLAGS *p) :  QWidget(parent)
 	HVBox = new QGridLayout(this);
 	HVBox->setAlignment(Qt::AlignRight);
 
-	
 	for(int i = 0; i < 8; i++) {
 		pBinary[i] = NULL;
 		pBubble[i] = NULL;
 		pCart[i] = NULL;
 		pFloppyDisk[i] = NULL;
 		pHardDisk[i] = NULL;
+		pQuickDisk[i] = NULL;
 	}
 	for(int i = 0; i < 2; i++) {
 		pCMT[i] = NULL;
 		pCompactDisc[i] = NULL;
 		pLaserDisc[i] = NULL;
-		pQuickDisk[i] = NULL;
 	}
-#if 0 /* TEST */
-	{
-		QColor bg = QColor(Qt::green);
-		QColor fg = QColor(Qt::black);
-		QColor tg = QColor(Qt::white);
-		QColor lg = QColor(Qt::red);
-		QPixmap fdIcon1, fdIcon2, fdIcon3;
-		CSP_DrawItem *fdItem1 = new CSP_DrawItem(32, 32);
-		fdItem1->drawFloppy5Inch(bg, fg, tg, 12.0, QString::fromUtf8("0:"));
-		fdIcon1 = QPixmap::fromImage(*fdItem1);
-		fdItem1->drawCompactDisc(bg, fg, lg, tg, 12.0, QString::fromUtf8("1:"));
-		//fdItem1->drawFloppy3_5Inch(bg, fg, tg, 12.0, QString::fromUtf8("1:"));
-		fdIcon2 = QPixmap::fromImage(*fdItem1);
-		fdItem1->drawLaserDisc(bg, fg, lg, tg, 12.0, QString::fromUtf8(""));
-		fdIcon3 = QPixmap::fromImage(*fdItem1);
-		CSP_LabelVirtualDevice *n = new CSP_LabelVirtualDevice(this, 2, font_pt, QString::fromUtf8(""), 0);
-		n->setPixmapLabel(fdIcon1);
-		n->setVisible(true);
-		HVBox->addWidget(n, 0, _x);
-		_x++;
-		CSP_LabelVirtualDevice *nn = new CSP_LabelVirtualDevice(this, 2, font_pt, QString::fromUtf8(""), 1);
-		nn->setPixmapLabel(fdIcon3);
-		nn->setVisible(true);
-		HVBox->addWidget(nn, 0, _x);
-		_x++;
-		delete fdItem1;
-	}
-	{
-		QColor bg = QColor(Qt::green);
-		QColor fg = QColor(Qt::black);
-		QColor tg = QColor(Qt::white);
-		QPixmap CMTIcon1;
-		CSP_DrawItem *CMTItem1 = new CSP_DrawItem(32, 32);
-		CMTItem1->drawCasetteTape(bg, fg, tg, 12.0, QString::fromUtf8("0"));
-		CMTIcon1 = QPixmap::fromImage(*CMTItem1);
-		CSP_LabelVirtualDevice *n = new CSP_LabelVirtualDevice(this, 2, font_pt, QString::fromUtf8(""), 2);
-		n->setPixmapLabel(CMTIcon1);
-		n->setVisible(true);
-		HVBox->addWidget(n, 0, _x);
-		delete CMTItem1;
-		_x++;
-	}
-#endif
 	if(using_flags->is_use_laser_disc()) {
 			pLaserDisc[0] = new CSP_LabelVirtualDevice(this, 4, font_pt, QString::fromUtf8("LD"), 0);
 			HVBox->addWidget(pLaserDisc[0], 0, _x);
@@ -237,7 +193,7 @@ CSP_DockDisks::CSP_DockDisks(QWidget *parent, USING_FLAGS *p) :  QWidget(parent)
 	}
 	
 	if(using_flags->is_use_cart()) {
-		if(using_flags->get_max_cart() >= 4) {
+		if(using_flags->get_max_cart() > 4) {
 			_wlots = 4;
 			_wmod = using_flags->get_max_cart() - 4;
 			two_rows = true;
@@ -260,7 +216,7 @@ CSP_DockDisks::CSP_DockDisks(QWidget *parent, USING_FLAGS *p) :  QWidget(parent)
 		}
 	}
 	if(using_flags->is_use_binary_file()) {
-		if(using_flags->get_max_binary() >= 4) {
+		if(using_flags->get_max_binary() > 4) {
 			_wlots = 4;
 			_wmod = using_flags->get_max_binary() - 4;
 			two_rows = true;
@@ -283,7 +239,7 @@ CSP_DockDisks::CSP_DockDisks(QWidget *parent, USING_FLAGS *p) :  QWidget(parent)
 		}
 	}
 	if(using_flags->is_use_bubble()) {
-		if(using_flags->get_max_bubble() >= 4) {
+		if(using_flags->get_max_bubble() > 4) {
 			_wlots = 4;
 			_wmod = using_flags->get_max_bubble() - 4;
 			two_rows = true;
@@ -307,7 +263,7 @@ CSP_DockDisks::CSP_DockDisks(QWidget *parent, USING_FLAGS *p) :  QWidget(parent)
 	}
 
 	if(using_flags->is_use_fd()) {
-		if(using_flags->get_max_drive() >= 4) {
+		if(using_flags->get_max_drive() > 4) {
 			_wlots = 4;
 			_wmod = using_flags->get_max_drive() - 4;
 			two_rows = true;
@@ -337,7 +293,6 @@ CSP_DockDisks::CSP_DockDisks(QWidget *parent, USING_FLAGS *p) :  QWidget(parent)
 			_x++;
 		}
 	}
-	
 	if(using_flags->is_use_tape()) {
 		for(int i = 0; i < using_flags->get_max_tape(); i++) {
 			pCMT[i] = new CSP_LabelVirtualDevice(this, 12, font_pt, QString::fromUtf8("CMT"), i);
@@ -351,11 +306,14 @@ CSP_DockDisks::CSP_DockDisks(QWidget *parent, USING_FLAGS *p) :  QWidget(parent)
 		// ToDo: HDD.
 	}
 	HVBox->setContentsMargins(0, 0, 0, 0);
-	initial_width = this->width();
-	initial_height = (two_rows) ? (int)(font_pt * 3.0) : (int)(font_pt * 1.5);
+
 	base_width = 1280;
 	this->setLayout(HVBox);
+	initial_width = this->width();
+	initial_height = this->height();
+	//initial_height = (two_rows) ? (int)(font_pt * 3.0) : (int)(font_pt * 1.5);
 	this->setGeometry(0, 0, initial_width, initial_height);
+	setScreenWidth(640); // This is workaround.Will fix.
 }
 
 			
@@ -368,12 +326,12 @@ CSP_DockDisks::~CSP_DockDisks()
 		if(pCart[i] != NULL) delete pCart[i];
 		if(pFloppyDisk[i] != NULL) delete pFloppyDisk[i];
 		if(pHardDisk[i] != NULL) delete pHardDisk[i];
+		if(pQuickDisk[i] != NULL) delete pQuickDisk[i];
 	}
 	for(int i = 0; i < 2; i++) {
 		if(pCMT[i] != NULL) delete pCMT[i];
 		if(pCompactDisc[i] != NULL) delete pCompactDisc[i];
 		if(pLaserDisc[i] != NULL) delete pLaserDisc[i];
-		if(pQuickDisk[i] != NULL) delete pQuickDisk[i];
 	}
 }
 

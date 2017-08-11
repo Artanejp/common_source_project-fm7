@@ -84,7 +84,7 @@ private:
 	CSP_LabelVirtualDevice *pFloppyDisk[8];
 	CSP_LabelVirtualDevice *pHardDisk[8];
 	CSP_LabelVirtualDevice *pLaserDisc[2];
-	CSP_LabelVirtualDevice *pQuickDisk[2];
+	CSP_LabelVirtualDevice *pQuickDisk[8];
 
 	bool two_rows;
 	int initial_width;

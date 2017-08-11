@@ -193,9 +193,9 @@ void EmuThreadClass::get_qd_string(void)
 			tmpstr = QString::fromUtf8("×");
 		}
 		if(tmpstr != qd_text[i]) {
+			emit sig_set_access_lamp(i + 10, lamp_stat);
 			emit sig_change_access_lamp(CSP_DockDisks_Domain_QD, i, tmpstr);
 			qd_text[i] = tmpstr;
-			emit sig_set_access_lamp(i + 10, lamp_stat);
 		}
 		lamp_stat = false;
 	}

@@ -272,10 +272,10 @@ void FM7_MAINIO::set_fdc_fd1e(uint8_t val)
 		}
 	}
 	if((val & 0x40) != 0) {
-		for(drive = 0; drive < MAX_DRIVE; drive++) fdc->set_drive_type(drive, DRIVE_TYPE_2D);
+		for(drive = 0; drive < MAX_FD; drive++) fdc->set_drive_type(drive, DRIVE_TYPE_2D);
 		//this->out_debug_log(_T("2D\n"));
 	} else {
-		for(drive = 0; drive < MAX_DRIVE; drive++) fdc->set_drive_type(drive, DRIVE_TYPE_2DD);
+		for(drive = 0; drive < MAX_FD; drive++) fdc->set_drive_type(drive, DRIVE_TYPE_2DD);
 		//this->out_debug_log(_T("2DD\n"));
 	}
 #endif	
