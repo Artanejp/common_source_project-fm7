@@ -17,7 +17,7 @@
     <file alias="history_by_mr_tanam.txt">../../../../history_by_mr_tanam.txt</file>
     <file alias="revision.txt">../../../../revision.txt</file>
     
-    <file alias="LICENSE.txt">../../../../LICENSE</file>
+    <file alias="LICENSE.txt">../../../../LICENSE.txt</file>
     <file alias="LICENSE.ja.txt">../../../../LICENSE.ja.txt</file>
 </qresource>
 </RCC>
