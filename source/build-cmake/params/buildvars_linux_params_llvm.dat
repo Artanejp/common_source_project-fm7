@@ -31,6 +31,7 @@ case ${CSP_DEBUG} in
 		-std=c++11 \
 		${MAKEFLAGS_BASE} \
 	        "
+	MAKEFLAGS_DLL_LINK_BASE="-g -ggdb -gz ${MAKEFLAGS_BASE3} -DNDEBUG"
 	       ;;
 	       
    "No" | "no" | "NO" | *)
@@ -44,17 +45,17 @@ case ${CSP_DEBUG} in
 		-std=c++11 \
 		${MAKEFLAGS_BASE} \
 	        "
+		MAKEFLAGS_DLL_LINK_BASE="-s ${MAKEFLAGS_BASE3}"
 		;;
 esac
+
 case ${USE_LTO} in
    "Yes" | "yes" | "YES" )
         MAKEFLAGS_BASE2="${MAKEFLAGS_BASE3} -O3 -flto=thin -std=c++11 -msse -msse2 -DNDEBUG" 
-        #MAKEFLAGS_CC_BASE2="${MAKEFLAGS_BASE3} -O3 -flto=thin -std=c11  -msse -msse2 -DNDEBUG"
 	MAKEFLAGS_LINK_BASE2="${MAKEFLAGS_BASE3} -O3 -flto=thin -fwhole-program-vtables -msse -msse2"
 	;;
    "No" | "no" | "NO" | * )
         MAKEFLAGS_BASE2="-O3 -std=c++11 ${MAKEFLAGS_BASE3} -DNDEBUG" 
-        #MAKEFLAGS_CC_BASE2="-O3 -std=c11 ${MAKEFLAGS_BASE3} -DNDEBUG"
 	MAKEFLAGS_LINK_BASE2="${MAKEFLAGS_BASE3}"
 	;;
 esac	
