@@ -653,12 +653,16 @@ public:
 	// Force render per 1 sample automatically.
 	// See pcm1bit.cpp .
 	// -- 20161010 K.O
-	virtual void set_realtime_render(DEVICE* device = this, bool flag = true)
+	virtual void set_realtime_render(DEVICE* device, bool flag = true)
 	{
 		if(event_manager == NULL) {
 			event_manager = vm->first_device->next_device;
 		}
 		if(device != event_manager) event_manager->set_realtime_render(device, flag);
+	}
+	virtual void set_realtime_render(bool flag)
+	{
+		set_realtime_render(this, flag);
 	}
 	virtual void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame) {}
 	

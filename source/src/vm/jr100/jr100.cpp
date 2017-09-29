@@ -71,7 +71,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	not_ear->set_context_out(via, SIG_SY6522_PORT_CA1, 1);
 	not_ear->set_context_out(via, SIG_SY6522_PORT_CB1, 1);
 	// Sound:: Force realtime rendering. This is temporally fix. 20161024 K.O
-	pcm->set_realtime_render(true);
+	//pcm->set_realtime_render(true);
 	
 	memory->set_context_via(via);
 	

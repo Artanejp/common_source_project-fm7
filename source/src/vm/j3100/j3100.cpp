@@ -251,7 +251,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		device->initialize();
 	}
 #ifdef TYPE_SL
-	pcm->set_realtime_render(true);
+	//pcm->set_realtime_render(true);
 #endif
 }
 

@@ -150,7 +150,7 @@ bool PCM1BIT::load_state(FILEIO* state_fio)
 	// post process
 	last_vol_l = last_vol_r = 0;
 	//touch_sound();
-	set_realtime_render(on & !mute);
+	set_realtime_render(this, on & !mute);
 	return true;
 }
 
