@@ -25,6 +25,7 @@ set(VMFILES_LIB
 		   disk.cpp
 		   mb8877.cpp
 		   prnfile.cpp
+		   noise.cpp
 )
 
 set(FLAG_USE_MC6809 ON)

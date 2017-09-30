@@ -60,7 +60,12 @@ protected:
 public:
 	DEVICE(VM* parent_vm, EMU* parent_emu) : vm(parent_vm), emu(parent_emu)
 	{
+#if defined(_USE_QT)
+		osd = emu->get_osd();
+#else
 		osd = NULL;
+#endif
+
 		strncpy(this_device_name, "Base Device", 128);
 		prev_device = vm->last_device;
 		next_device = NULL;

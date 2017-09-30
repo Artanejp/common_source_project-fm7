@@ -36,12 +36,18 @@ generate_export_header(CSPfmgen
 )
 
 else()
-  add_library(CSPfmgen SHARED
-    ${s_vm_fmgen_srcs}
-  )
-  set_target_properties(CSPfmgen PROPERTIES 
-     SOVERSION 1.1.0
-     VERSION 1.1.0
-  )
-  INSTALL(TARGETS CSPfmgen DESTINATION ${LIBCSP_INSTALL_DIR})
+  if(USE_DEVICES_SHARED_LIB)
+	add_library(CSPfmgen SHARED
+      ${s_vm_fmgen_srcs}
+	  )
+	set_target_properties(CSPfmgen PROPERTIES 
+      SOVERSION 1.1.0
+      VERSION 1.1.0
+	  )
+	INSTALL(TARGETS CSPfmgen DESTINATION ${LIBCSP_INSTALL_DIR})
+  else()
+	add_library(fmgen STATIC
+      ${s_vm_fmgen_srcs}
+	  )
+  endif()
 endif()

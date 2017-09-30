@@ -178,10 +178,6 @@ void MC6809_BASE::initialize()
 	busreq = false;
 	icount = 0;
 	extra_icount = 0;
-#ifdef USE_DEBUGGER
-	d_mem_stored = d_mem;
-	d_debugger->set_context_mem(d_mem);
-#endif
 }
 
 void MC6809_BASE::write_signal(int id, uint32_t data, uint32_t mask)

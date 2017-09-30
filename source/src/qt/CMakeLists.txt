@@ -55,21 +55,28 @@ generate_export_header(CSPosd
   )
 
 else()
-  add_library(CSPosd SHARED
-    ${s_qt_osd_srcs}
-    ${s_qt_osd_headers_MOC}
-  )
-target_link_libraries(CSPosd PUBLIC
-	  Qt5::Core
-	  Qt5::Gui
-	  Qt5::Widgets
-	  ${SDL2_LIBRARIES}
-	  )
+	if(USE_DEVICES_SHARED_LIB)
+	  add_library(CSPosd SHARED
+		${s_qt_osd_srcs}
+		${s_qt_osd_headers_MOC}
+		)
+	  target_link_libraries(CSPosd PUBLIC
+		Qt5::Core
+		Qt5::Gui
+		Qt5::Widgets
+		${SDL2_LIBRARIES}
+		)
   
-  set_target_properties(CSPosd PROPERTIES 
-     SOVERSION ${THIS_LIB_VERSION}
-     VERSION ${THIS_LIB_VERSION}
-  )
-  INSTALL(TARGETS CSPosd DESTINATION ${LIBCSP_INSTALL_DIR})
+	  set_target_properties(CSPosd PROPERTIES 
+		SOVERSION ${THIS_LIB_VERSION}
+		VERSION ${THIS_LIB_VERSION}
+		)
+	  INSTALL(TARGETS CSPosd DESTINATION ${LIBCSP_INSTALL_DIR})
+	else()
+	  add_library(osd STATIC
+		${s_qt_osd_srcs}
+		${s_qt_osd_headers_MOC}
+		)
+	endif()
 endif()
 

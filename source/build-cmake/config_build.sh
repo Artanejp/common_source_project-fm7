@@ -142,11 +142,20 @@ case ${USE_COMMON_DEVICE_LIB} in
    ;;
 esac
 
-build_dll libCSPfmgen
-build_dll libCSPavio
-build_dll libCSPgui
-build_dll libCSPosd
-build_dll libCSPemu_utils
+case ${USE_COMMON_DEVICE_LIB} in
+   "Yes" | "yes" | "YES" )
+	   build_dll libCSPfmgen
+	   build_dll libCSPavio
+	   build_dll libCSPgui
+	   build_dll libCSPosd
+	   build_dll libCSPemu_utils
+	   ;;
+   "No" | "no" | "NO" | * )
+	   build_dll libCSPavio
+	   build_dll libCSPgui
+	   build_dll libCSPosd
+	   ;;
+esac
 
 for SRCDATA in $@ ; do\
 
