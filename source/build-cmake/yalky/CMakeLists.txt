@@ -31,6 +31,7 @@ set(VMFILES_LIB
 	datarec.cpp
 	i8080_base.cpp
 	i8155.cpp
+	noise.cpp
 	not.cpp
 )
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")

@@ -12,13 +12,13 @@ set(WITH_JOYSTICK OFF)
 set(WITH_MOUSE OFF)
 set(VMFILES
 	   i8080.cpp
-		   
 	   io.cpp
-		   
 	   event.cpp
 )
 set(VMFILES_LIB
+	   noise.cpp
 	   datarec.cpp
+	   i8080_base.cpp
 	   i8155.cpp
 	   pcm1bit.cpp
 	   upd1990a.cpp

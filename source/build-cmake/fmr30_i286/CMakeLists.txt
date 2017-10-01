@@ -29,16 +29,17 @@ set(VMFILES
 		   event.cpp
 )
 set(VMFILES_LIB
+		   disk.cpp
 		   i8251.cpp
 		   i8253.cpp
 		   i8259.cpp
 		   i8237_base.cpp
 		   mb8877.cpp
+		   noise.cpp
 		   pcm1bit.cpp
 		   sn76489an.cpp
 #		   scsi_dev_base.cpp
 #		   scsi_hdd.cpp
-		   disk.cpp
 )
 
 set(BUILD_FMR30_86 OFF CACHE BOOL "Build for FM-R30, i86 version")

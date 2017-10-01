@@ -13,6 +13,7 @@ set(VMFILES
 		memory.cpp
 )
 set(VMFILES_LIB
+		noise.cpp
 		beep.cpp
 		datarec.cpp
 		i8251.cpp

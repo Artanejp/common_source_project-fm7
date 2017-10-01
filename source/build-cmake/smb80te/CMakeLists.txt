@@ -29,6 +29,7 @@ set(VMFILES_BASE
 set(VMFILES_LIB
        datarec.cpp
        not.cpp
+	   noise.cpp
        z80pio.cpp
 )   
 

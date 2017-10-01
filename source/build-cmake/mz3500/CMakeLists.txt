@@ -34,6 +34,7 @@ set(VMFILES_LIB
 		   
 	   ls244.cpp
 	   not.cpp
+	   noise.cpp
 	   pcm1bit.cpp
 	   upd1990a.cpp
 	   upd765a.cpp

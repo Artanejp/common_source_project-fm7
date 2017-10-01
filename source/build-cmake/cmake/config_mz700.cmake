@@ -26,6 +26,7 @@ set(VMFILES_MZ1500 ${VMFILES_MZ800}
 )
 
 set(VMFILES_LIB
+	   noise.cpp
 	   datarec.cpp
 	   i8255.cpp
 	   i8253.cpp

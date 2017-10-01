@@ -28,8 +28,10 @@ set(VMFILES_BASE
 )
 
 set(VMFILES_LIB 
-		mb8861.cpp
 		datarec.cpp
+		mb8861.cpp
+		mc6800.cpp
+		noise.cpp
 		not.cpp
 		pcm1bit.cpp
 )

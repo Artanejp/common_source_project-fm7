@@ -28,6 +28,7 @@ set(VMFILES_LIB
 		   i8253.cpp
 		   i8255.cpp
 		   i8259.cpp
+		   noise.cpp
 		   rp5c01.cpp
 		   z80sio.cpp
 		   z80pio.cpp

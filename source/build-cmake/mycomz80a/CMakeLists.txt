@@ -28,6 +28,7 @@ set(VMFILES_LIB
   		hd46505.cpp
 		i8255.cpp
 		msm58321_base.cpp
+		noise.cpp
 		sn76489an.cpp
 )	
 

@@ -20,11 +20,12 @@ set(VMFILES
 )
 
 set(VMFILES_LIB
-	    datarec.cpp
+		noise.cpp
+		datarec.cpp
 		pc6031.cpp
 		pc80s31k.cpp
 		upd765a.cpp
-		ym2203.cpp
+
 		prnfile.cpp
 		disk.cpp
 )
@@ -52,6 +53,10 @@ if(BUILD_PC6001)
    set(VMFILES ${VMFILES}
        mc6847.cpp
    )
+   set(VMFILES_LIB ${VMFILES_LIB}
+       ay_3_891x.cpp
+       mc6847_base.cpp
+   )
    set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc6001.qrc)
 elseif(BUILD_PC6001MK2)
    add_definitions(-D_PC6001MK2)
@@ -59,18 +64,23 @@ elseif(BUILD_PC6001MK2)
    set(VMFILES_LIB ${VMFILES_LIB}
        upd7752.cpp
    )
+   set(VMFILES_LIB ${VMFILES_LIB}
+       ay_3_891x.cpp
+   )
    set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc6001mk2.qrc)
 elseif(BUILD_PC6001MK2SR)
    add_definitions(-D_PC6001MK2SR)
    set(EXEC_TARGET emupc6001mk2sr)
    set(VMFILES_LIB ${VMFILES_LIB}
        upd7752.cpp
+       ym2203.cpp
    )
    set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc6001mk2sr.qrc)
 elseif(BUILD_PC6601)
    add_definitions(-D_PC6601)
    set(EXEC_TARGET emupc6601)
    set(VMFILES_LIB ${VMFILES_LIB}
+       ay_3_891x.cpp
        upd7752.cpp
    )
    set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc6601.qrc)
@@ -79,6 +89,7 @@ elseif(BUILD_PC6601SR)
    set(EXEC_TARGET emupc6601sr)
    set(VMFILES_LIB ${VMFILES_LIB}
        upd7752.cpp
+       ym2203.cpp
    )
    set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc6601sr.qrc)
 endif()

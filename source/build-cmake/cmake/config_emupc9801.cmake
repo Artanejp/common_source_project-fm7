@@ -20,11 +20,13 @@ set(VMFILES_LIB
 		   i8259.cpp
 		   ls244.cpp
 		   pc80s31k.cpp
+		   tms3631.cpp
 		   upd1990a.cpp
 		   upd7220_base.cpp
 		   upd765a.cpp
 		   ym2203.cpp
 		   prnfile.cpp
+		   noise.cpp
 		   disk.cpp
 )
 
@@ -59,6 +61,7 @@ if(BUILD_PC9801)
    set(VMFILES_LIB 
        beep.cpp
        not.cpp
+	   ${VMFILES_LIB}
 	   )
   set(FLAG_USE_I386_VARIANTS OFF)
   set(FLAG_USE_I286 ON)
@@ -73,6 +76,7 @@ elseif(BUILD_PC9801E)
    set(VMFILES_LIB 
        beep.cpp
        not.cpp
+	   ${VMFILES_LIB}
    )
   set(FLAG_USE_I386_VARIANTS OFF)
   set(FLAG_USE_I286 ON)
@@ -88,6 +92,7 @@ elseif(BUILD_PC9801U)
        beep.cpp
        not.cpp
        pcm1bit.cpp
+	   ${VMFILES_LIB}
    )
   set(FLAG_USE_I386_VARIANTS OFF)
   set(FLAG_USE_I286 ON)
@@ -101,6 +106,7 @@ elseif(BUILD_PC9801VM)
    set(VMFILES_LIB 
        not.cpp
        pcm1bit.cpp
+	   ${VMFILES_LIB}
    )
   set(FLAG_USE_I386_VARIANTS OFF)
   set(FLAG_USE_I286 ON)
@@ -114,6 +120,7 @@ elseif(BUILD_PC9801VX)
    set(VMFILES_LIB 
        not.cpp
        pcm1bit.cpp
+	   ${VMFILES_LIB}
    )
   set(FLAG_USE_I386_VARIANTS OFF)
   set(FLAG_USE_I286 ON)
@@ -127,6 +134,7 @@ elseif(BUILD_PC98XA)
    set(VMFILES_LIB 
        not.cpp
        pcm1bit.cpp
+	   ${VMFILES_LIB}
    )
   set(FLAG_USE_I386_VARIANTS OFF)
   set(FLAG_USE_I286 ON)
@@ -140,6 +148,7 @@ elseif(BUILD_PC98XL)
    set(VMFILES_LIB 
        not.cpp
        pcm1bit.cpp
+	   ${VMFILES_LIB}
    )
   set(FLAG_USE_I386_VARIANTS OFF)
   set(FLAG_USE_I286 ON)
@@ -153,6 +162,7 @@ elseif(BUILD_PC9801VF)
    set(VMFILES_LIB 
        not.cpp
        pcm1bit.cpp
+	   ${VMFILES_LIB}
    )
   set(FLAG_USE_I386_VARIANTS OFF)
   set(FLAG_USE_I286 ON)
@@ -166,6 +176,7 @@ elseif(BUILD_PC9801RA)
    set(VMFILES_LIB 
        not.cpp
        pcm1bit.cpp
+	   ${VMFILES_LIB}
    )
   set(FLAG_USE_I386_VARIANTS ON)
   set(FLAG_USE_I286 OFF)
@@ -179,6 +190,7 @@ elseif(BUILD_PC98RL)
    set(VMFILES_LIB 
        not.cpp
        pcm1bit.cpp
+	   ${VMFILES_LIB}
    )
   set(FLAG_USE_I386_VARIANTS ON)
   set(FLAG_USE_I286 OFF)

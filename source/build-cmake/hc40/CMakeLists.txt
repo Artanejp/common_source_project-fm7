@@ -28,8 +28,9 @@ set(VMFILES_BASE
 set(VMFILES_LIB
       beep.cpp
       datarec.cpp
-      ptf20.cpp
       disk.cpp
+	  noise.cpp
+      ptf20.cpp
       
 )
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")

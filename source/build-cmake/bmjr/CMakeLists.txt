@@ -22,6 +22,7 @@ set(VMFILES_BASE
 	event.cpp
 )
 set(VMFILES_LIB
+	  noise.cpp
 	  datarec.cpp
 	  mc6800.cpp
 	  mc6820.cpp

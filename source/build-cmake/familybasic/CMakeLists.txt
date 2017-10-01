@@ -23,12 +23,14 @@ set(WITH_MOUSE ON)
 
 set(VMFILES_BASE
        n2a03.cpp
-       datarec.cpp
        event.cpp
 )
 
 set(VMFILES_LIB
-		ym2413.cpp
+	m6502_base.cpp
+	noise.cpp
+	datarec.cpp
+	ym2413.cpp
 )
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")

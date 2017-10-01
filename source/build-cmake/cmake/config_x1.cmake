@@ -18,6 +18,7 @@ set(VMFILES
 		   mz1p17.cpp
 )
 set(VMFILES_LIB
+		   noise.cpp
 		   ay_3_891x.cpp
 		   beep.cpp
 		   datarec.cpp

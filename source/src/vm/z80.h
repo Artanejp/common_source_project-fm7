@@ -19,11 +19,11 @@
 #define SIG_NSC800_RSTB	2
 #define SIG_NSC800_RSTC	3
 //#endif
-#if defined(USE_SHARED_DLL)
+//#if defined(USE_SHARED_DLL) || defined(USE_QT)
 #define Z80_INLINE
-#else
-#define Z80_INLINE inline
-#endif
+//#else
+//#define Z80_INLINE inline
+//#endif
 //#ifdef USE_DEBUGGER
 class DEBUGGER;
 //#endif

@@ -33,7 +33,7 @@ set(VMFILES_LIB
 		   i8255.cpp
 		   i8259.cpp
 		   msm58321_base.cpp
-		   
+		   noise.cpp
 		   pcm1bit.cpp
 		   upd765a.cpp
 		   disk.cpp

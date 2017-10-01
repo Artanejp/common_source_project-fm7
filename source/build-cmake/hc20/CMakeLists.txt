@@ -30,14 +30,17 @@ set(VMFILES_BASE
 set(VMFILES_LIB
       beep.cpp
       datarec.cpp
+      disk.cpp
+      hd146818p.cpp
       hd6301.cpp
       i8255.cpp
-      hd146818p.cpp
+      mc6800.cpp
+      mc6801.cpp
+      noise.cpp
       
       tf20.cpp
       upd765a.cpp
       z80sio.cpp
-      disk.cpp
 )
 
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")

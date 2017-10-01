@@ -29,14 +29,15 @@ set(VMFILES
 		   event.cpp
 )
 set(VMFILES_LIB
+		   disk.cpp
 		   i8251.cpp
 		   i8253.cpp
 		   i8259.cpp
 		   i8237_base.cpp
 		   mb8877.cpp
+		   noise.cpp
 		   pcm1bit.cpp
 		   sn76489an.cpp
-		   disk.cpp
 #		   scsi_dev_base.cpp
 #		   scsi_hdd.cpp
 

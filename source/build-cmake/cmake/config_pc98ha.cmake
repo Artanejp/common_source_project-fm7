@@ -10,6 +10,7 @@ set(VMFILES
 		   memory.cpp
 )
 set(VMFILES_LIB
+		   noise.cpp
 		   beep.cpp
 		   i8251.cpp
 		   i8253.cpp

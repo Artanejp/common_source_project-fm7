@@ -26,6 +26,7 @@ set(VMFILES
 		   event.cpp
 )
 set(VMFILES_LIB
+		   noise.cpp
 		   datarec.cpp
 		   i8080_base.cpp
 		   rp5c01.cpp

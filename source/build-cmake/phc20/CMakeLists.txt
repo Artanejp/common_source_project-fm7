@@ -22,6 +22,7 @@ set(VMFILES
 )
 set(VMFILES_LIB
 		   mc6847_base.cpp
+		   noise.cpp
 		   datarec.cpp
 )
 set(BUILD_SHARED_LIBS OFF)

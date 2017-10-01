@@ -21,6 +21,7 @@ set(VMFILES_LIB
 	pcm1bit.cpp
 	ym2413.cpp
 	prnfile.cpp
+	noise.cpp
 )
 set(FLAG_USE_Z80 ON)
 
@@ -41,8 +42,10 @@ add_definitions(-D_MSX_VDP_MESS)
 set(VMFILES_MSX2 ${VMFILES_BASE}
 )
 
-set(VMFILES_MSX2_LIB ${VMFILES_LIB}
+set(VMFILES_LIB_MSX2 ${VMFILES_LIB}
+	disk.cpp
 	v9938.cpp
+	v99x8.cpp
 	rp5c01.cpp
 )
 

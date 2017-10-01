@@ -25,13 +25,14 @@ set(VMFILES
 		   event.cpp
 )
 set(VMFILES_LIB
+		   disk.cpp
+		   hd46505.cpp
 		   i8237_base.cpp
 		   i8253.cpp
 		   i8259.cpp
-		   hd46505.cpp
+		   noise.cpp
 		   pcm1bit.cpp
 		   upd765a.cpp
-		   disk.cpp
 )
 
 set(BUILD_J3100GT ON  CACHE BOOL "Build emuJ3100GT")

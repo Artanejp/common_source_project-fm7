@@ -28,6 +28,7 @@ set(VMFILES
 )
 set(VMFILES_LIB
 		   datarec.cpp
+		   noise.cpp
 		   pcm1bit.cpp
 		   upd16434.cpp
 		   upd1990a.cpp

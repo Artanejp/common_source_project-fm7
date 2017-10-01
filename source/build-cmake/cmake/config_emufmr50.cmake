@@ -38,6 +38,7 @@ set(VMFILES_LIB
 #		   i386.cpp  
 #		   scsi_dev_base.cpp
 #		   scsi_hdd.cpp
+		   noise.cpp
 		   disk.cpp
 		   )
 		 

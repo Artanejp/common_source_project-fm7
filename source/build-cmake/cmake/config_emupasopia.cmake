@@ -24,6 +24,7 @@ set(VMFILES_LIB
 		   z80ctc.cpp
 		   pcm1bit.cpp
 		   upd765a.cpp
+		   noise.cpp
 		   disk.cpp
 		   hd46505.cpp
 )

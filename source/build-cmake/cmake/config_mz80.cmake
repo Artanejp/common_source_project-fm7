@@ -21,6 +21,7 @@ set(VMFILES_BASE
 )
 
 set(VMFILES_LIB
+	   noise.cpp
 	   beep.cpp
 	   datarec.cpp
 	   i8253.cpp

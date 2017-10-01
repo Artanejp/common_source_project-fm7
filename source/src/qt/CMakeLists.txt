@@ -55,7 +55,7 @@ generate_export_header(CSPosd
   )
 
 else()
-	if(USE_DEVICES_SHARED_LIB)
+	#if(USE_DEVICES_SHARED_LIB)
 	  add_library(CSPosd SHARED
 		${s_qt_osd_srcs}
 		${s_qt_osd_headers_MOC}
@@ -72,11 +72,11 @@ else()
 		VERSION ${THIS_LIB_VERSION}
 		)
 	  INSTALL(TARGETS CSPosd DESTINATION ${LIBCSP_INSTALL_DIR})
-	else()
-	  add_library(osd STATIC
-		${s_qt_osd_srcs}
-		${s_qt_osd_headers_MOC}
-		)
-	endif()
+	#else()
+	#  add_library(osd STATIC
+	#	${s_qt_osd_srcs}
+	#	${s_qt_osd_headers_MOC}
+	#	)
+	#endif()
 endif()
 

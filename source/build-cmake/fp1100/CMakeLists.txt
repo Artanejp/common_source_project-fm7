@@ -26,14 +26,15 @@ set(VMFILES
 		  memory.cpp
 )
 set(VMFILES_LIB
+		   beep.cpp
 		   datarec.cpp
+		   disk.cpp
+		   hd46505.cpp
+		   noise.cpp
 		   upd7801.cpp
 		   upd765a.cpp
 #		   pcm1bit.cpp
 		   ym2203.cpp
-		   hd46505.cpp
-		   beep.cpp
-		   disk.cpp
 )
 
 set(BUILD_SHARED_LIBS OFF)

@@ -30,6 +30,9 @@ set(VMFILES_LIB
 		datarec.cpp
 		hd44102.cpp
 		hd6301.cpp
+		mc6801.cpp
+		mc6800.cpp
+		noise.cpp
 		pcm1bit.cpp
 )
 

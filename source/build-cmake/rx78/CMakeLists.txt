@@ -25,6 +25,7 @@ set(VMFILES
 )
 set(VMFILES_LIB
 		   datarec.cpp
+		   noise.cpp
 		   sn76489an.cpp
 )
 		 

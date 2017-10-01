@@ -18,21 +18,20 @@ set(VMFILES
 )
 
 set(VMFILES_LIB
+		   ay_3_891x.cpp
+		   disk.cpp
 		   i8237_base.cpp
 		   i8255.cpp
 		   i8259.cpp
 		   ls393.cpp
 		   not.cpp
-		   
+		   noise.cpp
 		   prnfile.cpp
 		   rp5c01.cpp
 		   upd7220_base.cpp
 		   upd765a.cpp
-		   ym2203.cpp
 		   z80ctc.cpp
 		   z80sio.cpp
-		   
-		   disk.cpp
 )
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")

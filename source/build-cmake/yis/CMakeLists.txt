@@ -32,12 +32,14 @@ set(VMFILES_BASE
 set(VMFILES_LIB
 	am9511.cpp
 	beep.cpp
+	disk.cpp
+	m6502_base.cpp
 	mb8877.cpp
 	mc6820.cpp
 	mc6844.cpp
 	mc6850.cpp
-	msm5832_base.cpp
-	m6502_base.cpp
+	msm58321_base.cpp
+	noise.cpp
 )
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")

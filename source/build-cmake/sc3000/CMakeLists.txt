@@ -28,6 +28,7 @@ set(VMFILES_LIB
 		   datarec.cpp
 		   i8251.cpp
 		   i8255.cpp
+		   noise.cpp
 		   sn76489an.cpp
 		   tms9918a.cpp
   		   upd765a.cpp

@@ -11,6 +11,7 @@ set(VMFILES
 		   event.cpp
 )
 set(VMFILES_LIB
+		   noise.cpp
 		   i8237_base.cpp
 		   i8253.cpp
 		   i8255.cpp

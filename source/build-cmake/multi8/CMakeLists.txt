@@ -23,16 +23,17 @@ set(VMFILES_BASE
 		   event.cpp
 )
 set(VMFILES_LIB
+		   ay_3_891x.cpp
+		   beep.cpp
+		   disk.cpp
 		   datarec.cpp
 		   hd46505.cpp
 		   i8251.cpp
 #		   i8253.cpp
 		   i8255.cpp
 		   i8259.cpp
-		   beep.cpp
+		   noise.cpp
 		   upd765a.cpp
-		   ym2203.cpp
-		   disk.cpp
 )
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")

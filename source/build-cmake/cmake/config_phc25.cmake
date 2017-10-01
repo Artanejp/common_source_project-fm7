@@ -19,10 +19,11 @@ set(VMFILES
 		   event.cpp
 )
 set(VMFILES_LIB
+		   ay_3_891x.cpp
+		   noise.cpp
 		   datarec.cpp
 		   mc6847_base.cpp
 		   not.cpp
-		   ym2203.cpp
 )
 
 set(BUILD_SHARED_LIBS OFF)

@@ -28,17 +28,18 @@ set(VMFILES_BASE
       event.cpp
 )
 set(VMFILES_LIB
+      disk.cpp
       i8251.cpp
       i8253.cpp
       i8255.cpp
       i8259.cpp
 	  
       hd46505.cpp
-      pcm1bit.cpp
       not.cpp
+	  noise.cpp
+      pcm1bit.cpp
       upd765a.cpp
       sn76489an.cpp
-      disk.cpp
 )
 set(FLAG_USE_I86 ON)
 

@@ -49,6 +49,7 @@ if(BUILD_GAMEGEAR)
 		   sn76489an.cpp
 		   upd765a.cpp
 		   disk.cpp
+		   noise.cpp
 )		   
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/gamegear.qrc)
 elseif(BUILD_MARK3)
