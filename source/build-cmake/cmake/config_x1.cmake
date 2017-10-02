@@ -79,6 +79,9 @@ elseif(BUILD_X1TWIN)
 #		   scsi_dev.cpp
 #		   msm5205.cpp
 		   )
+  set(VMFILES_LIB ${VMFILES_LIB}
+  		   huc6280_base.cpp
+  )
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/x1twin.qrc)
 endif()
 
