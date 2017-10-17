@@ -137,12 +137,24 @@ void* debugger_thread(void *lpx)
 	volatile debugger_thread_t *p = (debugger_thread_t *)lpx;
 	p->running = true;
 	
+	// initialize console
+	_TCHAR buffer[1024];
+	bool cp932 = (p->osd->get_console_code_page() == 932);
+	
+	p->osd->open_console(create_string(_T("Debugger - %s"), _T(DEVICE_NAME)));
+	
+	// break cpu
 	DEVICE *cpu = p->vm->get_cpu(p->cpu_index);
 	DEBUGGER *debugger = (DEBUGGER *)cpu->get_debugger();
 	
 	debugger->now_going = false;
 	debugger->now_debugging = true;
+	int wait_count = 0;
 	while(!p->request_terminate && !(debugger->now_suspended && debugger->now_waiting)) {
+		if((wait_count++) == 100) {
+			p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_INTENSITY);
+			my_printf(p->osd, _T("waiting until cpu is suspended...\n"));
+		}
 		p->osd->sleep(10);
 	}
 	uint32_t prog_addr_mask = cpu->get_debug_prog_addr_mask();
@@ -150,11 +162,6 @@ void* debugger_thread(void *lpx)
 	uint32_t dump_addr = 0;
 	uint32_t dasm_addr = cpu->get_next_pc();
 	
-	// initialize console
-	_TCHAR buffer[1024];
-	bool cp932 = (p->osd->get_console_code_page() == 932);
-	
-	p->osd->open_console((_TCHAR *)create_string(_T("Debugger - %s"), _T(DEVICE_NAME)));
 	p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
 	cpu->get_debug_regs_info(buffer, 1024);
 	my_printf(p->osd, _T("%s\n"), buffer);
@@ -758,7 +765,12 @@ void* debugger_thread(void *lpx)
 #endif					   
 					// break cpu
 					debugger->now_going = false;
+					wait_count = 0;
 					while(!p->request_terminate && !(debugger->now_suspended && debugger->now_waiting)) {
+						if((wait_count++) == 100) {
+							p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_INTENSITY);
+							my_printf(p->osd, _T("waiting until cpu is suspended...\n"));
+						}
 						p->osd->sleep(10);
 					}
 					dasm_addr = cpu->get_next_pc();
@@ -818,7 +830,12 @@ void* debugger_thread(void *lpx)
 					for(int i = 0; i < steps; i++) {
 						debugger->now_going = false;
 						debugger->now_suspended = false;
+						wait_count = 0;
 						while(!p->request_terminate && !(debugger->now_suspended && debugger->now_waiting)) {
+							if((wait_count++) == 100) {
+								p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_INTENSITY);
+								my_printf(p->osd, _T("waiting until cpu is suspended...\n"));
+							}
 							p->osd->sleep(10);
 						}
 						dasm_addr = cpu->get_next_pc();

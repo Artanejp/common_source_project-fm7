@@ -1,5 +1,6 @@
 message("* vm/common_vm")
 
+SET(THIS_LIB_VERSION 1.1.18)
 set(s_vm_common_vm_srcs
 	../315-5124.cpp
 	../am9511.cpp
@@ -112,7 +113,6 @@ set(s_vm_common_vm_srcs
 	../fm7/mb61vh010.cpp
 #	../fm7/dummydevice.cpp
 )
-SET(THIS_LIB_VERSION 1.1.17)
 
 if(WIN32)
 #include (GenerateExportHeader)

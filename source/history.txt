@@ -1,3 +1,11 @@
+8/12/2017
+
+[EMU/DEBUGGER] improve to show message when cpu is not suspended soon
+
+[PC8801/PC88] fix to render text color #0 with back color
+[PC8801/PC88] fix to get text color attribute when text display is stopped
+
+
 8/10/2017
 
 [EMU] support to enter 0-9 by numpad key while roman to kana is enabled

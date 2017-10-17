@@ -305,10 +305,10 @@ void PC88::initialize()
 	}
 	
 	// initialize text/graph palette
-	for(int i = 0; i < 9; i++) {
+	for(int i = 0; i < 8; i++) {
 		palette_text_pc[i] = RGBA_COLOR((i & 2) ? 255 : 0, (i & 4) ? 255 : 0, (i & 1) ? 255 : 0, 255); // A is a flag for crt filter
 	}
-	for(int i = 0; i < 9; i++) {
+	for(int i = 0; i < 8; i++) {
 		palette_graph_pc[i] = RGB_COLOR((i & 2) ? 255 : 0, (i & 4) ? 255 : 0, (i & 1) ? 255 : 0);
 	}
 	
@@ -1904,7 +1904,7 @@ void PC88::draw_screen()
 				palette_graph_pc[0] = 0;
 				palette_graph_pc[1] = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
 			} else {
-				for(int i = 1; i < 9; i++) {
+				for(int i = 1; i < 8; i++) {
 					palette_graph_pc[i] = RGB_COLOR((i & 2) ? 255 : 0, (i & 4) ? 255 : 0, (i & 1) ? 255 : 0);
 				}
 				palette_graph_pc[0] = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
@@ -1915,10 +1915,10 @@ void PC88::draw_screen()
 				palette_text_pc[0] = palette_graph_pc[0];
 			}
 		} else {
-			for(int i = 0; i < 9; i++) {
-				uint8_t b = (port[0x54 + (i & 7)] & 1) ? 7 : 0;
-				uint8_t r = (port[0x54 + (i & 7)] & 2) ? 7 : 0;
-				uint8_t g = (port[0x54 + (i & 7)] & 4) ? 7 : 0;
+			for(int i = 0; i < 8; i++) {
+				uint8_t b = (port[0x54 + i] & 1) ? 7 : 0;
+				uint8_t r = (port[0x54 + i] & 2) ? 7 : 0;
+				uint8_t g = (port[0x54 + i] & 4) ? 7 : 0;
 				palette_graph_pc[i] = RGB_COLOR(pex[r], pex[g], pex[b]);
 			}
 			if(!Port31_COLOR) {
@@ -1927,8 +1927,8 @@ void PC88::draw_screen()
 			palette_text_pc[0] = palette_graph_pc[0];
 		}
 #else
-		for(int i = 0; i < 9; i++) {
-			palette_graph_pc[i] = RGB_COLOR(pex[palette[i & 7].r], pex[palette[i & 7].g], pex[palette[i & 7].b]);
+		for(int i = 0; i < 8; i++) {
+			palette_graph_pc[i] = RGB_COLOR(pex[palette[i].r], pex[palette[i].g], pex[palette[i].b]);
 		}
 		if(!Port31_HCOLOR) {
 			palette_graph_pc[0] = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
@@ -1945,6 +1945,7 @@ void PC88::draw_screen()
 	if(!disp_color_graph) {
 		palette_text_pc[0] = palette_graph_pc[0] = 0;
 	}
+	palette_graph_pc[8] = palette_text_pc[8] = palette_text_pc[0];
 	
 	// copy to screen buffer
 #if !defined(_PC8001SR)
@@ -2031,22 +2032,23 @@ void PC88::draw_screen()
 
 void PC88::draw_text()
 {
-	uint8_t ct = 0;
-	
 	if(crtc.status & 0x88) {
+		// dma underrun
 		crtc.status &= ~0x80;
-		ct = crtc.reverse ? 3 : 2;
+		memset(crtc.text.expand, 0, 200 * 80);
+		memset(crtc.attrib.expand, crtc.reverse ? 3 : 2, 200 * 80);
 	}
 	// for Advanced Fantasian Opening (20line) (XM8 version 1.00)
 	if(!(crtc.status & 0x10) || Port53_TEXTDS) {
 //	if(!(crtc.status & 0x10) || (crtc.status & 8) || Port53_TEXTDS) {
-//		memset(text, 0, sizeof(text));
-//		return;
-		ct = 2;
-	}
-	if(ct) {
 		memset(crtc.text.expand, 0, 200 * 80);
-		memset(crtc.attrib.expand, ct, 200 * 80);
+		for(int y = 0; y < 200; y++) {
+			for(int x = 0; x < 80; x++) {
+				crtc.attrib.expand[y][x] &= 0xe0;
+				crtc.attrib.expand[y][x] |= 0x02;
+			}
+		}
+//		memset(crtc.attrib.expand, 2, 200 * 80);
 	}
 	
 	// for Xak2 opening

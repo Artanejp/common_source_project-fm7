@@ -1,3 +1,15 @@
+commit 990d13b2db58121e47efc64654f94648da34b6ca
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Aug 12 03:25:53 2017 +0900
+
+    [VM][FM7][FLOPPY] Fix crash when starting.
+
+commit cdd8e0ef179adbb71da0aff706e87a3227fd9ba4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 11 23:40:56 2017 +0900
+
+    [DOC] Update for release.
+
 commit 04e08d2708a595c518ae0bd92c1713e1854c4310
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Fri Aug 11 23:32:34 2017 +0900

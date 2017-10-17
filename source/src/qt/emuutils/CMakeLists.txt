@@ -7,7 +7,7 @@ set(s_qt_emuutils_srcs
 	  ../../fileio.cpp
 	  )
 	
-SET(THIS_LIB_VERSION 2.6.0) 
+SET(THIS_LIB_VERSION 2.6.1) 
 
 if(WIN32)
 include (GenerateExportHeader)
