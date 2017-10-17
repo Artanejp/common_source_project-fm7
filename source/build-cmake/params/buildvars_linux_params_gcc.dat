@@ -58,10 +58,19 @@ case ${USE_WHOLE_PROGRAM_OPTIMIZE} in
       ;;
 esac
 
+case ${COMPRESS_SYMBOLS} in
+   "Yes" | "yes" | "YES" )
+   COMPRESS_CFLAGS="-gz"
+   ;;
+   "No" | "no" | "NO" | * )
+   COMPRESS_CFLAGS=""
+   ;;
+esac
+
 case ${CSP_DEBUG} in
    "Yes" | "yes" | "YES" )
-      MAKEFLAGS_DLL_LINK_BASE="-g -ggdb -gz ${MAKEFLAGS_BASE3} -DNDEBUG"
-      MAKEFLAGS_BASE2="-g -ggdb -gz ${MAKEFLAGS_BASE3} -DNDEBUG"
+      MAKEFLAGS_DLL_LINK_BASE="-g -ggdb ${COMPRESS_CFLAGS} ${MAKEFLAGS_BASE3} -DNDEBUG"
+      MAKEFLAGS_BASE2="-g -ggdb ${COMPRESS_CFLAGS} ${MAKEFLAGS_BASE3} -DNDEBUG"
       ;;
    "No" | "no" | "NO" | * )
       MAKEFLAGS_DLL_LINK_BASE="${MAKEFLAGS_BASE3}"
