@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                        August 11, 2017
+                                        October 18, 2017
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 0. About
@@ -21,7 +21,7 @@
      
 2. What you need at least:
 
-   a. Qt5 (neither Qt3 and Qt4) toolkit.
+   a. Qt5 (neither Qt3 and Qt4) toolkit. Recommend to use Qt5.5 or later.
    b. Some OpenGL implementation, maybe at leaset OpenGL v2.1.
    c. gcc / g++ (4.7 or later? ) or llvm clang / clang++ (3.5 or later?) toolchain.
    d. SDL2 (not SDL1.x).
@@ -76,9 +76,12 @@ a. I tested to build only under Debian GNU/Linux "sid" and
   e. Now using GCC-6 with Link Time Optimize to build for distrubuted binaries.
 
 6. Upstream repositry:
+
       https://osdn.jp/projects/csp-qt/
+      
       https://github.com/Artanejp/common_source_project-fm7
-      https://www.pikacode.com/Artanejp/common_source_project-fm7/
+
+*Note: Repositry of pikacode has dead X-).
       
 7. Upstream (Takeda Toshiya San's original code) 
       http://takeda-toshiya.my.coocan.jp/

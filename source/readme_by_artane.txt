@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                         August 11, 2017
+                                         October 18, 2017
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -12,7 +12,7 @@
    
    ソースコード：
    
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20170811
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20171018
 
    追加情報:
    
@@ -41,9 +41,9 @@
 
 2. 最低限必要なもの(Qt版)
 
-   a. Qt5 ツールキット。バイナリはQt 5.5基準でビルドしてあります。
+   a. Qt5 ツールキット。Qt 5.5以降を推奨します。
    
-   b. OpenGL, 多分、最低OpenGL 2.1は必要です。 (New!)
+   b. OpenGL, 多分、最低OpenGL 2.1は必要です。（注：ひょっとしたら、OpenGLES2以降ならば動くように変えるかも知れない）
    
    c. gcc / g++ (5.0以降？)もしくは llvm clang / clang++ (3.5以降?)
       コンパイラツールチェーン。
@@ -56,17 +56,18 @@
    
    g. ffmpegは、それぞれのランタイムに必要なものをバンドルしてありますので、動かない時はインストールしてみてください。
       
-   h. GNU/Linuxビルドでは、Qt5.5(Ubuntu 16.04LTS向け)もしくはQt5.7(Debian GNU/Linux sid向け)でビルドしてあります。
+   h. GNU/Linuxビルドでは、Qt5.5(Ubuntu 16.04LTS向け)もしくはQt5.9(Debian GNU/Linux sid向け)でビルドしてあります。
    
    * Windows もしくは GNU/Linux のcross tool chain (要Wine)で、MinGW (gcc6) と Qt 5.7 でのビルドができることを確認しました。
      
    * TIPS:
    
-     Windows等で動かした時に、画面の書き替えが表示されない場合は、
-     
-     環境変数 QT_OPENGL を software にしてみてください。（例えば、
-     
-     WindowsをVirtualBoxのゲストで使ってる場合など）
+     * Windows等で動かした時に、画面の書き替えが表示されない場合は、環境変数 QT_OPENGL を software にしてみてください。（例えば、
+       WindowsをVirtualBoxのゲストで使ってる場合など）
+       
+     * Windows版バイナリには、ソフトウェアレンダリングのopengl32.dllが添付されてますが、最近のパソコンの専用GPUドライバなら、
+       もっと程度のいいOpenGLが入ってるはずです。
+       添付版opengl32.dllを適当な名前に変更して動くかどうか試してみて下さい。
      
 3. ビルドの方法
 
@@ -128,19 +129,18 @@
    　動くでしょう。
      Windows もしくは GNU/Linux(要Wineとbinfmt-support)上でのMinGWと
      Qt community edition でのビルドが通るようになりました。
-     安定したWindowsビルドを必要な方は、Visual Studio 2013 か 2015 のCommunity Edition
-     でビルドしてください。（もう少ししたら、MinGWに切り替えようとは思ってます。)
       
    b. 今は、Qtの開発側が「Qt4おわりね」とアナウンスしたので、Qt4ではなく
       Qt5を使っています。
       添付してあるバイナリは、Qt 5.5でビルドしました(が、Qt 5.1以降なら動くはずです)。
 
-   c. Linux用ビルドでは、GCC 6をリンク時最適化(LTO)モードで使っています。
+   c. Linux用ビルドでは、GCCをリンク時最適化(LTO)モードで使っています。
    d. MZ-2500のソケット機能を実装してみていますが、マトモにテストできてません(；´Д｀)
    
 6. Upstream repositry:
       https://github.com/Artanejp/common_source_project-fm7
-      https://www.pikacode.com/Artanejp/common_source_project-fm7/
+      
+      https://osdn.net/projects/csp-qt/scm/git/common_source_project-fm7
 
 7. Project Page:
       https://osdn.jp/projects/csp-qt/
@@ -151,86 +151,30 @@
 Changes:
 
 ChangeLog:
-* SNAPSHOT Aug 11, 2017
-  * Upstream 2017-08-10.
-  * [EMU/ROMAKANA] Fix not convert with Qt.Use functions within EMU:: , not use original ROMAKANA functions.
-  * [VM] Add PC-9801RA and PC-9801VX.
-  * [VM] Add devices to libCSPcommon_vm mostly.
-  * [VM] Fix FTBFS and bugs a lot.
-  * [VM/FM7] Stop using DUMMYDEVICE:: . Use VM::get_extra_leds() to get led status.
-  * [VM/MB8877] DISK:Fix not apply workaround to Gambler Jiko Chusin-ha for FM-7 series.
-  * [VM/DATAREC] Fix crash with MZT data.
-  * [Qt/UI] OpenGL: Display ICONs when accessing to virtual medias.
-  * [Qt/UI]  Separate status bar display:Accessing to virtual medias.
-  * [Qt/UI] Menu: Make macro to be easier constructing.
-  * [Qt/UI] Ui_MainWindowBase:: Make private variables/functions not accessed from Ui_MainWindow:: .
-  * [Qt/UI] Display LEDs with USE_EXTRA_LEDS or USE_KEY_LOCKED.See common/emu_thread.cpp for details.
-  * [Qt/UI] Fix some memory leaks.
-  * [Qt/OpenGL] Fix aspect ratio with some zoom type.
-  * [Qt/FM7] Fix wrong scaling at VMs (only FM-8/7/77/AV) has only 200line (not have 400line). 
-  * [BUILD/CMake] CCACHE: Fix SEGFAULT at linking after upgrade GNU toolchain.
-  * Build with 04e08d2708a595c518ae0bd92c1713e1854c4310 (or later).
+* 前の変更点をお読みになる場合には、ChangeLogをお読み下さい。
+* SNAPSHOT Oct 18, 2017
+  * Upstream 2017-08-12.
+  * [VM/FM7] FLOPPY: Fix crash when starting.
+  * [Build/CMAKE] Fix FTBFS with USE_COMMON_DEVICE_LIB != "Yes".
+  * [Build/WIN32] MinGW: Add new cross-build script for FFMPEG-3.4 and x264-152.
+  * [Build/Linux] Add "COMPRESS_SYMBOLS" flag to configuration.
+  * [BUILD/Linux] Don't use LTO for shared libs, use compress symbols.
+  * [BUILD] Fix FTBFSs a lot.
+  * [DOC] Rename LICENSE to LICENSE.txt due to coflict to doc/license directory.This is important to release for M$ Windoze OS.
 
--- Aug 11, 2017 23:38:49 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Oct 18, 2017 16:33:58 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 本家の変更:
+* 前の変更点をお読みになる場合には、history.txtをお読み下さい。
 
------
-8/10/2017
+8/12/2017
 
-[EMU] support to enter 0-9 by numpad key while roman to kana is enabled
-[EMU] support to enter shift + function key while roman to kana is enabled
-[EMU/DEBUGGER] fix to wait until cpu is suspended and enters into waiting loop
+[EMU/DEBUGGER] improve to show message when cpu is not suspended soon
 
-[VM/I386] fix to flush vtlb after modifying address mask
-[VM/UPD7220] support to specify device class to access vram
-[VM/Z80] fix to run dma before checking interrupts
+[PC8801/PC88] fix to render text color #0 with back color
 
-[PC8801/PC88] fix monocolor graph screen to get color index from text attribute
-[PC8801/PC88] fix monocolor graph screen to render with graph palette
+[PC8801/PC88] fix to get text color attribute when text display is stopped
 
-[PC9801VX] support NEC PC-9801VX
-[PC9801/CPUREG] support address mask i/o
-[PC9801/DISPLAY] support EGC (thanks Neko Project 2)
-[PC9801/DISPLAY] support EGC/GRCG access from graphic GDC
-[PC9801/MEMBUS] support 24bit/32bit address memory bus
-[PC9801/MEMBUS] support ITF rom
-
-
-6/22/2017
-
-[EMU] move auto key codes from winmain to emu class
-[EMU] support to convert roman letters to kana letters
-[WINMAIN] support APPLICATION accelerator to enable/disable roman to kana
-[WINMAIN] support CTRL+ALT+ENTER accelerator to enable/disable full speed
-
-[VM/I386] improve i86/i286 core based on MAME 0.185
-[VM/UPD765A] fix device status (thanks annonymus guy)
-[VM/YM2203] fix to mask YM2608 ports in YM2203 case (thanks annonymus guy)
-
-[PC8801/PC88] fix bank switch of extend ram (thanks annonymus guy)
-[PC8801/PC88] fix crtc for dma underrun case (thanks annonymus guy)
-
-
-5/28/2017
-
-[WINMAIN] support to run simulation at full speed
-
-[VM/I386] improve i386 core based on MAME 0.185
-
-
-5/20/2017
-
-[YIS/DISPLAY] support correct font rom (thanks Mr.Moriya)
-[YIS/DISPLAY] support native graphic commands
-[YIS/DISPLAY] include KST32B stroke font and its decoder (thanks Mr.Saka.N)
-
-[X1TURBOZ/DISPLAY] fix 8 color mode with 4096 palette (thanks Mr.Sato)
-
-
-5/17/2017
-
-[X1TURBOZ/DISPLAY] fix 64/4096 color mode (thanks Mr.Sato)
 
 -----
 

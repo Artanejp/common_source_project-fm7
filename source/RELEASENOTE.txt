@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                       August 11, 2017
+                                                       October 18, 2017
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 1.About
@@ -10,7 +10,7 @@ and built with Qt5, for Windows, built with MinGW(32bit).
 
 Source Code:
 
-   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20170811
+   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20171011
    
 Additional INFO:
 
@@ -102,98 +102,47 @@ d. Now using GCC-6.1 with Link Time Optimize to build for distrubuted binaries.
 
 e. Implemented socket, networking for MZ-2500, but, not tested yet (；´Д｀)
 
-Upstream repositry:
-https://github.com/Artanejp/common_source_project-fm7
+Repositry:
+
+   https://github.com/Artanejp/common_source_project-fm7
+
+   https://osdn.net/projects/csp-qt/scm/git/common_source_project-fm7
+
 
 Project Page:
 
-https://osdn.jp/projects/csp-qt/
+   https://osdn.jp/projects/csp-qt/
 
 Upstream (Takeda Toshiya San's original code):
 
-http://takeda-toshiya.my.coocan.jp/
+   http://takeda-toshiya.my.coocan.jp/
 
 Changes:
-* SNAPSHOT Aug 11, 2017
-  * Upstream 2017-08-10.
-  * [EMU/ROMAKANA] Fix not convert with Qt.Use functions within EMU:: , not use original ROMAKANA functions.
-  * [VM] Add PC-9801RA and PC-9801VX.
-  * [VM] Add devices to libCSPcommon_vm mostly.
-  * [VM] Fix FTBFS and bugs a lot.
-  * [VM/FM7] Stop using DUMMYDEVICE:: . Use VM::get_extra_leds() to get led status.
-  * [VM/MB8877] DISK:Fix not apply workaround to Gambler Jiko Chusin-ha for FM-7 series.
-  * [VM/DATAREC] Fix crash with MZT data.
-  * [Qt/UI] OpenGL: Display ICONs when accessing to virtual medias.
-  * [Qt/UI]  Separate status bar display:Accessing to virtual medias.
-  * [Qt/UI] Menu: Make macro to be easier constructing.
-  * [Qt/UI] Ui_MainWindowBase:: Make private variables/functions not accessed from Ui_MainWindow:: .
-  * [Qt/UI] Display LEDs with USE_EXTRA_LEDS or USE_KEY_LOCKED.See common/emu_thread.cpp for details.
-  * [Qt/UI] Fix some memory leaks.
-  * [Qt/OpenGL] Fix aspect ratio with some zoom type.
-  * [Qt/FM7] Fix wrong scaling at VMs (only FM-8/7/77/AV) has only 200line (not have 400line). 
-  * [BUILD/CMake] CCACHE: Fix SEGFAULT at linking after upgrade GNU toolchain.
-  * Build with 04e08d2708a595c518ae0bd92c1713e1854c4310 (or later).
 
--- Aug 11, 2017 23:38:49 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+* To see older changes, read ChangeLog and 000_gitlog.txt.
+* SNAPSHOT Oct 18, 2017
+  * Upstream 2017-08-12.
+  * [VM/FM7] FLOPPY: Fix crash when starting.
+  * [Build/CMAKE] Fix FTBFS with USE_COMMON_DEVICE_LIB != "Yes".
+  * [Build/WIN32] MinGW: Add new cross-build script for FFMPEG-3.4 and x264-152.
+  * [Build/Linux] Add "COMPRESS_SYMBOLS" flag to configuration.
+  * [BUILD/Linux] Don't use LTO for shared libs, use compress symbols.
+  * [BUILD] Fix FTBFSs a lot.
+  * [DOC] Rename LICENSE to LICENSE.txt due to coflict to doc/license directory.This is important to release for M$ Windoze OS.
+
+-- Oct 18, 2017 16:33:58 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 Upstream changes:
+* To see older upstream's changes, read history.txt.
+
+8/12/2017
+
+[EMU/DEBUGGER] improve to show message when cpu is not suspended soon
+
+[PC8801/PC88] fix to render text color #0 with back color
+[PC8801/PC88] fix to get text color attribute when text display is stopped
+
 -----
-8/10/2017
-
-[EMU] support to enter 0-9 by numpad key while roman to kana is enabled
-[EMU] support to enter shift + function key while roman to kana is enabled
-[EMU/DEBUGGER] fix to wait until cpu is suspended and enters into waiting loop
-
-[VM/I386] fix to flush vtlb after modifying address mask
-[VM/UPD7220] support to specify device class to access vram
-[VM/Z80] fix to run dma before checking interrupts
-
-[PC8801/PC88] fix monocolor graph screen to get color index from text attribute
-[PC8801/PC88] fix monocolor graph screen to render with graph palette
-
-[PC9801VX] support NEC PC-9801VX
-[PC9801/CPUREG] support address mask i/o
-[PC9801/DISPLAY] support EGC (thanks Neko Project 2)
-[PC9801/DISPLAY] support EGC/GRCG access from graphic GDC
-[PC9801/MEMBUS] support 24bit/32bit address memory bus
-[PC9801/MEMBUS] support ITF rom
-
-
-6/22/2017
-
-[EMU] move auto key codes from winmain to emu class
-[EMU] support to convert roman letters to kana letters
-[WINMAIN] support APPLICATION accelerator to enable/disable roman to kana
-[WINMAIN] support CTRL+ALT+ENTER accelerator to enable/disable full speed
-
-[VM/I386] improve i86/i286 core based on MAME 0.185
-[VM/UPD765A] fix device status (thanks annonymus guy)
-[VM/YM2203] fix to mask YM2608 ports in YM2203 case (thanks annonymus guy)
-
-[PC8801/PC88] fix bank switch of extend ram (thanks annonymus guy)
-[PC8801/PC88] fix crtc for dma underrun case (thanks annonymus guy)
-
-
-5/28/2017
-
-[WINMAIN] support to run simulation at full speed
-
-[VM/I386] improve i386 core based on MAME 0.185
-
-
-5/20/2017
-
-[YIS/DISPLAY] support correct font rom (thanks Mr.Moriya)
-[YIS/DISPLAY] support native graphic commands
-[YIS/DISPLAY] include KST32B stroke font and its decoder (thanks Mr.Saka.N)
-
-[X1TURBOZ/DISPLAY] fix 8 color mode with 4096 palette (thanks Mr.Sato)
-
-
-5/17/2017
-
-[X1TURBOZ/DISPLAY] fix 64/4096 color mode (thanks Mr.Sato)
-
 -----
 
 

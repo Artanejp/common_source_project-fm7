@@ -1,3 +1,81 @@
+commit 18e97b3cc756faaa06eb48d0f5a482df43324558
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 18 03:15:28 2017 +0900
+
+    [CONFIG][Build][Linux] Fix compress flags.
+
+commit 28a9ba632a5dae92695a33b03c15fcd3041d5ef1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Oct 17 18:09:00 2017 +0000
+
+    [Build][Linux] Add "COMPRESS_SYMBOLS" flag to configuration.
+
+commit 6ec277bded7e56feba6ed27546e2253fa1e894e4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 18 02:13:46 2017 +0900
+
+    [Build][Win32] Update FFMPEG location for cross build.
+
+commit d899bff22ce774e2a97b8884e5c7fe64640b8cda
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 18 02:08:06 2017 +0900
+
+    [Build][WIN32] MinGW: Add new cross-build script for FFMPEG-3.4 and x264-152.
+
+commit 1bb3874969a06f260c217987ac4faff01661d9c2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Oct 17 17:50:14 2017 +0900
+
+    [WIP][General] Merge upstream 2017-08-12.
+
+commit 3d0457fd75be417e6e41f6e7a42a1451307a8547
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 2 10:40:14 2017 +0900
+
+    [BUILD][CMake][X1Twin] Fix FTBFS.
+
+commit 833682223cedf353ad93c0248a9b0a3815a1ac07
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 1 20:49:28 2017 +0900
+
+    [BUILD][CMake][Linux] (Maybe) Fixed FTBFS without libCSPcommon_vm.For M$ Windows, will fix (ASAP) if still has problem(s) with MinGW.
+
+commit 2c7643bd34804fc07ee1fa7433eb5e844785c77f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Sep 30 13:39:03 2017 +0900
+
+    [Build][CMAKE] Fix FTBFS with USE_COMMON_DEVICE_LIB != "Yes".Partly working with FM-7, will check all of VMs.
+
+commit c3ee812c159138dfa0da52ab6488c5918ea6de02
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Sep 29 13:24:00 2017 +0900
+
+    [VM] More fix FTBFS with not with libCSPnewdev.
+
+commit 5824901ccbb433eeaecbc141d8b8183523b7dc81
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Sep 25 14:07:42 2017 +0900
+
+    [VM][DEVICE] device.h : Fix FTBFS with no "USE_SHARED_DLL".
+
+commit ffefc036148ed0350c9459d090a730d7fd2b663a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Aug 20 07:28:41 2017 +0900
+
+    [Qt][DOC] Fix FTBFS caused by changing filename of some documents.
+
+commit dc51daeac8dac5a88f1a2e3b73bc17a79e176294
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Aug 20 07:27:40 2017 +0900
+
+    [BUILD][Linux] Don't use LTO for shared libs, use compress symbols.
+
+commit 312831a9d40972c86ec0fc5672c166dc237236c1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Aug 16 03:48:21 2017 +0900
+
+    [DOC] Rename LICENSE to LICENSE.txt due to coflict to doc/license directory.This is important to release for M$ Windoze OS.
+
 commit 990d13b2db58121e47efc64654f94648da34b6ca
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sat Aug 12 03:25:53 2017 +0900

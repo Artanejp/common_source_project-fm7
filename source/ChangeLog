@@ -1,5 +1,17 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT Oct 18, 2017
+  * Upstream 2017-08-12.
+  * [VM/FM7] FLOPPY: Fix crash when starting.
+  * [Build/CMAKE] Fix FTBFS with USE_COMMON_DEVICE_LIB != "Yes".
+  * [Build/WIN32] MinGW: Add new cross-build script for FFMPEG-3.4 and x264-152.
+  * [Build/Linux] Add "COMPRESS_SYMBOLS" flag to configuration.
+  * [BUILD/Linux] Don't use LTO for shared libs, use compress symbols.
+  * [BUILD] Fix FTBFSs a lot.
+  * [DOC] Rename LICENSE to LICENSE.txt due to coflict to doc/license directory.This is important to release for M$ Windoze OS.
+
+-- Oct 18, 2017 16:33:58 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT Aug 11, 2017
   * Upstream 2017-08-10.
   * [EMU/ROMAKANA] Fix not convert with Qt.Use functions within EMU:: , not use original ROMAKANA functions.
