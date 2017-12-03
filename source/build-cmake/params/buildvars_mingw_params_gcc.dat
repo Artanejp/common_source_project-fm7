@@ -68,6 +68,14 @@ case ${STRIP_SYMBOLS} in
      MAKEFLAGS_LINK_BASE="-g -ggdb ${MAKEFLAGS_LINK_BASE}"
    ;;
 esac
+case ${USE_OPENMP} in
+   "Yes" | "yes" | "YES" )
+     CMAKE_APPENDFLAG="${CMAKE_APPENDFLAG} -DUSE_OPENMP=YES"
+   ;;
+   "No" | "no" | "NO" | * )
+     CMAKE_APPENDFLAG="${CMAKE_APPENDFLAG} -DUSE_OPENMP=NO"
+   ;;
+esac
 
 #CMAKE_APPENDFLAG="-DUSE_QT5_4_APIS=ON -DUSE_MOVIE_LOADER=ON \
 

@@ -8,6 +8,9 @@
 #include "vm.h"
 #include "emu.h"
 #include "fm7_display.h"
+#if defined(_OPENMP)
+	#include <omp.h>
+#endif
 
 uint8_t DISPLAY::read_vram_l4_400l(uint32_t addr, uint32_t offset)
 {
@@ -240,7 +243,22 @@ void DISPLAY::GETVRAM_256k(int yoff, scrntype_t *p, scrntype_t *px, bool scan_li
 		p4 = &(bit_trans_table_4[bb[4]][0]);
 		p5 = &(bit_trans_table_5[bb[5]][0]);
 		for(int i = 0; i < 8; i++) {
-			_btmp[i] = p0[i] | p1[i] | p2[i] | p3[i] | p4[i] | p5[i];
+			_btmp[i] = p0[i];
+		}
+		for(int i = 0; i < 8; i++) {
+			_btmp[i] = _btmp[i] | p1[i];
+		}
+		for(int i = 0; i < 8; i++) {
+			_btmp[i] = _btmp[i] | p2[i];
+		}
+		for(int i = 0; i < 8; i++) {
+			_btmp[i] = _btmp[i] | p3[i];
+		}
+		for(int i = 0; i < 8; i++) {
+			_btmp[i] = _btmp[i] | p4[i];
+		}
+		for(int i = 0; i < 8; i++) {
+			_btmp[i] = _btmp[i] | p5[i];
 		}
 	} else {
 		for(int i = 0; i < 8; i++) {
@@ -266,7 +284,22 @@ void DISPLAY::GETVRAM_256k(int yoff, scrntype_t *p, scrntype_t *px, bool scan_li
 		p4 = &(bit_trans_table_4[rr[4]][0]);
 		p5 = &(bit_trans_table_5[rr[5]][0]);
 		for(int i = 0; i < 8; i++) {
-			_rtmp[i] = p0[i] | p1[i] | p2[i] | p3[i] | p4[i] | p5[i];
+			_rtmp[i] = p0[i];
+		}
+		for(int i = 0; i < 8; i++) {
+			_rtmp[i] = _rtmp[i] | p1[i];
+		}
+		for(int i = 0; i < 8; i++) {
+			_rtmp[i] = _rtmp[i] | p2[i];
+		}
+		for(int i = 0; i < 8; i++) {
+			_rtmp[i] = _rtmp[i] | p3[i];
+		}
+		for(int i = 0; i < 8; i++) {
+			_rtmp[i] = _rtmp[i] | p4[i];
+		}
+		for(int i = 0; i < 8; i++) {
+			_rtmp[i] = _rtmp[i] | p5[i];
 		}
 	} else {
 		for(int i = 0; i < 8; i++) {
@@ -292,7 +325,22 @@ void DISPLAY::GETVRAM_256k(int yoff, scrntype_t *p, scrntype_t *px, bool scan_li
 		p4 = &(bit_trans_table_4[gg[4]][0]);
 		p5 = &(bit_trans_table_5[gg[5]][0]);
 		for(int i = 0; i < 8; i++) {
-			_gtmp[i] = p0[i] | p1[i] | p2[i] | p3[i] | p4[i] | p5[i];
+			_gtmp[i] = p0[i];
+		}
+		for(int i = 0; i < 8; i++) {
+			_gtmp[i] = _gtmp[i] | p1[i];
+		}
+		for(int i = 0; i < 8; i++) {
+			_gtmp[i] = _gtmp[i] | p2[i];
+		}
+		for(int i = 0; i < 8; i++) {
+			_gtmp[i] = _gtmp[i] | p3[i];
+		}
+		for(int i = 0; i < 8; i++) {
+			_gtmp[i] = _gtmp[i] | p4[i];
+		}
+		for(int i = 0; i < 8; i++) {
+			_gtmp[i] = _gtmp[i] | p5[i];
 		}
 	} else {
 		for(int i = 0; i < 8; i++) {
@@ -426,7 +474,16 @@ void DISPLAY::GETVRAM_4096(int yoff, scrntype_t *p, scrntype_t *px,
 	p2 = &(bit_trans_table_2[gg[2]][0]);
 	p3 = &(bit_trans_table_3[gg[3]][0]);
 	for(int i = 0; i < 8; i++) {
-		tmp_g[i]  = p0[i] | p1[i] | p2[i] | p3[i];
+		tmp_g[i]  = p0[i];
+	}
+	for(int i = 0; i < 8; i++) {
+		tmp_g[i]  = tmp_g[i] | p1[i];
+	}
+	for(int i = 0; i < 8; i++) {
+		tmp_g[i]  = tmp_g[i] | p2[i];
+	}
+	for(int i = 0; i < 8; i++) {
+		tmp_g[i]  = tmp_g[i] | p3[i];
 	}
 	// R
 	p0 = &(bit_trans_table_0[rr[0]][0]);
@@ -434,7 +491,16 @@ void DISPLAY::GETVRAM_4096(int yoff, scrntype_t *p, scrntype_t *px,
 	p2 = &(bit_trans_table_2[rr[2]][0]);
 	p3 = &(bit_trans_table_3[rr[3]][0]);
 	for(int i = 0; i < 8; i++) {
-		tmp_r[i]  = p0[i] | p1[i] | p2[i] | p3[i];
+		tmp_r[i]  = p0[i];
+	}
+	for(int i = 0; i < 8; i++) {
+		tmp_r[i]  = tmp_r[i] | p1[i];
+	}
+	for(int i = 0; i < 8; i++) {
+		tmp_r[i]  = tmp_r[i] | p2[i];
+	}
+	for(int i = 0; i < 8; i++) {
+		tmp_r[i]  = tmp_r[i] | p3[i];
 	}
 	// B
 	p0 = &(bit_trans_table_0[bb[0]][0]);
@@ -442,10 +508,29 @@ void DISPLAY::GETVRAM_4096(int yoff, scrntype_t *p, scrntype_t *px,
 	p2 = &(bit_trans_table_2[bb[2]][0]);
 	p3 = &(bit_trans_table_3[bb[3]][0]);
 	for(int i = 0; i < 8; i++) {
-		tmp_b[i]  = p0[i] | p1[i] | p2[i] | p3[i];
+		tmp_b[i]  = p0[i];
 	}
 	for(int i = 0; i < 8; i++) {
-		pixels[i] = ((tmp_g[i] * 16) | tmp_r[i] | (tmp_b[i] / 16)) & __masks[i];
+		tmp_b[i]  = tmp_b[i] | p1[i];
+	}
+	for(int i = 0; i < 8; i++) {
+		tmp_b[i]  = tmp_b[i] | p2[i];
+	}
+	for(int i = 0; i < 8; i++) {
+		tmp_b[i]  = tmp_b[i] | p3[i];
+	}
+	for(int i = 0; i < 8; i++) {
+		pixels[i] = tmp_b[i] >> 4;
+	}
+	for(int i = 0; i < 8; i++) {
+		pixels[i] = pixels[i] | tmp_r[i];
+	}
+	for(int i = 0; i < 8; i++) {
+		pixels[i] = pixels[i] | tmp_g[i] << 4;
+	}
+
+	for(int i = 0; i < 8; i++) {
+		pixels[i] = pixels[i] & __masks[i];
 	}
 	//for(int i = 0; i < 8; i++) {
 	//	pixels[i] = pixels[i] & mask;
@@ -530,6 +615,8 @@ void DISPLAY::draw_screen2()
 	int x;
 	scrntype_t *p, *pp, *p2;
 	int yoff;
+	int yy;
+	int k;
 	//uint32_t rgbmask;
 	uint32_t yoff_d1, yoff_d2;
 	uint16_t wx_begin, wx_end, wy_low, wy_high;
@@ -569,24 +656,39 @@ void DISPLAY::draw_screen2()
 				emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 #endif
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
-				for(y = 0; y < 200; y++) {
-					vram_draw_table[y] = false;
-					ppp = emu->get_screen_buffer(y);
-					if(ppp != NULL) memset(ppp, 0x00, 640 * sizeof(scrntype_t));
+#if defined(_OPENMP)
+				#pragma omp parallel for shared(vram_draw_table), private(ppp, yy)
+#endif
+				for(y = 0; y < 200; y += 8) {
+					for(yy = 0; yy < 8; yy++) {
+						vram_draw_table[y + yy] = false;
+						ppp = emu->get_screen_buffer(y + yy);
+						if(ppp != NULL) memset(ppp, 0x00, 640 * sizeof(scrntype_t));
+					}
 				}
 #else
-				for(y = 0; y < 400; y++) {
-					vram_draw_table[y] = false;
-					ppp = emu->get_screen_buffer(y);
-					if(ppp != NULL) memset(ppp, 0x00, 640 * sizeof(scrntype_t));
+#if defined(_OPENMP)
+				#pragma omp parallel for shared(vram_draw_table), private(ppp, yy)
+#endif
+				for(y = 0; y < 400; y += 8) {
+					for(yy = 0; yy < 8; yy++) {
+						vram_draw_table[y + yy] = false;
+						ppp = emu->get_screen_buffer(y + yy);
+						if(ppp != NULL) memset(ppp, 0x00, 640 * sizeof(scrntype_t));
+					}
 				}
 #endif
 			} else if(display_mode == DISPLAY_MODE_8_400L) {
 				emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
-				for(y = 0; y < 400; y++) {
-					vram_draw_table[y] = false;
-					ppp = emu->get_screen_buffer(y);
-					if(ppp != NULL) memset(ppp, 0x00, 640 * sizeof(scrntype_t));
+#if defined(_OPENMP)
+				#pragma omp parallel for shared(vram_draw_table), private(ppp, yy)
+#endif
+				for(y = 0; y < 400; y += 8) {
+					for(yy = 0; yy < 8; yy++) {
+						vram_draw_table[y + yy] = false;
+						ppp = emu->get_screen_buffer(y + yy);
+						if(ppp != NULL) memset(ppp, 0x00, 640 * sizeof(scrntype_t));
+					}
 				}
 			} else { // 320x200
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
@@ -595,16 +697,26 @@ void DISPLAY::draw_screen2()
 				emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 #endif
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
-				for(y = 0; y < 200; y++) {
-					vram_draw_table[y] = false;
-					ppp = emu->get_screen_buffer(y);
-					if(ppp != NULL) memset(ppp, 0x00, 320 * sizeof(scrntype_t));
+#if defined(_OPENMP)
+				#pragma omp parallel for shared(vram_draw_table), private(ppp, yy)
+#endif
+				for(y = 0; y < 200; y += 8) {
+					for(yy = 0; yy < 8; yy++) {
+						vram_draw_table[y + yy] = false;
+						ppp = emu->get_screen_buffer(y + yy);
+						if(ppp != NULL) memset(ppp, 0x00, 320 * sizeof(scrntype_t));
+					}
 				}
 #else
+#if defined(_OPENMP)
+				#pragma omp parallel for shared(vram_draw_table), private(ppp, yy)
+#endif
 				for(y = 0; y < 400; y++) {
-					vram_draw_table[y] = false;
-					ppp = emu->get_screen_buffer(y);
-					if(ppp != NULL) memset(ppp, 0x00, 640 * sizeof(scrntype_t));
+					for(yy = 0; yy < 8; yy++) {   
+						vram_draw_table[y + yy] = false;
+						ppp = emu->get_screen_buffer(y + yy);
+						if(ppp != NULL) memset(ppp, 0x00, 640 * sizeof(scrntype_t));
+					}
 				}
 #endif				
 			}
@@ -613,11 +725,6 @@ void DISPLAY::draw_screen2()
 		return;
 	}
 	crt_flag_bak = crt_flag;
-//	{
-//		uint32_t factor = ((config.dipswitch & FM7_DIPSW_FRAMESKIP) >> 28) & 3;
-//		if(frame_skip_count_draw < factor) return;
-//		frame_skip_count_draw = 0;
-//	}
 	if(!vram_wrote_shadow && !palette_changed) return;
 	vram_wrote_shadow = false;
 	if(palette_changed) {
@@ -635,21 +742,25 @@ void DISPLAY::draw_screen2()
 #endif
 		yoff = 0;
 		//rgbmask = ~multimode_dispmask;
-		for(y = 0; y < 200; y ++) {
-			if(!vram_draw_table[y]) continue;
-			vram_draw_table[y] = false;
+#if defined(_OPENMP)
+		#pragma omp parallel for shared(vram_draw_table), private(p, p2, yoff, ii, x, yy)
+#endif
+		for(y = 0; y < 200; y += 8) {
+		   for(yy = 0; yy < 8; yy++) {
+			
+			if(!vram_draw_table[y + yy]) continue;
+			vram_draw_table[y + yy] = false;
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
-			p = emu->get_screen_buffer(y);
+			p = emu->get_screen_buffer(y + yy);
 			p2 = NULL;
 #else
-			p = emu->get_screen_buffer(y * 2);
-			p2 = emu->get_screen_buffer(y * 2 + 1);
+			p = emu->get_screen_buffer((y + yy) * 2);
+			p2 = emu->get_screen_buffer((y + yy) * 2 + 1);
 #endif
 			if(p == NULL) continue;
-			pp = p;
-			yoff = y  * 80;
+			yoff = (y + yy) * 80;
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-			if(window_opened && (wy_low <= y) && (wy_high > y)) {
+			if(window_opened && (wy_low <= (y + yy)) && (wy_high > (y + yy))) {
 					for(x = 0; x < 80; x++) {
 						if((x >= wx_begin) && (x < wx_end)) {
 							GETVRAM_8_200L(yoff, p, p2, true, scan_line);
@@ -676,6 +787,8 @@ void DISPLAY::draw_screen2()
 					yoff += 8;
 				}
 			}
+		   }
+		   
 		}
 		return;
 	}
@@ -692,23 +805,25 @@ void DISPLAY::draw_screen2()
 		if(!multimode_dispflags[0]) mask = 0x00f;
 		if(!multimode_dispflags[1]) mask = mask | 0x0f0;
 		if(!multimode_dispflags[2]) mask = mask | 0xf00;
-
-		for(y = 0; y < 200; y ++) {
-			if(!vram_draw_table[y]) continue;
-			vram_draw_table[y] = false;
+#if defined(_OPENMP)
+		#pragma omp parallel for shared(vram_draw_table), private(p, p2, yoff, ii, x, yy)
+#endif
+		for(y = 0; y < 200; y += 4) {
+		   for(yy = 0; yy < 4; yy++) {
+			if(!vram_draw_table[y + yy]) continue;
+			vram_draw_table[y + yy] = false;
 
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
-			p = emu->get_screen_buffer(y);
+			p = emu->get_screen_buffer(y + yy);
 			p2 = NULL;
 #else
-			p = emu->get_screen_buffer(y * 2 );
-			p2 = emu->get_screen_buffer(y * 2 + 1);
+			p = emu->get_screen_buffer((y + yy) * 2 );
+			p2 = emu->get_screen_buffer((y + yy) * 2 + 1);
 #endif
 			if(p == NULL) continue;
-			pp = p;
-			yoff = y * 40;
+			yoff = (y + yy) * 40;
 #  if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-			if(window_opened && (wy_low <= y) && (wy_high > y)) {
+			if(window_opened && (wy_low <= (y + yy)) && (wy_high > (y + yy))) {
 					for(x = 0; x < 40; x++) {
 						if((x >= wx_begin) && (x < wx_end)) {
 							GETVRAM_4096(yoff, p, p2, mask, true, scan_line);
@@ -739,6 +854,8 @@ void DISPLAY::draw_screen2()
 					yoff += 8;
 				}
 			}
+		   }
+		   
 		}
 		return;
 	}
@@ -748,16 +865,20 @@ void DISPLAY::draw_screen2()
 		emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 		yoff = 0;
 		//rgbmask = ~multimode_dispmask;
-		for(y = 0; y < 400; y++) {
-			if(!vram_draw_table[y]) continue;
-			vram_draw_table[y] = false;
+#if defined(_OPENMP)
+		#pragma omp parallel for shared(vram_draw_table), private(pp, p, yoff, x, ii, yy)
+#endif
+		for(y = 0; y < 400; y += 8) {
+		for(yy = 0; yy < 8; yy++) {
+			if(!vram_draw_table[y + yy]) continue;
+			vram_draw_table[y + yy] = false;
 
-			p = emu->get_screen_buffer(y);
+			p = emu->get_screen_buffer(y + yy);
 			if(p == NULL) continue;
 			pp = p;
-			yoff = y  * 80;
+			yoff = (y + yy) * 80;
 #    if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-			if(window_opened && (wy_low <= y) && (wy_high  > y)) {
+			if(window_opened && (wy_low <= (y + yy)) && (wy_high  > (y + yy))) {
 				for(x = 0; x < 80; x++) {
 					if((x >= wx_begin) && (x < wx_end)) {
 						GETVRAM_8_400L(yoff, p, true);
@@ -778,6 +899,7 @@ void DISPLAY::draw_screen2()
 				yoff += 8;
 			}
 		}
+		}
 		return;
 	} else if(display_mode == DISPLAY_MODE_256k) {
 		int ii;
@@ -787,19 +909,26 @@ void DISPLAY::draw_screen2()
 		emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 #endif
 		//rgbmask = ~multimode_dispmask;
-		for(y = 0; y < 200; y++) {
-			if(!vram_draw_table[y]) continue;
-			vram_draw_table[y] = false;
+#if defined(_OPENMP)
+		#pragma omp parallel for
+#endif
+#if defined(_OPENMP)
+		#pragma omp parallel for shared(vram_draw_table), private(pp, p, yoff, x, ii, yy)
+#endif
+		for(y = 0; y < 200; y += 4) {
+		for(yy = 0; yy < 4; yy++) {
+			if(!vram_draw_table[y + yy]) continue;
+			vram_draw_table[y + yy] = false;
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
-			p = emu->get_screen_buffer(y);
+			p = emu->get_screen_buffer(y + yy);
 			p2 = NULL;
 #else
-			p = emu->get_screen_buffer(y * 2 );
-			p2 = emu->get_screen_buffer(y * 2 + 1);
+			p = emu->get_screen_buffer((y + yy) * 2 );
+			p2 = emu->get_screen_buffer((y + yy) * 2 + 1);
 #endif
 			if(p == NULL) continue;
 			pp = p;
-			yoff = y * 40;
+			yoff = (y + yy) * 40;
 			{
 				for(x = 0; x < 5; x++) {
 					for(ii = 0; ii < 8; ii++) {

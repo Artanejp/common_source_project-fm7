@@ -3,6 +3,68 @@
 # This is build-parameters fo LLVM/MinGW.
 # Neither for GCC and LLVM/Linux .
 #
+
+if [ -v CC_SUFFIX ] ; then
+   CCMAKE_CC=${CCMAKE_CC}-${CC_SUFFIX}
+   CCMAKE_CXX=${CCMAKE_CXX}-${CC_SUFFIX}
+fi
+if [ -v CC_PREFIX ] ; then
+   CCMAKE_CC=${CC_PREFIX}-${CCMAKE_CC}
+   CCMAKE_CXX=${CC_PREFIX}-${CCMAKE_CXX}
+fi
+if [ -v CC_PATH ] ; then
+   CCMAKE_CC=${CC_PATH}/${CCMAKE_CC}
+   CCMAKE_CXX=${CC_PATH}/${CCMAKE_CXX}
+fi
+
+case ${USE_RADICAL_OPTIMIZE} in
+   "Yes" | "yes" | "YES" )
+      MAKEFLAGS_BASE3=" \
+               -O3 \
+               -fvect-cost-model=dynamic -ftree-vectorize \
+               -ftree-loop-distribute-patterns \
+	       -ftree-loop-optimize -ftree-loop-if-convert-stores \
+	       -fbranch-probabilities -fbranch-target-load-optimize \
+	       -fselective-scheduling -fsel-sched-pipelining -fsel-sched-pipelining-outer-loops \
+	       -funroll-loops \
+	       -fgraphite-identity \
+	       -floop-nest-optimize \
+	       -msse -msse2 \
+	       -Wall \
+               ${MAKEFLAGS_BASE} \
+	       "
+	       ;;
+   "No" | "no" | "NO" | * )
+      MAKEFLAGS_BASE3=" \
+               -O2 \
+	       -mtune=generic \
+	       -ftree-vectorize \
+	       -funroll-loops \
+	       -msse -msse2 \
+	       -Wall \
+               ${MAKEFLAGS_BASE} \
+	       "
+	       ;;
+esac
+
+case ${USE_WHOLE_PROGRAM_OPTIMIZE} in
+   "Yes" | "yes" | "YES" )
+      LTO_FLAGS="-fwhole-program"
+      ;;
+   * )
+      LTO_FLAGS=""
+      ;;
+esac
+
+case ${COMPRESS_SYMBOLS} in
+   "Yes" | "yes" | "YES" )
+   COMPRESS_CFLAGS="-gz"
+   ;;
+   "No" | "no" | "NO" | * )
+   COMPRESS_CFLAGS=""
+   ;;
+esac
+
 case ${CSP_DEBUG} in
    "Yes" | "yes" | "YES" )
          MAKEFLAGS_BASE2="-g -ggdb ${MAKEFLAGS_BASE} -DNDEBUG"
@@ -17,6 +79,25 @@ case ${CSP_DEBUG} in
 						  "
          MAKEFLAGS_LINK_BASE="-s ${MAKEFLAGS_BASE}"
          ;;
+esac
+
+case ${USE_LTO} in
+   "Yes" | "yes" | "YES" )
+       MAKEFLAGS_LINK_BASE2="-flto=6 ${LTO_FLAGS} ${MAKEFLAGS_BASE2}"
+       MAKEFLAGS_BASE2="-flto -ffat-lto-objects ${MAKEFLAGS_BASE2}"
+       ;;
+   "No" | "no" | "NO" | * )
+       MAKEFLAGS_LINK_BASE2="${MAKEFLAGS_BASE2}"
+       MAKEFLAGS_BASE2="${MAKEFLAGS_BASE2}"
+       ;;
+esac
+case ${USE_OPENMP} in
+   "Yes" | "yes" | "YES" )
+     CMAKE_APPENDFLAG="${CMAKE_APPENDFLAG} -DUSE_OPENMP=YES"
+   ;;
+   "No" | "no" | "NO" | * )
+     CMAKE_APPENDFLAG="${CMAKE_APPENDFLAG} -DUSE_OPENMP=NO"
+   ;;
 esac
 
 CMAKE_APPENDFLAG="-DUSE_QT5_4_APIS=ON -DUSE_MOVIE_LOADER=ON \
