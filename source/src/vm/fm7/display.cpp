@@ -217,7 +217,11 @@ void DISPLAY::reset()
 #elif defined(_FM77L4)
 	mode400line = false;
 #endif
+#if !defined(FIXED_FRAMEBUFFER_SIZE)
 	emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+#else
+	emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+#endif	
 	is_cyclesteal = ((config.dipswitch & FM7_DIPSW_CYCLESTEAL) != 0) ? true : false;
 	key_firq_req = false;	//firq_mask = true;
 	firq_mask = false;
@@ -1553,11 +1557,19 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 				if(oldmode != display_mode) {
 					scrntype_t *pp;
 					if(mode320 || mode256k) {
+#if !defined(FIXED_FRAMEBUFFER_SIZE)
 						emu->set_vm_screen_size(320, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 						for(y = 0; y < 200; y++) {
 							pp = emu->get_screen_buffer(y);
 							if(pp != NULL) memset(pp, 0x00, 320 * sizeof(scrntype_t));
 						}
+#else
+						emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+						for(y = 0; y < 400; y++) {
+							pp = emu->get_screen_buffer(y);
+							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype_t));
+						}
+#endif	
 					} else if(display_mode == DISPLAY_MODE_8_400L) {
 						emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 						for(y = 0; y < 400; y++) {
@@ -1565,11 +1577,20 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype_t));
 						}
 					} else {
+
+#if !defined(FIXED_FRAMEBUFFER_SIZE)
 						emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 						for(y = 0; y < 200; y++) {
 							pp = emu->get_screen_buffer(y);
 							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype_t));
 						}
+#else
+						emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+						for(y = 0; y < 400; y++) {
+							pp = emu->get_screen_buffer(y);
+							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype_t));
+						}
+#endif	
 					}
 					vram_wrote = true;
 					alu->write_signal(SIG_ALU_X_WIDTH, (mode320 || mode256k) ? 40 :  80, 0xffff);
@@ -1615,17 +1636,34 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 				if(oldmode != display_mode) {
 					scrntype_t *pp;
 					if(mode320 || mode256k) {
+#if !defined(FIXED_FRAMEBUFFER_SIZE)
 						emu->set_vm_screen_size(320, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 						for(y = 0; y < 200; y++) {
 							pp = emu->get_screen_buffer(y);
 							if(pp != NULL) memset(pp, 0x00, 320 * sizeof(scrntype_t));
 						}
+#else
+						emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+						for(y = 0; y < 400; y++) {
+							pp = emu->get_screen_buffer(y);
+							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype_t));
+						}
+#endif	
 					} else { // 200 lines, 8 colors.
+#if !defined(FIXED_FRAMEBUFFER_SIZE)
 						emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 						for(y = 0; y < 200; y++) {
 							pp = emu->get_screen_buffer(y);
 							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype_t));
 						}
+#else
+						emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+						for(y = 0; y < 400; y++) {
+							pp = emu->get_screen_buffer(y);
+							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype_t));
+						}
+#endif	
+
 					}
 					vram_wrote = true;
 					alu->write_signal(SIG_ALU_X_WIDTH, (mode320) ? 40 :  80, 0xffff);
@@ -1635,17 +1673,28 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 					//frame_skip_count = 3;
 				}
 			}
-# else
+# else /* FM77AV/20/20EX */
 			oldflag = mode320;
 			mode320 = flag;
 			{
 		
 				if(mode320) {
-					emu->set_vm_screen_size(320, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
-					for(y = 0; y < 200; y++) memset(emu->get_screen_buffer(y), 0x00, 320 * sizeof(scrntype_t));
+#if !defined(FIXED_FRAMEBUFFER_SIZE)
+						emu->set_vm_screen_size(320, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+						for(y = 0; y < 200; y++) memset(emu->get_screen_buffer(y), 0x00, 320 * sizeof(scrntype_t));
+#else
+						emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+						for(y = 0; y < 400; y++) memset(emu->get_screen_buffer(y), 0x00, 640 * sizeof(scrntype_t));
+#endif	
 				} else {
-					emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
-					for(y = 0; y < 200; y++) memset(emu->get_screen_buffer(y), 0x00, 640 * sizeof(scrntype_t));
+#if !defined(FIXED_FRAMEBUFFER_SIZE)
+						emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+						for(y = 0; y < 200; y++) memset(emu->get_screen_buffer(y), 0x00, 640 * sizeof(scrntype_t));
+#else
+						emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+						for(y = 0; y < 400; y++) memset(emu->get_screen_buffer(y), 0x00, 640 * sizeof(scrntype_t));
+#endif	
+
 				}
 			}
 			display_mode = (mode320 == true) ? DISPLAY_MODE_4096 : DISPLAY_MODE_8_200L;
@@ -2786,8 +2835,12 @@ void DISPLAY::initialize()
 		multimode_accessflags[i] = ((multimode_accessmask & (1 << i)) != 0) ? true : false;
 		multimode_dispflags[i] = ((multimode_dispmask & (1 << i)) != 0) ? true : false;
 	}
-//	emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+
+#if !defined(FIXED_FRAMEBUFFER_SIZE)
 	emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+#else
+	emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+#endif
 	prev_clock = SUBCLOCK_NORMAL;
 	//enter_display();
 	nmi_event_id = -1;
@@ -2795,7 +2848,12 @@ void DISPLAY::initialize()
 	key_firq_req = false;	//firq_mask = true;
 	frame_skip_count_transfer = 3;
 	frame_skip_count_draw = 3;
+#if !defined(FIXED_FRAMEBUFFER_SIZE)
 	emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+#else
+	emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+#endif
+
 	palette_changed = true;
 #if !defined(_FM77AV_VARIANTS) && !defined(_FM77L4)
 	//register_vline_event(this);

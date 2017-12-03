@@ -256,17 +256,32 @@
 #define CPU_CLOCKS		2000000
 #endif
 
-# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77L4)
+/*
+ * If you wish to use software-scanline, define below.
+ * If not, undef.
+ */
+#define FIXED_FRAMEBUFFER_SIZE
+
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77L4)
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		400
 #undef SCREEN_FAKE_WIDTH
 #undef SCREEN_FAKE_HEIGHT
-#else
+#else /* Not have 400 line */
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		200
+#  if defined(FIXED_FRAMEBUFFER_SIZE)
+#define SCREEN_FAKE_WIDTH   640
+#define SCREEN_FAKE_HEIGHT  400
+# else
 #define SCREEN_FAKE_WIDTH   640
 #define SCREEN_FAKE_HEIGHT  200
+# endif
+# if !defined(FIXED_FRAMEBUFFER_SIZE)
+//#define SCREEN_Y_ZOOM       2.0
 #define SCREEN_Y_ZOOM       2.0
+#endif
+
 #endif
 #define WINDOW_HEIGHT_ASPECT 480
 #define HAS_MC6809              

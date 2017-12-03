@@ -276,11 +276,11 @@ protected:
 	DEVICE *subcpu;
 	DEVICE *keyboard;
 	bool vram_wrote;
-	void GETVRAM_8_200L(int yoff, scrntype_t *p, bool window_inv);
-	void GETVRAM_4096(int yoff, scrntype_t *p, uint32_t rgbmask, bool window_inv);
+	void GETVRAM_8_200L(int yoff, scrntype_t *p, scrntype_t *px, bool window_inv, bool scan_line);
+	void GETVRAM_4096(int yoff, scrntype_t *p, scrntype_t *px, uint32_t rgbmask, bool window_inv, bool scan_line);
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	void GETVRAM_8_400L(int yoff, scrntype_t *p, bool window_inv);
-	void GETVRAM_256k(int yoff, scrntype_t *p);
+	void GETVRAM_256k(int yoff, scrntype_t *p, scrntype_t *px, bool scan_line);
 #endif   
 	uint8_t read_vram_l4_400l(uint32_t addr, uint32_t offset);
 	uint32_t read_mmio(uint32_t addr);
