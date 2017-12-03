@@ -687,45 +687,58 @@ int MCS48_BASE::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 		                my_stprintf_s(buffer, buffer_len, _T("illegal"));
 					}
 											break;
-		case 0x81:  if (!upi41)
+		case 0x81:  if (!upi41) {
 		                my_stprintf_s(buffer, buffer_len, _T("movx a,@r1"));
-		            else
-		                my_stprintf_s(buffer, buffer_len, _T("illegal"));                                                                                                   break;
-		case 0x83:      my_stprintf_s(buffer, buffer_len, _T("ret"));                                                                                                       break;
+					} else {
+		                my_stprintf_s(buffer, buffer_len, _T("illegal"));
+					}
+					break;
+		case 0x83:      my_stprintf_s(buffer, buffer_len, _T("ret"));                                                                               break;
 		case 0x84:      my_stprintf_s(buffer, buffer_len, _T("jmp  %s"), get_value_or_symbol(d_debugger->first_symbol, _T("$%03X"), 0x400 | __mcs48_program_r(ptr++)));             break;
-		case 0x85:      my_stprintf_s(buffer, buffer_len, _T("clr  f0"));                                                                                                   break;
-		case 0x86:  if (!upi41)
-		                my_stprintf_s(buffer, buffer_len, _T("jni  %s"), get_value_or_symbol(d_debugger->first_symbol, _T("$%03X"), (pc & 0xf00) | __mcs48_program_r(ptr++)));
-		            else
-		                my_stprintf_s(buffer, buffer_len, _T("jobf %s"), get_value_or_symbol(d_debugger->first_symbol, _T("$%03X"), (pc & 0xf00) | __mcs48_program_r(ptr++)));      break;
-		case 0x88:  if (!upi41)
+		case 0x85:      my_stprintf_s(buffer, buffer_len, _T("clr  f0"));
+						break;
+		case 0x86:  if (!upi41) {
+			            my_stprintf_s(buffer, buffer_len, _T("jni  %s"), get_value_or_symbol(d_debugger->first_symbol, _T("$%03X"), (pc & 0xf00) | __mcs48_program_r(ptr++)));
+					} else {
+				        my_stprintf_s(buffer, buffer_len, _T("jobf %s"), get_value_or_symbol(d_debugger->first_symbol, _T("$%03X"), (pc & 0xf00) | __mcs48_program_r(ptr++)));
+						}
+						break;
+		case 0x88:  if (!upi41) {
 		                my_stprintf_s(buffer, buffer_len, _T("orl  bus,#$%02X"), __mcs48_program_r(ptr++));
-		            else
-		                my_stprintf_s(buffer, buffer_len, _T("illegal"));                                                                                                   break;
+					} else {
+		                my_stprintf_s(buffer, buffer_len, _T("illegal"));
+					}
+					break;
 		case 0x89:      my_stprintf_s(buffer, buffer_len, _T("orl  p1,#$%02X"), __mcs48_program_r(ptr++));                                                                          break;
 		case 0x8a:      my_stprintf_s(buffer, buffer_len, _T("orl  p2,#$%02X"), __mcs48_program_r(ptr++));                                                                          break;
 		case 0x8c:      my_stprintf_s(buffer, buffer_len, _T("orld p4,a"));                                                                                                 break;
 		case 0x8d:      my_stprintf_s(buffer, buffer_len, _T("orld p5,a"));                                                                                                 break;
 		case 0x8e:      my_stprintf_s(buffer, buffer_len, _T("orld p6,a"));                                                                                                 break;
 		case 0x8f:      my_stprintf_s(buffer, buffer_len, _T("orld p7,a"));                                                                                                 break;
-		case 0x90:  if (!upi41)
+		case 0x90:  if (!upi41) {
 		                my_stprintf_s(buffer, buffer_len, _T("movx @r0,a"));
-		            else
-		                my_stprintf_s(buffer, buffer_len, _T("mov  sts,a"));                                                                                                break;
-		case 0x91:  if (!upi41)
+					} else {
+		                my_stprintf_s(buffer, buffer_len, _T("mov  sts,a"));
+					}
+					break;
+		case 0x91:  if (!upi41) {
 		                my_stprintf_s(buffer, buffer_len, _T("movx @r1,a"));
-		            else
-		                my_stprintf_s(buffer, buffer_len, _T("illegal"));                                                                                                   break;
+					} else {
+		                my_stprintf_s(buffer, buffer_len, _T("illegal"));
+					}
+					break;
 		case 0x92:      my_stprintf_s(buffer, buffer_len, _T("jb4  %s"), get_value_or_symbol(d_debugger->first_symbol, _T("$%03X"), (pc & 0xf00) | __mcs48_program_r(ptr++)));      break;
 		case 0x93:      my_stprintf_s(buffer, buffer_len, _T("retr"));                                                                                                      break;
 		case 0x94:      my_stprintf_s(buffer, buffer_len, _T("call %s"), get_value_or_symbol(d_debugger->first_symbol, _T("$%03X"), 0x400 | __mcs48_program_r(ptr++)));             break;
 		case 0x95:      my_stprintf_s(buffer, buffer_len, _T("cpl  f0"));                                                                                                   break;
 		case 0x96:      my_stprintf_s(buffer, buffer_len, _T("jnz  %s"), get_value_or_symbol(d_debugger->first_symbol, _T("$%03X"), (pc & 0xf00) | __mcs48_program_r(ptr++)));      break;
 		case 0x97:      my_stprintf_s(buffer, buffer_len, _T("clr  c"));                                                                                                    break;
-		case 0x98:  if (!upi41)
+		case 0x98:  if (!upi41) {
 		                my_stprintf_s(buffer, buffer_len, _T("anl  bus,#$%02X"), __mcs48_program_r(ptr++));
-		            else
-		                my_stprintf_s(buffer, buffer_len, _T("illegal"));                                                                                                   break;
+					} else {
+		                my_stprintf_s(buffer, buffer_len, _T("illegal"));
+					}
+					break;
 		case 0x99:      my_stprintf_s(buffer, buffer_len, _T("anl  p1,#$%02X"), __mcs48_program_r(ptr++));                                                                          break;
 		case 0x9a:      my_stprintf_s(buffer, buffer_len, _T("anl  p2,#$%02X"), __mcs48_program_r(ptr++));                                                                          break;
 		case 0x9c:      my_stprintf_s(buffer, buffer_len, _T("anld p4,a"));                                                                                                 break;
@@ -779,10 +792,12 @@ int MCS48_BASE::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 		case 0xd3:      my_stprintf_s(buffer, buffer_len, _T("xrl  a,#$%02X"), __mcs48_program_r(ptr++));                                                                           break;
 		case 0xd4:      my_stprintf_s(buffer, buffer_len, _T("call %s"), get_value_or_symbol(d_debugger->first_symbol, _T("$%03X"), 0x600 | __mcs48_program_r(ptr++)));             break;
 		case 0xd5:      my_stprintf_s(buffer, buffer_len, _T("sel  rb1"));                                                                                                  break;
-		case 0xd6:  if (!upi41)
+		case 0xd6:  if (!upi41) {
 		                my_stprintf_s(buffer, buffer_len, _T("illegal"));
-		            else
-		                my_stprintf_s(buffer, buffer_len, _T("jnibf %s"), get_value_or_symbol(d_debugger->first_symbol, _T("$%03X"), (pc & 0xf00) | __mcs48_program_r(ptr++)));     break;
+					} else {
+		                my_stprintf_s(buffer, buffer_len, _T("jnibf %s"), get_value_or_symbol(d_debugger->first_symbol, _T("$%03X"), (pc & 0xf00) | __mcs48_program_r(ptr++)));
+					}
+					break;
 		case 0xd7:      my_stprintf_s(buffer, buffer_len, _T("mov  psw,a"));                                                                                                break;
 		case 0xd8:      my_stprintf_s(buffer, buffer_len, _T("xrl  a,r0"));                                                                                                 break;
 		case 0xd9:      my_stprintf_s(buffer, buffer_len, _T("xrl  a,r1"));                                                                                                 break;
@@ -794,10 +809,12 @@ int MCS48_BASE::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 		case 0xdf:      my_stprintf_s(buffer, buffer_len, _T("xrl  a,r7"));                                                                                                 break;
 		case 0xe3:      my_stprintf_s(buffer, buffer_len, _T("movp3 a,@a"));                                                                                                break;
 		case 0xe4:      my_stprintf_s(buffer, buffer_len, _T("jmp  %s"), get_value_or_symbol(d_debugger->first_symbol, _T("$%03X"), 0x700 | __mcs48_program_r(ptr++)));             break;
-		case 0xe5:  if (!upi41)
+		case 0xe5:  if (!upi41) {
 		                my_stprintf_s(buffer, buffer_len, _T("sel  mb0"));
-		            else
-		                my_stprintf_s(buffer, buffer_len, _T("en   dma"));                                                                                                  break;
+		            } else {
+		                my_stprintf_s(buffer, buffer_len, _T("en   dma"));
+					}
+				break;
 		case 0xe6:      my_stprintf_s(buffer, buffer_len, _T("jnc  %s"), get_value_or_symbol(d_debugger->first_symbol, _T("$%03X"), (pc & 0xf00) | __mcs48_program_r(ptr++)));      break;
 		case 0xe7:      my_stprintf_s(buffer, buffer_len, _T("rl   a"));                                                                                                    break;
 		case 0xe8:      my_stprintf_s(buffer, buffer_len, _T("djnz r0,%s"), get_value_or_symbol(d_debugger->first_symbol, _T("$%03X"), (pc & 0xf00) | __mcs48_program_r(ptr++)));   break;
@@ -812,10 +829,12 @@ int MCS48_BASE::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 		case 0xf1:      my_stprintf_s(buffer, buffer_len, _T("mov  a,@r1"));                                                                                                break;
 		case 0xf2:      my_stprintf_s(buffer, buffer_len, _T("jb7  %s"), get_value_or_symbol(d_debugger->first_symbol, _T("$%03X"), (pc & 0xf00) | __mcs48_program_r(ptr++)));      break;
 		case 0xf4:      my_stprintf_s(buffer, buffer_len, _T("call %s"), get_value_or_symbol(d_debugger->first_symbol, _T("$%03X"), 0x700 | __mcs48_program_r(ptr++)));             break;
-		case 0xf5:  if (!upi41)
+		case 0xf5:  if (!upi41) {
 		                my_stprintf_s(buffer, buffer_len, _T("sel  mb1"));
-		            else
-		                my_stprintf_s(buffer, buffer_len, _T("en   flags"));                                                                                                break;
+					} else {
+				            my_stprintf_s(buffer, buffer_len, _T("en   flags"));
+					}
+					break;
 		case 0xf6:      my_stprintf_s(buffer, buffer_len, _T("jc   %s"), get_value_or_symbol(d_debugger->first_symbol, _T("$%03X"), (pc & 0xf00) | __mcs48_program_r(ptr++)));      break;
 		case 0xf7:      my_stprintf_s(buffer, buffer_len, _T("rlc  a"));                                                                                                    break;
 		case 0xf8:      my_stprintf_s(buffer, buffer_len, _T("mov  a,r0"));                                                                                                 break;

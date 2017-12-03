@@ -144,6 +144,9 @@ int MCS48::run(int icount)
 	cpustate->icount -= curcycles * 15;
 	if (cpustate->timecount_enabled != 0)
 		burn_cycles(cpustate, curcycles);
+#ifdef USE_DEBUGGER
+	total_icount += curcycles * 15;
+#endif
 
 	/* iterate over remaining cycles, guaranteeing at least one instruction */
 	do
