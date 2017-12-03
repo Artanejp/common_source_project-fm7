@@ -337,6 +337,9 @@ int I8080::run(int clock)
 	if(clock == -1) {
 		if(BUSREQ) {
 			// don't run cpu!
+#ifdef USE_DEBUGGER
+			total_count += 1;
+#endif
 			return 1;
 		} else {
 			// run only one opcode
@@ -354,6 +357,9 @@ int I8080::run(int clock)
 		}
 		// if busreq is raised, spin cpu while remained clock
 		if(count > 0 && BUSREQ) {
+#ifdef USE_DEBUGGER
+			total_count += count;
+#endif
 			count = 0;
 		}
 		return first_count - count;
@@ -382,7 +388,10 @@ void I8080::run_one_opecode()
 		}
 		
 		afterHALT = afterEI = false;
+		d_debugger->add_cpu_trace(PC);
+		int first_count = count;
 		OP(FETCHOP());
+		total_count += first_count - count;
 		if(!afterEI) {
 			check_interrupt();
 		}
@@ -397,7 +406,14 @@ void I8080::run_one_opecode()
 	} else {
 #endif
 		afterHALT = afterEI = false;
+#ifdef USE_DEBUGGER
+		d_debugger->add_cpu_trace(PC);
+		int first_count = count;
+#endif
 		OP(FETCHOP());
+#ifdef USE_DEBUGGER
+		total_count += first_count - count;
+#endif
 		if(!afterEI) {
 			check_interrupt();
 		}
@@ -426,7 +442,10 @@ void I8080::run_one_opecode()
 			}
 			
 			afterHALT = false;
+			d_debugger->add_cpu_trace(PC);
+			int first_count = count;
 			OP(FETCHOP());
+			total_count += first_count - count;
 			d_pic->notify_intr_ei();
 			check_interrupt();
 			
@@ -440,7 +459,14 @@ void I8080::run_one_opecode()
 		} else {
 #endif
 			afterHALT = false;
+#ifdef USE_DEBUGGER
+			d_debugger->add_cpu_trace(PC);
+			int first_count = count;
+#endif
 			OP(FETCHOP());
+#ifdef USE_DEBUGGER
+			total_count += first_count - count;
+#endif
 			d_pic->notify_intr_ei();
 			check_interrupt();
 #ifdef USE_DEBUGGER
@@ -451,6 +477,9 @@ void I8080::run_one_opecode()
 
 void I8080::check_interrupt()
 {
+#ifdef USE_DEBUGGER
+	int first_count = count;
+#endif
 	// check interrupt
 	if(IM & IM_REQ) {
 		if(IM & IM_NMI) {
@@ -537,17 +566,23 @@ void I8080::check_interrupt()
 			}
 		}
 	}
+#ifdef USE_DEBUGGER
+	total_count += first_count - count;
+#endif
 }
 
 
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void I8080::save_state(FILEIO* state_fio)
 {
 	state_fio->FputUint32(STATE_VERSION);
 	state_fio->FputInt32(this_device_id);
 	
+#ifdef USE_DEBUGGER
+	state_fio->FputUint64(total_count);
+#endif
 	state_fio->FputInt32(count);
 	state_fio->Fwrite(regs, sizeof(regs), 1);
 	state_fio->FputUint16(SP);
@@ -569,6 +604,9 @@ bool I8080::load_state(FILEIO* state_fio)
 	if(state_fio->FgetInt32() != this_device_id) {
 		return false;
 	}
+#ifdef USE_DEBUGGER
+	total_count = prev_total_count = state_fio->FgetUint64();
+#endif
 	count = state_fio->FgetInt32();
 	state_fio->Fread(regs, sizeof(regs), 1);
 	SP = state_fio->FgetUint16();

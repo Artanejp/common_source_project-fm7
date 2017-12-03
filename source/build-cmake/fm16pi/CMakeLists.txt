@@ -21,7 +21,7 @@ set(WITH_JOYSTICK OFF)
 set(WITH_MOUSE ON)
 
 set(VMFILES
-#		   i286.cpp
+		   i286.cpp
 		   msm58321.cpp
 		   event.cpp
 		   io.cpp
@@ -43,7 +43,7 @@ set(VMFILES_LIB
 		   ym2203.cpp
 )
 
-set(FLAG_USE_I86 ON)
+#set(FLAG_USE_I86 ON)
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")

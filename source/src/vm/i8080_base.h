@@ -106,6 +106,9 @@ protected:
 	inline void RST(uint16_t n);
 
 	void OP(uint8_t code);
+
+	uint64_t total_count;
+	uint64_t prev_total_count;
 public:
 	I8080_BASE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -116,6 +119,7 @@ public:
 		d_mem = d_pic = d_io = NULL;
 		d_mem_stored = d_io_stored = NULL;
 		d_debugger = NULL;
+		total_count = prev_total_count = 0;
 		set_device_name(_T("i8080 CPU"));
 	}
 	~I8080_BASE() {}

@@ -402,6 +402,10 @@ struct i386_state
 	int segment_prefix;
 	int segment_override;
 
+#ifdef USE_DEBUGGER
+	uint64_t total_cycles;
+	uint64_t prev_total_cycles;
+#endif
 	int cycles;
 	int extra_cycles;
 	int base_cycles;

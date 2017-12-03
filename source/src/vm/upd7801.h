@@ -49,6 +49,10 @@ private:
 	registers
 	--------------------------------------------------------------------------- */
 	
+
+	uint64_t total_count;
+	uint64_t prev_total_count;
+
 	int count, period, scount, tcount;
 	bool wait;
 	
@@ -106,6 +110,9 @@ private:
 public:
 	UPD7801(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+
+		total_count = prev_total_count = 0;
+
 		initialize_output_signals(&outputs_so);
 		SI = SCK = false;
 		d_debugger = NULL;

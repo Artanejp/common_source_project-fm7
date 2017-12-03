@@ -35,12 +35,21 @@ private:
 	outputs_t outputs_to;
 	outputs_t outputs_txd;
 	void *opaque;
+#ifdef USE_DEBUGGER
+	uint64_t total_icount;
+	uint64_t prev_total_icount;
+#endif
 	int icount;
 	bool busreq, rxd_status;
+	
+	int run_one_opecode();
 	
 public:
 	UPD7810(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+#ifdef USE_DEBUGGER
+		total_icount = prev_total_icount = 0;
+#endif
 		initialize_output_signals(&outputs_to);
 		initialize_output_signals(&outputs_txd);
 		set_device_name(_T("uPD7810/7811 MCU"));

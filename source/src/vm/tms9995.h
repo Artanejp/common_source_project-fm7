@@ -34,6 +34,10 @@ private:
 #endif
 	
 	// clocks
+#ifdef USE_DEBUGGER
+	uint64_t total_count;
+	uint64_t prev_total_count;
+#endif
 	int count, period;
 	// register
 	uint16_t WP, PC, prevPC, ST;
@@ -114,6 +118,9 @@ public:
 	TMS9995(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		// init registers
+#ifdef USE_DEBUGGER
+		total_count = prev_total_count = 0;
+#endif
 		WP = PC = ST = 0;
 		memset(RAM, 0, sizeof(RAM));
 		irq_level = int_state = int_latch = 0;

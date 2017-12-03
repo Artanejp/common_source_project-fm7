@@ -62,14 +62,15 @@ void MC6800::WM16(uint32_t Addr, pair_t *p)
 	WM((Addr + 1) & 0xffff, p->b.l);
 }
 
-//#if defined(HAS_MC6801) || defined(HAS_HD6301)
-//#else
+void MC6800::increment_counter(int amount)
+{
+	total_icount += amount;
+	icount -= amount;
+}
 
-#define increment_counter(amount) icount -= amount
-//#endif
 
 
-static const uint8_t MC6800::flags8i[256] = {
+const uint8_t MC6800::flags8i[256] = {
 	/* increment */
 	0x04,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
@@ -89,7 +90,7 @@ static const uint8_t MC6800::flags8i[256] = {
 	0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08
 };
 
-static const uint8_t MC6800::flags8d[256] = {
+const uint8_t MC6800::flags8d[256] = {
 	/* decrement */
 	0x04,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
@@ -172,58 +173,30 @@ int MC6800::run(int clock)
 	// run cpu
 	if(clock == -1) {
 		// run only one opcode
-//#if defined(HAS_MC6801) || defined(HAS_HD6301)
-//		CLEANUP_COUNTERS();
-//#endif
 		icount = 0;
-//#ifdef USE_DEBUGGER
-		if(__USE_DEBUGGER) {
-			bool now_debugging = d_debugger->now_debugging;
-			if(now_debugging) {
-				d_debugger->check_break_points(PC);
-				if(d_debugger->now_suspended) {
-					emu->mute_sound();
-					d_debugger->now_waiting = true;
-					while(d_debugger->now_debugging && d_debugger->now_suspended) {
-						emu->sleep(10);
-					}
-					d_debugger->now_waiting = false;
-				}
-				if(d_debugger->now_debugging) {
-					d_mem = d_debugger;
-				} else {
-					now_debugging = false;
-				}
-				
-				run_one_opecode();
-				
-				if(now_debugging) {
-					if(!d_debugger->now_going) {
-						d_debugger->now_suspended = true;
-					}
-					d_mem = d_mem_stored;
-				}
-
-			} else {
-//#endif
-				run_one_opecode();
-			}
-		} else {
-			run_one_opecode();
-//#ifdef USE_DEBUGGER
-		}
-//#endif
+		run_one_opecode();
 		return -icount;
-	}
-	/* run cpu while given clocks */
-//#if defined(HAS_MC6801) || defined(HAS_HD6301)
-//		CLEANUP_COUNTERS();
-//#endif
+	} else {
+		/* run cpu while given clocks */
 		icount += clock;
 		int first_icount = icount;
-		
+                
 		while(icount > 0) {
-//#ifdef USE_DEBUGGER
+			run_one_opecode();
+		}
+		return first_icount - icount;
+	}
+	return 1;
+}
+
+
+void MC6800::run_one_opecode()
+{
+	if(wai_state & (MC6800_WAI | HD6301_SLP)) {
+		increment_counter(1);
+	} else {
+		do {
+			one_more_insn = false;
 			if(__USE_DEBUGGER) {
 				bool now_debugging = d_debugger->now_debugging;
 				if(now_debugging) {
@@ -242,7 +215,12 @@ int MC6800::run(int clock)
 						now_debugging = false;
 					}
 					
-					run_one_opecode();
+					d_debugger->add_cpu_trace(PC);
+					uint8_t ireg = M_RDOP(PCD);
+					prevpc = PC;
+					PC++;
+					insn(ireg);
+					increment_counter(cycles[ireg]);
 					
 					if(now_debugging) {
 						if(!d_debugger->now_going) {
@@ -251,29 +229,21 @@ int MC6800::run(int clock)
 						d_mem = d_mem_stored;
 					}
 				} else {
-//#endif
-					run_one_opecode();
+					if(__USE_DEBUGGER) d_debugger->add_cpu_trace(PC);
+					uint8_t ireg = M_RDOP(PCD);
+					prevpc = PC;
+					PC++;
+					insn(ireg);
+					increment_counter(cycles[ireg]);
 				}
 			} else {
-				run_one_opecode();
-//#ifdef USE_DEBUGGER
+				uint8_t ireg = M_RDOP(PCD);
+				prevpc = PC;
+				PC++;
+				insn(ireg);
+				increment_counter(cycles[ireg]);
 			}
-//#endif
-		}
-		return first_icount - icount;
-}
-
-
-void MC6800::run_one_opecode()
-{
-	if(wai_state & (MC6800_WAI | HD6301_SLP)) {
-		increment_counter(1);
-	} else {
-		uint8_t ireg = M_RDOP(PCD);
-		prevpc = PC;
-		PC++;
-		insn(ireg);
-		increment_counter(cycles[ireg]);
+		} while(one_more_insn);
 	}
 	
 	// check interrupt
@@ -356,9 +326,12 @@ bool MC6800::write_debug_reg(const _TCHAR *reg, uint32_t data)
 void MC6800::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 	my_stprintf_s(buffer, buffer_len,
-	_T("CCR = [%c%c%c%c%c%c]  A = %02X  B = %02X  IX = %04X  PC = %04X  SP = %04X"),
-	(CC & 0x01) ? _T('C') : _T('-'), (CC & 0x02) ? _T('V') : _T('-'), (CC & 0x04) ? _T('Z') : _T('-'), (CC & 0x08) ? _T('N') : _T('-'),
-	(CC & 0x10) ? _T('I') : _T('-'), (CC & 0x20) ? _T('X') : _T('-'), A, B, X, PC, S);
+				  _T("CCR = [%c%c%c%c%c%c]  A = %02X  B = %02X  IX = %04X  PC = %04X  SP = %04X\nTotal CPU Clocks = %llu (%llu)"),				  
+				  (CC & 0x01) ? _T('C') : _T('-'), (CC & 0x02) ? _T('V') : _T('-'), (CC & 0x04) ? _T('Z') : _T('-'), (CC & 0x08) ? _T('N') : _T('-'
+),
+				  (CC & 0x10) ? _T('I') : _T('-'), (CC & 0x20) ? _T('X') : _T('-'), A, B, X, PC, S,
+				  total_icount, total_icount - prev_total_icount);
+	prev_total_icount = total_icount;
 }
 
 /*
@@ -624,6 +597,7 @@ int MC6800::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 void MC6800::enter_interrupt(uint16_t irq_vector)
 {
 	if(wai_state & MC6800_WAI) {
+		total_icount += 4;
 		icount -= 4;
 		wai_state &= ~MC6800_WAI;
 	} else {
@@ -632,6 +606,7 @@ void MC6800::enter_interrupt(uint16_t irq_vector)
 		PUSHBYTE(A);
 		PUSHBYTE(B);
 		PUSHBYTE(CC);
+		total_icount += 12;
 		icount -= 12;
 	}
 	SEI;
@@ -1075,7 +1050,8 @@ void MC6800::nop()
 void MC6800::tap()
 {
 	CC = A;
-	ONE_MORE_INSN();
+//	ONE_MORE_INSN();
+	one_more_insn = true;
 }
 
 /* $07 TPA inherent ----- */
@@ -1128,14 +1104,16 @@ void MC6800::sec()
 void MC6800::cli()
 {
 	CLI;
-	ONE_MORE_INSN();
+//	ONE_MORE_INSN();
+	one_more_insn = true;
 }
 
 /* $0f SEI */
 void MC6800::sei()
 {
 	SEI;
-	ONE_MORE_INSN();
+//	ONE_MORE_INSN();
+	one_more_insn = true;
 }
 
 /* $10 SBA inherent -**** */
@@ -3068,7 +3046,7 @@ void MC6800::stx_ex()
 	WM16(EAD, &pX);
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void MC6800::save_state(FILEIO* state_fio)
 {
@@ -3084,6 +3062,9 @@ void MC6800::save_state(FILEIO* state_fio)
 	state_fio->FputUint8(cc);
 	state_fio->FputInt32(wai_state);
 	state_fio->FputInt32(int_state);
+//#ifdef USE_DEBUGGER
+	if(__USE_DEBUGGER) state_fio->FputUint64(total_icount);
+//#endif
 	state_fio->FputInt32(icount);
 }
 
@@ -3104,6 +3085,9 @@ bool MC6800::load_state(FILEIO* state_fio)
 	cc = state_fio->FgetUint8();
 	wai_state = state_fio->FgetInt32();
 	int_state = state_fio->FgetInt32();
+//#ifdef USE_DEBUGGER
+	if(__USE_DEBUGGER) { total_icount = prev_total_icount = state_fio->FgetUint64(); }
+//#endif
 	icount = state_fio->FgetInt32();
 	return true;
 }

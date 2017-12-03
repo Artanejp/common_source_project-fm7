@@ -511,7 +511,7 @@ void* debugger_thread(void *lpx)
 					if(num >= 2) {
 						steps = min(my_hexatoi(debugger->first_symbol, params[1]), (uint32_t)MAX_CPU_TRACE);
 					}
-					for(int i = 0; i < steps; i++) {
+					for(int i = MAX_CPU_TRACE - steps; i < MAX_CPU_TRACE; i++) {
 						int index = (debugger->cpu_trace_ptr + i) & (MAX_CPU_TRACE - 1);
 						if(!(debugger->cpu_trace[index] & ~prog_addr_mask)) {
 							const _TCHAR *name = get_symbol(debugger->first_symbol, debugger->cpu_trace[index] & prog_addr_mask);

@@ -483,7 +483,7 @@ public:
 	}
 	
 	// bios
-	virtual bool bios_call_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
+	virtual bool bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
 	{
 		return false;
 	}

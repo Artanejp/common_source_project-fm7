@@ -76,11 +76,11 @@ class I8237;
 //class I8250;
 class I8253;
 class I8259;
-#if defined(HAS_I286)
+//#if defined(HAS_I286)
 class I286;
-#else
-class I86;
-#endif
+//#else
+//class I86;
+//#endif
 class IO;
 class PCM1BIT;
 class UPD765A;
@@ -111,11 +111,11 @@ protected:
 //	I8250* sio;
 	I8253* pit;
 	I8259* pic;
-#if defined(HAS_I286)
+//#if defined(HAS_I286)
 	I286* cpu;
-#else
-	I86* cpu;
-#endif
+//#else
+//	I86* cpu;
+//#endif
 	IO* io;
 	PCM1BIT* pcm;
 	UPD765A* fdc;
@@ -150,6 +150,11 @@ public:
 	void reset();
 	void notify_power_off();
 	void run();
+	
+#ifdef USE_DEBUGGER
+	// debugger
+	DEVICE *get_cpu(int index);
+#endif
 	
 	// draw screen
 	void draw_screen();

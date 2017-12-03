@@ -608,7 +608,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\src\vm\i86.cpp"
+					RelativePath="..\src\vm\i286.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -917,6 +917,10 @@
 				Filter="h"
 				>
 				<File
+					RelativePath="..\src\vm\debugger.h"
+					>
+				</File>
+				<File
 					RelativePath="..\src\vm\device.h"
 					>
 				</File>
@@ -949,7 +953,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\src\vm\i86.h"
+					RelativePath="..\src\vm\i286.h"
 					>
 				</File>
 				<File

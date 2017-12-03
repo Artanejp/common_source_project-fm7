@@ -31,9 +31,14 @@ protected:
 	bool busreq;
 	int exec_call(void);
 	int exec_call_debug(void);
+	uint64_t total_icount;
+	uint64_t prev_total_icount;
+
+	virtual int run_one_opecode();
 	
 public:
 	HUC6280_BASE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
+		total_icount = prev_total_icount = 0;
 		set_device_name(_T("HuC6280 CPU"));
 	}
 	~HUC6280_BASE() {}
@@ -88,7 +93,8 @@ public:
 class HUC6280 : public HUC6280_BASE
 {
 private:
-	
+protected:
+	int run_one_opecode() override;
 public:
 	HUC6280(VM* parent_vm, EMU* parent_emu) : HUC6280_BASE(parent_vm, parent_emu) {
 		set_device_name(_T("HuC6280 CPU"));

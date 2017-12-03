@@ -1000,6 +1000,9 @@ int M6502::run(int clock)
 	if(clock == -1) {
 		if (busreq) {
 			// don't run cpu!
+#ifdef USE_DEBUGGER
+			total_icount += 1;
+#endif
 			return 1;
 		} else {
 			// run only one opcode
@@ -1079,10 +1082,16 @@ int M6502::run(int clock)
 		}
 		// if busreq is raised, spin cpu while remained clock
 		if(icount > 0 && busreq) {
+#ifdef USE_DEBUGGER
+			total_icount += icount;
+#endif
 			icount = 0;
 		}
 		return first_icount - icount;
 	}
+#ifdef USE_DEBUGGER
+	total_icount += first_icount - icount;
+#endif
 }
 
 #define offs_t UINT16
@@ -1108,3 +1117,37 @@ int M6502::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	return (int)(pc & DASMFLAG_LENGTHMASK);
 #endif
 }
+
+#define STATE_VERSION	2
+
+void M6502::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+
+	save_state_regs(state_fio);
+#ifdef USE_DEBUGGER
+	state_fio->FputUint64(total_icount);
+#endif
+	state_fio->FputInt32(icount);
+	state_fio->FputBool(busreq);
+}
+
+bool M6502::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+
+	load_state_regs(state_fio);
+#ifdef USE_DEBUGGER
+	total_icount = prev_total_icount = state_fio->FgetUint64();
+#endif
+ 	icount = state_fio->FgetInt32();
+ 	busreq = state_fio->FgetBool();
+	return true;
+}
+

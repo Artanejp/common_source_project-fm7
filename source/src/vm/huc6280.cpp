@@ -75,14 +75,13 @@ int HUC6280::run(int clock)
 	if(clock == -1) {
 		if(busreq) {
 			// don't run cpu!
+#ifdef USE_DEBUGGER
+			total_icount += 1;
+#endif
 			return 1;
 		} else {
 			// run only one opcode
-#ifdef USE_DEBUGGER
-			return exec_call_debug();
-#else
-			return exec_call();
-#endif
+			return run_one_opecode();
 		}
 	} else {
 		icount += clock;
@@ -90,29 +89,44 @@ int HUC6280::run(int clock)
 		
 		// run cpu while given clocks
 		while(icount > 0 && !busreq) {
-#ifdef USE_DEBUGGER
-			icount -= exec_call_debug();
-#else
-			icount -= exec_call();
-#endif
+			icount -= run_one_opecode();
 		}
 		// if busreq is raised, spin cpu while remained clock
 		if(icount > 0 && busreq) {
+#ifdef USE_DEBUGGER
+			total_icount += icount;
+#endif
 			icount = 0;
 		}
 		return first_icount - icount;
 	}
 }
 
-#define STATE_VERSION	4
+int HUC6280::run_one_opecode()
+{
+	h6280_Regs *cpustate = (h6280_Regs *)opaque;
+#ifdef USE_DEBUGGER
+	d_debugger->add_cpu_trace(cpustate->pc.w.l);
+#endif
+	int passed_icount = CPU_EXECUTE_CALL(h6280);
+#ifdef USE_DEBUGGER
+	total_icount += passed_icount;
+#endif
+	return passed_icount;
+}
+
+#define STATE_VERSION	5
 
 void HUC6280::save_state(FILEIO* state_fio)
 {
 	state_fio->FputUint32(STATE_VERSION);
 	state_fio->FputInt32(this_device_id);
 	
-	//state_fio->Fwrite(opaque, sizeof(h6280_Regs), 1);
+
 	save_state_registers(state_fio);
+#ifdef USE_DEBUGGER
+	state_fio->FputUint64(total_icount);
+#endif
 	state_fio->FputInt32(icount);
 	state_fio->FputBool(busreq);
 }
@@ -125,7 +139,9 @@ bool HUC6280::load_state(FILEIO* state_fio)
 	if(state_fio->FgetInt32() != this_device_id) {
 		return false;
 	}
-	//state_fio->Fread(opaque, sizeof(h6280_Regs), 1);
+#ifdef USE_DEBUGGER
+	total_icount = prev_total_icount = state_fio->FgetUint64();
+#endif
 	load_state_registers(state_fio);
 	icount = state_fio->FgetInt32();
 	busreq = state_fio->FgetBool();

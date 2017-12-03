@@ -594,7 +594,7 @@ int HD6301::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	return 0;
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void HD6301::save_state(FILEIO* state_fio)
 {
@@ -610,6 +610,7 @@ void HD6301::save_state(FILEIO* state_fio)
 	state_fio->FputUint8(cc);
 	state_fio->FputInt32(wai_state);
 	state_fio->FputInt32(int_state);
+	if(__USE_DEBUGGER) state_fio->FputUint64(total_icount);
 	state_fio->FputInt32(icount);
 //#if defined(HAS_MC6801) || defined(HAS_HD6301)
 	for(int i = 0; i < 4; i++) {
@@ -665,6 +666,7 @@ bool HD6301::load_state(FILEIO* state_fio)
 	cc = state_fio->FgetUint8();
 	wai_state = state_fio->FgetInt32();
 	int_state = state_fio->FgetInt32();
+	if(__USE_DEBUGGER) { total_icount = prev_total_icount = state_fio->FgetUint64(); }
 	icount = state_fio->FgetInt32();
 //#if defined(HAS_MC6801) || defined(HAS_HD6301)
 	for(int i = 0; i < 4; i++) {

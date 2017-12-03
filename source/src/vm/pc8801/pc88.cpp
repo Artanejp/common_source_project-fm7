@@ -2789,7 +2789,7 @@ underrun:
 	if(exitline != -1) {
 		for(int cy = exitline; cy < 200; cy++) {
 			memset(&text.expand[cy][0], 0, width);
-			memset(&attrib.expand[cy][0], 0, width);
+			memset(&attrib.expand[cy][0], 0xe0, width); // color=7
 		}
 	}
 }

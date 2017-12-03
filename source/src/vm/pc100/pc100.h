@@ -66,7 +66,7 @@ class BEEP;
 class I8251;
 class I8255;
 class I8259;
-class I86;
+class I286;
 class IO;
 class MEMORY;
 class MSM58321;
@@ -91,7 +91,7 @@ protected:
 	I8255* pio0;
 	I8255* pio1;
 	I8259* pic;	// includes 2chips
-	I86* cpu;
+	I286* cpu;
 	IO* io;
 	MEMORY* memory;
 	MSM58321* rtc;

@@ -76,7 +76,12 @@ protected:
 	int wai_state;
 	int int_state;
 	
+
+	uint64_t total_icount;
+	uint64_t prev_total_icount;
+
 	int icount;
+	bool one_more_insn;
 	
 	virtual uint32_t RM(uint32_t Addr);
 	virtual void WM(uint32_t Addr, uint32_t Value);
@@ -84,6 +89,7 @@ protected:
 	void WM16(uint32_t Addr, pair_t *p);
 	
 	
+	virtual void increment_counter(int amount);
 	virtual void run_one_opecode();
 	void enter_interrupt(uint16_t irq_vector);
 	virtual void insn(uint8_t code);

@@ -279,6 +279,7 @@ void MC6801::mc6801_io_w(uint32_t offset, uint32_t data)
 
 void MC6801::increment_counter(int amount)
 {
+	total_icount += amount;
 	icount -= amount;
 	
 	// timer
@@ -441,60 +442,37 @@ void MC6801::write_signal(int id, uint32_t data, uint32_t mask)
 
 int MC6801::run(int clock)
 {
-		// run cpu
-	if(clock == -1) {
-		// run only one opcode
-//#if defined(HAS_MC6801) || defined(HAS_HD6301)
-		CLEANUP_COUNTERS();
-//#endif
-		icount = 0;
-		if(__USE_DEBUGGER) {
-//#ifdef USE_DEBUGGER
-			bool now_debugging = d_debugger->now_debugging;
-			if(now_debugging) {
-				d_debugger->check_break_points(PC);
-				if(d_debugger->now_suspended) {
-					emu->mute_sound();
-					d_debugger->now_waiting = true;
-					while(d_debugger->now_debugging && d_debugger->now_suspended) {
-						emu->sleep(10);
-					}
-					d_debugger->now_waiting = false;
-				}
-				if(d_debugger->now_debugging) {
-					d_mem = d_debugger;
-				} else {
-					now_debugging = false;
-				}
-				
-				run_one_opecode();
-			
-				if(now_debugging) {
-					if(!d_debugger->now_going) {
-						d_debugger->now_suspended = true;
-					}
-					d_mem = d_mem_stored;
-				}
-			} else {
-//#endif
-			  run_one_opecode();
-			}
-		} else {
-			run_one_opecode();
-//#ifdef USE_DEBUGGER
-		}
-//#endif
-		return -icount;
+        // run cpu
+        if(clock == -1) {
+                // run only one opcode
+
+                CLEANUP_COUNTERS();
+
+                icount = 0;
+                run_one_opecode();
+                return -icount;
+        } else {
+                /* run cpu while given clocks */
+
+                CLEANUP_COUNTERS();
+
+                icount += clock;
+                int first_icount = icount;
+                
+                while(icount > 0) {
+                        run_one_opecode();
+                }
+                return first_icount - icount;
+        }
+}
+
+void MC6801::run_one_opecode()
+{
+	if(wai_state & (MC6800_WAI | HD6301_SLP)) {
+		increment_counter(1);
 	} else {
-		/* run cpu while given clocks */
-//#if defined(HAS_MC6801) || defined(HAS_HD6301)
-		CLEANUP_COUNTERS();
-//#endif
-		icount += clock;
-		int first_icount = icount;
-		
-		while(icount > 0) {
-//#ifdef USE_DEBUGGER
+		do {
+			one_more_insn = false;
 			if(__USE_DEBUGGER) {
 				bool now_debugging = d_debugger->now_debugging;
 				if(now_debugging) {
@@ -510,10 +488,15 @@ int MC6801::run(int clock)
 					if(d_debugger->now_debugging) {
 						d_mem = d_debugger;
 					} else {
-					now_debugging = false;
+						now_debugging = false;
 					}
 					
-					run_one_opecode();
+					d_debugger->add_cpu_trace(PC);
+					uint8_t ireg = M_RDOP(PCD);
+					prevpc = PC;
+					PC++;
+					insn(ireg);
+					increment_counter(cycles[ireg]);
 					
 					if(now_debugging) {
 						if(!d_debugger->now_going) {
@@ -522,29 +505,21 @@ int MC6801::run(int clock)
 						d_mem = d_mem_stored;
 					}
 				} else {
-//#endif
-					run_one_opecode();
-//#ifdef USE_DEBUGGER
+					if(__USE_DEBUGGER) d_debugger->add_cpu_trace(PC);
+					uint8_t ireg = M_RDOP(PCD);
+					prevpc = PC;
+					PC++;
+					insn(ireg);
+					increment_counter(cycles[ireg]);
 				}
 			} else {
-				run_one_opecode();
+				uint8_t ireg = M_RDOP(PCD);
+				prevpc = PC;
+				PC++;
+				insn(ireg);
+				increment_counter(cycles[ireg]);
 			}
-//#endif
-		}
-		return first_icount - icount;
-	}
-}
-
-void MC6801::run_one_opecode()
-{
-	if(wai_state & (MC6800_WAI | HD6301_SLP)) {
-		increment_counter(1);
-	} else {
-		uint8_t ireg = M_RDOP(PCD);
-		prevpc = PC;
-		PC++;
-		insn(ireg);
-		increment_counter(cycles[ireg]);
+		} while(one_more_insn);
 	}
 	
 	// check interrupt
@@ -1268,7 +1243,7 @@ void MC6801::std_ex()
 	WM16(EAD, &pD);
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void MC6801::save_state(FILEIO* state_fio)
 {
@@ -1284,6 +1259,7 @@ void MC6801::save_state(FILEIO* state_fio)
 	state_fio->FputUint8(cc);
 	state_fio->FputInt32(wai_state);
 	state_fio->FputInt32(int_state);
+	if(__USE_DEBUGGER) state_fio->FputUint64(total_icount);
 	state_fio->FputInt32(icount);
 //#if defined(HAS_MC6801) || defined(HAS_HD6301)
 	for(int i = 0; i < 4; i++) {
@@ -1339,6 +1315,7 @@ bool MC6801::load_state(FILEIO* state_fio)
 	cc = state_fio->FgetUint8();
 	wai_state = state_fio->FgetInt32();
 	int_state = state_fio->FgetInt32();
+	if(__USE_DEBUGGER) { total_icount = prev_total_icount = state_fio->FgetUint64(); }
 	icount = state_fio->FgetInt32();
 //#if defined(HAS_MC6801) || defined(HAS_HD6301)
 	for(int i = 0; i < 4; i++) {

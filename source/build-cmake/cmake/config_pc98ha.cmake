@@ -5,6 +5,7 @@ set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
 
 set(VMFILES
+		   i286.cpp
 		   event.cpp
 		   io.cpp
 		   memory.cpp
@@ -45,7 +46,7 @@ if(BUILD_PC98HA)
    set(VMFILES_LIB ${VMFILES_LIB}
 		   upd4991a.cpp
    )
-   set(FLAG_USE_I86 ON)
+   set(FLAG_USE_I86 OFF)
    set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc98ha.qrc)
 elseif(BUILD_PC98LT)
    add_definitions(-D_PC98LT)
@@ -53,7 +54,7 @@ elseif(BUILD_PC98LT)
    set(VMFILES ${VMFILES}
 		   upd1990a.cpp
    )
-   set(FLAG_USE_I86 ON)
+   set(FLAG_USE_I86 OFF)
    set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc98lt.qrc)
 endif()
 

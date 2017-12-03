@@ -67,11 +67,11 @@ class I8237;
 class I8251;
 class I8253;
 class I8259;
-#if defined(HAS_I86)
-class I86;
-#else
+//#if defined(HAS_I86)
+//class I86;
+//#else
 class I286;
-#endif
+//#endif
 class IO;
 class MB8877;
 class SCSI_HDD;
@@ -104,11 +104,11 @@ protected:
 	I8251* sio_ch2;
 	I8253* pit;
 	I8259* pic;
-#if defined(HAS_I86)
-	I86* cpu;
-#else
+//#if defined(HAS_I86)
+//	I86* cpu;
+//#else
 	I286* cpu;
-#endif
+//#endif
 	IO* io;
 	MB8877* fdc;
 	SCSI_HDD* scsi_hdd[7];

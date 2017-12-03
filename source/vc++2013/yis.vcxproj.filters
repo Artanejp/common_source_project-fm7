@@ -172,6 +172,9 @@
     <ClInclude Include="..\src\vm\disk.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\vm\debugger.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\vm\device.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>

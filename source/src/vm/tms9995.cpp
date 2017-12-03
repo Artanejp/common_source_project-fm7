@@ -367,7 +367,9 @@ void TMS9995::run_one_opecode()
 			now_debugging = false;
 		}
 		
+		int first_count = count;
 		run_one_opecode_tmp();
+		total_count += first_count - count;
 		
 		if(now_debugging) {
 			if(!d_debugger->now_going) {
@@ -376,7 +378,9 @@ void TMS9995::run_one_opecode()
 			d_mem_tmp = d_io_tmp = this;
 		}
 	} else {
+		int first_count = count;
 		run_one_opecode_tmp();
+		total_count += first_count - count;
 	}
 }
 void TMS9995::run_one_opecode_tmp()
@@ -421,6 +425,9 @@ void TMS9995::run_one_opecode_tmp()
 		period += 8;
 	} else {
 		int_enabled = true;
+#ifdef USE_DEBUGGER
+		d_debugger->add_cpu_trace(PC);
+#endif
 		prevPC = PC;
 		uint16_t op = FETCH16();
 		execute(op);
@@ -1603,9 +1610,10 @@ ST = 0000 [LGT:0 AGT:0 EQ:0 C:0 OV:0 OP:0 X:0 OVIE:0 IM:0]
 PC = 0000 WP = 0000
 R0 = 0000 R1 = 0000 R2 = 0000 R3 = 0000 R4 = 0000 R5 = 0000 R6 = 0000 R7 = 0000
 R8 = 0000 R9 = 0000 R10= 0000 R11= 0000 R12= 0000 R13= 0000 R14= 0000 R15= 0000
+Total CPU Clocks = 0 (0)
 */
 	my_stprintf_s(buffer, buffer_len,
-	_T("ST = %04X [LGT:%01X AGT:%01X EQ:%01X C:%01X OV:%01X OP:%01X X:%01X OVIE:%01X IM:%01X]\nPC = %04X WP = %04X\nR0 = %04X R1 = %04X R2 = %04X R3 = %04X R4 = %04X R5 = %04X R6 = %04X R7 = %04X\nR8 = %04X R9 = %04X R10= %04X R11= %04X R12= %04X R13= %04X R14= %04X R15= %04X"),
+	_T("ST = %04X [LGT:%01X AGT:%01X EQ:%01X C:%01X OV:%01X OP:%01X X:%01X OVIE:%01X IM:%01X]\nPC = %04X WP = %04X\nR0 = %04X R1 = %04X R2 = %04X R3 = %04X R4 = %04X R5 = %04X R6 = %04X R7 = %04X\nR8 = %04X R9 = %04X R10= %04X R11= %04X R12= %04X R13= %04X R14= %04X R15= %04X\nTotal CPU Clocks = %llu (%llu)"),
 	ST,
 	(ST & ST_LGT ) ? 1 : 0,
 	(ST & ST_AGT ) ? 1 : 0,
@@ -1632,7 +1640,9 @@ R8 = 0000 R9 = 0000 R10= 0000 R11= 0000 R12= 0000 R13= 0000 R14= 0000 R15= 0000
 	this->read_data16((WP + R12) & 0xffff),
 	this->read_data16((WP + R13) & 0xffff),
 	this->read_data16((WP + R14) & 0xffff),
-	this->read_data16((WP + R15) & 0xffff));
+	this->read_data16((WP + R15) & 0xffff),
+	total_count, total_count - prev_total_count);
+	prev_total_count = total_count;
 }
 
 // disassembler
@@ -1684,13 +1694,16 @@ int TMS9995::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 }
 #endif
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void TMS9995::save_state(FILEIO* state_fio)
 {
 	state_fio->FputUint32(STATE_VERSION);
 	state_fio->FputInt32(this_device_id);
 	
+#ifdef USE_DEBUGGER
+	state_fio->FputUint64(total_count);
+#endif
 	state_fio->FputInt32(count);
 	state_fio->FputInt32(period);
 	state_fio->FputUint16(WP);
@@ -1722,6 +1735,9 @@ bool TMS9995::load_state(FILEIO* state_fio)
 	if(state_fio->FgetInt32() != this_device_id) {
 		return false;
 	}
+#ifdef USE_DEBUGGER
+	total_count = prev_total_count = state_fio->FgetUint64();
+#endif
 	count = state_fio->FgetInt32();
 	period = state_fio->FgetInt32();
 	WP = state_fio->FgetUint16();

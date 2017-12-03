@@ -200,20 +200,22 @@ typedef UINT32	offs_t;
 		REG16(AX) = regs[0]; REG16(CX) = regs[1]; REG16(DX) = regs[2]; REG16(BX) = regs[3]; \
 		REG16(SP) = regs[4]; REG16(BP) = regs[5]; REG16(SI) = regs[6]; REG16(DI) = regs[7]; \
 		cpustate->ZF = (UINT8)ZeroFlag; cpustate->CF = (UINT8)CarryFlag; \
+		CYCLES(cpustate,CYCLES_IRET); \
 		return; \
 	} \
 }
-#define BIOS_CALL(address) if(cpustate->bios != NULL) { \
+#define BIOS_CALL_FAR(address) if(cpustate->bios != NULL) { \
 	uint16_t regs[8], sregs[4]; \
 	regs[0] = REG16(AX); regs[1] = REG16(CX); regs[2] = REG16(DX); regs[3] = REG16(BX); \
 	regs[4] = REG16(SP); regs[5] = REG16(BP); regs[6] = REG16(SI); regs[7] = REG16(DI); \
 	sregs[0] = cpustate->sreg[ES].selector; sregs[1] = cpustate->sreg[CS].selector; \
 	sregs[2] = cpustate->sreg[SS].selector; sregs[3] = cpustate->sreg[DS].selector; \
 	int32_t ZeroFlag = cpustate->ZF, CarryFlag = cpustate->CF; \
-	if(cpustate->bios->bios_call_i86(address, regs, sregs, &ZeroFlag, &CarryFlag)) { \
+	if(cpustate->bios->bios_call_far_i86(address, regs, sregs, &ZeroFlag, &CarryFlag)) { \
 		REG16(AX) = regs[0]; REG16(CX) = regs[1]; REG16(DX) = regs[2]; REG16(BX) = regs[3]; \
 		REG16(SP) = regs[4]; REG16(BP) = regs[5]; REG16(SI) = regs[6]; REG16(DI) = regs[7]; \
 		cpustate->ZF = (UINT8)ZeroFlag; cpustate->CF = (UINT8)CarryFlag; \
+		CYCLES(cpustate,CYCLES_RET_INTERSEG); \
 		return; \
 	} \
 }
@@ -437,11 +439,13 @@ void I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 	i386_state *cpustate = (i386_state *)opaque;
 	my_stprintf_s(buffer, buffer_len,
-	_T("AX=%04X  BX=%04X CX=%04X DX=%04X SP=%04X  BP=%04X  SI=%04X  DI=%04X\nDS=%04X  ES=%04X SS=%04X CS=%04X IP=%04X  FLAG=[%c%c%c%c%c%c%c%c%c]"),
+	_T("AX=%04X  BX=%04X CX=%04X DX=%04X SP=%04X  BP=%04X  SI=%04X  DI=%04X\nDS=%04X  ES=%04X SS=%04X CS=%04X IP=%04X  FLAG=[%c%c%c%c%c%c%c%c%c]\nTotal CPU Clocks = %llu (%llu)"),
 	REG16(AX), REG16(BX), REG16(CX), REG16(DX), REG16(SP), REG16(BP), REG16(SI), REG16(DI),
 	cpustate->sreg[DS].selector, cpustate->sreg[ES].selector, cpustate->sreg[SS].selector, cpustate->sreg[CS].selector, cpustate->eip,
 	cpustate->OF ? _T('O') : _T('-'), cpustate->DF ? _T('D') : _T('-'), cpustate->IF ? _T('I') : _T('-'), cpustate->TF ? _T('T') : _T('-'),
-	cpustate->SF ? _T('S') : _T('-'), cpustate->ZF ? _T('Z') : _T('-'), cpustate->AF ? _T('A') : _T('-'), cpustate->PF ? _T('P') : _T('-'), cpustate->CF ? _T('C') : _T('-'));
+	cpustate->SF ? _T('S') : _T('-'), cpustate->ZF ? _T('Z') : _T('-'), cpustate->AF ? _T('A') : _T('-'), cpustate->PF ? _T('P') : _T('-'), cpustate->CF ? _T('C') : _T('-'),
+	cpustate->total_cycles, cpustate->total_cycles - cpustate->prev_total_cycles);
+	cpustate->prev_total_cycles = cpustate->total_cycles;
 }
 
 int I386::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
@@ -490,7 +494,7 @@ int I386::get_shutdown_flag()
 	return cpustate->shutdown;
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void I386::save_state(FILEIO* state_fio)
 {

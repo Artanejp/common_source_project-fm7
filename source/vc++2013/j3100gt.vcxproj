@@ -173,7 +173,7 @@
     <ClCompile Include="..\src\vm\i8237.cpp" />
     <ClCompile Include="..\src\vm\i8253.cpp" />
     <ClCompile Include="..\src\vm\i8259.cpp" />
-    <ClCompile Include="..\src\vm\i86.cpp" />
+    <ClCompile Include="..\src\vm\i286.cpp" />
     <ClCompile Include="..\src\vm\io.cpp" />
     <ClCompile Include="..\src\vm\noise.cpp" />
     <ClCompile Include="..\src\vm\pcm1bit.cpp" />
@@ -194,6 +194,7 @@
     <ClInclude Include="..\src\fileio.h" />
     <ClInclude Include="..\src\emu.h" />
     <ClInclude Include="..\src\win32\osd.h" />
+    <ClInclude Include="..\src\vm\debugger.h" />
     <ClInclude Include="..\src\vm\device.h" />
     <ClInclude Include="..\src\vm\disk.h" />
     <ClInclude Include="..\src\vm\event.h" />
@@ -202,7 +203,7 @@
     <ClInclude Include="..\src\vm\i8237.h" />
     <ClInclude Include="..\src\vm\i8253.h" />
     <ClInclude Include="..\src\vm\i8259.h" />
-    <ClInclude Include="..\src\vm\i86.h" />
+    <ClInclude Include="..\src\vm\i286.h" />
     <ClInclude Include="..\src\vm\io.h" />
     <ClInclude Include="..\src\vm\noise.h" />
     <ClInclude Include="..\src\vm\pcm1bit.h" />

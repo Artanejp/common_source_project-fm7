@@ -307,7 +307,7 @@ void BIOS::event_frame()
 	timeout++;
 }
 
-bool BIOS::bios_call_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
+bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
 {
 	uint8_t *regs8 = (uint8_t *)regs;
 	int drv = AL & 0xf;
@@ -1080,7 +1080,7 @@ bool BIOS::bios_int_i86(int intnum, uint16_t regs[], uint16_t sregs[], int32_t* 
 	
 	if(intnum == 0x93) {
 		// disk bios
-		return bios_call_i86(0xfffc4, regs, sregs, ZeroFlag, CarryFlag);
+		return bios_call_far_i86(0xfffc4, regs, sregs, ZeroFlag, CarryFlag);
 	}
 	return false;
 }

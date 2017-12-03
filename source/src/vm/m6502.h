@@ -35,6 +35,10 @@ protected:
 	uint8_t a, x, y, p;
 	bool pending_irq, after_cli;
 	bool nmi_state, irq_state, so_state;
+
+	uint64_t total_icount;
+	uint64_t prev_total_icount;
+
 	int icount;
 	bool busreq;
 	
@@ -42,9 +46,12 @@ protected:
 	virtual void OP(uint8_t code);
 	void update_irq();
 	
+	void save_state_regs(FILEIO* state_fio);
+	void load_state_regs(FILEIO* state_fio);
 public:
 	M6502_BASE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+		total_icount = prev_total_icount = 0;
 		busreq = false;
 		set_device_name(_T("M6502 CPU"));
 	}
@@ -86,8 +93,6 @@ public:
 	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	virtual int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 //#endif
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
 	
 	// unique functions
 	void set_context_mem(DEVICE* device)
@@ -119,6 +124,8 @@ public:
 	void reset();
 	int run(int clock);
 	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 };	
 
 class N2A03 : public M6502_BASE
@@ -134,6 +141,8 @@ public:
 	void reset();
 	int run(int clock);
 	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 };	
 
 #endif

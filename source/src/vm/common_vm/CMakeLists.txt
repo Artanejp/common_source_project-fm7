@@ -1,6 +1,6 @@
 message("* vm/common_vm")
 
-SET(THIS_LIB_VERSION 1.1.19)
+SET(THIS_LIB_VERSION 1.1.20)
 set(s_vm_common_vm_srcs
 	../315-5124.cpp
 	../am9511.cpp
@@ -94,7 +94,7 @@ set(s_vm_common_vm_srcs
 	../z80pio.cpp
 	../z80sio.cpp
 
-	../libcpu_newdev/i86_base.cpp
+#	../libcpu_newdev/i86_base.cpp
 
 	../libcpu_newdev/libcpu_i386/i386_opdef.cpp
 	../libcpu_newdev/libcpu_i386/i386_base_ext.cpp

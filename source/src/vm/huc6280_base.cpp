@@ -115,17 +115,13 @@ int HUC6280_BASE::run(int clocks)
 	return 0;
 }
 
-int HUC6280_BASE::exec_call(void)
+int HUC6280_BASE::run_one_opecode()
 {
 	h6280_Regs *cpustate = (h6280_Regs *)opaque;
-	return CPU_EXECUTE_CALL(h6280);
+	int passed_icount = CPU_EXECUTE_CALL(h6280);
+	return passed_icount;
 }
 
-int HUC6280_BASE::exec_call_debug(void)
-{
-	h6280_Regs *cpustate = (h6280_Regs *)opaque;
-	return CPU_EXECUTE_CALL(h6280_debug);
-}
 
 void HUC6280_BASE::write_signal(int id, uint32_t data, uint32_t mask)
 {
@@ -226,8 +222,10 @@ void HUC6280_BASE::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 	h6280_Regs *cpustate = (h6280_Regs *)opaque;
 	my_stprintf_s(buffer, buffer_len,
-	_T("PC = %04X SP = %04X ZP = %04X EA = %04X A = %02X X = %02X Y = %02X P = %02X"),
-	cpustate->pc.w.l, cpustate->sp.w.l, cpustate->zp.w.l, cpustate->ea.w.l, cpustate->a, cpustate->x, cpustate->y, cpustate->p);
+	_T("PC = %04X SP = %04X ZP = %04X EA = %04X A = %02X X = %02X Y = %02X P = %02X\nTotal CPU Clocks = %llu (%llu)"),
+	cpustate->pc.w.l, cpustate->sp.w.l, cpustate->zp.w.l, cpustate->ea.w.l, cpustate->a, cpustate->x, cpustate->y, cpustate->p,
+	total_icount, total_icount - prev_total_icount);
+	prev_total_icount = total_icount;
 }
 
 // disassembler

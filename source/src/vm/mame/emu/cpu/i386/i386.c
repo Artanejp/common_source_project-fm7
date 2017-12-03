@@ -3317,6 +3317,8 @@ static void pentium_smi(i386_state *cpustate)
 
 static void i386_set_irq_line(i386_state *cpustate,int irqline, int state)
 {
+	int first_cycles = cpustate->cycles;
+
 	if (state != CLEAR_LINE && cpustate->halted)
 	{
 		cpustate->halted = 0;
@@ -3337,6 +3339,8 @@ static void i386_set_irq_line(i386_state *cpustate,int irqline, int state)
 	{
 		cpustate->irq_state = state;
 	}
+	cpustate->extra_cycles += first_cycles - cpustate->cycles;
+	cpustate->cycles = first_cycles;
 }
 
 static void i386_set_a20_line(i386_state *cpustate,int state)
@@ -3369,6 +3373,9 @@ static CPU_EXECUTE( i386 )
 			// this is main cpu, cpustate->cycles is not used
 			/*cpustate->cycles = */cpustate->extra_cycles = 0;
 			cpustate->tsc += passed_cycles;
+#ifdef USE_DEBUGGER
+			cpustate->total_cycles += passed_cycles;
+#endif
 			return passed_cycles;
 		} else {
 			cpustate->cycles += cycles;
@@ -3384,6 +3391,9 @@ static CPU_EXECUTE( i386 )
 			}
 			int passed_cycles = cpustate->base_cycles - cpustate->cycles;
 			cpustate->tsc += passed_cycles;
+#ifdef USE_DEBUGGER
+			cpustate->total_cycles += passed_cycles;
+#endif
 			return passed_cycles;
 		}
 	}
@@ -3396,6 +3406,9 @@ static CPU_EXECUTE( i386 )
 	cpustate->base_cycles = cpustate->cycles;
 
 	/* adjust for any interrupts that came in */
+#ifdef USE_DEBUGGER
+	cpustate->total_cycles += cpustate->extra_cycles;
+#endif
 	cpustate->cycles -= cpustate->extra_cycles;
 	cpustate->extra_cycles = 0;
 
@@ -3418,6 +3431,7 @@ static CPU_EXECUTE( i386 )
 			} else {
 				now_debugging = false;
 			}
+			int first_cycles = cpustate->cycles;
 			i386_check_irq_line(cpustate);
 			cpustate->operand_size = cpustate->sreg[CS].d;
 			cpustate->xmm_operand_size = 0;
@@ -3428,6 +3442,7 @@ static CPU_EXECUTE( i386 )
 			cpustate->ext = 1;
 			int old_tf = cpustate->TF;
 
+			cpustate->debugger->add_cpu_trace(cpustate->pc);
 			cpustate->segment_prefix = 0;
 			cpustate->prev_eip = cpustate->eip;
 			cpustate->prev_pc = cpustate->pc;
@@ -3466,6 +3481,7 @@ static CPU_EXECUTE( i386 )
 			/* adjust for any interrupts that came in */
 			cpustate->cycles -= cpustate->extra_cycles;
 			cpustate->extra_cycles = 0;
+			cpustate->total_cycles += first_cycles - cpustate->cycles;
 			
 			if(now_debugging) {
 				if(!cpustate->debugger->now_going) {
@@ -3475,6 +3491,7 @@ static CPU_EXECUTE( i386 )
 				cpustate->io = cpustate->io_stored;
 			}
 		} else {
+			int first_cycles = cpustate->cycles;
 #endif
 			i386_check_irq_line(cpustate);
 			cpustate->operand_size = cpustate->sreg[CS].d;
@@ -3486,6 +3503,9 @@ static CPU_EXECUTE( i386 )
 			cpustate->ext = 1;
 			int old_tf = cpustate->TF;
 
+#ifdef USE_DEBUGGER
+			cpustate->debugger->add_cpu_trace(cpustate->pc);
+#endif
 			cpustate->segment_prefix = 0;
 			cpustate->prev_eip = cpustate->eip;
 			cpustate->prev_pc = cpustate->pc;
@@ -3525,12 +3545,16 @@ static CPU_EXECUTE( i386 )
 			cpustate->cycles -= cpustate->extra_cycles;
 			cpustate->extra_cycles = 0;
 #ifdef USE_DEBUGGER
+			cpustate->total_cycles += first_cycles - cpustate->cycles;
 		}
 #endif
 	}
 
 	/* if busreq is raised, spin cpu while remained clock */
 	if (cpustate->cycles > 0 && cpustate->busreq) {
+#ifdef USE_DEBUGGER
+		cpustate->total_cycles += cpustate->cycles;
+#endif
 		cpustate->cycles = 0;
 	}
 	int passed_cycles = cpustate->base_cycles - cpustate->cycles;

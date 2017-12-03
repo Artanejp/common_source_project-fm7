@@ -18,18 +18,20 @@
 		return; \
 	} \
 }
-#define BIOS_CALL(address) if(cpustate->bios != NULL) {	\
+
+#define BIOS_CALL_FAR(address) if(cpustate->bios != NULL) {	\
 	uint16_t regs[8], sregs[4]; \
 	regs[0] = REG16(AX); regs[1] = REG16(CX); regs[2] = REG16(DX); regs[3] = REG16(BX); \
 	regs[4] = REG16(SP); regs[5] = REG16(BP); regs[6] = REG16(SI); regs[7] = REG16(DI); \
 	sregs[0] = cpustate->sreg[ES].selector; sregs[1] = cpustate->sreg[CS].selector; \
 	sregs[2] = cpustate->sreg[SS].selector; sregs[3] = cpustate->sreg[DS].selector; \
 	int32_t ZeroFlag = cpustate->ZF, CarryFlag = cpustate->CF; \
-	if(cpustate->bios->bios_call_i86(address, regs, sregs, &ZeroFlag, &CarryFlag)) { \
+	if(cpustate->bios->bios_call_far_i86(address, regs, sregs, &ZeroFlag, &CarryFlag)) { \
 		REG16(AX) = regs[0]; REG16(CX) = regs[1]; REG16(DX) = regs[2]; REG16(BX) = regs[3]; \
 		REG16(SP) = regs[4]; REG16(BP) = regs[5]; REG16(SI) = regs[6]; REG16(DI) = regs[7]; \
 		cpustate->ZF = (UINT8)ZeroFlag; cpustate->CF = (UINT8)CarryFlag; \
-		return; \
+		CYCLES(cpustate,CYCLES_RET_INTERSEG);							\
+		return;															\
 	} \
 }
 #endif
@@ -38,8 +40,10 @@ void I386_OPS::i386_call_abs16()        // Opcode 0x9a
 {
 	UINT16 offset = FETCH16();
 	UINT16 ptr = FETCH16();
+    CYCLES(cpustate,CYCLES_CALL_INTERSEG);      /* TODO: Timing = 17 + m */
+
 #ifdef I386_PSEUDO_BIOS
-	BIOS_CALL(((ptr << 4) + offset) & cpustate->a20_mask)
+	BIOS_CALL_FAR(((ptr << 4) + offset) & cpustate->a20_mask)
 #endif
 		//printf(" \n");
 
@@ -56,17 +60,12 @@ void I386_OPS::i386_call_abs16()        // Opcode 0x9a
 		cpustate->eip = offset;
 		i386_load_segment_descriptor(CS);
 	}
-	CYCLES(CYCLES_CALL_INTERSEG);      /* TODO: Timing = 17 + m */
 	CHANGE_PC(cpustate->eip);
 }
 
 void I386_OPS::i386_call_rel16()        // Opcode 0xe8
 {
 	INT16 disp = FETCH16();
-
-#ifdef I386_PSEUDO_BIOS
-	BIOS_CALL((cpustate->pc + disp) & cpustate->a20_mask)
-#endif
 
 	PUSH16( cpustate->eip );
 	if (cpustate->sreg[CS].d)
@@ -126,9 +125,6 @@ void I386_OPS::i386_groupFF_16()        // Opcode 0xff
 					address = READ16(ea);
 					CYCLES(CYCLES_CALL_MEM);       /* TODO: Timing = 10 + m */
 				}
-#ifdef I386_PSEUDO_BIOS
-				BIOS_CALL(((cpustate->sreg[CS].selector << 4) + address) & cpustate->a20_mask)
-#endif
 				PUSH16( cpustate->eip );
 				cpustate->eip = address;
 				CHANGE_PC(cpustate->eip);
@@ -148,7 +144,7 @@ void I386_OPS::i386_groupFF_16()        // Opcode 0xff
 					selector = READ16(ea + 2);
 					CYCLES(CYCLES_CALL_MEM_INTERSEG);      /* TODO: Timing = 10 + m */
 #ifdef I386_PSEUDO_BIOS
-					BIOS_CALL(((selector << 4) + address) & cpustate->a20_mask)
+					BIOS_CALL_FAR(((selector << 4) + address) & cpustate->a20_mask)
 #endif
 					if(PROTECTED_MODE && !V8086_MODE)
 					{

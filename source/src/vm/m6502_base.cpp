@@ -9,6 +9,7 @@
 */
 
 #include "m6502.h"
+#include "debugger.h"
 
 // vectors
 #define NMI_VEC	0xfffa
@@ -138,6 +139,7 @@ int M6502_BASE::run(int clock)
 
 void M6502_BASE::run_one_opecode()
 {
+	int first_icount = icount;
 	// if an irq is pending, take it now
 	if(nmi_state) {
 		EAD = NMI_VEC;
@@ -150,6 +152,7 @@ void M6502_BASE::run_one_opecode()
 		PCH = RDMEM(EAD + 1);
 		nmi_state = false;
 	} else if(pending_irq) {
+		if(d_debugger != NULL) d_debugger->add_cpu_trace(PCW);
 		update_irq();
 	}
 	prev_pc = PCW;
@@ -223,10 +226,12 @@ bool M6502_BASE::write_debug_reg(const _TCHAR *reg, uint32_t data)
 void M6502_BASE::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 	my_stprintf_s(buffer, buffer_len,
-	_T("PC = %04X  A = %02X  X = %02X  Y = %02X  S = %02X  P = %02X [%c%c%c%c%c%c%c%c]"),
-	PCW, A, X, Y, S, P,
-	(P & F_N) ? _T('N') : _T('-'), (P & F_V) ? _T('V') : _T('-'), (P & F_T) ? _T('T') : _T('-'), (P & F_B) ? _T('B') : _T('-'), 
-	(P & F_D) ? _T('D') : _T('-'), (P & F_I) ? _T('I') : _T('-'), (P & F_Z) ? _T('Z') : _T('-'), (P & F_C) ? _T('C') : _T('-'));
+	_T("PC = %04X  A = %02X  X = %02X  Y = %02X  S = %02X  P = %02X [%c%c%c%c%c%c%c%c]\nTotal CPU Clocks = %llu (%llu)"),
+ 	PCW, A, X, Y, S, P,
+ 	(P & F_N) ? _T('N') : _T('-'), (P & F_V) ? _T('V') : _T('-'), (P & F_T) ? _T('T') : _T('-'), (P & F_B) ? _T('B') : _T('-'), 
+	(P & F_D) ? _T('D') : _T('-'), (P & F_I) ? _T('I') : _T('-'), (P & F_Z) ? _T('Z') : _T('-'), (P & F_C) ? _T('C') : _T('-'),
+	total_icount, total_icount - prev_total_icount);
+	prev_total_icount = total_icount;
 }
 
 // disassembler
@@ -259,13 +264,8 @@ int M6502_BASE::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 }
 //#endif
 
-#define STATE_VERSION	1
-
-void M6502_BASE::save_state(FILEIO* state_fio)
+void M6502_BASE::save_state_regs(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
 	state_fio->FputUint32(pc.d);
 	state_fio->FputUint32(sp.d);
 	state_fio->FputUint32(zp.d);
@@ -280,18 +280,10 @@ void M6502_BASE::save_state(FILEIO* state_fio)
 	state_fio->FputBool(nmi_state);
 	state_fio->FputBool(irq_state);
 	state_fio->FputBool(so_state);
-	state_fio->FputInt32(icount);
-	state_fio->FputBool(busreq);
 }
 
-bool M6502_BASE::load_state(FILEIO* state_fio)
+void M6502_BASE::load_state_regs(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
-	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
 	pc.d = state_fio->FgetUint32();
 	sp.d = state_fio->FgetUint32();
 	zp.d = state_fio->FgetUint32();
@@ -308,6 +300,5 @@ bool M6502_BASE::load_state(FILEIO* state_fio)
 	so_state = state_fio->FgetBool();
 	icount = state_fio->FgetInt32();
 	busreq = state_fio->FgetBool();
-	return true;
 }
 

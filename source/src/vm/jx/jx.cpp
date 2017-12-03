@@ -18,7 +18,8 @@
 #include "../i8253.h"
 #include "../i8255.h"
 #include "../i8259.h"
-#include "../i86.h"
+//#include "../i286.h"
+#include "./i286.h"
 #include "../io.h"
 #include "../memory.h"
 #include "../noise.h"
@@ -52,7 +53,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pit = new I8253(this, emu);
 	pio = new I8255(this, emu);
 	pic = new I8259(this, emu);
-	cpu = new I86(this, emu);	// 8088
+	cpu = new I286(this, emu);	// 8088
 	io = new IO(this, emu);
 	mem = new MEMORY(this, emu);
 	pcm = new PCM1BIT(this, emu);

@@ -497,6 +497,7 @@ void I386_OPS_BASE::I386OP(call_abs16)()        // Opcode 0x9a
 	UINT16 offset = FETCH16();
 	UINT16 ptr = FETCH16();
 
+    CYCLES(CYCLES_CALL_INTERSEG);      /* TODO: Timing = 17 + m */
 	if( PROTECTED_MODE && !V8086_MODE)
 	{
 		i386_protected_mode_call(ptr,offset,0,0);
@@ -510,7 +511,6 @@ void I386_OPS_BASE::I386OP(call_abs16)()        // Opcode 0x9a
 		cpustate->eip = offset;
 		i386_load_segment_descriptor(CS);
 	}
-	CYCLES(CYCLES_CALL_INTERSEG);      /* TODO: Timing = 17 + m */
 	CHANGE_PC(cpustate->eip);
 }
 

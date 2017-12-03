@@ -19,7 +19,7 @@ set(WITH_JOYSTICK OFF)
 set(WITH_MOUSE ON)
 
 set(VMFILES
-#		   i286.cpp
+		   i286.cpp
 		   msm58321.cpp
 		   
 		   memory.cpp
@@ -38,7 +38,7 @@ set(VMFILES_LIB
 		   upd765a.cpp
 		   disk.cpp
 )
-set(FLAG_USE_I86 ON)
+set(FLAG_USE_I86 OFF)
 
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")

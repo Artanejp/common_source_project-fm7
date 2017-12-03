@@ -37,6 +37,8 @@
 #define USE_AUTO_KEY_NUMPAD
 #define USE_SCREEN_FILTER
 #define USE_SOUND_VOLUME	2
+#define USE_DEBUGGER
+
 #include "../../common.h"
 #include "../../fileio.h"
 
@@ -112,6 +114,11 @@ public:
 	// drive virtual machine
 	void reset();
 	void run();
+	
+#ifdef USE_DEBUGGER
+	// debugger
+	DEVICE *get_cpu(int index);
+#endif
 	
 	// draw screen
 	void draw_screen();

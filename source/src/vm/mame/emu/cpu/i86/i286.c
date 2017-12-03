@@ -85,6 +85,10 @@ struct i80286_state
 	int trap_level;
 	int shutdown;
 
+#ifdef USE_DEBUGGER
+	uint64_t total_icount;
+	uint64_t prev_total_icount;
+#endif
 	int icount;
 	char seg_prefix;
 	UINT8   prefix_seg;
@@ -103,6 +107,9 @@ static struct i80x86_timing timing;
 bool i286_call_pseudo_bios(i80286_state *cpustate, uint32_t PC)
 {
 #ifdef I86_PSEUDO_BIOS
+	if(cpustate->bios != NULL) {
+		if(cpustate->bios->bios_call_far_i86(PC & AMASK, cpustate->regs.w, cpustate->sregs, &cpustate->ZeroVal, &cpustate->CarryVal)) return true;
+	}
 	if(cpustate->bios != NULL) return cpustate->bios->bios_call_i86(PC, cpustate->regs.w, cpustate->sregs, &cpustate->ZeroVal, &cpustate->CarryVal);
 #endif
 	return false;
@@ -196,6 +203,8 @@ static CPU_RESET( i80286 )
 
 static void set_irq_line(i80286_state *cpustate, int irqline, int state)
 {
+	int first_icount = cpustate->icount;
+
 	if (state != CLEAR_LINE && cpustate->halted)
 	{
 		cpustate->halted = 0;
@@ -229,6 +238,8 @@ static void set_irq_line(i80286_state *cpustate, int irqline, int state)
 	{
 		i80286_trap2(cpustate, e);
 	}
+	cpustate->extra_cycles += first_icount - cpustate->icount;
+	cpustate->icount = first_icount;
 }
 
 static CPU_EXECUTE( i80286 )
@@ -244,6 +255,9 @@ static CPU_EXECUTE( i80286 )
 			int passed_icount = max(1, cpustate->extra_cycles);
 			// this is main cpu, cpustate->icount is not used
 			/*cpustate->icount = */cpustate->extra_cycles = 0;
+#ifdef USE_DEBUGGER
+			cpustate->total_icount += passed_icount;
+#endif
 			return passed_icount;
 		} else {
 			cpustate->icount += icount;
@@ -257,6 +271,9 @@ static CPU_EXECUTE( i80286 )
 			if (cpustate->icount > 0) {
 				cpustate->icount = 0;
 			}
+#ifdef USE_DEBUGGER
+			cpustate->total_icount += base_icount - cpustate->icount;
+#endif
 			return base_icount - cpustate->icount;
 		}
 	}
@@ -273,6 +290,9 @@ static CPU_EXECUTE( i80286 )
 		timing = i80286_cycles;
 
 	/* adjust for any interrupts that came in */
+#ifdef USE_DEBUGGER
+	cpustate->total_icount += cpustate->extra_cycles;
+#endif
 	cpustate->icount -= cpustate->extra_cycles;
 	cpustate->extra_cycles = 0;
 
@@ -296,6 +316,8 @@ static CPU_EXECUTE( i80286 )
 			} else {
 				now_debugging = false;
 			}
+			cpustate->debugger->add_cpu_trace(cpustate->pc);
+			int first_icount = cpustate->icount;
 			cpustate->seg_prefix=FALSE;
 			try
 			{
@@ -309,6 +331,7 @@ static CPU_EXECUTE( i80286 )
 			{
 				i80286_trap2(cpustate,e);
 			}
+			cpustate->total_icount += first_icount - cpustate->icount;
 #ifdef SINGLE_MODE_DMA
 			if (cpustate->dma != NULL) {
 				cpustate->dma->do_dma();
@@ -322,6 +345,8 @@ static CPU_EXECUTE( i80286 )
 				cpustate->io = cpustate->io_stored;
 			}
 		} else {
+			cpustate->debugger->add_cpu_trace(cpustate->pc);
+			int first_icount = cpustate->icount;
 #endif
 			cpustate->seg_prefix=FALSE;
 			try
@@ -336,6 +361,9 @@ static CPU_EXECUTE( i80286 )
 			{
 				i80286_trap2(cpustate,e);
 			}
+#ifdef USE_DEBUGGER
+			cpustate->total_icount += first_icount - cpustate->icount;
+#endif
 #ifdef SINGLE_MODE_DMA
 			if (cpustate->dma != NULL) {
 				cpustate->dma->do_dma();
@@ -345,12 +373,18 @@ static CPU_EXECUTE( i80286 )
 		}
 #endif
 		/* adjust for any interrupts that came in */
+#ifdef USE_DEBUGGER
+		cpustate->total_icount += cpustate->extra_cycles;
+#endif
 		cpustate->icount -= cpustate->extra_cycles;
 		cpustate->extra_cycles = 0;
 	}
 
 	/* if busreq is raised, spin cpu while remained clock */
 	if (cpustate->icount > 0 && cpustate->busreq) {
+#ifdef USE_DEBUGGER
+		cpustate->total_icount += cpustate->icount;
+#endif
 		cpustate->icount = 0;
 	}
 	return base_icount - cpustate->icount;

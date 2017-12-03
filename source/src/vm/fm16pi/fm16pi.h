@@ -57,7 +57,7 @@ class I8251;
 class I8253;
 class I8255;
 class I8259;
-class I86;
+class I286;
 class IO;
 class MB8877;
 class MEMORY;
@@ -79,7 +79,7 @@ protected:
 	I8253* pit;
 	I8255* pio;
 	I8259* pic;
-	I86* cpu;
+	I286* cpu;
 	IO* io;
 	MB8877* fdc;
 	MEMORY* memory;

@@ -164,10 +164,13 @@ int UPD7810::run(int clock)
 	if(clock == -1) {
 		if(busreq) {
 			// don't run cpu!
+#ifdef USE_DEBUGGER
+			total_icount += 1;
+#endif
 			return 1;
 		} else {
 			// run only one opcode
-			return CPU_EXECUTE_CALL(upd7810);
+			return run_one_opecode();
 		}
 	} else {
 		icount += clock;
@@ -175,14 +178,30 @@ int UPD7810::run(int clock)
 		
 		// run cpu while given clocks
 		while(icount > 0 && !busreq) {
-			icount -= CPU_EXECUTE_CALL(upd7810);
+			icount -= run_one_opecode();
 		}
 		// if busreq is raised, spin cpu while remained clock
 		if(icount > 0 && busreq) {
+#ifdef USE_DEBUGGER
+			total_icount += icount;
+#endif
 			icount = 0;
 		}
 		return first_icount - icount;
 	}
+}
+
+int UPD7810::run_one_opecode()
+{
+#ifdef USE_DEBUGGER
+	upd7810_state *cpustate = (upd7810_state *)opaque;
+	d_debugger->add_cpu_trace(cpustate->pc.w.l);
+#endif
+	int passed_icount = CPU_EXECUTE_CALL(upd7810);
+#ifdef USE_DEBUGGER
+	total_icount += passed_icount;
+#endif
+	return passed_icount;
 }
 
 void UPD7810::write_signal(int id, uint32_t data, uint32_t mask)
@@ -315,16 +334,19 @@ void UPD7810::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 VA = 0000  BC = 0000  DE = 0000 HL = 0000  PSW= 00 [Z SK HC L1 L0 CY]
 VA'= 0000  BC'= 0000  DE'= 0000 HL'= 0000  SP = 0000  PC = 0000
           (BC)= 0000 (DE)=0000 (HL)= 0000 (SP)= 0000 <DI>
+Total CPU Clocks = 0 (0)
 */
 	upd7810_state *cpustate = (upd7810_state *)opaque;
 	int wait;
 	my_stprintf_s(buffer, buffer_len,
-	_T("VA = %04X  BC = %04X  DE = %04X HL = %04X  PSW= %02x [%s %s %s %s %s %s]\nVA'= %04X  BC'= %04X  DE'= %04X HL'= %04X  SP = %04X  PC = %04X\n          (BC)= %04X (DE)=%04X (HL)= %04X (SP)= %04X <%s>"),
+	_T("VA = %04X  BC = %04X  DE = %04X HL = %04X  PSW= %02x [%s %s %s %s %s %s]\nVA'= %04X  BC'= %04X  DE'= %04X HL'= %04X  SP = %04X  PC = %04X\n          (BC)= %04X (DE)=%04X (HL)= %04X (SP)= %04X <%s>\nTotal CPU Clocks = %llu (%llu)"),
 	VA, BC, DE, HL, PSW,
 	(PSW & Z) ? _T("Z") : _T("-"), (PSW & SK) ? _T("SK") : _T("--"), (PSW & HC) ? _T("HC") : _T("--"), (PSW & L1) ? _T("L1") : _T("--"), (PSW & L0) ? _T("L0") : _T("--"), (PSW & CY) ? _T("CY") : _T("--"),
 	VA2, BC2, DE2, HL2, SP, PC,
 	d_mem->read_data16w(BC, &wait), d_mem->read_data16w(DE, &wait), d_mem->read_data16w(HL, &wait), d_mem->read_data16w(SP, &wait),
-	IFF ? _T("EI") : _T("DI"));
+	IFF ? _T("EI") : _T("DI"),
+	total_icount, total_icount - prev_total_icount);
+	prev_total_icount = total_icount;
 }
 
 // disassembler
@@ -342,7 +364,7 @@ int UPD7810::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 }
 #endif
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 void UPD7810::save_state(FILEIO* state_fio)
 {
@@ -350,6 +372,9 @@ void UPD7810::save_state(FILEIO* state_fio)
 	state_fio->FputInt32(this_device_id);
 	
 	state_fio->Fwrite(opaque, sizeof(upd7810_state), 1);
+#ifdef USE_DEBUGGER
+	state_fio->FputUint64(total_icount);
+#endif
 	state_fio->FputInt32(icount);
 	state_fio->FputBool(busreq);
 }
@@ -363,6 +388,9 @@ bool UPD7810::load_state(FILEIO* state_fio)
 		return false;
 	}
 	state_fio->Fread(opaque, sizeof(upd7810_state), 1);
+#ifdef USE_DEBUGGER
+	total_icount = prev_total_icount = state_fio->FgetUint64();
+#endif
 	icount = state_fio->FgetInt32();
 	busreq = state_fio->FgetBool();
 	

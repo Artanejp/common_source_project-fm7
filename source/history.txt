@@ -1,3 +1,36 @@
+11/28/2017
+
+[EMU/DEBUGGER] fix ut command to show correct range of cpu trace
+
+[VM/DEVICE] rename bios_call_i86() to bios_call_far_i86()
+[VM/HUC6280] support to show total cpu clocks in debugger
+[VM/HUC6280] support cpu trace
+[VM/I286] support to show total cpu clocks in debugger
+[VM/I286] support cpu trace
+[VM/I386] support to show total cpu clocks in debugger
+[VM/I386] support cpu trace
+[VM/M6502] support to show total cpu clocks in debugger
+[VM/M6502] support cpu trace
+[VM/MC6800] support to show total cpu clocks in debugger
+[VM/MC6800] support cpu trace
+[VM/MC6800] fix issue that can not break at instruction following tap/cli/sei
+[VM/MC6809] support to show total cpu clocks in debugger
+[VM/MC6809] support cpu trace
+[VM/MCS48] fix to add clocks for interrupt to total cpu clocks
+[VM/TMS9995] support to show total cpu clocks in debugger
+[VM/TMS9995] support cpu trace
+[VM/UPD7801] support to show total cpu clocks in debugger
+[VM/UPD7801] support cpu trace
+[VM/UPD7810] support to show total cpu clocks in debugger
+[VM/UPD7810] support cpu trace
+[VM/Z80] fix to add clocks for interrupt to total cpu clocks
+
+
+11/26/2017
+
+[PC8801MA] fix text attribute when dma underrun occurs
+
+
 11/25/2017
 
 [EMU/DEBUGGER] support command history

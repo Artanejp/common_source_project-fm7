@@ -3056,6 +3056,10 @@ void I386_OPS_BASE::zero_state()
 {
 	memset( &cpustate->reg, 0, sizeof(cpustate->reg) );
 	memset( cpustate->sreg, 0, sizeof(cpustate->sreg) );
+
+	cpustate->total_cycles = 0;
+	cpustate->prev_total_cycles = 0;
+	
 	cpustate->eip = 0;
 	cpustate->pc = 0;
 	cpustate->prev_eip = 0;
@@ -3268,6 +3272,8 @@ void I386_OPS_BASE::pentium_smi()
 
 void I386_OPS_BASE::i386_set_irq_line(int irqline, int state)
 {
+    int first_cycles = cpustate->cycles;
+
 	if (state != CLEAR_LINE && cpustate->halted)
 	{
 		cpustate->halted = 0;
@@ -3288,6 +3294,8 @@ void I386_OPS_BASE::i386_set_irq_line(int irqline, int state)
 	{
 		cpustate->irq_state = state;
 	}
+	cpustate->extra_cycles += first_cycles - cpustate->cycles;
+	cpustate->cycles = first_cycles;
 }
 
 void I386_OPS_BASE::i386_set_a20_line(int state)
@@ -3305,6 +3313,7 @@ void I386_OPS_BASE::i386_set_a20_line(int state)
 }
 
 // BASE execution : EXECUTE without DMA, BIOS and debugger.
+#include "../../debugger.h"
 int I386_OPS_BASE::cpu_execute_i386(int cycles)
 {
 	CHANGE_PC(cpustate->eip);
@@ -3316,6 +3325,7 @@ int I386_OPS_BASE::cpu_execute_i386(int cycles)
 			// this is main cpu, cpustate->cycles is not used
 			/*cpustate->cycles = */cpustate->extra_cycles = 0;
 			cpustate->tsc += passed_cycles;
+			cpustate->total_cycles += passed_cycles;
 			return passed_cycles;
 		} else {
 			cpustate->cycles += cycles;
@@ -3331,6 +3341,7 @@ int I386_OPS_BASE::cpu_execute_i386(int cycles)
 			}
 			int passed_cycles = cpustate->base_cycles - cpustate->cycles;
 			cpustate->tsc += passed_cycles;
+			cpustate->total_cycles += passed_cycles;
 			return passed_cycles;
 		}
 	}
@@ -3348,6 +3359,7 @@ int I386_OPS_BASE::cpu_execute_i386(int cycles)
 
 	while( cpustate->cycles > 0 && !cpustate->busreq )
 	{
+			int first_cycles = cpustate->cycles;
 			i386_check_irq_line();
 			cpustate->operand_size = cpustate->sreg[CS].d;
 			cpustate->xmm_operand_size = 0;
@@ -3358,6 +3370,7 @@ int I386_OPS_BASE::cpu_execute_i386(int cycles)
 			cpustate->ext = 1;
 			int old_tf = cpustate->TF;
 
+			cpustate->debugger->add_cpu_trace(cpustate->pc);
 			cpustate->segment_prefix = 0;
 			cpustate->prev_eip = cpustate->eip;
 			cpustate->prev_pc = cpustate->pc;
@@ -3391,14 +3404,17 @@ int I386_OPS_BASE::cpu_execute_i386(int cycles)
 			/* adjust for any interrupts that came in */
 			cpustate->cycles -= cpustate->extra_cycles;
 			cpustate->extra_cycles = 0;
+			cpustate->total_cycles += first_cycles - cpustate->cycles;
 	}
 
 	/* if busreq is raised, spin cpu while remained clock */
 	if (cpustate->cycles > 0 && cpustate->busreq) {
+		cpustate->total_cycles += cpustate->cycles;
 		cpustate->cycles = 0;
 	}
 	int passed_cycles = cpustate->base_cycles - cpustate->cycles;
 	cpustate->tsc += passed_cycles;
+	cpustate->total_cycles += passed_cycles;
 	return passed_cycles;
 }
 

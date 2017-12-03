@@ -94,6 +94,9 @@ BEGIN
         MENUITEM "Stop",                        ID_AUTOKEY_STOP
         MENUITEM "Romaji to Kana",              ID_ROMAJI_TO_KANA
         MENUITEM SEPARATOR
+        MENUITEM "Debug Main CPU",              ID_OPEN_DEBUGGER0
+        MENUITEM "Close Debugger",              ID_CLOSE_DEBUGGER
+        MENUITEM SEPARATOR
         MENUITEM "Exit",                        ID_EXIT
     END
     POPUP "FD1"

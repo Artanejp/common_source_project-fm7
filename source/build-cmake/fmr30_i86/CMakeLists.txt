@@ -47,7 +47,10 @@ set(BUILD_FMR30_86 ON CACHE BOOL "Build for FM-R30, i86 version")
 set(BUILD_FMR30_286 OFF CACHE BOOL "Build for FM-R30, i286 version")
 if(BUILD_FMR30_86)
   set(EXEC_TARGET emufmr30_i86)
-  set(FLAG_USE_I86 ON)
+  set(FLAG_USE_I86 OFF)
+  set(VMFILES ${VMFILES}
+	i286.cpp
+  )
   add_definitions(-DHAS_I86)
 elseif(BUILD_FMR30_286)
   set(EXEC_TARGET emufmr30_i286)
