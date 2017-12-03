@@ -357,12 +357,18 @@ and THG third FM synthesizer board.</source>
         <translation>本体のPSGと
 THG(3枚目のFM音源ボード)を使います。</translation>
     </message>
-</context>
-<context>
-    <name>MainWindow</name>
     <message>
         <source>MainWindow</source>
         <translation>MainWindow</translation>
+    </message>
+    <message>
+        <source>Hot Start(BREAK+RESET)</source>
+        <translation>ホットスタート(BREAK+リセット)</translation>
+    </message>
+    <message>
+        <source>Do HOT START.
+Reset with pressing BREAK key.</source>
+        <translation>BREAKキーを押しながらリセットします。</translation>
     </message>
     <message>
         <source>Dempa Joystick with #1</source>
@@ -387,6 +393,37 @@ THG(3枚目のFM音源ボード)を使います。</translation>
     <message>
         <source>Sub  CPU</source>
         <translation>サブCPU</translation>
+    </message>
+</context>
+<context>
+    <name>MainWindow</name>
+    <message>
+        <source>MainWindow</source>
+        <translation type="vanished">MainWindow</translation>
+    </message>
+    <message>
+        <source>Dempa Joystick with #1</source>
+        <translation type="vanished">電波新聞社JS #1</translation>
+    </message>
+    <message>
+        <source>Use joystick #1 as DEMPA&apos;s joystick.</source>
+        <translation type="vanished">ジョイスティック#1を、電波新聞社のジョイスティックとして使います。</translation>
+    </message>
+    <message>
+        <source>Dempa Joystick with #2</source>
+        <translation type="vanished">電波新聞社JS #2</translation>
+    </message>
+    <message>
+        <source>Use joystick #2 as DEMPA&apos;s joystick.</source>
+        <translation type="vanished">ジョイスティック#2を、電波新聞社のジョイスティックとして使います。</translation>
+    </message>
+    <message>
+        <source>Main CPU</source>
+        <translation type="vanished">メインCPU</translation>
+    </message>
+    <message>
+        <source>Sub  CPU</source>
+        <translation type="vanished">サブCPU</translation>
     </message>
     <message>
         <source>Frame skip</source>
@@ -567,12 +604,12 @@ FM-7向けのhackです。</translation>
     </message>
     <message>
         <source>Hot Start(BREAK+RESET)</source>
-        <translation>ホットスタート(BREAK+リセット)</translation>
+        <translation type="vanished">ホットスタート(BREAK+リセット)</translation>
     </message>
     <message>
         <source>Do HOT START.
 Reset with pressing BREAK key.</source>
-        <translation>BREAKキーを押しながらリセットします。</translation>
+        <translation type="vanished">BREAKキーを押しながらリセットします。</translation>
     </message>
 </context>
 </TS>
