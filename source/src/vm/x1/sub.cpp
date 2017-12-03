@@ -140,11 +140,12 @@ uint32_t SUB::read_io8(uint32_t addr)
 		// for z80
 		uint32_t value = d_pio->read_signal(SIG_I8255_PORT_A);
 //		this->out_debug_log(_T("Z80 <- PA=%2x\n"), value);
-		if(iei) {
+		// don't check iei status (thanks Mr.Sato)
+//		if(iei) {
 			SET_ACK(true);
 			SET_ACK(false);
 			SET_ACK(true);
-		}
+//		}
 		return value;
 	} else {
 		// for 80c48

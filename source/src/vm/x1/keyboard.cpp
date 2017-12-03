@@ -34,6 +34,11 @@ static const uint8_t matrix[15][8] = {
 	{0x11, 0x10, KANA, CAPS, 0x12, 0x00, 0x00, 0x00}, //	CTRL	SHIFT	KANA	CAPS	GRAPH			
 };
 
+static const uint8_t diode[15] = {
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x1f, //	CTRL	SHIFT	KANA	CAPS	GRAPH
+};
+
 void KEYBOARD::initialize()
 {
 	key_stat = emu->get_key_buffer();
@@ -106,13 +111,36 @@ uint32_t KEYBOARD::read_io8(uint32_t addr)
 			key_buf[CAPS] = caps_locked;
 			key_buf[KANA] = kana_locked;
 			
+			// get key status of all column
+			uint8_t key_map[15];
+			memset(key_map, 0, sizeof(key_map));
+			
+			for(int i = 0; i < 15; i++) {
+				for(int j = 0; j < 8; j++) {
+					if(key_buf[matrix[i][j]]) {
+						key_map[i] |= 1 << j;
+					}
+				}
+			}
+			
+			// check phantom keys (thanks Mr.Sato)
 			for(int i = 1; i < 15; i++) {
 				if(!(column & (1 << i))) {
-					for(int j = 0; j < 8; j++) {
-						if(key_buf[matrix[i][j]]) {
-							value |= 1 << j;
+					uint8_t row_hold;
+					uint8_t row_byte = key_map[i];
+					do {
+						row_hold = row_byte;
+						for(int c = 0; c < 15; c++) {
+							if(c != i){
+								uint8_t row_bridge = (key_map[c] & (~diode[c]));
+								if(row_byte & row_bridge) {
+									row_byte |= key_map[c];
+								}
+								if(row_hold != row_byte) break;
+							}
 						}
-					}
+					} while(row_hold != row_byte);
+					value |= row_byte;
 				}
 			}
 			return ~value;

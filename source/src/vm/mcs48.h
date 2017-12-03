@@ -143,6 +143,9 @@ protected:
 	inline void execute_jcc(mcs48_state *cpustate, UINT8 result);
 	inline void expander_operation(mcs48_state *cpustate, UINT8 operation, UINT8 port);
 
+	uint64_t total_icount;
+	uint64_t prev_total_icount;
+
 private:
 	__MCS48_OPHANDLER_D( illegal );
 	__MCS48_OPHANDLER_D( add_a_r0 );
@@ -473,6 +476,7 @@ public:
 		d_mem = d_io = d_intr = NULL;
 		d_debugger = NULL;
 		d_mem_stored = d_io_stored = NULL;
+		total_icount = prev_total_icount = 0;
 		set_device_name(_T("MCS48 MCU"));
 	}
 	~MCS48_BASE() {}
@@ -725,6 +729,11 @@ class MCS48 : public MCS48_BASE
 {
 private:
 	void burn_cycles(mcs48_state *cpustate, int count);
+	/* ---------------------------------------------------------------------------
+	registers
+	--------------------------------------------------------------------------- */
+	
+	
 public:
 	MCS48(VM* parent_vm, EMU* parent_emu) : MCS48_BASE(parent_vm, parent_emu)
 	{

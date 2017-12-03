@@ -61,6 +61,8 @@ protected:
 	registers
 	--------------------------------------------------------------------------- */
 	
+	uint64_t total_icount;
+	uint64_t prev_total_icount;
 	int icount;
 	int extra_icount;
 	uint16_t prevpc;
@@ -255,6 +257,7 @@ public:
 		has_pseudo_bios = false;
 		has_ldair_quirk = false;
 		has_single_mode_dma = false;
+		total_icount = prev_total_icount = 0;
 		initialize_output_signals(&outputs_busack);
 		set_device_name(_T("Z80 CPU"));
 	}
@@ -304,8 +307,6 @@ public:
 	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	virtual int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 //#endif
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
 	// unique functions
 	void set_context_mem(DEVICE* device)
 	{
@@ -343,6 +344,10 @@ public:
 	~Z80();
 	void initialize();
 	void reset();
+	int run(int clock) override;
+
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 #ifdef USE_DEBUGGER
 	void write_debug_data8(uint32_t addr, uint32_t data);

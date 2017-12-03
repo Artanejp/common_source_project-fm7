@@ -93,7 +93,7 @@
 #define USE_SCANLINE
 #ifdef SUPPORT_PC88_OPNA
 #ifdef SUPPORT_PC88_SB2
-#define USE_SOUND_TYPE		3
+#define USE_SOUND_TYPE		6
 #else
 #define USE_SOUND_TYPE		2
 #endif
@@ -107,9 +107,9 @@
 #elif  defined(SUPPORT_PC88_OPNA) && !defined(SUPPORT_PC88_SB2) && !defined(SUPPORT_PC88_PCG8100)
 #define USE_SOUND_VOLUME	(4 + 0 + 0 + 1 + 1)
 #elif !defined(SUPPORT_PC88_OPNA) &&  defined(SUPPORT_PC88_SB2) &&  defined(SUPPORT_PC88_PCG8100)
-#define USE_SOUND_VOLUME	(2 + 4 + 1 + 1 + 1)
+#define USE_SOUND_VOLUME	(2 + 2 + 1 + 1 + 1)
 #elif !defined(SUPPORT_PC88_OPNA) &&  defined(SUPPORT_PC88_SB2) && !defined(SUPPORT_PC88_PCG8100)
-#define USE_SOUND_VOLUME	(2 + 4 + 0 + 1 + 1)
+#define USE_SOUND_VOLUME	(2 + 2 + 0 + 1 + 1)
 #elif !defined(SUPPORT_PC88_OPNA) && !defined(SUPPORT_PC88_SB2) &&  defined(SUPPORT_PC88_PCG8100)
 #define USE_SOUND_VOLUME	(2 + 0 + 1 + 1 + 1)
 #elif !defined(SUPPORT_PC88_OPNA) && !defined(SUPPORT_PC88_SB2) && !defined(SUPPORT_PC88_PCG8100)
@@ -135,7 +135,11 @@ static const _TCHAR *sound_device_caption[] = {
 	_T("OPN (FM)"), _T("OPN (PSG)"),
 #endif
 #ifdef SUPPORT_PC88_SB2
+#ifdef SUPPORT_PC88_OPNA
 	_T("SB2 (FM)"), _T("SB2 (PSG)"), _T("SB2 (ADPCM)"), _T("SB2 (Rhythm)"),
+#else
+	_T("SB2 (FM)"), _T("SB2 (PSG)"),
+#endif
 #endif
 #ifdef SUPPORT_PC88_PCG8100
 	_T("PCG-8100"),

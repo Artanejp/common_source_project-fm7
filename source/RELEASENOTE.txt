@@ -10,7 +10,7 @@ and built with Qt5, for Windows, built with MinGW(32bit).
 
 Source Code:
 
-   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20171011
+   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20171018
    
 Additional INFO:
 

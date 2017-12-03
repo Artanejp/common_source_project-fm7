@@ -17,7 +17,7 @@
 
 #ifdef SUPPORT_WIN32_DLL
 #define SUPPORT_MAME_FM_DLL
-#include "fmdll/fmdll.h"
+//#include "fmdll/fmdll.h"
 #endif
 
 #define SIG_YM2151_MUTE		0
@@ -32,7 +32,7 @@ private:
 	
 	FM::OPM* opm;
 #ifdef SUPPORT_MAME_FM_DLL
-	CFMDLL* fmdll;
+//	CFMDLL* fmdll;
 	LPVOID* dllchip;
 	struct {
 		bool written;

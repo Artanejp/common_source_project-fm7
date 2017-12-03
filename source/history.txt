@@ -1,3 +1,33 @@
+11/25/2017
+
+[EMU/DEBUGGER] support command history
+[EMU/DEBUGGER] support ut command (unassemble cpu trace)
+[EMU/DEBUGGER] fix < command to check if command file is correctly opened
+
+[EMU/OSD] fix initialize_screen_buffer() for RGB565 (thanks PC8801MA‰ü)
+[EMU/OSD] improve read_console_input() to get cursor key
+
+[VM/MCS48] support to show total cpu clocks in debugger
+[VM/MCS48] support cpu trace
+[VM/UPD7220] improve vsync/hsync timing
+[VM/UPD7220] improve status register to select vblank/hblank by sync command
+[VM/YM2151] improve not to load mamefm.dll again (thanks PC8801MA‰ü)
+[VM/YM2203] improve not to load mamefm.dll again (thanks PC8801MA‰ü)
+[VM/Z80] support to show total cpu clocks in debugger
+[VM/Z80] support cpu trace
+
+[PC8801MA] support OPN+OPN, OPNA+OPNA, and OPNA+OPN (thanks PC8801MA‰ü)
+[PC8801MA] fix back space key issue (thanks PC8801MA‰ü)
+[PC8801MA] fix bank switch of extrom (thanks PC8801MA‰ü)
+[PC8801MA] fix not to apply digital palette in monochrome and digital mode
+[PC8801MA] fix to apply analog palette in monochrome and analog mode
+[PC8801MA] fix to apply reverse in text attribute to monochrome graphic
+[PC8801MA] fix cpu mode "Z80 8MHz (FE2/MC)"
+
+[X1/KEYBOAD] support phantom keys (thanks Mr.Sato)
+[X1/SUB] fix not to check iei status when sub cpu sends ack (thanks Mr.Sato)
+
+
 8/12/2017
 
 [EMU/DEBUGGER] improve to show message when cpu is not suspended soon

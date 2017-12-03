@@ -44,8 +44,8 @@ protected:
 	
 	// params
 	uint8_t sync[16];
-	int vtotal, vs, v1, v2;
-	int hc, h1, h2;
+	int vtotal, vfp, vs, vbp, v1, v2, v3, v4;
+	int hfp, hs, hbp, h1, h2, h3, h4;
 	bool sync_changed;
 	bool master;
 	uint8_t zoom, zr, zw;
@@ -57,7 +57,9 @@ protected:
 	int ead, dad;
 	uint8_t maskl, maskh;
 	uint8_t mod;
-	bool hblank, vsync, start;
+	bool hsync, hblank;
+	bool vsync, vblank;
+	bool start;
 	int blink_cursor;
 	int blink_attr;
 	int blink_rate;
@@ -159,7 +161,7 @@ public:
 	{
 		register_output_signal(&outputs_vsync, device, id, mask);
 	}
-	void set_vram_ptr(uint8_t* ptr, uint32_t size)
+    void set_vram_ptr(uint8_t* ptr, uint32_t size)
 	{
 		vram = ptr;
 		vram_size = size;
@@ -172,13 +174,13 @@ public:
 	void set_vram_bus_ptr(DEVICE* device, uint32_t size)
 	{
 		d_vram_bus = device;
- 		vram_size = size;
+		vram_size = size;
 	}
 	void set_vram_bus_ptr(DEVICE* device, uint32_t size, uint16_t mask)
 	{
 		set_vram_bus_ptr(device, size);
- 		vram_data_mask = mask;
- 	}
+                vram_data_mask = mask;
+	}
 	void set_screen_width(int value)
 	{
 		width = value;

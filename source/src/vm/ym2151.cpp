@@ -12,6 +12,10 @@
 #define EVENT_FM_TIMER	0
 
 #ifdef SUPPORT_MAME_FM_DLL
+// thanks PC8801MA‰ü
+#include "fmdll/fmdll.h"
+static CFMDLL* fmdll = NULL;
+static int chip_reference_counter = 0;
 static bool dont_create_multiple_chips = false;
 #endif
 
@@ -20,8 +24,10 @@ void YM2151::initialize()
 	DEVICE::initialize();
 	opm = new FM::OPM;
 #ifdef SUPPORT_MAME_FM_DLL
-//	fmdll = new CFMDLL(_T("mamefm.dll"));
-	fmdll = new CFMDLL(config.fmgen_dll_path);
+	if(!fmdll) {
+//		fmdll = new CFMDLL(_T("mamefm.dll"));
+		fmdll = new CFMDLL(config.fmgen_dll_path);
+	}
 	dllchip = NULL;
 #endif
 	register_vline_event(this);
@@ -35,8 +41,13 @@ void YM2151::release()
 #ifdef SUPPORT_MAME_FM_DLL
 	if(dllchip) {
 		fmdll->Release(dllchip);
+		dllchip = NULL;
+		chip_reference_counter--;
 	}
-	delete fmdll;
+	if(fmdll && !chip_reference_counter) {
+		delete fmdll;
+		fmdll = NULL;
+	}
 #endif
 }
 
@@ -176,6 +187,8 @@ void YM2151::initialize_sound(int rate, int clock, int samples, int decibel)
 	if(!dont_create_multiple_chips) {
 		fmdll->Create((LPVOID*)&dllchip, clock, rate);
 		if(dllchip) {
+			chip_reference_counter++;
+			
 			fmdll->SetVolumeFM(dllchip, decibel);
 			
 			DWORD mask = 0;

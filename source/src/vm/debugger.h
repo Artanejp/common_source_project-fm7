@@ -17,6 +17,9 @@
 //#ifdef USE_DEBUGGER
 
 #define MAX_BREAK_POINTS	8
+#define MAX_COMMAND_LENGTH	64
+#define MAX_COMMAND_HISTORY	32
+#define MAX_CPU_TRACE		1024
 
 typedef struct {
 	struct {
@@ -67,6 +70,11 @@ public:
 		first_symbol = last_symbol = NULL;
 		my_tcscpy_s(file_path, _MAX_PATH, _T("debug.bin"));
 		now_debugging = now_going = now_suspended = now_waiting = false;
+		memset(history, 0, sizeof(history));
+		history_ptr = 0;
+		memset(cpu_trace, 0xff, sizeof(cpu_trace));
+		prev_cpu_trace = 0xffffffff;
+		cpu_trace_ptr = 0;
 		set_device_name(_T("Debugger"));
 	}
 	~DEBUGGER() {}
@@ -266,10 +274,21 @@ public:
 		}
 		first_symbol = last_symbol = NULL;
 	}
+	void add_cpu_trace(uint32_t pc)
+	{
+		if(prev_cpu_trace != pc) {
+			cpu_trace[cpu_trace_ptr++] = prev_cpu_trace = pc;
+			cpu_trace_ptr &= (MAX_CPU_TRACE - 1);
+		}
+	}
 	break_point_t bp, rbp, wbp, ibp, obp;
 	symbol_t *first_symbol, *last_symbol;
 	_TCHAR file_path[_MAX_PATH];
 	bool now_debugging, now_going, now_suspended, now_waiting;
+	_TCHAR history[MAX_COMMAND_HISTORY][MAX_COMMAND_LENGTH + 1];
+	int history_ptr;
+	uint32_t cpu_trace[MAX_CPU_TRACE], prev_cpu_trace;
+	int cpu_trace_ptr;
 };
 
 //#endif

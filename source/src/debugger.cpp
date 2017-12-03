@@ -178,10 +178,8 @@ void* debugger_thread(void *lpx)
 	logfile = NULL;
 	cmdfile = NULL;
 	
-	#define MAX_COMMAND_LEN	64
-	
-	_TCHAR command[MAX_COMMAND_LEN + 1];
-	_TCHAR prev_command[MAX_COMMAND_LEN + 1];
+	_TCHAR command[MAX_COMMAND_LENGTH + 1];
+	_TCHAR prev_command[MAX_COMMAND_LENGTH + 1];
 	
 	memset(prev_command, 0, sizeof(prev_command));
 	
@@ -189,11 +187,13 @@ void* debugger_thread(void *lpx)
 		my_printf(p->osd, _T("- "));
 		
 		// get command
-		int ptr = 0;
+		_TCHAR ir[16 + 2];
+		int enter_ptr = 0;
+		int history_ptr = 0;
 		bool enter_done = false;
 		
 		while(!p->request_terminate && !enter_done) {
-			if(cmdfile != NULL) {
+			if(cmdfile != NULL && cmdfile->IsOpened()) {
 				if(cmdfile->Fgetts(command, array_length(command)) != NULL) {
 					while(_tcslen(command) > 0 && (command[_tcslen(command) - 1] == 0x0d || command[_tcslen(command) - 1] == 0x0a)) {
 						command[_tcslen(command) - 1] = _T('\0');
@@ -208,35 +208,70 @@ void* debugger_thread(void *lpx)
 					cmdfile = NULL;
 				}
 			} else {
-				_TCHAR ir[16];
-				int count = p->osd->read_console_input(ir);
+				memset(ir, 0, sizeof(ir));
+				int count = p->osd->read_console_input(ir, 16);
 				
 				for(int i = 0; i < count; i++) {
-					_TCHAR chr = ir[i];
-					
-					if(chr == 0x0d || chr == 0x0a) {
-						if(ptr == 0 && prev_command[0] != _T('\0')) {
+					if(ir[i] == 0x08) {
+						if(enter_ptr > 0) {
+							enter_ptr--;
+							my_putch(p->osd, 0x08);
+							my_putch(p->osd, _T(' '));
+							my_putch(p->osd, 0x08);
+						}
+					} else if(ir[i] == 0x0d || ir[i] == 0x0a) {
+						if(enter_ptr == 0 && prev_command[0] != _T('\0')) {
 							memcpy(command, prev_command, sizeof(command));
 							my_printf(p->osd, _T("%s\n"), command);
 							enter_done = true;
 							break;
-						} else if(ptr > 0) {
-							command[ptr] = _T('\0');
+						} else if(enter_ptr > 0) {
+							command[enter_ptr] = _T('\0');
 							memcpy(prev_command, command, sizeof(command));
+							memcpy(debugger->history[debugger->history_ptr], command, sizeof(command));
+							if (++debugger->history_ptr >= MAX_COMMAND_HISTORY) {
+								debugger->history_ptr = 0;
+							}
 							my_printf(p->osd, _T("\n"));
 							enter_done = true;
 							break;
 						}
-					} else if(chr == 0x08) {
-						if(ptr > 0) {
-							ptr--;
-							my_putch(p->osd, chr);
-							my_putch(p->osd, _T(' '));
-							my_putch(p->osd, chr);
+					} else if(ir[i] == 0x1b && ir[i + 1] == 0x5b) {
+						if(ir[i + 2] == _T('A') || ir[i + 2] == _T('B')) {
+							int history_ptr_stored = history_ptr;
+							if(ir[i + 2] == _T('A')) {
+								if(++history_ptr >= MAX_COMMAND_HISTORY) {
+									history_ptr = MAX_COMMAND_HISTORY;
+								}
+							} else {
+								if(--history_ptr < 0) {
+									history_ptr = 0;
+								}
+							}
+							int index = debugger->history_ptr - history_ptr;
+							while(index < 0) {
+								index += MAX_COMMAND_HISTORY;
+							}
+							while(index >= MAX_COMMAND_HISTORY) {
+								index -= MAX_COMMAND_HISTORY;
+							}
+							if(debugger->history[index][0] != _T('\0')) {
+								for(int i = 0; i < enter_ptr; i++) {
+									my_putch(p->osd, 0x08);
+									my_putch(p->osd, _T(' '));
+									my_putch(p->osd, 0x08);
+								}
+								memcpy(command, debugger->history[index], sizeof(command));
+								my_printf(p->osd, _T("%s"), command);
+								enter_ptr = _tcslen(command);
+							} else {
+								history_ptr = history_ptr_stored;
+							}
 						}
-					} else if(chr >= 0x20 && chr <= 0x7e && ptr < MAX_COMMAND_LEN && !(chr == 0x20 && ptr == 0)) {
-						command[ptr++] = chr;
-						my_putch(p->osd, chr);
+						i += 2; // skip 2 characters
+					} else if(ir[i] >= 0x20 && ir[i] <= 0x7e && enter_ptr < MAX_COMMAND_LENGTH && !(ir[i] == 0x20 && enter_ptr == 0)) {
+						command[enter_ptr++] = ir[i];
+						my_putch(p->osd, ir[i]);
 					}
 				}
 				p->osd->sleep(10);
@@ -467,6 +502,36 @@ void* debugger_thread(void *lpx)
 						}
 					}
 					prev_command[1] = _T('\0'); // remove parameters to disassemble continuously
+				} else {
+					my_printf(p->osd, _T("invalid parameter number\n"));
+				}
+			} else if(_tcsicmp(params[0], _T("UT")) == 0) {
+				if(num <= 3) {
+					int steps = 128;
+					if(num >= 2) {
+						steps = min(my_hexatoi(debugger->first_symbol, params[1]), (uint32_t)MAX_CPU_TRACE);
+					}
+					for(int i = 0; i < steps; i++) {
+						int index = (debugger->cpu_trace_ptr + i) & (MAX_CPU_TRACE - 1);
+						if(!(debugger->cpu_trace[index] & ~prog_addr_mask)) {
+							const _TCHAR *name = get_symbol(debugger->first_symbol, debugger->cpu_trace[index] & prog_addr_mask);
+							int len = cpu->debug_dasm(debugger->cpu_trace[index] & prog_addr_mask, buffer, 1024);
+							if(name != NULL) {
+								my_printf(p->osd, _T("%08X                  "), debugger->cpu_trace[index] & prog_addr_mask);
+								p->osd->set_console_text_attribute(FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+								my_printf(p->osd, _T("%s:\n"), name);
+								p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+							}
+							my_printf(p->osd, _T("%08X  "), debugger->cpu_trace[index] & prog_addr_mask);
+							for(int i = 0; i < len; i++) {
+								my_printf(p->osd, _T("%02X"), cpu->read_debug_data8((debugger->cpu_trace[index] + i) & data_addr_mask));
+							}
+							for(int i = len; i < 8; i++) {
+								my_printf(p->osd, _T("  "));
+							}
+							my_printf(p->osd, _T("  %s\n"), buffer);
+						}
+					}
 				} else {
 					my_printf(p->osd, _T("invalid parameter number\n"));
 				}
@@ -905,11 +970,14 @@ void* debugger_thread(void *lpx)
 						if(cmdfile->IsOpened()) {
 							cmdfile->Fclose();
 						}
+					} else {
+						cmdfile = new FILEIO();
+					}
+					if(!cmdfile->Fopen(params[1], FILEIO_READ_ASCII)) {
 						delete cmdfile;
 						cmdfile = NULL;
+						my_printf(p->osd, _T("can't open %s\n"), params[1]);
 					}
-					cmdfile = new FILEIO();
-					cmdfile->Fopen(params[1], FILEIO_READ_ASCII);
 				} else {
 					my_printf(p->osd, _T("invalid parameter number\n"));
 				}
@@ -962,6 +1030,7 @@ void* debugger_thread(void *lpx)
 				my_printf(p->osd, _T("R <reg> <value> - edit register\n"));
 				my_printf(p->osd, _T("S <range> <list> - search\n"));
 				my_printf(p->osd, _T("U [<range>] - unassemble\n"));
+				my_printf(p->osd, _T("UT [<steps>] - unassemble trace\n"));
 				
 				my_printf(p->osd, _T("H <value> <value> - hexadd\n"));
 				my_printf(p->osd, _T("N <filename> - name\n"));

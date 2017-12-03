@@ -15,99 +15,17 @@
 */
 
 // Fixed IRQ/FIRQ by Mr.Sasaji at 2011.06.17
-#include "./mc6809.h"
-#include "./mc6809_consts.h"
-#include "common.h"
 
-#define OP_HANDLER(_name) void MC6809_BASE::_name (void)
+#include "mc6809.h"
+#include "mc6809_consts.h"
+#ifdef USE_DEBUGGER
+#include "debugger.h"
+#endif
 
-static void (MC6809_BASE::*m6809_main[0x100]) (void) = {
-/*          0xX0,   0xX1,     0xX2,    0xX3,    0xX4,    0xX5,    0xX6,    0xX7,
-            0xX8,   0xX9,     0xXA,    0xXB,    0xXC,    0xXD,    0xXE,    0xXF   */
+#define OP_HANDLER(_name) void MC6809::_name (void)
 
-/* 0x0X */
-	&MC6809_BASE::neg_di, &MC6809_BASE::neg_di, &MC6809_BASE::ngc_di, &MC6809_BASE::com_di,
-	&MC6809_BASE::lsr_di, &MC6809_BASE::lsr_di, &MC6809_BASE::ror_di, &MC6809_BASE::asr_di,
-	&MC6809_BASE::asl_di, &MC6809_BASE::rol_di, &MC6809_BASE::dec_di, &MC6809_BASE::dcc_di,
-	&MC6809_BASE::inc_di, &MC6809_BASE::tst_di, &MC6809_BASE::jmp_di, &MC6809_BASE::clr_di,
-/* 0x1X */
-	&MC6809_BASE::pref10, &MC6809_BASE::pref11, &MC6809_BASE::nop, &MC6809_BASE::sync_09,
-	&MC6809_BASE::trap, &MC6809_BASE::trap, &MC6809_BASE::lbra, &MC6809_BASE::lbsr,
-	&MC6809_BASE::aslcc_in, &MC6809_BASE::daa, &MC6809_BASE::orcc, &MC6809_BASE::nop,
-	&MC6809_BASE::andcc, &MC6809_BASE::sex, &MC6809_BASE::exg, &MC6809_BASE::tfr,
-/* 0x2X */
-	&MC6809_BASE::bra, &MC6809_BASE::brn, &MC6809_BASE::bhi, &MC6809_BASE::bls,
-	&MC6809_BASE::bcc, &MC6809_BASE::bcs, &MC6809_BASE::bne, &MC6809_BASE::beq,
-	&MC6809_BASE::bvc, &MC6809_BASE::bvs, &MC6809_BASE::bpl, &MC6809_BASE::bmi,
-	&MC6809_BASE::bge, &MC6809_BASE::blt, &MC6809_BASE::bgt, &MC6809_BASE::ble,
-/* 0x3X */
-	&MC6809_BASE::leax, &MC6809_BASE::leay, &MC6809_BASE::leas, &MC6809_BASE::leau,
-	&MC6809_BASE::pshs, &MC6809_BASE::puls, &MC6809_BASE::pshu, &MC6809_BASE::pulu,
-	&MC6809_BASE::andcc, &MC6809_BASE::rts, &MC6809_BASE::abx, &MC6809_BASE::rti,
-	&MC6809_BASE::cwai, &MC6809_BASE::mul, &MC6809_BASE::rst, &MC6809_BASE::swi,
-/* 0x4X */
-	&MC6809_BASE::nega, &MC6809_BASE::nega, &MC6809_BASE::ngca, &MC6809_BASE::coma,
-	&MC6809_BASE::lsra, &MC6809_BASE::lsra, &MC6809_BASE::rora, &MC6809_BASE::asra,
-	&MC6809_BASE::asla, &MC6809_BASE::rola, &MC6809_BASE::deca, &MC6809_BASE::dcca,
-	&MC6809_BASE::inca, &MC6809_BASE::tsta, &MC6809_BASE::clca, &MC6809_BASE::clra,
-/* 0x5X */
-	&MC6809_BASE::negb, &MC6809_BASE::negb, &MC6809_BASE::ngcb, &MC6809_BASE::comb,
-	&MC6809_BASE::lsrb, &MC6809_BASE::lsrb, &MC6809_BASE::rorb, &MC6809_BASE::asrb,
-	&MC6809_BASE::aslb, &MC6809_BASE::rolb, &MC6809_BASE::decb, &MC6809_BASE::dccb,
-	&MC6809_BASE::incb, &MC6809_BASE::tstb, &MC6809_BASE::clcb, &MC6809_BASE::clrb,
-/* 0x6X */
-	&MC6809_BASE::neg_ix, &MC6809_BASE::neg_ix, &MC6809_BASE::ngc_ix, &MC6809_BASE::com_ix,
-	&MC6809_BASE::lsr_ix, &MC6809_BASE::lsr_ix, &MC6809_BASE::ror_ix, &MC6809_BASE::asr_ix,
-	&MC6809_BASE::asl_ix, &MC6809_BASE::rol_ix, &MC6809_BASE::dec_ix, &MC6809_BASE::dcc_ix,
-	&MC6809_BASE::inc_ix, &MC6809_BASE::tst_ix, &MC6809_BASE::jmp_ix, &MC6809_BASE::clr_ix,
-/* 0x7X */
-	&MC6809_BASE::neg_ex, &MC6809_BASE::neg_ex, &MC6809_BASE::ngc_ex, &MC6809_BASE::com_ex,
-	&MC6809_BASE::lsr_ex, &MC6809_BASE::lsr_ex, &MC6809_BASE::ror_ex, &MC6809_BASE::asr_ex,
-	&MC6809_BASE::asl_ex, &MC6809_BASE::rol_ex, &MC6809_BASE::dec_ex, &MC6809_BASE::dcc_ex,
-	&MC6809_BASE::inc_ex, &MC6809_BASE::tst_ex, &MC6809_BASE::jmp_ex, &MC6809_BASE::clr_ex,
-/* 0x8X */
-	&MC6809_BASE::suba_im, &MC6809_BASE::cmpa_im, &MC6809_BASE::sbca_im, &MC6809_BASE::subd_im,
-	&MC6809_BASE::anda_im, &MC6809_BASE::bita_im, &MC6809_BASE::lda_im, &MC6809_BASE::flag8_im,
-	&MC6809_BASE::eora_im, &MC6809_BASE::adca_im, &MC6809_BASE::ora_im, &MC6809_BASE::adda_im,
-	&MC6809_BASE::cmpx_im, &MC6809_BASE::bsr, &MC6809_BASE::ldx_im, &MC6809_BASE::flag16_im,
-/* 0x9X */
-	&MC6809_BASE::suba_di, &MC6809_BASE::cmpa_di, &MC6809_BASE::sbca_di, &MC6809_BASE::subd_di,
-	&MC6809_BASE::anda_di, &MC6809_BASE::bita_di, &MC6809_BASE::lda_di, &MC6809_BASE::sta_di,
-	&MC6809_BASE::eora_di, &MC6809_BASE::adca_di, &MC6809_BASE::ora_di, &MC6809_BASE::adda_di,
-	&MC6809_BASE::cmpx_di, &MC6809_BASE::jsr_di, &MC6809_BASE::ldx_di, &MC6809_BASE::stx_di,
-/* 0xAX */
-	&MC6809_BASE::suba_ix, &MC6809_BASE::cmpa_ix, &MC6809_BASE::sbca_ix, &MC6809_BASE::subd_ix,
-	&MC6809_BASE::anda_ix, &MC6809_BASE::bita_ix, &MC6809_BASE::lda_ix, &MC6809_BASE::sta_ix,
-	&MC6809_BASE::eora_ix, &MC6809_BASE::adca_ix, &MC6809_BASE::ora_ix, &MC6809_BASE::adda_ix,
-	&MC6809_BASE::cmpx_ix, &MC6809_BASE::jsr_ix, &MC6809_BASE::ldx_ix, &MC6809_BASE::stx_ix,
-/* 0xBX */
-	&MC6809_BASE::suba_ex, &MC6809_BASE::cmpa_ex, &MC6809_BASE::sbca_ex, &MC6809_BASE::subd_ex,
-	&MC6809_BASE::anda_ex, &MC6809_BASE::bita_ex, &MC6809_BASE::lda_ex, &MC6809_BASE::sta_ex,
-	&MC6809_BASE::eora_ex, &MC6809_BASE::adca_ex, &MC6809_BASE::ora_ex, &MC6809_BASE::adda_ex,
-	&MC6809_BASE::cmpx_ex, &MC6809_BASE::jsr_ex, &MC6809_BASE::ldx_ex, &MC6809_BASE::stx_ex,
-/* 0xCX */
-	&MC6809_BASE::subb_im, &MC6809_BASE::cmpb_im, &MC6809_BASE::sbcb_im, &MC6809_BASE::addd_im,
-	&MC6809_BASE::andb_im, &MC6809_BASE::bitb_im, &MC6809_BASE::ldb_im, &MC6809_BASE::flag8_im,
-	&MC6809_BASE::eorb_im, &MC6809_BASE::adcb_im, &MC6809_BASE::orb_im, &MC6809_BASE::addb_im,
-	&MC6809_BASE::ldd_im, &MC6809_BASE::trap, &MC6809_BASE::ldu_im, &MC6809_BASE::flag16_im,
-/* 0xDX */
-	&MC6809_BASE::subb_di, &MC6809_BASE::cmpb_di, &MC6809_BASE::sbcb_di, &MC6809_BASE::addd_di,
-	&MC6809_BASE::andb_di, &MC6809_BASE::bitb_di, &MC6809_BASE::ldb_di, &MC6809_BASE::stb_di,
-	&MC6809_BASE::eorb_di, &MC6809_BASE::adcb_di, &MC6809_BASE::orb_di, &MC6809_BASE::addb_di,
-	&MC6809_BASE::ldd_di, &MC6809_BASE::std_di, &MC6809_BASE::ldu_di, &MC6809_BASE::stu_di,
-/* 0xEX */
-	&MC6809_BASE::subb_ix, &MC6809_BASE::cmpb_ix, &MC6809_BASE::sbcb_ix, &MC6809_BASE::addd_ix,
-	&MC6809_BASE::andb_ix, &MC6809_BASE::bitb_ix, &MC6809_BASE::ldb_ix, &MC6809_BASE::stb_ix,
-	&MC6809_BASE::eorb_ix, &MC6809_BASE::adcb_ix, &MC6809_BASE::orb_ix, &MC6809_BASE::addb_ix,
-	&MC6809_BASE::ldd_ix, &MC6809_BASE::std_ix, &MC6809_BASE::ldu_ix, &MC6809_BASE::stu_ix,
-/* 0xFX */
-	&MC6809_BASE::subb_ex, &MC6809_BASE::cmpb_ex, &MC6809_BASE::sbcb_ex, &MC6809_BASE::addd_ex,
-	&MC6809_BASE::andb_ex, &MC6809_BASE::bitb_ex, &MC6809_BASE::ldb_ex, &MC6809_BASE::stb_ex,
-	&MC6809_BASE::eorb_ex, &MC6809_BASE::adcb_ex, &MC6809_BASE::orb_ex, &MC6809_BASE::addb_ex,
-	&MC6809_BASE::ldd_ex, &MC6809_BASE::std_ex, &MC6809_BASE::ldu_ex, &MC6809_BASE::stu_ex
-	};
 /* macros for branch instructions */
-inline void MC6809_BASE::BRANCH(bool cond)
+inline void MC6809::BRANCH(bool cond)
 {
 	uint8_t t;
 	IMMBYTE(t);
@@ -116,7 +34,7 @@ inline void MC6809_BASE::BRANCH(bool cond)
 	PC = PC & 0xffff;
 }
 
-inline void MC6809_BASE::LBRANCH(bool cond)
+inline void MC6809::LBRANCH(bool cond)
 {
 	pair_t t;
 	IMMWORD(t);
@@ -128,7 +46,7 @@ inline void MC6809_BASE::LBRANCH(bool cond)
 
 /* macros for setting/getting registers in TFR/EXG instructions */
 
-inline pair_t MC6809_BASE::RM16_PAIR(uint32_t addr)
+inline pair_t MC6809::RM16_PAIR(uint32_t addr)
 {
 	pair_t b;
 	b.d = 0;
@@ -137,13 +55,184 @@ inline pair_t MC6809_BASE::RM16_PAIR(uint32_t addr)
 	return b;
 }
 
-inline void MC6809_BASE::WM16(uint32_t Addr, pair_t *p)
+inline void MC6809::WM16(uint32_t Addr, pair_t *p)
 {
 	WM(Addr , p->b.h);
 	WM((Addr + 1), p->b.l);
 }
 
-void MC6809_BASE::reset()
+/* increment */
+static const uint8_t flags8i[256] = {
+	CC_Z,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+	CC_N|CC_V,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,
+	CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,
+	CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,
+	CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,
+	CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,
+	CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,
+	CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,
+	CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N
+};
+
+/* decrement */
+static const uint8_t flags8d[256] = {
+	CC_Z,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,CC_V,
+	CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,
+	CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,
+	CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,
+	CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,
+	CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,
+	CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,
+	CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,
+	CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N
+};
+
+/* FIXME: Cycles differ slighly from hd6309 emulation */
+static const int index_cycle_em[256] = {	/* Index Loopup cycle counts */
+/*           0xX0, 0xX1, 0xX2, 0xX3, 0xX4, 0xX5, 0xX6, 0xX7, 0xX8, 0xX9, 0xXA, 0xXB, 0xXC, 0xXD, 0xXE, 0xXF */
+
+/* 0x0X */ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+/* 0x1X */ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+/* 0x2X */ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+/* 0x3X */ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+/* 0x4X */ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+/* 0x5X */ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+/* 0x6X */ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+/* 0x7X */ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+/* 0x8X */ 2, 3, 2, 3, 0, 1, 1, 1, 1, 4, 0, 4, 1, 5, 0, 2,
+/* 0x9X */ 5, 6, 5, 6, 3, 4, 4, 4, 4, 7, 3, 7, 4, 8, 3, 3,
+/* 0xAX */ 2, 3, 2, 3, 0, 1, 1, 1, 1, 4, 0, 4, 1, 5, 0, 2,
+/* 0xBX */ 5, 6, 5, 6, 3, 4, 4, 4, 4, 7, 3, 7, 4, 8, 3, 5,
+/* 0xCX */ 2, 3, 2, 3, 0, 1, 1, 1, 1, 4, 0, 4, 1, 5, 0, 2,
+/* 0xDX */ 5, 6, 5, 6, 3, 4, 4, 4, 4, 7, 3, 7, 4, 8, 3, 5,
+/* 0xEX */ 2, 3, 2, 3, 0, 1, 1, 1, 1, 4, 0, 4, 1, 5, 0, 2,
+/* 0xFX */ 4, 6, 5, 6, 3, 4, 4, 4, 4, 7, 3, 7, 4, 8, 3, 5
+};
+
+/* timings for 1-byte opcodes */
+/* 20100731 Fix to XM7 */
+static const int cycles1[] = {
+/*   0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F */
+/*0 */ 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 3, 6,
+/*1 */ 0, 0, 2, 2, 0, 0, 5, 9, 3, 2, 3, 2, 3, 2, 8, 6,
+/*2 */ 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+/*3 */ 4, 4, 4, 4, 5, 5, 5, 5, 4, 5, 3, 6, 20, 11, 1, 19,
+/*4 */ 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+/*5 */ 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+/*6 */ 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 3, 6,
+/*7 */ 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 4, 7,
+/*8 */ 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 2, 4, 7, 3, 3,
+/*9 */ 4, 4, 4, 6, 4, 4, 4, 4, 4, 4, 4, 4, 6, 7, 5, 5,
+ /*A*/ 4, 4, 4, 6, 4, 4, 4, 4, 4, 4, 4, 4, 6, 7, 5, 5,
+ /*B*/ 5, 5, 5, 7, 5, 5, 5, 5, 5, 5, 5, 5, 7, 8, 6, 6,
+ /*C*/ 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 2, 3, 0, 3, 3,
+ /*D*/ 4, 4, 4, 6, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5,
+ /*E*/ 4, 4, 4, 6, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5,
+ /*F*/ 5, 5, 5, 7, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6
+};
+
+
+static void (MC6809::*m6809_main[0x100]) (void) = {
+/*          0xX0,   0xX1,     0xX2,    0xX3,    0xX4,    0xX5,    0xX6,    0xX7,
+            0xX8,   0xX9,     0xXA,    0xXB,    0xXC,    0xXD,    0xXE,    0xXF   */
+
+/* 0x0X */
+	&MC6809::neg_di, &MC6809::neg_di, &MC6809::ngc_di, &MC6809::com_di,
+	&MC6809::lsr_di, &MC6809::lsr_di, &MC6809::ror_di, &MC6809::asr_di,
+	&MC6809::asl_di, &MC6809::rol_di, &MC6809::dec_di, &MC6809::dcc_di,
+	&MC6809::inc_di, &MC6809::tst_di, &MC6809::jmp_di, &MC6809::clr_di,
+/* 0x1X */
+	&MC6809::pref10, &MC6809::pref11, &MC6809::nop, &MC6809::sync_09,
+	&MC6809::trap, &MC6809::trap, &MC6809::lbra, &MC6809::lbsr,
+	&MC6809::aslcc_in, &MC6809::daa, &MC6809::orcc, &MC6809::nop,
+	&MC6809::andcc, &MC6809::sex, &MC6809::exg, &MC6809::tfr,
+/* 0x2X */
+	&MC6809::bra, &MC6809::brn, &MC6809::bhi, &MC6809::bls,
+	&MC6809::bcc, &MC6809::bcs, &MC6809::bne, &MC6809::beq,
+	&MC6809::bvc, &MC6809::bvs, &MC6809::bpl, &MC6809::bmi,
+	&MC6809::bge, &MC6809::blt, &MC6809::bgt, &MC6809::ble,
+/* 0x3X */
+	&MC6809::leax, &MC6809::leay, &MC6809::leas, &MC6809::leau,
+	&MC6809::pshs, &MC6809::puls, &MC6809::pshu, &MC6809::pulu,
+	&MC6809::andcc, &MC6809::rts, &MC6809::abx, &MC6809::rti,
+	&MC6809::cwai, &MC6809::mul, &MC6809::rst, &MC6809::swi,
+/* 0x4X */
+	&MC6809::nega, &MC6809::nega, &MC6809::ngca, &MC6809::coma,
+	&MC6809::lsra, &MC6809::lsra, &MC6809::rora, &MC6809::asra,
+	&MC6809::asla, &MC6809::rola, &MC6809::deca, &MC6809::dcca,
+	&MC6809::inca, &MC6809::tsta, &MC6809::clca, &MC6809::clra,
+/* 0x5X */
+	&MC6809::negb, &MC6809::negb, &MC6809::ngcb, &MC6809::comb,
+	&MC6809::lsrb, &MC6809::lsrb, &MC6809::rorb, &MC6809::asrb,
+	&MC6809::aslb, &MC6809::rolb, &MC6809::decb, &MC6809::dccb,
+	&MC6809::incb, &MC6809::tstb, &MC6809::clcb, &MC6809::clrb,
+/* 0x6X */
+	&MC6809::neg_ix, &MC6809::neg_ix, &MC6809::ngc_ix, &MC6809::com_ix,
+	&MC6809::lsr_ix, &MC6809::lsr_ix, &MC6809::ror_ix, &MC6809::asr_ix,
+	&MC6809::asl_ix, &MC6809::rol_ix, &MC6809::dec_ix, &MC6809::dcc_ix,
+	&MC6809::inc_ix, &MC6809::tst_ix, &MC6809::jmp_ix, &MC6809::clr_ix,
+/* 0x7X */
+	&MC6809::neg_ex, &MC6809::neg_ex, &MC6809::ngc_ex, &MC6809::com_ex,
+	&MC6809::lsr_ex, &MC6809::lsr_ex, &MC6809::ror_ex, &MC6809::asr_ex,
+	&MC6809::asl_ex, &MC6809::rol_ex, &MC6809::dec_ex, &MC6809::dcc_ex,
+	&MC6809::inc_ex, &MC6809::tst_ex, &MC6809::jmp_ex, &MC6809::clr_ex,
+/* 0x8X */
+	&MC6809::suba_im, &MC6809::cmpa_im, &MC6809::sbca_im, &MC6809::subd_im,
+	&MC6809::anda_im, &MC6809::bita_im, &MC6809::lda_im, &MC6809::flag8_im,
+	&MC6809::eora_im, &MC6809::adca_im, &MC6809::ora_im, &MC6809::adda_im,
+	&MC6809::cmpx_im, &MC6809::bsr, &MC6809::ldx_im, &MC6809::flag16_im,
+/* 0x9X */
+	&MC6809::suba_di, &MC6809::cmpa_di, &MC6809::sbca_di, &MC6809::subd_di,
+	&MC6809::anda_di, &MC6809::bita_di, &MC6809::lda_di, &MC6809::sta_di,
+	&MC6809::eora_di, &MC6809::adca_di, &MC6809::ora_di, &MC6809::adda_di,
+	&MC6809::cmpx_di, &MC6809::jsr_di, &MC6809::ldx_di, &MC6809::stx_di,
+/* 0xAX */
+	&MC6809::suba_ix, &MC6809::cmpa_ix, &MC6809::sbca_ix, &MC6809::subd_ix,
+	&MC6809::anda_ix, &MC6809::bita_ix, &MC6809::lda_ix, &MC6809::sta_ix,
+	&MC6809::eora_ix, &MC6809::adca_ix, &MC6809::ora_ix, &MC6809::adda_ix,
+	&MC6809::cmpx_ix, &MC6809::jsr_ix, &MC6809::ldx_ix, &MC6809::stx_ix,
+/* 0xBX */
+	&MC6809::suba_ex, &MC6809::cmpa_ex, &MC6809::sbca_ex, &MC6809::subd_ex,
+	&MC6809::anda_ex, &MC6809::bita_ex, &MC6809::lda_ex, &MC6809::sta_ex,
+	&MC6809::eora_ex, &MC6809::adca_ex, &MC6809::ora_ex, &MC6809::adda_ex,
+	&MC6809::cmpx_ex, &MC6809::jsr_ex, &MC6809::ldx_ex, &MC6809::stx_ex,
+/* 0xCX */
+	&MC6809::subb_im, &MC6809::cmpb_im, &MC6809::sbcb_im, &MC6809::addd_im,
+	&MC6809::andb_im, &MC6809::bitb_im, &MC6809::ldb_im, &MC6809::flag8_im,
+	&MC6809::eorb_im, &MC6809::adcb_im, &MC6809::orb_im, &MC6809::addb_im,
+	&MC6809::ldd_im, &MC6809::trap, &MC6809::ldu_im, &MC6809::flag16_im,
+/* 0xDX */
+	&MC6809::subb_di, &MC6809::cmpb_di, &MC6809::sbcb_di, &MC6809::addd_di,
+	&MC6809::andb_di, &MC6809::bitb_di, &MC6809::ldb_di, &MC6809::stb_di,
+	&MC6809::eorb_di, &MC6809::adcb_di, &MC6809::orb_di, &MC6809::addb_di,
+	&MC6809::ldd_di, &MC6809::std_di, &MC6809::ldu_di, &MC6809::stu_di,
+/* 0xEX */
+	&MC6809::subb_ix, &MC6809::cmpb_ix, &MC6809::sbcb_ix, &MC6809::addd_ix,
+	&MC6809::andb_ix, &MC6809::bitb_ix, &MC6809::ldb_ix, &MC6809::stb_ix,
+	&MC6809::eorb_ix, &MC6809::adcb_ix, &MC6809::orb_ix, &MC6809::addb_ix,
+	&MC6809::ldd_ix, &MC6809::std_ix, &MC6809::ldu_ix, &MC6809::stu_ix,
+/* 0xFX */
+	&MC6809::subb_ex, &MC6809::cmpb_ex, &MC6809::sbcb_ex, &MC6809::addd_ex,
+	&MC6809::andb_ex, &MC6809::bitb_ex, &MC6809::ldb_ex, &MC6809::stb_ex,
+	&MC6809::eorb_ex, &MC6809::adcb_ex, &MC6809::orb_ex, &MC6809::addb_ex,
+	&MC6809::ldd_ex, &MC6809::std_ex, &MC6809::ldu_ex, &MC6809::stu_ex
+};
+
+void MC6809::reset()
 {
 	icount = 0;
 	int_state &= MC6809_HALT_BIT;
@@ -171,16 +260,17 @@ void MC6809_BASE::reset()
 }
 
 
-void MC6809_BASE::initialize()
+void MC6809::initialize()
 {
-	DEVICE::initialize();
 	int_state = 0;
 	busreq = false;
-	icount = 0;
-	extra_icount = 0;
+#ifdef USE_DEBUGGER
+	d_mem_stored = d_mem;
+	d_debugger->set_context_mem(d_mem);
+#endif
 }
 
-void MC6809_BASE::write_signal(int id, uint32_t data, uint32_t mask)
+void MC6809::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_CPU_IRQ) {
 		if(data & mask) {
@@ -209,7 +299,7 @@ void MC6809_BASE::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
-void MC6809_BASE::cpu_nmi(void)
+void MC6809::cpu_nmi(void)
 {
 	//pair_t rpc = pPC;
 	if ((int_state & MC6809_CWAI_IN) == 0) {
@@ -232,7 +322,7 @@ void MC6809_BASE::cpu_nmi(void)
 
 
 // Refine from cpu_x86.asm of V3.52a.
-void MC6809_BASE::cpu_firq(void)
+void MC6809::cpu_firq(void)
 {
 	//pair_t rpc = pPC;
 	if ((int_state & MC6809_CWAI_IN) == 0) {
@@ -249,7 +339,7 @@ void MC6809_BASE::cpu_firq(void)
 }
 
 // Refine from cpu_x86.asm of V3.52a.
-void MC6809_BASE::cpu_irq(void)
+void MC6809::cpu_irq(void)
 {
 	//pair_t rpc = pPC;
 	if ((int_state & MC6809_CWAI_IN) == 0) {
@@ -271,7 +361,7 @@ void MC6809_BASE::cpu_irq(void)
 //	printf("IRQ occured PC=0x%04x VECTOR=%04x SP=%04x \n",rpc.w.l,pPC.w.l,S);
 }
 
-int MC6809_BASE::run(int clock)
+int MC6809::run(int clock)
 {
 	int cycle = 0;
 	int first_icount;
@@ -281,42 +371,28 @@ int MC6809_BASE::run(int clock)
 	first_icount = icount;
 
 	if ((int_state & MC6809_HALT_BIT) != 0) {	// 0x80
-#if 0
-		if(clock < 0) {
-			int passed_icount;
-			passed_icount = max(1, extra_icount);
-			extra_icount = 0;
-			busreq = true;
-			return first_icount - passed_icount;
-		} else {
-			//icount = 0;
-			icount -= extra_icount;
-			extra_icount = 0;
-			busreq = true;
-			return first_icount - icount;
-		}
-#else
 		icount = 0;
 		icount -= extra_icount;
 		extra_icount = 0;
-		if(!busreq) write_signals(&outputs_bus_halt, 0xffffffff); // Moved form before.Thanks to Ryu Takegami.
+	   	if(!busreq) write_signals(&outputs_bus_halt, 0xffffffff);
 		busreq = true;
-		return first_icount - icount;
+#ifdef USE_DEBUGGER
+		total_icount += first_icount - icount;
 #endif
+		return first_icount - icount;
 	}
 	if(busreq) write_signals(&outputs_bus_halt, 0x00000000);
 	busreq = false;
 	if((int_state & MC6809_INSN_HALT) != 0) {	// 0x80
 		//uint8_t dmy = RM(PCD); //Will save.Need to keep.
 		RM(PCD); //Will save.Need to keep.
-		if(clock < 0) {
-			icount = -extra_icount;
-			first_icount = 0;
-		} else {
-			icount -= extra_icount;
-		}
+		icount = 0;
+		icount -= extra_icount;
 		extra_icount = 0;
 		PC++;
+#ifdef USE_DEBUGGER
+		total_icount += first_icount - icount;
+#endif
 		return first_icount - icount;
 	}
  	/*
@@ -339,22 +415,24 @@ int MC6809_BASE::run(int clock)
 
 check_firq:
 	if ((int_state & MC6809_FIRQ_BIT) != 0) {
-		int_state &= ~MC6809_SYNC_IN; // Moved to before checking.Thanks to Ryu Takegami.
+		int_state &= ~MC6809_SYNC_IN;
 		if ((CC & CC_IF) != 0)
 			goto check_irq;
 		cpu_firq();
 		run_one_opecode();
+//		int_state &= ~MC6809_SYNC_IN;
 		cycle = 10;
 		goto int_cycle;
 	}
 
 check_irq:
 	if ((int_state & MC6809_IRQ_BIT) != 0) {
+		int_state &= ~MC6809_SYNC_IN;
 		if ((CC & CC_II) != 0)
 			goto check_ok;
 		cpu_irq();
 		run_one_opecode();
-		int_state &= ~MC6809_SYNC_IN;
+//		int_state &= ~MC6809_SYNC_IN;
 		cycle = 19;
 		goto int_cycle;
 	}
@@ -371,6 +449,9 @@ int_cycle:
 	} else {
 		int_state &= ~MC6809_CWAI_IN;
 	}
+#ifdef USE_DEBUGGER
+	total_icount += first_icount - icount;
+#endif
 	return first_icount - icount;
 
 	// run cpu
@@ -381,13 +462,16 @@ check_ok:
 		} else {
 			icount = 0;
 		}
+#ifdef USE_DEBUGGER
+		total_icount += first_icount - icount;
+#endif
 		return first_icount - icount;
 	}
 	if((int_state & MC6809_CWAI_IN) == 0) {
 		if(clock == -1) {
 		// run only one opcode
 			run_one_opecode();
-			return icount;
+			return first_icount - icount;
 		} else {
 			// run cpu while given clocks
 			while(icount > 0) {
@@ -398,27 +482,75 @@ check_ok:
 	} else { // CWAI_IN
 		if (clock >= 0) {
 			icount -= clock;
-		} else {
+		}
+		else {
 			icount = 0;
 		}
+#ifdef USE_DEBUGGER
+		total_icount += first_icount - icount;
+#endif
 		return first_icount - icount;
 	}
 
 }
 
-void MC6809_BASE::run_one_opecode()
+void MC6809::run_one_opecode()
 {
-	pPPC = pPC;
-	uint8_t ireg = ROP(PCD);
-	PC++;
-	icount -= cycles1[ireg];
-	icount -= extra_icount;
-	extra_icount = 0;
-	op(ireg);
+#ifdef USE_DEBUGGER
+	bool now_debugging = d_debugger->now_debugging;
+	if(now_debugging) {
+		d_debugger->check_break_points(PC);
+		if(d_debugger->now_suspended) {
+			emu->mute_sound();
+			d_debugger->now_waiting = true;
+			while(d_debugger->now_debugging && d_debugger->now_suspended) {
+				emu->sleep(10);
+			}
+			d_debugger->now_waiting = false;
+		}
+		if(d_debugger->now_debugging) {
+			d_mem = d_debugger;
+		} else {
+			now_debugging = false;
+		}
+		
+		d_debugger->add_cpu_trace(PC);
+		int first_icount = icount;
+		pPPC = pPC;
+		uint8_t ireg = ROP(PCD);
+		PC++;
+		icount -= cycles1[ireg];
+		icount -= extra_icount;
+		extra_icount = 0;
+		op(ireg);
+		total_icount += first_icount - icount;
+		
+		if(now_debugging) {
+			if(!d_debugger->now_going) {
+				d_debugger->now_suspended = true;
+			}
+			d_mem = d_mem_stored;
+		}
+	} else {
+		d_debugger->add_cpu_trace(PC);
+		int first_icount = icount;
+#endif
+		pPPC = pPC;
+		uint8_t ireg = ROP(PCD);
+		PC++;
+		icount -= cycles1[ireg];
+		icount -= extra_icount;
+		extra_icount = 0;
+		op(ireg);
+#ifdef USE_DEBUGGER
+		total_icount += first_icount - icount;
+	}
+#endif
 }
 
-void MC6809_BASE::op(uint8_t ireg)
+void MC6809::op(uint8_t ireg)
 {
+//#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	if(ireg == 0x0f) { // clr_di()
 		write_signals(&outputs_bus_clr, 0x00000001);
 		clr_used = true;
@@ -436,27 +568,42 @@ void MC6809_BASE::op(uint8_t ireg)
 }
 
 
-void MC6809_BASE::write_debug_data8(uint32_t addr, uint32_t data)
+void MC6809::write_debug_data8(uint32_t addr, uint32_t data)
 {
+#ifdef USE_DEBUGGER
+	d_mem_stored->write_data8(addr, data);
+#endif
 }
 
-uint32_t MC6809_BASE::read_debug_data8(uint32_t addr)
+uint32_t MC6809::read_debug_data8(uint32_t addr)
 {
+#ifdef USE_DEBUGGER
+	return d_mem_stored->read_data8(addr);
+#else
 	return 0xff;
+#endif
 }
 
-void MC6809_BASE::write_debug_io8(uint32_t addr, uint32_t data)
+void MC6809::write_debug_io8(uint32_t addr, uint32_t data)
 {
+#ifdef USE_DEBUGGER
+	d_mem_stored->write_io8(addr, data);
+#endif
 }
 
-uint32_t MC6809_BASE::read_debug_io8(uint32_t addr)
+uint32_t MC6809::read_debug_io8(uint32_t addr)
 {
+#ifdef USE_DEBUGGER
+	uint8_t val = d_mem_stored->read_io8(addr);
+	return val;
+#else
 	return 0xff;
+#endif
 }
 
-bool MC6809_BASE::write_debug_reg(const _TCHAR *reg, uint32_t data)
+bool MC6809::write_debug_reg(const _TCHAR *reg, uint32_t data)
 {
-//#ifdef USE_DEBUGGER
+#ifdef USE_DEBUGGER
 	if(_tcsicmp(reg, _T("PC")) == 0) {
 		PC = data;
 	} else if(_tcsicmp(reg, _T("DP")) == 0) {
@@ -480,15 +627,15 @@ bool MC6809_BASE::write_debug_reg(const _TCHAR *reg, uint32_t data)
 	} else {
 		return false;
 	}
-//#endif
+#endif
 	return true;
 }
 
-void MC6809_BASE::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+void MC6809::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
-//#ifdef USE_DEBUGGER
+#ifdef USE_DEBUGGER
 	my_stprintf_s(buffer, buffer_len,
-		 _T("PC = %04x PPC = %04x INTR=[%s %s %s %s][%s %s %s %s %s] CC = [%c%c%c%c%c%c%c%c]\nA = %02x B = %02x DP = %02x X = %04x Y = %04x U = %04x S = %04x EA = %04x"),
+		 _T("PC = %04x PPC = %04x\nINTR = [%s %s %s %s][%s %s %s %s %s] CC = [%c%c%c%c%c%c%c%c]\nA = %02x B = %02x DP = %02x X = %04x Y = %04x U = %04x S = %04x EA = %04x\nTotal CPU Clocks = %llu (%llu)"),
 		 PC,
 		 PPC,
 		 ((int_state & MC6809_IRQ_BIT) == 0)   ? _T("----") : _T(" IRQ"),
@@ -510,24 +657,699 @@ void MC6809_BASE::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 		 ((CC & CC_C) == 0)  ? _T('-') : _T('C'),
 		 A, B, DP,
 		 X, Y, U, S,
-		 EAD
+		 EAD,
+		 total_icount, total_icount - prev_total_icount
 	 );
-//#endif
+	prev_total_icount = total_icount;
+#endif
 }  
 
-uint32_t MC6809_BASE::cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_t *oprom, const uint8_t *opram)
+// from MAME 0.160
+
+/*****************************************************************************
+
+    6809dasm.c - a 6809 opcode disassembler
+    Version 1.4 1-MAR-95
+    Copyright Sean Riddle
+
+    Thanks to Franklin Bowen for bug fixes, ideas
+
+    Freely distributable on any medium given all copyrights are retained
+    by the author and no charge greater than $7.00 is made for obtaining
+    this software
+
+    Please send all bug reports, update ideas and data files to:
+    sriddle@ionet.net
+
+*****************************************************************************/
+
+// Opcode structure
+struct opcodeinfo
 {
+	uint8_t   opcode;     // 8-bit opcode value
+	uint8_t   length;     // Opcode length in bytes
+	_TCHAR  name[6];    // Opcode name
+	uint8_t   mode;       // Addressing mode
+//	unsigned flags;     // Disassembly flags
+};
+
+enum m6809_addressing_modes
+{
+	INH,                // Inherent
+	DIR,                // Direct
+	IND,                // Indexed
+	REL,                // Relative (8 bit)
+	LREL,               // Long relative (16 bit)
+	EXT,                // Extended
+	IMM,                // Immediate
+	IMM_RR,             // Register-to-register
+	PG1,                // Switch to page 1 opcodes
+	PG2                 // Switch to page 2 opcodes
+};
+
+// Page 0 opcodes (single byte)
+static const opcodeinfo m6809_pg0opcodes[] =
+{
+	{ 0x00, 2, _T("NEG"),   DIR    },
+	{ 0x01, 2, _T("NEG"),   DIR    },
+	{ 0x02, 2, _T("NGC"),   DIR    },
+	{ 0x03, 2, _T("COM"),   DIR    },
+	{ 0x04, 2, _T("LSR"),   DIR    },
+	{ 0x05, 2, _T("LSR"),   DIR    },
+	{ 0x06, 2, _T("ROR"),   DIR    },
+	{ 0x07, 2, _T("ASR"),   DIR    },
+	{ 0x08, 2, _T("ASL"),   DIR    },
+	{ 0x09, 2, _T("ROL"),   DIR    },
+	{ 0x0A, 2, _T("DEC"),   DIR    },
+	{ 0x0B, 2, _T("DCC"),   DIR    },
+	{ 0x0C, 2, _T("INC"),   DIR    },
+	{ 0x0D, 2, _T("TST"),   DIR    },
+	{ 0x0E, 2, _T("JMP"),   DIR    },
+	{ 0x0F, 2, _T("CLR"),   DIR    },
+
+	{ 0x10, 1, _T("page1"), PG1    },
+	{ 0x11, 1, _T("page2"), PG2    },
+	{ 0x12, 1, _T("NOP"),   INH    },
+	{ 0x13, 1, _T("SYNC"),  INH    },
+	{ 0x14, 1, _T("HALT"),  INH    },
+	{ 0x15, 1, _T("HALT"),  INH    },
+	{ 0x16, 3, _T("LBRA"),  LREL   },
+	{ 0x17, 3, _T("LBSR"),  LREL   },
+	{ 0x18, 1, _T("ASLCC"), INH    },
+	{ 0x19, 1, _T("DAA"),   INH    },
+	{ 0x1A, 2, _T("ORCC"),  IMM    },
+	{ 0x1B, 1, _T("NOP"),   INH    },
+	{ 0x1C, 2, _T("ANDCC"), IMM    },
+	{ 0x1D, 1, _T("SEX"),   INH    },
+	{ 0x1E, 2, _T("EXG"),   IMM_RR },
+	{ 0x1F, 2, _T("TFR"),   IMM_RR },
+
+	{ 0x20, 2, _T("BRA"),   REL    },
+	{ 0x21, 2, _T("BRN"),   REL    },
+	{ 0x22, 2, _T("BHI"),   REL    },
+	{ 0x23, 2, _T("BLS"),   REL    },
+	{ 0x24, 2, _T("BCC"),   REL    },
+	{ 0x25, 2, _T("BCS"),   REL    },
+	{ 0x26, 2, _T("BNE"),   REL    },
+	{ 0x27, 2, _T("BEQ"),   REL    },
+	{ 0x28, 2, _T("BVC"),   REL    },
+	{ 0x29, 2, _T("BVS"),   REL    },
+	{ 0x2A, 2, _T("BPL"),   REL    },
+	{ 0x2B, 2, _T("BMI"),   REL    },
+	{ 0x2C, 2, _T("BGE"),   REL    },
+	{ 0x2D, 2, _T("BLT"),   REL    },
+	{ 0x2E, 2, _T("BGT"),   REL    },
+	{ 0x2F, 2, _T("BLE"),   REL    },
+
+	{ 0x30, 2, _T("LEAX"),  IND    },
+	{ 0x31, 2, _T("LEAY"),  IND    },
+	{ 0x32, 2, _T("LEAS"),  IND    },
+	{ 0x33, 2, _T("LEAU"),  IND    },
+	{ 0x34, 2, _T("PSHS"),  INH    },
+	{ 0x35, 2, _T("PULS"),  INH    },
+	{ 0x36, 2, _T("PSHU"),  INH    },
+	{ 0x37, 2, _T("PULU"),  INH    },
+	{ 0x38, 2, _T("ANDCC"), IMM    },
+	{ 0x39, 1, _T("RTS"),   INH    },
+	{ 0x3A, 1, _T("ABX"),   INH    },
+	{ 0x3B, 1, _T("RTI"),   INH    },
+	{ 0x3C, 2, _T("CWAI"),  IMM    },
+	{ 0x3D, 1, _T("MUL"),   INH    },
+	{ 0x3F, 1, _T("SWI"),   INH    },
+
+	{ 0x40, 1, _T("NEGA"),  INH    },
+	{ 0x41, 1, _T("NEGA"),  INH    },
+	{ 0x42, 1, _T("NGGA"),  INH    },
+	{ 0x43, 1, _T("COMA"),  INH    },
+	{ 0x44, 1, _T("LSRA"),  INH    },
+	{ 0x45, 1, _T("LSRA"),  INH    },
+	{ 0x46, 1, _T("RORA"),  INH    },
+	{ 0x47, 1, _T("ASRA"),  INH    },
+	{ 0x48, 1, _T("ASLA"),  INH    },
+	{ 0x49, 1, _T("ROLA"),  INH    },
+	{ 0x4A, 1, _T("DECA"),  INH    },
+	{ 0x4B, 1, _T("DCCA"),  INH    },
+	{ 0x4C, 1, _T("INCA"),  INH    },
+	{ 0x4D, 1, _T("TSTA"),  INH    },
+	{ 0x4E, 1, _T("CLCA"),  INH    },
+	{ 0x4F, 1, _T("CLRA"),  INH    },
+
+	{ 0x50, 1, _T("NEGB"),  INH    },
+	{ 0x51, 1, _T("NEGB"),  INH    },
+	{ 0x52, 1, _T("NGGB"),  INH    },
+	{ 0x53, 1, _T("COMB"),  INH    },
+	{ 0x54, 1, _T("LSRB"),  INH    },
+	{ 0x55, 1, _T("LSRB"),  INH    },
+	{ 0x56, 1, _T("RORB"),  INH    },
+	{ 0x57, 1, _T("ASRB"),  INH    },
+	{ 0x58, 1, _T("ASLB"),  INH    },
+	{ 0x59, 1, _T("ROLB"),  INH    },
+	{ 0x5A, 1, _T("DECB"),  INH    },
+	{ 0x5B, 1, _T("DCCB"),  INH    },
+	{ 0x5C, 1, _T("INCB"),  INH    },
+	{ 0x5D, 1, _T("TSTB"),  INH    },
+	{ 0x5E, 1, _T("CLCB"),  INH    },
+	{ 0x5F, 1, _T("CLRB"),  INH    },
+
+	{ 0x60, 2, _T("NEG"),   IND    },
+	{ 0x61, 2, _T("NEG"),   IND    },
+	{ 0x62, 2, _T("NGC"),   IND    },
+	{ 0x63, 2, _T("COM"),   IND    },
+	{ 0x64, 2, _T("LSR"),   IND    },
+	{ 0x65, 2, _T("LSR"),   IND    },
+	{ 0x66, 2, _T("ROR"),   IND    },
+	{ 0x67, 2, _T("ASR"),   IND    },
+	{ 0x68, 2, _T("ASL"),   IND    },
+	{ 0x69, 2, _T("ROL"),   IND    },
+	{ 0x6A, 2, _T("DEC"),   IND    },
+	{ 0x6B, 2, _T("DCC"),   IND    },
+	{ 0x6C, 2, _T("INC"),   IND    },
+	{ 0x6D, 2, _T("TST"),   IND    },
+	{ 0x6E, 2, _T("JMP"),   IND    },
+	{ 0x6F, 2, _T("CLR"),   IND    },
+
+	{ 0x70, 3, _T("NEG"),   EXT    },
+	{ 0x71, 3, _T("NEG"),   EXT    },
+	{ 0x72, 3, _T("NGC"),   EXT    },
+	{ 0x73, 3, _T("COM"),   EXT    },
+	{ 0x74, 3, _T("LSR"),   EXT    },
+	{ 0x75, 3, _T("LSR"),   EXT    },
+	{ 0x76, 3, _T("ROR"),   EXT    },
+	{ 0x77, 3, _T("ASR"),   EXT    },
+	{ 0x78, 3, _T("ASL"),   EXT    },
+	{ 0x79, 3, _T("ROL"),   EXT    },
+	{ 0x7A, 3, _T("DEC"),   EXT    },
+	{ 0x7B, 3, _T("DCC"),   EXT    },
+	{ 0x7C, 3, _T("INC"),   EXT    },
+	{ 0x7D, 3, _T("TST"),   EXT    },
+	{ 0x7E, 3, _T("JMP"),   EXT    },
+	{ 0x7F, 3, _T("CLR"),   EXT    },
+
+	{ 0x80, 2, _T("SUBA"),  IMM    },
+	{ 0x81, 2, _T("CMPA"),  IMM    },
+	{ 0x82, 2, _T("SBCA"),  IMM    },
+	{ 0x83, 3, _T("SUBD"),  IMM    },
+	{ 0x84, 2, _T("ANDA"),  IMM    },
+	{ 0x85, 2, _T("BITA"),  IMM    },
+	{ 0x86, 2, _T("LDA"),   IMM    },
+	{ 0x87, 2, _T("FLAG"),  IMM    },
+	{ 0x88, 2, _T("EORA"),  IMM    },
+	{ 0x89, 2, _T("ADCA"),  IMM    },
+	{ 0x8A, 2, _T("ORA"),   IMM    },
+	{ 0x8B, 2, _T("ADDA"),  IMM    },
+	{ 0x8C, 3, _T("CMPX"),  IMM    },
+	{ 0x8D, 2, _T("BSR"),   REL    },
+	{ 0x8E, 3, _T("LDX"),   IMM    },
+	{ 0x8F, 3, _T("FLAG"),  IMM    },
+
+	{ 0x90, 2, _T("SUBA"),  DIR    },
+	{ 0x91, 2, _T("CMPA"),  DIR    },
+	{ 0x92, 2, _T("SBCA"),  DIR    },
+	{ 0x93, 2, _T("SUBD"),  DIR    },
+	{ 0x94, 2, _T("ANDA"),  DIR    },
+	{ 0x95, 2, _T("BITA"),  DIR    },
+	{ 0x96, 2, _T("LDA"),   DIR    },
+	{ 0x97, 2, _T("STA"),   DIR    },
+	{ 0x98, 2, _T("EORA"),  DIR    },
+	{ 0x99, 2, _T("ADCA"),  DIR    },
+	{ 0x9A, 2, _T("ORA"),   DIR    },
+	{ 0x9B, 2, _T("ADDA"),  DIR    },
+	{ 0x9C, 2, _T("CMPX"),  DIR    },
+	{ 0x9D, 2, _T("JSR"),   DIR    },
+	{ 0x9E, 2, _T("LDX"),   DIR    },
+	{ 0x9F, 2, _T("STX"),   DIR    },
+
+	{ 0xA0, 2, _T("SUBA"),  IND    },
+	{ 0xA1, 2, _T("CMPA"),  IND    },
+	{ 0xA2, 2, _T("SBCA"),  IND    },
+	{ 0xA3, 2, _T("SUBD"),  IND    },
+	{ 0xA4, 2, _T("ANDA"),  IND    },
+	{ 0xA5, 2, _T("BITA"),  IND    },
+	{ 0xA6, 2, _T("LDA"),   IND    },
+	{ 0xA7, 2, _T("STA"),   IND    },
+	{ 0xA8, 2, _T("EORA"),  IND    },
+	{ 0xA9, 2, _T("ADCA"),  IND    },
+	{ 0xAA, 2, _T("ORA"),   IND    },
+	{ 0xAB, 2, _T("ADDA"),  IND    },
+	{ 0xAC, 2, _T("CMPX"),  IND    },
+	{ 0xAD, 2, _T("JSR"),   IND    },
+	{ 0xAE, 2, _T("LDX"),   IND    },
+	{ 0xAF, 2, _T("STX"),   IND    },
+
+	{ 0xB0, 3, _T("SUBA"),  EXT    },
+	{ 0xB1, 3, _T("CMPA"),  EXT    },
+	{ 0xB2, 3, _T("SBCA"),  EXT    },
+	{ 0xB3, 3, _T("SUBD"),  EXT    },
+	{ 0xB4, 3, _T("ANDA"),  EXT    },
+	{ 0xB5, 3, _T("BITA"),  EXT    },
+	{ 0xB6, 3, _T("LDA"),   EXT    },
+	{ 0xB7, 3, _T("STA"),   EXT    },
+	{ 0xB8, 3, _T("EORA"),  EXT    },
+	{ 0xB9, 3, _T("ADCA"),  EXT    },
+	{ 0xBA, 3, _T("ORA"),   EXT    },
+	{ 0xBB, 3, _T("ADDA"),  EXT    },
+	{ 0xBC, 3, _T("CMPX"),  EXT    },
+	{ 0xBD, 3, _T("JSR"),   EXT    },
+	{ 0xBE, 3, _T("LDX"),   EXT    },
+	{ 0xBF, 3, _T("STX"),   EXT    },
+
+	{ 0xC0, 2, _T("SUBB"),  IMM    },
+	{ 0xC1, 2, _T("CMPB"),  IMM    },
+	{ 0xC2, 2, _T("SBCB"),  IMM    },
+	{ 0xC3, 3, _T("ADDD"),  IMM    },
+	{ 0xC4, 2, _T("ANDB"),  IMM    },
+	{ 0xC5, 2, _T("BITB"),  IMM    },
+	{ 0xC6, 2, _T("LDB"),   IMM    },
+	{ 0xC7, 2, _T("FLAG"),  IMM    },
+	{ 0xC8, 2, _T("EORB"),  IMM    },
+	{ 0xC9, 2, _T("ADCB"),  IMM    },
+	{ 0xCA, 2, _T("ORB"),   IMM    },
+	{ 0xCB, 2, _T("ADDB"),  IMM    },
+	{ 0xCC, 3, _T("LDD"),   IMM    },
+	{ 0xCD, 1, _T("HALT"),  INH    },
+	{ 0xCE, 3, _T("LDU"),   IMM    },
+	{ 0xCF, 3, _T("FLAG"),  IMM    },
+
+	{ 0xD0, 2, _T("SUBB"),  DIR    },
+	{ 0xD1, 2, _T("CMPB"),  DIR    },
+	{ 0xD2, 2, _T("SBCB"),  DIR    },
+	{ 0xD3, 2, _T("ADDD"),  DIR    },
+	{ 0xD4, 2, _T("ANDB"),  DIR    },
+	{ 0xD5, 2, _T("BITB"),  DIR    },
+	{ 0xD6, 2, _T("LDB"),   DIR    },
+	{ 0xD7, 2, _T("STB"),   DIR    },
+	{ 0xD8, 2, _T("EORB"),  DIR    },
+	{ 0xD9, 2, _T("ADCB"),  DIR    },
+	{ 0xDA, 2, _T("ORB"),   DIR    },
+	{ 0xDB, 2, _T("ADDB"),  DIR    },
+	{ 0xDC, 2, _T("LDD"),   DIR    },
+	{ 0xDD, 2, _T("STD"),   DIR    },
+	{ 0xDE, 2, _T("LDU"),   DIR    },
+	{ 0xDF, 2, _T("STU"),   DIR    },
+
+	{ 0xE0, 2, _T("SUBB"),  IND    },
+	{ 0xE1, 2, _T("CMPB"),  IND    },
+	{ 0xE2, 2, _T("SBCB"),  IND    },
+	{ 0xE3, 2, _T("ADDD"),  IND    },
+	{ 0xE4, 2, _T("ANDB"),  IND    },
+	{ 0xE5, 2, _T("BITB"),  IND    },
+	{ 0xE6, 2, _T("LDB"),   IND    },
+	{ 0xE7, 2, _T("STB"),   IND    },
+	{ 0xE8, 2, _T("EORB"),  IND    },
+	{ 0xE9, 2, _T("ADCB"),  IND    },
+	{ 0xEA, 2, _T("ORB"),   IND    },
+	{ 0xEB, 2, _T("ADDB"),  IND    },
+	{ 0xEC, 2, _T("LDD"),   IND    },
+	{ 0xED, 2, _T("STD"),   IND    },
+	{ 0xEE, 2, _T("LDU"),   IND    },
+	{ 0xEF, 2, _T("STU"),   IND    },
+
+	{ 0xF0, 3, _T("SUBB"),  EXT    },
+	{ 0xF1, 3, _T("CMPB"),  EXT    },
+	{ 0xF2, 3, _T("SBCB"),  EXT    },
+	{ 0xF3, 3, _T("ADDD"),  EXT    },
+	{ 0xF4, 3, _T("ANDB"),  EXT    },
+	{ 0xF5, 3, _T("BITB"),  EXT    },
+	{ 0xF6, 3, _T("LDB"),   EXT    },
+	{ 0xF7, 3, _T("STB"),   EXT    },
+	{ 0xF8, 3, _T("EORB"),  EXT    },
+	{ 0xF9, 3, _T("ADCB"),  EXT    },
+	{ 0xFA, 3, _T("ORB"),   EXT    },
+	{ 0xFB, 3, _T("ADDB"),  EXT    },
+	{ 0xFC, 3, _T("LDD"),   EXT    },
+	{ 0xFD, 3, _T("STD"),   EXT    },
+	{ 0xFE, 3, _T("LDU"),   EXT    },
+	{ 0xFF, 3, _T("STU"),   EXT    }
+};
+
+// Page 1 opcodes (0x10 0x..)
+static const opcodeinfo m6809_pg1opcodes[] =
+{
+	{ 0x20, 4, _T("LBRA"),  LREL   },
+	{ 0x21, 4, _T("LBRN"),  LREL   },
+	{ 0x22, 4, _T("LBHI"),  LREL   },
+	{ 0x23, 4, _T("LBLS"),  LREL   },
+	{ 0x24, 4, _T("LBCC"),  LREL   },
+	{ 0x25, 4, _T("LBCS"),  LREL   },
+	{ 0x26, 4, _T("LBNE"),  LREL   },
+	{ 0x27, 4, _T("LBEQ"),  LREL   },
+	{ 0x28, 4, _T("LBVC"),  LREL   },
+	{ 0x29, 4, _T("LBVS"),  LREL   },
+	{ 0x2A, 4, _T("LBPL"),  LREL   },
+	{ 0x2B, 4, _T("LBMI"),  LREL   },
+	{ 0x2C, 4, _T("LBGE"),  LREL   },
+	{ 0x2D, 4, _T("LBLT"),  LREL   },
+	{ 0x2E, 4, _T("LBGT"),  LREL   },
+	{ 0x2F, 4, _T("LBLE"),  LREL   },
+	{ 0x3F, 2, _T("SWI2"),  INH    },
+	{ 0x83, 4, _T("CMPD"),  IMM    },
+	{ 0x8C, 4, _T("CMPY"),  IMM    },
+	{ 0x8D, 4, _T("LBSR"),  LREL   },
+	{ 0x8E, 4, _T("LDY"),   IMM    },
+	{ 0x93, 3, _T("CMPD"),  DIR    },
+	{ 0x9C, 3, _T("CMPY"),  DIR    },
+	{ 0x9E, 3, _T("LDY"),   DIR    },
+	{ 0x9F, 3, _T("STY"),   DIR    },
+	{ 0xA3, 3, _T("CMPD"),  IND    },
+	{ 0xAC, 3, _T("CMPY"),  IND    },
+	{ 0xAE, 3, _T("LDY"),   IND    },
+	{ 0xAF, 3, _T("STY"),   IND    },
+	{ 0xB3, 4, _T("CMPD"),  EXT    },
+	{ 0xBC, 4, _T("CMPY"),  EXT    },
+	{ 0xBE, 4, _T("LDY"),   EXT    },
+	{ 0xBF, 4, _T("STY"),   EXT    },
+	{ 0xCE, 4, _T("LDS"),   IMM    },
+	{ 0xDE, 3, _T("LDS"),   DIR    },
+	{ 0xDF, 3, _T("STS"),   DIR    },
+	{ 0xEE, 3, _T("LDS"),   IND    },
+	{ 0xEF, 3, _T("STS"),   IND    },
+	{ 0xFE, 4, _T("LDS"),   EXT    },
+	{ 0xFF, 4, _T("STS"),   EXT    }
+};
+
+// Page 2 opcodes (0x11 0x..)
+static const opcodeinfo m6809_pg2opcodes[] =
+{
+	{ 0x3F, 2, _T("SWI3"),  INH    },
+	{ 0x83, 4, _T("CMPU"),  IMM    },
+	{ 0x8C, 4, _T("CMPS"),  IMM    },
+	{ 0x93, 3, _T("CMPU"),  DIR    },
+	{ 0x9C, 3, _T("CMPS"),  DIR    },
+	{ 0xA3, 3, _T("CMPU"),  IND    },
+	{ 0xAC, 3, _T("CMPS"),  IND    },
+	{ 0xB3, 4, _T("CMPU"),  EXT    },
+	{ 0xBC, 4, _T("CMPS"),  EXT    }
+};
+
+static const opcodeinfo *const m6809_pgpointers[3] =
+{
+	m6809_pg0opcodes, m6809_pg1opcodes, m6809_pg2opcodes
+};
+
+static const int m6809_numops[3] =
+{
+	array_length(m6809_pg0opcodes),
+	array_length(m6809_pg1opcodes),
+	array_length(m6809_pg2opcodes)
+};
+
+static const _TCHAR *const m6809_regs[5] = { _T("X"), _T("Y"), _T("U"), _T("S"), _T("PC") };
+
+static const _TCHAR *const m6809_regs_te[16] =
+{
+	_T("D"), _T("X"),  _T("Y"),  _T("U"),   _T("S"),  _T("PC"), _T("inv"), _T("inv"),
+	_T("A"), _T("B"), _T("CC"), _T("DP"), _T("inv"), _T("inv"), _T("inv"), _T("inv")
+};
+
+uint32_t MC6809::cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_t *oprom, const uint8_t *opram)
+{
+#ifdef USE_DEBUGGER
+	uint8_t opcode, mode, pb, pbm, reg;
+	const uint8_t *operandarray;
+	unsigned int ea;//, flags;
+	int numoperands, offset;
+	int i, p = 0, page = 0;
+	bool opcode_found = false;
+	bool indirect;
+	const _TCHAR *name = NULL;
+
+	do {
+		opcode = oprom[p++];
+
+		for (i = 0; i < m6809_numops[page]; i++)
+			if (m6809_pgpointers[page][i].opcode == opcode)
+				break;
+
+		if (i < m6809_numops[page])
+			opcode_found = true;
+		else
+		{
+			_stprintf(buffer, _T("Illegal Opcode %02X"), opcode);
+			return p;
+		}
+
+		if (m6809_pgpointers[page][i].mode >= PG1)
+		{
+			page = m6809_pgpointers[page][i].mode - PG1 + 1;
+			opcode_found = false;
+		}
+	} while (!opcode_found);
+
+	if (page == 0)
+		numoperands = m6809_pgpointers[page][i].length - 1;
+	else
+		numoperands = m6809_pgpointers[page][i].length - 2;
+
+	operandarray = &opram[p];
+	p += numoperands;
+	pc += p;
+	mode = m6809_pgpointers[page][i].mode;
+//	flags = m6809_pgpointers[page][i].flags;
+
+	buffer += _stprintf(buffer, _T("%-6s"), m6809_pgpointers[page][i].name);
+
+	switch (mode)
+	{
+	case INH:
+		switch (opcode)
+		{
+		case 0x34:  // PSHS
+		case 0x36:  // PSHU
+			pb = operandarray[0];
+			if (pb & 0x80)
+				buffer += _stprintf(buffer, _T("PC"));
+			if (pb & 0x40)
+				buffer += _stprintf(buffer, _T("%s%s"), (pb&0x80)?_T(","):_T(""), (opcode==0x34)?"U":"S");
+			if (pb & 0x20)
+				buffer += _stprintf(buffer, _T("%sY"),  (pb&0xc0)?_T(","):_T(""));
+			if (pb & 0x10)
+				buffer += _stprintf(buffer, _T("%sX"),  (pb&0xe0)?_T(","):_T(""));
+			if (pb & 0x08)
+				buffer += _stprintf(buffer, _T("%sDP"), (pb&0xf0)?_T(","):_T(""));
+			if (pb & 0x04)
+				buffer += _stprintf(buffer, _T("%sB"),  (pb&0xf8)?_T(","):_T(""));
+			if (pb & 0x02)
+				buffer += _stprintf(buffer, _T("%sA"),  (pb&0xfc)?_T(","):_T(""));
+			if (pb & 0x01)
+				buffer += _stprintf(buffer, _T("%sCC"), (pb&0xfe)?_T(","):_T(""));
+			break;
+		case 0x35:  // PULS
+		case 0x37:  // PULU
+			pb = operandarray[0];
+			if (pb & 0x01)
+				buffer += _stprintf(buffer, _T("CC"));
+			if (pb & 0x02)
+				buffer += _stprintf(buffer, _T("%sA"),  (pb&0x01)?_T(","):_T(""));
+			if (pb & 0x04)
+				buffer += _stprintf(buffer, _T("%sB"),  (pb&0x03)?_T(","):_T(""));
+			if (pb & 0x08)
+				buffer += _stprintf(buffer, _T("%sDP"), (pb&0x07)?_T(","):_T(""));
+			if (pb & 0x10)
+				buffer += _stprintf(buffer, _T("%sX"),  (pb&0x0f)?_T(","):_T(""));
+			if (pb & 0x20)
+				buffer += _stprintf(buffer, _T("%sY"),  (pb&0x1f)?_T(","):_T(""));
+			if (pb & 0x40)
+				buffer += _stprintf(buffer, _T("%s%s"), (pb&0x3f)?_T(","):_T(""), (opcode==0x35)?_T("U"):_T("S"));
+			if (pb & 0x80)
+				buffer += _stprintf(buffer, _T("%sPC ; (PUL? PC=RTS)"), (pb&0x7f)?_T(","):_T(""));
+			break;
+		default:
+			// No operands
+			break;
+		}
+		break;
+
+	case DIR:
+		ea = operandarray[0];
+		buffer += _stprintf(buffer, _T("$%02X"), ea);
+		break;
+
+	case REL:
+		offset = (int8_t)operandarray[0];
+		buffer += _stprintf(buffer, _T("%s"), get_value_or_symbol(d_debugger->first_symbol, _T("$%04X"), (pc + offset) & 0xffff));
+		break;
+
+	case LREL:
+		offset = (int16_t)((operandarray[0] << 8) + operandarray[1]);
+		buffer += _stprintf(buffer, _T("%s"), get_value_or_symbol(d_debugger->first_symbol, _T("$%04X"), (pc + offset) & 0xffff));
+		break;
+
+	case EXT:
+		ea = (operandarray[0] << 8) + operandarray[1];
+		buffer += _stprintf(buffer, _T("%s"), get_value_or_symbol(d_debugger->first_symbol, _T("$%04X"), ea));
+		break;
+
+	case IND:
+		pb = operandarray[0];
+		reg = (pb >> 5) & 3;
+		pbm = pb & 0x8f;
+		indirect = ((pb & 0x90) == 0x90 )? true : false;
+
+		// open brackets if indirect
+		if (indirect && pbm != 0x80 && pbm != 0x82)
+			buffer += _stprintf(buffer, _T("["));
+
+		switch (pbm)
+		{
+		case 0x80:  // ,R+
+			if (indirect)
+				_tcscpy(buffer, _T("Illegal Postbyte"));
+			else
+				buffer += _stprintf(buffer, _T(",%s+"), m6809_regs[reg]);
+			break;
+
+		case 0x81:  // ,R++
+			buffer += _stprintf(buffer, _T(",%s++"), m6809_regs[reg]);
+			break;
+
+		case 0x82:  // ,-R
+		  //if (indirect)
+		  //	_tcscpy(buffer, _T("Illegal Postbyte"));
+		  //	else
+				buffer += _stprintf(buffer, _T(",-%s"), m6809_regs[reg]);
+			break;
+
+		case 0x83:  // ,--R
+			buffer += _stprintf(buffer, _T(",--%s"), m6809_regs[reg]);
+			break;
+
+		case 0x84:  // ,R
+			buffer += _stprintf(buffer, _T(",%s"), m6809_regs[reg]);
+			break;
+
+		case 0x85:  // (+/- B),R
+			buffer += _stprintf(buffer, _T("B,%s"), m6809_regs[reg]);
+			break;
+
+		case 0x86:  // (+/- A),R
+			buffer += _stprintf(buffer, _T("A,%s"), m6809_regs[reg]);
+			break;
+
+		case 0x87:  // (+/- A),R // Also 0x*6.
+			buffer += _stprintf(buffer, _T("A,%s"), m6809_regs[reg]);
+			break;
+			//case 0x87:
+			//_tcscpy(buffer, _T("Illegal Postbyte"));
+			//break;
+
+		case 0x88:  // (+/- 7 bit offset),R
+			offset = (int8_t)opram[p++];
+			buffer += _stprintf(buffer, _T("%s"), (offset < 0) ? "-" : "");
+			buffer += _stprintf(buffer, _T("$%02X,"), (offset < 0) ? -offset : offset);
+			buffer += _stprintf(buffer, _T("%s"), m6809_regs[reg]);
+			break;
+
+		case 0x89:  // (+/- 15 bit offset),R
+			offset = (int16_t)((opram[p+0] << 8) + opram[p+1]);
+			p += 2;
+			buffer += _stprintf(buffer, _T("%s"), (offset < 0) ? "-" : "");
+			buffer += _stprintf(buffer, _T("$%04X,"), (offset < 0) ? -offset : offset);
+			buffer += _stprintf(buffer, _T("%s"), m6809_regs[reg]);
+			break;
+
+		case 0x8a:
+			_tcscpy(buffer, _T("Illegal Postbyte"));
+			break;
+
+		case 0x8b:  // (+/- D),R
+			buffer += _stprintf(buffer, _T("D,%s"), m6809_regs[reg]);
+			break;
+
+		case 0x8c:  // (+/- 7 bit offset),PC
+			offset = (int8_t)opram[p++];
+			if((name = get_symbol(d_debugger->first_symbol, (p - 1 + offset) & 0xffff)) != NULL) {
+				buffer += _stprintf(buffer, _T("%s,PCR"), name);
+			} else {
+				buffer += _stprintf(buffer, _T("%s"), (offset < 0) ? "-" : "");
+				buffer += _stprintf(buffer, _T("$%02X,PC"), (offset < 0) ? -offset : offset);
+			}
+			break;
+
+		case 0x8d:  // (+/- 15 bit offset),PC
+			offset = (int16_t)((opram[p+0] << 8) + opram[p+1]);
+			p += 2;
+			if((name = get_symbol(d_debugger->first_symbol, (p - 2 + offset) & 0xffff)) != NULL) {
+				buffer += _stprintf(buffer, _T("%s,PCR"), name);
+			} else {
+				buffer += _stprintf(buffer, _T("%s"), (offset < 0) ? "-" : "");
+				buffer += _stprintf(buffer, _T("$%04X,PC"), (offset < 0) ? -offset : offset);
+			}
+			break;
+
+		case 0x8e: // $FFFFF
+		  //_tcscpy(buffer, _T("Illegal Postbyte"));
+			offset = (int16_t)0xffff;
+			//p += 2;
+			buffer += _stprintf(buffer, _T("$%04X"), offset);
+			break;
+
+		case 0x8f:  // address
+			ea = (uint16_t)((opram[p+0] << 8) + opram[p+1]);
+			p += 2;
+			buffer += _stprintf(buffer, _T("%s"), get_value_or_symbol(d_debugger->first_symbol, _T("$%04X"), ea));
+			break;
+
+		default:    // (+/- 4 bit offset),R
+			offset = pb & 0x1f;
+			if (offset > 15)
+				offset = offset - 32;
+			buffer += _stprintf(buffer, _T("%s"), (offset < 0) ? "-" : "");
+			buffer += _stprintf(buffer, _T("$%X,"), (offset < 0) ? -offset : offset);
+			buffer += _stprintf(buffer, _T("%s"), m6809_regs[reg]);
+			break;
+		}
+
+		// close brackets if indirect
+		if (indirect && pbm != 0x80 && pbm != 0x82)
+			buffer += _stprintf(buffer, _T("]"));
+		break;
+
+	case IMM:
+		if (numoperands == 2)
+		{
+			ea = (operandarray[0] << 8) + operandarray[1];
+			buffer += _stprintf(buffer, _T("#%s"), get_value_or_symbol(d_debugger->first_symbol, _T("$%04X"), ea));
+		}
+		else
+		if (numoperands == 1)
+		{
+			ea = operandarray[0];
+			buffer += _stprintf(buffer, _T("#$%02X"), ea);
+		}
+		break;
+
+	case IMM_RR:
+		pb = operandarray[0];
+		buffer += _stprintf(buffer, _T("%s,%s"), m6809_regs_te[(pb >> 4) & 0xf], m6809_regs_te[pb & 0xf]);
+		break;
+	}
+
+	return p;
+#else
 	return 0;
+#endif
 }
 
-int MC6809_BASE::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
+int MC6809::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
+#ifdef USE_DEBUGGER
+	_TCHAR buffer_tmp[1024]; // enough ???
+	uint8_t ops[4];
+	for(int i = 0; i < 4; i++) {
+		ops[i] = d_mem_stored->read_data8(pc + i);
+	}
+	int length = cpu_disassemble_m6809(buffer_tmp, pc, ops, ops);
+	my_tcscpy_s(buffer, buffer_len, buffer_tmp);
+	return length;
+#else
 	return 0;
+#endif
 }
 
 
 
-inline void MC6809_BASE::fetch_effective_address()
+
+inline void MC6809::fetch_effective_address()
 {
 	uint8_t postbyte;
 	uint8_t upper, lower;
@@ -569,7 +1391,7 @@ inline void MC6809_BASE::fetch_effective_address()
 	icount -= index_cycle_em[postbyte];
 }
 
-inline void MC6809_BASE::fetch_effective_address_IDX(uint8_t upper, uint8_t lower)
+inline void MC6809::fetch_effective_address_IDX(uint8_t upper, uint8_t lower)
 {
 	bool indirect = false;
 	uint16_t *reg;
@@ -673,7 +1495,7 @@ OP_HANDLER(illegal)
 //        PC-=1;
 }
 
-inline uint8_t MC6809_BASE::GET_INDEXED_DATA(void)
+inline uint8_t MC6809::GET_INDEXED_DATA(void)
 {
 	uint8_t t;
 	fetch_effective_address();
@@ -681,7 +1503,7 @@ inline uint8_t MC6809_BASE::GET_INDEXED_DATA(void)
 	return t;
 }
 
-inline pair_t MC6809_BASE::GET_INDEXED_DATA16(void)
+inline pair_t MC6809::GET_INDEXED_DATA16(void)
 {
 	pair_t t;
 	fetch_effective_address();
@@ -690,7 +1512,7 @@ inline pair_t MC6809_BASE::GET_INDEXED_DATA16(void)
 }
 
 // $x0, $x1
-inline void MC6809_BASE::NEG_MEM(uint8_t a_neg)
+inline void MC6809::NEG_MEM(uint8_t a_neg)
 {							
 	uint16_t r_neg;					
 	r_neg = 0 - (uint16_t)a_neg;
@@ -699,7 +1521,7 @@ inline void MC6809_BASE::NEG_MEM(uint8_t a_neg)
 	WM(EAD, r_neg);					
 }
 
-inline uint8_t MC6809_BASE::NEG_REG(uint8_t a_neg)
+inline uint8_t MC6809::NEG_REG(uint8_t a_neg)
 {
 	uint16_t r_neg;
 	r_neg = 0 - (uint16_t)a_neg;
@@ -710,7 +1532,7 @@ inline uint8_t MC6809_BASE::NEG_REG(uint8_t a_neg)
 
 
 // $x2
-inline void MC6809_BASE::COM_MEM(uint8_t a_com)
+inline void MC6809::COM_MEM(uint8_t a_com)
 {			 
 	uint8_t t_com;		 
 	t_com = ~a_com;	 
@@ -720,7 +1542,7 @@ inline void MC6809_BASE::COM_MEM(uint8_t a_com)
 	WM(EAD, t_com);
 }
 
-inline uint8_t MC6809_BASE::COM_REG(uint8_t r_com)
+inline uint8_t MC6809::COM_REG(uint8_t r_com)
 {
 	r_com = ~r_com;
 	CLR_NZVC;
@@ -729,7 +1551,7 @@ inline uint8_t MC6809_BASE::COM_REG(uint8_t r_com)
 	return r_com;
 }
 
-inline void MC6809_BASE::LSR_MEM(uint8_t t)
+inline void MC6809::LSR_MEM(uint8_t t)
 {
 	CLR_NZC;
 	CC = CC | (t & CC_C);
@@ -738,7 +1560,7 @@ inline void MC6809_BASE::LSR_MEM(uint8_t t)
 	WM(EAD, t);
 }
 
-inline uint8_t MC6809_BASE::LSR_REG(uint8_t r)
+inline uint8_t MC6809::LSR_REG(uint8_t r)
 {
 	CLR_NZC;
 	CC |= (r & CC_C);
@@ -747,7 +1569,7 @@ inline uint8_t MC6809_BASE::LSR_REG(uint8_t r)
 	return r;
 }
 
-inline void MC6809_BASE::ROR_MEM(uint8_t t)
+inline void MC6809::ROR_MEM(uint8_t t)
 {
 	uint8_t r;
 	r = (CC & CC_C) << 7;
@@ -759,7 +1581,7 @@ inline void MC6809_BASE::ROR_MEM(uint8_t t)
 	WM(EAD, r);
 }
 
-inline uint8_t MC6809_BASE::ROR_REG(uint8_t t)
+inline uint8_t MC6809::ROR_REG(uint8_t t)
 {
 	uint8_t r;
 	r = (CC & CC_C) << 7;
@@ -772,7 +1594,7 @@ inline uint8_t MC6809_BASE::ROR_REG(uint8_t t)
 }
 
 
-inline void MC6809_BASE::ASR_MEM(uint8_t t)
+inline void MC6809::ASR_MEM(uint8_t t)
 {
 	uint8_t r;
 	CLR_NZC;
@@ -784,7 +1606,7 @@ inline void MC6809_BASE::ASR_MEM(uint8_t t)
 	WM(EAD, r);
 }
 
-inline uint8_t MC6809_BASE::ASR_REG(uint8_t t)
+inline uint8_t MC6809::ASR_REG(uint8_t t)
 {
 	uint8_t r;
 	CLR_NZC;
@@ -796,7 +1618,7 @@ inline uint8_t MC6809_BASE::ASR_REG(uint8_t t)
 	return r;
 }
 
-inline void MC6809_BASE::ASL_MEM(uint8_t t)
+inline void MC6809::ASL_MEM(uint8_t t)
 {
 	uint16_t r, tt;
 	tt = (uint16_t)t & 0x00ff;
@@ -807,7 +1629,7 @@ inline void MC6809_BASE::ASL_MEM(uint8_t t)
 	WM(EAD, (uint8_t)r);
 }
 
-inline uint8_t MC6809_BASE::ASL_REG(uint8_t t)
+inline uint8_t MC6809::ASL_REG(uint8_t t)
 {
 	uint16_t r, tt;
 	tt = (uint16_t)t & 0x00ff;
@@ -818,7 +1640,7 @@ inline uint8_t MC6809_BASE::ASL_REG(uint8_t t)
 	return (uint8_t)r;
 }
 
-inline void MC6809_BASE::ROL_MEM(uint8_t t)
+inline void MC6809::ROL_MEM(uint8_t t)
 {
 	uint16_t r, tt;
 	tt = (uint16_t)t & 0x00ff;
@@ -835,7 +1657,7 @@ inline void MC6809_BASE::ROL_MEM(uint8_t t)
 	WM(EAD, (uint8_t)r);
 }
 
-inline uint8_t MC6809_BASE::ROL_REG(uint8_t t)
+inline uint8_t MC6809::ROL_REG(uint8_t t)
 {
 	uint16_t r, tt;
 	tt = (uint16_t)t & 0x00ff;
@@ -852,7 +1674,7 @@ inline uint8_t MC6809_BASE::ROL_REG(uint8_t t)
 	return (uint8_t)r;
 }
 
-inline void MC6809_BASE::DEC_MEM(uint8_t t)
+inline void MC6809::DEC_MEM(uint8_t t)
 {
 	uint16_t tt;
 	tt = t - 1;
@@ -861,7 +1683,7 @@ inline void MC6809_BASE::DEC_MEM(uint8_t t)
 	WM(EAD, tt);
 }
 
-inline uint8_t MC6809_BASE::DEC_REG(uint8_t t)
+inline uint8_t MC6809::DEC_REG(uint8_t t)
 {
 	uint8_t tt;
 	tt = t - 1;
@@ -870,7 +1692,7 @@ inline uint8_t MC6809_BASE::DEC_REG(uint8_t t)
 	return tt;
 }
 
-inline void MC6809_BASE::DCC_MEM(uint8_t t)
+inline void MC6809::DCC_MEM(uint8_t t)
 {
 	uint16_t tt, ss;
 	tt = t - 1;
@@ -884,7 +1706,7 @@ inline void MC6809_BASE::DCC_MEM(uint8_t t)
 	WM(EAD, tt);
 }
 
-inline uint8_t MC6809_BASE::DCC_REG(uint8_t t)
+inline uint8_t MC6809::DCC_REG(uint8_t t)
 {
 	uint16_t tt, ss;
 	tt = t - 1;
@@ -898,7 +1720,7 @@ inline uint8_t MC6809_BASE::DCC_REG(uint8_t t)
 	return (uint8_t)tt;
 }
 
-inline void MC6809_BASE::INC_MEM(uint8_t t)
+inline void MC6809::INC_MEM(uint8_t t)
 {
 	uint16_t tt = t + 1;
 	CLR_NZV;
@@ -906,7 +1728,7 @@ inline void MC6809_BASE::INC_MEM(uint8_t t)
 	WM(EAD, tt);
 }
 
-inline uint8_t MC6809_BASE::INC_REG(uint8_t t)
+inline uint8_t MC6809::INC_REG(uint8_t t)
 {
 	uint16_t tt = t + 1;
 	CLR_NZV;
@@ -914,20 +1736,20 @@ inline uint8_t MC6809_BASE::INC_REG(uint8_t t)
 	return (uint8_t)tt;
 }
 
-inline void MC6809_BASE::TST_MEM(uint8_t t)
+inline void MC6809::TST_MEM(uint8_t t)
 {
 	CLR_NZV;
 	SET_NZ8(t);
 }
 
-inline uint8_t MC6809_BASE::TST_REG(uint8_t t)
+inline uint8_t MC6809::TST_REG(uint8_t t)
 {
 	CLR_NZV;
 	SET_NZ8(t);
 	return t;
 }
 
-inline uint8_t MC6809_BASE::CLC_REG(uint8_t t)
+inline uint8_t MC6809::CLC_REG(uint8_t t)
 {
 	uint8_t r;
 	r = 0;
@@ -937,21 +1759,21 @@ inline uint8_t MC6809_BASE::CLC_REG(uint8_t t)
 }
   
 
-inline void MC6809_BASE::CLR_MEM(uint8_t t)
+inline void MC6809::CLR_MEM(uint8_t t)
 {
 	WM(EAD, 0);
 	CLR_NZVC;
 	SEZ;
 }
 
-inline uint8_t MC6809_BASE::CLR_REG(uint8_t t)
+inline uint8_t MC6809::CLR_REG(uint8_t t)
 {
 	CLR_NZVC;
 	SEZ;
 	return 0;
 }
 
-inline uint8_t MC6809_BASE::SUB8_REG(uint8_t reg, uint8_t data)
+inline uint8_t MC6809::SUB8_REG(uint8_t reg, uint8_t data)
 {
 	uint16_t r;
 	r = (uint16_t)reg - (uint16_t)data;
@@ -961,7 +1783,7 @@ inline uint8_t MC6809_BASE::SUB8_REG(uint8_t reg, uint8_t data)
 	return (uint8_t)r;
 }
 
-inline uint8_t MC6809_BASE::CMP8_REG(uint8_t reg, uint8_t data)
+inline uint8_t MC6809::CMP8_REG(uint8_t reg, uint8_t data)
 {
 	uint16_t r;
 	r = (uint16_t)reg - (uint16_t)data;
@@ -971,7 +1793,7 @@ inline uint8_t MC6809_BASE::CMP8_REG(uint8_t reg, uint8_t data)
 	return reg;
 }
 
-inline uint8_t MC6809_BASE::SBC8_REG(uint8_t reg, uint8_t data)
+inline uint8_t MC6809::SBC8_REG(uint8_t reg, uint8_t data)
 {
 	uint16_t r;
 	uint8_t cc_c = CC & CC_C;
@@ -981,7 +1803,7 @@ inline uint8_t MC6809_BASE::SBC8_REG(uint8_t reg, uint8_t data)
 	return (uint8_t)r;
 }
 
-inline uint8_t MC6809_BASE::AND8_REG(uint8_t reg, uint8_t data)
+inline uint8_t MC6809::AND8_REG(uint8_t reg, uint8_t data)
 {
 	uint8_t r = reg;
 	r &= data;
@@ -990,7 +1812,7 @@ inline uint8_t MC6809_BASE::AND8_REG(uint8_t reg, uint8_t data)
 	return r;
 }
 
-inline uint8_t MC6809_BASE::BIT8_REG(uint8_t reg, uint8_t data)
+inline uint8_t MC6809::BIT8_REG(uint8_t reg, uint8_t data)
 {
 	uint16_t r;
 	r = reg & data;
@@ -1000,7 +1822,7 @@ inline uint8_t MC6809_BASE::BIT8_REG(uint8_t reg, uint8_t data)
 	return reg;
 }
 
-inline uint8_t MC6809_BASE::EOR8_REG(uint8_t reg, uint8_t data)
+inline uint8_t MC6809::EOR8_REG(uint8_t reg, uint8_t data)
 {
 	uint8_t r = reg;
 	r ^= data;
@@ -1009,7 +1831,7 @@ inline uint8_t MC6809_BASE::EOR8_REG(uint8_t reg, uint8_t data)
 	return r;
 }
 
-inline uint8_t MC6809_BASE::OR8_REG(uint8_t reg, uint8_t data)
+inline uint8_t MC6809::OR8_REG(uint8_t reg, uint8_t data)
 {
 	uint8_t r = reg;
 	r |= data;
@@ -1018,7 +1840,7 @@ inline uint8_t MC6809_BASE::OR8_REG(uint8_t reg, uint8_t data)
 	return r;
 }
 
-inline uint8_t MC6809_BASE::ADD8_REG(uint8_t reg, uint8_t data)
+inline uint8_t MC6809::ADD8_REG(uint8_t reg, uint8_t data)
 {
 	uint16_t t, r;
 	t = (uint16_t) data;
@@ -1029,7 +1851,7 @@ inline uint8_t MC6809_BASE::ADD8_REG(uint8_t reg, uint8_t data)
 	return (uint8_t)r;
 }
 
-inline uint8_t MC6809_BASE::ADC8_REG(uint8_t reg, uint8_t data)
+inline uint8_t MC6809::ADC8_REG(uint8_t reg, uint8_t data)
 {
 	uint16_t t, r;
 	uint8_t c_cc = CC & CC_C;
@@ -1041,21 +1863,21 @@ inline uint8_t MC6809_BASE::ADC8_REG(uint8_t reg, uint8_t data)
 	return (uint8_t)r;
 }	
 
-inline uint8_t MC6809_BASE::LOAD8_REG(uint8_t reg)
+inline uint8_t MC6809::LOAD8_REG(uint8_t reg)
 {
 	CLR_NZV;
 	SET_NZ8(reg);
 	return reg;
 }
 
-inline void MC6809_BASE::STORE8_REG(uint8_t reg)
+inline void MC6809::STORE8_REG(uint8_t reg)
 {
 	CLR_NZV;
 	SET_NZ8(reg);
 	WM(EAD, reg);
 }
 
-inline uint16_t MC6809_BASE::LOAD16_REG(uint16_t reg)
+inline uint16_t MC6809::LOAD16_REG(uint16_t reg)
 {
 	CLR_NZV;
 	SET_NZ16(reg);
@@ -1063,7 +1885,7 @@ inline uint16_t MC6809_BASE::LOAD16_REG(uint16_t reg)
 }
   
 
-inline uint16_t MC6809_BASE::SUB16_REG(uint16_t reg, uint16_t data)
+inline uint16_t MC6809::SUB16_REG(uint16_t reg, uint16_t data)
 {
 	uint32_t r, d;
 	d = reg;
@@ -1073,7 +1895,7 @@ inline uint16_t MC6809_BASE::SUB16_REG(uint16_t reg, uint16_t data)
 	return (uint16_t)r;
 }
 
-inline uint16_t MC6809_BASE::ADD16_REG(uint16_t reg, uint16_t data)
+inline uint16_t MC6809::ADD16_REG(uint16_t reg, uint16_t data)
 {
 	uint32_t r, d;
 	d = reg;
@@ -1083,7 +1905,7 @@ inline uint16_t MC6809_BASE::ADD16_REG(uint16_t reg, uint16_t data)
 	return (uint16_t)r;
 }
 
-inline uint16_t MC6809_BASE::CMP16_REG(uint16_t reg, uint16_t data)
+inline uint16_t MC6809::CMP16_REG(uint16_t reg, uint16_t data)
 {
 	uint32_t r, d;
 	d = reg;
@@ -1093,7 +1915,7 @@ inline uint16_t MC6809_BASE::CMP16_REG(uint16_t reg, uint16_t data)
 	return reg;
 }
 
-inline void MC6809_BASE::STORE16_REG(pair_t *p)
+inline void MC6809::STORE16_REG(pair_t *p)
 {
 	CLR_NZV;
 	SET_NZ16(p->w.l);
@@ -3738,13 +4560,16 @@ OP_HANDLER(pref11) {
 		}
 	}
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
-void MC6809_BASE::save_state(FILEIO* state_fio)
+void MC6809::save_state(FILEIO* state_fio)
 {
 	state_fio->FputUint32(STATE_VERSION);
 	state_fio->FputInt32(this_device_id);
 	
+#ifdef USE_DEBUGGER
+	state_fio->FputUint64(total_icount);
+#endif
 	state_fio->FputInt32(icount);
 	state_fio->FputInt32(extra_icount);
 	state_fio->FputUint32(int_state);
@@ -3761,7 +4586,7 @@ void MC6809_BASE::save_state(FILEIO* state_fio)
 	state_fio->FputUint32(ea.d);
 }
 
-bool MC6809_BASE::load_state(FILEIO* state_fio)
+bool MC6809::load_state(FILEIO* state_fio)
 {
 	if(state_fio->FgetUint32() != STATE_VERSION) {
 		return false;
@@ -3770,6 +4595,9 @@ bool MC6809_BASE::load_state(FILEIO* state_fio)
 		return false;
 	}
 	
+#ifdef USE_DEBUGGER
+	total_icount = prev_total_icount = state_fio->FgetUint64();
+#endif
 	icount = state_fio->FgetInt32();
 	extra_icount = state_fio->FgetInt32();
 	int_state = state_fio->FgetUint32();

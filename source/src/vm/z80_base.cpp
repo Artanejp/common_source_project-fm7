@@ -2224,10 +2224,11 @@ void Z80_BASE::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 F = [--------]  A = 00  BC = 0000  DE = 0000  HL = 0000  IX = 0000  IY = 0000
 F'= [--------]  A'= 00  BC'= 0000  DE'= 0000  HL'= 0000  SP = 0000  PC = 0000
         I = 00  R = 00 (BC)= 0000 (DE)= 0000 (HL)= 0000 (SP)= 0000  EI:IFF2=0
+Total CPU Clocks = 0 (0)
 */
 	int wait;
 	my_stprintf_s(buffer, buffer_len,
-	_T("F = [%c%c%c%c%c%c%c%c]  A = %02X  BC = %04X  DE = %04X  HL = %04X  IX = %04X  IY = %04X\nF'= [%c%c%c%c%c%c%c%c]  A'= %02X  BC'= %04X  DE'= %04X  HL'= %04X  SP = %04X  PC = %04X\n        I = %02X  R = %02X (BC)= %04X (DE)= %04X (HL)= %04X (SP)= %04X  %cI:IFF2=%d"),
+	_T("F = [%c%c%c%c%c%c%c%c]  A = %02X  BC = %04X  DE = %04X  HL = %04X  IX = %04X  IY = %04X\nF'= [%c%c%c%c%c%c%c%c]  A'= %02X  BC'= %04X  DE'= %04X  HL'= %04X  SP = %04X  PC = %04X\n        I = %02X  R = %02X (BC)= %04X (DE)= %04X (HL)= %04X (SP)= %04X  %cI:IFF2=%d\nTotal CPU Clocks = %llu (%llu)"),
 	(F & CF) ? _T('C') : _T('-'), (F & NF) ? _T('N') : _T('-'), (F & PF) ? _T('P') : _T('-'), (F & XF) ? _T('X') : _T('-'),
 	(F & HF) ? _T('H') : _T('-'), (F & YF) ? _T('Y') : _T('-'), (F & ZF) ? _T('Z') : _T('-'), (F & SF) ? _T('S') : _T('-'),
 	A, BC, DE, HL, IX, IY,
@@ -2236,7 +2237,9 @@ F'= [--------]  A'= 00  BC'= 0000  DE'= 0000  HL'= 0000  SP = 0000  PC = 0000
 	A2, BC2, DE2, HL2, SP, PC,
 	I, R,
 	d_mem_stored->read_data16w(BC, &wait), d_mem_stored->read_data16w(DE, &wait), d_mem_stored->read_data16w(HL, &wait), d_mem_stored->read_data16w(SP, &wait),
-	iff1 ? _T('E') : _T('D'), iff2);
+	iff1 ? _T('E') : _T('D'), iff2,
+	total_icount, total_icount - prev_total_icount);
+	prev_total_icount = total_icount;
 }
 
 // disassembler
@@ -3641,83 +3644,4 @@ static void dasm_fdcb(uint32_t pc, _TCHAR *buffer, size_t buffer_len, symbol_t *
 //#endif
 }
 
-#define STATE_VERSION	1
-
-void Z80_BASE::save_state(FILEIO* state_fio)
-{
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->FputInt32(icount);
-	state_fio->FputInt32(extra_icount);
-	state_fio->FputUint16(prevpc);
-	state_fio->FputUint32(pc.d);
-	state_fio->FputUint32(sp.d);
-	state_fio->FputUint32(af.d);
-	state_fio->FputUint32(bc.d);
-	state_fio->FputUint32(de.d);
-	state_fio->FputUint32(hl.d);
-	state_fio->FputUint32(ix.d);
-	state_fio->FputUint32(iy.d);
-	state_fio->FputUint32(wz.d);
-	state_fio->FputUint32(af2.d);
-	state_fio->FputUint32(bc2.d);
-	state_fio->FputUint32(de2.d);
-	state_fio->FputUint32(hl2.d);
-	state_fio->FputUint8(I);
-	state_fio->FputUint8(R);
-	state_fio->FputUint8(R2);
-	state_fio->FputUint32(ea);
-	state_fio->FputBool(busreq);
-	state_fio->FputBool(after_halt);
-	state_fio->FputUint8(im);
-	state_fio->FputUint8(iff1);
-	state_fio->FputUint8(iff2);
-	state_fio->FputUint8(icr);
-	state_fio->FputBool(after_ei);
-	state_fio->FputBool(after_ldair);
-	state_fio->FputUint32(intr_req_bit);
-	state_fio->FputUint32(intr_pend_bit);
-}
-
-bool Z80_BASE::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
-	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	icount = state_fio->FgetInt32();
-	extra_icount = state_fio->FgetInt32();
-	prevpc = state_fio->FgetUint16();
-	pc.d = state_fio->FgetUint32();
-	sp.d = state_fio->FgetUint32();
-	af.d = state_fio->FgetUint32();
-	bc.d = state_fio->FgetUint32();
-	de.d = state_fio->FgetUint32();
-	hl.d = state_fio->FgetUint32();
-	ix.d = state_fio->FgetUint32();
-	iy.d = state_fio->FgetUint32();
-	wz.d = state_fio->FgetUint32();
-	af2.d = state_fio->FgetUint32();
-	bc2.d = state_fio->FgetUint32();
-	de2.d = state_fio->FgetUint32();
-	hl2.d = state_fio->FgetUint32();
-	I = state_fio->FgetUint8();
-	R = state_fio->FgetUint8();
-	R2 = state_fio->FgetUint8();
-	ea = state_fio->FgetUint32();
-	busreq = state_fio->FgetBool();
-	after_halt = state_fio->FgetBool();
-	im = state_fio->FgetUint8();
-	iff1 = state_fio->FgetUint8();
-	iff2 = state_fio->FgetUint8();
-	icr = state_fio->FgetUint8();
-	after_ei = state_fio->FgetBool();
-	after_ldair = state_fio->FgetBool();
-	intr_req_bit = state_fio->FgetUint32();
-	intr_pend_bit = state_fio->FgetUint32();
-	return true;
-}
-
+/* load_state() and save_state() has moved to z80.cpp . */

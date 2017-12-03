@@ -63,6 +63,24 @@ void META_MainWindow::retranslateVolumeLabels(Ui_SoundDialog *p)
 			break;
 #ifdef SUPPORT_PC88_SB2
 		case 2:
+			p->setDeviceLabel(2, QApplication::translate("MainWindow", "OPN", 0));
+			p->setDeviceLabel(3, QApplication::translate("MainWindow", "OPNA", 0));
+			p->setSliderVisible(2, true);
+			p->setSliderVisible(3, true);
+			break;
+		case 3:
+			p->setDeviceLabel(2, QApplication::translate("MainWindow", "OPN-1", 0));
+			p->setDeviceLabel(3, QApplication::translate("MainWindow", "OPN-2", 0));
+			p->setSliderVisible(2, true);
+			p->setSliderVisible(3, true);
+			break;
+		case 4:
+			p->setDeviceLabel(2, QApplication::translate("MainWindow", "OPNA-1", 0));
+			p->setDeviceLabel(3, QApplication::translate("MainWindow", "OPNA-2", 0));
+			p->setSliderVisible(2, true);
+			p->setSliderVisible(3, true);
+			break;
+		case 5:
 			p->setDeviceLabel(2, QApplication::translate("MainWindow", "OPNA", 0));
 			p->setDeviceLabel(3, QApplication::translate("MainWindow", "OPN", 0));
 			p->setSliderVisible(2, true);
@@ -124,15 +142,22 @@ void META_MainWindow::retranslateUi(void)
 	actionBootMode[1]->setToolTip(QApplication::translate("MainWindow", "V2 Mode.\nYou can run only softwares for PC-8001mk2SR or later.", 0));
 	actionBootMode[2]->setToolTip(QApplication::translate("MainWindow", "N  Mode.\nYou can run only softwares for PC-8001.", 0));
 #endif
-  
+
+	menuSoundDevice->setTitle(QApplication::translate("MainWindow", "Sound Boards", 0));
 #if defined(SUPPORT_PC88_SB2)
 	menuSoundDevice->setTitle(QApplication::translate("MainWindow", "Sound Board", 0));
 	actionSoundDevice[0]->setText(QString::fromUtf8("PC-8801-23 (OPNA)"));
 	actionSoundDevice[1]->setText(QString::fromUtf8("PC-8801-11 (OPN)"));   
 	actionSoundDevice[2]->setText(QString::fromUtf8("Sound Board 2 (OPN + OPNA)"));   
+	actionSoundDevice[3]->setText(QString::fromUtf8("Sound Board 2(OPN + OPN)"));   
+	actionSoundDevice[4]->setText(QString::fromUtf8("Sound Board 2 (OPNA + OPNA)"));   
+	actionSoundDevice[5]->setText(QString::fromUtf8("Sound Board 2 (OPNA + OPN)"));
 	actionSoundDevice[0]->setToolTip(QApplication::translate("MainWindow", "PC-8801-23 (OPNA).", 0));
 	actionSoundDevice[1]->setToolTip(QApplication::translate("MainWindow", "PC-8801-11 (OPN).", 0));   
 	actionSoundDevice[2]->setToolTip(QApplication::translate("MainWindow", "Sound Board 2 (OPN + OPNA).", 0));   
+	actionSoundDevice[3]->setToolTip(QApplication::translate("MainWindow", "Sound Board 2 (OPN + OPN).", 0));   
+	actionSoundDevice[4]->setToolTip(QApplication::translate("MainWindow", "Sound Board 2 (OPNA + OPNA).", 0));   
+	actionSoundDevice[5]->setToolTip(QApplication::translate("MainWindow", "Sound Board 2 (OPNA + OPN).", 0));   
 #elif defined(SUPPORT_PC88_OPNA)
 	menuSoundDevice->setTitle(QApplication::translate("MainWindow", "Sound Board", 0));
 	actionSoundDevice[0]->setText(QString::fromUtf8("PC-8801-23 (OPNA)"));

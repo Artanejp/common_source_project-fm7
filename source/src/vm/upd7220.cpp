@@ -48,7 +48,7 @@ enum {
 	STAT_DRAW	= 0x08,
 	STAT_DMA	= 0x10,
 	STAT_VSYNC	= 0x20,
-	STAT_HBLANK	= 0x40,
+	STAT_BLANK	= 0x40,
 	STAT_LPEN	= 0x80,
 };
 
@@ -57,18 +57,15 @@ void UPD7220::initialize()
 	UPD7220_BASE::initialize();
 	// initial settings for 1st frame
 	vtotal = LINES_PER_FRAME;
-	v1 = 16;
-	v2 = vtotal - v1;
+	v1 = v2 = v3 = 16;
+	v4 = vtotal - v1 - v2 - v3;
 #ifdef CHARS_PER_LINE
-//	h1 = (CHARS_PER_LINE > 80) ? 80 : 40;	// CHARS_PER_LINE > 40 ???
-	h1 = (CHARS_PER_LINE > width) ? width : (width >> 2);
-	h2 = CHARS_PER_LINE - h1;
+	h4 = CHARS_PER_LINE - v1 - v2 - v3;
 #else
-	h1 = width;
-	h2 = 29;
+	h4 = width;
 #endif
 	sync_changed = false;
-	vs = hc = 0;
+	vs = hs = 0;
 #ifdef UPD7220_HORIZ_FREQ
 	horiz_freq = 0;
 	next_horiz_freq = UPD7220_HORIZ_FREQ;
@@ -84,27 +81,27 @@ void UPD7220::event_pre_frame()
 {
 	if(sync_changed) {
 		// calc vsync/hblank timing
-		v1 = sync[2] >> 5;		// VS
-		v1 += (sync[3] & 3) << 3;
-		v2 = sync[5] & 0x3f;		// VFP
-		v2 += sync[6];			// AL
-		v2 += (sync[7] & 3) << 8;
-		v2 += sync[7] >> 2;		// VBP
+		v1  = sync[5] & 0x3f;		// VFP
+		v2  = sync[2] >> 5;		// VS
+		v2 += (sync[3] & 0x03) << 3;
+		v3  = sync[7] >> 2;		// VBP
+		v4  = sync[6];			// L/F
+		v4 += (sync[7] & 0x03) << 8;
 		
-		h1 = sync[1] + 2;		// AW
-		h2 = (sync[2] & 0x1f) + 1;	// HS
-		h2 += (sync[3] >> 2) + 1;	// HFP
-		h2 += (sync[4] & 0x3f) + 1;	// HBP
+		h1  = (sync[3] >> 2) + 1;	// HFP
+		h2  = (sync[2] & 0x1f) + 1;	// HS
+		h3  = (sync[4] & 0x3f) + 1;	// HBP
+		h4  = sync[1] + 2;		// C/R
 		
 		sync_changed = false;
-		vs = hc = 0;
+		vs = hs = 0;
 #ifdef UPD7220_HORIZ_FREQ
 		horiz_freq = 0;
 #endif
 	}
 	if(master) {
-		if(vtotal != v1 + v2) {
-			vtotal = v1 + v2;
+		if(vtotal != v1 + v2 + v3 + v4) {
+			vtotal = v1 + v2 + v3 + v4;
 			set_lines_per_frame(vtotal);
 		}
 #ifdef UPD7220_HORIZ_FREQ
@@ -716,7 +713,7 @@ void UPD7220::draw_vectr()
 	dad = dx & 0x0f;
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void UPD7220::save_state(FILEIO* state_fio)
 {
@@ -727,12 +724,20 @@ void UPD7220::save_state(FILEIO* state_fio)
 	state_fio->FputUint8(statreg);
 	state_fio->Fwrite(sync, sizeof(sync), 1);
 	state_fio->FputInt32(vtotal);
+	state_fio->FputInt32(vfp);
 	state_fio->FputInt32(vs);
+	state_fio->FputInt32(vbp);
 	state_fio->FputInt32(v1);
 	state_fio->FputInt32(v2);
-	state_fio->FputInt32(hc);
+	state_fio->FputInt32(v3);
+	state_fio->FputInt32(v4);
+	state_fio->FputInt32(hfp);
+	state_fio->FputInt32(hs);
+	state_fio->FputInt32(hbp);
 	state_fio->FputInt32(h1);
 	state_fio->FputInt32(h2);
+	state_fio->FputInt32(h3);
+	state_fio->FputInt32(h4);
 	state_fio->FputBool(sync_changed);
 	state_fio->FputBool(master);
 	state_fio->FputUint8(zoom);
@@ -748,8 +753,10 @@ void UPD7220::save_state(FILEIO* state_fio)
 	state_fio->FputUint8(maskl);
 	state_fio->FputUint8(maskh);
 	state_fio->FputUint8(mod);
+	state_fio->FputBool(hsync);
 	state_fio->FputBool(hblank);
 	state_fio->FputBool(vsync);
+	state_fio->FputBool(vblank);
 	state_fio->FputBool(start);
 	state_fio->FputInt32(blink_cursor);
 	state_fio->FputInt32(blink_attr);
@@ -792,12 +799,20 @@ bool UPD7220::load_state(FILEIO* state_fio)
 	statreg = state_fio->FgetUint8();
 	state_fio->Fread(sync, sizeof(sync), 1);
 	vtotal = state_fio->FgetInt32();
+	vfp = state_fio->FgetInt32();
 	vs = state_fio->FgetInt32();
+	vbp = state_fio->FgetInt32();
 	v1 = state_fio->FgetInt32();
 	v2 = state_fio->FgetInt32();
-	hc = state_fio->FgetInt32();
+	v3 = state_fio->FgetInt32();
+	v4 = state_fio->FgetInt32();
+	hfp = state_fio->FgetInt32();
+	hs = state_fio->FgetInt32();
+	hbp = state_fio->FgetInt32();
 	h1 = state_fio->FgetInt32();
 	h2 = state_fio->FgetInt32();
+	h3 = state_fio->FgetInt32();
+	h4 = state_fio->FgetInt32();
 	sync_changed = state_fio->FgetBool();
 	master = state_fio->FgetBool();
 	zoom = state_fio->FgetUint8();
@@ -813,8 +828,10 @@ bool UPD7220::load_state(FILEIO* state_fio)
 	maskl = state_fio->FgetUint8();
 	maskh = state_fio->FgetUint8();
 	mod = state_fio->FgetUint8();
+	hsync = state_fio->FgetBool();
 	hblank = state_fio->FgetBool();
 	vsync = state_fio->FgetBool();
+	vblank = state_fio->FgetBool();
 	start = state_fio->FgetBool();
 	blink_cursor = state_fio->FgetInt32();
 	blink_attr = state_fio->FgetInt32();

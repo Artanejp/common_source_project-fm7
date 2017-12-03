@@ -175,6 +175,7 @@ int MCS48::run(int icount)
 			if (cpustate->timecount_enabled != 0)
 				burn_cycles(cpustate, curcycles);
 			
+			total_icount += curcycles * 15;
 			if(now_debugging) {
 				if(!d_debugger->now_going) {
 					d_debugger->now_suspended = true;
@@ -185,6 +186,7 @@ int MCS48::run(int icount)
 		} else {
 #endif
 			/* fetch next opcode */
+			d_debugger->add_cpu_trace(cpustate->pc);
 			cpustate->prevpc = cpustate->pc;
 			curcycles = op_call(cpustate);
 
@@ -193,6 +195,7 @@ int MCS48::run(int icount)
 			if (cpustate->timecount_enabled != 0)
 				burn_cycles(cpustate, curcycles);
 #ifdef USE_DEBUGGER
+			total_icount += curcycles * 15;
 		}
 #endif
 	} while (cpustate->icount > 0);
@@ -201,13 +204,16 @@ int MCS48::run(int icount)
 }
 
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void MCS48::save_state(FILEIO* state_fio)
 {
 	state_fio->FputUint32(STATE_VERSION);
 	state_fio->FputInt32(this_device_id);
 	
+#ifdef USE_DEBUGGER
+	state_fio->FputUint64(total_icount);
+#endif
 	state_fio->Fwrite(opaque, sizeof(mcs48_state), 1);
 }
 
@@ -219,6 +225,9 @@ bool MCS48::load_state(FILEIO* state_fio)
 	if(state_fio->FgetInt32() != this_device_id) {
 		return false;
 	}
+#ifdef USE_DEBUGGER
+	total_icount = prev_total_icount = state_fio->FgetUint64();
+#endif
 	state_fio->Fread(opaque, sizeof(mcs48_state), 1);
 	
 	// post process

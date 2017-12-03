@@ -91,7 +91,7 @@ void OSD_BASE::write_console(_TCHAR* buffer, unsigned int length)
 	emit sig_put_string_debugger(s);
 }
 
-int OSD_BASE::read_console_input(_TCHAR* buffer)
+int OSD_BASE::read_console_input(_TCHAR* buffer, int length)
 {
 	int count = 0;
 	QString tmps;
@@ -113,6 +113,7 @@ int OSD_BASE::read_console_input(_TCHAR* buffer)
 	count = tmps.length();
 	if(tmps.isEmpty() || (count <= 0)) return 0; 
 	if(count > 16) count = 16;
+	if(count > length) count = length;
 	//DebugSemaphore->acquire(1);
 	int l = console_cmd_str.length();
 	
@@ -127,7 +128,7 @@ int OSD_BASE::read_console_input(_TCHAR* buffer)
 bool OSD_BASE::is_console_key_pressed(uint32_t ch)
 {
 	_TCHAR buf[17];
-	if(read_console_input(buf) > 0) return true;
+	if(read_console_input(buf, 16) > 0) return true;
 	return false;
 }
 	

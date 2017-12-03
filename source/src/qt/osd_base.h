@@ -299,7 +299,7 @@ public:
 	bool is_console_active();
 	void set_console_text_attribute(unsigned short attr);
 	void write_console(_TCHAR* buffer, unsigned int length);
-	int read_console_input(_TCHAR* buffer);
+	int read_console_input(_TCHAR* buffer, int length);
 	bool is_console_key_pressed(uint32_t ch);
 	
 	// common input

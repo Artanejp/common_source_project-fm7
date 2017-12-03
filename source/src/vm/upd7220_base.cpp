@@ -13,6 +13,9 @@
 #include "../fifo.h"
 // -> See also: upd7220_base.cpp .
 
+#define EVENT_HSYNC_HFP	0
+#define EVENT_HSYNC_HS	1
+#define EVENT_HSYNC_HBP	2
 
 enum {
 	STAT_DRDY	= 0x01,
@@ -21,7 +24,7 @@ enum {
 	STAT_DRAW	= 0x08,
 	STAT_DMA	= 0x10,
 	STAT_VSYNC	= 0x20,
-	STAT_HBLANK	= 0x40,
+	STAT_BLANK	= 0x40,
 	STAT_LPEN	= 0x80,
 };
 
@@ -34,7 +37,8 @@ void UPD7220_BASE::initialize()
 	}
 	fo = new FIFO(0x10000);
 	
-	vsync = hblank = false;
+	vsync = vblank = false;
+	hsync = hblank = false;
 	master = false;
 	pitch = 40;	// 640dot
 	
@@ -115,7 +119,11 @@ uint32_t UPD7220_BASE::read_io8(uint32_t addr)
 	switch(addr & 3) {
 	case 0: // status
 		val = statreg;
-		val |= hblank ? STAT_HBLANK : 0;
+		if(sync[5] & 0x80) {
+			val |= vblank ? STAT_BLANK : 0;
+		} else {
+			val |= hblank ? STAT_BLANK : 0;
+		}
 		val |= vsync ? STAT_VSYNC : 0;
 //		val |= (params_count == 0) ? STAT_EMPTY : 0;
 		val |= STAT_EMPTY;
@@ -145,14 +153,18 @@ void UPD7220_BASE::update_timing(int new_clocks, double new_frames_per_sec, int 
 	lines_per_frame = new_lines_per_frame;	// because this device may be slave gdc
 	
 	// update event clocks
-	vs = hc = 0;
+	vs = hs = 0;
 }
 
 void UPD7220_BASE::event_frame()
 {
 	if(vs == 0) {
-		vs = (int)((double)lines_per_frame * (double)v1 / (double)(v1 + v2) + 0.5);
-		hc = (int)((double)cpu_clocks * (double)h2 / frames_per_sec / (double)lines_per_frame / (double)(h1 + h2) + 0.5);
+		vfp = (int)((double)lines_per_frame * (double)(v1          ) / (double)(v1 + v2 + v3 + v4) + 0.5);
+		vs  = (int)((double)lines_per_frame * (double)(v1 + v2     ) / (double)(v1 + v2 + v3 + v4) + 0.5);
+		vbp = (int)((double)lines_per_frame * (double)(v1 + v2 + v3) / (double)(v1 + v2 + v3 + v4) + 0.5);
+		hfp = (int)((double)cpu_clocks * (double)(h1          ) / frames_per_sec / (double)lines_per_frame / (double)(h1 + h2 + h3 + h4) + 0.5);
+		hs  = (int)((double)cpu_clocks * (double)(h1 + h2     ) / frames_per_sec / (double)lines_per_frame / (double)(h1 + h2 + h3 + h4) + 0.5);
+		hbp = (int)((double)cpu_clocks * (double)(h1 + h2 + h3) / frames_per_sec / (double)lines_per_frame / (double)(h1 + h2 + h3 + h4) + 0.5);
 	}
 	if(++blink_cursor >= blink_rate * 4) {
 		blink_cursor = 0;
@@ -164,18 +176,32 @@ void UPD7220_BASE::event_frame()
 
 void UPD7220_BASE::event_vline(int v, int clock)
 {
-	bool next = (v < vs);
-	if(vsync != next) {
-		write_signals(&outputs_vsync, next ? 0xffffffff : 0);
-		vsync = next;
-	}
+	if(v == 0) {
+		vblank = true;
+	} else if(v == vfp) {
+		write_signals(&outputs_vsync, 0xffffffff);
+		vsync = true;
+	} else if(v == vs) {
+		write_signals(&outputs_vsync, 0);
+		vsync = false;
+	} else if(v == vbp) {
+		vblank = false;
+ 	}
 	hblank = true;
-	register_event_by_clock(this, 0, hc, false, NULL);
+	register_event_by_clock(this, EVENT_HSYNC_HFP, hfp, false, NULL);
+	register_event_by_clock(this, EVENT_HSYNC_HS,  hs,  false, NULL);
+	register_event_by_clock(this, EVENT_HSYNC_HBP, hbp, false, NULL);
 }
 
 void UPD7220_BASE::event_callback(int event_id, int err)
 {
-	hblank = false;
+	if(event_id == EVENT_HSYNC_HFP) {
+		hsync = true;
+	} else if(event_id == EVENT_HSYNC_HS) {
+		hsync = false;
+	} else if(event_id == EVENT_HSYNC_HBP) {
+		hblank = false;
+	}
 }
 
 uint32_t UPD7220_BASE::cursor_addr(uint32_t mask)

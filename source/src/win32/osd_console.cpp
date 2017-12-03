@@ -61,23 +61,35 @@ void OSD::write_console(_TCHAR* buffer, unsigned int length)
 	WriteConsole(hStdOut, buffer, length, &dwWritten, NULL);
 }
 
-int OSD::read_console_input(_TCHAR* buffer)
+int OSD::read_console_input(_TCHAR* buffer, unsigned int length)
 {
 	INPUT_RECORD ir[16];
 	DWORD dwRead;
-	int count = 0;
+	unsigned int count = 0;
 	
-	if(ReadConsoleInput(hStdIn, ir, 16, &dwRead)) {
+	if(ReadConsoleInput(hStdIn, ir, min(16, length), &dwRead)) {
 		for(unsigned int i = 0; i < dwRead; i++) {
+			if((ir[i].EventType & KEY_EVENT) && ir[i].Event.KeyEvent.bKeyDown) {
 #ifdef _UNICODE
-			if((ir[i].EventType & KEY_EVENT) && ir[i].Event.KeyEvent.bKeyDown && ir[i].Event.KeyEvent.uChar.UnicodeChar) {
-				buffer[count++] = ir[i].Event.KeyEvent.uChar.UnicodeChar;
-			}
+				if(ir[i].Event.KeyEvent.uChar.UnicodeChar) {
+					if(count < length) {
+						buffer[count++] = ir[i].Event.KeyEvent.uChar.UnicodeChar;
+					}
 #else
-			if((ir[i].EventType & KEY_EVENT) && ir[i].Event.KeyEvent.bKeyDown && ir[i].Event.KeyEvent.uChar.AsciiChar) {
-				buffer[count++] = ir[i].Event.KeyEvent.uChar.AsciiChar;
-			}
+				if(ir[i].Event.KeyEvent.uChar.AsciiChar) {
+					if(count < length) {
+						buffer[count++] = ir[i].Event.KeyEvent.uChar.AsciiChar;
+					}
 #endif
+				} else if(ir[i].Event.KeyEvent.wVirtualKeyCode >= 0x25 && ir[i].Event.KeyEvent.wVirtualKeyCode <= 0x28) {
+					static const _TCHAR cursor[] = {_T('D'), _T('A'), _T('C'), _T('B')}; // left, up, right, down
+					if(count + 2 < length) {
+						buffer[count++] = 0x1b;
+						buffer[count++] = 0x5b;
+						buffer[count++] = cursor[ir[i].Event.KeyEvent.wVirtualKeyCode - 0x25];
+					}
+				}
+			}
 		}
 	}
 	return count;

@@ -77,29 +77,38 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 //	pc88rtc->set_context_event_manager(pc88event);
 	// config.sound_type
 	// 	0: 44h:OPNA A4h:None		PC-8801FH/MH or later
-	// 	1: 44h:OPN  A4h:None		PC-8801mkIISR/TR/MR/FR
-	// 	2: 44h:OPN  A4h:OPNA		PC-8801mkIISR/TR/MR/FR + PC-8801-23
+	// 	1: 44h:OPN  A4h:None		PC-8801mkIISR/TR/FR/MR
+	// 	2: 44h:OPN  A4h:OPNA		PC-8801mkIISR/TR/FR/MR + PC-8801-23
+	// 	3: 44h:OPN  A4h:OPN		PC-8801mkIISR/TR/FR/MR + PC-8801-11
+	// 	4: 44h:OPNA A4h:OPNA		PC-8801FH/MH or later  + PC-8801-24
+	// 	5: 44h:OPNA A4h:OPN		PC-8801FH/MH or later  + PC-8801-11
 	pc88opn = new YM2203(this, emu);
 //	pc88opn->set_context_event_manager(pc88event);
 #ifdef USE_SOUND_TYPE
 #ifdef SUPPORT_PC88_OPNA
-	if(config.sound_type == 0) {
+	if(config.sound_type == 0 || config.sound_type == 4 || config.sound_type == 5) {
+		pc88opn->is_ym2608 = true;
 		pc88opn->set_device_name(_T("YM2608 OPNA"));
 	} else {
+		pc88opn->is_ym2608 = false;
 		pc88opn->set_device_name(_T("YM2203 OPN"));
 	}
-	pc88opn->is_ym2608 = (config.sound_type == 0);
 #endif
 #ifdef SUPPORT_PC88_SB2
-	if(config.sound_type == 2) {
+	if(config.sound_type >= 2) {
 		pc88sb2 = new YM2203(this, emu);
-#ifdef SUPPORT_PC88_OPNA
-		pc88sb2->set_device_name(_T("YM2608 OPNA (SB2)"));
-		pc88sb2->is_ym2608 = true;
-#else
-		pc88sb2->set_device_name(_T("YM2203 OPN (SB2)"));
-#endif
 //		pc88sb2->set_context_event_manager(pc88event);
+#ifdef SUPPORT_PC88_OPNA
+		if(config.sound_type == 2 || config.sound_type == 4) {
+			pc88sb2->is_ym2608 = true;
+			pc88sb2->set_device_name(_T("YM2608 OPNA (SB2)"));
+		} else {
+			pc88sb2->is_ym2608 = false;
+#endif
+			pc88sb2->set_device_name(_T("YM2203 OPN (SB2)"));
+#ifdef SUPPORT_PC88_OPNA
+		}
+#endif
 	} else {
 		pc88sb2 = NULL;
 	}
@@ -157,7 +166,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	pc88event->set_context_cpu(dummycpu, 3993624 / 4);
 #ifdef SUPPORT_PC88_HIGH_CLOCK
-	pc88event->set_context_cpu(pc88cpu, (config.cpu_type != 0) ? 3993624 : 7987248);
+	pc88event->set_context_cpu(pc88cpu, (config.cpu_type == 1) ? 3993624 : 7987248);
 #else
 	pc88event->set_context_cpu(pc88cpu, 3993624);
 #endif
@@ -389,6 +398,7 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		if(pc88sb2 != NULL) {
 			pc88sb2->set_volume(1, decibel_l, decibel_r);
 		}
+#ifdef SUPPORT_PC88_OPNA
 	} else if(ch-- == 0) {
 		if(pc88sb2 != NULL) {
 			pc88sb2->set_volume(2, decibel_l, decibel_r);
@@ -397,6 +407,7 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		if(pc88sb2 != NULL) {
 			pc88sb2->set_volume(3, decibel_l, decibel_r);
 		}
+#endif
 #endif
 #ifdef SUPPORT_PC88_PCG8100
 	} else if(ch-- == 0) {

@@ -187,6 +187,9 @@ BEGIN
             MENUITEM "OPNA",                    ID_VM_SOUND_TYPE0
             MENUITEM "OPN",                     ID_VM_SOUND_TYPE1
             MENUITEM "OPN+OPNA",                ID_VM_SOUND_TYPE2
+            MENUITEM "OPN+OPN",                 ID_VM_SOUND_TYPE3
+            MENUITEM "OPNA+OPNA",               ID_VM_SOUND_TYPE4
+            MENUITEM "OPNA+OPN",                ID_VM_SOUND_TYPE5
             MENUITEM SEPARATOR
             MENUITEM "Play FDD Noise",          ID_VM_SOUND_NOISE_FDD
             MENUITEM "Play CMT Noise",          ID_VM_SOUND_NOISE_CMT, GRAYED

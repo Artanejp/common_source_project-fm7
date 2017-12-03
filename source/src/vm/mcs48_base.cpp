@@ -504,19 +504,22 @@ void MCS48_BASE::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 /*
 R0 = 00  R1 = 00  R2 = 00  R3 = 00 (R0)= 00 (R1)= 00 (SP-1)= 0000  PC = 0000
 R4 = 00  R5 = 00  R6 = 00  R7 = 00  AC = 00  SP = 00 [MB F1 C AC F0 BS]
+Total CPU Clocks = 0 (0)
 */
 	mcs48_state *cpustate = (mcs48_state *)opaque;
 	UINT8 sp = 8 + 2 * (cpustate->psw & 7);
 	UINT8 prev_sp = 8 + 2 * ((cpustate->psw - 1) & 7);
 	
 	my_stprintf_s(buffer, buffer_len,
-	_T("R0 = %02X  R1 = %02X  R2 = %02X  R3 = %02X (R0)= %02X (R1)= %02X (SP-1)= %04X  PC = %04X\nR4 = %02X  R5 = %02X  R6 = %02X  R7 = %02X  AC = %02X  SP = %02X [%s %s %s %s %s %s]"),
+	_T("R0 = %02X  R1 = %02X  R2 = %02X  R3 = %02X (R0)= %02X (R1)= %02X (SP-1)= %04X  PC = %04X\nR4 = %02X  R5 = %02X  R6 = %02X  R7 = %02X  AC = %02X  SP = %02X [%s %s %s %s %s %s]\nTotal CPU Clocks = %llu (%llu)"),
 	__mcs48_reg_r(0), __mcs48_reg_r(1), __mcs48_reg_r(2), __mcs48_reg_r(3), d_mem_stored->read_data8(__mcs48_reg_r(0)), d_mem_stored->read_data8(__mcs48_reg_r(1)),
 	d_mem_stored->read_data8(prev_sp) | (d_mem_stored->read_data8(prev_sp + 1) << 8), cpustate->pc,
 				  __mcs48_reg_r(4), __mcs48_reg_r(5), __mcs48_reg_r(6), __mcs48_reg_r(7), cpustate->a, sp,
 	(cpustate->a11 == 0x800) ? _T("MB") : _T("--"), (cpustate->sts & STS_F1) ? _T("F1") : _T("--"),
 	(cpustate->psw & C_FLAG) ? _T("C" ) : _T("-" ), (cpustate->psw & A_FLAG) ? _T("AC") : _T("--"),
-	(cpustate->psw & F_FLAG) ? _T("F0") : _T("--"), (cpustate->psw & B_FLAG) ? _T("BS") : _T("--"));
+	(cpustate->psw & F_FLAG) ? _T("F0") : _T("--"), (cpustate->psw & B_FLAG) ? _T("BS") : _T("--"),
+	total_icount, total_icount - prev_total_icount);
+	prev_total_icount = total_icount;
 }
 
 // license:BSD-3-Clause
@@ -829,26 +832,3 @@ int MCS48_BASE::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	return ptr - pc;
 }
 //#endif
-#define STATE_VERSION	1
-
-void MCS48MEM::save_state(FILEIO* state_fio)
-{
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->Fwrite(ram, sizeof(ram), 1);
-}
-
-bool MCS48MEM::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
-	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	state_fio->Fread(ram, sizeof(ram), 1);
-	return true;
-}
-
-

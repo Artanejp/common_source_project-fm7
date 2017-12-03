@@ -171,6 +171,67 @@ void Z80::reset()
 	icount = extra_icount = 0;
 }
 
+int Z80::run(int clock)
+{
+	if(clock == -1) {
+		if(busreq) {
+			// run dma once
+			#ifdef SINGLE_MODE_DMA
+				if(d_dma) {
+					d_dma->do_dma();
+				}
+			#endif
+			// don't run cpu!
+			int passed_icount = max(1, extra_icount);
+			// this is main cpu, icount is not used
+			/*icount = */extra_icount = 0;
+			#ifdef USE_DEBUGGER
+				total_icount += passed_icount;
+			#endif
+			return passed_icount;
+		} else {
+			// run only one opcode
+			#ifdef USE_DEBUGGER
+				total_icount += extra_icount;
+			#endif
+			icount = -extra_icount;
+			extra_icount = 0;
+			run_one_opecode();
+			return -icount;
+		}
+	} else {
+		icount += clock;
+		int first_icount = icount;
+		#ifdef USE_DEBUGGER
+			total_icount += extra_icount;
+		#endif
+		icount -= extra_icount;
+		extra_icount = 0;
+		
+		if(busreq) {
+			// run dma once
+			#ifdef SINGLE_MODE_DMA
+				if(d_dma) {
+					d_dma->do_dma();
+				}
+			#endif
+		} else {
+			// run cpu while given clocks
+			while(icount > 0 && !busreq) {
+				run_one_opecode();
+			}
+		}
+		// if busreq is raised, spin cpu while remained clock
+		if(icount > 0 && busreq) {
+			#ifdef USE_DEBUGGER
+				total_icount += icount;
+			#endif
+			icount = 0;
+		}
+		return first_icount - icount;
+	}
+}
+
 void Z80::run_one_opecode()
 {
 	// rune one opecode
@@ -224,7 +285,12 @@ void Z80::run_one_opecode()
 #if HAS_LDAIR_QUIRK
 		after_ldair = false;
 #endif
+		d_debugger->add_cpu_trace(PC);
+		int first_icount = icount;
 		OP(FETCHOP());
+		icount -= extra_icount;
+		extra_icount = 0;
+		total_icount += first_icount - icount;
 #if HAS_LDAIR_QUIRK
 		if(after_ldair) {
 			F &= ~PF;	// reset parity flag after LD A,I or LD A,R
@@ -293,7 +359,12 @@ void Z80::run_one_opecode()
 #if HAS_LDAIR_QUIRK
 			after_ldair = false;
 #endif
+			d_debugger->add_cpu_trace(PC);
+			int first_icount = icount;
 			OP(FETCHOP());
+			icount -= extra_icount;
+			extra_icount = 0;
+			total_icount += first_icount - icount;
 #if HAS_LDAIR_QUIRK
 			if(after_ldair) {
 				F &= ~PF;	// reset parity flag after LD A,I or LD A,R
@@ -310,8 +381,10 @@ void Z80::run_one_opecode()
 		}
 #endif
 	}
+#ifndef USE_DEBUGGER
 	icount -= extra_icount;
 	extra_icount = 0;
+#endif
 }
 
 void Z80::check_interrupt()
@@ -447,6 +520,94 @@ int Z80::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	}
 	return z80_dasm_main(pc, buffer, buffer_len, d_debugger->first_symbol);
 }
+
+#define STATE_VERSION	2
+
+void Z80::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+#ifdef USE_DEBUGGER
+	state_fio->FputUint64(total_icount);
+#endif
+	state_fio->FputInt32(icount);
+	state_fio->FputInt32(extra_icount);
+	state_fio->FputUint16(prevpc);
+	state_fio->FputUint32(pc.d);
+	state_fio->FputUint32(sp.d);
+	state_fio->FputUint32(af.d);
+	state_fio->FputUint32(bc.d);
+	state_fio->FputUint32(de.d);
+	state_fio->FputUint32(hl.d);
+	state_fio->FputUint32(ix.d);
+	state_fio->FputUint32(iy.d);
+	state_fio->FputUint32(wz.d);
+	state_fio->FputUint32(af2.d);
+	state_fio->FputUint32(bc2.d);
+	state_fio->FputUint32(de2.d);
+	state_fio->FputUint32(hl2.d);
+	state_fio->FputUint8(I);
+	state_fio->FputUint8(R);
+	state_fio->FputUint8(R2);
+	state_fio->FputUint32(ea);
+	state_fio->FputBool(busreq);
+	state_fio->FputBool(after_halt);
+	state_fio->FputUint8(im);
+	state_fio->FputUint8(iff1);
+	state_fio->FputUint8(iff2);
+	state_fio->FputUint8(icr);
+	state_fio->FputBool(after_ei);
+	state_fio->FputBool(after_ldair);
+	state_fio->FputUint32(intr_req_bit);
+	state_fio->FputUint32(intr_pend_bit);
+}
+
+bool Z80::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+#ifdef USE_DEBUGGER
+	total_icount = prev_total_icount = state_fio->FgetUint64();
+#endif
+	icount = state_fio->FgetInt32();
+	extra_icount = state_fio->FgetInt32();
+	prevpc = state_fio->FgetUint16();
+	pc.d = state_fio->FgetUint32();
+	sp.d = state_fio->FgetUint32();
+	af.d = state_fio->FgetUint32();
+	bc.d = state_fio->FgetUint32();
+	de.d = state_fio->FgetUint32();
+	hl.d = state_fio->FgetUint32();
+	ix.d = state_fio->FgetUint32();
+	iy.d = state_fio->FgetUint32();
+	wz.d = state_fio->FgetUint32();
+	af2.d = state_fio->FgetUint32();
+	bc2.d = state_fio->FgetUint32();
+	de2.d = state_fio->FgetUint32();
+	hl2.d = state_fio->FgetUint32();
+	I = state_fio->FgetUint8();
+	R = state_fio->FgetUint8();
+	R2 = state_fio->FgetUint8();
+	ea = state_fio->FgetUint32();
+	busreq = state_fio->FgetBool();
+	after_halt = state_fio->FgetBool();
+	im = state_fio->FgetUint8();
+	iff1 = state_fio->FgetUint8();
+	iff2 = state_fio->FgetUint8();
+	icr = state_fio->FgetUint8();
+	after_ei = state_fio->FgetBool();
+	after_ldair = state_fio->FgetBool();
+	intr_req_bit = state_fio->FgetUint32();
+	intr_pend_bit = state_fio->FgetUint32();
+	return true;
+}
+
+
 
 #endif
 

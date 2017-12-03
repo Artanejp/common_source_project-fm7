@@ -459,7 +459,12 @@ void OSD::initialize_screen_buffer(bitmap_t *buffer, int width, int height, int 
 	
 	HDC hdc = GetDC(main_window_handle);
 	buffer->hdcDib = CreateCompatibleDC(hdc);
+#if defined(_RGB565)
+	// thanks PC8801MA‰ü
+	buffer->lpBuf = (LPBYTE)GlobalAlloc(GPTR, sizeof(BITMAPINFOHEADER) + sizeof(DWORD) * 3);
+#else
 	buffer->lpBuf = (LPBYTE)GlobalAlloc(GPTR, sizeof(BITMAPINFO));
+#endif
 	buffer->lpDib = (LPBITMAPINFO)(buffer->lpBuf);
 	memset(&buffer->lpDib->bmiHeader, 0, sizeof(BITMAPINFOHEADER));
 	buffer->lpDib->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
