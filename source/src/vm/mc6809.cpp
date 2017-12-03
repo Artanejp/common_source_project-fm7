@@ -488,6 +488,14 @@ static const int m6809_numops[3] =
 	array_length(m6809_pg1opcodes),
 	array_length(m6809_pg2opcodes)
 };
+
+static const _TCHAR *const m6809_regs[5] = { _T("X"), _T("Y"), _T("U"), _T("S"), _T("PC") };
+
+static const _TCHAR *const m6809_regs_te[16] =
+{
+	_T("D"), _T("X"),  _T("Y"),  _T("U"),   _T("S"),  _T("PC"), _T("inv"), _T("inv"),
+	_T("A"), _T("B"), _T("CC"), _T("DP"), _T("inv"), _T("inv"), _T("inv"), _T("inv")
+};
 #endif /* USE_DEBUGGER */
 
 uint32_t MC6809::cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_t *oprom, const uint8_t *opram)
