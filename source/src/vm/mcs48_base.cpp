@@ -832,3 +832,25 @@ int MCS48_BASE::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	return ptr - pc;
 }
 //#endif
+
+#define STATE_VERSION   2
+
+void MCS48MEM::save_state(FILEIO* state_fio)
+{
+        state_fio->FputUint32(STATE_VERSION);
+        state_fio->FputInt32(this_device_id);
+        
+        state_fio->Fwrite(ram, sizeof(ram), 1);
+}
+
+bool MCS48MEM::load_state(FILEIO* state_fio)
+{
+        if(state_fio->FgetUint32() != STATE_VERSION) {
+                return false;
+        }
+        if(state_fio->FgetInt32() != this_device_id) {
+                return false;
+        }
+        state_fio->Fread(ram, sizeof(ram), 1);
+        return true;
+}
