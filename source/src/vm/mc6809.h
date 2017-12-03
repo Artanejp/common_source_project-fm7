@@ -50,6 +50,10 @@ protected:
 	
 	uint32_t int_state;
 	bool busreq;
+
+	uint64_t total_icount;
+	uint64_t prev_total_icount;
+
 	int icount;
 	int extra_icount;
 	void WM16(uint32_t Addr, pair_t *p);
@@ -493,10 +497,13 @@ protected:
 	void tst_ex();
 	void tst_ix();
 
-	
+	bool __USE_DEBUGGER;
 public:
 	MC6809_BASE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) 
 	{
+
+		total_icount = prev_total_icount = 0;
+		__USE_DEBUGGER = false;
 		initialize_output_signals(&outputs_bus_clr);
 		initialize_output_signals(&outputs_bus_halt);
 		set_device_name(_T("MC6809 MPU"));
@@ -515,8 +522,8 @@ public:
 	{
 		return 0xffff;
 	}
-	virtual void write_debug_data8(uint32_t addr, uint32_t data);
-	virtual uint32_t read_debug_data8(uint32_t addr);
+	void write_debug_data8(uint32_t addr, uint32_t data);
+	uint32_t read_debug_data8(uint32_t addr);
 	void write_debug_data16(uint32_t addr, uint32_t data)
 	{
 		write_debug_data8(addr, (data >> 8) & 0xff);
@@ -539,8 +546,8 @@ public:
 		val |= read_debug_data16(addr + 2);
 		return val;
 	}
-	virtual void write_debug_io8(uint32_t addr, uint32_t data);
-	virtual uint32_t read_debug_io8(uint32_t addr);
+	void write_debug_io8(uint32_t addr, uint32_t data);
+	uint32_t read_debug_io8(uint32_t addr);
 	void write_debug_io16(uint32_t addr, uint32_t data)
 	{
 		write_debug_io8(addr, (data >> 8) & 0xff);
@@ -656,10 +663,6 @@ class MC6809 : public MC6809_BASE
 	~MC6809() {}
 	void initialize();
 	void run_one_opecode();
-	void write_debug_data8(uint32_t addr, uint32_t data);
-	uint32_t read_debug_data8(uint32_t addr);
-	void write_debug_io8(uint32_t addr, uint32_t data);
-	uint32_t read_debug_io8(uint32_t addr);
 	uint32_t cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_t *oprom, const uint8_t *opram);
 	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 };

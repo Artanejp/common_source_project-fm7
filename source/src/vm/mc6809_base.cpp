@@ -178,6 +178,8 @@ void MC6809_BASE::initialize()
 	busreq = false;
 	icount = 0;
 	extra_icount = 0;
+	__USE_DEBUGGER = osd->check_feature(_T("USE_DEBUGGER"));
+
 }
 
 void MC6809_BASE::write_signal(int id, uint32_t data, uint32_t mask)
@@ -287,12 +289,14 @@ int MC6809_BASE::run(int clock)
 			passed_icount = max(1, extra_icount);
 			extra_icount = 0;
 			busreq = true;
+			total_icount += first_icount - passed_icount;
 			return first_icount - passed_icount;
 		} else {
 			//icount = 0;
 			icount -= extra_icount;
 			extra_icount = 0;
 			busreq = true;
+			total_icount += first_icount - icount;
 			return first_icount - icount;
 		}
 #else
@@ -301,6 +305,9 @@ int MC6809_BASE::run(int clock)
 		extra_icount = 0;
 		if(!busreq) write_signals(&outputs_bus_halt, 0xffffffff); // Moved form before.Thanks to Ryu Takegami.
 		busreq = true;
+
+		total_icount += first_icount - icount;
+
 		return first_icount - icount;
 #endif
 	}
@@ -317,6 +324,7 @@ int MC6809_BASE::run(int clock)
 		}
 		extra_icount = 0;
 		PC++;
+		total_icount += first_icount - icount;
 		return first_icount - icount;
 	}
  	/*
@@ -350,11 +358,11 @@ check_firq:
 
 check_irq:
 	if ((int_state & MC6809_IRQ_BIT) != 0) {
+		int_state &= ~MC6809_SYNC_IN; // Moved to before checking.Thanks to Ryu Takegami.
 		if ((CC & CC_II) != 0)
 			goto check_ok;
 		cpu_irq();
 		run_one_opecode();
-		int_state &= ~MC6809_SYNC_IN;
 		cycle = 19;
 		goto int_cycle;
 	}
@@ -371,6 +379,7 @@ int_cycle:
 	} else {
 		int_state &= ~MC6809_CWAI_IN;
 	}
+	total_icount += first_icount - icount;
 	return first_icount - icount;
 
 	// run cpu
@@ -381,18 +390,21 @@ check_ok:
 		} else {
 			icount = 0;
 		}
+		total_icount += first_icount - icount;
 		return first_icount - icount;
 	}
 	if((int_state & MC6809_CWAI_IN) == 0) {
 		if(clock == -1) {
 		// run only one opcode
 			run_one_opecode();
+			total_icount += icount;
 			return icount;
 		} else {
 			// run cpu while given clocks
 			while(icount > 0) {
 				run_one_opecode();
 			}
+			total_icount += first_icount - icount;
 			return first_icount - icount;
 		}
 	} else { // CWAI_IN
@@ -401,6 +413,7 @@ check_ok:
 		} else {
 			icount = 0;
 		}
+		total_icount += first_icount - icount;
 		return first_icount - icount;
 	}
 
@@ -438,21 +451,31 @@ void MC6809_BASE::op(uint8_t ireg)
 
 void MC6809_BASE::write_debug_data8(uint32_t addr, uint32_t data)
 {
+	if(__USE_DEBUGGER) d_mem_stored->write_data8(addr, data);
 }
 
 uint32_t MC6809_BASE::read_debug_data8(uint32_t addr)
 {
+	if(__USE_DEBUGGER) {
+		return d_mem_stored->read_data8(addr);
+	}
 	return 0xff;
 }
 
 void MC6809_BASE::write_debug_io8(uint32_t addr, uint32_t data)
 {
+	if(__USE_DEBUGGER) d_mem_stored->write_io8(addr, data);
 }
 
 uint32_t MC6809_BASE::read_debug_io8(uint32_t addr)
 {
+	if(__USE_DEBUGGER) {
+		uint8_t val = d_mem_stored->read_io8(addr);
+		return val;
+	}
 	return 0xff;
 }
+
 
 bool MC6809_BASE::write_debug_reg(const _TCHAR *reg, uint32_t data)
 {

@@ -27,48 +27,64 @@
 
 void MC6809::initialize()
 {
-	DEVICE::initialize();
+	MC6809_BASE::initialize();
 	int_state = 0;
 	busreq = false;
-#ifdef USE_DEBUGGER
-	d_mem_stored = d_mem;
-	d_debugger->set_context_mem(d_mem);
-#endif
+
+	if(__USE_DEBUGGER) {
+		d_mem_stored = d_mem;
+		d_debugger->set_context_mem(d_mem);
+	}
 }
 
 void MC6809::run_one_opecode()
 {
-#ifdef USE_DEBUGGER
-	bool now_debugging = d_debugger->now_debugging;
-	if(now_debugging) {
-		d_debugger->check_break_points(PC);
-		if(d_debugger->now_suspended) {
-			osd->mute_sound();
-			d_debugger->now_waiting = true;
-			while(d_debugger->now_debugging && d_debugger->now_suspended) {
-				osd->sleep(10);
-			}
-			d_debugger->now_waiting = false;
-		}
-		if(d_debugger->now_debugging) {
-			d_mem = d_debugger;
-		} else {
-			now_debugging = false;
-		}
-		
-		pPPC = pPC;
-		uint8_t ireg = ROP(PCD);
-		PC++;
-		icount -= cycles1[ireg];
-		icount -= extra_icount;
-		extra_icount = 0;
-		op(ireg);
-		
+	if(__USE_DEBUGGER) {
+		bool now_debugging = d_debugger->now_debugging;
 		if(now_debugging) {
-			if(!d_debugger->now_going) {
-				d_debugger->now_suspended = true;
+			d_debugger->check_break_points(PC);
+			if(d_debugger->now_suspended) {
+				osd->mute_sound();
+				d_debugger->now_waiting = true;
+				while(d_debugger->now_debugging && d_debugger->now_suspended) {
+					osd->sleep(10);
+				}
+				d_debugger->now_waiting = false;
 			}
-			d_mem = d_mem_stored;
+			if(d_debugger->now_debugging) {
+				d_mem = d_debugger;
+			} else {
+				now_debugging = false;
+			}
+		
+			d_debugger->add_cpu_trace(PC);
+			int first_icount = icount;
+			pPPC = pPC;
+			uint8_t ireg = ROP(PCD);
+			PC++;
+			icount -= cycles1[ireg];
+			icount -= extra_icount;
+			extra_icount = 0;
+			op(ireg);
+			total_icount += first_icount - icount;
+		
+			if(now_debugging) {
+				if(!d_debugger->now_going) {
+					d_debugger->now_suspended = true;
+				}
+				d_mem = d_mem_stored;
+			}
+		} else {
+			d_debugger->add_cpu_trace(PC);
+			int first_icount = icount;
+			pPPC = pPC;
+			uint8_t ireg = ROP(PCD);
+			PC++;
+			icount -= cycles1[ireg];
+			icount -= extra_icount;
+			extra_icount = 0;
+			op(ireg);
+			total_icount += first_icount - icount;
 		}
 	} else {
 		pPPC = pPC;
@@ -79,51 +95,13 @@ void MC6809::run_one_opecode()
 		extra_icount = 0;
 		op(ireg);
 	}
-#else
-	pPPC = pPC;
-	uint8_t ireg = ROP(PCD);
-	PC++;
-	icount -= cycles1[ireg];
-	icount -= extra_icount;
-	extra_icount = 0;
-	op(ireg);
-#endif
 }
 
-void MC6809::write_debug_data8(uint32_t addr, uint32_t data)
-{
-#ifdef USE_DEBUGGER
-	d_mem_stored->write_data8(addr, data);
-#endif
-}
-
-uint32_t MC6809::read_debug_data8(uint32_t addr)
-{
-#ifdef USE_DEBUGGER
-	return d_mem_stored->read_data8(addr);
-#else
-	return 0xff;
-#endif
-}
-
-void MC6809::write_debug_io8(uint32_t addr, uint32_t data)
-{
-#ifdef USE_DEBUGGER
-	d_mem_stored->write_io8(addr, data);
-#endif
-}
-
-uint32_t MC6809::read_debug_io8(uint32_t addr)
-{
-#ifdef USE_DEBUGGER
-	uint8_t val = d_mem_stored->read_io8(addr);
-	return val;
-#else
-	return 0xff;
-#endif
-}
 
 // from MAME 0.160
+
+
+#ifdef USE_DEBUGGER
 
 /*****************************************************************************
 
@@ -141,8 +119,6 @@ uint32_t MC6809::read_debug_io8(uint32_t addr)
     sriddle@ionet.net
 
 *****************************************************************************/
-
-#ifdef USE_DEBUGGER
 // Opcode structure
 struct opcodeinfo
 {
@@ -512,15 +488,7 @@ static const int m6809_numops[3] =
 	array_length(m6809_pg1opcodes),
 	array_length(m6809_pg2opcodes)
 };
-
-static const _TCHAR *const m6809_regs[5] = { _T("X"), _T("Y"), _T("U"), _T("S"), _T("PC") };
-
-static const _TCHAR *const m6809_regs_te[16] =
-{
-	_T("D"), _T("X"),  _T("Y"),  _T("U"),   _T("S"),  _T("PC"), _T("inv"), _T("inv"),
-	_T("A"), _T("B"), _T("CC"), _T("DP"), _T("inv"), _T("inv"), _T("inv"), _T("inv")
-};
-#endif // USE_DEBUGGER
+#endif /* USE_DEBUGGER */
 
 uint32_t MC6809::cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_t *oprom, const uint8_t *opram)
 {
@@ -793,18 +761,17 @@ uint32_t MC6809::cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_
 
 int MC6809::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
-#ifdef USE_DEBUGGER
-	_TCHAR buffer_tmp[1024]; // enough ???
-	uint8_t ops[4];
-	for(int i = 0; i < 4; i++) {
-		ops[i] = d_mem_stored->read_data8(pc + i);
+	if(__USE_DEBUGGER) {
+		_TCHAR buffer_tmp[1024]; // enough ???
+		uint8_t ops[4];
+		for(int i = 0; i < 4; i++) {
+			ops[i] = d_mem_stored->read_data8(pc + i);
+		}
+		int length = cpu_disassemble_m6809(buffer_tmp, pc, ops, ops);
+		my_tcscpy_s(buffer, buffer_len, buffer_tmp);
+		return length;
 	}
-	int length = cpu_disassemble_m6809(buffer_tmp, pc, ops, ops);
-	my_tcscpy_s(buffer, buffer_len, buffer_tmp);
-	return length;
-#else
 	return 0;
-#endif
 }
 
 
