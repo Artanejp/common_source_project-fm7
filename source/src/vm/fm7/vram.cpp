@@ -95,7 +95,13 @@ void DISPLAY::GETVRAM_8_200L(int yoff, scrntype_t *p,
 
 	scrntype_t tmp_dd[8];
 	for(int i = 0; i < 8; i++) {
-		tmp_d[i] = pg[i] | pr[i] | pb[i];
+		tmp_d[i] = pg[i];
+	}
+	for(int i = 0; i < 8; i++) {
+		tmp_d[i] = tmp_d[i] | pr[i];
+	}
+	for(int i = 0; i < 8; i++) {
+		tmp_d[i] = tmp_d[i] | pb[i];
 	}
 	for(int i = 0; i < 8; i++) {
 		tmp_d[i] = tmp_d[i] >> 5;
