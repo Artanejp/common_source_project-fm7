@@ -707,6 +707,16 @@ public:
 		emu->out_debug_log("%s", strbuf);
 		va_end(ap);
 	}
+	virtual void force_out_debug_log(const char *fmt, ...)
+	{
+		char strbuf[4096];
+		va_list ap;
+
+		va_start(ap, fmt);
+		vsnprintf(strbuf, 4095, fmt, ap);
+		emu->force_out_debug_log("%s", strbuf);
+		va_end(ap);
+	}
 
 #ifdef USE_DEBUGGER
 	// debugger

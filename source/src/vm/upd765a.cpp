@@ -298,7 +298,7 @@ void UPD765A::write_io8(uint32_t addr, uint32_t data)
 				break;
 			case PHASE_CMD:
 //#ifdef _FDC_DEBUG_LOG
-				if(_fdc_debug_log) this->out_debug_log(_T("FDC: PARAM=%2x\n"), data);
+				if(_fdc_debug_log) this->force_out_debug_log(_T("FDC: PARAM=%2x\n"), data); // emu->force_out_debug_log()
 //#endif
 				*bufptr++ = data;
 				if(--count) {
@@ -310,7 +310,7 @@ void UPD765A::write_io8(uint32_t addr, uint32_t data)
 				
 			case PHASE_WRITE:
 //#ifdef _FDC_DEBUG_LOG
-				if(_fdc_debug_log) this->out_debug_log(_T("FDC: WRITE=%2x\n"), data);
+				if(_fdc_debug_log) this->force_out_debug_log(_T("FDC: WRITE=%2x\n"), data); // emu->force_out_debug_log()
 //#endif
 				*bufptr++ = data;
 				set_drq(false);
@@ -356,7 +356,7 @@ uint32_t UPD765A::read_io8(uint32_t addr)
 			case PHASE_RESULT:
 				data = *bufptr++;
 //#ifdef _FDC_DEBUG_LOG
-				if(_fdc_debug_log) this->out_debug_log(_T("FDC: RESULT=%2x\n"), data);
+				if(_fdc_debug_log) this->force_out_debug_log(_T("FDC: RESULT=%2x\n"), data); // emu->force_out_debug_log()
 //#endif
 				if(--count) {
 					status |= S_RQM;
@@ -381,7 +381,7 @@ uint32_t UPD765A::read_io8(uint32_t addr)
 			case PHASE_READ:
 				data = *bufptr++;
 //#ifdef _FDC_DEBUG_LOG
-				if(_fdc_debug_log) this->out_debug_log(_T("FDC: READ=%2x\n"), data);
+				if(_fdc_debug_log) this->force_out_debug_log(_T("FDC: READ=%2x\n"), data);// emu->force_out_debug_log()
 //#endif
 				set_drq(false);
 				if(--count) {
@@ -984,7 +984,7 @@ void UPD765A::cmd_read_diagnostic()
 		read_diagnostic();
 		break;
 	case PHASE_READ:
-		if(result) {
+		if(result & ~ST1_ND) {
 			shift_to_result7();
 			break;
 		}
@@ -999,8 +999,8 @@ void UPD765A::cmd_read_diagnostic()
 		shift_to_result7();
 		break;
 	case PHASE_TIMER:
-//		result = ST0_AT | ST1_EN;
-		result = ST1_EN;
+//		result |= ST0_AT | ST1_EN;
+		result |= ST1_EN;
 		shift_to_result7();
 		break;
 	}
@@ -1067,6 +1067,15 @@ void UPD765A::read_diagnostic()
 		result = ST1_ND;
 		shift_to_result7();
 		return;
+	}
+	if(disk[drv]->get_sector(trk, side, 0)) {
+#if 0
+		if(disk[drv]->id[0] != id[0] || disk[drv]->id[1] != id[1] || disk[drv]->id[2] != id[2] /*|| disk[drv]->id[3] != id[3]*/) {
+#else
+		if(disk[drv]->id[0] != id[0] || disk[drv]->id[1] != id[1] || disk[drv]->id[2] != id[2] || disk[drv]->id[3] != id[3]) {
+#endif
+			result = ST1_ND;
+		}
 	}
 	
 	// FIXME: we need to consider the case that the first sector does not have a data field

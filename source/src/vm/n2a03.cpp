@@ -229,7 +229,6 @@
 #define PUSH(Rg) WRMEM(SPD, Rg); S--
 #define PULL(Rg) S++; Rg = RDMEM(SPD)
 
-#ifdef HAS_N2A03
 #define ADC \
 	{ \
 		int c = (P & F_C); \
@@ -244,47 +243,6 @@
 		A = (uint8_t)sum; \
 	} \
 	SET_NZ(A)
-#else
-#define ADC \
-	if(P & F_D) { \
-		int c = (P & F_C); \
-		int lo = (A & 0x0f) + (tmp & 0x0f) + c; \
-		int hi = (A & 0xf0) + (tmp & 0xf0); \
-		P &= ~(F_V | F_C | F_N | F_Z); \
-		if(!((lo + hi) & 0xff)) { \
-			P |= F_Z; \
-		} \
-		if(lo > 0x09) { \
-			hi += 0x10; \
-			lo += 0x06; \
-		} \
-		if(hi & 0x80) { \
-			P |= F_N; \
-		} \
-		if(~(A ^ tmp) & (A ^ hi) & F_N) { \
-			P |= F_V; \
-		} \
-		if(hi > 0x90) { \
-			hi += 0x60; \
-		} \
-		if(hi & 0xff00) { \
-			P |= F_C; \
-		} \
-		A = (lo & 0x0f) + (hi & 0xf0); \
-	} else { \
-		int c = (P & F_C); \
-		int sum = A + tmp + c; \
-		P &= ~(F_V | F_C); \
-		if(~(A ^ tmp) & (A ^ sum) & F_N) { \
-			P |= F_V; \
-		} \
-		if(sum & 0xff00) { \
-			P |= F_C; \
-		} \
-		A = (uint8_t)sum; \
-		SET_NZ(A); \
-	}
-#endif
 
 #define AND \
 	A = (uint8_t)(A & tmp); \
@@ -453,7 +411,7 @@
 	RDMEM(PCW); \
 	PCW++
 
-#ifdef HAS_N2A03
+//#ifdef HAS_N2A03
 #define SBC \
 	{ \
 		int c = (P & F_C) ^ F_C; \
@@ -468,48 +426,6 @@
 		A = (uint8_t)sum; \
 	} \
 	SET_NZ(A)
-#else
-#define SBC \
-	if(P & F_D) { \
-		int c = (P & F_C) ^ F_C; \
-		int sum = A - tmp - c; \
-		int lo = (A & 0x0f) - (tmp & 0x0f) - c; \
-		int hi = (A & 0xf0) - (tmp & 0xf0); \
-		if(lo & 0x10) { \
-			lo -= 6; \
-			hi--; \
-		} \
-		P &= ~(F_V | F_C | F_Z | F_N); \
-		if((A ^ tmp) & (A ^ sum) & F_N) { \
-			P |= F_V; \
-		} \
-		if(hi & 0x0100) { \
-			hi -= 0x60; \
-		} \
-		if((sum & 0xff00) == 0) { \
-			P |= F_C; \
-		} \
-		if(!((A - tmp - c) & 0xff)) { \
-			P |= F_Z; \
-		} \
-		if((A - tmp - c) & 0x80) { \
-			P |= F_N; \
-		} \
-		A = (lo & 0x0f) | (hi & 0xf0); \
-	} else { \
-		int c = (P & F_C) ^ F_C; \
-		int sum = A - tmp - c; \
-		P &= ~(F_V | F_C); \
-		if((A ^ tmp) & (A ^ sum) & F_N) { \
-			P |= F_V; \
-		} \
-		if((sum & 0xff00) == 0) { \
-			P |= F_C; \
-		} \
-		A = (uint8_t)sum; \
-		SET_NZ(A); \
-	}
-#endif
 
 #define SEC P |= F_C
 #define SED P |= F_D
@@ -553,7 +469,7 @@
 	A = X = S; \
 	SET_NZ(A)
 
-#ifdef HAS_N2A03
+//#ifdef HAS_N2A03
 #define ARR \
 	{ \
 		tmp &= A; \
@@ -566,51 +482,6 @@
 			P |= F_V; \
 		} \
 	}
-#else
-#define ARR \
-	if(P & F_D) { \
-		tmp &= A; \
-		int t = tmp; \
-		int hi = tmp & 0xf0; \
-		int lo = tmp & 0x0f; \
-		if(P & F_C) { \
-			tmp = (tmp >> 1) | 0x80; \
-			P |= F_N; \
-		} else { \
-			tmp >>= 1; \
-			P &= ~F_N; \
-		} \
-		if(tmp) { \
-			P &= ~F_Z; \
-		} else { \
-			P |= F_Z; \
-		} \
-		if((t ^ tmp) & 0x40) { \
-			P |= F_V; \
-		} else { \
-			P &= ~F_V; \
-		} \
-		if(lo + (lo & 0x01) > 0x05) { \
-			tmp = (tmp & 0xf0) | ((tmp + 6) & 0x0f); \
-		} \
-		if(hi + (hi & 0x10) > 0x50) { \
-			P |= F_C; \
-			tmp = (tmp+0x60) & 0xff; \
-		} else { \
-			P &= ~F_C; \
-		} \
-	} else { \
-		tmp &= A; \
-		ROR; \
-		P &=~(F_V| F_C); \
-		if(tmp & 0x40) { \
-			P |= F_C; \
-		} \
-		if((tmp & 0x60) == 0x20 || (tmp & 0x60) == 0x40) { \
-			P |= F_V; \
-		} \
-	}
-#endif
 
 #define ASX \
 	P &= ~F_C; \
@@ -643,15 +514,10 @@
 	A = X = (uint8_t)tmp; \
 	SET_NZ(A)
 
-#ifdef HAS_N2A03
+//#ifdef HAS_N2A03
 #define OAL \
 	A = X = (uint8_t)((A | 0xff) & tmp); \
 	SET_NZ(A)
-#else
-#define OAL \
-	A = X = (uint8_t)((A | 0xee) & tmp); \
-	SET_NZ(A)
-#endif
 
 #define RLA \
 	tmp = (tmp << 1) | (P & F_C); \
@@ -685,7 +551,7 @@
 	S = A & X; \
 	tmp = S & (EAH + 1)
 
-#ifdef HAS_N2A03
+//#ifdef HAS_N2A03
 #define SXH \
 	if(Y && Y > EAL) { \
 		EAH |= (Y << 1); \
@@ -696,10 +562,6 @@
 		EAH |= (X << 1); \
 	} \
 	tmp = Y & (EAH + 1)
-#else
-#define SXH tmp = X & (EAH + 1)
-#define SYH tmp = Y & (EAH + 1)
-#endif
 
 #define TOP PCW += 2
 #define KIL PCW--
@@ -1109,4 +971,37 @@ int N2A03::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 #else
 	return (int)(pc & DASMFLAG_LENGTHMASK);
 #endif
+}
+
+#define STATE_VERSION	2
+
+void N2A03::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+
+	save_state_regs(state_fio);
+#ifdef USE_DEBUGGER
+	state_fio->FputUint64(total_icount);
+#endif
+	state_fio->FputInt32(icount);
+	state_fio->FputBool(busreq);
+}
+
+bool N2A03::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+
+	load_state_regs(state_fio);
+#ifdef USE_DEBUGGER
+	total_icount = prev_total_icount = state_fio->FgetUint64();
+#endif
+ 	icount = state_fio->FgetInt32();
+ 	busreq = state_fio->FgetBool();
+	return true;
 }

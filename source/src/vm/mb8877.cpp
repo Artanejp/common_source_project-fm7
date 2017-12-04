@@ -665,7 +665,7 @@ uint32_t MB8877::read_io8(uint32_t addr)
 			}
 		}
 //#ifdef _FDC_DEBUG_LOG
-		if(fdc_debug_log) this->out_debug_log(_T("FDC\tDATA=%2x\n"), datareg);
+		if(fdc_debug_log) this->force_out_debug_log(_T("FDC\tDATA=%2x\n"), datareg); // emu->force_out_debug_log()
 //#endif
 //#if defined(HAS_MB8866) || defined(HAS_MB8876)
 		if(invert_registers) {

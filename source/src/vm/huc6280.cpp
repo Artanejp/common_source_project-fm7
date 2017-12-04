@@ -34,7 +34,7 @@
 //#include "mame/emu/cpu/h6280/6280dasm.c"
 //#endif
 
-// main
+
 void HUC6280::initialize()
 {
 	HUC6280_BASE::initialize();
@@ -108,7 +108,7 @@ int HUC6280::run_one_opecode()
 #ifdef USE_DEBUGGER
 	d_debugger->add_cpu_trace(cpustate->pc.w.l);
 #endif
-	int passed_icount = CPU_EXECUTE_CALL(h6280);
+	int passed_icount = HUC6280_BASE::run_one_opecode();
 #ifdef USE_DEBUGGER
 	total_icount += passed_icount;
 #endif

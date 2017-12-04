@@ -228,22 +228,6 @@
 #define PUSH(Rg) WRMEM(SPD, Rg); S--
 #define PULL(Rg) S++; Rg = RDMEM(SPD)
 
-#ifdef HAS_N2A03
-#define ADC \
-	{ \
-		int c = (P & F_C); \
-		int sum = A + tmp + c; \
-		P &= ~(F_V | F_C); \
-		if(~(A ^ tmp) & (A ^ sum) & F_N) { \
-			P |= F_V; \
-		} \
-		if(sum & 0xff00) { \
-			P |= F_C; \
-		} \
-		A = (uint8_t)sum; \
-	} \
-	SET_NZ(A)
-#else
 #define ADC \
 	if(P & F_D) { \
 		int c = (P & F_C); \
@@ -283,7 +267,7 @@
 		A = (uint8_t)sum; \
 		SET_NZ(A); \
 	}
-#endif
+
 
 #define AND \
 	A = (uint8_t)(A & tmp); \
@@ -452,22 +436,6 @@
 	RDMEM(PCW); \
 	PCW++
 
-#ifdef HAS_N2A03
-#define SBC \
-	{ \
-		int c = (P & F_C) ^ F_C; \
-		int sum = A - tmp - c; \
-		P &= ~(F_V | F_C); \
-		if((A ^ tmp) & (A ^ sum) & F_N) { \
-			P |= F_V; \
-		} \
-		if((sum & 0xff00) == 0) { \
-			P |= F_C; \
-		} \
-		A = (uint8_t)sum; \
-	} \
-	SET_NZ(A)
-#else
 #define SBC \
 	if(P & F_D) { \
 		int c = (P & F_C) ^ F_C; \
@@ -508,7 +476,6 @@
 		A = (uint8_t)sum; \
 		SET_NZ(A); \
 	}
-#endif
 
 #define SEC P |= F_C
 #define SED P |= F_D
@@ -552,20 +519,6 @@
 	A = X = S; \
 	SET_NZ(A)
 
-#ifdef HAS_N2A03
-#define ARR \
-	{ \
-		tmp &= A; \
-		ROR; \
-		P &=~(F_V| F_C); \
-		if(tmp & 0x40) { \
-			P |= F_C; \
-		} \
-		if((tmp & 0x60) == 0x20 || (tmp & 0x60) == 0x40) { \
-			P |= F_V; \
-		} \
-	}
-#else
 #define ARR \
 	if(P & F_D) { \
 		tmp &= A; \
@@ -609,7 +562,6 @@
 			P |= F_V; \
 		} \
 	}
-#endif
 
 #define ASX \
 	P &= ~F_C; \
@@ -642,15 +594,9 @@
 	A = X = (uint8_t)tmp; \
 	SET_NZ(A)
 
-#ifdef HAS_N2A03
-#define OAL \
-	A = X = (uint8_t)((A | 0xff) & tmp); \
-	SET_NZ(A)
-#else
 #define OAL \
 	A = X = (uint8_t)((A | 0xee) & tmp); \
 	SET_NZ(A)
-#endif
 
 #define RLA \
 	tmp = (tmp << 1) | (P & F_C); \
@@ -684,21 +630,8 @@
 	S = A & X; \
 	tmp = S & (EAH + 1)
 
-#ifdef HAS_N2A03
-#define SXH \
-	if(Y && Y > EAL) { \
-		EAH |= (Y << 1); \
-	} \
-	tmp = X & (EAH + 1)
-#define SYH \
-	if(X && X > EAL) { \
-		EAH |= (X << 1); \
-	} \
-	tmp = Y & (EAH + 1)
-#else
 #define SXH tmp = X & (EAH + 1)
 #define SYH tmp = Y & (EAH + 1)
-#endif
 
 #define TOP PCW += 2
 #define KIL PCW--
@@ -1087,11 +1020,11 @@ int M6502::run(int clock)
 #endif
 			icount = 0;
 		}
+#ifdef USE_DEBUGGER
+		total_icount += first_icount - icount;
+#endif
 		return first_icount - icount;
 	}
-#ifdef USE_DEBUGGER
-	total_icount += first_icount - icount;
-#endif
 }
 
 #define offs_t UINT16
