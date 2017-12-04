@@ -1,3 +1,63 @@
+commit 09bbf2dcf46ec268e8b6929ab53227150e0ac298
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 3 20:46:14 2017 +0900
+
+    [VM][FM7][DISPLAY] Implement software scan line(s).
+
+commit 22ea08176e1ded8f442fb4f79c161d232cb1ca52
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 3 17:10:39 2017 +0900
+
+    [I18N] Update translations.
+
+commit d5b45d66318a53908b3b3b2138b93760c81059e8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 3 16:58:05 2017 +0900
+
+    [GENERAL] Merge Upstream 2017-11-28.
+
+commit 0f3ccdaff6a52abc16a46f671e80a0a9f42c944f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 3 16:53:22 2017 +0900
+
+    [VM][MC6809][OOPs] I deleted some strings.
+
+commit df8df74e2f25c4efa6ea41db162c3814d3671c0a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 3 16:30:50 2017 +0900
+
+    [VM][MC6809] TRY: Fixing hangup with F-BASIC v3.0ε.Thanks to Ryu Takegami-San. (see https://matsuri.5ch.net/test/read.cgi/i4004/1483504365/641-645)
+
+commit 8ba340abe5e4822bd91b6db63d81bfb4356c2551
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 3 16:19:09 2017 +0900
+
+    [VM][MCS48] Fix warning from GCC7.
+
+commit 96681cc1bc1d36cdaebb631fe5eaf1c95fb3b0ed
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 3 13:47:59 2017 +0900
+
+    [VM][MCS48] Fix linking error at X1 (etc).
+
+commit 806cfd91151f100993d81e15f1a7d0b580d6d70a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 3 11:50:18 2017 +0900
+
+    .
+
+commit 7260dbc25679379e0c8939aa033f08e5f5ad00cd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 3 11:49:05 2017 +0900
+
+    [PC8001][PC8801][PC9801][X1][OSD][DEBUGGER] Merge Upstream 2017-11-25.
+
+commit 88d0a163f0eb58552ff1df647d6c394b05a4d99b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 18 16:49:22 2017 +0900
+
+    [DOC] Update documents.
+
 commit 18e97b3cc756faaa06eb48d0f5a482df43324558
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Wed Oct 18 03:15:28 2017 +0900

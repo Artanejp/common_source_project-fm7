@@ -1,3 +1,8 @@
+12/3/2017
+
+[VM/UPD765A] fix read diagnostic to set ND when 1st sector's id are not match
+
+
 11/28/2017
 
 [EMU/DEBUGGER] fix ut command to show correct range of cpu trace
