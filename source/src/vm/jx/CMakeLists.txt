@@ -8,6 +8,8 @@ set(BASIC_VM_FILES
 	   floppy.cpp
 	   keyboard.cpp
 	   speaker.cpp
+	   
+	   ./i286.cpp
 	   )
 
 add_library(vm_jx  ${BASIC_VM_FILES})
