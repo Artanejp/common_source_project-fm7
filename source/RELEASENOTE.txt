@@ -128,9 +128,9 @@ Changes:
   * [VM/FM7] DISPLAY: Implement software scan line(s).
   * [VM/FM77AV] VRAM: More use SIMD to be faster.
     [VM/FM7] Try: Add suuporting for OPpenMP.But be slower than not using OpenMP (/_;)
-  * Build with commit 937dd99e5f1a2bc68f0b6062431a94abf4bd9786 (or later).
+  * Build with commit 9eb246b375699752a898d8be79a227f58e473d8e (or later).
 
--- Dec 04, 2017 13:56:10 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Dec 04, 2017 19:29:05 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 Upstream changes:
 * To see older upstream's changes, read history.txt.

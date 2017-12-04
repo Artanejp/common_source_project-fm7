@@ -1,3 +1,21 @@
+commit 9eb246b375699752a898d8be79a227f58e473d8e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 4 19:27:41 2017 +0900
+
+    [Build] FIX FTBFS with llvm CLANG.
+
+commit b7c3fb45cb242507ee86ea10c4f1bd9c4790613a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 4 18:00:35 2017 +0900
+
+    [VM][I8080] Fix FTBFS with LLVM CLANG++.
+
+commit 4e0300144504ca0bc9cf719fec7d873d571e9bd8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 4 14:04:28 2017 +0900
+
+    [DOC] Update for release.
+
 commit 937dd99e5f1a2bc68f0b6062431a94abf4bd9786
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Mon Dec 4 13:51:59 2017 +0900
