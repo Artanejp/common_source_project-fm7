@@ -9,7 +9,7 @@
 #include "emu.h"
 #include "fm7_display.h"
 #if defined(_OPENMP)
-	#include <omp.h>
+#include <omp.h>
 #endif
 
 uint8_t DISPLAY::read_vram_l4_400l(uint32_t addr, uint32_t offset)
@@ -48,7 +48,7 @@ void DISPLAY::write_vram_l4_400l(uint32_t addr, uint32_t offset, uint32_t data)
 		pagemod = addr & 0x4000;
 		gvram[((addr + offset) & mask) | pagemod] = (uint8_t)data;
 	} else if(addr < 0x9800) {
-	  textvram[addr & 0x0fff] = (uint8_t)data;
+		textvram[addr & 0x0fff] = (uint8_t)data;
 	} else { // $9800-$bfff
 		//return subrom_l4[addr - 0x9800];
 	}
@@ -645,7 +645,7 @@ void DISPLAY::draw_screen2()
 	//if(!(vram_wrote_shadow)) return;
 	yoff_d1 = yoff_d2 = offset_point;
 #endif
-	  // Set blank
+	// Set blank
 	if(!crt_flag) {
 		if(crt_flag_bak) {
 			scrntype_t *ppp;
@@ -657,7 +657,7 @@ void DISPLAY::draw_screen2()
 #endif
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
 #if defined(_OPENMP)
-				#pragma omp parallel for shared(vram_draw_table), private(ppp, yy)
+#pragma omp parallel for shared(vram_draw_table), private(ppp, yy)
 #endif
 				for(y = 0; y < 200; y += 8) {
 					for(yy = 0; yy < 8; yy++) {
@@ -668,7 +668,7 @@ void DISPLAY::draw_screen2()
 				}
 #else
 #if defined(_OPENMP)
-				#pragma omp parallel for shared(vram_draw_table), private(ppp, yy)
+#pragma omp parallel for shared(vram_draw_table), private(ppp, yy)
 #endif
 				for(y = 0; y < 400; y += 8) {
 					for(yy = 0; yy < 8; yy++) {
@@ -681,7 +681,7 @@ void DISPLAY::draw_screen2()
 			} else if(display_mode == DISPLAY_MODE_8_400L) {
 				emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 #if defined(_OPENMP)
-				#pragma omp parallel for shared(vram_draw_table), private(ppp, yy)
+#pragma omp parallel for shared(vram_draw_table), private(ppp, yy)
 #endif
 				for(y = 0; y < 400; y += 8) {
 					for(yy = 0; yy < 8; yy++) {
@@ -698,7 +698,7 @@ void DISPLAY::draw_screen2()
 #endif
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
 #if defined(_OPENMP)
-				#pragma omp parallel for shared(vram_draw_table), private(ppp, yy)
+#pragma omp parallel for shared(vram_draw_table), private(ppp, yy)
 #endif
 				for(y = 0; y < 200; y += 8) {
 					for(yy = 0; yy < 8; yy++) {
@@ -709,7 +709,7 @@ void DISPLAY::draw_screen2()
 				}
 #else
 #if defined(_OPENMP)
-				#pragma omp parallel for shared(vram_draw_table), private(ppp, yy)
+#pragma omp parallel for shared(vram_draw_table), private(ppp, yy)
 #endif
 				for(y = 0; y < 400; y++) {
 					for(yy = 0; yy < 8; yy++) {   
@@ -743,24 +743,24 @@ void DISPLAY::draw_screen2()
 		yoff = 0;
 		//rgbmask = ~multimode_dispmask;
 #if defined(_OPENMP)
-		#pragma omp parallel for shared(vram_draw_table), private(p, p2, yoff, ii, x, yy)
+#pragma omp parallel for shared(vram_draw_table), private(p, p2, yoff, ii, x, yy)
 #endif
 		for(y = 0; y < 200; y += 8) {
-		   for(yy = 0; yy < 8; yy++) {
+			for(yy = 0; yy < 8; yy++) {
 			
-			if(!vram_draw_table[y + yy]) continue;
-			vram_draw_table[y + yy] = false;
+				if(!vram_draw_table[y + yy]) continue;
+				vram_draw_table[y + yy] = false;
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
-			p = emu->get_screen_buffer(y + yy);
-			p2 = NULL;
+				p = emu->get_screen_buffer(y + yy);
+				p2 = NULL;
 #else
-			p = emu->get_screen_buffer((y + yy) * 2);
-			p2 = emu->get_screen_buffer((y + yy) * 2 + 1);
+				p = emu->get_screen_buffer((y + yy) * 2);
+				p2 = emu->get_screen_buffer((y + yy) * 2 + 1);
 #endif
-			if(p == NULL) continue;
-			yoff = (y + yy) * 80;
+				if(p == NULL) continue;
+				yoff = (y + yy) * 80;
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-			if(window_opened && (wy_low <= (y + yy)) && (wy_high > (y + yy))) {
+				if(window_opened && (wy_low <= (y + yy)) && (wy_high > (y + yy))) {
 					for(x = 0; x < 80; x++) {
 						if((x >= wx_begin) && (x < wx_end)) {
 							GETVRAM_8_200L(yoff, p, p2, true, scan_line);
@@ -773,21 +773,21 @@ void DISPLAY::draw_screen2()
 						p += 8;
 						yoff++;
 					}
-			} else
+				} else
 # endif
-			{
-				for(x = 0; x < 10; x++) {
-					for(ii = 0; ii < 8; ii++) {
-						GETVRAM_8_200L(yoff + ii, p, p2, false, scan_line);
+				{
+					for(x = 0; x < 10; x++) {
+						for(ii = 0; ii < 8; ii++) {
+							GETVRAM_8_200L(yoff + ii, p, p2, false, scan_line);
 #if defined(FIXED_FRAMEBUFFER_SIZE)
-						p2 += 8;
+							p2 += 8;
 #endif
-						p += 8;
+							p += 8;
+						}
+						yoff += 8;
 					}
-					yoff += 8;
 				}
 			}
-		   }
 		   
 		}
 		return;
@@ -806,24 +806,24 @@ void DISPLAY::draw_screen2()
 		if(!multimode_dispflags[1]) mask = mask | 0x0f0;
 		if(!multimode_dispflags[2]) mask = mask | 0xf00;
 #if defined(_OPENMP)
-		#pragma omp parallel for shared(vram_draw_table), private(p, p2, yoff, ii, x, yy)
+#pragma omp parallel for shared(vram_draw_table), private(p, p2, yoff, ii, x, yy)
 #endif
 		for(y = 0; y < 200; y += 4) {
-		   for(yy = 0; yy < 4; yy++) {
-			if(!vram_draw_table[y + yy]) continue;
-			vram_draw_table[y + yy] = false;
+			for(yy = 0; yy < 4; yy++) {
+				if(!vram_draw_table[y + yy]) continue;
+				vram_draw_table[y + yy] = false;
 
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
-			p = emu->get_screen_buffer(y + yy);
-			p2 = NULL;
+				p = emu->get_screen_buffer(y + yy);
+				p2 = NULL;
 #else
-			p = emu->get_screen_buffer((y + yy) * 2 );
-			p2 = emu->get_screen_buffer((y + yy) * 2 + 1);
+				p = emu->get_screen_buffer((y + yy) * 2 );
+				p2 = emu->get_screen_buffer((y + yy) * 2 + 1);
 #endif
-			if(p == NULL) continue;
-			yoff = (y + yy) * 40;
+				if(p == NULL) continue;
+				yoff = (y + yy) * 40;
 #  if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-			if(window_opened && (wy_low <= (y + yy)) && (wy_high > (y + yy))) {
+				if(window_opened && (wy_low <= (y + yy)) && (wy_high > (y + yy))) {
 					for(x = 0; x < 40; x++) {
 						if((x >= wx_begin) && (x < wx_end)) {
 							GETVRAM_4096(yoff, p, p2, mask, true, scan_line);
@@ -838,23 +838,23 @@ void DISPLAY::draw_screen2()
 #endif
 						yoff++;
 					}
-			} else
+				} else
 #  endif
-			{
-				for(x = 0; x < 5; x++) {
-					for(ii = 0; ii < 8; ii++) {
-						GETVRAM_4096(yoff + ii, p, p2, mask, false, scan_line);
+				{
+					for(x = 0; x < 5; x++) {
+						for(ii = 0; ii < 8; ii++) {
+							GETVRAM_4096(yoff + ii, p, p2, mask, false, scan_line);
 #if defined(FIXED_FRAMEBUFFER_SIZE)
-						p2 += 16;
-						p += 16;
+							p2 += 16;
+							p += 16;
 #else
-						p += 8;
+							p += 8;
 #endif
+						}
+						yoff += 8;
 					}
-					yoff += 8;
 				}
 			}
-		   }
 		   
 		}
 		return;
@@ -866,39 +866,39 @@ void DISPLAY::draw_screen2()
 		yoff = 0;
 		//rgbmask = ~multimode_dispmask;
 #if defined(_OPENMP)
-		#pragma omp parallel for shared(vram_draw_table), private(pp, p, yoff, x, ii, yy)
+#pragma omp parallel for shared(vram_draw_table), private(pp, p, yoff, x, ii, yy)
 #endif
 		for(y = 0; y < 400; y += 8) {
-		for(yy = 0; yy < 8; yy++) {
-			if(!vram_draw_table[y + yy]) continue;
-			vram_draw_table[y + yy] = false;
+			for(yy = 0; yy < 8; yy++) {
+				if(!vram_draw_table[y + yy]) continue;
+				vram_draw_table[y + yy] = false;
 
-			p = emu->get_screen_buffer(y + yy);
-			if(p == NULL) continue;
-			pp = p;
-			yoff = (y + yy) * 80;
+				p = emu->get_screen_buffer(y + yy);
+				if(p == NULL) continue;
+				pp = p;
+				yoff = (y + yy) * 80;
 #    if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-			if(window_opened && (wy_low <= (y + yy)) && (wy_high  > (y + yy))) {
-				for(x = 0; x < 80; x++) {
-					if((x >= wx_begin) && (x < wx_end)) {
-						GETVRAM_8_400L(yoff, p, true);
-					} else {
-						GETVRAM_8_400L(yoff, p, false);
+				if(window_opened && (wy_low <= (y + yy)) && (wy_high  > (y + yy))) {
+					for(x = 0; x < 80; x++) {
+						if((x >= wx_begin) && (x < wx_end)) {
+							GETVRAM_8_400L(yoff, p, true);
+						} else {
+							GETVRAM_8_400L(yoff, p, false);
+						}
+						p += 8;
+						yoff++;
 					}
-					p += 8;
-					yoff++;
-				}
-			} else
+				} else
 #    endif
-			for(x = 0; x < 10; x++) {
+					for(x = 0; x < 10; x++) {
 
-				for(ii = 0; ii < 8; ii++) {
-					GETVRAM_8_400L(yoff + ii, p);
-					p += 8;
-				}
-				yoff += 8;
+						for(ii = 0; ii < 8; ii++) {
+							GETVRAM_8_400L(yoff + ii, p);
+							p += 8;
+						}
+						yoff += 8;
+					}
 			}
-		}
 		}
 		return;
 	} else if(display_mode == DISPLAY_MODE_256k) {
@@ -910,37 +910,38 @@ void DISPLAY::draw_screen2()
 #endif
 		//rgbmask = ~multimode_dispmask;
 #if defined(_OPENMP)
-		#pragma omp parallel for
+#pragma omp parallel for
 #endif
 #if defined(_OPENMP)
-		#pragma omp parallel for shared(vram_draw_table), private(pp, p, yoff, x, ii, yy)
+#pragma omp parallel for shared(vram_draw_table), private(pp, p, yoff, x, ii, yy)
 #endif
 		for(y = 0; y < 200; y += 4) {
-		for(yy = 0; yy < 4; yy++) {
-			if(!vram_draw_table[y + yy]) continue;
-			vram_draw_table[y + yy] = false;
+			for(yy = 0; yy < 4; yy++) {
+				if(!vram_draw_table[y + yy]) continue;
+				vram_draw_table[y + yy] = false;
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
-			p = emu->get_screen_buffer(y + yy);
-			p2 = NULL;
+				p = emu->get_screen_buffer(y + yy);
+				p2 = NULL;
 #else
-			p = emu->get_screen_buffer((y + yy) * 2 );
-			p2 = emu->get_screen_buffer((y + yy) * 2 + 1);
+				p = emu->get_screen_buffer((y + yy) * 2 );
+				p2 = emu->get_screen_buffer((y + yy) * 2 + 1);
 #endif
-			if(p == NULL) continue;
-			pp = p;
-			yoff = (y + yy) * 40;
-			{
-				for(x = 0; x < 5; x++) {
-					for(ii = 0; ii < 8; ii++) {
-						GETVRAM_256k(yoff + ii, p, p2, scan_line);
+				if(p == NULL) continue;
+				pp = p;
+				yoff = (y + yy) * 40;
+				{
+					for(x = 0; x < 5; x++) {
+						for(ii = 0; ii < 8; ii++) {
+							GETVRAM_256k(yoff + ii, p, p2, scan_line);
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
-						p += 8;
+							p += 8;
 #else
-						p += 16;
-						p2 += 16;
+							p += 16;
+							p2 += 16;
 #endif
+						}
+						yoff += 8;
 					}
-					yoff += 8;
 				}
 			}
 		}

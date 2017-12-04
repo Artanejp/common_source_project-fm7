@@ -110,7 +110,6 @@ bool i286_call_pseudo_bios(i80286_state *cpustate, uint32_t PC)
 	if(cpustate->bios != NULL) {
 		if(cpustate->bios->bios_call_far_i86(PC & AMASK, cpustate->regs.w, cpustate->sregs, &cpustate->ZeroVal, &cpustate->CarryVal)) return true;
 	}
-	if(cpustate->bios != NULL) return cpustate->bios->bios_call_i86(PC, cpustate->regs.w, cpustate->sregs, &cpustate->ZeroVal, &cpustate->CarryVal);
 #endif
 	return false;
 }

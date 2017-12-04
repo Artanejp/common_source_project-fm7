@@ -550,6 +550,7 @@ public:
 	virtual void set_volume(int ch, int decibel_l, int decibel_r) {} // +1 equals +0.5dB (same as fmgen)
 	virtual void set_device_name(const _TCHAR *format, ...);
 	virtual void out_debug_log(const char *fmt, ...);
+	virtual void force_out_debug_log(const char *fmt, ...);
 #if 1
 	// debugger
 	// DEBUGGER is enabled by default.

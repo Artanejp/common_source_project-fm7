@@ -15,6 +15,7 @@
 		REG16(AX) = regs[0]; REG16(CX) = regs[1]; REG16(DX) = regs[2]; REG16(BX) = regs[3]; \
 		REG16(SP) = regs[4]; REG16(BP) = regs[5]; REG16(SI) = regs[6]; REG16(DI) = regs[7]; \
 		cpustate->ZF = (UINT8)ZeroFlag; cpustate->CF = (UINT8)CarryFlag; \
+		CYCLES(CYCLES_IRET); \
 		return; \
 	} \
 }
@@ -30,7 +31,7 @@
 		REG16(AX) = regs[0]; REG16(CX) = regs[1]; REG16(DX) = regs[2]; REG16(BX) = regs[3]; \
 		REG16(SP) = regs[4]; REG16(BP) = regs[5]; REG16(SI) = regs[6]; REG16(DI) = regs[7]; \
 		cpustate->ZF = (UINT8)ZeroFlag; cpustate->CF = (UINT8)CarryFlag; \
-		CYCLES(cpustate,CYCLES_RET_INTERSEG);							\
+		CYCLES(CYCLES_RET_INTERSEG);							\
 		return;															\
 	} \
 }
@@ -40,7 +41,7 @@ void I386_OPS::i386_call_abs16()        // Opcode 0x9a
 {
 	UINT16 offset = FETCH16();
 	UINT16 ptr = FETCH16();
-    CYCLES(cpustate,CYCLES_CALL_INTERSEG);      /* TODO: Timing = 17 + m */
+    CYCLES(CYCLES_CALL_INTERSEG);      /* TODO: Timing = 17 + m */
 
 #ifdef I386_PSEUDO_BIOS
 	BIOS_CALL_FAR(((ptr << 4) + offset) & cpustate->a20_mask)
