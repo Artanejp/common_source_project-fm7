@@ -1,5 +1,16 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT Dec 04, 2017
+  * Upstream 2017-12-03.
+  * [VM/MC6809] Fixing hangup with F-BASIC v3.0ε.Thanks to Ryu Takegami-San. 
+                (see https://matsuri.5ch.net/test/read.cgi/i4004/1483504365/641-645)
+  * [VM/FM7] DISPLAY: Implement software scan line(s).
+  * [VM/FM77AV] VRAM: More use SIMD to be faster.
+    [VM/FM7] Try: Add suuporting for OPpenMP.But be slower than not using OpenMP (/_;)
+  * Build with commit 937dd99e5f1a2bc68f0b6062431a94abf4bd9786 (or later).
+
+-- Dec 04, 2017 13:56:10 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT Oct 18, 2017
   * Upstream 2017-08-12.
   * [VM/FM7] FLOPPY: Fix crash when starting.

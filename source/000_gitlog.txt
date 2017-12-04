@@ -1,3 +1,53 @@
+commit 937dd99e5f1a2bc68f0b6062431a94abf4bd9786
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 4 13:51:59 2017 +0900
+
+    [INSTALLER] Update.
+
+commit 91d5988d3e3a133c70b9772ef0efd454f535e567
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 4 13:51:35 2017 +0900
+
+    [Build][General] Update SOVERSION.
+
+commit dcd4c92358cc268a08fdcb47008e0b5f26aa3a1a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 4 13:50:00 2017 +0900
+
+    [DOC] Merge upstream 2017-12-03.
+
+commit b8868a4a3ab49a099e7caf63754dce417916c770
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 4 13:49:14 2017 +0900
+
+    [General] Fix more FTBFS.
+
+commit 173b5240913e40f5a11b48dbe4a1536f066d50f3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 4 13:48:07 2017 +0900
+
+    [VM][General] Merge Upstream 2017-12-03.
+    [VM] Fix FTBFSs .
+
+commit 60122340cf9933a32119669fdb7967a7604b5fee
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 4 00:22:12 2017 +0900
+
+    [Build][CMake] Add supporting for OpenMP.
+
+commit 5673aaa7cf8f07bd0dc3beecf15bd67ef947e532
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 4 00:18:14 2017 +0900
+
+    [VM][FM77AV][VRAM] More use SIMD to be faster.
+    [VM][FM7][VRAM] Try: Add suuporting for OPpenMP.But be slower than not using OpenMP (/_;)
+
+commit 2cab8ca5d09fcca2aae6b28b321224234f328805
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 3 22:01:36 2017 +0900
+
+    [General] Update installer.
+
 commit 09bbf2dcf46ec268e8b6929ab53227150e0ac298
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sun Dec 3 20:46:14 2017 +0900

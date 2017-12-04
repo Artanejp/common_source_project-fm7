@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                         October 18, 2017
+                                         December 04, 2017
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -12,7 +12,7 @@
    
    ソースコード：
    
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20171018
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20171204
 
    追加情報:
    
@@ -152,32 +152,89 @@ Changes:
 
 ChangeLog:
 * 前の変更点をお読みになる場合には、ChangeLogをお読み下さい。
-* SNAPSHOT Oct 18, 2017
-  * Upstream 2017-08-12.
-  * [VM/FM7] FLOPPY: Fix crash when starting.
-  * [Build/CMAKE] Fix FTBFS with USE_COMMON_DEVICE_LIB != "Yes".
-  * [Build/WIN32] MinGW: Add new cross-build script for FFMPEG-3.4 and x264-152.
-  * [Build/Linux] Add "COMPRESS_SYMBOLS" flag to configuration.
-  * [BUILD/Linux] Don't use LTO for shared libs, use compress symbols.
-  * [BUILD] Fix FTBFSs a lot.
-  * [DOC] Rename LICENSE to LICENSE.txt due to coflict to doc/license directory.This is important to release for M$ Windoze OS.
 
--- Oct 18, 2017 16:33:58 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+* SNAPSHOT Dec 04, 2017
+  * Upstream 2017-12-03.
+  * [VM/MC6809] Fixing hangup with F-BASIC v3.0ε.Thanks to Ryu Takegami-San. 
+                (see https://matsuri.5ch.net/test/read.cgi/i4004/1483504365/641-645)
+  * [VM/FM7] DISPLAY: Implement software scan line(s).
+  * [VM/FM77AV] VRAM: More use SIMD to be faster.
+    [VM/FM7] Try: Add suuporting for OPpenMP.But be slower than not using OpenMP (/_;)
+  * Build with commit 937dd99e5f1a2bc68f0b6062431a94abf4bd9786 (or later).
+
+-- Dec 04, 2017 13:56:10 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 本家の変更:
 * 前の変更点をお読みになる場合には、history.txtをお読み下さい。
 
-8/12/2017
+12/3/2017
 
-[EMU/DEBUGGER] improve to show message when cpu is not suspended soon
+[VM/UPD765A] fix read diagnostic to set ND when 1st sector's id are not match
 
-[PC8801/PC88] fix to render text color #0 with back color
 
-[PC8801/PC88] fix to get text color attribute when text display is stopped
+11/28/2017
 
+[EMU/DEBUGGER] fix ut command to show correct range of cpu trace
+
+[VM/DEVICE] rename bios_call_i86() to bios_call_far_i86()
+[VM/HUC6280] support to show total cpu clocks in debugger
+[VM/HUC6280] support cpu trace
+[VM/I286] support to show total cpu clocks in debugger
+[VM/I286] support cpu trace
+[VM/I386] support to show total cpu clocks in debugger
+[VM/I386] support cpu trace
+[VM/M6502] support to show total cpu clocks in debugger
+[VM/M6502] support cpu trace
+[VM/MC6800] support to show total cpu clocks in debugger
+[VM/MC6800] support cpu trace
+[VM/MC6800] fix issue that can not break at instruction following tap/cli/sei
+[VM/MC6809] support to show total cpu clocks in debugger
+[VM/MC6809] support cpu trace
+[VM/MCS48] fix to add clocks for interrupt to total cpu clocks
+[VM/TMS9995] support to show total cpu clocks in debugger
+[VM/TMS9995] support cpu trace
+[VM/UPD7801] support to show total cpu clocks in debugger
+[VM/UPD7801] support cpu trace
+[VM/UPD7810] support to show total cpu clocks in debugger
+[VM/UPD7810] support cpu trace
+[VM/Z80] fix to add clocks for interrupt to total cpu clocks
+
+
+11/26/2017
+
+[PC8801MA] fix text attribute when dma underrun occurs
+
+
+11/25/2017
+
+[EMU/DEBUGGER] support command history
+[EMU/DEBUGGER] support ut command (unassemble cpu trace)
+[EMU/DEBUGGER] fix < command to check if command file is correctly opened
+
+[EMU/OSD] fix initialize_screen_buffer() for RGB565 (thanks PC8801MA��)
+[EMU/OSD] improve read_console_input() to get cursor key
+
+[VM/MCS48] support to show total cpu clocks in debugger
+[VM/MCS48] support cpu trace
+[VM/UPD7220] improve vsync/hsync timing
+[VM/UPD7220] improve status register to select vblank/hblank by sync command
+[VM/YM2151] improve not to load mamefm.dll again (thanks PC8801MA��)
+[VM/YM2203] improve not to load mamefm.dll again (thanks PC8801MA��)
+[VM/Z80] support to show total cpu clocks in debugger
+[VM/Z80] support cpu trace
+
+[PC8801MA] support OPN+OPN, OPNA+OPNA, and OPNA+OPN (thanks PC8801MA��)
+[PC8801MA] fix back space key issue (thanks PC8801MA��)
+[PC8801MA] fix bank switch of extrom (thanks PC8801MA��)
+[PC8801MA] fix not to apply digital palette in monochrome and digital mode
+[PC8801MA] fix to apply analog palette in monochrome and analog mode
+[PC8801MA] fix to apply reverse in text attribute to monochrome graphic
+[PC8801MA] fix cpu mode "Z80 8MHz (FE2/MC)"
+
+[X1/KEYBOAD] support phantom keys (thanks Mr.Sato)
+[X1/SUB] fix not to check iei status when sub cpu sends ack (thanks Mr.Sato)
 
 -----
-
 
 お楽しみあれ!
 -- Ohta.
