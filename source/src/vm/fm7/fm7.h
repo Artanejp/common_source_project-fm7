@@ -404,13 +404,14 @@ class MB61VH010;
     defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
 class HD6844;
 #endif
+class AND;
 class FM7_MAINMEM;
 class FM7_MAINIO;
 class KEYBOARD;
 class KANJIROM;
 class JOYSTICK;
 
-#if WITH_Z80
+#ifdef WITH_Z80
 class Z80;
 #endif
 class VM {
@@ -452,7 +453,11 @@ protected:
 	
 #ifdef  WITH_Z80
 	Z80* z80cpu;
+	AND *g_mainstat;
 #endif
+	AND *g_substat_display;
+	AND *g_substat_mainhalt;
+	
 	DEVICE* printer;
 	DEVICE* inteli_mouse; 
    

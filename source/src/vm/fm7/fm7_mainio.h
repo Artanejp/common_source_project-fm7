@@ -120,9 +120,9 @@ class FM7_MAINIO : public DEVICE {
 	bool sub_cancel; // bit6 : '1' Cancel req.
 	bool sub_halt_bak; // bit7 : shadow.
 	bool sub_cancel_bak; // bit6 : shadow.
-#if defined(WITH_Z80)	
-	bool z80_sel;    // bit0 : '1' = Z80. Maybe only FM-7/77.
-#endif
+	bool req_z80run;    // bit0 : '1' = Z80. Maybe only FM-7/77.
+	bool z80_run;
+	
 	/* FD06 : R/W : RS-232C */
 	/* FD07 : R/W : RS-232C */
 	bool intstat_syndet;

@@ -83,9 +83,8 @@ FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, paren
 	intmode_fdc = false; // bit2, '0' = normal, '1' = SFD.
 	// FD05
 	extdet_neg = false;
-#ifdef WITH_Z80
-	z80_sel = false;    // bit0 : '1' = Z80. Maybe only FM-7/77.
-#endif
+	req_z80run = false;
+	z80_run = false;
 	// FD06,07
 	intstat_syndet = false;
 	intstat_rxrdy = false;
@@ -228,6 +227,9 @@ void FM7_MAINIO::reset()
 	sub_halt = false; // bit6 : '1' Cancel req.
 	sub_cancel_bak = sub_cancel; // bit6 : '1' Cancel req.
 	sub_halt_bak = sub_halt; // bit6 : '1' Cancel req.
+	req_z80run = false; // OK?
+	z80_run = false;
+
 	// FD02
 	cmt_indat = true; // bit7
 	cmt_invert = false; // Invert signal
@@ -712,11 +714,11 @@ void FM7_MAINIO::set_fd04(uint8_t val)
 	sub_cancel_bak = sub_cancel;
 #ifdef WITH_Z80
 	if((val & 0x01) != 0) {
-		maincpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
-		z80->write_signal(SIG_CPU_BUSREQ, 0, 1);
+		maincpu->write_signal(SIG_CPU_HALTREQ, 1, 1);
+		req_z80run = true;
 	} else {
-		maincpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 		z80->write_signal(SIG_CPU_BUSREQ, 1, 1);
+		req_z80run = false;
 	}
 #endif
 }
@@ -945,6 +947,20 @@ void FM7_MAINIO::write_signal(int id, uint32_t data, uint32_t mask)
 			break;
 		case FM7_MAINIO_PSG_IRQ:
 			break;
+#if defined(WITH_Z80)
+		case FM7_MAINIO_RUN_Z80:
+			if((req_z80run) && (val_b)) {
+				z80->write_signal(SIG_CPU_BUSREQ, 0, 1);
+				z80_run = true;
+			}
+			break;
+		case FM7_MAINIO_RUN_6809:
+			if(!(req_z80run) && (val_b) && (z80_run)) {
+				maincpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+				z80_run = false;
+			}
+			break;
+#endif
 #if !defined(_FM8)			
 		case FM7_MAINIO_OPN_IRQ:
 			if(!connect_opn) break;
@@ -1632,7 +1648,7 @@ void FM7_MAINIO::event_vline(int v, int clock)
 {
 }
 
-#define STATE_VERSION 6
+#define STATE_VERSION 7
 void FM7_MAINIO::save_state(FILEIO *state_fio)
 {
 	int ch;
@@ -1700,9 +1716,6 @@ void FM7_MAINIO::save_state(FILEIO *state_fio)
 		state_fio->FputBool(extdet_neg);
 		state_fio->FputBool(sub_halt);
 		state_fio->FputBool(sub_cancel);
-#if defined(WITH_Z80)	
-		state_fio->FputBool(z80_sel);
-#endif	
 		// FD06, 07
 		state_fio->FputBool(intstat_syndet);
 		state_fio->FputBool(intstat_rxrdy);
@@ -1789,6 +1802,9 @@ void FM7_MAINIO::save_state(FILEIO *state_fio)
 		state_fio->FputUint8(reg_fd12);
 #endif		
 	}
+	// FD05
+	state_fio->FputBool(req_z80run);
+	state_fio->FputBool(z80_run);
 }
 
 bool FM7_MAINIO::load_state(FILEIO *state_fio)
@@ -1860,9 +1876,6 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 		extdet_neg = state_fio->FgetBool();
 		sub_halt = state_fio->FgetBool();
 		sub_cancel = state_fio->FgetBool();
-#if defined(WITH_Z80)	
-		z80_sel = state_fio->FgetBool();
-#endif	
 		// FD06, 07
 		intstat_syndet = state_fio->FgetBool();
 		intstat_rxrdy = state_fio->FgetBool();
@@ -1947,6 +1960,10 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 		reg_fd12 = state_fio->FgetUint8();
 #endif		
 	}
+	// FD05
+	req_z80run = state_fio->FgetBool();
+	z80_run = state_fio->FgetBool();
+	
 	if(version != STATE_VERSION) return false;
 	return true;
 }

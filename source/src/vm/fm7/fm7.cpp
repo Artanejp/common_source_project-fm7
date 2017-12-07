@@ -28,6 +28,7 @@
 #include "../pcm1bit.h"
 #include "../ym2203.h"
 #include "../ay_3_891x.h"
+#include "../and.h"
 
 #if defined(_FM77AV_VARIANTS)
 #include "mb61vh010.h"
@@ -68,8 +69,13 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	dummycpu = new DEVICE(this, emu);
 	maincpu = new MC6809(this, emu);
 	subcpu = new MC6809(this, emu);
+	g_substat_display = new AND(this, emu);
+	g_substat_mainhalt = new AND(this, emu);
+	
 #ifdef WITH_Z80
 	z80cpu = new Z80(this, emu);
+	g_mainstat = new AND(this, emu);
+	
 #endif
 	// basic devices
 	// I/Os
@@ -156,6 +162,15 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #endif	
 #ifdef CAPABLE_KANJI_CLASS2
 	kanjiclass2 = new KANJIROM(this, emu, true);
+#endif
+#ifdef WITH_Z80
+	g_mainstat->set_mask(SIG_AND_BIT_0);
+	g_mainstat->set_mask(SIG_AND_BIT_1);
+	maincpu->set_context_bus_ba(g_mainstat, SIG_AND_BIT_0, 0xffffffff);
+	maincpu->set_context_bus_bs(g_mainstat, SIG_AND_BIT_1, 0xffffffff);
+	g_mainstat->set_context_out(mainio, FM7_MAINIO_RUN_Z80, 0xffffffff);
+	z80cpu->set_context_busack(mainio, FM7_MAINIO_RUN_6809, 0xffffffff);
+	mainio->set_context_z80cpu(z80cpu);
 #endif
 #if defined(_USE_QT)
 	event->set_device_name(_T("EVENT"));
@@ -271,6 +286,8 @@ void VM::connect_bus(void)
 #ifdef WITH_Z80
 	event->set_context_cpu(z80cpu,  4000000);
 	z80cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+	//maincpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+	maincpu->write_signal(SIG_CPU_HALTREQ, 0, 1);
 #endif
 
 	event->set_context_sound(pcm1bit);
@@ -352,9 +369,20 @@ void VM::connect_bus(void)
 
 	mainio->set_context_clock_status(mainmem, FM7_MAINIO_CLOCKMODE, 0xffffffff);
 	mainio->set_context_clock_status(display, SIG_DISPLAY_CLOCK, 0xffffffff);
-	
-	subcpu->set_context_bus_halt(display, SIG_FM7_SUB_HALT, 0xffffffff);
-	subcpu->set_context_bus_halt(mainmem, SIG_FM7_SUB_HALT, 0xffffffff);
+
+#if 1
+	g_substat_display->set_mask(SIG_AND_BIT_0);
+	g_substat_display->set_mask(SIG_AND_BIT_1);
+	subcpu->set_context_bus_ba(g_substat_display, SIG_AND_BIT_0, 0xffffffff);
+	subcpu->set_context_bus_bs(g_substat_display, SIG_AND_BIT_1, 0xffffffff);
+	g_substat_display->set_context_out(display, SIG_FM7_SUB_HALT, 0xffffffff);
+
+	g_substat_mainhalt->set_mask(SIG_AND_BIT_0);
+	g_substat_mainhalt->set_mask(SIG_AND_BIT_1);
+	subcpu->set_context_bus_ba(g_substat_mainhalt, SIG_AND_BIT_0, 0xffffffff);
+	subcpu->set_context_bus_bs(g_substat_mainhalt, SIG_AND_BIT_1, 0xffffffff);
+	g_substat_mainhalt->set_context_out(mainmem, SIG_FM7_SUB_HALT, 0xffffffff);
+#endif
 
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	display->set_context_kanjiclass1(kanjiclass1);
@@ -398,7 +426,6 @@ void VM::connect_bus(void)
 	opn[2]->set_context_irq(mainio, FM7_MAINIO_THG_IRQ, 0xffffffff);
 	mainio->set_context_opn(opn[2], 2);
 #endif   
-	subcpu->set_context_bus_halt(display, SIG_FM7_SUB_HALT, 0xffffffff);
 	subcpu->set_context_bus_clr(display, SIG_FM7_SUB_USE_CLR, 0x0000000f);
    
 	event->register_frame_event(joystick);
@@ -884,7 +911,7 @@ void VM::is_bubble_casette_protected(int drv, bool flag)
 #endif
 
 
-#define STATE_VERSION	6
+#define STATE_VERSION	7
 void VM::save_state(FILEIO* state_fio)
 {
 	state_fio->FputUint32_BE(STATE_VERSION);

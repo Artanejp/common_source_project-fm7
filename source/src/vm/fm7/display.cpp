@@ -246,6 +246,7 @@ void DISPLAY::reset()
 	
 	if(nmi_event_id >= 0) cancel_event(this, nmi_event_id);
 	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
+	subcpu->write_signal(SIG_CPU_HALTREQ, 0, 1);
 	subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 	subcpu->reset();
 }
@@ -406,12 +407,13 @@ uint8_t DISPLAY::get_dpalette(uint32_t addr)
 
 void DISPLAY::halt_subcpu(void)
 {
-	subcpu->write_signal(SIG_CPU_BUSREQ, 0x01, 0x01);
+	//subcpu->write_signal(SIG_CPU_BUSREQ, 0x01, 0x01);
+	subcpu->write_signal(SIG_CPU_HALTREQ, 0x01, 0x01);
 }
 
 void DISPLAY::go_subcpu(void)
 {
-	subcpu->write_signal(SIG_CPU_BUSREQ, 0x00, 0x01);
+	subcpu->write_signal(SIG_CPU_HALTREQ, 0x00, 0x01);
 }
 
 void DISPLAY::enter_display(void)
@@ -447,6 +449,7 @@ void DISPLAY::restart_subsystem(void)
 		firq_mask = (mainio->read_signal(FM7_MAINIO_KEYBOARDIRQ_MASK) != 0) ? false : true;
 		reset_cpuonly();
 		power_on_reset = true;
+		subcpu->write_signal(SIG_CPU_HALTREQ, 0, 1);
 		subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 		subcpu->reset();
 		do_firq(!firq_mask && key_firq_req);
@@ -709,7 +712,8 @@ void DISPLAY::set_monitor_bank(uint8_t var)
 		power_on_reset = true;
 		firq_mask = (mainio->read_signal(FM7_MAINIO_KEYBOARDIRQ_MASK) != 0) ? false : true;
 		reset_cpuonly();
-		subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+		subcpu->write_signal(SIG_CPU_HALTREQ, 0, 1);
+		subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1); // Is needed?
 		subcpu->reset();
 		do_firq(!firq_mask && key_firq_req);
 	} else {
