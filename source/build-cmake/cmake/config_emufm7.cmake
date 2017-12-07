@@ -19,6 +19,7 @@ set(VMFILES
 )
 
 set(VMFILES_LIB
+		   and.cpp
 		   datarec.cpp
 		   ym2203.cpp
 		   pcm1bit.cpp
@@ -96,24 +97,32 @@ if(BUILD_FM7)
   add_definitions(-D_FM7)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fm7.qrc)
   set(VMFILES_LIB ${VMFILES_LIB} ay_3_891x.cpp)
+  set(FLAG_USE_Z80 ON)
+  add_definitions(-DBUILD_Z80)
  
 elseif(BUILD_FM8)
   set(EXEC_TARGET emufm8)
   add_definitions(-D_FM8)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fm8.qrc)
   set(VMFILES_LIB ${VMFILES_LIB} ay_3_891x.cpp)
+  set(FLAG_USE_Z80 ON)
+  add_definitions(-DBUILD_Z80)
   
 elseif(BUILD_FM77)
   set(EXEC_TARGET emufm77)
   add_definitions(-D_FM77)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fm77.qrc)
   set(VMFILES_LIB ${VMFILES_LIB} ay_3_891x.cpp)
+  set(FLAG_USE_Z80 ON)
+  add_definitions(-DBUILD_Z80)
   
 elseif(BUILD_FM77L2)
   set(EXEC_TARGET emufm77l2)
   add_definitions(-D_FM77L2)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fm77l2.qrc)
   set(VMFILES_LIB ${VMFILES_LIB} ay_3_891x.cpp)
+  set(FLAG_USE_Z80 ON)
+  add_definitions(-DBUILD_Z80)
   
 elseif(BUILD_FM77L4)
   set(EXEC_TARGET emufm77l4)
@@ -121,6 +130,9 @@ elseif(BUILD_FM77L4)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/source/src/qt/fm7/fm77.qrc)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fm77l4.qrc)
   set(VMFILES_LIB ${VMFILES_LIB} ay_3_891x.cpp)
+  set(FLAG_USE_Z80 ON)
+  add_definitions(-DBUILD_Z80)
+
 elseif(BUILD_FM77AV)
   set(EXEC_TARGET emufm77av)
   add_definitions(-D_FM77AV)
