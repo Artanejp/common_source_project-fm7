@@ -108,6 +108,7 @@ protected:
 	void OP_ED(uint8_t code);
 	void OP(uint8_t code);
 	virtual void run_one_opecode();
+	virtual void debugger_hook(void);
 	
 	uint8_t SZ[256];		/* zero and sign flags */
 	uint8_t SZ_BIT[256];	/* zero, sign and parity/overflow (=zero) flags for BIT opcode */
@@ -250,7 +251,7 @@ public:
 		d_debugger = NULL;
 		d_mem_stored = NULL;
 		d_io_stored = NULL;
-		
+		d_pic = NULL;
 		has_nsc800 = false;
 		has_io_wait = false;
 		has_memory_wait = false;
@@ -339,6 +340,7 @@ class Z80 : public Z80_BASE
 protected:
 	void check_interrupt();
 	void run_one_opecode() override;
+	void debugger_hook(void) override;
 public:
 	Z80(VM* parent_vm, EMU* parent_emu);
 	~Z80();

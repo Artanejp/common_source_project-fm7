@@ -171,6 +171,39 @@ void Z80::reset()
 	icount = extra_icount = 0;
 }
 
+void Z80::debugger_hook(void)
+{
+#ifdef USE_DEBUGGER
+	bool now_debugging = d_debugger->now_debugging;
+	if(now_debugging) {
+		d_debugger->check_break_points(PC);
+		if(d_debugger->now_suspended) {
+			osd->mute_sound();
+			d_debugger->now_waiting = true;
+			while(d_debugger->now_debugging && d_debugger->now_suspended) {
+				osd->sleep(10);
+			}
+			d_debugger->now_waiting = false;
+		}
+		if(d_debugger->now_debugging) {
+			d_mem = d_debugger;
+		} else {
+			now_debugging = false;
+		}
+		
+		//d_debugger->add_cpu_trace(PC);
+		int first_icount = icount;
+		//pPPC = pPC;
+		if(now_debugging) {
+			if(!d_debugger->now_going) {
+				d_debugger->now_suspended = true;
+			}
+			d_mem = d_mem_stored;
+		}
+	}
+#endif
+}
+
 int Z80::run(int clock)
 {
 	if(clock == -1) {
@@ -187,6 +220,7 @@ int Z80::run(int clock)
 			/*icount = */extra_icount = 0;
 			#ifdef USE_DEBUGGER
 				total_icount += passed_icount;
+				debugger_hook();
 			#endif
 			return passed_icount;
 		} else {
@@ -210,6 +244,9 @@ int Z80::run(int clock)
 		
 		if(busreq) {
 			// run dma once
+			#ifdef USE_DEBUGGER
+				debugger_hook();
+			#endif
 			#ifdef SINGLE_MODE_DMA
 				if(d_dma) {
 					d_dma->do_dma();
@@ -231,6 +268,7 @@ int Z80::run(int clock)
 		return first_icount - icount;
 	}
 }
+
 
 void Z80::run_one_opecode()
 {
@@ -343,7 +381,7 @@ void Z80::run_one_opecode()
 				d_dma->do_dma();
 			}
 #endif
-			d_pic->notify_intr_ei();
+			if(d_pic != NULL) d_pic->notify_intr_ei();
 			check_interrupt();
 			
 			if(now_debugging) {
@@ -375,7 +413,7 @@ void Z80::run_one_opecode()
 				d_dma->do_dma();
 			}
 #endif
-			d_pic->notify_intr_ei();
+			if(d_pic != NULL) d_pic->notify_intr_ei();
 			check_interrupt();
 #ifdef USE_DEBUGGER
 		}
@@ -408,7 +446,11 @@ void Z80::check_interrupt()
 				// INTR
 				LEAVE_HALT();
 				PUSH(pc);
-				PCD = WZ = d_pic->get_intr_ack() & 0xffff;
+				if(d_pic != NULL) { // OK?
+					PCD = WZ = d_pic->get_intr_ack() & 0xffff;
+				} else {
+					PCD = WZ = (PCD & 0xff00) | 0xcd;
+				}
 				icount -= cc_op[0xcd] + cc_ex[0xff];
 				iff1 = iff2 = 0;
 				intr_req_bit &= ~1;
@@ -442,7 +484,8 @@ void Z80::check_interrupt()
 				// interrupt
 				LEAVE_HALT();
 				
-				uint32_t vector = d_pic->get_intr_ack();
+				uint32_t vector = 0xcd;
+				if(d_pic != NULL) vector = d_pic->get_intr_ack();
 				if(im == 0) {
 					// mode 0 (support NOP/JMP/CALL/RST only)
 					switch(vector & 0xff) {

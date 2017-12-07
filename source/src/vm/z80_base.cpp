@@ -290,7 +290,7 @@ Z80_INLINE void Z80_BASE::OUT8(uint32_t addr, uint8_t val)
 	POP(pc); \
 	WZ = PC; \
 	iff1 = iff2; \
-	d_pic->notify_intr_reti(); \
+	if(d_pic != NULL) d_pic->notify_intr_reti();	\
 } while(0)
 
 #define LD_R_A() do { \
@@ -2006,6 +2006,10 @@ int Z80_BASE::run(int clock)
 		
 		if(busreq) {
 			// run dma once
+			// run dma once
+			#ifdef USE_DEBUGGER
+				debugger_hook();
+			#endif
 			//#ifdef SINGLE_MODE_DMA
 				if(d_dma) {
 					d_dma->do_dma();
@@ -2025,6 +2029,10 @@ int Z80_BASE::run(int clock)
 	}
 }
 
+void Z80_BASE::debugger_hook(void)
+{
+}
+
 void Z80_BASE::run_one_opecode()
 {
 	// rune one opecode
@@ -2040,7 +2048,7 @@ void Z80_BASE::run_one_opecode()
 #if HAS_LDAIR_QUIRK
 		if(after_ldair) F &= ~PF;	// reset parity flag after LD A,I or LD A,R
 #endif
-		d_pic->notify_intr_ei();
+		if(d_pic != NULL) d_pic->notify_intr_ei();
 	}
 	
 	// check interrupt
@@ -2059,7 +2067,11 @@ void Z80_BASE::run_one_opecode()
 				// INTR
 				LEAVE_HALT();
 				PUSH(pc);
-				PCD = WZ = d_pic->get_intr_ack() & 0xffff;
+				if(d_pic != NULL) { // OK?
+					PCD = WZ = d_pic->get_intr_ack() & 0xffff;
+				} else {
+					PCD = WZ = (PCD & 0xff00) | 0xcd;
+				}
 				icount -= cc_op[0xcd] + cc_ex[0xff];
 				iff1 = iff2 = 0;
 				intr_req_bit &= ~1;
@@ -2093,7 +2105,8 @@ void Z80_BASE::run_one_opecode()
 				// interrupt
 				LEAVE_HALT();
 				
-				uint32_t vector = d_pic->get_intr_ack();
+				uint32_t vector = 0xcd; // Default
+				if(d_pic != NULL) vector = d_pic->get_intr_ack();
 				if(im == 0) {
 					// mode 0 (support NOP/JMP/CALL/RST only)
 					switch(vector & 0xff) {
