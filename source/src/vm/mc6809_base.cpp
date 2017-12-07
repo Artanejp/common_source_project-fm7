@@ -161,9 +161,20 @@ void MC6809_BASE::reset()
 //#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	clr_used = false;
 	write_signals(&outputs_bus_clr, 0x00000000);
+	if((req_halt_on) && !(req_halt_off)) {
+		int_state |= MC6809_HALT_BIT;
+	} else {
+		req_halt_on = req_halt_off = false;
+	}
+	if((int_state & MC6809_HALT_BIT) != 0) {
+		write_signals(&outputs_bus_ba, 0xffffffff);
+		write_signals(&outputs_bus_bs, 0xffffffff);
+	} else {
+		write_signals(&outputs_bus_ba, 0x00000000);
+		write_signals(&outputs_bus_bs, 0x00000000);
+	}
+	run_phase = old_run_phase = MC6809_PHASE_RUN;
 //#endif
-	write_signals(&outputs_bus_halt, ((int_state & MC6809_HALT_BIT) != 0) ? 0xffffffff : 0x00000000);
-   
 	CC |= CC_II;	/* IRQ disabled */
 	CC |= CC_IF;	/* FIRQ disabled */
 	
@@ -178,6 +189,8 @@ void MC6809_BASE::initialize()
 	busreq = false;
 	icount = 0;
 	extra_icount = 0;
+	run_phase = old_run_phase = MC6809_PHASE_RUN;
+	req_halt_on = req_halt_off = false;
 	__USE_DEBUGGER = osd->check_feature(_T("USE_DEBUGGER"));
 
 }
@@ -208,12 +221,21 @@ void MC6809_BASE::write_signal(int id, uint32_t data, uint32_t mask)
 		} else {
 			int_state &= ~MC6809_HALT_BIT;
 		}
+	} else if(id == SIG_CPU_HALTREQ) {
+		if(data & mask) {
+			req_halt_on = true;
+			//int_state |= MC6809_HALT_BIT;
+		} else {
+			if(req_halt_on) {
+				req_halt_off = true;
+			}
+			//int_state &= ~MC6809_HALT_BIT;
+		}
 	}
 }
 
-void MC6809_BASE::cpu_nmi(void)
+void MC6809_BASE::cpu_nmi_push(void)
 {
-	//pair_t rpc = pPC;
 	if ((int_state & MC6809_CWAI_IN) == 0) {
 		CC |= CC_E;
 		PUSHWORD(pPC);
@@ -226,15 +248,29 @@ void MC6809_BASE::cpu_nmi(void)
 		PUSHBYTE(CC);
 	}
 	CC = CC | CC_II | CC_IF;	// 0x50
+	return;
+}
+
+void MC6809_BASE::cpu_nmi_fetch_vector_address(void)
+{
 	pPC = RM16_PAIR(0xfffc);
 //	printf("NMI occured PC=0x%04x VECTOR=%04x SP=%04x \n",rpc.w.l,pPC.w.l,S);
 	int_state |= MC6809_CWAI_OUT;
 	int_state &= ~(MC6809_NMI_BIT | MC6809_SYNC_IN | MC6809_SYNC_OUT | MC6809_CWAI_IN);	// $FF1E
+	return;
 }
 
 
-// Refine from cpu_x86.asm of V3.52a.
-void MC6809_BASE::cpu_firq(void)
+
+void MC6809_BASE::cpu_firq_fetch_vector_address(void)
+{
+	pPC = RM16_PAIR(0xfff6);
+	int_state |= MC6809_CWAI_OUT;
+	int_state &= ~(MC6809_SYNC_IN | MC6809_SYNC_OUT | MC6809_CWAI_IN);
+	return;
+}
+
+void MC6809_BASE::cpu_firq_push(void)
 {
 	//pair_t rpc = pPC;
 	if ((int_state & MC6809_CWAI_IN) == 0) {
@@ -244,16 +280,11 @@ void MC6809_BASE::cpu_firq(void)
 		PUSHBYTE(CC);
 	}
 	CC = CC | CC_IF | CC_II;
-	pPC = RM16_PAIR(0xfff6);
-	int_state |= MC6809_CWAI_OUT;
-	int_state &= ~(MC6809_SYNC_IN | MC6809_SYNC_OUT | MC6809_CWAI_IN);
+
 //	printf("Firq occured PC=0x%04x VECTOR=%04x SP=%04x \n",rpc.w.l,pPC.w.l,S);
 }
-
-// Refine from cpu_x86.asm of V3.52a.
-void MC6809_BASE::cpu_irq(void)
+void MC6809_BASE::cpu_irq_push(void)
 {
-	//pair_t rpc = pPC;
 	if ((int_state & MC6809_CWAI_IN) == 0) {
 		CC |= CC_E;
 		PUSHWORD(pPC);
@@ -266,53 +297,58 @@ void MC6809_BASE::cpu_irq(void)
 		PUSHBYTE(CC);
 	}
 	CC |= CC_II;
+}
+void MC6809_BASE::cpu_irq_fetch_vector_address(void)
+{
+	//pair_t rpc = pPC;
 	pPC = RM16_PAIR(0xfff8);
 	int_state |= MC6809_CWAI_OUT;
 	int_state &= ~(MC6809_SYNC_IN | MC6809_SYNC_OUT | MC6809_CWAI_IN);
-
-//	printf("IRQ occured PC=0x%04x VECTOR=%04x SP=%04x \n",rpc.w.l,pPC.w.l,S);
 }
 
 int MC6809_BASE::run(int clock)
 {
 	int cycle = 0;
 	int first_icount;
+	int tmpcycle;
 	if (clock >= 0) {
 		icount += clock;
 	}
 	first_icount = icount;
 
+	if((req_halt_on) && !(req_halt_off)) {
+		int_state |= MC6809_HALT_BIT;
+	} else	if(req_halt_on && req_halt_off) { // HALT OFF
+		//if(!busreq) {
+		int_state &= ~MC6809_HALT_BIT;
+		req_halt_on = req_halt_off = false;
+		//}
+	}
+
 	if ((int_state & MC6809_HALT_BIT) != 0) {	// 0x80
-#if 0
-		if(clock < 0) {
-			int passed_icount;
-			passed_icount = max(1, extra_icount);
-			extra_icount = 0;
-			busreq = true;
-			total_icount += first_icount - passed_icount;
-			return first_icount - passed_icount;
-		} else {
-			//icount = 0;
-			icount -= extra_icount;
-			extra_icount = 0;
-			busreq = true;
-			total_icount += first_icount - icount;
-			return first_icount - icount;
-		}
-#else
 		icount = 0;
 		icount -= extra_icount;
 		extra_icount = 0;
-		if(!busreq) write_signals(&outputs_bus_halt, 0xffffffff); // Moved form before.Thanks to Ryu Takegami.
+		if(!busreq) {
+			write_signals(&outputs_bus_ba, 0xffffffff);
+			write_signals(&outputs_bus_bs, 0xffffffff);
+		}
 		busreq = true;
+		debugger_hook();
 
 		total_icount += first_icount - icount;
 
 		return first_icount - icount;
-#endif
 	}
-	if(busreq) write_signals(&outputs_bus_halt, 0x00000000);
-	busreq = false;
+	if(busreq) {
+		if((int_state & MC6809_SYNC_IN) != 0) {
+			write_signals(&outputs_bus_ba, 0xffffffff);
+		} else {
+			write_signals(&outputs_bus_ba, 0x00000000);
+		}				
+		write_signals(&outputs_bus_bs, 0x00000000);
+		busreq = false;
+	}
 	if((int_state & MC6809_INSN_HALT) != 0) {	// 0x80
 		//uint8_t dmy = RM(PCD); //Will save.Need to keep.
 		RM(PCD); //Will save.Need to keep.
@@ -324,6 +360,7 @@ int MC6809_BASE::run(int clock)
 		}
 		extra_icount = 0;
 		PC++;
+		debugger_hook();
 		total_icount += first_icount - icount;
 		return first_icount - icount;
 	}
@@ -336,10 +373,28 @@ int MC6809_BASE::run(int clock)
 			goto check_firq;
 		//if ((int_state & MC6809_LDS) == 0)
 		//	goto check_firq;
-		cpu_nmi();
+		if(run_phase != MC6809_PHASE_NMI_PUSH_STACK) {
+			write_signals(&outputs_bus_bs, 0x00000000);
+			old_run_phase = run_phase;
+			run_phase = MC6809_PHASE_NMI_PUSH_STACK;
+			cpu_nmi_push();
+			debugger_hook();
+			cycle = 19 - 2;
+			icount -= cycle;
+			total_icount += first_icount - icount;
+			return first_icount - icount;
+		} else {
+			write_signals(&outputs_bus_bs, 0xffffffff);
+			cpu_nmi_fetch_vector_address();
+			run_phase = MC6809_PHASE_NMI_FETCH_VECTOR;
+		} 
 		run_one_opecode();
 		int_state &= ~MC6809_SYNC_IN;
-		cycle = 19;
+		cycle = 2;
+		//cycle = 19;
+		write_signals(&outputs_bus_bs, 0x00000000);
+		write_signals(&outputs_bus_ba, 0x00000000);
+		run_phase = old_run_phase;
 		goto int_cycle;
 	} else {
 		goto check_ok;
@@ -348,22 +403,58 @@ int MC6809_BASE::run(int clock)
 check_firq:
 	if ((int_state & MC6809_FIRQ_BIT) != 0) {
 		int_state &= ~MC6809_SYNC_IN; // Moved to before checking.Thanks to Ryu Takegami.
-		if ((CC & CC_IF) != 0)
-			goto check_irq;
-		cpu_firq();
+		if(run_phase != MC6809_PHASE_FIRQ_PUSH_STACK) {
+			if ((CC & CC_IF) != 0)
+				goto check_irq;
+			write_signals(&outputs_bus_bs, 0x00000000);
+			old_run_phase = run_phase;
+			run_phase = MC6809_PHASE_FIRQ_PUSH_STACK;
+			cpu_firq_push();
+			debugger_hook();
+			cycle = 10 - 2;
+			icount -= cycle;
+			total_icount += first_icount - icount;
+			return first_icount - icount;
+		} else {
+			write_signals(&outputs_bus_bs, 0xffffffff);
+			cpu_firq_fetch_vector_address();
+			run_phase = MC6809_PHASE_FIRQ_FETCH_VECTOR;
+		}
 		run_one_opecode();
-		cycle = 10;
+		run_phase = old_run_phase;
+		//cycle = 10;
+		cycle = 2;
+		write_signals(&outputs_bus_bs, 0x00000000);
+		write_signals(&outputs_bus_ba, 0x00000000);
 		goto int_cycle;
 	}
 
 check_irq:
 	if ((int_state & MC6809_IRQ_BIT) != 0) {
 		int_state &= ~MC6809_SYNC_IN; // Moved to before checking.Thanks to Ryu Takegami.
-		if ((CC & CC_II) != 0)
-			goto check_ok;
-		cpu_irq();
+		if(run_phase != MC6809_PHASE_IRQ_PUSH_STACK) {
+			if ((CC & CC_II) != 0)
+				goto check_ok;
+			write_signals(&outputs_bus_bs, 0x00000000);
+			old_run_phase = run_phase;
+			run_phase = MC6809_PHASE_IRQ_PUSH_STACK;
+			cpu_irq_push();
+			debugger_hook();
+			cycle = 19 - 2;
+			icount -= cycle;
+			total_icount += first_icount - icount;
+			return first_icount - icount;
+		} else {
+			write_signals(&outputs_bus_bs, 0xffffffff);
+			cpu_irq_fetch_vector_address();
+			run_phase = MC6809_PHASE_IRQ_FETCH_VECTOR;
+		}
 		run_one_opecode();
-		cycle = 19;
+		//cycle = 19;
+		cycle = 2;
+		run_phase = old_run_phase;
+		write_signals(&outputs_bus_bs, 0x00000000);
+		write_signals(&outputs_bus_ba, 0x00000000);
 		goto int_cycle;
 	}
 	/*
@@ -417,6 +508,11 @@ check_ok:
 		return first_icount - icount;
 	}
 
+}
+
+void MC6809_BASE::debugger_hook()
+{
+	
 }
 
 void MC6809_BASE::run_one_opecode()
@@ -1244,6 +1340,8 @@ OP_HANDLER(nop) {
 OP_HANDLER(sync_09)	// Rename 20101110
 {
 	int_state |= MC6809_SYNC_IN;
+	write_signals(&outputs_bus_ba, 0xffffffff);
+	write_signals(&outputs_bus_bs, 0x00000000);
 }
 
 
@@ -3761,7 +3859,7 @@ OP_HANDLER(pref11) {
 		}
 	}
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void MC6809_BASE::save_state(FILEIO* state_fio)
 {
@@ -3782,6 +3880,14 @@ void MC6809_BASE::save_state(FILEIO* state_fio)
 	state_fio->FputUint32(y.d);
 	state_fio->FputUint8(cc);
 	state_fio->FputUint32(ea.d);
+
+	// V2
+	state_fio->FputBool(req_halt_on);
+	state_fio->FputBool(req_halt_off);
+	state_fio->FputBool(busreq);
+	
+	state_fio->FputUint8(old_run_phase);
+	state_fio->FputUint8(run_phase);
 }
 
 bool MC6809_BASE::load_state(FILEIO* state_fio)
@@ -3807,6 +3913,13 @@ bool MC6809_BASE::load_state(FILEIO* state_fio)
 	cc = state_fio->FgetUint8();
 	ea.d = state_fio->FgetUint32();
 
+	// V2
+	req_halt_on = state_fio->FgetBool();
+	req_halt_off = state_fio->FgetBool();
+	busreq = state_fio->FgetBool();
+	
+	old_run_phase = state_fio->FgetUint8();
+	run_phase = state_fio->FgetUint8();
 	return true;
 }
 

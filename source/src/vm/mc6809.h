@@ -20,6 +20,22 @@
 #include "device.h"
 #include "mc6809_consts.h"
 
+enum {
+	MC6809_PHASE_RUN = 0,
+	MC6809_PHASE_DEAD_CYCLE,
+	MC6809_PHASE_IRQ_PUSH_STACK,
+	MC6809_PHASE_IRQ_FETCH_VECTOR,
+	MC6809_PHASE_FIRQ_PUSH_STACK,
+	MC6809_PHASE_FIRQ_FETCH_VECTOR,
+	MC6809_PHASE_NMI_PUSH_STACK,
+	MC6809_PHASE_NMI_FETCH_VECTOR,
+
+	MC6809_PHASE_REQ_HALT,
+	MC6809_PHASE_DO_HALT,
+};
+
+#define SIG_CPU_HALTREQ 0x8000 + SIG_CPU_BUSREQ
+
 class VM;
 class EMU;
 class DEBUGGER;
@@ -33,9 +49,9 @@ protected:
 	DEVICE *d_mem_stored;
 	int dasm_ptr;
 
-	outputs_t outputs_bus_halt; // For sync
-
 	outputs_t outputs_bus_clr; // If clr() insn used, write "1" or "2".
+	outputs_t outputs_bus_ba; // Bus available.
+	outputs_t outputs_bus_bs; // Bus status.
 	bool clr_used;
 
 	// registers
@@ -49,6 +65,12 @@ protected:
 	pair_t ea;	/* effective address */
 	
 	uint32_t int_state;
+	/* In Motorola's datasheet, status has some valiants. 20171207 K.O */
+	
+	uint8_t run_phase;
+	uint8_t old_run_phase;
+	bool req_halt_on;
+	bool req_halt_off;
 	bool busreq;
 
 	uint64_t total_icount;
@@ -57,9 +79,12 @@ protected:
 	int icount;
 	int extra_icount;
 	void WM16(uint32_t Addr, pair_t *p);
-	void cpu_irq(void);
-	void cpu_firq(void);
-	void cpu_nmi(void);
+	void cpu_irq_push(void);
+	void cpu_firq_push(void);
+	void cpu_nmi_push(void);
+	void cpu_irq_fetch_vector_address(void);
+	void cpu_firq_fetch_vector_address(void);
+	void cpu_nmi_fetch_vector_address(void);
 	// Tables
 /* increment */
 	const uint8_t flags8i[256] = {
@@ -498,6 +523,7 @@ protected:
 	void tst_ix();
 
 	bool __USE_DEBUGGER;
+	
 public:
 	MC6809_BASE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) 
 	{
@@ -505,7 +531,8 @@ public:
 		total_icount = prev_total_icount = 0;
 		__USE_DEBUGGER = false;
 		initialize_output_signals(&outputs_bus_clr);
-		initialize_output_signals(&outputs_bus_halt);
+		initialize_output_signals(&outputs_bus_ba);
+		initialize_output_signals(&outputs_bus_bs);
 		set_device_name(_T("MC6809 MPU"));
 	}
 	~MC6809_BASE() {}
@@ -574,7 +601,7 @@ public:
 	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	virtual int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 	virtual uint32_t cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_t *oprom, const uint8_t *opram);
-
+	virtual void debugger_hook(void);
 	// common functions
 	void reset();
 	virtual void initialize();
@@ -637,13 +664,17 @@ public:
 	{
 		d_mem = device;
 	}
-	void set_context_bus_halt(DEVICE* device, int id, uint32_t mask)
-	{
-		register_output_signal(&outputs_bus_halt, device, id, mask);
-	}
 	void set_context_bus_clr(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_bus_clr, device, id, mask);
+	}
+	void set_context_bus_ba(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_bus_ba, device, id, mask);
+	}
+	void set_context_bus_bs(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_bus_bs, device, id, mask);
 	}
 
 	void set_context_debugger(DEBUGGER* device)
@@ -665,6 +696,7 @@ class MC6809 : public MC6809_BASE
 	void run_one_opecode();
 	uint32_t cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_t *oprom, const uint8_t *opram);
 	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
+	void debugger_hook(void);
 };
 #endif
 

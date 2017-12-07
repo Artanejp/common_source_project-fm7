@@ -97,6 +97,39 @@ void MC6809::run_one_opecode()
 	}
 }
 
+void MC6809::debugger_hook()
+{
+	if(__USE_DEBUGGER) {
+		bool now_debugging = d_debugger->now_debugging;
+		if(now_debugging) {
+			d_debugger->check_break_points(PC);
+			if(d_debugger->now_suspended) {
+				osd->mute_sound();
+				d_debugger->now_waiting = true;
+				while(d_debugger->now_debugging && d_debugger->now_suspended) {
+					osd->sleep(10);
+				}
+				d_debugger->now_waiting = false;
+			}
+			if(d_debugger->now_debugging) {
+				d_mem = d_debugger;
+			} else {
+				now_debugging = false;
+			}
+		
+			d_debugger->add_cpu_trace(PC);
+			int first_icount = icount;
+			//pPPC = pPC;
+			if(now_debugging) {
+				if(!d_debugger->now_going) {
+					d_debugger->now_suspended = true;
+				}
+				d_mem = d_mem_stored;
+			}
+		}
+	}
+}
+
 
 // from MAME 0.160
 
