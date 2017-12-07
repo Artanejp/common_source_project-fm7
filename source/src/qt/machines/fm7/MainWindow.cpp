@@ -195,8 +195,12 @@ void META_MainWindow::retranslateUi(void)
 	actionDebugger[1]->setText(QApplication::translate("Machine", "Sub  CPU", 0));
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(true);
-	
+#ifdef WITH_Z80
+	actionDebugger[2]->setText(QApplication::translate("Machine", "Z80 CPU Board", 0));
+	actionDebugger[2]->setVisible(true);
+#else
 	actionDebugger[2]->setVisible(false);
+#endif
 	actionDebugger[3]->setVisible(false);
 #endif	
 	//	actionStart_Record_Movie->setText(QApplication::translate("Machine", "Start Record Movie", 0));
