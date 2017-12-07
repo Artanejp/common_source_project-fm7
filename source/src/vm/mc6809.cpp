@@ -117,7 +117,7 @@ void MC6809::debugger_hook()
 				now_debugging = false;
 			}
 		
-			d_debugger->add_cpu_trace(PC);
+			//d_debugger->add_cpu_trace(PC);
 			int first_icount = icount;
 			//pPPC = pPC;
 			if(now_debugging) {

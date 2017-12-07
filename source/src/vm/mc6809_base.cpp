@@ -160,6 +160,7 @@ void MC6809_BASE::reset()
 	EA = 0;
 //#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	clr_used = false;
+
 	write_signals(&outputs_bus_clr, 0x00000000);
 	if((req_halt_on) && !(req_halt_off)) {
 		int_state |= MC6809_HALT_BIT;
