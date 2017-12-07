@@ -722,11 +722,8 @@ void FM7_MAINIO::set_fd04(uint8_t val)
 		maincpu->write_signal(SIG_CPU_HALTREQ, 1, 1);
 		req_z80run = true;
 	} else {
-		z80->write_signal(SIG_CPU_BUSREQ, 1, 1);
 		req_z80run = false;
-		z80_run = false;
-		maincpu->write_signal(SIG_CPU_HALTREQ, 0, 1);
-		
+		z80->write_signal(SIG_CPU_BUSREQ, 1, 1);
 	}
 #endif
 }
@@ -965,9 +962,9 @@ void FM7_MAINIO::write_signal(int id, uint32_t data, uint32_t mask)
 			break;
 		case FM7_MAINIO_RUN_6809:
 			if(!(req_z80run) /* && (val_b) */ && (z80_run)) {
-				maincpu->write_signal(SIG_CPU_HALTREQ, 0, 1);
-				//maincpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 				z80_run = false;
+				// Wait dead cycle?
+				maincpu->write_signal(SIG_CPU_HALTREQ, 0, 1);
 			}
 			break;
 #endif
