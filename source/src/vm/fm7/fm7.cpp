@@ -170,6 +170,7 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	maincpu->set_context_bus_bs(g_mainstat, SIG_AND_BIT_1, 0xffffffff);
 	g_mainstat->set_context_out(mainio, FM7_MAINIO_RUN_Z80, 0xffffffff);
 	z80cpu->set_context_busack(mainio, FM7_MAINIO_RUN_6809, 0xffffffff);
+	
 	mainio->set_context_z80cpu(z80cpu);
 #endif
 #if defined(_USE_QT)
@@ -562,7 +563,7 @@ DEVICE *VM::get_cpu(int index)
 	} else if(index == 1) {
 		return subcpu;
 	}
-#if defined(_WITH_Z80)
+#if defined(WITH_Z80)
 	else if(index == 2) {
 		return z80cpu;
 	}

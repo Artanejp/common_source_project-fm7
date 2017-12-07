@@ -295,7 +295,12 @@ void FM7_MAINIO::reset()
 #endif
 #if defined(_FM77AV_VARIANTS)
 	reg_fd12 = 0xbc; // 0b10111100
-#endif		
+#endif
+#if defined(WITH_Z80)
+	z80->write_signal(SIG_CPU_BUSREQ, 0xffffffff, 0xffffffff);
+#endif
+	maincpu->write_signal(SIG_CPU_BUSREQ, 0, 0xffffffff);
+	maincpu->write_signal(SIG_CPU_HALTREQ, 0, 0xffffffff);
 //#if defined(_FM8)
 //	bubble_casette[0]->reset();
 //	bubble_casette[1]->reset();
@@ -719,6 +724,9 @@ void FM7_MAINIO::set_fd04(uint8_t val)
 	} else {
 		z80->write_signal(SIG_CPU_BUSREQ, 1, 1);
 		req_z80run = false;
+		z80_run = false;
+		maincpu->write_signal(SIG_CPU_HALTREQ, 0, 1);
+		
 	}
 #endif
 }
@@ -949,14 +957,16 @@ void FM7_MAINIO::write_signal(int id, uint32_t data, uint32_t mask)
 			break;
 #if defined(WITH_Z80)
 		case FM7_MAINIO_RUN_Z80:
-			if((req_z80run) && (val_b)) {
+			if((req_z80run)/*  && (val_b) */) {
 				z80->write_signal(SIG_CPU_BUSREQ, 0, 1);
 				z80_run = true;
+				//z80->reset(); // OK?
 			}
 			break;
 		case FM7_MAINIO_RUN_6809:
-			if(!(req_z80run) && (val_b) && (z80_run)) {
-				maincpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+			if(!(req_z80run) /* && (val_b) */ && (z80_run)) {
+				maincpu->write_signal(SIG_CPU_HALTREQ, 0, 1);
+				//maincpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 				z80_run = false;
 			}
 			break;
