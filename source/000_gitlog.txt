@@ -1,3 +1,79 @@
+commit c15048ee4635d4413887c2b8374a488a566e63cb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 7 19:08:34 2017 +0900
+
+    [BUILD][COMMON_VM] Update SOVERSION.
+
+commit e6919bfe2a74784cbefc044bd53075a7c22591e1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 7 19:07:54 2017 +0900
+
+    [VM][FN7][MAINIO] Fix Z80 halting timing.
+
+commit b201a0fca88f508ea40ccce6a4404ba5c676c3f6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 7 18:48:40 2017 +0900
+
+    [BUILD][FM7] Add support Z80-Card.
+
+commit bb5d015ee222815dcad12abe7e5c2cb46d11632b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 7 18:47:53 2017 +0900
+
+    [VM][FM7] Fix switching sequence via 6809 : Z80.
+
+commit 6ee8921bc4d9f01dd9ec7427b3b84948b406c187
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 7 18:46:46 2017 +0900
+
+    [VM][MC6809] Not push PC when halting.
+
+commit 2914ae047335f95678452398886ee61a4e24b12d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 7 18:45:25 2017 +0900
+
+    [VM][Z80][DEBUGGER] Call debugger even BUSREQ.
+    [VM][Z80] Fix crash without setting PIC.
+
+commit 58ae898e8dc2cece23f63eb67b551b12247d7cc3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 7 17:29:05 2017 +0900
+
+    [UI][Qt][FM7] Update with Z80 card.
+
+commit ae1532aed84d52ac6f7ece38b7819e83c6f2879b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 7 17:28:17 2017 +0900
+
+    [VM][FM7] Apply before commit of MC6809.
+    [VM][FM7] Initial support of extra Z80 card.
+
+commit a5a0c738a91ade3818e9b54206e06e68c095c730
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 7 17:25:36 2017 +0900
+
+    [VM][MC6809] More accurate emulation around HALT/BUSREQ and INT.
+    [VM][MC6809] You should'nt use bus_halt, use bus_ba (bus available) and bus_bs (bus status).
+    [VM][MC6809] Split interrupt sequence, to indicate bs bus as interrupt or sync_in.
+
+commit 42f93bdbbe8d50833c46509c71016d67ed24c210
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 7 17:25:20 2017 +0900
+
+    [DOC] Update FFMPEG.
+
+commit 4d35e4a0a8eb8c20bb2551bb68cad623545f5435
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 5 13:24:39 2017 +0900
+
+    [Build][CMake] Fix FTBFS with J3100.
+
+commit 59d5684d9c47944cac2ab1d1b46856aaa94cde4e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 4 19:31:19 2017 +0900
+
+    [DOC] Upsate docs.
+
 commit 9eb246b375699752a898d8be79a227f58e473d8e
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Mon Dec 4 19:27:41 2017 +0900

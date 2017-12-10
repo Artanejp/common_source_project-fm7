@@ -1,5 +1,16 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT Dec 10, 2017
+  * Z80 Card with FM-8/7/77 Series test.
+  * This release package is only with some VMs.
+  * [VM/FM7] Initial support of extra Z80 card.
+  * [VM/MC6809] More accurate emulation around HALT/BUSREQ and INT.
+  * [VM/MC6809] You should'nt use bus_halt, use bus_ba (bus available) and bus_bs (bus status).
+  * [VM/MC6809] Split interrupt sequence, to indicate bs bus as interrupt or sync_in.
+  * Built with commit c15048ee4635d4413887c2b8374a488a566e63cb or later.
+  
+-- Dec 10, 2017 19:55:30 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+  
 * SNAPSHOT Dec 04, 2017
   * Upstream 2017-12-03.
   * [VM/MC6809] Fixing hangup with F-BASIC v3.0ε.Thanks to Ryu Takegami-San. 
