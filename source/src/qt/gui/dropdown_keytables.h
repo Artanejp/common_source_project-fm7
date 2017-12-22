@@ -96,7 +96,8 @@ static const keydef_table_t default_key_table_106_QtScan[] = {
 	{VK_OEM_COMMA, 51, "Comma(Full Key)"}, // ,
 	{VK_OEM_PERIOD, 52, "Period"}, // .
 	{VK_OEM_2, 53, "/(Full Key)"}, // /(Slash)
-	{VK_OEM_102, 86, "\\_"}, //\_
+	{VK_OEM_102, 86, "\\_(Linux/Wine)"}, //\_
+	{VK_OEM_102, 115,"\\_(Windows)"}, //\_ (Windows)
 	{VK_RSHIFT, 54, "Right Shift"},
 	// Line 4
 	{VK_LCONTROL, 29, "Left Control"},
