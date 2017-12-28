@@ -26,11 +26,10 @@ void OSD_BASE::do_write_inputdata(QString s)
 
 void OSD_BASE::do_set_input_string(QString s)
 {
-	//if(s.empty()
-	//DebugSemaphore->acquire(1);
-	console_cmd_str.append(s);
-	console_cmd_str.append(QString::fromUtf8("\n"));
-	//DebugSemaphore->release();
+	if(!s.isEmpty()) {
+		console_cmd_str.append(s);
+		console_cmd_str.append(QString::fromUtf8("\n"));
+	}
 }
 
 _TCHAR *OSD_BASE::console_input_string(void)
