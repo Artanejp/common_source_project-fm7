@@ -119,7 +119,12 @@ void FM7_MAINMEM::setclock(int mode)
 				clock = MAINCLOCK_MMR;
 			}
 		} else {
-			clock = MAINCLOCK_NORMAL;
+			// fix by Ryu Takegami
+			if(mmr_fast) {
+				clock = MAINCLOCK_FAST_MMR;
+			} else {
+				clock = MAINCLOCK_NORMAL;
+			}
 		}
 		if(!mmr_fast && !window_fast) {
 			if(refresh_fast) {
