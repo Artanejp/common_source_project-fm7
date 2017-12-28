@@ -1413,6 +1413,13 @@ uint8_t MB8877::search_track()
 			   (disk[drvreg]->drive_type == DRIVE_TYPE_144)) {
 				track >>= 1;
 			}
+		} else {	// OS-9 2DD Access fix by Ryu Takegami
+			if((disk[drvreg]->media_type != MEDIA_TYPE_2D) &&
+			   (disk[drvreg]->media_type != MEDIA_TYPE_UNK)) {
+				if(disk[drvreg]->drive_type == DRIVE_TYPE_2D) {
+					track <<= 1;
+				}
+			}
 		}
 	}
 //#endif
@@ -1467,6 +1474,13 @@ uint8_t MB8877::search_sector()
 			   (disk[drvreg]->drive_type == DRIVE_TYPE_2HD) ||
 			   (disk[drvreg]->drive_type == DRIVE_TYPE_144)) {
 				track >>= 1;
+			}
+		} else {	// OS-9 2DD Access fix by Ryu Takegami
+			if((disk[drvreg]->media_type != MEDIA_TYPE_2D) &&
+			   (disk[drvreg]->media_type != MEDIA_TYPE_UNK)) {
+				if(disk[drvreg]->drive_type == DRIVE_TYPE_2D) {
+					track <<= 1;
+				}
 			}
 		}
 	}
@@ -1556,6 +1570,13 @@ uint8_t MB8877::search_addr()
 			   (disk[drvreg]->drive_type == DRIVE_TYPE_2HD) ||
 			   (disk[drvreg]->drive_type == DRIVE_TYPE_144)) {
 				track >>= 1;
+			}
+		} else {	// OS-9 2DD Access fix by Ryu Takegami
+			if((disk[drvreg]->media_type != MEDIA_TYPE_2D) &&
+			   (disk[drvreg]->media_type != MEDIA_TYPE_UNK)) {
+				if(disk[drvreg]->drive_type == DRIVE_TYPE_2D) {
+					track <<= 1;
+				}
 			}
 		}
 	}
