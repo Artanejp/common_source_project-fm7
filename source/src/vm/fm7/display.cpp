@@ -197,7 +197,7 @@ void DISPLAY::reset()
 	//crt_flag = true;
 	crt_flag = false; // Fixed by Ryu Takegami
 	screen_update_flag = true;
-	crt_flag_bak = true;
+	crt_flag_bak = false;
 	
 	cancel_request = false;
 #if defined(_FM77AV_VARIANTS)

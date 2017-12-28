@@ -613,6 +613,7 @@ void FM7_MAINIO::do_irq(void)
 	} else {
 		maincpu->write_signal(SIG_CPU_IRQ, 0, 1);
 	}
+
 }
 
 void FM7_MAINIO::do_firq(void)

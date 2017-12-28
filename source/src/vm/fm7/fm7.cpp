@@ -75,7 +75,6 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #ifdef WITH_Z80
 	z80cpu = new Z80(this, emu);
 	g_mainstat = new AND(this, emu);
-	
 #endif
 	// basic devices
 	// I/Os
