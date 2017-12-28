@@ -26,6 +26,7 @@ set(VMFILES_LIB
 		   disk.cpp
 		   mb8877.cpp
 		   prnfile.cpp
+		   or.cpp
 		   noise.cpp
 )
 

@@ -44,6 +44,9 @@ class FM7_MAINIO : public DEVICE {
 	outputs_t printer_reset_bus;
 	outputs_t printer_strobe_bus;
 	outputs_t printer_select_bus;
+	outputs_t irq_bus;
+	outputs_t firq_bus;
+	outputs_t nmi_bus;
  protected:
 	VM* p_vm;
 	EMU* p_emu;
@@ -505,6 +508,15 @@ public:
 	}
 	void set_context_printer_select(DEVICE *p, int id, uint32_t mask) {
 		register_output_signal(&printer_select_bus, p, id, mask);
+	}
+	void set_context_irq(DEVICE *p, int id, uint32_t mask) {
+		register_output_signal(&irq_bus, p, id, mask);
+	}
+	void set_context_firq(DEVICE *p, int id, uint32_t mask) {
+		register_output_signal(&firq_bus, p, id, mask);
+	}
+	void set_context_nmi(DEVICE *p, int id, uint32_t mask) {
+		register_output_signal(&nmi_bus, p, id, mask);
 	}
 #if defined(_FM8)
 	void set_context_bubble(BUBBLECASETTE *p, int drive) {

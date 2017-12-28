@@ -29,6 +29,7 @@
 #include "../ym2203.h"
 #include "../ay_3_891x.h"
 #include "../and.h"
+#include "../or.h"
 
 #if defined(_FM77AV_VARIANTS)
 #include "mb61vh010.h"
@@ -75,6 +76,11 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #ifdef WITH_Z80
 	z80cpu = new Z80(this, emu);
 	g_mainstat = new AND(this, emu);
+	g_intr = new OR(this, emu);
+
+	g_intr_irq = new AND(this, emu);
+	g_intr_firq = new AND(this, emu);
+	g_nmi = new AND(this, emu);
 #endif
 	// basic devices
 	// I/Os
@@ -168,9 +174,10 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	maincpu->set_context_bus_ba(g_mainstat, SIG_AND_BIT_0, 0xffffffff);
 	maincpu->set_context_bus_bs(g_mainstat, SIG_AND_BIT_1, 0xffffffff);
 	g_mainstat->set_context_out(mainio, FM7_MAINIO_RUN_Z80, 0xffffffff);
-	z80cpu->set_context_busack(mainio, FM7_MAINIO_RUN_6809, 0xffffffff);
 	
+	z80cpu->set_context_busack(mainio, FM7_MAINIO_RUN_6809, 0xffffffff);
 	mainio->set_context_z80cpu(z80cpu);
+
 #endif
 #if defined(_USE_QT)
 	event->set_device_name(_T("EVENT"));
@@ -286,8 +293,27 @@ void VM::connect_bus(void)
 #ifdef WITH_Z80
 	event->set_context_cpu(z80cpu,  4000000);
 	z80cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
-	//maincpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 	maincpu->write_signal(SIG_CPU_HALTREQ, 0, 1);
+
+	g_intr_irq->set_mask(SIG_AND_BIT_0);
+	g_intr_irq->set_mask(SIG_AND_BIT_1);
+	
+	g_intr_firq->set_mask(SIG_AND_BIT_0);
+	g_intr_firq->set_mask(SIG_AND_BIT_1);
+	
+	g_nmi->set_mask(SIG_AND_BIT_0);
+	g_nmi->set_mask(SIG_AND_BIT_1);
+
+	mainio->set_context_irq(g_intr_irq, SIG_AND_BIT_1, 0xffffffff);
+	g_intr_irq->set_context_out(g_intr, SIG_OR_BIT_0, 0xffffffff);
+	
+	mainio->set_context_firq(g_intr_firq, SIG_AND_BIT_1, 0xffffffff);
+	g_intr_firq->set_context_out(g_intr, SIG_OR_BIT_0, 0xffffffff);
+	
+	g_intr->set_context_out(z80cpu, SIG_CPU_IRQ, 0xffffffff);
+
+	mainio->set_context_nmi(g_nmi, SIG_AND_BIT_1, 0xffffffff);
+	g_nmi->set_context_out(z80cpu, SIG_CPU_NMI, 0xffffffff);
 #endif
 
 	event->set_context_sound(pcm1bit);
@@ -324,6 +350,9 @@ void VM::connect_bus(void)
 	mainio->set_context_subcpu(subcpu);
 	
 	mainio->set_context_display(display);
+	mainio->set_context_irq(maincpu, SIG_CPU_IRQ, 0xffffffff);
+	mainio->set_context_firq(maincpu, SIG_CPU_FIRQ, 0xffffffff);
+	mainio->set_context_nmi(maincpu, SIG_CPU_NMI, 0xffffffff);
 #if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
 	if((config.dipswitch & FM7_DIPSW_CONNECT_KANJIROM) != 0) {
 		mainio->set_context_kanjirom_class1(kanjiclass1);
@@ -370,7 +399,6 @@ void VM::connect_bus(void)
 	mainio->set_context_clock_status(mainmem, FM7_MAINIO_CLOCKMODE, 0xffffffff);
 	mainio->set_context_clock_status(display, SIG_DISPLAY_CLOCK, 0xffffffff);
 
-#if 1
 	g_substat_display->set_mask(SIG_AND_BIT_0);
 	g_substat_display->set_mask(SIG_AND_BIT_1);
 	subcpu->set_context_bus_ba(g_substat_display, SIG_AND_BIT_0, 0xffffffff);
@@ -382,7 +410,6 @@ void VM::connect_bus(void)
 	subcpu->set_context_bus_ba(g_substat_mainhalt, SIG_AND_BIT_0, 0xffffffff);
 	subcpu->set_context_bus_bs(g_substat_mainhalt, SIG_AND_BIT_1, 0xffffffff);
 	g_substat_mainhalt->set_context_out(mainmem, SIG_FM7_SUB_HALT, 0xffffffff);
-#endif
 
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	display->set_context_kanjiclass1(kanjiclass1);
@@ -454,6 +481,11 @@ void VM::connect_bus(void)
 		device->initialize();
 	}
 
+#if defined(WITH_Z80)
+	g_intr_irq->write_signal(SIG_AND_BIT_0, ((config.dipswitch & FM7_DIPSW_Z80_IRQ_ON) != 0) ? 1 : 0, 1);
+	g_intr_firq->write_signal(SIG_AND_BIT_0, ((config.dipswitch & FM7_DIPSW_Z80_FIRQ_ON) != 0) ? 1 : 0, 1);
+	g_nmi->write_signal(SIG_AND_BIT_0, ((config.dipswitch & FM7_DIPSW_Z80_NMI_ON) != 0) ? 1 : 0, 1);
+#endif
 	// Disks
 #if defined(_FM8) || (_FM7) || (_FMNEW7)
 	if(connect_320kfdc) {
@@ -493,7 +525,7 @@ void VM::update_config()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->update_config();
 	}
-	//update_dipswitch();
+	update_dipswitch();
 }
 
 void VM::reset()
@@ -864,9 +896,11 @@ bool VM::is_frame_skippable()
 
 void VM::update_dipswitch()
 {
-	// bit0		0=High 1=Standard
-	// bit2		0=5"2D 1=5"2HD
-  //	io->set_iovalue_single_r(0x1ff0, (config.monitor_type & 1) | ((config.drive_type & 1) << 2));
+#if defined(WITH_Z80)
+	g_intr_irq->write_signal(SIG_AND_BIT_0, ((config.dipswitch & FM7_DIPSW_Z80_IRQ_ON) != 0) ? 1 : 0, 1);
+	g_intr_firq->write_signal(SIG_AND_BIT_0, ((config.dipswitch & FM7_DIPSW_Z80_FIRQ_ON) != 0) ? 1 : 0, 1);
+	g_nmi->write_signal(SIG_AND_BIT_0, ((config.dipswitch & FM7_DIPSW_Z80_NMI_ON) != 0) ? 1 : 0, 1);
+#endif
 }
 
 void VM::set_cpu_clock(DEVICE *cpu, uint32_t clocks) {

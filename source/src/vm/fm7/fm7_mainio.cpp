@@ -167,6 +167,9 @@ FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, paren
 	initialize_output_signals(&printer_reset_bus);
 	initialize_output_signals(&printer_strobe_bus);
 	initialize_output_signals(&printer_select_bus);
+	initialize_output_signals(&irq_bus);
+	initialize_output_signals(&firq_bus);
+	initialize_output_signals(&nmi_bus);
 	set_device_name(_T("MAIN I/O"));
 }
 
@@ -288,7 +291,8 @@ void FM7_MAINIO::reset()
 	stat_fdmode_2hd = false; //  R/W : bit6, '0' = 2HD, '1' = 2DD. FM-77 Only.
 	stat_kanjirom = true;    //  R/W : bit5, '0' = sub, '1' = main. FM-77 Only.
 #endif	
-	maincpu->write_signal(SIG_CPU_FIRQ, 0, 1);
+	write_signals(&firq_bus, 0);
+	
 #if defined(HAS_DMA)
 	intstat_dma = false;
 	dma_addr = 0;
@@ -301,10 +305,6 @@ void FM7_MAINIO::reset()
 #endif
 	maincpu->write_signal(SIG_CPU_BUSREQ, 0, 0xffffffff);
 	maincpu->write_signal(SIG_CPU_HALTREQ, 0, 0xffffffff);
-//#if defined(_FM8)
-//	bubble_casette[0]->reset();
-//	bubble_casette[1]->reset();
-//#endif	
 
 
 #if !defined(_FM8)
@@ -595,6 +595,7 @@ void FM7_MAINIO::set_irq_keyboard(bool flag)
 void FM7_MAINIO::do_irq(void)
 {
 	bool intstat;
+	uint32_t nval;
 #if defined(_FM8)
    	intstat = intstat_txrdy | intstat_rxrdy | intstat_syndet;
 #else	
@@ -606,31 +607,23 @@ void FM7_MAINIO::do_irq(void)
 # if defined(HAS_DMA)
 	intstat = intstat | intstat_dma;
 # endif
-#endif	
-	//printf("%08d : IRQ: REG0=%02x FDC=%02x, stat=%d\n", SDL_GetTicks(), irqstat_reg0, irqstat_fdc, intstat);
-	if(intstat) {
-		maincpu->write_signal(SIG_CPU_IRQ, 1, 1);
-	} else {
-		maincpu->write_signal(SIG_CPU_IRQ, 0, 1);
-	}
-
+#endif
+	nval = (intstat) ? 0xffffffff : 0;
+	write_signals(&irq_bus, nval);
 }
 
 void FM7_MAINIO::do_firq(void)
 {
 	bool firq_stat;
+	uint32_t nval;
 	firq_stat = firq_break_key | firq_sub_attention;
-	if(firq_stat) {
-		maincpu->write_signal(SIG_CPU_FIRQ, 1, 1);
-	} else {
-		maincpu->write_signal(SIG_CPU_FIRQ, 0, 1);
-	}
-	//this->out_debug_log(_T("IO: do_firq(). BREAK=%d ATTN=%d"), firq_break_key ? 1 : 0, firq_sub_attention ? 1 : 0);
+	nval = (firq_stat) ? 0xffffffff : 0;
+	write_signals(&firq_bus, nval);
 }
 
 void FM7_MAINIO::do_nmi(bool flag)
 {
-	maincpu->write_signal(SIG_CPU_NMI, flag ? 1 : 0, 1);
+	write_signals(&nmi_bus, (flag) ? 0xffffffff : 0);
 }
 
 
@@ -1649,7 +1642,7 @@ void FM7_MAINIO::update_config()
 	}
 	mainmem->write_signal(FM7_MAINIO_PUSH_FD0F, (config.boot_mode == 0) ? 1 : 0, 0x01);
 	mainmem->write_signal(FM7_MAINIO_BOOTMODE, bootmode, 0xffffffff);
-#endif	
+#endif
 }
 
 void FM7_MAINIO::event_vline(int v, int clock)

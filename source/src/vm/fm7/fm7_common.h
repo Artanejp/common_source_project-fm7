@@ -60,6 +60,9 @@ enum {
 // '1' is Auto 5 Key, '0' is Auto 8 Key
 #define FM7_DIPSW_SELECT_5_OR_8KEY   0x00000100 
 #define FM7_DIPSW_AUTO_5_OR_8KEY     0x00000200
+#define FM7_DIPSW_Z80_IRQ_ON         0x00001000
+#define FM7_DIPSW_Z80_FIRQ_ON        0x00002000
+#define FM7_DIPSW_Z80_NMI_ON         0x00004000
 #define FM7_DIPSW_FRAMESKIP          0x30000000
 #define FM7_DIPSW_SYNC_TO_HSYNC      0x80000000
 

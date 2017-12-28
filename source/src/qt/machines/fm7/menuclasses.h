@@ -20,6 +20,11 @@ signals:
 	//  int sig_sound_device(int);
 	int sig_emu_update_config(void);
 public slots:
+# if defined(WITH_Z80)
+	void do_set_z80_irq(bool flag);
+	void do_set_z80_firq(bool flag);
+	void do_set_z80_nmi(bool flag);
+# endif	
 # if defined(_FM77AV_VARIANTS)   
 	void do_set_hsync(bool flag);
 # endif
@@ -83,7 +88,11 @@ protected:
 # if defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
 	class Action_Control_7 *action_1MFloppy;
 # endif  
-	
+# if defined(WITH_Z80)
+	class Action_Control_7 *actionZ80_IRQ;
+	class Action_Control_7 *actionZ80_FIRQ;
+	class Action_Control_7 *actionZ80_NMI;
+#endif	
 	void setupUI_Emu(void);
 	void retranslateUi(void);
 	void retranslateVolumeLabels(Ui_SoundDialog *p);

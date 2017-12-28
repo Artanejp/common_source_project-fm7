@@ -29,6 +29,38 @@ Object_Menu_Control_7::~Object_Menu_Control_7()
 {
 }
 
+#if defined(WITH_Z80)
+void Object_Menu_Control_7::do_set_z80_irq(bool flag)
+{
+	if(flag) {
+		config.dipswitch = config.dipswitch | FM7_DIPSW_Z80_IRQ_ON;
+	} else {
+		config.dipswitch = config.dipswitch & ~FM7_DIPSW_Z80_IRQ_ON;
+	}
+	emit sig_emu_update_config();
+}
+
+void Object_Menu_Control_7::do_set_z80_firq(bool flag)
+{
+	if(flag) {
+		config.dipswitch = config.dipswitch | FM7_DIPSW_Z80_FIRQ_ON;
+	} else {
+		config.dipswitch = config.dipswitch & ~FM7_DIPSW_Z80_FIRQ_ON;
+	}
+	emit sig_emu_update_config();
+}
+
+void Object_Menu_Control_7::do_set_z80_nmi(bool flag)
+{
+	if(flag) {
+		config.dipswitch = config.dipswitch | FM7_DIPSW_Z80_NMI_ON;
+	} else {
+		config.dipswitch = config.dipswitch & ~FM7_DIPSW_Z80_NMI_ON;
+	}
+	emit sig_emu_update_config();
+}
+#endif
+
 #if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
 void Object_Menu_Control_7::do_set_kanji_rom(bool flag)
 {
@@ -337,6 +369,16 @@ void META_MainWindow::retranslateUi(void)
 	menuMouseType->setToolTipsVisible(true);
 # endif
 #endif
+#if defined(WITH_Z80)
+	actionZ80_IRQ->setText(QApplication::translate("Machine", "Z80:IRQ ON", 0));
+	actionZ80_IRQ->setToolTip(QApplication::translate("Machine", "Turn ON IRQ to Z80 extra card.", 0));
+	
+	actionZ80_FIRQ->setText(QApplication::translate("Machine", "Z80:FIRQ ON", 0));
+	actionZ80_FIRQ->setToolTip(QApplication::translate("Machine", "Turn ON FIRQ to IRQ of Z80 extra card.", 0));
+	
+	actionZ80_NMI->setText(QApplication::translate("Machine", "Z80:NMI ON", 0));
+	actionZ80_NMI->setToolTip(QApplication::translate("Machine", "Turn ON NMI to Z80 extra card.", 0));
+#endif
 	menuCpuType->setToolTipsVisible(true);
 	menuBootMode->setToolTipsVisible(true);
 } // retranslateUi
@@ -387,6 +429,31 @@ void META_MainWindow::setupUI_Emu(void)
 		 actionKanjiRom->fm7_binds, SLOT(do_set_kanji_rom(bool)));
 #endif
 
+#if defined(WITH_Z80)
+	actionZ80_IRQ = new Action_Control_7(this, using_flags);
+	menuMachine->addAction(actionZ80_IRQ);
+	actionZ80_IRQ->setCheckable(true);
+	actionZ80_IRQ->setVisible(true);
+	if((config.dipswitch & FM7_DIPSW_Z80_IRQ_ON) != 0) actionZ80_IRQ->setChecked(true);
+	connect(actionZ80_IRQ, SIGNAL(toggled(bool)), actionZ80_IRQ->fm7_binds, SLOT(do_set_z80_irq(bool)));
+	connect(actionZ80_IRQ->fm7_binds, SIGNAL(sig_emu_update_config()), this, SLOT(do_emu_update_config()));
+
+	actionZ80_FIRQ = new Action_Control_7(this, using_flags);
+	menuMachine->addAction(actionZ80_FIRQ);
+	actionZ80_FIRQ->setCheckable(true);
+	actionZ80_FIRQ->setVisible(true);
+	if((config.dipswitch & FM7_DIPSW_Z80_FIRQ_ON) != 0) actionZ80_FIRQ->setChecked(true);
+	connect(actionZ80_FIRQ, SIGNAL(toggled(bool)), actionZ80_FIRQ->fm7_binds, SLOT(do_set_z80_firq(bool)));
+	connect(actionZ80_FIRQ->fm7_binds, SIGNAL(sig_emu_update_config()), this, SLOT(do_emu_update_config()));
+
+	actionZ80_NMI = new Action_Control_7(this, using_flags);
+	menuMachine->addAction(actionZ80_NMI);
+	actionZ80_NMI->setCheckable(true);
+	actionZ80_NMI->setVisible(true);
+	if((config.dipswitch & FM7_DIPSW_Z80_NMI_ON) != 0) actionZ80_NMI->setChecked(true);
+	connect(actionZ80_NMI, SIGNAL(toggled(bool)), actionZ80_NMI->fm7_binds, SLOT(do_set_z80_nmi(bool)));
+	connect(actionZ80_NMI->fm7_binds, SIGNAL(sig_emu_update_config()), this, SLOT(do_emu_update_config()));
+#endif
 #if defined(_FM8)
 	actionRamProtect = new Action_Control_7(this, using_flags);
 	menuMachine->addAction(actionRamProtect);

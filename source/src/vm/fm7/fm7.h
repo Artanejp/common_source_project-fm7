@@ -413,6 +413,7 @@ class JOYSTICK;
 
 #ifdef WITH_Z80
 class Z80;
+class OR;
 #endif
 class VM {
 protected:
@@ -453,6 +454,10 @@ protected:
 	
 #ifdef  WITH_Z80
 	Z80* z80cpu;
+	AND *g_nmi;
+	OR *g_intr;
+	AND *g_intr_irq;
+	AND *g_intr_firq;
 	AND *g_mainstat;
 #endif
 	AND *g_substat_display;
