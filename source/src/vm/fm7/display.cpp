@@ -26,6 +26,9 @@ DISPLAY::DISPLAY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 #elif defined(_FM77_VARIANTS)
 	kanjiclass1 = NULL;
 #endif
+#if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+	kanjisub = false;	// fix by Ryu Takegami
+#endif	
 #if defined(_FM77AV_VARIANTS)
 	alu = NULL;
 #endif
@@ -168,7 +171,7 @@ void DISPLAY::reset_cpuonly()
 	do_firq(!firq_mask && key_firq_req);
 
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-	kanjisub = false;
+	//kanjisub = false; // Fixed by Ryu takegami
 	kanjiaddr.d = 0x00000000;
 # if defined(_FM77L4)
 	mode400line = false;
@@ -191,7 +194,8 @@ void DISPLAY::reset()
 	halt_flag = false;
 	vram_accessflag = true;
 	display_mode = DISPLAY_MODE_8_200L;
-	crt_flag = true;
+	//crt_flag = true;
+	crt_flag = false; // Fixed by Ryu Takegami
 	screen_update_flag = true;
 	crt_flag_bak = true;
 	
