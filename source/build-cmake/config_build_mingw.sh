@@ -14,8 +14,15 @@ CMAKE_LINKFLAG=""
 CMAKE_GENTYPE="\"MSYS Makefiles\""
 CMAKE_GENFLAGS="-DCMAKE_MAKE_PROGRAM=mingw32-make"
 mkdir -p ./bin-win32/
+
+echo "Make status." > ${MAKE_STATUS_FILE}
+echo "Started at `date --rfc-2822`:" >> ${MAKE_STATUS_FILE}
 if [ -e ./buildvars_mingw.dat ] ; then
     . ./buildvars_mingw.dat
+else
+    echo "WARN: Config file does not exist." >> ${MAKE_STATUS_FILE}
+    echo "WARN: Read configs from templete." >> ${MAKE_STATUS_FILE}
+    . ./buildvars_mingw.dat.tmpl
 fi
 
 

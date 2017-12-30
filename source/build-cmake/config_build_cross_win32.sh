@@ -14,9 +14,16 @@ export WCLANG_FORCE_CXX_EXCEPTIONS=1
 
 mkdir -p ./bin-win32/
 
+echo "Make status." > ${MAKE_STATUS_FILE}
+echo "Started at `date --rfc-2822`:" >> ${MAKE_STATUS_FILE}
 if [ -e ./buildvars_mingw_cross_win32.dat ] ; then
     . ./buildvars_mingw_cross_win32.dat
+else
+    echo "WARN: Config file does not exist." >> ${MAKE_STATUS_FILE}
+    echo "WARN: Read configs from templete." >> ${MAKE_STATUS_FILE}
+    . ./buildvars_mingw_cross_win32.dat.tmpl
 fi
+
 case ${BUILD_TOOLCHAIN} in
    "LLVM" | "llvm" | "CLANG" | "clang" )
           TOOLCHAIN_SCRIPT="../../cmake/toolchain_win32_cross_linux_llvm.cmake"
@@ -130,8 +137,6 @@ case ${USE_COMMON_DEVICE_LIB} in
    ;;
 esac
 
-echo "Make status." > ${MAKE_STATUS_FILE}
-echo "Started at `date --rfc-2822`:" >> ${MAKE_STATUS_FILE}
 build_dll libCSPemu_utils
 echo $PWD
 cp  ./libCSPemu_utils/build-win32/qt/emuutils/*.h   ./bin-win32/

@@ -10,9 +10,17 @@ MAKE_STATUS_FILE="./000_make_status_config_build.log"
 BUILD_TYPE="Relwithdebinfo"
 CMAKE_APPENDFLAG=""
 
+echo "Make status." > ${MAKE_STATUS_FILE}
+echo "Started at `date --rfc-2822`:" >> ${MAKE_STATUS_FILE}
+
 if [ -e ./buildvars.dat ] ; then
     . ./buildvars.dat
+else
+    echo "WARN: Config file does not exist." >> ${MAKE_STATUS_FILE}
+    echo "WARN: Read configs from templete." >> ${MAKE_STATUS_FILE}
+    . ./buildvars.dat.tmpl
 fi
+
 case ${BUILD_TOOLCHAIN} in
    "LLVM" | "llvm" | "CLANG" | "clang" )
           #TOOLCHAIN_SCRIPT="../../cmake/toolchain_win32_cross_linux_llvm.cmake"
@@ -130,8 +138,6 @@ case ${BUILD_TYPE} in
 esac
 
 # libCSPGui
-echo "Make status." > ${MAKE_STATUS_FILE}
-echo "Started at `date --rfc-2822`:" >> ${MAKE_STATUS_FILE}
 case ${USE_COMMON_DEVICE_LIB} in
    "Yes" | "yes" | "YES" )
    CMAKE_FLAGS4="-DUSE_DEVICES_SHARED_LIB=ON"
