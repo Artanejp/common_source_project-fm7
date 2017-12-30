@@ -1,0 +1,28 @@
+* How to install (quick).
+
+  1. cd build-cmake/ .
+  2. Copy setting templete to config file.*1*2
+     $ cp buildvars.dat.tmpl buildvars.dat
+  3. Edit config file.
+  4. Run script. *3
+     $ ./config_build.sh [VM NAMES]
+     With some situations, you must enter your password for sudo.
+  
+  *1
+  If you build from *nix host for *nix builds : builvars.dat.tmpl
+  If you build from MinGW host for Win32 builds : builvars_mingw.dat.tmpl
+  If you build from *nix host for *nix using builds : builvars_cross_mingw_win32.dat.tmpl
+
+  *2
+  If you build from *nix host for *nix builds : builvars.dat
+  If you build from MinGW host for Win32 builds : builvars_mingw.dat
+  If you build from *nix host for *nix using builds : builvars_cross_mingw_win32.dat
+
+  *3
+  If you build from *nix host for *nix builds : config_build.sh
+  If you build from MinGW host for Win32 builds : config_build_mingw.sh
+  If you build from *nix host for *nix using builds : config_build_cross_win32.sh
+
+Enjoy!
+
+Ohta.
