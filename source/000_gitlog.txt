@@ -1,3 +1,40 @@
+commit 1bb73196d19993514f477804b3e86d224ebc5e83
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 3 02:57:56 2018 +0900
+
+    [VM][X1] Fix FTBFS.
+
+commit 2938ca404a1a94f27fb0e5f2d74391fe19e717c0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 3 00:51:58 2018 +0900
+
+    [VM][General] Merge upstream 2017-12-28.
+
+commit 1f26f4cd39c6228db5f30806cd6bd86a62361b37
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 3 00:28:03 2018 +0900
+
+    [VM][General] Merge Upstream 2017-12-15.
+    [VM] common.h : Not has <typeinfo.h> excepts VC++.Recommend to use <typeinfo> .
+
+commit db19f50d195a8346badff2ad1de37aea4f1b2aab
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 2 22:52:37 2018 +0900
+
+    [VM][MC6809] More accurate emulation around interrupt.
+
+commit c1f4b6f6604b5762c742342a2b702c545ad24b9f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Dec 30 20:26:01 2017 +0900
+
+    [BUILD] Read from templete if config (buildvars.dat etc) has not exists.
+
+commit c2cc2c65ae4e420a2609afc7b0835b6e2a830051
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Dec 30 20:19:45 2017 +0900
+
+    [DOC] Add installer.
+
 commit 525ef35a75eecccf94986c7b9de52f40c3b2d035
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Dec 28 17:17:20 2017 +0900
