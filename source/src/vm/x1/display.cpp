@@ -834,7 +834,6 @@ void DISPLAY::draw_screen()
 				} else {
 #endif
 					scrntype_t* dest = emu->get_screen_buffer(y);
-					uint8_t* src_text = text[y];
 					uint8_t* src_cg = cg[y];
 				
 					for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
