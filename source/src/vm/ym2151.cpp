@@ -232,7 +232,7 @@ void YM2151::update_timing(int new_clocks, double new_frames_per_sec, int new_li
 	clock_const = (uint32_t)((double)chip_clock * 1024.0 * 1024.0 / (double)new_clocks + 0.5);
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void YM2151::save_state(FILEIO* state_fio)
 {
@@ -251,6 +251,7 @@ void YM2151::save_state(FILEIO* state_fio)
 	state_fio->FputUint32(clock_accum);
 	state_fio->FputUint32(clock_const);
 	state_fio->FputUint32(clock_busy);
+	state_fio->FputInt32(timer_event_id);
 	state_fio->FputBool(busy);
 }
 
@@ -276,6 +277,7 @@ bool YM2151::load_state(FILEIO* state_fio)
 	clock_accum = state_fio->FgetUint32();
 	clock_const = state_fio->FgetUint32();
 	clock_busy = state_fio->FgetUint32();
+	timer_event_id = state_fio->FgetInt32();
 	busy = state_fio->FgetBool();
 	
 #ifdef SUPPORT_MAME_FM_DLL

@@ -19,6 +19,7 @@
 #define SIG_DISPLAY_VBLANK		0
 #define SIG_DISPLAY_COLUMN40		1
 #define SIG_DISPLAY_DETECT_VBLANK	2
+#define SIG_DISPLAY_DISP		3
 
 class HD46505;
 
@@ -86,6 +87,7 @@ private:
 #endif
 #ifdef _X1TURBOZ
 	uint16_t zcg[2][400][640];
+	bool aen_line[400];
 	scrntype_t zpalette_pc[8+8+4096];	// 0-7:text, 8-15:cg, 16-:4096cg
 #endif
 	scrntype_t palette_pc[8+8];		// 0-7:text, 8-15:cg
@@ -96,6 +98,8 @@ private:
 	int hz_total, hz_disp, vt_disp;
 	int st_addr;
 	uint32_t vblank_clock;
+	int cur_vline;
+	bool cur_blank;
 	
 	void update_crtc();
 	void update_pal();
@@ -139,6 +143,9 @@ public:
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_frame();
 	void event_vline(int v, int clock);
+#ifdef _X1TURBO_FEATURE
+	void event_callback(int event_id, int err);
+#endif
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

@@ -527,7 +527,7 @@ void OPM::Mix(Sample* buffer, int nsamples)
 // ---------------------------------------------------------------------------
 //	ステートセーブ
 //
-#define OPM_STATE_VERSION	2
+#define OPM_STATE_VERSION	3
 
 void OPM::SaveState(void *f)
 {
@@ -535,6 +535,7 @@ void OPM::SaveState(void *f)
 	
 	state_fio->FputUint32(OPM_STATE_VERSION);
 	
+	Timer::SaveState(f);
 	state_fio->FputInt32(fmvolume_l);
 	state_fio->FputInt32(fmvolume_r);
 	state_fio->FputUint32(clock);
@@ -572,6 +573,9 @@ bool OPM::LoadState(void *f)
 	FILEIO *state_fio = (FILEIO *)f;
 	
 	if(state_fio->FgetUint32() != OPM_STATE_VERSION) {
+		return false;
+	}
+	if(!Timer::LoadState(f)) {
 		return false;
 	}
 	fmvolume_l = state_fio->FgetInt32();

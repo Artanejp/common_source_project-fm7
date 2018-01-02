@@ -280,9 +280,6 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdL
 	// accelerator
 	HACCEL hAccel = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATOR1));
 	
-	// disable ime
-	ImmAssociateContext(hWnd, 0);
-	
 	// initialize emulation core
 	emu = new EMU(hWnd, hInstance);
 	emu->set_host_window_size(WINDOW_WIDTH, WINDOW_HEIGHT, true);
@@ -424,6 +421,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdL
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 {
 	static HINSTANCE hInstance;
+	static HIMC himcPrev = 0;
 	
 	switch(iMsg) {
 	case WM_CREATE:
@@ -476,6 +474,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
+	case WM_ACTIVATE:
+		// thanks PC8801MA‰ü
+		if(LOWORD(wParam) != WA_INACTIVE) {
+			himcPrev = ImmAssociateContext(hWnd, 0);
+		} else {
+			ImmAssociateContext(hWnd, himcPrev);
+		}
+		break;
 	case WM_SIZE:
 		if(hStatus != NULL) {
 			SendMessage(hStatus, WM_SIZE, wParam, lParam);

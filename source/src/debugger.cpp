@@ -1095,7 +1095,7 @@ void* debugger_thread(void *lpx)
 	_endthreadex(0);
 	return 0;
 #else
-	pthread_exit(NULL);
+	//pthread_exit(NULL);
 	return NULL;
 #endif
 }

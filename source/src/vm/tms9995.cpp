@@ -1610,10 +1610,10 @@ ST = 0000 [LGT:0 AGT:0 EQ:0 C:0 OV:0 OP:0 X:0 OVIE:0 IM:0]
 PC = 0000 WP = 0000
 R0 = 0000 R1 = 0000 R2 = 0000 R3 = 0000 R4 = 0000 R5 = 0000 R6 = 0000 R7 = 0000
 R8 = 0000 R9 = 0000 R10= 0000 R11= 0000 R12= 0000 R13= 0000 R14= 0000 R15= 0000
-Total CPU Clocks = 0 (0)
+Clocks = 0 (0) Since Scanline = 0/0 (0/0)
 */
 	my_stprintf_s(buffer, buffer_len,
-	_T("ST = %04X [LGT:%01X AGT:%01X EQ:%01X C:%01X OV:%01X OP:%01X X:%01X OVIE:%01X IM:%01X]\nPC = %04X WP = %04X\nR0 = %04X R1 = %04X R2 = %04X R3 = %04X R4 = %04X R5 = %04X R6 = %04X R7 = %04X\nR8 = %04X R9 = %04X R10= %04X R11= %04X R12= %04X R13= %04X R14= %04X R15= %04X\nTotal CPU Clocks = %llu (%llu)"),
+	_T("ST = %04X [LGT:%01X AGT:%01X EQ:%01X C:%01X OV:%01X OP:%01X X:%01X OVIE:%01X IM:%01X]\nPC = %04X WP = %04X\nR0 = %04X R1 = %04X R2 = %04X R3 = %04X R4 = %04X R5 = %04X R6 = %04X R7 = %04X\nR8 = %04X R9 = %04X R10= %04X R11= %04X R12= %04X R13= %04X R14= %04X R15= %04X\nClocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
 	ST,
 	(ST & ST_LGT ) ? 1 : 0,
 	(ST & ST_AGT ) ? 1 : 0,
@@ -1641,7 +1641,8 @@ Total CPU Clocks = 0 (0)
 	this->read_data16((WP + R13) & 0xffff),
 	this->read_data16((WP + R14) & 0xffff),
 	this->read_data16((WP + R15) & 0xffff),
-	total_count, total_count - prev_total_count);
+	total_count, total_count - prev_total_count,
+	get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
 	prev_total_count = total_count;
 }
 

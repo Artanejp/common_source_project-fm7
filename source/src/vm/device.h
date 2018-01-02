@@ -615,6 +615,34 @@ public:
 		}
 		return event_manager->get_passed_usec(prev);
 	}
+	virtual uint32_t get_passed_clock_since_vline()
+	{
+		if(event_manager == NULL) {
+			event_manager = vm->first_device->next_device;
+		}
+		return event_manager->get_passed_clock_since_vline();
+	}
+	virtual double get_passed_usec_since_vline()
+	{
+		if(event_manager == NULL) {
+			event_manager = vm->first_device->next_device;
+		}
+		return event_manager->get_passed_usec_since_vline();
+	}
+	virtual int get_cur_vline()
+	{
+		if(event_manager == NULL) {
+			event_manager = vm->first_device->next_device;
+		}
+		return event_manager->get_cur_vline();
+	}
+	virtual int get_cur_vline_clocks()
+	{
+		if(event_manager == NULL) {
+			event_manager = vm->first_device->next_device;
+		}
+		return event_manager->get_cur_vline_clocks();
+	}
 	virtual uint32_t get_cpu_pc(int index)
 	{
 		if(event_manager == NULL) {
@@ -642,6 +670,13 @@ public:
 			event_manager = vm->first_device->next_device;
 		}
 		event_manager->set_lines_per_frame(lines);
+	}
+	virtual int get_lines_per_frame()
+	{
+		if(event_manager == NULL) {
+			event_manager = vm->first_device->next_device;
+		}
+		return event_manager->get_lines_per_frame();
 	}
 	// Force reder sound immediately when device's status has changed.
 	// You must call this after you changing registers (or enything).

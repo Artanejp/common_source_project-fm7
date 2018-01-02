@@ -105,6 +105,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef _MSC_VER
+#include <typeinfo.h>
+#else
+#include <typeinfo>
+#endif
 #include <assert.h>
 #include <errno.h>
 

@@ -61,6 +61,8 @@ private:
 	
 	double frames_per_sec, next_frames_per_sec;
 	int lines_per_frame, next_lines_per_frame;
+	uint32_t vline_start_clock;
+	int cur_vline;
 	
 	void update_event(int clock);
 	void insert_event(event_t *event_handle);
@@ -149,6 +151,10 @@ public:
 			next_lines_per_frame = new_lines_per_frame;
 		}
 	}
+	int get_lines_per_frame()
+	{
+		return next_lines_per_frame;
+	}
 	void register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id);
 	void register_event_by_clock(DEVICE* device, int event_id, uint64_t clock, bool loop, int* register_id);
 	void cancel_event(DEVICE* device, int register_id);
@@ -159,6 +165,16 @@ public:
 	uint32_t get_current_clock();
 	uint32_t get_passed_clock(uint32_t prev);
 	double get_passed_usec(uint32_t prev);
+	uint32_t get_passed_clock_since_vline();
+	double get_passed_usec_since_vline();
+	int get_cur_vline()
+	{
+		return cur_vline;
+	}
+	int get_cur_vline_clocks()
+	{
+		return vclocks[cur_vline];
+	}
 	uint32_t get_cpu_pc(int index);
 	void request_skip_frames();
 	void touch_sound();

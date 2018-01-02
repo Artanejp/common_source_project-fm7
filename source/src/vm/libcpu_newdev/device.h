@@ -518,10 +518,15 @@ public:
 	virtual uint32_t get_current_clock();
 	virtual uint32_t get_passed_clock(uint32_t prev);
 	virtual double get_passed_usec(uint32_t prev);
+	virtual uint32_t get_passed_clock_since_vline();
+	virtual double get_passed_usec_since_vline();
+	virtual int get_cur_vline();
+	virtual int get_cur_vline_clocks();
 	virtual uint32_t get_cpu_pc(int index);
 	virtual void request_skip_frames();
 	virtual void set_frames_per_sec(double frames);
 	virtual void set_lines_per_frame(int lines);
+	virtual int get_lines_per_frame(void);
 	// Force render sound immediately when device's status has changed.
 	// You must call this after you changing registers (or enything).
 	// If has problems, try set_realtime_render.

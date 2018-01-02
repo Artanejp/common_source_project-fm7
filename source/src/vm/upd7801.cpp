@@ -1390,17 +1390,18 @@ void UPD7801::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 VA = 0000  BC = 0000  DE = 0000 HL = 0000  PSW= 00 [Z SK HC L1 L0 CY]
 VA'= 0000  BC'= 0000  DE'= 0000 HL'= 0000  SP = 0000  PC = 0000
           (BC)= 0000 (DE)=0000 (HL)= 0000 (SP)= 0000 <DI>
-Total CPU Clocks = 0 (0)
+Clocks = 0 (0)  Since Scanline = 0/0 (0/0)
 */
 	int wait;
 	my_stprintf_s(buffer, buffer_len,
-	_T("VA = %04X  BC = %04X  DE = %04X HL = %04X  PSW= %02x [%s %s %s %s %s %s]\nVA'= %04X  BC'= %04X  DE'= %04X HL'= %04X  SP = %04X  PC = %04X\n          (BC)= %04X (DE)=%04X (HL)= %04X (SP)= %04X <%s>\nTotal CPU Clocks = %llu (%llu)"),
+	_T("VA = %04X  BC = %04X  DE = %04X HL = %04X  PSW= %02x [%s %s %s %s %s %s]\nVA'= %04X  BC'= %04X  DE'= %04X HL'= %04X  SP = %04X  PC = %04X\n          (BC)= %04X (DE)=%04X (HL)= %04X (SP)= %04X <%s>\nClocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
 	VA, BC, DE, HL, PSW,
 	(PSW & F_Z) ? _T("Z") : _T("-"), (PSW & F_SK) ? _T("SK") : _T("--"), (PSW & F_HC) ? _T("HC") : _T("--"), (PSW & F_L1) ? _T("L1") : _T("--"), (PSW & F_L0) ? _T("L0") : _T("--"), (PSW & F_CY) ? _T("CY") : _T("--"),
 	altVA, altBC, altDE, altHL, SP, PC,
 	d_mem_stored->read_data16w(BC, &wait), d_mem_stored->read_data16w(DE, &wait), d_mem_stored->read_data16w(HL, &wait), d_mem_stored->read_data16w(SP, &wait),
 	IFF ? _T("EI") : _T("DI"),
-	total_count, total_count - prev_total_count);
+	total_count, total_count - prev_total_count,
+	get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
 	prev_total_count = total_count;
 }
 

@@ -1,3 +1,59 @@
+commit 525ef35a75eecccf94986c7b9de52f40c3b2d035
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 28 17:17:20 2017 +0900
+
+    [VM][FM7] Z80: Implement interrupt features.
+
+commit bc8f21887150ffebfbb05984d0915128876e1fc3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 28 17:15:56 2017 +0900
+
+    [DEBUGGER] Not push empty string.
+
+commit 129a2553767521cadfb8e37f8f2d7a48697924c7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 28 15:18:16 2017 +0900
+
+    [RES][FM7] Fix drive number:Should not start from "FD1", start from "FD0" for FM7/8 series.
+
+commit 9a05c4559927ea8b53bcb37bc7ed2be51e465aa9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 28 14:37:20 2017 +0900
+
+    [VM][FM7] Some fixes.
+
+commit dbef847a798cb01de48a95ee0c7264eec66878f9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 28 14:35:21 2017 +0900
+
+    [VM][MB8877][FM7] Fix freezing with OS-9 with 2DD drive/image.Thanks to Ryu Takegami.
+
+commit f1041d7b1ea98fe7fd763226718f07fb572e510b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 28 14:31:51 2017 +0900
+
+    [VM][FM7][MAINMEM] Fix clock parameter with some situation.Thanks to Ryu Takegami.
+
+commit a0136b7ad3fce00627bd916145624a258882ac49
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 28 14:27:12 2017 +0900
+
+    [VM][FM7][DISPLAY] Merge Ryu Takegami's fixes.
+    [VM][FM7][DISPLAY] Fix around KANJI ROM access flag by sub system.Expect to fix OS-9 L2 for AV40.
+    [VM][FM7][DISPLAY] Fix display flag on reset.
+
+commit 1431ddbebecba864d3a70676a72f7b8a23d76354
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Dec 22 14:12:44 2017 +0900
+
+    [Qt][FM-7][Windows] Fix not effect keyin with "\_" for *native* Windows.
+
+commit 07149380535505a82ba8683ea54a35137d6ac8fd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 10 19:58:05 2017 +0900
+
+    [DOC] Update for test release.
+
 commit c15048ee4635d4413887c2b8374a488a566e63cb
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Dec 7 19:08:34 2017 +0900

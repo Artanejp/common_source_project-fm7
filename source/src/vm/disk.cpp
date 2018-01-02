@@ -965,16 +965,18 @@ bool DISK::make_track(int trk, int side)
 			if(p < track_size) track[p++] = 0x00;
 		}
 		// am1
+		uint16_t crc = 0xffff;
 		for(int j = 0; j < am_size; j++) {
 			if(p < track_size) track[p++] = 0xa1;
+			crc = (uint16_t)((crc << 8) ^ crc_table[(uint8_t)(crc >> 8) ^ 0xa1]);
 		}
 		if(p < track_size) track[p++] = 0xfe;
+		crc = (uint16_t)((crc << 8) ^ crc_table[(uint8_t)(crc >> 8) ^ 0xfe]);
 		// id
 		if(p < track_size) track[p++] = t[0];
 		if(p < track_size) track[p++] = t[1];
 		if(p < track_size) track[p++] = t[2];
 		if(p < track_size) track[p++] = t[3];
-		uint16_t crc = 0;
 		crc = (uint16_t)((crc << 8) ^ crc_table[(uint8_t)(crc >> 8) ^ t[0]]);
 		crc = (uint16_t)((crc << 8) ^ crc_table[(uint8_t)(crc >> 8) ^ t[1]]);
 		crc = (uint16_t)((crc << 8) ^ crc_table[(uint8_t)(crc >> 8) ^ t[2]]);
@@ -992,12 +994,15 @@ bool DISK::make_track(int trk, int side)
 				if(p < track_size) track[p++] = 0x00;
 			}
 			// am2
+			crc = 0xffff;
 			for(int j = 0; j < am_size; j++) {
 				if(p < track_size) track[p++] = 0xa1;
+				crc = (uint16_t)((crc << 8) ^ crc_table[(uint8_t)(crc >> 8) ^ 0xa1]);
 			}
-			if(p < track_size) track[p++] = (t[7] != 0) ? 0xf8 : 0xfb;
+			uint8_t am2 = (t[7] != 0) ? 0xf8 : 0xfb;
+			if(p < track_size) track[p++] = am2;
+			crc = (uint16_t)((crc << 8) ^ crc_table[(uint8_t)(crc >> 8) ^ am2]);
 			// data
-			crc = 0;
 			for(int j = 0; j < data_size.sd; j++) {
 				if(p < track_size) track[p++] = t[0x10 + j];
 				crc = (uint16_t)((crc << 8) ^ crc_table[(uint8_t)(crc >> 8) ^ t[0x10 + j]]);
@@ -1057,18 +1062,23 @@ bool DISK::get_sector(int trk, int side, int index)
 void DISK::set_sector_info(uint8_t *t)
 {
 	// header info
+	int am_size = track_mfm ? 3 : 0;
+	uint16_t crc = 0xffff;
+	for(int i = 0; i < am_size; i++) {
+		crc = (uint16_t)((crc << 8) ^ crc_table[(uint8_t)(crc >> 8) ^ 0xa1]);
+	}
+	crc = (uint16_t)((crc << 8) ^ crc_table[(uint8_t)(crc >> 8) ^ 0xfe]);
 	id[0] = t[0];
 	id[1] = t[1];
 	id[2] = t[2];
 	id[3] = t[3];
-	uint16_t crc = 0;
 	crc = (uint16_t)((crc << 8) ^ crc_table[(uint8_t)(crc >> 8) ^ t[0]]);
 	crc = (uint16_t)((crc << 8) ^ crc_table[(uint8_t)(crc >> 8) ^ t[1]]);
 	crc = (uint16_t)((crc << 8) ^ crc_table[(uint8_t)(crc >> 8) ^ t[2]]);
 	crc = (uint16_t)((crc << 8) ^ crc_table[(uint8_t)(crc >> 8) ^ t[3]]);
 	id[4] = (crc >> 8) & 0xff;
 	id[5] = (crc >> 0) & 0xff;
-	// http://www,gnu-darwin.or.jp/www001/src/ports/emulators/quasi88/work/quasi88-0.6.3/document/FORMAT.TXT
+	// http://www.gnu-darwin.or.jp/www001/src/ports/emulators/quasi88/work/quasi88-0.6.3/document/FORMAT.TXT
 	// t[6]: 0x00 = double-density, 0x40 = single-density
 	// t[7]: 0x00 = normal, 0x10 = deleted mark
 	// t[8]: 0x00 = valid, 0x10 = valid (deleted data), 0xa0 = id crc error, 0xb0 = data crc error, 0xe0 = address mark missing, 0xf0 = data mark missing

@@ -837,7 +837,7 @@ bool YM2203::load_state(FILEIO* state_fio)
 	if(dllchip) {
 		fmdll->Reset(dllchip);
 		for(int i = 0; i < 0x200; i++) {
-			// write fnum2 begore fnum1
+			// write fnum2 before fnum1
 			int ch = ((i >= 0xa0 && i <= 0xaf) || (i >= 0x1a0 && i <= 0x1a7)) ? (i ^ 4) : i;
 			if(port_log[ch].written) {
 				fmdll->SetReg(dllchip, ch, port_log[ch].data);

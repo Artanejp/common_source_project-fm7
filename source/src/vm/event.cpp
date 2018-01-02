@@ -27,6 +27,10 @@ void EVENT::initialize()
 	dont_skip_frames = 0;
 	prev_skip = next_skip = false;
 	sound_changed = false;
+	
+	vline_start_clock = 0;
+	cur_vline = 0;
+	vclocks[0] = (int)((double)d_cpu[0].cpu_clocks / (double)FRAMES_PER_SEC / (double)LINES_PER_FRAME + 0.5); // temporary
 }
 
 void EVENT::initialize_sound(int rate, int samples)
@@ -122,21 +126,23 @@ void EVENT::drive()
 	for(int i = 0; i < frame_event_count; i++) {
 		frame_event[i]->event_frame();
 	}
-	for(int v = 0; v < lines_per_frame; v++) {
+	for(cur_vline = 0; cur_vline < lines_per_frame; cur_vline++) {
+		vline_start_clock = get_current_clock();
+		
 		// run virtual machine per line
 		for(int i = 0; i < vline_event_count; i++) {
-			vline_event[i]->event_vline(v, vclocks[v]);
+			vline_event[i]->event_vline(cur_vline, vclocks[cur_vline]);
 		}
 		
 		if(event_remain < 0) {
-			if(-event_remain > vclocks[v]) {
-				update_event(vclocks[v]);
+			if(-event_remain > vclocks[cur_vline]) {
+				update_event(vclocks[cur_vline]);
 			} else {
 				update_event(-event_remain);
 			}
 		}
-		event_remain += vclocks[v];
-		cpu_remain += vclocks[v] << power;
+		event_remain += vclocks[cur_vline];
+		cpu_remain += vclocks[cur_vline] << power;
 		
 		while(event_remain > 0) {
 			int event_done = event_remain;
@@ -227,6 +233,16 @@ uint32_t EVENT::get_passed_clock(uint32_t prev)
 double EVENT::get_passed_usec(uint32_t prev)
 {
 	return 1000000.0 * get_passed_clock(prev) / d_cpu[0].cpu_clocks;
+}
+
+uint32_t EVENT::get_passed_clock_since_vline()
+{
+	return get_passed_clock(vline_start_clock);
+}
+
+double EVENT::get_passed_usec_since_vline()
+{
+	return get_passed_usec(vline_start_clock);
 }
 
 uint32_t EVENT::get_cpu_pc(int index)

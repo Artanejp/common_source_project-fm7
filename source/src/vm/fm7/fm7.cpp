@@ -945,13 +945,17 @@ void VM::is_bubble_casette_protected(int drv, bool flag)
 #endif
 
 
-#define STATE_VERSION	7
+#define STATE_VERSION	8
 void VM::save_state(FILEIO* state_fio)
 {
 	state_fio->FputUint32_BE(STATE_VERSION);
 	state_fio->FputBool(connect_320kfdc);
 	state_fio->FputBool(connect_1Mfdc);
 	for(DEVICE* device = first_device; device; device = device->next_device) {
+		const char *name = typeid(*device).name() + 6; // skip "class "
+		
+		state_fio->FputInt32(strlen(name));
+		state_fio->Fwrite(name, strlen(name), 1);
 		device->save_state(state_fio);
 	}
 }
@@ -965,6 +969,12 @@ bool VM::load_state(FILEIO* state_fio)
 	connect_320kfdc = state_fio->FgetBool();
 	connect_1Mfdc = state_fio->FgetBool();
 	for(DEVICE* device = first_device; device; device = device->next_device) {
+		const char *name = typeid(*device).name() + 6; // skip "class "
+		
+		if(!(state_fio->FgetInt32() == strlen(name) && state_fio->Fcompare(name, strlen(name)))) {
+			printf("Load Error: DEVID=%d\n", device->this_device_id);
+			return false;
+		}
 		if(!device->load_state(state_fio)) {
 			printf("Load Error: DEVID=%d\n", device->this_device_id);
 			return false;

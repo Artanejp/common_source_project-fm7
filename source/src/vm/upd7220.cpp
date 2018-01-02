@@ -56,9 +56,9 @@ void UPD7220::initialize()
 {
 	UPD7220_BASE::initialize();
 	// initial settings for 1st frame
-	vtotal = LINES_PER_FRAME;
+	vtotal = 0; //LINES_PER_FRAME;
 	v1 = v2 = v3 = 16;
-	v4 = vtotal - v1 - v2 - v3;
+	v4 = LINES_PER_FRAME - v1 - v2 - v3;
 #ifdef CHARS_PER_LINE
 	h4 = CHARS_PER_LINE - v1 - v2 - v3;
 #else
@@ -95,6 +95,7 @@ void UPD7220::event_pre_frame()
 		
 		sync_changed = false;
 		vs = hs = 0;
+		vtotal = 0;
 #ifdef UPD7220_HORIZ_FREQ
 		horiz_freq = 0;
 #endif
@@ -105,7 +106,7 @@ void UPD7220::event_pre_frame()
 			set_lines_per_frame(vtotal);
 		}
 #ifdef UPD7220_HORIZ_FREQ
-		if(horiz_freq != next_horiz_freq) {
+		if(horiz_freq != next_horiz_freq && vtotal != 0) {
 			horiz_freq = next_horiz_freq;
 			set_frames_per_sec((double)horiz_freq / (double)vtotal);
 		}
@@ -862,6 +863,15 @@ bool UPD7220::load_state(FILEIO* state_fio)
 	d1 = state_fio->FgetInt32();
 	dm = state_fio->FgetInt32();
 	pattern = state_fio->FgetUint16();
+	
+	// post process
+	if(master) {
+		// force update timing
+		vtotal = 0;
+#ifdef UPD7220_HORIZ_FREQ
+		horiz_freq = 0;
+#endif
+	}
 	return true;
 }
 

@@ -160,6 +160,10 @@ public:
 
 // check memory leaks
 #ifdef _DEBUG
+// _malloca is defined in typeinfo.h
+#ifdef _malloca
+#undef _malloca
+#endif
 #define _CRTDBG_MAP_ALLOC
 #include <crtdbg.h>
 #define malloc(s) _malloc_dbg(s, _NORMAL_BLOCK, __FILE__, __LINE__)

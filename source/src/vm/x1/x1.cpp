@@ -168,6 +168,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	drec->set_context_ear(pio, SIG_I8255_PORT_B, 0x02);
 	crtc->set_context_vblank(display, SIG_DISPLAY_VBLANK, 1);
+	crtc->set_context_disp(display, SIG_DISPLAY_DISP, 1);
 	crtc->set_context_vblank(pio, SIG_I8255_PORT_B, 0x80);
 	crtc->set_context_vsync(pio, SIG_I8255_PORT_B, 0x04);
 	pio->set_context_port_a(printer, SIG_PRINTER_DATA, 0xff, 0);
@@ -867,13 +868,17 @@ void VM::update_dipswitch()
 }
 #endif
 
-#define STATE_VERSION	8
+#define STATE_VERSION	9
 
 void VM::save_state(FILEIO* state_fio)
 {
 	state_fio->FputUint32(STATE_VERSION);
 	
 	for(DEVICE* device = first_device; device; device = device->next_device) {
+		const char *name = typeid(*device).name() + 6; // skip "class "
+		
+		state_fio->FputInt32(strlen(name));
+		state_fio->Fwrite(name, strlen(name), 1);
 		device->save_state(state_fio);
 	}
 	state_fio->FputBool(pseudo_sub_cpu);
@@ -886,6 +891,11 @@ bool VM::load_state(FILEIO* state_fio)
 		return false;
 	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
+		const char *name = typeid(*device).name() + 6; // skip "class "
+		
+		if(!(state_fio->FgetInt32() == strlen(name) && state_fio->Fcompare(name, strlen(name)))) {
+			return false;
+		}
 		if(!device->load_state(state_fio)) {
 			return false;
 		}

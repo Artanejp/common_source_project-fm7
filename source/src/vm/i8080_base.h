@@ -98,7 +98,7 @@ protected:
 	virtual uint16_t FETCH16()  { return 0xffff; }
 	virtual uint16_t POP16() { return 0xff;}
 	virtual void PUSH16(uint16_t val) {}
-	virtual uint32_t ACK_INTR() {}
+	virtual uint32_t ACK_INTR() {return 0xffffffff; }
 	
 	void DSUB();
 

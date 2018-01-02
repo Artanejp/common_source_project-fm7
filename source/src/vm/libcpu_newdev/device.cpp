@@ -138,6 +138,38 @@ double DEVICE::get_passed_usec(uint32_t prev)
 	return event_manager->get_passed_usec(prev);
 }
 
+uint32_t DEVICE::get_passed_clock_since_vline()
+{
+	if(event_manager == NULL) {
+		event_manager = vm->first_device->next_device;
+	}
+	return event_manager->get_passed_clock_since_vline();
+}
+
+double DEVICE::get_passed_usec_since_vline()
+{
+	if(event_manager == NULL) {
+		event_manager = vm->first_device->next_device;
+	}
+	return event_manager->get_passed_usec_since_vline();
+}
+
+int DEVICE::get_cur_vline()
+{
+	if(event_manager == NULL) {
+		event_manager = vm->first_device->next_device;
+	}
+	return event_manager->get_cur_vline();
+}
+
+int DEVICE::get_cur_vline_clocks()
+{
+	if(event_manager == NULL) {
+		event_manager = vm->first_device->next_device;
+	}
+	return event_manager->get_cur_vline_clocks();
+}
+
 uint32_t DEVICE::get_cpu_pc(int index)
 {
 	if(event_manager == NULL) {
@@ -169,8 +201,17 @@ void DEVICE::set_lines_per_frame(int lines)
 		}
 		event_manager->set_lines_per_frame(lines);
 }
+
+int DEVICE::get_lines_per_frame()
+{
+	if(event_manager == NULL) {
+		event_manager = vm->first_device->next_device;
+	}
+	return event_manager->get_lines_per_frame();
+}
+
 // Force render sound immediately when device's status has changed.
-// You must call this after you changing registers (or enything).
+// You must call this after you changing registers (or anything).
 // If has problems, try set_realtime_render.
 // See mb8877.cpp and ym2203.cpp. 
 // -- 20161010 K.O

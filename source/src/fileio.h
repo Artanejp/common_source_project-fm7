@@ -125,9 +125,10 @@ public:
 	int Ftprintf(const _TCHAR* format, ...);
 	
 	size_t Fread(void* buffer, size_t size, size_t count);
-	size_t Fwrite(void* buffer, size_t size, size_t count);
+	size_t Fwrite(const void* buffer, size_t size, size_t count);
 	int Fseek(long offset, int origin);
 	long Ftell();
+	bool Fcompare(const void* buffer, size_t size);
 };
 
 #endif
