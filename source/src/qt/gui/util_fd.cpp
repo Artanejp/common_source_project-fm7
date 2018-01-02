@@ -92,7 +92,7 @@ void Ui_MainWindowBase::eject_fd(int drv)
 void Ui_MainWindowBase::CreateFloppyMenu(int drv, int drv_base)
 {
 	{
-		QString ext = "*.d88 *.d77 *.1dd *.td0 *.imd *.dsk *.fdi *.hdm *.tfd *.xdf *.2d *.sf7 *.img *.ima *.vfd";
+		QString ext = "*.d88 *.d77 *.1dd *.td0 *.imd *.dsk *.nfd *.fdi *.hdm *.hd5 *.hd4 *.hdb *.dd9 *.dd6 *.tfd *.xdf *.2d *.sf7 *.img *.ima *.vfd";
 		QString desc1 = "Floppy Disk";
 		menu_fds[drv] = new Menu_FDClass(menubar, QString::fromUtf8("Obj_Floppy"), using_flags, this, drv);
 		menu_fds[drv]->create_pulldown_menu();

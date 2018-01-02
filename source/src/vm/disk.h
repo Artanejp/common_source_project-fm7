@@ -108,7 +108,11 @@ private:
 	// cpdread image decoder (dsk)
 	bool cpdread_to_d88(FILEIO *fio);
 	
-	// solid image decoder (fdi/tfd/2d/img/sf7)
+	// nfd r0/r1 image decoder (nfd)
+	bool nfdr0_to_d88(FILEIO *fio);
+	bool nfdr1_to_d88(FILEIO *fio);
+	
+	// solid image decoder (fdi/hdm/xdf/2d/img/sf7/tfd)
 	bool solid_to_d88(FILEIO *fio, int type, int ncyl, int nside, int nsec, int size, bool mfm);
 	void setup_fd_formats(void);
 	

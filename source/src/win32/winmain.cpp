@@ -2352,7 +2352,7 @@ void open_floppy_disk_dialog(HWND hWnd, int drv)
 {
 	_TCHAR* path = get_open_file_name(
 		hWnd,
-		_T("Supported Files (*.d88;*.d77;*.1dd;*.td0;*.imd;*.dsk;*.fdi;*.hdm;*.tfd;*.xdf;*.2d;*.sf7;*.img;*.ima;*.vfd)\0*.d88;*.d77;*.1dd;*.td0;*.imd;*.dsk;*.fdi;*.hdm;*.tfd;*.xdf;*.2d;*.sf7;*.img;*.ima;*.vfd\0All Files (*.*)\0*.*\0\0"),
+		_T("Supported Files (*.d88;*.d77;*.1dd;*.td0;*.imd;*.dsk;*.nfd;*.fdi;*.hdm;*.hd5;*.hd4;*.hdb;*.dd9;*.dd6;*.tfd;*.xdf;*.2d;*.sf7;*.img;*.ima;*.vfd)\0*.d88;*.d77;*.1dd;*.td0;*.imd;*.dsk;*.nfd;*.fdi;*.hdm;*.hd5;*.hd4;*.hdb;*.dd9;*.dd6;*.tfd;*.xdf;*.2d;*.sf7;*.img;*.ima;*.vfd\0All Files (*.*)\0*.*\0\0"),
 		_T("Floppy Disk"),
 		config.initial_floppy_disk_dir, _MAX_PATH
 	);
@@ -2681,8 +2681,14 @@ void open_any_file(const _TCHAR* path)
 	   check_file_extension(path, _T(".td0")) || 
 	   check_file_extension(path, _T(".imd")) || 
 	   check_file_extension(path, _T(".dsk")) || 
+	   check_file_extension(path, _T(".nfd")) || 
 	   check_file_extension(path, _T(".fdi")) || 
 	   check_file_extension(path, _T(".hdm")) || 
+	   check_file_extension(path, _T(".hd5")) || 
+	   check_file_extension(path, _T(".hd4")) || 
+	   check_file_extension(path, _T(".hdb")) || 
+	   check_file_extension(path, _T(".dd9")) || 
+	   check_file_extension(path, _T(".dd6")) || 
 	   check_file_extension(path, _T(".tfd")) || 
 	   check_file_extension(path, _T(".xdf")) || 
 	   check_file_extension(path, _T(".2d" )) || 

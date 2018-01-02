@@ -262,19 +262,140 @@ void DISK::open(const _TCHAR* file_path, int bank)
 			} catch(...) {
 				// failed to convert the disk image
 			}
-		} else if(check_file_extension(file_path, _T(".2d"))  && file_size.d == 40 * 2 * 16 * 256) {
-			// 2d image for SHARP X1 series
+		} else if(check_file_extension(file_path, _T(".nfd"))) {
+			// T98-NEXT nfd r0/r1 image for NEC PC-98x1 series
 			try {
-				if(solid_to_d88(fio, MEDIA_TYPE_2D, 40, 2, 16, 256, true)) {
+				if(nfdr0_to_d88(fio) || nfdr1_to_d88(fio)) {
+					inserted = changed = true;
+					my_stprintf_s(dest_path, _MAX_PATH, _T("%s.D88"), file_path);
+				}
+			} catch(...) {
+				// failed to convert the disk image
+			}
+		} else if(check_file_extension(file_path, _T(".fdi"))) {
+			// Anex86 fdi image for NEC PC-98x1 series
+			if(file_size.d == 4096 + 77 * 2 * 8 * 1024) {
+				try {
+					fio->Fread(fdi_header, 4096, 1);
+					if(solid_to_d88(fio, MEDIA_TYPE_2HD, 77, 2, 8, 1024, true)) {
+						inserted = changed = is_solid_image = is_fdi_image = true;
+					}
+				} catch(...) {
+					// failed to convert the disk image
+				}
+			} else if(file_size.d == 4096 + 80 * 2 * 15 * 512) {
+				try {
+					fio->Fread(fdi_header, 4096, 1);
+					if(solid_to_d88(fio, MEDIA_TYPE_2HD, 80, 2, 15, 512, true)) {
+						inserted = changed = is_solid_image = is_fdi_image = true;
+					}
+				} catch(...) {
+					// failed to convert the disk image
+				}
+			} else if(file_size.d == 4096 + 80 * 2 * 18 * 512) {
+				try {
+					fio->Fread(fdi_header, 4096, 1);
+					if(solid_to_d88(fio, MEDIA_TYPE_144, 80, 2, 18, 512, true)) {
+						inserted = changed = is_solid_image = is_fdi_image = true;
+					}
+				} catch(...) {
+					// failed to convert the disk image
+				}
+			} else if(file_size.d == 4096 + 77 * 2 * 26 * 256) {
+				try {
+					fio->Fread(fdi_header, 4096, 1);
+					if(solid_to_d88(fio, MEDIA_TYPE_2HD, 77, 2, 26, 256, true)) {
+						inserted = changed = is_solid_image = is_fdi_image = true;
+					}
+				} catch(...) {
+					// failed to convert the disk image
+				}
+			} else if(file_size.d == 4096 + 80 * 2 * 9 * 512) {
+				try {
+					fio->Fread(fdi_header, 4096, 1);
+					if(solid_to_d88(fio, MEDIA_TYPE_2DD, 80, 2, 9, 512, true)) {
+						inserted = changed = is_solid_image = is_fdi_image = true;
+					}
+				} catch(...) {
+					// failed to convert the disk image
+				}
+			} else if(file_size.d == 4096 + 80 * 2 * 8 * 512) {
+				try {
+					fio->Fread(fdi_header, 4096, 1);
+					if(solid_to_d88(fio, MEDIA_TYPE_2DD, 80, 2, 8, 512, true)) {
+						inserted = changed = is_solid_image = is_fdi_image = true;
+					}
+				} catch(...) {
+					// failed to convert the disk image
+				}
+			}
+		} else if(check_file_extension(file_path, _T(".hdm")) && file_size.d == 77 * 2 * 8 * 1024) {
+			// BKDSK hdm image for NEC PC-98x1 series
+			try {
+				if(solid_to_d88(fio, MEDIA_TYPE_2HD, 77, 2, 8, 1024, true)) {
 					inserted = changed = is_solid_image = true;
 				}
 			} catch(...) {
 				// failed to convert the disk image
 			}
-		} else if(check_file_extension(file_path, _T(".img"))  && file_size.d == 70 * 1 * 16 * 256) {
-			// img image for SONY SMC-70/777 series
+		} else if(check_file_extension(file_path, _T(".hd5")) && file_size.d == 80 * 2 * 15 * 512) {
+			// BKDSK hd5 image for NEC PC-98x1 series
 			try {
-				if(solid_to_d88(fio, MEDIA_TYPE_2DD, 70, 1, 16, 256, true)) {
+				if(solid_to_d88(fio, MEDIA_TYPE_2HD, 80, 2, 15, 512, true)) {
+					inserted = changed = is_solid_image = true;
+				}
+			} catch(...) {
+				// failed to convert the disk image
+			}
+		} else if(check_file_extension(file_path, _T(".hd4")) && file_size.d == 80 * 2 * 18 * 512) {
+			// BKDSK hd4 image for NEC PC-98x1 series
+			try {
+				if(solid_to_d88(fio, MEDIA_TYPE_144, 80, 2, 18, 512, true)) {
+					inserted = changed = is_solid_image = true;
+				}
+			} catch(...) {
+				// failed to convert the disk image
+			}
+		} else if(check_file_extension(file_path, _T(".hdb")) && file_size.d == 77 * 2 * 26 * 256) {
+			// BKDSK hdb image for NEC PC-98x1 series
+			try {
+				if(solid_to_d88(fio, MEDIA_TYPE_2HD, 77, 2, 26, 256, true)) {
+					inserted = changed = is_solid_image = true;
+				}
+			} catch(...) {
+				// failed to convert the disk image
+			}
+		} else if(check_file_extension(file_path, _T(".dd9")) && file_size.d == 80 * 2 * 9 * 512) {
+			// BKDSK dd9 image for NEC PC-98x1 series
+			try {
+				if(solid_to_d88(fio, MEDIA_TYPE_2DD, 80, 2, 9, 512, true)) {
+					inserted = changed = is_solid_image = true;
+				}
+			} catch(...) {
+				// failed to convert the disk image
+			}
+		} else if(check_file_extension(file_path, _T(".dd6")) && file_size.d == 80 * 2 * 8 * 512) {
+			// BKDSK dd6 image for NEC PC-98x1 series
+			try {
+				if(solid_to_d88(fio, MEDIA_TYPE_2DD, 80, 2, 8, 512, true)) {
+					inserted = changed = is_solid_image = true;
+				}
+			} catch(...) {
+				// failed to convert the disk image
+			}
+		} else if(check_file_extension(file_path, _T(".xdf")) && file_size.d == 77 * 2 * 8 * 1024) {
+			// EX68 xdf image for SHARP X680x0 series
+			try {
+				if(solid_to_d88(fio, MEDIA_TYPE_2HD, 77, 2, 8, 1024, true)) {
+					inserted = changed = is_solid_image = true;
+				}
+			} catch(...) {
+				// failed to convert the disk image
+			}
+		} else if(check_file_extension(file_path, _T(".2d"))  && file_size.d == 40 * 2 * 16 * 256) {
+			// 2d image for SHARP X1 series
+			try {
+				if(solid_to_d88(fio, MEDIA_TYPE_2D, 40, 2, 16, 256, true)) {
 					inserted = changed = is_solid_image = true;
 				}
 			} catch(...) {
@@ -289,23 +410,25 @@ void DISK::open(const _TCHAR* file_path, int bank)
 			} catch(...) {
 				// failed to convert the disk image
 			}
+		} else if(check_file_extension(file_path, _T(".img"))  && file_size.d == 70 * 1 * 16 * 256) {
+			// img image for SONY SMC-70/777 series
+			try {
+				if(solid_to_d88(fio, MEDIA_TYPE_2DD, 70, 1, 16, 256, true)) {
+					inserted = changed = is_solid_image = true;
+				}
+			} catch(...) {
+				// failed to convert the disk image
+			}
 		}
 		if(!inserted) {
 			// check solid image file format
-			bool is_fdi_tmp = check_file_extension(file_path, _T(".fdi"));
 			for(int i = 0;; i++) {
 				const fd_format_t *p = &fd_formats[i];
 				if(p->type == -1) {
 					break;
 				}
-				int len = p->ncyl * p->nside * p->nsec * p->size;
-				// 4096 bytes: FDI header ???
-				if(file_size.d == (uint32_t)(len + (is_fdi_tmp ? 4096 : 0))) {
+				if(file_size.d == (uint32_t)(p->ncyl * p->nside * p->nsec * p->size)) {
 					fio->Fseek(0, FILEIO_SEEK_SET);
-					if(is_fdi_tmp) {
-						is_fdi_image = true;
-						fio->Fread(fdi_header, 4096, 1);
-					}
 					int type = p->type;
 					int ncyl = p->ncyl;
 					int nside = p->nside;
@@ -2107,6 +2230,196 @@ bool DISK::cpdread_to_d88(FILEIO *fio)
 	d88_hdr.size = trkptr;
 	memcpy(buffer, &d88_hdr, sizeof(d88_hdr_t));
 	return true;
+}
+
+// nfd r0/r1 image decoder
+
+bool DISK::nfdr0_to_d88(FILEIO *fio)
+{
+	// from NFD r0形式ファイル構造仕様 2001/01/22 LED
+	typedef struct {
+	    BYTE  C;                            // C （0xFFの時セクタ無し）
+	    BYTE  H;                            // H
+	    BYTE  R;                            // R
+	    BYTE  N;                            // N
+	    BYTE  flMFM;                        // 0:FM / 1:MFM
+	    BYTE  flDDAM;                       // 0:DAM / 1:DDAM
+	    BYTE  byStatus;                     // READ DATA(FDDBIOS)の結果
+	    BYTE  byST0;                        // READ DATA(FDDBIOS)の結果 ST0
+	    BYTE  byST1;                        // READ DATA(FDDBIOS)の結果 ST1
+	    BYTE  byST2;                        // READ DATA(FDDBIOS)の結果 ST2
+	    BYTE  byPDA;                        // FDDBIOSで使用するアドレス
+	    char Reserve1[5];                   // 予約
+	}NFD_SECT_ID,*LP_NFD_SECT_ID;
+	
+	typedef struct {
+	    char  szFileID[15];                 // 識別ID "T98FDDIMAGE.R0"
+	    char  Reserve1[1];                  // 予約
+	    char  szComment[0x100];             // イメージコメント(ASCIIz)
+	    DWORD dwHeadSize;                   // ヘッダ部のサイズ
+	    BYTE  flProtect;                    // 0以外 : ライトプロテクト
+	    BYTE  byHead;                       // ヘッド数
+	    char  Reserve2[10];                 // 予約
+	    NFD_SECT_ID si[163][26];            // セクタID(後述)
+	    char  Reserve3[0x10];               // 予約
+	}NFD_FILE_HEAD,*LP_NFD_FILE_HEAD;
+	
+	// check nfd header
+	NFD_FILE_HEAD head;
+	
+	fio->Fseek(0, FILEIO_SEEK_SET);
+	fio->Fread(&head, sizeof(head), 1);
+	
+	if(strncmp(head.szFileID, "T98FDDIMAGE.R0", 14) != 0) {
+		return false;
+	}
+	fio->Fseek(head.dwHeadSize, FILEIO_SEEK_SET);
+	
+	// create d88 header
+	d88_hdr_t d88_hdr;
+	d88_sct_t d88_sct;
+	
+	memset(&d88_hdr, 0, sizeof(d88_hdr_t));
+	my_strcpy_s(d88_hdr.title, sizeof(d88_hdr.title), "NFD R0");
+	d88_hdr.protect = head.flProtect;
+	
+	file_size.d = 0;
+	COPYBUFFER(&d88_hdr, sizeof(d88_hdr_t));
+	
+	// create tracks
+	int trkptr = sizeof(d88_hdr_t);
+	
+	for(int c = 0; c < 163; c++) {
+		int nsec = 0;
+		
+		for(int s = 0; s < 26; s++) {
+			if(head.si[c][s].C != 0xff) {
+				nsec++;
+			}
+		}
+		if(nsec) {
+			d88_hdr.trkptr[c] = trkptr;
+			
+			// read sectors in this track
+			for(int s = 0; s < 26; s++) {
+				if(head.si[c][s].C != 0xff) {
+					// create d88 sector header
+					memset(&d88_sct, 0, sizeof(d88_sct_t));
+					d88_sct.c = head.si[c][s].C;
+					d88_sct.h = head.si[c][s].H;
+					d88_sct.r = head.si[c][s].R;
+					d88_sct.n = head.si[c][s].N;
+					d88_sct.nsec = nsec;
+					d88_sct.dens = head.si[c][s].flMFM ? 0 : 0x40;
+					d88_sct.del = head.si[c][s].flDDAM ? 0x10 : 0;
+					if(head.si[c][s].byST1 & 0x20) {
+						if(head.si[c][s].byST2 & 0x20) {
+							d88_sct.stat = 0xb0; // data crc error
+						} else {
+							d88_sct.stat = 0xa0; // id crc error
+						}
+					} else if(head.si[c][s].byST1 & 0x01) {
+						d88_sct.stat = 0xe0; // address mark missing
+					} else if(head.si[c][s].byST2 & 0x01) {
+						d88_sct.stat = 0xf0; // data mark missing
+					} else {
+						d88_sct.stat = d88_sct.del;
+					}
+					d88_sct.size = secsize[d88_sct.n & 3];
+					
+					// create sector image
+					uint8_t dst[16384];
+					memset(dst, 0xe5, sizeof(dst));
+					fio->Fread(dst, d88_sct.size, 1);
+					
+					// copy to d88
+					COPYBUFFER(&d88_sct, sizeof(d88_sct_t));
+					COPYBUFFER(dst, d88_sct.size);
+					trkptr += sizeof(d88_sct_t) + d88_sct.size;
+					
+					if(head.si[c][s].byPDA == 0x10) {
+						d88_hdr.type = MEDIA_TYPE_2DD;
+					} else {
+						d88_hdr.type = MEDIA_TYPE_2HD;
+					}
+				}
+			}
+		}
+	}
+	d88_hdr.size = trkptr;
+	memcpy(buffer, &d88_hdr, sizeof(d88_hdr_t));
+	return true;
+}
+
+bool DISK::nfdr1_to_d88(FILEIO *fio)
+{
+	// from NFD r1形式ファイル構造仕様 2001/09/14 LED
+	typedef struct {
+//	    char szFileID[sizeof(NFD_FILE_ID1)];        /* 識別ID "T98FDDIMAGE.R1"  */
+//	    char Reserv1[0x10-sizeof(NFD_FILE_ID1)];    /* 予備                     */
+	    char  szFileID[15];                         /* 識別ID "T98FDDIMAGE.R1"  */
+	    char  Reserve1[1];                          /* 予約                     */
+	    char szComment[0x100];                      /* コメント                 */
+	    DWORD dwHeadSize;                           /* ヘッダのサイズ           */
+	    BYTE flProtect;                             /* ライトプロテクト0以外    */
+	    BYTE byHead;                                /* ヘッド数 1-2             */
+	    char Reserv2[0x10-4-1-1];                   /* 予備                     */
+	    DWORD dwTrackHead[164];                     /* トラックID位置           */
+	    DWORD dwAddInfo;                            /* 追加情報ヘッダのアドレス */
+	    char Reserv3[0x10-4];                       /* 予備                     */
+	}NFD_FILE_HEAD1,*LP_NFD_FILE_HEAD1;
+	
+	typedef struct {
+	    WORD wSector;                               /* セクタID数               */
+	    WORD wDiag;                                 /* 特殊 ID数                */
+	    char Reserv1[0x10-4];                       /* 予備                     */
+	}NFD_TRACK_ID1,*LP_NFD_TRACK_ID1;
+	
+	typedef struct {
+	    BYTE    C;                                  /* C                        */
+	    BYTE    H;                                  /* H                        */
+	    BYTE    R;                                  /* R                        */
+	    BYTE    N;                                  /* N                        */
+	    BYTE    flMFM;                              /* MFM(1)/FM(0)             */
+	    BYTE    flDDAM;                             /* DDAM(1)/DAM(0)           */
+	    BYTE    byStatus;                           /* READ DATA RESULT         */
+	    BYTE    bySTS0;                             /* ST0                      */
+	    BYTE    bySTS1;                             /* ST1                      */
+	    BYTE    bySTS2;                             /* ST2                      */
+	    BYTE    byRetry;                            /* RetryDataなし(0)あり(1-) */
+	    BYTE    byPDA;                              /* PDA                      */
+	    char Reserv1[0x10-12];                      /* 予備                     */
+	}NFD_SECT_ID1,*LP_NFD_SECT_ID1;
+	
+	typedef struct {
+	    BYTE    Cmd;                                /* Command                  */
+	    BYTE    C;                                  /* C                        */
+	    BYTE    H;                                  /* H                        */
+	    BYTE    R;                                  /* R                        */
+	    BYTE    N;                                  /* N                        */
+	    BYTE    byStatus;                           /* READ DATA RESULT         */
+	    BYTE    bySTS0;                             /* ST0                      */
+	    BYTE    bySTS1;                             /* ST1                      */
+	    BYTE    bySTS2;                             /* ST2                      */
+	    BYTE    byRetry;                            /* RetryDataなし(0)あり(1-) */
+	    DWORD   dwDataLen;
+	    BYTE    byPDA;                              /* PDA                      */
+	    char Reserv1[0x10-15];                      /* 予備                     */
+	}NFD_DIAG_ID1,*LP_NFD_DIAG_ID1;
+	
+	// check nfd header
+	NFD_FILE_HEAD1 head;
+	
+	fio->Fseek(0, FILEIO_SEEK_SET);
+	fio->Fread(&head, sizeof(head), 1);
+	
+	if(strncmp(head.szFileID, "T98FDDIMAGE.R1", 14) != 0) {
+		return false;
+	}
+	fio->Fseek(head.dwHeadSize, FILEIO_SEEK_SET);
+	
+	// not implemented yet :-(
+	return false;
 }
 
 // solid image decoder

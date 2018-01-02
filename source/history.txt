@@ -1,8 +1,16 @@
+12/27/2017
+
+[EMU] support to restore sound frequency/latency settings when load state
+
+[VM/DISK] support T98-NEXT nfd r0 floppy disk image
+[VM/DISK] support BKDSK hdm/hd5/hd4/hdb/dd9/dd6 floppy disk image
+
+
 12/15/2017
 
 [COMMON/FILEIO] add Fcompare function
 
-[VM/*] improve save/load status function to check device class name
+[VM/*] improve save/load state function to check device class name
 [VM/YM2151] fix save/load state function
 
 

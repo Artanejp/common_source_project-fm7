@@ -96,6 +96,7 @@ private:
 	
 	
 	// misc
+	int sound_frequency, sound_latency;
 	int sound_rate, sound_samples;
 #ifdef USE_CPU_TYPE
 	int cpu_type;
