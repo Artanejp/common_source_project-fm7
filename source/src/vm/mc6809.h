@@ -22,13 +22,9 @@
 
 enum {
 	MC6809_PHASE_RUN = 0,
+	MC6809_PHASE_PUSH_STACK,
+	MC6809_PHASE_FETCH_VECTOR,
 	MC6809_PHASE_DEAD_CYCLE,
-	MC6809_PHASE_IRQ_PUSH_STACK,
-	MC6809_PHASE_IRQ_FETCH_VECTOR,
-	MC6809_PHASE_FIRQ_PUSH_STACK,
-	MC6809_PHASE_FIRQ_FETCH_VECTOR,
-	MC6809_PHASE_NMI_PUSH_STACK,
-	MC6809_PHASE_NMI_FETCH_VECTOR,
 
 	MC6809_PHASE_REQ_HALT,
 	MC6809_PHASE_DO_HALT,
@@ -67,12 +63,16 @@ protected:
 	uint32_t int_state;
 	/* In Motorola's datasheet, status has some valiants. 20171207 K.O */
 	
-	uint8_t run_phase;
-	uint8_t old_run_phase;
 	bool req_halt_on;
 	bool req_halt_off;
 	bool busreq;
 
+	bool bus_ba;
+	bool bus_bs;
+	uint8_t phase_nmi;
+	uint8_t phase_firq;
+	uint8_t phase_irq;
+ 
 	uint64_t total_icount;
 	uint64_t prev_total_icount;
 
@@ -533,6 +533,11 @@ public:
 		initialize_output_signals(&outputs_bus_clr);
 		initialize_output_signals(&outputs_bus_ba);
 		initialize_output_signals(&outputs_bus_bs);
+		bus_ba = bus_bs = false;
+		phase_nmi = MC6809_PHASE_RUN;
+		phase_firq = MC6809_PHASE_RUN;
+		phase_irq = MC6809_PHASE_RUN;
+
 		set_device_name(_T("MC6809 MPU"));
 	}
 	~MC6809_BASE() {}

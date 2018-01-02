@@ -170,11 +170,16 @@ void MC6809_BASE::reset()
 	if((int_state & MC6809_HALT_BIT) != 0) {
 		write_signals(&outputs_bus_ba, 0xffffffff);
 		write_signals(&outputs_bus_bs, 0xffffffff);
+		bus_ba = bus_bs = true;
 	} else {
 		write_signals(&outputs_bus_ba, 0x00000000);
 		write_signals(&outputs_bus_bs, 0x00000000);
+		bus_ba = bus_bs = false;
 	}
-	run_phase = old_run_phase = MC6809_PHASE_RUN;
+	phase_nmi = MC6809_PHASE_RUN;
+	phase_firq = MC6809_PHASE_RUN;
+	phase_irq = MC6809_PHASE_RUN;
+
 //#endif
 	CC |= CC_II;	/* IRQ disabled */
 	CC |= CC_IF;	/* FIRQ disabled */
@@ -190,9 +195,11 @@ void MC6809_BASE::initialize()
 	busreq = false;
 	icount = 0;
 	extra_icount = 0;
-	run_phase = old_run_phase = MC6809_PHASE_RUN;
 	req_halt_on = req_halt_off = false;
 	__USE_DEBUGGER = osd->check_feature(_T("USE_DEBUGGER"));
+	phase_nmi = MC6809_PHASE_RUN;
+	phase_firq = MC6809_PHASE_RUN;
+	phase_irq = MC6809_PHASE_RUN;
 
 }
 
@@ -331,6 +338,7 @@ int MC6809_BASE::run(int clock)
 		icount -= extra_icount;
 		extra_icount = 0;
 		if(!busreq) {
+			bus_ba = bus_bs = true;
 			write_signals(&outputs_bus_ba, 0xffffffff);
 			write_signals(&outputs_bus_bs, 0xffffffff);
 		}
@@ -341,12 +349,15 @@ int MC6809_BASE::run(int clock)
 
 		return first_icount - icount;
 	}
-	if(busreq) {
+	if(busreq) { // Exit from BUSREQ state.
 		if((int_state & MC6809_SYNC_IN) != 0) {
+			bus_ba = true;
 			write_signals(&outputs_bus_ba, 0xffffffff);
 		} else {
+			bus_ba = false;
 			write_signals(&outputs_bus_ba, 0x00000000);
 		}				
+		bus_bs = false;
 		write_signals(&outputs_bus_bs, 0x00000000);
 		busreq = false;
 	}
@@ -368,95 +379,124 @@ int MC6809_BASE::run(int clock)
  	/*
 	 * Check Interrupt
 	 */
-//check_nmi:
+check_nmi:
 	if ((int_state & (MC6809_NMI_BIT | MC6809_FIRQ_BIT | MC6809_IRQ_BIT)) != 0) {	// 0x0007
 		if ((int_state & MC6809_NMI_BIT) == 0)
 			goto check_firq;
-		//if ((int_state & MC6809_LDS) == 0)
-		//	goto check_firq;
-		if(run_phase != MC6809_PHASE_NMI_PUSH_STACK) {
+		if(phase_nmi == MC6809_PHASE_RUN) {
+			bus_bs = false;
 			write_signals(&outputs_bus_bs, 0x00000000);
-			old_run_phase = run_phase;
-			run_phase = MC6809_PHASE_NMI_PUSH_STACK;
+	  	        phase_nmi = MC6809_PHASE_PUSH_STACK;
 			cpu_nmi_push();
 			debugger_hook();
-			cycle = 19 - 2;
+			cycle = 19 - (2 + 2);
 			icount -= cycle;
-			total_icount += first_icount - icount;
+			total_icount += (first_icount - icount);
 			return first_icount - icount;
-		} else {
+		} else if(phase_nmi == MC6809_PHASE_PUSH_STACK) {
+			bus_bs = true;
 			write_signals(&outputs_bus_bs, 0xffffffff);
 			cpu_nmi_fetch_vector_address();
-			run_phase = MC6809_PHASE_NMI_FETCH_VECTOR;
-		} 
-		run_one_opecode();
-		int_state &= ~MC6809_SYNC_IN;
-		cycle = 2;
-		//cycle = 19;
-		write_signals(&outputs_bus_bs, 0x00000000);
-		write_signals(&outputs_bus_ba, 0x00000000);
-		run_phase = old_run_phase;
-		goto int_cycle;
+			phase_nmi = MC6809_PHASE_FETCH_VECTOR;
+			cycle = 2;
+			icount -= cycle;
+			total_icount += (first_icount - icount);
+			return first_icount - icount;
+		} else if(phase_nmi == MC6809_PHASE_FETCH_VECTOR) { 
+			run_one_opecode();
+			int_state &= ~MC6809_SYNC_IN;
+			cycle = 2;
+			phase_nmi = MC6809_PHASE_RUN;
+			bus_ba = bus_bs = false;
+			write_signals(&outputs_bus_bs, 0x00000000);
+			write_signals(&outputs_bus_ba, 0x00000000);
+			goto int_cycle;
+		} else {
+			// Undefined behavior
+			phase_nmi = MC6809_PHASE_RUN;
+	        	goto check_nmi;
+		}
 	} else {
+		// OK, none interrupts.
 		goto check_ok;
 	}
 
 check_firq:
 	if ((int_state & MC6809_FIRQ_BIT) != 0) {
 		int_state &= ~MC6809_SYNC_IN; // Moved to before checking.Thanks to Ryu Takegami.
-		if(run_phase != MC6809_PHASE_FIRQ_PUSH_STACK) {
+		if(phase_firq == MC6809_PHASE_RUN) {
 			if ((CC & CC_IF) != 0)
 				goto check_irq;
+			bus_bs = false;
 			write_signals(&outputs_bus_bs, 0x00000000);
-			old_run_phase = run_phase;
-			run_phase = MC6809_PHASE_FIRQ_PUSH_STACK;
+			phase_firq = MC6809_PHASE_PUSH_STACK;
 			cpu_firq_push();
 			debugger_hook();
-			cycle = 10 - 2;
+			cycle = 10 - (2 + 2);
 			icount -= cycle;
 			total_icount += first_icount - icount;
 			return first_icount - icount;
-		} else {
+		} else if(phase_firq == MC6809_PHASE_PUSH_STACK) {
+			bus_bs = true;
 			write_signals(&outputs_bus_bs, 0xffffffff);
 			cpu_firq_fetch_vector_address();
-			run_phase = MC6809_PHASE_FIRQ_FETCH_VECTOR;
+			phase_firq = MC6809_PHASE_FETCH_VECTOR;
+			cycle = 2;
+			icount -= cycle;
+			total_icount += first_icount - icount;
+			return first_icount - icount;
+		} else if(phase_firq == MC6809_PHASE_FETCH_VECTOR) { 
+			run_one_opecode();
+			phase_firq = MC6809_PHASE_RUN;
+			cycle = 2;
+			bus_ba = bus_bs = false;
+			write_signals(&outputs_bus_bs, 0x00000000);
+			write_signals(&outputs_bus_ba, 0x00000000);
+			goto int_cycle;
+		} else {
+			// Undefined behavior
+			phase_firq = MC6809_PHASE_RUN;
+        	goto check_firq;
 		}
-		run_one_opecode();
-		run_phase = old_run_phase;
-		//cycle = 10;
-		cycle = 2;
-		write_signals(&outputs_bus_bs, 0x00000000);
-		write_signals(&outputs_bus_ba, 0x00000000);
-		goto int_cycle;
 	}
 
 check_irq:
 	if ((int_state & MC6809_IRQ_BIT) != 0) {
 		int_state &= ~MC6809_SYNC_IN; // Moved to before checking.Thanks to Ryu Takegami.
-		if(run_phase != MC6809_PHASE_IRQ_PUSH_STACK) {
+		if(phase_irq == MC6809_PHASE_RUN) {
 			if ((CC & CC_II) != 0)
 				goto check_ok;
+			bus_bs = false;
 			write_signals(&outputs_bus_bs, 0x00000000);
-			old_run_phase = run_phase;
-			run_phase = MC6809_PHASE_IRQ_PUSH_STACK;
+			phase_irq = MC6809_PHASE_PUSH_STACK;
 			cpu_irq_push();
 			debugger_hook();
-			cycle = 19 - 2;
+			cycle = 19 - (2 + 2);
 			icount -= cycle;
 			total_icount += first_icount - icount;
 			return first_icount - icount;
-		} else {
+		} else if(phase_irq == MC6809_PHASE_PUSH_STACK) {
+   			bus_bs = true;
 			write_signals(&outputs_bus_bs, 0xffffffff);
 			cpu_irq_fetch_vector_address();
-			run_phase = MC6809_PHASE_IRQ_FETCH_VECTOR;
+			phase_irq = MC6809_PHASE_FETCH_VECTOR;
+			cycle = 2;
+			icount -= cycle;
+			total_icount += first_icount - icount;
+			return first_icount - icount;
+		}  else if(phase_irq == MC6809_PHASE_FETCH_VECTOR) {
+			run_one_opecode();
+			phase_irq = MC6809_PHASE_RUN;   
+			cycle = 2;
+			bus_ba = bus_bs = false;
+			write_signals(&outputs_bus_bs, 0x00000000);
+			write_signals(&outputs_bus_ba, 0x00000000);
+			goto int_cycle;
+		} else {
+			// Undefined behavior
+			phase_irq = MC6809_PHASE_RUN;
+	       	goto check_irq;
 		}
-		run_one_opecode();
-		//cycle = 19;
-		cycle = 2;
-		run_phase = old_run_phase;
-		write_signals(&outputs_bus_bs, 0x00000000);
-		write_signals(&outputs_bus_ba, 0x00000000);
-		goto int_cycle;
 	}
 	/*
 	 * NO INTERRUPT
@@ -608,7 +648,7 @@ void MC6809_BASE::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 //#ifdef USE_DEBUGGER
 	my_stprintf_s(buffer, buffer_len,
-		 _T("PC = %04x PPC = %04x INTR=[%s %s %s %s][%s %s %s %s %s] CC = [%c%c%c%c%c%c%c%c]\nA = %02x B = %02x DP = %02x X = %04x Y = %04x U = %04x S = %04x EA = %04x"),
+		 _T("PC = %04x PPC = %04x\nINTR=[%s %s %s %s][%s %s %s %s %s] CC = [%c%c%c%c%c%c%c%c]\nA = %02x B = %02x DP = %02x X = %04x Y = %04x U = %04x S = %04x EA = %04x\nTotal CPU Clocks = %llu (%llu)"),
 		 PC,
 		 PPC,
 		 ((int_state & MC6809_IRQ_BIT) == 0)   ? _T("----") : _T(" IRQ"),
@@ -630,7 +670,8 @@ void MC6809_BASE::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 		 ((CC & CC_C) == 0)  ? _T('-') : _T('C'),
 		 A, B, DP,
 		 X, Y, U, S,
-		 EAD
+		 EAD,
+		 total_icount, total_icount - prev_total_icount
 	 );
 //#endif
 }  
@@ -1341,6 +1382,8 @@ OP_HANDLER(nop) {
 OP_HANDLER(sync_09)	// Rename 20101110
 {
 	int_state |= MC6809_SYNC_IN;
+	bus_ba = true;
+	bus_bs = false;
 	write_signals(&outputs_bus_ba, 0xffffffff);
 	write_signals(&outputs_bus_bs, 0x00000000);
 }
@@ -3860,7 +3903,7 @@ OP_HANDLER(pref11) {
 		}
 	}
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 void MC6809_BASE::save_state(FILEIO* state_fio)
 {
@@ -3887,8 +3930,13 @@ void MC6809_BASE::save_state(FILEIO* state_fio)
 	state_fio->FputBool(req_halt_off);
 	state_fio->FputBool(busreq);
 	
-	state_fio->FputUint8(old_run_phase);
-	state_fio->FputUint8(run_phase);
+	state_fio->FputUint8(phase_nmi);
+	state_fio->FputUint8(phase_firq);
+	state_fio->FputUint8(phase_irq);
+   
+	state_fio->FputUint64(total_icount);
+	state_fio->FputBool(bus_ba);
+	state_fio->FputBool(bus_bs);
 }
 
 bool MC6809_BASE::load_state(FILEIO* state_fio)
@@ -3918,9 +3966,14 @@ bool MC6809_BASE::load_state(FILEIO* state_fio)
 	req_halt_on = state_fio->FgetBool();
 	req_halt_off = state_fio->FgetBool();
 	busreq = state_fio->FgetBool();
-	
-	old_run_phase = state_fio->FgetUint8();
-	run_phase = state_fio->FgetUint8();
+
+	phase_nmi = state_fio->FgetUint8();
+	phase_firq = state_fio->FgetUint8();
+	phase_irq = state_fio->FgetUint8();
+   
+	total_icount = prev_total_icount = state_fio->FgetUint64();
+	bus_ba = state_fio->FgetBool();
+	bus_bs = state_fio->FgetBool();
 	return true;
 }
 
