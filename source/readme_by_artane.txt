@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                         December 04, 2017
+                                         January 04, 2018
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -12,7 +12,7 @@
    
    ソースコード：
    
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20171204
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20180104
 
    追加情報:
    
@@ -151,88 +151,73 @@
 Changes:
 
 ChangeLog:
-* 前の変更点をお読みになる場合には、ChangeLogをお読み下さい。
+* 前の変更点をお読みになる場合には、ChangeLogと000_gitlog.txtをお読み下さい。
 
-* SNAPSHOT Dec 04, 2017
-  * Upstream 2017-12-03.
-  * [VM/MC6809] Fixing hangup with F-BASIC v3.0ε.Thanks to Ryu Takegami-San. 
-                (see https://matsuri.5ch.net/test/read.cgi/i4004/1483504365/641-645)
-  * [VM/FM7] DISPLAY: Implement software scan line(s).
-  * [VM/FM77AV] VRAM: More use SIMD to be faster.
-    [VM/FM7] Try: Add suuporting for OPpenMP.But be slower than not using OpenMP (/_;)
-  * Build with commit 9eb246b375699752a898d8be79a227f58e473d8e (or later).
-
--- Dec 04, 2017 19:29:05 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+* SNAPSHOT Jan 04 2018
+  * Upstream 2017-12-28 .
+  * [Qt/FM-7] Windows: Fix not effect keyin with "\_" for *native* Windows.
+  * [RES/FM7] Fix drive number:Should not start from "FD1", should start from "FD0" for FM7/8 series.
+  * [VM/MC6809] More accurate emulation around interrupt.
+  * [VM/FM7] Z80: Implement interrupt features.
+  * [VM/FM7] Merge Ryu Takegami's fixes.
+  * [FM7/DISPLAY] Fix around KANJI ROM access flag by sub system.Expect to fix OS-9 L2 for AV40.
+  * [FM7/DISPLAY] Fix display flag on reset.
+  * [FM7/MAINMEM] Fix clock parameter with some situation.Thanks to Ryu Takegami.
+  * [VM/MB8877] Fix freezing with OS-9 with 2DD drive/image.Thanks to Ryu Takegami.
+  * [Qt/DEBUGGER] Not push empty string.
+  * [BUILD] Read from templete if config (buildvars.dat etc) has not exists.
+  * [VM] common.h : Not has <typeinfo.h> excepts VC++.Recommend to use <typeinfo> .
+  * [BUILD/CMake] GNU/Linux: Add fallback LIB directory feature for library installation.
+-- Jan 04, 2018 11:59:54 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 本家の変更:
 * 前の変更点をお読みになる場合には、history.txtをお読み下さい。
 
-12/3/2017
+12/27/2017
 
-[VM/UPD765A] fix read diagnostic to set ND when 1st sector's id are not match
+[EMU] support to restore sound frequency/latency settings when load state
 
-
-11/28/2017
-
-[EMU/DEBUGGER] fix ut command to show correct range of cpu trace
-
-[VM/DEVICE] rename bios_call_i86() to bios_call_far_i86()
-[VM/HUC6280] support to show total cpu clocks in debugger
-[VM/HUC6280] support cpu trace
-[VM/I286] support to show total cpu clocks in debugger
-[VM/I286] support cpu trace
-[VM/I386] support to show total cpu clocks in debugger
-[VM/I386] support cpu trace
-[VM/M6502] support to show total cpu clocks in debugger
-[VM/M6502] support cpu trace
-[VM/MC6800] support to show total cpu clocks in debugger
-[VM/MC6800] support cpu trace
-[VM/MC6800] fix issue that can not break at instruction following tap/cli/sei
-[VM/MC6809] support to show total cpu clocks in debugger
-[VM/MC6809] support cpu trace
-[VM/MCS48] fix to add clocks for interrupt to total cpu clocks
-[VM/TMS9995] support to show total cpu clocks in debugger
-[VM/TMS9995] support cpu trace
-[VM/UPD7801] support to show total cpu clocks in debugger
-[VM/UPD7801] support cpu trace
-[VM/UPD7810] support to show total cpu clocks in debugger
-[VM/UPD7810] support cpu trace
-[VM/Z80] fix to add clocks for interrupt to total cpu clocks
+[VM/DISK] support T98-NEXT nfd r0 floppy disk image
+[VM/DISK] support BKDSK hdm/hd5/hd4/hdb/dd9/dd6 floppy disk image
 
 
-11/26/2017
+12/15/2017
 
-[PC8801MA] fix text attribute when dma underrun occurs
+[COMMON/FILEIO] add Fcompare function
+
+[VM/*] improve save/load state function to check device class name
+[VM/YM2151] fix save/load state function
 
 
-11/25/2017
+12/14/2017
 
-[EMU/DEBUGGER] support command history
-[EMU/DEBUGGER] support ut command (unassemble cpu trace)
-[EMU/DEBUGGER] fix < command to check if command file is correctly opened
+[RESOURCE] change accelerators for switching full speed and roman/kana input
+[WINMAIN] fix to call ImmAssociateContext() in WM_ACTIVATE (thanks PC8801MA��)
 
-[EMU/OSD] fix initialize_screen_buffer() for RGB565 (thanks PC8801MA��)
-[EMU/OSD] improve read_console_input() to get cursor key
+[VM/HD46505] fix to force update event timing when R0-R9 are modified
+[VM/HUC6280] support to show clocks since starting scanline in debugger
+[VM/I286] support to show clocks since starting scanline in debugger
+[VM/I386] support to show clocks since starting scanline in debugger
+[VM/M6502] support to show clocks since starting scanline in debugger
+[VM/MC6800] support to show clocks since starting scanline in debugger
+[VM/MC6809] support to show clocks since starting scanline in debugger
+[VM/MCS48] support to show clocks since starting scanline in debugger
+[VM/TMS9995] support to show clocks since starting scanline in debugger
+[VM/UPD7220] fix to force update event timing when sync are modified
+[VM/UPD7801] support to show clocks since starting scanline in debugger
+[VM/UPD7810] support to show clocks since starting scanline in debugger
+[VM/Z80] support to show clocks since starting scanline in debugger
 
-[VM/MCS48] support to show total cpu clocks in debugger
-[VM/MCS48] support cpu trace
-[VM/UPD7220] improve vsync/hsync timing
-[VM/UPD7220] improve status register to select vblank/hblank by sync command
-[VM/YM2151] improve not to load mamefm.dll again (thanks PC8801MA��)
-[VM/YM2203] improve not to load mamefm.dll again (thanks PC8801MA��)
-[VM/Z80] support to show total cpu clocks in debugger
-[VM/Z80] support cpu trace
+[X1TURBOZ/DISPLAY] fix pcg/analog palette access wait again (thanks Mr.Sato)
 
-[PC8801MA] support OPN+OPN, OPNA+OPNA, and OPNA+OPN (thanks PC8801MA��)
-[PC8801MA] fix back space key issue (thanks PC8801MA��)
-[PC8801MA] fix bank switch of extrom (thanks PC8801MA��)
-[PC8801MA] fix not to apply digital palette in monochrome and digital mode
-[PC8801MA] fix to apply analog palette in monochrome and analog mode
-[PC8801MA] fix to apply reverse in text attribute to monochrome graphic
-[PC8801MA] fix cpu mode "Z80 8MHz (FE2/MC)"
 
-[X1/KEYBOAD] support phantom keys (thanks Mr.Sato)
-[X1/SUB] fix not to check iei status when sub cpu sends ack (thanks Mr.Sato)
+12/12/2017
+
+[VM/DISK] fix crc in id/data field (thanks Mr.Sato)
+[VM/HD46505] fix not to raise DISPTMG signal if bit2,3 of R8 are 11
+
+[X1TURBOZ/DISPLAY] fix pcg/analog palette access wait (thanks Mr.Sato)
+[X1TURBOZ/DISPLAY] fix to draw each line at start of hblank (thanks Mr.Sato)
 
 -----
 

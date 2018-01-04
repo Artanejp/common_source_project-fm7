@@ -1,5 +1,22 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT Jan 04 2018
+  * Upstream 2017-12-28 .
+  * [Qt/FM-7] Windows: Fix not effect keyin with "\_" for *native* Windows.
+  * [RES/FM7] Fix drive number:Should not start from "FD1", should start from "FD0" for FM7/8 series.
+  * [VM/MC6809] More accurate emulation around interrupt.
+  * [VM/FM7] Z80: Implement interrupt features.
+  * [VM/FM7] Merge Ryu Takegami's fixes.
+  * [FM7/DISPLAY] Fix around KANJI ROM access flag by sub system.Expect to fix OS-9 L2 for AV40.
+  * [FM7/DISPLAY] Fix display flag on reset.
+  * [FM7/MAINMEM] Fix clock parameter with some situation.Thanks to Ryu Takegami.
+  * [VM/MB8877] Fix freezing with OS-9 with 2DD drive/image.Thanks to Ryu Takegami.
+  * [Qt/DEBUGGER] Not push empty string.
+  * [BUILD] Read from templete if config (buildvars.dat etc) has not exists.
+  * [VM] common.h : Not has <typeinfo.h> excepts VC++.Recommend to use <typeinfo> .
+  * [BUILD/CMake] GNU/Linux: Add fallback LIB directory feature for library installation.
+-- Jan 04, 2018 11:59:54 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT Dec 10, 2017
   * Z80 Card with FM-8/7/77 Series test.
   * This release package is only with some VMs.

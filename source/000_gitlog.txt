@@ -1,3 +1,27 @@
+commit d6e15a635e9b7e10d9cb2f54e8f908d66fcd5b68
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 4 11:58:31 2018 +0900
+
+    [DOC][INSTALLER] Update SOVERSION.
+
+commit b0f0201bbdbd289fcb0df5092c3a3964c217ddb8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 4 11:54:14 2018 +0900
+
+    [BUILD][CMake] GNU/Linux: Add fallback LIB directory feature for library installation.
+
+commit 2ab3ead2991d60d013e0eb33cc45a8ba097b4548
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 4 10:29:24 2018 +0900
+
+    [VM][I386][OOPS] Fix OOPS.
+
+commit 024aea77b5968fc519ccf4e556cce51af39be5ed
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 3 02:59:40 2018 +0900
+
+    [DOC] Update gitlog.
+
 commit 1bb73196d19993514f477804b3e86d224ebc5e83
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Wed Jan 3 02:57:56 2018 +0900

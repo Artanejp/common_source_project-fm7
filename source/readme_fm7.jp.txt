@@ -1,5 +1,5 @@
 ** FM-7 series  emulator for common source code project. **
-                                               Dec 04, 2017
+                                               Jan 04, 2018
 		   K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 
@@ -37,6 +37,7 @@
   i. AV系キーボードの隠しブザーも入れました。
   j. FDDのつけ外しをサポートしました。最初に使うときは、"Connect 320KB FDD" にチェックを入れて、再起動してください。
   k. FM-8/7でテンキーで移動するゲームについて、自動で「5」もしくは「8」を入力するモードを新設しました。
+  l. Z80カードが(FM-7/77とFM-8で)使えるようになりました。テストがあまり十分ではありませんが。
 
   その他のことについては、RELEASENOTEやreadme_by_artane.txtを。
 
