@@ -21,6 +21,36 @@ else
     . ./buildvars.dat.tmpl
 fi
 
+#Check if LD_LIBRARY_PATH includes in LIB_INSTALL
+
+typeset -i __res
+__res=0;
+nr_list=`/bin/ls /etc/ld.so.conf.d/*.conf`
+__DIR=`echo ${LIB_INSTALL} | sed 's/\/$//'`
+echo ${__DIR}
+for __FILE in ${nr_list} ; do \
+  if [ -z `echo ${__FILE} | grep "zz_"` ] ; then
+     _t=`grep -e ${__DIR} ${__FILE}`
+     if grep -e ${__DIR} ${__FILE} > /dev/null ; then
+	__res=1
+     fi
+  fi
+done
+
+if [ ${__res} -eq 0 ] ; then
+  if [ -z `printenv LD_LIBRARY_PATH | grep ${LIB_INSTALL}` ] ; then
+    echo 'WARN: NO ${LIB_INSTALL} exists $LD_LIBRARY_PATH' >> ${MAKE_STATUS_FILE}
+    __res=0
+  else
+    __res=1
+  fi
+fi
+
+if [ ${__res} -eq 0 ] ; then
+   echo "FALLBACK ${LIB_INSTALL} to /usr/local/lib ." >> ${MAKE_STATUS_FILE}
+   LIB_INSTALL="/usr/local/lib"
+fi
+
 case ${BUILD_TOOLCHAIN} in
    "LLVM" | "llvm" | "CLANG" | "clang" )
           #TOOLCHAIN_SCRIPT="../../cmake/toolchain_win32_cross_linux_llvm.cmake"
