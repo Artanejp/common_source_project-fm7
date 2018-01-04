@@ -1,3 +1,9 @@
+commit e75ee07f3c9350171adf05a7297fcfcdd3ab2b9a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 4 12:06:58 2018 +0900
+
+    [DOC] Update for release 2018-01-04.
+
 commit d6e15a635e9b7e10d9cb2f54e8f908d66fcd5b68
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Jan 4 11:58:31 2018 +0900
