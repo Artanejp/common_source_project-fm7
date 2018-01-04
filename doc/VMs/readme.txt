@@ -1,5 +1,5 @@
 Binary archive of retro pc emulator common source code
-								5/15/2017
+								12/27/2017
 
 --- What's this ?
 
@@ -71,6 +71,7 @@ This archive includes the binaries of the emulators listed below:
 		ePC-9801U	PC-9801U
 		ePC-9801VF	PC-9801VF
 		ePC-9801VM	PC-9801VM
+		ePC-9801VX	PC-9801VX
 		ePC-98DO	PC-98DO
 		ePC-98LT	PC-98LT
 		eHANDY98	PC-98HA
@@ -147,9 +148,11 @@ Control
 	CPU x4
 	CPU x8
 	CPU x16
+	Full Speed		Run simulation at full speed
 	--------
 	Paste			Auto key hitting from the clip board text
 	Stop			Stop the auto key hitting
+	Romaji to Kana		Enter kana letters with alphabet keys
 	--------
 	Save State		Save the virtual machine state
 	Load State		Load the virtual machine state
@@ -263,15 +266,25 @@ For Windows PC environment:
 
 	Support Windows PC compatible mouse and joystick devices.
 
-	Shortcut key:
+	Accelerator key:
 		ALT+RETURN  - Switch window / fullscreen
-		CTRL+RETURN - Swtich enable / disenable the mouse control
+		CTRL+RETURN - Enable/Disenable mouse control
+		APPLICATION - Enable/Disable full speed emulation
+		CTR+APPLICATION - Enable/Disable roman to kana conversion
 
 	*) While the mouse control is enabled, the mouse cursor is hidden.
 
 Floppy disk images:
 
-	Supoort D88, TeleDisk, ImageDisk, and CPDRead format disk images.
+	P88SR D88	(*.d88;*.d77;*.1dd)
+	TeleDisk	(*.td0)
+	ImageDisk	(*.imd)
+	CPDRead		(*.dsk)
+	T98-NEXT r0	(*.nfd)
+	Anex86		(*.fdi)
+	BKDSK		(*.hdm;*.hd5;*.hd4;*.hdb;*.dd9;*.dd6)
+
+	and any other solid images (*.tfd;*.xdf;*.2d;*.sf7;*.img;*.ima;*.vfd)
 
 Cassette tape images:
 
@@ -447,6 +460,8 @@ Save/Load State info:
 	M88 by Mr.CISC
 	XM8 by Mr.PI.
 	MESS PC-8801 driver
+- vm/pc9801/display.*
+	Neko Project 2 by Mr.Yui
 - vm/pcengine/pce.*
 	Ootake (joypad)
 	xpce (psg)
@@ -476,6 +491,8 @@ Save/Load State info:
 - vm/yis/*
 	YAMAHA provided me some YIS manuals and software disks
 	Mr.Moriya analyzed the YIS hardware
+- vm/yis/display.*
+	KST32B stroke font and its decoder by Mr.Saka.N
 - vm/z80tvgame/*
 	This homebrew cnosole is designed by Mr.Ishizu
 	http://w01.tp1.jp/~a571632211/z80tvgame/index.html

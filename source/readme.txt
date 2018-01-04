@@ -1,5 +1,5 @@
 Binary archive of retro pc emulator common source code
-								8/10/2017
+								12/27/2017
 
 --- What's this ?
 
@@ -259,13 +259,6 @@ Host
 	Disable Windows8 DWM	Disable the Desktop Window Manager
 	Show Status Bar		Show/Hide the status bar in windwo mode
 
-Accelerator Keys:
-
-	Alt+Enter	Fullscreen
-	Ctrl+Enter	Grab the mouse cursor
-	Alt+Ctrl+Enter	Run simulation at full speed
-	Application	Enter kana letters with alphabet keys
-
 
 --- Note
 
@@ -273,15 +266,25 @@ For Windows PC environment:
 
 	Support Windows PC compatible mouse and joystick devices.
 
-	Shortcut key:
+	Accelerator key:
 		ALT+RETURN  - Switch window / fullscreen
-		CTRL+RETURN - Swtich enable / disenable the mouse control
+		CTRL+RETURN - Enable/Disenable mouse control
+		APPLICATION - Enable/Disable full speed emulation
+		CTR+APPLICATION - Enable/Disable roman to kana conversion
 
 	*) While the mouse control is enabled, the mouse cursor is hidden.
 
 Floppy disk images:
 
-	Supoort D88, TeleDisk, ImageDisk, and CPDRead format disk images.
+	P88SR D88	(*.d88;*.d77;*.1dd)
+	TeleDisk	(*.td0)
+	ImageDisk	(*.imd)
+	CPDRead		(*.dsk)
+	T98-NEXT r0	(*.nfd)
+	Anex86		(*.fdi)
+	BKDSK		(*.hdm;*.hd5;*.hd4;*.hdb;*.dd9;*.dd6)
+
+	and any other solid images (*.tfd;*.xdf;*.2d;*.sf7;*.img;*.ima;*.vfd)
 
 Cassette tape images:
 
