@@ -60,7 +60,6 @@ public:
 #endif
 	}
 	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
-	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 
 protected:

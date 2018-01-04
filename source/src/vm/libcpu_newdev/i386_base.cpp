@@ -120,7 +120,7 @@ void I386_BASE::set_context_intr(DEVICE* device)
 
 #include "../../fileio.h"
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void I386_BASE::save_state(FILEIO* state_fio)
 {

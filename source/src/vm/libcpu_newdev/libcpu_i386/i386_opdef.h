@@ -554,6 +554,7 @@ public:
 	void i386_vtlb_free(void);
 	void i386_free_state(void);
 
+	i386_state *get_cpu_state(void) { return cpustate; }
 	int get_extra_clock() { return cpustate->extra_cycles; }
 	void set_extra_clock(int n) { cpustate->extra_cycles += n; }
 
@@ -609,7 +610,7 @@ public:
 	}
 	
 	virtual bool write_debug_reg(const _TCHAR *reg, uint32_t data) { return false; }
-	virtual void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len) {};
+
 	virtual int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len) { return 0;}
 	void vtlb_flush_dynamic(void) { vtlb_flush_dynamic(cpustate->vtlb); }
 
