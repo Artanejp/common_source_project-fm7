@@ -24,6 +24,9 @@ class YM2203;
 class AY_3_891X;
 #endif
 class MB8877;
+class I8251;
+class AND;
+
 #if defined(_FM8)
 class BUBBLECASETTE;
 #endif
@@ -355,7 +358,25 @@ class FM7_MAINIO : public DEVICE {
 	DEVICE* pcm1bit;
 	DEVICE* joystick;
 	
-        //DEVICE* beep;
+	I8251 *uart[3];
+# if defined(_FM77AV20) || defined(_FM77AV40) || defined(_FM77AV20EX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+	AND   *rs232c_dtr;
+#endif
+	bool uart_enabled[3];
+	bool rs232c_enabled;
+	bool rs232c_dcd;
+	
+	bool modem_irqmask_rxrdy;
+	bool modem_irqmask_txrdy;
+	bool modem_syndet;
+	bool modem_rxrdy;
+	bool modem_txrdy;
+	
+	bool midi_uart_irqmask;
+	bool midi_syndet;
+	bool midi_rxrdy;
+	bool midi_txrdy;
+	
 	MB8877* fdc;
 #if defined(HAS_DMA)
 	HD6844* dmac;
@@ -538,7 +559,21 @@ public:
 		jcommcard = p;
 #endif
 	}
-
+	void set_context_uart(int num, I8251 *p) {
+		if(num < 0) return;
+		if(num > 2) return;
+		uart[num] = p;
+		if(p != NULL) {
+			uart_enabled[num] = true;
+		} else {
+			uart_enabled[num] = false;
+		}
+	}
+	void set_context_rs232c_dtr(AND *p) {
+# if defined(_FM77AV20) || defined(_FM77AV40) || defined(_FM77AV20EX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+		rs232c_dtr = p;
+# endif
+	}
 #if defined(HAS_DMA)
 	void set_context_dmac(HD6844 *p) {
 		dmac = p;

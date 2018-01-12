@@ -394,6 +394,7 @@ class YM2203;
 class MB8877;
 class MEMORY;
 class DATAREC;
+class I8251;
 #if defined(USE_AY_3_8910_AS_PSG) && !defined(_FM77AV_VARIANTS)
 class AY_3_891X;
 #endif
@@ -455,6 +456,11 @@ protected:
 #if defined(_FM8)
 	BUBBLECASETTE *bubble_casette[2];
 #endif
+	I8251 *uart[3];
+# if defined(_FM77AV20) || defined(_FM77AV40) || defined(_FM77AV20EX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+	AND *g_rs232c_dtr;
+#endif
+	
 	//BEEP* beep;
 	PCM1BIT* pcm1bit;
 	DATAREC *drec;

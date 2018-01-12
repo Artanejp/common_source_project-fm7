@@ -30,6 +30,7 @@
 #include "../ay_3_891x.h"
 #include "../and.h"
 #include "../or.h"
+#include "../i8251.h"
 
 #if defined(_FM77AV_VARIANTS)
 #include "mb61vh010.h"
@@ -67,6 +68,8 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	psg = NULL; 
 # endif
 #endif
+	for(int i = 0; i < 3; i++) uart[i] = NULL;
+	
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
 	
@@ -75,6 +78,7 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	subcpu = new MC6809(this, emu);
 	g_substat_display = new AND(this, emu);
 	g_substat_mainhalt = new AND(this, emu);
+
 	
 #ifdef WITH_Z80
 	if((config.dipswitch & FM7_DIPSW_Z80CARD_ON) != 0) {
@@ -98,6 +102,17 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 		jcommcard = NULL;
 	}
 #endif
+# if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20) || defined(_FM77AV20EX)
+	uart[0] = new I8251(this, emu);
+# else
+#  if defined(CAPABLE_JCOMMCARD)
+	if((config.dipswitch & FM7_DIPSW_JSUBCARD_ON) != 0) uart[0] = new I8251(this, emu);
+#  endif
+	if(((config.dipswitch & FM7_DIPSW_RS232C_ON) != 0) && (uart[0] == NULL)) uart[0] = new I8251(this, emu);
+# endif
+	if((config.dipswitch & FM7_DIPSW_MODEM_ON) != 0) uart[1] = new I8251(this, emu);
+	if((config.dipswitch & FM7_DIPSW_MIDI_ON) != 0) uart[2] = new I8251(this, emu);
+
 		
 	// basic devices
 	// I/Os
@@ -172,7 +187,7 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 
 	mainio  = new FM7_MAINIO(this, emu);
 	mainmem = new FM7_MAINMEM(this, emu);
-	
+
 #if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
 	if((config.dipswitch & FM7_DIPSW_CONNECT_KANJIROM) != 0) {
 		kanjiclass1 = new KANJIROM(this, emu, false);
@@ -184,6 +199,14 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #endif	
 #ifdef CAPABLE_KANJI_CLASS2
 	kanjiclass2 = new KANJIROM(this, emu, true);
+#endif
+
+# if defined(_FM77AV20) || defined(_FM77AV40) || defined(_FM77AV20EX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+	g_rs232c_dtr = new AND(this, emu);
+	g_rs232c_dtr->set_mask(SIG_AND_BIT_0);
+	g_rs232c_dtr->set_mask(SIG_AND_BIT_1);
+
+	// DCD
 #endif
 #ifdef WITH_Z80
 	g_mainstat->set_mask(SIG_AND_BIT_0);
@@ -201,13 +224,38 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	event->set_device_name(_T("EVENT"));
 	dummy->set_device_name(_T("1st Dummy"));
 	
-	maincpu->set_device_name(_T("MAINCPU(MC6809)"));
-	subcpu->set_device_name(_T("SUBCPU(MC6809)"));
+	maincpu->set_device_name(_T("MAINCPU(MC6809B)"));
+	subcpu->set_device_name(_T("SUBCPU(MC6809B)"));
 	dummycpu->set_device_name(_T("DUMMY CPU"));
+#if defined(CAPABLE_JCOMMCARD)
+	if(jsubcpu != NULL) {
+		jsubcpu->set_device_name(_T("J.COMM BOARD CPU(MC6809)"));
+	}
+	if(jcommcard != NULL) {
+		jcommcard->set_device_name(_T("Japanese COMM BOARD"));
+	}
 # ifdef WITH_Z80
-	if(z80cpu != NULL) z80cpu->set_device_name(_T("Z80 CPU"));
+	if(z80cpu != NULL) z80cpu->set_device_name(_T("Z80 CPU BOARD"));
 # endif
 	if(fdc != NULL) fdc->set_device_name(_T("MB8877 FDC(320KB)"));
+	
+	if(uart[0] != NULL) {
+		uart[0]->set_device_name(_T("RS-232C BOARD(I8251 SIO)"));
+	}
+# if defined(CAPABLE_JCOMMCARD)
+	if((config.dipswitch & FM7_DIPSW_JSUBCARD_ON) != 0) {
+		if(uart[0] != NULL) uart[0]->set_device_name(_T("J.COMM BOARD RS-232C(I8251 SIO)"));
+	}
+# elif defined(_FM77AV20) || defined(_FM77AV40) || defined(_FM77AV20EX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+	if(uart[0] != NULL) uart[0]->set_device_name(_T("RS-232C(I8251 SIO)"));
+# endif
+		
+	if(uart[1] != NULL) {
+		uart[1]->set_device_name(_T("MODEM BOARD(I8251 SIO)"));
+	}
+	if(uart[2] != NULL) {
+		uart[2]->set_device_name(_T("MIDI BOARD(I8251 SIO)"));
+	}
 						
 	// basic devices
 	// I/Os
@@ -235,6 +283,19 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	bubble_casette[1]->set_device_name(_T("BUBBLE CASETTE #1"));
 # endif	
 #endif
+# if defined(_FM77AV20) || defined(_FM77AV40) || defined(_FM77AV20EX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+	g_rs232c_dtr->set_device_name(_T("RS232C DTR(AND)"));
+#endif
+#ifdef WITH_Z80
+	g_intr->set_device_name(_T("Z80 INTR(OR)"));
+	g_mainstat->set_device_name(_T("Z80 HALT/RUN(AND)"));
+	g_intr_irq->set_device_name(_T("Z80 IRQ(AND)"));
+	g_intr_firq->set_device_name(_T("Z80 FIRQ(AND)"));
+	g_nmi->set_device_name(_T("Z80 NMI(AND)"));
+#endif
+	g_substat_display->set_device_name(_T("DISPLAY STATUS(AND)"));
+	g_substat_mainhalt->set_device_name(_T("SUBSYSTEM HALT STATUS(AND)"));
+#endif	
 	this->connect_bus();
 	
 }
@@ -381,6 +442,31 @@ void VM::connect_bus(void)
 	mainio->set_context_irq(maincpu, SIG_CPU_IRQ, 0xffffffff);
 	mainio->set_context_firq(maincpu, SIG_CPU_FIRQ, 0xffffffff);
 	mainio->set_context_nmi(maincpu, SIG_CPU_NMI, 0xffffffff);
+
+	mainio->set_context_uart(0, uart[0]); /* $FD06- : RS232C */
+	mainio->set_context_uart(1, uart[1]); /* $FD40- : MODEM */
+	mainio->set_context_uart(2, uart[2]); /* $FDEA- : MIDI */
+
+#if defined(_FM77AV20) || defined(_FM77AV40) || defined(_FM77AV20EX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+	mainio->set_context_rs232c_dtr(g_rs232c_dtr);
+	if(uart[0] != NULL) uart[0]->set_context_dtr(g_rs232c_dtr, SIG_AND_BIT_1, 0xffffffff);
+#endif
+	if(uart[0] != NULL) {
+		uart[0]->set_context_rxrdy(mainio, FM7_MAINIO_UART0_RXRDY, 0xffffffff);
+		uart[0]->set_context_txrdy(mainio, FM7_MAINIO_UART0_TXRDY, 0xffffffff);
+		uart[0]->set_context_syndet(mainio, FM7_MAINIO_UART0_SYNDET, 0xffffffff);
+	}
+	if(uart[1] != NULL) {
+		uart[1]->set_context_rxrdy(mainio, FM7_MAINIO_MODEM_RXRDY, 0xffffffff);
+		uart[1]->set_context_txrdy(mainio, FM7_MAINIO_MODEM_TXRDY, 0xffffffff);
+		uart[1]->set_context_syndet(mainio, FM7_MAINIO_MODEM_SYNDET, 0xffffffff);
+	}
+	if(uart[2] != NULL) {
+		uart[2]->set_context_rxrdy(mainio, FM7_MAINIO_MIDI_RXRDY, 0xffffffff);
+		uart[2]->set_context_txrdy(mainio, FM7_MAINIO_MIDI_TXRDY, 0xffffffff);
+		uart[2]->set_context_syndet(mainio, FM7_MAINIO_MIDI_SYNDET, 0xffffffff);
+	}
+	
 #if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
 	if((config.dipswitch & FM7_DIPSW_CONNECT_KANJIROM) != 0) {
 		mainio->set_context_kanjirom_class1(kanjiclass1);

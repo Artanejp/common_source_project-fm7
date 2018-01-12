@@ -28,6 +28,7 @@ set(VMFILES_LIB
 		   prnfile.cpp
 		   or.cpp
 		   noise.cpp
+		   i8251.cpp
 )
 
 set(FLAG_USE_MC6809 ON)

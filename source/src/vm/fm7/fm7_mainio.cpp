@@ -15,9 +15,14 @@
 #include "../z80.h"
 
 #include "../datarec.h"
+#include "../i8251.h"
 #if defined(HAS_DMA)
 #include "hd6844.h"
 #endif
+# if defined(_FM77AV20) || defined(_FM77AV40) || defined(_FM77AV20EX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+#include "../and.h"
+#endif
+
 #if defined(_FM8)
 #include "bubblecasette.h"
 #endif
@@ -33,6 +38,17 @@ FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, paren
 	for(i = 0; i < 3; i++) {
 		opn[i] = NULL;
 	}
+	for(i = 0; i < 3; i++) {
+		uart[i] = NULL;
+		uart_enabled[i] = false;
+	}
+# if defined(_FM77AV20) || defined(_FM77AV40) || defined(_FM77AV20EX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+	rs232c_enabled = false;
+	rs232c_dtr = NULL;
+# else
+	rs232c_enabled = true;
+	rs232c_dcd = false;
+# endif
 # if !defined(_FM77AV_VARIANTS)
 	psg = NULL;
 #endif
@@ -244,6 +260,12 @@ void FM7_MAINIO::reset()
 	lpt_type = config.printer_type;
 	reset_printer();
 	
+# if defined(_FM77AV20) || defined(_FM77AV40) || defined(_FM77AV20EX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+	rs232c_enabled = false;
+# else
+	rs232c_enabled = true;
+# endif
+
 #if defined(_FM77AV_VARIANTS)
 	sub_monitor_type = 0x00;
 #endif
@@ -276,6 +298,10 @@ void FM7_MAINIO::reset()
 	irqreq_txrdy = false;
 	irqreq_printer = false;
 	irqreq_keyboard = false;
+
+	modem_irqmask_rxrdy = modem_irqmask_txrdy = true;
+	modem_syndet = modem_rxrdy = modem_txrdy = false;
+	midi_uart_irqmask = midi_syndet = midi_rxrdy = midi_txrdy = false;
 	// FD00
 	if(drec != NULL) {
 		drec->write_signal(SIG_DATAREC_MIC, 0x00, 0x01);
@@ -599,6 +625,7 @@ void FM7_MAINIO::do_irq(void)
 {
 	bool intstat;
 	uint32_t nval;
+	
 #if defined(_FM8)
    	intstat = intstat_txrdy | intstat_rxrdy | intstat_syndet;
 #else	
@@ -607,6 +634,9 @@ void FM7_MAINIO::do_irq(void)
 	intstat = intstat | intstat_opn | intstat_whg | intstat_thg;
    	intstat = intstat | intstat_txrdy | intstat_rxrdy | intstat_syndet;
 	intstat = intstat | intstat_mouse;
+	intstat = intstat | ((modem_irqmask_txrdy & modem_txrdy) | (modem_irqmask_rxrdy & modem_rxrdy) | modem_syndet);
+	intstat = intstat | (!(midi_uart_irqmask) & (midi_syndet | midi_txrdy | midi_rxrdy));
+	
 # if defined(HAS_DMA)
 	intstat = intstat | intstat_dma;
 # endif
@@ -965,6 +995,43 @@ void FM7_MAINIO::write_signal(int id, uint32_t data, uint32_t mask)
 			}
 			break;
 #endif
+		case FM7_MAINIO_UART0_RXRDY:
+			set_irq_rxrdy(val_b & rs232c_enabled);
+			break;
+		case FM7_MAINIO_UART0_TXRDY:
+			set_irq_txrdy(val_b & rs232c_enabled);
+			break;
+		case FM7_MAINIO_UART0_SYNDET:
+			set_irq_syndet(val_b & rs232c_enabled);
+			break;
+		case FM7_MAINIO_UART0_DCD:
+			rs232c_dcd = val_b;
+			break;
+		case FM7_MAINIO_MODEM_TXRDY:
+			modem_txrdy = val_b;
+			do_irq();
+			break;
+		case FM7_MAINIO_MODEM_RXRDY:
+			modem_rxrdy = val_b;
+			do_irq();
+			break;
+		case FM7_MAINIO_MODEM_SYNDET:
+			modem_syndet = val_b;
+			do_irq();
+			break;
+		case FM7_MAINIO_MIDI_TXRDY:
+			midi_txrdy = val_b;
+			do_irq();
+			break;
+		case FM7_MAINIO_MIDI_RXRDY:
+			midi_rxrdy = val_b;
+			do_irq();
+			break;
+		case FM7_MAINIO_MIDI_SYNDET:
+			midi_syndet = val_b;
+			do_irq();
+			break;
+			
 #if !defined(_FM8)			
 		case FM7_MAINIO_OPN_IRQ:
 			if(!connect_opn) break;
@@ -1149,14 +1216,21 @@ uint32_t FM7_MAINIO::read_data8(uint32_t addr)
 			break;
 		case 0x06: // RS-232C
 		case 0x07:
+			if(uart_enabled[0] && rs232c_enabled) {
+				if(uart[0] != NULL) retval = uart[0]->read_io8(addr & 1);
+			}
 			break;
 		case 0x08: // Light pen
 		case 0x09:
-    		case 0x0a:
+   		case 0x0a:
 			break;
 #if defined(_FM77AV_VARIANTS)
 		case 0x0b:
 			retval = ((config.boot_mode & 3) == 0) ? 0xfe : 0xff;
+#if defined(_FM77AV20) || defined(_FM77AV40) || defined(_FM77AV20EX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+			retval &= (uint32_t)(~0x04);
+			if(!rs232c_dcd) retval |= 0x04;
+#endif
 			break;
 #endif			
 		case 0x0e: // PSG DATA
@@ -1253,6 +1327,14 @@ uint32_t FM7_MAINIO::read_data8(uint32_t addr)
 		case 0x37: // Multi page
 			//retval = (uint32_t)display->read_data8(DISPLAY_ADDR_MULTIPAGE);
 			break;
+		case 0x40: // MODEM
+		case 0x41:
+			if(uart_enabled[1]) {
+				if(uart[1] != NULL) retval = uart[1]->read_io8(addr & 1);
+			}
+			break;
+		case 0x42:
+			break;
 		case 0x45: // WHG CMD
 			break;
 		case 0x46: // WHG DATA
@@ -1294,6 +1376,12 @@ uint32_t FM7_MAINIO::read_data8(uint32_t addr)
 			retval = dmac->read_data8(dma_addr);
 			break;
 #endif			
+		case 0xea: // MIDI
+		case 0xeb:
+			if(uart_enabled[2]) {
+				if(uart[2] != NULL) retval = uart[2]->read_io8(addr & 1);
+			}
+			break;
 		default:
 			break;
 		}
@@ -1388,10 +1476,25 @@ void FM7_MAINIO::write_data8(uint32_t addr, uint32_t data)
 			break;
 		case 0x06: // RS-232C
 		case 0x07:
+			if(uart_enabled[0] && rs232c_enabled) {
+				if(uart[0] != NULL) uart[0]->write_io8(addr & 1, data);
+			}
 			break;
 		case 0x08: // Light pen
 		case 0x09:
 		case 0x0a:
+			break;
+		case 0x0c:
+#if defined(_FM77AV20) || defined(_FM77AV40) || defined(_FM77AV20EX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+			if(rs232c_dtr != NULL) {
+				if((data & 0x04) != 0) {
+					rs232c_dtr->write_signal(SIG_AND_BIT_1, 0, 1);
+				} else {
+					rs232c_dtr->write_signal(SIG_AND_BIT_1, 1, 1);
+				}
+			}
+			rs232c_enabled = ((data & 0x01) != 0) ? true : false;
+#endif
 			break;
 		case 0x0d:
 			//printf("PSG CMD WRITE val=%02x\n", data);
@@ -1527,6 +1630,18 @@ void FM7_MAINIO::write_data8(uint32_t addr, uint32_t data)
 		case 0x37: // Multi page
 			display->write_signal(SIG_DISPLAY_MULTIPAGE, data, 0x00ff);
 			break;
+		case 0x40: // MODEM
+		case 0x41:
+			if(uart_enabled[1]) {
+				if(uart[1] != NULL) uart[1]->write_io8(addr & 1, data);
+			}
+			break;
+		case 0x42:
+			modem_irqmask_txrdy = ((data & 0x20) != 0);
+			modem_irqmask_rxrdy = ((data & 0x40) != 0);
+			do_irq();
+			break;
+			
 		case 0x45: // WHG CMD
 			set_opn_cmd(1, data);
 			break;
@@ -1590,7 +1705,14 @@ void FM7_MAINIO::write_data8(uint32_t addr, uint32_t data)
 			dmac->write_data8(dma_addr, data);
 			//this->out_debug_log(_T("IO: Wrote DMA %02x to reg %02x\n"), data, dma_addr);
 			break;
-#endif			
+#endif
+			// MIDI
+		case 0xea: 
+		case 0xeb:
+			if(uart_enabled[2]) {
+				if(uart[2] != NULL) uart[2]->write_io8(addr & 1, data);
+			}
+			break;
 		default:
 			//printf("MAIN: Write I/O Addr=%08x DATA=%02x\n", addr, data); 
 			break;
@@ -1673,7 +1795,7 @@ void FM7_MAINIO::event_vline(int v, int clock)
 {
 }
 
-#define STATE_VERSION 7
+#define STATE_VERSION 9
 void FM7_MAINIO::save_state(FILEIO *state_fio)
 {
 	int ch;
@@ -1830,6 +1952,21 @@ void FM7_MAINIO::save_state(FILEIO *state_fio)
 	// FD05
 	state_fio->FputBool(req_z80run);
 	state_fio->FputBool(z80_run);
+
+	// UART
+	state_fio->FputBool(rs232c_enabled);
+	state_fio->FputBool(rs232c_dcd);
+	for(int i = 0; i < 3; i++) state_fio->FputBool(uart_enabled[i]);
+	state_fio->FputBool(modem_irqmask_rxrdy);
+	state_fio->FputBool(modem_irqmask_txrdy);
+	state_fio->FputBool(modem_syndet);
+	state_fio->FputBool(modem_rxrdy);
+	state_fio->FputBool(modem_txrdy);
+
+	state_fio->FputBool(midi_uart_irqmask);
+	state_fio->FputBool(midi_syndet);
+	state_fio->FputBool(midi_rxrdy);
+	state_fio->FputBool(midi_txrdy);
 }
 
 bool FM7_MAINIO::load_state(FILEIO *state_fio)
@@ -1988,6 +2125,21 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 	// FD05
 	req_z80run = state_fio->FgetBool();
 	z80_run = state_fio->FgetBool();
+	
+	// UART
+	rs232c_enabled = state_fio->FgetBool();
+	rs232c_dcd = state_fio->FgetBool();
+	for(int i = 0; i < 3; i++) uart_enabled[i] = state_fio->FgetBool();
+	modem_irqmask_rxrdy = state_fio->FgetBool();
+	modem_irqmask_txrdy = state_fio->FgetBool();
+	modem_syndet = state_fio->FgetBool();
+	modem_rxrdy = state_fio->FgetBool();
+	modem_txrdy = state_fio->FgetBool();
+
+	midi_uart_irqmask = state_fio->FgetBool();
+	midi_syndet = state_fio->FgetBool();
+	midi_rxrdy = state_fio->FgetBool();
+	midi_txrdy = state_fio->FgetBool();
 	
 	if(version != STATE_VERSION) return false;
 	return true;

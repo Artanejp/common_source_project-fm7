@@ -47,6 +47,7 @@ public slots:
 #if defined(CAPABLE_JCOMMCARD)
 	void do_set_jcommcard(bool flag);
 #endif
+	void do_set_uart(bool flag);
 	void do_set_autokey_5_8(void);
 };
 
@@ -106,7 +107,9 @@ protected:
 	class Action_Control_7 *actionZ80_IRQ;
 	class Action_Control_7 *actionZ80_FIRQ;
 	class Action_Control_7 *actionZ80_NMI;
-#endif	
+#endif
+	class Action_Control_7 *actionUART[3];
+	
 	void setupUI_Emu(void);
 	void retranslateUi(void);
 	void retranslateVolumeLabels(Ui_SoundDialog *p);

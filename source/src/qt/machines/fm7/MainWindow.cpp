@@ -69,6 +69,32 @@ void Object_Menu_Control_7::do_set_z80_nmi(bool flag)
 	emit sig_emu_update_config();
 }
 #endif
+void Object_Menu_Control_7::do_set_uart(bool flag)
+{
+	uint32_t nval;
+	int num = getValue1();
+	switch(num) {
+	case 0:
+		nval = FM7_DIPSW_RS232C_ON;
+		break;
+	case 1:
+		nval = FM7_DIPSW_MODEM_ON;
+		break;
+	case 2:
+		nval = FM7_DIPSW_MIDI_ON;
+		break;
+	default:
+		return;
+		break;
+	}
+	if(flag) {
+		config.dipswitch = config.dipswitch | nval;
+	} else {
+		nval = (uint32_t)(~nval);
+		config.dipswitch = config.dipswitch & nval;
+	}
+}
+
 #if defined(CAPABLE_JCOMMCARD)
 void Object_Menu_Control_7::do_set_jcommcard(bool flag)
 {
@@ -445,8 +471,14 @@ void META_MainWindow::retranslateUi(void)
 #endif
 #if defined(CAPABLE_JCOMMCARD)
 	actionJCOMMCARD->setText(QApplication::translate("Machine", "Connect Japanese Communication Card.", 0));
-	actionJCOMMCARD->setToolTip(QApplication::translate("Machine", "Connect Japanese communication card.\nNeed to restart this emulator if you change.", 0));
+	actionJCOMMCARD->setToolTip(QApplication::translate("Machine", "Connect Japanese communication board.\nNeed to restart this emulator if you change.", 0));
 #endif
+	actionUART[0]->setText(QApplication::translate("Machine", "Connect RS-232C (need restart).", 0));
+	actionUART[0]->setToolTip(QApplication::translate("Machine", "Connect extra RS-232C board.\nNeed to restart this emulator if changed.", 0));
+	actionUART[1]->setText(QApplication::translate("Machine", "Connect MODEM (need restart).", 0));
+	actionUART[1]->setToolTip(QApplication::translate("Machine", "Connect extra MODEM board.\nNeed to restart this emulator if changed.", 0));
+	actionUART[2]->setText(QApplication::translate("Machine", "Connect MIDI (need restart).", 0));
+	actionUART[2]->setToolTip(QApplication::translate("Machine", "Connect extra MIDI board.\nNeed to restart this emulator if changed.", 0));
 	
 	menuCpuType->setToolTipsVisible(true);
 	menuBootMode->setToolTipsVisible(true);
@@ -544,6 +576,20 @@ void META_MainWindow::setupUI_Emu(void)
 		actionZ80_NMI->setVisible(false);
 	}
 #endif
+	menuMachine->addSeparator();
+	for(i = 0; i < 3; i++) {
+		actionUART[i] = new Action_Control_7(this, using_flags);
+		actionUART[i]->setCheckable(true);
+		actionUART[i]->setVisible(true);
+		actionUART[i]->fm7_binds->setValue1(i);
+		menuMachine->addAction(actionUART[i]);
+		connect(actionUART[i], SIGNAL(toggled(bool)), actionUART[i]->fm7_binds, SLOT(do_set_uart(bool)));
+	}
+	if((config.dipswitch & FM7_DIPSW_RS232C_ON) != 0) actionUART[0]->setChecked(true);
+	if((config.dipswitch & FM7_DIPSW_MODEM_ON) != 0) actionUART[1]->setChecked(true);
+	if((config.dipswitch & FM7_DIPSW_MIDI_ON) != 0) actionUART[2]->setChecked(true);
+	
+	
 #if defined(CAPABLE_JCOMMCARD)
 	actionJCOMMCARD = new Action_Control_7(this, using_flags);
 	menuMachine->addAction(actionJCOMMCARD);
