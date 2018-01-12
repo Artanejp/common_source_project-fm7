@@ -54,6 +54,9 @@ FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, paren
 #ifdef WITH_Z80
 	z80 = NULL;
 #endif	
+#if defined(CAPABLE_JCOMMCARD)
+	jcommcard = NULL;
+#endif
 #if defined(_FM8)
 	bubble_casette[0] = NULL;
 	bubble_casette[1] = NULL;
@@ -301,7 +304,7 @@ void FM7_MAINIO::reset()
 	reg_fd12 = 0xbc; // 0b10111100
 #endif
 #if defined(WITH_Z80)
-	z80->write_signal(SIG_CPU_BUSREQ, 0xffffffff, 0xffffffff);
+	if(z80 != NULL) z80->write_signal(SIG_CPU_BUSREQ, 0xffffffff, 0xffffffff);
 #endif
 	maincpu->write_signal(SIG_CPU_BUSREQ, 0, 0xffffffff);
 	maincpu->write_signal(SIG_CPU_HALTREQ, 0, 0xffffffff);
@@ -717,7 +720,7 @@ void FM7_MAINIO::set_fd04(uint8_t val)
 		req_z80run = true;
 	} else {
 		req_z80run = false;
-		z80->write_signal(SIG_CPU_BUSREQ, 1, 1);
+		if(z80 != NULL) z80->write_signal(SIG_CPU_BUSREQ, 1, 1);
 	}
 #endif
 }
@@ -949,7 +952,7 @@ void FM7_MAINIO::write_signal(int id, uint32_t data, uint32_t mask)
 #if defined(WITH_Z80)
 		case FM7_MAINIO_RUN_Z80:
 			if((req_z80run)/*  && (val_b) */) {
-				z80->write_signal(SIG_CPU_BUSREQ, 0, 1);
+				if(z80 != NULL) z80->write_signal(SIG_CPU_BUSREQ, 0, 1);
 				z80_run = true;
 				//z80->reset(); // OK?
 			}
@@ -1226,6 +1229,18 @@ uint32_t FM7_MAINIO::read_data8(uint32_t addr)
 		case 0x23: // Kanji ROM
 			retval = (uint32_t) read_kanjidata_right();
 			break;
+#if defined(CAPABLE_JCOMMCARD)
+		case 0x28:
+		case 0x29:
+		case 0x2a:
+		case 0x2b:
+			if(jcommcard != NULL) {
+				retval = (uint32_t)(jcommcard->read_io8(addr));
+			} else {
+				retval = 0xff;
+			}
+			break;
+#endif			
 #if defined(CAPABLE_KANJI_CLASS2)
 		case 0x2e: // Kanji ROM Level2
 			retval = (uint32_t) read_kanjidata_left_l2();
@@ -1477,6 +1492,14 @@ void FM7_MAINIO::write_data8(uint32_t addr, uint32_t data)
 			//write_kanjiaddr_lo((uint8_t)data);
 #endif
 			break;
+#if defined(CAPABLE_JCOMMCARD)
+		case 0x28:
+		case 0x29:
+		case 0x2a:
+		case 0x2b:
+			if(jcommcard != NULL) jcommcard->write_io8(addr, data);
+			break;
+#endif			
 #if defined(CAPABLE_DICTROM)
 		case 0x2e: // 
 			mainmem->write_signal(FM7_MAINIO_EXTBANK, data, 0xff);

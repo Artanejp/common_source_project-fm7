@@ -30,6 +30,15 @@ Object_Menu_Control_7::~Object_Menu_Control_7()
 }
 
 #if defined(WITH_Z80)
+void Object_Menu_Control_7::do_set_z80card_on(bool flag)
+{
+	if(flag) {
+		config.dipswitch = config.dipswitch | FM7_DIPSW_Z80CARD_ON;
+	} else {
+		config.dipswitch = config.dipswitch & ~FM7_DIPSW_Z80CARD_ON;
+	}
+}
+
 void Object_Menu_Control_7::do_set_z80_irq(bool flag)
 {
 	if(flag) {
@@ -60,6 +69,16 @@ void Object_Menu_Control_7::do_set_z80_nmi(bool flag)
 	emit sig_emu_update_config();
 }
 #endif
+#if defined(CAPABLE_JCOMMCARD)
+void Object_Menu_Control_7::do_set_jcommcard(bool flag)
+{
+	if(flag) {
+		config.dipswitch = config.dipswitch | FM7_DIPSW_JSUBCARD_ON;
+	} else {
+		config.dipswitch = config.dipswitch & ~FM7_DIPSW_JSUBCARD_ON;
+	}
+}
+#endif
 
 #if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
 void Object_Menu_Control_7::do_set_kanji_rom(bool flag)
@@ -68,6 +87,17 @@ void Object_Menu_Control_7::do_set_kanji_rom(bool flag)
 		config.dipswitch = config.dipswitch | FM7_DIPSW_CONNECT_KANJIROM;
 	} else {
 		config.dipswitch = config.dipswitch & ~FM7_DIPSW_CONNECT_KANJIROM;
+	}
+}
+#endif
+
+#if defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
+void Object_Menu_Control_7::do_set_jis78_emulation(bool flag)
+{
+	if(flag) {
+		config.dipswitch = config.dipswitch | FM7_DIPSW_JIS78EMU_ON;
+	} else {
+		config.dipswitch = config.dipswitch & ~FM7_DIPSW_JIS78EMU_ON;
 	}
 }
 #endif
@@ -194,6 +224,10 @@ void META_MainWindow::retranslateVolumeLabels(Ui_SoundDialog *p)
 
 void META_MainWindow::retranslateUi(void)
 {
+
+	int z80num, jcommnum;
+	z80num = -1;
+	jcommnum = -1;
 	
 	retranslateControlMenu("Hot Start (BREAK+RESET)", true);
 	retranslateFloppyMenu(0, 0);
@@ -222,18 +256,41 @@ void META_MainWindow::retranslateUi(void)
 	actionPrintDevice[2]->setText(QApplication::translate("Machine", "Dempa Joystick with #2", 0));
 	actionPrintDevice[2]->setToolTip(QApplication::translate("Machine", "Use joystick #2 as DEMPA's joystick.", 0));
 #endif
+	
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setText(QApplication::translate("Machine", "Main CPU", 0));
 	actionDebugger[1]->setText(QApplication::translate("Machine", "Sub  CPU", 0));
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(true);
-#ifdef WITH_Z80
-	actionDebugger[2]->setText(QApplication::translate("Machine", "Z80 CPU Board", 0));
-	actionDebugger[2]->setVisible(true);
-#else
+# ifdef WITH_Z80
+	if((config.dipswitch & FM7_DIPSW_Z80CARD_ON) != 0) z80num = 2;
+#  ifdef CAPABLE_JCOMMCARD
+	if((config.dipswitch & FM7_DIPSW_JSUBCARD_ON) != 0) {
+		if(z80num < 0) {
+			jcommnum = 2;
+		} else {
+			jcommnum = 3;
+		}
+	}
+#  endif
+# else
+#  ifdef CAPABLE_JCOMMCARD
+	if((config.dipswitch & FM7_DIPSW_JSUBCARD_ON) != 0) {
+		jcommnum = 2;
+	}
+#  endif
+# endif
+	
 	actionDebugger[2]->setVisible(false);
-#endif
 	actionDebugger[3]->setVisible(false);
+	if(z80num > 0) {
+		actionDebugger[z80num]->setText(QApplication::translate("Machine", "Z80 CPU Board", 0));
+		actionDebugger[z80num]->setVisible(true);
+	}
+	if(jcommnum > 0) {
+		actionDebugger[jcommnum]->setText(QApplication::translate("Machine", "Japanese Communication Board", 0));
+		actionDebugger[jcommnum]->setVisible(true);
+	}
 #endif	
 	//	actionStart_Record_Movie->setText(QApplication::translate("Machine", "Start Record Movie", 0));
 	//      actionStop_Record_Movie->setText(QApplication::translate("Machine", "Stop Record Movie", 0));
@@ -354,6 +411,9 @@ void META_MainWindow::retranslateUi(void)
 #if defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
 	action_1MFloppy->setText(QApplication::translate("Machine", "Connect 1MB FDD(Need Restart)", 0));
 	action_1MFloppy->setToolTip(QApplication::translate("Machine", "**Note: This option still not implemented**\nConnect 2HD (or 8inch) floppy drive.\nNeed to restart emulator if changed.\n", 0));
+
+	actionJIS78EMULATION->setText(QApplication::translate("Machine", "KANJI:JIS78 emulation.", 0));
+	actionJIS78EMULATION->setToolTip(QApplication::translate("Machine", "Emulate JIS78 kanji ROM.", 0));
 #endif
 	menuAuto5_8Key->setTitle(QApplication::translate("Machine", "Auto Stop Ten Key (hack)", 0));
 	action_Neither_5_or_8key->setText(QApplication::translate("Machine", "None used.", 0));
@@ -364,12 +424,16 @@ void META_MainWindow::retranslateUi(void)
 	// Set Labels
 	menuMachine->setToolTipsVisible(true);
 	menuAuto5_8Key->setToolTipsVisible(true);
+
 #if !defined(_FM8)
 # if defined(USE_MOUSE_TYPE)
 	menuMouseType->setToolTipsVisible(true);
 # endif
 #endif
 #if defined(WITH_Z80)
+	actionZ80CARD_ON->setText(QApplication::translate("Machine", "Connect Z80 CARD", 0));
+	actionZ80CARD_ON->setToolTip(QApplication::translate("Machine", "Turn ON Z80 extra card.\nNeed to restart this emulator to change connection", 0));
+	
 	actionZ80_IRQ->setText(QApplication::translate("Machine", "Z80:IRQ ON", 0));
 	actionZ80_IRQ->setToolTip(QApplication::translate("Machine", "Turn ON IRQ to Z80 extra card.", 0));
 	
@@ -379,6 +443,11 @@ void META_MainWindow::retranslateUi(void)
 	actionZ80_NMI->setText(QApplication::translate("Machine", "Z80:NMI ON", 0));
 	actionZ80_NMI->setToolTip(QApplication::translate("Machine", "Turn ON NMI to Z80 extra card.", 0));
 #endif
+#if defined(CAPABLE_JCOMMCARD)
+	actionJCOMMCARD->setText(QApplication::translate("Machine", "Connect Japanese Communication Card.", 0));
+	actionJCOMMCARD->setToolTip(QApplication::translate("Machine", "Connect Japanese communication card.\nNeed to restart this emulator if you change.", 0));
+#endif
+	
 	menuCpuType->setToolTipsVisible(true);
 	menuBootMode->setToolTipsVisible(true);
 } // retranslateUi
@@ -428,8 +497,24 @@ void META_MainWindow::setupUI_Emu(void)
 	connect(actionKanjiRom, SIGNAL(toggled(bool)),
 		 actionKanjiRom->fm7_binds, SLOT(do_set_kanji_rom(bool)));
 #endif
+#if defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
+	actionJIS78EMULATION = new Action_Control_7(this, using_flags);
+	menuMachine->addAction(actionJIS78EMULATION);
+	actionJIS78EMULATION->setCheckable(true);
+	actionJIS78EMULATION->setVisible(true);
+	if((config.dipswitch & FM7_DIPSW_JIS78EMU_ON) != 0) actionJIS78EMULATION->setChecked(true);
+	connect(actionJIS78EMULATION, SIGNAL(toggled(bool)), actionJIS78EMULATION->fm7_binds, SLOT(do_set_jis78_emulation(bool)));
+#endif
 
 #if defined(WITH_Z80)
+	menuMachine->addSeparator();
+	actionZ80CARD_ON = new Action_Control_7(this, using_flags);
+	menuMachine->addAction(actionZ80CARD_ON);
+	actionZ80CARD_ON->setCheckable(true);
+	actionZ80CARD_ON->setVisible(true);
+	if((config.dipswitch & FM7_DIPSW_Z80CARD_ON) != 0) actionZ80CARD_ON->setChecked(true);
+	connect(actionZ80CARD_ON, SIGNAL(toggled(bool)), actionZ80CARD_ON->fm7_binds, SLOT(do_set_z80card_on(bool)));
+		
 	actionZ80_IRQ = new Action_Control_7(this, using_flags);
 	menuMachine->addAction(actionZ80_IRQ);
 	actionZ80_IRQ->setCheckable(true);
@@ -453,7 +538,21 @@ void META_MainWindow::setupUI_Emu(void)
 	if((config.dipswitch & FM7_DIPSW_Z80_NMI_ON) != 0) actionZ80_NMI->setChecked(true);
 	connect(actionZ80_NMI, SIGNAL(toggled(bool)), actionZ80_NMI->fm7_binds, SLOT(do_set_z80_nmi(bool)));
 	connect(actionZ80_NMI->fm7_binds, SIGNAL(sig_emu_update_config()), this, SLOT(do_emu_update_config()));
+	if((config.dipswitch & FM7_DIPSW_Z80CARD_ON) == 0) {
+		actionZ80_IRQ->setVisible(false);
+		actionZ80_FIRQ->setVisible(false);
+		actionZ80_NMI->setVisible(false);
+	}
 #endif
+#if defined(CAPABLE_JCOMMCARD)
+	actionJCOMMCARD = new Action_Control_7(this, using_flags);
+	menuMachine->addAction(actionJCOMMCARD);
+	actionJCOMMCARD->setCheckable(true);
+	actionJCOMMCARD->setVisible(true);
+	if((config.dipswitch & FM7_DIPSW_JSUBCARD_ON) != 0) actionJCOMMCARD->setChecked(true);
+	connect(actionJCOMMCARD, SIGNAL(toggled(bool)), actionJCOMMCARD->fm7_binds, SLOT(do_set_jcommcard(bool)));
+#endif
+
 #if defined(_FM8)
 	actionRamProtect = new Action_Control_7(this, using_flags);
 	menuMachine->addAction(actionRamProtect);

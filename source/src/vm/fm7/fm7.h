@@ -58,6 +58,7 @@
 #define CAPABLE_Z80
 #define DIPSWITCH_DEFAULT 0x000000000 
 #define MAX_DRIVE  4
+#define CAPABLE_JCOMMCARD 1
 
 #elif defined(_FMNEW7)
 #define DEVICE_NAME		"FUJITSU FM-NEW7"
@@ -65,6 +66,7 @@
 #define CAPABLE_Z80
 #define DIPSWITCH_DEFAULT 0x000000000 
 #define MAX_DRIVE  4
+#define CAPABLE_JCOMMCARD 1
 
 #elif defined(_FM77) || defined(_FM77L2)
 # if defined(_FM77)
@@ -100,6 +102,7 @@
 # endif
 #define DIPSWITCH_DEFAULT 0x00000003 
 #define MAX_DRIVE  4
+#define CAPABLE_JCOMMCARD 1
 
 #elif defined(_FM77AV)
 #define DEVICE_NAME		"FUJITSU FM77AV"
@@ -107,6 +110,7 @@
 #define _FM77AV_VARIANTS
 #define DIPSWITCH_DEFAULT 0x80000001 
 #define MAX_DRIVE  2
+#define CAPABLE_JCOMMCARD 1
 
 #elif defined(_FM77AV20)
 #define DEVICE_NAME		"FUJITSU FM77AV20"
@@ -415,6 +419,10 @@ class JOYSTICK;
 class Z80;
 class OR;
 #endif
+#ifdef CAPABLE_JCOMMCARD
+class FM7_JCOMMCARD;
+#endif
+
 class VM {
 protected:
 	EMU* emu;
@@ -481,6 +489,10 @@ protected:
 	KANJIROM *kanjiclass1;
 #ifdef CAPABLE_KANJI_CLASS2
 	KANJIROM *kanjiclass2;
+#endif
+#if defined(CAPABLE_JCOMMCARD)
+	MC6809 *jsubcpu;
+	FM7_JCOMMCARD *jcommcard;
 #endif
 	bool connect_320kfdc;
 	bool connect_1Mfdc;

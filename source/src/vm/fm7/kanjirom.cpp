@@ -21,12 +21,19 @@ KANJIROM::KANJIROM(VM *parent_vm, EMU* parent_emu, bool type_2std): DEVICE(paren
 	memset(data_table, 0xff, 0x20000); 
 	//	read_table[0].memory = data_table;
 	p_emu = parent_emu;
+
+#if !defined(_FM77AV_VARIANTS)
+	jis78_emulation = ((config.dipswitch & FM7_DIPSW_JIS78EMU_ON) != 0);
+#else
+	jis78_emulation = false;
+#endif
 	if(type_2std) {
 		class2 = true;
 		if(fio->Fopen(create_local_path(_T("KANJI2.ROM")), FILEIO_READ_BINARY)) {
 		  fio->Fread(data_table, 0x20000, 1);
 			fio->Fclose();
 			read_ok = true;
+			jis78_emulation = false;
 		}
 	} else {
 		class2 = false;
@@ -62,6 +69,11 @@ KANJIROM::~KANJIROM()
 void KANJIROM::reset(void)
 {
 	kanjiaddr.d = 0;
+#if defined(_FM77AV_VARIANTS)
+	jis78_emulation = false;
+#else
+	jis78_emulation = ((config.dipswitch & FM7_DIPSW_JIS78EMU_ON) != 0);
+#endif
 }
 
 void KANJIROM::write_data8(uint32_t addr, uint32_t data)
@@ -80,8 +92,14 @@ void KANJIROM::write_data8(uint32_t addr, uint32_t data)
 uint32_t KANJIROM::read_data8(uint32_t addr)
 {
 	if(addr == KANJIROM_DATA_HI) {
+		if((jis78_emulation) && (kanjiaddr.d >= 0x3000) && (kanjiaddr.d < 0x4000)) {
+			return 0;
+		}
 		return data_table[(kanjiaddr.d << 1) & 0x1ffff];
 	} else if(addr == KANJIROM_DATA_LO) {
+		if((jis78_emulation) && (kanjiaddr.d >= 0x3000) && (kanjiaddr.d < 0x4000)) {
+			return 1;
+		}
 		return data_table[((kanjiaddr.d << 1) & 0x1ffff) + 1];
 	} else if(addr == KANJIROM_READSTAT) {
 		return (read_ok) ? 0xffffffff : 0x00000000;
@@ -100,7 +118,7 @@ void KANJIROM::release()
 {
 }
 
-#define STATE_VERSION 2
+#define STATE_VERSION 3
 void KANJIROM::save_state(FILEIO *state_fio)
 {
 	state_fio->FputUint32_BE(STATE_VERSION);
@@ -111,6 +129,10 @@ void KANJIROM::save_state(FILEIO *state_fio)
 	state_fio->FputBool(read_ok);
 	state_fio->Fwrite(data_table, sizeof(data_table), 1);
 	state_fio->FputUint16_BE(kanjiaddr.w.l);
+
+#if !defined(_FM77AV_VARIANTS)
+	state_fio->FputBool(jis78_emulation);
+#endif
 }
 
 bool KANJIROM::load_state(FILEIO *state_fio)
@@ -131,6 +153,13 @@ bool KANJIROM::load_state(FILEIO *state_fio)
 		kanjiaddr.w.l = state_fio->FgetUint16_BE();
 		if(version == 2) return true;
 	}
+#if !defined(_FM77AV_VARIANTS)
+	if(version >= 3) {
+		jis78_emulation = state_fio->FgetBool();
+	}
+#else
+	jis78_emulation = false;
+#endif
 	return false;
 }
 

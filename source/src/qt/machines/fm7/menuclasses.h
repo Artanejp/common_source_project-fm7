@@ -21,6 +21,7 @@ signals:
 	int sig_emu_update_config(void);
 public slots:
 # if defined(WITH_Z80)
+	void do_set_z80card_on(bool flag);
 	void do_set_z80_irq(bool flag);
 	void do_set_z80_firq(bool flag);
 	void do_set_z80_nmi(bool flag);
@@ -40,6 +41,12 @@ public slots:
 # else   
 	void do_set_cyclesteal(bool flag);
 # endif
+#if defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
+	void do_set_jis78_emulation(bool flag);
+#endif
+#if defined(CAPABLE_JCOMMCARD)
+	void do_set_jcommcard(bool flag);
+#endif
 	void do_set_autokey_5_8(void);
 };
 
@@ -66,9 +73,15 @@ protected:
 # if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
 	class Action_Control_7 *actionExtRam;
 # endif
-#if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
+# if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
 	class Action_Control_7 *actionKanjiRom;
-#endif
+# endif
+# if defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
+	class Action_Control_7 *actionJIS78EMULATION;
+# endif
+# if defined(CAPABLE_JCOMMCARD)
+	class Action_Control_7 *actionJCOMMCARD;
+# endif	
 # if defined(_FM8)
 	class Action_Control_7 *actionRamProtect;
 # else	
@@ -89,6 +102,7 @@ protected:
 	class Action_Control_7 *action_1MFloppy;
 # endif  
 # if defined(WITH_Z80)
+	class Action_Control_7 *actionZ80CARD_ON;
 	class Action_Control_7 *actionZ80_IRQ;
 	class Action_Control_7 *actionZ80_FIRQ;
 	class Action_Control_7 *actionZ80_NMI;

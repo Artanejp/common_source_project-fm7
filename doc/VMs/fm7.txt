@@ -1,5 +1,5 @@
 "eFM7" "eFMNEW7" "eFM77" "eFM77L2" - Fujitsu FM-7/FM-NEW7/FM-77/FM-77L2
-								2/26/2016
+								1/12/2018
 
 --- Internal ROM image
 
@@ -20,8 +20,15 @@
 	Please select one of two:
 	KANJI1.ROM      JIS class 1 Kanji ROM $20000 bytes
 	KANJI.ROM       JIS class 1 Kanji ROM $20000 bytes
-	
 
+	JSUBSYS.ROM		Firmware of Japanese communication board (FM-7/77/AV). $4000 bytes.
+	JSUBDICT.ROM	Dictionary of Japanese communication board (FM-7/77/AV). $40000 bytes.
+	JSUBKANJI.ROM	Kanji data of Japanese communication board (FM-7/77/AV). $20000 bytes.
+	                If you don't have, KANJI.ROM/KANJI1.ROM is used for fallback.
+
+--- Saves file(s)
+	JCOMMCARD.bin	RAM data of Japanese communication board. $2000 bytes.
+	
 --- Key maps
 
 	Virtual		PC

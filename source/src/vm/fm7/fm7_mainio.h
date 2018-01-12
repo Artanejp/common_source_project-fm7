@@ -373,6 +373,9 @@ class FM7_MAINIO : public DEVICE {
 #ifdef WITH_Z80
 	Z80 *z80;
 #endif
+#if defined(CAPABLE_JCOMMCARD)
+	DEVICE *jcommcard;
+#endif
 #if defined(_FM8)
 	BUBBLECASETTE *bubble_casette[2];
 #endif
@@ -525,13 +528,19 @@ public:
 	}
 #endif
 	
-	void set_context_z80cpu(Z80 *p){
+	void set_context_z80cpu(Z80 *p)	{
 #ifdef WITH_Z80
 		z80 = p;
 #endif
 	}
+	void set_context_jcommcard(DEVICE *p) {
+#if defined(CAPABLE_JCOMMCARD)
+		jcommcard = p;
+#endif
+	}
+
 #if defined(HAS_DMA)
-	void set_context_dmac(HD6844 *p){
+	void set_context_dmac(HD6844 *p) {
 		dmac = p;
 	}
 #endif

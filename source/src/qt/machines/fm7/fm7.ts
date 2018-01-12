@@ -5,7 +5,7 @@
     <name>Machine</name>
     <message>
         <source>Frame skip</source>
-        <translation>フレームスキップ</translation>
+        <translation>  フレームスキップ</translation>
     </message>
     <message>
         <source>None</source>
@@ -138,18 +138,6 @@ This emulates extra PSG board made by third party.</source>
         <translation>OPN</translation>
     </message>
     <message>
-        <source>OPN+WHG</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>OPN+THG</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>OPN+WHG+THG</source>
-        <translation></translation>
-    </message>
-    <message>
         <source>Using only default FM synthesizer board.</source>
         <translation>本体のFM音源のみ使います。</translation>
     </message>
@@ -172,38 +160,6 @@ and THG third FM synthesizer board.</source>
         <translation>本体のFM音源と
 WHG(2枚目のFM音源)と
 THG(3枚目のFM音源)を使います。</translation>
-    </message>
-    <message>
-        <source>PSG</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>PSG+OPN</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>PSG+WHG</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>PSG+OPN+WHG</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>PSG+THG</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>PSG+OPN+THG</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>PSG+WHG+THG</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>PSG+OPN+WHG+THG</source>
-        <translation></translation>
     </message>
     <message>
         <source>Using only default PSG.</source>
@@ -344,14 +300,6 @@ Useful for games using &apos;1 2 3 5&apos; to move character.</source>
         <translation>起動モード</translation>
     </message>
     <message>
-        <source>BASIC</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>DOS</source>
-        <translation></translation>
-    </message>
-    <message>
         <source>Using default PSG 
 and THG third FM synthesizer board.</source>
         <translation>本体のPSGと
@@ -393,6 +341,116 @@ Reset with pressing BREAK key.</source>
     <message>
         <source>Sub  CPU</source>
         <translation>サブCPU</translation>
+    </message>
+    <message>
+        <source>Z80 CPU Board</source>
+        <translation>Z80 CPUカード</translation>
+    </message>
+    <message>
+        <source>Japanese Communication Board</source>
+        <translation>日本語通信カード</translation>
+    </message>
+    <message>
+        <source>BASIC</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>DOS</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>OPN+WHG</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>OPN+THG</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>OPN+WHG+THG</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>PSG</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>PSG+OPN</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>PSG+WHG</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>PSG+OPN+WHG</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>PSG+THG</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>PSG+OPN+THG</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>PSG+WHG+THG</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>PSG+OPN+WHG+THG</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>KANJI:JIS78 emulation.</source>
+        <translation>JIS78漢字ROMエミュレーション</translation>
+    </message>
+    <message>
+        <source>Emulate JIS78 kanji ROM.</source>
+        <translation>JIS78タイプの漢字ROMの動作をエミュレートします。</translation>
+    </message>
+    <message>
+        <source>Connect Z80 CARD</source>
+        <translation>Z80カードを接続する</translation>
+    </message>
+    <message>
+        <source>Turn ON Z80 extra card.
+Need to restart this emulator to change connection</source>
+        <translation>Z80カードを有効にします。エミュレータの再起動が必要です。</translation>
+    </message>
+    <message>
+        <source>Z80:IRQ ON</source>
+        <translation>Z80:IRQ ON</translation>
+    </message>
+    <message>
+        <source>Turn ON IRQ to Z80 extra card.</source>
+        <translation>Z80カードのIRQ割り込みを有効にします。</translation>
+    </message>
+    <message>
+        <source>Z80:FIRQ ON</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Turn ON FIRQ to IRQ of Z80 extra card.</source>
+        <translation>Z80カードのFIRQ割り込みを有効にします。</translation>
+    </message>
+    <message>
+        <source>Z80:NMI ON</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Turn ON NMI to Z80 extra card.</source>
+        <translation>Z80カードのNMI割り込みを有効にします。</translation>
+    </message>
+    <message>
+        <source>Connect Japanese Communication Card.</source>
+        <translation>日本語通信カードを接続する</translation>
+    </message>
+    <message>
+        <source>Connect Japanese communication card.
+Need to restart this emulator if you change.</source>
+        <translation>日本語通信カードを接続します。エミュレータの再起動が必要です。</translation>
     </message>
 </context>
 <context>

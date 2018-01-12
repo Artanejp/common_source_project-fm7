@@ -49,6 +49,9 @@
 #include "./joystick.h"
 
 #include "./kanjirom.h"
+#if defined(CAPABLE_JCOMMCARD)
+#include "./jcommcard.h"
+#endif
 
 VM::VM(EMU* parent_emu): emu(parent_emu)
 {
@@ -74,7 +77,11 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	g_substat_mainhalt = new AND(this, emu);
 	
 #ifdef WITH_Z80
-	z80cpu = new Z80(this, emu);
+	if((config.dipswitch & FM7_DIPSW_Z80CARD_ON) != 0) {
+		z80cpu = new Z80(this, emu);
+	} else {
+		z80cpu = NULL;
+	}
 	g_mainstat = new AND(this, emu);
 	g_intr = new OR(this, emu);
 
@@ -82,6 +89,16 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	g_intr_firq = new AND(this, emu);
 	g_nmi = new AND(this, emu);
 #endif
+#if defined(CAPABLE_JCOMMCARD)
+	if((config.dipswitch & FM7_DIPSW_JSUBCARD_ON) != 0) {
+		jsubcpu = new MC6809(this, parent_emu);
+		jcommcard = new FM7_JCOMMCARD(this, parent_emu);
+	} else {
+		jsubcpu = NULL;
+		jcommcard = NULL;
+	}
+#endif
+		
 	// basic devices
 	// I/Os
 #if defined(HAS_DMA)
@@ -174,10 +191,11 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	maincpu->set_context_bus_ba(g_mainstat, SIG_AND_BIT_0, 0xffffffff);
 	maincpu->set_context_bus_bs(g_mainstat, SIG_AND_BIT_1, 0xffffffff);
 	g_mainstat->set_context_out(mainio, FM7_MAINIO_RUN_Z80, 0xffffffff);
-	
-	z80cpu->set_context_busack(mainio, FM7_MAINIO_RUN_6809, 0xffffffff);
-	mainio->set_context_z80cpu(z80cpu);
 
+	if(z80cpu != NULL) {
+		z80cpu->set_context_busack(mainio, FM7_MAINIO_RUN_6809, 0xffffffff);
+		mainio->set_context_z80cpu(z80cpu);
+	}
 #endif
 #if defined(_USE_QT)
 	event->set_device_name(_T("EVENT"));
@@ -187,7 +205,7 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	subcpu->set_device_name(_T("SUBCPU(MC6809)"));
 	dummycpu->set_device_name(_T("DUMMY CPU"));
 # ifdef WITH_Z80
-	z80cpu->set_device_name(_T("Z80 CPU"));
+	if(z80cpu != NULL) z80cpu->set_device_name(_T("Z80 CPU"));
 # endif
 	if(fdc != NULL) fdc->set_device_name(_T("MB8877 FDC(320KB)"));
 						
@@ -291,8 +309,10 @@ void VM::connect_bus(void)
 	event->set_context_cpu(subcpu,  subclock);
    
 #ifdef WITH_Z80
-	event->set_context_cpu(z80cpu,  4000000);
-	z80cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+	if(z80cpu != NULL) {
+		event->set_context_cpu(z80cpu,  4000000);
+		z80cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+	}
 	maincpu->write_signal(SIG_CPU_HALTREQ, 0, 1);
 
 	g_intr_irq->set_mask(SIG_AND_BIT_0);
@@ -310,12 +330,20 @@ void VM::connect_bus(void)
 	mainio->set_context_firq(g_intr_firq, SIG_AND_BIT_1, 0xffffffff);
 	g_intr_firq->set_context_out(g_intr, SIG_OR_BIT_0, 0xffffffff);
 	
-	g_intr->set_context_out(z80cpu, SIG_CPU_IRQ, 0xffffffff);
+	if(z80cpu != NULL) g_intr->set_context_out(z80cpu, SIG_CPU_IRQ, 0xffffffff);
 
 	mainio->set_context_nmi(g_nmi, SIG_AND_BIT_1, 0xffffffff);
-	g_nmi->set_context_out(z80cpu, SIG_CPU_NMI, 0xffffffff);
+	if(z80cpu != NULL) g_nmi->set_context_out(z80cpu, SIG_CPU_NMI, 0xffffffff);
 #endif
-
+#if defined(CAPABLE_JCOMMCARD)
+	if((jsubcpu != NULL) && (jcommcard != NULL)) {
+		event->set_context_cpu(jsubcpu,  JCOMMCARD_CLOCK);
+		jcommcard->set_context_cpu(jsubcpu);
+		jsubcpu->set_context_bus_ba(jcommcard, FM7_JCOMMCARD_BUS_BA, 0x00000001);
+		jsubcpu->set_context_bus_bs(jcommcard, FM7_JCOMMCARD_BUS_BS, 0x00000001);
+		mainio->set_context_jcommcard(jcommcard);
+	}
+#endif
 	event->set_context_sound(pcm1bit);
 #if defined(_FM8)
 	event->set_context_sound(psg);
@@ -468,13 +496,23 @@ void VM::connect_bus(void)
 	maincpu->set_context_mem(mainmem);
 	subcpu->set_context_mem(display);
 #ifdef WITH_Z80
-	z80cpu->set_context_mem(mainmem);
+	if(z80cpu != NULL) z80cpu->set_context_mem(mainmem);
+#endif
+#if defined(CAPABLE_JCOMMCARD)
+	if((jsubcpu != NULL) && (jcommcard != NULL)) {
+		jsubcpu->set_context_mem(jcommcard);
+	}
 #endif
 #ifdef USE_DEBUGGER
 	maincpu->set_context_debugger(new DEBUGGER(this, emu));
 	subcpu->set_context_debugger(new DEBUGGER(this, emu));
 # ifdef WITH_Z80
-	z80cpu->set_context_debugger(new DEBUGGER(this, emu));
+	if(z80cpu != NULL) z80cpu->set_context_debugger(new DEBUGGER(this, emu));
+# endif
+# if defined(CAPABLE_JCOMMCARD)
+	if(jsubcpu != NULL) {
+		jsubcpu->set_context_debugger(new DEBUGGER(this, emu));
+	}
 # endif
 #endif
 	for(DEVICE* device = first_device; device; device = device->next_device) {
@@ -596,8 +634,24 @@ DEVICE *VM::get_cpu(int index)
 	}
 #if defined(WITH_Z80)
 	else if(index == 2) {
+# if defined(CAPABLE_JCOMMCARD)
+		if(z80cpu == NULL) {
+			return jsubcpu;
+		}
+# endif
 		return z80cpu;
 	}
+# if defined(CAPABLE_JCOMMCARD)
+	else if(index == 3) {
+		return jsubcpu;
+	}
+# endif
+#else
+# if defined(CAPABLE_JCOMMCARD)
+	else if(index == 2) {
+		return jsubcpu;
+	}
+# endif
 #endif
 	return NULL;
 }

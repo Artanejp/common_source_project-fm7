@@ -692,7 +692,7 @@ void Ui_MainWindow::do_update_inner_bubble(int drv, QStringList base, class Acti
 
 void Ui_MainWindow::OnOpenDebugger(int no)
 {
-	if((no < 0) || (no > 3)) return;
+	if((no < 0) || (no > 7)) return;
 	//emu->open_debugger(no);
 	VM *vm = emu->get_vm();
 
