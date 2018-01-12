@@ -1475,22 +1475,9 @@ void FM7_MAINIO::write_data8(uint32_t addr, uint32_t data)
 		case 0x20: // Kanji ROM
 			write_kanjiaddr_hi((uint8_t)data);
 			break;
-		case 0x2c: // Kanji ROM(DUP)
-#if defined(CAPABLE_KANJI_CLASS2)
-			write_kanjiaddr_hi_l2((uint8_t)data);
-#else			
-			//write_kanjiaddr_hi((uint8_t)data);
-#endif
-			break;
+
 		case 0x21: // Kanji ROM
 			write_kanjiaddr_lo((uint8_t)data);
-			break;
-		case 0x2d: // Kanji ROM(DUP)
-#if defined(CAPABLE_KANJI_CLASS2)
-			write_kanjiaddr_lo_l2((uint8_t)data);
-#else
-			//write_kanjiaddr_lo((uint8_t)data);
-#endif
 			break;
 #if defined(CAPABLE_JCOMMCARD)
 		case 0x28:
@@ -1500,6 +1487,20 @@ void FM7_MAINIO::write_data8(uint32_t addr, uint32_t data)
 			if(jcommcard != NULL) jcommcard->write_io8(addr, data);
 			break;
 #endif			
+		case 0x2c: // Kanji ROM(DUP)
+#if defined(CAPABLE_KANJI_CLASS2)
+			write_kanjiaddr_hi_l2((uint8_t)data);
+#else			
+			//write_kanjiaddr_hi((uint8_t)data);
+#endif
+			break;
+		case 0x2d: // Kanji ROM(DUP)
+#if defined(CAPABLE_KANJI_CLASS2)
+			write_kanjiaddr_lo_l2((uint8_t)data);
+#else
+			//write_kanjiaddr_lo((uint8_t)data);
+#endif
+			break;
 #if defined(CAPABLE_DICTROM)
 		case 0x2e: // 
 			mainmem->write_signal(FM7_MAINIO_EXTBANK, data, 0xff);

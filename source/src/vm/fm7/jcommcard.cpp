@@ -16,20 +16,20 @@
 
 FM7_JCOMMCARD::FM7_JCOMMCARD(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
 {
-		n_bank = 0;
-		rcb_address = 0;
-		cpu_ba = cpu_bs = false;
-		halted = false;
-		kanji_address = 0x00000;
-		jis78_emulation = false;
+	n_bank = 0;
+	rcb_address = 0;
+	cpu_ba = cpu_bs = false;
+	halted = false;
+	kanji_address = 0x00000;
+	jis78_emulation = false;
 		
-		memset(prog_rom, 0xff, sizeof(prog_rom));
-		memset(dict_rom, 0xff, sizeof(dict_rom));
-		memset(kanji_rom, 0xff, sizeof(kanji_rom));
-		memset(backup_ram, 0x00, sizeof(backup_ram));
-		cpu = NULL;
-		modified = true;
-		firmware_ok = false;
+	memset(prog_rom, 0xff, sizeof(prog_rom));
+	memset(dict_rom, 0xff, sizeof(dict_rom));
+	memset(kanji_rom, 0xff, sizeof(kanji_rom));
+	memset(backup_ram, 0x00, sizeof(backup_ram));
+	cpu = NULL;
+	modified = true;
+	firmware_ok = false;
 }
 
 FM7_JCOMMCARD::~FM7_JCOMMCARD()
@@ -97,17 +97,20 @@ void FM7_JCOMMCARD::write_signal(int id, uint32_t data, uint32_t mask)
 
 uint32_t FM7_JCOMMCARD::read_io8(uint32_t address)
 {
-	uint32_t data;
+	uint32_t data = 0xff;
 	switch(address & 3) {
 	case 0:
-		data = 0x7f;
-		if(!halted) {
-			data |= 0x80;
+		/* HALT STATUS */
+		if(halted) {
+			data &= 0x7f;
 		}
 		break;
 	case 1:
-		data = backup_ram[0x1f00 | rcb_address];
-		rcb_address++;
+		/* RCB DATA (Auto increment address) */
+		if(halted) {
+			data = backup_ram[0x1f00 | rcb_address];
+			rcb_address++;
+		}
 		break;
 	case 2:
 	case 3:
@@ -135,8 +138,19 @@ void FM7_JCOMMCARD::write_io8(uint32_t address, uint32_t data)
 		kanji_address = (kanji_address & 0x00ff00) | (data & 0x000000ff);
 		break;
 	case 2:
+		/* REQUEST TO HALT */
 		if((data & 0x80) != 0) {
+			if(cpu != NULL) cpu->write_signal(SIG_CPU_HALTREQ, 0x00000000, 0xffffffff);
+		} else {
 			if(cpu != NULL) cpu->write_signal(SIG_CPU_HALTREQ, 0xffffffff, 0xffffffff);
+			rcb_address = 0;
+		}
+		break;
+	case 3:
+		/* RCB DATA (Auto increment address) */
+		if(halted) {
+			backup_ram[0x1f00 | rcb_address] = (uint8_t)data;
+			rcb_address++;
 		}
 		break;
 	}
@@ -155,7 +169,7 @@ uint32_t FM7_JCOMMCARD::read_data8(uint32_t address)
 		return (uint32_t)backup_ram[address & 0x1fff];
 	} else if(address == 0x9fff) { /* RCB BANK REGISTER */
 		return (uint32_t)n_bank;
-	} else if(address <= 0xafff) { /* DICT ROM */
+	} else if(address < 0xb000) { /* DICT ROM */
 		return (uint32_t)(dict_rom[(address & 0x0fff) | (((uint32_t)n_bank) << 12)]);
 	} else if(address < 0xc000) {
 		return 0xff;
@@ -167,7 +181,8 @@ uint32_t FM7_JCOMMCARD::read_data8(uint32_t address)
 
 void FM7_JCOMMCARD::write_data8(uint32_t address, uint32_t data)
 {
-	if((address >= 0xa000) || (address < 0x8000)) return;
+	if(address < 0x8000) return;
+	if(address >= 0xa000) return;
 	if(address == 0x9fff) {
 		if(cpu != NULL) cpu->write_signal(SIG_CPU_HALTREQ, ((data & 0x80) != 0) ? 0 : 0xffffffff, 0xffffffff);
 		n_bank = (uint8_t)(data & 0x3f); 
@@ -211,7 +226,7 @@ void FM7_JCOMMCARD::save_state(FILEIO *state_fio)
 	state_fio->FputInt32_BE(this_device_id);
 	this->out_debug_log(_T("Save State: JCOMM CARD: id=%d ver=%d\n"), this_device_id, STATE_VERSION);
 
-	state_fio->FputUint8(n_bank);
+	state_fio->FputUint8(n_bank & 0x3f);
 	state_fio->FputUint8(rcb_address);
 	state_fio->FputUint32_BE(kanji_address);
 
@@ -237,7 +252,7 @@ bool FM7_JCOMMCARD::load_state(FILEIO *state_fio)
 	this->out_debug_log(_T("Load State: JCOMM CARD: id=%d ver=%d\n"), this_device_id, STATE_VERSION);
 
 	if(version >= 1) {
-		n_bank = state_fio->FgetUint8();
+		n_bank = state_fio->FgetUint8() & 0x3f;
 		rcb_address = state_fio->FgetUint8();
 		kanji_address = state_fio->FgetUint32_BE();
 
