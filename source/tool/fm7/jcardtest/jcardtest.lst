@@ -1,0 +1,78 @@
+ AS V1.42 Beta [Bld 123] - source file jcardtest.asm - page 1 - 2018年1年13 3時56時09
+
+
+       1/    C000 :                             ORG $C000
+       2/    C000 : =$8100              STACK   EQU $8100
+       3/    C000 : =$9F00              RCB     EQU $9F00
+       4/    C000 : =$9FFF              RCBREG  EQU $9FFF
+       5/    C000 : =$FF                BYTES   EQU $00FF
+       6/    C000 :                     
+       7/    C000 : 10 CE 81 00         BEGIN   LDS #STACK
+       8/    C004 : 86 80                       LDA #$80
+       9/    C006 : B7 9F FF                    STA RCBREG
+      10/    C009 : 8D 0A                       BSR TEST1
+      11/    C00B : 12                  WAIT    NOP
+      12/    C00C : 86 00                       LDA #$00
+      13/    C00E : B7 9F FF                    STA RCBREG
+      14/    C011 : 12                          NOP
+      15/    C012 : 12                          NOP
+      16/    C013 : 20 F6                       BRA WAIT
+      17/    C015 :                     TEST1
+      18/    C015 : 8E 9F 00                    LDX #RCB
+      19/    C018 : CE 00 FF                    LDU #BYTES
+      20/    C01B : 86 00                       LDA #$00
+      21/    C01D : A7 80               MEMSET1 STA ,X+
+      22/    C01F : 4C                          INCA
+      23/    C020 : 33 5F                       LEAU -1,U
+      24/    C022 : 11 83 00 00                 CMPU #$0000
+      25/    C026 : 26 F5                       BNE MEMSET1
+      26/    C028 : 39                          RTS
+      27/    C029 :                     
+      28/    FFFE :                             ORG $FFFE
+      29/    FFFE : C0 00               V_RESET FDB $C000
+      30/   10000 :                     
+ AS V1.42 Beta [Bld 123] - source file jcardtest.asm - page 2 - 2018年1年13 3時56時09
+
+
+  symbol table (* = unused):
+  ------------------------
+
+*ARCHITECTURE :                                        x86_64-unknown-linux - |
+*BEGIN :                       C000 C | *BIGENDIAN :                      0 - |
+*BRANCHEXT :                      0 - |  BYTES :                         FF - |
+*CASESENSITIVE :                  0 - | *CONSTPI :        3.141592653589793 - |
+*DATE :                                     2018\-27\-71\-761\-27\-71\-7613 - |
+*FALSE :                          0 - | *FULLPMMU :                       1 - |
+*HAS64 :                          1 - | *HASDSP :                         0 - |
+*HASFPU :                         0 - | *HASPMMU :                        0 - |
+*INEXTMODE :                      0 - | *INLWORDMODE :                    0 - |
+*INMAXMODE :                      0 - | *INSRCMODE :                      0 - |
+*INSUPMODE :                      0 - | *LISTON :                         1 - |
+*MACEXP :                         7 - |  MEMSET1 :                     C01D C |
+*MOMCPU :                      6809 - | *MOMCPUNAME :                  6809 - |
+*NESTMAX :                      100 - | *PACKING :                        0 - |
+*PADDING :                        1 - |  RCB :                         9F00 - |
+ RCBREG :                      9FFF - | *RELAXED :                        0 - |
+ STACK :                       8100 - |  TEST1 :                       C015 C |
+*TIME :                                       3\-26\-10\-1256\-26\-10\-1209 - |
+*TRUE :                           1 - | *VERSION :                     142F - |
+*V_RESET :                     FFFE C |  WAIT :                        C00B C |
+
+     37 symbols
+     30 unused symbols
+
+ AS V1.42 Beta [Bld 123] - source file jcardtest.asm - page 3 - 2018年1年13 3時56時09
+
+
+  codepages:
+  ----------
+
+STANDARD (0 changed characters)
+
+
+0.00 seconds assembly time
+
+     30 lines source file
+      2 passes
+      0 errors
+      0 warnings

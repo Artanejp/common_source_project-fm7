@@ -5,7 +5,7 @@
     <name>Machine</name>
     <message>
         <source>Frame skip</source>
-        <translation>  フレームスキップ</translation>
+        <translation>フレームスキップ</translation>
     </message>
     <message>
         <source>None</source>
@@ -412,12 +412,13 @@ Reset with pressing BREAK key.</source>
     </message>
     <message>
         <source>Connect Z80 CARD</source>
-        <translation>Z80カードを接続する</translation>
+        <translation>Z80カードを接続する(要再起動)</translation>
     </message>
     <message>
         <source>Turn ON Z80 extra card.
 Need to restart this emulator to change connection</source>
-        <translation>Z80カードを有効にします。エミュレータの再起動が必要です。</translation>
+        <translation>Z80カードを有効にします。
+エミュレータの再起動が必要です。</translation>
     </message>
     <message>
         <source>Z80:IRQ ON</source>
@@ -429,7 +430,7 @@ Need to restart this emulator to change connection</source>
     </message>
     <message>
         <source>Z80:FIRQ ON</source>
-        <translation></translation>
+        <translation>Z80:FIRQ ON</translation>
     </message>
     <message>
         <source>Turn ON FIRQ to IRQ of Z80 extra card.</source>
@@ -437,7 +438,7 @@ Need to restart this emulator to change connection</source>
     </message>
     <message>
         <source>Z80:NMI ON</source>
-        <translation></translation>
+        <translation>Z80:NMI ON</translation>
     </message>
     <message>
         <source>Turn ON NMI to Z80 extra card.</source>
@@ -445,12 +446,48 @@ Need to restart this emulator to change connection</source>
     </message>
     <message>
         <source>Connect Japanese Communication Card.</source>
-        <translation>日本語通信カードを接続する</translation>
+        <translation>日本語通信カードを接続する(要再起動)</translation>
     </message>
     <message>
         <source>Connect Japanese communication card.
 Need to restart this emulator if you change.</source>
-        <translation>日本語通信カードを接続します。エミュレータの再起動が必要です。</translation>
+        <translation type="vanished">日本語通信カードを接続します。エミュレータの再起動が必要です。</translation>
+    </message>
+    <message>
+        <source>Connect Japanese communication board.
+Need to restart this emulator if you change.</source>
+        <translation>日本語通信カードを接続します。
+エミュレータの再起動が必要です。</translation>
+    </message>
+    <message>
+        <source>Connect RS-232C (need restart).</source>
+        <translation>RS-232Cカードを接続する(要再起動)</translation>
+    </message>
+    <message>
+        <source>Connect extra RS-232C board.
+Need to restart this emulator if changed.</source>
+        <translation>RS-232Cカードを接続します。
+変更した時はエミュレータの再起動が必要です。</translation>
+    </message>
+    <message>
+        <source>Connect MODEM (need restart).</source>
+        <translation>モデムを接続する（要再起動）</translation>
+    </message>
+    <message>
+        <source>Connect extra MODEM board.
+Need to restart this emulator if changed.</source>
+        <translation>モデムカードを接続します。
+変更した時はエミュレータの再起動が必要です。</translation>
+    </message>
+    <message>
+        <source>Connect MIDI (need restart).</source>
+        <translation>MIDIを接続する(要再起動)</translation>
+    </message>
+    <message>
+        <source>Connect extra MIDI board.
+Need to restart this emulator if changed.</source>
+        <translation>MIDIカードを接続します。
+変更した時はエミュレータの再起動が必要です。</translation>
     </message>
 </context>
 <context>
