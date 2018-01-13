@@ -1,3 +1,46 @@
+commit b534e95b101befaf4e9b9354709212eb11090436
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 13 03:58:11 2018 +0900
+
+    [FM7][JCOMMCARD] Add test program.Use asl ( http://john.ccac.rwth-aachen.de:8000/as/ ) to make from source code.
+
+commit e429f1244ac31b4e30c9128a700dd0e306fd9f8d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 13 01:08:23 2018 +0900
+
+    [VM][FM7] Use JCOMM CARD's KANJI-ROM if don't connect KANJI ROMs.
+
+commit 295d097b374d4878e233f89b1e86f9e37fc77f3e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 13 01:07:36 2018 +0900
+
+    [VM][FM7] Add UARTs.RS-232C, MODEM and MIDI.Temporally implements.
+
+commit 167cce6ad2525b18fd7ddbf85f6172fb242fd5ec
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 12 19:39:48 2018 +0900
+
+    [VM][FM7][JCOMMCARD] Fix lacked registers.
+
+commit 2a60871aab0225594173d177d00c57f8967491bd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 12 18:58:53 2018 +0900
+
+    [VM][FM7] Add Japanese communication board (日本語通信カード) .
+    [VM][FM7] Add turning ON/OFF Z80 extra board.
+
+commit 49e5a649918661d673254a95c89d6b3ecfdf0def
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 4 13:23:25 2018 +0900
+
+    [DOC] Update readme.
+
+commit 7d3d9bcf671e422a615d7e7eb9fa521c8452c072
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 4 12:08:18 2018 +0900
+
+    [DOC] Update build version.
+
 commit e75ee07f3c9350171adf05a7297fcfcdd3ab2b9a
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Jan 4 12:06:58 2018 +0900
