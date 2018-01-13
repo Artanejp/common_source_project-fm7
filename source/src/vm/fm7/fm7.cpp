@@ -95,11 +95,13 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #endif
 #if defined(CAPABLE_JCOMMCARD)
 	if((config.dipswitch & FM7_DIPSW_JSUBCARD_ON) != 0) {
-		jsubcpu = new MC6809(this, parent_emu);
-		jcommcard = new FM7_JCOMMCARD(this, parent_emu);
+		jsubcpu = new MC6809(this, emu);
+		jcommcard = new FM7_JCOMMCARD(this, emu);
+		g_jsubhalt = new AND(this, emu);
 	} else {
 		jsubcpu = NULL;
 		jcommcard = NULL;
+		g_jsubhalt = NULL;
 	}
 #endif
 # if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20) || defined(_FM77AV20EX)
@@ -233,6 +235,9 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	}
 	if(jcommcard != NULL) {
 		jcommcard->set_device_name(_T("Japanese COMM BOARD"));
+	}
+	if(g_jsubhalt != NULL) {
+		g_jsubhalt->set_device_name(_T("J.COMM BOARD HALT(MC6809)"));
 	}
 # ifdef WITH_Z80
 	if(z80cpu != NULL) z80cpu->set_device_name(_T("Z80 CPU BOARD"));
@@ -400,9 +405,15 @@ void VM::connect_bus(void)
 	if((jsubcpu != NULL) && (jcommcard != NULL)) {
 		event->set_context_cpu(jsubcpu,  JCOMMCARD_CLOCK);
 		jcommcard->set_context_cpu(jsubcpu);
-		jsubcpu->set_context_bus_ba(jcommcard, FM7_JCOMMCARD_BUS_BA, 0x00000001);
-		jsubcpu->set_context_bus_bs(jcommcard, FM7_JCOMMCARD_BUS_BS, 0x00000001);
-		mainio->set_context_jcommcard(jcommcard);
+		if(g_jsubhalt != NULL) {
+			g_jsubhalt->set_mask(SIG_AND_BIT_0);
+			g_jsubhalt->set_mask(SIG_AND_BIT_1);
+		
+			jsubcpu->set_context_bus_ba(g_jsubhalt, SIG_AND_BIT_0, 0xffffffff);
+			jsubcpu->set_context_bus_bs(g_jsubhalt, SIG_AND_BIT_1, 0xffffffff);
+			g_jsubhalt->set_context_out(jcommcard, FM7_JCOMMCARD_BUS_HALT, 0xffffffff);
+			mainio->set_context_jcommcard(jcommcard);
+		}
 	}
 #endif
 	event->set_context_sound(pcm1bit);

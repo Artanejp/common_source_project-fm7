@@ -251,7 +251,7 @@ uint32_t FM7_MAINMEM::read_signal(int sigid)
 	case FM7_MAINIO_MMR_EXTENDED:
 		value = (mmr_extend) ? 0xffffffff : 0x00000000;
 		break;
-	case FM7_MAINMEM_REFRESH_FAST:
+	case FM7_MAINIO_MEM_REFRESH_FAST:
 		value = (refresh_fast) ? 0xffffffff : 0x00000000;
 		break;
 #endif			
@@ -335,7 +335,7 @@ void FM7_MAINMEM::write_signal(int sigid, uint32_t data, uint32_t mask)
 		case FM7_MAINIO_MMR_EXTENDED:
 			mmr_extend = flag;
 			break;
-		case FM7_MAINMEM_REFRESH_FAST:
+		case FM7_MAINIO_MEM_REFRESH_FAST:
 			refresh_fast = flag;
 			setclock(config.cpu_type);
 			break;
@@ -490,7 +490,7 @@ void FM7_MAINMEM::update_config()
 	//setclock(config.cpu_type);
 }
 
-#define STATE_VERSION 2
+#define STATE_VERSION 3
 void FM7_MAINMEM::save_state(FILEIO *state_fio)
 {
 	state_fio->FputUint32_BE(STATE_VERSION);
@@ -508,6 +508,11 @@ void FM7_MAINMEM::save_state(FILEIO *state_fio)
 	state_fio->FputBool(diag_load_bootrom_bas);
 	state_fio->FputBool(diag_load_bootrom_dos);
 	state_fio->FputBool(diag_load_bootrom_mmr);
+	state_fio->FputBool(diag_load_bootrom_bubble);
+	state_fio->FputBool(diag_load_bootrom_bubble_128k);
+	state_fio->FputBool(diag_load_bootrom_sfd8);
+	state_fio->FputBool(diag_load_bootrom_2hd);
+
 	state_fio->Fwrite(fm7_mainmem_omote, sizeof(fm7_mainmem_omote), 1);
 	state_fio->Fwrite(fm7_mainmem_ura, sizeof(fm7_mainmem_ura), 1);
 	state_fio->Fwrite(fm7_mainmem_basicrom, sizeof(fm7_mainmem_basicrom), 1);
@@ -613,6 +618,10 @@ bool FM7_MAINMEM::load_state(FILEIO *state_fio)
 		diag_load_bootrom_bas = state_fio->FgetBool();
 		diag_load_bootrom_dos = state_fio->FgetBool();
 		diag_load_bootrom_mmr = state_fio->FgetBool();
+		diag_load_bootrom_bubble = state_fio->FgetBool();
+		diag_load_bootrom_bubble_128k = state_fio->FgetBool();
+		diag_load_bootrom_sfd8 = state_fio->FgetBool();
+		diag_load_bootrom_2hd = state_fio->FgetBool();
 		
 		state_fio->Fread(fm7_mainmem_omote, sizeof(fm7_mainmem_omote), 1);
 		state_fio->Fread(fm7_mainmem_ura, sizeof(fm7_mainmem_ura), 1);

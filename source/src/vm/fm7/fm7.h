@@ -85,6 +85,7 @@
 #   define FM77_EXRAM_BANKS	3
 # endif
 #define MAX_DRIVE  4
+#define CAPABLE_JCOMMCARD 1
 
 #elif defined(_FM77L4)
 #define DEVICE_NAME		"FUJITSU FM-77L4"
@@ -96,7 +97,7 @@
 #define HAS_400LINECARD
 //#define CAPABLE_KANJI_CLASS2
 #define _FM77_VARIANTS
-#define CAPABLE_Z80
+# define CAPABLE_Z80
 # ifndef FM77_EXRAM_BANKS
 #  define FM77_EXRAM_BANKS	3
 # endif
@@ -209,9 +210,9 @@
 #elif defined(_FM8)
 #define USE_BOOT_MODE         4
 #elif defined(_FM7) || defined(_FMNEW7)
-#define USE_BOOT_MODE         3
+#define USE_BOOT_MODE         4
 #else
-#define USE_BOOT_MODE         2
+#define USE_BOOT_MODE         4
 #endif
 
 // 0 = PSG or NONE
@@ -499,6 +500,7 @@ protected:
 #if defined(CAPABLE_JCOMMCARD)
 	MC6809 *jsubcpu;
 	FM7_JCOMMCARD *jcommcard;
+	AND *g_jsubhalt;
 #endif
 	bool connect_320kfdc;
 	bool connect_1Mfdc;

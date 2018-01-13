@@ -16,6 +16,10 @@ void FM7_MAINMEM::initialize(void)
 	diag_load_bootrom_bas = false;
 	diag_load_bootrom_dos = false;
 	diag_load_bootrom_mmr = false;
+	diag_load_bootrom_bubble = false;
+	diag_load_bootrom_bubble_128k = false;
+	diag_load_bootrom_sfd8 = false;
+	diag_load_bootrom_2hd = false;
 
 #if defined(_FM77AV_VARIANTS)
 	dictrom_connected = false;
@@ -80,40 +84,46 @@ void FM7_MAINMEM::initialize(void)
 	}
 #endif	
 #if defined(_FM8)
-	if(read_bios(_T("BOOT_BAS8.ROM"), fm7_bootroms[0], 0x200) >= 0x1e0) {
+	if(read_bios(_T(ROM_FM8_BOOT_BASIC), fm7_bootroms[0], 0x200) >= 0x1e0) {
 		diag_load_bootrom_bas = true;
-	} else {
-		diag_load_bootrom_bas = false;
 	}
-	if(read_bios(_T("BOOT_DOS8.ROM"), fm7_bootroms[1], 0x200) >= 0x1e0) {
+	if(read_bios(_T(ROM_FM8_BOOT_DOS), fm7_bootroms[1], 0x200) >= 0x1e0) {
 		diag_load_bootrom_dos = true;
-	} else {
-		diag_load_bootrom_dos = false;
 	}
-	diag_load_bootrom_mmr = false;
+	if(read_bios(_T(ROM_FM8_BOOT_BUBBLE_128K), fm7_bootroms[2], 0x200) >= 0x1e0) {
+		diag_load_bootrom_bubble_128k = true;
+	} else if(read_bios(_T(ROM_FM8_BOOT_BUBBLE), fm7_bootroms[2], 0x200) >= 0x1e0) {
+		diag_load_bootrom_bubble = true;
+	}
+	if(read_bios(_T(ROM_FM8_BOOT_DOS_FD8), fm7_bootroms[3], 0x200) >= 0x1e0) {
+		diag_load_bootrom_sfd8 = true;
+	}
+	
 # elif defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
-	if(read_bios(_T("BOOT_BAS.ROM"), fm7_bootroms[0], 0x200) >= 0x1e0) {
+	if(read_bios(_T(ROM_FM7_BOOT_BASIC), fm7_bootroms[0], 0x200) >= 0x1e0) {
 		diag_load_bootrom_bas = true;
-	} else {
-		diag_load_bootrom_bas = false;
 	}
-	if(read_bios(_T("BOOT_DOS.ROM"), fm7_bootroms[1], 0x200) >= 0x1e0) {
+	if(read_bios(_T(ROM_FM7_BOOT_DOS), fm7_bootroms[1], 0x200) >= 0x1e0) {
 		diag_load_bootrom_dos = true;
-	} else {
-		diag_load_bootrom_dos = false;
 	}
 #  if defined(_FM77_VARIANTS)
-	if(read_bios(_T("BOOT_MMR.ROM"), fm7_bootroms[2], 0x200) >= 0x1e0) {
+	if(read_bios(_T(ROM_FM7_BOOT_MMR), fm7_bootroms[2], 0x200) >= 0x1e0) {
 		diag_load_bootrom_mmr = true;
-	} else {
-		diag_load_bootrom_mmr = false;
+	}
+	if(read_bios(_T(ROM_FM7_BOOT_2HD), fm7_bootroms[3], 0x200) >= 0x1e0) {
+		diag_load_bootrom_2hd = true;
 	}
    
 	i = FM7_MAINMEM_BOOTROM_RAM;
 	memset(fm7_bootram, 0x00, 0x200 * sizeof(uint8_t)); // RAM
+
 #  else
        // FM-7/8
-	diag_load_bootrom_mmr = false;
+	if(read_bios(_T(ROM_FM7_BOOT_BUBBLE_7), fm7_bootroms[2], 0x200) >= 0x1e0) {
+		diag_load_bootrom_bubble = true;
+	} else {
+		diag_load_bootrom_bubble = false;
+	}
 #  endif
 # elif defined(_FM77AV_VARIANTS)
 	i = FM7_MAINMEM_AV_PAGE0;
@@ -126,11 +136,12 @@ void FM7_MAINMEM::initialize(void)
 	diag_load_initrom = false;
 	memset(fm7_mainmem_initrom, 0xff, 0x2000 * sizeof(uint8_t));
 
-	if(read_bios(_T("INITIATE.ROM"), fm7_mainmem_initrom, 0x2000) >= 0x2000) diag_load_initrom = true;
+	if(read_bios(_T(ROM_FM77AV_INITIATOR), fm7_mainmem_initrom, 0x2000) >= 0x2000) diag_load_initrom = true;
 	this->out_debug_log(_T("77AV INITIATOR ROM READING : %s"), diag_load_initrom ? "OK" : "NG");
 
-	if(read_bios(_T("BOOT_MMR.ROM"), fm77av_hidden_bootmmr, 0x200) < 0x1e0) {
+	if(read_bios(_T(ROM_FM7_BOOT_MMR), fm77av_hidden_bootmmr, 0x200) < 0x1e0) {
 		memcpy(fm77av_hidden_bootmmr, &fm7_mainmem_initrom[0x1a00], 0x200);
+		diag_load_bootrom_mmr = true;
 	}
 	fm77av_hidden_bootmmr[0x1fe] = 0xfe;
 	fm77av_hidden_bootmmr[0x1fe] = 0x00;
@@ -152,7 +163,26 @@ void FM7_MAINMEM::initialize(void)
 #endif
 	this->out_debug_log(_T("BOOT ROM (basic mode) READING : %s"), diag_load_bootrom_bas ? "OK" : "NG");
 	this->out_debug_log(_T("BOOT ROM (DOS   mode) READING : %s"), diag_load_bootrom_dos ? "OK" : "NG");
+
 #if defined(_FM77_VARIANTS)
+	this->out_debug_log(_T("BOOT ROM (MMR   mode) READING : %s"), diag_load_bootrom_mmr ? "OK" : "NG");
+	this->out_debug_log(_T("BOOT ROM (2HD   mode) READING : %s"), diag_load_bootrom_2hd ? "OK" : "NG");
+#elif defined(_FM8)
+	if(diag_load_bootrom_bubble_128k) {
+		this->out_debug_log(_T("BOOT ROM (BUBBLE 128K) READING : %s"), "OK");
+	} else if(diag_load_bootrom_bubble) {
+		this->out_debug_log(_T("BOOT ROM (BUBBLE  32K) READING : %s"), "OK");
+	} else {
+		this->out_debug_log(_T("BOOT ROM (BUBBLE  32K) READING : %s"), "NG");
+	}		
+	this->out_debug_log(_T("BOOT ROM (2HD   mode) READING : %s"), diag_load_bootrom_2hd ? "OK" : "NG");
+#elif defined(_FM7) || defined(_FM7)
+	if(diag_load_bootrom_bubble) {
+		this->out_debug_log(_T("BOOT ROM (BUBBLE mode) READING : %s"), "OK");
+	} else {
+		this->out_debug_log(_T("BOOT ROM (BUBBLE mode) READING : %s"), "NG");
+	}
+#else // FM77AV*
 	this->out_debug_log(_T("BOOT ROM (MMR   mode) READING : %s"), diag_load_bootrom_mmr ? "OK" : "NG");
 #endif
 
@@ -173,16 +203,18 @@ void FM7_MAINMEM::initialize(void)
 	memset(fm7_mainmem_basicrom, 0xff, 0x7c00 * sizeof(uint8_t));
 
 #if !defined(_FM8)
-	if(read_bios(_T("FBASIC302.ROM"), fm7_mainmem_basicrom, 0x7c00) == 0x7c00) {
+	if(read_bios(_T(ROM_FM7_FBASICV30L20), fm7_mainmem_basicrom, 0x7c00) == 0x7c00) {
 		diag_load_basicrom = true;
-	} else if(read_bios(_T("FBASIC300.ROM"), fm7_mainmem_basicrom, 0x7c00) == 0x7c00) {
+	} else if(read_bios(_T(ROM_FM7_FBASICV30L10), fm7_mainmem_basicrom, 0x7c00) == 0x7c00) {
 		diag_load_basicrom = true;
-	} else if(read_bios(_T("FBASIC30.ROM"), fm7_mainmem_basicrom, 0x7c00) == 0x7c00) {
+	} else if(read_bios(_T(ROM_FM7_FBASICV30L00), fm7_mainmem_basicrom, 0x7c00) == 0x7c00) {
+		diag_load_basicrom = true;
+	} else if(read_bios(_T(ROM_FM7_FBASICV30), fm7_mainmem_basicrom, 0x7c00) == 0x7c00) {
 		diag_load_basicrom = true;
 	}
    
 #else // FM8
-	if(read_bios(_T("FBASIC10.ROM"), fm7_mainmem_basicrom, 0x7c00) == 0x7c00) diag_load_basicrom = true;
+	if(read_bios(_T(ROM_FM8_FBASICV10), fm7_mainmem_basicrom, 0x7c00) == 0x7c00) diag_load_basicrom = true;
 #endif	
 	this->out_debug_log(_T("BASIC ROM READING : %s"), diag_load_basicrom ? "OK" : "NG");
    
@@ -192,7 +224,7 @@ void FM7_MAINMEM::initialize(void)
 	diag_load_dictrom = false;
 	i = FM7_MAINMEM_DICTROM;
 	memset(fm7_mainmem_dictrom, 0xff, 0x40000 * sizeof(uint8_t));
-	if(read_bios(_T("DICROM.ROM"), fm7_mainmem_dictrom, 0x40000) == 0x40000) diag_load_dictrom = true;
+	if(read_bios(_T(ROM_FM77AV_DICTIONARY), fm7_mainmem_dictrom, 0x40000) == 0x40000) diag_load_dictrom = true;
 	this->out_debug_log(_T("DICTIONARY ROM READING : %s"), diag_load_dictrom ? "OK" : "NG");
 	dictrom_connected = diag_load_dictrom;
 	
@@ -200,7 +232,7 @@ void FM7_MAINMEM::initialize(void)
 	diag_load_learndata = false;
 	memset(fm7_mainmem_learndata, 0x00, 0x2000 * sizeof(uint8_t));
 	
-	if(read_bios(_T("USERDIC.DAT"), fm7_mainmem_learndata, 0x2000) == 0x2000) diag_load_learndata = true;
+	if(read_bios(_T(RAM_FM77AV_DIC_BACKUP), fm7_mainmem_learndata, 0x2000) == 0x2000) diag_load_learndata = true;
 	this->out_debug_log(_T("DICTIONARY BACKUPED RAM READING : %s"), diag_load_learndata ? "OK" : "NG");
 	if(!diag_load_learndata) write_bios(_T("USERDIC.DAT"), fm7_mainmem_learndata, 0x2000);
 #endif
@@ -209,7 +241,7 @@ void FM7_MAINMEM::initialize(void)
 #if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	diag_load_extrarom = false;
 	memset(fm7_mainmem_extrarom, 0xff, sizeof(fm7_mainmem_extrarom));
-	if(read_bios(_T("EXTSUB.ROM"), fm7_mainmem_extrarom, 0xc000) == 0xc000) diag_load_extrarom = true;
+	if(read_bios(_T(ROM_FM77AV40_EXTSUB), fm7_mainmem_extrarom, 0xc000) == 0xc000) diag_load_extrarom = true;
 	this->out_debug_log(_T("AV40SX/EX EXTRA ROM READING : %s"), diag_load_extrarom ? "OK" : "NG");
 #endif
 	init_data_table();

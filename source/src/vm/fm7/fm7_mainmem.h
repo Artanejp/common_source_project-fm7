@@ -134,6 +134,10 @@ class FM7_MAINMEM : public DEVICE
 	bool diag_load_bootrom_bas;
 	bool diag_load_bootrom_dos;
 	bool diag_load_bootrom_mmr;
+	bool diag_load_bootrom_bubble;
+	bool diag_load_bootrom_bubble_128k;
+	bool diag_load_bootrom_sfd8;
+	bool diag_load_bootrom_2hd;
 
 	int check_extrom(uint32_t raddr, uint32_t *realaddr);
 	

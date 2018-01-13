@@ -1334,8 +1334,10 @@ uint32_t FM7_MAINIO::read_data8(uint32_t addr)
 #if defined(CAPABLE_JCOMMCARD)
 		case 0x28:
 		case 0x29:
+# if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 		case 0x2a:
 		case 0x2b:
+# endif
 			if(jcommcard != NULL) {
 				retval = (uint32_t)(jcommcard->read_io8(addr));
 			} else {
@@ -1714,7 +1716,7 @@ void FM7_MAINIO::write_data8(uint32_t addr, uint32_t data)
     defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
 		case 0x94:
 			mainmem->write_signal(FM7_MAINIO_MMR_EXTENDED, data, 0x80);
-			mainmem->write_signal(FM7_MAINMEM_REFRESH_FAST, data, 0x04);
+			mainmem->write_signal(FM7_MAINIO_MEM_REFRESH_FAST, data, 0x04);
 			mainmem->write_signal(FM7_MAINIO_WINDOW_FAST , data, 0x01);
 
 			break;

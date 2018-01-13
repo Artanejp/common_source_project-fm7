@@ -18,8 +18,6 @@ private:
 	
 	bool jis78_emulation;
 
-	bool cpu_ba;
-	bool cpu_bs;
 	bool halted;
 
 	bool modified;
@@ -29,6 +27,8 @@ private:
 	uint8_t dict_rom[0x40000];
 	uint8_t kanji_rom[0x20000];
 	uint8_t backup_ram[0x2000];
+	
+	bool patch_jis78(void);
 public:
 	FM7_JCOMMCARD(VM *parent_vm, EMU *parent_emu);
 	~FM7_JCOMMCARD();

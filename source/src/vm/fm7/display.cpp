@@ -2778,10 +2778,10 @@ void DISPLAY::initialize()
 	
 	diag_load_subrom_c = false;
 #if defined(_FM8)	
-	if(read_bios(_T("SUBSYS_8.ROM"), subsys_c, 0x2800) >= 0x2800) diag_load_subrom_c = true;
+	if(read_bios(_T(ROM_FM8_SUBSYSTEM), subsys_c, 0x2800) >= 0x2800) diag_load_subrom_c = true;
 	this->out_debug_log(_T("SUBSYSTEM ROM READING : %s"), diag_load_subrom_c ? "OK" : "NG");
 #else
-	if(read_bios(_T("SUBSYS_C.ROM"), subsys_c, 0x2800) >= 0x2800) diag_load_subrom_c = true;
+	if(read_bios(_T(ROM_FM7_SUBSYSTEM_TYPE_C), subsys_c, 0x2800) >= 0x2800) diag_load_subrom_c = true;
 	this->out_debug_log(_T("SUBSYSTEM ROM Type C READING : %s"), diag_load_subrom_c ? "OK" : "NG");
 #endif
 #if defined(_FM77AV_VARIANTS)
@@ -2791,15 +2791,15 @@ void DISPLAY::initialize()
 	memset(submem_hidden, 0x00, sizeof(submem_hidden));
    
 	diag_load_subrom_a = false;
-   	if(read_bios(_T("SUBSYS_A.ROM"), subsys_a, 0x2000) >= 0x2000) diag_load_subrom_a = true;
+   	if(read_bios(_T(ROM_FM7_SUBSYSTEM_TYPE_A), subsys_a, 0x2000) >= 0x2000) diag_load_subrom_a = true;
 	this->out_debug_log(_T("SUBSYSTEM ROM Type A READING : %s"), diag_load_subrom_a ? "OK" : "NG");
 
 	diag_load_subrom_b = false;
-   	if(read_bios(_T("SUBSYS_B.ROM"), subsys_b, 0x2000) >= 0x2000) diag_load_subrom_b = true;
+   	if(read_bios(_T(ROM_FM7_SUBSYSTEM_TYPE_B), subsys_b, 0x2000) >= 0x2000) diag_load_subrom_b = true;
 	this->out_debug_log(_T("SUBSYSTEM ROM Type B READING : %s"), diag_load_subrom_b ? "OK" : "NG");
 
 	diag_load_subrom_cg = false;
-   	if(read_bios(_T("SUBSYSCG.ROM"), subsys_cg, 0x2000) >= 0x2000) diag_load_subrom_cg = true;
+   	if(read_bios(_T(ROM_FM7_SUBSYSTEM_CG), subsys_cg, 0x2000) >= 0x2000) diag_load_subrom_cg = true;
 	this->out_debug_log(_T("SUBSYSTEM CG ROM READING : %s"), diag_load_subrom_cg ? "OK" : "NG");
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
     defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
