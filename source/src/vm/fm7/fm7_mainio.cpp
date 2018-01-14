@@ -795,12 +795,13 @@ bool FM7_MAINIO::get_rommode_fd0f(void)
 // Kanji ROM, FD20 AND FD21 (or SUBSYSTEM)
 void FM7_MAINIO::write_kanjiaddr_hi(uint8_t addr)
 {
-	if(!connect_kanjiroml1) {
-#if defined(CAPABLE_JCOMMCARD)
-		if(jcommcard != NULL) {
-			jcommcard->write_io8(0, (uint32_t)addr);
-		}
+#if defined(CAPABLE_JCOMMCARD) && !(defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS))
+	if(jcommcard != NULL) {
+		jcommcard->write_io8(0, (uint32_t)addr);
+		return;
+	}
 #endif
+	if(!connect_kanjiroml1) {
 		return;
 	}
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
@@ -813,12 +814,13 @@ void FM7_MAINIO::write_kanjiaddr_hi(uint8_t addr)
 
 void FM7_MAINIO::write_kanjiaddr_lo(uint8_t addr)
 {
-	if(!connect_kanjiroml1) {
-#if defined(CAPABLE_JCOMMCARD)
-		if(jcommcard != NULL) {
-			jcommcard->write_io8(1, (uint32_t)addr);
-		}
+#if defined(CAPABLE_JCOMMCARD) && !(defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS))
+	if(jcommcard != NULL) {
+		jcommcard->write_io8(1, (uint32_t)addr);
+		return;
+	}
 #endif
+	if(!connect_kanjiroml1) {
 		return;
 	}
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
@@ -831,12 +833,12 @@ void FM7_MAINIO::write_kanjiaddr_lo(uint8_t addr)
 
 uint8_t FM7_MAINIO::read_kanjidata_left(void)
 {
-	if(!connect_kanjiroml1) {
-#if defined(CAPABLE_JCOMMCARD)
-		if(jcommcard != NULL) {
-			return (uint8_t)(jcommcard->read_io8(2));
-		}
+#if defined(CAPABLE_JCOMMCARD) && !(defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS))
+	if(jcommcard != NULL) {
+		return (uint8_t)(jcommcard->read_io8(2));
+	}
 #endif
+	if(!connect_kanjiroml1) {
 		return 0xff;
 	}
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
@@ -853,12 +855,12 @@ uint8_t FM7_MAINIO::read_kanjidata_left(void)
 
 uint8_t FM7_MAINIO::read_kanjidata_right(void)
 {
-	if(!connect_kanjiroml1) {
-#if defined(CAPABLE_JCOMMCARD)
-		if(jcommcard != NULL) {
-			return (uint8_t)(jcommcard->read_io8(3));
-		}
+#if defined(CAPABLE_JCOMMCARD) && !(defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS))
+	if(jcommcard != NULL) {
+		return (uint8_t)(jcommcard->read_io8(3));
+	}
 #endif
+	if(!connect_kanjiroml1) {
 		return 0xff;
 	}
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \

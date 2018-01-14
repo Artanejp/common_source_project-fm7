@@ -192,16 +192,12 @@ uint32_t FM7_JCOMMCARD::read_io8(uint32_t address)
 	case 2:
 	case 3:
 		/* Kanji Data */
-#if !defined(_FM77AV_VARIANTS)
 		if((jis78_emulation) && (kanji_address >= 0x3000) && (kanji_address < 0x4000)) {
 			/* JIS78 */
 			data =  address & 1;
 		} else {
 			data = kanji_rom[(kanji_address << 1) + (address & 1)];
 		}
-#else
-		data = kanji_rom[(kanji_address << 1) + (address & 1)];
-#endif		
 		break;
 	}
 	return data;

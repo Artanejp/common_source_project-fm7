@@ -90,7 +90,6 @@
 #elif defined(_FM77L4)
 #define DEVICE_NAME		"FUJITSU FM-77L4"
 #define CONFIG_NAME		"fm77l4"
-#define HAS_MMR
 #define HAS_TEXTVRAM
 #define HAS_2HD
 #define HAS_CYCLESTEAL
@@ -117,7 +116,6 @@
 #define DEVICE_NAME		"FUJITSU FM77AV20"
 #define CONFIG_NAME		"fm77av20"
 #define _FM77AV_VARIANTS
-#define HAS_MMR
 #define HAS_2DD_2D
 #define CAPABLE_DICTROM
 //#define USE_DRIVE_TYPE 2
@@ -129,7 +127,6 @@
 #define DEVICE_NAME		"FUJITSU FM77AV20EX"
 #define CONFIG_NAME		"fm77av20ex"
 #define _FM77AV_VARIANTS
-#define HAS_MMR
 #define HAS_2DD_2D
 #define HAS_DMA
 //#define USE_DRIVE_TYPE 2
@@ -196,7 +193,6 @@
 #endif
 
 #ifdef _FM77AV_VARIANTS
-//#define CAPABLE_KANJI_CLASS2
 #define HAS_MMR
 #define HAS_CYCLESTEAL
 #elif defined(_FM77_VARIANTS)
