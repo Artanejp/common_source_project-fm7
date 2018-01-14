@@ -1,3 +1,23 @@
+commit b8d563c7e4cfe6254c5228a4ca8e05c84ad0da84
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 14 16:22:33 2018 +0900
+
+    [VM][FM7][KANJIROM] Modify patching routine.
+
+commit 23815c0e37d520385f6b8a13843ae1ad24ff9bf2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 14 15:07:46 2018 +0900
+
+    [VM][FM77AV40] Fix FTBFS.
+    [VM][FM7] Organize DEFINES.
+    [VM][FM7][JCOMMCARD] Use KANJI data of JCOMMCARD if JCOMMCARD has enabled.This feature only for FM-7/NEW7.
+
+commit dd95057b7663111c5197ffa5be5763c490227fd6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 14 03:55:29 2018 +0900
+
+    [DOC] .
+
 commit 50e8067697fb0b21a5e6779e64b4eb1f151191f4
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sun Jan 14 03:49:20 2018 +0900
