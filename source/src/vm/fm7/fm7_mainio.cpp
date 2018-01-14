@@ -1617,8 +1617,10 @@ void FM7_MAINIO::write_data8(uint32_t addr, uint32_t data)
 #if defined(CAPABLE_JCOMMCARD)
 		case 0x28:
 		case 0x29:
+# if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 		case 0x2a:
 		case 0x2b:
+#endif
 			if(jcommcard != NULL) jcommcard->write_io8(addr, data);
 			break;
 #endif			

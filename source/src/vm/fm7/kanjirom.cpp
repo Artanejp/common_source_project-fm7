@@ -124,10 +124,12 @@ bool KANJIROM::patch_jis78(void)
 		{0, 0},
 	};
 
+	uint8_t *p;
 	for(uint32_t patchaddr = 0; patchaddr < 0x6000; patchaddr += 32) {
-		if((jis78_table[patchaddr >> 10] & (1 << (patchaddr >> 5))) != 0) {
+		if((jis78_table[patchaddr >> 10] & (1 << ((patchaddr >> 5) & 0x1f))) != 0) {
+			p = &(data_table[patchaddr]);
 			for(uint32_t offset = 0; offset < 32; offset++) {
-				data_table[patchaddr + offset] = (uint8_t)(offset & 1);
+				*p++ = (uint8_t)(offset & 1);
 			}
 		}
 	}
@@ -145,10 +147,13 @@ bool KANJIROM::patch_jis78(void)
 		return false;
 	}
 
+	uint8_t *src;
+	uint8_t *dst;
 	for (uint32_t patchaddr = 0; convert_table[patchaddr][0] != 0; patchaddr++) {
+		src = &(tmpbuf[convert_table[patchaddr][1] * 2]);
+		dst = &(data_table[convert_table[patchaddr][0] * 2]);
 		for (uint32_t offset = 0; offset < 32; offset++) {
-			data_table[convert_table[patchaddr][0] * 2 + offset] =
-				tmpbuf[convert_table[patchaddr][1] * 2 + offset];
+			*dst++ = *src++;
 		}
 	}
 	

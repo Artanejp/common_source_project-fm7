@@ -6,6 +6,8 @@
  */
 
 #include "../device.h"
+#include "../../common.h"
+
 class MC6809;
 
 class FM7_JCOMMCARD : public DEVICE {
@@ -14,7 +16,7 @@ private:
 	
 	uint8_t n_bank;
 	uint8_t rcb_address;
-	uint32_t kanji_address;
+	pair_t kanji_address;
 	
 	bool jis78_emulation;
 

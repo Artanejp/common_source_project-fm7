@@ -19,7 +19,7 @@ FM7_JCOMMCARD::FM7_JCOMMCARD(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm,
 	n_bank = 0;
 	rcb_address = 0;
 	halted = false;
-	kanji_address = 0x00000;
+	kanji_address.d = 0x00000000;
 	jis78_emulation = false;
 		
 	memset(prog_rom, 0xff, sizeof(prog_rom));
@@ -130,10 +130,12 @@ bool FM7_JCOMMCARD::patch_jis78(void)
 		{0, 0},
 	};
 
+	uint8_t *p;
 	for(uint32_t patchaddr = 0; patchaddr < 0x6000; patchaddr += 32) {
-		if((jis78_table[patchaddr >> 10] & (1 << (patchaddr >> 5))) != 0) {
+		if((jis78_table[patchaddr >> 10] & (1 << ((patchaddr >> 5) & 0x1f))) != 0) {
+			p = &(kanji_rom[patchaddr]);
 			for(uint32_t offset = 0; offset < 32; offset++) {
-				kanji_rom[patchaddr + offset] = (uint8_t)(offset & 1);
+				*p++ = (uint8_t)(offset & 1);
 			}
 		}
 	}
@@ -151,10 +153,13 @@ bool FM7_JCOMMCARD::patch_jis78(void)
 		return false;
 	}
 
+	uint8_t *src;
+	uint8_t *dst;
 	for (uint32_t patchaddr = 0; convert_table[patchaddr][0] != 0; patchaddr++) {
+		src = &(tmpbuf[convert_table[patchaddr][1] * 2]);
+		dst = &(kanji_rom[convert_table[patchaddr][0] * 2]);
 		for (uint32_t offset = 0; offset < 32; offset++) {
-			kanji_rom[convert_table[patchaddr][0] * 2 + offset] =
-				tmpbuf[convert_table[patchaddr][1] * 2 + offset];
+			*dst++ = *src++;
 		}
 	}
 	
@@ -192,11 +197,11 @@ uint32_t FM7_JCOMMCARD::read_io8(uint32_t address)
 	case 2:
 	case 3:
 		/* Kanji Data */
-		if((jis78_emulation) && (kanji_address >= 0x3000) && (kanji_address < 0x4000)) {
+		if((jis78_emulation) && (kanji_address.d >= 0x3000) && (kanji_address.d < 0x4000)) {
 			/* JIS78 */
 			data =  address & 1;
 		} else {
-			data = kanji_rom[(kanji_address << 1) + (address & 1)];
+			data = kanji_rom[(kanji_address.d << 1) + (address & 1)];
 		}
 		break;
 	}
@@ -208,11 +213,11 @@ void FM7_JCOMMCARD::write_io8(uint32_t address, uint32_t data)
 	switch(address & 3) {
 	case 0:
 		/* Kanji Address High */
-		kanji_address = (kanji_address & 0x0000ff) | ((data & 0x000000ff) << 8);
+		kanji_address.b.h = (uint8_t)(data & 0xff);
 		break;
 	case 1:
 		/* Kanji Address Low */
-		kanji_address = (kanji_address & 0x00ff00) | (data & 0x000000ff);
+		kanji_address.b.l = (uint8_t)(data & 0xff);
 		break;
 	case 2:
 		/* REQUEST TO HALT */
@@ -289,7 +294,7 @@ void FM7_JCOMMCARD::release(void)
 void FM7_JCOMMCARD::reset(void)
 {
 	rcb_address = 0x00;
-	kanji_address = 0x00000;
+	kanji_address.d = 0x00000000;
 	if(cpu != NULL) cpu->write_signal(SIG_CPU_HALTREQ, 0, 0xffffffff);
 #if defined(_FM77AV_VARIANTS)
 	jis78_emulation = false;
@@ -309,7 +314,7 @@ void FM7_JCOMMCARD::save_state(FILEIO *state_fio)
 
 	state_fio->FputUint8(n_bank & 0x3f);
 	state_fio->FputUint8(rcb_address);
-	state_fio->FputUint32_BE(kanji_address);
+	state_fio->FputUint32_BE(kanji_address.d);
 
 	state_fio->FputBool(halted);
 
@@ -334,7 +339,7 @@ bool FM7_JCOMMCARD::load_state(FILEIO *state_fio)
 	if(version >= 1) {
 		n_bank = state_fio->FgetUint8() & 0x3f;
 		rcb_address = state_fio->FgetUint8();
-		kanji_address = state_fio->FgetUint32_BE();
+		kanji_address.d = state_fio->FgetUint32_BE();
 
 		halted = state_fio->FgetBool();
 
