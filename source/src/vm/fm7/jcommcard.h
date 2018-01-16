@@ -22,7 +22,7 @@ private:
 
 	bool halted;
 
-	bool modified;
+	//bool modified;
 	bool firmware_ok;
 	
 	uint8_t prog_rom[0x4000];

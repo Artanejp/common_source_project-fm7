@@ -27,7 +27,7 @@ FM7_JCOMMCARD::FM7_JCOMMCARD(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm,
 	memset(kanji_rom, 0xff, sizeof(kanji_rom));
 	memset(backup_ram, 0x00, sizeof(backup_ram));
 	cpu = NULL;
-	modified = true;
+	//modified = true;
 	firmware_ok = false;
 }
 
@@ -70,12 +70,13 @@ void FM7_JCOMMCARD::initialize(void)
 		b_stat = true;
 	}
 	this->out_debug_log(_T("KANJIROM READ %s."), b_stat ? "OK" : "FAILED");
-
+#if 0
 	if(fio->Fopen(create_local_path(_T(RAM_JCOMM_BACKUP)), FILEIO_READ_BINARY)) {
 		fio->Fread(backup_ram, sizeof(backup_ram), 1);
 		fio->Fclose();
 		modified = false;
 	}
+#endif
 	delete fio;
 
 #if defined(_FM77AV_VARIANTS)
@@ -274,13 +275,14 @@ void FM7_JCOMMCARD::write_data8(uint32_t address, uint32_t data)
 		//halted = ((data & 0x80) == 0);
 		n_bank = (uint8_t)(data & 0x3f); 
 	} else if(address < 0x9fff) {
-		modified = true;
+		//modified = true;
 		backup_ram[address & 0x1fff] = (uint8_t)data;
 	}
 }
 
 void FM7_JCOMMCARD::release(void)
 {
+#if 0
 	FILEIO *fio = new FILEIO();
 	if(modified) {
 		if(fio->Fopen(create_local_path(_T(RAM_JCOMM_BACKUP)), FILEIO_WRITE_BINARY)) {
@@ -289,6 +291,8 @@ void FM7_JCOMMCARD::release(void)
 			modified = false;
 		}
 	}
+	delete fio;
+#endif
 }
 	
 void FM7_JCOMMCARD::reset(void)
@@ -348,7 +352,7 @@ bool FM7_JCOMMCARD::load_state(FILEIO *state_fio)
 		state_fio->Fread(kanji_rom, sizeof(kanji_rom), 1);
 		state_fio->Fread(backup_ram, sizeof(backup_ram), 1);
 		firmware_ok = state_fio->FgetBool();
-		modified = true;
+		//modified = true;
 
 #if !defined(_FM77AV_VARIANTS)
 		jis78_emulation = state_fio->FgetBool();
