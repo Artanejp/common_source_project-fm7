@@ -453,8 +453,11 @@ void VM::connect_bus(void)
 	mainio->set_context_irq(maincpu, SIG_CPU_IRQ, 0xffffffff);
 	mainio->set_context_firq(maincpu, SIG_CPU_FIRQ, 0xffffffff);
 	mainio->set_context_nmi(maincpu, SIG_CPU_NMI, 0xffffffff);
-
-	mainio->set_context_uart(0, uart[0]); /* $FD06- : RS232C */
+#if defined(_FM77AV) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
+	if((config.dipswitch & FM7_DIPSW_RS232C_ON) != 0) 	mainio->set_context_uart(0, uart[0]); /* $FD06- : RS232C */
+#else
+	mainio->set_context_uart(0, uart[0]);
+#endif
 	mainio->set_context_uart(1, uart[1]); /* $FD40- : MODEM */
 	mainio->set_context_uart(2, uart[2]); /* $FDEA- : MIDI */
 

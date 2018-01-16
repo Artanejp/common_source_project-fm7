@@ -332,7 +332,11 @@ void META_MainWindow::retranslateUi(void)
 	actionSyncToHsync->setText(QApplication::translate("Machine", "Sync to HSYNC", 0));
 	actionSyncToHsync->setToolTip(QApplication::translate("Machine", "Emulate display syncing to HSYNC.\nExpect to emulate more accurate.", 0));
 #endif	
+#if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS) || defined(_FM8)
+	menuCpuType->setTitle(QApplication::translate("Machine", "CPU Frequency (hack)", 0));
+#else
 	menuCpuType->setTitle(QApplication::translate("Machine", "CPU Frequency", 0));
+#endif
 	actionCpuType[0]->setText(QString::fromUtf8("2MHz"));
 	actionCpuType[1]->setText(QString::fromUtf8("1.2MHz"));
 	
@@ -478,23 +482,30 @@ void META_MainWindow::retranslateUi(void)
 #endif
 #if defined(WITH_Z80)
 	actionZ80CARD_ON->setText(QApplication::translate("Machine", "Connect Z80 CARD", 0));
-	actionZ80CARD_ON->setToolTip(QApplication::translate("Machine", "Turn ON Z80 extra card.\nNeed to restart this emulator to change connection", 0));
+	actionZ80CARD_ON->setToolTip(QApplication::translate("Machine", "Turn ON Z80 extra board.\nNeed to restart this emulator to change connection", 0));
 	
 	actionZ80_IRQ->setText(QApplication::translate("Machine", "Z80:IRQ ON", 0));
-	actionZ80_IRQ->setToolTip(QApplication::translate("Machine", "Turn ON IRQ to Z80 extra card.", 0));
+	actionZ80_IRQ->setToolTip(QApplication::translate("Machine", "Turn ON IRQ to Z80 extra board.", 0));
 	
 	actionZ80_FIRQ->setText(QApplication::translate("Machine", "Z80:FIRQ ON", 0));
 	actionZ80_FIRQ->setToolTip(QApplication::translate("Machine", "Turn ON FIRQ to IRQ of Z80 extra card.", 0));
 	
 	actionZ80_NMI->setText(QApplication::translate("Machine", "Z80:NMI ON", 0));
-	actionZ80_NMI->setToolTip(QApplication::translate("Machine", "Turn ON NMI to Z80 extra card.", 0));
+	actionZ80_NMI->setToolTip(QApplication::translate("Machine", "Turn ON NMI to Z80 extra board.", 0));
 #endif
 #if defined(CAPABLE_JCOMMCARD)
-	actionJCOMMCARD->setText(QApplication::translate("Machine", "Connect Japanese Communication Card.", 0));
+	actionJCOMMCARD->setText(QApplication::translate("Machine", "Connect Japanese Communication board.", 0));
 	actionJCOMMCARD->setToolTip(QApplication::translate("Machine", "Connect Japanese communication board.\nNeed to restart this emulator if you change.", 0));
 #endif
+
 	actionUART[0]->setText(QApplication::translate("Machine", "Connect RS-232C (need restart).", 0));
-	actionUART[0]->setToolTip(QApplication::translate("Machine", "Connect extra RS-232C board.\nNeed to restart this emulator if changed.", 0));
+	actionUART[0]->setToolTip(QApplication::translate("Machine", "Connect external RS-232C board.\nNeed to restart this emulator if changed.", 0));
+#if defined(CAPABLE_JCOMMCARD)
+	if((config.dipswitch & FM7_DIPSW_JSUBCARD_ON) != 0) {
+		actionUART[0]->setText(QApplication::translate("Machine", "Turn ON RS-232C (need restart).", 0));
+		actionUART[0]->setToolTip(QApplication::translate("Machine", "Turn ON RS-232C feature for Japanese communication board.\nNeed to restart this emulator if changed.", 0));
+	}
+#endif
 	actionUART[1]->setText(QApplication::translate("Machine", "Connect MODEM (need restart).", 0));
 	actionUART[1]->setToolTip(QApplication::translate("Machine", "Connect extra MODEM board.\nNeed to restart this emulator if changed.", 0));
 	actionUART[2]->setText(QApplication::translate("Machine", "Connect MIDI (need restart).", 0));

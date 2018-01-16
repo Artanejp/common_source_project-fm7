@@ -1,3 +1,32 @@
+commit d4dffe4e97eb51313a24761f7e8add9c1f1dd5dd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 17 02:45:21 2018 +0900
+
+    [VM][FM77AV40][HD6844] HD6844 has only a one interrupt line, not multiple.
+    [VM][FM77AV40][HD6844] Rename drq_line to busreq_line.
+    [VM][FM77AV40EX][HD6844] FM77AV40EX has only one DMA channel.Not multiple channels.
+    [VM][HD6844] Add "__USE_MULTIPLE_CHAINING" and "__USE_CHAINING" flags for FM77AV40/EX/SX series.
+    [VM][HD6844] Add special flags for FM77AV40/EX/SX.
+    [VM][FM77AV40][HD6844] Expect to complete booting OS-9 L2 for FM77AV40.
+
+commit 56b317e5727a3fbcf4d73e3871e2d16c4bc45020
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 17 02:42:53 2018 +0900
+
+    [VM][FM7][MB8877] Not clear status when force-interrupt with TYPE-1 Command(seek etc).Fix (Add hack) for FUKU*.d77 (えびふく's music disks).
+
+commit a0e04d68a9cdcf48fb1f0f1cac32e7ca54ffa1ab
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 14 16:46:38 2018 +0900
+
+    [DOC] Update.
+
+commit f6b80a6e7dc307fccc46505eb8fbde1340913da5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 14 16:23:55 2018 +0900
+
+    [DOC] Update revision.
+
 commit b8d563c7e4cfe6254c5228a4ca8e05c84ad0da84
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sun Jan 14 16:22:33 2018 +0900
