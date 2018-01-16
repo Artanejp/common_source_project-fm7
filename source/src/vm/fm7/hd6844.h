@@ -23,6 +23,11 @@ enum {
 };
 
 enum {
+	HD6844_BUSREQ_CLIENT = 0,
+	HD6844_BUSREQ_HOST = 1
+};
+
+enum {
 	HD6844_TRANSFER_START = 1,
 	HD6844_DO_TRANSFER,
 	HD6844_ADDR_REG_0 = 4,
@@ -42,19 +47,25 @@ enum {
 	HD6844_IS_TRANSFER_1,
 	HD6844_IS_TRANSFER_2,
 	HD6844_IS_TRANSFER_3,
-	HD6844_ACK_DRQ1,
-	HD6844_ACK_DRQ2,
+	HD6844_ACK_BUSREQ_CLIENT,
+	HD6844_ACK_BUSREQ_HOST,
 
 };
 class VM;
 class EMU;
 class HD6844: public DEVICE {
- private:
+protected:
+	// HACKs
+	bool __USE_CHAINING;
+	bool __USE_MULTIPLE_CHAINING;
+	bool __FM77AV40;
+	bool __FM77AV40EX;
+	
 	DEVICE *src[4];
 	DEVICE *dest[4];
 
-	outputs_t interrupt_line[4];
-	outputs_t drq_line[2];
+	outputs_t interrupt_line; // 20180117 K.O
+	outputs_t busreq_line[2];
 	// Registers
 
 	uint32_t addr_reg[4];
@@ -77,16 +88,17 @@ class HD6844: public DEVICE {
 	int event_dmac[4];
 
 	void do_transfer(int ch);
+	void do_transfer_end(int ch);
+	void do_irq(void);
  public:
 	HD6844(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		int i;
 		for(i = 0; i < 4; i++) {
 			src[i] = dest[i] = NULL;
-			initialize_output_signals(&(interrupt_line[i]));
 		}
-		initialize_output_signals(&(drq_line[0]));
-		initialize_output_signals(&(drq_line[1]));
+		initialize_output_signals(&interrupt_line);
+		for(i = 0; i < 2; i++) initialize_output_signals(&(busreq_line[i]));
 		set_device_name(_T("HD6844 DMAC"));
 	}
 	~HD6844(){}
@@ -102,11 +114,11 @@ class HD6844: public DEVICE {
 	void save_state(FILEIO *state_fio);
 	bool load_state(FILEIO *state_fio);
 	
-	void set_context_int_line(DEVICE *p, int ch, int id, uint32_t mask) {
-		register_output_signal(&interrupt_line[ch & 3], p, id, mask);
+	void set_context_int_line(DEVICE *p, int id, uint32_t mask) {
+		register_output_signal(&interrupt_line, p, id, mask);
 	}
-	void set_context_drq_line(DEVICE *p, int ch, int id, uint32_t mask) {
-		register_output_signal(&drq_line[ch & 1], p, id, mask);
+	void set_context_busreq_line(DEVICE *p, int ch, int id, uint32_t mask) {
+		register_output_signal(&(busreq_line[ch & 1]), p, id, mask);
 	}
 	void set_context_src(DEVICE *p, uint32_t ch) {
 		src[ch & 3]  = p;

@@ -32,8 +32,8 @@ void HD6844::reset()
 		cycle_steal[ch] = false;
 		halt_flag[ch] = false;
 	}
-	write_signals(&(drq_line[0]), 0); 
-	write_signals(&(drq_line[1]), 0); 
+	for(int i = 0; i < 2; i++) write_signals(&(busreq_line[i]), 0);
+	write_signals(&interrupt_line, 0);
 	priority_reg = 0x00;
 	interrupt_reg = 0x00;
 	datachain_reg = 0x00;
@@ -42,12 +42,20 @@ void HD6844::reset()
 
 void HD6844::initialize()
 {
+	DEVICE::initialize();
 	addr_offset = 0;
 	int ch;
 	for(ch = 0; ch < 4; ch++) {
 		event_dmac[ch] = -1;
 	}
-   
+	__USE_CHAINING = true;
+	__USE_MULTIPLE_CHAINING = true;
+	__FM77AV40 = osd->check_feature(_T("_FM77AV40"));	
+	__FM77AV40EX = osd->check_feature(_T("_FM77AV40EX"));	
+	__FM77AV40EX |= osd->check_feature(_T("_FM77AV40SX"));
+
+	if(__FM77AV40 || __FM77AV40EX) __USE_MULTIPLE_CHAINING = false;
+	if(__FM77AV40EX) __USE_CHAINING = false;
 }
 
 void HD6844::write_data8(uint32_t addr, uint32_t data)
@@ -98,7 +106,10 @@ uint32_t HD6844::read_data8(uint32_t addr)
 	pair_t tmpd;
 	uint32_t channel = (addr >> 2) & 3; 
 	uint32_t retval = 0xff;
-	
+
+	if(__FM77AV40EX) { // FM77AV40EX has only one channel.
+		if((addr < 0x14) && (channel != 0)) return 0x00;;
+	}
 	tmpd.d = 0;
 	if(addr < 0x10) {
 		switch(ch) {
@@ -129,7 +140,8 @@ uint32_t HD6844::read_data8(uint32_t addr)
 		retval = ((datachain_reg >> 4) | 0x80) & interrupt_reg;
 		interrupt_reg &= 0x7f;
 		datachain_reg &= 0x0f;
-		for(i = 0; i < 4; i++) write_signals(&(interrupt_line[i]), 0x00);
+		do_irq();
+		//write_signals(&interrupt_line, 0x00); // Clear interrupt
 	} else if(addr == 0x16) {
 		retval = datachain_reg & 0x0f;
 	}
@@ -219,7 +231,9 @@ void HD6844::write_signal(int id, uint32_t data, uint32_t mask)
 			break;
 		case HD6844_TRANSFER_START:
 			if(transfering[ch]) return;
-			if((words_reg[ch] == 0) || (words_reg[ch] == 0xffff)) return;
+			if((priority_reg & 0x01) == 0) return; // 20180117
+			//if((words_reg[ch] == 0) || (words_reg[ch] == 0xffff)) return;
+			if(words_reg[ch] == 0) return;
 			channel_control[ch] = channel_control[ch] & 0x8f;
 			first_transfer[ch] = true;
 			cycle_steal[ch] = false;
@@ -230,11 +244,11 @@ void HD6844::write_signal(int id, uint32_t data, uint32_t mask)
 							      50.0, false, &event_dmac[ch]);
 			//this->out_debug_log(_T("DMAC: Start Transfer CH=%d $%04x Words, CMDREG=%02x"), ch, words_reg[ch], channel_control[ch]);
 			break;
-		case HD6844_ACK_DRQ1:
-			write_signals(&(drq_line[0]), 0xffffffff);
+		case HD6844_ACK_BUSREQ_CLIENT:
+			write_signals(&(busreq_line[HD6844_BUSREQ_CLIENT]), 0xffffffff);
 			break;
-		case HD6844_ACK_DRQ2:
-			write_signals(&(drq_line[1]), 0xffffffff);
+		case HD6844_ACK_BUSREQ_HOST:
+			write_signals(&(busreq_line[HD6844_BUSREQ_HOST]), 0xffffffff);
 			break;
 		case HD6844_DO_TRANSFER:
 			if(!transfering[ch]) return;
@@ -242,12 +256,12 @@ void HD6844::write_signal(int id, uint32_t data, uint32_t mask)
 			if(((words_reg[ch] & 0x07) == 1) || (first_transfer[ch])){
 				first_transfer[ch] = false;
 				if(!cycle_steal[ch]) {
-					write_signals(&(drq_line[1]), 0xffffffff);
+					write_signals(&(busreq_line[HD6844_BUSREQ_HOST]), 0xffffffff);
 				} else {
 					if((channel_control[ch] & 0x04) != 0) {
-						write_signals(&(drq_line[0]), 0xffffffff);
+						write_signals(&(busreq_line[HD6844_BUSREQ_CLIENT]), 0xffffffff);
 					} else {
-						write_signals(&(drq_line[1]), 0xffffffff);
+						write_signals(&(busreq_line[HD6844_BUSREQ_HOST]), 0xffffffff);
 					}
 				}
 				halt_flag[ch] = true;
@@ -258,7 +272,7 @@ void HD6844::write_signal(int id, uint32_t data, uint32_t mask)
 			} else {
 				halt_flag[ch] = false;
 				if(!cycle_steal[ch]) {
-					write_signals(&(drq_line[1]), 0xffffffff);
+					write_signals(&(busreq_line[HD6844_BUSREQ_HOST]), 0xffffffff); // Stop (HOST)line.
 				} 
 				do_transfer(ch);
 			}
@@ -268,11 +282,48 @@ void HD6844::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
+void HD6844::do_irq(void)
+{
+	bool irq_stat = ((interrupt_reg & 0x80) != 0);
+	bool req_irq = false;
+	for(int cch = 0;cch < 4; cch++) {
+		if((interrupt_reg & (1 << cch)) != 0) {
+			if((channel_control[cch] & 0x80) != 0) {
+				interrupt_reg |= 0x80;
+				req_irq = true;
+			}
+		}
+	}
+	if(!(req_irq) && (irq_stat)) {
+		write_signals(&interrupt_line, 0);
+	} else if((req_irq) && !(irq_stat)) {
+		write_signals(&interrupt_line, 0xffffffff);
+	}
+}
+
+void HD6844::do_transfer_end(int ch)
+{
+	if(words_reg[ch] == 0) {
+		transfering[ch] = false;
+		if(event_dmac[ch] >= 0) {
+			cancel_event(this, event_dmac[ch]);
+			event_dmac[ch] = -1;
+		}
+		write_signals(&(busreq_line[HD6844_BUSREQ_HOST]), 0); // release host_bus.
+		cycle_steal[ch] = false;
+		channel_control[ch] = (channel_control[ch] & 0x0f) | 0x80;
+		datachain_reg = datachain_reg | 0x10;
+		do_irq();
+		//this->out_debug_log(_T("HD6844: Complete transfer ch %d\n"), ch);
+	}	
+}
+
 void HD6844::do_transfer(int ch)
 {
 	ch = ch & 3;
 	if(!transfering[ch]) return;
 	if((priority_reg & 0x01) == 0) {
+#if 0
 		transfering[ch] = false;
 		if(event_dmac[ch] >= 0) {
 			cancel_event(this, event_dmac[ch]);
@@ -280,11 +331,12 @@ void HD6844::do_transfer(int ch)
 		}
 		
 		if((channel_control[ch] & 0x04) != 0) {
-			write_signals(&(drq_line[0]), 0);
+			write_signals(&(busreq_line[HD6844_BUSREQ_CLIENT]), 0);
 		} else {
-			write_signals(&(drq_line[1]), 0);
+			write_signals(&(busreq_line[HD6844_BUSREQ_HOST]), 0);
 		}
 		cycle_steal[ch] = false;
+#endif
 		return;
 	}
 	if(words_reg[ch] == 0) {
@@ -294,9 +346,9 @@ void HD6844::do_transfer(int ch)
 			event_dmac[ch] = -1;
 		}
 		if((channel_control[ch] & 0x04) != 0) {
-			write_signals(&(drq_line[0]), 0);
+			write_signals(&(busreq_line[HD6844_BUSREQ_CLIENT]), 0);
 		} else {
-			write_signals(&(drq_line[1]), 0);
+			write_signals(&(busreq_line[HD6844_BUSREQ_HOST]), 0);
 		}
 		cycle_steal[ch] = false;
 		channel_control[ch] = (channel_control[ch] & 0x0f) | 0x80;  
@@ -324,47 +376,43 @@ void HD6844::do_transfer(int ch)
 			      (double)(0x08 / 2 * 2), false, &event_dmac[ch]); // Really?
 	}
 	if(words_reg[ch] == 0) {
-		if((datachain_reg & 0x01) != 0) {
+		if(((datachain_reg & 0x01) == 1) && __USE_CHAINING) {
 			uint16_t tmp;
-			uint8_t chain_ch = (datachain_reg & 0x06) >> 1; 
-			if((datachain_reg & 0x08) != 0) {
+			uint8_t chain_ch = (datachain_reg & 0x06) >> 1;
+			//20180117 K.O Is use multiple chaining?
+			if(((datachain_reg & 0x08) != 0) && __USE_MULTIPLE_CHAINING) {
 				//this->out_debug_log(_T("DMAC: chain 1->2->3->0(1/2) \n"));
-				if(chain_ch > 2) chain_ch = 2;
+				//if(chain_ch > 2) chain_ch = 2;
+# if 1
 				tmp = addr_reg[chain_ch];
+# endif
 				addr_reg[chain_ch] = addr_reg[(chain_ch + 3) & 3];
 				addr_reg[(chain_ch + 3) & 3] = addr_reg[(chain_ch + 2) & 3];
 				addr_reg[(chain_ch + 2) & 3] = addr_reg[(chain_ch + 1) & 3];
-				addr_reg[(chain_ch + 1) & 3] = tmp;
-
+					
 				words_reg[chain_ch] = words_reg[(chain_ch + 3) & 3];
 				words_reg[(chain_ch + 3) & 3] = words_reg[(chain_ch + 2) & 3];
 				words_reg[(chain_ch + 2) & 3] = words_reg[(chain_ch + 1) & 3];
+# if 1
+				//addr_reg[(chain_ch + 1) & 3] = tmp;
 				words_reg[(chain_ch + 1) & 3] = 0;
+# endif
 			} else {
-				if(chain_ch > 1) chain_ch = 1;
-				//this->out_debug_log(_T("DMAC: chain 3->0(1) \n"));
+				// 20180117 K.O Is reset address reg?
+				//if(chain_ch > 1) chain_ch = 1;
+#if 1
 				tmp = addr_reg[chain_ch];
+#endif
 				addr_reg[chain_ch] = addr_reg[3];
-				addr_reg[3] = tmp;
-
 				words_reg[chain_ch] = words_reg[3];
+#if 1
+				//addr_reg[3] = tmp;
 				words_reg[3] = 0;
-			}
+#endif
+				//do_irq();  // OK?
+			}				
 		} else {
-			transfering[ch] = false;
-			if(event_dmac[ch] >= 0) {
-				cancel_event(this, event_dmac[ch]);
-				event_dmac[ch] = -1;
-			}
-			write_signals(&(drq_line[1]), 0);
-			cycle_steal[ch] = false;
-			channel_control[ch] = (channel_control[ch] & 0x0f) | 0x80;
-			datachain_reg = datachain_reg | 0x10;
-			if((interrupt_reg & (0x01 << ch)) != 0) {
-				interrupt_reg |= 0x80;
-				write_signals(&(interrupt_line[ch]), 0xffffffff);
-			}				  
-			//this->out_debug_log(_T("HD6844: Complete transfer ch %d\n"), ch);
+			do_transfer_end(ch);
 		}
 	}
 }	
@@ -387,15 +435,15 @@ void HD6844::event_callback(int event_id, int err)
 		event_dmac[ch] = -1;
 		if(cycle_steal[ch]) {
 			if((channel_control[ch] & 0x04) != 0) {
-				write_signals(&(drq_line[0]), 0);
+				write_signals(&(busreq_line[HD6844_BUSREQ_CLIENT]), 0);
 			} else {
-				write_signals(&(drq_line[1]), 0);
+				write_signals(&(busreq_line[HD6844_BUSREQ_HOST]), 0);
 			}
 		}
 	}
 }
 
-#define STATE_VERSION 1
+#define STATE_VERSION 2
 void HD6844::save_state(FILEIO *state_fio)
 {
 	int i;
@@ -403,11 +451,13 @@ void HD6844::save_state(FILEIO *state_fio)
 	state_fio->FputInt32_BE(this_device_id);
 	this->out_debug_log(_T("Save State: HD6844: id=%d ver=%d\n"), this_device_id, STATE_VERSION);
 	{ // V1
-		for(i = 0; i < 4; i++) {
-			state_fio->FputUint32_BE(addr_reg[i]);
-			state_fio->FputUint16_BE(words_reg[i]);
-			state_fio->FputUint8(channel_control[i]);
-		}
+		//if(!(__FM77AV40EX)) { // FM77AV40 HAS ONE channle and must be reset per save.
+			for(i = 0; i < 4; i++) {
+				state_fio->FputUint32_BE(addr_reg[i]);
+				state_fio->FputUint16_BE(words_reg[i]);
+				state_fio->FputUint8(channel_control[i]);
+			}
+			//}
 		state_fio->FputUint8(priority_reg);
 		state_fio->FputUint8(interrupt_reg);
 		state_fio->FputUint8(datachain_reg);
@@ -433,11 +483,19 @@ bool HD6844::load_state(FILEIO *state_fio)
 	if(this_device_id != state_fio->FgetInt32_BE()) return false;
 	this->out_debug_log(_T("Load State: HD6844: id=%d ver=%d\n"), this_device_id, version);
 	if(version >= 1) {
-		for(i = 0; i < 4; i++) {
-			addr_reg[i] = state_fio->FgetUint32_BE();
-			words_reg[i] = state_fio->FgetUint16_BE();
-			channel_control[i] = state_fio->FgetUint8();
-		}
+		//if(__FM77AV40EX) { 	if(__SINGLE_CHANNEL) channel = 0;
+		//	for(i = 0; i < 4; i++) {
+		//		addr_reg = 0xffff;
+		//		words_reg[i] = 0xffff;
+		//		channel_control = 0x00;
+		//	}
+		//} else {
+			for(i = 0; i < 4; i++) {
+				addr_reg[i] = state_fio->FgetUint32_BE();
+				words_reg[i] = state_fio->FgetUint16_BE();
+				channel_control[i] = state_fio->FgetUint8();
+			}
+			//}
 		priority_reg = state_fio->FgetUint8();
 		interrupt_reg = state_fio->FgetUint8();
 		datachain_reg = state_fio->FgetUint8();

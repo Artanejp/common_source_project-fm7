@@ -584,8 +584,8 @@ void VM::connect_bus(void)
 #if defined(HAS_DMA)
 	dmac->set_context_src(fdc, 0);
 	dmac->set_context_dst(mainmem, 0);
-	dmac->set_context_int_line(mainio, 0, FM7_MAINIO_DMA_INT, 0xffffffff);
-	dmac->set_context_drq_line(maincpu, 1, SIG_CPU_BUSREQ, 0xffffffff);
+	dmac->set_context_int_line(mainio, FM7_MAINIO_DMA_INT, 0xffffffff);
+	dmac->set_context_busreq_line(maincpu, 1, SIG_CPU_BUSREQ, 0xffffffff);
 	mainio->set_context_dmac(dmac);
 #endif
 	
