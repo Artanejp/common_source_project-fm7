@@ -38,12 +38,12 @@
 
 	Optional (for eFM77AV only):
 	JSUBMON.ROM		Firmware of Japanese communication board (FM-7/77/AV). $4000 bytes.
-	JSUBDICT.ROM	Dictionary of Japanese communication board (FM-7/77/AV). $40000 bytes.
+	DICROM.ROM	Dictionary of Japanese communication board (FM-7/77/AV). $40000 bytes.
+	                Same as external dictionary card for FM77AV40/EX/SX.
 	JSUBKANJI.ROM	Kanji data of Japanese communication board (FM-7/77/AV). $20000 bytes.
 	                If you don't have, KANJI.ROM/KANJI1.ROM is used for fallback.
 					
     In addition, will save on exit:
-	JCOMMCARD.bin	RAM data of Japanese communication board. $2000 bytes.
 	USERDIC.DAT     Learning data of Kana Kanji conversion.
 	   			    to battery backuped CMOS RAM.
 

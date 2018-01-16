@@ -21,14 +21,12 @@
 	KANJI1.ROM      JIS class 1 Kanji ROM $20000 bytes
 	KANJI.ROM       JIS class 1 Kanji ROM $20000 bytes
 
-	JSUBMON.ROM		Firmware of Japanese communication board (FM-7/77/AV). $4000 bytes.
-	JSUBDICT.ROM	Dictionary of Japanese communication board (FM-7/77/AV). $40000 bytes.
-	JSUBKANJI.ROM	Kanji data of Japanese communication board (FM-7/77/AV). $20000 bytes.
+	JSUBMON.ROM	Firmware of Japanese communication board (FM-7/77/AV). $4000 bytes.
+	DICROM.ROM	Dictionary of Japanese communication board (FM-7/77/AV). $40000 bytes.
+	                Same as external dictionary card for FM77AV40/EX/SX.
+        JSUBKANJI.ROM	Kanji data of Japanese communication board (FM-7/77/AV). $20000 bytes.
 	                If you don't have, KANJI.ROM/KANJI1.ROM is used for fallback.
 
---- Saves file(s)
-	JCOMMCARD.bin	RAM data of Japanese communication board. $2000 bytes.
-	
 --- Key maps
 
 	Virtual		PC
