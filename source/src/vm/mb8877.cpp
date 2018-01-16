@@ -102,6 +102,31 @@ void MB8877::register_lost_event(int bytes)
 	register_event(this, (EVENT_LOST << 8) | (cmdtype & 0xff), disk[drvreg]->get_usec_per_bytes(bytes), false, &register_id[EVENT_LOST]);
 }
 
+bool MB8877::check_drive(void)
+{
+	if(drvreg >= _max_drive) {
+		status = FDC_ST_NOTREADY;
+		//set_drq(false);
+		set_irq(true);
+		return false;
+	}
+	return true;
+}
+
+bool MB8877::check_drive2(void)
+{
+	if(!check_drive()) {
+		return false;
+	}
+	if(!is_disk_inserted(drvreg & 0x7f)) {
+		status = FDC_ST_NOTREADY;
+		set_irq(true);
+		//set_drq(false);
+		return false;
+	}
+	return true;
+}
+
 void MB8877::initialize()
 {
 	DEVICE::initialize();
@@ -805,12 +830,12 @@ void MB8877::event_callback(int event_id, int err)
 			if(type_x1) {
 				// for SHARP X1 Batten Tanuki
 				if(disk[drvreg]->is_special_disk == SPECIAL_DISK_X1_BATTEN && drive_sel) {
-				status_tmp &= ~FDC_ST_RECNFND;
-			}
+					status_tmp &= ~FDC_ST_RECNFND;
+				}
 			}
 //#endif
 //#ifdef _FDC_DEBUG_LOG
-				if(fdc_debug_log) this->out_debug_log(_T("FDC\tSEARCH NG\n"));
+			if(fdc_debug_log) this->out_debug_log(_T("FDC\tSEARCH NG\n"));
 //#endif
 			status = status_tmp & ~(FDC_ST_BUSY | FDC_ST_DRQ);
 			cmdtype = 0;
@@ -875,19 +900,35 @@ void MB8877::event_callback(int event_id, int err)
 	case EVENT_LOST:
 		if(status & FDC_ST_BUSY) {
 //#ifdef _FDC_DEBUG_LOG
-				if(fdc_debug_log) this->out_debug_log(_T("FDC\tDATA LOST\n"));
+			if(fdc_debug_log) this->out_debug_log(_T("FDC\tDATA LOST\n"));
 //#endif
 			if(cmdtype == FDC_CMD_WR_SEC || cmdtype == FDC_CMD_WR_MSEC || cmdtype == FDC_CMD_WR_TRK) {
 				if(fdc[drvreg].index == 0) {
 					status &= ~FDC_ST_BUSY;
 					//status &= ~FDC_ST_DRQ;
 					cmdtype = 0;
+					if((status & FDC_ST_DRQ) != 0) {
+						status |= FDC_ST_LOSTDATA;
+						status &= (uint8_t)(~(FDC_ST_DRQ | FDC_ST_BUSY));
+						set_drq(false);
+					}
 					set_irq(true);
-					//set_drq(false);
 				} else {
 					write_io8(3, 0x00);
+					if((status & FDC_ST_DRQ) != 0) {
+						status |= FDC_ST_LOSTDATA;
+						status &= (uint8_t)(~(FDC_ST_DRQ | FDC_ST_BUSY));
+						set_irq(true);
+						set_drq(false);
+					}
 				}
 			} else {
+				if((status & FDC_ST_DRQ) != 0) {
+					status |= FDC_ST_LOSTDATA;
+					status &= (uint8_t)(~(FDC_ST_DRQ | FDC_ST_BUSY));
+					set_irq(true);
+					set_drq(false);
+				}
 				read_io8(3);
 			}
 			status |= FDC_ST_LOSTDATA;
@@ -1054,6 +1095,9 @@ void MB8877::cmd_restore()
 {
 	// type-1 restore
 	cmdtype = FDC_CMD_TYPE1;
+	if(!check_drive()) {
+		return;
+	}
 	status = FDC_ST_HEADENG | FDC_ST_BUSY;
 	trkreg = 0xff;
 	datareg = 0;
@@ -1068,6 +1112,9 @@ void MB8877::cmd_seek()
 {
 	// type-1 seek
 	cmdtype = FDC_CMD_TYPE1;
+	if(!check_drive()) {
+		return;
+	}
 	status = FDC_ST_HEADENG | FDC_ST_BUSY;
 	
 //	seektrk = (uint8_t)(fdc[drvreg].track + datareg - trkreg);
@@ -1118,8 +1165,10 @@ void MB8877::cmd_stepin()
 {
 	// type-1 step in
 	cmdtype = FDC_CMD_TYPE1;
+	if(!check_drive()) {
+		return;
+	}
 	status = FDC_ST_HEADENG | FDC_ST_BUSY;
-	
 	seektrk = fdc[drvreg].track + 1;
 //#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV20) || defined(_FM77AV20EX)
 //	if(disk[drvreg]->drive_type != DRIVE_TYPE_2D) {
@@ -1157,6 +1206,9 @@ void MB8877::cmd_stepout()
 {
 	// type-1 step out
 	cmdtype = FDC_CMD_TYPE1;
+	if(!check_drive()) {
+		return;
+	}
 	status = FDC_ST_HEADENG | FDC_ST_BUSY;
 	
 	seektrk = fdc[drvreg].track - 1;
@@ -1196,6 +1248,9 @@ void MB8877::cmd_readdata(bool first_sector)
 {
 	// type-2 read data
 	cmdtype = (cmdreg & 0x10) ? FDC_CMD_RD_MSEC : FDC_CMD_RD_SEC;
+	if(!check_drive2()) {
+		return;
+	}
 	status = FDC_ST_BUSY;
 	status_tmp = search_sector();
 	now_search = true;
@@ -1214,6 +1269,9 @@ void MB8877::cmd_writedata(bool first_sector)
 {
 	// type-2 write data
 	cmdtype = (cmdreg & 0x10) ? FDC_CMD_WR_MSEC : FDC_CMD_WR_SEC;
+	if(!check_drive2()) {
+		return;
+	}
 	status = FDC_ST_BUSY;
 	status_tmp = search_sector() & ~FDC_ST_RECTYPE;
 	now_search = true;
@@ -1235,6 +1293,9 @@ void MB8877::cmd_readaddr()
 {
 	// type-3 read address
 	cmdtype = FDC_CMD_RD_ADDR;
+	if(!check_drive2()) {
+		return;
+	}
 	status = FDC_ST_BUSY;
 	status_tmp = search_addr();
 	now_search = true;
@@ -1253,6 +1314,9 @@ void MB8877::cmd_readtrack()
 {
 	// type-3 read track
 	cmdtype = FDC_CMD_RD_TRK;
+	if(!check_drive2()) {
+		return;
+	}
 	status = FDC_ST_BUSY;
 	status_tmp = 0;
 	
@@ -1270,6 +1334,9 @@ void MB8877::cmd_writetrack()
 {
 	// type-3 write track
 	cmdtype = FDC_CMD_WR_TRK;
+	if(!check_drive2()) {
+		return;
+	}
 	status = FDC_ST_BUSY;
 	status_tmp = 0;
 	

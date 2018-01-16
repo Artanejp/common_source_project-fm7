@@ -76,6 +76,9 @@ private:
 	void register_drq_event(int bytes);
 	void register_lost_event(int bytes);
 	
+	bool check_drive(void);
+	bool check_drive2(void);
+	
 	// status
 	bool now_search;
 	bool now_seek;
