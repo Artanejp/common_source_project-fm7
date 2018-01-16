@@ -1364,7 +1364,7 @@ void MB8877::cmd_forceint()
 //#endif
 		if(cmdtype == 0 || !(status & FDC_ST_BUSY)) {
 			cmdtype = FDC_CMD_TYPE1;
-			status = FDC_ST_HEADENG;
+		    if(!type_fm7) status = FDC_ST_HEADENG; // Hack for FUKUALL.d77 .
 		}
 		status &= ~FDC_ST_BUSY;
 		
