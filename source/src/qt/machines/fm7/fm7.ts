@@ -80,7 +80,8 @@ You must install boot rom for this.</source>
     </message>
     <message>
         <source>Connect KANJI ROM.Need restart emulator if changed.</source>
-        <translation>漢字ROMを接続します。変更した場合、エミュレータの再起動が必要です。</translation>
+        <translation>漢字ROMを接続します。
+変更した場合、エミュレータの再起動が必要です。</translation>
     </message>
     <message>
         <source>BANK PROTECT($FD0F/hack)</source>
@@ -417,7 +418,7 @@ Reset with pressing BREAK key.</source>
     <message>
         <source>Turn ON Z80 extra card.
 Need to restart this emulator to change connection</source>
-        <translation>Z80カードを有効にします。
+        <translation type="vanished">Z80カードを有効にします。
 エミュレータの再起動が必要です。</translation>
     </message>
     <message>
@@ -426,7 +427,7 @@ Need to restart this emulator to change connection</source>
     </message>
     <message>
         <source>Turn ON IRQ to Z80 extra card.</source>
-        <translation>Z80カードのIRQ割り込みを有効にします。</translation>
+        <translation type="vanished">Z80カードのIRQ割り込みを有効にします。</translation>
     </message>
     <message>
         <source>Z80:FIRQ ON</source>
@@ -442,11 +443,11 @@ Need to restart this emulator to change connection</source>
     </message>
     <message>
         <source>Turn ON NMI to Z80 extra card.</source>
-        <translation>Z80カードのNMI割り込みを有効にします。</translation>
+        <translation type="vanished">Z80カードのNMI割り込みを有効にします。</translation>
     </message>
     <message>
         <source>Connect Japanese Communication Card.</source>
-        <translation>日本語通信カードを接続する(要再起動)</translation>
+        <translation type="vanished">日本語通信カードを接続する(要再起動)</translation>
     </message>
     <message>
         <source>Connect Japanese communication card.
@@ -466,7 +467,7 @@ Need to restart this emulator if you change.</source>
     <message>
         <source>Connect extra RS-232C board.
 Need to restart this emulator if changed.</source>
-        <translation>RS-232Cカードを接続します。
+        <translation type="vanished">RS-232Cカードを接続します。
 変更した時はエミュレータの再起動が必要です。</translation>
     </message>
     <message>
@@ -488,6 +489,49 @@ Need to restart this emulator if changed.</source>
 Need to restart this emulator if changed.</source>
         <translation>MIDIカードを接続します。
 変更した時はエミュレータの再起動が必要です。</translation>
+    </message>
+    <message>
+        <source>CPU Frequency (hack)</source>
+        <translation>CPU周波数(HACK)</translation>
+    </message>
+    <message>
+        <source>Boot from 1MB FD for FM-77.
+</source>
+        <translation>FM-77用 1MB FDDから起動します。</translation>
+    </message>
+    <message>
+        <source>Turn ON Z80 extra board.
+Need to restart this emulator to change connection</source>
+        <translation>Z80カードを有効にします。
+変更時はエミュレータの再起動が必要です。</translation>
+    </message>
+    <message>
+        <source>Turn ON IRQ to Z80 extra board.</source>
+        <translation>Z80カードのIRQ割り込みを有効にします。</translation>
+    </message>
+    <message>
+        <source>Turn ON NMI to Z80 extra board.</source>
+        <translation>Z80カードのNMI割り込みを有効にします。</translation>
+    </message>
+    <message>
+        <source>Connect Japanese Communication board.</source>
+        <translation>日本語通信カードをつなぐ</translation>
+    </message>
+    <message>
+        <source>Connect external RS-232C board.
+Need to restart this emulator if changed.</source>
+        <translation>拡張RS-232Cカードを接続します。
+変更した時はエミュレータの再起動が必要です。</translation>
+    </message>
+    <message>
+        <source>Turn ON RS-232C (need restart).</source>
+        <translation>RS-232C機能を有効にする(要再起動)</translation>
+    </message>
+    <message>
+        <source>Turn ON RS-232C feature for Japanese communication board.
+Need to restart this emulator if changed.</source>
+        <translation>日本語通信カードのRS-232C機能を有効にします。
+変更時はエミュレータの再起動が必要です。</translation>
     </message>
 </context>
 <context>
