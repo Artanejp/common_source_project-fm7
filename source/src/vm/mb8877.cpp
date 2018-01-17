@@ -207,7 +207,9 @@ void MB8877::initialize()
 	
 	// initialize timing
 	memset(fdc, 0, sizeof(fdc));
-	
+	for(int i = 0; i < 16; i++) {
+		fdc[i].track = 40;  // OK?
+	}
 	// initialize fdc
 	seektrk = 0;
 	seekvct = true;
@@ -230,7 +232,7 @@ void MB8877::release()
 void MB8877::reset()
 {
 	for(int i = 0; i < _max_drive; i++) {
-		fdc[i].track = 0;
+		//fdc[i].track = 0; // Hold to track
 		fdc[i].index = 0;
 		fdc[i].access = false;
 	}
@@ -755,6 +757,7 @@ void MB8877::event_callback(int event_id, int err)
 {
 	int event = event_id >> 8;
 	int cmd = event_id & 0xff;
+	//bool need_after_irq = false;
 	register_id[event] = -1;
 	
 	// cancel event if the command is finished or other command is executed
@@ -775,17 +778,24 @@ void MB8877::event_callback(int event_id, int err)
 		if(seektrk > fdc[drvreg].track) {
 			fdc[drvreg].track++;
 			if(d_noise_seek != NULL) d_noise_seek->play();
+			//need_after_irq = true;
 		} else if(seektrk < fdc[drvreg].track) {
 			fdc[drvreg].track--;
 			if(d_noise_seek != NULL) d_noise_seek->play();
+			//need_after_irq = true;
 		}
 		if((cmdreg & 0x10) || ((cmdreg & 0xf0) == 0)) {
 			trkreg = fdc[drvreg].track;
 		}
 		if(seektrk != fdc[drvreg].track) {
+			//if(need_after_irq) {
+				//set_drq(false);
+				//set_irq(true);  // 20180118 K.O Turn ON IRQ -> Turn OFF DRQ
+			//}
 			register_seek_event();
 			break;
 		}
+		// 20180118 K.O If seek completed, IRQ/DRQ make at EVENT_SEEKEND.
 		seekend_clock = get_current_clock();
 //#ifdef HAS_MB89311
 		if(type_mb89311) {
@@ -818,7 +828,9 @@ void MB8877::event_callback(int event_id, int err)
 	case EVENT_SEEKEND:
 		now_seek = false;
 		status = status_tmp;
-		set_irq(true);
+		status &= (uint8_t)(~FDC_ST_BUSY); 	// 20180118 K.O Turn off BUSY flag.
+		set_drq(false);
+		set_irq(true);  // 20180118 K.O Turn ON IRQ -> Turn OFF DRQ
 //#ifdef _FDC_DEBUG_LOG
 		//this->out_debug_log(_T("FDC\tSEEK END\n"));
 //#endif
@@ -1098,8 +1110,23 @@ void MB8877::cmd_restore()
 	if(!check_drive()) {
 		return;
 	}
-	status = FDC_ST_HEADENG | FDC_ST_BUSY;
-	trkreg = 0xff;
+	if((cmdreg & 0x08) != 0) { // Head engage
+		status = FDC_ST_HEADENG | FDC_ST_BUSY;
+	} else {
+		status = FDC_ST_BUSY;
+	}
+	set_irq(false);
+	set_drq(false);
+
+	if(fdc[drvreg].track < 0) {
+		fdc[drvreg].track = 0;
+		trkreg = 0;
+	} else if(fdc[drvreg].track >= 80) {
+		fdc[drvreg].track = 80;
+		trkreg = 80;
+	} else {
+		trkreg = fdc[drvreg].track;
+	}
 	datareg = 0;
 	
 	seektrk = 0;
@@ -1115,7 +1142,11 @@ void MB8877::cmd_seek()
 	if(!check_drive()) {
 		return;
 	}
-	status = FDC_ST_HEADENG | FDC_ST_BUSY;
+	if((cmdreg & 0x08) != 0) { // Head engage
+		status = FDC_ST_HEADENG | FDC_ST_BUSY;
+	} else {
+		status = FDC_ST_BUSY;
+	}		
 	
 //	seektrk = (uint8_t)(fdc[drvreg].track + datareg - trkreg);
 	seektrk = datareg;
@@ -1131,14 +1162,6 @@ void MB8877::cmd_seek()
 	} else {
 		seektrk = (seektrk > 41) ? 41 : (seektrk < 0) ? 0 : seektrk;
 	}		
-//#else
-//	if(disk[drvreg]->media_type != MEDIA_TYPE_2D){
-//#endif
-//		seektrk = (seektrk > 83) ? 83 : (seektrk < 0) ? 0 : seektrk;
-//	} else {
-//		seektrk = (seektrk > 41) ? 41 : (seektrk < 0) ? 0 : seektrk;
-//	}
-//	seekvct = !(datareg > trkreg);
 	seekvct = !(seektrk > fdc[drvreg].track);
 	
 	if(cmdreg & 4) {
@@ -1168,17 +1191,12 @@ void MB8877::cmd_stepin()
 	if(!check_drive()) {
 		return;
 	}
-	status = FDC_ST_HEADENG | FDC_ST_BUSY;
+	if((cmdreg & 0x08) != 0) { // Head engage
+		status = FDC_ST_HEADENG | FDC_ST_BUSY;
+	} else {
+		status = FDC_ST_BUSY;
+	}		
 	seektrk = fdc[drvreg].track + 1;
-//#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV20) || defined(_FM77AV20EX)
-//	if(disk[drvreg]->drive_type != DRIVE_TYPE_2D) {
-//#else
-//	if(disk[drvreg]->media_type != MEDIA_TYPE_2D){
-//#endif
-//		seektrk = (seektrk > 83) ? 83 : (seektrk < 0) ? 0 : seektrk;
-//	} else {
-//		seektrk = (seektrk > 41) ? 41 : (seektrk < 0) ? 0 : seektrk;
-//	}
 	if(type_fm77av_2dd) {
 		if(disk[drvreg]->drive_type != DRIVE_TYPE_2D) {
 			seektrk = (seektrk > 83) ? 83 : (seektrk < 0) ? 0 : seektrk;
@@ -1209,7 +1227,11 @@ void MB8877::cmd_stepout()
 	if(!check_drive()) {
 		return;
 	}
-	status = FDC_ST_HEADENG | FDC_ST_BUSY;
+	if((cmdreg & 0x08) != 0) { // Head engage
+		status = FDC_ST_HEADENG | FDC_ST_BUSY;
+	} else {
+		status = FDC_ST_BUSY;
+	}		
 	
 	seektrk = fdc[drvreg].track - 1;
 	if(type_fm77av_2dd) {
@@ -1223,15 +1245,6 @@ void MB8877::cmd_stepout()
 	} else {
 		seektrk = (seektrk > 41) ? 41 : (seektrk < 0) ? 0 : seektrk;
 	}		
-//#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV20) || defined(_FM77AV20EX)
-//	if(disk[drvreg]->drive_type != DRIVE_TYPE_2D) {
-//#else
-//	if(disk[drvreg]->media_type != MEDIA_TYPE_2D){
-//#endif
-//		seektrk = (seektrk > 83) ? 83 : (seektrk < 0) ? 0 : seektrk;
-//	} else {
-//		seektrk = (seektrk > 41) ? 41 : (seektrk < 0) ? 0 : seektrk;
-//	}
 	seekvct = true;
 	
 	if(cmdreg & 4) {
