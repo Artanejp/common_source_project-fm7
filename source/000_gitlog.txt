@@ -1,3 +1,29 @@
+commit 6be0565e6812d5d73d4c7b2b32a49a07ddbbd55c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 18 08:13:30 2018 +0900
+
+    [UI][Qt][FM7] Update translations.
+
+commit 1599a0cfe883e73ea44addb609d9a7e571d89544
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 18 07:57:14 2018 +0900
+
+    [VM][MB8877] Make turning ON IRQ and turn OFF DRQ when seek completed.
+    [VM][MB8877] Expect to work OS-9 L2 for FM77AV40 .
+    [VM][MB8877] Adjust track parameter at initialize and CMD::RESTORE .
+
+commit bead4f0ad9968d8e7f99544a4df3db04fb9ee547
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 17 05:32:36 2018 +0900
+
+    [DOC] .
+
+commit 6211c81823d0ed37425b9a296ee2684e2dab4e3a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 17 05:12:28 2018 +0900
+
+    [DOC] .
+
 commit 2350969f27f089a9a3df39f8fb456cad4adeda2d
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Wed Jan 17 05:09:43 2018 +0900
