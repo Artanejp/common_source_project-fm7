@@ -17,20 +17,20 @@ To Do (that I try to do future) 2016-09-15 K.Ohta
 
 ※ that you are wondering
 [VM] FM-11 is I wonder what to do (;'Д `) to the absence of actual to very few materials (;'Д`)
-* Wait a minute because troublesome> [FM7] implementation of the Japanese communication card
-To [VM] disk or FDC to implement the mix (), (if there is if the sound source file) to be able to play the FDD seek sound
 [FM7] implementation of speech synthesis card (no hard spots)
 [FM7] mouse card implementation of (Somehow)
-[Qt] [VM] ROM the Yara necessary things What with save binary a list with Query to the VM from the UI side (in StringList) making structure.
+[Qt] [VM] ROMs and necessary things What with save binary a list with Query to the VM from the UI side (in StringList) making structure.
 
-* Although we started to somehow too eating the CPU when you are using the still> [FM77AV] ALU drawing lines.
 * I should do, but likely to be troublesome something on the specification> [FM7] Joystick -> implementation of the Keyboard conversion mechanism
-* I'll see time> [FM7] implementation of the Kanji printer (Tatte Tsu, Do no materials (;'Д `))
+* I'll see time> [FM7] implementation of the Kanji printer (Do no materials (;'Д `))
 → FMPR-201 http://software.aufheben.info/ooholdpc/fmpr201.html there was a rough command of
 
 --- Or less, (I'd like to be called) past the log ---
 
+* DONE> [FM7] implementation of the Japanese communication card
+* DONE> [VM] disk or FDC to implement the mix (), (if there is if the sound source file) to be able to play the FDD seek sound
 * DONE>[VM] Imprement sound with FDD and CMT-Relay.
+* DONE> [FM77AV] ALU drawing lines.
 * Could perhaps> [FM7] and lose information problem key input is intense
 * I was able to tentatively has deviated from the specifications? > [FM8] implementation of bubble file
 * Maybe can have> [Qt] volume settings to improve the matter that there is that unlike in and after it ends before the end
