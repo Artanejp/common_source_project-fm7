@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                         January 04, 2018
+                                         January 19, 2018
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -12,7 +12,7 @@
    
    ソースコード：
    
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20180104
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20180119
 
    追加情報:
    
@@ -148,27 +148,40 @@
 8. Upstream (Takeda Toshiyaさんのオリジナル) 
       http://takeda-toshiya.my.coocan.jp/
 
+
+Special thanks to:
+  Ryu Takegami : eFM-8/7/77/AV/40/EX のデバッグに協力していただいています。
+
 Changes:
 
 ChangeLog:
 * 前の変更点をお読みになる場合には、ChangeLogと000_gitlog.txtをお読み下さい。
+* SNAPSHOT Jan 19 2018
+  * Upstream 2017-12-27 .
+  * [EMU] Add set_vm_screen_lines(int lines) to notify changing vertical resolution
+        to OSD and Hardware-Renderer(for scan lines). See vm/fm7/display.cpp .
+  * [VM] Add EMU::set_vm_screen_lines() to some VMs.
+  * [UI/Qt] Add "Click On Focus" feature option.This don't need to mouse-over to input from keyboard if set.
+  * [VM/FM7] Add Japanese communication board (日本語通信カード) .
+  * [VM/FM7] Add turning ON/OFF Z80 extra board.
+  * [VM/FM7] Add UARTs.RS-232C, MODEM and MIDI.Temporally implements.
+  * [FM7/JCOMMCARD] Add test program.Use asl ( http://john.ccac.rwth-aachen.de:8000/as/ ) to make from source code.
+  * [VM/FM7] Use #define to define name of firmwares.
+  * [VM/FM7] KANJIROM: Add JIS78 patch mode.From XM7 3.4L77a.
+  * [VM/MB8877] Not clear status when force-interrupt with TYPE-1 Command(seek etc).
+                Fix (Add hack) for FUKU*.d77 (えびふく's music disks for FM-7).
+  * [VM/MB8877] Fix DRQ/IRQ timing.
+  * [VM/MB8877] Make IRQ with disk not inserted or not connected when processing command(s).
+  * [VM/MB8877] Make turning ON IRQ and turn OFF DRQ when seek completed.
+  * [VM/MB8877] Adjust track parameter at initialize and CMD::RESTORE .
+  * [VM/MB8877] OS-9 Level2 for FM77AV40 Works.
+  * [VM/HD6844] FM77AV40EX has only one DMA channel.Not multiple channels.
+  * [VM/HD6844] HD6844 has only a one interrupt line, not multiple.
+  * [VM/HD6844] Rename drq_line to busreq_line.
+  * Special thanks to Ryu Takegami, to assist debugging FM-7/77/AV/40/EX .
+  * Built with commit 9376345bc1270e2a76db816636b645e744d09e82  or later.
 
-* SNAPSHOT Jan 04 2018
-  * Upstream 2017-12-28 .
-  * [Qt/FM-7] Windows: Fix not effect keyin with "\_" for *native* Windows.
-  * [RES/FM7] Fix drive number:Should not start from "FD1", should start from "FD0" for FM7/8 series.
-  * [VM/MC6809] More accurate emulation around interrupt.
-  * [VM/FM7] Z80: Implement interrupt features.
-  * [VM/FM7] Merge Ryu Takegami's fixes.
-  * [FM7/DISPLAY] Fix around KANJI ROM access flag by sub system.Expect to fix OS-9 L2 for AV40.
-  * [FM7/DISPLAY] Fix display flag on reset.
-  * [FM7/MAINMEM] Fix clock parameter with some situation.Thanks to Ryu Takegami.
-  * [VM/MB8877] Fix freezing with OS-9 with 2DD drive/image.Thanks to Ryu Takegami.
-  * [Qt/DEBUGGER] Not push empty string.
-  * [BUILD] Read from templete if config (buildvars.dat etc) has not exists.
-  * [VM] common.h : Not has <typeinfo.h> excepts VC++.Recommend to use <typeinfo> .
-  * [BUILD/CMake] GNU/Linux: Add fallback LIB directory feature for library installation.
--- Jan 04, 2018 11:59:54 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Jan 19, 2018 01:49:25 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 本家の変更:
 * 前の変更点をお読みになる場合には、history.txtをお読み下さい。
@@ -192,7 +205,7 @@ ChangeLog:
 12/14/2017
 
 [RESOURCE] change accelerators for switching full speed and roman/kana input
-[WINMAIN] fix to call ImmAssociateContext() in WM_ACTIVATE (thanks PC8801MA��)
+[WINMAIN] fix to call ImmAssociateContext() in WM_ACTIVATE (thanks PC8801MA改)
 
 [VM/HD46505] fix to force update event timing when R0-R9 are modified
 [VM/HUC6280] support to show clocks since starting scanline in debugger

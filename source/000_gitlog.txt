@@ -1,3 +1,33 @@
+commit 9376345bc1270e2a76db816636b645e744d09e82
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 18 21:28:04 2018 +0900
+
+    [VM] Add EMU::set_vm_screen_lines() to some VMs.
+
+commit 2935971b3deda83dbc23e737769b575d452d9d85
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 18 20:53:34 2018 +0900
+
+    [VM][PC8801] Apply EMU::set_vm_screen_lines(200) to PC8801/8001.
+
+commit c3f346a814b4e322199f65d078ae3bbe0235e368
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 18 20:41:43 2018 +0900
+
+    [UI][Qt] Add "Click On Focus" feature option.This don't need to mouse-over to input from keyboard if set.
+
+commit 2d674e87b5b473be029842cd13df9ab7c0d1506a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 18 20:39:01 2018 +0900
+
+    [EMU][OSD] Add set_vm_screen_lines(int lines) to notify changing vertical resolution to OSD and Hardware-Renderer(for scan lines). See vm/fm7/display.cpp .
+
+commit f1a65d7498b280576726cc423ba4de10c42243c5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 18 08:16:24 2018 +0900
+
+    [DOC] Update revision and README.
+
 commit 6be0565e6812d5d73d4c7b2b32a49a07ddbbd55c
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Jan 18 08:13:30 2018 +0900

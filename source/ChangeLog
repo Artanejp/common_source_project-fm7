@@ -1,5 +1,33 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT Jan 19 2018
+  * Upstream 2017-12-27 .
+  * [EMU] Add set_vm_screen_lines(int lines) to notify changing vertical resolution
+        to OSD and Hardware-Renderer(for scan lines). See vm/fm7/display.cpp .
+  * [VM] Add EMU::set_vm_screen_lines() to some VMs.
+  * [UI/Qt] Add "Click On Focus" feature option.This don't need to mouse-over to input from keyboard if set.
+  * [VM/FM7] Add Japanese communication board (日本語通信カード) .
+  * [VM/FM7] Add turning ON/OFF Z80 extra board.
+  * [VM/FM7] Add UARTs.RS-232C, MODEM and MIDI.Temporally implements.
+  * [FM7/JCOMMCARD] Add test program.Use asl ( http://john.ccac.rwth-aachen.de:8000/as/ ) to make from source code.
+  * [VM/FM7] Use #define to define name of firmwares.
+  * [VM/FM7] KANJIROM: Add JIS78 patch mode.From XM7 3.4L77a.
+  * [VM/MB8877] Not clear status when force-interrupt with TYPE-1 Command(seek etc).
+                Fix (Add hack) for FUKU*.d77 (えびふく's music disks for FM-7).
+  * [VM/MB8877] Fix DRQ/IRQ timing.
+  * [VM/MB8877] Make IRQ with disk not inserted or not connected when processing command(s).
+  * [VM/MB8877] Make turning ON IRQ and turn OFF DRQ when seek completed.
+  * [VM/MB8877] Adjust track parameter at initialize and CMD::RESTORE .
+  * [VM/MB8877] OS-9 Level2 for FM77AV40 Works.
+  * [VM/HD6844] FM77AV40EX has only one DMA channel.Not multiple channels.
+  * [VM/HD6844] HD6844 has only a one interrupt line, not multiple.
+  * [VM/HD6844] Rename drq_line to busreq_line.
+  * Special thanks to Ryu Takegami, to assist debugging FM-7/77/AV/40/EX .
+  * Built with commit 9376345bc1270e2a76db816636b645e744d09e82  or later.
+
+-- Jan 19, 2018 01:49:25 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
+
 * SNAPSHOT Jan 04 2018
   * Upstream 2017-12-28 .
   * [Qt/FM-7] Windows: Fix not effect keyin with "\_" for *native* Windows.

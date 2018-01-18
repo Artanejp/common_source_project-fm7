@@ -1,5 +1,5 @@
 ** FM-7 series  emulator for common source code project. **
-                                               Jan 04, 2018
+                                               Jan 19, 2018
 		   K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 1.Background
@@ -32,7 +32,9 @@
   i. Add also FM77AV's hidden buzzer.
   j. Support connect/disconnect FDDs. Please check "Connect 320KB FDD" at first.
   k. Support auto input "8" or "5" when using ten-key as moving characters at games for FM-8 and FM-7.
-  l. Z80 Card (Only with FM-7/77 and FM-8) wroks.But not tested enough.
+  l. Z80 Card (Only with FM-7/77 and FM-8) works.But not tested enough.
+  m. Japanese Communication board works for FM-7/NEW7/77/L4.
+  n. Start to implement RS-232C/MODEM/MIDI feature.(WIP)
   If you need more informations, see RELEASENOTE and reame_by_artane.txt .
      
   [3] I implemented hidden message faster than XM7 :-)

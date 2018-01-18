@@ -1,5 +1,5 @@
 ** FM-7 series  emulator for common source code project. **
-                                               Jan 04, 2018
+                                               Jan 19, 2018
 		   K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 
@@ -38,7 +38,8 @@
   j. FDDのつけ外しをサポートしました。最初に使うときは、"Connect 320KB FDD" にチェックを入れて、再起動してください。
   k. FM-8/7でテンキーで移動するゲームについて、自動で「5」もしくは「8」を入力するモードを新設しました。
   l. Z80カードが(FM-7/77とFM-8で)使えるようになりました。テストがあまり十分ではありませんが。
-
+  m. 日本語通信カードがFM-7/NEW7/77/L4で使えるようになりました。
+  n. RS-232CとモデムカードとMIDIカードの実装が始まりました(作業中)
   その他のことについては、RELEASENOTEやreadme_by_artane.txtを。
 
   [3] 私のほうがXM7よりも先にインプリメントしました(笑)
