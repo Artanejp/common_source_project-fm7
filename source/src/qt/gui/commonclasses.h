@@ -211,6 +211,7 @@ public slots:
 	void do_select_render_platform(void);
 	void do_save_state(void);
 	void do_load_state(void);
+	void do_set_window_focus_type(bool flag);
 	
 signals:
 	int quit_emu_thread(void);
@@ -220,6 +221,7 @@ signals:
 	int sig_select_render_platform(int);
 	int sig_save_state(QString);
 	int sig_load_state(QString);
+	int sig_set_window_focus_type(bool);
 } ActionControl;
 QT_END_NAMESPACE
 

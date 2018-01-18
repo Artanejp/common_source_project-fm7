@@ -190,6 +190,7 @@ private:
 	QMenu *menu_DispVirtualMedias;
 	QActionGroup *actionGroup_DispVirtualMedias;
 	class Action_Control *action_DispVirtualMedias[5];
+	class Action_Control *action_FocusWithClick;
 	class Action_Control *action_UseRomaKana;
 	class Action_Control *action_LogToSyslog;
 	class Action_Control *action_LogToConsole;
@@ -624,6 +625,8 @@ public slots:
 	void do_set_render_mode_std(void);
 	void do_set_render_mode_tv(void);
 	void do_select_render_platform(int num);
+	void do_set_window_focus_type(bool flag);
+
 	void do_set_visible_virtual_media_none();
 	void do_set_visible_virtual_media_upper();
 	void do_set_visible_virtual_media_lower();

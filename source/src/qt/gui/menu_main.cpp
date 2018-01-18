@@ -100,6 +100,11 @@ void Action_Control::do_select_render_platform(void)
 	emit sig_select_render_platform(num);
 }
 
+void Action_Control::do_set_window_focus_type(bool f)
+{
+	emit sig_set_window_focus_type(f);
+}
+
 void Action_Control::do_set_dev_log_to_console(bool f)
 {
 	int num = this->binds->getValue1();
@@ -115,6 +120,18 @@ void Action_Control::do_set_dev_log_to_syslog(bool f)
 void Ui_MainWindowBase::do_set_roma_kana(bool flag)
 {
 	using_flags->get_config_ptr()->roma_kana_conversion = flag;
+}
+
+void Ui_MainWindowBase::do_set_window_focus_type(bool flag)
+{
+	using_flags->get_config_ptr()->focus_with_click = flag;
+	if(flag) {
+		graphicsView->setFocusPolicy(Qt::ClickFocus);
+		graphicsView->setFocus(0);
+	} else {
+		graphicsView->setFocusPolicy(Qt::NoFocus);
+		graphicsView->clearFocus();
+	}
 }
 
 void Ui_MainWindowBase::do_show_about(void)
@@ -328,8 +345,6 @@ void Ui_MainWindowBase::setupUi(void)
 		graphicsView->setAttribute(Qt::WA_KeyCompression, false);
 		connect(this, SIGNAL(sig_set_display_osd(bool)), graphicsView, SLOT(do_set_display_osd(bool)));
 		connect(this, SIGNAL(sig_set_led_width(int)), graphicsView, SLOT(do_set_led_width(int)));
-		//graphicsView->setFocusPolicy(Qt::StrongFocus);
-		//this->setFocusPolicy(Qt::ClickFocus);
 	}
 	
 	bitmapImage = NULL;
@@ -375,6 +390,12 @@ void Ui_MainWindowBase::setupUi(void)
 		graphicsView->setVisible(true);
 		//emit sig_set_display_osd(false);
 		break;
+	}
+	if(using_flags->get_config_ptr()->focus_with_click) {
+		graphicsView->setFocusPolicy(Qt::ClickFocus);
+		graphicsView->setFocus(0);
+	} else {
+		graphicsView->setFocusPolicy(Qt::NoFocus);
 	}
 	driveData->setOrientation(using_flags->get_config_ptr()->virtual_media_position);
 	connect(this, SIGNAL(sig_set_orientation_osd(int)), driveData, SLOT(setOrientation(int)));
@@ -703,6 +724,9 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 		action_UseRomaKana->setToolTip(QApplication::translate("MainWindow", "Use romaji-kana conversion assistant of emulator.", 0));
 	}
 	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
+	action_FocusWithClick->setText(QApplication::translate("MainWindow", "Focus on click", 0));
+	action_FocusWithClick->setToolTip(QApplication::translate("MainWindow", "If set, focus with click, not mouse-over.", 0));
+	
 	action_SetupKeyboard->setText(QApplication::translate("MainWindow", "Configure Keyboard", 0));
 	action_SetupKeyboard->setToolTip(QApplication::translate("MainWindow", "Set addignation of keyboard.", 0));
 	action_SetupKeyboard->setIcon(QIcon(":/icon_keyboard.png"));
@@ -758,6 +782,7 @@ void Ui_MainWindowBase::retranselateUi_Depended_OSD(void)
 void Ui_MainWindowBase::CreateEmulatorMenu(void)
 {
 	//menuEmulator->addAction(action_LogRecord);
+	menuEmulator->addAction(action_FocusWithClick);
 	menuEmulator->addAction(menu_DispVirtualMedias->menuAction());
 	menuEmulator->addSeparator();
 	if(using_flags->is_use_roma_kana_conversion()) {
@@ -847,6 +872,18 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 		*/
 		SET_ACTION_SINGLE(action_SoundFilesRelay, true, true, (using_flags->get_config_ptr()->sound_noise_cmt != 0));
 	}
+	action_FocusWithClick = new Action_Control(this, using_flags);
+	action_FocusWithClick->setCheckable(true);
+	action_FocusWithClick->setEnabled(true);
+	if(using_flags->get_config_ptr()->focus_with_click) {
+		action_FocusWithClick->setChecked(true);
+	}
+
+	connect(action_FocusWithClick, SIGNAL(toggled(bool)),
+				this, SLOT(do_set_window_focus_type(bool)));
+	//connect(action_FocusWithClick, SIGNAL(sig_set_window_focus_type(bool)),
+	//			this, SLOT(do_set_window_focus_type(bool)));
+	
 #if !defined(Q_OS_WIN)
 	action_LogToSyslog = new Action_Control(this, using_flags);
 	action_LogToSyslog->setCheckable(true);

@@ -177,6 +177,7 @@ typedef struct {
 	bool opengl_scanline_vert;
 	bool opengl_scanline_horiz;
 	bool use_opengl_filters;
+	bool focus_with_click;
 	int opengl_filter_num;
 
 	bool swap_kanji_pause;

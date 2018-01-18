@@ -162,6 +162,7 @@ void initialize_config()
 		config.opengl_scanline_horiz = false;
 		config.use_opengl_filters = false;
 		config.opengl_filter_num = 0;
+		config.focus_with_click = false;
 		
 		config.video_width = 640;
 		config.video_height = 480;
@@ -401,6 +402,7 @@ void load_config(const _TCHAR *config_path)
 		config.rendering_type = MyGetPrivateProfileInt(_T("Qt"), _T("RenderType"), config.rendering_type, config_path);
 
 		config.general_sound_level = MyGetPrivateProfileInt(_T("Qt"), _T("GeneralSoundLevel"), config.general_sound_level, config_path);
+		config.focus_with_click = MyGetPrivateProfileBool(_T("Qt"), _T("FocusWithClick"), config.focus_with_click, config_path);
 		
 		if(config.rendering_type < 0) config.rendering_type = 0;
 		if(config.rendering_type >= CONFIG_RENDER_TYPE_END) config.rendering_type = CONFIG_RENDER_TYPE_END - 1;
@@ -712,6 +714,7 @@ void save_config(const _TCHAR *config_path)
 		MyWritePrivateProfileInt(_T("Qt"), _T("RenderMinorVersion"), config.render_minor_version, config_path);
 
 		MyWritePrivateProfileInt(_T("Qt"), _T("GeneralSoundLevel"), config.general_sound_level, config_path);
+		MyWritePrivateProfileBool(_T("Qt"), _T("FocusWithClick"), config.focus_with_click, config_path);
 
 		for(i = 0; i < 16; i++) {
 			_TCHAR name[256];
