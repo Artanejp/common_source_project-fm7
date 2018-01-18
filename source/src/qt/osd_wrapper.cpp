@@ -362,6 +362,7 @@ void OSD::set_draw_thread(DrawThreadClass *handler)
 	connect(this, SIGNAL(sig_update_screen(bitmap_t *)), handler, SLOT(do_update_screen(bitmap_t *)));
 	connect(this, SIGNAL(sig_save_screen(const char *)), glv, SLOT(do_save_frame_screen(const char *)));
 	connect(this, SIGNAL(sig_resize_vm_screen(QImage *, int, int)), glv, SLOT(do_set_texture_size(QImage *, int, int)));
+	connect(this, SIGNAL(sig_resize_vm_lines(int)), glv, SLOT(do_set_horiz_lines(int)));
 	connect(parent_thread, SIGNAL(sig_debugger_input(QString)), this, SLOT(do_set_input_string(QString)));
 	connect(parent_thread, SIGNAL(sig_quit_debugger()), this, SLOT(do_close_debugger_thread()));
 	connect(this, SIGNAL(sig_close_window()), parent_thread, SLOT(doExit()));

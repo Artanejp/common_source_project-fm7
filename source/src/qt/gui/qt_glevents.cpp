@@ -156,3 +156,8 @@ void GLDrawClass::do_set_texture_size(QImage *p, int w, int h)
 	if(extfunc != NULL) extfunc->do_set_texture_size(p, w, h);
 }
 
+void GLDrawClass::do_set_horiz_lines(int lines)
+{
+	if(extfunc != NULL) extfunc->do_set_horiz_lines(lines);
+}
+

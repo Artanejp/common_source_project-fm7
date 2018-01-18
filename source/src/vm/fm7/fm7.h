@@ -269,19 +269,20 @@
 #undef SCREEN_FAKE_WIDTH
 #undef SCREEN_FAKE_HEIGHT
 #else /* Not have 400 line */
+
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		200
-#  if defined(FIXED_FRAMEBUFFER_SIZE)
-#define SCREEN_FAKE_WIDTH   640
-#define SCREEN_FAKE_HEIGHT  400
+# if defined(FIXED_FRAMEBUFFER_SIZE)
+#  define SCREEN_FAKE_WIDTH   640
+#  define SCREEN_FAKE_HEIGHT  400
 # else
-#define SCREEN_FAKE_WIDTH   640
-#define SCREEN_FAKE_HEIGHT  200
+#  define SCREEN_FAKE_WIDTH   640
+#  define SCREEN_FAKE_HEIGHT  200
 # endif
+
 # if !defined(FIXED_FRAMEBUFFER_SIZE)
-//#define SCREEN_Y_ZOOM       2.0
-#define SCREEN_Y_ZOOM       2.0
-#endif
+#  define SCREEN_Y_ZOOM       2.0
+# endif
 
 #endif
 #define WINDOW_HEIGHT_ASPECT 480

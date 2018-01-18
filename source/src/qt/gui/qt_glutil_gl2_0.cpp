@@ -1269,8 +1269,13 @@ void GLDraw_2_0::do_set_texture_size(QImage *p, int w, int h)
 					 vertexFormat, 4);
 		p_wid->doneCurrent();
 	}		
-	this->doSetGridsHorizonal(h, true);
-	this->doSetGridsVertical(w, true);
+	this->doSetGridsHorizonal(h, false);
+	this->doSetGridsVertical(w, false);
+}
+
+void GLDraw_2_0::do_set_horiz_lines(int lines)
+{
+	this->doSetGridsHorizonal(lines, false);
 }
 
 void GLDraw_2_0::do_set_led_width(int bitwidth)

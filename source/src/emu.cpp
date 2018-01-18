@@ -1459,6 +1459,11 @@ void EMU::set_vm_screen_size(int screen_width, int screen_height, int window_wid
 	osd->set_vm_screen_size(screen_width, screen_height, window_width, window_height, window_width_aspect, window_height_aspect);
 }
 
+void EMU::set_vm_screen_lines(int lines)
+{
+	osd->set_vm_screen_lines(lines);
+}
+
 int EMU::get_vm_window_width()
 {
 	return osd->get_vm_window_width();

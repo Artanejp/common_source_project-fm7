@@ -190,6 +190,7 @@ void DISPLAY::reset_cpuonly()
 void DISPLAY::reset()
 {
 	int i;
+	//printf("RESET\n");
 	memset(io_w_latch, 0xff, sizeof(io_w_latch));
 	halt_flag = false;
 	vram_accessflag = true;
@@ -221,11 +222,14 @@ void DISPLAY::reset()
 #elif defined(_FM77L4)
 	mode400line = false;
 #endif
+
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
 	emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 #else
 	emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 #endif	
+	emu->set_vm_screen_lines(200);
+	
 	is_cyclesteal = ((config.dipswitch & FM7_DIPSW_CYCLESTEAL) != 0) ? true : false;
 	key_firq_req = false;	//firq_mask = true;
 	firq_mask = false;
@@ -238,12 +242,6 @@ void DISPLAY::reset()
 #else
 # if defined(_FM8)
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
-	//multimode_accessmask = 0x00;
-	//multimode_dispmask = 0x00;
-	//for(i = 0; i < 4; i++) {
-	//	multimode_accessflags[i] = ((multimode_accessmask & (1 << color)) != 0) ? true : false;
-	//	multimode_dispflags[i] = ((multimode_dispmask & (1 << color)) != 0) ? true : false;
-	//}
 # endif
 #endif	
 	//enter_display();
@@ -1572,20 +1570,20 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 							if(pp != NULL) memset(pp, 0x00, 320 * sizeof(scrntype_t));
 						}
 #else
-						emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 						for(y = 0; y < 400; y++) {
 							pp = emu->get_screen_buffer(y);
 							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype_t));
 						}
 #endif	
+						//emu->set_vm_screen_lines(200);
 					} else if(display_mode == DISPLAY_MODE_8_400L) {
 						emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+						//emu->set_vm_screen_lines(400);
 						for(y = 0; y < 400; y++) {
 							pp = emu->get_screen_buffer(y);
 							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype_t));
 						}
 					} else {
-
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
 						emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 						for(y = 0; y < 200; y++) {
@@ -1593,12 +1591,12 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype_t));
 						}
 #else
-						emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 						for(y = 0; y < 400; y++) {
 							pp = emu->get_screen_buffer(y);
 							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype_t));
 						}
 #endif	
+						//emu->set_vm_screen_lines(200);
 					}
 					vram_wrote = true;
 					alu->write_signal(SIG_ALU_X_WIDTH, (mode320 || mode256k) ? 40 :  80, 0xffff);
@@ -1651,12 +1649,12 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 							if(pp != NULL) memset(pp, 0x00, 320 * sizeof(scrntype_t));
 						}
 #else
-						emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 						for(y = 0; y < 400; y++) {
 							pp = emu->get_screen_buffer(y);
 							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype_t));
 						}
 #endif	
+						//emu->set_vm_screen_lines(200);
 					} else { // 200 lines, 8 colors.
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
 						emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
@@ -1665,13 +1663,12 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype_t));
 						}
 #else
-						emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 						for(y = 0; y < 400; y++) {
 							pp = emu->get_screen_buffer(y);
 							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype_t));
 						}
 #endif	
-
+						//emu->set_vm_screen_lines(200);
 					}
 					vram_wrote = true;
 					alu->write_signal(SIG_ALU_X_WIDTH, (mode320) ? 40 :  80, 0xffff);
@@ -1691,17 +1688,17 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 						emu->set_vm_screen_size(320, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 						for(y = 0; y < 200; y++) memset(emu->get_screen_buffer(y), 0x00, 320 * sizeof(scrntype_t));
 #else
-						emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 						for(y = 0; y < 400; y++) memset(emu->get_screen_buffer(y), 0x00, 640 * sizeof(scrntype_t));
 #endif	
+						//emu->set_vm_screen_lines(200);
 				} else {
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
 						emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 						for(y = 0; y < 200; y++) memset(emu->get_screen_buffer(y), 0x00, 640 * sizeof(scrntype_t));
 #else
-						emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 						for(y = 0; y < 400; y++) memset(emu->get_screen_buffer(y), 0x00, 640 * sizeof(scrntype_t));
 #endif	
+						//emu->set_vm_screen_lines(200);
 
 				}
 			}
@@ -2844,11 +2841,6 @@ void DISPLAY::initialize()
 		multimode_dispflags[i] = ((multimode_dispmask & (1 << i)) != 0) ? true : false;
 	}
 
-#if !defined(FIXED_FRAMEBUFFER_SIZE)
-	emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
-#else
-	emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
-#endif
 	prev_clock = SUBCLOCK_NORMAL;
 	//enter_display();
 	nmi_event_id = -1;
@@ -2861,7 +2853,14 @@ void DISPLAY::initialize()
 #else
 	emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 #endif
-
+	emu->set_vm_screen_lines(200);
+#if defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+	mode400line = false;
+	mode256k = false;
+#elif defined(_FM77L4)
+	mode400line = false;
+#endif
+	
 	palette_changed = true;
 #if !defined(_FM77AV_VARIANTS) && !defined(_FM77L4)
 	//register_vline_event(this);

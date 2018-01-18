@@ -343,6 +343,7 @@ public:
 	int get_window_mode_height(int mode);
 	void set_host_window_size(int window_width, int window_height, bool window_mode);
 	void set_vm_screen_size(int width, int height, int width_aspect, int height_aspect, int window_width, int window_height);
+	void set_vm_screen_lines(int lines); // 20170118
 	int get_vm_window_width();
 	int get_vm_window_height();
 	int get_vm_window_width_aspect();
@@ -493,6 +494,7 @@ signals:
 	int sig_draw_frames(int);
 	int sig_close_window(void);
 	int sig_resize_vm_screen(QImage *, int, int);
+	int sig_resize_vm_lines(int);
 	int sig_put_string_debugger(QString);
 	int sig_console_input_string(QString);
 	int sig_enqueue_video(int, int, int, QImage *); 

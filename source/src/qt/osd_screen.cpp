@@ -41,6 +41,11 @@ void OSD_BASE::set_host_window_size(int window_width, int window_height, bool wi
 	first_invalidate = true;
 }
 
+void OSD_BASE::set_vm_screen_lines(int lines)
+{
+	emit sig_resize_vm_lines(lines);
+}
+
 void OSD_BASE::set_vm_screen_size(int screen_width, int screen_height, int window_width, int window_height, int window_width_aspect, int window_height_aspect)
 {
 	if(vm_screen_width != screen_width || vm_screen_height != screen_height) {

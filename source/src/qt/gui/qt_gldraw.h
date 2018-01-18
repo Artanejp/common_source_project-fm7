@@ -140,6 +140,7 @@ public slots:
 	void do_save_frame_screen(void);
 	void do_save_frame_screen(const char *);
 	void do_set_texture_size(QImage *p, int w, int h);
+	void do_set_horiz_lines(int lines);
 	
 	void do_set_screen_multiply(float mul);
 	void do_update_keyboard_scan_code(uint32_t vk, uint32_t scan);

@@ -656,10 +656,11 @@ void DISPLAY::draw_screen2()
 		if(crt_flag_bak) {
 			scrntype_t *ppp;
 			if(display_mode == DISPLAY_MODE_8_200L) {
-#if !defined(FIXED_FRAMEBUFFER_SIZE)
+#if 1
+# if !defined(FIXED_FRAMEBUFFER_SIZE)
 				emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
-#else
-				emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+# endif
+				emu->set_vm_screen_lines(200);
 #endif
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
 #if defined(_OPENMP)
@@ -685,7 +686,10 @@ void DISPLAY::draw_screen2()
 				}
 #endif
 			} else if(display_mode == DISPLAY_MODE_8_400L) {
+#if 1
+				emu->set_vm_screen_lines(400);
 				emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+#endif
 #if defined(_OPENMP)
 #pragma omp parallel for shared(vram_draw_table), private(ppp, yy)
 #endif
@@ -697,10 +701,11 @@ void DISPLAY::draw_screen2()
 					}
 				}
 			} else { // 320x200
-#if !defined(FIXED_FRAMEBUFFER_SIZE)
+#if 1
+# if !defined(FIXED_FRAMEBUFFER_SIZE)
 				emu->set_vm_screen_size(320, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
-#else
-				emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+# endif
+				emu->set_vm_screen_lines(200);
 #endif
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
 #if defined(_OPENMP)
@@ -741,10 +746,11 @@ void DISPLAY::draw_screen2()
 	}
 	if(display_mode == DISPLAY_MODE_8_200L) {
 		int ii;
-#if !defined(FIXED_FRAMEBUFFER_SIZE)
+#if 1
+# if !defined(FIXED_FRAMEBUFFER_SIZE)
 		emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
-#else
-		emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+# endif
+		emu->set_vm_screen_lines(200);
 #endif
 		yoff = 0;
 		//rgbmask = ~multimode_dispmask;
@@ -800,10 +806,11 @@ void DISPLAY::draw_screen2()
 	}
 # if defined(_FM77AV_VARIANTS)
 	if(display_mode == DISPLAY_MODE_4096) {
-#if !defined(FIXED_FRAMEBUFFER_SIZE)
+#if 1
+# if !defined(FIXED_FRAMEBUFFER_SIZE)
 		emu->set_vm_screen_size(320, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
-#else
-		emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+# endif
+		emu->set_vm_screen_lines(200);
 #endif
 		uint32_t mask = 0;
 		int ii;
@@ -868,7 +875,10 @@ void DISPLAY::draw_screen2()
 #  if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	else if(display_mode == DISPLAY_MODE_8_400L) {
 		int ii;
+#if 1
 		emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+		emu->set_vm_screen_lines(400);
+#endif
 		yoff = 0;
 		//rgbmask = ~multimode_dispmask;
 #if defined(_OPENMP)
@@ -909,10 +919,11 @@ void DISPLAY::draw_screen2()
 		return;
 	} else if(display_mode == DISPLAY_MODE_256k) {
 		int ii;
-#if !defined(FIXED_FRAMEBUFFER_SIZE)
+#if 1
+# if !defined(FIXED_FRAMEBUFFER_SIZE)
 		emu->set_vm_screen_size(320, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
-#else
-		emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+# endif
+		emu->set_vm_screen_lines(200);
 #endif
 		//rgbmask = ~multimode_dispmask;
 #if defined(_OPENMP)

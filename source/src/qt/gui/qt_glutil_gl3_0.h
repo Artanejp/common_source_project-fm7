@@ -114,6 +114,7 @@ public:
 public slots:
 	void setBrightness(GLfloat r, GLfloat g, GLfloat b);
 	void do_set_texture_size(QImage *p, int w, int h);
+	void do_set_horiz_lines(int lines);
 	virtual void paintGL(void);
 	virtual void resizeGL(int width, int height);
 };
