@@ -351,6 +351,7 @@ void PCE::draw_screen()
 		}
 		prev_width = vdc[0].physical_width;
 	}
+	emu->set_vm_screen_lines(240);
 #endif
 	for(int y = 0; y < 240; y++, dy++) {
 		scrntype_t* src = &vce.bmp[y + 17][86];

@@ -177,6 +177,7 @@ void TMS9918A::write_signal(int id, uint32_t data, uint32_t mask)
 
 inline void TMS9918A::draw_screen_512_impose()
 {
+	emu->set_vm_screen_lines(192);
 	for(int y = 0, y2 = 0; y < 192; y++, y2 += 2) {
 		scrntype_t* dest0 = osd->get_vm_screen_buffer(y2 + 0);
 		scrntype_t* dest1 = osd->get_vm_screen_buffer(y2 + 1);
@@ -201,6 +202,7 @@ inline void TMS9918A::draw_screen_512_impose()
 
 inline void TMS9918A::draw_screen_512_nonimpose()
 {
+	emu->set_vm_screen_lines(192);
 	for(int y = 0, y2 = 0; y < 192; y++, y2 += 2) {
 		scrntype_t* dest0 = osd->get_vm_screen_buffer(y2 + 0);
 		scrntype_t* dest1 = osd->get_vm_screen_buffer(y2 + 1);
@@ -214,6 +216,7 @@ inline void TMS9918A::draw_screen_512_nonimpose()
 
 inline void TMS9918A::draw_screen_256_impose()
 {
+	emu->set_vm_screen_lines(192);
 	for(int y = 0; y < 192; y++) {
 		scrntype_t* dest = osd->get_vm_screen_buffer(y);
 		uint8_t* src = screen[y];
@@ -236,6 +239,7 @@ inline void TMS9918A::draw_screen_256_impose()
 
 inline void TMS9918A::draw_screen_256_nonimpose()
 {
+	emu->set_vm_screen_lines(192);
 	for(int y = 0; y < 192; y++) {
 		scrntype_t* dest = osd->get_vm_screen_buffer(y);
 		uint8_t* src = screen[y];

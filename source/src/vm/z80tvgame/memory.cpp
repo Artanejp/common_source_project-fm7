@@ -82,6 +82,7 @@ void MEMORY::draw_screen()
 	scrntype_t col_w = RGB_COLOR(255, 255, 255);
 	scrntype_t col_b = 0;
 	
+	emu->set_vm_screen_lines(210);
 	for(int y = 0, offset = 0x403c; y < 210; y++, offset += 30) {
 		scrntype_t* dest = emu->get_screen_buffer(y) - 30;
 		// (30 * 8 - 176) / 2 = 32

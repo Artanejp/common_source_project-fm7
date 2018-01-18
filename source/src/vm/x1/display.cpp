@@ -743,6 +743,7 @@ void DISPLAY::draw_screen()
 #ifdef _X1TURBO_FEATURE
 	if(hireso) {
 		// 400 lines
+		emu->set_vm_screen_lines(400);
 		if(column40) {
 			// 40 columns
 			for(int y = 0; y < 400; y++) {
@@ -805,6 +806,7 @@ void DISPLAY::draw_screen()
 		emu->screen_skip_line(false);
 	} else {
 #endif
+		emu->set_vm_screen_lines(200);
 		// 200 lines
 		if(column40) {
 			// 40 columns

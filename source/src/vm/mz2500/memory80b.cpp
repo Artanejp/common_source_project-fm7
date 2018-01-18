@@ -577,10 +577,12 @@ void MEMORY::draw_screen()
 		}
 	}
 	emu->screen_skip_line(true);
+	emu->set_vm_screen_lines(200);
 #else
 	if(config.monitor_type != MONITOR_TYPE_GREEN) {
 		// PIO-3039 color monitor
 		int offset = (config.monitor_type == MONITOR_TYPE_GREEN_COLOR) ? 640 : 0;
+		emu->set_vm_screen_lines(200);
 		for(int y = 0; y < 200; y++) {
 			scrntype_t* dest0 = emu->get_screen_buffer(y * 2 + 0) + offset;
 			scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1) + offset;
@@ -601,6 +603,7 @@ void MEMORY::draw_screen()
 	if(config.monitor_type != MONITOR_TYPE_COLOR) {
 		// green monitor
 		int offset = (config.monitor_type == MONITOR_TYPE_COLOR_GREEN) ? 640 : 0;
+		emu->set_vm_screen_lines(200);
 		for(int y = 0; y < 200; y++) {
 			scrntype_t* dest0 = emu->get_screen_buffer(y * 2 + 0) + offset;
 			scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1) + offset;

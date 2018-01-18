@@ -122,6 +122,7 @@ void DISPLAY::draw_screen()
 		break;
 	}
 	
+	emu->set_vm_screen_lines(height);
 	// copy to real screen
 	if(height == 200) {
 		// 320x200 or 640x200

@@ -49,6 +49,7 @@ void MEMORY::draw_screen()
 			else RefreshScr62();
 		} else RefreshScr61();
 		// copy to screen
+		emu->set_vm_screen_lines(200);
 		if (bitmap) {
 			for(int y = 0; y < 200; y++) {
 				scrntype_t* dest = emu->get_screen_buffer(y*2);
@@ -97,6 +98,7 @@ void MEMORY::draw_screen()
 				else RefreshScr53();
 			else RefreshScr51();
 			// copy to screen
+			emu->set_vm_screen_lines(200);
 			for(int y = 0; y < 200; y++) {
 				scrntype_t* dest = emu->get_screen_buffer(y*2);
 				scrntype_t* dest1 = emu->get_screen_buffer(y*2+1);
@@ -112,6 +114,7 @@ void MEMORY::draw_screen()
 		} else {
 			RefreshScr10();
 			// copy to screen
+			emu->set_vm_screen_lines(200);
 			for(int y = 0; y < 200; y++) {
 				scrntype_t* dest = emu->get_screen_buffer(y*2);
 				scrntype_t* dest1 = emu->get_screen_buffer(y*2+1);

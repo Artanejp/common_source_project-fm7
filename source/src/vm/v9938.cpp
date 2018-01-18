@@ -3117,6 +3117,7 @@ void v99x8_device::draw_screen()
 	scrntype_t *dst;
 	int y;
 	if(osd == NULL) return;
+	emu->set_vm_screen_lines(__SCREEN_HEIGHT);
 	for(y=0; y< __SCREEN_HEIGHT; y++) {
 		if((dst = osd->get_vm_screen_buffer(y)) != NULL) {
 			my_memcpy(dst, screen+(y+18)*LONG_WIDTH+2, __SCREEN_WIDTH*sizeof(scrntype_t));

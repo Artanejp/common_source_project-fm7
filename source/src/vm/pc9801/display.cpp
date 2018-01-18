@@ -2203,6 +2203,7 @@ void DISPLAY::draw_screen()
 			memset(dest, 0, SCREEN_WIDTH * sizeof(scrntype_t));
 		}
 	}
+	emu->set_vm_screen_lines(SCREEN_HEIGHT);
 	emu->screen_skip_line(false);
 }
 

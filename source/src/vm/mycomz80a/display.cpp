@@ -93,6 +93,7 @@ void DISPLAY::draw_screen()
 	
 	// copy to real screen
 	scrntype_t col = RGB_COLOR(255, 255, 255);
+	emu->set_vm_screen_lines(200);
 	for(int y = 0; y < 200; y++) {
 		scrntype_t* dest0 = emu->get_screen_buffer(y * 2 + 0);
 		scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1);
