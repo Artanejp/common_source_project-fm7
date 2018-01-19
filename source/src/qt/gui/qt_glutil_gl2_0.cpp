@@ -728,6 +728,7 @@ void GLDraw_2_0::doSetGridsHorizonal(int lines, bool force)
 	GLfloat delta;
 	
 	if((lines == vert_lines) && !force) return;
+	//printf("lines: %d\n", lines);
 	vert_lines = lines;
 	yf = -screen_height;
 	if(vert_lines <= 0) return;

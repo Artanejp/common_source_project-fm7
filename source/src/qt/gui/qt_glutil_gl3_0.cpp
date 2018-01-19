@@ -609,6 +609,7 @@ void GLDraw_3_0::doSetGridsVertical(int pixels, bool force)
 }
 void GLDraw_3_0::doSetGridsHorizonal(int lines, bool force)
 {
+	if((lines == vert_lines) && !force) return;
 	GLDraw_2_0::doSetGridsHorizonal(lines, force);
 	updateGridsVAO(grids_horizonal_buffer,
 				   grids_horizonal_vertex,

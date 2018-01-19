@@ -1681,7 +1681,7 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 # else /* FM77AV/20/20EX */
 			oldflag = mode320;
 			mode320 = flag;
-			{
+			if(oldflag != mode320) {
 		
 				if(mode320) {
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
@@ -1701,13 +1701,13 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 						//emu->set_vm_screen_lines(200);
 
 				}
+				display_mode = (mode320 == true) ? DISPLAY_MODE_4096 : DISPLAY_MODE_8_200L;
+				alu->write_signal(SIG_ALU_X_WIDTH, (mode320) ? 40 :  80, 0xffff);
+				alu->write_signal(SIG_ALU_Y_HEIGHT, 200, 0xffff);
+				alu->write_signal(SIG_ALU_400LINE, 0, 0xffffffff);
+				vram_wrote = true;
+				setup_display_mode();
 			}
-			display_mode = (mode320 == true) ? DISPLAY_MODE_4096 : DISPLAY_MODE_8_200L;
-			alu->write_signal(SIG_ALU_X_WIDTH, (mode320) ? 40 :  80, 0xffff);
-			alu->write_signal(SIG_ALU_Y_HEIGHT, 200, 0xffff);
-			alu->write_signal(SIG_ALU_400LINE, 0, 0xffffffff);
-			vram_wrote = true;
-			if(mode320 != oldflag) setup_display_mode();
 # endif
 #endif			
 			break;
