@@ -43,7 +43,6 @@ void FM7_MAINIO::reset_fdc(void)
 	}
 	//fdc_motor = (fdc->read_signal(SIG_MB8877_MOTOR) != 0);
 	fdc_motor = false;
-	fdc_cmd_type1 = false;
 	
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
 	defined(_FM77AV20) || defined(_FM77AV20EX)
@@ -77,7 +76,6 @@ void FM7_MAINIO::set_fdc_cmd(uint8_t val)
 	if(!connect_fdc) return;
 	//irqreg_fdc = 0x00;
 	fdc_cmdreg = val;
-	fdc_cmd_type1 = ((val & 0x80) == 0);
 #if defined(HAS_DMA)
 	if(((fdc_cmdreg >= 0x80) && (fdc_cmdreg < 0xd0)) || (fdc_cmdreg >= 0xe0)) {
 		uint32_t words = dmac->read_signal(HD6844_WORDS_REG_0);
@@ -175,15 +173,23 @@ uint8_t FM7_MAINIO::get_fdc_data(void)
 uint8_t FM7_MAINIO::get_fdc_motor(void)
 {
 	uint8_t val = 0x3c; //0b01111100;
+	uint8_t drv;
+	bool bv;
+	
 	if(!connect_fdc) return 0xff;
 	fdc_motor = (fdc->read_signal(SIG_MB8877_MOTOR) != 0) ? true : false;
-	if(fdc_motor) val |= 0x80;
 	//fdc_drvsel = fdc->read_signal(SIG_MB8877_READ_DRIVE_REG);
+	drv = fdc_drvsel & 0x03;
 	val = val | (fdc_drvsel & 0x03);
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
 	defined(_FM77AV20) || defined(_FM77AV20EX)
 	val = val | (fdc_drvsel & 0x40);
+	if((fdc_drvsel & 0x40) != 0) {
+		drv = fdc_drive_table[drv & 0x03];
+	}
 #endif	
+	fdc_motor = fdc_motor & (fdc->get_drive_type(drv) != DRIVE_TYPE_UNK);
+	if(fdc_motor) val |= 0x80;
 #ifdef _FM7_FDC_DEBUG	
 	this->out_debug_log(_T("FDC: Get motor/Drive: $%02x"), val);
 #endif	
@@ -289,6 +295,9 @@ void FM7_MAINIO::set_irq_mfd(bool flag)
 	} else {
 		irqreg_fdc &= 0xbf; //0b10111111;
 	}
+#if defined(_FM77_VARIANTS)
+	flag = flag & !(intmode_fdc);
+#endif
 #if !defined(_FM8) // With FM8, $FD1F is alive and not do_irq(), Thanks to Anna_Wu.
 	irqstat_fdc = flag & !irqmask_mfd;
 	if(backup != irqstat_fdc) do_irq();
@@ -322,6 +331,16 @@ uint8_t FM7_MAINIO::fdc_getdrqirq(void)
 void FM7_MAINIO::set_fdc_motor(bool flag)
 {
 	if(!connect_fdc) return;
+	uint8_t val;
 	fdc->write_signal(SIG_MB8877_MOTOR, flag ? 0x01 : 0x00, 0x01);
+	val = fdc_drvsel & 0x03;
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
+	defined(_FM77AV20) || defined(_FM77AV20EX)
+	if((fdc_drvsel & 0x40) == 0) {
+		val = fdc_drive_table[val & 0x03];
+	}
+#endif
 	fdc_motor = (fdc->read_signal(SIG_MB8877_MOTOR) != 0);
+	fdc_motor = fdc_motor & (fdc->get_drive_type(val) != DRIVE_TYPE_UNK);
 }
+

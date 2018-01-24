@@ -1493,6 +1493,17 @@ uint32_t DISPLAY::read_signal(int id)
 		  	retval = 200;
 #endif		  
 			break;
+		case SIG_DISPLAY_EXTRA_MODE: // FD04 bit 4, 3
+			retval = 0;
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+			retval |= (kanjisub) ? 0x00 : 0x20;
+			retval |= (mode256k) ? 0x10 : 0x00;
+			retval |= (mode400line) ? 0x00 : 0x08;
+			retval |= (ram_protect) ? 0x00 : 0x04;
+#elif defined(_FM77L4)
+			retval |= (mode400line) ? 0x00 : 0x08;
+#endif
+			break;
 		case SIG_DISPLAY_X_WIDTH:
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 			retval = (mode320 || mode256k) ? 320 : 640;
@@ -1612,7 +1623,7 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 				int oldmode = display_mode;
 				kanjisub = ((data & 0x20) == 0) ? true : false;
 # if defined(_FM77L4)				
-				stat_400linecard = ((data & 0x20) != 0) ? true : false;
+				stat_400linecard = ((data & 0x10) != 0) ? true : false;
 				mode400line = ((data & 0x08) != 0) ? false : true;
 				if(mode400line && stat_400linecard) {
 					display_mode = DISPLAY_MODE_8_400L_TEXT;

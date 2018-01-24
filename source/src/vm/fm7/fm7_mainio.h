@@ -42,7 +42,8 @@ class FM7_MAINIO : public DEVICE {
 	int event_beep;  
 	int event_beep_oneshot;  
 	int event_timerirq;  
-	int event_fdc_motor;  
+	int event_fdc_motor;
+	int event_fdc_2HD_motor;
 	outputs_t clock_status;
 	outputs_t printer_reset_bus;
 	outputs_t printer_strobe_bus;
@@ -111,6 +112,9 @@ class FM7_MAINIO : public DEVICE {
 	bool stat_kanjirom;    //  R/W : bit5, '0' = sub, '1' = main. FM-77 Only.
 	bool stat_400linecard;//  R/W : bit4, '0' = connected. FM-77 Only.
 	//bool stat_400linemode; // R/W : bit3, '0' = 400line, '1' = 200line.
+#endif
+#if defined(HAS_2HD)
+	bool stat_fdmode_2hd; //  R/W : bit6, '0' = 2HD, '1' = 2DD. FM-77 Only.
 #endif	
 	bool firq_break_key; // bit1, ON = '0'.
 	bool firq_sub_attention; // bit0, ON = '0'.
@@ -183,7 +187,6 @@ class FM7_MAINIO : public DEVICE {
 	uint8_t fdc_statreg;
 	/* FD18 : W */
 	uint8_t fdc_cmdreg;
-	bool fdc_cmd_type1;
    
 	/* FD19 : R/W */
 	uint8_t fdc_trackreg;
@@ -217,8 +220,34 @@ class FM7_MAINIO : public DEVICE {
 	bool connect_kanjiroml2;
 #endif	
 	/* FD20, FD21 : R */
-	
+
+	/* FD30 - FD36 : RW */
+	/* FD37 : R */
+	bool connect_fdc_2HD;
 	/* FD37 : W */
+	/* FD30 : R */
+	uint8_t fdc_2HD_statreg;
+	/* FD30 : W */
+	uint8_t fdc_2HD_cmdreg;
+   
+	/* FD31 : R/W */
+	uint8_t fdc_2HD_trackreg;
+	
+	/* FD32 : R/W */
+	uint8_t fdc_2HD_sectreg;
+	
+	/* FD33 : R/W */
+	uint8_t fdc_2HD_datareg;
+	
+	/* FD34 : R/W */
+	uint8_t fdc_2HD_headreg; // bit0, '0' = side0, '1' = side1
+	
+	/* FD35 : R/W */
+	bool fdc_2HD_motor; // bit7 : '1' = ON, '0' = OFF
+	uint8_t fdc_2HD_drvsel; // bit 1-0
+	/* FD1F : R */
+	//uint8_t irqreg_2HD_fdc;
+	//bool irqstat_2HD_fdc;
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	/* FD93: bit0 */
 	bool boot_ram;
@@ -248,6 +277,9 @@ class FM7_MAINIO : public DEVICE {
 	
 	void reset_fdc(void);
 	void set_fdc_motor(bool flag);
+	
+	void reset_fdc_2HD(void);
+	void set_fdc_motor_2HD(bool flag);
 	
 	void do_irq(void);
 	void set_irq_syndet(bool flag);
@@ -331,6 +363,31 @@ class FM7_MAINIO : public DEVICE {
 	
 	void set_fdc_misc(uint8_t val);
 	uint8_t get_fdc_misc(void);
+
+	uint8_t get_fdc_fd1c_2HD(void);
+	void set_fdc_fd1c_2HD(uint8_t val);
+	void set_fdc_fd1d_2HD(uint8_t val);
+	
+	uint8_t get_fdc_fd1e_2HD(void);
+	void set_fdc_fd1e_2HD(uint8_t val);
+	
+	uint8_t get_fdc_stat_2HD(void);
+	void set_fdc_cmd_2HD(uint8_t val);
+	uint8_t fdc_getdrqirq_2HD(void);
+
+	void set_fdc_track_2HD(uint8_t val);
+	uint8_t get_fdc_track_2HD(void);
+
+	uint8_t get_fdc_motor_2HD(void);
+	void set_fdc_sector_2HD(uint8_t val);
+	uint8_t get_fdc_sector_2HD(void);
+	  
+	void set_fdc_data_2HD(uint8_t val);
+	uint8_t get_fdc_data_2HD(void);
+	
+	void set_fdc_misc_2HD(uint8_t val);
+	uint8_t get_fdc_misc_2HD(void);
+	
 	/* Signal Handlers */
 	void set_beep_oneshot(void);
 	

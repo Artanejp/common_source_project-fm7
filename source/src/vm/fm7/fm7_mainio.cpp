@@ -95,7 +95,6 @@ FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, paren
 #elif defined(_FM77_VARIANTS)
 	stat_fdmode_2hd = false; //  R/W : bit6, '0' = 2HD, '1' = 2DD. FM-77 Only.
 	stat_kanjirom = true;    //  R/W : bit5, '0' = sub, '1' = main. FM-77 Only.
-	stat_400linecard = false;//  R/W : bit4, '0' = connected. FM-77 Only.
 #endif	
 	firq_break_key = false; // bit1, ON = '0'.
 	firq_sub_attention = false; // bit0, ON = '0'.
@@ -205,16 +204,14 @@ void FM7_MAINIO::initialize()
 	event_fdc_motor = -1;
 	lpt_type = config.printer_type;
 	fdc_cmdreg = 0x00;
-	
+#if defined(HAS_2HD)
+	event_fdc_motor_2HD = -1;
+#endif
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	boot_ram = false;
 # if defined(_FM77_VARIANTS)
 	stat_fdmode_2hd = false;
 	stat_kanjirom = true;
-	stat_400linecard = false;
-#  if defined(_FM77L4)
-	stat_400linecard = true;
-#  endif	
 # endif	
 #endif
 #if defined(_FM77AV_VARIANTS)
@@ -686,10 +683,11 @@ uint8_t FM7_MAINIO::get_fd04(void)
 		val |= 0x01;
 	}
 #if defined(_FM77_VARIANTS)
-	if(stat_fdmode_2hd) val |= 0x40;
-	if(stat_kanjirom)   val |= 0x20;
-	if(stat_400linecard) val |= 0x10;
-	if((display->read_signal(SIG_DISPLAY_EXTRA_MODE) & 0x04) != 0x00) val |= 0x04;
+	if(!stat_fdmode_2hd)  val |= 0x40;
+	if(stat_kanjirom)     val |= 0x20;
+# if defined(_FM77L4)
+	val |= (display->read_signal(SIG_DISPLAY_EXTRA_MODE) & 0x18);
+# endif
 #else
 	val |= 0x7c;
 #endif	
@@ -716,9 +714,11 @@ void FM7_MAINIO::set_fd04(uint8_t val)
 	stat_kanjirom = ((val & 0x20) != 0);
 #elif defined(_FM77_VARIANTS)
 	display->write_signal(SIG_DISPLAY_EXTRA_MODE, val, 0xff);
-	stat_fdmode_2hd  = ((val & 0x40) != 0);
+	stat_fdmode_2hd  = ((val & 0x40) == 0);
 	stat_kanjirom    = ((val & 0x20) != 0);
-	stat_400linecard = ((val & 0x10) != 0);
+# if defined(_FM77L4)
+	display->write_signal(SIG_DISPLAY_EXTRA_MODE, val & 0x18, 0x18);
+# endif
 #endif	
 }
 
@@ -1297,8 +1297,74 @@ uint32_t FM7_MAINIO::read_data8(uint32_t addr)
 			retval = (uint32_t) get_extirq_fd17();
 			break;
 #endif			
+#if defined(HAS_2HD)
 		case 0x18: // FDC: STATUS
-		  	retval = (uint32_t) get_fdc_stat();
+			if(stat_fdmode_2hd) {
+				retval = (uint32_t) get_fdc_stat_2HD();
+			} else {
+				retval = (uint32_t) get_fdc_stat();
+			}
+		    break;
+			//printf("FDC: READ STATUS %02x PC=%04x\n", retval, maincpu->get_pc()); 
+			break;
+		case 0x19: // FDC: Track
+			if(stat_fdmode_2hd) {
+				retval = (uint32_t) get_fdc_track_2HD();
+			} else {
+				retval = (uint32_t) get_fdc_track();
+			}
+			//printf("FDC: READ TRACK REG %02x\n", retval); 
+			break;
+		case 0x1a: // FDC: Sector
+			if(stat_fdmode_2hd) {
+				retval = (uint32_t) get_fdc_sector_2HD();
+			} else {
+				retval = (uint32_t) get_fdc_sector();
+			}
+			//printf("FDC: READ SECTOR REG %02x\n", retval); 
+			break;
+		case 0x1b: // FDC: Data
+			if(stat_fdmode_2hd) {
+				retval = (uint32_t) get_fdc_data_2HD();
+			} else {
+				retval = (uint32_t) get_fdc_data();
+			}
+			break;
+		case 0x1c:
+			if(stat_fdmode_2hd) {
+				retval = (uint32_t) get_fdc_fd1c_2HD();
+			} else {
+				retval = (uint32_t) get_fdc_fd1c();
+			}
+			//printf("FDC: READ HEAD REG %02x\n", retval); 
+			break;
+		case 0x1d:
+			if(stat_fdmode_2hd) {
+				retval = (uint32_t) get_fdc_motor_2HD();
+			} else {
+				retval = (uint32_t) get_fdc_motor();
+			}
+			//printf("FDC: READ MOTOR REG %02x\n", retval); 
+			break;
+		case 0x1e:
+			if(stat_fdmode_2hd) {
+				retval = (uint32_t) get_fdc_fd1e_2HD();
+			} else {
+				retval = (uint32_t) get_fdc_fd1e();
+			}
+			//printf("FDC: READ MOTOR REG %02x\n", retval); 
+			break;
+		case 0x1f:
+			if(stat_fdmode_2hd) {
+				retval = (uint32_t) fdc_getdrqirq_2HD();
+			} else {
+				retval = (uint32_t) fdc_getdrqirq();
+			}
+			break;
+#else
+		case 0x18: // FDC: STATUS
+			retval = (uint32_t) get_fdc_stat();
+		    break;
 			//printf("FDC: READ STATUS %02x PC=%04x\n", retval, maincpu->get_pc()); 
 			break;
 		case 0x19: // FDC: Track
@@ -1327,6 +1393,7 @@ uint32_t FM7_MAINIO::read_data8(uint32_t addr)
 		case 0x1f:
 			retval = (uint32_t) fdc_getdrqirq();
 			break;
+#endif
 		case 0x22: // Kanji ROM
 			retval = (uint32_t) read_kanjidata_left();
 			break;
@@ -1578,6 +1645,65 @@ void FM7_MAINIO::write_data8(uint32_t addr, uint32_t data)
 			set_ext_fd17((uint8_t)data);
 			break;
 #endif			
+#if defined(HAS_2HD)
+		case 0x18: // FDC: COMMAND
+			if(stat_fdmode_2hd) {
+				set_fdc_cmd_2HD((uint8_t)data);
+			} else {
+				set_fdc_cmd((uint8_t)data);
+			}
+			//printf("FDC: WRITE CMD %02x\n", data); 
+			break;
+		case 0x19: // FDC: Track
+			if(stat_fdmode_2hd) {
+				set_fdc_track_2HD((uint8_t)data);
+			} else {
+				set_fdc_track((uint8_t)data);
+			}
+			//printf("FDC: WRITE TRACK REG %02x\n", data); 
+			break;
+		case 0x1a: // FDC: Sector
+			if(stat_fdmode_2hd) {
+				set_fdc_sector_2HD((uint8_t)data);
+			} else {
+				set_fdc_sector((uint8_t)data);
+			}
+			//printf("FDC: WRITE SECTOR REG %02x\n", data); 
+			break;
+   		case 0x1b: // FDC: Data
+			if(stat_fdmode_2hd) {
+				set_fdc_data_2HD((uint8_t)data);
+			} else {
+				set_fdc_data((uint8_t)data);
+			}
+			break;
+		case 0x1c:
+			if(stat_fdmode_2hd) {
+				set_fdc_fd1c_2HD((uint8_t)data);
+			} else {
+				set_fdc_fd1c((uint8_t)data);
+			}
+			//printf("FDC: WRITE HEAD REG %02x\n", data); 
+			break;
+		case 0x1d:
+			if(stat_fdmode_2hd) {
+				set_fdc_fd1d_2HD((uint8_t)data);
+			} else {
+				set_fdc_fd1d((uint8_t)data);
+			}
+			//printf("FDC: WRITE MOTOR REG %02x\n", data); 
+			break;
+		case 0x1e:
+			if(stat_fdmode_2hd) {
+				set_fdc_fd1e_2HD((uint8_t)data);
+			} else {
+				set_fdc_fd1e((uint8_t)data);
+			}
+			break;
+		case 0x1f: // ??
+			return;
+			break;
+#else
 		case 0x18: // FDC: COMMAND
 			set_fdc_cmd((uint8_t)data);
 			//printf("FDC: WRITE CMD %02x\n", data); 
@@ -1607,6 +1733,7 @@ void FM7_MAINIO::write_data8(uint32_t addr, uint32_t data)
 		case 0x1f: // ??
 			return;
 			break;
+#endif
 		case 0x20: // Kanji ROM
 			write_kanjiaddr_hi((uint8_t)data);
 			break;
@@ -1793,6 +1920,16 @@ void FM7_MAINIO::event_callback(int event_id, int err)
 			set_fdc_motor(false);
 			event_fdc_motor = -1;
 			break;
+#if defined(HAS_2HD)
+		case EVENT_FD_MOTOR_ON_2HD:
+			set_fdc_motor_2HD(true);
+			event_fdc_motor_2HD = -1;
+			break;
+		case EVENT_FD_MOTOR_OFF_2HD:
+			set_fdc_motor_2HD(false);
+			event_fdc_motor_2HD = -1;
+			break;
+#endif
 		case EVENT_PRINTER_RESET_COMPLETED:			
 			this->write_signals(&printer_reset_bus, 0x00);
 			break;
@@ -1829,7 +1966,7 @@ void FM7_MAINIO::event_vline(int v, int clock)
 {
 }
 
-#define STATE_VERSION 9
+#define STATE_VERSION 10
 void FM7_MAINIO::save_state(FILEIO *state_fio)
 {
 	int ch;
@@ -1884,7 +2021,6 @@ void FM7_MAINIO::save_state(FILEIO *state_fio)
 #if defined(_FM77_VARIANTS)
 		state_fio->FputBool(stat_fdmode_2hd);
 		state_fio->FputBool(stat_kanjirom);
-		state_fio->FputBool(stat_400linecard);
 #elif defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
       defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
 		state_fio->FputBool(stat_kanjirom);
@@ -2001,6 +2137,20 @@ void FM7_MAINIO::save_state(FILEIO *state_fio)
 	state_fio->FputBool(midi_syndet);
 	state_fio->FputBool(midi_rxrdy);
 	state_fio->FputBool(midi_txrdy);
+#if defined(HAS_2HD)
+	state_fio->FputInt32_BE(event_fdc_motor_2HD);
+	state_fio->FputBool(connect_fdc_2HD);
+	state_fio->FputUint8(fdc_2HD_statreg);
+	state_fio->FputUint8(fdc_2HD_cmdreg);
+	state_fio->FputUint8(fdc_2HD_trackreg);
+	state_fio->FputUint8(fdc_2HD_sectreg);
+	state_fio->FputUint8(fdc_2HD_datareg);
+	state_fio->FputUint8(fdc_2HD_headreg);
+	state_fio->FputUint8(fdc_2HD_drvsel);
+	//state_fio->FputUint8(irqreg_fdc);
+	state_fio->FputBool(fdc_2HD_motor);
+	//state_fio->FputBool(irqstat_fdc);
+#endif
 }
 
 bool FM7_MAINIO::load_state(FILEIO *state_fio)
@@ -2059,7 +2209,6 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 #if defined(_FM77_VARIANTS)
 		stat_fdmode_2hd = state_fio->FgetBool();
 		stat_kanjirom = state_fio->FgetBool();
-		stat_400linecard = state_fio->FgetBool();
 #elif defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
       defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
 		stat_kanjirom = state_fio->FgetBool();
@@ -2174,6 +2323,20 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 	midi_syndet = state_fio->FgetBool();
 	midi_rxrdy = state_fio->FgetBool();
 	midi_txrdy = state_fio->FgetBool();
+#if defined(HAS_2HD)
+	event_fdc_motor_2HD = state_fio->FgetInt32_BE();
+	connect_fdc_2HD = state_fio->FgetBool();
+	fdc_2HD_statreg = state_fio->FgetUint8();
+	fdc_2HD_cmdreg = state_fio->FgetUint8();
+	fdc_2HD_trackreg = state_fio->FgetUint8();
+	fdc_2HD_sectreg = state_fio->FgetUint8();
+	fdc_2HD_datareg =state_fio->FgetUint8();
+	fdc_2HD_headreg = state_fio->FgetUint8();
+	fdc_2HD_drvsel = state_fio->FgetUint8();
+	//state_fio->FputUint8(irqreg_fdc);
+	fdc_2HD_motor = state_fio->FgetBool();
+	//state_fio->FputBool(irqstat_fdc);
+#endif
 	
 	if(version != STATE_VERSION) return false;
 	return true;

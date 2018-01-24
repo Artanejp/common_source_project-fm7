@@ -86,6 +86,7 @@
 # endif
 #define MAX_DRIVE  4
 #define CAPABLE_JCOMMCARD 1
+#define HAS_2HD
 
 #elif defined(_FM77L4)
 #define DEVICE_NAME		"FUJITSU FM-77L4"
