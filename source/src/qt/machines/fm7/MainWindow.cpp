@@ -16,7 +16,7 @@
 #include "sound_dialog.h"
 
 #include "../../vm/fm7/fm7_common.h"
-
+#include "menu_disk.h"
 //QT_BEGIN_NAMESPACE
 
 extern config_t config;
@@ -139,7 +139,7 @@ void Object_Menu_Control_7::do_set_320kFloppy(bool flag)
 }
 #endif
 
-#if defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
+#if defined(HAS_2HD)
 void Object_Menu_Control_7::do_set_1MFloppy(bool flag)
 {
 	if(flag) {
@@ -256,8 +256,16 @@ void META_MainWindow::retranslateUi(void)
 	jcommnum = -1;
 	
 	retranslateControlMenu("Hot Start (BREAK+RESET)", true);
+#if defined(USE_FD1)
 	retranslateFloppyMenu(0, 0);
+#endif
+#if defined(USE_FD2)
 	retranslateFloppyMenu(1, 1);
+#endif
+#if defined(HAS_2HD) || defined(HAS_1MSFD)
+	retranslateFloppyMenu(2, 2);
+	retranslateFloppyMenu(3, 3);
+#endif	
 	retranslateCMTMenu(0);
 #if defined(USE_BUBBLE1)
 	retranslateBubbleMenu(0, 1);
@@ -271,7 +279,28 @@ void META_MainWindow::retranslateUi(void)
 	retranslateMachineMenu();
 	retranslateEmulatorMenu();
 	retranslateUI_Help();
-	
+
+	{	
+#if defined(HAS_2HD) || defined(HAS_1MSFD)
+		menu_fds[0]->setTitle(QApplication::translate("MainWindow", "[0:]320K FDD", 0));
+		menu_fds[1]->setTitle(QApplication::translate("MainWindow", "[1:]320K FDD", 0));
+		menu_fds[2]->setTitle(QApplication::translate("MainWindow", "[2:]1M FDD", 0));
+		menu_fds[3]->setTitle(QApplication::translate("MainWindow", "[3:]1M FDD", 0));
+#else
+# if defined(USE_FD1)
+		if(menu_fds[0] != NULL) menu_fds[0]->setTitle(QApplication::translate("MainWindow", "[0:]FDD", 0));
+# endif
+# if defined(USE_FD2)
+		if(menu_fds[1] != NULL) menu_fds[1]->setTitle(QApplication::translate("MainWindow", "[1:]FDD", 0));
+# endif	
+# if defined(USE_FD3)
+		if(menu_fds[2] != NULL) menu_fds[2]->setTitle(QApplication::translate("MainWindow", "[2:]FDD", 0));
+# endif	
+# if defined(USE_FD4)
+		if(menu_fds[3] != NULL) menu_fds[3]->setTitle(QApplication::translate("MainWindow", "[3:]FDD", 0));
+# endif
+#endif
+	}
 	this->setWindowTitle(QApplication::translate("Machine", "MainWindow", 0));
 	actionSpecial_Reset->setText(QApplication::translate("Machine", "Hot Start(BREAK+RESET)", 0));
 	actionSpecial_Reset->setToolTip(QApplication::translate("Machine", "Do HOT START.\nReset with pressing BREAK key.", 0));
@@ -458,9 +487,11 @@ void META_MainWindow::retranslateUi(void)
 	action_320kFloppy->setText(QApplication::translate("Machine", "Connect 320KB FDD(Need Restart)", 0));
 	action_320kFloppy->setToolTip(QApplication::translate("Machine", "Connect 2D floppy drive.\nNeed to restart emulator if changed.", 0));
 #endif	
-#if defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
+#if defined(HAS_2HD)
 	action_1MFloppy->setText(QApplication::translate("Machine", "Connect 1MB FDD(Need Restart)", 0));
 	action_1MFloppy->setToolTip(QApplication::translate("Machine", "**Note: This option still not implemented**\nConnect 2HD (or 8inch) floppy drive.\nNeed to restart emulator if changed.\n", 0));
+#endif	
+#if defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
 
 	actionJIS78EMULATION->setText(QApplication::translate("Machine", "KANJI:JIS78 emulation.", 0));
 	actionJIS78EMULATION->setToolTip(QApplication::translate("Machine", "Emulate JIS78 kanji ROM.", 0));
@@ -682,7 +713,7 @@ void META_MainWindow::setupUI_Emu(void)
 	connect(action_320kFloppy, SIGNAL(toggled(bool)),
 			action_320kFloppy->fm7_binds, SLOT(do_set_320kFloppy(bool)));
 # endif	
-# if defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
+# if defined(HAS_2HD)
 	action_1MFloppy = new Action_Control_7(this, using_flags);	
 	menuMachine->addAction(action_1MFloppy);
 	action_1MFloppy->setCheckable(true);
@@ -690,7 +721,7 @@ void META_MainWindow::setupUI_Emu(void)
 	if((config.dipswitch & FM7_DIPSW_CONNECT_1MFDC) != 0) action_1MFloppy->setChecked(true);
 	connect(action_1MFloppy, SIGNAL(toggled(bool)),
 			action_1MFloppy->fm7_binds, SLOT(do_set_1MFloppy(bool)));
-#endif
+# endif
 	uint32_t tmpv = config.dipswitch & (FM7_DIPSW_SELECT_5_OR_8KEY | FM7_DIPSW_AUTO_5_OR_8KEY);
 	
 	menuAuto5_8Key = new QMenu(menuMachine);

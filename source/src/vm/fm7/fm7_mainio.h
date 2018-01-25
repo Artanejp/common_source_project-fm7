@@ -209,7 +209,11 @@ class FM7_MAINIO : public DEVICE {
 	/* FD1F : R */
 	uint8_t irqreg_fdc;
 	bool irqstat_fdc;
-   
+#if defined(HAS_2HD)   
+	/* FD1F : R */
+	uint8_t irqreg_fdc_2HD;
+	bool irqstat_fdc_2HD;
+#endif   
 	/* FD20,FD21 : W */
 	bool connect_kanjiroml1;
 #ifdef _FM77AV_VARIANTS
@@ -288,7 +292,10 @@ class FM7_MAINIO : public DEVICE {
 	//virtual void set_irq_opn(bool flag);
 	virtual void set_irq_mfd(bool flag);
 	virtual void set_drq_mfd(bool flag);
-
+#if defined(HAS_2HD)
+	virtual void set_irq_mfd_2HD(bool flag);
+	virtual void set_drq_mfd_2HD(bool flag);
+#endif
 	// FD04
 	virtual void do_firq(void);
 	virtual void do_nmi(bool flag);
@@ -425,6 +432,9 @@ class FM7_MAINIO : public DEVICE {
 	bool midi_txrdy;
 	
 	MB8877* fdc;
+#if defined(HAS_2HD)
+	MB8877* fdc_2HD;
+#endif
 #if defined(HAS_DMA)
 	HD6844* dmac;
 #endif
@@ -544,6 +554,20 @@ public:
 		this->out_debug_log(_T("FDC: connect=%d"), connect_fdc);
 		fdc = p;
 	}	
+#if defined(HAS_2HD)
+	void set_context_fdc_2HD(MB8877 *p){
+		if(p == NULL) {
+	  		connect_fdc_2HD = false;
+			irqreg_fdc_2HD = 0xff; //0b11111111;
+		} else {
+			connect_fdc_2HD = true;
+			extdet_neg = true;
+			irqreg_fdc_2HD = 0x3f; //0b00111111;
+		}
+		this->out_debug_log(_T("FDC(2HD): connect=%d"), connect_fdc);
+		fdc_2HD = p;
+	} 
+#endif
 	void set_context_maincpu(MC6809 *p){
 		maincpu = p;
 	}

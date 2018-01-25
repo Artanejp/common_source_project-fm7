@@ -1,3 +1,33 @@
+/*
+ * FM-7 Main I/O -> FDC [floppy.cpp]
+ *
+ * Author: K.Ohta <whatisthis.sowhat _at_ gmail.com>
+ * License: GPLv2
+ * History:
+ *   Mar 19, 2015 : Initial, split from fm7_mainio.cpp .
+ *
+ */
+
+#include "fm7_mainio.h"
+
+#include "../mc6809.h"
+#include "../z80.h"
+
+#include "../mb8877.h"
+#include "../disk.h"
+#if defined(HAS_DMA)
+#include "hd6844.h"
+#endif
+
+#define FDC_CMD_TYPE1		1
+#define FDC_CMD_RD_SEC		2
+#define FDC_CMD_RD_MSEC		3
+#define FDC_CMD_WR_SEC		4
+#define FDC_CMD_WR_MSEC		5
+#define FDC_CMD_RD_ADDR		6
+#define FDC_CMD_RD_TRK		7
+#define FDC_CMD_WR_TRK		8
+#define FDC_CMD_TYPE4		0x80
 
 void FM7_MAINIO::reset_fdc_2HD(void)
 {
@@ -10,17 +40,10 @@ void FM7_MAINIO::reset_fdc_2HD(void)
 	fdc_2HD_datareg = fdc_2HD->read_io8(3);
 	fdc_2HD_headreg = 0xfe | fdc_2HD->read_signal(SIG_MB8877_SIDEREG);
 	fdc_2HD_drvsel = 0x7c | fdc_2HD->read_signal(SIG_MB8877_DRIVEREG);
-	irqreg_fdc = 0x00; //0b00000000;
+	irqreg_fdc_2HD = 0x00; //0b00000000;
 	//fdc_2HD_motor = (fdc_2HD->read_signal(SIG_MB8877_MOTOR) != 0);
 	fdc_2HD_motor = false;
 		
-	if(connect_fdc_2HD) {
-		fdc_2HD_reg_fd1e = 0x80;
-		for(int i = 0; i < 4; i++) {
-			fdc_2HD_drive_table[i] = (uint8_t)i;
-			fdc_2HD->set_drive_type(i, DRIVE_TYPE_2HD);
-		}
-	}
 	if(event_fdc_motor_2HD >= 0) cancel_event(this, event_fdc_motor_2HD);
 	event_fdc_motor_2HD = -1;
 	//irqstat_2HD_fdc = false;
@@ -57,7 +80,7 @@ void FM7_MAINIO::set_fdc_cmd_2HD(uint8_t val)
 #endif
 }
 
-uint8_t FM7_MAINIO::get_fdc_stat(void)
+uint8_t FM7_MAINIO::get_fdc_stat_2HD(void)
 {
 #if defined(HAS_2HD)
 	uint32_t stat_backup = fdc_2HD_statreg;
@@ -127,7 +150,7 @@ void FM7_MAINIO::set_fdc_data_2HD(uint8_t val)
 #endif
 }
 
-uint8_t FM7_MAINIO::get_fdc_data(void)
+uint8_t FM7_MAINIO::get_fdc_data_2HD(void)
 {
 #if defined(HAS_2HD)
 	if(!(connect_fdc_2HD) || (fdc_2HD == NULL)) return 0xff;
@@ -197,12 +220,12 @@ void FM7_MAINIO::set_fdc_fd1d_2HD(uint8_t val)
 	fdc_2HD_drvsel = val;
 
 	if(f != backup_motor) {
-		if(event_fdc_2HD_motor >= 0) cancel_event(this, event_fdc_2HD_motor);
+		if(event_fdc_motor_2HD >= 0) cancel_event(this, event_fdc_motor_2HD);
 		// OK?
 		if(f) {
-			register_event(this, EVENT_FD_MOTOR_ON, 1000.0 * 300.0, false, &event_fdc_2HD_motor); // Motor ON After 0.3Sec.
+			register_event(this, EVENT_FD_MOTOR_ON, 1000.0 * 300.0, false, &event_fdc_motor_2HD); // Motor ON After 0.3Sec.
 		} else {
-			register_event(this, EVENT_FD_MOTOR_OFF, 1000.0 * 50.0, false, &event_fdc_2HD_motor); // Motor OFF After 0.05Sec.
+			register_event(this, EVENT_FD_MOTOR_OFF, 1000.0 * 50.0, false, &event_fdc_motor_2HD); // Motor OFF After 0.05Sec.
 		}
 	}
 #ifdef _FM7_FDC_DEBUG	
@@ -224,17 +247,16 @@ void FM7_MAINIO::set_irq_mfd_2HD(bool flag)
 {
 #if defined(HAS_2HD)
 	if(!(connect_fdc_2HD) || (fdc_2HD == NULL)) return;
-	//bool backup = irqstat_fdc_2HD;
-	bool backup = irqstat_fdc;
 	if(flag) {
-		irqreg_fdc |= 0x40; //0b01000000;
+		irqreg_fdc_2HD |= 0x40; //0b01000000;
 	} else {
-		irqreg_fdc &= 0xbf; //0b10111111;
+		irqreg_fdc_2HD &= 0xbf; //0b10111111;
 	}
 # if defined(_FM77_VARIANTS) // With FM8, $FD1F is alive and not do_irq(), Thanks to Anna_Wu.
+	bool backup = irqstat_fdc_2HD;
 	flag = flag & intmode_fdc;
-	irqstat_fdc = flag & !irqmask_mfd;
-	if(backup != irqstat_fdc) do_irq();
+	irqstat_fdc_2HD = flag & !irqmask_mfd;
+	if(backup != irqstat_fdc_2HD) do_irq();
 # endif
 #endif
 	return;

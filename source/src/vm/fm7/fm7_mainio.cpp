@@ -51,6 +51,9 @@ FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, paren
 	pcm1bit = NULL;
 	joystick = NULL;
 	fdc = NULL;
+ #if defined(HAS_2HD)
+ 	fdc_2HD = NULL;
+ #endif
 	printer = NULL;
 	
 	kanjiclass1 = NULL;
@@ -1027,6 +1030,14 @@ void FM7_MAINIO::write_signal(int id, uint32_t data, uint32_t mask)
 	case FM7_MAINIO_FDC_IRQ:
 		set_irq_mfd(val_b);
 		break;
+#if defined(HAS_2HD)
+	case FM7_MAINIO_FDC_DRQ_2HD:
+		set_drq_mfd_2HD(val_b);
+		break;
+	case FM7_MAINIO_FDC_IRQ_2HD:
+		set_irq_mfd_2HD(val_b);
+		break;
+#endif
 #if defined(HAS_DMA)
 	case FM7_MAINIO_DMA_INT:
 		intstat_dma = val_b;

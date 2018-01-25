@@ -351,7 +351,7 @@ static const _TCHAR *sound_device_caption[] = {
 	_T("PSG(Hack)"),
 	_T("Beep"),
 	_T("CMT (Signal)"),
-	_T("Noise (FDD)"),
+	_T("Noise (320KB FDD)"),
 	_T("Noise (CMT)"),
 #else
 # if !defined(_FM77AV_VARIANTS)
@@ -362,7 +362,11 @@ static const _TCHAR *sound_device_caption[] = {
 # if defined(_FM77AV_VARIANTS)
 	_T("Keyboard"),
 # endif
-	_T("Noise (FDD)"), _T("Noise (CMT)"),
+	_T("Noise (320KB FDD)"),
+# if defined(HAS_2HD)
+	_T("Noise (1MB FDD/2HD)"),
+# endif
+	_T("Noise (CMT)"),
 #endif	
 };
 #endif
@@ -443,6 +447,9 @@ protected:
 	FM7_MAINIO* mainio;
 #endif
 	MB8877* fdc;
+#if defined(HAS_2HD)
+	MB8877 *fdc_2HD;
+#endif
 #if defined(_FM8)
 	// FM8
 # if defined(USE_AY_3_8910_AS_PSG)

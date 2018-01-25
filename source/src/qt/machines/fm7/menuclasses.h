@@ -33,7 +33,7 @@ public slots:
 	void do_set_kanji_rom(bool flag);
 	void do_set_320kFloppy(bool flag);
 # endif
-# if defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
+# if defined(HAS_2HD)
 	void do_set_1MFloppy(bool flag);
 # endif   
 # if defined(_FM8)
@@ -99,7 +99,7 @@ protected:
 # if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
 	class Action_Control_7 *action_320kFloppy;
 # endif  
-# if defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
+# if defined(HAS_2HD)
 	class Action_Control_7 *action_1MFloppy;
 # endif  
 # if defined(WITH_Z80)

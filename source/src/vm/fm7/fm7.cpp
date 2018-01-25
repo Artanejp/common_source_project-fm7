@@ -85,15 +85,21 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #ifdef WITH_Z80
 	if((config.dipswitch & FM7_DIPSW_Z80CARD_ON) != 0) {
 		z80cpu = new Z80(this, emu);
+		g_mainstat = new AND(this, emu);
+		g_intr = new OR(this, emu);
+		
+		g_intr_irq = new AND(this, emu);
+		g_intr_firq = new AND(this, emu);
+		g_nmi = new AND(this, emu);
 	} else {
 		z80cpu = NULL;
-	}
-	g_mainstat = new AND(this, emu);
-	g_intr = new OR(this, emu);
+		g_mainstat = NULL;
+		g_intr = NULL;
 
-	g_intr_irq = new AND(this, emu);
-	g_intr_firq = new AND(this, emu);
-	g_nmi = new AND(this, emu);
+		g_intr_irq = NULL;
+		g_intr_firq = NULL;
+		g_nmi = NULL;
+	}
 #endif
 #if defined(CAPABLE_JCOMMCARD)
 	if((config.dipswitch & FM7_DIPSW_JSUBCARD_ON) != 0) {
@@ -153,33 +159,37 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 
 	connect_320kfdc = connect_1Mfdc = false;
 	fdc = NULL;
+#if defined(HAS_2HD)
+	fdc_2HD = NULL;
+#endif
+
 #if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
-	if(((config.dipswitch & FM7_DIPSW_CONNECT_320KFDC) != 0) ||
-	   ((config.dipswitch & FM7_DIPSW_CONNECT_1MFDC) != 0)) {
-#endif		
+	if((config.dipswitch & FM7_DIPSW_CONNECT_320KFDC) != 0) {
 		fdc = new MB8877(this, emu);
 		fdc->set_context_noise_seek(new NOISE(this, emu));
 		fdc->set_context_noise_head_down(new NOISE(this, emu));
 		fdc->set_context_noise_head_up(new NOISE(this, emu));
-#if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
-		if((config.dipswitch & FM7_DIPSW_CONNECT_320KFDC) != 0) {
-			connect_320kfdc = true;
-		}
-		if((config.dipswitch & FM7_DIPSW_CONNECT_1MFDC) != 0) {
-			connect_1Mfdc = true;
-		}
-#elif defined(_FM77_VARIANTS)
 		connect_320kfdc = true;
-		if((config.dipswitch & FM7_DIPSW_CONNECT_1MFDC) != 0) {
-			connect_1Mfdc = true;
-		}
-#else	// AV or later.
-		connect_320kfdc = true;
-		// 1MFDD??
-#endif		
-#if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
 	}
-#endif	
+#else
+	{
+		fdc = new MB8877(this, emu);
+		fdc->set_context_noise_seek(new NOISE(this, emu));
+		fdc->set_context_noise_head_down(new NOISE(this, emu));
+		fdc->set_context_noise_head_up(new NOISE(this, emu));
+		connect_320kfdc = true;
+	}
+#endif		
+#if defined(HAS_2HD)
+	if((config.dipswitch & FM7_DIPSW_CONNECT_1MFDC) != 0) {
+		fdc_2HD = new MB8877(this, emu);
+		fdc_2HD->set_context_noise_seek(new NOISE(this, emu));
+		fdc_2HD->set_context_noise_head_down(new NOISE(this, emu));
+		fdc_2HD->set_context_noise_head_up(new NOISE(this, emu));
+		connect_1Mfdc = true;
+	}
+#endif
+	
 	joystick  = new JOYSTICK(this, emu);
 	printer = new PRNFILE(this, emu);
 #if defined(_FM77AV_VARIANTS)
@@ -216,12 +226,13 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	// DCD
 #endif
 #ifdef WITH_Z80
-	g_mainstat->set_mask(SIG_AND_BIT_0);
-	g_mainstat->set_mask(SIG_AND_BIT_1);
-	maincpu->set_context_bus_ba(g_mainstat, SIG_AND_BIT_0, 0xffffffff);
-	maincpu->set_context_bus_bs(g_mainstat, SIG_AND_BIT_1, 0xffffffff);
-	g_mainstat->set_context_out(mainio, FM7_MAINIO_RUN_Z80, 0xffffffff);
-
+	if(g_mainstat != NULL) {
+		g_mainstat->set_mask(SIG_AND_BIT_0);
+		g_mainstat->set_mask(SIG_AND_BIT_1);
+		maincpu->set_context_bus_ba(g_mainstat, SIG_AND_BIT_0, 0xffffffff);
+		maincpu->set_context_bus_bs(g_mainstat, SIG_AND_BIT_1, 0xffffffff);
+		g_mainstat->set_context_out(mainio, FM7_MAINIO_RUN_Z80, 0xffffffff);
+	}
 	if(z80cpu != NULL) {
 		z80cpu->set_context_busack(mainio, FM7_MAINIO_RUN_6809, 0xffffffff);
 		mainio->set_context_z80cpu(z80cpu);
@@ -243,11 +254,14 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	if(g_jsubhalt != NULL) {
 		g_jsubhalt->set_device_name(_T("J.COMM BOARD HALT(MC6809)"));
 	}
+# endif
 # ifdef WITH_Z80
 	if(z80cpu != NULL) z80cpu->set_device_name(_T("Z80 CPU BOARD"));
 # endif
 	if(fdc != NULL) fdc->set_device_name(_T("MB8877 FDC(320KB)"));
-	
+#if defined(HAS_2HD)
+	if(fdc_2HD != NULL) fdc_2HD->set_device_name(_T("MB8877 FDC(1MB/2HD)"));
+#endif	
 	if(uart[0] != NULL) {
 		uart[0]->set_device_name(_T("RS-232C BOARD(I8251 SIO)"));
 	}
@@ -277,7 +291,6 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #  if !defined(_FM77AV_VARIANTS)
 	psg->set_device_name(_T("AY-3-8910 PSG"));
 #  endif
-# endif
 	pcm1bit->set_device_name(_T("BEEP"));
 	printer->set_device_name(_T("PRINTER I/F"));
 # if defined(_FM77AV_VARIANTS)
@@ -296,11 +309,11 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	g_rs232c_dtr->set_device_name(_T("RS232C DTR(AND)"));
 #endif
 #ifdef WITH_Z80
-	g_intr->set_device_name(_T("Z80 INTR(OR)"));
-	g_mainstat->set_device_name(_T("Z80 HALT/RUN(AND)"));
-	g_intr_irq->set_device_name(_T("Z80 IRQ(AND)"));
-	g_intr_firq->set_device_name(_T("Z80 FIRQ(AND)"));
-	g_nmi->set_device_name(_T("Z80 NMI(AND)"));
+	if(g_intr != NULL) g_intr->set_device_name(_T("Z80 INTR(OR)"));
+	if(g_mainstat != NULL) g_mainstat->set_device_name(_T("Z80 HALT/RUN(AND)"));
+	if(g_intr_irq != NULL) g_intr_irq->set_device_name(_T("Z80 IRQ(AND)"));
+	if(g_intr_firq != NULL) g_intr_firq->set_device_name(_T("Z80 FIRQ(AND)"));
+	if(g_nmi != NULL) g_nmi->set_device_name(_T("Z80 NMI(AND)"));
 #endif
 	g_substat_display->set_device_name(_T("DISPLAY STATUS(AND)"));
 	g_substat_mainhalt->set_device_name(_T("SUBSYSTEM HALT STATUS(AND)"));
@@ -377,28 +390,28 @@ void VM::connect_bus(void)
 	if(z80cpu != NULL) {
 		event->set_context_cpu(z80cpu,  4000000);
 		z80cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+
+		g_intr_irq->set_mask(SIG_AND_BIT_0);
+		g_intr_irq->set_mask(SIG_AND_BIT_1);
+		
+		g_intr_firq->set_mask(SIG_AND_BIT_0);
+		g_intr_firq->set_mask(SIG_AND_BIT_1);
+	
+		g_nmi->set_mask(SIG_AND_BIT_0);
+		g_nmi->set_mask(SIG_AND_BIT_1);
+
+		mainio->set_context_irq(g_intr_irq, SIG_AND_BIT_1, 0xffffffff);
+		g_intr_irq->set_context_out(g_intr, SIG_OR_BIT_0, 0xffffffff);
+	
+		mainio->set_context_firq(g_intr_firq, SIG_AND_BIT_1, 0xffffffff);
+		g_intr_firq->set_context_out(g_intr, SIG_OR_BIT_0, 0xffffffff);
+		
+		g_intr->set_context_out(z80cpu, SIG_CPU_IRQ, 0xffffffff);
+
+		mainio->set_context_nmi(g_nmi, SIG_AND_BIT_1, 0xffffffff);
+		g_nmi->set_context_out(z80cpu, SIG_CPU_NMI, 0xffffffff);
 	}
 	maincpu->write_signal(SIG_CPU_HALTREQ, 0, 1);
-
-	g_intr_irq->set_mask(SIG_AND_BIT_0);
-	g_intr_irq->set_mask(SIG_AND_BIT_1);
-	
-	g_intr_firq->set_mask(SIG_AND_BIT_0);
-	g_intr_firq->set_mask(SIG_AND_BIT_1);
-	
-	g_nmi->set_mask(SIG_AND_BIT_0);
-	g_nmi->set_mask(SIG_AND_BIT_1);
-
-	mainio->set_context_irq(g_intr_irq, SIG_AND_BIT_1, 0xffffffff);
-	g_intr_irq->set_context_out(g_intr, SIG_OR_BIT_0, 0xffffffff);
-	
-	mainio->set_context_firq(g_intr_firq, SIG_AND_BIT_1, 0xffffffff);
-	g_intr_firq->set_context_out(g_intr, SIG_OR_BIT_0, 0xffffffff);
-	
-	if(z80cpu != NULL) g_intr->set_context_out(z80cpu, SIG_CPU_IRQ, 0xffffffff);
-
-	mainio->set_context_nmi(g_nmi, SIG_AND_BIT_1, 0xffffffff);
-	if(z80cpu != NULL) g_nmi->set_context_out(z80cpu, SIG_CPU_NMI, 0xffffffff);
 #endif
 #if defined(CAPABLE_JCOMMCARD)
 	if((jsubcpu != NULL) && (jcommcard != NULL)) {
@@ -432,6 +445,13 @@ void VM::connect_bus(void)
 		event->set_context_sound(fdc->get_context_noise_head_down());
 		event->set_context_sound(fdc->get_context_noise_head_up());
 	}
+#if defined(HAS_2HD)
+	if(fdc_2HD != NULL) {
+		event->set_context_sound(fdc_2HD->get_context_noise_seek());
+		event->set_context_sound(fdc_2HD->get_context_noise_head_down());
+		event->set_context_sound(fdc_2HD->get_context_noise_head_up());
+	}
+#endif
 	if(drec != NULL) {
 		event->set_context_sound(drec->get_context_noise_play());
 		event->set_context_sound(drec->get_context_noise_stop());
@@ -551,14 +571,25 @@ void VM::connect_bus(void)
 #endif	
 	// Palette, VSYNC, HSYNC, Multi-page, display mode. 
 	mainio->set_context_display(display);
+ 
 #if defined(_FM8) || (_FM7) || (_FMNEW7)
-	if(connect_320kfdc || connect_1Mfdc) {
-#endif		
+	if(connect_320kfdc) {
+#endif
+		if(fdc != NULL) {
+			//FDC
+			fdc->set_context_irq(mainio, FM7_MAINIO_FDC_IRQ, 0x1);
+			fdc->set_context_drq(mainio, FM7_MAINIO_FDC_DRQ, 0x1);
+			mainio->set_context_fdc(fdc);
+		}
+#if defined(_FM8) || (_FM7) || (_FMNEW7)
+	}
+#endif	
+#if defined(HAS_2HD)
+	if(connect_1Mfdc && (fdc_2HD != NULL)) {
 		//FDC
-		fdc->set_context_irq(mainio, FM7_MAINIO_FDC_IRQ, 0x1);
-		fdc->set_context_drq(mainio, FM7_MAINIO_FDC_DRQ, 0x1);
-		mainio->set_context_fdc(fdc);
-#if defined(_FM8) || (_FM7) || (_FMNEW7)
+		fdc_2HD->set_context_irq(mainio, FM7_MAINIO_FDC_IRQ_2HD, 0x1);
+		fdc_2HD->set_context_drq(mainio, FM7_MAINIO_FDC_DRQ_2HD, 0x1);
+		mainio->set_context_fdc_2HD(fdc_2HD);
 	}
 #endif	
 	// SOUND
@@ -619,40 +650,38 @@ void VM::connect_bus(void)
 	}
 
 #if defined(WITH_Z80)
-	g_intr_irq->write_signal(SIG_AND_BIT_0, ((config.dipswitch & FM7_DIPSW_Z80_IRQ_ON) != 0) ? 1 : 0, 1);
-	g_intr_firq->write_signal(SIG_AND_BIT_0, ((config.dipswitch & FM7_DIPSW_Z80_FIRQ_ON) != 0) ? 1 : 0, 1);
-	g_nmi->write_signal(SIG_AND_BIT_0, ((config.dipswitch & FM7_DIPSW_Z80_NMI_ON) != 0) ? 1 : 0, 1);
+	if(g_intr_irq != NULL) g_intr_irq->write_signal(SIG_AND_BIT_0, ((config.dipswitch & FM7_DIPSW_Z80_IRQ_ON) != 0) ? 1 : 0, 1);
+	if(g_intr_firq != NULL) g_intr_firq->write_signal(SIG_AND_BIT_0, ((config.dipswitch & FM7_DIPSW_Z80_FIRQ_ON) != 0) ? 1 : 0, 1);
+	if(g_nmi != NULL) g_nmi->write_signal(SIG_AND_BIT_0, ((config.dipswitch & FM7_DIPSW_Z80_NMI_ON) != 0) ? 1 : 0, 1);
 #endif
 	// Disks
 #if defined(_FM8) || (_FM7) || (_FMNEW7)
 	if(connect_320kfdc) {
-#endif		
-		for(int i = 0; i < 4; i++) {
+#endif
+		if(fdc != NULL) {
+			for(int i = 0; i < 4; i++) {
 #if defined(_FM77AV20) || defined(_FM77AV20EX) || \
 	defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-			fdc->set_drive_type(i, DRIVE_TYPE_2DD);
+				fdc->set_drive_type(i, DRIVE_TYPE_2DD);
 #else
-			fdc->set_drive_type(i, DRIVE_TYPE_2D);
+				fdc->set_drive_type(i, DRIVE_TYPE_2D);
 #endif
-			fdc->set_drive_rpm(i, 360);
-			fdc->set_drive_mfm(i, true);
+				fdc->set_drive_rpm(i, 360);
+				fdc->set_drive_mfm(i, true);
+			}
 		}
 #if defined(_FM8) || (_FM7) || (_FMNEW7)
 	}
 #endif	
 	
-#if defined(_FM8) || (_FM7) || (_FMNEW7)
-	if(connect_1Mfdc) {
-#endif
+#if defined(HAS_2HD)
+	if(connect_1Mfdc && (fdc_2HD != NULL)) {
 // ToDo: Implement another FDC for 1MB (2HD or 8''), this is used by FM-8 to FM-77? Not FM77AV or later? I still know this.
-//#if defined(_FM77) || defined(_FM77L4)
-//		for(int i = 0; i < 4; i++) {
-//			fdc->set_drive_type(i, DRIVE_TYPE_2HD);
-//			fdc->set_drive_rpm(i, 360);
-//			fdc->set_drive_mfm(i, true);
-//		}
-//#endif
-#if defined(_FM8) || (_FM7) || (_FMNEW7)
+		for(int i = 0; i < 2; i++) {
+			fdc_2HD->set_drive_type(i, DRIVE_TYPE_2HD);
+			fdc_2HD->set_drive_rpm(i, 360);
+			fdc_2HD->set_drive_mfm(i, true);
+		}
 	}
 #endif	
 }  
@@ -841,7 +870,17 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 			fdc->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
 			fdc->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
 		}
-	} else if(ch-- == 0) {
+	} 
+#if defined(HAS_2HD)
+	else if(ch-- == 0) {
+		if(fdc_2HD != NULL) {
+			fdc_2HD->get_context_noise_seek()->set_volume(0, decibel_l, decibel_r);
+			fdc_2HD->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
+			fdc_2HD->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
+		}
+	} 
+#endif
+	else if(ch-- == 0) {
 		if(drec != NULL) {
 			drec->get_context_noise_play()->set_volume(0, decibel_l, decibel_r);
 			drec->get_context_noise_stop()->set_volume(0, decibel_l, decibel_r);
@@ -890,55 +929,122 @@ uint32_t VM::get_extra_leds()
 
 void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
+	if(drv < 0) return;
+#if defined(HAS_2HD)
+	if(drv < 2) {
+		if(fdc != NULL) {
+			fdc->open_disk(drv, file_path, bank);
+		}
+	} else {
+		if(fdc_2HD != NULL) {
+			fdc_2HD->open_disk(drv - 2, file_path, bank);
+		}
+	}
+#else
 	if(fdc != NULL) {
 		fdc->open_disk(drv, file_path, bank);
 	}
+#endif
 }
 
 void VM::close_floppy_disk(int drv)
 {
+#if defined(HAS_2HD)
+	if(drv < 2) {
+		if(fdc != NULL) fdc->close_disk(drv);
+	} else {
+		if(fdc_2HD != NULL) fdc_2HD->close_disk(drv - 2);
+	}		
+#else
 	if(fdc != NULL) {
 		fdc->close_disk(drv);
 	}
+#endif
 }
 
 bool VM::is_floppy_disk_inserted(int drv)
 {
+#if defined(HAS_2HD)
+	if((fdc != NULL) && (drv < 2)) {
+		return fdc->is_disk_inserted(drv);
+	} else if(fdc_2HD != NULL) {
+		return fdc_2HD->is_disk_inserted(drv - 2);
+	} else {
+		return false;
+	}
+#else
 	if(fdc != NULL) {
 		return fdc->is_disk_inserted(drv);
 	} else {
 		return false;
 	}
+#endif
 }
 
 void VM::is_floppy_disk_protected(int drv, bool value)
 {
+#if defined(HAS_2HD)
+	if((fdc != NULL) && (drv < 2)) {
+		fdc->is_disk_protected(drv, value);
+	} else if(fdc_2HD != NULL) {
+		fdc_2HD->is_disk_protected(drv - 2, value);
+	}		
+#else
 	if(fdc != NULL) {
 		fdc->is_disk_protected(drv, value);
 	}
+#endif
 }
 
 bool VM::is_floppy_disk_protected(int drv)
 {
+#if defined(HAS_2HD)
+	if((fdc != NULL) && (drv < 2)) {
+		return fdc->is_disk_protected(drv);
+	} else if(fdc_2HD != NULL) {
+		return fdc_2HD->is_disk_protected(drv);
+	} else {
+		return false;
+	}
+#else
 	if(fdc != NULL) {
 		return fdc->is_disk_protected(drv);
 	} else {
 		return false;
 	}
+#endif
 }
 
 uint32_t VM::is_floppy_disk_accessed()
 {
-	// WILLFIX : Multiple FDC for 1M FD.
-#if defined(_FM8) || (_FM7) || (_FMNEW7)
-	if(connect_320kfdc || connect_1Mfdc) {
-#endif		
-		return fdc->read_signal(0);
-#if defined(_FM8) || (_FM7) || (_FMNEW7)
-	} else {
-		return 0x00000000;
+	uint32_t v = 0;
+#if defined(HAS_2HD)
+	uint32_t v1, v2;
+	v1 = v2 = 0;
+# if defined(_FM8) || (_FM7) || (_FMNEW7)
+	if(connect_320kfdc) {
+# endif
+		if(fdc != NULL) v1 = fdc->read_signal(0);
+# if defined(_FM8) || (_FM7) || (_FMNEW7)
 	}
-#endif	
+# endif
+	if(connect_1Mfdc) {
+		if(fdc_2HD != NULL) v2 = fdc_2HD->read_signal(0);
+	}
+	v1 = v1 & 0x03;
+	v2 = (v2 & 0x03) << 2;
+	v = v1 | v2;
+	return v;
+#else
+# if defined(_FM8) || (_FM7) || (_FMNEW7)
+	if(connect_320kfdc) {
+# endif		
+		v = fdc->read_signal(0);
+# if defined(_FM8) || (_FM7) || (_FMNEW7)
+	}
+# endif
+	return v;
+#endif
 }
 
 void VM::play_tape(int drv, const _TCHAR* file_path)
@@ -1052,9 +1158,9 @@ bool VM::is_frame_skippable()
 void VM::update_dipswitch()
 {
 #if defined(WITH_Z80)
-	g_intr_irq->write_signal(SIG_AND_BIT_0, ((config.dipswitch & FM7_DIPSW_Z80_IRQ_ON) != 0) ? 1 : 0, 1);
-	g_intr_firq->write_signal(SIG_AND_BIT_0, ((config.dipswitch & FM7_DIPSW_Z80_FIRQ_ON) != 0) ? 1 : 0, 1);
-	g_nmi->write_signal(SIG_AND_BIT_0, ((config.dipswitch & FM7_DIPSW_Z80_NMI_ON) != 0) ? 1 : 0, 1);
+	if(g_intr_irq != NULL) g_intr_irq->write_signal(SIG_AND_BIT_0, ((config.dipswitch & FM7_DIPSW_Z80_IRQ_ON) != 0) ? 1 : 0, 1);
+	if(g_intr_firq != NULL) g_intr_firq->write_signal(SIG_AND_BIT_0, ((config.dipswitch & FM7_DIPSW_Z80_FIRQ_ON) != 0) ? 1 : 0, 1);
+	if(g_nmi != NULL) g_nmi->write_signal(SIG_AND_BIT_0, ((config.dipswitch & FM7_DIPSW_Z80_NMI_ON) != 0) ? 1 : 0, 1);
 #endif
 }
 
