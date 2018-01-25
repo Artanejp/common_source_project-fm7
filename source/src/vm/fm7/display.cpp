@@ -439,13 +439,13 @@ void DISPLAY::leave_display(void)
 
 void DISPLAY::halt_subsystem(void)
 {
-	halt_flag = false;
+	//halt_flag = false;
   	halt_subcpu();
 }
 
 void DISPLAY::restart_subsystem(void)
 {
-	halt_flag = false;
+	//halt_flag = false;
 #if defined(_FM77AV_VARIANTS)
 	if(subcpu_resetreq) {
 		firq_mask = (mainio->read_signal(FM7_MAINIO_KEYBOARDIRQ_MASK) != 0) ? false : true;

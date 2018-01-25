@@ -1075,7 +1075,8 @@ uint8_t FM7_MAINIO::get_irqstat_fd03(void)
 {
 	uint8_t val;
 	bool extirq;
-
+	uint8_t backup = irqstat_reg0;
+   
 	extirq = irqstat_fdc | intstat_opn | intstat_whg | intstat_thg;
 	extirq = extirq | intstat_syndet | intstat_rxrdy | intstat_txrdy;
 # if defined(HAS_DMA)
@@ -1091,8 +1092,9 @@ uint8_t FM7_MAINIO::get_irqstat_fd03(void)
 	irqstat_timer = false;
 	irqstat_printer = false;
 	irqstat_reg0 |= 0x06;
-	do_irq();
+	//if(backup != irqstat_reg0) do_irq();
 	//this->out_debug_log(_T("IO: Check IRQ Status."));
+	do_irq();
 	return val;
 
 }
