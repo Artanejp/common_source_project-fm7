@@ -103,10 +103,10 @@ EMU::EMU()
 	// Still not resolved with FM-7/77 :-( 20160407 K.Ohta
 #if defined(_FM7) || defined(_FMNEW7) || defined(_FM8) || \
 	defined(_FM77_VARIANTS)
-	delete vm;
-	osd->vm = vm = new VM(this);
+	//delete vm;
+	//osd->vm = vm = new VM(this);
 # if defined(_USE_QT)
-	osd->reset_vm_node();
+	//osd->reset_vm_node();
 # endif	
 #endif
 #ifdef USE_AUTO_KEY
