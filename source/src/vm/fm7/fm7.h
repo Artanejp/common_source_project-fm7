@@ -410,7 +410,12 @@ class HD6844;
 #endif
 class AND;
 class FM7_MAINMEM;
+#if defined(_FM8)
+class FM8_MAINIO;
+#else
 class FM7_MAINIO;
+#endif
+
 class KEYBOARD;
 class KANJIROM;
 class JOYSTICK;
@@ -432,7 +437,11 @@ protected:
 	
 	MC6809* maincpu;
 	FM7_MAINMEM* mainmem;
+#if defined(_FM8)
+	FM8_MAINIO* mainio;
+#else
 	FM7_MAINIO* mainio;
+#endif
 	MB8877* fdc;
 #if defined(_FM8)
 	// FM8

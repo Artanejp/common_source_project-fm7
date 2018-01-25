@@ -95,7 +95,7 @@ void FM7_MAINIO::set_fdc_cmd(uint8_t val)
 
 uint8_t FM7_MAINIO::get_fdc_stat(void)
 {
-	uint32_t stat_backup = fdc_statreg;
+	//uint32_t stat_backup = fdc_statreg;
 	if(!connect_fdc) return 0xff;
 	fdc_statreg =  fdc->read_io8(0);
 #ifdef _FM7_FDC_DEBUG	
@@ -286,6 +286,7 @@ void FM7_MAINIO::set_fdc_fd1e(uint8_t val)
 	}
 #endif	
 }
+
 void FM7_MAINIO::set_irq_mfd(bool flag)
 {
 	bool backup = irqstat_fdc;
@@ -298,10 +299,10 @@ void FM7_MAINIO::set_irq_mfd(bool flag)
 #if defined(_FM77_VARIANTS)
 	flag = flag & !(intmode_fdc);
 #endif
-#if !defined(_FM8) // With FM8, $FD1F is alive and not do_irq(), Thanks to Anna_Wu.
+//#if !defined(_FM8) // With FM8, $FD1F is alive and not do_irq(), Thanks to Anna_Wu.
 	irqstat_fdc = flag & !irqmask_mfd;
 	if(backup != irqstat_fdc) do_irq();
-#endif
+//#endif
 	return;
 }
 

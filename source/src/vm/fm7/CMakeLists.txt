@@ -22,7 +22,7 @@ set(VM_FM7_LIB_SRCS
 )
 
 if(BUILD_FM8)
-  set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} fm_bubblecasette.cpp)
+  set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} fm_bubblecasette.cpp fm8_mainio.cpp)
 elseif(BUILD_FM7)
   set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} jcommcard.cpp)
 elseif(BUILD_FMNEW7)

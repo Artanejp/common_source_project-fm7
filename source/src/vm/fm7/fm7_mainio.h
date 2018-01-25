@@ -27,15 +27,12 @@ class MB8877;
 class I8251;
 class AND;
 
-#if defined(_FM8)
-class BUBBLECASETTE;
-#endif
 #if defined(HAS_DMA)
 class HD6844;
 #endif
 
 class FM7_MAINIO : public DEVICE {
- private:
+ protected:
 	bool opn_psg_77av;
 	bool beep_flag;
 	bool beep_snd;
@@ -157,13 +154,13 @@ class FM7_MAINIO : public DEVICE {
 #endif
 	
 	/* FD15 / FD46 / FD51 : W */
-#if defined(_FM8)
+//#if defined(_FM8)
 	bool connect_psg; // [0]
-#else	
+//#else	
 	bool connect_opn; // [0]
 	bool connect_whg; // [1]
 	bool connect_thg; // [2]
-#endif
+//#endif
 	uint32_t opn_address[4];
 	uint32_t opn_data[4];
 	uint32_t opn_stat[4];
@@ -263,16 +260,16 @@ class FM7_MAINIO : public DEVICE {
 	void set_cmt_motor(uint8_t flag);
 	bool get_cmt_motor(void);
 	
-	uint8_t get_port_fd00(void);
-	void  set_port_fd00(uint8_t data);
-	uint8_t get_port_fd02(void);
-	void set_port_fd02(uint8_t val);
-	uint8_t get_irqstat_fd03(void);
-	uint8_t get_extirq_fd17(void);
-	void set_ext_fd17(uint8_t data);
+	virtual uint8_t get_port_fd00(void);
+	virtual void  set_port_fd00(uint8_t data);
+	virtual uint8_t get_port_fd02(void);
+	virtual void set_port_fd02(uint8_t val);
+	virtual uint8_t get_irqstat_fd03(void);
+	virtual uint8_t get_extirq_fd17(void);
+	virtual void set_ext_fd17(uint8_t data);
 
 	void set_beep(uint32_t data); // fd03
-	void reset_sound(void);
+	virtual void reset_sound(void);
 	void reset_printer(void);
 	
 	void reset_fdc(void);
@@ -281,21 +278,21 @@ class FM7_MAINIO : public DEVICE {
 	void reset_fdc_2HD(void);
 	void set_fdc_motor_2HD(bool flag);
 	
-	void do_irq(void);
-	void set_irq_syndet(bool flag);
-	void set_irq_rxrdy(bool flag);
-	void set_irq_txrdy(bool flag);
+	virtual void do_irq(void);
+	virtual void set_irq_syndet(bool flag);
+	virtual void set_irq_rxrdy(bool flag);
+	virtual void set_irq_txrdy(bool flag);
 	
-	void set_irq_timer(bool flag);
-	void set_irq_printer(bool flag);
-	void set_irq_keyboard(bool flag);
-	void set_irq_opn(bool flag);
-	void set_irq_mfd(bool flag);
-	void set_drq_mfd(bool flag);
+	virtual void set_irq_timer(bool flag);
+	virtual void set_irq_printer(bool flag);
+	virtual void set_irq_keyboard(bool flag);
+	//virtual void set_irq_opn(bool flag);
+	virtual void set_irq_mfd(bool flag);
+	virtual void set_drq_mfd(bool flag);
 
 	// FD04
-	void do_firq(void);
-	void do_nmi(bool flag);
+	virtual void do_firq(void);
+	virtual void do_nmi(bool flag);
 	  
 	void set_break_key(bool pressed);
 	void set_sub_attention(bool flag);
@@ -307,27 +304,27 @@ class FM7_MAINIO : public DEVICE {
 	
 	void set_extdet(bool flag);
 	// FD0D
-	void set_psg(uint8_t val);
-	uint8_t get_psg(void);
+	virtual void set_psg(uint8_t val);
+	virtual uint8_t get_psg(void);
 	// FD0E
-	void set_psg_cmd(uint8_t cmd);
+	virtual void set_psg_cmd(uint8_t cmd);
 	
-	void write_fd0f(void);
-	uint8_t read_fd0f(void);
+	virtual void write_fd0f(void);
+	virtual uint8_t read_fd0f(void);
 	bool get_rommode_fd0f(void);
 #if defined(_FM77AV_VARIANTS)
 	// FD12
 	uint8_t subsystem_read_status(void);
 #endif   
 	// OPN
-	void opn_note_on(int index);
-	void set_opn(int index, uint8_t val);
-	uint8_t get_opn(int index);
-	void set_opn_cmd(int index, uint8_t cmd);
-	void write_opn_reg(int index, uint32_t addr, uint32_t data);
+	virtual void opn_note_on(int index);
+	virtual void set_opn(int index, uint8_t val);
+	virtual uint8_t get_opn(int index);
+	virtual void set_opn_cmd(int index, uint8_t cmd);
+	virtual void write_opn_reg(int index, uint32_t addr, uint32_t data);
   
-	uint8_t get_extirq_whg(void);
-	uint8_t get_extirq_thg(void);
+	virtual uint8_t get_extirq_whg(void);
+	virtual uint8_t get_extirq_thg(void);
 	
 	void write_kanjiaddr_lo(uint8_t addr);
 	void write_kanjiaddr_hi(uint8_t addr);
@@ -395,13 +392,7 @@ class FM7_MAINIO : public DEVICE {
 	void event_beep_off(void);
 	void event_beep_cycle(void);
 	/* Devices */
-#if defined(_FM8)
-# if defined(USE_AY_3_8910_AS_PSG)
-	AY_3_891X *psg;
-# else
-	YM2203* opn[1]; // Optional PSG.
-# endif
-#else	
+
 	YM2203* opn[3]; // 0=OPN 1=WHG 2=THG
 # if !defined(_FM77AV_VARIANTS)
 #  if defined(USE_AY_3_8910_AS_PSG)
@@ -410,7 +401,7 @@ class FM7_MAINIO : public DEVICE {
 	YM2203* psg; // Optional PSG.
 #  endif
 #endif
-#endif
+
 	DATAREC* drec;
 	DEVICE* pcm1bit;
 	DEVICE* joystick;
@@ -454,9 +445,6 @@ class FM7_MAINIO : public DEVICE {
 #if defined(CAPABLE_JCOMMCARD)
 	DEVICE *jcommcard;
 #endif
-#if defined(_FM8)
-	BUBBLECASETTE *bubble_casette[2];
-#endif
 public:
 	FM7_MAINIO(VM* parent_vm, EMU* parent_emu);
 	~FM7_MAINIO();
@@ -465,24 +453,27 @@ public:
 	uint8_t  opn_regs[4][0x100];
 	uint32_t read_io8(uint32_t addr); // This is only for debug.
   
-	void initialize();
+	virtual void initialize();
 
-	void write_data8(uint32_t addr, uint32_t data);
+	virtual void write_data8(uint32_t addr, uint32_t data);
 	void write_dma_data8(uint32_t addr, uint32_t data);
 	void write_dma_io8(uint32_t addr, uint32_t data);
    
-	uint32_t read_data8(uint32_t addr);
+	virtual uint32_t read_data8(uint32_t addr);
 	uint32_t read_dma_data8(uint32_t addr);
 	uint32_t read_dma_io8(uint32_t addr);
 
-	void write_signal(int id, uint32_t data, uint32_t mask);
-	uint32_t read_signal(int id);
+	virtual void write_signal(int id, uint32_t data, uint32_t mask);
+	virtual uint32_t read_signal(int id);
 
-	void event_callback(int event_id, int err);
-	void reset();
-	void update_config();
-	void save_state(FILEIO *state_fio);
-	bool load_state(FILEIO *state_fio);
+	virtual void event_callback(int event_id, int err);
+	virtual void reset();
+	virtual void update_config();
+	virtual void save_state(FILEIO *state_fio);
+	virtual bool load_state(FILEIO *state_fio);
+	void save_state_main(FILEIO *state_fio);
+	bool load_state_main(FILEIO *state_fio, uint32_t version);
+	
 	void set_context_printer(DEVICE *p)
 	{
 		printer = p;
@@ -492,7 +483,7 @@ public:
 		kanjiclass1 = p;
 		if(p != NULL) connect_kanjiroml1 = true;
 	}
-	void set_context_kanjirom_class2(DEVICE *p)
+	virtual void set_context_kanjirom_class2(DEVICE *p)
 	{
 #if defined(_FM77AV_VARIANTS)
 		kanjiclass2 = p;
@@ -508,7 +499,7 @@ public:
 	{
 		drec = p;
 	}
-#if !defined(_FM8)
+//#if !defined(_FM8)
 	void set_context_opn(YM2203 *p, int ch)
 	{
 		if((ch < 0) || (ch > 2)) return;
@@ -528,23 +519,17 @@ public:
 		opn[ch] = p;
 		extdet_neg = true;
 	}
-#endif
+//#endif
 #if !defined(_FM77AV_VARIANTS)
 # if defined(USE_AY_3_8910_AS_PSG)
-	void set_context_psg(AY_3_891X *p)
+	virtual void set_context_psg(AY_3_891X *p)
 	{
 		psg = p;
-# if defined(_FM8)
-		connect_psg = true;
-# endif
 	}
 # else
-	void set_context_psg(YM2203 *p)
+	virtual void set_context_psg(YM2203 *p)
 	{
 		psg = p;
-# if defined(_FM8)
-		connect_psg = true;
-# endif
 	}
 # endif
 #endif
@@ -599,12 +584,6 @@ public:
 	void set_context_nmi(DEVICE *p, int id, uint32_t mask) {
 		register_output_signal(&nmi_bus, p, id, mask);
 	}
-#if defined(_FM8)
-	void set_context_bubble(BUBBLECASETTE *p, int drive) {
-		if(drive > 2) return;
-		bubble_casette[drive] = p;
-	}
-#endif
 	
 	void set_context_z80cpu(Z80 *p)	{
 #ifdef WITH_Z80

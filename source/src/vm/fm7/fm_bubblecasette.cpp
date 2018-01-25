@@ -90,6 +90,7 @@ uint32_t BUBBLECASETTE::read_data8(uint32_t address)
 		media_size_tmp = 0x20000;
 	} else {
 		//return val; // Not inserted.
+		mask = 0;
 	}
 	switch(address & 7) {
 	case 0: // Data Resistor
@@ -170,7 +171,7 @@ uint32_t BUBBLECASETTE::read_data8(uint32_t address)
 
 void BUBBLECASETTE::bubble_command(uint8_t cmd)
 {
-	uint16_t mask;
+	uint16_t mask = 0;
 	uint16_t page_size_tmp;
 	uint32_t media_size_tmp;
 	if(bubble_type == BUBBLE_TYPE_32KB) {
@@ -236,7 +237,7 @@ void BUBBLECASETTE::write_data8(uint32_t address, uint32_t data)
 {
 	uint8_t val;
 	uint32_t offset;
-	uint16_t mask;
+	uint16_t mask = 0;
 	uint16_t page_size_tmp;
 	uint32_t media_size_tmp;
 	if(bubble_type == BUBBLE_TYPE_32KB) {

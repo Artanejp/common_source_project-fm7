@@ -42,8 +42,11 @@
 #if defined(_FM8)
 #include "./bubblecasette.h"
 #endif
-
+#if defined(_FM8)
+#include "./fm8_mainio.h"
+#else
 #include "./fm7_mainio.h"
+#endif
 #include "./fm7_mainmem.h"
 #include "./fm7_display.h"
 #include "./fm7_keyboard.h"
@@ -186,8 +189,11 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #endif	
 	keyboard = new KEYBOARD(this, emu);
 	display = new DISPLAY(this, emu);	
-
+#if defined(_FM8)
+	mainio  = new FM8_MAINIO(this, emu);
+#else
 	mainio  = new FM7_MAINIO(this, emu);
+#endif
 	mainmem = new FM7_MAINMEM(this, emu);
 
 #if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
