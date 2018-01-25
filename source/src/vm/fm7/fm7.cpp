@@ -700,18 +700,20 @@ void VM::reset()
 void VM::special_reset()
 {
 	// BREAK + RESET
-	mainio->write_signal(FM7_MAINIO_PUSH_BREAK, 1, 1);
 	mainio->reset();
 	mainmem->reset();
+	//mainio->write_signal(FM7_MAINIO_PUSH_BREAK, 1, 1);
+	//keyboard->write_signal(SIG_FM7KEY_OVERRIDE_PRESS_BREAK, 0xffffffff, 0xffffffff);
 	
 #if defined(FM77AV_VARIANTS)	
 	mainio->write_signal(FM7_MAINIO_HOT_RESET, 1, 1);
 #endif	
 	display->reset();
 	subcpu->reset();
-	mainio->write_signal(FM7_MAINIO_PUSH_BREAK, 1, 1);
 	maincpu->reset();
-	event->register_event(mainio, EVENT_UP_BREAK, 10000.0 * 1000.0, false, NULL);
+	mainio->write_signal(FM7_MAINIO_PUSH_BREAK, 1, 1);
+	keyboard->write_signal(SIG_FM7KEY_OVERRIDE_PRESS_BREAK, 0xffffffff, 0xffffffff);
+	event->register_event(mainio, EVENT_UP_BREAK, 1000.0 * 1000.0, false, NULL);
 }
 
 void VM::run()

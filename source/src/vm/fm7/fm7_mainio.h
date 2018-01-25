@@ -40,7 +40,7 @@ class FM7_MAINIO : public DEVICE {
 	int event_beep_oneshot;  
 	int event_timerirq;  
 	int event_fdc_motor;
-	int event_fdc_2HD_motor;
+	int event_fdc_motor_2HD;
 	outputs_t clock_status;
 	outputs_t printer_reset_bus;
 	outputs_t printer_strobe_bus;
@@ -105,7 +105,6 @@ class FM7_MAINIO : public DEVICE {
 	bool stat_kanjirom;    //  R/W : bit5, '0' = sub, '1' = main. FM-77 Only.
 	bool stat_400linemode; // R/W : bit3, '0' = 400line, '1' = 200line.
 #elif defined(_FM77_VARIANTS)	
-	bool stat_fdmode_2hd; //  R/W : bit6, '0' = 2HD, '1' = 2DD. FM-77 Only.
 	bool stat_kanjirom;    //  R/W : bit5, '0' = sub, '1' = main. FM-77 Only.
 	bool stat_400linecard;//  R/W : bit4, '0' = connected. FM-77 Only.
 	//bool stat_400linemode; // R/W : bit3, '0' = 400line, '1' = 200line.

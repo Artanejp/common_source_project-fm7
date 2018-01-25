@@ -124,7 +124,9 @@ void KEYBOARD::set_modifiers(uint8_t sc, bool flag)
 			if(keymode == KEYMODE_STANDARD) kana_led_status = kana_pressed;
 		}
 	} else if(sc == 0x5c) { // Break
-		break_pressed = flag;
+		if(!override_break_key) {
+			break_pressed = flag;
+		}
 	}
 }
 
@@ -614,6 +616,7 @@ void KEYBOARD::reset_unchange_mode(void)
 	repeat_keycode = 0x00;
 	autokey_backup = 0x00;
 
+	if(override_break_key) write_signals(&break_line, (break_pressed) ? 0xff : 0);
 #if defined(_FM77AV_VARIANTS)
 	cmd_fifo->clear();
 	data_fifo->clear();
@@ -655,7 +658,9 @@ void KEYBOARD::reset(void)
 	did_hidden_message_av_1 = false;
 	beep_phase = 0;
 #endif
-	
+
+	if(override_break_key) write_signals(&break_line, (break_pressed) ? 0xff : 0);
+
 	if(event_int >= 0) cancel_event(this, event_int);
 	register_event(this,
 		       ID_KEYBOARD_INT,
@@ -974,6 +979,8 @@ void KEYBOARD::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_FM7KEY_SET_INSLED) {
 		ins_led_status = ((data & mask) != 0);
+	} else if(id == SIG_FM7KEY_OVERRIDE_PRESS_BREAK) {
+		override_break_key = ((data & mask) != 0);
 	}
 #if defined(_FM77AV_VARIANTS)  
 	 else if(id == SIG_FM7KEY_PUSH_TO_ENCODER) {
@@ -1164,6 +1171,7 @@ KEYBOARD::KEYBOARD(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_em
 	autokey_backup = 0x00;
 
 	keymode = KEYMODE_STANDARD;
+	override_break_key = false;
 #if defined(_FM77AV_VARIANTS)
 	cmd_fifo = new FIFO(16);
 	data_fifo = new FIFO(16);
@@ -1217,7 +1225,7 @@ KEYBOARD::~KEYBOARD()
 {
 }
 
-#define STATE_VERSION 5
+#define STATE_VERSION 6
 #if defined(Q_OS_WIN)
 DLL_PREFIX_I struct cur_time_s cur_time;
 #endif
@@ -1300,6 +1308,8 @@ void KEYBOARD::save_state(FILEIO *state_fio)
 	state_fio->FputBool(ins_led_status);
 	state_fio->FputBool(kana_led_status);
 	state_fio->FputBool(caps_led_status);
+	// Version 6
+	state_fio->FputBool(override_break_key);
 }
 
 bool KEYBOARD::load_state(FILEIO *state_fio)
@@ -1382,7 +1392,8 @@ bool KEYBOARD::load_state(FILEIO *state_fio)
 	ins_led_status = state_fio->FgetBool();
 	kana_led_status = state_fio->FgetBool();
 	caps_led_status = state_fio->FgetBool();
-
+	// Version 6
+	override_break_key = state_fio->FgetBool();
 	
 	if(version == STATE_VERSION) {
 		return true;

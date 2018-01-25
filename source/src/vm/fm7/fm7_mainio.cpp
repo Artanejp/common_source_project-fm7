@@ -1813,6 +1813,7 @@ void FM7_MAINIO::event_callback(int event_id, int err)
 		event_beep_cycle();
 		break;
 	case EVENT_UP_BREAK:
+		keyboard->write_signal(SIG_FM7KEY_OVERRIDE_PRESS_BREAK, 0, 0xffffffff);
 		set_break_key(false);
 		break;
 //#if !defined(_FM8)
@@ -1974,7 +1975,7 @@ void FM7_MAINIO::save_state_main(FILEIO *state_fio)
 		state_fio->FputInt32_BE(event_fdc_motor);
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)|| \
     defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
-		for(ch = 0; ch < 4; ch++) state_fio->FputUint8(fdc_drive_table[ch]);
+		for(int ch = 0; ch < 4; ch++) state_fio->FputUint8(fdc_drive_table[ch]);
 		state_fio->FputUint8(fdc_reg_fd1e);
 #endif	
 #if defined(HAS_DMA)
