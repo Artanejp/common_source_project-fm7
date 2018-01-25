@@ -488,7 +488,6 @@ protected:
 	DEVICE* printer;
 	DEVICE* inteli_mouse; 
    
-	DEVICE *dummycpu;
 	MC6809* subcpu;
 #if defined(_FM77AV_VARIANTS)
 	MB61VH010 *alu;

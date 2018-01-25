@@ -76,7 +76,6 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
 	
-	dummycpu = new DEVICE(this, emu);
 	maincpu = new MC6809(this, emu);
 	subcpu = new MC6809(this, emu);
 	g_substat_display = new AND(this, emu);
@@ -234,7 +233,6 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	
 	maincpu->set_device_name(_T("MAINCPU(MC6809B)"));
 	subcpu->set_device_name(_T("SUBCPU(MC6809B)"));
-	dummycpu->set_device_name(_T("DUMMY CPU"));
 #if defined(CAPABLE_JCOMMCARD)
 	if(jsubcpu != NULL) {
 		jsubcpu->set_device_name(_T("J.COMM BOARD CPU(MC6809)"));
@@ -355,13 +353,8 @@ void VM::connect_bus(void)
 	 *  KEYBOARD : R/W
 	 *
 	 */
-	event->set_frames_per_sec(FRAMES_PER_SEC);
+	//event->set_frames_per_sec(FRAMES_PER_SEC);
 	event->set_lines_per_frame(LINES_PER_FRAME);
-	//event->set_context_cpu(dummycpu, (CPU_CLOCKS * 3) / 8); // MAYBE FIX With eFM77AV40/20.
-	// With slow clock (for dummycpu), some softwares happen troubles,
-	// Use faster clock for dummycpu. 20160319 K.Ohta
-	event->set_context_cpu(dummycpu, SUBCLOCK_NORMAL);
-
 #if defined(_FM8)
 	mainclock = MAINCLOCK_SLOW;
 	subclock = SUBCLOCK_SLOW;
@@ -378,7 +371,7 @@ void VM::connect_bus(void)
 	//if((config.dipswitch & FM7_DIPSW_CYCLESTEAL) != 0) subclock = subclock / 3;
 #endif
 	event->set_context_cpu(maincpu, mainclock);
-	event->set_context_cpu(subcpu,  subclock);
+	event->set_context_cpu(subcpu,  subclock);	
    
 #ifdef WITH_Z80
 	if(z80cpu != NULL) {
