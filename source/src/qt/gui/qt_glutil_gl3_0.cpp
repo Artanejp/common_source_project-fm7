@@ -751,6 +751,7 @@ void GLDraw_3_0::uploadMainTexture(QImage *p, bool use_chromakey)
 	if(uVramTextureID == 0) {
 		uVramTextureID = p_wid->bindTexture(*p);
 	}
+
 	{
 		// Upload to main texture
 		extfunc->glBindTexture(GL_TEXTURE_2D, uVramTextureID);
@@ -832,7 +833,8 @@ void GLDraw_3_0::drawMain(QOpenGLShaderProgram *prg,
 						  QVector3D chromakey)
 {
 	int ii;
-	if(texid != 0) {
+
+   if(texid != 0) {
 		extfunc->glEnable(GL_TEXTURE_2D);
 		vp->bind();
 		bp->bind();
