@@ -334,9 +334,9 @@ int MC6809_BASE::run(int clock)
 	}
 
 	if ((int_state & MC6809_HALT_BIT) != 0) {	// 0x80
-		icount = 0;
-		icount -= extra_icount;
-		extra_icount = 0;
+		int passed_icount;
+		icount -= max(1, icount);
+		passed_icount = first_icount - icount;
 		if(!busreq) {
 			bus_ba = bus_bs = true;
 			write_signals(&outputs_bus_ba, 0xffffffff);
@@ -345,9 +345,9 @@ int MC6809_BASE::run(int clock)
 		busreq = true;
 		debugger_hook();
 
-		total_icount += first_icount - icount;
-
-		return first_icount - icount;
+		//total_icount += first_icount - icount;
+		total_icount += passed_icount;
+		return passed_icount;
 	}
 	if(busreq) { // Exit from BUSREQ state.
 		if((int_state & MC6809_SYNC_IN) != 0) {
@@ -364,17 +364,14 @@ int MC6809_BASE::run(int clock)
 	if((int_state & MC6809_INSN_HALT) != 0) {	// 0x80
 		//uint8_t dmy = RM(PCD); //Will save.Need to keep.
 		RM(PCD); //Will save.Need to keep.
-		if(clock < 0) {
-			icount = -extra_icount;
-			first_icount = 0;
-		} else {
-			icount -= extra_icount;
-		}
+		int passed_icount;
+		icount -= max(1, icount);
+		passed_icount = first_icount - icount;
 		extra_icount = 0;
 		PC++;
 		debugger_hook();
-		total_icount += first_icount - icount;
-		return first_icount - icount;
+		total_icount += passed_icount;
+		return passed_icount;
 	}
  	/*
 	 * Check Interrupt
@@ -386,13 +383,10 @@ check_nmi:
 		if(phase_nmi == MC6809_PHASE_RUN) {
 			bus_bs = false;
 			write_signals(&outputs_bus_bs, 0x00000000);
-	  	        phase_nmi = MC6809_PHASE_PUSH_STACK;
+			phase_nmi = MC6809_PHASE_PUSH_STACK;
 			cpu_nmi_push();
 			debugger_hook();
 			cycle = 19 - (2 + 2);
-			icount -= cycle;
-			total_icount += (first_icount - icount);
-			return first_icount - icount;
 		} else if(phase_nmi == MC6809_PHASE_PUSH_STACK) {
 			bus_bs = true;
 			write_signals(&outputs_bus_bs, 0xffffffff);
@@ -400,9 +394,6 @@ check_nmi:
 			debugger_hook();
 			phase_nmi = MC6809_PHASE_FETCH_VECTOR;
 			cycle = 2;
-			icount -= cycle;
-			total_icount += (first_icount - icount);
-			return first_icount - icount;
 		} else if(phase_nmi == MC6809_PHASE_FETCH_VECTOR) { 
 			run_one_opecode();
 			int_state &= ~MC6809_SYNC_IN;
@@ -415,8 +406,11 @@ check_nmi:
 		} else {
 			// Undefined behavior
 			phase_nmi = MC6809_PHASE_RUN;
-	        	goto check_nmi;
+			goto check_nmi;
 		}
+		icount -= cycle;
+		total_icount += (first_icount - icount);
+		return first_icount - icount;
 	} else {
 		// OK, none interrupts.
 		goto check_ok;
@@ -434,9 +428,7 @@ check_firq:
 			cpu_firq_push();
 			debugger_hook();
 			cycle = 10 - (2 + 2);
-			icount -= cycle;
-			total_icount += first_icount - icount;
-			return first_icount - icount;
+			//goto int_cycle;
 		} else if(phase_firq == MC6809_PHASE_PUSH_STACK) {
 			bus_bs = true;
 			write_signals(&outputs_bus_bs, 0xffffffff);
@@ -444,9 +436,7 @@ check_firq:
 			debugger_hook();
 			phase_firq = MC6809_PHASE_FETCH_VECTOR;
 			cycle = 2;
-			icount -= cycle;
-			total_icount += first_icount - icount;
-			return first_icount - icount;
+			//goto int_cycle;
 		} else if(phase_firq == MC6809_PHASE_FETCH_VECTOR) { 
 			run_one_opecode();
 			phase_firq = MC6809_PHASE_RUN;
@@ -460,6 +450,9 @@ check_firq:
 			phase_firq = MC6809_PHASE_RUN;
         	goto check_firq;
 		}
+		icount -= cycle;
+		total_icount += (first_icount - icount);
+		return first_icount - icount;
 	}
 
 check_irq:
@@ -474,9 +467,7 @@ check_irq:
 			cpu_irq_push();
 			debugger_hook();
 			cycle = 19 - (2 + 2);
-			icount -= cycle;
-			total_icount += first_icount - icount;
-			return first_icount - icount;
+			//goto int_cycle;
 		} else if(phase_irq == MC6809_PHASE_PUSH_STACK) {
    			bus_bs = true;
 			write_signals(&outputs_bus_bs, 0xffffffff);
@@ -484,9 +475,7 @@ check_irq:
 			debugger_hook();
 			phase_irq = MC6809_PHASE_FETCH_VECTOR;
 			cycle = 2;
-			icount -= cycle;
-			total_icount += first_icount - icount;
-			return first_icount - icount;
+			//goto int_cycle;
 		}  else if(phase_irq == MC6809_PHASE_FETCH_VECTOR) {
 			run_one_opecode();
 			phase_irq = MC6809_PHASE_RUN;   
@@ -500,6 +489,9 @@ check_irq:
 			phase_irq = MC6809_PHASE_RUN;
 	       	goto check_irq;
 		}
+		icount -= cycle;
+		total_icount += (first_icount - icount);
+		return first_icount - icount;
 	}
 	/*
 	 * NO INTERRUPT
@@ -513,8 +505,9 @@ int_cycle:
 		icount -= cycle;
 	} else {
 		int_state &= ~MC6809_CWAI_IN;
+		//icount -= 1;
 	}
-	total_icount += first_icount - icount;
+	total_icount += (first_icount - icount);
 	return first_icount - icount;
 
 	// run cpu
@@ -523,34 +516,34 @@ check_ok:
 		if (clock >= 0) {
 			icount -= clock;
 		} else {
-			icount = 0;
+			icount = 1;
 		}
 		debugger_hook();
-		total_icount += first_icount - icount;
+		total_icount += (first_icount - icount);
 		return first_icount - icount;
 	}
 	if((int_state & MC6809_CWAI_IN) == 0) {
 		if(clock == -1) {
-		// run only one opcode
+			// run only one opcode
 			run_one_opecode();
-			total_icount += icount;
-			return icount;
+			total_icount += (first_icount - icount);
+			return first_icount - icount;
 		} else {
 			// run cpu while given clocks
-			while(icount > 0) {
+			while((icount > 0) && (!(req_halt_on) && !(req_halt_off))) {
 				run_one_opecode();
 			}
-			total_icount += first_icount - icount;
+			total_icount += (first_icount - icount);
 			return first_icount - icount;
 		}
 	} else { // CWAI_IN
 		if (clock >= 0) {
 			icount -= clock;
 		} else {
-			icount = 0;
+			icount -= 1;
 		}
 		debugger_hook();
-		total_icount += first_icount - icount;
+		total_icount += (first_icount - icount);
 		return first_icount - icount;
 	}
 
