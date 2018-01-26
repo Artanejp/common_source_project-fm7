@@ -438,7 +438,7 @@ protected:
 	
 	// devices
 	EVENT* event;
-	
+
 	MC6809* maincpu;
 	FM7_MAINMEM* mainmem;
 #if defined(_FM8)

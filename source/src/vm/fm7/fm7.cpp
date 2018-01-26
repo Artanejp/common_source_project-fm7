@@ -75,7 +75,7 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-	
+
 	maincpu = new MC6809(this, emu);
 	subcpu = new MC6809(this, emu);
 	g_substat_display = new AND(this, emu);
