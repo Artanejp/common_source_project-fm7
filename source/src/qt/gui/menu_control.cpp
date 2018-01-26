@@ -120,7 +120,7 @@ void Ui_MainWindowBase::ConfigCPUBootMode(int num)
 	int i;
 	QString tmps;
 	if(num <= 0) return;
-	if(num >= 8) num = 7;
+	if(num >= 8) num = 8;
   
 	actionGroup_BootMode = new QActionGroup(this);
 	actionGroup_BootMode->setExclusive(true);
