@@ -326,7 +326,7 @@ int MC6809_BASE::run(int clock)
 			write_signals(&outputs_bus_ba, 0);
 			write_signals(&outputs_bus_bs, 0);
 			busreq = true;
-			icount -= 2;
+			icount -= clock;
 			icount -= extra_icount;
 			extra_icount = 0;
 			passed_icount = first_icount - icount;
@@ -334,8 +334,8 @@ int MC6809_BASE::run(int clock)
 			write_signals(&outputs_bus_ba, 0xffffffff);
 			write_signals(&outputs_bus_bs, 0xffffffff);
 		} else {
-			if(clock < 4) clock = 4;
-			clock = clock / 2;
+			//if(clock < 4) clock = 4;
+			//clock = clock / 2;
 			icount -= clock;
 			icount -= extra_icount;
 			extra_icount = 0;
@@ -374,22 +374,40 @@ check_nmi:
 	if ((int_state & (MC6809_NMI_BIT | MC6809_FIRQ_BIT | MC6809_IRQ_BIT)) != 0) {	// 0x0007
 		if ((int_state & MC6809_NMI_BIT) == 0)
 			goto check_firq;
+#if 1		
+		int_state &= ~MC6809_SYNC_IN; // Thanks to Ryu Takegami.
+		write_signals(&outputs_bus_ba, 0x00000000);
 		write_signals(&outputs_bus_bs, 0x00000000);
 		if((int_state & MC6809_CWAI_IN) == 0) {
-			icount -= (19 - 2 - 2);
-			total_icount += (19 - 2 - 2);
+			CC = CC | CC_E;
+			icount -= 14;
+			total_icount += 14;
 			cpu_nmi_push();
-			write_signals(&outputs_bus_ba, 0xffffffff);
-			icount -= 2;
-			total_icount += 2;
-			cpu_nmi_fetch_vector_address();
-			cycle = 2;
-		} else {
-			cycle = 0;
 		}
-		write_signals(&outputs_bus_ba, 0x00000000);
-		int_state &= ~(MC6809_NMI_BIT | MC6809_SYNC_IN | MC6809_SYNC_OUT);	// $FF1E
+		write_signals(&outputs_bus_bs, 0xffffffff);
 		CC = CC | CC_II | CC_IF;	// 0x50
+		icount -= 2;
+		total_icount += 2;
+		cpu_nmi_fetch_vector_address();
+		cycle = 3;
+		write_signals(&outputs_bus_bs, 0x00000000);
+#else
+		if ((int_state & MC6809_NMI_BIT) == 0)
+			goto check_firq;
+		int_state &= ~MC6809_SYNC_IN; // Thanks to Ryu Takegami.
+		cycle = 5;
+		write_signals(&outputs_bus_bs, 0x00000000);
+		write_signals(&outputs_bus_ba, 0x00000000);
+		if((int_state & MC6809_CWAI_IN) == 0) {
+			CC = CC | CC_E;
+			cpu_nmi_push();
+			cycle = 19;
+		}
+		CC = CC | CC_II | CC_IF;	// 0x50
+		cpu_nmi_fetch_vector_address();
+		write_signals(&outputs_bus_bs, 0x00000000);
+#endif
+		int_state &= ~(MC6809_NMI_BIT | MC6809_SYNC_IN | MC6809_SYNC_OUT);	// $FF1E
 		goto int_cycle;
 	} else {
 		// OK, none interrupts.
@@ -397,49 +415,80 @@ check_nmi:
 	}
 check_firq:
 	if ((int_state & MC6809_FIRQ_BIT) != 0) {
-		int_state &= ~MC6809_SYNC_IN; // Moved to before checking.Thanks to Ryu Takegami.
-		write_signals(&outputs_bus_bs, 0x00000000);
+		int_state &= ~MC6809_SYNC_IN; // Moved to before checking MASK.Thanks to Ryu Takegami.
+#if 1		
 		if ((CC & CC_IF) != 0)
 			goto check_irq;
-		if((int_state & MC6809_CWAI_IN) == 0) {
-			icount -= (10 - 2 - 2);
-			total_icount += (10 - 2 - 2);
-			cpu_firq_push();
-			write_signals(&outputs_bus_ba, 0xffffffff);
-			icount -= 2;
-			total_icount += 2;
-			cpu_firq_fetch_vector_address();
-			cycle = 2;
-		} else {
-			cycle = 0;
-		}
+		write_signals(&outputs_bus_bs, 0x00000000);
 		write_signals(&outputs_bus_ba, 0x00000000);
-		int_state &= ~(MC6809_SYNC_IN | MC6809_SYNC_OUT);	// $FF1E
+		if((int_state & MC6809_CWAI_IN) == 0) {
+			CC = CC & (uint8_t)(~CC_E);
+			icount -= 5;
+			total_icount += 5;
+			cpu_firq_push();
+		}
+		write_signals(&outputs_bus_bs, 0xffffffff);
 		CC = CC | CC_II | CC_IF;	// 0x50
+		icount -= 2;
+		total_icount += 2;
+		cpu_firq_fetch_vector_address();
+		cycle = 3;
+		write_signals(&outputs_bus_bs, 0x00000000);
+#else
+		if ((CC & CC_IF) != 0)
+			goto check_irq;
+		cycle = 5;
+		write_signals(&outputs_bus_ba, 0x00000000);
+		write_signals(&outputs_bus_bs, 0x00000000);
+		if((int_state & MC6809_CWAI_IN) == 0) {
+			CC = CC & (uint8_t)(~CC_E);
+			cpu_firq_push();
+			cycle = 10;
+		}			
+		CC = CC | CC_II | CC_IF;	// 0x50
+		cpu_firq_fetch_vector_address();
+#endif
+		int_state &= ~(MC6809_SYNC_IN | MC6809_SYNC_OUT);	// $FF1E
 		goto int_cycle;
 
 	}
 check_irq:
 	if ((int_state & MC6809_IRQ_BIT) != 0) {
-		int_state &= ~MC6809_SYNC_IN; // Moved to before checking.Thanks to Ryu Takegami.
-		write_signals(&outputs_bus_bs, 0x00000000);
+		int_state &= ~MC6809_SYNC_IN; // Moved to before checking MASK.Thanks to Ryu Takegami.
+#if 1
 		if ((CC & CC_II) != 0)
 			goto check_ok;
-		if((int_state & MC6809_CWAI_IN) == 0) {
-			icount -= (19 - 2 - 2);
-			total_icount += (19 - 2 - 2);
-   			cpu_irq_push();
-			write_signals(&outputs_bus_ba, 0xffffffff);
-			icount -= 2;
-			total_icount += 2;
-			cpu_irq_fetch_vector_address();
-			cycle = 2;
-		} else {
-			cycle = 0;
-		}
+		write_signals(&outputs_bus_bs, 0x00000000);
 		write_signals(&outputs_bus_ba, 0x00000000);
-		int_state &= ~(MC6809_SYNC_IN | MC6809_SYNC_OUT);	// $FF1E
+		if((int_state & MC6809_CWAI_IN) == 0) {
+			CC = CC | CC_E;
+			icount -= 14;
+			total_icount += 14;
+   			cpu_irq_push();
+		}
+		write_signals(&outputs_bus_bs, 0xffffffff);
+		icount -= 2;
+		total_icount += 2;
 		CC = CC | CC_II;	// 0x50
+		cpu_irq_fetch_vector_address();
+		cycle = 3;
+		write_signals(&outputs_bus_bs, 0x00000000);
+#else
+		if ((CC & CC_II) != 0)
+			goto check_ok;
+		cycle = 5;
+		write_signals(&outputs_bus_bs, 0x00000000);
+		write_signals(&outputs_bus_ba, 0x00000000);
+		if((int_state & MC6809_CWAI_IN) == 0) {
+			CC = CC | CC_E;
+			cpu_irq_push();
+			cycle = 19;
+		}
+		CC = CC | CC_II;	// 0x50
+		cpu_irq_fetch_vector_address();
+
+#endif
+		int_state &= ~(MC6809_SYNC_IN | MC6809_SYNC_OUT);	// $FF1E
 		goto int_cycle;
 	}
 	/*
@@ -454,9 +503,8 @@ int_cycle:
 		icount -= cycle;
 	} else {
 		int_state &= ~MC6809_CWAI_IN;
-		//icount -= cycle;
+		icount -= cycle;
 	}
-	//total_icount += (first_icount - icount);
 	total_icount += cycle;
 	return first_icount - icount;
 
@@ -464,8 +512,8 @@ int_cycle:
 check_ok:
 	if((int_state & MC6809_SYNC_IN) != 0) {
 		if(clock <= 0) clock = 1;
-		if(clock < 4) clock = 4;
-		clock = clock / 2;
+		//if(clock < 4) clock = 4;
+		//clock = clock / 2;
 		icount -= clock;
 		icount -= extra_icount;
 		extra_icount = 0;
@@ -491,8 +539,8 @@ check_ok:
 		}
 	} else { // CWAI_IN
 		if(clock <= 0) clock = 1;
-		if(clock < 4) clock = 4;
-		clock = clock / 4;
+		//if(clock < 4) clock = 4;
+		//clock = clock / 4;
 		icount -= clock;
 		icount -= extra_icount;
 		extra_icount = 0;
