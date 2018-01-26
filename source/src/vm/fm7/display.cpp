@@ -1162,6 +1162,261 @@ void DISPLAY::copy_vram_all()
 }
 
 // Timing values from XM7 . Thanks Ryu.
+#if defined(_FM77AV_VARIANTS) || defined(_FM77L4)
+void DISPLAY::event_callback_hdisp(void)
+{
+	bool f = false;
+	double usec;
+	hblank = false;
+
+	
+	mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x02, 0xff);
+	if(display_mode == DISPLAY_MODE_8_400L) {
+		if(displine < 400) f = true;
+	} else {
+		if(displine < 200) f = true;
+	}
+
+	if(f) {
+		// DO ONLY WHEN SYNC-TO-HSYNC.
+		if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) != 0) {
+			if(vram_wrote) {
+				//copy_vram_per_line(0, 4);
+			} else if(need_transfer_line) { // Not frame skip.
+				int begin = -1;
+				int end = -1;
+				for(int iii = 0; iii < 5 ; iii++) {
+					if(vram_wrote_table[iii + displine * 5]) {
+						if(begin < 0) begin = iii; // Check first.
+					} else {
+						// Check end.
+						if(begin >= 0) {
+							end = iii - 1;
+							if(end < begin) end = begin;
+							// Do transfer.
+							copy_vram_per_line(begin, end);
+							// Prepare to next block.
+							begin = -1;
+							end = -1;
+						}
+					}
+				}
+				// Tail of this line.
+				if(begin >= 0) {
+					end = 4;
+					copy_vram_per_line(begin, end);
+				}
+			}
+		}
+		if(display_mode == DISPLAY_MODE_8_400L) {
+			register_event(this, EVENT_FM7SUB_HBLANK, 30.0, false, &hblank_event_id); // NEXT CYCLE_
+		} else {
+			register_event(this, EVENT_FM7SUB_HBLANK, 39.5, false, &hblank_event_id); // NEXT CYCLE_
+		}
+		vsync = false;
+		vblank = false;
+		enter_display();
+	}
+	f = false;	
+}
+void DISPLAY::event_callback_hblank(void)
+{
+	bool f = false;
+	bool ff = false;
+	double usec;
+	
+	hblank = true;
+	
+	mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x00, 0xff);
+	if(display_mode == DISPLAY_MODE_8_400L) {
+		if((displine < 400)) f = true;
+		usec = 11.0;
+	} else {
+		if((displine < 200)) f = true;
+		usec = 24.0;
+	}
+	if(f) {
+		register_event(this, EVENT_FM7SUB_HDISP, usec, false, &hdisp_event_id);
+	}
+	displine++;
+}
+
+void DISPLAY::event_callback_vstart(void)
+{
+	double usec; 
+	vblank = true;
+	vsync = false;
+	hblank = false;
+	displine = 0;
+	display_page_bak = display_page;
+	
+	// Parameter from XM7/VM/display.c , thanks, Ryu.
+	mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x00, 0xff);
+	mainio->write_signal(SIG_DISPLAY_VSYNC, 0x00, 0xff);
+	
+	if(vblank_count != 0) {
+		if(display_mode == DISPLAY_MODE_8_400L) {
+			usec = (0.98 + 16.4) * 1000.0;
+		} else {
+			usec = (1.91 + 12.7) * 1000.0;
+		}
+		register_event(this, EVENT_FM7SUB_VSYNC, usec, false, &vsync_event_id);
+
+		if(display_mode == DISPLAY_MODE_8_400L) {
+			usec = 930.0; // 939.0
+		} else {
+			usec = 1840.0; // 1846.5
+		}
+		register_event(this, EVENT_FM7SUB_HDISP, usec, false, &hdisp_event_id); // NEXT CYCLE_
+		vblank_count = 0;
+	} else {
+		if(display_mode == DISPLAY_MODE_8_400L) {
+			usec = 0.34 * 1000.0;
+		} else {
+			usec = 1.52 * 1000.0;
+		}
+		register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
+		vblank_count++;
+	}
+}
+void DISPLAY::event_callback_vsync(void)
+{
+	double usec; 
+	vblank = true;
+	hblank = false;
+	vsync = true;
+	//write_access_page = (write_access_page + 1) & 1;
+	displine = 0;
+	if(display_mode == DISPLAY_MODE_8_400L) {
+		usec = 0.33 * 1000.0; 
+	} else {
+		usec = 0.51 * 1000.0;
+	}
+	mainio->write_signal(SIG_DISPLAY_VSYNC, 0x01, 0xff);
+	mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x00, 0xff);
+	register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
+
+	// Transfer on VSYNC
+	if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) == 0) {
+		bool ff = false;
+		int lines = 200;
+		if(display_mode == DISPLAY_MODE_8_400L) lines = 400;
+# if 0
+		if(need_transfer_line) {
+			if(vram_wrote) ff = true;
+			//if(need_transfer_line) ff = true;
+			//}
+			for(displine = 0; displine < lines; displine++) {
+				if(ff) break;
+				for(int iii = 0; iii < 5 ; iii++) {
+					if(vram_wrote_table[iii + displine * 5]) {
+						ff = true;
+						break;
+					}
+				}
+			}
+			displine = 0;
+		}
+		
+		if(ff) {
+			for(int yy = 0; yy < lines; yy++) {
+				if(!vram_draw_table[yy]) {
+					displine = yy;
+					copy_vram_per_line(0, 4);
+					vram_draw_table[yy] = true;
+				}
+			}
+			//copy_vram_all();
+			vram_wrote_shadow = true;
+			screen_update_flag = true;
+			vram_wrote = false;
+		}
+# else
+		if(need_transfer_line) {
+			if(vram_wrote) { // transfer all line
+				for(displine = 0; displine < lines; displine++) {
+					//if(!vram_draw_table[displine]) {
+						copy_vram_per_line(0, 4);
+						//}
+				}
+				vram_wrote = false;
+			} else { // transfer wrote line
+				int begin = -1;
+				int end = -1;
+				for(displine = 0; displine < lines; displine++) {
+					//if(!vram_draw_table[displine]) {
+					for(int iii = 0; iii < 5 ; iii++) {
+						if(vram_wrote_table[iii + displine * 5]) {
+							if(begin < 0) {
+								begin = iii;
+							}
+						} else {
+							if(begin >= 0) {
+								end = iii - 1;
+								if(end < begin) end = begin;
+								copy_vram_per_line(begin, end);
+								begin = -1;
+								end = -1;
+							}
+						}
+					}
+					if(begin >= 0) {
+						if(end < 0) end = 4;
+						copy_vram_per_line(begin, end);
+					}
+					begin = -1;
+					end = -1;
+				//}
+				}
+			}
+		}
+		for(int yy = 0; yy < lines; yy++) {
+			if(vram_draw_table[yy]) {
+				vram_wrote_shadow = true;
+				screen_update_flag = true;
+				break;
+			}
+		}
+# endif
+	} else {
+		// TRANSFER per HSYNC a.k.a SYNC-TO-HSYNC.
+		int lines = 200;
+		if(display_mode == DISPLAY_MODE_8_400L) lines = 400;
+		
+		if(need_transfer_line) {
+			if(vram_wrote) { // Transfer all line.
+				for(int yy = 0; yy < lines; yy++) {
+					displine = yy;
+					copy_vram_per_line(0, 4);
+				}
+				displine = 0;
+				vram_wrote = false;
+			}
+		}
+		for(int yy = 0; yy < lines; yy++) {
+			if(vram_draw_table[yy]) {
+				vram_wrote_shadow = true;
+				screen_update_flag = true;
+				break;
+			}
+		}
+		//vram_wrote = false;
+	}
+	frame_skip_count_transfer++;
+	{
+		// Check frame skip for next frame.
+		uint32_t factor = ((config.dipswitch & FM7_DIPSW_FRAMESKIP) >> 28) & 3;
+		if((frame_skip_count_transfer > factor) /* || (vram_wrote) */) {
+			frame_skip_count_transfer = 0;
+			need_transfer_line = true;
+		} else {
+			need_transfer_line = false;
+		}
+	}
+}
+
+#endif
+
 void DISPLAY::event_callback(int event_id, int err)
 {
 	double usec;
@@ -1171,8 +1426,6 @@ void DISPLAY::event_callback(int event_id, int err)
 #if defined(_FM77AV_VARIANTS)
 			if(nmi_enable) {
 				do_nmi(true);
-			} else {
-				//do_nmi(false);
 			}
 #else
 			do_nmi(true);
@@ -1183,192 +1436,24 @@ void DISPLAY::event_callback(int event_id, int err)
 			break;
 #if defined(_FM77AV_VARIANTS) || defined(_FM77L4)
 		case EVENT_FM7SUB_HDISP:
-			hblank = false;
-			f = false;
-			mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x02, 0xff);
-			if(display_mode == DISPLAY_MODE_8_400L) {
-				if(displine < 400) f = true;
-			} else {
-				if(displine < 200) f = true;
-			}
-			if(f) {
-				if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) != 0) {
-					if(vram_wrote) {
-						//copy_vram_per_line(0, 4);
-					} else if(need_transfer_line) {
-						int begin = -1;
-						int end = -1;
-						for(int iii = 0; iii < 5 ; iii++) {
-							if(vram_wrote_table[iii + displine * 5]) {
-								if(begin < 0) begin = iii;
-							} else {
-								if(begin >= 0) {
-									end = iii - 1;
-									if(end < begin) end = begin;
-									copy_vram_per_line(begin, end);
-									begin = -1;
-									end = -1;
-								}
-							}
-						}
-						if(begin >= 0) end = 4;
-						copy_vram_per_line(begin, end);
-					}
-				}
-  				if(display_mode == DISPLAY_MODE_8_400L) {
-					register_event(this, EVENT_FM7SUB_HBLANK, 30.0, false, &hblank_event_id); // NEXT CYCLE_
-				} else {
-					register_event(this, EVENT_FM7SUB_HBLANK, 39.5, false, &hblank_event_id); // NEXT CYCLE_
-				}
-				vsync = false;
-				vblank = false;
-				enter_display();
-			}
-			f = false;
+			event_callback_hdisp();
 			break;
 		case EVENT_FM7SUB_HBLANK:
-			hblank = true;
-			mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x00, 0xff);
-			f = false;
-			if(display_mode == DISPLAY_MODE_8_400L) {
-				if((displine < 400)) f = true;
-			} else {
-				if((displine < 200)) f = true;
-			}
-			if(f) {
-				if(display_mode == DISPLAY_MODE_8_400L) {
-					usec = 11.0;
-				} else {
-					usec = 24.0;
-				}
-				register_event(this, EVENT_FM7SUB_HDISP, usec, false, &hdisp_event_id);
-			}
-			displine++;
+			event_callback_hblank();
 			break;
 		case EVENT_FM7SUB_VSTART: // Call first.
-			vblank = true;
-			vsync = false;
-			hblank = false;
-			displine = 0;
-			display_page_bak = display_page;
-			// Parameter from XM7/VM/display.c , thanks, Ryu.
-			mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x00, 0xff);
-			mainio->write_signal(SIG_DISPLAY_VSYNC, 0x00, 0xff);
-			if(vblank_count != 0) {
-				if(display_mode == DISPLAY_MODE_8_400L) {
-					usec = (0.98 + 16.4) * 1000.0;
-				} else {
-					usec = (1.91 + 12.7) * 1000.0;
-				}
-				register_event(this, EVENT_FM7SUB_VSYNC, usec, false, &vsync_event_id);
-
-				if(display_mode == DISPLAY_MODE_8_400L) {
-					usec = 930.0; // 939.0
-				} else {
-					usec = 1840.0; // 1846.5
-				}
-				register_event(this, EVENT_FM7SUB_HDISP, usec, false, &hdisp_event_id); // NEXT CYCLE_
-				vblank_count = 0;
-				return;
-			} else {
-				if(display_mode == DISPLAY_MODE_8_400L) {
-					usec = 0.34 * 1000.0;
-				} else {
-					usec = 1.52 * 1000.0;
-				}
-				register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
-				vblank_count++;
-				//break;
-			}
+			event_callback_vstart();
 			break;
-	case EVENT_FM7SUB_VSYNC:
-		vblank = true;
-		hblank = false;
-		vsync = true;
-		//write_access_page = (write_access_page + 1) & 1;
-		displine = 0;
-		if(display_mode == DISPLAY_MODE_8_400L) {
-			usec = 0.33 * 1000.0; 
-		} else {
-			usec = 0.51 * 1000.0;
-		}
-		mainio->write_signal(SIG_DISPLAY_VSYNC, 0x01, 0xff);
-		mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x00, 0xff);
-		register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
-		if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) == 0) {
-			bool ff = false;
-			int lines = 200;
-			if(display_mode == DISPLAY_MODE_8_400L) lines = 400;
-			if(need_transfer_line) {
-				if(vram_wrote) ff = true;
-				//if(need_transfer_line) ff = true;
-				//}
-				for(displine = 0; displine < lines; displine++) {
-					if(ff) break;
-					for(int iii = 0; iii < 5 ; iii++) {
-						if(vram_wrote_table[iii + displine * 5]) {
-							ff = true;
-							break;
-						}
-					}
-				}
-				displine = 0;
-			}
-			if(ff) {
-				for(int yy = 0; yy < lines; yy++) {
-					if(!vram_draw_table[yy]) {
-						displine = yy;
-						copy_vram_per_line(0, 4);
-						vram_draw_table[yy] = true;
-					}
-				}
-				//copy_vram_all();
-				vram_wrote_shadow = true;
-				screen_update_flag = true;
-				vram_wrote = false;
-			}
-		} else {
-			int lines = 200;
-			if(display_mode == DISPLAY_MODE_8_400L) lines = 400;
-			if(need_transfer_line) {
-				if(vram_wrote) {
-					for(int yy = 0; yy < lines; yy++) {
-						//if(!vram_draw_table[yy]) {
-						displine = yy;
-						copy_vram_per_line(0, 4);
-							//}
-					}
-					displine = 0;
-					vram_wrote = false;
-				}
-			}
-			for(int yy = 0; yy < lines; yy++) {
-				if(vram_draw_table[yy]) {
-					vram_wrote_shadow = true;
-					screen_update_flag = true;
-					break;
-				}
-			}
-			//vram_wrote = false;
-		}
-		frame_skip_count_transfer++;
-		{
-			uint32_t factor = ((config.dipswitch & FM7_DIPSW_FRAMESKIP) >> 28) & 3;
-			if((frame_skip_count_transfer > factor) /* || (vram_wrote) */) {
-				frame_skip_count_transfer = 0;
-				need_transfer_line = true;
-			} else {
-				need_transfer_line = false;
-			}
-		}
-		break;
+		case EVENT_FM7SUB_VSYNC:
+			event_callback_vsync();
+			break;
 #endif			
-	case EVENT_FM7SUB_CLR_BUSY:
-		set_subbusy();
-		break;
-	case EVENT_FM7SUB_CLR_CRTFLAG:
-		reset_crtflag();
-		break;
+		case EVENT_FM7SUB_CLR_BUSY:
+			set_subbusy();
+			break;
+		case EVENT_FM7SUB_CLR_CRTFLAG:
+			reset_crtflag();
+			break;
 	}
 }
 
@@ -1379,6 +1464,7 @@ void DISPLAY::event_frame()
 	bool f = false;
 	int lines = 200;
 	if(display_mode == DISPLAY_MODE_8_400L) lines = 400;
+#if 0	
 	if(need_transfer_line && vram_wrote) {
 		for(yy = 0; yy < lines; yy++) {
 			//if(!vram_draw_table[yy]) {
@@ -1389,6 +1475,7 @@ void DISPLAY::event_frame()
 		vram_wrote = false;
 		displine = 0;
 	}
+#endif
 	{
 		for(yy = 0; yy < lines; yy++) {
 			if(vram_draw_table[yy]) {
@@ -1421,11 +1508,12 @@ void DISPLAY::event_frame()
 void DISPLAY::event_vline(int v, int clock)
 {
 #if !defined(_FM77AV_VARIANTS) && !defined(_FM77L4)
+	bool ff = false;
 	if(need_transfer_line == false) return;
 	displine = v;
-	bool ff = false;
 	if(vram_wrote) {
-		//copy_vram_per_line(0, 4);
+		// Not transfer, will transfer at event_frame.
+		copy_vram_per_line(0, 4);
 	} else {
 		int begin = -1;
 		int end = -1;
@@ -1442,8 +1530,10 @@ void DISPLAY::event_vline(int v, int clock)
 				}
 			}
 		}
-		if(begin >= 0) end = 4;
-		copy_vram_per_line(begin, end);
+		if(begin >= 0) {
+			end = 4;
+			copy_vram_per_line(begin, end);
+		}
 	}
 	enter_display();
 #endif	

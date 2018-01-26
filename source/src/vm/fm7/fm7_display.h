@@ -319,6 +319,13 @@ protected:
    
 	uint32_t read_bios(const _TCHAR *name, uint8_t *ptr, uint32_t size);
 	void draw_screen2();
+
+#if defined(_FM77AV_VARIANTS) || defined(_FM77L4)
+	void event_callback_vstart(void);
+	void event_callback_vsync(void);
+	void event_callback_hdisp(void);
+	void event_callback_hblank(void);
+#endif	
   public:
 	DISPLAY(VM *parent_vm, EMU *parent_emu);
 	~DISPLAY();
