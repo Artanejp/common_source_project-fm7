@@ -67,12 +67,6 @@ protected:
 	bool req_halt_off;
 	bool busreq;
 
-	bool bus_ba;
-	bool bus_bs;
-	uint8_t phase_nmi;
-	uint8_t phase_firq;
-	uint8_t phase_irq;
- 
 	uint64_t total_icount;
 	uint64_t prev_total_icount;
 
@@ -533,11 +527,6 @@ public:
 		initialize_output_signals(&outputs_bus_clr);
 		initialize_output_signals(&outputs_bus_ba);
 		initialize_output_signals(&outputs_bus_bs);
-		bus_ba = bus_bs = false;
-		phase_nmi = MC6809_PHASE_RUN;
-		phase_firq = MC6809_PHASE_RUN;
-		phase_irq = MC6809_PHASE_RUN;
-
 		set_device_name(_T("MC6809 MPU"));
 	}
 	~MC6809_BASE() {}
