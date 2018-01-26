@@ -78,53 +78,152 @@ void FM7_MAINMEM::initialize(void)
 #if defined(_FM77_VARIANTS)
 	memset(fm77_shadowram, 0x00, 0x200);
 #endif
-#if !defined(_FM77AV_VARIANTS)	
-	for(i = FM7_MAINMEM_BOOTROM_BAS; i <= FM7_MAINMEM_BOOTROM_EXTRA; i++) {
-		 memset(fm7_bootroms[i - FM7_MAINMEM_BOOTROM_BAS], 0xff, 0x200);
-	}
+#if defined(_FM77_VARIANTS) || defined(_FM8)
+	for(i = 0; i < 8; i++) memset(fm7_bootroms[i], 0xff, 0x200);
+#elif defined(_FM7) || defined(_FMNEW7)
+	for(i = 0; i < 4; i++) memset(fm7_bootroms[i], 0xff, 0x200);
 #endif	
 #if defined(_FM8)
-	if(read_bios(_T(ROM_FM8_BOOT_BASIC), fm7_bootroms[0], 0x200) >= 0x1e0) {
-		diag_load_bootrom_bas = true;
+
+	// FM-8 HAS TWO TYPE of BOOTROM.
+	// See http://www.mindspring.com/~thasegaw/rpcg/fm8_boot.html .
+	{
+		uint8_t *tmpp;
+		bool tmpb = false;
+		tmpp = malloc(0x800);
+		// SM11-15
+		if(tmpp != NULL) {
+			tmpb = (read_bios(_T(ROM_FM8_SM11_15), tmpp, 0x800) >= 0x800);
+		}
+		if(tmpb) {
+			memcpy(fm7_bootroms[0], &(tmpp[0x000]), 0x200); // BASIC
+			memcpy(fm7_bootroms[2], &(tmpp[0x200]), 0x200); // BUBBLE
+			memcpy(fm7_bootroms[1], &(tmpp[0x400]), 0x200); // DOS 320K
+			memcpy(fm7_bootroms[3], &(tmpp[0x600]), 0x200); // DOS 8INCH
+		} else {	
+			if(read_bios(_T(ROM_FM8_BOOT_BASIC), fm7_bootroms[0], 0x200) >= 0x1e0) {
+				diag_load_bootrom_bas = true;
+			}
+			if(read_bios(_T(ROM_FM8_BOOT_DOS), fm7_bootroms[1], 0x200) >= 0x1e0) {
+				diag_load_bootrom_dos = true;
+			}
+			if(read_bios(_T(ROM_FM8_BOOT_BUBBLE_128K), fm7_bootroms[2], 0x200) >= 0x1e0) {
+				diag_load_bootrom_bubble_128k = true;
+			} else if(read_bios(_T(ROM_FM8_BOOT_BUBBLE), fm7_bootroms[2], 0x200) >= 0x1e0) {
+				diag_load_bootrom_bubble = true;
+			}
+			if(read_bios(_T(ROM_FM8_BOOT_DOS_FD8), fm7_bootroms[3], 0x200) >= 0x1e0) {
+				diag_load_bootrom_sfd8 = true;
+			}
+		}
+		tmpb = false;
+		// SM11-14
+		if(tmpp != NULL) {
+			tmpb = (read_bios(_T(ROM_FM8_SM11_14), tmpp, 0x800) >= 0x800);
+		}
+		if(tmpb) {
+			memcpy(fm7_bootroms[4], &(tmpp[0x000]), 0x200); // Basic
+			memcpy(fm7_bootroms[6], &(tmpp[0x200]), 0x200); // BUBBLE
+			memcpy(fm7_bootroms[5], &(tmpp[0x400]), 0x200); // DOS 320K
+			memcpy(fm7_bootroms[7], &(tmpp[0x600]), 0x200); // DEBUG
+		} else {
+			memcpy(fm7_bootroms[4], fm7_bootroms[0], 0x200); // Basic
+			memcpy(fm7_bootroms[5], fm7_bootroms[1], 0x200); // DOS 5Inch
+			memcpy(fm7_bootroms[6], fm7_bootroms[2], 0x200); // BUBBLE
+			if(read_bios(_T(ROM_FM8_BOOT_DEBUG), fm7_bootroms[7], 0x200) >= 0x1e0) {
+				//diag_load_bootrom_debug = true;
+			}
+		}
+		if(tmpp != NULL) free(tmpp);
 	}
-	if(read_bios(_T(ROM_FM8_BOOT_DOS), fm7_bootroms[1], 0x200) >= 0x1e0) {
-		diag_load_bootrom_dos = true;
+
+#elif defined(_FM7) || defined(_FMNEW7)
+	// FM-7 HAS TWO TYPE ROM.
+	// See, http://www.mindspring.com/~thasegaw/rpcg/fm7rom.html .
+	{
+		uint8_t *tmpp;
+		bool tmpb = false;
+		tmpp = malloc(0x800);
+# if defined(_FMNEW7)
+		// For FM-NEW7, If you have TL11-12, load first.
+		if(tmpp != NULL) {
+			tmpb = (read_bios(_T(ROM_FM7_BOOT_TL11_12), tmpp, 0x800) >= 0x800);
+		}
+# endif
+		// TL11-11
+		if((tmpp != NULL) && (!tmpb)) {
+			tmpb = (read_bios(_T(ROM_FM7_BOOT_TL11_11), tmpp, 0x800) >= 0x800);
+		}
+		if(tmpb) {
+			memcpy(fm7_bootroms[0], &(tmpp[0x000]), 0x200);
+			memcpy(fm7_bootroms[2], &(tmpp[0x200]), 0x200);
+			memcpy(fm7_bootroms[1], &(tmpp[0x400]), 0x200);
+			memcpy(fm7_bootroms[3], &(tmpp[0x600]), 0x200);
+		} else {			
+			if(read_bios(_T(ROM_FM7_BOOT_BASIC), fm7_bootroms[0], 0x200) >= 0x1e0) {
+				diag_load_bootrom_bas = true;
+			}
+			if(read_bios(_T(ROM_FM7_BOOT_DOS), fm7_bootroms[1], 0x200) >= 0x1e0) {
+				diag_load_bootrom_dos = true;
+			}
+			if(read_bios(_T(ROM_FM7_BOOT_BUBBLE_7), fm7_bootroms[2], 0x200) >= 0x1e0) {
+				diag_load_bootrom_bubble = true;
+			}
+		}
+		if(tmpp != NULL) free(tmpp);
 	}
-	if(read_bios(_T(ROM_FM8_BOOT_BUBBLE_128K), fm7_bootroms[2], 0x200) >= 0x1e0) {
-		diag_load_bootrom_bubble_128k = true;
-	} else if(read_bios(_T(ROM_FM8_BOOT_BUBBLE), fm7_bootroms[2], 0x200) >= 0x1e0) {
-		diag_load_bootrom_bubble = true;
+#elif defined(_FM77_VARIANTS)
+	// FM-77 HAS ONE TYPE ROM.
+	// See, http://www.mindspring.com/~thasegaw/rpcg/fm7rom.html .
+	{
+		uint8_t *tmpp;
+		bool tmpb = false;
+		tmpp = malloc(0x1000);
+		// WB11-12
+		if(tmpp != NULL) {
+			tmpb = (read_bios(_T(ROM_FM77_BOOT_WB11_12), tmpp, 0x1000) >= 0x1000);
+		}
+		if(tmpb) {
+			memcpy(fm7_bootroms[2], &(tmpp[0x000]), 0x200); // Basic (MMR)
+			memcpy(fm7_bootroms[5], &(tmpp[0x200]), 0x200); // Bubble (128K)
+			memcpy(fm7_bootroms[6], &(tmpp[0x400]), 0x200); // Bubble (32K)
+			memcpy(fm7_bootroms[4], &(tmpp[0x600]), 0x200); // Reserve
+			memcpy(fm7_bootroms[0], &(tmpp[0x800]), 0x200); // Basic
+			memcpy(fm7_bootroms[1], &(tmpp[0xa00]), 0x200); // DOS (320K)
+			memcpy(fm7_bootroms[3], &(tmpp[0xc00]), 0x200); // DOS (1M)
+			memcpy(fm7_bootroms[7], &(tmpp[0xe00]), 0x200); // Reserve 2
+			diag_load_bootrom_bas = true;
+			diag_load_bootrom_dos = true;
+			diag_load_bootrom_mmr = true;
+			diag_load_bootrom_2hd = true;
+		} else {
+			if(read_bios(_T(ROM_FM7_BOOT_BASIC), fm7_bootroms[0], 0x200) >= 0x1e0) {
+				diag_load_bootrom_bas = true;
+			}
+			if(read_bios(_T(ROM_FM7_BOOT_DOS), fm7_bootroms[1], 0x200) >= 0x1e0) {
+				diag_load_bootrom_dos = true;
+			}
+			if(read_bios(_T(ROM_FM7_BOOT_MMR), fm7_bootroms[2], 0x200) >= 0x1e0) {
+				diag_load_bootrom_mmr = true;
+			} else {
+				memcpy(fm7_bootroms[2], fm7_bootroms[0], 0x200); // Copy Fallback
+				diag_load_bootrom_mmr = false;
+			}				
+			if(read_bios(_T(ROM_FM7_BOOT_2HD), fm7_bootroms[3], 0x200) >= 0x1e0) {
+				diag_load_bootrom_2hd = true;
+			}
+			
+			if(read_bios(_T(ROM_FM77_BOOT_BUBBLE_128K), fm7_bootroms[5], 0x200) >= 0x1e0) { // Bubble 128K
+				//diag_load_bootrom_dos = true;
+			}
+			if(read_bios(_T(ROM_FM7_BOOT_BUBBLE_7), fm7_bootroms[6], 0x200) >= 0x1e0) { // Bubble 32K
+				//diag_load_bootrom_dos = true;
+			}
+		}
+		if(tmpp != NULL) free(tmpp);
 	}
-	if(read_bios(_T(ROM_FM8_BOOT_DOS_FD8), fm7_bootroms[3], 0x200) >= 0x1e0) {
-		diag_load_bootrom_sfd8 = true;
-	}
-	
-# elif defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
-	if(read_bios(_T(ROM_FM7_BOOT_BASIC), fm7_bootroms[0], 0x200) >= 0x1e0) {
-		diag_load_bootrom_bas = true;
-	}
-	if(read_bios(_T(ROM_FM7_BOOT_DOS), fm7_bootroms[1], 0x200) >= 0x1e0) {
-		diag_load_bootrom_dos = true;
-	}
-#  if defined(_FM77_VARIANTS)
-	if(read_bios(_T(ROM_FM7_BOOT_MMR), fm7_bootroms[2], 0x200) >= 0x1e0) {
-		diag_load_bootrom_mmr = true;
-	}
-	if(read_bios(_T(ROM_FM7_BOOT_2HD), fm7_bootroms[3], 0x200) >= 0x1e0) {
-		diag_load_bootrom_2hd = true;
-	}
-   
 	i = FM7_MAINMEM_BOOTROM_RAM;
 	memset(fm7_bootram, 0x00, 0x200 * sizeof(uint8_t)); // RAM
-
-#  else
-       // FM-7/8
-	if(read_bios(_T(ROM_FM7_BOOT_BUBBLE_7), fm7_bootroms[2], 0x200) >= 0x1e0) {
-		diag_load_bootrom_bubble = true;
-	} else {
-		diag_load_bootrom_bubble = false;
-	}
-#  endif
 # elif defined(_FM77AV_VARIANTS)
 	i = FM7_MAINMEM_AV_PAGE0;
 	memset(fm7_mainmem_mmrbank_0, 0x00, 0x10000 * sizeof(uint8_t));

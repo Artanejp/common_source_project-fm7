@@ -203,9 +203,9 @@
 #endif
 
 #if defined(_FM77_VARIANTS)
-#define USE_BOOT_MODE         4
+#define USE_BOOT_MODE         8
 #elif defined(_FM8)
-#define USE_BOOT_MODE         4
+#define USE_BOOT_MODE         8
 #elif defined(_FM7) || defined(_FMNEW7)
 #define USE_BOOT_MODE         4
 #else

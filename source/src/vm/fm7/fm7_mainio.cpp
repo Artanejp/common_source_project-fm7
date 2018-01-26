@@ -163,7 +163,11 @@ FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, paren
 #if defined(HAS_DMA)
 	dmac = NULL;
 #endif	
+#if defined(_FM77_VARIANTS) || defined(_FM8) /* OK? */
+	bootmode = config.boot_mode & 7;
+#else
 	bootmode = config.boot_mode & 3;
+#endif
 	memset(io_w_latch, 0xff, 0x100);
 	initialize_output_signals(&clock_status);
 	initialize_output_signals(&printer_reset_bus);
@@ -201,7 +205,11 @@ void FM7_MAINIO::initialize()
 #if defined(_FM77AV_VARIANTS)
 	reg_fd12 = 0xbc; // 0b10111100
 #endif		
+#if defined(_FM77_VARIANTS) || defined(_FM8) /* OK? */
+	bootmode = config.boot_mode & 7;
+#else
 	bootmode = config.boot_mode & 3;
+#endif
 	reset_printer();
 }
 
@@ -318,10 +326,14 @@ void FM7_MAINIO::reset()
 
 
 //#if !defined(_FM8)
-		register_event(this, EVENT_TIMERIRQ_ON, 10000.0 / 4.9152, true, &event_timerirq); // TIMER IRQ
+	register_event(this, EVENT_TIMERIRQ_ON, 10000.0 / 4.9152, true, &event_timerirq); // TIMER IRQ
 //#endif
-			bootmode = config.boot_mode & 3;
-			memset(io_w_latch, 0xff, 0x100);
+#if defined(_FM77_VARIANTS) || defined(_FM8) /* OK? */
+	bootmode = config.boot_mode & 7;
+#else
+	bootmode = config.boot_mode & 3;
+#endif
+	memset(io_w_latch, 0xff, 0x100);
 }
 
 void FM7_MAINIO::reset_printer()

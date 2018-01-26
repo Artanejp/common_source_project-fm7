@@ -81,7 +81,9 @@ class FM7_MAINMEM : public DEVICE
 	uint8_t fm7_mainmem_ura[0x7c00];
 	uint8_t fm7_mainmem_basicrom[0x7c00];
   	uint8_t fm7_mainmem_bioswork[0x80];
-#if !defined(_FM77AV_VARIANTS)
+#if defined(_FM77_VARIANTS) || defined(_FM8)
+	uint8_t *fm7_bootroms[8];
+#elif defined(_FM7) || defined(_FMNEW7)	
 	uint8_t *fm7_bootroms[4];
 #endif	
 	uint8_t fm7_mainmem_bootrom_vector[0x1e]; // Without

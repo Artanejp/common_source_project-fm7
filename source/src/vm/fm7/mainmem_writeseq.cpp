@@ -69,31 +69,25 @@ void FM7_MAINMEM::write_bootrom(uint32_t addr, uint32_t data, bool dmamode)
 	addr = addr & 0x1ff;
 	if(addr <  0x1e0) {
 		wait();
-#if defined(_FM77AV_VARIANTS)
-		if(!boot_ram_write) return;
-		fm7_bootram[addr] = (uint8_t)data;
-		return;
-#elif defined(_FM77_VARIANTS)
-		if(bootmode == 4) {
-			if(!boot_ram_write) return;
+#if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+		if(boot_ram_write) {
 			fm7_bootram[addr] = (uint8_t)data;
 		}
 #endif
+		return;
 	} else if (addr < 0x1fe) { // VECTOR
 		fm7_mainmem_bootrom_vector[addr - 0x1e0] = (uint8_t)data;
 		return;
 	}
-#if defined(_FM77AV_VARIANTS)
-	else {
+	else {  // RESET VECTOR
+#if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
 		wait();
-		if(!boot_ram_write) return;
-		fm7_bootram[addr] = (uint8_t)data;
-	}
-#else
-	else {
+		if(boot_ram_write) {
+			fm7_bootram[addr] = (uint8_t)data;
+		}
+#endif
 		return;
 	}
-#endif
 	return;
 }
 

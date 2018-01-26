@@ -339,19 +339,67 @@ enum {
 #define ROM_FM7_SUBSYSTEM_TYPE_C  "SUBSYS_C.ROM"
 #define ROM_FM7_SUBSYSTEM_CG      "SUBSYSCG.ROM"
 
+// Support more BOOT ROMS for FM-8.See http://www.mindspring.com/~thasegaw/rpcg/fm8_boot.html .
+/*
+ * BOOT ORDER for FM-8:
+ * 0/4: BASIC
+ * 1/5: DOS 320K
+ * 2/6: BUBBLE
+ * 3/7: 8Inch SFD(SM11-15) or DEBUG(SM11-14).
+ * Note:
+ * Read SM11_15.ROM to BANK 0 to 3.
+ * Read SM11_14.ROM to BANK 4 to 7.
+ * If not read above, load some boot roms.
+ */
+
 #define ROM_FM8_BOOT_BASIC        "BOOT_BAS8.ROM"
 #define ROM_FM8_BOOT_DOS          "BOOT_DOS8.ROM"
 #define ROM_FM8_BOOT_BUBBLE       "BOOT_BBL8.ROM"
 #define ROM_FM8_BOOT_BUBBLE_128K  "BOOT_B128.ROM"
 #define ROM_FM8_BOOT_DOS_FD8      "BOOT_SFD8.ROM"
+#define ROM_FM8_BOOT_DEBUG        "BOOT_DEBUG8.ROM"
+#define ROM_FM8_SM11_14           "BOOT_SM11_14.ROM"
+#define ROM_FM8_SM11_15           "BOOT_SM11_15.ROM"
+
 #define ROM_FM8_FBASICV10         "FBASIC10.ROM"
 
+/*
+ * BOOT ORDER for FM-7:
+ * 0: BASIC
+ * 1: DOS 320K
+ * 2: BUBBLE
+ * 3: RESERVE (TL11-1x only).
+ * Note:
+ *  With eFMNEW7, if BOOT_TL11_12.ROM exists, load first this.
+ *  If not load, try to load BOOT_TL11_11.ROM (for eFM7/eFMNEW7).
+ *  If not load above, try to load boot roms.
+ */
+
+// See http://www.mindspring.com/~thasegaw/rpcg/fm7rom.html .
 #define ROM_FM7_BOOT_BASIC        "BOOT_BAS.ROM"
 #define ROM_FM7_BOOT_DOS          "BOOT_DOS.ROM"
 #define ROM_FM7_BOOT_MMR          "BOOT_MMR.ROM"
 #define ROM_FM7_BOOT_BUBBLE_7     "BOOTBBL7.ROM"
 #define ROM_FM7_BOOT_2HD          "BOOT_1MB.ROM"
+#define ROM_FM7_BOOT_TL11_11      "BOOT_TL11_11.ROM"
+#define ROM_FM7_BOOT_TL11_12      "BOOT_TL11_12.ROM"
+
+/*
+ * BOOT ORDER for FM-77:
+ * 0: BASIC
+ * 1: DOS 320K
+ * 2: BASIC MMR
+ * 3: DOS 1MB 2HD
+ * 4: RESERVE 1
+ * 5: BUBBLE 128K
+ * 6: BUBBLE 32K
+ * 7: RESERVE 2
+ * Note:
+ *  If BOOT_WB_11_12.ROM exists, load first this.
+ */
+
 #define ROM_FM77_BOOT_BUBBLE_128K "BOOT_B12.ROM"
+#define ROM_FM77_BOOT_WB11_12     "BOOT_WB11_12.ROM"
 
 #define ROM_FM7_FBASICV30          "FBASIC30.ROM"
 #define ROM_FM7_FBASICV30L00       "FBASIC300.ROM"

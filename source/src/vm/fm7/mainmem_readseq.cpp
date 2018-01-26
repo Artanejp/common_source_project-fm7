@@ -81,7 +81,7 @@ uint8_t FM7_MAINMEM::read_data(uint32_t addr, bool dmamode)
 						raddr = raddr - 0xc00;
 						return fm77_shadowram[raddr];
 					}
-				} else if(raddr >= 0xe00) {
+				} else if(raddr >= 0xe00) { // Note: Is this right sequence?
 					raddr = raddr - 0x0e00;
 					if(is_basicrom) {
 						if(diag_load_bootrom_mmr) {
@@ -183,6 +183,41 @@ uint8_t FM7_MAINMEM::read_bootrom(uint32_t addr, bool dmamode)
 		wait();
 #if defined(_FM77AV_VARIANTS)
 		return fm7_bootram[addr];
+#elif defined(_FM77_VARIANTS)
+		if(boot_ram_write) {
+			return fm7_bootram[addr];
+		}
+		switch(bootmode) {
+		case 0:
+		case 1:
+		case 2:
+		case 3:
+		case 4:
+		case 5:
+		case 6:
+		case 7:
+			return fm7_bootroms[bootmode][addr];
+			break;
+		default:
+			return fm7_bootroms[0][addr];
+			break;
+		}
+#elif defined(_FM8)
+		switch(bootmode) {
+		case 0:
+		case 1:
+		case 2:
+		case 3:
+		case 4:
+		case 5:
+		case 6:
+		case 7:
+			return fm7_bootroms[bootmode][addr];
+			break;
+		default:
+			return fm7_bootroms[0][addr];
+			break;
+		}
 #else
 		switch(bootmode) {
 		case 0:
@@ -191,11 +226,6 @@ uint8_t FM7_MAINMEM::read_bootrom(uint32_t addr, bool dmamode)
 		case 3:
 			return fm7_bootroms[bootmode][addr];
 			break;
-# if defined(_FM77_VARIANTS)
-		case 4:
-			return fm7_bootram[addr];
-			break;
-# endif				
 		default:
 			return fm7_bootroms[0][addr];
 			break;
@@ -203,16 +233,19 @@ uint8_t FM7_MAINMEM::read_bootrom(uint32_t addr, bool dmamode)
 #endif
 	} else if (addr < 0x1fe) { // VECTOR
 		return fm7_mainmem_bootrom_vector[addr - 0x1e0];
-	}
+	} else { // RESET VECTOR
 #if defined(_FM77AV_VARIANTS)
-	else {
 		wait();
 		return fm7_bootram[addr];
-	}
-#else
-	else {
+#elif defined(_FM77_VARIANTS)
+		wait();
+		if(boot_ram_write) {
+			return fm7_bootram[addr];
+		}
 		return fm7_mainmem_reset_vector[addr & 1];
-	}
+#else
+		return fm7_mainmem_reset_vector[addr & 1];
 #endif
+	}
 	return 0xff;
 }
