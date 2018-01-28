@@ -9,6 +9,25 @@ Note:
 Jan 28, 2018 K.Ohta <whatisthis.sowhat@gmail.com>
 
 Updates:
+commit 24b384abe174aa164a5c8d2dcc5f3c1a71992c5f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 28 17:40:31 2018 +0900
+
+    [VM][MB8877] I em-bug'ed before commit X-)I fixed.
+    [UI][Qt] Update menu for DISK.
+
+commit 571ea32a9d4e8076f75375a26f71ffa46f1519d1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 28 16:31:11 2018 +0900
+
+    [DOC] Update.
+
+commit 24f9202b509fd928b04f39aeb17af43f0d5b94b6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 28 15:56:49 2018 +0900
+
+    [DOC] Update revision.
+
 commit 5e924c597da524a69d021541327c26dd0f178822
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sun Jan 28 15:50:19 2018 +0900
