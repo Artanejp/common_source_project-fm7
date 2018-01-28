@@ -18,6 +18,7 @@ class DLL_PREFIX Menu_FDClass: public Menu_MetaClass {
 protected:
 	class Action_Control *action_ignore_crc_error;
 	class Action_Control *action_correct_timing;
+	class Action_Control *action_count_immediate;
 	QIcon icon_floppy;
 public:
 	Menu_FDClass(QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent = 0, int drv = 0);

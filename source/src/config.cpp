@@ -197,6 +197,9 @@ void initialize_config()
 		config.roma_kana_conversion = false;
 		config.rendering_type = CONFIG_RENDER_TYPE_STD;
 		config.virtual_media_position = 2; // Down.
+		for(int drv = 0; drv < 16; drv++) {
+			config.disk_count_immediate[drv] = false;
+		}
 #endif	
 }
 
@@ -247,6 +250,9 @@ void load_config(const _TCHAR *config_path)
 		for(int drv = 0; drv < MAX_FD; drv++) {
 			config.correct_disk_timing[drv] = MyGetPrivateProfileBool(_T("Control"), create_string(_T("CorrectDiskTiming%d"), drv + 1), config.correct_disk_timing[drv], config_path);
 			config.ignore_disk_crc[drv] = MyGetPrivateProfileBool(_T("Control"), create_string(_T("IgnoreDiskCRC%d"), drv + 1), config.ignore_disk_crc[drv], config_path);
+		#ifdef _USE_QT
+			config.disk_count_immediate[drv] = MyGetPrivateProfileBool(_T("Control"), create_string(_T("DiskIncrementImmediate%d"), drv + 1), config.disk_count_immediate[drv], config_path);
+		#endif
 		}
 	#endif
 	#ifdef USE_TAPE1
@@ -568,6 +574,9 @@ void save_config(const _TCHAR *config_path)
 		for(int drv = 0; drv < MAX_FD; drv++) {
 			MyWritePrivateProfileBool(_T("Control"), create_string(_T("CorrectDiskTiming%d"), drv + 1), config.correct_disk_timing[drv], config_path);
 			MyWritePrivateProfileBool(_T("Control"), create_string(_T("IgnoreDiskCRC%d"), drv + 1), config.ignore_disk_crc[drv], config_path);
+		#ifdef _USE_QT
+			MyWritePrivateProfileBool(_T("Control"), create_string(_T("DiskIncrementImmediate%d"), drv + 1), config.disk_count_immediate[drv], config_path);
+		#endif
 		}
 	#endif
 	#ifdef USE_TAPE1

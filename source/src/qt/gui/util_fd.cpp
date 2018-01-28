@@ -55,6 +55,12 @@ void Object_Menu_Control::do_set_correct_disk_timing(bool flag)
 	emit sig_emu_update_config();
 }
 
+void Object_Menu_Control::do_set_disk_count_immediate(bool flag)
+{
+	using_flags->get_config_ptr()->disk_count_immediate[drive] = flag;
+	emit sig_emu_update_config();
+}
+
 int Ui_MainWindowBase::write_protect_fd(int drv, bool flag)
 {
 	if((drv < 0) || (drv >= using_flags->get_max_drive())) return -1;

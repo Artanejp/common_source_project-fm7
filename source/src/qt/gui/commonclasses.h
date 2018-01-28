@@ -76,6 +76,7 @@ public slots:
 	void no_write_protect_fd(void);
 	void do_set_ignore_crc_error(bool flag);
 	void do_set_correct_disk_timing(bool flag);
+	void do_set_disk_count_immediate(bool flag);
 	// Bubble
 	void insert_bubble(void);
 	void eject_bubble(void);

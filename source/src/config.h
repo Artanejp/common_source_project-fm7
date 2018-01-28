@@ -179,7 +179,8 @@ typedef struct {
 	bool use_opengl_filters;
 	bool focus_with_click;
 	int opengl_filter_num;
-
+	
+	
 	bool swap_kanji_pause;
 	/*
 	 * TYPE : 
@@ -195,6 +196,7 @@ typedef struct {
 	int render_platform;
 	int render_major_version;
 	int render_minor_version;
+	bool disk_count_immediate[16]; // Hack for MB8877, FLEX for FM-7.
 #endif	
 	
 	// sound

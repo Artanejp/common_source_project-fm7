@@ -344,7 +344,6 @@ void MB8877::write_io8(uint32_t addr, uint32_t data)
 						cmdtype = 0;
 						set_irq(true);
 					}
-					if(fdc[drvreg].count_immediate) fdc[drvreg].index++;
 					//fdc[drvreg].index++;
 				}
 				if((fdc[drvreg].index + 1) >= disk[drvreg]->sector_size.sd) {
@@ -372,6 +371,7 @@ void MB8877::write_io8(uint32_t addr, uint32_t data)
 					} else {
 						register_drq_event(1);
 					}
+					if(fdc[drvreg].count_immediate) fdc[drvreg].index++;
 				}
 				status &= ~FDC_ST_DRQ;
 			} else if(cmdtype == FDC_CMD_WR_TRK) {
@@ -442,7 +442,6 @@ write_id:
 						cmdtype = 0;
 						set_irq(true);
 					}
-					if(fdc[drvreg].count_immediate) fdc[drvreg].index++;
 					//fdc[drvreg].index++;
 				}
 				if((fdc[drvreg].index + 1) >= disk[drvreg]->get_track_size()) {
@@ -462,6 +461,7 @@ write_id:
 					} else {
 						register_drq_event(1);
 					}
+					if(fdc[drvreg].count_immediate) fdc[drvreg].index++;
 				}
 				status &= ~FDC_ST_DRQ;
 			}
@@ -615,7 +615,6 @@ uint32_t MB8877::read_io8(uint32_t addr)
 				// read or multisector read
 				if(fdc[drvreg].index < disk[drvreg]->sector_size.sd) {
 					datareg = disk[drvreg]->sector[fdc[drvreg].index];
-					if(fdc[drvreg].count_immediate) fdc[drvreg].index++;
 				}
 				if((fdc[drvreg].index + 1) >= disk[drvreg]->sector_size.sd) {  // Reading complete this sector.
 
@@ -646,13 +645,13 @@ uint32_t MB8877::read_io8(uint32_t addr)
 					}
 				} else { // Still data remain.
 					register_drq_event(1);
+					if(fdc[drvreg].count_immediate) fdc[drvreg].index++;
 				}
 				status &= ~FDC_ST_DRQ;
 			} else if(cmdtype == FDC_CMD_RD_ADDR) {
 				// read address
 				if(fdc[drvreg].index < 6) {
 					datareg = disk[drvreg]->id[fdc[drvreg].index];
-					if(fdc[drvreg].count_immediate) fdc[drvreg].index++;
 					//fdc[drvreg].index++;
 				}
 				if((fdc[drvreg].index + 1) >= 6) {
@@ -668,13 +667,13 @@ uint32_t MB8877::read_io8(uint32_t addr)
 //#endif
 				} else {
 					register_drq_event(1);
+					if(fdc[drvreg].count_immediate) fdc[drvreg].index++;
 				}
 				status &= ~FDC_ST_DRQ;
 			} else if(cmdtype == FDC_CMD_RD_TRK) {
 				// read track
 				if(fdc[drvreg].index < disk[drvreg]->get_track_size()) {
 					datareg = disk[drvreg]->track[fdc[drvreg].index];
-					if(fdc[drvreg].count_immediate) fdc[drvreg].index++;
 					//fdc[drvreg].index++;
 				}
 				if((fdc[drvreg].index + 1) >= disk[drvreg]->get_track_size()) {
@@ -687,6 +686,7 @@ uint32_t MB8877::read_io8(uint32_t addr)
 					set_irq(true);
 				} else {
 					register_drq_event(1);
+					if(fdc[drvreg].count_immediate) fdc[drvreg].index++;
 				}
 				status &= ~FDC_ST_DRQ;
 			}
@@ -1814,15 +1814,15 @@ void MB8877::open_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	if(drv < _max_drive) {
 		disk[drv]->open(file_path, bank);
-#if 0
+#if defined(_USE_QT)
+		if((disk[drv]->is_special_disk == SPECIAL_DISK_FM7_FLEX) || (config.disk_count_immediate[drv])) {
+#else
 		if(disk[drv]->is_special_disk == SPECIAL_DISK_FM7_FLEX) {
+#endif
 			fdc[drv].count_immediate = true;
 		} else {
 			fdc[drv].count_immediate = false;
 		}
-#else /* TEST for FLEX */
-		fdc[drv].count_immediate = true;
-#endif
 	}
 }
 

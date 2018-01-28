@@ -1,6 +1,6 @@
 message("* qt/gui")
 
-set(THIS_LIB_VERSION 2.10.7)
+set(THIS_LIB_VERSION 2.10.8)
 set(s_qt_gui_headers
 	  csp_logger.h
   
