@@ -68,6 +68,7 @@ void FM7_MAINIO::reset_fdc(void)
 		set_fdc_motor(fdc_motor);
 	}
 }
+	
 
 /* FDD */
 

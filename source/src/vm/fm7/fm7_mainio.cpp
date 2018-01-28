@@ -875,7 +875,6 @@ uint8_t FM7_MAINIO::read_kanjidata_right_l2(void)
 }
 #endif
 
-
 uint32_t FM7_MAINIO::read_signal(int id)
 {
 	uint32_t retval;

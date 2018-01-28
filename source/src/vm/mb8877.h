@@ -54,6 +54,7 @@ private:
 		int bytes_before_2nd_drq;
 		int next_am1_position;
 		uint32_t prev_clock;
+		bool count_immediate; // Hack for FLEX.
 	} fdc[16];
 	DISK* disk[16];
 	
