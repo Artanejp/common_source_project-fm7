@@ -3,7 +3,8 @@
 <H3>Sep 09, 2016<BR>
 K.Ohta <whatisthis.sowhat _at_ gmail.com></H3>
 </div>
---- If you can't read Japanese, [english writing is here](/README.en.md/).
+
+*If you can't read Japanese, [english writing is here](/README.en.md/).*
 
 0. 概要
 -
@@ -69,12 +70,12 @@ K.Ohta <whatisthis.sowhat _at_ gmail.com></H3>
      
 3. ビルドの方法
 
-   ソースコードを解凍するか、git clone / pull した後で:
+ソースコードを解凍するか、git clone / pull した後で:
    
     $ cd {srctop}/source/build-cmake/{Machine name}/
     $ mkdir build
     $ cd build
-   
+
 To configure:
    
     $ cmake ..
