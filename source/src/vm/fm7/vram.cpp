@@ -927,9 +927,6 @@ void DISPLAY::draw_screen2()
 #endif
 		//rgbmask = ~multimode_dispmask;
 #if defined(_OPENMP)
-#pragma omp parallel for
-#endif
-#if defined(_OPENMP)
 #pragma omp parallel for shared(vram_draw_table), private(pp, p, yoff, x, ii, yy)
 #endif
 		for(y = 0; y < 200; y += 4) {
