@@ -22,9 +22,9 @@ K.Ohta <whatisthis.sowhat _at_ gmail.com></H3>
    
 各機種バイナリーは、osdn.net　もしくはミラーサイトより入手可能です。
     
-    <https://osdn.net/projects/csp-qt/>  
+<https://osdn.net/projects/csp-qt/>  
    
-    <https://osdn.net/projects/csp-qt/releases/>
+<https://osdn.net/projects/csp-qt/releases/>
 
 をチェックしてください。
 
@@ -173,5 +173,6 @@ Have fun!
 --- Ohta.
  
 &copy; 2018 Toshiya Takeda
+
 &copy; 2018 K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
