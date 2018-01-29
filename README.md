@@ -1,88 +1,161 @@
-** Qt porting for Common Source Code Project **
-
-===============================================
+<H2>** Qt porting for Common Source Code Project **</H2>
 <div align="right">
-
-Sep 09, 2016
-
-============										   
-K.Ohta <whatisthis.sowhat _at_ gmail.com>
-
-=========================================
+<H3>Sep 09, 2016<BR>
+K.Ohta <whatisthis.sowhat _at_ gmail.com></H3>
 </div>
 --- If you can't read Japanese, [english writing is here](/README.en.md/).
 
-0. About
-   This package is Qt5 porting of Common Source Code Project (CSP).
-   Building with GNU/Linux(64bit) and MinGW(32bit Windows).
+0. 概要
+-
+   このパッケージは、Common Source Code Project (以下、CSP)をQt5に移植したものです。
    
-1. Background
-   Common Source Code Project (CSP) is good emulator writing.
-   But codes are specified to M$ Visual C.
-   I'm using GNU/Linux, and I starting to apply FM-7(or later).
-   So, I start to port to GNU/Linux and using Qt4.
+   バイナリはGNU/Linux(64bit)用とMinGW (32bit Windows)用を用意しています。
    
-   * Note: You can build with MinGW32 and Qt 5.5.1(for MinGW).
+   ソースコード：
+   
+     https://github.com/Artanejp/common_source_project-fm7/ 以下
 
-   * TIPS: If emufoo.exe don't show screen drawing, set environment 
-           variable QT_OPENGL to software (i.e. Using Windows as VirtualBox's gueat OS).
+   追加情報:
+   
+    　各機種バイナリーは、osdn.net　もしくはミラーサイトより入手可能です。
+    
+   　https://osdn.net/projects/csp-qt/  
+   
+     https://osdn.net/projects/csp-qt/releases/　をチェックしてください。
+
+　   Win32: 
+
+  　 GNU/Linux(amd64) : 
+
+*【おねがい】*
+
+     　doc/以下の文書で日本語しかなかったものを英語に翻訳していますが、機械翻訳を使ってるのであやしいです。
      
-2. What you need at least:
-   a. Qt5 (neither Qt3 and Qt4) toolkit.
-   b. Some OpenGL implementation, maybe at leaset OpenGL v3.0 .
-   c. gcc / g++ (4.7 or later? ) or llvm clang / clang++ (3.5 or later?) toolchain.
-   d. SDL2 (not SDL1.x).
-   e. CMake 2.8 or later.
+       英語の上手い方、校正などお願いします m(_ _)m
 
-3. How to build:
-   After extracting (or git pulled) sourcecodes:
-   $ cd {srctop}/source/build-cmake/{Machine name}/
-   $ mkdir build
-   $ cd build
+1. 背景
+
+   CSPは、非常に優れた構造のエミュレータです（しかし、些か重くてコンパイラがいい最適化をしないと重めですが）。
    
-   To configure:
-   $ cmake ..
-   or
-   $ ccmake ..
+   しかし、このコードはM$ Visual C++依存の部分が非常に多いです。
 
-   To build:
-   $ make
+   そこで、GNU/Linuxでこれを動かすためにQtに色々と移植していきましょう。と言う感じで作業をはじめました。
 
-   To install:
-   $ sudo make install
+2. 最低限必要なもの(Qt版)
 
-4.Qt specified notice (for non-Windows):
-   ・Place R@Ms under $HOME/emu{Machine Name}/ , this directory has made
-     after first using.
-   ・Config file, {foo}.ini is written on $HOME/.config/emu{Machine Name}/ .
-   ・Saved state file, {foo}.sta is written on $HOME/emu{Machine Name}/ .
-   ・Key code conversion file is written on $HOME/.config/emu{Machine Name}/scancode.cfg .
-     This file contains comma separated fields, written at hex-decimal (not decimal), 
-     first is M$ Virtual Key Code,
-     second is Qt's scan code.
+   a. Qt5 ツールキット。Qt 5.5以降を推奨します。
    
-5.Status
-a. I tested to build only under Debian GNU/Linux "sid".
-   But, perhaps, will succed to build another GNU/Linux OSs or BSD OS variants.
-   * On windows, using MinGW is already okay.
-   * Cross building with GNU/Linux's MinGW32 and Qt5.5.1 (for MinGW) is available. 
-     Modify and use build-cmake/config_build_cross_win32.sh and related *.cmake files.
-   * And, you can also build with M$ Visual Studio 2013 or 2015.
+   b. OpenGL, 多分、最低OpenGL 2.1は必要です。（注：ひょっとしたら、OpenGLES2以降ならば動くように変えるかも知れない）
    
-  b. Now, I using Qt5 as toolkit, because authors of Qt announced
-     "Qt4 is obsolete, will be updated no longer".
-
-  c. All of virtual machines of upstream (@Dec 17, 2015) are already ported to Qt.
-  d. Now using GCC-5.2 with Link Time Optimize to build for distrubuted binaries.
-
-6. Upstream repositry:
-      https://github.com/Artanejp/common_source_project-fm7
-      https://www.pikacode.com/Artanejp/common_source_project-fm7/
+   c. gcc / g++ (5.0以降？)もしくは llvm clang / clang++ (3.5以降?)コンパイラツールチェーン。MS Visual StudioのC++でも大体はビルドできると思いますが、未確認。
       
-7. Upstream (Takeda Toshiya San's original code) 
+   d. SDL2 (SDL 1.xではないので注意)
+   
+   e. CMake 2.8以降。
+   
+   f. ffmpegから、libavとlibswが必要です。 http://ffmpeg.org/ より。
+   
+   g. ffmpegは、それぞれのランタイムに必要なものをバンドルしてありますので、動かない時はインストールしてみてください。
+      
+   h. GNU/Linuxビルドでは、Qt5.5(Ubuntu 16.04LTS向け)もしくはQt5.9(Debian GNU/Linux sid向け)でビルドしてあります。
+   
+   * Windows もしくは GNU/Linux のcross tool chain (要Wine)で、MinGW (gcc6) と Qt 5.7 でのビルドができることを確認しました。
+     
+   * TIPS:
+   
+     * Windows等で動かした時に、画面の書き替えが表示されない場合は、環境変数 QT_OPENGL を software にしてみてください。（例えば、WindowsをVirtualBoxのゲストで使ってる場合など）
+       
+     * Windows版バイナリには、ソフトウェアレンダリングのopengl32.dllが添付されてますが、最近のパソコンの専用GPUドライバなら、もっと程度のいいOpenGLが入ってるはずです。添付版opengl32.dllを適当な名前に変更して動くかどうか試してみて下さい。
+     
+3. ビルドの方法
+
+   ソースコードを解凍するか、git clone / pull した後で:
+   
+    $ cd {srctop}/source/build-cmake/{Machine name}/
+    $ mkdir build
+    $ cd build
+   
+To configure:
+   
+    $ cmake ..
+   
+or
+   
+    $ ccmake ..
+
+To build:
+   
+    $ make
+
+To install:
+   
+    $ sudo make install
+
+4. Qt固有の話(Windows除く)
+
+   *ToolTipsを付けました。(2017-01-24)
+      
+   *日本語に翻訳しました。(2017-01-24)
+   
+   *R@Mを $HOME/emu{Machine Name}/　に配置してください。(Windowsの場合は今の所 .\emu{Machine Name}\)。なお、このディレクトリは最初起動した後で作成されます。
+   
+   *設定ファイルは、$HOME/.config/emu{Machine Name}/ に書き込まれます。(Windowsの場合は今の所 .\.config\emu{Machine Name}\)
+   
+   *ステートセーブファイルは、$HOME/emu{Machine Name}/{Machine Name}.sta に書き込まれます。
+   
+   *キーコード変換テーブルファイルが、$HOME/.config/emu{Machine Name}/scancode.cfg に書き込まれます。
+   
+     書式は、カンマで区切られた16進データです(10進ではないので注意) .
+     
+     1カラム目はM$ ヴァーチャルキーコード。
+     
+     2カラム目はQtネィティブのスキャンキーコードです。
+     
+   *UI部分の共通コンポーネント (src/qt/gui) を共有ライブラリlibCSPgui.soにまとめました。
+   
+   *インストール用のBASHスクリプトを用意しました。src/tool/installer_unix.shです。
+   
+   *ROMと同じところに、特定のWAVファイル(VMによって異なる)を入れると、FDDのシーク音やテープのボタン音・リレー音を鳴らすことが出来ます。
+   
+   *ローマ字カタカナ変換支援機構が一部の機種に実装されてます。romaji_kana.ja.txt をお読みください。
+    
+5. 移植状況
+   
+   a.現在、Debian GNU/Linux "sid"と、Ubuntu Linux 16.04LTS "Xenial"の AMD64版、後はWindowsのMinGWでしかテストしていません。
+   
+   　が、多分他のGNU/Linux OSやBSD系のOS (Mac含む) でもビルドすれば動くでしょう。
+   
+     Windows もしくは GNU/Linux(要Wineとbinfmt-support)上でのMinGWとQt community edition でのビルドが通るようになりました。
+      
+   b. 今は、Qtの開発側が「Qt4おわりね」とアナウンスしたので、Qt4ではなくQt5を使っています。
+   
+      添付してあるバイナリは、Qt 5.5でビルドしました(が、Qt 5.1以降なら動くはずです)。
+
+   c. Linux用ビルドでは、GCCをリンク時最適化(LTO)モードで使っています。
+   
+   d. MZ-2500のソケット機能を実装してみていますが、マトモにテストできてません(；´Д｀)
+   
+6. Upstream repositry:
+-
+      https://github.com/Artanejp/common_source_project-fm7
+      
+      https://osdn.net/projects/csp-qt/scm/git/common_source_project-fm7
+
+7. Project Page:
+-
+      https://osdn.jp/projects/csp-qt/
+
+8. Upstream (Takeda Toshiyaさんのオリジナル)
+-
       http://takeda-toshiya.my.coocan.jp/
 
+
+Special thanks to:
+-
+  Ryu Takegami : eFM-8/7/77/AV/40/EX のデバッグに協力していただいています。
+
 Have fun!
--- Ohta.
+
+--- Ohta.
  
    
