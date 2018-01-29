@@ -97,10 +97,12 @@ void initialize_config()
 			#if defined(CORRECT_DISK_TIMING_DEFAULT)
 				config.correct_disk_timing[drv] = CORRECT_DISK_TIMING_DEFAULT;
 			#else
-				config.correct_disk_timing[drv] = true;
+				config.correct_disk_timing[drv] = false;
 			#endif
 			#if defined(IGNORE_DISK_CRC_DEFAULT)
 				config.ignore_disk_crc[drv] = IGNORE_DISK_CRC_DEFAULT;
+			#else
+				config.ignore_disk_crc[drv] = false;
 			#endif
 		}
 	#endif
