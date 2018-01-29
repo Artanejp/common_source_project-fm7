@@ -35,13 +35,13 @@ LICENCE
 Background
 ==========
 
-   Common Source Code Project (CSP) is good emulator writing.
+Common Source Code Project (CSP) is good emulator writing.
    
-   But codes are specified to M$ Visual C.
+But codes are specified to M$ Visual C.
    
-   I'm using GNU/Linux, and I starting to apply FM-7(or later).
+I'm using GNU/Linux, and I starting to apply FM-7(or later).
    
-   So, I start to port to GNU/Linux and using Qt4.
+So, I start to port to GNU/Linux and using Qt4.
    
 ## Note:
 
@@ -104,11 +104,11 @@ Qt specified notice (for non-Windows):
 
 * Key code conversion file is written on $HOME/.config/emu{Machine Name}/scancode.cfg .
 
- ** This file contains comma separated fields, written at hex-decimal (not decimal),
+  ** This file contains comma separated fields, written at hex-decimal (not decimal),
  
- ** First is M$ Virtual Key Code,
+  ** First is M$ Virtual Key Code,
  
- ** Second is Qt's scan code.
+  ** Second is Qt's scan code.
    
 * Common components (i.e. source/src/qt/gui ) are packed to DLLs/shared libs.
 
@@ -116,7 +116,8 @@ Qt specified notice (for non-Windows):
 
 * When you place some WAV files to directry same as R@M, you can some sounds; i.e. FDD's seek.See doc/VMs/*.txt .
 
-ローマ字カタカナ変換支援機構が一部の機種に実装されてます。
+* ROMAJI-KANA conversion assitance feature has implemented to some VMs.
+
 Status
 ====
 
