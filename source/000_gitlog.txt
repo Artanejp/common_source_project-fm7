@@ -1,3 +1,28 @@
+commit 583d6c628d90055925fa5a7b697a52e60e0052ee
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 29 10:41:33 2018 +0900
+
+    [VM][FM77AV40] Fix FTBFS with Fedora linux.
+
+commit a9157933c5b4761f29290ba7f8aae06f49880156
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 29 10:35:03 2018 +0900
+
+    [VM][MB8877] TRY: Add (temporally) debug log to check DRQ timing for FLEX.
+    [VM][MB8877][FM77AV] No need to hack with PSY-O-BLADE.This is test delete.
+
+commit 0a5a54e56ddcca52a239c68d2c3786b388319fe0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 29 10:34:25 2018 +0900
+
+    [VM][FM7][DISK] Fix RPM value of 2D/2DD drive to 300rpm.
+
+commit 46b41b72b749ffcc6a0e40fc05557cce9bd794f5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 28 17:43:57 2018 +0900
+
+    [DOC] Update revision.
+
 commit 24b384abe174aa164a5c8d2dcc5f3c1a71992c5f
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sun Jan 28 17:40:31 2018 +0900
