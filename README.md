@@ -17,7 +17,7 @@ K.Ohta <whatisthis.sowhat _at_ gmail.com></H3>
    
      https://github.com/Artanejp/common_source_project-fm7/ 以下
 
-##追加情報:
+## 追加情報:
 
    
 各機種バイナリーは、osdn.net　もしくはミラーサイトより入手可能です。
@@ -28,12 +28,13 @@ K.Ohta <whatisthis.sowhat _at_ gmail.com></H3>
 
 をチェックしてください。
 
-##【おねがい】
+## 【おねがい】
 
 
 doc/以下の文書で日本語しかなかったものを英語に翻訳していますが、機械翻訳を使ってるのであやしいです。英語の上手い方、校正などお願いします m(_ _)m
 
-##背景
+背景
+====
 
    CSPは、非常に優れた構造のエミュレータです（しかし、些か重くてコンパイラがいい最適化をしないと重めですが）。
    
@@ -41,7 +42,8 @@ doc/以下の文書で日本語しかなかったものを英語に翻訳して�
 
    そこで、GNU/Linuxでこれを動かすためにQtに色々と移植していきましょう。と言う感じで作業をはじめました。
 
-##最低限必要なもの(Qt版)
+最低限必要なもの(Qt版)
+====
 
    a. Qt5 ツールキット。Qt 5.5以降を推奨します。
    
@@ -67,7 +69,8 @@ doc/以下の文書で日本語しかなかったものを英語に翻訳して�
        
      * Windows版バイナリには、ソフトウェアレンダリングのopengl32.dllが添付されてますが、最近のパソコンの専用GPUドライバなら、もっと程度のいいOpenGLが入ってるはずです。添付版opengl32.dllを適当な名前に変更して動くかどうか試してみて下さい。
      
-##ビルドの方法
+ビルドの方法
+==
 
 ソースコードを解凍するか、git clone / pull した後で:
    
@@ -91,8 +94,8 @@ To install:
    
     $ sudo make install
 
-##Qt固有の話(Windows除く)
-
+Qt固有の話(Windows除く)
+==
    *ToolTipsを付けました。(2017-01-24)
       
    *日本語に翻訳しました。(2017-01-24)
@@ -119,8 +122,9 @@ To install:
    
    *ローマ字カタカナ変換支援機構が一部の機種に実装されてます。romaji_kana.ja.txt をお読みください。
     
-##移植状況
-   
+移植状況
+==
+
    a.現在、Debian GNU/Linux "sid"と、Ubuntu Linux 16.04LTS "Xenial"の AMD64版、後はWindowsのMinGWでしかテストしていません。
    
    　が、多分他のGNU/Linux OSやBSD系のOS (Mac含む) でもビルドすれば動くでしょう。
@@ -135,22 +139,26 @@ To install:
    
    d. MZ-2500のソケット機能を実装してみていますが、マトモにテストできてません(；´Д｀)
    
-##Upstream repositry:
+Upstream repositry:
+==
 
       https://github.com/Artanejp/common_source_project-fm7
       
       https://osdn.net/projects/csp-qt/scm/git/common_source_project-fm7
 
-##Project Page:
+Project Page:
+==
 
       https://osdn.jp/projects/csp-qt/
 
-##Upstream (Takeda Toshiyaさんのオリジナル)
+Upstream (Takeda Toshiyaさんのオリジナル)
+==
 
       http://takeda-toshiya.my.coocan.jp/
 
 
-##Special thanks to:
+Special thanks to:
+==
 
   Ryu Takegami : eFM-8/7/77/AV/40/EX のデバッグに協力していただいています。
 
