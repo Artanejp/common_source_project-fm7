@@ -666,7 +666,7 @@ void VM::connect_bus(void)
 #else
 				fdc->set_drive_type(i, DRIVE_TYPE_2D);
 #endif
-				fdc->set_drive_rpm(i, 360);
+				//fdc->set_drive_rpm(i, 360); // For FLEX.
 				fdc->set_drive_mfm(i, true);
 			}
 		}
