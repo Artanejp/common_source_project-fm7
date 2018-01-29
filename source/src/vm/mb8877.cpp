@@ -79,19 +79,20 @@ void MB8877::register_seek_event()
 
 void MB8877::register_drq_event(int bytes)
 {
-	double usec = disk[drvreg]->get_usec_per_bytes(bytes) - get_passed_usec(prev_drq_clock);
+	double nusec = disk[drvreg]->get_usec_per_bytes(bytes); // For debug
+	double usec = nusec - get_passed_usec(prev_drq_clock);
+
 	if(usec < 4) {
 		usec = 4;
 	}
-//#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	if(type_fm7) {
 		if((disk[drvreg]->is_special_disk == SPECIAL_DISK_FM7_GAMBLER) ||
-		   (disk[drvreg]->is_special_disk == SPECIAL_DISK_FM77AV_PSYOBLADE) ||
+		   /* (disk[drvreg]->is_special_disk == SPECIAL_DISK_FM77AV_PSYOBLADE) || */
 		   (config.correct_disk_timing[drvreg])) {
-			usec = 4;
+			usec = 7;
 		}
 	}
-//#endif
+	this->out_debug_log("DRQ REG: %dbytes %d:%d -> %f\n", bytes, get_current_clock(), prev_drq_clock, usec);
 	cancel_my_event(EVENT_DRQ);
 	register_event(this, (EVENT_DRQ << 8) | (cmdtype & 0xff), usec, false, &register_id[EVENT_DRQ]);
 }
@@ -883,6 +884,7 @@ void MB8877::event_callback(int event_id, int err)
 			fdc[drvreg].prev_clock = prev_drq_clock = get_current_clock();
 			set_drq(true);
 			drive_sel = false;
+			this->out_debug_log("DRQ ON@SEARCH: %d\n", prev_drq_clock);
 //#ifdef _FDC_DEBUG_LOG
 			if(fdc_debug_log) this->out_debug_log(_T("FDC\tSEARCH OK\n"));
 //#endif
@@ -905,6 +907,7 @@ void MB8877::event_callback(int event_id, int err)
 			}
 			fdc[drvreg].prev_clock = prev_drq_clock = get_current_clock();
 			set_drq(true);
+			this->out_debug_log("DRQ ON@DRQ: %d\n", prev_drq_clock);
 //#ifdef _FDC_DEBUG_LOG
 			//this->out_debug_log(_T("FDC\tDRQ!\n"));
 //#endif
