@@ -1,7 +1,11 @@
+<div align="right">
 ** Qt porting for Common Source Code Project **
-                                           Sep 09, 2016
-	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
-
+===============================================
+Sep 09, 2016
+============										   
+K.Ohta <whatisthis.sowhat _at_ gmail.com>
+=========================================
+</div>
 --- If you can't read Japanese, [english writing is here](/README.en.md/).
 
 0. About
