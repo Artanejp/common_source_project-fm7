@@ -4,7 +4,7 @@
 K.Ohta <whatisthis.sowhat _at_ gmail.com></H3>
 </div>
 
-## *If you can read Japanese, [english writing is here](/README.md/).*
+## *If you can read Japanese, [japanese(日本語) writing is here](/README.md/).*
 
 
 About
