@@ -110,6 +110,13 @@ Qt specified notice (for non-Windows):
  
  ** Second is Qt's scan code.
    
+* Common components (i.e. source/src/qt/gui ) are packed to DLLs/shared libs.
+
+* Bash script for installation is available: source/src/tool/installer_unix.sh .
+
+* When you place some WAV files to directry same as R@M, you can some sounds; i.e. FDD's seek.See doc/VMs/*.txt .
+
+ローマ字カタカナ変換支援機構が一部の機種に実装されてます。
 Status
 ====
 
