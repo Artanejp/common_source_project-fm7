@@ -5,6 +5,7 @@ K.Ohta <whatisthis.sowhat _at_ gmail.com></H3>
 </div>
 
 *If you can't read Japanese, [english writing is here](/README.en.md/).*
+======
 
 概要
 ======
@@ -18,7 +19,6 @@ K.Ohta <whatisthis.sowhat _at_ gmail.com></H3>
      https://github.com/Artanejp/common_source_project-fm7/ 以下
 
 ## 追加情報:
-
    
 各機種バイナリーは、osdn.net　もしくはミラーサイトより入手可能です。
     
@@ -30,8 +30,12 @@ K.Ohta <whatisthis.sowhat _at_ gmail.com></H3>
 
 ## 【おねがい】
 
-
 doc/以下の文書で日本語しかなかったものを英語に翻訳していますが、機械翻訳を使ってるのであやしいです。英語の上手い方、校正などお願いします m(_ _)m
+
+LICENCE
+======
+
+[GPL Version 2](http://www.opensource.jp/gpl/gpl.ja.html).
 
 背景
 ====
@@ -45,25 +49,25 @@ doc/以下の文書で日本語しかなかったものを英語に翻訳して�
 最低限必要なもの(Qt版)
 ====
 
-   a. Qt5 ツールキット。Qt 5.5以降を推奨します。
+   * Qt5 ツールキット。Qt 5.5以降を推奨します。
    
-   b. OpenGL, 多分、最低OpenGL 2.1は必要です。（注：ひょっとしたら、OpenGLES2以降ならば動くように変えるかも知れない）
+   * OpenGL, 多分、最低OpenGL 2.1は必要です。（注：ひょっとしたら、OpenGLES2以降ならば動くように変えるかも知れない）
    
-   c. gcc / g++ (5.0以降？)もしくは llvm clang / clang++ (3.5以降?)コンパイラツールチェーン。MS Visual StudioのC++でも大体はビルドできると思いますが、未確認。
+   * gcc / g++ (5.0以降？)もしくは llvm clang / clang++ (3.5以降?)コンパイラツールチェーン。MS Visual StudioのC++でも大体はビルドできると思いますが、未確認。
       
-   d. SDL2 (SDL 1.xではないので注意)
+   * SDL2 (SDL 1.xではないので注意)
    
-   e. CMake 2.8以降。
+   * CMake 2.8以降。
    
-   f. ffmpegから、libavとlibswが必要です。 http://ffmpeg.org/ より。
+   * ffmpegから、libavとlibswが必要です。 http://ffmpeg.org/ より。
    
-   g. ffmpegは、それぞれのランタイムに必要なものをバンドルしてありますので、動かない時はインストールしてみてください。
+   * ffmpegは、それぞれのランタイムに必要なものをバンドルしてありますので、動かない時はインストールしてみてください。
       
-   h. GNU/Linuxビルドでは、Qt5.5(Ubuntu 16.04LTS向け)もしくはQt5.9(Debian GNU/Linux sid向け)でビルドしてあります。
+   * GNU/Linuxビルドでは、Qt5.5(Ubuntu 16.04LTS向け)もしくはQt5.9(Debian GNU/Linux sid向け)でビルドしてあります。
    
-   * Windows もしくは GNU/Linux のcross tool chain (要Wine)で、MinGW (gcc6) と Qt 5.7 でのビルドができることを確認しました。
+    ** Windows もしくは GNU/Linux のcross tool chain (要Wine)で、MinGW (gcc6) と Qt 5.7 でのビルドができることを確認しました。
      
-   * TIPS:
+## TIPS:
    
      * Windows等で動かした時に、画面の書き替えが表示されない場合は、環境変数 QT_OPENGL を software にしてみてください。（例えば、WindowsをVirtualBoxのゲストで使ってる場合など）
        
@@ -94,50 +98,51 @@ To install:
    
     $ sudo make install
 
-Qt固有の話(Windows除く)
+## Qt固有の話(Windows除く)
 ==
-   *ToolTipsを付けました。(2017-01-24)
+
+   * ToolTipsを付けました。(2017-01-24)
       
-   *日本語に翻訳しました。(2017-01-24)
+   * 日本語に翻訳しました。(2017-01-24)
    
-   *R@Mを $HOME/emu{Machine Name}/　に配置してください。(Windowsの場合は今の所 .\emu{Machine Name}\)。なお、このディレクトリは最初起動した後で作成されます。
+   * R@Mを $HOME/emu{Machine Name}/　に配置してください。(Windowsの場合は今の所 .\emu{Machine Name}\)。なお、このディレクトリは最初起動した後で作成されます。
    
-   *設定ファイルは、$HOME/.config/emu{Machine Name}/ に書き込まれます。(Windowsの場合は今の所 .\.config\emu{Machine Name}\)
+   * 設定ファイルは、$HOME/.config/emu{Machine Name}/ に書き込まれます。(Windowsの場合は今の所 .\.config\emu{Machine Name}\)
    
-   *ステートセーブファイルは、$HOME/emu{Machine Name}/{Machine Name}.sta に書き込まれます。
+   * ステートセーブファイルは、$HOME/emu{Machine Name}/{Machine Name}.sta に書き込まれます。
    
-   *キーコード変換テーブルファイルが、$HOME/.config/emu{Machine Name}/scancode.cfg に書き込まれます。
+   * キーコード変換テーブルファイルが、$HOME/.config/emu{Machine Name}/scancode.cfg に書き込まれます。
    
-     書式は、カンマで区切られた16進データです(10進ではないので注意) .
+     ** 書式は、カンマで区切られた16進データです(10進ではないので注意) .
      
-     1カラム目はM$ ヴァーチャルキーコード。
+     ** 1カラム目はM$ ヴァーチャルキーコード。
      
-     2カラム目はQtネィティブのスキャンキーコードです。
+     ** 2カラム目はQtネィティブのスキャンキーコードです。
      
-   *UI部分の共通コンポーネント (src/qt/gui) を共有ライブラリlibCSPgui.soにまとめました。
+   * UI部分の共通コンポーネント (src/qt/gui) を共有ライブラリlibCSPgui.soにまとめました。
    
-   *インストール用のBASHスクリプトを用意しました。src/tool/installer_unix.shです。
+   * インストール用のBASHスクリプトを用意しました。src/tool/installer_unix.shです。
    
-   *ROMと同じところに、特定のWAVファイル(VMによって異なる)を入れると、FDDのシーク音やテープのボタン音・リレー音を鳴らすことが出来ます。
+   * ROMと同じところに、特定のWAVファイル(VMによって異なる)を入れると、FDDのシーク音やテープのボタン音・リレー音を鳴らすことが出来ます。
    
-   *ローマ字カタカナ変換支援機構が一部の機種に実装されてます。romaji_kana.ja.txt をお読みください。
+   * ローマ字カタカナ変換支援機構が一部の機種に実装されてます。
     
 移植状況
 ==
 
-   a.現在、Debian GNU/Linux "sid"と、Ubuntu Linux 16.04LTS "Xenial"の AMD64版、後はWindowsのMinGWでしかテストしていません。
+   * 現在、Debian GNU/Linux "sid"と、Ubuntu Linux 16.04LTS "Xenial"の AMD64版、後はWindowsのMinGWでしかテストしていません。
    
    　が、多分他のGNU/Linux OSやBSD系のOS (Mac含む) でもビルドすれば動くでしょう。
    
      Windows もしくは GNU/Linux(要Wineとbinfmt-support)上でのMinGWとQt community edition でのビルドが通るようになりました。
       
-   b. 今は、Qtの開発側が「Qt4おわりね」とアナウンスしたので、Qt4ではなくQt5を使っています。
+   * 今は、Qtの開発側が「Qt4おわりね」とアナウンスしたので、Qt4ではなくQt5を使っています。
    
       添付してあるバイナリは、Qt 5.5でビルドしました(が、Qt 5.1以降なら動くはずです)。
 
-   c. Linux用ビルドでは、GCCをリンク時最適化(LTO)モードで使っています。
+   * Linux用ビルドでは、GCCをリンク時最適化(LTO)モードで使っています。
    
-   d. MZ-2500のソケット機能を実装してみていますが、マトモにテストできてません(；´Д｀)
+   * MZ-2500のソケット機能を実装してみていますが、マトモにテストできてません(；´Д｀)
    
 Upstream repositry:
 ==
@@ -162,8 +167,12 @@ Special thanks to:
 
   Ryu Takegami : eFM-8/7/77/AV/40/EX のデバッグに協力していただいています。
 
+
+
 Have fun!
 
 --- Ohta.
  
-   
+&copy 2018 Toshiya Takeda
+&copy 2018 K.Ohta <whatisthis.sowhat _at_ gmail.com>
+
