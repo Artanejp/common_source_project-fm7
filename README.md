@@ -16,7 +16,7 @@ K.Ohta <whatisthis.sowhat _at_ gmail.com></H3>
    
 ##ソースコード
    
-     <https://github.com/Artanejp/common_source_project-fm7/> 以下
+<https://github.com/Artanejp/common_source_project-fm7/> 以下
 
 ## 追加情報
    
@@ -146,27 +146,25 @@ To install:
 Upstream repositry:
 ==
 
-      https://github.com/Artanejp/common_source_project-fm7
+<https://github.com/Artanejp/common_source_project-fm7>
       
-      https://osdn.net/projects/csp-qt/scm/git/common_source_project-fm7
+<https://osdn.net/projects/csp-qt/scm/git/common_source_project-fm7>
 
 Project Page:
 ==
 
-      https://osdn.jp/projects/csp-qt/
+<https://osdn.jp/projects/csp-qt/>
 
 Upstream (Takeda Toshiyaさんのオリジナル)
 ==
 
-      http://takeda-toshiya.my.coocan.jp/
+<http://takeda-toshiya.my.coocan.jp/>
 
 
 Special thanks to:
 ==
 
   Ryu Takegami : eFM-8/7/77/AV/40/EX のデバッグに協力していただいています。
-
-
 
 Have fun!
 
