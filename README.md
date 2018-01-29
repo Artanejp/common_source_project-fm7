@@ -35,7 +35,9 @@ doc/以下の文書で日本語しかなかったものを英語に翻訳して�
 LICENSE
 ======
 
-[GPL Version 2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.ja.html).
+[GPL Version 2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.ja.html)
+
+[GPL Version 2 和訳](http://www.opensource.jp/gpl/gpl.ja.html)
 
 背景
 ====
