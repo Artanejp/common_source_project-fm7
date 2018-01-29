@@ -30,14 +30,18 @@ void Menu_FDClass::create_pulldown_menu_device_sub(void)
 	action_ignore_crc_error = new Action_Control(p_wid, using_flags);
 	action_ignore_crc_error->setVisible(true);
 	action_ignore_crc_error->setCheckable(true);
+	action_ignore_crc_error->binds->setDrive(media_drive);
 	
 	action_correct_timing = new Action_Control(p_wid, using_flags);
 	action_correct_timing->setVisible(true);
 	action_correct_timing->setCheckable(true);
+	action_correct_timing->binds->setDrive(media_drive);
 
 	action_count_immediate = new Action_Control(p_wid, using_flags);
 	action_count_immediate->setVisible(true);
 	action_count_immediate->setCheckable(true);
+	action_count_immediate->binds->setDrive(media_drive);
+	
 	p = using_flags->get_config_ptr();
 	if(p != NULL) {
 		if(p->correct_disk_timing[media_drive]) action_correct_timing->setChecked(true);
