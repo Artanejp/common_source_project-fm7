@@ -6,7 +6,7 @@ K.Ohta <whatisthis.sowhat _at_ gmail.com></H3>
 
 *If you can't read Japanese, [english writing is here](/README.en.md/).*
 
-概要:
+概要
 ======
 
    このパッケージは、Common Source Code Project (以下、CSP)をQt5に移植したものです。
@@ -17,8 +17,8 @@ K.Ohta <whatisthis.sowhat _at_ gmail.com></H3>
    
      https://github.com/Artanejp/common_source_project-fm7/ 以下
 
-追加情報:
-=======
+###追加情報:
+
    
 各機種バイナリーは、osdn.net　もしくはミラーサイトより入手可能です。
     
@@ -28,13 +28,12 @@ K.Ohta <whatisthis.sowhat _at_ gmail.com></H3>
 
 をチェックしてください。
 
-【おねがい】
-----------
+###【おねがい】
+
 
 doc/以下の文書で日本語しかなかったものを英語に翻訳していますが、機械翻訳を使ってるのであやしいです。英語の上手い方、校正などお願いします m(_ _)m
 
-1. 背景
--
+##1. 背景
 
    CSPは、非常に優れた構造のエミュレータです（しかし、些か重くてコンパイラがいい最適化をしないと重めですが）。
    
@@ -42,7 +41,7 @@ doc/以下の文書で日本語しかなかったものを英語に翻訳して�
 
    そこで、GNU/Linuxでこれを動かすためにQtに色々と移植していきましょう。と言う感じで作業をはじめました。
 
-2. 最低限必要なもの(Qt版)
+##2. 最低限必要なもの(Qt版)
 
    a. Qt5 ツールキット。Qt 5.5以降を推奨します。
    
@@ -68,7 +67,7 @@ doc/以下の文書で日本語しかなかったものを英語に翻訳して�
        
      * Windows版バイナリには、ソフトウェアレンダリングのopengl32.dllが添付されてますが、最近のパソコンの専用GPUドライバなら、もっと程度のいいOpenGLが入ってるはずです。添付版opengl32.dllを適当な名前に変更して動くかどうか試してみて下さい。
      
-3. ビルドの方法
+##3. ビルドの方法
 
 ソースコードを解凍するか、git clone / pull した後で:
    
@@ -92,7 +91,7 @@ To install:
    
     $ sudo make install
 
-4. Qt固有の話(Windows除く)
+##4. Qt固有の話(Windows除く)
 
    *ToolTipsを付けました。(2017-01-24)
       
@@ -120,7 +119,7 @@ To install:
    
    *ローマ字カタカナ変換支援機構が一部の機種に実装されてます。romaji_kana.ja.txt をお読みください。
     
-5. 移植状況
+##5. 移植状況
    
    a.現在、Debian GNU/Linux "sid"と、Ubuntu Linux 16.04LTS "Xenial"の AMD64版、後はWindowsのMinGWでしかテストしていません。
    
@@ -136,23 +135,23 @@ To install:
    
    d. MZ-2500のソケット機能を実装してみていますが、マトモにテストできてません(；´Д｀)
    
-6. Upstream repositry:
--
+##6. Upstream repositry:
+
       https://github.com/Artanejp/common_source_project-fm7
       
       https://osdn.net/projects/csp-qt/scm/git/common_source_project-fm7
 
-7. Project Page:
--
+##7. Project Page:
+
       https://osdn.jp/projects/csp-qt/
 
-8. Upstream (Takeda Toshiyaさんのオリジナル)
--
+##8. Upstream (Takeda Toshiyaさんのオリジナル)
+
       http://takeda-toshiya.my.coocan.jp/
 
 
-Special thanks to:
--
+##Special thanks to:
+
   Ryu Takegami : eFM-8/7/77/AV/40/EX のデバッグに協力していただいています。
 
 Have fun!
