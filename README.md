@@ -4,8 +4,8 @@
 K.Ohta <whatisthis.sowhat _at_ gmail.com></H3>
 </div>
 
-*If you can't read Japanese, [english writing is here](/README.en.md/).*
-======
+## *If you can't read Japanese, [english writing is here](/README.en.md/).*
+
 
 概要
 ======
@@ -14,17 +14,17 @@ K.Ohta <whatisthis.sowhat _at_ gmail.com></H3>
    
    バイナリはGNU/Linux(64bit)用とMinGW (32bit Windows)用を用意しています。
    
-   ソースコード：
+##ソースコード
    
-     https://github.com/Artanejp/common_source_project-fm7/ 以下
+     <https://github.com/Artanejp/common_source_project-fm7/> 以下
 
-## 追加情報:
+## 追加情報
    
 各機種バイナリーは、osdn.net　もしくはミラーサイトより入手可能です。
     
-    https://osdn.net/projects/csp-qt/  
+    <https://osdn.net/projects/csp-qt/>  
    
-    https://osdn.net/projects/csp-qt/releases/
+    <https://osdn.net/projects/csp-qt/releases/>
 
 をチェックしてください。
 
@@ -65,13 +65,13 @@ LICENCE
       
    * GNU/Linuxビルドでは、Qt5.5(Ubuntu 16.04LTS向け)もしくはQt5.9(Debian GNU/Linux sid向け)でビルドしてあります。
    
-    ** Windows もしくは GNU/Linux のcross tool chain (要Wine)で、MinGW (gcc6) と Qt 5.7 でのビルドができることを確認しました。
+    Windows もしくは GNU/Linux のcross tool chain (要Wine)で、MinGW (gcc6) と Qt 5.7 でのビルドができることを確認しました。
      
 ## TIPS:
    
-     * Windows等で動かした時に、画面の書き替えが表示されない場合は、環境変数 QT_OPENGL を software にしてみてください。（例えば、WindowsをVirtualBoxのゲストで使ってる場合など）
+ * Windows等で動かした時に、画面の書き替えが表示されない場合は、環境変数 QT_OPENGL を software にしてみてください。（例えば、WindowsをVirtualBoxのゲストで使ってる場合など）
        
-     * Windows版バイナリには、ソフトウェアレンダリングのopengl32.dllが添付されてますが、最近のパソコンの専用GPUドライバなら、もっと程度のいいOpenGLが入ってるはずです。添付版opengl32.dllを適当な名前に変更して動くかどうか試してみて下さい。
+ * Windows版バイナリには、ソフトウェアレンダリングのopengl32.dllが添付されてますが、最近のパソコンの専用GPUドライバなら、もっと程度のいいOpenGLが入ってるはずです。添付版opengl32.dllを適当な名前に変更して動くかどうか試してみて下さい。
      
 ビルドの方法
 ==
@@ -99,7 +99,6 @@ To install:
     $ sudo make install
 
 ## Qt固有の話(Windows除く)
-==
 
    * ToolTipsを付けました。(2017-01-24)
       
@@ -173,6 +172,6 @@ Have fun!
 
 --- Ohta.
  
-&copy 2018 Toshiya Takeda
-&copy 2018 K.Ohta <whatisthis.sowhat _at_ gmail.com>
+&copy; 2018 Toshiya Takeda
+&copy; 2018 K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
