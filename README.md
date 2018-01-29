@@ -6,7 +6,7 @@ K.Ohta <whatisthis.sowhat _at_ gmail.com></H3>
 
 *If you can't read Japanese, [english writing is here](/README.en.md/).*
 
-0. 概要
+0. 概要:
 ======
 
    このパッケージは、Common Source Code Project (以下、CSP)をQt5に移植したものです。
