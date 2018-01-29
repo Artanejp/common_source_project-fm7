@@ -1,77 +1,156 @@
-** Qt porting for Common Source Code Project **
-                                           Sep 09, 2016
-	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
+<H2>** Qt porting for Common Source Code Project **</H2>
+<div align="right">
+<H3>Sep 09, 2016<BR>
+K.Ohta <whatisthis.sowhat _at_ gmail.com></H3>
+</div>
+
+## *If you can read Japanese, [english writing is here](/README.md/).*
 
 
-0. About
+About
+====
+
    This package is Qt5 porting of Common Source Code Project (CSP).
-   Building with GNU/Linux(64bit) and MinGW(32bit Windows).
    
-1. Background
+   Building with GNU/Linux(64bit) and MinGW(32bit Windows).
+
+## Source code
+   
+<https://github.com/Artanejp/common_source_project-fm7/> 
+
+## Additional infomations
+   
+You can get pre-compiled binaries from [osdn.net](http://osdn.net) and their mirrors.
+    
+<https://osdn.net/projects/csp-qt/>  
+   
+<https://osdn.net/projects/csp-qt/releases/>
+
+
+LICENCE
+======
+
+[GPL Version 2](http://www.opensource.jp/gpl/gpl.ja.html).
+
+Background
+==========
+
    Common Source Code Project (CSP) is good emulator writing.
+   
    But codes are specified to M$ Visual C.
+   
    I'm using GNU/Linux, and I starting to apply FM-7(or later).
+   
    So, I start to port to GNU/Linux and using Qt4.
    
-   * Note: You can build with MinGW32 and Qt 5.5.1(for MinGW).
+## Note:
 
-   * TIPS: If emufoo.exe don't show screen drawing, set environment 
-           variable QT_OPENGL to software (i.e. Using Windows as VirtualBox's gueat OS).
+You can build with MinGW32 and Qt 5.5.1(for MinGW).
+
+TIPS:
+
+* If emufoo.exe don't show screen drawing, set environment variable QT_OPENGL to software (i.e. Using Windows as VirtualBox's gueat OS).
      
-2. What you need at least:
-   a. Qt5 (neither Qt3 and Qt4) toolkit.
-   b. Some OpenGL implementation, maybe at leaset OpenGL v3.0 .
-   c. gcc / g++ (4.7 or later? ) or llvm clang / clang++ (3.5 or later?) toolchain.
-   d. SDL2 (not SDL1.x).
-   e. CMake 2.8 or later.
+What you need at least:
+=====
 
-3. How to build:
-   After extracting (or git pulled) sourcecodes:
-   $ cd {srctop}/source/build-cmake/{Machine name}/
-   $ mkdir build
-   $ cd build
+* Qt5 (neither Qt3 and Qt4) toolkit.
+
+* Some OpenGL implementation, maybe at leaset OpenGL v3.0 .
+
+* gcc / g++ (5.4 or later? ) or llvm clang / clang++ (3.5 or later?) toolchain.
+
+* SDL2 (not SDL1.x).
+
+* CMake 2.8 or later.
+
+How to build:
+=====
+
+After extracting (or git pulled) sourcecodes:
+
+    $ cd {srctop}/source/build-cmake/{Machine name}/
+    $ mkdir build
+    $ cd build
    
-   To configure:
-   $ cmake ..
-   or
-   $ ccmake ..
-
-   To build:
-   $ make
-
-   To install:
-   $ sudo make install
-
-4.Qt specified notice (for non-Windows):
-   ・Place R@Ms under $HOME/emu{Machine Name}/ , this directory has made
-     after first using.
-   ・Config file, {foo}.ini is written on $HOME/.config/emu{Machine Name}/ .
-   ・Saved state file, {foo}.sta is written on $HOME/emu{Machine Name}/ .
-   ・Key code conversion file is written on $HOME/.config/emu{Machine Name}/scancode.cfg .
-     This file contains comma separated fields, written at hex-decimal (not decimal), 
-     first is M$ Virtual Key Code,
-     second is Qt's scan code.
+*To configure:*
    
-5.Status
-a. I tested to build only under Debian GNU/Linux "sid".
-   But, perhaps, will succed to build another GNU/Linux OSs or BSD OS variants.
-   * On windows, using MinGW is already okay.
-   * Cross building with GNU/Linux's MinGW32 and Qt5.5.1 (for MinGW) is available. 
-     Modify and use build-cmake/config_build_cross_win32.sh and related *.cmake files.
-   * And, you can also build with M$ Visual Studio 2013 or 2015.
+    $ cmake ..
+	
+ or
    
-  b. Now, I using Qt5 as toolkit, because authors of Qt announced
-     "Qt4 is obsolete, will be updated no longer".
+    $ ccmake ..
 
-  c. All of virtual machines of upstream (@Dec 17, 2015) are already ported to Qt.
-  d. Now using GCC-5.2 with Link Time Optimize to build for distrubuted binaries.
+*To build:*
 
-6. Upstream repositry:
-      https://github.com/Artanejp/common_source_project-fm7
-      https://www.pikacode.com/Artanejp/common_source_project-fm7/
+    $ make
+
+*To install:*
+
+    $ sudo make install
+
+Qt specified notice (for non-Windows):
+====
+
+* Added ToolTips.(2017-01-24)
       
-7. Upstream (Takeda Toshiya San's original code) 
-      http://takeda-toshiya.my.coocan.jp/
+* Translated menu entries to Japanese.(2017-01-24)
+
+* Place R@Ms under $HOME/emu{Machine Name}/ , this directory has made after first using.
+
+* Config file, {foo}.ini is written on $HOME/.config/emu{Machine Name}/ .
+
+* Saved state file, {foo}.sta is written on $HOME/emu{Machine Name}/ .
+
+* Key code conversion file is written on $HOME/.config/emu{Machine Name}/scancode.cfg .
+
+ ** This file contains comma separated fields, written at hex-decimal (not decimal),
+ 
+ ** First is M$ Virtual Key Code,
+ 
+ ** Second is Qt's scan code.
+   
+Status
+====
+
+* I tested to build only under Debian GNU/Linux "sid".But, perhaps, will succed to build another GNU/Linux OSs or BSD OS variants.
+
+ ** On windows, using MinGW is already okay.
+ 
+ ** Cross building with GNU/Linux's MinGW32 and Qt5.5.1 (for MinGW) is available.
+ 
+ ** Modify and use build-cmake/config_build_cross_win32.sh and related *.cmake files.
+ 
+ ** And, you can also build with M$ Visual Studio 2013 or 2015.
+   
+* Now, I using Qt5 as toolkit, because authors of Qt announced "Qt4 is obsolete, will be updated no longer".
+
+* All of virtual machines of upstream (@Dec 17, 2015) are already ported to Qt.
+
+* Now using GCC-7.x with Link Time Optimize to build for distrubuted binaries.
+
+* Implemented MZ-2500's socket, but, still not test enough(；´Д｀)
+
+Repositry:
+===
+
+<https://github.com/Artanejp/common_source_project-fm7>
+      
+Upstream (Takeda Toshiya San's original code)
+====
+
+<http://takeda-toshiya.my.coocan.jp/>>
+
+Special thanks to:
+==
+
+  Ryu Takegami : eFM-8/7/77/AV/40/EX のデバッグに協力していただいています。
 
 Have fun!
--- Ohta.
+
+--- Ohta.
+ 
+&copy; 2018 Toshiya Takeda
+
+&copy; 2018 K.Ohta <whatisthis.sowhat _at_ gmail.com>
+
