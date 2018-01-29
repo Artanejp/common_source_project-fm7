@@ -7,7 +7,8 @@ K.Ohta <whatisthis.sowhat _at_ gmail.com></H3>
 *If you can't read Japanese, [english writing is here](/README.en.md/).*
 
 0. 概要
--
+======
+
    このパッケージは、Common Source Code Project (以下、CSP)をQt5に移植したものです。
    
    バイナリはGNU/Linux(64bit)用とMinGW (32bit Windows)用を用意しています。
@@ -16,25 +17,23 @@ K.Ohta <whatisthis.sowhat _at_ gmail.com></H3>
    
      https://github.com/Artanejp/common_source_project-fm7/ 以下
 
-   追加情報:
+追加情報:
+=======
    
-    　各機種バイナリーは、osdn.net　もしくはミラーサイトより入手可能です。
+各機種バイナリーは、osdn.net　もしくはミラーサイトより入手可能です。
     
-   　https://osdn.net/projects/csp-qt/  
+    https://osdn.net/projects/csp-qt/  
    
-     https://osdn.net/projects/csp-qt/releases/　をチェックしてください。
+    https://osdn.net/projects/csp-qt/releases/
 
-　   Win32: 
-
-  　 GNU/Linux(amd64) : 
+をチェックしてください。
 
 *【おねがい】*
 
-     　doc/以下の文書で日本語しかなかったものを英語に翻訳していますが、機械翻訳を使ってるのであやしいです。
-     
-       英語の上手い方、校正などお願いします m(_ _)m
+doc/以下の文書で日本語しかなかったものを英語に翻訳していますが、機械翻訳を使ってるのであやしいです。英語の上手い方、校正などお願いします m(_ _)m
 
 1. 背景
+-
 
    CSPは、非常に優れた構造のエミュレータです（しかし、些か重くてコンパイラがいい最適化をしないと重めですが）。
    
