@@ -2,7 +2,6 @@
                                            Sep 09, 2016
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
---- If you can't read Japanese, [english writing is here](/README.en.md/).
 
 0. About
    This package is Qt5 porting of Common Source Code Project (CSP).
@@ -76,5 +75,3 @@ a. I tested to build only under Debian GNU/Linux "sid".
 
 Have fun!
 -- Ohta.
- 
-   
