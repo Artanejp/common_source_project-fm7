@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                       January 28, 2018
+                                                       January 29, 2018
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 1.About
@@ -10,7 +10,7 @@ and built with Qt5, for Windows, built with MinGW(32bit).
 
 Source Code:
 
-   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20180128_FLEX_TEST2
+   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20180129_FLEX_TEST3
    
 Additional INFO:
 
