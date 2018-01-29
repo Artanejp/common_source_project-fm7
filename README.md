@@ -14,7 +14,7 @@ K.Ohta <whatisthis.sowhat _at_ gmail.com></H3>
    
    バイナリはGNU/Linux(64bit)用とMinGW (32bit Windows)用を用意しています。
    
-##ソースコード
+## ソースコード
    
 <https://github.com/Artanejp/common_source_project-fm7/> 以下
 
