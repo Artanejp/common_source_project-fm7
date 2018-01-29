@@ -27,7 +27,7 @@ You can get pre-compiled binaries from [osdn.net](http://osdn.net) and their mir
 <https://osdn.net/projects/csp-qt/releases/>
 
 
-LICENCE
+LICENSE
 ======
 
 [GPL Version 2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html).

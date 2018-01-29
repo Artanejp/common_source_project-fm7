@@ -32,7 +32,7 @@ K.Ohta <whatisthis.sowhat _at_ gmail.com></H3>
 
 doc/以下の文書で日本語しかなかったものを英語に翻訳していますが、機械翻訳を使ってるのであやしいです。英語の上手い方、校正などお願いします m(_ _)m
 
-LICENCE
+LICENSE
 ======
 
 [GPL Version 2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.ja.html).
