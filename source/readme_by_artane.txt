@@ -12,7 +12,7 @@
    
    ソースコード：
    
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20180129_FLEX_TEST3
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20180130_FLEX_TEST4
 
    追加情報:
    

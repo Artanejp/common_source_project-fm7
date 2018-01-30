@@ -1,3 +1,201 @@
+commit 6d81b4861a547c2a1f908022142953284ea26e05
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 30 14:49:58 2018 +0900
+
+    [VM][MB8877] Force down DRQ when LOST-DATA happens.
+
+commit 1e1dc96ade9f4d8e6a36541049a52b414a479767
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 30 01:44:06 2018 +0900
+
+    [UI][Qt][MENU] DISK: Fix not affect of some entries:"Correct disk timing","Ignore CRC error" and "Immediate transfer".
+
+commit 7b059fd0b6bd505685b030005e796e4dfa451db5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 30 01:00:17 2018 +0900
+
+    [CONFIG][DISK] Fix default value ignore_crc_error and correct_disk_timing (mostly "to false").
+
+commit 726768d7c4f2b86479f6798b990a78cce3fc0dc7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 29 15:04:25 2018 +0900
+
+    .
+
+commit f5e0901eadf8e24062622fef21fcc107dd89e5f8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 29 15:03:55 2018 +0900
+
+    .
+
+commit 9cb9be3b13290f65ae766005ba485d5b51df03be
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 29 15:03:06 2018 +0900
+
+    [DOC}.
+
+commit 96ba520e8625e64b0c0dedfc1c8c296c1b033bec
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 29 15:01:42 2018 +0900
+
+    .
+
+commit f66eda02eb1c1803faf957ed055377480d8fdf8f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 29 14:59:57 2018 +0900
+
+    .
+
+commit d63a5fa0bc44924720705cc4615a8534aeb9c19b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 29 14:58:44 2018 +0900
+
+    [DOC] Update GPLv2's URL.
+
+commit 7a08ea186b141db869bca4d0b9ce17ae03aa54ea
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 29 14:54:36 2018 +0900
+
+    .
+
+commit 833e1df9826c0a718095c02636217f22ead2707a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 29 14:53:09 2018 +0900
+
+    .
+
+commit e4e53c97b8e24a7db9151e190b5c658240f44246
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 29 14:51:08 2018 +0900
+
+    .
+
+commit 43372a3b6a3f6ae2e7cee9254ab166109d53e58b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 29 14:46:26 2018 +0900
+
+    .
+
+commit ef9537b84cb7af9c472683e0d0993cb8649abf4d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 29 14:45:36 2018 +0900
+
+    [DOC] Update README.en.md .
+
+commit 829b2a9507615ba4eabdd927f42c2cc73ea0085a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 29 14:44:16 2018 +0900
+
+    [DOC] Update (GITHUB's) README.md.
+
+commit 96eebc6ddb3d05dae66aa992d72efbae1fb735b4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 29 14:31:55 2018 +0900
+
+    .
+
+commit 7c19facfa16f7a0cd397ffc481b4035538885846
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 29 14:30:39 2018 +0900
+
+    .
+
+commit 17afd954cfaf3f81c13decff4ca9315cc111e8cd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 29 14:29:15 2018 +0900
+
+    .
+
+commit 7d1ec3e9eb29e3c3507c04503b78f71427e43bc7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 29 14:24:49 2018 +0900
+
+    .
+
+commit d06ac542c7a4f660d28d079e4b72dee3f4de640c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 29 14:16:33 2018 +0900
+
+    .
+
+commit 39d6605ffc8e2ea2b7f3f64fbc6ba8fbfc39e406
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 29 14:14:45 2018 +0900
+
+    .
+
+commit e855f582fee5ea2396a775412aa5dda19ca46312
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 29 14:13:15 2018 +0900
+
+    .
+
+commit 8ab46bd96daee6aac8984b6c2cb9c47b4623ccd0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 29 14:11:22 2018 +0900
+
+    .
+
+commit 796a7b28323f3140d50eeacd342a222bb21ca79d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 29 14:10:31 2018 +0900
+
+    .
+
+commit 49c4135e9cc5654034182f1bfcba8de86a1d5501
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 29 14:07:50 2018 +0900
+
+    .
+
+commit a71f322c1a8043dc6b510f43baabd755a57bb313
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 29 14:05:57 2018 +0900
+
+    .
+
+commit 94a1438b3b3eff9515ba1d7ed11c6879ccd32877
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 29 14:04:09 2018 +0900
+
+    .
+
+commit 087e6dc292139135ea600ff36a4000c73bbc9f9c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 29 13:55:50 2018 +0900
+
+    [].
+
+commit 57caed5b68084f5867c2fc14b17684a78af23b2c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 29 13:53:23 2018 +0900
+
+    [DOC] .
+
+commit a466b39ff3b630f0d38f90f946267cf88dcc8a3d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 29 13:49:00 2018 +0900
+
+    [DOC] .
+
+commit 792d7fa9a2f713409e78d7118e6a01138826c733
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 29 13:48:07 2018 +0900
+
+    [DOC] Update README.md.
+
+commit 2252cbecc910e353fd2efe670b5430fb3cd7d8ec
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 29 11:24:38 2018 +0900
+
+    [DOC] Updated.
+
+commit dc36ba0aa77fddd2db6359f2ebc49000c1818dfc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 29 11:17:28 2018 +0900
+
+    [DOC] Updated.
+
 commit 583d6c628d90055925fa5a7b697a52e60e0052ee
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Mon Jan 29 10:41:33 2018 +0900
