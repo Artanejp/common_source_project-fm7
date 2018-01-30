@@ -863,6 +863,7 @@ void MB8877::event_callback(int event_id, int err)
 //#endif
 			status = status_tmp & ~(FDC_ST_BUSY | FDC_ST_DRQ);
 			cmdtype = 0;
+			set_drq(false);
 			set_irq(true);
 		} else if(status_tmp & FDC_ST_WRITEFAULT) {
 //#ifdef _FDC_DEBUG_LOG
@@ -870,6 +871,7 @@ void MB8877::event_callback(int event_id, int err)
 //#endif
 			status = status_tmp & ~(FDC_ST_BUSY | FDC_ST_DRQ);
 			cmdtype = 0;
+			set_drq(false);
 			set_irq(true);
 		} else {
 			status = status_tmp | (FDC_ST_BUSY | FDC_ST_DRQ);
@@ -906,6 +908,7 @@ void MB8877::event_callback(int event_id, int err)
 				if(!(fdc[drvreg].count_immediate)) fdc[drvreg].index++;
 			}
 			fdc[drvreg].prev_clock = prev_drq_clock = get_current_clock();
+
 			set_drq(true);
 			this->out_debug_log("DRQ ON@DRQ: %d\n", prev_drq_clock);
 //#ifdef _FDC_DEBUG_LOG
@@ -929,32 +932,31 @@ void MB8877::event_callback(int event_id, int err)
 			if(fdc_debug_log) this->out_debug_log(_T("FDC\tDATA LOST\n"));
 //#endif
 			if(cmdtype == FDC_CMD_WR_SEC || cmdtype == FDC_CMD_WR_MSEC || cmdtype == FDC_CMD_WR_TRK) {
-				if(fdc[drvreg].index == 0) {
-					status &= ~FDC_ST_BUSY;
-					//status &= ~FDC_ST_DRQ;
+				if(fdc[drvreg].index == 0) { // HEAD of REGION
 					cmdtype = 0;
-					if((status & FDC_ST_DRQ) != 0) {
+					//if((status & FDC_ST_DRQ) != 0) { // 20180130 FORCE DOWN DRQ ON LOST-DATA.
 						status |= FDC_ST_LOSTDATA;
 						status &= (uint8_t)(~(FDC_ST_DRQ | FDC_ST_BUSY));
 						set_drq(false);
-					}
+						//}
 					set_irq(true);
-				} else {
+				} else { // STILL WRITING
 					write_io8(3, 0x00);
-					if((status & FDC_ST_DRQ) != 0) {
+					//if((status & FDC_ST_DRQ) != 0) {
 						status |= FDC_ST_LOSTDATA;
 						status &= (uint8_t)(~(FDC_ST_DRQ | FDC_ST_BUSY));
 						set_irq(true);
 						set_drq(false);
-					}
+						//cmdtype = 0;
+						//}
 				}
-			} else {
-				if((status & FDC_ST_DRQ) != 0) {
+			} else { // READ 
+				//if((status & FDC_ST_DRQ) != 0) {
 					status |= FDC_ST_LOSTDATA;
 					status &= (uint8_t)(~(FDC_ST_DRQ | FDC_ST_BUSY));
 					set_irq(true);
 					set_drq(false);
-				}
+					//}
 				read_io8(3);
 			}
 			status |= FDC_ST_LOSTDATA;
