@@ -29,7 +29,7 @@ private:
 	// output signals
 	outputs_t outputs_irq;
 	outputs_t outputs_drq;
-	
+
 	// drive noise
 	NOISE* d_noise_seek;
 	NOISE* d_noise_head_down;

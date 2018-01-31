@@ -51,9 +51,13 @@ FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, paren
 	pcm1bit = NULL;
 	joystick = NULL;
 	fdc = NULL;
- #if defined(HAS_2HD)
+# if defined(HAS_2HD)
  	fdc_2HD = NULL;
- #endif
+#  if defined(_FM8) || defined(_FM77_VARIANTS)
+	event_2hd_nmi = -1;
+	nmi_delay = 300;
+#  endif
+# endif
 	printer = NULL;
 	
 	kanjiclass1 = NULL;
@@ -210,6 +214,10 @@ void FM7_MAINIO::initialize()
 #else
 	bootmode = config.boot_mode & 3;
 #endif
+#if defined(_FM8) || defined(_FM77_VARIANTS)
+	event_2hd_nmi = -1;
+	nmi_delay = 300;
+#endif
 	reset_printer();
 }
 
@@ -224,6 +232,11 @@ void FM7_MAINIO::reset()
 	beep_flag = false;
 	register_event(this, EVENT_BEEP_CYCLE, (1000.0 * 1000.0) / (1200.0 * 2.0), true, &event_beep);
 	// Sound
+#if defined(_FM8) || defined(_FM77_VARIANTS)
+	intmode_fdc = false;
+	if(event_2hd_nmi >= 0) cancel_event(this, event_2hd_nmi);
+	event_2hd_nmi = -1;
+#endif
 #if defined(_FM77AV_VARIANTS)
 	hotreset = false;
 #endif
@@ -308,7 +321,8 @@ void FM7_MAINIO::reset()
 #elif defined(_FM77_VARIANTS)
 	stat_fdmode_2hd = false; //  R/W : bit6, '0' = 2HD, '1' = 2DD. FM-77 Only.
 	stat_kanjirom = true;    //  R/W : bit5, '0' = sub, '1' = main. FM-77 Only.
-#endif	
+#endif
+	intmode_fdc = false;
 	write_signals(&firq_bus, 0);
 	
 #if defined(HAS_DMA)
@@ -619,6 +633,15 @@ void FM7_MAINIO::do_firq(void)
 	bool firq_stat;
 	uint32_t nval;
 	firq_stat = firq_break_key | firq_sub_attention;
+#if defined(HAS_2HD)
+# if defined(_FM8) || defined(_FM77_VARIANTS)
+	if(intmode_fdc) {
+		if((connect_fdc_2HD) && (fdc_2HD != NULL) && ((irqreg_fdc_2HD & 0x80) != 0)) {
+			firq_stat = true;
+		}
+	}
+# endif
+#endif
 	nval = (firq_stat) ? 0xffffffff : 0;
 	write_signals(&firq_bus, nval);
 }
@@ -662,6 +685,12 @@ uint8_t FM7_MAINIO::get_fd04(void)
 # else
 	val |= 0x18; // For NON-77L4, these bit must be '1'.Thanks to Ryu Takegami.
 # endif
+#elif defined(_FM8)
+	val |= 0x78;
+	// ToDo: MEMORY PARITY ERRO STATUS (if error, bit3 = '1').
+#elif defined(_FM77AV_VARIANTS)
+	val |= 0x6c;
+	val |= 0x10; // ToDo: Hack for OS-9 for 77AV.Really need?
 #else
 	val |= 0x7c;
 #endif	
@@ -690,6 +719,7 @@ void FM7_MAINIO::set_fd04(uint8_t val)
 	display->write_signal(SIG_DISPLAY_EXTRA_MODE, val, 0xff);
 	stat_fdmode_2hd  = ((val & 0x40) == 0);
 	stat_kanjirom    = ((val & 0x20) != 0);
+	intmode_fdc      = ((val & 0x04) == 0);
 # if defined(_FM77L4)
 	display->write_signal(SIG_DISPLAY_EXTRA_MODE, val & 0x18, 0x18);
 # endif
@@ -1865,6 +1895,10 @@ void FM7_MAINIO::event_callback(int event_id, int err)
 		set_fdc_motor_2HD(false);
 		event_fdc_motor_2HD = -1;
 		break;
+	case EVENT_FD_NMI_2HD:
+		do_nmi(true);
+		event_2hd_nmi = -1;
+		break;
 #endif
 	case EVENT_PRINTER_RESET_COMPLETED:			
 		this->write_signals(&printer_reset_bus, 0x00);
@@ -1892,7 +1926,7 @@ void FM7_MAINIO::event_vline(int v, int clock)
 {
 }
 
-#define STATE_VERSION 11
+#define STATE_VERSION 12
 void FM7_MAINIO::save_state_main(FILEIO *state_fio)
 {
 	uint32_t addr;
@@ -2069,6 +2103,10 @@ void FM7_MAINIO::save_state(FILEIO *state_fio)
 		state_fio->FputUint32_BE(opn_cmdreg[ch]);
 		state_fio->FputUint32_BE(opn_ch3mode[ch]);
 	}
+#if defined(_FM8) || defined(_FM77_VARIANTS)
+	state_fio->FputInt32_BE(event_2hd_nmi);
+	state_fio->FputUint32_BE(nmi_delay);
+#endif
 }
 
 bool FM7_MAINIO::load_state_main(FILEIO *state_fio, uint32_t version)
@@ -2249,6 +2287,10 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 		opn_cmdreg[ch] = state_fio->FgetUint32_BE();
 		opn_ch3mode[ch] = state_fio->FgetUint32_BE();
 	}
+#if defined(_FM8) || defined(_FM77_VARIANTS)
+	event_2hd_nmi = state_fio->FgetInt32_BE();
+	nmi_delay = state_fio->FgetUint32_BE();
+#endif
 	if(version != STATE_VERSION) return false;
 	return true;
 }

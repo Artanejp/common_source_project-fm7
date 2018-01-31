@@ -732,7 +732,7 @@ void MB8877::write_signal(int id, uint32_t data, uint32_t mask)
 		sidereg = (data & mask) ? 1 : 0;
 	} else if(id == SIG_MB8877_MOTOR) {
 		motor_on = ((data & mask) != 0);
-	}
+	} 
 }
 
 uint32_t MB8877::read_signal(int ch)
