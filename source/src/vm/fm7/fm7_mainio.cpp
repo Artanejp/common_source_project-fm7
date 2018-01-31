@@ -659,6 +659,8 @@ uint8_t FM7_MAINIO::get_fd04(void)
 	if(stat_kanjirom)     val |= 0x20;
 # if defined(_FM77L4)
 	val |= (display->read_signal(SIG_DISPLAY_EXTRA_MODE) & 0x18);
+# else
+	val |= 0x18; // For NON-77L4, these bit must be '1'.Thanks to Ryu Takegami.
 # endif
 #else
 	val |= 0x7c;
