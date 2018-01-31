@@ -448,12 +448,12 @@ void FM7_MAINMEM::init_data_table(void)
 #elif defined(_FM77_VARIANTS)
 	int pages = extram_pages;
 	if((pages > 0) && (pages < 4) && (fm7_mainmem_extram != NULL)) {
-		for(addr = 0x10000; addr < (extram_pages * 0x10000) ; addr += 0x80) {
+		for(addr = 0x00000; addr < (extram_pages * 0x10000) ; addr += 0x80) { // Thanks to Ryu Takegami
 			paddr = addr >> 7;
 			data_table[paddr].read_data  = &fm7_mainmem_extram[addr];
 			data_table[paddr].write_data = &fm7_mainmem_extram[addr];
 		}
-	}
+	}	
 #endif	
 }	
 
