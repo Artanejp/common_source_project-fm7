@@ -1948,7 +1948,6 @@ uint32_t DISPLAY::read_vram_data8(uint32_t addr)
 	uint32_t offset;
 	uint32_t vramaddr;
 	uint32_t color = (addr >> 14) & 0x03;
-	
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	if(display_mode == DISPLAY_MODE_8_400L) {
 		color = vram_bank & 0x03;
@@ -1970,7 +1969,9 @@ uint32_t DISPLAY::read_vram_data8(uint32_t addr)
 #else
 	offset = offset_point;
 #endif
-		
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
+	if(vram_active_block != 0) offset = 0; // Don't scroll at BLOCK 1.
+# endif
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		if(display_mode == DISPLAY_MODE_8_400L) {
 			uint32_t pagemod;
@@ -2050,6 +2051,9 @@ void DISPLAY::write_vram_data8(uint32_t addr, uint8_t data)
 #else
 	offset = offset_point;
 #endif
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
+	if(vram_active_block != 0) offset = 0; // Don't scroll at BLOCK 1.
+# endif
 
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		if(display_mode == DISPLAY_MODE_8_400L) {
@@ -2327,11 +2331,18 @@ uint32_t DISPLAY::read_data8(uint32_t addr)
 	// ACCESS VIA ALU.
 	else if((addr >= DISPLAY_VRAM_DIRECT_ACCESS) && (addr < (DISPLAY_VRAM_DIRECT_ACCESS + 0x18000))) {
 		addr = addr - DISPLAY_VRAM_DIRECT_ACCESS;
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
+			if(vram_active_block != 0) {
+				offset = 0;
+			}
+# endif		
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)		
 		if(display_mode == DISPLAY_MODE_8_400L) {
 			uint32_t page_offset_alt = 0;
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-			if(vram_active_block != 0) page_offset_alt = 0x18000;
+			if(vram_active_block != 0) {
+				page_offset_alt = 0x18000;
+			}
 # endif		
 			uint32_t color;
 			uint32_t pagemod;
@@ -2800,6 +2811,11 @@ void DISPLAY::write_data8(uint32_t addr, uint32_t data)
 	// ACCESS VIA ALU.
 	else if((addr >= DISPLAY_VRAM_DIRECT_ACCESS) && (addr < (DISPLAY_VRAM_DIRECT_ACCESS + 0x18000))) {
 		addr = addr - DISPLAY_VRAM_DIRECT_ACCESS; 
+#if defined(_FM77AV40EX) || defined(_FM77AV40SX)
+			if(vram_active_block != 0) {
+				offset = 0;
+			}
+#endif		
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		if(display_mode == DISPLAY_MODE_8_400L) {
 			uint32_t vramaddr;
