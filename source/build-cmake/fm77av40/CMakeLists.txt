@@ -6,11 +6,10 @@
 cmake_minimum_required (VERSION 2.8)
 cmake_policy(SET CMP0011 NEW)
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
-
-project (emufm77av)
+project (emufm77av40)
 
 
+set(CMAKE_MODULE_PATH "${emufm77av40_SOURCE_DIR}/../cmake")
 set(BUILD_FM77AV40 ON CACHE BOOL "Build for FM77AV40")
 
 include(config_emufm7)

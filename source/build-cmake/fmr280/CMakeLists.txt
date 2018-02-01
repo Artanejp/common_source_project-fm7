@@ -10,10 +10,9 @@ message("")
 message("** Start of configure CommonSourceProject,FMR280, Qt **")
 message("")
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
-
-
 project (emufmr280)
+
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../cmake")
 
 set(BUILD_FMR280 ON CACHE BOOL "Build for FM-R280")
 

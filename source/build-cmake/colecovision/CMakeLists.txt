@@ -10,9 +10,11 @@ message("")
 message("** Start of configure CommonSourceProject,COLECO Vision, Qt **")
 message("")
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 project (colecovision)
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../cmake")
+
+
 set(VM_NAME colecovision)
 set(USE_FMGEN OFF)
 set(WITH_JOYSTICK ON)

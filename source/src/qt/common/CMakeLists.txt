@@ -28,10 +28,13 @@ set(QT_COMMON_BASE
 	  ../osd_wrapper.cpp
 )
 
-
  QT5_ADD_RESOURCES(s_qt_common_RCC ${RESOURCE}
-		      ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/i18n_global.qrc
-		      ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/icons.qrc)
+		      ${CMAKE_CURRENT_SOURCE_DIR}/qrc/i18n_global.qrc
+		      ${CMAKE_CURRENT_SOURCE_DIR}/qrc/icons.qrc)
+
+# QT5_ADD_RESOURCES(s_qt_common_RCC ${RESOURCE}
+#		      ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/i18n_global.qrc
+#		      ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/icons.qrc)
 #include(cotire)
 
 add_executable(${EXEC_TARGET}

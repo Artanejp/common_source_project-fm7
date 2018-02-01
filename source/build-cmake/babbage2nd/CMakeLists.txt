@@ -10,10 +10,10 @@ message("")
 message("** Start of configure CommonSourceProject,Babbage2nd, Qt **")
 message("")
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
-
-
 project (emubabbage2nd)
+
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../cmake")
+
 set(EXEC_TARGET emubabbage2nd)
 set(VM_NAME babbage2nd)
 set(USE_FMGEN OFF)

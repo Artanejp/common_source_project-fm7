@@ -6,10 +6,9 @@
 cmake_minimum_required (VERSION 2.8)
 cmake_policy(SET CMP0011 NEW)
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
-
 project (libCSPgui)
 
+set(CMAKE_MODULE_PATH "${libCSPgui_SOURCE_DIR}/../cmake")
 include(config_sharedlibs)
 
 add_subdirectory(../../src/qt qt/osd)

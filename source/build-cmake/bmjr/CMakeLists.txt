@@ -10,10 +10,10 @@ message("")
 message("** Start of configure CommonSourceProject,Hitachi Basic Master Jr., Qt **")
 message("")
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
-
-
 project (emubmjr)
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../cmake")
+
+
 set(VM_NAME bmjr)
 set(EXEC_TARGET emubmjr)
 set(USE_FMGEN OFF)

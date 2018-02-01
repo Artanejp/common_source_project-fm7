@@ -10,10 +10,10 @@ message("")
 message("** Start of configure CommonSourceProject,EX80, Qt **")
 message("")
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
-
-
 project (emuex80)
+
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../cmake")
+
 set(EXEC_TARGET emuex80)
 set(VM_NAME ex80)
 set(USE_FMGEN OFF)

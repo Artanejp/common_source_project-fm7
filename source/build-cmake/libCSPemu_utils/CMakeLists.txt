@@ -6,9 +6,9 @@
 cmake_minimum_required (VERSION 2.8)
 cmake_policy(SET CMP0011 NEW)
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
-
 project (libCSPemu_utils)
+set(CMAKE_MODULE_PATH "${libCSPemu_utils_SOURCE_DIR}/../cmake")
+
 
 include(config_sharedlibs)
 

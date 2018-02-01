@@ -113,35 +113,26 @@ set(s_qt_gui_srcs
 
 if(USE_QT_5)
   QT5_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})
-#  if(WIN32)
-    QT5_ADD_RESOURCES(s_qt_gui_RCC ${RESOURCE}
-                      ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/commontexts.qrc
-		      ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/shaders.qrc
-		      )
-#  else()
 #    QT5_ADD_RESOURCES(s_qt_gui_RCC ${RESOURCE}
 #                      ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/commontexts.qrc
 #		      ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/shaders.qrc
-#		      ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/i18n_global.qrc
 #		      )
-#  endif()
+    QT5_ADD_RESOURCES(s_qt_gui_RCC ${RESOURCE}
+                      ${CMAKE_CURRENT_SOURCE_DIR}/../common/qrc/commontexts.qrc
+		      ${CMAKE_CURRENT_SOURCE_DIR}/../common/qrc/shaders.qrc
+		      )
 else()
   QT4_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})
 endif()
 
 if(WIN32)
-#add_library(qt_gui
-#	  ${s_qt_gui_srcs}
-#	  ${s_qt_gui_headers_MOC}
-#	  ${s_qt_gui_RCC}
-#)
 include (GenerateExportHeader)
 add_library(CSPgui SHARED
 	  ${s_qt_gui_srcs}
 	  ${s_qt_gui_headers_MOC}
 	  ${s_qt_gui_RCC}
 	  )
-#QT5_USE_MODULES(CSPgui Widgets Core Gui OpenGL)
+
 target_link_libraries(CSPgui 
 	  ${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libCSPosd.dll.a
 	  ${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libqt_avio.a

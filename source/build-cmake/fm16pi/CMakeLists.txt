@@ -10,10 +10,12 @@ message("")
 message("** Start of configure CommonSourceProject,FM16π, Qt **")
 message("")
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 
 project (emufm16pi)
+set(CMAKE_MODULE_PATH "${emufm16pi_SOURCE_DIR}/../cmake")
+
+
 set(EXEC_TARGET emufm16pi)
 set(VM_NAME fm16pi)
 set(USE_FMGEN OFF)

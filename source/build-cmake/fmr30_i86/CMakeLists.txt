@@ -10,9 +10,11 @@ message("")
 message("** Start of configure CommonSourceProject,FMR 30, Qt **")
 message("")
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
-project (emufmr30)
+project (emufmr30_i86)
+
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../cmake")
+
 set(VM_NAME fmr30)
 set(USE_FMGEN OFF)
 set(VMFILES

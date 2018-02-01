@@ -6,10 +6,9 @@
 cmake_minimum_required (VERSION 2.8)
 cmake_policy(SET CMP0011 NEW)
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 project (libCSPcommon_vm)
-#include(config_commonsource)
+set(CMAKE_MODULE_PATH "${libCSPcommon_vm_SOURCE_DIR}/../cmake")
 
 include(config_sharedlibs)
 

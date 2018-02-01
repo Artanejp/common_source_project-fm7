@@ -6,9 +6,9 @@
 cmake_minimum_required (VERSION 2.8)
 cmake_policy(SET CMP0011 NEW)
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
-
 project (libCSPavio)
+set(CMAKE_MODULE_PATH "${libCSPavio_SOURCE_DIR}/../cmake")
+
 #include(config_commonsource)
 
 include(config_sharedlibs)

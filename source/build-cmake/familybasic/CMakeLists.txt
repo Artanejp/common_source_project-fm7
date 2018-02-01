@@ -10,10 +10,9 @@ message("")
 message("** Start of configure CommonSourceProject,EPSON HC 80, Qt **")
 message("")
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
-
-
 project (emufamilybasic)
+
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../cmake")
 
 set(EXEC_TARGET emufamilybasic)
 set(VM_NAME familybasic)

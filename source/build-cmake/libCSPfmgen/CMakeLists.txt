@@ -6,11 +6,9 @@
 cmake_minimum_required (VERSION 2.8)
 cmake_policy(SET CMP0011 NEW)
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
-
 project (libCSPfmgen)
-#include(config_commonsource)
 
+set(CMAKE_MODULE_PATH "${libCSPfmgen_SOURCE_DIR}/../cmake")
 include(config_sharedlibs)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)

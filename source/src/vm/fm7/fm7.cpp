@@ -666,8 +666,8 @@ void VM::connect_bus(void)
 #else
 				fdc->set_drive_type(i, DRIVE_TYPE_2D);
 #endif
-				//fdc->set_drive_rpm(i, 360); // For FLEX.
 				fdc->set_drive_mfm(i, true);
+				fdc->set_drive_rpm(i, 300);
 			}
 		}
 #if defined(_FM8) || (_FM7) || (_FMNEW7)
@@ -679,8 +679,8 @@ void VM::connect_bus(void)
 // ToDo: Implement another FDC for 1MB (2HD or 8''), this is used by FM-8 to FM-77? Not FM77AV or later? I still know this.
 		for(int i = 0; i < 2; i++) {
 			fdc_2HD->set_drive_type(i, DRIVE_TYPE_2HD);
-			fdc_2HD->set_drive_rpm(i, 360);
 			fdc_2HD->set_drive_mfm(i, true);
+			fdc_2HD->set_drive_rpm(i, 360);
 		}
 	}
 #endif	

@@ -11,6 +11,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 project (emufm77av)
 
+set(CMAKE_MODULE_PATH "${emufm77av_SOURCE_DIR}/../cmake")
 set(BUILD_FM77AV ON CACHE BOOL "Build for FM77AV")
 
 include(config_emufm7)
