@@ -81,18 +81,38 @@ void MB8877::register_drq_event(int bytes)
 {
 	double nusec = disk[drvreg]->get_usec_per_bytes(bytes); // For debug
 	double usec = nusec - get_passed_usec(prev_drq_clock);
-
+	bool nf = false;
+	
+	if(usec > nusec) usec = nusec; 
 	if(usec < 4) {
 		usec = 4;
 	}
+	if(config.correct_disk_timing[drvreg]) {
+		nf = true;
+	}
 	if(type_fm7) {
-		if((disk[drvreg]->is_special_disk == SPECIAL_DISK_FM7_GAMBLER) ||
+		if((disk[drvreg]->is_special_disk == SPECIAL_DISK_FM7_GAMBLER)) {
 		   /* (disk[drvreg]->is_special_disk == SPECIAL_DISK_FM77AV_PSYOBLADE) || */
-		   (config.correct_disk_timing[drvreg])) {
-			usec = 7;
+			nf = true;
 		}
 	}
-	this->out_debug_log("DRQ REG: %dbytes %d:%d -> %f\n", bytes, get_current_clock(), prev_drq_clock, usec);
+	if(nf) {
+		switch(disk[drvreg]->media_type) {
+		case MEDIA_TYPE_2D:
+		case MEDIA_TYPE_2DD:
+			if(usec > 7.0) usec = 7.0;
+			break;
+		case MEDIA_TYPE_2HD:
+		case MEDIA_TYPE_144:
+		case MEDIA_TYPE_UNK:
+			usec = 4.0;
+			break;
+		default:
+			usec = 4.0;
+			break;
+		}
+	}
+	if(fdc_debug_log) this->out_debug_log("DRQ REG: %dbytes %d:%d -> %f\n", bytes, get_current_clock(), prev_drq_clock, usec);
 	cancel_my_event(EVENT_DRQ);
 	register_event(this, (EVENT_DRQ << 8) | (cmdtype & 0xff), usec, false, &register_id[EVENT_DRQ]);
 }
@@ -886,7 +906,7 @@ void MB8877::event_callback(int event_id, int err)
 			fdc[drvreg].prev_clock = prev_drq_clock = get_current_clock();
 			set_drq(true);
 			drive_sel = false;
-			this->out_debug_log("DRQ ON@SEARCH: %d\n", prev_drq_clock);
+			if(fdc_debug_log) this->out_debug_log("DRQ ON@SEARCH: %d\n", prev_drq_clock);
 //#ifdef _FDC_DEBUG_LOG
 			if(fdc_debug_log) this->out_debug_log(_T("FDC\tSEARCH OK\n"));
 //#endif
@@ -910,7 +930,7 @@ void MB8877::event_callback(int event_id, int err)
 			fdc[drvreg].prev_clock = prev_drq_clock = get_current_clock();
 
 			set_drq(true);
-			this->out_debug_log("DRQ ON@DRQ: %d\n", prev_drq_clock);
+			if(fdc_debug_log) this->out_debug_log("DRQ ON@DRQ: %d\n", prev_drq_clock);
 //#ifdef _FDC_DEBUG_LOG
 			//this->out_debug_log(_T("FDC\tDRQ!\n"));
 //#endif
@@ -939,7 +959,7 @@ void MB8877::event_callback(int event_id, int err)
 						status &= (uint8_t)(~(FDC_ST_DRQ | FDC_ST_BUSY));
 						set_drq(false);
 						//}
-					set_irq(true);
+						set_irq(true);
 				} else { // STILL WRITING
 					write_io8(3, 0x00);
 					//if((status & FDC_ST_DRQ) != 0) {
