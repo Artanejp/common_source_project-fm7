@@ -56,33 +56,15 @@ EmuThreadClassBase::EmuThreadClassBase(META_MainWindow *rootWindow, USING_FLAGS 
 								 using_flags->get_config_ptr()->sound_volume_l[i]) / 2;
 		}
 	}
-	key_up_code_fifo = new FIFO(4096);
-	key_up_mod_fifo = new FIFO(4096);
-	key_up_repeat_fifo = new FIFO(4096);
-
-	key_down_code_fifo = new FIFO(4096);
-	key_down_mod_fifo = new FIFO(4096);
-	key_down_repeat_fifo = new FIFO(4096);
+	key_fifo = new FIFO(4096 * 6);
+	key_fifo->clear();
 };
 
 EmuThreadClassBase::~EmuThreadClassBase() {
 	delete drawCond;
-	
-	key_up_code_fifo->release();
-	key_up_mod_fifo->release();
-	key_up_repeat_fifo->release();
-	
-	key_down_code_fifo->release();
-	key_down_mod_fifo->release();
-	key_down_repeat_fifo->release();
-	
-	delete key_up_code_fifo;
-	delete key_up_mod_fifo;
-	delete key_up_repeat_fifo;
-	
-	delete key_down_code_fifo;
-	delete key_down_mod_fifo;
-	delete key_down_repeat_fifo;
+
+	key_fifo->release();
+	delete key_fifo;
 };
 
 void EmuThreadClassBase::calc_volume_from_balance(int num, int balance)

@@ -33,8 +33,14 @@ class USING_FLAGS;
 
 QT_BEGIN_NAMESPACE
 //#include "../../romakana.h"
+//#define USE_QQUEUE_FOR_KEY
 
+enum {
+	KEY_QUEUE_DOWN = 0x10000000,
+	KEY_QUEUE_UP   = 0x20000000,
+};	
 typedef struct {
+	uint32_t type;
 	uint32_t code;
 	uint32_t mod;
 	bool repeat;
@@ -51,16 +57,7 @@ protected:
 	int mouse_x;
 	int mouse_y;
 	
-	//QQueue <key_queue_t>key_up_queue;
-	//QQueue <key_queue_t>key_down_queue;
-    FIFO *key_up_code_fifo;
-	FIFO *key_up_mod_fifo;
-	FIFO *key_up_repeat_fifo;
-	
-    FIFO *key_down_code_fifo;
-	FIFO *key_down_mod_fifo;
-	FIFO *key_down_repeat_fifo;
-
+    FIFO *key_fifo;
 	
 	uint32_t key_mod;
 
@@ -118,54 +115,49 @@ protected:
 	virtual void get_tape_string(void) {};
 	virtual void get_cd_string(void) {};
 	virtual void get_bubble_string(void) {};
+	
 	void enqueue_key_up(key_queue_t s) {
-		key_up_code_fifo->write(s.code);
-		key_up_mod_fifo->write(s.mod);
-		key_up_repeat_fifo->write(s.repeat? 1 : 0);
+		key_fifo->write(KEY_QUEUE_UP);
+		key_fifo->write(s.code);
+		key_fifo->write(s.mod);
+		key_fifo->write(s.repeat? 1 : 0);
 	};
 	void enqueue_key_down(key_queue_t s) {
-		key_down_code_fifo->write(s.code);
-		key_down_mod_fifo->write(s.mod);
-		key_down_repeat_fifo->write(s.repeat? 1 : 0);
+		key_fifo->write(KEY_QUEUE_DOWN);
+		key_fifo->write(s.code);
+		key_fifo->write(s.mod);
+		key_fifo->write(s.repeat? 1 : 0);
 	};
-	void dequeue_key_up(key_queue_t *s) {
-		s->code = (uint32_t)key_up_code_fifo->read();
-		s->mod  = (uint32_t)key_up_mod_fifo->read();
-		if(key_up_repeat_fifo->read() != 0) {
-			s->repeat = true;
+	void dequeue_key(key_queue_t *s) {
+		uint32_t _type = (uint32_t)key_fifo->read();
+		if(_type == 	KEY_QUEUE_DOWN) {
+			s->type = _type;
+			s->code = (uint32_t)key_fifo->read();
+			s->mod  = (uint32_t)key_fifo->read();
+			if(key_fifo->read() != 0) {
+				s->repeat = true;
+			} else {
+				s->repeat = false;
+			}
+		} else if(_type == KEY_QUEUE_UP) {
+			s->type = _type;
+			s->code = (uint32_t)key_fifo->read();
+			s->mod  = (uint32_t)key_fifo->read();
+			uint32_t dummy = key_fifo->read();
+			s->repeat = false;
 		} else {
+			s->type = 0;
+			s->code = 0;
+			s->mod = 0;
 			s->repeat = false;
 		}
 	};
-	void dequeue_key_down(key_queue_t *s) {
-		s->code = (uint32_t)key_down_code_fifo->read();
-		s->mod  = (uint32_t)key_down_mod_fifo->read();
-		if(key_down_repeat_fifo->read() != 0) {
-			s->repeat = true;
-		} else {
-			s->repeat = false;
-		}
-	};
-	bool is_empty_key_down() {
-		bool f = key_down_code_fifo->empty();
-		f &= key_down_mod_fifo->empty();
-		f &= key_down_repeat_fifo->empty();
-		return f;
-	};
-	bool is_empty_key_up() {
-		bool f = key_up_code_fifo->empty();
-		f &= key_up_mod_fifo->empty();
-		f &= key_up_repeat_fifo->empty();
+	bool is_empty_key() {
+		bool f = key_fifo->empty();
 		return f;
 	};
 	void clear_key_queue() {
-		key_up_code_fifo->clear();
-		key_up_mod_fifo->clear();
-		key_up_repeat_fifo->clear();
-
-		key_down_code_fifo->clear();
-		key_down_mod_fifo->clear();
-		key_down_repeat_fifo->clear();
+		key_fifo->clear();
 	};
 	virtual void set_romakana(void) { };
 public:

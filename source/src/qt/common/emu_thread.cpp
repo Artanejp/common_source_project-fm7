@@ -441,24 +441,26 @@ void EmuThreadClass::doWork(const QString &params)
 			}
 			// else
 			{
-				while(!is_empty_key_up()) {
+				while(!is_empty_key()) {
 					key_queue_t sp;
-					dequeue_key_up(&sp);
-					key_mod = sp.mod;
-					{
-						p_emu->key_modifiers(sp.mod);
-						p_emu->key_up(sp.code, true); // need decicion of extend.
-					}
-				}
-				while(!is_empty_key_down()) {
-					key_queue_t sp;
-					dequeue_key_down(&sp);
-					if(p_config->romaji_to_kana) {
-						p_emu->key_modifiers(sp.mod);
-						p_emu->key_char(sp.code);
-					} else {
-						p_emu->key_modifiers(sp.mod);
-						p_emu->key_down(sp.code, true, sp.repeat);
+					dequeue_key(&sp);
+					switch(sp.type) {
+					case KEY_QUEUE_UP:
+							key_mod = sp.mod;
+							p_emu->key_modifiers(sp.mod);
+							p_emu->key_up(sp.code, true); // need decicion of extend.
+							break;
+					case KEY_QUEUE_DOWN:
+							if(p_config->romaji_to_kana) {
+								p_emu->key_modifiers(sp.mod);
+								p_emu->key_char(sp.code);
+							} else {
+								p_emu->key_modifiers(sp.mod);
+								p_emu->key_down(sp.code, true, sp.repeat);
+							}
+							break;
+					default:
+						break;
 					}
 				}
 			}
