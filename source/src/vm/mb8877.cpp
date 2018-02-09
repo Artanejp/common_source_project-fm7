@@ -168,9 +168,11 @@ void MB8877::initialize()
 	if(osd->check_feature(_T("MB8877_NO_BUSY_AFTER_SEEK"))) {
 		mb8877_no_busy_after_seek = true;
 	}
-	if(osd->check_feature(_T("_FDC_DEBUG_LOG"))) {
-		fdc_debug_log = true;
-	}
+	//if(osd->check_feature(_T("_FDC_DEBUG_LOG"))) {
+	//	fdc_debug_log = true;
+	//}
+	fdc_debug_log = config.special_debug_fdc;
+	
 	if(osd->check_feature(_T("HAS_MB8866"))) {
 		type_mb8866 = true;
 		invert_registers = true;
@@ -1943,6 +1945,7 @@ void MB8877::update_config()
 	if(d_noise_head_up != NULL) {
 		d_noise_head_up->set_mute(!config.sound_noise_fdd);
 	}
+	fdc_debug_log = config.special_debug_fdc;
 }
 
 #define STATE_VERSION	6
@@ -2014,6 +2017,8 @@ bool MB8877::load_state(FILEIO* state_fio)
 	drive_sel = state_fio->FgetBool();
 	prev_drq_clock = state_fio->FgetUint32();
 	seekend_clock = state_fio->FgetUint32();
+
+	fdc_debug_log = config.special_debug_fdc;
 	return true;
 }
 

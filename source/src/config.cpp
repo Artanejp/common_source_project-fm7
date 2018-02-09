@@ -209,6 +209,7 @@ void initialize_config()
 	#else
 		config.enter_as_numpad_enter = true;
 	#endif
+		config.special_debug_fdc = false;
 		config.host_keyboard_type = CONFIG_HOST_KEYBOARD_AT_109JP;
 #endif	
 }
@@ -433,7 +434,10 @@ void load_config(const _TCHAR *config_path)
 		config.swap_kanji_pause = MyGetPrivateProfileBool(_T("Qt"), _T("SwapKanjiPause"), config.swap_kanji_pause, config_path);
 		config.cursor_as_ten_key = MyGetPrivateProfileInt(_T("Qt"), _T("CursorAsTenKey"), config.cursor_as_ten_key, config_path);
 		config.enter_as_numpad_enter = MyGetPrivateProfileBool(_T("Qt"), _T("EnterAsNumpadEnter"), config.enter_as_numpad_enter, config_path);
-		config.host_keyboard_type = MyWritePrivateProfileInt(_T("Qt"), _T("HostKeyboardType"), config.host_keyboard_type, config_path);
+		config.host_keyboard_type = MyGetPrivateProfileInt(_T("Qt"), _T("HostKeyboardType"), config.host_keyboard_type, config_path);
+	#ifdef USE_FD1
+		config.special_debug_fdc =	MyGetPrivateProfileInt(_T("Qt"), _T("SpecialDebugFDC"), config.special_debug_fdc, config_path);
+	#endif
 
 		
 		// Movie load/save.
@@ -745,6 +749,9 @@ void save_config(const _TCHAR *config_path)
 		MyWritePrivateProfileInt(_T("Qt"), _T("CursorAsTenKey"), config.cursor_as_ten_key, config_path);
 		MyWritePrivateProfileBool(_T("Qt"), _T("EnterAsNumpadEnter"), config.enter_as_numpad_enter, config_path);
 		MyWritePrivateProfileInt(_T("Qt"), _T("HostKeyboardType"), config.host_keyboard_type, config_path);
+	#ifdef USE_FD1
+		MyWritePrivateProfileInt(_T("Qt"), _T("SpecialDebugFDC"), config.special_debug_fdc, config_path);
+	#endif
 
 		for(i = 0; i < 16; i++) {
 			_TCHAR name[256];

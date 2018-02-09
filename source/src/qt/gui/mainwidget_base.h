@@ -192,6 +192,7 @@ private:
 	class Action_Control *action_DispVirtualMedias[5];
 	class Action_Control *action_FocusWithClick;
 	class Action_Control *action_UseRomaKana;
+	class Action_Control *action_Logging_FDC;
 	class Action_Control *action_LogToSyslog;
 	class Action_Control *action_LogToConsole;
 	class Action_Control *action_LogRecord;
@@ -638,7 +639,7 @@ public slots:
 	void do_set_visible_virtual_media_right();
 
 	void do_set_emulate_cursor_as(int num);
-	
+	void do_set_logging_fdc(bool onoff);	
 signals:
 	int message_changed(QString);
 	int quit_emu_thread();

@@ -137,7 +137,9 @@ void UPD765A::initialize()
 	} else {
 		_max_drive = 0;
 	}
-	_fdc_debug_log = osd->check_feature(_T("_FDC_DEBUG_LOG"));
+	//_fdc_debug_log = osd->check_feature(_T("_FDC_DEBUG_LOG"));
+	_fdc_debug_log = config.special_debug_fdc;
+	
 	_upd765a_dma_mode = osd->check_feature(_T("UPD765A_DMA_MODE"));
 	_upd765a_ext_drvsel = osd->check_feature(_T("UPD765A_EXT_DRVSEL"));
 	_upd765a_sence_intstat_result = osd->check_feature(_T("UPD765A_SENCE_INTSTAT_RESULT"));
@@ -1770,6 +1772,7 @@ void UPD765A::update_config()
 	if(d_noise_head_up != NULL) {
 		d_noise_head_up->set_mute(!config.sound_noise_fdd);
 	}
+	_fdc_debug_log = config.special_debug_fdc;
 }
 
 #define STATE_VERSION	2
@@ -1871,6 +1874,8 @@ bool UPD765A::load_state(FILEIO* state_fio)
 	reset_signal = state_fio->FgetBool();
 	prev_index = state_fio->FgetBool();
 	prev_drq_clock = state_fio->FgetUint32();
+	
+	_fdc_debug_log = config.special_debug_fdc;
 	return true;
 }
 

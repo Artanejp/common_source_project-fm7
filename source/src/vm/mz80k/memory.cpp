@@ -358,17 +358,17 @@ void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 	} else if(id == SIG_MEMORY_FDC_IRQ) {
 		if(fdc_irq != signal) {
 			fdc_irq = signal;
-#ifdef _FDC_DEBUG_LOG
-			this->out_debug_log(_T("MEM\tfdc_irq=%2x\n"), fdc_irq);
-#endif
+//#ifdef _FDC_DEBUG_LOG
+			if(config.special_debug_fdc) this->out_debug_log(_T("MEM\tfdc_irq=%2x\n"), fdc_irq);
+//#endif
 //			update_fdif_rom_bank();
 		}
 	} else if(id == SIG_MEMORY_FDC_DRQ) {
 		if(fdc_drq != signal) {
 			fdc_drq = signal;
-#ifdef _FDC_DEBUG_LOG
-			this->out_debug_log(_T("MEM\tfdc_drq=%2x\n"), fdc_drq);
-#endif
+//#ifdef _FDC_DEBUG_LOG
+			if(config.special_debug_fdc) this->out_debug_log(_T("MEM\tfdc_drq=%2x\n"), fdc_drq);
+//#endif
 			update_fdif_rom_bank();
 		}
 #endif

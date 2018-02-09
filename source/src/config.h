@@ -220,6 +220,7 @@ typedef struct {
 	
 	int host_keyboard_type;
 	
+	bool special_debug_fdc;	
 	/*
 	 * TYPE : 
 	 *    0 : OpenGL/Main Profile

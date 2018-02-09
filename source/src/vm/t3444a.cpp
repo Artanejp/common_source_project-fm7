@@ -86,7 +86,9 @@ void T3444A::initialize()
 	_max_drive = osd->get_feature_int_value(_T("MAX_DRIVE"));
 	if((_max_drive <= 0) || (_max_drive >= 4)) _max_drive = 4;
 	_has_t3444m = osd->check_feature(_T("HAS_T3444M"));
-	_fdc_debug_log = osd->check_feature(_T("_FDC_DEBUG_LOG"));
+	//_fdc_debug_log = osd->check_feature(_T("_FDC_DEBUG_LOG"));
+	_fdc_debug_log = config.special_debug_fdc;
+	
 	_sectors_in_track = (_has_t3444m) ? 16 : 26;
 	// initialize d88 handler
 	for(int i = 0; i < 4; i++) {
@@ -794,6 +796,7 @@ void T3444A::update_config()
 	if(d_noise_seek != NULL) {
 		d_noise_seek->set_mute(!config.sound_noise_fdd);
 	}
+	_fdc_debug_log = config.special_debug_fdc;
 }
 
 #define STATE_VERSION	1
@@ -856,6 +859,8 @@ bool T3444A::load_state(FILEIO* state_fio)
 	tnd = state_fio->FgetBool();
 	motor_on = state_fio->FgetBool();
 	prev_rqm_clock = state_fio->FgetUint32();
+	_fdc_debug_log = config.special_debug_fdc;
+	
 	return true;
 }
 

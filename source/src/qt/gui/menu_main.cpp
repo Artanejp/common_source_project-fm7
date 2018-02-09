@@ -208,6 +208,12 @@ void Ui_MainWindowBase::do_update_device_node_name(int id, const _TCHAR *name)
 }
 
 
+void Ui_MainWindowBase::do_set_logging_fdc(bool f)
+{
+	using_flags->get_config_ptr()->special_debug_fdc = f;
+	emit sig_emu_update_config();
+}
+
 void Ui_MainWindowBase::do_set_dev_log_to_console(int num, bool f)
 {
 	csp_logger->set_device_node_log(num, 2, CSP_LOG_DEBUG, f);
@@ -732,6 +738,10 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 		action_UseRomaKana->setText(QApplication::translate("MainWindow", "ROMA-KANA Conversion", 0));
 		action_UseRomaKana->setToolTip(QApplication::translate("MainWindow", "Use romaji-kana conversion assistant of emulator.", 0));
 	}
+	if(action_Logging_FDC != NULL) {
+		action_Logging_FDC->setText(QApplication::translate("MainWindow", "FDC: Turn ON Debug log.", 0));
+		action_Logging_FDC->setToolTip(QApplication::translate("MainWindow", "Turn ON debug logging for FDCs.Useful to resolve issues from guest software.", 0));
+	}
 	// ToDo
 	menu_EmulateCursorAs->setTitle(QApplication::translate("MainWindow", "Emulate cursor as", 0));
 	menu_EmulateCursorAs->setToolTip(QApplication::translate("MainWindow", "Emulate cursor as ten-key.", 0));
@@ -812,6 +822,10 @@ void Ui_MainWindowBase::CreateEmulatorMenu(void)
 		menuEmulator->addAction(action_UseRomaKana);
 	}
 	menuEmulator->addAction(menu_EmulateCursorAs->menuAction());
+	if(action_Logging_FDC != NULL) {
+		menuEmulator->addSeparator();
+		menuEmulator->addAction(action_Logging_FDC);
+	}
 	menuEmulator->addSeparator();
 	menuEmulator->addAction(action_LogToConsole);
 	menuEmulator->addAction(menuDevLogToConsole->menuAction());
@@ -924,7 +938,12 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 				this, SLOT(do_set_window_focus_type(bool)));
 	//connect(action_FocusWithClick, SIGNAL(sig_set_window_focus_type(bool)),
 	//			this, SLOT(do_set_window_focus_type(bool)));
-	
+
+	action_Logging_FDC = NULL;
+	if(using_flags->is_use_fd()) {
+		SET_ACTION_SINGLE(action_Logging_FDC, true, true, (using_flags->get_config_ptr()->special_debug_fdc != 0));
+		connect(action_Logging_FDC, SIGNAL(toggled(bool)), this, SLOT(do_set_logging_fdc(bool)));
+	}
 #if !defined(Q_OS_WIN)
 	action_LogToSyslog = new Action_Control(this, using_flags);
 	action_LogToSyslog->setCheckable(true);
