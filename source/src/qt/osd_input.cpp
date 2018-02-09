@@ -208,7 +208,36 @@ void OSD_BASE::key_down(int code, bool extended, bool repeat)
 					return;
 				}
 			}
-		   
+
+			switch(p_config->cursor_as_ten_key) {
+			case CONFIG_CURSOR_AS_2468:
+				if(code == VK_RIGHT) {
+					code = VK_NUMPAD6;
+				} else if(code == VK_LEFT) {
+					code = VK_NUMPAD4;
+				} else if(code == VK_DOWN) {
+					code = VK_NUMPAD2;
+				} else if(code == VK_UP) {
+					code = VK_NUMPAD8;
+				}
+				break;
+			case CONFIG_CURSOR_AS_1235:
+				if(code == VK_RIGHT) {
+					code = VK_NUMPAD3;
+				} else if(code == VK_LEFT) {
+					code = VK_NUMPAD1;
+				} else if(code == VK_DOWN) {
+					code = VK_NUMPAD2;
+				} else if(code == VK_UP) {
+					code = VK_NUMPAD5;
+				}
+				break;
+			case CONFIG_CURSOR_AS_CURSOR:
+				break;
+			default:
+				break;
+			}
+   
 //#ifdef USE_SHIFT_NUMPAD_KEY
 			if(__USE_SHIFT_NUMPAD_KEY) {
 //			if(code == VK_LSHIFT || code == VK_RSHIFT) {
@@ -292,46 +321,6 @@ void OSD_BASE::key_down(int code, bool extended, bool repeat)
 //#ifdef USE_AUTO_KEY
 	}
 //#endif
-#if 0
-	if(code == VK_SHIFT) {
-		if(!(key_status[VK_LSHIFT] & 0x80) && (GetAsyncKeyState(VK_LSHIFT) & 0x8000)) {
-			code = VK_LSHIFT;
-		} else if(!(key_status[VK_RSHIFT] & 0x80) && (GetAsyncKeyState(VK_RSHIFT) & 0x8000)) {
-			code = VK_RSHIFT;
-		} else {
-			return;
-		}
-	} else if(code == VK_CONTROL) {
-		if(!(key_status[VK_LCONTROL] & 0x80) && (GetAsyncKeyState(VK_LCONTROL) & 0x8000)) {
-			code = VK_LCONTROL;
-		} else if(!(key_status[VK_RCONTROL] & 0x80) && (GetAsyncKeyState(VK_RCONTROL) & 0x8000)) {
-			code = VK_RCONTROL;
-		} else {
-			return;
-		}
-	} else if(code == VK_MENU) {
-		if(!(key_status[VK_LMENU] & 0x80) && (GetAsyncKeyState(VK_LMENU) & 0x8000)) {
-			code = VK_LMENU;
-		} else if(!(key_status[VK_RMENU] & 0x80) && (GetAsyncKeyState(VK_RMENU) & 0x8000)) {
-			code = VK_RMENU;
-		} else {
-			return;
-		}
-	}
-	if(get_use_shift_numpad_key()) {
-		if(code == VK_LSHIFT) {
-			key_shift_pressed = true;
-			return;
-		} else if(numpad_table[code] != 0) {
-			if(key_shift_pressed || key_shift_released) {
-				key_converted[code] = 1;
-				key_shift_pressed = true;
-				code = numpad_table[code];
-			}
-		}
-	}
-	key_down_native(code, repeat);
-#endif
 }
 
 void OSD_BASE::key_up(int code, bool extended)
@@ -366,59 +355,88 @@ void OSD_BASE::key_up(int code, bool extended)
 					return;
 				}
 			}
+			switch(p_config->cursor_as_ten_key) {
+			case CONFIG_CURSOR_AS_2468:
+				if(code == VK_RIGHT) {
+					code = VK_NUMPAD6;
+				} else if(code == VK_LEFT) {
+					code = VK_NUMPAD4;
+				} else if(code == VK_DOWN) {
+					code = VK_NUMPAD2;
+				} else if(code == VK_UP) {
+					code = VK_NUMPAD8;
+				}
+				break;
+			case CONFIG_CURSOR_AS_1235:
+				if(code == VK_RIGHT) {
+					code = VK_NUMPAD3;
+				} else if(code == VK_LEFT) {
+					code = VK_NUMPAD1;
+				} else if(code == VK_DOWN) {
+					code = VK_NUMPAD2;
+				} else if(code == VK_UP) {
+					code = VK_NUMPAD5;
+				}
+				break;
+			case CONFIG_CURSOR_AS_CURSOR:
+				break;
+			default:
+				break;
+			}
 //#ifdef USE_SHIFT_NUMPAD_KEY
 			if(__USE_SHIFT_NUMPAD_KEY) {
 			
 //			if(code == VK_LSHIFT || code == VK_RSHIFT) {
-			if(code == VK_LSHIFT) {
-				key_shift_pressed = false;
-				key_shift_released = true;
-				return;
-			}
-			if(!extended) {
-				switch(code) {
-				case VK_NUMPAD0: case VK_INSERT:
-					key_up_native(VK_NUMPAD0);
-					key_up_native(VK_INSERT);
-					return;
-				case VK_NUMPAD1: case VK_END:
-					key_up_native(VK_NUMPAD1);
-					key_up_native(VK_END);
-					return;
-				case VK_NUMPAD2: case VK_DOWN:
-					key_up_native(VK_NUMPAD2);
-					key_up_native(VK_DOWN);
-					return;
-				case VK_NUMPAD3: case VK_NEXT:
-					key_up_native(VK_NUMPAD3);
-					key_up_native(VK_NEXT);
-					return;
-				case VK_NUMPAD4: case VK_LEFT:
-					key_up_native(VK_NUMPAD4);
-					key_up_native(VK_LEFT);
-					return;
-				case VK_NUMPAD5: case VK_CLEAR:
-					key_up_native(VK_NUMPAD5);
-					key_up_native(VK_CLEAR);
-					return;
-				case VK_NUMPAD6: case VK_RIGHT:
-					key_up_native(VK_NUMPAD6);
-					key_up_native(VK_RIGHT);
-					return;
-				case VK_NUMPAD7: case VK_HOME:
-					key_up_native(VK_NUMPAD7);
-					key_up_native(VK_HOME);
-					return;
-				case VK_NUMPAD8: case VK_UP:
-					key_up_native(VK_NUMPAD8);
-					key_up_native(VK_UP);
-					return;
-				case VK_NUMPAD9: case VK_PRIOR:
-					key_up_native(VK_NUMPAD9);
-					key_up_native(VK_PRIOR);
+				if(code == VK_LSHIFT) {
+					key_shift_pressed = false;
+					key_shift_released = true;
 					return;
 				}
-			}
+
+				if(!extended) {
+					switch(code) {
+					case VK_NUMPAD0: case VK_INSERT:
+						key_up_native(VK_NUMPAD0);
+						key_up_native(VK_INSERT);
+						return;
+					case VK_NUMPAD1: case VK_END:
+						key_up_native(VK_NUMPAD1);
+						key_up_native(VK_END);
+						return;
+					case VK_NUMPAD2: case VK_DOWN:
+						key_up_native(VK_NUMPAD2);
+						key_up_native(VK_DOWN);
+						return;
+					case VK_NUMPAD3: case VK_NEXT:
+						key_up_native(VK_NUMPAD3);
+						key_up_native(VK_NEXT);
+						return;
+					case VK_NUMPAD4: case VK_LEFT:
+						key_up_native(VK_NUMPAD4);
+						key_up_native(VK_LEFT);
+						return;
+					case VK_NUMPAD5: case VK_CLEAR:
+						key_up_native(VK_NUMPAD5);
+						key_up_native(VK_CLEAR);
+						return;
+					case VK_NUMPAD6: case VK_RIGHT:
+						key_up_native(VK_NUMPAD6);
+						key_up_native(VK_RIGHT);
+						return;
+					case VK_NUMPAD7: case VK_HOME:
+						key_up_native(VK_NUMPAD7);
+						key_up_native(VK_HOME);
+						return;
+					case VK_NUMPAD8: case VK_UP:
+						key_up_native(VK_NUMPAD8);
+						key_up_native(VK_UP);
+						return;
+					case VK_NUMPAD9: case VK_PRIOR:
+						key_up_native(VK_NUMPAD9);
+						key_up_native(VK_PRIOR);
+						return;
+					}
+				}
 			}
 //#endif
 			key_up_native(code);

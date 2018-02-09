@@ -105,6 +105,12 @@ void Action_Control::do_set_window_focus_type(bool f)
 	emit sig_set_window_focus_type(f);
 }
 
+void Action_Control::do_set_emulate_cursor_as(void)
+{
+	int num = this->binds->getValue1();
+	emit sig_set_emulate_cursor_as(num);
+}
+
 void Action_Control::do_set_dev_log_to_console(bool f)
 {
 	int num = this->binds->getValue1();
@@ -117,10 +123,6 @@ void Action_Control::do_set_dev_log_to_syslog(bool f)
 	emit sig_set_dev_log_to_syslog(num, f);
 }
 
-void Ui_MainWindowBase::do_set_roma_kana(bool flag)
-{
-	using_flags->get_config_ptr()->roma_kana_conversion = flag;
-}
 
 void Ui_MainWindowBase::do_set_window_focus_type(bool flag)
 {
@@ -210,6 +212,13 @@ void Ui_MainWindowBase::do_set_dev_log_to_console(int num, bool f)
 {
 	csp_logger->set_device_node_log(num, 2, CSP_LOG_DEBUG, f);
 	using_flags->get_config_ptr()->dev_log_to_console[num][0] = f;
+}
+
+void Ui_MainWindowBase::do_set_emulate_cursor_as(int num)
+{
+	if((num < 0) || (num > 2)) return;
+	using_flags->get_config_ptr()->cursor_as_ten_key = num;
+	emit sig_emu_update_config();
 }
 
 void Ui_MainWindowBase::do_set_dev_log_to_syslog(int num, bool f)
@@ -719,11 +728,20 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 		action_SetupJoystick->setToolTip(QApplication::translate("MainWindow", "Configure assigning buttons/directions of joysticks.", 0));
 		action_SetupJoystick->setIcon(QIcon(":/icon_gamepad.png"));
 	}
-	if(using_flags->is_use_roma_kana_conversion()) {
+	if(using_flags->is_use_auto_key()) {
 		action_UseRomaKana->setText(QApplication::translate("MainWindow", "ROMA-KANA Conversion", 0));
 		action_UseRomaKana->setToolTip(QApplication::translate("MainWindow", "Use romaji-kana conversion assistant of emulator.", 0));
 	}
+	// ToDo
+	menu_EmulateCursorAs->setTitle(QApplication::translate("MainWindow", "Emulate cursor as", 0));
+	menu_EmulateCursorAs->setToolTip(QApplication::translate("MainWindow", "Emulate cursor as ten-key.", 0));
+	action_EmulateCursorAs[0]->setText(QApplication::translate("MainWindow", "None", 0));
+	action_EmulateCursorAs[1]->setText(QApplication::translate("MainWindow", "2 4 6 8", 0));
+	action_EmulateCursorAs[2]->setText(QApplication::translate("MainWindow", "1 2 3 5", 0));
+	
 	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
+
+	
 	action_FocusWithClick->setText(QApplication::translate("MainWindow", "Focus on click", 0));
 	action_FocusWithClick->setToolTip(QApplication::translate("MainWindow", "If set, focus with click, not mouse-over.", 0));
 	
@@ -779,16 +797,22 @@ void Ui_MainWindowBase::retranselateUi_Depended_OSD(void)
 	}
 }
 
+void Ui_MainWindowBase::do_set_roma_kana(bool flag)
+{
+	using_flags->get_config_ptr()->romaji_to_kana = flag;
+}
+
 void Ui_MainWindowBase::CreateEmulatorMenu(void)
 {
 	//menuEmulator->addAction(action_LogRecord);
 	menuEmulator->addAction(action_FocusWithClick);
 	menuEmulator->addAction(menu_DispVirtualMedias->menuAction());
 	menuEmulator->addSeparator();
-	if(using_flags->is_use_roma_kana_conversion()) {
+	if(using_flags->is_use_auto_key()) {
 		menuEmulator->addAction(action_UseRomaKana);
-		menuEmulator->addSeparator();
 	}
+	menuEmulator->addAction(menu_EmulateCursorAs->menuAction());
+	menuEmulator->addSeparator();
 	menuEmulator->addAction(action_LogToConsole);
 	menuEmulator->addAction(menuDevLogToConsole->menuAction());
 	menuEmulator->addSeparator();
@@ -833,18 +857,35 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	connect(action_DispVirtualMedias[0], SIGNAL(triggered()), this, SLOT(do_set_visible_virtual_media_none()));
 	connect(action_DispVirtualMedias[1], SIGNAL(triggered()), this, SLOT(do_set_visible_virtual_media_upper()));
 	connect(action_DispVirtualMedias[2], SIGNAL(triggered()), this, SLOT(do_set_visible_virtual_media_lower()));
-	//connect(action_DispVirtualMedias[3], SIGNAL(triggered()), this, SLOT(do_set_visible_virtual_media_left()));
-	//connect(action_DispVirtualMedias[4], SIGNAL(triggered()), this, SLOT(do_set_visible_virtual_media_right()));
 			
-	//SET_ACTION_SINGLE(action_DispVirtualMedias, true, true, (using_flags->get_config_ptr()->sound_noise_cmt != 0));
-	
-	if(using_flags->is_use_roma_kana_conversion()) {
-		//action_UseRomaKana = new Action_Control(this, using_flags);
-		//action_UseRomaKana->setCheckable(true);
-		//if(using_flags->get_config_ptr()->roma_kana_conversion) action_UseRomaKana->setChecked(true);
-		SET_ACTION_SINGLE(action_UseRomaKana, true, true, (using_flags->get_config_ptr()->roma_kana_conversion));
+	if(using_flags->is_use_auto_key()) {
+		SET_ACTION_SINGLE(action_UseRomaKana, true, true, (using_flags->get_config_ptr()->romaji_to_kana));
 		connect(action_UseRomaKana, SIGNAL(toggled(bool)), this, SLOT(do_set_roma_kana(bool)));
 	}
+	// Cursor to ten key.
+	
+	menu_EmulateCursorAs = new QMenu(this);
+	menu_EmulateCursorAs->setToolTipsVisible(true);
+	actionGroup_EmulateCursorAs = new QActionGroup(this);
+	actionGroup_EmulateCursorAs->setExclusive(true);
+	{
+		for(i = 0; i < 3; i++) {
+			tmps = QString::number(i);
+			action_EmulateCursorAs[i] = new Action_Control(this, using_flags);
+			action_EmulateCursorAs[i]->setObjectName(QString::fromUtf8("action_EmulateCursorAs", -1) + tmps);
+			action_EmulateCursorAs[i]->setCheckable(true);
+			action_EmulateCursorAs[i]->binds->setValue1(i);
+			actionGroup_EmulateCursorAs->addAction(action_EmulateCursorAs[i]);
+			menu_EmulateCursorAs->addAction(action_EmulateCursorAs[i]);
+			if(i == using_flags->get_config_ptr()->cursor_as_ten_key) action_EmulateCursorAs[i]->setChecked(true);
+				
+			connect(action_EmulateCursorAs[i], SIGNAL(triggered()),
+					action_EmulateCursorAs[i], SLOT(do_set_emulate_cursor_as()));
+			connect(action_EmulateCursorAs[i], SIGNAL(sig_set_emulate_cursor_as(int)),
+					this, SLOT(do_set_emulate_cursor_as(int)));
+		}
+	}
+	
 	if(using_flags->is_use_joystick()) {
 		action_SetupJoystick = new Action_Control(this, using_flags);
 	}

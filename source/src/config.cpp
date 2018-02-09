@@ -196,12 +196,20 @@ void initialize_config()
 			}
 		}
 		
-		config.roma_kana_conversion = false;
 		config.rendering_type = CONFIG_RENDER_TYPE_STD;
 		config.virtual_media_position = 2; // Down.
 		for(int drv = 0; drv < 16; drv++) {
 			config.disk_count_immediate[drv] = false;
 		}
+		// Extra UI
+		config.cursor_as_ten_key = CONFIG_CURSOR_AS_CURSOR;
+	#if defined(_FM7) || defined(_FMNEW7) || defined(_FM8) \
+	    || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)		
+		config.enter_as_numpad_enter = false;
+	#else
+		config.enter_as_numpad_enter = true;
+	#endif
+		config.host_keyboard_type = CONFIG_HOST_KEYBOARD_AT_109JP;
 #endif	
 }
 
@@ -403,7 +411,6 @@ void load_config(const _TCHAR *config_path)
 		config.opengl_scanline_horiz = MyGetPrivateProfileBool(_T("Qt"), _T("OpenGLScanLineHoriz"), config.opengl_scanline_horiz, config_path);;
 		config.use_opengl_filters = MyGetPrivateProfileBool(_T("Qt"), _T("UseOpenGLFilters"), config.use_opengl_filters, config_path);
 		config.opengl_filter_num = MyGetPrivateProfileInt(_T("Qt"), _T("OpenGLFilterNum"), config.opengl_filter_num, config_path);
-		config.swap_kanji_pause = MyGetPrivateProfileBool(_T("Qt"), _T("SwapKanjiPause"), config.swap_kanji_pause, config_path);
 		config.render_platform = MyGetPrivateProfileInt(_T("Qt"), _T("RenderPlatform"), config.render_platform, config_path);
 		config.render_major_version = MyGetPrivateProfileInt(_T("Qt"), _T("RenderMajorVersion"), config.render_major_version, config_path);
 		config.render_minor_version = MyGetPrivateProfileInt(_T("Qt"), _T("RenderMinorVersion"), config.render_minor_version, config_path);
@@ -421,6 +428,13 @@ void load_config(const _TCHAR *config_path)
 			MyGetPrivateProfileString(_T("Qt"), (const _TCHAR *)name, _T(""),
 									  config.assigned_joystick_name[i], 256, config_path);
 		}
+
+		// Extra UI
+		config.swap_kanji_pause = MyGetPrivateProfileBool(_T("Qt"), _T("SwapKanjiPause"), config.swap_kanji_pause, config_path);
+		config.cursor_as_ten_key = MyGetPrivateProfileInt(_T("Qt"), _T("CursorAsTenKey"), config.cursor_as_ten_key, config_path);
+		config.enter_as_numpad_enter = MyGetPrivateProfileBool(_T("Qt"), _T("EnterAsNumpadEnter"), config.enter_as_numpad_enter, config_path);
+		config.host_keyboard_type = MyWritePrivateProfileInt(_T("Qt"), _T("HostKeyboardType"), config.host_keyboard_type, config_path);
+
 		
 		// Movie load/save.
 		config.video_width   = MyGetPrivateProfileInt(_T("Qt"), _T("VideoWidth"), config.video_width, config_path);
@@ -494,7 +508,6 @@ void load_config(const _TCHAR *config_path)
 		// Logging
 		config.log_to_syslog = MyGetPrivateProfileBool(_T("Qt"), _T("WriteToSyslog"), config.log_to_syslog, config_path);
 		config.log_to_console = MyGetPrivateProfileBool(_T("Qt"), _T("WriteToConsole"), config.log_to_console, config_path);
-		config.roma_kana_conversion = MyGetPrivateProfileInt(_T("Qt"), _T("RomaKana"), config.roma_kana_conversion, config_path);
 		
 		for(int ii = 0; ii < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1) ; ii++) {
 			uint32_t flags = 0;
@@ -727,6 +740,12 @@ void save_config(const _TCHAR *config_path)
 		MyWritePrivateProfileInt(_T("Qt"), _T("GeneralSoundLevel"), config.general_sound_level, config_path);
 		MyWritePrivateProfileBool(_T("Qt"), _T("FocusWithClick"), config.focus_with_click, config_path);
 
+		// Extra UI
+		MyWritePrivateProfileBool(_T("Qt"), _T("SwapKanjiPause"), config.swap_kanji_pause, config_path);
+		MyWritePrivateProfileInt(_T("Qt"), _T("CursorAsTenKey"), config.cursor_as_ten_key, config_path);
+		MyWritePrivateProfileBool(_T("Qt"), _T("EnterAsNumpadEnter"), config.enter_as_numpad_enter, config_path);
+		MyWritePrivateProfileInt(_T("Qt"), _T("HostKeyboardType"), config.host_keyboard_type, config_path);
+
 		for(i = 0; i < 16; i++) {
 			_TCHAR name[256];
 			my_stprintf_s(name, 256, _T("AssignedJoystick%d"), i + 1);
@@ -756,7 +775,6 @@ void save_config(const _TCHAR *config_path)
 		
 		MyWritePrivateProfileBool(_T("Qt"), _T("WriteToSyslog"), config.log_to_syslog, config_path);
 		MyWritePrivateProfileBool(_T("Qt"), _T("WriteToConsole"), config.log_to_console, config_path);
-		MyWritePrivateProfileInt(_T("Qt"), _T("RomaKana"), config.roma_kana_conversion, config_path);
 		
 		for(int ii = 0; ii < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1) ; ii++) {
 			uint32_t flags = 0;

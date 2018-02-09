@@ -192,12 +192,6 @@ void EmuThreadClassBase::do_key_down(uint32_t vk, uint32_t mod, bool repeat)
 	sp.mod = mod;
 	sp.repeat = repeat;
 	//key_changed = true;
-	if(using_flags->is_use_roma_kana_conversion()) {
-		if(vk == VK_F12) {
-			set_romakana();
-			return;
-		}
-	}
 	enqueue_key_down(sp);
 	key_mod = mod;
 }

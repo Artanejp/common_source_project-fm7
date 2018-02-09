@@ -9,7 +9,6 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	use_auto_key = use_auto_key_us = use_auto_key_caps = false;
 	use_auto_key_no_caps = use_auto_key_release =
 	use_auto_key_shift = use_binary_file = false;
-	use_roma_kana_conversion = false;
 	
 	max_binary = 0;
 	use_bitmap = false;

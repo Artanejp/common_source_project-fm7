@@ -63,7 +63,6 @@ protected:
 
 	
 	uint32_t key_mod;
-	bool romakana_conversion_mode;
 
 	EMU *p_emu;
 	USING_FLAGS *using_flags;

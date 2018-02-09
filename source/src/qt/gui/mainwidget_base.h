@@ -203,6 +203,10 @@ private:
 	class Action_Control *action_SetupKeyboard;
 	class Action_Control *action_LogView;
 
+	QMenu *menu_EmulateCursorAs;
+	QActionGroup *actionGroup_EmulateCursorAs;
+	class Action_Control *action_EmulateCursorAs[4];
+
 	// Help
 	class Action_Control *actionHelp_README_BIOS;
 	class Action_Control *actionHelp_README;
@@ -632,6 +636,9 @@ public slots:
 	void do_set_visible_virtual_media_lower();
 	void do_set_visible_virtual_media_left();
 	void do_set_visible_virtual_media_right();
+
+	void do_set_emulate_cursor_as(int num);
+	
 signals:
 	int message_changed(QString);
 	int quit_emu_thread();

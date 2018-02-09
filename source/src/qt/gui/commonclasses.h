@@ -213,6 +213,7 @@ public slots:
 	void do_save_state(void);
 	void do_load_state(void);
 	void do_set_window_focus_type(bool flag);
+	void do_set_emulate_cursor_as(void);
 	
 signals:
 	int quit_emu_thread(void);
@@ -223,6 +224,7 @@ signals:
 	int sig_save_state(QString);
 	int sig_load_state(QString);
 	int sig_set_window_focus_type(bool);
+	void sig_set_emulate_cursor_as(int);
 } ActionControl;
 QT_END_NAMESPACE
 

@@ -45,10 +45,9 @@ EmuThreadClass::~EmuThreadClass()
 
 void EmuThreadClass::set_romakana(void)
 {
-	romakana_conversion_mode = !romakana_conversion_mode;
 	p_config->romaji_to_kana = !p_config->romaji_to_kana;
 #if defined(USE_AUTO_KEY)
-	p_emu->set_auto_key_char(romakana_conversion_mode ? 1 : 0);
+	p_emu->set_auto_key_char(p_config->romaji_to_kana ? 1 : 0);
 #endif
 }
 
@@ -588,7 +587,7 @@ void EmuThreadClass::print_framerate(int frames)
 						snprintf(buf, 255, _T("%s - %d fps (%d %%)"), DEVICE_NAME, draw_frames, ratio);
 					}
 				}
-				if(romakana_conversion_mode) {
+				if(p_config->romaji_to_kana) {
 					message = QString::fromUtf8("[R]");
 					message = message + QString::fromUtf8(buf);
 				} else {
