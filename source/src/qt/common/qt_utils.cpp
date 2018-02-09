@@ -613,8 +613,9 @@ int MainLoop(int argc, char *argv[])
 	if(s_translator.load(s_locale, QLatin1String("csp_qt_gui"), QLatin1String("_"), QLatin1String(":/"))) {
 		GuiMain->installTranslator(&s_translator);
 	}
-	if(s_translator.load(s_locale, QLatin1String("csp_qt_common"), QLatin1String("_"), QLatin1String(":/"))) {
-		GuiMain->installTranslator(&s_translator);
+	QTranslator common_translator;
+	if(common_translator.load(s_locale, QLatin1String("csp_qt_common"), QLatin1String("_"), QLatin1String(":/"))) {
+		GuiMain->installTranslator(&common_translator);
 	}
 	
 	rMainWindow = new META_MainWindow(using_flags, csp_logger);
