@@ -187,31 +187,31 @@ void Ui_MainWindowBase::retranslateSoundMenu(void)
   
 	for(i = 0; i < 8; i++) {
 		tmps.setNum(using_flags->get_s_freq_table(i));
-		tmps = tmps + QApplication::translate("MainWindow", "Hz", 0);
+		tmps = tmps + QApplication::translate("MenuSound", "Hz", 0);
 		action_Freq[i]->setText(tmps);
 	}
 	for(i = 0; i < 5; i++) {
 		dval = s_late_table[i];
 		dval = dval * 1000.0;
 		tmps.setNum((int)dval);
-		tmps = tmps + QApplication::translate("MainWindow", "mSec", 0);
+		tmps = tmps + QApplication::translate("MenuSound", "mSec", 0);
 		action_Latency[i]->setText(tmps);
 	}
 	actionStart_Record->setIcon(RecordSoundIcon);
-	actionStart_Record->setText(QApplication::translate("MainWindow", "Start Recording Sound", 0));
-	actionStart_Record->setToolTip(QApplication::translate("MainWindow", "Record sound as WAV file.", 0));
+	actionStart_Record->setText(QApplication::translate("MenuSound", "Start Recording Sound", 0));
+	actionStart_Record->setToolTip(QApplication::translate("MenuSound", "Record sound as WAV file.", 0));
 	
-	actionSoundStrictRendering->setText(QApplication::translate("MainWindow", "Strict Rendering", 0));
-	actionSoundStrictRendering->setToolTip(QApplication::translate("MainWindow", "Rendering per a sample.Select to slower, but accurate rendering sound.", 0));
-	actionSoundPlayTape->setText(QApplication::translate("MainWindow", "Play CMT sound", 0));
-	actionSoundPlayTape->setToolTip(QApplication::translate("MainWindow", "Play sound from CMTs.", 0));
+	actionSoundStrictRendering->setText(QApplication::translate("MenuSound", "Strict Rendering", 0));
+	actionSoundStrictRendering->setToolTip(QApplication::translate("MenuSound", "Rendering per a sample.Select to slower, but accurate rendering sound.", 0));
+	actionSoundPlayTape->setText(QApplication::translate("MenuSound", "Play CMT sound", 0));
+	actionSoundPlayTape->setToolTip(QApplication::translate("MenuSound", "Play sound from CMTs.", 0));
 	
-	menuSound->setTitle(QApplication::translate("MainWindow", "Sound", 0));
-	menuOutput_Frequency->setTitle(QApplication::translate("MainWindow", "Output Frequency", 0));
-	menuSound_Latency->setTitle(QApplication::translate("MainWindow", "Sound Latency", 0));
+	menuSound->setTitle(QApplication::translate("MenuSound", "Sound", 0));
+	menuOutput_Frequency->setTitle(QApplication::translate("MenuSound", "Output Frequency", 0));
+	menuSound_Latency->setTitle(QApplication::translate("MenuSound", "Sound Latency", 0));
 	
-	action_VolumeDialog->setText(QApplication::translate("MainWindow", "Set Volumes", 0));
-	action_VolumeDialog->setToolTip(QApplication::translate("MainWindow", "Open a VOLUME dialog.", 0));
+	action_VolumeDialog->setText(QApplication::translate("MenuSound", "Set Volumes", 0));
+	action_VolumeDialog->setToolTip(QApplication::translate("MenuSound", "Open a VOLUME dialog.", 0));
 
 	menuSound->setToolTipsVisible(true);
 	do_update_volume(using_flags->get_config_ptr()->general_sound_level);

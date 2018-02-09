@@ -43,15 +43,15 @@ void Menu_CartClass::connect_menu_device_sub(void)
 void Menu_CartClass::retranslate_pulldown_menu_device_sub(void)
 {
 	int drv = media_drive;
-	QString drive_name = (QApplication::translate("MainWindow", "Cartridge ", 0));
+	QString drive_name = (QApplication::translate("MenuMedia", "Cartridge ", 0));
 	drive_name += QString::number(drv);
   
 	if((drv < 0) || (drv >= 8)) return;
-	action_insert->setText(QApplication::translate("MainWindow", "Insert", 0));
-	action_eject->setText(QApplication::translate("MainWindow", "Eject", 0));
-	action_insert->setToolTip(QApplication::translate("MainWindow", "Insert a cartridge image file.", 0));
-	action_eject->setToolTip(QApplication::translate("MainWindow", "Eject a cartridge image.", 0));
+	action_insert->setText(QApplication::translate("MenuMedia", "Insert", 0));
+	action_eject->setText(QApplication::translate("MenuMedia", "Eject", 0));
+	action_insert->setToolTip(QApplication::translate("MenuMedia", "Insert a cartridge image file.", 0));
+	action_eject->setToolTip(QApplication::translate("MenuMedia", "Eject a cartridge image.", 0));
 
-	menu_history->setTitle(QApplication::translate("MainWindow", "Recent Opened", 0));
-	this->setTitle(QApplication::translate("MainWindow", drive_name.toUtf8().constData() , 0));
+	menu_history->setTitle(QApplication::translate("MenuMedia", "Recent Opened", 0));
+	this->setTitle(QApplication::translate("MenuMedia", drive_name.toUtf8().constData() , 0));
 }

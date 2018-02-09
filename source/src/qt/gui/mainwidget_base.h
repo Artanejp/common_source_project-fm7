@@ -437,6 +437,7 @@ protected:
 	// Translate UIs.
 	void retranslateControlMenu(const char *SpecialResetTitle,  bool WithSpecialReset);
 	void retranslateFloppyMenu(int drv, int basedrv);
+	void retranslateFloppyMenu(int drv, int basedrv, QString specName);
 	void retranslateBubbleMenu(int drv, int basedrv);
 	void retranslateCMTMenu(int drive);
 	void retranslateQuickDiskMenu(int drv, int basedrv);

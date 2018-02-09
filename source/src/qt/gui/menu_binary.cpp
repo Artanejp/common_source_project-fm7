@@ -126,7 +126,7 @@ void Menu_BinaryClass::do_open_save_dialog()
 	dlg.setAcceptMode(QFileDialog::AcceptSave);
 	dlg.param->setDrive(media_drive);
 	dlg.param->setPlay(false);
-	dlg.setWindowTitle(QApplication::translate("MainWindow", "Save Binary", 0));
+	dlg.setWindowTitle(QApplication::translate("MenuMedia", "Save Binary", 0));
 	dlg.setDirectory(initial_dir);
 	dlg.setNameFilters(ext_filter);
 
@@ -141,12 +141,12 @@ void Menu_BinaryClass::do_open_save_dialog()
 
 void Menu_BinaryClass::retranslate_pulldown_menu_device_sub(void)
 {
-	action_insert->setText(QApplication::translate("MainWindow", "Load", 0));
-	action_insert->setToolTip(QApplication::translate("MainWindow", "Load memory image from a file.", 0));
-	action_saving->setText(QApplication::translate("MainWindow", "Save", 0));
-	action_saving->setToolTip(QApplication::translate("MainWindow", "Save memory image to a file.", 0));
+	action_insert->setText(QApplication::translate("MenuMedia", "Load", 0));
+	action_insert->setToolTip(QApplication::translate("MenuMedia", "Load memory image from a file.", 0));
+	action_saving->setText(QApplication::translate("MenuMedia", "Save", 0));
+	action_saving->setToolTip(QApplication::translate("MenuMedia", "Save memory image to a file.", 0));
 	action_saving->setIcon(QIcon(":/icon_saveas.png"));
-	//menu_history_save->setTitle(QApplication::translate("MainWindow", "Recently Saved", 0));
-	menu_history->setTitle(QApplication::translate("MainWindow", "Recently Loaded", 0));
+	//menu_history_save->setTitle(QApplication::translate("MenuMedia", "Recently Saved", 0));
+	menu_history->setTitle(QApplication::translate("MenuMedia", "Recently Loaded", 0));
 }
 

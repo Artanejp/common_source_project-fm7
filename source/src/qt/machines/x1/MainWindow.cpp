@@ -75,8 +75,8 @@ void META_MainWindow::setupUI_Emu(void)
 void META_MainWindow::retranslateUi(void)
 {
 	retranslateControlMenu("NMI Reset",  true);
-	retranslateFloppyMenu(0, 0);
-	retranslateFloppyMenu(1, 1);
+	retranslateFloppyMenu(0, 0, QApplication::translate("MachineX1", "FDD", 0));
+	retranslateFloppyMenu(1, 1, QApplication::translate("MachineX1", "FDD", 0));
 	retranslateCMTMenu(0);
 	retranslateSoundMenu();
 	retranslateScreenMenu();
@@ -86,60 +86,59 @@ void META_MainWindow::retranslateUi(void)
 #endif
 	retranslateEmulatorMenu();
 	retranslateMachineMenu();
-	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 	actionSpecial_Reset->setText(QApplication::translate("Machine", "NMI Reset", 0));
-	actionSpecial_Reset->setToolTip(QApplication::translate("MainWindow", "Do NMI reset.", 0));
+	actionSpecial_Reset->setToolTip(QApplication::translate("MachineX1", "Do NMI reset.", 0));
 
 	// Set Labels
-	menuSoundDevice->setTitle(QApplication::translate("MainWindow", "Sound Device", 0));
-	actionSoundDevice[0]->setText(QApplication::translate("MainWindow", "PSG", 0));
-	actionSoundDevice[1]->setText(QApplication::translate("MainWindow", "CZ-8BS1 Single", 0));
-	actionSoundDevice[2]->setText(QApplication::translate("MainWindow", "CZ-8BS1 Double", 0));
+	menuSoundDevice->setTitle(QApplication::translate("MachineX1", "Sound Device", 0));
+	actionSoundDevice[0]->setText(QApplication::translate("MachineX1", "PSG", 0));
+	actionSoundDevice[1]->setText(QApplication::translate("MachineX1", "CZ-8BS1 Single", 0));
+	actionSoundDevice[2]->setText(QApplication::translate("MachineX1", "CZ-8BS1 Double", 0));
 	
 #if defined(_X1TURBOZ)
-	menu_Emu_DisplayMode->setTitle(QApplication::translate("MainWindow", "Display Mode", 0));
-	action_Emu_DisplayMode[0]->setText(QApplication::translate("MainWindow", "High Resolution (400line)", 0));
-	action_Emu_DisplayMode[1]->setText(QApplication::translate("MainWindow", "Standarsd Resolution (200line)", 0));
+	menu_Emu_DisplayMode->setTitle(QApplication::translate("MachineX1", "Display Mode", 0));
+	action_Emu_DisplayMode[0]->setText(QApplication::translate("MachineX1", "High Resolution (400line)", 0));
+	action_Emu_DisplayMode[1]->setText(QApplication::translate("MachineX1", "Standarsd Resolution (200line)", 0));
 #endif
 #if defined(USE_KEYBOARD_TYPE)
-	menuKeyboardType->setTitle(QApplication::translate("MainWindow", "Keyboard Mode", 0));
-	actionKeyboardType[0]->setText(QApplication::translate("MainWindow", "Mode A", 0));
-	actionKeyboardType[1]->setText(QApplication::translate("MainWindow", "Mode B", 0));
+	menuKeyboardType->setTitle(QApplication::translate("MachineX1", "Keyboard Mode", 0));
+	actionKeyboardType[0]->setText(QApplication::translate("MachineX1", "Mode A", 0));
+	actionKeyboardType[1]->setText(QApplication::translate("MachineX1", "Mode B", 0));
 #endif
 #if defined(USE_JOYSTICK_TYPE)
-	menuJoystickType->setTitle(QApplication::translate("MainWindow", "Joy PAD Type", 0));
-	actionJoystickType[0]->setText(QApplication::translate("MainWindow", "2-Buttons Joy Pad", 0));
-	actionJoystickType[1]->setText(QApplication::translate("MainWindow", "6-Buttons Joy Pad", 0));
-	actionJoystickType[2]->setText(QApplication::translate("MainWindow", "2-Buttons with Multi-Tap", 0));
-	actionJoystickType[3]->setText(QApplication::translate("MainWindow", "6-Buttons with Multi-Tap", 0));
+	menuJoystickType->setTitle(QApplication::translate("MachineX1", "Joy PAD Type", 0));
+	actionJoystickType[0]->setText(QApplication::translate("MachineX1", "2-Buttons Joy Pad", 0));
+	actionJoystickType[1]->setText(QApplication::translate("MachineX1", "6-Buttons Joy Pad", 0));
+	actionJoystickType[2]->setText(QApplication::translate("MachineX1", "2-Buttons with Multi-Tap", 0));
+	actionJoystickType[3]->setText(QApplication::translate("MachineX1", "6-Buttons with Multi-Tap", 0));
 #endif
 #if defined(USE_DRIVE_TYPE)
-	menuDriveType->setTitle(QApplication::translate("MainWindow", "Floppy Type", 0));
-	actionDriveType[0]->setText(QApplication::translate("MainWindow", "2D", 0));
-	actionDriveType[1]->setText(QApplication::translate("MainWindow", "2HD", 0));
+	menuDriveType->setTitle(QApplication::translate("MachineX1", "Floppy Type", 0));
+	actionDriveType[0]->setText(QApplication::translate("MachineX1", "2D", 0));
+	actionDriveType[1]->setText(QApplication::translate("MachineX1", "2HD", 0));
 #endif
 #ifdef USE_DEBUGGER
 	actionDebugger[3]->setVisible(false);
 
-	actionDebugger[0]->setText(QApplication::translate("MainWindow", "Main CPU", 0));
-	actionDebugger[1]->setText(QApplication::translate("MainWindow", "Sub CPU", 0));
-	actionDebugger[2]->setText(QApplication::translate("MainWindow", "Keyboard CPU", 0));
+	actionDebugger[0]->setText(QApplication::translate("MachineX1", "Main CPU", 0));
+	actionDebugger[1]->setText(QApplication::translate("MachineX1", "Sub CPU", 0));
+	actionDebugger[2]->setText(QApplication::translate("MachineX1", "Keyboard CPU", 0));
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(true);
 	actionDebugger[2]->setVisible(true);
 #ifdef _X1TWIN	
-	actionDebugger[3]->setText(QApplication::translate("MainWindow", "PC-ENGINE CPU", 0));
+	actionDebugger[3]->setText(QApplication::translate("MachineX1", "PC-ENGINE CPU", 0));
 	actionDebugger[3]->setVisible(true);
 #endif
 #endif	
 #if defined(USE_PRINTER)
 	actionPrintDevice[1]->setText(QString::fromUtf8("Sharp MZ-1P17"));
 	actionPrintDevice[2]->setText(QString::fromUtf8("PC-PR201"));
-	actionPrintDevice[1]->setToolTip(QApplication::translate("MainWindow", "Sharp MZ-1P17 kanji thermal printer.", 0));
-	actionPrintDevice[2]->setToolTip(QApplication::translate("MainWindow", "NEC PC-PR201 kanji serial printer.", 0));
+	actionPrintDevice[1]->setToolTip(QApplication::translate("MachineX1", "Sharp MZ-1P17 kanji thermal printer.", 0));
+	actionPrintDevice[2]->setToolTip(QApplication::translate("MachineX1", "NEC PC-PR201 kanji serial printer.", 0));
 #endif
 #if defined(_X1TWIN)
-	menu_Cart[0]->setTitle(QApplication::translate("MainWindow", "HuCARD", 0));
+	menu_Cart[0]->setTitle(QApplication::translate("MachineX1", "HuCARD", 0));
 #endif	
 	
 } // retranslateUi

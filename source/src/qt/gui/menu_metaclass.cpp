@@ -167,7 +167,7 @@ void Menu_MetaClass::do_open_dialog()
 	dlg.setOption(QFileDialog::DontUseNativeDialog, true);
 	//dlg.setAcceptMode(QFileDialog::AcceptSave);
 	dlg.setFileMode(QFileDialog::AnyFile);
-	//dlg.setLabelText(QFileDialog::Accept, QApplication::translate("MainWindow", "Open File", 0));
+	//dlg.setLabelText(QFileDialog::Accept, QApplication::translate("MenuMedia", "Open File", 0));
 
 	dlg.param->setDrive(media_drive);
 	dlg.param->setPlay(true);
@@ -175,7 +175,7 @@ void Menu_MetaClass::do_open_dialog()
 	dlg.setNameFilters(ext_filter);
 
 	QString tmps;
-	tmps = QApplication::translate("MainWindow", "Open", 0);
+	tmps = QApplication::translate("MenuMedia", "Open", 0);
 	if(!window_title.isEmpty()) {
 		tmps = tmps + QString::fromUtf8(" ") + window_title;
 	} else {
@@ -409,25 +409,25 @@ void Menu_MetaClass::create_pulldown_menu(void)
 
 void Menu_MetaClass::retranslate_pulldown_menu_sub(void)
 {
-	action_insert->setText(QApplication::translate("MainWindow", "Insert", 0));
-	action_insert->setToolTip(QApplication::translate("MainWindow", "Insert a virtual image file.", 0));
-	action_eject->setText(QApplication::translate("MainWindow", "Eject", 0));
-	action_eject->setToolTip(QApplication::translate("MainWindow", "Eject a inserted virtual image file.", 0));
+	action_insert->setText(QApplication::translate("MenuMedia", "Insert", 0));
+	action_insert->setToolTip(QApplication::translate("MenuMedia", "Insert a virtual image file.", 0));
+	action_eject->setText(QApplication::translate("MenuMedia", "Eject", 0));
+	action_eject->setToolTip(QApplication::translate("MenuMedia", "Eject a inserted virtual image file.", 0));
 	if(use_write_protect) {
-		menu_write_protect->setTitle(QApplication::translate("MainWindow", "Write Protection", 0));
+		menu_write_protect->setTitle(QApplication::translate("MenuMedia", "Write Protection", 0));
 		menu_write_protect->setToolTipsVisible(true);
-		action_write_protect_on->setText(QApplication::translate("MainWindow", "On", 0));
-		action_write_protect_on->setToolTip(QApplication::translate("MainWindow", "Enable write protection.\nYou can't write any data to this media.", 0));
-		action_write_protect_off->setText(QApplication::translate("MainWindow", "Off", 0));
-		action_write_protect_off->setToolTip(QApplication::translate("MainWindow", "Disable write protection.\nYou *can* write datas to this media.", 0));
+		action_write_protect_on->setText(QApplication::translate("MenuMedia", "On", 0));
+		action_write_protect_on->setToolTip(QApplication::translate("MenuMedia", "Enable write protection.\nYou can't write any data to this media.", 0));
+		action_write_protect_off->setText(QApplication::translate("MenuMedia", "Off", 0));
+		action_write_protect_off->setToolTip(QApplication::translate("MenuMedia", "Disable write protection.\nYou *can* write datas to this media.", 0));
 	}
 	
 	if(use_d88_menus) {
-		menu_inner_media->setTitle(QApplication::translate("MainWindow", "Select D88 Image", 0));
+		menu_inner_media->setTitle(QApplication::translate("MenuMedia", "Select D88 Image", 0));
 	} else {
 		//menu_inner_media->setVisible(false);
 	}		
-	menu_history->setTitle(QApplication::translate("MainWindow", "Recent opened", 0));
+	menu_history->setTitle(QApplication::translate("MenuMedia", "Recent opened", 0));
 
 }
 

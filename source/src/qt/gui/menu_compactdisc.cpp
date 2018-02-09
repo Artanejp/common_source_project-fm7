@@ -40,11 +40,11 @@ void Menu_CompactDiscClass::connect_menu_device_sub(void)
 
 void Menu_CompactDiscClass::retranslate_pulldown_menu_device_sub(void)
 {
-	action_insert->setText(QApplication::translate("MainWindow", "Insert Compact Disc", 0));
-	action_insert->setToolTip(QApplication::translate("MainWindow", "Insert a image file; CD-ROM or CD audio.", 0));
-	action_eject->setText(QApplication::translate("MainWindow", "Eject Compact Disc", 0));
-	action_eject->setToolTip(QApplication::translate("MainWindow", "Eject a compact disc.", 0));
+	action_insert->setText(QApplication::translate("MenuMedia", "Insert Compact Disc", 0));
+	action_insert->setToolTip(QApplication::translate("MenuMedia", "Insert a image file; CD-ROM or CD audio.", 0));
+	action_eject->setText(QApplication::translate("MenuMedia", "Eject Compact Disc", 0));
+	action_eject->setToolTip(QApplication::translate("MenuMedia", "Eject a compact disc.", 0));
 
-	this->setTitle(QApplication::translate("MainWindow", "CD ROM" , 0));
+	this->setTitle(QApplication::translate("MenuMedia", "CD ROM" , 0));
 	action_insert->setIcon(QIcon(":/icon_cd.png"));
 }

@@ -60,7 +60,7 @@ This is FM-77 feature and I don&apos;t know about this.</source>
     </message>
     <message>
         <source>8Inch FD</source>
-        <translation>8インチFD</translation>
+        <translation type="vanished">8インチFD</translation>
     </message>
     <message>
         <source>Boot for bubble casette.
@@ -533,6 +533,62 @@ Need to restart this emulator if changed.</source>
         <translation>日本語通信カードのRS-232C機能を有効にします。
 変更時はエミュレータの再起動が必要です。</translation>
     </message>
+    <message>
+        <source>Boot from 128K Bubble casette.
+This is FM-77 feature and I don&apos;t know about this.</source>
+        <translation>128Kバイトタイプのバブルカセットからブートします。
+これはFM-77の機能ですが、作者は詳細を知りません。</translation>
+    </message>
+    <message>
+        <source>Boot from 32K Bubble casette.
+This is FM-77 feature and I don&apos;t know about this.</source>
+        <translation>32Kバイトタイプのバブルカセットからブートします。
+これはFM-77の機能ですが、作者は詳細を知りません。</translation>
+    </message>
+    <message>
+        <source>BASIC  (SM11-15)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>DOS    (SM11-15)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>BUBBLE  (SM11-15)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>8Inch FD (SM11-15)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>BASIC    (SM11-14)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>DOS      (SM11-14)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>BUBBLE   (SM11-14)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>DEBUG    (SM11-14)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Boot for DEBUG.
+This is SM11-14&apos;s feature and I don&apos;t know about this.</source>
+        <translation>デバッグ用ブートします。
+これはSM11-14ブートロムの機能ですが、作者は詳細を知りません。</translation>
+    </message>
+    <message>
+        <source>MMR boot mode.
+This is FM-77AV feature and I don&apos;t know about this.</source>
+        <translation>MMR付きのブートをします。
+FM77AV固有の機能ですが、作者は詳細を知りません。</translation>
+    </message>
 </context>
 <context>
     <name>MainWindow</name>
@@ -749,6 +805,29 @@ FM-7向けのhackです。</translation>
         <source>Do HOT START.
 Reset with pressing BREAK key.</source>
         <translation type="vanished">BREAKキーを押しながらリセットします。</translation>
+    </message>
+</context>
+<context>
+    <name>MenuFM7</name>
+    <message>
+        <source>320K FDD</source>
+        <translation>320Kフロッピー</translation>
+    </message>
+    <message>
+        <source>2DD FDD</source>
+        <translation>2DDフロッピー</translation>
+    </message>
+    <message>
+        <source>2HD FDD</source>
+        <translation>2HDフロッピー</translation>
+    </message>
+    <message>
+        <source>8&quot; FDD</source>
+        <translation>8インチフロッピー</translation>
+    </message>
+    <message>
+        <source>2D FDD</source>
+        <translation>2Dフロッピー</translation>
     </message>
 </context>
 </TS>

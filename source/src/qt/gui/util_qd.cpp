@@ -172,11 +172,11 @@ void Ui_MainWindowBase::CreateQuickDiskMenu(int drv, int drv_base)
 void Ui_MainWindowBase::retranslateQuickDiskMenu(int drv, int basedrv)
 {
 	if((drv < 0) || (drv >= using_flags->get_max_qd())) return;
-	QString drive_name = (QApplication::translate("MainWindow", "Quick Disk ", 0));
+	QString drive_name = (QApplication::translate("MenuMedia", "Quick Disk ", 0));
 	drive_name += QString::number(basedrv);
   
 	menu_QDs[drv]->retranslateUi();
-	menu_QDs[drv]->setTitle(QApplication::translate("MainWindow", drive_name.toUtf8().constData() , 0));
+	menu_QDs[drv]->setTitle(QApplication::translate("MenuMedia", drive_name.toUtf8().constData() , 0));
 }
 								 
 void Ui_MainWindowBase::ConfigQuickDiskMenu(void)

@@ -256,15 +256,32 @@ void META_MainWindow::retranslateUi(void)
 	jcommnum = -1;
 	
 	retranslateControlMenu("Hot Start (BREAK+RESET)", true);
-#if defined(USE_FD1)
-	retranslateFloppyMenu(0, 0);
+	QString fdname320;
+	QString fdname640;
+	QString fdname1M;
+	fdname320 = QApplication::translate("MenuFM7", "320K FDD", 0);
+	fdname640 = QApplication::translate("MenuFM7", "2DD FDD", 0);
+#if defined(HAS_2HD)
+	fdname1M  = QApplication::translate("MenuFM7", "2HD FDD", 0);
+#elif defined(HAS_1MSFD)
+	fdname1M  = QApplication::translate("MenuFM7", "8\" FDD", 0);
+#else
+	fdname320 = QApplication::translate("MenuFM7", "2D FDD", 0);
+	fdname640 = QApplication::translate("MenuFM7", "2DD FDD", 0);
+	fdname1M  = QApplication::translate("MenuFM7", "2HD FDD", 0);
 #endif
-#if defined(USE_FD2)
-	retranslateFloppyMenu(1, 1);
-#endif
+#if defined(_FM77AV40) || defined(_FM77AV20EX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+	retranslateFloppyMenu(0, 0, fdname640);
+	retranslateFloppyMenu(1, 1, fdname640);
+#elif defined(_FM77AV20EX)
+	retranslateFloppyMenu(0, 0, fdname640);
+#else
+	retranslateFloppyMenu(0, 0, fdname320);
+	retranslateFloppyMenu(1, 1, fdname320);
+#endif	
 #if defined(HAS_2HD) || defined(HAS_1MSFD)
-	retranslateFloppyMenu(2, 2);
-	retranslateFloppyMenu(3, 3);
+	retranslateFloppyMenu(2, 2, fdname1M);
+	retranslateFloppyMenu(3, 3, fdname1M);
 #endif	
 	retranslateCMTMenu(0);
 #if defined(USE_BUBBLE1)
@@ -281,25 +298,6 @@ void META_MainWindow::retranslateUi(void)
 	retranslateUI_Help();
 
 	{	
-#if defined(HAS_2HD) || defined(HAS_1MSFD)
-		menu_fds[0]->setTitle(QApplication::translate("MainWindow", "[0:]320K FDD", 0));
-		menu_fds[1]->setTitle(QApplication::translate("MainWindow", "[1:]320K FDD", 0));
-		menu_fds[2]->setTitle(QApplication::translate("MainWindow", "[2:]1M FDD", 0));
-		menu_fds[3]->setTitle(QApplication::translate("MainWindow", "[3:]1M FDD", 0));
-#else
-# if defined(USE_FD1)
-		if(menu_fds[0] != NULL) menu_fds[0]->setTitle(QApplication::translate("MainWindow", "[0:]FDD", 0));
-# endif
-# if defined(USE_FD2)
-		if(menu_fds[1] != NULL) menu_fds[1]->setTitle(QApplication::translate("MainWindow", "[1:]FDD", 0));
-# endif	
-# if defined(USE_FD3)
-		if(menu_fds[2] != NULL) menu_fds[2]->setTitle(QApplication::translate("MainWindow", "[2:]FDD", 0));
-# endif	
-# if defined(USE_FD4)
-		if(menu_fds[3] != NULL) menu_fds[3]->setTitle(QApplication::translate("MainWindow", "[3:]FDD", 0));
-# endif
-#endif
 	}
 	this->setWindowTitle(QApplication::translate("Machine", "MainWindow", 0));
 	actionSpecial_Reset->setText(QApplication::translate("Machine", "Hot Start(BREAK+RESET)", 0));

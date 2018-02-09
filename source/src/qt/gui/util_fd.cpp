@@ -128,11 +128,20 @@ void Ui_MainWindowBase::ConfigFloppyMenuSub(int drv)
 
 void Ui_MainWindowBase::retranslateFloppyMenu(int drv, int basedrv)
 {
-	QString drive_name = (QApplication::translate("MainWindow", "Floppy ", 0));
-	drive_name += QString::number(basedrv);
+	QString s = QApplication::translate("MenuMedia", "FDD", 0);
+	s = s + QString::number(basedrv);
+	retranslateFloppyMenu(drv, basedrv, s);
+}
+
+void Ui_MainWindowBase::retranslateFloppyMenu(int drv, int basedrv, QString specName)
+{
+	QString drive_name;
+	drive_name = QString::fromUtf8("[") + QString::number(basedrv) + QString::fromUtf8("] ");
+	drive_name = drive_name + specName;
+	//drive_name += QString::number(basedrv);
   
 	if((drv < 0) || (drv >= using_flags->get_max_drive())) return;
-	menu_fds[drv]->setTitle(QApplication::translate("MainWindow", drive_name.toUtf8().constData() , 0));
+	menu_fds[drv]->setTitle(QApplication::translate("MenuMedia", drive_name.toUtf8().constData() , 0));
 	menu_fds[drv]->retranslateUi();
 }
 

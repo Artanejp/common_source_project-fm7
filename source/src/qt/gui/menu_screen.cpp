@@ -378,52 +378,52 @@ void Ui_MainWindowBase::retranslateScreenMenu(void)
 {
 	int i;
 	QString tmps;
-	actionZoom->setText(QApplication::translate("MainWindow", "Zoom Screen", 0));
-	actionDisplay_Mode->setText(QApplication::translate("MainWindow", "Display Mode", 0));
+	actionZoom->setText(QApplication::translate("MenuScreen", "Zoom Screen", 0));
+	actionDisplay_Mode->setText(QApplication::translate("MenuScreen", "Display Mode", 0));
 
 	if(using_flags->is_use_scanline()) {
-		actionScanLine->setText(QApplication::translate("MainWindow", "Software Scan Line", 0));
-		actionScanLine->setToolTip(QApplication::translate("MainWindow", "Display scan line by software.", 0));
+		actionScanLine->setText(QApplication::translate("MenuScreen", "Software Scan Line", 0));
+		actionScanLine->setToolTip(QApplication::translate("MenuScreen", "Display scan line by software.", 0));
 	}
 	if(using_flags->is_use_screen_rotate()) {
-		actionRotate->setText(QApplication::translate("MainWindow", "Rotate Screen", 0));
-		actionRotate->setToolTip(QApplication::translate("MainWindow", "Rotate screen.", 0));
+		actionRotate->setText(QApplication::translate("MenuScreen", "Rotate Screen", 0));
+		actionRotate->setToolTip(QApplication::translate("MenuScreen", "Rotate screen.", 0));
 	}
 	if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
-		actionGLScanLineHoriz->setText(QApplication::translate("MainWindow", "OpenGL Scan Line", 0));
-		actionGLScanLineHoriz->setToolTip(QApplication::translate("MainWindow", "Display scan line by OpenGL.", 0));
+		actionGLScanLineHoriz->setText(QApplication::translate("MenuScreen", "OpenGL Scan Line", 0));
+		actionGLScanLineHoriz->setToolTip(QApplication::translate("MenuScreen", "Display scan line by OpenGL.", 0));
 		if(using_flags->is_use_vertical_pixel_lines()) {
-			actionGLScanLineVert->setText(QApplication::translate("MainWindow", "OpenGL Pixel Line", 0));
-			actionGLScanLineVert->setToolTip(QApplication::translate("MainWindow", "Display pixel line by OpenGL.", 0));
+			actionGLScanLineVert->setText(QApplication::translate("MenuScreen", "OpenGL Pixel Line", 0));
+			actionGLScanLineVert->setToolTip(QApplication::translate("MenuScreen", "Display pixel line by OpenGL.", 0));
 		}
 	}
 	
-	actionOpenGL_Filter->setText(QApplication::translate("MainWindow", "OpenGL Filter", 0));
-	actionOpenGL_Filter->setToolTip(QApplication::translate("MainWindow", "Use display filter by OpenGL", 0));
+	actionOpenGL_Filter->setText(QApplication::translate("MenuScreen", "OpenGL Filter", 0));
+	actionOpenGL_Filter->setToolTip(QApplication::translate("MenuScreen", "Use display filter by OpenGL", 0));
 
 	if((using_flags->get_screen_height_aspect() != using_flags->get_screen_height()) ||
 	   (using_flags->get_screen_width_aspect() != using_flags->get_screen_width())) {
-		actionDot_by_Dot->setText(QApplication::translate("MainWindow", "Dot by Dot", 0));
-		actionReferToX_Display->setText(QApplication::translate("MainWindow", "Keep Aspect: Refer to X", 0));
-		actionReferToY_Display->setText(QApplication::translate("MainWindow", "Keep Aspect: Refer to Y", 0));
-		actionFill_Display->setText(QApplication::translate("MainWindow", "Keep Aspect: Fill", 0));
-		menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0));
+		actionDot_by_Dot->setText(QApplication::translate("MenuScreen", "Dot by Dot", 0));
+		actionReferToX_Display->setText(QApplication::translate("MenuScreen", "Keep Aspect: Refer to X", 0));
+		actionReferToY_Display->setText(QApplication::translate("MenuScreen", "Keep Aspect: Refer to Y", 0));
+		actionFill_Display->setText(QApplication::translate("MenuScreen", "Keep Aspect: Fill", 0));
+		menuStretch_Mode->setTitle(QApplication::translate("MenuScreen", "Stretch Mode", 0));
 	}
 
-	actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0));
-	actionCapture_Screen->setToolTip(QApplication::translate("MainWindow", "Capture screen to a PNG file.", 0));
+	actionCapture_Screen->setText(QApplication::translate("MenuScreen", "Capture Screen", 0));
+	actionCapture_Screen->setToolTip(QApplication::translate("MenuScreen", "Capture screen to a PNG file.", 0));
 
-	menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));
-	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Recording Movie", 0));
-	actionStart_Record_Movie->setToolTip(QApplication::translate("MainWindow", "Start Recording Movie", 0));
-	actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Recording Movie", 0));
-	actionStop_Record_Movie->setToolTip(QApplication::translate("MainWindow", "Stop Recording Movie", 0));
+	menuScreen->setTitle(QApplication::translate("MenuScreen", "Screen", 0));
+	actionStart_Record_Movie->setText(QApplication::translate("MenuScreen", "Start Recording Movie", 0));
+	actionStart_Record_Movie->setToolTip(QApplication::translate("MenuScreen", "Start Recording Movie", 0));
+	actionStop_Record_Movie->setText(QApplication::translate("MenuScreen", "Stop Recording Movie", 0));
+	actionStop_Record_Movie->setToolTip(QApplication::translate("MenuScreen", "Stop Recording Movie", 0));
 	menuScreen->setToolTipsVisible(true);
 	
-	menuRecord_as_movie->setTitle(QApplication::translate("MainWindow", "Record as Movie", 0));
+	menuRecord_as_movie->setTitle(QApplication::translate("MenuScreen", "Record as Movie", 0));
 	menuRecord_as_movie->setToolTipsVisible(true);
 
-	menuScreenSize->setTitle(QApplication::translate("MainWindow", "Screen Size", 0));
+	menuScreenSize->setTitle(QApplication::translate("MenuScreen", "Screen Size", 0));
 	double s_mul;
 	for(i = 0; i < using_flags->get_screen_mode_num(); i++) {
 		if(actionScreenSize[i] == NULL) continue;
@@ -435,13 +435,13 @@ void Ui_MainWindowBase::retranslateScreenMenu(void)
 	}
 	bool b_support_tv_render = using_flags->is_support_tv_render();
 	if(b_support_tv_render) {
-		menuScreen_Render->setTitle(QApplication::translate("MainWindow", "Render Mode", 0));
+		menuScreen_Render->setTitle(QApplication::translate("MenuScreen", "Render Mode", 0));
 		menuScreen_Render->setToolTipsVisible(true);
-		action_SetRenderMode[CONFIG_RENDER_TYPE_STD]->setText(QApplication::translate("MainWindow", "Standard", 0));
-		action_SetRenderMode[CONFIG_RENDER_TYPE_STD]->setToolTip(QApplication::translate("MainWindow", "Standard render.", 0));
+		action_SetRenderMode[CONFIG_RENDER_TYPE_STD]->setText(QApplication::translate("MenuScreen", "Standard", 0));
+		action_SetRenderMode[CONFIG_RENDER_TYPE_STD]->setToolTip(QApplication::translate("MenuScreen", "Standard render.", 0));
 		if(b_support_tv_render) {
-			action_SetRenderMode[CONFIG_RENDER_TYPE_TV]->setText(QApplication::translate("MainWindow", "TV", 0));
-			action_SetRenderMode[CONFIG_RENDER_TYPE_TV]->setToolTip(QApplication::translate("MainWindow", "Rendering like tubed  television with RF modulator.\nNeeds OpenGL 3.0 or later.Not effect with OpenGL 2.0.", 0));
+			action_SetRenderMode[CONFIG_RENDER_TYPE_TV]->setText(QApplication::translate("MenuScreen", "TV", 0));
+			action_SetRenderMode[CONFIG_RENDER_TYPE_TV]->setToolTip(QApplication::translate("MenuScreen", "Rendering like tubed  television with RF modulator.\nNeeds OpenGL 3.0 or later.Not effect with OpenGL 2.0.", 0));
 		}
 	}
 }

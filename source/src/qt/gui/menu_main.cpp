@@ -730,72 +730,72 @@ void Ui_MainWindowBase::setupUi(void)
 void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 {
 	if(using_flags->is_use_joystick()) {
-		action_SetupJoystick->setText(QApplication::translate("MainWindow", "Configure Joysticks", 0));
-		action_SetupJoystick->setToolTip(QApplication::translate("MainWindow", "Configure assigning buttons/directions of joysticks.", 0));
+		action_SetupJoystick->setText(QApplication::translate("MenuEmulator", "Configure Joysticks", 0));
+		action_SetupJoystick->setToolTip(QApplication::translate("MenuEmulator", "Configure assigning buttons/directions of joysticks.", 0));
 		action_SetupJoystick->setIcon(QIcon(":/icon_gamepad.png"));
 	}
 	if(using_flags->is_use_auto_key()) {
-		action_UseRomaKana->setText(QApplication::translate("MainWindow", "ROMA-KANA Conversion", 0));
-		action_UseRomaKana->setToolTip(QApplication::translate("MainWindow", "Use romaji-kana conversion assistant of emulator.", 0));
+		action_UseRomaKana->setText(QApplication::translate("MenuEmulator", "ROMA-KANA Conversion", 0));
+		action_UseRomaKana->setToolTip(QApplication::translate("MenuEmulator", "Use romaji-kana conversion assistant of emulator.", 0));
 	}
 	if(action_Logging_FDC != NULL) {
-		action_Logging_FDC->setText(QApplication::translate("MainWindow", "FDC: Turn ON Debug log.", 0));
-		action_Logging_FDC->setToolTip(QApplication::translate("MainWindow", "Turn ON debug logging for FDCs.Useful to resolve issues from guest software.", 0));
+		action_Logging_FDC->setText(QApplication::translate("MenuEmulator", "FDC: Turn ON Debug log.", 0));
+		action_Logging_FDC->setToolTip(QApplication::translate("MenuEmulator", "Turn ON debug logging for FDCs.Useful to resolve issues from guest software.", 0));
 	}
 	// ToDo
-	menu_EmulateCursorAs->setTitle(QApplication::translate("MainWindow", "Emulate cursor as", 0));
-	menu_EmulateCursorAs->setToolTip(QApplication::translate("MainWindow", "Emulate cursor as ten-key.", 0));
-	action_EmulateCursorAs[0]->setText(QApplication::translate("MainWindow", "None", 0));
-	action_EmulateCursorAs[1]->setText(QApplication::translate("MainWindow", "2 4 6 8", 0));
-	action_EmulateCursorAs[2]->setText(QApplication::translate("MainWindow", "1 2 3 5", 0));
+	menu_EmulateCursorAs->setTitle(QApplication::translate("MenuEmulator", "Emulate cursor as", 0));
+	menu_EmulateCursorAs->setToolTip(QApplication::translate("MenuEmulator", "Emulate cursor as ten-key.", 0));
+	action_EmulateCursorAs[0]->setText(QApplication::translate("MenuEmulator", "None", 0));
+	action_EmulateCursorAs[1]->setText(QApplication::translate("MenuEmulator", "2 4 6 8", 0));
+	action_EmulateCursorAs[2]->setText(QApplication::translate("MenuEmulator", "1 2 3 5", 0));
 	
-	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
+	menuEmulator->setTitle(QApplication::translate("MenuEmulator", "Emulator", 0));
 
 	
-	action_FocusWithClick->setText(QApplication::translate("MainWindow", "Focus on click", 0));
-	action_FocusWithClick->setToolTip(QApplication::translate("MainWindow", "If set, focus with click, not mouse-over.", 0));
+	action_FocusWithClick->setText(QApplication::translate("MenuEmulator", "Focus on click", 0));
+	action_FocusWithClick->setToolTip(QApplication::translate("MenuEmulator", "If set, focus with click, not mouse-over.", 0));
 	
-	action_SetupKeyboard->setText(QApplication::translate("MainWindow", "Configure Keyboard", 0));
-	action_SetupKeyboard->setToolTip(QApplication::translate("MainWindow", "Set addignation of keyboard.", 0));
+	action_SetupKeyboard->setText(QApplication::translate("MenuEmulator", "Configure Keyboard", 0));
+	action_SetupKeyboard->setToolTip(QApplication::translate("MenuEmulator", "Set addignation of keyboard.", 0));
 	action_SetupKeyboard->setIcon(QIcon(":/icon_keyboard.png"));
-	action_SetupMovie->setText(QApplication::translate("MainWindow", "Configure movie encoding", 0));
-	action_SetupMovie->setToolTip(QApplication::translate("MainWindow", "Configure parameters of movie encoding.", 0));
+	action_SetupMovie->setText(QApplication::translate("MenuEmulator", "Configure movie encoding", 0));
+	action_SetupMovie->setToolTip(QApplication::translate("MenuEmulator", "Configure parameters of movie encoding.", 0));
 
-	action_LogToConsole->setText(QApplication::translate("MainWindow", "Log to Console", 0));
-	action_LogToConsole->setToolTip(QApplication::translate("MainWindow", "Enable logging to STDOUT if checked.", 0));
+	action_LogToConsole->setText(QApplication::translate("MenuEmulator", "Log to Console", 0));
+	action_LogToConsole->setToolTip(QApplication::translate("MenuEmulator", "Enable logging to STDOUT if checked.", 0));
 #if !defined(Q_OS_WIN)
-	action_LogToSyslog->setText(QApplication::translate("MainWindow", "Log to Syslog", 0));
-	action_LogToSyslog->setToolTip(QApplication::translate("MainWindow", "Enable logging to SYSTEM log.\nMay be having permission to system and using *nix OS.", 0));
-	//action_LogRecord->setText(QApplication::translate("MainWindow", "Recording Log", 0));
+	action_LogToSyslog->setText(QApplication::translate("MenuEmulator", "Log to Syslog", 0));
+	action_LogToSyslog->setToolTip(QApplication::translate("MenuEmulator", "Enable logging to SYSTEM log.\nMay be having permission to system and using *nix OS.", 0));
+	//action_LogRecord->setText(QApplication::translate("MenuEmulator", "Recording Log", 0));
 #endif
 	if(using_flags->is_use_sound_files_fdd()) {
-		action_SoundFilesFDD->setText(QApplication::translate("MainWindow", "Sound FDD Seek", 0));
-		action_SoundFilesFDD->setToolTip(QApplication::translate("MainWindow", "Enable FDD HEAD seeking sound.\nNeeds sound file.\nSee HELP->READMEs->Bios and Key assigns", 0));
+		action_SoundFilesFDD->setText(QApplication::translate("MenuEmulator", "Sound FDD Seek", 0));
+		action_SoundFilesFDD->setToolTip(QApplication::translate("MenuEmulator", "Enable FDD HEAD seeking sound.\nNeeds sound file.\nSee HELP->READMEs->Bios and Key assigns", 0));
 	}
 	if(using_flags->is_use_sound_files_relay()) {
-		action_SoundFilesRelay->setText(QApplication::translate("MainWindow", "Sound CMT Relay and Buttons", 0));
-		action_SoundFilesRelay->setToolTip(QApplication::translate("MainWindow", "Enable CMT relay's sound and buttons's sounds.\nNeeds sound file.\nSee HELP->READMEs->Bios and Key assigns", 0));
+		action_SoundFilesRelay->setText(QApplication::translate("MenuEmulator", "Sound CMT Relay and Buttons", 0));
+		action_SoundFilesRelay->setToolTip(QApplication::translate("MenuEmulator", "Enable CMT relay's sound and buttons's sounds.\nNeeds sound file.\nSee HELP->READMEs->Bios and Key assigns", 0));
 	}
-	menuDevLogToConsole->setTitle(QApplication::translate("MainWindow", "Per Device", 0));
+	menuDevLogToConsole->setTitle(QApplication::translate("MenuEmulator", "Per Device", 0));
 #if !defined(Q_OS_WIN)
-	menuDevLogToSyslog->setTitle(QApplication::translate("MainWindow", "Per Device", 0));
+	menuDevLogToSyslog->setTitle(QApplication::translate("MenuEmulator", "Per Device", 0));
 #endif
-	menu_SetRenderPlatform->setTitle(QApplication::translate("MainWindow", "Video Platform(need restart)", 0));
-	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL3_MAIN]->setText(QApplication::translate("MainWindow", "OpenGLv3.0", 0));
-	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL2_MAIN]->setText(QApplication::translate("MainWindow", "OpenGLv2.0", 0));
-	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL_CORE]->setText(QApplication::translate("MainWindow", "OpenGL(Core profile)", 0));
-	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL3_MAIN]->setToolTip(QApplication::translate("MainWindow", "Using OpenGL v3.0(MAIN).\nThis is recommanded.\nIf changed, need to restart this emulator.", 0));
-	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL2_MAIN]->setToolTip(QApplication::translate("MainWindow", "Using OpenGLv2.\nThis is fallback of some systems.\nIf changed, need to restart this emulator.", 0));
-	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL_CORE]->setToolTip(QApplication::translate("MainWindow", "Using OpenGL core profile.\nThis still not implement.\nIf changed, need to restart this emulator.", 0));
+	menu_SetRenderPlatform->setTitle(QApplication::translate("MenuEmulator", "Video Platform(need restart)", 0));
+	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL3_MAIN]->setText(QApplication::translate("MenuEmulator", "OpenGLv3.0", 0));
+	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL2_MAIN]->setText(QApplication::translate("MenuEmulator", "OpenGLv2.0", 0));
+	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL_CORE]->setText(QApplication::translate("MenuEmulator", "OpenGL(Core profile)", 0));
+	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL3_MAIN]->setToolTip(QApplication::translate("MenuEmulator", "Using OpenGL v3.0(MAIN).\nThis is recommanded.\nIf changed, need to restart this emulator.", 0));
+	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL2_MAIN]->setToolTip(QApplication::translate("MenuEmulator", "Using OpenGLv2.\nThis is fallback of some systems.\nIf changed, need to restart this emulator.", 0));
+	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL_CORE]->setToolTip(QApplication::translate("MenuEmulator", "Using OpenGL core profile.\nThis still not implement.\nIf changed, need to restart this emulator.", 0));
 
-	menu_DispVirtualMedias->setTitle(QApplication::translate("MainWindow", "Show Virtual Medias.", 0));
-	action_DispVirtualMedias[0]->setText(QApplication::translate("MainWindow", "None.", 0));
-	action_DispVirtualMedias[1]->setText(QApplication::translate("MainWindow", "Upper.", 0));
-	action_DispVirtualMedias[2]->setText(QApplication::translate("MainWindow", "Lower.", 0));
-	//action_DispVirtualMedias[3]->setText(QApplication::translate("MainWindow", "Left.", 0));
-	//action_DispVirtualMedias[4]->setText(QApplication::translate("MainWindow", "Right.", 0));
-	action_LogView->setText(QApplication::translate("MainWindow", "View Log", 0));
-	action_LogView->setToolTip(QApplication::translate("MainWindow", "View emulator logs with a dialog.", 0));
+	menu_DispVirtualMedias->setTitle(QApplication::translate("MenuEmulator", "Show Virtual Medias.", 0));
+	action_DispVirtualMedias[0]->setText(QApplication::translate("MenuEmulator", "None.", 0));
+	action_DispVirtualMedias[1]->setText(QApplication::translate("MenuEmulator", "Upper.", 0));
+	action_DispVirtualMedias[2]->setText(QApplication::translate("MenuEmulator", "Lower.", 0));
+	//action_DispVirtualMedias[3]->setText(QApplication::translate("MenuEmulator", "Left.", 0));
+	//action_DispVirtualMedias[4]->setText(QApplication::translate("MenuEmulator", "Right.", 0));
+	action_LogView->setText(QApplication::translate("MenuEmulator", "View Log", 0));
+	action_LogView->setToolTip(QApplication::translate("MenuEmulator", "View emulator logs with a dialog.", 0));
 }
 
 void Ui_MainWindowBase::retranselateUi_Depended_OSD(void)
@@ -1082,38 +1082,38 @@ void Ui_MainWindowBase::rise_keyboard_dialog(void)
 // Retranslate
 void Ui_MainWindowBase::retranslateUI_Help(void)
 {
-	menuHELP->setTitle(QApplication::translate("MainWindow", "Help", 0));
-	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
-	actionHelp_AboutQt->setToolTip(QApplication::translate("MainWindow", "Display Qt version.", 0));
+	menuHELP->setTitle(QApplication::translate("MenuHelp", "Help", 0));
+	actionHelp_AboutQt->setText(QApplication::translate("MenuHelp", "About Qt", 0));
+	actionHelp_AboutQt->setToolTip(QApplication::translate("MenuHelp", "Display Qt version.", 0));
 	actionHelp_AboutQt->setIcon(QApplication::style()->standardIcon(QStyle::SP_TitleBarMenuButton));
 	
-	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
+	actionAbout->setText(QApplication::translate("MenuHelp", "About...", 0));
 	actionAbout->setIcon(QApplication::style()->standardIcon(QStyle::SP_MessageBoxQuestion));
-	actionAbout->setToolTip(QApplication::translate("MainWindow", "About this emulator.", 0));
+	actionAbout->setToolTip(QApplication::translate("MenuHelp", "About this emulator.", 0));
 
-	menuHelp_Readme->setTitle(QApplication::translate("MainWindow", "READMEs", 0));
+	menuHelp_Readme->setTitle(QApplication::translate("MenuHelp", "READMEs", 0));
 	
-	actionHelp_README->setText(QApplication::translate("MainWindow", "General Document", 0));
-	actionHelp_README_QT->setText(QApplication::translate("MainWindow", "About Qt ports", 0));
-	actionHelp_README_Artane->setText(QApplication::translate("MainWindow", "About Qt ports (Japanese).", 0));
-	actionHelp_README_Umaiboux->setText(QApplication::translate("MainWindow", "By Mr. Umaiboux.", 0));
-	actionHelp_README_MR_TANAM->setText(QApplication::translate("MainWindow", "By Mr. tanam", 0));
-	actionHelp_README_FM7->setText(QApplication::translate("MainWindow", "About eFM-7/8/77/AV.", 0));
-	actionHelp_README_FM7_JP->setText(QApplication::translate("MainWindow", "About eFM-7/8/77/AV (Japanese).", 0));
-	actionHelp_README_FAQ->setText(QApplication::translate("MainWindow", "FAQs(English)", 0));
-	actionHelp_README_FAQ_JP->setText(QApplication::translate("MainWindow", "FAQs(Japanese)", 0));
-	actionHelp_README_BIOS->setText(QApplication::translate("MainWindow", "BIOS and Key assigns", 0));
+	actionHelp_README->setText(QApplication::translate("MenuHelp", "General Document", 0));
+	actionHelp_README_QT->setText(QApplication::translate("MenuHelp", "About Qt ports", 0));
+	actionHelp_README_Artane->setText(QApplication::translate("MenuHelp", "About Qt ports (Japanese).", 0));
+	actionHelp_README_Umaiboux->setText(QApplication::translate("MenuHelp", "By Mr. Umaiboux.", 0));
+	actionHelp_README_MR_TANAM->setText(QApplication::translate("MenuHelp", "By Mr. tanam", 0));
+	actionHelp_README_FM7->setText(QApplication::translate("MenuHelp", "About eFM-7/8/77/AV.", 0));
+	actionHelp_README_FM7_JP->setText(QApplication::translate("MenuHelp", "About eFM-7/8/77/AV (Japanese).", 0));
+	actionHelp_README_FAQ->setText(QApplication::translate("MenuHelp", "FAQs(English)", 0));
+	actionHelp_README_FAQ_JP->setText(QApplication::translate("MenuHelp", "FAQs(Japanese)", 0));
+	actionHelp_README_BIOS->setText(QApplication::translate("MenuHelp", "BIOS and Key assigns", 0));
 
-	menuHelp_Histories->setTitle(QApplication::translate("MainWindow", "Histories", 0));
-	actionHelp_History->setText(QApplication::translate("MainWindow", "General History", 0));
-	actionHelp_History_Relnote->setText(QApplication::translate("MainWindow", "Release Note", 0));
-	actionHelp_History_ChangeLog->setText(QApplication::translate("MainWindow", "Change Log", 0));
-	actionHelp_History_MR_TANAM->setText(QApplication::translate("MainWindow", "History by Tanam", 0));
+	menuHelp_Histories->setTitle(QApplication::translate("MenuHelp", "Histories", 0));
+	actionHelp_History->setText(QApplication::translate("MenuHelp", "General History", 0));
+	actionHelp_History_Relnote->setText(QApplication::translate("MenuHelp", "Release Note", 0));
+	actionHelp_History_ChangeLog->setText(QApplication::translate("MenuHelp", "Change Log", 0));
+	actionHelp_History_MR_TANAM->setText(QApplication::translate("MenuHelp", "History by Tanam", 0));
 
-	actionHelp_License->setText(QApplication::translate("MainWindow", "Show License", 0));
-	actionHelp_License->setToolTip(QApplication::translate("MainWindow", "Show general license (GPLv2).", 0));
-	actionHelp_License_JP->setText(QApplication::translate("MainWindow", "Show License (Japanese)", 0));
-	actionHelp_License_JP->setToolTip(QApplication::translate("MainWindow", "Show general license (GPLv2).\nTranslated to Japanese.", 0));
+	actionHelp_License->setText(QApplication::translate("MenuHelp", "Show License", 0));
+	actionHelp_License->setToolTip(QApplication::translate("MenuHelp", "Show general license (GPLv2).", 0));
+	actionHelp_License_JP->setText(QApplication::translate("MenuHelp", "Show License (Japanese)", 0));
+	actionHelp_License_JP->setToolTip(QApplication::translate("MenuHelp", "Show general license (GPLv2).\nTranslated to Japanese.", 0));
 	ui_retranslate_completed = true;
 }
 
@@ -1124,9 +1124,9 @@ void Ui_MainWindowBase::retranslateMachineMenu(void)
 	int i;
 	QString tmps;
 	QString tmps2;
-	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
+	menuMachine->setTitle(QApplication::translate("MenuMachine", "Machine", 0));
 	if(using_flags->get_use_device_type() > 0) {
-		menuDeviceType->setTitle(QApplication::translate("MainWindow", "Device Type", 0));
+		menuDeviceType->setTitle(QApplication::translate("MenuMachine", "Device Type", 0));
 		for(i = 0; i < using_flags->get_use_device_type(); i++) {
 			tmps2.setNum(i + 1);
 			tmps = QString::fromUtf8("Machine Device ") + tmps2;
@@ -1134,7 +1134,7 @@ void Ui_MainWindowBase::retranslateMachineMenu(void)
 		}
 	}
 	if(using_flags->get_use_sound_device_type() > 0) {
-		menuSoundDevice->setTitle(QApplication::translate("MainWindow", "Sound Cards", 0));
+		menuSoundDevice->setTitle(QApplication::translate("MenuMachine", "Sound Cards", 0));
 		for(i = 0; i < using_flags->get_use_sound_device_type(); i++) {
 			tmps2.setNum(i + 1);
 			tmps = QString::fromUtf8("Sound Device ") + tmps2;
@@ -1142,7 +1142,7 @@ void Ui_MainWindowBase::retranslateMachineMenu(void)
 		}
 	}
 	if(using_flags->get_use_drive_type() > 0) {
-		menuDriveType->setTitle(QApplication::translate("MainWindow", "Drive Type", 0));
+		menuDriveType->setTitle(QApplication::translate("MenuMachine", "Drive Type", 0));
 		for(i = 0; i < using_flags->get_use_drive_type(); i++) {
 			tmps2.setNum(i + 1);
 			tmps = QString::fromUtf8("Drive Type ") + tmps2;
@@ -1150,20 +1150,20 @@ void Ui_MainWindowBase::retranslateMachineMenu(void)
 		}
 	}
 	if(using_flags->is_use_printer()) {
-		menuPrintDevice->setTitle(QApplication::translate("MainWindow", "Printer (Need RESET)", 0));
+		menuPrintDevice->setTitle(QApplication::translate("MenuMachine", "Printer (Need RESET)", 0));
 		i = 1;
-		actionPrintDevice[0]->setText(QApplication::translate("MainWindow", "Dump to File", 0));
-		actionPrintDevice[0]->setToolTip(QApplication::translate("MainWindow", "Dump printer output to file.\nMaybe output only ascii text.", 0));
+		actionPrintDevice[0]->setText(QApplication::translate("MenuMachine", "Dump to File", 0));
+		actionPrintDevice[0]->setToolTip(QApplication::translate("MenuMachine", "Dump printer output to file.\nMaybe output only ascii text.", 0));
 		if(using_flags->get_use_printer_type() > 0) {
 			for(i = 1; i < (using_flags->get_use_printer_type() - 1); i++) {
 				tmps2.setNum(i + 1);
-				tmps = QApplication::translate("MainWindow", "Printer", 0) + tmps2;
+				tmps = QApplication::translate("MenuMachine", "Printer", 0) + tmps2;
 				actionPrintDevice[i]->setText(tmps); 
 				actionPrintDevice[i]->setToolTip(tmps); 
 			}
 		}
-		actionPrintDevice[i]->setText(QApplication::translate("MainWindow", "Not Connect", 0));
-		actionPrintDevice[i]->setToolTip(QApplication::translate("MainWindow", "None devices connect to printer port.", 0));
+		actionPrintDevice[i]->setText(QApplication::translate("MenuMachine", "Not Connect", 0));
+		actionPrintDevice[i]->setToolTip(QApplication::translate("MenuMachine", "None devices connect to printer port.", 0));
 	}
 }
 void Ui_MainWindowBase::retranslateUi(void)

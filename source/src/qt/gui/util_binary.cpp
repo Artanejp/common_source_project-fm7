@@ -155,11 +155,11 @@ void Ui_MainWindowBase::ConfigBinaryMenuSub(int drv)
 
 void Ui_MainWindowBase::retranslateBinaryMenu(int drv, int basedrv)
 {
-  QString drive_name = (QApplication::translate("MainWindow", "Binary", 0));
+  QString drive_name = (QApplication::translate("MenuMedia", "Binary", 0));
   drive_name += QString::number(basedrv);
   
   if((drv < 0) || (drv >= 8)) return;
-  menu_BINs[drv]->setTitle(QApplication::translate("MainWindow", drive_name.toUtf8().constData() , 0));
+  menu_BINs[drv]->setTitle(QApplication::translate("MenuMedia", drive_name.toUtf8().constData() , 0));
   menu_BINs[drv]->retranslateUi();
 }
 
