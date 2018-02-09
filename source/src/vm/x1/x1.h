@@ -111,7 +111,6 @@
 #define USE_SOUND_TYPE		3
 // ToDo
 //#define DATAREC_SOUND
-#define SUPPORT_ROMA_KANA_CONVERSION
 // CZ-8BS1 x1
 #define SOUND_TYPE_DEFAULT	1
 # if defined(_X1TWIN)

@@ -36,7 +36,6 @@
 #define USE_FD2
 //#define USE_FD3
 //#define USE_FD4
-#define SUPPORT_ROMA_KANA_CONVERSION
 
 #define NOTIFY_KEY_DOWN
 #define USE_SHIFT_NUMPAD_KEY

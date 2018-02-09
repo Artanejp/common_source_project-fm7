@@ -83,7 +83,6 @@
 #define USE_KEY_LOCKED
 #define USE_SHIFT_NUMPAD_KEY
 #define USE_ALT_F10_KEY
-#define SUPPORT_ROMA_KANA_CONVERSION
 // slow enough for N88-“ú–{ŒêBASIC
 #define USE_AUTO_KEY		8
 #define USE_AUTO_KEY_RELEASE	10
