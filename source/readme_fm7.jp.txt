@@ -1,5 +1,5 @@
 ** FM-7 series  emulator for common source code project. **
-                                               Jan 28, 2018
+                                               Feb 10, 2018
 		   K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 
@@ -17,7 +17,7 @@
   のを知ったので、使わせていただくことにしました。
 
   [1] https://github.com/Artanejp/XM7-for-SDL
-  [2] http://homepage3.nifty.com/takeda-toshiya/
+  [2] http://takeda-toshiya.my.coocan.jp/
 
 2.移植状況
   a. FM-7はほぼ動いてます。
@@ -84,7 +84,7 @@
 
 4. 上流リポジトリ:
       https://github.com/Artanejp/common_source_project-fm7
-
+      https://osdn.jp/projects/csp-qt/
 
 お楽しみを!
 -- K.Ohta.

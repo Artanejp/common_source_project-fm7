@@ -1,5 +1,5 @@
 ** FM-7 series  emulator for common source code project. **
-                                               Jan 19, 2018
+                                               Feb 10, 2018
 		   K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 1.Background
@@ -12,11 +12,11 @@
   Project [2], this is distributed with GPLv2.
 
   [1] https://github.com/Artanejp/XM7-for-SDL
-  [2] http://homepage3.nifty.com/takeda-toshiya/
+  [2] http://takeda-toshiya.my.coocan.jp/
   
 2.Status
   a. FM-7 is working now.
-  b. FM-77 is working now.
+  b. FM-77 is working now (but some features are wrong).
      Especially 400 line card and 2HD FDDs are still not implement,
      because I don't have these boards.
   c. FM-8 is implement, but not tested enough.
@@ -78,7 +78,7 @@
 
 4. Upstream repositry:
       https://github.com/Artanejp/common_source_project-fm7
-
+      https://osdn.jp/projects/csp-qt/
 
 Enjoy!
 -- K.Ohta.

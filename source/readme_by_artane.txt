@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                         January 29, 2018
+                                         February 10, 2018
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -12,7 +12,7 @@
    
    ソースコード：
    
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20180130_FLEX_TEST4
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20180210
 
    追加情報:
    
@@ -93,19 +93,25 @@
    
    $ sudo make install
 
-4. Qt固有の話(Windows除く)
+4. Qt固有の話
 
-   *ToolTipsを付けました。(2017-01-24)
+   * 設定ファイル(scancode.cfg と foo.ini)は、"~/.config/CommonSourceCodeProject/emufoo/" (Windowsの場合は".\CommonSourceCodeProject\emudfoo\" ) におかれます（移動しました）。
+
+   * BIOSや効果音WAVやセーブステートは、、"~/CommonSourceCodeProject/emufoo/" (Windowsの場合は".\CommonSourceCodeProject\emudfoo\" ) におかれます（移動しました）。
+   
+   * 全ての記録物(スクリーンショットや動画や録音WAV）は、*当面の間* "~/CommonSourceCodeProject/emufoo/" (Windowsの場合は".\CommonSourceCodeProject\emudfoo\" ) におかれます。
+
+   * ToolTipsを付けました。(2017-01-24)
       
-   *日本語に翻訳しました。(2017-01-24)
+   * 日本語に翻訳しました。(2017-01-24)
    
-   *R@Mを $HOME/emu{Machine Name}/　に配置してください。(Windowsの場合は今の所 .\emu{Machine Name}\)。なお、このディレクトリは最初起動した後で作成されます。
+   * R@Mを $HOME/emu{Machine Name}/　に配置してください。(Windowsの場合は今の所 .\emu{Machine Name}\)。なお、このディレクトリは最初起動した後で作成されます。
    
-   *設定ファイルは、$HOME/.config/emu{Machine Name}/ に書き込まれます。(Windowsの場合は今の所 .\.config\emu{Machine Name}\)
+   * 設定ファイルは、$HOME/.config/emu{Machine Name}/ に書き込まれます。(Windowsの場合は今の所 .\.config\emu{Machine Name}\)
    
-   *ステートセーブファイルは、$HOME/emu{Machine Name}/{Machine Name}.sta に書き込まれます。
+   * ステートセーブファイルは、$HOME/emu{Machine Name}/{Machine Name}.sta に書き込まれます。
    
-   *キーコード変換テーブルファイルが、$HOME/.config/emu{Machine Name}/scancode.cfg に書き込まれます。
+   * キーコード変換テーブルファイルが、$HOME/.config/emu{Machine Name}/scancode.cfg に書き込まれます。
    
      書式は、カンマで区切られた16進データです(10進ではないので注意) .
      
@@ -113,13 +119,13 @@
      
      2カラム目はQtネィティブのスキャンキーコードです。
      
-   *UI部分の共通コンポーネント (src/qt/gui) を共有ライブラリlibCSPgui.soにまとめました。
+   * UI部分の共通コンポーネント (src/qt/gui) を共有ライブラリlibCSPgui.soにまとめました。
    
-   *インストール用のBASHスクリプトを用意しました。src/tool/installer_unix.shです。
+   * インストール用のBASHスクリプトを用意しました。src/tool/installer_unix.shです。
    
-   *ROMと同じところに、特定のWAVファイル(VMによって異なる)を入れると、FDDのシーク音やテープのボタン音・リレー音を鳴らすことが出来ます。
+   * ROMと同じところに、特定のWAVファイル(VMによって異なる)を入れると、FDDのシーク音やテープのボタン音・リレー音を鳴らすことが出来ます。
    
-   *ローマ字カタカナ変換支援機構が一部の機種に実装されてます。romaji_kana.ja.txt をお読みください。
+   * ローマ字カタカナ変換支援機構が一部の機種に実装されてます。romaji_kana.ja.txt をお読みください。
     
 5. 移植状況
    
@@ -156,32 +162,58 @@ Changes:
 
 ChangeLog:
 * 前の変更点をお読みになる場合には、ChangeLogと000_gitlog.txtをお読み下さい。
-* SNAPSHOT Jan 19 2018
-  * Upstream 2017-12-27 .
-  * [EMU] Add set_vm_screen_lines(int lines) to notify changing vertical resolution
-        to OSD and Hardware-Renderer(for scan lines). See vm/fm7/display.cpp .
-  * [VM] Add EMU::set_vm_screen_lines() to some VMs.
-  * [UI/Qt] Add "Click On Focus" feature option.This don't need to mouse-over to input from keyboard if set.
-  * [VM/FM7] Add Japanese communication board (日本語通信カード) .
-  * [VM/FM7] Add turning ON/OFF Z80 extra board.
-  * [VM/FM7] Add UARTs.RS-232C, MODEM and MIDI.Temporally implements.
-  * [FM7/JCOMMCARD] Add test program.Use asl ( http://john.ccac.rwth-aachen.de:8000/as/ ) to make from source code.
-  * [VM/FM7] Use #define to define name of firmwares.
-  * [VM/FM7] KANJIROM: Add JIS78 patch mode.From XM7 3.4L77a.
-  * [VM/MB8877] Not clear status when force-interrupt with TYPE-1 Command(seek etc).
-                Fix (Add hack) for FUKU*.d77 (えびふく's music disks for FM-7).
-  * [VM/MB8877] Fix DRQ/IRQ timing.
-  * [VM/MB8877] Make IRQ with disk not inserted or not connected when processing command(s).
-  * [VM/MB8877] Make turning ON IRQ and turn OFF DRQ when seek completed.
-  * [VM/MB8877] Adjust track parameter at initialize and CMD::RESTORE .
-  * [VM/MB8877] OS-9 Level2 for FM77AV40 Works.
-  * [VM/HD6844] FM77AV40EX has only one DMA channel.Not multiple channels.
-  * [VM/HD6844] HD6844 has only a one interrupt line, not multiple.
-  * [VM/HD6844] Rename drq_line to busreq_line.
-  * Special thanks to Ryu Takegami, to assist debugging FM-7/77/AV/40/EX .
-  * Built with commit 9376345bc1270e2a76db816636b645e744d09e82  or later.
 
--- Jan 19, 2018 01:49:25 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+* SNAPSHOT Feb 10 2018
+  * Upstream 2017-12-27 .
+  * [CONFIG] IMPORTANT: Now, "~/emufoo/" moved to "~/CommonSourceCodeProject/emufoo/" .
+             Please move settings to here.
+  * [CONFIG] IMPORTANT: Now, "~/emufoo/foo.ini" has moved to "~/.config/CommonSourceCodeProject/emufoo/" (or "~/CommonSourceCodeProject/emufoo/ at Windows").  
+             Please move ini and scancode.conf to new place.
+  * [VM/MB8877] Enable to boot FLEX/FM-8.
+                Thanks to https://matsuri.5ch.net/test/read.cgi/i4004/1483504365/800- .
+  * [UI/Qt] Add option: Emulate cursor keys as "2468" or "1235".
+  * [UI/KEYBOARD] Add option, "Numpad's Enter is Fullkey's".Useful for FM-77AV series, etc.
+  * [UI/VM] MB8877/T3444/uPD765A: Add ON/OFF debug logging for FDCs.
+  * [Qt/EMU] Seriarize queueing both KEY_DOWN and KEY_UP.
+             Expect to fix  key-in issues with slower host machine.
+	     See https://matsuri.5ch.net/test/read.cgi/i4004/1483504365/841 .
+  * [UI/Qt] BUG: Fix crash with BOOT_MODEs >= 8.
+  * [UI/Qt] FM7: Extend boot menu.
+  * [UI/KEYBOARD] Update VM table.
+  * [UI/KEYBOARD] Fix load/save sequence of scancode.cfg.
+  * [UI/Qt] Update translate for menu.Split section per menu-bar-entry.
+  * [MENU/Qt] DISK: Fix not affect of some entries:"Correct disk timing","Ignore CRC error" and "Immediate transfer".
+  * [Draw/OpenGL] FM77AV: Fix blinking with some situation.
+  * [VM/MC6809] Fix around CWAI with interrupts.
+  * [VM/MC6809] Make set/reset E flag at interrupt.
+  * [VM/MC6809] More accurate emulation(maybe).
+  * [VM/MC6809] Fix clock count with some situation, FM-8/7/77/AV don't need dummycpu.
+  * [VM/FM7] Remove DUMMY CPU.Reduce host-cpu usage a lot.
+             Related to commit a4e1a7cfef59e08f31675c6608871068d3f2c4ef.
+  * [EMU/FM7] emu.cpp : No longer use hack with some VMs.
+  * [VM/FM7] KEYBOARD: Keep BREAK key when special reset (hot start).
+  * [VM/FM7] MAINIO: Reduce hitting PCM1BIT:: when not sound buzzer.
+  * [VM/FM7] DISK: Fix RPM value of 2D/2DD drive to 300rpm.
+  * [VM/FM7] Read some (bulk) roms for FM-8/7/NEW7/77.This is WORK-IN-PROGRESS.
+  * [VM/FM8/FM77] Add delay FIRQ/NMI from 2HD/SFD FDC.This is temporally implement.
+  * [VM/FM8] MAINIO: Move FM-8 specified features to FM8_MAINIO:: .
+  * [VM/FM77] Add initial support of 2HD (for FM-77).
+  * [VM/FM77] Fix access around BOOT-RAM.Thanks to Ryu Takegami.
+  * [VM/FM77] Extra memories should start $00000, not $10000.Thanks to Ryu Takegami.
+  * [VM/FM77] Fix wrong answer at $FD04.Thanks to Ryu Takegami.
+  * [VM/FM77AV] DISPLAY: Separate event process around VSYNC/HSYNC.
+  * [VM/FM77AV40] Fix FTBFS with Fedora linux.
+  * [VM/FM77AV40EX] Do not effect offset registers to VRAM-ACTIVE-BLOCK 1.Thanks to Ryu Takegami.
+  * [VM/MB8877] No need to hack with PSY-O-BLADE for FM77AV.This is test delete.
+  * [VM/MB8877] Force down DRQ when LOST-DATA happens.
+  * [VM/MB8877] Fix not read status data at the endof SEEK and verifying.
+  * [VM/MB8877] Update structure of MB8877->fdc.
+  * [VM/DISK] Fix default value ignore_crc_error and correct_disk_timing (mostly "to false").
+  * [DOC] Add README.md (written in Japanese) and README.en.md (written in English) for GITHUB's cover page.
+  * Special thanks to Ryu Takegami, to assist debugging FM-7/77/AV/40/EX .
+  * Built with commit a14677dfb396ece914c338861523aa903aad1740 or later.
+
+-- Feb 10, 2018 18:26:15 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 本家の変更:
 * 前の変更点をお読みになる場合には、history.txtをお読み下さい。

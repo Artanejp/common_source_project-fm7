@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                        January 28, 2018
+                                        February 10, 2018
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 0. About
@@ -46,12 +46,21 @@
    $ sudo make install
 
 4.Qt specified notice (for non-Windows):
+   ・Config file (scancode.cfg and foo.ini) has placed (moved) to
+     "~/.config/CommonSourceCodeProject/emufoo/"
+     (for Windows, ".\CommonSourceCodeProject\emudfoo\" ).
+   ・BIOS, WAVS, BINS and SAVED STATES have placed (moved) to
+     "~/CommonSourceCodeProject/emufoo/"
+     (for Windows, ".\CommonSourceCodeProject\emudfoo\" ).
+   ・All of recorded products (PNG Screenshots, MOVIES, SOUNDS) 
+     have *temporally* written to "~/.config/CommonSourceCodeProject/emufoo/"
+     (for Windows, ".\CommonSourceCodeProject\emudfoo\" ).
    ・Added ToolTips and Japanese translations.(2017-01-24)
-   ・Place R@Ms under $HOME/emu{Machine Name}/ , this directory has made
+   ・Place R@Ms under $HOME/CommonSourceCodeProject/emu{Machine Name}/ , this directory has made
      after first using.
-   ・Config file, {foo}.ini is written on $HOME/.config/emu{Machine Name}/ .
-   ・Saved state file, {foo}.sta is written on $HOME/emu{Machine Name}/ .
-   ・Key code conversion file is written on $HOME/.config/emu{Machine Name}/scancode.cfg .
+   ・Config file, {foo}.ini is written on $HOME/.config/CommonSourceCodeProject/emu{Machine Name}/ .
+   ・Saved state file, {foo}.sta is written on $HOME/CommonSourceCodeProject/emu{Machine Name}/ .
+   ・Key code conversion file is written on $HOME/.config/CommonSourceCodeProject/emu{Machine Name}/scancode.cfg .
      This file contains comma separated fields, written at hex-decimal (not decimal), 
      first is M$ Virtual Key Code,
      second is Qt's scan code.

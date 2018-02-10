@@ -1,3 +1,102 @@
+commit a14677dfb396ece914c338861523aa903aad1740
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 10 17:43:16 2018 +0900
+
+    [CONFIG] IMPORTANT: Now, "~/emufoo/foo.ini" has moved to "~/.config/CommonSourceCodeProject/emufoo/" (or "~/CommonSourceCodeProject/emufoo/ at Windows").  Please move ini and scancode.conf to new place.
+
+commit a62812d63349417d25a82090ee15aa9c00a2765e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 10 17:10:56 2018 +0900
+
+    [CONFIG] IMPORTANT: Now, "~/emufoo/" moved to "~/CommonSourceCodeProject/emufoo/" . Please move settings to here.
+
+commit 34b6ee8c863ab469ab208b5528a7c372bf37515c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 10 16:35:52 2018 +0900
+
+    [UI][VM] Add option, "Numpad's Enter is Fullkey's".Useful for FM-77AV series, etc.
+    [UI][VM] Update VM table.
+    [UI][Qt][KEYBOARD] Fix load/save sequence of scancode.cfg.
+
+commit f086341cfc170deb6e5b9cb2ee1298221707ba71
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 10 05:40:08 2018 +0900
+
+    [UI][Qt] Update translate for menu.Split section per menu-bar-entry.
+
+commit e4a6d485b9e88ab561df8137e86ca8941166eaab
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 10 05:16:04 2018 +0900
+
+    [UI][Qt][I18N] Update translations.
+
+commit 3227ba6052ea0e751529678a5470c3a641274996
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 9 21:00:30 2018 +0900
+
+    [UI][VM][MB8877][T3444][uPD765A] Add ON/OFF debug logging for FDCs.
+
+commit 7c5c0dd7c1ad64665d1bdfc78a0608d554fbc97f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 9 19:40:24 2018 +0900
+
+    [Qt][EMU] Seriarize queueing both KEY_DOWN and KEY_UP.Expect to fix  key-in issues with slower host machine.See https://matsuri.5ch.net/test/read.cgi/i4004/1483504365/841 .
+
+commit 9c3286735de39509394ead03e260e68a3b9bf095
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 9 17:53:41 2018 +0900
+
+    [VM] Remove define value for before commit.
+
+commit 909d20a2c04bf65d36a97ea6fc955608351983a7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 9 17:51:21 2018 +0900
+
+    [UI][OSD][Qt][CONFIG] Add option: Emulate cursor keys as "2468" or "1235".
+    [CONFIG][Qt] Remove "roma_cana_conversion".Cause of merging romaji-kana conversion feature to upstream.
+
+commit 6370656dd4938429194b2655d55c00dba8be4de2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 1 12:43:15 2018 +0900
+
+    [BUILD][CMAKE] Update some CMakeLists.txt .
+
+commit 7dfb7c45624e96a87761f7401f7a32910ddd8685
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 1 12:39:15 2018 +0900
+
+    [VM][MB8877] Enable to boot FLEX/FM-8.Some logs are turn off.Thanks to https://matsuri.5ch.net/test/read.cgi/i4004/1483504365/800- .
+
+commit 311e6a83b6d2e65bb8c17488d54c09e3241c4c60
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 31 20:20:39 2018 +0900
+
+    [VM][FM77AV40EX][FM77AV40SX] Do not effect offset registers to VRAM-ACTIVE-BLOCK 1.Thanks to Ryu Takegami.
+
+commit 9816bc4aef22aeb0a89bf5c19fe46e0f694fe29e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 31 20:19:47 2018 +0900
+
+    [VM][FM8][FM77] Add delay FIRQ/NMI from 2HD/SFD FDC.This is temporally implement.
+
+commit ba1db8f325a10e0a3d86cd93bedf2616187d0171
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 31 18:10:47 2018 +0900
+
+    [VM][FM77] Extra memories should start $00000, not $10000.Thanks to Ryu Takegami.
+
+commit 1e75eeed3adb8d3b8bfdd4416599b52fff80a7ef
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 31 18:10:01 2018 +0900
+
+    [VM][FM77] Fix wrong answer at $FD04.Thanks to Ryu Takegami.
+
+commit 9f62fc397215e485d09211c4928c36ba98109b51
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 30 14:54:53 2018 +0900
+
+    [DOC] Update.
+
 commit 6d81b4861a547c2a1f908022142953284ea26e05
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Tue Jan 30 14:49:58 2018 +0900

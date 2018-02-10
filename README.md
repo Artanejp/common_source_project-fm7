@@ -1,6 +1,6 @@
 <H2>** Qt porting for Common Source Code Project **</H2>
 <div align="right">
-<H3>Sep 09, 2016<BR>
+<H3>Feb 10, 2018<BR>
 K.Ohta <whatisthis.sowhat _at_ gmail.com></H3>
 </div>
 
@@ -100,19 +100,21 @@ To install:
    
     $ sudo make install
 
-## Qt固有の話(Windows除く)
+## Qt固有の話
+
+   * 設定ファイル(scancode.cfg と foo.ini)は、"~/.config/CommonSourceCodeProject/emufoo/" (Windowsの場合は".\CommonSourceCodeProject\emudfoo\" ) におかれます（移動しました）。
+
+   * BIOSや効果音WAVやセーブステートは、、"~/CommonSourceCodeProject/emufoo/" (Windowsの場合は".\CommonSourceCodeProject\emudfoo\" ) におかれます（移動しました）。
+   
+   * 全ての記録物(スクリーンショットや動画や録音WAV）は、*当面の間* "~/CommonSourceCodeProject/emufoo/" (Windowsの場合は".\CommonSourceCodeProject\emudfoo\" ) におかれます。
 
    * ToolTipsを付けました。(2017-01-24)
       
    * 日本語に翻訳しました。(2017-01-24)
    
-   * R@Mを $HOME/emu{Machine Name}/　に配置してください。(Windowsの場合は今の所 .\emu{Machine Name}\)。なお、このディレクトリは最初起動した後で作成されます。
-   
-   * 設定ファイルは、$HOME/.config/emu{Machine Name}/ に書き込まれます。(Windowsの場合は今の所 .\.config\emu{Machine Name}\)
-   
-   * ステートセーブファイルは、$HOME/emu{Machine Name}/{Machine Name}.sta に書き込まれます。
-   
-   * キーコード変換テーブルファイルが、$HOME/.config/emu{Machine Name}/scancode.cfg に書き込まれます。
+   * R@Mを $HOME/CommonSourceCodeProject/emu{Machine Name}/　に配置してください。(Windowsの場合は今の所 .\CommonSourceCodeProject\emu{Machine Name}\)。なお、このディレクトリは最初起動した後で作成されます。
+      
+   * キーコード変換テーブルファイルが、$HOME/.config/CommonSourceCodeProject/emu{Machine Name}/scancode.cfg に書き込まれます。
    
      ** 書式は、カンマで区切られた16進データです(10進ではないので注意) .
      

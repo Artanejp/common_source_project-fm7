@@ -1,11 +1,10 @@
 <H2>** Qt porting for Common Source Code Project **</H2>
 <div align="right">
-<H3>Sep 09, 2016<BR>
+<H3>Feb 10, 2018<BR>
 K.Ohta <whatisthis.sowhat _at_ gmail.com></H3>
 </div>
 
 ## *If you can read Japanese, [japanese(日本語) writing is here](/README.md/).*
-
 
 About
 ====
@@ -89,20 +88,22 @@ After extracting (or git pulled) sourcecodes:
 
     $ sudo make install
 
-Qt specified notice (for non-Windows):
+Qt specified notice :
 ====
+
+* Config file (scancode.cfg and foo.ini) has placed (moved) to "~/.config/CommonSourceCodeProject/emufoo/" (for Windows, ".\CommonSourceCodeProject\emudfoo\" ).
+
+* BIOS, WAVS, BINS and SAVED STATES have placed (moved) to  "~/CommonSourceCodeProject/emufoo/" (for Windows, ".\CommonSourceCodeProject\emudfoo\" ).
+
+* All of recorded products (PNG Screenshots, MOVIES, SOUNDS) have *temporally* written to "~/.config/CommonSourceCodeProject/emufoo/" (for Windows, ".\CommonSourceCodeProject\emudfoo\" ).
 
 * Added ToolTips.(2017-01-24)
       
 * Translated menu entries to Japanese.(2017-01-24)
 
-* Place R@Ms under $HOME/emu{Machine Name}/ , this directory has made after first using.
+* Place R@Ms under $HOME/CommonSourceCodeProject/emu{Machine Name}/ , this directory has made after first using.
 
-* Config file, {foo}.ini is written on $HOME/.config/emu{Machine Name}/ .
-
-* Saved state file, {foo}.sta is written on $HOME/emu{Machine Name}/ .
-
-* Key code conversion file is written on $HOME/.config/emu{Machine Name}/scancode.cfg .
+* Key code conversion file is written on $HOME/.config/CommonSourceCodeProject/emu{Machine Name}/scancode.cfg .
 
   ** This file contains comma separated fields, written at hex-decimal (not decimal),
  
@@ -159,7 +160,7 @@ Upstream (Takeda Toshiya San's original code)
 Special thanks to:
 ==
 
-  Ryu Takegami : eFM-8/7/77/AV/40/EX のデバッグに協力していただいています。
+  Ryu Takegami : Assist to debug and give informations about eFM-8/7/77/AV/40/EX .
 
 Have fun!
 
