@@ -1071,12 +1071,15 @@ void OSD::initialize(int rate, int samples)
 	// get module path
 	QString tmp_path;
 	tmp_path = QString::fromStdString(cpp_homedir);
-	tmp_path = tmp_path + QString::fromStdString(my_procname);
 #if defined(Q_OS_WIN)
 	const char *delim = "\\";
 #else
 	const char *delim = "/";
 #endif
+	//tmp_path = tmp_path + QString::fromUtf8(delim);
+	tmp_path = tmp_path + QString::fromUtf8("CommonSourceCodeProject");
+	tmp_path = tmp_path + QString::fromUtf8(delim);
+	tmp_path = tmp_path + QString::fromStdString(my_procname);
 	tmp_path = tmp_path + QString::fromUtf8(delim);
 	memset(app_path, 0x00, sizeof(app_path));
 	strncpy(app_path, tmp_path.toUtf8().constData(), _MAX_PATH);

@@ -410,6 +410,8 @@ bool Ui_MainWindow::GetPowerState(void)
 }
 #endif
 
+#include <string>
+
 void Ui_MainWindow::OnMainWindowClosed(void)
 {
 	// notify power off
@@ -449,7 +451,18 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 		hRunEmu->quit();
 		hRunEmu->wait();
 		delete hRunEmu;
+#if 0
 		save_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
+#else
+		{
+			char tmps[128];
+			std::string localstr;
+			snprintf(tmps, sizeof(tmps), _T("%s.ini"), _T(CONFIG_NAME));
+			localstr = tmps;
+			localstr = cpp_confdir + localstr;
+			save_config(localstr.c_str());
+		}
+#endif
 	}
 #if defined(USE_JOYSTICK)
 	if(hRunJoy != NULL) {
@@ -492,6 +505,22 @@ extern void DLL_PREFIX_I get_long_full_path_name(_TCHAR* src, _TCHAR* dst);
 extern _TCHAR* DLL_PREFIX_I get_parent_dir(_TCHAR* file);
 extern void get_short_filename(_TCHAR *dst, _TCHAR *file, int maxlen);
 
+#if defined(Q_OS_CYGWIN)	
+#include <sys/stat.h>
+#endif
+static void my_util_mkdir(std::string n)
+{
+#if !defined(Q_OS_CYGWIN)	
+		QDir dir = QDir::current();
+		dir.mkdir( QString::fromStdString(n));
+#else
+		struct stat st;
+		if(stat(n.c_str(), &st) != 0) {
+			_mkdir(n.c_str()); // Not found
+		}
+#endif   
+}	
+
 static void setup_logs(void)
 {
 	std::string delim;
@@ -523,18 +552,16 @@ static void setup_logs(void)
 	cpp_homedir = ".";
 #endif	
 	cpp_homedir = cpp_homedir + delim;
-#ifdef _WINDOWS
-	cpp_confdir = cpp_homedir + my_procname + delim;
-#else
-	cpp_confdir = cpp_homedir + ".config" + delim + my_procname + delim;
+#ifndef _WINDOWS
+	cpp_confdir = cpp_homedir + ".config" + delim;
+	my_util_mkdir(cpp_confdir);
 #endif
+
+	cpp_confdir = cpp_confdir + "CommonSourceCodeProject" + delim;
+	my_util_mkdir(cpp_confdir);
 	
-#if !defined(Q_OS_CYGWIN)	
-	{
-		QDir dir;
-		dir.mkdir( QString::fromStdString(cpp_confdir));
-	}
-#endif   
+	cpp_confdir = cpp_confdir + delim + my_procname + delim;
+	my_util_mkdir(cpp_confdir);
    //AG_MkPath(cpp_confdir.c_str());
    /* Gettext */
 #ifndef RSSDIR
@@ -559,8 +586,19 @@ int MainLoop(int argc, char *argv[])
 	std::string cfgstr(CONFIG_NAME);
 	setup_logs();
 	cpp_homedir.copy(homedir, PATH_MAX - 1, 0);
-
+#if 0
 	load_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
+#else
+	{
+		char tmps[128];
+		std::string localstr;
+		snprintf(tmps, sizeof(tmps), _T("%s.ini"), _T(CONFIG_NAME));
+		localstr = tmps;
+		localstr = cpp_confdir + localstr;
+		load_config(localstr.c_str());
+	}
+#endif
+	
 	
 	emustr = emustr + cfgstr;
 

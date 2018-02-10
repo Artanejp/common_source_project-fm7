@@ -1214,7 +1214,6 @@ void Ui_MainWindowBase::setCoreApplication(QApplication *p)
 #include <string>
 // Move from common/qt_main.cpp
 // menu
-extern std::string cpp_homedir;
 std::string cpp_confdir;
 extern std::string my_procname;
 extern bool now_menuloop;
