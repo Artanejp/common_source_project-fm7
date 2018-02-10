@@ -817,11 +817,15 @@ const _TCHAR *DLL_PREFIX get_application_path()
 #else
 		std::string delim = "/";
 #endif
-		std::string cpath = cpp_homedir + my_procname + delim;
+		std::string csppath = cpp_homedir + "CommonSourceCodeProject" + delim ;
+		std::string cpath = csppath + my_procname + delim;
 		strncpy(app_path, cpath.c_str(), _MAX_PATH);
 		{
 			struct stat st;
 #if !defined(__WIN32) && !defined(__WIN64)
+			if(fstatat(AT_FDCWD, csppath.c_str(), &st, 0) != 0) {
+				mkdirat(AT_FDCWD, csppath.c_str(), 0700); // Not found
+			}
 			if(fstatat(AT_FDCWD, app_path, &st, 0) != 0) {
 				mkdirat(AT_FDCWD, app_path, 0700); // Not found
 			}
@@ -829,9 +833,13 @@ const _TCHAR *DLL_PREFIX get_application_path()
 			if(stat(app_path, &st) != 0) {
 				QDir dir = QDir::current();
 				dir.mkdir(QString::fromUtf8(app_path));
+				//dir.mkpath(QString::fromUtf8(app_path));
 			}
 #else
-			if(stat(app_path, &st) != 0) {
+			if(stat(csppath.c_str(), &st) != 0) {
+				_mkdir(app_path); // Not found
+			}
+			if(stat(csppath.c_str(), &st) != 0) {
 				_mkdir(app_path); // Not found
 			}
 #endif
