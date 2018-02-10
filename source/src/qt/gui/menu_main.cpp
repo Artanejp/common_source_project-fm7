@@ -738,6 +738,8 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 		action_UseRomaKana->setText(QApplication::translate("MenuEmulator", "ROMA-KANA Conversion", 0));
 		action_UseRomaKana->setToolTip(QApplication::translate("MenuEmulator", "Use romaji-kana conversion assistant of emulator.", 0));
 	}
+	action_NumPadEnterAsFullkey->setText(QApplication::translate("MenuEmulator", "Numpad's Enter is Fullkey's", 0));
+	action_NumPadEnterAsFullkey->setToolTip(QApplication::translate("MenuEmulator", "Numpad's enter key makes full key's enter.\nUseful for some VMs.", 0));
 	if(action_Logging_FDC != NULL) {
 		action_Logging_FDC->setText(QApplication::translate("MenuEmulator", "FDC: Turn ON Debug log.", 0));
 		action_Logging_FDC->setToolTip(QApplication::translate("MenuEmulator", "Turn ON debug logging for FDCs.Useful to resolve issues from guest software.", 0));
@@ -812,6 +814,11 @@ void Ui_MainWindowBase::do_set_roma_kana(bool flag)
 	using_flags->get_config_ptr()->romaji_to_kana = flag;
 }
 
+void Ui_MainWindowBase::do_set_numpad_enter_as_fullkey(bool flag)
+{
+	using_flags->get_config_ptr()->numpad_enter_as_fullkey = flag;
+}
+
 void Ui_MainWindowBase::CreateEmulatorMenu(void)
 {
 	//menuEmulator->addAction(action_LogRecord);
@@ -821,6 +828,7 @@ void Ui_MainWindowBase::CreateEmulatorMenu(void)
 	if(using_flags->is_use_auto_key()) {
 		menuEmulator->addAction(action_UseRomaKana);
 	}
+	menuEmulator->addAction(action_NumPadEnterAsFullkey);
 	menuEmulator->addAction(menu_EmulateCursorAs->menuAction());
 	if(action_Logging_FDC != NULL) {
 		menuEmulator->addSeparator();
@@ -876,6 +884,8 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 		SET_ACTION_SINGLE(action_UseRomaKana, true, true, (using_flags->get_config_ptr()->romaji_to_kana));
 		connect(action_UseRomaKana, SIGNAL(toggled(bool)), this, SLOT(do_set_roma_kana(bool)));
 	}
+	SET_ACTION_SINGLE(action_NumPadEnterAsFullkey, true, true, (using_flags->get_config_ptr()->numpad_enter_as_fullkey));
+	connect(action_NumPadEnterAsFullkey, SIGNAL(toggled(bool)), this, SLOT(do_set_numpad_enter_as_fullkey(bool)));
 	// Cursor to ten key.
 	
 	menu_EmulateCursorAs = new QMenu(this);

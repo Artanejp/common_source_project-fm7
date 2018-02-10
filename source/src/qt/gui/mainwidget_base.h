@@ -192,6 +192,7 @@ private:
 	class Action_Control *action_DispVirtualMedias[5];
 	class Action_Control *action_FocusWithClick;
 	class Action_Control *action_UseRomaKana;
+	class Action_Control *action_NumPadEnterAsFullkey;
 	class Action_Control *action_Logging_FDC;
 	class Action_Control *action_LogToSyslog;
 	class Action_Control *action_LogToConsole;
@@ -628,6 +629,7 @@ public slots:
 	void do_set_dev_log_to_console(int id, bool f);
 	void do_set_dev_log_to_syslog(int id, bool f);
 	void do_set_roma_kana(bool f);
+	void do_set_numpad_enter_as_fullkey(bool f);
 	void do_set_render_mode_std(void);
 	void do_set_render_mode_tv(void);
 	void do_select_render_platform(int num);

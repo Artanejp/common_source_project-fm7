@@ -136,7 +136,7 @@ void Ui_MainWindowBase::retranslateFloppyMenu(int drv, int basedrv)
 void Ui_MainWindowBase::retranslateFloppyMenu(int drv, int basedrv, QString specName)
 {
 	QString drive_name;
-	drive_name = QString::fromUtf8("[") + QString::number(basedrv) + QString::fromUtf8("] ");
+	drive_name = QString::fromUtf8("[") + QString::number(basedrv) + QString::fromUtf8(":] ");
 	drive_name = drive_name + specName;
 	//drive_name += QString::number(basedrv);
   

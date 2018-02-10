@@ -143,7 +143,7 @@ static const keydef_table_t default_key_table_106_QtScan[] = {
 	{VK_MULTIPLY, 0x37, "* (Num Pad)"},
 	{VK_SUBTRACT, 0x4a, "- (Num Pad)"},
 	{VK_ADD, 0x4e,       "+ (Num Pad)"},
-	{VK_RETURN, 0x011c, "Enter (Num Pad)"},  // Enter(ten Key)
+	{VK_OEM_CSP_KPRET, 0x011c, "Enter (Num Pad)"},  // Enter(ten Key)
 	{0xffffffff, 0xffffffff, NULL}
 };
 #else
@@ -265,7 +265,7 @@ static const keydef_table_t default_key_table_106_QtScan[] = {
 	{VK_MULTIPLY, 63, "* (Num Pad)"},
 	{VK_SUBTRACT, 82, "- (Num Pad)"},
 	{VK_ADD, 86,       "+ (Num Pad)"},
-	{VK_RETURN, 104, "Enter (Num Pad)"},  // Enter(ten Key)
+	{VK_OEM_CSP_KPRET, 104, "Enter (Num Pad)"},  // Enter(ten Key)
 	{0xffffffff, 0xffffffff, NULL}
 };
 #endif	

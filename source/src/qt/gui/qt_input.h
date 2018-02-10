@@ -1,5 +1,6 @@
 /*
- * 
+ * Virtual Keycode Table for CSP.
+ * (C) 2015, 2018 K.Ohta <whatisthis.sowhat _at_ gmail.com>
  */
 
 #ifndef _AGAR_INPUT_H_
@@ -12,13 +13,16 @@
 extern "C" {
 #endif
 # if !defined(Q_OS_CYGWIN) && !defined(Q_OS_WIN)
-   // Include from gui/drv_wgl_keymaps.h , libagar.
+	// See:
+	// https://www.inasoft.org/webhelp/autokeybn/HLP000011.html
    enum {
 	VK_LBUTTON = 0x01,
 	VK_RBUTTON = 0x02,
 	
 	VK_CANCEL = 0x03,
 	VK_MBUTTON = 0x04,
+	VK_XBUTTON1 = 0x05,
+	VK_XBUTTON2 = 0x06,
 	
 	VK_BACK   = 0x08,
 	VK_TAB    = 0x09,
@@ -60,9 +64,11 @@ extern "C" {
 	VK_DELETE = 0x2e,
 	VK_HELP   = 0x2f,
 
+	/* ALPHABET, NUMERIC etc.. */
 	VK_LWIN = 0x5b,
 	VK_RWIN = 0x5c,
 	VK_APPS = 0x5d,
+	VK_SLEEP = 0x5f,
 
 	VK_NUMPAD0 = 0x60,
 	VK_NUMPAD1 = 0x61,
@@ -97,6 +103,7 @@ extern "C" {
 	VK_F14  = 0x7d,
 	VK_F15  = 0x7e,
 	VK_F16  = 0x7f,
+	
 	VK_F17  = 0x80,
 	VK_F18  = 0x81,
 	VK_F19  = 0x82,
@@ -108,6 +115,16 @@ extern "C" {
 	
 	VK_NUMLOCK = 0x90,
 	VK_SCROLL = 0x91,
+	VK_OEM_NEC_EQUAL = 0x92,
+	VK_OEM_FJ_JISHO = 0x92,
+	VK_OEM_FJ_MASSHOU = 0x93,
+	VK_OEM_FJ_TOUROKU = 0x94,
+	VK_OEM_FJ_LOYA = 0x95,
+	VK_OEM_FJ_ROYA = 0x96,
+  // Below are original code.
+  // Return key of TEN KEY PAD
+  // 20180210 K.O
+	VK_OEM_CSP_KPRET = 0x9f,
 	
 	VK_LSHIFT = 0xa0,
 	VK_RSHIFT = 0xa1,
@@ -115,7 +132,25 @@ extern "C" {
 	VK_RCONTROL = 0xa3,
 	VK_LMENU = 0xa4,
 	VK_RMENU = 0xa5,
-
+	VK_BROWSER_BACK	= 0xA6,
+	VK_BROWSER_FORWARD	= 0xA7,
+	VK_BROWSER_REFRESH = 0xA8,
+	VK_BROWSER_STOP	= 0xA9,
+	VK_BROWSER_SEARCH = 0xAA,
+	VK_BROWSER_FAVORITES = 0xAB,
+	VK_BROWSER_HOME	= 0xAC,
+	VK_VOLUME_MUTE	= 0xAD,
+	VK_VOLUME_DOWN	= 0xAE,
+	VK_VOLUME_UP =	0xAF,
+	
+	VK_MEDIA_NEXT_TRACK	= 0xB0,
+	VK_MEDIA_PREV_TRACK	= 0xB1,
+	VK_MEDIA_STOP	= 0xB2,
+	VK_MEDIA_PLAY_PAUSE	= 0xB3,
+	VK_LAUNCH_MAIL	= 0xB4,
+	VK_LAUNCH_MEDIA_SELECT = 0xB5,
+	VK_LAUNCH_APP1	= 0xB6,
+	VK_LAUNCH_APP2	= 0xB7,
 	VK_$B8   = 0xb8,
 	VK_$B9   = 0xb9,
 	VK_OEM_1 = 0xba, // :
@@ -132,8 +167,21 @@ extern "C" {
 	VK_OEM_7 = 0xde,
 	VK_OEM_8 = 0xdf,
 
+	VK_OEM_AX = 0xe1,
 	VK_OEM_102 = 0xe2, // Back Slash
+	VK_ICO_HELP = 0xe3,
+	VK_ICO_00 = 0xe4,
 	VK_PROCESSKEY =	0xe5,
+	VK_ICO_CLEAR = 0xe6,
+	VK_PACKET = 0xe7,
+	
+	VK_OEM_RESET = 0xe9,
+	VK_OEM_JUMP = 0xea,
+	VK_OEM_PA1 = 0xeb,
+	VK_OEM_PA2 = 0xec,
+	VK_OEM_PA3 = 0xed,
+	VK_OEM_WSCTRL = 0xee,
+	VK_OEM_CUSEL = 0xef,
 	
 	VK_OEM_ATTN = 0xf0, //	Caps Lock 	　
 	VK_OEM_FINISH = 0xf1,
@@ -155,6 +203,9 @@ extern "C" {
 # else
 #  include <windows.h>
 #  include <winuser.h>
+#  if !defined(VK_OEM_AX)
+#    define VK_OEM_AX 0xe1
+#  endif
 #  if !defined(VK_OEM_102)
 #    define VK_OEM_102 0xe2
 #  endif
@@ -176,7 +227,81 @@ extern "C" {
 #  if !defined(VK_OEM_COPY)
 #     define VK_OEM_COPY 0xf2
 #  endif
-#        
+#  if !defined(VK_OEM_NEC_EQUAL)
+#     define VK_OEM_NEC_EQUAL 0x92
+#  endif
+#  if !defined(VK_OEM_FJ_JISHO)
+#	  define VK_OEM_FJ_JISHO 0x92
+# endif
+#  if !defined(VK_OEM_FJ_MASSHOU)
+#	  define VK_OEM_FJ_MASSHOU 0x93
+# endif
+#  if !defined(VK_OEM_FJ_TOUROKU)
+#	  define VK_OEM_FJ_TOUROKU 0x94
+# endif
+#  if !defined(VK_OEM_FJ_LOYA)
+#	  define VK_OEM_FJ_LOYA 0x95
+# endif
+#  if !defined(VK_OEM_FJ_ROYA)
+#	  define VK_OEM_FJ_LOYA 0x96
+# endif
+# if !defined(VK_BROWSER_BACK)
+#     define VK_BROWSER_BACK 0xA6
+# endif
+# if !defined(VK_BROWSER_FORWARD)
+#     define VK_BROWSER_FORWARD 0xA7
+# endif
+# if !defined(VK_BROWSER_REFRESH)
+#     define VK_BROWSER_REFRESH 0xA8
+# endif
+# if !defined(VK_BROWSER_STOP)
+#     define VK_BROWSER_STOP 0xA9
+# endif
+# if !defined(VK_BROWSER_SEARCH)
+#     define VK_BROWSER_SEARCH 0xAA
+# endif
+# if !defined(VK_BROWSER_FAVORITES)
+#     define VK_BROWSER_FAVORITES 0xAB
+# endif
+# if !defined(VK_BROWSER_HOME)
+#     define VK_BROWSER_HOME 0xAC
+# endif
+# if !defined(VK_VOLUME_MUTE)
+#     define VK_VOLUME_MUTE 0xAD
+# endif
+# if !defined(VK_VOLUME_DOWN)
+#     define VK_VOLUME_DOWN 0xAE
+# endif
+# if !defined(VK_VOLUME_UP)
+#     define VK_VOLUME_UP 0xAF
+# endif
+# if !defined(VK_MEDIA_NEXT_TRACK)
+#     define VK_MEDIA_NEXT_TRACK 0xB0
+# endif
+# if !defined(VK_MEDIA_PREV_TRACK)
+#     define VK_MEDIA_PREV_TRACK 0xB1
+# endif
+# if !defined(VK_MEDIA_STOP)
+#     define VK_MEDIA_STOP 0xB2
+# endif
+# if !defined(VK_MEDIA_PLAY_PAUSE)
+#     define VK_MEDIA_PLAY_PAUSE 0xB3
+# endif
+# if !defined(VK_LAUNCH_MAIL)
+#     define VK_LAUNCH_MAIL 0xB4
+# endif
+# if !defined(VK_LAUNCH_MEDIA_SELECT)
+#     define VK_LAUNCH_MEDIA_SELECT 0xB5
+# endif
+# if !defined(VK_LAUNCH_APP1)
+#     define VK_LAUNCH_APP1 0xB6
+# endif
+# if !defined(VK_LAUNCH_APP2)
+#     define VK_LAUNCH_APP2 0xB7
+# endif
+  // Return key of TEN KEY PAD
+  // 20180210 K.O
+#     define VK_OEM_CSP_KPRET 0x9f
 # endif
 #ifdef __cplusplus
 }

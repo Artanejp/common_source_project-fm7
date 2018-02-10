@@ -383,6 +383,7 @@ void OSD_BASE::key_up(int code, bool extended)
 			default:
 				break;
 			}
+					
 //#ifdef USE_SHIFT_NUMPAD_KEY
 			if(__USE_SHIFT_NUMPAD_KEY) {
 			

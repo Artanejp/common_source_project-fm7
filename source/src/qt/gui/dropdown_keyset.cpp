@@ -48,10 +48,10 @@ static const _TCHAR *vk_names[] = {
 	_T("VK_F21"),			_T("VK_F22"),			_T("VK_F23"),			_T("VK_F24"),			
 	_T("VK_$88"),			_T("VK_$89"),			_T("VK_$8A"),			_T("VK_$8B"),			
 	_T("VK_$8C"),			_T("VK_$8D"),			_T("VK_$8E"),			_T("VK_$8F"),			
-	_T("VK_NUMLOCK"),		_T("VK_SCROLL"),		_T("VK_$92"),			_T("VK_$93"),			
-	_T("VK_$94"),			_T("VK_$95"),			_T("VK_$96"),			_T("VK_$97"),			
+	_T("VK_NUMLOCK"),		_T("VK_SCROLL"),		_T("VK_OEM_NEC_EQUAL"),			_T("VK_OEM_FJ_MASSHOU"),			
+	_T("VK_OEM_FJ_TOUROKU"),			_T("VK_OEM_FJ_LOYA"),			_T("VK_OEM_FJ_ROYA"),			_T("VK_$97"),			
 	_T("VK_$98"),			_T("VK_$99"),			_T("VK_$9A"),			_T("VK_$9B"),			
-	_T("VK_$9C"),			_T("VK_$9D"),			_T("VK_$9E"),			_T("VK_$9F"),			
+	_T("VK_$9C"),			_T("VK_$9D"),			_T("VK_$9E"),			_T("VK_OEM_CSP_KPRET"),			
 	_T("VK_LSHIFT"),		_T("VK_RSHIFT"),		_T("VK_LCONTROL"),		_T("VK_RCONTROL"),		
 	_T("VK_LMENU"),			_T("VK_RMENU"),			_T("VK_BROWSER_BACK"),		_T("VK_BROWSER_FORWARD"),	
 	_T("VK_BROWSER_REFRESH"),	_T("VK_BROWSER_STOP"),		_T("VK_BROWSER_SEARCH"),	_T("VK_BROWSER_FAVORITES"),	
@@ -118,6 +118,11 @@ void CSP_KeyTables::do_set_key_table(const keydef_table_t *tbl)
 			//authorised_vk[tbl[i].vk] = true;
 		}
 		table_size = i;
+		if(i < KEYDEF_MAXIMUM) {
+			using_table[i].vk = 0xffffffff;
+			using_table[i].scan = 0;
+			using_table[i].name = "_END";
+		}
 	}
 }
 
@@ -127,10 +132,17 @@ void CSP_KeyTables::do_set_scan_code(uint32_t vk, uint32_t scan)
 	if(scan >= 0x80000000) return;
 	for(i = 0; i < KEYDEF_MAXIMUM; i++) {
 		if(using_table[i].vk == 0xffffffff) break;
-		if(using_table[i].vk == vk) {
-			using_table[i].scan = scan;
-			break;
+		if(using_table[i].scan == scan) {
+			using_table[i].vk = vk;
+			using_table[i].name = get_vk_name(vk).toLocal8Bit().constData();
+			return;
 		}
+	}
+	if(i < KEYDEF_MAXIMUM) { // Fallback
+		using_table[i].vk = vk;
+		using_table[i].scan = scan;
+		using_table[i].name = get_vk_name(vk).toLocal8Bit().constData();
+		if((i + 1) >= table_size) table_size = i + 1;
 	}
 }
 
@@ -189,7 +201,7 @@ int CSP_KeyTables::get_key_table_size(void)
 uint32_t CSP_KeyTables::get_vk_from_index(int index)
 {
 	if((index < 0) || (index > 255)) return 0xffffffff;
-	return (uint32_t)index;
+	return using_table[index].vk;
 }
 
 uint32_t CSP_KeyTables::get_scan_from_index(int index)

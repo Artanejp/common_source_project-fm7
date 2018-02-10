@@ -205,9 +205,9 @@ void initialize_config()
 		config.cursor_as_ten_key = CONFIG_CURSOR_AS_CURSOR;
 	#if defined(_FM7) || defined(_FMNEW7) || defined(_FM8) \
 	    || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)		
-		config.enter_as_numpad_enter = false;
+		config.numpad_enter_as_fullkey = false;
 	#else
-		config.enter_as_numpad_enter = true;
+		config.numpad_enter_as_fullkey = true;
 	#endif
 		config.special_debug_fdc = false;
 		config.host_keyboard_type = CONFIG_HOST_KEYBOARD_AT_109JP;
@@ -433,7 +433,7 @@ void load_config(const _TCHAR *config_path)
 		// Extra UI
 		config.swap_kanji_pause = MyGetPrivateProfileBool(_T("Qt"), _T("SwapKanjiPause"), config.swap_kanji_pause, config_path);
 		config.cursor_as_ten_key = MyGetPrivateProfileInt(_T("Qt"), _T("CursorAsTenKey"), config.cursor_as_ten_key, config_path);
-		config.enter_as_numpad_enter = MyGetPrivateProfileBool(_T("Qt"), _T("EnterAsNumpadEnter"), config.enter_as_numpad_enter, config_path);
+		config.numpad_enter_as_fullkey = MyGetPrivateProfileBool(_T("Qt"), _T("NumpadEnterAsFullKey"), config.numpad_enter_as_fullkey, config_path);
 		config.host_keyboard_type = MyGetPrivateProfileInt(_T("Qt"), _T("HostKeyboardType"), config.host_keyboard_type, config_path);
 	#ifdef USE_FD1
 		config.special_debug_fdc =	MyGetPrivateProfileInt(_T("Qt"), _T("SpecialDebugFDC"), config.special_debug_fdc, config_path);
@@ -747,7 +747,7 @@ void save_config(const _TCHAR *config_path)
 		// Extra UI
 		MyWritePrivateProfileBool(_T("Qt"), _T("SwapKanjiPause"), config.swap_kanji_pause, config_path);
 		MyWritePrivateProfileInt(_T("Qt"), _T("CursorAsTenKey"), config.cursor_as_ten_key, config_path);
-		MyWritePrivateProfileBool(_T("Qt"), _T("EnterAsNumpadEnter"), config.enter_as_numpad_enter, config_path);
+		MyWritePrivateProfileBool(_T("Qt"), _T("NumpadEnterAsFullKey"), config.numpad_enter_as_fullkey, config_path);
 		MyWritePrivateProfileInt(_T("Qt"), _T("HostKeyboardType"), config.host_keyboard_type, config_path);
 	#ifdef USE_FD1
 		MyWritePrivateProfileInt(_T("Qt"), _T("SpecialDebugFDC"), config.special_debug_fdc, config_path);

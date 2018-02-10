@@ -213,10 +213,10 @@ typedef struct {
 	bool focus_with_click;
 	int opengl_filter_num;
 	
-	
+	// STAGED CONFIG VALUES
 	bool swap_kanji_pause;
 	int  cursor_as_ten_key;
-	bool enter_as_numpad_enter;
+	bool numpad_enter_as_fullkey;
 	
 	int host_keyboard_type;
 	

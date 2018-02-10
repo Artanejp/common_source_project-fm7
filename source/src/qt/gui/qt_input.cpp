@@ -172,6 +172,9 @@ uint32_t GLDrawClass::get106Scancode2VK(uint32_t data)
 		if((vk == VK_LMENU) || (vk == VK_RMENU)) vk = VK_MENU;
 	}
 	if((vk == VK_LCONTROL) || (vk == VK_RCONTROL)) vk = VK_CONTROL;
+	if(using_flags->get_config_ptr()->numpad_enter_as_fullkey) {
+		if(vk == VK_OEM_CSP_KPRET) vk = VK_RETURN;
+	}
 	return vk;
 }
 extern std::string cpp_confdir;
@@ -215,14 +218,19 @@ void GLDrawClass::releaseKeyCode(void)
 	FILEIO *fio = new FILEIO();
 	std::string app_path2;
 	uint32_t scan;
+	uint32_t vk;
+	int n;
 	// Read scan table.
-
+	if(key_table == NULL) return;
 	app_path2 = cpp_confdir + "scancode.cfg";
 	if(fio->Fopen(app_path2.c_str(), FILEIO_WRITE_ASCII)) {
-		for(i = 0; i < 256; i++) {
-			scan = key_table->get_scan_from_vk((uint32_t)i);
+		n = key_table->get_key_table_size();
+		for(i = 0; i <= n; i++) {
+			vk = key_table->get_vk_from_index(i);
+			if(vk == 0xffffffff) break;
+			scan = key_table->get_scan_from_index((uint32_t)i);
 			if(scan >= 0xffffffff)  continue;
-			fio->Fprintf("%02x,%08x\n", i, scan);
+			fio->Fprintf("%02x,%08x\n", vk, scan);
 		}
 		fio->Fclose();
 	}
