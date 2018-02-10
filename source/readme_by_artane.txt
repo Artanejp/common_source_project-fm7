@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                         February 10, 2018
+                                         February 11, 2018
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -12,7 +12,7 @@
    
    ソースコード：
    
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20180210
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20180211
 
    追加情報:
    
@@ -156,18 +156,20 @@
 
 
 Special thanks to:
-  Ryu Takegami : eFM-8/7/77/AV/40/EX のデバッグに協力していただいています。
-
+  Ryu Takegamiさん : eFM-8/7/77/AV/40/EX のデバッグに協力していただいています。
+  はせりんさん     : eFM-8/7/77/AV/40/EX のデバッグに協力していただいています。
 Changes:
 
 ChangeLog:
 * 前の変更点をお読みになる場合には、ChangeLogと000_gitlog.txtをお読み下さい。
 
-* SNAPSHOT Feb 10 2018
+* SNAPSHOT Feb 11, 2018
   * Upstream 2017-12-27 .
-  * [CONFIG] IMPORTANT: Now, "~/emufoo/" moved to "~/CommonSourceCodeProject/emufoo/" .
+  * [CONFIG] IMPORTANT: Now, "~/emufoo/" moved to "~/CommonSourceCodeProject/emufoo/"
+	                (or ".\CommonSourceCodeProject\emufoo\" ).
              Please move settings to here.
-  * [CONFIG] IMPORTANT: Now, "~/emufoo/foo.ini" has moved to "~/.config/CommonSourceCodeProject/emufoo/" (or "~/CommonSourceCodeProject/emufoo/ at Windows").  
+  * [CONFIG] IMPORTANT: Now, "~/emufoo/foo.ini" has moved to "~/.config/CommonSourceCodeProject/emufoo/"
+	                      (or ".\CommonSourceCodeProject\emufoo\ at Windows").
              Please move ini and scancode.conf to new place.
   * [VM/MB8877] Enable to boot FLEX/FM-8.
                 Thanks to https://matsuri.5ch.net/test/read.cgi/i4004/1483504365/800- .
@@ -208,12 +210,16 @@ ChangeLog:
   * [VM/MB8877] Force down DRQ when LOST-DATA happens.
   * [VM/MB8877] Fix not read status data at the endof SEEK and verifying.
   * [VM/MB8877] Update structure of MB8877->fdc.
+  * [VM/MB8877] Try: Improbe result quality of FORCE_INTERRUPT command.
+                 I expect to boot OS-9 Level1 for FM-77 with 2HD drive.Thanks to Haserin-san.
   * [VM/DISK] Fix default value ignore_crc_error and correct_disk_timing (mostly "to false").
   * [DOC] Add README.md (written in Japanese) and README.en.md (written in English) for GITHUB's cover page.
-  * Special thanks to Ryu Takegami, to assist debugging FM-7/77/AV/40/EX .
-  * Built with commit a14677dfb396ece914c338861523aa903aad1740 or later.
+  * Special thanks to Ryu Takegami, to assist debugging FM-7/77/AV/40/EX/8 .
+  * Special thanks to Haserin, to assist debugging FM-7/77.AV/40/EX/8.
+  * Built with commit 221fcef002f101b8dffd2a63edfc11a86e2c688a or later.
 
--- Feb 10, 2018 18:26:15 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Feb 11, 2018 02:29:55 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 
 本家の変更:
 * 前の変更点をお読みになる場合には、history.txtをお読み下さい。

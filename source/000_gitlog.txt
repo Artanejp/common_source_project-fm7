@@ -1,3 +1,39 @@
+commit 221fcef002f101b8dffd2a63edfc11a86e2c688a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 11 02:19:29 2018 +0900
+
+    [COMMON] Fix some initialise sequences.
+
+commit 53b9131923adeb220c599a5f3dc62f264d62c580
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 11 02:18:03 2018 +0900
+
+    [OOPs][CONFIG][OSD] Fix directory names to set/make that directories.
+
+commit 9cef0577e7f2f3e1e3b715e0efdda1c3bc3cae96
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 11 02:15:16 2018 +0900
+
+    [VM][MB8877] Try: Improbe result quality of FORCE_INTERRUPT command.I expect to boot OS-9 Level1 FM-77 with 2HD drive.Thanks to Haserin-san.
+
+commit b6dd1d77eb1ff31552771c41ed94c94d3c7e278d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 10 18:39:14 2018 +0900
+
+    [INSTALLER] Updated .
+
+commit 203d5acdeb1cedbf6e95b686ff0285d6fa0c699f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 10 18:28:55 2018 +0900
+
+    [GENERAL] Update installer.
+
+commit c6e4c054b31d50c684352a109997c39cdcd818b4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 10 18:27:51 2018 +0900
+
+    [DOC] Update documents.
+
 commit a14677dfb396ece914c338861523aa903aad1740
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sat Feb 10 17:43:16 2018 +0900
