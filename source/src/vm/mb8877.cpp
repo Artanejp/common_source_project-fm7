@@ -501,7 +501,7 @@ write_id:
 uint32_t MB8877::read_io8(uint32_t addr)
 {
 	uint32_t val;
-	bool not_ready;
+	bool not_ready = false;
 	bool ready;
 	
 	switch(addr & 3) {
@@ -1444,6 +1444,14 @@ void MB8877::cmd_format()
 void MB8877::cmd_forceint()
 {
 	// type-4 force interrupt
+	bool ready = (cmdtype == 0);
+	bool is_busy = ((status & FDC_ST_BUSY) != 0);
+	bool now_seek_bak = now_seek;
+	bool is_type1 = (cmdtype == FDC_CMD_TYPE1);
+	bool is_read = ((cmdtype == FDC_CMD_RD_SEC) || (cmdtype == FDC_CMD_RD_MSEC) || \
+				  (cmdtype == FDC_CMD_RD_ADDR) || (cmdtype == FDC_CMD_RD_TRK));
+	bool is_trkwrite = (cmdtype == FDC_CMD_WR_TRK);
+	
 	if(cmdtype == FDC_CMD_TYPE1) {
 		// abort restore/seek/step command
 		if(now_seek) {
@@ -1485,7 +1493,21 @@ void MB8877::cmd_forceint()
 		    if(!type_fm7) status = FDC_ST_HEADENG; // Hack for FUKUALL.d77 .
 		}
 		status &= ~FDC_ST_BUSY;
-		
+		if((now_seek_bak) || (ready)) {// Refer from XM7, is this write implement? 20180210 K.O
+			status = 0;
+			if(((ready) || !(is_busy)) && (!type_fm7)) status = FDC_ST_HEADENG;
+			// indexcount = 0;
+			if(check_drive2()) {
+				if(!(is_read) && (disk[drvreg]->write_protected)) status |= FDC_ST_WRITEP;
+				if((is_trkwrite) && (disk[drvreg]->write_protected)) status |= FDC_ST_WRITEFAULT;
+				if(is_type1) {
+					if(fdc[drvreg].track == 0) status |= FDC_ST_TRACK00;
+					if(get_cur_position() < disk[drvreg]->get_bytes_per_usec(5000)) {
+						status |= FDC_ST_INDEX;
+					}
+				}
+			}
+		}
 		// force interrupt if bit0-bit3 is high
 		if(cmdreg & 0x0f) {
 			set_irq(true);
