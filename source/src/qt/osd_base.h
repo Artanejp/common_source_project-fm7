@@ -34,9 +34,9 @@
 #include "../config.h"
 #include "../fileio.h"
 #include "../fifo.h"
-#if !defined(Q_OS_WIN32)
+//#if !defined(Q_OS_WIN32)
 #include "qt_input.h"
-#endif
+//#endif
 #define SOCKET_MAX 4
 #define SOCKET_BUFFER_MAX 0x100000
 #include "osd_types.h"

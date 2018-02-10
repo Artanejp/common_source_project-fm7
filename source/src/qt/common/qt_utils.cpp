@@ -552,15 +552,18 @@ static void setup_logs(void)
 	cpp_homedir = ".";
 #endif	
 	cpp_homedir = cpp_homedir + delim;
-#ifndef _WINDOWS
+
+#if !defined(CSP_OS_WINDOWS)
 	cpp_confdir = cpp_homedir + ".config" + delim;
 	my_util_mkdir(cpp_confdir);
+#else
+	cpp_confdir = cpp_homedir;
 #endif
 
 	cpp_confdir = cpp_confdir + "CommonSourceCodeProject" + delim;
 	my_util_mkdir(cpp_confdir);
 	
-	cpp_confdir = cpp_confdir + delim + my_procname + delim;
+	cpp_confdir = cpp_confdir + my_procname + delim;
 	my_util_mkdir(cpp_confdir);
    //AG_MkPath(cpp_confdir.c_str());
    /* Gettext */

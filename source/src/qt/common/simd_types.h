@@ -7,7 +7,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#ifdef _WINDOWS
+
+#if defined(CSP_OS_WINDOWS)
 #include <windef.h>
 #endif
 
