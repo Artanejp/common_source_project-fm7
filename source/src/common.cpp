@@ -798,6 +798,27 @@ struct to_upper {  // Refer from documentation of libstdc++, GCC5.
 };
 #endif
 
+static void _my_mkdir(std::string t_dir)
+{
+	struct stat st;
+//#if !defined(__WIN32) && !defined(__WIN64)
+//	if(fstatat(AT_FDCWD, csppath.c_str(), &st, 0) != 0) {
+//		mkdirat(AT_FDCWD, t_dir.c_str(), 0700); // Not found
+//	}
+#if defined(_USE_QT)
+	if(stat(t_dir.c_str(), &st) != 0) {
+		QDir dir = QDir::current();
+		dir.mkdir(QString::fromStdString(t_dir));
+		//dir.mkpath(QString::fromUtf8(app_path));
+	}
+#else
+	if(stat(csppath.c_str(), &st) != 0) {
+		_mkdir(t_dir.c_str()); // Not found
+	}
+#endif
+}
+
+
 const _TCHAR *DLL_PREFIX get_application_path()
 {
 	static _TCHAR app_path[_MAX_PATH];
@@ -818,32 +839,11 @@ const _TCHAR *DLL_PREFIX get_application_path()
 		std::string delim = "/";
 #endif
 		std::string csppath = cpp_homedir + "CommonSourceCodeProject" + delim ;
+		_my_mkdir(csppath);
+	   
 		std::string cpath = csppath + my_procname + delim;
+		_my_mkdir(cpath);
 		strncpy(app_path, cpath.c_str(), _MAX_PATH);
-		{
-			struct stat st;
-#if !defined(__WIN32) && !defined(__WIN64)
-			if(fstatat(AT_FDCWD, csppath.c_str(), &st, 0) != 0) {
-				mkdirat(AT_FDCWD, csppath.c_str(), 0700); // Not found
-			}
-			if(fstatat(AT_FDCWD, app_path, &st, 0) != 0) {
-				mkdirat(AT_FDCWD, app_path, 0700); // Not found
-			}
-#elif defined(_USE_QT)
-			if(stat(app_path, &st) != 0) {
-				QDir dir = QDir::current();
-				dir.mkdir(QString::fromUtf8(app_path));
-				//dir.mkpath(QString::fromUtf8(app_path));
-			}
-#else
-			if(stat(csppath.c_str(), &st) != 0) {
-				_mkdir(app_path); // Not found
-			}
-			if(stat(csppath.c_str(), &st) != 0) {
-				_mkdir(app_path); // Not found
-			}
-#endif
-		}
 #endif
 		initialized = true;
 	}

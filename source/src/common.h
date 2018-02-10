@@ -45,6 +45,7 @@
 			// Microsoft Visual C++ 12.0 (2013) or later
 			#define SUPPORT_CPLUSPLUS_11
 		#endif
+		#define CSP_OS_WINDOWS
 	#else
 		// Win32, but not Microsoft Visual C++
 		#define SUPPORT_TCHAR_TYPE
