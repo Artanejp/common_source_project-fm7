@@ -260,14 +260,13 @@ void META_MainWindow::retranslateUi(void)
 	QString fdname640;
 	QString fdname1M;
 	fdname320 = QApplication::translate("MenuFM7", "320K FDD", 0);
-	fdname640 = QApplication::translate("MenuFM7", "2DD FDD", 0);
+	fdname640 = QApplication::translate("MenuFM7", "2D/2DD FDD", 0);
 #if defined(HAS_2HD)
 	fdname1M  = QApplication::translate("MenuFM7", "2HD FDD", 0);
 #elif defined(HAS_1MSFD)
 	fdname1M  = QApplication::translate("MenuFM7", "8\" FDD", 0);
 #else
 	fdname320 = QApplication::translate("MenuFM7", "2D FDD", 0);
-	fdname640 = QApplication::translate("MenuFM7", "2DD FDD", 0);
 	fdname1M  = QApplication::translate("MenuFM7", "2HD FDD", 0);
 #endif
 #if defined(_FM77AV40) || defined(_FM77AV20EX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -377,64 +376,119 @@ void META_MainWindow::retranslateUi(void)
 	actionBootMode[2]->setVisible(false);
 	actionBootMode[3]->setVisible(false);
 #if defined(_FM77_VARIANTS)
-	actionBootMode[2]->setText(QString::fromUtf8("MMR"));
-	actionBootMode[2]->setToolTip(QApplication::translate("Machine", "MMR boot mode.\nThis is FM-77 feature and I don't know about this.", 0));
-
-	actionBootMode[3]->setText(QString::fromUtf8("1MB FD"));
-	actionBootMode[3]->setToolTip(QApplication::translate("Machine", "Boot from 1MB FD for FM-77.\n", 0));
+	actionBootMode[0]->setText(QString::fromUtf8("BASIC + S1 (BANK0)"));
+	actionBootMode[0]->setToolTip(QApplication::translate("Machine", "BASIC boot mode with S1 has turned ON.\nThis is FM-77 feature and I don't know about this.", 0));
+	actionBootMode[0]->setValue1(2);
 	
-	actionBootMode[5]->setText(QString::fromUtf8("BUBBLE 128K"));
-	actionBootMode[5]->setToolTip(QApplication::translate("Machine", "Boot from 128K Bubble casette.\nThis is FM-77 feature and I don't know about this.", 0));
-	actionBootMode[6]->setText(QString::fromUtf8("BUBBLE 32K"));
-	actionBootMode[6]->setToolTip(QApplication::translate("Machine", "Boot from 32K Bubble casette.\nThis is FM-77 feature and I don't know about this.", 0));
-	actionBootMode[2]->setVisible(true);
-	actionBootMode[3]->setVisible(true);
-	actionBootMode[4]->setVisible(false); // Reserve1
-	actionBootMode[5]->setVisible(true);
-	actionBootMode[6]->setVisible(true);
-	actionBootMode[7]->setVisible(false); // Reserve2
-#elif defined(_FM8)
-	actionBootMode[0]->setText(QApplication::translate("Machine", "BASIC  (SM11-15)", 0));
-	actionBootMode[1]->setText(QApplication::translate("Machine", "DOS    (SM11-15)", 0));	
-	
-	actionBootMode[2]->setText(QApplication::translate("Machine", "BUBBLE  (SM11-15)", 0));
-	actionBootMode[2]->setToolTip(QApplication::translate("Machine", "Boot for bubble casette.\nYou must install boot rom for this.", 0));
-	
-	actionBootMode[3]->setText(QApplication::translate("Machine", "8Inch FD (SM11-15)", 0));
-	actionBootMode[3]->setToolTip(QApplication::translate("Machine", "Boot for 8inch floppy disk.\nYou must install boot rom for this.", 0));
-	
-	actionBootMode[4]->setText(QApplication::translate("Machine", "BASIC    (SM11-14)", 0));
-	actionBootMode[5]->setText(QApplication::translate("Machine", "DOS      (SM11-14)", 0));
+	actionBootMode[4]->setText(QApplication::translate("Machine", "BASIC (BANK4)", 0));
 	actionBootMode[4]->setToolTip(QApplication::translate("Machine", "Boot with F-BASIC.", 0));
+	actionBootMode[4]->setValue1(0);
+	
+	actionBootMode[5]->setText(QApplication::translate("Machine", "DOS 320K(BOOT2 / BANK5)", 0));	
 	actionBootMode[5]->setToolTip(QApplication::translate("Machine", "DOS boot mode.\nUse for CP/M, FLEX, OS-9, R-DOS and some OSs.", 0));
+	actionBootMode[5]->setValue1(1);
 	
-	actionBootMode[6]->setText(QApplication::translate("Machine", "BUBBLE   (SM11-14)", 0));
-	actionBootMode[6]->setToolTip(QApplication::translate("Machine", "Boot for bubble casette.\nYou must install boot rom for this.", 0));
+	actionBootMode[6]->setText(QString::fromUtf8("1MB FD (BOOT1 / BANK6)"));
+	actionBootMode[6]->setToolTip(QApplication::translate("Machine", "Boot from 1MB FD for FM-77.\n", 0));
+	actionBootMode[6]->setValue1(3);
 	
-	actionBootMode[7]->setText(QApplication::translate("Machine", "DEBUG    (SM11-14)", 0));
-	actionBootMode[7]->setToolTip(QApplication::translate("Machine", "Boot for DEBUG.\nThis is SM11-14's feature and I don't know about this.", 0));
+	actionBootMode[1]->setText(QString::fromUtf8("BUBBLE 128K (BOOT2 + S1 / BANK1)"));
+	actionBootMode[1]->setToolTip(QApplication::translate("Machine", "Boot from 128K Bubble casette.\nThis is FM-77 feature and I don't know about this.", 0));
+	actionBootMode[1]->setValue1(5);
 	
-	actionBootMode[0]->setVisible(true);
-	actionBootMode[1]->setVisible(true);
+	actionBootMode[2]->setText(QString::fromUtf8("BUBBLE 32K (BOOT1 + S1 / BANK2)"));
+	actionBootMode[2]->setToolTip(QApplication::translate("Machine", "Boot from 32K Bubble casette.\nThis is FM-77 feature and I don't know about this.", 0));
+	actionBootMode[2]->setValue1(6);
+	
+	actionBootMode[3]->setText(QString::fromUtf8("RESERVE 1 (BANK3)"));
+	actionBootMode[3]->setToolTip(QApplication::translate("Machine", "RESERVE AREA 1\nThis is FM-77 feature and I don't know about this.", 0));
+	actionBootMode[3]->setValue1(3);
+	
+	actionBootMode[7]->setText(QString::fromUtf8("RESERVE 2 (BANK7)"));
+	actionBootMode[7]->setToolTip(QApplication::translate("Machine", "RESERVED AREA 2\nThis is FM-77 feature and I don't know about this.", 0));
+	actionBootMode[7]->setValue1(4);
+	
+	for(int i = 0; i < 7; i++) {
+		if(actionBootMode[i]->binds->getValue1() == config.boot_mode) actionBootMode[i]->setChecked(true);
+	}
+	for(int i = 0; i < 8; i++) {
+		actionBootMode[i]->setVisible(true);
+		actionBootMode[i]->setEnabled(true);
+	}
+#elif defined(_FM8)
+	actionBootMode[0]->setText(QApplication::translate("Machine", "BASIC  (SM11-14 BANK0)", 0));
+	actionBootMode[0]->binds->setValue1(0);
+	actionBootMode[2]->setText(QApplication::translate("Machine", "DOS    (SM11-14 BANK2)", 0));	
+	actionBootMode[2]->binds->setValue1(1);
+	actionBootMode[2]->setToolTip(QApplication::translate("Machine", "DOS boot mode.\nUse for CP/M, FLEX, OS-9, R-DOS and some OSs.", 0));
+	
+	actionBootMode[1]->setText(QApplication::translate("Machine", "BUBBLE  (SM11-14 BANK1)", 0));
+	actionBootMode[1]->setToolTip(QApplication::translate("Machine", "Boot for bubble casette.\nYou must install boot rom for this.", 0));
+	actionBootMode[1]->binds->setValue1(2);
+	
+	actionBootMode[7]->setText(QApplication::translate("Machine", "8Inch FD (SM11-15 BANK3)", 0));
+	actionBootMode[7]->setToolTip(QApplication::translate("Machine", "Boot for 8inch floppy disk.\nYou must install boot rom for this.", 0));
+	actionBootMode[1]->binds->setValue1(7);
+	
+	actionBootMode[4]->setText(QApplication::translate("Machine", "BASIC    (SM11-15 BANK0)", 0));
+	actionBootMode[4]->binds->setValue1(4);
+	actionBootMode[6]->setText(QApplication::translate("Machine", "DOS      (SM11-15 BANK2)", 0));
+	actionBootMode[6]->binds->setValue1(5);
+	actionBootMode[4]->setToolTip(QApplication::translate("Machine", "Boot with F-BASIC.", 0));
+	actionBootMode[6]->setToolTip(QApplication::translate("Machine", "DOS boot mode.\nUse for CP/M, FLEX, OS-9, R-DOS and some OSs.", 0));
+	
+	actionBootMode[5]->setText(QApplication::translate("Machine", "BUBBLE   (SM11-15 BANK1)", 0));
+	actionBootMode[5]->setToolTip(QApplication::translate("Machine", "Boot for bubble casette.\nYou must install boot rom for this.", 0));
+	actionBootMode[5]->binds->setValue1(6);
+	
+	actionBootMode[3]->setText(QApplication::translate("Machine", "DEBUG    (SM11-14 BANK3)", 0));
+	actionBootMode[3]->setToolTip(QApplication::translate("Machine", "Boot for DEBUG.\nThis is SM11-14's feature and I don't know about this.", 0));
+	actionBootMode[3]->binds->setValue1(3);
+	
+	for(int i = 0; i < 8; i++) {
+		actionBootMode[i]->setVisible(true);
+		actionBootMode[i]->setEnabled(true);
+		if(actionBootMode[i]->binds->getValue1() == config.boot_mode) actionBootMode[i]->setChecked(true);
+	}
+#elif defined(_FM7) || defined(_FMNEW7)	
+	actionBootMode[0]->setText(QApplication::translate("Machine", "BASIC (BANK0)", 0));
+	actionBootMode[0]->setToolTip(QApplication::translate("Machine", "Boot with F-BASIC.", 0));
+	actionBootMode[0]->binds->setValue1(0);
+	
+	actionBootMode[2]->setText(QApplication::translate("Machine", "DOS (BANK2)", 0));	
+	actionBootMode[2]->setToolTip(QApplication::translate("Machine", "DOS boot mode.\nUse for CP/M, FLEX, OS-9, R-DOS and some OSs.", 0));
+	actionBootMode[2]->binds->setValue1(1);
+	
+	actionBootMode[1]->setText(QApplication::translate("Machine", "Bubble Casette (BANK1)", 0));
+	actionBootMode[1]->setToolTip(QApplication::translate("Machine", "Boot for bubble casette.\nYou must install boot rom for this.", 0));
+	actionBootMode[1]->binds->setValue1(2);
+	
+	actionBootMode[3]->setText(QApplication::translate("Machine", "Reserve (BANK3)", 0));
+	actionBootMode[3]->setToolTip(QApplication::translate("Machine", "This is reserved area.\nI don't know about this.", 0));
+	actionBootMode[3]->binds->setValue1(3);
+	
 	actionBootMode[2]->setVisible(true);
 	actionBootMode[3]->setVisible(true);
-	actionBootMode[4]->setVisible(true);
-	actionBootMode[5]->setVisible(true);
-	actionBootMode[6]->setVisible(true);
-	actionBootMode[7]->setVisible(true);
-#elif defined(_FM7) || defined(_FMNEW7)	
-	actionBootMode[2]->setText(QApplication::translate("Machine", "Bubble Casette", 0));
-	actionBootMode[2]->setToolTip(QApplication::translate("Machine", "Boot for bubble casette.\nYou must install boot rom for this.", 0));
-	
-	actionBootMode[2]->setVisible(true);
-	actionBootMode[3]->setVisible(false);
+	for(int i = 0; i < 4; i++) {
+		if(actionBootMode[i]->binds->getValue1() == config.boot_mode) actionBootMode[i]->setChecked(true);
+	}
+	for(int i = 4; i < 8; i++) {
+		actionBootMode[i]->setVisible(false);
+		actionBootMode[i]->setEnabled(false);
+	}
 #else // 77AV
-	actionBootMode[2]->setText(QString::fromUtf8("MMR"));
-	actionBootMode[2]->setToolTip(QApplication::translate("Machine", "MMR boot mode.\nThis is FM-77AV feature and I don't know about this.", 0));
+	actionBootMode[2]->setText(QString::fromUtf8("RESERVE"));
+	actionBootMode[2]->setToolTip(QApplication::translate("Machine", "Reserved boot mode.\nThis is FM-77AV feature and I don't know about this.", 0));
 	actionBootMode[3]->setVisible(false);
 	
 	actionBootMode[2]->setVisible(true);
-	actionBootMode[3]->setVisible(false);
+	for(int i = 0; i < 2; i++) {
+		if(actionBootMode[i]->binds->getValue1() == config.boot_mode) actionBootMode[i]->setChecked(true);
+	}
+	for(int i = 3; i < 8; i++) {
+		actionBootMode[i]->setVisible(false);
+		actionBootMode[i]->setEnabled(false);
+	}
 #endif
 
 #if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
@@ -557,6 +611,13 @@ void META_MainWindow::retranslateUi(void)
 
 	actionUART[0]->setText(QApplication::translate("Machine", "Connect RS-232C (need restart).", 0));
 	actionUART[0]->setToolTip(QApplication::translate("Machine", "Connect external RS-232C board.\nNeed to restart this emulator if changed.", 0));
+#if defined(_FM77AV) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
+	actionUART[0]->setVisible(true);
+	actionUART[0]->setEnabled(true);
+#else
+	actionUART[0]->setVisible(false);
+	actionUART[0]->setEnabled(false);
+#endif
 #if defined(CAPABLE_JCOMMCARD)
 	if((config.dipswitch & FM7_DIPSW_JSUBCARD_ON) != 0) {
 		actionUART[0]->setText(QApplication::translate("Machine", "Turn ON RS-232C (need restart).", 0));
@@ -601,13 +662,7 @@ void META_MainWindow::setupUI_Emu(void)
 	menuBootMode->setObjectName(QString::fromUtf8("menuControl_BootMode"));
 	menuMachine->addAction(menuBootMode->menuAction());
 
-#if defined(_FM8)
 	ConfigCPUBootMode(8);
-#elif defined(_FM77_VARIANTS)
-	ConfigCPUBootMode(8);
-#else
-	ConfigCPUBootMode(4);
-#endif
 #if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
 	actionKanjiRom = new Action_Control_7(this, using_flags);
 	menuMachine->addAction(actionKanjiRom);
