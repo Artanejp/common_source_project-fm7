@@ -1,3 +1,80 @@
+commit 4749bb9902ed6f422c12496e4c85f95ba7fff494
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 16 05:18:36 2018 +0900
+
+    [DOC] Update uncommited files.
+
+commit f9f217f6197709be48bb692258f556d6774e7126
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 16 05:18:13 2018 +0900
+
+    [UI][Qt][FM77] .
+
+commit bd4e430355d20edbf3b0fc9ee7d270eca272f8eb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 16 05:17:07 2018 +0900
+
+    [VM][FM77][FM77AV] Add ON/OFF extra RAM.
+    [VM][FM77AV] Add to use dictionary board for FM77AV/20/EX.
+
+commit 08be01a5a6c374e30c463374d2b3f2d746a63123
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 16 02:08:53 2018 +0900
+
+    [UI][Qt][FM8][FM77] Fix FTBVFS.
+
+commit 2ef4d037c85634b1c6dd68bf8f9cc8b6a39454b4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 16 02:07:45 2018 +0900
+
+    [VM][FM77][2HD] Fix DRQ->FIRQ handling.Wish to BOOT 2HD OSs.
+    [VM][FM77][FM8] Fix FTBFS.
+
+commit 5f68139203143ad686dbf6e5ccdb066525e89569
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 16 01:20:30 2018 +0900
+
+    [UI][Qt][BUILD] Add FM NEW7.
+
+commit 3eddd79be01bfa8be7aca09f66e135c9c4c03edc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 16 01:18:28 2018 +0900
+
+    [VM][FM7][MAINMEM] Re-order bank of bulk BOOTROMs.Thanks to HASERIN.
+    [VM][FM7] Add FM NEW7.
+
+commit db5efa6f8dce0fb4601f758a0effbbc5838281fe
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 16 01:17:03 2018 +0900
+
+    [VM][FM7][JCOMMCARD] Use bulk rom (or DICTIONARY + KANJI) for DICTIONARY ROM AREA.
+    [VM][FM7][JCOMMCARD] Abndon use JIS78 emulation.
+
+commit 2dd446d2979d7a332eefbc3141ccae05278bd076
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 15 22:26:33 2018 +0900
+
+    [VM][BUBBLECASETTE] Improve status register.Thanks to Haserin.
+    [VM][FM8] Change default frequency to 1.0MHz.Thanks to Haserin.
+
+commit 96886d8bae83599cf9af2457bbf1086dcca681c7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 15 20:57:19 2018 +0900
+
+    [VM][FM77AV40][DISPLAY] Fix sequences at write BIT6 of MAIN:$FD12.Expect to fix display issue.Thanks to Haserin.
+
+commit be9f417fcc73a80e87983a5a7e7fc10bda944f61
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 15 19:20:16 2018 +0900
+
+    [VM][FM77AV][DISPLAY] Do not reset interrupt masks at reset on sub-system.Thanks to Ryu Takegami.
+
+commit 9e9adc6ca401fb84d863e4627017adff38fc1132
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 15 17:53:58 2018 +0900
+
+    [BUG][VM][FM77] I mistaken to connect motor line for 2HD FDD, I connected 2D FDD (；´Д｀)
+
 commit 178ae8096d10c5039d71c1dab72f34d2874b8303
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sun Feb 11 02:36:04 2018 +0900
