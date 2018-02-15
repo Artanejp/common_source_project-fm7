@@ -59,7 +59,7 @@ DISPLAY::~DISPLAY()
 
 }
 
-void DISPLAY::reset_cpuonly()
+void DISPLAY::reset_some_devices()
 {
 	int i;
 	double usec;
@@ -74,7 +74,7 @@ void DISPLAY::reset_cpuonly()
 		multimode_accessflags[i] = ((multimode_accessmask & (1 << i)) != 0) ? true : false;
 		multimode_dispflags[i] = ((multimode_dispmask & (1 << i)) != 0) ? true : false;
 	}
-	firq_mask = false;
+	//firq_mask = false; // 20180215 Thanks to Ryu takegami.
 	//cancel_request = false;
 	switch(config.cpu_type){
 		case 0:
@@ -165,10 +165,9 @@ void DISPLAY::reset_cpuonly()
 # endif
 	alu->write_signal(SIG_ALU_MULTIPAGE, multimode_accessmask, 0x07);
 	alu->write_signal(SIG_ALU_PLANES, 3, 3);
-	
 #endif
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
-	do_firq(!firq_mask && key_firq_req);
+	//do_firq(!firq_mask && key_firq_req);
 
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	//kanjisub = false; // Fixed by Ryu takegami
@@ -191,7 +190,6 @@ void DISPLAY::reset()
 {
 	int i;
 	//printf("RESET\n");
-	memset(io_w_latch, 0xff, sizeof(io_w_latch));
 	halt_flag = false;
 	vram_accessflag = true;
 	display_mode = DISPLAY_MODE_8_200L;
@@ -231,9 +229,8 @@ void DISPLAY::reset()
 	emu->set_vm_screen_lines(200);
 	
 	is_cyclesteal = ((config.dipswitch & FM7_DIPSW_CYCLESTEAL) != 0) ? true : false;
-	key_firq_req = false;	//firq_mask = true;
-	firq_mask = false;
-	reset_cpuonly();
+	//firq_mask = (mainio->read_signal(FM7_MAINIO_KEYBOARDIRQ_MASK) != 0) ? false : true;
+	reset_some_devices();
 	
 #if defined(_FM77AV_VARIANTS)
 	power_on_reset = false;
@@ -248,11 +245,18 @@ void DISPLAY::reset()
 	
 	if(nmi_event_id >= 0) cancel_event(this, nmi_event_id);
 	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
+	reset_subcpu(true);
+}
+
+void DISPLAY::reset_subcpu(bool _check_firq)
+{
 	subcpu->write_signal(SIG_CPU_HALTREQ, 0, 1);
 	subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 	subcpu->reset();
+	if(_check_firq) {
+		do_firq(!firq_mask && key_firq_req);
+	}
 }
-
 void DISPLAY::setup_display_mode(void)
 {
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -448,13 +452,10 @@ void DISPLAY::restart_subsystem(void)
 	//halt_flag = false;
 #if defined(_FM77AV_VARIANTS)
 	if(subcpu_resetreq) {
-		firq_mask = (mainio->read_signal(FM7_MAINIO_KEYBOARDIRQ_MASK) != 0) ? false : true;
-		reset_cpuonly();
+		//firq_mask = (mainio->read_signal(FM7_MAINIO_KEYBOARDIRQ_MASK) != 0) ? false : true;
+		reset_some_devices();
 		power_on_reset = true;
-		subcpu->write_signal(SIG_CPU_HALTREQ, 0, 1);
-		subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
-		subcpu->reset();
-		do_firq(!firq_mask && key_firq_req);
+		reset_subcpu(true);
 	}
 #endif
 	go_subcpu();
@@ -712,12 +713,9 @@ void DISPLAY::set_monitor_bank(uint8_t var)
 	if(!halt_flag) {
 	  	subcpu_resetreq = false;
 		power_on_reset = true;
-		firq_mask = (mainio->read_signal(FM7_MAINIO_KEYBOARDIRQ_MASK) != 0) ? false : true;
-		reset_cpuonly();
-		subcpu->write_signal(SIG_CPU_HALTREQ, 0, 1);
-		subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1); // Is needed?
-		subcpu->reset();
-		do_firq(!firq_mask && key_firq_req);
+		//firq_mask = (mainio->read_signal(FM7_MAINIO_KEYBOARDIRQ_MASK) != 0) ? false : true;
+		reset_some_devices();
+		reset_subcpu(true);
 	} else {
 	  	subcpu_resetreq = true;
 	}
@@ -2422,7 +2420,7 @@ void DISPLAY::write_mmio(uint32_t addr, uint8_t data)
 				} else {
 					usec = (1000.0 * 1000.0) / 999000.0;
 				}
-			 	if(!is_cyclesteal && vram_accessflag)  usec = usec * 3.0;
+			 	if(!(is_cyclesteal) && (vram_accessflag))  usec = usec * 3.0;
 				usec = (double)clr_count * usec;
 				register_event(this, EVENT_FM7SUB_CLR_BUSY, usec, false, NULL); // NEXT CYCLE_
 				reset_subbusy();
@@ -2875,6 +2873,7 @@ void DISPLAY::initialize()
 {
 	int i;
 
+	memset(io_w_latch, 0xff, sizeof(io_w_latch));
 	screen_update_flag = true;
 	memset(gvram, 0x00, sizeof(gvram));
 	vram_wrote_shadow = false;

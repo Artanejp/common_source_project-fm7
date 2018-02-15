@@ -77,7 +77,8 @@ protected:
 	void reset_vramaccess(void);
 	uint8_t reset_subbusy(void);
 	void set_subbusy(void);
-	void reset_cpuonly(void);
+	void reset_some_devices(void);
+	void reset_subcpu(bool _check_firq);
    
 #if defined(_FM77AV_VARIANTS)
 	void alu_write_cmdreg(uint32_t val);
