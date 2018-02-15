@@ -1,3 +1,15 @@
+commit bc517f5638b4f5612cc075e0f4d9278220eab4fc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 16 05:46:06 2018 +0900
+
+    [DOC] Update credits.
+
+commit 4dc70a81037a0cecb0568b1349c60ebff57a487d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 16 05:38:43 2018 +0900
+
+    [DOC] Update Revision.
+
 commit 4749bb9902ed6f422c12496e4c85f95ba7fff494
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Fri Feb 16 05:18:36 2018 +0900
