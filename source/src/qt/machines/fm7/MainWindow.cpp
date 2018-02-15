@@ -117,17 +117,6 @@ void Object_Menu_Control_7::do_set_kanji_rom(bool flag)
 }
 #endif
 
-#if defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
-void Object_Menu_Control_7::do_set_jis78_emulation(bool flag)
-{
-	if(flag) {
-		config.dipswitch = config.dipswitch | FM7_DIPSW_JIS78EMU_ON;
-	} else {
-		config.dipswitch = config.dipswitch & ~FM7_DIPSW_JIS78EMU_ON;
-	}
-}
-#endif
-
 #if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
 void Object_Menu_Control_7::do_set_320kFloppy(bool flag)
 {
@@ -233,16 +222,24 @@ void META_MainWindow::do_set_extram(bool flag)
 	} else {
 		config.dipswitch &= ~FM7_DIPSW_EXTRAM;
 	}
-#else
-# if defined(_FM77AV_VARIANTS)
+#elif defined(_FM77AV_VARIANTS)
 	if(flag) {	
 		config.dipswitch |= FM7_DIPSW_EXTRAM_AV;
 	} else {
 		config.dipswitch &= ~FM7_DIPSW_EXTRAM_AV;
 	}
-# endif
 #endif
 }
+#if defined(CAPABLE_DICTROM) && !defined(_FM77AV40EX) && !defined(_FM77AV40SX)
+void META_MainWindow::do_set_use_dictcard(bool flag)
+{
+	if(flag) {
+		config.dipswitch = config.dipswitch | FM7_DIPSW_DICTROM_AV;
+	} else {
+		config.dipswitch = config.dipswitch & ~FM7_DIPSW_DICTROM_AV;
+	}
+}
+#endif
 
 void META_MainWindow::retranslateVolumeLabels(Ui_SoundDialog *p)
 {
@@ -571,11 +568,6 @@ void META_MainWindow::retranslateUi(void)
 	action_1MFloppy->setText(QApplication::translate("Machine", "Connect 1MB FDD(Need Restart)", 0));
 	action_1MFloppy->setToolTip(QApplication::translate("Machine", "**Note: This option still not implemented**\nConnect 2HD (or 8inch) floppy drive.\nNeed to restart emulator if changed.\n", 0));
 #endif	
-#if defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
-
-	actionJIS78EMULATION->setText(QApplication::translate("Machine", "KANJI:JIS78 emulation.", 0));
-	actionJIS78EMULATION->setToolTip(QApplication::translate("Machine", "Emulate JIS78 kanji ROM.", 0));
-#endif
 	menuAuto5_8Key->setTitle(QApplication::translate("Machine", "Auto Stop Ten Key (hack)", 0));
 	action_Neither_5_or_8key->setText(QApplication::translate("Machine", "None used.", 0));
 	action_Auto_5key->setText(QApplication::translate("Machine", "Use 5", 0));
@@ -624,6 +616,11 @@ void META_MainWindow::retranslateUi(void)
 		actionUART[0]->setToolTip(QApplication::translate("Machine", "Turn ON RS-232C feature for Japanese communication board.\nNeed to restart this emulator if changed.", 0));
 	}
 #endif
+#if defined(CAPABLE_DICTROM) && !defined(_FM77AV40EX) && !defined(_FM77AV40SX)
+	actionDictCard->setText(QApplication::translate("Machine", "Use DICTIONARY board(need restart).", 0));
+	actionDictCard->setToolTip(QApplication::translate("Machine", "Connect extra dictionary card.\nNeed to restart this emulator if changed.", 0));
+#endif
+	
 	actionUART[1]->setText(QApplication::translate("Machine", "Connect MODEM (need restart).", 0));
 	actionUART[1]->setToolTip(QApplication::translate("Machine", "Connect extra MODEM board.\nNeed to restart this emulator if changed.", 0));
 	actionUART[2]->setText(QApplication::translate("Machine", "Connect MIDI (need restart).", 0));
@@ -671,14 +668,6 @@ void META_MainWindow::setupUI_Emu(void)
 	if((config.dipswitch & FM7_DIPSW_CONNECT_KANJIROM) != 0) actionKanjiRom->setChecked(true);
 	connect(actionKanjiRom, SIGNAL(toggled(bool)),
 		 actionKanjiRom->fm7_binds, SLOT(do_set_kanji_rom(bool)));
-#endif
-#if defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
-	actionJIS78EMULATION = new Action_Control_7(this, using_flags);
-	menuMachine->addAction(actionJIS78EMULATION);
-	actionJIS78EMULATION->setCheckable(true);
-	actionJIS78EMULATION->setVisible(true);
-	if((config.dipswitch & FM7_DIPSW_JIS78EMU_ON) != 0) actionJIS78EMULATION->setChecked(true);
-	connect(actionJIS78EMULATION, SIGNAL(toggled(bool)), actionJIS78EMULATION->fm7_binds, SLOT(do_set_jis78_emulation(bool)));
 #endif
 
 #if defined(WITH_Z80)
@@ -771,6 +760,14 @@ void META_MainWindow::setupUI_Emu(void)
 	if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) != 0) actionSyncToHsync->setChecked(true);
 	connect(actionSyncToHsync, SIGNAL(toggled(bool)),
 			actionSyncToHsync->fm7_binds, SLOT(do_set_hsync(bool)));
+#endif
+#if defined(CAPABLE_DICTROM) && !defined(_FM77AV40EX) && !defined(_FM77AV40SX)
+	actionDictCard = new Action_Control_7(this, using_flags);
+	menuMachine->addAction(actionDictCard);
+	actionDictCard->setCheckable(true);
+	actionDictCard->setVisible(true);
+	if((config.dipswitch & FM7_DIPSW_DICTROM_AV) != 0) actionDictCard->setChecked(true);
+	connect(actionDictCard, SIGNAL(toggled(bool)), this, SLOT(do_set_use_dictcard(bool)));
 #endif
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	actionExtRam = new Action_Control_7(this, using_flags);

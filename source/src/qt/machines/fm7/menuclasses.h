@@ -41,9 +41,6 @@ public slots:
 # else   
 	void do_set_cyclesteal(bool flag);
 # endif
-#if defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
-	void do_set_jis78_emulation(bool flag);
-#endif
 #if defined(CAPABLE_JCOMMCARD)
 	void do_set_jcommcard(bool flag);
 #endif
@@ -77,12 +74,10 @@ protected:
 # if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
 	class Action_Control_7 *actionKanjiRom;
 # endif
-# if defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
-	class Action_Control_7 *actionJIS78EMULATION;
-# endif
 # if defined(CAPABLE_JCOMMCARD)
 	class Action_Control_7 *actionJCOMMCARD;
-# endif	
+# endif
+	
 # if defined(_FM8)
 	class Action_Control_7 *actionRamProtect;
 # else	
@@ -91,6 +86,9 @@ protected:
 # if defined(_FM77AV_VARIANTS)   
 	class Action_Control_7 *actionSyncToHsync;
 # endif
+#if defined(CAPABLE_DICTROM) && !defined(_FM77AV40EX) && !defined(_FM77AV40SX)
+	class Action_Control_7 *actionDictCard;
+#endif
 	QActionGroup *actionGroup_Auto_5_8key;
 	QMenu *menuAuto5_8Key;
 	class Action_Control_7 *action_Neither_5_or_8key;
@@ -118,6 +116,9 @@ public:
 	~META_MainWindow();
 public slots:
 	void do_set_extram(bool flag);
+#if defined(CAPABLE_DICTROM) && !defined(_FM77AV40EX) && !defined(_FM77AV40SX)
+	void do_set_use_dictcard(bool flag);
+#endif
 };
 
 QT_END_NAMESPACE
