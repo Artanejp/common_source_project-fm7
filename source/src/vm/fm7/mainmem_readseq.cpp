@@ -35,7 +35,7 @@ uint8_t FM7_MAINMEM::read_data(uint32_t addr, bool dmamode)
 		}
 #elif defined(_FM77_VARIANTS)
 		if(stat >= 0) {
-			if((extram_pages >= 3) && (fm7_mainmem_extram != NULL)) {
+			if((extram_pages >= 3) && (fm7_mainmem_extram != NULL) && (extram_connected)) {
 				return fm7_mainmem_extram[raddr];
 			} else {
 				return 0xff;

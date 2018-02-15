@@ -357,21 +357,30 @@ void FM7_MAINMEM::initialize(void)
    
 	i = FM7_MAINMEM_BIOSWORK;
 	memset(fm7_mainmem_bioswork, 0x00, 0x80 * sizeof(uint8_t));
+#if defined(_FM77AV40EX) || defined(_FM77AV40SX)
+	config.dipswitch = config.dipswitch | FM7_DIPSW_DICTROM_AV;
+#endif
 #if defined(CAPABLE_DICTROM)
 	diag_load_dictrom = false;
 	i = FM7_MAINMEM_DICTROM;
 	memset(fm7_mainmem_dictrom, 0xff, 0x40000 * sizeof(uint8_t));
-	if(read_bios(_T(ROM_FM77AV_DICTIONARY), fm7_mainmem_dictrom, 0x40000) == 0x40000) diag_load_dictrom = true;
-	this->out_debug_log(_T("DICTIONARY ROM READING : %s"), diag_load_dictrom ? "OK" : "NG");
-	dictrom_connected = diag_load_dictrom;
-	
-	i = FM7_MAINMEM_BACKUPED_RAM;
-	diag_load_learndata = false;
 	memset(fm7_mainmem_learndata, 0x00, 0x2000 * sizeof(uint8_t));
+	if((config.dipswitch & FM7_DIPSW_DICTROM_AV) != 0) {
+		if(read_bios(_T(ROM_FM77AV_DICTIONARY), fm7_mainmem_dictrom, 0x40000) == 0x40000) diag_load_dictrom = true;
+		this->out_debug_log(_T("DICTIONARY ROM READING : %s"), diag_load_dictrom ? "OK" : "NG");
+		dictrom_connected = diag_load_dictrom;
 	
-	if(read_bios(_T(RAM_FM77AV_DIC_BACKUP), fm7_mainmem_learndata, 0x2000) == 0x2000) diag_load_learndata = true;
-	this->out_debug_log(_T("DICTIONARY BACKUPED RAM READING : %s"), diag_load_learndata ? "OK" : "NG");
-	if(!diag_load_learndata) write_bios(_T("USERDIC.DAT"), fm7_mainmem_learndata, 0x2000);
+		i = FM7_MAINMEM_BACKUPED_RAM;
+		diag_load_learndata = false;
+		if(read_bios(_T(RAM_FM77AV_DIC_BACKUP), fm7_mainmem_learndata, 0x2000) == 0x2000) diag_load_learndata = true;
+		this->out_debug_log(_T("DICTIONARY BACKUPED RAM READING : %s"), diag_load_learndata ? "OK" : "NG");
+		if(!diag_load_learndata) write_bios(_T("USERDIC.DAT"), fm7_mainmem_learndata, 0x2000);
+	} else {
+		this->out_debug_log(_T("LOADING FROM DICTIONARY CARD IS CANCELLED."));
+		dictrom_connected = false;
+		diag_load_dictrom = false;
+		diag_load_learndata = false;
+	}		
 #endif
 	
  	i = FM7_MAINMEM_77AV40_EXTRAROM;
@@ -480,6 +489,15 @@ void FM7_MAINMEM::init_data_table(void)
 			paddr = addr >> 7;
 			data_table[paddr].read_data  = &fm7_mainmem_extram[addr - 0x40000];
 			data_table[paddr].write_data = &fm7_mainmem_extram[addr - 0x40000];
+			data_table[paddr].read_func  = NULL;
+			data_table[paddr].write_func = NULL;
+		}
+		for(addr = 0x40000 + extram_pages * 0x10000; addr < 0x100000; addr += 0x80) {
+			paddr = addr >> 7;
+			data_table[paddr].read_data  = NULL;
+			data_table[paddr].write_data = NULL;
+			data_table[paddr].read_func  = NULL;
+			data_table[paddr].write_func = NULL;
 		}
 	}
 # endif
@@ -490,10 +508,21 @@ void FM7_MAINMEM::init_data_table(void)
 			paddr = addr >> 7;
 			data_table[paddr].read_data  = &fm7_mainmem_extram[addr];
 			data_table[paddr].write_data = &fm7_mainmem_extram[addr];
+			data_table[paddr].read_func  = NULL;
+			data_table[paddr].write_func = NULL;
 		}
-	}	
+		if(extram_pages < 3) {
+			for(addr = extram_pages * 0x10000; addr < 0x30000; addr += 0x80) {
+				paddr = addr >> 7;
+				data_table[paddr].read_data  = NULL;
+				data_table[paddr].write_data = NULL;
+				data_table[paddr].read_func  = NULL;
+				data_table[paddr].write_func = NULL;
+			}
+		}
+	}
 #endif	
-}	
+}
 
 bool FM7_MAINMEM::get_loadstat_basicrom(void)
 {

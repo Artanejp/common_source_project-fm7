@@ -53,19 +53,38 @@ void FM7_MAINMEM::update_mmr_jumptable(uint32_t pos)
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)	
 		mmr_bank_table[n_pos] = mmr_index;
 		mmr_baseaddr_table_ext[i + n_pos] = raddr_ext;
-		if(mmr_index != 0x3f) {
-			mmr_update_table_ext[i + n_pos].read_data = data_table[r_pos_ext + i].read_data;
-			mmr_update_table_ext[i + n_pos].write_data = data_table[r_pos_ext + i].write_data;
-			mmr_update_table_ext[i + n_pos].read_func = data_table[r_pos_ext + i].read_func;
-			mmr_update_table_ext[i + n_pos].write_func = data_table[r_pos_ext + i].write_func;
-		} else {
+		if((mmr_index >= 0x40) && !(extram_connected)) {
 			mmr_update_table_ext[i + n_pos].read_data = NULL;
 			mmr_update_table_ext[i + n_pos].write_data = NULL;
-			mmr_update_table_ext[i + n_pos].read_func = &FM7_MAINMEM::read_segment_3f;
-			mmr_update_table_ext[i + n_pos].write_func = &FM7_MAINMEM::write_segment_3f;
+			mmr_update_table_ext[i + n_pos].read_func = NULL;
+			mmr_update_table_ext[i + n_pos].write_func = NULL;
+		} else {			
+			if(mmr_index != 0x3f) {
+				mmr_update_table_ext[i + n_pos].read_data = data_table[r_pos_ext + i].read_data;
+				mmr_update_table_ext[i + n_pos].write_data = data_table[r_pos_ext + i].write_data;
+				mmr_update_table_ext[i + n_pos].read_func = data_table[r_pos_ext + i].read_func;
+				mmr_update_table_ext[i + n_pos].write_func = data_table[r_pos_ext + i].write_func;
+			} else {
+				mmr_update_table_ext[i + n_pos].read_data = NULL;
+				mmr_update_table_ext[i + n_pos].write_data = NULL;
+				mmr_update_table_ext[i + n_pos].read_func = &FM7_MAINMEM::read_segment_3f;
+				mmr_update_table_ext[i + n_pos].write_func = &FM7_MAINMEM::write_segment_3f;
+			}
 		}
 # endif
 		mmr_baseaddr_table_nor[i + n_pos] = raddr_nor;
+		
+# if defined(_FM77_VARIANTS)
+		if(mmr_index < 0x30) {
+			if(!extram_connected) {
+				mmr_update_table_nor[i + n_pos].read_data = NULL;
+				mmr_update_table_nor[i + n_pos].write_data = NULL;
+				mmr_update_table_nor[i + n_pos].read_func = NULL;
+				mmr_update_table_nor[i + n_pos].write_func = NULL;
+				return;
+			}
+		}
+# endif
 		if(mmr_index != 0x3f) {
 			mmr_update_table_nor[i + n_pos].read_data = data_table[r_pos_nor + i].read_data;
 			mmr_update_table_nor[i + n_pos].write_data = data_table[r_pos_nor + i].write_data;

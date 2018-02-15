@@ -22,9 +22,6 @@ private:
 	bool class2;
 	pair_t kanjiaddr;
 
-	bool jis78_emulation;
-	
-	bool patch_jis78(void);
 public:
 	KANJIROM(VM *parent_vm, EMU* parent_emu, bool type_2std);
 	~KANJIROM();
