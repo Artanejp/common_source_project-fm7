@@ -74,12 +74,40 @@ To install:
 $ sudo make install
 
 4.Qt specified notice:
-
-* Place R@Ms under $HOME/CommonSourceCodeProject/emu{Machine Name}/ , this directory has made
-after first using.
-
-* Config file, {foo}.ini is writteon on $HOME/.config//CommonSourceCodeProject/emu{Machine Name}/ .
-
+   
+   ・Config file (scancode.cfg and foo.ini) has placed (moved) to
+     "~/.config/CommonSourceCodeProject/emufoo/"
+     (for Windows, ".\CommonSourceCodeProject\emudfoo\" ).
+   
+   ・BIOS, WAVS, BINS and SAVED STATES have placed (moved) to
+     "~/CommonSourceCodeProject/emufoo/"
+     (for Windows, ".\CommonSourceCodeProject\emudfoo\" ).
+   
+   ・All of recorded products (PNG Screenshots, MOVIES, SOUNDS) 
+     have *temporally* written to "~/.config/CommonSourceCodeProject/emufoo/"
+     (for Windows, ".\CommonSourceCodeProject\emudfoo\" ).
+   
+   ・Added ToolTips and Japanese translations.(2017-01-24)
+   
+   ・Place R@Ms under $HOME/CommonSourceCodeProject/emu{Machine Name}/ , this directory has made
+     after first using.
+   
+   ・Config file, {foo}.ini is written on $HOME/.config/CommonSourceCodeProject/emu{Machine Name}/ .
+   
+   ・Saved state file, {foo}.sta is written on $HOME/CommonSourceCodeProject/emu{Machine Name}/ .
+   
+   ・Key code conversion file is written on $HOME/.config/CommonSourceCodeProject/emu{Machine Name}/scancode.cfg .
+   
+     This file contains comma separated fields, written at hex-decimal (not decimal), 
+       first is M$ Virtual Key Code,
+       second is Qt's scan code.
+       
+   ・Common UI components (at src/qt/gui ) are moved to shared lib. libCSPgui.so .
+   
+   ・Installer (bash) script is available now; src/tool/installer_unix.sh .
+   
+   ・When you place specified WAV files(differ per VM) same directory as ROMs, you can sound sounds: i.e. FDD seek, CMT relay and buttons.
+  
 5.Status
 
 a. I tested to build only under Debian GNU/Linux "sid",Ubuntu Linux 16.04LTS "Xenial" for AMD64 (x86_64)

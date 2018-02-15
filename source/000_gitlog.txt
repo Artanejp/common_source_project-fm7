@@ -1,3 +1,9 @@
+commit 178ae8096d10c5039d71c1dab72f34d2874b8303
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 11 02:36:04 2018 +0900
+
+    [DOC] Update DOCs.
+
 commit 221fcef002f101b8dffd2a63edfc11a86e2c688a
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sun Feb 11 02:19:29 2018 +0900
