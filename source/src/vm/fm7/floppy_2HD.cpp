@@ -223,9 +223,9 @@ void FM7_MAINIO::set_fdc_fd1d_2HD(uint8_t val)
 		if(event_fdc_motor_2HD >= 0) cancel_event(this, event_fdc_motor_2HD);
 		// OK?
 		if(f) {
-			register_event(this, EVENT_FD_MOTOR_ON, 1000.0 * 300.0, false, &event_fdc_motor_2HD); // Motor ON After 0.3Sec.
+			register_event(this, EVENT_FD_MOTOR_ON_2HD, 1000.0 * 300.0, false, &event_fdc_motor_2HD); // Motor ON After 0.3Sec.
 		} else {
-			register_event(this, EVENT_FD_MOTOR_OFF, 1000.0 * 50.0, false, &event_fdc_motor_2HD); // Motor OFF After 0.05Sec.
+			register_event(this, EVENT_FD_MOTOR_OFF_2HD, 1000.0 * 50.0, false, &event_fdc_motor_2HD); // Motor OFF After 0.05Sec.
 		}
 	}
 #ifdef _FM7_FDC_DEBUG	
