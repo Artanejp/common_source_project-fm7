@@ -1,5 +1,33 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT Feb 16, 2018 FM7 TEST1
+  * Upstream 2017-12-27 .
+  * This is test release. Will re-write articles in this entry to next official release.
+  * [VM] Add eFMNEW7.
+  * [VM/FM7][UI/FM7] MAINMEM: Re-order bank of bulk BOOTROMs.Thanks to HASERIN.
+                     IMPORTANT: Re-order boot entries within MENU dynamically.
+		                This is compatibility with older settings.
+				GUI's menu (for eFM8/eFMNEW7/eFM7*) must change order of boor menu entry.
+  * [VM/FM77]   Add ON/OFF extra RAM.
+  * [VM/FM77AV] Add to use dictionary board for FM77AV/20/EX.
+  * [VM/FM77] BUG: I mistaken to connect motor line for 2HD FDD, I connected 2D FDD (；´Д｀)
+  * [VM/FM77] 2HD: Fix DRQ->FIRQ handling.Wish to BOOT 2HD OSs.
+  * [VM/FM77AV] DISPLAY: Do not reset interrupt masks at reset on sub-system.Thanks to Ryu Takegami.
+  * [VM/FM77AV] MAINMEM: More simple inside structure for PAGE2.
+  * [VM/FM8] Change default frequency to 1.0MHz.Thanks to Haserin.
+  * [VM/FM8] Fix RS232C #1(COM0:) can't remove from maim board.Thanks to Haserin.
+  * [VM/FM7/JCOMMCARD] Use bulk rom (or DICTIONARY + KANJI) for DICTIONARY ROM AREA.
+  * [VM/FM7/JCOMMCARD] Abndon use JIS78 emulation.
+  * [VM/FM7/KANJIROM] Abndon use JIS78 emulation.
+  * [VM/BUBBLECASETTE] Improve status register.Thanks to Haserin and Ryu Takegami.
+  * Special thanks to Ryu Takegami, to assist debugging FM-7/77/AV/40/EX/8 .
+  * Special thanks to Haserin, to assist debugging FM-7/77.AV/40/EX/8.
+  * Built with commit bc517f5638b4f5612cc075e0f4d9278220eab4fc or later.
+
+-- Feb 16, 2018 06:02:49 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+    
+
+
 * SNAPSHOT Feb 11, 2018
   * Upstream 2017-12-27 .
   * [CONFIG] IMPORTANT: Now, "~/emufoo/" moved to "~/CommonSourceCodeProject/emufoo/"
