@@ -18,19 +18,17 @@ private:
 	uint8_t rcb_address;
 	pair_t kanji_address;
 	
-	bool jis78_emulation;
-
+	bool diag_dictrom_load;
+	
 	bool halted;
 
 	//bool modified;
 	bool firmware_ok;
 	
 	uint8_t prog_rom[0x4000];
-	uint8_t dict_rom[0x40000];
-	uint8_t kanji_rom[0x20000];
-	uint8_t backup_ram[0x2000];
+	uint8_t dict_rom[0x60000]; // Is this right? Is not size 0x80000? 20180216 K.O
+	uint8_t p_ram[0x2000];
 	
-	bool patch_jis78(void);
 public:
 	FM7_JCOMMCARD(VM *parent_vm, EMU *parent_emu);
 	~FM7_JCOMMCARD();
