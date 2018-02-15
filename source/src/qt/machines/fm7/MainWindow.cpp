@@ -378,35 +378,35 @@ void META_MainWindow::retranslateUi(void)
 #if defined(_FM77_VARIANTS)
 	actionBootMode[0]->setText(QString::fromUtf8("BASIC + S1 (BANK0)"));
 	actionBootMode[0]->setToolTip(QApplication::translate("Machine", "BASIC boot mode with S1 has turned ON.\nThis is FM-77 feature and I don't know about this.", 0));
-	actionBootMode[0]->setValue1(2);
+	actionBootMode[0]->binds->setValue1(2);
 	
 	actionBootMode[4]->setText(QApplication::translate("Machine", "BASIC (BANK4)", 0));
 	actionBootMode[4]->setToolTip(QApplication::translate("Machine", "Boot with F-BASIC.", 0));
-	actionBootMode[4]->setValue1(0);
+	actionBootMode[4]->binds->setValue1(0);
 	
 	actionBootMode[5]->setText(QApplication::translate("Machine", "DOS 320K(BOOT2 / BANK5)", 0));	
 	actionBootMode[5]->setToolTip(QApplication::translate("Machine", "DOS boot mode.\nUse for CP/M, FLEX, OS-9, R-DOS and some OSs.", 0));
-	actionBootMode[5]->setValue1(1);
+	actionBootMode[5]->binds->setValue1(1);
 	
 	actionBootMode[6]->setText(QString::fromUtf8("1MB FD (BOOT1 / BANK6)"));
 	actionBootMode[6]->setToolTip(QApplication::translate("Machine", "Boot from 1MB FD for FM-77.\n", 0));
-	actionBootMode[6]->setValue1(3);
+	actionBootMode[6]->binds->setValue1(3);
 	
 	actionBootMode[1]->setText(QString::fromUtf8("BUBBLE 128K (BOOT2 + S1 / BANK1)"));
 	actionBootMode[1]->setToolTip(QApplication::translate("Machine", "Boot from 128K Bubble casette.\nThis is FM-77 feature and I don't know about this.", 0));
-	actionBootMode[1]->setValue1(5);
+	actionBootMode[1]->binds->setValue1(5);
 	
 	actionBootMode[2]->setText(QString::fromUtf8("BUBBLE 32K (BOOT1 + S1 / BANK2)"));
 	actionBootMode[2]->setToolTip(QApplication::translate("Machine", "Boot from 32K Bubble casette.\nThis is FM-77 feature and I don't know about this.", 0));
-	actionBootMode[2]->setValue1(6);
+	actionBootMode[2]->binds->setValue1(6);
 	
 	actionBootMode[3]->setText(QString::fromUtf8("RESERVE 1 (BANK3)"));
 	actionBootMode[3]->setToolTip(QApplication::translate("Machine", "RESERVE AREA 1\nThis is FM-77 feature and I don't know about this.", 0));
-	actionBootMode[3]->setValue1(3);
+	actionBootMode[3]->binds->setValue1(3);
 	
 	actionBootMode[7]->setText(QString::fromUtf8("RESERVE 2 (BANK7)"));
 	actionBootMode[7]->setToolTip(QApplication::translate("Machine", "RESERVED AREA 2\nThis is FM-77 feature and I don't know about this.", 0));
-	actionBootMode[7]->setValue1(4);
+	actionBootMode[7]->binds->setValue1(4);
 	
 	for(int i = 0; i < 7; i++) {
 		if(actionBootMode[i]->binds->getValue1() == config.boot_mode) actionBootMode[i]->setChecked(true);
