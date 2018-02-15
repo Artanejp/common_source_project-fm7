@@ -1652,7 +1652,7 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 				mode256k = (((data & 0x10) != 0) && ((data & 0x08) != 0) ) ? true : false;
 				mode400line = ((data & 0x08) == 0) ? true : false;
 				ram_protect = ((data & 0x04) == 0) ? true : false;
-				if(mode400line && !mode320) {
+				if((mode400line) && !(mode320)) {
 					display_mode = DISPLAY_MODE_8_400L;
 				} else if(mode256k) {
 					display_mode = DISPLAY_MODE_256k;
@@ -1732,7 +1732,11 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 				//printf("Wrote $FD12: %02x\n", data);
 				int oldmode = display_mode;
 				mode320 = flag;
-				if(!mode320 && !mode256k) {
+				if(mode400line) {
+					display_mode = DISPLAY_MODE_8_400L;
+				} else if(mode256k) {
+					display_mode = DISPLAY_MODE_256k;
+				} else 	if(!(mode320) && !(mode256k)) {
 					//display_mode = (mode400line) ? DISPLAY_MODE_8_400L : DISPLAY_MODE_8_200L;
 					display_mode = DISPLAY_MODE_8_200L;
 				} else {
@@ -1756,8 +1760,10 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 						//emu->set_vm_screen_lines(200);
 					} else { // 200 lines, 8 colors.
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
-						emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
-						for(y = 0; y < 200; y++) {
+						int ymax = 	(display_mode == DISPLAY_MODE_8_400L) ? 400 : 200;
+
+						emu->set_vm_screen_size(640, ymax, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+						for(y = 0; y < ymax; y++) {
 							pp = emu->get_screen_buffer(y);
 							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype_t));
 						}
