@@ -636,7 +636,7 @@ void FM7_MAINIO::do_firq(void)
 #if defined(HAS_2HD)
 # if defined(_FM8) || defined(_FM77_VARIANTS)
 	if(intmode_fdc) {
-		if((connect_fdc_2HD) && (fdc_2HD != NULL) && ((irqreg_fdc_2HD & 0x80) != 0)) {
+		if((connect_fdc_2HD) && (fdc_2HD != NULL) && ((irqreg_fdc_2HD & 0x40) != 0)) {
 			firq_stat = true;
 		}
 	}
@@ -1926,7 +1926,7 @@ void FM7_MAINIO::event_vline(int v, int clock)
 {
 }
 
-#define STATE_VERSION 12
+#define STATE_VERSION 13
 void FM7_MAINIO::save_state_main(FILEIO *state_fio)
 {
 	uint32_t addr;
@@ -2074,7 +2074,7 @@ void FM7_MAINIO::save_state_main(FILEIO *state_fio)
 	state_fio->FputUint8(fdc_2HD_datareg);
 	state_fio->FputUint8(fdc_2HD_headreg);
 	state_fio->FputUint8(fdc_2HD_drvsel);
-	//state_fio->FputUint8(irqreg_fdc);
+	state_fio->FputBool(irqreg_fdc_2HD);
 	state_fio->FputBool(fdc_2HD_motor);
 	//state_fio->FputBool(irqstat_fdc);
 #endif
@@ -2254,7 +2254,7 @@ bool FM7_MAINIO::load_state_main(FILEIO *state_fio, uint32_t version)
 	fdc_2HD_datareg =state_fio->FgetUint8();
 	fdc_2HD_headreg = state_fio->FgetUint8();
 	fdc_2HD_drvsel = state_fio->FgetUint8();
-	//state_fio->FputUint8(irqreg_fdc);
+	irqreg_fdc_2HD = state_fio->FgetBool();
 	fdc_2HD_motor = state_fio->FgetBool();
 	//state_fio->FputBool(irqstat_fdc);
 #endif

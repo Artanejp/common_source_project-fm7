@@ -120,8 +120,8 @@ void FM7_MAINMEM::initialize(void)
 			} else if(read_bios(_T(ROM_FM8_BOOT_BUBBLE), fm7_bootroms[2], 0x200) >= 0x1e0) {
 				diag_load_bootrom_bubble = true;
 			}
-			if(read_bios(_T(ROM_FM8_BOOT_DOS_DEBUG), fm7_bootroms[3], 0x200) >= 0x1e0) {
-				diag_load_bootrom_debug = true;
+			if(read_bios(_T(ROM_FM8_BOOT_DEBUG), fm7_bootroms[3], 0x200) >= 0x1e0) {
+				//diag_load_bootrom_debug = true;
 			}
 		}
 		tmpb = false;
@@ -140,7 +140,7 @@ void FM7_MAINMEM::initialize(void)
 			memcpy(fm7_bootroms[4], fm7_bootroms[0], 0x200); // Basic
 			memcpy(fm7_bootroms[5], fm7_bootroms[1], 0x200); // DOS 5Inch
 			memcpy(fm7_bootroms[6], fm7_bootroms[2], 0x200); // BUBBLE
-			if(read_bios(_T(ROM_FM8_BOOT_FD8), fm7_bootroms[7], 0x200) >= 0x1e0) {
+			if(read_bios(_T(ROM_FM8_BOOT_DOS_FD8), fm7_bootroms[7], 0x200) >= 0x1e0) {
 				diag_load_bootrom_sfd8 = true;
 			}
 		}

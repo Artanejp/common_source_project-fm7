@@ -218,7 +218,6 @@ class FM7_MAINIO : public DEVICE {
 #if defined(HAS_2HD)   
 	/* FD1F : R */
 	uint8_t irqreg_fdc_2HD;
-	bool irqstat_fdc_2HD;
 #endif   
 	/* FD20,FD21 : W */
 	bool connect_kanjiroml1;

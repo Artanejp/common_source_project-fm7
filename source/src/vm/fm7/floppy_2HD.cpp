@@ -252,20 +252,14 @@ void FM7_MAINIO::set_irq_mfd_2HD(bool flag)
 	} else {
 		irqreg_fdc_2HD &= 0xbf; //0b10111111;
 	}
-#if defined(_FM8) || defined(_FM77_VARIANTS)
+#  if defined(_FM8) || defined(_FM77_VARIANTS)
 	if(intmode_fdc) { // Temporally implement.
 		double t;
 		if(event_2hd_nmi >= 0) cancel_event(this, event_2hd_nmi);
 		t = (double)nmi_delay;
 		register_event(this, EVENT_FD_NMI_2HD, t, false, &event_2hd_nmi);
 	}
-#endif
-# if defined(_FM77_VARIANTS) // With FM8, $FD1F is alive and not do_irq(), Thanks to Anna_Wu.
-	bool backup = irqstat_fdc_2HD;
-	flag = flag & intmode_fdc;
-	irqstat_fdc_2HD = flag & !irqmask_mfd;
-	if(backup != irqstat_fdc_2HD) do_irq();
-# endif
+#  endif
 #endif
 	return;
 	
