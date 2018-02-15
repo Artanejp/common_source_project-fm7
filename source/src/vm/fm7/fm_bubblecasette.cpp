@@ -34,6 +34,9 @@ void BUBBLECASETTE::initialize()
 	header_changed = false;
 	is_b77 = false;
 	write_protect = false;
+	not_ready = true;
+	stat_error = false;
+	cmd_error = true;
 	cmd_reg = 0;
 	media_offset = 0;
 	media_offset_new = 0;
@@ -101,6 +104,7 @@ uint32_t BUBBLECASETTE::read_data8(uint32_t address)
 				povr_error = true;
 				stat_error = true;
 				cmd_error = true;
+				read_access = false;
 				return val;
 			}
 			write_access = false;
@@ -142,17 +146,27 @@ uint32_t BUBBLECASETTE::read_data8(uint32_t address)
 		break;
 	case 2: // Read status register
 		val = 0x00;
-		if(!bubble_inserted) stat_busy = false;
-		if((cmd_reg == 1) && (bubble_inserted)){
-			if(!stat_rda) stat_rda = true;
-		} else 	if((cmd_reg == 2) && (bubble_inserted)){
-			if(!stat_tdra) stat_tdra = true;
+		if(!bubble_inserted) {
+			cmd_error = true;
+			not_ready = true;
+			stat_error = true;
+			eject_error = true;
 		}
 		val |= (cmd_error)  ? 0x80 : 0;
 		val |= (stat_tdra)  ? 0x40 : 0;
 		val |= (stat_rda)   ? 0x20 : 0;
+		val |= (not_ready)  ? 0x10 : 0;
+		val |= (write_protect) ? 0x04 : 0;
 		val |= (stat_error) ? 0x02 : 0;
 		val |= (stat_busy)  ? 0x01 : 0;
+		if(!(bubble_inserted) && (stat_busy)) {
+			stat_busy = false;
+		}
+		if((cmd_reg == 1) && (bubble_inserted) && (read_access)){
+			if(!stat_rda) stat_rda = true;
+		} else 	if((cmd_reg == 2) && (bubble_inserted) && (write_access)){
+			if(!stat_tdra) stat_tdra = true;
+		}
 		break;
 	case 3: // Read Error register
 		val = 0x00;
@@ -187,10 +201,12 @@ void BUBBLECASETTE::bubble_command(uint8_t cmd)
 	case 1: // Read
 		offset_reg = 0;
 		read_access = false;
+		write_access = false;
 		if(!bubble_inserted) {
 			stat_error = true;
 			cmd_error = true;
 			no_marker_error = true;
+			eject_error = true;
 		} else {
 			data_reg = bubble_data[(page_address.w.l & mask) * page_size_tmp];
 			stat_rda = true;
@@ -200,18 +216,22 @@ void BUBBLECASETTE::bubble_command(uint8_t cmd)
 	case 2: // Write :: Will not check insert?
 		stat_busy = true;
 		write_access = false;
+		read_access = false;
 		if(!bubble_inserted) {
 			stat_error = true;
 			cmd_error = true;
 			no_marker_error = true;
+			eject_error = true;
 		} else {
 			if(write_protect) {
 				stat_busy = false;
 				cmd_error = true;
+				stat_tdra = false;
 			} else {
 				offset_reg = 0;
 				write_access = true;
 				stat_tdra = true;
+				cmd_error = false;
 			}
 		}
 		break;
@@ -358,7 +378,13 @@ void BUBBLECASETTE::open(_TCHAR* file_path, int bank)
 	media_offset_new = 0;
 	file_length = 0;
 	bubble_inserted = false;
-
+	not_ready = true;
+	cmd_error = true;
+	stat_tdra = false;
+	stat_rda = false;
+	stat_error = false; // OK?
+	stat_busy = false;
+	
 	memset(bubble_data, 0, 0x20000);
 	memset(&bbl_header, 0, sizeof(bbl_header_t));
 	bubble_type = -1;
@@ -389,6 +415,7 @@ void BUBBLECASETTE::open(_TCHAR* file_path, int bank)
 		if(bubble_type != BUBBLE_TYPE_B77) {
 			if(bubble_type < 0) return;
 			write_protect = false;
+			not_ready = false;
 			switch(bubble_type) {
 			case BUBBLE_TYPE_32KB:
 				fio->Fread(bubble_data, 0x8000, 1);
@@ -403,6 +430,7 @@ void BUBBLECASETTE::open(_TCHAR* file_path, int bank)
 			int remain;
 			do {
 				write_protect = false;
+				not_ready = false;
 				if(!this->read_header()) break;
 				if(contain_medias != bank) {
 					fio->Fseek(media_offset_new , FILEIO_SEEK_SET); // Skip
@@ -436,6 +464,8 @@ void BUBBLECASETTE::open(_TCHAR* file_path, int bank)
 				contain_medias++;
 			} while(contain_medias <= 16);
 		}
+	} else {
+		not_ready = true;
 	}
 }
 
@@ -468,7 +498,12 @@ bool BUBBLECASETTE::read_header()
 	bbl_header.misc[5] = tmpval[9];
 	bbl_header.misc[6] = tmpval[10];
 	bbl_header.misc[7] = tmpval[11];
-	
+
+	if((tmpval[10] & 0x10) != 0) {
+		write_protect = true; // ToDo : Relate to permission of image file.
+	} else {
+		write_protect = false; // ToDo : Relate to permission of image file.
+	}
 	switch(tmpval[11]) {
 	case 0x80:
 		bubble_type = BUBBLE_TYPE_32KB;
@@ -514,6 +549,11 @@ void BUBBLECASETTE::write_header()
 	tmpval[10] = bbl_header.misc[6];
 	tmpval[11] = bbl_header.misc[7];
 	
+	if(write_protect) {
+		tmpval[10] |= 0x10;
+	} else {
+		tmpval[10] &= (uint8_t)(~0x10);
+	}
 	switch(bubble_type) {
 	case BUBBLE_TYPE_32KB:
 		tmpval[11] = 0x80;
@@ -635,7 +675,7 @@ void BUBBLECASETTE::event_callback(int event_id, int err)
 {
 }
 
-#define STATE_VERSION 1
+#define STATE_VERSION 2
 void BUBBLECASETTE::save_state(FILEIO *state_fio)
 {
 	int i, j;
@@ -661,6 +701,7 @@ void BUBBLECASETTE::save_state(FILEIO *state_fio)
 	state_fio->FputBool(stat_rda);
 	state_fio->FputBool(cmd_error);
 	state_fio->FputBool(stat_error);
+	state_fio->FputBool(not_ready);
 	// Error reg
 	state_fio->FputBool(eject_error);
 	state_fio->FputBool(povr_error);
@@ -720,6 +761,7 @@ bool BUBBLECASETTE::load_state(FILEIO *state_fio)
 	stat_rda = state_fio->FgetBool();
 	cmd_error = state_fio->FgetBool();
 	stat_error = state_fio->FgetBool();
+	not_ready = state_fio->FgetBool();
 	// Error reg
 	eject_error = state_fio->FgetBool();
 	povr_error = state_fio->FgetBool();

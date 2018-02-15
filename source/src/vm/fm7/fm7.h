@@ -42,6 +42,7 @@
 #define DATAREC_SOUND
 #define USE_DIG_RESOLUTION
 
+#define CPU_TYPE_DEFAULT 0
 
 #if defined(_FM8)
 #define DEVICE_NAME		"FUJITSU FM-8"
@@ -52,6 +53,10 @@
 #define USE_BUBBLE2
 #define MAX_BUBBLE 2
 #define MAX_DRIVE  4
+
+#undef CPU_TYPE_DEFAULT
+#define CPU_TYPE_DEFAULT 1
+
 #elif defined(_FM7)
 #define DEVICE_NAME		"FUJITSU FM-7"
 #define CONFIG_NAME		"fm7"
@@ -59,7 +64,6 @@
 #define DIPSWITCH_DEFAULT 0x000000000 
 #define MAX_DRIVE  4
 #define CAPABLE_JCOMMCARD 1
-
 #elif defined(_FMNEW7)
 #define DEVICE_NAME		"FUJITSU FM-NEW7"
 #define CONFIG_NAME		"fmnew7"
