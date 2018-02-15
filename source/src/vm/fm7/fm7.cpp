@@ -112,7 +112,8 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 		g_jsubhalt = NULL;
 	}
 #endif
-# if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20) || defined(_FM77AV20EX)
+# if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20) \
+	|| defined(_FM77AV20EX) || defined(_FM8)
 	uart[0] = new I8251(this, emu);
 # else
 #  if defined(CAPABLE_JCOMMCARD)
@@ -269,7 +270,8 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	if((config.dipswitch & FM7_DIPSW_JSUBCARD_ON) != 0) {
 		if(uart[0] != NULL) uart[0]->set_device_name(_T("J.COMM BOARD RS-232C(I8251 SIO)"));
 	}
-# elif defined(_FM77AV20) || defined(_FM77AV40) || defined(_FM77AV20EX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+# elif defined(_FM77AV20) || defined(_FM77AV40) || defined(_FM77AV20EX) || \
+	defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM8)
 	if(uart[0] != NULL) uart[0]->set_device_name(_T("RS-232C(I8251 SIO)"));
 # endif
 		

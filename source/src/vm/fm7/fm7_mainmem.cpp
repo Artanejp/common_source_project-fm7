@@ -13,11 +13,9 @@ FM7_MAINMEM::FM7_MAINMEM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, par
 {
 	p_vm = parent_vm;
 	p_emu = parent_emu;
-#if defined(_FM77_VARIANTS) || defined(_FM8)
+#if !defined(_FM77AV_VARIANTS)
 	for(int i = 0; i < 8; i++) fm7_bootroms[i] = (uint8_t *)malloc(0x200);
-#elif defined(_FM7) || defined(_FMNEW7)
-	for(int i = 0; i < 4; i++) fm7_bootroms[i] = (uint8_t *)malloc(0x200);
-#endif	
+#endif
 	mainio = NULL;
 	display = NULL;
 	maincpu = NULL;
@@ -34,6 +32,9 @@ FM7_MAINMEM::FM7_MAINMEM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, par
 
 FM7_MAINMEM::~FM7_MAINMEM()
 {
+#if !defined(_FM77AV_VARIANTS)
+	for(int i = 0; i < 8; i++) if(fm7_bootroms[i] != NULL) free(fm7_bootroms[i]);
+#endif
 }
 
 void FM7_MAINMEM::reset()
@@ -52,7 +53,7 @@ void FM7_MAINMEM::reset()
 #elif defined(_FM77_VARIANTS)
 	boot_ram_write = false;
 #endif
-#if defined(_FM77_VARIANTS) || defined(_FM8) /* OK? */
+#if defined(_FM77_VARIANTS) || defined(_FM8)
 	bootmode = config.boot_mode & 7;
 #else
 	bootmode = config.boot_mode & 3;
@@ -496,7 +497,7 @@ void FM7_MAINMEM::update_config()
 	//setclock(config.cpu_type);
 }
 
-#define STATE_VERSION 4
+#define STATE_VERSION 6
 void FM7_MAINMEM::save_state(FILEIO *state_fio)
 {
 	state_fio->FputUint32_BE(STATE_VERSION);
@@ -535,7 +536,17 @@ void FM7_MAINMEM::save_state(FILEIO *state_fio)
 #elif defined(_FM7) || defined(_FMNEW7)
 	for(int i = 0; i < 4; i++) state_fio->Fwrite(fm7_bootroms[i], sizeof(0x200), 1);
 #endif	
-#ifdef _FM77AV_VARIANTS
+#if defined(_FM8)
+	state_fio->FputBool(diag_load_sm11_14);
+	state_fio->FputBool(diag_load_sm11_15);
+#elif defined(_FM77_VARIANTS)
+	state_fio->FputBool(diag_load_wb11_12);
+#elif defined(_FM7) || defined(_FMNEW7)
+	state_fio->FputBool(diag_load_tl11_11);
+#  if defined(_FMNEW7)
+	state_fio->FputBool(diag_load_tl11_12);
+#  endif	
+#elif defined(_FM77AV_VARIANTS)
 	state_fio->FputBool(dictrom_connected);
 	state_fio->FputBool(use_page2_extram);
 	
@@ -646,7 +657,17 @@ bool FM7_MAINMEM::load_state(FILEIO *state_fio)
 #elif defined(_FM7) || defined(_FMNEW7)
 	for(int i = 0; i < 4; i++) state_fio->Fread(fm7_bootroms[i], sizeof(0x200), 1);
 #endif	
-#ifdef _FM77AV_VARIANTS
+#if defined(_FM8)
+	diag_load_sm11_14 = state_fio->FgetBool();
+	diag_load_sm11_15 = state_fio->FgetBool();
+#elif defined(_FM77_VARIANTS)
+	diag_load_wb11_12 = state_fio->FgetBool();
+#elif defined(_FM7) || defined(_FMNEW7)
+	diag_load_tl11_11 = state_fio->FgetBool();
+#  if defined(_FMNEW7)
+	diag_load_tl11_12 = state_fio->FgetBool();
+#  endif	
+#elif defined(_FM77AV_VARIANTS)
 		dictrom_connected = state_fio->FgetBool();
 		use_page2_extram = state_fio->FgetBool();
 	

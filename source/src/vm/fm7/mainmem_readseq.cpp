@@ -219,7 +219,7 @@ uint8_t FM7_MAINMEM::read_bootrom(uint32_t addr, bool dmamode)
 			break;
 		}
 #else
-		switch(bootmode) {
+		switch(bootmode & 3) {
 		case 0:
 		case 1:
 		case 2:

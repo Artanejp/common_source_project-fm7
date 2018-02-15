@@ -167,7 +167,7 @@ FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, paren
 #if defined(HAS_DMA)
 	dmac = NULL;
 #endif	
-#if defined(_FM77_VARIANTS) || defined(_FM8) /* OK? */
+#if defined(_FM77_VARIANTS) || defined(_FM8)
 	bootmode = config.boot_mode & 7;
 #else
 	bootmode = config.boot_mode & 3;
@@ -209,7 +209,7 @@ void FM7_MAINIO::initialize()
 #if defined(_FM77AV_VARIANTS)
 	reg_fd12 = 0xbc; // 0b10111100
 #endif		
-#if defined(_FM77_VARIANTS) || defined(_FM8) /* OK? */
+#if defined(_FM77_VARIANTS) || defined(_FM8)
 	bootmode = config.boot_mode & 7;
 #else
 	bootmode = config.boot_mode & 3;
@@ -342,7 +342,7 @@ void FM7_MAINIO::reset()
 //#if !defined(_FM8)
 	register_event(this, EVENT_TIMERIRQ_ON, 10000.0 / 4.9152, true, &event_timerirq); // TIMER IRQ
 //#endif
-#if defined(_FM77_VARIANTS) || defined(_FM8) /* OK? */
+#if defined(_FM77_VARIANTS) || defined(_FM8)
 	bootmode = config.boot_mode & 7;
 #else
 	bootmode = config.boot_mode & 3;

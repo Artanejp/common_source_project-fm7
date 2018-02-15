@@ -81,10 +81,8 @@ class FM7_MAINMEM : public DEVICE
 	uint8_t fm7_mainmem_ura[0x7c00];
 	uint8_t fm7_mainmem_basicrom[0x7c00];
   	uint8_t fm7_mainmem_bioswork[0x80];
-#if defined(_FM77_VARIANTS) || defined(_FM8)
+#if !defined(_FM77AV)
 	uint8_t *fm7_bootroms[8];
-#elif defined(_FM7) || defined(_FMNEW7)	
-	uint8_t *fm7_bootroms[4];
 #endif	
 	uint8_t fm7_mainmem_bootrom_vector[0x1e]; // Without
 	uint8_t fm7_mainmem_reset_vector[2]; // Without
@@ -92,9 +90,19 @@ class FM7_MAINMEM : public DEVICE
 #if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
 	uint8_t fm7_bootram[0x200]; // $00000-$0ffff
 #endif
+# if defined(_FM8)
+	bool diag_load_sm11_14;
+	bool diag_load_sm11_15;
+# elif defined(_FM77_VARIANTS)
+	bool diag_load_wb11_12;
+# elif defined(_FM7) || defined(_FMNEW7)
+	bool diag_load_tl11_11;
+	bool diag_load_tl11_12;
+#endif
 #ifdef HAS_MMR
 	bool extram_connected;
-# ifdef _FM77AV_VARIANTS
+
+# if defined(_FM77AV_VARIANTS)
 	bool diag_load_initrom;
 	bool diag_load_dictrom;
 	bool diag_load_learndata;

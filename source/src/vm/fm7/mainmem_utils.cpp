@@ -42,8 +42,12 @@ void FM7_MAINMEM::initialize(void)
 	
 	initiator_enabled = true;
 	boot_ram_write = true;
-#endif	
+#endif
+#if defined(_FM7) || defined(_FM77AV_VARIANTS)
 	bootmode = config.boot_mode & 3;
+#else
+	bootmode = config.boot_mode & 7;
+#endif
 	basicrom_fd0f = false;
 	is_basicrom = ((bootmode & 0x03) == 0) ? true : false;
    
@@ -91,15 +95,19 @@ void FM7_MAINMEM::initialize(void)
 		uint8_t *tmpp;
 		bool tmpb = false;
 		tmpp = malloc(0x800);
-		// SM11-15
+		// SM11-14
+		diag_load_sm11_14 = false;
+		diag_load_sm11_15 = false;
 		if(tmpp != NULL) {
-			tmpb = (read_bios(_T(ROM_FM8_SM11_15), tmpp, 0x800) >= 0x800);
+			tmpb = (read_bios(_T(ROM_FM8_SM11_14), tmpp, 0x800) >= 0x800);
 		}
 		if(tmpb) {
 			memcpy(fm7_bootroms[0], &(tmpp[0x000]), 0x200); // BASIC
 			memcpy(fm7_bootroms[2], &(tmpp[0x200]), 0x200); // BUBBLE
 			memcpy(fm7_bootroms[1], &(tmpp[0x400]), 0x200); // DOS 320K
-			memcpy(fm7_bootroms[3], &(tmpp[0x600]), 0x200); // DOS 8INCH
+			memcpy(fm7_bootroms[3], &(tmpp[0x600]), 0x200); // DEBUG
+			this->out_debug_log(_T("NOTE: LOADING BULK BOOTROM SM11-14 OK."));
+			diag_load_sm11_14 = true;
 		} else {	
 			if(read_bios(_T(ROM_FM8_BOOT_BASIC), fm7_bootroms[0], 0x200) >= 0x1e0) {
 				diag_load_bootrom_bas = true;
@@ -112,26 +120,28 @@ void FM7_MAINMEM::initialize(void)
 			} else if(read_bios(_T(ROM_FM8_BOOT_BUBBLE), fm7_bootroms[2], 0x200) >= 0x1e0) {
 				diag_load_bootrom_bubble = true;
 			}
-			if(read_bios(_T(ROM_FM8_BOOT_DOS_FD8), fm7_bootroms[3], 0x200) >= 0x1e0) {
-				diag_load_bootrom_sfd8 = true;
+			if(read_bios(_T(ROM_FM8_BOOT_DOS_DEBUG), fm7_bootroms[3], 0x200) >= 0x1e0) {
+				diag_load_bootrom_debug = true;
 			}
 		}
 		tmpb = false;
-		// SM11-14
+		// SM11-15
 		if(tmpp != NULL) {
-			tmpb = (read_bios(_T(ROM_FM8_SM11_14), tmpp, 0x800) >= 0x800);
+			tmpb = (read_bios(_T(ROM_FM8_SM11_15), tmpp, 0x800) >= 0x800);
 		}
 		if(tmpb) {
 			memcpy(fm7_bootroms[4], &(tmpp[0x000]), 0x200); // Basic
 			memcpy(fm7_bootroms[6], &(tmpp[0x200]), 0x200); // BUBBLE
 			memcpy(fm7_bootroms[5], &(tmpp[0x400]), 0x200); // DOS 320K
-			memcpy(fm7_bootroms[7], &(tmpp[0x600]), 0x200); // DEBUG
+			memcpy(fm7_bootroms[7], &(tmpp[0x600]), 0x200); // DOS 8INCH
+			this->out_debug_log(_T("NOTE: LOADING BULK BOOTROM SM11-15 OK."));
+			diag_load_sm11_15 = true;
 		} else {
 			memcpy(fm7_bootroms[4], fm7_bootroms[0], 0x200); // Basic
 			memcpy(fm7_bootroms[5], fm7_bootroms[1], 0x200); // DOS 5Inch
 			memcpy(fm7_bootroms[6], fm7_bootroms[2], 0x200); // BUBBLE
-			if(read_bios(_T(ROM_FM8_BOOT_DEBUG), fm7_bootroms[7], 0x200) >= 0x1e0) {
-				//diag_load_bootrom_debug = true;
+			if(read_bios(_T(ROM_FM8_BOOT_FD8), fm7_bootroms[7], 0x200) >= 0x1e0) {
+				diag_load_bootrom_sfd8 = true;
 			}
 		}
 		if(tmpp != NULL) free(tmpp);
@@ -140,37 +150,61 @@ void FM7_MAINMEM::initialize(void)
 #elif defined(_FM7) || defined(_FMNEW7)
 	// FM-7 HAS TWO TYPE ROM.
 	// See, http://www.mindspring.com/~thasegaw/rpcg/fm7rom.html .
+	diag_load_tl11_11 = false;
+	diag_load_tl11_12 = false;
 	{
 		uint8_t *tmpp;
 		bool tmpb = false;
 		tmpp = malloc(0x800);
+		if(tmpp != NULL) memset(tmpp, 0xff, 0x800);
 # if defined(_FMNEW7)
 		// For FM-NEW7, If you have TL11-12, load first.
 		if(tmpp != NULL) {
-			tmpb = (read_bios(_T(ROM_FM7_BOOT_TL11_12), tmpp, 0x800) >= 0x800);
+			diag_load_tl11_12 = (read_bios(_T(ROM_FM7_BOOT_TL11_12), tmpp, 0x800) >= 0x800);
 		}
-# endif
-		// TL11-11
-		if((tmpp != NULL) && (!tmpb)) {
-			tmpb = (read_bios(_T(ROM_FM7_BOOT_TL11_11), tmpp, 0x800) >= 0x800);
-		}
-		if(tmpb) {
+		if(diag_load_tl11_12) {
 			memcpy(fm7_bootroms[0], &(tmpp[0x000]), 0x200);
 			memcpy(fm7_bootroms[2], &(tmpp[0x200]), 0x200);
 			memcpy(fm7_bootroms[1], &(tmpp[0x400]), 0x200);
 			memcpy(fm7_bootroms[3], &(tmpp[0x600]), 0x200);
-		} else {			
-			if(read_bios(_T(ROM_FM7_BOOT_BASIC), fm7_bootroms[0], 0x200) >= 0x1e0) {
+			diag_load_bootrom_bas = true;
+			diag_load_bootrom_dos = true;
+			diag_load_bootrom_bubble = true;
+			this->out_debug_log(_T("NOTE: LOADING BULK BOOTROM TL11-12 OK"));
+		}			
+# endif
+		if(!diag_load_tl11_12) {
+			// TL11-11
+			if(tmpp != NULL) {
+				tmpb = (read_bios(_T(ROM_FM7_BOOT_TL11_11), tmpp, 0x800) >= 0x800);
+			}
+			if(tmpb) {
+# if defined(_FMNEW7)
+				this->out_debug_log(_T("NOTE: LOADING BULK BOOTROM TL11-11 (FALLBACK) OK"));
+# else
+				this->out_debug_log(_T("NOTE: LOADING BULK BOOTROM TL11-11 OK"));
+# endif
+				memcpy(fm7_bootroms[0], &(tmpp[0x000]), 0x200);
+				memcpy(fm7_bootroms[2], &(tmpp[0x200]), 0x200);
+				memcpy(fm7_bootroms[1], &(tmpp[0x400]), 0x200);
+				memcpy(fm7_bootroms[3], &(tmpp[0x600]), 0x200);
 				diag_load_bootrom_bas = true;
-			}
-			if(read_bios(_T(ROM_FM7_BOOT_DOS), fm7_bootroms[1], 0x200) >= 0x1e0) {
 				diag_load_bootrom_dos = true;
-			}
-			if(read_bios(_T(ROM_FM7_BOOT_BUBBLE_7), fm7_bootroms[2], 0x200) >= 0x1e0) {
 				diag_load_bootrom_bubble = true;
+				diag_load_tl11_11 = true;
+			} else {			
+				if(read_bios(_T(ROM_FM7_BOOT_BASIC), fm7_bootroms[0], 0x200) >= 0x1e0) {
+					diag_load_bootrom_bas = true;
+				}
+				if(read_bios(_T(ROM_FM7_BOOT_DOS), fm7_bootroms[1], 0x200) >= 0x1e0) {
+					diag_load_bootrom_dos = true;
+				}
+				if(read_bios(_T(ROM_FM7_BOOT_BUBBLE_7), fm7_bootroms[2], 0x200) >= 0x1e0) {
+					diag_load_bootrom_bubble = true;
+				}
 			}
+			if(tmpp != NULL) free(tmpp);
 		}
-		if(tmpp != NULL) free(tmpp);
 	}
 #elif defined(_FM77_VARIANTS)
 	// FM-77 HAS ONE TYPE ROM.
@@ -180,10 +214,13 @@ void FM7_MAINMEM::initialize(void)
 		bool tmpb = false;
 		tmpp = malloc(0x1000);
 		// WB11-12
+		diag_load_wb11_12 = false;
 		if(tmpp != NULL) {
 			tmpb = (read_bios(_T(ROM_FM77_BOOT_WB11_12), tmpp, 0x1000) >= 0x1000);
 		}
 		if(tmpb) {
+			diag_load_wb11_12 = true;
+			this->out_debug_log(_T("NOTE: LOADING BULK BOOTROM WB11-12 OK."));
 			memcpy(fm7_bootroms[2], &(tmpp[0x000]), 0x200); // Basic (MMR)
 			memcpy(fm7_bootroms[5], &(tmpp[0x200]), 0x200); // Bubble (128K)
 			memcpy(fm7_bootroms[6], &(tmpp[0x400]), 0x200); // Bubble (32K)
@@ -200,6 +237,7 @@ void FM7_MAINMEM::initialize(void)
 			if(read_bios(_T(ROM_FM7_BOOT_BASIC), fm7_bootroms[0], 0x200) >= 0x1e0) {
 				diag_load_bootrom_bas = true;
 			}
+			
 			if(read_bios(_T(ROM_FM7_BOOT_DOS), fm7_bootroms[1], 0x200) >= 0x1e0) {
 				diag_load_bootrom_dos = true;
 			}

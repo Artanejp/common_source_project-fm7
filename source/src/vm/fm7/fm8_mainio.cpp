@@ -148,6 +148,9 @@ void FM8_MAINIO::write_fd0f(void)
 		return;
 	}
 	bootmode = 1; // DOS : Where BUBBLE?
+	if(config.boot_mode >= 4) {
+		bootmode = 5;
+	}
 	mainmem->write_signal(FM7_MAINIO_BOOTMODE, bootmode, 0xffffffff);
 	mainmem->write_signal(FM7_MAINIO_IS_BASICROM, 0, 0xffffffff);
 	mainmem->write_signal(FM7_MAINIO_PUSH_FD0F, 0, 0xffffffff);
@@ -159,6 +162,9 @@ uint8_t FM8_MAINIO::read_fd0f(void)
 		return 0xff;
 	}
 	bootmode = 0; // BASIC
+	if(config.boot_mode >= 4) {
+		bootmode = 4;
+	}
 	mainmem->write_signal(FM7_MAINIO_BOOTMODE, bootmode, 0xffffffff);
 	mainmem->write_signal(FM7_MAINIO_IS_BASICROM, 0xffffffff, 0xffffffff);
 	mainmem->write_signal(FM7_MAINIO_PUSH_FD0F, 0xffffffff, 0xffffffff);
@@ -448,7 +454,7 @@ void FM8_MAINIO::update_config()
 	} else {
 		mainmem->write_signal(FM7_MAINIO_IS_BASICROM, 0, 0xffffffff);
 	}
-	mainmem->write_signal(FM7_MAINIO_PUSH_FD0F, (config.boot_mode == 0) ? 1 : 0, 0x01);
+	mainmem->write_signal(FM7_MAINIO_PUSH_FD0F, ((config.boot_mode & 3) == 0) ? 1 : 0, 0x01);
 	mainmem->write_signal(FM7_MAINIO_BOOTMODE, bootmode, 0xffffffff);
 }
 
