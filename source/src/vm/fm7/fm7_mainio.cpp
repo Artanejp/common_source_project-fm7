@@ -216,7 +216,7 @@ void FM7_MAINIO::initialize()
 #else
 	bootmode = config.boot_mode & 3;
 #endif
-#if defined(_FM8) || defined(_FM77_VARIANTS)
+#if defined(HAS_2HD)
 	event_2hd_nmi = -1;
 	nmi_delay = 300;
 #endif
