@@ -682,7 +682,7 @@ void VM::connect_bus(void)
 		for(int i = 0; i < 2; i++) {
 			fdc_2HD->set_drive_type(i, DRIVE_TYPE_2HD);
 			fdc_2HD->set_drive_mfm(i, true);
-			fdc_2HD->set_drive_rpm(i, 360);
+			fdc_2HD->set_drive_rpm(i, 300);
 		}
 	}
 #endif	

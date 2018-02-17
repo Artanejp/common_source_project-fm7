@@ -39,7 +39,7 @@ void FM7_MAINIO::reset_fdc_2HD(void)
 	fdc_2HD_sectreg = fdc_2HD->read_io8(2);
 	fdc_2HD_datareg = fdc_2HD->read_io8(3);
 	fdc_2HD_headreg = 0xfe | fdc_2HD->read_signal(SIG_MB8877_SIDEREG);
-	fdc_2HD_drvsel = 0x7c | fdc_2HD->read_signal(SIG_MB8877_DRIVEREG);
+	fdc_2HD_drvsel = 0x7c | (fdc_2HD->read_signal(SIG_MB8877_DRIVEREG) & 0x03);
 	irqreg_fdc_2HD = 0x00; //0b00000000;
 	//fdc_2HD_motor = (fdc_2HD->read_signal(SIG_MB8877_MOTOR) != 0);
 	fdc_2HD_motor = false;
@@ -165,7 +165,7 @@ uint8_t FM7_MAINIO::get_fdc_data_2HD(void)
 uint8_t FM7_MAINIO::get_fdc_motor_2HD(void)
 {
 #if defined(HAS_2HD)
-	uint8_t val = 0x3c; //0b01111100;
+	uint8_t val = 0x7c; //0b01111100;
 	if(!(connect_fdc_2HD) || (fdc_2HD == NULL)) return 0xff;
 	fdc_2HD_motor = (fdc_2HD->read_signal(SIG_MB8877_MOTOR) != 0) ? true : false;
 	fdc_2HD_motor = fdc_2HD_motor & (fdc_2HD->get_drive_type(fdc_2HD_drvsel & 3) != DRIVE_TYPE_UNK);
@@ -246,20 +246,31 @@ void FM7_MAINIO::set_fdc_fd1e_2HD(uint8_t val)
 void FM7_MAINIO::set_irq_mfd_2HD(bool flag)
 {
 #if defined(HAS_2HD)
+	bool backup = irqstat_fdc_2hd;
 	if(!(connect_fdc_2HD) || (fdc_2HD == NULL)) return;
 	if(flag) {
 		irqreg_fdc_2HD |= 0x40; //0b01000000;
 	} else {
 		irqreg_fdc_2HD &= 0xbf; //0b10111111;
 	}
-#  if defined(_FM8) || defined(_FM77_VARIANTS)
 	if(intmode_fdc) { // Temporally implement.
-		double t;
-		if(event_2hd_nmi >= 0) cancel_event(this, event_2hd_nmi);
-		t = (double)nmi_delay;
-		register_event(this, EVENT_FD_NMI_2HD, t, false, &event_2hd_nmi);
+		if(flag) {
+#if 0			
+			double t;
+			if(event_2hd_nmi >= 0) cancel_event(this, event_2hd_nmi);
+			t = (double)nmi_delay;
+			register_event(this, EVENT_FD_NMI_2HD, t, false, &event_2hd_nmi);
+			irqstat_fdc_2hd = flag;
+#else
+			do_nmi(true);
+#endif
+		} else {
+			//event_2hd_nmi = -1;
+		}
+	} else {
+		irqstat_fdc_2hd = flag & !irqmask_mfd;
+		if(backup != irqstat_fdc_2hd) do_irq();
 	}
-#  endif
 #endif
 	return;
 	
@@ -274,9 +285,12 @@ void FM7_MAINIO::set_drq_mfd_2HD(bool flag)
 	} else {
 		irqreg_fdc_2HD &= 0x7f; //0b01111111;
 	}
-#if defined(_FM8) || defined(_FM77_VARIANTS)
-	if(intmode_fdc) do_firq();
-#endif
+	if(intmode_fdc) {
+		//if(drqstat_fdc_2hd != flag) {
+			drqstat_fdc_2hd = flag;
+			do_firq();
+			//}
+	}
 # if defined(HAS_DMA)
 	if((dmac->read_signal(HD6844_IS_TRANSFER_0) != 0) && (flag)) {
 		dmac->write_signal(HD6844_DO_TRANSFER, 0x0, 0xffffffff);

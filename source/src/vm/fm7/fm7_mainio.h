@@ -41,7 +41,7 @@ class FM7_MAINIO : public DEVICE {
 	int event_timerirq;  
 	int event_fdc_motor;
 	int event_fdc_motor_2HD;
-#if defined(_FM77_VARIANTS)	|| defined(_FM8)
+#if defined(HAS_2HD)
 	int event_2hd_nmi;
 #endif	
 	outputs_t clock_status;
@@ -112,10 +112,10 @@ class FM7_MAINIO : public DEVICE {
 	bool stat_400linecard;//  R/W : bit4, '0' = connected. FM-77 Only.
 	//bool stat_400linemode; // R/W : bit3, '0' = 400line, '1' = 200line.
 #endif
-#if defined(_FM77_VARIANTS)	|| defined(_FM8)
-	uint32_t nmi_delay;
-#endif	
 #if defined(HAS_2HD)
+	uint32_t nmi_delay;
+	bool drqstat_fdc_2hd;
+	bool irqstat_fdc_2hd;
 	bool stat_fdmode_2hd; //  R/W : bit6, '0' = 2HD, '1' = 2DD. FM-77 Only.
 #endif	
 	bool firq_break_key; // bit1, ON = '0'.

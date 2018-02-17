@@ -573,6 +573,7 @@ uint32_t MB8877::read_io8(uint32_t addr)
 //#endif
 			}
 		}
+
 		if(cmdtype == 0 && !(status & FDC_ST_NOTREADY)) {
 			// MZ-2000 HuBASIC invites NOT READY status
 			if(++no_command == 16) {
@@ -581,6 +582,7 @@ uint32_t MB8877::read_io8(uint32_t addr)
 		} else {
 			no_command = 0;
 		}
+
 		// reset irq/drq
 		if(!(status & FDC_ST_DRQ)) {
 			set_drq(false);
