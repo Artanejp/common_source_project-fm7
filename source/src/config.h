@@ -206,6 +206,7 @@ typedef struct {
 	#endif
 
 #if defined(_USE_QT)
+	bool use_separate_thread_draw;
 	bool use_opengl_scanline;
 	bool opengl_scanline_vert;
 	bool opengl_scanline_horiz;

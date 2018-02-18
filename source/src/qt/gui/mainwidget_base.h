@@ -156,6 +156,7 @@ private:
 	// Screen
 	QActionGroup *actionGroup_Stretch;
 	QActionGroup *actionGroup_SetRenderPlatform;
+	class Action_Control *action_ScreenSeparateThread;
 	class Action_Control *actionZoom;
 	class Action_Control *actionDisplay_Mode;
 	class Action_Control *actionScanLine;
@@ -643,6 +644,7 @@ public slots:
 
 	void do_set_emulate_cursor_as(int num);
 	void do_set_logging_fdc(bool onoff);	
+	void do_set_separate_thread_draw(bool f);
 signals:
 	int message_changed(QString);
 	int quit_emu_thread();

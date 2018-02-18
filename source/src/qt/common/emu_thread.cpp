@@ -294,7 +294,9 @@ void EmuThreadClass::doWork(const QString &params)
 	//uint32_t key_mod_old = 0xffffffff;
 	int no_draw_count = 0;	
 	bool prevRecordReq = false;
-
+	double nr_fps = -1.0;
+	bool multithread_draw = using_flags->get_config_ptr()->use_separate_thread_draw;
+	
 	doing_debug_command = false;
 	ctext.clear();
 //	draw_timing = false;
@@ -464,6 +466,12 @@ void EmuThreadClass::doWork(const QString &params)
 					}
 				}
 			}
+			if(multithread_draw) {
+				if(nr_fps < 0.0) {
+					nr_fps = emu->get_frame_rate();
+					if(nr_fps >= 1.0) emit sig_set_draw_fps(nr_fps);
+				}
+			}
 			run_frames = p_emu->run();
 			total_frames += run_frames;
 #if defined(USE_MINIMUM_RENDERING)
@@ -521,7 +529,18 @@ void EmuThreadClass::doWork(const QString &params)
 					no_draw_count = 0;
 					//emit sig_draw_thread(true);
 				}
-				emit sig_draw_thread(req_draw);
+				{
+					double nd;
+					nd = emu->get_frame_rate();
+					if(nr_fps != nd) emit sig_set_draw_fps(nd);
+					nr_fps = nd;
+				}
+				if(multithread_draw) {
+					emit sig_draw_thread(req_draw);
+				} else {
+					emit sig_draw_thread(req_draw);
+					emit sig_draw_one_turn(true);
+				}
 				skip_frames = 0;
 			
 				// sleep 1 frame priod if need
@@ -532,7 +551,18 @@ void EmuThreadClass::doWork(const QString &params)
 			} else if(++skip_frames > MAX_SKIP_FRAMES) {
 				// update window at least once per 10 frames
 //				draw_timing = false;
-				emit sig_draw_thread(true);
+				{
+					double nd;
+					nd = emu->get_frame_rate();
+					if(nr_fps != nd) emit sig_set_draw_fps(nd);
+					nr_fps = nd;
+				}
+				if(multithread_draw) {
+					emit sig_draw_thread(req_draw);
+				} else {
+					emit sig_draw_thread(req_draw);
+					emit sig_draw_one_turn(true);
+				}
 				no_draw_count = 0;
 				skip_frames = 0;
 				qint64 tt = tick_timer.elapsed();

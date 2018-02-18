@@ -276,8 +276,16 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(hRunEmu, SIGNAL(window_title_changed(QString)), this, SLOT(do_set_window_title(QString)));
 	connect(hDrawEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
 	connect(actionCapture_Screen, SIGNAL(triggered()), glv, SLOT(do_save_frame_screen()));
-		
-	connect(hRunEmu, SIGNAL(sig_draw_thread(bool)), hDrawEmu, SLOT(doDraw(bool)), Qt::QueuedConnection);
+
+	if(using_flags->get_config_ptr()->use_separate_thread_draw) {
+		connect(hRunEmu, SIGNAL(sig_draw_thread(bool)), hDrawEmu, SLOT(doDraw(bool)), Qt::QueuedConnection);
+		connect(hRunEmu, SIGNAL(sig_set_draw_fps(double)), hDrawEmu, SLOT(do_set_frames_per_second(double)), Qt::QueuedConnection);
+		connect(hRunEmu, SIGNAL(sig_draw_one_turn(bool)), hDrawEmu, SLOT(do_draw_one_turn(bool)), Qt::QueuedConnection);
+	} else {
+		connect(hRunEmu, SIGNAL(sig_draw_thread(bool)), hDrawEmu, SLOT(doDraw(bool)));
+		connect(hRunEmu, SIGNAL(sig_set_draw_fps(double)), hDrawEmu, SLOT(do_set_frames_per_second(double)));
+		connect(hRunEmu, SIGNAL(sig_draw_one_turn(bool)), hDrawEmu, SLOT(do_draw_one_turn(bool)));
+	}
 	//connect(hRunEmu, SIGNAL(sig_draw_thread(bool)), emu->get_osd(), SLOT(do_draw(bool)));
 	//connect(hRunEmu, SIGNAL(quit_draw_thread()), hDrawEmu, SLOT(doExit()));
 	connect(this, SIGNAL(quit_draw_thread()), hDrawEmu, SLOT(doExit()));
@@ -307,7 +315,9 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(hRunEmu, SIGNAL(sig_finished()), this, SLOT(delete_emu_thread()));
 	objNameStr = QString("EmuDrawThread");
 	hDrawEmu->setObjectName(objNameStr);
-	hDrawEmu->start();
+
+	if(using_flags->get_config_ptr()->use_separate_thread_draw) hDrawEmu->start();
+
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "DrawThread : Launch done.");
 
 	hSaveMovieThread = new MOVIE_SAVER(640, 400,  30, emu->get_osd(), using_flags->get_config_ptr());

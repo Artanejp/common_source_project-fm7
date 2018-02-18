@@ -44,8 +44,10 @@ DrawThreadClass::DrawThreadClass(OSD *o, CSP_Logger *logger,QObject *parent) : Q
 	rec_frame_width = 640;
 	rec_frame_height = 480;
 	rec_frame_count = -1;
-
-	bDrawReq = false;
+	emu_frame_rate = 1000.0 / 30.0;
+	wait_count = emu_frame_rate;
+	wait_refresh = emu_frame_rate;
+	bDrawReq = true;
 }
 
 DrawThreadClass::~DrawThreadClass()
@@ -58,6 +60,12 @@ void DrawThreadClass::SetEmu(EMU *p)
 	p_osd = p->get_osd();
 }
 
+void DrawThreadClass::do_set_frames_per_second(double fps)
+{
+	double _n = 1000.0 / (fps * 2.0);
+	emu_frame_rate = _n;
+	wait_count += (_n * 1.0);
+}
 
 void DrawThreadClass::doDraw(bool flag)
 {
@@ -77,31 +85,39 @@ void DrawThreadClass::doExit(void)
 	bRunThread = false;
 }
 
+void DrawThreadClass::do_draw_one_turn(bool _req_draw)
+{
+	if((_req_draw) && (draw_screen_buffer != NULL)) {
+		emit sig_update_screen(draw_screen_buffer);
+	} else {
+		if(ncount == 0) emit sig_update_osd();
+	}
+	ncount++;
+	if(ncount >= 8) ncount = 0; 
+	if(rec_frame_count > 0) {
+		emit sig_push_frames_to_avio(rec_frame_count,
+									 rec_frame_width, rec_frame_height);
+		rec_frame_count = -1;
+	}
+}
+
 void DrawThreadClass::doWork(const QString &param)
 {
-	int ncount = 0;
+	ncount = 0;
 	bRunThread = true;
+	double _rate = 1000.0 / 30.0;
+	bDrawReq = false;
 	do {
-		if(bDrawReq) {
-			if(draw_screen_buffer != NULL) {
-				bDrawReq = false;
-				emit sig_update_screen(draw_screen_buffer);
-			} else {
-				if(ncount == 0) emit sig_update_osd();
-			}
-		} else {
-			if(ncount == 0) emit sig_update_osd();
+		_rate = (wait_refresh < emu_frame_rate) ? emu_frame_rate : wait_refresh;
+		do_draw_one_turn(bDrawReq);
+		if((bDrawReq) && (draw_screen_buffer != NULL)) {
+			bDrawReq = false;
 		}
-		ncount++;
-		if(ncount >= 8) ncount = 0; 
-		if(rec_frame_count > 0) {
-			emit sig_push_frames_to_avio(rec_frame_count,
-										 rec_frame_width, rec_frame_height);
-			rec_frame_count = -1;
-		}
-		if(wait_count < 1.0f) {
-			msleep(1);
-			wait_count = wait_count + wait_refresh - 1.0f;
+		if(wait_count <= 0.0f) {
+			wait_count = wait_count + _rate;
+		} else if(wait_count < 5.0) {
+			msleep(5);
+			wait_count = wait_count + _rate - 5.0;
 		} else {
 			wait_factor = (int)wait_count;
 			msleep(wait_factor);
@@ -116,8 +132,8 @@ void DrawThreadClass::doWork(const QString &param)
 void DrawThreadClass::do_change_refresh_rate(qreal rate)
 {
 	refresh_rate = rate;	
-	wait_refresh = 1000.0f / (refresh_rate * 4.0);
-	wait_count = wait_refresh * 1.0;
+	wait_refresh = 1000.0 / (refresh_rate * 2.0);
+	wait_count += (wait_refresh * 1.0);
 }
 
 void DrawThreadClass::do_update_screen(bitmap_t *p)

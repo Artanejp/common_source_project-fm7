@@ -113,6 +113,11 @@ void Ui_MainWindowBase::set_gl_scan_line_vert(bool f)
 	using_flags->get_config_ptr()->opengl_scanline_vert = f;
 }
 
+void Ui_MainWindowBase::do_set_separate_thread_draw(bool f)
+{
+	using_flags->get_config_ptr()->use_separate_thread_draw = f;
+}
+
 void Ui_MainWindowBase::set_gl_scan_line_horiz(bool f)
 {
 	using_flags->get_config_ptr()->opengl_scanline_horiz = f;
@@ -162,6 +167,8 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 	actionDisplay_Mode = new Action_Control(this, using_flags);
 	actionDisplay_Mode->setObjectName(QString::fromUtf8("actionDisplay_Mode"));
 	
+	SET_ACTION_SINGLE(action_ScreenSeparateThread, true, true, (using_flags->get_config_ptr()->use_separate_thread_draw));
+	connect(action_ScreenSeparateThread, SIGNAL(toggled(bool)), this, SLOT(do_set_separate_thread_draw(bool)));
 	if(using_flags->is_use_scanline()) {
 		actionScanLine = new Action_Control(this, using_flags);
 		actionScanLine->setObjectName(QString::fromUtf8("actionScanLine"));
@@ -317,6 +324,8 @@ void Ui_MainWindowBase::CreateScreenMenu(void)
 		menuStretch_Mode = new QMenu(menuScreen);
 		menuStretch_Mode->setObjectName(QString::fromUtf8("menuStretch_Mode"));
 	}
+	menuScreen->addAction(action_ScreenSeparateThread);
+	menuScreen->addSeparator();
 	bool b_support_tv_render = using_flags->is_support_tv_render();
 	if(b_support_tv_render) {
 		menuScreen_Render = new QMenu(menuScreen);
@@ -326,10 +335,10 @@ void Ui_MainWindowBase::CreateScreenMenu(void)
 			menuScreen_Render->addAction(action_SetRenderMode[CONFIG_RENDER_TYPE_TV]);
 		}
 		menuScreen->addAction(menuScreen_Render->menuAction());
+		menuScreen->addSeparator();
 	}
 	menuScreenSize = new QMenu(menuScreen);
 	menuScreenSize->setObjectName(QString::fromUtf8("menuScreen_Size"));
-	menuScreen->addSeparator();
 	menuRecord_as_movie = new QMenu(menuScreen);
 	menuRecord_as_movie->setObjectName(QString::fromUtf8("menuRecord_as_movie"));
 
@@ -380,7 +389,10 @@ void Ui_MainWindowBase::retranslateScreenMenu(void)
 	QString tmps;
 	actionZoom->setText(QApplication::translate("MenuScreen", "Zoom Screen", 0));
 	actionDisplay_Mode->setText(QApplication::translate("MenuScreen", "Display Mode", 0));
-
+	
+	action_ScreenSeparateThread->setText(QApplication::translate("MenuScreen", "Separate Draw (need restart)", 0));
+	action_ScreenSeparateThread->setToolTip(QApplication::translate("MenuScreen", "Do drawing(rendering) sequence to separate thread.\nIf you feels emulator is slowly at your host-machine, disable this.\nYou should restart this emulator when changed.", 0));
+	
 	if(using_flags->is_use_scanline()) {
 		actionScanLine->setText(QApplication::translate("MenuScreen", "Software Scan Line", 0));
 		actionScanLine->setToolTip(QApplication::translate("MenuScreen", "Display scan line by software.", 0));

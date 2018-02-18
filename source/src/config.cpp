@@ -154,6 +154,12 @@ void initialize_config()
 	
 	// qt
 	#ifdef _USE_QT
+		#if defined(_WIN32) || defined(_WIN64) || defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
+		config.use_separate_thread_draw = false;
+		#else
+		config.use_separate_thread_draw = true;
+		#endif
+		
 		config.render_platform = CONFIG_RENDER_PLATFORM_OPENGL_MAIN;
 		config.render_major_version = 2; // For crash with some devices.
 		config.render_minor_version = 1;
@@ -407,6 +413,7 @@ void load_config(const _TCHAR *config_path)
 	
 	// qt
 	#ifdef _USE_QT
+		config.use_separate_thread_draw = MyGetPrivateProfileBool(_T("Qt"), _T("UseSeparateThreadDraw"), config.use_separate_thread_draw, config_path);
 		config.use_opengl_scanline = MyGetPrivateProfileBool(_T("Qt"), _T("UseOpenGLScanLine"), config.use_opengl_scanline, config_path);
 		config.opengl_scanline_vert = MyGetPrivateProfileBool(_T("Qt"), _T("OpenGLScanLineVert"), config.opengl_scanline_vert, config_path);;
 		config.opengl_scanline_horiz = MyGetPrivateProfileBool(_T("Qt"), _T("OpenGLScanLineHoriz"), config.opengl_scanline_horiz, config_path);;
@@ -731,6 +738,7 @@ void save_config(const _TCHAR *config_path)
 		MyWritePrivateProfileBool(_T("Win32"), _T("ShowStatusBar"), config.show_status_bar, config_path);
 	#endif
 	#ifdef _USE_QT
+		MyWritePrivateProfileBool(_T("Qt"), _T("UseSeparateThreadDraw"), config.use_separate_thread_draw, config_path);
 		MyWritePrivateProfileBool(_T("Qt"), _T("UseOpenGLScanLine"), config.use_opengl_scanline, config_path);
 		MyWritePrivateProfileBool(_T("Qt"), _T("OpenGLScanLineVert"), config.opengl_scanline_vert, config_path);;
 		MyWritePrivateProfileBool(_T("Qt"), _T("OpenGLScanLineHoriz"), config.opengl_scanline_horiz, config_path);;

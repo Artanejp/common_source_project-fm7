@@ -46,6 +46,8 @@ class DLL_PREFIX DrawThreadClass : public QThread {
 	bool bDrawReq;
 	bitmap_t *draw_screen_buffer;
 	CSP_Logger *csp_logger;
+	int ncount;
+	double emu_frame_rate;
  public:
 	DrawThreadClass(OSD *o, CSP_Logger *logger, QObject *parent = 0);
 	~DrawThreadClass();
@@ -58,6 +60,8 @@ public slots:
 	void do_change_refresh_rate(qreal rate);
 	void do_update_screen(bitmap_t *p);
 	void do_req_encueue_video(int count, int width, int height);
+	void do_draw_one_turn(bool _req_draw);
+	void do_set_frames_per_second(double fps);
 signals:
 	int sig_draw_frames(int);
 	int message_changed(QString);

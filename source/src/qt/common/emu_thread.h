@@ -98,6 +98,9 @@ public slots:
 	void do_stop_auto_key(void);
 
 	void do_close_debugger(void);
+signals:
+	int sig_set_draw_fps(double);
+	int sig_draw_one_turn(bool);
 };
 
 QT_END_NAMESPACE
