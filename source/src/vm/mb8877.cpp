@@ -42,6 +42,8 @@
 #define EVENT_MULTI1			4
 #define EVENT_MULTI2			5
 #define EVENT_LOST				6
+#define EVENT_END_READ_SECTOR   7
+#define EVENT_CRC_ERROR         8
 
 //#define DRIVE_MASK		(MAX_DRIVE - 1)
 
@@ -56,6 +58,13 @@ void MB8877::cancel_my_event(int event)
 		cancel_event(this, register_id[event]);
 		register_id[event] = -1;
 	}
+}
+
+bool MB8877::register_my_event_with_check(int event, double usec)
+{
+	if(register_id[event] >= 0) return false;
+	register_my_event(event, usec);
+	return true;
 }
 
 void MB8877::register_my_event(int event, double usec)
@@ -645,6 +654,7 @@ uint32_t MB8877::read_io8(uint32_t addr)
 
 					if(disk[drvreg]->data_crc_error && !disk[drvreg]->ignore_crc()) {
 						// data crc error
+#if 0
 //#ifdef _FDC_DEBUG_LOG
 						if(fdc_debug_log) this->out_debug_log(_T("FDC\tEND OF SECTOR (DATA CRC ERROR)\n"));
 //#endif
@@ -652,14 +662,21 @@ uint32_t MB8877::read_io8(uint32_t addr)
 						status &= ~FDC_ST_BUSY;
 						cmdtype = 0;
 						set_irq(true);
+#else
+						register_my_event_with_check(EVENT_CRC_ERROR, disk[drvreg]->get_usec_per_bytes(3));
+#endif
 					} else if(cmdtype == FDC_CMD_RD_SEC) {
 						// single sector
+#if 0
 //#ifdef _FDC_DEBUG_LOG
 						if(fdc_debug_log) this->out_debug_log(_T("FDC\tEND OF SECTOR\n"));
 //#endif
 						status &= ~FDC_ST_BUSY;
 						cmdtype = 0;
 						set_irq(true);
+#else
+						register_my_event_with_check(EVENT_END_READ_SECTOR, disk[drvreg]->get_usec_per_bytes(3));
+#endif
 					} else {
 						// multisector
 //#ifdef _FDC_DEBUG_LOG
@@ -949,6 +966,23 @@ void MB8877::event_callback(int event_id, int err)
 		} else if(cmdtype == FDC_CMD_WR_MSEC) {
 			cmd_writedata(false);
 		}
+		break;
+	case EVENT_CRC_ERROR:
+		//#ifdef _FDC_DEBUG_LOG
+		if(fdc_debug_log) this->out_debug_log(_T("FDC\tEND OF SECTOR (DATA CRC ERROR)\n"));
+//#endif
+		status |= FDC_ST_CRCERR;
+		status &= ~FDC_ST_BUSY;
+		cmdtype = 0;
+		set_irq(true);
+		break;
+	case EVENT_END_READ_SECTOR:
+//#ifdef _FDC_DEBUG_LOG
+		if(fdc_debug_log) this->out_debug_log(_T("FDC\tEND OF SECTOR\n"));
+//#endif
+		status &= ~FDC_ST_BUSY;
+		cmdtype = 0;
+		set_irq(true);
 		break;
 	case EVENT_LOST:
 		if(status & FDC_ST_BUSY) {
@@ -1972,7 +2006,7 @@ void MB8877::update_config()
 	fdc_debug_log = config.special_debug_fdc;
 }
 
-#define STATE_VERSION	6
+#define STATE_VERSION	7
 
 void MB8877::save_state(FILEIO* state_fio)
 {

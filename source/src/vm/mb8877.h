@@ -69,10 +69,11 @@ private:
 	uint8_t cmdtype;
 	
 	// event
-	int register_id[8];
+	int register_id[10];
 	
 	void cancel_my_event(int event);
 	void register_my_event(int event, double usec);
+	bool register_my_event_with_check(int event, double usec);
 	void register_seek_event();
 	void register_drq_event(int bytes);
 	void register_lost_event(int bytes);
