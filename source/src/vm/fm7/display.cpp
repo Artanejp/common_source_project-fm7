@@ -2985,8 +2985,8 @@ void DISPLAY::initialize()
 	
 	palette_changed = true;
 #if !defined(_FM77AV_VARIANTS) && !defined(_FM77L4)
-	//register_vline_event(this);
-	//register_frame_event(this);
+	register_vline_event(this);
+	register_frame_event(this);
 #endif	
 	setup_display_mode();
 }

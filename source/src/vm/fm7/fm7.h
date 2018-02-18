@@ -239,7 +239,7 @@
 // device informations for virtual machine
 
 // TODO: check refresh rate
-#define FRAMES_PER_SEC		59.94
+#define FRAMES_PER_SEC		60.00
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77L4)
 #define LINES_PER_FRAME 	400
 #else
