@@ -184,7 +184,6 @@ void Object_Menu_Control_7::do_set_cyclesteal(bool flag)
 }
 #endif
 
-#if defined(_FM77AV_VARIANTS)
 void Object_Menu_Control_7::do_set_hsync(bool flag)
 {
 	if(flag) {
@@ -193,7 +192,6 @@ void Object_Menu_Control_7::do_set_hsync(bool flag)
 		config.dipswitch = config.dipswitch & ~FM7_DIPSW_SYNC_TO_HSYNC;
 	}
 }
-#endif
 
 void Action_Control_7::do_set_frameskip()
 {
@@ -351,10 +349,10 @@ void META_MainWindow::retranslateUi(void)
 	actionFrameSkip[1]->setText(QApplication::translate("Machine", "1 Frame", 0));
 	actionFrameSkip[2]->setText(QApplication::translate("Machine", "2 Frames", 0));
 	actionFrameSkip[3]->setText(QApplication::translate("Machine", "3 Frames", 0));
-#if defined(_FM77AV_VARIANTS)
+
 	actionSyncToHsync->setText(QApplication::translate("Machine", "Sync to HSYNC", 0));
 	actionSyncToHsync->setToolTip(QApplication::translate("Machine", "Emulate display syncing to HSYNC.\nExpect to emulate more accurate.", 0));
-#endif	
+
 #if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS) || defined(_FM8)
 	menuCpuType->setTitle(QApplication::translate("Machine", "CPU Frequency (hack)", 0));
 #else
@@ -752,7 +750,6 @@ void META_MainWindow::setupUI_Emu(void)
 	connect(actionCycleSteal->fm7_binds, SIGNAL(sig_emu_update_config()),
 			this, SLOT(do_emu_update_config()));
 #endif	
-#if defined(_FM77AV_VARIANTS)	
 	actionSyncToHsync = new Action_Control_7(this, using_flags);	
 	menuMachine->addAction(actionSyncToHsync);
 	actionSyncToHsync->setCheckable(true);
@@ -760,7 +757,7 @@ void META_MainWindow::setupUI_Emu(void)
 	if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) != 0) actionSyncToHsync->setChecked(true);
 	connect(actionSyncToHsync, SIGNAL(toggled(bool)),
 			actionSyncToHsync->fm7_binds, SLOT(do_set_hsync(bool)));
-#endif
+
 #if defined(CAPABLE_DICTROM) && !defined(_FM77AV40EX) && !defined(_FM77AV40SX)
 	actionDictCard = new Action_Control_7(this, using_flags);
 	menuMachine->addAction(actionDictCard);

@@ -26,9 +26,9 @@ public slots:
 	void do_set_z80_firq(bool flag);
 	void do_set_z80_nmi(bool flag);
 # endif	
-# if defined(_FM77AV_VARIANTS)   
+
 	void do_set_hsync(bool flag);
-# endif
+
 # if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
 	void do_set_kanji_rom(bool flag);
 	void do_set_320kFloppy(bool flag);
@@ -83,9 +83,9 @@ protected:
 # else	
 	class Action_Control_7 *actionCycleSteal;
 # endif  
-# if defined(_FM77AV_VARIANTS)   
+
 	class Action_Control_7 *actionSyncToHsync;
-# endif
+
 #if defined(CAPABLE_DICTROM) && !defined(_FM77AV40EX) && !defined(_FM77AV40SX)
 	class Action_Control_7 *actionDictCard;
 #endif
