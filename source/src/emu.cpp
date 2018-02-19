@@ -98,17 +98,6 @@ EMU::EMU()
 # if defined(_USE_QT)
 	osd->reset_vm_node();
 # endif	
-	// Below is temporally workaround. I will fix ASAP (or give up): 20160311 K.Ohta
-	// Problems seem to be resolved. See fm7.cpp. 20160319 K.Ohta
-	// Still not resolved with FM-7/77 :-( 20160407 K.Ohta
-#if defined(_FM7) || defined(_FMNEW7) || defined(_FM8) || \
-	defined(_FM77_VARIANTS)
-	//delete vm;
-	//osd->vm = vm = new VM(this);
-# if defined(_USE_QT)
-	//osd->reset_vm_node();
-# endif	
-#endif
 #ifdef USE_AUTO_KEY
 	initialize_auto_key();
 #endif
@@ -269,9 +258,6 @@ void EMU::reset()
 		sound_rate = sound_frequency_table[config.sound_frequency];
 		sound_samples = (int)(sound_rate * sound_latency_table[config.sound_latency] + 0.5);
 		vm->initialize_sound(sound_rate, sound_samples);
-# if defined(_USE_QT)
-		osd->reset_vm_node();
-# endif	
 #ifdef USE_SOUND_VOLUME
 		for(int i = 0; i < USE_SOUND_VOLUME; i++) {
 			vm->set_sound_device_volume(i, config.sound_volume_l[i], config.sound_volume_r[i]);
