@@ -1,3 +1,15 @@
+commit ad6170e0efcec0e5b3b19a4fdf57505708583bc6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 16 06:05:31 2018 +0900
+
+    [DOC] Update documents, more.
+
+commit c6d8207dde48fe847e6064b0f5f00bce82ebf81a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 16 05:46:35 2018 +0900
+
+    [DOC] Update gitlog.
+
 commit bc517f5638b4f5612cc075e0f4d9278220eab4fc
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Fri Feb 16 05:46:06 2018 +0900
