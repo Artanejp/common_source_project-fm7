@@ -134,14 +134,14 @@ protected:
 	// Event handler
 	int nmi_event_id;
 
-#if defined(_FM77AV_VARIANTS) || defined(_FM77L4)
+//#if defined(_FM77AV_VARIANTS) || defined(_FM77L4)
 	int hblank_event_id;
 	int hdisp_event_id;
 	int vsync_event_id;
 	int vstart_event_id;
 
 	int vblank_count;
-#endif
+//#endif
 #if defined(_FM77AV_VARIANTS)
 	bool subcpu_resetreq;
 	bool power_on_reset;
@@ -151,6 +151,9 @@ protected:
 	DEVICE *ins_led;
 	DEVICE *kana_led;
 	DEVICE *caps_led;
+	
+	int8_t display_page;
+	int8_t display_page_bak;
 #if defined(_FM77_VARIANTS)
 # if defined(_FM77L4)
 	bool mode400line;
@@ -167,8 +170,6 @@ protected:
 	bool mode256k;
 # endif
 	bool mode320;
-	int8_t display_page;
-	int8_t display_page_bak;
 	int cgrom_bank;
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)|| \
     defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
@@ -195,6 +196,7 @@ protected:
 	bool diag_load_subrom_c;
 
 	scrntype_t dpalette_pixel[8];
+	scrntype_t dpalette_pixel_tmp[8];
 	uint8_t dpalette_data[8];
 #if defined(_FM77AV_VARIANTS)
 	pair_t apalette_index;
@@ -202,6 +204,7 @@ protected:
 	uint8_t analog_palette_g[4096];
 	uint8_t analog_palette_b[4096];
 	scrntype_t analog_palette_pixel[4096];
+	scrntype_t analog_palette_pixel_tmp[4096];
 #endif // FM77AV etc...
 #if defined(_FM77AV_VARIANTS)
 	uint8_t io_w_latch[0x40];
@@ -321,12 +324,12 @@ protected:
 	uint32_t read_bios(const _TCHAR *name, uint8_t *ptr, uint32_t size);
 	void draw_screen2();
 
-#if defined(_FM77AV_VARIANTS) || defined(_FM77L4)
+//#if defined(_FM77AV_VARIANTS) || defined(_FM77L4)
 	void event_callback_vstart(void);
 	void event_callback_vsync(void);
 	void event_callback_hdisp(void);
 	void event_callback_hblank(void);
-#endif	
+//#endif	
   public:
 	DISPLAY(VM *parent_vm, EMU *parent_emu);
 	~DISPLAY();

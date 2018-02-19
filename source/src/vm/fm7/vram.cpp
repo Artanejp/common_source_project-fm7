@@ -736,14 +736,14 @@ void DISPLAY::draw_screen2()
 		return;
 	}
 	crt_flag_bak = crt_flag;
-	if(!vram_wrote_shadow && !palette_changed) return;
+	if(!vram_wrote_shadow) return;
 	vram_wrote_shadow = false;
-	if(palette_changed) {
-		for(y = 0; y < 400; y++) {
-			vram_draw_table[y] = true;
-		}
-		palette_changed = false;
-	}
+	//if(palette_changed) {
+	//	for(y = 0; y < 400; y++) {
+	//		vram_draw_table[y] = true;
+	//	}
+	//	palette_changed = false;
+	//}
 	if(display_mode == DISPLAY_MODE_8_200L) {
 		int ii;
 #if 1

@@ -103,7 +103,7 @@ void DISPLAY::reset_some_devices()
 	displine = 0;
 	active_page = 0;
 	
-#if defined(_FM77AV_VARIANTS) || defined(_FM77L4)
+//#if defined(_FM77AV_VARIANTS) || defined(_FM77L4)
 	vsync = true;
 	vblank = true;
 	hblank = false;
@@ -123,15 +123,16 @@ void DISPLAY::reset_some_devices()
 		usec = 0.51 * 1000.0;
 	}
 	//usec = 16.0;
-	register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
+	//register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
 	mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x00, 0xff);
 	mainio->write_signal(SIG_DISPLAY_VSYNC, 0xff, 0xff);
-#endif
+//#endif
+	display_page = 0;
+	display_page_bak = 0;
+
 #if defined(_FM77AV_VARIANTS)
 	offset_77av = false;
 	offset_point_bank1 = 0;
-	display_page = 0;
-	display_page_bak = 0;
 	
 	subcpu_resetreq = false;
 	subrom_bank_using = subrom_bank;
@@ -167,6 +168,7 @@ void DISPLAY::reset_some_devices()
 	alu->write_signal(SIG_ALU_PLANES, 3, 3);
 #endif
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
+	memcpy(dpalette_pixel, dpalette_pixel_tmp, sizeof(dpalette_pixel));
 	//do_firq(!firq_mask && key_firq_req);
 
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
@@ -207,6 +209,7 @@ void DISPLAY::reset()
 		analog_palette_g[i] = (i & 0xf00) >> 4;
 		analog_palette_b[i] = (i & 0x00f) << 4;
 		calc_apalette(i);
+		memcpy(analog_palette_pixel, analog_palette_pixel_tmp, sizeof(analog_palette_pixel));
 	}
    	subrom_bank = 0;
 	cgrom_bank = 0;
@@ -241,6 +244,7 @@ void DISPLAY::reset()
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
 # endif
 #endif	
+	memcpy(dpalette_pixel, dpalette_pixel_tmp, sizeof(dpalette_pixel));
 	//enter_display();
 	
 	if(nmi_event_id >= 0) cancel_event(this, nmi_event_id);
@@ -394,7 +398,7 @@ void DISPLAY::set_dpalette(uint32_t addr, uint8_t val)
 	r =  ((val & 0x02) != 0x00)? 255 : 0x00;
 	g =  ((val & 0x04) != 0x00)? 255 : 0x00;
 	
-	dpalette_pixel[addr] = RGB_COLOR(r, g, b);
+	dpalette_pixel_tmp[addr] = RGB_COLOR(r, g, b);
 	palette_changed = true;
 }
 
@@ -744,7 +748,7 @@ void DISPLAY::calc_apalette(uint16_t idx)
 	if(g != 0) g |= 0x0f; 
 	if(r != 0) r |= 0x0f; 
 	if(b != 0) b |= 0x0f; 
-	analog_palette_pixel[idx] = RGB_COLOR(r, g, b);
+	analog_palette_pixel_tmp[idx] = RGB_COLOR(r, g, b);
 }
 
 // FD32
@@ -1160,7 +1164,7 @@ void DISPLAY::copy_vram_all()
 }
 
 // Timing values from XM7 . Thanks Ryu.
-#if defined(_FM77AV_VARIANTS) || defined(_FM77L4)
+//#if defined(_FM77AV_VARIANTS) || defined(_FM77L4)
 void DISPLAY::event_callback_hdisp(void)
 {
 	bool f = false;
@@ -1266,6 +1270,7 @@ void DISPLAY::event_callback_vstart(void)
 			usec = 1840.0; // 1846.5
 		}
 		register_event(this, EVENT_FM7SUB_HDISP, usec, false, &hdisp_event_id); // NEXT CYCLE_
+		//register_event(this, EVENT_FM7SUB_HBLANK, usec, false, &hdisp_event_id); // NEXT CYCLE_
 		vblank_count = 0;
 	} else {
 		if(display_mode == DISPLAY_MODE_8_400L) {
@@ -1285,6 +1290,7 @@ void DISPLAY::event_callback_vsync(void)
 	vsync = true;
 	//write_access_page = (write_access_page + 1) & 1;
 	displine = 0;
+	
 	if(display_mode == DISPLAY_MODE_8_400L) {
 		usec = 0.33 * 1000.0; 
 	} else {
@@ -1292,49 +1298,29 @@ void DISPLAY::event_callback_vsync(void)
 	}
 	mainio->write_signal(SIG_DISPLAY_VSYNC, 0x01, 0xff);
 	mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x00, 0xff);
-	register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
+	//register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
 
+	if(palette_changed) {
+#if defined(_FM77AV_VARIANTS)
+		memcpy(analog_palette_pixel, analog_palette_pixel_tmp, sizeof(analog_palette_pixel));
+#endif
+		memcpy(dpalette_pixel, dpalette_pixel_tmp, sizeof(dpalette_pixel));
+		vram_wrote_shadow = true;
+		for(int yy = 0; yy < 400; yy++) {
+			vram_draw_table[yy] = true;
+		}
+		palette_changed = false;
+	}
 	// Transfer on VSYNC
 	if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) == 0) {
 		bool ff = false;
 		int lines = 200;
 		if(display_mode == DISPLAY_MODE_8_400L) lines = 400;
-# if 0
-		if(need_transfer_line) {
-			if(vram_wrote) ff = true;
-			//if(need_transfer_line) ff = true;
-			//}
-			for(displine = 0; displine < lines; displine++) {
-				if(ff) break;
-				for(int iii = 0; iii < 5 ; iii++) {
-					if(vram_wrote_table[iii + displine * 5]) {
-						ff = true;
-						break;
-					}
-				}
-			}
-			displine = 0;
-		}
-		
-		if(ff) {
-			for(int yy = 0; yy < lines; yy++) {
-				if(!vram_draw_table[yy]) {
-					displine = yy;
-					copy_vram_per_line(0, 4);
-					vram_draw_table[yy] = true;
-				}
-			}
-			//copy_vram_all();
-			vram_wrote_shadow = true;
-			screen_update_flag = true;
-			vram_wrote = false;
-		}
-# else
 		if(need_transfer_line) {
 			if(vram_wrote) { // transfer all line
 				for(displine = 0; displine < lines; displine++) {
 					//if(!vram_draw_table[displine]) {
-						copy_vram_per_line(0, 4);
+					copy_vram_per_line(0, 4);
 						//}
 				}
 				vram_wrote = false;
@@ -1375,7 +1361,6 @@ void DISPLAY::event_callback_vsync(void)
 				break;
 			}
 		}
-# endif
 	} else {
 		// TRANSFER per HSYNC a.k.a SYNC-TO-HSYNC.
 		int lines = 200;
@@ -1413,7 +1398,7 @@ void DISPLAY::event_callback_vsync(void)
 	}
 }
 
-#endif
+//#endif
 
 void DISPLAY::event_callback(int event_id, int err)
 {
@@ -1432,7 +1417,7 @@ void DISPLAY::event_callback(int event_id, int err)
   		case EVENT_FM7SUB_DISPLAY_NMI_OFF: // per 20.00ms
 			do_nmi(false);
 			break;
-#if defined(_FM77AV_VARIANTS) || defined(_FM77L4)
+//#if defined(_FM77AV_VARIANTS) || defined(_FM77L4)
 		case EVENT_FM7SUB_HDISP:
 			event_callback_hdisp();
 			break;
@@ -1445,7 +1430,7 @@ void DISPLAY::event_callback(int event_id, int err)
 		case EVENT_FM7SUB_VSYNC:
 			event_callback_vsync();
 			break;
-#endif			
+//#endif			
 		case EVENT_FM7SUB_CLR_BUSY:
 			set_subbusy();
 			break;
@@ -1457,6 +1442,22 @@ void DISPLAY::event_callback(int event_id, int err)
 
 void DISPLAY::event_frame()
 {
+	double usec; 
+	vblank = true;
+	hblank = false;
+	vsync = true;
+	//write_access_page = (write_access_page + 1) & 1;
+	displine = 0;
+	if(display_mode == DISPLAY_MODE_8_400L) {
+		usec = 0.33 * 1000.0; 
+	} else {
+		usec = 0.51 * 1000.0;
+	}
+	mainio->write_signal(SIG_DISPLAY_VSYNC, 0x01, 0xff);
+	mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x00, 0xff);
+	register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
+	vblank_count = 0;
+#if 0
 #if !defined(_FM77AV_VARIANTS) && !defined(_FM77L4)
 	int yy;
 	bool f = false;
@@ -1500,7 +1501,8 @@ void DISPLAY::event_frame()
 		}
 	}
 	
-#endif	
+#endif
+#endif
 }
 
 void DISPLAY::event_vline(int v, int clock)
@@ -2939,14 +2941,17 @@ void DISPLAY::initialize()
 		analog_palette_g[i] = (i & 0xf00) >> 4;
 		analog_palette_b[i] = (i & 0x00f) << 4;
 		calc_apalette(i);
+		memcpy(analog_palette_pixel, analog_palette_pixel_tmp, sizeof(analog_palette_pixel));
 	}
 #endif
-#if defined(_FM77AV_VARIANTS)
+	for(i = 0; i < 8; i++) set_dpalette(i, i);
+	memcpy(dpalette_pixel, dpalette_pixel_tmp, sizeof(dpalette_pixel));
+//#if defined(_FM77AV_VARIANTS)
 	hblank_event_id = -1;
 	hdisp_event_id = -1;
 	vsync_event_id = -1;
 	vstart_event_id = -1;
-#endif
+//#endif
 #if defined(_FM8)
 	clock_fast = false;
 #else
@@ -2984,10 +2989,10 @@ void DISPLAY::initialize()
 #endif
 	
 	palette_changed = true;
-#if !defined(_FM77AV_VARIANTS) && !defined(_FM77L4)
-	register_vline_event(this);
+//#if !defined(_FM77AV_VARIANTS) && !defined(_FM77L4)
+	//register_vline_event(this);
 	register_frame_event(this);
-#endif	
+//#endif	
 	setup_display_mode();
 }
 
@@ -3060,14 +3065,7 @@ void DISPLAY::save_state(FILEIO *state_fio)
 		state_fio->FputBool(kanjisub);
 		state_fio->FputUint16_BE(kanjiaddr.w.l);
 
-		state_fio->FputBool(vblank);
-		state_fio->FputBool(vsync);
-		state_fio->FputBool(hblank);
-		state_fio->FputInt32_BE(vblank_count);
-		
 		state_fio->FputBool(mode320);
-		state_fio->FputInt8(display_page);
-		state_fio->FputInt8(display_page_bak);
 		state_fio->FputInt32_BE(cgrom_bank);
 #if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX) || \
     defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
@@ -3125,14 +3123,22 @@ void DISPLAY::save_state(FILEIO *state_fio)
 	// V2
 	{
 		state_fio->FputInt32_BE(nmi_event_id);
-#if defined(_FM77AV_VARIANTS)
+//#if defined(_FM77AV_VARIANTS)
 		state_fio->FputInt32_BE(hblank_event_id);
 		state_fio->FputInt32_BE(hdisp_event_id);
 		state_fio->FputInt32_BE(vsync_event_id);
 		state_fio->FputInt32_BE(vstart_event_id);
-#endif
+//#endif
 		state_fio->FputBool(firq_mask);
 		state_fio->FputBool(vram_accessflag);
+		
+		state_fio->FputInt8(display_page);
+		state_fio->FputInt8(display_page_bak);
+		
+		state_fio->FputBool(vblank);
+		state_fio->FputBool(vsync);
+		state_fio->FputBool(hblank);
+		state_fio->FputInt32_BE(vblank_count);
 	}			
 }
 
@@ -3176,6 +3182,8 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 #else
 		state_fio->Fread(dpalette_data, sizeof(dpalette_data), 1);
 		for(addr = 0; addr < 8; addr++) set_dpalette(addr, dpalette_data[addr]);
+		memcpy(dpalette_pixel, dpalette_pixel_tmp, sizeof(dpalette_pixel));
+
 		multimode_accessmask = state_fio->FgetUint8();
 		multimode_dispmask = state_fio->FgetUint8();
 		for(i = 0; i < 4; i++) {
@@ -3214,14 +3222,7 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 		kanjiaddr.d = 0;
 		kanjiaddr.w.l = state_fio->FgetUint16_BE();
 		
-		vblank = state_fio->FgetBool();
-		vsync = state_fio->FgetBool();
-		hblank = state_fio->FgetBool();
-		vblank_count = state_fio->FgetInt32_BE();
-
 		mode320 = state_fio->FgetBool();
-		display_page = state_fio->FgetInt8();
-		display_page_bak = state_fio->FgetInt8();
 		cgrom_bank = state_fio->FgetInt32_BE();
 #if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX) || \
     defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
@@ -3242,6 +3243,7 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 		state_fio->Fread(analog_palette_g, sizeof(analog_palette_g), 1);
 		state_fio->Fread(analog_palette_b, sizeof(analog_palette_b), 1);
 		for(i = 0; i < 4096; i++) calc_apalette(i);
+		memcpy(analog_palette_pixel, analog_palette_pixel_tmp, sizeof(analog_palette_pixel));
 		
 		diag_load_subrom_a = state_fio->FgetBool();
 		diag_load_subrom_b = state_fio->FgetBool();
@@ -3284,12 +3286,20 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 	}
 	if(version >= 2) {	//V2
 		nmi_event_id = state_fio->FgetInt32_BE();
-#if defined(_FM77AV_VARIANTS)
+//#if defined(_FM77AV_VARIANTS)
 		hblank_event_id = state_fio->FgetInt32_BE();
 		hdisp_event_id = state_fio->FgetInt32_BE();
 		vsync_event_id = state_fio->FgetInt32_BE();
 		vstart_event_id = state_fio->FgetInt32_BE();
-#endif
+//#endif
+		display_page = state_fio->FgetInt8();
+		display_page_bak = state_fio->FgetInt8();
+		
+		vblank = state_fio->FgetBool();
+		vsync = state_fio->FgetBool();
+		hblank = state_fio->FgetBool();
+		vblank_count = state_fio->FgetInt32_BE();
+		
 		firq_mask = state_fio->FgetBool();
 		vram_accessflag = state_fio->FgetBool();
 		frame_skip_count_draw = 3;
