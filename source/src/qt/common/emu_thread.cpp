@@ -447,7 +447,7 @@ void EmuThreadClass::doWork(const QString &params)
 				while(!is_empty_key()) {
 					key_queue_t sp;
 					dequeue_key(&sp);
-					printf("%08x %04x %08x %d\n", sp.type, sp.code, sp.mod, sp.repeat); 
+					//printf("%08x %04x %08x %d\n", sp.type, sp.code, sp.mod, sp.repeat); 
 					switch(sp.type) {
 					case KEY_QUEUE_UP:
 							key_mod = sp.mod;
