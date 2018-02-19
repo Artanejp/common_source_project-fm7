@@ -617,6 +617,7 @@ void KEYBOARD::reset_unchange_mode(void)
 	autokey_backup = 0x00;
 
 	if(override_break_key) write_signals(&break_line, (break_pressed) ? 0xff : 0);
+	key_fifo->clear();
 #if defined(_FM77AV_VARIANTS)
 	cmd_fifo->clear();
 	data_fifo->clear();
@@ -650,9 +651,10 @@ void KEYBOARD::reset(void)
 	scancode = 0x00;
 
 	keycode_7 = 0xffffffff; 
+	//keycode_7 = 0; 
 	reset_unchange_mode();
 	this->write_signals(&int_line, 0x00000000);
-	key_fifo->clear();
+
 #if defined(_FM77AV_VARIANTS)  
 	adjust_rtc();
 	did_hidden_message_av_1 = false;
@@ -663,8 +665,8 @@ void KEYBOARD::reset(void)
 
 	if(event_int >= 0) cancel_event(this, event_int);
 	register_event(this,
-		       ID_KEYBOARD_INT,
-		       20000.0, true, &event_int);
+				   ID_KEYBOARD_INT,
+				   20000.0, true, &event_int);
 }
 
 
