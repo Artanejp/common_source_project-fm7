@@ -135,7 +135,7 @@ bool KANJIROM::load_state(FILEIO *state_fio)
 	if(version >= 2) {
 		kanjiaddr.d = 0;
 		kanjiaddr.w.l = state_fio->FgetUint16_BE();
-		if(version == 2) return true;
+		if(version >= 2) return true;
 	}
 	return false;
 }
