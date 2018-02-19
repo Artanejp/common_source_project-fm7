@@ -1216,9 +1216,12 @@ void VM::save_state(FILEIO* state_fio)
 	state_fio->FputBool(connect_1Mfdc);
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		const char *name = typeid(*device).name() + 6; // skip "class "
-		
-		state_fio->FputInt32(strlen(name));
-		state_fio->Fwrite(name, strlen(name), 1);
+		int _len = strlen(name);
+		if(_len <= 0) _len = 1;
+		if(_len >= 128) _len = 128;
+		state_fio->FputInt32(_len);
+		state_fio->Fwrite(name, _len, 1);
+		//printf("SAVE State: DEVID=%d NAME=%s\n", device->this_device_id, name);
 		device->save_state(state_fio);
 	}
 }
@@ -1233,13 +1236,23 @@ bool VM::load_state(FILEIO* state_fio)
 	connect_1Mfdc = state_fio->FgetBool();
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		const char *name = typeid(*device).name() + 6; // skip "class "
-		
-		if(!(state_fio->FgetInt32() == strlen(name) && state_fio->Fcompare(name, strlen(name)))) {
-			printf("Load Error: DEVID=%d\n", device->this_device_id);
+		char nr_data[130];
+		int _len;
+		bool b_stat = false;
+		_len = state_fio->FgetInt32();
+		if(_len > 0) {
+			if(_len >= 128) _len = 128;
+			memset(nr_data, 0x00, sizeof(nr_data));
+			state_fio->Fread(nr_data, _len, 1);
+			int stat = strncmp(name, nr_data, _len);
+			if(stat == 0) b_stat = true;
+		} 
+		if(!b_stat) {
+			//printf("Load Error: DEVID=%d NAME=%s\n", device->this_device_id, name);
 			return false;
 		}
 		if(!device->load_state(state_fio)) {
-			printf("Load Error: DEVID=%d\n", device->this_device_id);
+			//printf("Load Error: DEVID=%d\n", device->this_device_id);
 			return false;
 		}
 	}
