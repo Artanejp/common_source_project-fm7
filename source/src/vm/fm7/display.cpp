@@ -232,7 +232,6 @@ void DISPLAY::reset()
 	emu->set_vm_screen_lines(200);
 	
 	is_cyclesteal = ((config.dipswitch & FM7_DIPSW_CYCLESTEAL) != 0) ? true : false;
-	//firq_mask = (mainio->read_signal(FM7_MAINIO_KEYBOARDIRQ_MASK) != 0) ? false : true;
 	reset_some_devices();
 	
 #if defined(_FM77AV_VARIANTS)
@@ -249,6 +248,10 @@ void DISPLAY::reset()
 	
 	if(nmi_event_id >= 0) cancel_event(this, nmi_event_id);
 	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
+	
+	firq_mask = false;
+	key_firq_req = false;
+	do_firq(false);
 	reset_subcpu(true);
 }
 

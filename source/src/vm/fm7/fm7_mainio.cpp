@@ -340,7 +340,7 @@ void FM7_MAINIO::reset()
 #endif
 	maincpu->write_signal(SIG_CPU_BUSREQ, 0, 0xffffffff);
 	maincpu->write_signal(SIG_CPU_HALTREQ, 0, 0xffffffff);
-
+	do_irq();
 
 //#if !defined(_FM8)
 	register_event(this, EVENT_TIMERIRQ_ON, 10000.0 / 4.9152, true, &event_timerirq); // TIMER IRQ
