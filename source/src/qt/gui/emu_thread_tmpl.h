@@ -66,6 +66,8 @@ protected:
 	config_t *p_config;
 	
 	QWaitCondition *drawCond;
+	QMutex *keyMutex;
+	
 	class META_MainWindow *MainWindow;
 	QElapsedTimer tick_timer;
 	
@@ -117,18 +119,23 @@ protected:
 	virtual void get_bubble_string(void) {};
 	
 	void enqueue_key_up(key_queue_t s) {
+		keyMutex->lock();
 		key_fifo->write(KEY_QUEUE_UP);
 		key_fifo->write(s.code);
 		key_fifo->write(s.mod);
 		key_fifo->write(s.repeat? 1 : 0);
+		keyMutex->unlock();
 	};
 	void enqueue_key_down(key_queue_t s) {
+		keyMutex->lock();
 		key_fifo->write(KEY_QUEUE_DOWN);
 		key_fifo->write(s.code);
 		key_fifo->write(s.mod);
 		key_fifo->write(s.repeat? 1 : 0);
+		keyMutex->unlock();
 	};
 	void dequeue_key(key_queue_t *s) {
+		keyMutex->lock();
 		uint32_t _type = (uint32_t)key_fifo->read();
 		if(_type == 	KEY_QUEUE_DOWN) {
 			s->type = _type;
@@ -151,13 +158,18 @@ protected:
 			s->mod = 0;
 			s->repeat = false;
 		}
+		keyMutex->unlock();
 	};
 	bool is_empty_key() {
+		keyMutex->lock();
 		bool f = key_fifo->empty();
+		keyMutex->unlock();
 		return f;
 	};
 	void clear_key_queue() {
+		keyMutex->lock();
 		key_fifo->clear();
+		keyMutex->unlock();
 	};
 	virtual void set_romakana(void) { };
 public:

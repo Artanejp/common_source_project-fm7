@@ -39,6 +39,7 @@ EmuThreadClassBase::EmuThreadClassBase(META_MainWindow *rootWindow, USING_FLAGS 
 	mouse_flag = false;
 
 	drawCond = new QWaitCondition();
+	keyMutex = new QMutex(QMutex::Recursive);
 	mouse_x = 0;
 	mouse_y = 0;
 	if(using_flags->is_use_tape() && !using_flags->is_tape_binary_only()) {
@@ -56,8 +57,10 @@ EmuThreadClassBase::EmuThreadClassBase(META_MainWindow *rootWindow, USING_FLAGS 
 								 using_flags->get_config_ptr()->sound_volume_l[i]) / 2;
 		}
 	}
-	key_fifo = new FIFO(4096 * 6);
+	keyMutex->lock();
+	key_fifo = new FIFO(512 * 6);
 	key_fifo->clear();
+	keyMutex->unlock();
 };
 
 EmuThreadClassBase::~EmuThreadClassBase() {
