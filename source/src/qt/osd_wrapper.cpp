@@ -319,7 +319,8 @@ void OSD::lock_vm(void)
 {
 	locked_vm = true;
 	if(parent_thread != NULL) { 
-		if(!parent_thread->now_debugging()) VMSemaphore->acquire(1);
+		//if(!parent_thread->now_debugging()) VMSemaphore->acquire(1);
+		VMSemaphore->acquire(1);
 	} else {
 		VMSemaphore->acquire(1);
 	}
@@ -328,7 +329,8 @@ void OSD::lock_vm(void)
 void OSD::unlock_vm(void)
 {
 	if(parent_thread != NULL) { 
-		if(!parent_thread->now_debugging()) VMSemaphore->release(1);
+		//if(!parent_thread->now_debugging()) VMSemaphore->release(1);
+		VMSemaphore->release(1);
 	} else {
 		VMSemaphore->release(1);
 	}
@@ -532,6 +534,7 @@ void OSD::reset_vm_node()
 	for(DEVICE *p = vm->first_device; p != NULL; p = p->next_device) {
 		sp.id = p->this_device_id;
 		sp.name = p->this_device_name;
+		csp_logger->set_device_name(sp.id, sp.name);
 		csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL,  "Device %d :%s", sp.id, sp.name);
 		device_node_list.append(sp);
 		if(max_vm_nodes <= p->this_device_id) max_vm_nodes = p->this_device_id + 1;

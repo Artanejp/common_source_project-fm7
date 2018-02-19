@@ -182,6 +182,7 @@ void OSD_BASE::key_down(int code, bool extended, bool repeat)
 //#ifdef USE_AUTO_KEY
 	if(!__USE_AUTO_KEY || (!now_auto_key && !p_config->romaji_to_kana)) {
 //#endif
+		//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_OSD, "KEY DOWN %d", code);
 		//if(!dinput_key_available) {
 			if(code == VK_SHIFT) {
 				if(!(key_status[VK_LSHIFT] & 0x80) && (GetAsyncKeyState(VK_LSHIFT) & 0x8000)) {
@@ -329,6 +330,7 @@ void OSD_BASE::key_up(int code, bool extended)
 //#ifdef USE_AUTO_KEY
 	if(!__USE_AUTO_KEY || (!now_auto_key && !p_config->romaji_to_kana)) {
 //#endif
+		//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_OSD, "KEY UP %d", code);
 		//if(!dinput_key_available) {
 			if(code == VK_SHIFT) {
 				if((key_status[VK_LSHIFT] & 0x80) && !(GetAsyncKeyState(VK_LSHIFT) & 0x8000)) {
