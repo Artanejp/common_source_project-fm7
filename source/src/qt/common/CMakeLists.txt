@@ -15,8 +15,9 @@ else()
   QT4_WRAP_CPP(s_qt_common_headers_MOC ${s_qt_common_headers})
 endif()
 
-set(QT_COMMON_BASE  
-	  qt_utils.cpp
+set(QT_COMMON_BASE
+      main.cpp 
+      qt_utils.cpp
 	  menu_flags.cpp
 	  
 	  emu_thread.cpp
@@ -27,6 +28,7 @@ set(QT_COMMON_BASE
 	  ../osd.cpp
 	  ../osd_wrapper.cpp
 )
+
 
  QT5_ADD_RESOURCES(s_qt_common_RCC ${RESOURCE}
 		      ${CMAKE_CURRENT_SOURCE_DIR}/qrc/i18n_global.qrc
@@ -51,8 +53,11 @@ if(USE_QT_5)
     QT5_USE_MODULES(${EXEC_TARGET} Widgets Core Gui OpenGL)
   endif()
 endif()
+
 if(WIN32)
- #if(USE_FMGEN)
+ 
+  
+  #if(USE_FMGEN)
    #${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPosd/build-win32/qt/osd/libqt_osd.a
    #${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPgui/build-win32/qt/gui/libqt_gui.a
    #${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPavio/build-win32/qt/avio/libqt_avio.a
@@ -60,7 +65,6 @@ if(WIN32)
    #${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPgui/build-win32/qt/gui/libqt_gui.a
 
  #endif()
-
  target_link_libraries(${EXEC_TARGET}
  ${LOCAL_LIBS}
  ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPemu_utils.dll.a

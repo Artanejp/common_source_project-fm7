@@ -47,6 +47,7 @@ set(s_qt_gui_headers
 	  qt_debugger_tmpl.h
 )
 
+
 set(s_qt_gui_srcs
 	  emuevents_control.cpp
 	  qt_gldraw.cpp
@@ -110,7 +111,6 @@ set(s_qt_gui_srcs
 	  csp_logger.cpp
 	  qt_main.cpp
 )
-
 if(USE_QT_5)
   QT5_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})
 #    QT5_ADD_RESOURCES(s_qt_gui_RCC ${RESOURCE}
