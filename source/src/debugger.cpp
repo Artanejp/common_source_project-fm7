@@ -127,7 +127,9 @@ break_point_t *get_break_point(DEBUGGER *debugger, const _TCHAR *command)
 	}
 	return NULL;
 }
-
+#if defined(OSD_QT)
+#include "../debugger/debugger_thread.h"
+#endif
 #ifdef _MSC_VER
 unsigned __stdcall debugger_thread(void *lpx)
 #else
@@ -157,6 +159,7 @@ void* debugger_thread(void *lpx)
 		}
 		p->osd->sleep(10);
 	}
+	
 	uint32_t prog_addr_mask = cpu->get_debug_prog_addr_mask();
 	uint32_t data_addr_mask = cpu->get_debug_data_addr_mask();
 	uint32_t dump_addr = 0;
@@ -1103,6 +1106,7 @@ void* debugger_thread(void *lpx)
 void EMU::initialize_debugger()
 {
 	now_debugging = false;
+	hDebugger = NULL;
 }
 
 void EMU::release_debugger()

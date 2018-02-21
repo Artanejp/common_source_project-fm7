@@ -56,6 +56,7 @@ signals:
 	void sig_call_debugger(QString);
 	void sig_close_debugger(void);
 	void sig_stop_debugger(void);
+	void sig_run_debugger(void);
 };
 
 QT_END_NAMESPACE	

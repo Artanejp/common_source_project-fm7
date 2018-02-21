@@ -47,7 +47,7 @@ public:
 	CSP_DebuggerThread(QObject *parent, void *th);
 	~CSP_DebuggerThread();
 public slots:
-	void run();
+	void run_debugger();
 	void quit_debugger();
 signals:
 	int quit_debugger_thread();

@@ -14,14 +14,8 @@
 
 void CSP_DebuggerThread::quit_debugger()
 {
-#if defined(USE_DEBUGGER)	
-	debugger->now_going = false;
-	d_params->request_terminate = true;
-	try {
-		debugger->now_debugging = debugger->now_going = debugger->now_suspended = false;
-	} catch(...) {
-	}
-	d_params->running = false;
+#if defined(USE_DEBUGGER)
+	emu->close_debugger();
 	// release console
 #endif	
 	emit quit_debugger_thread();
@@ -31,21 +25,9 @@ void CSP_DebuggerThread::quit_debugger()
 extern void *debugger_thread(void *p);
 #endif
 
-void CSP_DebuggerThread::run()
+void CSP_DebuggerThread::run_debugger(void)
 {
-	QString str = QString::fromUtf8(_T("Debugger CPU #")) + QString::number(cpu_index);
-	emit sig_set_title(str);
-
-	pausing = false;
-#if defined(USE_DEBUGGER)	
-	d_params->running = true;
-	d_params->request_terminate = false;
-	dasm_addr = cpu->get_next_pc();
-	debugger->now_going = false;
-	debugger->now_debugging = true;
-	debugger_thread((void *)d_params);
-#endif	
-	//this->quit();
+//	emu->open_debugger(cpu_index);
 }
 
 CSP_DebuggerThread::CSP_DebuggerThread(QObject *parent, void *th) : QThread(parent)
@@ -60,9 +42,25 @@ CSP_DebuggerThread::CSP_DebuggerThread(QObject *parent, void *th) : QThread(pare
 	cpu_index = d_params->cpu_index;
 	debugger = (DEBUGGER *)cpu->get_debugger();
 #endif	
-	connect(this, SIGNAL(started()), this, SLOT(run()));
+	//connect(this, SIGNAL(started()), this, SLOT(run()));
+	QString str = QString::fromUtf8(_T("Debugger CPU #")) + QString::number(cpu_index);
+	emit sig_set_title(str);
+
+	pausing = false;
+#if defined(USE_DEBUGGER)	
+	d_params->running = true;
+	d_params->request_terminate = false;
+	dasm_addr = cpu->get_next_pc();
+	//debugger->now_going = false;
+	//debugger->now_debugging = true;
+	emu->open_debugger(cpu_index);
+	//debugger_thread((void *)d_params);
+#endif
+	//this->exec();
+	//this->quit();
 }
 
 CSP_DebuggerThread::~CSP_DebuggerThread()
 {
+	emu->close_debugger();
 }

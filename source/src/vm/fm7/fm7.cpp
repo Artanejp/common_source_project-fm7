@@ -1061,9 +1061,7 @@ void VM::rec_tape(int drv, const _TCHAR* file_path)
 
 void VM::close_tape(int drv)
 {
-	emu->lock_vm();
 	if(drec != NULL) drec->close_tape();
-	emu->unlock_vm();
 }
 
 bool VM::is_tape_inserted(int drv)

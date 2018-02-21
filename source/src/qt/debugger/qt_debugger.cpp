@@ -14,6 +14,7 @@
 #include <fcntl.h>
 #include <QObject>
 #include <QMetaObject>
+#include <QApplication>
 
 #include "qt_debugger.h"
 
@@ -39,43 +40,44 @@ void CSP_Debugger::call_debugger(void)
 void CSP_Debugger::run(void)
 {
 	connect(text_command, SIGNAL(editingFinished()), this, SLOT(call_debugger()));
-	connect(this, SIGNAL(sig_finished()), this, SLOT(close()));
-	connect(this, SIGNAL(destroyed()), this, SLOT(doExit()));
 	connect(parent_object, SIGNAL(quit_debugger_thread()), this, SLOT(close()));
 	
 #if defined(USE_DEBUGGER)
-	main_thread = new CSP_DebuggerThread(NULL, &debugger_thread_param);
 	OSD *osd = debugger_thread_param.osd;
-	main_thread->setObjectName(QString::fromUtf8("Debugger"));
-	main_thread->moveToThread(main_thread);
+	connect(osd, SIGNAL(sig_close_console()), this, SLOT(do_destroy_thread()));
 	connect(this, SIGNAL(sig_call_debugger(QString)), osd, SLOT(do_set_input_string(QString)));
 	connect(osd, SIGNAL(sig_put_string_debugger(QString)), this, SLOT(put_string(QString)));
-	
-	connect(main_thread, SIGNAL(finished()), this, SLOT(doExit()));
-	connect(main_thread, SIGNAL(quit_debugger_thread()), this, SLOT(doExit()));
-	connect(this, SIGNAL(sig_close_debugger()), main_thread, SLOT(quit_debugger()));
-	main_thread->start();
+	if(emu != NULL) {
+		emu->open_debugger(debugger_thread_param.cpu_index);
+	} else {
+		QString mes = QApplication::translate("Debugger", "Emulator still not start\nPlease wait.", 0);
+		put_string(mes);
+	}
 #endif
 }
 
 void CSP_Debugger::closeEvent(QCloseEvent *event)
 {
 	//emit sig_close_debugger();
-	event->ignore();
+	//event->ignore();
+#if 1
+	debugger_thread_param.request_terminate = true;
+	if(emu != NULL) {
+		debugger_thread_t *d_params = &debugger_thread_param;
+		DEVICE *cpu = d_params->vm->get_cpu(d_params->cpu_index);
+		uint32_t cpu_index = d_params->cpu_index;
+		DEBUGGER *debugger = (DEBUGGER *)cpu->get_debugger();
+		if(emu->is_debugger_enabled(cpu_index)) {
+			emu->close_debugger();
+			//	debugger->now_debugging = false;
+		}
+	}
+#endif
+	event->accept();
 }
 
 void CSP_Debugger::do_destroy_thread(void)
 {
-#if defined(USE_DEBUGGER)
-	if(main_thread != NULL) {
-		if(main_thread->isRunning()) {
-			main_thread->quit_debugger();
-			main_thread->terminate();
-		}
-		delete main_thread;
-	}
-	main_thread = NULL;
-#endif
 	this->close();
 }
 
@@ -89,13 +91,7 @@ CSP_Debugger::CSP_Debugger(QWidget *parent) : CSP_Debugger_Tmpl(parent)
 CSP_Debugger::~CSP_Debugger()
 {
 #if defined(USE_DEBUGGER)
-	if(main_thread != NULL) {
-		if(main_thread->isRunning()) {
-			main_thread->quit_debugger();
-			main_thread->terminate();
-		}
-		delete main_thread;
-	}
+	if(emu != NULL) emu->close_debugger();
 #endif
 }
 

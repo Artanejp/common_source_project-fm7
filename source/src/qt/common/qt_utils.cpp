@@ -805,11 +805,12 @@ void Ui_MainWindow::OnOpenDebugger(int no)
 	//emu->open_debugger(no);
 	VM *vm = emu->get_vm();
 
- 	if(emu->now_debugging) 	this->OnCloseDebugger();
+ 	if((emu->now_debugging ) || (emu->hDebugger != NULL)) this->OnCloseDebugger();
 	if(!(emu->now_debugging && emu->debugger_thread_param.cpu_index == no)) {
 		//emu->close_debugger();
 		if(vm->get_cpu(no) != NULL && vm->get_cpu(no)->get_debugger() != NULL) {
-			
+			QString windowName = QString::fromUtf8(vm->get_cpu(no)->get_device_name());
+			windowName = QString::fromUtf8("Debugger ") + windowName;
 			emu->hDebugger = new CSP_Debugger(this);
 			QString objNameStr = QString("EmuDebugThread");
 			emu->hDebugger->setObjectName(objNameStr);
@@ -818,7 +819,7 @@ void Ui_MainWindow::OnOpenDebugger(int no)
 			emu->hDebugger->debugger_thread_param.cpu_index = no;
 			emu->stop_record_sound();
 			emu->stop_record_video();
-			emu->now_debugging = true;
+			//emu->now_debugging = true;
 			connect(this, SIGNAL(quit_debugger_thread()), emu->hDebugger, SLOT(doExit()));
 			connect(this, SIGNAL(destroyed()), emu->hDebugger, SLOT(do_destroy_thread()));
 			//connect(this, SIGNAL(quit_debugger_thread()), emu->hDebugger, SLOT(close()));
@@ -826,6 +827,7 @@ void Ui_MainWindow::OnOpenDebugger(int no)
 			connect(emu->hDebugger, SIGNAL(sig_put_string(QString)), emu->hDebugger, SLOT(put_string(QString)));
 			emu->hDebugger->show();
 			emu->hDebugger->run();
+			emu->hDebugger->setWindowTitle(windowName);
 		}
 	}
 }

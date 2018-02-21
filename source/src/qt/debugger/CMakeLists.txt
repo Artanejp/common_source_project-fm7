@@ -2,7 +2,6 @@ message("* qt/debugger")
 
 set(s_qt_debugger_headers
 	  qt_debugger.h
-	  debugger_thread.h
 )
 
 if(USE_QT_5)
@@ -13,7 +12,6 @@ endif()
  
 add_library(qt_debugger
 		  qt_debugger.cpp
-          debugger_thread.cpp
 		  ${s_qt_debugger_headers_MOC}
 )
 

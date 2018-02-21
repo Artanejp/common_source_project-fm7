@@ -514,6 +514,7 @@ signals:
 	int sig_update_device_node_name(int id, const _TCHAR *name);
 	int sig_enable_mouse(void);
 	int sig_disable_mouse(void);
+	int sig_close_console(void);
 };
 QT_END_NAMESPACE
 

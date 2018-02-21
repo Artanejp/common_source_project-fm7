@@ -66,6 +66,7 @@ void OSD_BASE::close_console()
 	//DebugSemaphore->release(DebugSemaphore->available());
 	console_cmd_str.clear();
 	osd_console_opened = false;
+	emit sig_close_console();
 }
 
 unsigned int OSD_BASE::get_console_code_page()

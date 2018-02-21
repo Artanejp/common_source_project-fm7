@@ -64,6 +64,9 @@ class FILEIO;
 class OSD;
 
 #ifdef USE_DEBUGGER
+#if defined(OSD_QT)
+class CSP_DebuggerThread;
+#endif
 typedef struct {
 	OSD *osd;
 	VM *vm;
