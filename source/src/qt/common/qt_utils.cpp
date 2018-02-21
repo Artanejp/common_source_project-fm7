@@ -599,9 +599,6 @@ int MainLoop(int argc, char *argv[])
 	std::string cfgstr(CONFIG_NAME);
 	setup_logs();
 	cpp_homedir.copy(homedir, PATH_MAX - 1, 0);
-#if 0
-	load_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
-#else
 	{
 		char tmps[128];
 		std::string localstr;
@@ -610,9 +607,6 @@ int MainLoop(int argc, char *argv[])
 		localstr = cpp_confdir + localstr;
 		load_config(localstr.c_str());
 	}
-#endif
-	
-	
 	emustr = emustr + cfgstr;
 
 	csp_logger = new CSP_Logger(config.log_to_syslog, config.log_to_console, emustr.c_str()); // Write to syslog, console
@@ -740,6 +734,66 @@ void Ui_MainWindow::do_update_inner_bubble(int drv, QStringList base, class Acti
 		}
 	}
 #endif	
+}
+
+int Ui_MainWindow::GetBubbleBankNum(int drv)
+{
+#if MAX_BUBBLE
+	if((emu != NULL) && (drv >= 0) && (drv < MAX_BUBBLE)) {
+		return emu->b77_file[drv].bank_num;
+	}
+#endif
+	return 0;
+}
+
+int Ui_MainWindow::GetBubbleCurrentBankNum(int drv)
+{
+#if MAX_BUBBLE
+	if((emu != NULL) && (drv >= 0) && (drv < MAX_BUBBLE)) {
+		return emu->b77_file[drv].cur_bank;
+	}
+#endif
+	return 0;
+}
+
+bool Ui_MainWindow::GetBubbleCasetteIsProtected(int drv)
+{
+#if MAX_BUBBLE
+	if(emu != NULL) {
+		if((drv >= 0) && (drv < MAX_BUBBLE)) {
+			return emu->is_bubble_casette_protected(drv);
+		}
+	}
+#endif
+	return false;
+}
+
+QString Ui_MainWindow::GetBubbleB77FileName(int drv)
+{
+	QString ans = QString::fromUtf8("");
+#if MAX_BUBBLE
+	if(emu != NULL) {
+		if((drv < MAX_BUBBLE) && (drv >= 0)) {
+			ans = QString::fromLocal8Bit(emu->b77_file[drv].path);
+		}
+	}
+#endif
+	return ans;
+}
+
+QString Ui_MainWindow::GetBubbleB77BubbleName(int drv, int num)
+{
+	QString ans = QString::fromUtf8("");
+#if MAX_BUBBLE
+	if(emu != NULL) {
+		if((drv < MAX_BUBBLE) && (drv >= 0)) {
+			if((num >= 0) && (num < MAX_B77_BANKS)) {
+				ans = QString::fromLocal8Bit(emu->b77_file[drv].bubble_name[num]);
+			}
+		}
+	}
+#endif
+	return ans;
 }
 
 #ifdef USE_DEBUGGER

@@ -46,29 +46,7 @@ int Ui_MainWindowBase::write_protect_bubble(int drv, bool flag)
 	emit sig_write_protect_bubble(drv, flag);
 	return 0;
 }
-  
-int Ui_MainWindowBase::set_b77_slot(int drive, int num)
-{
-	return 0;
-}
-
-void Ui_MainWindowBase::do_update_recent_bubble(int drv)
-{
-}
-
-
-int Ui_MainWindowBase::set_recent_bubble(int drv, int num) 
-{
-	return 0;
-}
-
-void Ui_MainWindowBase::_open_bubble(int drv, const QString fname)
-{
-}
-
-void Ui_MainWindowBase::eject_bubble(int drv) 
-{
-}
+ 
 
 // Common Routine
 

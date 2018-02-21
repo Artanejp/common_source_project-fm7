@@ -1,6 +1,6 @@
 message("* qt/gui")
 
-set(THIS_LIB_VERSION 2.11.1)
+set(THIS_LIB_VERSION 2.11.2)
 set(s_qt_gui_headers
 	  csp_logger.h
   
@@ -110,6 +110,7 @@ set(s_qt_gui_srcs
 	  menu_flags_tmpl.cpp
 	  csp_logger.cpp
 	  qt_main.cpp
+	  ../common/util_bubble2.cpp
 )
 if(USE_QT_5)
   QT5_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})

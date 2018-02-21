@@ -17,13 +17,10 @@
 #include "emu.h"
 #include "csp_logger.h"
 
-#include "menuclasses.h"
-#include "mainwidget.h"
+//#include "./menuclasses.h"
+#include "mainwidget_base.h"
 #include "commonclasses.h"
 #include "qt_main.h"
-#include "emu_thread.h"
-#include "joy_thread.h"
-#include "draw_thread.h"
 
 // emulation core
 
@@ -34,20 +31,20 @@ extern CSP_Logger *csp_logger;
 // Start to define MainWindow.
 extern class META_MainWindow *rMainWindow;
 extern config_t config;
-extern int MainLoop(int argc, char *argv[]);
+extern int   MainLoop(int argc, char *argv[]);
 
 #include <QApplication>
 #include <qapplication.h>
 #if defined(Q_OS_WIN)
 //DLL_PREFIX_I void CSP_DebugHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg);
-DLL_PREFIX_I void _resource_init(void);
-DLL_PREFIX_I void _resource_free(void);
+extern DLL_PREFIX void _resource_init(void);
+extern DLL_PREFIX void _resource_free(void);
 #else
 extern void CSP_DebugHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg);
 extern void _resource_init(void);
 extern void _resource_free(void);
 #endif
-void CSP_DebugHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+void DLL_PREFIX CSP_DebugHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
 	QString msg_type;
     switch (type) {
@@ -114,6 +111,8 @@ int main(int argc, char *argv[])
 }
 
 #if defined(Q_OS_WIN) 
+//extern DLL_PREFIX_I int APIENTRY WinMain(HINSTANCE, HINSTANCE, LPSTR /*cmdParamarg*/, int /* cmdShow */);
+#if 1
 /*
  * This is from WinMain at Qt5Core, v5.10.
  * see, qtbase/src/qtmain_win.cpp .
@@ -163,7 +162,7 @@ int main(int argc, char *argv[])
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
  */
 
-extern "C" int main(int argc, char *argv[]);
+//extern "C" DLL_PREFIX int main(int argc, char *argv[]);
 static inline char *wideToMulti(int codePage, const wchar_t *aw)
 {
     const int required = WideCharToMultiByte(codePage, 0, aw, -1, NULL, 0, NULL, NULL);
@@ -172,7 +171,7 @@ static inline char *wideToMulti(int codePage, const wchar_t *aw)
     return result;
 }
 
-extern "C" int APIENTRY WinMain(HINSTANCE, HINSTANCE, LPSTR /*cmdParamarg*/, int /* cmdShow */)
+extern "C" DLL_PREFIX int APIENTRY WinMain(HINSTANCE, HINSTANCE, LPSTR /*cmdParamarg*/, int /* cmdShow */)
 {
     int argc;
     wchar_t **argvW = CommandLineToArgvW(GetCommandLineW(), &argc);
@@ -189,5 +188,5 @@ extern "C" int APIENTRY WinMain(HINSTANCE, HINSTANCE, LPSTR /*cmdParamarg*/, int
     delete [] argv;
     return exitCode;
 }
-
+#endif
 #endif

@@ -1,39 +1,35 @@
-#include "vm.h"
-#include "mainwidget.h"
+#include "mainwidget_base.h"
 #include "commonclasses.h"
 #include "menu_bubble.h"
 
 #include "qt_dialogs.h"
-#include "emu.h"
 //#include "csp_logger.h"
 
-#if defined(USE_BUBBLE1)
-extern EMU *emu;
 
 #ifndef UPDATE_B77_LIST
 #define UPDATE_B77_LIST(__d, lst) { \
 	lst.clear(); \
 	QString __tmps; \
-	for(int iii = 0; iii < MAX_B77_BANKS; iii++) { \
+	for(int iii = 0; iii < using_flags->get_max_b77_banks(); iii++) {	\
 		__tmps = QString::fromUtf8(""); \
-		if(iii < emu->b77_file[__d].bank_num) { \
-	 		__tmps = QString::fromUtf8(emu->b77_file[__d].bubble_name[iii]); \
+		if(iii < GetBubbleBankNum(__d)) {								\
+	 		__tmps = GetBubbleB77BubbleName(__d, iii); \
 		} \
 	lst << __tmps; \
 	} \
 }
 #endif
 
-int Ui_MainWindow::set_b77_slot(int drive, int num)
+int Ui_MainWindowBase::set_b77_slot(int drive, int num)
 {
 	QString path;
 	if((num < 0) || (num >= using_flags->get_max_b77_banks())) return -1;
-	path = QString::fromUtf8(emu->b77_file[drive].path);
+	path = GetBubbleB77FileName(drive);
 	menu_bubbles[drive]->do_select_inner_media(num);
 
-	if(emu && emu->b77_file[drive].cur_bank != num) {
+	if(GetBubbleCurrentBankNum(drive) != num) {
 		emit sig_open_bubble(drive, path, num);
-		if(emu->is_bubble_casette_protected(drive)) {
+		if(GetBubbleCasetteIsProtected(drive)) {
 			menu_bubbles[drive]->do_set_write_protect(true);
 		} else {
 			menu_bubbles[drive]->do_set_write_protect(false);
@@ -42,13 +38,12 @@ int Ui_MainWindow::set_b77_slot(int drive, int num)
 	return 0;
 }
 
-void Ui_MainWindow::do_update_recent_bubble(int drv)
+void Ui_MainWindowBase::do_update_recent_bubble(int drv)
 {
 	int i;
-	if(emu == NULL) return;
 	menu_bubbles[drv]->do_update_histories(listBubbles[drv]);
 	menu_bubbles[drv]->do_set_initialize_directory(p_config->initial_bubble_casette_dir);
-	if(emu->is_bubble_casette_protected(drv)) {
+	if(GetBubbleCasetteIsProtected(drv)) {
 		menu_bubbles[drv]->do_write_protect_media();
 	} else {
 		menu_bubbles[drv]->do_write_unprotect_media();
@@ -56,7 +51,7 @@ void Ui_MainWindow::do_update_recent_bubble(int drv)
 }
 
 
-int Ui_MainWindow::set_recent_bubble(int drv, int num) 
+int Ui_MainWindowBase::set_recent_bubble(int drv, int num) 
 {
 	QString s_path;
 	char path_shadow[PATH_MAX];
@@ -69,8 +64,7 @@ int Ui_MainWindow::set_recent_bubble(int drv, int num)
    
 	strcpy(p_config->initial_bubble_casette_dir, get_parent_dir((const _TCHAR *)path_shadow));
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
-
-	if(emu) {
+	{
 		emit sig_close_bubble(drv);
 		emit sig_open_bubble(drv, s_path, 0);
 		menu_bubbles[drv]->do_update_histories(listBubbles[drv]);
@@ -85,7 +79,7 @@ int Ui_MainWindow::set_recent_bubble(int drv, int num)
 	return 0;
 }
 
-void Ui_MainWindow::_open_bubble(int drv, const QString fname)
+void Ui_MainWindowBase::_open_bubble(int drv, const QString fname)
 {
 	char path_shadow[PATH_MAX];
 	int i;
@@ -97,9 +91,8 @@ void Ui_MainWindow::_open_bubble(int drv, const QString fname)
 	strcpy(p_config->initial_bubble_casette_dir, get_parent_dir((const _TCHAR *)path_shadow));
 	// Update List
 	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX);
-	if(emu) {
+	{
 		emit sig_close_bubble(drv);
-		//emu->LockVM();
 		emit sig_open_bubble(drv, fname, 0);
 		menu_bubbles[drv]->do_update_histories(listBubbles[drv]);
 		menu_bubbles[drv]->do_set_initialize_directory(p_config->initial_bubble_casette_dir);
@@ -112,10 +105,9 @@ void Ui_MainWindow::_open_bubble(int drv, const QString fname)
 	}
 }
 
-void Ui_MainWindow::eject_bubble(int drv) 
+void Ui_MainWindowBase::eject_bubble(int drv) 
 {
 	int i;
 	emit sig_close_bubble(drv);
 	menu_bubbles[drv]->do_clear_inner_media();
 }
-#endif

@@ -255,6 +255,11 @@ private:
 	void CreateBubblePulldownMenu(int drv);
 	void ConfigBubbleMenuSub(int drv);
 	void ConfigBubbleMenu(void);
+	virtual int GetBubbleBankNum(int drv) { return 0; }
+	virtual int GetBubbleCurrentBankNum(int drv) { return 0; }
+	virtual bool GetBubbleCasetteIsProtected(int drv) { return false; }
+	virtual QString GetBubbleB77FileName(int drv) { return QString::fromUtf8(""); }
+	virtual QString GetBubbleB77BubbleName(int drv, int num) { return QString::fromUtf8(""); }
 	
 	void CreateCMTMenu(int drive);
 	void ConfigCMTMenu(void);
@@ -589,12 +594,12 @@ public slots:
 	// Bubble Casette
 	int write_protect_bubble(int drv, bool flag);
 
-	virtual int set_b77_slot(int drive, int num);
-	virtual void do_update_recent_bubble(int drv);
-	virtual int set_recent_bubble(int drv, int num);
+	int set_b77_slot(int drive, int num);
+	void do_update_recent_bubble(int drv);
+	int set_recent_bubble(int drv, int num);
+	void _open_bubble(int drv, const QString fname);
+	void eject_bubble(int drv);
 
-	virtual void _open_bubble(int drv, const QString fname);
-	virtual void eject_bubble(int drv);
 
 	void start_record_sound(bool rec);
 	void set_freq(int);

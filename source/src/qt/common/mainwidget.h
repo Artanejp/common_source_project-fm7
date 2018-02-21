@@ -45,19 +45,18 @@ public:
 #if defined(USE_NOTIFY_POWER_OFF)
 	bool GetPowerState(void);
 #endif	
+	int GetBubbleBankNum(int drv);
+	int GetBubbleCurrentBankNum(int drv);
+	bool GetBubbleCasetteIsProtected(int drv);
+	QString GetBubbleB77FileName(int drv);
+	QString GetBubbleB77BubbleName(int drv, int num);
+
 public slots:
 #if defined(USE_FD1)
 	void _open_disk(int drv, const QString fname);
 	void do_update_recent_disk(int);
 	int set_d88_slot(int drive, int num);
 	int set_recent_disk(int, int);
-#endif
-#if defined(USE_BUBBLE1)
-	int set_b77_slot(int drive, int num);
-	void do_update_recent_bubble(int drv);
-	int set_recent_bubble(int drv, int num);
-	void _open_bubble(int drv, const QString fname);
-	void eject_bubble(int drv);
 #endif
 #if defined(USE_DEBUGGER)
 	void OnOpenDebugger(int n);
