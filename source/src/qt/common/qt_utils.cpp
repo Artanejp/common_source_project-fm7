@@ -662,6 +662,10 @@ int MainLoop(int argc, char *argv[])
 	if(common_translator.load(s_locale, QLatin1String("csp_qt_common"), QLatin1String("_"), QLatin1String(":/"))) {
 		GuiMain->installTranslator(&common_translator);
 	}
+	QTranslator debugger_translator;
+	if(debugger_translator.load(s_locale, QLatin1String("csp_qt_debugger"), QLatin1String("_"), QLatin1String(":/"))) {
+		GuiMain->installTranslator(&debugger_translator);
+	}
 	
 	rMainWindow = new META_MainWindow(using_flags, csp_logger);
 	rMainWindow->connect(rMainWindow, SIGNAL(sig_quit_all(void)), rMainWindow, SLOT(deleteLater(void)));

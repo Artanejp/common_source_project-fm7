@@ -932,7 +932,7 @@ OpenGL 2.0では無効です。</translation>
         <translation type="vanished">バイナリ</translation>
     </message>
     <message>
-        <location filename="util_bubble.cpp" line="108"/>
+        <location filename="util_bubble.cpp" line="86"/>
         <source>Bubble </source>
         <translation>バブルカセット</translation>
     </message>
@@ -1857,149 +1857,164 @@ You *can* write datas to this media.</source>
 <context>
     <name>MenuScreen</name>
     <message>
-        <location filename="menu_screen.cpp" line="381"/>
+        <location filename="menu_screen.cpp" line="390"/>
         <source>Zoom Screen</source>
         <translation>画面ズーム</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="382"/>
+        <location filename="menu_screen.cpp" line="391"/>
         <source>Display Mode</source>
         <translation>表示モード</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="385"/>
+        <location filename="menu_screen.cpp" line="393"/>
+        <source>Separate Draw (need restart)</source>
+        <translation>独立スレッドで描画(再起動が必要)</translation>
+    </message>
+    <message>
+        <location filename="menu_screen.cpp" line="394"/>
+        <source>Do drawing(rendering) sequence to separate thread.
+If you feels emulator is slowly at your host-machine, disable this.
+You should restart this emulator when changed.</source>
+        <translation>描画を独立したスレッドで行います。
+低速な場合に無効にすると効果があるかも知れません。
+変更したら、エミュレータを再起動して下さい。
+</translation>
+    </message>
+    <message>
+        <location filename="menu_screen.cpp" line="397"/>
         <source>Software Scan Line</source>
         <translation>スキャンライン（ソフト）</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="386"/>
+        <location filename="menu_screen.cpp" line="398"/>
         <source>Display scan line by software.</source>
         <translation>ソフトウェアでスキャンラインを表示します。</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="389"/>
+        <location filename="menu_screen.cpp" line="401"/>
         <source>Rotate Screen</source>
         <translation>画面回転</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="390"/>
+        <location filename="menu_screen.cpp" line="402"/>
         <source>Rotate screen.</source>
         <translation>画面を回転します。</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="393"/>
+        <location filename="menu_screen.cpp" line="405"/>
         <source>OpenGL Scan Line</source>
         <translation>スキャンライン(OpenGL)</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="394"/>
+        <location filename="menu_screen.cpp" line="406"/>
         <source>Display scan line by OpenGL.</source>
         <translation>OpenGLのスキャンラインを表示します。</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="396"/>
+        <location filename="menu_screen.cpp" line="408"/>
         <source>OpenGL Pixel Line</source>
         <translation>ピクセルライン(OpenGL)</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="397"/>
+        <location filename="menu_screen.cpp" line="409"/>
         <source>Display pixel line by OpenGL.</source>
         <translation>OpenGLのピクセルラインを表示します。</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="401"/>
+        <location filename="menu_screen.cpp" line="413"/>
         <source>OpenGL Filter</source>
         <translation>OpenGLフィルタ</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="402"/>
+        <location filename="menu_screen.cpp" line="414"/>
         <source>Use display filter by OpenGL</source>
         <translation>OpenGLの画面フィルタを使用します（多少ぼやける）</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="406"/>
+        <location filename="menu_screen.cpp" line="418"/>
         <source>Dot by Dot</source>
         <translation>ドット拡大なし</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="407"/>
+        <location filename="menu_screen.cpp" line="419"/>
         <source>Keep Aspect: Refer to X</source>
         <translation>アスペクト比保存／横に合わせる</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="408"/>
+        <location filename="menu_screen.cpp" line="420"/>
         <source>Keep Aspect: Refer to Y</source>
         <translation>アスペクト比保存／縦にあわせる</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="409"/>
+        <location filename="menu_screen.cpp" line="421"/>
         <source>Keep Aspect: Fill</source>
         <translation>アスペクト比保存／画面を満たす</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="410"/>
+        <location filename="menu_screen.cpp" line="422"/>
         <source>Stretch Mode</source>
         <translation>拡大モード</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="413"/>
+        <location filename="menu_screen.cpp" line="425"/>
         <source>Capture Screen</source>
         <translation>画面取り込み</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="414"/>
+        <location filename="menu_screen.cpp" line="426"/>
         <source>Capture screen to a PNG file.</source>
         <translation>画面を、PNGファイルとして取り込みます。</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="416"/>
+        <location filename="menu_screen.cpp" line="428"/>
         <source>Screen</source>
         <translation>画面</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="417"/>
-        <location filename="menu_screen.cpp" line="418"/>
+        <location filename="menu_screen.cpp" line="429"/>
+        <location filename="menu_screen.cpp" line="430"/>
         <source>Start Recording Movie</source>
         <translation>動画記録開始</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="419"/>
-        <location filename="menu_screen.cpp" line="420"/>
+        <location filename="menu_screen.cpp" line="431"/>
+        <location filename="menu_screen.cpp" line="432"/>
         <source>Stop Recording Movie</source>
         <translation>動画記録終了</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="423"/>
+        <location filename="menu_screen.cpp" line="435"/>
         <source>Record as Movie</source>
         <translation>動画として記録する</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="426"/>
+        <location filename="menu_screen.cpp" line="438"/>
         <source>Screen Size</source>
         <translation>画面サイズ</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="438"/>
+        <location filename="menu_screen.cpp" line="450"/>
         <source>Render Mode</source>
         <translation>画面描画モード</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="440"/>
+        <location filename="menu_screen.cpp" line="452"/>
         <source>Standard</source>
         <translation>普通</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="441"/>
+        <location filename="menu_screen.cpp" line="453"/>
         <source>Standard render.</source>
         <translation>通常のレンダラです。</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="443"/>
+        <location filename="menu_screen.cpp" line="455"/>
         <source>TV</source>
         <translation>TVっぽく</translation>
     </message>
     <message>
-        <location filename="menu_screen.cpp" line="444"/>
+        <location filename="menu_screen.cpp" line="456"/>
         <source>Rendering like tubed  television with RF modulator.
 Needs OpenGL 3.0 or later.Not effect with OpenGL 2.0.</source>
         <translation>昔のブラウン管テレビにRFモジュレータを通して映したように表示します。

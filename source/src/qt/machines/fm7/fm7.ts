@@ -51,12 +51,12 @@ CP/MやFLEXやOS-9やRDOSなどを
     <message>
         <source>MMR boot mode.
 This is FM-77 feature and I don&apos;t know about this.</source>
-        <translation>MMRブートモード。
+        <translation type="vanished">MMRブートモード。
 作者には詳細がわかりません。</translation>
     </message>
     <message>
         <source>Bubble Casette</source>
-        <translation>バブルカセット</translation>
+        <translation type="vanished">バブルカセット</translation>
     </message>
     <message>
         <source>8Inch FD</source>
@@ -405,11 +405,11 @@ Reset with pressing BREAK key.</source>
     </message>
     <message>
         <source>KANJI:JIS78 emulation.</source>
-        <translation>JIS78漢字ROMエミュレーション</translation>
+        <translation type="vanished">JIS78漢字ROMエミュレーション</translation>
     </message>
     <message>
         <source>Emulate JIS78 kanji ROM.</source>
-        <translation>JIS78タイプの漢字ROMの動作をエミュレートします。</translation>
+        <translation type="vanished">JIS78タイプの漢字ROMの動作をエミュレートします。</translation>
     </message>
     <message>
         <source>Connect Z80 CARD</source>
@@ -546,38 +546,6 @@ This is FM-77 feature and I don&apos;t know about this.</source>
 これはFM-77の機能ですが、作者は詳細を知りません。</translation>
     </message>
     <message>
-        <source>BASIC  (SM11-15)</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>DOS    (SM11-15)</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>BUBBLE  (SM11-15)</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>8Inch FD (SM11-15)</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>BASIC    (SM11-14)</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>DOS      (SM11-14)</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>BUBBLE   (SM11-14)</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>DEBUG    (SM11-14)</source>
-        <translation></translation>
-    </message>
-    <message>
         <source>Boot for DEBUG.
 This is SM11-14&apos;s feature and I don&apos;t know about this.</source>
         <translation>デバッグ用ブートします。
@@ -586,8 +554,105 @@ This is SM11-14&apos;s feature and I don&apos;t know about this.</source>
     <message>
         <source>MMR boot mode.
 This is FM-77AV feature and I don&apos;t know about this.</source>
-        <translation>MMR付きのブートをします。
+        <translation type="vanished">MMR付きのブートをします。
 FM77AV固有の機能ですが、作者は詳細を知りません。</translation>
+    </message>
+    <message>
+        <source>BASIC boot mode with S1 has turned ON.
+This is FM-77 feature and I don&apos;t know about this.</source>
+        <translation>S1スイッチ有効でのBASICモードです。
+FM-77固有の機能で、作者にはよくわかりません。</translation>
+    </message>
+    <message>
+        <source>BASIC (BANK4)</source>
+        <translation>BASIC (BANK4)</translation>
+    </message>
+    <message>
+        <source>DOS 320K(BOOT2 / BANK5)</source>
+        <translation>DOS 320K (BOOT2 / BANK5)</translation>
+    </message>
+    <message>
+        <source>RESERVE AREA 1
+This is FM-77 feature and I don&apos;t know about this.</source>
+        <translation>予備領域1から起動します。
+FM-77固有の機能で、作者には不明です。</translation>
+    </message>
+    <message>
+        <source>RESERVED AREA 2
+This is FM-77 feature and I don&apos;t know about this.</source>
+        <translation>予備領域2から起動します。
+FM-77固有の機能で、作者には不明です。</translation>
+    </message>
+    <message>
+        <source>BASIC  (SM11-14 BANK0)</source>
+        <translation>BASIC (SM11-14 BANK0)</translation>
+    </message>
+    <message>
+        <source>DOS    (SM11-14 BANK2)</source>
+        <translation>DOS (SM11-14 BANK2)</translation>
+    </message>
+    <message>
+        <source>BUBBLE  (SM11-14 BANK1)</source>
+        <translation>バブルカセット (SM11-14 BANK1)</translation>
+    </message>
+    <message>
+        <source>8Inch FD (SM11-15 BANK3)</source>
+        <translation>8インチフロッピー (SM11-15 BANK3)</translation>
+    </message>
+    <message>
+        <source>BASIC    (SM11-15 BANK0)</source>
+        <translation>BASIC (SM11-15 BANK0)</translation>
+    </message>
+    <message>
+        <source>DOS      (SM11-15 BANK2)</source>
+        <translation>DOS (SM11-15 BANK2)</translation>
+    </message>
+    <message>
+        <source>BUBBLE   (SM11-15 BANK1)</source>
+        <translation>バブルカセット (SM11-15 BANK1)</translation>
+    </message>
+    <message>
+        <source>DEBUG    (SM11-14 BANK3)</source>
+        <translation>DEBUG (SM11-14 BANK3)</translation>
+    </message>
+    <message>
+        <source>BASIC (BANK0)</source>
+        <translation>BASIC (BANK0)</translation>
+    </message>
+    <message>
+        <source>DOS (BANK2)</source>
+        <translation>DOS (BANK2)</translation>
+    </message>
+    <message>
+        <source>Bubble Casette (BANK1)</source>
+        <translation>バブルカセット (BANK1)</translation>
+    </message>
+    <message>
+        <source>Reserve (BANK3)</source>
+        <translation>予備領域 (BANK3)</translation>
+    </message>
+    <message>
+        <source>This is reserved area.
+I don&apos;t know about this.</source>
+        <translation>予備領域から起動します。
+作者はこの部分についてわかりません。</translation>
+    </message>
+    <message>
+        <source>Reserved boot mode.
+This is FM-77AV feature and I don&apos;t know about this.</source>
+        <translation>予備領域からの起動モードです。
+FM-77AVの機能ですが、作者にはこの部分についてはわかりません。</translation>
+    </message>
+    <message>
+        <source>Use DICTIONARY board(need restart).</source>
+        <translation>日本語カードを使う(要再起動)</translation>
+    </message>
+    <message>
+        <source>Connect extra dictionary card.
+Need to restart this emulator if changed.</source>
+        <translation>拡張日本語カードを接続します。
+日本語通信カードではありません。
+変更した場合、エミュレータの再起動が必要です。</translation>
     </message>
 </context>
 <context>
@@ -815,7 +880,7 @@ Reset with pressing BREAK key.</source>
     </message>
     <message>
         <source>2DD FDD</source>
-        <translation>2DDフロッピー</translation>
+        <translation type="vanished">2DDフロッピー</translation>
     </message>
     <message>
         <source>2HD FDD</source>
@@ -828,6 +893,10 @@ Reset with pressing BREAK key.</source>
     <message>
         <source>2D FDD</source>
         <translation>2Dフロッピー</translation>
+    </message>
+    <message>
+        <source>2D/2DD FDD</source>
+        <translation>2D/2DDフロッピー</translation>
     </message>
 </context>
 </TS>
