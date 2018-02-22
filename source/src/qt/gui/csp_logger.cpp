@@ -248,7 +248,7 @@ void CSP_Logger::debug_log(int level, int domain_num, char *strbuf)
 			strftime(strbuf2, 255, "%Y-%m-%d %H:%M:%S", timedat);
 			snprintf(strbuf3, 23, ".%06ld", tv.tv_usec);
 		}
-		QString time_s = QString::fromUtf8(strbuf2) + QString::fromUtf8(strbuf3);
+		QString time_s = QString::fromLocal8Bit(strbuf2) + QString::fromLocal8Bit(strbuf3);
 		
 		int cons_log_level_n = (1 << level) & cons_log_levels;
 		int sys_log_level_n = (1 << level) & sys_log_levels;

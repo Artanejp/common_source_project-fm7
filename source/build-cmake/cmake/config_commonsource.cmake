@@ -124,6 +124,7 @@ add_definitions(-DUSE_QT)
 add_definitions(-DQT_MAJOR_VERSION=${Qt5Widgets_VERSION_MAJOR})
 add_definitions(-DQT_MINOR_VERSION=${Qt5Widgets_VERSION_MINOR})
 
+
 if(USE_OPENMP)
   find_package(OpenMP)
   include_directories(${OPENMP_INCLUDE_PATH})
@@ -229,6 +230,7 @@ endif()
 if(LIBAV_FOUND)
    include_directories(${LIBAV_INCLUDE_DIRS})
 endif()
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/common)
@@ -240,6 +242,13 @@ endif()
 #add_subdirectory(../../src/qt qt/osd)
 add_subdirectory(../../src common)
 add_subdirectory(../../src/vm vm/)
+
+#add_custom_command(OUTPUT test.txt
+#          COMMAND grep ARGS -m 1 THIS_LIB_VERSION ${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen/CMakeLists.txt
+#	  COMMAND sed ARGS "-r" "'s/.*THIS_VERSION\ //'" 
+#	  COMMAND sed ARGS "-r" "'s/\).*$//'"
+#	  )
+
 
 if(DEFINED VM_NAME)
 # if(WITH_DEBUGGER)
@@ -253,6 +262,7 @@ if(DEFINED VM_NAME)
 	else()
 	  if(USE_FMGEN)
 		set(VM_APPEND_LIBS fmgen ${VM_APPEND_LIBS})
+
 	  else()
 		set(VM_APPEND_LIBS ${VM_APPEND_LIBS})
 	  endif()
