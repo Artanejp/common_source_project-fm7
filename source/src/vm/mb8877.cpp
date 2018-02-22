@@ -822,19 +822,19 @@ void MB8877::event_callback(int event_id, int err)
 //#ifdef _FDC_DEBUG_LOG
 		//this->out_debug_log(_T("FDC\tSEEK START\n"));
 //#endif
-		if(seektrk > fdc[drvreg].track) {
-			fdc[drvreg].track++;
+		if(seektrk > (uint8_t)(fdc[drvreg].track & 0xff)) {
+			if((fdc[drvreg].track < 0xff) && (fdc[drvreg].track >= 0)) fdc[drvreg].track++;
 			if(d_noise_seek != NULL) d_noise_seek->play();
 			//need_after_irq = true;
-		} else if(seektrk < fdc[drvreg].track) {
-			fdc[drvreg].track--;
+		} else if(seektrk < (uint8_t)(fdc[drvreg].track & 0xff)) {
+			if((fdc[drvreg].track <= 0xff) && (fdc[drvreg].track > 0)) fdc[drvreg].track--;
 			if(d_noise_seek != NULL) d_noise_seek->play();
 			//need_after_irq = true;
 		}
 		if((cmdreg & 0x10) || ((cmdreg & 0xf0) == 0)) {
 			trkreg = fdc[drvreg].track;
 		}
-		if(seektrk != fdc[drvreg].track) {
+		if(seektrk != (uint8_t)(fdc[drvreg].track & 0xff)) {
 			//if(need_after_irq) {
 				//set_drq(false);
 				//set_irq(true);  // 20180118 K.O Turn ON IRQ -> Turn OFF DRQ
@@ -1221,9 +1221,19 @@ void MB8877::cmd_seek()
 	} else {
 		status = FDC_ST_BUSY;
 	}		
-	
+
+	// Verify before execute command.
+	// Port from XM7.Thanks to Ryu Takegami.
+	if(cmdreg & 4) {
+		// verify
+		if(trkreg != fdc[drvreg].track) {
+			status |= FDC_ST_SEEKERR;
+			trkreg = fdc[drvreg].track;
+		}
+	}
 //	seektrk = (uint8_t)(fdc[drvreg].track + datareg - trkreg);
 	seektrk = datareg;
+		
 //#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV20) || defined(_FM77AV20EX)
 	if(type_fm77av_2dd) {
 		if(disk[drvreg]->drive_type != DRIVE_TYPE_2D) {
@@ -1237,7 +1247,16 @@ void MB8877::cmd_seek()
 		seektrk = (seektrk > 41) ? 41 : (seektrk < 0) ? 0 : seektrk;
 	}		
 	seekvct = !(seektrk > fdc[drvreg].track);
-	
+	// Fix wrong seek (to overtrack and overflow)
+	// Followup from XM7.
+	// Thanks to Haserin and Ryu Takegami.
+	if((seekvct) && ((trkreg - datareg) > (uint8_t)(fdc[drvreg].track))) {
+		seektrk = 0;
+	}
+	trkreg = datareg;
+	set_irq(false);
+	set_drq(false);
+#if 0	
 	if(cmdreg & 4) {
 		// verify
 		if(trkreg != fdc[drvreg].track) {
@@ -1245,6 +1264,7 @@ void MB8877::cmd_seek()
 			trkreg = fdc[drvreg].track;
 		}
 	}
+#endif
 	register_seek_event();
 }
 
@@ -1269,7 +1289,16 @@ void MB8877::cmd_stepin()
 		status = FDC_ST_HEADENG | FDC_ST_BUSY;
 	} else {
 		status = FDC_ST_BUSY;
-	}		
+	}
+	// Verify before execute command.
+	// Port from XM7.Thanks to Ryu Takegami.
+	if(cmdreg & 4) {
+		// verify
+		if(trkreg != fdc[drvreg].track) {
+			status |= FDC_ST_SEEKERR;
+//			trkreg = fdc[drvreg].track;
+		}
+	}
 	seektrk = fdc[drvreg].track + 1;
 	if(type_fm77av_2dd) {
 		if(disk[drvreg]->drive_type != DRIVE_TYPE_2D) {
@@ -1281,9 +1310,11 @@ void MB8877::cmd_stepin()
 		seektrk = (seektrk > 83) ? 83 : (seektrk < 0) ? 0 : seektrk;
 	} else {
 		seektrk = (seektrk > 41) ? 41 : (seektrk < 0) ? 0 : seektrk;
-	}		
+	}
 	seekvct = false;
-	
+	set_irq(false);
+	set_drq(false);
+#if 0
 	if(cmdreg & 4) {
 		// verify
 		if(trkreg != fdc[drvreg].track) {
@@ -1291,6 +1322,7 @@ void MB8877::cmd_stepin()
 //			trkreg = fdc[drvreg].track;
 		}
 	}
+#endif
 	register_seek_event();
 }
 
@@ -1306,6 +1338,15 @@ void MB8877::cmd_stepout()
 	} else {
 		status = FDC_ST_BUSY;
 	}		
+	// Verify before execute command.
+	// Port from XM7.Thanks to Ryu Takegami.
+	if(cmdreg & 4) {
+		// verify
+		if(trkreg != fdc[drvreg].track) {
+			status |= FDC_ST_SEEKERR;
+//			trkreg = fdc[drvreg].track;
+		}
+	}
 	
 	seektrk = fdc[drvreg].track - 1;
 	if(type_fm77av_2dd) {
@@ -1320,7 +1361,7 @@ void MB8877::cmd_stepout()
 		seektrk = (seektrk > 41) ? 41 : (seektrk < 0) ? 0 : seektrk;
 	}		
 	seekvct = true;
-	
+#if 0	
 	if(cmdreg & 4) {
 		// verify
 		if(trkreg != fdc[drvreg].track) {
@@ -1328,6 +1369,7 @@ void MB8877::cmd_stepout()
 //			trkreg = fdc[drvreg].track;
 		}
 	}
+#endif
 	register_seek_event();
 }
 
@@ -1492,9 +1534,9 @@ void MB8877::cmd_forceint()
 		// abort restore/seek/step command
 		if(now_seek) {
 			if(seektrk > fdc[drvreg].track) {
-				fdc[drvreg].track++;
+				if((fdc[drvreg].track < 0xff) && (fdc[drvreg].track >= 0)) fdc[drvreg].track++;
 			} else if(seektrk < fdc[drvreg].track) {
-				fdc[drvreg].track--;
+				if((fdc[drvreg].track <= 0xff) && (fdc[drvreg].track > 0)) fdc[drvreg].track--;
 			}
 			if((cmdreg_tmp & 0x10) || ((cmdreg_tmp & 0xf0) == 0)) {
 				trkreg = fdc[drvreg].track;
