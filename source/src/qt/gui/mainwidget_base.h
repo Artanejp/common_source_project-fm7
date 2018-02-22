@@ -529,7 +529,7 @@ public slots:
 	
 	virtual void OnOpenDebugger(int n);
 	virtual void OnCloseDebugger(void);
-	
+	void doBeforeCloseMainWindow(void);	
 	void set_screen_rotate(bool);
 	void set_gl_crt_filter(bool);
 	void set_cpu_power(int pw) {
@@ -656,6 +656,7 @@ signals:
 	int call_joy_thread(EMU *);
 	int quit_joy_thread();
 	int quit_draw_thread();
+	int quit_emulator_all();
 	int sig_quit_movie_thread();
 	int sig_stop_saving_movie(void);
 	int sig_start_saving_movie(void);

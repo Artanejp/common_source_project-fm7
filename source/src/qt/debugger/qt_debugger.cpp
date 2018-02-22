@@ -74,6 +74,7 @@ void CSP_Debugger::closeEvent(QCloseEvent *event)
 	}
 #endif
 	event->accept();
+	emit sig_finished();
 }
 
 void CSP_Debugger::do_destroy_thread(void)

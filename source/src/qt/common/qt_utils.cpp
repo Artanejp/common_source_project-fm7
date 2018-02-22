@@ -458,6 +458,7 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 		hDrawEmu = NULL;
 	}
 	if(hRunEmu != NULL) {
+		OnCloseDebugger();
 		hRunEmu->quit();
 		hRunEmu->wait();
 		delete hRunEmu;
@@ -809,7 +810,8 @@ void Ui_MainWindow::OnOpenDebugger(int no)
 	//emu->open_debugger(no);
 	VM *vm = emu->get_vm();
 
- 	if((emu->now_debugging ) || (emu->hDebugger != NULL)) this->OnCloseDebugger();
+ 	if((emu->now_debugging ) || (emu->hDebugger != NULL)) /* OnCloseDebugger(); */ return;
+	
 	if(!(emu->now_debugging && emu->debugger_thread_param.cpu_index == no)) {
 		//emu->close_debugger();
 		if(vm->get_cpu(no) != NULL && vm->get_cpu(no)->get_debugger() != NULL) {
@@ -845,10 +847,14 @@ void Ui_MainWindow::OnCloseDebugger(void )
 			emit quit_debugger_thread();
 			//emu->hDebugger->wait();
 		}
-		delete emu->hDebugger;
- 		emu->hDebugger = NULL;
- 		emu->now_debugging = false;
  	}
+	if(emu != NULL) {
+		if(emu->hDebugger != NULL) {
+			delete emu->hDebugger;
+			emu->hDebugger = NULL;
+		}
+		emu->now_debugging = false;
+	}
 }
 #endif
 

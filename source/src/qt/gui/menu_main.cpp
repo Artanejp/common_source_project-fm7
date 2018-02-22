@@ -1201,11 +1201,18 @@ void Ui_MainWindowBase::retranslateUi(void)
    
 } // retranslateUi
 
+void Ui_MainWindowBase::doBeforeCloseMainWindow(void)
+{
+	//emit quit_debugger_thread();
+	emit quit_emulator_all();
+}
+
 void Ui_MainWindowBase::setCoreApplication(QApplication *p)
 {
 	this->CoreApplication = p;
 	connect(actionExit_Emulator, SIGNAL(triggered()),
-			this->CoreApplication, SLOT(closeAllWindows())); // OnGuiExit()?  
+			this, SLOT(doBeforeCloseMainWindow())); // OnGuiExit()?
+	connect(this, SIGNAL(quit_emulator_all()), CoreApplication, SLOT(closeAllWindows()));
 	connect(actionHelp_AboutQt, SIGNAL(triggered()),
 			this->CoreApplication, SLOT(aboutQt()));
 	
