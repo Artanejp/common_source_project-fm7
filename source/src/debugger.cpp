@@ -127,9 +127,6 @@ break_point_t *get_break_point(DEBUGGER *debugger, const _TCHAR *command)
 	}
 	return NULL;
 }
-#if defined(OSD_QT)
-#include "../debugger/debugger_thread.h"
-#endif
 #ifdef _MSC_VER
 unsigned __stdcall debugger_thread(void *lpx)
 #else

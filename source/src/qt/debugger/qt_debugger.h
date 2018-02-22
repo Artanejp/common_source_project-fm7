@@ -24,16 +24,13 @@
 #include "../../vm/vm.h"
 #include "../../fileio.h"
 
-#if defined(USE_DEBUGGER)
-#include "debugger_thread.h"
-#endif
 
 QT_BEGIN_NAMESPACE	
 class CSP_Debugger : public CSP_Debugger_Tmpl
 {
 	Q_OBJECT
  protected:
-	CSP_DebuggerThread *main_thread;
+
  public:
 	CSP_Debugger(QWidget *parent);
 	~CSP_Debugger();

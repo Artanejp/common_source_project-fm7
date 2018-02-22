@@ -83,9 +83,6 @@ void CSP_Debugger::do_destroy_thread(void)
 
 CSP_Debugger::CSP_Debugger(QWidget *parent) : CSP_Debugger_Tmpl(parent)
 {
-#if defined(USE_DEBUGGER)	
-	main_thread = NULL;
-#endif
 }
 
 CSP_Debugger::~CSP_Debugger()
