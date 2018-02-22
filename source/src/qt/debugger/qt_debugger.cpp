@@ -60,7 +60,7 @@ void CSP_Debugger::closeEvent(QCloseEvent *event)
 {
 	//emit sig_close_debugger();
 	//event->ignore();
-#if 1
+#if defined(USE_DEBUGGER)
 	debugger_thread_param.request_terminate = true;
 	if(emu != NULL) {
 		debugger_thread_t *d_params = &debugger_thread_param;
