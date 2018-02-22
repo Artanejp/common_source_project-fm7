@@ -1,0 +1,197 @@
+** UTF-8 **
+This is test release for debugging FDC (MB8877).
+Please check if you have ROM image.
+Note:
+  Still not implement command line arguments feature, sorry.
+Jan 30, 2018 K.Ohta <whatisthis.sowhat@gmail.com>
+
+Updates:
+commit b860cb162ccab2fb3ffcd8f930d2770b7fc65426
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 22 22:00:59 2018 +0900
+
+    [DOC] .
+
+commit 3dcdcc490bebd569fef4d32f14c34670f250f788
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 22 22:00:30 2018 +0900
+
+    [DOC] Update.
+
+commit fa07e353db77a757c8f8d33c296ec6a51cf14220
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 22 21:56:55 2018 +0900
+
+    [Qt][WINDOWS][DEBUGGER] Fix crash when exitting emulator.
+
+commit 05ac783f6e49733aa946a2031ce052a67d8dd5e8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 22 15:45:03 2018 +0900
+
+    [VM][MB8877] Fix seeking sequence. Thanks to Haserin.
+    [VM][MB8877] Track-verifying may be before execute command.Thanks to Ryu Takegami.
+
+commit 6998a6f5153b48d5cab55107a69f241006666f09
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 22 15:44:39 2018 +0900
+
+    [I18N] Update I18N table.
+
+commit 4cf405a61adca3f50df5e53637bc6a6f3b8ceb24
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 22 15:44:07 2018 +0900
+
+    [Qt][LOGGER] Fix locake for time-string.
+
+commit 7f37c678359c33fb76245a047c0c1284fd445bcd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 22 14:37:40 2018 +0900
+
+    [UI][Qt][L10N] Update translations.
+
+commit 15259a8f42ca14af517e1b99ccb1fefb0a0e14dd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 22 12:29:04 2018 +0900
+
+    [UI][Qt][DEBUGGER] Remove debugger_thread.[cpp|h] due to integrate to EMU::open_debugger() and EMU::close_debugger().
+
+commit 9a288195782d240ecb6b676a279195977f59713c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 22 12:17:06 2018 +0900
+
+    [DEBUGGER] .
+
+commit a7295ade9b9f0bd8f0d004a36df16bd2fa19d421
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 22 12:16:29 2018 +0900
+
+    [UI][MZ2500][J3100] Fix FTBFSs.
+
+commit caf5d4763e0dc51f579fd0f0adf68d2f653f3758
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 22 00:20:26 2018 +0900
+
+    [UI][Qt][DEBUGGER] Fix crash/lockup with closing debugger window.
+
+commit f5db0274d7f390cce7b215f228b22dc5c26faa34
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 21 17:32:42 2018 +0900
+
+    [UI][Qt][BUBBLE] Minimize VM depended unit.
+
+commit d50260dbbf09703f787338f24f32c259db8be2d7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 20 17:02:58 2018 +0900
+
+    [Qt][Windows] Prepare to parsing command line.
+
+commit 0b3bd75d979b51916f987c08a82a4742ad061cac
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 20 04:53:06 2018 +0900
+
+    [DOC] .
+
+commit dab3a4cd1c2f084c4ced29e82edec8d0fb146351
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 20 04:52:39 2018 +0900
+
+    [VM][FM7][KEYBOARD] Fix initial key code value.
+
+commit 28ce199c749411993fcf04e7fc599ae232b6865d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 20 04:52:18 2018 +0900
+
+    [EVENT] .
+
+commit 098dd26d2568d07b0e7880b004fad02f8a830dbb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 20 04:51:55 2018 +0900
+
+    [EMU] Remove debug print out.
+
+commit 17a29122cd00d9d2884e165fd229bb019b8c1ffb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 20 04:51:33 2018 +0900
+
+    [EMU] Remove FM-7 specific hack.
+
+commit 2e1fd9344c3e2b5fe5b7432c81a5af908820566d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 20 04:49:53 2018 +0900
+
+    [EMU][Qt] Use recursive mutex to lock key-in queue.
+
+commit fbe7e074e1133c2921ace1c6abf1a5feb9e7f55d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 20 04:49:16 2018 +0900
+
+    [OSD][Qt] Fix not setting device name to logger.
+
+commit 76a556fcebaf42d165de260d863ff32c583fe92a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 20 03:57:41 2018 +0900
+
+    [VM][FM7][KEYBOARD] Make  interupt handling at reset correctness.Fix hang-up resetting after checking keyboard interrupt at mainio.
+
+commit ed63dbfaaf93667415cc2a207fff196eada717ba
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 20 03:05:42 2018 +0900
+
+    [UI][Qt][FM7] Add "SYNC TO HSYNC" entry also FM-7/77/8.
+
+commit 3b84c8e343828ecf9e6f7033fa1c326bb315b57a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 20 03:04:55 2018 +0900
+
+    [VM][FM7] Fix FRAMERATE.Fix flicking with YS2 (/AV).
+
+commit 559fecd562a2d90322399d721704dc2b8aed8a92
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 20 03:01:33 2018 +0900
+
+    [VM][FM7][DISPLAY] Not use event_vline() as determine H/V SYNC.
+    [VM][FM7][DISPLAY] Use event_frame() to kick VSTART.Not loop.
+    [VM][FM7][DISPLAY] Duplicate palette (pixel) value at VSYNC.Fix rendering with DRAGON BUSTER, LUXOL and more softwares.
+
+commit bf68c4ccfdbd7b9f3d5300d25a7362c70e79ef1a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 20 03:00:52 2018 +0900
+
+    [VM][FM7][KANJIROM] Fix wrong save state.
+
+commit 01837f5d59ddb9f19dc5e8b15dcb4c33c659252c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 20 03:00:25 2018 +0900
+
+    [VM][FM7] Fix wrong load state.
+
+commit e3e6c5cd6899d79d5f81d608f1e02fd556ec13e7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Feb 19 04:37:20 2018 +0900
+
+    [VM][FM7][DISPLAY] Fix framerate.
+
+commit 2db17aef0b216436244d776bd02bf2b3a0ee9cb4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Feb 19 04:35:50 2018 +0900
+
+    [UI][Qt][DRAW] Add drawing to separate-thread or combined.
+
+commit 13e519b97d8d09389a2e6221b3b676927259f9ea
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 18 13:50:24 2018 +0900
+
+    [VM][MB8877] READ SECTOR: MAKE IRQ and UPDATING STATUS after reading CRC bytes.This modifying needs for FM-77 using NMI as MB8877's IRQ. Thanks to Haserin.
+
+commit 77c86a840d733d2a0d077f57d7bd1a74e56b5ae6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 18 04:24:59 2018 +0900
+
+    [VM][FM8] Fix FTBFS.
+
+commit e62ff103655e5032c1a08b7dc56b4913dc696415
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 18 04:16:45 2018 +0900
+
+    [VM][FM77] Boot from 2HD FDD (maybe).Thanks to Haserin.
+

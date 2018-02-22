@@ -1,3 +1,15 @@
+commit b860cb162ccab2fb3ffcd8f930d2770b7fc65426
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 22 22:00:59 2018 +0900
+
+    [DOC] .
+
+commit 3dcdcc490bebd569fef4d32f14c34670f250f788
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 22 22:00:30 2018 +0900
+
+    [DOC] Update.
+
 commit fa07e353db77a757c8f8d33c296ec6a51cf14220
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Feb 22 21:56:55 2018 +0900
