@@ -54,7 +54,7 @@ endif()
 
 if(USE_QT_5)
   if(USE_SOCKET)
-    QT5_USE_MODULES(${EXEC_TARGET} WinMain Widgets Core Gui OpenGL Network)
+    QT5_USE_MODULES(${EXEC_TARGET} Widgets Core Gui OpenGL Network)
   else()
     QT5_USE_MODULES(${EXEC_TARGET} Widgets Core Gui OpenGL)
   endif()
