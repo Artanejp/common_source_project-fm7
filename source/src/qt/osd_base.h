@@ -87,8 +87,6 @@ class DLL_PREFIX OSD_BASE : public QThread
 	Q_OBJECT
 protected:
 	EmuThreadClass *parent_thread;
-	QSemaphore *VMSemaphore;
-	QSemaphore *DebugSemaphore;
 	sdl_snddata_t snddata;
 	USING_FLAGS *using_flags;
 	config_t *p_config;
@@ -277,6 +275,7 @@ public:
 	class Ui_MainWindow *main_window_handle;
 	GLDrawClass *glv;
 	QMutex *screen_mutex;
+	QMutex *vm_mutex;
 	
 	int host_cpus;
 	bool now_auto_key;

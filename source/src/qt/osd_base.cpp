@@ -24,8 +24,7 @@
 OSD_BASE::OSD_BASE(USING_FLAGS *p, CSP_Logger *logger) : QThread(0)
 {
 	using_flags = p;
-   	VMSemaphore = new QSemaphore(1);
-   	DebugSemaphore = new QSemaphore(1);
+	vm_mutex = new QMutex(QMutex::Recursive);
 	locked_vm = false;
 	screen_mutex = new QMutex(QMutex::Recursive);
 	device_node_list.clear();
@@ -36,8 +35,7 @@ OSD_BASE::OSD_BASE(USING_FLAGS *p, CSP_Logger *logger) : QThread(0)
 
 OSD_BASE::~OSD_BASE()
 {
-  	delete VMSemaphore;
-	delete DebugSemaphore;
+  	delete vm_mutex;
 	delete screen_mutex;
 }
 

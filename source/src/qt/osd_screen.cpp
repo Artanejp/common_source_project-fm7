@@ -15,6 +15,7 @@
 #include <QTextCodec>
 #include <QDateTime>
 #include <QImageReader>
+#include <QMutexLocker>
 
 #include "qt_gldraw.h"
 #include "osd_base.h"
@@ -92,16 +93,14 @@ scrntype_t* OSD_BASE::get_buffer(bitmap_t *p, int y)
 int OSD_BASE::draw_screen()
 {
 	// draw screen
-	screen_mutex->lock();
-	//lock_vm();
+	QMutexLocker Locker_S(screen_mutex);
+	QMutexLocker Locker_VM(vm_mutex);
 	if(vm_screen_buffer.width != vm_screen_width || vm_screen_buffer.height != vm_screen_height) {
 		//emit sig_movie_set_width(vm_screen_width);
 		//emit sig_movie_set_height(vm_screen_height);
 		initialize_screen_buffer(&vm_screen_buffer, vm_screen_width, vm_screen_height, 0);
 	}
 	this->vm_draw_screen();
-	//unlock_vm();
-	screen_mutex->unlock();
 	// screen size was changed in vm->draw_screen()
 	if(vm_screen_buffer.width != vm_screen_width || vm_screen_buffer.height != vm_screen_height) {
 		return 0;

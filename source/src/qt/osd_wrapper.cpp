@@ -318,22 +318,24 @@ int OSD::get_screen_height(void)
 void OSD::lock_vm(void)
 {
 	locked_vm = true;
-	if(parent_thread != NULL) { 
+	vm_mutex->lock();
+	//if(parent_thread != NULL) { 
 		//if(!parent_thread->now_debugging()) VMSemaphore->acquire(1);
-		VMSemaphore->acquire(1);
-	} else {
-		VMSemaphore->acquire(1);
-	}
+		//VMSemaphore->acquire(1);
+	//} else {
+	//	VMSemaphore->acquire(1);
+	//}
 }
 
 void OSD::unlock_vm(void)
 {
-	if(parent_thread != NULL) { 
-		//if(!parent_thread->now_debugging()) VMSemaphore->release(1);
-		VMSemaphore->release(1);
-	} else {
-		VMSemaphore->release(1);
-	}
+	vm_mutex->unlock();
+	//if(parent_thread != NULL) { 
+	//	//if(!parent_thread->now_debugging()) VMSemaphore->release(1);
+	//	VMSemaphore->release(1);
+	//} else {
+	//	VMSemaphore->release(1);
+	//}
 	locked_vm = false;
 }
 
@@ -345,16 +347,7 @@ bool OSD::is_vm_locked(void)
 
 void OSD::force_unlock_vm(void)
 {
-	if(parent_thread == NULL) {
-		while(VMSemaphore->available() < 1) VMSemaphore->release(1);
-		locked_vm = false;
-		return;
-	}
-	if(parent_thread->now_debugging()) {
-		locked_vm = false;
-		return;
-	}
-	while(VMSemaphore->available() < 1) VMSemaphore->release(1);
+	vm_mutex->unlock();
 	locked_vm = false;
 }
 
