@@ -45,7 +45,8 @@ void GLDrawClass::drawGrids(void)
 
 void GLDrawClass::drawUpdateTexture(bitmap_t *p)
 {
-	if(using_flags->get_osd() != NULL)	using_flags->get_osd()->screen_mutex->lock();
+	if(using_flags->get_osd() == NULL) return;
+	QMutexLocker Locker_S(using_flags->get_osd()->screen_mutex);
 	if((p != NULL)) {
 		if(extfunc != NULL) {
 // Will fix at implemenitin PX7.
@@ -56,7 +57,6 @@ void GLDrawClass::drawUpdateTexture(bitmap_t *p)
 			}
 		}
 	}
-	if(using_flags->get_osd() != NULL)	using_flags->get_osd()->screen_mutex->unlock();
 }
 
 void GLDrawClass::updateBitmap(QImage *p)

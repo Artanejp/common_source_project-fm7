@@ -10,6 +10,7 @@
 #include "csp_logger.h"
 
 #include <QMutex>
+#include <QMutexLocker>
 
 MOVIE_LOADER::MOVIE_LOADER(OSD *osd, config_t *cfg) : QObject(NULL)
 {
@@ -105,7 +106,8 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
                 return -1;
             }
 			if((old_dst_width != dst_width) || (old_dst_height != dst_height)) { // You sould allocate on opening.
-				video_mutex->lock();
+				QMutexLocker Locker_V(video_mutex);
+				//video_mutex->lock();
 				for(int i = 0; i < 4; i++) av_free(video_dst_data[i]);
 				ret = av_image_alloc(video_dst_data, video_dst_linesize,
 									 dst_width, dst_height, AV_PIX_FMT_BGRA, 1);
@@ -114,12 +116,12 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 					csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "MOVIE_LOADER: Could not re-allocate output buffer\n");
 					old_dst_width = dst_width;
 					old_dst_height = dst_height;
-					video_mutex->unlock();
+					//video_mutex->unlock();
 					return -1;
 				}
 				old_dst_width = dst_width;
 				old_dst_height = dst_height;
-				video_mutex->unlock();
+				//video_mutex->unlock();
 			}
 			
 			char str_buf2[AV_TS_MAX_STRING_SIZE] = {0};
@@ -573,9 +575,9 @@ void MOVIE_LOADER::get_video_frame()
 	uint32_t *p;
 	uint32_t *q;
 	int xx;
-	
-	p_osd->screen_mutex->lock();
-	video_mutex->lock();
+
+	QMutexLocker Locker_S(p_osd->screen_mutex);
+	QMutexLocker Locker_V(video_mutex);
 	if(req_transfer) {
 		req_transfer = false;
 		for(int yy = 0; yy < dst_height; yy++) {
@@ -635,8 +637,6 @@ void MOVIE_LOADER::get_video_frame()
 			}
 #endif		   
 		}
-		video_mutex->unlock();
-		p_osd->screen_mutex->unlock();
 	}
 }
 
