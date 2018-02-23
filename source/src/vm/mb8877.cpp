@@ -77,7 +77,7 @@ void MB8877::register_seek_event()
 {
 	cancel_my_event(EVENT_SEEK);
 	if(fdc[drvreg].track == seektrk) {
-		register_event(this, (EVENT_SEEK << 8) | (cmdtype & 0xff), 1, false, &register_id[EVENT_SEEK]);
+		register_event(this, (EVENT_SEEK << 8) | (cmdtype & 0xff), 300, false, &register_id[EVENT_SEEK]); // From XM7 v3.4L77a Wait 300uS.
 	} else if(disk[drvreg]->drive_type == DRIVE_TYPE_2HD) {
 		register_event(this, (EVENT_SEEK << 8) | (cmdtype & 0xff), seek_wait_hi[cmdreg & 3], false, &register_id[EVENT_SEEK]);
 	} else {
@@ -863,11 +863,17 @@ void MB8877::event_callback(int event_id, int err)
 			// verify
 			status_tmp |= search_track();
 			double time;
+#if 0			
 			if(status_tmp & FDC_ST_SEEKERR) {
 				time = get_usec_to_detect_index_hole(5, true);
 			} else {
 				time = get_usec_to_next_trans_pos(true);
 			}
+#else
+			// Verify wait is shorter than above at least FM-7 series's MB8877. 20180223 K.O.
+			// Thanks to Ryu Takegami.
+			time = (disk[drvreg]->drive_type == DRIVE_TYPE_2HD) ? 10000.0 : 20000.0;
+#endif
 			// 20180128 K.O If seek completed, delay to make IRQ/DRQ at SEEKEND_VERIFY.
 			register_my_event(EVENT_SEEKEND_VERIFY, time);
 			break;
@@ -1231,6 +1237,7 @@ void MB8877::cmd_seek()
 			trkreg = fdc[drvreg].track;
 		}
 	}
+
 //	seektrk = (uint8_t)(fdc[drvreg].track + datareg - trkreg);
 	seektrk = datareg;
 		
@@ -1256,15 +1263,6 @@ void MB8877::cmd_seek()
 	trkreg = datareg;
 	set_irq(false);
 	set_drq(false);
-#if 0	
-	if(cmdreg & 4) {
-		// verify
-		if(trkreg != fdc[drvreg].track) {
-			status |= FDC_ST_SEEKERR;
-			trkreg = fdc[drvreg].track;
-		}
-	}
-#endif
 	register_seek_event();
 }
 
@@ -1290,6 +1288,7 @@ void MB8877::cmd_stepin()
 	} else {
 		status = FDC_ST_BUSY;
 	}
+
 	// Verify before execute command.
 	// Port from XM7.Thanks to Ryu Takegami.
 	if(cmdreg & 4) {
@@ -1299,6 +1298,7 @@ void MB8877::cmd_stepin()
 //			trkreg = fdc[drvreg].track;
 		}
 	}
+
 	seektrk = fdc[drvreg].track + 1;
 	if(type_fm77av_2dd) {
 		if(disk[drvreg]->drive_type != DRIVE_TYPE_2D) {
@@ -1314,15 +1314,6 @@ void MB8877::cmd_stepin()
 	seekvct = false;
 	set_irq(false);
 	set_drq(false);
-#if 0
-	if(cmdreg & 4) {
-		// verify
-		if(trkreg != fdc[drvreg].track) {
-			status |= FDC_ST_SEEKERR;
-//			trkreg = fdc[drvreg].track;
-		}
-	}
-#endif
 	register_seek_event();
 }
 
@@ -1337,7 +1328,8 @@ void MB8877::cmd_stepout()
 		status = FDC_ST_HEADENG | FDC_ST_BUSY;
 	} else {
 		status = FDC_ST_BUSY;
-	}		
+	}
+
 	// Verify before execute command.
 	// Port from XM7.Thanks to Ryu Takegami.
 	if(cmdreg & 4) {
@@ -1347,7 +1339,7 @@ void MB8877::cmd_stepout()
 //			trkreg = fdc[drvreg].track;
 		}
 	}
-	
+
 	seektrk = fdc[drvreg].track - 1;
 	if(type_fm77av_2dd) {
 		if(disk[drvreg]->drive_type != DRIVE_TYPE_2D) {
@@ -1361,15 +1353,6 @@ void MB8877::cmd_stepout()
 		seektrk = (seektrk > 41) ? 41 : (seektrk < 0) ? 0 : seektrk;
 	}		
 	seekvct = true;
-#if 0	
-	if(cmdreg & 4) {
-		// verify
-		if(trkreg != fdc[drvreg].track) {
-			status |= FDC_ST_SEEKERR;
-//			trkreg = fdc[drvreg].track;
-		}
-	}
-#endif
 	register_seek_event();
 }
 
