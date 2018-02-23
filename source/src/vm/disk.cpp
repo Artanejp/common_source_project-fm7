@@ -501,6 +501,24 @@ void DISK::open(const _TCHAR* file_path, int bank)
 			}
 		}
 		
+		// check two side
+		int valid_side = 0;
+		
+		for(int trk = 0; trk < 82; trk++) {
+			for(int side = 0; side < 2; side++) {
+				int trkside = trk * 2 + side;
+				pair_t offset;
+				offset.read_4bytes_le_from(buffer + 0x20 + trkside * 4);
+				
+				if(IS_VALID_TRACK(offset.d)) {
+					valid_side |= (1 << side);
+				}
+			}
+			if(valid_side == 3) break;
+		}
+		// FIXME: unformat disk is recognized as two side
+		two_side = (valid_side != 1);
+		
 		// fix write protect flag
 		if(buffer[0x1a] != 0) {
 			buffer[0x1a] = 0x10;

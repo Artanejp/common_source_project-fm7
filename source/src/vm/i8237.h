@@ -55,6 +55,7 @@ protected:
 	uint8_t tc;
 	uint32_t tmp;
 	bool mode_word;
+	uint32_t addr_mask;
 
 	void write_mem(uint32_t addr, uint32_t data);
 	uint32_t read_mem(uint32_t addr);
@@ -71,6 +72,7 @@ public:
 			initialize_output_signals(&dma[i].outputs_tc);
 		}
 		mode_word = false;
+		addr_mask = 0xffffffff;
 		set_device_name(_T("i8237 DMAC"));
 	}
 	~I8237_BASE() {}
@@ -112,19 +114,23 @@ public:
 	}
 	void set_context_tc1(DEVICE* device, int id, uint32_t mask)
 	{
-		register_output_signal(&dma[0].outputs_tc, device, id, mask);
+		register_output_signal(&dma[1].outputs_tc, device, id, mask);
 	}
 	void set_context_tc2(DEVICE* device, int id, uint32_t mask)
 	{
-		register_output_signal(&dma[0].outputs_tc, device, id, mask);
+		register_output_signal(&dma[2].outputs_tc, device, id, mask);
 	}
 	void set_context_tc3(DEVICE* device, int id, uint32_t mask)
 	{
-		register_output_signal(&dma[0].outputs_tc, device, id, mask);
+		register_output_signal(&dma[3].outputs_tc, device, id, mask);
 	}
 	void set_mode_word(bool val)
 	{
 		mode_word = val;
+	}
+	void set_address_mask(uint32_t val)
+	{
+		addr_mask = val;
 	}
 };
 

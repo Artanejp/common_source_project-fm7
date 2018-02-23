@@ -18,7 +18,9 @@
 // use zlib to decompress gzip file???
 #ifdef _WIN32
 	#if defined(_MSC_VER) && (_MSC_VER >= 1500)
-		#define USE_ZLIB
+		#ifndef _ANY2D88
+			#define USE_ZLIB
+		#endif
 	#endif
 #endif
 

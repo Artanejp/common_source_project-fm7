@@ -222,7 +222,7 @@ void MC6840::update_interrupts()
 					((m_status_reg & 0x02) && (m_control_reg[1] & 0x40)) ||
 					((m_status_reg & 0x04) && (m_control_reg[2] & 0x40));
 
-	if (new_state != m_IRQ)
+//	if (new_state != m_IRQ)
 	{
 		m_IRQ = new_state;
 
@@ -364,7 +364,9 @@ uint32_t MC6840::read_io8(uint32_t offset)
 {
 	int val;
 
-	switch ( offset & 7 )
+	offset &= 7;
+
+	switch ( offset )
 	{
 		case PTM_6840_CTRL1:
 		{
@@ -425,7 +427,9 @@ uint32_t MC6840::read_io8(uint32_t offset)
 
 void MC6840::write_io8(uint32_t offset, uint32_t data)
 {
-	switch ( offset & 7 )
+	offset &= 7;
+
+	switch ( offset )
 	{
 		case PTM_6840_CTRL1:
 		case PTM_6840_CTRL2:

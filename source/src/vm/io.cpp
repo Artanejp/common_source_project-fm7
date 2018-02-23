@@ -9,6 +9,29 @@
 
 #include "io.h"
 
+#define IO_ADDR_MASK (addr_max - 1)
+
+void IO::initialize()
+{
+	// allocate tables here to support multiple instances with different address range
+	if(wr_table == NULL) {
+		wr_table = (wr_bank_t *)calloc(addr_max, sizeof(wr_bank_t));
+		rd_table = (rd_bank_t *)calloc(addr_max, sizeof(rd_bank_t));
+		
+		// vm->dummy must be generated first !
+		for(int i = 0; i < addr_max; i++) {
+			wr_table[i].dev = rd_table[i].dev = vm->dummy;
+			wr_table[i].addr = rd_table[i].addr = i;
+		}
+	}
+}
+
+void IO::release()
+{
+	free(wr_table);
+	free(rd_table);
+}
+
 void IO::write_io8(uint32_t addr, uint32_t data)
 {
 	write_port8(addr, data, false);
@@ -208,12 +231,16 @@ uint32_t IO::read_port32(uint32_t addr, bool is_dma)
 
 void IO::set_iomap_single_r(uint32_t addr, DEVICE* device)
 {
+	IO::initialize(); // subclass may overload initialize()
+	
 	rd_table[addr & IO_ADDR_MASK].dev = device;
 	rd_table[addr & IO_ADDR_MASK].addr = addr & IO_ADDR_MASK;
 }
 
 void IO::set_iomap_single_w(uint32_t addr, DEVICE* device)
 {
+	IO::initialize();
+	
 	wr_table[addr & IO_ADDR_MASK].dev = device;
 	wr_table[addr & IO_ADDR_MASK].addr = addr & IO_ADDR_MASK;
 }
@@ -226,12 +253,16 @@ void IO::set_iomap_single_rw(uint32_t addr, DEVICE* device)
 
 void IO::set_iomap_alias_r(uint32_t addr, DEVICE* device, uint32_t alias)
 {
+	IO::initialize();
+	
 	rd_table[addr & IO_ADDR_MASK].dev = device;
 	rd_table[addr & IO_ADDR_MASK].addr = alias & IO_ADDR_MASK;
 }
 
 void IO::set_iomap_alias_w(uint32_t addr, DEVICE* device, uint32_t alias)
 {
+	IO::initialize();
+	
 	wr_table[addr & IO_ADDR_MASK].dev = device;
 	wr_table[addr & IO_ADDR_MASK].addr = alias & IO_ADDR_MASK;
 }
@@ -244,6 +275,8 @@ void IO::set_iomap_alias_rw(uint32_t addr, DEVICE* device, uint32_t alias)
 
 void IO::set_iomap_range_r(uint32_t s, uint32_t e, DEVICE* device)
 {
+	IO::initialize();
+	
 	for(uint32_t i = s; i <= e; i++) {
 		rd_table[i & IO_ADDR_MASK].dev = device;
 		rd_table[i & IO_ADDR_MASK].addr = i & IO_ADDR_MASK;
@@ -252,6 +285,8 @@ void IO::set_iomap_range_r(uint32_t s, uint32_t e, DEVICE* device)
 
 void IO::set_iomap_range_w(uint32_t s, uint32_t e, DEVICE* device)
 {
+	IO::initialize();
+	
 	for(uint32_t i = s; i <= e; i++) {
 		wr_table[i & IO_ADDR_MASK].dev = device;
 		wr_table[i & IO_ADDR_MASK].addr = i & IO_ADDR_MASK;
@@ -266,12 +301,16 @@ void IO::set_iomap_range_rw(uint32_t s, uint32_t e, DEVICE* device)
 
 void IO::set_iovalue_single_r(uint32_t addr, uint32_t value)
 {
+	IO::initialize();
+	
 	rd_table[addr & IO_ADDR_MASK].value = value;
 	rd_table[addr & IO_ADDR_MASK].value_registered = true;
 }
 
 void IO::set_iovalue_range_r(uint32_t s, uint32_t e, uint32_t value)
 {
+	IO::initialize();
+	
 	for(uint32_t i = s; i <= e; i++) {
 		rd_table[i & IO_ADDR_MASK].value = value;
 		rd_table[i & IO_ADDR_MASK].value_registered = true;
@@ -280,6 +319,8 @@ void IO::set_iovalue_range_r(uint32_t s, uint32_t e, uint32_t value)
 
 void IO::set_flipflop_single_rw(uint32_t addr, uint32_t value)
 {
+	IO::initialize();
+	
 	wr_table[addr & IO_ADDR_MASK].is_flipflop = true;
 	rd_table[addr & IO_ADDR_MASK].value = value;
 	rd_table[addr & IO_ADDR_MASK].value_registered = true;
@@ -287,6 +328,8 @@ void IO::set_flipflop_single_rw(uint32_t addr, uint32_t value)
 
 void IO::set_flipflop_range_rw(uint32_t s, uint32_t e, uint32_t value)
 {
+	IO::initialize();
+	
 	for(uint32_t i = s; i <= e; i++) {
 		wr_table[i & IO_ADDR_MASK].is_flipflop = true;
 		rd_table[i & IO_ADDR_MASK].value = value;
@@ -296,11 +339,15 @@ void IO::set_flipflop_range_rw(uint32_t s, uint32_t e, uint32_t value)
 
 void IO::set_iowait_single_r(uint32_t addr, int wait)
 {
+	IO::initialize();
+	
 	rd_table[addr & IO_ADDR_MASK].wait = wait;
 }
 
 void IO::set_iowait_single_w(uint32_t addr, int wait)
 {
+	IO::initialize();
+	
 	wr_table[addr & IO_ADDR_MASK].wait = wait;
 }
 
@@ -312,6 +359,8 @@ void IO::set_iowait_single_rw(uint32_t addr, int wait)
 
 void IO::set_iowait_range_r(uint32_t s, uint32_t e, int wait)
 {
+	IO::initialize();
+	
 	for(uint32_t i = s; i <= e; i++) {
 		rd_table[i & IO_ADDR_MASK].wait = wait;
 	}
@@ -319,6 +368,8 @@ void IO::set_iowait_range_r(uint32_t s, uint32_t e, int wait)
 
 void IO::set_iowait_range_w(uint32_t s, uint32_t e, int wait)
 {
+	IO::initialize();
+	
 	for(uint32_t i = s; i <= e; i++) {
 		wr_table[i & IO_ADDR_MASK].wait = wait;
 	}
@@ -337,7 +388,7 @@ void IO::save_state(FILEIO* state_fio)
 	state_fio->FputUint32(STATE_VERSION);
 	state_fio->FputInt32(this_device_id);
 	
-	for(int i = 0; i < IO_ADDR_MAX; i++) {
+	for(int i = 0; i < addr_max; i++) {
 		state_fio->FputUint32(rd_table[i].value);
 	}
 }
@@ -350,7 +401,7 @@ bool IO::load_state(FILEIO* state_fio)
 	if(state_fio->FgetInt32() != this_device_id) {
 		return false;
 	}
-	for(int i = 0; i < IO_ADDR_MAX; i++) {
+	for(int i = 0; i < addr_max; i++) {
 		rd_table[i].value = state_fio->FgetUint32();
 	}
 	return true;

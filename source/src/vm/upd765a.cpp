@@ -711,13 +711,13 @@ void UPD765A::cmd_sence_intstat()
 uint8_t UPD765A::get_devstat(int drv)
 {
 	if(drv >= _max_drive) {
-		return 0x80 | drv;
+		return ST3_FT | drv;
 	}
 	// XM8 version 1.20
 	if(force_ready && !disk[drv]->inserted) {
 		return drv;
 	}
-	return 0x28 | drv | (fdc[drv].track ? 0 : 0x10) | ((fdc[drv].track & 1) ? 0x04 : 0) | (disk[drv]->write_protected ? 0x40 : 0);
+	return drv | ((fdc[drv].track & 1) ? ST3_HD : 0) | (disk[drv]->inserted && disk[drv]->two_side ? ST3_TS : 0) | (fdc[drv].track ? 0 : ST3_T0) | (force_ready || disk[drv]->inserted ? ST3_RY : 0) | (disk[drv]->write_protected ? ST3_WP : 0);
 }
 
 void UPD765A::cmd_seek()
@@ -1123,6 +1123,9 @@ uint32_t UPD765A::read_sector()
 #endif
 			continue;
 		}
+#ifdef _FDC_DEBUG_LOG
+		this->out_debug_log(_T("FDC: SECTOR FOUND (TRK=%d SIDE=%d ID=%2x,%2x,%2x,%2x)\n"), trk, side, id[0], id[1], id[2], id[3]);
+#endif
 		if(disk[drv]->sector_size.sd == 0) {
 			continue;
 		}

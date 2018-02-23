@@ -1,0 +1,26 @@
+IRQ8			-> INT0
+	IRQ8: タイマー
+IRQ1 + FIRQ1		-> INT1
+	IRQ1: キーボード
+	FIRQ1: BREAKキー
+IRQ5 + IRQ6		-> INT2
+	IRQ5: 1MBフロッピィディスク
+	IRQ6: ハードディスク
+FIRQ0 + FIRQ2 + FIRQ3	-> INT3
+	FIRQ0: SUBアテンション
+	FIRQ2: 拡張
+	FIRQ3: ユーザ用
+IRQ0			-> INT4
+	IRQ0: RS-232C
+IRQ2 + IRQ9 + INTNDP	-> INT5
+	IRQ2: 拡張
+	IRQ9: ユーザ用
+IRQ4			-> INT6
+	IRQ4: 320KBフロッピィディスク
+IRQ7			-> INT7
+	IRQ7: プリンタ
+
+DMA0	320KBフロッピィディスク
+DMA1	1MBフロッピィディスク
+DMA2	ハードディスク
+DMA3	ユーザ

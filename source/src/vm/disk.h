@@ -186,6 +186,7 @@ public:
 	bool write_protected;
 	bool changed;
 	uint8_t media_type;
+	bool two_side;
 	int is_special_disk;
 	
 	// track

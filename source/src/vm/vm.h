@@ -95,6 +95,11 @@
 #include "fm7/fm7.h"
 #endif
 
+// FUJITSU FM16beta
+#ifdef _FM16BETA
+#include "fm16beta/fm16beta.h"
+#endif
+
 // FUJITSU FM16pi
 #ifdef _FM16PI
 #include "fm16pi/fm16pi.h"

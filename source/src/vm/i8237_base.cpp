@@ -76,18 +76,18 @@ void I8237_BASE::do_dma()
 void I8237_BASE::write_mem(uint32_t addr, uint32_t data)
 {
 	if(mode_word) {
-		d_mem->write_dma_data16(addr << 1, data);
+		d_mem->write_dma_data16((addr << 1) & addr_mask, data);
 	} else {
-		d_mem->write_dma_data8(addr, data);
+		d_mem->write_dma_data8(addr & addr_mask, data);
 	}
 }
 
 uint32_t I8237_BASE::read_mem(uint32_t addr)
 {
 	if(mode_word) {
-		return d_mem->read_dma_data16(addr << 1);
+		return d_mem->read_dma_data16((addr << 1) & addr_mask);
 	} else {
-		return d_mem->read_dma_data8(addr);
+		return d_mem->read_dma_data8(addr & addr_mask);
 	}
 }
 

@@ -291,16 +291,21 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// dma ch.1: memory refresh
 #if defined(SUPPORT_2HD_FDD_IF)
 	dma->set_context_ch2(fdc_2hd);
+	dma->set_context_tc2(fdc_2hd, SIG_UPD765A_TC, 1);
 #endif
 #if defined(SUPPORT_2DD_FDD_IF)
 	dma->set_context_ch3(fdc_2dd);
+	dma->set_context_tc3(fdc_2dd, SIG_UPD765A_TC, 1);
 #endif
 #if defined(SUPPORT_2HD_2DD_FDD_IF)
 #if !defined(SUPPORT_HIRESO)
 	dma->set_context_ch2(fdc);
 	dma->set_context_ch3(fdc);
+	dma->set_context_tc2(fdc, SIG_UPD765A_TC, 1);
+	dma->set_context_tc3(fdc, SIG_UPD765A_TC, 1);
 #else
 	dma->set_context_ch1(fdc);
+	dma->set_context_tc1(fdc, SIG_UPD765A_TC, 1);
 #endif
 #endif
 //	sio_rs->set_context_rxrdy(pic, SIG_I8259_CHIP0 | SIG_I8259_IR4, 1);

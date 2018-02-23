@@ -171,7 +171,7 @@ void MEMORY::reset()
 	
 	// reset logical operation
 	cmdreg = maskreg = compbit = bankdis = 0;
-	memset(compreg, sizeof(compreg), 0xff);
+	memset(compreg, 0xff, sizeof(compreg));
 #endif
 	dma_addr_reg = dma_wrap_reg = 0;
 	dma_addr_mask = 0x00ffffff;

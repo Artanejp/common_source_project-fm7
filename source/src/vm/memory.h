@@ -32,43 +32,29 @@ private:
 		int wait;
 	} bank_t;
 	
-	bank_t *read_table;
-	bank_t *write_table;
+	bank_t *rd_table;
+	bank_t *wr_table;
 	
 	int addr_shift;
 	
-	uint8_t read_dummy[MEMORY_BANK_SIZE];
-	uint8_t write_dummy[MEMORY_BANK_SIZE];
+	uint8_t *rd_dummy;
+	uint8_t *wr_dummy;
 	
 public:
 	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		int bank_num = MEMORY_ADDR_MAX / MEMORY_BANK_SIZE;
-		
-		read_table = (bank_t *)malloc(sizeof(bank_t) * bank_num);
-		write_table = (bank_t *)malloc(sizeof(bank_t) * bank_num);
-		
-		for(int i = 0; i < bank_num; i++) {
-			read_table[i].dev = NULL;
-			read_table[i].memory = read_dummy;
-			read_table[i].wait = 0;
-			
-			write_table[i].dev = NULL;
-			write_table[i].memory = write_dummy;
-			read_table[i].wait = 0;
-		}
-		for(int i = 0;; i++) {
-			if(MEMORY_BANK_SIZE == (1 << i)) {
-				addr_shift = i;
-				break;
-			}
-		}
-		memset(read_dummy, 0xff, MEMORY_BANK_SIZE);
-		set_device_name(_T("GENERIC MEMORY"));
+		addr_max = MEMORY_ADDR_MAX;
+		bank_size = MEMORY_BANK_SIZE;
+ 		
+		rd_table = wr_table = NULL;
+		rd_dummy = wr_dummy = NULL;
+ 		
+ 		set_device_name(_T("Generic Memory Bus"));
 	}
 	~MEMORY() {}
 	
 	// common functions
+	void initialize();
 	void release();
 	uint32_t read_data8(uint32_t addr);
 	void write_data8(uint32_t addr, uint32_t data);
@@ -124,6 +110,9 @@ public:
 	bool write_bios(const _TCHAR *file_name, uint8_t *buffer, int size);
 	bool read_image(const _TCHAR *file_path, uint8_t *buffer, int size);
 	bool write_image(const _TCHAR *file_path, uint8_t *buffer, int size);
+	
+	int addr_max;
+	int bank_size;
 };
 
 #endif
