@@ -822,19 +822,20 @@ void MB8877::event_callback(int event_id, int err)
 //#ifdef _FDC_DEBUG_LOG
 		//this->out_debug_log(_T("FDC\tSEEK START\n"));
 //#endif
-		if(seektrk > (uint8_t)(fdc[drvreg].track & 0xff)) {
-			if((fdc[drvreg].track < 0xff) && (fdc[drvreg].track >= 0)) fdc[drvreg].track++;
+		if(seektrk > fdc[drvreg].track) {
+			fdc[drvreg].track++;
 			if(d_noise_seek != NULL) d_noise_seek->play();
 			//need_after_irq = true;
-		} else if(seektrk < (uint8_t)(fdc[drvreg].track & 0xff)) {
-			if((fdc[drvreg].track <= 0xff) && (fdc[drvreg].track > 0)) fdc[drvreg].track--;
+		} else if(seektrk < fdc[drvreg].track) {
+			fdc[drvreg].track--;
 			if(d_noise_seek != NULL) d_noise_seek->play();
 			//need_after_irq = true;
 		}
-		if((cmdreg & 0x10) || ((cmdreg & 0xf0) == 0)) {
+		// Not update track register if "SEEK" command.Thanks to Haserin. 20180224 K.O.
+		if((((cmdreg & 0x10) != 0) && (cmdreg >= 0x20)) || ((cmdreg & 0xf0) == 0)) {
 			trkreg = fdc[drvreg].track;
 		}
-		if(seektrk != (uint8_t)(fdc[drvreg].track & 0xff)) {
+		if((uint8_t)seektrk != (uint8_t)fdc[drvreg].track) {
 			//if(need_after_irq) {
 				//set_drq(false);
 				//set_irq(true);  // 20180118 K.O Turn ON IRQ -> Turn OFF DRQ
@@ -1123,7 +1124,6 @@ void MB8877::process_cmd()
 	};
 	if(fdc_debug_log) this->out_debug_log(_T("FDC\tCMD=%2xh (%s) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, cmdstr[cmdreg >> 4], datareg, drvreg, trkreg, sidereg, secreg);
 //#endif
-	
 	switch(cmdreg & 0xf8) {
 	// type-1
 	case 0x00: case 0x08:
@@ -1234,13 +1234,12 @@ void MB8877::cmd_seek()
 		// verify
 		if(trkreg != fdc[drvreg].track) {
 			status |= FDC_ST_SEEKERR;
-			trkreg = fdc[drvreg].track;
+			trkreg = fdc[drvreg].track; // Reload track register when verify: Really OK? 20180224 K.O
 		}
 	}
 
-//	seektrk = (uint8_t)(fdc[drvreg].track + datareg - trkreg);
-	seektrk = datareg;
-		
+	seektrk = (uint8_t)(fdc[drvreg].track + datareg - trkreg); // Seek target is differ when drive's track != trkreg.Thanks to Haserin and Ryu Takegami.
+	//seektrk = (int)((int8_t)datareg);
 //#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV20) || defined(_FM77AV20EX)
 	if(type_fm77av_2dd) {
 		if(disk[drvreg]->drive_type != DRIVE_TYPE_2D) {
@@ -1253,13 +1252,9 @@ void MB8877::cmd_seek()
 	} else {
 		seektrk = (seektrk > 41) ? 41 : (seektrk < 0) ? 0 : seektrk;
 	}		
+
 	seekvct = !(seektrk > fdc[drvreg].track);
-	// Fix wrong seek (to overtrack and overflow)
-	// Followup from XM7.
-	// Thanks to Haserin and Ryu Takegami.
-	if((seekvct) && ((trkreg - datareg) > (uint8_t)(fdc[drvreg].track))) {
-		seektrk = 0;
-	}
+	// Update track register by data register.Thanks to Ryu Takegami. 20180224 K.O
 	trkreg = datareg;
 	set_irq(false);
 	set_drq(false);
@@ -1521,7 +1516,8 @@ void MB8877::cmd_forceint()
 			} else if(seektrk < fdc[drvreg].track) {
 				if((fdc[drvreg].track <= 0xff) && (fdc[drvreg].track > 0)) fdc[drvreg].track--;
 			}
-			if((cmdreg_tmp & 0x10) || ((cmdreg_tmp & 0xf0) == 0)) {
+			// Not update track register if "SEEK" command.Thanks to Haserin. 20180224 K.O.
+			if((((cmdreg_tmp & 0x10) != 0) && (cmdreg_tmp >= 0x20)) || ((cmdreg_tmp & 0xf0) == 0)) {
 				trkreg = fdc[drvreg].track;
 			}
 		}
