@@ -1,9 +1,9 @@
-Binary archive of retro pc emulator common source code
-								12/27/2017
+retro pc emulator common source code
+								2/23/2018
 
 --- What's this ?
 
-This archive includes the binaries of the emulators listed below:
+This archive includes the all source codes of emulators listed below:
 
 	ASCII
 		yayaMSX1	MSX1 (by Mr.tanam and Mr.umaiboux)
@@ -34,6 +34,7 @@ This archive includes the binaries of the emulators listed below:
 		eFM77AV		FM77AV (by Mr.Artane.)
 		eFM77AV40	FM77AV40 (by Mr.Artane.)
 		eFM77AV40EX	FM77AV40EX (by Mr.Artane.)
+		eFM16beta	FM16beta
 		eFM16pi		FM16pi
 		eFMR-30		FMR-30
 		eFMR-50		FMR-50
@@ -78,6 +79,7 @@ This archive includes the binaries of the emulators listed below:
 		ePC-100		PC-100
 		eTK-80BS	TK-80BS / COMPO BS/80
 		eTK-85		TK-85
+		eN5200		N5200 (work in progress)
 	NEC-HE
 		ePCEngine	PC Engine / SuperGrafx + CD-ROM^2
 	Nintendo
@@ -107,6 +109,7 @@ This archive includes the binaries of the emulators listed below:
 		EmuZ-3500	MZ-3500
 		EmuZ-5500	MZ-5500
 		EmuZ-6500	MZ-6500
+		EmuZ-6550	MZ-6550 (work in progress)
 		eSM-B-80TE	SM-B-80TE
 		eX1		X1
 		eX1twin		X1twin
@@ -126,190 +129,49 @@ This archive includes the binaries of the emulators listed below:
 		yayaHX-20+	HX-20 + FDD (by Mr.umaiboux)
 		EmuPIA		PASOPIA/PASOPIA5
 		EmuPIA7		PASOPIA7
+		eJ-3100GT	J-3100GT (work in progress)
+		eJ-3100SL	J-3100SL (work in progress)
 	YAMAHA
 		eYIS		YIS
 	Yuasa Kyouiku System
 		eYALKY		YALKY
 
-These binaries are for Windows XP/Vista/7.
-DirectX9 and GDI+ are required.
-They are tested on Windows 7 Home Premium with SP1.
+
+--- How to build
+
+Build the projects with the Microsoft Visual C++ 2008 with Service Pack 1 or
+the Microsoft Visual C++ 2013 with Update 5.
+
+The DirectX SDK is required.
+I recommend the DirectX 9.0 SDK Update (December 2004),
+and dinput.lib included in the DirectX 9.0 SDK Update (October 2004).
+
+If you install the newer DirectX SDK, for example DirectX SDK (June 2010),
+and it does not contain dinput.lib, pelase modify src/win32/osd.h to change
+the definition of DIRECTINPUT_VERSION from 0x500 to 0x800 as follows:
+
+//#define DIRECTINPUT_VERSION	0x500
+#define DIRECTINPUT_VERSION	0x800
+
+When you use the Microsoft Visual C++ 2008 with Service Pack 1,
+the Windows SDK for Windows 8.1 is also required to get the mt.exe utility.
+The mt.exe is used to merge a manifest file for Windows Vista or later.
+
+https://msdn.microsoft.com/en-us/windows/desktop/bg162891.aspx
+
+When you use the Microsoft Visual C++ 2013 with Update 5, the dir macros,
+WindowsSDK_IncludePath, WindowsSDK_LibraryPath_x86, and DXSDK_DIR shoud be
+defined and should specifies the install directories of the Windows SDK
+and the DirectX SDK.
+They are usually defined automatically when you install the SDKs.
 
 
---- How to use
+--- License
 
-Common menus:
+The copyright belongs to the author, but you can use the source codes
+under the GNU GENERAL PUBLIC LICENSE Version 2.
 
-Control
-	Reset			Reset the virtual machine
-	--------
-	CPU x1			Set CPU clock multipler
-	CPU x2
-	CPU x4
-	CPU x8
-	CPU x16
-	Full Speed		Run simulation at full speed
-	--------
-	Paste			Auto key hitting from the clip board text
-	Stop			Stop the auto key hitting
-	Romaji to Kana		Enter kana letters with alphabet keys
-	--------
-	Save State		Save the virtual machine state
-	Load State		Load the virtual machine state
-	--------
-	Debug Main CPU		Open console and debug target CPU like SYMDEB
-	Close Debugger		Close debugger console
-	--------
-	Exit			Terminate the emulator
-
-Cart
-	Insert			Insert the cart image
-	Eject			Eject the cart image
-	--------
-	History			Insert the cart image
-
-FD
-	Insert			Insert the floppy disk image
-	Eject			Eject the floppy disk image
-	--------
-	Write Protected		Set the write protection of the inserted disk
-	Correct Timing		Emulate FDC with correct timing
-	Ignore CRC Errors	Ignore crc error status
-	----
-	History			Insert the floppy disk image
-
-CMT
-	Play			Insert the cassette tape image to play
-	Rec			Insert the cassette tape image to record
-	Eject			Eject the cassette tape image
-	--------
-	Play Button		Control the cassette tape recorder
-	Stop Button
-	Fast Foward
-	Fast Rewind
-	--------
-	Waveform Shaper		Enable waveform shaping for *.wav data
-	--------
-	History			Insert the cassette tape image to play
-
-Device
-	Sound
-		Sound Device Types
-		--------
-		Play FDD Noise	Enable playing FDD noise (seek, head up/down)
-		Play CMT Noise	Enable playing CMT noise (relay on/off)
-		Play CMT Sound	Enable playing CMT signal sound
-	Display
-		Monitor Types
-		--------
-		Scanline	Draw scanline
-
-Host
-	Rec Movie 60fps		Record the movie to avi and wav files
-	Rec Movie 30fps
-	Rec Movie 15fps
-	Rec Sound		Record the wave file
-	Stop			Stop recording
-	Capture Screen		Capture the screen to png file
-	--------
-	Screen
-		-
-		Window x1	Set the window size
-			:
-		Window x8
-		Fullscreen ?x?	Set the fullscreen size
-		--------
-		Dot By Dot	Set the stretch screen mode in the fullscreen
-		Stretch (Aspect)
-		Stretch (Fill)
-		--------
-		Rotate 0deg	Rotate the screen
-		Rotate +90deg
-		Rotate 180deg
-		Rotate -90deg
-	Filter
-		RGB Filter	Enable the RGB CRT filter
-		None
-	Sound
-		2000Hz		Set the sound frequency
-		4000Hz		You need to restart the emulator
-		8000Hz
-		11025Hz
-		22050Hz
-		44100Hz
-		48000Hz
-		96000Hz
-		--------
-		50msec		Set the sound buffer size (latency)
-		100msec		You need to restart the emulator
-		200msec
-		300msec
-		400msec
-		--------
-		Realtime Mix	Mix the sound in realtime
-		Light Weight Mix
-		--------
-		Volume		Set the volume of each sound device
-	Input
-		Joystcik #1/#2	Setup Joystick buttons
-	--------
-	Use Direct3D9		Enable Direct3D9 to render screen
-	Wait Vsync		Wait Vsync when Direct3D9 is enabled
-	Use DirectInput		Enable DirectInput for keyboard
-	Disable Windows8 DWM	Disable the Desktop Window Manager
-	Show Status Bar		Show/Hide the status bar in windwo mode
-
-
---- Note
-
-For Windows PC environment:
-
-	Support Windows PC compatible mouse and joystick devices.
-
-	Accelerator key:
-		ALT+RETURN  - Switch window / fullscreen
-		CTRL+RETURN - Enable/Disenable mouse control
-		APPLICATION - Enable/Disable full speed emulation
-		CTR+APPLICATION - Enable/Disable roman to kana conversion
-
-	*) While the mouse control is enabled, the mouse cursor is hidden.
-
-Floppy disk images:
-
-	P88SR D88	(*.d88;*.d77;*.1dd)
-	TeleDisk	(*.td0)
-	ImageDisk	(*.imd)
-	CPDRead		(*.dsk)
-	T98-NEXT r0	(*.nfd)
-	Anex86		(*.fdi)
-	BKDSK		(*.hdm;*.hd5;*.hd4;*.hdb;*.dd9;*.dd6)
-
-	and any other solid images (*.tfd;*.xdf;*.2d;*.sf7;*.img;*.ima;*.vfd)
-
-Cassette tape images:
-
-	Support wav files (PCM only) or special format images for each machine.
-
-CD-ROM images:
-
-	Support BIN/IMG+CUE or IMG+CCD (CloneCD) format images.
-
-FDD noise:
-
-	Place the wave files below: FDDSEEK.WAV. HEADDOWN.WAV. HEADUP.WAV
-
-CMT noise:
-
-	Place the wave files below: RELAY_ON.WAV, RELAYOFF.WAV, FAST_FWD.WAV
-
-Save/Load State info:
-
-	The state file contains any disk or other images.
-	Please NEVER upload your state files on the web.
-
-	The state file format will be often changed.
-	Please don't invite your state file can be loaded after you update
-	the emulator binary.
+See also COPYING.txt for more details about the license.
 
 
 --- Thanks

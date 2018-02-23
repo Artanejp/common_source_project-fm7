@@ -1,3 +1,18 @@
+2/23/2018
+
+[VM/DISK] support two side
+[VM/I8237] support address mask
+[VM/I8237] fix interface to connect tc signal for ch.2-4
+[VM/IO] support to create multiple instances with different address range
+[VM/MC6840] fix issue for the case address range is not 0-7
+[VM/MEMORY] support to create multiple instances with different address ranges
+[VM/UPD765A] fix st3 in sence devstat command
+
+[FM16BETA] support FUJITSU FM16beta (not work)
+[FMR50/MEMORY] fix memset issue
+[PC9801] fix to connect terminal count signal from dmac to fdc
+
+
 12/27/2017
 
 [EMU] support to restore sound frequency/latency settings when load state
