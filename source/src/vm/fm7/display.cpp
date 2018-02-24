@@ -84,11 +84,7 @@ void DISPLAY::reset_some_devices()
 			clock_fast = false;
 			break;
 	}
-	if(clock_fast) {
-		prev_clock = SUBCLOCK_NORMAL;
-	} else {
-		prev_clock = SUBCLOCK_SLOW;
-	}
+
 	enter_display();
    
 	offset_point = 0;
@@ -99,7 +95,7 @@ void DISPLAY::reset_some_devices()
 
 	vram_wrote_shadow = true;
 	for(i = 0; i < 411 * 5; i++) vram_wrote_table[i] = true;
-	for(i = 0; i < 411; i++) vram_draw_table[i] = true;
+	for(i = 0; i < 411; i++) vram_draw_table[i] = false;
 	displine = 0;
 	active_page = 0;
 	
@@ -232,6 +228,19 @@ void DISPLAY::reset()
 	emu->set_vm_screen_lines(200);
 	
 	is_cyclesteal = ((config.dipswitch & FM7_DIPSW_CYCLESTEAL) != 0) ? true : false;
+	switch(config.cpu_type){
+		case 0:
+			clock_fast = true;
+			break;
+		case 1:
+			clock_fast = false;
+			break;
+	}
+	if(clock_fast) {
+		prev_clock = SUBCLOCK_NORMAL;
+	} else {
+		prev_clock = SUBCLOCK_SLOW;
+	}
 	reset_some_devices();
 	
 #if defined(_FM77AV_VARIANTS)
@@ -432,17 +441,21 @@ void DISPLAY::go_subcpu(void)
 void DISPLAY::enter_display(void)
 {
 	uint32_t subclock;
+	
 	if(clock_fast) {
 		subclock = SUBCLOCK_NORMAL;
 	} else {
 		subclock = SUBCLOCK_SLOW;
 	}
-	if(!is_cyclesteal && vram_accessflag) {
+	if(!(is_cyclesteal) && (vram_accessflag)) {
 		subclock = subclock / 3;
 	}
-	if(prev_clock != subclock) p_vm->set_cpu_clock(subcpu, subclock);
+	if(prev_clock != subclock) {
+		p_vm->set_cpu_clock(subcpu, subclock);
+	}
 	prev_clock = subclock;
 }
+
 
 void DISPLAY::leave_display(void)
 {
@@ -526,6 +539,7 @@ void DISPLAY::set_cyclesteal(uint8_t val)
 uint8_t DISPLAY::set_vramaccess(void)
 {
 	vram_accessflag = true;
+	//enter_display();
 	return 0xff;
 }
 
@@ -533,6 +547,7 @@ uint8_t DISPLAY::set_vramaccess(void)
 void DISPLAY::reset_vramaccess(void)
 {
 	vram_accessflag = false;
+	//enter_display();
 }
 
 //SUB:D40A:R
@@ -2267,6 +2282,7 @@ uint32_t DISPLAY::read_hidden_ram(uint32_t addr)
 	if(addr >= 0xd500) {
 		return submem_hidden[addr - 0xd500];
 	}
+	return 0xff;
 }
 #endif
 
