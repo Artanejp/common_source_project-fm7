@@ -94,7 +94,7 @@ int OSD_BASE::draw_screen()
 {
 	// draw screen
 	QMutexLocker Locker_S(screen_mutex);
-	QMutexLocker Locker_VM(vm_mutex);
+	//QMutexLocker Locker_VM(vm_mutex);
 	if(vm_screen_buffer.width != vm_screen_width || vm_screen_buffer.height != vm_screen_height) {
 		//emit sig_movie_set_width(vm_screen_width);
 		//emit sig_movie_set_height(vm_screen_height);
