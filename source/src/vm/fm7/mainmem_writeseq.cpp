@@ -57,7 +57,7 @@ void FM7_MAINMEM::write_ura_basicrom(uint32_t addr, uint32_t data, bool dmamode)
 void FM7_MAINMEM::write_mmio(uint32_t addr, uint32_t data, bool dmamode)
 {
 	addr &= 0xff;
-	wait();
+	iowait();
 	if(mainio != NULL) {
 		mainio->write_data8(addr, data);
 	}
@@ -68,7 +68,7 @@ void FM7_MAINMEM::write_bootrom(uint32_t addr, uint32_t data, bool dmamode)
 {
 	addr = addr & 0x1ff;
 	if(addr <  0x1e0) {
-		wait();
+		iowait();
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 		if(boot_ram_write) {
 			fm7_bootram[addr] = (uint8_t)data;
@@ -81,7 +81,7 @@ void FM7_MAINMEM::write_bootrom(uint32_t addr, uint32_t data, bool dmamode)
 	}
 	else {  // RESET VECTOR
 #if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
-		wait();
+		iowait();
 		if(boot_ram_write) {
 			fm7_bootram[addr] = (uint8_t)data;
 		}

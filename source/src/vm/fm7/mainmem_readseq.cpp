@@ -169,7 +169,7 @@ uint8_t FM7_MAINMEM::read_ura_basicrom(uint32_t addr, bool dmamode)
 uint8_t FM7_MAINMEM::read_mmio(uint32_t addr, bool dmamode)
 {
 	addr &= 0xff;
-	wait();
+	iowait();
 	if(mainio != NULL) {
 		return mainio->read_data8(addr);
 	}
@@ -180,7 +180,7 @@ uint8_t FM7_MAINMEM::read_bootrom(uint32_t addr, bool dmamode)
 {
 	addr = addr & 0x1ff;
 	if(addr <  0x1e0) {
-		wait();
+		iowait();
 #if defined(_FM77AV_VARIANTS)
 		return fm7_bootram[addr];
 #elif defined(_FM77_VARIANTS)
@@ -235,10 +235,10 @@ uint8_t FM7_MAINMEM::read_bootrom(uint32_t addr, bool dmamode)
 		return fm7_mainmem_bootrom_vector[addr - 0x1e0];
 	} else { // RESET VECTOR
 #if defined(_FM77AV_VARIANTS)
-		wait();
+		iowait();
 		return fm7_bootram[addr];
 #elif defined(_FM77_VARIANTS)
-		wait();
+		iowait();
 		if(boot_ram_write) {
 			return fm7_bootram[addr];
 		}

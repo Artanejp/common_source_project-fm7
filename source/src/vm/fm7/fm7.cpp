@@ -76,6 +76,7 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
 
+	//dummycpu = new DEVICE(this, emu);
 	maincpu = new MC6809(this, emu);
 	subcpu = new MC6809(this, emu);
 	g_substat_display = new AND(this, emu);
@@ -368,7 +369,7 @@ void VM::connect_bus(void)
 	 *  KEYBOARD : R/W
 	 *
 	 */
-	//event->set_frames_per_sec(FRAMES_PER_SEC);
+	event->set_frames_per_sec(FRAMES_PER_SEC);
 	event->set_lines_per_frame(LINES_PER_FRAME);
 #if defined(_FM8)
 	mainclock = MAINCLOCK_SLOW;
@@ -385,6 +386,9 @@ void VM::connect_bus(void)
 	}
 	//if((config.dipswitch & FM7_DIPSW_CYCLESTEAL) != 0) subclock = subclock / 3;
 #endif
+	mainclock = CPU_CLOCKS;
+//	subclock = SUBCLOCK_NORMAL;
+//	event->set_context_cpu(dummycpu, MAINCLOCK_SLOW / 2);
 	event->set_context_cpu(maincpu, mainclock);
 	event->set_context_cpu(subcpu,  subclock);	
    
@@ -625,8 +629,10 @@ void VM::connect_bus(void)
 #endif
 	
 	// MEMORIES must set before initialize().
+	//dummycpu->set_context_mem(dummy);
 	maincpu->set_context_mem(mainmem);
 	subcpu->set_context_mem(display);
+	//dummycpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
 #ifdef WITH_Z80
 	if(z80cpu != NULL) z80cpu->set_context_mem(mainmem);
 #endif

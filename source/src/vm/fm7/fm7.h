@@ -239,22 +239,26 @@
 // device informations for virtual machine
 
 // TODO: check refresh rate
-#define FRAMES_PER_SEC		60.0962 /* Related to display.cpp */ 
-//#define FRAMES_PER_SEC		60.00 /* Related to display.cpp */ 
+//#define FRAMES_PER_SEC		60.0962 /* Related to display.cpp */ 
+#define FRAMES_PER_SEC		59.94 /* Related to display.cpp */ 
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77L4)
 #define LINES_PER_FRAME 	400
 #else
 #define LINES_PER_FRAME 	200
 #endif
 
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
-    defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
-#define CPU_CLOCKS		2016000
-#elif defined(_FM8)
-#define CPU_CLOCKS		1095000
-#else
-#define CPU_CLOCKS		2000000
-#endif
+//#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
+//  defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
+#define CPU_CLOCKS		2196000 /* 2016 * 1.089 */
+//#else
+//#define CPU_CLOCKS      1798000   /* 1798 */
+//#endif
+//#elif defined(_FM8)
+//#define CPU_CLOCKS		1095000
+//#else
+//#define CPU_CLOCKS		2000000
+//#endif
+
 
 /*
  * If you wish to use software-scanline, define below.
@@ -436,7 +440,8 @@ protected:
 	
 	// devices
 	EVENT* event;
-
+	
+	DEVICE* dummycpu;
 	MC6809* maincpu;
 	FM7_MAINMEM* mainmem;
 #if defined(_FM8)

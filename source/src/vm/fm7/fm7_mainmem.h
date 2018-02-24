@@ -48,6 +48,8 @@ class FM7_MAINMEM : public DEVICE
 	bool ioaccess_wait;
 	int waitfactor;
 	int waitcount;
+	int cpu_clocks;
+	
 	bool sub_halted;
 	// V2
 #ifdef HAS_MMR
@@ -149,6 +151,10 @@ class FM7_MAINMEM : public DEVICE
 	bool diag_load_bootrom_sfd8;
 	bool diag_load_bootrom_2hd;
 
+	int event_memorywait;
+	uint32_t mem_waitfactor;
+	uint32_t mem_waitcount;
+
 	int check_extrom(uint32_t raddr, uint32_t *realaddr);
 	
 	int window_convert(uint32_t addr, uint32_t *realaddr);
@@ -192,6 +198,7 @@ class FM7_MAINMEM : public DEVICE
 	uint32_t read_dma_data8(uint32_t addr);
 	uint32_t read_dma_io8(uint32_t addr);
 	uint32_t read_data8_main(uint32_t addr, bool dmamode);
+	void event_callback(int id, int err);
    
 	void write_data8(uint32_t addr, uint32_t data);
 	void write_dma_data8(uint32_t addr, uint32_t data);
@@ -205,7 +212,8 @@ class FM7_MAINMEM : public DEVICE
 	virtual void write_data32(uint32_t addr, uint32_t data);
    
 	void initialize(void);
-	void wait(void);
+	void iowait(void);
+	void cpuwait(void);
 	void reset(void);
 	void release(void);
 

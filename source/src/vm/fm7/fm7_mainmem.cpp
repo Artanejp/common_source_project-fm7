@@ -26,6 +26,8 @@ FM7_MAINMEM::FM7_MAINMEM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, par
     defined(_FM77_VARIANTS)
 	fm7_mainmem_extram = NULL;
 #endif
+	cpu_clocks = CPU_CLOCKS;
+	event_memorywait = -1;
 	// Initialize table
 	set_device_name(_T("MAIN MEMORY"));
 }
@@ -41,6 +43,8 @@ void FM7_MAINMEM::reset()
 {
    	waitfactor = 0;
 	waitcount = 0;
+	mem_waitfactor = 0;
+	mem_waitcount = 0;
 	ioaccess_wait = false;
 	//sub_halted = (display->read_signal(SIG_DISPLAY_HALT) == 0) ? false : true;
 	sub_halted = false;
@@ -95,6 +99,27 @@ void FM7_MAINMEM::reset()
 	maincpu->reset();
 }
 
+void FM7_MAINMEM::event_callback(int id, int err)
+{
+	double usec;
+	switch(id) {
+	case EVENT_FM7MAINMEM_WAIT_STOP:
+		if(cpu_clocks < CPU_CLOCKS) {
+			usec = (1.0e6 / (double)CPU_CLOCKS) * 4.0; // Wait per 4us.  
+			if(maincpu != NULL) maincpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+			register_event(this, EVENT_FM7MAINMEM_WAIT_START, usec, false, NULL);
+		}
+		break;
+	case EVENT_FM7MAINMEM_WAIT_START:
+		if(cpu_clocks < CPU_CLOCKS) {
+			usec = (1.0e6 / (double)cpu_clocks) * 4.0 - (1.0e6 / (double)CPU_CLOCKS) * 4.0; // Wait per 4us.  
+			if(maincpu != NULL) maincpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+			register_event(this, EVENT_FM7MAINMEM_WAIT_STOP, usec, false, NULL);
+		}
+		break;
+	}
+}
+
 void FM7_MAINMEM::setclock(int mode)
 {
 	uint32_t clock = MAINCLOCK_SLOW;
@@ -147,30 +172,60 @@ void FM7_MAINMEM::setclock(int mode)
 #endif				
 	}
 	p_vm->set_cpu_clock(this->maincpu, clock);
+#if 1
+#if 0
+	if(event_memorywait >= 0) cancel_event(this, event_memorywait);
+	event_memorywait = -1;
+	if(CPU_CLOCKS > clock) {
+		double usec = (1.0e6 / (double)CPU_CLOCKS) * 4.0; // Wait per 4us.  
+		register_event(this, EVENT_FM7MAINMEM_WAIT_STOP, usec, false, NULL);
+	}
+#else
+	mem_waitcount = 0;
+	if(CPU_CLOCKS > clock) {
+		//mem_waitfactor = (uint32_t)(1.0e6 / (1.0e6 / (double)clock - 1.0e6 / (double)CPU_CLOCKS));
+		mem_waitfactor = (uint32_t)(4096.0 * (double)(CPU_CLOCKS - clock) / (double)clock);
+	} else {
+		mem_waitfactor = 0;
+	}
+#endif
+#endif
+	cpu_clocks = clock;
 }
 		
-
-void FM7_MAINMEM::wait()
+void FM7_MAINMEM::cpuwait()
 {
-	int waitfactor; // If MMR of TWR enabled, factor = 3.
+#if 1
+	mem_waitcount += mem_waitfactor;
+	if(mem_waitcount > 4096) {
+		uint32_t val = mem_waitcount / CPU_CLOCKS;
+		if(maincpu != NULL) maincpu->set_extra_clock(1); // 
+		mem_waitcount = mem_waitcount - 4096 ;
+	}
+#endif
+}
+
+void FM7_MAINMEM::iowait()
+{
+	int _waitfactor; // If MMR of TWR enabled, factor = 3.
 			    // If memory, factor = 2?
 	if(!clockmode) return; // SLOW
 #ifdef HAS_MMR
     //if(!mmr_fast && !window_fast && (window_enabled || mmr_enabled)) waitfactor = 2;
 	if(!ioaccess_wait) {
-		waitfactor = 2;
+		_waitfactor = 2;
 		ioaccess_wait = true;
 	} else { // Not MMR, TWR or enabled FAST MMR mode
-		waitfactor = 3; // If(MMR or TWR) and NOT FAST MMR factor = 3, else factor = 2
-		if(mmr_fast) waitfactor = 2;
+		_waitfactor = 3; // If(MMR or TWR) and NOT FAST MMR factor = 3, else factor = 2
+		if(mmr_fast) _waitfactor = 2;
 		ioaccess_wait = false;
 	} 
 #else
-	waitfactor = 2;
+	_waitfactor = 2;
 #endif	  
-	if(waitfactor <= 0) return;
+	if(_waitfactor <= 0) return;
 	waitcount++;
-	if(waitcount >= waitfactor) {
+	if(waitcount >= _waitfactor) {
 		if(maincpu != NULL) maincpu->set_extra_clock(1);
 		waitcount = 0;
 	}
@@ -355,6 +410,7 @@ uint32_t FM7_MAINMEM::read_dma_data8(uint32_t addr)
 {
 #if defined(HAS_MMR)	
 	uint32_t val;
+	cpuwait();
 	val = this->read_data8_main(addr & 0xffff, true);
 	return val;
 #else
@@ -366,6 +422,7 @@ uint32_t FM7_MAINMEM::read_dma_io8(uint32_t addr)
 {
 #if defined(HAS_MMR)	
 	uint32_t val;
+	cpuwait();
 	val = this->read_data8_main(addr & 0xffff, true);
 	return val;
 #else
@@ -393,12 +450,14 @@ uint32_t FM7_MAINMEM::read_data8(uint32_t addr)
 		return 0xff;
 	}
 #endif   
+	cpuwait();
 	return read_data8_main(addr, false);
 }
 
 void FM7_MAINMEM::write_dma_data8(uint32_t addr, uint32_t data)
 {
 #if defined(HAS_MMR)
+	cpuwait();
 	this->write_data8_main(addr & 0xffff, data, true);
 #else
 	this->write_data8(addr & 0xffff, data);
@@ -408,6 +467,7 @@ void FM7_MAINMEM::write_dma_data8(uint32_t addr, uint32_t data)
 void FM7_MAINMEM::write_dma_io8(uint32_t addr, uint32_t data)
 {
 #if defined(HAS_MMR)
+	cpuwait();
 	this->write_data8_main(addr & 0xffff, data, true);
 #else
 	this->write_data8(addr & 0xffff, data);
@@ -439,6 +499,7 @@ void FM7_MAINMEM::write_data8(uint32_t addr, uint32_t data)
 		return;
 	}
 #endif
+	cpuwait();
 	write_data8_main(addr, data, false);
 }
 
@@ -494,10 +555,10 @@ void FM7_MAINMEM::write_data32(uint32_t addr, uint32_t data)
 
 void FM7_MAINMEM::update_config()
 {
-	//setclock(config.cpu_type);
+	setclock(config.cpu_type);
 }
 
-#define STATE_VERSION 6
+#define STATE_VERSION 7
 void FM7_MAINMEM::save_state(FILEIO *state_fio)
 {
 	state_fio->FputUint32_BE(STATE_VERSION);
@@ -508,7 +569,6 @@ void FM7_MAINMEM::save_state(FILEIO *state_fio)
 	state_fio->FputBool(ioaccess_wait);
 	state_fio->FputInt32_BE(waitfactor);
 	state_fio->FputInt32_BE(waitcount);
-
 	state_fio->FputBool(sub_halted);
 	
 	state_fio->FputBool(diag_load_basicrom);
@@ -616,6 +676,8 @@ void FM7_MAINMEM::save_state(FILEIO *state_fio)
 		state_fio->Fwrite(mmr_map_data, sizeof(mmr_map_data), 1);
 #endif
 	}
+	state_fio->FputInt32_BE(event_memorywait);
+	state_fio->FputUint32_BE(cpu_clocks); // OK?
 }
 
 bool FM7_MAINMEM::load_state(FILEIO *state_fio)
@@ -745,6 +807,9 @@ bool FM7_MAINMEM::load_state(FILEIO *state_fio)
 		state_fio->Fread(mmr_map_data, sizeof(mmr_map_data), 1);
 #endif
 	}
+	event_memorywait = state_fio->FgetInt32_BE();
+	cpu_clocks = state_fio->FgetUint32_BE();
+	
 	init_data_table();
 	update_all_mmr_jumptable();
 	if(version != STATE_VERSION) return false;
