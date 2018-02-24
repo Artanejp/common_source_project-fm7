@@ -334,7 +334,6 @@ int MC6809_BASE::run(int clock)
 			write_signals(&outputs_bus_ba, 0xffffffff);
 			write_signals(&outputs_bus_bs, 0xffffffff);
 		} else {
-			//if(clock < 4) clock = 4;
 			//clock = clock / 2;
 			icount -= clock;
 			icount -= extra_icount;
@@ -359,8 +358,10 @@ int MC6809_BASE::run(int clock)
 	if((int_state & MC6809_INSN_HALT) != 0) {	// 0x80
 		//uint8_t dmy = RM(PCD); //Will save.Need to keep.
 		RM(PCD); //Will save.Need to keep.
-		icount -= max(1, clock);
-		passed_icount = first_icount - icount;
+		if(clock <= 0) clock = 1;
+ 		icount -= clock;
+  		icount -= extra_icount;
+  		passed_icount = first_icount - icount;
 		extra_icount = 0;
 		PC++;
 		debugger_hook();
@@ -505,14 +506,17 @@ int_cycle:
 		int_state &= ~MC6809_CWAI_IN;
 		icount -= cycle;
 	}
+	debugger_hook();
+	icount -= extra_icount;
+	extra_icount = 0;
 	total_icount += cycle;
 	return first_icount - icount;
 
 	// run cpu
 check_ok:
 	if((int_state & MC6809_SYNC_IN) != 0) {
-		if(clock <= 0) clock = 1;
-		//if(clock < 4) clock = 4;
+		//if(clock <= 0) icount -= 1;
+		if(clock < 1) clock = 1;
 		//clock = clock / 2;
 		icount -= clock;
 		icount -= extra_icount;
@@ -529,8 +533,8 @@ check_ok:
 			return first_icount - icount;
 		} else {
 			// run cpu while given clocks
-			icount += clock;
-			while((icount > 0) && (!(req_halt_on) && !(req_halt_off))) {
+			//icount += clock;
+			while((icount > 0) && (!(req_halt_on) && !(req_halt_off)) && ((int_state & MC6809_HALT_BIT) == 0)) {
 			//while(icount > 0) {
 				run_one_opecode();
 			}
@@ -538,8 +542,8 @@ check_ok:
 			return first_icount - icount;
 		}
 	} else { // CWAI_IN
-		if(clock <= 0) clock = 1;
-		//if(clock < 4) clock = 4;
+		//if(clock <= 0) icount -= 1;
+		if(clock < 1) clock = 1;
 		//clock = clock / 4;
 		icount -= clock;
 		icount -= extra_icount;
