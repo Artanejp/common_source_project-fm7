@@ -1237,9 +1237,9 @@ void MB8877::cmd_seek()
 			trkreg = fdc[drvreg].track; // Reload track register when verify: Really OK? 20180224 K.O
 		}
 	}
-
-	seektrk = (uint8_t)(fdc[drvreg].track + datareg - trkreg); // Seek target is differ when drive's track != trkreg.Thanks to Haserin and Ryu Takegami.
-	//seektrk = (int)((int8_t)datareg);
+	// revert below 20180225 K.O
+	//seektrk = (uint8_t)(fdc[drvreg].track + datareg - trkreg); // Seek target is differ when drive's track != trkreg.Thanks to Haserin and Ryu Takegami.
+	seektrk = (int)((int8_t)datareg);
 //#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV20) || defined(_FM77AV20EX)
 	if(type_fm77av_2dd) {
 		if(disk[drvreg]->drive_type != DRIVE_TYPE_2D) {
