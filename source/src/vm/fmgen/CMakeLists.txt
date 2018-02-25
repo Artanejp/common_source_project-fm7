@@ -1,6 +1,7 @@
 cmake_minimum_required (VERSION 2.6)
 
 message("* vm/fmgen")
+SET(THIS_LIB_VERSION 1.1.3)
 
 SET(s_vm_fmgen_srcs
 	fmgen.cpp
@@ -24,8 +25,8 @@ target_link_libraries(CSPfmgen
 	${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libCSPemu_utils.dll.a
 	)
 set_target_properties(CSPfmgen PROPERTIES
-			     SOVERSION 1.1.2
-			     VERSION 1.1.2
+			     SOVERSION ${THIS_LIB_VERSION}
+			     VERSION ${THIS_LIB_VERSION}
 			     LINK_INTERFACE_LIBRARIES ""
 			     )
 generate_export_header(CSPfmgen
@@ -37,17 +38,17 @@ generate_export_header(CSPfmgen
 
 else()
   if(USE_DEVICES_SHARED_LIB)
-	add_library(CSPfmgen SHARED
-      ${s_vm_fmgen_srcs}
-	  )
-	set_target_properties(CSPfmgen PROPERTIES 
-      SOVERSION 1.1.2
-      VERSION 1.1.2
-	  )
-	INSTALL(TARGETS CSPfmgen DESTINATION ${LIBCSP_INSTALL_DIR})
+      add_library(CSPfmgen SHARED
+                 ${s_vm_fmgen_srcs}
+		 )
+      set_target_properties(CSPfmgen PROPERTIES 
+                        SOVERSION ${THIS_LIB_VERSION}
+			VERSION ${THIS_LIB_VERSION}
+			)
+      INSTALL(TARGETS CSPfmgen DESTINATION ${LIBCSP_INSTALL_DIR})
   else()
-	add_library(fmgen STATIC
-      ${s_vm_fmgen_srcs}
-	  )
+      add_library(fmgen STATIC
+                  ${s_vm_fmgen_srcs}
+		  )
   endif()
 endif()

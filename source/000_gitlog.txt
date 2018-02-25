@@ -1,3 +1,99 @@
+commit f72d448db12b6daa0866b08f50a755372adc1076
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 25 14:30:52 2018 +0900
+
+    [VM][MC6809] Fix halt sequence.
+
+commit afd8d1b43f13175c38df78431e18e61d6adafa4e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 25 14:29:59 2018 +0900
+
+    [VM][FM7][FM77AV][MAINMEM] Fix (adjust) memory-wait-parameters.Fixed FM77AV's demonstration and LUXOL.
+
+commit b6da1c04df2f6bb15d2aa643cadd3f3c8dd8bc27
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 25 05:56:28 2018 +0900
+
+    [OSD][Qt[Screen] Expect to fix lock up when openning debugger.
+
+commit 02295c83ee50fbfd39e08dc9256672b2d7c45c11
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 25 05:56:05 2018 +0900
+
+    [VM][FM7] Re-implement around clock.
+
+commit 90cd6b3eca4e94c83a78e12255a3292dac9c04af
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 25 05:54:19 2018 +0900
+
+    [VM][MB8877] Revert modify of seek command ; when track register != physical track.
+
+commit 78543975b9aca5cced255f10b1b348eba119081d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 25 05:52:20 2018 +0900
+
+    [VM][FM7][MAINMEM] Implement memory wait.EVENT:: cannot modify first CPU after regist.
+
+commit 48fae30f7eccc503f764c53bbc82ff780c53c987
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 25 05:50:44 2018 +0900
+
+    [VM][MC6809] Fix arount extra_iclock.Maybe fix around accessing wait.
+
+commit 126a160bb7279ec8de3d7ddaa2c8c25b274d87f7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 24 03:13:46 2018 +0900
+
+    [DOC] Update credits.
+
+commit 4f52efd187312841d4de98b3831a9468bfd78a09
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 24 03:11:22 2018 +0900
+
+    [DOC][TOOL] Update (some) binaries under tool/ and some documents.
+
+commit f401b5435c8979bb49ef67f87ff92d4a3b1a6f89
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 24 03:06:01 2018 +0900
+
+    [BUILD][DOC] Merge upstream 2018-02-23.
+
+commit 5804e7422a57a5aa1d596c2e51556cae8f88767d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 24 03:04:27 2018 +0900
+
+    [VM] Merge Upstream 2018-02-23.
+
+commit 7b1c8f2b85e41cbfa8bb08813bd8011cba372007
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 24 01:20:59 2018 +0900
+
+    [VM][MB8877] SEEK COMMAND: Fix seek target what difference betweeen track register and physical drive.Thank to Haserin.
+
+commit 1264c25394aa909d23bdcad50df4b0ac21d620b4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 23 22:29:46 2018 +0900
+
+    [Qt][OpenGL][MOVIE_LOADER] Use QMutexLocker if ready to use.
+
+commit ad6bba3d2126862a3be3985853f7bca1936efd7c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 23 22:29:12 2018 +0900
+
+    [OSD][Qt] Use Recursive-Mutex instead of Semaphore.
+
+commit 894e4288802e0d92253c1d41a41cadeadcf9391e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 23 22:27:50 2018 +0900
+
+    [VM][MB8877] Fix wait value when end of seek and verify.Thanks to Ryu Takegami.
+
+commit dd04a1baf684626b840470074975978a6255d1be
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 22 23:40:52 2018 +0900
+
+    [DOC] Update README_20180222.txt.
+
 commit b860cb162ccab2fb3ffcd8f930d2770b7fc65426
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Feb 22 22:00:59 2018 +0900
