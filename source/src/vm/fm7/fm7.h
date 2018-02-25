@@ -247,17 +247,12 @@
 #define LINES_PER_FRAME 	200
 #endif
 
-//#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
-//  defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
+  defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
 #define CPU_CLOCKS		2196000 /* 2016 * 1.089 */
-//#else
-//#define CPU_CLOCKS      1798000   /* 1798 */
-//#endif
-//#elif defined(_FM8)
-//#define CPU_CLOCKS		1095000
-//#else
-//#define CPU_CLOCKS		2000000
-//#endif
+#else
+#define CPU_CLOCKS      1798000   /* FM8,7 - 77AV/20? */
+#endif
 
 
 /*

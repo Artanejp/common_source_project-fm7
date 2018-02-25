@@ -99,26 +99,6 @@ void FM7_MAINMEM::reset()
 	maincpu->reset();
 }
 
-void FM7_MAINMEM::event_callback(int id, int err)
-{
-	double usec;
-	switch(id) {
-	case EVENT_FM7MAINMEM_WAIT_STOP:
-		if(cpu_clocks < CPU_CLOCKS) {
-			usec = (1.0e6 / (double)CPU_CLOCKS) * 4.0; // Wait per 4us.  
-			if(maincpu != NULL) maincpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
-			register_event(this, EVENT_FM7MAINMEM_WAIT_START, usec, false, NULL);
-		}
-		break;
-	case EVENT_FM7MAINMEM_WAIT_START:
-		if(cpu_clocks < CPU_CLOCKS) {
-			usec = (1.0e6 / (double)cpu_clocks) * 4.0 - (1.0e6 / (double)CPU_CLOCKS) * 4.0; // Wait per 4us.  
-			if(maincpu != NULL) maincpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
-			register_event(this, EVENT_FM7MAINMEM_WAIT_STOP, usec, false, NULL);
-		}
-		break;
-	}
-}
 
 void FM7_MAINMEM::setclock(int mode)
 {
@@ -171,25 +151,13 @@ void FM7_MAINMEM::setclock(int mode)
 		clock = MAINCLOCK_NORMAL;
 #endif				
 	}
-	p_vm->set_cpu_clock(this->maincpu, clock);
-#if 1
-#if 0
-	if(event_memorywait >= 0) cancel_event(this, event_memorywait);
-	event_memorywait = -1;
-	if(CPU_CLOCKS > clock) {
-		double usec = (1.0e6 / (double)CPU_CLOCKS) * 4.0; // Wait per 4us.  
-		register_event(this, EVENT_FM7MAINMEM_WAIT_STOP, usec, false, NULL);
-	}
-#else
 	mem_waitcount = 0;
 	if(CPU_CLOCKS > clock) {
-		//mem_waitfactor = (uint32_t)(1.0e6 / (1.0e6 / (double)clock - 1.0e6 / (double)CPU_CLOCKS));
-		mem_waitfactor = (uint32_t)(4096.0 * (double)(CPU_CLOCKS - clock) / (double)clock);
+		//mem_waitfactor = (uint32_t)(4096.0 * (double)(CPU_CLOCKS - clock) / (double)clock);
+		mem_waitfactor = (uint32_t)(4096.0 * (1.0 - ((double)clock / (double)CPU_CLOCKS)));
 	} else {
 		mem_waitfactor = 0;
 	}
-#endif
-#endif
 	cpu_clocks = clock;
 }
 		
@@ -197,10 +165,10 @@ void FM7_MAINMEM::cpuwait()
 {
 #if 1
 	mem_waitcount += mem_waitfactor;
-	if(mem_waitcount > 4096) {
-		uint32_t val = mem_waitcount / CPU_CLOCKS;
-		if(maincpu != NULL) maincpu->set_extra_clock(1); // 
-		mem_waitcount = mem_waitcount - 4096 ;
+	if(mem_waitcount >= 4096) {
+		uint32_t val = mem_waitcount >> 12;
+		if(maincpu != NULL) maincpu->set_extra_clock(val); // 
+		mem_waitcount = mem_waitcount - (val << 12) ;
 	}
 #endif
 }
@@ -676,7 +644,9 @@ void FM7_MAINMEM::save_state(FILEIO *state_fio)
 		state_fio->Fwrite(mmr_map_data, sizeof(mmr_map_data), 1);
 #endif
 	}
-	state_fio->FputInt32_BE(event_memorywait);
+	state_fio->FputUint32_BE(mem_waitfactor); // OK?
+	state_fio->FputUint32_BE(mem_waitcount); // OK?
+
 	state_fio->FputUint32_BE(cpu_clocks); // OK?
 }
 
@@ -807,7 +777,9 @@ bool FM7_MAINMEM::load_state(FILEIO *state_fio)
 		state_fio->Fread(mmr_map_data, sizeof(mmr_map_data), 1);
 #endif
 	}
-	event_memorywait = state_fio->FgetInt32_BE();
+	mem_waitfactor = state_fio->FgetUint32_BE();
+	mem_waitcount = state_fio->FgetUint32_BE();
+
 	cpu_clocks = state_fio->FgetUint32_BE();
 	
 	init_data_table();

@@ -198,8 +198,7 @@ class FM7_MAINMEM : public DEVICE
 	uint32_t read_dma_data8(uint32_t addr);
 	uint32_t read_dma_io8(uint32_t addr);
 	uint32_t read_data8_main(uint32_t addr, bool dmamode);
-	void event_callback(int id, int err);
-   
+
 	void write_data8(uint32_t addr, uint32_t data);
 	void write_dma_data8(uint32_t addr, uint32_t data);
 	void write_dma_io8(uint32_t addr, uint32_t data);
