@@ -645,8 +645,7 @@ void FM7_MAINIO::do_firq(void)
 	firq_stat = firq_break_key | firq_sub_attention;
 #if defined(HAS_2HD)
 	if(intmode_fdc) {
-		//if((connect_fdc_2HD) && (fdc_2HD != NULL) && ((irqreg_fdc_2HD & 0x40) != 0)) {
-		firq_stat |= drqstat_fdc_2hd;
+		firq_stat = drqstat_fdc_2hd;  // 20180226 BREAK KEY AND ATTENTION MUST BE MASK IF FIRQ USING FOR FDC's DRQ.Thanks to Haserin.
 			//}
 	}
 #endif
