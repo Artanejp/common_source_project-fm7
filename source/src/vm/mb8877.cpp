@@ -1584,26 +1584,6 @@ uint8_t MB8877::search_track()
 {
 	// get track
 	int track = fdc[drvreg].track;
-#if 0  // ToDo: Test and REMOVE.
-//#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV20) || defined(_FM77AV20EX)
-	if(type_fm77av_2dd) {
-		if(disk[drvreg]->media_type == MEDIA_TYPE_2D) {
-			if((disk[drvreg]->drive_type == DRIVE_TYPE_2DD) ||
-			   (disk[drvreg]->drive_type == DRIVE_TYPE_2HD) ||
-			   (disk[drvreg]->drive_type == DRIVE_TYPE_144)) {
-				track >>= 1;
-			}
-		} else {	// OS-9 2DD Access fix by Ryu Takegami
-			if((disk[drvreg]->media_type != MEDIA_TYPE_2D) &&
-			   (disk[drvreg]->media_type != MEDIA_TYPE_UNK)) {
-				if(disk[drvreg]->drive_type == DRIVE_TYPE_2D) {
-					track <<= 1;
-				}
-			}
-		}
-	}
-//#endif
-#endif
 
 	if(!disk[drvreg]->get_track(track, sidereg)){
 		return FDC_ST_SEEKERR;
@@ -1649,26 +1629,7 @@ uint8_t MB8877::search_sector()
 	
 	// get track
 	int track = fdc[drvreg].track;
-#if 0  // ToDo: Test and REMOVE.
-//#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV20) || defined(_FM77AV20EX)
-	if(type_fm77av_2dd) {
-		if(disk[drvreg]->media_type == MEDIA_TYPE_2D) {
-			if((disk[drvreg]->drive_type == DRIVE_TYPE_2DD) ||
-			   (disk[drvreg]->drive_type == DRIVE_TYPE_2HD) ||
-			   (disk[drvreg]->drive_type == DRIVE_TYPE_144)) {
-				track >>= 1;
-			}
-		} else {	// OS-9 2DD Access fix by Ryu Takegami
-			if((disk[drvreg]->media_type != MEDIA_TYPE_2D) &&
-			   (disk[drvreg]->media_type != MEDIA_TYPE_UNK)) {
-				if(disk[drvreg]->drive_type == DRIVE_TYPE_2D) {
-					track <<= 1;
-				}
-			}
-		}
-	}
-//#endif
-#endif
+
 	
 	if(!disk[drvreg]->get_track(track, sidereg)) {
 		return FDC_ST_RECNFND;
@@ -1748,26 +1709,6 @@ uint8_t MB8877::search_addr()
 {
 	// get track
 	int track = fdc[drvreg].track;
-#if 0  // ToDo: Test and REMOVE.
-//#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV20) || defined(_FM77AV20EX)
-	if(type_fm77av_2dd) {
-		if(disk[drvreg]->media_type == MEDIA_TYPE_2D) {
-			if((disk[drvreg]->drive_type == DRIVE_TYPE_2DD) ||
-			   (disk[drvreg]->drive_type == DRIVE_TYPE_2HD) ||
-			   (disk[drvreg]->drive_type == DRIVE_TYPE_144)) {
-				track >>= 1;
-			}
-		} else {	// OS-9 2DD Access fix by Ryu Takegami
-			if((disk[drvreg]->media_type != MEDIA_TYPE_2D) &&
-			   (disk[drvreg]->media_type != MEDIA_TYPE_UNK)) {
-				if(disk[drvreg]->drive_type == DRIVE_TYPE_2D) {
-					track <<= 1;
-				}
-			}
-		}
-	}
-//#endif
-#endif
 	
 	if(!disk[drvreg]->get_track(track, sidereg)) {
 		return FDC_ST_RECNFND;
@@ -1958,7 +1899,7 @@ bool MB8877::is_disk_protected(int drv)
 
 uint8_t MB8877::media_type(int drv)
 {
-	if(drv < MAX_DRIVE) {
+	if(drv < _max_drive) {
 		if(disk[drv]->inserted) {
 			return disk[drv]->media_type;
 		}
