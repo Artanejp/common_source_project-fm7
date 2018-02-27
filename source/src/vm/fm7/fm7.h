@@ -240,7 +240,7 @@
 
 // TODO: check refresh rate
 //#define FRAMES_PER_SEC		60.0962 /* Related to display.cpp */ 
-#define FRAMES_PER_SEC		59.94 /* Related to display.cpp */ 
+#define FRAMES_PER_SEC		60.00 /* Related to display.cpp */ 
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77L4)
 #define LINES_PER_FRAME 	400
 #else
@@ -249,7 +249,7 @@
 
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
   defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
-#define CPU_CLOCKS		2196000 /* 2016 * 1.089 */
+#define CPU_CLOCKS		2016000 /* 2016 */
 #else
 #define CPU_CLOCKS      1798000   /* FM8,7 - 77AV/20? */
 #endif

@@ -387,8 +387,8 @@ void VM::connect_bus(void)
 	//if((config.dipswitch & FM7_DIPSW_CYCLESTEAL) != 0) subclock = subclock / 3;
 #endif
 	mainclock = CPU_CLOCKS;
-//	subclock = SUBCLOCK_NORMAL;
-//	event->set_context_cpu(dummycpu, MAINCLOCK_SLOW / 2);
+	subclock = SUBCLOCK_NORMAL;
+
 	event->set_context_cpu(maincpu, mainclock);
 	event->set_context_cpu(subcpu,  subclock);	
    

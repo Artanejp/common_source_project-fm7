@@ -235,7 +235,7 @@ uint8_t FM7_MAINMEM::read_bootrom(uint32_t addr, bool dmamode)
 		return fm7_mainmem_bootrom_vector[addr - 0x1e0];
 	} else { // RESET VECTOR
 #if defined(_FM77AV_VARIANTS)
-		iowait();
+		if(initiator_enabled) iowait();
 		return fm7_bootram[addr];
 #elif defined(_FM77_VARIANTS)
 		iowait();

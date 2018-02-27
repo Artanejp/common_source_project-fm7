@@ -151,10 +151,10 @@ void FM7_MAINMEM::setclock(int mode)
 		clock = MAINCLOCK_NORMAL;
 #endif				
 	}
-	mem_waitcount = 0;
-	if(CPU_CLOCKS > clock) {
-		//mem_waitfactor = (uint32_t)(4096.0 * (double)(CPU_CLOCKS - clock) / (double)clock);
+	//mem_waitcount = 0;
+	if(CPU_CLOCKS >= clock) {
 		mem_waitfactor = (uint32_t)(4096.0 * (1.0 - ((double)clock / (double)CPU_CLOCKS)));
+		//out_debug_log(_T("CLOCK=%d WAIT FACTOR=%d"), clock, mem_waitfactor);
 	} else {
 		mem_waitfactor = 0;
 	}
@@ -163,39 +163,39 @@ void FM7_MAINMEM::setclock(int mode)
 		
 void FM7_MAINMEM::cpuwait()
 {
-#if 1
 	mem_waitcount += mem_waitfactor;
 	if(mem_waitcount >= 4096) {
-		uint32_t val = mem_waitcount >> 12;
+		uint32_t val = mem_waitcount / 4096;
 		if(maincpu != NULL) maincpu->set_extra_clock(val); // 
-		mem_waitcount = mem_waitcount - (val << 12) ;
+		mem_waitcount = mem_waitcount & 0x0fff;
 	}
-#endif
 }
 
 void FM7_MAINMEM::iowait()
 {
-	int _waitfactor; // If MMR of TWR enabled, factor = 3.
-			    // If memory, factor = 2?
+	int _waitfactor = 0;
 	if(!clockmode) return; // SLOW
 #ifdef HAS_MMR
-    //if(!mmr_fast && !window_fast && (window_enabled || mmr_enabled)) waitfactor = 2;
-	if(!ioaccess_wait) {
+	if((window_enabled) || (mmr_enabled)) {
+		if(!ioaccess_wait) {
+			_waitfactor = 2;
+		} else { // Not MMR, TWR or enabled FAST MMR mode
+			_waitfactor = 3; // If(MMR or TWR) and NOT FAST MMR factor = 3, else factor = 2
+			if(mmr_fast) _waitfactor = 2;
+		}
+	} else {
 		_waitfactor = 2;
-		ioaccess_wait = true;
-	} else { // Not MMR, TWR or enabled FAST MMR mode
-		_waitfactor = 3; // If(MMR or TWR) and NOT FAST MMR factor = 3, else factor = 2
-		if(mmr_fast) _waitfactor = 2;
-		ioaccess_wait = false;
-	} 
+	}
 #else
 	_waitfactor = 2;
 #endif	  
 	if(_waitfactor <= 0) return;
 	waitcount++;
 	if(waitcount >= _waitfactor) {
-		if(maincpu != NULL) maincpu->set_extra_clock(1);
+		mem_waitcount += 4096;
+		cpuwait();
 		waitcount = 0;
+		ioaccess_wait = !ioaccess_wait;
 	}
 }
 
