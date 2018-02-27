@@ -57,7 +57,7 @@ private:
 	scrntype_t palette_gfx8[8];
 	uint8_t digipal[4];
 #if defined(SUPPORT_16_COLORS)
-	scrntype_t palette_gfx16[8];
+	scrntype_t palette_gfx16[16];
 	uint8_t anapal[16][3], anapal_sel;
 #endif
 	

@@ -2416,7 +2416,7 @@ void DISPLAY::draw_gfx_screen()
 	}
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 void DISPLAY::save_state(FILEIO* state_fio)
 {

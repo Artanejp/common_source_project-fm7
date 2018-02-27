@@ -480,9 +480,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 */
 	// ram
 	memset(ram, 0, sizeof(ram));
-//	set_memory_r(0x100000 - sizeof(ipl), 0x0fffff, ipl);
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
-	memory->set_memory_rw(0x100000, sizeof(ram) - 1, ram + 0x100000);
+	if(sizeof(ram) > 0x100000) {
+		memory->set_memory_rw(0x100000, sizeof(ram) - 1, ram + 0x100000);
+	}
 #endif
 	// vram
 #if !defined(SUPPORT_HIRESO)
@@ -517,7 +518,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	} else
 #endif
 	display->sound_bios_ok = false;
-//	memory->set_memory_r(0x100000 - sizeof(ipl), 0xfffff, ipl);
 	
 	// i/o bus
 	io->set_iomap_alias_rw(0x0000, pic, 0);

@@ -29,7 +29,6 @@ void CPUREG::write_io8(uint32_t addr, uint32_t data)
 	case 0x00f2:
 #if defined(SUPPORT_32BIT_ADDRESS)
 		d_cpu->set_address_mask(0xffffffff);
-//		d_cpu->set_address_mask(0x00ffffff); // 386SX ???
 #else
 		d_cpu->set_address_mask(0x00ffffff);
 #endif
@@ -39,7 +38,6 @@ void CPUREG::write_io8(uint32_t addr, uint32_t data)
 		switch(data) {
 		case 0x02:
 			d_cpu->set_address_mask(0xffffffff);
-//			d_cpu->set_address_mask(0x00ffffff); // 386SX
 			break;
 		case 0x03:
 			d_cpu->set_address_mask(0x000fffff);
@@ -54,7 +52,7 @@ uint32_t CPUREG::read_io8(uint32_t addr)
 {
 	switch(addr) {
 	case 0x00f0:
-		return 0x01;
+		return 0xe9;
 	case 0x00f2:
 		return ((d_cpu->get_address_mask() & (1 << 20)) ? 0 : 1) | 0x2e;
 #if defined(SUPPORT_32BIT_ADDRESS)

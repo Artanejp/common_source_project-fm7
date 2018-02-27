@@ -117,11 +117,13 @@ void I8237::write_signal(int id, uint32_t data, uint32_t mask)
 	} else if(SIG_I8237_BANK0 <= id && id <= SIG_I8237_BANK3) {
 		// external bank registers
 		int ch = id - SIG_I8237_BANK0;
-		dma[ch].bankreg = data & mask;
+		dma[ch].bankreg &= ~mask;
+		dma[ch].bankreg |= data & mask;
 	} else if(SIG_I8237_MASK0 <= id && id <= SIG_I8237_MASK3) {
 		// external bank registers
 		int ch = id - SIG_I8237_MASK0;
-		dma[ch].incmask = data & mask;
+		dma[ch].incmask &= ~mask;
+		dma[ch].incmask |= data & mask;
 	}
 }
 

@@ -1,3 +1,11 @@
+2/27/2018
+
+[VM/I8237] fix bank register and inc mask register
+
+[PC9801/DISPLAY] fix array length of analog palette
+[PC9801/MEMBUS] improve memory bus for i386 or later (partial)
+
+
 2/25/2018
 
 [VM/DISK] improve for case 2D/2DD disk is inserted to 2DD/2D drive

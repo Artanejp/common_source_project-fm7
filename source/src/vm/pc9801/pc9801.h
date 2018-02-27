@@ -457,7 +457,6 @@ protected:
 #else
 	uint8_t ram[0x100000]; // 1MB
 #endif
-//	uint8_t ipl[0x18000];
 	uint8_t sound_bios[0x4000];
 #if defined(_PC9801) || defined(_PC9801E)
 	uint8_t fd_bios_2hd[0x1000];
