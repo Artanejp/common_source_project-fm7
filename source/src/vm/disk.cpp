@@ -918,9 +918,9 @@ void DISK::save_as_d88(const _TCHAR* file_path)
 bool DISK::get_track(int trk, int side)
 {
 	if(media_type == MEDIA_TYPE_2D && drive_type == DRIVE_TYPE_2DD) {
-		trk >>= 1;
+		if(trk >= 0) trk >>= 1;
 	} else if(media_type == MEDIA_TYPE_2DD && drive_type == DRIVE_TYPE_2D) {
-		trk <<= 1;
+		if(trk >= 0) trk <<= 1;
 	}
 	return get_track_tmp(trk, side);
 }
@@ -1074,9 +1074,9 @@ bool DISK::get_track_tmp(int trk, int side)
 bool DISK::make_track(int trk, int side)
 {
 	if(media_type == MEDIA_TYPE_2D && drive_type == DRIVE_TYPE_2DD) {
-		trk >>= 1;
+		if(trk >= 0) trk >>= 1;
 	} else if(media_type == MEDIA_TYPE_2DD && drive_type == DRIVE_TYPE_2D) {
-		trk <<= 1;
+		if(trk >= 0) trk <<= 1;
 	}
 	return make_track_tmp(trk, side);
 }
@@ -1179,9 +1179,9 @@ bool DISK::make_track_tmp(int trk, int side)
 bool DISK::get_sector(int trk, int side, int index)
 {
 	if(media_type == MEDIA_TYPE_2D && drive_type == DRIVE_TYPE_2DD) {
-		trk >>= 1;
+		if(trk >= 0) trk >>= 1;
 	} else if(media_type == MEDIA_TYPE_2DD && drive_type == DRIVE_TYPE_2D) {
-		trk <<= 1;
+		if(trk >= 0) trk <<= 1;
 	}
 	return get_sector_tmp(trk, side, index);
 }
@@ -1301,9 +1301,9 @@ void DISK::set_data_mark_missing()
 bool DISK::format_track(int trk, int side)
 {
 	if(media_type == MEDIA_TYPE_2D && drive_type == DRIVE_TYPE_2DD) {
-		trk >>= 1;
+		if(trk >= 0) trk >>= 1;
 	} else if(media_type == MEDIA_TYPE_2DD && drive_type == DRIVE_TYPE_2D) {
-		trk <<= 1;
+		if(trk >= 0) trk <<= 1;
 	}
 	return format_track_tmp(trk, side);
 }
@@ -1449,7 +1449,7 @@ int DISK::get_max_tracks()
 	if(drive_type != DRIVE_TYPE_UNK) {
 		return (drive_type != DRIVE_TYPE_2D) ? 84 : 42;
 	} else if(inserted) {
-		return (drive_type != MEDIA_TYPE_2D) ? 84 : 42;
+		return (media_type != MEDIA_TYPE_2D) ? 84 : 42;
 	} else {
 		return 84; // 2DD or 2HD
 	}
