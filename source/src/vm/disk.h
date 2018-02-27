@@ -117,6 +117,12 @@ private:
 	bool solid_to_d88(FILEIO *fio, int type, int ncyl, int nside, int nsec, int size, bool mfm);
 	void setup_fd_formats(void);
 	
+	// internal routines for track
+	bool get_track_tmp(int trk, int side);
+	bool make_track_tmp(int trk, int side);
+	bool get_sector_tmp(int trk, int side, int index);
+	bool format_track_tmp(int trk, int side);
+	
 public:
 #ifndef _ANY2D88
 	DISK(EMU* parent_emu) : emu(parent_emu)
@@ -174,6 +180,7 @@ public:
 	void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool data_crc_error, uint8_t fill_data, int length);
 	void sync_buffer();
 	
+	int get_max_tracks();
 	int get_rpm();
 	int get_track_size();
 	double get_usec_per_track();

@@ -81,8 +81,8 @@ IDR_MENU1 MENU DISCARDABLE
 BEGIN
     POPUP "Control"
     BEGIN
-        MENUITEM "Reset",                       ID_SPECIAL_RESET
         MENUITEM "IPL Reset",                   ID_RESET
+        MENUITEM "Reset",                       ID_SPECIAL_RESET
         MENUITEM SEPARATOR
         MENUITEM "CPU x1",                      ID_CPU_POWER0
         MENUITEM "CPU x2",                      ID_CPU_POWER1
@@ -189,6 +189,16 @@ BEGIN
     END
     POPUP "Device"
     BEGIN
+        POPUP "CPU"
+        BEGIN
+            MENUITEM "4MHz",                    ID_VM_CPU_TYPE0
+            MENUITEM "6MHz",                    ID_VM_CPU_TYPE1
+        END
+        POPUP "Drive"
+        BEGIN
+            MENUITEM "Floppy Drive 2D",         ID_VM_DRIVE_TYPE0
+            MENUITEM "Floppy Drive 2DD",        ID_VM_DRIVE_TYPE1
+        END
         POPUP "Sound"
         BEGIN
             MENUITEM "Play FDD Noise",          ID_VM_SOUND_NOISE_FDD

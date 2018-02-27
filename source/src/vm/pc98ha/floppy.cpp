@@ -9,10 +9,16 @@
 */
 
 #include "floppy.h"
+#include "../disk.h"
 #include "../upd765a.h"
 
 void FLOPPY::reset()
 {
+/*
+	for(int i = 0; i < 4; i++) {
+		d_fdc->set_drive_type(i, DRIVE_TYPE_2HD);
+	}
+*/
 	ctrlreg = 0x80;
 	modereg = 0x03;
 }
@@ -32,6 +38,15 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 		ctrlreg = data;
 		break;
 	case 0xbe:
+/*
+		if(!(modereg & 2) && (data & 2)) {
+			d_fdc->set_drive_type(0, DRIVE_TYPE_2HD);
+			d_fdc->set_drive_type(1, DRIVE_TYPE_2HD);
+		} else if((modereg & 2) && !(data & 2)) {
+			d_fdc->set_drive_type(0, DRIVE_TYPE_2DD);
+			d_fdc->set_drive_type(1, DRIVE_TYPE_2DD);
+		}
+*/
 		modereg = data;
 		break;
 	}

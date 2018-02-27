@@ -154,9 +154,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
-	for(int i = 0; i < 4; i++) {
-		fdc->set_drive_type(i, DRIVE_TYPE_2D);
-	}
 }
 
 VM::~VM()
@@ -189,6 +186,13 @@ void VM::reset()
 	// reset all devices
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
+	}
+	for(int i = 0; i < 4; i++) {
+		if(config.drive_type) {
+			fdc->set_drive_type(i, DRIVE_TYPE_2DD);
+		} else {
+			fdc->set_drive_type(i, DRIVE_TYPE_2D);
+		}
 	}
 }
 

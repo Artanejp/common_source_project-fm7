@@ -14,10 +14,12 @@
 #include "../../emu.h"
 #include "../device.h"
 
+class MB8877;
+
 class FLOPPY : public DEVICE
 {
 private:
-	DEVICE* d_fdc;
+	MB8877* d_fdc;
 	
 public:
 	FLOPPY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -26,11 +28,12 @@ public:
 	}
 	~FLOPPY() {}
 	
-	// common function
+	// common functions
+	void reset();
 	void write_io8(uint32_t addr, uint32_t data);
 	
 	// unique function
-	void set_context_fdc(DEVICE* device)
+	void set_context_fdc(MB8877* device)
 	{
 		d_fdc = device;
 	}

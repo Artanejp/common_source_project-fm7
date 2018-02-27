@@ -13,6 +13,7 @@
 #include "../event.h"
 
 #include "../beep.h"
+#include "../disk.h"
 #include "../hd146818p.h"
 #include "../i8255.h"
 //#include "../mc6800.h"
@@ -145,6 +146,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// initialize all devices
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
+	}
+	for(int i = 0; i < MAX_DRIVE; i++) {
+		fdc_tf20->set_drive_type(i, DRIVE_TYPE_2D);
 	}
 }
 

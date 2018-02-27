@@ -16,10 +16,13 @@
 
 #define SIG_FLOPPY_IRQ	0
 
+class MB8877;
+
 class FLOPPY : public DEVICE
 {
 private:
-	DEVICE *d_fdc, *d_pic;
+	MB8877 *d_fdc;
+	DEVICE *d_pic;
 	
 	uint8_t fdcr, fdsl, fdst;
 	int drvsel;
@@ -35,6 +38,7 @@ public:
 	
 	// common functions
 	void initialize();
+	void reset();
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
 	void write_signal(int id, uint32_t data, uint32_t mask);
@@ -42,7 +46,7 @@ public:
 	bool load_state(FILEIO* state_fio);
 	
 	// unique functions
-	void set_context_fdc(DEVICE* device)
+	void set_context_fdc(MB8877* device)
 	{
 		d_fdc = device;
 	}

@@ -429,11 +429,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		}
 	}
 	for(int i = 0; i < MAX_DRIVE; i++) {
-#ifdef _X1TURBO_FEATURE
-		fdc->set_drive_type(i, DRIVE_TYPE_2DD);
-#else
+//#ifdef _X1TURBO_FEATURE
+//		fdc->set_drive_type(i, DRIVE_TYPE_2DD);
+//#else
 		fdc->set_drive_type(i, DRIVE_TYPE_2D);
-#endif
+//#endif
 //		fdc->set_drive_rpm(i, 300);
 //		fdc->set_drive_mfm(i, true);
 	}
@@ -863,8 +863,8 @@ void VM::update_config()
 void VM::update_dipswitch()
 {
 	// bit0		0=High 1=Standard
-	// bit2		0=5"2D 1=5"2HD
-	io->set_iovalue_single_r(0x1ff0, (config.monitor_type & 1) | ((config.drive_type & 1) << 2));
+	// bit1-3	000=5"2D 001=5"2DD 010=5"2HD
+	io->set_iovalue_single_r(0x1ff0, (config.monitor_type & 1) | ((config.drive_type & 7) << 1));
 }
 #endif
 

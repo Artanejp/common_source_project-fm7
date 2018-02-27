@@ -8,6 +8,7 @@
 */
 
 #include "floppy.h"
+#include "../disk.h"
 #include "../i8259.h"
 #include "../mb8877.h"
 
@@ -19,6 +20,13 @@ void FLOPPY::initialize()
 	drvsel = 0;
 	irq = false;
 	changed[0] = changed[1] = changed[2] = changed[3] = false;
+}
+
+void FLOPPY::reset()
+{
+	for(int i = 0; i < MAX_DRIVE; i++) {
+		d_fdc->set_drive_type(i, DRIVE_TYPE_2HD);
+	}
 }
 
 void FLOPPY::write_io8(uint32_t addr, uint32_t data)
@@ -39,6 +47,11 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 			fdst = changed[drvsel] ? 1 : 0;
 			changed[drvsel] = false;
 		}
+		if((drvsel & 2) ? (data & 0x80) : (data & 0x40)) {
+			d_fdc->set_drive_type(drvsel, DRIVE_TYPE_2DD);
+		} else {
+			d_fdc->set_drive_type(drvsel, DRIVE_TYPE_2HD);
+		}
 		d_fdc->write_signal(SIG_MB8877_MOTOR, 1, 1);
 		break;
 	case 0x36:
@@ -56,7 +69,13 @@ uint32_t FLOPPY::read_io8(uint32_t addr)
 	case 0x34:
 		return fdcr;
 	case 0x35:
-		return fdsl;
+		{
+			uint32_t value = fdsl & 0x3f;
+			if(d_fdc->media_type(drvsel) == MEDIA_TYPE_2D || d_fdc->media_type(drvsel) == MEDIA_TYPE_2DD) {
+				drvsel |= (drvsel & 2) ? 0x80 : 0x40;
+			}
+			return value;
+		}
 	case 0x36:
 		return fdst;
 	}

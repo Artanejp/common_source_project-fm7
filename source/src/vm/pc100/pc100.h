@@ -32,6 +32,7 @@
 #define IO_ADDR_MAX		0x10000
 
 // device informations for win32
+#define USE_DRIVE_TYPE		2
 #define USE_FD1
 #define USE_FD2
 #define NOTIFY_KEY_DOWN

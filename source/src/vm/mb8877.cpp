@@ -1241,17 +1241,11 @@ void MB8877::cmd_seek()
 	//seektrk = (uint8_t)(fdc[drvreg].track + datareg - trkreg); // Seek target is differ when drive's track != trkreg.Thanks to Haserin and Ryu Takegami.
 	seektrk = (int)((int8_t)datareg);
 //#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV20) || defined(_FM77AV20EX)
-	if(type_fm77av_2dd) {
-		if(disk[drvreg]->drive_type != DRIVE_TYPE_2D) {
-			seektrk = (seektrk > 83) ? 83 : (seektrk < 0) ? 0 : seektrk;
-		} else {
-			seektrk = (seektrk > 41) ? 41 : (seektrk < 0) ? 0 : seektrk;
-		}
-	} else 	if(disk[drvreg]->media_type != MEDIA_TYPE_2D){
-		seektrk = (seektrk > 83) ? 83 : (seektrk < 0) ? 0 : seektrk;
-	} else {
-		seektrk = (seektrk > 41) ? 41 : (seektrk < 0) ? 0 : seektrk;
-	}		
+	if(seektrk >= disk[drvreg]->get_max_tracks()) {
+		seektrk = disk[drvreg]->get_max_tracks() - 1;
+	} else if(seektrk < 0) {
+		seektrk = 0;
+ 	}
 
 	seekvct = !(seektrk > fdc[drvreg].track);
 	// Update track register by data register.Thanks to Ryu Takegami. 20180224 K.O
@@ -1295,17 +1289,11 @@ void MB8877::cmd_stepin()
 	}
 
 	seektrk = fdc[drvreg].track + 1;
-	if(type_fm77av_2dd) {
-		if(disk[drvreg]->drive_type != DRIVE_TYPE_2D) {
-			seektrk = (seektrk > 83) ? 83 : (seektrk < 0) ? 0 : seektrk;
-		} else {
-			seektrk = (seektrk > 41) ? 41 : (seektrk < 0) ? 0 : seektrk;
-		}
-	} else 	if(disk[drvreg]->media_type != MEDIA_TYPE_2D){
-		seektrk = (seektrk > 83) ? 83 : (seektrk < 0) ? 0 : seektrk;
-	} else {
-		seektrk = (seektrk > 41) ? 41 : (seektrk < 0) ? 0 : seektrk;
-	}
+	if(seektrk >= disk[drvreg]->get_max_tracks()) {
+		seektrk = disk[drvreg]->get_max_tracks() - 1;
+	} else if(seektrk < 0) {
+		seektrk = 0;
+ 	}
 	seekvct = false;
 	set_irq(false);
 	set_drq(false);
@@ -1336,17 +1324,11 @@ void MB8877::cmd_stepout()
 	}
 
 	seektrk = fdc[drvreg].track - 1;
-	if(type_fm77av_2dd) {
-		if(disk[drvreg]->drive_type != DRIVE_TYPE_2D) {
-			seektrk = (seektrk > 83) ? 83 : (seektrk < 0) ? 0 : seektrk;
-		} else {
-			seektrk = (seektrk > 41) ? 41 : (seektrk < 0) ? 0 : seektrk;
-		}
-	} else 	if(disk[drvreg]->media_type != MEDIA_TYPE_2D){
-		seektrk = (seektrk > 83) ? 83 : (seektrk < 0) ? 0 : seektrk;
-	} else {
-		seektrk = (seektrk > 41) ? 41 : (seektrk < 0) ? 0 : seektrk;
-	}		
+	if(seektrk >= disk[drvreg]->get_max_tracks()) {
+		seektrk = disk[drvreg]->get_max_tracks() - 1;
+	} else if(seektrk < 0) {
+		seektrk = 0;
+ 	}
 	seekvct = true;
 	register_seek_event();
 }
@@ -1602,6 +1584,7 @@ uint8_t MB8877::search_track()
 {
 	// get track
 	int track = fdc[drvreg].track;
+#if 0  // ToDo: Test and REMOVE.
 //#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV20) || defined(_FM77AV20EX)
 	if(type_fm77av_2dd) {
 		if(disk[drvreg]->media_type == MEDIA_TYPE_2D) {
@@ -1620,6 +1603,8 @@ uint8_t MB8877::search_track()
 		}
 	}
 //#endif
+#endif
+
 	if(!disk[drvreg]->get_track(track, sidereg)){
 		return FDC_ST_SEEKERR;
 	}
@@ -1664,6 +1649,7 @@ uint8_t MB8877::search_sector()
 	
 	// get track
 	int track = fdc[drvreg].track;
+#if 0  // ToDo: Test and REMOVE.
 //#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV20) || defined(_FM77AV20EX)
 	if(type_fm77av_2dd) {
 		if(disk[drvreg]->media_type == MEDIA_TYPE_2D) {
@@ -1682,6 +1668,8 @@ uint8_t MB8877::search_sector()
 		}
 	}
 //#endif
+#endif
+	
 	if(!disk[drvreg]->get_track(track, sidereg)) {
 		return FDC_ST_RECNFND;
 	}
@@ -1760,6 +1748,7 @@ uint8_t MB8877::search_addr()
 {
 	// get track
 	int track = fdc[drvreg].track;
+#if 0  // ToDo: Test and REMOVE.
 //#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV20) || defined(_FM77AV20EX)
 	if(type_fm77av_2dd) {
 		if(disk[drvreg]->media_type == MEDIA_TYPE_2D) {
@@ -1778,6 +1767,8 @@ uint8_t MB8877::search_addr()
 		}
 	}
 //#endif
+#endif
+	
 	if(!disk[drvreg]->get_track(track, sidereg)) {
 		return FDC_ST_RECNFND;
 	}
@@ -1963,6 +1954,16 @@ bool MB8877::is_disk_protected(int drv)
 		return disk[drv]->write_protected;
 	}
 	return false;
+}
+
+uint8_t MB8877::media_type(int drv)
+{
+	if(drv < MAX_DRIVE) {
+		if(disk[drv]->inserted) {
+			return disk[drv]->media_type;
+		}
+	}
+	return MEDIA_TYPE_UNK;
 }
 
 void MB8877::set_drive_type(int drv, uint8_t type)

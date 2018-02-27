@@ -88,7 +88,7 @@
 #define USE_KEYBOARD_TYPE	2
 // Keyboard mode B
 #define KEYBOARD_TYPE_DEFAULT	1
-#define USE_DRIVE_TYPE		2
+#define USE_DRIVE_TYPE		3
 #endif
 #define USE_FD1
 #define USE_FD2

@@ -100,10 +100,20 @@ uint32_t IOCTRL::read_io8(uint32_t addr)
 		update_key();
 		return key_val;
 	case 0x22:
-		if(config.monitor_type) {
-			return key_mouse | 0x0d;	// virt monitor
-		} else {
-			return key_mouse | 0x2d;	// horiz monitor
+		// bit1: 0 = Color Mode, 1 = Monochrome Mode
+		// bit2: 1 = Double FDD, 0 = Single FDD
+		// bit3: 1 = 2D, 0 = 2DD
+		// bit4: 1 = KD, 0 = MD
+		// bit5: 1 = Horizontal Monitor, 0 = Virtical Monitor
+		{
+			uint32_t value = key_mouse | 0x05;
+			if(!config.drive_type) {
+				value |= 0x08; // 2D
+			}
+			if(!config.monitor_type) {
+				value |= 0x20; // Horizontal Monitor
+			}
+			return value;
 		}
 	}
 	return 0xff;

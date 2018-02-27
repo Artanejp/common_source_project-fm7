@@ -68,6 +68,9 @@
 #define USE_PRINTER_TYPE	4
 #define USE_DEBUGGER
 #define USE_STATE
+#if defined(SUPPORT_MZ80AIF)
+#define USE_DRIVE_TYPE		2
+#endif
 #if defined(SUPPORT_MZ80AIF) || defined(SUPPORT_MZ80FIO)
 #define USE_FD1
 #define USE_FD2

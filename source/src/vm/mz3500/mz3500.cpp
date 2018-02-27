@@ -247,7 +247,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		device->initialize();
 	}
 	for(int i = 0; i < 4; i++) {
-		fdc->set_drive_type(i, DRIVE_TYPE_2DD);
+		fdc->set_drive_type(i, DRIVE_TYPE_2D);
 	}
 	// GDC clock (mz3500sm p.33,34)
 	if(config.monitor_type == 0 || config.monitor_type == 1) {

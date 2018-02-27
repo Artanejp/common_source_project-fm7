@@ -58,7 +58,6 @@ void initialize_config()
 	config.full_speed = false;	
 	
 	// control
-	
 	#if defined(USE_BOOT_MODE) && defined(BOOT_MODE_DEFAULT)
 		config.boot_mode = BOOT_MODE_DEFAULT;
 	#endif

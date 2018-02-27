@@ -56,6 +56,7 @@
 #define USE_TAPE1
 #define USE_TAPE_BUTTON
 #if defined(_MZ800) || defined(_MZ1500)
+#define USE_DRIVE_TYPE		2
 #define USE_QD1
 #define USE_FD1
 #define USE_FD2

@@ -294,6 +294,8 @@ void BIOS::reset()
 {
 	for(int i = 0; i < MAX_DRIVE; i++) {
 		access_fdd[i] = false;
+		drive_mode1[i] = 0x03;	// MFM, 2HD, 1024B
+		drive_mode2[i] = 0x208;	// 2 Heads, 8 sectors
 	}
 	for(int i = 0; i < MAX_SCSI; i++) {
 		access_scsi[i] = false;
@@ -319,7 +321,36 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 //		emu->out_debug_log(_T("%6x\tDISK BIOS: AH=%2x,AL=%2x,CX=%4x,DX=%4x,BX=%4x,DS=%2x,DI=%2x\n"), get_cpu_pc(0), AH,AL,CX,DX,BX,DS,DI);
 		//printf(_T("%6x\tDISK BIOS: AH=%2x,AL=%2x,CX=%4x,DX=%4x,BX=%4x,DS=%2x,DI=%2x\n"), get_cpu_pc(0), AH,AL,CX,DX,BX,DS,DI);
 //#endif
-		if(AH == 2) {
+		if(AH == 0) {
+			// set drive mode
+			if(!(drv < MAX_DRIVE)) {
+				AH = 2;
+				*CarryFlag = 1;
+				return true;
+			}
+			AH = 0;
+			drive_mode1[drv] = DL;
+			drive_mode2[drv] = BX;
+			switch(DL & 0x30) {
+			case 0x00: disk[drv]->drive_type = DRIVE_TYPE_2HD; break;
+			case 0x10: disk[drv]->drive_type = DRIVE_TYPE_2DD; break;
+			case 0x20: disk[drv]->drive_type = DRIVE_TYPE_2D ; break;
+			}
+			*CarryFlag = 0;
+			return true;
+		} else if(AH == 1) {
+			// get drive mode
+			if(!(drv < MAX_DRIVE)) {
+				AH = 2;
+				*CarryFlag = 1;
+				return true;
+			}
+			AH = 0;
+			DL = drive_mode1[drv];
+			BX = drive_mode2[drv];
+			*CarryFlag = 0;
+			return true;
+		} else if(AH == 2) {
 			// drive status
 			if((AL & 0xf0) == 0x20) {
 				// floppy
@@ -330,9 +361,24 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					return true;
 				}
 				AH = 0;
-				DL = 4;
+				if(disk[drv]->get_track(0, 0) && disk[drv]->get_sector(0, 0, 0)) {
+					switch(disk[drv]->sector_size.sd) {
+					case 128: AH = 0; break;
+					case 256: AH = 1; break;
+					case 512: AH = 2; break;
+					default : AH = 3; break; // 1024
+					}
+				}
+				DL = 0;
 				if(disk[drv]->write_protected) {
 					DL |= 2;
+				}
+				if(disk[drv]->two_side) {
+					DL |= 4;
+				}
+//				if(disk[drv]->drive_type == DRIVE_TYPE_2D || disk[drv]->drive_type == DRIVE_TYPE_2DD) {
+				if(disk[drv]->media_type == MEDIA_TYPE_2D || disk[drv]->media_type == MEDIA_TYPE_2DD) {
+					DL |= 0x10;
 				}
 				CX = 0;
 				*CarryFlag = 0;
@@ -405,7 +451,12 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				int sct = DL;
 				while(BX > 0) {
 					// search sector
-					disk[drv]->get_track(trk, hed);
+					if(!disk[drv]->get_track(trk, hed)) {
+						AH = 0x80;
+						CX = ERR_FDD_NOTFOUND;
+						*CarryFlag = 1;
+						return true;
+					}
 					access_fdd[drv] = true;
 					secnum = sct;
 					if(!disk[drv]->get_sector(trk, hed, sct - 1)) {
@@ -525,7 +576,12 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				int sct = DL;
 				while(BX > 0) {
 					// search sector
-					disk[drv]->get_track(trk, hed);
+					if(!disk[drv]->get_track(trk, hed)) {
+						AH = 0x80;
+						CX = ERR_FDD_NOTFOUND;
+						*CarryFlag = 1;
+						return true;
+					}
 					access_fdd[drv] = true;
 					secnum = sct;
 					if(!disk[drv]->get_sector(trk, hed, sct - 1)) {
@@ -627,7 +683,12 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				int sct = DL;
 				while(BX > 0) {
 					// search sector
-					disk[drv]->get_track(trk, hed);
+					if(!disk[drv]->get_track(trk, hed)) {
+						AH = 0x80;
+						CX = ERR_FDD_NOTFOUND;
+						*CarryFlag = 1;
+						return true;
+					}
 					access_fdd[drv] = true;
 					secnum = sct;
 					if(!disk[drv]->get_sector(trk, hed, sct - 1)) {
@@ -716,7 +777,12 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				int trk = CX;
 				int hed = DH & 1;
 				// search sector
-				disk[drv]->get_track(trk, hed);
+				if(!disk[drv]->get_track(trk, hed)) {
+					AH = 0x80;
+					CX = ERR_FDD_NOTFOUND;
+					*CarryFlag = 1;
+					return true;
+				}
 				access_fdd[drv] = true;
 				if(++secnum > disk[drv]->sector_num.sd) {
 					secnum = 1;
@@ -950,7 +1016,10 @@ write_id:
 				return true;
 			}
 			// load ipl
-			disk[0]->get_track(0, 0);
+			if(!disk[0]->get_track(0, 0)) {
+				*CarryFlag = 1;
+				return true;
+			}
 			access_fdd[0] = true;
 			if(!disk[0]->get_sector(0, 0, 0)) {
 				*CarryFlag = 1;
@@ -1107,7 +1176,7 @@ uint32_t BIOS::read_signal(int ch)
 	return stat;
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 void BIOS::save_state(FILEIO* state_fio)
 {
@@ -1119,6 +1188,9 @@ void BIOS::save_state(FILEIO* state_fio)
 	}
 	state_fio->FputInt32(secnum);
 	state_fio->FputInt32(timeout);
+	state_fio->Fwrite(drive_mode1, sizeof(drive_mode1), 1);
+	state_fio->Fwrite(drive_mode2, sizeof(drive_mode2), 1);
+	state_fio->Fwrite(scsi_blocks, sizeof(scsi_blocks), 1);
 }
 
 bool BIOS::load_state(FILEIO* state_fio)
@@ -1136,6 +1208,9 @@ bool BIOS::load_state(FILEIO* state_fio)
 	}
 	secnum = state_fio->FgetInt32();
 	timeout = state_fio->FgetInt32();
+	state_fio->Fread(drive_mode1, sizeof(drive_mode1), 1);
+	state_fio->Fread(drive_mode2, sizeof(drive_mode2), 1);
+	state_fio->Fread(scsi_blocks, sizeof(scsi_blocks), 1);
 	return true;
 }
 

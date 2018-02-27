@@ -172,6 +172,11 @@ BEGIN
     END
     POPUP "Device"
     BEGIN
+        POPUP "Drive"
+        BEGIN
+            MENUITEM "Floppy Drive 2D",         ID_VM_DRIVE_TYPE0
+            MENUITEM "Floppy Drive 2DD",        ID_VM_DRIVE_TYPE1
+        END
         POPUP "Sound"
         BEGIN
             MENUITEM "Play FDD Noise",          ID_VM_SOUND_NOISE_FDD

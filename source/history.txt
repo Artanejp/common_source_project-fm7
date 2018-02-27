@@ -1,3 +1,26 @@
+2/25/2018
+
+[VM/DISK] improve for case 2D/2DD disk is inserted to 2DD/2D drive
+
+[FMR30/FLOPPY] support to change drive type 2DD/2HD
+[FMR30/FLOPPY] support to get media type 2D/2DD/2HD
+[FMR50/BIOS] suppoert int 93h, ah=00h/01h to set/get drive type
+[FMR50/BIOS] improve int 93h, ah=02h to get sector size and media type
+[FMR50/FLOPPY] support to change drive type 2DD/2HD
+[MZ80A] support to select floppy drive type 2D/2DD
+[MZ80B] support to select floppy drive type 2D/2DD
+[MZ80B] support to select cpu clock 4MHz/6MHz
+[MZ800] support to select floppy drive type 2D/2DD
+[MZ1500] support to select floppy drive type 2D/2DD
+[MZ2200] support to select floppy drive type 2D/2DD
+[MZ2200] support to select cpu clock 4MHz/6MHz
+[MZ2800/FLOPPY] support to change drive type 2DD/2HD
+[PC100] support to select floppy drive type 2D/2DD
+[PC100/IOCTRL] improve dipswitch value for floppy drive type 2D/2DD
+[X1TURBO] support to select floppy drive type 2D/2DD/2HD
+[X1TURBO/FLOPPY] support to change drive type 2D/2DD/2HD
+
+
 2/23/2018
 
 [VM/DISK] support two side

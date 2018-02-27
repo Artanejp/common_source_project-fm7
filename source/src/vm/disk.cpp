@@ -917,6 +917,16 @@ void DISK::save_as_d88(const _TCHAR* file_path)
 
 bool DISK::get_track(int trk, int side)
 {
+	if(media_type == MEDIA_TYPE_2D && drive_type == DRIVE_TYPE_2DD) {
+		trk >>= 1;
+	} else if(media_type == MEDIA_TYPE_2DD && drive_type == DRIVE_TYPE_2D) {
+		trk <<= 1;
+	}
+	return get_track_tmp(trk, side);
+}
+
+bool DISK::get_track_tmp(int trk, int side)
+{
 	sector_size.sd = sector_num.sd = 0;
 	invalid_format = false;
 //	no_skew = true;
@@ -1063,9 +1073,19 @@ bool DISK::get_track(int trk, int side)
 
 bool DISK::make_track(int trk, int side)
 {
+	if(media_type == MEDIA_TYPE_2D && drive_type == DRIVE_TYPE_2DD) {
+		trk >>= 1;
+	} else if(media_type == MEDIA_TYPE_2DD && drive_type == DRIVE_TYPE_2D) {
+		trk <<= 1;
+	}
+	return make_track_tmp(trk, side);
+}
+
+bool DISK::make_track_tmp(int trk, int side)
+{
 	int track_size = get_track_size();
 	
-	if(!get_track(trk, side)) {
+	if(!get_track_tmp(trk, side)) {
 		// create a dummy track
 		for(int i = 0; i < track_size; i++) {
 			track[i] = rand();
@@ -1157,6 +1177,16 @@ bool DISK::make_track(int trk, int side)
 }
 
 bool DISK::get_sector(int trk, int side, int index)
+{
+	if(media_type == MEDIA_TYPE_2D && drive_type == DRIVE_TYPE_2DD) {
+		trk >>= 1;
+	} else if(media_type == MEDIA_TYPE_2DD && drive_type == DRIVE_TYPE_2D) {
+		trk <<= 1;
+	}
+	return get_sector_tmp(trk, side, index);
+}
+
+bool DISK::get_sector_tmp(int trk, int side, int index)
 {
 	sector_size.sd = sector_num.sd = 0;
 	sector = NULL;
@@ -1269,6 +1299,16 @@ void DISK::set_data_mark_missing()
 }
 
 bool DISK::format_track(int trk, int side)
+{
+	if(media_type == MEDIA_TYPE_2D && drive_type == DRIVE_TYPE_2DD) {
+		trk >>= 1;
+	} else if(media_type == MEDIA_TYPE_2DD && drive_type == DRIVE_TYPE_2D) {
+		trk <<= 1;
+	}
+	return format_track_tmp(trk, side);
+}
+
+bool DISK::format_track_tmp(int trk, int side)
 {
 	// disk not inserted or invalid media type
 	if(!(inserted && check_media_type())) {
@@ -1404,6 +1444,17 @@ void DISK::trim_buffer()
 	memcpy(buffer, tmp_buffer, min(sizeof(buffer), file_size.d));
 }
 
+int DISK::get_max_tracks()
+{
+	if(drive_type != DRIVE_TYPE_UNK) {
+		return (drive_type != DRIVE_TYPE_2D) ? 84 : 42;
+	} else if(inserted) {
+		return (drive_type != MEDIA_TYPE_2D) ? 84 : 42;
+	} else {
+		return 84; // 2DD or 2HD
+	}
+}
+
 int DISK::get_rpm()
 {
 	if(drive_rpm != 0) {
@@ -1445,11 +1496,7 @@ bool DISK::check_media_type()
 {
 	switch(drive_type) {
 	case DRIVE_TYPE_2D:
-		if(type_fm77av_2dd) {
 			return (media_type == MEDIA_TYPE_2D || media_type == MEDIA_TYPE_2DD);
-		} else {
-			return (media_type == MEDIA_TYPE_2D);
-		}
 	case DRIVE_TYPE_2DD:
 		return (media_type == MEDIA_TYPE_2D || media_type == MEDIA_TYPE_2DD);
 	case DRIVE_TYPE_2HD:

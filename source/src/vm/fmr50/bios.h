@@ -35,6 +35,8 @@ private:
 	
 	// disk bios
 	bool access_fdd[MAX_DRIVE], access_scsi[MAX_SCSI];
+	uint8_t  drive_mode1[MAX_DRIVE];
+	uint16_t drive_mode2[MAX_DRIVE];
 	int scsi_blocks[MAX_SCSI];
 	
 public:

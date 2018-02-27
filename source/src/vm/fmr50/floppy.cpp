@@ -9,6 +9,7 @@
 */
 
 #include "floppy.h"
+#include "../disk.h"
 #include "../i8259.h"
 #include "../mb8877.h"
 
@@ -17,6 +18,13 @@ void FLOPPY::initialize()
 	drvreg = drvsel = 0;
 	irq = irqmsk = false;
 	changed[0] = changed[1] = changed[2] = changed[3] = false;
+}
+
+void FLOPPY::reset()
+{
+	for(int i = 0; i < MAX_DRIVE; i++) {
+		d_fdc->set_drive_type(i, DRIVE_TYPE_2HD);
+	}
 }
 
 void FLOPPY::write_io8(uint32_t addr, uint32_t data)
@@ -28,22 +36,41 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 		// drive control register
 		irqmsk = ((data & 1) != 0);
 		update_intr();
+		// note: bit5 is CLKSEL, but 0 is set while seeking
+/*
+		for(int i = 0; i < MAX_DRIVE; i++) {
+			if(data & 0x20) {
+				d_fdc->set_drive_type(i, DRIVE_TYPE_2DD);
+			} else {
+				d_fdc->set_drive_type(i, DRIVE_TYPE_2HD);
+			}
+		}
+*/
 		d_fdc->write_signal(SIG_MB8877_MOTOR, data, 0x10);
 		d_fdc->write_signal(SIG_MB8877_SIDEREG, data, 4);
 		break;
 	case 0x20c:
 		// drive select register
-		if(data & 1) {
-			nextdrv = 0;
-		} else if(data & 2) {
-			nextdrv = 1;
-		} else if(data & 4) {
-			nextdrv = 2;
-		} else if(data & 8) {
-			nextdrv = 3;
-		}
-		if(drvsel != nextdrv) {
-			d_fdc->write_signal(SIG_MB8877_DRIVEREG, drvsel = nextdrv, 3);
+		if(data & 0x0f) {
+			if(data & 1) {
+				nextdrv = 0;
+			} else if(data & 2) {
+				nextdrv = 1;
+			} else if(data & 4) {
+				nextdrv = 2;
+			} else if(data & 8) {
+				nextdrv = 3;
+			}
+			if(drvsel != nextdrv) {
+				d_fdc->write_signal(SIG_MB8877_DRIVEREG, drvsel = nextdrv, 3);
+			}
+			for(int i = 0; i < MAX_DRIVE; i++) {
+				if((data & 0xc0) == 0x00) {
+					d_fdc->set_drive_type(i, DRIVE_TYPE_2DD); // 300rpm
+				} else if((data & 0xc0) == 0x40) {
+					d_fdc->set_drive_type(i, DRIVE_TYPE_2HD); // 360rpm
+				}
+			}
 		}
 		drvreg = data;
 		break;

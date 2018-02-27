@@ -182,17 +182,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
-#if defined(SUPPORT_MZ80AIF)
-	for(int i = 0; i < MAX_DRIVE; i++) {
-		fdc->set_drive_type(i, DRIVE_TYPE_2DD);
-	}
-#elif defined(SUPPORT_MZ80FIO)
-	for(int i = 0; i < MAX_DRIVE; i++) {
-		fdc->set_drive_type(i, DRIVE_TYPE_2D);
-//		fdc->set_drive_mfm(i, false);
-	}
-#endif
-
 }
 
 VM::~VM()
@@ -226,6 +215,20 @@ void VM::reset()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
+#if defined(SUPPORT_MZ80AIF)
+	for(int i = 0; i < MAX_DRIVE; i++) {
+		if(config.drive_type) {
+			fdc->set_drive_type(i, DRIVE_TYPE_2DD);
+		} else {
+			fdc->set_drive_type(i, DRIVE_TYPE_2D);
+		}
+	}
+#elif defined(SUPPORT_MZ80FIO)
+	for(int i = 0; i < MAX_DRIVE; i++) {
+		fdc->set_drive_type(i, DRIVE_TYPE_2D);
+//		fdc->set_drive_mfm(i, false);
+	}
+#endif
 #if defined(_MZ1200) || defined(_MZ80A)
 	and_int->write_signal(SIG_AND_BIT_0, 0, 1);	// CLOCK = L
 	and_int->write_signal(SIG_AND_BIT_1, 1, 1);	// INTMASK = H

@@ -31,6 +31,7 @@
 #define FRAMES_PER_SEC		60
 #define LINES_PER_FRAME		262
 #define CPU_CLOCKS		4000000
+#define CPU_CLOCKS_HIGH		6000000
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		400
 #define WINDOW_HEIGHT_ASPECT	480
@@ -50,6 +51,8 @@
 
 // device informations for win32
 #define USE_SPECIAL_RESET
+#define USE_CPU_TYPE		2
+#define USE_DRIVE_TYPE		2
 #define USE_FD1
 #define USE_FD2
 #define USE_FD3
