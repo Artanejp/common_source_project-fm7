@@ -468,11 +468,9 @@ int_cycle:
 	// run cpu
 check_ok:
 	if((int_state & MC6809_SYNC_IN) != 0) {
-		//if(clock <= 0) icount -= 1;
 		if(clock < 1) clock = 1;
-		//clock = clock / 2;
-		icount -= clock;
 		icount -= extra_icount;
+		icount -= clock;
 		extra_icount = 0;
 		debugger_hook();
 		total_icount += (first_icount - icount);
@@ -495,11 +493,9 @@ check_ok:
 			return first_icount - icount;
 		}
 	} else { // CWAI_IN
-		//if(clock <= 0) icount -= 1;
 		if(clock < 1) clock = 1;
-		//clock = clock / 4;
-		icount -= clock;
 		icount -= extra_icount;
+		icount -= clock;
 		extra_icount = 0;
 		debugger_hook();
 		total_icount += (first_icount - icount);
