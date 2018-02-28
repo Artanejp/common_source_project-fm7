@@ -205,6 +205,7 @@ typedef struct {
 		int filter_type;
 	#endif
 
+	// NOTE: Belows contain STAGED CONFIGURATION.
 #if defined(_USE_QT)
 	bool use_separate_thread_draw;
 	bool use_opengl_scanline;
@@ -218,7 +219,7 @@ typedef struct {
 	bool swap_kanji_pause;
 	int  cursor_as_ten_key;
 	bool numpad_enter_as_fullkey;
-	
+	bool print_statistics;
 	int host_keyboard_type;
 	
 	bool special_debug_fdc;	
