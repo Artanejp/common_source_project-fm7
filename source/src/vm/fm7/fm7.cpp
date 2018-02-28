@@ -371,22 +371,7 @@ void VM::connect_bus(void)
 	 */
 	event->set_frames_per_sec(FRAMES_PER_SEC);
 	event->set_lines_per_frame(LINES_PER_FRAME);
-#if defined(_FM8)
-	mainclock = MAINCLOCK_SLOW;
-	subclock = SUBCLOCK_SLOW;
-#else
-	if(config.cpu_type == 0) {
-		// 2MHz
-		subclock = SUBCLOCK_NORMAL;
-		mainclock = MAINCLOCK_NORMAL;
-	} else {
-		// 1.2MHz
-		mainclock = MAINCLOCK_SLOW;
-		subclock = SUBCLOCK_SLOW;
-	}
-	//if((config.dipswitch & FM7_DIPSW_CYCLESTEAL) != 0) subclock = subclock / 3;
-#endif
-	mainclock = CPU_CLOCKS;
+	mainclock = CPU_CLOCKS; // Hack
 	subclock = SUBCLOCK_NORMAL;
 
 	event->set_context_cpu(maincpu, mainclock);

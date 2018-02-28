@@ -66,6 +66,7 @@ uint8_t FM7_MAINMEM::read_data(uint32_t addr, bool dmamode)
 # ifdef _FM77AV_VARIANTS
 			else if(mmr_bank == 0x3f) {
 				if((raddr >= 0xd80) && (raddr <= 0xd97)) { // MMR AREA
+					iowait(); // OK?
 					return 0xff;
 				} else {
 					raddr = raddr | 0x3f000;
@@ -123,11 +124,13 @@ uint32_t FM7_MAINMEM::read_data8_main(uint32_t addr, bool dmamode)
 	if(initiator_enabled) {
 		if((addr >= 0x6000) && (addr < 0x8000)) {
 			uint32_t raddr = addr - 0x6000;
+			iowait();
 			return fm7_mainmem_initrom[raddr];
 		}
 		if((addr >= 0xfffe) && (addr < 0x10000)) {
 			uint32_t raddr = addr - 0xe000;
 			//printf("%04x %02x\n", raddr, fm7_mainmem_initrom[raddr]);
+			iowait();
 			return fm7_mainmem_initrom[raddr];
 		}
 	}
@@ -180,8 +183,9 @@ uint8_t FM7_MAINMEM::read_bootrom(uint32_t addr, bool dmamode)
 {
 	addr = addr & 0x1ff;
 	if(addr <  0x1e0) {
-		iowait();
+
 #if defined(_FM77AV_VARIANTS)
+		if(initiator_enabled) iowait();
 		return fm7_bootram[addr];
 #elif defined(_FM77_VARIANTS)
 		if(boot_ram_write) {

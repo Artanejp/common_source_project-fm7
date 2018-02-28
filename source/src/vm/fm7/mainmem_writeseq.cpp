@@ -137,6 +137,7 @@ void FM7_MAINMEM::write_data(uint32_t addr, uint32_t data, bool dmamode)
 # ifdef _FM77AV_VARIANTS
 			else if(mmr_bank == 0x3f) {
 				if((raddr >= 0xd80) && (raddr <= 0xd97)) { // MMR AREA
+					iowait(); // OK?
 					return;
 				} else {
 					raddr = raddr | 0x3f000;
@@ -190,11 +191,13 @@ void FM7_MAINMEM::write_data8_main(uint32_t addr, uint32_t data, bool dmamode)
 #ifdef _FM77AV_VARIANTS
 	if(initiator_enabled) {
 		if((addr >= 0x6000) && (addr < 0x8000)) {
+			iowait();
 			//uint32_t raddr = addr - 0x6000;
 			//return fm7_mainmen_initrom[raddr];
 			return;
 		}
 		if((addr >= 0xfffe) && (addr < 0x10000)) {
+			iowait();
 			//uint32_t raddr = addr - 0xe000;
 			//return fm7_mainmen_initrom[raddr];
 			return;

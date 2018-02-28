@@ -151,7 +151,6 @@ class FM7_MAINMEM : public DEVICE
 	bool diag_load_bootrom_sfd8;
 	bool diag_load_bootrom_2hd;
 
-	int event_memorywait;
 	uint32_t mem_waitfactor;
 	uint32_t mem_waitcount;
 
@@ -212,7 +211,7 @@ class FM7_MAINMEM : public DEVICE
    
 	void initialize(void);
 	void iowait(void);
-	void cpuwait(void);
+	void dram_refresh(void);
 	void reset(void);
 	void release(void);
 
