@@ -640,7 +640,9 @@ void DISPLAY::draw_screen2()
 		} else {
 			window_opened = false;
 		}
-		if(_flag != window_opened) vram_wrote_shadow = true;
+		if(_flag != window_opened) {
+			vram_wrote_shadow = true;
+		}
 	}
 #endif
 //	frame_skip_count_draw++;

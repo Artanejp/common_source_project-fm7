@@ -76,6 +76,7 @@ void DISPLAY::reset_some_devices()
 	}
 	//firq_mask = false; // 20180215 Thanks to Ryu takegami.
 	//cancel_request = false;
+	is_cyclesteal = ((config.dipswitch & FM7_DIPSW_CYCLESTEAL) != 0) ? true : false;
 	switch(config.cpu_type){
 		case 0:
 			clock_fast = true;
@@ -84,7 +85,11 @@ void DISPLAY::reset_some_devices()
 			clock_fast = false;
 			break;
 	}
-
+	if(clock_fast) {
+		prev_clock = SUBCLOCK_NORMAL;
+	} else {
+		prev_clock = SUBCLOCK_SLOW;
+	}
 	enter_display();
    
 	offset_point = 0;
@@ -95,28 +100,33 @@ void DISPLAY::reset_some_devices()
 
 	vram_wrote_shadow = true;
 	for(i = 0; i < 411 * 5; i++) vram_wrote_table[i] = true;
-	for(i = 0; i < 411; i++) vram_draw_table[i] = false;
+	for(i = 0; i < 411; i++) vram_draw_table[i] = true;
 	displine = 0;
 	active_page = 0;
 	
 //#if defined(_FM77AV_VARIANTS) || defined(_FM77L4)
+#if 1
 	vsync = true;
 	vblank = true;
 	hblank = false;
 	vblank_count = 0;
-	
+
 	if(hblank_event_id >= 0) cancel_event(this, hblank_event_id);
 	if(hdisp_event_id >= 0) cancel_event(this, hdisp_event_id);
+
 	if(vsync_event_id >= 0) cancel_event(this, vsync_event_id);
 	if(vstart_event_id >= 0) cancel_event(this, vstart_event_id);
 	hblank_event_id = -1;
 	hdisp_event_id = -1;
 	vsync_event_id = -1;
 	vstart_event_id = -1;
+#endif
 	if(display_mode == DISPLAY_MODE_8_400L) {
 		usec = 0.33 * 1000.0; 
+		p_vm->set_vm_frame_rate(55.40);
 	} else {
 		usec = 0.51 * 1000.0;
+		p_vm->set_vm_frame_rate(FRAMES_PER_SEC);
 	}
 	//usec = 16.0;
 	//register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
@@ -181,6 +191,7 @@ void DISPLAY::reset_some_devices()
 	frame_skip_count_transfer = 3;
 	need_transfer_line = true;
 	setup_display_mode();
+
 }
 
 
@@ -227,20 +238,6 @@ void DISPLAY::reset()
 #endif	
 	emu->set_vm_screen_lines(200);
 	
-	is_cyclesteal = ((config.dipswitch & FM7_DIPSW_CYCLESTEAL) != 0) ? true : false;
-	switch(config.cpu_type){
-		case 0:
-			clock_fast = true;
-			break;
-		case 1:
-			clock_fast = false;
-			break;
-	}
-	if(clock_fast) {
-		prev_clock = SUBCLOCK_NORMAL;
-	} else {
-		prev_clock = SUBCLOCK_SLOW;
-	}
 	reset_some_devices();
 	
 #if defined(_FM77AV_VARIANTS)
@@ -708,7 +705,7 @@ void DISPLAY::set_miscreg(uint8_t val)
 		display_page = 1;
 	}
 	if(display_page != old_display_page) {
-			vram_wrote = true;
+		vram_wrote = true;
 	}
 	active_page = ((val & 0x20) == 0) ? 0 : 1;
 	if((val & 0x04) == 0) {
@@ -1188,8 +1185,6 @@ void DISPLAY::event_callback_hdisp(void)
 	bool f = false;
 	double usec;
 	hblank = false;
-
-	
 	mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x02, 0xff);
 	if(display_mode == DISPLAY_MODE_8_400L) {
 		if(displine < 400) f = true;
@@ -1197,6 +1192,7 @@ void DISPLAY::event_callback_hdisp(void)
 		if(displine < 200) f = true;
 	}
 
+	hdisp_event_id = -1;
 	if(f) {
 		// DO ONLY WHEN SYNC-TO-HSYNC.
 		if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) != 0) {
@@ -1246,6 +1242,7 @@ void DISPLAY::event_callback_hblank(void)
 	double usec;
 	
 	hblank = true;
+	hblank_event_id = -1;
 	
 	mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x00, 0xff);
 	if(display_mode == DISPLAY_MODE_8_400L) {
@@ -1287,6 +1284,7 @@ void DISPLAY::event_callback_vstart(void)
 		} else {
 			usec = 1840.0; // 1846.5
 		}
+		vstart_event_id = -1;
 		register_event(this, EVENT_FM7SUB_HDISP, usec, false, &hdisp_event_id); // NEXT CYCLE_
 		//register_event(this, EVENT_FM7SUB_HBLANK, usec, false, &hdisp_event_id); // NEXT CYCLE_
 		vblank_count = 0;
@@ -1296,6 +1294,9 @@ void DISPLAY::event_callback_vstart(void)
 		} else {
 			usec = 1.52 * 1000.0;
 		}
+		vsync_event_id = -1;
+		hblank_event_id = -1;
+		hdisp_event_id = -1;
 		register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
 		vblank_count++;
 	}
@@ -1307,7 +1308,7 @@ void DISPLAY::event_callback_vsync(void)
 	hblank = false;
 	vsync = true;
 	//write_access_page = (write_access_page + 1) & 1;
-	displine = 0;
+	//displine = 0;
 	
 	if(display_mode == DISPLAY_MODE_8_400L) {
 		usec = 0.33 * 1000.0; 
@@ -1390,7 +1391,7 @@ void DISPLAY::event_callback_vsync(void)
 					displine = yy;
 					copy_vram_per_line(0, 4);
 				}
-				displine = 0;
+				//displine = 0;
 				vram_wrote = false;
 			}
 		}
@@ -1460,11 +1461,13 @@ void DISPLAY::event_callback(int event_id, int err)
 
 void DISPLAY::event_frame()
 {
+#if 1
 	double usec; 
 	vblank = true;
 	hblank = false;
 	vsync = true;
 	//write_access_page = (write_access_page + 1) & 1;
+	//out_debug_log(_T("DISPLINE=%d"), displine);
 	displine = 0;
 	if(display_mode == DISPLAY_MODE_8_400L) {
 		usec = 0.33 * 1000.0; 
@@ -1474,7 +1477,8 @@ void DISPLAY::event_frame()
 	mainio->write_signal(SIG_DISPLAY_VSYNC, 0x01, 0xff);
 	mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x00, 0xff);
 	register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
-	vblank_count = 0;
+	vblank_count = 1;
+#endif
 #if 0
 #if !defined(_FM77AV_VARIANTS) && !defined(_FM77L4)
 	int yy;
@@ -1682,6 +1686,7 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 				if(oldmode != display_mode) {
 					scrntype_t *pp;
 					if(mode320 || mode256k) {
+						p_vm->set_vm_frame_rate(FRAMES_PER_SEC);
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
 						emu->set_vm_screen_size(320, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 						for(y = 0; y < 200; y++) {
@@ -1697,12 +1702,13 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 						//emu->set_vm_screen_lines(200);
 					} else if(display_mode == DISPLAY_MODE_8_400L) {
 						emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
-						//emu->set_vm_screen_lines(400);
+						p_vm->set_vm_frame_rate(55.40);
 						for(y = 0; y < 400; y++) {
 							pp = emu->get_screen_buffer(y);
 							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype_t));
 						}
 					} else {
+						p_vm->set_vm_frame_rate(FRAMES_PER_SEC);
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
 						emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 						for(y = 0; y < 200; y++) {
@@ -1765,6 +1771,7 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 				if(oldmode != display_mode) {
 					scrntype_t *pp;
 					if(mode320 || mode256k) {
+						p_vm->set_vm_frame_rate(FRAMES_PER_SEC);
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
 						emu->set_vm_screen_size(320, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 						for(y = 0; y < 200; y++) {
@@ -1779,6 +1786,11 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 #endif	
 						//emu->set_vm_screen_lines(200);
 					} else { // 200 lines, 8 colors.
+						if(display_mode == DISPLAY_MODE_8_400L) {
+							p_vm->set_vm_frame_rate(55.40);
+						} else {
+							p_vm->set_vm_frame_rate(FRAMES_PER_SEC);
+						}
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
 						int ymax = 	(display_mode == DISPLAY_MODE_8_400L) ? 400 : 200;
 
@@ -2364,11 +2376,6 @@ uint32_t DISPLAY::read_data8(uint32_t addr)
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)		
 		if(display_mode == DISPLAY_MODE_8_400L) {
 			uint32_t page_offset_alt = 0;
-# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-			if(vram_active_block != 0) {
-				page_offset_alt = 0x18000;
-			}
-# endif		
 			uint32_t color;
 			uint32_t pagemod;
 			color = (addr & 0x18000) >> 15;
@@ -2379,6 +2386,12 @@ uint32_t DISPLAY::read_data8(uint32_t addr)
 			} else {
 				offset = offset_point << 1;
 			}
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
+			if(vram_active_block != 0) {
+				page_offset_alt = 0x18000;
+				offset = 0;
+			}
+# endif		
 			return gvram[(((addr + offset) & 0x7fff) | pagemod) + page_offset_alt];
 		}
 # endif		
@@ -2836,20 +2849,12 @@ void DISPLAY::write_data8(uint32_t addr, uint32_t data)
 	// ACCESS VIA ALU.
 	else if((addr >= DISPLAY_VRAM_DIRECT_ACCESS) && (addr < (DISPLAY_VRAM_DIRECT_ACCESS + 0x18000))) {
 		addr = addr - DISPLAY_VRAM_DIRECT_ACCESS; 
-#if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-			if(vram_active_block != 0) {
-				offset = 0;
-			}
-#endif		
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		if(display_mode == DISPLAY_MODE_8_400L) {
 			uint32_t vramaddr;
 			uint32_t naddr;
 			uint32_t page_offset_alt = 0;
 			uint32_t pagemod;
-# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-			if(vram_active_block != 0) page_offset_alt = 0x18000;
-# endif		
 			color = (addr & 0x18000) >> 15;
 			if(color > 2) color = 0;
 			if (active_page != 0) {
@@ -2857,6 +2862,12 @@ void DISPLAY::write_data8(uint32_t addr, uint32_t data)
 			} else {
 				offset = offset_point << 1;
 			}
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
+			if(vram_active_block != 0) {
+				page_offset_alt = 0x18000;
+				offset = 0;
+			}
+# endif		
 			naddr = (addr & 0x7fff) >> 4;
 			pagemod = 0x8000 * color;
 			vramaddr = (((addr + offset) & 0x7fff) | pagemod) + page_offset_alt;

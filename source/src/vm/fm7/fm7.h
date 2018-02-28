@@ -25,6 +25,7 @@
 #define USE_PRINTER
 #define USE_PRINTER_TYPE 4
 #define USE_AY_3_8910_AS_PSG
+#define SUPPORT_VARIABLE_TIMING
 
 #define INDEPENDENT_CAPS_KANA_LED
 #define NOTIFY_KEY_DOWN
@@ -240,7 +241,7 @@
 
 // TODO: check refresh rate
 //#define FRAMES_PER_SEC		60.0962 /* Related to display.cpp */ 
-#define FRAMES_PER_SEC		60.00 /* Related to display.cpp */ 
+#define FRAMES_PER_SEC		59.94 /* Related to display.cpp */ 
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77L4)
 #define LINES_PER_FRAME 	400
 #else
@@ -551,6 +552,7 @@ public:
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
+	void set_vm_frame_rate(double fps);
 	
 	// notify key
 	void key_down(int code, bool repeat);

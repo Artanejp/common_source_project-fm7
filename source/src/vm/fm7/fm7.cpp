@@ -1196,6 +1196,11 @@ void VM::is_bubble_casette_protected(int drv, bool flag)
 }
 #endif
 
+void VM::set_vm_frame_rate(double fps)
+{
+   if(event != NULL) event->set_frames_per_sec(fps);
+}
+
 
 #define STATE_VERSION	8
 void VM::save_state(FILEIO* state_fio)
