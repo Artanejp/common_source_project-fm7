@@ -24,6 +24,7 @@
 #ifdef USE_DEBUGGER
 #include "debugger.h"
 #endif
+#include "config.h"
 
 void MC6809::initialize()
 {

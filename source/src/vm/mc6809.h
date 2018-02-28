@@ -30,8 +30,10 @@ enum {
 	MC6809_PHASE_DO_HALT,
 };
 
-#define SIG_CPU_HALTREQ 0x8000 + SIG_CPU_BUSREQ
 
+#define SIG_CPU_HALTREQ 0x8000 + SIG_CPU_BUSREQ
+// Note: Below is ugly hack cause of CPU#0 cannot modify clock.
+#define SIG_CPU_WAIT_FACTOR 0x8001 + SIG_CPU_BUSREQ
 class VM;
 class EMU;
 class DEBUGGER;
@@ -67,6 +69,8 @@ protected:
 	bool req_halt_off;
 	bool busreq;
 
+	uint32_t waitfactor;
+	uint32_t waitcount;
 	uint64_t total_icount;
 	uint64_t prev_total_icount;
 
@@ -79,6 +83,7 @@ protected:
 	void cpu_irq_fetch_vector_address(void);
 	void cpu_firq_fetch_vector_address(void);
 	void cpu_nmi_fetch_vector_address(void);
+	void cpu_wait(int clocks = 1);
 	// Tables
 /* increment */
 	const uint8_t flags8i[256] = {
@@ -517,12 +522,21 @@ protected:
 	void tst_ix();
 
 	bool __USE_DEBUGGER;
-	
+	uint64_t cycles_tmp_count;
+	uint64_t insns_count;
+	uint64_t extra_tmp_count;
+	uint32_t nmi_count;
+	uint32_t firq_count;
+	uint32_t irq_count;
+	int frames_count;
+
 public:
 	MC6809_BASE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) 
 	{
 
 		total_icount = prev_total_icount = 0;
+		cycles_tmp_count = 0;
+		insns_count = 0;
 		__USE_DEBUGGER = false;
 		initialize_output_signals(&outputs_bus_clr);
 		initialize_output_signals(&outputs_bus_ba);
@@ -675,7 +689,7 @@ public:
 	{
 		d_debugger = device;
 	}
-
+	void event_frame();
 };
 
 class MC6809 : public MC6809_BASE
