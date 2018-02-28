@@ -389,6 +389,7 @@ void FM7_MAINMEM::initialize(void)
 	memset(fm7_mainmem_extrarom, 0xff, sizeof(fm7_mainmem_extrarom));
 	if(read_bios(_T(ROM_FM77AV40EX_EXTSUB), fm7_mainmem_extrarom, 0xc000) == 0xc000) diag_load_extrarom = true;
 	this->out_debug_log(_T("AV40SX/EX EXTRA ROM READING : %s"), diag_load_extrarom ? "OK" : "NG");
+	//register_event(this, EVENT_FM7_MAINMEM_DRAM_REFRESH, 13.02, true, &event_refresh); // OK?
 #endif
 	init_data_table();
 	update_all_mmr_jumptable();
