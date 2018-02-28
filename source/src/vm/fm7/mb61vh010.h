@@ -144,7 +144,6 @@ class MB61VH010: public DEVICE {
 inline void MB61VH010::put_dot(int x, int y)
 {
 	const uint8_t vmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
-	uint16_t tmp16a;
 	uint8_t tmp8a;
 	uint8_t mask8;
 	
@@ -193,8 +192,6 @@ inline void MB61VH010::put_dot8(int x, int y)
 {
 	const uint8_t vmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
 	uint8_t tmp8a;
-	int xx;
-	uint16_t tmp16a;
 	//bool updated;
    
 	if((command_reg & 0x80) == 0) return; // Not compare.

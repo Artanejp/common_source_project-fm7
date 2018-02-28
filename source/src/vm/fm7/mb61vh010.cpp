@@ -15,16 +15,14 @@
 void MB61VH010::do_pset(uint32_t addr)
 {
 	int i;
-	uint32_t raddr = addr;  // Use banked ram.
 	uint8_t bitmask[4] = {0};
 	uint8_t srcdata[4] = {0};
 	const uint8_t mask_p[4] = {mask_reg, mask_reg, mask_reg, mask_reg};
-	int planes_b = planes;
 	uint32_t *pbm = (uint32_t *)bitmask;
 	uint32_t *pmp = (uint32_t *)mask_p;
 	uint32_t *psd = (uint32_t *)srcdata;
 	
-	for(i = 0; i < 4; i++) { // planes_b
+	for(i = 0; i < 4; i++) { // planes
 		//if((bank_disable_reg & (1 << i)) != 0) {
 		if(disable_flags[i]) continue;
 		//}
@@ -288,7 +286,6 @@ void MB61VH010::do_tilepaint(uint32_t addr)
 
 void MB61VH010::do_compare(uint32_t addr)
 {
-	uint32_t offset = 0x4000;
 	uint8_t r, g, b;
 	uint8_t disables = ~bank_disable_reg;
 
@@ -436,8 +433,7 @@ void MB61VH010::do_line(void)
 	int xcount;
 	int ycount;
 	//bool updated = false;
-	uint16_t tmp8a;
-	uint8_t vmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
+	static const uint8_t vmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
 	double usec;
 	oldaddr = 0xffffffff;
 	alu_addr = 0xffffffff;
@@ -634,11 +630,12 @@ _finish:
 	mask_reg = 0xff;
 	//if(total_bytes >= 8) { // Only greater than 8bytes.
 	usec = (double)total_bytes / 16.0;
-	if(eventid_busy >= 0) cancel_event(this, eventid_busy) ;
-	register_event(this, EVENT_MB61VH010_BUSY_OFF, usec, false, &eventid_busy);
-	//} else {
-	//	busy_flag = false;
-	//}
+	if(usec < 1.0) {
+		busy_flag = false; // ToDo
+	} else {
+		if(eventid_busy >= 0) cancel_event(this, eventid_busy) ;
+		register_event(this, EVENT_MB61VH010_BUSY_OFF, usec, false, &eventid_busy);
+	}
 }
 
 
