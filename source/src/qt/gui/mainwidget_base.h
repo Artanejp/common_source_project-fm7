@@ -205,6 +205,7 @@ private:
 	class Action_Control *action_SetupJoystick;
 	class Action_Control *action_SetupKeyboard;
 	class Action_Control *action_LogView;
+	class Action_Control *action_PrintCpuStatistics;
 
 	QMenu *menu_EmulateCursorAs;
 	QActionGroup *actionGroup_EmulateCursorAs;
@@ -650,6 +651,8 @@ public slots:
 	void do_set_emulate_cursor_as(int num);
 	void do_set_logging_fdc(bool onoff);	
 	void do_set_separate_thread_draw(bool f);
+	void do_set_print_cpu_statistics(bool flag);
+
 signals:
 	int message_changed(QString);
 	int quit_emu_thread();
