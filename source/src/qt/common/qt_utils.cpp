@@ -251,6 +251,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 #ifdef USE_AUTO_KEY
 	connect(this, SIGNAL(sig_start_auto_key(QString)), hRunEmu, SLOT(do_start_auto_key(QString)));
 	connect(this, SIGNAL(sig_stop_auto_key()), hRunEmu, SLOT(do_stop_auto_key()));
+	connect(this, SIGNAL(sig_set_roma_kana(bool)), hRunEmu, SLOT(set_romakana(bool)));
 #endif	
 	//connect(actionExit_Emulator, SIGNAL(triggered()), hRunEmu, SLOT(doExit()));
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "EmuThread : Start.");

@@ -53,7 +53,7 @@ protected:
 	void get_cd_string(void);
 	void get_bubble_string(void);
 
-	void set_romakana(void) override;
+
 public:
 	EmuThreadClass(META_MainWindow *rootWindow, USING_FLAGS *p, QObject *parent = 0);
 	~EmuThreadClass();
@@ -96,7 +96,7 @@ public slots:
 	void do_open_bubble_casette(int, QString, int);
 	void do_start_auto_key(QString text);
 	void do_stop_auto_key(void);
-
+	void set_romakana(bool flag);
 	void do_close_debugger(void);
 signals:
 	int sig_set_draw_fps(double);

@@ -816,6 +816,7 @@ void Ui_MainWindowBase::retranselateUi_Depended_OSD(void)
 void Ui_MainWindowBase::do_set_roma_kana(bool flag)
 {
 	using_flags->get_config_ptr()->romaji_to_kana = flag;
+	emit sig_set_roma_kana(flag);
 }
 
 void Ui_MainWindowBase::do_set_numpad_enter_as_fullkey(bool flag)
@@ -891,7 +892,8 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	connect(action_DispVirtualMedias[2], SIGNAL(triggered()), this, SLOT(do_set_visible_virtual_media_lower()));
 			
 	if(using_flags->is_use_auto_key()) {
-		SET_ACTION_SINGLE(action_UseRomaKana, true, true, (using_flags->get_config_ptr()->romaji_to_kana));
+		// ToDo: Setup if checked.
+		SET_ACTION_SINGLE(action_UseRomaKana, true, true, (using_flags->get_config_ptr()->romaji_to_kana)); 
 		connect(action_UseRomaKana, SIGNAL(toggled(bool)), this, SLOT(do_set_roma_kana(bool)));
 	}
 	SET_ACTION_SINGLE(action_NumPadEnterAsFullkey, true, true, (using_flags->get_config_ptr()->numpad_enter_as_fullkey));

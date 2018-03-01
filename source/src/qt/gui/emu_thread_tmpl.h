@@ -171,7 +171,7 @@ protected:
 		key_fifo->clear();
 		keyMutex->unlock();
 	};
-	virtual void set_romakana(void) { };
+
 public:
 	EmuThreadClassBase(META_MainWindow *rootWindow, USING_FLAGS *p, QObject *parent = 0);
 	~EmuThreadClassBase();
@@ -199,6 +199,7 @@ public slots:
 	void button_released_mouse(Qt::MouseButton);
 	void do_key_down(uint32_t vk, uint32_t mod, bool repeat);
 	void do_key_up(uint32_t vk, uint32_t mod);
+
 signals:
 	int message_changed(QString);
 	int window_title_changed(QString);

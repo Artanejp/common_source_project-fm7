@@ -720,7 +720,7 @@ signals:
 	int sig_display_osd_leds(int,bool);
 	int sig_set_led_width(int);
 	int sig_set_orientation_osd(int);
-
+	int sig_set_roma_kana(bool);
 	int quit_debugger_thread(void);
 	int sig_quit_widgets(void);
 

@@ -258,8 +258,9 @@ void Ui_MainWindowBase::connectActions_ControlMenu(void)
 		menuControl->addAction(menuCopy_Paste->menuAction());
 	}
 	menuControl->addSeparator();
-	menuControl->addAction(menuState->menuAction());
-
+	if(using_flags->is_use_state()) {
+		menuControl->addAction(menuState->menuAction());
+	}
 	if(using_flags->is_use_debugger()) {
 		menuControl->addAction(menuDebugger->menuAction());
 	}

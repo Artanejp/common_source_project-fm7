@@ -43,11 +43,10 @@ EmuThreadClass::~EmuThreadClass()
 {
 }
 
-void EmuThreadClass::set_romakana(void)
+void EmuThreadClass::set_romakana(bool flag)
 {
-	p_config->romaji_to_kana = !p_config->romaji_to_kana;
 #if defined(USE_AUTO_KEY)
-	p_emu->set_auto_key_char(p_config->romaji_to_kana ? 1 : 0);
+	p_emu->set_auto_key_char(flag ? 1 : 0);
 #endif
 }
 
