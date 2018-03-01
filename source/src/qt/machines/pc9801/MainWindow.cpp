@@ -119,6 +119,7 @@ void META_MainWindow::retranslateUi(void)
 	actionCpuType[0]->setText(QString::fromUtf8("10MHz"));
 	actionCpuType[1]->setText(QString::fromUtf8("8MHz"));
 # elif  defined(_PC9801RA) || defined(_PC98RL)
+	// ToDo: PC98RL's display rotate.
 	actionCpuType[0]->setText(QString::fromUtf8("20MHz"));
 	actionCpuType[1]->setText(QString::fromUtf8("16MHz"));
 # endif

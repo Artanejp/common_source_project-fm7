@@ -73,17 +73,22 @@ void META_MainWindow::retranslateUi(void)
 	retranslateUI_Help();
 
 #if defined(_MZ80A) || defined(_MZ80K)	
-	action_Emu_DipSw->setText(QApplication::translate("MainWindow", "PCG-8000", 0));
-	action_Emu_DipSw->setToolTip(QApplication::translate("MainWindow", "HAL laboratory PCG-8000 PCG.", 0));
+	action_Emu_DipSw->setText(QApplication::translate("MachineMZ80K", "PCG-8000", 0));
+	action_Emu_DipSw->setToolTip(QApplication::translate("MachineMZ80K", "HAL laboratory PCG-8000 PCG.", 0));
 #elif defined(_MZ1200)
-	action_Emu_DipSw->setText(QApplication::translate("MainWindow", "PCG-1200", 0));
-	action_Emu_DipSw->setToolTip(QApplication::translate("MainWindow", "HAL laboratory PCG-1200 PCG.", 0));
+	action_Emu_DipSw->setText(QApplication::translate("MachineMZ80K", "PCG-1200", 0));
+	action_Emu_DipSw->setToolTip(QApplication::translate("MachineMZ80K", "HAL laboratory PCG-1200 PCG.", 0));
 #endif
 	actionPrintDevice[1]->setText(QString::fromUtf8("MZ-1P17"));
-	actionPrintDevice[1]->setToolTip(QApplication::translate("MainWindow", "Sharp MZ-1P17 kanji thermal printer.", 0));
+	actionPrintDevice[1]->setToolTip(QApplication::translate("MachineMZ80K", "Sharp MZ-1P17 kanji thermal printer.", 0));
 	actionPrintDevice[2]->setText(QString::fromUtf8("DUMMY"));
-	actionPrintDevice[2]->setToolTip(QApplication::translate("MainWindow", "DUMMY printer.", 0));
-	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
+	actionPrintDevice[2]->setToolTip(QApplication::translate("MachineMZ80K", "DUMMY printer.", 0));
+	this->setWindowTitle(QApplication::translate("MachineMZ80K", "MachineMZ80K", 0));
+#if defined(USE_DRIVE_TYPE)
+	menuDriveType->setTitle(QApplication::translate("MachineMZ80K", "Floppy Type", 0));
+	actionDriveType[0]->setText(QApplication::translate("MachineMZ80K", "2D", 0));
+	actionDriveType[1]->setText(QApplication::translate("MachineMZ80K", "2DD", 0));
+#endif
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(false);

@@ -124,18 +124,25 @@ void META_MainWindow::retranslateUi(void)
    
 	menuMonitorType->setTitle("Monitor Type");
 	menuMonitorType->setToolTipsVisible(true);
-	actionMonitorType[0]->setText(QApplication::translate("MainWindow", "Color", 0));
-	actionMonitorType[1]->setText(QApplication::translate("MainWindow", "Monochrome", 0));
-	actionMonitorType[0]->setToolTip(QApplication::translate("MainWindow", "Use color CRT.", 0));
-	actionMonitorType[1]->setToolTip(QApplication::translate("MainWindow", "Use monochrome CRT.", 0));
-	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));;
+	actionMonitorType[0]->setText(QApplication::translate("MachineMZ700", "Color", 0));
+	actionMonitorType[1]->setText(QApplication::translate("MachineMZ700", "Monochrome", 0));
+	actionMonitorType[0]->setToolTip(QApplication::translate("MachineMZ700", "Use color CRT.", 0));
+	actionMonitorType[1]->setToolTip(QApplication::translate("MachineMZ700", "Use monochrome CRT.", 0));
+	menuMachine->setTitle(QApplication::translate("MachineMZ700", "Machine", 0));;
+
+	if(action_UseRomaKana != NULL) action_UseRomaKana->setVisible(false); // ROMA-JI-TO-KANA conversion is disabled by MZ800.
 #elif defined(_MZ700)
-	action_PCG700->setText(QApplication::translate("MainWindow", "PCG-700", 0));
-	action_PCG700->setToolTip(QApplication::translate("MainWindow", "HAL laboratory PCG-700 PCG.", 0));
+	action_PCG700->setText(QApplication::translate("MachineMZ700", "PCG-700", 0));
+	action_PCG700->setToolTip(QApplication::translate("MachineMZ700", "HAL laboratory PCG-700 PCG.", 0));
 #endif
 #if defined(_MZ1500)
 	actionPrintDevice[1]->setText(QString::fromUtf8("MZ-1P17"));
-	actionPrintDevice[1]->setToolTip(QApplication::translate("MainWindow", "Sharp MZ-1P17 kanji thermal printer.", 0));
+	actionPrintDevice[1]->setToolTip(QApplication::translate("MachineMZ700", "Sharp MZ-1P17 kanji thermal printer.", 0));
+#endif
+#if defined(USE_DRIVE_TYPE)
+	menuDriveType->setTitle(QApplication::translate("MachineMZ700", "Floppy Type", 0));
+	actionDriveType[0]->setText(QApplication::translate("MachineMZ700", "2D", 0));
+	actionDriveType[1]->setText(QApplication::translate("MachineMZ700", "2DD", 0));
 #endif
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);

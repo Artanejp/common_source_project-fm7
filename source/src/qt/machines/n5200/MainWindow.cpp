@@ -35,6 +35,10 @@ void META_MainWindow::retranslateUi(void)
 	retranslateEmulatorMenu();
 	retranslateUI_Help();
    
+#ifdef USE_DEBUGGER
+	actionDebugger[0]->setText(QApplication::translate("Machine", "Main CPU", 0));
+	actionDebugger[0]->setVisible(true);
+#endif
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
   
 	actionReset->setText(QApplication::translate("MainWindow", "Reset", 0));

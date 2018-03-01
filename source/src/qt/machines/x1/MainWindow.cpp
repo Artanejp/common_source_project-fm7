@@ -115,7 +115,8 @@ void META_MainWindow::retranslateUi(void)
 #if defined(USE_DRIVE_TYPE)
 	menuDriveType->setTitle(QApplication::translate("MachineX1", "Floppy Type", 0));
 	actionDriveType[0]->setText(QApplication::translate("MachineX1", "2D", 0));
-	actionDriveType[1]->setText(QApplication::translate("MachineX1", "2HD", 0));
+	actionDriveType[1]->setText(QApplication::translate("MachineX1", "2DD", 0));
+	actionDriveType[2]->setText(QApplication::translate("MachineX1", "2HD", 0));
 #endif
 #ifdef USE_DEBUGGER
 	actionDebugger[3]->setVisible(false);

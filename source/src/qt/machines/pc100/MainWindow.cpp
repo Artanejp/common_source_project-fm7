@@ -35,6 +35,11 @@ void META_MainWindow::retranslateUi(void)
 	retranslateUI_Help();
 	
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
+#if defined(USE_DRIVE_TYPE)
+	menuDriveType->setTitle(QApplication::translate("MachinePC100", "Floppy Type", 0));
+	actionDriveType[0]->setText(QApplication::translate("MachinePC100", "2D", 0));
+	actionDriveType[1]->setText(QApplication::translate("MachinePC100", "2DD", 0));
+#endif
 #if defined(USE_DEBUGGER)
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(false);

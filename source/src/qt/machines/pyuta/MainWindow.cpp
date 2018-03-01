@@ -40,6 +40,12 @@ void META_MainWindow::retranslateUi(void)
 	actionDebugger[2]->setVisible(false);
 	actionDebugger[3]->setVisible(false);
 #endif
+#if 0
+	for(int i = 0; i < 10; i++) {
+		if(actionLoad_state[i] != NULL) actionLoad_State[i]->setEnabled(false);
+		if(actionSave_state[i] != NULL) actionSave_State[i]->setEnabled(false);
+	}
+#endif
 } // retranslateUi
 
 
