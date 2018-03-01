@@ -1,3 +1,63 @@
+commit 5ca21fa5c137ed872baadd8066cc57f104d797da
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 28 04:26:55 2018 +0900
+
+    [VM][FM7][MAINMEM] More accurate wait implementation.
+
+commit bdb9a833ddbe222b109a7426afc56c8dcad6f80c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 28 04:26:12 2018 +0900
+
+    [VM][FM77AV40][FLOPPY] Apply to changes UPSTREAM 2018-02-25.
+
+commit fd747bc6cc3f58cba960e091d25849495b05ca22
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 28 04:25:34 2018 +0900
+
+    [VM][MC6809] Adjust clock references.
+
+commit 787d6651640a730cb55914b9b72b021239def7fa
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 28 04:24:54 2018 +0900
+
+    [VM][MB8877] Remove FM77AV40* relateed features.
+
+commit 4881b82f7d9ffd25bdcc30e37ab6e8081fde1e44
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 28 01:46:21 2018 +0900
+
+    [VM][DISK] Fix record not found with get_sector(-1, -1, foo) at MB8877:: .
+
+commit 76f8bd1a6830458c4a241e41e073a7389a7cff9d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 28 00:30:12 2018 +0900
+
+    [GENERAL] Merge upstream 2018-02-27.
+
+commit ac43ff56aa4ffda24d32d38a53752fd9a77d64ea
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 28 00:27:37 2018 +0900
+
+    [GENERAL] Merge upstream 2018-02-25.
+
+commit fc1f2bf4acfe3edbee72c81f8cfdc7503700cd9f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 28 00:04:06 2018 +0900
+
+    [GENERAL][EMACS] Add .dir-locals.el and vs-set-c-style.el .
+
+commit 7f206dcf78aab17bdf94508f730b96504d22f287
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Feb 26 12:43:06 2018 +0900
+
+    [VM][FM77][2HD] BREAK KEY AND ATTENTION MUST BE MASK IF FIRQ USING FOR FDC's DRQ.Thanks to Haserin.
+
+commit 302941da8c56f4b60cb777a8e17d590973add18f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 25 14:43:30 2018 +0900
+
+    [BUILD] Update SOVERSION and REVISION.
+
 commit f72d448db12b6daa0866b08f50a755372adc1076
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sun Feb 25 14:30:52 2018 +0900

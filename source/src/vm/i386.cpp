@@ -432,7 +432,7 @@ bool I386::write_debug_reg(const _TCHAR *reg, uint32_t data)
 	} else {
 		return false;
 	}
-	return false;
+	return true;
 }
 
 void I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
@@ -452,7 +452,7 @@ void I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 int I386::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
 	i386_state *cpustate = (i386_state *)opaque;
-	UINT64 eip = cpustate->eip;
+	UINT64 eip = pc - cpustate->sreg[CS].base;
 	UINT8 ops[16];
 	for(int i = 0; i < 16; i++) {
 		int wait;

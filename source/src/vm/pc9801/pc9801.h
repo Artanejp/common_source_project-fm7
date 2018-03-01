@@ -5,6 +5,8 @@
 	NEC PC-9801VF Emulator 'ePC-9801VF'
 	NEC PC-9801VM Emulator 'ePC-9801VM'
 	NEC PC-9801VX Emulator 'ePC-9801VX'
+	NEC PC-9801RA Emulator 'ePC-9801RA'
+	NEC PC-98RL Emulator 'ePC-98RL'
 	NEC PC-98DO Emulator 'ePC-98DO'
 
 	Author : Takeda.Toshiya
@@ -92,7 +94,7 @@
 		#define DEVICE_NAME	"NEC PC-9801VX"
 		#define CONFIG_NAME	"pc9801vx"
 	#elif defined(_PC98XL)
-		#define DEVICE_NAME	"NEC PC-98XL/XA"
+		#define DEVICE_NAME	"NEC PC-98XL"
 		#define CONFIG_NAME	"pc98xl"
 	#endif
 	#define HAS_I286
@@ -103,10 +105,10 @@
 	#define USE_CPU_TYPE		2
 #elif defined(_PC9801RA) || defined(_PC98RL)
 	#if defined(_PC9801RA)
-		#define DEVICE_NAME	"NEC PC-9801RA/DA"
+		#define DEVICE_NAME	"NEC PC-9801RA"
 		#define CONFIG_NAME	"pc9801ra"
 	#elif defined(_PC98RL)
-		#define DEVICE_NAME	"NEC PC-98RL/XL^2"
+		#define DEVICE_NAME	"NEC PC-98RL"
 		#define CONFIG_NAME	"pc98rl"
 	#endif
 	#define HAS_I386
@@ -153,6 +155,7 @@
 	#define SUPPORT_24BIT_ADDRESS
 #elif defined(HAS_I386) || defined(HAS_I486)
 	#define SUPPORT_32BIT_ADDRESS
+	#define SUPPORT_SASI
 #endif
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 	#define MEMORY_ADDR_MAX		0x1000000	// 16MB
@@ -451,20 +454,8 @@ protected:
 	Z80* cpu_sub;
 #endif
 	
-	// memory
-#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
-	uint8_t ram[0x400000]; // 4MB
-#else
-	uint8_t ram[0x100000]; // 1MB
-#endif
-	uint8_t sound_bios[0x4000];
-#if defined(_PC9801) || defined(_PC9801E)
-	uint8_t fd_bios_2hd[0x1000];
-	uint8_t fd_bios_2dd[0x1000];
-#endif
+	// misc
 	bool pit_clock_8mhz;
-	
-	// sound
 	int sound_type;
 	
 #if defined(_PC98DO) || defined(_PC98DOPLUS)

@@ -12,15 +12,15 @@
 
 void *buf;
 
-void kanji(unsigned char hi, unsigned char lo)
+void kanji(unsigned char first, unsigned char second)
 {
 	union REGS in_reg, out_reg;
 	struct SREGS seg_reg;
 	
 	seg_reg.ds  = FP_SEG((void far *)buf);
 	in_reg.x.bx = FP_OFF((void far *)buf);
-	in_reg.h.dh = hi;
-	in_reg.h.dl = lo;
+	in_reg.h.dh = first;
+	in_reg.h.dl = second;
 	in_reg.h.ah = 0x1f;
 	int86x(0x18, &in_reg, &out_reg, &seg_reg);
 }
@@ -28,30 +28,30 @@ void kanji(unsigned char hi, unsigned char lo)
 void main()
 {
 	FILE* fp;
-	int hi, lo;
+	int first, second;
 	
 	buf = malloc(0x8000);
 	
-	fp = fopen("KANJI.ROM", "wb");
-	for(lo = 0x00; lo <= 0xff; lo++) {
-		kanji(0, (unsigned char)lo);
+	fp = fopen("FONT24.ROM", "wb");
+	for(second = 0x00; second <= 0xff; second++) {
+		kanji(0, (unsigned char)second);
 		fwrite(buf, 48, 1, fp);
 	}
-	for(hi = 0x21; hi <= 0x27; hi++) {
-		for(lo = 0x21; lo <= 0x7e; lo++) {
-			kanji((unsigned char)hi, (unsigned char)lo);
+	for(first = 0x21; first <= 0x27; first++) {
+		for(second = 0x21; second <= 0x7e; second++) {
+			kanji((unsigned char)first, (unsigned char)second);
 			fwrite(buf, 72, 1, fp);
 		}
 	}
-	for(hi = 0x30; hi <= 0x73; hi++) {
-		for(lo = 0x21; lo <= 0x7e; lo++) {
-			kanji((unsigned char)hi, (unsigned char)lo);
+	for(first = 0x30; first <= 0x73; first++) {
+		for(second = 0x21; second <= 0x7e; second++) {
+			kanji((unsigned char)first, (unsigned char)second);
 			fwrite(buf, 72, 1, fp);
 		}
 	}
-	for(hi = 0x79; hi <= 0x7c; hi++) {
-		for(lo = 0x21; lo <= 0x7e; lo++) {
-			kanji((unsigned char)hi, (unsigned char)lo);
+	for(first = 0x79; first <= 0x7c; first++) {
+		for(second = 0x21; second <= 0x7e; second++) {
+			kanji((unsigned char)first, (unsigned char)second);
 			fwrite(buf, 72, 1, fp);
 		}
 	}

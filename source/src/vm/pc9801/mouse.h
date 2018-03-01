@@ -5,6 +5,8 @@
 	NEC PC-9801VF Emulator 'ePC-9801VF'
 	NEC PC-9801VM Emulator 'ePC-9801VM'
 	NEC PC-9801VX Emulator 'ePC-9801VX'
+	NEC PC-9801RA Emulator 'ePC-9801RA'
+	NEC PC-98RL Emulator 'ePC-98RL'
 	NEC PC-98DO Emulator 'ePC-98DO'
 
 	Author : Takeda.Toshiya

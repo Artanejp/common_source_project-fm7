@@ -192,7 +192,7 @@ static CPU_RESET( i80286 )
 
 	CHANGE_PC(cpustate->pc);
 
-	cpustate->icount = cpustate->extra_cycles = 0;
+//	cpustate->icount = cpustate->extra_cycles = 0;
 	cpustate->halted = 0;
 }
 

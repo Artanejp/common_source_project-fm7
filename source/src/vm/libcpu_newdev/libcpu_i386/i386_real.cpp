@@ -773,7 +773,8 @@ bool I386_OPS::write_debug_reg(const _TCHAR *reg, uint32_t data)
 int I386_OPS::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
 #if defined(USE_DEBUGGER)
-	UINT64 eip = cpustate->eip;
+	//UINT64 eip = cpustate->eip;
+	UINT64 eip = pc - cpustate->sreg[CS].base;
 	UINT8 ops[16];
 	for(int i = 0; i < 16; i++) {
 		int wait;

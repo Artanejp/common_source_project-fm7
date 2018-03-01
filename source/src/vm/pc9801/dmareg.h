@@ -1,5 +1,7 @@
 /*
 	NEC PC-9801VX Emulator 'ePC-9801VX'
+	NEC PC-9801RA Emulator 'ePC-9801RA'
+	NEC PC-98RL Emulator 'ePC-98RL'
 
 	Author : Takeda.Toshiya
 	Date   : 2017.06.25-

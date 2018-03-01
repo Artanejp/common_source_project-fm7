@@ -339,6 +339,11 @@ call :clean
 mkdir build_vc12\pc9801vx
 copy binary_vc12\pc9801vx.exe build_vc12\pc9801vx\.
 
+devenv.com pc9801ra.vcxproj /Rebuild Release
+call :clean
+mkdir build_vc12\pc9801ra
+copy binary_vc12\pc9801ra.exe build_vc12\pc9801ra\.
+
 devenv.com pc98do.vcxproj /Rebuild Release
 call :clean
 mkdir build_vc12\pc98do
@@ -353,6 +358,11 @@ devenv.com pc98lt.vcxproj /Rebuild Release
 call :clean
 mkdir build_vc12\pc98lt
 copy binary_vc12\pc98lt.exe build_vc12\pc98lt\.
+
+devenv.com pc98rl.vcxproj /Rebuild Release
+call :clean
+mkdir build_vc12\pc98rl
+copy binary_vc12\pc98rl.exe build_vc12\pc98rl\.
 
 devenv.com pc100.vcxproj /Rebuild Release
 call :clean

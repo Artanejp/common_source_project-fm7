@@ -5,6 +5,8 @@
 	NEC PC-9801VF Emulator 'ePC-9801VF'
 	NEC PC-9801VM Emulator 'ePC-9801VM'
 	NEC PC-9801VX Emulator 'ePC-9801VX'
+	NEC PC-9801RA Emulator 'ePC-9801RA'
+	NEC PC-98RL Emulator 'ePC-98RL'
 	NEC PC-98DO Emulator 'ePC-98DO'
 
 	Author : Takeda.Toshiya
@@ -379,6 +381,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	display->set_context_gdc_gfx(gdc_gfx, gdc_gfx->get_ra(), gdc_gfx->get_cs());
 	dmareg->set_context_dma(dma);
 	keyboard->set_context_sio(sio_kbd);
+	memory->set_context_display(display);
 	mouse->set_context_pic(pic);
 	mouse->set_context_pio(pio_mouse);
 	
@@ -457,67 +460,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	cpu_sub->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 #endif
-	
-	// memory bus
-/*
-	NORMAL PC-9801
-		00000h - 9FFFFh: RAM
-		A0000h - A1FFFh: TEXT VRAM
-		A2000h - A3FFFh: ATTRIBUTE
-		A4000h - A4FFFh: CG WINDOW
-		A8000h - BFFFFh: VRAM (BRG)
-		E0000h - E7FFFh: VRAM (I)
-		E8000h - FFFFFh: IPL
-
-	HIRESO PC-98XA/XL/XL^2/RL
-		00000h - 7FFFFh: RAM
-		80000h - BFFFFh: MEMORY WINDOW
-		C0000h - DFFFFh: VRAM
-		E0000h - E1FFFh: TEXT VRAM
-		E2000h - E3FFFh: ATTRIBUTE
-		E4000h - E4FFFh: CG WINDOW
-		F0000h - FFFFFh: IPL
-*/
-	// ram
-	memset(ram, 0, sizeof(ram));
-#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
-	if(sizeof(ram) > 0x100000) {
-		memory->set_memory_rw(0x100000, sizeof(ram) - 1, ram + 0x100000);
-	}
-#endif
-	// vram
-#if !defined(SUPPORT_HIRESO)
-	memory->set_memory_rw(0x000000, 0x09ffff, ram);
-	memory->set_memory_mapped_io_rw(0xa0000, 0xa4fff, display);
-	memory->set_memory_mapped_io_rw(0xa8000, 0xbffff, display);
-#if defined(SUPPORT_16_COLORS)
-	memory->set_memory_mapped_io_rw(0xe0000, 0xe7fff, display);
-#endif
-#else
-	memory->set_memory_rw(0x00000, 0xbffff, ram);
-	memory->set_memory_mapped_io_rw(0xc0000, 0xe4fff, display);
-#endif
-	// bios
-#if defined(_PC9801) || defined(_PC9801E)
-	memset(fd_bios_2hd, 0xff, sizeof(fd_bios_2hd));
-	memory->read_bios(_T("2HDIF.ROM"), fd_bios_2hd, sizeof(fd_bios_2hd));
-	memory->set_memory_r(0xd6000, 0xd6fff, fd_bios_2dd);
-	
-	memset(fd_bios_2dd, 0xff, sizeof(fd_bios_2dd));
-	memory->read_bios(_T("2DDIF.ROM"), fd_bios_2dd, sizeof(fd_bios_2dd));
-	memory->set_memory_r(0xd7000, 0xd7fff, fd_bios_2hd);
-#endif
-#if !defined(SUPPORT_HIRESO)
-	memset(sound_bios, 0xff, sizeof(sound_bios));
-	if(sound_type == 0) {
-		display->sound_bios_ok = (memory->read_bios(_T("SOUND.ROM"), sound_bios, sizeof(sound_bios)) != 0);
-		memory->set_memory_r(0xcc000, 0xcffff, sound_bios);
-	} else if(sound_type == 2) {
-		display->sound_bios_ok = (memory->read_bios(_T("MUSIC.ROM"), sound_bios, sizeof(sound_bios)) != 0);
-		memory->set_memory_r(0xcc000, 0xcffff, sound_bios);
-	} else
-#endif
-	display->sound_bios_ok = false;
 	
 	// i/o bus
 	io->set_iomap_alias_rw(0x0000, pic, 0);
@@ -631,7 +573,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	io->set_iomap_single_rw(0xa3, display);
 	io->set_iomap_single_rw(0xa5, display);
 	io->set_iomap_single_rw(0xa9, display);
-#if defined(SUPPORT_EGC) && !defined(SUPPORT_HIRESO)
+#if defined(SUPPORT_EGC)
 	io->set_iomap_range_rw(0x04a0, 0x04af, display);
 #endif
 	
@@ -709,6 +651,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	io->set_iomap_single_rw(0x0091, memory);
 	io->set_iomap_single_rw(0x0093, memory);
 #endif
+#endif
+#if defined(SUPPORT_32BIT_ADDRESS)
+	io->set_iomap_single_w(0x053d, memory);
 #endif
 	
 #if !(defined(_PC9801) || defined(_PC9801E) || defined(SUPPORT_HIRESO))
@@ -1413,7 +1358,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	10
+#define STATE_VERSION	11
 
 void VM::save_state(FILEIO* state_fio)
 {
@@ -1426,7 +1371,6 @@ void VM::save_state(FILEIO* state_fio)
 		state_fio->Fwrite(name, strlen(name), 1);
 		device->save_state(state_fio);
 	}
-	state_fio->Fwrite(ram, sizeof(ram), 1);
 	state_fio->FputBool(pit_clock_8mhz);
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 	state_fio->FputInt32(boot_mode);
@@ -1449,7 +1393,6 @@ bool VM::load_state(FILEIO* state_fio)
 			return false;
 		}
 	}
-	state_fio->Fread(ram, sizeof(ram), 1);
 	pit_clock_8mhz = state_fio->FgetBool();
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 	boot_mode = state_fio->FgetInt32();

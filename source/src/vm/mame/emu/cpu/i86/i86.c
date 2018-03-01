@@ -164,6 +164,13 @@ static CPU_INIT( v30 )
 
 static CPU_RESET( i8086 )
 {
+#ifdef USE_DEBUGGER
+	uint64_t total_icount = cpustate->total_icount;
+	uint64_t prev_total_icount = cpustate->prev_total_icount;
+#endif
+	int icount = cpustate->icount;
+	int extra_cycles = cpustate->extra_cycles;
+
 	memset(cpustate, 0, sizeof(*cpustate));
 
 	cpustate->sregs[CS] = 0xffff;
@@ -171,6 +178,12 @@ static CPU_RESET( i8086 )
 	cpustate->pc = 0xffff0 & AMASK;
 	ExpandFlags(cpustate->flags);
 
+#ifdef USE_DEBUGGER
+	cpustate->total_icount = total_icount;
+	cpustate->prev_total_icount = prev_total_icount;
+#endif
+	cpustate->icount = icount;
+	cpustate->extra_cycles = extra_cycles;
 	cpustate->halted = 0;
 }
 

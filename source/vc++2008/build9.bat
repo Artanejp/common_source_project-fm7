@@ -267,6 +267,10 @@ devenv.com pc9801vx.vcproj /Rebuild Release
 mkdir build_xp\pc9801vx
 copy Release\pc9801vx.exe build_xp\pc9801vx\.
 
+devenv.com pc9801ra.vcproj /Rebuild Release
+mkdir build_xp\pc9801ra
+copy Release\pc9801ra.exe build_xp\pc9801ra\.
+
 devenv.com pc98do.vcproj /Rebuild Release
 mkdir build_xp\pc98do
 copy Release\pc98do.exe build_xp\pc98do\.
@@ -278,6 +282,10 @@ copy Release\pc98ha.exe build_xp\pc98ha\.
 devenv.com pc98lt.vcproj /Rebuild Release
 mkdir build_xp\pc98lt
 copy Release\pc98lt.exe build_xp\pc98lt\.
+
+devenv.com pc98rl.vcproj /Rebuild Release
+mkdir build_xp\pc98rl
+copy Release\pc98rl.exe build_xp\pc98rl\.
 
 devenv.com pc100.vcproj /Rebuild Release
 mkdir build_xp\pc100

@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="pc9801ra"
+	Name="pc98rl"
 	ProjectGUID="{699AB843-1860-4ABF-B52C-D6A84D0F81E8}"
-	RootNamespace="pc9801ra"
+	RootNamespace="pc98rl"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -43,17 +43,17 @@
 				MkTypLibCompatible="true"
 				SuppressStartupBanner="true"
 				TargetEnvironment="1"
-				TypeLibraryName=".\Debug/pc9801ra.tlb"
+				TypeLibraryName=".\Debug/pc98rl.tlb"
 				HeaderFileName=""
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_PC9801RA"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_PC98RL"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				PrecompiledHeaderFile=".\Debug/pc9801ra.pch"
+				PrecompiledHeaderFile=".\Debug/pc98rl.pch"
 				AssemblerListingLocation=".\Debug/"
 				ObjectFile=".\Debug/"
 				ProgramDataBaseFileName=".\Debug/"
@@ -76,11 +76,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="odbc32.lib odbccp32.lib winmm.lib imm32.lib"
-				OutputFile=".\Debug/pc9801ra.exe"
+				OutputFile=".\Debug/pc98rl.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\Debug/pc9801ra.pdb"
+				ProgramDatabaseFile=".\Debug/pc98rl.pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -98,7 +98,7 @@
 			<Tool
 				Name="VCBscMakeTool"
 				SuppressStartupBanner="true"
-				OutputFile=".\Debug/pc9801ra.bsc"
+				OutputFile=".\Debug/pc98rl.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -138,19 +138,19 @@
 				MkTypLibCompatible="true"
 				SuppressStartupBanner="true"
 				TargetEnvironment="1"
-				TypeLibraryName=".\Release/pc9801ra.tlb"
+				TypeLibraryName=".\Release/pc98rl.tlb"
 				HeaderFileName=""
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="2"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_PC9801RA"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_PC98RL"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				EnableEnhancedInstructionSet="2"
-				PrecompiledHeaderFile=".\Release/pc9801ra.pch"
+				PrecompiledHeaderFile=".\Release/pc98rl.pch"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
 				ProgramDataBaseFileName=".\Release/"
@@ -172,10 +172,10 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="odbc32.lib odbccp32.lib winmm.lib imm32.lib"
-				OutputFile=".\Release/pc9801ra.exe"
+				OutputFile=".\Release/pc98rl.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				ProgramDatabaseFile=".\Release/pc9801ra.pdb"
+				ProgramDatabaseFile=".\Release/pc98rl.pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -193,7 +193,7 @@
 			<Tool
 				Name="VCBscMakeTool"
 				SuppressStartupBanner="true"
-				OutputFile=".\Release/pc9801ra.bsc"
+				OutputFile=".\Release/pc98rl.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -1381,11 +1381,11 @@
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 			>
 			<File
-				RelativePath="..\src\res\pc9801ra.ico"
+				RelativePath="..\src\res\pc98rl.ico"
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\pc9801ra.rc"
+				RelativePath="..\src\res\pc98rl.rc"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"

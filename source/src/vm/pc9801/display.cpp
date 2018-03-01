@@ -5,6 +5,8 @@
 	NEC PC-9801VF Emulator 'ePC-9801VF'
 	NEC PC-9801VM Emulator 'ePC-9801VM'
 	NEC PC-9801VX Emulator 'ePC-9801VX'
+	NEC PC-9801RA Emulator 'ePC-9801RA'
+	NEC PC-98RL Emulator 'ePC-98RL'
 	NEC PC-98DO Emulator 'ePC-98DO'
 
 	Author : Takeda.Toshiya
@@ -119,7 +121,12 @@ static const uint16_t egc_maskword[16][4] = {
 
 void DISPLAY::initialize()
 {
-	// clear font
+	// load font data
+	memset(font, 0xff, sizeof(font));
+	
+	FILEIO* fio = new FILEIO();
+	
+#if !defined(SUPPORT_HIRESO)
 	uint8_t *p = font + 0x81000;
 	uint8_t *q = font + 0x83000;
 	for(int i = 0; i < 256; i++) {
@@ -144,10 +151,10 @@ void DISPLAY::initialize()
 		memset(q + 0x580, 0, 0x0d60 - 0x580);
 		memset(q + 0xd80, 0, 0x1000 - 0xd80);
 	}
-	
-	// load font data
-	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(create_local_path(_T("FONT.ROM")), FILEIO_READ_BINARY)) {
+	if(!fio->Fopen(create_local_path(_T("FONT16.ROM")), FILEIO_READ_BINARY)) {
+		fio->Fopen(create_local_path(_T("FONT.ROM")), FILEIO_READ_BINARY);
+	}
+	if(fio->IsOpened()) {
 		uint8_t *buf = (uint8_t *)malloc(0x46800);
 		fio->Fread(buf, 0x46800, 1);
 		fio->Fclose();
@@ -170,6 +177,37 @@ void DISPLAY::initialize()
 		
 		free(buf);
 	}
+#else
+	if(fio->Fopen(create_local_path(_T("FONT24.ROM")), FILEIO_READ_BINARY)) {
+		uint8_t pattern[72];
+		
+		for(int code = 0x00; code <= 0xff; code++) {
+			fio->Fread(pattern, 48, 1);
+			ank_copy(code, pattern);
+		}
+		for(int first = 0x21; first <= 0x27; first++) {
+			for(int second = 0x21; second <= 0x7e; second++) {
+				fio->Fread(pattern, 72, 1);
+				kanji_copy(first, second, pattern);
+			}
+		}
+		for(int first = 0x30; first <= 0x73; first++) {
+			for(int second = 0x21; second <= 0x7e; second++) {
+				fio->Fread(pattern, 72, 1);
+				kanji_copy(first, second, pattern);
+			}
+		}
+		for(int first = 0x79; first <= 0x7c; first++) {
+			for(int second = 0x21; second <= 0x7e; second++) {
+				fio->Fread(pattern, 72, 1);
+				kanji_copy(first, second, pattern);
+			}
+		}
+		memcpy(font + ANK_FONT_OFS + FONT_SIZE * 0x100, font + ANK_FONT_OFS, FONT_SIZE * 0x100);
+		memcpy(font + ANK_FONT_OFS + FONT_SIZE * 0x200, font + ANK_FONT_OFS, FONT_SIZE * 0x100);
+		memcpy(font + ANK_FONT_OFS + FONT_SIZE * 0x300, font + ANK_FONT_OFS, FONT_SIZE * 0x100);
+	}
+#endif
 	delete fio;
 	
 	// init palette
@@ -211,6 +249,7 @@ void DISPLAY::initialize()
 	register_frame_event(this);
 }
 
+#if !defined(SUPPORT_HIRESO)
 void DISPLAY::kanji_copy(uint8_t *dst, uint8_t *src, int from, int to)
 {
 	for(int i = from; i < to; i++) {
@@ -226,6 +265,28 @@ void DISPLAY::kanji_copy(uint8_t *dst, uint8_t *src, int from, int to)
 		}
 	}
 }
+#else
+void DISPLAY::ank_copy(int code, uint8_t *pattern)
+{
+	uint16_t *dest = (uint16_t *)(font + ANK_FONT_OFS + FONT_SIZE * code);
+	
+	for(int i = 0; i < 24; i++) {
+		dest[i] = (pattern[2 * i] << 8) | pattern[2 * i + 1];
+	}
+}
+
+void DISPLAY::kanji_copy(int first, int second, uint8_t *pattern)
+{
+	uint16_t *dest_l = (uint16_t *)(font + FONT_SIZE * ((first - 0x20) | (second << 8)));
+	uint16_t *dest_r = (uint16_t *)(font + FONT_SIZE * ((first - 0x20) | (second << 8)) + KANJI_2ND_OFS);
+	
+	for(int i = 0; i < 24; i++) {
+		uint32_t p = (pattern[3 * i] << 16) | (pattern[3 * i + 1] << 8) | pattern[3 * i + 2];
+		dest_l[i] = p >> 12;
+		dest_r[i] = p << 2;
+	}
+}
+#endif
 
 void DISPLAY::reset()
 {
@@ -636,6 +697,7 @@ void DISPLAY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 		}
 	} else if((TVRAM_ADDRESS + 0x4000) <= addr && addr < (TVRAM_ADDRESS + 0x5000)) {
 		if((font_code & 0x7e) == 0x56) {
+			/* FIXME: need to fix for hireso */
 			uint32_t low = 0x7fff0, high;
 			uint8_t code = font_code & 0x7f;
 			uint16_t lr = ((~font_line) & 0x20) << 6;
@@ -715,6 +777,7 @@ uint32_t DISPLAY::read_memory_mapped_io8(uint32_t addr)
 		}
 		return tvram[addr - TVRAM_ADDRESS];
 	} else if((TVRAM_ADDRESS + 0x4000) <= addr && addr < (TVRAM_ADDRESS + 0x5000)) {
+		/* FIXME: need to fix for hireso */
 		uint32_t low = 0x7fff0, high;
 		uint8_t code = font_code & 0x7f;
 		uint16_t lr = ((~font_line) & 0x20) << 6;
@@ -2216,6 +2279,10 @@ void DISPLAY::draw_chr_screen()
 	}
 	int bl = scroll[SCROLL_BL] + pl + 1;
 	int cl = scroll[SCROLL_CL];
+#if defined(SUPPORT_HIRESO)
+	bl <<= 1;
+	cl <<= 1;
+#endif
 	int ssl = scroll[SCROLL_SSL];
 	int sur = scroll[SCROLL_SUR] & 31;
 	if(sur) {
@@ -2224,7 +2291,8 @@ void DISPLAY::draw_chr_screen()
 	int sdr = scroll[SCROLL_SDR] + 1;
 	
 	// address from gdc
-	memset(gdc_addr, 0, sizeof(gdc_addr));
+	uint32_t gdc_addr[25][80] = {0};
+	
 	for(int i = 0, ytop = 0; i < 4; i++) {
 		uint32_t ra = ra_chr[i * 4];
 		ra |= ra_chr[i * 4 + 1] << 8;
@@ -2233,13 +2301,15 @@ void DISPLAY::draw_chr_screen()
 		uint32_t sad = (ra << 1) & 0x1fff;
 		int len = (ra >> 20) & 0x3ff;
 		
+		if(!len) len = 25;
+		
 		for(int y = ytop; y < (ytop + len) && y < 25; y++) {
 			for(int x = 0; x < 80; x++) {
 				gdc_addr[y][x] = sad;
 				sad = (sad + 2) & 0x1fff;
 			}
 		}
-		ytop += len;
+		if((ytop += len) >= 25) break;
 	}
 	uint32_t *addr = &gdc_addr[0][0];
 	uint32_t *addr2 = addr + 160 * (sur + sdr);
@@ -2247,21 +2317,21 @@ void DISPLAY::draw_chr_screen()
 	uint32_t cursor_addr = d_gdc_chr->cursor_addr(0x1fff);
 	int cursor_top = d_gdc_chr->cursor_top();
 	int cursor_bottom = d_gdc_chr->cursor_bottom();
+#if defined(SUPPORT_HIRESO)
+	cursor_top <<= 1;
+	cursor_bottom <<= 1;
+#endif
 	bool attr_blink = d_gdc_chr->attr_blink();
 	
 	// render
 	int ysur = bl * sur;
 	int ysdr = bl * (sur + sdr);
-#if !defined(SUPPORT_HIRESO)
-	int xofs = modereg1[MODE1_COLUMN] ? 16 : 8;
-#else
-	int xofs = modereg1[MODE1_COLUMN] ? 28 : 14;
-#endif
+	int xofs = modereg1[MODE1_COLUMN] ? (FONT_WIDTH * 2) : FONT_WIDTH;
 	int addrofs = modereg1[MODE1_COLUMN] ? 2 : 1;
 	
 	memset(screen_chr, 0, sizeof(screen_chr));
 	
-	for(int y = 0, ytop = 0; y < SCREEN_HEIGHT; y += bl) {
+	for(int y = 0, cy = 0, ytop = 0; y < SCREEN_HEIGHT && cy < 25; y += bl, cy++) {
 		uint32_t gaiji1st = 0, last = 0, offset;
 		int kanji2nd = 0;
 		if(y == ysur) {
@@ -2274,22 +2344,22 @@ void DISPLAY::draw_chr_screen()
 			addr = addr2;
 			ysdr = SCREEN_HEIGHT;
 		}
-		for(int x = 0; x < SCREEN_WIDTH; x += xofs) {
-			uint16_t code = *(uint16_t *)(tvram + *addr);
-			uint8_t attr = tvram[*addr | 0x2000];
+		for(int x = 0, cx = 0; x < SCREEN_WIDTH && cx < 80; x += xofs, cx++) {
+			uint16_t code = *(uint16_t *)(tvram + (*addr));
+			uint8_t attr = tvram[(*addr) | 0x2000];
 			uint8_t color = (attr & ATTR_COL) ? (attr >> 5) : 8;
-			bool cursor = (*addr == cursor_addr);
+			bool cursor = ((*addr) == cursor_addr);
 			addr += addrofs;
 			if(kanji2nd) {
 				kanji2nd = 0;
-				offset = last + 0x800;
+				offset = last + KANJI_2ND_OFS;
 			} else if(code & 0xff00) {
 				uint16_t lo = code & 0x7f;
 				uint16_t hi = (code >> 8) & 0x7f;
-				offset = (lo << 4) | (hi << 12);
+				offset = FONT_SIZE * (lo | (hi << 8));
 				if(lo == 0x56 || lo == 0x57) {
 					offset += gaiji1st;
-					gaiji1st ^= 0x800;
+					gaiji1st = gaiji1st ? 0 : KANJI_2ND_OFS;
 				} else {
 					uint16_t lo = code & 0xff;
 					if(lo < 0x09 || lo >= 0x0c) {
@@ -2298,37 +2368,52 @@ void DISPLAY::draw_chr_screen()
 					gaiji1st = 0;
 				}
 			} else {
-				offset = 0x80000 | ((code & 0xff) << 4);
+				offset = ANK_FONT_OFS + FONT_SIZE * (code & 0xff);
+#if !defined(SUPPORT_HIRESO)
 				if((attr & ATTR_VL) && modereg1[MODE1_ATRSEL]) {
-					offset |= 0x1000;
+					offset += FONT_SIZE * 0x100;
 				}
 				if(!modereg1[MODE1_FONTSEL]) {
-					offset |= 0x2000;
+					offset += FONT_SIZE * 0x200;
 				}
+#endif
 				gaiji1st = 0;
 			}
 			last = offset;
 			
-			for(int l = 0; l < cl && l < 16; l++) {
+			for(int l = 0; l < cl && l < FONT_HEIGHT; l++) {
 				int yy = y + l + pl;
 				if(yy >= ytop && yy < SCREEN_HEIGHT) {
 					uint8_t *dest = &screen_chr[yy][x];
+#if !defined(SUPPORT_HIRESO)
 					uint8_t pattern = font[offset + l];
+#else
+					uint16_t pattern = *(uint16_t *)(&font[offset + l * 2]);
+#endif
 					if(!(attr & ATTR_ST)) {
 						pattern = 0;
 					} else if(((attr & ATTR_BL) && attr_blink) || (attr & ATTR_RV)) {
 						pattern = ~pattern;
 					}
-					if((attr & ATTR_UL) && l == 15) {
+					if((attr & ATTR_UL) && l == (FONT_HEIGHT - 1)) {
+#if !defined(SUPPORT_HIRESO)
 						pattern = 0xff;
+#else
+						pattern = 0x3ff;
+#endif
 					}
 					if((attr & ATTR_VL) && !modereg1[MODE1_ATRSEL]) {
+#if !defined(SUPPORT_HIRESO)
 						pattern |= 0x08;
+#else
+						pattern |= 0x40;
+#endif
 					}
 					if(cursor && l >= cursor_top && l < cursor_bottom) {
 						pattern = ~pattern;
 					}
 					if(modereg1[MODE1_COLUMN]) {
+#if !defined(SUPPORT_HIRESO)
 						if(pattern & 0x80) dest[ 0] = dest[ 1] = color;
 						if(pattern & 0x40) dest[ 2] = dest[ 3] = color;
 						if(pattern & 0x20) dest[ 4] = dest[ 5] = color;
@@ -2337,7 +2422,24 @@ void DISPLAY::draw_chr_screen()
 						if(pattern & 0x04) dest[10] = dest[11] = color;
 						if(pattern & 0x02) dest[12] = dest[13] = color;
 						if(pattern & 0x01) dest[14] = dest[15] = color;
+#else
+						if(pattern & 0x2000) dest[ 0] = dest[ 1] = color;
+						if(pattern & 0x1000) dest[ 2] = dest[ 3] = color;
+						if(pattern & 0x0800) dest[ 4] = dest[ 5] = color;
+						if(pattern & 0x0400) dest[ 6] = dest[ 7] = color;
+						if(pattern & 0x0200) dest[ 8] = dest[ 9] = color;
+						if(pattern & 0x0100) dest[10] = dest[11] = color;
+						if(pattern & 0x0080) dest[12] = dest[13] = color;
+						if(pattern & 0x0040) dest[14] = dest[15] = color;
+						if(pattern & 0x0020) dest[16] = dest[17] = color;
+						if(pattern & 0x0010) dest[18] = dest[19] = color;
+						if(pattern & 0x0008) dest[20] = dest[21] = color;
+						if(pattern & 0x0004) dest[22] = dest[23] = color;
+						if(pattern & 0x0002) dest[24] = dest[25] = color;
+						if(pattern & 0x0001) dest[26] = dest[27] = color;
+#endif
 					} else {
+#if !defined(SUPPORT_HIRESO)
 						if(pattern & 0x80) dest[0] = color;
 						if(pattern & 0x40) dest[1] = color;
 						if(pattern & 0x20) dest[2] = color;
@@ -2346,6 +2448,22 @@ void DISPLAY::draw_chr_screen()
 						if(pattern & 0x04) dest[5] = color;
 						if(pattern & 0x02) dest[6] = color;
 						if(pattern & 0x01) dest[7] = color;
+#else
+						if(pattern & 0x2000) dest[ 0] = color;
+						if(pattern & 0x1000) dest[ 1] = color;
+						if(pattern & 0x0800) dest[ 2] = color;
+						if(pattern & 0x0400) dest[ 3] = color;
+						if(pattern & 0x0200) dest[ 4] = color;
+						if(pattern & 0x0100) dest[ 5] = color;
+						if(pattern & 0x0080) dest[ 6] = color;
+						if(pattern & 0x0040) dest[ 7] = color;
+						if(pattern & 0x0020) dest[ 8] = color;
+						if(pattern & 0x0010) dest[ 9] = color;
+						if(pattern & 0x0008) dest[10] = color;
+						if(pattern & 0x0004) dest[11] = color;
+						if(pattern & 0x0002) dest[12] = color;
+						if(pattern & 0x0001) dest[13] = color;
+#endif
 					}
 				}
 			}
@@ -2356,7 +2474,8 @@ void DISPLAY::draw_chr_screen()
 void DISPLAY::draw_gfx_screen()
 {
 	// address from gdc
-	memset(gdc_addr, 0, sizeof(gdc_addr));
+	uint32_t gdc_addr[SCREEN_HEIGHT][SCREEN_WIDTH >> 3] = {0};
+	
 	for(int i = 0, ytop = 0; i < 4; i++) {
 		uint32_t ra = ra_gfx[i * 4];
 		ra |= ra_gfx[i * 4 + 1] << 8;
@@ -2365,24 +2484,26 @@ void DISPLAY::draw_gfx_screen()
 		uint32_t sad = (ra << 1) & VRAM_PLANE_ADDR_MASK;
 		int len = (ra >> 20) & 0x3ff;
 		
+		if(!len) len = SCREEN_HEIGHT; // Madou Monogatari 1-2-3
+		
 		for(int y = ytop; y < (ytop + len) && y < SCREEN_HEIGHT; y++) {
-			for(int x = 0; x < 80; x++) {
+			for(int x = 0; x < (SCREEN_WIDTH >> 3); x++) {
 				gdc_addr[y][x] = sad;
 				sad = (sad + 1) & VRAM_PLANE_ADDR_MASK;
 			}
 		}
-		ytop += len;
+		if((ytop += len) >= SCREEN_HEIGHT) break;
 	}
 	uint32_t *addr = &gdc_addr[0][0];
 	uint8_t *dest = &screen_gfx[0][0];
 	
 	for(int y = 0; y < SCREEN_HEIGHT; y++) {
 		for(int x = 0; x < SCREEN_WIDTH; x += 8) {
-			uint8_t b = vram_disp_b[*addr];
-			uint8_t r = vram_disp_r[*addr];
-			uint8_t g = vram_disp_g[*addr];
+			uint8_t b = vram_disp_b[(*addr)];
+			uint8_t r = vram_disp_r[(*addr)];
+			uint8_t g = vram_disp_g[(*addr)];
 #if defined(SUPPORT_16_COLORS)
-			uint8_t e = vram_disp_e[*addr];
+			uint8_t e = vram_disp_e[(*addr)];
 #else
 			uint8_t e = 0;
 #endif

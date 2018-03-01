@@ -1292,10 +1292,19 @@ void I386_OPS_BASE::I386OP(mov_rm16_r16)()      // Opcode 0x89
 		STORE_RM16(modrm, src);
 		CYCLES(CYCLES_MOV_REG_REG);
 	} else {
-		UINT32 ea = GetEA(modrm,1);
-		src = LOAD_REG16(modrm);
-		WRITE16(ea, src);
-		CYCLES(CYCLES_MOV_REG_MEM);
+		UINT32 ea = GetEA(cpustate,modrm,0);
+		// NEC PC-9801RA's ITF routine intentionally raise general protection fault :-(
+		int segment = DS;
+		if( cpustate->segment_prefix ) {
+			segment = cpustate->segment_override;
+		}
+		if( i386_limit_check(cpustate, segment, (ea + 1) & 0xffff) == 0 ) {
+			src = READ16(cpustate,ea);
+			STORE_REG16(modrm, src);
+		} else {
+			FAULT(FAULT_GP, 0)
+		}
+		CYCLES(cpustate,CYCLES_MOV_MEM_REG);
 	}
 }
 

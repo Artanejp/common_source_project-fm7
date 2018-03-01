@@ -5,6 +5,8 @@
 	NEC PC-9801VF Emulator 'ePC-9801VF'
 	NEC PC-9801VM Emulator 'ePC-9801VM'
 	NEC PC-9801VX Emulator 'ePC-9801VX'
+	NEC PC-9801RA Emulator 'ePC-9801RA'
+	NEC PC-98RL Emulator 'ePC-98RL'
 	NEC PC-98DO Emulator 'ePC-98DO'
 
 	Author : Takeda.Toshiya
@@ -110,16 +112,33 @@ private:
 	egcquad_t egc_vram_data;
 #endif
 	
-	uint8_t font[0x84000];
+#if !defined(SUPPORT_HIRESO)
+	#define FONT_SIZE	16
+	#define FONT_WIDTH	8
+	#define FONT_HEIGHT	16
+#else
+	#define FONT_SIZE	48
+	#define FONT_WIDTH	14
+	#define FONT_HEIGHT	24
+#endif
+	#define KANJI_2ND_OFS	(FONT_SIZE * 0x80)
+	#define KANJI_FONT_SIZE	(FONT_SIZE * 2)
+	#define ANK_FONT_OFS	(KANJI_FONT_SIZE * 0x4000)
+	
+	uint8_t font[ANK_FONT_OFS + FONT_SIZE * 0x400];
 	uint16_t font_code;
 	uint8_t font_line;
 //	uint16_t font_lr;
 	
-	uint8_t screen_chr[400][641];
-	uint8_t screen_gfx[400][640];
-	uint32_t gdc_addr[480][80];
+	uint8_t screen_chr[SCREEN_HEIGHT][SCREEN_WIDTH + 1];
+	uint8_t screen_gfx[SCREEN_HEIGHT][SCREEN_WIDTH];
 	
+#if !defined(SUPPORT_HIRESO)
 	void kanji_copy(uint8_t *dst, uint8_t *src, int from, int to);
+#else
+	void ank_copy(int code, uint8_t *pattern);
+	void kanji_copy(int first, int second, uint8_t *pattern);
+#endif
 #if defined(SUPPORT_GRCG)
 	void grcg_writeb(uint32_t addr1, uint32_t data);
 	void grcg_writew(uint32_t addr1, uint32_t data);

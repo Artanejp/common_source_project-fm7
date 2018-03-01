@@ -3149,8 +3149,8 @@ static void zero_state(i386_state *cpustate)
 	cpustate->address_prefix = 0;
 	cpustate->segment_prefix = 0;
 	cpustate->segment_override = 0;
-	cpustate->cycles = 0;
-	cpustate->base_cycles = 0;
+//	cpustate->cycles = 0;
+//	cpustate->base_cycles = 0;
 	cpustate->opcode = 0;
 	cpustate->irq_state = 0;
 	cpustate->a20_mask = 0;
