@@ -32,7 +32,7 @@
 #define USE_SOUND_VOLUME	3
 #define USE_JOYSTICK
 #define USE_DEBUGGER
-#define USE_STATE
+//#define USE_STATE
 
 #include "../../common.h"
 #include "../../fileio.h"
