@@ -1,3 +1,100 @@
+commit e592e276d8e510ea16c48e723d692761b56bf000
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 2 09:44:43 2018 +0900
+
+    [VM][FM7][DISPLAY] Stop to use OpenMP.Fix display noise at 256k colors mode on Win32 Host.
+    [VM][FM7][DISPLAY] Fix framerate at 400 line mode.
+    [VM][FM77AV40][DISPLAY] Using VARIABLE frame rate.
+    [VM][FM77AV40EX][DISPLAY] Don't scroll at ACTIVE_PAGE != 0.
+
+commit 7aaaad6455fc66b9aed368bff2e500c98d622195
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 1 15:23:20 2018 +0900
+
+    [UI][Qt][FM16BETA] Initial support.
+
+commit 01de99b7055e0ca4e219c65756dcc56bc555a1a7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 1 15:15:02 2018 +0900
+
+    [UI][Qt][FM16Beta] Initial setup.
+
+commit e60a47369dd3890bba921b3e003f4e94cf16a6b1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 1 14:57:45 2018 +0900
+
+    [UI][Qt] Fix issues for ROMAJI-TO-KANA conversion.
+
+commit 92b7fefc9e10975aba9c8ffd7036ce4ae7eb0942
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 1 14:56:52 2018 +0900
+
+    [VM][PYUTA] PYUTA has no state save/load.
+
+commit 2aa68148c5c238cbe53e135b005b12037af68e6f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 1 14:56:26 2018 +0900
+
+    [VM][I386][NEWDEV] Fix FTBFS.
+
+commit 07ef5b9ab5e03e3ed330c42419dc2057042cd08b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 1 14:55:34 2018 +0900
+
+    [UI][Qt] Track to upstream's updating menus.Still not implement rotate display.
+
+commit ffdfde3c8f0993be201a5a2d83a2d1dbe369776a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 1 13:47:21 2018 +0900
+
+    [GENERAL] Merge upstream 2018-03-01.
+
+commit 191f583b4f00d5da9dafe919b51f810653e9d2cd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 1 03:38:59 2018 +0900
+
+    [VM][FM7] Framerate should be 55.40fps when 400line (8colors) mode.Add supporting SUPPORT_VARIABLE_TIMING.
+
+commit da9e841a90450c02c7f05cc2857612874d288440
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 1 00:33:03 2018 +0900
+
+    [UI][Qt] Add option, "Print statistics", related by commit 324b522e8fe7a80d03ac12f9a5800954dc96d900.
+
+commit 943583244db471d733a61828cf3de61207c70996
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 1 00:32:08 2018 +0900
+
+    [EMU][CONFIG] Add config option print_statistics, related by commit 324b522e8fe7a80d03ac12f9a5800954dc96d900ESC.
+
+commit dfe982069f04ff6eb123d2df5a9995a8467cae69
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 1 00:31:37 2018 +0900
+
+    .
+
+commit 6f2978a5ea1f16ad235e845aab1fd70ce93b9ad5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 1 00:30:27 2018 +0900
+
+    [VM][MB61VH010] Drop unused variables.
+    [VM][MB61VH010][WIP] Adjust sequence of BUSY flag with line.
+
+commit 95f93f2cd448761ac5137ed2a4d291fcb8eb285d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 1 00:28:58 2018 +0900
+
+    [VM][FM7] Wait is CPU wait, not MEMORY WAIT.
+    [VM][FM7] Calcurate more correctness wait parameter (with DRAM REFRESH), Thanks to Ryu Takegami.
+
+commit 324b522e8fe7a80d03ac12f9a5800954dc96d900
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 1 00:24:43 2018 +0900
+
+    [VM][MC6809] Add SIG_CPU_WAIT_FACTOR. This is setting wait factor (65536 = 1wait per clock, 0 = non wait).This is ugly hack due to not permited to modify clock for CPU#0 by scheduler.
+    See FM7_MAINMEM::setclock() at vm/fm7/fm7_mainmem.cpp for details.
+    [VM][MC6809] Add correcting cpu statistics per 16 frames.
+
 commit 5ca21fa5c137ed872baadd8066cc57f104d797da
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Wed Feb 28 04:26:55 2018 +0900
