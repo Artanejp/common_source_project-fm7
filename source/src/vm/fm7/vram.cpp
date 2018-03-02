@@ -666,7 +666,7 @@ void DISPLAY::draw_screen2()
 #endif
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
 #if defined(_OPENMP)
-#pragma omp parallel for shared(vram_draw_table), private(ppp, yy)
+//#pragma omp parallel for shared(vram_draw_table), private(ppp, yy)
 #endif
 				for(y = 0; y < 200; y += 8) {
 					for(yy = 0; yy < 8; yy++) {
@@ -677,7 +677,7 @@ void DISPLAY::draw_screen2()
 				}
 #else
 #if defined(_OPENMP)
-#pragma omp parallel for shared(vram_draw_table), private(ppp, yy)
+//#pragma omp parallel for shared(vram_draw_table), private(ppp, yy)
 #endif
 				for(y = 0; y < 400; y += 8) {
 					for(yy = 0; yy < 8; yy++) {
@@ -693,7 +693,7 @@ void DISPLAY::draw_screen2()
 				emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 #endif
 #if defined(_OPENMP)
-#pragma omp parallel for shared(vram_draw_table), private(ppp, yy)
+//#pragma omp parallel for shared(vram_draw_table), private(ppp, yy)
 #endif
 				for(y = 0; y < 400; y += 8) {
 					for(yy = 0; yy < 8; yy++) {
@@ -711,7 +711,7 @@ void DISPLAY::draw_screen2()
 #endif
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
 #if defined(_OPENMP)
-#pragma omp parallel for shared(vram_draw_table), private(ppp, yy)
+//#pragma omp parallel for shared(vram_draw_table), private(ppp, yy)
 #endif
 				for(y = 0; y < 200; y += 8) {
 					for(yy = 0; yy < 8; yy++) {
@@ -722,7 +722,7 @@ void DISPLAY::draw_screen2()
 				}
 #else
 #if defined(_OPENMP)
-#pragma omp parallel for shared(vram_draw_table), private(ppp, yy)
+//#pragma omp parallel for shared(vram_draw_table), private(ppp, yy)
 #endif
 				for(y = 0; y < 400; y++) {
 					for(yy = 0; yy < 8; yy++) {   
@@ -757,7 +757,7 @@ void DISPLAY::draw_screen2()
 		yoff = 0;
 		//rgbmask = ~multimode_dispmask;
 #if defined(_OPENMP)
-#pragma omp parallel for shared(vram_draw_table), private(p, p2, yoff, ii, x, yy)
+//#pragma omp parallel for shared(vram_draw_table), private(p, p2, yoff, ii, x, yy)
 #endif
 		for(y = 0; y < 200; y += 8) {
 			for(yy = 0; yy < 8; yy++) {
@@ -821,7 +821,7 @@ void DISPLAY::draw_screen2()
 		if(!multimode_dispflags[1]) mask = mask | 0x0f0;
 		if(!multimode_dispflags[2]) mask = mask | 0xf00;
 #if defined(_OPENMP)
-#pragma omp parallel for shared(vram_draw_table), private(p, p2, yoff, ii, x, yy)
+//#pragma omp parallel for shared(vram_draw_table), private(p, p2, yoff, ii, x, yy)
 #endif
 		for(y = 0; y < 200; y += 4) {
 			for(yy = 0; yy < 4; yy++) {
@@ -884,7 +884,7 @@ void DISPLAY::draw_screen2()
 		yoff = 0;
 		//rgbmask = ~multimode_dispmask;
 #if defined(_OPENMP)
-#pragma omp parallel for shared(vram_draw_table), private(pp, p, yoff, x, ii, yy)
+//#pragma omp parallel for shared(vram_draw_table), private(pp, p, yoff, x, ii, yy)
 #endif
 		for(y = 0; y < 400; y += 8) {
 			for(yy = 0; yy < 8; yy++) {
@@ -928,8 +928,9 @@ void DISPLAY::draw_screen2()
 		emu->set_vm_screen_lines(200);
 #endif
 		//rgbmask = ~multimode_dispmask;
+		//
 #if defined(_OPENMP)
-#pragma omp parallel for shared(vram_draw_table), private(pp, p, yoff, x, ii, yy)
+//#pragma omp parallel for shared(vram_draw_table), private(pp, p, yoff, x, ii, yy)
 #endif
 		for(y = 0; y < 200; y += 4) {
 			for(yy = 0; yy < 4; yy++) {
