@@ -1,3 +1,15 @@
+commit 7c0c0657f8f726e7aa86ace64777036e1cca4ce4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 4 11:19:25 2018 +0900
+
+    [UI][Qt][MZ800] Fix FTBFS.
+
+commit 28a6801360d8162110e89cc6292d6f4fe9e4d02f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 2 09:47:50 2018 +0900
+
+    [DOC][GENERAL] .
+
 commit e592e276d8e510ea16c48e723d692761b56bf000
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Fri Mar 2 09:44:43 2018 +0900

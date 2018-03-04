@@ -1,5 +1,54 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT Mar 04, 2018
+  * Upstream 2018-03-01 .
+  * Thanks to Ryu Takegami and Haserin for eFM-7/77/AV/AV40/EXand eFM8.
+  * [GENERAL][EMACS] Add .dir-locals.el and vs-set-c-style.el .
+  *  [UI][Qt] Fix issues for ROMAJI-TO-KANA conversion.
+  * [UI][Qt][DRAW] Add drawing to separate-thread or combined.
+  * [UI][Qt][DEBUGGER] Fix crash/lockup with closing debugger window.
+  * [UI][Qt][DEBUGGER] Remove debugger_thread.[cpp|h] due to integrate to EMU::open_debugger() and EMU::close_debugger().
+  * [Qt][WINDOWS][DEBUGGER] Fix crash when exitting emulator.
+  * [Qt][Windows] Prepare to parsing command line.
+  * [Qt][LOGGER] Fix locale for time-string.
+  * [EMU] Remove FM-7 specific hack.
+  * [OSD][Qt] Fix not setting device name to logger.
+  * [OSD][Qt] Use Recursive-Mutex instead of Semaphore.
+  * [EMU][Qt] Use recursive mutex to lock key-in queue.
+  * [UI][Qt][FM7] Add "SYNC TO HSYNC" entry also FM-7/77/8.
+  * [VM][FM7] Framerate should be 55.40fps when 400line (8colors) mode.Add supporting SUPPORT_VARIABLE_TIMING.
+  * [VM][FM77] Enable to boot OS-9 L1/L2 for FM-77 with 2HD FDD.Thanks to Haserin a lot.
+  * [VM][FM7] Fix FRAMERATE.Fix flicking with YS2 (/AV).
+  * [VM][MC6809] Fix around extra_iclock.Maybe fix around accessing wait.
+  * [VM][MC6809] Fix halt sequence.
+  * [VM][MC6809] Add SIG_CPU_WAIT_FACTOR. This is setting wait factor (65536 = 1wait per clock, 0 = non wait).
+                 This is ugly hack due to not permited to modify clock for CPU#0 by scheduler.
+                 See FM7_MAINMEM::setclock() at vm/fm7/fm7_mainmem.cpp for details.
+  * [VM][MC6809] Add correcting cpu statistics per 16 frames.
+  * [VM][MB61VH010] Drop unused variables.
+  * [VM][MB61VH010][WIP] Adjust sequence of BUSY flag with line.
+  * [VM][MB8877] READ SECTOR: MAKE IRQ and UPDATING STATUS after reading CRC bytes.This modifying needs for FM-77 using NMI as MB8877's IRQ. Thanks to Haserin.
+  * [VM][MB8877] Fix seeking sequence. Thanks to Haserin.
+  * [VM][MB8877] Track-verifying may be before execute command.Thanks to Ryu Takegami.
+  * [VM][MB8877] Fix wait value when end of seek and verify.Thanks to Ryu Takegami.
+  * [VM][FM7][MAINMEM] More accurate wait implementation.
+  * [VM][FM7][KANJIROM] Fix wrong save state.
+  * [VM][FM7][DISPLAY] Not use event_vline() as determine H/V SYNC.
+  * [VM][FM7][DISPLAY] Use event_frame() to kick VSTART.Not loop.
+  * [VM][FM7][DISPLAY] Duplicate palette (pixel) value at VSYNC.
+                       Fix rendering with DRAGON BUSTER, LUXOL and more softwares.
+  * [VM][FM7][DISPLAY] Stop to use OpenMP.
+                       Fix display noise at 256k colors mode on Win32 Host.
+  * [VM][FM77AV40EX][DISPLAY] Don't scroll at ACTIVE_PAGE != 0.
+  * [VM][FM7][KEYBOARD] Make  interupt handling at reset correctness.
+                        Fix hang-up resetting after checking keyboard interrupt at mainio.
+  * [VM][FM7][KEYBOARD] Fix initial key code value.
+  * [VM][FM77][2HD] BREAK KEY AND ATTENTION MUST BE MASK IF FIRQ USING FOR FDC's DRQ.Thanks to Haserin.
+  * [VM][PYUTA] PYUTA has no state save/load.
+  * Built with 7c0c0657f8f726e7aa86ace64777036e1cca4ce4 and later.
+
+-- Mar 04, 2018 11:22:02 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+    
 * SNAPSHOT Feb 16, 2018 FM7 TEST1
   * Upstream 2017-12-27 .
   * This is test release. Will re-write articles in this entry to next official release.
@@ -26,8 +75,6 @@
 
 -- Feb 16, 2018 06:02:49 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
     
-
-
 * SNAPSHOT Feb 11, 2018
   * Upstream 2017-12-27 .
   * [CONFIG] IMPORTANT: Now, "~/emufoo/" moved to "~/CommonSourceCodeProject/emufoo/"

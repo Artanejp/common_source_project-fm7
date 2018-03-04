@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                         February 16, 2018
+                                         March 04, 2018
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -12,7 +12,7 @@
    
    ソースコード：
    
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20180216_FM7_TEST1
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20180304
 
    追加情報:
    
@@ -158,81 +158,122 @@ Changes:
 ChangeLog:
 * 前の変更点をお読みになる場合には、ChangeLogと000_gitlog.txtをお読み下さい。
 
-* SNAPSHOT Feb 16, 2018 FM7 TEST1
-  * Upstream 2017-12-27 .
-  * This is test release. Will re-write articles in this entry to next official release.
-  * [VM] Add eFMNEW7.
-  * [VM/FM7][UI/FM7] MAINMEM: Re-order bank of bulk BOOTROMs.Thanks to HASERIN.
-                     IMPORTANT: Re-order boot entries within MENU dynamically.
-		                This is compatibility with older settings.
-				GUI's menu (for eFM8/eFMNEW7/eFM7*) must change order of boor menu entry.
-  * [VM/FM77]   Add ON/OFF extra RAM.
-  * [VM/FM77AV] Add to use dictionary board for FM77AV/20/EX.
-  * [VM/FM77] BUG: I mistaken to connect motor line for 2HD FDD, I connected 2D FDD (；´Д｀)
-  * [VM/FM77] 2HD: Fix DRQ->FIRQ handling.Wish to BOOT 2HD OSs.
-  * [VM/FM77AV] DISPLAY: Do not reset interrupt masks at reset on sub-system.Thanks to Ryu Takegami.
-  * [VM/FM77AV] MAINMEM: More simple inside structure for PAGE2.
-  * [VM/FM8] Change default frequency to 1.0MHz.Thanks to Haserin.
-  * [VM/FM8] Fix RS232C #1(COM0:) can't remove from maim board.Thanks to Haserin.
-  * [VM/FM7/JCOMMCARD] Use bulk rom (or DICTIONARY + KANJI) for DICTIONARY ROM AREA.
-  * [VM/FM7/JCOMMCARD] Abndon use JIS78 emulation.
-  * [VM/FM7/KANJIROM] Abndon use JIS78 emulation.
-  * [VM/BUBBLECASETTE] Improve status register.Thanks to Haserin and Ryu Takegami.
-  * Special thanks to Ryu Takegami, to assist debugging FM-7/77/AV/40/EX/8 .
-  * Special thanks to Haserin, to assist debugging FM-7/77.AV/40/EX/8.
-  * Built with commit bc517f5638b4f5612cc075e0f4d9278220eab4fc or later.
+* SNAPSHOT Mar 04, 2018
+  * Upstream 2018-03-01 .
+  * Thanks to Ryu Takegami and Haserin for eFM-7/77/AV/AV40/EXand eFM8.
+  * [GENERAL][EMACS] Add .dir-locals.el and vs-set-c-style.el .
+  *  [UI][Qt] Fix issues for ROMAJI-TO-KANA conversion.
+  * [UI][Qt][DRAW] Add drawing to separate-thread or combined.
+  * [UI][Qt][DEBUGGER] Fix crash/lockup with closing debugger window.
+  * [UI][Qt][DEBUGGER] Remove debugger_thread.[cpp|h] due to integrate to EMU::open_debugger() and EMU::close_debugger().
+  * [Qt][WINDOWS][DEBUGGER] Fix crash when exitting emulator.
+  * [Qt][Windows] Prepare to parsing command line.
+  * [Qt][LOGGER] Fix locale for time-string.
+  * [EMU] Remove FM-7 specific hack.
+  * [OSD][Qt] Fix not setting device name to logger.
+  * [OSD][Qt] Use Recursive-Mutex instead of Semaphore.
+  * [EMU][Qt] Use recursive mutex to lock key-in queue.
+  * [UI][Qt][FM7] Add "SYNC TO HSYNC" entry also FM-7/77/8.
+  * [VM][FM7] Framerate should be 55.40fps when 400line (8colors) mode.Add supporting SUPPORT_VARIABLE_TIMING.
+  * [VM][FM77] Enable to boot OS-9 L1/L2 for FM-77 with 2HD FDD.Thanks to Haserin a lot.
+  * [VM][FM7] Fix FRAMERATE.Fix flicking with YS2 (/AV).
+  * [VM][MC6809] Fix around extra_iclock.Maybe fix around accessing wait.
+  * [VM][MC6809] Fix halt sequence.
+  * [VM][MC6809] Add SIG_CPU_WAIT_FACTOR. This is setting wait factor (65536 = 1wait per clock, 0 = non wait).
+                 This is ugly hack due to not permited to modify clock for CPU#0 by scheduler.
+                 See FM7_MAINMEM::setclock() at vm/fm7/fm7_mainmem.cpp for details.
+  * [VM][MC6809] Add correcting cpu statistics per 16 frames.
+  * [VM][MB61VH010] Drop unused variables.
+  * [VM][MB61VH010][WIP] Adjust sequence of BUSY flag with line.
+  * [VM][MB8877] READ SECTOR: MAKE IRQ and UPDATING STATUS after reading CRC bytes.This modifying needs for FM-77 using NMI as MB8877's IRQ. Thanks to Haserin.
+  * [VM][MB8877] Fix seeking sequence. Thanks to Haserin.
+  * [VM][MB8877] Track-verifying may be before execute command.Thanks to Ryu Takegami.
+  * [VM][MB8877] Fix wait value when end of seek and verify.Thanks to Ryu Takegami.
+  * [VM][FM7][MAINMEM] More accurate wait implementation.
+  * [VM][FM7][KANJIROM] Fix wrong save state.
+  * [VM][FM7][DISPLAY] Not use event_vline() as determine H/V SYNC.
+  * [VM][FM7][DISPLAY] Use event_frame() to kick VSTART.Not loop.
+  * [VM][FM7][DISPLAY] Duplicate palette (pixel) value at VSYNC.
+                       Fix rendering with DRAGON BUSTER, LUXOL and more softwares.
+  * [VM][FM7][DISPLAY] Stop to use OpenMP.
+                       Fix display noise at 256k colors mode on Win32 Host.
+  * [VM][FM77AV40EX][DISPLAY] Don't scroll at ACTIVE_PAGE != 0.
+  * [VM][FM7][KEYBOARD] Make  interupt handling at reset correctness.
+                        Fix hang-up resetting after checking keyboard interrupt at mainio.
+  * [VM][FM7][KEYBOARD] Fix initial key code value.
+  * [VM][FM77][2HD] BREAK KEY AND ATTENTION MUST BE MASK IF FIRQ USING FOR FDC's DRQ.Thanks to Haserin.
+  * [VM][PYUTA] PYUTA has no state save/load.
+  * Built with 7c0c0657f8f726e7aa86ace64777036e1cca4ce4 and later.
 
--- Feb 16, 2018 06:02:49 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
-
+-- Mar 04, 2018 11:22:02 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 本家の変更:
 * 前の変更点をお読みになる場合には、history.txtをお読み下さい。
 
-12/27/2017
+3/1/2018
 
-[EMU] support to restore sound frequency/latency settings when load state
-
-[VM/DISK] support T98-NEXT nfd r0 floppy disk image
-[VM/DISK] support BKDSK hdm/hd5/hd4/hdb/dd9/dd6 floppy disk image
-
-
-12/15/2017
-
-[COMMON/FILEIO] add Fcompare function
-
-[VM/*] improve save/load state function to check device class name
-[VM/YM2151] fix save/load state function
+[PC98RL] support NEC PC-98RL
+[PC9801/DISPLAY] update for hireso mode
+[PC9801/DISPLAY] fix for the case gdc scroll parameters are invalid
+[PC9801/MEMBUS] update for hireso mode
+[PC9801/MEMBUS] support outport 053Dh
+[PC9801/MEMBUS] move memory map routine from VM class to MEMBUS class
 
 
-12/14/2017
+2/28/2018
 
-[RESOURCE] change accelerators for switching full speed and roman/kana input
-[WINMAIN] fix to call ImmAssociateContext() in WM_ACTIVATE (thanks PC8801MA改)
+[VM/I286] fix not to clear cycles in reset()
+[VM/I386] fix not to clear cycles in reset()
+[VM/I386] improve mov_r16_rm16 instruction to check limit
+[VM/I386] fix debugger
 
-[VM/HD46505] fix to force update event timing when R0-R9 are modified
-[VM/HUC6280] support to show clocks since starting scanline in debugger
-[VM/I286] support to show clocks since starting scanline in debugger
-[VM/I386] support to show clocks since starting scanline in debugger
-[VM/M6502] support to show clocks since starting scanline in debugger
-[VM/MC6800] support to show clocks since starting scanline in debugger
-[VM/MC6809] support to show clocks since starting scanline in debugger
-[VM/MCS48] support to show clocks since starting scanline in debugger
-[VM/TMS9995] support to show clocks since starting scanline in debugger
-[VM/UPD7220] fix to force update event timing when sync are modified
-[VM/UPD7801] support to show clocks since starting scanline in debugger
-[VM/UPD7810] support to show clocks since starting scanline in debugger
-[VM/Z80] support to show clocks since starting scanline in debugger
-
-[X1TURBOZ/DISPLAY] fix pcg/analog palette access wait again (thanks Mr.Sato)
+[PC9801RA] support NEC PC-9801RA
 
 
-12/12/2017
+2/27/2018
 
-[VM/DISK] fix crc in id/data field (thanks Mr.Sato)
-[VM/HD46505] fix not to raise DISPTMG signal if bit2,3 of R8 are 11
+[VM/I8237] fix bank register and inc mask register
 
-[X1TURBOZ/DISPLAY] fix pcg/analog palette access wait (thanks Mr.Sato)
-[X1TURBOZ/DISPLAY] fix to draw each line at start of hblank (thanks Mr.Sato)
+[PC9801/DISPLAY] fix array length of analog palette
+[PC9801/MEMBUS] improve memory bus for i386 or later (partial)
+
+
+2/25/2018
+
+[VM/DISK] improve for case 2D/2DD disk is inserted to 2DD/2D drive
+
+[FMR30/FLOPPY] support to change drive type 2DD/2HD
+[FMR30/FLOPPY] support to get media type 2D/2DD/2HD
+[FMR50/BIOS] suppoert int 93h, ah=00h/01h to set/get drive type
+[FMR50/BIOS] improve int 93h, ah=02h to get sector size and media type
+[FMR50/FLOPPY] support to change drive type 2DD/2HD
+[MZ80A] support to select floppy drive type 2D/2DD
+[MZ80B] support to select floppy drive type 2D/2DD
+[MZ80B] support to select cpu clock 4MHz/6MHz
+[MZ800] support to select floppy drive type 2D/2DD
+[MZ1500] support to select floppy drive type 2D/2DD
+[MZ2200] support to select floppy drive type 2D/2DD
+[MZ2200] support to select cpu clock 4MHz/6MHz
+[MZ2800/FLOPPY] support to change drive type 2DD/2HD
+[PC100] support to select floppy drive type 2D/2DD
+[PC100/IOCTRL] improve dipswitch value for floppy drive type 2D/2DD
+[X1TURBO] support to select floppy drive type 2D/2DD/2HD
+[X1TURBO/FLOPPY] support to change drive type 2D/2DD/2HD
+
+
+2/23/2018
+
+[VM/DISK] support two side
+[VM/I8237] support address mask
+[VM/I8237] fix interface to connect tc signal for ch.2-4
+[VM/IO] support to create multiple instances with different address range
+[VM/MC6840] fix issue for the case address range is not 0-7
+[VM/MEMORY] support to create multiple instances with different address ranges
+[VM/UPD765A] fix st3 in sence devstat command
+
+[FM16BETA] support FUJITSU FM16beta (not work)
+[FMR50/MEMORY] fix memset issue
+[PC9801] fix to connect terminal count signal from dmac to fdc
 
 -----
 
