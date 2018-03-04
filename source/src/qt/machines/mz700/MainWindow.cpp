@@ -130,7 +130,6 @@ void META_MainWindow::retranslateUi(void)
 	actionMonitorType[1]->setToolTip(QApplication::translate("MachineMZ700", "Use monochrome CRT.", 0));
 	menuMachine->setTitle(QApplication::translate("MachineMZ700", "Machine", 0));;
 
-	if(action_UseRomaKana != NULL) action_UseRomaKana->setVisible(false); // ROMA-JI-TO-KANA conversion is disabled by MZ800.
 #elif defined(_MZ700)
 	action_PCG700->setText(QApplication::translate("MachineMZ700", "PCG-700", 0));
 	action_PCG700->setToolTip(QApplication::translate("MachineMZ700", "HAL laboratory PCG-700 PCG.", 0));
