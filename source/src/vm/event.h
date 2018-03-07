@@ -32,6 +32,8 @@ private:
 		uint32_t accum_clocks;
 	} cpu_t;
 	cpu_t d_cpu[MAX_CPU];
+	uint32_t cpu_update_clocks[MAX_CPU][6];
+	
 	int dcount_cpu;
 	
 	int vclocks[MAX_LINES];
@@ -198,6 +200,7 @@ public:
 		d_cpu[index].device = device;
 		d_cpu[index].cpu_clocks = clocks;
 		d_cpu[index].accum_clocks = 0;
+		for(int k = 0; k < 6; k++) cpu_update_clocks[index][k] = d_cpu[index].update_clocks * k;
 	}
 	void set_secondary_cpu_clock(DEVICE* device, uint32_t clocks)
 	{
@@ -206,7 +209,9 @@ public:
 			if(d_cpu[index].device == device) {
 				d_cpu[index].accum_clocks = 0;
 				d_cpu[index].cpu_clocks = clocks;
-				d_cpu[index].update_clocks = (int)(1024.0 * (double)d_cpu[index].cpu_clocks / (double)d_cpu[0].cpu_clocks + 0.5);
+				d_cpu[index].update_clocks = (int)(1024.0 * (double)d_cpu[index].cpu_clocks / (double)d_cpu[0].cpu_clocks + 0.5)
+;
+				for(int k = 0; k < 6; k++) cpu_update_clocks[index][k] = d_cpu[index].update_clocks * k;
 				break;
 			}
 		}

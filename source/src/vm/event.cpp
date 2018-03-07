@@ -114,6 +114,7 @@ void EVENT::drive()
 		}
 		for(int i = 1; i < dcount_cpu; i++) {
 			d_cpu[i].update_clocks = (int)(1024.0 * (double)d_cpu[i].cpu_clocks / (double)d_cpu[0].cpu_clocks + 0.5);
+			for(int k = 0; k < 6; k++) cpu_update_clocks[i][k] = d_cpu[i].update_clocks * k;
 		}
 		for(DEVICE* device = vm->first_device; device; device = device->next_device) {
 			if(device->get_event_manager_id() == this_device_id) {
@@ -143,7 +144,6 @@ void EVENT::drive()
 		}
 		event_remain += vclocks[cur_vline];
 		cpu_remain += vclocks[cur_vline] << power;
-		
 		while(event_remain > 0) {
 			int event_done = event_remain;
 			if(cpu_remain > 0) {
@@ -157,7 +157,6 @@ void EVENT::drive()
 						// run one opecode on primary cpu
 						cpu_done = d_cpu[0].device->run(-1);
 					}
-					
 					// sub cpu runs continuously and no events will be fired while the given clocks,
 					// so I need to give small enough clocks...
 					cpu_done_tmp = (cpu_done < 4) ? cpu_done : 4;
@@ -165,7 +164,8 @@ void EVENT::drive()
 					
 					for(int i = 1; i < dcount_cpu; i++) {
 						// run sub cpus
-						d_cpu[i].accum_clocks += d_cpu[i].update_clocks * cpu_done_tmp;
+						//d_cpu[i].accum_clocks += d_cpu[i].update_clocks * cpu_done_tmp;
+						d_cpu[i].accum_clocks += cpu_update_clocks[i][cpu_done_tmp];
 						int sub_clock = d_cpu[i].accum_clocks >> 10;
 						if(sub_clock) {
 							d_cpu[i].accum_clocks -= sub_clock << 10;
@@ -512,8 +512,11 @@ void EVENT::mix_sound(int samples)
 			d_sound[i]->mix(buffer, samples);
 		}
 		if(!sound_changed) {
+			int32_t tbuf[2];
 			for(int i = 0; i < samples * 2; i += 2) {
-				if(buffer[i] != sound_tmp[0] || buffer[i + 1] != sound_tmp[1]) {
+				tbuf[0] = buffer[i];
+				tbuf[1] = buffer[i + 1];
+				if((tbuf[0] != sound_tmp[0]) || (tbuf[1] != sound_tmp[1])) {
 					sound_changed = true;
 					break;
 				}
@@ -664,7 +667,9 @@ bool EVENT::load_state(FILEIO* state_fio)
 		d_cpu[i].cpu_clocks = state_fio->FgetUint32();
 		d_cpu[i].update_clocks = state_fio->FgetUint32();
 		d_cpu[i].accum_clocks = state_fio->FgetUint32();
+		for(int k = 0; k < 5; k++) cpu_update_clocks[i][k] = d_cpu[i].update_clocks * k;
 	}
+
 	state_fio->Fread(vclocks, sizeof(vclocks), 1);
 	event_remain = state_fio->FgetInt32();
 	cpu_remain = state_fio->FgetInt32();
