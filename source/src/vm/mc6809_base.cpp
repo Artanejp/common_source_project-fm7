@@ -536,8 +536,12 @@ int_cycle:
 	extra_icount = 0;
 	total_icount += (uint64_t)passed_icount;
 	cpu_wait(passed_icount);
+#if 1	
 	if((icount <= 0) || (clock <= passed_icount)) return passed_icount;
 	clock -= passed_icount;
+#else
+	return passed_icount;
+#endif
 	// goto check_ok;
 	// run cpu
 check_ok:
@@ -569,7 +573,7 @@ check_ok:
 			int tmp_passed_icount = 0;
 			icount += clock;
 			first_icount = icount;
-			while((icount > 0) && (!(req_halt_on) && !(req_halt_off))) {
+			while((icount > 0) && (!(req_halt_on) && !(req_halt_off)) && (!busreq)) {
 				insns_count++;
 				run_one_opecode();
 			}
