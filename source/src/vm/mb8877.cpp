@@ -843,6 +843,17 @@ void MB8877::event_callback(int event_id, int err)
 			register_seek_event();
 			break;
 		}
+#if 1
+		// Verify before execute command.
+		// Port from XM7.Thanks to Ryu Takegami.
+		if(cmdreg & 4) {
+		// verify
+			if(trkreg != fdc[drvreg].track) {
+				status |= FDC_ST_SEEKERR;
+				trkreg = fdc[drvreg].track; // Reload track register when verify: Really OK? 20180224 K.O
+			}
+		}
+#endif
 		seekend_clock = get_current_clock();
 //#ifdef HAS_MB89311
 		if(type_mb89311) {
@@ -1228,15 +1239,6 @@ void MB8877::cmd_seek()
 		status = FDC_ST_BUSY;
 	}		
 
-	// Verify before execute command.
-	// Port from XM7.Thanks to Ryu Takegami.
-	if(cmdreg & 4) {
-		// verify
-		if(trkreg != fdc[drvreg].track) {
-			status |= FDC_ST_SEEKERR;
-			trkreg = fdc[drvreg].track; // Reload track register when verify: Really OK? 20180224 K.O
-		}
-	}
 	// revert below 20180225 K.O
 	//seektrk = (uint8_t)(fdc[drvreg].track + datareg - trkreg); // Seek target is differ when drive's track != trkreg.Thanks to Haserin and Ryu Takegami.
 	seektrk = (int)((int8_t)datareg);
@@ -1280,6 +1282,7 @@ void MB8877::cmd_stepin()
 
 	// Verify before execute command.
 	// Port from XM7.Thanks to Ryu Takegami.
+#if 1
 	if(cmdreg & 4) {
 		// verify
 		if(trkreg != fdc[drvreg].track) {
@@ -1287,7 +1290,7 @@ void MB8877::cmd_stepin()
 //			trkreg = fdc[drvreg].track;
 		}
 	}
-
+#endif
 	seektrk = fdc[drvreg].track + 1;
 	if(seektrk >= disk[drvreg]->get_max_tracks()) {
 		seektrk = disk[drvreg]->get_max_tracks() - 1;
@@ -1315,6 +1318,7 @@ void MB8877::cmd_stepout()
 
 	// Verify before execute command.
 	// Port from XM7.Thanks to Ryu Takegami.
+#if 1
 	if(cmdreg & 4) {
 		// verify
 		if(trkreg != fdc[drvreg].track) {
@@ -1322,7 +1326,7 @@ void MB8877::cmd_stepout()
 //			trkreg = fdc[drvreg].track;
 		}
 	}
-
+#endif
 	seektrk = fdc[drvreg].track - 1;
 	if(seektrk >= disk[drvreg]->get_max_tracks()) {
 		seektrk = disk[drvreg]->get_max_tracks() - 1;
