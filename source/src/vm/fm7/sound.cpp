@@ -15,6 +15,7 @@
 #include "fm7_mainio.h"
 #include "../ay_3_891x.h"
 #include "../../config.h"
+#include "./joystick.h"
 
 void FM7_MAINIO::reset_sound(void)
 {

@@ -9,7 +9,6 @@
 #define _CSP_FM7_DISPLAY_H
 
 #include "../device.h"
-#include "../device.h"
 #include "../mc6809.h"
 #include "fm7_common.h"
 
@@ -26,6 +25,11 @@
 
 class DEVICE;
 class MC6809;
+class FM7_MAINIO;
+class KEYBOARD;
+class KANJIROM;
+class MB61VH010;
+
 class DISPLAY: public DEVICE
 {
 private:
@@ -261,10 +265,10 @@ protected:
 	uint8_t subsys_ram[0x2000];
 	uint8_t cgram_bank;
 	bool kanji_level2;
-	DEVICE *kanjiclass1;
-	DEVICE *kanjiclass2;
+	KANJIROM *kanjiclass1;
+	KANJIROM *kanjiclass2;
 #elif defined(_FM77_VARIANTS)
-	DEVICE *kanjiclass1;
+	KANJIROM *kanjiclass1;
 #endif
 	bool vram_wrote_shadow;
 	bool vram_wrote_table[411 * 5];
@@ -274,11 +278,11 @@ protected:
 	uint32_t vram_wrote_addr_2[411];
 #if defined(_FM77AV_VARIANTS)
 	bool use_alu;
-	DEVICE *alu;
+	MB61VH010 *alu;
 #endif	
-	DEVICE *mainio;
-	DEVICE *subcpu;
-	DEVICE *keyboard;
+	FM7_MAINIO *mainio;
+	MC6809 *subcpu;
+	KEYBOARD *keyboard;
 	bool vram_wrote;
 	void GETVRAM_8_200L(int yoff, scrntype_t *p, scrntype_t *px, bool window_inv, bool scan_line);
 	void GETVRAM_4096(int yoff, scrntype_t *p, scrntype_t *px, uint32_t rgbmask, bool window_inv, bool scan_line);
@@ -329,6 +333,37 @@ protected:
 	void event_callback_hdisp(void);
 	void event_callback_hblank(void);
 
+	template <class T>
+	void call_write_signal(T *np, int id, uint32_t data, uint32_t mask)
+	{
+		//T *nnp = static_cast<T *>(np);
+		static_cast<T *>(np)->write_signal(id, data, mask);
+	}
+	template <class T>
+		void call_write_data8(T *np, uint32_t addr, uint32_t data)
+	{
+		//T *nnp = static_cast<T *>(np);
+		static_cast<T *>(np)->write_data8(addr, data);
+	}
+	template <class T>
+		uint32_t call_read_data8(T *np, uint32_t addr)
+	{
+		//T *nnp = static_cast<T *>(np);
+		return static_cast<T *>(np)->read_data8(addr);
+	}
+	template <class T>
+		void call_write_dma_data8(T *np, uint32_t addr, uint32_t data)
+	{
+		//T *nnp = static_cast<T *>(np);
+		static_cast<T *>(np)->write_dma_data8(addr, data);
+	}
+	template <class T>
+		uint32_t call_read_dma_data8(T *np, uint32_t addr)
+	{
+		//T *nnp = static_cast<T *>(np);
+		return static_cast<T *>(np)->read_dma_data8(addr);
+	}
+
 public:
 	DISPLAY(VM *parent_vm, EMU *parent_emu);
 	~DISPLAY();
@@ -371,28 +406,28 @@ public:
 #if defined(_FM77_VARIANTS) || \
     defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
     defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
-		kanjiclass1 = p;
+		kanjiclass1 = (KANJIROM *)p;
 #endif
 	}
 	void set_context_kanjiclass2(DEVICE *p)	{
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)|| \
     defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
-		kanjiclass2 = p;
+		kanjiclass2 = (KANJIROM *)p;
 		if(p != NULL) kanji_level2 = true;
 #endif
 	}
 	void set_context_mainio(DEVICE *p) {
-		mainio = p;
+		mainio = (FM7_MAINIO *)p;
 	}
 	void set_context_keyboard(DEVICE *p) {
-		keyboard = p;
+		keyboard = (KEYBOARD *)p;
 	}
 	void set_context_subcpu(DEVICE *p) {
-		subcpu = p;
+		subcpu = (MC6809 *)p;
 	}
 #if defined(_FM77AV_VARIANTS)
 	void set_context_alu(DEVICE *p) {
-		alu = p;
+		alu = (MB61VH010 *)p;
 	}
 #endif
 };  

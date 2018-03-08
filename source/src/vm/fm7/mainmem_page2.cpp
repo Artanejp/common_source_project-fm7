@@ -8,6 +8,7 @@
 #include "vm.h"
 #include "emu.h"
 #include "fm7_mainmem.h"
+#include "./kanjirom.h"
 
 int FM7_MAINMEM::check_page2(uint32_t addr, uint32_t *realaddr, bool write_state, bool dmamode)
 {
@@ -159,7 +160,7 @@ void FM7_MAINMEM::write_page2(uint32_t addr, uint32_t data, bool dmamode)
 uint8_t FM7_MAINMEM::read_kanjirom_level1(uint32_t realaddr, bool dmamode)
 {
 #if defined(CAPABLE_DICTROM)
-	return kanjiclass1->read_data8(KANJIROM_DIRECTADDR + realaddr);
+	return call_read_data8(kanjiclass1, KANJIROM_DIRECTADDR + realaddr);
 #else
 	return 0xff;
 #endif

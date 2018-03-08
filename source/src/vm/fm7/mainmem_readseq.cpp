@@ -8,6 +8,9 @@
 #include "vm.h"
 #include "emu.h"
 #include "fm7_mainmem.h"
+#include "fm7_mainio.h"
+#include "fm7_display.h"
+#include "kanjirom.h"
 
 uint8_t FM7_MAINMEM::read_data_tbl(uint32_t addr, bool dmamode)
 {
@@ -143,7 +146,7 @@ uint8_t FM7_MAINMEM::read_shared_ram(uint32_t realaddr, bool dmamode)
 {
 	realaddr = realaddr & 0x7f;
 	if(!sub_halted) return 0xff; // Not halt
-	return display->read_data8(realaddr  + 0xd380); // Okay?
+	return call_read_data8(display, realaddr  + 0xd380); // Okay?
 }
 
 uint8_t FM7_MAINMEM::read_direct_access(uint32_t realaddr, bool dmamode)
@@ -151,9 +154,9 @@ uint8_t FM7_MAINMEM::read_direct_access(uint32_t realaddr, bool dmamode)
 #if defined(_FM77AV_VARIANTS)
 	if(!sub_halted) return 0xff; // Not halt
 	if(dmamode) {
-		return display->read_dma_data8(realaddr & 0xffff); // Okay?
+		return call_read_dma_data8(display, realaddr & 0xffff); // Okay?
 	} else {
-		return display->read_data8(realaddr & 0xffff); // Okay?
+		return call_read_data8(display, realaddr & 0xffff); // Okay?
 	}
 #else
 	return 0xff;
@@ -174,7 +177,7 @@ uint8_t FM7_MAINMEM::read_mmio(uint32_t addr, bool dmamode)
 	addr &= 0xff;
 	iowait();
 	if(mainio != NULL) {
-		return mainio->read_data8(addr);
+		return call_read_data8(mainio, addr);
 	}
 	return 0xff;
 }

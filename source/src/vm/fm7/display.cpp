@@ -12,6 +12,9 @@
 #if defined(_FM77AV_VARIANTS)
 # include "mb61vh010.h"
 #endif
+#include "fm7_mainio.h"
+#include "./fm7_keyboard.h"
+#include "./kanjirom.h"
 
 DISPLAY::DISPLAY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
@@ -63,8 +66,8 @@ void DISPLAY::reset_some_devices()
 {
 	int i;
 	double usec;
-	keyboard->write_signal(SIG_FM7KEY_SET_INSLED, 0x00, 0x01);
-	mainio->write_signal(SIG_FM7_SUB_HALT, 0x00, 0xff);
+	call_write_signal(keyboard, SIG_FM7KEY_SET_INSLED, 0x00, 0x01);
+	call_write_signal(mainio, SIG_FM7_SUB_HALT, 0x00, 0xff);
 	sub_busy = true;
 	
 	palette_changed = true;
@@ -130,8 +133,8 @@ void DISPLAY::reset_some_devices()
 	}
 	//usec = 16.0;
 	//register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
-	mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x00, 0xff);
-	mainio->write_signal(SIG_DISPLAY_VSYNC, 0xff, 0xff);
+	call_write_signal(mainio, SIG_DISPLAY_DISPLAY, 0x00, 0xff);
+	call_write_signal(mainio, SIG_DISPLAY_VSYNC, 0xff, 0xff);
 //#endif
 	display_page = 0;
 	display_page_bak = 0;
@@ -162,16 +165,16 @@ void DISPLAY::reset_some_devices()
 	
 	alu->reset();
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	alu->write_signal(SIG_ALU_X_WIDTH, (mode320 || mode256k) ? 40 : 80, 0xffff);
-	alu->write_signal(SIG_ALU_Y_HEIGHT, (display_mode == DISPLAY_MODE_8_400L) ? 400: 200, 0xffff);
-	alu->write_signal(SIG_ALU_400LINE, (display_mode == DISPLAY_MODE_8_400L) ? 0xffffffff : 0, 0xffffffff);
+	call_write_signal(alu, SIG_ALU_X_WIDTH, (mode320 || mode256k) ? 40 : 80, 0xffff);
+	call_write_signal(alu, SIG_ALU_Y_HEIGHT, (display_mode == DISPLAY_MODE_8_400L) ? 400: 200, 0xffff);
+	call_write_signal(alu, SIG_ALU_400LINE, (display_mode == DISPLAY_MODE_8_400L) ? 0xffffffff : 0, 0xffffffff);
 # else
-	alu->write_signal(SIG_ALU_X_WIDTH, (mode320) ? 40 : 80, 0xffff);
-	alu->write_signal(SIG_ALU_Y_HEIGHT, 200, 0xffff);
-	alu->write_signal(SIG_ALU_400LINE, 0, 0xffffffff);
+	call_write_signal(alu, SIG_ALU_X_WIDTH, (mode320) ? 40 : 80, 0xffff);
+	call_write_signal(alu, SIG_ALU_Y_HEIGHT, 200, 0xffff);
+	call_write_signal(alu, SIG_ALU_400LINE, 0, 0xffffffff);
 # endif
-	alu->write_signal(SIG_ALU_MULTIPAGE, multimode_accessmask, 0x07);
-	alu->write_signal(SIG_ALU_PLANES, 3, 3);
+	call_write_signal(alu, SIG_ALU_MULTIPAGE, multimode_accessmask, 0x07);
+	call_write_signal(alu, SIG_ALU_PLANES, 3, 3);
 #endif
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
 	memcpy(dpalette_pixel, dpalette_pixel_tmp, sizeof(dpalette_pixel));
@@ -263,8 +266,8 @@ void DISPLAY::reset()
 
 void DISPLAY::reset_subcpu(bool _check_firq)
 {
-	subcpu->write_signal(SIG_CPU_HALTREQ, 0, 1);
-	subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+	call_write_signal(subcpu, SIG_CPU_HALTREQ, 0, 1);
+	call_write_signal(subcpu, SIG_CPU_BUSREQ, 0, 1);
 	subcpu->reset();
 	if(_check_firq) {
 		do_firq(!firq_mask && key_firq_req);
@@ -348,12 +351,12 @@ void DISPLAY::update_config()
 
 void DISPLAY::do_irq(bool flag)
 {
-	subcpu->write_signal(SIG_CPU_IRQ, flag ? 1: 0, 1);
+	call_write_signal(subcpu, SIG_CPU_IRQ, flag ? 1: 0, 1);
 }
 
 void DISPLAY::do_firq(bool flag)
 {
-	subcpu->write_signal(SIG_CPU_FIRQ, flag ? 1: 0, 1);
+	call_write_signal(subcpu, SIG_CPU_FIRQ, flag ? 1: 0, 1);
 }
 
 void DISPLAY::do_nmi(bool flag)
@@ -361,7 +364,7 @@ void DISPLAY::do_nmi(bool flag)
 #if defined(_FM77AV_VARIANTS)
 	if(!nmi_enable) flag = false;
 #endif
-	subcpu->write_signal(SIG_CPU_NMI, flag ? 1 : 0, 1);
+	call_write_signal(subcpu, SIG_CPU_NMI, flag ? 1 : 0, 1);
 }
 
 void DISPLAY::set_multimode(uint8_t val)
@@ -375,7 +378,7 @@ void DISPLAY::set_multimode(uint8_t val)
 	}
 	vram_wrote = true;
 # if defined(_FM77AV_VARIANTS)
-	alu->write_signal(SIG_ALU_MULTIPAGE, multimode_accessmask, 0x07);
+	call_write_signal(alu, SIG_ALU_MULTIPAGE, multimode_accessmask, 0x07);
 # endif
 #endif	
 }
@@ -426,13 +429,13 @@ uint8_t DISPLAY::get_dpalette(uint32_t addr)
 
 void DISPLAY::halt_subcpu(void)
 {
-	//subcpu->write_signal(SIG_CPU_BUSREQ, 0x01, 0x01);
-	subcpu->write_signal(SIG_CPU_HALTREQ, 0x01, 0x01);
+	//call_write_signal(subcpu, SIG_CPU_BUSREQ, 0x01, 0x01);
+	call_write_signal(subcpu, SIG_CPU_HALTREQ, 0x01, 0x01);
 }
 
 void DISPLAY::go_subcpu(void)
 {
-	subcpu->write_signal(SIG_CPU_HALTREQ, 0x00, 0x01);
+	call_write_signal(subcpu, SIG_CPU_HALTREQ, 0x00, 0x01);
 }
 
 void DISPLAY::enter_display(void)
@@ -503,7 +506,7 @@ uint8_t DISPLAY::acknowledge_irq(void)
 //SUB:D403:R
 uint8_t DISPLAY::beep(void)
 {
-	mainio->write_signal(FM7_MAINIO_BEEP, 0x01, 0x01);
+	call_write_signal(mainio, FM7_MAINIO_BEEP, 0x01, 0x01);
 	return 0xff; // True?
 }
 
@@ -511,7 +514,7 @@ uint8_t DISPLAY::beep(void)
 // SUB:D404 : R 
 uint8_t DISPLAY::attention_irq(void)
 {
-	mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x01, 0x01);
+	call_write_signal(mainio, FM7_MAINIO_SUB_ATTENTION, 0x01, 0x01);
 	return 0xff;
 }
 
@@ -565,7 +568,7 @@ void DISPLAY::set_subbusy(void)
 // D410
 void DISPLAY::alu_write_cmdreg(uint32_t val)
 {
-	alu->write_data8(ALU_CMDREG, val);
+	call_write_data8(alu, ALU_CMDREG, val);
 	if((val & 0x80) != 0) {
 		use_alu = true;
 	} else {
@@ -577,14 +580,14 @@ void DISPLAY::alu_write_cmdreg(uint32_t val)
 void DISPLAY::alu_write_logical_color(uint8_t val)
 {
 	uint32_t data = (uint32_t)val;
-	alu->write_data8(ALU_LOGICAL_COLOR, data);
+	call_write_data8(alu, ALU_LOGICAL_COLOR, data);
 }
 
 // D412
 void DISPLAY::alu_write_mask_reg(uint8_t val)
 {
 	uint32_t data = (uint32_t)val;
-	alu->write_data8(ALU_WRITE_MASKREG, data);
+	call_write_data8(alu, ALU_WRITE_MASKREG, data);
 }
 
 // D413 - D41A
@@ -592,14 +595,14 @@ void DISPLAY::alu_write_cmpdata_reg(int addr, uint8_t val)
 {
 	uint32_t data = (uint32_t)val;
 	addr = addr & 7;
-	alu->write_data8(ALU_CMPDATA_REG + addr, data);
+	call_write_data8(alu, ALU_CMPDATA_REG + addr, data);
 }
 
 // D41B
 void DISPLAY::alu_write_disable_reg(uint8_t val)
 {
 	uint32_t data = (uint32_t)val;
-	alu->write_data8(ALU_BANK_DISABLE, data);
+	call_write_data8(alu, ALU_BANK_DISABLE, data);
 }
 
 // D41C - D41F
@@ -608,16 +611,16 @@ void DISPLAY::alu_write_tilepaint_data(uint32_t addr, uint8_t val)
 	uint32_t data = (uint32_t)val;
 	switch(addr & 3) {
 		case 0: // $D41C
-			alu->write_data8(ALU_TILEPAINT_B, data);
+			call_write_data8(alu, ALU_TILEPAINT_B, data);
 			break;
 		case 1: // $D41D
-			alu->write_data8(ALU_TILEPAINT_R, data);
+			call_write_data8(alu, ALU_TILEPAINT_R, data);
 			break;
 		case 2: // $D41E
-			alu->write_data8(ALU_TILEPAINT_G, data);
+			call_write_data8(alu, ALU_TILEPAINT_G, data);
 			break;
 		case 3: // xxxx
-			//alu->write_data8(ALU_TILEPAINT_L, 0xff);
+			//call_write_data8(alu, ALU_TILEPAINT_L, 0xff);
 			break;
 	}
 }
@@ -625,25 +628,25 @@ void DISPLAY::alu_write_tilepaint_data(uint32_t addr, uint8_t val)
 // D420
 void DISPLAY::alu_write_offsetreg_hi(uint8_t val)
 {
-	alu->write_data8(ALU_OFFSET_REG_HIGH, val & 0x7f);
+	call_write_data8(alu, ALU_OFFSET_REG_HIGH, val & 0x7f);
 }
  
 // D421
 void DISPLAY::alu_write_offsetreg_lo(uint8_t val)
 {
-	alu->write_data8(ALU_OFFSET_REG_LO, val);
+	call_write_data8(alu, ALU_OFFSET_REG_LO, val);
 }
 
 // D422
 void DISPLAY::alu_write_linepattern_hi(uint8_t val)
 {
-	alu->write_data8(ALU_LINEPATTERN_REG_HIGH, val);
+	call_write_data8(alu, ALU_LINEPATTERN_REG_HIGH, val);
 }
 
 // D423
 void DISPLAY::alu_write_linepattern_lo(uint8_t val)
 {
-	alu->write_data8(ALU_LINEPATTERN_REG_LO, val);
+	call_write_data8(alu, ALU_LINEPATTERN_REG_LO, val);
 }
 
 // D424-D42B
@@ -652,28 +655,28 @@ void DISPLAY::alu_write_line_position(int addr, uint8_t val)
 	uint32_t data = (uint32_t)val;
 	switch(addr) {
 		case 0:  
-			alu->write_data8(ALU_LINEPOS_START_X_HIGH, data & 0x03); 
+			call_write_data8(alu, ALU_LINEPOS_START_X_HIGH, data & 0x03); 
 			break;
 		case 1:  
-			alu->write_data8(ALU_LINEPOS_START_X_LOW, data); 
+			call_write_data8(alu, ALU_LINEPOS_START_X_LOW, data); 
 			break;
 		case 2:  
-			alu->write_data8(ALU_LINEPOS_START_Y_HIGH, data & 0x01); 
+			call_write_data8(alu, ALU_LINEPOS_START_Y_HIGH, data & 0x01); 
 			break;
 		case 3:  
-			alu->write_data8(ALU_LINEPOS_START_Y_LOW, data); 
+			call_write_data8(alu, ALU_LINEPOS_START_Y_LOW, data); 
 			break;
 		case 4:  
-			alu->write_data8(ALU_LINEPOS_END_X_HIGH, data & 0x03); 
+			call_write_data8(alu, ALU_LINEPOS_END_X_HIGH, data & 0x03); 
 			break;
 		case 5:  
-			alu->write_data8(ALU_LINEPOS_END_X_LOW, data); 
+			call_write_data8(alu, ALU_LINEPOS_END_X_LOW, data); 
 			break;
   		case 6:  
-			alu->write_data8(ALU_LINEPOS_END_Y_HIGH, data & 0x01); 
+			call_write_data8(alu, ALU_LINEPOS_END_Y_HIGH, data & 0x01); 
 			break;
 		case 7:  
-			alu->write_data8(ALU_LINEPOS_END_Y_LOW, data);
+			call_write_data8(alu, ALU_LINEPOS_END_Y_LOW, data);
 			break;
 	}
 }
@@ -1185,7 +1188,7 @@ void DISPLAY::event_callback_hdisp(void)
 	bool f = false;
 	double usec;
 	hblank = false;
-	mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x02, 0xff);
+	call_write_signal(mainio, SIG_DISPLAY_DISPLAY, 0x02, 0xff);
 	if(display_mode == DISPLAY_MODE_8_400L) {
 		if(displine < 400) f = true;
 	} else {
@@ -1244,7 +1247,7 @@ void DISPLAY::event_callback_hblank(void)
 	hblank = true;
 	hblank_event_id = -1;
 	
-	mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x00, 0xff);
+	call_write_signal(mainio, SIG_DISPLAY_DISPLAY, 0x00, 0xff);
 	if(display_mode == DISPLAY_MODE_8_400L) {
 		if((displine < 400)) f = true;
 		usec = 11.0;
@@ -1268,8 +1271,8 @@ void DISPLAY::event_callback_vstart(void)
 	display_page_bak = display_page;
 	
 	// Parameter from XM7/VM/display.c , thanks, Ryu.
-	mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x00, 0xff);
-	mainio->write_signal(SIG_DISPLAY_VSYNC, 0x00, 0xff);
+	call_write_signal(mainio, SIG_DISPLAY_DISPLAY, 0x00, 0xff);
+	call_write_signal(mainio, SIG_DISPLAY_VSYNC, 0x00, 0xff);
 	
 	if(vblank_count != 0) {
 		if(display_mode == DISPLAY_MODE_8_400L) {
@@ -1315,8 +1318,8 @@ void DISPLAY::event_callback_vsync(void)
 	} else {
 		usec = 0.51 * 1000.0;
 	}
-	mainio->write_signal(SIG_DISPLAY_VSYNC, 0x01, 0xff);
-	mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x00, 0xff);
+	call_write_signal(mainio, SIG_DISPLAY_VSYNC, 0x01, 0xff);
+	call_write_signal(mainio, SIG_DISPLAY_DISPLAY, 0x00, 0xff);
 	//register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
 
 	if(palette_changed) {
@@ -1474,8 +1477,8 @@ void DISPLAY::event_frame()
 	} else {
 		usec = 1.52 * 1000.0;
 	}
-	mainio->write_signal(SIG_DISPLAY_VSYNC, 0x01, 0xff);
-	mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x00, 0xff);
+	call_write_signal(mainio, SIG_DISPLAY_VSYNC, 0x01, 0xff);
+	call_write_signal(mainio, SIG_DISPLAY_DISPLAY, 0x00, 0xff);
 	register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
 	vblank_count = 1;
 #endif
@@ -1642,7 +1645,7 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 				sub_busy = true;
 			}
 			halt_flag = flag;
-			//mainio->write_signal(SIG_FM7_SUB_HALT, data, mask);
+			//call_write_signal(mainio, SIG_FM7_SUB_HALT, data, mask);
 			break;
    		case SIG_DISPLAY_HALT:
 			if(flag) {
@@ -1724,9 +1727,9 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 						//emu->set_vm_screen_lines(200);
 					}
 					vram_wrote = true;
-					alu->write_signal(SIG_ALU_X_WIDTH, (mode320 || mode256k) ? 40 :  80, 0xffff);
-					alu->write_signal(SIG_ALU_Y_HEIGHT, (display_mode == DISPLAY_MODE_8_400L) ? 400 : 200, 0xffff);
-					alu->write_signal(SIG_ALU_400LINE, (display_mode == DISPLAY_MODE_8_400L) ? 0xff : 0x00, 0xff);
+					call_write_signal(alu, SIG_ALU_X_WIDTH, (mode320 || mode256k) ? 40 :  80, 0xffff);
+					call_write_signal(alu, SIG_ALU_Y_HEIGHT, (display_mode == DISPLAY_MODE_8_400L) ? 400 : 200, 0xffff);
+					call_write_signal(alu, SIG_ALU_400LINE, (display_mode == DISPLAY_MODE_8_400L) ? 0xff : 0x00, 0xff);
 					frame_skip_count_draw = 3;
 					frame_skip_count_transfer = 3;
 					setup_display_mode();
@@ -1808,9 +1811,9 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 						//emu->set_vm_screen_lines(200);
 					}
 					vram_wrote = true;
-					alu->write_signal(SIG_ALU_X_WIDTH, (mode320) ? 40 :  80, 0xffff);
-					alu->write_signal(SIG_ALU_Y_HEIGHT, 200, 0xffff);
-					alu->write_signal(SIG_ALU_400LINE, 0x00, 0xff);
+					call_write_signal(alu, SIG_ALU_X_WIDTH, (mode320) ? 40 :  80, 0xffff);
+					call_write_signal(alu, SIG_ALU_Y_HEIGHT, 200, 0xffff);
+					call_write_signal(alu, SIG_ALU_400LINE, 0x00, 0xff);
 					setup_display_mode();
 					//frame_skip_count = 3;
 				}
@@ -1839,9 +1842,9 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 
 				}
 				display_mode = (mode320 == true) ? DISPLAY_MODE_4096 : DISPLAY_MODE_8_200L;
-				alu->write_signal(SIG_ALU_X_WIDTH, (mode320) ? 40 :  80, 0xffff);
-				alu->write_signal(SIG_ALU_Y_HEIGHT, 200, 0xffff);
-				alu->write_signal(SIG_ALU_400LINE, 0, 0xffffffff);
+				call_write_signal(alu, SIG_ALU_X_WIDTH, (mode320) ? 40 :  80, 0xffff);
+				call_write_signal(alu, SIG_ALU_Y_HEIGHT, 200, 0xffff);
+				call_write_signal(alu, SIG_ALU_400LINE, 0, 0xffffffff);
 				vram_wrote = true;
 				setup_display_mode();
 			}
@@ -1892,10 +1895,10 @@ uint32_t DISPLAY::read_mmio(uint32_t addr)
 #endif
 	switch(raddr) {
 		case 0x00: // Read keyboard
-			retval = (keyboard->read_data8(0x00) != 0) ? 0xff : 0x7f;
+			retval = (call_read_data8(keyboard, 0x00) != 0) ? 0xff : 0x7f;
 			break;
 		case 0x01: // Read keyboard
-			retval = keyboard->read_data8(0x01) & 0xff;
+			retval = call_read_data8(keyboard, 0x01) & 0xff;
 			break;
 		case 0x02: // Acknowledge
 			acknowledge_irq();
@@ -1912,19 +1915,19 @@ uint32_t DISPLAY::read_mmio(uint32_t addr)
 			if(!kanjisub) return 0xff;
 # if !defined(_FM77_VARIANTS)
 			if(kanji_level2) {
-				return (uint8_t)kanjiclass2->read_data8(KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff));
+				return (uint8_t)call_read_data8(kanjiclass2, KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff));
 			}
 # endif
-			if(kanjiclass1 != NULL) retval = kanjiclass1->read_data8(KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff));
+			if(kanjiclass1 != NULL) retval = call_read_data8(kanjiclass1, KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff));
 			break;
 		case 0x07:
 			if(!kanjisub) return 0xff;
 # if !defined(_FM77_VARIANTS)
 			if(kanji_level2) {
-				return (uint8_t)kanjiclass2->read_data8(KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff) + 1);
+				return (uint8_t)call_read_data8(kanjiclass2, KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff) + 1);
 			}
 # endif
-			if(kanjiclass1 != NULL) retval = kanjiclass1->read_data8(KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff) + 1);
+			if(kanjiclass1 != NULL) retval = call_read_data8(kanjiclass1, KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff) + 1);
 			break;
 #endif
 		case 0x08:
@@ -1937,24 +1940,24 @@ uint32_t DISPLAY::read_mmio(uint32_t addr)
 			reset_subbusy();
 			break;
 		case 0x0d:
-			keyboard->write_signal(SIG_FM7KEY_SET_INSLED, 0x01, 0x01);
+			call_write_signal(keyboard, SIG_FM7KEY_SET_INSLED, 0x01, 0x01);
 			break;
 #if defined(_FM77AV_VARIANTS)
 		// ALU
 		case 0x10:
-			retval = alu->read_data8(ALU_CMDREG);
+			retval = call_read_data8(alu, ALU_CMDREG);
 			break;
 		case 0x11:
-			retval = alu->read_data8(ALU_LOGICAL_COLOR);
+			retval = call_read_data8(alu, ALU_LOGICAL_COLOR);
 			break;
 		case 0x12:
-			retval = alu->read_data8(ALU_WRITE_MASKREG);
+			retval = call_read_data8(alu, ALU_WRITE_MASKREG);
 			break;
 		case 0x13:
-			retval = alu->read_data8(ALU_CMP_STATUS_REG);
+			retval = call_read_data8(alu, ALU_CMP_STATUS_REG);
 			break;
 		case 0x1b:
-			retval = alu->read_data8(ALU_BANK_DISABLE);
+			retval = call_read_data8(alu, ALU_BANK_DISABLE);
 			break;
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		case 0x2f: // VRAM BANK
@@ -1967,10 +1970,10 @@ uint32_t DISPLAY::read_mmio(uint32_t addr)
 			break;
 		// KEY ENCODER.
 		case 0x31:
-			retval = keyboard->read_data8(0x31);
+			retval = call_read_data8(keyboard, 0x31);
 			break;
 		case 0x32:
-			retval = keyboard->read_data8(0x32);
+			retval = call_read_data8(keyboard, 0x32);
 			break;
 #endif				
 		default:
@@ -2209,7 +2212,7 @@ uint32_t DISPLAY::read_cpu_vram_data8(uint32_t addr)
 	uint8_t color;
 #if defined(_FM77AV_VARIANTS)
 	if(use_alu) {
-		alu->read_data8(addr);
+		call_read_data8(alu, addr);
 	}
 #endif
 	return read_vram_data8(addr);
@@ -2471,7 +2474,7 @@ void DISPLAY::write_mmio(uint32_t addr, uint8_t data)
 			break;
 		// LED
 		case 0x0d:
-			keyboard->write_signal(SIG_FM7KEY_SET_INSLED, 0x00, 0x01);
+			call_write_signal(keyboard, SIG_FM7KEY_SET_INSLED, 0x00, 0x01);
 			break;
 		// OFFSET
 		case 0x0e:
@@ -2561,7 +2564,7 @@ void DISPLAY::write_mmio(uint32_t addr, uint8_t data)
 			break;
 		// KEYBOARD ENCODER
 		case 0x31:
-			keyboard->write_data8(0x31, data);
+			call_write_data8(keyboard, 0x31, data);
 			break;
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		case 0x33: //
@@ -2769,7 +2772,7 @@ void DISPLAY::write_cpu_vram_data8(uint32_t addr, uint8_t data)
 	uint32_t color = (addr & 0xc000) >> 14;
 #if defined(_FM77AV_VARIANTS)
 	if(use_alu) {
-		alu->read_data8(addr);
+		call_read_data8(alu, addr);
 		return;
 	}
 #endif	

@@ -26,9 +26,17 @@ class AY_3_891X;
 class MB8877;
 class I8251;
 class AND;
-
 #if defined(HAS_DMA)
 class HD6844;
+#endif
+
+class JOYSTICK;
+class FM7_MAINMEM;
+class DISPLAY;
+class KEYBOARD;
+class KANJIROM;
+#if defined(CAPABLE_JCOMMCARD)
+class FM7_JCOMMCARD;
 #endif
 
 class FM7_MAINIO : public DEVICE {
@@ -414,8 +422,8 @@ class FM7_MAINIO : public DEVICE {
 #endif
 
 	DATAREC* drec;
-	DEVICE* pcm1bit;
-	DEVICE* joystick;
+	PCM1BIT* pcm1bit;
+	JOYSTICK* joystick;
 	
 	I8251 *uart[3];
 # if defined(_FM77AV20) || defined(_FM77AV40) || defined(_FM77AV20EX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -446,19 +454,49 @@ class FM7_MAINIO : public DEVICE {
 	DEVICE *printer;
 	//FM7_RS232C *rs232c;
 	/* */
-	DEVICE *kanjiclass1;
-	DEVICE *kanjiclass2;
-	DEVICE *display;
-	DEVICE *keyboard;
+	KANJIROM *kanjiclass1;
+	KANJIROM *kanjiclass2;
+	DISPLAY *display;
+	KEYBOARD *keyboard;
 	MC6809 *maincpu;
-	DEVICE *mainmem;
+	FM7_MAINMEM *mainmem;
 	MC6809 *subcpu;
 #ifdef WITH_Z80
 	Z80 *z80;
 #endif
 #if defined(CAPABLE_JCOMMCARD)
-	DEVICE *jcommcard;
+	FM7_JCOMMCARD *jcommcard;
 #endif
+	template <class T>
+	void call_write_signal(T *np, int id, uint32_t data, uint32_t mask)
+	{
+		//T *nnp = static_cast<T *>(np);
+		static_cast<T *>(np)->write_signal(id, data, mask);
+	}
+	template <class T>
+		void call_write_data8(T *np, uint32_t addr, uint32_t data)
+	{
+		//T *nnp = static_cast<T *>(np);
+		static_cast<T *>(np)->write_data8(addr, data);
+	}
+	template <class T>
+		uint32_t call_read_data8(T *np, uint32_t addr)
+	{
+		//T *nnp = static_cast<T *>(np);
+		return static_cast<T *>(np)->read_data8(addr);
+	}
+	template <class T>
+		void call_write_dma_data8(T *np, uint32_t addr, uint32_t data)
+	{
+		//T *nnp = static_cast<T *>(np);
+		static_cast<T *>(np)->write_dma_data8(addr, data);
+	}
+	template <class T>
+		uint32_t call_read_dma_data8(T *np, uint32_t addr)
+	{
+		//T *nnp = static_cast<T *>(np);
+		return static_cast<T *>(np)->read_dma_data8(addr);
+	}
 public:
 	FM7_MAINIO(VM* parent_vm, EMU* parent_emu);
 	~FM7_MAINIO();
@@ -494,24 +532,24 @@ public:
 	}
 	void set_context_kanjirom_class1(DEVICE *p)
 	{
-		kanjiclass1 = p;
+		kanjiclass1 = (KANJIROM *)p;
 		if(p != NULL) connect_kanjiroml1 = true;
 	}
 	virtual void set_context_kanjirom_class2(DEVICE *p)
 	{
 #if defined(_FM77AV_VARIANTS)
-		kanjiclass2 = p;
+		kanjiclass2 = (KANJIROM *)p;
 		if(p != NULL) connect_kanjiroml2 = true;
 #endif
 	}
 	void set_context_beep(DEVICE *p)
 	{
-		pcm1bit = p;
+		pcm1bit = (PCM1BIT *)p;
 		//beep = p;
 	}
 	void set_context_datarec(DATAREC *p)
 	{
-		drec = p;
+		drec = (DATAREC *)p;
 	}
 //#if !defined(_FM8)
 	void set_context_opn(YM2203 *p, int ch)
@@ -577,19 +615,19 @@ public:
 		maincpu = p;
 	}
 	void set_context_mainmem(DEVICE *p){
-		mainmem = p;
+		mainmem = (FM7_MAINMEM *)p;
 	}
 	void set_context_subcpu(MC6809 *p){
 		subcpu = p;
 	}
 	void set_context_display(DEVICE *p){
-		display = p;
+		display = (DISPLAY *)p;
 	}
 	void set_context_keyboard(DEVICE *p){
-		keyboard = p;
+		keyboard = (KEYBOARD *)p;
 	}
 	void set_context_joystick(DEVICE *p){
-		joystick = p;
+		joystick = (JOYSTICK *)p;
 	}
 	void set_context_clock_status(DEVICE *p, int id, uint32_t mask) {
 		register_output_signal(&clock_status, p, id, mask);
@@ -620,7 +658,7 @@ public:
 	}
 	void set_context_jcommcard(DEVICE *p) {
 #if defined(CAPABLE_JCOMMCARD)
-		jcommcard = p;
+		jcommcard = (FM7_JCOMMCARD *)p;
 #endif
 	}
 	void set_context_uart(int num, I8251 *p) {

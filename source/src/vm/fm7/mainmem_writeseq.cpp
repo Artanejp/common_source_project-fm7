@@ -8,6 +8,9 @@
 #include "vm.h"
 #include "emu.h"
 #include "fm7_mainmem.h"
+#include "fm7_mainio.h"
+#include "fm7_display.h"
+#include "kanjirom.h"
 
 void FM7_MAINMEM::write_data_tbl(uint32_t addr, uint32_t data, bool dmamode)
 {
@@ -27,7 +30,7 @@ void FM7_MAINMEM::write_shared_ram(uint32_t realaddr, uint32_t data, bool dmamod
 {
 	realaddr = realaddr & 0x7f;
 	if(!sub_halted) return; // Not halt
-	return display->write_data8(realaddr  + 0xd380, data); // Okay?
+	return call_write_data8(display, realaddr  + 0xd380, data); // Okay?
 }
 
 void FM7_MAINMEM::write_direct_access(uint32_t realaddr, uint32_t data, bool dmamode)
@@ -35,9 +38,9 @@ void FM7_MAINMEM::write_direct_access(uint32_t realaddr, uint32_t data, bool dma
 #if defined(_FM77AV_VARIANTS)
 	if(!sub_halted) return; // Not halt
 	if(dmamode) {
-		display->write_dma_data8(realaddr & 0xffff, data); // Okay?
+		call_write_dma_data8(display, realaddr & 0xffff, data); // Okay?
 	} else {
-		display->write_data8(realaddr & 0xffff, data); // Okay?
+		call_write_data8(display, realaddr & 0xffff, data); // Okay?
 	}
 #else
 	return;
@@ -58,9 +61,7 @@ void FM7_MAINMEM::write_mmio(uint32_t addr, uint32_t data, bool dmamode)
 {
 	addr &= 0xff;
 	iowait();
-	if(mainio != NULL) {
-		mainio->write_data8(addr, data);
-	}
+	call_write_data8(mainio, addr, data);
 	return;
 }
 

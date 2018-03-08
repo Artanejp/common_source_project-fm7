@@ -24,6 +24,8 @@
 class DEVICE;
 class MEMORY;
 class FM7_MAINIO;
+class KANJIROM;
+class DISPLAY;
 
 class FM7_MAINMEM : public DEVICE
 {
@@ -135,12 +137,12 @@ class FM7_MAINMEM : public DEVICE
 # endif
 #endif
 #if defined(CAPABLE_DICTROM)
-	DEVICE *kanjiclass1;
+	KANJIROM *kanjiclass1;
 	//KANJIROM *kanjiclass2;
 #endif	
 	MC6809 *maincpu;
-	DEVICE *mainio;
-	DEVICE *display;
+	FM7_MAINIO *mainio;
+	DISPLAY *display;
 	
 	bool diag_load_basicrom;
 	bool diag_load_bootrom_bas;
@@ -190,6 +192,36 @@ class FM7_MAINMEM : public DEVICE
 	uint8_t read_with_mmr(uint32_t addr, uint32_t segment, uint32_t dmamode);
 	void write_with_mmr(uint32_t addr, uint32_t segment, uint32_t data, uint32_t dmamode);
 
+	template <class T>
+	void call_write_signal(T *np, int id, uint32_t data, uint32_t mask)
+	{
+		//T *nnp = static_cast<T *>(np);
+		static_cast<T *>(np)->write_signal(id, data, mask);
+	}
+	template <class T>
+		void call_write_data8(T *np, uint32_t addr, uint32_t data)
+	{
+		//T *nnp = static_cast<T *>(np);
+		static_cast<T *>(np)->write_data8(addr, data);
+	}
+	template <class T>
+		uint32_t call_read_data8(T *np, uint32_t addr)
+	{
+		//T *nnp = static_cast<T *>(np);
+		return static_cast<T *>(np)->read_data8(addr);
+	}
+	template <class T>
+		void call_write_dma_data8(T *np, uint32_t addr, uint32_t data)
+	{
+		//T *nnp = static_cast<T *>(np);
+		static_cast<T *>(np)->write_dma_data8(addr, data);
+	}
+	template <class T>
+		uint32_t call_read_dma_data8(T *np, uint32_t addr)
+	{
+		//T *nnp = static_cast<T *>(np);
+		return static_cast<T *>(np)->read_dma_data8(addr);
+	}
  public:
 	FM7_MAINMEM(VM* parent_vm, EMU* parent_emu);
 	~FM7_MAINMEM();
@@ -223,27 +255,23 @@ class FM7_MAINMEM : public DEVICE
 	bool load_state(FILEIO *state_fio);
 
 	void set_context_display(DEVICE *p){
-		display = p;
+		display = (DISPLAY *)p;
 	}
 	void set_context_maincpu(MC6809 *p){
-		maincpu = p;
+		maincpu = (MC6809 *)p;
 	}
 	void set_context_mainio(DEVICE *p){
-		mainio = p;
+		mainio = (FM7_MAINIO *)p;
 	}
 #if defined(CAPABLE_DICTROM)
 	void set_context_kanjirom_class1(DEVICE *p){
-		kanjiclass1 = p;
+		kanjiclass1 = (KANJIROM *)p;
 	}
 #endif	
 	void write_signal(int sigid, uint32_t data, uint32_t mask);
 	uint32_t read_signal(int sigid);
-	uint32_t read_io8(uint32_t addr) {
-		return mainio->read_io8(addr);
-	}
-	void write_io8(uint32_t addr, uint32_t data) {
-		return mainio->write_io8(addr, data);
-	}
+	uint32_t read_io8(uint32_t addr);
+	void write_io8(uint32_t addr, uint32_t data);
 };
 
 #endif

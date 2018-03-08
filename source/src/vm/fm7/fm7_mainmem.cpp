@@ -8,7 +8,11 @@
 #include "vm.h"
 #include "emu.h"
 #include "fm7_mainmem.h"
-
+#include "fm7_mainio.h"
+#include "fm7_display.h"
+#if defined(CAPABLE_DICTROM)
+#include "kanjirom.h"
+#endif
 FM7_MAINMEM::FM7_MAINMEM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
 	p_vm = parent_vm;
@@ -360,6 +364,15 @@ void FM7_MAINMEM::write_signal(int sigid, uint32_t data, uint32_t mask)
 	}
 }
 
+uint32_t FM7_MAINMEM::read_io8(uint32_t addr)
+{
+	return mainio->read_io8(addr);
+}
+
+void FM7_MAINMEM::write_io8(uint32_t addr, uint32_t data)
+{
+	return mainio->write_io8(addr, data);
+}
 
 uint32_t FM7_MAINMEM::read_dma_data8(uint32_t addr)
 {
@@ -409,18 +422,18 @@ uint32_t FM7_MAINMEM::read_data8(uint32_t addr)
 void FM7_MAINMEM::write_dma_data8(uint32_t addr, uint32_t data)
 {
 #if defined(HAS_MMR)
-	this->write_data8_main(addr & 0xffff, data, true);
+	write_data8_main(addr & 0xffff, data, true);
 #else
-	this->write_data8(addr & 0xffff, data);
+	write_data8(addr & 0xffff, data);
 #endif	
 }
 
 void FM7_MAINMEM::write_dma_io8(uint32_t addr, uint32_t data)
 {
 #if defined(HAS_MMR)
-	this->write_data8_main(addr & 0xffff, data, true);
+	write_data8_main(addr & 0xffff, data, true);
 #else
-	this->write_data8(addr & 0xffff, data);
+	write_data8(addr & 0xffff, data);
 #endif	
 }
 
@@ -512,7 +525,7 @@ void FM7_MAINMEM::save_state(FILEIO *state_fio)
 {
 	state_fio->FputUint32_BE(STATE_VERSION);
 	state_fio->FputInt32_BE(this_device_id);
-	this->out_debug_log(_T("Save State: MAINMEM: id=%d ver=%d\n"), this_device_id, STATE_VERSION);
+	out_debug_log(_T("Save State: MAINMEM: id=%d ver=%d\n"), this_device_id, STATE_VERSION);
 
 	// V1
 	state_fio->FputBool(ioaccess_wait);
@@ -636,7 +649,7 @@ bool FM7_MAINMEM::load_state(FILEIO *state_fio)
 	uint32_t version;
 	version = state_fio->FgetUint32_BE();
 	if(this_device_id != state_fio->FgetInt32_BE()) return false;
-	this->out_debug_log(_T("Load State: MAINMEM: id=%d ver=%d\n"), this_device_id, version);
+	out_debug_log(_T("Load State: MAINMEM: id=%d ver=%d\n"), this_device_id, version);
 	if(version >= 1) {
 		// V1
 		ioaccess_wait = state_fio->FgetBool();

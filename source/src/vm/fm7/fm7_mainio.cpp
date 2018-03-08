@@ -22,7 +22,14 @@
 # if defined(_FM77AV20) || defined(_FM77AV40) || defined(_FM77AV20EX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 #include "../and.h"
 #endif
-
+#include "./fm7_mainmem.h"
+#include "./fm7_display.h"
+#include "./fm7_keyboard.h"
+#include "./kanjirom.h"
+#include "./joystick.h"
+#if defined(CAPABLE_JCOMMCARD)
+#include "./jcommcard.h"
+#endif
 
 FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
@@ -279,7 +286,7 @@ void FM7_MAINIO::reset()
 	} else {
 		clock_fast = false;
 	}
-	this->write_signals(&clock_status, clock_fast ? 0xffffffff : 0);
+	write_signals(&clock_status, clock_fast ? 0xffffffff : 0);
    
 	// FD03
 	irqmask_syndet = true;
@@ -309,8 +316,8 @@ void FM7_MAINIO::reset()
 	midi_uart_irqmask = midi_syndet = midi_rxrdy = midi_txrdy = false;
 	// FD00
 	if(drec != NULL) {
-		drec->write_signal(SIG_DATAREC_MIC, 0x00, 0x01);
-		drec->write_signal(SIG_DATAREC_REMOTE, 0x00, 0x02);
+		call_write_signal(drec, SIG_DATAREC_MIC, 0x00, 0x01);
+		call_write_signal(drec, SIG_DATAREC_REMOTE, 0x00, 0x02);
 	}
 	reset_fdc();
 	reset_sound();
@@ -336,10 +343,10 @@ void FM7_MAINIO::reset()
 	reg_fd12 = 0xbc; // 0b10111100
 #endif
 #if defined(WITH_Z80)
-	if(z80 != NULL) z80->write_signal(SIG_CPU_BUSREQ, 0xffffffff, 0xffffffff);
+	if(z80 != NULL) call_write_signal(z80, SIG_CPU_BUSREQ, 0xffffffff, 0xffffffff);
 #endif
-	maincpu->write_signal(SIG_CPU_BUSREQ, 0, 0xffffffff);
-	maincpu->write_signal(SIG_CPU_HALTREQ, 0, 0xffffffff);
+	call_write_signal(maincpu, SIG_CPU_BUSREQ, 0, 0xffffffff);
+	call_write_signal(maincpu, SIG_CPU_HALTREQ, 0, 0xffffffff);
 	do_irq();
 
 //#if !defined(_FM8)
@@ -359,9 +366,9 @@ void FM7_MAINIO::reset_printer()
 	lpt_strobe = false;
 	// FD01
 	lpt_outdata = 0x00;
-	this->write_signals(&printer_strobe_bus, 0);
-	this->write_signals(&printer_select_bus, 0xffffffff);
-	this->write_signals(&printer_reset_bus, 0xffffffff);
+	write_signals(&printer_strobe_bus, 0);
+	write_signals(&printer_select_bus, 0xffffffff);
+	write_signals(&printer_reset_bus, 0xffffffff);
 	register_event(this, EVENT_PRINTER_RESET_COMPLETED, 5.0 * 1000.0, false, NULL);
 	if(lpt_type == 0) {
 		printer->write_signal(SIG_PRINTER_STROBE, 0x00, 0xff);
@@ -382,7 +389,7 @@ void FM7_MAINIO::set_clockmode(uint8_t flags)
 		clock_fast = true;
 	}
 	if(f != clock_fast) {
-		this->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
+		write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
 	}
 }
 
@@ -404,13 +411,13 @@ uint8_t FM7_MAINIO::get_port_fd00(void)
 void FM7_MAINIO::set_port_fd00(uint8_t data)
 {
 	if(drec != NULL) {
-		drec->write_signal(SIG_DATAREC_MIC, data, 0x01);
-		drec->write_signal(SIG_DATAREC_REMOTE, data, 0x02);
+		call_write_signal(drec, SIG_DATAREC_MIC, data, 0x01);
+		call_write_signal(drec, SIG_DATAREC_REMOTE, data, 0x02);
 	}	
 	lpt_slctin = ((data & 0x80) == 0);
 	lpt_strobe = ((data & 0x40) != 0);
-	this->write_signals(&printer_strobe_bus, lpt_strobe ? 0xffffffff : 0);
-	this->write_signals(&printer_select_bus, lpt_slctin ? 0xffffffff : 0);
+	write_signals(&printer_strobe_bus, lpt_strobe ? 0xffffffff : 0);
+	write_signals(&printer_select_bus, lpt_slctin ? 0xffffffff : 0);
 	if((lpt_type == 0) && (lpt_slctin)) {
 		printer->write_signal(SIG_PRINTER_STROBE, lpt_strobe ? 0xff : 0x00, 0xff);
 	}
@@ -517,7 +524,7 @@ void FM7_MAINIO::set_port_fd02(uint8_t val)
 		irqmask_keyboard = true;
 	}
 	if(keyirq_bak != irqmask_keyboard) {
-		display->write_signal(SIG_FM7_SUB_KEY_MASK, irqmask_keyboard ? 1 : 0, 1); 
+		call_write_signal(display, SIG_FM7_SUB_KEY_MASK, irqmask_keyboard ? 1 : 0, 1); 
 		set_irq_keyboard(irqreq_keyboard);
 	}
 //#endif	
@@ -728,10 +735,10 @@ void FM7_MAINIO::set_fd04(uint8_t val)
 {
 	// NOOP?
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	display->write_signal(SIG_DISPLAY_EXTRA_MODE, val, 0xff);
+	call_write_signal(display, SIG_DISPLAY_EXTRA_MODE, val, 0xff);
 	stat_kanjirom = ((val & 0x20) != 0);
 #elif defined(_FM77_VARIANTS)
-	display->write_signal(SIG_DISPLAY_EXTRA_MODE, val, 0xff);
+	call_write_signal(display, SIG_DISPLAY_EXTRA_MODE, val, 0xff);
 	stat_kanjirom    = ((val & 0x20) != 0);
 #endif
 #if defined(HAS_2HD)
@@ -758,21 +765,21 @@ void FM7_MAINIO::set_fd05(uint8_t val)
 	sub_cancel = ((val & 0x40) != 0) ? true : false;
 	sub_halt   = ((val & 0x80) != 0) ? true : false;
 	//if(sub_halt != sub_halt_bak) {
-	display->write_signal(SIG_DISPLAY_HALT,  (sub_halt) ? 0xff : 0x00, 0xff);
+	call_write_signal(display, SIG_DISPLAY_HALT,  (sub_halt) ? 0xff : 0x00, 0xff);
 	//}
 	sub_halt_bak = sub_halt;
 
 	//if(sub_cancel != sub_cancel_bak) {
-	display->write_signal(SIG_FM7_SUB_CANCEL, (sub_cancel) ? 0xff : 0x00, 0xff); // HACK
+	call_write_signal(display, SIG_FM7_SUB_CANCEL, (sub_cancel) ? 0xff : 0x00, 0xff); // HACK
 	//}
 	sub_cancel_bak = sub_cancel;
 #ifdef WITH_Z80
 	if((val & 0x01) != 0) {
-		maincpu->write_signal(SIG_CPU_HALTREQ, 1, 1);
+		call_write_signal(maincpu, SIG_CPU_HALTREQ, 1, 1);
 		req_z80run = true;
 	} else {
 		req_z80run = false;
-		if(z80 != NULL) z80->write_signal(SIG_CPU_BUSREQ, 1, 1);
+		if(z80 != NULL) call_write_signal(z80, SIG_CPU_BUSREQ, 1, 1);
 	}
 #endif
 }
@@ -784,12 +791,12 @@ void FM7_MAINIO::set_extdet(bool flag)
 
 void FM7_MAINIO::write_fd0f(void)
 {
-	mainmem->write_signal(FM7_MAINIO_PUSH_FD0F, 0, 0xffffffff);
+	call_write_signal(mainmem, FM7_MAINIO_PUSH_FD0F, 0, 0xffffffff);
 }
 
 uint8_t FM7_MAINIO::read_fd0f(void)
 {
-	mainmem->write_signal(FM7_MAINIO_PUSH_FD0F, 0xffffffff, 0xffffffff);
+	call_write_signal(mainmem, FM7_MAINIO_PUSH_FD0F, 0xffffffff, 0xffffffff);
 	return 0xff;
 }
 
@@ -955,7 +962,7 @@ void FM7_MAINIO::write_signal(int id, uint32_t data, uint32_t mask)
 		} else {
 			clock_fast = false;
 		}
-		this->write_signals(&clock_status, clock_fast ? 0xffffffff : 0);
+		write_signals(&clock_status, clock_fast ? 0xffffffff : 0);
 		break;
 	case FM7_MAINIO_CMT_RECV: // FD02
 		cmt_indat = val_b ^ cmt_invert;
@@ -1018,7 +1025,7 @@ void FM7_MAINIO::write_signal(int id, uint32_t data, uint32_t mask)
 #if defined(WITH_Z80)
 	case FM7_MAINIO_RUN_Z80:
 		if((req_z80run)/*  && (val_b) */) {
-			if(z80 != NULL) z80->write_signal(SIG_CPU_BUSREQ, 0, 1);
+			if(z80 != NULL) call_write_signal(z80, SIG_CPU_BUSREQ, 0, 1);
 			z80_run = true;
 			//z80->reset(); // OK?
 		}
@@ -1027,7 +1034,7 @@ void FM7_MAINIO::write_signal(int id, uint32_t data, uint32_t mask)
 		if(!(req_z80run) /* && (val_b) */ && (z80_run)) {
 			z80_run = false;
 			// Wait dead cycle?
-			maincpu->write_signal(SIG_CPU_HALTREQ, 0, 1);
+			call_write_signal(maincpu, SIG_CPU_HALTREQ, 0, 1);
 		}
 		break;
 #endif
@@ -1616,16 +1623,16 @@ void FM7_MAINIO::write_data8(uint32_t addr, uint32_t data)
 #if defined(_FM77AV_VARIANTS)
 		case 0x10:
 			flag = ((data & 0x02) == 0) ? true : false;
-			mainmem->write_signal(FM7_MAINIO_INITROM_ENABLED, (flag) ? 0xffffffff : 0 , 0xffffffff);
+			call_write_signal(mainmem, FM7_MAINIO_INITROM_ENABLED, (flag) ? 0xffffffff : 0 , 0xffffffff);
 			break;
 		case 0x12:
-			display->write_signal(SIG_DISPLAY_MODE320, data,  0x40);
+			call_write_signal(display, SIG_DISPLAY_MODE320, data,  0x40);
 			reg_fd12 &= ~0x40;
 			reg_fd12 |= (data & 0x40);
 			break;
 		case 0x13:
 			sub_monitor_type = data & 0x07;
-			display->write_signal(SIG_FM7_SUB_BANK, sub_monitor_type, 0x07);
+			call_write_signal(display, SIG_FM7_SUB_BANK, sub_monitor_type, 0x07);
 			break;
 #endif
 		case 0x15: // OPN CMD
@@ -1761,7 +1768,7 @@ void FM7_MAINIO::write_data8(uint32_t addr, uint32_t data)
 			break;
 #if defined(CAPABLE_DICTROM)
 		case 0x2e: // 
-			mainmem->write_signal(FM7_MAINIO_EXTBANK, data, 0xff);
+			call_write_signal(mainmem, FM7_MAINIO_EXTBANK, data, 0xff);
 			break;
 #endif			
 #if defined(_FM77AV_VARIANTS)
@@ -1783,7 +1790,7 @@ void FM7_MAINIO::write_data8(uint32_t addr, uint32_t data)
 #endif
 //#if !defined(_FM8)			
 		case 0x37: // Multi page
-			display->write_signal(SIG_DISPLAY_MULTIPAGE, data, 0x00ff);
+			call_write_signal(display, SIG_DISPLAY_MULTIPAGE, data, 0x00ff);
 			break;
 		case 0x40: // MODEM
 		case 0x41:
@@ -1829,26 +1836,26 @@ void FM7_MAINIO::write_data8(uint32_t addr, uint32_t data)
 			mainmem->write_data8(FM7_MAINIO_WINDOW_OFFSET, (uint32_t)(data & 0x00ff));
 			break;
 		case 0x93:
-   			mainmem->write_signal(FM7_MAINIO_BOOTRAM_RW, data, 0x01);
-			mainmem->write_signal(FM7_MAINIO_WINDOW_ENABLED, data , 0x40);
+			call_write_signal(mainmem, FM7_MAINIO_BOOTRAM_RW, data, 0x01);
+			call_write_signal(mainmem, FM7_MAINIO_WINDOW_ENABLED, data , 0x40);
 			//this->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
 			//mainmem->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
-			mainmem->write_signal(FM7_MAINIO_MMR_ENABLED, data, 0x80);
+			call_write_signal(mainmem, FM7_MAINIO_MMR_ENABLED, data, 0x80);
 			//}
 			break;
 #endif
 #if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || \
     defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
 		case 0x94:
-			mainmem->write_signal(FM7_MAINIO_MMR_EXTENDED, data, 0x80);
-			mainmem->write_signal(FM7_MAINIO_MEM_REFRESH_FAST, data, 0x04);
-			mainmem->write_signal(FM7_MAINIO_WINDOW_FAST , data, 0x01);
+			call_write_signal(mainmem, FM7_MAINIO_MMR_EXTENDED, data, 0x80);
+			call_write_signal(mainmem, FM7_MAINIO_MEM_REFRESH_FAST, data, 0x04);
+			call_write_signal(mainmem, FM7_MAINIO_WINDOW_FAST , data, 0x01);
 
 			break;
 # if defined(_FM77AV40SX) || defined(_FM77AV40EX)
 		case 0x95:
-			mainmem->write_signal(FM7_MAINIO_FASTMMR_ENABLED, data, 0x08);
-			mainmem->write_signal(FM7_MAINIO_EXTROM, data , 0x80);
+			call_write_signal(mainmem, FM7_MAINIO_FASTMMR_ENABLED, data, 0x08);
+			call_write_signal(mainmem, FM7_MAINIO_EXTROM, data , 0x80);
 			break;
 # endif
 #endif			
@@ -1896,7 +1903,7 @@ void FM7_MAINIO::event_callback(int event_id, int err)
 		event_beep_cycle();
 		break;
 	case EVENT_UP_BREAK:
-		keyboard->write_signal(SIG_FM7KEY_OVERRIDE_PRESS_BREAK, 0, 0xffffffff);
+		call_write_signal(keyboard, SIG_FM7KEY_OVERRIDE_PRESS_BREAK, 0, 0xffffffff);
 		set_break_key(false);
 		break;
 //#if !defined(_FM8)
@@ -1928,7 +1935,7 @@ void FM7_MAINIO::event_callback(int event_id, int err)
 		break;
 #endif
 	case EVENT_PRINTER_RESET_COMPLETED:			
-		this->write_signals(&printer_reset_bus, 0x00);
+		write_signals(&printer_reset_bus, 0x00);
 		break;
 	default:
 		break;
@@ -1946,7 +1953,7 @@ void FM7_MAINIO::update_config()
 		clock_fast = false;
 		break;
 	}
-	this->write_signals(&clock_status, clock_fast ? 0xffffffff : 0);
+	write_signals(&clock_status, clock_fast ? 0xffffffff : 0);
 }
 
 void FM7_MAINIO::event_vline(int v, int clock)
