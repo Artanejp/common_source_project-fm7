@@ -192,7 +192,6 @@ public:
 	void initialize_sound(int rate, int samples);
 	uint16_t* create_sound(int* extra_frames);
 	int get_sound_buffer_ptr();
-	
 	void set_context_cpu(DEVICE* device, uint32_t clocks)
 	{
 		assert(dcount_cpu < MAX_CPU);
