@@ -94,58 +94,35 @@ void DISPLAY::GETVRAM_8_200L(int yoff, scrntype_t *p,
 	uint16_t tmp_d[8];
 
 	scrntype_t tmp_dd[8];
+
+__DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
-		tmp_d[i] = pg[i];
+		tmp_d[i]  = pg[i];
+		tmp_d[i] |= pr[i];
+		tmp_d[i] |= pb[i];
+		tmp_d[i] >>= 5;
 	}
-	for(int i = 0; i < 8; i++) {
-		tmp_d[i] = tmp_d[i] | pr[i];
-	}
-	for(int i = 0; i < 8; i++) {
-		tmp_d[i] = tmp_d[i] | pb[i];
-	}
-	for(int i = 0; i < 8; i++) {
-		tmp_d[i] = tmp_d[i] >> 5;
-	}
+__DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
 		tmp_dd[i] = dpalette_pixel[tmp_d[i]];
-	}
-	for(int i = 0; i < 8; i++) {
 		p[i] = tmp_dd[i];
 	}
 #if defined(FIXED_FRAMEBUFFER_SIZE)
 	if(scan_line) {
-#if 0
-		static const scrntype_t dblack[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+/* Fancy scanline */
+	#if defined(_RGB555) || defined(_RGBA565)
+		static const int shift_factor = 2;
+	#else // 24bit
+		static const int shift_factor = 3;
+	#endif
+__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
-			px[i] = dblack[i];
-		}
-#else /* Fancy scanline */
-		static const scrntype_t dblack[8] = { RGB_COLOR(32, 32, 32),
-											  RGB_COLOR(32, 32, 32),
-											  RGB_COLOR(32, 32, 32),
-											  RGB_COLOR(32, 32, 32),
-											  RGB_COLOR(32, 32, 32),
-											  RGB_COLOR(32, 32, 32),
-											  RGB_COLOR(32, 32, 32),
-											  RGB_COLOR(32, 32, 32)};
-
-		for(int i = 0; i < 8; i++) {
-#if defined(_RGB888) || defined(_RGBA888)
-			tmp_dd[i] = tmp_dd[i] >> 3;
-#elif defined(_RGB555)
-			tmp_dd[i] = tmp_dd[i] >> 2;
-#elif defined(_RGB565)
-			tmp_dd[i] = tmp_dd[i] >> 2;
-#endif
-		}
-		for(int i = 0; i < 8; i++) {
-			tmp_dd[i] = tmp_dd[i] & RGBA_COLOR(31, 31, 31, 255);
-		}
-		for(int i = 0; i < 8; i++) {
+			tmp_dd[i] = (tmp_dd[i] >> shift_factor) & (const scrntype_t)RGBA_COLOR(31, 31, 31, 255);;
+			//tmp_dd[i] = tmp_dd[i] & (const scrntype_t)RGBA_COLOR(31, 31, 31, 255);
 			px[i] = tmp_dd[i];
 		}
-#endif
 	} else {
+__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
 			px[i] = tmp_dd[i];
 		}
@@ -185,17 +162,15 @@ void DISPLAY::GETVRAM_8_400L(int yoff, scrntype_t *p,
 	uint16_t *pb = &(bit_trans_table_2[b][0]);
 	uint16_t tmp_d[8];
 	scrntype_t tmp_dd[8];
-	
+
+__DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
 		tmp_d[i] = pg[i] | pr[i] | pb[i];
-	}
-	for(int i = 0; i < 8; i++) {
 		tmp_d[i] = tmp_d[i] >> 5;
-	}
+		
+__DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
 		tmp_dd[i] = dpalette_pixel[tmp_d[i]];
-	}
-	for(int i = 0; i < 8; i++) {
 		p[i] = tmp_dd[i];
 	}
 }
@@ -248,25 +223,17 @@ void DISPLAY::GETVRAM_256k(int yoff, scrntype_t *p, scrntype_t *px, bool scan_li
 		p3 = &(bit_trans_table_3[bb[3]][0]);
 		p4 = &(bit_trans_table_4[bb[4]][0]);
 		p5 = &(bit_trans_table_5[bb[5]][0]);
+__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
 			_btmp[i] = p0[i];
-		}
-		for(int i = 0; i < 8; i++) {
 			_btmp[i] = _btmp[i] | p1[i];
-		}
-		for(int i = 0; i < 8; i++) {
 			_btmp[i] = _btmp[i] | p2[i];
-		}
-		for(int i = 0; i < 8; i++) {
 			_btmp[i] = _btmp[i] | p3[i];
-		}
-		for(int i = 0; i < 8; i++) {
 			_btmp[i] = _btmp[i] | p4[i];
-		}
-		for(int i = 0; i < 8; i++) {
 			_btmp[i] = _btmp[i] | p5[i];
 		}
 	} else {
+__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
 			_btmp[i] = 0;
 		}
@@ -289,25 +256,17 @@ void DISPLAY::GETVRAM_256k(int yoff, scrntype_t *p, scrntype_t *px, bool scan_li
 		p3 = &(bit_trans_table_3[rr[3]][0]);
 		p4 = &(bit_trans_table_4[rr[4]][0]);
 		p5 = &(bit_trans_table_5[rr[5]][0]);
+__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
 			_rtmp[i] = p0[i];
-		}
-		for(int i = 0; i < 8; i++) {
 			_rtmp[i] = _rtmp[i] | p1[i];
-		}
-		for(int i = 0; i < 8; i++) {
 			_rtmp[i] = _rtmp[i] | p2[i];
-		}
-		for(int i = 0; i < 8; i++) {
 			_rtmp[i] = _rtmp[i] | p3[i];
-		}
-		for(int i = 0; i < 8; i++) {
 			_rtmp[i] = _rtmp[i] | p4[i];
-		}
-		for(int i = 0; i < 8; i++) {
 			_rtmp[i] = _rtmp[i] | p5[i];
 		}
 	} else {
+__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
 			_rtmp[i] = 0;
 		}
@@ -330,67 +289,39 @@ void DISPLAY::GETVRAM_256k(int yoff, scrntype_t *p, scrntype_t *px, bool scan_li
 		p3 = &(bit_trans_table_3[gg[3]][0]);
 		p4 = &(bit_trans_table_4[gg[4]][0]);
 		p5 = &(bit_trans_table_5[gg[5]][0]);
+__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
 			_gtmp[i] = p0[i];
-		}
-		for(int i = 0; i < 8; i++) {
 			_gtmp[i] = _gtmp[i] | p1[i];
-		}
-		for(int i = 0; i < 8; i++) {
 			_gtmp[i] = _gtmp[i] | p2[i];
-		}
-		for(int i = 0; i < 8; i++) {
 			_gtmp[i] = _gtmp[i] | p3[i];
-		}
-		for(int i = 0; i < 8; i++) {
 			_gtmp[i] = _gtmp[i] | p4[i];
-		}
-		for(int i = 0; i < 8; i++) {
 			_gtmp[i] = _gtmp[i] | p5[i];
 		}
 	} else {
+__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
 			_gtmp[i] = 0;
 		}
 	}
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
+__DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
 		tmp_dd[i] = RGB_COLOR(_rtmp[i], _gtmp[i], _btmp[i]);
-	}
-	for(int i = 0; i < 8; i++) {
 		p[i] = tmp_dd[i];
 	}
 #else
+__DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
 		tmp_dd[i * 2] = tmp_dd[i * 2 + 1] = RGB_COLOR(_rtmp[i], _gtmp[i], _btmp[i]);
 	}
+__DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 16; i++) {
 		p[i] = tmp_dd[i];
 	}
 	if(scan_line) {
-#if 0
-		static const scrntype_t dblack[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		for(int i = 0; i < 16; i++) {
-			px[i] = dblack[i];
-		}
-#else /* Fancy scanline */
-		static const scrntype_t dblack[16] = { RGB_COLOR(32, 32, 32),
-											   RGB_COLOR(32, 32, 32),
-											   RGB_COLOR(32, 32, 32),
-											   RGB_COLOR(32, 32, 32),
-											   RGB_COLOR(32, 32, 32),
-											   RGB_COLOR(32, 32, 32),
-											   RGB_COLOR(32, 32, 32),
-											   RGB_COLOR(32, 32, 32),
-											   RGB_COLOR(32, 32, 32),
-											   RGB_COLOR(32, 32, 32),
-											   RGB_COLOR(32, 32, 32),
-											   RGB_COLOR(32, 32, 32),
-											   RGB_COLOR(32, 32, 32),
-											   RGB_COLOR(32, 32, 32),
-											   RGB_COLOR(32, 32, 32),
-											   RGB_COLOR(32, 32, 32)};
-
+/* Fancy scanline */
+__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 16; i++) {
 #if defined(_RGB888) || defined(_RGBA888)
 			tmp_dd[i] = tmp_dd[i] >> 3;
@@ -400,14 +331,13 @@ void DISPLAY::GETVRAM_256k(int yoff, scrntype_t *p, scrntype_t *px, bool scan_li
 			tmp_dd[i] = tmp_dd[i] >> 2;
 #endif
 		}
+__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 16; i++) {
 			tmp_dd[i] = tmp_dd[i] & RGBA_COLOR(31, 31, 31, 256);
-		}
-		for(int i = 0; i < 16; i++) {
 			px[i] = tmp_dd[i];
 		}
-#endif		
 	} else {
+__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 16; i++) {
 			px[i] = tmp_dd[i];
 		}
@@ -479,16 +409,11 @@ void DISPLAY::GETVRAM_4096(int yoff, scrntype_t *p, scrntype_t *px,
 	p1 = &(bit_trans_table_1[gg[1]][0]);
 	p2 = &(bit_trans_table_2[gg[2]][0]);
 	p3 = &(bit_trans_table_3[gg[3]][0]);
+__DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
 		tmp_g[i]  = p0[i];
-	}
-	for(int i = 0; i < 8; i++) {
 		tmp_g[i]  = tmp_g[i] | p1[i];
-	}
-	for(int i = 0; i < 8; i++) {
 		tmp_g[i]  = tmp_g[i] | p2[i];
-	}
-	for(int i = 0; i < 8; i++) {
 		tmp_g[i]  = tmp_g[i] | p3[i];
 	}
 	// R
@@ -496,16 +421,11 @@ void DISPLAY::GETVRAM_4096(int yoff, scrntype_t *p, scrntype_t *px,
 	p1 = &(bit_trans_table_1[rr[1]][0]);
 	p2 = &(bit_trans_table_2[rr[2]][0]);
 	p3 = &(bit_trans_table_3[rr[3]][0]);
+__DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
 		tmp_r[i]  = p0[i];
-	}
-	for(int i = 0; i < 8; i++) {
 		tmp_r[i]  = tmp_r[i] | p1[i];
-	}
-	for(int i = 0; i < 8; i++) {
 		tmp_r[i]  = tmp_r[i] | p2[i];
-	}
-	for(int i = 0; i < 8; i++) {
 		tmp_r[i]  = tmp_r[i] | p3[i];
 	}
 	// B
@@ -513,73 +433,42 @@ void DISPLAY::GETVRAM_4096(int yoff, scrntype_t *p, scrntype_t *px,
 	p1 = &(bit_trans_table_1[bb[1]][0]);
 	p2 = &(bit_trans_table_2[bb[2]][0]);
 	p3 = &(bit_trans_table_3[bb[3]][0]);
+__DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
 		tmp_b[i]  = p0[i];
-	}
-	for(int i = 0; i < 8; i++) {
 		tmp_b[i]  = tmp_b[i] | p1[i];
-	}
-	for(int i = 0; i < 8; i++) {
 		tmp_b[i]  = tmp_b[i] | p2[i];
-	}
-	for(int i = 0; i < 8; i++) {
 		tmp_b[i]  = tmp_b[i] | p3[i];
 	}
+__DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
+		tmp_g[i] <<= 4;
 		pixels[i] = tmp_b[i] >> 4;
-	}
-	for(int i = 0; i < 8; i++) {
 		pixels[i] = pixels[i] | tmp_r[i];
-	}
-	for(int i = 0; i < 8; i++) {
-		pixels[i] = pixels[i] | tmp_g[i] << 4;
-	}
-
-	for(int i = 0; i < 8; i++) {
+		pixels[i] = pixels[i] | tmp_g[i];
 		pixels[i] = pixels[i] & __masks[i];
 	}
 	//for(int i = 0; i < 8; i++) {
 	//	pixels[i] = pixels[i] & mask;
 	//}
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
+__DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
 		tmp_dd[i] = analog_palette_pixel[pixels[i]];
-	}
-
-	for(int i = 0; i < 8; i++) {
 		p[i] = tmp_dd[i];
 	}
 #else
+__DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
 		tmp_dd[i * 2] = tmp_dd[i * 2 + 1] = analog_palette_pixel[pixels[i]];;
 	}
+__DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 16; i++) {
 		p[i] = tmp_dd[i];
 	}
 	if(scan_line) {
-#if 0
-		static const scrntype_t dblack[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		for(int i = 0; i < 16; i++) {
-			px[i] = dblack[i];
-		}
-#else /* Fancy scanline */
-		static const scrntype_t dblack[16] = { RGB_COLOR(32, 32, 32),
-											   RGB_COLOR(32, 32, 32),
-											   RGB_COLOR(32, 32, 32),
-											   RGB_COLOR(32, 32, 32),
-											   RGB_COLOR(32, 32, 32),
-											   RGB_COLOR(32, 32, 32),
-											   RGB_COLOR(32, 32, 32),
-											   RGB_COLOR(32, 32, 32),
-											   RGB_COLOR(32, 32, 32),
-											   RGB_COLOR(32, 32, 32),
-											   RGB_COLOR(32, 32, 32),
-											   RGB_COLOR(32, 32, 32),
-											   RGB_COLOR(32, 32, 32),
-											   RGB_COLOR(32, 32, 32),
-											   RGB_COLOR(32, 32, 32),
-											   RGB_COLOR(32, 32, 32)};
-
+/* Fancy scanline */
+__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 16; i++) {
 #if defined(_RGB888) || defined(_RGBA888)
 			tmp_dd[i] = tmp_dd[i] >> 3;
@@ -589,14 +478,13 @@ void DISPLAY::GETVRAM_4096(int yoff, scrntype_t *p, scrntype_t *px,
 			tmp_dd[i] = tmp_dd[i] >> 2;
 #endif
 		}
+__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 16; i++) {
-			tmp_dd[i] = tmp_dd[i] & RGBA_COLOR(31, 31, 31, 255);
-		}
-		for(int i = 0; i < 16; i++) {
+			tmp_dd[i] = tmp_dd[i] & (const scrntype_t)RGBA_COLOR(31, 31, 31, 255);
 			px[i] = tmp_dd[i];
 		}
-#endif		
 	} else {
+__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 16; i++) {
 			px[i] = tmp_dd[i];
 		}
@@ -658,16 +546,11 @@ void DISPLAY::draw_screen2()
 		if(crt_flag_bak) {
 			scrntype_t *ppp;
 			if(display_mode == DISPLAY_MODE_8_200L) {
-#if 1
 # if !defined(FIXED_FRAMEBUFFER_SIZE)
 				emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 # endif
 				emu->set_vm_screen_lines(200);
-#endif
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
-#if defined(_OPENMP)
-//#pragma omp parallel for shared(vram_draw_table), private(ppp, yy)
-#endif
 				for(y = 0; y < 200; y += 8) {
 					for(yy = 0; yy < 8; yy++) {
 						vram_draw_table[y + yy] = false;
@@ -676,9 +559,6 @@ void DISPLAY::draw_screen2()
 					}
 				}
 #else
-#if defined(_OPENMP)
-//#pragma omp parallel for shared(vram_draw_table), private(ppp, yy)
-#endif
 				for(y = 0; y < 400; y += 8) {
 					for(yy = 0; yy < 8; yy++) {
 						vram_draw_table[y + yy] = false;
@@ -688,13 +568,8 @@ void DISPLAY::draw_screen2()
 				}
 #endif
 			} else if(display_mode == DISPLAY_MODE_8_400L) {
-#if 1
 				emu->set_vm_screen_lines(400);
 				emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
-#endif
-#if defined(_OPENMP)
-//#pragma omp parallel for shared(vram_draw_table), private(ppp, yy)
-#endif
 				for(y = 0; y < 400; y += 8) {
 					for(yy = 0; yy < 8; yy++) {
 						vram_draw_table[y + yy] = false;
@@ -703,16 +578,11 @@ void DISPLAY::draw_screen2()
 					}
 				}
 			} else { // 320x200
-#if 1
 # if !defined(FIXED_FRAMEBUFFER_SIZE)
 				emu->set_vm_screen_size(320, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 # endif
 				emu->set_vm_screen_lines(200);
-#endif
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
-#if defined(_OPENMP)
-//#pragma omp parallel for shared(vram_draw_table), private(ppp, yy)
-#endif
 				for(y = 0; y < 200; y += 8) {
 					for(yy = 0; yy < 8; yy++) {
 						vram_draw_table[y + yy] = false;
@@ -721,9 +591,6 @@ void DISPLAY::draw_screen2()
 					}
 				}
 #else
-#if defined(_OPENMP)
-//#pragma omp parallel for shared(vram_draw_table), private(ppp, yy)
-#endif
 				for(y = 0; y < 400; y++) {
 					for(yy = 0; yy < 8; yy++) {   
 						vram_draw_table[y + yy] = false;
@@ -740,25 +607,13 @@ void DISPLAY::draw_screen2()
 	crt_flag_bak = crt_flag;
 	if(!vram_wrote_shadow) return;
 	vram_wrote_shadow = false;
-	//if(palette_changed) {
-	//	for(y = 0; y < 400; y++) {
-	//		vram_draw_table[y] = true;
-	//	}
-	//	palette_changed = false;
-	//}
 	if(display_mode == DISPLAY_MODE_8_200L) {
 		int ii;
-#if 1
 # if !defined(FIXED_FRAMEBUFFER_SIZE)
 		emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 # endif
 		emu->set_vm_screen_lines(200);
-#endif
 		yoff = 0;
-		//rgbmask = ~multimode_dispmask;
-#if defined(_OPENMP)
-//#pragma omp parallel for shared(vram_draw_table), private(p, p2, yoff, ii, x, yy)
-#endif
 		for(y = 0; y < 200; y += 8) {
 			for(yy = 0; yy < 8; yy++) {
 			
@@ -808,21 +663,16 @@ void DISPLAY::draw_screen2()
 	}
 # if defined(_FM77AV_VARIANTS)
 	if(display_mode == DISPLAY_MODE_4096) {
-#if 1
 # if !defined(FIXED_FRAMEBUFFER_SIZE)
 		emu->set_vm_screen_size(320, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 # endif
 		emu->set_vm_screen_lines(200);
-#endif
 		uint32_t mask = 0;
 		int ii;
 		yoff = 0;
 		if(!multimode_dispflags[0]) mask = 0x00f;
 		if(!multimode_dispflags[1]) mask = mask | 0x0f0;
 		if(!multimode_dispflags[2]) mask = mask | 0xf00;
-#if defined(_OPENMP)
-//#pragma omp parallel for shared(vram_draw_table), private(p, p2, yoff, ii, x, yy)
-#endif
 		for(y = 0; y < 200; y += 4) {
 			for(yy = 0; yy < 4; yy++) {
 				if(!vram_draw_table[y + yy]) continue;
@@ -877,15 +727,10 @@ void DISPLAY::draw_screen2()
 #  if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	else if(display_mode == DISPLAY_MODE_8_400L) {
 		int ii;
-#if 1
 		emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 		emu->set_vm_screen_lines(400);
-#endif
 		yoff = 0;
 		//rgbmask = ~multimode_dispmask;
-#if defined(_OPENMP)
-//#pragma omp parallel for shared(vram_draw_table), private(pp, p, yoff, x, ii, yy)
-#endif
 		for(y = 0; y < 400; y += 8) {
 			for(yy = 0; yy < 8; yy++) {
 				if(!vram_draw_table[y + yy]) continue;
@@ -921,17 +766,12 @@ void DISPLAY::draw_screen2()
 		return;
 	} else if(display_mode == DISPLAY_MODE_256k) {
 		int ii;
-#if 1
 # if !defined(FIXED_FRAMEBUFFER_SIZE)
 		emu->set_vm_screen_size(320, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 # endif
 		emu->set_vm_screen_lines(200);
-#endif
 		//rgbmask = ~multimode_dispmask;
 		//
-#if defined(_OPENMP)
-//#pragma omp parallel for shared(vram_draw_table), private(pp, p, yoff, x, ii, yy)
-#endif
 		for(y = 0; y < 200; y += 4) {
 			for(yy = 0; yy < 4; yy++) {
 				if(!vram_draw_table[y + yy]) continue;

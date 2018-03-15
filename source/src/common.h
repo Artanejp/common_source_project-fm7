@@ -506,6 +506,16 @@ uint16_t DLL_PREFIX EndianToLittle_WORD(uint16_t x);
 	#define B_OF_COLOR(c)		(((c)      ) & 0xff)
 	#define A_OF_COLOR(c)		(((c) >> 24) & 0xff)
 #endif
+/*
+ * Below macros are hint for SIMD.
+ */
+#if defined(__clang__)
+	#define __DECL_VECTORIZED_LOOP   _Pragma("clang loop vectorize(enable) interleave(enable)")
+#elif defined(__GNUC__)
+	#define __DECL_VECTORIZED_LOOP	_Pragma("GCC ivdep")
+#else
+	#define __DECL_VECTORIZED_LOOP
+#endif
 
 // wav file header
 #pragma pack(1)
