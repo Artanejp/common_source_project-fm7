@@ -202,6 +202,11 @@ protected:
 
 	scrntype_t dpalette_pixel[8];
 	scrntype_t dpalette_pixel_tmp[8];
+#if defined(USE_GREEN_DISPLAY)
+	scrntype_t dpalette_pixel_green[8];
+	scrntype_t dpalette_green_tmp[8];
+#endif
+	
 	uint8_t dpalette_data[8];
 #if defined(_FM77AV_VARIANTS)
 	pair_t apalette_index;
@@ -271,6 +276,7 @@ protected:
 #elif defined(_FM77_VARIANTS)
 	KANJIROM *kanjiclass1;
 #endif
+	bool force_update;
 	bool vram_wrote_shadow;
 	bool vram_wrote_table[411 * 5];
 	bool vram_draw_table[411];
@@ -285,6 +291,10 @@ protected:
 	MC6809 *subcpu;
 	KEYBOARD *keyboard;
 	bool vram_wrote;
+	
+#if defined(USE_GREEN_DISPLAY)
+	void GETVRAM_8_200L_GREEN(int yoff, scrntype_t *p, scrntype_t *px, bool window_inv = false, bool scan_line = false);
+#endif
 	
 	void GETVRAM_8_200L(int yoff, scrntype_t *p, scrntype_t *px, bool window_inv = false, bool scan_line = false);
 #if defined(_FM77AV_VARIANTS)	

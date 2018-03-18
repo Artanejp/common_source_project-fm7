@@ -57,6 +57,7 @@
 
 #undef CPU_TYPE_DEFAULT
 #define CPU_TYPE_DEFAULT 1
+#define USE_GREEN_DISPLAY
 
 #elif defined(_FM7)
 #define DEVICE_NAME		"FUJITSU FM-7"
@@ -65,6 +66,7 @@
 #define DIPSWITCH_DEFAULT 0x000000000 
 #define MAX_DRIVE  4
 #define CAPABLE_JCOMMCARD 1
+#define USE_GREEN_DISPLAY
 #elif defined(_FMNEW7)
 #define DEVICE_NAME		"FUJITSU FM-NEW7"
 #define CONFIG_NAME		"fmnew7"
@@ -72,6 +74,7 @@
 #define DIPSWITCH_DEFAULT 0x000000000 
 #define MAX_DRIVE  4
 #define CAPABLE_JCOMMCARD 1
+#define USE_GREEN_DISPLAY
 
 #elif defined(_FM77) || defined(_FM77L2)
 # if defined(_FM77)
@@ -92,6 +95,7 @@
 #define MAX_DRIVE  4
 #define CAPABLE_JCOMMCARD 1
 #define HAS_2HD
+#define USE_GREEN_DISPLAY
 
 #elif defined(_FM77L4)
 #define DEVICE_NAME		"FUJITSU FM-77L4"
@@ -109,6 +113,7 @@
 #define DIPSWITCH_DEFAULT 0x00000003 
 #define MAX_DRIVE  4
 #define CAPABLE_JCOMMCARD 1
+#define USE_GREEN_DISPLAY
 
 #elif defined(_FM77AV)
 #define DEVICE_NAME		"FUJITSU FM77AV"
@@ -379,6 +384,18 @@ static const _TCHAR *joy_button_captions[] = {
 	_T("Button #1(2nd)"),
 	_T("Button #2(2nd)"),
 };
+#endif
+
+/*
+ * NOTE:
+ * Below defines are for EVENT::run_cpu().
+ * Please see event.cpp for details.
+ * 20180317 -- K.Ohta.
+ */
+
+#define USE_CPU_MC6809
+#if defined(WITH_Z80)
+#define USE_CPU_Z80
 #endif
 
 class EMU;

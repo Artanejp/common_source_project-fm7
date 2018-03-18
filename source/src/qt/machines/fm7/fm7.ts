@@ -654,6 +654,14 @@ Need to restart this emulator if changed.</source>
 日本語通信カードではありません。
 変更した場合、エミュレータの再起動が必要です。</translation>
     </message>
+    <message>
+        <source>Green Display</source>
+        <translation>グリーンディスプレイ</translation>
+    </message>
+    <message>
+        <source>Using ancient &quot;Green Display&quot; to display.</source>
+        <translation>いにしえのグリーンディスプレイで表示します。</translation>
+    </message>
 </context>
 <context>
     <name>MainWindow</name>

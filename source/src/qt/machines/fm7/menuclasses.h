@@ -41,6 +41,9 @@ public slots:
 # else   
 	void do_set_cyclesteal(bool flag);
 # endif
+#if defined(USE_GREEN_DISPLAY)
+	void do_set_green_display(bool);
+#endif
 #if defined(CAPABLE_JCOMMCARD)
 	void do_set_jcommcard(bool flag);
 #endif
@@ -88,6 +91,9 @@ protected:
 
 #if defined(CAPABLE_DICTROM) && !defined(_FM77AV40EX) && !defined(_FM77AV40SX)
 	class Action_Control_7 *actionDictCard;
+#endif
+#if defined(USE_GREEN_DISPLAY)
+	class Action_Control_7 *action_GreenDisplay;
 #endif
 	QActionGroup *actionGroup_Auto_5_8key;
 	QMenu *menuAuto5_8Key;

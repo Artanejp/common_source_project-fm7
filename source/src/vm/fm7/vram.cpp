@@ -78,6 +78,7 @@ void DISPLAY::draw_screen2()
 	uint32_t yoff_d1, yoff_d2;
 	uint16_t wx_begin, wx_end, wy_low, wy_high;
 	bool scan_line = config.scan_line;
+	bool ff = force_update;
 
 #if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	{
@@ -151,15 +152,49 @@ void DISPLAY::draw_screen2()
 		return;
 	}
 	crt_flag_bak = crt_flag;
-	if(!vram_wrote_shadow) return;
+	if(!(vram_wrote_shadow | ff)) return;
 	vram_wrote_shadow = false;
 	if(display_mode == DISPLAY_MODE_8_200L) {
 		int ii;
 		yoff = 0;
+#ifdef USE_GREEN_DISPLAY
+		if((config.dipswitch & FM7_DIPSW_GREEN_DISPLAY) != 0) {
+			// Green display had only connected to FM-8, FM-7/NEW7 and FM-77.
+			for(y = 0; y < 200; y += 8) {
+				for(yy = 0; yy < 8; yy++) {
+					if(!(vram_draw_table[y + yy] | ff)) continue;
+					vram_draw_table[y + yy] = false;
+#if !defined(FIXED_FRAMEBUFFER_SIZE)
+					p = emu->get_screen_buffer(y + yy);
+					p2 = NULL;
+#else
+					p = emu->get_screen_buffer((y + yy) * 2);
+					p2 = emu->get_screen_buffer((y + yy) * 2 + 1);
+#endif
+					if(p == NULL) continue;
+					yoff = (y + yy) * 80;
+					{
+						for(x = 0; x < 10; x++) {
+							for(ii = 0; ii < 8; ii++) {
+								GETVRAM_8_200L_GREEN(yoff + ii, p, p2, false, scan_line);
+#if defined(FIXED_FRAMEBUFFER_SIZE)
+								p2 += 8;
+#endif
+								p += 8;
+							}
+							yoff += 8;
+						}
+					}
+				}
+			}
+			if(ff) force_update = false;
+			return;
+		}
+#endif
 		for(y = 0; y < 200; y += 8) {
 			for(yy = 0; yy < 8; yy++) {
 			
-				if(!vram_draw_table[y + yy]) continue;
+				if(!(vram_draw_table[y + yy] | ff)) continue;
 				vram_draw_table[y + yy] = false;
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
 				p = emu->get_screen_buffer(y + yy);
@@ -201,6 +236,7 @@ void DISPLAY::draw_screen2()
 			}
 		   
 		}
+		if(ff) force_update = false;
 		return;
 	}
 # if defined(_FM77AV_VARIANTS)
@@ -213,7 +249,7 @@ void DISPLAY::draw_screen2()
 		if(!multimode_dispflags[2]) mask = mask | 0xf00;
 		for(y = 0; y < 200; y += 4) {
 			for(yy = 0; yy < 4; yy++) {
-				if(!vram_draw_table[y + yy]) continue;
+				if(!(vram_draw_table[y + yy] | ff)) continue;
 				vram_draw_table[y + yy] = false;
 
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
@@ -260,6 +296,7 @@ void DISPLAY::draw_screen2()
 			}
 		   
 		}
+		if(ff) force_update = false;
 		return;
 	}
 #  if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -269,7 +306,7 @@ void DISPLAY::draw_screen2()
 		//rgbmask = ~multimode_dispmask;
 		for(y = 0; y < 400; y += 8) {
 			for(yy = 0; yy < 8; yy++) {
-				if(!vram_draw_table[y + yy]) continue;
+				if(!(vram_draw_table[y + yy] | ff)) continue;
 				vram_draw_table[y + yy] = false;
 
 				p = emu->get_screen_buffer(y + yy);
@@ -299,6 +336,7 @@ void DISPLAY::draw_screen2()
 					}
 			}
 		}
+		if(ff) force_update = false;
 		return;
 	} else if(display_mode == DISPLAY_MODE_256k) {
 		int ii;
@@ -306,7 +344,7 @@ void DISPLAY::draw_screen2()
 		//
 		for(y = 0; y < 200; y += 4) {
 			for(yy = 0; yy < 4; yy++) {
-				if(!vram_draw_table[y + yy]) continue;
+				if(!(vram_draw_table[y + yy] | ff)) continue;
 				vram_draw_table[y + yy] = false;
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
 				p = emu->get_screen_buffer(y + yy);
@@ -334,6 +372,7 @@ void DISPLAY::draw_screen2()
 				}
 			}
 		}
+		if(ff) force_update = false;
 		return;
 	}
 #  endif // _FM77AV40
@@ -435,6 +474,74 @@ __DECL_VECTORIZED_LOOP
 	}
 #endif	
 }
+
+#if defined(USE_GREEN_DISPLAY)
+void DISPLAY::GETVRAM_8_200L_GREEN(int yoff, scrntype_t *p,
+							 scrntype_t *px,
+							 bool window_inv,
+							 bool scan_line)
+{
+	uint8_t b, r, g;
+	uint32_t yoff_d;
+#if defined(_FM77AV40EX) || defined(_FM77AV40SX)
+	int dpage = vram_display_block;
+#endif
+	if(p == NULL) return;
+	yoff_d = 0;
+	yoff_d = (yoff + yoff_d) & 0x3fff;
+
+	b = r = g = 0;
+	if(!multimode_dispflags[0]) b = gvram_shadow[yoff_d + 0x00000];
+	if(!multimode_dispflags[1]) r = gvram_shadow[yoff_d + 0x04000];
+	if(!multimode_dispflags[2]) g = gvram_shadow[yoff_d + 0x08000];
+
+	uint16_t *pg = &(bit_trans_table_0[g][0]);
+	uint16_t *pr = &(bit_trans_table_1[r][0]);
+	uint16_t *pb = &(bit_trans_table_2[b][0]);
+	uint16_t tmp_d[8];
+	scrntype_t tmp_dd[8];
+
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 8; i++) {
+		tmp_d[i] = pr[i];
+		tmp_d[i]  = tmp_d[i] | pg[i];
+		tmp_d[i]  = tmp_d[i] | pb[i];
+		tmp_d[i] = tmp_d[i] >> 5;
+	}
+
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 8; i++) {
+		tmp_dd[i] = dpalette_pixel_green[tmp_d[i]];
+	}
+#if defined(FIXED_FRAMEBUFFER_SIZE)
+	if(scan_line) {
+/* Fancy scanline */
+	#if defined(_RGB555) || defined(_RGBA565)
+		static const int shift_factor = 2;
+	#else // 24bit
+		static const int shift_factor = 3;
+	#endif
+__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 8; i++) {
+			p[i] = tmp_dd[i];
+			tmp_dd[i] = (tmp_dd[i] >> shift_factor) & (const scrntype_t)RGBA_COLOR(31, 31, 31, 255);;
+			px[i] = tmp_dd[i];
+		}
+	} else {
+__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 8; i++) {
+			p[i] = tmp_dd[i];
+			px[i] = tmp_dd[i];
+		}
+	}
+#else
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 8; i++) {
+		p[i] = tmp_dd[i];
+	}
+#endif	
+}
+#endif
 
 #if defined(_FM77AV_VARIANTS)
 void DISPLAY::GETVRAM_4096(int yoff, scrntype_t *p, scrntype_t *px,

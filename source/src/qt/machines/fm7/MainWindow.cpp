@@ -183,7 +183,17 @@ void Object_Menu_Control_7::do_set_cyclesteal(bool flag)
 	emit sig_emu_update_config();
 }
 #endif
-
+#if defined(USE_GREEN_DISPLAY)
+void Object_Menu_Control_7::do_set_green_display(bool flag)
+{
+	if(flag) {
+		config.dipswitch = config.dipswitch | FM7_DIPSW_GREEN_DISPLAY;
+	} else {
+		config.dipswitch = config.dipswitch & ~FM7_DIPSW_GREEN_DISPLAY;
+	}
+	emit sig_emu_update_config();
+}
+#endif
 void Object_Menu_Control_7::do_set_hsync(bool flag)
 {
 	if(flag) {
@@ -581,6 +591,10 @@ void META_MainWindow::retranslateUi(void)
 	menuMouseType->setToolTipsVisible(true);
 # endif
 #endif
+#if defined(USE_GREEN_DISPLAY)
+	action_GreenDisplay->setText(QApplication::translate("Machine", "Green Display", 0));
+	action_GreenDisplay->setToolTip(QApplication::translate("Machine", "Using ancient \"Green Display\" to display.", 0));
+#endif	
 #if defined(WITH_Z80)
 	actionZ80CARD_ON->setText(QApplication::translate("Machine", "Connect Z80 CARD", 0));
 	actionZ80CARD_ON->setToolTip(QApplication::translate("Machine", "Turn ON Z80 extra board.\nNeed to restart this emulator to change connection", 0));
@@ -797,6 +811,15 @@ void META_MainWindow::setupUI_Emu(void)
 	connect(action_1MFloppy, SIGNAL(toggled(bool)),
 			action_1MFloppy->fm7_binds, SLOT(do_set_1MFloppy(bool)));
 # endif
+# if defined(USE_GREEN_DISPLAY)
+	action_GreenDisplay = new Action_Control_7(this, using_flags);	
+	menuMachine->addAction(action_GreenDisplay);
+	action_GreenDisplay->setCheckable(true);
+	action_GreenDisplay->setVisible(true);
+	if((config.dipswitch & FM7_DIPSW_GREEN_DISPLAY) != 0) action_GreenDisplay->setChecked(true);
+	connect(action_GreenDisplay, SIGNAL(toggled(bool)), action_GreenDisplay->fm7_binds, SLOT(do_set_green_display(bool)));
+	connect(action_GreenDisplay->fm7_binds, SIGNAL(sig_emu_update_config()), this, SLOT(do_emu_update_config()));
+#endif
 	uint32_t tmpv = config.dipswitch & (FM7_DIPSW_SELECT_5_OR_8KEY | FM7_DIPSW_AUTO_5_OR_8KEY);
 	
 	menuAuto5_8Key = new QMenu(menuMachine);

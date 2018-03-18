@@ -177,6 +177,9 @@ void DISPLAY::reset_some_devices()
 	call_write_signal(alu, SIG_ALU_PLANES, 3, 3);
 #endif
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
+#if defined(USE_GREEN_DISPLAY)
+	memcpy(dpalette_pixel_green, dpalette_green_tmp, sizeof(dpalette_pixel_green));
+#endif
 	memcpy(dpalette_pixel, dpalette_pixel_tmp, sizeof(dpalette_pixel));
 	//do_firq(!firq_mask && key_firq_req);
 
@@ -209,7 +212,6 @@ void DISPLAY::reset()
 	crt_flag = false; // Fixed by Ryu Takegami
 	screen_update_flag = true;
 	crt_flag_bak = false;
-	
 	cancel_request = false;
 #if defined(_FM77AV_VARIANTS)
 	mode320 = false;
@@ -252,6 +254,9 @@ void DISPLAY::reset()
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
 # endif
 #endif	
+#if defined(USE_GREEN_DISPLAY)
+	memcpy(dpalette_pixel_green, dpalette_green_tmp, sizeof(dpalette_pixel_green));
+#endif
 	memcpy(dpalette_pixel, dpalette_pixel_tmp, sizeof(dpalette_pixel));
 	//enter_display();
 	
@@ -339,6 +344,7 @@ void DISPLAY::setup_display_mode(void)
 void DISPLAY::update_config()
 {
 	vram_wrote = true;
+	force_update = true;
 #if !defined(_FM8)
 	is_cyclesteal = ((config.dipswitch & FM7_DIPSW_CYCLESTEAL) != 0) ? true : false;
 #endif	
@@ -411,6 +417,12 @@ void DISPLAY::set_dpalette(uint32_t addr, uint8_t val)
 	g =  ((val & 0x04) != 0x00)? 255 : 0x00;
 	
 	dpalette_pixel_tmp[addr] = RGB_COLOR(r, g, b);
+#if defined(USE_GREEN_DISPLAY)
+	static const scrntype_t colortable[8] = {0, 48, 70, 100, 140, 175, 202, 255};
+	g = colortable[val & 0x07];
+	b = r = ((val & 0x07) > 4) ? 48 : 0;
+	dpalette_green_tmp[addr] = RGB_COLOR(r, g, b);
+#endif	
 	palette_changed = true;
 }
 
@@ -1325,6 +1337,9 @@ void DISPLAY::event_callback_vsync(void)
 	if(palette_changed) {
 #if defined(_FM77AV_VARIANTS)
 		memcpy(analog_palette_pixel, analog_palette_pixel_tmp, sizeof(analog_palette_pixel));
+#endif
+#if defined(USE_GREEN_DISPLAY)
+		memcpy(dpalette_pixel_green, dpalette_green_tmp, sizeof(dpalette_pixel_green));
 #endif
 		memcpy(dpalette_pixel, dpalette_pixel_tmp, sizeof(dpalette_pixel));
 		vram_wrote_shadow = true;
@@ -2923,6 +2938,7 @@ void DISPLAY::initialize()
 	memset(gvram_shadow, 0x00, sizeof(gvram_shadow));
 	for(i = 0; i < 411 * 5; i++) vram_wrote_table[i] = false;
 	for(i = 0; i < 411; i++) vram_draw_table[i] = false;
+	force_update = false;
 
 	memset(console_ram, 0x00, sizeof(console_ram));
 	memset(work_ram, 0x00, sizeof(work_ram));
@@ -2980,6 +2996,9 @@ void DISPLAY::initialize()
 	}
 #endif
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
+#if defined(USE_GREEN_DISPLAY)
+	memcpy(dpalette_pixel_green, dpalette_green_tmp, sizeof(dpalette_pixel_green));
+#endif
 	memcpy(dpalette_pixel, dpalette_pixel_tmp, sizeof(dpalette_pixel));
 //#if defined(_FM77AV_VARIANTS)
 	hblank_event_id = -1;
@@ -3214,11 +3233,17 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 	
 #if defined(_FM8)
 		for(addr = 0; addr < 8; addr++) set_dpalette(addr, addr);
+		memcpy(dpalette_pixel, dpalette_pixel_tmp, sizeof(dpalette_pixel));
+  #if defined(USE_GREEN_DISPLAY)
+		memcpy(dpalette_pixel_green, dpalette_green_tmp, sizeof(dpalette_pixel_green));
+  #endif
 #else
 		state_fio->Fread(dpalette_data, sizeof(dpalette_data), 1);
 		for(addr = 0; addr < 8; addr++) set_dpalette(addr, dpalette_data[addr]);
 		memcpy(dpalette_pixel, dpalette_pixel_tmp, sizeof(dpalette_pixel));
-
+#if defined(USE_GREEN_DISPLAY)
+		memcpy(dpalette_pixel_green, dpalette_green_tmp, sizeof(dpalette_pixel_green));
+#endif
 		multimode_accessmask = state_fio->FgetUint8();
 		multimode_dispmask = state_fio->FgetUint8();
 		for(i = 0; i < 4; i++) {
@@ -3341,8 +3366,9 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 		frame_skip_count_transfer = 3;
 		need_transfer_line = true;
 	}			
-	if(version == STATE_VERSION) return true;
+	force_update = true;
 	setup_display_mode();
+	if(version == STATE_VERSION) return true;
 	return false;
 }
 
