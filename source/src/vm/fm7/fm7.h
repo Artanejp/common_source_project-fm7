@@ -406,6 +406,9 @@ class FILEIO;
 #if defined(_FM77AV_VARIANTS)
 class BEEP;
 #endif
+#if defined(_FM77L4)
+class HD46505;
+#endif
 class PCM1BIT;
 class MC6809;
 class YM2203;
@@ -530,6 +533,9 @@ protected:
 	MC6809 *jsubcpu;
 	FM7_JCOMMCARD *jcommcard;
 	AND *g_jsubhalt;
+#endif
+#if defined(_FM77L4)
+	HD46505 *l4crtc;
 #endif
 	bool connect_320kfdc;
 	bool connect_1Mfdc;

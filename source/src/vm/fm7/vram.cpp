@@ -8,8 +8,8 @@
 #include "vm.h"
 #include "emu.h"
 #include "fm7_display.h"
-#if defined(_OPENMP)
-#include <omp.h>
+#if defined(_FM77L4)
+#include "hd46505.h"
 #endif
 
 uint8_t DISPLAY::read_vram_l4_400l(uint32_t addr, uint32_t offset)
@@ -28,7 +28,7 @@ uint8_t DISPLAY::read_vram_l4_400l(uint32_t addr, uint32_t offset)
 	} else if(addr < 0x9800) {
 		return textvram[addr & 0x0fff];
 	} else { // $9800-$bfff
-		return subrom_l4[addr - 0x9800];
+		return subsys_l4[addr - 0x9800];
 	}
 #endif
 	return 0xff;
@@ -48,9 +48,9 @@ void DISPLAY::write_vram_l4_400l(uint32_t addr, uint32_t offset, uint32_t data)
 		pagemod = addr & 0x4000;
 		gvram[((addr + offset) & mask) | pagemod] = (uint8_t)data;
 	} else if(addr < 0x9800) {
-		textvram[addr & 0x0fff] = (uint8_t)data;
+		text_vram[addr & 0x0fff] = (uint8_t)data;
 	} else { // $9800-$bfff
-		//return subrom_l4[addr - 0x9800];
+		//return subsys_l4[addr - 0x9800];
 	}
 	return;
 #endif	
@@ -239,6 +239,134 @@ void DISPLAY::draw_screen2()
 		if(ff) force_update = false;
 		return;
 	}
+#if defined(_FM77L4)
+	if(display_mode == DISPLAY_MODE_1_400L) {
+		int ii;
+		uint8_t *regs = l4crtc->get_regs();
+		cursor_start = (int)(regs[10] & 0x1f);
+		cursor_end = (int)(regs[11] & 0x1f);
+		cursor_type = (int)((regs[10] & 0x60) >> 5);
+		text_xmax = (int)((uint16_t)regs[1] << 1);
+		text_lines = (int)((regs[9] & 0x1f) + 1);
+		text_ymax = (int)(regs[6] & 0x7f);
+		yoff = 0;
+		// Green display had only connected to FM-8, FM-7/NEW7 and FM-77.
+		for(y = 0; y < 400; y += 8) {
+			bool renderf = false;
+			uint32_t naddr;
+			uint8_t bitcode;
+			uint8_t charcode;
+			uint8_t attr_code;
+			scrntype_t on_color;
+			bool do_green;
+			if((y & 0x0f) == 0) {
+				for(yy = 0; yy < 16; yy++) renderf |= vram_draw_table[y + yy];
+				renderf = renderf | ff;
+				if(renderf) {
+					for(yy = 0; yy < 16; yy++) vram_draw_table[y + yy] = true;
+				}
+			}
+			if((config.dipswitch & FM7_DIPSW_GREEN_DISPLAY) != 0) {
+				for(yy = 0; yy < 8; yy++) {
+					if(!(vram_draw_table[y + yy] | ff)) continue;
+					vram_draw_table[y + yy] = false;
+					p = emu->get_screen_buffer(y + yy);
+					if(p == NULL) continue;
+					yoff = (y + yy) * 80;
+					for(x = 0; x < 10; x++) {
+						for(ii = 0; ii < 8; ii++) {
+							GETVRAM_1_400L_GREEN(yoff + ii, p);
+							p += 8;
+						}
+						yoff += 8;
+					}
+				}
+				do_green = true;
+			} else {
+				for(yy = 0; yy < 8; yy++) {
+					if(!(vram_draw_table[y + yy] | ff)) continue;
+					vram_draw_table[y + yy] = false;
+					p = emu->get_screen_buffer(y + yy);
+					if(p == NULL) continue;
+					yoff = (y + yy) * 80;
+					for(x = 0; x < 10; x++) {
+						for(ii = 0; ii < 8; ii++) {
+							GETVRAM_1_400L(yoff + ii, p);
+							p += 8;
+						}
+						yoff += 8;
+					}
+				}
+				do_green = false;
+			}
+			// Draw Text
+			if(renderf) {
+				bool reverse;
+				bool display_char;
+				int raster;
+				bool cursor_rev;
+				if(text_width40) {
+					xlim = 40;
+				} else {
+					ylim = 80;
+				}
+				
+				for(x = 0; x < xlim; x++) {
+					naddr = (text_start_addr + ((y / text_lines) * text_xmax + x) * 2) & 0x0ffe;
+					charcode = text_vram[naddr];
+					attr_code = text_vram[naddr + 1];
+						
+					on_color = GETVRAM_TEXTCOLOR(attr_code, do_green);
+					
+					display_char = ((attrcode & 0x10) == 0);
+					reverse = ((attrcode & 0x08) != 0);
+					
+					for(yy = 0; yy < 16; yy++) {
+						raster = y % text_lines;
+						bitdata = 0x00;
+							p = emu->get_screen_buffer(y + yy);
+							if(p == NULL) continue;
+							if((raster < 16) && (display_char || text_blink)) {
+								bitdata = subsys_cg_l4[(uint32_t)charcode * 16 + (uint32_t)raster];
+							}
+							cursor_rev = false;
+							if((naddr = cursor_addr) && (cursor_type != 1) &&
+							   (cursor_blink || (cursor_type == 0))) {
+								if((raster >= cursor_start) && (raster <= cursor_end)) {
+									cursor_rev = true;
+								}
+							}
+							bitdata = GETVRAM_TEXTPIX(bitdata, reverse, cursor_rev);
+							if(bitdata != 0) {
+								if(text_width40) {
+									scrntype_t *pp = &(p[x * 2]); 
+									for(ii = 0; ii < 8; ii++) {
+										if((bitdata & 0x80) != 0) {
+											p[0] = on_color;
+											p[1] = on_color;
+										}
+										bitdata <<= 1;
+										p += 2;
+									}										
+								} else {
+									scrntype_t *pp = &(p[x * 2]); 
+									for(ii = 0; ii < 8; ii++) {
+										if((bitdata & 0x80) != 0) {
+											p[0] = on_color;
+										}
+										bitdata <<= 1;
+										p += 1;
+									}										
+								}
+							}
+					}
+				}
+			}
+		}
+		if(ff) force_update = false;
+		return;
+	}
+#endif
 # if defined(_FM77AV_VARIANTS)
 	if(display_mode == DISPLAY_MODE_4096) {
 		uint32_t mask = 0;
@@ -474,6 +602,99 @@ __DECL_VECTORIZED_LOOP
 	}
 #endif	
 }
+
+#if defined(_FM77L4)
+scrntype_t DISPLAY::GETVRAM_TEXTCOLOR(uint8_t attr, bool do_green)
+{
+	int color = attr & 0x07;
+	int r, g, b;
+
+	static const int green_g_table[16] = {0, 24, 48, 64, 80, 96, 112, 128,
+										  140, 155, 175, 186, 210, 220, 240, 255};
+	if(do_green) {
+		if((attr & 0x20) != 0) color += 8;
+		r = b = 0;
+		g = green_g_table[color];
+		if(color >= 10) {
+			r = (color - 9) * 16;
+			b = (color - 9) * 16;
+		}
+	} else {
+		if((attr & 0x20) != 0) {
+			g = ((color & 4) != 0) ? 255 : 0;
+			r = ((color & 2) != 0) ? 255 : 0;
+			b = ((color & 1) != 0) ? 255 : 0;
+		} else {
+			g = ((color & 4) != 0) ? 128 : 0;
+			r = ((color & 2) != 0) ? 128 : 0;
+			b = ((color & 1) != 0) ? 128 : 0;
+		}
+	}
+	return RGBA_COLOR(r, g, b, 255);
+}
+
+uint8_t DISPLAY::GETVRAM_TEXTPIX(uint8_t bitdata, bool reverse, bool cursor_rev)
+{
+	uint8_t ret = bitdata;
+	if(reverse) {
+		ret = (uint8_t)(~ret);
+	}
+	if(cursor_rev) {
+	    ret = (uint8_t)(~ret);
+	}
+	return ret;
+}
+
+void DISPLAY::GETVRAM_1_400L(int yoff, scrntype_t *p)
+{
+	uint8_t pixel;
+	uint32_t yoff_d;
+	if(p == NULL) return;
+	yoff_d = yoff & 0x7fff;
+	pixel = gvram_shadow[yoff_d];
+	uint16_t *ppx = &(bit_trans_table_0[pixel][0]);
+	uint16_t tmp_d[8];
+	scrntype_t tmp_dd[8];
+	
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 8; i++) {
+		tmpd[i] = ppx[i];
+		tmpd[i] = tmpd[i] >> 5;
+	}
+
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 8; i++) {
+		tmp_dd[i] = dpalette_pixel[tmp_d[i]];
+		p[i] = tmp_dd[i];
+	}
+	
+}
+
+void DISPLAY::GETVRAM_1_400L_GREEN(int yoff, scrntype_t *p)
+{
+	uint8_t pixel;
+	uint32_t yoff_d;
+	if(p == NULL) return;
+	yoff_d = yoff & 0x7fff;
+	pixel = gvram_shadow[yoff_d];
+	uint16_t *ppx = &(bit_trans_table_0[pixel][0]);
+	uint16_t tmp_d[8];
+	scrntype_t tmp_dd[8];
+	
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 8; i++) {
+		tmpd[i] = ppx[i];
+		tmpd[i] = tmpd[i] >> 5;
+	}
+
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 8; i++) {
+		tmp_dd[i] = dpalette_pixel_green[tmp_d[i]];
+		p[i] = tmp_dd[i];
+	}
+	
+}
+#endif
 
 #if defined(USE_GREEN_DISPLAY)
 void DISPLAY::GETVRAM_8_200L_GREEN(int yoff, scrntype_t *p,

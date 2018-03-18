@@ -30,7 +30,9 @@ class FM7_MAINIO;
 class KEYBOARD;
 class KANJIROM;
 class MB61VH010;
-
+#if defined(_FM77L4)
+class HD46505;
+#endif
 class DISPLAY: public DEVICE
 {
 private:
@@ -84,6 +86,7 @@ protected:
 	void set_subbusy(void);
 	void reset_some_devices(void);
 	void reset_subcpu(bool _check_firq);
+	void setup_400linemode(uint8_t val);
    
 #if defined(_FM77AV_VARIANTS)
 	void alu_write_cmdreg(uint32_t val);
@@ -265,6 +268,31 @@ protected:
 	bool crt_flag;
 	bool vram_accessflag;
 	bool is_cyclesteal;
+#if defined(_FM77L4)
+	uint8_t subsys_cg_l4[0x1000];
+	uint8_t subsys_l4[4800];
+	uint8_t text_vram[0x1000];
+	uint8_t crtc_regs[18];
+	
+	bool workram_l4;
+	bool cursor_lsb;
+	bool text_width40;
+	
+	bool text_blink;
+	bool text_width40;
+	
+	pair_t text_start_addr;
+	uint32_t text_lines;
+	uint32_t text_xmax;
+	
+	pair_t cursor_addr;
+	int curcor_start;
+	int cursor_end;
+	uint8_t cursor_type;
+	
+	int event_id_l4_text_blink;
+#endif
+	
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	uint8_t submem_cgram[0x4000];
 	uint8_t submem_console_av40[0x2000];
@@ -291,9 +319,18 @@ protected:
 	MC6809 *subcpu;
 	KEYBOARD *keyboard;
 	bool vram_wrote;
+#if defined(_FM77L4)
+	HD46505 *l4crtc;
+#endif
 	
 #if defined(USE_GREEN_DISPLAY)
 	void GETVRAM_8_200L_GREEN(int yoff, scrntype_t *p, scrntype_t *px, bool window_inv = false, bool scan_line = false);
+#endif
+#if defined(_FM77L4)
+	scrntype_t GETVRAM_TEXTCOLOR(uint8_t attr, bool do_green);
+	uint8_t GETVRAM_TEXTPIX(uint8_t bitdata, bool reverse, bool cursor_rev);
+	void GETVRAM_1_400L(int yoff, scrntype_t *p);
+	void GETVRAM_1_400L_GREEN(int yoff, scrntype_t *p);
 #endif
 	
 	void GETVRAM_8_200L(int yoff, scrntype_t *p, scrntype_t *px, bool window_inv = false, bool scan_line = false);
@@ -442,6 +479,11 @@ public:
 #if defined(_FM77AV_VARIANTS)
 	void set_context_alu(DEVICE *p) {
 		alu = (MB61VH010 *)p;
+	}
+#endif
+#if defined(_FM77L4)
+	void set_context_l4crtc(HD46505 *p) {
+		l4crtc = p;
 	}
 #endif
 };  

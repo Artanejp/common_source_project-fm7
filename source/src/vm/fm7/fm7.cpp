@@ -39,6 +39,10 @@
 #if defined(HAS_DMA)
 #include "hd6844.h"
 #endif
+#if defined(_FM77L4)
+#include "hd46505.h"
+#endif
+
 #if defined(_FM8)
 #include "./bubblecasette.h"
 #endif
@@ -194,6 +198,9 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	
 	joystick  = new JOYSTICK(this, emu);
 	printer = new PRNFILE(this, emu);
+#if defined(_FM77L4)
+	l4crtc = new HD46505(this, emu);;
+#endif
 #if defined(_FM77AV_VARIANTS)
 	alu = new MB61VH010(this, emu);
 	keyboard_beep = new BEEP(this, emu);
@@ -310,6 +317,9 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #endif
 # if defined(_FM77AV20) || defined(_FM77AV40) || defined(_FM77AV20EX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	g_rs232c_dtr->set_device_name(_T("RS232C DTR(AND)"));
+#endif
+#if defined(_FM77L4)
+	l4crtc->set_device_name(_T("CRTC OF 400LINES BOARD"));
 #endif
 #ifdef WITH_Z80
 	if(g_intr != NULL) g_intr->set_device_name(_T("Z80 INTR(OR)"));
@@ -533,7 +543,10 @@ void VM::connect_bus(void)
 	display->set_context_mainio(mainio);
 	display->set_context_subcpu(subcpu);
 	display->set_context_keyboard(keyboard);
-
+#if defined(_FM77L4)
+	display->set_context_l4crtc(l4crtc);
+#endif
+	
 	mainio->set_context_clock_status(mainmem, FM7_MAINIO_CLOCKMODE, 0xffffffff);
 	mainio->set_context_clock_status(display, SIG_DISPLAY_CLOCK, 0xffffffff);
 
@@ -1258,12 +1271,11 @@ void VM::get_screen_resolution(int *w, int *h)
 {
 	switch(display->get_screen_mode()) {
 	case DISPLAY_MODE_8_200L:
-	case DISPLAY_MODE_8_200L_TEXT:
 		*w = 640;
 		*h = 200;
 		break;
 	case DISPLAY_MODE_8_400L:
-	case DISPLAY_MODE_8_400L_TEXT:
+	case DISPLAY_MODE_1_400L:
 		*w = 640;
 		*h = 400;
 		break;
