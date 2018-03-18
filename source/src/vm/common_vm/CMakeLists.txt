@@ -1,6 +1,6 @@
 message("* vm/common_vm")
 
-SET(THIS_LIB_VERSION 1.1.29)
+SET(THIS_LIB_VERSION 1.1.30)
 set(s_vm_common_vm_srcs
 	../315-5124.cpp
 	../am9511.cpp
