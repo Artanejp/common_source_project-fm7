@@ -55,6 +55,7 @@
 #define USE_PRINTER_TYPE	3
 #define USE_DEBUGGER
 #define USE_STATE
+#define USE_CPU_I286
 
 #include "../../common.h"
 #include "../../fileio.h"

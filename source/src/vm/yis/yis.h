@@ -46,6 +46,7 @@
 #define USE_SOUND_VOLUME	2
 #define USE_DEBUGGER
 #define USE_STATE
+#define USE_CPU_M6502
 
 static const int vm_auto_key_table_base[][2] = {
 	{0xb0,	0x300 | 0xba},	// '°' -> ':'+SHIFT

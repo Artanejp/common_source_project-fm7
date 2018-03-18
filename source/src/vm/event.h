@@ -14,6 +14,8 @@
 #include "../emu.h"
 #include "device.h"
 
+#include <typeinfo>
+
 #define MAX_DEVICE	64
 #define MAX_CPU		8
 #define MAX_SOUND	32
@@ -21,6 +23,24 @@
 #define MAX_EVENT	64
 #define NO_EVENT	-1
 
+enum {
+	EVENT_CPUTYPE_GENERIC = 0,
+	EVENT_CPUTYPE_HD6301,
+	EVENT_CPUTYPE_HUC6280,
+	EVENT_CPUTYPE_I286,
+	EVENT_CPUTYPE_I386,
+	EVENT_CPUTYPE_I8080,
+	EVENT_CPUTYPE_M6502,
+	EVENT_CPUTYPE_N2A03,
+	EVENT_CPUTYPE_MB8861,
+	EVENT_CPUTYPE_MC6800,
+	EVENT_CPUTYPE_MC6801,
+	EVENT_CPUTYPE_MC6809,
+	EVENT_CPUTYPE_MCS48,
+	EVENT_CPUTYPE_TMS9995,
+	EVENT_CPUTYPE_UPD7801,
+	EVENT_CPUTYPE_Z80
+};
 class EVENT : public DEVICE
 {
 private:
@@ -32,7 +52,9 @@ private:
 		uint32_t accum_clocks;
 	} cpu_t;
 	cpu_t d_cpu[MAX_CPU];
+
 	uint32_t cpu_update_clocks[MAX_CPU][6];
+	uint32_t cpu_type[MAX_CPU];
 	
 	int dcount_cpu;
 	
@@ -90,11 +112,94 @@ private:
 	
 	void mix_sound(int samples);
 	void* get_event(int index);
-	
+	int run_cpu(uint32_t num, int cycles);
+
 #ifdef _DEBUG_LOG
 	bool initialize_done;
 #endif
-	
+	template <class T>
+		void set_cpu_type(T *p, int num)
+	{
+		if((num < 0) || (num >= MAX_CPU)) return;
+#if defined(USE_CPU_HD6301)
+		if(typeid(T) == typeid(HD6301)) {
+			cpu_type[num] = EVENT_CPUTYPE_HD6301;
+		} else
+#endif
+#if defined(USE_CPU_HUC6280)
+		if(typeid(T) == typeid(HUC6280)) {
+			cpu_type[num] = EVENT_CPUTYPE_HUC6280;
+		} else
+#endif
+#if defined(USE_CPU_I86) || defined(USE_CPU_I286) || defined(USE_CPU_I186) || defined(USE_CPU_V30)
+		if(typeid(T) == typeid(I286)) {
+			cpu_type[num] = EVENT_CPUTYPE_I286;
+		} else
+#endif
+#if defined(USE_CPU_I386) || defined(USE_CPU_I486) || defined(USE_CPU_PENTIUM)
+		if(typeid(T) == typeid(I386)) {
+			cpu_type[num] = EVENT_CPUTYPE_I386;
+		} else
+#endif
+#if defined(USE_CPU_I8080)
+		if(typeid(T) == typeid(I8080)) {
+			cpu_type[num] = EVENT_CPUTYPE_I8080;
+		} else
+#endif
+#if defined(USE_CPU_M6502)
+		if(typeid(T) == typeid(M6502)) {
+			cpu_type[num] = EVENT_CPUTYPE_M6502;
+		} else
+#endif
+#if defined(USE_CPU_N2A03)
+		if(typeid(T) == typeid(N2A03)) {
+			cpu_type[num] = EVENT_CPUTYPE_N2A03;
+		} else
+#endif
+#if defined(USE_CPU_MB8861)
+		if(typeid(T) == typeid(MB8861)) {
+			cpu_type[num] = EVENT_CPUTYPE_MB8861;
+		} else
+#endif
+#if defined(USE_CPU_MC6800)
+		if(typeid(T) == typeid(MC6800)) {
+			cpu_type[num] = EVENT_CPUTYPE_MC6800;
+		} else
+#endif
+#if defined(USE_CPU_MC6801)
+		if(typeid(T) == typeid(MC6801)) {
+			cpu_type[num] = EVENT_CPUTYPE_MC6801;
+		} else
+#endif
+#if defined(USE_CPU_MC6809)
+		if(typeid(T) == typeid(MC6809)) {
+			cpu_type[num] = EVENT_CPUTYPE_MC6809;
+		} else
+#endif
+#if defined(USE_CPU_MCS48)
+		if(typeid(T) == typeid(MCS48)) {
+			cpu_type[num] = EVENT_CPUTYPE_MCS48;
+		} else
+#endif
+#if defined(USE_CPU_TMS9995)
+		if(typeid(T) == typeid(TMS9995)) {
+			cpu_type[num] = EVENT_CPUTYPE_TMS9995;
+		} else
+#endif
+#if defined(USE_CPU_UPD7801)
+		if(typeid(T) == typeid(UPD7801)) {
+			cpu_type[num] = EVENT_CPUTYPE_UPD7801;
+		} else
+#endif
+#if defined(USE_CPU_Z80)
+		if(typeid(T) == typeid(Z80)) {
+			cpu_type[num] = EVENT_CPUTYPE_Z80;
+		} else
+#endif
+		{
+			cpu_type[num] = EVENT_CPUTYPE_GENERIC;
+		}
+	}
 public:
 	EVENT(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -125,6 +230,9 @@ public:
 #ifdef _DEBUG_LOG
 		initialize_done = false;
 #endif
+		for(int i = 0; i < MAX_CPU; i++) {
+			cpu_type[i] = EVENT_CPUTYPE_GENERIC;
+		}
 		set_device_name(_T("Event Manager"));
 	}
 	~EVENT() {}
@@ -192,13 +300,15 @@ public:
 	void initialize_sound(int rate, int samples);
 	uint16_t* create_sound(int* extra_frames);
 	int get_sound_buffer_ptr();
-	void set_context_cpu(DEVICE* device, uint32_t clocks)
+	template <class T>
+		void set_context_cpu(T* device, uint32_t clocks = CPU_CLOCKS)
 	{
 		assert(dcount_cpu < MAX_CPU);
 		int index = dcount_cpu++;
-		d_cpu[index].device = device;
+		d_cpu[index].device = (DEVICE *)device;
 		d_cpu[index].cpu_clocks = clocks;
 		d_cpu[index].accum_clocks = 0;
+		set_cpu_type(device, index);
 		for(int k = 0; k < 6; k++) cpu_update_clocks[index][k] = d_cpu[index].update_clocks * k;
 	}
 	void set_secondary_cpu_clock(DEVICE* device, uint32_t clocks)
@@ -215,10 +325,6 @@ public:
 			}
 		}
 	}
-	void set_context_cpu(DEVICE* device)
-	{
-		set_context_cpu(device, CPU_CLOCKS);
-	}
 	void set_context_sound(DEVICE* device)
 	{
 		assert(dcount_sound < MAX_SOUND);
@@ -226,6 +332,15 @@ public:
 	}
 	bool is_frame_skippable();
 };
+
+/*
+ * Faster runncing cpu.
+ * Expect to optimize switch(...) - case to jump table.
+ * You should include real header of CPU DEVICE begin of this file.
+ * -- 20180317 K.O.
+ */
+
+
 
 #endif
 

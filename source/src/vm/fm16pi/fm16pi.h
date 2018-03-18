@@ -42,6 +42,7 @@
 
 #include "../../common.h"
 #include "../../fileio.h"
+#define USE_CPU_I286
 
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {

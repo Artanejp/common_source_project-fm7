@@ -33,6 +33,7 @@
 #define USE_JOYSTICK
 #define USE_DEBUGGER
 //#define USE_STATE
+#define USE_CPU_TMS9995
 
 #include "../../common.h"
 #include "../../fileio.h"

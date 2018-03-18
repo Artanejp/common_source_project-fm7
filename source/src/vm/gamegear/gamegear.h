@@ -34,6 +34,7 @@
 #define USE_SOUND_VOLUME	4
 #define USE_JOYSTICK
 #define USE_DEBUGGER
+#define USE_CPU_Z80
 
 #include "../../common.h"
 #include "../../fileio.h"

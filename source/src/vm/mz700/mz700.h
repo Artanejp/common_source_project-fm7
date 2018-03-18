@@ -89,6 +89,7 @@
 #define SUPPORT_TV_RENDER
 #define USE_DEBUGGER
 #define USE_STATE
+#define USE_CPU_Z80
 
 #if defined(_MZ700) || defined(_MZ1500)
 static const int vm_auto_key_table_base[][2] = {

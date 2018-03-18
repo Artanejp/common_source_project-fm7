@@ -7,8 +7,8 @@
 	[ virtual machine ]
 */
 
-#ifndef _BABBAGE_2ND_H_
-#define _BABBAGE_2ND_H_
+#ifndef _YS_6464A_H_
+#define _YS_6464A_H_
 
 #define DEVICE_NAME		"SHINKO SANGYO YS-6464A"
 #define CONFIG_NAME		"ys6464a"
@@ -29,6 +29,7 @@
 #define USE_BINARY_FILE1
 #define USE_DEBUGGER
 #define USE_STATE
+#define USE_CPU_Z80
 
 #include "../../common.h"
 #include "../../fileio.h"

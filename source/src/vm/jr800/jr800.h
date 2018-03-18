@@ -32,6 +32,7 @@
 #define USE_SOUND_VOLUME	3
 #define USE_DEBUGGER
 #define USE_STATE
+#define USE_CPU_HD6301
 
 #include "../../common.h"
 #include "../../fileio.h"

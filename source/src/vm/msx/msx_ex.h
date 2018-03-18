@@ -199,6 +199,7 @@
 #if defined(MSX_PSG_STEREO)
 #define USE_SOUND_TYPE		2
 #endif
+#define USE_CPU_Z80
 
 #include "../../common.h"
 #include "../../fileio.h"

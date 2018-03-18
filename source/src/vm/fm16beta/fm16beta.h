@@ -59,6 +59,8 @@
 #define USE_SOUND_VOLUME	2
 #define USE_DEBUGGER
 #define USE_STATE
+#define USE_CPU_I286
+#define USE_CPU_MC6809
 
 #include "../../common.h"
 #include "../../fileio.h"

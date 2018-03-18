@@ -80,6 +80,7 @@
 #if defined(_MZ80K)
 #define USE_MONITOR_TYPE	2
 #endif
+#define USE_CPU_Z80
 
 #include "../../common.h"
 #include "../../fileio.h"

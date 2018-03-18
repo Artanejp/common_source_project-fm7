@@ -31,6 +31,7 @@
 #define USE_JOYSTICK
 #define USE_DEBUGGER
 #define USE_STATE
+#define USE_CPU_UPD7801
 
 #include "../../common.h"
 #include "../../fileio.h"

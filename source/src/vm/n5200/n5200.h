@@ -38,6 +38,7 @@
 #define USE_SCREEN_FILTER
 #define USE_SOUND_VOLUME	2
 #define USE_DEBUGGER
+#define USE_CPU_I386
 
 #include "../../common.h"
 #include "../../fileio.h"

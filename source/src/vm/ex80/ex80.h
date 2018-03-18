@@ -49,6 +49,7 @@ SW3-1/2	ON ,ON  = 8000H-81FFH
 #define USE_SOUND_VOLUME	1
 #define USE_DEBUGGER
 #define USE_STATE
+#define USE_CPU_I8080
 
 #include "../../common.h"
 #include "../../fileio.h"

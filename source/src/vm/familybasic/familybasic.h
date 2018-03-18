@@ -38,6 +38,7 @@
 #define USE_JOY_BUTTON_CAPTIONS
 #define USE_DEBUGGER
 #define USE_STATE
+#define USE_CPU_N2A03
 
 #include "../../common.h"
 #include "../../fileio.h"

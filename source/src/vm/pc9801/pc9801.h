@@ -282,6 +282,16 @@
 #define USE_PRINTER_TYPE	3
 #define USE_DEBUGGER
 #define USE_STATE
+#if defined(HAS_I86) || defined(HAS_V30)
+#define USE_CPU_I286
+#elif defined(HAS_I386) || defined(HAS_I486)
+#define USE_CPU_I386
+#else
+#define USE_CPU_I286
+#endif
+#if defined(SUPPORT_320KB_FDD_IF) || defined(_PC98DO) || defined(_PC98DOPLUS)
+#define USE_CPU_Z80
+#endif
 
 #include "../../common.h"
 #include "../../fileio.h"

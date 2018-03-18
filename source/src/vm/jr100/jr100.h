@@ -34,6 +34,7 @@
 #define USE_JOYSTICK
 #define USE_DEBUGGER
 #define USE_STATE
+#define USE_CPU_MB8861
 
 static const int vm_auto_key_table_base[][2] = {
 	// 0x100: shift

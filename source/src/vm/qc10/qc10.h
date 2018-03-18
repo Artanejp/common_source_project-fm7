@@ -54,6 +54,7 @@
 #define USE_SOUND_VOLUME	2
 #define USE_DEBUGGER
 #define USE_STATE
+#define USE_CPU_Z80
 
 #include "../../common.h"
 #include "../../fileio.h"

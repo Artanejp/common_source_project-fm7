@@ -92,6 +92,11 @@
 #define USE_SOUND_VOLUME	2
 #define USE_DEBUGGER
 #define USE_STATE
+#if defined(HAS_I286)
+#define USE_CPU_I286
+#else
+#define USE_CPU_I386
+#endif
 
 #include "../../common.h"
 #include "../../fileio.h"

@@ -130,6 +130,8 @@
 #define USE_PRINTER_TYPE	4
 #define USE_DEBUGGER
 #define USE_STATE
+#define USE_CPU_Z80
+#define USE_CPU_MCS48
 
 #include "../../common.h"
 #include "../../fileio.h"
@@ -282,6 +284,7 @@ class KEYBOARD;
 #ifdef _X1TWIN
 class HUC6280;
 class PCE;
+#define USE_CPU_HUC6280
 #endif
 class VM
 {

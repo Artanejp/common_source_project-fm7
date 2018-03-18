@@ -96,6 +96,7 @@
 #endif
 #define USE_DEBUGGER
 #define USE_STATE
+#define USE_CPU_I386
 
 #include "../../common.h"
 #include "../../fileio.h"

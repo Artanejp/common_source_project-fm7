@@ -32,6 +32,8 @@
 #define ADPCM_CLOCK	9216000
 #endif
 
+#define USE_CPU_HUC6280
+
 class HUC6280;
 #ifdef SUPPORT_CDROM
 class MSM5205;
