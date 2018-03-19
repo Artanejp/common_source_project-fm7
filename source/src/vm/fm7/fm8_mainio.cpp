@@ -24,6 +24,7 @@
 #include "../ay_3_891x.h"
 #include "../pcm1bit.h"
 
+#include "./fm7_mainmem.h"
 #include "bubblecasette.h"
 
 FM8_MAINIO::FM8_MAINIO(VM* parent_vm, EMU* parent_emu) : FM7_MAINIO(parent_vm, parent_emu)

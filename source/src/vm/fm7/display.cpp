@@ -1903,8 +1903,8 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 					setup_display_mode();
 					
 				}
-			}
 # endif				
+			}
 #endif
 			break;
 #if defined(_FM77AV_VARIANTS)
