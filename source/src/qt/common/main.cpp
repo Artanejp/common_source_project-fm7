@@ -99,10 +99,10 @@ int main(int argc, char *argv[])
 	_resource_init();
 	qSetMessagePattern(QString::fromUtf8("[%{type}] %{message} \n   at line %{line} of %{file} : function %{function}\nBacktrace:\n %{backtrace separator=\"\n \" }"));
 	qInstallMessageHandler(CSP_DebugHandler);
-	printf("argc: %d\n", argc);
-	for(int i = 0; i < argc; i++) {
-		printf("argv[%d]=%s\n", i, argv[i]);
-	}
+//	printf("argc: %d\n", argc);
+//	for(int i = 0; i < argc; i++) {
+//		printf("argv[%d]=%s\n", i, argv[i]);
+//	}
 	nErrorCode = MainLoop(argc, argv);
 	_resource_free();
 	if(csp_logger != NULL) delete csp_logger;

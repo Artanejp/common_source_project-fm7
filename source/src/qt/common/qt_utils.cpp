@@ -591,7 +591,10 @@ static void setup_logs(void)
 #endif
 }
 
+#include <QString>
+#include <QCommandLineParser>
 CSP_Logger *csp_logger;
+QStringList virtualMediaList; // {TYPE, POSITION}
 
 int MainLoop(int argc, char *argv[])
 {
@@ -599,17 +602,320 @@ int MainLoop(int argc, char *argv[])
 	std::string archstr;
 	std::string emustr("emu");
 	std::string cfgstr(CONFIG_NAME);
+	std::string delim;
+	QString emudesc;
+	
 	setup_logs();
-	cpp_homedir.copy(homedir, PATH_MAX - 1, 0);
+#if defined(Q_OS_WIN)
+	delim = "\\";
+#else
+	delim = "/";
+#endif
+	
+	GuiMain = new QApplication(argc, argv);
+	GuiMain->setObjectName(QString::fromUtf8("Gui_Main"));
+	
+    QCommandLineParser cmdparser;
+	emudesc = QString::fromUtf8("Emulator for ");
+	emudesc = emudesc + QString::fromUtf8(DEVICE_NAME);
+    cmdparser.setApplicationDescription(emudesc);
+    cmdparser.addHelpOption();
+    //cmdparser.addVersionOption();
+
+    QCommandLineOption opt_homedir({"d", "homedir"}, QCoreApplication::translate("main", "Custom home directory."), "homedir");
+    QCommandLineOption opt_cfgfile({"c", "cfgfile"}, QCoreApplication::translate("main", "Custom config file (without path)."), "cfgfile");
+    QCommandLineOption opt_cfgdir("cfgdir", QCoreApplication::translate("main", "Custom config directory."), "cfgdir");
+    QCommandLineOption opt_resdir({"r", "resdir"}, QCoreApplication::translate("main", "Custom resource directory (ROMs, WAVs, etc)."), "resdir");
+    QCommandLineOption opt_dipsw_on({"on", "dipsw-on"}, QCoreApplication::translate("main", "Turn on <onbit> of dip switch."), "onbit");
+    QCommandLineOption opt_dipsw_off({"off", "dipsw-off"}, QCoreApplication::translate("main", "Turn off <offbit> of dip switch."), "offbit");
+
+		
+    cmdparser.addOption(opt_homedir);
+    cmdparser.addOption(opt_cfgfile);
+    cmdparser.addOption(opt_cfgdir);
+    cmdparser.addOption(opt_resdir);
+    cmdparser.addOption(opt_dipsw_on);
+    cmdparser.addOption(opt_dipsw_off);
+	
+
+	QCommandLineOption *opt_fds[8];
+	QCommandLineOption *opt_cmts[2];
+	QCommandLineOption *opt_lds[2];
+	QCommandLineOption *opt_cds[2];
+	QCommandLineOption *opt_binaries[8];
+	QCommandLineOption *opt_bubbles[8];
+	QCommandLineOption *opt_qds[8];
+	QCommandLineOption *opt_carts[8];
+	virtualMediaList.clear();
+	
+	for(int i = 0; i < 8; i++) {
+		opt_fds[i] = NULL;
+		opt_qds[i] = NULL;
+		opt_bubbles[i] = NULL;
+		opt_binaries[i] = NULL;
+		opt_carts[i] = NULL;
+	}
+	for(int i = 0; i < 2; i++) {
+		opt_cmts[i] = NULL;
+		opt_lds[i] = NULL;
+		opt_cds[i] = NULL;
+	}		
+#if defined(USE_FD1)
+	for(int i = 0; i < MAX_FD; i++) {
+		QString sfdType1 = QString::fromUtf8("fd%1").arg(i);
+		QString sfdType2 = QString::fromUtf8("vFd%1").arg(i);
+		QString sfdType3 = QString::fromUtf8("vFloppyDisk%1").arg(i);
+		opt_fds[i] = new QCommandLineOption({sfdType1, sfdType2, sfdType3},QCoreApplication::translate("main", "Set virtual floppy disk %1.").arg(i) , "fullpath");
+		cmdparser.addOption(*opt_fds[i]);
+	}
+#endif
+#if defined(USE_BINARY_FILE1)
+	for(int i = 0; i < MAX_BINARY; i++) {
+		QString sfdType1 = QString::fromUtf8("bin%1").arg(i);
+		QString sfdType2 = QString::fromUtf8("vBinary%1").arg(i);
+		opt_binaries[i] = new QCommandLineOption({sfdType1, sfdType2},QCoreApplication::translate("main", "Set virtual binary image %1.").arg(i) , "fullpath");
+		cmdparser.addOption(*opt_binaries[i]);
+	}
+#endif
+#if defined(USE_CART1)
+	for(int i = 0; i < MAX_CART; i++) {
+		QString sfdType1 = QString::fromUtf8("cart%1").arg(i);
+		QString sfdType2 = QString::fromUtf8("vCart%1").arg(i);
+		QString sfdType3 = QString::fromUtf8("vCartridge%1").arg(i);
+		opt_carts[i] = new QCommandLineOption({sfdType1, sfdType2, sfdType3},QCoreApplication::translate("main", "Set virtual cartridge %1 (mostly ROM).").arg(i) , "fullpath");
+		cmdparser.addOption(*opt_carts[i]);
+	}
+#endif
+#if defined(USE_BUBBLE1)
+	for(int i = 0; i < MAX_BUBBLE; i++) {
+		QString sfdType1 = QString::fromUtf8("bub%1").arg(i);
+		QString sfdType2 = QString::fromUtf8("vBubble%1").arg(i);
+		opt_bubbles[i] = new QCommandLineOption({sfdType1, sfdType2},QCoreApplication::translate("main", "Set virtual bubble cartridge %1.").arg(i) , "fullpath");
+		cmdparser.addOption(*opt_bubbles[i]);
+	}
+#endif
+#if defined(USE_LASER_DISC)
+	for(int i = 0; i < 1; i++) {
+		QString sfdType1 = QString::fromUtf8("ld%1").arg(i);
+		QString sfdType2 = QString::fromUtf8("vLaserDisc%1").arg(i);
+		opt_lds[i] = new QCommandLineOption({sfdType1, sfdType2},QCoreApplication::translate("main", "Set virtual laser disc %1 (mostly movie file).").arg(i) , "fullpath");
+		cmdparser.addOption(*opt_lds[i]);
+	}
+#endif
+#if defined(USE_COMPACT_DISC)
+	for(int i = 0; i < 1; i++) {
+		QString sfdType1 = QString::fromUtf8("cd%1").arg(i);
+		QString sfdType2 = QString::fromUtf8("vCompactDisc%1").arg(i);
+		opt_cds[i] = new QCommandLineOption({sfdType1, sfdType2},QCoreApplication::translate("main", "Set virtual compact disc %1.").arg(i) , "fullpath");
+		cmdparser.addOption(*opt_cds[i]);
+	}
+#endif
+#if defined(USE_TAPE1)
+	for(int i = 0; i < MAX_TAPE; i++) {
+		QString sfdType1 = QString::fromUtf8("cmt%1").arg(i);
+		QString sfdType2 = QString::fromUtf8("tape%1").arg(i);
+		QString sfdType3 = QString::fromUtf8("vCmt%1").arg(i);
+		QString sfdType4 = QString::fromUtf8("vTape%1").arg(i);
+		opt_cmts[i] = new QCommandLineOption({sfdType1, sfdType2, sfdType3, sfdType4},QCoreApplication::translate("main", "Set virtual casette tape %1.").arg(i) , "fullpath");
+		cmdparser.addOption(*opt_cmts[i]);
+	}
+#endif
+#if defined(USE_QD1)
+	for(int i = 0; i < MAX_QD; i++) {
+		QString sfdType1 = QString::fromUtf8("qd%1").arg(i);
+		QString sfdType2 = QString::fromUtf8("vQuickDisk%1").arg(i);
+		opt_qds[i] = new QCommandLineOption({sfdType1, sfdType2},QCoreApplication::translate("main", "Set virtual quick disk %1.").arg(i) , "fullpath");
+		cmdparser.addOption(*opt_qds[i]);
+	}
+#endif
+	
+	cmdparser.process(QCoreApplication::arguments());
+#if defined(USE_FD1)
+	for(int i = 0; i < MAX_FD; i++) {
+		if(opt_fds[i] != NULL) {
+			if(cmdparser.isSet(*opt_fds[i])) {
+				QString sfdType = QString::fromUtf8("vFloppyDisk%1").arg(i);
+				QString medianame = cmdparser.value(*opt_fds[i]);
+				virtualMediaList.append(sfdType);
+				virtualMediaList.append(medianame);
+			}
+		}
+	}
+#endif
+#if defined(USE_QD1)
+	for(int i = 0; i < MAX_QD; i++) {
+		if(opt_qds[i] != NULL) {
+			if(cmdparser.isSet(*opt_qds[i])) {
+				QString sfdType = QString::fromUtf8("vQuickDisk%1").arg(i);
+				QString medianame = cmdparser.value(*opt_qds[i]);
+				virtualMediaList.append(sfdType);
+				virtualMediaList.append(medianame);
+			}
+		}
+	}
+#endif
+#if defined(USE_TAPE1)
+	for(int i = 0; i < MAX_TAPE; i++) {
+		if(opt_cmts[i] != NULL) {
+			if(cmdparser.isSet(*opt_cmts[i])) {
+				QString sfdType = QString::fromUtf8("vCmt%1").arg(i);
+				QString medianame = cmdparser.value(*opt_cmts[i]);
+				virtualMediaList.append(sfdType);
+				virtualMediaList.append(medianame);
+			}
+		}
+	}
+#endif
+#if defined(USE_BINARY_FILE1)
+	for(int i = 0; i < MAX_BINARY; i++) {
+		if(opt_binaries[i] != NULL) {
+			if(cmdparser.isSet(*opt_binaries[i])) {
+				QString sfdType = QString::fromUtf8("vBinary%1").arg(i);
+				QString medianame = cmdparser.value(*opt_binaries[i]);
+				virtualMediaList.append(sfdType);
+				virtualMediaList.append(medianame);
+			}
+		}
+	}
+#endif
+#if defined(USE_BUBBLE1)
+	for(int i = 0; i < MAX_BUBBLE; i++) {
+		if(opt_bubbles[i] != NULL) {
+			if(cmdparser.isSet(*opt_bubbles[i])) {
+				QString sfdType = QString::fromUtf8("vBubble%1").arg(i);
+				QString medianame = cmdparser.value(*opt_bubbles[i]);
+				virtualMediaList.append(sfdType);
+				virtualMediaList.append(medianame);
+			}
+		}
+	}
+#endif
+#if defined(USE_CART1)
+	for(int i = 0; i < MAX_CART; i++) {
+		if(opt_carts[i] != NULL) {
+			if(cmdparser.isSet(*opt_carts[i])) {
+				QString sfdType = QString::fromUtf8("vCart%1").arg(i);
+				QString medianame = cmdparser.value(*opt_carts[i]);
+				virtualMediaList.append(sfdType);
+				virtualMediaList.append(medianame);
+			}
+		}
+	}
+#endif
+#if defined(USE_LASER_DISC)
+	for(int i = 0; i < 1; i++) {
+		if(opt_lds[i] != NULL) {
+			if(cmdparser.isSet(*opt_lds[i])) {
+				QString sfdType = QString::fromUtf8("vLD%1").arg(i);
+				QString medianame = cmdparser.value(*opt_lds[i]);
+				virtualMediaList.append(sfdType);
+				virtualMediaList.append(medianame);
+			}
+		}
+	}
+#endif
+#if defined(USE_COMPACT_DISC)
+	for(int i = 0; i < 1; i++) {
+		if(opt_cds[i] != NULL) {
+			if(cmdparser.isSet(*opt_cds[i])) {
+				QString sfdType = QString::fromUtf8("vCD%1").arg(i);
+				QString medianame = cmdparser.value(*opt_cds[i]);
+				virtualMediaList.append(sfdType);
+				virtualMediaList.append(medianame);
+			}
+		}
+	}
+#endif
+
+	
+	memset(homedir, 0x00, PATH_MAX);
+	if(cmdparser.isSet(opt_homedir)) {
+		strncpy(homedir, cmdparser.value(opt_homedir).toLocal8Bit().constData(), PATH_MAX - 1);
+		cpp_homedir = homedir;
+		size_t _len = cpp_homedir.length() - 1;
+		size_t _pos = cpp_homedir.rfind(delim);
+		if((_pos < _len) ||
+		   (_pos == std::string::npos)) {
+			cpp_homedir.append(delim);
+		}
+	} else {
+		cpp_homedir.copy(homedir, PATH_MAX - 1, 0);
+	}
+	if(cmdparser.isSet(opt_cfgdir)) {
+		char tmps[PATH_MAX];
+		std::string tmpstr;
+		memset(tmps, 0x00, PATH_MAX);
+		strncpy(tmps, cmdparser.value("cfgdir").toLocal8Bit().constData(), PATH_MAX - 1);
+		cpp_confdir = tmps;
+		size_t _len = cpp_confdir.length() - 1;
+		size_t _pos = cpp_confdir.rfind(delim);
+		if((_pos < _len) ||
+		   (_pos == std::string::npos)) {
+			cpp_confdir.append(delim);
+		}
+	}
+	std::string config_fullpath;
 	{
 		char tmps[128];
 		std::string localstr;
-		snprintf(tmps, sizeof(tmps), _T("%s.ini"), _T(CONFIG_NAME));
+		memset(tmps, 0x00, 128);
+		if(cmdparser.isSet(opt_cfgfile)) {
+			strncpy(tmps, cmdparser.value("cfgfile").toLocal8Bit().constData(), 127);
+		}
+		if(strlen(tmps) <= 0){
+			snprintf(tmps, sizeof(tmps), _T("%s.ini"), _T(CONFIG_NAME));
+		}
 		localstr = tmps;
 		localstr = cpp_confdir + localstr;
 		load_config(localstr.c_str());
+		config_fullpath = localstr;
+	}
+	if(cmdparser.isSet(opt_resdir)) {
+		char tmps[PATH_MAX];
+		std::string tmpstr;
+		memset(tmps, 0x00, PATH_MAX);
+		strncpy(tmps, cmdparser.value("resdir").toLocal8Bit().constData(), PATH_MAX - 1);
+		sRssDir = tmps;
+		size_t _len = sRssDir.length() - 1;
+		size_t _pos = sRssDir.rfind(delim);
+		if((_pos < _len) ||
+		   (_pos == std::string::npos)) {
+			sRssDir.append(delim);
+		}
 	}
 	emustr = emustr + cfgstr;
+	uint32_t dipsw_onbits = 0x0000000;
+	uint32_t dipsw_offmask = 0xffffffff;
+	if(cmdparser.isSet(opt_dipsw_off)) {
+		QStringList bitList = cmdparser.values(opt_dipsw_off);
+		QString tv;
+		bool num_ok;
+		for(int i = 0; i < bitList.size(); i++) {
+			tv = bitList.at(i);
+			int _bit = tv.toInt(&num_ok);
+			if(num_ok) {
+				if((_bit >= 0) && (_bit < 32)) {
+					dipsw_offmask &= (uint32_t)(~(1 << _bit));
+				}
+			}
+		}
+	}
+	if(cmdparser.isSet(opt_dipsw_on)) {
+		QStringList bitList = cmdparser.values(opt_dipsw_on);
+		QString tv;
+		bool num_ok;
+		for(int i = 0; i < bitList.size(); i++) {
+			tv = bitList.at(i);
+			int _bit = tv.toInt(&num_ok);
+			if(num_ok) {
+				if((_bit >= 0) && (_bit < 32)) {
+					dipsw_onbits |= (uint32_t)(1 << _bit);
+				}
+			}
+		}
+	}
+	config.dipswitch &= dipsw_offmask;
+	config.dipswitch |= dipsw_onbits;
 
 	csp_logger = new CSP_Logger(config.log_to_syslog, config.log_to_console, emustr.c_str()); // Write to syslog, console
 	csp_logger->set_log_stdout(CSP_LOG_DEBUG, true);
@@ -629,7 +935,23 @@ int MainLoop(int argc, char *argv[])
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Architecture: %s", archstr.c_str());
 	
 	//csp_logger->debug_log(AGAR_LOG_INFO, " -? is print help(s).");
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Moduledir = %s home = %s", cpp_confdir.c_str(), cpp_homedir.c_str()); // Debug
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Home = %s, Resource directory = %s",
+						  cpp_homedir.c_str(),
+						  sRssDir.c_str()); // Debug
+	
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Config dir = %s, config_file = %s",
+						  cpp_confdir.c_str(),
+						  config_fullpath.c_str()); // Debug
+	
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "DIPSW VALUE IS 0x%08x", config.dipswitch);
+	if(virtualMediaList.size() >= 2) {
+		for(int i = 0; i < virtualMediaList.size(); i += 2) {
+			csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Virtual media %d, type %s, name %s",
+								  i / 2,
+								  virtualMediaList.at(i).toLocal8Bit().constData(),
+								  virtualMediaList.at(i + 1).toLocal8Bit().constData());
+		}
+	}
 	/*
 	 * Into Qt's Loop.
 	 */
@@ -639,8 +961,10 @@ int MainLoop(int argc, char *argv[])
 	SDL_Init(SDL_INIT_AUDIO | SDL_INIT_JOYSTICK | SDL_INIT_VIDEO);
 #endif
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Audio and JOYSTICK subsystem was initialised.");
-	GuiMain = new QApplication(argc, argv);
-	GuiMain->setObjectName(QString::fromUtf8("Gui_Main"));
+
+	
+	//GuiMain = new QApplication(argc, argv);
+	//GuiMain->setObjectName(QString::fromUtf8("Gui_Main"));
 	for(int ii = 0; ii < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1); ii++) {
 		for(int jj = 0; jj < 8; jj++) {
 			csp_logger->set_device_node_log(ii, 1, jj, config.dev_log_to_syslog[ii][jj]);
