@@ -208,6 +208,7 @@ protected:
 #if defined(USE_GREEN_DISPLAY)
 	scrntype_t dpalette_pixel_green[8];
 	scrntype_t dpalette_green_tmp[8];
+	bool use_green_monitor;
 #endif
 	
 	uint8_t dpalette_data[8];

@@ -58,6 +58,7 @@
 #undef CPU_TYPE_DEFAULT
 #define CPU_TYPE_DEFAULT 1
 #define USE_GREEN_DISPLAY
+#define USE_MONITOR_TYPE 2
 
 #elif defined(_FM7)
 #define DEVICE_NAME		"FUJITSU FM-7"
@@ -67,6 +68,8 @@
 #define MAX_DRIVE  4
 #define CAPABLE_JCOMMCARD 1
 #define USE_GREEN_DISPLAY
+#define USE_MONITOR_TYPE 2
+
 #elif defined(_FMNEW7)
 #define DEVICE_NAME		"FUJITSU FM-NEW7"
 #define CONFIG_NAME		"fmnew7"
@@ -75,6 +78,7 @@
 #define MAX_DRIVE  4
 #define CAPABLE_JCOMMCARD 1
 #define USE_GREEN_DISPLAY
+#define USE_MONITOR_TYPE 2
 
 #elif defined(_FM77) || defined(_FM77L2)
 # if defined(_FM77)
@@ -96,6 +100,7 @@
 #define CAPABLE_JCOMMCARD 1
 #define HAS_2HD
 #define USE_GREEN_DISPLAY
+#define USE_MONITOR_TYPE 2
 
 #elif defined(_FM77L4)
 #define DEVICE_NAME		"FUJITSU FM-77L4"
@@ -114,6 +119,7 @@
 #define MAX_DRIVE  4
 #define CAPABLE_JCOMMCARD 1
 #define USE_GREEN_DISPLAY
+#define USE_MONITOR_TYPE 2
 
 #elif defined(_FM77AV)
 #define DEVICE_NAME		"FUJITSU FM77AV"

@@ -58,6 +58,10 @@ DISPLAY::DISPLAY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	}
 	displine = 0;
 	active_page = 0;
+#if defined(USE_GREEN_DISPLAY)
+	use_green_monitor = false;
+#endif
+	force_update = true;
 	set_device_name(_T("DISPLAY SUBSYSTEM"));
 }
 
@@ -275,9 +279,22 @@ void DISPLAY::reset()
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
 # endif
 #endif	
-#if defined(USE_GREEN_DISPLAY)
+#if defined(USE_GREEN_DISPLAY) && defined(USE_MONITOR_TYPE)
 	memcpy(dpalette_pixel_green, dpalette_green_tmp, sizeof(dpalette_pixel_green));
+	switch(config.monitor_type) {
+	case FM7_MONITOR_GREEN:
+		use_green_monitor = true;
+		break;
+	case FM7_MONITOR_STANDARD:
+	default:
+		use_green_monitor = false;
+		break;
+	}
+#else
+	//use_green_monitor = false;
 #endif
+	force_update = true;
+	
 	memcpy(dpalette_pixel, dpalette_pixel_tmp, sizeof(dpalette_pixel));
 	//enter_display();
 	
@@ -368,7 +385,8 @@ void DISPLAY::setup_display_mode(void)
 void DISPLAY::update_config()
 {
 	vram_wrote = true;
-	force_update = true;
+
+		
 #if !defined(_FM8)
 	is_cyclesteal = ((config.dipswitch & FM7_DIPSW_CYCLESTEAL) != 0) ? true : false;
 #endif	
@@ -3313,7 +3331,9 @@ void DISPLAY::initialize()
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
 #if defined(USE_GREEN_DISPLAY)
 	memcpy(dpalette_pixel_green, dpalette_green_tmp, sizeof(dpalette_pixel_green));
+	use_green_monitor = false;
 #endif
+	
 	memcpy(dpalette_pixel, dpalette_pixel_tmp, sizeof(dpalette_pixel));
 //#if defined(_FM77AV_VARIANTS)
 	hblank_event_id = -1;
@@ -3369,7 +3389,7 @@ void DISPLAY::release()
 {
 }
 
-#define STATE_VERSION 8
+#define STATE_VERSION 9
 void DISPLAY::save_state(FILEIO *state_fio)
 {
   	state_fio->FputUint32_BE(STATE_VERSION);
@@ -3726,6 +3746,20 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 	cursor_type = state_fio->FgetUint8();
 	
 	event_id_l4_text_blink = state_fio->FgetInt32_BE();
+#endif
+#if defined(USE_GREEN_DISPLAY) && defined(USE_MONITOR_TYPE)
+	memcpy(dpalette_pixel_green, dpalette_green_tmp, sizeof(dpalette_pixel_green));
+	switch(config.monitor_type) {
+	case FM7_MONITOR_GREEN:
+		use_green_monitor = true;
+		break;
+	case FM7_MONITOR_STANDARD:
+	default:
+		use_green_monitor = false;
+		break;
+	}
+#else
+	//use_green_monitor = false;
 #endif
 	force_update = true;
 	setup_display_mode();

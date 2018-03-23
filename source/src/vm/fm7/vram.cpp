@@ -158,7 +158,7 @@ void DISPLAY::draw_screen2()
 		int ii;
 		yoff = 0;
 #ifdef USE_GREEN_DISPLAY
-		if((config.dipswitch & FM7_DIPSW_GREEN_DISPLAY) != 0) {
+		if(use_green_monitor) {
 			// Green display had only connected to FM-8, FM-7/NEW7 and FM-77.
 			for(y = 0; y < 200; y += 8) {
 				for(yy = 0; yy < 8; yy++) {
@@ -266,7 +266,7 @@ void DISPLAY::draw_screen2()
 					for(yy = 0; yy < 16; yy++) vram_draw_table[y + yy] = true;
 				}
 			}
-			if((config.dipswitch & FM7_DIPSW_GREEN_DISPLAY) != 0) {
+			if(use_green_monitor) {
 				for(yy = 0; yy < 8; yy++) {
 					if(!(vram_draw_table[y + yy] | ff)) continue;
 					vram_draw_table[y + yy] = false;
