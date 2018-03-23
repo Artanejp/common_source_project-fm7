@@ -595,242 +595,317 @@ static void setup_logs(void)
 #include <QCommandLineParser>
 CSP_Logger *csp_logger;
 QStringList virtualMediaList; // {TYPE, POSITION}
+QCommandLineOption *_opt_fds[8];
+QCommandLineOption *_opt_cmts[2];
+QCommandLineOption *_opt_lds[2];
+QCommandLineOption *_opt_cds[2];
+QCommandLineOption *_opt_binaries[8];
+QCommandLineOption *_opt_bubbles[8];
+QCommandLineOption *_opt_qds[8];
+QCommandLineOption *_opt_carts[8];
+QCommandLineOption *_opt_homedir;
+QCommandLineOption *_opt_cfgfile;
+QCommandLineOption *_opt_cfgdir;
+QCommandLineOption *_opt_resdir;
+QCommandLineOption *_opt_dipsw_on;
+QCommandLineOption *_opt_dipsw_off;
+std::string config_fullpath;
 
-int MainLoop(int argc, char *argv[])
+void SetFDOptions(QCommandLineParser *cmdparser)
 {
-	char homedir[PATH_MAX];
-	std::string archstr;
-	std::string emustr("emu");
-	std::string cfgstr(CONFIG_NAME);
-	std::string delim;
-	QString emudesc;
-	
-	setup_logs();
-#if defined(Q_OS_WIN)
-	delim = "\\";
-#else
-	delim = "/";
-#endif
-	
-	GuiMain = new QApplication(argc, argv);
-	GuiMain->setObjectName(QString::fromUtf8("Gui_Main"));
-	
-    QCommandLineParser cmdparser;
-	emudesc = QString::fromUtf8("Emulator for ");
-	emudesc = emudesc + QString::fromUtf8(DEVICE_NAME);
-    cmdparser.setApplicationDescription(emudesc);
-    cmdparser.addHelpOption();
-    //cmdparser.addVersionOption();
-
-    QCommandLineOption opt_homedir({"d", "homedir"}, QCoreApplication::translate("main", "Custom home directory."), "homedir");
-    QCommandLineOption opt_cfgfile({"c", "cfgfile"}, QCoreApplication::translate("main", "Custom config file (without path)."), "cfgfile");
-    QCommandLineOption opt_cfgdir("cfgdir", QCoreApplication::translate("main", "Custom config directory."), "cfgdir");
-    QCommandLineOption opt_resdir({"r", "resdir"}, QCoreApplication::translate("main", "Custom resource directory (ROMs, WAVs, etc)."), "resdir");
-    QCommandLineOption opt_dipsw_on({"on", "dipsw-on"}, QCoreApplication::translate("main", "Turn on <onbit> of dip switch."), "onbit");
-    QCommandLineOption opt_dipsw_off({"off", "dipsw-off"}, QCoreApplication::translate("main", "Turn off <offbit> of dip switch."), "offbit");
-
-		
-    cmdparser.addOption(opt_homedir);
-    cmdparser.addOption(opt_cfgfile);
-    cmdparser.addOption(opt_cfgdir);
-    cmdparser.addOption(opt_resdir);
-    cmdparser.addOption(opt_dipsw_on);
-    cmdparser.addOption(opt_dipsw_off);
-	
-
-	QCommandLineOption *opt_fds[8];
-	QCommandLineOption *opt_cmts[2];
-	QCommandLineOption *opt_lds[2];
-	QCommandLineOption *opt_cds[2];
-	QCommandLineOption *opt_binaries[8];
-	QCommandLineOption *opt_bubbles[8];
-	QCommandLineOption *opt_qds[8];
-	QCommandLineOption *opt_carts[8];
-	virtualMediaList.clear();
-	
-	for(int i = 0; i < 8; i++) {
-		opt_fds[i] = NULL;
-		opt_qds[i] = NULL;
-		opt_bubbles[i] = NULL;
-		opt_binaries[i] = NULL;
-		opt_carts[i] = NULL;
-	}
-	for(int i = 0; i < 2; i++) {
-		opt_cmts[i] = NULL;
-		opt_lds[i] = NULL;
-		opt_cds[i] = NULL;
-	}		
 #if defined(USE_FD1)
 	for(int i = 0; i < MAX_FD; i++) {
 		QString sfdType1 = QString::fromUtf8("fd%1").arg(i);
 		QString sfdType2 = QString::fromUtf8("vFd%1").arg(i);
 		QString sfdType3 = QString::fromUtf8("vFloppyDisk%1").arg(i);
-		opt_fds[i] = new QCommandLineOption({sfdType1, sfdType2, sfdType3},QCoreApplication::translate("main", "Set virtual floppy disk %1.").arg(i) , "fullpath");
-		cmdparser.addOption(*opt_fds[i]);
+		_opt_fds[i] = new QCommandLineOption({sfdType1, sfdType2, sfdType3},QCoreApplication::translate("main", "Set virtual floppy disk %1.").arg(i) , "[D88_SLOT@]fullpath");
+		cmdparser->addOption(*_opt_fds[i]);
 	}
 #endif
+}
+
+void SetBinaryOptions(QCommandLineParser *cmdparser)
+{
 #if defined(USE_BINARY_FILE1)
 	for(int i = 0; i < MAX_BINARY; i++) {
 		QString sfdType1 = QString::fromUtf8("bin%1").arg(i);
 		QString sfdType2 = QString::fromUtf8("vBinary%1").arg(i);
-		opt_binaries[i] = new QCommandLineOption({sfdType1, sfdType2},QCoreApplication::translate("main", "Set virtual binary image %1.").arg(i) , "fullpath");
-		cmdparser.addOption(*opt_binaries[i]);
+		_opt_binaries[i] = new QCommandLineOption({sfdType1, sfdType2},QCoreApplication::translate("main", "Set virtual binary image %1.").arg(i) , "fullpath");
+		cmdparser->addOption(*_opt_binaries[i]);
 	}
 #endif
+}
+
+void SetCartOptions(QCommandLineParser *cmdparser)
+{
 #if defined(USE_CART1)
 	for(int i = 0; i < MAX_CART; i++) {
 		QString sfdType1 = QString::fromUtf8("cart%1").arg(i);
 		QString sfdType2 = QString::fromUtf8("vCart%1").arg(i);
 		QString sfdType3 = QString::fromUtf8("vCartridge%1").arg(i);
-		opt_carts[i] = new QCommandLineOption({sfdType1, sfdType2, sfdType3},QCoreApplication::translate("main", "Set virtual cartridge %1 (mostly ROM).").arg(i) , "fullpath");
-		cmdparser.addOption(*opt_carts[i]);
+		_opt_carts[i] = new QCommandLineOption({sfdType1, sfdType2, sfdType3},QCoreApplication::translate("main", "Set virtual cartridge %1 (mostly ROM).").arg(i) , "fullpath");
+		cmdparser->addOption(*_opt_carts[i]);
 	}
 #endif
+}
+void SetBubbleOptions(QCommandLineParser *cmdparser)
+{
 #if defined(USE_BUBBLE1)
 	for(int i = 0; i < MAX_BUBBLE; i++) {
 		QString sfdType1 = QString::fromUtf8("bub%1").arg(i);
 		QString sfdType2 = QString::fromUtf8("vBubble%1").arg(i);
-		opt_bubbles[i] = new QCommandLineOption({sfdType1, sfdType2},QCoreApplication::translate("main", "Set virtual bubble cartridge %1.").arg(i) , "fullpath");
-		cmdparser.addOption(*opt_bubbles[i]);
+		_opt_bubbles[i] = new QCommandLineOption({sfdType1, sfdType2},QCoreApplication::translate("main", "Set virtual bubble cartridge %1.").arg(i) , "[B88_SLOT@]fullpath");
+		cmdparser->addOption(*_opt_bubbles[i]);
 	}
 #endif
+}
+
+void SetLDOptions(QCommandLineParser *cmdparser)
+{
 #if defined(USE_LASER_DISC)
 	for(int i = 0; i < 1; i++) {
 		QString sfdType1 = QString::fromUtf8("ld%1").arg(i);
 		QString sfdType2 = QString::fromUtf8("vLaserDisc%1").arg(i);
-		opt_lds[i] = new QCommandLineOption({sfdType1, sfdType2},QCoreApplication::translate("main", "Set virtual laser disc %1 (mostly movie file).").arg(i) , "fullpath");
-		cmdparser.addOption(*opt_lds[i]);
+		_opt_lds[i] = new QCommandLineOption({sfdType1, sfdType2},QCoreApplication::translate("main", "Set virtual laser disc %1 (mostly movie file).").arg(i) , "fullpath");
+		cmdparser->addOption(*_opt_lds[i]);
 	}
 #endif
+}
+void SetCDOptions(QCommandLineParser *cmdparser)
+{
 #if defined(USE_COMPACT_DISC)
 	for(int i = 0; i < 1; i++) {
 		QString sfdType1 = QString::fromUtf8("cd%1").arg(i);
 		QString sfdType2 = QString::fromUtf8("vCompactDisc%1").arg(i);
-		opt_cds[i] = new QCommandLineOption({sfdType1, sfdType2},QCoreApplication::translate("main", "Set virtual compact disc %1.").arg(i) , "fullpath");
-		cmdparser.addOption(*opt_cds[i]);
+		_opt_cds[i] = new QCommandLineOption({sfdType1, sfdType2},QCoreApplication::translate("main", "Set virtual compact disc %1.").arg(i) , "fullpath");
+		cmdparser->addOption(*_opt_cds[i]);
 	}
 #endif
+}
+
+void SetCmtOptions(QCommandLineParser *cmdparser)
+{
 #if defined(USE_TAPE1)
 	for(int i = 0; i < MAX_TAPE; i++) {
 		QString sfdType1 = QString::fromUtf8("cmt%1").arg(i);
 		QString sfdType2 = QString::fromUtf8("tape%1").arg(i);
 		QString sfdType3 = QString::fromUtf8("vCmt%1").arg(i);
 		QString sfdType4 = QString::fromUtf8("vTape%1").arg(i);
-		opt_cmts[i] = new QCommandLineOption({sfdType1, sfdType2, sfdType3, sfdType4},QCoreApplication::translate("main", "Set virtual casette tape %1.").arg(i) , "fullpath");
-		cmdparser.addOption(*opt_cmts[i]);
+		_opt_cmts[i] = new QCommandLineOption({sfdType1, sfdType2, sfdType3, sfdType4},QCoreApplication::translate("main", "Set virtual casette tape %1.").arg(i) , "fullpath");
+		cmdparser->addOption(*_opt_cmts[i]);
 	}
 #endif
+}
+
+void SetQuickDiskOptions(QCommandLineParser *cmdparser)
+{
 #if defined(USE_QD1)
 	for(int i = 0; i < MAX_QD; i++) {
 		QString sfdType1 = QString::fromUtf8("qd%1").arg(i);
 		QString sfdType2 = QString::fromUtf8("vQuickDisk%1").arg(i);
 		opt_qds[i] = new QCommandLineOption({sfdType1, sfdType2},QCoreApplication::translate("main", "Set virtual quick disk %1.").arg(i) , "fullpath");
-		cmdparser.addOption(*opt_qds[i]);
+		cmdparser->addOption(*_opt_qds[i]);
 	}
 #endif
-	
-	cmdparser.process(QCoreApplication::arguments());
+}
+
+
+void SetProcCmdFD(QCommandLineParser *cmdparser, QStringList *_l)
+{
 #if defined(USE_FD1)
 	for(int i = 0; i < MAX_FD; i++) {
-		if(opt_fds[i] != NULL) {
-			if(cmdparser.isSet(*opt_fds[i])) {
+		if(_opt_fds[i] != NULL) {
+			if(cmdparser->isSet(*_opt_fds[i])) {
 				QString sfdType = QString::fromUtf8("vFloppyDisk%1").arg(i);
-				QString medianame = cmdparser.value(*opt_fds[i]);
-				virtualMediaList.append(sfdType);
-				virtualMediaList.append(medianame);
+				QString medianame = cmdparser->value(*_opt_fds[i]);
+				_l->append(sfdType);
+				_l->append(medianame);
 			}
 		}
 	}
 #endif
+}
+
+void SetProcCmdQuickDisk(QCommandLineParser *cmdparser, QStringList *_l)
+{
 #if defined(USE_QD1)
 	for(int i = 0; i < MAX_QD; i++) {
-		if(opt_qds[i] != NULL) {
-			if(cmdparser.isSet(*opt_qds[i])) {
+		if(_opt_qds[i] != NULL) {
+			if(cmdparser->isSet(*_opt_qds[i])) {
 				QString sfdType = QString::fromUtf8("vQuickDisk%1").arg(i);
-				QString medianame = cmdparser.value(*opt_qds[i]);
-				virtualMediaList.append(sfdType);
-				virtualMediaList.append(medianame);
+				QString medianame = cmdparser->value(*_opt_qds[i]);
+				_l->append(sfdType);
+				_l->append(medianame);
 			}
 		}
 	}
 #endif
+}
+
+void SetProcCmdCmt(QCommandLineParser *cmdparser, QStringList *_l)
+{
 #if defined(USE_TAPE1)
 	for(int i = 0; i < MAX_TAPE; i++) {
-		if(opt_cmts[i] != NULL) {
-			if(cmdparser.isSet(*opt_cmts[i])) {
+		if(_opt_cmts[i] != NULL) {
+			if(cmdparser->isSet(*_opt_cmts[i])) {
 				QString sfdType = QString::fromUtf8("vCmt%1").arg(i);
-				QString medianame = cmdparser.value(*opt_cmts[i]);
-				virtualMediaList.append(sfdType);
-				virtualMediaList.append(medianame);
+				QString medianame = cmdparser->value(*_opt_cmts[i]);
+				_l->append(sfdType);
+				_l->append(medianame);
 			}
 		}
 	}
 #endif
+}
+
+void SetProcCmdBinary(QCommandLineParser *cmdparser, QStringList *_l)
+{
 #if defined(USE_BINARY_FILE1)
 	for(int i = 0; i < MAX_BINARY; i++) {
-		if(opt_binaries[i] != NULL) {
-			if(cmdparser.isSet(*opt_binaries[i])) {
+		if(_opt_binaries[i] != NULL) {
+			if(cmdparser->isSet(*_opt_binaries[i])) {
 				QString sfdType = QString::fromUtf8("vBinary%1").arg(i);
-				QString medianame = cmdparser.value(*opt_binaries[i]);
-				virtualMediaList.append(sfdType);
-				virtualMediaList.append(medianame);
+				QString medianame = cmdparser->value(*_opt_binaries[i]);
+				_l->append(sfdType);
+				_l->append(medianame);
 			}
 		}
 	}
 #endif
+}
+
+void SetProcCmdBubble(QCommandLineParser *cmdparser, QStringList *_l)
+{
 #if defined(USE_BUBBLE1)
 	for(int i = 0; i < MAX_BUBBLE; i++) {
-		if(opt_bubbles[i] != NULL) {
-			if(cmdparser.isSet(*opt_bubbles[i])) {
+		if(_opt_bubbles[i] != NULL) {
+			if(cmdparser->isSet(*_opt_bubbles[i])) {
 				QString sfdType = QString::fromUtf8("vBubble%1").arg(i);
-				QString medianame = cmdparser.value(*opt_bubbles[i]);
-				virtualMediaList.append(sfdType);
-				virtualMediaList.append(medianame);
+				QString medianame = cmdparser->value(*_opt_bubbles[i]);
+				_l->append(sfdType);
+				_l->append(medianame);
 			}
 		}
 	}
 #endif
+}
+
+void SetProcCmdCart(QCommandLineParser *cmdparser, QStringList *_l)
+{
 #if defined(USE_CART1)
 	for(int i = 0; i < MAX_CART; i++) {
-		if(opt_carts[i] != NULL) {
-			if(cmdparser.isSet(*opt_carts[i])) {
+		if(_opt_carts[i] != NULL) {
+			if(cmdparser->isSet(*_opt_carts[i])) {
 				QString sfdType = QString::fromUtf8("vCart%1").arg(i);
-				QString medianame = cmdparser.value(*opt_carts[i]);
-				virtualMediaList.append(sfdType);
-				virtualMediaList.append(medianame);
+				QString medianame = cmdparser->value(*_opt_carts[i]);
+				_l->append(sfdType);
+				_l->append(medianame);
 			}
 		}
 	}
 #endif
+}
+
+void SetProcCmdLD(QCommandLineParser *cmdparser, QStringList *_l)
+{
 #if defined(USE_LASER_DISC)
 	for(int i = 0; i < 1; i++) {
-		if(opt_lds[i] != NULL) {
-			if(cmdparser.isSet(*opt_lds[i])) {
+		if(_opt_lds[i] != NULL) {
+			if(cmdparser->isSet(*_opt_lds[i])) {
 				QString sfdType = QString::fromUtf8("vLD%1").arg(i);
-				QString medianame = cmdparser.value(*opt_lds[i]);
-				virtualMediaList.append(sfdType);
-				virtualMediaList.append(medianame);
+				QString medianame = cmdparser->value(*_opt_lds[i]);
+				_l->append(sfdType);
+				_l->append(medianame);
 			}
 		}
 	}
 #endif
+}
+
+void SetProcCmdCD(QCommandLineParser *cmdparser, QStringList *_l)
+{
 #if defined(USE_COMPACT_DISC)
 	for(int i = 0; i < 1; i++) {
-		if(opt_cds[i] != NULL) {
-			if(cmdparser.isSet(*opt_cds[i])) {
+		if(_opt_cds[i] != NULL) {
+			if(cmdparser->isSet(*_opt_cds[i])) {
 				QString sfdType = QString::fromUtf8("vCD%1").arg(i);
-				QString medianame = cmdparser.value(*opt_cds[i]);
-				virtualMediaList.append(sfdType);
-				virtualMediaList.append(medianame);
+				QString medianame = cmdparser->value(*_opt_cds[i]);
+				_l->append(sfdType);
+				_l->append(medianame);
 			}
 		}
 	}
 #endif
+}
 
+
+void SetOptions(QCommandLineParser *cmdparser)
+{
+	QString emudesc = QString::fromUtf8("Emulator for ");
+	emudesc = emudesc + QString::fromUtf8(DEVICE_NAME);
+    cmdparser->setApplicationDescription(emudesc);
+    cmdparser->addHelpOption();
+    //cmdparser->addVersionOption();
+
+    _opt_homedir = new QCommandLineOption({"d", "homedir"}, QCoreApplication::translate("main", "Custom home directory."), "homedir");
+    _opt_cfgfile = new QCommandLineOption({"c", "cfgfile"}, QCoreApplication::translate("main", "Custom config file (without path)."), "cfgfile");
+    _opt_cfgdir = new QCommandLineOption("cfgdir", QCoreApplication::translate("main", "Custom config directory."), "cfgdir");
+    _opt_resdir = new QCommandLineOption({"r", "resdir"}, QCoreApplication::translate("main", "Custom resource directory (ROMs, WAVs, etc)."), "resdir");
+    _opt_dipsw_on = new QCommandLineOption({"on", "dipsw-on"}, QCoreApplication::translate("main", "Turn on <onbit> of dip switch."), "onbit");
+    _opt_dipsw_off = new QCommandLineOption({"off", "dipsw-off"}, QCoreApplication::translate("main", "Turn off <offbit> of dip switch."), "offbit");
+
+	for(int i = 0; i < 8; i++) {
+		_opt_fds[i] = NULL;
+		_opt_qds[i] = NULL;
+		_opt_bubbles[i] = NULL;
+		_opt_binaries[i] = NULL;
+		_opt_carts[i] = NULL;
+	}
+	for(int i = 0; i < 2; i++) {
+		_opt_cmts[i] = NULL;
+		_opt_lds[i] = NULL;
+		_opt_cds[i] = NULL;
+	}		
+		
+    cmdparser->addOption(*_opt_homedir);
+    cmdparser->addOption(*_opt_cfgfile);
+    cmdparser->addOption(*_opt_cfgdir);
+    cmdparser->addOption(*_opt_resdir);
+    cmdparser->addOption(*_opt_dipsw_on);
+    cmdparser->addOption(*_opt_dipsw_off);
+	SetFDOptions(cmdparser);
+	SetBinaryOptions(cmdparser);
+	SetCmtOptions(cmdparser);
+	SetBubbleOptions(cmdparser);
+	SetQuickDiskOptions(cmdparser);
+	SetLDOptions(cmdparser);
+	SetCDOptions(cmdparser);
 	
+}
+
+void ProcessCmdLine(QCommandLineParser *cmdparser, QStringList *_l)
+{
+	char homedir[PATH_MAX];
+	std::string delim;
+#if defined(Q_OS_WIN)
+	delim = "\\";
+#else
+	delim = "/";
+#endif
+	
+	SetProcCmdFD(cmdparser, _l);
+	SetProcCmdQuickDisk(cmdparser, _l);
+	SetProcCmdCmt(cmdparser, _l);
+	SetProcCmdCart(cmdparser, _l);
+	SetProcCmdBinary(cmdparser, _l);
+	SetProcCmdBubble(cmdparser, _l);
+	SetProcCmdLD(cmdparser, _l);
+	SetProcCmdCD(cmdparser, _l);
+
+
 	memset(homedir, 0x00, PATH_MAX);
-	if(cmdparser.isSet(opt_homedir)) {
-		strncpy(homedir, cmdparser.value(opt_homedir).toLocal8Bit().constData(), PATH_MAX - 1);
+	if(cmdparser->isSet(*_opt_homedir)) {
+		strncpy(homedir, cmdparser->value(*_opt_homedir).toLocal8Bit().constData(), PATH_MAX - 1);
 		cpp_homedir = homedir;
 		size_t _len = cpp_homedir.length() - 1;
 		size_t _pos = cpp_homedir.rfind(delim);
@@ -841,11 +916,12 @@ int MainLoop(int argc, char *argv[])
 	} else {
 		cpp_homedir.copy(homedir, PATH_MAX - 1, 0);
 	}
-	if(cmdparser.isSet(opt_cfgdir)) {
+
+	if(cmdparser->isSet(*_opt_cfgdir)) {
 		char tmps[PATH_MAX];
 		std::string tmpstr;
 		memset(tmps, 0x00, PATH_MAX);
-		strncpy(tmps, cmdparser.value("cfgdir").toLocal8Bit().constData(), PATH_MAX - 1);
+		strncpy(tmps, cmdparser->value(*_opt_cfgdir).toLocal8Bit().constData(), PATH_MAX - 1);
 		cpp_confdir = tmps;
 		size_t _len = cpp_confdir.length() - 1;
 		size_t _pos = cpp_confdir.rfind(delim);
@@ -854,13 +930,13 @@ int MainLoop(int argc, char *argv[])
 			cpp_confdir.append(delim);
 		}
 	}
-	std::string config_fullpath;
+	
 	{
 		char tmps[128];
 		std::string localstr;
 		memset(tmps, 0x00, 128);
-		if(cmdparser.isSet(opt_cfgfile)) {
-			strncpy(tmps, cmdparser.value("cfgfile").toLocal8Bit().constData(), 127);
+		if(cmdparser->isSet(*_opt_cfgfile)) {
+			strncpy(tmps, cmdparser->value(*_opt_cfgfile).toLocal8Bit().constData(), 127);
 		}
 		if(strlen(tmps) <= 0){
 			snprintf(tmps, sizeof(tmps), _T("%s.ini"), _T(CONFIG_NAME));
@@ -870,11 +946,11 @@ int MainLoop(int argc, char *argv[])
 		load_config(localstr.c_str());
 		config_fullpath = localstr;
 	}
-	if(cmdparser.isSet(opt_resdir)) {
+	if(cmdparser->isSet(*_opt_resdir)) {
 		char tmps[PATH_MAX];
 		std::string tmpstr;
 		memset(tmps, 0x00, PATH_MAX);
-		strncpy(tmps, cmdparser.value("resdir").toLocal8Bit().constData(), PATH_MAX - 1);
+		strncpy(tmps, cmdparser->value(*_opt_resdir).toLocal8Bit().constData(), PATH_MAX - 1);
 		sRssDir = tmps;
 		size_t _len = sRssDir.length() - 1;
 		size_t _pos = sRssDir.rfind(delim);
@@ -883,11 +959,11 @@ int MainLoop(int argc, char *argv[])
 			sRssDir.append(delim);
 		}
 	}
-	emustr = emustr + cfgstr;
+
 	uint32_t dipsw_onbits = 0x0000000;
 	uint32_t dipsw_offmask = 0xffffffff;
-	if(cmdparser.isSet(opt_dipsw_off)) {
-		QStringList bitList = cmdparser.values(opt_dipsw_off);
+	if(cmdparser->isSet(*_opt_dipsw_off)) {
+		QStringList bitList = cmdparser->values(*_opt_dipsw_off);
 		QString tv;
 		bool num_ok;
 		for(int i = 0; i < bitList.size(); i++) {
@@ -900,8 +976,8 @@ int MainLoop(int argc, char *argv[])
 			}
 		}
 	}
-	if(cmdparser.isSet(opt_dipsw_on)) {
-		QStringList bitList = cmdparser.values(opt_dipsw_on);
+	if(cmdparser->isSet(*_opt_dipsw_on)) {
+		QStringList bitList = cmdparser->values(*_opt_dipsw_on);
 		QString tv;
 		bool num_ok;
 		for(int i = 0; i < bitList.size(); i++) {
@@ -917,22 +993,15 @@ int MainLoop(int argc, char *argv[])
 	config.dipswitch &= dipsw_offmask;
 	config.dipswitch |= dipsw_onbits;
 
-	csp_logger = new CSP_Logger(config.log_to_syslog, config.log_to_console, emustr.c_str()); // Write to syslog, console
-	csp_logger->set_log_stdout(CSP_LOG_DEBUG, true);
-	csp_logger->set_log_stdout(CSP_LOG_INFO, true);
-	csp_logger->set_log_stdout(CSP_LOG_WARN, true);
-	
-	archstr = "Generic";
-#if defined(__x86_64__)
-	archstr = "amd64";
-#endif
-#if defined(__i386__)
-	archstr = "ia32";
-#endif
+}
+
+void OpeningMessage(std::string archstr)
+{
 	csp_logger->set_emu_vm_name(DEVICE_NAME); // Write to syslog, console
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Start Common Source Project '%s'", my_procname.c_str());
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "(C) Toshiya Takeda / Qt Version K.Ohta");
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Architecture: %s", archstr.c_str());
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Use -h or --help for help.");
 	
 	//csp_logger->debug_log(AGAR_LOG_INFO, " -? is print help(s).");
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Home = %s, Resource directory = %s",
@@ -952,29 +1021,81 @@ int MainLoop(int argc, char *argv[])
 								  virtualMediaList.at(i + 1).toLocal8Bit().constData());
 		}
 	}
-	/*
-	 * Into Qt's Loop.
-	 */
+}
+
+void SetupSDL(void)
+{
 #if defined(USE_SDL2)
 	SDL_Init(SDL_INIT_AUDIO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
 #else
 	SDL_Init(SDL_INIT_AUDIO | SDL_INIT_JOYSTICK | SDL_INIT_VIDEO);
 #endif
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Audio and JOYSTICK subsystem was initialised.");
+}
 
-	
-	//GuiMain = new QApplication(argc, argv);
-	//GuiMain->setObjectName(QString::fromUtf8("Gui_Main"));
-	for(int ii = 0; ii < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1); ii++) {
+void SetupLogger(std::string emustr, int _size)
+{
+	csp_logger = new CSP_Logger(config.log_to_syslog, config.log_to_console, emustr.c_str()); // Write to syslog, console
+	csp_logger->set_log_stdout(CSP_LOG_DEBUG, true);
+	csp_logger->set_log_stdout(CSP_LOG_INFO, true);
+	csp_logger->set_log_stdout(CSP_LOG_WARN, true);
+	for(int ii = 0; ii < _size; ii++) {
 		for(int jj = 0; jj < 8; jj++) {
 			csp_logger->set_device_node_log(ii, 1, jj, config.dev_log_to_syslog[ii][jj]);
 			csp_logger->set_device_node_log(ii, 2, jj, config.dev_log_to_console[ii][jj]);
 			csp_logger->set_device_node_log(ii, 0, jj, config.dev_log_recording[ii][jj]);
 		}
 	}
+}
+
+int MainLoop(int argc, char *argv[])
+{
+
+	std::string archstr;
+	std::string emustr("emu");
+	std::string cfgstr(CONFIG_NAME);
+	std::string delim;
+	QString emudesc;
+	
+	setup_logs();
+#if defined(Q_OS_WIN)
+	delim = "\\";
+#else
+	delim = "/";
+#endif
+	
+	GuiMain = new QApplication(argc, argv);
+	GuiMain->setObjectName(QString::fromUtf8("Gui_Main"));
+	
+    QCommandLineParser cmdparser;
+
+	virtualMediaList.clear();
+	SetOptions(&cmdparser);
+
+	cmdparser.process(QCoreApplication::arguments());
+
+	ProcessCmdLine(&cmdparser, &virtualMediaList);
+
+	emustr = emustr + cfgstr;
+
+	SetupLogger(emustr, CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1);
+	
+	archstr = "Generic";
+#if defined(__x86_64__)
+	archstr = "amd64";
+#endif
+#if defined(__i386__)
+	archstr = "ia32";
+#endif
+	OpeningMessage(archstr);
+	SetupSDL();
+	/*
+	 * Into Qt's Loop.
+	 */
 	USING_FLAGS_EXT *using_flags = new USING_FLAGS_EXT(&config);
 	// initialize emulation core
 
+	//SetupTranslators();
 	QTranslator local_translator;
 	QLocale s_locale;
 	if(local_translator.load(s_locale, QLatin1String("csp_qt_machine"), QLatin1String("_"), QLatin1String(":/"))) {
