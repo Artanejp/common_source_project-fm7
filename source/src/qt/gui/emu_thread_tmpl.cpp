@@ -9,8 +9,11 @@
 */
 
 #include <QString>
+#include <QStringList>
+#include <QFileInfo>
 #include <QTextCodec>
 #include <QWaitCondition>
+#include <QWidget>
 
 #include <SDL.h>
 
@@ -61,6 +64,7 @@ EmuThreadClassBase::EmuThreadClassBase(META_MainWindow *rootWindow, USING_FLAGS 
 	key_fifo = new FIFO(512 * 6);
 	key_fifo->clear();
 	keyMutex->unlock();
+
 };
 
 EmuThreadClassBase::~EmuThreadClassBase() {
@@ -277,4 +281,139 @@ void EmuThreadClassBase::do_update_volume_balance(int num, int level)
 			bUpdateVolumeReq[num] = true;
 		}
 	}
+}
+
+int EmuThreadClassBase::parse_command_queue(QStringList _l, int _begin)
+{
+	int _ret = _l.size() / 2;
+	for(int i = _begin * 2; i < _l.size(); i+= 2) {
+		QString _dom = _l.at(i);
+		QString _file = _l.at(i + 1);
+		QString _dom_type = _dom.left(_dom.size() - 1);
+		int _dom_num;
+		bool _num_ok;
+		_dom_num = _dom.right(1).toInt(&_num_ok);
+		if(_num_ok) {
+			if((_dom_type == QString::fromUtf8("vFloppyDisk")) ||
+			   (_dom_type == QString::fromUtf8("vBubble"))) {
+				int _n = _file.indexOf(QString::fromUtf8("@"));
+				int _slot = 0;
+				QFileInfo fileInfo;
+				if((_n > 0) && (_n < 4)) {
+					_slot = _file.left(_n).toInt(&_num_ok);
+					if(_num_ok) {
+						fileInfo = QFileInfo(_file.right(_file.size() - (_n + 1)));
+					} else {
+						fileInfo = QFileInfo(_file);
+					}
+				} else {
+					fileInfo = QFileInfo(_file);
+				}
+				if(fileInfo.isFile()) {
+					if(_dom_type == QString::fromUtf8("vFloppyDisk")) {
+						emit sig_open_fd(_dom_num, fileInfo.absoluteFilePath());
+						emit sig_set_d88_num(_dom_num, _slot);
+					} else if(_dom_type == QString::fromUtf8("vBubble")) {
+						emit sig_open_bubble(_dom_num, fileInfo.absoluteFilePath());
+						emit sig_set_b77_num(_dom_num, _slot);
+					}
+				}
+			} else {
+				QFileInfo fileInfo = QFileInfo(_file);
+				if(fileInfo.isFile()) {
+					if(_dom_type == QString::fromUtf8("vQuickDisk")) {
+						emit sig_open_quick_disk(_dom_num, _file);
+					} else if(_dom_type == QString::fromUtf8("vCmt")) {
+						emit sig_open_cmt_load(_dom_num, _file);
+					} else if(_dom_type == QString::fromUtf8("vBinary")) {
+						emit sig_open_binary_load(_dom_num, _file);
+					} else if(_dom_type == QString::fromUtf8("vCart")) {
+						emit sig_open_cart(_dom_num, _file);
+					} else if(_dom_type == QString::fromUtf8("vLD")) {
+						emit sig_open_laser_disc(_dom_num, _file);
+					} else if(_dom_type == QString::fromUtf8("vCD")) {
+						emit sig_open_cdrom(_dom_num, _file);
+					}
+				}
+			}
+		}
+	}
+	_ret = _ret - _begin;
+	if(_ret < 0) _ret = 0;
+	return _ret;
+}
+
+const _TCHAR *EmuThreadClassBase::get_emu_message(void)
+{
+	static const _TCHAR str[] = "";
+	return (const _TCHAR *)str;
+}
+
+double EmuThreadClassBase::get_emu_frame_rate(void)
+{
+	return 30.00;
+}
+int EmuThreadClassBase::get_message_count(void)
+{
+	return 0;
+}
+
+void EmuThreadClassBase::dec_message_count(void)
+{
+
+}
+
+const _TCHAR *EmuThreadClassBase::get_device_name(void)
+{
+	return (const _TCHAR *)_T("TEST");
+}
+
+bool EmuThreadClassBase::get_power_state(void)
+{
+	return true;
+}
+
+void EmuThreadClassBase::print_framerate(int frames)
+{
+	if(frames >= 0) draw_frames += frames;
+	if(calc_message) {
+		qint64 current_time = tick_timer.elapsed();
+		if(update_fps_time <= current_time && update_fps_time != 0) {
+			_TCHAR buf[256];
+			QString message;
+			//int ratio = (int)(100.0 * (double)draw_frames / (double)total_frames + 0.5);
+
+			if(get_power_state() == false){ 	 
+					snprintf(buf, 255, _T("*Power OFF*"));
+				} else if(now_skip) {
+					int ratio = (int)(100.0 * (double)total_frames / get_emu_frame_rate() + 0.5);
+					snprintf(buf, 255, create_string(_T("%s - Skip Frames (%d %%)"), get_device_name(), ratio));
+				} else {
+					if(get_message_count() > 0) {
+						snprintf(buf, 255, _T("%s - %s"), get_device_name(), get_emu_message());
+						dec_message_count();
+					} else {
+						int ratio = (int)(100.0 * (double)draw_frames / (double)total_frames + 0.5);
+						snprintf(buf, 255, _T("%s - %d fps (%d %%)"), get_device_name(), draw_frames, ratio);
+					}
+				}
+				if(p_config->romaji_to_kana) {
+					message = QString::fromUtf8("[R]");
+					message = message + QString::fromUtf8(buf);
+				} else {
+					message = buf;
+				}
+				emit message_changed(message);
+				emit window_title_changed(message);
+				update_fps_time += 1000;
+				total_frames = draw_frames = 0;
+				
+			}
+			if(update_fps_time <= current_time) {
+				update_fps_time = current_time + 1000;
+			}
+			calc_message = false;  
+		} else {
+			calc_message = true;
+		}
 }

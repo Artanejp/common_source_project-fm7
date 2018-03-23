@@ -37,6 +37,21 @@ EmuThreadClass::EmuThreadClass(META_MainWindow *rootWindow, USING_FLAGS *p, QObj
 	p->set_emu(emu);
 	p->set_osd(emu->get_osd());
 	emu->get_osd()->moveToThread(this);
+
+	connect(this, SIGNAL(sig_open_binary_load(int, QString)), MainWindow, SLOT(_open_binary_load(int, QString)));
+	connect(this, SIGNAL(sig_open_binary_save(int, QString)), MainWindow, SLOT(_open_binary_save(int, QString)));
+	connect(this, SIGNAL(sig_open_cart(int, QString)), MainWindow, SLOT(_open_cart(int, QString)));
+	connect(this, SIGNAL(sig_open_cmt_load(int, QString)), MainWindow, SLOT(do_open_read_cmt(int, QString)));
+	connect(this, SIGNAL(sig_open_cmt_write(int, QString)), MainWindow, SLOT(do_open_write_cmt(int, QString)));
+	connect(this, SIGNAL(sig_open_fd(int, QString)), MainWindow, SLOT(_open_disk(int, QString)));
+	
+	connect(this, SIGNAL(sig_open_quick_disk(int, QString)), MainWindow, SLOT(_open_quick_disk(int, QString)));
+	connect(this, SIGNAL(sig_open_bubble(int, QString)), MainWindow, SLOT(_open_bubble(int, QString)));
+	connect(this, SIGNAL(sig_open_cdrom(int, QString)), MainWindow, SLOT(do_open_cdrom(int, QString)));
+	connect(this, SIGNAL(sig_open_laser_disc(int, QString)), MainWindow, SLOT(do_open_laserdisc(int, QString)));
+	
+	connect(this, SIGNAL(sig_set_d88_num(int, int)), MainWindow, SLOT(set_d88_slot(int, int)));
+	connect(this, SIGNAL(sig_set_b77_num(int, int)), MainWindow, SLOT(set_b77_slot(int, int)));
 }
 
 EmuThreadClass::~EmuThreadClass()
@@ -272,6 +287,11 @@ void EmuThreadClass::get_bubble_string(void)
 #endif
 }
 
+#include <QStringList>
+#include <QFileInfo>
+
+extern QStringList virtualMediaList; // {TYPE, POSITION}
+
 void EmuThreadClass::doWork(const QString &params)
 {
 	int interval = 0, sleep_period = 0;
@@ -294,6 +314,7 @@ void EmuThreadClass::doWork(const QString &params)
 	int no_draw_count = 0;	
 	bool prevRecordReq = false;
 	double nr_fps = -1.0;
+	int _queue_begin;
 	bool multithread_draw = using_flags->get_config_ptr()->use_separate_thread_draw;
 	
 	doing_debug_command = false;
@@ -328,7 +349,9 @@ void EmuThreadClass::doWork(const QString &params)
 	}
 	cdrom_text.clear();
 	for(int i = 0; i < using_flags->get_max_bubble(); i++) bubble_text[i].clear();
-	
+
+	_queue_begin = parse_command_queue(virtualMediaList, 0);
+
 	do {
 		//p_emu->SetHostCpus(this->idealThreadCount());
    		if(MainWindow == NULL) {
@@ -371,6 +394,7 @@ void EmuThreadClass::doWork(const QString &params)
 				bSpecialResetReq = false;
 			}
 #endif
+
 #ifdef USE_STATE
 			if(bSaveStateReq != false) {
 				if(!sStateFile.isEmpty()) {
@@ -431,17 +455,6 @@ void EmuThreadClass::doWork(const QString &params)
 				}
 			}
 #endif
-			if(p_config->romaji_to_kana) {
-				//FIFO *dmy = p_emu->get_auto_key_buffer();
-				//if(dmy != NULL) {
-				//	if(!dmy->empty()) {
-				//		p_emu->stop_auto_key();		
-				//		p_emu->start_auto_key();
-				//	}
-				//}
-			   
-			}
-			// else
 			{
 				while(!is_empty_key()) {
 					key_queue_t sp;
@@ -469,7 +482,7 @@ void EmuThreadClass::doWork(const QString &params)
 			}
 			if(multithread_draw) {
 				if(nr_fps < 0.0) {
-					nr_fps = emu->get_frame_rate();
+					nr_fps = get_emu_frame_rate();
 					if(nr_fps >= 1.0) emit sig_set_draw_fps(nr_fps);
 				}
 			}
@@ -513,7 +526,6 @@ void EmuThreadClass::doWork(const QString &params)
 			//printf("p_emu::RUN Frames = %d SKIP=%d Interval = %d NextTime = %d\n", run_frames, now_skip, interval, next_time);
 			if(next_time > tick_timer.elapsed()) {
 				//  update window if enough time
-//				draw_timing = false;
 				if(!req_draw) {
 					no_draw_count++;
 					int count_limit = (int)(FRAMES_PER_SEC / 3);
@@ -551,7 +563,6 @@ void EmuThreadClass::doWork(const QString &params)
 				}
 			} else if(++skip_frames > MAX_SKIP_FRAMES) {
 				// update window at least once per 10 frames
-//				draw_timing = false;
 				{
 					double nd;
 					nd = emu->get_frame_rate();
@@ -596,47 +607,32 @@ void EmuThreadClass::do_set_display_size(int w, int h, int ww, int wh)
 	p_emu->set_host_window_size(w, h, true);
 }
 
-void EmuThreadClass::print_framerate(int frames)
+const _TCHAR *EmuThreadClass::get_emu_message(void)
 {
-	if(frames >= 0) draw_frames += frames;
-	if(calc_message) {
-		qint64 current_time = tick_timer.elapsed();
-		if(update_fps_time <= current_time && update_fps_time != 0) {
-			_TCHAR buf[256];
-			QString message;
-			//int ratio = (int)(100.0 * (double)draw_frames / (double)total_frames + 0.5);
+	return (const _TCHAR *)(p_emu->message);
+}
 
-				if(MainWindow->GetPowerState() == false){ 	 
-					snprintf(buf, 255, _T("*Power OFF*"));
-				} else if(now_skip) {
-					int ratio = (int)(100.0 * (double)total_frames / emu->get_frame_rate() + 0.5);
-					snprintf(buf, 255, create_string(_T("%s - Skip Frames (%d %%)"), _T(DEVICE_NAME), ratio));
-				} else {
-					if(p_emu->message_count > 0) {
-						snprintf(buf, 255, _T("%s - %s"), DEVICE_NAME, p_emu->message);
-						p_emu->message_count--;
-					} else {
-						int ratio = (int)(100.0 * (double)draw_frames / (double)total_frames + 0.5);
-						snprintf(buf, 255, _T("%s - %d fps (%d %%)"), DEVICE_NAME, draw_frames, ratio);
-					}
-				}
-				if(p_config->romaji_to_kana) {
-					message = QString::fromUtf8("[R]");
-					message = message + QString::fromUtf8(buf);
-				} else {
-					message = buf;
-				}
-				emit message_changed(message);
-				emit window_title_changed(message);
-				update_fps_time += 1000;
-				total_frames = draw_frames = 0;
-				
-			}
-			if(update_fps_time <= current_time) {
-				update_fps_time = current_time + 1000;
-			}
-			calc_message = false;  
-		} else {
-			calc_message = true;
-		}
+double EmuThreadClass::get_emu_frame_rate(void)
+{
+	return emu->get_frame_rate();
+}
+
+int EmuThreadClass::get_message_count(void)
+{
+	return p_emu->message_count;	
+}
+
+void EmuThreadClass::dec_message_count(void)
+{
+	p_emu->message_count--;
+}
+
+const _TCHAR *EmuThreadClass::get_device_name(void)
+{
+	return (const _TCHAR *)_T(DEVICE_NAME);
+}
+
+bool EmuThreadClass::get_power_state(void)
+{
+	return MainWindow->GetPowerState();
 }

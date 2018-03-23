@@ -32,9 +32,6 @@ class QWaitCondition;
 class USING_FLAGS;
 
 QT_BEGIN_NAMESPACE
-//#include "../../romakana.h"
-//#define USE_QQUEUE_FOR_KEY
-
 enum {
 	KEY_QUEUE_DOWN = 0x10000000,
 	KEY_QUEUE_UP   = 0x20000000,
@@ -49,6 +46,7 @@ typedef struct {
 class DLL_PREFIX EmuThreadClassBase : public QThread {
 	Q_OBJECT
 protected:
+	bool now_skip;
 	bool calc_message;
 	bool tape_play_flag;
 	bool tape_rec_flag;
@@ -104,11 +102,9 @@ protected:
 	QString bubble_text[16];
 	QString clipBoardText;
 
-	_TCHAR roma_kana_buffer[8];
-	uint32_t roma_kana_shadow[8];
-	int roma_kana_ptr;
 	void calc_volume_from_balance(int num, int balance);
 	void calc_volume_from_level(int num, int level);
+	int parse_command_queue(QStringList _l, int _begin);
 	
 	virtual void button_pressed_mouse_sub(Qt::MouseButton button) {};
 	virtual void button_released_mouse_sub(Qt::MouseButton button) {};
@@ -117,6 +113,13 @@ protected:
 	virtual void get_tape_string(void) {};
 	virtual void get_cd_string(void) {};
 	virtual void get_bubble_string(void) {};
+
+	virtual const _TCHAR *get_emu_message(void);
+	virtual double get_emu_frame_rate(void);
+	virtual int get_message_count(void);
+	virtual void dec_message_count(void);
+	virtual const _TCHAR *get_device_name(void);
+	virtual bool get_power_state(void);
 	
 	void enqueue_key_up(key_queue_t s) {
 		keyMutex->lock();
@@ -199,6 +202,7 @@ public slots:
 	void button_released_mouse(Qt::MouseButton);
 	void do_key_down(uint32_t vk, uint32_t mod, bool repeat);
 	void do_key_up(uint32_t vk, uint32_t mod);
+	void print_framerate(int frames);
 
 signals:
 	int message_changed(QString);
@@ -230,6 +234,22 @@ signals:
 	int sig_quit_debugger();
 	int sig_romakana_mode(bool);
 	int sig_set_access_lamp(int, bool);
+
+	int sig_open_binary_load(int, QString);
+	int sig_open_binary_save(int, QString);
+	int sig_open_cart(int, QString);
+	int sig_open_cmt_load(int, QString);
+	int sig_open_cmt_write(int, QString);
+	int sig_open_fd(int, QString);
+	
+	int sig_open_quick_disk(int, QString);
+	int sig_open_bubble(int, QString);
+	int sig_open_cdrom(int, QString);
+	int sig_open_laser_disc(int, QString);
+	
+	int sig_set_d88_num(int, int);
+	int sig_set_b77_num(int, int);
+
 };
 
 QT_END_NAMESPACE

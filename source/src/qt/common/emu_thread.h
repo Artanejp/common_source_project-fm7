@@ -43,7 +43,6 @@ class EmuThreadClass : public EmuThreadClassBase {
 	Q_OBJECT
 protected:
 	char dbg_prev_command[MAX_COMMAND_LEN];
-	bool now_skip;
   
 	void button_pressed_mouse_sub(Qt::MouseButton button);
 	void button_released_mouse_sub(Qt::MouseButton button);
@@ -53,6 +52,12 @@ protected:
 	void get_cd_string(void);
 	void get_bubble_string(void);
 
+	const _TCHAR *get_emu_message(void);
+	double get_emu_frame_rate(void);
+	int get_message_count(void);
+	void dec_message_count(void);
+	const _TCHAR *get_device_name(void);
+	bool get_power_state(void);
 
 public:
 	EmuThreadClass(META_MainWindow *rootWindow, USING_FLAGS *p, QObject *parent = 0);
@@ -63,7 +68,6 @@ public:
 
 public slots:
 	void doWork(const QString &param);
-	void print_framerate(int frames);
 	
 	void do_set_display_size(int w, int h, int ww, int wh);
 	void moved_mouse(int, int);
