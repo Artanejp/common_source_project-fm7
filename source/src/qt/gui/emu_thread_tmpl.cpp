@@ -315,24 +315,24 @@ int EmuThreadClassBase::parse_command_queue(QStringList _l, int _begin)
 						emit sig_set_d88_num(_dom_num, _slot);
 					} else if(_dom_type == QString::fromUtf8("vBubble")) {
 						emit sig_open_bubble(_dom_num, fileInfo.absoluteFilePath());
-						emit sig_set_b77_num(_dom_num, _slot);
+						//emit sig_set_b77_num(_dom_num, _slot);
 					}
 				}
 			} else {
 				QFileInfo fileInfo = QFileInfo(_file);
 				if(fileInfo.isFile()) {
 					if(_dom_type == QString::fromUtf8("vQuickDisk")) {
-						emit sig_open_quick_disk(_dom_num, _file);
+						emit sig_open_quick_disk(_dom_num, fileInfo.absoluteFilePath());
 					} else if(_dom_type == QString::fromUtf8("vCmt")) {
-						emit sig_open_cmt_load(_dom_num, _file);
+						emit sig_open_cmt_load(_dom_num, fileInfo.absoluteFilePath());
 					} else if(_dom_type == QString::fromUtf8("vBinary")) {
-						emit sig_open_binary_load(_dom_num, _file);
+						emit sig_open_binary_load(_dom_num, fileInfo.absoluteFilePath());
 					} else if(_dom_type == QString::fromUtf8("vCart")) {
-						emit sig_open_cart(_dom_num, _file);
+						emit sig_open_cart(_dom_num, fileInfo.absoluteFilePath());
 					} else if(_dom_type == QString::fromUtf8("vLD")) {
-						emit sig_open_laser_disc(_dom_num, _file);
+						emit sig_open_laser_disc(_dom_num, fileInfo.absoluteFilePath());
 					} else if(_dom_type == QString::fromUtf8("vCD")) {
-						emit sig_open_cdrom(_dom_num, _file);
+						emit sig_open_cdrom(_dom_num, fileInfo.absoluteFilePath());
 					}
 				}
 			}

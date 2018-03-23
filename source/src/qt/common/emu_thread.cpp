@@ -351,7 +351,6 @@ void EmuThreadClass::doWork(const QString &params)
 	for(int i = 0; i < using_flags->get_max_bubble(); i++) bubble_text[i].clear();
 
 	_queue_begin = parse_command_queue(virtualMediaList, 0);
-
 	do {
 		//p_emu->SetHostCpus(this->idealThreadCount());
    		if(MainWindow == NULL) {

@@ -703,7 +703,7 @@ void SetQuickDiskOptions(QCommandLineParser *cmdparser)
 	for(int i = 0; i < MAX_QD; i++) {
 		QString sfdType1 = QString::fromUtf8("qd%1").arg(i);
 		QString sfdType2 = QString::fromUtf8("vQuickDisk%1").arg(i);
-		opt_qds[i] = new QCommandLineOption({sfdType1, sfdType2},QCoreApplication::translate("main", "Set virtual quick disk %1.").arg(i) , "fullpath");
+		_opt_qds[i] = new QCommandLineOption({sfdType1, sfdType2},QCoreApplication::translate("main", "Set virtual quick disk %1.").arg(i) , "fullpath");
 		cmdparser->addOption(*_opt_qds[i]);
 	}
 #endif
@@ -874,11 +874,12 @@ void SetOptions(QCommandLineParser *cmdparser)
     cmdparser->addOption(*_opt_dipsw_on);
     cmdparser->addOption(*_opt_dipsw_off);
 	SetFDOptions(cmdparser);
-	SetBinaryOptions(cmdparser);
+	//SetBinaryOptions(cmdparser); // Temporally disabled.
 	SetCmtOptions(cmdparser);
-	SetBubbleOptions(cmdparser);
+	SetCartOptions(cmdparser);
+	//SetBubbleOptions(cmdparser); // Temporally disabled.
 	SetQuickDiskOptions(cmdparser);
-	SetLDOptions(cmdparser);
+	//SetLDOptions(cmdparser); // Temporally disabled.
 	SetCDOptions(cmdparser);
 	
 }
