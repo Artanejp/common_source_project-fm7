@@ -396,7 +396,7 @@ void BUBBLECASETTE::open(_TCHAR* file_path, int bank)
 	if(fio == NULL) return;
 	memset(image_path, 0x00, _MAX_PATH * sizeof(_TCHAR));
 	_tcsncpy(image_path, file_path, _MAX_PATH);
-	
+
 	if(fio->IsFileExisting(file_path)) {
 		fio->Fopen(file_path, FILEIO_READ_WRITE_BINARY);
 		file_length = fio->FileLength();
