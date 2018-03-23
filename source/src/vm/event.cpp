@@ -249,7 +249,7 @@ int EVENT::run_cpu(uint32_t num, int cycles)
 	}
 }
 
-//#define USE_SUPRESS_VTABLE
+#define USE_SUPRESS_VTABLE
 void EVENT::drive()
 {
 	// raise pre frame events to update timing settings
