@@ -1,3 +1,164 @@
+commit 253c9a28266c1f59994bf8103ec6b509db1fb8bc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 26 01:24:22 2018 +0900
+
+    [BUILD][CMAKE] Change optimise parameters.
+
+commit 708484f11469998cfa7b7cebc1c6cb2ddc5d69c8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 26 01:21:43 2018 +0900
+
+    [MOVIE_LOADER] Fix scaling factor.Displaying video as correct width and height.
+    [MOVIE_LOADER] Fix hang up at end of video.
+    [MOVIE_SAVER][WIP] Fixing crash when saving movie and playing video.(still not fix).
+
+commit 4a7e650c04ff5b3c2e29e806128a8e6a103897a5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 25 21:53:05 2018 +0900
+
+    [UI][I18N][Qt] Update Translations.
+
+commit 6fe7becbea88362b2856c71ecb14bfa8c6ca2523
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 25 21:46:49 2018 +0900
+
+    [UI][Qt][SCREEN] Add turning on/off virtual media Icons on screen (OSD).
+
+commit 64e741f124eb4e2c75ec2826e5ad2f07efc99879
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 25 16:17:16 2018 +0900
+
+    [VM][FM77L4] Add FM77L4.Maybe 400lines board still not working.
+
+commit 989aa9f5e877b9cdb665c06b878cbb5e46e7be6f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 25 15:25:23 2018 +0900
+
+    [Qt][COMMAND_LINE] Fix not loading virtual floppy disks excepts D77/D88. Thanks to https://matsuri.5ch.net/test/read.cgi/i4004/1483504365/922 .
+    [Qt][COMMAND_LINE][FM8] Re-enable to loading bubble casette.
+    [Qt][COMMAND_LINE][PX7] Delay loading movie.Fix crash loading movie with command line.
+
+commit e81cad55c4b3fb8ff4d3c2b6f4313b10c052775a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 23 20:24:56 2018 +0900
+
+    /
+
+commit 5157e446cf53a739e95a9bc69b28aa9d577ef5e7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 23 20:23:46 2018 +0900
+
+    [UI][Qt][COMMAND_LINE] Temprally disable --binary* , --ld* and --bubble* .They don't work fine yet.
+
+commit 9b81938868aa0db7b8edba3e1f58919e691ab22d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 23 18:37:33 2018 +0900
+
+    [COMMAND_LINE][MAIN] Split some functions at MainLoop().
+
+commit 68aa0bd12063a8c1566947ec1f4ef358a2557285
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 23 17:18:37 2018 +0900
+
+    [EVENT] .
+
+commit 93e904925ddfe8950b70018249511918e7102869
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 23 17:18:03 2018 +0900
+
+    [VM][FM7] Add Green display features.
+
+commit 354177e8f7b3bfb3ab5a5640ae9ccdc1434465b1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 23 17:16:17 2018 +0900
+
+    [COMMAND_LINE][Qt] Add virtual media handling via command line.
+
+commit b05d12ca81077803e233d0bdd6f373f091559a57
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 19 16:43:12 2018 +0900
+
+    [VM][FM77][FM8] Fix FTBFS.
+
+commit 103736c4ade6e6023e45d881060040f0e73dbecb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 19 16:42:07 2018 +0900
+
+    [General][Qt] Add some command line options.(Still not implement around virtual media)
+
+commit b65c259a98ca50ced547ca7da9a9507c3ea44002
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 19 06:02:24 2018 +0900
+
+    .
+
+commit 78154ef7e7bc93c308f21e87c4790303e638b93d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 19 06:01:44 2018 +0900
+
+    [VM][FM77L4][WIP] Implementing 400LINES BOARD's CRTC.
+
+commit 31f1dc7083bd830866dca41999984288c4346332
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 19 00:18:09 2018 +0900
+
+    [VM][EVENT] Specify CPU per VM.
+
+commit 023a9aaed0eed332a65d618b7aa815aeecf05ea5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 19 00:16:33 2018 +0900
+
+    [VM][FM7][Qt] Add Green display for FM-7/8/77 .
+
+commit a5e8e01855c26f59882b8ed7a6b592dea645b5dc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 16 15:42:03 2018 +0900
+
+    [VM][FM7][VRAM] More expect to use SIMD.
+
+commit 813614437a72ddb736e676147522fa1112275ba2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 15 23:42:40 2018 +0900
+
+    [VM][FM7][VRAM] Add __DECL_VECTORIZE_LOOP decl. to indicate expect to use vectorize (a.k.a. SIMD instructions).
+
+commit 9050ad8c4d0471e732b3d54a50da7cf6ccb65d82
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 9 05:40:14 2018 +0900
+
+    .
+
+commit 4db7541ea75e425cd689efddd3aa1789e560c7e7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 9 05:39:00 2018 +0900
+
+    [VM][FM7] Use template and static_cast<T *> to expect to be faster.
+
+commit 37c897edb072c0e8eae941c4cca8f8a3293719d6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 8 06:04:40 2018 +0900
+
+    [VM][MC6809] Fix clock using.
+
+commit db42ea8fd8fb230ee29ada661c5d1da98d8ef924
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 8 06:03:53 2018 +0900
+
+    [VM][EVENT] drive()/mix() :Expect to be faster a bit.
+
+commit 8eee19ee2032e6060d5652182cb87db70b651a7a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 8 06:02:52 2018 +0900
+
+    [VM][MB8877] Fix verify timing on SEEK command.Fix not booting Sylpheed for FM77AV.
+
+commit 944a6635afb8ab171a00d4028952e725b6c04382
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 4 11:30:48 2018 +0900
+
+    [DOC] Updated.
+    [BUILD][CMAKE][INSTALLER] Update SOVERSION.
+
 commit 7c0c0657f8f726e7aa86ace64777036e1cca4ce4
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sun Mar 4 11:19:25 2018 +0900
