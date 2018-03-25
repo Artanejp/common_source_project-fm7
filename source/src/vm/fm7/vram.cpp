@@ -12,51 +12,6 @@
 #include "hd46505.h"
 #endif
 
-uint8_t DISPLAY::read_vram_l4_400l(uint32_t addr, uint32_t offset)
-{
-#if defined(_FM77L4)
-	if(addr < 0x8000) {
-		if(workram) {
-			uint32_t raddr = addr & 0x3fff;
-			if((multimode_accessmask & 0x04) == 0) {
-				return gvram[0x8000 + (raddr + offset) & 0x7fff];
-			}
-			return 0xff;
-		}
-		pagemod = addr & 0x4000;
-		return gvram[((addr + offset) & mask) | pagemod];
-	} else if(addr < 0x9800) {
-		return textvram[addr & 0x0fff];
-	} else { // $9800-$bfff
-		return subsys_l4[addr - 0x9800];
-	}
-#endif
-	return 0xff;
-}
-
-void DISPLAY::write_vram_l4_400l(uint32_t addr, uint32_t offset, uint32_t data)
-{
-#if defined(_FM77L4)
-	if(addr < 0x8000) {
-		if(workram) {
-			uint32_t raddr = addr & 0x3fff;
-			if((multimode_accessmask & 0x04) == 0) {
-				gvram[0x8000 + (raddr + offset) & 0x7fff] = (uint8_t)data;
-			}
-			return;
-		}
-		pagemod = addr & 0x4000;
-		gvram[((addr + offset) & mask) | pagemod] = (uint8_t)data;
-	} else if(addr < 0x9800) {
-		text_vram[addr & 0x0fff] = (uint8_t)data;
-	} else { // $9800-$bfff
-		//return subsys_l4[addr - 0x9800];
-	}
-	return;
-#endif	
-}
-
-
 
 void DISPLAY::draw_screen()
 {
@@ -258,6 +213,7 @@ void DISPLAY::draw_screen2()
 			uint8_t charcode;
 			uint8_t attr_code;
 			scrntype_t on_color;
+			int xlim, ylim;
 			bool do_green;
 			if((y & 0x0f) == 0) {
 				for(yy = 0; yy < 16; yy++) renderf |= vram_draw_table[y + yy];
@@ -305,6 +261,7 @@ void DISPLAY::draw_screen2()
 				bool display_char;
 				int raster;
 				bool cursor_rev;
+				uint8_t bitdata;
 				if(text_width40) {
 					xlim = 40;
 				} else {
@@ -312,33 +269,33 @@ void DISPLAY::draw_screen2()
 				}
 				
 				for(x = 0; x < xlim; x++) {
-					naddr = (text_start_addr + ((y / text_lines) * text_xmax + x) * 2) & 0x0ffe;
+					naddr = (text_start_addr.w.l + ((y / text_lines) * text_xmax + x) * 2) & 0x0ffe;
 					charcode = text_vram[naddr];
 					attr_code = text_vram[naddr + 1];
 						
 					on_color = GETVRAM_TEXTCOLOR(attr_code, do_green);
 					
-					display_char = ((attrcode & 0x10) == 0);
-					reverse = ((attrcode & 0x08) != 0);
+					display_char = ((attr_code & 0x10) == 0);
+					reverse = ((attr_code & 0x08) != 0);
 					
 					for(yy = 0; yy < 16; yy++) {
 						raster = y % text_lines;
 						bitdata = 0x00;
-							p = emu->get_screen_buffer(y + yy);
-							if(p == NULL) continue;
-							if((raster < 16) && (display_char || text_blink)) {
-								bitdata = subsys_cg_l4[(uint32_t)charcode * 16 + (uint32_t)raster];
+						p = emu->get_screen_buffer(y + yy);
+						if(p == NULL) continue;
+						if((raster < 16) && (display_char || text_blink)) {
+							bitdata = subsys_cg_l4[(uint32_t)charcode * 16 + (uint32_t)raster];
+						}
+						cursor_rev = false;
+						if((naddr = (uint32_t)(cursor_addr.w.l)) && (cursor_type != 1) &&
+						   (text_blink || (cursor_type == 0))) {
+							if((raster >= cursor_start) && (raster <= cursor_end)) {
+								cursor_rev = true;
 							}
-							cursor_rev = false;
-							if((naddr = cursor_addr) && (cursor_type != 1) &&
-							   (cursor_blink || (cursor_type == 0))) {
-								if((raster >= cursor_start) && (raster <= cursor_end)) {
-									cursor_rev = true;
-								}
-							}
-							bitdata = GETVRAM_TEXTPIX(bitdata, reverse, cursor_rev);
-							if(bitdata != 0) {
-								if(text_width40) {
+						}
+						bitdata = GETVRAM_TEXTPIX(bitdata, reverse, cursor_rev);
+						if(bitdata != 0) {
+							if(text_width40) {
 									scrntype_t *pp = &(p[x * 2]); 
 									for(ii = 0; ii < 8; ii++) {
 										if((bitdata & 0x80) != 0) {
@@ -348,17 +305,17 @@ void DISPLAY::draw_screen2()
 										bitdata <<= 1;
 										p += 2;
 									}										
-								} else {
-									scrntype_t *pp = &(p[x * 2]); 
-									for(ii = 0; ii < 8; ii++) {
-										if((bitdata & 0x80) != 0) {
-											p[0] = on_color;
-										}
-										bitdata <<= 1;
-										p += 1;
-									}										
-								}
+							} else {
+								scrntype_t *pp = &(p[x * 2]); 
+								for(ii = 0; ii < 8; ii++) {
+									if((bitdata & 0x80) != 0) {
+										p[0] = on_color;
+									}
+									bitdata <<= 1;
+									p += 1;
+								}										
 							}
+						}
 					}
 				}
 			}
@@ -658,8 +615,8 @@ void DISPLAY::GETVRAM_1_400L(int yoff, scrntype_t *p)
 	
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
-		tmpd[i] = ppx[i];
-		tmpd[i] = tmpd[i] >> 5;
+		tmp_d[i] = ppx[i];
+		tmp_d[i] = tmp_d[i] >> 5;
 	}
 
 __DECL_VECTORIZED_LOOP
@@ -683,8 +640,8 @@ void DISPLAY::GETVRAM_1_400L_GREEN(int yoff, scrntype_t *p)
 	
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
-		tmpd[i] = ppx[i];
-		tmpd[i] = tmpd[i] >> 5;
+		tmp_d[i] = ppx[i];
+		tmp_d[i] = tmp_d[i] >> 5;
 	}
 
 __DECL_VECTORIZED_LOOP

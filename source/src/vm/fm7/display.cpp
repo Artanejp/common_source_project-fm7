@@ -255,9 +255,10 @@ void DISPLAY::reset()
 	text_xmax = 80;
 	
 	cursor_addr.d = 0;
-	curcor_start = 0;
+	cursor_start = 0;
 	cursor_end = 0;
 	cursor_type = 0;
+	text_scroll_count = 0;
 	//memset(crtc_regs, 0x00, sizeof(crtc_regs));
 #endif
 
@@ -606,6 +607,7 @@ void DISPLAY::setup_400linemode(uint8_t val)
 			display_mode = DISPLAY_MODE_8_200L;
 		}
 		if(oldmode != display_mode) {
+			scrntype_t *pp;
 			if(display_mode == DISPLAY_MODE_1_400L) {
 				emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 				for(int y = 0; y < 400; y++) {
@@ -1895,6 +1897,7 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 					display_mode = DISPLAY_MODE_8_200L;
 				}
 				if(oldmode != display_mode) {
+					scrntype_t *pp;
 					if(display_mode == DISPLAY_MODE_1_400L) {
 						emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 						for(int y = 0; y < 400; y++) {
@@ -2113,12 +2116,12 @@ uint32_t DISPLAY::read_mmio(uint32_t addr)
 #if defined(_FM77L4)
 		case 0x0b:
 			if(stat_400linecard) {
-				retval = l4crtc->read_io8(0, val)
+				retval = l4crtc->read_io8(0);
 			}
 			break;
 		case 0x0c:
 			if(stat_400linecard) {
-				retval = l4crtc->read_io8(1, val);
+				retval = l4crtc->read_io8(1);
 				// Update parameters.
 			}
 			break;
@@ -2385,7 +2388,7 @@ void DISPLAY::write_vram_data8(uint32_t addr, uint8_t data)
 #elif defined(_FM77L4) //_FM77L4
 		if(display_mode == DISPLAY_MODE_1_400L) {
 			if(addr < 0x8000) {
-				if(workram_400l) {
+				if(workram_l4) {
 					//if(multimode_accessflags[2]) return;
 					vramaddr = ((addr + offset) & 0x3fff) + 0x8000; 
 					gvram[vramaddr] = data;
@@ -2654,7 +2657,7 @@ void DISPLAY::write_mmio(uint32_t addr, uint8_t data)
 		case 0x05:
 			set_cyclesteal((uint8_t)data);
 #  if defined(_FM77L4)
-			setup_400linecard((uint8_t)data);
+			setup_400linemode((uint8_t)data);
 #  endif
 			break;
 #endif
@@ -2702,19 +2705,19 @@ void DISPLAY::write_mmio(uint32_t addr, uint8_t data)
 #if defined(_FM77L4)
 		case 0x0b:
 			if(stat_400linecard) {
-				l4crtc->write_io8(0, val & 0x1f);
+				l4crtc->write_io8(0, data & 0x1f);
 			}
 			break;
 		case 0x0c:
 			if(stat_400linecard) {
-				l4crtc->write_io8(1, val);
+				l4crtc->write_io8(1, data);
 				// Update parameters.
-				uint8_t crtc_addr = l4crtc->read_io8(0, val);
-				conct uint8_t *regs = l4crtc->get_regs();
+				uint8_t crtc_addr = l4crtc->read_io8(0);
+				const uint8_t *regs = l4crtc->get_regs();
 				switch(crtc_addr & 0x1f) {
 				case 10:
 				case 11:
-					curcor_addr.w.l &= 0x0ffc;
+					cursor_addr.w.l &= 0x0ffc;
 					cursor_addr.w.l |= (((uint16_t)regs[14]) << 10);
 					cursor_addr.w.l |= (((uint16_t)regs[15]) << 2);
 					if(cursor_lsb) {
@@ -2732,7 +2735,7 @@ void DISPLAY::write_mmio(uint32_t addr, uint8_t data)
 					}
 					break;
 				case 13:
-					text_start_addr.w.l &= 0xfc00
+					text_start_addr.w.l &= 0xfc00;
 					text_start_addr.w.l |= ((uint16_t)data << 2);
 					text_scroll_count++;
 					if((text_scroll_count & 1) == 0) {
@@ -2743,7 +2746,7 @@ void DISPLAY::write_mmio(uint32_t addr, uint8_t data)
 					text_scroll_count++;
 					if((text_scroll_count & 1) == 0) {
 						// Redraw request
-						curcor_addr.w.l &= 0x0ffc;
+						cursor_addr.w.l &= 0x0ffc;
 						cursor_addr.w.l |= (((uint16_t)regs[14]) << 10);
 						cursor_addr.w.l |= (((uint16_t)regs[15]) << 2);
 						if(cursor_lsb) {
@@ -3307,10 +3310,10 @@ void DISPLAY::initialize()
 	text_xmax = 80;
 	
 	cursor_addr.d = 0;
-	curcor_start = 0;
+	cursor_start = 0;
 	cursor_end = 15;
 	cursor_type = 0;
-	
+	text_scroll_count = 0;
 	event_id_l4_text_blink = -1;
 #endif
 	
@@ -3546,10 +3549,11 @@ void DISPLAY::save_state(FILEIO *state_fio)
 	state_fio->FputUint32_BE(text_xmax);
 	
 	state_fio->FputUint32_BE(cursor_addr.d);
-	state_fio->FputInt32_BE(curcor_start);
+	state_fio->FputInt32_BE(cursor_start);
 	state_fio->FputInt32_BE(cursor_end);
 	state_fio->FputUint8(cursor_type);
-	
+	state_fio->FputUint8(text_scroll_count);
+
 	state_fio->FputInt32_BE(event_id_l4_text_blink);
 #endif
 }
@@ -3741,9 +3745,10 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 	text_xmax = state_fio->FgetUint32_BE();
 	
 	cursor_addr.d = state_fio->FgetUint32_BE();
-	curcor_start = state_fio->FgetInt32_BE();
+	cursor_start = state_fio->FgetInt32_BE();
 	cursor_end = state_fio->FgetInt32_BE();
 	cursor_type = state_fio->FgetUint8();
+	text_scroll_count = state_fio->FgetUint8();
 	
 	event_id_l4_text_blink = state_fio->FgetInt32_BE();
 #endif

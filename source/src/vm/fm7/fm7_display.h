@@ -274,10 +274,9 @@ protected:
 	uint8_t subsys_l4[4800];
 	uint8_t text_vram[0x1000];
 	uint8_t crtc_regs[18];
-	
+	uint8_t text_scroll_count;
 	bool workram_l4;
 	bool cursor_lsb;
-	bool text_width40;
 	
 	bool text_blink;
 	bool text_width40;
@@ -285,9 +284,10 @@ protected:
 	pair_t text_start_addr;
 	uint32_t text_lines;
 	uint32_t text_xmax;
+	uint32_t text_ymax;
 	
 	pair_t cursor_addr;
-	int curcor_start;
+	int cursor_start;
 	int cursor_end;
 	uint8_t cursor_type;
 	
@@ -342,7 +342,6 @@ protected:
 	void GETVRAM_8_400L(int yoff, scrntype_t *p, bool window_inv = false);
 	void GETVRAM_256k(int yoff, scrntype_t *p, scrntype_t *px, bool scan_line = false);
 #endif   
-	uint8_t read_vram_l4_400l(uint32_t addr, uint32_t offset);
 	uint32_t read_mmio(uint32_t addr);
 	
 	void init_read_table(void);
@@ -373,7 +372,6 @@ protected:
 	void write_subsys_cgram(uint32_t addr, uint8_t data);
 	void write_subsys_ram(uint32_t addr, uint8_t data);
 #endif
-	void write_vram_l4_400l(uint32_t addr, uint32_t offset, uint32_t data);
 	void write_mmio(uint32_t addr, uint8_t data);
 	void write_dummy(uint32_t addr, uint8_t data);
    
