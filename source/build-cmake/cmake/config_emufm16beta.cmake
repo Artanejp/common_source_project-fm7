@@ -12,12 +12,13 @@ set(WITH_JOYSTICK OFF)
 set(WITH_MOUSE ON)
 
 set(VMFILES
+		   i8237.cpp
 		   msm58321.cpp
 #		   scsi_dev.cpp
 #		   scsi_host.cpp
 #		   scsi_hdd.cpp
 		   memory.cpp
-
+		   
 		   event.cpp
 		   io.cpp
 )
@@ -25,7 +26,7 @@ set(VMFILES
 set(VMFILES_LIB
 		   hd46505.cpp
 
-		   i8237.cpp
+		   i8237_base.cpp
 		   i8251.cpp
 		   i8259.cpp
 		   msm58321_base.cpp
@@ -66,13 +67,13 @@ if(BUILD_FM16BETA_286)
   set(FLAG_USE_I286 ON)
 elseif(BUILD_FM16BETA_86)
   set(EXEC_TARGET emufm16beta_86)
-  add_definitions(-D_FMR50)
+  add_definitions(-D_FM16BETA)
   add_definitions(-DHAS_I86)
   set(FLAG_USE_I386_VARIANTS OFF)
   set(FLAG_USE_I286 ON)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fm16beta.qrc)
 endif()
 
-include(config_commonsource)
+#include(config_commonsource)
 
 

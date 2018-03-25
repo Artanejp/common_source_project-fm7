@@ -1,6 +1,6 @@
 message("* qt/fm16beta")
 
-set(s_qt_fm16pi_headers
+set(s_qt_fm16beta_headers
 	  menuclasses.h
 )
 
