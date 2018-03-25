@@ -157,6 +157,7 @@ private:
 	QActionGroup *actionGroup_Stretch;
 	QActionGroup *actionGroup_SetRenderPlatform;
 	class Action_Control *action_ScreenSeparateThread;
+	class Action_Control *action_ScreenUseOSD;
 	class Action_Control *actionZoom;
 	class Action_Control *actionDisplay_Mode;
 	class Action_Control *actionScanLine;
@@ -527,6 +528,7 @@ public slots:
 	void do_stop_saving_movie(void);
 	void do_start_saving_movie(void);
 	void do_set_state_saving_movie(bool state);
+	void set_osd_virtual_media(bool f);
 	
 	virtual void OnOpenDebugger(int n);
 	virtual void OnCloseDebugger(void);

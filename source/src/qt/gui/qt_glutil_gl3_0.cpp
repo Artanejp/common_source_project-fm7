@@ -1206,7 +1206,7 @@ void GLDraw_3_0::paintGL(void)
 		extfunc->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		extfunc->glDisable(GL_DEPTH_TEST);
 		//drawOsdLeds();
-		drawOsdIcons();
+		if(using_flags->get_config_ptr()->use_osd_virtual_media) drawOsdIcons();
 		extfunc->glDisable(GL_BLEND);
 		if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
 			drawGrids();

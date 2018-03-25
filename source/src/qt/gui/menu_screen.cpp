@@ -123,6 +123,11 @@ void Ui_MainWindowBase::set_gl_scan_line_horiz(bool f)
 	using_flags->get_config_ptr()->opengl_scanline_horiz = f;
 }
 
+void Ui_MainWindowBase::set_osd_virtual_media(bool f)
+{
+	using_flags->get_config_ptr()->use_osd_virtual_media = f;
+}
+
 void Ui_MainWindowBase::ConfigScreenMenu_List(void)
 {
 	int w, h;
@@ -181,6 +186,10 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 		connect(actionScanLine, SIGNAL(toggled(bool)),
 			this, SLOT(set_scan_line(bool)));
 	}
+	
+	SET_ACTION_SINGLE(action_ScreenUseOSD, true, true, (using_flags->get_config_ptr()->use_osd_virtual_media));
+	connect(action_ScreenUseOSD, SIGNAL(toggled(bool)),this, SLOT(set_osd_virtual_media(bool)));
+	
 	if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
 		actionGLScanLineHoriz = new Action_Control(this, using_flags);
 		actionGLScanLineHoriz->setObjectName(QString::fromUtf8("actionGLScanLineHoriz"));
@@ -217,6 +226,7 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 		connect(actionRotate, SIGNAL(toggled(bool)),
 				this, SLOT(set_screen_rotate(bool)));
 	}
+
 	actionOpenGL_Filter = new Action_Control(this, using_flags);
 	actionOpenGL_Filter->setObjectName(QString::fromUtf8("actionOpenGL_Filter"));
 	actionOpenGL_Filter->setEnabled(true);
@@ -326,6 +336,7 @@ void Ui_MainWindowBase::CreateScreenMenu(void)
 	}
 	menuScreen->addAction(action_ScreenSeparateThread);
 	menuScreen->addSeparator();
+	menuScreen->addAction(action_ScreenUseOSD);
 	bool b_support_tv_render = using_flags->is_support_tv_render();
 	if(b_support_tv_render) {
 		menuScreen_Render = new QMenu(menuScreen);
@@ -392,6 +403,8 @@ void Ui_MainWindowBase::retranslateScreenMenu(void)
 	
 	action_ScreenSeparateThread->setText(QApplication::translate("MenuScreen", "Separate Draw (need restart)", 0));
 	action_ScreenSeparateThread->setToolTip(QApplication::translate("MenuScreen", "Do drawing(rendering) sequence to separate thread.\nIf you feels emulator is slowly at your host-machine, disable this.\nYou should restart this emulator when changed.", 0));
+	action_ScreenUseOSD->setText(QApplication::translate("MenuScreen", "Display access Icons on screen.", 0));
+	action_ScreenUseOSD->setToolTip(QApplication::translate("MenuScreen", "Use icons on screen to display accessing virtual media(s).", 0));
 	
 	if(using_flags->is_use_scanline()) {
 		actionScanLine->setText(QApplication::translate("MenuScreen", "Software Scan Line", 0));

@@ -1212,15 +1212,8 @@ void GLDraw_2_0::paintGL(void)
 		if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
 			drawGrids();
 		}
-		//drawOsdLeds();
-		drawOsdIcons();
+		if(using_flags->get_config_ptr()->use_osd_virtual_media) drawOsdIcons();
 		extfunc_2->glFlush();
-		//} else {	
-	//drawOsdLeds();
-	//	drawOsdIcons();
-	//	extfunc_2->glFlush();
-	//}
-	//p_wid->doneCurrent();
 }
 
 void GLDraw_2_0::paintGL_OffScreen(int count, int w, int h)
