@@ -26,7 +26,7 @@ case ${LOCAL_ARCH_TYPE} in
 
 case ${CSP_DEBUG} in
    "Yes" | "yes" | "YES" )
-     MAKEFLAGS_BASE2="-g -ggdb ${ARCH_FLAGS} ${MAKEFLAGS_BASE} -DNDEBUG"
+     MAKEFLAGS_BASE2="-g -ggdb ${ARCH_FLAGS} ${MAKEFLAGS_BASE} ${ADDITIONAL_CFLAGS} -DNDEBUG"
      ;;
    "No" | "no" | "NO" | * )
      MAKEFLAGS_BASE2="${MAKEFLAGS_BASE} -O3 \
@@ -35,6 +35,7 @@ case ${CSP_DEBUG} in
 		-ftree-loop-optimize \
 		-floop-nest-optimize \
 		-std=c++11 \
+		${ADDITIONAL_CFLAGS} \
 		-DNDEBUG "
      ;;
 esac

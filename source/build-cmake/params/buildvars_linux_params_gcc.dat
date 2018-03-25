@@ -23,14 +23,6 @@ case ${USE_RADICAL_OPTIMIZE} in
    "Yes" | "yes" | "YES" )
       MAKEFLAGS_BASE3=" \
                -O3 \
-               -fvect-cost-model=dynamic -ftree-vectorize \
-               -ftree-loop-distribute-patterns \
-	       -ftree-loop-optimize -ftree-loop-if-convert-stores \
-	       -fbranch-probabilities -fbranch-target-load-optimize \
-	       -fselective-scheduling -fsel-sched-pipelining -fsel-sched-pipelining-outer-loops \
-	       -funroll-loops \
-	       -fgraphite-identity \
-	       -floop-nest-optimize \
 	       -msse -msse2 \
 	       -Wall \
                ${MAKEFLAGS_BASE} \
@@ -48,6 +40,28 @@ case ${USE_RADICAL_OPTIMIZE} in
 	       "
 	       ;;
 esac
+#	       -ftree-vectorize \
+#	       -ftree-loop-vectorize \
+#               -ftree-loop-distribute-patterns \
+#	       -ftree-loop-optimize \
+#	       -ftree-loop-if-convert-stores \
+#	       -ftree-loop-distribution \
+#	       -ftree-loop-ivcanon \
+#              -fvect-cost-model=unlimited \
+#	       -fsimd-cost-model=unlimited \
+#	       -fivopts \
+#	       -fbranch-probabilities \
+#	       -fbranch-target-load-optimize \
+#	       -fbranch-target-load-optimize2 \
+#	       -fbtr-bb-exclusive \
+#	       -fselective-scheduling \
+#	       -fsel-sched-pipelining \
+#	       -fsel-sched-pipelining-outer-loops \
+#	       -funroll-loops \
+#	       -fvariable-expansion-in-unroller \
+#	       -fprefetch-loop-arrays \
+#	       -fgraphite-identity \
+#	       -floop-nest-optimize \
 
 case ${USE_WHOLE_PROGRAM_OPTIMIZE} in
    "Yes" | "yes" | "YES" )
