@@ -142,6 +142,8 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 											 dst_width, dst_height,
 											 AV_PIX_FMT_BGRA,
 											 SCALE_FLAGS, NULL, NULL, NULL);
+				//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_LOADER, "Src frame=%dx%d Allocate frame: %dx%d", frame->width, frame->height, dst_width, dst_height);
+
 				if (sws_context == NULL) {
 					csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER,
 								  "MOVIE_LOADER: Could not initialize the conversion context\n");
@@ -152,7 +154,7 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 			video_mutex->lock();
 			sws_scale(sws_context,
 					  frame->data, frame->linesize,
-					  0, dst_height, video_dst_data, video_dst_linesize);
+					  0, frame->height, video_dst_data, video_dst_linesize);
 			req_transfer = true;
 			video_mutex->unlock();
 		}
@@ -504,6 +506,7 @@ void MOVIE_LOADER::do_decode_frames(int frames, int width, int height)
 	bool end_of_frame = false;
 	int real_frames = 0;
 	double d_frames = (double)frames * (frame_rate / p_osd->vm_frame_rate());
+	if(now_pausing) return;
 	if(now_playing) duration_us = duration_us + (int64_t)((1.0e6 * (double)frames) / p_osd->vm_frame_rate());
 
 	mod_frames = mod_frames + d_frames;
@@ -552,7 +555,10 @@ void MOVIE_LOADER::do_decode_frames(int frames, int width, int height)
 		a_f = (av_rescale_rnd(audio_total_samples, 1000000, audio_stream->codec->sample_rate, AV_ROUND_UP) < duration_us);
 		//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_LOADER, "%lld usec. V=%lld A=%lld, %d - %d\n", duration_us, video_frame_count, audio_total_samples, v_f, a_f);
 		if(!a_f && !v_f) break; 
-		av_read_frame(fmt_ctx, &pkt);
+		if(av_read_frame(fmt_ctx, &pkt) < 0) {
+			this->close();
+			return;
+		}
 		decode_packet(&got_frame, 0);
 		if(got_frame == 0) {
 			end_of_frame = true;
@@ -578,7 +584,9 @@ void MOVIE_LOADER::get_video_frame()
 
 	QMutexLocker Locker_S(p_osd->screen_mutex);
 	QMutexLocker Locker_V(video_mutex);
+
 	if(req_transfer) {
+		//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_LOADER, "Transfer frame: %dx%d", dst_width, dst_height);
 		req_transfer = false;
 		for(int yy = 0; yy < dst_height; yy++) {
 			q = (uint32_t *)(p_osd->get_vm_screen_buffer(yy));
@@ -586,24 +594,11 @@ void MOVIE_LOADER::get_video_frame()
 			p = (uint32_t *)(&(video_dst_data[0][yy * video_dst_linesize[0]]));
 			if((p == NULL) || (q == NULL)) break;
 			for(xx = dst_width; xx > 7;) {
-				cacheline[0] = p[0];
-				cacheline[1] = p[1];
-				cacheline[2] = p[2];
-				cacheline[3] = p[3];
-				cacheline[4] = p[4];
-				cacheline[5] = p[5];
-				cacheline[6] = p[6];
-				cacheline[7] = p[7];
-				
-				q[0] = cacheline[0];
-				q[1] = cacheline[1];
-				q[2] = cacheline[2];
-				q[3] = cacheline[3];
-				q[4] = cacheline[4];
-				q[5] = cacheline[5];
-				q[6] = cacheline[6];
-				q[7] = cacheline[7];
-				
+__DECL_VECTORIZED_LOOP
+				for(int i = 0; i < 8; i++) {
+					cacheline[i] = p[i];
+					q[i] = cacheline[i];
+				}
 				p += 8;
 				q += 8;
 				xx -= 8;
@@ -617,23 +612,17 @@ void MOVIE_LOADER::get_video_frame()
 			uint32_t col = 0xffffffff;
 			if(q == NULL) break;
 			for(xx = dst_width; xx > 7;) {
-				
-				q[0] = col;
-				q[1] = col;
-				q[2] = col;
-				q[3] = col;
-				q[4] = col;
-				q[5] = col;
-				q[6] = col;
-				q[7] = col;
-				
+__DECL_VECTORIZED_LOOP
+				for(int i = 0; i < 8; i++) {
+					q[i] = col;
+				}
 				p += 8;
 				q += 8;
 				xx -= 8;
 				if(xx < 8) break;
 			}
 			for(; xx > 0; xx--) {
-				*q++ = *p++;
+				*q++ = col;
 			}
 #endif		   
 		}

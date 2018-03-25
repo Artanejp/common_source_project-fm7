@@ -25,8 +25,9 @@ extern "C" {
 // Copy from FFMPEG-3.0.2; doc/example/muxing.c .
 #define STREAM_PIX_FMT	AV_PIX_FMT_RGBA /* default pix_fmt */
 
-#define SCALE_FLAGS SWS_BICUBLIN
+//#define SCALE_FLAGS SWS_BICUBLIN
 //#define SCALE_FLAGS SWS_POINT
+#define SCALE_FLAGS SWS_FAST_BILINEAR
 
 #include <QObject>
 #include <QReadWriteLock>

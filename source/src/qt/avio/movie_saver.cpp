@@ -61,9 +61,8 @@ MOVIE_SAVER::MOVIE_SAVER(int width, int height, int fps, OSD *osd, config_t *cfg
 
 MOVIE_SAVER::~MOVIE_SAVER()
 {
+	req_close = true;
 	if(recording) do_close_main();
-	//if(video_queue_mutex) delete video_queue_mutex;
-
 }
 
 QString MOVIE_SAVER::ts2str(int64_t ts)
@@ -126,6 +125,8 @@ void MOVIE_SAVER::enqueue_video(int frames, int width, int height, QImage *p)
 	if(!recording) return;
 	if(p == NULL) return;
 	if(req_stop) return;
+	if((width  <= 0) || (height <= 0) || (frames <= 0)) return;
+	if((p->width() <= 0) || (p->height() <= 0)) return;
 	VIDEO_DATA *px = new VIDEO_DATA(frames, width, height, p);
 	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "Movie: Enqueue video data %dx%d %d bytes %dx%d %d frames", width, height, p->byteCount(), p->width(), p->height(), frames);
 	//video_queue_mutex->lock();
@@ -155,7 +156,7 @@ bool MOVIE_SAVER::dequeue_video(uint32_t *p)
 			my_memcpy(&(p[_width * y]), pq, (((uint)_width * sizeof(uint32_t)) > pp_i->bytesPerLine()) ? pp_i->bytesPerLine() : _width * sizeof(uint32_t));
 		}
 		video_size = _width * y;
-		//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "Movie: Dequeue video data %d bytes", pp->byteCount());
+		//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "Movie: Dequeue video data %d bytes", video_size);
 	}
 #else
 	video_size = 0;

@@ -497,7 +497,8 @@ void OSD::do_run_movie_audio_callback(uint8_t *data, long len)
 void OSD::do_decode_movie(int frames)
 {
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
-	movie_loader->do_decode_frames(frames, this->get_vm_window_width(), this->get_vm_window_height());
+	//movie_loader->do_decode_frames(frames, SCREEN_WIDTH, SCREEN_HEIGHT);
+	movie_loader->do_decode_frames(frames, vm_window_width_aspect, vm_window_height_aspect);
 #endif	
 }
 
