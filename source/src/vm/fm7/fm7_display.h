@@ -271,7 +271,7 @@ protected:
 	bool is_cyclesteal;
 #if defined(_FM77L4)
 	uint8_t subsys_cg_l4[0x1000];
-	uint8_t subsys_l4[4800];
+	uint8_t subsys_l4[0x4800];
 	uint8_t text_vram[0x1000];
 	uint8_t crtc_regs[18];
 	uint8_t text_scroll_count;
