@@ -20,6 +20,8 @@
 #include "emu_thread_tmpl.h"
 
 #include "qt_gldraw.h"
+#include "common.h"
+
 //#include "../../romakana.h"
 
 //#include "csp_logger.h"
@@ -40,7 +42,8 @@ EmuThreadClassBase::EmuThreadClassBase(META_MainWindow *rootWindow, USING_FLAGS 
 	skip_frames = 0;
 	calc_message = true;
 	mouse_flag = false;
-
+	vMovieQueue.clear();
+	
 	drawCond = new QWaitCondition();
 	keyMutex = new QMutex(QMutex::Recursive);
 	mouse_x = 0;
@@ -310,12 +313,17 @@ int EmuThreadClassBase::parse_command_queue(QStringList _l, int _begin)
 					fileInfo = QFileInfo(_file);
 				}
 				if(fileInfo.isFile()) {
+					_TCHAR *path_shadow = fileInfo.absoluteFilePath().toLocal8Bit().constData();
 					if(_dom_type == QString::fromUtf8("vFloppyDisk")) {
 						emit sig_open_fd(_dom_num, fileInfo.absoluteFilePath());
-						emit sig_set_d88_num(_dom_num, _slot);
+						if(check_file_extension(path_shadow, ".d88") || check_file_extension(path_shadow, ".d77")) {
+							emit sig_set_d88_num(_dom_num, _slot);
+						}
 					} else if(_dom_type == QString::fromUtf8("vBubble")) {
 						emit sig_open_bubble(_dom_num, fileInfo.absoluteFilePath());
-						//emit sig_set_b77_num(_dom_num, _slot);
+						if(check_file_extension(path_shadow, ".b77")) {
+							emit sig_set_b77_num(_dom_num, _slot);
+						}
 					}
 				}
 			} else {
@@ -330,7 +338,9 @@ int EmuThreadClassBase::parse_command_queue(QStringList _l, int _begin)
 					} else if(_dom_type == QString::fromUtf8("vCart")) {
 						emit sig_open_cart(_dom_num, fileInfo.absoluteFilePath());
 					} else if(_dom_type == QString::fromUtf8("vLD")) {
-						emit sig_open_laser_disc(_dom_num, fileInfo.absoluteFilePath());
+						vMovieQueue.append(_dom);
+						vMovieQueue.append(fileInfo.absoluteFilePath());
+						//emit sig_open_laser_disc(_dom_num, fileInfo.absoluteFilePath());
 					} else if(_dom_type == QString::fromUtf8("vCD")) {
 						emit sig_open_cdrom(_dom_num, fileInfo.absoluteFilePath());
 					}

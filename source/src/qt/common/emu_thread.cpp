@@ -301,6 +301,7 @@ void EmuThreadClass::doWork(const QString &params)
 	// LED
 	uint32_t led_data = 0x00000000;
 	uint32_t led_data_old = 0x00000000;
+	int turn_count = 0;
 	// Tape
 	// DIG_RESOLUTION
 	//
@@ -440,9 +441,24 @@ void EmuThreadClass::doWork(const QString &params)
 					prevRecordReq = false;
 				}
 			}
-		   
-		   
-
+#if defined(USE_LASER_DISC) || defined(USE_MOVIE_PLAYER)	   
+			if(turn_count < 128) {
+				turn_count++;
+			} else {
+				if(vMovieQueue.size() >= 2) {
+					for(int ii = 0; ii < vMovieQueue.size(); ii += 2) {
+						QString _dom = vMovieQueue.at(ii);
+						QString _path = vMovieQueue.at(ii + 1);
+						bool _num_ok;
+						int _dom_num = _dom.right(1).toInt(&_num_ok);
+						if(!_num_ok) _dom_num = 0;
+						emit sig_open_laser_disc(_dom_num, _path);
+					}
+					vMovieQueue.clear();
+					//turn_count = 0;
+				}
+			}
+#endif
 #if defined(USE_MOUSE)	// Will fix
 			emit sig_is_enable_mouse(p_emu->is_mouse_enabled());
 #endif			

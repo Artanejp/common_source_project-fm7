@@ -13,6 +13,7 @@
 #include <QThread>
 #include <QQueue>
 #include <QString>
+#include <QStringList>
 #include <QElapsedTimer>
 
 #include "fifo.h"
@@ -101,6 +102,7 @@ protected:
 	QString laserdisc_text;
 	QString bubble_text[16];
 	QString clipBoardText;
+	QStringList vMovieQueue;
 
 	void calc_volume_from_balance(int num, int balance);
 	void calc_volume_from_level(int num, int level);

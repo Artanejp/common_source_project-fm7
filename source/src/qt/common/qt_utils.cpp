@@ -877,9 +877,9 @@ void SetOptions(QCommandLineParser *cmdparser)
 	//SetBinaryOptions(cmdparser); // Temporally disabled.
 	SetCmtOptions(cmdparser);
 	SetCartOptions(cmdparser);
-	//SetBubbleOptions(cmdparser); // Temporally disabled.
+	SetBubbleOptions(cmdparser); // Temporally disabled.
 	SetQuickDiskOptions(cmdparser);
-	//SetLDOptions(cmdparser); // Temporally disabled.
+	SetLDOptions(cmdparser); // Temporally disabled.
 	SetCDOptions(cmdparser);
 	
 }

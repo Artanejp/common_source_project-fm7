@@ -725,7 +725,7 @@ void EmuThreadClass::do_open_bubble_casette(int drv, QString path, int bank)
 			try {
 				fio->Fseek(0, FILEIO_SEEK_END);
 				int file_size = fio->Ftell(), file_offset = 0;
-				while(file_offset + 0x2b0 <= file_size && p_emu->d88_file[drv].bank_num < MAX_B77_BANKS) {
+				while(file_offset + 0x2b0 <= file_size && p_emu->b77_file[drv].bank_num < MAX_B77_BANKS) {
 					fio->Fseek(file_offset, FILEIO_SEEK_SET);
 					char tmp[18];
 					memset(tmp, 0x00, sizeof(tmp));
