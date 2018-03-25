@@ -1,5 +1,21 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT Mar 26, 2018
+  * [General/Qt] Add some command line options.
+  * [COMMON/FM7] Add __DECL_VECTORIZE_LOOP decl. to indicate expect to use vectorize (a.k.a. SIMD instructions).
+  * [VM/MB8877] Fix verify timing on SEEK command.Fix not booting Sylpheed for FM77AV.
+  * [VM/MC6809] Fix clock using.
+  * [VM/EVENT] Specify CPU per VM.
+  * [VM/FM7] Use template and static_cast<T *> to expect to be faster.
+  * [VM/FM7] Add Green display for FM-7/8/77 .
+  * [VM/FM77L4] Add FM77L4.Maybe 400lines board still not working.
+  * [Qt/SCREEN] Add turning on/off virtual media Icons on screen (OSD).
+  * [MOVIE_LOADER] Fix scaling factor.Displaying video as correct width and height.
+  * [MOVIE_LOADER] Fix hang up at end of video.
+  * Built with f8f16ac6f19fe2dcab250ad50d96cf0b30c8903e or later.
+
+-- Mar 26, 2018 01:34:20 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT Mar 04, 2018
   * Upstream 2018-03-01 .
   * Thanks to Ryu Takegami and Haserin for eFM-7/77/AV/AV40/EXand eFM8.

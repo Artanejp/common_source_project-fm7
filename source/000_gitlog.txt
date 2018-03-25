@@ -1,3 +1,15 @@
+commit f8f16ac6f19fe2dcab250ad50d96cf0b30c8903e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 26 01:43:16 2018 +0900
+
+    [VM][FM77L4] I missed value of subsys_l4 X-)
+
+commit 0af25201e8e12508b932a68930c86796a51df0da
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 26 01:28:15 2018 +0900
+
+    [GENERAL] Update SOVERSION.
+
 commit 253c9a28266c1f59994bf8103ec6b509db1fb8bc
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Mon Mar 26 01:24:22 2018 +0900

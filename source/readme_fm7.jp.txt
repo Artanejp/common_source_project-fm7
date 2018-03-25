@@ -1,5 +1,5 @@
 ** FM-7 series  emulator for common source code project. **
-                                               Feb 11, 2018
+                                               Mar 26, 2018
 		   K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 
@@ -40,6 +40,7 @@
   l. Z80カードが(FM-7/77とFM-8で)使えるようになりました。テストがあまり十分ではありませんが。
   m. 日本語通信カードがFM-7/NEW7/77/L4で使えるようになりました。
   n. RS-232CとモデムカードとMIDIカードの実装が始まりました(作業中)
+  o. FM77L4の400ラインカードの実装を始めましたが、未だ不十分です。
   その他のことについては、RELEASENOTEやreadme_by_artane.txtを。
 
   [3] 私のほうがXM7よりも先にインプリメントしました(笑)
@@ -63,6 +64,10 @@
   KANJI1.ROM   : 131072 bytes, JIS第一水準漢字パターン.
   BOOT_MMR.ROM : 512 bytes, FM-77用の隠しブートROM(未チェック).
 
+  追加ROM (FM77L4のみ)
+  SUBSYS_L4.ROM : 18432 bytes. 400ラインカードのシステムROM.
+  ANKCG16.ROM   : 4096 bytes.  400ラインカードのキャラクターデータ.
+  
   FM77AVでは、更に以下のものが必要です:
   INITIATE.ROM : 8192 bytes, イニシエータROM.
                  これは、確実にFM77AVの物である必要があります。

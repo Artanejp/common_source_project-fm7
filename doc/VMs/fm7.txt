@@ -1,5 +1,5 @@
 "eFM7" "eFMNEW7" "eFM77" "eFM77L2" - Fujitsu FM-7/FM-NEW7/FM-77/FM-77L2
-								1/12/2018
+								3/26/2018
 
 --- Internal ROM image
 
@@ -15,6 +15,10 @@
 
     Sub System:
 	SUBSYS_C.ROM    $D800 - $FFFF Subsystem monitor and font.
+	
+    For only FM-77L4:
+        SUBSYS_L4.ROM : 18432 bytes. System ROM of 400 lines board.
+	ANKCG16.ROM   : 4096 bytes.  Character data of 400 lines board.
 
     Optional:
 	Please select one of two:

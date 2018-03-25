@@ -1,5 +1,5 @@
 ** FM-7 series  emulator for common source code project. **
-                                               Feb 11, 2018
+                                               Mar 26, 2018
 		   K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 1.Background
@@ -35,6 +35,7 @@
   l. Z80 Card (Only with FM-7/77 and FM-8) works.But not tested enough.
   m. Japanese Communication board works for FM-7/NEW7/77/L4.
   n. Start to implement RS-232C/MODEM/MIDI feature.(WIP)
+  o. Start to implement FM-77L4's 400 lines board.But imcomplete.(WIP)
   If you need more informations, see RELEASENOTE and reame_by_artane.txt .
      
   [3] I implemented hidden message faster than XM7 :-)
@@ -58,7 +59,11 @@
   KANJI1.ROM   : 131072 bytes, Kanji JIS class 1 patterns.
   BOOT_MMR.ROM : 512 bytes, hidden boot ROM for FM-77 (only).
 
-  You need belows if you try to work FM77AV:
+  Optional ROMS (Only for FM77L4):
+  SUBSYS_L4.ROM : 18432 bytes. System ROM of 400 lines board.
+  ANKCG16.ROM   : 4096 bytes.  Character data of 400 lines board.
+  
+   You need belows if you try to work FM77AV:
   INITIATE.ROM : 8192 bytes, initiator ROM.
                  You must use *pure* FM77AV's Initiator ROM.
   SUBSYSCG.ROM : 8192 bytes, character data for subsystem.
