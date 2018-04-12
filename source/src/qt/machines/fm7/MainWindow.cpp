@@ -291,10 +291,10 @@ void META_MainWindow::retranslateUi(void)
 #endif	
 	retranslateCMTMenu(0);
 #if defined(USE_BUBBLE1)
-	retranslateBubbleMenu(0, 1);
+	retranslateBubbleMenu(0, 0);
 #endif	
 #if defined(USE_BUBBLE2)
-	retranslateBubbleMenu(1, 2);
+	retranslateBubbleMenu(1, 1);
 #endif
 	retranslateSoundMenu();
 	retranslateScreenMenu();
