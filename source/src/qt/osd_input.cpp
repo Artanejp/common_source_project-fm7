@@ -58,6 +58,8 @@ void OSD_BASE::initialize_input()
 	mouse_enabled = false;
 	mouse_ptrx = mouse_oldx = get_screen_width() / 2;
 	mouse_ptry = mouse_oldy = get_screen_height() / 2;
+	delta_x = 0;
+	delta_y = 0;
 	// initialize keycode convert table
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(bios_path(_T("keycode.cfg")), FILEIO_READ_BINARY)) {
@@ -165,15 +167,20 @@ void OSD_BASE::update_input()
 
 	update_buttons(press_flag, release_flag);
 	// update mouse status
+
+	//if(mouse_enabled) {
+	memset(mouse_status, 0, sizeof(mouse_status));
+	//bool hid = false;
 	if(mouse_enabled) {
-		//bool hid = false;
-		memset(mouse_status, 0, sizeof(mouse_status));
-		mouse_status[0] = mouse_ptrx - mouse_oldx;
-		mouse_status[1] = mouse_ptry - mouse_oldy;
+		mouse_status[0] = delta_x;
+		mouse_status[1] = delta_y; 
 		mouse_status[2] = mouse_button;
-		mouse_oldx = mouse_ptrx;
-		mouse_oldy = mouse_ptry;
+		//printf("Mouse delta(%d, %d)\n", delta_x, delta_y);
+		delta_x = delta_y = 0;
 	}
+	//}
+	// move mouse cursor to the center of window
+	
 }
 
 void OSD_BASE::key_down(int code, bool extended, bool repeat)
@@ -745,7 +752,7 @@ uint32_t* OSD_BASE::get_joy_buffer()
 	return joy_status;
 }
 
-int* OSD_BASE::get_mouse_buffer()
+int32_t* OSD_BASE::get_mouse_buffer()
 {
 	return mouse_status;
 }
@@ -772,6 +779,8 @@ void OSD_BASE::enable_mouse()
 	if(!mouse_enabled) {
 		mouse_oldx = mouse_ptrx = get_screen_width() / 2;
 		mouse_oldy = mouse_ptry = get_screen_height() / 2;
+		delta_x = 0;
+		delta_y = 0;
 		mouse_status[0] = 0;
 		mouse_status[1] = 0;
 		mouse_status[2] = mouse_button;
@@ -806,8 +815,29 @@ bool OSD_BASE::is_mouse_enabled()
 
 void OSD_BASE::set_mouse_pointer(int x, int y)
 {
-	mouse_ptrx = x;
-	mouse_ptry = y;
+	if(mouse_enabled) {
+		int32_t dw = get_screen_width();
+		int32_t dh = get_screen_height();
+		mouse_ptrx = x;
+		mouse_ptry = y;
+		//delta_x = x - (dw / 2);
+		//delta_y = y - (dh / 2);
+		delta_x += (mouse_ptrx - mouse_oldx);
+		delta_y += (mouse_ptry - mouse_oldy);
+		if(delta_x > (dw / 2)) {
+			delta_x = dw / 2;
+		} else if(delta_x < -(dw / 2)) {
+			delta_x = -dw / 2;
+		}
+		if(delta_y > (dh / 2)) {
+			delta_y = dh / 2;
+		} else if(delta_y < -(dh / 2)) {
+			delta_y = -dh / 2;
+		}
+		mouse_oldx = mouse_ptrx;
+		mouse_oldy = mouse_ptry;
+		//printf("Mouse Moved: (%d, %d) -> delta(%d, %d)\n", mouse_ptrx, mouse_ptry, delta_x, delta_y);
+	}
 }
 
 void OSD_BASE::set_mouse_button(int button) 

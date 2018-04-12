@@ -20,6 +20,7 @@
 #include "qt_gldraw.h"
 #include "csp_logger.h"
 #include "menu_flags.h"
+#include "../osd.h"
 
 // buttons
 #ifdef MAX_BUTTONS
@@ -78,16 +79,20 @@ void EmuThreadClass::moved_mouse(int x, int y)
 {
 	mouse_x = x;
 	mouse_y = y;
-#if defined(USE_MOUSE)   
-	p_emu->set_mouse_pointer(x, y);
+	
+#if defined(USE_MOUSE)
+	bool flag = p_emu->get_osd()->is_mouse_enabled();
+	if(!flag) return;
+	//printf("Mouse Moved: %d, %d\n", x, y);
+	p_emu->get_osd()->set_mouse_pointer(x, y);
 #endif   
 }
 
 void EmuThreadClass::button_pressed_mouse_sub(Qt::MouseButton button)
 {
 #if defined(USE_MOUSE)   
-	int stat = p_emu->get_mouse_button();
-	bool flag = p_emu->is_mouse_enabled();
+	int stat = p_emu->get_osd()->get_mouse_button();
+	bool flag = p_emu->get_osd()->is_mouse_enabled();
 	switch(button) {
 	case Qt::LeftButton:
 		stat |= 0x01;
@@ -98,18 +103,20 @@ void EmuThreadClass::button_pressed_mouse_sub(Qt::MouseButton button)
 	case Qt::MiddleButton:
 		flag = !flag;
 		emit sig_mouse_enable(flag);
+		return;
 		break;
 	default:
 		break;
 	}
-	p_emu->set_mouse_button(stat);
+	if(!flag) return;
+	p_emu->get_osd()->set_mouse_button(stat);
 #endif	   
 }	
 
 void EmuThreadClass::button_released_mouse_sub(Qt::MouseButton button)
 {
 #if defined(USE_MOUSE)   
-		int stat = p_emu->get_mouse_button();
+	int stat = p_emu->get_osd()->get_mouse_button();
 		switch(button) {
 		case Qt::LeftButton:
 			stat &= 0x7ffffffe;
@@ -123,7 +130,7 @@ void EmuThreadClass::button_released_mouse_sub(Qt::MouseButton button)
 		default:
 			break;
 		}
-		p_emu->set_mouse_button(stat);
+		p_emu->get_osd()->set_mouse_button(stat);
 #endif
 }
 
@@ -478,15 +485,15 @@ void EmuThreadClass::doWork(const QString &params)
 					switch(sp.type) {
 					case KEY_QUEUE_UP:
 							key_mod = sp.mod;
-							p_emu->key_modifiers(sp.mod);
+							p_emu->get_osd()->key_modifiers(sp.mod);
 							p_emu->key_up(sp.code, true); // need decicion of extend.
 							break;
 					case KEY_QUEUE_DOWN:
 							if(p_config->romaji_to_kana) {
-								p_emu->key_modifiers(sp.mod);
+								p_emu->get_osd()->key_modifiers(sp.mod);
 								p_emu->key_char(sp.code);
 							} else {
-								p_emu->key_modifiers(sp.mod);
+								p_emu->get_osd()->key_modifiers(sp.mod);
 								p_emu->key_down(sp.code, true, sp.repeat);
 							}
 							break;

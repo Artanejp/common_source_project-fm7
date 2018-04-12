@@ -307,7 +307,7 @@ void GLDrawClass::SaveToPixmap(void)
 	}
 }
 
-void GLDrawClass::do_enable_mouse(void)
+void GLDrawClass::do_move_mouse_to_center(void)
 {
 	QCursor cursor;
 	QPoint pos;
@@ -315,6 +315,11 @@ void GLDrawClass::do_enable_mouse(void)
 	pos.setX(this->width() / 2);
 	pos.setY(this->height() / 2);
 	cursor.setPos(this->mapToGlobal(pos));
+}
+
+void GLDrawClass::do_enable_mouse(void)
+{
+	do_move_mouse_to_center();
 	QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
 	//mouse_shape = cursor.shape();
 	//cursor.setShape(Qt::BlankCursor);

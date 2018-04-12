@@ -50,7 +50,6 @@ class DLL_PREFIX GLDrawClass: public QGLWidget
 	EMU *p_emu;
 	CSP_Logger *csp_logger;
 	USING_FLAGS *using_flags;
-	bool is_mouse_enabled;
 	
 	bool enable_mouse;
 	GLfloat screen_width, screen_height;
@@ -148,6 +147,7 @@ public slots:
 	void do_stop_run_vm();
 	void do_enable_mouse(void);
 	void do_disable_mouse(void);
+	void do_move_mouse_to_center(void);
 	void do_set_display_osd(bool onoff);
 	void do_display_osd_leds(int lednum,bool onoff);
 	void do_set_led_width(int bitwidth);

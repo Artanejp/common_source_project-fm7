@@ -360,6 +360,7 @@ void OSD::set_draw_thread(DrawThreadClass *handler)
 	connect(this, SIGNAL(sig_resize_vm_lines(int)), glv, SLOT(do_set_horiz_lines(int)));
 	connect(parent_thread, SIGNAL(sig_debugger_input(QString)), this, SLOT(do_set_input_string(QString)));
 	connect(parent_thread, SIGNAL(sig_quit_debugger()), this, SLOT(do_close_debugger_thread()));
+	connect(this, SIGNAL(sig_move_mouse_to_center()), glv, SLOT(do_move_mouse_to_center()));
 	connect(this, SIGNAL(sig_close_window()), parent_thread, SLOT(doExit()));
 }
 

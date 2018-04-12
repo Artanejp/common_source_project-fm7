@@ -150,7 +150,7 @@ GLDrawClass::GLDrawClass(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent, co
 	draw_item = new CSP_DrawItem(48, 48);
 	
 	delay_update = false;
-	is_mouse_enabled = false;
+	
 	emu_launched = false;
 	run_vm = true;
 

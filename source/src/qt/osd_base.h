@@ -128,13 +128,15 @@ protected:
 	int joy_num;
 	uint32_t joy_mask[4];
 	
-	int mouse_status[3];	// x, y, button (b0 = left, b1 = right)
+	int32_t mouse_status[3];	// x, y, button (b0 = left, b1 = right)
 	bool mouse_enabled;
 	int mouse_ptrx;
 	int mouse_ptry;
 	int mouse_button;
 	int mouse_oldx;
 	int mouse_oldy;
+	int delta_x;
+	int delta_y;
 	//Qt::CursorShape mouse_shape;
 	
 	QImage background_image;
@@ -325,7 +327,7 @@ public:
 	void modify_key_buffer(int code, uint8_t val);
 	uint8_t* get_key_buffer();
 	uint32_t* get_joy_buffer();
-	int* get_mouse_buffer();
+	int32_t* get_mouse_buffer();
 	// common printer
 	void reset_printer();
 	void update_printer();
@@ -514,6 +516,8 @@ signals:
 	int sig_enable_mouse(void);
 	int sig_disable_mouse(void);
 	int sig_close_console(void);
+
+	int sig_move_mouse_to_center(void);
 };
 QT_END_NAMESPACE
 
