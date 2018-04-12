@@ -618,8 +618,13 @@ void SetFDOptions(QCommandLineParser *cmdparser)
 		QString sfdType1 = QString::fromUtf8("fd%1").arg(i);
 		QString sfdType2 = QString::fromUtf8("vFd%1").arg(i);
 		QString sfdType3 = QString::fromUtf8("vFloppyDisk%1").arg(i);
-		_opt_fds[i] = new QCommandLineOption({sfdType1, sfdType2, sfdType3},QCoreApplication::translate("main", "Set virtual floppy disk %1.").arg(i) , "[D88_SLOT@]fullpath");
+		QStringList _cl;
+	 	_cl.append(sfdType1);
+	 	_cl.append(sfdType2);
+	 	_cl.append(sfdType3);
+		_opt_fds[i] = new QCommandLineOption(_cl,QCoreApplication::translate("main", "Set virtual floppy disk %1.").arg(i) , "[D88_SLOT@]fullpath");
 		cmdparser->addOption(*_opt_fds[i]);
+		_cl.clear();
 	}
 #endif
 }
@@ -630,8 +635,12 @@ void SetBinaryOptions(QCommandLineParser *cmdparser)
 	for(int i = 0; i < MAX_BINARY; i++) {
 		QString sfdType1 = QString::fromUtf8("bin%1").arg(i);
 		QString sfdType2 = QString::fromUtf8("vBinary%1").arg(i);
-		_opt_binaries[i] = new QCommandLineOption({sfdType1, sfdType2},QCoreApplication::translate("main", "Set virtual binary image %1.").arg(i) , "fullpath");
+		QStringList _cl;
+	 	_cl.append(sfdType1);
+	 	_cl.append(sfdType2);
+		_opt_binaries[i] = new QCommandLineOption(_cl,QCoreApplication::translate("main", "Set virtual binary image %1.").arg(i) , "fullpath");
 		cmdparser->addOption(*_opt_binaries[i]);
+		_cl.clear();
 	}
 #endif
 }
@@ -643,8 +652,13 @@ void SetCartOptions(QCommandLineParser *cmdparser)
 		QString sfdType1 = QString::fromUtf8("cart%1").arg(i);
 		QString sfdType2 = QString::fromUtf8("vCart%1").arg(i);
 		QString sfdType3 = QString::fromUtf8("vCartridge%1").arg(i);
-		_opt_carts[i] = new QCommandLineOption({sfdType1, sfdType2, sfdType3},QCoreApplication::translate("main", "Set virtual cartridge %1 (mostly ROM).").arg(i) , "fullpath");
+		QStringList _cl;
+	 	_cl.append(sfdType1);
+	 	_cl.append(sfdType2);
+	 	_cl.append(sfdType3);
+		_opt_carts[i] = new QCommandLineOption(_cl,QCoreApplication::translate("main", "Set virtual cartridge %1 (mostly ROM).").arg(i) , "fullpath");
 		cmdparser->addOption(*_opt_carts[i]);
+		_cl.clear();
 	}
 #endif
 }
@@ -654,7 +668,10 @@ void SetBubbleOptions(QCommandLineParser *cmdparser)
 	for(int i = 0; i < MAX_BUBBLE; i++) {
 		QString sfdType1 = QString::fromUtf8("bub%1").arg(i);
 		QString sfdType2 = QString::fromUtf8("vBubble%1").arg(i);
-		_opt_bubbles[i] = new QCommandLineOption({sfdType1, sfdType2},QCoreApplication::translate("main", "Set virtual bubble cartridge %1.").arg(i) , "[B88_SLOT@]fullpath");
+		QStringList _cl;
+	 	_cl.append(sfdType1);
+	 	_cl.append(sfdType2);
+		_opt_bubbles[i] = new QCommandLineOption(_cl,QCoreApplication::translate("main", "Set virtual bubble cartridge %1.").arg(i) , "[B88_SLOT@]fullpath");
 		cmdparser->addOption(*_opt_bubbles[i]);
 	}
 #endif
@@ -666,8 +683,12 @@ void SetLDOptions(QCommandLineParser *cmdparser)
 	for(int i = 0; i < 1; i++) {
 		QString sfdType1 = QString::fromUtf8("ld%1").arg(i);
 		QString sfdType2 = QString::fromUtf8("vLaserDisc%1").arg(i);
-		_opt_lds[i] = new QCommandLineOption({sfdType1, sfdType2},QCoreApplication::translate("main", "Set virtual laser disc %1 (mostly movie file).").arg(i) , "fullpath");
+		QStringList _cl;
+	 	_cl.append(sfdType1);
+	 	_cl.append(sfdType2);
+		_opt_lds[i] = new QCommandLineOption(_cl, QCoreApplication::translate("main", "Set virtual laser disc %1 (mostly movie file).").arg(i) , "fullpath");
 		cmdparser->addOption(*_opt_lds[i]);
+		_cl.clear();
 	}
 #endif
 }
@@ -677,8 +698,12 @@ void SetCDOptions(QCommandLineParser *cmdparser)
 	for(int i = 0; i < 1; i++) {
 		QString sfdType1 = QString::fromUtf8("cd%1").arg(i);
 		QString sfdType2 = QString::fromUtf8("vCompactDisc%1").arg(i);
-		_opt_cds[i] = new QCommandLineOption({sfdType1, sfdType2},QCoreApplication::translate("main", "Set virtual compact disc %1.").arg(i) , "fullpath");
+   		QStringList _cl;
+	 	_cl.append(sfdType1);
+	 	_cl.append(sfdType2);
+		_opt_cds[i] = new QCommandLineOption(_cl,QCoreApplication::translate("main", "Set virtual compact disc %1.").arg(i) , "fullpath");
 		cmdparser->addOption(*_opt_cds[i]);
+		_cl.clear();
 	}
 #endif
 }
@@ -691,8 +716,14 @@ void SetCmtOptions(QCommandLineParser *cmdparser)
 		QString sfdType2 = QString::fromUtf8("tape%1").arg(i);
 		QString sfdType3 = QString::fromUtf8("vCmt%1").arg(i);
 		QString sfdType4 = QString::fromUtf8("vTape%1").arg(i);
-		_opt_cmts[i] = new QCommandLineOption({sfdType1, sfdType2, sfdType3, sfdType4},QCoreApplication::translate("main", "Set virtual casette tape %1.").arg(i) , "fullpath");
+		QStringList _cl;
+	 	_cl.append(sfdType1);
+	 	_cl.append(sfdType2);
+	 	_cl.append(sfdType3);
+	 	_cl.append(sfdType4);
+		_opt_cmts[i] = new QCommandLineOption(_cl, QCoreApplication::translate("main", "Set virtual casette tape %1.").arg(i) , "fullpath");
 		cmdparser->addOption(*_opt_cmts[i]);
+		_cl.clear();
 	}
 #endif
 }
@@ -703,8 +734,13 @@ void SetQuickDiskOptions(QCommandLineParser *cmdparser)
 	for(int i = 0; i < MAX_QD; i++) {
 		QString sfdType1 = QString::fromUtf8("qd%1").arg(i);
 		QString sfdType2 = QString::fromUtf8("vQuickDisk%1").arg(i);
-		_opt_qds[i] = new QCommandLineOption({sfdType1, sfdType2},QCoreApplication::translate("main", "Set virtual quick disk %1.").arg(i) , "fullpath");
+
+		QStringList _cl;
+	 	_cl.append(sfdType1);
+	 	_cl.append(sfdType2);
+		_opt_qds[i] = new QCommandLineOption(_cl, QCoreApplication::translate("main", "Set virtual quick disk %1.").arg(i) , "fullpath");
 		cmdparser->addOption(*_opt_qds[i]);
+		_cl.clear();
 	}
 #endif
 }
@@ -846,14 +882,33 @@ void SetOptions(QCommandLineParser *cmdparser)
     cmdparser->setApplicationDescription(emudesc);
     cmdparser->addHelpOption();
     //cmdparser->addVersionOption();
-
-    _opt_homedir = new QCommandLineOption({"d", "homedir"}, QCoreApplication::translate("main", "Custom home directory."), "homedir");
-    _opt_cfgfile = new QCommandLineOption({"c", "cfgfile"}, QCoreApplication::translate("main", "Custom config file (without path)."), "cfgfile");
+	QStringList _cl;
+    _cl.append("d");
+    _cl.append("homedir");
+    _opt_homedir = new QCommandLineOption(_cl, QCoreApplication::translate("main", "Custom home directory."), "homedir");
+    _cl.clear();
+   
+    _cl.append("c");
+    _cl.append("cfgfile");
+    _opt_cfgfile = new QCommandLineOption(_cl, QCoreApplication::translate("main", "Custom config file (without path)."), "cfgfile");
+    _cl.clear();
+   
     _opt_cfgdir = new QCommandLineOption("cfgdir", QCoreApplication::translate("main", "Custom config directory."), "cfgdir");
-    _opt_resdir = new QCommandLineOption({"r", "resdir"}, QCoreApplication::translate("main", "Custom resource directory (ROMs, WAVs, etc)."), "resdir");
-    _opt_dipsw_on = new QCommandLineOption({"on", "dipsw-on"}, QCoreApplication::translate("main", "Turn on <onbit> of dip switch."), "onbit");
-    _opt_dipsw_off = new QCommandLineOption({"off", "dipsw-off"}, QCoreApplication::translate("main", "Turn off <offbit> of dip switch."), "offbit");
 
+    _cl.append("r");
+    _cl.append("res");
+    _opt_resdir = new QCommandLineOption(_cl, QCoreApplication::translate("main", "Custom resource directory (ROMs, WAVs, etc)."), "resdir");
+    _cl.clear();
+
+    _cl.append("on");
+    _cl.append("dipsw-on");
+    _opt_dipsw_on = new QCommandLineOption(_cl, QCoreApplication::translate("main", "Turn on <onbit> of dip switch."), "onbit");
+    _cl.clear();
+   
+    _cl.append("off");
+    _cl.append("dipsw-off");
+    _opt_dipsw_off = new QCommandLineOption(_cl, QCoreApplication::translate("main", "Turn off <offbit> of dip switch."), "offbit");
+    _cl.clear();
 	for(int i = 0; i < 8; i++) {
 		_opt_fds[i] = NULL;
 		_opt_qds[i] = NULL;
