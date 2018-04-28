@@ -287,7 +287,7 @@ void DISPLAY::draw_screen2()
 							bitdata = subsys_cg_l4[(uint32_t)charcode * 16 + (uint32_t)raster];
 						}
 						cursor_rev = false;
-						if((naddr = (uint32_t)(cursor_addr.w.l)) && (cursor_type != 1) &&
+						if((naddr == (uint32_t)(cursor_addr.w.l)) && (cursor_type != 1) &&
 						   (text_blink || (cursor_type == 0))) {
 							if((raster >= cursor_start) && (raster <= cursor_end)) {
 								cursor_rev = true;

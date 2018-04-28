@@ -279,6 +279,7 @@ protected:
 	bool cursor_lsb;
 	
 	bool text_blink;
+	bool cursor_blink;
 	bool text_width40;
 	
 	pair_t text_start_addr;
@@ -292,6 +293,7 @@ protected:
 	uint8_t cursor_type;
 	
 	int event_id_l4_text_blink;
+	int event_id_l4_cursor_blink;
 #endif
 	
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -332,6 +334,8 @@ protected:
 	uint8_t GETVRAM_TEXTPIX(uint8_t bitdata, bool reverse, bool cursor_rev);
 	void GETVRAM_1_400L(int yoff, scrntype_t *p);
 	void GETVRAM_1_400L_GREEN(int yoff, scrntype_t *p);
+	void cursor_blink_77l4();
+	void text_blink_77l4();
 #endif
 	
 	void GETVRAM_8_200L(int yoff, scrntype_t *p, scrntype_t *px, bool window_inv = false, bool scan_line = false);

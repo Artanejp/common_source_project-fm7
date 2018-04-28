@@ -248,7 +248,8 @@ void DISPLAY::reset()
 	cursor_lsb = false;
     text_width40 = false;
 	
-	text_blink = false;
+	text_blink = true;
+	cursor_blink = true;
 	
 	text_start_addr.d = 0x0000;
 	text_lines = 64;
@@ -259,6 +260,29 @@ void DISPLAY::reset()
 	cursor_end = 0;
 	cursor_type = 0;
 	text_scroll_count = 0;
+
+	cursor_blink = true;
+	{
+		// OK?
+		double usec;
+		uint8_t *regs = l4crtc->get_regs();
+		display_mode = DISPLAY_MODE_1_400L;
+		if(event_id_l4_cursor_blink >= 0) {
+			cancel_event(this, event_id_l4_cursor_blink);
+		}
+		if(event_id_l4_text_blink >= 0) {
+			cancel_event(this, event_id_l4_text_blink);
+		}
+		event_id_l4_cursor_blink = -1;
+		event_id_l4_text_blink = -1;
+		if(regs != NULL) {
+			usec = ((regs[10] & 0x20) == 0) ? 160.0 : 320.0;
+			usec = usec * 1000.0;
+			register_event(this, EVENT_FM7SUB_CURSOR_BLINK, true, usec, &event_id_l4_cursor_blink);
+			usec = 160.0 * 1000.0;
+			register_event(this, EVENT_FM7SUB_TEXT_BLINK, true, usec, &event_id_l4_cursor_blink);
+		}						
+	}
 	//memset(crtc_regs, 0x00, sizeof(crtc_regs));
 #endif
 
@@ -1563,6 +1587,58 @@ void DISPLAY::event_callback_vsync(void)
 }
 
 //#endif
+#if defined(_FM77L4)
+void DISPLAY::cursor_blink_77l4()
+{
+	if(!(mode400line && stat_400linecard)) return;
+	uint8_t *regs = l4crtc->get_regs();
+	uint32_t naddr;
+	if(regs != NULL) {
+		int x, y;
+		if((regs[10] & 0x40) != 0) {
+			cursor_blink = !cursor_blink;
+			uint16_t addr = cursor_addr.w.l;
+			if(text_width40) {
+				x = ((addr / 2) % 40) / 8;
+				y = (addr / 2) / 40;
+			} else { // Width 80
+				x = ((addr / 2) % 80) / 8;
+				y = (addr / 2) / 80;
+			}
+			for(int yy = 0; yy < 8; yy++) {
+				naddr = (y + yy) * 5 + x;
+				vram_wrote_table[naddr] = true;
+			}
+		}
+	}
+}
+
+void DISPLAY::text_blink_77l4()
+{
+	uint16_t addr;
+	uint16_t offset = text_start_addr.w.l;
+	uint32_t naddr;
+	int x, y;
+	if(!(mode400line && stat_400linecard)) return;
+	text_blink = !text_blink;
+	for(addr = 0; addr < (80 * 50); addr++) {
+		naddr = ((addr + offset) & 0x0ffe) + 1;
+		if((text_vram[naddr] & 0x10) != 0) { // ATTR BLINK
+			if(text_width40) {
+				x = ((naddr / 2) % 40) / 8;
+				y = (naddr / 2) / 40;
+			} else { // Width 80
+				x = ((naddr / 2) % 80) / 8;
+				y = (naddr / 2) / 80;
+			}
+			for(int yy = 0; yy < 8; yy++) {
+				naddr = (y + yy) * 5 + x;
+				vram_wrote_table[naddr] = true;
+			}
+		}
+	}
+}
+#endif //#if defined(_FM77L4)
 
 void DISPLAY::event_callback(int event_id, int err)
 {
@@ -1601,6 +1677,14 @@ void DISPLAY::event_callback(int event_id, int err)
 		case EVENT_FM7SUB_CLR_CRTFLAG:
 			reset_crtflag();
 			break;
+#if defined(_FM77L4)
+		case EVENT_FM7SUB_CURSOR_BLINK:
+			cursor_blink_77l4();
+			break;
+		case EVENT_FM7SUB_TEXT_BLINK:
+			text_blink_77l4();
+			break;
+#endif			
 	}
 }
 
@@ -1892,7 +1976,24 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 # if defined(_FM77L4)				
 				stat_400linecard = ((data & 0x08) != 0) ? false : true;
 				if(mode400line && stat_400linecard) {
+					double usec;
+					uint8_t *regs = l4crtc->get_regs();
 					display_mode = DISPLAY_MODE_1_400L;
+					if(event_id_l4_cursor_blink >= 0) {
+						cancel_event(this, event_id_l4_cursor_blink);
+					}
+					if(event_id_l4_text_blink >= 0) {
+						cancel_event(this, event_id_l4_text_blink);
+					}
+					event_id_l4_cursor_blink = -1;
+					event_id_l4_text_blink = -1;
+					if(regs != NULL) {
+						usec = ((regs[10] & 0x20) == 0) ? 160.0 : 320.0;
+						usec = usec * 1000.0;
+						register_event(this, EVENT_FM7SUB_CURSOR_BLINK, true, usec, &event_id_l4_cursor_blink);
+						usec = 160.0 * 1000.0;
+						register_event(this, EVENT_FM7SUB_TEXT_BLINK, true, usec, &event_id_l4_cursor_blink);
+					}						
 				} else {
 					display_mode = DISPLAY_MODE_8_200L;
 				}
@@ -2725,6 +2826,15 @@ void DISPLAY::write_mmio(uint32_t addr, uint8_t data)
 					}
 					cursor_addr.w.l &= 0xfff;
 					// Redraw request
+					if((crtc_addr & 0x1f) == 10) {
+						double usec;
+						if(event_id_l4_cursor_blink >= 0) {
+							cancel_event(this, event_id_l4_cursor_blink);
+						}
+						usec = ((data & 0x20) == 0) ? 160.0 : 320.0;
+						usec = usec * 1000.0;
+						register_event(this, EVENT_FM7SUB_CURSOR_BLINK, true, usec, &event_id_l4_cursor_blink);
+					}
 					break;
 				case 12:
 					text_start_addr.w.l &= 0x03fc;
@@ -3087,17 +3197,13 @@ void DISPLAY::write_cpu_vram_data8(uint32_t addr, uint8_t data)
 				if(text_width40) {
 					x = ((addr / 2) % 40) / 8;
 					y = (addr / 2) / 40;
-					for(int yy = 0; yy < 8; yy++) {
-						naddr = (y + yy) * 5 + x;
-						vram_wrote_table[naddr] = true;
-					}
 				} else { // Width 80
 					x = ((addr / 2) % 80) / 8;
 					y = (addr / 2) / 80;
-					for(int yy = 0; yy < 8; yy++) {
-						naddr = (y + yy) * 5 + x;
-						vram_wrote_table[naddr] = true;
-					}
+				}
+				for(int yy = 0; yy < 8; yy++) {
+					naddr = (y + yy) * 5 + x;
+					vram_wrote_table[naddr] = true;
 				}
 			}
 			return;
@@ -3303,7 +3409,8 @@ void DISPLAY::initialize()
 	cursor_lsb = false;
     text_width40 = false;
 	
-	text_blink = false;
+	text_blink = true;
+	cursor_blink = true;
 	
 	text_start_addr.d = 0x0000;
 	text_lines = 64;
@@ -3314,6 +3421,8 @@ void DISPLAY::initialize()
 	cursor_end = 15;
 	cursor_type = 0;
 	text_scroll_count = 0;
+	
+	event_id_l4_cursor_blink = -1;
 	event_id_l4_text_blink = -1;
 #endif
 	
@@ -3392,7 +3501,7 @@ void DISPLAY::release()
 {
 }
 
-#define STATE_VERSION 9
+#define STATE_VERSION 10
 void DISPLAY::save_state(FILEIO *state_fio)
 {
   	state_fio->FputUint32_BE(STATE_VERSION);
@@ -3543,6 +3652,7 @@ void DISPLAY::save_state(FILEIO *state_fio)
     state_fio->FputBool(text_width40);
 	
 	state_fio->FputBool(text_blink);
+	state_fio->FputBool(cursor_blink);
 	
 	state_fio->FputUint32_BE(text_start_addr.d);
 	state_fio->FputUint32_BE(text_lines);
@@ -3554,6 +3664,7 @@ void DISPLAY::save_state(FILEIO *state_fio)
 	state_fio->FputUint8(cursor_type);
 	state_fio->FputUint8(text_scroll_count);
 
+	state_fio->FputInt32_BE(event_id_l4_cursor_blink);
 	state_fio->FputInt32_BE(event_id_l4_text_blink);
 #endif
 }
@@ -3739,6 +3850,7 @@ bool DISPLAY::load_state(FILEIO *state_fio)
     text_width40 = state_fio->FgetBool();
 	
 	text_blink = state_fio->FgetBool();
+	cursor_blink = state_fio->FgetBool();
 	
 	text_start_addr.d = state_fio->FgetUint32_BE();
 	text_lines = state_fio->FgetUint32_BE();
@@ -3750,6 +3862,7 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 	cursor_type = state_fio->FgetUint8();
 	text_scroll_count = state_fio->FgetUint8();
 	
+	event_id_l4_cursor_blink = state_fio->FgetInt32_BE();
 	event_id_l4_text_blink = state_fio->FgetInt32_BE();
 #endif
 #if defined(USE_GREEN_DISPLAY) && defined(USE_MONITOR_TYPE)
