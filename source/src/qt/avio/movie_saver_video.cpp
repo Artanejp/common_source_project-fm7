@@ -65,7 +65,9 @@ void MOVIE_SAVER::setup_h264(void *_codec_context)
 	 * This does not happen with normal video, it just happens here as
 	 * the motion of the chroma plane does not match the luma plane. */
 	c->mb_decision = 2;
+#if (LIBAVCODEC_VERSION_MAJOR < 58)	
 	c->me_method = ME_UMH;
+#endif
 	c->profile=FF_PROFILE_H264_HIGH;
 #endif	
 }
