@@ -1,4 +1,4 @@
-#/bin/sh
+#!/bin/sh
 export PATH="$PATH:\
             /usr/local/i586-mingw-msvc/icu/bin:\
 	    /usr/local/i586-mingw-msvc/Angle/bin:\
@@ -6,8 +6,7 @@ export PATH="$PATH:\
             /usr/local/i586-mingw-msvc/DirectX_June_2010/Developer\ Runtime/x86 \
             "
 export PKG_CONFIG_LIBDIR=/usr/i686-w64-mingw32/lib
-
-
+export PKG_CONFIG_SYSROOT_DIR=/usr/i686-w64-mingw32
 
 #wine ./qtbase/configure.exe \
 ./configure \
@@ -17,27 +16,33 @@ export PKG_CONFIG_LIBDIR=/usr/i686-w64-mingw32/lib
             -prefix /usr/local/i586-mingw-msvc/5.10.1/mingw_73x \
             -opensource -confirm-license \
 	    -xplatform win32-g++ \
-	    -qt-libpng -qt-libjpeg \
+	    -qt-libpng \
+	    -qt-libjpeg \
 	    -qt-freetype \
 	    -device-option CROSS_COMPILE=i686-w64-mingw32- \
 	    -no-compile-examples \
+	    -skip qtactiveqt \
+	    -skip qtwebglplugin \
+	    -skip qtwebengine \
+	    -skip qtwebview \
+	    -skip qtquickcontrols \
 	    -icu \
 	    -nomake examples \
 	    -nomake tests \
 	    -D GL_GLEXT_PROTOTYPES \
 	    -I /usr/local/i586-mingw-msvc/Angle/include \
 	    -L /usr/local/i586-mingw-msvc/Angle/lib \
-	    -I /usr/local/i586-mingw-msvc/SDL/i686-w64-mingw32/include \
+	    -I /usr/local/i586-mingw-msvc/SDL/i686-w64-mingw32/include/SDL2 \
 	    -L /usr/local/i586-mingw-msvc/SDL/i686-w64-mingw32/lib \
 	    -I /usr/local/i586-mingw-msvc/DirectX_June_2010/Include \
 	    -L /usr/local/i586-mingw-msvc/DirectX_June_2010/Lib/x86 \
 	    -device-option ANGLE_PREFIX=/usr/local/i586-mingw-msvc/Angle \
 	    -device-option SDL_PREFIX=/usr/local/i586-mingw-msvc/SDL/i686-w64-mingw32 \
+	    -device-option SDL2_PREFIX=/usr/local/i586-mingw-msvc/SDL/i686-w64-mingw32 \
 	    -device-option ICU_PREFIX=/usr/local/i586-mingw-msvc/icu \
-	    -device-option DIRECTX_PREFIX=/usr/local/i586-mingw-msvc/DirectX_June_2010 \
+	    -device-option DIRECTX_PREFIX=/usr/local/i586-mingw-msvc \
 	    -opengl dynamic \
 	    -no-eglfs \
-	    -no-pkg-config \
 	    $@ \
 
 
@@ -47,7 +52,7 @@ export PKG_CONFIG_LIBDIR=/usr/i686-w64-mingw32/lib
 #	    -angle \
 #	    -combined-angle-lib \
 #	    -qt-zlib \
-#	    -pkg-config \
+#	    -no-pkg-config \
 #	    -largefile \
 #           -debug-and-release \
 #	    -no-pch \
