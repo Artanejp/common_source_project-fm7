@@ -1,0 +1,11 @@
+--- a/src/corelib/global/qrandom.cpp
++++ b/src/corelib/global/qrandom.cpp
+@@ -92,7 +92,7 @@ if (NOT TARGET Qt5::$${CMAKE_MODULE_NAME})
+ 
+ QT_BEGIN_NAMESPACE
+ 
+-#if defined(Q_PROCESSOR_X86) && QT_COMPILER_SUPPORTS_HERE(RDRND)
++#if 0
+ static qsizetype qt_random_cpu(void *buffer, qsizetype count) Q_DECL_NOTHROW;
+ 
+ #  ifdef Q_PROCESSOR_X86_64
