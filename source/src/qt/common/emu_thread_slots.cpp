@@ -511,8 +511,8 @@ void EmuThreadClass::do_open_disk(int drv, QString path, int bank)
     defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
 	QByteArray localPath = path.toLocal8Bit();
    
-	p_emu->d88_file[drv].bank_num = 0;
-	p_emu->d88_file[drv].cur_bank = -1;
+	//p_emu->d88_file[drv].bank_num = 0;
+	//p_emu->d88_file[drv].cur_bank = -1;
 	
 	if(check_file_extension(localPath.constData(), ".d88") || check_file_extension(localPath.constData(), ".d77")) {
 		
