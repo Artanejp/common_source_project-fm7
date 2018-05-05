@@ -12,6 +12,7 @@
 #include "qt_glutil_gl3_0.h"
 #include "csp_logger.h"
 #include "menu_flags.h"
+#include <QOpenGLTexture>
 #include <QOpenGLFunctions_3_0>
 
 //extern USING_FLAGS *using_flags;
@@ -749,13 +750,13 @@ void GLDraw_3_0::uploadMainTexture(QImage *p, bool use_chromakey)
 	if(p == NULL) return;
 	//redraw_required = true;
 	imgptr = p;
-	if(uVramTextureID == 0) {
-		uVramTextureID = p_wid->bindTexture(*p);
+	if(uVramTextureID == NULL) {
+		uVramTextureID = new QOpenGLTexture(*p);
 	}
 
 	{
 		// Upload to main texture
-		extfunc->glBindTexture(GL_TEXTURE_2D, uVramTextureID);
+		extfunc->glBindTexture(GL_TEXTURE_2D, uVramTextureID->textureId());
 		extfunc->glTexSubImage2D(GL_TEXTURE_2D, 0,
 								 0, 0,
 								 //screen_texture_width * 2,
@@ -765,7 +766,7 @@ void GLDraw_3_0::uploadMainTexture(QImage *p, bool use_chromakey)
 		extfunc->glBindTexture(GL_TEXTURE_2D, 0);
 	}
 	if(using_flags->is_support_tv_render() && (using_flags->get_config_ptr()->rendering_type == CONFIG_RENDER_TYPE_TV)) {
-		renderToTmpFrameBuffer_nPass(uVramTextureID,
+		renderToTmpFrameBuffer_nPass(uVramTextureID->textureId(),
 									 screen_texture_width,
 									 screen_texture_height,
 									 ntsc_pass1,
@@ -780,7 +781,7 @@ void GLDraw_3_0::uploadMainTexture(QImage *p, bool use_chromakey)
 									 ntsc_pass2->getViewportHeight());
 		uTmpTextureID = ntsc_pass2->getTexture();
 	} else {
-		renderToTmpFrameBuffer_nPass(uVramTextureID,
+		renderToTmpFrameBuffer_nPass(uVramTextureID->textureId(),
 									 screen_texture_width,
 									 screen_texture_height,
 									 std_pass,
@@ -976,13 +977,14 @@ void GLDraw_3_0::drawMain(GLScreenPack *obj,
 
 void GLDraw_3_0::drawButtonsMain(int num, bool f_smoosing)
 {
-	GLuint texid = uButtonTextureID[num];
+	GLuint texid;
 	QOpenGLBuffer *bp = buffer_button_vertex[num];
 	QOpenGLShaderProgram  *prg = button_shader;
 	QOpenGLVertexArrayObject *vp = vertex_button[num];
 	QVector4D color;
 	int ii;
-	
+	if(uButtonTextureID[num] == NULL) return;
+	texid = uButtonTextureID[num]->textureId();
 	color = QVector4D(1.0, 1.0, 1.0, 1.0);
 	if((bp != NULL) && (vp != NULL) && (prg != NULL)) {
 		if((bp->isCreated()) && (vp->isCreated()) && (prg->isLinked())) {
@@ -1051,11 +1053,11 @@ void GLDraw_3_0::drawBitmapTexture(void)
 {
 	QVector4D color = QVector4D(1.0f, 1.0f, 1.0f, 1.0f);
 	smoosing = using_flags->get_config_ptr()->use_opengl_filters;
-
+	if(uBitmapTextureID == NULL) return;
 	if(using_flags->is_use_one_board_computer()) {
 		extfunc->glDisable(GL_BLEND);
 		drawMain(bitmap_block,
-				 uBitmapTextureID,
+				 uBitmapTextureID->textureId(),
 				 color, smoosing);
 	}
 }
@@ -1166,9 +1168,9 @@ void GLDraw_3_0::drawOsdIcons()
 					major = 0;
 					minor = 0;
 				}
-				if(major != 0) {
+				if((major != 0) && (icon_texid[major][minor] != NULL)) {
 					drawMain(osd_pass->getShader(), osd_pass_vao[i], osd_pass_vbuffer[i],
-							 icon_texid[major][minor],
+							 icon_texid[major][minor]->textureId(),
 							 ((osd_led_status & bit) != 0) ? color_on : color_off,
 							 false, false, QVector3D(0.0, 0.0, 0.0));
 				}
@@ -1235,8 +1237,8 @@ void GLDraw_3_0::setBrightness(GLfloat r, GLfloat g, GLfloat b)
 
 	if(imgptr != NULL) {
 		p_wid->makeCurrent();
-		if(uVramTextureID != 0) {
-			uVramTextureID = p_wid->bindTexture(*imgptr);
+		if(uVramTextureID == NULL) {
+			uVramTextureID = new QOpenGLTexture(*imgptr);
 		}
 		if(using_flags->is_use_one_board_computer() || (using_flags->get_max_button() > 0)) {
 			uploadMainTexture(imgptr, true);
@@ -1318,25 +1320,25 @@ void GLDraw_3_0::set_osd_vertex(int xbit)
 	vertex[0].y = ybase;
 	vertex[0].z = zbase;
 	vertex[0].s = 0.0f;
-	vertex[0].t = 1.0f;
+	vertex[0].t = 0.0f;
 	
 	vertex[1].x = xbase + (48.0f / 640.0f);
 	vertex[1].y = ybase;
 	vertex[1].z = zbase;
 	vertex[1].s = 1.0f;
-	vertex[1].t = 1.0f;
+	vertex[1].t = 0.0f;
 	
 	vertex[2].x = xbase + (48.0f / 640.0f);
 	vertex[2].y = ybase - (48.0f / 400.0f);
 	vertex[2].z = zbase;
 	vertex[2].s = 1.0f;
-	vertex[2].t = 0.0f;
+	vertex[2].t = 1.0f;
 	
 	vertex[3].x = xbase;
 	vertex[3].y = ybase - (48.0f / 400.0f);
 	vertex[3].z = zbase;
 	vertex[3].s = 0.0f;
-	vertex[3].t = 0.0f;
+	vertex[3].t = 1.0f;
 	
 	setNormalVAO(osd_pass->getShader(), osd_pass_vao[xbit],
 				 osd_pass_vbuffer[xbit],
@@ -1400,6 +1402,7 @@ void GLDraw_3_0::do_set_texture_size(QImage *p, int w, int h)
 		iw = (float)using_flags->get_real_screen_width();
 		ih = (float)using_flags->get_real_screen_height();
 	}
+	//if((w == screen_texture_width) && (h == screen_texture_height)) return;
 	//printf("%dx%d -> %fx%f\n", w, h, iw, ih);
 	if(p_wid != NULL) {
 		screen_texture_width = w;
@@ -1424,8 +1427,8 @@ void GLDraw_3_0::do_set_texture_size(QImage *p, int w, int h)
 			
 		}
 		if(p != NULL) {
-			p_wid->deleteTexture(uVramTextureID);
-			uVramTextureID = p_wid->bindTexture(*p);
+			if(uVramTextureID != NULL) delete uVramTextureID;
+			uVramTextureID = new QOpenGLTexture(*p);
 		}
 		vertexFormat[0].x = -1.0f;
 		vertexFormat[0].y = -1.0f;

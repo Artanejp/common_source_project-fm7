@@ -15,7 +15,7 @@
 //#include "emu.h"
 #include "osd_types.h"
 #include "qt_gldraw.h"
-#include "qt_glutil_gl2_0.h"
+#include "gl2/qt_glutil_gl2_0.h"
 
 #include <QEvent>
 #include <QDateTime>

@@ -12,13 +12,9 @@
 #include "dropdown_keyset.h"
 #include "menu_flags.h"
 
-#if defined(_USE_GLAPI_QT5_4)
+
 #include <QOpenGLWidget>
 #include <QSurfaceFormat>
-#else
-#include <QGLFormat>
-#include <QGLWidget>
-#endif
 #include <QColor>
 #include <QPixmap>
 #include <QString>
@@ -39,11 +35,8 @@ struct NativeVirtualKeyCode {
 	uint32_t vk;
 	uint32_t key;
 };
-#if defined(_USE_GLAPI_QT5_4)
+
 class DLL_PREFIX GLDrawClass: public QOpenGLWidget 
-#else
-class DLL_PREFIX GLDrawClass: public QGLWidget
-#endif
 {
 	Q_OBJECT
  private:
@@ -82,11 +75,8 @@ class DLL_PREFIX GLDrawClass: public QGLWidget
 	CSP_DrawItem *draw_item;
 
 public:
-#if defined(_USE_GLAPI_QT5_4)
-	GLDrawClass(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent = 0, const QSoufaceFormat &fmt = QSurfaceFormat::defaultFormat());
-#else
-	GLDrawClass(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent = 0, const QGLFormat &fmt = QGLFormat::defaultFormat());
-#endif
+
+	GLDrawClass(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent = 0, const QSurfaceFormat &fmt = QSurfaceFormat::defaultFormat());
 	~GLDrawClass();
 	GLDraw_2_0 *extfunc;
 	

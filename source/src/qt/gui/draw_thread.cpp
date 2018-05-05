@@ -22,7 +22,7 @@
 #include "csp_logger.h"
 #include "mainwidget_base.h"
 #include "draw_thread.h"
-#include "qt_glutil_gl2_0.h"
+#include "gl2/qt_glutil_gl2_0.h"
 
 DrawThreadClass::DrawThreadClass(OSD *o, CSP_Logger *logger,QObject *parent) : QThread(parent) {
 	MainWindow = (Ui_MainWindowBase *)parent;
@@ -115,8 +115,8 @@ void DrawThreadClass::doWork(const QString &param)
 		}
 		if(wait_count <= 0.0f) {
 			wait_count = wait_count + _rate;
-		} else if(wait_count < 5.0) {
-			msleep(5);
+		} else if(wait_count < 10.0) {
+			msleep(10);
 			wait_count = wait_count + _rate - 5.0;
 		} else {
 			wait_factor = (int)wait_count;

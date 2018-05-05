@@ -18,11 +18,6 @@
 #include <GL/gl.h>
 #include <GL/glext.h>
 #include <GL/wglext.h>
-#else
-# if !defined(_USE_GLAPI_QT5_4) || !defined(_USE_GLAPI_QT5_1)  
-#  include <GL/glx.h>
-#  include <GL/glxext.h>
-# endif
 #endif
 #include <GL/glu.h>
 
@@ -31,7 +26,7 @@
 #include <omp.h>
 #endif //_OPENMP
 #include "qt_gldraw.h"
-#include "qt_glutil_gl2_0.h"
+#include "gl2/qt_glutil_gl2_0.h"
 
 #include "csp_logger.h"
 #include "../osd.h"
@@ -123,17 +118,13 @@ void GLDrawClass::do_display_osd_leds(int lednum, bool onoff)
 #define GL_MULTISAMPLE  0x809D
 #endif
 
-#if defined(_USE_GLAPI_QT5_4)
+
 GLDrawClass::GLDrawClass(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent, const QSurfaceFormat &fmt)
 	: QOpenGLWidget(parent, Qt::Widget)
-#else
-GLDrawClass::GLDrawClass(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent, const QGLFormat &fmt)
-	: QGLWidget(fmt, parent)
-#endif
 {
-#if defined(_USE_GLAPI_QT5_4)
+
 	this->setFormat(fmt);
-#endif
+
 	csp_logger = logger;
 	save_pixmap_req = false;
 	enable_mouse = true;

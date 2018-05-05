@@ -15,6 +15,7 @@
 #include <QImageReader>
 #include <QRect>
 #include <QOpenGLFunctions_2_0>
+#include <QOpenGLTexture>
 
 #include "qt_gldraw.h"
 #include "qt_glutil_gl2_0.h"
@@ -36,7 +37,7 @@ GLDraw_2_0::GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, 
 	set_brightness = false;
 	crt_flag = false;
 	smoosing = false;
-	uVramTextureID = 0;
+	uVramTextureID = NULL;
 	emu_launched = false;
 	
 	imgptr = NULL;
@@ -65,7 +66,7 @@ GLDraw_2_0::GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, 
 
 	osd_onoff = true;
 
-	uBitmapTextureID = 0;
+	uBitmapTextureID = NULL;
 	bitmap_uploaded = false;
 	texture_max_size = 128;
 	low_resolution_screen = false;
@@ -74,11 +75,7 @@ GLDraw_2_0::GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, 
 	button_desc_t *vm_buttons_d = using_flags->get_vm_buttons();
 	if(vm_buttons_d != NULL) {
 		for(i = 0; i < using_flags->get_max_button(); i++) {
-# if defined(_USE_GLAPI_QT5_4)   
-			uButtonTextureID[i] = new QOpenGLTexture(QOpenGLTexture::Target2D);
-# else	   
-			uButtonTextureID[i] = 0;
-# endif
+			uButtonTextureID[i] = new QOpenGLTexture(QOpenGLTexture::Target2D);;
 			fButtonX[i] = -1.0 + (float)(vm_buttons_d[i].x * 2) / (float)using_flags->get_screen_width();
 			fButtonY[i] = 1.0 - (float)(vm_buttons_d[i].y * 2) / (float)using_flags->get_screen_height();
 			fButtonWidth[i] = (float)(vm_buttons_d[i].width * 2) / (float)using_flags->get_screen_width();
@@ -88,7 +85,7 @@ GLDraw_2_0::GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, 
 
 	for(int i = 0; i < 8; i++) {
 		for(int j = 0; j < 8; j++) {
-			icon_texid[i][j] = 0;
+			icon_texid[i][j] = NULL;
 		}
 	}
 
@@ -128,14 +125,14 @@ GLDraw_2_0::~GLDraw_2_0()
 	if(glVertGrids != NULL) free(glVertGrids);
 	if(glHorizGrids != NULL) free(glHorizGrids);
 	if(using_flags->is_use_one_board_computer()) {
-		if(uBitmapTextureID != 0) {
-			p_wid->deleteTexture(uBitmapTextureID);
+		if(uBitmapTextureID != NULL) {
+			delete uBitmapTextureID;
 		}
 	}
 	if(using_flags->get_max_button() > 0) {
 		int i;
 		for(i = 0; i < using_flags->get_max_button(); i++) {
-			if(uButtonTextureID[i] != 0) p_wid->deleteTexture(uButtonTextureID[i]);
+			if(uButtonTextureID[i] != NULL) delete uButtonTextureID[i];
 		}
 		for(i = 0; i < using_flags->get_max_button(); i++) {
 			if(vertex_button[i]->isCreated()) vertex_button[i]->destroy();
@@ -145,8 +142,8 @@ GLDraw_2_0::~GLDraw_2_0()
 	if(using_flags->is_use_one_board_computer()) {
 		if(vertex_bitmap->isCreated()) vertex_bitmap->destroy();
 	}
-	if(uVramTextureID != 0) {
-		p_wid->deleteTexture(uVramTextureID);
+	if(uVramTextureID != NULL) {
+		delete uVramTextureID;
 	}
 	if(extfunc_2 != NULL) delete extfunc_2;
 }
@@ -198,25 +195,25 @@ void GLDraw_2_0::set_osd_vertex(int xbit)
 	vertexOSD[i][0].y = ybase;
 	vertexOSD[i][0].z = zbase;
 	vertexOSD[i][0].s = 0.0f;
-	vertexOSD[i][0].t = 1.0f;
+	vertexOSD[i][0].t = 0.0f;
 	
 	vertexOSD[i][1].x = xbase + (48.0f / 640.0f);
 	vertexOSD[i][1].y = ybase;
 	vertexOSD[i][1].z = zbase;
 	vertexOSD[i][1].s = 1.0f;
-	vertexOSD[i][1].t = 1.0f;
+	vertexOSD[i][1].t = 0.0f;
 	
 	vertexOSD[i][2].x = xbase + (48.0f / 640.0f);
 	vertexOSD[i][2].y = ybase - (48.0f / 400.0f);
 	vertexOSD[i][2].z = zbase;
 	vertexOSD[i][2].s = 1.0f;
-	vertexOSD[i][2].t = 0.0f;
+	vertexOSD[i][2].t = 1.0f;
 	
 	vertexOSD[i][3].x = xbase;
 	vertexOSD[i][3].y = ybase - (48.0f / 400.0f);
 	vertexOSD[i][3].z = zbase;
 	vertexOSD[i][3].s = 0.0f;
-	vertexOSD[i][3].t = 0.0f;
+	vertexOSD[i][3].t = 1.0f;
 	
 	setNormalVAO(osd_shader, vertex_osd[xbit],
 				 buffer_osd[xbit],
@@ -357,13 +354,13 @@ void GLDraw_2_0::drawOsdIcons()
 				drawMain(osd_shader, vertex_osd[ii],
 						 buffer_osd[ii],
 						 vertexOSD[ii],
-						 icon_texid[major][minor],
+						 icon_texid[major][minor]->textureId(),
 						 color_on, false);
 			} else {
 				drawMain(osd_shader, vertex_osd[ii],
 						 buffer_osd[ii],
 						 vertexOSD[ii],
-						 icon_texid[major][minor],
+						 icon_texid[major][minor]->textureId(),
 						 color_off, false);
 			}			
 			_bit <<= 1;
@@ -504,25 +501,25 @@ void GLDraw_2_0::initButtons(void)
 					vt[0].y =  fButtonY[i];
 					vt[0].z =  -0.5f;
 					vt[0].s = 0.0f;
-					vt[0].t = 1.0f;
+					vt[0].t = 0.0f;
 					
 					vt[1].x =  fButtonX[i] + fButtonWidth[i];
 					vt[1].y =  fButtonY[i];
 					vt[1].z =  -0.5f;
 					vt[1].s = 1.0f;
-					vt[1].t = 1.0f;
+					vt[1].t = 0.0f;
 					
 					vt[2].x =  fButtonX[i] + fButtonWidth[i];
 					vt[2].y =  fButtonY[i] - fButtonHeight[i];
 					vt[2].z =  -0.5f;
 					vt[2].s = 1.0f;
-					vt[2].t = 0.0f;
+					vt[2].t = 1.0f;
 					
 					vt[3].x =  fButtonX[i];
 					vt[3].y =  fButtonY[i] - fButtonHeight[i];
 					vt[3].z =  -0.5f;
 					vt[3].s = 0.0f;
-					vt[3].t = 0.0f;
+					vt[3].t = 1.0f;
 					
 					vertexButtons->append(vt[0]);
 					vertexButtons->append(vt[1]);
@@ -551,25 +548,25 @@ void GLDraw_2_0::initBitmapVertex(void)
 		vertexBitmap[0].y = -1.0f;
 		vertexBitmap[0].z = -0.1f;
 		vertexBitmap[0].s = 0.0f;
-		vertexBitmap[0].t = 0.0f;
+		vertexBitmap[0].t = 1.0f;
 		
 		vertexBitmap[1].x = +1.0f;
 		vertexBitmap[1].y = -1.0f;
 		vertexBitmap[1].z = -0.1f;
 		vertexBitmap[1].s = 1.0f;
-		vertexBitmap[1].t = 0.0f;
+		vertexBitmap[1].t = 1.0f;
 		
 		vertexBitmap[2].x = +1.0f;
 		vertexBitmap[2].y = +1.0f;
 		vertexBitmap[2].z = -0.1f;
 		vertexBitmap[2].s = 1.0f;
-		vertexBitmap[2].t = 1.0f;
+		vertexBitmap[2].t = 0.0f;
 		
 		vertexBitmap[3].x = -1.0f;
 		vertexBitmap[3].y = +1.0f;
 		vertexBitmap[3].z = -0.1f;
 		vertexBitmap[3].s = 0.0f;
-		vertexBitmap[3].t = 1.0f;
+		vertexBitmap[3].t = 0.0f;
 		
 	}
 }
@@ -844,10 +841,10 @@ void GLDraw_2_0::updateButtonTexture(void)
 	if(vm_buttons_d != NULL) {
 		for(i = 0; i < using_flags->get_max_button(); i++) {
 			QImage img = ButtonImages.at(i);
-			if(uButtonTextureID[i] != 0) {
-				p_wid->deleteTexture(uButtonTextureID[i]);
+			if(uButtonTextureID[i] != NULL) {
+				delete uButtonTextureID[i];
 			}
-			uButtonTextureID[i] = p_wid->bindTexture(img);
+			uButtonTextureID[i] = new QOpenGLTexture(img);
 		}
 	}
 	button_updated = true;
@@ -884,10 +881,11 @@ void GLDraw_2_0::drawButtons()
 		vt[3].s = 0.0f;
 		vt[3].t = 0.0f;
 		c = QVector4D(1.0, 1.0, 1.0, 1.0);
+		if(uButtonTextureID[i] == NULL) continue;
 		drawMain(button_shader, vertex_button[i],
 				 buffer_button_vertex[i],
 				 vt,
-				 uButtonTextureID[i],
+				 uButtonTextureID[i]->textureId(),
 				 c, false);
 	}
 }
@@ -898,10 +896,11 @@ void GLDraw_2_0::drawBitmapTexture(void)
 	if(using_flags->is_use_one_board_computer()) {
 		QVector4D c;
 		c = QVector4D(1.0, 1.0, 1.0, 1.0);
+		if(uBitmapTextureID == NULL) return;
 		drawMain(bitmap_shader, vertex_bitmap,
 				 buffer_bitmap_vertex,
 				 vertexBitmap,
-				 uBitmapTextureID,
+				 uBitmapTextureID->textureId(),
 				 c, false);
 	}
 }
@@ -909,14 +908,14 @@ void GLDraw_2_0::drawBitmapTexture(void)
 void GLDraw_2_0::drawScreenTexture(void)
 {
 	if(using_flags->is_use_one_board_computer()) {
-		if(uBitmapTextureID != 0) {
+		if(uBitmapTextureID != NULL) {
 			extfunc_2->glEnable(GL_BLEND);
 			extfunc_2->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		}
 	} else {
 		extfunc_2->glDisable(GL_BLEND);
 	}
-	
+	if(uVramTextureID == NULL) return;
 	QVector4D color;
 	smoosing = using_flags->get_config_ptr()->use_opengl_filters;
 	if(set_brightness) {
@@ -929,7 +928,7 @@ void GLDraw_2_0::drawScreenTexture(void)
 		drawMain(main_shader, vertex_screen,
 				 buffer_screen_vertex,
 				 vertexFormat,
-				 uVramTextureID, // v2.0
+				 uVramTextureID->textureId(), // v2.0
 				 color, smoosing,
 				 true, cc);
 		extfunc_2->glDisable(GL_BLEND);
@@ -937,7 +936,7 @@ void GLDraw_2_0::drawScreenTexture(void)
 		drawMain(main_shader, vertex_screen,
 				 buffer_screen_vertex,
 				 vertexFormat,
-				 uVramTextureID, // v2.0
+				 uVramTextureID->textureId(), // v2.0
 				 color, smoosing);
 	}		
 }
@@ -1043,10 +1042,10 @@ void GLDraw_2_0::uploadBitmapTexture(QImage *p)
 	if(p == NULL) return;
 	if(!bitmap_uploaded) {
 		p_wid->makeCurrent();
-		if(uBitmapTextureID != 0) {
-	  		p_wid->deleteTexture(uBitmapTextureID);
+		if(uBitmapTextureID != NULL) {
+	  		delete uBitmapTextureID;
 		}
-		uBitmapTextureID = p_wid->bindTexture(*p);
+		uBitmapTextureID = new QOpenGLTexture(*p);
 		p_wid->doneCurrent();
 		bitmap_uploaded = true;
 		crt_flag = true;
@@ -1060,11 +1059,10 @@ void GLDraw_2_0::uploadIconTexture(QPixmap *p, int icon_type, int localnum)
 	if(p == NULL) return;
 	p_wid->makeCurrent();
 	QImage image = p->toImage();
-	GLuint texid = icon_texid[icon_type][localnum];
 
-	if(texid != 0) p_wid->deleteTexture(texid);
+	if(icon_texid[icon_type][localnum] != NULL) delete icon_texid[icon_type][localnum];
 	{
-		icon_texid[icon_type][localnum] = p_wid->bindTexture(*p);
+		icon_texid[icon_type][localnum] = new QOpenGLTexture(image);
 	}
 	p_wid->doneCurrent();
 
@@ -1086,10 +1084,10 @@ void GLDraw_2_0::uploadMainTexture(QImage *p, bool use_chromakey)
 	if(p == NULL) return;
 	{
 		// Upload to main texture
-		if(uVramTextureID == 0) {
-			uVramTextureID = p_wid->bindTexture(*p);
+		if(uVramTextureID == NULL) {
+			uVramTextureID = new QOpenGLTexture(*p);
 		}
-		extfunc_2->glBindTexture(GL_TEXTURE_2D, uVramTextureID);
+		extfunc_2->glBindTexture(GL_TEXTURE_2D, uVramTextureID->textureId());
 		extfunc_2->glTexSubImage2D(GL_TEXTURE_2D, 0,
 								 0, 0,
 								 p->width(), p->height(),

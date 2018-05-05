@@ -16,6 +16,7 @@
 #include <QImageReader>
 #include <QDateTime>
 #include <QDir>
+#include <QTranslator>
 
 #include "common.h"
 #include "fileio.h"
@@ -29,7 +30,7 @@
 #include "draw_thread.h"
 
 #include "qt_gldraw.h"
-#include "qt_glutil_gl2_0.h"
+#include "../gui/gl2/qt_glutil_gl2_0.h"
 #include "csp_logger.h"
 #include "dock_disks.h"
 #include "menu_disk.h"

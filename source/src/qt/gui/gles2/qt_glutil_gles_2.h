@@ -1,37 +1,37 @@
 /*
- * qt_glutil_gl3_0.cpp
- * (c) 2016 K.Ohta <whatisthis.sowhat@gmail.com>
+ * qt_glutil_gles_2.h
+ * (c) 2018 K.Ohta <whatisthis.sowhat@gmail.com>
  * License: GPLv2.
- * Renderer with OpenGL v3.0 (extend from renderer with OpenGL v2.0).
+ * Renderer with OpenGL ES v2.0 (extend from renderer with OpenGL v2.0).
  * History:
- * Jan 22, 2016 : Initial.
+ * May 05, 2018 : Copy from GL v3.0.
  */
 
-#ifndef _QT_COMMON_GLUTIL_3_0_H
-#define _QT_COMMON_GLUTIL_3_0_H
+#ifndef _QT_COMMON_GLUTIL_ES_2_H
+#define _QT_COMMON_GLUTIL_ES_2_H
 
 #include <QString>
-#include "qt_glutil_gl2_0.h"
+#include "../gl2/qt_glutil_gl2_0.h"
 
 QT_BEGIN_NAMESPACE
 class GLScreenPack;
 class CSP_Logger;
-class QOpenGLFunctions_3_0;
+class QOpenGLFunctions;
 class QOpenGLBuffer;
 class QOpenGLVertexArrayObject;
 class QOpenGLShaderProgram;
 
-class DLL_PREFIX GLDraw_3_0 : public GLDraw_2_0
+class DLL_PREFIX GLDraw_ES_2 : public GLDraw_2_0
 {
 	Q_OBJECT
 private:
-	QOpenGLFunctions_3_0 *extfunc;
+	QOpenGLFunctions *extfunc;
 	float ringing_phase;
 protected:
 	GLScreenPack *main_pass;
 	GLScreenPack *std_pass;
-	GLScreenPack *ntsc_pass1;
-	GLScreenPack *ntsc_pass2;
+	//GLScreenPack *ntsc_pass1;
+	//GLScreenPack *ntsc_pass2;
 	GLScreenPack *bitmap_block;
 	GLScreenPack *led_pass;
 	GLScreenPack *osd_pass;
@@ -60,12 +60,12 @@ protected:
 									GLfloat *tp,
 									int number);
 
-	virtual void drawGridsMain_3(QOpenGLShaderProgram *prg,
-								 QOpenGLBuffer *bp,
-								 QOpenGLVertexArrayObject *vp,
-								 int number,
-								 GLfloat lineWidth = 0.2f,
-								 QVector4D color = QVector4D(0.0, 0.0, 0.0, 1.0));
+	virtual void drawGridsMain_es(QOpenGLShaderProgram *prg,
+								  QOpenGLBuffer *bp,
+								  QOpenGLVertexArrayObject *vp,
+								  int number,
+								  GLfloat lineWidth = 0.2f,
+								  QVector4D color = QVector4D(0.0, 0.0, 0.0, 1.0));
 	virtual void resizeGL_Screen(void);
 	virtual void initPackedGLObject(GLScreenPack **p,
 								int _width, int _height,
@@ -103,12 +103,13 @@ protected:
 	virtual void set_led_vertex(int bit);
 	virtual void set_osd_vertex(int bit);
 public:
-	GLDraw_3_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU *emu = 0);
-	~GLDraw_3_0();
+	GLDraw_ES_2(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU *emu = 0);
+	~GLDraw_ES_2();
 	void drawButtons(void);
 	virtual void initGLObjects();
 	virtual void initLocalGLObjects(void);
 	virtual void initFBO(void);
+	void initButtons(void);
 	//virtual void initBitmapVertex(void);
 	
 	virtual void uploadMainTexture(QImage *p, bool chromakey);

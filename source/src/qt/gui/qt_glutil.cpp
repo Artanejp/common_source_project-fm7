@@ -10,8 +10,9 @@
 
 #include "../osd_types.h"
 #include "qt_gldraw.h"
-#include "qt_glutil_gl2_0.h"
-#include "qt_glutil_gl3_0.h"
+#include "gl2/qt_glutil_gl2_0.h"
+#include "gl3/qt_glutil_gl3_0.h"
+#include "gles2/qt_glutil_gles_2.h"
 #include <QOpenGLFunctions_4_1_Core>
 #include <QOpenGLFunctions_3_2_Core>
 #include <QApplication>
@@ -220,7 +221,12 @@ QString GLDrawClass::logGLString(bool getExtensions)
 
 	const GLubyte *(*glGetString)(GLenum) = NULL;
 	QOpenGLContext *glContext = QOpenGLContext::currentContext();
-
+	QSurfaceFormat _fmt = glContext->format();
+	if(glContext->isOpenGLES()) {
+		s.append(QString::fromUtf8("\nUsing OpenGL ES. "));
+	} else { // OpenGL
+		s.append(QString::fromUtf8("\nUsing OpenGL. "));
+	}
 	glGetString = (const GLubyte *(*)(GLenum))glContext->getProcAddress(QByteArray("glGetString"));
 	if(glGetString != NULL) {
 		s.append(QString::fromUtf8("\nSupported OpenGL Vendor: "));
@@ -242,6 +248,7 @@ QString GLDrawClass::logGLString(bool getExtensions)
 void GLDrawClass::InitFBO(void)
 {
 	QOpenGLContext *glContext = QOpenGLContext::currentContext();
+	//QOpenGLContext *glContext = QOpenGLContext::globalShareContext();
 	int render_type = using_flags->get_config_ptr()->render_platform;
 	int _major_version = using_flags->get_config_ptr()->render_major_version;
 	int _minor_version = using_flags->get_config_ptr()->render_minor_version;
@@ -251,6 +258,18 @@ void GLDrawClass::InitFBO(void)
 	QString tmps = logGLString(false);
 	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "%s", tmps.toLocal8Bit().constData());
 #endif
+	if((render_type == CONFIG_RENDER_PLATFORM_OPENGL_ES) || (glContext->isOpenGLES())){
+		QPair<int, int> _glversion = _fmt.version();
+		if((_glversion.first >= 2) && (_glversion.second >= 0) &&
+		   (extfunc == NULL) &&
+		   (_major_version >= 2)){
+			extfunc = new GLDraw_ES_2(this, using_flags, csp_logger);
+			if(extfunc != NULL) {
+				csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Use OpenGL ES(v2.0) Renderer");
+				goto _nr_end;
+			}
+		}
+	}
 	if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_CORE) {
 		QPair<int, int> _glversion = _fmt.version();
 		if((((_glversion.first == 3) && (_glversion.second >= 2)) || (_glversion.first >= 4)) &&
@@ -259,11 +278,10 @@ void GLDrawClass::InitFBO(void)
 			//extfunc = new GLDraw_3_0(this, using_flags); // ToDo
 			if(extfunc != NULL) {
 				csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Use OpenGL v3.2(CORE) Renderer");
+				goto _nr_end;
 			}
 		}
-	}
-
-	if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_MAIN) {
+	} else if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_MAIN) {
 		QPair<int, int> _glversion = _fmt.version();
 		if((_glversion.first >= 3) && (_glversion.second >= 0) &&
 		   (extfunc == NULL) &&
@@ -271,6 +289,7 @@ void GLDrawClass::InitFBO(void)
 			extfunc = new GLDraw_3_0(this, using_flags, csp_logger);
 			if(extfunc != NULL) {
 				csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Use OpenGL v3.0 Renderer");
+				goto _nr_end;
 			}
 		}
 		if(extfunc == NULL) { // Fallback
@@ -280,9 +299,11 @@ void GLDrawClass::InitFBO(void)
 			extfunc = new GLDraw_2_0(this, using_flags, csp_logger);
 			if(extfunc != NULL) {
 				csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Use OpenGL v2.0 Renderer");
+				goto _nr_end;
 			}
 		}
 	}
+_nr_end:
 	if(extfunc != NULL) {
 		extfunc->initGLObjects();
 		extfunc->initFBO();
@@ -299,7 +320,7 @@ void GLDrawClass::SaveToPixmap(void)
 {
 	if(save_pixmap_req) {
 		if(!filename_screen_pixmap.isEmpty()) {
-			QImage snapshot = this->grabFrameBuffer();
+			QImage snapshot = this->grabFramebuffer();
 			snapshot.save(filename_screen_pixmap);
 		}
 		save_pixmap_req = false;

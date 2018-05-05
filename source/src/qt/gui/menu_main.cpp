@@ -240,6 +240,11 @@ void Ui_MainWindowBase::do_select_render_platform(int num)
 	int _type = -1;
 
 	switch(num) {
+	case RENDER_PLATFORMS_OPENGL_ES_2:
+		_type = CONFIG_RENDER_PLATFORM_OPENGL_ES;
+		_major = 2;
+		_minor = 0;
+		break;
 	case RENDER_PLATFORMS_OPENGL3_MAIN:
 		_type = CONFIG_RENDER_PLATFORM_OPENGL_MAIN;
 		_major = 3;
@@ -321,34 +326,24 @@ void Ui_MainWindowBase::setupUi(void)
 	actionAbout->setObjectName(QString::fromUtf8("actionAbout"));
 
 	{
-#if defined(_USE_GLAPI_QT5_4)
+
 		QSurfaceFormat fmt;
-#else
-		QGLFormat fmt;
-#endif
 		{
 			int render_type = using_flags->get_config_ptr()->render_platform;
+			QOpenGLContext *glContext = QOpenGLContext::globalShareContext();
 			//int _major_version = using_flags->get_config_ptr()->render_major_version;
 			//int _minor_version = using_flags->get_config_ptr()->render_minor_version;
-#if defined(_USE_GLAPI_QT5_4)
-				if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_CORE) { 
-					fmt.setProfile(QSurfaceFormat::CoreProfile); // Requires >=Qt-4.8.0
-					csp_logger->debug_log(CSP_LOG_DEBUG,  CSP_LOG_TYPE_GENERAL, "Try to use OpenGL CORE profile.");
-				} else { // Fallback
-					fmt.setProfile(QSurfaceFormat::CompatibilityProfile); // Requires >=Qt-4.8.0
-					csp_logger->debug_log(CSP_LOG_DEBUG,  CSP_LOG_TYPE_GENERAL, "Try to use OpenGL Compatible(MAIN) profile.");
-				}
-#else
-				if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_CORE) { 
-					fmt.setProfile(QGLFormat::CoreProfile); // Requires >=Qt-4.8.0
-					csp_logger->debug_log(CSP_LOG_DEBUG,  CSP_LOG_TYPE_GENERAL, "Try to use OpenGL CORE profile.");
-					fmt.setVersion(3, 2);
-				} else {
-					fmt.setProfile(QGLFormat::CompatibilityProfile); // Requires >=Qt-4.8.0
-					csp_logger->debug_log(CSP_LOG_DEBUG,  CSP_LOG_TYPE_GENERAL, "Try to use OpenGL Compatible(MAIN) profile.");
-					fmt.setVersion(3, 0);
-				}					
-#endif
+
+			if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_ES) {
+				fmt.setRenderableType(QSurfaceFormat::OpenGLES);
+				csp_logger->debug_log(CSP_LOG_DEBUG,  CSP_LOG_TYPE_GENERAL, "Try to use OpenGL ES.");
+			} else if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_CORE) { 
+				fmt.setProfile(QSurfaceFormat::CoreProfile); // Requires >=Qt-4.8.0
+				csp_logger->debug_log(CSP_LOG_DEBUG,  CSP_LOG_TYPE_GENERAL, "Try to use OpenGL CORE profile.");
+			} else { // Fallback
+				fmt.setProfile(QSurfaceFormat::CompatibilityProfile); // Requires >=Qt-4.8.0
+				csp_logger->debug_log(CSP_LOG_DEBUG,  CSP_LOG_TYPE_GENERAL, "Try to use OpenGL Compatible(MAIN) profile.");
+			}
 		}
 		graphicsView = new GLDrawClass(using_flags, csp_logger, this, fmt);
 		graphicsView->setObjectName(QString::fromUtf8("graphicsView"));
@@ -787,9 +782,13 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 	menuDevLogToSyslog->setTitle(QApplication::translate("MenuEmulator", "Per Device", 0));
 #endif
 	menu_SetRenderPlatform->setTitle(QApplication::translate("MenuEmulator", "Video Platform(need restart)", 0));
+	
+	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL_ES_2]->setText(QApplication::translate("MenuEmulator", "OpenGL ES v2.0", 0));
 	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL3_MAIN]->setText(QApplication::translate("MenuEmulator", "OpenGLv3.0", 0));
 	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL2_MAIN]->setText(QApplication::translate("MenuEmulator", "OpenGLv2.0", 0));
 	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL_CORE]->setText(QApplication::translate("MenuEmulator", "OpenGL(Core profile)", 0));
+	
+	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL_ES_2]->setToolTip(QApplication::translate("MenuEmulator", "Using OpenGL ES v2.0.\nThis is recommanded.\nIf changed, need to restart this emulator.", 0));
 	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL3_MAIN]->setToolTip(QApplication::translate("MenuEmulator", "Using OpenGL v3.0(MAIN).\nThis is recommanded.\nIf changed, need to restart this emulator.", 0));
 	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL2_MAIN]->setToolTip(QApplication::translate("MenuEmulator", "Using OpenGLv2.\nThis is fallback of some systems.\nIf changed, need to restart this emulator.", 0));
 	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL_CORE]->setToolTip(QApplication::translate("MenuEmulator", "Using OpenGL core profile.\nThis still not implement.\nIf changed, need to restart this emulator.", 0));
@@ -1043,7 +1042,13 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 				if(i >= RENDER_PLATFORMS_END) {
 					action_SetRenderPlatform[i]->setVisible(false);
 				} else {
-					if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_MAIN) {
+					if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_ES) {
+						if(_major_version >= 2) {
+							if(i == RENDER_PLATFORMS_OPENGL_ES_2) {
+								action_SetRenderPlatform[i]->setChecked(true);
+							}
+						}
+					} else if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_MAIN) {
 						if(_major_version >= 3) {
 							if(i == RENDER_PLATFORMS_OPENGL3_MAIN) {
 								action_SetRenderPlatform[i]->setChecked(true);

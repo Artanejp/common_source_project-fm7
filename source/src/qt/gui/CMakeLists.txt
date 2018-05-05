@@ -1,14 +1,15 @@
 message("* qt/gui")
 
-set(THIS_LIB_VERSION 2.11.5)
+set(THIS_LIB_VERSION 2.12.0)
 set(s_qt_gui_headers
 	  csp_logger.h
   
 	  qt_dialogs.h
 	  qt_gldraw.h
 	  qt_glpack.h
-	  qt_glutil_gl2_0.h
-	  qt_glutil_gl3_0.h
+	  gl2/qt_glutil_gl2_0.h
+	  gl3/qt_glutil_gl3_0.h
+	  gles2/qt_glutil_gles_2.h
 	  
 	  commonclasses.h
 	  sound_dialog.h
@@ -53,8 +54,9 @@ set(s_qt_gui_srcs
 	  qt_gldraw.cpp
 	  qt_glutil.cpp
 	  qt_glpack.cpp
-	  qt_glutil_gl2_0.cpp
-	  qt_glutil_gl3_0.cpp
+	  gl2/qt_glutil_gl2_0.cpp
+	  gl3/qt_glutil_gl3_0.cpp
+	  gles2/qt_glutil_gles_2.cpp
 	  qt_glevents.cpp
 	  qt_dialogs.cpp
 
