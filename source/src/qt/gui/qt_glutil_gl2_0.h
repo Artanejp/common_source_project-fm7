@@ -10,21 +10,14 @@
 #ifndef _QT_COMMON_GLUTIL_2_0_H
 #define _QT_COMMON_GLUTIL_2_0_H
 
-#include <QtGui>
-#include <QColor>
-#include <QPainter>
-#include <QPen>
-#include <QRect>
-#include <QGLWidget>
-#include <QImage>
-#include <QOpenGLFunctions_2_0>
-#include <QTimer>
+#include <QWidget>
+#include <QString>
 #include <QList>
 
 #include "common.h"
-
 #include "qt_glpack.h"
 
+QT_BEGIN_NAMESPACE
 class EMU;
 class QEvent;
 class GLDrawClass;
@@ -32,6 +25,11 @@ class QOpenGLFramebufferObject;
 class QOpenGLFramebufferObjectFormat;
 class USING_FLAGS;
 class CSP_Logger;
+class QOpenGLFunctions_2_0;
+class QOpenGLBuffer;
+class QOpenGLVertexArrayObject;
+class QOpenGLShaderProgram;
+
 class DLL_PREFIX GLDraw_2_0 : public QObject
 {
 	Q_OBJECT
@@ -193,4 +191,6 @@ public slots:
 signals:
 	int sig_push_image_to_movie(int, int, int, QImage *);
 };
+QT_END_NAMESPACE
+
 #endif // _QT_COMMON_GLUTIL_2_0_H

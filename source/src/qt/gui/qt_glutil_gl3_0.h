@@ -10,12 +10,17 @@
 #ifndef _QT_COMMON_GLUTIL_3_0_H
 #define _QT_COMMON_GLUTIL_3_0_H
 
-
+#include <QString>
 #include "qt_glutil_gl2_0.h"
-#include <QOpenGLFunctions_3_0>
 
+QT_BEGIN_NAMESPACE
 class GLScreenPack;
 class CSP_Logger;
+class QOpenGLFunctions_3_0;
+class QOpenGLBuffer;
+class QOpenGLVertexArrayObject;
+class QOpenGLShaderProgram;
+
 class DLL_PREFIX GLDraw_3_0 : public GLDraw_2_0
 {
 	Q_OBJECT
@@ -118,4 +123,5 @@ public slots:
 	virtual void paintGL(void);
 	virtual void resizeGL(int width, int height);
 };
+QT_END_NAMESPACE
 #endif

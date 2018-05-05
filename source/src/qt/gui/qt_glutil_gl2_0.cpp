@@ -9,13 +9,14 @@
 
 //#include "emu.h"
 
-#include <QOpenGLFramebufferObject>
+
 #include <QOpenGLFramebufferObject>
 #include <QColor>
 #include <QImageReader>
+#include <QRect>
+#include <QOpenGLFunctions_2_0>
 
 #include "qt_gldraw.h"
-//#include "csp_logger.h"
 #include "qt_glutil_gl2_0.h"
 #include "menu_flags.h"
 
@@ -457,8 +458,8 @@ void GLDraw_2_0::initButtons(void)
 	if(vm_buttons_d != NULL) {
 		button_shader = new QOpenGLShaderProgram(p_wid);
 		if(button_shader != NULL) {
-			button_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertex_shader.glsl");
-			button_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/normal_fragment_shader.glsl");
+			button_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/gl2/vertex_shader.glsl");
+			button_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/gl2/normal_fragment_shader.glsl");
 			button_shader->link();
 		}
 
@@ -578,8 +579,8 @@ void GLDraw_2_0::initBitmapVAO(void)
 	if(using_flags->is_use_one_board_computer()) {
 		bitmap_shader = new QOpenGLShaderProgram(p_wid);
 		if(bitmap_shader != NULL) {
-			bitmap_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertex_shader.glsl");
-			bitmap_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/normal_fragment_shader.glsl");
+			bitmap_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/gl2/vertex_shader.glsl");
+			bitmap_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/gl2/normal_fragment_shader.glsl");
 			bitmap_shader->link();
 		}
 		buffer_bitmap_vertex = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
@@ -630,8 +631,8 @@ void GLDraw_2_0::initLocalGLObjects(void)
 {
 	main_shader = new QOpenGLShaderProgram(p_wid);
 	if(main_shader != NULL) {
-		main_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertex_shader.glsl");
-		main_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/chromakey_fragment_shader2.glsl");
+		main_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/gl2/vertex_shader.glsl");
+		main_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/gl2/chromakey_fragment_shader2.glsl");
 		main_shader->link();
 	}
 	buffer_screen_vertex = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
@@ -690,8 +691,8 @@ void GLDraw_2_0::initOsdObjects(void)
 {
 	osd_shader = new QOpenGLShaderProgram(p_wid);
 	if(osd_shader != NULL) {
-		osd_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertex_shader.glsl");
-		osd_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/icon_fragment_shader.glsl");
+		osd_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/gl2/vertex_shader.glsl");
+		osd_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/gl2/icon_fragment_shader.glsl");
 		osd_shader->link();
 	}
 	for(int i = 0; i < 32; i++) {

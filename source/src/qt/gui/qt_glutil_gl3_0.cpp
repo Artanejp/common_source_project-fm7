@@ -12,6 +12,7 @@
 #include "qt_glutil_gl3_0.h"
 #include "csp_logger.h"
 #include "menu_flags.h"
+#include <QOpenGLFunctions_3_0>
 
 //extern USING_FLAGS *using_flags;
 #if 0
@@ -418,12 +419,12 @@ void GLDraw_3_0::initLocalGLObjects(void)
 	if(using_flags->is_use_one_board_computer() || (using_flags->get_max_button() > 0)) {
 		initPackedGLObject(&main_pass,
 						   using_flags->get_screen_width() * 2, using_flags->get_screen_height() * 2,
-						   ":/vertex_shader.glsl" , ":/chromakey_fragment_shader2.glsl",
+						   ":/gl3/vertex_shader.glsl" , ":/gl3/chromakey_fragment_shader2.glsl",
 						   "Main Shader");
 	} else {
 		initPackedGLObject(&main_pass,
 						   using_flags->get_screen_width() * 2, using_flags->get_screen_height() * 2,
-						   ":/vertex_shader.glsl" , ":/fragment_shader.glsl",
+						   ":/gl3/vertex_shader.glsl" , ":/gl3/fragment_shader.glsl",
 						   "Main Shader");
 	}		
 	if(main_pass != NULL) {
@@ -433,11 +434,11 @@ void GLDraw_3_0::initLocalGLObjects(void)
 	}
 	initPackedGLObject(&std_pass,
 					   using_flags->get_screen_width(), using_flags->get_screen_height(),
-					   ":/vertex_shader.glsl" , ":/chromakey_fragment_shader.glsl",
+					   ":/gl3/vertex_shader.glsl" , ":/gl3/chromakey_fragment_shader.glsl",
 					   "Standard Shader");
 	initPackedGLObject(&led_pass,
 					   10, 10,
-					   ":/led_vertex_shader.glsl" , ":/led_fragment_shader.glsl",
+					   ":/gl3/led_vertex_shader.glsl" , ":/gl3/led_fragment_shader.glsl",
 					   "LED Shader");
 	for(int i = 0; i < 32; i++) {
 		led_pass_vao[i] = new QOpenGLVertexArrayObject;
@@ -456,7 +457,7 @@ void GLDraw_3_0::initLocalGLObjects(void)
 	}
 	initPackedGLObject(&osd_pass,
 					   48.0, 48.0,
-					   ":/vertex_shader.glsl" , ":/icon_fragment_shader.glsl",
+					   ":/gl3/vertex_shader.glsl" , ":/gl3/icon_fragment_shader.glsl",
 					   "OSD Shader");
 	for(int i = 0; i < 32; i++) {
 		osd_pass_vao[i] = new QOpenGLVertexArrayObject;
@@ -476,11 +477,11 @@ void GLDraw_3_0::initLocalGLObjects(void)
 
 	initPackedGLObject(&ntsc_pass1,
 					   _width, _height,
-					   ":/vertex_shader.glsl" , ":/ntsc_pass1.glsl",
+					   ":/gl3/vertex_shader.glsl" , ":/gl3/ntsc_pass1.glsl",
 					   "NTSC Shader Pass1");
 	initPackedGLObject(&ntsc_pass2,
 					   _width / 2, _height,
-					   ":/vertex_shader.glsl" , ":/ntsc_pass2.glsl",
+					   ":/gl3/vertex_shader.glsl" , ":/gl3/ntsc_pass2.glsl",
 					   "NTSC Shader Pass2");
 	{
 		int ii;
@@ -501,7 +502,7 @@ void GLDraw_3_0::initLocalGLObjects(void)
 		initBitmapVertex();
 		initPackedGLObject(&bitmap_block,
 						   _width * 2, _height * 2,
-						   ":/vertex_shader.glsl", ":/normal_fragment_shader.glsl",
+						   ":/gl3/vertex_shader.glsl", ":/gl3/normal_fragment_shader.glsl",
 						   "Background Bitmap Shader");
 		if(bitmap_block != NULL) {
 			setNormalVAO(bitmap_block->getShader(), bitmap_block->getVAO(),
@@ -509,7 +510,7 @@ void GLDraw_3_0::initLocalGLObjects(void)
 						 vertexBitmap, 4);
 		}
 	}
-	initGridShaders(":/grids_vertex_shader_fixed.glsl", ":/grids_vertex_shader.glsl", ":/grids_fragment_shader.glsl");
+	initGridShaders(":/gl3/grids_vertex_shader_fixed.glsl", ":/gl3/grids_vertex_shader.glsl", ":/gl3/grids_fragment_shader.glsl");
 	
 	initGridVertexObject(&grids_horizonal_buffer, &grids_horizonal_vertex, using_flags->get_real_screen_height() + 3);
 	doSetGridsHorizonal(using_flags->get_real_screen_height(), true);
