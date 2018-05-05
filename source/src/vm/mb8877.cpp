@@ -265,7 +265,7 @@ void MB8877::release()
 void MB8877::reset()
 {
 	for(int i = 0; i < _max_drive; i++) {
-		//fdc[i].track = 0; // Hold to track
+		fdc[i].track = 0; // Not Hold to track 20180506 K.O
 		fdc[i].index = 0;
 		fdc[i].access = false;
 	}
@@ -348,15 +348,18 @@ void MB8877::write_io8(uint32_t addr, uint32_t data)
 		}
 //#endif
 		ready = ((status & FDC_ST_DRQ) && !now_search);
+
 //#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 		if(type_fm7) {
 			if(disk[drvreg]->is_special_disk != SPECIAL_DISK_FM7_RIGLAS) {
 				if(!motor_on) ready = false;
 			}
+			if(!fdc[drvreg].head_load) ready = false;
 		} else 
 //#endif
 		{
 			if(!motor_on) ready = false;
+			if(!fdc[drvreg].head_load) ready = false;
 		}
 //		if(motor_on && (status & FDC_ST_DRQ) && !now_search) {
 		if(ready) {
@@ -638,10 +641,12 @@ uint32_t MB8877::read_io8(uint32_t addr)
 			if(disk[drvreg]->is_special_disk != SPECIAL_DISK_FM7_RIGLAS) {
 				if(!motor_on) ready = false;
 			}
+			if(!fdc[drvreg].head_load) ready = false;
 		} else
 //#endif
 		{
 			if(!motor_on) ready = false;
+			if(!fdc[drvreg].head_load) ready = false;
 		}
 //		if(motor_on && (status & FDC_ST_DRQ) && !now_search) {
 		if(ready) {
@@ -1872,7 +1877,7 @@ void MB8877::close_disk(int drv)
 {
 	if(drv < _max_drive) {
 		disk[drv]->close();
-		cmdtype = 0;
+		//cmdtype = 0;
 		update_head_flag(drvreg, false);
 		fdc[drv].count_immediate = false;
 	}
