@@ -49,6 +49,7 @@ protected:
 	QOpenGLVertexArrayObject *grids_vertical_vertex;
 
 	GLuint uTmpTextureID;
+	bool swap_byteorder;
 	
 	virtual void setNormalVAO(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
 							  QOpenGLBuffer *bp, VertexTexCoord_t *tp, int size = 4);
