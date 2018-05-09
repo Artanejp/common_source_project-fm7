@@ -227,6 +227,7 @@ QString GLDrawClass::logGLString(bool getExtensions)
 	} else { // OpenGL
 		s.append(QString::fromUtf8("\nUsing OpenGL. "));
 	}
+
 	glGetString = (const GLubyte *(*)(GLenum))glContext->getProcAddress(QByteArray("glGetString"));
 	if(glGetString != NULL) {
 		s.append(QString::fromUtf8("\nSupported OpenGL Vendor: "));
@@ -242,6 +243,7 @@ QString GLDrawClass::logGLString(bool getExtensions)
 			s.append(QString::fromUtf8((const char *)glGetString(GL_EXTENSIONS)));
 		}
 	}
+
 	return s;
 }
 

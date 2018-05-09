@@ -36,10 +36,12 @@ GLScreenPack::GLScreenPack(int _width, int _height, QObject *parent) : QObject(p
 	tex_geometry_h = _height;
 	tex_geometry_x = 0;
 	tex_geometry_y = 0;
-	//fbo_format.setInternalTextureFormat(GL_RGBA8);
-	fbo_format.setInternalTextureFormat(GL_RGBA32F);
+	fbo_format.setInternalTextureFormat(GL_RGBA8);
+	//fbo_format.setInternalTextureFormat(GL_RGBA32F);
 	fbo_format.setTextureTarget(GL_TEXTURE_2D);
+	
 	frame_buffer_object = new QOpenGLFramebufferObject(_width, _height, fbo_format);
+	//frame_buffer_object = new QOpenGLFramebufferObject(_width, _height);
 	Texture = 0;
 }
 GLScreenPack::~GLScreenPack()
@@ -75,6 +77,7 @@ bool GLScreenPack::initialize(int total_width, int total_height, const QString &
 			delete frame_buffer_object;
 		}
 		frame_buffer_object = new QOpenGLFramebufferObject(width, height, fbo_format);
+		//frame_buffer_object = new QOpenGLFramebufferObject(width, height);
 		tex_geometry_w = width;
 		tex_geometry_h = height;
 	}

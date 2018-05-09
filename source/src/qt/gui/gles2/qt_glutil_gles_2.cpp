@@ -268,6 +268,7 @@ void GLDraw_ES_2::initLocalGLObjects(void)
 					 main_pass->getVertexBuffer(),
 					 vertexFormat, 4);
 	}
+
 	initPackedGLObject(&std_pass,
 					   using_flags->get_screen_width(), using_flags->get_screen_height(),
 					   ":/gles2/vertex_shader.glsl" , ":/gles2/chromakey_fragment_shader.glsl",
@@ -347,6 +348,7 @@ void GLDraw_ES_2::initLocalGLObjects(void)
 						 vertexBitmap, 4);
 		}
 	}
+
 	initGridShaders(":/gles2/grids_vertex_shader_fixed.glsl", ":/gles2/grids_vertex_shader.glsl", ":/gles2/grids_fragment_shader.glsl");
 	
 	initGridVertexObject(&grids_horizonal_buffer, &grids_horizonal_vertex, using_flags->get_real_screen_height() + 3);
@@ -644,7 +646,7 @@ void GLDraw_ES_2::drawScreenTexture(void)
 	} else {
 		extfunc->glDisable(GL_BLEND);
 	}
-	
+
 	QVector4D color;
 	smoosing = using_flags->get_config_ptr()->use_opengl_filters;
 	if(set_brightness) {

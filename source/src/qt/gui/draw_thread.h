@@ -44,6 +44,7 @@ class DLL_PREFIX DrawThreadClass : public QThread {
 	int draw_frames;
 	bool bRunThread;
 	bool bDrawReq;
+	bool bRenderComplete;
 	bitmap_t *draw_screen_buffer;
 	CSP_Logger *csp_logger;
 	int ncount;
