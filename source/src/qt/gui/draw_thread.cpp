@@ -115,9 +115,9 @@ void DrawThreadClass::doWork(const QString &param)
 		}
 		if(wait_count <= 0.0f) {
 			wait_count = wait_count + _rate;
-		} else if(wait_count < 10.0) {
+		} else if(wait_count < 7.0) {
 			msleep(10);
-			wait_count = wait_count + _rate - 5.0;
+			wait_count = wait_count + _rate - 7.0;
 		} else {
 			wait_factor = (int)wait_count;
 			msleep(wait_factor);
