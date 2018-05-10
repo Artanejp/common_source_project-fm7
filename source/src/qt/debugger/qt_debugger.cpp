@@ -10,13 +10,14 @@
 #include <stdio.h>
 #include <string.h>
 
-//#include <unistd.h>
 #include <fcntl.h>
 #include <QObject>
 #include <QMetaObject>
 #include <QApplication>
-
+#include "../../emu.h"
 #include "qt_debugger.h"
+
+extern EMU *emu;
 
 void CSP_Debugger::doExit(void)
 {
