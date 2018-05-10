@@ -11,8 +11,6 @@
 #define _CSP_QT_DRAW_THREAD_H
 
 #include <QThread>
-#include <QScreen>
-#include <QWaitCondition>
 
 #include <SDL.h>
 
@@ -22,6 +20,9 @@ class Ui_MainWindowBase;
 class EMU;
 class OSD;
 class CSP_Logger;
+class QSemaphore;
+class QScreen;
+class USING_FLAGS;
 QT_BEGIN_NAMESPACE
 
 class DLL_PREFIX DrawThreadClass : public QThread {
@@ -40,18 +41,23 @@ class DLL_PREFIX DrawThreadClass : public QThread {
 	int rec_frame_height;
 	
  protected:
+	USING_FLAGS *using_flags;
 	QScreen *screen;
 	int draw_frames;
 	bool bRunThread;
 	bool bDrawReq;
-	bool bRenderComplete;
+	bool bRecentRenderStatus;
+	bool use_separate_thread_draw;
 	bitmap_t *draw_screen_buffer;
 	CSP_Logger *csp_logger;
 	int ncount;
 	double emu_frame_rate;
+	void doDrawMain(bool flag);
  public:
 	DrawThreadClass(OSD *o, CSP_Logger *logger, QObject *parent = 0);
 	~DrawThreadClass();
+	QSemaphore *renderSemaphore;
+	
 	void run() { doWork("");}
 	void SetEmu(EMU *p);
 public slots:

@@ -12,6 +12,9 @@
 #include <QApplication>
 #include <QImage>
 #include <QGuiApplication>
+#include <QSemaphore>
+#include <QScreen>
+#include <QWaitCondition>
 
 #include <SDL.h>
 #include "emu.h"
@@ -23,12 +26,16 @@
 #include "mainwidget_base.h"
 #include "draw_thread.h"
 #include "gl2/qt_glutil_gl2_0.h"
+#include "config.h"
+
 
 DrawThreadClass::DrawThreadClass(OSD *o, CSP_Logger *logger,QObject *parent) : QThread(parent) {
 	MainWindow = (Ui_MainWindowBase *)parent;
 	glv = MainWindow->getGraphicsView();
 	p_osd = o;
 	csp_logger = logger;
+	using_flags = NULL;
+	if(p_osd != NULL) using_flags = p_osd->get_config_flags();
 	screen = QGuiApplication::primaryScreen();
 	
 	draw_screen_buffer = NULL;
@@ -41,6 +48,8 @@ DrawThreadClass::DrawThreadClass(OSD *o, CSP_Logger *logger,QObject *parent) : Q
 	connect(this, SIGNAL(sig_push_frames_to_avio(int, int, int)), glv->extfunc, SLOT(paintGL_OffScreen(int, int, int)));
 	//connect(this, SIGNAL(sig_call_draw_screen()), p_osd, SLOT(draw_screen()));
 	//connect(this, SIGNAL(sig_call_no_draw_screen()), p_osd, SLOT(no_draw_screen()));
+	use_separate_thread_draw = false;
+	if(using_flags != NULL) use_separate_thread_draw = using_flags->get_config_ptr()->use_separate_thread_draw;
 	
 	rec_frame_width = 640;
 	rec_frame_height = 480;
@@ -49,10 +58,16 @@ DrawThreadClass::DrawThreadClass(OSD *o, CSP_Logger *logger,QObject *parent) : Q
 	wait_count = emu_frame_rate;
 	wait_refresh = emu_frame_rate;
 	bDrawReq = true;
+	renderSemaphore = new QSemaphore(0);
 }
 
 DrawThreadClass::~DrawThreadClass()
 {
+	if(renderSemaphore != NULL) {
+		while(renderSemaphore->available() <= 0) renderSemaphore->release(1);
+		delete renderSemaphore;
+	}
+
 }
 
 void DrawThreadClass::SetEmu(EMU *p)
@@ -68,7 +83,7 @@ void DrawThreadClass::do_set_frames_per_second(double fps)
 	wait_count += (_n * 1.0);
 }
 
-void DrawThreadClass::doDraw(bool flag)
+void DrawThreadClass::doDrawMain(bool flag)
 {
 	p_osd->do_decode_movie(1);
 	if(flag) {
@@ -78,12 +93,24 @@ void DrawThreadClass::doDraw(bool flag)
 	}
 	emit sig_draw_frames(draw_frames);
 }
+void DrawThreadClass::doDraw(bool flag)
+{
+	bRecentRenderStatus = flag;
+	if(!use_separate_thread_draw) {
+		doDrawMain(flag);
+	} else {
+		if(renderSemaphore != NULL) renderSemaphore->release(1);
+	}
+}
 
 void DrawThreadClass::doExit(void)
 {
 	//csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL,
 	//					  "DrawThread : Exit.");
 	bRunThread = false;
+	if(renderSemaphore != NULL) {
+		while(renderSemaphore->available() <= 0) renderSemaphore->release(1);
+	}
 }
 
 void DrawThreadClass::do_draw_one_turn(bool _req_draw)
@@ -108,7 +135,9 @@ void DrawThreadClass::doWork(const QString &param)
 	bRunThread = true;
 	double _rate = 1000.0 / 30.0;
 	bDrawReq = false;
+	if(renderSemaphore == NULL) goto __exit;
 	do {
+#if 0
 		_rate = (wait_refresh < emu_frame_rate) ? emu_frame_rate : wait_refresh;
 		do_draw_one_turn(bDrawReq);
 		if((bDrawReq) && (draw_screen_buffer != NULL)) {
@@ -124,7 +153,28 @@ void DrawThreadClass::doWork(const QString &param)
 			msleep(wait_factor);
 			wait_count -= (qreal)wait_factor;
 		}
+#else
+		_rate = (wait_refresh < emu_frame_rate) ? emu_frame_rate : wait_refresh;
+		if(_rate < 2.0) {
+			wait_factor = 2.0;
+		} else {
+			wait_factor = (int)_rate - 1;
+		}
+		if(renderSemaphore->tryAcquire(1, wait_factor)) { // Success
+			if(!bRunThread) break;
+			volatile bool _b = bRecentRenderStatus;
+			bRecentRenderStatus = false;
+			doDrawMain(_b);
+		}
+		if(!bRunThread) break;
+		volatile bool _d = bDrawReq;
+		if(draw_screen_buffer == NULL) _d = false;
+		if((_d) && (draw_screen_buffer != NULL)) bDrawReq = false;
+		do_draw_one_turn(_d);
+#endif
+	
 	} while(bRunThread);
+__exit:
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL,
 						  "DrawThread : Exit.");
 	this->exit(0);
