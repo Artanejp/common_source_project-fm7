@@ -17,6 +17,7 @@
 #include <QDateTime>
 #include <QDir>
 #include <QTranslator>
+#include <QProcessEnvironment>
 
 #include "common.h"
 #include "fileio.h"
@@ -608,8 +609,13 @@ QCommandLineOption *_opt_homedir;
 QCommandLineOption *_opt_cfgfile;
 QCommandLineOption *_opt_cfgdir;
 QCommandLineOption *_opt_resdir;
+QCommandLineOption *_opt_opengl;
+QCommandLineOption *_opt_envver;
+QCommandLineOption *_opt_dump_envver;
 QCommandLineOption *_opt_dipsw_on;
 QCommandLineOption *_opt_dipsw_off;
+QProcessEnvironment _envvers;
+bool _b_dump_envver;
 std::string config_fullpath;
 
 void SetFDOptions(QCommandLineParser *cmdparser)
@@ -910,6 +916,25 @@ void SetOptions(QCommandLineParser *cmdparser)
     _cl.append("dipsw-off");
     _opt_dipsw_off = new QCommandLineOption(_cl, QCoreApplication::translate("main", "Turn off <offbit> of dip switch."), "offbit");
     _cl.clear();
+	
+    _cl.append("g");
+    _cl.append("gl");
+    _cl.append("opengl");
+    _cl.append("render");
+    _opt_opengl = new QCommandLineOption(_cl, QCoreApplication::translate("main", "Force set using renderer type."), "{ GL | GL2 | GLES}");
+    _cl.clear();
+	
+    _cl.append("v");
+    _cl.append("env");
+    _cl.append("envver");
+    _opt_envver = new QCommandLineOption(_cl, QCoreApplication::translate("main", "Set / Delete environment variable."), "{NAME[=VAL] | -NAME}");
+    _cl.clear();
+
+    _cl.append("dump-env");
+    _cl.append("dump-envver");
+    _opt_dump_envver = new QCommandLineOption(_cl, QCoreApplication::translate("main", "Dump environment variables."), "");
+    _cl.clear();
+	
 	for(int i = 0; i < 8; i++) {
 		_opt_fds[i] = NULL;
 		_opt_qds[i] = NULL;
@@ -923,12 +948,14 @@ void SetOptions(QCommandLineParser *cmdparser)
 		_opt_cds[i] = NULL;
 	}		
 		
+    cmdparser->addOption(*_opt_opengl);
     cmdparser->addOption(*_opt_homedir);
     cmdparser->addOption(*_opt_cfgfile);
     cmdparser->addOption(*_opt_cfgdir);
     cmdparser->addOption(*_opt_resdir);
     cmdparser->addOption(*_opt_dipsw_on);
     cmdparser->addOption(*_opt_dipsw_off);
+
 	SetFDOptions(cmdparser);
 	//SetBinaryOptions(cmdparser); // Temporally disabled.
 	SetCmtOptions(cmdparser);
@@ -938,6 +965,8 @@ void SetOptions(QCommandLineParser *cmdparser)
 	SetLDOptions(cmdparser); // Temporally disabled.
 	SetCDOptions(cmdparser);
 	
+    cmdparser->addOption(*_opt_envver);
+    cmdparser->addOption(*_opt_dump_envver);
 }
 
 void ProcessCmdLine(QCommandLineParser *cmdparser, QStringList *_l)
@@ -958,7 +987,6 @@ void ProcessCmdLine(QCommandLineParser *cmdparser, QStringList *_l)
 	SetProcCmdBubble(cmdparser, _l);
 	SetProcCmdLD(cmdparser, _l);
 	SetProcCmdCD(cmdparser, _l);
-
 
 	memset(homedir, 0x00, PATH_MAX);
 	if(cmdparser->isSet(*_opt_homedir)) {
@@ -1016,7 +1044,84 @@ void ProcessCmdLine(QCommandLineParser *cmdparser, QStringList *_l)
 			sRssDir.append(delim);
 		}
 	}
-
+	if(cmdparser->isSet(*_opt_opengl)) {
+		char tmps[128] = {0};
+		strncpy(tmps, cmdparser->value(*_opt_opengl).toLocal8Bit().constData(), 128 - 1);
+		if(strlen(tmps) > 0) {
+			QString render = QString::fromLocal8Bit(tmps).toUpper();
+			if((render == QString::fromUtf8("GL2")) ||
+			   (render == QString::fromUtf8("GLV2"))) {
+				config.render_platform = CONFIG_RENDER_PLATFORM_OPENGL_MAIN;
+				config.render_major_version = 2;
+				config.render_minor_version = 0;
+				GuiMain->setAttribute(Qt::AA_UseDesktopOpenGL, true);
+				GuiMain->setAttribute(Qt::AA_UseOpenGLES, false);
+			} else if((render == QString::fromUtf8("GL3")) ||
+					  (render == QString::fromUtf8("GLV3")) ||
+					  (render == QString::fromUtf8("OPENGLV3")) ||
+					  (render == QString::fromUtf8("OPENGL")) ||
+					  (render == QString::fromUtf8("GL"))) {
+				config.render_platform = CONFIG_RENDER_PLATFORM_OPENGL_MAIN;
+				config.render_major_version = 3;
+				config.render_minor_version = 0;
+				GuiMain->setAttribute(Qt::AA_UseDesktopOpenGL, true);
+				GuiMain->setAttribute(Qt::AA_UseOpenGLES, false);
+			} else if((render == QString::fromUtf8("GLES2")) ||
+					 (render == QString::fromUtf8("GLESV2")) ||
+					 (render == QString::fromUtf8("GLES3")) ||
+					 (render == QString::fromUtf8("GLESV3")) ||
+					 (render == QString::fromUtf8("GLES"))) {
+				config.render_platform = CONFIG_RENDER_PLATFORM_OPENGL_ES;
+				config.render_major_version = 2;
+				config.render_minor_version = 1;
+				GuiMain->setAttribute(Qt::AA_UseDesktopOpenGL, false);
+				GuiMain->setAttribute(Qt::AA_UseOpenGLES, true);
+			}
+		}
+	}
+	if(cmdparser->isSet(*_opt_envver)) {
+		QStringList nList = cmdparser->values(*_opt_envver);
+		QString tv;
+		//QProcessEnvironment ev = QProcessEnvironment::systemEnvironment();
+		QProcessEnvironment ev = _envvers;
+		if(nList.size() > 0) {
+			for(int i = 0; i < nList.size(); i++) {
+				tv = nList.at(i);
+				if(tv.indexOf(QString::fromUtf8("-")) == 0) {
+					// Delete var
+					int n1 = tv.indexOf(QString::fromUtf8("="));
+					if(n1 > 0) {
+						tv = tv.left(n1).right(n1 - 1);
+					} else {
+						tv = tv.right(tv.length() - 1);
+					}
+					printf("DEBUG: DEL ENV:%s\n", tv.toLocal8Bit().constData());
+					ev.remove(tv);
+				} else if(tv.indexOf(QString::fromUtf8("=")) > 0) {
+					// Delete var
+					int n1 = tv.indexOf(QString::fromUtf8("="));
+					QString skey;
+					QString sval;
+					skey = tv.left(n1);
+					if((tv.length() - n1) < 1) {
+						sval = QString::fromUtf8("");
+					} else {
+						sval = tv.right(tv.length() - n1 - 1);
+					}
+					printf("DEBUG: SET ENV:%s to %s\n", skey.toLocal8Bit().constData(), sval.toLocal8Bit().constData());
+					if(skey.length() > 0) ev.insert(skey, sval);
+				} else if(tv.indexOf(QString::fromUtf8("=")) < 0) {
+					printf("DEBUG: SET ENV:%s to (NULL)\n", tv.toLocal8Bit().constData());
+					if(tv.length() > 0) ev.insert(tv, QString::fromUtf8(""));
+				}
+			}
+			_envvers.swap(ev);
+		}
+	}
+	_b_dump_envver = false;
+	if(cmdparser->isSet(*_opt_dump_envver)) {
+		_b_dump_envver = true;
+	}
 	uint32_t dipsw_onbits = 0x0000000;
 	uint32_t dipsw_offmask = 0xffffffff;
 	if(cmdparser->isSet(*_opt_dipsw_off)) {
@@ -1082,6 +1187,28 @@ void OpeningMessage(std::string archstr)
 
 void SetupSDL(void)
 {
+	QStringList _el = _envvers.toStringList();
+	if(_el.size() > 0) {
+		for(int i = 0; i < _el.size(); i++) {
+			QString _s = _el.at(i);
+			if(_s.startsWith("SDL_")) {
+				QString skey, svar;
+				int _nl;
+				_nl = _s.indexOf('=');
+				if(_nl >= 0) {
+					skey = _s.left(_nl);
+					svar = _s.right(_s.length() - _nl);
+				} else {
+					skey = _s;
+					svar = QString::fromUtf8("");
+				}
+				SDL_setenv(skey.toLocal8Bit().constData(), svar.toLocal8Bit().constData(), 1);
+				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Note: SDL ENVIROMENT : %s to %s.",
+									  skey.toLocal8Bit().constData(),
+									  svar.toLocal8Bit().constData());
+			}
+		}
+	}
 #if defined(USE_SDL2)
 	SDL_Init(SDL_INIT_AUDIO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
 #else
@@ -1092,6 +1219,7 @@ void SetupSDL(void)
 
 void SetupLogger(std::string emustr, int _size)
 {
+
 	csp_logger = new CSP_Logger(config.log_to_syslog, config.log_to_console, emustr.c_str()); // Write to syslog, console
 	csp_logger->set_log_stdout(CSP_LOG_DEBUG, true);
 	csp_logger->set_log_stdout(CSP_LOG_INFO, true);
@@ -1113,7 +1241,7 @@ int MainLoop(int argc, char *argv[])
 	std::string cfgstr(CONFIG_NAME);
 	std::string delim;
 	QString emudesc;
-	
+
 	setup_logs();
 #if defined(Q_OS_WIN)
 	delim = "\\";
@@ -1123,6 +1251,7 @@ int MainLoop(int argc, char *argv[])
 	
 	GuiMain = new QApplication(argc, argv);
 	GuiMain->setObjectName(QString::fromUtf8("Gui_Main"));
+	_envvers = QProcessEnvironment::systemEnvironment();
 	
     QCommandLineParser cmdparser;
 
@@ -1136,6 +1265,7 @@ int MainLoop(int argc, char *argv[])
 	emustr = emustr + cfgstr;
 
 	SetupLogger(emustr, CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1);
+
 	
 	archstr = "Generic";
 #if defined(__x86_64__)
@@ -1169,6 +1299,18 @@ int MainLoop(int argc, char *argv[])
 	QTranslator debugger_translator;
 	if(debugger_translator.load(s_locale, QLatin1String("csp_qt_debugger"), QLatin1String("_"), QLatin1String(":/"))) {
 		GuiMain->installTranslator(&debugger_translator);
+	}
+	//QProcessEnvironment::systemEnvironment() = _envvers;
+	if(_b_dump_envver) {
+		//QProcessEnvironment ev = QProcessEnvironment::systemEnvironment();
+		QProcessEnvironment ev = _envvers;
+		QStringList el = _envvers.toStringList();
+		if(el.size() > 0) {
+			csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Environment Variables:");
+			for(int i = 0; i < el.size(); i++) {
+				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "#%d : %s", i, el.at(i).toLocal8Bit().constData());
+			}
+		}
 	}
 	
 	rMainWindow = new META_MainWindow(using_flags, csp_logger);
