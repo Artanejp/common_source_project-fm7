@@ -9,6 +9,16 @@
 
 //#include "emu.h"
 #include <string>
+
+#include <QObject>
+#include <QWidget>
+
+#include <QMutex>
+#include <QSemaphore>
+#include <QPainter>
+#include <QElapsedTimer>
+#include <QQueue>
+
 #include <QDateTime>
 #include <QDate>
 #include <QTime>
@@ -17,7 +27,17 @@
 #include <QThread>
 #include <QMutex>
 
+#include "simd_types.h"
+
+#include <ctime>
+#include <limits>
+
+#include "../config.h"
+#include "../fileio.h"
+#include "../fifo.h"
+#include "qt_input.h"
 #include "qt_gldraw.h"
+//#include "qt_main.h"
 //#include "csp_logger.h"
 #include "osd_base.h"
 
@@ -30,6 +50,7 @@ OSD_BASE::OSD_BASE(USING_FLAGS *p, CSP_Logger *logger) : QThread(0)
 	device_node_list.clear();
 	max_vm_nodes = 0;
 	csp_logger = logger;
+	
 	SupportedFeatures.clear();
 }
 

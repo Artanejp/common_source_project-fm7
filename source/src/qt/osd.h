@@ -10,10 +10,6 @@
 #ifndef _QT_OSD_H_
 #define _QT_OSD_H_
 
-#include <QObject>
-#include <QString>
-#include <QImage>
-
 #include "osd_base.h"
 
 class GLDrawClass;

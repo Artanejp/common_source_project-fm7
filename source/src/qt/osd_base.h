@@ -11,31 +11,24 @@
 #define _QT_OSD_BASE_H_
 
 
-#include <QWidget>
-#include <QThread>
-#include <QMutex>
-#include <QSemaphore>
-#include <QPainter>
-#include <QElapsedTimer>
-#include <QString>
-#include <QQueue>
-#include <QImage>
 #include <QList>
-
+#include <QThread>
+#include <QString>
+#include <QImage>
 #include <SDL.h>
-#include "simd_types.h"
+//#include "simd_types.h"
 
-#include <ctime>
-#include <limits>
-#include <osd_base.h>
+//#include <ctime>
+//#include <limits>
+//#include <osd_base.h>
 
 //#include "../vm/vm.h"
 //#include "../emu.h"
 #include "../config.h"
-#include "../fileio.h"
-#include "../fifo.h"
+//#include "../fileio.h"
+//#include "../fifo.h"
 //#if !defined(Q_OS_WIN32)
-#include "qt_input.h"
+//#include "qt_input.h"
 //#endif
 #define SOCKET_MAX 4
 #define SOCKET_BUFFER_MAX 0x100000
@@ -53,9 +46,7 @@
 #define MAX_CAPTURE_DEVS 8
 //#endif
 
-#include "qt_main.h"
-//#include "mainwidget.h"
-#include "config.h"
+//#include "qt_main.h"
 
 class GLDrawClass;
 class EmuThreadClass;
@@ -64,9 +55,12 @@ class Ui_MainWindow;
 class EMU;
 class VM;
 class FIFO;
+class FILEIO;
 class CSP_KeyTables;
 class USING_FLAGS;
 class CSP_LOGGER;
+class QMutex;
+class QSemaphore;
 QT_BEGIN_NAMESPACE
 
 typedef struct {
@@ -471,7 +465,8 @@ public:
 	void debug_log(int level, const char *fmt, ...);
 	void debug_log(int level, int domain_num, const char *fmt, ...);
 	virtual void debug_log(int level, int domain_num, char *strbuf);
- 
+
+	USING_FLAGS *get_config_flags(void) { return using_flags; }
 public slots:
 	void do_write_inputdata(QString s);
 	void do_set_input_string(QString s);

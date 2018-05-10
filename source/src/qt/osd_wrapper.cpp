@@ -7,6 +7,25 @@
 	[ VM/OSD Wrapper ]
 */
 
+#include <string>
+
+#include <QObject>
+#include <QWidget>
+
+#include <QMutex>
+#include <QSemaphore>
+#include <QPainter>
+#include <QElapsedTimer>
+#include <QQueue>
+
+#include <QDateTime>
+#include <QDate>
+#include <QTime>
+#include <QString>
+#include <QObject>
+#include <QThread>
+#include <QMutex>
+
 #include <QImage>
 #include <QPainter>
 #include <QColor>
