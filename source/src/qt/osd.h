@@ -11,6 +11,7 @@
 #define _QT_OSD_H_
 
 #include "osd_base.h"
+#include "gui/qt_input.h" // Key code table (VK_foo).
 
 class GLDrawClass;
 class EmuThreadClass;

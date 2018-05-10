@@ -10,6 +10,10 @@
 #define _FM7_KEYBOARD_TABLES_H
 
 #include "fm7_keyboard.h"
+#if !defined(VK_OEM_CSP_KPRET)
+#     define VK_OEM_CSP_KPRET 0x9f
+#endif
+
 
 const uint16_t vk_matrix_106[0x68] = { // VK
 	// +0, +1, +2, +3, +4, +5, +6, +7

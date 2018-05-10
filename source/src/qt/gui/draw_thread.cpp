@@ -137,23 +137,6 @@ void DrawThreadClass::doWork(const QString &param)
 	bDrawReq = false;
 	if(renderSemaphore == NULL) goto __exit;
 	do {
-#if 0
-		_rate = (wait_refresh < emu_frame_rate) ? emu_frame_rate : wait_refresh;
-		do_draw_one_turn(bDrawReq);
-		if((bDrawReq) && (draw_screen_buffer != NULL)) {
-			bDrawReq = false;
-		}
-		if(wait_count <= 0.0f) {
-			wait_count = wait_count + _rate;
-		} else if(wait_count < 8.0) {
-			msleep(8);
-			wait_count = wait_count + _rate - 8.0;
-		} else {
-			wait_factor = (int)wait_count;
-			msleep(wait_factor);
-			wait_count -= (qreal)wait_factor;
-		}
-#else
 		_rate = (wait_refresh < emu_frame_rate) ? emu_frame_rate : wait_refresh;
 		if(_rate < 2.0) {
 			wait_factor = 2.0;
@@ -171,8 +154,6 @@ void DrawThreadClass::doWork(const QString &param)
 		if(draw_screen_buffer == NULL) _d = false;
 		if((_d) && (draw_screen_buffer != NULL)) bDrawReq = false;
 		do_draw_one_turn(_d);
-#endif
-	
 	} while(bRunThread);
 __exit:
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL,
