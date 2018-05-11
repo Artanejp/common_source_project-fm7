@@ -86,10 +86,11 @@ void main() {
 	vec3 tmpv;
 	vec2 addr_p = fix_coord + vec2(pos_offset, 0);
 	vec2 addr_n = fix_coord - vec2(pos_offset, 0);
-	for (i = ibegin ; i < TAPS; i++) {
+
+	for(int ii = 1; ii < TAPS; ii++) {
 		pix_p = texture2D(a_texture, addr_p).xyz;
 		pix_n = texture2D(a_texture, addr_n).xyz;
-		pix_p = (pix_n + pix_p) * vec3(luma_filter[i], chroma_filter[i], chroma_filter[i]);
+		pix_p = (pix_n + pix_p) * vec3(luma_filter[ii], chroma_filter[ii], chroma_filter[ii]);
 		signal = signal + pix_p;
 		addr_p = addr_p - delta;
 		addr_n = addr_n + delta;
@@ -104,7 +105,7 @@ void main() {
    //vec3 rgb = yiq2rgb(signal);
 #ifdef GAMMA_CORRECTION
    vec3 gamma = vec3(CRT_GAMMA / DISPLAY_GAMMA);
-   rgb = pow(rgb, gamma.rgb);
+   rgb = pow(abs(rgb), gamma.rgb);
 #endif
 	vec4 pixel = vec4(rgb, 1.0);
 	pixel = pixel * vec4(0.8, 1.8, 1.4, 1.0);

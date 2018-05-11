@@ -314,11 +314,12 @@ void GLDraw_ES_2::initLocalGLObjects(void)
 					 main_pass->getVertexBuffer(),
 					 vertexFormat, 4);
 	}
-
+#if 0
 	initPackedGLObject(&std_pass,
 					   using_flags->get_screen_width(), using_flags->get_screen_height(),
 					   ":/gles2/vertex_shader.glsl" , ":/gles2/chromakey_fragment_shader.glsl",
 					   "Standard Shader");
+#endif
 	initPackedGLObject(&led_pass,
 					   10, 10,
 					   ":/gles2/led_vertex_shader.glsl" , ":/gles2/led_fragment_shader.glsl",
@@ -671,7 +672,7 @@ void GLDraw_ES_2::uploadMainTexture(QImage *p, bool use_chromakey)
 	} else
 #endif
 	{
-#if 1
+#if 0
 		renderToTmpFrameBuffer_nPass(uVramTextureID->textureId(),
 									 screen_texture_width,
 									 screen_texture_height,
@@ -1310,13 +1311,13 @@ void GLDraw_ES_2::do_set_texture_size(QImage *p, int w, int h)
 
 		p_wid->makeCurrent();
 		{
+#if 0
 			set_texture_vertex((float)w / iw, (float)h / ih);
 			setNormalVAO(std_pass->getShader(), std_pass->getVAO(),
 						 std_pass->getVertexBuffer(),
 						 vertexTmpTexture, 4);
+#endif
 			//set_texture_vertex(p, p_wid->width(), p_wid->height(), w, h);
-
-#if 1			
 			set_texture_vertex((float)w / iw, (float)h / ih);
 			setNormalVAO(ntsc_pass1->getShader(), ntsc_pass1->getVAO(),
 						 ntsc_pass1->getVertexBuffer(),
@@ -1326,7 +1327,6 @@ void GLDraw_ES_2::do_set_texture_size(QImage *p, int w, int h)
 			setNormalVAO(ntsc_pass2->getShader(), ntsc_pass2->getVAO(),
 						 ntsc_pass2->getVertexBuffer(),
 						 vertexTmpTexture, 4);
-#endif
 			
 		}
 		if(p != NULL) {
