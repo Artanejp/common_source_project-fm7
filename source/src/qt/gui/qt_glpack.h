@@ -11,17 +11,14 @@
 #define _QT_COMMON_GLPACK_H
 
 #include <QString>
-#include <QOpenGLVertexArrayObject>
-#include <QOpenGLShaderProgram>
+#include <QGLWidget>
+
 #include <QOpenGLBuffer>
-#include <QOpenGLContext>
 #include <QOpenGLFramebufferObject>
 #include <QOpenGLFramebufferObjectFormat>
-#include <QGLWidget>
-#include <QImage>
+#include <QOpenGLShaderProgram>
 
-#include <QMatrix4x2>
-#include <QMatrix4x4>
+#include <QOpenGLVertexArrayObject>
 
 #include <QVector>
 #include <QVector2D>
@@ -37,6 +34,10 @@ typedef struct {
 } VertexLines_t ;
 
 QT_BEGIN_NAMESPACE
+class QOpenGLVertexArrayObject;
+class QOpenGLShaderProgram;
+class QOpenGLBuffer;
+class QOpenGLContext;
 class GLScreenPack : public QObject
 {
 	Q_OBJECT

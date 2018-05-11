@@ -1,19 +1,22 @@
 // NTSC Shader - written by Hans-Kristian Arntzen
 // License: GPLv3
 // pulled from git://github.com/libretro/common-shaders.git on 01/30/2014
+precision  mediump float;
+
 varying mediump vec2 v_texcoord;
 
 uniform sampler2D a_texture;
 uniform vec4 source_size;
 uniform vec4 target_size;
 uniform float phase;
+uniform bool swap_byteorder;
 
 // uniforms added for compatibility
 //vec3 col;
 //float mod_phase;
 //float chroma_phase;
 
-#define THREE_PHASE
+#define TWO_PHASE //options here include THREE_PHASE, TWO_PHASE or OLD_THREE_PHASE
 #define COMPOSITE
 
 // #include "ntsc-param.inc" //
@@ -71,12 +74,12 @@ vec3 rgb2yiq(vec3 col)
 }
 
 // Change Matrix: [RGB]->[YCbCr]
+
 mat3 ycbcr_mat = mat3(
       0.29891, -0.16874,  0.50000,
       0.58661, -0.33126, -0.41869,
       0.11448,  0.50000, -0.08131
 );
-
 vec3 rgb2ycbcr(vec3 col)
 {
    return (col * ycbcr_mat);
@@ -87,7 +90,11 @@ void main() {
 	
 	vec3 col = texture2D(a_texture, v_texcoord).rgb;
 	vec3 ycbcr;
-	ycbcr = rgb2yiq(col);
+	if(swap_byteorder) {
+		col.rgb = col.bgr;
+	}
+	//ycbcr = rgb2yiq(col);
+	ycbcr = rgb2ycbcr(col);
 
 #if defined(TWO_PHASE)
 	float chroma_phase = PI * (mod(pix_no.y, 2.0) + phase);
@@ -103,8 +110,9 @@ void main() {
 	ycbcr *= vec3(1.0, i_mod, q_mod); // Modulate
 	ycbcr *= mix_mat; // Cross-talk
 	ycbcr *= vec3(1.0, i_mod, q_mod); // Demodulate
-	//ycbcr = ycbcr + vec3(0.0, 0.5, 0.5);
-	gl_FragColor = vec4(ycbcr, 1.0);
+	
+	vec4 outvar = vec4(ycbcr, 1.0);
+	gl_FragColor = outvar;
 
 // END "ntsc-pass1-encode-demodulate.inc" //
 }

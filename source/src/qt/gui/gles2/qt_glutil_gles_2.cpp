@@ -20,6 +20,22 @@
 #include <QImageReader>
 #include <QMatrix4x4>
 #include <QOpenGLPixelTransferOptions>
+#include <QOpenGLVertexArrayObject>
+#include <QOpenGLShaderProgram>
+#include <QOpenGLBuffer>
+
+#include <QOpenGLContext>
+#include <QOpenGLFramebufferObject>
+#include <QOpenGLFramebufferObjectFormat>
+
+#include <QMatrix4x2>
+#include <QMatrix4x4>
+
+#include <QVector>
+#include <QVector2D>
+#include <QVector3D>
+#include <QVector4D>
+
 //extern USING_FLAGS *using_flags;
 
 GLDraw_ES_2::GLDraw_ES_2(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU *emu) : GLDraw_2_0(parent, p, logger, emu)
@@ -30,8 +46,8 @@ GLDraw_ES_2::GLDraw_ES_2(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger
 	
 	main_pass = NULL;
 	std_pass = NULL;
-	//ntsc_pass1 = NULL;
-	//ntsc_pass2 = NULL;
+	ntsc_pass1 = NULL;
+	ntsc_pass2 = NULL;
 	led_pass = NULL;
 	for(int i = 0; i < 32; i++) {
 		led_pass_vao[i] = NULL;
@@ -57,8 +73,8 @@ GLDraw_ES_2::~GLDraw_ES_2()
 
 	if(main_pass  != NULL) delete main_pass;
 	if(std_pass   != NULL) delete std_pass;
-	//if(ntsc_pass1 != NULL) delete ntsc_pass1;
-	//if(ntsc_pass2 != NULL) delete ntsc_pass2;
+	if(ntsc_pass1 != NULL) delete ntsc_pass1;
+	if(ntsc_pass2 != NULL) delete ntsc_pass2;
 	if(led_pass   != NULL) delete led_pass;
 	for(int i = 0; i < 32; i++) {
 		if(led_pass_vao[i] != NULL) delete led_pass_vao[i];	
@@ -341,7 +357,7 @@ void GLDraw_ES_2::initLocalGLObjects(void)
 			}
 		}
 	}
-#if 0
+#if 1
 
 	initPackedGLObject(&ntsc_pass1,
 					   _width, _height,
@@ -527,7 +543,9 @@ void GLDraw_ES_2::renderToTmpFrameBuffer_nPass(GLuint src_texture,
 		{
 			if((src_texture != 0) && (shader != NULL)) {
 				QMatrix4x4 ortho;
-				ortho.ortho(0.0f, (float)dst_w, 0.0f, (float)dst_h, -1.0, 1.0);
+				//ortho.ortho(0.0f, (float)dst_w, 0.0f, (float)dst_h, -1.0, 1.0);
+				ortho.ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
+
 
 				renderObject->bind();
 				extfunc->glViewport(0, 0, dst_w, dst_h);
@@ -553,7 +571,7 @@ void GLDraw_ES_2::renderToTmpFrameBuffer_nPass(GLuint src_texture,
 					}
 					ii = shader->uniformLocation("phase");
 					if(ii >= 0) {
-						ringing_phase = ringing_phase + 0.093;
+						ringing_phase = ringing_phase + 0.04;
 						if(ringing_phase > 1.0) ringing_phase = ringing_phase - 1.0;
 						shader->setUniformValue(ii,  ringing_phase);
 					}
@@ -592,6 +610,10 @@ void GLDraw_ES_2::renderToTmpFrameBuffer_nPass(GLuint src_texture,
 				}
 				shader->enableAttributeArray("texcoord");
 				shader->enableAttributeArray("vertex");
+				ii = shader->uniformLocation("swap_byteorder");
+				if(ii >= 0) {
+					shader->setUniformValue(ii, (swap_byteorder) ? GL_TRUE : GL_FALSE);
+				}
 				
 				int vertex_loc = shader->attributeLocation("vertex");
 				int texcoord_loc = shader->attributeLocation("texcoord");
@@ -630,7 +652,7 @@ void GLDraw_ES_2::uploadMainTexture(QImage *p, bool use_chromakey)
 								 p->bits());
 		extfunc->glBindTexture(GL_TEXTURE_2D, 0);
 	}
-#if 0
+#if 1
 	if(using_flags->is_support_tv_render() && (using_flags->get_config_ptr()->rendering_type == CONFIG_RENDER_TYPE_TV)) {
 		renderToTmpFrameBuffer_nPass(uVramTextureID->textureId(),
 									 screen_texture_width,
@@ -649,7 +671,7 @@ void GLDraw_ES_2::uploadMainTexture(QImage *p, bool use_chromakey)
 	} else
 #endif
 	{
-#if 0
+#if 1
 		renderToTmpFrameBuffer_nPass(uVramTextureID->textureId(),
 									 screen_texture_width,
 									 screen_texture_height,
@@ -1294,7 +1316,7 @@ void GLDraw_ES_2::do_set_texture_size(QImage *p, int w, int h)
 						 vertexTmpTexture, 4);
 			//set_texture_vertex(p, p_wid->width(), p_wid->height(), w, h);
 
-#if 0			
+#if 1			
 			set_texture_vertex((float)w / iw, (float)h / ih);
 			setNormalVAO(ntsc_pass1->getShader(), ntsc_pass1->getVAO(),
 						 ntsc_pass1->getVertexBuffer(),

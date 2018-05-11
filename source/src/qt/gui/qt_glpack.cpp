@@ -1,6 +1,11 @@
+
+#include <QOpenGLContext>
+
+#include <QMatrix4x2>
+#include <QMatrix4x4>
+#include <QImage>
+
 #include "qt_glpack.h"
-
-
 
 GLScreenPack::GLScreenPack(int _width, int _height, QObject *parent) : QObject(parent)
 {
@@ -8,7 +13,7 @@ GLScreenPack::GLScreenPack(int _width, int _height, QObject *parent) : QObject(p
 	
 	vertex_buffer = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
 	vertex = new QOpenGLVertexArrayObject;
-
+	QOpenGLContext *context = QOpenGLContext::currentContext();
 	init_status = false;
 	shader_status = false;
 	Texture = 0;
@@ -36,11 +41,18 @@ GLScreenPack::GLScreenPack(int _width, int _height, QObject *parent) : QObject(p
 	tex_geometry_h = _height;
 	tex_geometry_x = 0;
 	tex_geometry_y = 0;
-	fbo_format.setInternalTextureFormat(GL_RGBA8);
-	//fbo_format.setInternalTextureFormat(GL_RGBA32F);
-	fbo_format.setTextureTarget(GL_TEXTURE_2D);
 	
+	fbo_format.setInternalTextureFormat(GL_RGBA32F);
+	if(context != NULL) {
+		if(context->isOpenGLES()) {
+			fbo_format.setInternalTextureFormat(GL_RGBA8);
+		}
+	}
+			
+	fbo_format.setTextureTarget(GL_TEXTURE_2D);
+	//fbo_format.setAttachment();	
 	frame_buffer_object = new QOpenGLFramebufferObject(_width, _height, fbo_format);
+	frame_buffer_object->setAttachment(QOpenGLFramebufferObject::Depth);
 	//frame_buffer_object = new QOpenGLFramebufferObject(_width, _height);
 	Texture = 0;
 }

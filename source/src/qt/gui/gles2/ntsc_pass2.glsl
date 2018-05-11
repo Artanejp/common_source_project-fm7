@@ -2,6 +2,9 @@
 // License: GPLv3
 // pulled from git://github.com/libretro/common-shaders.git on 01/30/2014
 
+precision  mediump float;
+uniform bool swap_byteorder;
+
 varying mediump vec2 v_texcoord;
 
 uniform sampler2D a_texture;
@@ -12,7 +15,6 @@ uniform vec4 target_size;
 uniform float luma_filter[24 + 1];
 uniform float chroma_filter[24 + 1];
 
-#define THREE_PHASE //options here include THREE_PHASE, TWO_PHASE or OLD_THREE_PHASE
 #define GAMMA_CORRECTION //comment to disable gamma correction, usually because higan's gamma correction is enabled or you have another shader already doing it
 #define CRT_GAMMA 2.5
 #define DISPLAY_GAMMA 2.1
@@ -22,12 +24,11 @@ uniform float chroma_filter[24 + 1];
 mat3 yiq2rgb_mat = mat3(
    1.0, 1.0, 1.0,
    0.956, -0.2720, -1.1060,
-   0.6210, -0.6474, 1.7046
+   0.6210, -0.0, 1.7046
 );
 
 vec3 yiq2rgb(vec3 yiq)
 {
-	//yiq = yiq - vec3(0.0, 0.5, 0.5);
 	return (yiq * yiq2rgb_mat);
 }
 
@@ -36,12 +37,10 @@ mat3 ycbcr2rgb_mat = mat3(
 	 0.0, -0.34414 , 1.77200,
 	 1.40200, -0.71414, 0.0
  );
- 
 vec3 ycbcr2rgb(vec3 ycbcr)
 {
-	//vec3 ra = ycbcr - vec3(0.0, 0.5, 0.5);
-	vec3 ra = ycbcr;
-	return (ra * ycbcr2rgb_mat);
+	//vec3 ra = ycbcr * vec3(1.0, 0.7, 1.0);
+	return (ycbcr * ycbcr2rgb_mat);
 }
 
 mat3 yiq_mat = mat3(
@@ -69,7 +68,7 @@ void main() {
 	vec3 signal = vec3(0.0);
 	int i,j;
 	int ibegin = 1;
-#if 0	
+#if 0
 	for (i = ibegin; i < TAPS; i++)
 	{
 		float offset = float(i);
@@ -94,17 +93,25 @@ void main() {
 		signal = signal + pix_p;
 		addr_p = addr_p - delta;
 		addr_n = addr_n + delta;
-	}	   
+	}
 #endif
-	signal += texture2D(a_texture, fixCoord).xyz * vec3(luma_filter[TAPS], chroma_filter[TAPS], chroma_filter[TAPS]);
+	vec3 texvar = texture2D(a_texture, fixCoord).xyz;
+	signal +=  texvar * vec3(luma_filter[TAPS], chroma_filter[TAPS], chroma_filter[TAPS]);
+	
 // END "ntsc-pass2-decode.inc" //
 
-   //vec3 rgb = ycbcr2rgb(signal);
-   vec3 rgb = yiq2rgb(signal);
+	vec3 rgb = ycbcr2rgb(signal);
+   //vec3 rgb = yiq2rgb(signal);
 #ifdef GAMMA_CORRECTION
    vec3 gamma = vec3(CRT_GAMMA / DISPLAY_GAMMA);
    rgb = pow(rgb, gamma.rgb);
 #endif
-
-	gl_FragColor = vec4(rgb, 1.0);
+	vec4 pixel = vec4(rgb, 1.0);
+	pixel = pixel * vec4(0.8, 1.8, 1.4, 1.0);
+	if(swap_byteorder) {
+		pixel.rgba = pixel.bgra;
+		gl_FragColor = pixel;
+	} else {
+		gl_FragColor = pixel;
+	}
 }

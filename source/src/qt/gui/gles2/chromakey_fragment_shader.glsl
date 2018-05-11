@@ -15,9 +15,6 @@ void main ()
 		if(pixel_r_1.rgb != chromakey.rgb) {
 			pixel_r_1 = pixel_r_1 * color;
 			pixel = vec4(pixel_r_1.rgb, 1.0);
-			if(swap_byteorder) {
-				pixel.rgb = pixel.bgr;
-			}
 			gl_FragColor = pixel;
 		} else {
 			pixel = vec4(0.0);
@@ -26,9 +23,6 @@ void main ()
 	} else {
 		pixel_r_1 = pixel_r_1 * color;
 		pixel = vec4(pixel_r_1.rgb, 1.0);
-		if(swap_byteorder) {
-			pixel.rgb = pixel.bgr;
-		}
 		gl_FragColor = pixel;
 	}
 }

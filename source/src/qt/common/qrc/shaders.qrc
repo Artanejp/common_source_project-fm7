@@ -39,5 +39,7 @@
     <file alias="gles2/grids_vertex_shader.glsl">../../gui/gles2/grids_vertex_shader.glsl</file>
     <file alias="gles2/grids_vertex_shader_fixed.glsl">../../gui/gles2/grids_vertex_shader_fixed.glsl</file>
 
+    <file alias="gles2/ntsc_pass1.glsl">../../gui/gles2/ntsc_pass1.glsl</file>
+    <file alias="gles2/ntsc_pass2.glsl">../../gui/gles2/ntsc_pass2.glsl</file>
 </qresource>
 </RCC>
