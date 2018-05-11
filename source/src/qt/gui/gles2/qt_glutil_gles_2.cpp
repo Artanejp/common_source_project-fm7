@@ -82,6 +82,36 @@ GLDraw_ES_2::~GLDraw_ES_2()
 
 }
 
+void GLDraw_ES_2::initBitmapVertex(void)
+{
+	if(using_flags->is_use_one_board_computer()) {
+		vertexBitmap[0].x = -1.0f;
+		vertexBitmap[0].y = -1.0f;
+		vertexBitmap[0].z = 0.5f;
+		vertexBitmap[0].s = 0.0f;
+		vertexBitmap[0].t = 1.0f;
+		
+		vertexBitmap[1].x = +1.0f;
+		vertexBitmap[1].y = -1.0f;
+		vertexBitmap[1].z = 0.5f;
+		vertexBitmap[1].s = 1.0f;
+		vertexBitmap[1].t = 1.0f;
+		
+		vertexBitmap[2].x = +1.0f;
+		vertexBitmap[2].y = +1.0f;
+		vertexBitmap[2].z = 0.5f;
+		vertexBitmap[2].s = 1.0f;
+		vertexBitmap[2].t = 0.0f;
+		
+		vertexBitmap[3].x = -1.0f;
+		vertexBitmap[3].y = +1.0f;
+		vertexBitmap[3].z = 0.5f;
+		vertexBitmap[3].s = 0.0f;
+		vertexBitmap[3].t = 0.0f;
+		
+	}
+}
+
 void GLDraw_ES_2::initFBO(void)
 {
 	glHorizGrids = (GLfloat *)malloc(sizeof(float) * (using_flags->get_real_screen_height() + 2) * 6);
@@ -842,8 +872,10 @@ void GLDraw_ES_2::drawButtonsMain(int num, bool f_smoosing)
 			bp->bind();
 			vp->bind();
 			prg->bind();
+			QMatrix4x4 ortho;
+			ortho.ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
 			extfunc->glViewport(0, 0, p_wid->width(), p_wid->height());
-			//extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
+
 			extfunc->glActiveTexture(GL_TEXTURE0);
 			extfunc->glBindTexture(GL_TEXTURE_2D, texid);
 			if(!f_smoosing) {
@@ -854,6 +886,7 @@ void GLDraw_ES_2::drawButtonsMain(int num, bool f_smoosing)
 				extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
 			}
 			prg->setUniformValue("a_texture", 0);
+			prg->setUniformValue("v_ortho", ortho);
 			
 			ii = prg->uniformLocation("color");
 			if(ii >= 0) {
@@ -903,8 +936,8 @@ void GLDraw_ES_2::drawBitmapTexture(void)
 	QVector4D color = QVector4D(1.0f, 1.0f, 1.0f, 1.0f);
 	smoosing = using_flags->get_config_ptr()->use_opengl_filters;
 
-	if(using_flags->is_use_one_board_computer()) {
-		extfunc->glDisable(GL_BLEND);
+	if(using_flags->is_use_one_board_computer() && (uBitmapTextureID != NULL)) {
+		//extfunc->glDisable(GL_BLEND);
 		drawMain(bitmap_block,
 				 uBitmapTextureID->textureId(),
 				 color, smoosing);
@@ -1040,7 +1073,7 @@ void GLDraw_ES_2::paintGL(void)
 		//extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
 
 		extfunc->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		extfunc->glEnable(GL_DEPTH_TEST);
+		extfunc->glDisable(GL_DEPTH_TEST);
 		extfunc->glDisable(GL_BLEND);
 		if(using_flags->is_use_one_board_computer() || using_flags->is_use_bitmap()) {
 			extfunc->glEnable(GL_BLEND);

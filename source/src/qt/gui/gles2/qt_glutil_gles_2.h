@@ -103,6 +103,8 @@ protected:
 	virtual void drawLedMain(GLScreenPack *obj, int num, QVector4D color);
 	virtual void set_led_vertex(int bit);
 	virtual void set_osd_vertex(int bit);
+	virtual void initBitmapVertex(void);
+
 public:
 	GLDraw_ES_2(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU *emu = 0);
 	~GLDraw_ES_2();
