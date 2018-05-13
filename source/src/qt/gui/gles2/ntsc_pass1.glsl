@@ -1,7 +1,11 @@
 // NTSC Shader - written by Hans-Kristian Arntzen
 // License: GPLv3
 // pulled from git://github.com/libretro/common-shaders.git on 01/30/2014
+#ifdef HAS_FRAGMENT_HIGH_PRECISION
+precision  highp float;
+#else
 precision  mediump float;
+#endif
 
 varying mediump vec2 v_texcoord;
 
@@ -135,7 +139,9 @@ void main() {
 	// -> y =  0 to +3.6
 	//    Cb = 0 to +1.7
 	//    Cr = 0 to +1.7
+#ifndef HAS_FLOAT_TEXTURE
 	ycbcr = ycbcr * vec3(0.277778 ,0.588235, 0.588235);
+#endif
 	// Normalise
 	vec4 outvar = vec4(ycbcr, 1.0);
 	gl_FragColor = outvar;

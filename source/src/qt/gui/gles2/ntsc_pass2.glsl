@@ -2,11 +2,14 @@
 // License: GPLv3
 // pulled from git://github.com/libretro/common-shaders.git on 01/30/2014
 
+#ifdef HAS_FRAGMENT_HIGH_PRECISION
+precision  highp float;
+#else
 precision  mediump float;
-uniform bool swap_byteorder;
-
+#endif
 varying mediump vec2 v_texcoord;
 
+uniform bool swap_byteorder;
 uniform sampler2D a_texture;
 uniform vec4 source_size;
 uniform vec4 target_size;
@@ -16,7 +19,11 @@ uniform float luma_filter[24 + 1];
 uniform float chroma_filter[24 + 1];
 
 #define GAMMA_CORRECTION //comment to disable gamma correction, usually because higan's gamma correction is enabled or you have another shader already doing it
-#define CRT_GAMMA 3.5
+#ifndef HAS_FLOAT_TEXTURE
+#define CRT_GAMMA 3.3
+#else
+#define CRT_GAMMA 2.5
+#endif
 #define DISPLAY_GAMMA 2.1
 
 
@@ -103,28 +110,34 @@ void main() {
 	for(int ii = 1; ii < TAPS; ii++) {
 		pix_p = texture2D(a_texture, addr_p).xyz;
 		pix_n = texture2D(a_texture, addr_n).xyz;
+#ifndef HAS_FLOAT_TEXTURE
 		pix_p = pix_p * vec3(3.6, 1.7, 1.7);
 		pix_n = pix_n * vec3(3.6, 1.7, 1.7);
+#endif
 		pix_p = (pix_n + pix_p) * vec3(luma_filter[ii], chroma_filter[ii], chroma_filter[ii]);
 		signal = signal + pix_p;
 		addr_p = addr_p - delta;
 		addr_n = addr_n + delta;
 	}
 #endif
-	vec3 _tmpvar = texture2D(a_texture, fixCoord).xyz;
+	vec3 texvar = texture2D(a_texture, fixCoord).xyz;
 	// yMax = (0.299+0.587+0.114) * (+-1.0) * (BRIGHTNESS + ARTIFACTING + ARTIFACTING) * (+-1.0)
 	// CbMax = (-0.168736 -0.331264 + 0.5) * (+-1.0) * (FRINGING + 2*SATURATION) * (+-1.0)
 	// CrMax = (0.5 - 0.418688 - 0.081312) * (+-1.0) * (FRINGING + 2*SATURATION) * (+-1.0)
 	// -> y =  0 to +3.6
 	//    Cb = 0 to +1.7
 	//    Cr = 0 to +1.7
-	_tmpvar = _tmpvar * vec3(3.6, 1.7, 1.7);
-	vec3 texvar = _tmpvar;
+#ifndef HAS_FLOAT_TEXTURE
+	texvar = texvar * vec3(3.6, 1.7, 1.7);
+#endif
 	signal +=  texvar * vec3(luma_filter[TAPS], chroma_filter[TAPS], chroma_filter[TAPS]);
 // END "ntsc-pass2-decode.inc" //
 
 	vec3 rgb = ycbcr2rgb(signal);
+#ifndef HAS_FLOAT_TEXTURE
 	rgb = rgb * vec3(0.67, 1.0, 1.0);
+#endif
+
 #ifdef GAMMA_CORRECTION
    vec3 gamma = vec3(CRT_GAMMA / DISPLAY_GAMMA);
    rgb = pow(abs(rgb), gamma.rgb);

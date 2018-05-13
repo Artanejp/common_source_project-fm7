@@ -308,7 +308,7 @@ void GLDraw_3_0::initPackedGLObject(GLScreenPack **p,
 	QString s;
 	GLScreenPack *pp;
 	if(p != NULL) {
-		pp = new GLScreenPack(_width, _height, p_wid);
+		pp = new GLScreenPack(_width, _height, _name, p_wid);
 		*p = pp;
 		if(pp != NULL) {
 			pp->initialize(_width, _height, vertex_shader, fragment_shader);
@@ -318,6 +318,11 @@ void GLDraw_3_0::initPackedGLObject(GLScreenPack **p,
 				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GL_SHADER, "Vertex: %s ",  vertex_shader.toLocal8Bit().constData());
 				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GL_SHADER, "Fragment: %s ", fragment_shader.toLocal8Bit().constData());
 				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GL_SHADER, "%s", s.toLocal8Bit().constData());
+			}
+			s = pp->getGLLog();
+			if(s.size() > 0) {
+				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GL_SHADER, "%s", s.toLocal8Bit().constData());
+				pp->clearGLLog();
 			}
 		}
 	}
