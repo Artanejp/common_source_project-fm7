@@ -4,10 +4,12 @@
 #include <QMatrix4x2>
 #include <QMatrix4x4>
 #include <QImage>
+#include <QFile>
+#include <QString>
 
 #include "qt_glpack.h"
 
-GLScreenPack::GLScreenPack(int _width, int _height, QObject *parent) : QObject(parent)
+GLScreenPack::GLScreenPack(int _width, int _height, QString _name, QObject *parent) : QObject(parent)
 {
 	program = new QOpenGLShaderProgram(this);
 	
@@ -16,10 +18,10 @@ GLScreenPack::GLScreenPack(int _width, int _height, QObject *parent) : QObject(p
 	QOpenGLContext *context = QOpenGLContext::currentContext();
 	init_status = false;
 	shader_status = false;
+	obj_name = _name;
 	
 	Texture = 0;
 	frame_buffer_num = 0;
-	frame_buffer_object = NULL;
 	
 	for(int i = 0; i < 4; i++) {
 		Vertexs[i].x = 0.0;
@@ -44,23 +46,13 @@ GLScreenPack::GLScreenPack(int _width, int _height, QObject *parent) : QObject(p
 	tex_geometry_h = _height;
 	tex_geometry_x = 0;
 	tex_geometry_y = 0;
-#if 0
-	fbo_format.setInternalTextureFormat(GL_RGBA32F);
-	fbo_format.setTextureTarget(GL_TEXTURE_2D);
-	//fbo_format.setInternalTextureFormat(GL_RGBA8);
-	if(context != NULL) {
-		if(context->isOpenGLES()) {
-			fbo_format.setInternalTextureFormat(GL_RGBA8);
-		}
-	}
-	frame_buffer_object = new QOpenGLFramebufferObject(_width, _height,
-													   QOpenGLFramebufferObject::NoAttachment,									
-													   fbo_format.textureTarget(),
-													   fbo_format.internalTextureFormat());
-	Texture = 0;
-#else
-	genBuffer(_width, _height);
-#endif
+
+	has_extension_texture_float = false;
+	has_extension_texture_half_float = false;
+	has_extension_fragment_high_precision = false;
+
+	log_str.clear();
+	//genBuffer(_width, _height);
 }
 GLScreenPack::~GLScreenPack()
 {
@@ -75,8 +67,14 @@ GLScreenPack::~GLScreenPack()
 	if(program != NULL) {
 		delete program;
 	}
-	if(frame_buffer_object != NULL) {
-		delete frame_buffer_object;
+	QOpenGLContext *context = QOpenGLContext::currentContext();
+	QOpenGLFunctions _fn(context);
+	
+	if(Texture != 0) {
+		_fn.glDeleteTextures(1, &Texture);
+	}
+	if(frame_buffer_num != 0) {
+		_fn.glDeleteFramebuffers(1, &frame_buffer_num);
 	}
 }
 
@@ -84,6 +82,7 @@ void GLScreenPack::genBuffer(int width, int height)
 {
 	QOpenGLContext *context = QOpenGLContext::currentContext();
 	QOpenGLFunctions _fn(context);
+	
 	if(Texture != 0) {
 		_fn.glDeleteTextures(1, &Texture);
 	}
@@ -93,9 +92,27 @@ void GLScreenPack::genBuffer(int width, int height)
 	_fn.glGenTextures(1, &Texture);
 	_fn.glBindTexture(GL_TEXTURE_2D, Texture);
 	if(context->isOpenGLES()) {
-		_fn.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+		if(context->hasExtension(QByteArray("GL_OES_texture_float"))) {
+			has_extension_texture_float = true;
+			_fn.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
+			push_log("GLES: Using float texture.");
+		} else if(context->hasExtension(QByteArray("GL_OES_texture_half_float"))) {
+			has_extension_texture_half_float = true;
+			_fn.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
+			push_log("GLES: Using half float texture.");
+		} else
+		{
+			_fn.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+			push_log("GLES: Using unsigned integer (UNSIGNED_BYTE) texture.");
+		}
+		if(context->hasExtension("GL_OES_fragment_precision_high")) {
+			has_extension_fragment_high_precision = true;
+			push_log("GLES: Using high precision storage.");
+		}
 	} else {
+		has_extension_texture_float = true;
 		_fn.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
+		push_log("GL: Using float texture.");
 	}
     _fn.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     _fn.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -118,30 +135,35 @@ bool GLScreenPack::initialize(int total_width, int total_height, const QString &
 	viewport_x = 0;
 	viewport_y = 0;
 
-	if(((width > 0) && (height > 0)) &&
-	   ((tex_geometry_w != width) ||
-		(tex_geometry_h != height))) {
-#if 0
-		if(frame_buffer_object != NULL) {
-			delete frame_buffer_object;
-		}
-		frame_buffer_object = new QOpenGLFramebufferObject(width, height,
-														   QOpenGLFramebufferObject::NoAttachment,
-														   fbo_format.textureTarget(),
-														   fbo_format.internalTextureFormat());
-#else
+	if(width <= 0) width = tex_geometry_w;
+	if(height <= 0) height = tex_geometry_h;
+	{
 		genBuffer(width, height);
-#endif
 		tex_geometry_w = width;
 		tex_geometry_h = height;
 	}
 		
-	tex_geometry_x = 0;
-	tex_geometry_y = 0;
+	//tex_geometry_x = 0;
+	//tex_geometry_y = 0;
 	
 	if(program != NULL) {
+		//if(program->isLinked()) break;
 		shader_status  = program->addShaderFromSourceFile(QOpenGLShader::Vertex, vertex_shader_file);
-		shader_status &= program->addShaderFromSourceFile(QOpenGLShader::Fragment, fragment_shader_file);
+		QFile fragment_src(fragment_shader_file);
+		if (fragment_src.open(QIODevice::ReadOnly | QIODevice::Text)) {
+			QString _src;
+			QString _ext = QString::fromUtf8("");;
+			_src = QString::fromUtf8(fragment_src.readAll());
+			if((has_extension_texture_float) || (has_extension_texture_half_float)) {
+				_ext = _ext + QString::fromUtf8("#define HAS_FLOAT_TEXTURE \n");
+			}
+			if(has_extension_fragment_high_precision) {
+				_ext = _ext + QString::fromUtf8("#define HAS_FRAGMENT_HIGH_PRECISION \n");
+			}
+			shader_status &= program->addShaderFromSourceCode(QOpenGLShader::Fragment, _ext + _src);
+			 //shader_status &= program->addShaderFromSourceFile(QOpenGLShader::Fragment, fragment_shader_file);
+			fragment_src.close();
+		}
 		shader_status &= program->link();
 	} else {
 		init_status = false;

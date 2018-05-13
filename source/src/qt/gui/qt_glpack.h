@@ -24,6 +24,7 @@
 #include <QVector2D>
 #include <QVector3D>
 #include <QVector4D>
+#include <QStringList>
 
 typedef struct  {
 		GLfloat x, y, z;
@@ -48,7 +49,6 @@ protected:
 	QOpenGLShaderProgram *program;
 	QOpenGLBuffer *vertex_buffer;
 	QOpenGLVertexArrayObject *vertex;
-	QOpenGLFramebufferObject *frame_buffer_object;
 	QOpenGLFramebufferObjectFormat fbo_format;
 	
 	VertexTexCoord_t Vertexs[4];
@@ -58,10 +58,17 @@ protected:
 	bool init_status;
 	bool shader_status;
 
-	void genBuffer(int width, int height);
+	bool has_extension_texture_float;
+	bool has_extension_texture_half_float;
+	bool has_extension_fragment_high_precision;
 
+	QString obj_name;
+	QStringList log_str;
+	void genBuffer(int width, int height);
+	void push_log(QString s) { log_str.append(s); }
+	void push_log(const char *s) { log_str.append(QString::fromUtf8(s)); }
 public:
-	GLScreenPack(int _width, int _height, QObject *parent = NULL);
+	GLScreenPack(int _width, int _height, QString _name = QString::fromUtf8(""), QObject *parent = NULL);
 	~GLScreenPack();
 	virtual bool initialize(int total_width, int total_height,
 							const QString &vertex_shader_file, const QString &fragment_shader_file,
@@ -77,14 +84,7 @@ public:
 	QOpenGLShaderProgram *getShader(void) { return program; }
 	QOpenGLBuffer *getVertexBuffer(void) { return vertex_buffer; }
 	QOpenGLVertexArrayObject *getVAO(void) { return vertex; }
-	QOpenGLFramebufferObject *getFrameBuffer(void) { return frame_buffer_object; }
-	GLuint getFrameBufferNum(void)
-	{
-		//if(frame_buffer_object != NULL) {
-		//	return frame_buffer_object->;
-		//}
-		return frame_buffer_num;
-	}
+	GLuint getFrameBufferNum(void) { return frame_buffer_num; }
 	VertexTexCoord_t getVertexPos(int pos);
 	bool addVertexShaderSrc(const QString &fileName)
 	{
@@ -104,10 +104,25 @@ public:
 	{
 		return program->log();
 	}
+	
+	QString getGLLog(void)
+	{
+		QString s;
+		QString rets;
+		//QString objname = this->objectName();
+		s = QString::fromUtf8("");
+		rets = QString::fromUtf8("");
+		for(int i = 0; i < log_str.size(); i++) {
+			s = log_str.at(i);
+			rets = rets + QString::fromUtf8("[") + obj_name + QString::fromUtf8("] ");
+			rets = rets + s + QString::fromUtf8(" \n");
+		}
+		return rets;
+	}
+	void clearGLLog(void) { log_str.clear(); }
 	GLuint getTexture(void)
 	{
-		if(frame_buffer_object == NULL) return Texture;
-		return frame_buffer_object->texture();
+		return Texture;
 	}
 	GLuint setTexture(GLuint id)
 	{
@@ -132,9 +147,7 @@ public:
 	}
 	virtual void bind(void)
 	{
-		if(frame_buffer_object != NULL) {
-			frame_buffer_object->bind();
-		} else if(frame_buffer_num != 0) {
+		if(frame_buffer_num != 0) {
 			QOpenGLContext *context = QOpenGLContext::currentContext();
 			QOpenGLFunctions _fn(context);
 			_fn.glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_num);
@@ -149,9 +162,7 @@ public:
 		program->release();
 		vertex_buffer->release();
 		vertex->release();
-		if(frame_buffer_object != NULL) {
-			frame_buffer_object->release();
-		} else {
+		{
 			QOpenGLContext *context = QOpenGLContext::currentContext();
 			QOpenGLFunctions _fn(context);
 			_fn.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
