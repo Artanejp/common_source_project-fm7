@@ -92,15 +92,23 @@ void GLScreenPack::genBuffer(int width, int height)
 	_fn.glGenTextures(1, &Texture);
 	_fn.glBindTexture(GL_TEXTURE_2D, Texture);
 	if(context->isOpenGLES()) {
-		if(context->hasExtension(QByteArray("GL_OES_texture_float"))) {
-			has_extension_texture_float = true;
-			_fn.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
-			push_log("GLES: Using float texture.");
-		} else if(context->hasExtension(QByteArray("GL_OES_texture_half_float"))) {
+		if(context->hasExtension(QByteArray("GL_OES_texture_half_float"))) {
 			has_extension_texture_half_float = true;
+#if !defined(Q_OS_WIN)
 			_fn.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
+#else
+			_fn.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, 0);
+#endif
 			push_log("GLES: Using half float texture.");
-		} else
+		} else if(context->hasExtension(QByteArray("GL_OES_texture_float"))) {
+			has_extension_texture_float = true;
+#if !defined(Q_OS_WIN)
+			_fn.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
+#else
+			_fn.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, 0);
+#endif
+			push_log("GLES: Using float texture.");
+		} else 
 		{
 			_fn.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 			push_log("GLES: Using unsigned integer (UNSIGNED_BYTE) texture.");
@@ -156,6 +164,9 @@ bool GLScreenPack::initialize(int total_width, int total_height, const QString &
 			_src = QString::fromUtf8(fragment_src.readAll());
 			if((has_extension_texture_float) || (has_extension_texture_half_float)) {
 				_ext = _ext + QString::fromUtf8("#define HAS_FLOAT_TEXTURE \n");
+			}
+			if(has_extension_texture_half_float) {
+				_ext = _ext + QString::fromUtf8("#define HAS_HALF_FLOAT_TEXTURE \n");
 			}
 			if(has_extension_fragment_high_precision) {
 				_ext = _ext + QString::fromUtf8("#define HAS_FRAGMENT_HIGH_PRECISION \n");
