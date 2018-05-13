@@ -16,7 +16,7 @@ uniform float luma_filter[24 + 1];
 uniform float chroma_filter[24 + 1];
 
 #define GAMMA_CORRECTION //comment to disable gamma correction, usually because higan's gamma correction is enabled or you have another shader already doing it
-#define CRT_GAMMA 2.5
+#define CRT_GAMMA 3.5
 #define DISPLAY_GAMMA 2.1
 
 
@@ -32,11 +32,23 @@ vec3 yiq2rgb(vec3 yiq)
 	return (yiq * yiq2rgb_mat);
 }
 
+mat3 ycbcr_mat = mat3(
+      0.29891, -0.16874,  0.50000,
+      0.58661, -0.33126, -0.41869,
+      0.11448,  0.50000, -0.08131
+);
+vec3 rgb2ycbcr(vec3 col)
+{
+	vec3 ycbcr = col * ycbcr_mat;
+   return ycbcr;
+}
+
 mat3 ycbcr2rgb_mat = mat3(
 	 1.0, 1.0, 1.0,
 	 0.0, -0.34414 , 1.77200,
 	 1.40200, -0.71414, 0.0
  );
+ 
 vec3 ycbcr2rgb(vec3 ycbcr)
 {
 	//vec3 ra = ycbcr * vec3(1.0, 0.7, 1.0);
@@ -69,12 +81,13 @@ void main() {
 	int i,j;
 	int ibegin = 1;
 #if 0
-	for (i = ibegin; i < TAPS; i++)
+	for (int ii = 1; ii < TAPS; ii++)
 	{
-		float offset = float(i);
+		float offset = float(ii);
 		vec3 sums = fetch_offset(offset - float(TAPS), one_x) +
 				fetch_offset(float(TAPS) - offset, one_x);
-		signal += sums * vec3(luma_filter[i], chroma_filter[i], chroma_filter[i]);
+		sums = sums * vec3(3.6, 1.7, 1.7);
+		signal += sums * vec3(luma_filter[ii], chroma_filter[ii], chroma_filter[ii]);
 	}
 #else
 	float pos_offset = float(TAPS - ibegin) * one_x;
@@ -90,25 +103,33 @@ void main() {
 	for(int ii = 1; ii < TAPS; ii++) {
 		pix_p = texture2D(a_texture, addr_p).xyz;
 		pix_n = texture2D(a_texture, addr_n).xyz;
+		pix_p = pix_p * vec3(3.6, 1.7, 1.7);
+		pix_n = pix_n * vec3(3.6, 1.7, 1.7);
 		pix_p = (pix_n + pix_p) * vec3(luma_filter[ii], chroma_filter[ii], chroma_filter[ii]);
 		signal = signal + pix_p;
 		addr_p = addr_p - delta;
 		addr_n = addr_n + delta;
 	}
 #endif
-	vec3 texvar = texture2D(a_texture, fixCoord).xyz;
+	vec3 _tmpvar = texture2D(a_texture, fixCoord).xyz;
+	// yMax = (0.299+0.587+0.114) * (+-1.0) * (BRIGHTNESS + ARTIFACTING + ARTIFACTING) * (+-1.0)
+	// CbMax = (-0.168736 -0.331264 + 0.5) * (+-1.0) * (FRINGING + 2*SATURATION) * (+-1.0)
+	// CrMax = (0.5 - 0.418688 - 0.081312) * (+-1.0) * (FRINGING + 2*SATURATION) * (+-1.0)
+	// -> y =  0 to +3.6
+	//    Cb = 0 to +1.7
+	//    Cr = 0 to +1.7
+	_tmpvar = _tmpvar * vec3(3.6, 1.7, 1.7);
+	vec3 texvar = _tmpvar;
 	signal +=  texvar * vec3(luma_filter[TAPS], chroma_filter[TAPS], chroma_filter[TAPS]);
-	
 // END "ntsc-pass2-decode.inc" //
 
 	vec3 rgb = ycbcr2rgb(signal);
-   //vec3 rgb = yiq2rgb(signal);
+	rgb = rgb * vec3(0.67, 1.0, 1.0);
 #ifdef GAMMA_CORRECTION
    vec3 gamma = vec3(CRT_GAMMA / DISPLAY_GAMMA);
    rgb = pow(abs(rgb), gamma.rgb);
 #endif
 	vec4 pixel = vec4(rgb, 1.0);
-	pixel = pixel * vec4(0.8, 1.8, 1.4, 1.0);
 	if(swap_byteorder) {
 		pixel.rgba = pixel.bgra;
 		gl_FragColor = pixel;

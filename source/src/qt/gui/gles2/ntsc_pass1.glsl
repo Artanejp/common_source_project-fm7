@@ -16,7 +16,7 @@ uniform bool swap_byteorder;
 //float mod_phase;
 //float chroma_phase;
 
-#define TWO_PHASE //options here include THREE_PHASE, TWO_PHASE or OLD_THREE_PHASE
+#define THREE_PHASE //options here include THREE_PHASE, TWO_PHASE or OLD_THREE_PHASE
 #define COMPOSITE
 
 // #include "ntsc-param.inc" //
@@ -82,7 +82,20 @@ mat3 ycbcr_mat = mat3(
 );
 vec3 rgb2ycbcr(vec3 col)
 {
-   return (col * ycbcr_mat);
+	vec3 ycbcr = col * ycbcr_mat;
+   return ycbcr;
+}
+
+mat3 ycbcr2rgb_mat = mat3(
+	 1.0, 1.0, 1.0,
+	 0.0, -0.34414 , 1.77200,
+	 1.40200, -0.71414, 0.0
+ );
+ 
+vec3 ycbcr2rgb(vec3 ycbcr)
+{
+	//vec3 ra = ycbcr * vec3(1.0, 0.7, 1.0);
+	return (ycbcr * ycbcr2rgb_mat);
 }
 
 void main() {
@@ -95,6 +108,12 @@ void main() {
 	}
 	//ycbcr = rgb2yiq(col);
 	ycbcr = rgb2ycbcr(col);
+//
+// From https://ja.wikipedia.org/wiki/YUV#RGB%E3%81%8B%E3%82%89%E3%81%AE%E5%A4%89%E6%8F%9B
+//  ITU-R BT.601 / ITU-R BT.709 (1250/50/2:1)
+//  Y = 0.299 * R + 0.587 * G + 0.114 * B
+//  Cb = -0.168736 * R - 0.331264 * G + 0.5 * B
+//  Cr = 0.5 * R - 0.418688 * G - 0.081312 * B
 
 #if defined(TWO_PHASE)
 	float chroma_phase = PI * (mod(pix_no.y, 2.0) + phase);
@@ -106,13 +125,19 @@ void main() {
 
 	float i_mod = cos(mod_phase);
 	float q_mod = sin(mod_phase);
-
 	ycbcr *= vec3(1.0, i_mod, q_mod); // Modulate
 	ycbcr *= mix_mat; // Cross-talk
 	ycbcr *= vec3(1.0, i_mod, q_mod); // Demodulate
 	
+	// yMax = (0.299+0.587+0.114) * (+-1.0) * (BRIGHTNESS + ARTIFACTING + ARTIFACTING) * (+-1.0)
+	// CbMax = (-0.168736 -0.331264 + 0.5) * (+-1.0) * (FRINGING + 2*SATURATION) * (+-1.0)
+	// CrMax = (0.5 - 0.418688 - 0.081312) * (+-1.0) * (FRINGING + 2*SATURATION) * (+-1.0)
+	// -> y =  0 to +3.6
+	//    Cb = 0 to +1.7
+	//    Cr = 0 to +1.7
+	ycbcr = ycbcr * vec3(0.277778 ,0.588235, 0.588235);
+	// Normalise
 	vec4 outvar = vec4(ycbcr, 1.0);
 	gl_FragColor = outvar;
-
 // END "ntsc-pass1-encode-demodulate.inc" //
 }

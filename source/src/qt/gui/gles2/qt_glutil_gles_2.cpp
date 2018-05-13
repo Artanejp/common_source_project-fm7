@@ -572,7 +572,7 @@ void GLDraw_ES_2::renderToTmpFrameBuffer_nPass(GLuint src_texture,
 					}
 					ii = shader->uniformLocation("phase");
 					if(ii >= 0) {
-						ringing_phase = ringing_phase + 0.04;
+						ringing_phase = ringing_phase + 0.093;
 						if(ringing_phase > 1.0) ringing_phase = ringing_phase - 1.0;
 						shader->setUniformValue(ii,  ringing_phase);
 					}
