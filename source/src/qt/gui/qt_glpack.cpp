@@ -1,6 +1,6 @@
 
 #include <QOpenGLContext>
-
+#include <QOpenGLTexture>
 #include <QMatrix4x2>
 #include <QMatrix4x4>
 #include <QImage>
@@ -16,7 +16,10 @@ GLScreenPack::GLScreenPack(int _width, int _height, QObject *parent) : QObject(p
 	QOpenGLContext *context = QOpenGLContext::currentContext();
 	init_status = false;
 	shader_status = false;
+	
 	Texture = 0;
+	frame_buffer_num = 0;
+	frame_buffer_object = NULL;
 	
 	for(int i = 0; i < 4; i++) {
 		Vertexs[i].x = 0.0;
@@ -41,20 +44,23 @@ GLScreenPack::GLScreenPack(int _width, int _height, QObject *parent) : QObject(p
 	tex_geometry_h = _height;
 	tex_geometry_x = 0;
 	tex_geometry_y = 0;
-	
+#if 0
 	fbo_format.setInternalTextureFormat(GL_RGBA32F);
+	fbo_format.setTextureTarget(GL_TEXTURE_2D);
+	//fbo_format.setInternalTextureFormat(GL_RGBA8);
 	if(context != NULL) {
 		if(context->isOpenGLES()) {
 			fbo_format.setInternalTextureFormat(GL_RGBA8);
 		}
 	}
-			
-	fbo_format.setTextureTarget(GL_TEXTURE_2D);
-	//fbo_format.setAttachment();	
-	frame_buffer_object = new QOpenGLFramebufferObject(_width, _height, fbo_format);
-	frame_buffer_object->setAttachment(QOpenGLFramebufferObject::Depth);
-	//frame_buffer_object = new QOpenGLFramebufferObject(_width, _height);
+	frame_buffer_object = new QOpenGLFramebufferObject(_width, _height,
+													   QOpenGLFramebufferObject::NoAttachment,									
+													   fbo_format.textureTarget(),
+													   fbo_format.internalTextureFormat());
 	Texture = 0;
+#else
+	genBuffer(_width, _height);
+#endif
 }
 GLScreenPack::~GLScreenPack()
 {
@@ -74,6 +80,36 @@ GLScreenPack::~GLScreenPack()
 	}
 }
 
+void GLScreenPack::genBuffer(int width, int height)
+{
+	QOpenGLContext *context = QOpenGLContext::currentContext();
+	QOpenGLFunctions _fn(context);
+	if(Texture != 0) {
+		_fn.glDeleteTextures(1, &Texture);
+	}
+	if(frame_buffer_num != 0) {
+		_fn.glDeleteFramebuffers(1, &frame_buffer_num);
+	}
+	_fn.glGenTextures(1, &Texture);
+	_fn.glBindTexture(GL_TEXTURE_2D, Texture);
+	if(context->isOpenGLES()) {
+		_fn.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+	} else {
+		_fn.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
+	}
+    _fn.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    _fn.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    //_fn.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FLITER, GL_LINEAR);
+    //_fn.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FLITER, GL_LINEAR);
+
+	_fn.glGenFramebuffers(1, &frame_buffer_num);
+    _fn.glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_num);
+	_fn.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, Texture, 0);
+
+	_fn.glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	_fn.glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 bool GLScreenPack::initialize(int total_width, int total_height, const QString &vertex_shader_file, const QString &fragment_shader_file, int width, int height)
 {
 
@@ -85,11 +121,17 @@ bool GLScreenPack::initialize(int total_width, int total_height, const QString &
 	if(((width > 0) && (height > 0)) &&
 	   ((tex_geometry_w != width) ||
 		(tex_geometry_h != height))) {
+#if 0
 		if(frame_buffer_object != NULL) {
 			delete frame_buffer_object;
 		}
-		frame_buffer_object = new QOpenGLFramebufferObject(width, height, fbo_format);
-		//frame_buffer_object = new QOpenGLFramebufferObject(width, height);
+		frame_buffer_object = new QOpenGLFramebufferObject(width, height,
+														   QOpenGLFramebufferObject::NoAttachment,
+														   fbo_format.textureTarget(),
+														   fbo_format.internalTextureFormat());
+#else
+		genBuffer(width, height);
+#endif
 		tex_geometry_w = width;
 		tex_geometry_h = height;
 	}

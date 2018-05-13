@@ -17,7 +17,7 @@
 #include <QOpenGLFramebufferObject>
 #include <QOpenGLFramebufferObjectFormat>
 #include <QOpenGLShaderProgram>
-
+#include <QOpenGLFunctions>
 #include <QOpenGLVertexArrayObject>
 
 #include <QVector>
@@ -38,11 +38,13 @@ class QOpenGLVertexArrayObject;
 class QOpenGLShaderProgram;
 class QOpenGLBuffer;
 class QOpenGLContext;
+class QOpenGLTexture;
 class GLScreenPack : public QObject
 {
 	Q_OBJECT
 protected:
 	GLuint Texture;
+	GLuint frame_buffer_num;
 	QOpenGLShaderProgram *program;
 	QOpenGLBuffer *vertex_buffer;
 	QOpenGLVertexArrayObject *vertex;
@@ -55,6 +57,9 @@ protected:
 
 	bool init_status;
 	bool shader_status;
+
+	void genBuffer(int width, int height);
+
 public:
 	GLScreenPack(int _width, int _height, QObject *parent = NULL);
 	~GLScreenPack();
@@ -73,6 +78,13 @@ public:
 	QOpenGLBuffer *getVertexBuffer(void) { return vertex_buffer; }
 	QOpenGLVertexArrayObject *getVAO(void) { return vertex; }
 	QOpenGLFramebufferObject *getFrameBuffer(void) { return frame_buffer_object; }
+	GLuint getFrameBufferNum(void)
+	{
+		//if(frame_buffer_object != NULL) {
+		//	return frame_buffer_object->;
+		//}
+		return frame_buffer_num;
+	}
 	VertexTexCoord_t getVertexPos(int pos);
 	bool addVertexShaderSrc(const QString &fileName)
 	{
@@ -122,6 +134,11 @@ public:
 	{
 		if(frame_buffer_object != NULL) {
 			frame_buffer_object->bind();
+		} else if(frame_buffer_num != 0) {
+			QOpenGLContext *context = QOpenGLContext::currentContext();
+			QOpenGLFunctions _fn(context);
+			_fn.glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_num);
+			_fn.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, Texture, 0);
 		}
 		vertex->bind();
 		vertex_buffer->bind();
@@ -134,6 +151,11 @@ public:
 		vertex->release();
 		if(frame_buffer_object != NULL) {
 			frame_buffer_object->release();
+		} else {
+			QOpenGLContext *context = QOpenGLContext::currentContext();
+			QOpenGLFunctions _fn(context);
+			_fn.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
+			_fn.glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		}
 	}
 };
