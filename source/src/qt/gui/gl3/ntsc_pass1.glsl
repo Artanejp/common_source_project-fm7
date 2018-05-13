@@ -88,6 +88,7 @@ void main() {
 	vec3 col = texture2D(a_texture, v_texcoord).rgb;
 	vec3 ycbcr;
 	ycbcr = rgb2yiq(col);
+	//ycbcr = rgb2ycbcr(col);
 
 #if defined(TWO_PHASE)
 	float chroma_phase = PI * (mod(pix_no.y, 2.0) + phase);
