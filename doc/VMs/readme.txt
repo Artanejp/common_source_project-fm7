@@ -1,5 +1,5 @@
 Binary archive of retro pc emulator common source code
-								2/23/2018
+								5/6/2018
 
 --- What's this ?
 
@@ -73,6 +73,9 @@ This archive includes the binaries of the emulators listed below:
 		ePC-9801VF	PC-9801VF
 		ePC-9801VM	PC-9801VM
 		ePC-9801VX	PC-9801VX
+		ePC-9801RA	PC-9801RA
+		ePC-98XL	PC-98XL
+		ePC-98RL	PC-98RL
 		ePC-98DO	PC-98DO
 		ePC-98LT	PC-98LT
 		eHANDY98	PC-98HA

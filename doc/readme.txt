@@ -1,5 +1,5 @@
 Binary archive of retro pc emulator common source code
-								12/27/2017
+								5/6/2018
 
 --- What's this ?
 
@@ -34,6 +34,7 @@ This archive includes the binaries of the emulators listed below:
 		eFM77AV		FM77AV (by Mr.Artane.)
 		eFM77AV40	FM77AV40 (by Mr.Artane.)
 		eFM77AV40EX	FM77AV40EX (by Mr.Artane.)
+		eFM16beta	FM16beta
 		eFM16pi		FM16pi
 		eFMR-30		FMR-30
 		eFMR-50		FMR-50
@@ -72,6 +73,9 @@ This archive includes the binaries of the emulators listed below:
 		ePC-9801VF	PC-9801VF
 		ePC-9801VM	PC-9801VM
 		ePC-9801VX	PC-9801VX
+		ePC-9801RA	PC-9801RA
+		ePC-98XL	PC-98XL
+		ePC-98RL	PC-98RL
 		ePC-98DO	PC-98DO
 		ePC-98LT	PC-98LT
 		eHANDY98	PC-98HA
