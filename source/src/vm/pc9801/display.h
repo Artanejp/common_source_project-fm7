@@ -6,6 +6,7 @@
 	NEC PC-9801VM Emulator 'ePC-9801VM'
 	NEC PC-9801VX Emulator 'ePC-9801VX'
 	NEC PC-9801RA Emulator 'ePC-9801RA'
+	NEC PC-98XL Emulator 'ePC-98XL'
 	NEC PC-98RL Emulator 'ePC-98RL'
 	NEC PC-98DO Emulator 'ePC-98DO'
 
@@ -193,6 +194,7 @@ private:
 public:
 	DISPLAY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+		memset(tvram, 0, sizeof(tvram));
 		set_device_name(_T("Display"));
 	}
 	~DISPLAY() {}
@@ -229,9 +231,11 @@ public:
 		d_gdc_gfx = device;
 		ra_gfx = ra; cs_gfx = cs;
 	}
+	void sound_bios_ok()
+	{
+		tvram[0x3fee] = 8;
+	}
 	void draw_screen();
-	
-	bool sound_bios_ok;
 };
 
 #endif

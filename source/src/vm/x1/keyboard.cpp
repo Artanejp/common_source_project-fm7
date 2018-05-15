@@ -124,23 +124,23 @@ uint32_t KEYBOARD::read_io8(uint32_t addr)
 			}
 			
 			// check phantom keys (thanks Mr.Sato)
-			for(int i = 1; i < 15; i++) {
+			for(int i = 0; i < 15; i++) {
 				if(!(column & (1 << i))) {
 					uint8_t row_hold;
-					uint8_t row_byte = key_map[i];
+					uint8_t row_reak = key_map[i] & (~diode[i]);
 					do {
-						row_hold = row_byte;
+						row_hold = row_reak;
 						for(int c = 0; c < 15; c++) {
 							if(c != i){
-								uint8_t row_bridge = (key_map[c] & (~diode[c]));
-								if(row_byte & row_bridge) {
-									row_byte |= key_map[c];
+								uint8_t row_bridge = key_map[c] & (~diode[c]);
+								if(row_reak & row_bridge) {
+									row_reak |= row_bridge;
 								}
-								if(row_hold != row_byte) break;
+								if(row_hold != row_reak) break;
 							}
 						}
-					} while(row_hold != row_byte);
-					value |= row_byte;
+					} while(row_hold != row_reak);
+					value |= key_map[i] | row_reak;
 				}
 			}
 			return ~value;

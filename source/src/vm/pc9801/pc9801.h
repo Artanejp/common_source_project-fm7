@@ -6,6 +6,7 @@
 	NEC PC-9801VM Emulator 'ePC-9801VM'
 	NEC PC-9801VX Emulator 'ePC-9801VX'
 	NEC PC-9801RA Emulator 'ePC-9801RA'
+	NEC PC-98XL Emulator 'ePC-98XL'
 	NEC PC-98RL Emulator 'ePC-98RL'
 	NEC PC-98DO Emulator 'ePC-98DO'
 
@@ -145,17 +146,25 @@
 #endif
 #if !(defined(HAS_I86) || defined(HAS_V30))
 	#define SUPPORT_EGC
-	#define SUPPORT_ITF_ROM
+	#if !defined(_PC98XA) && !defined(_PC98XL)
+		#define SUPPORT_ITF_ROM
+	#endif
 //	#if !defined(_PC98XA)
-	#define HAS_UPD4990A
+		#define HAS_UPD4990A
 //	#endif
+	#if !defined(SUPPORT_HIRESO)
+		#define SUPPORT_NEC_EMS
+	#endif
+	#define SUPPORT_SASI_IF
 #endif
 
 #if defined(HAS_I286)
 	#define SUPPORT_24BIT_ADDRESS
 #elif defined(HAS_I386) || defined(HAS_I486)
 	#define SUPPORT_32BIT_ADDRESS
-	#define SUPPORT_SASI
+	#if !defined(SUPPORT_HIRESO)
+		#define SUPPORT_BIOS_RAM
+	#endif
 #endif
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 	#define MEMORY_ADDR_MAX		0x1000000	// 16MB
@@ -363,6 +372,15 @@ class JOYSTICK;
 class KEYBOARD;
 class MEMBUS;
 class MOUSE;
+#if defined(SUPPORT_SASI_IF)
+class SASI;
+#endif
+#if defined(SUPPORT_SCSI_IF)
+class SCSI;
+#endif
+#if defined(SUPPORT_IDE_IF)
+class IDE;
+#endif
 
 #if defined(SUPPORT_320KB_FDD_IF)
 // 320kb fdd drives
@@ -449,6 +467,15 @@ protected:
 	KEYBOARD* keyboard;
 	MEMBUS* memory;
 	MOUSE* mouse;
+#if defined(SUPPORT_SASI_IF)
+	SASI* sasi;
+#endif
+#if defined(SUPPORT_SCSI_IF)
+	SCSI* scsi;
+#endif
+#if defined(SUPPORT_IDE_IF)
+	IDE* ide;
+#endif
 	
 	// PC-9801-14
 	TMS3631* tms3631;

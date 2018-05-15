@@ -116,7 +116,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	REG32(ESI) = READ32(smram_state+SMRAM_ESI);
 	REG32(EDI) = READ32(smram_state+SMRAM_EDI);
 	cpustate->eip = READ32(smram_state+SMRAM_EIP);
-	cpustate->eflags = READ32(smram_state+SMRAM_EAX);
+	cpustate->eflags = READ32(smram_state+SMRAM_EFLAGS);
 	cpustate->cr[3] = READ32(smram_state+SMRAM_CR3);
 	cpustate->cr[0] = READ32(smram_state+SMRAM_CR0);
 

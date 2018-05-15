@@ -200,6 +200,7 @@
     <ClCompile Include="..\src\vm\pc9801\membus.cpp" />
     <ClCompile Include="..\src\vm\pc9801\mouse.cpp" />
     <ClCompile Include="..\src\vm\pc9801\pc9801.cpp" />
+    <ClCompile Include="..\src\vm\pc9801\sasi.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\common.h" />
@@ -249,6 +250,7 @@
     <ClInclude Include="..\src\vm\pc9801\membus.h" />
     <ClInclude Include="..\src\vm\pc9801\mouse.h" />
     <ClInclude Include="..\src\vm\pc9801\pc9801.h" />
+    <ClInclude Include="..\src\vm\pc9801\sasi.h" />
     <ClInclude Include="..\src\res\resource.h" />
   </ItemGroup>
   <ItemGroup>

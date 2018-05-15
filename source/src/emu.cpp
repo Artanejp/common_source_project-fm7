@@ -2648,7 +2648,15 @@ void EMU::save_state(const _TCHAR* file_path)
 {
 	FILEIO* fio = new FILEIO();
 	osd->lock_vm();
-	if(fio->Fopen(file_path, FILEIO_WRITE_BINARY)) {
+#ifdef USE_ZLIB
+	if(config.compress_state) {
+		fio->Gzopen(file_path, FILEIO_WRITE_BINARY);
+	}
+#endif
+	if(!fio->IsOpened()) {
+		fio->Fopen(file_path, FILEIO_WRITE_BINARY);
+	}
+	if(fio->IsOpened()) {
 		// save state file version
 		fio->FputUint32(STATE_VERSION);
 		// save config
@@ -2705,7 +2713,15 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 	bool result = false;
 	FILEIO* fio = new FILEIO();
 	osd->lock_vm();
-	if(fio->Fopen(file_path, FILEIO_READ_BINARY)) {
+#ifdef USE_ZLIB
+//	if(config.compress_state) {
+		fio->Gzopen(file_path, FILEIO_READ_BINARY);
+//	}
+#endif
+	if(!fio->IsOpened()) {
+		fio->Fopen(file_path, FILEIO_READ_BINARY);
+	}
+	if(fio->IsOpened()) {
 		// check state file version
 		if(fio->FgetUint32() == STATE_VERSION) {
 			// load config

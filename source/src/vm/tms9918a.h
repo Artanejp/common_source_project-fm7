@@ -86,6 +86,21 @@ public:
 	void write_signal(int id, uint32_t data, uint32_t mask);
 //#endif
 	void event_vline(int v, int clock);
+#ifdef USE_DEBUGGER
+	uint32_t get_debug_data_addr_mask()
+	{
+		return TMS9918A_VRAM_SIZE - 1;
+	}
+	void write_debug_data8(uint32_t addr, uint32_t data)
+	{
+		vram[addr & (TMS9918A_VRAM_SIZE - 1)] = data;
+	}
+	uint32_t read_debug_data8(uint32_t addr)
+	{
+		return vram[addr & (TMS9918A_VRAM_SIZE - 1)];
+	}
+	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+#endif
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	// unique functions

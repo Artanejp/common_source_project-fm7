@@ -52,6 +52,9 @@ public:
 	static bool RenameFile(const _TCHAR *existing_file_path, const _TCHAR *new_file_path);
 
 	bool Fopen(const _TCHAR *file_path, int mode);
+#ifdef USE_ZLIB
+	bool Gzopen(const _TCHAR *file_path, int mode);
+#endif
 	void Fclose();
 	bool IsOpened()
 	{

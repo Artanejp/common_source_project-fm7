@@ -422,6 +422,11 @@
 #include "pc9801/pc9801.h"
 #endif
 
+// NEC PC-98XL
+#ifdef _PC98XL
+#include "pc9801/pc9801.h"
+#endif
+
 // NEC PC-100
 #ifdef _PC100
 #include "pc100/pc100.h"

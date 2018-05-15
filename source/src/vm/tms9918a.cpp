@@ -625,6 +625,16 @@ void TMS9918A::draw_sprites()
 	}
 }
 
+#ifdef USE_DEBUGGER
+void TMS9918A::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+{
+	my_stprintf_s(buffer, buffer_len,
+	_T("REGS=%02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X VRAM_ADDR=%04X STATUS=%02X"),
+	regs[0], regs[1], regs[2], regs[3], regs[4], regs[5], regs[6], regs[7],
+	vram_addr, status_reg);
+}
+#endif
+
 #define STATE_VERSION	1
 
 void TMS9918A::save_state(FILEIO* state_fio)

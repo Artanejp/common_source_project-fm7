@@ -2545,7 +2545,6 @@ void pc88_crtc_t::reset(bool hireso)
 	cursor.type = cursor.mode = -1;
 	cursor.x = cursor.y = -1;
 	attrib.data = 0xe0;
-	attrib.mask = 0xff;
 	attrib.num = 20;
 	width = 80;
 	height = 25;
@@ -2750,7 +2749,7 @@ void pc88_crtc_t::expand_buffer(bool hireso, bool line400)
 		for(int cy = 0, ytop = 0, ofs = 0; cy < height && ytop < 200; cy++, ytop += char_height_tmp, ofs += 80 + attrib.num * 2) {
 			for(int cx = 0; cx < width; cx += 2) {
 				set_attrib(read_buffer(ofs + cx + 1));
-				attrib.expand[cy][cx] = attrib.expand[cy][cx + 1] = attrib.data & attrib.mask;
+				attrib.expand[cy][cx] = attrib.expand[cy][cx + 1] = attrib.data;
 			}
 			if((status & 8) && exitline == -1) {
 				exitline = cy;
@@ -2762,18 +2761,21 @@ void pc88_crtc_t::expand_buffer(bool hireso, bool line400)
 		if(mode & 1) {
 			memset(attrib.expand, 0xe0, sizeof(attrib.expand));
 		} else {
+			
 			for(int cy = 0, ytop = 0, ofs = 0; cy < height && ytop < 200; cy++, ytop += char_height_tmp, ofs += 80 + attrib.num * 2) {
 				uint8_t flags[128];
 				memset(flags, 0, sizeof(flags));
 				for(int i = 2 * (attrib.num - 1); i >= 0; i -= 2) {
 					flags[read_buffer(ofs + i + 80) & 0x7f] = 1;
 				}
+				attrib.data &= 0xf3; // for PC-8801mkIIFR 付属デモ
+				
 				for(int cx = 0, pos = 0; cx < width; cx++) {
 					if(flags[cx]) {
 						set_attrib(read_buffer(ofs + pos + 81));
 						pos += 2;
 					}
-					attrib.expand[cy][cx] = attrib.data & attrib.mask;
+					attrib.expand[cy][cx] = attrib.data;
 				}
 				if((status & 8) && exitline == -1) {
 					exitline = cy;
@@ -2806,18 +2808,15 @@ void pc88_crtc_t::set_attrib(uint8_t code)
 		// color
 		if(code & 8) {
 			attrib.data = (attrib.data & 0x0f) | (code & 0xf0);
-			attrib.mask = 0xf3; //for PC-8801mkIIFR 付属デモ
 		} else {
 			attrib.data = (attrib.data & 0xf0) | ((code >> 2) & 0x0d) | ((code << 1) & 2);
 			attrib.data ^= reverse;
 			attrib.data ^= ((code & 2) && !(code & 1)) ? blink.attrib : 0;
-			attrib.mask = 0xff;
 		}
 	} else {
 		attrib.data = 0xe0 | ((code >> 3) & 0x10) | ((code >> 2) & 0x0d) | ((code << 1) & 2);
 		attrib.data ^= reverse;
 		attrib.data ^= ((code & 2) && !(code & 1)) ? blink.attrib : 0;
-		attrib.mask = 0xff;
 	}
 }
 
@@ -2960,7 +2959,7 @@ void pc88_dmac_t::finish(int c)
 	}
 }
 
-#define STATE_VERSION	6
+#define STATE_VERSION	7
 
 void PC88::save_state(FILEIO* state_fio)
 {

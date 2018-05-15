@@ -37,6 +37,14 @@ void main()
 		kanji(0, (unsigned char)second);
 		fwrite(buf, 48, 1, fp);
 	}
+#if 1
+	for(first = 0x21; first <= 0x7c; first++) {
+		for(second = 0x21; second <= 0x7e; second++) {
+			kanji((unsigned char)first, (unsigned char)second);
+			fwrite(buf, 72, 1, fp);
+		}
+	}
+#else
 	for(first = 0x21; first <= 0x27; first++) {
 		for(second = 0x21; second <= 0x7e; second++) {
 			kanji((unsigned char)first, (unsigned char)second);
@@ -55,6 +63,7 @@ void main()
 			fwrite(buf, 72, 1, fp);
 		}
 	}
+#endif
 	fclose(fp);
 	
 	fp = fopen("BIOS.ROM", "wb");

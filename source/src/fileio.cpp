@@ -172,83 +172,8 @@ bool FILEIO::Fopen(const _TCHAR *file_path, int mode)
 	
 #ifdef USE_ZLIB
 	if(check_file_extension(file_path, _T(".gz"))) {
-		switch(mode) {
-		case FILEIO_READ_BINARY:
-//		case FILEIO_READ_WRITE_BINARY:
-		case FILEIO_READ_ASCII:
-//		case FILEIO_READ_WRITE_ASCII:
-//		case FILEIO_READ_WRITE_APPEND_ASCII:
-			if((fp = _tfopen(file_path, _T("rb"))) != NULL) {
-				// check gzip header
-				uint8_t data[10], name[_MAX_PATH] = {0};
-				fread(data, 10, 1, fp);
-				if(data[3] & 2) {
-					// skip part number
-					fseek(fp, 2, SEEK_CUR);
-				}
-				if(data[3] & 4) {
-					// skip extra field
-					fread(data + 4, 2, 1, fp);
-					fseek(fp, data[4] | (data[5] << 8), SEEK_CUR);
-				}
-				if(data[3] & 8) {
-					// read original file name
-					fread(name, sizeof(name), 1, fp);
-					my_stprintf_s(path, _MAX_PATH, _T("%s%s"), get_parent_dir(path), (char *)name);
-				}
-				// get uncompressed input size
-				fseek(fp, -4, SEEK_END);
-				fread(data, 4, 1, fp);
-				gz_size = data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24);
-				fclose(fp);
-				fp = NULL;
-			}
-			break;
-		}
-		switch(mode) {
-		case FILEIO_READ_BINARY:
-			{
-				//memset(path, 0x00, _MAX_PATH);
-				gz = gzopen(tchar_to_char(file_path), _T("rb"));
-				if(gz != NULL) {
-					my_tcscpy_s(path, _MAX_PATH, get_file_path_without_extensiton(file_path));
-					return true;
-				} else {
-					my_tcscpy_s(path, _MAX_PATH, file_path);
-					return false;
-				}					
-			}
-			break;
-//		case FILEIO_WRITE_BINARY:
-//			return ((gz = gzopen(tchar_to_char(file_path), _T("wb"))) != NULL);
-//		case FILEIO_READ_WRITE_BINARY:
-//			return ((gz = gzopen(tchar_to_char(file_path), _T("r+b"))) != NULL);
-//		case FILEIO_READ_WRITE_NEW_BINARY:
-//			return ((gz = gzopen(tchar_to_char(file_path), _T("w+b"))) != NULL);
-		case FILEIO_READ_ASCII:
-			{
-				gz = gzopen(tchar_to_char(file_path), _T("r"));
-				if(gz != NULL) {
-					my_tcscpy_s(path, _MAX_PATH, get_file_path_without_extensiton(file_path));
-					return true;
-				} else {
-					my_tcscpy_s(path, _MAX_PATH, file_path);
-					return false;
-				}
-			}
-			break;
-//		case FILEIO_WRITE_ASCII:
-//			return ((gz = gzopen(tchar_to_char(file_path), _T("w"))) != NULL);
-//		case FILEIO_WRITE_APPEND_ASCII:
-//			return ((gz = gzopen(tchar_to_char(file_path), _T("a"))) != NULL);
-//		case FILEIO_READ_WRITE_ASCII:
-//			return ((gz = gzopen(tchar_to_char(file_path), _T("r+"))) != NULL);
-//		case FILEIO_READ_WRITE_NEW_ASCII:
-//			return ((gz = gzopen(tchar_to_char(file_path), _T("w+"))) != NULL);
-//		case FILEIO_READ_WRITE_APPEND_ASCII:
-//			return ((gz = gzopen(tchar_to_char(file_path), _T("a+"))) != NULL);
-		}
-	} else
+		return Gzopen(file_path, mode);
+	}
 #endif
 	switch(mode) {
 	case FILEIO_READ_BINARY:
@@ -274,6 +199,75 @@ bool FILEIO::Fopen(const _TCHAR *file_path, int mode)
 	}
 	return false;
 }
+
+#ifdef USE_ZLIB
+bool FILEIO::Gzopen(const _TCHAR *file_path, int mode)
+{
+	gz_size = 0;
+	
+	switch(mode) {
+	case FILEIO_READ_BINARY:
+//	case FILEIO_READ_WRITE_BINARY:
+	case FILEIO_READ_ASCII:
+//	case FILEIO_READ_WRITE_ASCII:
+//	case FILEIO_READ_WRITE_APPEND_ASCII:
+		if((fp = _tfopen(file_path, _T("rb"))) != NULL) {
+			// check gzip header
+			uint8_t data[10], name[_MAX_PATH] = {0};
+			fread(data, 10, 1, fp);
+			if(data[0] == 0x1f && data[1] == 0x8b && data[2] == 0x08) {
+				if(data[3] & 2) {
+					// skip part number
+					fseek(fp, 2, SEEK_CUR);
+				}
+				if(data[3] & 4) {
+					// skip extra field
+					fread(data + 4, 2, 1, fp);
+					fseek(fp, data[4] | (data[5] << 8), SEEK_CUR);
+				}
+				if(data[3] & 8) {
+					// read original file name
+					fread(name, sizeof(name), 1, fp);
+					my_stprintf_s(path, _MAX_PATH, _T("%s%s"), get_parent_dir(path), (char *)name);
+				}
+				// get uncompressed input size
+				fseek(fp, -4, SEEK_END);
+				fread(data, 4, 1, fp);
+				gz_size = data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24);
+			}
+			fclose(fp);
+			fp = NULL;
+		}
+		if(gz_size == 0) {
+			return false;
+		}
+		break;
+	}
+	switch(mode) {
+	case FILEIO_READ_BINARY:
+		return ((gz = gzopen(tchar_to_char(file_path), "rb")) != NULL);
+//	case FILEIO_WRITE_BINARY:
+//		return ((fp = _tfopen(file_path, _T("wb"))) != NULL);
+//	case FILEIO_READ_WRITE_BINARY:
+//		return ((fp = _tfopen(file_path, _T("r+b"))) != NULL);
+//	case FILEIO_READ_WRITE_NEW_BINARY:
+//		return ((fp = _tfopen(file_path, _T("w+b"))) != NULL);
+	case FILEIO_READ_ASCII:
+		return ((gz = gzopen(tchar_to_char(file_path), "r")) != NULL);
+	case FILEIO_WRITE_ASCII:
+		return ((gz = gzopen(tchar_to_char(file_path), "w")) != NULL);
+//	case FILEIO_WRITE_APPEND_ASCII:
+//		return ((fp = _tfopen(file_path, _T("a"))) != NULL);
+//	case FILEIO_READ_WRITE_ASCII:
+//		return ((fp = _tfopen(file_path, _T("r+"))) != NULL);
+//	case FILEIO_READ_WRITE_NEW_ASCII:
+//		return ((fp = _tfopen(file_path, _T("w+"))) != NULL);
+//	case FILEIO_READ_WRITE_APPEND_ASCII:
+//		return ((fp = _tfopen(file_path, _T("a+"))) != NULL);
+	}
+	return false;
+}
+#endif
 
 void FILEIO::Fclose()
 {

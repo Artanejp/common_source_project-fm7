@@ -151,10 +151,7 @@ typedef struct {
 		bool direct_load_mzt[MAX_TAPE_TMP];
 		bool baud_high[MAX_TAPE_TMP];
 	#endif
-	#if defined(USE_FIXED_CONFIG) || defined(USE_AUTO_KEY)
-		bool romaji_to_kana;
-	#endif
-	
+	bool compress_state;
 	int cpu_power;
 	bool full_speed;
 	
@@ -260,9 +257,12 @@ typedef struct {
 	int sound_volume_r[MAX_VOLUME_TMP];
 #endif
 	// input
-#if defined(USE_FIXED_CONFIG) || defined(USE_JOYSTICK)
-	int joy_buttons[4][16];
-#endif
+	#if defined(USE_FIXED_CONFIG) || defined(USE_JOYSTICK)
+		int joy_buttons[4][16];
+	#endif
+	#if defined(USE_FIXED_CONFIG) || defined(USE_AUTO_KEY)
+		bool romaji_to_kana;
+	#endif
 
 	// printer
 #if defined(USE_FIXED_CONFIG) || defined(USE_PRINTER)

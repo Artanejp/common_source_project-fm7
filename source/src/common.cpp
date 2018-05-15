@@ -877,6 +877,35 @@ void DLL_PREFIX create_local_path(_TCHAR *file_path, int length, const _TCHAR *f
 	my_stprintf_s(file_path, length, _T("%s%s"), get_application_path(), file_name);
 }
 
+bool DLL_PREFIX is_absolute_path(const _TCHAR *file_path)
+{
+#ifdef _WIN32
+	if(_tcslen(file_path) > 2 && ((file_path[0] >= _T('A') && file_path[0] <= _T('Z')) || (file_path[0] >= _T('a') && file_path[0] <= _T('z'))) && file_path[1] == _T(':')) {
+		return true;
+	}
+#endif
+	return (_tcslen(file_path) > 1 && (file_path[0] == _T('/') || file_path[0] == _T('\\')));
+}
+
+const _TCHAR *create_absolute_path(const _TCHAR *file_name)
+{
+	static _TCHAR file_path[8][_MAX_PATH];
+	static unsigned int table_index = 0;
+	unsigned int output_index = (table_index++) & 7;
+	
+	if(is_absolute_path(file_name)) {
+		my_tcscpy_s(file_path[output_index], _MAX_PATH, file_name);
+	} else {
+		my_tcscpy_s(file_path[output_index], _MAX_PATH, create_local_path(file_name));
+	}
+	return (const _TCHAR *)file_path[output_index];
+}
+
+void DLL_PREFIX create_absolute_path(_TCHAR *file_path, int length, const _TCHAR *file_name)
+{
+	my_tcscpy_s(file_path, length, create_absolute_path(file_name));
+}
+
 const _TCHAR *create_date_file_path(const _TCHAR *extension)
 {
 	cur_time_t cur_time;
@@ -1307,10 +1336,12 @@ const _TCHAR* DLL_PREFIX get_symbol(symbol_t *first_symbol, uint32_t addr)
 	static unsigned int table_index = 0;
 	unsigned int output_index = (table_index++) & 7;
 	
-	for(symbol_t* symbol = first_symbol; symbol; symbol = symbol->next_symbol) {
-		if(symbol->addr == addr) {
-			my_tcscpy_s(name[output_index], 1024, symbol->name);
-			return name[output_index];
+	if(first_symbol != NULL) {
+		for(symbol_t* symbol = first_symbol; symbol; symbol = symbol->next_symbol) {
+			if(symbol->addr == addr) {
+				my_tcscpy_s(name[output_index], 1024, symbol->name);
+				return name[output_index];
+			}
 		}
 	}
 	return NULL;
@@ -1322,16 +1353,14 @@ const _TCHAR* DLL_PREFIX get_value_or_symbol(symbol_t *first_symbol, const _TCHA
 	static unsigned int table_index = 0;
 	unsigned int output_index = (table_index++) & 7;
 	
-	for(symbol_t* symbol = first_symbol; symbol; symbol = symbol->next_symbol) {
-		if(symbol->addr == addr) {
-//			my_tcscpy_s(name, 1024, symbol->name);
-			my_tcscpy_s(name[output_index], 1024, symbol->name);
-			return name[output_index];
-//			return name;
-		}
-	}
-//	my_stprintf_s(name, 1024, format, addr);
-//	return name;
+	if(first_symbol != NULL) {
+		for(symbol_t* symbol = first_symbol; symbol; symbol = symbol->next_symbol) {
+			if(symbol->addr == addr) {
+				my_tcscpy_s(name[output_index], 1024, symbol->name);
+				return name[output_index];
+			}
+ 		}
+ 	}
 	my_stprintf_s(name[output_index], 1024, format, addr);
 	return name[output_index];
 }
@@ -1344,13 +1373,15 @@ const _TCHAR* DLL_PREFIX get_value_and_symbol(symbol_t *first_symbol, const _TCH
 	
 	my_stprintf_s(name[output_index], 1024, format, addr);
 	
-	for(symbol_t* symbol = first_symbol; symbol; symbol = symbol->next_symbol) {
-		if(symbol->addr == addr) {
-			_TCHAR temp[1024];
-//			my_stprintf_s(temp, 1024, _T(" (%s)"), symbol->name);
-			my_stprintf_s(temp, 1024, _T(";%s"), symbol->name);
-			my_tcscat_s(name[output_index], 1024, temp);
-			return name[output_index];
+	if(first_symbol != NULL) {
+		for(symbol_t* symbol = first_symbol; symbol; symbol = symbol->next_symbol) {
+			if(symbol->addr == addr) {
+				_TCHAR temp[1024];
+//				my_stprintf_s(temp, 1024, _T(" (%s)"), symbol->name);
+				my_stprintf_s(temp, 1024, _T(";%s"), symbol->name);
+				my_tcscat_s(name[output_index], 1024, temp);
+				return name[output_index];
+			}
 		}
 	}
 	return name[output_index];

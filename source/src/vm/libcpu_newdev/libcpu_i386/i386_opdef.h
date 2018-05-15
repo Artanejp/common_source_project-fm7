@@ -389,6 +389,7 @@ struct X86_CYCLE_TABLE
 #define X87_CW_OM               0x0008
 #define X87_CW_UM               0x0010
 #define X87_CW_PM               0x0020
+#define X87_CW_IEM              0x0080
 #define X87_CW_PC_SHIFT         8
 #define X87_CW_PC_MASK          3
 #define X87_CW_PC_SINGLE        0
@@ -1671,6 +1672,8 @@ public:
 	void x87_fdecstp( UINT8 modrm);
 	void x87_fincstp( UINT8 modrm);
 	void x87_fclex( UINT8 modrm);
+	void x87_feni( UINT8 modrm);
+	void x87_fdisi( UINT8 modrm);
 	void x87_ffree( UINT8 modrm);
 	void x87_finit( UINT8 modrm);
 	void x87_fldcw( UINT8 modrm);

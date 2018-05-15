@@ -6,6 +6,7 @@
 	NEC PC-9801VM Emulator 'ePC-9801VM'
 	NEC PC-9801VX Emulator 'ePC-9801VX'
 	NEC PC-9801RA Emulator 'ePC-9801RA'
+	NEC PC-98XL Emulator 'ePC-98XL'
 	NEC PC-98RL Emulator 'ePC-98RL'
 	NEC PC-98DO Emulator 'ePC-98DO'
 
@@ -67,6 +68,15 @@
 #include "keyboard.h"
 #include "membus.h"
 #include "mouse.h"
+#if defined(SUPPORT_SASI_IF)
+#include "sasi.h"
+#endif
+#if defined(SUPPORT_SCSI_IF)
+#include "scsi.h"
+#endif
+#if defined(SUPPORT_IDE_IF)
+#include "ide.h"
+#endif
 
 #if defined(SUPPORT_320KB_FDD_IF)
 #include "../pc80s31k.h"
@@ -242,6 +252,15 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	mouse = new MOUSE(this, emu);
+#if defined(SUPPORT_SASI_IF)
+	sasi = new SASI(this, emu);
+#endif
+#if defined(SUPPORT_SCSI_IF)
+	scsi = new SCSI(this, emu);
+#endif
+#if defined(SUPPORT_IDE_IF)
+	ide = new IDE(this, emu);
+#endif
 	
 #if defined(SUPPORT_320KB_FDD_IF)
 	// 320kb fdd drives
@@ -264,7 +283,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		6  (INT2)
 		7  SLAVE PIC
 		8  PRINTER
-		9  (INT3)
+		9  (INT3) PC-9801-27 (SASI), PC-9801-55 (SCSI), or IDE
 		10 (INT41) FDC (640KB I/F)
 		11 (INT42) FDC (1MB I/F)
 		12 (INT5) PC-9801-26(K) or PC-9801-14
@@ -415,6 +434,22 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	floppy->set_context_dma(dma);
 	floppy->set_context_pic(pic);
 	
+#if defined(SUPPORT_SASI_IF)
+	sasi->set_context_dma(dma);
+	sasi->set_context_pic(pic);
+	dma->set_context_ch0(sasi);
+#endif
+#if defined(SUPPORT_SCSI_IF)
+	scsi->set_context_dma(dma);
+	scsi->set_context_pic(pic);
+	dma->set_context_ch0(scsi);
+#endif
+#if defined(SUPPORT_IDE_IF)
+	ide->set_context_dma(dma);
+	ide->set_context_pic(pic);
+	dma->set_context_ch0(ide);
+#endif
+	
 #if defined(SUPPORT_CMT_IF)
 	sio_cmt->set_context_out(cmt, SIG_CMT_OUT);
 //	sio_cmt->set_context_txrdy(cmt, SIG_CMT_TXRDY, 1);
@@ -554,6 +589,28 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #endif
 #endif
 	
+#if defined(SUPPORT_SASI_IF)
+	io->set_iomap_single_rw(0x0080, sasi);
+	io->set_iomap_single_rw(0x0082, sasi);
+#endif
+#if defined(SUPPORT_SCSI_IF)
+	io->set_iomap_single_rw(0x0cc0, scsi);
+	io->set_iomap_single_rw(0x0cc2, scsi);
+	io->set_iomap_single_rw(0x0cc4, scsi);
+#endif
+#if defined(SUPPORT_IDE_IF)
+	io->set_iomap_single_rw(0x0640, ide);
+	io->set_iomap_single_rw(0x0642, ide);
+	io->set_iomap_single_rw(0x0644, ide);
+	io->set_iomap_single_rw(0x0646, ide);
+	io->set_iomap_single_rw(0x0648, ide);
+	io->set_iomap_single_rw(0x064a, ide);
+	io->set_iomap_single_rw(0x064c, ide);
+	io->set_iomap_single_rw(0x064e, ide);
+	io->set_iomap_single_rw(0x074c, ide);
+	io->set_iomap_single_rw(0x074e, ide);
+#endif
+	
 	io->set_iomap_alias_rw(0x00a0, gdc_gfx, 0);
 	io->set_iomap_alias_rw(0x00a2, gdc_gfx, 1);
 	
@@ -642,6 +699,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #if defined(SUPPORT_ITF_ROM)
 	io->set_iomap_single_w(0x043d, memory);
 #endif
+#if !defined(SUPPORT_HIRESO)
+	io->set_iomap_single_w(0x043f, memory);
+#endif
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 	io->set_iomap_single_rw(0x0439, memory);
 #if !defined(SUPPORT_HIRESO)
@@ -651,6 +711,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	io->set_iomap_single_rw(0x0091, memory);
 	io->set_iomap_single_rw(0x0093, memory);
 #endif
+	io->set_iomap_single_r(0x0567, memory);
 #endif
 #if defined(SUPPORT_32BIT_ADDRESS)
 	io->set_iomap_single_w(0x053d, memory);
@@ -1358,7 +1419,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	11
+#define STATE_VERSION	12
 
 void VM::save_state(FILEIO* state_fio)
 {

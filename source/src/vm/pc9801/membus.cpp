@@ -6,6 +6,7 @@
 	NEC PC-9801VM Emulator 'ePC-9801VM'
 	NEC PC-9801VX Emulator 'ePC-9801VX'
 	NEC PC-9801RA Emulator 'ePC-9801RA'
+	NEC PC-98XL Emulator 'ePC-98XL'
 	NEC PC-98RL Emulator 'ePC-98RL'
 	NEC PC-98DO Emulator 'ePC-98DO'
 
@@ -30,8 +31,15 @@
 		A2000h - A3FFFh: ATTRIBUTE
 		A4000h - A4FFFh: CG WINDOW
 		A8000h - BFFFFh: VRAM (BRG)
+		C0000h - DFFFFh: EXT BIOS
+			CC000h - CFFFFh: SOUND BIOS
+			D6000h - D6FFFh: 2DD FDD BIOS
+			D7000h - D7FFFh: 2HD FDD BIOS
+			D7000h - D7FFFh: SASI BIOS
+			D8000h - DBFFFh: IDE BIOS
+			DC000h - DCFFFh: SCSI BIOS
 		E0000h - E7FFFh: VRAM (I)
-		E8000h - FFFFFh: IPL
+		E8000h - FFFFFh: BIOS
 
 	HIRESO PC-98XA/XL/XL^2/RL
 		00000h - 7FFFFh: RAM
@@ -40,7 +48,7 @@
 		E0000h - E1FFFh: TEXT VRAM
 		E2000h - E3FFFh: ATTRIBUTE
 		E4000h - E4FFFh: CG WINDOW
-		F0000h - FFFFFh: IPL
+		F0000h - FFFFFh: BIOS
 */
 
 void MEMBUS::initialize()
@@ -48,7 +56,7 @@ void MEMBUS::initialize()
 	MEMORY::initialize();
 	
 	// RAM
-	memset(ram, 0, sizeof(ram));
+	memset(ram, 0x00, sizeof(ram));
 #if !defined(SUPPORT_HIRESO)
 	set_memory_rw(0x000000, 0x09ffff, ram);
 #else
@@ -72,14 +80,20 @@ void MEMBUS::initialize()
 #endif
 	
 	// BIOS
-	memset(ipl, 0xff, sizeof(ipl));
-	if(!read_bios(_T("IPL.ROM"), ipl, sizeof(ipl))) {
-		read_bios(_T("BIOS.ROM"), ipl, sizeof(ipl));
+	memset(bios, 0xff, sizeof(bios));
+	if(!read_bios(_T("IPL.ROM"), bios, sizeof(bios))) {
+		read_bios(_T("BIOS.ROM"), bios, sizeof(bios));
 	}
+#if defined(SUPPORT_BIOS_RAM)
+	memset(bios_ram, 0x00, sizeof(bios_ram));
+#endif
 #if defined(SUPPORT_ITF_ROM)
 	memset(itf, 0xff, sizeof(itf));
 	read_bios(_T("ITF.ROM"), itf, sizeof(itf));
 #endif
+	
+#if !defined(SUPPORT_HIRESO)
+	// EXT BIOS
 #if defined(_PC9801) || defined(_PC9801E)
 	memset(fd_bios_2hd, 0xff, sizeof(fd_bios_2hd));
 	read_bios(_T("2HDIF.ROM"), fd_bios_2hd, sizeof(fd_bios_2hd));
@@ -89,35 +103,69 @@ void MEMBUS::initialize()
 	read_bios(_T("2DDIF.ROM"), fd_bios_2dd, sizeof(fd_bios_2dd));
 	set_memory_r(0xd7000, 0xd7fff, fd_bios_2hd);
 #endif
-#if !defined(SUPPORT_HIRESO)
-#if defined(SUPPORT_SASI)
+	memset(sound_bios, 0xff, sizeof(sound_bios));
+//	memset(sound_bios_ram, 0x00, sizeof(sound_bios_ram));
+	sound_bios_selected = false;
+//	sound_bios_ram_selected = false;
+	if(config.sound_type == 0) {
+		sound_bios_selected = (read_bios(_T("SOUND.ROM"), sound_bios, sizeof(sound_bios)) != 0);
+	} else if(config.sound_type == 2) {
+		sound_bios_selected = (read_bios(_T("MUSIC.ROM"), sound_bios, sizeof(sound_bios)) != 0);
+	}
+	if(sound_bios_selected) {
+		d_display->sound_bios_ok();
+	}
+	update_sound_bios();
+#if defined(SUPPORT_SASI_IF)
 	memset(sasi_bios, 0xff, sizeof(sasi_bios));
-	read_bios(_T("SASI.ROM"), sasi_bios, sizeof(sasi_bios));
+	memset(sasi_bios_ram, 0x00, sizeof(sasi_bios_ram));
+	sasi_bios_selected = (read_bios(_T("SASI.ROM"), sasi_bios, sizeof(sasi_bios)) != 0);
+	sasi_bios_ram_selected = false;
+	update_sasi_bios();
+#endif
+#if defined(SUPPORT_SCSI_IF)
+	memset(scsi_bios, 0xff, sizeof(scsi_bios));
+	memset(scsi_bios_ram, 0x00, sizeof(scsi_bios_ram));
+	scsi_bios_selected = (read_bios(_T("SCSI.ROM"), scsi_bios, sizeof(scsi_bios)) != 0);
+	scsi_bios_ram_selected = false;
+	update_scsi_bios();
+#endif
+#if defined(SUPPORT_IDE_IF)
+	memset(ide_bios, 0xff, sizeof(ide_bios));
+//	memset(ide_bios_ram, 0x00, sizeof(ide_bios_ram));
+	ide_bios_selected = (read_bios(_T("IDE.ROM"), ide_bios, sizeof(ide_bios)) != 0);
+//	ide_bios_ram_selected = false;
+	update_ide_bios();
 #endif
 	
-	memset(sound_bios, 0xff, sizeof(sound_bios));
-	if(config.sound_type == 0) {
-		d_display->sound_bios_ok = (read_bios(_T("SOUND.ROM"), sound_bios, sizeof(sound_bios)) != 0);
-		set_memory_r(0xcc000, 0xcffff, sound_bios);
-	} else if(config.sound_type == 2) {
-		d_display->sound_bios_ok = (read_bios(_T("MUSIC.ROM"), sound_bios, sizeof(sound_bios)) != 0);
-		set_memory_r(0xcc000, 0xcffff, sound_bios);
-	} else
+	// EMS
+#if defined(SUPPORT_NEC_EMS)
+	memset(nec_ems, 0, sizeof(nec_ems));
 #endif
-	d_display->sound_bios_ok = false;
+#endif
 }
 
 void MEMBUS::reset()
 {
 	MEMORY::reset();
 	
-#if defined(SUPPORT_ITF_ROM)
-	unset_memory_r(0x100000 - sizeof(ipl), 0xfffff);
-	set_memory_r(0x100000 - sizeof(itf), 0xfffff, itf);
-	itf_selected = true;
-#else
-	set_memory_r(0x100000 - sizeof(ipl), 0xfffff, ipl);
+	// BIOS/ITF
+#if defined(SUPPORT_BIOS_RAM)
+	bios_ram_selected = false;
 #endif
+#if defined(SUPPORT_ITF_ROM)
+	itf_selected = true;
+#endif
+	update_bios();
+	
+#if !defined(SUPPORT_HIRESO)
+	// EMS
+#if defined(SUPPORT_NEC_EMS)
+	nec_ems_selected = false;
+	update_nec_ems();
+#endif
+#endif
+	
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 	dma_access_ctrl = 0x00;
 #if !defined(SUPPORT_HIRESO)
@@ -139,14 +187,77 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 		case 0x00:
 		case 0x10:
 		case 0x18:
-			unset_memory_r(0x100000 - sizeof(ipl), 0xfffff);
-			set_memory_r(0x100000 - sizeof(itf), 0xfffff, itf);
-			itf_selected = true;
+			if(!itf_selected) {
+				itf_selected = true;
+				update_bios();
+			}
 			break;
 		case 0x02:
 		case 0x12:
-			set_memory_r(0x100000 - sizeof(ipl), 0xfffff, ipl);
-			itf_selected = false;
+			if(itf_selected) {
+				itf_selected = false;
+				update_bios();
+			}
+			break;
+		}
+		break;
+#endif
+#if !defined(SUPPORT_HIRESO)
+	case 0x043f:
+		switch(data & 0xff) {
+		case 0x20:
+#if defined(SUPPORT_NEC_EMS)
+			if(nec_ems_selected) {
+				nec_ems_selected = false;
+				update_nec_ems();
+			}
+#endif
+			break;
+		case 0x22:
+#if defined(SUPPORT_NEC_EMS)
+			if(!nec_ems_selected) {
+				nec_ems_selected = true;
+				update_nec_ems();
+			}
+#endif
+			break;
+		case 0xc0:
+#if defined(SUPPORT_SASI_IF)
+			if(sasi_bios_ram_selected) {
+				sasi_bios_ram_selected = false;
+				if(sasi_bios_selected) {
+					update_sasi_bios();
+				}
+			}
+#endif
+#if defined(SUPPORT_SCSI_IF)
+			if(scsi_bios_ram_selected) {
+				scsi_bios_ram_selected = false;
+				if(scsi_bios_selected) {
+					update_scsi_bios();
+				}
+			}
+#endif
+			break;
+		case 0xc2:
+#if defined(SUPPORT_SASI_IF)
+			if(!sasi_bios_ram_selected) {
+				sasi_bios_ram_selected = true;
+				if(sasi_bios_selected) {
+					update_sasi_bios();
+				}
+			}
+#endif
+			break;
+		case 0xc4:
+#if defined(SUPPORT_SCSI_IF)
+			if(!scsi_bios_ram_selected) {
+				scsi_bios_ram_selected = true;
+				if(scsi_bios_selected) {
+					update_scsi_bios();
+				}
+			}
+#endif
 			break;
 		}
 		break;
@@ -173,18 +284,34 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 #if defined(SUPPORT_32BIT_ADDRESS)
 	case 0x053d:
 #if !defined(SUPPORT_HIRESO)
-		if(data & 0x80) {
-			set_memory_r(0xcc000, 0xcffff, sound_bios);
-		} else {
-			unset_memory_r(0xcc000, 0xcffff);
+		if(sound_bios_selected != ((data & 0x80) != 0)) {
+			sound_bios_selected = ((data & 0x80) != 0);
+			update_sound_bios();
 		}
-#if defined(SUPPORT_SASI)
-		if(data & 0x40) {
-			set_memory_r(0xd7000, 0xd7fff, sasi_bios);
-		} else {
-			unset_memory_r(0xd7000, 0xd7fff);
+#if defined(SUPPORT_SASI_IF)
+		if(sasi_bios_selected != ((data & 0x40) != 0)) {
+			sasi_bios_selected = ((data & 0x40) != 0);
+			update_sasi_bios();
 		}
 #endif
+#if defined(SUPPORT_SCSI_IF)
+		if(scsi_bios_selected != ((data & 0x20) != 0)) {
+			scsi_bios_selected = ((data & 0x20) != 0);
+			update_scsi_bios();
+		}
+#endif
+#if defined(SUPPORT_IDE_IF)
+		if(ide_bios_selected != ((data & 0x10) != 0)) {
+			ide_bios_selected = ((data & 0x10) != 0);
+			update_ide_bios();
+		}
+#endif
+#endif
+#if defined(SUPPORT_BIOS_RAM)
+		if(bios_ram_selected != ((data & 0x02) != 0)) {
+			bios_ram_selected = ((data & 0x02) != 0);
+			update_bios();
+		}
 #endif
 		break;
 #endif
@@ -212,6 +339,8 @@ uint32_t MEMBUS::read_io8(uint32_t addr)
 	case 0x0093:
 #endif
 		return window_a0000h >> 16;
+	case 0x0567:
+		return (uint8_t)(sizeof(ram) >> 17);
 #endif
 	// dummy for no cases
 	default:
@@ -431,7 +560,107 @@ void MEMBUS::write_dma_data32(uint32_t addr, uint32_t data)
 }
 #endif
 
-#define STATE_VERSION	2
+void MEMBUS::update_bios()
+{
+	unset_memory_rw(0x100000 - sizeof(bios), 0xfffff);
+#if defined(SUPPORT_ITF_ROM)
+	if(itf_selected) {
+		set_memory_r(0x100000 - sizeof(itf), 0xfffff, itf);
+	} else {
+#endif
+#if defined(SUPPORT_BIOS_RAM)
+		if(bios_ram_selected) {
+			set_memory_rw(0x100000 - sizeof(bios_ram), 0xfffff, bios_ram);
+		} else {
+#endif
+			set_memory_r(0x100000 - sizeof(bios), 0xfffff, bios);
+#if defined(SUPPORT_BIOS_RAM)
+//			set_memory_w(0x100000 - sizeof(bios_ram), 0xfffff, bios_ram);
+		}
+#endif
+#if defined(SUPPORT_ITF_ROM)
+	}
+#endif
+}
+
+#if !defined(SUPPORT_HIRESO)
+void MEMBUS::update_sound_bios()
+{
+	if(sound_bios_selected) {
+//		if(sound_bios_selected) {
+//			set_memory_r(0xcc000, 0xcffff, sound_bios_ram);
+//		} else {
+			set_memory_r(0xcc000, 0xcffff, sound_bios);
+			unset_memory_w(0xcc000, 0xcffff);
+//		}
+	} else {
+		unset_memory_rw(0xcc000, 0xcffff);
+	}
+}
+
+#if defined(SUPPORT_SASI_IF)
+void MEMBUS::update_sasi_bios()
+{
+	if(sasi_bios_selected) {
+		if(sasi_bios_ram_selected) {
+			set_memory_rw(0xd7000, 0xd7fff, sasi_bios_ram);
+		} else {
+			set_memory_r(0xd7000, 0xd7fff, sasi_bios);
+			unset_memory_w(0xd7000, 0xd7fff);
+		}
+	} else {
+		unset_memory_rw(0xd7000, 0xd7fff);
+	}
+}
+#endif
+
+#if defined(SUPPORT_SCSI_IF)
+void MEMBUS::update_scsi_bios()
+{
+	if(scsi_bios_selected) {
+		if(scsi_bios_ram_selected) {
+			set_memory_rw(0xdc000, 0xdcfff, scsi_bios_ram);
+		} else {
+			set_memory_r(0xdc000, 0xdcfff, scsi_bios);
+			unset_memory_w(0xdc000, 0xdcfff);
+		}
+	} else {
+		unset_memory_rw(0xdc000, 0xdcfff);
+	}
+}
+#endif
+
+#if defined(SUPPORT_IDE_IF)
+void MEMBUS::update_ide_bios()
+{
+	if(ide_bios_selected) {
+//		if(ide_bios_selected) {
+//			set_memory_r(0xd8000, 0xdbfff, ide_bios_ram);
+//		} else {
+			set_memory_r(0xd8000, 0xdbfff, ide_bios);
+			unset_memory_w(0xd8000, 0xdbfff);
+//		}
+	} else {
+		unset_memory_rw(0xd8000, 0xdbfff);
+	}
+}
+#endif
+
+#if defined(SUPPORT_NEC_EMS)
+void MEMBUS::update_nec_ems()
+{
+	if (nec_ems_selected) {
+		unset_memory_rw(0xb0000, 0xbffff);
+		set_memory_rw(0xb0000, 0xbffff, nec_ems);
+	} else {
+		unset_memory_rw(0xb0000, 0xbffff);
+		set_memory_mapped_io_rw(0xb0000, 0xbffff, d_display);
+	}
+}
+#endif
+#endif
+
+#define STATE_VERSION	3
 
 void MEMBUS::save_state(FILEIO* state_fio)
 {
@@ -439,8 +668,36 @@ void MEMBUS::save_state(FILEIO* state_fio)
 	state_fio->FputInt32(this_device_id);
 	
 	state_fio->Fwrite(ram, sizeof(ram), 1);
+#if defined(SUPPORT_BIOS_RAM)
+	state_fio->Fwrite(bios_ram, sizeof(bios_ram), 1);
+	state_fio->FputBool(bios_ram_selected);
+#endif
 #if defined(SUPPORT_ITF_ROM)
 	state_fio->FputBool(itf_selected);
+#endif
+#if !defined(SUPPORT_HIRESO)
+//	state_fio->Fwrite(sound_bios_ram, sizeof(sound_bios_ram), 1);
+	state_fio->FputBool(sound_bios_selected);
+//	state_fio->FputBool(sound_bios_ram_selected);
+#if defined(SUPPORT_SASI_IF)
+	state_fio->Fwrite(sasi_bios_ram, sizeof(sasi_bios_ram), 1);
+	state_fio->FputBool(sasi_bios_selected);
+	state_fio->FputBool(sasi_bios_ram_selected);
+#endif
+#if defined(SUPPORT_SCSI_IF)
+	state_fio->Fwrite(scsi_bios_ram, sizeof(scsi_bios_ram), 1);
+	state_fio->FputBool(scsi_bios_selected);
+	state_fio->FputBool(scsi_bios_ram_selected);
+#endif
+#if defined(SUPPORT_IDE_IF)
+//	state_fio->Fwrite(ide_bios_ram, sizeof(ide_bios_ram), 1);
+	state_fio->FputBool(ide_bios_selected);
+//	state_fio->FputBool(ide_bios_ram_selected);
+#endif
+#if defined(SUPPORT_NEC_EMS)
+	state_fio->Fwrite(nec_ems, sizeof(nec_ems), 1);
+	state_fio->FputBool(nec_ems_selected);
+#endif
 #endif
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 	state_fio->FputUint8(dma_access_ctrl);
@@ -459,8 +716,36 @@ bool MEMBUS::load_state(FILEIO* state_fio)
 		return false;
 	}
 	state_fio->Fread(ram, sizeof(ram), 1);
+#if defined(SUPPORT_BIOS_RAM)
+	state_fio->Fwrite(bios_ram, sizeof(bios_ram), 1);
+	bios_ram_selected = state_fio->FgetBool();
+#endif
 #if defined(SUPPORT_ITF_ROM)
 	itf_selected = state_fio->FgetBool();
+#endif
+#if !defined(SUPPORT_HIRESO)
+//	state_fio->Fread(sound_bios_ram, sizeof(sound_bios_ram), 1);
+	sound_bios_selected = state_fio->FgetBool();
+//	sound_bios_ram_selected = state_fio->FgetBool();
+#if defined(SUPPORT_SASI_IF)
+	state_fio->Fread(sasi_bios_ram, sizeof(sasi_bios_ram), 1);
+	sasi_bios_selected = state_fio->FgetBool();
+	sasi_bios_ram_selected = state_fio->FgetBool();
+#endif
+#if defined(SUPPORT_SCSI_IF)
+	state_fio->Fread(scsi_bios_ram, sizeof(scsi_bios_ram), 1);
+	scsi_bios_selected = state_fio->FgetBool();
+	scsi_bios_ram_selected = state_fio->FgetBool();
+#endif
+#if defined(SUPPORT_IDE_IF)
+//	state_fio->Fread(ide_bios_ram, sizeof(ide_bios_ram), 1);
+	ide_bios_selected = state_fio->FgetBool();
+//	ide_bios_ram_selected = state_fio->FgetBool();
+#endif
+#if defined(SUPPORT_NEC_EMS)
+	state_fio->Fread(nec_ems, sizeof(nec_ems), 1);
+	nec_ems_selected = state_fio->FgetBool();
+#endif
 #endif
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 	dma_access_ctrl = state_fio->FgetUint8();
@@ -469,13 +754,21 @@ bool MEMBUS::load_state(FILEIO* state_fio)
 #endif
 	
 	// post process
-#if defined(SUPPORT_ITF_ROM)
-	if(itf_selected) {
-		unset_memory_r(0x100000 - sizeof(ipl), 0xfffff);
-		set_memory_r(0x100000 - sizeof(itf), 0xfffff, itf);
-	} else {
-		set_memory_r(0x100000 - sizeof(ipl), 0xfffff, ipl);
-	}
+	update_bios();
+#if !defined(SUPPORT_HIRESO)
+	update_sound_bios();
+#if defined(SUPPORT_SASI_IF)
+	update_sasi_bios();
+#endif
+#if defined(SUPPORT_SCSI_IF)
+	update_scsi_bios();
+#endif
+#if defined(SUPPORT_IDE_IF)
+	update_ide_bios();
+#endif
+#if defined(SUPPORT_EMS)
+	update_nec_ems();
+#endif
 #endif
 	return MEMORY::load_state(state_fio);
 }

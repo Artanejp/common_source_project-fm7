@@ -6,6 +6,7 @@
 	NEC PC-9801VM Emulator 'ePC-9801VM'
 	NEC PC-9801VX Emulator 'ePC-9801VX'
 	NEC PC-9801RA Emulator 'ePC-9801RA'
+	NEC PC-98XL Emulator 'ePC-98XL'
 	NEC PC-98RL Emulator 'ePC-98RL'
 	NEC PC-98DO Emulator 'ePC-98DO'
 
@@ -27,6 +28,7 @@ class MEMBUS : public MEMORY
 private:
 	DISPLAY *d_display;
 	
+	// RAM
 #if defined(SUPPORT_32BIT_ADDRESS)
 	uint8_t ram[0x800000]; // 8MB
 #elif defined(SUPPORT_24BIT_ADDRESS)
@@ -34,24 +36,67 @@ private:
 #else
 	uint8_t ram[0x100000]; // 1MB
 #endif
+	
+	// BIOS/ITF
 #if !defined(SUPPORT_HIRESO)
-	uint8_t ipl[0x18000];
+	uint8_t bios[0x18000];
 #else
-	uint8_t ipl[0x10000];
+	uint8_t bios[0x10000];
+#endif
+#if defined(SUPPORT_BIOS_RAM)
+#if !defined(SUPPORT_HIRESO)
+	uint8_t bios_ram[0x18000];
+#else
+	uint8_t bios_ram[0x10000];
+#endif
+//	uint8_t bios_ram[sizeof(bios)];
+	bool bios_ram_selected;
 #endif
 #if defined(SUPPORT_ITF_ROM)
 	uint8_t itf[0x8000];
 	bool itf_selected;
 #endif
+	void update_bios();
+	
+#if !defined(SUPPORT_HIRESO)
+	// EXT BIOS
 #if defined(_PC9801) || defined(_PC9801E)
 	uint8_t fd_bios_2hd[0x1000];
 	uint8_t fd_bios_2dd[0x1000];
 #endif
-#if !defined(SUPPORT_HIRESO)
-#if defined(SUPPORT_SASI)
-	uint8_t sasi_bios[0x1000];
-#endif
 	uint8_t sound_bios[0x4000];
+//	uint8_t sound_bios_ram[0x4000];
+	bool sound_bios_selected;
+//	bool sound_bios_ram_selected;
+	void update_sound_bios();
+#if defined(SUPPORT_SASI_IF)
+	uint8_t sasi_bios[0x1000];
+	uint8_t sasi_bios_ram[0x1000];
+	bool sasi_bios_selected;
+	bool sasi_bios_ram_selected;
+	void update_sasi_bios();
+#endif
+#if defined(SUPPORT_SCSI_IF)
+	uint8_t scsi_bios[0x1000];
+	uint8_t scsi_bios_ram[0x1000];
+	bool scsi_bios_selected;
+	bool scsi_bios_ram_selected;
+	void update_scsi_bios();
+#endif
+#if defined(SUPPORT_IDE_IF)
+	uint8_t ide_bios[0x4000];
+//	uint8_t ide_bios_ram[0x4000];
+	bool ide_bios_selected;
+//	bool ide_bios_ram_selected;
+	void update_ide_bios();
+#endif
+	
+	// EMS
+#if defined(SUPPORT_NEC_EMS)
+	uint8_t nec_ems[0x10000];
+	bool nec_ems_selected;
+	void update_nec_ems();
+#endif
 #endif
 	
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)

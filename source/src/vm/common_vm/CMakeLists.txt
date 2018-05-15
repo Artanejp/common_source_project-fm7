@@ -1,6 +1,6 @@
 message("* vm/common_vm")
 
-SET(THIS_LIB_VERSION 1.1.30)
+SET(THIS_LIB_VERSION 1.1.31)
 set(s_vm_common_vm_srcs
 	../315-5124.cpp
 	../am9511.cpp
@@ -9,7 +9,8 @@ set(s_vm_common_vm_srcs
 	../beep.cpp
 	../datarec.cpp
 	../disk.cpp
-	
+
+	../harddisk.cpp
 	../hd146818p.cpp
 	../hd44102.cpp
 	../hd46505.cpp

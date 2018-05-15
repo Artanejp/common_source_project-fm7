@@ -1157,6 +1157,26 @@
 						/>
 					</FileConfiguration>
 				</File>
+				<File
+					RelativePath="..\src\vm\pc9801\sasi.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
 			</Filter>
 		</Filter>
 		<Filter
@@ -1372,6 +1392,10 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\pc9801\pc9801.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\pc9801\sasi.h"
 					>
 				</File>
 			</Filter>

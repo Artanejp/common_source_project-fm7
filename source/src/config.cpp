@@ -112,6 +112,7 @@ void initialize_config()
 			config.baud_high[drv] = true;
 		}
 	#endif
+	config.compress_state = true;
 	
 	// screen
 	#ifndef ONE_BOARD_MICRO_COMPUTER
@@ -348,6 +349,7 @@ void load_config(const _TCHAR *config_path)
 			config.rotate_type = MyGetPrivateProfileInt(_T("Screen"), _T("RotateType"), config.rotate_type, config_path);
 //		#endif
 	#endif
+	config.compress_state = MyGetPrivateProfileBool(_T("Control"), _T("CompressState"), config.compress_state, config_path);
 	
 	// filter
 	#ifdef USE_SCREEN_FILTER
@@ -407,7 +409,7 @@ void load_config(const _TCHAR *config_path)
 		config.disable_dwm = MyGetPrivateProfileBool(_T("Win32"), _T("DisableDwm"), config.disable_dwm, config_path);
 		config.show_status_bar = MyGetPrivateProfileBool(_T("Win32"), _T("ShowStatusBar"), config.show_status_bar, config_path);
 	#endif
-	
+
 	// qt
 	#ifdef _USE_QT
 		config.use_separate_thread_draw = MyGetPrivateProfileBool(_T("Qt"), _T("UseSeparateThreadDraw"), config.use_separate_thread_draw, config_path);
@@ -685,7 +687,7 @@ void save_config(const _TCHAR *config_path)
 			MyWritePrivateProfileInt(_T("Screen"), _T("RotateType"), config.rotate_type, config_path);
 //		#endif
 	#endif
-	
+	MyWritePrivateProfileBool(_T("Control"), _T("CompressState"), config.compress_state, config_path);
 	// filter
 	#ifdef USE_SCREEN_FILTER
 		MyWritePrivateProfileInt(_T("Screen"), _T("FilterType"), config.filter_type, config_path);

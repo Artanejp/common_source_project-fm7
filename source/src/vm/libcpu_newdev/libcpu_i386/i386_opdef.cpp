@@ -149,8 +149,13 @@ void I386_OPS_BASE::i386_load_segment_descriptor( int segment )
 		cpustate->sreg[segment].d = 0;
 		cpustate->sreg[segment].valid = true;
 
-		if( segment == CS && !cpustate->performed_intersegment_jump )
-			cpustate->sreg[segment].base |= 0xfff00000;
+		if( segment == CS )
+		{
+			if( !cpustate->performed_intersegment_jump )
+				cpustate->sreg[segment].base |= 0xfff00000;
+			if(cpustate->cpu_version < 0x5000)
+				cpustate->sreg[segment].flags = 0x93;
+		}
 	}
 }
 
@@ -1597,7 +1602,8 @@ void I386_OPS_BASE::i386_protected_mode_call( UINT16 seg, UINT32 off, int indire
 		}
 		if (operand32 != 0)  // if 32-bit
 		{
-			if(i386_limit_check(SS, REG32(ESP) - 8))
+			UINT32 offset = (STACK_32BIT ? REG32(ESP) - 8 : (REG16(SP) - 8) & 0xffff);
+			if(i386_limit_check(SS, offset))
 			{
 				logerror("CALL (%08x): Stack has no room for return address.\n",cpustate->pc);
 				FAULT(FAULT_SS,0)  // #SS(0)
@@ -1605,7 +1611,8 @@ void I386_OPS_BASE::i386_protected_mode_call( UINT16 seg, UINT32 off, int indire
 		}
 		else
 		{
-			if(i386_limit_check(SS, (REG16(SP) - 4) & 0xffff))
+			UINT32 offset = (STACK_32BIT ? REG32(ESP) - 4 : (REG16(SP) - 4) & 0xffff);
+			if(i386_limit_check(SS, offset))
 			{
 				logerror("CALL (%08x): Stack has no room for return address.\n",cpustate->pc);
 				FAULT(FAULT_SS,0)  // #SS(0)
@@ -1855,7 +1862,8 @@ void I386_OPS_BASE::i386_protected_mode_call( UINT16 seg, UINT32 off, int indire
 					/* same privilege */
 					if (operand32 != 0)  // if 32-bit
 					{
-						if(i386_limit_check(SS, REG32(ESP) - 8))
+						UINT32 stkoff = (STACK_32BIT ? REG32(ESP) - 8 : (REG16(SP) - 8) & 0xffff);
+						if(i386_limit_check(SS, stkoff))
 						{
 							logerror("CALL: Stack has no room for return address.\n");
 							FAULT(FAULT_SS,0) // #SS(0)
@@ -1865,7 +1873,8 @@ void I386_OPS_BASE::i386_protected_mode_call( UINT16 seg, UINT32 off, int indire
 					}
 					else
 					{
-						if(i386_limit_check(SS, (REG16(SP) - 4) & 0xffff))
+						UINT32 stkoff = (STACK_32BIT ? REG32(ESP) - 4 : (REG16(SP) - 4) & 0xffff);
+						if(i386_limit_check(SS, stkoff))
 						{
 							logerror("CALL: Stack has no room for return address.\n");
 							FAULT(FAULT_SS,0) // #SS(0)
@@ -2082,7 +2091,7 @@ void I386_OPS_BASE::i386_protected_mode_retf(UINT8 count, UINT8 operand32)
 				FAULT(FAULT_SS,0)
 			}
 		}
-		if(operand32 == 0)
+		if(STACK_32BIT)
 			REG16(SP) += (4+count);
 		else
 			REG32(ESP) += (8+count);
@@ -3147,12 +3156,12 @@ void I386_OPS_BASE::cpu_reset_i386(void)
 	cpustate->sreg[CS].selector = 0xf000;
 	cpustate->sreg[CS].base     = 0xffff0000;
 	cpustate->sreg[CS].limit    = 0xffff;
-	cpustate->sreg[CS].flags    = 0x9b;
+	cpustate->sreg[CS].flags    = 0x93;
 	cpustate->sreg[CS].valid    = true;
 
 	cpustate->sreg[DS].base = cpustate->sreg[ES].base = cpustate->sreg[FS].base = cpustate->sreg[GS].base = cpustate->sreg[SS].base = 0x00000000;
 	cpustate->sreg[DS].limit = cpustate->sreg[ES].limit = cpustate->sreg[FS].limit = cpustate->sreg[GS].limit = cpustate->sreg[SS].limit = 0xffff;
-	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0092;
+	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0093;
 	cpustate->sreg[DS].valid = cpustate->sreg[ES].valid = cpustate->sreg[FS].valid = cpustate->sreg[GS].valid = cpustate->sreg[SS].valid =true;
 
 	cpustate->idtr.base = 0;
@@ -3260,7 +3269,7 @@ void I386_OPS_BASE::pentium_smi()
 	cpustate->sreg[CS].selector = 0x3000; // pentium only, ppro sel = smbase >> 4
 	cpustate->sreg[CS].base = cpustate->smbase;
 	cpustate->sreg[CS].limit = 0xffffffff;
-	cpustate->sreg[CS].flags = 0x809b;
+	cpustate->sreg[CS].flags = 0x8093;
 	cpustate->sreg[CS].valid = true;
 	cpustate->cr[4] = 0;
 	cpustate->dr[7] = 0x400;
@@ -3452,11 +3461,11 @@ void I386_OPS_BASE::cpu_reset_i486(void)
 	cpustate->sreg[CS].selector = 0xf000;
 	cpustate->sreg[CS].base     = 0xffff0000;
 	cpustate->sreg[CS].limit    = 0xffff;
-	cpustate->sreg[CS].flags    = 0x009b;
+	cpustate->sreg[CS].flags    = 0x0093;
 
 	cpustate->sreg[DS].base = cpustate->sreg[ES].base = cpustate->sreg[FS].base = cpustate->sreg[GS].base = cpustate->sreg[SS].base = 0x00000000;
 	cpustate->sreg[DS].limit = cpustate->sreg[ES].limit = cpustate->sreg[FS].limit = cpustate->sreg[GS].limit = cpustate->sreg[SS].limit = 0xffff;
-	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0092;
+	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0093;
 
 	cpustate->idtr.base = 0;
 	cpustate->idtr.limit = 0x3ff;
@@ -3507,11 +3516,11 @@ void I386_OPS_BASE::cpu_reset_pentium(void)
 	cpustate->sreg[CS].selector = 0xf000;
 	cpustate->sreg[CS].base     = 0xffff0000;
 	cpustate->sreg[CS].limit    = 0xffff;
-	cpustate->sreg[CS].flags    = 0x009b;
+	cpustate->sreg[CS].flags    = 0x0093;
 
 	cpustate->sreg[DS].base = cpustate->sreg[ES].base = cpustate->sreg[FS].base = cpustate->sreg[GS].base = cpustate->sreg[SS].base = 0x00000000;
 	cpustate->sreg[DS].limit = cpustate->sreg[ES].limit = cpustate->sreg[FS].limit = cpustate->sreg[GS].limit = cpustate->sreg[SS].limit = 0xffff;
-	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0092;
+	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0093;
 
 	cpustate->idtr.base = 0;
 	cpustate->idtr.limit = 0x3ff;
@@ -3579,11 +3588,11 @@ void I386_OPS_BASE::cpu_reset_mediagx(void)
 	cpustate->sreg[CS].selector = 0xf000;
 	cpustate->sreg[CS].base     = 0xffff0000;
 	cpustate->sreg[CS].limit    = 0xffff;
-	cpustate->sreg[CS].flags    = 0x009b;
+	cpustate->sreg[CS].flags    = 0x0093;
 
 	cpustate->sreg[DS].base = cpustate->sreg[ES].base = cpustate->sreg[FS].base = cpustate->sreg[GS].base = cpustate->sreg[SS].base = 0x00000000;
 	cpustate->sreg[DS].limit = cpustate->sreg[ES].limit = cpustate->sreg[FS].limit = cpustate->sreg[GS].limit = cpustate->sreg[SS].limit = 0xffff;
-	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0092;
+	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0093;
 
 	cpustate->idtr.base = 0;
 	cpustate->idtr.limit = 0x3ff;
@@ -3643,11 +3652,11 @@ void I386_OPS_BASE::cpu_reset_pentium_pro(void)
 	cpustate->sreg[CS].selector = 0xf000;
 	cpustate->sreg[CS].base     = 0xffff0000;
 	cpustate->sreg[CS].limit    = 0xffff;
-	cpustate->sreg[CS].flags    = 0x009b;
+	cpustate->sreg[CS].flags    = 0x0093;
 
 	cpustate->sreg[DS].base = cpustate->sreg[ES].base = cpustate->sreg[FS].base = cpustate->sreg[GS].base = cpustate->sreg[SS].base = 0x00000000;
 	cpustate->sreg[DS].limit = cpustate->sreg[ES].limit = cpustate->sreg[FS].limit = cpustate->sreg[GS].limit = cpustate->sreg[SS].limit = 0xffff;
-	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0092;
+	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0093;
 
 	cpustate->idtr.base = 0;
 	cpustate->idtr.limit = 0x3ff;
@@ -3716,11 +3725,11 @@ void I386_OPS_BASE::cpu_reset_pentium_mmx(void)
 	cpustate->sreg[CS].selector = 0xf000;
 	cpustate->sreg[CS].base     = 0xffff0000;
 	cpustate->sreg[CS].limit    = 0xffff;
-	cpustate->sreg[CS].flags    = 0x009b;
+	cpustate->sreg[CS].flags    = 0x0093;
 
 	cpustate->sreg[DS].base = cpustate->sreg[ES].base = cpustate->sreg[FS].base = cpustate->sreg[GS].base = cpustate->sreg[SS].base = 0x00000000;
 	cpustate->sreg[DS].limit = cpustate->sreg[ES].limit = cpustate->sreg[FS].limit = cpustate->sreg[GS].limit = cpustate->sreg[SS].limit = 0xffff;
-	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0092;
+	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0093;
 
 	cpustate->idtr.base = 0;
 	cpustate->idtr.limit = 0x3ff;
@@ -3788,11 +3797,11 @@ void I386_OPS_BASE::cpu_reset_pentium2(void)
 	cpustate->sreg[CS].selector = 0xf000;
 	cpustate->sreg[CS].base     = 0xffff0000;
 	cpustate->sreg[CS].limit    = 0xffff;
-	cpustate->sreg[CS].flags    = 0x009b;
+	cpustate->sreg[CS].flags    = 0x0093;
 
 	cpustate->sreg[DS].base = cpustate->sreg[ES].base = cpustate->sreg[FS].base = cpustate->sreg[GS].base = cpustate->sreg[SS].base = 0x00000000;
 	cpustate->sreg[DS].limit = cpustate->sreg[ES].limit = cpustate->sreg[FS].limit = cpustate->sreg[GS].limit = cpustate->sreg[SS].limit = 0xffff;
-	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0092;
+	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0093;
 
 	cpustate->idtr.base = 0;
 	cpustate->idtr.limit = 0x3ff;
@@ -3854,11 +3863,11 @@ void I386_OPS_BASE::cpu_reset_pentium3(void)
 	cpustate->sreg[CS].selector = 0xf000;
 	cpustate->sreg[CS].base     = 0xffff0000;
 	cpustate->sreg[CS].limit    = 0xffff;
-	cpustate->sreg[CS].flags    = 0x009b;
+	cpustate->sreg[CS].flags    = 0x0093;
 
 	cpustate->sreg[DS].base = cpustate->sreg[ES].base = cpustate->sreg[FS].base = cpustate->sreg[GS].base = cpustate->sreg[SS].base = 0x00000000;
 	cpustate->sreg[DS].limit = cpustate->sreg[ES].limit = cpustate->sreg[FS].limit = cpustate->sreg[GS].limit = cpustate->sreg[SS].limit = 0xffff;
-	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0092;
+	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0093;
 
 	cpustate->idtr.base = 0;
 	cpustate->idtr.limit = 0x3ff;

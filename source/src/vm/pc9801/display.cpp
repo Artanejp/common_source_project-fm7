@@ -6,6 +6,7 @@
 	NEC PC-9801VM Emulator 'ePC-9801VM'
 	NEC PC-9801VX Emulator 'ePC-9801VX'
 	NEC PC-9801RA Emulator 'ePC-9801RA'
+	NEC PC-98XL Emulator 'ePC-98XL'
 	NEC PC-98RL Emulator 'ePC-98RL'
 	NEC PC-98DO Emulator 'ePC-98DO'
 
@@ -185,6 +186,14 @@ void DISPLAY::initialize()
 			fio->Fread(pattern, 48, 1);
 			ank_copy(code, pattern);
 		}
+#if 1
+		for(int first = 0x21; first <= 0x7c; first++) {
+			for(int second = 0x21; second <= 0x7e; second++) {
+				fio->Fread(pattern, 72, 1);
+				kanji_copy(first, second, pattern);
+			}
+		}
+#else
 		for(int first = 0x21; first <= 0x27; first++) {
 			for(int second = 0x21; second <= 0x7e; second++) {
 				fio->Fread(pattern, 72, 1);
@@ -203,6 +212,7 @@ void DISPLAY::initialize()
 				kanji_copy(first, second, pattern);
 			}
 		}
+#endif
 		memcpy(font + ANK_FONT_OFS + FONT_SIZE * 0x100, font + ANK_FONT_OFS, FONT_SIZE * 0x100);
 		memcpy(font + ANK_FONT_OFS + FONT_SIZE * 0x200, font + ANK_FONT_OFS, FONT_SIZE * 0x100);
 		memcpy(font + ANK_FONT_OFS + FONT_SIZE * 0x300, font + ANK_FONT_OFS, FONT_SIZE * 0x100);
@@ -224,14 +234,11 @@ void DISPLAY::initialize()
 	anapal_sel = 0;
 #endif
 	
-	memset(tvram, 0, sizeof(tvram));
+//	memset(tvram, 0, sizeof(tvram));
 	memset(vram, 0, sizeof(vram));
 	
 	for(int i = 0; i < 16; i++) {
 		tvram[0x3fe0 + (i << 1)] = memsw_default[i];
-	}
-	if(sound_bios_ok) {
-		tvram[0x3fee] = 8;
 	}
 #ifndef HAS_UPD4990A
 	cur_time_t cur_time;

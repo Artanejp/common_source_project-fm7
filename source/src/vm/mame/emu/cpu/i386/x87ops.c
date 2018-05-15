@@ -16,6 +16,11 @@
      - Remove redundant operand checks
      - Exceptions
 
+   Corrections and Additions [8-December-2017 Andrey Merkulov)
+     FXAM, FPREM - fixed
+     FINCSTP, FDECSTP - tags and exceptions corrected
+     FENI, FDISI opcodes added
+
 ***************************************************************************/
 
 #include <math.h>
@@ -49,6 +54,7 @@
 #define X87_CW_OM               0x0008
 #define X87_CW_UM               0x0010
 #define X87_CW_PM               0x0020
+#define X87_CW_IEM              0x0080
 #define X87_CW_PC_SHIFT         8
 #define X87_CW_PC_MASK          3
 #define X87_CW_PC_SINGLE        0
@@ -309,6 +315,9 @@ int x87_check_exceptions(i386_state *cpustate)
 	{
 		// cpustate->device->execute().set_input_line(INPUT_LINE_FERR, RAISE_LINE);
 		logerror("Unmasked x87 exception (CW:%.4x, SW:%.4x)\n", cpustate->x87_cw, cpustate->x87_sw);
+		// interrupt handler
+		if (!(cpustate->x87_cw & X87_CW_IEM)) { cpustate->x87_sw |= X87_SW_ES; /*ferr_handler(cpustate, 1);*/ }
+
 		if (cpustate->cr[0] & 0x20) // FIXME: 486 and up only
 		{
 			cpustate->ext = 1;
@@ -339,6 +348,8 @@ void x87_reset(i386_state *cpustate)
 	cpustate->x87_data_ptr = 0;
 	cpustate->x87_inst_ptr = 0;
 	cpustate->x87_opcode = 0;
+
+//	ferr_handler(cpustate, 0);
 }
 
 
@@ -2174,7 +2185,7 @@ void x87_fcmovnu_sti(i386_state *cpustate, UINT8 modrm)
  * Miscellaneous arithmetic
  *
  *************************************/
-
+/* D9 F8 */
 void x87_fprem(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
@@ -2186,19 +2197,22 @@ void x87_fprem(i386_state *cpustate, UINT8 modrm)
 	}
 	else
 	{
-		floatx80 a0 = ST(0);
-		floatx80 b1 = ST(1);
+		floatx80 a0 = ST(0);   // dividend
+		floatx80 b1 = ST(1);   // divider
 
+		floatx80 a0_abs = packFloatx80(0, (a0.high & 0x7FFF), a0.low);
+		floatx80 b1_abs = packFloatx80(0, (b1.high & 0x7FFF), b1.low);
 		cpustate->x87_sw &= ~X87_SW_C2;
 
 		//int d=extractFloatx80Exp(a0)-extractFloatx80Exp(b1);
 		int d = (a0.high & 0x7FFF) - (b1.high & 0x7FFF);
 		if (d < 64) {
-			floatx80 t=floatx80_div(a0, b1);
+			floatx80 t=floatx80_div(a0_abs, b1_abs);
 			int64 q = floatx80_to_int64_round_to_zero(t);
 			floatx80 qf = int64_to_floatx80(q);
-			floatx80 tt = floatx80_mul(b1, qf);
-			result = floatx80_sub(a0, tt);
+			floatx80 tt = floatx80_mul(b1_abs, qf);
+			result = floatx80_sub(a0_abs, tt);
+			result.high |= a0.high & 0x8000;
 			// C2 already 0
 			cpustate->x87_sw &= ~(X87_SW_C0|X87_SW_C3|X87_SW_C1);
 			if (q & 1)
@@ -2382,7 +2396,7 @@ void x87_fyl2xp1(i386_state *cpustate, UINT8 modrm)
 
 	CYCLES(cpustate, 313);
 }
-
+/* D9 F2 if 8087   0 < angle < pi/4 */
 void x87_fptan(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result1, result2;
@@ -2404,7 +2418,7 @@ void x87_fptan(i386_state *cpustate, UINT8 modrm)
 		result1 = ST(0);
 		result2 = fx80_one;
 
-#if 0 // TODO: Function produces bad values
+#if 1 // TODO: Function produces bad values
 		if (floatx80_ftan(result1) != -1)
 			cpustate->x87_sw &= ~X87_SW_C2;
 		else
@@ -2427,7 +2441,7 @@ void x87_fptan(i386_state *cpustate, UINT8 modrm)
 
 	CYCLES(cpustate, 244);
 }
-
+/* D9 F3 */
 void x87_fpatan(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
@@ -2452,7 +2466,7 @@ void x87_fpatan(i386_state *cpustate, UINT8 modrm)
 
 	CYCLES(cpustate, 289);
 }
-
+/* D9 FE  387 only */
 void x87_fsin(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
@@ -2466,7 +2480,7 @@ void x87_fsin(i386_state *cpustate, UINT8 modrm)
 	{
 		result = ST(0);
 
-#if 0 // TODO: Function produces bad values
+#if 1 // TODO: Function produces bad values    Result checked
 		if (floatx80_fsin(result) != -1)
 			cpustate->x87_sw &= ~X87_SW_C2;
 		else
@@ -2485,7 +2499,7 @@ void x87_fsin(i386_state *cpustate, UINT8 modrm)
 
 	CYCLES(cpustate, 241);
 }
-
+/* D9 FF 387 only */
 void x87_fcos(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
@@ -2499,7 +2513,7 @@ void x87_fcos(i386_state *cpustate, UINT8 modrm)
 	{
 		result = ST(0);
 
-#if 0 // TODO: Function produces bad values
+#if 1 // TODO: Function produces bad values   to check!
 		if (floatx80_fcos(result) != -1)
 			cpustate->x87_sw &= ~X87_SW_C2;
 		else
@@ -2518,7 +2532,7 @@ void x87_fcos(i386_state *cpustate, UINT8 modrm)
 
 	CYCLES(cpustate, 241);
 }
-
+/* D9 FB  387 only */
 void x87_fsincos(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 s_result, c_result;
@@ -3610,7 +3624,7 @@ void x87_fxam(i386_state *cpustate, UINT8 modrm)
 	{
 		cpustate->x87_sw |= X87_SW_C3;
 	}
-	if (floatx80_is_nan(value))
+	else if (floatx80_is_nan(value))
 	{
 		cpustate->x87_sw |= X87_SW_C0;
 	}
@@ -4366,8 +4380,7 @@ void x87_fdecstp(i386_state *cpustate, UINT8 modrm)
 {
 	cpustate->x87_sw &= ~X87_SW_C1;
 
-	x87_dec_stack(cpustate);
-	x87_check_exceptions(cpustate);
+	x87_set_stack_top(cpustate, ST_TO_PHYS(7));
 
 	CYCLES(cpustate, 3);
 }
@@ -4376,8 +4389,7 @@ void x87_fincstp(i386_state *cpustate, UINT8 modrm)
 {
 	cpustate->x87_sw &= ~X87_SW_C1;
 
-	x87_inc_stack(cpustate);
-	x87_check_exceptions(cpustate);
+	x87_set_stack_top(cpustate, ST_TO_PHYS(1));
 
 	CYCLES(cpustate, 3);
 }
@@ -4385,8 +4397,23 @@ void x87_fincstp(i386_state *cpustate, UINT8 modrm)
 void x87_fclex(i386_state *cpustate, UINT8 modrm)
 {
 	cpustate->x87_sw &= ~0x80ff;
-
+//	ferr_handler(cpustate, 0);
 	CYCLES(cpustate, 7);
+}
+
+void x87_feni(i386_state *cpustate, UINT8 modrm)
+{
+	cpustate->x87_cw &= ~X87_CW_IEM;
+	x87_check_exceptions(cpustate);
+
+	CYCLES(cpustate, 5);
+}
+
+void x87_fdisi(i386_state *cpustate, UINT8 modrm)
+{
+	cpustate->x87_cw |= X87_CW_IEM;
+
+	CYCLES(cpustate, 5);
 }
 
 void x87_ffree(i386_state *cpustate, UINT8 modrm)
@@ -4493,6 +4520,7 @@ void x87_fstenv(i386_state *cpustate, UINT8 modrm)
 //          WRITE32(cpustate, ea + 24, cpustate->fpu_inst_ptr);
 			break;
 	}
+	cpustate->x87_cw |= 0x3f;   // set all masks
 
 	CYCLES(cpustate,(cpustate->cr[0] & 1) ? 56 : 67);
 }
@@ -4680,7 +4708,8 @@ void x87_fstsw_m2byte(i386_state *cpustate, UINT8 modrm)
 void x87_invalid(i386_state *cpustate, UINT8 modrm)
 {
 	// TODO
-	fatalerror("x87 invalid instruction (PC:%.4x)\n", cpustate->pc);
+	report_invalid_opcode(cpustate);
+	i386_trap(cpustate, 6, 0, 0);
 }
 
 
@@ -4932,8 +4961,8 @@ void build_x87_opcode_table_db(i386_state *cpustate)
 				case 0xc8: case 0xc9: case 0xca: case 0xcb: case 0xcc: case 0xcd: case 0xce: case 0xcf: ptr = x87_fcmovne_sti;  break;
 				case 0xd0: case 0xd1: case 0xd2: case 0xd3: case 0xd4: case 0xd5: case 0xd6: case 0xd7: ptr = x87_fcmovnbe_sti; break;
 				case 0xd8: case 0xd9: case 0xda: case 0xdb: case 0xdc: case 0xdd: case 0xde: case 0xdf: ptr = x87_fcmovnu_sti;  break;
-				case 0xe0: ptr = x87_fnop;          break; /* FENI */
-				case 0xe1: ptr = x87_fnop;          break; /* FDISI */
+				case 0xe0: ptr = x87_feni;          break; /* FENI */
+				case 0xe1: ptr = x87_fdisi;         break; /* FDISI */
 				case 0xe2: ptr = x87_fclex;         break;
 				case 0xe3: ptr = x87_finit;         break;
 				case 0xe4: ptr = x87_fnop;          break; /* FSETPM */

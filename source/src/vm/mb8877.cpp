@@ -168,6 +168,7 @@ void MB8877::initialize()
 	} else {
 		_max_drive = 1;
 	}
+
 	_drive_mask = _max_drive - 1;
 	for(int i = 0; i < _max_drive; i++) {
 		disk[i] = new DISK(emu);
@@ -1050,6 +1051,7 @@ void MB8877::event_callback(int event_id, int err)
 // command
 // ----------------------------------------------------------------------------
 
+
 void MB8877::process_cmd()
 {
 	set_irq(false);
@@ -1131,15 +1133,12 @@ void MB8877::process_cmd()
 //#endif
 	
 	// MB8877 mode commands
-//#ifdef _FDC_DEBUG_LOG
-	static const _TCHAR *cmdstr[0x10] = {
-		_T("RESTORE "),	_T("SEEK    "),	_T("STEP    "),	_T("STEP    "),
-		_T("STEP IN "),	_T("STEP IN "),	_T("STEP OUT"),	_T("STEP OUT"),
-		_T("RD DATA "),	_T("RD DATA "),	_T("RD DATA "),	_T("WR DATA "),
-		_T("RD ADDR "),	_T("FORCEINT"),	_T("RD TRACK"),	_T("WR TRACK")
-	};
-	if(fdc_debug_log) this->out_debug_log(_T("FDC\tCMD=%2xh (%s) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, cmdstr[cmdreg >> 4], datareg, drvreg, trkreg, sidereg, secreg);
-//#endif
+	if(fdc_debug_log) {
+		_TCHAR tmps[512];
+		memset(tmps, 0x00, sizeof(tmps));
+		get_debug_regs_info(tmps, sizeof(tmps));
+		if(fdc_debug_log) this->out_debug_log(_T("%s"), tmps);
+	}
 	switch(cmdreg & 0xf8) {
 	// type-1
 	case 0x00: case 0x08:
@@ -1977,6 +1976,24 @@ void MB8877::update_config()
 	}
 	fdc_debug_log = config.special_debug_fdc;
 }
+
+//#ifdef USE_DEBUGGER
+static const _TCHAR *cmdstr[0x10] = {
+		_T("RESTORE "),	_T("SEEK    "),	_T("STEP    "),	_T("STEP    "),
+		_T("STEP IN "),	_T("STEP IN "),	_T("STEP OUT"),	_T("STEP OUT"),
+		_T("RD DATA "),	_T("RD DATA "),	_T("RD DATA "),	_T("WR DATA "),
+		_T("RD ADDR "),	_T("FORCEINT"),	_T("RD TRACK"),	_T("WR TRACK")
+};
+void MB8877::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+{
+	my_stprintf_s(buffer, buffer_len,
+	_T("CMDREG=%02X (%s) DATAREG=%02X DRVREG=%02X TRKREG=%02X SIDEREG=%d SECREG=%02X\nUNIT: DRIVE=%d TRACK=%2d SIDE=%d SECTORS=%2d C=%02X H=%02X R=%02X N=%02X LENGTH=%d"),
+	cmdreg, cmdstr[cmdreg >> 4], datareg, drvreg, trkreg, sidereg, secreg,
+	drvreg, fdc[drvreg].track, sidereg, disk[drvreg]->sector_num.sd,
+	disk[drvreg]->id[0], disk[drvreg]->id[1], disk[drvreg]->id[2], disk[drvreg]->id[3],
+	disk[drvreg]->sector_size.sd);
+}
+//#endif
 
 #define STATE_VERSION	7
 

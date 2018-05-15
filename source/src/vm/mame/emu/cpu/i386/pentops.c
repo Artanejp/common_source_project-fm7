@@ -160,7 +160,7 @@ static void PENTIUMOP(rsm)(i386_state* cpustate)
 	REG32(ESI) = READ32(cpustate,smram_state+SMRAM_ESI);
 	REG32(EDI) = READ32(cpustate,smram_state+SMRAM_EDI);
 	cpustate->eip = READ32(cpustate,smram_state+SMRAM_EIP);
-	cpustate->eflags = READ32(cpustate,smram_state+SMRAM_EAX);
+	cpustate->eflags = READ32(cpustate,smram_state+SMRAM_EFLAGS);
 	cpustate->cr[3] = READ32(cpustate,smram_state+SMRAM_CR3);
 	cpustate->cr[0] = READ32(cpustate,smram_state+SMRAM_CR0);
 

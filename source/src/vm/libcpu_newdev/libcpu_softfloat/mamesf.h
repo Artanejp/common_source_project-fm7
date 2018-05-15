@@ -1,6 +1,5 @@
 #pragma once
 
-
 /*----------------------------------------------------------------------------
 | One of the macros `BIGENDIAN' or `LITTLEENDIAN' must be defined.
 *----------------------------------------------------------------------------*/
@@ -25,65 +24,6 @@
 | to the same as `int'.
 *----------------------------------------------------------------------------*/
 //#include "emu.h"
-#define INLINE inline
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-#ifndef _WIN32
-	#ifndef BOOL
-		typedef int BOOL;
-	#endif
-	#ifndef TRUE
-		#define TRUE 1
-	#endif
-	#ifndef FALSE
-		#define FALSE 0
-	#endif
-	#ifndef BYTE
-		typedef uint8_t BYTE;
-	#endif
-	#ifndef WORD
-		typedef uint16_t WORD;
-	#endif
-	#ifndef DWORD
-		typedef uint32_t DWORD;
-	#endif
-	#ifndef QWORD
-		typedef uint64_t QWORD;
-	#endif
-	#ifndef INT8
-		typedef int8_t INT8;
-	#endif
-	#ifndef INT16
-		typedef int16_t INT16;
-	#endif
-	#ifndef INT32
-		typedef int32_t INT32;
-	#endif
-	#ifndef INT64
-		typedef int64_t INT64;
-	#endif
-	#ifndef UINT8
-		typedef uint8_t UINT8;
-	#endif
-	#ifndef UINT16
-		typedef uint16_t UINT16;
-	#endif
-	#ifndef UINT32
-		typedef uint32_t UINT32;
-	#endif
-	#ifndef UINT64
-		typedef uint64_t UINT64;
-	#endif
-	#ifndef INT
-		typedef int INT;
-	#endif
-	#ifndef UINT
-		typedef unsigned int UINT;
-	#endif
-#endif
 
 typedef INT8 flag;
 typedef UINT8 uint8;

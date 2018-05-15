@@ -240,6 +240,55 @@ void UPD765A::reset()
 	set_drq(false);
 }
 
+static const char* get_command_name(uint8_t data)
+{
+	static char name[16];
+	
+	switch(data & 0x1f) {
+	case 0x02:
+		my_sprintf_s(name, 16, _T("RD DIAGNOSTIC"));
+		break;
+	case 0x03:
+		my_sprintf_s(name, 16, _T("SPECIFY      "));
+		break;
+	case 0x04:
+		my_sprintf_s(name, 16, _T("SENCE DEVSTAT"));
+		break;
+	case 0x05:
+	case 0x09:
+		my_sprintf_s(name, 16, _T("WRITE DATA   "));
+		break;
+	case 0x06:
+	case 0x0c:
+		my_sprintf_s(name, 16, _T("READ DATA    "));
+		break;
+	case 0x07:
+		my_sprintf_s(name, 16, _T("RECALIB      "));
+		break;
+	case 0x08:
+		my_sprintf_s(name, 16, _T("SENCE INTSTAT"));
+		break;
+	case 0x0a:
+		my_sprintf_s(name, 16, _T("READ ID      "));
+		break;
+	case 0x0d:
+		my_sprintf_s(name, 16, _T("WRITE ID     "));
+		break;
+	case 0x0f:
+		my_sprintf_s(name, 16, _T("SEEK         "));
+		break;
+	case 0x11:
+	case 0x19:
+	case 0x1d:
+		my_sprintf_s(name, 16, _T("SCAN         "));
+		break;
+	default:
+		my_sprintf_s(name, 16, _T("INVALID      "));
+		break;
+	}
+	return name;
+}
+
 void UPD765A::write_io8(uint32_t addr, uint32_t data)
 {
 	if(addr & 1) {
@@ -251,48 +300,7 @@ void UPD765A::write_io8(uint32_t addr, uint32_t data)
 			case PHASE_IDLE:
 //#ifdef _FDC_DEBUG_LOG
 				if(_fdc_debug_log) {
-					switch(data & 0x1f) {
-					case 0x02:
-						this->out_debug_log(_T("FDC: CMD=%2x READ DIAGNOSTIC\n"), data);
-						break;
-					case 0x03:
-						this->out_debug_log(_T("FDC: CMD=%2x SPECIFY\n"), data);
-						break;
-					case 0x04:
-						this->out_debug_log(_T("FDC: CMD=%2x SENCE DEVSTAT\n"), data);
-						break;
-					case 0x05:
-					case 0x09:
-						this->out_debug_log(_T("FDC: CMD=%2x WRITE DATA\n"), data);
-						break;
-					case 0x06:
-					case 0x0c:
-						this->out_debug_log(_T("FDC: CMD=%2x READ DATA\n"), data);
-						break;
-					case 0x07:
-						this->out_debug_log(_T("FDC: CMD=%2x RECALIB\n"), data);
-						break;
-					case 0x08:
-						this->out_debug_log(_T("FDC: CMD=%2x SENCE INTSTAT\n"), data);
-						break;
-					case 0x0a:
-						this->out_debug_log(_T("FDC: CMD=%2x READ ID\n"), data);
-						break;
-					case 0x0d:
-						this->out_debug_log(_T("FDC: CMD=%2x WRITE ID\n"), data);
-						break;
-					case 0x0f:
-						this->out_debug_log(_T("FDC: CMD=%2x SEEK\n"), data);
-						break;
-					case 0x11:
-					case 0x19:
-					case 0x1d:
-						this->out_debug_log(_T("FDC: CMD=%2x SCAN\n"), data);
-						break;
-					default:
-						this->out_debug_log(_T("FDC: CMD=%2x INVALID\n"), data);
-						break;
-					}
+					this->out_debug_log(_T("FDC: CMD=%2x %s\n"), data, get_command_name(data));
 				}
 //#endif
 				command = data;
@@ -1066,7 +1074,14 @@ void UPD765A::read_diagnostic()
 		return;
 	}
 	if(!disk[drv]->make_track(trk, side)) {
-		result = ST1_ND;
+//		result = ST1_ND;
+		result = ST0_AT | ST1_MA;
+		shift_to_result7();
+		return;
+	}
+	if((command & 0x40) != (disk[drv]->track_mfm ? 0x40 : 0)) {
+//		result = ST1_ND;
+		result = ST0_AT | ST1_MA;
 		shift_to_result7();
 		return;
 	}
@@ -1101,6 +1116,9 @@ uint32_t UPD765A::read_sector()
 //#ifdef _FDC_DEBUG_LOG
 		if(_fdc_debug_log) this->out_debug_log(_T("FDC: TRACK NOT FOUND (TRK=%d SIDE=%d)\n"), trk, side);
 //#endif
+		return ST0_AT | ST1_MA;
+	}
+	if((command & 0x40) != (disk[drv]->track_mfm ? 0x40 : 0)) {
 		return ST0_AT | ST1_MA;
 	}
 	int secnum = disk[drv]->sector_num.sd;
@@ -1213,6 +1231,9 @@ uint32_t UPD765A::find_id()
 	
 	// get sector counts in the current track
 	if(!disk[drv]->get_track(trk, side)) {
+		return ST0_AT | ST1_MA;
+	}
+	if((command & 0x40) != (disk[drv]->track_mfm ? 0x40 : 0)) {
 		return ST0_AT | ST1_MA;
 	}
 	int secnum = disk[drv]->sector_num.sd;
@@ -1377,6 +1398,9 @@ uint32_t UPD765A::read_id()
 	if(!disk[drv]->get_track(trk, side)) {
 		return ST0_AT | ST1_MA;
 	}
+	if((command & 0x40) != (disk[drv]->track_mfm ? 0x40 : 0)) {
+		return ST0_AT | ST1_MA;
+	}
 	int secnum = disk[drv]->sector_num.sd;
 	if(!secnum) {
 		return ST0_AT | ST1_MA;
@@ -1422,6 +1446,8 @@ uint32_t UPD765A::write_id()
 	}
 	
 	disk[drv]->format_track(trk, side);
+	disk[drv]->track_mfm = ((command & 0x40) != 0);
+	
 	for(int i = 0; i < eot && i < 256; i++) {
 		for(int j = 0; j < 4; j++) {
 			id[j] = buffer[4 * i + j];
@@ -1659,7 +1685,7 @@ void UPD765A::open_disk(int drv, const _TCHAR* file_path, int bank)
 			if(_fdc_debug_log) this->out_debug_log(_T("FDC: Disk Changed (Drive=%d)\n"), drv);
 //#endif
 			if(raise_irq_when_media_changed) {
-				fdc[drv].result = (drv & DRIVE_MASK) | ST0_AI;
+				fdc[drv].result = (drv & DRIVE_MASK) | ST0_AI | ST0_NR;
 				set_irq(true);
 			}
 		}
@@ -1777,6 +1803,21 @@ void UPD765A::update_config()
 	}
 	_fdc_debug_log = config.special_debug_fdc;
 }
+
+//#ifdef USE_DEBUGGER
+void UPD765A::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+{
+	int drv = hdu & DRIVE_MASK;
+	int side = (hdu >> 2) & 1;
+	
+	my_stprintf_s(buffer, buffer_len,
+	_T("CMD=%02X (%s) HDU=%02X C=%02X H=%02X R=%02X N=%02X EOT=%02X GPL=%02X DTL=%02X\nUNIT: DRIVE=%d TRACK=%2d(%2d) SIDE=%d SECTORS=%2d C=%02X H=%02X R=%02X N=%02X LENGTH=%d"),
+	command, get_command_name(command), hdu,id[0], id[1], id[2], id[3], eot, gpl, dtl,
+	drv, fdc[drv].track, fdc[drv].cur_track, side, disk[drv]->sector_num.sd,
+	disk[drv]->id[0], disk[drv]->id[1], disk[drv]->id[2], disk[drv]->id[3],
+	disk[drv]->sector_size.sd);
+}
+//#endif
 
 #define STATE_VERSION	2
 

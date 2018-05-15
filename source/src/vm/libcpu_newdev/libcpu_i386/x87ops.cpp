@@ -25,8 +25,8 @@
 #include "../libcpu_softfloat/mamesf.h"
 #include "../libcpu_softfloat/milieu.h"
 #include "../libcpu_softfloat/softfloat.h"
-#include "../libcpu_softfloat/fsincos.c"
 #include "../libcpu_softfloat/fyl2x.c"
+#include "../libcpu_softfloat/fsincos.c"
 #include "../libcpu_softfloat/softfloat.c"
 
 //};
@@ -155,6 +155,9 @@ int I386_OPS_BASE::x87_check_exceptions()
 	{
 		// cpustate->device->execute().set_input_line(INPUT_LINE_FERR, RAISE_LINE);
 		logerror("Unmasked x87 exception (CW:%.4x, SW:%.4x)\n", cpustate->x87_cw, cpustate->x87_sw);
+		// interrupt handler
+		if (!(cpustate->x87_cw & X87_CW_IEM)) { cpustate->x87_sw |= X87_SW_ES; /*ferr_handler(cpustate, 1);*/ }
+
 		if (cpustate->cr[0] & 0x20) // FIXME: 486 and up only
 		{
 			cpustate->ext = 1;
@@ -177,6 +180,8 @@ void I386_OPS_BASE::x87_reset()
 	cpustate->x87_data_ptr = 0;
 	cpustate->x87_inst_ptr = 0;
 	cpustate->x87_opcode = 0;
+
+//	ferr_handler(cpustate, 0);
 }
 
 
@@ -2013,6 +2018,7 @@ void I386_OPS_BASE::x87_fcmovnu_sti( UINT8 modrm)
  *
  *************************************/
 
+/* D9 F8 */
 void I386_OPS_BASE::x87_fprem( UINT8 modrm)
 {
 	floatx80 result;
@@ -2024,19 +2030,22 @@ void I386_OPS_BASE::x87_fprem( UINT8 modrm)
 	}
 	else
 	{
-		floatx80 a0 = ST(0);
-		floatx80 b1 = ST(1);
-
+		floatx80 a0 = ST(0);   // dividend
+		floatx80 b1 = ST(1);   // divider
+ 
+		floatx80 a0_abs = packFloatx80(0, (a0.high & 0x7FFF), a0.low);
+		floatx80 b1_abs = packFloatx80(0, (b1.high & 0x7FFF), b1.low);
 		cpustate->x87_sw &= ~X87_SW_C2;
 
 		//int d=extractFloatx80Exp(a0)-extractFloatx80Exp(b1);
 		int d = (a0.high & 0x7FFF) - (b1.high & 0x7FFF);
 		if (d < 64) {
-			floatx80 t=floatx80_div(a0, b1);
+			floatx80 t=floatx80_div(a0_abs, b1_abs);
 			int64 q = floatx80_to_int64_round_to_zero(t);
 			floatx80 qf = int64_to_floatx80(q);
-			floatx80 tt = floatx80_mul(b1, qf);
-			result = floatx80_sub(a0, tt);
+			floatx80 tt = floatx80_mul(b1_abs, qf);
+			result = floatx80_sub(a0_abs, tt);
+			result.high |= a0.high & 0x8000;
 			// C2 already 0
 			cpustate->x87_sw &= ~(X87_SW_C0|X87_SW_C3|X87_SW_C1);
 			if (q & 1)
@@ -2221,6 +2230,7 @@ void I386_OPS_BASE::x87_fyl2xp1( UINT8 modrm)
 	CYCLES( 313);
 }
 
+/* D9 F2 if 8087   0 < angle < pi/4 */
 void I386_OPS_BASE::x87_fptan( UINT8 modrm)
 {
 	floatx80 result1, result2;
@@ -2242,7 +2252,7 @@ void I386_OPS_BASE::x87_fptan( UINT8 modrm)
 		result1 = ST(0);
 		result2 = fx80_one;
 
-#if 0 // TODO: Function produces bad values
+#if 1 // TODO: Function produces bad values
 		if (floatx80_ftan(result1) != -1)
 			cpustate->x87_sw &= ~X87_SW_C2;
 		else
@@ -2266,6 +2276,7 @@ void I386_OPS_BASE::x87_fptan( UINT8 modrm)
 	CYCLES( 244);
 }
 
+/* D9 F3 */
 void I386_OPS_BASE::x87_fpatan( UINT8 modrm)
 {
 	floatx80 result;
@@ -2291,6 +2302,7 @@ void I386_OPS_BASE::x87_fpatan( UINT8 modrm)
 	CYCLES( 289);
 }
 
+/* D9 FE  387 only */
 void I386_OPS_BASE::x87_fsin( UINT8 modrm)
 {
 	floatx80 result;
@@ -2304,7 +2316,7 @@ void I386_OPS_BASE::x87_fsin( UINT8 modrm)
 	{
 		result = ST(0);
 
-#if 0 // TODO: Function produces bad values
+#if 1 // TODO: Function produces bad values    Result checked
 		if (floatx80_fsin(result) != -1)
 			cpustate->x87_sw &= ~X87_SW_C2;
 		else
@@ -2337,7 +2349,7 @@ void I386_OPS_BASE::x87_fcos( UINT8 modrm)
 	{
 		result = ST(0);
 
-#if 0 // TODO: Function produces bad values
+#if 1 // TODO: Function produces bad values   to check!
 		if (floatx80_fcos(result) != -1)
 			cpustate->x87_sw &= ~X87_SW_C2;
 		else
@@ -2360,6 +2372,8 @@ void I386_OPS_BASE::x87_fcos( UINT8 modrm)
 extern "C" {
 	//extern int sf_fsincos(floatx80 a, floatx80 *sin_a, floatx80 *cos_a);
 }
+
+/* D9 FB  387 only */
 void I386_OPS_BASE::x87_fsincos( UINT8 modrm)
 {
 	floatx80 s_result, c_result;
@@ -3450,7 +3464,7 @@ void I386_OPS_BASE::x87_fxam( UINT8 modrm)
 	{
 		cpustate->x87_sw |= X87_SW_C3;
 	}
-	if (floatx80_is_nan(value))
+	else if (floatx80_is_nan(value))
 	{
 		cpustate->x87_sw |= X87_SW_C0;
 	}
@@ -4206,8 +4220,7 @@ void I386_OPS_BASE::x87_fdecstp( UINT8 modrm)
 {
 	cpustate->x87_sw &= ~X87_SW_C1;
 
-	x87_dec_stack();
-	x87_check_exceptions();
+	x87_set_stack_top(ST_TO_PHYS(7));
 
 	CYCLES( 3);
 }
@@ -4216,8 +4229,7 @@ void I386_OPS_BASE::x87_fincstp( UINT8 modrm)
 {
 	cpustate->x87_sw &= ~X87_SW_C1;
 
-	x87_inc_stack();
-	x87_check_exceptions();
+	x87_set_stack_top(ST_TO_PHYS(1));
 
 	CYCLES( 3);
 }
@@ -4226,8 +4238,25 @@ void I386_OPS_BASE::x87_fclex( UINT8 modrm)
 {
 	cpustate->x87_sw &= ~0x80ff;
 
+//	ferr_handler(cpustate, 0);
 	CYCLES( 7);
 }
+
+void I386_OPS_BASE::x87_feni(UINT8 modrm)
+{
+	cpustate->x87_cw &= ~X87_CW_IEM;
+	x87_check_exceptions();
+
+	CYCLES(5);
+}
+
+void I386_OPS_BASE::x87_fdisi( UINT8 modrm)
+{
+	cpustate->x87_cw |= X87_CW_IEM;
+
+	CYCLES(5);
+}
+
 
 void I386_OPS_BASE::x87_ffree( UINT8 modrm)
 {
@@ -4333,6 +4362,7 @@ void I386_OPS_BASE::x87_fstenv( UINT8 modrm)
 //          WRITE32( ea + 24, cpustate->fpu_inst_ptr);
 			break;
 	}
+	cpustate->x87_cw |= 0x3f;   // set all masks
 
 	CYCLES((cpustate->cr[0] & 1) ? 56 : 67);
 }
@@ -4520,7 +4550,8 @@ void I386_OPS_BASE::x87_fstsw_m2byte( UINT8 modrm)
 void I386_OPS_BASE::x87_invalid( UINT8 modrm)
 {
 	// TODO
-	fatalerror("x87 invalid instruction (PC:%.4x)\n", cpustate->pc);
+	report_invalid_opcode();
+	i386_trap(6, 0, 0);
 }
 
 
@@ -4772,8 +4803,8 @@ void I386_OPS_BASE::build_x87_opcode_table_db()
 				case 0xc8: case 0xc9: case 0xca: case 0xcb: case 0xcc: case 0xcd: case 0xce: case 0xcf: ptr = &I386_OPS_BASE::x87_fcmovne_sti;  break;
 				case 0xd0: case 0xd1: case 0xd2: case 0xd3: case 0xd4: case 0xd5: case 0xd6: case 0xd7: ptr = &I386_OPS_BASE::x87_fcmovnbe_sti; break;
 				case 0xd8: case 0xd9: case 0xda: case 0xdb: case 0xdc: case 0xdd: case 0xde: case 0xdf: ptr = &I386_OPS_BASE::x87_fcmovnu_sti;  break;
-				case 0xe0: ptr = &I386_OPS_BASE::x87_fnop;          break; /* FENI */
-				case 0xe1: ptr = &I386_OPS_BASE::x87_fnop;          break; /* FDISI */
+				case 0xe0: ptr = &I386_OPS_BASE::x87_feni;          break; /* FENI */
+				case 0xe1: ptr = &I386_OPS_BASE::x87_fdisi;          break; /* FDISI */
 				case 0xe2: ptr = &I386_OPS_BASE::x87_fclex;         break;
 				case 0xe3: ptr = &I386_OPS_BASE::x87_finit;         break;
 				case 0xe4: ptr = &I386_OPS_BASE::x87_fnop;          break; /* FSETPM */
@@ -4948,8 +4979,8 @@ extern "C" {
 
 void I386_OPS_BASE::build_x87_opcode_table()
 {
-	softfloat_fsincos_init();
-	softfloat_fyl2x_init();
+	//softfloat_fsincos_init();
+	//softfloat_fyl2x_init();
 	build_x87_opcode_table_d8();
 	build_x87_opcode_table_d9();
 	build_x87_opcode_table_da();

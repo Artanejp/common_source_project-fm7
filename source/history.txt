@@ -1,3 +1,25 @@
+5/6/2018
+
+[COMMON] add is_absolute_path() and create_absolute_path() functions
+[COMMON/FILEIO] add Gzopen() function to read/write compressed file by gzip
+
+[EMU] support to save/load compressed state file
+[EMU/DEBUGGER] support to switch the target cpu/device
+
+[VM/I386] improve i386 core based on MAME 0.197
+[VM/MB8877] improve for debugger
+[VM/TMS9918] improve for debugger
+[VM/UPD765A] improve for debugger
+[VM/UPD765A] fix read/write commands to check density (thanks PC8801MA‰ü)
+[VM/UPD765A] fix read diagnostics status for unformat/density mismatch case
+
+[PC8801/PC88] fix underline/upperline attributes
+[PC98XL] support NEC PC-98XL
+[PC9801/MEMBUS] support NEC EMS
+[PC9801/MEMBUS] support SASI/SCSI/IDE BIOS (only BIOS, not drives)
+[X1/KEYBOAD] improve phantom keys (thanks Mr.Sato)
+
+
 3/1/2018
 
 [PC98RL] support NEC PC-98RL

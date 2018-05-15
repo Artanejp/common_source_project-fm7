@@ -46,7 +46,7 @@ typedef struct {
 		int x, y;
 	} cursor;
 	struct {
-		uint8_t data, mask;
+		uint8_t data;
 		int num;
 		uint8_t expand[200][80];
 	} attrib;
