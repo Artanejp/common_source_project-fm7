@@ -45,9 +45,9 @@ void GLDrawClass::mouseMoveEvent(QMouseEvent *event)
 {
 	if(using_flags->is_use_one_board_computer() || using_flags->is_use_mouse()) {
 		if(!enable_mouse) return;
-		if(QApplication::overrideCursor() == NULL) {
-			QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
-		}
+		//if(QApplication::overrideCursor() == NULL) {
+			//QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
+		//}
 		int d_ww = using_flags->get_screen_width();
 		int d_hh = using_flags->get_screen_height();
 		double xx;
@@ -81,6 +81,7 @@ void GLDrawClass::mousePressEvent(QMouseEvent *event)
 			return;
 		}
 		if(!enable_mouse) return;
+		mouseMoveEvent(event); // Update pointer's location. 20180514
 		emit do_notify_button_pressed(event->button());
 	}
 }
@@ -89,6 +90,7 @@ void GLDrawClass::mouseReleaseEvent(QMouseEvent *event)
 {
 	if(using_flags->is_use_one_board_computer() || using_flags->is_use_mouse()) {
 		if(!enable_mouse) return;
+		mouseMoveEvent(event); // Update pointer's location. 20180514
 		emit do_notify_button_released(event->button());
 	}
 }
