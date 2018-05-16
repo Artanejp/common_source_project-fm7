@@ -1,5 +1,5 @@
 ** FM-7 series  emulator for common source code project. **
-                                               Mar 26, 2018
+                                               May 16, 2018
 		   K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 1.Background
@@ -35,7 +35,7 @@
   l. Z80 Card (Only with FM-7/77 and FM-8) works.But not tested enough.
   m. Japanese Communication board works for FM-7/NEW7/77/L4.
   n. Start to implement RS-232C/MODEM/MIDI feature.(WIP)
-  o. Start to implement FM-77L4's 400 lines board.But imcomplete.(WIP)
+  o. Start to implement FM-77L4's 400 lines board.But imcomplete.(WIP)Still WIP (2018-05-16)
   If you need more informations, see RELEASENOTE and reame_by_artane.txt .
      
   [3] I implemented hidden message faster than XM7 :-)

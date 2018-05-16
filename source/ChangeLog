@@ -1,5 +1,25 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT May 16, 2018
+  * Upstream 2018-05-06 .
+  * [EMU] Remove unneeded functions for only Qt version.
+  * [Qt/OpenGL] Add OpenGL ES2 renderer.Still not display.
+  * [Qt/Draw] Use Semaphore instead of mSecs waiting.Expect to improve real-time-drawing on multi thread.
+  * [Qt/AVIO] Fix FTBFS with FFMPEG 4.0.Will be needed to apply to new API.Will fix.
+  * [Qt/FM8] Fix number of bubble-casette: Start from 0, not 1.
+  * [Qt/COMMAND_LINE] Add --opengl , --envvar and --dump-envvar .
+  * [Qt/OSD] Fix around moving mouse pointer.
+  * [Qt/UI] Not reset slot number when opening disk.
+  * [Qt/UI] Fix around mouse problems.
+  * [Build/CROSS] Add cross-compiling scripts and patch(es) to build Qt5.10.
+  * [VM/MB8877] Keep command phase even changing (or removing) disk.Fix booting RELICS for FM-7 with single FDD drive.
+  * [VM/MB8877] Reaset track (per drive) on reset.Fix booting RELICS for FM-7 with two FDDs.
+  * [VM/MB8877] Check head loading READ/WRITE command.
+  * [Win32] Built with Qt 5.10 and Angle-project's OpenGL ES2 renderer. 
+  * Built with cf31c26aab576798a073e5d523bfc21b2091fd76 or later.
+
+-- May 16, 2018 18:09:00 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT Mar 26, 2018
   * [General/Qt] Add some command line options.
   * [COMMON/FM7] Add __DECL_VECTORIZE_LOOP decl. to indicate expect to use vectorize (a.k.a. SIMD instructions).

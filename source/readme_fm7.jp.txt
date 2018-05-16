@@ -1,5 +1,5 @@
 ** FM-7 series  emulator for common source code project. **
-                                               Mar 26, 2018
+                                               May 16, 2018
 		   K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 
@@ -40,7 +40,7 @@
   l. Z80カードが(FM-7/77とFM-8で)使えるようになりました。テストがあまり十分ではありませんが。
   m. 日本語通信カードがFM-7/NEW7/77/L4で使えるようになりました。
   n. RS-232CとモデムカードとMIDIカードの実装が始まりました(作業中)
-  o. FM77L4の400ラインカードの実装を始めましたが、未だ不十分です。
+  o. FM77L4の400ラインカードの実装を始めましたが、未だ不十分です。もう一息いい加減なままです(2018-05-16)
   その他のことについては、RELEASENOTEやreadme_by_artane.txtを。
 
   [3] 私のほうがXM7よりも先にインプリメントしました(笑)

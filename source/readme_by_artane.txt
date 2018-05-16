@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                         March 26, 2018
+                                         May 16, 2018
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -12,7 +12,7 @@
    
    ソースコード：
    
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20180326
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20180516
 
    追加情報:
    
@@ -54,12 +54,13 @@
    
    f. ffmpegから、libavとlibswが必要です。 http://ffmpeg.org/ より。
    
-   g. ffmpegは、それぞれのランタイムに必要なものをバンドルしてありますので、動かない時はインストールしてみてください。
+   g. ffmpegは、Windowsに関してはバンドルしてありますので、動かない時はインストールしてみてください。
       
-   h. GNU/Linuxビルドでは、Qt5.5(Ubuntu 16.04LTS向け)もしくはQt5.9(Debian GNU/Linux sid向け)でビルドしてあります。
+   h. Qt5.5(Ubuntu 16.04LTS向け)もしくはQt5.10(Win32とDebian GNU/Linux sid向け)でビルドしてあります。
    
-   * Windows もしくは GNU/Linux のcross tool chain (要Wine)で、MinGW (gcc6) と Qt 5.7 でのビルドができることを確認しました。
-     
+   i. 表示基盤のデフォルトが、OpenGL ES2.0になりました。コマンドラインオプション --opengl で変更が可能です(--helpで参照)
+   
+   * Windows もしくは GNU/Linux のcross tool chain (要Wine)で、MinGW (gcc6) と Qt 5.10 でのビルドができることを確認しました。     
    * TIPS:
    
      * Windows等で動かした時に、画面の書き替えが表示されない場合は、環境変数 QT_OPENGL を software にしてみてください。（例えば、
@@ -155,92 +156,51 @@ Special thanks to:
   はせりんさん     : eFM-8/7/77/AV/40/EX のデバッグに協力していただいています。
 Changes:
 
-ChangeLog:
 * 前の変更点をお読みになる場合には、ChangeLogと000_gitlog.txtをお読み下さい。
 
-* SNAPSHOT Mar 26, 2018
-  * [General/Qt] Add some command line options.
-  * [COMMON/FM7] Add __DECL_VECTORIZE_LOOP decl. to indicate expect to use vectorize (a.k.a. SIMD instructions).
-  * [VM/MB8877] Fix verify timing on SEEK command.Fix not booting Sylpheed for FM77AV.
-  * [VM/MC6809] Fix clock using.
-  * [VM/EVENT] Specify CPU per VM.
-  * [VM/FM7] Use template and static_cast<T *> to expect to be faster.
-  * [VM/FM7] Add Green display for FM-7/8/77 .
-  * [VM/FM77L4] Add FM77L4.Maybe 400lines board still not working.
-  * [Qt/SCREEN] Add turning on/off virtual media Icons on screen (OSD).
-  * [MOVIE_LOADER] Fix scaling factor.Displaying video as correct width and height.
-  * [MOVIE_LOADER] Fix hang up at end of video.
-  * Built with f8f16ac6f19fe2dcab250ad50d96cf0b30c8903e or later.
+* SNAPSHOT May 16, 2018
+  * Upstream 2018-05-06 .
+  * [EMU] Remove unneeded functions for only Qt version.
+  * [Qt/OpenGL] Add OpenGL ES2 renderer.Still not display.
+  * [Qt/Draw] Use Semaphore instead of mSecs waiting.Expect to improve real-time-drawing on multi thread.
+  * [Qt/AVIO] Fix FTBFS with FFMPEG 4.0.Will be needed to apply to new API.Will fix.
+  * [Qt/FM8] Fix number of bubble-casette: Start from 0, not 1.
+  * [Qt/COMMAND_LINE] Add --opengl , --envvar and --dump-envvar .
+  * [Qt/OSD] Fix around moving mouse pointer.
+  * [Qt/UI] Not reset slot number when opening disk.
+  * [Qt/UI] Fix around mouse problems.
+  * [Build/CROSS] Add cross-compiling scripts and patch(es) to build Qt5.10.
+  * [VM/MB8877] Keep command phase even changing (or removing) disk.Fix booting RELICS for FM-7 with single FDD drive.
+  * [VM/MB8877] Reaset track (per drive) on reset.Fix booting RELICS for FM-7 with two FDDs.
+  * [VM/MB8877] Check head loading READ/WRITE command.
+  * [Win32] Built with Qt 5.10 and Angle-project's OpenGL ES2 renderer. 
+  * Built with cf31c26aab576798a073e5d523bfc21b2091fd76 or later.
 
--- Mar 26, 2018 01:34:20 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- May 16, 2018 18:09:00 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 本家の変更:
 * 前の変更点をお読みになる場合には、history.txtをお読み下さい。
 
-3/1/2018
+5/6/2018
 
-[PC98RL] support NEC PC-98RL
-[PC9801/DISPLAY] update for hireso mode
-[PC9801/DISPLAY] fix for the case gdc scroll parameters are invalid
-[PC9801/MEMBUS] update for hireso mode
-[PC9801/MEMBUS] support outport 053Dh
-[PC9801/MEMBUS] move memory map routine from VM class to MEMBUS class
+[COMMON] add is_absolute_path() and create_absolute_path() functions
+[COMMON/FILEIO] add Gzopen() function to read/write compressed file by gzip
 
+[EMU] support to save/load compressed state file
+[EMU/DEBUGGER] support to switch the target cpu/device
 
-2/28/2018
+[VM/I386] improve i386 core based on MAME 0.197
+[VM/MB8877] improve for debugger
+[VM/TMS9918] improve for debugger
+[VM/UPD765A] improve for debugger
+[VM/UPD765A] fix read/write commands to check density (thanks PC8801MA��)
+[VM/UPD765A] fix read diagnostics status for unformat/density mismatch case
 
-[VM/I286] fix not to clear cycles in reset()
-[VM/I386] fix not to clear cycles in reset()
-[VM/I386] improve mov_r16_rm16 instruction to check limit
-[VM/I386] fix debugger
-
-[PC9801RA] support NEC PC-9801RA
-
-
-2/27/2018
-
-[VM/I8237] fix bank register and inc mask register
-
-[PC9801/DISPLAY] fix array length of analog palette
-[PC9801/MEMBUS] improve memory bus for i386 or later (partial)
-
-
-2/25/2018
-
-[VM/DISK] improve for case 2D/2DD disk is inserted to 2DD/2D drive
-
-[FMR30/FLOPPY] support to change drive type 2DD/2HD
-[FMR30/FLOPPY] support to get media type 2D/2DD/2HD
-[FMR50/BIOS] suppoert int 93h, ah=00h/01h to set/get drive type
-[FMR50/BIOS] improve int 93h, ah=02h to get sector size and media type
-[FMR50/FLOPPY] support to change drive type 2DD/2HD
-[MZ80A] support to select floppy drive type 2D/2DD
-[MZ80B] support to select floppy drive type 2D/2DD
-[MZ80B] support to select cpu clock 4MHz/6MHz
-[MZ800] support to select floppy drive type 2D/2DD
-[MZ1500] support to select floppy drive type 2D/2DD
-[MZ2200] support to select floppy drive type 2D/2DD
-[MZ2200] support to select cpu clock 4MHz/6MHz
-[MZ2800/FLOPPY] support to change drive type 2DD/2HD
-[PC100] support to select floppy drive type 2D/2DD
-[PC100/IOCTRL] improve dipswitch value for floppy drive type 2D/2DD
-[X1TURBO] support to select floppy drive type 2D/2DD/2HD
-[X1TURBO/FLOPPY] support to change drive type 2D/2DD/2HD
-
-
-2/23/2018
-
-[VM/DISK] support two side
-[VM/I8237] support address mask
-[VM/I8237] fix interface to connect tc signal for ch.2-4
-[VM/IO] support to create multiple instances with different address range
-[VM/MC6840] fix issue for the case address range is not 0-7
-[VM/MEMORY] support to create multiple instances with different address ranges
-[VM/UPD765A] fix st3 in sence devstat command
-
-[FM16BETA] support FUJITSU FM16beta (not work)
-[FMR50/MEMORY] fix memset issue
-[PC9801] fix to connect terminal count signal from dmac to fdc
+[PC8801/PC88] fix underline/upperline attributes
+[PC98XL] support NEC PC-98XL
+[PC9801/MEMBUS] support NEC EMS
+[PC9801/MEMBUS] support SASI/SCSI/IDE BIOS (only BIOS, not drives)
+[X1/KEYBOAD] improve phantom keys (thanks Mr.Sato)
 
 -----
 

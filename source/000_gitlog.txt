@@ -1,3 +1,256 @@
+commit cf31c26aab576798a073e5d523bfc21b2091fd76
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 16 15:00:11 2018 +0900
+
+    Update .gitignore.
+
+commit 334db661797b451c44740211508564bad994f75e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 16 14:59:29 2018 +0900
+
+    [Build][CMake] Add PC98RL,XL.
+
+commit 5712aa55fc59359c69f4af959f63205db152da49
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 15 18:41:06 2018 +0900
+
+    [DOC][PC98] Update documents.
+
+commit 5fec020b62663bfe1dfa8ae4f8a1ee78c0fdaf7e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 15 18:37:37 2018 +0900
+
+    [VM][General] Merge Upstream 2018-05-06.
+
+commit 14b5964db79a964fe10a54937269604334676441
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 15 18:29:47 2018 +0900
+
+    [UI][Qt] Fix around mouse problems.
+
+commit 98c7921b4f454778199d69405a1378a25c497f29
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 14 04:14:51 2018 +0900
+
+    [Qt][OpenGL][GLES] GLSL: Update precision of float value.
+
+commit 296d380d9e2384f4af330b5c8c85994e5e253575
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 14 04:13:48 2018 +0900
+
+    [Qt][OpenGL][GLES][WIN32] Fix internal format definition of textures for Angle.
+
+commit 703c09861e7fd5c05eb27d40c29864fcf57d2959
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 14 02:45:14 2018 +0900
+
+    [Qt][OpenGL][GL3][GLES] Modify shaders to use float texture and high precision pixels if enabled.
+
+commit 26015bbb400b449b850caaeeea7463562beb4bec
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 14 02:44:41 2018 +0900
+
+    [Qt][OpenGL] Add some extensions and logging feature.
+
+commit 2c9ec60865c7fc6f92c6e5548b1c0809e5b7968a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 13 20:05:13 2018 +0900
+
+    [GL3] .
+
+commit b508a203f17c057ea058edf7166a478e18dc6ece
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 13 20:04:30 2018 +0900
+
+    [Qt][OpenGL][GLES] Fix TV renderer, GLES can't use Float texture.
+
+commit 590e1846f7fd333d702138749cd8a2c6ee4cc9fe
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 13 20:02:51 2018 +0900
+
+    [Draw][OpenGL][Qt] Use GL's FBO for rendering framebuffer, not QOpenGLFrameBufferObject.Fix issue of TV renderer@GLES with Angle project.
+
+commit 81deac5a8c8755438b802087dec1735a2b04a269
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 12 00:14:21 2018 +0900
+
+    [Qt][GLES] Fix compilation errors with Angle OpenGL ES dll.
+
+commit fcc48accba67db9df45193338d76a33fbad98643
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri May 11 23:03:00 2018 +0900
+
+    [Qt][Draw][GLES] Add TV renderer for OpenGL ES.
+
+commit 52c913bffb0f96e5c12303169024d00b6f01a7cb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri May 11 17:04:17 2018 +0900
+
+    [Qt][OpenGL_ES] Fix crash with one board computers with OpenGL ES2.
+
+commit ccd9ffcc6021ef09866f1237d1781bb0ffe329da
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 10 23:15:18 2018 +0900
+
+    [Qt][COMMAND_LINE] Add --opengl , --envvar and --dump-envvar .
+
+commit 8b43d026a08188a84ec80efca0672736d31d0d50
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 10 21:02:33 2018 +0900
+
+    [Qt][VM][FM7] Fix FTBFS with MinGW32.
+
+commit 47ba17cd8c9409f64ce1597a0f7eea0553670d5c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 10 20:26:43 2018 +0900
+
+    [Build][Win32] .
+
+commit 9fb40f703d90c90ea572789542adc2ba81ae17ef
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 10 20:26:13 2018 +0900
+
+    [Qt][OSD] Update SOVERSION.
+
+commit b1671a6bcba39bee93ab418928a8c5d6a5e757e8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 10 20:25:39 2018 +0900
+
+    [Qt][Gui] Related to a before commit.
+
+commit 69d77a3504ec20f70296b5746014228b4ebfe0a7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 10 20:23:53 2018 +0900
+
+    [Draw][Qt] Use Semaphore instead of mSecs waiting.Expect to improve real-time-drawing on multi thread.
+    [GUI][Qt] Update SOVERSION.
+
+commit 645dd2b85c85dfd0cb6e4247287c041fc33b9abc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 10 05:44:45 2018 +0900
+
+    [Draw][Qt] .
+
+commit c706f430206a6e48b85ea4ff222c2d5ff4488eb9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 9 20:41:24 2018 +0900
+
+    [Qt][Draw] Fix drawing timing.
+
+commit a7f23d0d3db8463b6e08d868d7bdbd3a656c3dc4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 9 20:40:35 2018 +0900
+
+    [Qt][Draw][OpenGLES] Initial support for GL ESv2.0.Only drawing.
+
+commit 90f540b15641261c746ef51c4f1f28396ae19509
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 6 00:47:35 2018 +0900
+
+    [UI][Qt][FLOPPY] Not reset slot number when opening disk.
+
+commit f97046603a9b0992b3461913d7b411244e7dfd7c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 6 00:44:45 2018 +0900
+
+    [VM][MB8877] Keep command phase even changing (or removing) disk.Fix booting RELICS for FM-7 with single FDD drive.
+    [VM][MB8877] Reaset track (per drive) on reset.Fix booting RELICS for FM-7 with two FDDs.
+    [VM][MB8877] Check head loading READ/WRITE command.
+
+commit ac472c43a3554da2ccec1115ee362d88e4eec092
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 5 23:44:57 2018 +0900
+
+    [BUILD][CMAKE][WIN32] Apply to Qt5,10 and FFMpeg 4.0.
+
+commit 44a210509985e0d078973385f1a4e773f2d53be2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 5 23:41:43 2018 +0900
+
+    [Qt][OpenGL][Draw] Add OpenGL ES2 renderer.Still not display.
+
+commit b35007bcdd9a181f62cf348cf53ea1847fbeb45c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 5 18:02:20 2018 +0900
+
+    [Qt][OpenGL] Renderer: Remove unneeded headers including.
+    [Qt][OpenGL][Shader] Move shaders per gl version.
+    [Qt][OpenGL][Shader] Remove pre-optimized shaders.
+
+commit 5121f9cf428da5a8fd66faadbbae355803c4b98e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 5 08:29:21 2018 +0900
+
+    [Qt][UI] Fix screen issue with Qt5.10/Windows.
+
+commit 571a0bc63aec3b1c08b50c18fe0e7104c939c8f9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri May 4 06:29:18 2018 +0900
+
+    [Build][WIN32] Update cross-build scripts.
+
+commit 0a862b1bb6ccb82fa631d98c86b4ee6e02fab70f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri May 4 02:59:28 2018 +0900
+
+    [Build][CROSS] Add cross-compiling scripts and patch(es) to build Qt5.10.
+
+commit d68fd058338c6424f2254b303c75e8092c6b1d39
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Apr 29 00:38:52 2018 +0900
+
+    [VM][FM77L4] Add blink feature to 400 lines board.
+
+commit d059ef35aebfc3336c3c8f74a29174eb9f0abbc5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Apr 29 00:37:40 2018 +0900
+
+    [Qt][AVIO][MOVIE_SAVER] Fix FTBFS with FFMPEG 4.0.Will be needed to apply to new API.Will fix.
+
+commit 061cb39cad58f613e34ce11898173d08a817ac76
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 13 03:57:07 2018 +0900
+
+    [UI][Qt][FM8] Fix number of bubble-casette: Start from 0, not 1.
+
+commit 4e3b05fc0a0b1da1fdd8186e1a5dab52d0dbb8fc
+Merge: 17934610 4dc29b3c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 13 02:23:32 2018 +0900
+
+    Merge branch 'master' of github.com:Artanejp/common_source_project-fm7
+
+commit 17934610f23e4e0797701a486db67a644c1512f7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 13 02:22:30 2018 +0900
+
+    [VM][FM7][JOYSTICK] Apply before change to Inteligent-Mouse.
+
+commit b0631f7261380f515949d3b43c0f51b3fce152aa
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 13 02:21:21 2018 +0900
+
+    [OSD][Qt] Fix around moving mouse pointer.
+    [EMU] Remove unneeded functions for only Qt version.
+
+commit 4dc29b3ca6b9f2058039926d15d895f82aa31866
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 26 05:00:24 2018 +0900
+
+    [Build][Ubuntu/Xenial] Fix FTBFS.
+
+commit 6569701bc9b97d96fa6e49d3b08447bdb4d3ac66
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 26 02:23:02 2018 +0900
+
+    [CMake][FM16BETA] Fix FTBFS.
+
+commit 77610204fefcc1f04b33c1d54f1eb14caa6424a4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 26 01:51:37 2018 +0900
+
+    [DOC] Update docs.
+
 commit f8f16ac6f19fe2dcab250ad50d96cf0b30c8903e
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Mon Mar 26 01:43:16 2018 +0900
