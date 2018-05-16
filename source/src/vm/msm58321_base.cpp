@@ -65,19 +65,19 @@ void MSM58321_BASE::event_callback(int event_id, int err)
 			count_1024hz = 0;
 			regs[15] ^= 1;
 		}
-		if(++count_1s = 8192) {
+		if(++count_1s == 8192) {
 			count_1s = 0;
 			regs[15] &= ~2;
 		} else {
 			regs[15] |= 2;
 		}
-		if(++count_1m = 60 * 8192) {
+		if(++count_1m == (60 * 8192)) {
 			count_1m = 0;
 			regs[15] &= ~4;
 		} else {
 			regs[15] |= 4;
 		}
-		if(++count_1h = 3600 * 8192) {
+		if(++count_1h == (3600 * 8192)) {
 			count_1h = 0;
 			regs[15] &= ~8;
 		} else {
