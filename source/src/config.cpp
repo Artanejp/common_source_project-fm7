@@ -156,9 +156,9 @@ void initialize_config()
 	#ifdef _USE_QT
 		config.use_separate_thread_draw = true;
 		config.use_osd_virtual_media = true;		
-		config.render_platform = CONFIG_RENDER_PLATFORM_OPENGL_MAIN;
+		config.render_platform = CONFIG_RENDER_PLATFORM_OPENGL_ES;
 		config.render_major_version = 2; // For crash with some devices.
-		config.render_minor_version = 1;
+		config.render_minor_version = 0;
 		config.rendering_type = CONFIG_RENDER_TYPE_STD;
 		
 		config.use_opengl_scanline = false;
