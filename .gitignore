@@ -111,6 +111,7 @@ $tf/
 *.obj
 *.opensdf
 *.orig
+*.orig1
 *.pch
 *.pdb
 *.pfx
