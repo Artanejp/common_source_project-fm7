@@ -262,6 +262,7 @@ const UINT32 DASMFLAG_OVERINSTSHIFT = 27;           // bits to shift after maski
 
 int M6502_BASE::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
+   return 0;
 }
 //#endif
 
