@@ -30,6 +30,7 @@
 #if defined(CAPABLE_JCOMMCARD)
 #include "./jcommcard.h"
 #endif
+#include "../../statesub.h"
 
 FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
@@ -189,7 +190,9 @@ FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, paren
 	initialize_output_signals(&irq_bus);
 	initialize_output_signals(&firq_bus);
 	initialize_output_signals(&nmi_bus);
+	
 	set_device_name(_T("MAIN I/O"));
+	decl_state();
 }
 
 FM7_MAINIO::~FM7_MAINIO()
@@ -1960,342 +1963,181 @@ void FM7_MAINIO::event_vline(int v, int clock)
 {
 }
 
-#define STATE_VERSION 13
-void FM7_MAINIO::save_state_main(FILEIO *state_fio)
+//#define STATE_VERSION 13
+#define STATE_VERSION 14
+void FM7_MAINIO::decl_state(void)
 {
-	uint32_t addr;
-	// Version 1
-	{
-		for(addr = 0; addr < 0x100; addr++) state_fio->FputUint8(io_w_latch[addr]);
-		// FD00
-		state_fio->FputBool(clock_fast);
-		state_fio->FputBool(lpt_strobe);
-		state_fio->FputBool(lpt_slctin);
-		state_fio->FputBool(beep_flag);
-		state_fio->FputBool(beep_snd);
+	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("FM7_MAINIO"));
+
+	DECL_STATE_ENTRY_MULTI(void, io_w_latch, sizeof(io_w_latch));
+	
+	DECL_STATE_ENTRY_BOOL(clock_fast);
+	DECL_STATE_ENTRY_BOOL(lpt_strobe);
+	DECL_STATE_ENTRY_BOOL(lpt_slctin);
+	DECL_STATE_ENTRY_BOOL(beep_flag);
+	DECL_STATE_ENTRY_BOOL(beep_snd);
 	
 		// FD01
-		state_fio->FputUint8(lpt_outdata);
-		// FD02
-		state_fio->FputBool(cmt_indat);
-		state_fio->FputBool(cmt_invert);
-		state_fio->FputBool(lpt_det2);
-		state_fio->FputBool(lpt_det1);
-		state_fio->FputBool(lpt_pe);
-		state_fio->FputBool(lpt_ackng_inv);
-		state_fio->FputBool(lpt_error_inv);
-		state_fio->FputUint8(irqmask_reg0);
-		
-		state_fio->FputBool(irqmask_syndet);
-		state_fio->FputBool(irqmask_rxrdy);
-		state_fio->FputBool(irqmask_txrdy);
-		state_fio->FputBool(irqmask_mfd);
-		state_fio->FputBool(irqmask_timer);
-		state_fio->FputBool(irqmask_printer);
-		state_fio->FputBool(irqmask_keyboard);
+	DECL_STATE_ENTRY_UINT8(lpt_outdata);
+	// FD02
+	DECL_STATE_ENTRY_BOOL(cmt_indat);
+	DECL_STATE_ENTRY_BOOL(cmt_invert);
+	DECL_STATE_ENTRY_BOOL(lpt_det2);
+	DECL_STATE_ENTRY_BOOL(lpt_det1);
+	DECL_STATE_ENTRY_BOOL(lpt_pe);
+	DECL_STATE_ENTRY_BOOL(lpt_ackng_inv);
+	DECL_STATE_ENTRY_BOOL(lpt_error_inv);
+	DECL_STATE_ENTRY_UINT8(irqmask_reg0);
+	
+	DECL_STATE_ENTRY_BOOL(irqmask_syndet);
+	DECL_STATE_ENTRY_BOOL(irqmask_rxrdy);
+	DECL_STATE_ENTRY_BOOL(irqmask_txrdy);
+	DECL_STATE_ENTRY_BOOL(irqmask_mfd);
+	DECL_STATE_ENTRY_BOOL(irqmask_timer);
+	DECL_STATE_ENTRY_BOOL(irqmask_printer);
+	DECL_STATE_ENTRY_BOOL(irqmask_keyboard);
 
-		state_fio->FputBool(irqreq_syndet);
-		state_fio->FputBool(irqreq_rxrdy);
-		state_fio->FputBool(irqreq_txrdy);
-		state_fio->FputBool(irqreq_printer);
-		state_fio->FputBool(irqreq_keyboard);
-		// FD03
-		state_fio->FputUint8(irqstat_reg0);
+	DECL_STATE_ENTRY_BOOL(irqreq_syndet);
+	DECL_STATE_ENTRY_BOOL(irqreq_rxrdy);
+	DECL_STATE_ENTRY_BOOL(irqreq_txrdy);
+	DECL_STATE_ENTRY_BOOL(irqreq_printer);
+	DECL_STATE_ENTRY_BOOL(irqreq_keyboard);
+	DECL_STATE_ENTRY_UINT8(irqstat_reg0);
 		
-		state_fio->FputBool(irqstat_timer);
-		state_fio->FputBool(irqstat_printer);
-		state_fio->FputBool(irqstat_keyboard);
+	DECL_STATE_ENTRY_BOOL(irqstat_timer);
+	DECL_STATE_ENTRY_BOOL(irqstat_printer);
+	DECL_STATE_ENTRY_BOOL(irqstat_keyboard);
 		
 		// FD04
 #if defined(_FM77_VARIANTS)
-		state_fio->FputBool(stat_fdmode_2hd);
-		state_fio->FputBool(stat_kanjirom);
+	DECL_STATE_ENTRY_BOOL(stat_fdmode_2hd);
+	DECL_STATE_ENTRY_BOOL(stat_kanjirom);
 #elif defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
 	defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
-		state_fio->FputBool(stat_kanjirom);
+	DECL_STATE_ENTRY_BOOL(stat_kanjirom);
 #endif
-		state_fio->FputBool(firq_break_key);
-		state_fio->FputBool(firq_sub_attention);
-		
-		state_fio->FputBool(intmode_fdc);
-		// FD05
-		state_fio->FputBool(extdet_neg);
-		state_fio->FputBool(sub_halt);
-		state_fio->FputBool(sub_cancel);
-		// FD06, 07
-		state_fio->FputBool(intstat_syndet);
-		state_fio->FputBool(intstat_rxrdy);
-		state_fio->FputBool(intstat_txrdy);
-
-
-		state_fio->FputBool(intstat_opn);
-		state_fio->FputBool(intstat_mouse);
-		state_fio->FputBool(mouse_enable);
+	DECL_STATE_ENTRY_BOOL(firq_break_key);
+	DECL_STATE_ENTRY_BOOL(firq_sub_attention);
 	
-		state_fio->FputBool(intstat_whg);
-		state_fio->FputBool(intstat_thg);
-
-		// FDC
-		state_fio->FputBool(connect_fdc);
-		state_fio->FputUint8(fdc_statreg);
-		state_fio->FputUint8(fdc_cmdreg);
-		state_fio->FputUint8(fdc_trackreg);
-		state_fio->FputUint8(fdc_sectreg);
-		state_fio->FputUint8(fdc_datareg);
-		state_fio->FputUint8(fdc_headreg);
-		state_fio->FputUint8(fdc_drvsel);
-		state_fio->FputUint8(irqreg_fdc);
-		state_fio->FputBool(fdc_motor);
-		state_fio->FputBool(irqstat_fdc);
-		// KANJI ROM
-		state_fio->FputBool(connect_kanjiroml1);
+	DECL_STATE_ENTRY_BOOL(intmode_fdc);
+	// FD05
+	DECL_STATE_ENTRY_BOOL(extdet_neg);
+	DECL_STATE_ENTRY_BOOL(sub_halt);
+	DECL_STATE_ENTRY_BOOL(sub_cancel);
+	// FD06, 07
+	DECL_STATE_ENTRY_BOOL(intstat_syndet);
+	DECL_STATE_ENTRY_BOOL(intstat_rxrdy);
+	DECL_STATE_ENTRY_BOOL(intstat_txrdy);
+	
+	
+	DECL_STATE_ENTRY_BOOL(intstat_opn);
+	DECL_STATE_ENTRY_BOOL(intstat_mouse);
+	DECL_STATE_ENTRY_BOOL(mouse_enable);
+	
+	DECL_STATE_ENTRY_BOOL(intstat_whg);
+	DECL_STATE_ENTRY_BOOL(intstat_thg);
+	
+	// FDC
+	DECL_STATE_ENTRY_BOOL(connect_fdc);
+	DECL_STATE_ENTRY_UINT8(fdc_statreg);
+	DECL_STATE_ENTRY_UINT8(fdc_cmdreg);
+	DECL_STATE_ENTRY_UINT8(fdc_trackreg);
+	DECL_STATE_ENTRY_UINT8(fdc_sectreg);
+	DECL_STATE_ENTRY_UINT8(fdc_datareg);
+	DECL_STATE_ENTRY_UINT8(fdc_headreg);
+	DECL_STATE_ENTRY_UINT8(fdc_drvsel);
+	DECL_STATE_ENTRY_UINT8(irqreg_fdc);
+	DECL_STATE_ENTRY_BOOL(fdc_motor);
+	DECL_STATE_ENTRY_BOOL(irqstat_fdc);
+	// KANJI ROM
+	DECL_STATE_ENTRY_BOOL(connect_kanjiroml1);
 #if defined(_FM77AV_VARIANTS)
-		state_fio->FputBool(connect_kanjiroml2);
+	DECL_STATE_ENTRY_BOOL(connect_kanjiroml2);
 	
-		state_fio->FputBool(boot_ram);
-		state_fio->FputBool(hotreset);
+	DECL_STATE_ENTRY_BOOL(boot_ram);
+	DECL_STATE_ENTRY_BOOL(hotreset);
 		// FD13
-		state_fio->FputUint8(sub_monitor_type);
+	DECL_STATE_ENTRY_UINT8(sub_monitor_type);
 #endif	
 		// MMR
-	}
 	//V2
 	{
-		state_fio->FputInt32_BE(event_beep);
-		state_fio->FputInt32_BE(event_beep_oneshot);
-		state_fio->FputInt32_BE(event_timerirq);
+		DECL_STATE_ENTRY_INT(event_beep);
+		DECL_STATE_ENTRY_INT(event_beep_oneshot);
+		DECL_STATE_ENTRY_INT(event_timerirq);
 	}		
 	{ // V3
-		state_fio->FputInt32_BE(event_fdc_motor);
+		DECL_STATE_ENTRY_INT(event_fdc_motor);
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)|| \
     defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
-		for(int ch = 0; ch < 4; ch++) state_fio->FputUint8(fdc_drive_table[ch]);
-		state_fio->FputUint8(fdc_reg_fd1e);
+		DECL_STATE_ENTRY_UINT8_ARRAY(fdc_drive_table, 4);
+		DECL_STATE_ENTRY_UINT8(fdc_reg_fd1e);
 #endif	
 #if defined(HAS_DMA)
-		state_fio->FputBool(intstat_dma);
-		state_fio->FputUint8(dma_addr & 0x1f);
+		DECL_STATE_ENTRY_BOOL(intstat_dma);
+		DECL_STATE_ENTRY_UINT8(dma_addr);
 #endif			
 #if defined(_FM77AV_VARIANTS)
-		state_fio->FputUint8(reg_fd12);
+		DECL_STATE_ENTRY_UINT8(reg_fd12);
 #endif		
 	}
-	// FD05
-	state_fio->FputBool(req_z80run);
-	state_fio->FputBool(z80_run);
+// FD05
+	DECL_STATE_ENTRY_BOOL(req_z80run);
+	DECL_STATE_ENTRY_BOOL(z80_run);
 
 	// UART
-	state_fio->FputBool(rs232c_enabled);
-	state_fio->FputBool(rs232c_dcd);
-	for(int i = 0; i < 3; i++) state_fio->FputBool(uart_enabled[i]);
-	state_fio->FputBool(modem_irqmask_rxrdy);
-	state_fio->FputBool(modem_irqmask_txrdy);
-	state_fio->FputBool(modem_syndet);
-	state_fio->FputBool(modem_rxrdy);
-	state_fio->FputBool(modem_txrdy);
+	DECL_STATE_ENTRY_BOOL(rs232c_enabled);
+	DECL_STATE_ENTRY_BOOL(rs232c_dcd);
+	DECL_STATE_ENTRY_BOOL_ARRAY(uart_enabled, 3);
+	
+	DECL_STATE_ENTRY_BOOL(modem_irqmask_rxrdy);
+	DECL_STATE_ENTRY_BOOL(modem_irqmask_txrdy);
+	DECL_STATE_ENTRY_BOOL(modem_syndet);
+	DECL_STATE_ENTRY_BOOL(modem_rxrdy);
+	DECL_STATE_ENTRY_BOOL(modem_txrdy);
 
-	state_fio->FputBool(midi_uart_irqmask);
-	state_fio->FputBool(midi_syndet);
-	state_fio->FputBool(midi_rxrdy);
-	state_fio->FputBool(midi_txrdy);
+	DECL_STATE_ENTRY_BOOL(midi_uart_irqmask);
+	DECL_STATE_ENTRY_BOOL(midi_syndet);
+	DECL_STATE_ENTRY_BOOL(midi_rxrdy);
+	DECL_STATE_ENTRY_BOOL(midi_txrdy);
 #if defined(HAS_2HD)
-	state_fio->FputInt32_BE(event_fdc_motor_2HD);
-	state_fio->FputBool(connect_fdc_2HD);
-	state_fio->FputUint8(fdc_2HD_statreg);
-	state_fio->FputUint8(fdc_2HD_cmdreg);
-	state_fio->FputUint8(fdc_2HD_trackreg);
-	state_fio->FputUint8(fdc_2HD_sectreg);
-	state_fio->FputUint8(fdc_2HD_datareg);
-	state_fio->FputUint8(fdc_2HD_headreg);
-	state_fio->FputUint8(fdc_2HD_drvsel);
-	state_fio->FputBool(irqreg_fdc_2HD);
-	state_fio->FputBool(fdc_2HD_motor);
+	DECL_STATE_ENTRY_INT(event_fdc_motor_2HD);
+	DECL_STATE_ENTRY_BOOL(connect_fdc_2HD);
+	DECL_STATE_ENTRY_UINT8(fdc_2HD_statreg);
+	DECL_STATE_ENTRY_UINT8(fdc_2HD_cmdreg);
+	DECL_STATE_ENTRY_UINT8(fdc_2HD_trackreg);
+	DECL_STATE_ENTRY_UINT8(fdc_2HD_sectreg);
+	DECL_STATE_ENTRY_UINT8(fdc_2HD_datareg);
+	DECL_STATE_ENTRY_UINT8(fdc_2HD_headreg);
+	DECL_STATE_ENTRY_UINT8(fdc_2HD_drvsel);
+	DECL_STATE_ENTRY_BOOL(irqreg_fdc_2HD);
+	DECL_STATE_ENTRY_BOOL(fdc_2HD_motor);
 	//state_fio->FputBool(irqstat_fdc);
+	DECL_STATE_ENTRY_INT(event_2hd_nmi);
+	DECL_STATE_ENTRY_UINT32(nmi_delay);
+	DECL_STATE_ENTRY_BOOL(irqstat_fdc_2hd);
+	DECL_STATE_ENTRY_BOOL(drqstat_fdc_2hd);
 #endif
+	DECL_STATE_ENTRY_BOOL(connect_opn);
+	DECL_STATE_ENTRY_BOOL(connect_whg);
+	DECL_STATE_ENTRY_BOOL(connect_thg);
+	
+	DECL_STATE_ENTRY_BOOL(opn_psg_77av);
+	DECL_STATE_ENTRY_UINT32_ARRAY(opn_address, 4);
+	DECL_STATE_ENTRY_UINT32_ARRAY(opn_data, 4);
+	DECL_STATE_ENTRY_UINT32_ARRAY(opn_stat, 4);
+	DECL_STATE_ENTRY_UINT8_ARRAY(opn_cmdreg, 4);
+	DECL_STATE_ENTRY_UINT8_ARRAY(opn_ch3mode, 4);
+	for(int ch = 0; ch < 4; ch++) {
+		DECL_STATE_ENTRY_MULTI(void, opn_regs[ch], 0x100 * sizeof(uint8_t));
+	}
+    
 }
-
 void FM7_MAINIO::save_state(FILEIO *state_fio)
 {
-	int ch;
-	int addr;
-	state_fio->FputUint32_BE(STATE_VERSION);
-	state_fio->FputInt32_BE(this_device_id);
-	this->out_debug_log(_T("Save State: MAINIO: id=%d ver=%d\n"), this_device_id, STATE_VERSION);
-
-	save_state_main(state_fio);
-	// FD0B
-	// FD0F
-	state_fio->FputBool(connect_opn);
-	state_fio->FputBool(connect_whg);
-	state_fio->FputBool(connect_thg);
-	
-	state_fio->FputBool(opn_psg_77av);
-	for(ch = 0; ch < 4; ch++) {
-		state_fio->FputUint32_BE(opn_address[ch]);
-		state_fio->FputUint32_BE(opn_data[ch]);
-		state_fio->FputUint32_BE(opn_stat[ch]);
-		state_fio->FputUint32_BE(opn_cmdreg[ch]);
-		state_fio->FputUint32_BE(opn_ch3mode[ch]);
-	}
-#if defined(HAS_2HD)
-	state_fio->FputInt32_BE(event_2hd_nmi);
-	state_fio->FputUint32_BE(nmi_delay);
-	state_fio->FputBool(irqstat_fdc_2hd);
-	state_fio->FputBool(drqstat_fdc_2hd);
-#endif
+	if(state_entry != NULL) state_entry->save_state(state_fio);
 }
 
-bool FM7_MAINIO::load_state_main(FILEIO *state_fio, uint32_t version)
-{
-	int ch;
-	int addr;
-	if(version >= 1) {
-		for(addr = 0; addr < 0x100; addr++) io_w_latch[addr] = state_fio->FgetUint8();
-		// FD00
-		clock_fast = state_fio->FgetBool();
-		lpt_strobe = state_fio->FgetBool();
-		lpt_slctin = state_fio->FgetBool();
-		beep_flag  = state_fio->FgetBool();
-		beep_snd = state_fio->FgetBool();
-	
-		// FD01
-		lpt_outdata = state_fio->FgetUint8();
-		// FD02
-		cmt_indat = state_fio->FgetBool();
-		cmt_invert = state_fio->FgetBool();
-		lpt_det2 = state_fio->FgetBool();
-		lpt_det1 = state_fio->FgetBool();
-		lpt_pe = state_fio->FgetBool();
-		lpt_ackng_inv = state_fio->FgetBool();
-		lpt_error_inv = state_fio->FgetBool();
-		irqmask_reg0 = state_fio->FgetUint8();
-
-		irqmask_syndet = state_fio->FgetBool();
-		irqmask_rxrdy = state_fio->FgetBool();
-		irqmask_txrdy = state_fio->FgetBool();
-		irqmask_mfd = state_fio->FgetBool();
-		irqmask_timer = state_fio->FgetBool();
-		irqmask_printer = state_fio->FgetBool();
-		irqmask_keyboard = state_fio->FgetBool();
-
-		irqreq_syndet = state_fio->FgetBool();
-		irqreq_rxrdy = state_fio->FgetBool();
-		irqreq_txrdy = state_fio->FgetBool();
-		irqreq_printer = state_fio->FgetBool();
-		irqreq_keyboard = state_fio->FgetBool();
-		// FD03
-		irqstat_reg0 = state_fio->FgetUint8();
-
-		irqstat_timer = state_fio->FgetBool();
-		irqstat_printer = state_fio->FgetBool();
-		irqstat_keyboard = state_fio->FgetBool();
-	
-		// FD04
-#if defined(_FM77_VARIANTS)
-		stat_fdmode_2hd = state_fio->FgetBool();
-		stat_kanjirom = state_fio->FgetBool();
-#elif defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
-	defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
-		stat_kanjirom = state_fio->FgetBool();
-#endif
-		firq_break_key = state_fio->FgetBool();
-		firq_sub_attention = state_fio->FgetBool();
-		
-		intmode_fdc = state_fio->FgetBool();
-		// FD05
-		extdet_neg = state_fio->FgetBool();
-		sub_halt = state_fio->FgetBool();
-		sub_cancel = state_fio->FgetBool();
-		// FD06, 07
-		intstat_syndet = state_fio->FgetBool();
-		intstat_rxrdy = state_fio->FgetBool();
-		intstat_txrdy = state_fio->FgetBool();
-
-		intstat_opn = state_fio->FgetBool();
-		intstat_mouse = state_fio->FgetBool();
-		mouse_enable = state_fio->FgetBool();
-	
-		intstat_whg = state_fio->FgetBool();
-		intstat_thg = state_fio->FgetBool();
-
-		// FDC
-		connect_fdc = state_fio->FgetBool();
-		fdc_statreg = state_fio->FgetUint8();
-		fdc_cmdreg = state_fio->FgetUint8();
-		fdc_trackreg = state_fio->FgetUint8();
-		fdc_sectreg = state_fio->FgetUint8();
-		fdc_datareg = state_fio->FgetUint8();
-		fdc_headreg = state_fio->FgetUint8();
-		fdc_drvsel = state_fio->FgetUint8();
-		irqreg_fdc = state_fio->FgetUint8();
-		fdc_motor = state_fio->FgetBool();
-		irqstat_fdc = state_fio->FgetBool();
-
-		// KANJI ROM
-		connect_kanjiroml1 = state_fio->FgetBool();
-#if defined(_FM77AV_VARIANTS)
-		connect_kanjiroml2 = state_fio->FgetBool();
-		boot_ram = state_fio->FgetBool();
-		hotreset = state_fio->FgetBool();
-		// FD13
-		sub_monitor_type = state_fio->FgetUint8();
-#endif	
-	}
-	if(version >= 2) {
-		event_beep = state_fio->FgetInt32_BE();
-		event_beep_oneshot = state_fio->FgetInt32_BE();
-		event_timerirq = state_fio->FgetInt32_BE();
-	}
-	// V2
-	if(version >= 3) { // V3
-		event_fdc_motor = state_fio->FgetInt32_BE();
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)|| \
-    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
-		for(ch = 0; ch < 4; ch++) fdc_drive_table[ch] = state_fio->FgetUint8();
-		fdc_reg_fd1e = state_fio->FgetUint8();
-#endif	
-#if defined(HAS_DMA)
-		intstat_dma = state_fio->FgetBool();
-		dma_addr = (uint32_t)(state_fio->FgetUint8() & 0x1f);
-#endif			
-#if defined(_FM77AV_VARIANTS)
-		reg_fd12 = state_fio->FgetUint8();
-#endif		
-	}
-	// FD05
-	req_z80run = state_fio->FgetBool();
-	z80_run = state_fio->FgetBool();
-	
-	// UART
-	rs232c_enabled = state_fio->FgetBool();
-	rs232c_dcd = state_fio->FgetBool();
-	for(int i = 0; i < 3; i++) uart_enabled[i] = state_fio->FgetBool();
-	modem_irqmask_rxrdy = state_fio->FgetBool();
-	modem_irqmask_txrdy = state_fio->FgetBool();
-	modem_syndet = state_fio->FgetBool();
-	modem_rxrdy = state_fio->FgetBool();
-	modem_txrdy = state_fio->FgetBool();
-
-	midi_uart_irqmask = state_fio->FgetBool();
-	midi_syndet = state_fio->FgetBool();
-	midi_rxrdy = state_fio->FgetBool();
-	midi_txrdy = state_fio->FgetBool();
-#if defined(HAS_2HD)
-	event_fdc_motor_2HD = state_fio->FgetInt32_BE();
-	connect_fdc_2HD = state_fio->FgetBool();
-	fdc_2HD_statreg = state_fio->FgetUint8();
-	fdc_2HD_cmdreg = state_fio->FgetUint8();
-	fdc_2HD_trackreg = state_fio->FgetUint8();
-	fdc_2HD_sectreg = state_fio->FgetUint8();
-	fdc_2HD_datareg =state_fio->FgetUint8();
-	fdc_2HD_headreg = state_fio->FgetUint8();
-	fdc_2HD_drvsel = state_fio->FgetUint8();
-	irqreg_fdc_2HD = state_fio->FgetBool();
-	fdc_2HD_motor = state_fio->FgetBool();
-	//state_fio->FputBool(irqstat_fdc);
-#endif
-	return true;
-}
 
 bool FM7_MAINIO::load_state(FILEIO *state_fio)
 {
@@ -2303,33 +2145,14 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 	int addr;
 	//bool stat = false;
 	uint32_t version;
-	
-	version = state_fio->FgetUint32_BE();
-	if(this_device_id != state_fio->FgetInt32_BE()) return false;
-	this->out_debug_log(_T("Load State: MAINIO: id=%d ver=%d\n"), this_device_id, version);
-
-	if(!load_state_main(state_fio, version)) return false;
-	// FD0B
-	// FD0F
-	connect_opn = state_fio->FgetBool();
-	connect_whg = state_fio->FgetBool();
-	connect_thg = state_fio->FgetBool();
-
-	opn_psg_77av = state_fio->FgetBool();
-	for(ch = 0; ch < 4; ch++) {
-		opn_address[ch] = state_fio->FgetUint32_BE();
-		opn_data[ch] = state_fio->FgetUint32_BE();
-		opn_stat[ch] = state_fio->FgetUint32_BE();
-		opn_cmdreg[ch] = state_fio->FgetUint32_BE();
-		opn_ch3mode[ch] = state_fio->FgetUint32_BE();
-	}
-#if defined(HAS_2HD)
-	event_2hd_nmi = state_fio->FgetInt32_BE();
-	nmi_delay = state_fio->FgetUint32_BE();
-	irqstat_fdc_2hd = state_fio->FgetBool();
-	drqstat_fdc_2hd = state_fio->FgetBool();
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+#if defined(HAS_DMA)
+		dma_addr = dma_addr & 0x1f;
 #endif
-	if(version != STATE_VERSION) return false;
-	return true;
+	}
+	this->out_debug_log(_T("Load State: MAINIO: id=%d stat=%s\n"), this_device_id, (mb) ? _T("OK") : _T("NG"));
+	return mb;
 }
 	  

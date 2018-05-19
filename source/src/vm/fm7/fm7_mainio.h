@@ -38,6 +38,7 @@ class KANJIROM;
 #if defined(CAPABLE_JCOMMCARD)
 class FM7_JCOMMCARD;
 #endif
+class csp_state_utils;
 
 class FM7_MAINIO : public DEVICE {
  protected:
@@ -62,7 +63,8 @@ class FM7_MAINIO : public DEVICE {
  protected:
 	VM* p_vm;
 	EMU* p_emu;
-
+	csp_state_utils *state_entry;
+	
 	uint8_t io_w_latch[0x100];
    
 	/* FD00: R */
@@ -523,8 +525,7 @@ public:
 	virtual void update_config();
 	virtual void save_state(FILEIO *state_fio);
 	virtual bool load_state(FILEIO *state_fio);
-	void save_state_main(FILEIO *state_fio);
-	bool load_state_main(FILEIO *state_fio, uint32_t version);
+	virtual void decl_state(void);
 	
 	void set_context_printer(DEVICE *p)
 	{

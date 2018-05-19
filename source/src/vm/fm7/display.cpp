@@ -19,6 +19,7 @@
 #include "fm7_mainio.h"
 #include "./fm7_keyboard.h"
 #include "./kanjirom.h"
+#include "../../statesub.h"
 
 DISPLAY::DISPLAY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
@@ -63,6 +64,7 @@ DISPLAY::DISPLAY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 #endif
 	force_update = true;
 	set_device_name(_T("DISPLAY SUBSYSTEM"));
+	decl_state();
 }
 
 DISPLAY::~DISPLAY()
@@ -3501,209 +3503,190 @@ void DISPLAY::release()
 {
 }
 
-#define STATE_VERSION 10
-void DISPLAY::save_state(FILEIO *state_fio)
+#define STATE_VERSION 11
+void DISPLAY::decl_state(void)
 {
-  	state_fio->FputUint32_BE(STATE_VERSION);
-	state_fio->FputInt32_BE(this_device_id);
-	this->out_debug_log(_T("Save State: DISPLAY : id=%d ver=%d\n"), this_device_id, STATE_VERSION);
-
+	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("FM7_DISPLAY"));
 	{
 		int i;
-		state_fio->FputInt32_BE(clr_count);
-		state_fio->FputBool(halt_flag);
-		state_fio->FputInt32_BE(active_page);
-		state_fio->FputBool(sub_busy);
-		state_fio->FputBool(crt_flag);
-		state_fio->FputBool(vram_wrote);
-		state_fio->FputBool(is_cyclesteal);
+		DECL_STATE_ENTRY_INT32(clr_count);
+		DECL_STATE_ENTRY_BOOL(halt_flag);
+		DECL_STATE_ENTRY_INT32(active_page);
+		DECL_STATE_ENTRY_BOOL(sub_busy);
+		DECL_STATE_ENTRY_BOOL(crt_flag);
+		DECL_STATE_ENTRY_BOOL(vram_wrote);
+		DECL_STATE_ENTRY_BOOL(is_cyclesteal);
 		
-		state_fio->FputBool(clock_fast);
+		DECL_STATE_ENTRY_BOOL(clock_fast);
 		
 #if defined(_FM77AV_VARIANTS)
-		state_fio->FputBool(subcpu_resetreq);
-		state_fio->FputBool(power_on_reset);
+		DECL_STATE_ENTRY_BOOL(subcpu_resetreq);
+		DECL_STATE_ENTRY_BOOL(power_on_reset);
 #endif	
-		state_fio->FputBool(cancel_request);
-		state_fio->FputBool(key_firq_req);
+		DECL_STATE_ENTRY_BOOL(cancel_request);
+		DECL_STATE_ENTRY_BOOL(key_firq_req);
 
-		state_fio->FputInt32_BE(display_mode);
-		state_fio->FputUint32_BE(prev_clock);
+		DECL_STATE_ENTRY_INT32(display_mode);
+		DECL_STATE_ENTRY_UINT32(prev_clock);
 
 #if !defined(_FM8)	
-		state_fio->Fwrite(dpalette_data, sizeof(dpalette_data), 1);
-		state_fio->FputUint8(multimode_accessmask);
-		state_fio->FputUint8(multimode_dispmask);
+		DECL_STATE_ENTRY_MULTI(void, dpalette_data, sizeof(dpalette_data));
+		DECL_STATE_ENTRY_UINT8(multimode_accessmask);
+		DECL_STATE_ENTRY_UINT8(multimode_dispmask);
 #endif		
-		state_fio->FputUint32_BE(offset_point);
+		DECL_STATE_ENTRY_UINT32(offset_point);
 #if defined(_FM77AV_VARIANTS)
-		state_fio->FputUint32_BE(offset_point_bank1);
+		DECL_STATE_ENTRY_UINT32(offset_point_bank1);
 #endif		
-		for(i = 0; i < 2; i++) {
-			state_fio->FputUint32_BE(tmp_offset_point[i].d);
-			state_fio->FputBool(offset_changed[i]);
-		}
-		state_fio->FputBool(offset_77av);
-		state_fio->FputBool(diag_load_subrom_c);
+		//for(i = 0; i < 2; i++) {
+		DECL_STATE_ENTRY_PAIR_ARRAY(tmp_offset_point, 2);
+		DECL_STATE_ENTRY_BOOL_ARRAY(offset_changed, 2);
+			//}
+		DECL_STATE_ENTRY_BOOL(offset_77av);
+		DECL_STATE_ENTRY_BOOL(diag_load_subrom_c);
 		
 	
-		state_fio->Fwrite(io_w_latch, sizeof(io_w_latch), 1);
-		state_fio->Fwrite(console_ram, sizeof(console_ram), 1);
-		state_fio->Fwrite(work_ram, sizeof(work_ram), 1);
-		state_fio->Fwrite(shared_ram, sizeof(shared_ram), 1);
-		state_fio->Fwrite(subsys_c, sizeof(subsys_c), 1);
-		state_fio->Fwrite(gvram, sizeof(gvram), 1);
-		state_fio->Fwrite(gvram_shadow, sizeof(gvram_shadow), 1);
+		DECL_STATE_ENTRY_MULTI(void, io_w_latch, sizeof(io_w_latch));
+		DECL_STATE_ENTRY_MULTI(void, console_ram, sizeof(console_ram));
+		DECL_STATE_ENTRY_MULTI(void, work_ram, sizeof(work_ram));
+		DECL_STATE_ENTRY_MULTI(void, shared_ram, sizeof(shared_ram));
+		DECL_STATE_ENTRY_MULTI(void, subsys_c, sizeof(subsys_c));
+		DECL_STATE_ENTRY_MULTI(void, gvram, sizeof(gvram));
+		DECL_STATE_ENTRY_MULTI(void, gvram_shadow, sizeof(gvram_shadow));
 	
 #if defined(_FM77_VARIANTS)
-		state_fio->FputBool(kanjisub);
-		state_fio->FputUint16_BE(kanjiaddr.w.l);
+		DECL_STATE_ENTRY_BOOL(kanjisub);
+		DECL_STATE_ENTRY_PAIR(kanjiaddr);
 # if defined(_FM77L4)
-		state_fio->FputBool(mode400line);
-		state_fio->FputBool(stat_400linecard);
+		DECL_STATE_ENTRY_BOOL(mode400line);
+		DECL_STATE_ENTRY_BOOL(stat_400linecard);
 # endif
 #elif defined(_FM77AV_VARIANTS)
-		state_fio->FputBool(kanjisub);
-		state_fio->FputUint16_BE(kanjiaddr.w.l);
+		DECL_STATE_ENTRY_BOOL(kanjisub);
+		DECL_STATE_ENTRY_PAIR(kanjiaddr);
 
-		state_fio->FputBool(mode320);
-		state_fio->FputInt32_BE(cgrom_bank);
+		DECL_STATE_ENTRY_BOOL(mode320);
+		DECL_STATE_ENTRY_INT32(cgrom_bank);
 #if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX) || \
     defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
-		state_fio->FputInt32_BE(vram_bank);
+		DECL_STATE_ENTRY_INT32(vram_bank);
 #endif	
 	
-		state_fio->FputUint32_BE(displine);
-		state_fio->FputUint8(subrom_bank);
-		state_fio->FputUint8(subrom_bank_using);
+		DECL_STATE_ENTRY_UINT32(displine);
+		DECL_STATE_ENTRY_UINT8(subrom_bank);
+		DECL_STATE_ENTRY_UINT8(subrom_bank_using);
 	
-		state_fio->FputBool(nmi_enable);
-		state_fio->FputBool(use_alu);
+		DECL_STATE_ENTRY_BOOL(nmi_enable);
+		DECL_STATE_ENTRY_BOOL(use_alu);
 		
-		state_fio->FputUint8(apalette_index.b.l);
-		state_fio->FputUint8(apalette_index.b.h);
-		state_fio->Fwrite(analog_palette_r, sizeof(analog_palette_r), 1);
-		state_fio->Fwrite(analog_palette_g, sizeof(analog_palette_g), 1);
-		state_fio->Fwrite(analog_palette_b, sizeof(analog_palette_b), 1);
+		DECL_STATE_ENTRY_PAIR(apalette_index);
+		DECL_STATE_ENTRY_MULTI(void, analog_palette_r, sizeof(analog_palette_r));
+		DECL_STATE_ENTRY_MULTI(void, analog_palette_g, sizeof(analog_palette_g));
+		DECL_STATE_ENTRY_MULTI(void, analog_palette_b, sizeof(analog_palette_b));
 		
 
-		state_fio->FputBool(diag_load_subrom_a);
-		state_fio->FputBool(diag_load_subrom_b);
-		state_fio->FputBool(diag_load_subrom_cg);
+		DECL_STATE_ENTRY_BOOL(diag_load_subrom_a);
+		DECL_STATE_ENTRY_BOOL(diag_load_subrom_b);
+		DECL_STATE_ENTRY_BOOL(diag_load_subrom_cg);
 	
-		state_fio->Fwrite(subsys_a, sizeof(subsys_a), 1);
-		state_fio->Fwrite(subsys_b, sizeof(subsys_b), 1);
-		state_fio->Fwrite(subsys_cg, sizeof(subsys_cg), 1);
-		state_fio->Fwrite(submem_hidden, sizeof(submem_hidden), 1);
+		DECL_STATE_ENTRY_MULTI(void, subsys_a, sizeof(subsys_a));
+		DECL_STATE_ENTRY_MULTI(void, sizeof(subsys_b));
+		DECL_STATE_ENTRY_MULTI(void, subsys_cg, sizeof(subsys_cg));
+		DECL_STATE_ENTRY_MULTI(void, submem_hidden, sizeof(submem_hidden));
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-		state_fio->FputBool(mode400line);
-		state_fio->FputBool(mode256k);
+		DECL_STATE_ENTRY_BOOL(mode400line);
+		DECL_STATE_ENTRY_BOOL(mode256k);
 		
-		state_fio->FputBool(monitor_ram);
+		DECL_STATE_ENTRY_BOOL(monitor_ram);
 #  if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-		state_fio->FputUint16_BE(window_low);
-		state_fio->FputUint16_BE(window_high);
-		state_fio->FputUint16_BE(window_xbegin);
-		state_fio->FputUint16_BE(window_xend);
-		state_fio->FputBool(window_opened);
+		DECL_STATE_ENTRY_UINT16(window_low);
+		DECL_STATE_ENTRY_UINT16(window_high);
+		DECL_STATE_ENTRY_UINT16(window_xbegin);
+		DECL_STATE_ENTRY_UINT16(window_xend);
+		DECL_STATE_ENTRY_BOOL(window_opened);
 #  endif	
-		state_fio->FputBool(kanji_level2);
+		DECL_STATE_ENTRY_BOOL(kanji_level2);
 
-		state_fio->FputUint8(vram_active_block);
-		state_fio->FputUint8(vram_display_block);
-		state_fio->FputUint8(console_ram_bank);
-		state_fio->FputBool(ram_protect);
+		DECL_STATE_ENTRY_UINT8(vram_active_block);
+		DECL_STATE_ENTRY_UINT8(vram_display_block);
+		DECL_STATE_ENTRY_UINT8(console_ram_bank);
+		DECL_STATE_ENTRY_BOOL(ram_protect);
 		
-		state_fio->FputUint32_BE(cgram_bank);
-		state_fio->Fwrite(subsys_ram, sizeof(subsys_ram), 1);
-		state_fio->Fwrite(submem_cgram, sizeof(submem_cgram), 1);
-		state_fio->Fwrite(submem_console_av40, sizeof(submem_console_av40), 1);
+		DECL_STATE_ENTRY_UINT32(cgram_bank);
+		DECL_STATE_ENTRY_MULTI(void, subsys_ram, sizeof(subsys_ram));
+		DECL_STATE_ENTRY_MULTI(void, submem_cgram, sizeof(submem_cgram));
+		DECL_STATE_ENTRY_MULTI(void, submem_console_av40, sizeof(submem_console_av40));
 # endif
 #endif
 	}
 	// V2
 	{
-		state_fio->FputInt32_BE(nmi_event_id);
+		DECL_STATE_ENTRY_INT32(nmi_event_id);
 //#if defined(_FM77AV_VARIANTS)
-		state_fio->FputInt32_BE(hblank_event_id);
-		state_fio->FputInt32_BE(hdisp_event_id);
-		state_fio->FputInt32_BE(vsync_event_id);
-		state_fio->FputInt32_BE(vstart_event_id);
+		DECL_STATE_ENTRY_INT32(hblank_event_id);
+		DECL_STATE_ENTRY_INT32(hdisp_event_id);
+		DECL_STATE_ENTRY_INT32(vsync_event_id);
+		DECL_STATE_ENTRY_INT32(vstart_event_id);
 //#endif
-		state_fio->FputBool(firq_mask);
-		state_fio->FputBool(vram_accessflag);
+		DECL_STATE_ENTRY_BOOL(firq_mask);
+		DECL_STATE_ENTRY_BOOL(vram_accessflag);
 		
-		state_fio->FputInt8(display_page);
-		state_fio->FputInt8(display_page_bak);
+		DECL_STATE_ENTRY_INT8(display_page);
+		DECL_STATE_ENTRY_INT8(display_page_bak);
 		
-		state_fio->FputBool(vblank);
-		state_fio->FputBool(vsync);
-		state_fio->FputBool(hblank);
-		state_fio->FputInt32_BE(vblank_count);
+		DECL_STATE_ENTRY_BOOL(vblank);
+		DECL_STATE_ENTRY_BOOL(vsync);
+		DECL_STATE_ENTRY_BOOL(hblank);
+		DECL_STATE_ENTRY_INT32(vblank_count);
 	}			
 #if defined(_FM77L4)
-	state_fio->Fwrite(subsys_cg_l4, sizeof(subsys_cg_l4), 1);
-	state_fio->Fwrite(subsys_l4, sizeof(subsys_l4), 1);
-	state_fio->Fwrite(text_vram, sizeof(text_vram), 1);
+	DECL_STATE_ENTRY_MULTI(void, subsys_cg_l4, sizeof(subsys_cg_l4));
+	DECL_STATE_ENTRY_MULTI(void, subsys_l4, sizeof(subsys_l4));
+	DECL_STATE_ENTRY_MULTI(void, text_vram, sizeof(text_vram));
 	//state_fio->Fwrite(crtc_regs, sizeof(crtc_regs), 1);
 	
-	state_fio->FputBool(workram_l4);
-	state_fio->FputBool(cursor_lsb);
-    state_fio->FputBool(text_width40);
+	DECL_STATE_ENTRY_BOOL(workram_l4);
+	DECL_STATE_ENTRY_BOOL(cursor_lsb);
+    DECL_STATE_ENTRY_BOOL(text_width40);
 	
-	state_fio->FputBool(text_blink);
-	state_fio->FputBool(cursor_blink);
+	DECL_STATE_ENTRY_BOOL(text_blink);
+	DECL_STATE_ENTRY_BOOL(cursor_blink);
 	
-	state_fio->FputUint32_BE(text_start_addr.d);
-	state_fio->FputUint32_BE(text_lines);
-	state_fio->FputUint32_BE(text_xmax);
+	DECL_STATE_ENTRY_PAIR(text_start_addr);
+	DECL_STATE_ENTRY_UINT32(text_lines);
+	DECL_STATE_ENTRY_UINT32(text_xmax);
 	
-	state_fio->FputUint32_BE(cursor_addr.d);
-	state_fio->FputInt32_BE(cursor_start);
-	state_fio->FputInt32_BE(cursor_end);
-	state_fio->FputUint8(cursor_type);
-	state_fio->FputUint8(text_scroll_count);
+	DECL_STATE_ENTRY_PAIR(cursor_addr);
+	DECL_STATE_ENTRY_INT32(cursor_start);
+	DECL_STATE_ENTRY_INT32(cursor_end);
+	DECL_STATE_ENTRY_UINT8(cursor_type);
+	DECL_STATE_ENTRY_UINT8(text_scroll_count);
 
-	state_fio->FputInt32_BE(event_id_l4_cursor_blink);
-	state_fio->FputInt32_BE(event_id_l4_text_blink);
+	DECL_STATE_ENTRY_INT32(event_id_l4_cursor_blink);
+	DECL_STATE_ENTRY_INT32(event_id_l4_text_blink);
 #endif
+}	
+
+void DISPLAY::save_state(FILEIO *state_fio)
+{
+	if(state_entry != NULL) state_entry->save_state(state_fio);
 }
 
 bool DISPLAY::load_state(FILEIO *state_fio)
 {
-
-  	uint32_t version = state_fio->FgetUint32_BE();
-	if(this_device_id != state_fio->FgetInt32_BE()) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	this->out_debug_log(_T("Load State: DISPLAY : id=%d ver=%d\n"), this_device_id, version);
-   
-	if(version >= 1) {
+	this->out_debug_log(_T("Load State: DISPLAY : id=%d stat=%s"), this_device_id, (mb) ? _T("OK") : _T("NG"));
+	if(!mb) return false;
+	
+	{
 		int addr;
 		int i;
-		clr_count = state_fio->FgetInt32_BE();
-		halt_flag = state_fio->FgetBool();
-		active_page = state_fio->FgetInt32_BE();
-		sub_busy = state_fio->FgetBool();
-		crt_flag = state_fio->FgetBool();
-		vram_wrote = state_fio->FgetBool();
 		crt_flag_bak = true;
 		for(i = 0; i < 411 * 5; i++) vram_wrote_table[i] = true;
 		for(i = 0; i < 411; i++) vram_draw_table[i] = true;
-		is_cyclesteal = state_fio->FgetBool();
-	
-		clock_fast = state_fio->FgetBool();
-
-#if defined(_FM77AV_VARIANTS)
-		subcpu_resetreq = state_fio->FgetBool();
-		power_on_reset = state_fio->FgetBool();
-#endif		
-		cancel_request = state_fio->FgetBool();
-		key_firq_req = state_fio->FgetBool();
-
-		display_mode = state_fio->FgetInt32_BE();
-		prev_clock = state_fio->FgetUint32_BE();
-	
 #if defined(_FM8)
 		for(addr = 0; addr < 8; addr++) set_dpalette(addr, addr);
 		memcpy(dpalette_pixel, dpalette_pixel_tmp, sizeof(dpalette_pixel));
@@ -3711,160 +3694,36 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 		memcpy(dpalette_pixel_green, dpalette_green_tmp, sizeof(dpalette_pixel_green));
   #endif
 #else
-		state_fio->Fread(dpalette_data, sizeof(dpalette_data), 1);
+
 		for(addr = 0; addr < 8; addr++) set_dpalette(addr, dpalette_data[addr]);
 		memcpy(dpalette_pixel, dpalette_pixel_tmp, sizeof(dpalette_pixel));
 #if defined(USE_GREEN_DISPLAY)
 		memcpy(dpalette_pixel_green, dpalette_green_tmp, sizeof(dpalette_pixel_green));
 #endif
-		multimode_accessmask = state_fio->FgetUint8();
-		multimode_dispmask = state_fio->FgetUint8();
 		for(i = 0; i < 4; i++) {
 			multimode_accessflags[i] = ((multimode_accessmask & (1 << i)) != 0) ? true : false;
 			multimode_dispflags[i] = ((multimode_dispmask & (1 << i)) != 0) ? true : false;
 		}
 #endif
-		offset_point = state_fio->FgetUint32_BE();
-#if defined(_FM77AV_VARIANTS)
-		offset_point_bank1     = state_fio->FgetUint32_BE();
-#endif		
-		for(i = 0; i < 2; i++) {
-			tmp_offset_point[i].d = state_fio->FgetUint32_BE();
-			offset_changed[i] = state_fio->FgetBool();
-		}
-		offset_77av = state_fio->FgetBool();
-		diag_load_subrom_c = state_fio->FgetBool();
-		
-		state_fio->Fread(io_w_latch, sizeof(io_w_latch), 1);
-		state_fio->Fread(console_ram, sizeof(console_ram), 1);
-		state_fio->Fread(work_ram, sizeof(work_ram), 1);
-		state_fio->Fread(shared_ram, sizeof(shared_ram), 1);
-		state_fio->Fread(subsys_c, sizeof(subsys_c), 1);
-		state_fio->Fread(gvram, sizeof(gvram), 1);
-		state_fio->Fread(gvram_shadow, sizeof(gvram_shadow), 1);
 #if defined(_FM77_VARIANTS)
-		kanjisub = state_fio->FgetBool();
-		kanjiaddr.d = 0;
-		kanjiaddr.w.l = state_fio->FgetUint16_BE();
 # if defined(_FM77L4)		
-		mode400line = state_fio->FgetBool();
-		stat_400linecard = state_fio->FgetBool();
 # endif		
 #elif defined(_FM77AV_VARIANTS)
-		kanjisub = state_fio->FgetBool();
-		kanjiaddr.d = 0;
-		kanjiaddr.w.l = state_fio->FgetUint16_BE();
-		
-		mode320 = state_fio->FgetBool();
-		cgrom_bank = state_fio->FgetInt32_BE();
 #if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX) || \
     defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
-		vram_bank = state_fio->FgetInt32_BE();
 #endif		
 		screen_update_flag = true;
-		displine = state_fio->FgetUint32_BE();
-		subrom_bank = state_fio->FgetUint8();
-		subrom_bank_using = state_fio->FgetUint8();
-	
-		nmi_enable = state_fio->FgetBool();
-		use_alu = state_fio->FgetBool();
-
-		apalette_index.b.l = state_fio->FgetUint8();
-		apalette_index.b.h = state_fio->FgetUint8();
-	
-		state_fio->Fread(analog_palette_r, sizeof(analog_palette_r), 1);
-		state_fio->Fread(analog_palette_g, sizeof(analog_palette_g), 1);
-		state_fio->Fread(analog_palette_b, sizeof(analog_palette_b), 1);
 		for(i = 0; i < 4096; i++) calc_apalette(i);
 		memcpy(analog_palette_pixel, analog_palette_pixel_tmp, sizeof(analog_palette_pixel));
 		
-		diag_load_subrom_a = state_fio->FgetBool();
-		diag_load_subrom_b = state_fio->FgetBool();
-		diag_load_subrom_cg = state_fio->FgetBool();
-	
-		state_fio->Fread(subsys_a, sizeof(subsys_a), 1);
-		state_fio->Fread(subsys_b, sizeof(subsys_b), 1);
-		state_fio->Fread(subsys_cg, sizeof(subsys_cg), 1);
-		state_fio->Fread(submem_hidden, sizeof(submem_hidden), 1);
-	   
-# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-		mode400line = state_fio->FgetBool();
-		mode256k = state_fio->FgetBool();
-
-		monitor_ram = state_fio->FgetBool();
-#  if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-		window_low = state_fio->FgetUint16_BE();
-		window_high = state_fio->FgetUint16_BE();
-		window_xbegin = state_fio->FgetUint16_BE();
-		window_xend = state_fio->FgetUint16_BE();
-		window_opened = state_fio->FgetBool();
-# endif	
-		kanji_level2 = state_fio->FgetBool();
-		
-		vram_active_block = state_fio->FgetUint8();
-		vram_display_block = state_fio->FgetUint8();
-		console_ram_bank = state_fio->FgetUint8();
-		ram_protect = state_fio->FgetBool();
-
-		cgram_bank = state_fio->FgetUint32_BE();
-		state_fio->Fread(subsys_ram, sizeof(subsys_ram), 1);
-		state_fio->Fread(submem_cgram, sizeof(submem_cgram), 1);
-		state_fio->Fread(submem_console_av40, sizeof(submem_console_av40), 1);
-# endif
 #endif
 		palette_changed = true;
 		vram_wrote_shadow = true; // Force Draw
 		this->draw_screen();
-		if(version == 1) return true;
 	}
-	if(version >= 2) {	//V2
-		nmi_event_id = state_fio->FgetInt32_BE();
-//#if defined(_FM77AV_VARIANTS)
-		hblank_event_id = state_fio->FgetInt32_BE();
-		hdisp_event_id = state_fio->FgetInt32_BE();
-		vsync_event_id = state_fio->FgetInt32_BE();
-		vstart_event_id = state_fio->FgetInt32_BE();
-//#endif
-		display_page = state_fio->FgetInt8();
-		display_page_bak = state_fio->FgetInt8();
-		
-		vblank = state_fio->FgetBool();
-		vsync = state_fio->FgetBool();
-		hblank = state_fio->FgetBool();
-		vblank_count = state_fio->FgetInt32_BE();
-		
-		firq_mask = state_fio->FgetBool();
-		vram_accessflag = state_fio->FgetBool();
 		frame_skip_count_draw = 3;
 		frame_skip_count_transfer = 3;
 		need_transfer_line = true;
-	}			
-#if defined(_FM77L4)
-	state_fio->Fread(subsys_cg_l4, sizeof(subsys_cg_l4), 1);
-	state_fio->Fread(subsys_l4, sizeof(subsys_l4), 1);
-	state_fio->Fread(text_vram, sizeof(text_vram), 1);
-	//state_fio->Fread(crtc_regs, sizeof(crtc_regs), 1);
-	
-	workram_l4 = state_fio->FgetBool();
-	cursor_lsb = state_fio->FgetBool();
-    text_width40 = state_fio->FgetBool();
-	
-	text_blink = state_fio->FgetBool();
-	cursor_blink = state_fio->FgetBool();
-	
-	text_start_addr.d = state_fio->FgetUint32_BE();
-	text_lines = state_fio->FgetUint32_BE();
-	text_xmax = state_fio->FgetUint32_BE();
-	
-	cursor_addr.d = state_fio->FgetUint32_BE();
-	cursor_start = state_fio->FgetInt32_BE();
-	cursor_end = state_fio->FgetInt32_BE();
-	cursor_type = state_fio->FgetUint8();
-	text_scroll_count = state_fio->FgetUint8();
-	
-	event_id_l4_cursor_blink = state_fio->FgetInt32_BE();
-	event_id_l4_text_blink = state_fio->FgetInt32_BE();
-#endif
 #if defined(USE_GREEN_DISPLAY) && defined(USE_MONITOR_TYPE)
 	memcpy(dpalette_pixel_green, dpalette_green_tmp, sizeof(dpalette_pixel_green));
 	switch(config.monitor_type) {
@@ -3881,8 +3740,7 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 #endif
 	force_update = true;
 	setup_display_mode();
-	if(version == STATE_VERSION) return true;
-	return false;
+	return mb;
 }
 
 	

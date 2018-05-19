@@ -33,6 +33,7 @@ class MB61VH010;
 #if defined(_FM77L4)
 class HD46505;
 #endif
+class csp_state_utils;
 class DISPLAY: public DEVICE
 {
 private:
@@ -48,6 +49,7 @@ private:
 protected:
 	EMU *p_emu;
 	VM *p_vm;
+	csp_state_utils *state_entry;
 
 	uint32_t (DISPLAY::*read_cpu_func_table[512])(uint32_t);
 	uint32_t (DISPLAY::*read_dma_func_table[512])(uint32_t);
@@ -441,7 +443,8 @@ public:
 	void event_vline(int v, int clock);
 	void save_state(FILEIO *state_fio);
 	bool load_state(FILEIO *state_fio);
-
+	void decl_state(void);
+	
 	int get_screen_mode(void) {
 		return display_mode;
 	}
