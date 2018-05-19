@@ -1965,9 +1965,10 @@ void FM7_MAINIO::event_vline(int v, int clock)
 
 //#define STATE_VERSION 13
 #define STATE_VERSION 14
+
 void FM7_MAINIO::decl_state(void)
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("FM7_MAINIO"));
+	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("MAINIO"));
 
 	DECL_STATE_ENTRY_MULTI(void, io_w_latch, sizeof(io_w_latch));
 	
@@ -2110,7 +2111,7 @@ void FM7_MAINIO::decl_state(void)
 	DECL_STATE_ENTRY_UINT8(fdc_2HD_datareg);
 	DECL_STATE_ENTRY_UINT8(fdc_2HD_headreg);
 	DECL_STATE_ENTRY_UINT8(fdc_2HD_drvsel);
-	DECL_STATE_ENTRY_BOOL(irqreg_fdc_2HD);
+	DECL_STATE_ENTRY_UINT8(irqreg_fdc_2HD);
 	DECL_STATE_ENTRY_BOOL(fdc_2HD_motor);
 	//state_fio->FputBool(irqstat_fdc);
 	DECL_STATE_ENTRY_INT(event_2hd_nmi);

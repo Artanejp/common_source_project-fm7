@@ -37,10 +37,12 @@ enum {
 class VM;
 class EMU;
 class DEBUGGER;
+class csp_state_utils;
 class MC6809_BASE : public DEVICE
 {
 protected:
 	// context
+	csp_state_utils *state_entry;
 	DEVICE *d_mem;
 
 	DEBUGGER *d_debugger;
@@ -542,6 +544,7 @@ public:
 		initialize_output_signals(&outputs_bus_ba);
 		initialize_output_signals(&outputs_bus_bs);
 		set_device_name(_T("MC6809 MPU"));
+		decl_state();
 	}
 	~MC6809_BASE() {}
 	
@@ -617,6 +620,8 @@ public:
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	void decl_state(void);
+	
 	void set_extra_clock(int clock)
 	{
 		extra_icount += clock;

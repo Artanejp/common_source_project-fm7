@@ -3955,70 +3955,49 @@ OP_HANDLER(pref11) {
 		}
 	}
 
-#define STATE_VERSION	5
+#define STATE_VERSION	6
+#include "../statesub.h"
 
-void MC6809_BASE::save_state(FILEIO* state_fio)
+void MC6809_BASE::decl_state(void)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->FputInt32(icount);
-	state_fio->FputInt32(extra_icount);
-	state_fio->FputUint32(int_state);
+	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("MC6809"));
+	DECL_STATE_ENTRY_INT32(icount);
+	DECL_STATE_ENTRY_INT32(extra_icount);
+	DECL_STATE_ENTRY_UINT32(int_state);
 
-	state_fio->FputUint32(pc.d);
-	state_fio->FputUint32(ppc.d);
-	state_fio->FputUint32(acc.d);
-	state_fio->FputUint32(dp.d);
-	state_fio->FputUint32(u.d);
-	state_fio->FputUint32(s.d);
-	state_fio->FputUint32(x.d);
-	state_fio->FputUint32(y.d);
-	state_fio->FputUint8(cc);
-	state_fio->FputUint32(ea.d);
+	DECL_STATE_ENTRY_PAIR(pc);
+	DECL_STATE_ENTRY_PAIR(ppc);
+	DECL_STATE_ENTRY_PAIR(acc);
+	DECL_STATE_ENTRY_PAIR(dp);
+	DECL_STATE_ENTRY_PAIR(u);
+	DECL_STATE_ENTRY_PAIR(s);
+	DECL_STATE_ENTRY_PAIR(x);
+	DECL_STATE_ENTRY_PAIR(y);
+	DECL_STATE_ENTRY_UINT8(cc);
+	DECL_STATE_ENTRY_PAIR(ea);
 
 	// V2
-	state_fio->FputBool(req_halt_on);
-	state_fio->FputBool(req_halt_off);
-	state_fio->FputBool(busreq);
+	DECL_STATE_ENTRY_BOOL(req_halt_on);
+	DECL_STATE_ENTRY_BOOL(req_halt_off);
+	DECL_STATE_ENTRY_BOOL(busreq);
 	
-	state_fio->FputUint64(total_icount);
-	state_fio->FputUint32(waitfactor);
-	state_fio->FputUint32(waitcount);
+	DECL_STATE_ENTRY_UINT64(total_icount);
+	DECL_STATE_ENTRY_UINT32(waitfactor);
+	DECL_STATE_ENTRY_UINT32(waitcount);
+	
+}
+void MC6809_BASE::save_state(FILEIO* state_fio)
+{
+	if(state_entry != NULL) state_entry->save_state(state_fio);
 }
 
 bool MC6809_BASE::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	
-	icount = state_fio->FgetInt32();
-	extra_icount = state_fio->FgetInt32();
-	int_state = state_fio->FgetUint32();
-	pc.d = state_fio->FgetUint32();
-	ppc.d = state_fio->FgetUint32();
-	acc.d = state_fio->FgetUint32();
-	dp.d = state_fio->FgetUint32();
-	u.d = state_fio->FgetUint32();
-	s.d = state_fio->FgetUint32();
-	x.d = state_fio->FgetUint32();
-	y.d = state_fio->FgetUint32();
-	cc = state_fio->FgetUint8();
-	ea.d = state_fio->FgetUint32();
-
-	// V2
-	req_halt_on = state_fio->FgetBool();
-	req_halt_off = state_fio->FgetBool();
-	busreq = state_fio->FgetBool();
-
-	total_icount = prev_total_icount = state_fio->FgetUint64();
-	waitfactor = state_fio->FgetUint32();
-	waitcount = state_fio->FgetUint32();
-	return true;
+	return mb;
 }
 
 

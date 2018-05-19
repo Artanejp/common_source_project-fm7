@@ -57,8 +57,10 @@ public:
 	void reset() override;
 	void initialize();
 	void update_config();
-	void save_state(FILEIO *state_fio) override;
-	bool load_state(FILEIO *state_fio) override;
+	void save_state(FILEIO *state_fio);
+	bool load_state(FILEIO *state_fio);
+	void decl_state(void);
+
 	void set_context_kanjirom_class2(DEVICE *p)
 	{
 	}

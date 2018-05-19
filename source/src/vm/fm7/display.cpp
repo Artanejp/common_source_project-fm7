@@ -3590,7 +3590,7 @@ void DISPLAY::decl_state(void)
 		DECL_STATE_ENTRY_BOOL(diag_load_subrom_cg);
 	
 		DECL_STATE_ENTRY_MULTI(void, subsys_a, sizeof(subsys_a));
-		DECL_STATE_ENTRY_MULTI(void, sizeof(subsys_b));
+		DECL_STATE_ENTRY_MULTI(void, subsys_b, sizeof(subsys_b));
 		DECL_STATE_ENTRY_MULTI(void, subsys_cg, sizeof(subsys_cg));
 		DECL_STATE_ENTRY_MULTI(void, submem_hidden, sizeof(submem_hidden));
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -3612,7 +3612,7 @@ void DISPLAY::decl_state(void)
 		DECL_STATE_ENTRY_UINT8(console_ram_bank);
 		DECL_STATE_ENTRY_BOOL(ram_protect);
 		
-		DECL_STATE_ENTRY_UINT32(cgram_bank);
+		DECL_STATE_ENTRY_UINT8(cgram_bank);
 		DECL_STATE_ENTRY_MULTI(void, subsys_ram, sizeof(subsys_ram));
 		DECL_STATE_ENTRY_MULTI(void, submem_cgram, sizeof(submem_cgram));
 		DECL_STATE_ENTRY_MULTI(void, submem_console_av40, sizeof(submem_console_av40));

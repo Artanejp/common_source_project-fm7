@@ -44,6 +44,7 @@ FM8_MAINIO::FM8_MAINIO(VM* parent_vm, EMU* parent_emu) : FM7_MAINIO(parent_vm, p
 	dmac = NULL;
 #endif	
 	set_device_name(_T("FM-8 MAIN I/O"));
+	
 }
 
 FM8_MAINIO::~FM8_MAINIO()
@@ -459,46 +460,22 @@ void FM8_MAINIO::update_config()
 	mainmem->write_signal(FM7_MAINIO_BOOTMODE, bootmode, 0xffffffff);
 }
 
-#define STATE_VERSION 11
+
+#include "../../statesub.h"
+void FM8_MAINIO::decl_state(void)
+{
+	FM7_MAINIO::decl_state();
+	DECL_STATE_ENTRY_BOOL(connect_psg);
+}
 
 void FM8_MAINIO::save_state(FILEIO *state_fio)
 {
-	int ch;
-	int addr;
-	state_fio->FputUint32_BE(STATE_VERSION);
-	state_fio->FputInt32_BE(this_device_id);
-	this->out_debug_log(_T("Save State: MAINIO(FM8): id=%d ver=%d\n"), this_device_id, STATE_VERSION);
-
-	FM7_MAINIO::save_state_main(state_fio);
-	// FD0B
-	// FD0F
-	state_fio->FputBool(connect_psg);
-	{
-		state_fio->FputUint32_BE(opn_address[0]);
-		state_fio->FputUint32_BE(opn_data[0]);
-		state_fio->FputUint32_BE(opn_stat[0]);
-		state_fio->FputUint32_BE(opn_cmdreg[0]);
-		state_fio->FputUint32_BE(opn_ch3mode[0]);
-	}
+	FM7_MAINIO::save_state(state_fio);
 }
 
 bool FM8_MAINIO::load_state(FILEIO *state_fio)
 {
-	uint32_t version;
-	
-	version = state_fio->FgetUint32_BE();
-	if(this_device_id != state_fio->FgetInt32_BE()) return false;
-	this->out_debug_log(_T("Load State: MAINIO(FM8): id=%d ver=%d\n"), this_device_id, version);
-
-	if(!FM7_MAINIO::load_state_main(state_fio, version)) return false;
-	connect_psg = state_fio->FgetBool();
-	{
-		opn_address[0] = state_fio->FgetUint32_BE();
-		opn_data[0] = state_fio->FgetUint32_BE();
-		opn_stat[0] = state_fio->FgetUint32_BE();
-		opn_cmdreg[0] = state_fio->FgetUint32_BE();
-		opn_ch3mode[0] = state_fio->FgetUint32_BE();
-	}
-	if(version != STATE_VERSION) return false;
-	return true;
+	bool mb = false;
+	mb = FM7_MAINIO::load_state(state_fio);
+	return mb;
 }

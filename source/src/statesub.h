@@ -427,7 +427,7 @@ inline int csp_state_data<uint32_t>::load_data(FILEIO *fio, uint32_t *sumseed)
 template <>
 inline int csp_state_data<pair_t>::save_data(FILEIO *fio, uint32_t *sumseed)
 {
-	pair_t *ptr = _dataptr;
+	uint32_t *ptr = (uint32_t *)_dataptr;
 	pair_t dat;
 	
 	int _nlen = _len;
@@ -435,7 +435,7 @@ inline int csp_state_data<pair_t>::save_data(FILEIO *fio, uint32_t *sumseed)
 	if(ptr == NULL) return -1;
 	for(int i = 0; i < _nlen; i++) {
 		//printf("SAVE: %s\n", _name.c_str());
-		dat = *ptr++;
+		dat.d = *ptr++;
 	    __write_data_u(fio, sumseed, dat.b.h3, 1);
 		__write_data_u(fio, sumseed, dat.b.h2, 1);
 		__write_data_u(fio, sumseed, dat.b.h, 1);
@@ -447,7 +447,7 @@ inline int csp_state_data<pair_t>::save_data(FILEIO *fio, uint32_t *sumseed)
 template <>
 inline int csp_state_data<pair_t>::load_data(FILEIO *fio, uint32_t *sumseed)
 {
-	pair_t *ptr = _dataptr;
+	uint32_t *ptr = (uint32_t *)_dataptr;
 	uint8_t dat;
 	pair_t d;
 	int _nlen = _len;
@@ -462,7 +462,7 @@ inline int csp_state_data<pair_t>::load_data(FILEIO *fio, uint32_t *sumseed)
 		d.b.h = dat;
 		__read_data_u(fio, sumseed, dat, 1);
 		d.b.l = dat;
-		*ptr++ = d;
+		*ptr++ = d.d;
 	}
 	return _nlen;
 };
@@ -574,6 +574,7 @@ inline int csp_state_data<uint64_t>::save_data(FILEIO *fio, uint32_t *sumseed)
 		dat = d.b.h6; __write_data_u(fio, sumseed, dat, 1);
 		dat = d.b.h5; __write_data_u(fio, sumseed, dat, 1);
 		dat = d.b.h4; __write_data_u(fio, sumseed, dat, 1);
+		dat = d.b.h3; __write_data_u(fio, sumseed, dat, 1);
 		dat = d.b.h2; __write_data_u(fio, sumseed, dat, 1);
 		dat = d.b.h;  __write_data_u(fio, sumseed, dat, 1);
 		dat = d.b.l;  __write_data_u(fio, sumseed, dat, 1);
@@ -629,6 +630,7 @@ inline int csp_state_data<int64_t>::save_data(FILEIO *fio, uint32_t *sumseed)
 		dat = d.b.h6; __write_data_u(fio, sumseed, dat, 1);
 		dat = d.b.h5; __write_data_u(fio, sumseed, dat, 1);
 		dat = d.b.h4; __write_data_u(fio, sumseed, dat, 1);
+		dat = d.b.h3; __write_data_u(fio, sumseed, dat, 1);
 		dat = d.b.h2; __write_data_u(fio, sumseed, dat, 1);
 		dat = d.b.h;  __write_data_u(fio, sumseed, dat, 1);
 		dat = d.b.l;  __write_data_u(fio, sumseed, dat, 1);
@@ -636,6 +638,221 @@ inline int csp_state_data<int64_t>::save_data(FILEIO *fio, uint32_t *sumseed)
 	return _nlen;
 };
 
+template <>
+inline int csp_state_data<float>::load_data(FILEIO *fio, uint32_t *sumseed)
+{
+	std::string _s;
+	char tmps[1024]; // OK?
+	float *ptr = _dataptr;
+	float _v;
+	int _nlen;
+	size_t donelen;
+
+	_nlen = 1023;
+	if(ptr == NULL) return -1;
+	if(fio != NULL) {
+		for(int i = 0; i < _len; i++) {
+			memset(tmps, 0x00, sizeof(tmps));
+			for(int cp = 0; cp < _nlen; cp++) {
+				int _t = fio->Fgetc();
+				if(_t == EOF) break;
+				if(_t == '\0') break;
+				if(_t == 0x00) break;
+				tmps[cp] = (char)_t;
+			}
+			donelen = strnlen(tmps, _nlen);
+			if(donelen <= 0) return -1;
+			if(donelen >= _nlen) return -1;
+			if(sumseed != NULL) *sumseed = calc_crc32(*sumseed, (uint8_t *)tmps, (donelen + 1) * sizeof(char)); 
+			_s = std::string(tmps);
+			try {
+				_v = std::stof(_s);
+			} catch(const std::invalid_argument& e) {
+				return -1;
+			} catch(const std::out_of_range& e) {
+				return -1;
+			}
+			*ptr++ = _v;
+		}
+		return _len;
+	}
+	return -1;
+};
+template <>
+inline int csp_state_data<float>::save_data(FILEIO *fio, uint32_t *sumseed)
+{
+	std::string _s;
+	char tmps[1024]; // OK?
+	float *ptr = _dataptr;
+	float _v;
+	int _nlen;
+	size_t donelen;
+
+	_nlen = 1023;
+	if(ptr == NULL) return -1;
+	if(fio != NULL) {
+		for(int i = 0; i < _len; i++) {
+			_v = *ptr++;
+			memset(tmps, 0x00, sizeof(tmps));
+			_s = std::to_string(_v);
+			_s.copy(tmps, sizeof(tmps) / sizeof(char));
+			donelen = strnlen(tmps, _nlen);
+			if(donelen <= 0) return -1;
+			if(donelen >= _nlen) return -1;
+			if(sumseed != NULL) *sumseed = calc_crc32(*sumseed, (uint8_t *)tmps, (donelen + 1)* sizeof(char));
+			for(int cp = 0; cp < donelen; cp++) {
+				fio->Fputc((int)tmps[cp]);
+			}
+			fio->Fputc((int)'\0');
+		}
+		return _len;
+	}
+	return -1;
+};
+
+template <>
+inline int csp_state_data<double>::load_data(FILEIO *fio, uint32_t *sumseed)
+{
+	std::string _s;
+	char tmps[1024]; // OK?
+	double *ptr = _dataptr;
+	double _v;
+	int _nlen;
+	size_t donelen;
+
+	_nlen = 1023;
+	if(ptr == NULL) return -1;
+	if(fio != NULL) {
+		for(int i = 0; i < _len; i++) {
+			memset(tmps, 0x00, sizeof(tmps));
+			for(int cp = 0; cp < _nlen; cp++) {
+				int _t = fio->Fgetc();
+				if(_t == EOF) break;
+				if(_t == '\0') break;
+				if(_t == 0x00) break;
+				tmps[cp] = (char)_t;
+			}
+			donelen = strnlen(tmps, _nlen);
+			if(donelen <= 0) return -1;
+			if(donelen >= _nlen) return -1;
+			if(sumseed != NULL) *sumseed = calc_crc32(*sumseed, (uint8_t *)tmps, (donelen + 1) * sizeof(char)); 
+			_s = std::string(tmps);
+			try {
+				_v = std::stod(_s);
+			} catch(const std::invalid_argument& e) {
+				return -1;
+			} catch(const std::out_of_range& e) {
+				return -1;
+			}
+			*ptr++ = _v;
+		}
+		return _len;
+	}
+	return -1;
+};
+template <>
+inline int csp_state_data<double>::save_data(FILEIO *fio, uint32_t *sumseed)
+{
+	std::string _s;
+	char tmps[1024]; // OK?
+	double *ptr = _dataptr;
+	double _v;
+	int _nlen;
+	size_t donelen;
+
+	_nlen = 1023;
+	if(ptr == NULL) return -1;
+	if(fio != NULL) {
+		for(int i = 0; i < _len; i++) {
+			_v = *ptr++;
+			memset(tmps, 0x00, sizeof(tmps));
+			_s = std::to_string(_v);
+			_s.copy(tmps, sizeof(tmps) / sizeof(char));
+			donelen = strnlen(tmps, _nlen);
+			if(donelen <= 0) return -1;
+			if(donelen >= _nlen) return -1;
+			if(sumseed != NULL) *sumseed = calc_crc32(*sumseed, (uint8_t *)tmps, (donelen + 1)* sizeof(char));
+			for(int cp = 0; cp < donelen; cp++) {
+				fio->Fputc((int)tmps[cp]);
+			}
+			fio->Fputc((int)'\0');
+		}
+		return _len;
+	}
+	return -1;
+};
+
+template <>
+inline int csp_state_data<long double>::load_data(FILEIO *fio, uint32_t *sumseed)
+{
+	std::string _s;
+	char tmps[2048]; // OK?
+	long double *ptr = _dataptr;
+	long double _v;
+	int _nlen;
+	size_t donelen;
+
+	_nlen = 2047;
+	if(ptr == NULL) return -1;
+	if(fio != NULL) {
+		for(int i = 0; i < _len; i++) {
+			memset(tmps, 0x00, sizeof(tmps));
+			for(int cp = 0; cp < _nlen; cp++) {
+				int _t = fio->Fgetc();
+				if(_t == EOF) break;
+				if(_t == '\0') break;
+				if(_t == 0x00) break;
+				tmps[cp] = (char)_t;
+			}
+			donelen = strnlen(tmps, _nlen);
+			if(donelen <= 0) return -1;
+			if(donelen >= _nlen) return -1;
+			if(sumseed != NULL) *sumseed = calc_crc32(*sumseed, (uint8_t *)tmps, (donelen + 1) * sizeof(char)); 
+			_s = std::string(tmps);
+			try {
+				_v = std::stold(_s);
+			} catch(const std::invalid_argument& e) {
+				return -1;
+			} catch(const std::out_of_range& e) {
+				return -1;
+			}
+			*ptr++ = _v;
+		}
+		return _len;
+	}
+	return -1;
+};
+template <>
+inline int csp_state_data<long double>::save_data(FILEIO *fio, uint32_t *sumseed)
+{
+	std::string _s;
+	char tmps[2048]; // OK?
+	long double *ptr = _dataptr;
+	long double _v;
+	int _nlen;
+	size_t donelen;
+
+	_nlen = 2047;
+	if(ptr == NULL) return -1;
+	if(fio != NULL) {
+		for(int i = 0; i < _len; i++) {
+			_v = *ptr++;
+			memset(tmps, 0x00, sizeof(tmps));
+			_s = std::to_string(_v);
+			_s.copy(tmps, sizeof(tmps) / sizeof(char));
+			donelen = strnlen(tmps, _nlen);
+			if(donelen <= 0) return -1;
+			if(donelen >= _nlen) return -1;
+			if(sumseed != NULL) *sumseed = calc_crc32(*sumseed, (uint8_t *)tmps, (donelen + 1)* sizeof(char));
+			for(int cp = 0; cp < donelen; cp++) {
+				fio->Fputc((int)tmps[cp]);
+			}
+			fio->Fputc((int)'\0');
+		}
+		return _len;
+	}
+	return -1;
+};
 
 template <>
 inline int csp_state_data<_TCHAR>::load_data(FILEIO *fio, uint32_t *sumseed)
@@ -695,6 +912,10 @@ enum {
 	csp_saver_entry_int64,
 	csp_saver_entry_bool,
 	csp_saver_entry_tchar,
+	csp_saver_entry_pair,
+	csp_saver_entry_float,
+	csp_saver_entry_double,
+	csp_saver_entry_long_double,
 	csp_saver_entry_any
 };
 
@@ -795,6 +1016,22 @@ public:
 			if(pp != NULL) {
 				_vname = _T("NAME:");
 				switch((*p).type_id) {
+				case csp_saver_entry_float:
+					_tname = _T("TYPE: float");
+					_vname = _vname + ((csp_state_data<float> *)pp)->get_name();
+					break;
+				case csp_saver_entry_double:
+					_tname = _T("TYPE: double");
+					_vname = _vname + ((csp_state_data<double> *)pp)->get_name();
+					break;
+				case csp_saver_entry_long_double:
+					_tname = _T("TYPE: long double");
+					_vname = _vname + ((csp_state_data<long double> *)pp)->get_name();
+					break;
+				case csp_saver_entry_pair:
+					_tname = _T("TYPE: pair_t");
+					_vname = _vname + ((csp_state_data<pair_t> *)pp)->get_name();
+					break;
 				case csp_saver_entry_int:
 					_tname = _T("TYPE: int");
 					_vname = _vname + ((csp_state_data<int> *)pp)->get_name();
@@ -854,38 +1091,47 @@ public:
 		}
 		return _rlist;
 	}
+
 	template <class T>
 	void add_entry(csp_state_data<T> *p)
 	{
 		__list_t _l;
 		_l.ptr = (void *)p;
+		_l.type_id = csp_saver_entry_any;
 		if(typeid(T) == typeid(int)) {
 			_l.type_id = csp_saver_entry_int;
-		} else if(typeid(T) == typeid(uint8_t)) {
-			_l.type_id = csp_saver_entry_uint8;
+		} else if(typeid(T) == typeid(pair_t)) {
+			_l.type_id = csp_saver_entry_pair;
+		} else if(typeid(T) == typeid(float)) {
+			_l.type_id = csp_saver_entry_float;
+		} else if(typeid(T) == typeid(double)) {
+			_l.type_id = csp_saver_entry_double;
+		} else if(typeid(T) == typeid(long double)) {
+			_l.type_id = csp_saver_entry_long_double;
 		} else if(typeid(T) == typeid(int8_t)) {
 			_l.type_id = csp_saver_entry_int8;
-		} else if(typeid(T) == typeid(uint16_t)) {
-			_l.type_id = csp_saver_entry_uint16;
+		} else if(typeid(T) == typeid(uint8_t)) {
+			_l.type_id = csp_saver_entry_uint8;
 		} else if(typeid(T) == typeid(int16_t)) {
 			_l.type_id = csp_saver_entry_int16;
-		} else if(typeid(T) == typeid(uint32_t)) {
-			_l.type_id = csp_saver_entry_uint32;
+		} else if(typeid(T) == typeid(uint16_t)) {
+			_l.type_id = csp_saver_entry_uint16;
 		} else if(typeid(T) == typeid(int32_t)) {
 			_l.type_id = csp_saver_entry_int32;
+		} else if(typeid(T) == typeid(uint32_t)) {
+			_l.type_id = csp_saver_entry_uint32;
+		} else if(typeid(T) == typeid(int64_t)) {
+			_l.type_id = csp_saver_entry_int64;
 		} else if(typeid(T) == typeid(uint64_t)) {
 			_l.type_id = csp_saver_entry_uint64;
-		} else if(typeid(T) == typeid(int64_t)) {
-			_l.type_id = csp_saver_entry_int8;
 		} else if(typeid(T) == typeid(bool)) {
 			_l.type_id = csp_saver_entry_bool;
 		} else if(typeid(T) == typeid(_TCHAR)) {
 			_l.type_id = csp_saver_entry_tchar;
-		} else {
-			_l.type_id = csp_saver_entry_any;
-		}
+		}			
 		listptr.push_back(_l);
-	}
+	};
+	
 	uint32_t get_crc_value(void)
 	{
 		return crc_value;
@@ -916,6 +1162,18 @@ public:
 			void *pp = (*p).ptr;
 			if(pp != NULL) {
 				switch((*p).type_id) {
+				case csp_saver_entry_float:
+					retval = ((csp_state_data<float> *)pp)->save_data(fio, &crc_value);
+					break;
+				case csp_saver_entry_double:
+					retval = ((csp_state_data<double> *)pp)->save_data(fio, &crc_value);
+					break;
+				case csp_saver_entry_long_double:
+					retval = ((csp_state_data<long double> *)pp)->save_data(fio, &crc_value);
+					break;
+				case csp_saver_entry_pair:
+					retval = ((csp_state_data<pair_t> *)pp)->save_data(fio, &crc_value);
+					break;
 				case csp_saver_entry_int:
 					retval = ((csp_state_data<int> *)pp)->save_data(fio, &crc_value);
 					break;
@@ -981,6 +1239,18 @@ public:
 			void *pp = (*p).ptr;
 			if(pp != NULL) {
 				switch((*p).type_id) {
+				case csp_saver_entry_float:
+					retval = ((csp_state_data<float> *)pp)->load_data(fio, &crc_value);
+					break;
+				case csp_saver_entry_double:
+					retval = ((csp_state_data<double> *)pp)->load_data(fio, &crc_value);
+					break;
+				case csp_saver_entry_long_double:
+					retval = ((csp_state_data<long double> *)pp)->load_data(fio, &crc_value);
+					break;
+				case csp_saver_entry_pair:
+					retval = ((csp_state_data<pair_t> *)pp)->load_data(fio, &crc_value);
+					break;
 				case csp_saver_entry_int:
 					retval = ((csp_state_data<int> *)pp)->load_data(fio, &crc_value);
 					break;
@@ -1068,6 +1338,9 @@ public:
 #define DECL_STATE_ENTRY_PAIR(___name) DECL_STATE_ENTRY0(pair_t, ___name, state_entry)
 #define DECL_STATE_ENTRY_BOOL(___name) DECL_STATE_ENTRY0(bool, ___name, state_entry)
 #define DECL_STATE_ENTRY_TCHAR(___name) DECL_STATE_ENTRY0(_TCHAR, ___name, state_entry)
+#define DECL_STATE_ENTRY_FLOAT(___name) DECL_STATE_ENTRY0(float, ___name, state_entry)
+#define DECL_STATE_ENTRY_DOUBLE(___name) DECL_STATE_ENTRY0(double, ___name, state_entry)
+#define DECL_STATE_ENTRY_LONG_DOUBLE(___name) DECL_STATE_ENTRY0(long double, ___name, state_entry)
 
 #define DECL_STATE_ENTRY_UINT8_ARRAY(___name, __len) DECL_STATE_ENTRY1(uint8_t, ___name, state_entry, __len)
 #define DECL_STATE_ENTRY_INT8_ARRAY(___name, __len) DECL_STATE_ENTRY1(int8_t, ___name, state_entry, __len)
@@ -1079,7 +1352,9 @@ public:
 #define DECL_STATE_ENTRY_INT64_ARRAY(___name, __len) DECL_STATE_ENTRY1(int64_t, ___name, state_entry, __len)
 #define DECL_STATE_ENTRY_BOOL_ARRAY(___name, __len) DECL_STATE_ENTRY1(bool, ___name, state_entry, __len)
 #define DECL_STATE_ENTRY_PAIR_ARRAY(___name, __len) DECL_STATE_ENTRY1(pair_t, ___name, state_entry, __len)
-
+#define DECL_STATE_ENTRY_FLOAT_ARRAY(___name, __len) DECL_STATE_ENTRY1(float, ___name, state_entry, __len)
+#define DECL_STATE_ENTRY_DOUBLE_ARRAY(___name, __len) DECL_STATE_ENTRY1(double, ___name, state_entry, __len)
+#define DECL_STATE_ENTRY_LONG_DOUBLE_ARRAY(___name, __len) DECL_STATE_ENTRY1(long double, ___name, state_entry, __len)
 
 //#define DECL_STATE_ENTRY_MULTI(___name, ___size) DECL_STATE_ENTRY_MULTI0(uint8_t, ___name, state_entry, ___size)
 #define DECL_STATE_ENTRY_MULTI(_n_type, ___name, ___size) DECL_STATE_ENTRY_MULTI0(_n_type, ___name, state_entry, ___size)
