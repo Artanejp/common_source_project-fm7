@@ -332,7 +332,7 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	g_substat_mainhalt->set_device_name(_T("SUBSYSTEM HALT STATUS(AND)"));
 #endif	
 	this->connect_bus();
-	
+	decl_state();
 }
 
 VM::~VM()
@@ -1214,52 +1214,40 @@ void VM::set_vm_frame_rate(double fps)
    if(event != NULL) event->set_frames_per_sec(fps);
 }
 
+#define STATE_VERSION	9
+#include "../../statesub.h"
 
-#define STATE_VERSION	8
+void VM::decl_state(void)
+{
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM7_SERIES_HEAD")));
+	DECL_STATE_ENTRY_BOOL(connect_320kfdc);
+	DECL_STATE_ENTRY_BOOL(connect_1Mfdc);
+}
+
 void VM::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32_BE(STATE_VERSION);
-	state_fio->FputBool(connect_320kfdc);
-	state_fio->FputBool(connect_1Mfdc);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const char *name = typeid(*device).name() + 6; // skip "class "
-		int _len = strlen(name);
-		if(_len <= 0) _len = 1;
-		if(_len >= 128) _len = 128;
-		state_fio->FputInt32(_len);
-		state_fio->Fwrite(name, _len, 1);
-		//printf("SAVE State: DEVID=%d NAME=%s\n", device->this_device_id, name);
+		emu->out_debug_log("SAVE State: DEVID=%d", device->this_device_id);
 		device->save_state(state_fio);
 	}
 }
 
 bool VM::load_state(FILEIO* state_fio)
 {
-	uint32_t version = state_fio->FgetUint32_BE();
-	if(version != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
+		emu->out_debug_log("INFO: HEADER DATA ERROR");
 		return false;
 	}
-	connect_320kfdc = state_fio->FgetBool();
-	connect_1Mfdc = state_fio->FgetBool();
 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const char *name = typeid(*device).name() + 6; // skip "class "
-		char nr_data[130];
-		int _len;
-		bool b_stat = false;
-		_len = state_fio->FgetInt32();
-		if(_len > 0) {
-			if(_len >= 128) _len = 128;
-			memset(nr_data, 0x00, sizeof(nr_data));
-			state_fio->Fread(nr_data, _len, 1);
-			int stat = strncmp(name, nr_data, _len);
-			if(stat == 0) b_stat = true;
-		} 
-		if(!b_stat) {
-			//printf("Load Error: DEVID=%d NAME=%s\n", device->this_device_id, name);
-			return false;
-		}
 		if(!device->load_state(state_fio)) {
-			//printf("Load Error: DEVID=%d\n", device->this_device_id);
+			emu->out_debug_log("Load Error: DEVID=%d\n", device->this_device_id);
 			return false;
 		}
 	}

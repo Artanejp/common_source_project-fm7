@@ -271,7 +271,7 @@ class FM7_MAINIO : public DEVICE {
 #endif	
 #if defined(HAS_DMA)
 	bool intstat_dma;
-	uint32_t dma_addr;
+	uint8_t dma_addr;
 #endif	
 	void set_clockmode(uint8_t flags);
 	uint8_t get_clockmode(void);

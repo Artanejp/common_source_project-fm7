@@ -455,6 +455,7 @@ class OR;
 #ifdef CAPABLE_JCOMMCARD
 class FM7_JCOMMCARD;
 #endif
+class csp_state_utils;
 
 class VM {
 protected:
@@ -545,6 +546,8 @@ protected:
 #endif
 	bool connect_320kfdc;
 	bool connect_1Mfdc;
+
+	csp_state_utils *state_entry;
 public:
 	// ----------------------------------------
 	// initialize
@@ -617,6 +620,8 @@ public:
 	void update_config();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	void decl_state(void);
+	
 #if defined(USE_BUBBLE1)
 	void open_bubble_casette(int drv, const _TCHAR *path, int bank);
 	void close_bubble_casette(int drv);

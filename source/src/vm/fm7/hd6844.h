@@ -53,6 +53,7 @@ enum {
 };
 class VM;
 class EMU;
+class csp_state_utils;
 class HD6844: public DEVICE {
 protected:
 	// HACKs
@@ -66,6 +67,8 @@ protected:
 
 	outputs_t interrupt_line; // 20180117 K.O
 	outputs_t busreq_line[2];
+
+	csp_state_utils *state_entry;
 	// Registers
 
 	uint32_t addr_reg[4];
@@ -100,6 +103,7 @@ protected:
 		initialize_output_signals(&interrupt_line);
 		for(i = 0; i < 2; i++) initialize_output_signals(&(busreq_line[i]));
 		set_device_name(_T("HD6844 DMAC"));
+		decl_state();
 	}
 	~HD6844(){}
 	void event_callback(int event_id, int err);
@@ -113,6 +117,7 @@ protected:
 	//void update_config(void);
 	void save_state(FILEIO *state_fio);
 	bool load_state(FILEIO *state_fio);
+	void decl_state(void);
 	
 	void set_context_int_line(DEVICE *p, int id, uint32_t mask) {
 		register_output_signal(&interrupt_line, p, id, mask);
