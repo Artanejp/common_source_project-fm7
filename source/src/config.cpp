@@ -277,7 +277,7 @@ void load_config(const _TCHAR *config_path)
 			config.baud_high[drv] = MyGetPrivateProfileBool(_T("Control"), create_string(_T("BaudHigh%d"), drv + 1), config.baud_high[drv], config_path);
 		}
 	#endif
-		
+	config.compress_state = MyGetPrivateProfileBool(_T("Control"), _T("CompressState"), config.compress_state, config_path);		
 		// recent files
 	#ifdef USE_CART1
 		MyGetPrivateProfileString(_T("RecentFiles"), _T("InitialCartDir"), _T(""), config.initial_cart_dir, _MAX_PATH, config_path);
@@ -349,7 +349,7 @@ void load_config(const _TCHAR *config_path)
 			config.rotate_type = MyGetPrivateProfileInt(_T("Screen"), _T("RotateType"), config.rotate_type, config_path);
 //		#endif
 	#endif
-	config.compress_state = MyGetPrivateProfileBool(_T("Control"), _T("CompressState"), config.compress_state, config_path);
+
 	
 	// filter
 	#ifdef USE_SCREEN_FILTER
@@ -613,7 +613,8 @@ void save_config(const _TCHAR *config_path)
 			MyWritePrivateProfileBool(_T("Control"), create_string(_T("BaudHigh%d"), drv + 1), config.baud_high[drv], config_path);
 		}
 	#endif
- 	
+	MyWritePrivateProfileBool(_T("Control"), _T("CompressState"), config.compress_state, config_path);
+	
  	// recent files
 	
 	// recent files
@@ -687,7 +688,7 @@ void save_config(const _TCHAR *config_path)
 			MyWritePrivateProfileInt(_T("Screen"), _T("RotateType"), config.rotate_type, config_path);
 //		#endif
 	#endif
-	MyWritePrivateProfileBool(_T("Control"), _T("CompressState"), config.compress_state, config_path);
+
 	// filter
 	#ifdef USE_SCREEN_FILTER
 		MyWritePrivateProfileInt(_T("Screen"), _T("FilterType"), config.filter_type, config_path);

@@ -2714,9 +2714,9 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 	FILEIO* fio = new FILEIO();
 	osd->lock_vm();
 #ifdef USE_ZLIB
-//	if(config.compress_state) {
+	if(config.compress_state) {
 		fio->Gzopen(file_path, FILEIO_READ_BINARY);
-//	}
+	}
 #endif
 	if(!fio->IsOpened()) {
 		fio->Fopen(file_path, FILEIO_READ_BINARY);

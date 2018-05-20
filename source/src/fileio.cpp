@@ -246,8 +246,8 @@ bool FILEIO::Gzopen(const _TCHAR *file_path, int mode)
 	switch(mode) {
 	case FILEIO_READ_BINARY:
 		return ((gz = gzopen(tchar_to_char(file_path), "rb")) != NULL);
-//	case FILEIO_WRITE_BINARY:
-//		return ((fp = _tfopen(file_path, _T("wb"))) != NULL);
+	case FILEIO_WRITE_BINARY:
+		return ((gz = gzopen(tchar_to_char(file_path), "wb")) != NULL);
 //	case FILEIO_READ_WRITE_BINARY:
 //		return ((fp = _tfopen(file_path, _T("r+b"))) != NULL);
 //	case FILEIO_READ_WRITE_NEW_BINARY:
