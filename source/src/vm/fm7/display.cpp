@@ -3507,6 +3507,7 @@ void DISPLAY::release()
 void DISPLAY::decl_state(void)
 {
 	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("FM7_DISPLAY"));
+	DECL_STATE_ENTRY_INT(this_device_id);
 	{
 		int i;
 		DECL_STATE_ENTRY_INT32(clr_count);

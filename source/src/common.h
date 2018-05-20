@@ -23,6 +23,9 @@
 		#endif
 	#endif
 #endif
+#ifdef _USE_OT
+			#define USE_ZLIB
+#endif
 
 // check environemnt/language
 #ifdef _WIN32

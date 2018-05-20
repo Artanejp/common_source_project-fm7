@@ -450,6 +450,7 @@ void HD6844::decl_state(void)
 {
 	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, (_TCHAR *)get_device_name());
 
+	DECL_STATE_ENTRY_INT(this_device_id);
 	DECL_STATE_ENTRY_UINT32_ARRAY(addr_reg, 4);
 	DECL_STATE_ENTRY_UINT16_ARRAY(words_reg, 4);
 	DECL_STATE_ENTRY_UINT8_ARRAY(channel_control, 4);

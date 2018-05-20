@@ -3955,12 +3955,15 @@ OP_HANDLER(pref11) {
 		}
 	}
 
-#define STATE_VERSION	6
+#define STATE_VERSION	7
 #include "../statesub.h"
 
 void MC6809_BASE::decl_state(void)
 {
 	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("MC6809"));
+
+	DECL_STATE_ENTRY_INT(this_device_id);
+	
 	DECL_STATE_ENTRY_INT32(icount);
 	DECL_STATE_ENTRY_INT32(extra_icount);
 	DECL_STATE_ENTRY_UINT32(int_state);

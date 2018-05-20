@@ -42,10 +42,13 @@ typedef struct {
 	uint8_t misc[8];
 } bbl_header_t;
 
+class csp_state_utils;
+
 class BUBBLECASETTE: public DEVICE {
 protected:
 	EMU *p_emu;
 	VM *p_vm;
+	csp_state_utils *state_entry;
 
 	FILEIO* fio;
 	
@@ -114,11 +117,13 @@ public:
 	
 	uint32_t read_signal(int id);
 	void write_signal(int id, uint32_t data, uint32_t mask);
-	void open(_TCHAR* file_path, int bank);
+	bool open(_TCHAR* file_path, int bank);
 	void close();
 	void event_callback(int event_id, int err);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	void decl_state(void);
+	
 	bool is_bubble_inserted()
 	{
 		return bubble_inserted;

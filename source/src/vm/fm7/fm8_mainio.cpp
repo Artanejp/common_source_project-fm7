@@ -470,12 +470,16 @@ void FM8_MAINIO::decl_state(void)
 
 void FM8_MAINIO::save_state(FILEIO *state_fio)
 {
-	FM7_MAINIO::save_state(state_fio);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
 }
 
 bool FM8_MAINIO::load_state(FILEIO *state_fio)
 {
 	bool mb = false;
-	mb = FM7_MAINIO::load_state(state_fio);
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
 	return mb;
 }

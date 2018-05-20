@@ -286,6 +286,8 @@ class HUC6280;
 class PCE;
 #define USE_CPU_HUC6280
 #endif
+class csp_state_utils;
+
 class VM
 {
 protected:
@@ -339,6 +341,7 @@ protected:
 	HUC6280* pcecpu;
 	PCE* pce;
 #endif
+	csp_state_utils *state_entry;
 	
 public:
 	// ----------------------------------------
@@ -414,6 +417,7 @@ public:
 #endif
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	void decl_state(void);
 	
 	// ----------------------------------------
 	// for each device

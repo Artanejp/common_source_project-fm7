@@ -1969,6 +1969,7 @@ void FM7_MAINIO::event_vline(int v, int clock)
 void FM7_MAINIO::decl_state(void)
 {
 	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("MAINIO"));
+	DECL_STATE_ENTRY_INT(this_device_id);
 
 	DECL_STATE_ENTRY_MULTI(void, io_w_latch, sizeof(io_w_latch));
 	

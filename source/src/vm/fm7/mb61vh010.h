@@ -13,8 +13,6 @@
 
 
 #include "../device.h"
-//#include "../memory.h"
-//#include "fm7_common.h"
 
 enum {
 	ALU_WRITE_PROXY = 0x00000,
@@ -59,10 +57,11 @@ enum {
 
 class VM;
 class EMU;
+class csp_state_utils;
 class MB61VH010: public DEVICE {
  protected:
 	DEVICE *target;
-	
+	csp_state_utils *state_entry;
 	// Registers
 	uint8_t command_reg;        // D410 (RW)
 	uint8_t color_reg;          // D411 (RW)
@@ -117,11 +116,14 @@ class MB61VH010: public DEVICE {
 		target = NULL;
 		direct_access_offset = 0;
 		set_device_name(_T("MB61VH010 ALU"));
+		decl_state();
 	}
 	~MB61VH010() {}
 
 	void save_state(FILEIO *state_fio);
 	bool load_state(FILEIO *state_fio);
+	void decl_state(void);
+	
 	void event_callback(int event_id, int err);
 	void write_data8(uint32_t id, uint32_t data);
 	uint32_t read_data8(uint32_t addr);

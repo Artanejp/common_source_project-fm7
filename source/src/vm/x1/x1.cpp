@@ -437,6 +437,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 //		fdc->set_drive_rpm(i, 300);
 //		fdc->set_drive_mfm(i, true);
 	}
+	decl_state();
 }
 
 VM::~VM()
@@ -868,41 +869,40 @@ void VM::update_dipswitch()
 }
 #endif
 
-#define STATE_VERSION	9
+#define STATE_VERSION	10
+#include "../../statesub.h"
 
+void VM::decl_state(void)
+{
+	state_entry = new csp_state_utils(STATE_VERSION, 0, CONFIG_NAME);
+	DECL_STATE_ENTRY_BOOL(pseudo_sub_cpu);
+	DECL_STATE_ENTRY_INT32(sound_type);
+}
 void VM::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
+	if(state_entry != NULL) state_entry->save_state(state_fio);
 	
 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const char *name = typeid(*device).name() + 6; // skip "class "
-		
-		state_fio->FputInt32(strlen(name));
-		state_fio->Fwrite(name, strlen(name), 1);
 		device->save_state(state_fio);
 	}
-	state_fio->FputBool(pseudo_sub_cpu);
-	state_fio->FputInt32(sound_type);
 }
 
 bool VM::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
+	if(!mb) return false;
+
+	int n = 1;
 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const char *name = typeid(*device).name() + 6; // skip "class "
-		
-		if(!(state_fio->FgetInt32() == strlen(name) && state_fio->Fcompare(name, strlen(name)))) {
-			return false;
-		}
 		if(!device->load_state(state_fio)) {
+			printf("STATE ERROR at device #%d\n", n);
 			return false;
 		}
+		n++;
 	}
-	pseudo_sub_cpu = state_fio->FgetBool();
-	sound_type = state_fio->FgetInt32();
-	
 #ifdef _X1TURBO_FEATURE
 	// post process
 	update_dipswitch();
