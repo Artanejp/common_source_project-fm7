@@ -75,6 +75,107 @@ protected:
 		_dataptr = val;
 		return true;
 	}
+	int  save_string_data(const _TCHAR *p, FILEIO *fio, uint32_t *sumseed, int maxlen = -1)
+	{
+		int locallen;
+		if(p == NULL) return -1;
+		if(maxlen <= 0) {
+			locallen = strlen(p);
+		} else {
+			locallen = strnlen(p, maxlen);
+		}
+		if(locallen < 0) return -1;
+		locallen += 1; // Include "\0";
+		if(sumseed != NULL) {
+			*sumseed = calc_crc32(*sumseed, (uint8_t *)p, locallen * sizeof(char));
+		}
+		for(int cp = 0; cp < locallen; cp++) {
+			fio->Fputc((int)p[cp]);
+		}
+		return locallen;
+	}
+	int  load_string_data(_TCHAR *p, FILEIO *fio, uint32_t *sumseed, int maxlen)
+	{
+		int cp;
+		int _nlen;
+		if(p == NULL) return -1;
+		if(maxlen <= 0) return -1;
+		memset(p, 0x00, sizeof(_TCHAR) * maxlen);
+		for(cp = 0; cp < maxlen; cp++) {
+			int _t = fio->Fgetc();
+			if((_t == EOF) || (_t == '\0') || (_t == 0x00)) break;
+			p[cp] = (_TCHAR)_t;
+		}
+		if(cp >= maxlen) p[maxlen - 1] = '\0';
+		_nlen = strlen(p);
+		if((sumseed != NULL) && (_nlen > 1)){
+			*sumseed = calc_crc32(*sumseed, (uint8_t *)p, _nlen * sizeof(_TCHAR));
+		}
+		return _nlen;
+	}
+	// ALL OF BYNARY VALUES SHOULD BE SAVED BY BIG ENDIAN
+	int save_and_change_byteorder_be(FILEIO *fio, uint32_t *sum, void *val, int bytes = 4, int rep = 1)
+	{
+		//int swapoffset = bytes;
+		int members = 0;
+		uint8_t *buf;
+		uint8_t *srcp = (uint8_t *)val;
+		
+		if((bytes <= 0) || (rep < 1)) return 0;
+		if(val == NULL) return 0;
+		buf = (uint8_t *)malloc(bytes); // swap buffer
+		if(buf == NULL) return 0;
+		for(members = 0; members < rep; members++) {
+#if defined(__LITTLE_ENDIAN__)
+			int k = 0;
+			for(int j = (bytes - 1); j >= 0; j--) {
+				buf[j] = srcp[k];
+				k++;
+			}
+#else // BIG_ENDIAN
+			memcpy(buf, srcp, bytes);
+#endif
+			if(fio->Fwrite(buf, bytes, 1) != 1) {
+				free(buf);
+				return members;
+			}
+			*sum = calc_crc32(*sum, buf, bytes);
+			srcp += bytes;
+		}
+		free(buf);
+		return members;
+	}
+	int load_and_change_byteorder_be(FILEIO *fio, uint32_t *sum, void *val, int bytes = 4, int rep = 1)
+	{
+		//int swapoffset = bytes;
+		int members = 0;
+		uint8_t *buf;
+		uint8_t *srcp = (uint8_t *)val;
+		
+		if((bytes <= 0) || (rep < 1)) return 0;
+		if(val == NULL) return 0;
+		buf = (uint8_t *)malloc(bytes); // swap buffer
+		if(buf == NULL) return 0;
+		for(members = 0; members < rep; members++) {
+			if(fio->Fread(buf, bytes, 1) != 1) {
+				free(buf);
+				return members;
+			}
+			*sum = calc_crc32(*sum, buf, bytes);
+#if defined(__LITTLE_ENDIAN__)
+			int k = 0;
+			for(int j = (bytes - 1); j >= 0; j--) {
+				srcp[k] = buf[j];
+				k++;
+			}
+#else // BIG_ENDIAN
+			memcpy(srcp, buf, bytes);
+#endif
+			srcp += bytes;
+		}
+		free(buf);
+		return members;
+	}
 public:
 	csp_state_data()
 	{
@@ -136,24 +237,24 @@ inline int csp_state_data<bool>::load_data(FILEIO *fio, uint32_t *sumseed)
 {
 	bool* ptr = _dataptr;
 	int _nlen = _len;
-	size_t donelen;
+
+	static const uint8_t data_true = 0x01;
+	static const uint8_t data_false = 0x00;
 	
 	if(_nlen <= 0) return -1;
-	//if(fio != NULL) {
-		for(int i = 0; i < _nlen; i++) {
-			const uint8_t data_true = 0x01;
-			const uint8_t data_false = 0x00;
-			uint8_t dat;
-			dat = fio->FgetUint8();
-			if((dat != data_true) && (dat != data_false)) return -1;
-			*ptr++ = (dat == data_true) ? true : false;
-			if(sumseed != NULL) {
-				*sumseed = calc_crc32(*sumseed, &dat, 1);
-			}
-			
+	if(fio != NULL) {
+		uint8_t *buf = (uint8_t *)malloc(_nlen);
+		if(buf == NULL) return -1;
+		if(fio->Fread(buf, _nlen, 1) != 1) return -1;
+		if(sumseed != NULL) {
+			*sumseed = calc_crc32(*sumseed, buf, _nlen);
 		}
+		for(int i = 0; i < _nlen; i++) {
+			*ptr++ = (buf[i] == data_true) ? true : false;
+		}
+		free(buf);
 		return _nlen;
-		//}
+	}
 	return -1;
 }
 
@@ -162,23 +263,23 @@ inline int csp_state_data<bool>::save_data(FILEIO *fio,  uint32_t *sumseed)
 {
 	bool* ptr = _dataptr;
 	int _nlen = _len;
-	size_t donelen;
-	
+	static const uint8_t data_true = 0x01;
+	static const uint8_t data_false = 0x00;
 	if(_nlen <= 0) return -1;
-	//if(fio != NULL) {
-			for(int i = 0; i < _nlen; i++) {
-				const uint8_t data_true = 0x01;
-				const uint8_t data_false = 0x00;
-				uint8_t dat = (*ptr++) ? data_true : data_false;
-				//printf("SAVE: %s\n", _name.c_str());
-				fio->FputUint8(dat);
-				if(sumseed != NULL) {
-					*sumseed = calc_crc32(*sumseed, &dat, 1);
-				}
-			}
-			return _nlen;
-			//	}
-			return -1;
+	if(fio != NULL) {
+		uint8_t *buf = (uint8_t *)malloc(_nlen);
+		if(buf == NULL) return -1;
+		for(int i = 0; i < _nlen; i++) {
+			buf[i] = (*ptr++ == false) ? data_false : data_true;
+		}
+		if(fio->Fwrite(buf, _nlen, 1) != 1) return -1;
+		if(sumseed != NULL) {
+			*sumseed = calc_crc32(*sumseed, buf, _nlen);
+		}
+		free(buf);
+		return _nlen;
+	}
+	return -1;
 }
 	
 template <>
@@ -315,6 +416,7 @@ inline int csp_state_data<uint16_t>::load_data(FILEIO *fio, uint32_t *sumseed)
 		__read_data_u(fio, sumseed, dat, 1);
 		d.b.l = dat;
 		*ptr++ = d.w.l;
+
 	}
 	return _nlen;
 }
@@ -329,12 +431,7 @@ inline int csp_state_data<uint16_t>::save_data(FILEIO *fio, uint32_t *sumseed)
 	int _nlen = _len;
 	
 	if(ptr == NULL) return -1;
-	for(int i = 0; i < _nlen; i++) {
-		//printf("SAVE: %s\n", _name.c_str());
-		d.w.l = *ptr++;
-		dat = d.b.h; __write_data_u(fio, sumseed, dat, 1);
-		dat = d.b.l; __write_data_u(fio, sumseed, dat, 1);
-	}
+	_nlen = save_and_change_byteorder_be(fio, sumseed, (void *)ptr, sizeof(uint16_t), _nlen);
 	return _nlen;
 }
 
@@ -369,12 +466,7 @@ inline int csp_state_data<int16_t>::save_data(FILEIO *fio, uint32_t *sumseed)
 	int _nlen = _len;
 	
 	if(ptr == NULL) return -1;
-	for(int i = 0; i < _nlen; i++) {
-		//printf("SAVE: %s\n", _name.c_str());
-		d.sw.l = *ptr++;
-		dat = d.b.h; __write_data_u(fio, sumseed, dat, 1);
-		dat = d.b.l; __write_data_u(fio, sumseed, dat, 1);
-	}
+	_nlen = save_and_change_byteorder_be(fio, sumseed, (void *)ptr, sizeof(int16_t), _nlen);
 	return _nlen;
 };
 
@@ -389,14 +481,7 @@ inline int csp_state_data<uint32_t>::save_data(FILEIO *fio, uint32_t *sumseed)
 	int _nlen = _len;
 	
 	if(ptr == NULL) return -1;
-	for(int i = 0; i < _nlen; i++) {
-		//printf("SAVE: %s\n", _name.c_str());
-		d.d = *ptr++;
-		dat = d.b.h3; __write_data_u(fio, sumseed, dat, 1);
-		dat = d.b.h2; __write_data_u(fio, sumseed, dat, 1);
-		dat = d.b.h;  __write_data_u(fio, sumseed, dat, 1);
-		dat = d.b.l;  __write_data_u(fio, sumseed, dat, 1);
-	}
+	_nlen = save_and_change_byteorder_be(fio, sumseed, (void *)ptr, sizeof(uint32_t), _nlen);
 	return _nlen;
 };
 
@@ -502,14 +587,7 @@ inline int csp_state_data<int32_t>::save_data(FILEIO *fio, uint32_t *sumseed)
 	int _nlen = _len;
 	
 	if(ptr == NULL) return -1;
-	for(int i = 0; i < _nlen; i++) {
-		//printf("SAVE: %s\n", _name.c_str());
-		d.sd = *ptr++;
-		dat = d.b.h3; __write_data_u(fio, sumseed, dat, 1);
-		dat = d.b.h2; __write_data_u(fio, sumseed, dat, 1);
-		dat = d.b.h;  __write_data_u(fio, sumseed, dat, 1);
-		dat = d.b.l;  __write_data_u(fio, sumseed, dat, 1);
-	}
+	_nlen = save_and_change_byteorder_be(fio, sumseed, (void *)ptr, sizeof(int32_t), _nlen);
 	return _nlen;
 };
 
@@ -535,6 +613,7 @@ inline int csp_state_data<uint64_t>::load_data(FILEIO *fio, uint32_t *sumseed)
 	int _nlen = _len;
 	
 	if(ptr == NULL) return -1;
+	
 	for(int i = 0; i < _nlen; i++) {
 		__read_data_u(fio, sumseed, dat, 1);
 		d.b.h7 = dat;
@@ -567,18 +646,7 @@ inline int csp_state_data<uint64_t>::save_data(FILEIO *fio, uint32_t *sumseed)
 	int _nlen = _len;
 	
 	if(ptr == NULL) return -1;
-	for(int i = 0; i < _nlen; i++) {
-		//printf("SAVE: %s\n", _name.c_str());
-		d.u64 = *ptr++;
-		dat = d.b.h7; __write_data_u(fio, sumseed, dat, 1);
-		dat = d.b.h6; __write_data_u(fio, sumseed, dat, 1);
-		dat = d.b.h5; __write_data_u(fio, sumseed, dat, 1);
-		dat = d.b.h4; __write_data_u(fio, sumseed, dat, 1);
-		dat = d.b.h3; __write_data_u(fio, sumseed, dat, 1);
-		dat = d.b.h2; __write_data_u(fio, sumseed, dat, 1);
-		dat = d.b.h;  __write_data_u(fio, sumseed, dat, 1);
-		dat = d.b.l;  __write_data_u(fio, sumseed, dat, 1);
-	}
+	_nlen = save_and_change_byteorder_be(fio, sumseed, (void *)ptr, sizeof(uint64_t), _nlen);
 	return _nlen;
 };
 
@@ -623,26 +691,20 @@ inline int csp_state_data<int64_t>::save_data(FILEIO *fio, uint32_t *sumseed)
 	int _nlen = _len;
 	
 	if(ptr == NULL) return -1;
-	for(int i = 0; i < _nlen; i++) {
-		//printf("SAVE: %s\n", _name.c_str());
-		d.s64 = *ptr++;
-		dat = d.b.h7; __write_data_u(fio, sumseed, dat, 1);
-		dat = d.b.h6; __write_data_u(fio, sumseed, dat, 1);
-		dat = d.b.h5; __write_data_u(fio, sumseed, dat, 1);
-		dat = d.b.h4; __write_data_u(fio, sumseed, dat, 1);
-		dat = d.b.h3; __write_data_u(fio, sumseed, dat, 1);
-		dat = d.b.h2; __write_data_u(fio, sumseed, dat, 1);
-		dat = d.b.h;  __write_data_u(fio, sumseed, dat, 1);
-		dat = d.b.l;  __write_data_u(fio, sumseed, dat, 1);
-	}
+	_nlen = save_and_change_byteorder_be(fio, sumseed, (void *)ptr, sizeof(int64_t), _nlen);
 	return _nlen;
 };
 
+/*
+ * For floating values, internal format is differnt by ARCHTECTURE, OS, COMPILER etc.
+ * So, saving / loading those values by ascii, not binary.
+ * -- 20180520 K.Ohta.
+ */
 template <>
 inline int csp_state_data<float>::load_data(FILEIO *fio, uint32_t *sumseed)
 {
 	std::string _s;
-	char tmps[1024]; // OK?
+	_TCHAR tmps[1024]; // OK?
 	float *ptr = _dataptr;
 	float _v;
 	int _nlen;
@@ -652,18 +714,8 @@ inline int csp_state_data<float>::load_data(FILEIO *fio, uint32_t *sumseed)
 	if(ptr == NULL) return -1;
 	if(fio != NULL) {
 		for(int i = 0; i < _len; i++) {
-			memset(tmps, 0x00, sizeof(tmps));
-			for(int cp = 0; cp < _nlen; cp++) {
-				int _t = fio->Fgetc();
-				if(_t == EOF) break;
-				if(_t == '\0') break;
-				if(_t == 0x00) break;
-				tmps[cp] = (char)_t;
-			}
-			donelen = strnlen(tmps, _nlen);
+			donelen = load_string_data(tmps, fio, sumseed, (sizeof(tmps) / sizeof(_TCHAR)));
 			if(donelen <= 0) return -1;
-			if(donelen >= _nlen) return -1;
-			if(sumseed != NULL) *sumseed = calc_crc32(*sumseed, (uint8_t *)tmps, (donelen + 1) * sizeof(char)); 
 			_s = std::string(tmps);
 			try {
 				_v = std::stof(_s);
@@ -699,11 +751,7 @@ inline int csp_state_data<float>::save_data(FILEIO *fio, uint32_t *sumseed)
 			donelen = strnlen(tmps, _nlen);
 			if(donelen <= 0) return -1;
 			if(donelen >= _nlen) return -1;
-			if(sumseed != NULL) *sumseed = calc_crc32(*sumseed, (uint8_t *)tmps, (donelen + 1)* sizeof(char));
-			for(int cp = 0; cp < donelen; cp++) {
-				fio->Fputc((int)tmps[cp]);
-			}
-			fio->Fputc((int)'\0');
+			if(save_string_data(tmps, fio, sumseed, sizeof(tmps) / sizeof(_TCHAR)) <= 0) return i;
 		}
 		return _len;
 	}
@@ -714,7 +762,7 @@ template <>
 inline int csp_state_data<double>::load_data(FILEIO *fio, uint32_t *sumseed)
 {
 	std::string _s;
-	char tmps[1024]; // OK?
+	_TCHAR tmps[1024]; // OK?
 	double *ptr = _dataptr;
 	double _v;
 	int _nlen;
@@ -724,18 +772,8 @@ inline int csp_state_data<double>::load_data(FILEIO *fio, uint32_t *sumseed)
 	if(ptr == NULL) return -1;
 	if(fio != NULL) {
 		for(int i = 0; i < _len; i++) {
-			memset(tmps, 0x00, sizeof(tmps));
-			for(int cp = 0; cp < _nlen; cp++) {
-				int _t = fio->Fgetc();
-				if(_t == EOF) break;
-				if(_t == '\0') break;
-				if(_t == 0x00) break;
-				tmps[cp] = (char)_t;
-			}
-			donelen = strnlen(tmps, _nlen);
+			donelen = load_string_data(tmps, fio, sumseed, (sizeof(tmps) / sizeof(_TCHAR)));
 			if(donelen <= 0) return -1;
-			if(donelen >= _nlen) return -1;
-			if(sumseed != NULL) *sumseed = calc_crc32(*sumseed, (uint8_t *)tmps, (donelen + 1) * sizeof(char)); 
 			_s = std::string(tmps);
 			try {
 				_v = std::stod(_s);
@@ -754,7 +792,7 @@ template <>
 inline int csp_state_data<double>::save_data(FILEIO *fio, uint32_t *sumseed)
 {
 	std::string _s;
-	char tmps[1024]; // OK?
+	_TCHAR tmps[1024]; // OK?
 	double *ptr = _dataptr;
 	double _v;
 	int _nlen;
@@ -767,15 +805,11 @@ inline int csp_state_data<double>::save_data(FILEIO *fio, uint32_t *sumseed)
 			_v = *ptr++;
 			memset(tmps, 0x00, sizeof(tmps));
 			_s = std::to_string(_v);
-			_s.copy(tmps, sizeof(tmps) / sizeof(char));
+			_s.copy(tmps, sizeof(tmps) / sizeof(_TCHAR));
 			donelen = strnlen(tmps, _nlen);
 			if(donelen <= 0) return -1;
 			if(donelen >= _nlen) return -1;
-			if(sumseed != NULL) *sumseed = calc_crc32(*sumseed, (uint8_t *)tmps, (donelen + 1)* sizeof(char));
-			for(int cp = 0; cp < donelen; cp++) {
-				fio->Fputc((int)tmps[cp]);
-			}
-			fio->Fputc((int)'\0');
+			if(save_string_data(tmps, fio, sumseed, sizeof(tmps) / sizeof(_TCHAR)) <= 0) return i;
 		}
 		return _len;
 	}
@@ -786,7 +820,7 @@ template <>
 inline int csp_state_data<long double>::load_data(FILEIO *fio, uint32_t *sumseed)
 {
 	std::string _s;
-	char tmps[2048]; // OK?
+	_TCHAR tmps[2048]; // OK?
 	long double *ptr = _dataptr;
 	long double _v;
 	int _nlen;
@@ -796,18 +830,9 @@ inline int csp_state_data<long double>::load_data(FILEIO *fio, uint32_t *sumseed
 	if(ptr == NULL) return -1;
 	if(fio != NULL) {
 		for(int i = 0; i < _len; i++) {
-			memset(tmps, 0x00, sizeof(tmps));
-			for(int cp = 0; cp < _nlen; cp++) {
-				int _t = fio->Fgetc();
-				if(_t == EOF) break;
-				if(_t == '\0') break;
-				if(_t == 0x00) break;
-				tmps[cp] = (char)_t;
-			}
-			donelen = strnlen(tmps, _nlen);
+			donelen = load_string_data(tmps, fio, sumseed, (sizeof(tmps) / sizeof(_TCHAR)));
 			if(donelen <= 0) return -1;
-			if(donelen >= _nlen) return -1;
-			if(sumseed != NULL) *sumseed = calc_crc32(*sumseed, (uint8_t *)tmps, (donelen + 1) * sizeof(char)); 
+
 			_s = std::string(tmps);
 			try {
 				_v = std::stold(_s);
@@ -826,7 +851,7 @@ template <>
 inline int csp_state_data<long double>::save_data(FILEIO *fio, uint32_t *sumseed)
 {
 	std::string _s;
-	char tmps[2048]; // OK?
+	_TCHAR tmps[2048]; // OK?
 	long double *ptr = _dataptr;
 	long double _v;
 	int _nlen;
@@ -839,15 +864,11 @@ inline int csp_state_data<long double>::save_data(FILEIO *fio, uint32_t *sumseed
 			_v = *ptr++;
 			memset(tmps, 0x00, sizeof(tmps));
 			_s = std::to_string(_v);
-			_s.copy(tmps, sizeof(tmps) / sizeof(char));
+			_s.copy(tmps, sizeof(tmps) / sizeof(_TCHAR));
 			donelen = strnlen(tmps, _nlen);
 			if(donelen <= 0) return -1;
 			if(donelen >= _nlen) return -1;
-			if(sumseed != NULL) *sumseed = calc_crc32(*sumseed, (uint8_t *)tmps, (donelen + 1)* sizeof(char));
-			for(int cp = 0; cp < donelen; cp++) {
-				fio->Fputc((int)tmps[cp]);
-			}
-			fio->Fputc((int)'\0');
+			if(save_string_data(tmps, fio, sumseed, sizeof(tmps) / sizeof(_TCHAR)) <= 0) return i;
 		}
 		return _len;
 	}
