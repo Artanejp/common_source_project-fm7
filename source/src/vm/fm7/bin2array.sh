@@ -2,6 +2,8 @@
 mainstr=`xargs -0 | sed s/"."/"&\n"/g | nkf -os -x`
 #echo $mainstr;
 printf "/* converted by bin2array.sh */\n"
+printf "#ifndef __CSP_FM7_HIDDEN_MESSAGE_77AV_H \n"
+printf "#define __CSP_FM7_HIDDEN_MESSAGE_77AV_H \n"
 printf "const static uint8_t hidden_message_77av_1[] = {\n\t"
 i=0;
 for Ch in $mainstr ; do
@@ -15,3 +17,4 @@ for Ch in $mainstr ; do
 done
 printf "0x00\n"
 printf "};\n"
+printf "#endif /* __CSP_FM7_HIDDEN_MESSAGE_77AV_H */ \n"

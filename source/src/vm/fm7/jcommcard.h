@@ -5,9 +5,12 @@
  * Based on XM7 L70 , with permittion from Ryu Takegami. 
  */
 
+
+#if !defined(___CSP_FM7_JCOMM_CARD_H)
+#define ___CSP_FM7_JCOMM_CARD_H
+
 #include "../device.h"
 #include "../../common.h"
-
 class MC6809;
 
 class FM7_JCOMMCARD : public DEVICE {
@@ -63,3 +66,4 @@ public:
 	
 };
 
+#endif  /* ___CSP_FM7_JCOMM_CARD_H  */
