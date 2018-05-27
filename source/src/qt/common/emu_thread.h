@@ -75,6 +75,8 @@ public slots:
 	void do_write_protect_disk(int drv, bool flag);
 	void do_close_disk(int);
 	void do_open_disk(int, QString, int);
+	void do_close_hard_disk(int);
+	void do_open_hard_disk(int, QString);
 	void do_play_tape(int drv, QString name);
 	void do_rec_tape(int drv, QString name);
 	void do_close_tape(int drv);
@@ -89,10 +91,10 @@ public slots:
 	void do_open_quickdisk(int drv, QString path);
 	void do_close_cart(int drv);
 	void do_open_cart(int drv, QString path);
-	void do_close_laser_disc(void);
-	void do_open_laser_disc(QString path);
-	void do_eject_cdrom(void);
-	void do_open_cdrom(QString path);
+	void do_close_laser_disc(int drv, );
+	void do_open_laser_disc(int drv, QString path);
+	void do_eject_cdrom(int drv);
+	void do_open_cdrom(int drv, QString path);
 	void do_load_binary(int drv, QString path);
 	void do_save_binary(int drv, QString path);
 	void do_write_protect_bubble_casette(int drv, bool flag);
@@ -103,9 +105,6 @@ public slots:
 	void set_romakana(bool flag);
 	void do_close_debugger(void);
 
-	void do_close_hard_disk(int);
-	void do_open_hard_disk(int, QString);
-	
 signals:
 	int sig_set_draw_fps(double);
 	int sig_draw_one_turn(bool);

@@ -107,10 +107,6 @@ public slots:
 	void insert_binary_load(void);
 	void insert_binary_save(void);
 	
-	void insert_cdrom(void);
-	void eject_cdrom(void);
-	void on_recent_cdrom();
-
 	void insert_laserdisc(void);
 	void eject_laserdisc(void);
 	void on_recent_laserdisc();
@@ -149,8 +145,6 @@ signals:
 	int sig_eject_Qd(int);
 	int sig_insert_Qd(int);
 	
-	int sig_insert_cdrom(bool);
-	int sig_eject_cdrom(void);
 	int sig_recent_cdrom(int);
 		
 	int sig_insert_laserdisc(bool);

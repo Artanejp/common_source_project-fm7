@@ -7,15 +7,15 @@
 #ifndef _CSP_QT_MAINWIDGET_BASE_H
 #define _CSP_QT_MAINWIDGET_BASE_H
 
-#include <QVariant>
-#include <QObject>
-#include <QApplication>
+//#include <QVariant>
+//#include <QObject>
+//#include <QApplication>
 #include <QMainWindow>
 #include <QIcon>
 #include <QString>
 #include <QStringList>
-#include <QMenu>
-#include <QMenuBar>
+//#include <QMenu>
+//#include <QMenuBar>
 
 #include "common.h"
 #include "config.h"
@@ -101,6 +101,9 @@ class QButtonGroup;
 class QGraphicsView;
 class QGraphicsScene;
 class QHeaderView;
+class QMenu;
+class QMenuBar;
+class QApplication;
 
 class QStatusBar;
 class QWidget;
@@ -118,6 +121,7 @@ class Menu_MetaClass;
 class Menu_FDClass;
 class Menu_CMTClass;
 class Menu_CartClass;
+class Menu_HDDClass;
 class Menu_QDClass;
 class Menu_BinaryClass;
 class Menu_BubbleClass;
@@ -253,7 +257,11 @@ private:
 	void CreateFloppyMenu(int drv, int drv_base);
 	void CreateFloppyPulldownMenu(int drv);
 	void ConfigFloppyMenuSub(int drv);
-	// Bubble
+
+	void CreateHardDiskMenu(int drv, int drv_base);
+	void CreateHardDiskPulldownMenu(int drv);
+	void ConfigHardDiskMenuSub(int drv);
+// Bubble
 	void CreateBubbleMenu(int drv, int drv_base);
 	void CreateBubblePulldownMenu(int drv);
 	void ConfigBubbleMenuSub(int drv);
@@ -264,7 +272,7 @@ private:
 	virtual QString GetBubbleB77FileName(int drv) { return QString::fromUtf8(""); }
 	virtual QString GetBubbleB77BubbleName(int drv, int num) { return QString::fromUtf8(""); }
 	
-	void CreateCMTMenu(int drive);
+	void CreateCMTMenu(int drive, int drv_base);
 	void ConfigCMTMenu(void);
    
 	void ConfigQuickDiskMenu(void);
@@ -277,12 +285,12 @@ private:
 	void ConfigCartMenuSub(int drv);
 	void ConfigCartMenu(void);
 
-	void CreateCDROMMenu(void);
+	void CreateCDROMMenu(int drv, int drv_base);
 	void ConfigCDROMMenu(void);
 	void ConfigCDROMMenuSub(void);
 	void CreateCDROMPulldownMenu(void);
 	
-	void CreateLaserdiscMenu(void);
+	void CreateLaserdiscMenu(int drv, int drv_base);
 	void ConfigLaserdiscMenu(void);
 	void ConfigLaserdiscMenuSub(void);
 	void CreateLaserdiscPulldownMenu(void);
@@ -324,10 +332,12 @@ protected:
 	QStringList listQDs[8];
 	QStringList listCMT[8];
 	bool cmt_write_protect[8];
-	QStringList listCDROM;
-	QStringList listLaserdisc;
+	QStringList listCDROM[8];
+	QStringList listLaserdisc[8];
 	QStringList listBINs[8];
 	QStringList listFDs[16];
+	QStringList listHDDs[16];
+	
 	QStringList listD88[16];
 	QStringList listBubbles[8];
 	QStringList listB77[8];
@@ -413,8 +423,9 @@ protected:
 	Menu_FDClass *menu_fds[16];
 	Menu_QDClass *menu_QDs[8];
 	Menu_CMTClass *menu_CMT[8];
-	Menu_CompactDiscClass *menu_CDROM;
-	Menu_LaserdiscClass *menu_Laserdisc;
+	Menu_HDDClass *menu_hdds[16];
+	Menu_CompactDiscClass *menu_CDROM[8];
+	Menu_LaserdiscClass *menu_Laserdisc[8];
 	Menu_CartClass *menu_Cart[8];
 	Menu_BinaryClass *menu_BINs[8];
 	Menu_BubbleClass *menu_bubbles[8];
@@ -448,6 +459,8 @@ protected:
 	void retranslateControlMenu(const char *SpecialResetTitle,  bool WithSpecialReset);
 	void retranslateFloppyMenu(int drv, int basedrv);
 	void retranslateFloppyMenu(int drv, int basedrv, QString specName);
+	void retranslateHardDiskMenu(int drv, int basedrv);
+	void retranslateHardDiskMenu(int drv, int basedrv, QString specName);
 	void retranslateBubbleMenu(int drv, int basedrv);
 	void retranslateCMTMenu(int drive);
 	void retranslateQuickDiskMenu(int drv, int basedrv);
@@ -596,6 +609,9 @@ public slots:
 	virtual int set_recent_disk(int, int);
 
 	virtual void do_update_recent_hard_disk(int);
+	virtual void _open_hard_disk(int drv, const QString fname);
+	void eject_hard_disk(int drv);
+	virtual int set_recent_hard_disk(int, int);
 	// Bubble Casette
 	int write_protect_bubble(int drv, bool flag);
 
@@ -695,6 +711,8 @@ signals:
 	int sig_write_protect_disk(int drv, bool flag);
 	int sig_open_disk(int, QString, int);
 	int sig_close_disk(int);
+	int sig_open_hard_disk(int, QString);
+	int sig_close_hard_disk(int);
 	int sig_play_tape(int ,QString);
 	int sig_rec_tape(int, QString);
 	int sig_close_tape(int);
@@ -710,9 +728,9 @@ signals:
 	int sig_close_cart(int drv);
 	int sig_open_cart(int drv, QString path);
 	int sig_open_cdrom(QString path);
-	int sig_close_cdrom(void);
-	int sig_close_laserdisc(void);
-	int sig_open_laserdisc(QString path);
+	int sig_close_cdrom(int drv);
+	int sig_close_laserdisc(int drv);
+	int sig_open_laserdisc(int drv, QString path);
 	int sig_load_binary(int drv, QString path);
 	int sig_save_binary(int drv, QString path);
 	int sig_write_protect_bubble(int, bool);

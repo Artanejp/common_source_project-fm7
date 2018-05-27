@@ -634,16 +634,30 @@ void EmuThreadClass::do_open_quickdisk(int drv, QString path)
 #endif	
 }
 
-void EmuThreadClass::do_open_cdrom(QString path)
+void EmuThreadClass::do_open_cdrom(int drv, QString path)
 {
 #ifdef USE_COMPACT_DISC
-	p_emu->open_compact_disc(path.toLocal8Bit().constData());
+	p_emu->open_compact_disc(drv, path.toLocal8Bit().constData());
 #endif	
 }
-void EmuThreadClass::do_eject_cdrom(void)
+void EmuThreadClass::do_eject_cdrom(int drv)
 {
 #ifdef USE_COMPACT_DISC
-	p_emu->close_compact_disc();
+	p_emu->close_compact_disc(drv);
+#endif	
+}
+
+void EmuThreadClass::do_close_hard_disk(int drv)
+{
+#ifdef USE_HARD_DISK
+	p_emu->close_hard_disk(drv);
+#endif	
+}
+
+void EmuThreadClass::do_open_hard_disk(int drv, QString path)
+{
+#ifdef USE_HARD_DISK
+	p_emu->open_hard_disk(drv, path.toLocal8Bit().constData());
 #endif	
 }
 
@@ -662,17 +676,17 @@ void EmuThreadClass::do_open_cart(int drv, QString path)
 }
 
 
-void EmuThreadClass::do_close_laser_disc(void)
+void EmuThreadClass::do_close_laser_disc(int drv)
 {
 #ifdef USE_LASER_DISC
-	p_emu->close_laser_disc();
+	p_emu->close_laser_disc(drv);
 #endif
 }
 
-void EmuThreadClass::do_open_laser_disc(QString path)
+void EmuThreadClass::do_open_laser_disc(int drv, QString path)
 {
 #ifdef USE_LASER_DISC
-	p_emu->open_laser_disc(path.toLocal8Bit().constData());
+	p_emu->open_laser_disc(drv, path.toLocal8Bit().constData());
 #endif	
 }
 
@@ -771,18 +785,3 @@ bool EmuThreadClass::now_debugging() {
 #endif
 }
 
-void EmuThreadClass::do_close_hard_disk(int drv)
-{
-#ifdef USE_HARD_DISK
-	p_emu->close_hard_disk(drv);
-#endif	
-}
-
-void EmuThreadClass::do_open_hard_disk(int drv, QString path)
-{
-#ifdef USE_HARD_DISK
-	QByteArray localPath = path.toLocal8Bit();
-	p_emu->open_hard_disk(drv, localPath.constData(), bank);
-	emit sig_update_recent_hard_disk(drv);
-#endif	
-}

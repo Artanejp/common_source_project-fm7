@@ -298,6 +298,7 @@ void Ui_MainWindowBase::setupUi(void)
 	//MainWindow->resize(1288, 862);
 	ConfigControlMenu();
 	ConfigFloppyMenu();
+	ConfigHardDiskMenu();
 	ConfigCMTMenu();
 	if(!using_flags->is_without_sound()) {
 		ConfigSoundMenu();
@@ -450,41 +451,50 @@ void Ui_MainWindowBase::setupUi(void)
 	menuDebugger->setObjectName(QString::fromUtf8("menuDebugger"));
 	menuDebugger->setToolTipsVisible(true);
 	if(using_flags->is_use_fd()) {
-		int i;
-		for(i = 0; i < using_flags->get_max_drive(); i++) CreateFloppyMenu(i, i + 1);
+		int base_drv = using_flags->get_base_floppy_disk_num();
+		for(int i = 0; i < using_flags->get_max_drive(); i++) CreateFloppyMenu(i, base_drv);
 	}
 	if(using_flags->is_use_qd()) {
-		int i;
-		for(i = 0; i < using_flags->get_max_qd(); i++) CreateQuickDiskMenu(i, i + 1);
+		int base_drv = using_flags->get_base_quick_disk_num();
+		for(int i = 0; i < using_flags->get_max_qd(); i++) CreateQuickDiskMenu(i, base_drv);
 	}
 	if(using_flags->is_use_tape()) {
-		for(int i = 0; i < using_flags->get_max_tape(); i++) CreateCMTMenu(i);
+		int base_drv = using_flags->get_base_tape_num();
+		for(int i = 0; i < using_flags->get_max_tape(); i++) CreateCMTMenu(i, base_drv);
 	}
-	if(using_flags->get_max_scsi() > 0) {
+	if(using_flags->is_use_hdd()) {
+		int base_drv = using_flags->get_base_hdd_num();
+		for(int i = 0; i < using_flags->get_max_hdd(); i++) CreateHDDMenu(i, base_drv);
 	}
 	CreateScreenMenu();
 	if(using_flags->is_use_cart()) {
-		int i;
-		for(i = 0; i < using_flags->get_max_cart(); i++) {
-			CreateCartMenu(i, i + 1);
+		int base_drv = using_flags->get_base_cart_num();
+		for(int i = 0; i < using_flags->get_max_cart(); i++) {
+			CreateCartMenu(i, base_drv);
 		}
 	}
 	if(using_flags->is_use_binary_file()) {
-		int i;
-		for(i = 0; i < using_flags->get_max_binary(); i++) {
-			CreateBinaryMenu(i, i + 1);
+		int base_drv = using_flags->get_base_binary_file_num();
+		for(int i = 0; i < using_flags->get_max_binary(); i++) {
+			CreateBinaryMenu(i, base_drv);
 		}
 	}
 	if(using_flags->is_use_compact_disc()) {
-		CreateCDROMMenu();
+		int base_drv = using_flags->get_base_compact_disc_num();
+		for(int i = 0; i < using_flags->get_max_cd(); i++) {
+			CreateCDROMMenu(i, base_drv);
+		}
 	}
 	if(using_flags->is_use_laser_disc()) {
-		CreateLaserdiscMenu();
+		int base_drv = using_flags->get_base_laser_disc_num();
+		for(int i = 0; i < using_flags->get_max_ld(); i++) {
+			CreateLaserdiscMenu(i, base_drv);
+		}
 	}
 	if(using_flags->is_use_bubble()) {
-		int i;
-		for(i = 0; i < using_flags->get_max_bubble(); i++) {
-			CreateBubbleMenu(i, i + 1);
+		int base_drv = using_flags->get_base_bubble_num();
+		for(int i = 0; i < using_flags->get_max_bubble(); i++) {
+			CreateBubbleMenu(i, base_drv);
 		}
 	}
 	connect(this, SIGNAL(sig_update_screen(void)), graphicsView, SLOT(update(void)));

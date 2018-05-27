@@ -10,13 +10,8 @@
 
 #include <QString>
 #include <QStringList>
-#include <QWidget>
 #include <QMenu>
-#include <QMenuBar>
-#include <QAction>
-#include <QActionGroup>
-#include <QDir>
-#include <QStyle>
+#include <QIcon>
 
 #include "common.h"
 #include "config.h"
@@ -25,7 +20,11 @@
 class EMU;
 
 QT_BEGIN_NAMESPACE
+class QMenuBar;
+class QAction;
+class QActionGroup;
 class USING_FLAGS;
+class Action_Control;
 
 class DLL_PREFIX Menu_MetaClass : public QMenu {
 	Q_OBJECT
@@ -62,6 +61,8 @@ protected:
 	QString object_desc;
 	
 	int media_drive;
+	int base_drive;
+	
 	bool use_write_protect;
 	bool use_d88_menus;
 	
@@ -76,7 +77,7 @@ protected:
 	QStringList history;
 	QStringList inner_media_list;
 public:
-	Menu_MetaClass(QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent = 0, int drv = 0);
+	Menu_MetaClass(QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent = 0, int drv = 0, int base_drv = 1);
 	~Menu_MetaClass();
 
 	virtual void create_pulldown_menu_device_sub(void);

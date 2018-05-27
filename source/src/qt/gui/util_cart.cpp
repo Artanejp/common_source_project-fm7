@@ -95,7 +95,7 @@ void Ui_MainWindowBase::CreateCartMenu(int drv, int drv_base)
 		desc = "Game Cartridge";
 	}
 	
-	menu_Cart[drv] = new Menu_CartClass(menubar, QString::fromUtf8("Obj_Cart"), using_flags, this, drv);	
+	menu_Cart[drv] = new Menu_CartClass(menubar, QString::fromUtf8("Cart"), using_flags, this, drv, drv_base);	
 	menu_Cart[drv]->create_pulldown_menu();
 		
 	menu_Cart[drv]->do_clear_inner_media();

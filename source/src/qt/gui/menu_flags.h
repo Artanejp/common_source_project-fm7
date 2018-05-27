@@ -233,7 +233,7 @@ public:
 	bool is_use_fd() { return use_fd; }
 	int get_max_drive() { return max_drive; }
 	int get_max_d88_banks() { return max_d88_banks; }
-	int get_base_floppy_num() { return base_fd_num; }
+	int get_base_floppy_disk_num() { return base_fd_num; }
 
 	bool is_use_joystick() { return use_joystick; }
 	bool is_use_joy_button_captions() { return use_joy_button_captions; }
@@ -273,6 +273,7 @@ public:
 
 	bool is_use_qd() { return use_qd; }
 	int get_max_qd() { return max_qd; }
+	int get_base_quick_disk_num() { return base_qd_num; }
 
 	bool is_use_scanline() { return use_scanline; }
 	bool is_use_screen_rotate() { return use_screen_rotate; }

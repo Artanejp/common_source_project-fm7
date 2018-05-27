@@ -156,16 +156,10 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	}
 #endif
 #if defined(USE_HARD_DISK)
-	connect(this, SIGNAL(sig_open_disk(int, QString, int)), hRunEmu, SLOT(do_open_disk(int, QString, int)));
-	connect(this, SIGNAL(sig_close_disk(int)), hRunEmu, SLOT(do_close_disk(int)));
-	connect(hRunEmu, SIGNAL(sig_update_recent_disk(int)), this, SLOT(do_update_recent_disk(int)));
+	connect(this, SIGNAL(sig_open_hard_disk(int, QString)), hRunEmu, SLOT(do_open_hard_disk(int, QString)));
+	connect(this, SIGNAL(sig_close_hard_disk(int)), hRunEmu, SLOT(do_close_hard_disk(int)));
+	connect(hRunEmu, SIGNAL(sig_update_recent_hard_disk(int)), this, SLOT(do_update_recent_hard_disk(int)));
 	//connect(hRunEmu, SIGNAL(sig_change_osd_fd(int, QString)), this, SLOT(do_change_osd_fd(int, QString)));
-	drvs = USE_FHARD_DISK;
-	for(int ii = 0; ii < drvs; ii++) {
-		menu_fds[ii]->setEmu(emu);
-		connect(menu_hdds[ii], SIGNAL(sig_update_inner_hdd(int ,QStringList , class Action_Control **, QStringList , int, bool)),
-				this, SLOT(do_update_inner_hdd(int ,QStringList , class Action_Control **, QStringList , int, bool)));
-	}
 #endif
 #if defined(USE_TAPE)
 	connect(this, SIGNAL(sig_play_tape(int, QString)), hRunEmu, SLOT(do_play_tape(int, QString)));
@@ -192,14 +186,14 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(this, SIGNAL(sig_close_cart(int)), hRunEmu, SLOT(do_close_cart(int)));
 #endif
 #if defined(USE_COMPACT_DISC)
-	connect(this, SIGNAL(sig_open_cdrom(QString)), hRunEmu, SLOT(do_open_cdrom(QString)));
-	connect(this, SIGNAL(sig_close_cdrom()), hRunEmu, SLOT(do_eject_cdrom()));
+	connect(this, SIGNAL(sig_open_cdrom(int, QString)), hRunEmu, SLOT(do_open_cdrom(int, QString)));
+	connect(this, SIGNAL(sig_close_cdrom(int)), hRunEmu, SLOT(do_eject_cdrom(int)));
 	//connect(hRunEmu, SIGNAL(sig_change_osd_cdrom(QString)), this, SLOT(do_change_osd_cdrom(QString)));
 	// ToDo: multiple CDs
 #endif	
 #if defined(USE_LASER_DISC)
-	connect(this, SIGNAL(sig_open_laserdisc(QString)), hRunEmu, SLOT(do_open_laser_disc(QString)));
-	connect(this, SIGNAL(sig_close_laserdisc(void)), hRunEmu, SLOT(do_close_laser_disc(void)));
+	connect(this, SIGNAL(sig_open_laserdisc(int, QString)), hRunEmu, SLOT(do_open_laser_disc(int, QString)));
+	connect(this, SIGNAL(sig_close_laserdisc(int)), hRunEmu, SLOT(do_close_laser_disc(int)));
 	// ToDo: multiple LDs
 #endif
 #if defined(USE_BINARY_FILE)

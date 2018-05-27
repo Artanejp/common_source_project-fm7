@@ -19,6 +19,7 @@ set(s_qt_gui_headers
 	  mainwidget_base.h
 	  menu_metaclass.h
 	  menu_disk.h
+	  menu_harddisk.h
 	  menu_cmt.h
 	  menu_cart.h
 	  menu_quickdisk.h
@@ -68,6 +69,7 @@ set(s_qt_gui_srcs
 	  menu_control.cpp
 	  menu_metaclass.cpp
 	  menu_disk.cpp
+	  menu_harddisk.cpp
 	  menu_quickdisk.cpp
 	  menu_compactdisc.cpp
 	  menu_laserdisc.cpp
@@ -80,6 +82,7 @@ set(s_qt_gui_srcs
 	  menu_screen.cpp
 	  mainwindow_utils.cpp
 	  util_fd.cpp
+	  util_hdd.cpp
 	  util_cd.cpp
 	  util_ld.cpp
 	  util_cmt.cpp

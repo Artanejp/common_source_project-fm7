@@ -17,7 +17,7 @@
 #include "menu_flags.h"
 
 //extern USING_FLAGS *using_flags;
-void Ui_MainWindowBase::CreateCMTMenu(int drive)
+void Ui_MainWindowBase::CreateCMTMenu(int drive, int base_drv)
 {
 	QString ext_play;
 	QString ext_rec;
@@ -25,7 +25,7 @@ void Ui_MainWindowBase::CreateCMTMenu(int drive)
 	QString desc_rec;
 	
 	listCMT[drive].clear();
-	menu_CMT[drive] = new Menu_CMTClass(menubar, "Object_CMT_Menu", using_flags, this, drive);
+	menu_CMT[drive] = new Menu_CMTClass(menubar, QString::fromUtf8("CMT"), using_flags, this, drive, base_drv);
 	menu_CMT[drive]->setObjectName(QString::fromUtf8("menuCMT", -1));
 	
 	menu_CMT[drive]->create_pulldown_menu();	

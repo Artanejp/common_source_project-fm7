@@ -12,11 +12,10 @@
 
 #include "qt_dialogs.h"
 
-Menu_BubbleClass::Menu_BubbleClass(QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent, int drv) : Menu_MetaClass(root_entry, desc, p, parent, drv)
+Menu_BubbleClass::Menu_BubbleClass(QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent, int drv, int base_drv) : Menu_MetaClass(root_entry, desc, p, parent, drv, base_drv)
 {
 	use_write_protect = true;
 	use_d88_menus = true;
-	//icon_bubble_casette = QIcon(":/icon_floppy.png");
 }
 
 Menu_BubbleClass::~Menu_BubbleClass()
@@ -38,6 +37,6 @@ void Menu_BubbleClass::connect_menu_device_sub(void)
 
 void Menu_BubbleClass::retranslate_pulldown_menu_device_sub(void)
 {
-	//action_insert->setIcon(icon_floppy);
+
 }
 
