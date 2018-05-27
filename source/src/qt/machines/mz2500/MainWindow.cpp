@@ -27,7 +27,7 @@ void META_MainWindow::retranslateUi(void)
 	retranslateFloppyMenu(1, 2);
 	retranslateFloppyMenu(2, 3);
 	retranslateFloppyMenu(3, 4);
-#if defined(USE_QD1)
+#if defined(USE_QUICK_DISK)
 	retranslateQuickDiskMenu(0,0);
 #endif   
 	retranslateCMTMenu(0);

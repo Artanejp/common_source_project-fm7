@@ -51,6 +51,8 @@ EmuThreadClass::EmuThreadClass(META_MainWindow *rootWindow, USING_FLAGS *p, QObj
 	connect(this, SIGNAL(sig_open_cdrom(int, QString)), MainWindow, SLOT(do_open_cdrom(int, QString)));
 	connect(this, SIGNAL(sig_open_laser_disc(int, QString)), MainWindow, SLOT(do_open_laserdisc(int, QString)));
 	
+	connect(this, SIGNAL(sig_open_hdd(int, QString)), MainWindow, SLOT(_open_hard_disk(int, QString)));
+	
 	connect(this, SIGNAL(sig_set_d88_num(int, int)), MainWindow, SLOT(set_d88_slot(int, int)));
 	connect(this, SIGNAL(sig_set_b77_num(int, int)), MainWindow, SLOT(set_b77_slot(int, int)));
 }
@@ -136,7 +138,7 @@ void EmuThreadClass::button_released_mouse_sub(Qt::MouseButton button)
 
 void EmuThreadClass::get_fd_string(void)
 {
-#if defined(USE_FD1)
+#if defined(USE_FLOPPY_DISK)
 	int i;
 	QString tmpstr;
 	QString iname;
@@ -187,7 +189,7 @@ void EmuThreadClass::get_fd_string(void)
 
 void EmuThreadClass::get_qd_string(void)
 {
-#if defined(USE_QD1)
+#if defined(USE_QUICK_DISK)
 	int i;
 	QString iname;
 	QString alamp;
@@ -227,8 +229,8 @@ void EmuThreadClass::get_tape_string()
 	QString tmpstr;
 	bool readwrite;
 	bool inserted;
-#if defined(USE_TAPE1) && !defined(TAPE_BINARY_ONLY)
-	for(int i = 0; i < MAX_TAPE; i++) {
+#if defined(USE_TAPE) && !defined(TAPE_BINARY_ONLY)
+	for(int i = 0; i < USE_TAPE; i++) {
 		inserted = p_emu->is_tape_inserted(i);
 		readwrite = false;
 		if(inserted) {
@@ -273,7 +275,7 @@ void EmuThreadClass::get_cd_string(void)
 
 void EmuThreadClass::get_bubble_string(void)
 {
-#if defined(USE_BUBBLE1)
+#if defined(USE_BUBBLE)
 	uint32_t access_drv;
 	int i;
 	QString alamp;

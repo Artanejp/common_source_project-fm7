@@ -290,12 +290,11 @@ void META_MainWindow::retranslateUi(void)
 	retranslateFloppyMenu(3, 3, fdname1M);
 #endif	
 	retranslateCMTMenu(0);
-#if defined(USE_BUBBLE1)
-	retranslateBubbleMenu(0, 0);
+#if defined(USE_BUBBLE)
+	for(int _drv = 0; _drv < USE_BUBBLE; _drv++) {
+		retranslateBubbleMenu(_drv, _drv + 1);
+	}		
 #endif	
-#if defined(USE_BUBBLE2)
-	retranslateBubbleMenu(1, 1);
-#endif
 	retranslateSoundMenu();
 	retranslateScreenMenu();
 	

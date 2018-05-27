@@ -59,13 +59,12 @@ void META_MainWindow::retranslateUi(void)
 	retranslateControlMenu(title, false);
 	retranslateFloppyMenu(0, 1);
 	retranslateFloppyMenu(1, 2);
-#if defined(USE_FD3)
-	retranslateFloppyMenu(2, 3);
+#if USE_FLOPPY_DISK > 2
+	for(int _drv = 2; _drv < USE_FLOPPY_DISK; _drv++) {
+		retranslateFloppyMenu(_drv, _drv + 1);
+	}
 #endif   
-#if defined(USE_FD4)
-	retranslateFloppyMenu(3, 4);
-#endif   
-#if defined(USE_CART1)
+#if defined(USE_CART)
 	retranslateCartMenu(0, 1);
 #endif   
 	retranslateCMTMenu(0);

@@ -2162,13 +2162,6 @@ void EMU::restore_media()
 		}
 	}
 #endif
-#ifdef USE_BUBBLE1
-	for(int drv = 0; drv < MAX_BUBBLE; drv++) {
-		if(bubble_casette_status[drv].path[0] != _T('\0')) {
-			vm->open_bubble_casette(drv, bubble_casette_status[drv].path, bubble_casette_status[drv].bank);
-		}
-	}
-#endif
 }
 
 #ifdef USE_CART

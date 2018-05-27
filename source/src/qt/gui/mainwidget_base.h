@@ -595,6 +595,7 @@ public slots:
 	virtual int set_d88_slot(int drive, int num);
 	virtual int set_recent_disk(int, int);
 
+	virtual void do_update_recent_hard_disk(int);
 	// Bubble Casette
 	int write_protect_bubble(int drv, bool flag);
 
@@ -673,6 +674,7 @@ signals:
 	int on_insert_fd(int);
 	int on_eject_fd(int);
 	int do_open_disk(int, QString);
+	
 	int closed(void);
 	int sig_quit_all(void);
 	int sig_vm_reset(void);

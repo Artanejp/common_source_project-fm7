@@ -407,22 +407,22 @@ public:
 #endif
 	
 	// media
-#ifdef USE_FD1
+#ifdef USE_FLOPPY_DISK
 	struct {
 		_TCHAR path[_MAX_PATH];
 		_TCHAR disk_name[MAX_D88_BANKS][128];  // Convert to UTF8
  		int bank_num;
 		int cur_bank;
-	} d88_file[MAX_FD];
+	} d88_file[USE_FLOPPY_DISK];
 #endif
 
 	// user interface
-#ifdef USE_CART1
+#ifdef USE_CART
 	void open_cart(int drv, const _TCHAR* file_path);
 	void close_cart(int drv);
 	bool is_cart_inserted(int drv);
 #endif
-#ifdef USE_FD1
+#ifdef USE_FLOPPY_DISK
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_floppy_disk(int drv);
 	bool is_floppy_disk_inserted(int drv);
@@ -430,13 +430,13 @@ public:
 	bool is_floppy_disk_protected(int drv);
 	uint32_t is_floppy_disk_accessed();
 #endif
-#ifdef USE_QD1
+#ifdef USE_QUICK_DISK
 	void open_quick_disk(int drv, const _TCHAR* file_path);
 	void close_quick_disk(int drv);
 	bool is_quick_disk_inserted(int drv);
 	uint32_t is_quick_disk_accessed();
 #endif
-#ifdef USE_TAPE1
+#ifdef USE_TAPE
 	void play_tape(int drv, const _TCHAR* file_path);
 	void rec_tape(int drv, const _TCHAR* file_path);
 	void close_tape(int drv);
@@ -468,17 +468,17 @@ public:
 	bool is_laser_disc_inserted();
 	uint32_t is_laser_disc_accessed();
 #endif
-#ifdef USE_BINARY_FILE1
+#ifdef USE_BINARY_FILE
 	void load_binary(int drv, const _TCHAR* file_path);
 	void save_binary(int drv, const _TCHAR* file_path);
 #endif
-#ifdef USE_BUBBLE1
+#ifdef USE_BUBBLE
 	struct {
 		_TCHAR path[_MAX_PATH];
 		_TCHAR bubble_name[MAX_B77_BANKS][128];  // Convert to UTF8
  		int bank_num;
 		int cur_bank;
-	} b77_file[MAX_BUBBLE];
+	} b77_file[USE_BUBBLE];
 	void open_bubble_casette(int drv, const _TCHAR* file_path, int bank);
 	void close_bubble_casette(int drv);
 	bool is_bubble_casette_inserted(int drv);

@@ -102,6 +102,10 @@ public slots:
 	void do_stop_auto_key(void);
 	void set_romakana(bool flag);
 	void do_close_debugger(void);
+
+	void do_close_hard_disk(int);
+	void do_open_hard_disk(int, QString);
+	
 signals:
 	int sig_set_draw_fps(double);
 	int sig_draw_one_turn(bool);

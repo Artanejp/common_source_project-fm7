@@ -188,9 +188,9 @@ typedef struct {
 	#endif
 	#if defined(USE_SHARED_DLL) || defined(USE_LASER_DISC)
 		_TCHAR initial_laser_disc_dir[_MAX_PATH];
-		_TCHAR recent_compact_disc_path[USE_LASER_DISC_TMP][MAX_HISTORY][_MAX_PATH];
+		_TCHAR recent_laser_disc_path[USE_LASER_DISC_TMP][MAX_HISTORY][_MAX_PATH];
 	#endif
-	#if defined(USE_SHARED_DLL) || defined(USE_BINARY_FILE1)
+	#if defined(USE_SHARED_DLL) || defined(USE_BINARY_FILE)
 		_TCHAR initial_binary_dir[_MAX_PATH];
 		_TCHAR recent_binary_path[USE_BINARY_FILE_TMP][MAX_HISTORY][_MAX_PATH];
 	#endif

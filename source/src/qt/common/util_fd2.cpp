@@ -11,7 +11,7 @@
 //extern USING_FLAGS *using_flags;
 extern class EMU *emu;
 
-#if defined(USE_FD1)	
+#if defined(USE_FLOPPY_DISK)	
 
 #ifndef UPDATE_D88_LIST
 #define UPDATE_D88_LIST(__d, lst) { \
@@ -56,6 +56,7 @@ void Ui_MainWindow::do_update_recent_disk(int drv)
 		menu_fds[drv]->do_write_unprotect_media();
 	}
 }
+
 
 extern const _TCHAR* DLL_PREFIX_I get_parent_dir(const _TCHAR* file);
 int Ui_MainWindow::set_recent_disk(int drv, int num) 
@@ -142,3 +143,56 @@ void Ui_MainWindow::_open_disk(int drv, const QString fname)
 }
 
 #endif	
+
+#if defined(USE_HARD_DISK)
+void Ui_MainWindow::do_update_recent_hard_disk(int drv)
+{
+	if(emu == NULL) return;
+	menu_hdds[drv]->do_update_histories(listHDDs[drv]);
+	menu_hdds[drv]->do_set_initialize_directory(p_config->initial_hard_disk_dir);
+}
+
+int Ui_MainWindow::set_recent_hard_disk(int drv, int num) 
+{
+	QString s_path;
+	char path_shadow[PATH_MAX];
+	if((num < 0) || (num >= MAX_HISTORY)) return -1;
+	s_path = QString::fromLocal8Bit(p_config->recent_hard_disk_path[drv][num]);
+	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
+	UPDATE_HISTORY(path_shadow, p_config->recent_hard_disk_path[drv], listHDDs[drv]);
+   
+	strncpy(p_config->initial_hard_disk_dir, 	get_parent_dir((const _TCHAR *)path_shadow), _MAX_PATH);
+	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
+
+	if(emu) {
+		emit sig_close_hard_disk(drv);
+		emit sig_open_hard_disk(drv, s_path, 0);
+		menu_hdds[drv]->do_update_histories(listHDDs[drv]);
+		menu_hdds[drv]->do_set_initialize_directory(p_config->initial_hard_disk_dir);
+		menu_hdds[drv]->do_clear_inner_media();
+	}
+	return 0;
+}
+
+void Ui_MainWindow::_open_hard_disk(int drv, const QString fname)
+{
+	char path_shadow[PATH_MAX];
+
+	if(fname.length() <= 0) return;
+	drv = drv & 7;
+	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX);
+	UPDATE_HISTORY(path_shadow, p_config->recent_hard_disk_path[drv], listHDDs[drv]);
+	strcpy(p_config->initial_floppy_disk_dir, 	get_parent_dir((const _TCHAR *)path_shadow));
+	// Update List
+	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX);
+	if(emu) {
+		emit sig_close_hard_disk(drv);
+		//emu->LockVM();
+		emit sig_open_hard_disk(drv, fname, 0);
+		menu_hdds[drv]->do_update_histories(listHDDs[drv]);
+		menu_hdds[drv]->do_set_initialize_directory(p_config->initial_hard_disk_dir);
+		menu_hdds[drv]->do_clear_inner_media();
+	}
+}
+
+#endif

@@ -489,16 +489,14 @@ void EmuThreadClass::do_stop_auto_key(void)
 
 void EmuThreadClass::do_write_protect_disk(int drv, bool flag)
 {
-#if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
-    defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
+#ifdef USE_FLOPPY_DISK
 	p_emu->is_floppy_disk_protected(drv, flag);
 #endif	
 }
 
 void EmuThreadClass::do_close_disk(int drv)
 {
-#if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
-    defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
+#ifdef USE_FLOPPY_DISK
 	p_emu->close_floppy_disk(drv);
 	p_emu->d88_file[drv].bank_num = 0;
 	p_emu->d88_file[drv].cur_bank = -1;
@@ -507,8 +505,7 @@ void EmuThreadClass::do_close_disk(int drv)
 
 void EmuThreadClass::do_open_disk(int drv, QString path, int bank)
 {
-#if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
-    defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
+#ifdef USE_FLOPPY_DISK
 	QByteArray localPath = path.toLocal8Bit();
    
 	//p_emu->d88_file[drv].bank_num = 0;
@@ -554,21 +551,21 @@ void EmuThreadClass::do_open_disk(int drv, QString path, int bank)
 }
 void EmuThreadClass::do_play_tape(int drv, QString name)
 {
-#if defined(USE_TAPE1)
+#if defined(USE_TAPE)
 	p_emu->play_tape(drv, name.toLocal8Bit().constData());
 #endif
 }
 
 void EmuThreadClass::do_rec_tape(int drv, QString name)
 {
-#if defined(USE_TAPE1)
+#if defined(USE_TAPE)
 	p_emu->rec_tape(drv, name.toLocal8Bit().constData());
 #endif
 }
 
 void EmuThreadClass::do_close_tape(int drv)
 {
-#if defined(USE_TAPE1)
+#if defined(USE_TAPE)
 	p_emu->close_tape(drv);
 #endif
 }
@@ -618,21 +615,21 @@ void EmuThreadClass::do_cmt_push_apss_rewind(int drv)
 
 void EmuThreadClass::do_write_protect_quickdisk(int drv, bool flag)
 {
-#if defined(USE_QD1)
+#ifdef USE_QUICK_DISK
 	//p_emu->write_protect_Qd(drv, flag);
 #endif	
 }
 
 void EmuThreadClass::do_close_quickdisk(int drv)
 {
-#if defined(USE_QD1)
+#ifdef USE_QUICK_DISK
 	p_emu->close_quick_disk(drv);
 #endif	
 }
 
 void EmuThreadClass::do_open_quickdisk(int drv, QString path)
 {
-#if defined(USE_QD1)
+#ifdef USE_QUICK_DISK
 	p_emu->open_quick_disk(drv, path.toLocal8Bit().constData());
 #endif	
 }
@@ -652,14 +649,14 @@ void EmuThreadClass::do_eject_cdrom(void)
 
 void EmuThreadClass::do_close_cart(int drv)
 {
-#ifdef USE_CART1
+#ifdef USE_CART
 	p_emu->close_cart(drv);
 #endif	
 }
 
 void EmuThreadClass::do_open_cart(int drv, QString path)
 {
-#ifdef USE_CART1
+#ifdef USE_CART
 	p_emu->open_cart(drv, path.toLocal8Bit().constData());
 #endif	
 }
@@ -681,14 +678,14 @@ void EmuThreadClass::do_open_laser_disc(QString path)
 
 void EmuThreadClass::do_load_binary(int drv, QString path)
 {
-#ifdef USE_BINARY_FILE1
+#ifdef USE_BINARY_FILE
 	p_emu->load_binary(drv, path.toLocal8Bit().constData());
 #endif	
 }
 
 void EmuThreadClass::do_save_binary(int drv, QString path)
 {
-#ifdef USE_BINARY_FILE1
+#ifdef USE_BINARY_FILE
 	p_emu->save_binary(drv, path.toLocal8Bit().constData());
 #endif	
 }
@@ -696,14 +693,14 @@ void EmuThreadClass::do_save_binary(int drv, QString path)
 
 void EmuThreadClass::do_write_protect_bubble_casette(int drv, bool flag)
 {
-#ifdef USE_BUBBLE1
+#ifdef USE_BUBBLE
 	p_emu->is_bubble_casette_protected(drv, flag);
 #endif	
 }
 
 void EmuThreadClass::do_close_bubble_casette(int drv)
 {
-#ifdef USE_BUBBLE1
+#ifdef USE_BUBBLE
 	p_emu->close_bubble_casette(drv);
 	p_emu->b77_file[drv].bank_num = 0;
 	p_emu->b77_file[drv].cur_bank = -1;
@@ -712,7 +709,7 @@ void EmuThreadClass::do_close_bubble_casette(int drv)
 
 void EmuThreadClass::do_open_bubble_casette(int drv, QString path, int bank)
 {
-#ifdef USE_BUBBLE1
+#ifdef USE_BUBBLE
 	QByteArray localPath = path.toLocal8Bit();
    
 	p_emu->b77_file[drv].bank_num = 0;
@@ -772,4 +769,20 @@ bool EmuThreadClass::now_debugging() {
 #else
 	return false;
 #endif
+}
+
+void EmuThreadClass::do_close_hard_disk(int drv)
+{
+#ifdef USE_HARD_DISK
+	p_emu->close_hard_disk(drv);
+#endif	
+}
+
+void EmuThreadClass::do_open_hard_disk(int drv, QString path)
+{
+#ifdef USE_HARD_DISK
+	QByteArray localPath = path.toLocal8Bit();
+	p_emu->open_hard_disk(drv, localPath.constData(), bank);
+	emit sig_update_recent_hard_disk(drv);
+#endif	
 }

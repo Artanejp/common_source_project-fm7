@@ -607,8 +607,8 @@ void save_config(const _TCHAR *config_path)
 	#ifdef USE_PRINTER
 		MyWritePrivateProfileInt(_T("Control"), _T("PrinterType"), config.printer_type, config_path);
 	#endif
-	#ifdef USE_FD1
-		for(int drv = 0; drv < MAX_FD; drv++) {
+	#ifdef USE_FLOPPY_DISK
+		for(int drv = 0; drv < USE_FLOPPY_DISK; drv++) {
 			MyWritePrivateProfileBool(_T("Control"), create_string(_T("CorrectDiskTiming%d"), drv + 1), config.correct_disk_timing[drv], config_path);
 			MyWritePrivateProfileBool(_T("Control"), create_string(_T("IgnoreDiskCRC%d"), drv + 1), config.ignore_disk_crc[drv], config_path);
 		#ifdef _USE_QT
@@ -889,7 +889,7 @@ void save_config_state(void *f)
 		state_fio->FputInt32(config.printer_type);
 	#endif
 	#ifdef USE_FLOPPY_DISK
-		for(int drv = 0; drv < MAX_FD; drv++) {
+		for(int drv = 0; drv < USE_FLOPPY_DISK; drv++) {
 			state_fio->FputBool(config.correct_disk_timing[drv]);
 			state_fio->FputBool(config.ignore_disk_crc[drv]);
 		}
@@ -938,8 +938,8 @@ bool load_config_state(void *f)
 	#ifdef USE_PRINTER_TYPE
 		config.printer_type = state_fio->FgetInt32();
 	#endif
-	#ifdef USE_FD1
-		for(int drv = 0; drv < MAX_FD; drv++) {
+	#ifdef USE_FLOPPY_DISK
+		for(int drv = 0; drv < USE_FLOPPY_DISK; drv++) {
 			config.correct_disk_timing[drv] = state_fio->FgetBool();
 			config.ignore_disk_crc[drv] = state_fio->FgetBool();
 		}

@@ -43,11 +43,11 @@ void META_MainWindow::retranslateUi(void)
 	retranslateControlMenu(" ", false);
 	retranslateFloppyMenu(0, 1);
 	retranslateFloppyMenu(1, 2);
-#if defined(USE_FD3)	
-	retranslateFloppyMenu(2, 3);
-#endif
-#if defined(USE_FD4)	
-	retranslateFloppyMenu(3, 4);
+	
+#if USE_FLOPPY_DISK > 2
+	for(int _drv = 0; _drv < USE_FLOPPY_DISK; _drv++) {
+		retranslateFloppyMenu(_drv, _drv + 1);
+	}
 #endif
 	retranslateSoundMenu();
 	retranslateScreenMenu();

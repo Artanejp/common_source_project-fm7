@@ -218,6 +218,7 @@ signals:
 	int sig_check_grab_mouse(bool);
 	int sig_mouse_enable(bool);
 	int sig_update_recent_disk(int);
+	int sig_update_recent_hard_disk(int);
 	
 	int sig_change_osd(int, int, QString);
 	int sig_change_access_lamp(int, int, QString);

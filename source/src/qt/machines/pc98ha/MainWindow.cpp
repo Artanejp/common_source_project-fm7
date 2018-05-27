@@ -25,13 +25,9 @@ void META_MainWindow::retranslateUi(void)
 {
 	const char *title="";
 	retranslateControlMenu(title, false);
-#if defined(USE_FD1)
-	retranslateFloppyMenu(0, 1);
-#endif
-#if defined(USE_FD2)
-	retranslateFloppyMenu(1, 2);
-#endif
-   
+	if(int _drv = 0; _drv < USE_FLOPPY_DISK; _drv++) {
+		retranslateFloppyMenu(_drv, _drv + 1);
+	}		
 	retranslateSoundMenu();
 	retranslateScreenMenu();
 	retranslateMachineMenu();

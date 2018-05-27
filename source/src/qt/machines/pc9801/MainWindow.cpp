@@ -54,24 +54,9 @@ void META_MainWindow::retranslateUi(void)
 	const char *title="";
 	retranslateControlMenu(title, false);
 	retranslateMachineMenu();
-#if defined(USE_FD1)
-	retranslateFloppyMenu(0, 1);
-#endif
-#if defined(USE_FD2)
-	retranslateFloppyMenu(1, 2);
-#endif
-#if defined(USE_FD3)
-	retranslateFloppyMenu(2, 3);
-#endif
-#if defined(USE_FD4)
-	retranslateFloppyMenu(3, 4);
-#endif
-#if defined(USE_FD5)
-	retranslateFloppyMenu(4, 5);
-#endif
-#if defined(USE_FD6)
-	retranslateFloppyMenu(5, 6);
-#endif
+	for(int _drv = 0; _drv < USE_FLOPPY_DISK; _drv++) {
+		retranslateFloppyMenu(_drv, _drv + 1);
+	}
 #if defined(_PC9801) || defined(_PC9801E)
    // Drive 3,4
 	menu_fds[2]->setTitle(QApplication::translate("MainWindow", "2DD-1", 0));
