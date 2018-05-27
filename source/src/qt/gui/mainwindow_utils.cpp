@@ -6,6 +6,7 @@
  * History:
  * Jan 24, 2014 : Moved from some files.
  */
+#include <QApplication>
 #include <QMenu>
 #include <QMenuBar>
 

@@ -292,7 +292,7 @@ long FILEIO::FileLength()
 #define GET_VALUE(type) \
 	uint8_t buffer[sizeof(type)] = {0};		\
 	Fread(buffer, sizeof(buffer), 1);		\
-	return *(type *)tmpv;						
+	return *(type *)buffer;						
 
 #define PUT_VALUE(type, v) \
 	Fwrite(&v, sizeof(type), 1)

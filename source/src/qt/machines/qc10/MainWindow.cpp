@@ -9,6 +9,8 @@
 
 #include <QVariant>
 #include <QtGui>
+#include <QMenu>
+
 #include "commonclasses.h"
 #include "menuclasses.h"
 #include "emu.h"

@@ -1142,24 +1142,29 @@ uint32_t DLL_PREFIX muldiv_u32(uint32_t nNumber, uint32_t nNumerator, uint32_t n
 	}
 }
 
+static bool _crc_initialized = false;
+static uint32_t _crc_table[256] = {0};
+static void init_crc32_table(void)
+{
+	for(int i = 0; i < 256; i++) {
+		uint32_t c = i;
+		for(int j = 0; j < 8; j++) {
+			if(c & 1) {
+				c = (c >> 1) ^ 0xedb88320;
+			} else {
+				c >>= 1;
+			}
+		}
+		_crc_table[i] = c;
+	}
+	_crc_initialized = true;
+}
+
 uint32_t DLL_PREFIX get_crc32(uint8_t data[], int size)
 {
-	static bool initialized = false;
-	static uint32_t table[256];
-	
-	if(!initialized) {
-		for(int i = 0; i < 256; i++) {
-			uint32_t c = i;
-			for(int j = 0; j < 8; j++) {
-				if(c & 1) {
-					c = (c >> 1) ^ 0xedb88320;
-				} else {
-					c >>= 1;
-				}
-			}
-			table[i] = c;
-		}
-		initialized = true;
+	const uint32_t *table = (const uint32_t *)_crc_table;
+	if(!_crc_initialized) {
+		init_crc32_table();
 	}
 	
 	uint32_t c = ~0;
@@ -1167,6 +1172,42 @@ uint32_t DLL_PREFIX get_crc32(uint8_t data[], int size)
 		c = table[(c ^ data[i]) & 0xff] ^ (c >> 8);
 	}
 	return ~c;
+}
+
+uint32_t DLL_PREFIX calc_crc32(uint32_t seed, uint8_t data[], int size)
+{
+#if 0
+	if(!_crc_initialized) {
+		init_crc32_table();
+	}
+	const uint32_t *table = (const uint32_t *)_crc_table;
+
+	uint32_t c = ~seed;
+	for(int i = 0; i < size; i++) {
+		c = table[(c ^ data[i]) & 0xff] ^ (c >> 8);
+	}
+	return ~c;
+#else
+	// Calculate CRC32
+	// Refer to : https://qiita.com/mikecat_mixc/items/e5d236e3a3803ef7d3c5
+	static const uint32_t CRC_MAGIC_WORD = 0x04C11DB7;
+	uint32_t crc = seed;
+	uint8_t *ptr = data;
+	uint8_t d;
+	int bytes = size;
+	bool is_overflow;
+	for(int i = 0; i < bytes; i++) {
+		d = *ptr++;
+		for(int bit = 0; bit < 8; bit++) {
+			is_overflow = ((crc & 0x1) != 0);
+			crc = crc >> 1;
+			if((d & 0x01) != 0) crc = crc | 0x80000000;
+			if(is_overflow) crc = crc ^ ((uint32_t)~CRC_MAGIC_WORD);
+			d >>= 1;
+		}
+	}
+	return crc;
+#endif
 }
 
 uint16_t DLL_PREFIX jis_to_sjis(uint16_t jis)

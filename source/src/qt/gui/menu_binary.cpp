@@ -5,6 +5,7 @@
  *   History : 
  *     Jan 13 2015 : Start
  */
+#include <QApplication>
 
 #include "commonclasses.h"
 #include "mainwidget_base.h"

@@ -22,21 +22,8 @@ void META_MainWindow::setupUI_Emu(void)
 
 void META_MainWindow::retranslateUi(void)
 {
-	int i;
-   
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("System Reset",  true);
-	retranslateFloppyMenu(0, 1);
-	retranslateFloppyMenu(1, 2);
-	retranslateFloppyMenu(2, 3);
-	retranslateFloppyMenu(3, 4);
-	retranslateCMTMenu(0);
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateMachineMenu();
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
-   
-	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 	actionSpecial_Reset->setToolTip(QApplication::translate("MainWindow", "Do system reset.", 0));
     
 #ifdef USE_DEBUGGER

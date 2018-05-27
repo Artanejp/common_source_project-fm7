@@ -5,7 +5,8 @@
  *  History: April 07, 2016 : Initial.
  */
 
-
+#include <QApplication>
+#include <QClipboard>
 #include "qt_emuevents.h"
 #include "qt_main.h"
 #include "qt_dialogs.h"

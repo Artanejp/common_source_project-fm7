@@ -16,18 +16,8 @@
 
 void META_MainWindow::retranslateUi(void)
 {
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu(" ", false);
-	retranslateFloppyMenu(0, 0);
-	retranslateFloppyMenu(1, 1);
-	
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateMachineMenu();
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
-	
-	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
-	
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(false);

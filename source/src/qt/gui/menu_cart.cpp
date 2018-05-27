@@ -8,6 +8,8 @@
  */
 
 //#include "menuclasses.h"
+#include <QApplication>
+
 #include "commonclasses.h"
 #include "mainwidget_base.h"
 #include "menu_metaclass.h"

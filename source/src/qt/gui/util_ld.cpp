@@ -37,7 +37,7 @@ void Ui_MainWindowBase::CreateLaserdiscMenu(int drv, int drv_base)
 	
 	menu_Laserdisc[drv]->create_pulldown_menu();	
 	// Translate Menu
-	SETUP_HISTORY(using_flags->get_config_ptr()->recent_laser_disc_path, listLaserdisc[drv]);
+	SETUP_HISTORY(using_flags->get_config_ptr()->recent_laser_disc_path[drv], listLaserdisc[drv]);
 	menu_Laserdisc[drv]->do_update_histories(listLaserdisc[drv]);
 	menu_Laserdisc[drv]->do_set_initialize_directory(using_flags->get_config_ptr()->initial_laser_disc_dir);
 	
@@ -47,7 +47,7 @@ void Ui_MainWindowBase::CreateLaserdiscMenu(int drv, int drv_base)
 
 }
 
-void Ui_MainWindowBase::CreateLaserdiscPulldownMenu(int drv)
+void Ui_MainWindowBase::CreateLaserdiscPulldownMenu(void)
 {
 }
 
@@ -62,9 +62,9 @@ int Ui_MainWindowBase::set_recent_laserdisc(int drv, int num)
 	char path_shadow[PATH_MAX];
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
     
-	s_path = QString::fromLocal8Bit(using_flags->get_config_ptr()->recent_laser_disc_path[num]);
+	s_path = QString::fromLocal8Bit(using_flags->get_config_ptr()->recent_laser_disc_path[drv][num]);
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
-	UPDATE_HISTORY(path_shadow, using_flags->get_config_ptr()->recent_laser_disc_path, listLaserdisc[drv]);
+	UPDATE_HISTORY(path_shadow, using_flags->get_config_ptr()->recent_laser_disc_path[drv], listLaserdisc[drv]);
    
 	strcpy(using_flags->get_config_ptr()->initial_laser_disc_dir, get_parent_dir(path_shadow));
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
@@ -87,7 +87,7 @@ void Ui_MainWindowBase::do_open_laserdisc(int drv, QString path)
 
 	if(path.length() <= 0) return;
 	strncpy(path_shadow, path.toLocal8Bit().constData(), PATH_MAX);
-	UPDATE_HISTORY(path_shadow, using_flags->get_config_ptr()->recent_laser_disc_path, listLaserdisc[drv]);
+	UPDATE_HISTORY(path_shadow, using_flags->get_config_ptr()->recent_laser_disc_path[drv], listLaserdisc[drv]);
 	strcpy(using_flags->get_config_ptr()->initial_laser_disc_dir, get_parent_dir(path_shadow));
 	// Copy filename again.
 	strncpy(path_shadow, path.toLocal8Bit().constData(), PATH_MAX);
@@ -102,7 +102,9 @@ void Ui_MainWindowBase::do_open_laserdisc(int drv, QString path)
 void Ui_MainWindowBase::retranslateLaserdiscMenu(void)
 {
 	if(using_flags->is_use_laser_disc()) {
-		menu_Laserdisc->retranslateUi();
+		for(int drv = 0; using_flags->get_max_ld(); drv++) {
+			menu_Laserdisc[drv]->retranslateUi();
+		}
 	}
 }
 

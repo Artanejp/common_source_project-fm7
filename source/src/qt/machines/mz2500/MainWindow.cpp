@@ -18,37 +18,23 @@
 void META_MainWindow::setupUI_Emu(void)
 {
 	//menuMachine->setVisible(false);
+#ifdef USE_CPU_TYPE
+	ConfigCPUTypes(USE_CPU_TYPE);
+#endif
 }
 
 void META_MainWindow::retranslateUi(void)
 {
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("Reset",  true);
-	retranslateFloppyMenu(0, 1);
-	retranslateFloppyMenu(1, 2);
-	retranslateFloppyMenu(2, 3);
-	retranslateFloppyMenu(3, 4);
-#if defined(USE_QUICK_DISK)
-	retranslateQuickDiskMenu(0,0);
-#endif   
-	retranslateCMTMenu(0);
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateMachineMenu();
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
-   
-	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
-	
 	actionReset->setText(QApplication::translate("MachineMZ2500", "IPL Reset", 0));
 	actionReset->setToolTip(QApplication::translate("MachineMZ2500", "Do IPL reset.", 0));
 	actionSpecial_Reset->setText(QApplication::translate("MachineMZ2500", "Reset", 0));
 	actionSpecial_Reset->setToolTip(QApplication::translate("MachineMZ2500", "Do system reset.", 0));
-#if defined(_MZ2200)
-#  ifdef USE_CPU_TYPE
+#ifdef USE_CPU_TYPE
 	menuCpuType->setTitle(QApplication::translate("MachineMZ2500", "CPU Frequency", 0));
 	actionCpuType[0]->setText(QString::fromUtf8("4MHz"));
 	actionCpuType[1]->setText(QString::fromUtf8("6MHz"));
-#  endif
 #endif
 #if defined(USE_DRIVE_TYPE)
 	menuDriveType->setTitle(QApplication::translate("MachineMZ2500", "Floppy Type", 0));

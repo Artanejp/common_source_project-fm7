@@ -53,11 +53,12 @@ protected:
 
 	bool use_cart;
 	int max_cart;
+	int base_cart_num;
 
 	int use_cpu_type;
 
 	bool use_compact_disc;
-	int max_comnpact_disc;
+	int max_compact_disc;
 	int base_cd_num;
 
 	bool use_debugger;
@@ -94,7 +95,7 @@ protected:
 	bool use_key_locked;
 	bool independent_caps_kana_led;
 
-	int use_extra_leds;
+	int use_led_devices;
 
 	int max_memcard;
 	
@@ -251,7 +252,7 @@ public:
 	int get_base_laser_disc_num() { return base_ld_num; }
 
 	bool get_use_key_locked() { return use_key_locked; }
-	int get_use_extra_leds() { return use_extra_leds; }
+	int get_use_led_devices() { return use_led_devices; }
 	bool get_independent_caps_kana_led() { return independent_caps_kana_led; }
 
 	int get_max_memcard() { return max_memcard; }

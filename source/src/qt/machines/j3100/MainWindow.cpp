@@ -23,29 +23,12 @@ void META_MainWindow::setupUI_Emu(void)
 
 void META_MainWindow::retranslateUi(void)
 {
-	int i;
-   
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("",  false);
-	retranslateFloppyMenu(0, 1);
-	retranslateFloppyMenu(1, 2);
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateMachineMenu();
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setText(QApplication::translate("Machine", "Main CPU", 0));
 	actionDebugger[0]->setVisible(true);
 #endif
-	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
-    
-	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
-  
-	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
-	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
-  
-	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
-	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
 	// Set Labels
 } // retranslateUi
 

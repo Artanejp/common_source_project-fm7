@@ -248,6 +248,7 @@ private:
 	void ConfigControlMenu(void);
 	void connectActions_ControlMenu(void);
 	void ConfigFloppyMenu(void);
+	void ConfigHardDiskMenu(void);
 	void ConfigSoundMenu(void);
 	void CreateSoundMenu(void);
 
@@ -727,7 +728,7 @@ signals:
 	int sig_open_quickdisk(int drv, QString path);
 	int sig_close_cart(int drv);
 	int sig_open_cart(int drv, QString path);
-	int sig_open_cdrom(QString path);
+	int sig_open_cdrom(int drv, QString path);
 	int sig_close_cdrom(int drv);
 	int sig_close_laserdisc(int drv);
 	int sig_open_laserdisc(int drv, QString path);

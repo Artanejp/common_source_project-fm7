@@ -30,7 +30,6 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 	use_auto_key_shift = use_binary_file = false;
 	
 	max_binary = 0;
-	use_binary = false;
 	base_binary_num = 0;
 	
 	use_bitmap = false;
@@ -362,8 +361,8 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 #if defined(USE_KEY_LOCKED)
 	use_key_locked = true;
 #endif
-#if defined(USE_EXTRA_LEDS)
-	use_extra_leds = USE_EXTRA_LEDS;
+#if defined(USE_LED_DEVICE)
+	use_led_devices = USE_LED_DEVICE;
 #endif
 #if defined(INDEPENDENT_CAPS_KANA_LED)
 	independent_caps_kana_led = true;

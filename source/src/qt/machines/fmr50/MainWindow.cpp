@@ -9,6 +9,7 @@
 
 #include <QVariant>
 #include <QtGui>
+#include <QMenu>
 #include "commonclasses.h"
 #include "menuclasses.h"
 #include "emu.h"
@@ -19,25 +20,8 @@
 void META_MainWindow::retranslateUi(void)
 {
 
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu(" ", false);
-	retranslateFloppyMenu(0, 0);
-	retranslateFloppyMenu(1, 1);
-	retranslateFloppyMenu(2, 2);
-	retranslateFloppyMenu(3, 3);
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateMachineMenu();
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
-   
-	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
-	
-	//	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Record Movie", 0));
-	//      actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0));
-	// 
-	menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));
-	// FM-7 Specified
-	menuCpuType->setTitle("CPU Frequency");
 #if defined(HAS_I286)
 	actionCpuType[0]->setText(QString::fromUtf8("8MHz"));
 	actionCpuType[1]->setText(QString::fromUtf8("12MHz"));
@@ -60,9 +44,6 @@ void META_MainWindow::retranslateUi(void)
 
 void META_MainWindow::setupUI_Emu(void)
 {
-	menuCpuType = new QMenu(menuMachine);
-	menuCpuType->setObjectName(QString::fromUtf8("menuControl_CpuType"));
-	menuMachine->addAction(menuCpuType->menuAction());
 	ConfigCPUTypes(2);
 }
 

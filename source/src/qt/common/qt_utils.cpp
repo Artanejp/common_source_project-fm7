@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
+#include <QApplication>
 #include <QString>
 #include <QTextCodec>
 #include <QImage>
@@ -224,7 +225,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 #ifdef USE_TAPE_BUTTON
 	hRunEmu->set_tape_play(false);
 #endif
-#if defined(USE_KEY_LOCKED) || defined(USE_EXTRA_LEDS)
+#if defined(USE_KEY_LOCKED) || defined(USE_LED_DEVICE)
 	connect(hRunEmu, SIGNAL(sig_send_data_led(quint32)), this, SLOT(do_recv_data_led(quint32)));
 #endif
 #ifdef USE_AUTO_KEY
@@ -417,7 +418,7 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 	}
 #endif
 	if(statusUpdateTimer != NULL) statusUpdateTimer->stop();
-#if defined(USE_KEY_LOCKED) || defined(USE_EXTRA_LEDS)
+#if defined(USE_KEY_LOCKED) || defined(USE_LED_DEVICE)
 	if(ledUpdateTimer != NULL) ledUpdateTimer->stop();
 #endif
 	emit quit_draw_thread();

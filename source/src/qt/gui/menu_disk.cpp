@@ -4,6 +4,7 @@
  *   LIcense: GPLv2
  *   History: Jan 10, 2015 (MAYBE) : Initial.
  */
+#include <QApplication>
 
 #include "commonclasses.h"
 #include "mainwidget_base.h"

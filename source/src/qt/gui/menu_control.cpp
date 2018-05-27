@@ -7,6 +7,7 @@
 #include <QString>
 #include <QMenu>
 #include <QStyle>
+#include <QApplication>
 
 #include "commonclasses.h"
 #include "mainwidget_base.h"
@@ -122,6 +123,8 @@ void Ui_MainWindowBase::ConfigCPUBootMode(int num)
 	if(num <= 0) return;
 	if(num >= 8) num = 8;
   
+	menuBootMode = new QMenu(menuMachine);
+	menuBootMode->setObjectName(QString::fromUtf8("menuControl_BootMode"));
 	actionGroup_BootMode = new QActionGroup(this);
 	actionGroup_BootMode->setExclusive(true);
 	for(i = 0; i < num; i++) {
@@ -137,6 +140,7 @@ void Ui_MainWindowBase::ConfigCPUBootMode(int num)
 		connect(actionBootMode[i], SIGNAL(triggered()), actionBootMode[i]->binds, SLOT(set_boot_mode())); // OK?  
 		connect(actionBootMode[i]->binds, SIGNAL(on_boot_mode(int)), this, SLOT(do_change_boot_mode(int))); // OK?  
 	}
+	menuMachine->addAction(menuBootMode->menuAction());
 }
 
 void Ui_MainWindowBase::do_change_cpu_type(int mode)
@@ -152,7 +156,9 @@ void Ui_MainWindowBase::ConfigCPUTypes(int num)
 	QString tmps;
 	if(num <= 0) return;
 	if(num >= 8) num = 7;
-   
+	menuCpuType = new QMenu(menuMachine);
+	menuCpuType->setObjectName(QString::fromUtf8("menuControl_CpuType"));
+	
 	actionGroup_CpuType = new QActionGroup(this);
 	actionGroup_CpuType->setExclusive(true);
 	for(i = 0; i < num; i++) {
@@ -168,6 +174,7 @@ void Ui_MainWindowBase::ConfigCPUTypes(int num)
 		connect(actionCpuType[i], SIGNAL(triggered()), actionCpuType[i]->binds, SLOT(set_cpu_type())); // OK?  
 		connect(actionCpuType[i]->binds, SIGNAL(on_cpu_type(int)), this, SLOT(do_change_cpu_type(int))); // OK?  
 	}
+	menuMachine->addAction(menuCpuType->menuAction());
 }
 
 void Ui_MainWindowBase::ConfigControlMenu(void)

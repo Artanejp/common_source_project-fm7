@@ -6,6 +6,9 @@
  *     Jan 13 2015 : Start
  */
 
+#include <QApplication>
+#include <QStyle>
+
 #include "commonclasses.h"
 #include "mainwidget_base.h"
 #include "menu_cmt.h"

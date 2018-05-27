@@ -4,6 +4,7 @@
  *   LIcense: GPLv2
  *   History: Mar 24, 2016  : Inhelit from Menu_FDClass.
  */
+#include <QApplication>
 
 #include "commonclasses.h"
 #include "mainwidget_base.h"

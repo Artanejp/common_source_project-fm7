@@ -6,6 +6,7 @@
  * History:
  * Mar 24, 2016 : Initial.
  */
+#include <QApplication>
 
 #include "mainwidget_base.h"
 #include "commonclasses.h"

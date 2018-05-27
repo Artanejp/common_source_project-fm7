@@ -33,7 +33,7 @@ int Ui_MainWindow::set_recent_hard_disk(int drv, int num)
 
 	if(emu) {
 		emit sig_close_hard_disk(drv);
-		emit sig_open_hard_disk(drv, s_path, 0);
+		emit sig_open_hard_disk(drv, s_path);
 		menu_hdds[drv]->do_update_histories(listHDDs[drv]);
 		menu_hdds[drv]->do_set_initialize_directory(p_config->initial_hard_disk_dir);
 		menu_hdds[drv]->do_clear_inner_media();
@@ -55,7 +55,7 @@ void Ui_MainWindow::_open_hard_disk(int drv, const QString fname)
 	if(emu) {
 		emit sig_close_hard_disk(drv);
 		//emu->LockVM();
-		emit sig_open_hard_disk(drv, fname, 0);
+		emit sig_open_hard_disk(drv, fname);
 		menu_hdds[drv]->do_update_histories(listHDDs[drv]);
 		menu_hdds[drv]->do_set_initialize_directory(p_config->initial_hard_disk_dir);
 		menu_hdds[drv]->do_clear_inner_media();

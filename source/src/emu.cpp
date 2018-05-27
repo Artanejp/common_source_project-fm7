@@ -1421,10 +1421,6 @@ void EMU::set_vm_screen_lines(int lines)
 	osd->set_vm_screen_lines(lines);
 }
 
-void EMU::set_vm_screen_lines(int lines)
-{
-	osd->set_vm_screen_lines(lines);
-}
 
 int EMU::get_vm_window_width()
 {
@@ -2018,7 +2014,7 @@ void EMU::update_media()
 	}
 #endif
 #ifdef USE_QUICK_DISK
-	for(int drv = 0; drv < MAX_USE_QUICK_DISK; drv++) {
+	for(int drv = 0; drv < USE_QUICK_DISK; drv++) {
 		if(quick_disk_status[drv].wait_count != 0 && --quick_disk_status[drv].wait_count == 0) {
 			vm->open_quick_disk(drv, quick_disk_status[drv].path);
 #if USE_QUICK_DISK > 1
@@ -2773,7 +2769,7 @@ bool EMU::is_bubble_casette_protected(int drv)
 
 void EMU::is_bubble_casette_protected(int drv, bool flag)
 {
-	if(drv < MAX_BUBBLE) {
+	if(drv < USE_BUBBLE) {
 		vm->is_bubble_casette_protected(drv, flag);
 		return;
 	} else {

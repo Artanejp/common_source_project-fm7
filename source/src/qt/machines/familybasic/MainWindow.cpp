@@ -17,22 +17,14 @@
 
 void META_MainWindow::setupUI_Emu(void)
 {
-	menuBootMode = new QMenu(menuMachine);
-	menuBootMode->setObjectName(QString::fromUtf8("menuControl_BootMode"));
-	menuMachine->addAction(menuBootMode->menuAction());
 	ConfigCPUBootMode(6);
 }
 
 void META_MainWindow::retranslateUi(void)
 {
 	int i;
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("System Reset",  false);
-	retranslateCMTMenu(0);
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateMachineMenu();
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
 	
 	menuBootMode->setTitle(QApplication::translate("Machine", "BOOT Mode", 0));
 	menuBootMode->setToolTipsVisible(true);

@@ -371,7 +371,7 @@ void EmuThreadClass::doWork(const QString &params)
 			continue;
 		}
 		if(first) {
-			if((using_flags->get_use_extra_leds() > 0) || (using_flags->get_use_key_locked())) emit sig_send_data_led((quint32)led_data);
+			if((using_flags->get_use_led_devices() > 0) || (using_flags->get_use_key_locked())) emit sig_send_data_led((quint32)led_data);
 			for(int ii = 0; ii < using_flags->get_max_drive(); ii++ ) {
 				emit sig_change_access_lamp(CSP_DockDisks_Domain_FD, ii, fd_lamp[ii]);
 			}
@@ -525,11 +525,12 @@ void EmuThreadClass::doWork(const QString &params)
 #endif
 #if defined(USE_LED_DEVICE)
   #if !defined(INDEPENDENT_CAPS_KANA_LED)
-			led_data <<= USE_EXTRA_LEDS;
+			led_data <<= USE_LED_DEVICE;
   #endif
 	   		led_data |= p_emu->get_led_status();
 #endif
-#if defined(USE_EXTRA_LEDS) || defined(USE_KEY_LOCKED)
+
+#if defined(USE_LED_DEVICE) || defined(USE_KEY_LOCKED)
 			if(led_data != led_data_old) {
 				emit sig_send_data_led((quint32)led_data);
 				led_data_old = led_data;

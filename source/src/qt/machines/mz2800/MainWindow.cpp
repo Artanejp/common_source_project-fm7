@@ -25,18 +25,8 @@ void META_MainWindow::setupUI_Emu(void)
 
 void META_MainWindow::retranslateUi(void)
 {
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("Reset",  true);
-	retranslateFloppyMenu(0, 1);
-	retranslateFloppyMenu(1, 2);
-	retranslateFloppyMenu(2, 3);
-	retranslateFloppyMenu(3, 4);
-	retranslateMachineMenu();
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
-   
-	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 	actionReset->setText(QApplication::translate("MainWindow", "IPL Reset", 0));
 	actionReset->setToolTip(QApplication::translate("MainWindow", "Do IPL reset.", 0));
 	//actionSpecial_Reset->setToolTip(QApplication::translate("MainWindow", "Do system reset.", 0));

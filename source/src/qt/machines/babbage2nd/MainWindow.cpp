@@ -21,15 +21,9 @@
 
 void META_MainWindow::retranslateUi(void)
 {
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("", false);
-	retranslateScreenMenu();
-	retranslateBinaryMenu(0, 1);
-	retranslateSoundMenu();
-	retranslateMachineMenu();
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
 	
-	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 	//menuMachine->setVisible(false);
 	// Set Labels
 	

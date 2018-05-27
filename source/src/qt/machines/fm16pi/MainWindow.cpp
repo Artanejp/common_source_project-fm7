@@ -29,15 +29,8 @@ void META_MainWindow::retranslateUi(void)
 {
 	int i;
 	
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu(" ",  false);
-	retranslateFloppyMenu(0, 0);
-	retranslateFloppyMenu(1, 1);
-//  retranslateCMTMenu(0);
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateMachineMenu();
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
 	
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 #ifdef USE_DEBUGGER

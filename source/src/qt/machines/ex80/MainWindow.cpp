@@ -9,6 +9,8 @@
 
 #include <QVariant>
 #include <QtGui>
+#include <QMenu>
+
 #include "emu.h"
 #include "commonclasses.h"
 #include "menuclasses.h"
@@ -143,17 +145,9 @@ void META_MainWindow::setupUI_Emu(void)
 
 void META_MainWindow::retranslateUi(void)
 {
-	int i;
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("System Reset",  false);
-	retranslateCMTMenu(0);
-	retranslateBinaryMenu(0, 1);
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateMachineMenu();
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
 	
-	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
   
 #ifdef USE_MOUSE
 	actionMouseEnable->setVisible(false);

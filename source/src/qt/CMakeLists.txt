@@ -1,5 +1,5 @@
 message("* qt/osd")
-SET(THIS_LIB_VERSION 2.11.1) 
+SET(THIS_LIB_VERSION 2.11.2) 
 
 set(s_qt_osd_headers
 	osd_base.h
@@ -63,7 +63,7 @@ else()
 	  add_library(CSPosd SHARED
 		${s_qt_osd_srcs}
 		${s_qt_osd_headers_MOC}
-		pch.cpp
+#		pch.cpp
 		)
 #	  add_precompiled_header(CSPosd pch_list
 #		SOURCE_CXX pch.cpp FORCEINCLUDE

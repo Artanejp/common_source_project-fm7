@@ -60,18 +60,8 @@ void META_MainWindow::setupUI_Emu(void)
 
 void META_MainWindow::retranslateUi(void)
 {
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu(" ",  false);
-	retranslateFloppyMenu(0, 1);
-	retranslateFloppyMenu(1, 2);
-	retranslateFloppyMenu(2, 3);
-	retranslateFloppyMenu(3, 4);
-	retranslateCMTMenu(0);
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateMachineMenu();
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
-
 #if defined(_MZ80A) || defined(_MZ80K)	
 	action_Emu_DipSw->setText(QApplication::translate("MachineMZ80K", "PCG-8000", 0));
 	action_Emu_DipSw->setToolTip(QApplication::translate("MachineMZ80K", "HAL laboratory PCG-8000 PCG.", 0));

@@ -25,16 +25,8 @@ void META_MainWindow::setupUI_Emu(void)
 
 void META_MainWindow::retranslateUi(void)
 {
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu(" ",  false);
-	retranslateFloppyMenu(0, 1);
-	retranslateFloppyMenu(1, 2);
-
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateMachineMenu();
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
-   
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setText(QApplication::translate("Machine", "Main CPU", 0));
 	actionDebugger[0]->setVisible(true);

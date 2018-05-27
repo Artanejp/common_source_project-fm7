@@ -22,19 +22,8 @@ void META_MainWindow::setupUI_Emu(void)
 
 void META_MainWindow::retranslateUi(void)
 {
-	int i;
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("System Reset",  false);
-	retranslateCartMenu(0, 1);
- 
-	retranslateCMTMenu(0);
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateMachineMenu();
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
-   
-	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
-  
 #ifdef USE_DEBUGGER
 	actionDebugger[1]->setText(QApplication::translate("MainWindow", "FD5 CPU", 0));
 	

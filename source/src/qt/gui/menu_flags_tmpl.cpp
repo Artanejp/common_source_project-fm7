@@ -42,7 +42,7 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 
 	use_laser_disc = false;
 	use_key_locked = false;
-	use_extra_leds = 0;
+	use_led_devices = 0;
 	independent_caps_kana_led = false;
 
 	max_memcard = 0;
@@ -84,7 +84,6 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	use_auto_key_shift = use_binary_file = false;
 	
 	max_binary = 0;
-	use_binary = false;
 	base_binary_num = 0;
 	
 	use_bitmap = false;

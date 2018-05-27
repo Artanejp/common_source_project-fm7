@@ -6,6 +6,7 @@
  *   History :
  * Jan 14, 2015 : Initial, moved from qt/x1turboz/MainWindow.cpp .
  */
+#include <QApplication>
 #include <QMenu>
 #include <QMenuBar>
 

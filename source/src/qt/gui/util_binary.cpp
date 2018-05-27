@@ -6,7 +6,7 @@
  * History:
  * Jan 24, 2014 : Moved from some files.
  */
-
+#include <QApplication>
 
 #include "mainwidget_base.h"
 #include "commonclasses.h"

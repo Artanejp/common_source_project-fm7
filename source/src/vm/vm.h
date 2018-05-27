@@ -622,7 +622,9 @@
 #if defined(USE_BUBBLE) && !defined(BASE_BUBBLE_NUM)
 	#define BASE_BUBBLE_NUM		1
 #endif
-
+#if defined(USE_TAPE) && !defined(BASE_TAPE_NUM)
+        #define BASE_TAPE_NUM           1
+#endif
 
 #ifndef KEY_KEEP_FRAMES
 	#define KEY_KEEP_FRAMES 3

@@ -56,26 +56,8 @@ void META_MainWindow::do_set_sound_device(int num)
 void META_MainWindow::retranslateUi(void)
 {
 	const char *title="";
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu(title, false);
-	retranslateFloppyMenu(0, 1);
-	retranslateFloppyMenu(1, 2);
-#if USE_FLOPPY_DISK > 2
-	for(int _drv = 2; _drv < USE_FLOPPY_DISK; _drv++) {
-		retranslateFloppyMenu(_drv, _drv + 1);
-	}
-#endif   
-#if defined(USE_CART)
-	retranslateCartMenu(0, 1);
-#endif   
-	retranslateCMTMenu(0);
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateMachineMenu();
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
-   
-	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
-  
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setText(QApplication::translate("MainWindow", "Main CPU", 0));
 	actionDebugger[1]->setText(QApplication::translate("MainWindow", "Sub  CPU", 0));
@@ -86,8 +68,9 @@ void META_MainWindow::retranslateUi(void)
 	actionDebugger[3]->setVisible(false);
 #endif	
 #if defined(USE_PRINTER)
-	//actionPrintDevice[1]->setText(QString::fromUtf8("PC-PR201"));
-	//actionPrintDevice[1]->setToolTip(QApplication::translate("NEC PC-PR201 kanji serial printer."));
+	actionPrintDevice[1]->setText(QString::fromUtf8("PC-PR201"));
+	actionPrintDevice[1]->setToolTip(QApplication::translate("NEC PC-PR201 kanji serial printer."));
+	actionPrintDevice[1]->setEnabled(false);
 #endif
 
    // Set Labels

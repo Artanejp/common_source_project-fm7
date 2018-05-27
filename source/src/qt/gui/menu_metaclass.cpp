@@ -10,7 +10,8 @@
 #include <QWidget>
 #include <QDir>
 #include <QStyle>
-
+#include <QApplication>
+#include <QMenuBar>
 //#include "emu.h"
 //#include "vm.h"
 #include "qt_dialogs.h"

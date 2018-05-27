@@ -23,18 +23,8 @@ void META_MainWindow::setupUI_Emu(void)
 
 void META_MainWindow::retranslateUi(void)
 {
-	int i;
-   
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("",  false);
-	retranslateFloppyMenu(0, 1);
-	retranslateFloppyMenu(1, 2);
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateMachineMenu();
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
-	
-	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 #if defined(USE_DRIVE_TYPE)
 	menuDriveType->setTitle(QApplication::translate("MachinePC100", "Floppy Type", 0));
 	actionDriveType[0]->setText(QApplication::translate("MachinePC100", "2D", 0));

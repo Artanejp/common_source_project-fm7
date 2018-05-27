@@ -9,6 +9,8 @@
 
 #include <QtCore/QVariant>
 #include <QtGui>
+#include <QMenu>
+
 #include "commonclasses.h"
 #include "menuclasses.h"
 #include "emu.h"
@@ -261,6 +263,7 @@ void META_MainWindow::retranslateUi(void)
 	int z80num, jcommnum;
 	z80num = -1;
 	jcommnum = -1;
+	Ui_MainWindowBase::retranslateUi();
 	
 	retranslateControlMenu("Hot Start (BREAK+RESET)", true);
 	QString fdname320;
@@ -295,16 +298,10 @@ void META_MainWindow::retranslateUi(void)
 		retranslateBubbleMenu(_drv, _drv + 1);
 	}		
 #endif	
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	
-	retranslateMachineMenu();
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
 
 	{	
 	}
-	this->setWindowTitle(QApplication::translate("Machine", "MainWindow", 0));
+
 	actionSpecial_Reset->setText(QApplication::translate("Machine", "Hot Start(BREAK+RESET)", 0));
 	actionSpecial_Reset->setToolTip(QApplication::translate("Machine", "Do HOT START.\nReset with pressing BREAK key.", 0));
 	
@@ -664,15 +661,8 @@ void META_MainWindow::setupUI_Emu(void)
 	}
 	menuMachine->addAction(menuFrameSkip->menuAction());
 	
-	menuCpuType = new QMenu(menuMachine);
-	menuCpuType->setObjectName(QString::fromUtf8("menuControl_CpuType"));
-	menuMachine->addAction(menuCpuType->menuAction());
 	ConfigCPUTypes(2);
-	menuBootMode = new QMenu(menuMachine);
-	menuBootMode->setObjectName(QString::fromUtf8("menuControl_BootMode"));
-	menuMachine->addAction(menuBootMode->menuAction());
-
-	ConfigCPUBootMode(8);
+	ConfigCPUBootMode(USE_BOOT_MODE);
 #if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
 	actionKanjiRom = new Action_Control_7(this, using_flags);
 	menuMachine->addAction(actionKanjiRom);

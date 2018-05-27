@@ -577,6 +577,7 @@ int32_t DLL_PREFIX muldiv_s32(int32_t nNumber, int32_t nNumerator, int32_t nDeno
 uint32_t DLL_PREFIX muldiv_u32(uint32_t nNumber, uint32_t nNumerator, uint32_t nDenominator);
 
 uint32_t DLL_PREFIX get_crc32(uint8_t data[], int size);
+uint32_t DLL_PREFIX calc_crc32(uint32_t seed, uint8_t data[], int size);
 uint16_t DLL_PREFIX jis_to_sjis(uint16_t jis);
 
 int DLL_PREFIX decibel_to_volume(int decibel);

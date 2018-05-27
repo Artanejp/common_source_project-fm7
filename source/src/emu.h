@@ -436,37 +436,39 @@ public:
 	bool is_quick_disk_inserted(int drv);
 	uint32_t is_quick_disk_accessed();
 #endif
+#ifdef USE_HARD_DISK
+	void open_hard_disk(int drv, const _TCHAR* file_path);
+	void close_hard_disk(int drv);
+	bool is_hard_disk_inserted(int drv);
+	uint32_t is_hard_disk_accessed();
+#endif
 #ifdef USE_TAPE
 	void play_tape(int drv, const _TCHAR* file_path);
 	void rec_tape(int drv, const _TCHAR* file_path);
 	void close_tape(int drv);
 	bool is_tape_inserted(int drv);
-# ifndef TAPE_BINARY_ONLY
 	bool is_tape_playing(int drv);
 	bool is_tape_recording(int drv);
 	int get_tape_position(int drv);
 	const _TCHAR* get_tape_message(int drv);
-# endif
-# ifdef USE_TAPE_BUTTON
 	void push_play(int drv);
 	void push_stop(int drv);
 	void push_fast_forward(int drv);
 	void push_fast_rewind(int drv);
 	void push_apss_forward(int drv);
 	void push_apss_rewind(int drv);
-# endif
 #endif
 #ifdef USE_COMPACT_DISC
-	void open_compact_disc(const _TCHAR* file_path);
-	void close_compact_disc();
-	bool is_compact_disc_inserted();
-	uint32_t is_compact_disc_accessed();
+	void open_compact_disc(int drv, const _TCHAR* file_path);
+	void close_compact_disc(int drv);
+	bool is_compact_disc_inserted(int drv);
+	uint32_t is_compact_disc_accessed(int drv);
 #endif
 #ifdef USE_LASER_DISC
-	void open_laser_disc(const _TCHAR* file_path);
-	void close_laser_disc();
-	bool is_laser_disc_inserted();
-	uint32_t is_laser_disc_accessed();
+	void open_laser_disc(int drv, const _TCHAR* file_path);
+	void close_laser_disc(int drv);
+	bool is_laser_disc_inserted(int drv);
+	uint32_t is_laser_disc_accessed(int drv);
 #endif
 #ifdef USE_BINARY_FILE
 	void load_binary(int drv, const _TCHAR* file_path);

@@ -115,7 +115,7 @@ void HARDDISK::open(const _TCHAR* file_path, int default_sector_size)
 						{33, 6, 615, 256},	// 30MB
 						{33, 8, 615, 256},	// 40MB
 					};
-					for(int i = 0; i < array_length(hd_formats); i++) {
+					for(int i = 0; i < (int)array_length(hd_formats); i++) {
 						const hd_format_t *p = &hd_formats[i];
 						if(length == p->sectors * p->surfaces * p->cylinders * p->sector_size) {
 							cylinders = p->cylinders;

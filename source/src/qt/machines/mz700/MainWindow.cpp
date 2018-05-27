@@ -9,6 +9,8 @@
 
 #include <QVariant>
 #include <QtGui>
+#include <QMenu>
+
 #include "vm.h"
 #include "commonclasses.h"
 #include "menuclasses.h"
@@ -71,9 +73,6 @@ void META_MainWindow::setupUI_Emu(void)
 	menuMachine->addSeparator();
 #endif
 #if defined(USE_BOOT_MODE)
-	menuBootMode = new QMenu(menuMachine);
-	menuBootMode->setObjectName(QString::fromUtf8("menuControl_BootMode"));
-	menuMachine->addAction(menuBootMode->menuAction());
 	ConfigCPUBootMode(USE_BOOT_MODE);
 #endif
 #if defined(USE_MONITOR_TYPE)
@@ -105,18 +104,8 @@ void META_MainWindow::setupUI_Emu(void)
 
 void META_MainWindow::retranslateUi(void)
 {
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu(" ",  true);
-	retranslateFloppyMenu(0, 0);
-	retranslateFloppyMenu(1, 1);
-	retranslateQuickDiskMenu(0, 0);
-	retranslateCMTMenu(0);
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateMachineMenu();
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
-	
-	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 #if defined(_MZ800)
 	menuBootMode->setTitle(QApplication::translate("Machine", "BOOT Mode", 0));
 	actionBootMode[0]->setText(QString::fromUtf8("MZ-800"));

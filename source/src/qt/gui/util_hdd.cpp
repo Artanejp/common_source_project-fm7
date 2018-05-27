@@ -6,7 +6,7 @@
  * History:
  * Jan 24, 2014 : Moved from some files.
  */
-
+#include <QApplication>
 
 #include "mainwidget_base.h"
 #include "commonclasses.h"
@@ -48,7 +48,7 @@ void Ui_MainWindowBase::CreateHardDiskMenu(int drv, int drv_base)
 	{
 		QString ext = "*.thd;*.nhd;*.hdi;*.dat";
 		QString desc1 = "Hard Disk Drive";
-		menu_hdds[drv] = new Menu_HDDDClass(menubar, QString::fromUtf8("HDD"), using_flags, this, drv, drv_base);
+		menu_hdds[drv] = new Menu_HDDClass(menubar, QString::fromUtf8("HDD"), using_flags, this, drv, drv_base);
 		menu_hdds[drv]->create_pulldown_menu();
 		
 		menu_hdds[drv]->do_clear_inner_media();

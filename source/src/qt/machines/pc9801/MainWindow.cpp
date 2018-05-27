@@ -9,6 +9,8 @@
 
 #include <QVariant>
 #include <QtGui>
+#include <QMenu>
+
 #include "commonclasses.h"
 #include "menuclasses.h"
 #include "emu.h"
@@ -52,11 +54,8 @@ Action_Control_98::~Action_Control_98()
 void META_MainWindow::retranslateUi(void)
 {
 	const char *title="";
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu(title, false);
-	retranslateMachineMenu();
-	for(int _drv = 0; _drv < USE_FLOPPY_DISK; _drv++) {
-		retranslateFloppyMenu(_drv, _drv + 1);
-	}
 #if defined(_PC9801) || defined(_PC9801E)
    // Drive 3,4
 	menu_fds[2]->setTitle(QApplication::translate("MainWindow", "2DD-1", 0));
@@ -83,12 +82,6 @@ void META_MainWindow::retranslateUi(void)
 	actionSoundDevice[3]->setToolTip(QApplication::translate("MainWindow", "PC-9801-14 sound board has connected.\nThis uses TI TMS3631-RI104 synthesizer chip.\nOn board BIOS is disabled.", 0));
 	actionSoundDevice[4]->setToolTip(QApplication::translate("MainWindow", "None sound devices has connected.", 0));
 #endif
-#if defined(USE_TAPE)
-	retranslateCMTMenu(0);
-#endif
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateEmulatorMenu();
 #ifdef USE_CPU_TYPE
 	menuCpuType->setTitle(QApplication::translate("MainWindow", "CPU Frequency", 0));
 # if  defined(_PC98DO)
@@ -134,7 +127,6 @@ void META_MainWindow::retranslateUi(void)
 	actionPrintDevice[1]->setText(QString::fromUtf8("PC-PR201"));
 	actionPrintDevice[1]->setToolTip(QApplication::translate("MainWindow", "NEC PC-PR201 kanji serial printer.", 0));
 #endif	
-	retranslateUI_Help();
 	// End.
 	// Set Labels
 #ifdef USE_DEBUGGER
@@ -164,9 +156,6 @@ void META_MainWindow::retranslateUi(void)
 void META_MainWindow::setupUI_Emu(void)
 {
 #ifdef USE_CPU_TYPE
-	menuCpuType = new QMenu(menuMachine);
-	menuCpuType->setObjectName(QString::fromUtf8("menuControl_CpuType"));
-	menuMachine->addAction(menuCpuType->menuAction());
 	ConfigCPUTypes(2);
 #endif
 	
@@ -183,12 +172,7 @@ void META_MainWindow::setupUI_Emu(void)
 #endif   
 	
 #ifdef USE_BOOT_MODE
-# if defined(_PC98DO)
-	menuBootMode = new QMenu(menuMachine);
-	menuBootMode->setObjectName(QString::fromUtf8("menuControl_BootMode"));
-	menuMachine->addAction(menuBootMode->menuAction());
-	ConfigCPUBootMode(5);
-# endif
+	ConfigCPUBootMode(USE_BOOT_MODE);
 #endif
 #ifdef USE_MONITOR_TYPE
    menu_Emu_DisplayMode = new QMenu(menuMachine);

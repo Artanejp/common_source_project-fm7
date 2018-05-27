@@ -9,6 +9,8 @@
 
 #include <QVariant>
 #include <QtGui>
+#include <QMenu>
+
 #include "commonclasses.h"
 #include "menuclasses.h"
 #include "menu_cart.h"
@@ -74,18 +76,11 @@ void META_MainWindow::setupUI_Emu(void)
 
 void META_MainWindow::retranslateUi(void)
 {
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("NMI Reset",  true);
 	retranslateFloppyMenu(0, 0, QApplication::translate("MachineX1", "FDD", 0));
 	retranslateFloppyMenu(1, 1, QApplication::translate("MachineX1", "FDD", 0));
-	retranslateCMTMenu(0);
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateUI_Help();
-#if defined(_X1TWIN)
-	retranslateCartMenu(0, 1);
-#endif
-	retranslateEmulatorMenu();
-	retranslateMachineMenu();
+
 	actionSpecial_Reset->setText(QApplication::translate("Machine", "NMI Reset", 0));
 	actionSpecial_Reset->setToolTip(QApplication::translate("MachineX1", "Do NMI reset.", 0));
 

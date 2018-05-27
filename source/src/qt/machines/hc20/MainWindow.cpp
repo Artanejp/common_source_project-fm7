@@ -9,6 +9,8 @@
 
 #include <QVariant>
 #include <QtGui>
+#include <QMenu>
+
 #include "emu.h"
 #include "commonclasses.h"
 #include "menuclasses.h"
@@ -71,26 +73,8 @@ void META_MainWindow::setupUI_Emu(void)
 
 void META_MainWindow::retranslateUi(void)
 {
-	int i;
-	
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu(" ",  false);
-	retranslateFloppyMenu(0, 1);
-	retranslateFloppyMenu(1, 2);
-	retranslateCMTMenu(0);
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateMachineMenu();
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
-   
-	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
-
-	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
-
-	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
-	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
-  
-	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
    // Set Labels
 	menu_Emu_DipSw->setTitle(QApplication::translate("Machine", "DIP Switches", 0));
 	action_Emu_DipSw[0]->setText(QApplication::translate("Machine", "Dip Switch 1", 0));

@@ -9,6 +9,8 @@
 
 #include <QVariant>
 #include <QtGui>
+#include <QMenu>
+
 #include "commonclasses.h"
 #include "menuclasses.h"
 #include "emu.h"
@@ -78,18 +80,8 @@ void META_MainWindow::setupUI_Emu(void)
 
 void META_MainWindow::retranslateUi(void)
 {
-	int i;
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("Halt",  true);
-	retranslateFloppyMenu(0, 1);
-	retranslateFloppyMenu(1, 2);
-	retranslateFloppyMenu(2, 3);
-	retranslateFloppyMenu(3, 4);
-	retranslateMachineMenu();
-
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
 	actionReset->setToolTip(QApplication::translate("MainWindow", "Do system reset.", 0));
 	actionSpecial_Reset->setToolTip(QApplication::translate("MainWindow", "HALT a machine.", 0));
    

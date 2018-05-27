@@ -7,6 +7,7 @@
  * Jan 14, 2015 : Initial, moved from qt/x1turboz/MainWindow.cpp .
  */
 
+#include <QApplication>
 #include <QVariant>
 #include <QtGui>
 #include <QIcon>
@@ -21,6 +22,9 @@
 #include <QVBoxLayout>
 #include <QDockWidget>
 #include <QToolBar>
+#include <QMenu>
+#include <QMenuBar>
+#include <QStyle>
 
 #include "commonclasses.h"
 #include "display_about.h"
@@ -464,7 +468,7 @@ void Ui_MainWindowBase::setupUi(void)
 	}
 	if(using_flags->is_use_hdd()) {
 		int base_drv = using_flags->get_base_hdd_num();
-		for(int i = 0; i < using_flags->get_max_hdd(); i++) CreateHDDMenu(i, base_drv);
+		for(int i = 0; i < using_flags->get_max_hdd(); i++) CreateHardDiskMenu(i, base_drv);
 	}
 	CreateScreenMenu();
 	if(using_flags->is_use_cart()) {
@@ -474,7 +478,7 @@ void Ui_MainWindowBase::setupUi(void)
 		}
 	}
 	if(using_flags->is_use_binary_file()) {
-		int base_drv = using_flags->get_base_binary_file_num();
+		int base_drv = using_flags->get_base_binary_num();
 		for(int i = 0; i < using_flags->get_max_binary(); i++) {
 			CreateBinaryMenu(i, base_drv);
 		}
@@ -562,16 +566,19 @@ void Ui_MainWindowBase::setupUi(void)
 		}
 	}
 	if(using_flags->is_use_binary_file()) {
-		int i;
-		for(i = 0; i < using_flags->get_max_binary(); i++) {
+		for(int i = 0; i < using_flags->get_max_binary(); i++) {
 			menubar->addAction(menu_BINs[i]->menuAction());
 		}
 	}
 	if(using_flags->is_use_compact_disc()) {
-		menubar->addAction(menu_CDROM->menuAction());
+		for(int i = 0; i < using_flags->get_max_cd(); i++) {
+			menubar->addAction(menu_CDROM[i]->menuAction());
+		}
 	}
 	if(using_flags->is_use_laser_disc()) {
-		menubar->addAction(menu_Laserdisc->menuAction());
+		for(int i = 0; i < using_flags->get_max_ld(); i++) {
+			menubar->addAction(menu_Laserdisc[i]->menuAction());
+		}
 	}
 	if(using_flags->is_use_bubble()) {
 		int i;
@@ -1208,23 +1215,11 @@ void Ui_MainWindowBase::retranslateMachineMenu(void)
 }
 void Ui_MainWindowBase::retranslateUi(void)
 {
-	retranslateControlMenu("NMI Reset",  true);
-	retranslateFloppyMenu(0, 0);
-	retranslateFloppyMenu(1, 1);
-	retranslateCMTMenu(0);
+	retranslateControlMenu("Reset",  true);
 	if(!using_flags->is_without_sound()) {
 		retranslateSoundMenu();
 	}
 	retranslateScreenMenu();
-	retranslateCartMenu(0, 1);
-	retranslateCartMenu(1, 2);
-	retranslateCDROMMenu();
-	
-	retranslateBinaryMenu(0, 1);
-	retranslateBinaryMenu(1, 2);
-
-	retranslateBubbleMenu(0, 1);
-	retranslateBubbleMenu(1, 2);
 	retranslateMachineMenu();
 	retranslateEmulatorMenu();
 	retranslateUI_Help();

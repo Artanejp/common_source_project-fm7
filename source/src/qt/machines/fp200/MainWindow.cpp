@@ -22,15 +22,8 @@
 void META_MainWindow::retranslateUi(void)
 {
 
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("", false);
-	retranslateCMTMenu(0);
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateMachineMenu();
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
-	
-	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 	menuBootMode->setTitle(QApplication::translate("Machine", "BOOT Mode", 0));
 	menuBootMode->setToolTipsVisible(true);
 	actionBootMode[0]->setText(QString::fromUtf8("BASIC"));
@@ -55,10 +48,6 @@ void META_MainWindow::retranslateUi(void)
 
 void META_MainWindow::setupUI_Emu(void)
 {
-	menuBootMode = new QMenu(menuMachine);
-	menuBootMode->setObjectName(QString::fromUtf8("menuControl_BootMode"));
-	menuMachine->addAction(menuBootMode->menuAction());
-	
 	ConfigCPUBootMode(2);
 }
 

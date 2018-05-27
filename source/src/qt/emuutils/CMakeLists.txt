@@ -5,10 +5,11 @@ set(s_qt_emuutils_srcs
 	  ../../common.cpp
 	  ../../fifo.cpp
 	  ../../fileio.cpp
+	  ../../statesub.cpp
 	  )
 #include(cotire)
 	
-SET(THIS_LIB_VERSION 2.9.0) 
+SET(THIS_LIB_VERSION 2.9.1) 
 
 if(WIN32)
 include (GenerateExportHeader)

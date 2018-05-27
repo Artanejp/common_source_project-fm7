@@ -4,6 +4,7 @@
  *   LIcense: GPLv2
  *   History: Jan 10, 2015 (MAYBE) : Initial.
  */
+#include <QApplication>
 
 #include "commonclasses.h"
 #include "mainwidget_base.h"
@@ -36,7 +37,7 @@ void Menu_HDDClass::connect_menu_device_sub(void)
 
 void Menu_HDDClass::retranslate_pulldown_menu_device_sub(void)
 {
-	action_insert->setIcon(icon_floppy);
+	//action_insert->setIcon(icon_floppy);
 	action_insert->setToolTip(QApplication::translate("MenuMedia", "Connect virtual hard disk file.", 0));
 	action_eject->setToolTip(QApplication::translate("MenuMedia", "Disconnect virtual hard disk.", 0));
 
