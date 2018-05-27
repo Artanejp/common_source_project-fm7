@@ -45,10 +45,7 @@
 #define IO_ADDR_MAX		0x10000
 
 // device informations for win32
-#define USE_FD1
-#define USE_FD2
-#define USE_FD3
-#define USE_FD4
+#define USE_FLOPPY_DISK		4
 #define NOTIFY_KEY_DOWN
 #define USE_SHIFT_NUMPAD_KEY
 #define USE_ALT_F10_KEY
@@ -114,9 +111,9 @@ protected:
 	PCM1BIT* pcm;
 	
 	CMOS* cmos;
-	MAIN* main;
+	MAIN* mainbus;
 	KEYBOARD* keyboard;
-	SUB* sub;
+	SUB* subbus;
 	
 public:
 	// ----------------------------------------

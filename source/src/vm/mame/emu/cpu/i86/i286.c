@@ -177,7 +177,7 @@ static CPU_RESET( i80286 )
 	cpustate->sregs[DS]=cpustate->sregs[SS]=cpustate->sregs[ES]=0;
 	cpustate->base[DS]=cpustate->base[SS]=cpustate->base[ES]=0;
 	cpustate->rights[DS]=cpustate->rights[SS]=cpustate->rights[ES]=0x93;
-	cpustate->rights[CS]=0x9a;
+	cpustate->rights[CS]=0x93;
 	cpustate->valid[CS]=cpustate->valid[SS]=cpustate->valid[DS]=cpustate->valid[ES]=1;
 	cpustate->msw=0xfff0;
 	cpustate->flags=2;

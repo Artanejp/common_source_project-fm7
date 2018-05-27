@@ -711,6 +711,8 @@ void CRTC::draw_screen()
 	emu->set_vm_screen_lines(ve);
 
 	// mix screens
+	emu->set_vm_screen_lines(ve);
+	
 	if(screen_mask) {
 		// screen is masked
 		for(int y = 0; y < 400; y++) {

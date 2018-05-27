@@ -38,9 +38,9 @@ SW3-1/2	ON ,ON  = 8000H-81FFH
 */
 #define USE_DIPSWITCH
 #define DIPSWITCH_DEFAULT	0x0e
-#define USE_TAPE1
+#define USE_TAPE		1
 #define TAPE_BINARY_ONLY
-#define USE_BINARY_FILE1
+#define USE_BINARY_FILE		1
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6

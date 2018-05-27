@@ -397,7 +397,7 @@ void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	if(drv == 0) {
 		drec->play_tape(file_path);
-		drec->set_remote(true);
+//		drec->set_remote(true);
 #if defined(_TK80BS)
 	} else if(drv == 1) {
 		cmt->play_tape(file_path);
@@ -409,7 +409,7 @@ void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
 	if(drv == 0) {
 		drec->rec_tape(file_path);
-		drec->set_remote(true);
+//		drec->set_remote(true);
 #if defined(_TK80BS)
 	} else if(drv == 1) {
 		cmt->rec_tape(file_path);
@@ -423,7 +423,7 @@ void VM::close_tape(int drv)
 		emu->lock_vm();
 		drec->close_tape();
 		emu->unlock_vm();
-		drec->set_remote(false);
+//		drec->set_remote(false);
 #if defined(_TK80BS)
 	} else if(drv == 1) {
 		cmt->close_tape();
@@ -447,6 +447,10 @@ bool VM::is_tape_playing(int drv)
 {
 	if(drv == 0) {
 		return drec->is_tape_playing();
+#if defined(_TK80BS)
+	} else if(drv == 1) {
+		return cmt->is_tape_playing();
+#endif
 	}
 	return false;
 }
@@ -455,6 +459,10 @@ bool VM::is_tape_recording(int drv)
 {
 	if(drv == 0) {
 		return drec->is_tape_recording();
+#if defined(_TK80BS)
+	} else if(drv == 1) {
+		return cmt->is_tape_recording();
+#endif
 	}
 	return false;
 }
@@ -463,6 +471,10 @@ int VM::get_tape_position(int drv)
 {
 	if(drv == 0) {
 		return drec->get_tape_position();
+#if defined(_TK80BS)
+	} else if(drv == 1) {
+		return cmt->get_tape_position();
+#endif
 	}
 	return 0;
 }
@@ -473,6 +485,37 @@ const _TCHAR* VM::get_tape_message(int drv)
 		return drec->get_message();
 	}
 	return NULL;
+}
+
+void VM::push_play(int drv)
+{
+	if(drv == 0) {
+		drec->set_ff_rew(0);
+		drec->set_remote(true);
+	}
+}
+
+void VM::push_stop(int drv)
+{
+	if(drv == 0) {
+		drec->set_remote(false);
+	}
+}
+
+void VM::push_fast_forward(int drv)
+{
+	if(drv == 0) {
+		drec->set_ff_rew(1);
+		drec->set_remote(true);
+	}
+}
+
+void VM::push_fast_rewind(int drv)
+{
+	if(drv == 0) {
+		drec->set_ff_rew(-1);
+		drec->set_remote(true);
+	}
 }
 
 bool VM::is_frame_skippable()

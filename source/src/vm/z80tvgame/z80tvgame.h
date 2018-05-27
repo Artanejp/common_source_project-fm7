@@ -30,7 +30,7 @@
 
 // device informations for win32
 #define SUPPORT_TV_RENDER
-#define USE_CART1
+#define USE_CART			1
 #define USE_SOUND_VOLUME	1
 #define USE_JOYSTICK
 #define USE_DEBUGGER

@@ -17,12 +17,14 @@
 #include "../device.h"
 
 class DISK;
+class HARDDISK;
 
 class BIOS : public DEVICE
 {
 private:
 	DEVICE *d_mem, *d_io;
 	DISK *disk[MAX_DRIVE];
+	HARDDISK *harddisk[USE_HARD_DISK];
 	
 	// pseudo bios
 	uint8_t *cmos, *vram, *cvram;
@@ -34,10 +36,10 @@ private:
 	int secnum, timeout;
 	
 	// disk bios
-	bool access_fdd[MAX_DRIVE], access_scsi[MAX_SCSI];
+	bool access_fdd[MAX_DRIVE];
 	uint8_t  drive_mode1[MAX_DRIVE];
 	uint16_t drive_mode2[MAX_DRIVE];
-	int scsi_blocks[MAX_SCSI];
+	int scsi_blocks[USE_HARD_DISK];
 	
 public:
 	BIOS(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
@@ -64,9 +66,13 @@ public:
 	{
 		d_io = device;
 	}
-	void set_disk_handler(int drv, DISK* dsk)
+	void set_floppy_disk_handler(int drv, DISK* device)
 	{
-		disk[drv] = dsk;
+		disk[drv] = device;
+	}
+	void set_hard_disk_handler(int drv, HARDDISK* device)
+	{
+		harddisk[drv] = device;
 	}
 	void set_cmos_ptr(uint8_t* ptr)
 	{

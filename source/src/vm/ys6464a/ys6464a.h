@@ -26,7 +26,7 @@
 #define ONE_BOARD_MICRO_COMPUTER
 #define MAX_BUTTONS		21
 #define MAX_DRAW_RANGES		6
-#define USE_BINARY_FILE1
+#define USE_BINARY_FILE		1
 #define USE_DEBUGGER
 #define USE_STATE
 #define USE_CPU_Z80

@@ -923,7 +923,7 @@ bool VM::get_kana_locked()
 }
 
 // Get INS status.Important with FM-7 series (^_^;
-uint32_t VM::get_extra_leds()
+uint32_t VM::get_led_status()
 {
 	return keyboard->read_signal(SIG_FM7KEY_LED_STATUS);
 }
@@ -1172,7 +1172,7 @@ void VM::set_cpu_clock(DEVICE *cpu, uint32_t clocks) {
 	event->set_secondary_cpu_clock(cpu, clocks);
 }
 
-#if defined(USE_BUBBLE1)
+#if defined(USE_BUBBLE)
 void VM::open_bubble_casette(int drv, const _TCHAR *path, int bank)
 {
 	if((drv >= 2) || (drv < 0)) return;

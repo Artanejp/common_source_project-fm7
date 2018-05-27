@@ -263,7 +263,7 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\src\res\pasopia5.ico">
+    <Image Include="..\src\res\pasopia.ico">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="..\src\res\indicator\access_off.bmp">

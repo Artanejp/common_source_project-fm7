@@ -79,6 +79,8 @@ void MEMORY::close_cart()
 void MEMORY::draw_screen()
 {
 	// draw screen
+	emu->set_vm_screen_lines(210);
+	
 	scrntype_t col_w = RGB_COLOR(255, 255, 255);
 	scrntype_t col_b = 0;
 	

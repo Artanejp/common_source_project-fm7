@@ -311,11 +311,13 @@ uint32_t VM::is_floppy_disk_accessed()
 void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	drec->play_tape(file_path);
+//	drec->set_remote(true);
 }
 
 void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
 	drec->rec_tape(file_path);
+//	drec->set_remote(true);
 }
 
 void VM::close_tape(int drv)
@@ -323,6 +325,7 @@ void VM::close_tape(int drv)
 	emu->lock_vm();
 	drec->close_tape();
 	emu->unlock_vm();
+//	drec->set_remote(false);
 }
 
 bool VM::is_tape_inserted(int drv)

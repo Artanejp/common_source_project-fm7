@@ -148,7 +148,7 @@ char *DLL_PREFIX my_strtok_s(char *strToken, const char *strDelimit, char **cont
 	return strtok(strToken, strDelimit);
 }
 
-_TCHAR DLL_PREFIX *my_tcstok_s(_TCHAR *strToken, const char *strDelimit, _TCHAR **context)
+_TCHAR *DLL_PREFIX my_tcstok_s(_TCHAR *strToken, const char *strDelimit, _TCHAR **context)
 {
 	return _tcstok(strToken, strDelimit);
 }
@@ -747,7 +747,7 @@ uint8_t DLL_PREFIX B_OF_COLOR(scrntype_t c)
 	return (uint8_t)c;
 }
 
-uint8_t A_OF_COLOR(scrntype_t c)
+uint8_t DLL_PREFIX A_OF_COLOR(scrntype_t c)
 {
 	return 0;
 }
@@ -798,6 +798,7 @@ struct to_upper {  // Refer from documentation of libstdc++, GCC5.
 };
 #endif
 
+#if defined(_USE_QT)
 static void _my_mkdir(std::string t_dir)
 {
 	struct stat st;
@@ -817,7 +818,7 @@ static void _my_mkdir(std::string t_dir)
 	}
 #endif
 }
-
+#endif
 
 const _TCHAR *DLL_PREFIX get_application_path()
 {
@@ -887,7 +888,7 @@ bool DLL_PREFIX is_absolute_path(const _TCHAR *file_path)
 	return (_tcslen(file_path) > 1 && (file_path[0] == _T('/') || file_path[0] == _T('\\')));
 }
 
-const _TCHAR *create_absolute_path(const _TCHAR *file_name)
+const _TCHAR *DLL_PREFIX create_absolute_path(const _TCHAR *file_name)
 {
 	static _TCHAR file_path[8][_MAX_PATH];
 	static unsigned int table_index = 0;
@@ -906,7 +907,7 @@ void DLL_PREFIX create_absolute_path(_TCHAR *file_path, int length, const _TCHAR
 	my_tcscpy_s(file_path, length, create_absolute_path(file_name));
 }
 
-const _TCHAR *create_date_file_path(const _TCHAR *extension)
+const _TCHAR *DLL_PREFIX create_date_file_path(const _TCHAR *extension)
 {
 	cur_time_t cur_time;
 	
@@ -984,7 +985,7 @@ void DLL_PREFIX get_long_full_path_name(const _TCHAR* src, _TCHAR* dst, size_t d
 #endif
 }
 
-const _TCHAR* DLL_PREFIX get_parent_dir(const _TCHAR* file)
+const _TCHAR *DLL_PREFIX get_parent_dir(const _TCHAR* file)
 {
 	static _TCHAR path[8][_MAX_PATH];
 	static unsigned int table_index = 0;
@@ -1023,9 +1024,7 @@ const wchar_t *DLL_PREFIX char_to_wchar(const char *cs)
 	// char to wchar_t
 	static wchar_t ws[4096];
 	
-#ifdef _WIN32
-	mbstowcs(ws, cs, strlen(cs));
-#elif defined(_USE_QT)
+#if defined(_WIN32) || defined(_USE_QT)
 	mbstowcs(ws, cs, strlen(cs));
 #else
 	// write code for your environment
@@ -1330,7 +1329,7 @@ bool DLL_PREFIX cur_time_t::load_state(void *f)
 	return true;
 }
 
-const _TCHAR* DLL_PREFIX get_symbol(symbol_t *first_symbol, uint32_t addr)
+const _TCHAR *DLL_PREFIX get_symbol(symbol_t *first_symbol, uint32_t addr)
 {
 	static _TCHAR name[8][1024];
 	static unsigned int table_index = 0;
@@ -1347,7 +1346,7 @@ const _TCHAR* DLL_PREFIX get_symbol(symbol_t *first_symbol, uint32_t addr)
 	return NULL;
 }
 
-const _TCHAR* DLL_PREFIX get_value_or_symbol(symbol_t *first_symbol, const _TCHAR *format, uint32_t addr)
+const _TCHAR *DLL_PREFIX get_value_or_symbol(symbol_t *first_symbol, const _TCHAR *format, uint32_t addr)
 {
 	static _TCHAR name[8][1024];
 	static unsigned int table_index = 0;
@@ -1365,7 +1364,7 @@ const _TCHAR* DLL_PREFIX get_value_or_symbol(symbol_t *first_symbol, const _TCHA
 	return name[output_index];
 }
 
-const _TCHAR* DLL_PREFIX get_value_and_symbol(symbol_t *first_symbol, const _TCHAR *format, uint32_t addr)
+const _TCHAR *DLL_PREFIX get_value_and_symbol(symbol_t *first_symbol, const _TCHAR *format, uint32_t addr)
 {
 	static _TCHAR name[8][1024];
 	static unsigned int table_index = 0;

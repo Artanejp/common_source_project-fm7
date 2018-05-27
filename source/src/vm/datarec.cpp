@@ -628,6 +628,7 @@ void DATAREC::close_tape()
 {
 	touch_sound();
 	close_file();
+	set_remote(false);
 	
 	play = rec = is_wav = is_tap = is_t77 = false;
 	buffer_ptr = buffer_length = 0;

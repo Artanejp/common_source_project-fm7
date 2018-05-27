@@ -32,10 +32,7 @@
 #define USE_SPECIAL_RESET
 #define USE_DIPSWITCH
 #define DIPSWITCH_DEFAULT	0x1fd
-#define USE_FD1
-#define USE_FD2
-#define USE_FD3
-#define USE_FD4
+#define USE_FLOPPY_DISK		4
 #define NOTIFY_KEY_DOWN
 #define USE_KEY_LOCKED
 #define USE_SHIFT_NUMPAD_KEY

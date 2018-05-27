@@ -224,7 +224,10 @@ public:
 	}
 	DISK* get_disk_handler(int drv)
 	{
-		return disk[drv];
+		if(drv < 4) {
+			return disk[drv];
+		}
+		return NULL;
 	}
 	void open_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_disk(int drv);

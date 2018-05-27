@@ -204,21 +204,21 @@ void VM::key_up(int code)
 void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	drec->play_tape(file_path);
-	push_play(drv);
+//	drec->set_remote(true);
 }
 
 void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
 	drec->rec_tape(file_path);
-//	push_play(drv);
+//	drec->set_remote(true);
 }
 
 void VM::close_tape(int drv)
 {
-	push_stop(drv);
 	emu->lock_vm();
 	drec->close_tape();
 	emu->unlock_vm();
+//	drec->set_remote(false);
 }
 
 bool VM::is_tape_inserted(int drv)

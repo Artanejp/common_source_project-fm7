@@ -611,7 +611,8 @@ public:
 	}
 	
 	virtual bool write_debug_reg(const _TCHAR *reg, uint32_t data) { return false; }
-
+	virtual uint32_t read_debug_reg(const _TCHAR *reg) { return 0; }
+	
 	virtual int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len) { return 0;}
 	void vtlb_flush_dynamic(void) { vtlb_flush_dynamic(cpustate->vtlb); }
 

@@ -21,22 +21,17 @@ class HARDDISK
 protected:
 	EMU* emu;
 private:
-	_TCHAR image_path[_MAX_PATH];
-	
-	int buffer_size;
-	uint8_t *buffer;
-	
+	FILEIO *fio;
 	int header_size;
 	
 public:
 	HARDDISK(EMU* parent_emu)
 	{
 		emu = parent_emu;
-		buffer = NULL;
-		bytes_per_sec = 5 * 1024 * 1024;
+		fio = NULL;
+		access = false;
 		static int num = 0;
 		drive_num = num++;
-		memset(image_path, 0x00, sizeof(image_path));
 		set_device_name(_T("Hard Disk Drive #%d"), drive_num + 1);
 	}
 	~HARDDISK()
@@ -45,25 +40,23 @@ public:
 	}
 	
 	void open(const _TCHAR* file_path);
+	void open(const _TCHAR* file_path, int default_sector_size);
 	void close();
+	bool mounted();
+	bool accessed();
+	bool read_buffer(long position, int length, uint8_t *buffer);
+	bool write_buffer(long position, int length, uint8_t *buffer);
 	
 	int cylinders;
 	int surfaces;
 	int sectors;
 	int sector_size;
-	int bytes_per_sec;
 	int drive_num;
-	
-	bool mounted()
-	{
-		return (buffer != NULL);
-	}
-	bool read_buffer(int position, int length, uint8_t *buf);
-	bool write_buffer(int position, int length, uint8_t *buf);
+	bool access;
 	
 	// state
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+//	void save_state(FILEIO* state_fio);
+//	bool load_state(FILEIO* state_fio);
 	
 	// device name
 	void set_device_name(const _TCHAR* format, ...)

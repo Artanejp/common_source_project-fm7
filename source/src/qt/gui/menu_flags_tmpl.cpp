@@ -5,6 +5,7 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 {
 	p_osd = NULL;
 	p_emu = NULL;
+	
 	use_alt_f10_key = false;
 	use_auto_key = use_auto_key_us = use_auto_key_caps = false;
 	use_auto_key_no_caps = use_auto_key_release =
@@ -76,6 +77,96 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	use_tape = use_tape_baud = use_tape_button = use_tape_ptr = false;
 	use_vm_auto_key_table = false;
 	support_tv_render = false;
+
+	use_alt_f10_key = false;
+	use_auto_key = use_auto_key_us = use_auto_key_caps = false;
+	use_auto_key_no_caps = use_auto_key_release =
+	use_auto_key_shift = use_binary_file = false;
+	
+	max_binary = 0;
+	use_binary = false;
+	base_binary_num = 0;
+	
+	use_bitmap = false;
+	use_boot_mode = 0;
+
+	use_bubble = false;
+	max_bubble =  max_b77_banks = 0;
+
+	use_cart = false;
+	max_cart = 0;
+	
+	base_cart_num = 0;
+	base_fd_num = 1;
+	base_qd_num = 1;
+	base_hd_num = 1;
+	base_cd_num = 1;
+	base_ld_num = 1;
+	base_binary_num = 1;
+	base_bubble_num = 1;
+
+	use_cpu_type = 0;
+
+	use_compact_disc = use_debugger = false;
+	max_compact_disc = 0;
+	base_cd_num = 0;
+	
+	use_device_type = 0;
+	use_dipswitch = false;
+
+	use_drive_type = 0;
+
+	use_fd = false;
+	base_fd_num = 1;
+	max_drive = max_d88_banks = 0;
+
+	max_draw_ranges = 0;
+	
+	use_hd = false;
+	max_hd = 0;
+	base_hd_num = 1;
+	
+	use_joystick = use_joy_button_captions = false;
+	num_joy_button_captions = 0;
+
+	use_laser_disc = false;
+	max_laser_disc = 0;
+	base_ld_num = 0;
+
+	max_memcard = 0;
+	use_minimum_rendering = use_dig_resolution = false;
+	use_monitor_type = 0;
+	use_mouse = false;
+	use_movie_player = false;
+	use_notify_power_off = false;
+
+	use_one_board_computer = false;
+	use_printer = false;
+	use_printer_type = 0;
+
+	use_qd = false;
+	max_qd = 0;
+	base_qd_num = 1;
+	
+	use_scanline = use_screen_rotate = false;
+	use_shift_numpad_key = false;
+	screen_mode_num = 1;
+
+
+	use_sound_device_type = 0;
+	use_sound_volume = 0;
+	without_sound = false;
+	use_sound_files_fdd = false;
+	use_sound_files_relay = false;
+	
+	use_special_reset = false;
+
+	use_state = false;
+
+	use_tape = use_tape_baud = use_tape_button = use_tape_ptr = false;
+	use_vm_auto_key_table = false;
+	support_tv_render = false;
+
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 400
 	real_screen_width  = SCREEN_WIDTH;

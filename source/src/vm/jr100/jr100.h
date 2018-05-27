@@ -22,7 +22,7 @@
 #define HAS_MB8861
 
 // device informations for win32
-#define USE_TAPE1
+#define USE_TAPE		1
 #define USE_TAPE_BUTTON
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		8

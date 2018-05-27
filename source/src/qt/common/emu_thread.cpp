@@ -521,11 +521,11 @@ void EmuThreadClass::doWork(const QString &params)
 #else
 			led_data = 0x00;
 #endif
-#if defined(USE_EXTRA_LEDS)
+#if defined(USE_LED_DEVICE)
   #if !defined(INDEPENDENT_CAPS_KANA_LED)
 			led_data <<= USE_EXTRA_LEDS;
   #endif
-	   		led_data |= p_emu->get_extra_leds();
+	   		led_data |= p_emu->get_led_status();
 #endif
 #if defined(USE_EXTRA_LEDS) || defined(USE_KEY_LOCKED)
 			if(led_data != led_data_old) {

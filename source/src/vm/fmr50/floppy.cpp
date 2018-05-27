@@ -81,12 +81,17 @@ uint32_t FLOPPY::read_io8(uint32_t addr)
 {
 	switch(addr & 0xffff) {
 	case 0x208:
-		if(changed[drvsel]) {
-			changed[drvsel] = false;
-			return d_fdc->fdc_status() | 0xe1;	// fdd*2
+		{
+			int drvreg = d_fdc->read_signal(SIG_MB8877_DRIVEREG);
+			uint32_t fdc_status = d_fdc->is_disk_inserted(drvreg) ? 2 : 0;
+			
+			if(changed[drvsel]) {
+				changed[drvsel] = false;
+				return fdc_status | 0xe1;	// fdd*2
+			}
+//			return fdc_status | 0x60;	// fdd*1
+			return fdc_status | 0xe0;	// fdd*2
 		}
-//		return d_fdc->fdc_status() | 0x60;	// fdd*1
-		return d_fdc->fdc_status() | 0xe0;	// fdd*2
 	case 0x20c:
 		return drvreg;
 	}

@@ -94,6 +94,7 @@ static const _TCHAR* scsi_phase_name[9] = {
 #define SCSI_CMD_READHEADER	0x44 	// Read Header (O)
 #define SCSI_CMD_SUBCHANNEL	0x42 	// Read Subchannel (O)
 #define SCSI_CMD_READ_TOC	0x43 	// Read TOC (O)
+#define SASI_CMD_SPECIFY	0xc2	// SASI Specify
 
 #define SCSI_STATUS_GOOD	0x00	// Status Good
 #define SCSI_STATUS_CHKCOND	0x02	// Check Condition
@@ -156,7 +157,6 @@ public:
 		initialize_output_signals(&outputs_msg);
 		initialize_output_signals(&outputs_req);
 		
-		max_logical_block_addr = 0;	// uninitialized
 		set_device_name(_T("SCSI DEVICE"));
 	}
 	~SCSI_DEV() {}
@@ -166,7 +166,6 @@ public:
 	void release();
 	void reset();
 	void write_signal(int id, uint32_t data, uint32_t mask);
-	uint32_t read_signal(int id);
 	void event_callback(int event_id, int err);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
@@ -197,19 +196,38 @@ public:
 	void set_req_delay(int value, double usec);
 	
 	virtual void reset_device() {}
+	virtual bool is_device_existing()
+	{
+		return true;
+	}
 	virtual bool is_device_ready()
 	{
 		return true;
+	}
+	virtual uint32_t physical_block_size()
+	{
+		return 0;
+	}
+	virtual uint32_t logical_block_size()
+	{
+		return 0;
+	}
+	virtual uint32_t max_logical_block_addr()
+	{
+		return 0;
 	}
 	virtual int get_command_length(int value);
 	virtual void start_command();
 	virtual void read_buffer(int length);
 	virtual void write_buffer(int length);
-	virtual void initialize_max_logical_block_addr() {}
 	
 	uint8_t get_cur_command()
 	{
 		return command[0];
+	}
+	uint8_t get_logical_unit_number()
+	{
+		return command[1] >> 5;
 	}
 	uint8_t command[12];
 	int command_index;
@@ -221,14 +239,10 @@ public:
 	char product_id[16 + 1];
 	uint8_t device_type;
 	bool is_removable;
-	int physical_block_size;
-	int logical_block_size;
-	uint32_t max_logical_block_addr;
 	double seek_time;
 	int bytes_per_sec;
 	
 	int scsi_id;
-	bool access;
 };
 
 #endif

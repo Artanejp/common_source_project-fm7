@@ -145,6 +145,11 @@ void OSD::set_vm_screen_size(int screen_width, int screen_height, int window_wid
 	}
 }
 
+void OSD::set_vm_screen_lines(int lines)
+{
+//	set_vm_screen_size(vm_screen_width, lines, vm_window_width, vm_window_height, vm_window_width_aspect, vm_screen_height);
+}
+
 scrntype_t* OSD::get_vm_screen_buffer(int y)
 {
 	return vm_screen_buffer.get_buffer(y);

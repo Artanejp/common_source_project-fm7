@@ -50,7 +50,7 @@
 
 // device informations for win32
 #define USE_DIPSWITCH
-#define USE_TAPE1
+#define USE_TAPE		1
 #define USE_TAPE_BUTTON
 #define NOTIFY_KEY_DOWN
 #define USE_KEY_LOCKED
@@ -72,10 +72,7 @@
 #define USE_DRIVE_TYPE		2
 #endif
 #if defined(SUPPORT_MZ80AIF) || defined(SUPPORT_MZ80FIO)
-#define USE_FD1
-#define USE_FD2
-#define USE_FD3
-#define USE_FD4
+#define USE_FLOPPY_DISK		4
 #endif
 #if defined(_MZ80K)
 #define USE_MONITOR_TYPE	2

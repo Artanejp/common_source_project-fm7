@@ -390,6 +390,7 @@ void MEMORY::draw_screen()
 {
 	// copy to real screen
 	emu->set_vm_screen_lines(200);
+	
 	if(true || vgate) {
 		for(int y = 0; y < 200; y++) {
 			scrntype_t* dest = emu->get_screen_buffer(y);

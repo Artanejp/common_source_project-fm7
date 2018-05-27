@@ -63,12 +63,13 @@
 #endif
 #define USE_DIPSWITCH
 #define DIPSWITCH_DEFAULT	0
-#define USE_TAPE1
 #if defined(_TK80BS)
-#define USE_TAPE2
+#define USE_TAPE			2
+#else
+#define USE_TAPE			1
 #endif
-
-#define USE_BINARY_FILE1
+#define USE_TAPE_BUTTON
+#define USE_BINARY_FILE		1
 #define NOTIFY_KEY_DOWN
 #define USE_KEY_LOCKED
 #define USE_ALT_F10_KEY
@@ -292,6 +293,12 @@ public:
 	bool is_tape_recording(int drv);
 	int get_tape_position(int drv);
 	const _TCHAR* get_tape_message(int drv);
+	void push_play(int drv);
+	void push_stop(int drv);
+	void push_fast_forward(int drv);
+	void push_fast_rewind(int drv);
+	void push_apss_forward(int drv) {}
+	void push_apss_rewind(int drv) {}
 	bool is_frame_skippable();
 	
 	void update_config();

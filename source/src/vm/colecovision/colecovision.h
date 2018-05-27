@@ -23,7 +23,7 @@
 #define TMS9918A_LIMIT_SPRITES
 
 // device informations for win32
-#define USE_CART1
+#define USE_CART		1
 #define USE_SOUND_VOLUME	2
 #define USE_JOYSTICK
 #define USE_DEBUGGER

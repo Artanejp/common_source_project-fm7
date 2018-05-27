@@ -717,13 +717,13 @@ inline int csp_state_data<float>::load_data(FILEIO *fio, uint32_t *sumseed)
 			donelen = load_string_data(tmps, fio, sumseed, (sizeof(tmps) / sizeof(_TCHAR)));
 			if(donelen <= 0) return -1;
 			_s = std::string(tmps);
-			try {
+			//try {
 				_v = std::stof(_s);
-			} catch(const std::invalid_argument& e) {
-				return -1;
-			} catch(const std::out_of_range& e) {
-				return -1;
-			}
+			//} catch(const std::invalid_argument& e) {
+			//	return -1;
+			//} catch(const std::out_of_range& e) {
+			//	return -1;
+			//}
 			*ptr++ = _v;
 		}
 		return _len;
@@ -775,13 +775,13 @@ inline int csp_state_data<double>::load_data(FILEIO *fio, uint32_t *sumseed)
 			donelen = load_string_data(tmps, fio, sumseed, (sizeof(tmps) / sizeof(_TCHAR)));
 			if(donelen <= 0) return -1;
 			_s = std::string(tmps);
-			try {
+			//try {
 				_v = std::stod(_s);
-			} catch(const std::invalid_argument& e) {
-				return -1;
-			} catch(const std::out_of_range& e) {
-				return -1;
-			}
+			//} catch(const std::invalid_argument& e) {
+			//	return -1;
+			//} catch(const std::out_of_range& e) {
+			//	return -1;
+			//}
 			*ptr++ = _v;
 		}
 		return _len;
@@ -834,13 +834,13 @@ inline int csp_state_data<long double>::load_data(FILEIO *fio, uint32_t *sumseed
 			if(donelen <= 0) return -1;
 
 			_s = std::string(tmps);
-			try {
+			//try {
 				_v = std::stold(_s);
-			} catch(const std::invalid_argument& e) {
-				return -1;
-			} catch(const std::out_of_range& e) {
-				return -1;
-			}
+			//} catch(const std::invalid_argument& e) {
+			//	return -1;
+			//} catch(const std::out_of_range& e) {
+			//	return -1;
+			//}
 			*ptr++ = _v;
 		}
 		return _len;

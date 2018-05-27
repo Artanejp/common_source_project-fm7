@@ -6,6 +6,7 @@
 	NEC PC-9801VM Emulator 'ePC-9801VM'
 	NEC PC-9801VX Emulator 'ePC-9801VX'
 	NEC PC-9801RA Emulator 'ePC-9801RA'
+	NEC PC-98XA Emulator 'ePC-98XA'
 	NEC PC-98XL Emulator 'ePC-98XL'
 	NEC PC-98RL Emulator 'ePC-98RL'
 	NEC PC-98DO Emulator 'ePC-98DO'
@@ -59,6 +60,7 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 		d_fdc_2hd->write_io8(1, data);
 		break;
 	case 0x0094:
+	case 0x0096:
 		if(!(ctrlreg_2hd & 0x80) && (data & 0x80)) {
 			d_fdc_2hd->reset();
 		}
@@ -74,6 +76,7 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 		d_fdc_2dd->write_io8(1, data);
 		break;
 	case 0x00cc:
+	case 0x00ce:
 		if(!(ctrlreg_2dd & 0x80) && (data & 0x80)) {
 			d_fdc_2dd->reset();
 		}
@@ -107,8 +110,10 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 		}
 		break;
 	case 0x0094:
+	case 0x0096:
 #if !defined(SUPPORT_HIRESO)
 	case 0x00cc:
+	case 0x00ce:
 		if(((addr >> 4) & 1) == (modereg & 1))
 #endif
 		{
@@ -130,16 +135,18 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 				d_fdc->set_drive_type(1, DRIVE_TYPE_2DD);
 			}
 #endif
-//			if(modereg & 4) {
+//#if !defined(_PC98XA) && !defined(_PC98XL)
+//			if(modereg & 0x04) {
 //				d_fdc->write_signal(SIG_UPD765A_MOTOR, data, 0x08);
 //			}
-			if(data & 1) {
+			if(data & 0x01) {
 				if(timer_id != -1) {
 					cancel_event(this, timer_id);
 				}
 				register_event(this, EVENT_TIMER, 100000, false, &timer_id);
 			}
 			ctrlreg = data;
+//#endif
 		}
 		break;
 	case 0x00be:
@@ -160,16 +167,20 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 
 uint32_t FLOPPY::read_io8(uint32_t addr)
 {
+	uint32_t value = 0;
+	
 	switch(addr) {
 #if defined(SUPPORT_2HD_FDD_IF)
 	case 0x0090:
 		return d_fdc_2hd->read_io8(0);
 	case 0x0092:
 		return d_fdc_2hd->read_io8(1);
-#if !defined(_PC9801)
 	case 0x0094:
-		return 0x5f;	// 0x40 ???
-#endif
+	case 0x0096:
+//		value |= 0x80; // FINT1 (DIP SW 1-7), 1 = OFF, 0 = ON
+		value |= 0x40; // FINT0 (DIP SW 1-6), 1 = OFF, 0 = ON
+//		value |= 0x20; // DMACH (DIP SW 1-3), 1 = OFF, 0 = ON
+		return value;
 #endif
 #if defined(SUPPORT_2DD_FDD_IF)
 	case 0x00c8:
@@ -177,7 +188,14 @@ uint32_t FLOPPY::read_io8(uint32_t addr)
 	case 0x00ca:
 		return d_fdc_2dd->read_io8(1);
 	case 0x00cc:
-		return (d_fdc_2dd->is_disk_inserted() ? 0x10 : 0) | 0x6f;	// 0x60 ???
+	case 0x00ce:
+//		value |= 0x80; // FINT1 (DIP SW 1-7), 1 = OFF, 0 = ON
+		value |= 0x40; // FINT0 (DIP SW 1-6), 1 = OFF, 0 = ON
+		value |= 0x20; // DMACH (DIP SW 1-3), 1 = OFF, 0 = ON
+		if(d_fdc_2dd->is_disk_inserted()) {
+			value |= 0x10; // RDY
+		}
+		return value;
 #endif
 #if defined(SUPPORT_2HD_2DD_FDD_IF)
 	case 0x0090:
@@ -198,21 +216,38 @@ uint32_t FLOPPY::read_io8(uint32_t addr)
 			return d_fdc->read_io8(1);
 		}
 		break;
-	case 0x94:
+	case 0x0094:
+	case 0x0096:
 #if !defined(SUPPORT_HIRESO)
 		if(modereg & 1) {
-			return 0x44;
+//			value |= 0x80; // FINT1 (DIP SW 1-7), 1 = OFF, 0 = ON
+			value |= 0x40; // FINT0 (DIP SW 1-6), 1 = OFF, 0 = ON
+//			value |= 0x20; // DMACH (DIP SW 1-3), 1 = OFF, 0 = ON
+//			value |= 0x08; // TYP1,0 (DIP SW 1-4), 1,0 = ON  Internal FDD: #3,#4, External FDD: #1,#2
+			value |= 0x04; // TYP1,0 (DIP SW 1-4), 0,1 = OFF Internal FDD: #1,#2, External FDD: #3,#4
+			return value;
 		}
 #else
-		return ctrlreg & 0x20;
+//		value |= 0x80; // MODE, 0 = Internal FDD existing
+		value |= ctrlreg & 0x20; // High Density, 1 = 640KB, 0 = 1MB
+		return value;
 #endif
 		break;
 #if !defined(SUPPORT_HIRESO)
 	case 0x00be:
 		return 0xf8 | (modereg & 3);
 	case 0x00cc:
+	case 0x00ce:
 		if(!(modereg & 1)) {
-			return (d_fdc->is_disk_inserted() ? 0x10 : 0) | 0x64;	// 0x60 ???
+//			value |= 0x80; // FINT1 (DIP SW 1-7), 1 = OFF, 0 = ON
+			value |= 0x40; // FINT0 (DIP SW 1-6), 1 = OFF, 0 = ON
+			value |= 0x20; // DMACH (DIP SW 1-3), 1 = OFF, 0 = ON
+//			value |= 0x08; // TYP1,0 (DIP SW 1-4), 1,0 = ON  Internal FDD: #3,#4, External FDD: #1,#2
+			value |= 0x04; // TYP1,0 (DIP SW 1-4), 0,1 = OFF Internal FDD: #1,#2, External FDD: #3,#4
+			if(d_fdc->is_disk_inserted()) {
+				value |= 0x10; // RDY
+			}
+			return value;
 		}
 		break;
 #endif

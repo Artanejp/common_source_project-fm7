@@ -12,7 +12,7 @@
 void SCSI_HOST::reset()
 {
 	data_reg = 0;
-	bsy_status = cd_status = io_status = msg_status = req_status = 0;
+	bsy_status = cd_status = io_status = msg_status = req_status = ack_status = 0;
 	access = false;
 	
 	set_irq(false);
@@ -80,6 +80,7 @@ void SCSI_HOST::write_signal(int id, uint32_t data, uint32_t mask)
 			this->out_debug_log(_T("[SCSI_HOST] ACK = %d\n"), (data & mask) ? 1 : 0);
 		#endif
 		write_signals(&outputs_ack, (data & mask) ? 0xffffffff : 0);
+		ack_status = data & mask;
 		break;
 		
 	case SIG_SCSI_RST:
@@ -165,6 +166,9 @@ uint32_t SCSI_HOST::read_signal(int id)
 		
 	case SIG_SCSI_REQ:
 		return req_status ? 0xffffffff : 0;
+		
+	case SIG_SCSI_ACK:
+		return ack_status ? 0xffffffff : 0;
 	}
 	
 	// access lamp
@@ -183,7 +187,7 @@ void SCSI_HOST::set_drq(bool value)
 	write_signals(&outputs_drq, value ? 0xffffffff : 0);
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void SCSI_HOST::save_state(FILEIO* state_fio)
 {
@@ -196,6 +200,7 @@ void SCSI_HOST::save_state(FILEIO* state_fio)
 	state_fio->FputUint32(io_status);
 	state_fio->FputUint32(msg_status);
 	state_fio->FputUint32(req_status);
+	state_fio->FputUint32(ack_status);
 }
 
 bool SCSI_HOST::load_state(FILEIO* state_fio)
@@ -212,6 +217,7 @@ bool SCSI_HOST::load_state(FILEIO* state_fio)
 	io_status  = state_fio->FgetUint32();
 	msg_status = state_fio->FgetUint32();
 	req_status = state_fio->FgetUint32();
+	ack_status = state_fio->FgetUint32();
 	return true;
 }
 

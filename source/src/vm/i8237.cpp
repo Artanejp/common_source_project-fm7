@@ -127,6 +127,20 @@ void I8237::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
+uint32_t I8237::read_signal(int id)
+{
+	if(SIG_I8237_BANK0 <= id && id <= SIG_I8237_BANK3) {
+		// external bank registers
+		int ch = id - SIG_I8237_BANK0;
+		return dma[ch].bankreg;
+	} else if(SIG_I8237_MASK0 <= id && id <= SIG_I8237_MASK3) {
+		// external bank registers
+		int ch = id - SIG_I8237_MASK0;
+		return dma[ch].incmask;
+	}
+	return 0;
+}
+
 // note: if SINGLE_MODE_DMA is defined, do_dma() is called in every machine cycle
 
 void I8237::do_dma()
@@ -136,16 +150,21 @@ void I8237::do_dma()
 		if((req & bit) && !(mask & bit)) {
 			// execute dma
 			while(req & bit) {
-				if((dma[ch].mode & 0x0c) == 0) {
+				switch(dma[ch].mode & 0x0c) {
+				case 0x00:
 					// verify
-				} else if((dma[ch].mode & 0x0c) == 4) {
+					tmp = read_io(ch);
+					break;
+				case 0x04:
 					// io -> memory
 					tmp = read_io(ch);
 					write_mem(dma[ch].areg | (dma[ch].bankreg << 16), tmp);
-				} else if((dma[ch].mode & 0x0c) == 8) {
+					break;
+				case 0x08:
 					// memory -> io
 					tmp = read_mem(dma[ch].areg | (dma[ch].bankreg << 16));
 					write_io(ch, tmp);
+					break;
 				}
 				if(dma[ch].mode & 0x20) {
 					dma[ch].areg--;

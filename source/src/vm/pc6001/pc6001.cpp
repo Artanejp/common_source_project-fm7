@@ -569,6 +569,7 @@ void VM::play_tape(int drv, const _TCHAR* file_path)
 	if(support_sub_cpu) {
 		// support both p6/p6t and wav
 		drec->play_tape(file_path);
+//		drec->set_remote(true);
 	} else {
 		// support only p6/p6t
 		psub->play_tape(file_path);
@@ -581,6 +582,7 @@ void VM::rec_tape(int drv, const _TCHAR* file_path)
 		// support both p6/p6t and wav
 		sub->rec_tape(file_path);	// temporary
 //		drec->rec_tape(file_path);
+//		drec->set_remote(true);
 	} else {
 		// support both p6/p6t and wav
 		psub->rec_tape(file_path);
@@ -596,6 +598,7 @@ void VM::close_tape(int drv)
 			emu->lock_vm();
 			drec->close_tape();
 			emu->unlock_vm();
+//			drec->set_remote(false);
 		}
 	} else {
 		psub->close_tape();
@@ -644,6 +647,37 @@ const _TCHAR* VM::get_tape_message(int drv)
 		return drec->get_message();
 	} else {
 		return NULL;
+	}
+}
+
+void VM::push_play(int drv)
+{
+	if(support_sub_cpu) {
+		drec->set_ff_rew(0);
+		drec->set_remote(true);
+	}
+}
+
+void VM::push_stop(int drv)
+{
+	if(support_sub_cpu) {
+		drec->set_remote(false);
+	}
+}
+
+void VM::push_fast_forward(int drv)
+{
+	if(support_sub_cpu) {
+		drec->set_ff_rew(1);
+		drec->set_remote(true);
+	}
+}
+
+void VM::push_fast_rewind(int drv)
+{
+	if(support_sub_cpu) {
+		drec->set_ff_rew(-1);
+		drec->set_remote(true);
 	}
 }
 

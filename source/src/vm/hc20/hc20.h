@@ -27,9 +27,8 @@
 #define WINDOW_MODE_BASE	3
 #define USE_DIPSWITCH
 #define DIPSWITCH_DEFAULT	0x0f
-#define USE_FD1
-#define USE_FD2
-#define USE_TAPE1
+#define USE_FLOPPY_DISK		2
+#define USE_TAPE		1
 #define TAPE_BINARY_ONLY
 #define NOTIFY_KEY_DOWN
 #define USE_ALT_F10_KEY

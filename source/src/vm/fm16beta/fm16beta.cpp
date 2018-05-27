@@ -67,13 +67,13 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 
 	cmos = new CMOS(this, emu);
 	keyboard = new KEYBOARD(this, emu);
-	main = new MAIN(this, emu);
+	mainbus = new MAIN(this, emu);
 	
 
 	
 	
 	
-	sub = new SUB(this, emu);
+	subbus = new SUB(this, emu);
 	
 	// set contexts
 	event->set_context_cpu(cpu, 8000000);
@@ -86,65 +86,65 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_sound(fdc_2d->get_context_noise_head_down());
 	event->set_context_sound(fdc_2d->get_context_noise_head_up());
 	
-	keyboard->set_context_main(main);
+	keyboard->set_context_main(mainbus);
 #ifdef HAS_I286
-	main->set_context_cpu(cpu);
+	mainbus->set_context_cpu(cpu);
 #endif
-	main->set_context_dma(dma);
-	main->set_context_fdc_2hd(fdc_2hd);
-	main->set_context_fdc_2d(fdc_2d);
-	main->set_context_pic(pic);
-	main->set_context_pcm(pcm);
-	main->set_context_rtc(rtc);
-	main->set_context_sub(sub);
-	main->set_context_keyboard(keyboard);
+	mainbus->set_context_dma(dma);
+	mainbus->set_context_fdc_2hd(fdc_2hd);
+	mainbus->set_context_fdc_2d(fdc_2d);
+	mainbus->set_context_pic(pic);
+	mainbus->set_context_pcm(pcm);
+	mainbus->set_context_rtc(rtc);
+	mainbus->set_context_sub(subbus);
+	mainbus->set_context_keyboard(keyboard);
 
-	dma->set_context_memory(main);
+	dma->set_context_memory(mainbus);
 	dma->set_context_ch0(fdc_2d);
 	dma->set_context_ch1(fdc_2hd);
 
-	sio->set_context_txrdy(main, SIG_MAIN_IRQ0_TX, 1);
-	sio->set_context_rxrdy(main, SIG_MAIN_IRQ0_RX, 1);
-	sio->set_context_syndet(main, SIG_MAIN_IRQ0_SYN, 1);
+	sio->set_context_txrdy(mainbus, SIG_MAIN_IRQ0_TX, 1);
+	sio->set_context_rxrdy(mainbus, SIG_MAIN_IRQ0_RX, 1);
+	sio->set_context_syndet(mainbus, SIG_MAIN_IRQ0_SYN, 1);
 
-	fdc_2hd->set_context_irq(main, SIG_MAIN_IRQ5, 1);
-	fdc_2hd->set_context_drq(main, SIG_MAIN_DRQ_2HD, 1);
+	fdc_2hd->set_context_irq(mainbus, SIG_MAIN_IRQ5, 1);
+	fdc_2hd->set_context_drq(mainbus, SIG_MAIN_DRQ_2HD, 1);
 	fdc_2hd->set_context_drq(dma, SIG_I8237_CH1, 1);
 
-	fdc_2d->set_context_irq(main, SIG_MAIN_IRQ4, 1);
-	fdc_2d->set_context_drq(main, SIG_MAIN_DRQ_2D, 1);
+	fdc_2d->set_context_irq(mainbus, SIG_MAIN_IRQ4, 1);
+	fdc_2d->set_context_drq(mainbus, SIG_MAIN_DRQ_2D, 1);
 	fdc_2d->set_context_drq(dma, SIG_I8237_CH0, 1);
 
 	ptm->set_context_ch0(pcm, SIG_PCM1BIT_SIGNAL, 1);
-	ptm->set_context_irq(main, SIG_MAIN_IRQ8, 1);
+	ptm->set_context_irq(mainbus, SIG_MAIN_IRQ8, 1);
 	ptm->set_internal_clock(19200); // temporary
 	ptm->set_external_clock(0, 19200);
 	ptm->set_external_clock(1, 19200);
 	ptm->set_external_clock(2, 19200);
 
-	rtc->set_context_data(main, SIG_MAIN_RTC_DATA, 0x0f, 0);
-	rtc->set_context_busy(main, SIG_MAIN_RTC_BUSY, 0x80);
+	rtc->set_context_data(mainbus, SIG_MAIN_RTC_DATA, 0x0f, 0);
+	rtc->set_context_busy(mainbus, SIG_MAIN_RTC_BUSY, 0x80);
 
-	crtc->set_context_disp(sub, SIG_SUB_DISP, 1);
-	crtc->set_context_vsync(sub, SIG_SUB_VSYNC, 1);
+	crtc->set_context_disp(subbus, SIG_SUB_DISP, 1);
+	crtc->set_context_vsync(subbus, SIG_SUB_VSYNC, 1);
 	
-	sub->addr_max = 0x10000;
-	sub->bank_size = 0x80;
-	sub->set_context_crtc(crtc);
-	sub->set_chregs_ptr(crtc->get_regs());
-	sub->set_context_pcm(pcm);
-	sub->set_context_main(main);
-	sub->set_context_subcpu(subcpu);
-	sub->set_context_keyboard(keyboard);
+	subbus->addr_max = 0x10000;
+	subbus->bank_size = 0x80;
+	subbus->set_context_crtc(crtc);
+	subbus->set_chregs_ptr(crtc->get_regs());
+	subbus->set_context_pcm(pcm);
+	subbus->set_context_main(mainbus);
+	subbus->set_context_subcpu(subcpu);
+	subbus->set_context_keyboard(keyboard);
 
 	// cpu bus
-	cpu->set_context_mem(main);
+	cpu->set_context_mem(mainbus);
 	cpu->set_context_io(io);
 	cpu->set_context_intr(pic);
 #ifdef SINGLE_MODE_DMA
 	cpu->set_context_dma(dma);
 #endif
-	subcpu->set_context_mem(sub);
+	subcpu->set_context_mem(subbus);
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 	subcpu->set_context_debugger(new DEBUGGER(this, emu));
@@ -154,37 +154,37 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// i/o bus
 	io->set_iomap_range_rw(0x0000, 0x0001, pic);
 	io->set_iomap_range_rw(0x0010, 0x001f, dma);
-	io->set_iomap_range_w(0x0020, 0x0023, main);	// dma bank regs
+	io->set_iomap_range_w(0x0020, 0x0023, mainbus);	// dma bank regs
 #ifdef HAS_I286
-	io->set_iomap_single_rw(0x0060, main);		// reset
+	io->set_iomap_single_rw(0x0060, mainbus);		// reset
 #endif
 
 	io->set_iomap_range_rw(0xf000, 0xf7ff, cmos);
-	io->set_iomap_range_rw(0xfc80, 0xfcff, sub);	// shared ram
+	io->set_iomap_range_rw(0xfc80, 0xfcff, subbus);	// shared ram
 
 	io->set_iomap_range_r(0xfd00, 0xfd01, keyboard);
-	io->set_iomap_range_rw(0xfd02, 0xfd05, main);
+	io->set_iomap_range_rw(0xfd02, 0xfd05, mainbus);
 
 	io->set_iomap_range_rw(0xfd06, 0xfd07, sio);
 
-	io->set_iomap_single_rw(0xfd0f, main);
+	io->set_iomap_single_rw(0xfd0f, mainbus);
 
-	io->set_iomap_range_rw(0xfd10, 0xfd11, main);
+	io->set_iomap_range_rw(0xfd10, 0xfd11, mainbus);
 
 	io->set_iomap_range_rw(0xfd18, 0xfd1b, fdc_2d);
-	io->set_iomap_range_rw(0xfd1c, 0xfd1f, main);
+	io->set_iomap_range_rw(0xfd1c, 0xfd1f, mainbus);
 
-	io->set_iomap_range_r(0xfd20, 0xfd22, sub);	// attention
+	io->set_iomap_range_r(0xfd20, 0xfd22, subbus);	// attention
 
-	io->set_iomap_single_rw(0xfd2c, main);
+	io->set_iomap_single_rw(0xfd2c, mainbus);
 
 	io->set_iomap_range_rw(0xfd30, 0xfd33, fdc_2hd);
-	io->set_iomap_range_rw(0xfd34, 0xfd37, main);
+	io->set_iomap_range_rw(0xfd34, 0xfd37, mainbus);
 
 	io->set_iomap_range_rw(0xfd38, 0xfd3f, ptm);
-	io->set_iomap_range_rw(0xfd98, 0xfd9f, sub);
-	io->set_iomap_single_w(0xfda0, sub);
-	io->set_iomap_single_r(0xfda0, main);
+	io->set_iomap_range_rw(0xfd98, 0xfd9f, subbus);
+	io->set_iomap_single_w(0xfda0, subbus);
+	io->set_iomap_single_r(0xfda0, mainbus);
 
 	
 	// initialize all devices
@@ -264,7 +264,7 @@ DEVICE *VM::get_cpu(int index)
 
 void VM::draw_screen()
 {
-	sub->draw_screen();
+	subbus->draw_screen();
 }
 
 // ----------------------------------------------------------------------------

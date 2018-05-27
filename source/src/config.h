@@ -73,20 +73,26 @@ enum {
 #define MAX_HISTORY	8
 
 #ifdef USE_FIXED_CONFIG
-	#define MAX_CART_TMP	8
-	#define MAX_FD_TMP	16
-	#define MAX_QD_TMP	8
-	#define MAX_TAPE_TMP	8
-	#define MAX_BINARY_TMP	8
-	#define MAX_BUBBLE_TMP	16
-	#define MAX_VOLUME_TMP	32
+	#define USE_CART_TMP		8
+	#define USE_FLOPPY_DISK_TMP	16
+	#define USE_QUICK_DISK_TMP	8
+	#define USE_HARD_DISK_TMP	8
+	#define USE_TAPE_TMP		8
+	#define USE_COMPACT_DISC_TMP	8
+	#define USE_LASER_DISC_TMP	8
+	#define USE_BINARY_FILE_TMP	8
+	#define USE_BUBBLE_TMP		16
+	#define MAX_VOLUME_TMP		32
 #else
-	#define MAX_CART_TMP	MAX_CART
-	#define MAX_FD_TMP	MAX_FD
-	#define MAX_QD_TMP	MAX_QD
-	#define MAX_TAPE_TMP	MAX_TAPE
-	#define MAX_BINARY_TMP	MAX_BINARY
-	#define MAX_BUBBLE_TMP	MAX_BUBBLE
+	#define USE_CART_TMP		USE_CART
+	#define USE_FLOPPY_DISK_TMP	USE_FLOPPY_DISK
+	#define USE_QUICK_DISK_TMP	USE_QUICK_DISK
+	#define USE_HARD_DISK_TMP	USE_HARD_DISK
+	#define USE_TAPE_TMP		USE_TAPE
+	#define USE_COMPACT_DISC_TMP	USE_COMPACT_DISC
+	#define USE_LASER_DISC_TMP	USE_LASER_DISC
+	#define USE_BINARY_FILE_TMP	USE_BINARY_FILE
+	#define USE_BUBBLE_TMP		USE_BUBBLE
 	#ifdef USE_SOUND_VOLUME
 		#define MAX_VOLUME_TMP	USE_SOUND_VOLUME
 	#endif
@@ -142,51 +148,55 @@ typedef struct {
 	#if defined(USE_FIXED_CONFIG) || defined(USE_PRINTER_TYPE)
 		int printer_type;
 	#endif
-	#if defined(USE_FIXED_CONFIG) || defined(USE_FD1)
-		bool correct_disk_timing[/*MAX_FD_TMP*/16];
-		bool ignore_disk_crc[/*MAX_FD_TMP*/16];
+	#if defined(USE_SHARED_DLL) || defined(USE_FLOPPY_DISK)
+		bool correct_disk_timing[/*USE_FLOPPY_DISK_TMP*/16];
+		bool ignore_disk_crc[/*USE_FLOPPY_DISK_TMP*/16];
 	#endif
-	#if defined(USE_FIXED_CONFIG) || defined(USE_TAPE1)
-		bool wave_shaper[MAX_TAPE_TMP];
-		bool direct_load_mzt[MAX_TAPE_TMP];
-		bool baud_high[MAX_TAPE_TMP];
+	#if defined(USE_SHARED_DLL) || defined(USE_TAPE)
+		bool wave_shaper[USE_TAPE_TMP];
+		bool direct_load_mzt[USE_TAPE_TMP];
+		bool baud_high[USE_TAPE_TMP];
 	#endif
 	bool compress_state;
 	int cpu_power;
 	bool full_speed;
 	
 	// recent files
-	#if defined(USE_FIXED_CONFIG) || defined(USE_CART1)
+	#if defined(USE_SHARED_DLL) || defined(USE_CART)
 		_TCHAR initial_cart_dir[_MAX_PATH];
-		_TCHAR recent_cart_path[MAX_CART_TMP][MAX_HISTORY][_MAX_PATH];
+		_TCHAR recent_cart_path[USE_CART_TMP][MAX_HISTORY][_MAX_PATH];
 	#endif
-	#if defined(USE_FIXED_CONFIG) || defined(USE_FD1)
+	#if defined(USE_SHARED_DLL) || defined(USE_FLOPPY_DISK)
 		_TCHAR initial_floppy_disk_dir[_MAX_PATH];
-		_TCHAR recent_floppy_disk_path[MAX_FD_TMP][MAX_HISTORY][_MAX_PATH];
+		_TCHAR recent_floppy_disk_path[USE_FLOPPY_DISK_TMP][MAX_HISTORY][_MAX_PATH];
 	#endif
-	#if defined(USE_FIXED_CONFIG) || defined(USE_QD1)
+	#if defined(USE_SHARED_DLL) || defined(USE_QUICK_DISK)
 		_TCHAR initial_quick_disk_dir[_MAX_PATH];
-		_TCHAR recent_quick_disk_path[MAX_QD_TMP][MAX_HISTORY][_MAX_PATH];
+		_TCHAR recent_quick_disk_path[USE_QUICK_DISK_TMP][MAX_HISTORY][_MAX_PATH];
 	#endif
-	#if defined(USE_FIXED_CONFIG) || defined(USE_TAPE1)
+	#if defined(USE_SHARED_DLL) || defined(USE_HARD_DISK)
+		_TCHAR initial_hard_disk_dir[_MAX_PATH];
+		_TCHAR recent_hard_disk_path[USE_HARD_DISK_TMP][MAX_HISTORY][_MAX_PATH];
+	#endif
+	#if defined(USE_SHARED_DLL) || defined(USE_TAPE)
 		_TCHAR initial_tape_dir[_MAX_PATH];
-		_TCHAR recent_tape_path[MAX_TAPE_TMP][MAX_HISTORY][_MAX_PATH];
+		_TCHAR recent_tape_path[USE_TAPE_TMP][MAX_HISTORY][_MAX_PATH];
 	#endif
-	#if defined(USE_FIXED_CONFIG) || defined(USE_COMPACT_DISC)
+	#if defined(USE_SHARED_DLL) || defined(USE_COMPACT_DISC)
 		_TCHAR initial_compact_disc_dir[_MAX_PATH];
-		_TCHAR recent_compact_disc_path[MAX_HISTORY][_MAX_PATH];
+		_TCHAR recent_compact_disc_path[USE_COMPACT_DISC_TMP][MAX_HISTORY][_MAX_PATH];
 	#endif
-	#if defined(USE_FIXED_CONFIG) || defined(USE_LASER_DISC)
+	#if defined(USE_SHARED_DLL) || defined(USE_LASER_DISC)
 		_TCHAR initial_laser_disc_dir[_MAX_PATH];
-		_TCHAR recent_laser_disc_path[MAX_HISTORY][_MAX_PATH];
+		_TCHAR recent_compact_disc_path[USE_LASER_DISC_TMP][MAX_HISTORY][_MAX_PATH];
 	#endif
-	#if defined(USE_FIXED_CONFIG) || defined(USE_BINARY_FILE1)
+	#if defined(USE_SHARED_DLL) || defined(USE_BINARY_FILE1)
 		_TCHAR initial_binary_dir[_MAX_PATH];
-		_TCHAR recent_binary_path[MAX_BINARY_TMP][MAX_HISTORY][_MAX_PATH];
+		_TCHAR recent_binary_path[USE_BINARY_FILE_TMP][MAX_HISTORY][_MAX_PATH];
 	#endif
-	#if defined(USE_FIXED_CONFIG) || defined(USE_BUBBLE1)
+	#if defined(USE_SHARED_DLL) || defined(USE_BUBBLE)
 		_TCHAR initial_bubble_casette_dir[_MAX_PATH];
-		_TCHAR recent_bubble_casette_path[MAX_BUBBLE_TMP][MAX_HISTORY][_MAX_PATH];
+		_TCHAR recent_bubble_casette_path[USE_BUBBLE_TMP][MAX_HISTORY][_MAX_PATH];
 	#endif
 
 	// screen
@@ -217,10 +227,8 @@ typedef struct {
 	bool swap_kanji_pause;
 	int  cursor_as_ten_key;
 	bool numpad_enter_as_fullkey;
-	bool print_statistics;
 	int host_keyboard_type;
 	
-	bool special_debug_fdc;	
 	/*
 	 * TYPE : 
 	 *    0 : OpenGL/Main Profile
@@ -245,10 +253,10 @@ typedef struct {
 #if defined(_USE_QT)	
 	int general_sound_level;
 #endif
-#if defined(USE_FIXED_CONFIG) || defined(USE_FD1)
+#if defined(USE_FIXED_CONFIG) || defined(USE_FLOPPY_DISK)
 	bool sound_noise_fdd;
 #endif
-#if defined(USE_FIXED_CONFIG) || defined(USE_TAPE1)
+#if defined(USE_FIXED_CONFIG) || defined(USE_TAPE)
 	bool sound_noise_cmt;
 	bool sound_play_tape;
 #endif
@@ -268,6 +276,9 @@ typedef struct {
 #if defined(USE_FIXED_CONFIG) || defined(USE_PRINTER)
 	_TCHAR printer_dll_path[_MAX_PATH];
 #endif
+	// debug 
+	bool special_debug_fdc;	
+	bool print_statistics;
 
 #if defined(_WIN32) && !defined(_USE_QT)
 	_TCHAR fmgen_dll_path[_MAX_PATH];

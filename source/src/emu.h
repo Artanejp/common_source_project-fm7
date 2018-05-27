@@ -51,10 +51,10 @@
 #include "win32/osd.h"
 #endif
 
-#ifdef USE_FD1
+#ifdef USE_FLOPPY_DISK
 #define MAX_D88_BANKS 64
 #endif
-#ifdef USE_BUBBLE1
+#ifdef USE_BUBBLE
 #define MAX_B77_BANKS 16
 #endif
 
@@ -135,26 +135,29 @@ private:
 		int wait_count;
 	} media_status_t;
 	
-#ifdef USE_CART1
-	media_status_t cart_status[MAX_CART];
+#ifdef USE_CART
+	media_status_t cart_status[USE_CART];
 #endif
-#ifdef USE_FD1
-	media_status_t floppy_disk_status[MAX_FD];
+#ifdef USE_FLOPPY_DISK
+	media_status_t floppy_disk_status[USE_FLOPPY_DISK];
 #endif
-#ifdef USE_QD1
-	media_status_t quick_disk_status[MAX_QD];
+#ifdef USE_QUICK_DISK
+	media_status_t quick_disk_status[USE_QUICK_DISK];
 #endif
-#ifdef USE_TAPE1
-	media_status_t tape_status[MAX_TAPE];
+#ifdef USE_HARD_DISK
+	media_status_t hard_disk_status[USE_HARD_DISK];
+#endif
+#ifdef USE_TAPE
+	media_status_t tape_status[USE_TAPE];
 #endif
 #ifdef USE_COMPACT_DISC
-	media_status_t compact_disc_status;
+	media_status_t compact_disc_status[USE_COMPACT_DISC];
 #endif
 #ifdef USE_LASER_DISC
-	media_status_t laser_disc_status;
+	media_status_t laser_disc_status[USE_LASER_DISC];
 #endif
-#ifdef USE_BUBBLE1
-	media_status_t bubble_casette_status[MAX_BUBBLE];
+#ifdef USE_BUBBLE
+	media_status_t bubble_casette_status[USE_BUBBLE];
 #endif
 	
 	void initialize_media();
@@ -234,9 +237,6 @@ public:
 #ifdef USE_KEY_LOCKED
 	bool get_caps_locked();
 	bool get_kana_locked();
-#endif
-#ifdef USE_EXTRA_LEDS
-	uint32_t get_extra_leds();
 #endif
 	void key_lost_focus();
 #ifdef ONE_BOARD_MICRO_COMPUTER
@@ -485,10 +485,9 @@ public:
 	bool is_bubble_casette_protected(int drv);
 	void is_bubble_casette_protected(int drv, bool value);
 #endif
-
-#ifdef USE_HARD_DISK
-	uint32_t is_hard_disk_accessed();
-#endif	
+#ifdef USE_LED_DEVICE
+	uint32_t get_led_status();
+#endif
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif

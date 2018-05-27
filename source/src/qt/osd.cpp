@@ -660,15 +660,17 @@ void OSD::set_features_cpu(void)
 void OSD::set_features_vm(void)
 {
 // Begin vm.h
-#ifdef MAX_CART
-	add_feature(_T("MAX_CART"), (int)MAX_CART);
+#ifdef USE_CART
+	add_feature(_T("MAX_CART"), (int)USE_CART);
 #endif
-#ifdef CART_BASE_NUMBER
-	add_feature(_T("CART_BASE_NUMBER"), (int)CART_BASE_NUMBER);
+#ifdef BASE_CART_NUM
+	add_feature(_T("BASE_CART_NUM"), (int)BASE_CART_NUM);
 #endif
 	
 #ifdef MAX_FD
 	add_feature(_T("MAX_FD"), (int)MAX_FD);
+#elif defined(USE_FLOPPY_DISK)
+	add_feature(_T("MAX_FD"), (int)USE_FLOPPY_DISK);
 #endif
 #ifdef FD_BASE_NUMBER
 	add_feature(_T("FD_BASE_NUMBER"), (int)FD_BASE_NUMBER);

@@ -8,7 +8,7 @@
 "ePC-98XL" - NEC PC-98XL emulator for Win32
 "ePC-98RL" - NEC PC-98RL emulator for Win32
 "ePC-98DO" - NEC PC-98DO emulator for Win32
-								5/6/2018
+								5/24/2018
 
 --- Internal ROM images
 
@@ -45,6 +45,7 @@ PC-98DO (PC-88 mode)
 PC-9801VX/RA
 
 	SOUND.ROM (*)	PC-9801-26 ROM (CC000H - CDFFFH)
+	SASI.ROM (*)	PC-9801-27 ROM (D7000H - D7FFFH)
 	IPL.ROM		IPL ROM (E8000H - FFFFFH)
 	ITF.ROM		ITF ROM (F8000H - FFFFFH)
 	FONT.ROM	FONT 288768bytes

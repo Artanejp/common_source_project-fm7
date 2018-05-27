@@ -176,6 +176,7 @@
     <ClCompile Include="..\src\vm\io.cpp" />
     <ClCompile Include="..\src\vm\mb8877.cpp" />
     <ClCompile Include="..\src\vm\mc6809.cpp" />
+    <ClCompile Include="..\src\vm\mc6809_base.cpp" />
     <ClCompile Include="..\src\vm\mc6840.cpp" />
     <ClCompile Include="..\src\vm\memory.cpp" />
     <ClCompile Include="..\src\vm\msm58321.cpp" />

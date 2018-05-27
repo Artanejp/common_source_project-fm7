@@ -62,7 +62,6 @@
 #define WINDOW_HEIGHT_ASPECT	480
 #endif
 #define MAX_DRIVE		4
-#define MAX_SCSI		8
 #define MAX_MEMCARD		2
 #if defined(HAS_I286)
 #define I86_PSEUDO_BIOS
@@ -77,11 +76,9 @@
 
 // device informations for win32
 #define USE_CPU_TYPE		2
-#define USE_FD1
-#define USE_FD2
-#define USE_FD3
-#define USE_FD4
+#define USE_FLOPPY_DISK		4
 #define USE_HARD_DISK		7
+#define OPEN_HARD_DISK_IN_RESET
 #define NOTIFY_KEY_DOWN
 #define USE_SHIFT_NUMPAD_KEY
 #define USE_ALT_F10_KEY
@@ -178,6 +175,13 @@ protected:
 //	SERIAL* serial;
 	TIMER* timer;
 	
+#if defined(OPEN_HARD_DISK_IN_RESET)
+	_TCHAR hd_file_path[USE_HARD_DISK][_MAX_PATH];
+#endif
+	void open_hard_disk_tmp(int drv, const _TCHAR* file_path);
+	void close_hard_disk_tmp(int drv);
+	bool is_hard_disk_inserted_tmp(int drv);
+	
 public:
 	// ----------------------------------------
 	// initialize
@@ -221,6 +225,9 @@ public:
 	void is_floppy_disk_protected(int drv, bool value);
 	bool is_floppy_disk_protected(int drv);
 	uint32_t is_floppy_disk_accessed();
+	void open_hard_disk(int drv, const _TCHAR* file_path);
+	void close_hard_disk(int drv);
+	bool is_hard_disk_inserted(int drv);
 	uint32_t is_hard_disk_accessed();
 	bool is_frame_skippable();
 	

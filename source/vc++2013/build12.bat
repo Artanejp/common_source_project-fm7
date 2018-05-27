@@ -25,6 +25,11 @@ call :clean
 mkdir build_vc12\bmjr
 copy binary_vc12\bmjr.exe build_vc12\bmjr\.
 
+devenv.com bubcom80.vcxproj /Rebuild Release
+call :clean
+mkdir build_vc12\bubcom80
+copy binary_vc12\bubcom80.exe build_vc12\bubcom80\.
+
 devenv.com colecovision.vcxproj /Rebuild Release
 call :clean
 mkdir build_vc12\colecovision

@@ -82,6 +82,18 @@ public:
 	{
 		return (play || rec);
 	}
+	bool is_tape_playing()
+	{
+		return play;
+	}
+	bool is_tape_recording()
+	{
+		return rec;
+	}
+	int get_tape_position()
+	{
+		return 0;
+	}
 	void play_tape(const _TCHAR* file_path);
 	void rec_tape(const _TCHAR* file_path);
 	void close_tape();

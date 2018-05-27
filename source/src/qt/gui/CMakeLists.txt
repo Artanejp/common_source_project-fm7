@@ -1,6 +1,9 @@
 message("* qt/gui")
 
-set(THIS_LIB_VERSION 2.12.1)
+set(THIS_LIB_VERSION 2.12.2)
+#include(cotire)
+#include(PrecompiledHeader)
+
 set(s_qt_gui_headers
 	  csp_logger.h
   
@@ -164,6 +167,9 @@ add_library(CSPgui SHARED
 	  ${s_qt_gui_headers_MOC}
 	  ${s_qt_gui_RCC}
 )
+#add_precompiled_header(CSPgui pch_list
+#		SOURCE_CXX pch.cpp FORCEINCLUDE
+#)
 target_link_libraries(CSPgui PUBLIC
 	  Qt5::Core
 	  Qt5::Gui
@@ -177,5 +183,7 @@ set_target_properties(CSPgui PROPERTIES
 			     VERSION ${THIS_LIB_VERSION}
 			     )
 INSTALL(TARGETS CSPgui DESTINATION ${LIBCSP_INSTALL_DIR})
+
 endif()
 
+#cotire(CSPgui)

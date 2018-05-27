@@ -6,6 +6,7 @@
 	NEC PC-9801VM Emulator 'ePC-9801VM'
 	NEC PC-9801VX Emulator 'ePC-9801VX'
 	NEC PC-9801RA Emulator 'ePC-9801RA'
+	NEC PC-98XA Emulator 'ePC-98XA'
 	NEC PC-98XL Emulator 'ePC-98XL'
 	NEC PC-98RL Emulator 'ePC-98RL'
 	NEC PC-98DO Emulator 'ePC-98DO'
@@ -23,19 +24,21 @@
 
 class DISPLAY;
 
+#if defined(SUPPORT_32BIT_ADDRESS)
+	#define RAM_SIZE	0x800000	// 8MB
+#elif defined(SUPPORT_24BIT_ADDRESS)
+	#define RAM_SIZE	0x400000	// 4MB
+#else
+	#define RAM_SIZE	0x100000	// 1MB
+#endif
+
 class MEMBUS : public MEMORY
 {
 private:
 	DISPLAY *d_display;
 	
 	// RAM
-#if defined(SUPPORT_32BIT_ADDRESS)
-	uint8_t ram[0x800000]; // 8MB
-#elif defined(SUPPORT_24BIT_ADDRESS)
-	uint8_t ram[0x400000]; // 4MB
-#else
-	uint8_t ram[0x100000]; // 1MB
-#endif
+	uint8_t ram[RAM_SIZE];
 	
 	// BIOS/ITF
 #if !defined(SUPPORT_HIRESO)
@@ -120,21 +123,13 @@ public:
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 	uint32_t read_data8(uint32_t addr);
 	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_data16(uint32_t addr);
-	void write_data16(uint32_t addr, uint32_t data);
-	uint32_t read_data32(uint32_t addr);
-	void write_data32(uint32_t addr, uint32_t data);
 	uint32_t read_dma_data8(uint32_t addr);
 	void write_dma_data8(uint32_t addr, uint32_t data);
-	uint32_t read_dma_data16(uint32_t addr);
-	void write_dma_data16(uint32_t addr, uint32_t data);
-	uint32_t read_dma_data32(uint32_t addr);
-	void write_dma_data32(uint32_t addr, uint32_t data);
 #endif
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
-	// unique function
+	// unique functions
 	void set_context_display(DISPLAY* device)
 	{
 		d_display = device;

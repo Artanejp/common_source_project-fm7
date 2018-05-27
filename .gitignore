@@ -100,6 +100,7 @@ $tf/
 *.dbproj.schemaview
 *.dotCover
 *.gpState
+*.gch
 *.ide/
 *.ilk
 *.ldf

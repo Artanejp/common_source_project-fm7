@@ -1,6 +1,8 @@
 message("* vm/common_vm")
 
-SET(THIS_LIB_VERSION 1.2.0)
+SET(THIS_LIB_VERSION 1.2.1)
+
+#include(cotire)
 set(s_vm_common_vm_srcs
 	../315-5124.cpp
 	../am9511.cpp
@@ -115,6 +117,10 @@ set(s_vm_common_vm_srcs
 #	../fm7/dummydevice.cpp
 )
 
+#set_directory_properties(PROPERTIES
+#  COTIRE_PREFIX_HEADER_IGNORE_PATH ${SRC_BASE_DIR}/vm/mame
+#)
+
 if(WIN32)
 #include (GenerateExportHeader)
 #add_library(CSPcommon_vm SHARED
@@ -145,6 +151,7 @@ add_library(vm_common_vm
     ${s_vm_common_vm_srcs}
     )
 else()
+
   add_library(CSPcommon_vm SHARED
     ${s_vm_common_vm_srcs}
   )
@@ -152,5 +159,6 @@ else()
      SOVERSION ${THIS_LIB_VERSION}
      VERSION ${THIS_LIB_VERSION}
   )
+#  cotire(CSPcommon_vm)
   INSTALL(TARGETS CSPcommon_vm DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

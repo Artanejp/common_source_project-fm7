@@ -30,8 +30,8 @@
 // device informations for win32
 #define SOUND_RATE_DEFAULT	5	// 44100Hz
 #define SUPPORT_TV_RENDER
-#define USE_CART1
-#define USE_COMPACT_DISC
+#define USE_CART		1
+#define USE_COMPACT_DISC	1
 #define USE_SOUND_VOLUME	3
 #define USE_JOYSTICK
 #define USE_JOYSTICK_TYPE	4
@@ -127,9 +127,9 @@ public:
 	void open_cart(int drv, const _TCHAR* file_path);
 	void close_cart(int drv);
 	bool is_cart_inserted(int drv);
-	void open_compact_disc(const _TCHAR* file_path);
-	void close_compact_disc();
-	bool is_compact_disc_inserted();
+	void open_compact_disc(int drv, const _TCHAR* file_path);
+	void close_compact_disc(int drv);
+	bool is_compact_disc_inserted(int drv);
 	uint32_t is_compact_disc_accessed();
 	bool is_frame_skippable()
 	{

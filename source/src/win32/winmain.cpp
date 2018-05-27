@@ -35,10 +35,10 @@ void hide_menu_bar(HWND hWnd);
 HWND hStatus = NULL;
 bool status_bar_visible = false;
 
-#ifdef USE_FD1
+#ifdef USE_FLOPPY_DISK
 uint32_t fd_status = 0x80000000;
 #endif
-#ifdef USE_QD1
+#ifdef USE_QUICK_DISK
 uint32_t qd_status = 0x80000000;
 #endif
 #ifdef USE_HARD_DISK
@@ -50,7 +50,7 @@ uint32_t cd_status = 0x80000000;
 #ifdef USE_LASER_DISC
 uint32_t ld_status = 0x80000000;
 #endif
-#if defined(USE_TAPE1) && !defined(TAPE_BINARY_ONLY)
+#if defined(USE_TAPE) && !defined(TAPE_BINARY_ONLY)
 _TCHAR tape_status[1024] = _T("uninitialized");
 #endif
 
@@ -61,42 +61,46 @@ bool get_status_bar_updated();
 void update_status_bar(HINSTANCE hInstance, LPDRAWITEMSTRUCT lpDrawItem);
 
 // file
-#ifdef USE_CART1
+#ifdef USE_CART
 void open_cart_dialog(HWND hWnd, int drv);
 void open_recent_cart(int drv, int index);
 #endif
-#ifdef USE_FD1
+#ifdef USE_FLOPPY_DISK
 void open_floppy_disk_dialog(HWND hWnd, int drv);
 void open_floppy_disk(int drv, const _TCHAR* path, int bank);
 void open_recent_floppy_disk(int drv, int index);
 void select_d88_bank(int drv, int index);
 void close_floppy_disk(int drv);
 #endif
-#ifdef USE_QD1
+#ifdef USE_QUICK_DISK
 void open_quick_disk_dialog(HWND hWnd, int drv);
 void open_recent_quick_disk(int drv, int index);
 #endif
-#ifdef USE_TAPE1
+#ifdef USE_HARD_DISK
+void open_hard_disk_dialog(HWND hWnd, int drv);
+void open_recent_hard_disk(int drv, int index);
+#endif
+#ifdef USE_TAPE
 void open_tape_dialog(HWND hWnd, int drv, bool play);
 void open_recent_tape(int drv, int index);
 #endif
 #ifdef USE_COMPACT_DISC
-void open_compact_disc_dialog(HWND hWnd);
-void open_recent_compact_disc(int index);
+void open_compact_disc_dialog(HWND hWnd, int drv);
+void open_recent_compact_disc(int drv, int index);
 #endif
 #ifdef USE_LASER_DISC
-void open_laser_disc_dialog(HWND hWnd);
-void open_recent_laser_disc(int index);
+void open_laser_disc_dialog(HWND hWnd, int drv);
+void open_recent_laser_disc(int drv, int index);
 #endif
-#ifdef USE_BINARY_FILE1
+#ifdef USE_BINARY_FILE
 void open_binary_dialog(HWND hWnd, int drv, bool load);
 void open_recent_binary(int drv, int index);
 #endif
-#ifdef USE_BUBBLE1
+#ifdef USE_BUBBLE
 void open_bubble_casette_dialog(HWND hWnd, int drv);
 void open_recent_bubble_casette(int drv, int index);
 #endif
-#if defined(USE_CART1) || defined(USE_FD1) || defined(USE_TAPE1) || defined(USE_COMPACT_DISC) || defined(USE_LASER_DISC) || defined(USE_BINARY_FILE1) || defined(USE_BUBBLE1)
+#if defined(USE_CART) || defined(USE_FLOPPY_DISK) || defined(USE_HARD_DISK) || defined(USE_TAPE) || defined(USE_COMPACT_DISC) || defined(USE_LASER_DISC) || defined(USE_BINARY_FILE) || defined(USE_BUBBLE)
 #define SUPPORT_DRAG_DROP
 #endif
 #ifdef SUPPORT_DRAG_DROP
@@ -783,7 +787,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			//}
 			break;
 #endif
-#ifdef USE_FD1
+#ifdef USE_FLOPPY_DISK
 		case ID_VM_SOUND_NOISE_FDD:
 			config.sound_noise_fdd = !config.sound_noise_fdd;
 			if(emu) {
@@ -791,7 +795,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			}
 			break;
 #endif
-#ifdef USE_TAPE1
+#ifdef USE_TAPE
 		case ID_VM_SOUND_NOISE_CMT:
 			config.sound_noise_cmt = !config.sound_noise_cmt;
 			if(emu) {
@@ -1004,7 +1008,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			}
 			break;
 #endif
-#ifdef USE_CART1
+#ifdef USE_CART
+	#if USE_CART >= 1
 		#define CART_MENU_ITEMS(drv, ID_OPEN_CART, ID_CLOSE_CART, ID_RECENT_CART) \
 		case ID_OPEN_CART: \
 			if(emu) { \
@@ -1023,11 +1028,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			} \
 			break;
 		CART_MENU_ITEMS(0, ID_OPEN_CART1, ID_CLOSE_CART1, ID_RECENT_CART1)
-#endif
-#ifdef USE_CART2
+	#endif
+	#if USE_CART >= 2
 		CART_MENU_ITEMS(1, ID_OPEN_CART2, ID_CLOSE_CART2, ID_RECENT_CART2)
+	#endif
 #endif
-#ifdef USE_FD1
+#ifdef USE_FLOPPY_DISK
+	#if USE_FLOPPY_DISK >= 1
 		#define FD_MENU_ITEMS(drv, ID_OPEN_FD, ID_CLOSE_FD, ID_WRITE_PROTECT_FD, ID_CORRECT_TIMING_FD, ID_IGNORE_CRC_FD, ID_RECENT_FD, ID_SELECT_D88_BANK, ID_EJECT_D88_BANK) \
 		case ID_OPEN_FD: \
 			if(emu) { \
@@ -1082,29 +1089,31 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			} \
 			break;
 		FD_MENU_ITEMS(0, ID_OPEN_FD1, ID_CLOSE_FD1, ID_WRITE_PROTECT_FD1, ID_CORRECT_TIMING_FD1, ID_IGNORE_CRC_FD1, ID_RECENT_FD1, ID_SELECT_D88_BANK1, ID_EJECT_D88_BANK1)
-#endif
-#ifdef USE_FD2
+	#endif
+	#if USE_FLOPPY_DISK >= 2
 		FD_MENU_ITEMS(1, ID_OPEN_FD2, ID_CLOSE_FD2, ID_WRITE_PROTECT_FD2, ID_CORRECT_TIMING_FD2, ID_IGNORE_CRC_FD2, ID_RECENT_FD2, ID_SELECT_D88_BANK2, ID_EJECT_D88_BANK2)
-#endif
-#ifdef USE_FD3
+	#endif
+	#if USE_FLOPPY_DISK >= 3
 		FD_MENU_ITEMS(2, ID_OPEN_FD3, ID_CLOSE_FD3, ID_WRITE_PROTECT_FD3, ID_CORRECT_TIMING_FD3, ID_IGNORE_CRC_FD3, ID_RECENT_FD3, ID_SELECT_D88_BANK3, ID_EJECT_D88_BANK3)
-#endif
-#ifdef USE_FD4
+	#endif
+	#if USE_FLOPPY_DISK >= 4
 		FD_MENU_ITEMS(3, ID_OPEN_FD4, ID_CLOSE_FD4, ID_WRITE_PROTECT_FD4, ID_CORRECT_TIMING_FD4, ID_IGNORE_CRC_FD4, ID_RECENT_FD4, ID_SELECT_D88_BANK4, ID_EJECT_D88_BANK4)
-#endif
-#ifdef USE_FD5
+	#endif
+	#if USE_FLOPPY_DISK >= 5
 		FD_MENU_ITEMS(4, ID_OPEN_FD5, ID_CLOSE_FD5, ID_WRITE_PROTECT_FD5, ID_CORRECT_TIMING_FD5, ID_IGNORE_CRC_FD5, ID_RECENT_FD5, ID_SELECT_D88_BANK5, ID_EJECT_D88_BANK5)
-#endif
-#ifdef USE_FD6
+	#endif
+	#if USE_FLOPPY_DISK >= 6
 		FD_MENU_ITEMS(5, ID_OPEN_FD6, ID_CLOSE_FD6, ID_WRITE_PROTECT_FD6, ID_CORRECT_TIMING_FD6, ID_IGNORE_CRC_FD6, ID_RECENT_FD6, ID_SELECT_D88_BANK6, ID_EJECT_D88_BANK6)
-#endif
-#ifdef USE_FD7
+	#endif
+	#if USE_FLOPPY_DISK >= 7
 		FD_MENU_ITEMS(6, ID_OPEN_FD7, ID_CLOSE_FD7, ID_WRITE_PROTECT_FD7, ID_CORRECT_TIMING_FD7, ID_IGNORE_CRC_FD7, ID_RECENT_FD7, ID_SELECT_D88_BANK7, ID_EJECT_D88_BANK7)
-#endif
-#ifdef USE_FD8
+	#endif
+	#if USE_FLOPPY_DISK >= 8
 		FD_MENU_ITEMS(7, ID_OPEN_FD8, ID_CLOSE_FD8, ID_WRITE_PROTECT_FD8, ID_CORRECT_TIMING_FD8, ID_IGNORE_CRC_FD8, ID_RECENT_FD8, ID_SELECT_D88_BANK8, ID_EJECT_D88_BANK8)
+	#endif
 #endif
-#ifdef USE_QD1
+#ifdef USE_QUICK_DISK
+	#if USE_QUICK_DISK >= 1
 		#define QD_MENU_ITEMS(drv, ID_OPEN_QD, ID_CLOSE_QD, ID_RECENT_QD) \
 		case ID_OPEN_QD: \
 			if(emu) { \
@@ -1123,12 +1132,57 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			} \
 			break;
 		QD_MENU_ITEMS(0, ID_OPEN_QD1, ID_CLOSE_QD1, ID_RECENT_QD1)
-#endif
-#ifdef USE_QD2
+	#endif
+	#if USE_QUICK_DISK >= 2
 		QD_MENU_ITEMS(1, ID_OPEN_QD2, ID_CLOSE_QD2, ID_RECENT_QD2)
+	#endif
 #endif
-#ifdef USE_TAPE1
-		#define TAPE_MENU_ITEMS(drv, ID_PLAY_TAPE, ID_REC_TAPE, ID_CLOSE_TAPE, ID_USE_WAVE_SHAPER, ID_DIRECT_LOAD_MZT, ID_RECENT_TAPE) \
+#ifdef USE_HARD_DISK
+	#if USE_HARD_DISK >= 1
+		#define HD_MENU_ITEMS(drv, ID_OPEN_HD, ID_CLOSE_HD, ID_RECENT_HD) \
+		case ID_OPEN_HD: \
+			if(emu) { \
+				open_hard_disk_dialog(hWnd, drv); \
+			} \
+			break; \
+		case ID_CLOSE_HD: \
+			if(emu) { \
+				emu->close_hard_disk(drv); \
+			} \
+			break; \
+		case ID_RECENT_HD + 0: case ID_RECENT_HD + 1: case ID_RECENT_HD + 2: case ID_RECENT_HD + 3: \
+		case ID_RECENT_HD + 4: case ID_RECENT_HD + 5: case ID_RECENT_HD + 6: case ID_RECENT_HD + 7: \
+			if(emu) { \
+				open_recent_hard_disk(drv, LOWORD(wParam) - ID_RECENT_HD); \
+			} \
+			break;
+		HD_MENU_ITEMS(0, ID_OPEN_HD1, ID_CLOSE_HD1, ID_RECENT_HD1)
+	#endif
+	#if USE_HARD_DISK >= 2
+		HD_MENU_ITEMS(1, ID_OPEN_HD2, ID_CLOSE_HD2, ID_RECENT_HD2)
+	#endif
+	#if USE_HARD_DISK >= 3
+		HD_MENU_ITEMS(2, ID_OPEN_HD3, ID_CLOSE_HD3, ID_RECENT_HD3)
+	#endif
+	#if USE_HARD_DISK >= 4
+		HD_MENU_ITEMS(3, ID_OPEN_HD4, ID_CLOSE_HD4, ID_RECENT_HD4)
+	#endif
+	#if USE_HARD_DISK >= 5
+		HD_MENU_ITEMS(4, ID_OPEN_HD5, ID_CLOSE_HD5, ID_RECENT_HD5)
+	#endif
+	#if USE_HARD_DISK >= 6
+		HD_MENU_ITEMS(5, ID_OPEN_HD6, ID_CLOSE_HD6, ID_RECENT_HD6)
+	#endif
+	#if USE_HARD_DISK >= 7
+		HD_MENU_ITEMS(6, ID_OPEN_HD7, ID_CLOSE_HD7, ID_RECENT_HD7)
+	#endif
+	#if USE_HARD_DISK >= 8
+		HD_MENU_ITEMS(7, ID_OPEN_HD8, ID_CLOSE_HD8, ID_RECENT_HD8)
+	#endif
+#endif
+#ifdef USE_TAPE
+	#if USE_TAPE >= 1
+		#define TAPE_MENU_ITEMS(drv, ID_PLAY_TAPE, ID_REC_TAPE, ID_CLOSE_TAPE, ID_PLAY_BUTTON, ID_STOP_BUTTON, ID_FAST_FORWARD, ID_FAST_REWIND, ID_APSS_FORWARD, ID_APSS_REWIND, ID_USE_WAVE_SHAPER, ID_DIRECT_LOAD_MZT, ID_TAPE_BAUD_LOW, ID_TAPE_BAUD_HIGH, ID_RECENT_TAPE) \
 		case ID_PLAY_TAPE: \
 			if(emu) { \
 				open_tape_dialog(hWnd, drv, true); \
@@ -1144,21 +1198,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				emu->close_tape(drv); \
 			} \
 			break; \
-		case ID_USE_WAVE_SHAPER: \
-			config.wave_shaper[drv] = !config.wave_shaper[drv]; \
-			break; \
-		case ID_DIRECT_LOAD_MZT: \
-			config.direct_load_mzt[drv] = !config.direct_load_mzt[drv]; \
-			break; \
-		case ID_RECENT_TAPE + 0: case ID_RECENT_TAPE + 1: case ID_RECENT_TAPE + 2: case ID_RECENT_TAPE + 3: \
-		case ID_RECENT_TAPE + 4: case ID_RECENT_TAPE + 5: case ID_RECENT_TAPE + 6: case ID_RECENT_TAPE + 7: \
-			if(emu) { \
-				open_recent_tape(drv, LOWORD(wParam) - ID_RECENT_TAPE); \
-			} \
-			break;
-		TAPE_MENU_ITEMS(0, ID_PLAY_TAPE1, ID_REC_TAPE1, ID_CLOSE_TAPE1, ID_USE_WAVE_SHAPER1, ID_DIRECT_LOAD_MZT1, ID_RECENT_TAPE1)
-	#ifdef USE_TAPE_BUTTON
-		#define TAPE_BUTTON_MENU_ITEMS(drv, ID_PLAY_BUTTON, ID_STOP_BUTTON, ID_FAST_FORWARD, ID_FAST_REWIND, ID_APSS_FORWARD, ID_APSS_REWIND) \
 		case ID_PLAY_BUTTON: \
 			if(emu) { \
 				emu->push_play(drv); \
@@ -1188,66 +1227,83 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			if(emu) { \
 				emu->push_apss_rewind(drv); \
 			} \
-			break;
-		TAPE_BUTTON_MENU_ITEMS(0, ID_PLAY_BUTTON1, ID_STOP_BUTTON1, ID_FAST_FORWARD1, ID_FAST_REWIND1, ID_APSS_FORWARD1, ID_APSS_REWIND1)
-	#endif
-	#ifdef USE_TAPE_BAUD
-		#define TAPE_BAUD_MENU_ITEMS(drv, ID_TAPE_BAUD_LOW, ID_TAPE_BAUD_HIGH) \
+			break; \
+		case ID_USE_WAVE_SHAPER: \
+			config.wave_shaper[drv] = !config.wave_shaper[drv]; \
+			break; \
+		case ID_DIRECT_LOAD_MZT: \
+			config.direct_load_mzt[drv] = !config.direct_load_mzt[drv]; \
+			break; \
 		case ID_TAPE_BAUD_LOW: \
 			config.baud_high[drv] = false; \
 			break; \
 		case ID_TAPE_BAUD_HIGH: \
 			config.baud_high[drv] = true; \
+			break; \
+		case ID_RECENT_TAPE + 0: case ID_RECENT_TAPE + 1: case ID_RECENT_TAPE + 2: case ID_RECENT_TAPE + 3: \
+		case ID_RECENT_TAPE + 4: case ID_RECENT_TAPE + 5: case ID_RECENT_TAPE + 6: case ID_RECENT_TAPE + 7: \
+			if(emu) { \
+				open_recent_tape(drv, LOWORD(wParam) - ID_RECENT_TAPE); \
+			} \
 			break;
-		TAPE_BAUD_MENU_ITEMS(0, ID_TAPE_BAUD_LOW1, ID_TAPE_BAUD_HIGH1)
+		TAPE_MENU_ITEMS(0, ID_PLAY_TAPE1, ID_REC_TAPE1, ID_CLOSE_TAPE1, ID_PLAY_BUTTON1, ID_STOP_BUTTON1, ID_FAST_FORWARD1, ID_FAST_REWIND1, ID_APSS_FORWARD1, ID_APSS_REWIND1, ID_USE_WAVE_SHAPER1, ID_DIRECT_LOAD_MZT1, ID_TAPE_BAUD_LOW1, ID_TAPE_BAUD_HIGH1, ID_RECENT_TAPE1)
 	#endif
-#endif
-#ifdef USE_TAPE2
-		TAPE_MENU_ITEMS(1, ID_PLAY_TAPE2, ID_REC_TAPE2, ID_CLOSE_TAPE2, ID_USE_WAVE_SHAPER2, ID_DIRECT_LOAD_MZT2, ID_RECENT_TAPE2)
-	#ifdef USE_TAPE_BUTTON
-		TAPE_BUTTON_MENU_ITEMS(1, ID_PLAY_BUTTON2, ID_STOP_BUTTON2, ID_FAST_FORWARD2, ID_FAST_REWIND2, ID_APSS_FORWARD2, ID_APSS_REWIND2)
-	#endif
-	#ifdef USE_TAPE_BAUD
-		TAPE_BAUD_MENU_ITEMS(1, ID_TAPE_BAUD_LOW2, ID_TAPE_BAUD_HIGH2)
+	#if USE_TAPE >= 2
+		TAPE_MENU_ITEMS(1, ID_PLAY_TAPE2, ID_REC_TAPE2, ID_CLOSE_TAPE2, ID_PLAY_BUTTON2, ID_STOP_BUTTON2, ID_FAST_FORWARD2, ID_FAST_REWIND2, ID_APSS_FORWARD2, ID_APSS_REWIND2, ID_USE_WAVE_SHAPER2, ID_DIRECT_LOAD_MZT2, ID_TAPE_BAUD_LOW2, ID_TAPE_BAUD_HIGH2, ID_RECENT_TAPE2)
 	#endif
 #endif
 #ifdef USE_COMPACT_DISC
-		case ID_OPEN_COMPACT_DISC:
-			if(emu) {
-				open_compact_disc_dialog(hWnd);
-			}
+	#if USE_COMPACT_DISC >= 1
+		#define COMPACT_DISC_MENU_ITEMS(drv, ID_OPEN_COMPACT_DISC, ID_CLOSE_COMPACT_DISC, ID_RECENT_COMPACT_DISC) \
+		case ID_OPEN_COMPACT_DISC: \
+			if(emu) { \
+				open_compact_disc_dialog(hWnd, drv); \
+			} \
+			break; \
+		case ID_CLOSE_COMPACT_DISC: \
+			if(emu) { \
+				emu->close_compact_disc(drv); \
+			} \
+			break; \
+		case ID_RECENT_COMPACT_DISC + 0: case ID_RECENT_COMPACT_DISC + 1: case ID_RECENT_COMPACT_DISC + 2: case ID_RECENT_COMPACT_DISC + 3: \
+		case ID_RECENT_COMPACT_DISC + 4: case ID_RECENT_COMPACT_DISC + 5: case ID_RECENT_COMPACT_DISC + 6: case ID_RECENT_COMPACT_DISC + 7: \
+			if(emu) { \
+				open_recent_compact_disc(drv, LOWORD(wParam) - ID_RECENT_COMPACT_DISC); \
+			} \
 			break;
-		case ID_CLOSE_COMPACT_DISC:
-			if(emu) {
-				emu->close_compact_disc();
-			}
-			break;
-		case ID_RECENT_COMPACT_DISC + 0: case ID_RECENT_COMPACT_DISC + 1: case ID_RECENT_COMPACT_DISC + 2: case ID_RECENT_COMPACT_DISC + 3:
-		case ID_RECENT_COMPACT_DISC + 4: case ID_RECENT_COMPACT_DISC + 5: case ID_RECENT_COMPACT_DISC + 6: case ID_RECENT_COMPACT_DISC + 7:
-			if(emu) {
-				open_recent_compact_disc(LOWORD(wParam) - ID_RECENT_COMPACT_DISC);
-			}
-			break;
+		COMPACT_DISC_MENU_ITEMS(0, ID_OPEN_COMPACT_DISC1, ID_CLOSE_COMPACT_DISC1, ID_RECENT_COMPACT_DISC1)
+	#endif
+	#if USE_COMPACT_DISC >= 2
+		COMPACT_DISC_MENU_ITEMS(1, ID_OPEN_COMPACT_DISC2, ID_CLOSE_COMPACT_DISC2, ID_RECENT_COMPACT_DISC2)
+	#endif
 #endif
 #ifdef USE_LASER_DISC
-		case ID_OPEN_LASER_DISC:
-			if(emu) {
-				open_laser_disc_dialog(hWnd);
-			}
+	#if USE_LASER_DISC >= 1
+		#define LASER_DISC_MENU_ITEMS(drv, ID_OPEN_LASER_DISC, ID_CLOSE_LASER_DISC, ID_RECENT_LASER_DISC) \
+		case ID_OPEN_LASER_DISC: \
+			if(emu) { \
+				open_laser_disc_dialog(hWnd, drv); \
+			} \
+			break; \
+		case ID_CLOSE_LASER_DISC: \
+			if(emu) { \
+				emu->close_laser_disc(drv); \
+			} \
+			break; \
+		case ID_RECENT_LASER_DISC + 0: case ID_RECENT_LASER_DISC + 1: case ID_RECENT_LASER_DISC + 2: case ID_RECENT_LASER_DISC + 3: \
+		case ID_RECENT_LASER_DISC + 4: case ID_RECENT_LASER_DISC + 5: case ID_RECENT_LASER_DISC + 6: case ID_RECENT_LASER_DISC + 7: \
+			if(emu) { \
+				open_recent_laser_disc(drv, LOWORD(wParam) - ID_RECENT_LASER_DISC); \
+			} \
 			break;
-		case ID_CLOSE_LASER_DISC:
-			if(emu) {
-				emu->close_laser_disc();
-			}
-			break;
-		case ID_RECENT_LASER_DISC + 0: case ID_RECENT_LASER_DISC + 1: case ID_RECENT_LASER_DISC + 2: case ID_RECENT_LASER_DISC + 3:
-		case ID_RECENT_LASER_DISC + 4: case ID_RECENT_LASER_DISC + 5: case ID_RECENT_LASER_DISC + 6: case ID_RECENT_LASER_DISC + 7:
-			if(emu) {
-				open_recent_laser_disc(LOWORD(wParam) - ID_RECENT_LASER_DISC);
-			}
-			break;
+		LASER_DISC_MENU_ITEMS(0, ID_OPEN_LASER_DISC1, ID_CLOSE_LASER_DISC1, ID_RECENT_LASER_DISC1)
+	#endif
+	#if USE_LASER_DISC >= 2
+		LASER_DISC_MENU_ITEMS(1, ID_OPEN_LASER_DISC2, ID_CLOSE_LASER_DISC2, ID_RECENT_LASER_DISC2)
+	#endif
 #endif
-#ifdef USE_BINARY_FILE1
+#ifdef USE_BINARY_FILE
+	#if USE_BINARY_FILE >= 1
 		#define BINARY_MENU_ITEMS(drv, ID_LOAD_BINARY, ID_SAVE_BINARY, ID_RECENT_BINARY) \
 		case ID_LOAD_BINARY: \
 			if(emu) { \
@@ -1266,11 +1322,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			} \
 			break;
 		BINARY_MENU_ITEMS(0, ID_LOAD_BINARY1, ID_SAVE_BINARY1, ID_RECENT_BINARY1)
-#endif
-#ifdef USE_BINARY_FILE2
+	#endif
+	#if USE_BINARY_FILE >= 2
 		BINARY_MENU_ITEMS(1, ID_LOAD_BINARY2, ID_SAVE_BINARY2, ID_RECENT_BINARY2)
+	#endif
 #endif
-#ifdef USE_BUBBLE1
+#ifdef USE_BUBBLE
+	#if USE_BUBBLE >= 1
 		#define BUBBLE_CASETTE_MENU_ITEMS(drv, ID_OPEN_BUBBLE, ID_CLOSE_BUBBLE, ID_RECENT_BUBBLE) \
 		case ID_OPEN_BUBBLE: \
 			if(emu) { \
@@ -1289,9 +1347,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			} \
 			break;
 		BUBBLE_CASETTE_MENU_ITEMS(0, ID_OPEN_BUBBLE1, ID_CLOSE_BUBBLE1, ID_RECENT_BUBBLE1)
-#endif
-#ifdef USE_BUBBLE2
+	#endif
+	#if USE_BUBBLE >= 2
 		BUBBLE_CASETTE_MENU_ITEMS(1, ID_OPEN_BUBBLE2, ID_CLOSE_BUBBLE2, ID_RECENT_BUBBLE2)
+	#endif
 #endif
 		case ID_ACCEL_SCREEN:
 			if(emu) {
@@ -1444,7 +1503,7 @@ void update_load_state_menu(HMENU hMenu)
 }
 #endif
 
-#ifdef USE_CART1
+#ifdef USE_CART
 void update_cart_menu(HMENU hMenu, int drv, UINT ID_RECENT_CART, UINT ID_CLOSE_CART)
 {
 	bool flag = false;
@@ -1464,7 +1523,7 @@ void update_cart_menu(HMENU hMenu, int drv, UINT ID_RECENT_CART, UINT ID_CLOSE_C
 }
 #endif
 
-#ifdef USE_FD1
+#ifdef USE_FLOPPY_DISK
 void update_floppy_disk_menu(HMENU hMenu, int drv, UINT ID_RECENT_FD, UINT ID_D88_FILE_PATH, UINT ID_SELECT_D88_BANK, UINT ID_EJECT_D88_BANK, UINT ID_CLOSE_FD, UINT ID_WRITE_PROTECT_FD, UINT ID_CORRECT_TIMING_FD, UINT ID_IGNORE_CRC_FD)
 {
 	static int recent_menu_pos[] = {-1, -1, -1, -1, -1, -1, -1, -1};
@@ -1505,7 +1564,7 @@ void update_floppy_disk_menu(HMENU hMenu, int drv, UINT ID_RECENT_FD, UINT ID_D8
 }
 #endif
 
-#ifdef USE_QD1
+#ifdef USE_QUICK_DISK
 void update_quick_disk_menu(HMENU hMenu, int drv, UINT ID_RECENT_QD, UINT ID_CLOSE_QD)
 {
 	bool flag = false;
@@ -1525,7 +1584,27 @@ void update_quick_disk_menu(HMENU hMenu, int drv, UINT ID_RECENT_QD, UINT ID_CLO
 }
 #endif
 
-#ifdef USE_TAPE1
+#ifdef USE_HARD_DISK
+void update_hard_disk_menu(HMENU hMenu, int drv, UINT ID_RECENT_HD, UINT ID_CLOSE_HD)
+{
+	bool flag = false;
+	for(int i = 0; i < MAX_HISTORY; i++) {
+		DeleteMenu(hMenu, ID_RECENT_HD + i, MF_BYCOMMAND);
+	}
+	for(int i = 0; i < MAX_HISTORY; i++) {
+		if(_tcsicmp(config.recent_hard_disk_path[drv][i], _T(""))) {
+			AppendMenu(hMenu, MF_STRING, ID_RECENT_HD + i, config.recent_hard_disk_path[drv][i]);
+			flag = true;
+		}
+	}
+	if(!flag) {
+		AppendMenu(hMenu, MF_GRAYED | MF_STRING, ID_RECENT_HD, _T("None"));
+	}
+	EnableMenuItem(hMenu, ID_CLOSE_HD, emu->is_hard_disk_inserted(drv) ? MF_ENABLED : MF_GRAYED);
+}
+#endif
+
+#ifdef USE_TAPE
 void update_tape_menu(HMENU hMenu, int drv, UINT ID_RECENT_TAPE, UINT ID_CLOSE_TAPE, UINT ID_PLAY_BUTTON, UINT ID_STOP_BUTTON, UINT ID_FAST_FORWARD, UINT ID_FAST_REWIND, UINT ID_APSS_FORWARD, UINT ID_APSS_REWIND, UINT ID_USE_WAVE_SHAPER, UINT ID_DIRECT_LOAD_MZT, UINT ID_TAPE_BAUD_LOW, UINT ID_TAPE_BAUD_HIGH)
 {
 	bool flag = false;
@@ -1542,63 +1621,59 @@ void update_tape_menu(HMENU hMenu, int drv, UINT ID_RECENT_TAPE, UINT ID_CLOSE_T
 		AppendMenu(hMenu, MF_GRAYED | MF_STRING, ID_RECENT_TAPE, _T("None"));
 	}
 	EnableMenuItem(hMenu, ID_CLOSE_TAPE, emu->is_tape_inserted(drv) ? MF_ENABLED : MF_GRAYED);
-#ifdef USE_TAPE_BUTTON
 	EnableMenuItem(hMenu, ID_PLAY_BUTTON, emu->is_tape_inserted(drv) ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(hMenu, ID_STOP_BUTTON, emu->is_tape_inserted(drv) ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(hMenu, ID_FAST_FORWARD, emu->is_tape_inserted(drv) ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(hMenu, ID_FAST_REWIND, emu->is_tape_inserted(drv) ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(hMenu, ID_APSS_FORWARD, emu->is_tape_inserted(drv) ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(hMenu, ID_APSS_REWIND, emu->is_tape_inserted(drv) ? MF_ENABLED : MF_GRAYED);
-#endif
 	CheckMenuItem(hMenu, ID_USE_WAVE_SHAPER, config.wave_shaper[drv] ? MF_CHECKED : MF_UNCHECKED);
 	CheckMenuItem(hMenu, ID_DIRECT_LOAD_MZT, config.direct_load_mzt[drv] ? MF_CHECKED : MF_UNCHECKED);
-#ifdef USE_TAPE_BAUD
 	CheckMenuRadioItem(hMenu, ID_TAPE_BAUD_LOW, ID_TAPE_BAUD_HIGH, !config.baud_high[drv] ? ID_TAPE_BAUD_LOW : ID_TAPE_BAUD_HIGH, MF_BYCOMMAND);
-#endif
 }
 #endif
 
 #ifdef USE_COMPACT_DISC
-void update_compact_disc_menu(HMENU hMenu)
+void update_compact_disc_menu(HMENU hMenu, int drv, UINT ID_RECENT_COMPACT_DISC, UINT ID_CLOSE_COMPACT_DISC)
 {
 	bool flag = false;
 	for(int i = 0; i < MAX_HISTORY; i++) {
 		DeleteMenu(hMenu, ID_RECENT_COMPACT_DISC + i, MF_BYCOMMAND);
 	}
 	for(int i = 0; i < MAX_HISTORY; i++) {
-		if(_tcsicmp(config.recent_compact_disc_path[i], _T(""))) {
-			AppendMenu(hMenu, MF_STRING, ID_RECENT_COMPACT_DISC + i, config.recent_compact_disc_path[i]);
+		if(_tcsicmp(config.recent_compact_disc_path[drv][i], _T(""))) {
+			AppendMenu(hMenu, MF_STRING, ID_RECENT_COMPACT_DISC + i, config.recent_compact_disc_path[drv][i]);
 			flag = true;
 		}
 	}
 	if(!flag) {
 		AppendMenu(hMenu, MF_GRAYED | MF_STRING, ID_RECENT_COMPACT_DISC, _T("None"));
 	}
-	EnableMenuItem(hMenu, ID_CLOSE_COMPACT_DISC, emu->is_compact_disc_inserted() ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, ID_CLOSE_COMPACT_DISC, emu->is_compact_disc_inserted(drv) ? MF_ENABLED : MF_GRAYED);
 }
 #endif
 
 #ifdef USE_LASER_DISC
-void update_laser_disc_menu(HMENU hMenu)
+void update_laser_disc_menu(HMENU hMenu, int drv, UINT ID_RECENT_LASER_DISC, UINT ID_CLOSE_LASER_DISC)
 {
 	bool flag = false;
 	for(int i = 0; i < MAX_HISTORY; i++) {
 		DeleteMenu(hMenu, ID_RECENT_LASER_DISC + i, MF_BYCOMMAND);
 	}
 	for(int i = 0; i < MAX_HISTORY; i++) {
-		if(_tcsicmp(config.recent_laser_disc_path[i], _T(""))) {
-			AppendMenu(hMenu, MF_STRING, ID_RECENT_LASER_DISC + i, config.recent_laser_disc_path[i]);
+		if(_tcsicmp(config.recent_laser_disc_path[drv][i], _T(""))) {
+			AppendMenu(hMenu, MF_STRING, ID_RECENT_LASER_DISC + i, config.recent_laser_disc_path[drv][i]);
 			flag = true;
 		}
 	}
 	if(!flag) {
 		AppendMenu(hMenu, MF_GRAYED | MF_STRING, ID_RECENT_LASER_DISC, _T("None"));
 	}
-	EnableMenuItem(hMenu, ID_CLOSE_LASER_DISC, emu->is_laser_disc_inserted() ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, ID_CLOSE_LASER_DISC, emu->is_laser_disc_inserted(drv) ? MF_ENABLED : MF_GRAYED);
 }
 #endif
 
-#ifdef USE_BINARY1
+#ifdef USE_BINARY_FILE
 void update_binary_menu(HMENU hMenu, int drv, UINT ID_RECENT_BINARY)
 {
 	bool flag = false;
@@ -1617,7 +1692,7 @@ void update_binary_menu(HMENU hMenu, int drv, UINT ID_RECENT_BINARY)
 }
 #endif
 
-#ifdef USE_BUBBLE1
+#ifdef USE_BUBBLE
 void update_bubble_casette_menu(HMENU hMenu, int drv, UINT ID_RECENT_BUBBLE)
 {
 	bool flag = false;
@@ -1708,7 +1783,7 @@ void update_vm_joystick_menu(HMENU hMenu)
 }
 #endif
 
-#if defined(USE_SOUND_TYPE) || defined(USE_FD1) || defined(USE_TAPE1)
+#if defined(USE_SOUND_TYPE) || defined(USE_FLOPPY_DISK) || defined(USE_TAPE)
 void update_vm_sound_menu(HMENU hMenu)
 {
 #ifdef USE_SOUND_TYPE
@@ -1716,10 +1791,10 @@ void update_vm_sound_menu(HMENU hMenu)
 		CheckMenuRadioItem(hMenu, ID_VM_SOUND_TYPE0, ID_VM_SOUND_TYPE0 + USE_SOUND_TYPE - 1, ID_VM_SOUND_TYPE0 + config.sound_type, MF_BYCOMMAND);
 	}
 #endif
-#ifdef USE_FD1
+#ifdef USE_FLOPPY_DISK
 	CheckMenuItem(hMenu, ID_VM_SOUND_NOISE_FDD, config.sound_noise_fdd ? MF_CHECKED : MF_UNCHECKED);
 #endif
-#ifdef USE_TAPE1
+#ifdef USE_TAPE
 	CheckMenuItem(hMenu, ID_VM_SOUND_NOISE_CMT, config.sound_noise_cmt ? MF_CHECKED : MF_UNCHECKED);
 	CheckMenuItem(hMenu, ID_VM_SOUND_PLAY_TAPE, config.sound_play_tape ? MF_CHECKED : MF_UNCHECKED);
 #endif
@@ -1913,85 +1988,143 @@ void update_menu(HWND hWnd, HMENU hMenu)
 	} else if(id >= ID_LOAD_MENU_START && id <= ID_LOAD_MENU_END) {
 		update_load_state_menu(hMenu);
 #endif
-#ifdef USE_CART1
+#ifdef USE_CART
+#if USE_CART >= 1
 	} else if(id >= ID_CART1_MENU_START && id <= ID_CART1_MENU_END) {
 		update_cart_menu(hMenu, 0, ID_RECENT_CART1, ID_CLOSE_CART1);
 #endif
-#ifdef USE_CART2
+#if USE_CART >= 2
 	} else if(id >= ID_CART2_MENU_START && id <= ID_CART2_MENU_END) {
 		update_cart_menu(hMenu, 1, ID_RECENT_CART2, ID_CLOSE_CART2);
 #endif
-#ifdef USE_FD1
+#endif
+#ifdef USE_FLOPPY_DISK
+#if USE_FLOPPY_DISK >= 1
 	} else if(id >= ID_FD1_MENU_START && id <= ID_FD1_MENU_END) {
 		update_floppy_disk_menu(hMenu, 0, ID_RECENT_FD1, ID_D88_FILE_PATH1, ID_SELECT_D88_BANK1, ID_EJECT_D88_BANK1, ID_CLOSE_FD1, ID_WRITE_PROTECT_FD1, ID_CORRECT_TIMING_FD1, ID_IGNORE_CRC_FD1);
 #endif
-#ifdef USE_FD2
+#if USE_FLOPPY_DISK >= 2
 	} else if(id >= ID_FD2_MENU_START && id <= ID_FD2_MENU_END) {
 		update_floppy_disk_menu(hMenu, 1, ID_RECENT_FD2, ID_D88_FILE_PATH2, ID_SELECT_D88_BANK2, ID_EJECT_D88_BANK2, ID_CLOSE_FD2, ID_WRITE_PROTECT_FD2, ID_CORRECT_TIMING_FD2, ID_IGNORE_CRC_FD2);
 #endif
-#ifdef USE_FD3
+#if USE_FLOPPY_DISK >= 3
 	} else if(id >= ID_FD3_MENU_START && id <= ID_FD3_MENU_END) {
 		update_floppy_disk_menu(hMenu, 2, ID_RECENT_FD3, ID_D88_FILE_PATH3, ID_SELECT_D88_BANK3, ID_EJECT_D88_BANK3, ID_CLOSE_FD3, ID_WRITE_PROTECT_FD3, ID_CORRECT_TIMING_FD3, ID_IGNORE_CRC_FD3);
 #endif
-#ifdef USE_FD4
+#if USE_FLOPPY_DISK >= 4
 	} else if(id >= ID_FD4_MENU_START && id <= ID_FD4_MENU_END) {
 		update_floppy_disk_menu(hMenu, 3, ID_RECENT_FD4, ID_D88_FILE_PATH4, ID_SELECT_D88_BANK4, ID_EJECT_D88_BANK4, ID_CLOSE_FD4, ID_WRITE_PROTECT_FD4, ID_CORRECT_TIMING_FD4, ID_IGNORE_CRC_FD4);
 #endif
-#ifdef USE_FD5
+#if USE_FLOPPY_DISK >= 5
 	} else if(id >= ID_FD5_MENU_START && id <= ID_FD5_MENU_END) {
 		update_floppy_disk_menu(hMenu, 4, ID_RECENT_FD5, ID_D88_FILE_PATH5, ID_SELECT_D88_BANK5, ID_EJECT_D88_BANK5, ID_CLOSE_FD5, ID_WRITE_PROTECT_FD5, ID_CORRECT_TIMING_FD5, ID_IGNORE_CRC_FD5);
 #endif
-#ifdef USE_FD6
+#if USE_FLOPPY_DISK >= 6
 	} else if(id >= ID_FD6_MENU_START && id <= ID_FD6_MENU_END) {
 		update_floppy_disk_menu(hMenu, 5, ID_RECENT_FD6, ID_D88_FILE_PATH6, ID_SELECT_D88_BANK6, ID_EJECT_D88_BANK6, ID_CLOSE_FD6, ID_WRITE_PROTECT_FD6, ID_CORRECT_TIMING_FD6, ID_IGNORE_CRC_FD6);
 #endif
-#ifdef USE_FD7
+#if USE_FLOPPY_DISK >= 7
 	} else if(id >= ID_FD7_MENU_START && id <= ID_FD7_MENU_END) {
 		update_floppy_disk_menu(hMenu, 6, ID_RECENT_FD7, ID_D88_FILE_PATH7, ID_SELECT_D88_BANK7, ID_EJECT_D88_BANK7, ID_CLOSE_FD7, ID_WRITE_PROTECT_FD7, ID_CORRECT_TIMING_FD7, ID_IGNORE_CRC_FD7);
 #endif
-#ifdef USE_FD8
+#if USE_FLOPPY_DISK >= 8
 	} else if(id >= ID_FD8_MENU_START && id <= ID_FD8_MENU_END) {
 		update_floppy_disk_menu(hMenu, 7, ID_RECENT_FD8, ID_D88_FILE_PATH8, ID_SELECT_D88_BANK8, ID_EJECT_D88_BANK8, ID_CLOSE_FD8, ID_WRITE_PROTECT_FD8, ID_CORRECT_TIMING_FD8, ID_IGNORE_CRC_FD8);
 #endif
-#ifdef USE_QD1
+#endif
+#ifdef USE_QUICK_DISK
+#if USE_QUICK_DISK >= 1
 	} else if(id >= ID_QD1_MENU_START && id <= ID_QD1_MENU_END) {
 		update_quick_disk_menu(hMenu, 0, ID_RECENT_QD1, ID_CLOSE_QD1);
 #endif
-#ifdef USE_QD2
+#if USE_QUICK_DISK >= 2
 	} else if(id >= ID_QD2_MENU_START && id <= ID_QD2_MENU_END) {
 		update_quick_disk_menu(hMenu, 1, ID_RECENT_QD2, ID_CLOSE_QD2);
 #endif
-#ifdef USE_TAPE1
+#endif
+#ifdef USE_HARD_DISK
+#if USE_HARD_DISK >= 1
+	} else if(id >= ID_HD1_MENU_START && id <= ID_HD1_MENU_END) {
+		update_hard_disk_menu(hMenu, 0, ID_RECENT_HD1, ID_CLOSE_HD1);
+#endif
+#if USE_HARD_DISK >= 2
+	} else if(id >= ID_HD2_MENU_START && id <= ID_HD2_MENU_END) {
+		update_hard_disk_menu(hMenu, 1, ID_RECENT_HD2, ID_CLOSE_HD2);
+#endif
+#if USE_HARD_DISK >= 3
+	} else if(id >= ID_HD3_MENU_START && id <= ID_HD3_MENU_END) {
+		update_hard_disk_menu(hMenu, 2, ID_RECENT_HD3, ID_CLOSE_HD3);
+#endif
+#if USE_HARD_DISK >= 4
+	} else if(id >= ID_HD4_MENU_START && id <= ID_HD4_MENU_END) {
+		update_hard_disk_menu(hMenu, 3, ID_RECENT_HD4, ID_CLOSE_HD4);
+#endif
+#if USE_HARD_DISK >= 5
+	} else if(id >= ID_HD5_MENU_START && id <= ID_HD5_MENU_END) {
+		update_hard_disk_menu(hMenu, 4, ID_RECENT_HD5, ID_CLOSE_HD5);
+#endif
+#if USE_HARD_DISK >= 6
+	} else if(id >= ID_HD6_MENU_START && id <= ID_HD6_MENU_END) {
+		update_hard_disk_menu(hMenu, 5, ID_RECENT_HD6, ID_CLOSE_HD6);
+#endif
+#if USE_HARD_DISK >= 7
+	} else if(id >= ID_HD7_MENU_START && id <= ID_HD7_MENU_END) {
+		update_hard_disk_menu(hMenu, 6, ID_RECENT_HD7, ID_CLOSE_HD7);
+#endif
+#if USE_HARD_DISK >= 8
+	} else if(id >= ID_HD8_MENU_START && id <= ID_HD8_MENU_END) {
+		update_hard_disk_menu(hMenu, 7, ID_RECENT_HD8, ID_CLOSE_HD8);
+#endif
+#endif
+#ifdef USE_TAPE
+#if USE_TAPE >= 1
 	} else if(id >= ID_TAPE1_MENU_START && id <= ID_TAPE1_MENU_END) {
 		update_tape_menu(hMenu, 0, ID_RECENT_TAPE1, ID_CLOSE_TAPE1, ID_PLAY_BUTTON1, ID_STOP_BUTTON1, ID_FAST_FORWARD1, ID_FAST_REWIND1, ID_APSS_FORWARD1, ID_APSS_REWIND1, ID_USE_WAVE_SHAPER1, ID_DIRECT_LOAD_MZT1, ID_TAPE_BAUD_LOW1, ID_TAPE_BAUD_HIGH1);
 #endif
-#ifdef USE_TAPE2
+#if USE_TAPE >= 2
 	} else if(id >= ID_TAPE2_MENU_START && id <= ID_TAPE2_MENU_END) {
 		update_tape_menu(hMenu, 1, ID_RECENT_TAPE2, ID_CLOSE_TAPE2, ID_PLAY_BUTTON2, ID_STOP_BUTTON2, ID_FAST_FORWARD2, ID_FAST_REWIND2, ID_APSS_FORWARD2, ID_APSS_REWIND2, ID_USE_WAVE_SHAPER2, ID_DIRECT_LOAD_MZT2, ID_TAPE_BAUD_LOW2, ID_TAPE_BAUD_HIGH2);
 #endif
+#endif
 #ifdef USE_COMPACT_DISC
-	} else if(id >= ID_COMPACT_DISC_MENU_START && id <= ID_COMPACT_DISC_MENU_END) {
-		update_compact_disc_menu(hMenu);
+#if USE_COMPACT_DISC >= 1
+	} else if(id >= ID_COMPACT_DISC1_MENU_START && id <= ID_COMPACT_DISC1_MENU_END) {
+		update_compact_disc_menu(hMenu, 0, ID_RECENT_COMPACT_DISC1, ID_CLOSE_COMPACT_DISC1);
+#endif
+#if USE_COMPACT_DISC >= 2
+	} else if(id >= ID_COMPACT_DISC2_MENU_START && id <= ID_COMPACT_DISC2_MENU_END) {
+		update_compact_disc_menu(hMenu, 1, ID_RECENT_COMPACT_DISC2, ID_CLOSE_COMPACT_DISC2);
+#endif
 #endif
 #ifdef USE_LASER_DISC
-	} else if(id >= ID_LASER_DISC_MENU_START && id <= ID_LASER_DISC_MENU_END) {
-		update_laser_disc_menu(hMenu);
+#if USE_LASER_DISC >= 1
+	} else if(id >= ID_LASER_DISC1_MENU_START && id <= ID_LASER_DISC1_MENU_END) {
+		update_laser_disc_menu(hMenu, 0, ID_RECENT_LASER_DISC1, ID_CLOSE_LASER_DISC1);
 #endif
-#ifdef USE_BINARY1
+#if USE_LASER_DISC >= 2
+	} else if(id >= ID_LASER_DISC2_MENU_START && id <= ID_LASER_DISC2_MENU_END) {
+		update_laser_disc_menu(hMenu, 1, ID_RECENT_LASER_DISC2, ID_CLOSE_LASER_DISC2);
+#endif
+#endif
+#ifdef USE_BINARY_FILE
+#if USE_BINARY_FILE >= 1
 	} else if(id >= ID_BINARY1_MENU_START && id <= ID_BINARY1_MENU_END) {
 		update_binary_menu(hMenu, 0, ID_RECENT_BINARY1);
 #endif
-#ifdef USE_BINARY2
+#if USE_BINARY_FILE >= 2
 	} else if(id >= ID_BINARY2_MENU_START && id <= ID_BINARY2_MENU_END) {
 		update_binary_menu(hMenu, 1, ID_RECENT_BINARY2);
 #endif
-#ifdef USE_BUBBLE1
+#endif
+#ifdef USE_BUBBLE
+#if USE_BUBBLE >= 1
 	} else if(id >= ID_BUBBLE1_MENU_START && id <= ID_BUBBLE1_MENU_END) {
 		update_bubble_casette_menu(hMenu, 0, ID_RECENT_BUBBLE1);
 #endif
-#ifdef USE_BUBBLE2
+#if USE_BUBBLE >= 2
 	} else if(id >= ID_BUBBLE2_MENU_START && id <= ID_BUBBLE2_MENU_END) {
 		update_bubble_casette_menu(hMenu, 1, ID_RECENT_BUBBLE2);
+#endif
 #endif
 #ifdef USE_BOOT_MODE
 	} else if(id >= ID_VM_BOOT_MENU_START && id <= ID_VM_BOOT_MENU_END) {
@@ -2025,7 +2158,7 @@ void update_menu(HWND hWnd, HMENU hMenu)
 	} else if(id >= ID_VM_JOYSTICK_MENU_START && id <= ID_VM_JOYSTICK_MENU_END) {
 		 update_vm_joystick_menu(hMenu);
 #endif
-#if defined(USE_SOUND_TYPE) || defined(USE_FD1) || defined(USE_TAPE1)
+#if defined(USE_SOUND_TYPE) || defined(USE_FLOPPY_DISK) || defined(USE_TAPE)
 	} else if(id >= ID_VM_SOUND_MENU_START && id <= ID_VM_SOUND_MENU_END) {
 		 update_vm_sound_menu(hMenu);
 #endif
@@ -2082,7 +2215,7 @@ void hide_menu_bar(HWND hWnd)
 
 void show_status_bar(HWND hWnd)
 {
-//#if defined(USE_FD1) || defined(USE_QD1) || defined(USE_HARD_DISK) || defined(USE_COMPACT_DISC) || defined(USE_LASER_DISC) || (defined(USE_TAPE1) && !defined(TAPE_BINARY_ONLY))
+//#if defined(USE_FLOPPY_DISK) || defined(USE_QUICK_DISK) || defined(USE_HARD_DISK) || defined(USE_COMPACT_DISC) || defined(USE_LASER_DISC) || (defined(USE_TAPE) && !defined(TAPE_BINARY_ONLY))
 	if(hStatus == NULL) {
 		InitCommonControls();
 		hStatus = CreateStatusWindow(WS_CHILD | WS_VISIBLE | CCS_BOTTOM, NULL, hWnd, ID_STATUS);
@@ -2115,14 +2248,14 @@ bool get_status_bar_updated()
 {
 	bool updated = false;
 	
-#ifdef USE_FD1
+#ifdef USE_FLOPPY_DISK
 	uint32_t new_fd_status = emu->is_floppy_disk_accessed();
 	if(fd_status != new_fd_status) {
 		updated = true;
 		fd_status = new_fd_status;
 	}
 #endif
-#ifdef USE_QD1
+#ifdef USE_QUICK_DISK
 	uint32_t new_qd_status = emu->is_quick_disk_accessed();
 	if(qd_status != new_qd_status) {
 		updated = true;
@@ -2150,9 +2283,9 @@ bool get_status_bar_updated()
 		ld_status = new_ld_status;
 	}
 #endif
-#if defined(USE_TAPE1) && !defined(TAPE_BINARY_ONLY)
+#if defined(USE_TAPE) && !defined(TAPE_BINARY_ONLY)
 	_TCHAR new_tape_status[array_length(tape_status)] = {0};
-	for(int drv = 0; drv < MAX_TAPE; drv++) {
+	for(int drv = 0; drv < USE_TAPE; drv++) {
 		const _TCHAR* message = emu->get_tape_message(drv);
 		if(message != NULL) {
 			my_tcscpy_s(new_tape_status, array_length(new_tape_status), message);
@@ -2177,7 +2310,7 @@ void update_status_bar(HINSTANCE hInstance, LPDRAWITEMSTRUCT lpDrawItem)
 	SetTextColor(lpDrawItem->hDC, RGB(0, 0, 0));
 	SetBkMode(lpDrawItem->hDC, TRANSPARENT);
 	
-	#if defined(USE_FD1) || defined(USE_QD1) || defined(USE_HARD_DISK) || defined(USE_COMPACT_DISC) || defined(USE_LASER_DISC)
+	#if defined(USE_FLOPPY_DISK) || defined(USE_QUICK_DISK) || defined(USE_HARD_DISK) || defined(USE_COMPACT_DISC) || defined(USE_LASER_DISC)
 	{
 		HDC hdcMem = CreateCompatibleDC(lpDrawItem->hDC);
 		HBITMAP hBitmap[2];
@@ -2194,12 +2327,12 @@ void update_status_bar(HINSTANCE hInstance, LPDRAWITEMSTRUCT lpDrawItem)
 			int bmp_top = (lpDrawItem->rcItem.top + lpDrawItem->rcItem.bottom) / 2 - bmp_height / 2;
 			SIZE size;
 			
-			#ifdef USE_FD1
+			#ifdef USE_FLOPPY_DISK
 				TextOut(lpDrawItem->hDC, draw_left, text_top, _T("FD:"), 3);
 				GetTextExtentPoint32(lpDrawItem->hDC, _T("FD:"), 3, &size);
 				draw_left += size.cx + 4;
 				
-				for(int i = 0; i < MAX_FD; i++) {
+				for(int i = 0; i < USE_FLOPPY_DISK; i++) {
 					int idx = (fd_status >> i) & 1;
 					SelectObject(hdcMem, hBitmap[idx]);
 					TransparentBlt(lpDrawItem->hDC, draw_left, bmp_top, bmp_width, bmp_height, hdcMem, 0, 0, bmp_width, bmp_height, 0);
@@ -2207,12 +2340,12 @@ void update_status_bar(HINSTANCE hInstance, LPDRAWITEMSTRUCT lpDrawItem)
 				}
 				draw_left += 8;
 			#endif
-			#ifdef USE_QD1
+			#ifdef USE_QUICK_DISK
 				TextOut(lpDrawItem->hDC, draw_left, text_top, _T("QD:"), 3);
 				GetTextExtentPoint32(lpDrawItem->hDC, _T("QD:"), 3, &size);
 				draw_left += size.cx + 4;
 				
-				for(int i = 0; i < MAX_QD; i++) {
+				for(int i = 0; i < USE_QUICK_DISK; i++) {
 					int idx = (qd_status >> i) & 1;
 					SelectObject(hdcMem, hBitmap[idx]);
 					TransparentBlt(lpDrawItem->hDC, draw_left, bmp_top, bmp_width, bmp_height, hdcMem, 0, 0, bmp_width, bmp_height, 0);
@@ -2238,7 +2371,7 @@ void update_status_bar(HINSTANCE hInstance, LPDRAWITEMSTRUCT lpDrawItem)
 				GetTextExtentPoint32(lpDrawItem->hDC, _T("CD:"), 3, &size);
 				draw_left += size.cx + 4;
 				
-				for (int i = 0; i < 1; i++) {
+				for (int i = 0; i < USE_COMPACT_DISC; i++) {
 					int idx = (cd_status >> i) & 1;
 					SelectObject(hdcMem, hBitmap[idx]);
 					TransparentBlt(lpDrawItem->hDC, draw_left, bmp_top, bmp_width, bmp_height, hdcMem, 0, 0, bmp_width, bmp_height, 0);
@@ -2251,7 +2384,7 @@ void update_status_bar(HINSTANCE hInstance, LPDRAWITEMSTRUCT lpDrawItem)
 				GetTextExtentPoint32(lpDrawItem->hDC, _T("LD:"), 3, &size);
 				draw_left += size.cx + 4;
 				
-				for (int i = 0; i < 1; i++) {
+				for (int i = 0; i < USE_LASER_DISC; i++) {
 					int idx = (ld_status >> i) & 1;
 					SelectObject(hdcMem, hBitmap[idx]);
 					TransparentBlt(lpDrawItem->hDC, draw_left, bmp_top, bmp_width, bmp_height, hdcMem, 0, 0, bmp_width, bmp_height, 0);
@@ -2269,7 +2402,7 @@ void update_status_bar(HINSTANCE hInstance, LPDRAWITEMSTRUCT lpDrawItem)
 		DeleteDC(hdcMem);
 	}
 	#endif
-	#if defined(USE_TAPE1) && !defined(TAPE_BINARY_ONLY)
+	#if defined(USE_TAPE) && !defined(TAPE_BINARY_ONLY)
 	{
 		SIZE size;
 		
@@ -2299,7 +2432,7 @@ void update_status_bar(HINSTANCE hInstance, LPDRAWITEMSTRUCT lpDrawItem)
 	my_tcscpy_s(recent[0], _MAX_PATH, path); \
 }
 
-#ifdef USE_CART1
+#ifdef USE_CART
 void open_cart_dialog(HWND hWnd, int drv)
 {
 	_TCHAR* path = get_open_file_name(
@@ -2347,7 +2480,7 @@ void open_recent_cart(int drv, int index)
 }
 #endif
 
-#ifdef USE_FD1
+#ifdef USE_FLOPPY_DISK
 void open_floppy_disk_dialog(HWND hWnd, int drv)
 {
 	_TCHAR* path = get_open_file_name(
@@ -2399,8 +2532,8 @@ void open_floppy_disk(int drv, const _TCHAR* path, int bank)
 		delete fio;
 	}
 	emu->open_floppy_disk(drv, path, bank);
-#ifdef USE_FD2
-	if((drv & 1) == 0 && drv + 1 < MAX_FD && bank + 1 < emu->d88_file[drv].bank_num) {
+#if USE_FLOPPY_DISK >= 2
+	if((drv & 1) == 0 && drv + 1 < USE_FLOPPY_DISK && bank + 1 < emu->d88_file[drv].bank_num) {
 		open_floppy_disk(drv + 1, path, bank + 1);
 	}
 #endif
@@ -2434,7 +2567,7 @@ void close_floppy_disk(int drv)
 }
 #endif
 
-#ifdef USE_QD1
+#ifdef USE_QUICK_DISK
 void open_quick_disk_dialog(HWND hWnd, int drv)
 {
 	_TCHAR* path = get_open_file_name(
@@ -2462,7 +2595,35 @@ void open_recent_quick_disk(int drv, int index)
 }
 #endif
 
-#ifdef USE_TAPE1
+#ifdef USE_HARD_DISK
+void open_hard_disk_dialog(HWND hWnd, int drv)
+{
+	_TCHAR* path = get_open_file_name(
+		hWnd,
+		_T("Supported Files (*.thd;*.nhd;*.hdi;*.dat)\0*.thd;*.nhd;*.hdi;*.dat\0All Files (*.*)\0*.*\0\0"),
+		_T("Hard Disk"),
+		config.initial_hard_disk_dir, _MAX_PATH
+	);
+	if(path) {
+		UPDATE_HISTORY(path, config.recent_hard_disk_path[drv]);
+		my_tcscpy_s(config.initial_hard_disk_dir, _MAX_PATH, get_parent_dir(path));
+		emu->open_hard_disk(drv, path);
+	}
+}
+
+void open_recent_hard_disk(int drv, int index)
+{
+	_TCHAR path[_MAX_PATH];
+	my_tcscpy_s(path, _MAX_PATH, config.recent_hard_disk_path[drv][index]);
+	for(int i = index; i > 0; i--) {
+		my_tcscpy_s(config.recent_hard_disk_path[drv][i], _MAX_PATH, config.recent_hard_disk_path[drv][i - 1]);
+	}
+	my_tcscpy_s(config.recent_hard_disk_path[drv][0], _MAX_PATH, path);
+	emu->open_hard_disk(drv, path);
+}
+#endif
+
+#ifdef USE_TAPE
 void open_tape_dialog(HWND hWnd, int drv, bool play)
 {
 	_TCHAR* path = get_open_file_name(
@@ -2525,7 +2686,7 @@ void open_recent_tape(int drv, int index)
 #endif
 
 #ifdef USE_COMPACT_DISC
-void open_compact_disc_dialog(HWND hWnd)
+void open_compact_disc_dialog(HWND hWnd, int drv)
 {
 	_TCHAR* path = get_open_file_name(
 		hWnd,
@@ -2534,26 +2695,26 @@ void open_compact_disc_dialog(HWND hWnd)
 		config.initial_compact_disc_dir, _MAX_PATH
 	);
 	if(path) {
-		UPDATE_HISTORY(path, config.recent_compact_disc_path);
+		UPDATE_HISTORY(path, config.recent_compact_disc_path[drv]);
 		my_tcscpy_s(config.initial_compact_disc_dir, _MAX_PATH, get_parent_dir(path));
-		emu->open_compact_disc(path);
+		emu->open_compact_disc(drv, path);
 	}
 }
 
-void open_recent_compact_disc(int index)
+void open_recent_compact_disc(int drv, int index)
 {
 	_TCHAR path[_MAX_PATH];
-	my_tcscpy_s(path, _MAX_PATH, config.recent_compact_disc_path[index]);
+	my_tcscpy_s(path, _MAX_PATH, config.recent_compact_disc_path[drv][index]);
 	for(int i = index; i > 0; i--) {
-		my_tcscpy_s(config.recent_compact_disc_path[i], _MAX_PATH, config.recent_compact_disc_path[i - 1]);
+		my_tcscpy_s(config.recent_compact_disc_path[drv][i], _MAX_PATH, config.recent_compact_disc_path[drv][i - 1]);
 	}
-	my_tcscpy_s(config.recent_compact_disc_path[0], _MAX_PATH, path);
-	emu->open_compact_disc(path);
+	my_tcscpy_s(config.recent_compact_disc_path[drv][0], _MAX_PATH, path);
+	emu->open_compact_disc(drv, path);
 }
 #endif
 
 #ifdef USE_LASER_DISC
-void open_laser_disc_dialog(HWND hWnd)
+void open_laser_disc_dialog(HWND hWnd, int drv)
 {
 	_TCHAR* path = get_open_file_name(
 		hWnd,
@@ -2562,25 +2723,25 @@ void open_laser_disc_dialog(HWND hWnd)
 		config.initial_laser_disc_dir, _MAX_PATH
 	);
 	if(path) {
-		UPDATE_HISTORY(path, config.recent_laser_disc_path);
+		UPDATE_HISTORY(path, config.recent_laser_disc_path[drv]);
 		my_tcscpy_s(config.initial_laser_disc_dir, _MAX_PATH, get_parent_dir(path));
-		emu->open_laser_disc(path);
+		emu->open_laser_disc(drv, path);
 	}
 }
 
-void open_recent_laser_disc(int index)
+void open_recent_laser_disc(int drv, int index)
 {
 	_TCHAR path[_MAX_PATH];
-	my_tcscpy_s(path, _MAX_PATH, config.recent_laser_disc_path[index]);
+	my_tcscpy_s(path, _MAX_PATH, config.recent_laser_disc_path[drv][index]);
 	for(int i = index; i > 0; i--) {
-		my_tcscpy_s(config.recent_laser_disc_path[i], _MAX_PATH, config.recent_laser_disc_path[i - 1]);
+		my_tcscpy_s(config.recent_laser_disc_path[drv][i], _MAX_PATH, config.recent_laser_disc_path[drv][i - 1]);
 	}
-	my_tcscpy_s(config.recent_laser_disc_path[0], _MAX_PATH, path);
-	emu->open_laser_disc(path);
+	my_tcscpy_s(config.recent_laser_disc_path[drv][0], _MAX_PATH, path);
+	emu->open_laser_disc(drv, path);
 }
 #endif
 
-#ifdef USE_BINARY_FILE1
+#ifdef USE_BINARY_FILE
 void open_binary_dialog(HWND hWnd, int drv, bool load)
 {
 	_TCHAR* path = get_open_file_name(
@@ -2616,12 +2777,12 @@ void open_recent_binary(int drv, int index)
 }
 #endif
 
-#ifdef USE_BUBBLE1
+#ifdef USE_BUBBLE
 void open_bubble_casette_dialog(HWND hWnd, int drv)
 {
 	_TCHAR* path = get_open_file_name(
 		hWnd,
-		_T("Supported Files (*.b77;*.bbl)\0*.b77;*.bll\0All Files (*.*)\0*.*\0\0"),
+		_T("Supported Files (*.b77;*.bbl)\0*.b77;*.bbl\0All Files (*.*)\0*.*\0\0"),
 		_T("Bubble Casette"),
 		config.initial_bubble_casette_dir, _MAX_PATH
 	);
@@ -2657,7 +2818,7 @@ void open_dropped_file(HDROP hDrop)
 
 void open_any_file(const _TCHAR* path)
 {
-#if defined(USE_CART1)
+#if defined(USE_CART)
 	if(check_file_extension(path, _T(".rom")) || 
 	   check_file_extension(path, _T(".bin")) || 
 	   check_file_extension(path, _T(".hex")) || 
@@ -2674,7 +2835,7 @@ void open_any_file(const _TCHAR* path)
 		return;
 	}
 #endif
-#if defined(USE_FD1)
+#if defined(USE_FLOPPY_DISK)
 	if(check_file_extension(path, _T(".d88")) || 
 	   check_file_extension(path, _T(".d77")) || 
 	   check_file_extension(path, _T(".1dd")) || 
@@ -2702,7 +2863,17 @@ void open_any_file(const _TCHAR* path)
 		return;
 	}
 #endif
-#if defined(USE_TAPE1)
+#if defined(USE_HARD_DISK)
+	if(check_file_extension(path, _T(".thd")) || 
+	   check_file_extension(path, _T(".nhd")) || 
+	   check_file_extension(path, _T(".hdi"))) {
+		UPDATE_HISTORY(path, config.recent_hard_disk_path[0]);
+		my_tcscpy_s(config.initial_hard_disk_dir, _MAX_PATH, get_parent_dir(path));
+		emu->open_hard_disk(0, path);
+		return;
+	}
+#endif
+#if defined(USE_TAPE)
 	if(check_file_extension(path, _T(".wav")) || 
 	   check_file_extension(path, _T(".cas")) || 
 	   check_file_extension(path, _T(".p6" )) || 
@@ -2726,9 +2897,9 @@ void open_any_file(const _TCHAR* path)
 #if defined(USE_COMPACT_DISC)
 	if(check_file_extension(path, _T(".ccd" )) || 
 	   check_file_extension(path, _T(".cue" ))) {
-		UPDATE_HISTORY(path, config.recent_compact_disc_path);
+		UPDATE_HISTORY(path, config.recent_compact_disc_path[0]);
 		my_tcscpy_s(config.initial_compact_disc_dir, _MAX_PATH, get_parent_dir(path));
-		emu->open_compact_disc(path);
+		emu->open_compact_disc(0, path);
 		return;
 	}
 #endif
@@ -2739,13 +2910,13 @@ void open_any_file(const _TCHAR* path)
 	   check_file_extension(path, _T(".mp4" )) || 
 	   check_file_extension(path, _T(".wmv" )) || 
 	   check_file_extension(path, _T(".ogv" ))) {
-		UPDATE_HISTORY(path, config.recent_laser_disc_path);
+		UPDATE_HISTORY(path, config.recent_laser_disc_path[0]);
 		my_tcscpy_s(config.initial_laser_disc_dir, _MAX_PATH, get_parent_dir(path));
-		emu->open_laser_disc(path);
+		emu->open_laser_disc(0, path);
 		return;
 	}
 #endif
-#if defined(USE_BINARY_FILE1)
+#if defined(USE_BINARY_FILE)
 	if(check_file_extension(path, _T(".ram")) || 
 	   check_file_extension(path, _T(".bin")) || 
 	   check_file_extension(path, _T(".hex"))) {
@@ -2755,7 +2926,7 @@ void open_any_file(const _TCHAR* path)
 		return;
 	}
 #endif
-#if defined(USE_BUBBLE1)
+#if defined(USE_BUBBLE)
 	if(check_file_extension(path, _T(".b77")) || 
 	   check_file_extension(path, _T(".bbl"))) {
 		UPDATE_HISTORY(path, config.recent_bubble_casette_path[0]);

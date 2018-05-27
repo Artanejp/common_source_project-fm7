@@ -33,8 +33,7 @@
 
 // device informations for win32
 #define USE_DRIVE_TYPE		2
-#define USE_FD1
-#define USE_FD2
+#define USE_FLOPPY_DISK		2
 #define NOTIFY_KEY_DOWN
 #define USE_KEY_LOCKED
 #define USE_SHIFT_NUMPAD_KEY

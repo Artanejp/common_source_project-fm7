@@ -23,6 +23,10 @@ devenv.com bmjr.vcproj /Rebuild Release
 mkdir build_xp\bmjr
 copy Release\bmjr.exe build_xp\bmjr\.
 
+devenv.com bubcom80.vcproj /Rebuild Release
+mkdir build_xp\bubcom80
+copy Release\bubcom80.exe build_xp\bubcom80\.
+
 devenv.com colecovision.vcproj /Rebuild Release
 mkdir build_xp\colecovision
 copy Release\colecovision.exe build_xp\colecovision\.

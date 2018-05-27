@@ -26,10 +26,7 @@
 #define USE_DEVICE_TYPE		3
 // Nonintelligent ram disk
 #define DEVICE_TYPE_DEFAULT	2
-#define USE_FD1
-#define USE_FD2
-#define USE_FD3
-#define USE_FD4
+#define USE_FLOPPY_DISK		4
 #define NOTIFY_KEY_DOWN
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		6

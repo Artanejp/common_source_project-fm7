@@ -1,12 +1,13 @@
 /*
-  SHARP X1 Emulator 'eX1'
-  SHARP X1twin Emulator 'eX1twin'
-  SHARP X1turbo Emulator 'eX1turbo'
+	SHARP X1 Emulator 'eX1'
+	SHARP X1twin Emulator 'eX1twin'
+	SHARP X1turbo Emulator 'eX1turbo'
+	SHARP X1turboZ Emulator 'eX1turboZ'
 
-  Origin : X1EMU by KM (kanji rom)
-  X-millenium by Yui (ank16 patch)
-  Author : Takeda.Toshiya
-  Date   : 2009.03.14-
+	Origin : X1EMU by KM (kanji rom)
+ 	         X-millenium by Yui (ank16 patch)
+	Author : Takeda.Toshiya
+	Date   : 2009.03.14-
 
   [ display ]
 */
@@ -808,6 +809,8 @@ void DISPLAY::draw_screen()
 #endif
 		emu->set_vm_screen_lines(200);
 		// 200 lines
+		emu->set_vm_screen_lines(200);
+		
 		if(column40) {
 			// 40 columns
 			for(int y = 0; y < 200; y++) {

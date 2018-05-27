@@ -28,7 +28,7 @@ private:
 	outputs_t outputs_rst;
 	
 	uint32_t data_reg;
-	uint32_t bsy_status, cd_status, io_status, msg_status, req_status;
+	uint32_t bsy_status, cd_status, io_status, msg_status, req_status, ack_status;
 	bool access;
 	
 	void set_irq(bool value);

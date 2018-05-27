@@ -503,29 +503,41 @@
 #define ID_RECENT_BINARY2               43053 // 43053-43060
 #define ID_BINARY2_MENU_END             43060
 
-#define ID_COMPACT_DISC_MENU_START      43061
-#define ID_OPEN_COMPACT_DISC            43061
-#define ID_CLOSE_COMPACT_DISC           43062
-#define ID_RECENT_COMPACT_DISC          43063 // 43063-43070
-#define ID_COMPACT_DISC_MENU_END        43070
+#define ID_COMPACT_DISC1_MENU_START     43061
+#define ID_OPEN_COMPACT_DISC1           43061
+#define ID_CLOSE_COMPACT_DISC1          43062
+#define ID_RECENT_COMPACT_DISC1         43063 // 43063-43070
+#define ID_COMPACT_DISC1_MENU_END       43070
 
-#define ID_LASER_DISC_MENU_START        43071
-#define ID_OPEN_LASER_DISC              43071
-#define ID_CLOSE_LASER_DISC             43072
-#define ID_RECENT_LASER_DISC            43073 // 43073-43080
-#define ID_LASER_DISC_MENU_END          43080
+#define ID_COMPACT_DISC2_MENU_START     43071
+#define ID_OPEN_COMPACT_DISC2           43071
+#define ID_CLOSE_COMPACT_DISC2          43072
+#define ID_RECENT_COMPACT_DISC2         43073 // 43073-43080
+#define ID_COMPACT_DISC2_MENU_END       43080
 
-#define ID_BUBBLE1_MENU_START           43081
-#define ID_OPEN_BUBBLE1                 43081
-#define ID_CLOSE_BUBBLE1                43082
-#define ID_RECENT_BUBBLE1               43083 // 43083-43090
-#define ID_BUBBLE1_MENU_END             43090
+#define ID_LASER_DISC1_MENU_START       43081
+#define ID_OPEN_LASER_DISC1             43081
+#define ID_CLOSE_LASER_DISC1            43082
+#define ID_RECENT_LASER_DISC1           43083 // 43083-43090
+#define ID_LASER_DISC1_MENU_END         43090
 
-#define ID_BUBBLE2_MENU_START           43091
-#define ID_OPEN_BUBBLE2                 43091
-#define ID_CLOSE_BUBBLE2                43092
-#define ID_RECENT_BUBBLE2               43093 // 43093-43100
-#define ID_BUBBLE2_MENU_END             43100
+#define ID_LASER_DISC2_MENU_START       43091
+#define ID_OPEN_LASER_DISC2             43091
+#define ID_CLOSE_LASER_DISC2            43092
+#define ID_RECENT_LASER_DISC2           43093 // 43093-43100
+#define ID_LASER_DISC2_MENU_END         43100
+
+#define ID_BUBBLE1_MENU_START           43101
+#define ID_OPEN_BUBBLE1                 43101
+#define ID_CLOSE_BUBBLE1                43102
+#define ID_RECENT_BUBBLE1               43103 // 43103-43110
+#define ID_BUBBLE1_MENU_END             43110
+
+#define ID_BUBBLE2_MENU_START           43111
+#define ID_OPEN_BUBBLE2                 43111
+#define ID_CLOSE_BUBBLE2                43112
+#define ID_RECENT_BUBBLE2               43113 // 43113-43120
+#define ID_BUBBLE2_MENU_END             43120
 
 #define ID_TAPE1_MENU_START             44001
 #define ID_PLAY_TAPE1                   44001
@@ -560,6 +572,54 @@
 #define ID_TAPE_BAUD_HIGH2              44044
 #define ID_RECENT_TAPE2                 44051 // 44051-44058
 #define ID_TAPE2_MENU_END               44058
+
+#define ID_HD1_MENU_START               45001
+#define ID_OPEN_HD1                     45001
+#define ID_CLOSE_HD1                    45002
+#define ID_RECENT_HD1                   45003 // 45003-45010
+#define ID_HD1_MENU_END                 45010
+
+#define ID_HD2_MENU_START               45011
+#define ID_OPEN_HD2                     45011
+#define ID_CLOSE_HD2                    45012
+#define ID_RECENT_HD2                   45013 // 45013-45020
+#define ID_HD2_MENU_END                 45020
+
+#define ID_HD3_MENU_START               45021
+#define ID_OPEN_HD3                     45021
+#define ID_CLOSE_HD3                    45022
+#define ID_RECENT_HD3                   45023 // 45023-45030
+#define ID_HD3_MENU_END                 45030
+
+#define ID_HD4_MENU_START               45031
+#define ID_OPEN_HD4                     45031
+#define ID_CLOSE_HD4                    45032
+#define ID_RECENT_HD4                   45033 // 45033-45040
+#define ID_HD4_MENU_END                 45040
+
+#define ID_HD5_MENU_START               45041
+#define ID_OPEN_HD5                     45041
+#define ID_CLOSE_HD5                    45042
+#define ID_RECENT_HD5                   45043 // 45003-45010
+#define ID_HD5_MENU_END                 45050
+
+#define ID_HD6_MENU_START               45051
+#define ID_OPEN_HD6                     45051
+#define ID_CLOSE_HD6                    45052
+#define ID_RECENT_HD6                   45053 // 45013-45020
+#define ID_HD6_MENU_END                 45060
+
+#define ID_HD7_MENU_START               45061
+#define ID_OPEN_HD7                     45061
+#define ID_CLOSE_HD7                    45062
+#define ID_RECENT_HD7                   45063 // 45023-45030
+#define ID_HD7_MENU_END                 45070
+
+#define ID_HD8_MENU_START               45071
+#define ID_OPEN_HD8                     45071
+#define ID_CLOSE_HD8                    45072
+#define ID_RECENT_HD8                   45073 // 45033-45040
+#define ID_HD8_MENU_END                 45080
 
 // Next default values for new objects
 // 

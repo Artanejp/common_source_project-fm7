@@ -415,7 +415,7 @@ static void i80286_code_descriptor(i80286_state *cpustate, UINT16 selector, UINT
 	} else {
 		cpustate->sregs[CS]=selector;
 		cpustate->base[CS]=selector<<4;
-		cpustate->rights[CS]=0x9a;
+		cpustate->rights[CS]=0x93;
 		cpustate->limit[CS]=0xffff;
 		cpustate->pc=(cpustate->base[CS]+offset)&AMASK;
 	}
@@ -811,7 +811,7 @@ static UINT16 i80286_far_return(i8086_state *cpustate, int iret, int bytes)
 		cpustate->regs.w[SP] += (iret?6:4) + bytes;
 		cpustate->sregs[CS]=sel;
 		cpustate->base[CS]=sel<<4;
-		cpustate->rights[CS]=0x9a;
+		cpustate->rights[CS]=0x93;
 		cpustate->limit[CS]=0xffff;
 		cpustate->pc=(cpustate->base[CS]+off)&AMASK;
 	}

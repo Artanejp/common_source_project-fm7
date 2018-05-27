@@ -40,9 +40,8 @@
 #define BOOT_MODE_DEFAULT	1
 #endif
 #define USE_SPECIAL_RESET
-#define USE_FD1
-#define USE_FD2
-#define USE_TAPE1
+#define USE_FLOPPY_DISK		2
+#define USE_TAPE		1
 #define USE_TAPE_BUTTON
 #define NOTIFY_KEY_DOWN
 #define USE_KEY_LOCKED

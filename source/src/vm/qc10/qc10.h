@@ -43,8 +43,7 @@
 // device informations for win32
 #define USE_DIPSWITCH
 #define DIPSWITCH_DEFAULT	0x1f
-#define USE_FD1
-#define USE_FD2
+#define USE_FLOPPY_DISK		2
 #define NOTIFY_KEY_DOWN
 #define USE_SHIFT_NUMPAD_KEY
 #define USE_ALT_F10_KEY

@@ -187,8 +187,27 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_TAPE1
     END
+    POPUP "HD1"
+    BEGIN
+        MENUITEM "Insert",                      ID_OPEN_HD1
+        MENUITEM "Eject",                       ID_CLOSE_HD1
+        MENUITEM SEPARATOR
+        MENUITEM "Recent",                      ID_RECENT_HD1
+    END
+    POPUP "HD2"
+    BEGIN
+        MENUITEM "Insert",                      ID_OPEN_HD2
+        MENUITEM "Eject",                       ID_CLOSE_HD2
+        MENUITEM SEPARATOR
+        MENUITEM "Recent",                      ID_RECENT_HD2
+    END
     POPUP "Device"
     BEGIN
+        POPUP "Drive"
+        BEGIN
+            MENUITEM "Floppy Drive 2DD",        ID_VM_DRIVE_TYPE0
+            MENUITEM "Floppy Drive 2D",         ID_VM_DRIVE_TYPE1
+        END
         POPUP "Sound"
         BEGIN
             MENUITEM "Play FDD Noise",          ID_VM_SOUND_NOISE_FDD
