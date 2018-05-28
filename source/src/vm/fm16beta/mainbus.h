@@ -7,8 +7,8 @@
 	[ main system ]
 */
 
-#ifndef _MAIN_H_
-#define _MAIN_H_
+#ifndef _MAINBUS_H_
+#define _MAINBUS_H_
 
 #include "../memory.h"
 
@@ -43,7 +43,7 @@ class I286;
 class I8237;
 class MB8877;
 
-class MAIN : public MEMORY
+class MAINBUS : public MEMORY
 {
 private:
 #ifdef HAS_I286
@@ -94,11 +94,11 @@ private:
 	void update_int7();
 	
 public:
-	MAIN(VM* parent_vm, EMU* parent_emu) : MEMORY(parent_vm, parent_emu)
+	MAINBUS(VM* parent_vm, EMU* parent_emu) : MEMORY(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Main System"));
 	}
-	~MAIN() {}
+	~MAINBUS() {}
 	
 	// common functions
 	void initialize();

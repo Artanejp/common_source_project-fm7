@@ -35,7 +35,6 @@ void META_MainWindow::retranslateUi(void)
 	retranslateFloppyMenu(2, 2, fdname320);
 	retranslateFloppyMenu(3, 3, fdname320);
 
-	retranslate
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(true);

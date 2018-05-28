@@ -32,7 +32,7 @@
 
 #include "cmos.h"
 #include "keyboard.h"
-#include "main.h"
+#include "mainbus.h"
 #include "sub.h"
 
 // ----------------------------------------------------------------------------
@@ -67,7 +67,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 
 	cmos = new CMOS(this, emu);
 	keyboard = new KEYBOARD(this, emu);
-	mainbus = new MAIN(this, emu);
+	mainbus = new MAINBUS(this, emu);
 	
 
 	

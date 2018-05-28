@@ -8,7 +8,7 @@
 */
 
 #include "keyboard.h"
-#include "main.h"
+#include "mainbus.h"
 #include "../../fifo.h"
 
 

@@ -86,7 +86,7 @@ class PCM1BIT;
 
 class CMOS;
 class KEYBOARD;
-class MAIN;
+class MAINBUS;
 class SUB;
 
 class VM
@@ -111,7 +111,7 @@ protected:
 	PCM1BIT* pcm;
 	
 	CMOS* cmos;
-	MAIN* mainbus;
+	MAINBUS* mainbus;
 	KEYBOARD* keyboard;
 	SUB* subbus;
 	
