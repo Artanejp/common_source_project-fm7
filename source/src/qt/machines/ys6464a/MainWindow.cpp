@@ -16,6 +16,7 @@
 #include "emu.h"
 #include "qt_main.h"
 #include "../../vm/ys6464a/ys6464a.h"
+#include "menu_binary.h"
 
 //QT_BEGIN_NAMESPACE
 

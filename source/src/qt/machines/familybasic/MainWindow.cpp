@@ -10,6 +10,7 @@
 #include <QApplication>
 #include <QVariant>
 #include <QtGui>
+#include <QMenu>
 #include "emu.h"
 #include "commonclasses.h"
 #include "menuclasses.h"

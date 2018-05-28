@@ -14,6 +14,7 @@
 #include "menuclasses.h"
 #include "emu.h"
 #include "qt_main.h"
+#include "menu_binary.h"
 
 //QT_BEGIN_NAMESPACE
 extern config_t config;

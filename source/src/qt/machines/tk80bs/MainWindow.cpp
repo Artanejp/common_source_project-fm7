@@ -10,12 +10,15 @@
 #include <QApplication>
 #include <QVariant>
 #include <QtGui>
+#include <QMenu>
 
 #include "config.h"
 #include "commonclasses.h"
 #include "menuclasses.h"
 #include "emu.h"
 #include "qt_main.h"
+#include "menu_cmt.h"
+#include "menu_binary.h"
 
 extern config_t config;
 //QT_BEGIN_NAMESPACE
@@ -64,10 +67,10 @@ void META_MainWindow::retranslateUi(void)
 #endif
 	action_DipSWs[0]->setText(QApplication::translate("MachineTK80BS", "STEP/AUTO", 0));
 	action_DipSWs[0]->setToolTip(QApplication::translate("MachineTK80BS", "If enabled, interrupt per instruction.\nUseful for debugging.", 0));
-	action_DipSWs[0]->setToolTipVisible(true);
+	action_DipSWs[0]->setVisible(true);
 	
 	menuBootMode->setTitle(QApplication::translate("MachineTK80BS", "BOOT Mode", 0));
-	menuBootMode->setToolTipsVisible(true);
+	menuBootMode->setVisible(true);
 #if defined(_TK80BS)
 	actionBootMode[0]->setText(QString::fromUtf8("L1 BASIC"));
 	actionBootMode[1]->setText(QString::fromUtf8("L2 BASIC"));	
@@ -93,16 +96,16 @@ void META_MainWindow::setupUI_Emu(void)
 	menuMachine->addSeparator();
 	uint32_t _bit = 0x00000001;
 	for(int i = 0; i < 1; i++) {
-		action_DipSWs[i] = Action_Control_TK(this, using_flags);
+		action_DipSWs[i] = new Action_Control_TK(this, using_flags);
 		action_DipSWs[i]->setCheckable(true);
 		action_DipSWs[i]->setVisible(true);
 		action_DipSWs[i]->setEnabled(true);
 		menuMachine->addAction(action_DipSWs[i]);
 		if((config.dipswitch & _bit) != 0) action_DipSWs[i]->setChecked(true);
-		action_DipSWs[i]->setValue1(i);
+		action_DipSWs[i]->tk_binds->setValue1(i);
 		connect(action_DipSWs[i], SIGNAL(toggled(bool)), action_DipSWs[i]->binds, SLOT(do_set_dipsw(bool)));
 		connect(action_DipSWs[i]->binds, SIGNAL(sig_emu_update_config()), this, SLOT(do_emu_update_config()));
-		bit <<= 1;
+		_bit <<= 1;
 	}
 }
 

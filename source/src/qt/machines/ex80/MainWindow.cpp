@@ -15,7 +15,7 @@
 #include "commonclasses.h"
 #include "menuclasses.h"
 #include "qt_main.h"
-
+#include "menu_binary.h"
 
 void Action_Control_EX80::do_set_sw1()
 {

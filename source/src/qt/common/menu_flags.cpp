@@ -302,8 +302,8 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 #endif
 #if defined(USE_BINARY_FILE)
 	use_binary_file = true;
-	max_binary = USE_BINARY;
-	base_binary_num = BASE_BINARY_NUM;
+	max_binary = USE_BINARY_FILE;
+	base_binary_num = BASE_BINARY_FILE_NUM;
 #endif
 #if defined(USE_BUBBLE)
 	use_bubble = true;

@@ -15,6 +15,7 @@
 #include "emu.h"
 #include "qt_main.h"
 #include "../../vm/babbage2nd/babbage2nd.h"
+#include "menu_binary.h"
 
 //QT_BEGIN_NAMESPACE
 
