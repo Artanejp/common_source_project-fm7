@@ -123,6 +123,27 @@ void DISPLAY::initialize()
 	// register event
 	register_frame_event(this);
 	register_vline_event(this);
+
+	// Copy images to draw buffers.
+	my_memcpy(dr_text, text, sizeof(dr_text));
+	my_memcpy(dr_cg, cg, sizeof(dr_cg));
+	my_memcpy(dr_pri_line, pri_line, sizeof(dr_pri_line));
+	my_memcpy(dr_palette_pc, palette_pc, sizeof(dr_palette_pc));
+	dr_priority = priority;
+#ifdef _X1TURBOZ
+	dr_zpriority = zpriority;
+	my_memcpy(dr_zcg, zcg, sizeof(dr_zcg));
+	my_memcpy(dr_aen_line, aen_line, sizeof(dr_aen_line));
+	my_memcpy(dr_zpalette_pc, zpalette_pc, sizeof(zpalette_pc));
+	zpalette_pc[8 + 0] = zpalette_pc[16 + 0x000];
+	zpalette_pc[8 + 1] = zpalette_pc[16 + 0x00f];
+	zpalette_pc[8 + 2] = zpalette_pc[16 + 0x0f0];
+	zpalette_pc[8 + 3] = zpalette_pc[16 + 0x0ff];
+	zpalette_pc[8 + 4] = zpalette_pc[16 + 0xf00];
+	zpalette_pc[8 + 5] = zpalette_pc[16 + 0xf0f];
+	zpalette_pc[8 + 6] = zpalette_pc[16 + 0xff0];
+	zpalette_pc[8 + 7] = zpalette_pc[16 + 0xfff];
+#endif	
 }
 
 void DISPLAY::reset()
@@ -149,6 +170,27 @@ void DISPLAY::reset()
 	
 	kaddr = kofs = kflag = 0;
 	kanji_ptr = &kanji[0];
+
+	// Copy images to draw buffers.
+	my_memcpy(dr_text, text, sizeof(dr_text));
+	my_memcpy(dr_cg, cg, sizeof(dr_cg));
+	my_memcpy(dr_pri_line, pri_line, sizeof(dr_pri_line));
+	my_memcpy(dr_palette_pc, palette_pc, sizeof(dr_palette_pc));
+	dr_priority = priority;
+#ifdef _X1TURBOZ
+	dr_zpriority = zpriority;
+	my_memcpy(dr_zcg, zcg, sizeof(dr_zcg));
+	my_memcpy(dr_aen_line, aen_line, sizeof(dr_aen_line));
+	my_memcpy(dr_zpalette_pc, zpalette_pc, sizeof(zpalette_pc));
+	zpalette_pc[8 + 0] = zpalette_pc[16 + 0x000];
+	zpalette_pc[8 + 1] = zpalette_pc[16 + 0x00f];
+	zpalette_pc[8 + 2] = zpalette_pc[16 + 0x0f0];
+	zpalette_pc[8 + 3] = zpalette_pc[16 + 0x0ff];
+	zpalette_pc[8 + 4] = zpalette_pc[16 + 0xf00];
+	zpalette_pc[8 + 5] = zpalette_pc[16 + 0xf0f];
+	zpalette_pc[8 + 6] = zpalette_pc[16 + 0xff0];
+	zpalette_pc[8 + 7] = zpalette_pc[16 + 0xfff];
+#endif	
 }
 
 void DISPLAY::write_io8(uint32_t addr, uint32_t data)
@@ -541,12 +583,42 @@ void DISPLAY::event_frame()
 	int vt_total = ((regs[4] & 0x7f) + 1) * ch_height + (regs[5] & 0x1f);
 	hireso = (vt_total > 400);
 #endif
-	
+	int vlen;
+#ifdef _X1TURBO_FEATURE
+	vlen = (hireso) ? 400 : 200;
+#else
+	vlen = 200;
+#endif
+	if(vlen > 0) {
+		// Copy images to draw buffers.
+		my_memcpy(dr_text, text, sizeof(uint8_t) * vlen * (640 + 8));
+		my_memcpy(dr_cg, cg, sizeof(uint8_t) * vlen * 640);
+		my_memcpy(dr_pri_line, pri_line, sizeof(uint8_t) * vlen * 8 * 8);
+	}
+	my_memcpy(dr_palette_pc, palette_pc, sizeof(dr_palette_pc));
+	dr_priority = priority;
 	// initialize draw screen
 	memset(text, 0, sizeof(text));
 	memset(cg, 0, sizeof(cg));
 	memset(pri_line, 0, sizeof(pri_line));
 #ifdef _X1TURBOZ
+	if(vlen > 0) {
+	// Copy images to draw buffers.
+		my_memcpy(&(dr_zcg[0][0][0]), &(zcg[0][0][0]), sizeof(uint8_t) * vlen * 640);
+		//my_memcpy(dr_aen_line, aen_line, sizeof(bool) * vlen);
+	}
+	my_memcpy(dr_aen_line, aen_line, sizeof(aen_line));
+	dr_zpriority = zpriority;
+	my_memcpy(dr_zpalette_pc, zpalette_pc, sizeof(zpalette_pc));
+	zpalette_pc[8 + 0] = zpalette_pc[16 + 0x000];
+	zpalette_pc[8 + 1] = zpalette_pc[16 + 0x00f];
+	zpalette_pc[8 + 2] = zpalette_pc[16 + 0x0f0];
+	zpalette_pc[8 + 3] = zpalette_pc[16 + 0x0ff];
+	zpalette_pc[8 + 4] = zpalette_pc[16 + 0xf00];
+	zpalette_pc[8 + 5] = zpalette_pc[16 + 0xf0f];
+	zpalette_pc[8 + 6] = zpalette_pc[16 + 0xff0];
+	zpalette_pc[8 + 7] = zpalette_pc[16 + 0xfff];
+	
 	memset(zcg, 0, sizeof(zcg));
 	memset(aen_line, 0, sizeof(aen_line));
 #endif
@@ -557,6 +629,46 @@ void DISPLAY::event_frame()
 void DISPLAY::event_vline(int v, int clock)
 {
 	cur_vline = v;
+
+#if 0
+	// Copy images to draw buffers.
+	int vlimit;
+#ifdef _X1TURBO_FEATURE
+	vlimit = (hireso) ? 400 : 200;
+#else
+	vlimit = 200;
+#endif
+	if((v > vlimit) || (v < 0)) return;
+	
+	if(v == vlimit) {
+		my_memcpy(dr_palette_pc, palette_pc, sizeof(palette_pc));
+#ifdef _X1TURBOZ
+		my_memcpy(dr_zpalette_pc, zpalette_pc, sizeof(zpalette_pc));
+#endif
+		// Copy images to draw buffers.
+		//my_memcpy(&(dr_text[v][0]), &(text[v][0]), sizeof(uint8_t) * (640 + 8));
+		//my_memcpy(&(dr_cg[v][0]), &(cg[v][0]), sizeof(uint8_t) * 640);
+		//my_memcpy(&(dr_pri_line[v][0][0]), &(pri_line[v][0][0]), sizeof(uint8_t) * 8 * 8);
+#ifdef _X1TURBOZ
+		//my_memcpy(&(dr_zcg[0][v][0]), &(zcg[0][v][0]), sizeof(uint8_t) * 640);
+		//my_memcpy(&(dr_zcg[1][v][0]), &(zcg[1][v][0]), sizeof(uint8_t) * 640);
+		//dr_aen_line[v] = aen_line[v];
+#endif
+	} else if(v == 0) {
+		return;
+	}
+	// Copy images to draw buffers.
+	my_memcpy(&(dr_text[v - 1][0]), &(text[v - 1][0]), sizeof(uint8_t) * (640 + 8));
+	my_memcpy(&(dr_cg[v - 1][0]), &(cg[v -1 ][0]), sizeof(uint8_t) * 640);
+	my_memcpy(&(dr_pri_line[v - 1][0][0]), &(pri_line[v - 1][0][0]), sizeof(uint8_t) * 8 * 8);
+	dr_priority = priority;
+#ifdef _X1TURBOZ
+	my_memcpy(&(dr_zcg[0][v - 1 ][0]), &(zcg[0][v - 1][0]), sizeof(uint8_t) * 640);
+	my_memcpy(&(dr_zcg[1][v - 1][0]), &(zcg[1][v - 1][0]), sizeof(uint8_t) * 640);
+	dr_zpriority = zpriority;
+	dr_aen_line[v - 1] = aen_line[v - 1];
+#endif
+#endif
 }
 
 #ifdef _X1TURBO_FEATURE
@@ -732,14 +844,14 @@ void DISPLAY::draw_screen()
 {
 	// copy to real screen
 #ifdef _X1TURBOZ
-	zpalette_pc[8 + 0] = zpalette_pc[16 + 0x000];
-	zpalette_pc[8 + 1] = zpalette_pc[16 + 0x00f];
-	zpalette_pc[8 + 2] = zpalette_pc[16 + 0x0f0];
-	zpalette_pc[8 + 3] = zpalette_pc[16 + 0x0ff];
-	zpalette_pc[8 + 4] = zpalette_pc[16 + 0xf00];
-	zpalette_pc[8 + 5] = zpalette_pc[16 + 0xf0f];
-	zpalette_pc[8 + 6] = zpalette_pc[16 + 0xff0];
-	zpalette_pc[8 + 7] = zpalette_pc[16 + 0xfff];
+	dr_zpalette_pc[8 + 0] = dr_zpalette_pc[16 + 0x000];
+	dr_zpalette_pc[8 + 1] = dr_zpalette_pc[16 + 0x00f];
+	dr_zpalette_pc[8 + 2] = dr_zpalette_pc[16 + 0x0f0];
+	dr_zpalette_pc[8 + 3] = dr_zpalette_pc[16 + 0x0ff];
+	dr_zpalette_pc[8 + 4] = dr_zpalette_pc[16 + 0xf00];
+	dr_zpalette_pc[8 + 5] = dr_zpalette_pc[16 + 0xf0f];
+	dr_zpalette_pc[8 + 6] = dr_zpalette_pc[16 + 0xff0];
+	dr_zpalette_pc[8 + 7] = dr_zpalette_pc[16 + 0xfff];
 #endif
 #ifdef _X1TURBO_FEATURE
 	if(hireso) {
@@ -749,10 +861,10 @@ void DISPLAY::draw_screen()
 			// 40 columns
 			for(int y = 0; y < 400; y++) {
 				scrntype_t* dest = emu->get_screen_buffer(y);
-				uint8_t* src_text = text[y];
+				uint8_t* src_text = dr_text[y];
 #ifdef _X1TURBOZ
-				if(aen_line[y]) {
-					uint16_t* src_cg0 = zcg[0][y];
+				if(dr_aen_line[y]) {
+					uint16_t* src_cg0 = dr_zcg[0][y];
 					
 					for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
 						uint16_t cg00 = src_cg0[x] | (src_cg0[x] >> 2);
@@ -761,13 +873,13 @@ void DISPLAY::draw_screen()
 					}
 				} else {
 #endif
-					uint8_t* src_cg = cg[y];
+					uint8_t* src_cg = dr_cg[y];
 					
 					for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
 #ifdef _X1TURBOZ
-						dest[x2] = dest[x2 + 1] = zpalette_pc[pri_line[y][src_cg[x]][src_text[x]]];
+						dest[x2] = dest[x2 + 1] = dr_zpalette_pc[dr_pri_line[y][src_cg[x]][src_text[x]]];
 #else
-						dest[x2] = dest[x2 + 1] =  palette_pc[pri_line[y][src_cg[x]][src_text[x]]];
+						dest[x2] = dest[x2 + 1] =  dr_palette_pc[dr_pri_line[y][src_cg[x]][src_text[x]]];
 #endif
 					}
 #ifdef _X1TURBOZ
@@ -778,10 +890,10 @@ void DISPLAY::draw_screen()
 			// 80 columns
 			for(int y = 0; y < 400; y++) {
 				scrntype_t* dest = emu->get_screen_buffer(y);
-				uint8_t* src_text = text[y];
+				uint8_t* src_text = dr_text[y];
 #ifdef _X1TURBOZ
-				if(aen_line[y]) {
-					uint16_t* src_cg0 = zcg[0][y];
+				if(dr_aen_line[y]) {
+					uint16_t* src_cg0 = dr_zcg[0][y];
 					
 					for(int x = 0; x < 640; x++) {
 						uint16_t cg00 = src_cg0[x] | (src_cg0[x] >> 2);
@@ -790,13 +902,13 @@ void DISPLAY::draw_screen()
 					}
 				} else {
 #endif
-					uint8_t* src_cg = cg[y];
+					uint8_t* src_cg = dr_cg[y];
 					
 					for(int x = 0; x < 640; x++) {
 #ifdef _X1TURBOZ
-						dest[x] = zpalette_pc[pri_line[y][src_cg[x]][src_text[x]]];
+						dest[x] = dr_zpalette_pc[dr_pri_line[y][src_cg[x]][src_text[x]]];
 #else
-						dest[x] =  palette_pc[pri_line[y][src_cg[x]][src_text[x]]];
+						dest[x] =  dr_palette_pc[dr_pri_line[y][src_cg[x]][src_text[x]]];
 #endif
 					}
 #ifdef _X1TURBOZ
@@ -816,11 +928,11 @@ void DISPLAY::draw_screen()
 			for(int y = 0; y < 200; y++) {
 				scrntype_t* dest0 = emu->get_screen_buffer(y * 2 + 0);
 				scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1);
-				uint8_t* src_text = text[y];
+				uint8_t* src_text = dr_text[y];
 #ifdef _X1TURBOZ
-				if(aen_line[y]) {
-					uint16_t* src_cg0 = zcg[0][y];
-					uint16_t* src_cg1 = zcg[1][y];
+				if(dr_aen_line[y]) {
+					uint16_t* src_cg0 = dr_zcg[0][y];
+					uint16_t* src_cg1 = dr_zcg[1][y];
 					
 					if(C64) {
 						for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
@@ -839,13 +951,13 @@ void DISPLAY::draw_screen()
 				} else {
 #endif
 					scrntype_t* dest = emu->get_screen_buffer(y);
-					uint8_t* src_cg = cg[y];
+					uint8_t* src_cg = dr_cg[y];
 				
 					for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
 #ifdef _X1TURBOZ
-						dest0[x2] = dest0[x2 + 1] = zpalette_pc[pri_line[y][src_cg[x]][src_text[x]]];
+						dest0[x2] = dest0[x2 + 1] = dr_zpalette_pc[dr_pri_line[y][src_cg[x]][src_text[x]]];
 #else
-						dest0[x2] = dest0[x2 + 1] =  palette_pc[pri_line[y][src_cg[x]][src_text[x]]];
+						dest0[x2] = dest0[x2 + 1] =  dr_palette_pc[dr_pri_line[y][src_cg[x]][src_text[x]]];
 #endif
 					}
 #ifdef _X1TURBOZ
@@ -862,10 +974,10 @@ void DISPLAY::draw_screen()
 			for(int y = 0; y < 200; y++) {
 				scrntype_t* dest0 = emu->get_screen_buffer(y * 2 + 0);
 				scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1);
-				uint8_t* src_text = text[y];
+				uint8_t* src_text = dr_text[y];
 #ifdef _X1TURBOZ
 				if(aen_line[y]) {
-					uint16_t* src_cg0 = zcg[0][y];
+					uint16_t* src_cg0 = dr_zcg[0][y];
 					
 					for(int x = 0; x < 640; x++) {
 						uint16_t cg00 = src_cg0[x] | (src_cg0[x] >> 2);
@@ -874,13 +986,13 @@ void DISPLAY::draw_screen()
 					}
 				} else {
 #endif
-					uint8_t* src_cg = cg[y];
+					uint8_t* src_cg = dr_cg[y];
 					
 					for(int x = 0; x < 640; x++) {
 #ifdef _X1TURBOZ
-						dest0[x] = zpalette_pc[pri_line[y][src_cg[x]][src_text[x]]];
+						dest0[x] = dr_zpalette_pc[dr_pri_line[y][src_cg[x]][src_text[x]]];
 #else
-						dest0[x] =  palette_pc[pri_line[y][src_cg[x]][src_text[x]]];
+						dest0[x] =  dr_palette_pc[dr_pri_line[y][src_cg[x]][src_text[x]]];
 #endif
 					}
 #ifdef _X1TURBOZ
@@ -1182,15 +1294,15 @@ scrntype_t DISPLAY::get_zpriority(uint8_t text, uint16_t cg0, uint16_t cg1)
 {
 	if((mode2 & 8) && (text == (mode2 & 7))) {
 		int digital = ((cg0 >> 9) & 4) | ((cg0 >> 6) & 2) | ((cg0 >> 3) & 1);
-		if(!(priority & (1 << digital))) {
+		if(!(dr_priority & (1 << digital))) {
 			return 0;
 		}
 	}
-	uint16_t fore = ((zpriority & 0x18) != 0x18) ? cg0 : cg1;
-	uint16_t back = ((zpriority & 0x18) != 0x18) ? cg1 : cg0;
+	uint16_t fore = ((dr_zpriority & 0x18) != 0x18) ? cg0 : cg1;
+	uint16_t back = ((dr_zpriority & 0x18) != 0x18) ? cg1 : cg0;
 	uint16_t disp;
 	
-	switch(zpriority & 0x13) {
+	switch(dr_zpriority & 0x13) {
 	case 0x00:
 	case 0x02:
 		disp = text ? text : (fore + 16);
@@ -1218,7 +1330,7 @@ scrntype_t DISPLAY::get_zpriority(uint8_t text, uint16_t cg0, uint16_t cg1)
 //	if((mode2 & 0x20) && disp == (0x00f + 16)) {
 //		return 0;
 //	}
-	return zpalette_pc[disp];
+	return dr_zpalette_pc[disp];
 }
 #endif
 
@@ -1520,6 +1632,27 @@ bool DISPLAY::load_state(FILEIO* state_fio)
 	cur_blank = state_fio->FgetBool();
 	
 	// post process
+	// Copy images to draw buffers.
+	my_memcpy(dr_text, text, sizeof(dr_text));
+	my_memcpy(dr_cg, cg, sizeof(dr_cg));
+	my_memcpy(dr_pri_line, pri_line, sizeof(dr_pri_line));
+	my_memcpy(dr_palette_pc, palette_pc, sizeof(dr_palette_pc));
+	dr_priority = priority;
+#ifdef _X1TURBOZ
+	dr_zpriority = zpriority;
+	my_memcpy(dr_zcg, zcg, sizeof(dr_zcg));
+	my_memcpy(dr_aen_line, aen_line, sizeof(dr_aen_line));
+	my_memcpy(dr_zpalette_pc, zpalette_pc, sizeof(zpalette_pc));
+	zpalette_pc[8 + 0] = zpalette_pc[16 + 0x000];
+	zpalette_pc[8 + 1] = zpalette_pc[16 + 0x00f];
+	zpalette_pc[8 + 2] = zpalette_pc[16 + 0x0f0];
+	zpalette_pc[8 + 3] = zpalette_pc[16 + 0x0ff];
+	zpalette_pc[8 + 4] = zpalette_pc[16 + 0xf00];
+	zpalette_pc[8 + 5] = zpalette_pc[16 + 0xf0f];
+	zpalette_pc[8 + 6] = zpalette_pc[16 + 0xff0];
+	zpalette_pc[8 + 7] = zpalette_pc[16 + 0xfff];
+#endif	
+
 	update_crtc(); // force update timing
 	
 	return true;
