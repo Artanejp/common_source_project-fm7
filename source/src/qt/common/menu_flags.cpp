@@ -308,7 +308,7 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 #if defined(USE_BUBBLE)
 	use_bubble = true;
 	max_bubble = USE_BUBBLE;
-	base_ubble_num = BASE_BUBBLE_NUM;
+	base_bubble_num = BASE_BUBBLE_NUM;
 	#if defined(MAX_B77_BANKS)
 		max_b77_banks = MAX_B77_BANKS;
 	#else

@@ -770,7 +770,7 @@ bool I386_OPS::write_debug_reg(const _TCHAR *reg, uint32_t data)
 	return true;
 }
 
-uint32_t I386::read_debug_reg(const _TCHAR *reg)
+uint32_t I386_OPS::read_debug_reg(const _TCHAR *reg)
 {
 #if defined(USE_DEBUGGER)
 	if(_tcsicmp(reg, _T("IP")) == 0) {
