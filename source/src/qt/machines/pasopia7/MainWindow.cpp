@@ -8,6 +8,7 @@
  */
 
 #include <QVariant>
+#include <QApplication>
 #include <QtGui>
 #include "emu.h"
 #include "commonclasses.h"

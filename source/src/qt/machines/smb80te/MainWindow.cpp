@@ -7,6 +7,7 @@
  * Jan 14, 2015 : Initial, many of constructors were moved to qt/gui/menu_main.cpp.
  */
 
+#include <QApplication>
 #include <QVariant>
 #include <QtGui>
 #include "commonclasses.h"
@@ -29,18 +30,11 @@ void META_MainWindow::do_set_adrs_8000(bool flag)
 void META_MainWindow::retranslateUi(void)
 {
 
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("", false);
-	retranslateCMTMenu(0);
-	retranslateBinaryMenu(0,1);
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateMachineMenu();
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
-	actionAddress8000->setText(QApplication::translate("MainWindow", "SW: ADRS SW 8000", 0));
-	actionAddress8000->setToolTip(QApplication::translate("MainWindow", "SW: ADRS SW 8000", 0));
-		
-	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
+	actionAddress8000->setText(QApplication::translate("MenuSMB80", "SW: ADRS SW 8000", 0));
+	actionAddress8000->setToolTip(QApplication::translate("MenuSMB80", "SW: ADRS SW 8000", 0));
+	menu_BINs[0]->setTitle(QApplication::translate("MenuSMB80", "RAM", 0));
 	// Set Labels
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);

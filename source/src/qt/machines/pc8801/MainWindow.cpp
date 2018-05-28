@@ -9,6 +9,7 @@
 
 #include <QVariant>
 #include <QtGui>
+#include <QApplication>
 #include <QMenu>
 
 #include "commonclasses.h"
@@ -187,10 +188,14 @@ void META_MainWindow::retranslateUi(void)
 	actionPrintDevice[1]->setText(QString::fromUtf8("PC-PR201"));
 	actionPrintDevice[1]->setToolTip(QApplication::translate("MenuPC88", "NEC PC-PR201 kanji serial printer.", 0));
 	actionPrintDevice[1]->setEnabled(false);
-#endif	
+#endif
+	if(actionSoundPlayTape != NULL) actionSoundPlayTape->setEnabled(false);
+	if(action_SoundFilesRelay != NULL) action_SoundFilesRelay->setEnabled(false);
+	
 	actionMemoryWait->setText(QApplication::translate("MenuPC88", "Wait Memory", 0));
 	actionMemoryWait->setToolTip(QApplication::translate("MenuPC88", "Simulate waiting memory.", 0));
 #if defined(USE_MONITOR_TYPE)
+	menu_Emu_DisplayMode->setTitle(QApplication::translate("MenuPC88", "Display Mode", 0));
 	action_Emu_DisplayMode[0]->setText(QApplication::translate("MenuPC88", "High Resolution", 0));
 	action_Emu_DisplayMode[1]->setText(QApplication::translate("MenuPC88", "Standard", 0));
 #endif
@@ -223,11 +228,14 @@ void META_MainWindow::setupUI_Emu(void)
 	connect(actionMemoryWait->pc88_binds, SIGNAL(sig_set_dipsw(int, bool)),
 			this, SLOT(set_dipsw(int, bool)));
 #if defined(USE_MONITOR_TYPE)
+   menu_Emu_DisplayMode = new QMenu(menuMachine);
+   menu_Emu_DisplayMode->setObjectName(QString::fromUtf8("menu_DisplayMode"));
+   
    actionGroup_DisplayMode = new QActionGroup(this);
    actionGroup_DisplayMode->setObjectName(QString::fromUtf8("actionGroup_DisplayMode"));
    actionGroup_DisplayMode->setExclusive(true);
    menuMachine->addAction(menu_Emu_DisplayMode->menuAction());   
-   for(i = 0; i < USE_MONITOR_TYPE; i++) {
+   for(int i = 0; i < USE_MONITOR_TYPE; i++) {
 	   action_Emu_DisplayMode[i] = new Action_Control_88(this, using_flags);
 	   action_Emu_DisplayMode[i]->setCheckable(true);
 	   action_Emu_DisplayMode[i]->pc88_binds->setValue1(i);
@@ -235,7 +243,7 @@ void META_MainWindow::setupUI_Emu(void)
    }
    action_Emu_DisplayMode[0]->setObjectName(QString::fromUtf8("action_Emu_DisplayMode_High"));
    action_Emu_DisplayMode[1]->setObjectName(QString::fromUtf8("action_Emu_DisplayMode_Standard"));
-   for(i = 0; i < 2; i++) {
+   for(int i = 0; i < 2; i++) {
 	   menu_Emu_DisplayMode->addAction(action_Emu_DisplayMode[i]);
 	   actionGroup_DisplayMode->addAction(action_Emu_DisplayMode[i]);
 	   connect(action_Emu_DisplayMode[i], SIGNAL(triggered()),

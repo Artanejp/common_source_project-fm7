@@ -116,7 +116,10 @@ elseif(BUILD_PC9801VX)
    add_definitions(-D_PC9801VX)
    set(EXEC_TARGET emupc9801vx)
    set(VMFILES ${VMFILES}
-       )
+       scsi_host.cpp
+	   scsi_dev.cpp
+	   scsi_hdd.cpp
+   )
    set(VMFILES_LIB 
        not.cpp
        pcm1bit.cpp
@@ -130,6 +133,9 @@ elseif(BUILD_PC98XA)
    add_definitions(-D_PC98XA)
    set(EXEC_TARGET emupc98xa)
    set(VMFILES ${VMFILES}
+       scsi_host.cpp
+	   scsi_dev.cpp
+	   scsi_hdd.cpp
        )
    set(VMFILES_LIB 
        not.cpp
@@ -144,6 +150,9 @@ elseif(BUILD_PC98XL)
    add_definitions(-D_PC98XL)
    set(EXEC_TARGET emupc98xl)
    set(VMFILES ${VMFILES}
+       scsi_host.cpp
+	   scsi_dev.cpp
+	   scsi_hdd.cpp
        )
    set(VMFILES_LIB 
        not.cpp
@@ -172,6 +181,9 @@ elseif(BUILD_PC9801RA)
    add_definitions(-D_PC9801RA)
    set(EXEC_TARGET emupc9801ra)
    set(VMFILES ${VMFILES}
+       scsi_host.cpp
+	   scsi_dev.cpp
+	   scsi_hdd.cpp
        )
    set(VMFILES_LIB 
        not.cpp
@@ -186,6 +198,9 @@ elseif(BUILD_PC98RL)
    add_definitions(-D_PC98RL)
    set(EXEC_TARGET emupc98rl)
    set(VMFILES ${VMFILES}
+       scsi_host.cpp
+	   scsi_dev.cpp
+	   scsi_hdd.cpp
        )
    set(VMFILES_LIB 
        not.cpp
@@ -218,6 +233,9 @@ elseif(BUILD_PC98DOP)
    add_definitions(-D_PC98DOPLUS)
    set(EXEC_TARGET emupc98doplus)
    set(VMFILES ${VMFILES}
+       scsi_host.cpp
+	   scsi_dev.cpp
+	   scsi_hdd.cpp
    )
    set(FLAG_USE_Z80 ON)
    set(VMFILES_LIB ${VMFILES_LIB}

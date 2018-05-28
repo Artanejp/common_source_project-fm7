@@ -9,6 +9,7 @@
 
 #include <QVariant>
 #include <QtGui>
+#include <QApplication>
 #include <QMenu>
 
 #include "commonclasses.h"
@@ -33,7 +34,7 @@ Object_Menu_Control_X1::Object_Menu_Control_X1(QObject *parent, USING_FLAGS *p) 
 Object_Menu_Control_X1::~Object_Menu_Control_X1(){
 }
 
-#ifdef _X1TURBOZ
+#if !defined(_X1)
 void Object_Menu_Control_X1::do_set_display_mode(void)
 {
 	emit sig_display_mode(getValue1());
@@ -45,7 +46,7 @@ extern config_t config;
 void META_MainWindow::setupUI_Emu(void)
 {
    int i;
-# if defined(_X1TURBOZ)
+# if !defined(_X1)
    menu_Emu_DisplayMode = new QMenu(menuMachine);
    menu_Emu_DisplayMode->setObjectName(QString::fromUtf8("menu_DisplayMode"));
    
@@ -90,10 +91,12 @@ void META_MainWindow::retranslateUi(void)
 	actionSoundDevice[1]->setText(QApplication::translate("MachineX1", "CZ-8BS1 Single", 0));
 	actionSoundDevice[2]->setText(QApplication::translate("MachineX1", "CZ-8BS1 Double", 0));
 	
-#if defined(_X1TURBOZ)
+#if !defined(_X1)
 	menu_Emu_DisplayMode->setTitle(QApplication::translate("MachineX1", "Display Mode", 0));
 	action_Emu_DisplayMode[0]->setText(QApplication::translate("MachineX1", "High Resolution (400line)", 0));
 	action_Emu_DisplayMode[1]->setText(QApplication::translate("MachineX1", "Standarsd Resolution (200line)", 0));
+#else
+	menu_Emu_DisplayMode->setVisible(false);
 #endif
 #if defined(USE_KEYBOARD_TYPE)
 	menuKeyboardType->setTitle(QApplication::translate("MachineX1", "Keyboard Mode", 0));
@@ -132,6 +135,7 @@ void META_MainWindow::retranslateUi(void)
 	actionPrintDevice[2]->setText(QString::fromUtf8("PC-PR201"));
 	actionPrintDevice[1]->setToolTip(QApplication::translate("MachineX1", "Sharp MZ-1P17 kanji thermal printer.", 0));
 	actionPrintDevice[2]->setToolTip(QApplication::translate("MachineX1", "NEC PC-PR201 kanji serial printer.", 0));
+	actionPrintDevice[2]->setEnabled(false);
 #endif
 #if defined(_X1TWIN)
 	menu_Cart[0]->setTitle(QApplication::translate("MachineX1", "HuCARD", 0));

@@ -97,9 +97,11 @@ protected:
 	QString qd_text[4];
 	QString fd_text[8];
 	QString fd_lamp[8];
+	QString hdd_text[8];
+	QString hdd_lamp[8];
 	QString cmt_text[4];
-	QString cdrom_text;
-	QString laserdisc_text;
+	QString cdrom_text[4];
+	QString laserdisc_text[4];
 	QString bubble_text[16];
 	QString clipBoardText;
 	QStringList vMovieQueue;

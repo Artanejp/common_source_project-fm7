@@ -7,6 +7,7 @@
  * Jan 14, 2015 : Initial, many of constructors were moved to qt/gui/menu_main.cpp.
  */
 
+#include <QApplication>
 #include <QVariant>
 #include <QtGui>
 #include "emu.h"
@@ -24,6 +25,8 @@ void META_MainWindow::retranslateUi(void)
 {
 	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("System Reset",  false);
+	if(action_SoundFilesRelay != NULL) action_SoundFilesRelay->setEnabled(false);
+	if(action_SoundPlayTape != NULL) action_SoundPlayTape->setEnabled(false);
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(false);

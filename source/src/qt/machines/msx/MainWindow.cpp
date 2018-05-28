@@ -25,6 +25,20 @@ void META_MainWindow::retranslateUi(void)
 {
 	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu(" ",  false);
+#if defined(MSX_PSG_STEREO)
+	actionSoundDevice[0]->setText(QApplication::translate("MachineMSX", "PSG Mono", 0));
+	actionSoundDevice[0]->setToolTip(QApplication::translate("MachineMSX", "Use PSG as monoral.\nCompatibility for generic MSX.", 0));
+	actionSoundDevice[1]->setText(QApplication::translate("MachineMSX", "PSG Stereo", 0));
+	actionSoundDevice[1]->setToolTip(QApplication::translate("MachineMSX", "Use PSG as stereo.\nHX-20's special feature.", 0));
+#endif
+#if defined(USE_PRINTER_TYPE)
+	actionPrintDevice[1]->setText(QApplication::translate("MachineMSX", "MSX PRINTER", 0));
+	actionPrintDevice[1]->setToolTip(QApplication::translate("MachineMSX", "Use MSX spec. printer.", 0));
+	actionPrintDevice[2]->setText(QApplication::translate("MachineMSX", "PC-PR201", 0));
+	actionPrintDevice[2]->setToolTip(QApplication::translate("MachineMSX", "Use NEC PC-PR201 printer.", 0));
+	actionPrintDevice[1]->setEnabled(false);
+	actionPrintDevice[2]->setEnabled(false);
+#endif
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(false);

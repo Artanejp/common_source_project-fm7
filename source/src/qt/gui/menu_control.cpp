@@ -106,6 +106,29 @@ void Ui_MainWindowBase::ConfigCpuSpeed(void)
 	actionGroup_CpuSpeed->addAction(actionSpeed_x4);
 	actionGroup_CpuSpeed->addAction(actionSpeed_x8);
 	actionGroup_CpuSpeed->addAction(actionSpeed_x16);
+	//actionGroup_CpuSpeed->addAction(actionSpeed_FULL);
+
+	switch(using_flags->get_config_ptr()->cpu_power) {
+	case 0:
+		actionSpeed_x1->setChecked(true);
+		break;
+	case 1:
+		actionSpeed_x2->setChecked(true);
+		break;
+	case 2:
+		actionSpeed_x4->setChecked(true);
+		break;
+	case 3:
+		actionSpeed_x8->setChecked(true);
+		break;
+	case 4:
+		actionSpeed_x16->setChecked(true);
+		break;
+	default:
+		using_flags->get_config_ptr()->cpu_power = 0;
+		actionSpeed_x1->setChecked(true);
+		break;
+	}
 }
 void Ui_MainWindowBase::do_change_boot_mode(int mode)
 {

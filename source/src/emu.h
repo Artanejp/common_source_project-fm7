@@ -462,13 +462,13 @@ public:
 	void open_compact_disc(int drv, const _TCHAR* file_path);
 	void close_compact_disc(int drv);
 	bool is_compact_disc_inserted(int drv);
-	uint32_t is_compact_disc_accessed(int drv);
+	uint32_t is_compact_disc_accessed();
 #endif
 #ifdef USE_LASER_DISC
 	void open_laser_disc(int drv, const _TCHAR* file_path);
 	void close_laser_disc(int drv);
 	bool is_laser_disc_inserted(int drv);
-	uint32_t is_laser_disc_accessed(int drv);
+	uint32_t is_laser_disc_accessed();
 #endif
 #ifdef USE_BINARY_FILE
 	void load_binary(int drv, const _TCHAR* file_path);

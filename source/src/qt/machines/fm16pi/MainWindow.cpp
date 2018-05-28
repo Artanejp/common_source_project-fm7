@@ -6,11 +6,8 @@
  *   History :
  * Jan 14, 2015 : Initial, many of constructors were moved to qt/gui/menu_main.cpp.
  */
-#if defined(_USE_QT5)
 #include <QVariant>
-#else
-#include <QtCore/QVariant>
-#endif
+#include <QApplication>
 #include <QtGui>
 #include "menuclasses.h"
 #include "commonclasses.h"

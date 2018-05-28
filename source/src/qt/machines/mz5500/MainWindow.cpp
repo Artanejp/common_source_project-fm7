@@ -7,8 +7,11 @@
  * Jan 14, 2015 : Initial, many of constructors were moved to qt/gui/menu_main.cpp.
  */
 
+#include <QApplication>
 #include <QVariant>
 #include <QtGui>
+#include <QActionGroup>
+#include <QMenu>
 #include "commonclasses.h"
 #include "menuclasses.h"
 #include "emu.h"
@@ -30,6 +33,9 @@ void META_MainWindow::retranslateUi(void)
 #if defined(USE_PRINTER)
 	actionPrintDevice[1]->setText(QString::fromUtf8("MZ-1P17"));
 	actionPrintDevice[1]->setToolTip(QApplication::translate("MainWindow", "Sharp MZ-1P17 kanji thermal printer.", 0));
+	actionPrintDevice[2]->setText(QString::fromUtf8("PC-PR201"));
+	actionPrintDevice[2]->setToolTip(QApplication::translate("MainWindow", "PC-PR201 kanji printer.", 0));
+	actionPrintDevice[2]->setEnabled(false);
 #endif   
 	
 	actionReset->setText(QApplication::translate("MainWindow", "Reset", 0));

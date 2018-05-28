@@ -7,13 +7,48 @@
  * Jan 14, 2015 : Initial, many of constructors were moved to qt/gui/menu_main.cpp.
  */
 
+#include <QApplication>
 #include <QVariant>
 #include <QtGui>
+#include <QActionGroup>
+#include <QMenu>
 #include "commonclasses.h"
 #include "menuclasses.h"
 #include "emu.h"
 #include "qt_main.h"
 #include "vm.h"
+
+Action_Control_MZ25::Action_Control_MZ25(QObject *parent, USING_FLAGS *p) : Action_Control(parent, p)
+{
+	mz25_binds = new Object_Menu_Control_MZ25(parent, p);
+}
+
+Action_Control_MZ25::~Action_Control_MZ25(){
+	delete mz25_binds;
+}
+
+Object_Menu_Control_MZ25::Object_Menu_Control_MZ25(QObject *parent, USING_FLAGS *p) : Object_Menu_Control(parent, p)
+{
+}
+
+Object_Menu_Control_MZ25::~Object_Menu_Control_MZ25(){
+}
+
+void Object_Menu_Control_MZ25::do_set_monitor_type(void)
+{
+#if defined(USE_MONITOR_TYPE)
+	int n = getValue1();
+	if(n < 0) return;
+	if(n >= USE_MONITOR_TYPE) return;
+	config.monitor_type = n;
+	emit sig_update_config();
+#endif
+}
+
+void META_MainWindow::do_mz25_update_config(void)
+{
+	emit sig_emu_update_config();
+}
 
 void META_MainWindow::setupUI_Emu(void)
 {
@@ -21,6 +56,24 @@ void META_MainWindow::setupUI_Emu(void)
 #ifdef USE_CPU_TYPE
 	ConfigCPUTypes(USE_CPU_TYPE);
 #endif
+#if defined(USE_MONITOR_TYPE)
+	menuDisplayType = new QMenu(this);
+	actionGroup_DisplayType = new QActionGroup(this);
+	actionGroup_DisplayType->setExclusive(true);
+	for(int i = 0; i < USE_MONITOR_TYPE; i++) {
+		action_DisplayType[i] = new Action_Control_MZ2500(this, using_flags);
+		action_DisplayType[i]->setCheckable(true);
+		action_DisplayType[i]->setVisible(true);
+		action_DisplayType[i]->mz25_binds->setValue1(i);
+		actionGroup_DisplayType->addAction(action_DisplayType[i]);
+		if(config.monitor_type == i) action_DisplayType[i]->setChecked(true);
+		connect(action_DisplayType[i], SIGNAL(triggered()), action_DisplayType[i]->mz25_binds, SLOT(do_set_monitor_type()));
+		connect(action_DisplayType[i]->mz25_binds, SIGNAL(sig_update_config()), this, SLOT(do_mz25_update_config()));
+		menuDisplayType->addAction(action_DisplayType[i]);
+	}
+	menuMachine->addAction(menuDisplayType->menuAction());
+#endif
+ 
 }
 
 void META_MainWindow::retranslateUi(void)
@@ -48,12 +101,32 @@ void META_MainWindow::retranslateUi(void)
 	actionPrintDevice[1]->setToolTip(QApplication::translate("MachineMZ2500", "Sharp MZ-1P17 Kanji thermal printer.", 0));
 	actionPrintDevice[2]->setText(QString::fromUtf8("PC-PR201"));
 	actionPrintDevice[2]->setToolTip(QApplication::translate("MachineMZ2500", "NEC PC-PR201 Japanese serial printer.", 0));
+	actionPrintDevice[2]->setEnabled(false);
 #else
 	actionPrintDevice[1]->setText(QString::fromUtf8("MZ-1P17 (MZ-1)"));
 	actionPrintDevice[2]->setText(QString::fromUtf8("MZ-1P17 (MZ-3)"));
-	actionPrintDevice[1]->setToolTip(QApplication::translate("MachineMZ2500", "Sharp MZ-1P17 kanji thermal printer (MZ-1).", 0));
-	actionPrintDevice[2]->setToolTip(QApplication::translate("MachineMZ2500", "Sharp MZ-1P17 kanji thermal printer (MZ-3).", 0));
+	actionPrintDevice[1]->setToolTip(QApplication::translate("MachineMZ2500", "Sharp MZ-1P17 thermal printer (MZ-1).", 0));
+	actionPrintDevice[2]->setToolTip(QApplication::translate("MachineMZ2500", "Sharp MZ-1P17 thermal printer (MZ-3).", 0));
 #endif	
+#endif
+#if defined(USE_MONITOR_TYPE)
+	menuDisplayType->setTitle(QApplication::translate("MachineMZ2500", "Monitor Type:", 0));
+#if defined(_MZ2500)
+	action_DisplayType[0]->setText(QApplication::translate("MachineMZ2500", "400Lines, Analog.", 0));
+	action_DisplayType[1]->setText(QApplication::translate("MachineMZ2500", "400Lines, Digital.", 0));
+	action_DisplayType[2]->setText(QApplication::translate("MachineMZ2500", "200Lines, Analog.", 0));
+	action_DisplayType[3]->setText(QApplication::translate("MachineMZ2500", "200Lines, Digital.", 0));
+#elif defined(_MZ2200)
+	action_DisplayType[0]->setText(QApplication::translate("MachineMZ2500", "Color.", 0));
+	action_DisplayType[1]->setText(QApplication::translate("MachineMZ2500", "Green.", 0));
+	action_DisplayType[2]->setText(QApplication::translate("MachineMZ2500", "Both Color and Green.", 0));
+	action_DisplayType[3]->setText(QApplication::translate("MachineMZ2500", "Both Green and Color.", 0));
+#elif defined(_MZ80B)
+	action_DisplayType[0]->setText(QApplication::translate("MachineMZ2500", "Green Monitor.", 0));
+	action_DisplayType[1]->setText(QApplication::translate("MachineMZ2500", "Color Monitor (PIO-3039).", 0));
+	action_DisplayType[2]->setText(QApplication::translate("MachineMZ2500", "Both Green and Color (PIO-3039).", 0));
+	action_DisplayType[3]->setText(QApplication::translate("MachineMZ2500", "Both Color (PIO-3039) and Green.", 0));
+#endif
 #endif
 #if defined(USE_DEBUGGER)
 	actionDebugger[0]->setVisible(true);

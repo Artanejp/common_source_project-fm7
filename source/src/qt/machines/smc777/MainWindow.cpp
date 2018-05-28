@@ -7,6 +7,7 @@
  * Jan 14, 2015 : Initial, many of constructors were moved to qt/gui/menu_main.cpp.
  */
 
+#include <QApplication>
 #include <QVariant>
 #include <QtGui>
 #include "commonclasses.h"
@@ -26,18 +27,9 @@ void META_MainWindow::setupUI_Emu(void)
 
 void META_MainWindow::retranslateUi(void)
 {
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("RESET",  true);
 	actionReset->setVisible(false);
-	retranslateFloppyMenu(0, 1);
-	retranslateFloppyMenu(1, 2);
- 
-	retranslateCMTMenu(0);
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateMachineMenu();
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
-
 	actionSpecial_Reset->setToolTip(QApplication::translate("MainWindow", "Do reset.", 0));
 	
 #if defined(_SMC70)
@@ -47,7 +39,6 @@ void META_MainWindow::retranslateUi(void)
 	actionBootMode[1]->setText(QApplication::translate("MainWindow", "Disk", 0));
 	actionBootMode[2]->setText(QApplication::translate("MainWindow", "Off", 0));
 #endif	
-	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(false);

@@ -7,8 +7,11 @@
  * Jan 14, 2015 : Initial, many of constructors were moved to qt/gui/menu_main.cpp.
  */
 
+#include <QApplication>
 #include <QVariant>
 #include <QtGui>
+#include <QMenu>
+
 #include "commonclasses.h"
 #include "menuclasses.h"
 #include "emu.h"
@@ -36,7 +39,7 @@ void META_MainWindow::retranslateUi(void)
 
 
 	menu_Cart[0]->setTitle(QApplication::translate("MainWindow", "HuCARD", 0));
-	menu_CDROM->setTitle(QApplication::translate("MainWindow", "CD-ROM^2", 0));
+	menu_CDROM[0]->setTitle(QApplication::translate("MainWindow", "CD-ROM^2", 0));
 	
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);

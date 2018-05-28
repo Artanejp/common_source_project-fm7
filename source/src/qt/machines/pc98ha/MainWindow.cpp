@@ -7,8 +7,11 @@
  * Jan 14, 2015 : Initial, many of constructors were moved to qt/gui/menu_main.cpp.
  */
 
+#include <QApplication>
 #include <QVariant>
 #include <QtGui>
+#include <QMenu>
+
 #include "commonclasses.h"
 #include "menuclasses.h"
 #include "emu.h"
@@ -24,19 +27,12 @@ void META_MainWindow::do_set_sound_device(int num)
 void META_MainWindow::retranslateUi(void)
 {
 	const char *title="";
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu(title, false);
-	if(int _drv = 0; _drv < USE_FLOPPY_DISK; _drv++) {
-		retranslateFloppyMenu(_drv, _drv + 1);
-	}		
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateMachineMenu();
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
-   
 #if defined(USE_PRINTER)
 	actionPrintDevice[1]->setText(QString::fromUtf8("PC-PR201"));
 	actionPrintDevice[1]->setToolTip(QApplication::translate("MainWindow", "NEC PC-PR201 kanji serial printer.", 0));
+	actionPrintDevice[1]->setEnabled(false);
 #endif	
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 #ifdef USE_DEBUGGER

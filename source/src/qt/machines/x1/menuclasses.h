@@ -16,11 +16,11 @@ public:
 	Object_Menu_Control_X1(QObject *parent, USING_FLAGS *p);
 	~Object_Menu_Control_X1();
 signals:
-#if defined(_X1TURBOZ)
+#if !defined(_X1)
 	void sig_display_mode(int);
 #endif
 public slots:
-#if defined(_X1TURBOZ)
+#if !defined(_X1)
 	void do_set_display_mode(void);
 #endif
 };
@@ -41,7 +41,7 @@ class CSP_Logger;
 class META_MainWindow : public Ui_MainWindow {
 	Q_OBJECT
 protected:
-#if defined(_X1TURBOZ)  
+#if !defined(_X1)  
 	QActionGroup   *actionGroup_DisplayMode;
 	class Action_Control_X1 *action_Emu_DisplayMode[2]; // 0=Hi / 1 = Lo
 	QMenu *menu_Emu_DisplayMode;

@@ -153,6 +153,7 @@ private:
 	class Action_Control *actionSpeed_x4;
 	class Action_Control *actionSpeed_x8;
 	class Action_Control *actionSpeed_x16;
+	class Action_Control *actionSpeed_FULL;
 	class Action_Control *actionPaste_from_Clipboard;
 	class Action_Control *actionStop_Pasting;
 	QMenu *menuSave_State;
@@ -244,6 +245,7 @@ private:
 	uint32_t osd_led_data;
 
 	// Inner functions
+	
 	void ConfigCpuSpeed(void);
 	void ConfigControlMenu(void);
 	void connectActions_ControlMenu(void);
@@ -554,7 +556,7 @@ public slots:
 		OnCpuPower(pw);
 	}
 	virtual void on_actionExit_triggered();
-
+	void do_emu_full_speed(bool f);
 	void OnStartAutoKey(void);
 	void OnStopAutoKey(void);
 	void eject_cart(int);

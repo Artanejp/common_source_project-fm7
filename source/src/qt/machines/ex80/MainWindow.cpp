@@ -6,7 +6,7 @@
  *   History :
  * Jan 14, 2015 : Initial, many of constructors were moved to qt/gui/menu_main.cpp.
  */
-
+#include <QApplication>
 #include <QVariant>
 #include <QtGui>
 #include <QMenu>
@@ -148,23 +148,23 @@ void META_MainWindow::retranslateUi(void)
 	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("System Reset",  false);
 	
-  
+	if(menu_BINs[0] != NULL) menu_BINs[0]->setTitle(QApplication::translate("MenuEX80", "RAM", 0));
 #ifdef USE_MOUSE
 	actionMouseEnable->setVisible(false);
 #endif
-	menuDipSW1->setTitle(QApplication::translate("Machine", "SW1", 0));
-	actionDipSW1_ON->setText(QApplication::translate("Machine", "STEP", 0));
-	actionDipSW1_OFF->setText(QApplication::translate("Machine", "AUTO", 0));
+	menuDipSW1->setTitle(QApplication::translate("MenuEX80", "SW1", 0));
+	actionDipSW1_ON->setText(QApplication::translate("MenuEX80", "STEP", 0));
+	actionDipSW1_OFF->setText(QApplication::translate("MenuEX80", "AUTO", 0));
 
-	menuDipSW2->setTitle(QApplication::translate("Machine", "SW2", 0));
-	actionDipSW2_ON->setText(QApplication::translate("Machine", "CHAR", 0));
-	actionDipSW2_OFF->setText(QApplication::translate("Machine", "BIT", 0));
+	menuDipSW2->setTitle(QApplication::translate("MenuEX80", "SW2", 0));
+	actionDipSW2_ON->setText(QApplication::translate("MenuEX80", "CHAR", 0));
+	actionDipSW2_OFF->setText(QApplication::translate("MenuEX80", "BIT", 0));
 
-	menuVramAddr->setTitle(QApplication::translate("Machine", "VRAM Address", 0));
-	actionVramAddr[0]->setText(QApplication::translate("Machine", "$8000-$81FF", 0));
-	actionVramAddr[1]->setText(QApplication::translate("Machine", "$8200-$83FF", 0));
-	actionVramAddr[2]->setText(QApplication::translate("Machine", "$8400-$85FF", 0));
-	actionVramAddr[3]->setText(QApplication::translate("Machine", "$8600-$87FF", 0));
+	menuVramAddr->setTitle(QApplication::translate("MenuEX80", "VRAM Address", 0));
+	actionVramAddr[0]->setText(QApplication::translate("MenuEX80", "$8000-$81FF", 0));
+	actionVramAddr[1]->setText(QApplication::translate("MenuEX80", "$8200-$83FF", 0));
+	actionVramAddr[2]->setText(QApplication::translate("MenuEX80", "$8400-$85FF", 0));
+	actionVramAddr[3]->setText(QApplication::translate("MenuEX80", "$8600-$87FF", 0));
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(false);

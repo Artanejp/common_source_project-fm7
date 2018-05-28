@@ -325,6 +325,7 @@ void load_config(const _TCHAR *config_path)
 			for(int i = 0; i < MAX_HISTORY; i++) {
 				MyGetPrivateProfileString(_T("RecentFiles"), create_string(_T("RecentCompactDiscPath%d_%d"), drv + 1, i + 1), _T(""), config.recent_compact_disc_path[drv][i], _MAX_PATH, config_path);
 			}
+		}
 	#endif
 	#ifdef USE_LASER_DISC
 		MyGetPrivateProfileString(_T("RecentFiles"), _T("InitialLaserDiscDir"), _T(""), config.initial_laser_disc_dir, _MAX_PATH, config_path);
@@ -332,6 +333,7 @@ void load_config(const _TCHAR *config_path)
 			for(int i = 0; i < MAX_HISTORY; i++) {
 				MyGetPrivateProfileString(_T("RecentFiles"), create_string(_T("RecentLaserDiscPath%d_%d"), drv + 1, i + 1), _T(""), config.recent_laser_disc_path[drv][i], _MAX_PATH, config_path);
 			}
+		}
 	#endif
 	#ifdef USE_BINARY_FILE
 		MyGetPrivateProfileString(_T("RecentFiles"), _T("InitialBinaryDir"), _T(""), config.initial_binary_dir, _MAX_PATH, config_path);
@@ -554,7 +556,7 @@ void load_config(const _TCHAR *config_path)
 		//csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Read config done.");
 	#endif
 }
-
+		
 void save_config(const _TCHAR *config_path)
 {
 	int drv, i;

@@ -44,6 +44,7 @@ protected:
 	QActionGroup *actionGroup_DisplayMode;
 	class Action_Control_88 *actionMemoryWait; //
 #if defined(USE_MONITOR_TYPE)
+	QMenu *menu_Emu_DisplayMode;
 	class Action_Control_88 *action_Emu_DisplayMode[USE_MONITOR_TYPE]; // 0=Hi / 1 = Lo
 #endif
 	void setupUI_Emu(void);

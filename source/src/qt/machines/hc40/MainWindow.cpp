@@ -7,6 +7,7 @@
  * Jan 14, 2015 : Initial, many of constructors were moved to qt/gui/menu_main.cpp.
  */
 
+#include <QApplication>
 #include <QVariant>
 #include <QtGui>
 #include "emu.h"
@@ -25,7 +26,7 @@ void META_MainWindow::retranslateUi(void)
 	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("System Reset",  true);
 	actionSpecial_Reset->setToolTip(QApplication::translate("MainWindow", "Do system reset.", 0));
-    
+	if(action_SoundFilesFDD != NULL) action_SoundFilesFDD->setEnabled(false); // OK?    
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(false);

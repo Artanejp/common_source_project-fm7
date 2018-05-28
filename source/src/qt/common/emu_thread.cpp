@@ -261,14 +261,16 @@ void EmuThreadClass::get_cd_string(void)
 {
 #if defined(USE_COMPACT_DISC)
 	QString tmpstr;
-	if(p_emu->is_compact_disc_inserted()) {
-		tmpstr = QString::fromUtf8("<FONT COLOR=BLUE>💿</FONT>");  // U+1F4BF OPTICAL DISC
-	} else {
-		tmpstr = QString::fromUtf8("×");
-	}
-	if(tmpstr != cdrom_text) {
-		emit sig_change_access_lamp(CSP_DockDisks_Domain_CD, 0, tmpstr);
-		cdrom_text = tmpstr;
+	for(int i = 0; i < (int)using_flags->get_max_cd(); i++) {
+		if(p_emu->is_compact_disc_inserted(i)) {
+			tmpstr = QString::fromUtf8("<FONT COLOR=BLUE>💿</FONT>");  // U+1F4BF OPTICAL DISC
+		} else {
+			tmpstr = QString::fromUtf8("×");
+		}
+		if(tmpstr != cdrom_text[i]) {
+			emit sig_change_access_lamp(CSP_DockDisks_Domain_CD, i, tmpstr);
+			cdrom_text[i] = tmpstr;
+		}
 	}
 #endif
 }
@@ -357,7 +359,16 @@ void EmuThreadClass::doWork(const QString &params)
 	for(int i = 0; i < using_flags->get_max_tape(); i++) {
 		cmt_text[i].clear();
 	}
-	cdrom_text.clear();
+	for(int i = 0; i < (int)using_flags->get_max_cd(); i++) {
+		cdrom_text[i].clear();
+	}
+	for(int i = 0; i < (int)using_flags->get_max_ld(); i++) {
+		laserdisc_text[i].clear();
+	}
+	for(int i = 0; i < (int)using_flags->get_max_hdd(); i++) {
+		hdd_text[i].clear();
+		hdd_lamp[i].clear();
+	}
 	for(int i = 0; i < using_flags->get_max_bubble(); i++) bubble_text[i].clear();
 
 	_queue_begin = parse_command_queue(virtualMediaList, 0);

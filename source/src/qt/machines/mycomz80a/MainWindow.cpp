@@ -7,6 +7,7 @@
  * Jan 14, 2015 : Initial, many of constructors were moved to qt/gui/menu_main.cpp.
  */
 
+#include <QApplication>
 #include <QVariant>
 #include <QtGui>
 #include "commonclasses.h"
@@ -16,7 +17,6 @@
 
 //QT_BEGIN_NAMESPACE
 
-	
 
 void META_MainWindow::setupUI_Emu(void)
 {

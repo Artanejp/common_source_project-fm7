@@ -26,6 +26,11 @@ void Ui_MainWindowBase::OnSpecialReset(void)
 	emit sig_vm_specialreset();
 }
 
+void Ui_MainWindowBase::do_emu_full_speed(bool flag)
+{
+	using_flags->get_config_ptr()->full_speed = flag;
+}
+
 
 void Ui_MainWindowBase::OnCpuPower(int mode)
 {

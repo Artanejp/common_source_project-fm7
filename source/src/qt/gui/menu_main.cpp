@@ -32,6 +32,7 @@
 #include "mainwidget_base.h"
 //#include "menuclasses.h"
 #include "menu_disk.h"
+#include "menu_harddisk.h"
 #include "menu_cmt.h"
 #include "menu_cart.h"
 #include "menu_quickdisk.h"
@@ -456,49 +457,49 @@ void Ui_MainWindowBase::setupUi(void)
 	menuDebugger->setToolTipsVisible(true);
 	if(using_flags->is_use_fd()) {
 		int base_drv = using_flags->get_base_floppy_disk_num();
-		for(int i = 0; i < using_flags->get_max_drive(); i++) CreateFloppyMenu(i, base_drv);
+		for(int i = 0; i < using_flags->get_max_drive(); i++) CreateFloppyMenu(i, base_drv + i);
 	}
 	if(using_flags->is_use_qd()) {
 		int base_drv = using_flags->get_base_quick_disk_num();
-		for(int i = 0; i < using_flags->get_max_qd(); i++) CreateQuickDiskMenu(i, base_drv);
+		for(int i = 0; i < using_flags->get_max_qd(); i++) CreateQuickDiskMenu(i, base_drv + i);
 	}
 	if(using_flags->is_use_tape()) {
 		int base_drv = using_flags->get_base_tape_num();
-		for(int i = 0; i < using_flags->get_max_tape(); i++) CreateCMTMenu(i, base_drv);
+		for(int i = 0; i < using_flags->get_max_tape(); i++) CreateCMTMenu(i, base_drv + i);
 	}
 	if(using_flags->is_use_hdd()) {
 		int base_drv = using_flags->get_base_hdd_num();
-		for(int i = 0; i < using_flags->get_max_hdd(); i++) CreateHardDiskMenu(i, base_drv);
+		for(int i = 0; i < using_flags->get_max_hdd(); i++) CreateHardDiskMenu(i, base_drv + i);
 	}
 	CreateScreenMenu();
 	if(using_flags->is_use_cart()) {
 		int base_drv = using_flags->get_base_cart_num();
 		for(int i = 0; i < using_flags->get_max_cart(); i++) {
-			CreateCartMenu(i, base_drv);
+			CreateCartMenu(i, base_drv + i);
 		}
 	}
 	if(using_flags->is_use_binary_file()) {
 		int base_drv = using_flags->get_base_binary_num();
 		for(int i = 0; i < using_flags->get_max_binary(); i++) {
-			CreateBinaryMenu(i, base_drv);
+			CreateBinaryMenu(i, base_drv + i);
 		}
 	}
 	if(using_flags->is_use_compact_disc()) {
 		int base_drv = using_flags->get_base_compact_disc_num();
 		for(int i = 0; i < using_flags->get_max_cd(); i++) {
-			CreateCDROMMenu(i, base_drv);
+			CreateCDROMMenu(i, base_drv + i);
 		}
 	}
 	if(using_flags->is_use_laser_disc()) {
 		int base_drv = using_flags->get_base_laser_disc_num();
 		for(int i = 0; i < using_flags->get_max_ld(); i++) {
-			CreateLaserdiscMenu(i, base_drv);
+			CreateLaserdiscMenu(i, base_drv + i);
 		}
 	}
 	if(using_flags->is_use_bubble()) {
 		int base_drv = using_flags->get_base_bubble_num();
 		for(int i = 0; i < using_flags->get_max_bubble(); i++) {
-			CreateBubbleMenu(i, base_drv);
+			CreateBubbleMenu(i, base_drv + i);
 		}
 	}
 	connect(this, SIGNAL(sig_update_screen(void)), graphicsView, SLOT(update(void)));
@@ -554,6 +555,12 @@ void Ui_MainWindowBase::setupUi(void)
 		int i;
 		for(i = 0; i < using_flags->get_max_qd(); i++) {
 			menubar->addAction(menu_QDs[i]->menuAction());
+		}
+	}
+	if(using_flags->is_use_hdd()) {
+		int i;
+		for(i = 0; i < using_flags->get_max_hdd(); i++) {
+			menubar->addAction(menu_hdds[i]->menuAction());
 		}
 	}
 	if(using_flags->is_use_tape()) {
@@ -750,6 +757,9 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 		action_UseRomaKana->setText(QApplication::translate("MenuEmulator", "ROMA-KANA Conversion", 0));
 		action_UseRomaKana->setToolTip(QApplication::translate("MenuEmulator", "Use romaji-kana conversion assistant of emulator.", 0));
 	}
+	actionSpeed_FULL->setText(QApplication::translate("MenuEmulator", "Emulate as FULL SPEED", 0));
+	actionSpeed_FULL->setToolTip(QApplication::translate("MenuEmulator", "Run emulation thread without frame sync.", 0));
+	
 	action_NumPadEnterAsFullkey->setText(QApplication::translate("MenuEmulator", "Numpad's Enter is Fullkey's", 0));
 	action_NumPadEnterAsFullkey->setToolTip(QApplication::translate("MenuEmulator", "Numpad's enter key makes full key's enter.\nUseful for some VMs.", 0));
 
@@ -855,6 +865,9 @@ void Ui_MainWindowBase::CreateEmulatorMenu(void)
 		menuEmulator->addAction(action_UseRomaKana);
 	}
 	menuEmulator->addAction(action_NumPadEnterAsFullkey);
+	menuEmulator->addSeparator();
+	menuEmulator->addAction(actionSpeed_FULL);
+	menuEmulator->addSeparator();
 	menuEmulator->addAction(menu_EmulateCursorAs->menuAction());
 	if(action_Logging_FDC != NULL) {
 		menuEmulator->addSeparator();
@@ -940,6 +953,14 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 					this, SLOT(do_set_emulate_cursor_as(int)));
 		}
 	}
+	
+	actionSpeed_FULL = new Action_Control(this, using_flags);
+	actionSpeed_FULL->setObjectName(QString::fromUtf8("actionSpeed_FULL"));
+	actionSpeed_FULL->setVisible(true);
+	actionSpeed_FULL->setCheckable(true);
+	actionSpeed_FULL->setChecked(false);
+	if(using_flags->get_config_ptr()->full_speed) actionSpeed_FULL->setChecked(true);
+	connect(actionSpeed_FULL, SIGNAL(toggle(bool)), this,SLOT(do_emu_full_speed(bool))); // OK?
 	
 	if(using_flags->is_use_joystick()) {
 		action_SetupJoystick = new Action_Control(this, using_flags);
@@ -1223,7 +1244,54 @@ void Ui_MainWindowBase::retranslateUi(void)
 	retranslateMachineMenu();
 	retranslateEmulatorMenu();
 	retranslateUI_Help();
-   
+	if(using_flags->is_use_binary_file()) {
+		int basedrv = using_flags->get_base_binary_num();
+		for(int i = 0; i < using_flags->get_max_binary(); i++) {
+			retranslateBinaryMenu(i, basedrv);
+		}
+	}
+	if(using_flags->is_use_bubble()) {
+		int basedrv = using_flags->get_base_bubble_num();
+		for(int i = 0; i < using_flags->get_max_bubble(); i++) {
+			retranslateBubbleMenu(i, basedrv);
+		}
+	}
+	if(using_flags->is_use_cart()) {
+		int basedrv = using_flags->get_base_cart_num();
+		for(int i = 0; i < using_flags->get_max_cart(); i++) {
+			retranslateCartMenu(i, basedrv);
+		}
+	}
+	if(using_flags->is_use_compact_disc()) {
+		retranslateCDROMMenu();
+	}
+	if(using_flags->is_use_tape()) {
+		int basedrv = using_flags->get_base_tape_num();
+		for(int i = 0; i < using_flags->get_max_tape(); i++) {
+			retranslateCMTMenu(i);
+		}
+	}
+	if(using_flags->is_use_fd()) {
+		int basedrv = using_flags->get_base_floppy_disk_num();
+		for(int i = 0; i < using_flags->get_max_drive(); i++) {
+			retranslateFloppyMenu(i, basedrv + i);
+		}
+	}
+	if(using_flags->is_use_hdd()) {
+		int basedrv = using_flags->get_base_hdd_num();
+		for(int i = 0; i < using_flags->get_max_hdd(); i++) {
+			retranslateHardDiskMenu(i, basedrv + i);
+		}
+	}
+	if(using_flags->is_use_laser_disc()) {
+		retranslateLaserdiscMenu();
+	}
+	if(using_flags->is_use_qd()) {
+		int basedrv = using_flags->get_base_quick_disk_num();
+		for(int i = 0; i < using_flags->get_max_qd(); i++) {
+			retranslateQuickDiskMenu(i, basedrv);
+		}
+	}
 } // retranslateUi
 
 void Ui_MainWindowBase::doBeforeCloseMainWindow(void)

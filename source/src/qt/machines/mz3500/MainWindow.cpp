@@ -8,7 +8,9 @@
  */
 
 #include <QVariant>
+#include <QApplication>
 #include <QtGui>
+#include <QActionGroup>
 #include <QMenu>
 
 #include "commonclasses.h"
@@ -41,6 +43,21 @@ void Object_Menu_Control_MZ3500::set_dipsw(bool flag)
 	emit sig_dipsw(getValue1(), flag);
 }
 	
+void Object_Menu_Control_MZ3500::do_set_monitor_type(void)
+{
+#if defined(USE_MONITOR_TYPE)
+	int n = getValue1();
+	if(n < 0) return;
+	if(n >= USE_MONITOR_TYPE) return;
+	config.monitor_type = n;
+	emit sig_update_config();
+#endif
+}
+
+void META_MainWindow::do_mz35_update_config(void)
+{
+	emit sig_emu_update_config();
+}
 
 void META_MainWindow::setupUI_Emu(void)
 {
@@ -76,6 +93,23 @@ void META_MainWindow::setupUI_Emu(void)
 	if(((1 << 7) & config.dipswitch) != 0) action_Emu_DipSw[1]->setChecked(true);
 	if(((1 << 8) & config.dipswitch) != 0) action_Emu_DipSw[2]->setChecked(true);
 	
+#if defined(USE_MONITOR_TYPE)
+	menuDisplayType = new QMenu(this);
+	actionGroup_DisplayType = new QActionGroup(this);
+	actionGroup_DisplayType->setExclusive(true);
+	for(int i = 0; i < USE_MONITOR_TYPE; i++) {
+		action_DisplayType[i] = new Action_Control_MZ3500(this, using_flags);
+		action_DisplayType[i]->setCheckable(true);
+		action_DisplayType[i]->setVisible(true);
+		action_DisplayType[i]->mz_binds->setValue1(i);
+		actionGroup_DisplayType->addAction(action_DisplayType[i]);
+		if(config.monitor_type == i) action_DisplayType[i]->setChecked(true);
+		connect(action_DisplayType[i], SIGNAL(triggered()), action_DisplayType[i]->mz_binds, SLOT(do_set_monitor_type()));
+		connect(action_DisplayType[i]->mz_binds, SIGNAL(sig_update_config()), this, SLOT(do_mz35_update_config()));
+		menuDisplayType->addAction(action_DisplayType[i]);
+	}
+	menuMachine->addAction(menuDisplayType->menuAction());
+#endif
 }
 
 void META_MainWindow::retranslateUi(void)
@@ -93,6 +127,13 @@ void META_MainWindow::retranslateUi(void)
 
 	actionPrintDevice[1]->setText(QApplication::translate("MainWindow", "MZ-1P17", 0));
 	actionPrintDevice[1]->setToolTip(QApplication::translate("MainWindow", "Sharp MZ-1P17 kanji thermal printer.", 0));
+#if defined(USE_MONITOR_TYPE)
+	menuDisplayType->setTitle(QApplication::translate("MachineMZ2500", "Monitor Type:", 0));
+	action_DisplayType[0]->setText(QApplication::translate("MachineMZ2500", "400Lines, Analog.", 0));
+	action_DisplayType[1]->setText(QApplication::translate("MachineMZ2500", "400Lines, Digital.", 0));
+	action_DisplayType[2]->setText(QApplication::translate("MachineMZ2500", "200Lines, Analog.", 0));
+	action_DisplayType[3]->setText(QApplication::translate("MachineMZ2500", "200Lines, Digital.", 0));
+#endif
 #if defined(USE_DEBUGGER)
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(true);

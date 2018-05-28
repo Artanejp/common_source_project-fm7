@@ -4,7 +4,7 @@
 
 #include "commonclasses.h"
 #include "mainwidget.h"
-#include <QCheckBox>
+
 // This extends class CSP_MainWindow as Ui_MainWindow.
 // You may use this as 
 QT_BEGIN_NAMESPACE
@@ -34,6 +34,8 @@ public:
 	~Action_Control_98();
 };
 
+class QMenu;
+class QActionGroup;
 class Ui_MainWindow;
 class CSP_Logger;
 class META_MainWindow : public Ui_MainWindow {

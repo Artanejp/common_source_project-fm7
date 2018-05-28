@@ -7,6 +7,7 @@
  * Jan 14, 2015 : Initial, many of constructors were moved to qt/gui/menu_main.cpp.
  */
 
+#include <QApplication>
 #include <QVariant>
 #include <QtGui>
 #include <QMenu>
@@ -56,6 +57,11 @@ void META_MainWindow::retranslateUi(void)
 	const char *title="";
 	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu(title, false);
+
+#if defined(SUPPORT_CMT_IF) || defined(_PC98DO) || defined(_PC98DOPLUS)
+	if(actionSoundPlayTape != NULL) actionSoundPlayTape->setEnabled(false);
+	if(action_SoundFilesRelay != NULL) action_SoundFilesRelay->setEnabled(false);
+#endif
 #if defined(_PC9801) || defined(_PC9801E)
    // Drive 3,4
 	menu_fds[2]->setTitle(QApplication::translate("MainWindow", "2DD-1", 0));
@@ -82,24 +88,32 @@ void META_MainWindow::retranslateUi(void)
 	actionSoundDevice[3]->setToolTip(QApplication::translate("MainWindow", "PC-9801-14 sound board has connected.\nThis uses TI TMS3631-RI104 synthesizer chip.\nOn board BIOS is disabled.", 0));
 	actionSoundDevice[4]->setToolTip(QApplication::translate("MainWindow", "None sound devices has connected.", 0));
 #endif
+#if defined(_PC9801RA) || defined(_PC98XL) || defined(_PC98XA) \
+	|| defined(_PC98RL) || defined(PC9801VX)
+	actionSoundDevice[2]->setVisible(false);
+	actionSoundDevice[3]->setVisible(false);
+#endif
 #ifdef USE_CPU_TYPE
 	menuCpuType->setTitle(QApplication::translate("MainWindow", "CPU Frequency", 0));
 # if  defined(_PC98DO)
-	actionCpuType[0]->setText(QString::fromUtf8("10/8MHz"));
-	actionCpuType[1]->setText(QString::fromUtf8("8/4MHz"));
+	actionCpuType[0]->setText(QString::fromUtf8("V30 10MHz / Z80 8MHz"));
+	actionCpuType[1]->setText(QString::fromUtf8("V30 8MHz  / Z80 4MHz"));
 # elif  defined(_PC98DOPLUS)
-	actionCpuType[0]->setText(QString::fromUtf8("16/8MHz"));
-	actionCpuType[1]->setText(QString::fromUtf8("8/4MHz"));
+	actionCpuType[0]->setText(QString::fromUtf8("V30 16MHz / Z80 8MHz"));
+	actionCpuType[1]->setText(QString::fromUtf8("V30 8MHz  / Z80 4MHz"));
 # elif  defined(_PC9801E) || defined(_PC9801F) || defined(_PC9801M)
-	actionCpuType[0]->setText(QString::fromUtf8("8MHz"));
-	actionCpuType[1]->setText(QString::fromUtf8("5MHz"));
-# elif  defined(_PC9801VX) || defined(_PC9801VM) || defined(_PC9801XL)
-	actionCpuType[0]->setText(QString::fromUtf8("10MHz"));
-	actionCpuType[1]->setText(QString::fromUtf8("8MHz"));
+	actionCpuType[0]->setText(QString::fromUtf8("8086 8MHz"));
+	actionCpuType[1]->setText(QString::fromUtf8("8086 5MHz"));
+# elif  defined(_PC9801VM)
+	actionCpuType[0]->setText(QString::fromUtf8("V30 10MHz"));
+	actionCpuType[1]->setText(QString::fromUtf8("V30 8MHz"));
+# elif  defined(_PC9801VX) || defined(_PC98XL)
+	actionCpuType[0]->setText(QString::fromUtf8("80286 10MHz"));
+	actionCpuType[1]->setText(QString::fromUtf8("80286 8MHz"));
 # elif  defined(_PC9801RA) || defined(_PC98RL)
 	// ToDo: PC98RL's display rotate.
-	actionCpuType[0]->setText(QString::fromUtf8("20MHz"));
-	actionCpuType[1]->setText(QString::fromUtf8("16MHz"));
+	actionCpuType[0]->setText(QString::fromUtf8("80386 20MHz"));
+	actionCpuType[1]->setText(QString::fromUtf8("80386 16MHz"));
 # endif
 #endif
 	
@@ -126,6 +140,7 @@ void META_MainWindow::retranslateUi(void)
 #if defined(USE_PRINTER)
 	actionPrintDevice[1]->setText(QString::fromUtf8("PC-PR201"));
 	actionPrintDevice[1]->setToolTip(QApplication::translate("MainWindow", "NEC PC-PR201 kanji serial printer.", 0));
+	actionPrintDevice[1]->setEnabled(false);
 #endif	
 	// End.
 	// Set Labels
