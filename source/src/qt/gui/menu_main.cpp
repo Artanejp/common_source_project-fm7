@@ -528,7 +528,8 @@ void Ui_MainWindowBase::setupUi(void)
 	ConfigDriveType();
 	ConfigSoundDeviceType();
 	ConfigPrinterType();
-
+	ConfigMonitorType();
+	
 	if(!using_flags->is_without_sound()) {
 		menuSound = new QMenu(menubar);
 		menuSound->setObjectName(QString::fromUtf8("menuSound"));
@@ -803,6 +804,7 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 	if(using_flags->is_use_sound_files_relay()) {
 		action_SoundFilesRelay->setText(QApplication::translate("MenuEmulator", "Sound CMT Relay and Buttons", 0));
 		action_SoundFilesRelay->setToolTip(QApplication::translate("MenuEmulator", "Enable CMT relay's sound and buttons's sounds.\nNeeds sound file.\nSee HELP->READMEs->Bios and Key assigns", 0));
+		if(using_flags->is_tape_binary_only()) action_SoundFilesRelay->setEnabled(false);
 	}
 	menuDevLogToConsole->setTitle(QApplication::translate("MenuEmulator", "Per Device", 0));
 #if !defined(Q_OS_WIN)
@@ -897,6 +899,32 @@ void Ui_MainWindowBase::CreateEmulatorMenu(void)
 	}
 	menuEmulator->addAction(action_SetupKeyboard);
 	menuEmulator->addAction(action_SetupMovie);
+}
+
+void Ui_MainWindowBase::ConfigMonitorType(void)
+{
+	if(using_flags->get_use_monitor_type() > 0) {
+		int ii;
+		menuMonitorType = new QMenu(menuMachine);
+		menuMonitorType->setObjectName(QString::fromUtf8("menuControl_MonitorType"));
+		menuMachine->addAction(menuMonitorType->menuAction());
+		
+		actionGroup_MonitorType = new QActionGroup(this);
+		actionGroup_MonitorType->setExclusive(true);
+		for(ii = 0; ii < using_flags->get_use_monitor_type(); ii++) {
+			actionMonitorType[ii] = new Action_Control(this, using_flags);
+			actionGroup_MonitorType->addAction(actionMonitorType[ii]);
+			actionMonitorType[ii]->setCheckable(true);
+			actionMonitorType[ii]->setVisible(true);
+			actionMonitorType[ii]->binds->setValue1(ii);
+			if(using_flags->get_config_ptr()->monitor_type == ii) actionMonitorType[ii]->setChecked(true);
+			menuMonitorType->addAction(actionMonitorType[ii]);
+			connect(actionMonitorType[ii], SIGNAL(triggered()),
+					actionMonitorType[ii]->binds, SLOT(do_set_monitor_type()));
+			connect(actionMonitorType[ii]->binds, SIGNAL(sig_monitor_type(int)),
+					this, SLOT(set_monitor_type(int)));
+		}
+	}
 }
 
 void Ui_MainWindowBase::ConfigEmulatorMenu(void)
@@ -1232,6 +1260,14 @@ void Ui_MainWindowBase::retranslateMachineMenu(void)
 		}
 		actionPrintDevice[i]->setText(QApplication::translate("MenuMachine", "Not Connect", 0));
 		actionPrintDevice[i]->setToolTip(QApplication::translate("MenuMachine", "None devices connect to printer port.", 0));
+	}
+	if(using_flags->get_use_monitor_type() > 0) {
+		menuMonitorType->setTitle("Monitor Type");
+		menuMonitorType->setToolTipsVisible(true);
+		for(int ii = 0; ii < using_flags->get_use_monitor_type(); ii++) {
+			tmps = QString::fromUtf8("Monitor %1").arg(ii + 1);
+			actionMonitorType[ii]->setText(tmps);
+		}
 	}
 }
 void Ui_MainWindowBase::retranslateUi(void)

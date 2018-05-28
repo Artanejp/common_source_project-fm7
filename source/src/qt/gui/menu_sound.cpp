@@ -205,7 +205,11 @@ void Ui_MainWindowBase::retranslateSoundMenu(void)
 	actionSoundStrictRendering->setToolTip(QApplication::translate("MenuSound", "Rendering per a sample.Select to slower, but accurate rendering sound.", 0));
 	actionSoundPlayTape->setText(QApplication::translate("MenuSound", "Play CMT sound", 0));
 	actionSoundPlayTape->setToolTip(QApplication::translate("MenuSound", "Play sound from CMTs.", 0));
-	
+
+	if(using_flags->is_tape_binary_only()) {
+		actionSoundPlayTape->setEnabled(false);
+	}
+
 	menuSound->setTitle(QApplication::translate("MenuSound", "Sound", 0));
 	menuOutput_Frequency->setTitle(QApplication::translate("MenuSound", "Output Frequency", 0));
 	menuSound_Latency->setTitle(QApplication::translate("MenuSound", "Sound Latency", 0));

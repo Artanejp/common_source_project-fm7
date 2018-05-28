@@ -13,12 +13,19 @@ set(WITH_MOUSE ON)
 set(FLAG_USE_Z80 ON)
 set(VMFILES_2500
 		   w3100a.cpp
+
+		   scsi_host.cpp
+		   scsi_dev.cpp;
+		   scsi_hdd.cpp
+	   
 )
 set(VMFILES_LIB_2500
 		   ls393.cpp
 		   rp5c01.cpp
 		   ym2203.cpp
 		   z80sio.cpp
+
+		   harddisk.cpp
 )
 
 set(VMFILES_BASE
@@ -27,7 +34,7 @@ set(VMFILES_BASE
 		   event.cpp
 		   memory.cpp
 		   io.cpp
-		   
+
 		   )
 set(VMFILES_LIB
 		   noise.cpp
@@ -109,13 +116,6 @@ set(USE_FMGEN OFF)
 
 endif()
 
-if(BUILD_MZ80A)
-set(VMFILES ${VMFILES}
-            mb8877.cpp
-	    disk.cpp
-	    io.cpp )
-#add_definitions(-DSUPPORT_MZ80AIF)
-endif()
 
 
 

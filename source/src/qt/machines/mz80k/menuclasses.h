@@ -22,7 +22,6 @@ signals:
 	int sig_update_config();
 public slots:
 	void set_dipsw(bool);
-	void do_set_monitor_type(void);
 };
 
 class Action_Control_MZ80 : public Action_Control
@@ -39,11 +38,7 @@ class Ui_MainWindow;
 class META_MainWindow : public Ui_MainWindow {
 	Q_OBJECT
 protected:
-	QMenu *menuDisplayType;
-	QActionGroup *actionGroup_DisplayType;
-	
 	Action_Control_MZ80 *action_Emu_DipSw;
-	Action_Control_MZ80 *action_DisplayType[4];
 	
 	void setupUI_Emu(void);
 	void retranslateUi(void);
@@ -51,7 +46,6 @@ public:
 	META_MainWindow(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent = 0);
 	~META_MainWindow();
 public slots:
-	void do_mz_update_config(void);
 };
 
 QT_END_NAMESPACE

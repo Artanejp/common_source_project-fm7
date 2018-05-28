@@ -2,6 +2,7 @@
 #ifndef _CSP_QT_MENUCLASSES_H
 #define _CSP_QT_MENUCLASSES_H
 
+#include "commonclasses.h"
 #include "mainwidget.h"
 // This extends class CSP_MainWindow as Ui_MainWindow.
 // You may use this as 
@@ -20,7 +21,6 @@ public:
 signals:
 	int sig_update_config();
 public slots:
-	void do_set_monitor_type(void);
 };
 
 class Action_Control_MZ25 : public Action_Control
@@ -47,7 +47,6 @@ public:
 	META_MainWindow(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent = 0);
 	~META_MainWindow();
 public slots:
-	void do_mz25_update_config(void);
 		
 };
 

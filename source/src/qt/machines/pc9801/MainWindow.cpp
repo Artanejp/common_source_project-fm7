@@ -34,11 +34,6 @@ void Object_Menu_Control_98::do_set_memory_wait(bool flag)
 	emit sig_set_dipsw(0, flag);
 }
 
-void Object_Menu_Control_98::do_set_display_mode(void)
-{
-	emit sig_display_mode(getValue1());
-}
-
 
 Action_Control_98::Action_Control_98(QObject *parent, USING_FLAGS *p) : Action_Control(parent, p)
 {
@@ -58,10 +53,6 @@ void META_MainWindow::retranslateUi(void)
 	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu(title, false);
 
-#if defined(SUPPORT_CMT_IF) || defined(_PC98DO) || defined(_PC98DOPLUS)
-	if(actionSoundPlayTape != NULL) actionSoundPlayTape->setEnabled(false);
-	if(action_SoundFilesRelay != NULL) action_SoundFilesRelay->setEnabled(false);
-#endif
 #if defined(_PC9801) || defined(_PC9801E)
    // Drive 3,4
 	menu_fds[2]->setTitle(QApplication::translate("MainWindow", "2DD-1", 0));
@@ -162,9 +153,8 @@ void META_MainWindow::retranslateUi(void)
 #endif	
 #endif
 #ifdef USE_MONITOR_TYPE
-	menu_Emu_DisplayMode->setTitle(QApplication::translate("MainWindow", "Display Mode", 0));
-	action_Emu_DisplayMode[0]->setText(QApplication::translate("MainWindow", "High Resolution", 0));
-	action_Emu_DisplayMode[1]->setText(QApplication::translate("MainWindow", "Standard Resolution", 0));
+	actionMonitorType[0]->setText(QApplication::translate("MainWindow", "High Resolution", 0));
+	actionMonitorType[1]->setText(QApplication::translate("MainWindow", "Standard Resolution", 0));
 #endif	
 } // retranslateUi
 
@@ -188,31 +178,6 @@ void META_MainWindow::setupUI_Emu(void)
 	
 #ifdef USE_BOOT_MODE
 	ConfigCPUBootMode(USE_BOOT_MODE);
-#endif
-#ifdef USE_MONITOR_TYPE
-   menu_Emu_DisplayMode = new QMenu(menuMachine);
-   menu_Emu_DisplayMode->setObjectName(QString::fromUtf8("menu_DisplayMode"));
-   
-   actionGroup_DisplayMode = new QActionGroup(this);
-   actionGroup_DisplayMode->setObjectName(QString::fromUtf8("actionGroup_DisplayMode"));
-   actionGroup_DisplayMode->setExclusive(true);
-   menuMachine->addAction(menu_Emu_DisplayMode->menuAction());   
-   for(int i = 0; i < USE_MONITOR_TYPE; i++) {
-	   action_Emu_DisplayMode[i] = new Action_Control_98(this, using_flags);
-	   action_Emu_DisplayMode[i]->setCheckable(true);
-	   action_Emu_DisplayMode[i]->pc98_binds->setValue1(i);
-	   if(i == config.monitor_type) action_Emu_DisplayMode[i]->setChecked(true); // Need to write configure
-   }
-   action_Emu_DisplayMode[0]->setObjectName(QString::fromUtf8("action_Emu_DisplayMode_High"));
-   action_Emu_DisplayMode[1]->setObjectName(QString::fromUtf8("action_Emu_DisplayMode_Standard"));
-   for(int i = 0; i < USE_MONITOR_TYPE; i++) {
-	   menu_Emu_DisplayMode->addAction(action_Emu_DisplayMode[i]);
-	   actionGroup_DisplayMode->addAction(action_Emu_DisplayMode[i]);
-	   connect(action_Emu_DisplayMode[i], SIGNAL(triggered()),
-			   action_Emu_DisplayMode[i]->pc98_binds, SLOT(do_set_display_mode()));
-	   connect(action_Emu_DisplayMode[i]->pc98_binds, SIGNAL(sig_display_mode(int)),
-			   this, SLOT(set_monitor_type(int)));
-   }
 #endif
 
 }

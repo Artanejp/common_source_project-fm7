@@ -23,7 +23,6 @@ public:
 signals:
 	int sig_update_config();
 public slots:
-	void do_set_monitor_type(void);
 };
 
 class Action_Control_PC100 : public Action_Control
@@ -40,9 +39,6 @@ class QActionGroup;
 class META_MainWindow : public Ui_MainWindow {
 	Q_OBJECT
 protected:
-	QMenu *menuDisplayType;
-	QActionGroup *actionGroup_DisplayType;
-	Action_Control_PC100 *action_DisplayTypp[4];
 	
 	void setupUI_Emu(void);
 	void retranslateUi(void);
@@ -50,7 +46,6 @@ public:
 	META_MainWindow(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent = 0);
 	~META_MainWindow();
 public slots:
-	void do_pc100_update_config(void);
 };
 
 QT_END_NAMESPACE

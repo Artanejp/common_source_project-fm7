@@ -117,8 +117,8 @@ elseif(BUILD_PC9801VX)
    set(EXEC_TARGET emupc9801vx)
    set(VMFILES ${VMFILES}
        scsi_host.cpp
-	   scsi_dev.cpp
-	   scsi_hdd.cpp
+       scsi_dev.cpp
+       scsi_hdd.cpp
    )
    set(VMFILES_LIB 
        not.cpp

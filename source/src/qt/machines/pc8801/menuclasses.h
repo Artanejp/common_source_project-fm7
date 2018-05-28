@@ -16,11 +16,8 @@ class Object_Menu_Control_88: public Object_Menu_Control
 	Object_Menu_Control_88(QObject *parent, USING_FLAGS *p);
 	~Object_Menu_Control_88();
 signals:
-	int sig_display_mode(int);
 public slots:
 	void do_set_memory_wait(bool);
-	void do_set_display_mode();
-	
 };
 
 class Action_Control_88 : public Action_Control
@@ -41,12 +38,7 @@ class META_MainWindow : public Ui_MainWindow {
 	Q_OBJECT
 protected:
 	int config_sound_device_type;
-	QActionGroup *actionGroup_DisplayMode;
 	class Action_Control_88 *actionMemoryWait; //
-#if defined(USE_MONITOR_TYPE)
-	QMenu *menu_Emu_DisplayMode;
-	class Action_Control_88 *action_Emu_DisplayMode[USE_MONITOR_TYPE]; // 0=Hi / 1 = Lo
-#endif
 	void setupUI_Emu(void);
 	void retranslateUi(void);
 public:

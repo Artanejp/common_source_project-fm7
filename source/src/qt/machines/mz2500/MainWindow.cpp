@@ -34,44 +34,13 @@ Object_Menu_Control_MZ25::Object_Menu_Control_MZ25(QObject *parent, USING_FLAGS 
 Object_Menu_Control_MZ25::~Object_Menu_Control_MZ25(){
 }
 
-void Object_Menu_Control_MZ25::do_set_monitor_type(void)
-{
-#if defined(USE_MONITOR_TYPE)
-	int n = getValue1();
-	if(n < 0) return;
-	if(n >= USE_MONITOR_TYPE) return;
-	config.monitor_type = n;
-	emit sig_update_config();
-#endif
-}
 
-void META_MainWindow::do_mz25_update_config(void)
-{
-	emit sig_emu_update_config();
-}
 
 void META_MainWindow::setupUI_Emu(void)
 {
 	//menuMachine->setVisible(false);
 #ifdef USE_CPU_TYPE
 	ConfigCPUTypes(USE_CPU_TYPE);
-#endif
-#if defined(USE_MONITOR_TYPE)
-	menuDisplayType = new QMenu(this);
-	actionGroup_DisplayType = new QActionGroup(this);
-	actionGroup_DisplayType->setExclusive(true);
-	for(int i = 0; i < USE_MONITOR_TYPE; i++) {
-		action_DisplayType[i] = new Action_Control_MZ2500(this, using_flags);
-		action_DisplayType[i]->setCheckable(true);
-		action_DisplayType[i]->setVisible(true);
-		action_DisplayType[i]->mz25_binds->setValue1(i);
-		actionGroup_DisplayType->addAction(action_DisplayType[i]);
-		if(config.monitor_type == i) action_DisplayType[i]->setChecked(true);
-		connect(action_DisplayType[i], SIGNAL(triggered()), action_DisplayType[i]->mz25_binds, SLOT(do_set_monitor_type()));
-		connect(action_DisplayType[i]->mz25_binds, SIGNAL(sig_update_config()), this, SLOT(do_mz25_update_config()));
-		menuDisplayType->addAction(action_DisplayType[i]);
-	}
-	menuMachine->addAction(menuDisplayType->menuAction());
 #endif
  
 }
@@ -110,22 +79,21 @@ void META_MainWindow::retranslateUi(void)
 #endif	
 #endif
 #if defined(USE_MONITOR_TYPE)
-	menuDisplayType->setTitle(QApplication::translate("MachineMZ2500", "Monitor Type:", 0));
 #if defined(_MZ2500)
-	action_DisplayType[0]->setText(QApplication::translate("MachineMZ2500", "400Lines, Analog.", 0));
-	action_DisplayType[1]->setText(QApplication::translate("MachineMZ2500", "400Lines, Digital.", 0));
-	action_DisplayType[2]->setText(QApplication::translate("MachineMZ2500", "200Lines, Analog.", 0));
-	action_DisplayType[3]->setText(QApplication::translate("MachineMZ2500", "200Lines, Digital.", 0));
+	actionMonitorType[0]->setText(QApplication::translate("MachineMZ2500", "400Lines, Analog.", 0));
+	actionMonitorType[1]->setText(QApplication::translate("MachineMZ2500", "400Lines, Digital.", 0));
+	actionMonitorType[2]->setText(QApplication::translate("MachineMZ2500", "200Lines, Analog.", 0));
+	actionMonitorType[3]->setText(QApplication::translate("MachineMZ2500", "200Lines, Digital.", 0));
 #elif defined(_MZ2200)
-	action_DisplayType[0]->setText(QApplication::translate("MachineMZ2500", "Color.", 0));
-	action_DisplayType[1]->setText(QApplication::translate("MachineMZ2500", "Green.", 0));
-	action_DisplayType[2]->setText(QApplication::translate("MachineMZ2500", "Both Color and Green.", 0));
-	action_DisplayType[3]->setText(QApplication::translate("MachineMZ2500", "Both Green and Color.", 0));
+	actionMonitorType[0]->setText(QApplication::translate("MachineMZ2500", "Color.", 0));
+	actionMonitorType[1]->setText(QApplication::translate("MachineMZ2500", "Green.", 0));
+	actionMonitorType[2]->setText(QApplication::translate("MachineMZ2500", "Both Color and Green.", 0));
+	actionMonitorType[3]->setText(QApplication::translate("MachineMZ2500", "Both Green and Color.", 0));
 #elif defined(_MZ80B)
-	action_DisplayType[0]->setText(QApplication::translate("MachineMZ2500", "Green Monitor.", 0));
-	action_DisplayType[1]->setText(QApplication::translate("MachineMZ2500", "Color Monitor (PIO-3039).", 0));
-	action_DisplayType[2]->setText(QApplication::translate("MachineMZ2500", "Both Green and Color (PIO-3039).", 0));
-	action_DisplayType[3]->setText(QApplication::translate("MachineMZ2500", "Both Color (PIO-3039) and Green.", 0));
+	actionMonitorType[0]->setText(QApplication::translate("MachineMZ2500", "Green Monitor.", 0));
+	actionMonitorType[1]->setText(QApplication::translate("MachineMZ2500", "Color Monitor (PIO-3039).", 0));
+	actionMonitorType[2]->setText(QApplication::translate("MachineMZ2500", "Both Green and Color (PIO-3039).", 0));
+	actionMonitorType[3]->setText(QApplication::translate("MachineMZ2500", "Both Color (PIO-3039) and Green.", 0));
 #endif
 #endif
 #if defined(USE_DEBUGGER)

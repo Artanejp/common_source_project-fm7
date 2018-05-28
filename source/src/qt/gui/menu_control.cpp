@@ -14,6 +14,10 @@
 #include "menu_flags.h"
 
 //extern USING_FLAGS *using_flags;
+void Object_Menu_Control::do_set_monitor_type()
+{
+	emit sig_monitor_type(getValue1());
+}
 
 void Object_Menu_Control::set_boot_mode(void) {
 	emit on_boot_mode(bindValue);

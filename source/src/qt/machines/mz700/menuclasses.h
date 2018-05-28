@@ -16,9 +16,6 @@ public:
 	Object_Menu_Control_MZ700(QObject *parent, USING_FLAGS *p);
 	~Object_Menu_Control_MZ700();
 signals:
-	void sig_monitor_type(int);
-public slots:
-	void do_monitor_type(void);
 };
 
 class Action_Control_MZ700 : public Action_Control
@@ -40,18 +37,12 @@ protected:
 #if defined(_MZ700)
 	QAction *action_PCG700;
 #endif	
-#if defined(USE_MONITOR_TYPE)     
-	QActionGroup   *actionGroup_MonitorType;
-	QMenu *menuMonitorType;
-	class Action_Control_MZ700 *actionMonitorType[USE_MONITOR_TYPE];
-#endif
 	void setupUI_Emu(void);
 	void retranslateUi(void);
 public:
 	META_MainWindow(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent = 0);
 	~META_MainWindow();
 public slots:
-	void set_monitor_type(int);
 	void do_set_pcg(bool flag);
 signals:
 };

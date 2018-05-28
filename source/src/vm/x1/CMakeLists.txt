@@ -13,6 +13,8 @@ add_library(vm_x1
 	memory.cpp
 	mouse.cpp
 	psub.cpp
+	sasi.cpp
 	sub.cpp
+	
 	x1.cpp
 )

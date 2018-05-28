@@ -16,6 +16,10 @@ set(VMFILES
 		   event.cpp
 		   io.cpp
 		   mz1p17.cpp
+
+		   scsi_host.cpp
+		   scsi_dev.cpp
+		   scsi_hdd.cpp
 )
 set(VMFILES_LIB
 		   noise.cpp
@@ -34,6 +38,7 @@ set(VMFILES_LIB
 		   
 		   disk.cpp
 		   prnfile.cpp
+		   harddisk.cpp
 )
 set(FLAG_USE_MCS48 ON)
 set(FLAG_USE_Z80 ON)

@@ -25,8 +25,6 @@ void META_MainWindow::retranslateUi(void)
 {
 	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("System Reset",  false);
-	if(action_SoundFilesRelay != NULL) action_SoundFilesRelay->setEnabled(false);
-	if(action_SoundPlayTape != NULL) action_SoundPlayTape->setEnabled(false);
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(false);

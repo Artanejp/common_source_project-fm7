@@ -13,7 +13,8 @@
 #include "vm.h"
 #include "../emu.h"
 #include "device.h"
-
+//class EMU;
+//class VM;
 class SCSI_HOST : public DEVICE
 {
 private:

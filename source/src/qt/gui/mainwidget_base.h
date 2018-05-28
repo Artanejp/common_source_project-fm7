@@ -309,6 +309,7 @@ private:
 	void ConfigDriveType(void);
 	void ConfigSoundDeviceType(void);
 	void ConfigPrinterType(void);
+	void ConfigMonitorType(void);
 
 	// About Status bar
 	int Calc_OSD_Wfactor(void);
@@ -399,6 +400,10 @@ protected:
 	class Action_Control *actionStop_Record_Movie;
 	class Action_Control *action_SetupMovie; // 15, 24, 30, 60
 
+	QMenu *menuMonitorType;
+	QActionGroup *actionGroup_MonitorType;
+	Action_Control *actionMonitorType[16];
+	
 	// Menus    
 	QMenu *menuControl;
 	QMenu *menuState;

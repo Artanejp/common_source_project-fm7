@@ -83,9 +83,6 @@ void META_MainWindow::retranslateUi(void)
 	action_Emu_DipSw[2]->setText(QApplication::translate("Machine", "Dip Switch 3", 0));
 	action_Emu_DipSw[3]->setText(QApplication::translate("MainWindow", "Dip Switch 4", 0));
 
-	if(actionSoundPlayTape != NULL) actionSoundPlayTape->setEnabled(false); // OK?
-	if(action_SoundFilesRelay != NULL) action_SoundFilesRelay->setEnabled(false); // OK?    
-
 #ifdef USE_DEBUGGER
 	actionDebugger[1]->setText(QApplication::translate("MainWindow", "TF-20 CPU", 0));
 	actionDebugger[0]->setVisible(true);

@@ -41,21 +41,6 @@ void Object_Menu_Control_MZ80::set_dipsw(bool flag)
 	emit sig_dipsw(getValue1(), flag);
 }
 
-void Object_Menu_Control_MZ80::do_set_monitor_type(void)
-{
-#if defined(USE_MONITOR_TYPE)
-	int n = getValue1();
-	if(n < 0) return;
-	if(n >= USE_MONITOR_TYPE) return;
-	config.monitor_type = n;
-	emit sig_update_config();
-#endif
-}
-
-void META_MainWindow::do_mz_update_config(void)
-{
-	emit sig_emu_update_config();
-}
 
 void META_MainWindow::setupUI_Emu(void)
 {
@@ -75,23 +60,6 @@ void META_MainWindow::setupUI_Emu(void)
 	connect(action_Emu_DipSw->mz_binds, SIGNAL(sig_dipsw(int, bool)),
 			this, SLOT(set_dipsw(int, bool)));
 
-#if defined(USE_MONITOR_TYPE)
-	menuDisplayType = new QMenu(this);
-	actionGroup_DisplayType = new QActionGroup(this);
-	actionGroup_DisplayType->setExclusive(true);
-	for(int i = 0; i < USE_MONITOR_TYPE; i++) {
-		action_DisplayType[i] = new Action_Control_MZ80(this, using_flags);
-		action_DisplayType[i]->setCheckable(true);
-		action_DisplayType[i]->setVisible(true);
-		action_DisplayType[i]->mz_binds->setValue1(i);
-		actionGroup_DisplayType->addAction(action_DisplayType[i]);
-		if(config.monitor_type == i) action_DisplayType[i]->setChecked(true);
-		connect(action_DisplayType[i], SIGNAL(triggered()), action_DisplayType[i]->mz_binds, SLOT(do_set_monitor_type()));
-		connect(action_DisplayType[i]->mz_binds, SIGNAL(sig_update_config()), this, SLOT(do_mz_update_config()));
-		menuDisplayType->addAction(action_DisplayType[i]);
-	}
-	menuMachine->addAction(menuDisplayType->menuAction());
-#endif
 }
 
 void META_MainWindow::retranslateUi(void)
@@ -127,11 +95,10 @@ void META_MainWindow::retranslateUi(void)
 	actionDriveType[1]->setText(QApplication::translate("MachineMZ80K", "2DD", 0));
 #endif
 #if defined(USE_MONITOR_TYPE)
-	menuDisplayType->setTitle(QApplication::translate("MachineMZ80K", "Monitor Type", 0));
-	action_DisplayType[0]->setText(QApplication::translate("MachineMZ80K", "WHITE (MZ-80K)", 0));
-	action_DisplayType[0]->setToolTip(QApplication::translate("MachineMZ80K", "Using MZ-80K's B&W DISPLAY.", 0));
-	action_DisplayType[1]->setText(QApplication::translate("MachineMZ80K", "GREEN (MZ-80C)", 0));
-	action_DisplayType[1]->setToolTip(QApplication::translate("MachineMZ80K", "Using MZ-80C's GREEN DISPLAY.", 0));
+	actionMonitorType[0]->setText(QApplication::translate("MachineMZ80K", "WHITE (MZ-80K)", 0));
+	actionMonitorType[0]->setToolTip(QApplication::translate("MachineMZ80K", "Using MZ-80K's B&W DISPLAY.", 0));
+	actionMonitorType[1]->setText(QApplication::translate("MachineMZ80K", "GREEN (MZ-80C)", 0));
+	actionMonitorType[1]->setToolTip(QApplication::translate("MachineMZ80K", "Using MZ-80C's GREEN DISPLAY.", 0));
 #endif	
 
 #ifdef USE_DEBUGGER

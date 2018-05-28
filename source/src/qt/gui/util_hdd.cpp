@@ -77,11 +77,11 @@ void Ui_MainWindowBase::retranslateHardDiskMenu(int drv, int basedrv)
 void Ui_MainWindowBase::retranslateHardDiskMenu(int drv, int basedrv, QString specName)
 {
 	QString drive_name;
-	drive_name = QString::fromUtf8("[") + QString::number(basedrv) + QString::fromUtf8(":] ");
-	drive_name = drive_name + specName;
+	drive_name = QString::fromUtf8(":");
+	drive_name = specName + drive_name;
 	//drive_name += QString::number(basedrv);
   
-	if((drv < 0) || (drv >= using_flags->get_max_drive())) return;
+	if((drv < 0) || (drv >= using_flags->get_max_hdd())) return;
 	menu_hdds[drv]->setTitle(QApplication::translate("MenuMedia", drive_name.toUtf8().constData() , 0));
 	menu_hdds[drv]->retranslateUi();
 }

@@ -34,45 +34,13 @@ Object_Menu_Control_X1::Object_Menu_Control_X1(QObject *parent, USING_FLAGS *p) 
 Object_Menu_Control_X1::~Object_Menu_Control_X1(){
 }
 
-#if !defined(_X1)
-void Object_Menu_Control_X1::do_set_display_mode(void)
-{
-	emit sig_display_mode(getValue1());
-}
-#endif
 
 extern config_t config;
 
 void META_MainWindow::setupUI_Emu(void)
 {
    int i;
-# if !defined(_X1)
-   menu_Emu_DisplayMode = new QMenu(menuMachine);
-   menu_Emu_DisplayMode->setObjectName(QString::fromUtf8("menu_DisplayMode"));
-   
-   actionGroup_DisplayMode = new QActionGroup(this);
-   actionGroup_DisplayMode->setObjectName(QString::fromUtf8("actionGroup_DisplayMode"));
-   actionGroup_DisplayMode->setExclusive(true);
-   menuMachine->addAction(menu_Emu_DisplayMode->menuAction());   
-   for(i = 0; i < 2; i++) {
-	   action_Emu_DisplayMode[i] = new Action_Control_X1(this, using_flags);
-	   action_Emu_DisplayMode[i]->setCheckable(true);
-	   action_Emu_DisplayMode[i]->x1_binds->setValue1(i);
-	   if(i == config.monitor_type) action_Emu_DisplayMode[i]->setChecked(true); // Need to write configure
-   }
-   
-   action_Emu_DisplayMode[0]->setObjectName(QString::fromUtf8("action_Emu_DisplayMode_High"));
-   action_Emu_DisplayMode[1]->setObjectName(QString::fromUtf8("action_Emu_DisplayMode_Standard"));
-   for(i = 0; i < 2; i++) {
-	   menu_Emu_DisplayMode->addAction(action_Emu_DisplayMode[i]);
-	   actionGroup_DisplayMode->addAction(action_Emu_DisplayMode[i]);
-	   connect(action_Emu_DisplayMode[i], SIGNAL(triggered()),
-			   action_Emu_DisplayMode[i]->x1_binds, SLOT(do_set_display_mode()));
-	   connect(action_Emu_DisplayMode[i]->x1_binds, SIGNAL(sig_display_mode(int)),
-			   this, SLOT(set_monitor_type(int)));
-   }
-#endif
-   
+  
 }
 
 void META_MainWindow::retranslateUi(void)
@@ -91,12 +59,14 @@ void META_MainWindow::retranslateUi(void)
 	actionSoundDevice[1]->setText(QApplication::translate("MachineX1", "CZ-8BS1 Single", 0));
 	actionSoundDevice[2]->setText(QApplication::translate("MachineX1", "CZ-8BS1 Double", 0));
 	
-#if !defined(_X1)
-	menu_Emu_DisplayMode->setTitle(QApplication::translate("MachineX1", "Display Mode", 0));
-	action_Emu_DisplayMode[0]->setText(QApplication::translate("MachineX1", "High Resolution (400line)", 0));
-	action_Emu_DisplayMode[1]->setText(QApplication::translate("MachineX1", "Standarsd Resolution (200line)", 0));
+#if defined(_X1)
+	menuMonitorType->deleteLater();
+	//menuMonitorType->setVisible(false);
+	//actionMonitorType[0]->setVisible(false);
+	//actionMonitorType[1]->setVisible(false);
 #else
-	menu_Emu_DisplayMode->setVisible(false);
+	actionMonitorType[0]->setText(QApplication::translate("MachineX1", "High Resolution (400line)", 0));
+	actionMonitorType[1]->setText(QApplication::translate("MachineX1", "Standarsd Resolution (200line)", 0));
 #endif
 #if defined(USE_KEYBOARD_TYPE)
 	menuKeyboardType->setTitle(QApplication::translate("MachineX1", "Keyboard Mode", 0));
