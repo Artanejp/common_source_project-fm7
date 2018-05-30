@@ -988,6 +988,9 @@ void VM::decl_state(void)
 	state_entry = new csp_state_utils(STATE_VERSION, 0, CONFIG_NAME);
 	DECL_STATE_ENTRY_BOOL(pseudo_sub_cpu);
 	DECL_STATE_ENTRY_INT32(sound_type);
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		device->decl_state();
+	}
 }
 void VM::save_state(FILEIO* state_fio)
 {

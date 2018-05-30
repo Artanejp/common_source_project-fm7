@@ -64,7 +64,6 @@ DISPLAY::DISPLAY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 #endif
 	force_update = true;
 	set_device_name(_T("DISPLAY SUBSYSTEM"));
-	decl_state();
 }
 
 DISPLAY::~DISPLAY()

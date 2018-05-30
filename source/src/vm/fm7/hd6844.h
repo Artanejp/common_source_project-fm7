@@ -103,7 +103,6 @@ protected:
 		initialize_output_signals(&interrupt_line);
 		for(i = 0; i < 2; i++) initialize_output_signals(&(busreq_line[i]));
 		set_device_name(_T("HD6844 DMAC"));
-		decl_state();
 	}
 	~HD6844(){}
 	void event_callback(int event_id, int err);

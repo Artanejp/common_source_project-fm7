@@ -1222,6 +1222,9 @@ void VM::decl_state(void)
 	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM7_SERIES_HEAD")));
 	DECL_STATE_ENTRY_BOOL(connect_320kfdc);
 	DECL_STATE_ENTRY_BOOL(connect_1Mfdc);
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		device->decl_state();
+	}
 }
 
 void VM::save_state(FILEIO* state_fio)
@@ -1247,7 +1250,7 @@ bool VM::load_state(FILEIO* state_fio)
 	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		if(!device->load_state(state_fio)) {
-			printf("Load Error: DEVID=%d\n", device->this_device_id);
+			//printf("Load Error: DEVID=%d\n", device->this_device_id);
 			return false;
 		}
 	}

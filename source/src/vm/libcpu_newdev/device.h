@@ -74,6 +74,7 @@ public:
 	{
 		return true;
 	}
+	virtual void decl_state(void) {}
 	
 	// control
 	virtual void reset() {}

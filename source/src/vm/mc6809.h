@@ -544,7 +544,6 @@ public:
 		initialize_output_signals(&outputs_bus_ba);
 		initialize_output_signals(&outputs_bus_bs);
 		set_device_name(_T("MC6809 MPU"));
-		decl_state();
 	}
 	~MC6809_BASE() {}
 	

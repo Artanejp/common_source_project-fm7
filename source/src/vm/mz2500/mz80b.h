@@ -86,6 +86,7 @@ static const _TCHAR *sound_device_caption[] = {
 };
 #endif
 
+class csp_state_utils;
 class EMU;
 class DEVICE;
 class EVENT;
@@ -123,6 +124,7 @@ class VM
 {
 protected:
 	EMU* emu;
+	csp_state_utils* state_entry;
 	
 	// devices
 	EVENT* event;
@@ -220,6 +222,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

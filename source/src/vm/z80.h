@@ -263,7 +263,6 @@ public:
 		initialize_output_signals(&outputs_busack);
 		set_device_name(_T("Z80 CPU"));
 
-		decl_state();
 	}
 	~Z80_BASE() {}
 	

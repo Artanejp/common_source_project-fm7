@@ -116,7 +116,6 @@ class MB61VH010: public DEVICE {
 		target = NULL;
 		direct_access_offset = 0;
 		set_device_name(_T("MB61VH010 ALU"));
-		decl_state();
 	}
 	~MB61VH010() {}
 

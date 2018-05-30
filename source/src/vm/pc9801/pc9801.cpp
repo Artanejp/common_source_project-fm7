@@ -900,11 +900,13 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pc88cpu_sub->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 #endif
-	
+
 	// initialize all devices
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
+	decl_state();
+	
 #if defined(_PC9801) || defined(_PC9801E)
 	fdc_2hd->get_disk_handler(0)->drive_num = 0;
 	fdc_2hd->get_disk_handler(1)->drive_num = 1;
@@ -1618,26 +1620,43 @@ void VM::update_config()
 
 #define STATE_VERSION	13
 
+#include "../../statesub.h"
+
+void VM::decl_state(void)
+{
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC98_SERIES_HEAD")));
+	DECL_STATE_ENTRY_BOOL(pit_clock_8mhz);
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
+	DECL_STATE_ENTRY_INT32(boot_mode);
+#endif
+	DECL_STATE_ENTRY_INT32(sound_type);
+#if defined(USE_HARD_DISK) && defined(OPEN_HARD_DISK_IN_RESET)
+	DECL_STATE_ENTRY_MULTI(void, hd_file_path, sizeof(hd_file_path));
+
+#endif
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		device->decl_state();
+	}
+}
+
 void VM::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->save_state(state_fio);
 	}
-	state_fio->FputBool(pit_clock_8mhz);
-#if defined(_PC98DO) || defined(_PC98DOPLUS)
-	state_fio->FputInt32(boot_mode);
-#endif
-	state_fio->FputInt32(sound_type);
-#if defined(USE_HARD_DISK) && defined(OPEN_HARD_DISK_IN_RESET)
-	state_fio->Fwrite(hd_file_path, sizeof(hd_file_path), 1);
-#endif
 }
 
 bool VM::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
+		emu->out_debug_log("INFO: HEADER DATA ERROR");
 		return false;
 	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
@@ -1645,14 +1664,6 @@ bool VM::load_state(FILEIO* state_fio)
 			return false;
 		}
 	}
-	pit_clock_8mhz = state_fio->FgetBool();
-#if defined(_PC98DO) || defined(_PC98DOPLUS)
-	boot_mode = state_fio->FgetInt32();
-#endif
-	sound_type = state_fio->FgetInt32();
-#if defined(USE_HARD_DISK) && defined(OPEN_HARD_DISK_IN_RESET)
-	state_fio->Fread(hd_file_path, sizeof(hd_file_path), 1);
-#endif
 	return true;
 }
 

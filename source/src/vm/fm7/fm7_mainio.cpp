@@ -192,7 +192,6 @@ FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, paren
 	initialize_output_signals(&nmi_bus);
 	
 	set_device_name(_T("MAIN I/O"));
-	decl_state();
 }
 
 FM7_MAINIO::~FM7_MAINIO()
@@ -2130,10 +2129,12 @@ void FM7_MAINIO::decl_state(void)
 	DECL_STATE_ENTRY_UINT32_ARRAY(opn_stat, 4);
 	DECL_STATE_ENTRY_UINT8_ARRAY(opn_cmdreg, 4);
 	DECL_STATE_ENTRY_UINT8_ARRAY(opn_ch3mode, 4);
-	DECL_STATE_ENTRY_MULTI(void, opn_regs[0], 0x100 * sizeof(uint8_t));
-	DECL_STATE_ENTRY_MULTI(void, opn_regs[1], 0x100 * sizeof(uint8_t));
-	DECL_STATE_ENTRY_MULTI(void, opn_regs[2], 0x100 * sizeof(uint8_t));
-	DECL_STATE_ENTRY_MULTI(void, opn_regs[3], 0x100 * sizeof(uint8_t));
+	
+	DECL_STATE_ENTRY_2D_ARRAY(opn_regs, 4, 0x100);
+	//DECL_STATE_ENTRY_MULTI(void, opn_regs[0], 0x100 * sizeof(uint8_t));
+	//DECL_STATE_ENTRY_MULTI(void, opn_regs[1], 0x100 * sizeof(uint8_t));
+	//DECL_STATE_ENTRY_MULTI(void, opn_regs[2], 0x100 * sizeof(uint8_t));
+	//DECL_STATE_ENTRY_MULTI(void, opn_regs[3], 0x100 * sizeof(uint8_t));
 		//for(int ch = 0; ch < 4; ch++) {
 		//	DECL_STATE_ENTRY_MULTI(void, opn_regs[ch], 0x100 * sizeof(uint8_t));
 		//}
