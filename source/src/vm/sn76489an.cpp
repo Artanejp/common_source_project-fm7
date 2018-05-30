@@ -225,7 +225,7 @@ bool SN76489AN::load_state(FILEIO* state_fio)
 	}
 	state_fio->Fread(regs, sizeof(regs), 1);
 	index = state_fio->FgetInt32();
-	state_fio->Fwrite(ch, sizeof(ch), 1);
+	state_fio->Fread(ch, sizeof(ch), 1);
 	noise_gen = state_fio->FgetUint32();
 	mute = state_fio->FgetBool();
 	cs = state_fio->FgetBool();
