@@ -132,7 +132,7 @@ public:
 		listptr.push_back(_l);
 	};
 	template <class T>
-		void add_entry_vararray(_TCHAR *__name, T *p, void *datalen)
+		void add_entry_vararray(_TCHAR *__name, T **p, void *datalen)
 	{
 		__list_t _l;
 		
@@ -200,17 +200,17 @@ public:
 	
 			
 #define DECL_STATE_ENTRY0(_n_name, __list) {				  \
-		__list->add_entry(_T(#_n_name), &_n_name);		  \
+		__list->add_entry((const _TCHAR *)_T(#_n_name), &_n_name);		  \
 	}
 
 #define DECL_STATE_ENTRY1(_n_name, __list, __len) {				\
-		__list->add_entry(_T(#_n_name), _n_name, __len);		\
+		__list->add_entry((const _TCHAR *)_T(#_n_name), _n_name, __len);		\
 	}
 
 #define DECL_STATE_ENTRY_MULTI0(__type, _n_name, __list, __size) {		\
-		__list->add_entry(_T(#_n_name), (uint8_t *)_n_name, __size * sizeof(__type)); \
+		__list->add_entry((const _TCHAR *)_T(#_n_name), (uint8_t *)_n_name, __size * sizeof(__type)); \
 	}
-
+   
 #define DECL_STATE_ENTRY_INT(___name) DECL_STATE_ENTRY0(___name, state_entry)
 
 #define DECL_STATE_ENTRY_UINT8(___name) DECL_STATE_ENTRY0(___name, state_entry)
@@ -244,20 +244,30 @@ public:
 
 #define DECL_STATE_ENTRY_MULTI(_n_type, ___name, ___size) DECL_STATE_ENTRY_MULTI0(_n_type, ___name, state_entry, ___size)
 
+
+#define DECL_STATE_ENTRY_1DARRAY(___name, ___lenvar) { \
+		state_entry->add_entry((const _TCHAR *)(_T(#___name)), ___name, ___lenvar); \
+	}
+
 #define DECL_STATE_ENTRY_2D_ARRAY(___name, __len1, __len2) {		\
 		int __tmplen = ((int)__len1 * (int)__len2);					\
-		state_entry->add_entry(_T(#___name), &(___name[0][0]), __tmplen); \
+		state_entry->add_entry((const _TCHAR *)(_T(#___name)), &(___name[0][0]), __tmplen); \
 	}
 
 #define DECL_STATE_ENTRY_3D_ARRAY(___name, __len1, __len2, __len3) {	\
 		int __tmplen = ((int)__len1 * (int)__len2 * (int)__len3);		\
-		state_entry->add_entry(_T(#___name), &(___name[0][0][0]), __tmplen); \
+		state_entry->add_entry((const _TCHAR *)_T(#___name), &(___name[0][0][0]), __tmplen); \
 	}
-
-
 
 #define DECL_STATE_ENTRY_VARARRAY_VAR(_n_name, __sizevar) {				\
-		state_entry->add_entry_vararray(_T(#_n_name), _n_name, (void *)(&__sizevar)); \
+		state_entry->add_entry_vararray((const _TCHAR *)_T(#_n_name), &_n_name, (void *)(&__sizevar)); \
 	}
+
+#define DECL_STATE_ENTRY_SINGLE(___name) { \
+		state_entry->add_entry((const _TCHAR *)_T(#___name) , &___name); \
+	}
+
+   
+
 
 #endif /* _CSP_STATE_SUB_H */

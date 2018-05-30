@@ -1016,7 +1016,7 @@ bool csp_state_utils::save_state(FILEIO *__fio, uint32_t *pcrc)
 	fio = new csp_state_data_saver(__fio);
 	if(fio != NULL) {
 		for(auto p = listptr.begin(); p != listptr.end(); ++p) {
-			void *pp = (*p).ptr;
+			void *pp = NULL;
 			int _tid = (*p).type_id;
 			int _asize = (*p).atomlen;
 			int _len = (*p).len;
@@ -1025,8 +1025,15 @@ bool csp_state_utils::save_state(FILEIO *__fio, uint32_t *pcrc)
 			if((_tid & csp_saver_entry_vararray) != 0) {
 				if((*p).datalenptr != NULL) {
 					_len = *((*p).datalenptr);
+				} else {
+					_len = 0;
 				}
+				(*p).len =_len;
 				_tid = _tid & ((int)~csp_saver_entry_vararray);
+				void **xp = (void **)((*p).ptr);
+				if(*xp != NULL) pp = (void *)(*xp);
+			} else {
+				pp = (*p).ptr;
 			}
 			if(pp != NULL) {
 				switch(_tid) {
@@ -1280,18 +1287,29 @@ bool csp_state_utils::load_state(FILEIO *__fio, uint32_t *pcrc)
 	out_debug_log("LOAD STATE: NAME=%s DEVID=%d VER=%d", __classname, this_device_id, class_version);
 	if(fio != NULL) {
 		for(auto p = listptr.begin(); p != listptr.end(); ++p) {
-			void *pp = (*p).ptr;
+			void *pp = NULL;
 			int _tid = (*p).type_id;
 			int _asize = (*p).atomlen;
 			int _len = (*p).len;
 			std::string _name = (*p).name;
 			if((_tid & csp_saver_entry_vararray) != 0) {
 				if((*p).datalenptr != NULL) {
-					_len = *((*p).datalenptr);
+					*((*p).datalenptr) = _len;
 				}
+				void **xp = (void **)((*p).ptr);
+				if(*xp != NULL) {
+			   		free(*xp);
+					*xp = NULL;
+			   		if(_len > 0) {
+						*xp = malloc(_asize * _len);
+					}
+					pp = *xp;
+				}					
+			   
 				_tid = _tid & ((int)~csp_saver_entry_vararray);
+ 			} else {
+				pp = (*p).ptr;
 			}
-			
 			bool _stat;
 			out_debug_log("ENTRY: NAME=%s TID=%d ASIZE=%d LEN=%d HEAD=%08x ->", _name.c_str(), _tid, _asize, _len, pp);
 			if(pp != NULL) {
