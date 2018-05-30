@@ -63,9 +63,9 @@ void META_MainWindow::retranslateUi(void)
 	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu(title, false);
 #ifdef USE_DEBUGGER
-	actionDebugger[0]->setText(QApplication::translate("MainWindow", "Main CPU", 0));
-	actionDebugger[1]->setText(QApplication::translate("MainWindow", "Sub  CPU", 0));
-	actionDebugger[2]->setText(QApplication::translate("MainWindow", "PC-80S31K", 0));
+	actionDebugger[0]->setText(QApplication::translate("MenuPC6001", "Main CPU", 0));
+	actionDebugger[1]->setText(QApplication::translate("MenuPC6001", "Sub  CPU", 0));
+	actionDebugger[2]->setText(QApplication::translate("MenuPC6001", "PC-80S31K", 0));
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(true);
 	actionDebugger[2]->setVisible(true);
@@ -73,7 +73,7 @@ void META_MainWindow::retranslateUi(void)
 #endif	
 #if defined(USE_PRINTER)
 	actionPrintDevice[1]->setText(QString::fromUtf8("PC-PR201"));
-	actionPrintDevice[1]->setToolTip(QApplication::translate("NEC PC-PR201 kanji serial printer."));
+	actionPrintDevice[1]->setToolTip(QApplication::translate("MenuPC6001", "NEC PC-PR201 kanji serial printer.", 0));
 	actionPrintDevice[1]->setEnabled(false);
 #endif
 

@@ -6,6 +6,7 @@
 
 #include "emu.h"
 #include "mainwidget.h"
+#include "commonclasses.h"
 // This extends class CSP_MainWindow as Ui_MainWindow.
 // You may use this as 
 QT_BEGIN_NAMESPACE

@@ -320,6 +320,10 @@ typedef struct {
 	bool dev_log_to_console[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1][8];
 	bool dev_log_recording[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1][8];
 
+	bool state_log_to_console;
+	bool state_log_to_syslog;
+	bool state_log_to_recording;
+	
 	int rendering_type;
 
 	int virtual_media_position; // -1 = none, 1, 2, 3, 4 = LRUD

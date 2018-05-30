@@ -10,6 +10,7 @@
 #include <QApplication>
 #include <QVariant>
 #include <QtGui>
+#include <QMenu>
 #include "emu.h"
 #include "commonclasses.h"
 #include "menuclasses.h"
@@ -26,7 +27,7 @@ void META_MainWindow::retranslateUi(void)
 	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("System Reset",  true);
 	actionSpecial_Reset->setToolTip(QApplication::translate("MainWindow", "Do system reset.", 0));
-	if(action_SoundFilesFDD != NULL) action_SoundFilesFDD->setEnabled(false); // OK?    
+
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(false);

@@ -200,6 +200,9 @@ void initialize_config()
 				config.dev_log_recording[ii][jj] = true;
 			}
 		}
+		config.state_log_to_console = false;
+		config.state_log_to_syslog = false;
+		config.state_log_to_recording = false; 
 		
 		config.rendering_type = CONFIG_RENDER_TYPE_STD;
 		config.virtual_media_position = 2; // Down.
@@ -552,6 +555,10 @@ void load_config(const _TCHAR *config_path)
 			flags >>= 1;
 			}
 		}
+		config.state_log_to_console = MyGetPrivateProfileInt(_T("Qt"), _T("StateLogToConsole"), config.state_log_to_console, config_path);;
+		config.state_log_to_syslog = MyGetPrivateProfileInt(_T("Qt"), _T("StateLogToSyslog"), config.state_log_to_syslog, config_path);;
+		config.state_log_to_recording = MyGetPrivateProfileInt(_T("Qt"), _T("StateLogToRecording"), config.state_log_to_recording, config_path);;
+
 		config.virtual_media_position = MyGetPrivateProfileInt(_T("Qt"), _T("UiVirtualMediaPosition"), config.virtual_media_position, config_path);
 		//csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Read config done.");
 	#endif
@@ -844,6 +851,10 @@ void save_config(const _TCHAR *config_path)
 			}
 			MyWritePrivateProfileInt(_T("Qt"), create_string(_T("RecordLogEnabled%d"), ii), flags, config_path);
 		}
+		MyWritePrivateProfileInt(_T("Qt"), _T("StateLogToConsole"), config.state_log_to_console, config_path);
+		MyWritePrivateProfileInt(_T("Qt"), _T("StateLogToSyslog"), config.state_log_to_syslog, config_path);
+		MyWritePrivateProfileInt(_T("Qt"), _T("StateLogToRecording"), config.state_log_to_recording, config_path);
+		
 		MyWritePrivateProfileInt(_T("Qt"), _T("UiVirtualMediaPosition"), config.virtual_media_position, config_path);
 		//csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Write config done.");
 	#endif	
