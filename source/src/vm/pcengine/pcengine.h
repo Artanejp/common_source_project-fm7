@@ -66,6 +66,7 @@ static const _TCHAR *joy_button_captions[] = {
 };
 #endif
 
+class csp_state_utils;
 class EMU;
 class DEVICE;
 class EVENT;
@@ -80,6 +81,7 @@ class VM
 {
 protected:
 	EMU* emu;
+	csp_state_utils* state_entry;
 	
 	// devices
 	EVENT* pceevent;
@@ -136,6 +138,7 @@ public:
 		return false;
 	}
 	void update_config();
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

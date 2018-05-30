@@ -251,11 +251,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	io->set_iowait_range_rw(0xd8, 0xdf, 1);
 	io->set_iowait_range_rw(0xe8, 0xeb, 1);
 
-	decl_state();
 	// initialize all devices
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
+	decl_state();
 }
 
 VM::~VM()

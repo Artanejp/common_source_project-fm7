@@ -716,11 +716,12 @@ bool VM::load_state(FILEIO* state_fio)
 		mb = state_entry->load_state(state_fio);
 	}
 	if(!mb) {
-		emu->out_debug_log("INFO: HEADER DATA ERROR");
+		printf("INFO: HEADER DATA ERROR\n");
 		return false;
 	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		if(!device->load_state(state_fio)) {
+			printf("INFO: DATA ERROR at DEVID=%d\n", device->this_device_id);
 			return false;
 		}
 	}
