@@ -319,6 +319,8 @@ int EmuThreadClassBase::parse_command_queue(QStringList _l, int _begin)
 						if(check_file_extension(path_shadow, ".d88") || check_file_extension(path_shadow, ".d77")) {
 							emit sig_set_d88_num(_dom_num, _slot);
 						}
+					} else 	if(_dom_type == QString::fromUtf8("vHardDisk")) {
+						emit sig_open_hdd(_dom_num, fileInfo.absoluteFilePath());
 					} else if(_dom_type == QString::fromUtf8("vBubble")) {
 						emit sig_open_bubble(_dom_num, fileInfo.absoluteFilePath());
 						if(check_file_extension(path_shadow, ".b77")) {

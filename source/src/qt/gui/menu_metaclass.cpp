@@ -58,7 +58,7 @@ Menu_MetaClass::Menu_MetaClass(QMenuBar *root_entry, QString desc, USING_FLAGS *
 	icon_write_enabled = QIcon();
 	setToolTipsVisible(true);
 
-	tmps.arg(drv + base_drv);
+	tmps = QString::fromUtf8("%1").arg(drv + base_drv);
 	tmps = desc + tmps;
 	setTitle(tmps);
 }

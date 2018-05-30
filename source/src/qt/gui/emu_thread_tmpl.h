@@ -246,6 +246,7 @@ signals:
 	int sig_open_cmt_load(int, QString);
 	int sig_open_cmt_write(int, QString);
 	int sig_open_fd(int, QString);
+	int sig_open_hdd(int, QString);
 	
 	int sig_open_quick_disk(int, QString);
 	int sig_open_bubble(int, QString);

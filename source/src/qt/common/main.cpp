@@ -47,6 +47,7 @@ extern void _resource_free(void);
 void DLL_PREFIX CSP_DebugHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
 	QString msg_type;
+	bool _nr_line = false;
     switch (type) {
     case QtDebugMsg:
 		msg_type = QString::fromUtf8("[Qt:DEBUG]");
@@ -56,19 +57,35 @@ void DLL_PREFIX CSP_DebugHandler(QtMsgType type, const QMessageLogContext &conte
         break;
     case QtWarningMsg:
 		msg_type = QString::fromUtf8("[Qt:WARN]");
+		_nr_line = true;
         break;
     case QtCriticalMsg:
 		msg_type = QString::fromUtf8("[Qt:CRITICAL]");
+		_nr_line = true;
         break;
     case QtFatalMsg:
 		msg_type = QString::fromUtf8("[Qt:FATAL]");
+		_nr_line = true;
 		break;
     }
 	QString msgString = qFormatLogMessage(type, context, msg);
 	QString nmsg_l1 = msg_type;
 	QString nmsg_l2 = msg_type;
+#if 0   
+   if(msgString.endsWith(QString::fromUtf8("\n"))) {
+	
+	msgString = msgString.left(msgString.size() - 1);
+   }
+   if(msgString.startsWith(QString::fromUtf8("\n"))) {
+	
+	msgString = msgString.right(msgString.size() - 1);
+   }
+#endif   
+        if(_nr_line) {
+	
 	nmsg_l2.append(" ");
 	nmsg_l2.append(msgString);
+   
 	nmsg_l1.append(" In line ");
 	nmsg_l1.append(context.line);
 	nmsg_l1.append(" of ");
@@ -76,7 +93,6 @@ void DLL_PREFIX CSP_DebugHandler(QtMsgType type, const QMessageLogContext &conte
 	nmsg_l1.append(" (Function: ");
 	nmsg_l1.append(context.function);
 	nmsg_l1.append(" )");
-
 	if(csp_logger != NULL) {
 		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GUI, nmsg_l1.toLocal8Bit().constData());
 		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GUI, nmsg_l2.toLocal8Bit().constData());
@@ -84,6 +100,15 @@ void DLL_PREFIX CSP_DebugHandler(QtMsgType type, const QMessageLogContext &conte
 		fprintf(stderr,"%s\n", nmsg_l1.toLocal8Bit().constData());
 		fprintf(stderr, "%s\n", nmsg_l2.toLocal8Bit().constData());
 	}		
+	} else {
+	if(csp_logger != NULL) {
+		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GUI, msgString.toLocal8Bit().constData());
+	} else {
+		fprintf(stderr, "%s\n", msgString.toLocal8Bit().constData());
+	}		
+	}
+   
+    
 }
 
 int main(int argc, char *argv[])
@@ -97,7 +122,21 @@ int main(int argc, char *argv[])
  * アプリケーション初期化
  */
 	_resource_init();
-	qSetMessagePattern(QString::fromUtf8("[%{type}] %{message} \n   at line %{line} of %{file} : function %{function}\nBacktrace:\n %{backtrace separator=\"\n \" }"));
+
+	const char *_p_backtrace = "\n  at line %{line} of %{file} (Thread %{threadid}: function %{function}\nBacktrace:\n %{backtrace depth=15 separator=\"\n \" }";
+	QString _s_backtrace = QString::fromUtf8(_p_backtrace);
+	QString _s_basicpattern = QString::fromUtf8("%{message}");
+	QString _msgpattern;
+	_msgpattern = QString::fromUtf8("");
+	_msgpattern = _msgpattern + QString::fromUtf8("%{if-debug}[%{type}]") + _s_basicpattern + QString::fromUtf8("%{endif} ");
+	_msgpattern = _msgpattern + QString::fromUtf8("%{if-info}[%{type}]") + _s_basicpattern + QString::fromUtf8("%{endif} ");
+	_msgpattern = _msgpattern + QString::fromUtf8("%{if-warning}[%{type}]") + _s_basicpattern + QString::fromUtf8("%{endif} ");
+	
+	//_msgpattern = _msgpattern + QString::fromUtf8("%{if-warning} [%{type}]") + _s_basicpattern + _s_backtrace + QString::fromUtf8("%{endif} ");
+	_msgpattern = _msgpattern + QString::fromUtf8("%{if-fatal}[%{type}]") + _s_basicpattern + _s_backtrace + QString::fromUtf8("%{endif} ");
+	_msgpattern = _msgpattern + QString::fromUtf8("%{if-critical}[%{type}]") + _s_basicpattern + _s_backtrace + QString::fromUtf8("%{endif} ");
+	
+	qSetMessagePattern(_msgpattern);
 	qInstallMessageHandler(CSP_DebugHandler);
 //	printf("argc: %d\n", argc);
 //	for(int i = 0; i < argc; i++) {

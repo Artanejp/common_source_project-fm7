@@ -1242,6 +1242,11 @@ void SetupLogger(std::string emustr, int _size)
 	csp_logger->set_log_stdout(CSP_LOG_DEBUG, true);
 	csp_logger->set_log_stdout(CSP_LOG_INFO, true);
 	csp_logger->set_log_stdout(CSP_LOG_WARN, true);
+	
+	csp_logger->set_state_log(0, config.state_log_to_recording);
+	csp_logger->set_state_log(1, config.state_log_to_syslog);
+	csp_logger->set_state_log(2, config.state_log_to_console);
+	
 	for(int ii = 0; ii < _size; ii++) {
 		for(int jj = 0; jj < 8; jj++) {
 			csp_logger->set_device_node_log(ii, 1, jj, config.dev_log_to_syslog[ii][jj]);

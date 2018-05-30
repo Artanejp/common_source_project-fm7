@@ -225,6 +225,26 @@ void Ui_MainWindowBase::do_set_dev_log_to_console(int num, bool f)
 	using_flags->get_config_ptr()->dev_log_to_console[num][0] = f;
 }
 
+void Ui_MainWindowBase::do_set_state_log_to_console(bool f)
+{
+	csp_logger->set_state_log(2, f);
+	using_flags->get_config_ptr()->state_log_to_console = f;
+}
+
+void Ui_MainWindowBase::do_set_state_log_to_syslog(bool f)
+{
+	csp_logger->set_state_log(1, f);
+	using_flags->get_config_ptr()->state_log_to_syslog = f;
+}
+
+void Ui_MainWindowBase::do_set_state_log_to_record(bool f)
+{
+	csp_logger->set_state_log(0, f);
+	using_flags->get_config_ptr()->state_log_to_recording = f;
+}
+
+
+
 void Ui_MainWindowBase::do_set_emulate_cursor_as(int num)
 {
 	if((num < 0) || (num > 2)) return;

@@ -125,6 +125,9 @@ void CSP_Logger::reset(void)
 			level_dev_out_console[i][j] = true;
 		}
 	}
+	level_state_out_record = false;
+	level_state_out_syslog = false;
+	level_state_out_console = false;
 }
 
 //extern class USING_FLAGS *using_flags;
@@ -272,6 +275,11 @@ void CSP_Logger::debug_log(int level, int domain_num, char *strbuf)
 			if(!level_dev_out_console[domain_num - CSP_LOG_TYPE_VM_DEVICE_0][level]) cons_log_level_n = 0;
 		} else if((domain_num >= CSP_LOG_TYPE_VFILE_HEAD) && (domain_num < CSP_LOG_TYPE_VFILE_END)) {
 			domain_s = vfile_names.at(domain_num - CSP_LOG_TYPE_VFILE_HEAD);
+		} else if((domain_num == CSP_LOG_TYPE_VM_STATE)) {
+			domain_s = QString::fromUtf8("STATE");
+			record_flag = level_state_out_record;
+			if(!level_state_out_syslog) sys_log_level_n = 0;
+			if(!level_state_out_console) cons_log_level_n = 0;
 		}
 		if(!domain_s.isEmpty()) {
 			domain_s = QString::fromUtf8("[") + domain_s + QString::fromUtf8("]");
@@ -436,6 +444,25 @@ void CSP_Logger::set_cpu_name(int num, char *devname)
 	if(max_cpus <= num) max_cpus = num + 1;
 }
 
+void CSP_Logger::set_state_log(int to_output, bool flag)
+{
+	if(to_output < 0) return;
+	if(to_output > 2) return;
+	switch(to_output)
+	{
+	case 0:
+		level_state_out_record = flag;
+		break;
+	case 1:
+		level_state_out_syslog = flag;
+		break;
+	case 2:
+		level_state_out_console = flag;
+		break;
+	default:
+		break;
+	}
+}
 void CSP_Logger::set_device_node_log(int device_id, int to_output, int type, bool flag)
 {
 	if(type < 0) return;

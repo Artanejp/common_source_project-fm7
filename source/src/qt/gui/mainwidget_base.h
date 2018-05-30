@@ -680,6 +680,10 @@ public slots:
 	void do_set_logging_fdc(bool onoff);	
 	void do_set_separate_thread_draw(bool f);
 	void do_set_print_cpu_statistics(bool flag);
+	// ToDo: GUI
+	void do_set_state_log_to_record(bool f);
+	void do_set_state_log_to_console(bool f);
+	void do_set_state_log_to_syslog(bool f);
 
 signals:
 	int message_changed(QString);
