@@ -274,6 +274,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
+	decl_state();
 	if(support_sub_cpu) {
 		// load rom images after cpustate is allocated
 #ifdef _PC6601SR
@@ -695,19 +696,53 @@ void VM::update_config()
 
 #define STATE_VERSION	6
 
+#include "../../statesub.h"
+
+void VM::decl_state(void)
+{
+#if defined(_PC6001)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC_6001_HEAD")));
+#elif defined(_PC6001MK2)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC_6001_MK2_HEAD")));
+#elif defined(_PC6001MK2SR)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC_6001_MK2_SR_HEAD")));
+#elif defined(_PC6601)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC_6601_HEAD")));
+#elif defined(_PC601SR)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC_6601_SR_HEAD")));
+#else
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC_6001_SERIES_HEAD")));
+#endif
+	DECL_STATE_ENTRY_INT32(sr_mode);
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		device->decl_state();
+	}
+}
+
 void VM::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
+	//state_fio->FputUint32(STATE_VERSION);
 	
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->save_state(state_fio);
 	}
-	state_fio->FputInt32(sr_mode);
+	//state_fio->FputInt32(sr_mode);
 }
 
 bool VM::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	//if(state_fio->FgetUint32() != STATE_VERSION) {
+	//	return false;
+	//}
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
+		emu->out_debug_log("INFO: HEADER DATA ERROR");
 		return false;
 	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
@@ -715,7 +750,7 @@ bool VM::load_state(FILEIO* state_fio)
 			return false;
 		}
 	}
-	sr_mode = state_fio->FgetInt32();
+	//sr_mode = state_fio->FgetInt32();
 	return true;
 }
 

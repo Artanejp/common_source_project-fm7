@@ -191,6 +191,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
+	decl_state();
+	
 	for(int i = 0; i < 4; i++) {
 		fdc_2hd->set_drive_type(i, DRIVE_TYPE_2HD);
 		fdc_2d->set_drive_type(i, DRIVE_TYPE_2D);
@@ -390,10 +392,23 @@ void VM::update_config()
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void VM::decl_state(void)
+{
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM16BETA_HEAD")));
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		device->decl_state();
+	}
+}
+
 void VM::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
+	//state_fio->FputUint32(STATE_VERSION);
 	
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->save_state(state_fio);
 	}
@@ -401,7 +416,15 @@ void VM::save_state(FILEIO* state_fio)
 
 bool VM::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	//if(state_fio->FgetUint32() != STATE_VERSION) {
+	//	return false;
+	//}
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
+		emu->out_debug_log("INFO: HEADER DATA ERROR");
 		return false;
 	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {

@@ -239,6 +239,7 @@ void VM::decl_state(void)
 		device->decl_state();
 	}
 }
+
 void VM::save_state(FILEIO* state_fio)
 {
 	//state_fio->FputUint32(STATE_VERSION);

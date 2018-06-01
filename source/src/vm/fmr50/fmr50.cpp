@@ -318,6 +318,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
+	decl_state();
 	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
 #ifdef OPEN_HARD_DISK_IN_RESET
 		create_local_path(hd_file_path[drv], _MAX_PATH, _T("SCSI%d.DAT"), drv);
@@ -581,10 +582,48 @@ void VM::update_config()
 
 #define STATE_VERSION	6
 
+#include "../../statesub.h"
+
+void VM::decl_state(void)
+{
+#if defined(_FMR50)
+#  if defined(HAS_I286)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_50_I286_HEAD")));
+#  elif defined(HAS_I386)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_50_I386_HEAD")));
+#  elif defined(HAS_I486)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_50_I486_HEAD")));
+#  elif defined(HAS_PENTIUM)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_250_HEAD")));
+#  else
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_50_SERIES_HEAD")));
+#  endif	
+#elif defined(_FMR60)
+#  if defined(HAS_I286)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_60_HEAD")));
+#  elif defined(HAS_I386)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_70_HEAD")));
+#  elif defined(HAS_I486)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_80_HEAD")));
+#  elif defined(HAS_PENTIUM)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_280_HEAD")));
+#  else
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_60_SERIES_HEAD")));
+#  endif	
+#endif
+	
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		device->decl_state();
+	}
+}
+
 void VM::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
+	//state_fio->FputUint32(STATE_VERSION);
 	
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->save_state(state_fio);
 	}
@@ -592,7 +631,15 @@ void VM::save_state(FILEIO* state_fio)
 
 bool VM::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	//if(state_fio->FgetUint32() != STATE_VERSION) {
+	//	return false;
+	//}
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
+		emu->out_debug_log("INFO: HEADER DATA ERROR");
 		return false;
 	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {

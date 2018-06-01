@@ -1219,7 +1219,29 @@ void VM::set_vm_frame_rate(double fps)
 
 void VM::decl_state(void)
 {
+#if defined(_FM8)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM8_HEAD")));
+#elif defined(_FM7) || defined(_FMNEW7)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM7_HEAD")));
+#elif defined(_FM77) || defined(_FM77L2)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM77_HEAD")));
+#elif defined(_FM77L4)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM77L4_HEAD")));
+#elif defined(_FM77AV)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM77AV_HEAD")));
+#elif defined(_FM77AV20)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM77AV20_HEAD")));
+#elif defined(_FM77AV40)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM77AV40_HEAD")));
+#elif defined(_FM77AV20EX)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM77AV20EX_HEAD")));
+#elif defined(_FM77AV40EX)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM77AV40EX_HEAD")));
+#elif defined(_FM77AV40SX)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM77AV40SX_HEAD")));
+#else
 	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM7_SERIES_HEAD")));
+#endif
 	DECL_STATE_ENTRY_BOOL(connect_320kfdc);
 	DECL_STATE_ENTRY_BOOL(connect_1Mfdc);
 	for(DEVICE* device = first_device; device; device = device->next_device) {
