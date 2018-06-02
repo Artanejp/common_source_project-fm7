@@ -205,6 +205,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
+	decl_state();
 }
 
 VM::~VM()
@@ -543,24 +544,59 @@ void VM::update_config()
 
 #define STATE_VERSION	6
 
+#include "../../statesub.h"
+
+void VM::decl_state(void)
+{
+#if defined(_TK80)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::TK_80_HEAD")));
+#elif defined(_TK85)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::TK_85_HEAD")));
+#elif defined(_TK80BS)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::TK_80BS_HEAD")));
+#else
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::TK_80_SERIES_HEAD")));
+#endif
+	DECL_STATE_ENTRY_1DARRAY(ram, sizeof(ram));
+#if defined(_TK80BS)
+	DECL_STATE_ENTRY_1DARRAY(vram, sizeof(vram));
+	DECL_STATE_ENTRY_INT32(boot_mode);
+	//DECL_STATE_ENTRY_INT32(draw_ranges);
+#endif
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		device->decl_state();
+	}
+}
+
 void VM::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
+	//state_fio->FputUint32(STATE_VERSION);
 	
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->save_state(state_fio);
 	}
-	state_fio->Fwrite(ram, sizeof(ram), 1);
-#if defined(_TK80BS)
-	state_fio->Fwrite(vram, sizeof(vram), 1);
-	state_fio->FputInt32(boot_mode);
-//	state_fio->FputInt32(draw_ranges);
-#endif
+//	state_fio->Fwrite(ram, sizeof(ram), 1);
+//#if defined(_TK80BS)
+//	state_fio->Fwrite(vram, sizeof(vram), 1);
+//	state_fio->FputInt32(boot_mode);
+////	state_fio->FputInt32(draw_ranges);
+//#endif
 }
 
 bool VM::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	//if(state_fio->FgetUint32() != STATE_VERSION) {
+	//	return false;
+	//}
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
+		emu->out_debug_log("INFO: HEADER DATA ERROR");
 		return false;
 	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
@@ -568,11 +604,11 @@ bool VM::load_state(FILEIO* state_fio)
 			return false;
 		}
 	}
-	state_fio->Fread(ram, sizeof(ram), 1);
+//	state_fio->Fread(ram, sizeof(ram), 1);
 #if defined(_TK80BS)
-	state_fio->Fread(vram, sizeof(vram), 1);
-	boot_mode = state_fio->FgetInt32();
-//	draw_ranges = state_fio->FgetInt32();
+//	state_fio->Fread(vram, sizeof(vram), 1);
+//	boot_mode = state_fio->FgetInt32();
+////	draw_ranges = state_fio->FgetInt32();
 	
 	// post process
 	emu->reload_bitmap();

@@ -985,7 +985,18 @@ void VM::update_dipswitch()
 
 void VM::decl_state(void)
 {
-	state_entry = new csp_state_utils(STATE_VERSION, 0, CONFIG_NAME);
+#if defined(_X1)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, _T("CSP::X1_HEAD"));
+#elif defined(_X1TURBO)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, _T("CSP::X1_TURBO_HEAD"));
+#elif defined(_X1TURBOZ)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, _T("CSP::X1_TURBO_Z_HEAD"));
+#elif defined(_X1TWIN)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, _T("CSP::X1_TWIN_HEAD"));
+#else
+	state_entry = new csp_state_utils(STATE_VERSION, 0, _T("CSP::X1_SERIES_HEAD"));
+#endif
+	
 	DECL_STATE_ENTRY_BOOL(pseudo_sub_cpu);
 	DECL_STATE_ENTRY_INT32(sound_type);
 	for(DEVICE* device = first_device; device; device = device->next_device) {

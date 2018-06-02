@@ -1624,7 +1624,34 @@ void VM::update_config()
 
 void VM::decl_state(void)
 {
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC98_SERIES_HEAD")));
+#if defined(_PC9801)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801_HEAD")));
+#elif defined(_PC9801E)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801E_HEAD")));
+#elif defined(_PC9801U)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801U_HEAD")));
+#elif defined(_PC9801VF)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801VF_HEAD")));
+#elif defined(_PC9801VM)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801VF_HEAD")));
+#elif defined(_PC98DO)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC98DO_HEAD")));
+#elif defined(_PC9801DOPLUS)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC98DO_PLUS_HEAD")));
+#elif defined(_PC9801VX)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801VX_HEAD")));
+#elif defined(_PC98XL)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC98XL_HEAD")));
+#elif defined(_PC98XA)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC98XA_HEAD")));
+#elif defined(_PC9801RA)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801RA_HEAD")));
+#elif defined(_PC98RL)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC98RL_HEAD")));
+#else
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801_SERIES_HEAD")));
+#endif
+	
 	DECL_STATE_ENTRY_BOOL(pit_clock_8mhz);
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 	DECL_STATE_ENTRY_INT32(boot_mode);
@@ -1632,7 +1659,6 @@ void VM::decl_state(void)
 	DECL_STATE_ENTRY_INT32(sound_type);
 #if defined(USE_HARD_DISK) && defined(OPEN_HARD_DISK_IN_RESET)
 	DECL_STATE_ENTRY_MULTI(void, hd_file_path, sizeof(hd_file_path));
-
 #endif
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->decl_state();
