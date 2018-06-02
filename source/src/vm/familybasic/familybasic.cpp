@@ -310,6 +310,8 @@ void VM::update_config()
 
 #define STATE_VERSION	5
 
+#include "../../statesub.h"
+
 void VM::decl_state(void)
 {
 	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FAMILY_BASIC_HEAD")));
