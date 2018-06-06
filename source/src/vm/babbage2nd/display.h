@@ -17,6 +17,7 @@
 #define SIG_DISPLAY_7SEG_LED	0
 #define SIG_DISPLAY_8BIT_LED	1
 
+
 class DISPLAY : public DEVICE
 {
 private:
@@ -38,6 +39,7 @@ public:
 	void initialize();
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_vline(int v, int clock);
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

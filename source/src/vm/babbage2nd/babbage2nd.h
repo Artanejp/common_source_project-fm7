@@ -83,6 +83,7 @@ const struct {
 };
 
 class csp_state_utils;
+
 class EMU;
 class DEVICE;
 class EVENT;
