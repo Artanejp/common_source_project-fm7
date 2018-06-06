@@ -1038,11 +1038,18 @@ bool csp_state_utils::save_state(FILEIO *__fio, uint32_t *pcrc)
 				(*p).len =_len;
 				_tid = _tid & ((int)~csp_saver_entry_vararray);
 				void **xp = (void **)((*p).ptr);
-				if(*xp != NULL) pp = (void *)(*xp);
+				if(*xp != NULL) {
+					pp = (void *)(*xp);
+				} else {
+					pp = NULL;
+					_len = 0;
+				}
+				fio->put_int32(_len, &crc_value, &_stat);
+				out_debug_log("SAVE VARARRAY p=%08x len=%d atom=%d CRC=%08x",pp, _len, _asize, crc_value); 
 			} else {
 				pp = (*p).ptr;
 			}
-			if(pp != NULL) {
+			if((pp != NULL) && (_len > 0)) {
 				switch(_tid) {
 				case csp_saver_entry_float:
 					{
@@ -1118,8 +1125,18 @@ bool csp_state_utils::save_state(FILEIO *__fio, uint32_t *pcrc)
 					{
 						retval = 0;
 						uint8_t *px = (uint8_t *)pp;
-						for(int i = 0; i < _len; i++) {
-							fio->put_byte(px[i], &crc_value, &_stat);
+						if(_len > 1) {
+							size_t _n = __fio->Fwrite(px, _len, 1);
+							if(_n != 1) {
+								retval = 0;
+								_stat = false;
+							} else {
+								retval = _len;
+								_stat = true;
+								crc_value = calc_crc32(crc_value, px, _len);
+							}
+						} else {
+							fio->put_byte(*px, &crc_value, &_stat);
 							if(!_stat) {
 								retval = -1;
 								break;
@@ -1132,8 +1149,18 @@ bool csp_state_utils::save_state(FILEIO *__fio, uint32_t *pcrc)
 					{
 						retval = 0;
 						int8_t *px = (int8_t *)pp;
-						for(int i = 0; i < _len; i++) {
-							fio->put_int8(px[i], &crc_value, &_stat);
+						if(_len > 1) {
+							size_t _n = __fio->Fwrite(px, _len, 1);
+							if(_n != 1) {
+								retval = 0;
+								_stat = false;
+							} else {
+								retval = _len;
+								_stat = true;
+								crc_value = calc_crc32(crc_value, px, _len);
+							}
+						} else {
+							fio->put_int8(*px, &crc_value, &_stat);
 							if(!_stat) {
 								retval = -1;
 								break;
@@ -1230,7 +1257,7 @@ bool csp_state_utils::save_state(FILEIO *__fio, uint32_t *pcrc)
 					{
 						retval = 0;
 						bool *px = (bool *)pp;
-						for(int i = 0; i < _len; i++) {
+						for(int i = 0; i < _len ; i++) {
 							fio->put_bool(px[i], &crc_value, &_stat);
 							if(!_stat) {
 								retval = -1;
@@ -1260,7 +1287,9 @@ bool csp_state_utils::save_state(FILEIO *__fio, uint32_t *pcrc)
 					delete fio;
 					return false;
 				}
+
 			}
+			out_debug_log("CRC=%08x", crc_value);
 		}
 		delete fio;
 	}
@@ -1299,27 +1328,29 @@ bool csp_state_utils::load_state(FILEIO *__fio, uint32_t *pcrc)
 			int _asize = (*p).atomlen;
 			int _len = (*p).len;
 			std::string _name = (*p).name;
+			bool _stat;
+			
 			if((_tid & csp_saver_entry_vararray) != 0) {
-				if((*p).datalenptr != NULL) {
-					*((*p).datalenptr) = _len;
-				}
+				_len = fio->get_int32(&crc_value, &_stat);
 				void **xp = (void **)((*p).ptr);
 				if(*xp != NULL) {
 			   		free(*xp);
-					*xp = NULL;
-			   		if(_len > 0) {
-						*xp = malloc(_asize * _len);
-					}
-					pp = *xp;
-				}					
-			   
+				}
+				*xp = NULL;
+			   	if(_len > 0) {
+					*xp = malloc(_asize * _len);
+					if(*xp == NULL) _len = 0;
+				}
+				if((*p).datalenptr != NULL) {
+					*((*p).datalenptr) = _len;
+				}
+				pp = *xp;
 				_tid = _tid & ((int)~csp_saver_entry_vararray);
+				out_debug_log("LOAD VARARRAY p=%08x len=%d atom=%d CRC=%08x",pp, _len, _asize, crc_value); 
  			} else {
 				pp = (*p).ptr;
 			}
-			bool _stat;
-			out_debug_log("ENTRY: NAME=%s TID=%d ASIZE=%d LEN=%d HEAD=%08x ->", _name.c_str(), _tid, _asize, _len, pp);
-			if(pp != NULL) {
+			if((pp != NULL) && (_len > 0)) {
 				switch(_tid) {
 				case csp_saver_entry_float:
 					{
@@ -1400,8 +1431,18 @@ bool csp_state_utils::load_state(FILEIO *__fio, uint32_t *pcrc)
 					{
 						retval = 0;
 						uint8_t *px = (uint8_t *)pp;
-						for(int i = 0; i < _len; i++) {
-							px[i] = fio->get_byte(&crc_value, &_stat);
+						if((_len > 1) && (px != NULL)) {
+							size_t _n = __fio->Fread(px, _len, 1);
+							if(_n != 1) {
+								retval = 0;
+								_stat = false;
+							} else {
+								retval = _len;
+								_stat = true;
+								crc_value = calc_crc32(crc_value, px, _len);
+							}
+						} else {
+							*px = fio->get_byte(&crc_value, &_stat);
 							if(!_stat) {
 								retval = -1;
 								break;
@@ -1415,13 +1456,23 @@ bool csp_state_utils::load_state(FILEIO *__fio, uint32_t *pcrc)
 					{
 						retval = 0;
 						int8_t *px = (int8_t *)pp;
-						for(int i = 0; i < _len; i++) {
-							px[i] = fio->get_int8(&crc_value, &_stat);
+						if((_len > 1) && (px != NULL)) {
+							size_t _n = __fio->Fread(px, _len, 1);
+							if(_n != 1) {
+								retval = 0;
+								_stat = false;
+							} else {
+								retval = _len;
+								_stat = true;
+								crc_value = calc_crc32(crc_value, px, _len);
+							}
+						} else {
+							*px = fio->get_int8(&crc_value, &_stat);
 							if(!_stat) {
 								retval = -1;
 								break;
 							}
-						retval++;
+							retval++;
 						}
 					}
 					out_debug_log("NAME=%s INT8: LEN=%d STAT=%d HEAD=%08x", _name.c_str(), retval, (_stat) ? 1 : 0, pp);
@@ -1556,6 +1607,7 @@ bool csp_state_utils::load_state(FILEIO *__fio, uint32_t *pcrc)
 					return false;
 				}
 			}
+			out_debug_log("CRC=%08x", crc_value);
 		}
 		delete fio;
 	}
@@ -1565,7 +1617,7 @@ bool csp_state_utils::load_state(FILEIO *__fio, uint32_t *pcrc)
 	// check CRC
 	uint32_t cmpval = __fio->FgetUint32_BE();
 	if(cmpval != crc_value) {
-		out_debug_log("CRC_ERROR: VAL=%08x", cmpval);
+		out_debug_log("CRC_ERROR: VAL=%08x / %08x", cmpval, crc_value);
 		return false;
 	}
 	// Check header
@@ -1581,5 +1633,6 @@ bool csp_state_utils::load_state(FILEIO *__fio, uint32_t *pcrc)
 		out_debug_log("WRONG CRASS NAME %s", __classname_bak);
 		return false;
 	}
+	out_debug_log("OK CRC=%08x", crc_value);
 	return true;
 }
