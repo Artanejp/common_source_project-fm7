@@ -46,7 +46,7 @@
 #define SIG_SCSI_ACK		309
 #define SIG_SCSI_RST		310
 
-
+class csp_state_utils;
 class VM;
 class EMU;
 class OSD;
@@ -56,6 +56,7 @@ protected:
 	VM* vm;
 	EMU* emu;
 	OSD* osd;
+	csp_state_utils *state_entry;
 public:
 	DEVICE(VM* parent_vm, EMU* parent_emu);
 	//ToDo: Will implement real destructor per real classes and below destructor decl. with "virtual".

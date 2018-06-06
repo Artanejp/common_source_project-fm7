@@ -55,6 +55,7 @@ typedef struct {
 	bool mfm;
 } fd_format_t;
 
+class csp_state_utils;
 class FILEIO;
 class OSD;
 class DISK
@@ -64,6 +65,7 @@ protected:
 	EMU* emu;
 	OSD* osd;
 #endif
+	csp_state_utils *state_entry;
 private:
 	uint8_t buffer[DISK_BUFFER_SIZE + TRACK_BUFFER_SIZE];
 	_TCHAR orig_path[_MAX_PATH];
@@ -150,6 +152,7 @@ public:
 		open_as_1dd = false;
 		open_as_256 = false;
 		setup_fd_formats();
+		decl_state();
 	}
 	~DISK()
 	{
@@ -218,6 +221,7 @@ public:
 	bool deleted;
 	bool addr_crc_error;
 	bool data_crc_error;
+	int _tmp_sector_offset;
 	
 	// drive
 	uint8_t drive_type;
@@ -254,6 +258,7 @@ public:
 	}
 	
 	// state
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

@@ -52,12 +52,14 @@
 #define SIG_SCSI_ACK		309
 #define SIG_SCSI_RST		310
 
+class csp_state_utils;
 class DEVICE
 {
 protected:
 	VM* vm;
 	EMU* emu;
 	OSD* osd;
+	csp_state_utils *state_entry;
 public:
 	DEVICE(VM* parent_vm, EMU* parent_emu) : vm(parent_vm), emu(parent_emu)
 	{

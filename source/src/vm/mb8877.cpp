@@ -1997,73 +1997,138 @@ void MB8877::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 
 #define STATE_VERSION	7
 
+#include "../../statesub.h"
+
+void MB8877::decl_state_fdc(int ch)
+{
+	DECL_STATE_ENTRY_INT32((fdc[ch].track));
+	DECL_STATE_ENTRY_INT32((fdc[ch].index));
+	DECL_STATE_ENTRY_BOOL((fdc[ch].access));
+	DECL_STATE_ENTRY_BOOL((fdc[ch].head_load));
+	DECL_STATE_ENTRY_BOOL((fdc[ch].id_written));
+	DECL_STATE_ENTRY_BOOL((fdc[ch].sector_found));
+
+	DECL_STATE_ENTRY_INT32((fdc[ch].sector_length));
+	DECL_STATE_ENTRY_INT32((fdc[ch].sector_index));
+	
+	DECL_STATE_ENTRY_INT32((fdc[ch].side));
+	DECL_STATE_ENTRY_BOOL((fdc[ch].side_changed));
+	
+	DECL_STATE_ENTRY_INT32((fdc[ch].cur_position));
+	DECL_STATE_ENTRY_INT32((fdc[ch].next_trans_position));
+
+	DECL_STATE_ENTRY_INT32((fdc[ch].bytes_before_2nd_drq));
+	DECL_STATE_ENTRY_INT32((fdc[ch].next_am1_position));
+
+	DECL_STATE_ENTRY_UINT32((fdc[ch].prev_clock));
+	DECL_STATE_ENTRY_BOOL((fdc[ch].count_immediate));
+}
+
+void MB8877::decl_state()
+{
+	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("MB8877"));
+	for(int ch = 0; ch < 16; ch++) {
+		decl_state_fdc(ch);
+	}
+	DECL_STATE_ENTRY_UINT8(status);
+	DECL_STATE_ENTRY_UINT8(status_tmp);
+	DECL_STATE_ENTRY_UINT8(cmdreg);
+	DECL_STATE_ENTRY_UINT8(cmdreg_tmp);
+	DECL_STATE_ENTRY_UINT8(trkreg);
+	DECL_STATE_ENTRY_UINT8(secreg);
+	DECL_STATE_ENTRY_UINT8(datareg);
+	DECL_STATE_ENTRY_UINT8(drvreg);
+	DECL_STATE_ENTRY_UINT8(sidereg);
+	DECL_STATE_ENTRY_UINT8(cmdtype);
+	DECL_STATE_ENTRY_1D_ARRAY(register_id, sizeof(register_id) / sizeof(int));
+	DECL_STATE_ENTRY_BOOL(now_search);
+	DECL_STATE_ENTRY_BOOL(now_seek);
+	DECL_STATE_ENTRY_BOOL(sector_changed);
+	DECL_STATE_ENTRY_INT32(no_command);
+	DECL_STATE_ENTRY_INT32(seektrk);
+	DECL_STATE_ENTRY_BOOL(seekvct);
+	DECL_STATE_ENTRY_BOOL(motor_on);
+	DECL_STATE_ENTRY_BOOL(drive_sel);
+	DECL_STATE_ENTRY_UINT32(prev_drq_clock);
+	DECL_STATE_ENTRY_UINT32(seekend_clock);
+
+}
 void MB8877::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+	//state_fio->FputUint32(STATE_VERSION);
+	//state_fio->FputInt32(this_device_id);
 	
-	state_fio->Fwrite(fdc, sizeof(fdc), 1);
+	//state_fio->Fwrite(fdc, sizeof(fdc), 1);
 	for(int i = 0; i < _max_drive; i++) {
 		disk[i]->save_state(state_fio);
 	}
-	state_fio->FputUint8(status);
-	state_fio->FputUint8(status_tmp);
-	state_fio->FputUint8(cmdreg);
-	state_fio->FputUint8(cmdreg_tmp);
-	state_fio->FputUint8(trkreg);
-	state_fio->FputUint8(secreg);
-	state_fio->FputUint8(datareg);
-	state_fio->FputUint8(drvreg);
-	state_fio->FputUint8(sidereg);
-	state_fio->FputUint8(cmdtype);
-	state_fio->Fwrite(register_id, sizeof(register_id), 1);
-	state_fio->FputBool(now_search);
-	state_fio->FputBool(now_seek);
-	state_fio->FputBool(sector_changed);
-	state_fio->FputInt32(no_command);
-	state_fio->FputInt32(seektrk);
-	state_fio->FputBool(seekvct);
-	state_fio->FputBool(motor_on);
-	state_fio->FputBool(drive_sel);
-	state_fio->FputUint32(prev_drq_clock);
-	state_fio->FputUint32(seekend_clock);
+	//state_fio->FputUint8(status);
+	//state_fio->FputUint8(status_tmp);
+	//state_fio->FputUint8(cmdreg);
+	//state_fio->FputUint8(cmdreg_tmp);
+	//state_fio->FputUint8(trkreg);
+	//state_fio->FputUint8(secreg);
+	//state_fio->FputUint8(datareg);
+	//state_fio->FputUint8(drvreg);
+	//state_fio->FputUint8(sidereg);
+	//state_fio->FputUint8(cmdtype);
+	//state_fio->Fwrite(register_id, sizeof(register_id), 1);
+	//state_fio->FputBool(now_search);
+	//state_fio->FputBool(now_seek);
+	//state_fio->FputBool(sector_changed);
+	//state_fio->FputInt32(no_command);
+	//state_fio->FputInt32(seektrk);
+	//state_fio->FputBool(seekvct);
+	//state_fio->FputBool(motor_on);
+	//state_fio->FputBool(drive_sel);
+	//state_fio->FputUint32(prev_drq_clock);
+	//state_fio->FputUint32(seekend_clock);
 }
 
 bool MB8877::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	state_fio->Fread(fdc, sizeof(fdc), 1);
+	if(!mb) return false;
+	//if(state_fio->FgetUint32() != STATE_VERSION) {
+	//	return false;
+	//}
+	//if(state_fio->FgetInt32() != this_device_id) {
+	//	return false;
+	//}
+	//state_fio->Fread(fdc, sizeof(fdc), 1);
 	for(int i = 0; i < _max_drive; i++) {
+		printf("%d\n",i);
 		if(!disk[i]->load_state(state_fio)) {
 			return false;
 		}
 	}
-	status = state_fio->FgetUint8();
-	status_tmp = state_fio->FgetUint8();
-	cmdreg = state_fio->FgetUint8();
-	cmdreg_tmp = state_fio->FgetUint8();
-	trkreg = state_fio->FgetUint8();
-	secreg = state_fio->FgetUint8();
-	datareg = state_fio->FgetUint8();
-	drvreg = state_fio->FgetUint8();
-	sidereg = state_fio->FgetUint8();
-	cmdtype = state_fio->FgetUint8();
-	state_fio->Fread(register_id, sizeof(register_id), 1);
-	now_search = state_fio->FgetBool();
-	now_seek = state_fio->FgetBool();
-	sector_changed = state_fio->FgetBool();
-	no_command = state_fio->FgetInt32();
-	seektrk = state_fio->FgetInt32();
-	seekvct = state_fio->FgetBool();
-	motor_on = state_fio->FgetBool();
-	drive_sel = state_fio->FgetBool();
-	prev_drq_clock = state_fio->FgetUint32();
-	seekend_clock = state_fio->FgetUint32();
+	//status = state_fio->FgetUint8();
+	//status_tmp = state_fio->FgetUint8();
+	//cmdreg = state_fio->FgetUint8();
+	//cmdreg_tmp = state_fio->FgetUint8();
+	//trkreg = state_fio->FgetUint8();
+	//secreg = state_fio->FgetUint8();
+	//datareg = state_fio->FgetUint8();
+	//drvreg = state_fio->FgetUint8();
+	//sidereg = state_fio->FgetUint8();
+	//cmdtype = state_fio->FgetUint8();
+	//state_fio->Fread(register_id, sizeof(register_id), 1);
+	//now_search = state_fio->FgetBool();
+	//now_seek = state_fio->FgetBool();
+	//sector_changed = state_fio->FgetBool();
+	//no_command = state_fio->FgetInt32();
+	//seektrk = state_fio->FgetInt32();
+	//seekvct = state_fio->FgetBool();
+	//motor_on = state_fio->FgetBool();
+	//drive_sel = state_fio->FgetBool();
+	//prev_drq_clock = state_fio->FgetUint32();
+	//seekend_clock = state_fio->FgetUint32();
 
 	fdc_debug_log = config.special_debug_fdc;
 	return true;

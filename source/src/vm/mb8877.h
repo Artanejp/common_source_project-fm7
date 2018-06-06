@@ -145,7 +145,8 @@ private:
 	// irq/dma
 	void set_irq(bool val);
 	void set_drq(bool val);
-	
+
+	void decl_state_fdc(int ch);
 public:
 	MB8877(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -189,6 +190,7 @@ public:
 //#ifdef USE_DEBUGGER
 	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 //#endif
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
