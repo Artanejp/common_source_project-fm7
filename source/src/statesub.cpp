@@ -77,7 +77,7 @@ size_t csp_state_data_saver::load_string_data(_TCHAR *p, uint32_t *sumseed, int 
 		cp = maxlen;
 	}
 	_nlen = (size_t)cp;
-	if((sumseed != NULL) && (_nlen > 1)){
+	if(sumseed != NULL){
 		*sumseed = calc_crc32(*sumseed, (uint8_t *)p, _nlen * sizeof(_TCHAR));
 	}
 	return _nlen;
@@ -894,9 +894,11 @@ csp_state_utils::~csp_state_utils()
 {
 }
 
+#include "config.h"
 #include "csp_logger.h"
-#include <QtGlobal>
-
+#if defined(_USE_QT)
+#	include <QtGlobal>
+#endif
 extern CSP_Logger DLL_PREFIX_I *csp_logger;
 
 void csp_state_utils::out_debug_log(const char *fmt, ...)
@@ -907,8 +909,13 @@ void csp_state_utils::out_debug_log(const char *fmt, ...)
 	
 	va_start(ap, fmt);	
 	vsnprintf(strbuf, 8192, fmt, ap);
-	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_VM_STATE, strbuf);
-	//qInfo("[STATE] %s", strbuf);
+	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_VM_STATE, strbuf);
+#if defined(_USE_QT)
+	if((config.state_log_to_console) || (config.state_log_to_syslog) 
+	   || (config.state_log_to_recording)) {
+		qInfo("[STATE] %s", strbuf);
+	}
+#endif
 	va_end(ap);
 }
 

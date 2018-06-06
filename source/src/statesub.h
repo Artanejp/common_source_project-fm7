@@ -7,7 +7,7 @@
  *  #define STATE_VERSION n;
  *    void foo::decl_state(void)
  *    {
- *      state_entry = new csp_saver_entries(STATE_VERSION, this_device_id, _T("NAME")); // Must be.
+ *      state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("NAME")); // Must be.
  *      DECL_STATE_ENTRY(var1)
  *      DECL_STATE_ENTRY_MULTI(array, sizeof(array));
  *    }
@@ -244,8 +244,11 @@ public:
 
 #define DECL_STATE_ENTRY_MULTI(_n_type, ___name, ___size) DECL_STATE_ENTRY_MULTI0(_n_type, ___name, state_entry, ___size)
 
+#define DECL_STATE_ENTRY_STRING(___name, __len) { \
+	state_entry->add_entry_tchar((_TCHAR *)(_T(#___name)), ___name, __len); \
+	}
 
-#define DECL_STATE_ENTRY_1DARRAY(___name, ___lenvar) { \
+#define DECL_STATE_ENTRY_1D_ARRAY(___name, ___lenvar) { \
 		state_entry->add_entry((const _TCHAR *)(_T(#___name)), ___name, ___lenvar); \
 	}
 
