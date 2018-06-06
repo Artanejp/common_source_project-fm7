@@ -30,6 +30,7 @@ private:
 	bool mute;
 	INT16 *buf[2];
 	int volume_l, volume_r;
+	int alloc_size;
 	bool __MSX;
 	
 public:

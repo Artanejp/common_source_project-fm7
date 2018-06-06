@@ -2165,6 +2165,7 @@ void YM2413::initialize()
 		__MSX = true;
 	}
 	buf[0] = buf[1] = NULL;
+	alloc_size = 0;
 	mute = false;
 }
 
@@ -2176,6 +2177,7 @@ void YM2413::release()
 	if(buf[1]) {
 		free(buf[1]);
 	}
+	alloc_size = 0;
 	YM2413Shutdown();
 }
 
@@ -2247,4 +2249,5 @@ void YM2413::initialize_sound(int rate, int clock, int samples)
 	YM2413ResetChip(0);
 	buf[0] = (INT16 *)malloc(sizeof(INT16) * samples * 2);
 	buf[1] = (INT16 *)malloc(sizeof(INT16) * samples * 2);
+	alloc_size = samples * 2;
 }

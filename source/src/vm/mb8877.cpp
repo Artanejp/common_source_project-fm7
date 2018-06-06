@@ -1997,7 +1997,7 @@ void MB8877::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 
 #define STATE_VERSION	7
 
-#include "../../statesub.h"
+#include "../statesub.h"
 
 void MB8877::decl_state_fdc(int ch)
 {
@@ -2103,7 +2103,6 @@ bool MB8877::load_state(FILEIO* state_fio)
 	//}
 	//state_fio->Fread(fdc, sizeof(fdc), 1);
 	for(int i = 0; i < _max_drive; i++) {
-		printf("%d\n",i);
 		if(!disk[i]->load_state(state_fio)) {
 			return false;
 		}

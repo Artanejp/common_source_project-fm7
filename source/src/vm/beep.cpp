@@ -65,29 +65,48 @@ void BEEP::set_frequency(double frequency)
 
 #define STATE_VERSION	1
 
+#include "../statesub.h"
+
+void BEEP::decl_state()
+{
+	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("BEEP"));
+	DECL_STATE_ENTRY_BOOL(signal);
+	DECL_STATE_ENTRY_INT32(count);
+	DECL_STATE_ENTRY_BOOL(on);
+	DECL_STATE_ENTRY_BOOL(mute);
+}
+
 void BEEP::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->FputBool(signal);
-	state_fio->FputInt32(count);
-	state_fio->FputBool(on);
-	state_fio->FputBool(mute);
+//	state_fio->FputBool(signal);
+//	state_fio->FputInt32(count);
+//	state_fio->FputBool(on);
+//	state_fio->FputBool(mute);
 }
 
 bool BEEP::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	signal = state_fio->FgetBool();
-	count = state_fio->FgetInt32();
-	on = state_fio->FgetBool();
-	mute = state_fio->FgetBool();
+	if(!mb) return false;
+	//if(state_fio->FgetUint32() != STATE_VERSION) {
+	//	return false;
+	//}
+	//if(state_fio->FgetInt32() != this_device_id) {
+	//	return false;
+	//}
+	//signal = state_fio->FgetBool();
+	//count = state_fio->FgetInt32();
+	//on = state_fio->FgetBool();
+	//mute = state_fio->FgetBool();
 	//touch_sound();
 	return true;
 }

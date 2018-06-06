@@ -115,37 +115,60 @@ void PCM1BIT::initialize_sound(int rate, int volume)
 
 #define STATE_VERSION	3
 
+#include "../statesub.h"
+
+void PCM1BIT::decl_state()
+{
+	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("PCM1BIT"));
+	DECL_STATE_ENTRY_BOOL(signal);
+	DECL_STATE_ENTRY_BOOL(on);
+	DECL_STATE_ENTRY_BOOL(mute);
+	DECL_STATE_ENTRY_BOOL(realtime);
+	DECL_STATE_ENTRY_INT32(changed);
+	DECL_STATE_ENTRY_UINT32(prev_clock);
+	DECL_STATE_ENTRY_INT32(positive_clocks);
+	DECL_STATE_ENTRY_INT32(negative_clocks);
+}
+
 void PCM1BIT::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+	//state_fio->FputUint32(STATE_VERSION);
+	//state_fio->FputInt32(this_device_id);
 	
-	state_fio->FputBool(signal);
-	state_fio->FputBool(on);
-	state_fio->FputBool(mute);
-	state_fio->FputBool(realtime);
-	state_fio->FputInt32(changed);
-	state_fio->FputUint32(prev_clock);
-	state_fio->FputInt32(positive_clocks);
-	state_fio->FputInt32(negative_clocks);
+	//state_fio->FputBool(signal);
+	//state_fio->FputBool(on);
+	//state_fio->FputBool(mute);
+	//state_fio->FputBool(realtime);
+	//state_fio->FputInt32(changed);
+	//state_fio->FputUint32(prev_clock);
+	//state_fio->FputInt32(positive_clocks);
+	//state_fio->FputInt32(negative_clocks);
 }
 
 bool PCM1BIT::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	signal = state_fio->FgetBool();
-	on = state_fio->FgetBool();
-	mute = state_fio->FgetBool();
-	realtime = state_fio->FgetBool();
-	changed = state_fio->FgetInt32();
-	prev_clock = state_fio->FgetUint32();
-	positive_clocks = state_fio->FgetInt32();
-	negative_clocks = state_fio->FgetInt32();
+	if(!mb) return false;
+	//if(state_fio->FgetUint32() != STATE_VERSION) {
+	//	return false;
+	//}
+	//if(state_fio->FgetInt32() != this_device_id) {
+	//	return false;
+	//}
+	//signal = state_fio->FgetBool();
+	//on = state_fio->FgetBool();
+	//mute = state_fio->FgetBool();
+	//realtime = state_fio->FgetBool();
+	//changed = state_fio->FgetInt32();
+	//prev_clock = state_fio->FgetUint32();
+	//positive_clocks = state_fio->FgetInt32();
+	//negative_clocks = state_fio->FgetInt32();
 	
 	// post process
 	last_vol_l = last_vol_r = 0;
