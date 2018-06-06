@@ -557,9 +557,9 @@ void VM::decl_state(void)
 #else
 	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::TK_80_SERIES_HEAD")));
 #endif
-	DECL_STATE_ENTRY_1DARRAY(ram, sizeof(ram));
+	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
 #if defined(_TK80BS)
-	DECL_STATE_ENTRY_1DARRAY(vram, sizeof(vram));
+	DECL_STATE_ENTRY_1D_ARRAY(vram, sizeof(vram));
 	DECL_STATE_ENTRY_INT32(boot_mode);
 	//DECL_STATE_ENTRY_INT32(draw_ranges);
 #endif

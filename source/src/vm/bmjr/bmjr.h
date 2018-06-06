@@ -47,6 +47,7 @@ static const _TCHAR *sound_device_caption[] = {
 #endif
 
 class csp_state_utils;
+
 class EMU;
 class DEVICE;
 class EVENT;

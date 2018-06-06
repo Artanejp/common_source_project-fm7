@@ -146,31 +146,48 @@ void RTC::event_callback(int event_id, int err)
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+// ToDo: DECL_STATE_foo() for FIFO:: and cur_time_t:: .
+void RTC::decl_state()
+{
+	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("RTC"));
+	DECL_STATE_ENTRY_UINT8(ctrl);
+}
+
 void RTC::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	//state_fio->FputUint32(STATE_VERSION);
+	//state_fio->FputInt32(this_device_id);
 	
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
 	cur_time.save_state((void *)state_fio);
 	tmp_time.save_state((void *)state_fio);
-	state_fio->FputUint8(ctrl);
+	//state_fio->FputUint8(ctrl);
 }
 
 bool RTC::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
+	if(!mb) return false;
+	//if(state_fio->FgetUint32() != STATE_VERSION) {
+	//	return false;
+	//}
+	//if(state_fio->FgetInt32() != this_device_id) {
+	//	return false;
+	//}
 	if(!cur_time.load_state((void *)state_fio)) {
 		return false;
 	}
 	if(!tmp_time.load_state((void *)state_fio)) {
 		return false;
 	}
-	ctrl = state_fio->FgetUint8();
+	//ctrl = state_fio->FgetUint8();
 	return true;
 }
 

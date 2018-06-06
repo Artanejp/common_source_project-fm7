@@ -290,8 +290,8 @@ void VM::decl_state(void)
 {
 
 	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::YALKY_HEAD")));
-	DECL_STATE_ENTRY_1DARRAY(ram, sizeof(ram));
-	DECL_STATE_ENTRY_1DARRAY(vram, sizeof(vram));
+	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
+	DECL_STATE_ENTRY_1D_ARRAY(vram, sizeof(vram));
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->decl_state();
 	}

@@ -223,7 +223,7 @@ void VM::decl_state(void)
 {
 	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PV_1000_HEAD")));
 
-	DECL_STATE_ENTRY_1DARRAY(mem, sizeof(mem));
+	DECL_STATE_ENTRY_1D_ARRAY(mem, sizeof(mem));
 	DECL_STATE_ENTRY_BOOL(inserted);
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->decl_state();

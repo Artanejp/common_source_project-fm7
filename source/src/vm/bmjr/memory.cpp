@@ -405,59 +405,95 @@ void MEMORY::draw_screen()
 
 #define STATE_VERSION	2
 
+#include "../../statesub.h"
+
+void MEMORY::decl_state()
+{
+	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("MEMORY_AND_DISPLAY"));
+
+	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
+	DECL_STATE_ENTRY_UINT8(memory_bank);
+	
+	DECL_STATE_ENTRY_1D_ARRAY(color_table, sizeof(color_table));
+	DECL_STATE_ENTRY_UINT8(char_color);
+	DECL_STATE_ENTRY_UINT8(back_color);
+	DECL_STATE_ENTRY_UINT8(mp1710_enb);
+	DECL_STATE_ENTRY_UINT8(screen_mode);
+	DECL_STATE_ENTRY_BOOL(screen_reversed);
+	DECL_STATE_ENTRY_BOOL(drec_bit);
+	DECL_STATE_ENTRY_BOOL(drec_in);
+	DECL_STATE_ENTRY_UINT32(drec_clock);
+	DECL_STATE_ENTRY_UINT8(key_column);
+	DECL_STATE_ENTRY_UINT8(key_data);
+	DECL_STATE_ENTRY_BOOL(nmi_enb);
+	DECL_STATE_ENTRY_BOOL(break_pressed);
+	DECL_STATE_ENTRY_UINT8(sound_sample);
+	DECL_STATE_ENTRY_DOUBLE(sound_accum);
+	DECL_STATE_ENTRY_UINT32(sound_clock);
+	DECL_STATE_ENTRY_UINT32(sound_mix_clock);
+}
+
 void MEMORY::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+	//state_fio->FputUint32(STATE_VERSION);
+	//state_fio->FputInt32(this_device_id);
 	
-	state_fio->Fwrite(ram, sizeof(ram), 1);
-	state_fio->FputUint8(memory_bank);
-	state_fio->Fwrite(color_table, sizeof(color_table), 1);
-	state_fio->FputUint8(char_color);
-	state_fio->FputUint8(back_color);
-	state_fio->FputUint8(mp1710_enb);
-	state_fio->FputUint8(screen_mode);
-	state_fio->FputBool(screen_reversed);
-	state_fio->FputBool(drec_bit);
-	state_fio->FputBool(drec_in);
-	state_fio->FputUint32(drec_clock);
-	state_fio->FputUint8(key_column);
-	state_fio->FputUint8(key_data);
-	state_fio->FputBool(nmi_enb);
-	state_fio->FputBool(break_pressed);
-	state_fio->FputUint8(sound_sample);
-	state_fio->FputDouble(sound_accum);
-	state_fio->FputUint32(sound_clock);
-	state_fio->FputUint32(sound_mix_clock);
+	//state_fio->Fwrite(ram, sizeof(ram), 1);
+	//state_fio->FputUint8(memory_bank);
+	//state_fio->Fwrite(color_table, sizeof(color_table), 1);
+	//state_fio->FputUint8(char_color);
+	//state_fio->FputUint8(back_color);
+	//state_fio->FputUint8(mp1710_enb);
+	//state_fio->FputUint8(screen_mode);
+	//state_fio->FputBool(screen_reversed);
+	//state_fio->FputBool(drec_bit);
+	//state_fio->FputBool(drec_in);
+	//state_fio->FputUint32(drec_clock);
+	//state_fio->FputUint8(key_column);
+	//state_fio->FputUint8(key_data);
+	//state_fio->FputBool(nmi_enb);
+	//state_fio->FputBool(break_pressed);
+	//state_fio->FputUint8(sound_sample);
+	//state_fio->FputDouble(sound_accum);
+	//state_fio->FputUint32(sound_clock);
+	//state_fio->FputUint32(sound_mix_clock);
 }
 
 bool MEMORY::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	state_fio->Fread(ram, sizeof(ram), 1);
-	memory_bank = state_fio->FgetUint8();
-	state_fio->Fread(color_table, sizeof(color_table), 1);
-	char_color = state_fio->FgetUint8();
-	back_color = state_fio->FgetUint8();
-	mp1710_enb = state_fio->FgetUint8();
-	screen_mode = state_fio->FgetUint8();
-	screen_reversed = state_fio->FgetBool();
-	drec_bit = state_fio->FgetBool();
-	drec_in = state_fio->FgetBool();
-	drec_clock = state_fio->FgetUint32();
-	key_column = state_fio->FgetUint8();
-	key_data = state_fio->FgetUint8();
-	nmi_enb = state_fio->FgetBool();
-	break_pressed = state_fio->FgetBool();
-	sound_sample = state_fio->FgetUint8();
-	sound_accum = state_fio->FgetDouble();
-	sound_clock = state_fio->FgetUint32();
-	sound_mix_clock = state_fio->FgetUint32();
+	if(!mb) return false;
+	//if(state_fio->FgetUint32() != STATE_VERSION) {
+	//	return false;
+	//}
+	//if(state_fio->FgetInt32() != this_device_id) {
+	//	return false;
+	//}
+	//state_fio->Fread(ram, sizeof(ram), 1);
+	//memory_bank = state_fio->FgetUint8();
+	//state_fio->Fread(color_table, sizeof(color_table), 1);
+	//char_color = state_fio->FgetUint8();
+	//back_color = state_fio->FgetUint8();
+	//mp1710_enb = state_fio->FgetUint8();
+	//screen_mode = state_fio->FgetUint8();
+	//screen_reversed = state_fio->FgetBool();
+	//drec_bit = state_fio->FgetBool();
+	//drec_in = state_fio->FgetBool();
+	//drec_clock = state_fio->FgetUint32();
+	//key_column = state_fio->FgetUint8();
+	//key_data = state_fio->FgetUint8();
+	//nmi_enb = state_fio->FgetBool();
+	//break_pressed = state_fio->FgetBool();
+	//sound_sample = state_fio->FgetUint8();
+	//sound_accum = state_fio->FgetDouble();
+	//sound_clock = state_fio->FgetUint32();
+	//sound_mix_clock = state_fio->FgetUint32();
 	
 	// post process
 	update_bank();

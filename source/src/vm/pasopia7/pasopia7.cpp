@@ -431,6 +431,8 @@ void VM::update_config()
 
 #define STATE_VERSION	3
 
+#include "../../statesub.h"
+
 void VM::decl_state(void)
 {
 #if defined(_LCD)
