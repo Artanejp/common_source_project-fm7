@@ -1227,180 +1227,121 @@ KEYBOARD::~KEYBOARD()
 {
 }
 
-#define STATE_VERSION 6
+#define STATE_VERSION 7
 #if defined(Q_OS_WIN)
 DLL_PREFIX_I struct cur_time_s cur_time;
 #endif
+
+#include "../../statesub.h"
+
+void KEYBOARD::decl_state()
+{
+#if defined(_FM77AV_VARIANTS)
+	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("KEYBOARD_AND_RTC"));
+#else
+	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("KEYBOARD"));
+#endif
+	
+	DECL_STATE_ENTRY_UINT32(keycode_7);
+	DECL_STATE_ENTRY_INT32(keymode);
+	   
+	DECL_STATE_ENTRY_BOOL(ctrl_pressed);
+	DECL_STATE_ENTRY_BOOL(lshift_pressed);
+	DECL_STATE_ENTRY_BOOL(rshift_pressed);
+	DECL_STATE_ENTRY_BOOL(shift_pressed);
+	DECL_STATE_ENTRY_BOOL(graph_pressed);
+	DECL_STATE_ENTRY_BOOL(caps_pressed);
+	DECL_STATE_ENTRY_BOOL(kana_pressed);
+	DECL_STATE_ENTRY_BOOL(break_pressed);
+
+	DECL_STATE_ENTRY_INT32(event_keyrepeat);
+	   
+	DECL_STATE_ENTRY_UINT8(scancode); // After V.4, uint8_t
+	DECL_STATE_ENTRY_UINT8(datareg);
+	DECL_STATE_ENTRY_UINT32(older_vk);
+	   
+	DECL_STATE_ENTRY_BOOL(repeat_mode);
+	DECL_STATE_ENTRY_INT32(repeat_time_short);
+	DECL_STATE_ENTRY_INT32(repeat_time_long);
+	DECL_STATE_ENTRY_UINT8(repeat_keycode);
+	   
+#if defined(_FM77AV_VARIANTS)
+	DECL_STATE_ENTRY_INT32(event_key_rtc);
+  
+	DECL_STATE_ENTRY_UINT8(rtc_yy);
+	DECL_STATE_ENTRY_UINT8(rtc_mm);
+	DECL_STATE_ENTRY_UINT8(rtc_dd);
+	DECL_STATE_ENTRY_UINT8(rtc_dayofweek);
+	DECL_STATE_ENTRY_UINT8(rtc_hour);
+	DECL_STATE_ENTRY_UINT8(rtc_minute);
+	DECL_STATE_ENTRY_UINT8(rtc_sec);
+
+	DECL_STATE_ENTRY_BOOL(rtc_count24h);
+	DECL_STATE_ENTRY_BOOL(rtc_ispm);
+
+	DECL_STATE_ENTRY_BOOL(rtc_set);
+	DECL_STATE_ENTRY_BOOL(rtc_set_flag);
+	DECL_STATE_ENTRY_BOOL(rxrdy_status);
+	DECL_STATE_ENTRY_BOOL(key_ack_status);
+		
+	DECL_STATE_ENTRY_BOOL(did_hidden_message_av_1);		
+	DECL_STATE_ENTRY_INT32(event_hidden1_av);
+
+	DECL_STATE_ENTRY_INT32(cmd_phase);
+	DECL_STATE_ENTRY_UINT16(hidden1_ptr);
+	DECL_STATE_ENTRY_INT32(beep_phase);
+	//cmd_fifo->save_state((void *)state_fio);
+	//data_fifo->save_state((void *)state_fio);
+	//cur_time.save_state((void *)state_fio);
+#endif
+	DECL_STATE_ENTRY_INT32(event_int);
+	//key_fifo->save_state((void *)state_fio);
+	DECL_STATE_ENTRY_UINT8(autokey_backup);
+	// Version 5
+	DECL_STATE_ENTRY_BOOL(ins_led_status);
+	DECL_STATE_ENTRY_BOOL(kana_led_status);
+	DECL_STATE_ENTRY_BOOL(caps_led_status);
+	// Version 6
+	DECL_STATE_ENTRY_BOOL(override_break_key);
+}
+
 void KEYBOARD::save_state(FILEIO *state_fio)
 {
-	state_fio->FputUint32_BE(STATE_VERSION);
-	state_fio->FputInt32_BE(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+	//state_fio->FputUint32_BE(STATE_VERSION);
+	//state_fio->FputInt32_BE(this_device_id);
 	this->out_debug_log(_T("Save State: KEYBOARD: id=%d ver=%d\n"), this_device_id, STATE_VERSION);
 
-	// Version 1
-	{
-		state_fio->FputUint32_BE(keycode_7);
-		state_fio->FputInt32_BE(keymode);
-	   
-		state_fio->FputBool(ctrl_pressed);
-		state_fio->FputBool(lshift_pressed);
-		state_fio->FputBool(rshift_pressed);
-		state_fio->FputBool(shift_pressed);
-		state_fio->FputBool(graph_pressed);
-		state_fio->FputBool(caps_pressed);
-		state_fio->FputBool(kana_pressed);
-		state_fio->FputBool(break_pressed);
-
-		state_fio->FputInt32_BE(event_keyrepeat);
-	   
-		state_fio->FputUint8(scancode); // After V.4, uint8_t
-		state_fio->FputUint8(datareg);
-		state_fio->FputUint32(older_vk);
-	   
-		state_fio->FputBool(repeat_mode);
-		state_fio->FputInt32_BE(repeat_time_short);
-		state_fio->FputInt32_BE(repeat_time_long);
-		state_fio->FputUint8(repeat_keycode);
-	   
+// ToDo: DECL_STATE_foo() for FIFO:: and cur_time_t:: .
 #if defined(_FM77AV_VARIANTS)
-		state_fio->FputInt32_BE(event_key_rtc);
-  
-		state_fio->FputUint8(rtc_yy);
-		state_fio->FputUint8(rtc_mm);
-		state_fio->FputUint8(rtc_dd);
-		state_fio->FputUint8(rtc_dayofweek);
-		state_fio->FputUint8(rtc_hour);
-		state_fio->FputUint8(rtc_minute);
-		state_fio->FputUint8(rtc_sec);
-
-		state_fio->FputBool(rtc_count24h);
-		state_fio->FputBool(rtc_ispm);
-
-		state_fio->FputBool(rtc_set);
-		state_fio->FputBool(rtc_set_flag);
-		state_fio->FputBool(rxrdy_status);
-		state_fio->FputBool(key_ack_status);
-		state_fio->FputInt32_BE(cmd_phase);
-
-		state_fio->FputInt32_BE(event_hidden1_av);
-		state_fio->FputUint16_BE(hidden1_ptr);
-
-		cmd_fifo->save_state((void *)state_fio);
-		data_fifo->save_state((void *)state_fio);
-		cur_time.save_state((void *)state_fio);
+	cmd_fifo->save_state((void *)state_fio);
+	data_fifo->save_state((void *)state_fio);
+	cur_time.save_state((void *)state_fio);
 #endif
-		state_fio->FputInt32_BE(event_int);
-		key_fifo->save_state((void *)state_fio);
-	}
-	// Version 2
-	{
-#if defined(_FM77AV_VARIANTS)
-		state_fio->FputBool(did_hidden_message_av_1);
-#endif
-	}
-	// Version 3
-	{
-#if defined(_FM77AV_VARIANTS)
-		state_fio->FputInt32_BE(beep_phase);
-#endif
-	}
-	// Version 4
-	state_fio->FputUint8(autokey_backup);
-	// Version 5
-	state_fio->FputBool(ins_led_status);
-	state_fio->FputBool(kana_led_status);
-	state_fio->FputBool(caps_led_status);
-	// Version 6
-	state_fio->FputBool(override_break_key);
+	key_fifo->save_state((void *)state_fio);
 }
 
 bool KEYBOARD::load_state(FILEIO *state_fio)
 {
 	uint32_t version;
 	
-	version = state_fio->FgetUint32_BE();
-	if(this_device_id != state_fio->FgetInt32_BE()) return false;
-	this->out_debug_log(_T("Load State: KEYBOARD: id=%d ver=%d\n"), this_device_id, version);
-
-	if(version >= 1) {
-		keycode_7 = state_fio->FgetUint32_BE();
-		keymode = state_fio->FgetInt32_BE();
-	   
-		ctrl_pressed = state_fio->FgetBool();
-		lshift_pressed = state_fio->FgetBool();
-		rshift_pressed = state_fio->FgetBool();
-		shift_pressed = state_fio->FgetBool();
-		graph_pressed = state_fio->FgetBool();
-		caps_pressed = state_fio->FgetBool();
-		kana_pressed = state_fio->FgetBool();
-		break_pressed = state_fio->FgetBool();
-
-		event_keyrepeat = state_fio->FgetInt32_BE();
-	   
-		scancode = state_fio->FgetUint8();
-		datareg = state_fio->FgetUint8();
-		older_vk = state_fio->FgetUint32();
-	   
-		repeat_mode = state_fio->FgetBool();
-		repeat_time_short = state_fio->FgetInt32_BE();
-		repeat_time_long = state_fio->FgetInt32_BE();
-		repeat_keycode = state_fio->FgetUint8();
-	   
+	//version = state_fio->FgetUint32_BE();
+	//if(this_device_id != state_fio->FgetInt32_BE()) return false;
+	//this->out_debug_log(_T("Load State: KEYBOARD: id=%d ver=%d\n"), this_device_id, version);
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) return false;
 #if defined(_FM77AV_VARIANTS)
-		event_key_rtc = state_fio->FgetInt32_BE();
-		rtc_yy = state_fio->FgetUint8();
-		rtc_mm = state_fio->FgetUint8();
-		rtc_dd = state_fio->FgetUint8();
-		rtc_dayofweek = state_fio->FgetUint8();
-		rtc_hour = state_fio->FgetUint8();
-		rtc_minute = state_fio->FgetUint8();
-		rtc_sec = state_fio->FgetUint8();
-
-		rtc_count24h = state_fio->FgetBool();
-		rtc_ispm = state_fio->FgetBool();
-
-		rtc_set = state_fio->FgetBool();
-		rtc_set_flag = state_fio->FgetBool();
-		rxrdy_status = state_fio->FgetBool();
-		key_ack_status = state_fio->FgetBool();
-		cmd_phase = state_fio->FgetInt32_BE();
-
-		event_hidden1_av = state_fio->FgetInt32_BE();
-		hidden1_ptr = state_fio->FgetUint16_BE();
-
-		cmd_fifo->load_state((void *)state_fio);
-		data_fifo->load_state((void *)state_fio);
-		cur_time.load_state((void *)state_fio);
+	if(!(cmd_fifo->load_state((void *)state_fio))) return false;
+	if(!(data_fifo->load_state((void *)state_fio))) return false;
+	if(!(cur_time.load_state((void *)state_fio))) return false;
 #endif
-		event_int = state_fio->FgetInt32_BE();
-		key_fifo->load_state((void *)state_fio);
-		if(version == 1) return true;
-	}
-	// Version 2
-	{
-#if defined(_FM77AV_VARIANTS)
-		did_hidden_message_av_1 = state_fio->FgetBool();
-#endif
-	}
-	// Version 3
-	{
-#if defined(_FM77AV_VARIANTS)
-		beep_phase = state_fio->FgetInt32_BE();
-#endif
-	}
-	// Version 4
-	autokey_backup = state_fio->FgetUint8();
-	// Version 5
-	ins_led_status = state_fio->FgetBool();
-	kana_led_status = state_fio->FgetBool();
-	caps_led_status = state_fio->FgetBool();
-	// Version 6
-	override_break_key = state_fio->FgetBool();
-	
-	if(version == STATE_VERSION) {
-		return true;
-	}
-	return false;
+	if(!(key_fifo->load_state((void *)state_fio))) return false;
+	return true;
 }
 
    

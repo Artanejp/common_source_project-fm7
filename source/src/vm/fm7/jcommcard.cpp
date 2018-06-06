@@ -224,13 +224,13 @@ void FM7_JCOMMCARD::decl_state(void)
 	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("FM7_JCOMM_CARD"));
  
 	DECL_STATE_ENTRY_SINGLE(n_bank);
-        DECL_STATE_ENTRY_SINGLE(rcb_address);
+	DECL_STATE_ENTRY_SINGLE(rcb_address);
 	DECL_STATE_ENTRY_SINGLE(kanji_address);
 	DECL_STATE_ENTRY_SINGLE(halted);
 
-	DECL_STATE_ENTRY_1DARRAY(prog_rom, 0x4000);
-	DECL_STATE_ENTRY_1DARRAY(dict_rom, 0x60000);
-	DECL_STATE_ENTRY_1DARRAY(p_ram, 0x2000);
+	DECL_STATE_ENTRY_1D_ARRAY(prog_rom, 0x4000);
+	DECL_STATE_ENTRY_1D_ARRAY(dict_rom, 0x60000);
+	DECL_STATE_ENTRY_1D_ARRAY(p_ram, 0x2000);
 	DECL_STATE_ENTRY_BOOL(firmware_ok);
 }
 

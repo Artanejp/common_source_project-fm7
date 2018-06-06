@@ -33,7 +33,7 @@ class MB61VH010;
 #if defined(_FM77L4)
 class HD46505;
 #endif
-class csp_state_utils;
+
 class DISPLAY: public DEVICE
 {
 private:
@@ -49,7 +49,6 @@ private:
 protected:
 	EMU *p_emu;
 	VM *p_vm;
-	csp_state_utils *state_entry;
 
 	uint32_t (DISPLAY::*read_cpu_func_table[512])(uint32_t);
 	uint32_t (DISPLAY::*read_dma_func_table[512])(uint32_t);

@@ -684,6 +684,7 @@ void BUBBLECASETTE::event_callback(int event_id, int err)
 
 #define STATE_VERSION 3
 #include "../../statesub.h"
+
 void BUBBLECASETTE::decl_state(void)
 {
 	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("BUBBLE_CASETTE"));

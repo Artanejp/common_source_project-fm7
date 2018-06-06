@@ -12,14 +12,12 @@
 #include "../device.h"
 #include "../../common.h"
 
-class csp_state_utils;
 class MC6809;
 
 class FM7_JCOMMCARD : public DEVICE {
 private:
 	MC6809 *cpu;
    
-	csp_state_utils* state_entry;	
 	uint8_t n_bank;
 	uint8_t rcb_address;
 	pair_t kanji_address;

@@ -53,7 +53,6 @@ enum {
 };
 class VM;
 class EMU;
-class csp_state_utils;
 class HD6844: public DEVICE {
 protected:
 	// HACKs
@@ -68,7 +67,6 @@ protected:
 	outputs_t interrupt_line; // 20180117 K.O
 	outputs_t busreq_line[2];
 
-	csp_state_utils *state_entry;
 	// Registers
 
 	uint32_t addr_reg[4];

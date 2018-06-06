@@ -57,11 +57,11 @@ enum {
 
 class VM;
 class EMU;
-class csp_state_utils;
+
 class MB61VH010: public DEVICE {
  protected:
 	DEVICE *target;
-	csp_state_utils *state_entry;
+
 	// Registers
 	uint8_t command_reg;        // D410 (RW)
 	uint8_t color_reg;          // D411 (RW)

@@ -38,7 +38,6 @@ class KANJIROM;
 #if defined(CAPABLE_JCOMMCARD)
 class FM7_JCOMMCARD;
 #endif
-class csp_state_utils;
 
 class FM7_MAINIO : public DEVICE {
  protected:
@@ -63,7 +62,6 @@ class FM7_MAINIO : public DEVICE {
  protected:
 	VM* p_vm;
 	EMU* p_emu;
-	csp_state_utils *state_entry;
 	
 	uint8_t io_w_latch[0x100];
    

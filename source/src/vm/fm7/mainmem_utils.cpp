@@ -69,12 +69,13 @@ void FM7_MAINMEM::initialize(void)
 	if(extram_pages > 3) extram_pages = 3;
 #else
 	if(extram_pages > 12) extram_pages = 12;
-#endif 
+#endif
+	extram_size = extram_pages * 0x10000;
 	if(extram_pages > 0) {
 		i = FM7_MAINMEM_EXTRAM;
-		fm7_mainmem_extram = (uint8_t *)malloc(extram_pages * 0x10000);
+		fm7_mainmem_extram = (uint8_t *)malloc(extram_size);
 		if(fm7_mainmem_extram != NULL) {
-			memset(fm7_mainmem_extram, 0x00, extram_pages * 0x10000);
+			memset(fm7_mainmem_extram, 0x00, extram_size);
 		}
 	}
 #endif	

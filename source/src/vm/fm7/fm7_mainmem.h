@@ -127,11 +127,13 @@ class FM7_MAINMEM : public DEVICE
 	bool diag_load_extrarom;
 	uint8_t fm7_mainmem_extrarom[0x10000]; // $20000-$2bfff, banked
 	int extram_pages;
+	uint32_t extram_size;
 	uint8_t *fm7_mainmem_extram; // $40000- : MAX 768KB ($c0000)
 #  endif
 # endif
 # if defined(_FM77_VARIANTS)
 	int extram_pages;
+	uint32_t extram_size;
 	uint8_t *fm7_mainmem_extram; // $00000-$2ffff
 	uint8_t fm77_shadowram[0x200];
 # endif
@@ -250,6 +252,7 @@ class FM7_MAINMEM : public DEVICE
 	bool get_loadstat_basicrom(void);
 	bool get_loadstat_bootrom_bas(void);
 	bool get_loadstat_bootrom_dos(void);
+	void decl_state();
 	void save_state(FILEIO *state_fio);
 	void update_config();
 	bool load_state(FILEIO *state_fio);
