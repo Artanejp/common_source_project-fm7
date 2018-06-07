@@ -61,6 +61,8 @@ protected:
 	const uint32_t CRC_MAGIC_WORD = 0x04C11DB7;
 	struct __list_t {
 		int type_id;
+		int local_num;
+		bool assume_byte;
 		int len;
 		int atomlen;
 		std::string name;
@@ -84,22 +86,25 @@ protected:
 
 	void out_debug_log(const char *fmt, ...);
 public:
-	csp_state_utils(int _version = 1, int device_id = 1, _TCHAR *classname = NULL);
+	csp_state_utils(int _version = 1, int device_id = 1, const _TCHAR *classname = NULL);
 	~csp_state_utils();
 	std::list<std::string> get_entries_list(void);
 
 	template <class T>
-		void add_entry(_TCHAR *__name, T *p, int _len = 1)
+	void add_entry(const _TCHAR *__name, T *p, int _len = 1, int __num = -1)
 	{
 		__list_t _l;
-		
+		std::string _name = std::string(__name);
+		if(__num >= 0) _name = _name + std::string("_#[") +std::to_string(__num) + std::string("]");
 		_l.ptr = (void *)p;
 		_l.type_id = csp_saver_entry_any;
 		_l.len = _len;
 		_l.atomlen = sizeof(T);
-		_l.name = std::string(__name);
+		_l.name = _name;
 		_l.datalenptr = NULL;
-		out_debug_log("ADD ENTRY: NAME=%s TYPE=%s len=%d atomlen=%d", __name, typeid(T).name(), _len, _l.atomlen);
+		_l.local_num = __num;
+		_l.assume_byte = false;
+		out_debug_log("ADD ENTRY: NAME=%s TYPE=%s len=%d atomlen=%d", _name.c_str(), typeid(T).name(), _len, _l.atomlen);
 		if(typeid(T) == typeid(int)) {
 			_l.type_id = csp_saver_entry_int;
 		} else if(typeid(T) == typeid(pair_t)) {
@@ -132,7 +137,7 @@ public:
 		listptr.push_back(_l);
 	};
 	template <class T>
-		void add_entry_vararray(_TCHAR *__name, T **p, void *datalen)
+	void add_entry_vararray(const _TCHAR *__name, T **p, void *datalen, bool assume_byte = false, int __num = -1)
 	{
 		__list_t _l;
 		
@@ -140,12 +145,17 @@ public:
 			add_entry(__name, p, 1);
 			return;
 		}
+		std::string _name = std::string(__name);
+		if(__num >= 0) _name = _name + std::string("_#[") +std::to_string(__num) + std::string("]");
+		
 		_l.ptr = (void *)p;
 		_l.type_id = 0;
 		_l.len = 0;
 		_l.atomlen = sizeof(T);
-		_l.name = std::string(__name);
+		_l.name = _name;
+		_l.local_num = __num;
 		_l.datalenptr = (int *) datalen;
+		_l.assume_byte = assume_byte;
 		if(typeid(T) == typeid(int)) {
 			_l.type_id = csp_saver_entry_int;
 		} else if(typeid(T) == typeid(pair_t)) {
@@ -179,15 +189,20 @@ public:
 		out_debug_log("ADD ENTRY(VARARRAY): NAME=%s TYPE=%s atomlen=%d linked len=%08x", __name, typeid(T).name(), _l.atomlen, datalen);
 		listptr.push_back(_l);
 	};
-	void add_entry_tchar(_TCHAR *__name, _TCHAR *p, int _len = 1)
+	void add_entry_tchar(const _TCHAR *__name, _TCHAR *p, int _len = 1, int __num = -1)
 	{
 		__list_t _l;
+		std::string _name = std::string(__name);
+		if(__num >= 0) _name = _name + std::string("_#[") +std::to_string(__num) + std::string("]");
+		
 		if(p == NULL) return;
 		_l.ptr = (void *)p;
 		_l.type_id = csp_saver_entry_tchar;
 		_l.len = _len;
 		_l.atomlen = sizeof(_TCHAR);
-		_l.name = std::string(__name);
+		_l.name = _name;
+		_l.local_num = __num;
+		_l.assume_byte = true;
 		out_debug_log("ADD ENTRY: NAME=%s TYPE=_TCHAR* VAL=%s len=%d atomlen=%d HEAD=%08x", __name, p, _len, _l.atomlen, p);
 		listptr.push_back(_l);
 	};
@@ -206,6 +221,11 @@ public:
 #define DECL_STATE_ENTRY1(_n_name, __list, __len) {				\
 		__list->add_entry((const _TCHAR *)_T(#_n_name), _n_name, __len);		\
 	}
+
+#define DECL_STATE_ENTRY2(_n_name, __list, __len, __n) {					\
+		__list->add_entry((const _TCHAR *)_T(#_n_name), &_n_name, __len, __n); \
+	}
+
 
 #define DECL_STATE_ENTRY_MULTI0(__type, _n_name, __list, __size) {		\
 		__list->add_entry((const _TCHAR *)_T(#_n_name), (uint8_t *)_n_name, __size * sizeof(__type)); \
@@ -242,10 +262,31 @@ public:
 #define DECL_STATE_ENTRY_DOUBLE_ARRAY(___name, __len) DECL_STATE_ENTRY1(___name, state_entry, __len)
 #define DECL_STATE_ENTRY_LONG_DOUBLE_ARRAY(___name, __len) DECL_STATE_ENTRY1(___name, state_entry, __len)
 
+#define DECL_STATE_ENTRY_UINT8_MEMBER(___name, __num) DECL_STATE_ENTRY2(___name, state_entry, 1, __num)
+#define DECL_STATE_ENTRY_INT8_MEMBER(___name, __num)  DECL_STATE_ENTRY2(___name, state_entry, 1, __num)
+#define DECL_STATE_ENTRY_UINT16_MEMBER(___name, __num) DECL_STATE_ENTRY2(___name, state_entry, 1, __num)
+#define DECL_STATE_ENTRY_INT16_MEMBER(___name, __num)  DECL_STATE_ENTRY2(___name, state_entry, 1, __num)
+#define DECL_STATE_ENTRY_UINT32_MEMBER(___name, __num) DECL_STATE_ENTRY2(___name, state_entry, 1, __num)
+#define DECL_STATE_ENTRY_INT32_MEMBER(___name, __num)  DECL_STATE_ENTRY2(___name, state_entry, 1, __num)
+#define DECL_STATE_ENTRY_UINT64_MEMBER(___name, __num) DECL_STATE_ENTRY2(___name, state_entry, 1, __num)
+#define DECL_STATE_ENTRY_INT64_MEMBER(___name, __num)  DECL_STATE_ENTRY2(___name, state_entry, 1, __num)
+#define DECL_STATE_ENTRY_BOOL_MEMBER(___name, __num) DECL_STATE_ENTRY2(___name, state_entry, 1, __num)
+#define DECL_STATE_ENTRY_PAIR_MEMBER(___name, __num)  DECL_STATE_ENTRY2(___name, state_entry, 1, __num)
+#define DECL_STATE_ENTRY_UINT8_MEMBER(___name, __num) DECL_STATE_ENTRY2(___name, state_entry, 1, __num)
+#define DECL_STATE_ENTRY_FLOAT_MEMBER(___name, __num)  DECL_STATE_ENTRY2(___name, state_entry, 1, __num)
+#define DECL_STATE_ENTRY_DOUBLE_MEMBER(___name, __num) DECL_STATE_ENTRY2(___name, state_entry, 1, __num)
+#define DECL_STATE_ENTRY_LONG_DOUBLE_MEMBER(___name, __num)  DECL_STATE_ENTRY2(___name, state_entry, 1, __num)
+
+
+
 #define DECL_STATE_ENTRY_MULTI(_n_type, ___name, ___size) DECL_STATE_ENTRY_MULTI0(_n_type, ___name, state_entry, ___size)
 
 #define DECL_STATE_ENTRY_STRING(___name, __len) { \
 	state_entry->add_entry_tchar((_TCHAR *)(_T(#___name)), ___name, __len); \
+	}
+
+#define DECL_STATE_ENTRY_STRING_MEMBER(___name, __len, __num) {				\
+		state_entry->add_entry_tchar((_TCHAR *)(_T(#___name)), ___name, __len, __num); \
 	}
 
 #define DECL_STATE_ENTRY_1D_ARRAY(___name, ___lenvar) { \
@@ -262,12 +303,49 @@ public:
 		state_entry->add_entry((const _TCHAR *)_T(#___name), &(___name[0][0][0]), __tmplen); \
 	}
 
+#define DECL_STATE_ENTRY_1D_ARRAY_MEMBER(___name, ___lenvar, __num) {			\
+		state_entry->add_entry((const _TCHAR *)(_T(#___name)), ___name, ___lenvar, __num); \
+	}
+
+#define DECL_STATE_ENTRY_2D_ARRAY_MEMBER(___name, __len1, __len2, __num) {	\
+		int __tmplen = ((int)__len1 * (int)__len2);					\
+		state_entry->add_entry((const _TCHAR *)(_T(#___name)), &(___name[0][0]), __tmplen, __num); \
+	}
+
+#define DECL_STATE_ENTRY_3D_ARRAY_MEMBER(___name, __len1, __len2, __len3, __num) { \
+		int __tmplen = ((int)__len1 * (int)__len2 * (int)__len3);		\
+		state_entry->add_entry((const _TCHAR *)_T(#___name), &(___name[0][0][0]), __tmplen, __num); \
+	}
+
 #define DECL_STATE_ENTRY_VARARRAY_VAR(_n_name, __sizevar) {				\
 		state_entry->add_entry_vararray((const _TCHAR *)_T(#_n_name), &_n_name, (void *)(&__sizevar)); \
 	}
 
+#define DECL_STATE_ENTRY_VARARRAY_MEMBER(_n_name, __sizevar, __n) {			\
+		state_entry->add_entry_vararray((const _TCHAR *)_T(#_n_name), &_n_name, (void *)(&__sizevar), false, __n); \
+	}
+
+#define DECL_STATE_ENTRY_VARARRAY_BYTES(_n_name, __sizevar) {				\
+		state_entry->add_entry_vararray((const _TCHAR *)_T(#_n_name), &_n_name, (void *)(&__sizevar), true); \
+	}
+
+#define DECL_STATE_ENTRY_VARARRAY_BYTES_MEMBER(_n_name, __sizevar, __n) {	\
+		state_entry->add_entry_vararray((const _TCHAR *)_T(#_n_name), &_n_name, (void *)(&__sizevar), true, __n); \
+	}
+
 #define DECL_STATE_ENTRY_SINGLE(___name) { \
 		state_entry->add_entry((const _TCHAR *)_T(#___name) , &___name); \
+	}
+
+#define DECL_STATE_ENTRY_SINGLE_MEMBER(___name, __num) {						\
+		state_entry->add_entry((const _TCHAR *)_T(#___name) , &___name, 1, __num); \
+	}
+
+#define DECL_STATE_ENTRY_SINGLE_ARRAY(___name, __len) {						\
+		state_entry->add_entry((const _TCHAR *)_T(#___name) , &___name, __len); \
+	}
+#define DECL_STATE_ENTRY_SINGLE_ARRAY_MEMBER(___name, __len, __num) {			\
+		state_entry->add_entry((const _TCHAR *)_T(#___name) , &___name, __len, __num); \
 	}
 
    

@@ -1046,6 +1046,9 @@ bool csp_state_utils::save_state(FILEIO *__fio, uint32_t *pcrc)
 				}
 				fio->put_int32(_len, &crc_value, &_stat);
 				out_debug_log("SAVE VARARRAY p=%08x len=%d atom=%d CRC=%08x",pp, _len, _asize, crc_value); 
+				if(((*p).assume_byte) && (_asize > 1)) {
+					_len = _len / _asize;
+				}
 			} else {
 				pp = (*p).ptr;
 			}
@@ -1338,7 +1341,11 @@ bool csp_state_utils::load_state(FILEIO *__fio, uint32_t *pcrc)
 				}
 				*xp = NULL;
 			   	if(_len > 0) {
-					*xp = malloc(_asize * _len);
+					if(((*p).assume_byte)) {
+						*xp = malloc(_len);
+					} else {
+						*xp = malloc(_asize * _len);
+					}
 					if(*xp == NULL) _len = 0;
 				}
 				if((*p).datalenptr != NULL) {
@@ -1346,6 +1353,11 @@ bool csp_state_utils::load_state(FILEIO *__fio, uint32_t *pcrc)
 				}
 				pp = *xp;
 				_tid = _tid & ((int)~csp_saver_entry_vararray);
+				if(((*p).assume_byte)) {
+					if(_asize > 1) {
+						_len = _len / _asize;
+					}
+				}
 				out_debug_log("LOAD VARARRAY p=%08x len=%d atom=%d CRC=%08x",pp, _len, _asize, crc_value); 
  			} else {
 				pp = (*p).ptr;
