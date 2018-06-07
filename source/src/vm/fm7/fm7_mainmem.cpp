@@ -555,9 +555,9 @@ void FM7_MAINMEM::decl_state(void)
 	DECL_STATE_ENTRY_1D_ARRAY(fm7_bootram, sizeof(fm7_bootram));
 #endif	
 #if defined(_FM77_VARIANTS) || defined(_FM8)
-	for(int i = 0; i < 8; i++) DECL_STATE_ENTRY_1D_ARRAY(fm7_bootroms[i], 0x200);
+	for(int i = 0; i < 8; i++) DECL_STATE_ENTRY_1D_ARRAY_MEMBER(fm7_bootroms[i], 0x200, i);
 #elif defined(_FM7) || defined(_FMNEW7)
-	for(int i = 0; i < 4; i++) DECL_STATE_ENTRY_1D_ARRAY(fm7_bootroms[i], 0x200);
+	for(int i = 0; i < 4; i++) DECL_STATE_ENTRY_1D_ARRAY_MEMBER(fm7_bootroms[i], 0x200, i);
 #endif	
 
 #if defined(_FM8)
