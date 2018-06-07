@@ -748,8 +748,8 @@ void YM2203::decl_state()
 #ifdef SUPPORT_MAME_FM_DLL
 	//DECL_STATE_ENTRY_1D_ARRAY(port_log, sizeof(port_log));
 	for(int i = 0; i < 0x200; i++) {
-		DECL_STATE_ENTRY_BOOL((port_log[i].written));
-		DECL_STATE_ENTRY_UINT8((port_log[i].data));
+		DECL_STATE_ENTRY_BOOL_MEMBER((port_log[i].written), i);
+		DECL_STATE_ENTRY_UINT8_MEMBER((port_log[i].data), i);
 	}
 #endif
 	DECL_STATE_ENTRY_UINT8(ch);
@@ -761,9 +761,9 @@ void YM2203::decl_state()
 	}
 	if(_SUPPORT_YM2203_PORT) {
 		for(int i = 0; i < 2; i++) {
-			DECL_STATE_ENTRY_UINT8((port[i].wreg));
-			DECL_STATE_ENTRY_UINT8((port[i].rreg));
-			DECL_STATE_ENTRY_BOOL((port[i].first));
+			DECL_STATE_ENTRY_UINT8_MEMBER((port[i].wreg), i);
+			DECL_STATE_ENTRY_UINT8_MEMBER((port[i].rreg), i);
+			DECL_STATE_ENTRY_BOOL_MEMBER((port[i].first), i);
 		}
 		DECL_STATE_ENTRY_UINT8(mode);
 	}

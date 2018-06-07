@@ -226,9 +226,9 @@ void AY_3_891X::decl_state()
 	DECL_STATE_ENTRY_UINT8(fnum2);
 #ifdef SUPPORT_AY_3_891X_PORT
 	for(int i = 0; i < 2; i++) {
-		DECL_STATE_ENTRY_UINT8((port[i].wreg));
-		DECL_STATE_ENTRY_UINT8((port[i].rreg));
-		DECL_STATE_ENTRY_BOOL((port[i].first));
+		DECL_STATE_ENTRY_UINT8_MEMBER((port[i].wreg), i);
+		DECL_STATE_ENTRY_UINT8_MEMBER((port[i].rreg), i);
+		DECL_STATE_ENTRY_BOOL_MEMBER((port[i].first), i);
 	}
 	DECL_STATE_ENTRY_UINT8(mode);
 #endif

@@ -2001,27 +2001,27 @@ void MB8877::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 
 void MB8877::decl_state_fdc(int ch)
 {
-	DECL_STATE_ENTRY_INT32((fdc[ch].track));
-	DECL_STATE_ENTRY_INT32((fdc[ch].index));
-	DECL_STATE_ENTRY_BOOL((fdc[ch].access));
-	DECL_STATE_ENTRY_BOOL((fdc[ch].head_load));
-	DECL_STATE_ENTRY_BOOL((fdc[ch].id_written));
-	DECL_STATE_ENTRY_BOOL((fdc[ch].sector_found));
+	DECL_STATE_ENTRY_INT32_MEMBER((fdc[ch].track), ch);
+	DECL_STATE_ENTRY_INT32_MEMBER((fdc[ch].index), ch);
+	DECL_STATE_ENTRY_BOOL_MEMBER((fdc[ch].access), ch);
+	DECL_STATE_ENTRY_BOOL_MEMBER((fdc[ch].head_load), ch);
+	DECL_STATE_ENTRY_BOOL_MEMBER((fdc[ch].id_written), ch);
+	DECL_STATE_ENTRY_BOOL_MEMBER((fdc[ch].sector_found), ch);
 
-	DECL_STATE_ENTRY_INT32((fdc[ch].sector_length));
-	DECL_STATE_ENTRY_INT32((fdc[ch].sector_index));
+	DECL_STATE_ENTRY_INT32_MEMBER((fdc[ch].sector_length), ch);
+	DECL_STATE_ENTRY_INT32_MEMBER((fdc[ch].sector_index), ch);
 	
-	DECL_STATE_ENTRY_INT32((fdc[ch].side));
-	DECL_STATE_ENTRY_BOOL((fdc[ch].side_changed));
+	DECL_STATE_ENTRY_INT32_MEMBER((fdc[ch].side), ch);
+	DECL_STATE_ENTRY_BOOL_MEMBER((fdc[ch].side_changed), ch);
 	
-	DECL_STATE_ENTRY_INT32((fdc[ch].cur_position));
-	DECL_STATE_ENTRY_INT32((fdc[ch].next_trans_position));
+	DECL_STATE_ENTRY_INT32_MEMBER((fdc[ch].cur_position), ch);
+	DECL_STATE_ENTRY_INT32_MEMBER((fdc[ch].next_trans_position), ch);
 
-	DECL_STATE_ENTRY_INT32((fdc[ch].bytes_before_2nd_drq));
-	DECL_STATE_ENTRY_INT32((fdc[ch].next_am1_position));
+	DECL_STATE_ENTRY_INT32_MEMBER((fdc[ch].bytes_before_2nd_drq), ch);
+	DECL_STATE_ENTRY_INT32_MEMBER((fdc[ch].next_am1_position), ch);
 
-	DECL_STATE_ENTRY_UINT32((fdc[ch].prev_clock));
-	DECL_STATE_ENTRY_BOOL((fdc[ch].count_immediate));
+	DECL_STATE_ENTRY_UINT32_MEMBER((fdc[ch].prev_clock), ch);
+	DECL_STATE_ENTRY_BOOL_MEMBER((fdc[ch].count_immediate), ch);
 }
 
 void MB8877::decl_state()

@@ -1829,8 +1829,7 @@ void DATAREC::decl_state()
 	
 	if(__DATAREC_SOUND) {
 		DECL_STATE_ENTRY_INT32(sound_buffer_length);
-		DECL_STATE_ENTRY_INT32(_tmp_sound_buffer_length);
-		DECL_STATE_ENTRY_VARARRAY_VAR(sound_buffer, _tmp_sound_buffer_length);
+		DECL_STATE_ENTRY_VARARRAY_BYTES(sound_buffer, sound_buffer_length);
 		DECL_STATE_ENTRY_INT16(sound_sample);
 	}
 
@@ -1839,8 +1838,10 @@ void DATAREC::decl_state()
 	DECL_STATE_ENTRY_BOOL(is_t77);
 
 	DECL_STATE_ENTRY_INT32(apss_buffer_length);
-	DECL_STATE_ENTRY_INT32(_tmp_apss_buffer_length);
-	DECL_STATE_ENTRY_VARARRAY_VAR(apss_buffer, _tmp_apss_buffer_length);
+	DECL_STATE_ENTRY_VARARRAY_BYTES(apss_buffer, apss_buffer_length);
+	//DECL_STATE_ENTRY_INT32(_tmp_apss_buffer_length);
+	//DECL_STATE_ENTRY_VARARRAY_VAR(apss_buffer, _tmp_apss_buffer_length);
+
 	
 	DECL_STATE_ENTRY_INT32(apss_ptr);
 	DECL_STATE_ENTRY_INT32(apss_count);
@@ -1855,10 +1856,10 @@ void DATAREC::decl_state()
 void DATAREC::save_state(FILEIO* state_fio)
 {
 
-	_tmp_sound_buffer_length = sound_buffer_length / sizeof(int16_t);
 	_tmp_buffer_length = buffer_length;
 	_tmp_buffer_bak_length = buffer_length;
-	_tmp_apss_buffer_length = apss_buffer_length / sizeof(bool);
+	//_tmp_sound_buffer_length = sound_buffer_length / sizeof(int16_t);
+	//_tmp_apss_buffer_length = apss_buffer_length / sizeof(bool);
 //	state_fio->FputUint32(STATE_VERSION);
 //	state_fio->FputInt32(this_device_id);
 //	

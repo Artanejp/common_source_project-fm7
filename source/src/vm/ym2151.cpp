@@ -243,8 +243,8 @@ void YM2151::decl_state()
 	
 #ifdef SUPPORT_MAME_FM_DLL
 	for(int i = 0; i < 0x100; i++) {
-		DECL_STATE_ENTRY_BOOL((port_log[i].written));
-		DECL_STATE_ENTRY_UINT8((port_log[i].data));
+		DECL_STATE_ENTRY_BOOL_MEMBER((port_log[i].written), i);
+		DECL_STATE_ENTRY_UINT8_MEMBER((port_log[i].data), i);
 	}
 #endif
 	DECL_STATE_ENTRY_INT32(chip_clock);
