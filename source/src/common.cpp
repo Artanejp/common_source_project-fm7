@@ -1341,8 +1341,8 @@ void DLL_PREFIX cur_time_t::update_day_of_week()
 void DLL_PREFIX cur_time_t::save_state_helper(void *f, uint32_t *sumseed, bool *__stat)
 {
 	csp_state_data_saver *state_saver = (csp_state_data_saver *)f;
-	static const _TCHAR *_ns = "cur_time_t::BEGIN";
-	static const _TCHAR *_ne = "cur_time_t::END";
+	const _TCHAR *_ns = "cur_time_t::BEGIN";
+	const _TCHAR *_ne = "cur_time_t::END";
 	
 	if(f == NULL) return;
 	
@@ -1358,14 +1358,14 @@ void DLL_PREFIX cur_time_t::save_state_helper(void *f, uint32_t *sumseed, bool *
 	state_saver->put_int16((int16_t)second, sumseed, __stat);
 	state_saver->put_bool(initialized, sumseed, __stat);
 	
-	state_saver->save_string_data(_ns, sumseed, strlen(_ne) + 1, __stat);
+	state_saver->save_string_data(_ne, sumseed, strlen(_ne) + 1, __stat);
 }
 
 bool DLL_PREFIX cur_time_t::load_state_helper(void *f, uint32_t *sumseed, bool *__stat)
 {
 	csp_state_data_saver *state_saver = (csp_state_data_saver *)f;
-	static const _TCHAR *_ns = "cur_time_t::BEGIN";
-	static const _TCHAR *_ne = "cur_time_t::END";
+	const _TCHAR *_ns = "cur_time_t::BEGIN";
+	const _TCHAR *_ne = "cur_time_t::END";
 	_TCHAR sbuf[128];
 	uint32_t tmpvar;
 
@@ -1381,7 +1381,6 @@ bool DLL_PREFIX cur_time_t::load_state_helper(void *f, uint32_t *sumseed, bool *
 		if(__stat != NULL) *__stat = false;
 		return false;
 	}
-	
 	year =              state_saver->get_int32(sumseed, __stat);
 	month =       (int)(state_saver->get_int8(sumseed, __stat));
 	day =         (int)(state_saver->get_int8(sumseed, __stat));

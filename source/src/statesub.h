@@ -363,19 +363,19 @@ public:
 	}
    
 #define DECL_STATE_ENTRY_CUR_TIME_T(_n_name) {							\
-		state_entry->add_entry_cur_time_t(const _TCHAR *)_T(#_n_name), &_n_name, 1); \
+		state_entry->add_entry_cur_time_t((const _TCHAR *)_T(#_n_name), &_n_name, 1); \
 	}
 
 #define DECL_STATE_ENTRY_CUR_TIME_T_ARRAY(_n_name, __len) {					\
-		state_entry->add_entry_cur_time_t(const _TCHAR *)_T(#_n_name), &_n_name, __len); \
+		state_entry->add_entry_cur_time_t((const _TCHAR *)_T(#_n_name), &_n_name, __len); \
 	}
 
 #define DECL_STATE_ENTRY_CUR_TIME_T_MEMBER(_n_name, __n) {				\
-		state_entry->add_entry_cur_time_t(const _TCHAR *)_T(#_n_name), &_n_name, 1, __n); \
+		state_entry->add_entry_cur_time_t((const _TCHAR *)_T(#_n_name), &_n_name, 1, __n); \
 	}
 
 #define DECL_STATE_ENTRY_CUR_TIME_T_ARRAY_MEMBER(_n_name, __len, __n) {	\
-		state_entry->add_entry_cur_time_t(const _TCHAR *)_T(#_n_name), &_n_name, __len, __n); \
+		state_entry->add_entry_cur_time_t((const _TCHAR *)_T(#_n_name), &_n_name, __len, __n); \
 	}
 
 
