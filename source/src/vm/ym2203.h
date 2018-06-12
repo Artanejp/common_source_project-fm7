@@ -125,6 +125,7 @@ public:
 		_IS_YM2203_PORT_MODE = false;
 		_YM2203_PORT_MODE = 0xff;
 		_SUPPORT_YM2203_PORT_A = _SUPPORT_YM2203_PORT_B = false;
+		is_ym2608 = false;
 		//if(_SUPPORT_YM2203_PORT) {
 		for(int i = 0; i < 2; i++) {
 			initialize_output_signals(&port[i].outputs);

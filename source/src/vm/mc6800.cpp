@@ -3049,47 +3049,79 @@ void MC6800::stx_ex()
 
 #define STATE_VERSION	2
 
+#include "../statesub.h"
+
+void MC6800::decl_state()
+{
+	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("MC6800"));
+	
+	DECL_STATE_ENTRY_PAIR(pc);
+	DECL_STATE_ENTRY_UINT16(prevpc);
+	DECL_STATE_ENTRY_PAIR(sp);
+	DECL_STATE_ENTRY_PAIR(ix);
+	DECL_STATE_ENTRY_PAIR(acc_d);
+	DECL_STATE_ENTRY_PAIR(ea);
+	DECL_STATE_ENTRY_UINT8(cc);
+	DECL_STATE_ENTRY_INT32(wai_state);
+	DECL_STATE_ENTRY_INT32(int_state);
+	if(__USE_DEBUGGER) {
+		DECL_STATE_ENTRY_UINT64(total_icount);
+	}
+	DECL_STATE_ENTRY_INT32(icount);
+}
+
 void MC6800::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->FputUint32(pc.d);
-	state_fio->FputUint16(prevpc);
-	state_fio->FputUint32(sp.d);
-	state_fio->FputUint32(ix.d);
-	state_fio->FputUint32(acc_d.d);
-	state_fio->FputUint32(ea.d);
-	state_fio->FputUint8(cc);
-	state_fio->FputInt32(wai_state);
-	state_fio->FputInt32(int_state);
+//	state_fio->FputUint32(pc.d);
+//	state_fio->FputUint16(prevpc);
+//	state_fio->FputUint32(sp.d);
+//	state_fio->FputUint32(ix.d);
+//	state_fio->FputUint32(acc_d.d);
+//	state_fio->FputUint32(ea.d);
+//	state_fio->FputUint8(cc);
+//	state_fio->FputInt32(wai_state);
+//	state_fio->FputInt32(int_state);
 //#ifdef USE_DEBUGGER
-	if(__USE_DEBUGGER) state_fio->FputUint64(total_icount);
+//	if(__USE_DEBUGGER) state_fio->FputUint64(total_icount);
 //#endif
-	state_fio->FputInt32(icount);
+//	state_fio->FputInt32(icount);
 }
 
 bool MC6800::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	pc.d = state_fio->FgetUint32();
-	prevpc = state_fio->FgetUint16();
-	sp.d = state_fio->FgetUint32();
-	ix.d = state_fio->FgetUint32();
-	acc_d.d = state_fio->FgetUint32();
-	ea.d = state_fio->FgetUint32();
-	cc = state_fio->FgetUint8();
-	wai_state = state_fio->FgetInt32();
-	int_state = state_fio->FgetInt32();
+	if(!mb) return false;
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	pc.d = state_fio->FgetUint32();
+//	prevpc = state_fio->FgetUint16();
+//	sp.d = state_fio->FgetUint32();
+//	ix.d = state_fio->FgetUint32();
+//	acc_d.d = state_fio->FgetUint32();
+//	ea.d = state_fio->FgetUint32();
+//	cc = state_fio->FgetUint8();
+//	wai_state = state_fio->FgetInt32();
+//	int_state = state_fio->FgetInt32();
 //#ifdef USE_DEBUGGER
-	if(__USE_DEBUGGER) { total_icount = prev_total_icount = state_fio->FgetUint64(); }
+//	if(__USE_DEBUGGER) { total_icount = prev_total_icount = state_fio->FgetUint64(); }
 //#endif
-	icount = state_fio->FgetInt32();
+//	icount = state_fio->FgetInt32();
+	if(__USE_DEBUGGER) {
+		prev_total_icount = total_icount;
+	}
 	return true;
 }
 

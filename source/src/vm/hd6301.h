@@ -59,6 +59,7 @@ public:
 		set_device_name(_T("HD6301 MPU"));
 	}
 	~HD6301() {}
+	void decl_state();
 	void save_state(FILEIO* state_fio) override;
 	bool load_state(FILEIO* state_fio) override;
 
