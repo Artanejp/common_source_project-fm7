@@ -129,6 +129,7 @@ FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, paren
 		opn_address[i] = 0x00;
 		opn_data[i] = 0x00;
 		opn_cmdreg[i] = 0;
+		opn_prescaler_type[i] = 1;
 	}
 	intstat_whg = false;
 	intstat_thg = false;
@@ -229,7 +230,7 @@ void FM7_MAINIO::initialize()
 	event_2hd_nmi = -1;
 	nmi_delay = 300;
 #endif
-	reset_printer();
+	//reset_printer();
 }
 
 void FM7_MAINIO::reset()
@@ -2129,15 +2130,19 @@ void FM7_MAINIO::decl_state(void)
 	DECL_STATE_ENTRY_UINT32_ARRAY(opn_stat, 4);
 	DECL_STATE_ENTRY_UINT8_ARRAY(opn_cmdreg, 4);
 	DECL_STATE_ENTRY_UINT8_ARRAY(opn_ch3mode, 4);
+	DECL_STATE_ENTRY_UINT8_ARRAY(opn_prescaler_type, 4);
+	//DECL_STATE_ENTRY_2D_ARRAY(opn_keys, 4, 4);
 	
 	DECL_STATE_ENTRY_2D_ARRAY(opn_regs, 4, 0x100);
-    
+
+	//DECL_STATE_ENTRY_1D_ARRAY((uint8_t *)opn_keys, 16);
+	
+	//DECL_STATE_ENTRY_1D_ARRAY((uint8_t *)opn_regs, 0x400);
 }
 void FM7_MAINIO::save_state(FILEIO *state_fio)
 {
 	if(state_entry != NULL) state_entry->save_state(state_fio);
 }
-
 
 bool FM7_MAINIO::load_state(FILEIO *state_fio)
 {
@@ -2148,9 +2153,11 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 	bool mb = false;
 	if(state_entry != NULL) {
 		mb = state_entry->load_state(state_fio);
+		if(mb) {
 #if defined(HAS_DMA)
-		dma_addr = dma_addr & 0x1f;
+			dma_addr = dma_addr & 0x1f;
 #endif
+		}
 	}
 	this->out_debug_log(_T("Load State: MAINIO: id=%d stat=%s\n"), this_device_id, (mb) ? _T("OK") : _T("NG"));
 	return mb;

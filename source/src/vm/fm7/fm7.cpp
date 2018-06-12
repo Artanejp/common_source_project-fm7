@@ -130,6 +130,19 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	if((config.dipswitch & FM7_DIPSW_MIDI_ON) != 0) uart[2] = new I8251(this, emu);
 
 		
+#if defined(_FM77AV_VARIANTS)
+	alu = new MB61VH010(this, emu);
+	keyboard_beep = new BEEP(this, emu);
+#endif	
+	keyboard = new KEYBOARD(this, emu);
+	display = new DISPLAY(this, emu);
+#if defined(_FM8)
+	mainio  = new FM8_MAINIO(this, emu);
+#else
+	mainio  = new FM7_MAINIO(this, emu);
+#endif
+	mainmem = new FM7_MAINMEM(this, emu);
+
 	// basic devices
 	// I/Os
 #if defined(HAS_DMA)
@@ -201,18 +214,6 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #if defined(_FM77L4)
 	l4crtc = new HD46505(this, emu);;
 #endif
-#if defined(_FM77AV_VARIANTS)
-	alu = new MB61VH010(this, emu);
-	keyboard_beep = new BEEP(this, emu);
-#endif	
-	keyboard = new KEYBOARD(this, emu);
-	display = new DISPLAY(this, emu);	
-#if defined(_FM8)
-	mainio  = new FM8_MAINIO(this, emu);
-#else
-	mainio  = new FM7_MAINIO(this, emu);
-#endif
-	mainmem = new FM7_MAINMEM(this, emu);
 
 #if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
 	if((config.dipswitch & FM7_DIPSW_CONNECT_KANJIROM) != 0) {
@@ -820,7 +821,7 @@ void VM::initialize_sound(int rate, int samples)
 	keyboard_beep->initialize_sound(rate, 2400.0, 512);
 # endif
 #endif	
-	pcm1bit->initialize_sound(rate, 2000);
+	pcm1bit->initialize_sound(rate, 8000);
 	//drec->initialize_sound(rate, 0);
 }
 
@@ -1214,7 +1215,7 @@ void VM::set_vm_frame_rate(double fps)
    if(event != NULL) event->set_frames_per_sec(fps);
 }
 
-#define STATE_VERSION	9
+#define STATE_VERSION	10
 #include "../../statesub.h"
 
 void VM::decl_state(void)
@@ -1276,6 +1277,9 @@ bool VM::load_state(FILEIO* state_fio)
 			return false;
 		}
 	}
+	update_config();
+	mainio->restore_opn();
+	
 	return true;
 }
 
