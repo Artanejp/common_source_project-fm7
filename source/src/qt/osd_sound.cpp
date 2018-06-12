@@ -36,7 +36,6 @@ void OSD_BASE::audio_callback(void *udata, Uint8 *stream, int len)
 	spos = 0;
 	memset(stream, 0x00, len);
 	do {
-		//SDL_SemWait(*pData->snd_apply_sem);
 		if(pData->p_config->general_sound_level < -32768) pData->p_config->general_sound_level = -32768;
 		if(pData->p_config->general_sound_level > 32767)  pData->p_config->general_sound_level = 32767;
 		*pData->snd_total_volume = (uint8_t)(((uint32_t)(pData->p_config->general_sound_level + 32768)) >> 9);
@@ -46,7 +45,6 @@ void OSD_BASE::audio_callback(void *udata, Uint8 *stream, int len)
 		}
 		len2 = *(pData->sound_buffer_size) - *(pData->sound_write_pos);
 		if(*pData->sound_exit) {
-			//SDL_SemPost(*pData->snd_apply_sem);
 			return;
 		}
 		if(len2 >= sndlen) len2 = sndlen;  // Okay
@@ -61,18 +59,14 @@ void OSD_BASE::audio_callback(void *udata, Uint8 *stream, int len)
 		if((len2 > 0) && (sndlen > 0)){
 			writepos = *pData->sound_write_pos;
 			p = (Uint8 *)(*pData->sound_buf_ptr);
-			//SDL_SemPost(*pData->snd_apply_sem);
 			p = &p[writepos * 2];
 			s = &stream[spos * 2];
 			SDL_MixAudio(s, (Uint8 *)p, len2 * 2, *(pData->snd_total_volume));
-			//SDL_SemWait(*pData->snd_apply_sem);
 			*(pData->sound_data_len) -= len2;
 			if(*(pData->sound_data_len) <= 0) *(pData->sound_data_len) = 0;
 			*pData->sound_write_pos += len2;
-			//SDL_SemPost(*pData->snd_apply_sem);
 		} else {
 			len2 = 0;
-			//SDL_SemPost(*pData->snd_apply_sem);
 			if(spos >= (len / 2)) return;
 			if(*(pData->sound_data_len) <= 0) return;
 			//while(*(pData->sound_data_len) <= 0) {
@@ -102,7 +96,7 @@ void OSD_BASE::initialize_sound(int rate, int samples)
 	sound_debug = false;
 	//sound_debug = true;
 	sound_buf_ptr = NULL;
-	snd_apply_sem = NULL;
+	sound_initialized = false;
 	// initialize direct sound
 
 	snd_total_volume = 127;
@@ -111,7 +105,6 @@ void OSD_BASE::initialize_sound(int rate, int samples)
 	snddata.sound_buffer_size = &sound_buffer_size;
 	snddata.sound_write_pos = &sound_write_pos;
 	snddata.sound_data_len = &sound_data_len;
-	snddata.snd_apply_sem = &snd_apply_sem;
 	snddata.snd_total_volume = &snd_total_volume;
 	snddata.sound_exit = &sound_exit;
 	snddata.sound_debug = &sound_debug;
@@ -146,22 +139,16 @@ void OSD_BASE::initialize_sound(int rate, int samples)
 #endif	   
 		return;
 	}
-	snd_apply_sem = SDL_CreateSemaphore(1);
-	if(snd_apply_sem == NULL) {
-		free(sound_buf_ptr);
-		sound_buf_ptr = NULL;
-		return;
-	}
+
 	debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND,
 						  "Sound OK: BufSize = %d", sound_buffer_size);
 	memset(sound_buf_ptr, 0x00, sound_buffer_size * sizeof(Sint16));
-#if defined(USE_SDL2)   
-	SDL_PauseAudioDevice(audio_dev_id, 0);
-#else   
-	SDL_PauseAudio(0);
-#endif   
-	//SDL_SemPost(*snddata.snd_apply_sem);
-
+//#if defined(USE_SDL2)   
+//	SDL_PauseAudioDevice(audio_dev_id, 0);
+//#else   
+//	SDL_PauseAudio(0);
+//#endif   
+	sound_initialized = true;
 	sound_ok = sound_first_half = true;
 }
 
@@ -169,7 +156,8 @@ void OSD_BASE::release_sound()
 {
 	// release SDL sound
 	sound_exit = true;
-	//while(SDL_SemValue(*snddata.snd_apply_sem) > 0) SDL_SemPost(*snddata.snd_apply_sem);
+	sound_initialized = false;
+
 #if defined(USE_SDL2)   
 	//SDL_PauseAudioDevice(audio_dev_id, 1);
 	SDL_CloseAudioDevice(audio_dev_id);
@@ -177,10 +165,6 @@ void OSD_BASE::release_sound()
 	//SDL_PauseAudio(1);
 	SDL_CloseAudio();
 #endif   
-	if(snd_apply_sem != NULL) {
-		SDL_DestroySemaphore(snd_apply_sem);
-		snd_apply_sem = NULL;
-	}
 	if(sound_buf_ptr != NULL) free(sound_buf_ptr);
 	sound_buf_ptr = NULL;
 	// stop recording
@@ -246,7 +230,7 @@ void OSD_BASE::update_sound(int* extra_frames)
 		        int ssize;
 		        int pos;
 		        int pos2;
-		        if(snd_apply_sem) {
+		        if(sound_initialized) {
 					ssize = sound_samples * snd_spec_presented.channels;
 
 			        pos = sound_data_pos;
@@ -282,7 +266,6 @@ void OSD_BASE::update_sound(int* extra_frames)
 #else
 					SDL_UnlockAudio();
 #endif
-					//SDL_SemPost(*snddata.snd_apply_sem);
 					//SDL_UnlockAudio();
 					SDL_PauseAudioDevice(audio_dev_id, 0);
 			}
@@ -304,7 +287,6 @@ void OSD_BASE::mute_sound()
 		int ssize;
 		int pos;
 		int pos2;
-		//SDL_SemWait(*snddata.snd_apply_sem);
 #if defined(USE_SDL2)   
 		SDL_LockAudioDevice(audio_dev_id);
 #else
@@ -331,13 +313,11 @@ void OSD_BASE::mute_sound()
 			memset(ptr2, 0x00, size2 * sizeof(Sint16));
 		}
 		sound_data_pos = (sound_data_pos + ssize) % sound_buffer_size;
-		//SDL_SemPost(*snddata.snd_apply_sem);
 #if defined(USE_SDL2)   
 		SDL_UnlockAudioDevice(audio_dev_id);
 #else
 		SDL_UnlockAudio();
 #endif
-		//SDL_SemPost(*snddata.snd_apply_sem);
 	}
 	now_mute = true;
 }
