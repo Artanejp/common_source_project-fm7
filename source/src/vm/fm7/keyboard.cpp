@@ -1227,10 +1227,10 @@ KEYBOARD::~KEYBOARD()
 {
 }
 
-#define STATE_VERSION 7
-#if defined(Q_OS_WIN)
-DLL_PREFIX_I struct cur_time_s cur_time;
-#endif
+#define STATE_VERSION 8
+//#if defined(Q_OS_WIN)
+//DLL_PREFIX_I struct cur_time_s cur_time;
+//#endif
 
 #include "../../statesub.h"
 
@@ -1294,6 +1294,12 @@ void KEYBOARD::decl_state()
 	//data_fifo->save_state((void *)state_fio);
 	//cur_time.save_state((void *)state_fio);
 #endif
+#if defined(_FM77AV_VARIANTS)
+	DECL_STATE_ENTRY_FIFO(cmd_fifo);
+	DECL_STATE_ENTRY_FIFO(data_fifo);
+	DECL_STATE_ENTRY_CUR_TIME_T(cur_time);
+#endif
+	DECL_STATE_ENTRY_FIFO(key_fifo);
 	DECL_STATE_ENTRY_INT32(event_int);
 	//key_fifo->save_state((void *)state_fio);
 	DECL_STATE_ENTRY_UINT8(autokey_backup);
@@ -1313,14 +1319,6 @@ void KEYBOARD::save_state(FILEIO *state_fio)
 	//state_fio->FputUint32_BE(STATE_VERSION);
 	//state_fio->FputInt32_BE(this_device_id);
 	this->out_debug_log(_T("Save State: KEYBOARD: id=%d ver=%d\n"), this_device_id, STATE_VERSION);
-
-// ToDo: DECL_STATE_foo() for FIFO:: and cur_time_t:: .
-#if defined(_FM77AV_VARIANTS)
-	cmd_fifo->save_state((void *)state_fio);
-	data_fifo->save_state((void *)state_fio);
-	cur_time.save_state((void *)state_fio);
-#endif
-	key_fifo->save_state((void *)state_fio);
 }
 
 bool KEYBOARD::load_state(FILEIO *state_fio)
@@ -1335,12 +1333,6 @@ bool KEYBOARD::load_state(FILEIO *state_fio)
 		mb = state_entry->load_state(state_fio);
 	}
 	if(!mb) return false;
-#if defined(_FM77AV_VARIANTS)
-	if(!(cmd_fifo->load_state((void *)state_fio))) return false;
-	if(!(data_fifo->load_state((void *)state_fio))) return false;
-	if(!(cur_time.load_state((void *)state_fio))) return false;
-#endif
-	if(!(key_fifo->load_state((void *)state_fio))) return false;
 	return true;
 }
 

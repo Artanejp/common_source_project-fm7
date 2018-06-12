@@ -52,8 +52,18 @@ enum {
 	csp_saver_entry_double,
 	csp_saver_entry_long_double,
 	csp_saver_entry_any,
+	
+	csp_saver_entry_fifo,
+	csp_saver_entry_cur_time_t,
+	
+	csp_saver_entry_custom0 = 256,
+	csp_saver_entry_custom1 = 257,
+	csp_saver_entry_custom2 = 258,
+	csp_saver_entry_custom3 = 259,
+	
 	// Below are special value
-	csp_saver_entry_vararray = 65536,
+	csp_saver_entry_vararray = 0x10000,
+	csp_saver_entry_const = 0x20000,
 };
 
 class csp_state_utils {
@@ -91,7 +101,7 @@ public:
 	std::list<std::string> get_entries_list(void);
 
 	template <class T>
-	void add_entry(const _TCHAR *__name, T *p, int _len = 1, int __num = -1)
+	void add_entry(const _TCHAR *__name, T *p, int _len = 1, int __num = -1, bool is_const = false)
 	{
 		__list_t _l;
 		std::string _name = std::string(__name);
@@ -133,7 +143,9 @@ public:
 			_l.type_id = csp_saver_entry_uint64;
 		} else if(typeid(T) == typeid(bool)) {
 			_l.type_id = csp_saver_entry_bool;
-		}			
+		}
+
+		if(is_const) _l.type_id = _l.type_id | csp_saver_entry_const;
 		listptr.push_back(_l);
 	};
 	template <class T>
@@ -189,23 +201,10 @@ public:
 		out_debug_log("ADD ENTRY(VARARRAY): NAME=%s TYPE=%s atomlen=%d linked len=%08x", __name, typeid(T).name(), _l.atomlen, datalen);
 		listptr.push_back(_l);
 	};
-	void add_entry_tchar(const _TCHAR *__name, _TCHAR *p, int _len = 1, int __num = -1)
-	{
-		__list_t _l;
-		std::string _name = std::string(__name);
-		if(__num >= 0) _name = _name + std::string("_#[") +std::to_string(__num) + std::string("]");
-		
-		if(p == NULL) return;
-		_l.ptr = (void *)p;
-		_l.type_id = csp_saver_entry_tchar;
-		_l.len = _len;
-		_l.atomlen = sizeof(_TCHAR);
-		_l.name = _name;
-		_l.local_num = __num;
-		_l.assume_byte = true;
-		out_debug_log("ADD ENTRY: NAME=%s TYPE=_TCHAR* VAL=%s len=%d atomlen=%d HEAD=%08x", __name, p, _len, _l.atomlen, p);
-		listptr.push_back(_l);
-	};
+
+	void add_entry_fifo(const _TCHAR *__name, FIFO **p, int _len = 1, int __num = -1);
+	void add_entry_cur_time_t(const _TCHAR *__name, cur_time_t *p, int _len = 1, int __num = -1);
+	void add_entry_tchar(const _TCHAR *__name, _TCHAR *p, int _len = 1, int __num = -1, bool is_const = false);
 	
 	uint32_t get_crc_value(void);
 	void get_class_name(_TCHAR *buf, int len);
@@ -225,7 +224,6 @@ public:
 #define DECL_STATE_ENTRY2(_n_name, __list, __len, __n) {					\
 		__list->add_entry((const _TCHAR *)_T(#_n_name), &_n_name, __len, __n); \
 	}
-
 
 #define DECL_STATE_ENTRY_MULTI0(__type, _n_name, __list, __size) {		\
 		__list->add_entry((const _TCHAR *)_T(#_n_name), (uint8_t *)_n_name, __size * sizeof(__type)); \
@@ -348,7 +346,37 @@ public:
 		state_entry->add_entry((const _TCHAR *)_T(#___name) , &___name, __len, __num); \
 	}
 
+#define DECL_STATE_ENTRY_FIFO(_n_name) {								\
+		state_entry->add_entry_fifo((const _TCHAR *)_T(#_n_name), &_n_name, 1); \
+	}
+
+#define DECL_STATE_ENTRY_FIFO_ARRAY(_n_name, __len) {					\
+		state_entry->add_entry_fifo((const _TCHAR *)_T(#_n_name), &_n_name, __len); \
+	}
+
+#define DECL_STATE_ENTRY_FIFO_MEMBER(_n_name, __n) {						\
+		state_entry->add_entry_fifo((const _TCHAR *)_T(#_n_name), &_n_name, 1, __n); \
+	}
+
+#define DECL_STATE_ENTRY_FIFO_ARRAY_MEMBER(_n_name, __len, __n) {			\
+		state_entry->add_entry_fifo((const _TCHAR *)_T(#_n_name), &_n_name, __len, __n); \
+	}
    
+#define DECL_STATE_ENTRY_CUR_TIME_T(_n_name) {							\
+		state_entry->add_entry_cur_time_t(const _TCHAR *)_T(#_n_name), &_n_name, 1); \
+	}
+
+#define DECL_STATE_ENTRY_CUR_TIME_T_ARRAY(_n_name, __len) {					\
+		state_entry->add_entry_cur_time_t(const _TCHAR *)_T(#_n_name), &_n_name, __len); \
+	}
+
+#define DECL_STATE_ENTRY_CUR_TIME_T_MEMBER(_n_name, __n) {				\
+		state_entry->add_entry_cur_time_t(const _TCHAR *)_T(#_n_name), &_n_name, 1, __n); \
+	}
+
+#define DECL_STATE_ENTRY_CUR_TIME_T_ARRAY_MEMBER(_n_name, __len, __n) {	\
+		state_entry->add_entry_cur_time_t(const _TCHAR *)_T(#_n_name), &_n_name, __len, __n); \
+	}
 
 
 #endif /* _CSP_STATE_SUB_H */

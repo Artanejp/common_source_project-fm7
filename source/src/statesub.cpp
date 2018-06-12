@@ -1,6 +1,7 @@
 
 #include "common.h"
 #include "fileio.h"
+#include "fifo.h"
 
 #include "state_data.h"
 #include "statesub.h"
@@ -850,7 +851,7 @@ void csp_state_data_saver::put_pair64(pair64_sav_t val, uint32_t *sumseed, bool 
 	return;
 }
 
-csp_state_utils::csp_state_utils(int _version, int device_id, _TCHAR *classname)
+csp_state_utils::csp_state_utils(int _version, int device_id, const _TCHAR *classname)
 {
 	listptr.clear();
 	crc_value = 0;
@@ -999,6 +1000,64 @@ void csp_state_utils::get_class_name(_TCHAR *buf, int len)
 	strncpy(buf, __classname_bak, ((size_t)len > sizeof(__classname_bak)) ? sizeof(__classname_bak) : len);
 }
 
+
+void csp_state_utils::add_entry_fifo(const _TCHAR *__name, FIFO **p, int _len, int __num)
+{
+	__list_t _l;
+	std::string _name = std::string(__name);
+	if(__num >= 0) _name = _name + std::string("_#[") +std::to_string(__num) + std::string("]");
+	_l.ptr = (void *)p;
+	_l.type_id = csp_saver_entry_any;
+	_l.len = _len;
+	_l.atomlen = 1;
+	_l.name = _name;
+	_l.datalenptr = NULL;
+	_l.local_num = __num;
+	_l.assume_byte = false;
+	_l.type_id = csp_saver_entry_fifo;
+	out_debug_log("ADD ENTRY: NAME=%s TYPE=FIFO len=%d atomlen=%d", _name.c_str(), _len, _l.atomlen);
+	listptr.push_back(_l);
+}
+
+void csp_state_utils::add_entry_cur_time_t(const _TCHAR *__name, cur_time_t *p, int _len, int __num)
+{
+	__list_t _l;
+	std::string _name = std::string(__name);
+	if(__num >= 0) _name = _name + std::string("_#[") +std::to_string(__num) + std::string("]");
+	_l.ptr = (void *)p;
+	_l.type_id = csp_saver_entry_any;
+	_l.len = _len;
+	_l.atomlen = 1;
+	_l.name = _name;
+	_l.datalenptr = NULL;
+	_l.local_num = __num;
+	_l.assume_byte = false;
+	_l.type_id = csp_saver_entry_cur_time_t;
+	out_debug_log("ADD ENTRY: NAME=%s TYPE=CUR_TIME_T len=%d atomlen=%d", _name.c_str(), _len, _l.atomlen);
+	listptr.push_back(_l);
+}
+	
+void csp_state_utils::add_entry_tchar(const _TCHAR *__name, _TCHAR *p, int _len, int __num, bool is_const)
+{
+	__list_t _l;
+	std::string _name = std::string(__name);
+	if(__num >= 0) _name = _name + std::string("_#[") +std::to_string(__num) + std::string("]");
+		
+	if(p == NULL) return;
+	_l.ptr = (void *)p;
+	_l.type_id = csp_saver_entry_tchar;
+	_l.len = _len;
+	_l.atomlen = sizeof(_TCHAR);
+	_l.name = _name;
+	_l.local_num = __num;
+	_l.assume_byte = true;
+
+	if(is_const) _l.type_id = _l.type_id | csp_saver_entry_const;
+
+	out_debug_log("ADD ENTRY: NAME=%s TYPE=_TCHAR* VAL=%s len=%d atomlen=%d HEAD=%08x", __name, p, _len, _l.atomlen, p);
+	listptr.push_back(_l);
+}
+
 bool csp_state_utils::save_state(FILEIO *__fio, uint32_t *pcrc)
 {
 	const uint8_t initdata[4] = {0xff, 0xff, 0xff, 0xff};
@@ -1022,14 +1081,32 @@ bool csp_state_utils::save_state(FILEIO *__fio, uint32_t *pcrc)
 	
 	fio = new csp_state_data_saver(__fio);
 	if(fio != NULL) {
+		bool need_mfree = false;
 		for(auto p = listptr.begin(); p != listptr.end(); ++p) {
 			void *pp = NULL;
+			void *_ppshadow = NULL;
 			int _tid = (*p).type_id;
 			int _asize = (*p).atomlen;
 			int _len = (*p).len;
-			
 			bool _stat;
-			if((_tid & csp_saver_entry_vararray) != 0) {
+
+			if((_tid & csp_saver_entry_const) != 0) {
+				_ppshadow = (*p).ptr;
+				if((*p).assume_byte) {
+					pp = malloc(_len);
+					memcpy(pp, _ppshadow, _len);
+				} else {
+					pp = malloc(_len * _asize);
+					memcpy(pp, _ppshadow, _len * _asize);
+				}
+				_tid = _tid & 0xffff;
+				need_mfree = true;
+				if(((*p).assume_byte)) {
+					if(_asize > 1) {
+						_len = _len / _asize;
+					}
+				}
+			} else if((_tid & csp_saver_entry_vararray) != 0) {
 				if((*p).datalenptr != NULL) {
 					_len = *((*p).datalenptr);
 				} else {
@@ -1160,7 +1237,7 @@ bool csp_state_utils::save_state(FILEIO *__fio, uint32_t *pcrc)
 							} else {
 								retval = _len;
 								_stat = true;
-								crc_value = calc_crc32(crc_value, px, _len);
+								crc_value = calc_crc32(crc_value, (uint8_t *)px, _len);
 							}
 						} else {
 							fio->put_int8(*px, &crc_value, &_stat);
@@ -1282,17 +1359,42 @@ bool csp_state_utils::save_state(FILEIO *__fio, uint32_t *pcrc)
 						if(!_stat) retval = -1;
 					}
 					break;
+				case csp_saver_entry_fifo:
+					if(pp != NULL) {
+						FIFO **fp = (FIFO **)pp;
+						for(int i = 0; i < _len; i++) {
+							fp[i]->save_state_helper(fio, &crc_value, &_stat);
+						}
+						retval = _len;
+					}
+					break;
+				case csp_saver_entry_cur_time_t:
+					if(pp != NULL) {
+						cur_time_t *fp = (cur_time_t *)pp;
+						for(int i = 0; i < _len; i++) {
+							fp[i].save_state_helper(fio, &crc_value, &_stat);
+						}
+						retval = _len;
+					}
+					break;
 				default:
 					retval = 0;
 					break;
 				}
 				if((retval <= 0) || (!_stat)) {
+					if(need_mfree) {
+						if(pp != NULL) free(pp);
+					}
 					delete fio;
 					return false;
 				}
 
 			}
-			out_debug_log("CRC=%08x", crc_value);
+			//out_debug_log("CRC=%08x", crc_value);
+			if(need_mfree) {
+				if(pp != NULL) free(pp);
+			}
+			need_mfree = false;
 		}
 		delete fio;
 	}
@@ -1325,6 +1427,7 @@ bool csp_state_utils::load_state(FILEIO *__fio, uint32_t *pcrc)
 	fio = new csp_state_data_saver(__fio);
 	out_debug_log("LOAD STATE: NAME=%s DEVID=%d VER=%d", __classname, this_device_id, class_version);
 	if(fio != NULL) {
+		bool need_mfree = false;
 		for(auto p = listptr.begin(); p != listptr.end(); ++p) {
 			void *pp = NULL;
 			int _tid = (*p).type_id;
@@ -1333,7 +1436,23 @@ bool csp_state_utils::load_state(FILEIO *__fio, uint32_t *pcrc)
 			std::string _name = (*p).name;
 			bool _stat;
 			
-			if((_tid & csp_saver_entry_vararray) != 0) {
+			if((_tid & csp_saver_entry_const) != 0) {
+				//_ppshadow = (*p).ptr;
+				if((*p).assume_byte) {
+					pp = malloc(_len);
+					//memcpy(pp, _ppshadow, _len);
+				} else {
+					pp = malloc(_len * _asize);
+					//memcpy(pp, _ppshadow, _len * asize);
+				}
+				_tid = _tid & 0xffff;
+				need_mfree = true;
+				if(((*p).assume_byte)) {
+					if(_asize > 1) {
+						_len = _len / _asize;
+					}
+				}
+			} else	if((_tid & csp_saver_entry_vararray) != 0) {
 				_len = fio->get_int32(&crc_value, &_stat);
 				void **xp = (void **)((*p).ptr);
 				if(*xp != NULL) {
@@ -1609,17 +1728,59 @@ bool csp_state_utils::load_state(FILEIO *__fio, uint32_t *pcrc)
 						out_debug_log("NAME=%s BYTE-ARRAY: LEN=%d STAT=%d HEAD=%08x", _name.c_str(), retval, (_stat) ? 1 : 0, pp);
 					}
 					break;
+				case csp_saver_entry_fifo:
+					if(pp != NULL) {
+						FIFO **fp = (FIFO **)pp;
+						bool _s = false;
+						for(int i = 0; i < _len; i++) {
+							_s = fp[i]->load_state_helper(fio, &crc_value, &_stat);
+							if(!(_s)) {
+								retval = -1;
+								_stat = false;
+								break;
+							}
+						}
+						if(_s) retval = _len;
+					}
+					break;
+				case csp_saver_entry_cur_time_t:
+					if(pp != NULL) {
+						cur_time_t *fp = (cur_time_t *)pp;
+						bool _s = false;
+						for(int i = 0; i < _len; i++) {
+							_s = fp[i].load_state_helper(fio, &crc_value, &_stat);
+							if(!(_s)) {
+								retval = -1;
+								_stat = false;
+								break;
+							}
+						}
+						if(_s) retval = _len;
+					}
+					break;
 				default:
 					retval = 0;
 					out_debug_log("NAME=%s UNKNOWN TID=%d: LEN=%d STAT=%d HEAD=%08x", _name.c_str(), _tid, retval, (_stat) ? 1 : 0, pp);
 					break;
 				}
 				if((retval <= 0) || (!_stat)) {
+					if(need_mfree) {
+						if(pp != NULL) free(pp);
+					}
 					delete fio;
 					return false;
 				}
 			}
 			out_debug_log("CRC=%08x", crc_value);
+			if(need_mfree) {
+				if(memcmp(pp, (*p).ptr , _len * _asize) != 0) {
+					delete fio;
+					free(pp);
+					return false;
+				}
+				free(pp);
+			}
+			need_mfree = false;
 		}
 		delete fio;
 	}
