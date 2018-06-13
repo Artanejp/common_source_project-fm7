@@ -485,7 +485,8 @@ uint16_t DLL_PREFIX EndianToLittle_WORD(uint16_t x);
 	#define my_isfinite _finite
 	#define my_log2(v) (log((double)(v)) / log(2.0))
 #else
-	#define my_isfinite isfinite
+	#include <cmath>
+	#define my_isfinite std::isfinite
 	#define my_log2 log2
 #endif
 

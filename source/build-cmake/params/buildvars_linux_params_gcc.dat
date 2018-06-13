@@ -6,11 +6,12 @@
 CCMAKE_CC=gcc
 CCMAKE_CXX=g++
 
-#MAKEFLAGS_BASE="-std=gnu++11 ${MAKEFLAGS_BASE}"
-
 if [ -v CC_SUFFIX ] ; then
    CCMAKE_CC=${CCMAKE_CC}-${CC_SUFFIX}
    CCMAKE_CXX=${CCMAKE_CXX}-${CC_SUFFIX}
+   if [ ${CC_SUFFIX} -le 5 ] ; then
+      MAKEFLAGS_BASE="-std=gnu++11 ${MAKEFLAGS_BASE}"
+   fi
 fi
 if [ -v CC_PREFIX ] ; then
    CCMAKE_CC=${CC_PREFIX}-${CCMAKE_CC}
