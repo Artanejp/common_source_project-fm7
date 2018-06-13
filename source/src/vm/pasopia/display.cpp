@@ -106,6 +106,8 @@ void DISPLAY::draw_screen()
 	}
 	
 	// copy to real screen
+	emu->set_vm_screen_lines(200);
+	
 	uint16_t bcol = palette_pc[mode & 7];
 	emu->set_vm_screen_lines(200);
 	for(int y = 0; y < 200; y++) {

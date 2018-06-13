@@ -97,9 +97,11 @@ protected:
 	QString qd_text[4];
 	QString fd_text[8];
 	QString fd_lamp[8];
+	QString hdd_text[8];
+	QString hdd_lamp[8];
 	QString cmt_text[4];
-	QString cdrom_text;
-	QString laserdisc_text;
+	QString cdrom_text[4];
+	QString laserdisc_text[4];
 	QString bubble_text[16];
 	QString clipBoardText;
 	QStringList vMovieQueue;
@@ -218,6 +220,7 @@ signals:
 	int sig_check_grab_mouse(bool);
 	int sig_mouse_enable(bool);
 	int sig_update_recent_disk(int);
+	int sig_update_recent_hard_disk(int);
 	
 	int sig_change_osd(int, int, QString);
 	int sig_change_access_lamp(int, int, QString);
@@ -243,6 +246,7 @@ signals:
 	int sig_open_cmt_load(int, QString);
 	int sig_open_cmt_write(int, QString);
 	int sig_open_fd(int, QString);
+	int sig_open_hdd(int, QString);
 	
 	int sig_open_quick_disk(int, QString);
 	int sig_open_bubble(int, QString);

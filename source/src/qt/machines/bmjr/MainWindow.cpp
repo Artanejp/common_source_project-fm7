@@ -23,13 +23,8 @@ void META_MainWindow::setupUI_Emu(void)
 void META_MainWindow::retranslateUi(void)
 {
 	int i;
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("System Reset",  false);
-	retranslateCMTMenu(0);
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateMachineMenu();
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
 
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);
@@ -37,7 +32,6 @@ void META_MainWindow::retranslateUi(void)
 	actionDebugger[2]->setVisible(false);
 	actionDebugger[3]->setVisible(false);
 #endif
-	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 	// Set Labels
 } // retranslateUi
 

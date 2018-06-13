@@ -6,11 +6,8 @@
  *   History :
  * Mar 01, 2018 : Initial, many of constructors were moved to qt/gui/menu_main.cpp.
  */
-#if defined(_USE_QT5)
 #include <QVariant>
-#else
-#include <QtCore/QVariant>
-#endif
+#include <QApplication>
 #include <QtGui>
 #include "menuclasses.h"
 #include "commonclasses.h"
@@ -28,18 +25,16 @@ void META_MainWindow::setupUI_Emu(void)
 void META_MainWindow::retranslateUi(void)
 {
 	int i;
-	
+	QString fdname1M  = QApplication::translate("MenuFM16B", "1MB FDD", 0);
+	QString fdname320  = QApplication::translate("MenuFM16B", "320K FDD", 0);
+
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu(" ",  false);
-	retranslateFloppyMenu(0, 0);
-	retranslateFloppyMenu(1, 1);
-//  retranslateCMTMenu(0);
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateMachineMenu();
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
-	
-	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
+	retranslateFloppyMenu(0, 0, fdname1M);
+	retranslateFloppyMenu(1, 1, fdname1M);
+	retranslateFloppyMenu(2, 2, fdname320);
+	retranslateFloppyMenu(3, 3, fdname320);
+
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(true);

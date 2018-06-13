@@ -7,13 +7,14 @@
  * Jan 14, 2015 : Initial, many of constructors were moved to qt/gui/menu_main.cpp.
  */
 
+#include <QApplication>
 #include <QVariant>
 #include <QtGui>
+#include <QMenu>
 #include "emu.h"
 #include "commonclasses.h"
 #include "menuclasses.h"
 #include "qt_main.h"
-
 
 void META_MainWindow::setupUI_Emu(void)
 {
@@ -21,19 +22,8 @@ void META_MainWindow::setupUI_Emu(void)
 
 void META_MainWindow::retranslateUi(void)
 {
-	int i;
-   
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("System Reset",  true);
-	retranslateFloppyMenu(0, 1);
-	retranslateFloppyMenu(1, 2);
-	retranslateFloppyMenu(2, 3);
-	retranslateFloppyMenu(3, 4);
-	retranslateCMTMenu(0);
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateMachineMenu();
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
 
 	actionSpecial_Reset->setToolTip(QApplication::translate("MainWindow", "Do system reset.", 0));
 	menuDeviceType->setTitle(QApplication::translate("Machine", "Option Cartridge", 0));
@@ -41,16 +31,6 @@ void META_MainWindow::retranslateUi(void)
 	actionDeviceType[0]->setText(QApplication::translate("Machine", "None", 0));
 	actionDeviceType[1]->setText(QApplication::translate("Machine", "Intelligent RAM Disk", 0));
 	actionDeviceType[2]->setText(QApplication::translate("Machine", "Non-intelligent RAM Disk", 0));
-
-	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
-    
-	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
-  
-	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
-	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
-  
-	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
-	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(false);

@@ -14,6 +14,7 @@
 
 #include "../datarec.h"
 #include "../disk.h"
+#include "../harddisk.h"
 #include "../i8253.h"
 #include "../i8255.h"
 #include "../io.h"
@@ -24,6 +25,8 @@
 //#include "../pcpr201.h"
 #include "../prnfile.h"
 #include "../rp5c01.h"
+#include "../scsi_hdd.h"
+#include "../scsi_host.h"
 #include "../w3100a.h"
 #include "../ym2203.h"
 #include "../z80.h"
@@ -76,6 +79,16 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	fdc->set_context_noise_head_up(new NOISE(this, emu));
 	pcm = new PCM1BIT(this, emu);
 	rtc = new RP5C01(this, emu);	// RP-5C15
+	sasi_host = new SCSI_HOST(this, emu);
+	sasi_hdd = new SCSI_HDD(this, emu);
+	sasi_hdd->set_device_name(_T("SASI Hard Disk Drive"));
+	sasi_hdd->scsi_id = 0;
+	sasi_hdd->bytes_per_sec = 32 * 1024; // 32KB/s
+	for(int i = 0; i < USE_HARD_DISK; i++) {
+		sasi_hdd->set_disk_handler(i, new HARDDISK(emu));
+	}
+	sasi_hdd->set_context_interface(sasi_host);
+	sasi_host->set_context_target(sasi_hdd);
 	w3100a = new W3100A(this, emu);
 	opn = new YM2203(this, emu);
 	cpu = new Z80(this, emu);
@@ -134,6 +147,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	rtc->set_context_alarm(interrupt, SIG_INTERRUPT_RP5C15, 1);
 	rtc->set_context_pulse(opn, SIG_YM2203_PORT_B, 8);
+	sasi_host->set_context_irq(mz1e30, SIG_MZ1E30_IRQ, 1);
+	sasi_host->set_context_drq(mz1e30, SIG_MZ1E30_DRQ, 1);
 	opn->set_context_port_a(floppy, SIG_FLOPPY_REVERSE, 0x02, 0);
 	opn->set_context_port_a(crtc, SIG_CRTC_PALLETE, 0x04, 0);
 	opn->set_context_port_a(mouse, SIG_MOUSE_SEL, 0x08, 0);
@@ -157,6 +172,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	memory->set_context_cpu(cpu);
 	memory->set_context_crtc(crtc);
 	mouse->set_context_sio(sio);
+	mz1e30->set_context_host(sasi_host);
 	if(config.printer_type == 0) {  
 		printer->set_context_prn(new PRNFILE(this, emu));
 	} else if(config.printer_type == 1) {
@@ -222,8 +238,13 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
-	for(int i = 0; i < MAX_DRIVE; i++) {
-		fdc->set_drive_type(i, DRIVE_TYPE_2DD);
+	decl_state();
+	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
+#if defined(OPEN_HARD_DISK_IN_RESET)
+		create_local_path(hd_file_path[drv], _MAX_PATH, _T("SASI%d.DAT"), drv);
+#else
+		open_hard_disk_tmp(drv, create_local_path(_T("SASI%d.DAT"), drv));
+#endif
 	}
 	monitor_type = config.monitor_type;
 }
@@ -259,9 +280,27 @@ void VM::reset()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
+	for(int i = 0; i < MAX_DRIVE; i++) {
+		if(config.drive_type) {
+			fdc->set_drive_type(i, DRIVE_TYPE_2D);
+		} else {
+			fdc->set_drive_type(i, DRIVE_TYPE_2DD);
+		}
+	}
 	
 	// set initial port status
 	opn->write_signal(SIG_YM2203_PORT_B, (monitor_type & 2) ? 0x77 : 0x37, 0xff);
+	
+#if defined(OPEN_HARD_DISK_IN_RESET)
+	// open/close hard disk images
+	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
+		if(hd_file_path[drv][0] != _T('\0')) {
+			open_hard_disk_tmp(drv, hd_file_path[drv]);
+		} else {
+			close_hard_disk_tmp(drv);
+		}
+	}
+#endif
 }
 
 void VM::special_reset()
@@ -429,10 +468,74 @@ uint32_t VM::is_floppy_disk_accessed()
 	return fdc->read_signal(0);
 }
 
+void VM::open_hard_disk(int drv, const _TCHAR* file_path)
+{
+	if(drv < USE_HARD_DISK) {
+#if defined(OPEN_HARD_DISK_IN_RESET)
+		my_tcscpy_s(hd_file_path[drv], _MAX_PATH, file_path);
+#else
+		open_hard_disk_tmp(drv, file_path);
+#endif
+	}
+}
+
+void VM::close_hard_disk(int drv)
+{
+	if(drv < USE_HARD_DISK) {
+#if defined(OPEN_HARD_DISK_IN_RESET)
+		hd_file_path[drv][0] = _T('\0');
+#else
+		close_hard_disk_tmp(drv);
+#endif
+	}
+}
+
+bool VM::is_hard_disk_inserted(int drv)
+{
+	if(drv < USE_HARD_DISK) {
+#if defined(OPEN_HARD_DISK_IN_RESET)
+		return (hd_file_path[drv][0] != _T('\0'));
+#else
+		return is_hard_disk_inserted_tmp(drv);
+#endif
+	}
+	return false;
+}
+
 uint32_t VM::is_hard_disk_accessed()
 {
-	return mz1e30->read_signal(0);
+	uint32_t status = 0;
+	
+	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
+		if(sasi_hdd->get_disk_handler(drv)->accessed()) {
+			status |= 1 << drv;
+		}
+	}
+	return status;
 }
+
+void VM::open_hard_disk_tmp(int drv, const _TCHAR* file_path)
+{
+	if(drv < USE_HARD_DISK) {
+		sasi_hdd->get_disk_handler(drv)->open(file_path);
+	}
+}
+
+void VM::close_hard_disk_tmp(int drv)
+{
+	if(drv < USE_HARD_DISK) {
+		sasi_hdd->get_disk_handler(drv)->close();
+	}
+}
+
+bool VM::is_hard_disk_inserted_tmp(int drv)
+{
+	if(drv < USE_HARD_DISK) {
+		return sasi_hdd->get_disk_handler(drv)->mounted();
+	}
+	return false;
+}
+
 
 void VM::play_tape(int drv, const _TCHAR* file_path)
 {
@@ -516,38 +619,47 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	6
+#define STATE_VERSION	7
+
+#include "../../statesub.h"
+
+void VM::decl_state(void)
+{
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::MZ700_SERIES_HEAD")));
+	DECL_STATE_ENTRY_BOOL(monitor_type);
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		device->decl_state();
+	}
+}
 
 void VM::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	
+	//state_fio->FputUint32(STATE_VERSION);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const char *name = typeid(*device).name() + 6; // skip "class "
-		
-		state_fio->FputInt32(strlen(name));
-		state_fio->Fwrite(name, strlen(name), 1);
 		device->save_state(state_fio);
 	}
-	state_fio->FputInt32(monitor_type);
+	//state_fio->FputInt32(monitor_type);
 }
 
 bool VM::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->save_state(state_fio);
 	}
+	if(!mb) return false;
+	//if(state_fio->FgetUint32() != STATE_VERSION) {
+	//	return false;
+	//}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const char *name = typeid(*device).name() + 6; // skip "class "
-		
-		if(!(state_fio->FgetInt32() == strlen(name) && state_fio->Fcompare(name, strlen(name)))) {
-			return false;
-		}
 		if(!device->load_state(state_fio)) {
 			return false;
 		}
 	}
-	monitor_type = state_fio->FgetInt32();
-	return true;
+	//monitor_type = state_fio->FgetInt32();
+	//return true;
 }
 

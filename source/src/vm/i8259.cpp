@@ -279,29 +279,68 @@ uint32_t I8259::get_intr_ack()
 
 #define STATE_VERSION	1
 
+#include "../statesub.h"
+
+void I8259::decl_state()
+{
+	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("i8259"));
+	
+	for(int i = 0; i < __I8259_MAX_CHIPS; i++) {
+		DECL_STATE_ENTRY_UINT8_MEMBER((pic[i].imr), i);
+		DECL_STATE_ENTRY_UINT8_MEMBER((pic[i].isr), i);
+		DECL_STATE_ENTRY_UINT8_MEMBER((pic[i].irr), i);
+		DECL_STATE_ENTRY_UINT8_MEMBER((pic[i].irr_tmp), i);
+		DECL_STATE_ENTRY_UINT8_MEMBER((pic[i].prio), i);
+		
+		DECL_STATE_ENTRY_UINT8_MEMBER((pic[i].icw1), i);
+		DECL_STATE_ENTRY_UINT8_MEMBER((pic[i].icw2), i);
+		DECL_STATE_ENTRY_UINT8_MEMBER((pic[i].icw3), i);
+		DECL_STATE_ENTRY_UINT8_MEMBER((pic[i].icw4), i);
+		DECL_STATE_ENTRY_UINT8_MEMBER((pic[i].ocw3), i);
+		
+		DECL_STATE_ENTRY_UINT8_MEMBER((pic[i].icw2_r), i);
+		DECL_STATE_ENTRY_UINT8_MEMBER((pic[i].icw3_r), i);
+		DECL_STATE_ENTRY_UINT8_MEMBER((pic[i].icw4_r), i);
+
+		DECL_STATE_ENTRY_INT32_MEMBER((pic[i].irr_tmp_id), i);
+	}
+
+	DECL_STATE_ENTRY_INT32(req_chip);
+	DECL_STATE_ENTRY_INT32(req_level);
+	DECL_STATE_ENTRY_UINT8(req_bit);
+}
+
 void I8259::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+	//state_fio->FputUint32(STATE_VERSION);
+	//state_fio->FputInt32(this_device_id);
 	
-	for(int i = 0; i < __I8259_MAX_CHIPS; i++) state_fio->Fwrite(&pic[i], sizeof(struct i8259_pic_t), 1);
-	state_fio->FputInt32(req_chip);
-	state_fio->FputInt32(req_level);
-	state_fio->FputUint8(req_bit);
+	//for(int i = 0; i < __I8259_MAX_CHIPS; i++) state_fio->Fwrite(&pic[i], sizeof(struct i8259_pic_t), 1);
+	//state_fio->FputInt32(req_chip);
+	//state_fio->FputInt32(req_level);
+	//state_fio->FputUint8(req_bit);
 }
 
 bool I8259::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	for(int i = 0; i < __I8259_MAX_CHIPS; i++) state_fio->Fread(&pic[i], sizeof(struct i8259_pic_t), 1);
-	req_chip = state_fio->FgetInt32();
-	req_level = state_fio->FgetInt32();
-	req_bit = state_fio->FgetUint8();
+	if(!mb) return false;
+	//if(state_fio->FgetUint32() != STATE_VERSION) {
+	//	return false;
+	//}
+	//if(state_fio->FgetInt32() != this_device_id) {
+	//	return false;
+	//}
+	//for(int i = 0; i < __I8259_MAX_CHIPS; i++) state_fio->Fread(&pic[i], sizeof(struct i8259_pic_t), 1);
+	//req_chip = state_fio->FgetInt32();
+	//req_level = state_fio->FgetInt32();
+	//req_bit = state_fio->FgetUint8();
 	return true;
 }
 

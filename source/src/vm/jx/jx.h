@@ -33,8 +33,7 @@
 #define IO_ADDR_MAX		0x10000
 
 // device informations for win32
-#define USE_FD1
-#define USE_FD2
+#define USE_FLOPPY_DISK		2
 #define NOTIFY_KEY_DOWN
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5

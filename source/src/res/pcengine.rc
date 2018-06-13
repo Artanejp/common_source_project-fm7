@@ -130,10 +130,10 @@ BEGIN
     END
     POPUP "CD-ROM^2"
     BEGIN
-        MENUITEM "Insert",                      ID_OPEN_COMPACT_DISC
-        MENUITEM "Eject",                       ID_CLOSE_COMPACT_DISC
+        MENUITEM "Insert",                      ID_OPEN_COMPACT_DISC1
+        MENUITEM "Eject",                       ID_CLOSE_COMPACT_DISC1
         MENUITEM SEPARATOR
-        MENUITEM "Recent",                      ID_RECENT_COMPACT_DISC
+        MENUITEM "Recent",                      ID_RECENT_COMPACT_DISC1
     END
     POPUP "Device"
     BEGIN

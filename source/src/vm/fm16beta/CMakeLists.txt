@@ -5,7 +5,7 @@ message("* vm/fm16beta")
 set(VM_FM16BETA_LIB_SRCS
      cmos.cpp
      keyboard.cpp
-     main.cpp
+     mainbus.cpp
      sub.cpp
      fm16beta.cpp
 )

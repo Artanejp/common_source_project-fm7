@@ -1,6 +1,7 @@
 /*
 	Skelton for retropc emulator
 
+	Origin : MAME i286 core
 	Author : Takeda.Toshiya
 	Date  : 2012.10.18-
 
@@ -100,6 +101,7 @@ public:
 	void write_debug_io16(uint32_t addr, uint32_t data);
 	uint32_t read_debug_io16(uint32_t addr);
 	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
+	uint32_t read_debug_reg(const _TCHAR *reg);
 	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 #endif

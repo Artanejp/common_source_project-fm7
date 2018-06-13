@@ -7,6 +7,7 @@
  * Jan 14, 2015 : Initial, moved from qt/x1turboz/MainWindow.cpp .
  */
 
+#include <QApplication>
 #include <QVariant>
 #include <QtGui>
 #include <QIcon>
@@ -21,6 +22,9 @@
 #include <QVBoxLayout>
 #include <QDockWidget>
 #include <QToolBar>
+#include <QMenu>
+#include <QMenuBar>
+#include <QStyle>
 
 #include "commonclasses.h"
 #include "display_about.h"
@@ -28,6 +32,7 @@
 #include "mainwidget_base.h"
 //#include "menuclasses.h"
 #include "menu_disk.h"
+#include "menu_harddisk.h"
 #include "menu_cmt.h"
 #include "menu_cart.h"
 #include "menu_quickdisk.h"
@@ -220,6 +225,26 @@ void Ui_MainWindowBase::do_set_dev_log_to_console(int num, bool f)
 	using_flags->get_config_ptr()->dev_log_to_console[num][0] = f;
 }
 
+void Ui_MainWindowBase::do_set_state_log_to_console(bool f)
+{
+	csp_logger->set_state_log(2, f);
+	using_flags->get_config_ptr()->state_log_to_console = f;
+}
+
+void Ui_MainWindowBase::do_set_state_log_to_syslog(bool f)
+{
+	csp_logger->set_state_log(1, f);
+	using_flags->get_config_ptr()->state_log_to_syslog = f;
+}
+
+void Ui_MainWindowBase::do_set_state_log_to_record(bool f)
+{
+	csp_logger->set_state_log(0, f);
+	using_flags->get_config_ptr()->state_log_to_recording = f;
+}
+
+
+
 void Ui_MainWindowBase::do_set_emulate_cursor_as(int num)
 {
 	if((num < 0) || (num > 2)) return;
@@ -298,6 +323,7 @@ void Ui_MainWindowBase::setupUi(void)
 	//MainWindow->resize(1288, 862);
 	ConfigControlMenu();
 	ConfigFloppyMenu();
+	ConfigHardDiskMenu();
 	ConfigCMTMenu();
 	if(!using_flags->is_without_sound()) {
 		ConfigSoundMenu();
@@ -450,41 +476,50 @@ void Ui_MainWindowBase::setupUi(void)
 	menuDebugger->setObjectName(QString::fromUtf8("menuDebugger"));
 	menuDebugger->setToolTipsVisible(true);
 	if(using_flags->is_use_fd()) {
-		int i;
-		for(i = 0; i < using_flags->get_max_drive(); i++) CreateFloppyMenu(i, i + 1);
+		int base_drv = using_flags->get_base_floppy_disk_num();
+		for(int i = 0; i < using_flags->get_max_drive(); i++) CreateFloppyMenu(i, base_drv + i);
 	}
 	if(using_flags->is_use_qd()) {
-		int i;
-		for(i = 0; i < using_flags->get_max_qd(); i++) CreateQuickDiskMenu(i, i + 1);
+		int base_drv = using_flags->get_base_quick_disk_num();
+		for(int i = 0; i < using_flags->get_max_qd(); i++) CreateQuickDiskMenu(i, base_drv + i);
 	}
 	if(using_flags->is_use_tape()) {
-		for(int i = 0; i < using_flags->get_max_tape(); i++) CreateCMTMenu(i);
+		int base_drv = using_flags->get_base_tape_num();
+		for(int i = 0; i < using_flags->get_max_tape(); i++) CreateCMTMenu(i, base_drv + i);
 	}
-	if(using_flags->get_max_scsi() > 0) {
+	if(using_flags->is_use_hdd()) {
+		int base_drv = using_flags->get_base_hdd_num();
+		for(int i = 0; i < using_flags->get_max_hdd(); i++) CreateHardDiskMenu(i, base_drv + i);
 	}
 	CreateScreenMenu();
 	if(using_flags->is_use_cart()) {
-		int i;
-		for(i = 0; i < using_flags->get_max_cart(); i++) {
-			CreateCartMenu(i, i + 1);
+		int base_drv = using_flags->get_base_cart_num();
+		for(int i = 0; i < using_flags->get_max_cart(); i++) {
+			CreateCartMenu(i, base_drv + i);
 		}
 	}
 	if(using_flags->is_use_binary_file()) {
-		int i;
-		for(i = 0; i < using_flags->get_max_binary(); i++) {
-			CreateBinaryMenu(i, i + 1);
+		int base_drv = using_flags->get_base_binary_num();
+		for(int i = 0; i < using_flags->get_max_binary(); i++) {
+			CreateBinaryMenu(i, base_drv + i);
 		}
 	}
 	if(using_flags->is_use_compact_disc()) {
-		CreateCDROMMenu();
+		int base_drv = using_flags->get_base_compact_disc_num();
+		for(int i = 0; i < using_flags->get_max_cd(); i++) {
+			CreateCDROMMenu(i, base_drv + i);
+		}
 	}
 	if(using_flags->is_use_laser_disc()) {
-		CreateLaserdiscMenu();
+		int base_drv = using_flags->get_base_laser_disc_num();
+		for(int i = 0; i < using_flags->get_max_ld(); i++) {
+			CreateLaserdiscMenu(i, base_drv + i);
+		}
 	}
 	if(using_flags->is_use_bubble()) {
-		int i;
-		for(i = 0; i < using_flags->get_max_bubble(); i++) {
-			CreateBubbleMenu(i, i + 1);
+		int base_drv = using_flags->get_base_bubble_num();
+		for(int i = 0; i < using_flags->get_max_bubble(); i++) {
+			CreateBubbleMenu(i, base_drv + i);
 		}
 	}
 	connect(this, SIGNAL(sig_update_screen(void)), graphicsView, SLOT(update(void)));
@@ -513,7 +548,8 @@ void Ui_MainWindowBase::setupUi(void)
 	ConfigDriveType();
 	ConfigSoundDeviceType();
 	ConfigPrinterType();
-
+	ConfigMonitorType();
+	
 	if(!using_flags->is_without_sound()) {
 		menuSound = new QMenu(menubar);
 		menuSound->setObjectName(QString::fromUtf8("menuSound"));
@@ -542,6 +578,12 @@ void Ui_MainWindowBase::setupUi(void)
 			menubar->addAction(menu_QDs[i]->menuAction());
 		}
 	}
+	if(using_flags->is_use_hdd()) {
+		int i;
+		for(i = 0; i < using_flags->get_max_hdd(); i++) {
+			menubar->addAction(menu_hdds[i]->menuAction());
+		}
+	}
 	if(using_flags->is_use_tape()) {
 		for(int i = 0; i < using_flags->get_max_tape(); i++) menubar->addAction(menu_CMT[i]->menuAction());
 	}
@@ -552,16 +594,19 @@ void Ui_MainWindowBase::setupUi(void)
 		}
 	}
 	if(using_flags->is_use_binary_file()) {
-		int i;
-		for(i = 0; i < using_flags->get_max_binary(); i++) {
+		for(int i = 0; i < using_flags->get_max_binary(); i++) {
 			menubar->addAction(menu_BINs[i]->menuAction());
 		}
 	}
 	if(using_flags->is_use_compact_disc()) {
-		menubar->addAction(menu_CDROM->menuAction());
+		for(int i = 0; i < using_flags->get_max_cd(); i++) {
+			menubar->addAction(menu_CDROM[i]->menuAction());
+		}
 	}
 	if(using_flags->is_use_laser_disc()) {
-		menubar->addAction(menu_Laserdisc->menuAction());
+		for(int i = 0; i < using_flags->get_max_ld(); i++) {
+			menubar->addAction(menu_Laserdisc[i]->menuAction());
+		}
 	}
 	if(using_flags->is_use_bubble()) {
 		int i;
@@ -733,6 +778,9 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 		action_UseRomaKana->setText(QApplication::translate("MenuEmulator", "ROMA-KANA Conversion", 0));
 		action_UseRomaKana->setToolTip(QApplication::translate("MenuEmulator", "Use romaji-kana conversion assistant of emulator.", 0));
 	}
+	actionSpeed_FULL->setText(QApplication::translate("MenuEmulator", "Emulate as FULL SPEED", 0));
+	actionSpeed_FULL->setToolTip(QApplication::translate("MenuEmulator", "Run emulation thread without frame sync.", 0));
+	
 	action_NumPadEnterAsFullkey->setText(QApplication::translate("MenuEmulator", "Numpad's Enter is Fullkey's", 0));
 	action_NumPadEnterAsFullkey->setToolTip(QApplication::translate("MenuEmulator", "Numpad's enter key makes full key's enter.\nUseful for some VMs.", 0));
 
@@ -776,6 +824,7 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 	if(using_flags->is_use_sound_files_relay()) {
 		action_SoundFilesRelay->setText(QApplication::translate("MenuEmulator", "Sound CMT Relay and Buttons", 0));
 		action_SoundFilesRelay->setToolTip(QApplication::translate("MenuEmulator", "Enable CMT relay's sound and buttons's sounds.\nNeeds sound file.\nSee HELP->READMEs->Bios and Key assigns", 0));
+		if(using_flags->is_tape_binary_only()) action_SoundFilesRelay->setEnabled(false);
 	}
 	menuDevLogToConsole->setTitle(QApplication::translate("MenuEmulator", "Per Device", 0));
 #if !defined(Q_OS_WIN)
@@ -838,6 +887,9 @@ void Ui_MainWindowBase::CreateEmulatorMenu(void)
 		menuEmulator->addAction(action_UseRomaKana);
 	}
 	menuEmulator->addAction(action_NumPadEnterAsFullkey);
+	menuEmulator->addSeparator();
+	menuEmulator->addAction(actionSpeed_FULL);
+	menuEmulator->addSeparator();
 	menuEmulator->addAction(menu_EmulateCursorAs->menuAction());
 	if(action_Logging_FDC != NULL) {
 		menuEmulator->addSeparator();
@@ -867,6 +919,32 @@ void Ui_MainWindowBase::CreateEmulatorMenu(void)
 	}
 	menuEmulator->addAction(action_SetupKeyboard);
 	menuEmulator->addAction(action_SetupMovie);
+}
+
+void Ui_MainWindowBase::ConfigMonitorType(void)
+{
+	if(using_flags->get_use_monitor_type() > 0) {
+		int ii;
+		menuMonitorType = new QMenu(menuMachine);
+		menuMonitorType->setObjectName(QString::fromUtf8("menuControl_MonitorType"));
+		menuMachine->addAction(menuMonitorType->menuAction());
+		
+		actionGroup_MonitorType = new QActionGroup(this);
+		actionGroup_MonitorType->setExclusive(true);
+		for(ii = 0; ii < using_flags->get_use_monitor_type(); ii++) {
+			actionMonitorType[ii] = new Action_Control(this, using_flags);
+			actionGroup_MonitorType->addAction(actionMonitorType[ii]);
+			actionMonitorType[ii]->setCheckable(true);
+			actionMonitorType[ii]->setVisible(true);
+			actionMonitorType[ii]->binds->setValue1(ii);
+			if(using_flags->get_config_ptr()->monitor_type == ii) actionMonitorType[ii]->setChecked(true);
+			menuMonitorType->addAction(actionMonitorType[ii]);
+			connect(actionMonitorType[ii], SIGNAL(triggered()),
+					actionMonitorType[ii]->binds, SLOT(do_set_monitor_type()));
+			connect(actionMonitorType[ii]->binds, SIGNAL(sig_monitor_type(int)),
+					this, SLOT(set_monitor_type(int)));
+		}
+	}
 }
 
 void Ui_MainWindowBase::ConfigEmulatorMenu(void)
@@ -923,6 +1001,14 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 					this, SLOT(do_set_emulate_cursor_as(int)));
 		}
 	}
+	
+	actionSpeed_FULL = new Action_Control(this, using_flags);
+	actionSpeed_FULL->setObjectName(QString::fromUtf8("actionSpeed_FULL"));
+	actionSpeed_FULL->setVisible(true);
+	actionSpeed_FULL->setCheckable(true);
+	actionSpeed_FULL->setChecked(false);
+	if(using_flags->get_config_ptr()->full_speed) actionSpeed_FULL->setChecked(true);
+	connect(actionSpeed_FULL, SIGNAL(toggle(bool)), this,SLOT(do_emu_full_speed(bool))); // OK?
 	
 	if(using_flags->is_use_joystick()) {
 		action_SetupJoystick = new Action_Control(this, using_flags);
@@ -1195,30 +1281,73 @@ void Ui_MainWindowBase::retranslateMachineMenu(void)
 		actionPrintDevice[i]->setText(QApplication::translate("MenuMachine", "Not Connect", 0));
 		actionPrintDevice[i]->setToolTip(QApplication::translate("MenuMachine", "None devices connect to printer port.", 0));
 	}
+	if(using_flags->get_use_monitor_type() > 0) {
+		menuMonitorType->setTitle("Monitor Type");
+		menuMonitorType->setToolTipsVisible(true);
+		for(int ii = 0; ii < using_flags->get_use_monitor_type(); ii++) {
+			tmps = QString::fromUtf8("Monitor %1").arg(ii + 1);
+			actionMonitorType[ii]->setText(tmps);
+		}
+	}
 }
 void Ui_MainWindowBase::retranslateUi(void)
 {
-	retranslateControlMenu("NMI Reset",  true);
-	retranslateFloppyMenu(0, 0);
-	retranslateFloppyMenu(1, 1);
-	retranslateCMTMenu(0);
+	retranslateControlMenu("Reset",  true);
 	if(!using_flags->is_without_sound()) {
 		retranslateSoundMenu();
 	}
 	retranslateScreenMenu();
-	retranslateCartMenu(0, 1);
-	retranslateCartMenu(1, 2);
-	retranslateCDROMMenu();
-	
-	retranslateBinaryMenu(0, 1);
-	retranslateBinaryMenu(1, 2);
-
-	retranslateBubbleMenu(0, 1);
-	retranslateBubbleMenu(1, 2);
 	retranslateMachineMenu();
 	retranslateEmulatorMenu();
 	retranslateUI_Help();
-   
+	if(using_flags->is_use_binary_file()) {
+		int basedrv = using_flags->get_base_binary_num();
+		for(int i = 0; i < using_flags->get_max_binary(); i++) {
+			retranslateBinaryMenu(i, basedrv);
+		}
+	}
+	if(using_flags->is_use_bubble()) {
+		int basedrv = using_flags->get_base_bubble_num();
+		for(int i = 0; i < using_flags->get_max_bubble(); i++) {
+			retranslateBubbleMenu(i, basedrv);
+		}
+	}
+	if(using_flags->is_use_cart()) {
+		int basedrv = using_flags->get_base_cart_num();
+		for(int i = 0; i < using_flags->get_max_cart(); i++) {
+			retranslateCartMenu(i, basedrv);
+		}
+	}
+	if(using_flags->is_use_compact_disc()) {
+		retranslateCDROMMenu();
+	}
+	if(using_flags->is_use_tape()) {
+		int basedrv = using_flags->get_base_tape_num();
+		for(int i = 0; i < using_flags->get_max_tape(); i++) {
+			retranslateCMTMenu(i);
+		}
+	}
+	if(using_flags->is_use_fd()) {
+		int basedrv = using_flags->get_base_floppy_disk_num();
+		for(int i = 0; i < using_flags->get_max_drive(); i++) {
+			retranslateFloppyMenu(i, basedrv + i);
+		}
+	}
+	if(using_flags->is_use_hdd()) {
+		int basedrv = using_flags->get_base_hdd_num();
+		for(int i = 0; i < using_flags->get_max_hdd(); i++) {
+			retranslateHardDiskMenu(i, basedrv + i);
+		}
+	}
+	if(using_flags->is_use_laser_disc()) {
+		retranslateLaserdiscMenu();
+	}
+	if(using_flags->is_use_qd()) {
+		int basedrv = using_flags->get_base_quick_disk_num();
+		for(int i = 0; i < using_flags->get_max_qd(); i++) {
+			retranslateQuickDiskMenu(i, basedrv);
+		}
+	}
 } // retranslateUi
 
 void Ui_MainWindowBase::doBeforeCloseMainWindow(void)

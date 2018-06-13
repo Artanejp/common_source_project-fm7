@@ -6,7 +6,7 @@
  *   History :
  * Jan 14, 2015 : Initial, many of constructors were moved to qt/gui/menu_main.cpp.
  */
-
+#include <QApplication>
 #include <QtCore/QVariant>
 #include <QtGui>
 #include "menuclasses.h"
@@ -15,21 +15,16 @@
 #include "emu.h"
 #include "qt_main.h"
 #include "../../vm/babbage2nd/babbage2nd.h"
+#include "menu_binary.h"
 
 //QT_BEGIN_NAMESPACE
 
 
 void META_MainWindow::retranslateUi(void)
 {
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("", false);
-	retranslateScreenMenu();
-	retranslateBinaryMenu(0, 1);
-	retranslateSoundMenu();
-	retranslateMachineMenu();
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
-	
-	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
+	menu_BINs[0]->setTitle(QApplication::translate("MenuBABBAGE", "RAM", 0));
 	//menuMachine->setVisible(false);
 	// Set Labels
 	

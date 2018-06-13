@@ -4,6 +4,7 @@
 # this part was written only me.
 
 include(CheckFunctionExists)
+#include(cotire)
 
 if(USE_DEVICES_SHARED_LIB)
   add_definitions(-DUSE_SHARED_DLL)

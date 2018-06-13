@@ -468,6 +468,26 @@
 				Filter="cpp"
 				>
 				<File
+					RelativePath="..\src\vm\and.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\src\vm\ay_3_891x.cpp"
 					>
 					<FileConfiguration
@@ -548,6 +568,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\src\vm\i8251.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\src\vm\mb8877.cpp"
 					>
 					<FileConfiguration
@@ -569,6 +609,26 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\mc6809.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\mc6809_base.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -918,6 +978,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\src\vm\fm7\jcommcard.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\src\vm\fm7\joystick.cpp"
 					>
 					<FileConfiguration
@@ -959,6 +1039,106 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\fm7\keyboard.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\fm7\mainmem_mmr.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\fm7\mainmem_page2.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\fm7\mainmem_readseq.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\fm7\mainmem_utils.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\fm7\mainmem_writeseq.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -1062,6 +1242,10 @@
 				Filter="h"
 				>
 				<File
+					RelativePath="..\src\vm\and.h"
+					>
+				</File>
+				<File
 					RelativePath="..\src\vm\ay_3_891x.h"
 					>
 				</File>
@@ -1083,6 +1267,10 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\event.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\i8251.h"
 					>
 				</File>
 				<File
@@ -1188,6 +1376,10 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\fm7\fm7_mainmem.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\fm7\jcommcard.h"
 					>
 				</File>
 				<File

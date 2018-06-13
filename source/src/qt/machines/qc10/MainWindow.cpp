@@ -8,7 +8,10 @@
  */
 
 #include <QVariant>
+#include <QApplication>
 #include <QtGui>
+#include <QMenu>
+
 #include "commonclasses.h"
 #include "menuclasses.h"
 #include "emu.h"
@@ -40,20 +43,8 @@ void Object_Menu_Control_QC10::set_dipsw(bool flag)
 
 void META_MainWindow::retranslateUi(void)
 {
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu(" ", false);
-	retranslateFloppyMenu(0, 1);
-	retranslateFloppyMenu(1, 2);
-#if defined(USE_FD3)	
-	retranslateFloppyMenu(2, 3);
-#endif
-#if defined(USE_FD4)	
-	retranslateFloppyMenu(3, 4);
-#endif
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateMachineMenu();
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
 	QString tmps;
 	QString n_tmps;
 	int i;
@@ -64,7 +55,6 @@ void META_MainWindow::retranslateUi(void)
 		n_tmps.setNum(i + 1);
 		action_Emu_DipSw[i]->setText(tmps + n_tmps);
 	}
-	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(false);

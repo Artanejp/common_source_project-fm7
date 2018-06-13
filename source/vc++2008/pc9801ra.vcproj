@@ -508,6 +508,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\src\vm\harddisk.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\src\vm\i386.cpp"
 					>
 					<FileConfiguration
@@ -768,6 +788,66 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\src\vm\scsi_dev.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\scsi_hdd.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\scsi_host.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\src\vm\tms3631.cpp"
 					>
 					<FileConfiguration
@@ -953,6 +1033,10 @@
 					</File>
 				</Filter>
 			</Filter>
+			<Filter
+				Name="VM Driver Source Files"
+				Filter="cpp"
+				>
 				<File
 					RelativePath="..\src\vm\pc9801\cpureg.cpp"
 					>
@@ -973,10 +1057,6 @@
 						/>
 					</FileConfiguration>
 				</File>
-			<Filter
-				Name="VM Driver Source Files"
-				Filter="cpp"
-				>
 				<File
 					RelativePath="..\src\vm\pc9801\display.cpp"
 					>
@@ -1238,6 +1318,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\src\vm\harddisk.h"
+					>
+				</File>
+				<File
 					RelativePath="..\src\vm\i386.h"
 					>
 				</File>
@@ -1287,6 +1371,18 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\prnfile.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\scsi_dev.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\scsi_hdd.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\scsi_host.h"
 					>
 				</File>
 				<File

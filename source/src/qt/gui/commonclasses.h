@@ -107,10 +107,6 @@ public slots:
 	void insert_binary_load(void);
 	void insert_binary_save(void);
 	
-	void insert_cdrom(void);
-	void eject_cdrom(void);
-	void on_recent_cdrom();
-
 	void insert_laserdisc(void);
 	void eject_laserdisc(void);
 	void on_recent_laserdisc();
@@ -123,7 +119,7 @@ public slots:
 	void on_recent_cart(void);
 	void do_save_as_movie(void);
 	void do_stop_saving_movie(void);
-
+	void do_set_monitor_type();
 signals:
 	int on_boot_mode(int);   
 	int on_cpu_type(int);   
@@ -149,8 +145,6 @@ signals:
 	int sig_eject_Qd(int);
 	int sig_insert_Qd(int);
 	
-	int sig_insert_cdrom(bool);
-	int sig_eject_cdrom(void);
 	int sig_recent_cdrom(int);
 		
 	int sig_insert_laserdisc(bool);
@@ -181,6 +175,8 @@ signals:
 	int sig_screen_size(int, int);
 	int sig_screen_multiply(float);
 
+	int sig_monitor_type(int);
+	
 signals:
 	int sig_stop_record_movie();
 	int sig_start_record_movie(int);

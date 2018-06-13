@@ -148,7 +148,7 @@ char *DLL_PREFIX my_strtok_s(char *strToken, const char *strDelimit, char **cont
 	return strtok(strToken, strDelimit);
 }
 
-_TCHAR DLL_PREFIX *my_tcstok_s(_TCHAR *strToken, const char *strDelimit, _TCHAR **context)
+_TCHAR *DLL_PREFIX my_tcstok_s(_TCHAR *strToken, const char *strDelimit, _TCHAR **context)
 {
 	return _tcstok(strToken, strDelimit);
 }
@@ -747,7 +747,7 @@ uint8_t DLL_PREFIX B_OF_COLOR(scrntype_t c)
 	return (uint8_t)c;
 }
 
-uint8_t A_OF_COLOR(scrntype_t c)
+uint8_t DLL_PREFIX A_OF_COLOR(scrntype_t c)
 {
 	return 0;
 }
@@ -798,6 +798,7 @@ struct to_upper {  // Refer from documentation of libstdc++, GCC5.
 };
 #endif
 
+#if defined(_USE_QT)
 static void _my_mkdir(std::string t_dir)
 {
 	struct stat st;
@@ -817,7 +818,7 @@ static void _my_mkdir(std::string t_dir)
 	}
 #endif
 }
-
+#endif
 
 const _TCHAR *DLL_PREFIX get_application_path()
 {
@@ -887,7 +888,7 @@ bool DLL_PREFIX is_absolute_path(const _TCHAR *file_path)
 	return (_tcslen(file_path) > 1 && (file_path[0] == _T('/') || file_path[0] == _T('\\')));
 }
 
-const _TCHAR *create_absolute_path(const _TCHAR *file_name)
+const _TCHAR *DLL_PREFIX create_absolute_path(const _TCHAR *file_name)
 {
 	static _TCHAR file_path[8][_MAX_PATH];
 	static unsigned int table_index = 0;
@@ -906,7 +907,7 @@ void DLL_PREFIX create_absolute_path(_TCHAR *file_path, int length, const _TCHAR
 	my_tcscpy_s(file_path, length, create_absolute_path(file_name));
 }
 
-const _TCHAR *create_date_file_path(const _TCHAR *extension)
+const _TCHAR *DLL_PREFIX create_date_file_path(const _TCHAR *extension)
 {
 	cur_time_t cur_time;
 	
@@ -984,7 +985,7 @@ void DLL_PREFIX get_long_full_path_name(const _TCHAR* src, _TCHAR* dst, size_t d
 #endif
 }
 
-const _TCHAR* DLL_PREFIX get_parent_dir(const _TCHAR* file)
+const _TCHAR *DLL_PREFIX get_parent_dir(const _TCHAR* file)
 {
 	static _TCHAR path[8][_MAX_PATH];
 	static unsigned int table_index = 0;
@@ -1023,9 +1024,7 @@ const wchar_t *DLL_PREFIX char_to_wchar(const char *cs)
 	// char to wchar_t
 	static wchar_t ws[4096];
 	
-#ifdef _WIN32
-	mbstowcs(ws, cs, strlen(cs));
-#elif defined(_USE_QT)
+#if defined(_WIN32) || defined(_USE_QT)
 	mbstowcs(ws, cs, strlen(cs));
 #else
 	// write code for your environment
@@ -1143,24 +1142,29 @@ uint32_t DLL_PREFIX muldiv_u32(uint32_t nNumber, uint32_t nNumerator, uint32_t n
 	}
 }
 
+static bool _crc_initialized = false;
+static uint32_t _crc_table[256] = {0};
+static void init_crc32_table(void)
+{
+	for(int i = 0; i < 256; i++) {
+		uint32_t c = i;
+		for(int j = 0; j < 8; j++) {
+			if(c & 1) {
+				c = (c >> 1) ^ 0xedb88320;
+			} else {
+				c >>= 1;
+			}
+		}
+		_crc_table[i] = c;
+	}
+	_crc_initialized = true;
+}
+
 uint32_t DLL_PREFIX get_crc32(uint8_t data[], int size)
 {
-	static bool initialized = false;
-	static uint32_t table[256];
-	
-	if(!initialized) {
-		for(int i = 0; i < 256; i++) {
-			uint32_t c = i;
-			for(int j = 0; j < 8; j++) {
-				if(c & 1) {
-					c = (c >> 1) ^ 0xedb88320;
-				} else {
-					c >>= 1;
-				}
-			}
-			table[i] = c;
-		}
-		initialized = true;
+	const uint32_t *table = (const uint32_t *)_crc_table;
+	if(!_crc_initialized) {
+		init_crc32_table();
 	}
 	
 	uint32_t c = ~0;
@@ -1168,6 +1172,42 @@ uint32_t DLL_PREFIX get_crc32(uint8_t data[], int size)
 		c = table[(c ^ data[i]) & 0xff] ^ (c >> 8);
 	}
 	return ~c;
+}
+
+uint32_t DLL_PREFIX calc_crc32(uint32_t seed, uint8_t data[], int size)
+{
+#if 0
+	if(!_crc_initialized) {
+		init_crc32_table();
+	}
+	const uint32_t *table = (const uint32_t *)_crc_table;
+
+	uint32_t c = ~seed;
+	for(int i = 0; i < size; i++) {
+		c = table[(c ^ data[i]) & 0xff] ^ (c >> 8);
+	}
+	return ~c;
+#else
+	// Calculate CRC32
+	// Refer to : https://qiita.com/mikecat_mixc/items/e5d236e3a3803ef7d3c5
+	static const uint32_t CRC_MAGIC_WORD = 0x04C11DB7;
+	uint32_t crc = seed;
+	uint8_t *ptr = data;
+	uint8_t d;
+	int bytes = size;
+	bool is_overflow;
+	for(int i = 0; i < bytes; i++) {
+		d = *ptr++;
+		for(int bit = 0; bit < 8; bit++) {
+			is_overflow = ((crc & 0x1) != 0);
+			crc = crc >> 1;
+			if((d & 0x01) != 0) crc = crc | 0x80000000;
+			if(is_overflow) crc = crc ^ ((uint32_t)~CRC_MAGIC_WORD);
+			d >>= 1;
+		}
+	}
+	return crc;
+#endif
 }
 
 uint16_t DLL_PREFIX jis_to_sjis(uint16_t jis)
@@ -1296,6 +1336,74 @@ void DLL_PREFIX cur_time_t::update_day_of_week()
 
 #define STATE_VERSION	1
 
+#include "./state_data.h"
+
+void DLL_PREFIX cur_time_t::save_state_helper(void *f, uint32_t *sumseed, bool *__stat)
+{
+	csp_state_data_saver *state_saver = (csp_state_data_saver *)f;
+	const _TCHAR *_ns = "cur_time_t::BEGIN";
+	const _TCHAR *_ne = "cur_time_t::END";
+	
+	if(f == NULL) return;
+	
+	state_saver->save_string_data(_ns, sumseed, strlen(_ns) + 1, __stat);
+	state_saver->put_dword(STATE_VERSION, sumseed, __stat);
+
+	state_saver->put_int32(year, sumseed, __stat);
+	state_saver->put_int8((int8_t)month, sumseed, __stat);
+	state_saver->put_int8((int8_t)day, sumseed, __stat);
+	state_saver->put_int8((int8_t)day_of_week, sumseed, __stat);
+	state_saver->put_int8((int8_t)hour, sumseed, __stat);
+	state_saver->put_int8((int8_t)minute, sumseed, __stat);
+	state_saver->put_int16((int16_t)second, sumseed, __stat);
+	state_saver->put_bool(initialized, sumseed, __stat);
+	
+	state_saver->save_string_data(_ne, sumseed, strlen(_ne) + 1, __stat);
+}
+
+bool DLL_PREFIX cur_time_t::load_state_helper(void *f, uint32_t *sumseed, bool *__stat)
+{
+	csp_state_data_saver *state_saver = (csp_state_data_saver *)f;
+	const _TCHAR *_ns = "cur_time_t::BEGIN";
+	const _TCHAR *_ne = "cur_time_t::END";
+	_TCHAR sbuf[128];
+	uint32_t tmpvar;
+
+	if(f == NULL) return false;
+	memset(sbuf, 0x00, sizeof(sbuf));
+	state_saver->load_string_data(sbuf, sumseed, strlen(_ns) + 1, __stat);
+	tmpvar = state_saver->get_dword(sumseed, __stat);
+	if(strncmp(sbuf, _ns, strlen(_ns) + 1) != 0) {
+		if(__stat != NULL) *__stat = false;
+		return false;
+	}
+	if(tmpvar != STATE_VERSION) {
+		if(__stat != NULL) *__stat = false;
+		return false;
+	}
+	year =              state_saver->get_int32(sumseed, __stat);
+	month =       (int)(state_saver->get_int8(sumseed, __stat));
+	day =         (int)(state_saver->get_int8(sumseed, __stat));
+	day_of_week = (int)(state_saver->get_int8(sumseed, __stat));
+	hour =        (int)(state_saver->get_int8(sumseed, __stat));
+	minute =      (int)(state_saver->get_int8(sumseed, __stat));
+	second =      (int)(state_saver->get_int16(sumseed, __stat));
+	initialized = state_saver->get_bool(sumseed, __stat);
+	
+	memset(sbuf, 0x00, sizeof(sbuf));
+	state_saver->load_string_data(sbuf, sumseed, strlen(_ne) + 1, __stat);
+	if(strncmp(_ne, sbuf, strlen(_ne) + 1) != 0) {
+		if(__stat != NULL) *__stat = false;
+		return false;
+	}
+	
+	if(__stat != NULL) {
+		if(*__stat == false) return false;
+		//*__stat = true;
+	}
+	return true;
+}
+
 void DLL_PREFIX cur_time_t::save_state(void *f)
 {
 	FILEIO *state_fio = (FILEIO *)f;
@@ -1330,7 +1438,7 @@ bool DLL_PREFIX cur_time_t::load_state(void *f)
 	return true;
 }
 
-const _TCHAR* DLL_PREFIX get_symbol(symbol_t *first_symbol, uint32_t addr)
+const _TCHAR *DLL_PREFIX get_symbol(symbol_t *first_symbol, uint32_t addr)
 {
 	static _TCHAR name[8][1024];
 	static unsigned int table_index = 0;
@@ -1347,7 +1455,7 @@ const _TCHAR* DLL_PREFIX get_symbol(symbol_t *first_symbol, uint32_t addr)
 	return NULL;
 }
 
-const _TCHAR* DLL_PREFIX get_value_or_symbol(symbol_t *first_symbol, const _TCHAR *format, uint32_t addr)
+const _TCHAR *DLL_PREFIX get_value_or_symbol(symbol_t *first_symbol, const _TCHAR *format, uint32_t addr)
 {
 	static _TCHAR name[8][1024];
 	static unsigned int table_index = 0;
@@ -1365,7 +1473,7 @@ const _TCHAR* DLL_PREFIX get_value_or_symbol(symbol_t *first_symbol, const _TCHA
 	return name[output_index];
 }
 
-const _TCHAR* DLL_PREFIX get_value_and_symbol(symbol_t *first_symbol, const _TCHAR *format, uint32_t addr)
+const _TCHAR *DLL_PREFIX get_value_and_symbol(symbol_t *first_symbol, const _TCHAR *format, uint32_t addr)
 {
 	static _TCHAR name[8][1024];
 	static unsigned int table_index = 0;

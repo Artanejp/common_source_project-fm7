@@ -168,6 +168,7 @@
     <ClCompile Include="..\src\win32\winmain.cpp" />
     <ClCompile Include="..\src\vm\disk.cpp" />
     <ClCompile Include="..\src\vm\event.cpp" />
+    <ClCompile Include="..\src\vm\harddisk.cpp" />
     <ClCompile Include="..\src\vm\i286.cpp" />
     <ClCompile Include="..\src\vm\i8237.cpp" />
     <ClCompile Include="..\src\vm\i8251.cpp" />
@@ -181,6 +182,9 @@
     <ClCompile Include="..\src\vm\not.cpp" />
     <ClCompile Include="..\src\vm\pcm1bit.cpp" />
     <ClCompile Include="..\src\vm\prnfile.cpp" />
+    <ClCompile Include="..\src\vm\scsi_dev.cpp" />
+    <ClCompile Include="..\src\vm\scsi_hdd.cpp" />
+    <ClCompile Include="..\src\vm\scsi_host.cpp" />
     <ClCompile Include="..\src\vm\tms3631.cpp" />
     <ClCompile Include="..\src\vm\upd1990a.cpp" />
     <ClCompile Include="..\src\vm\upd7220.cpp" />
@@ -213,6 +217,7 @@
     <ClInclude Include="..\src\vm\device.h" />
     <ClInclude Include="..\src\vm\disk.h" />
     <ClInclude Include="..\src\vm\event.h" />
+    <ClInclude Include="..\src\vm\harddisk.h" />
     <ClInclude Include="..\src\vm\i286.h" />
     <ClInclude Include="..\src\vm\i8237.h" />
     <ClInclude Include="..\src\vm\i8251.h" />
@@ -226,6 +231,9 @@
     <ClInclude Include="..\src\vm\not.h" />
     <ClInclude Include="..\src\vm\pcm1bit.h" />
     <ClInclude Include="..\src\vm\prnfile.h" />
+    <ClInclude Include="..\src\vm\scsi_dev.h" />
+    <ClInclude Include="..\src\vm\scsi_hdd.h" />
+    <ClInclude Include="..\src\vm\scsi_host.h" />
     <ClInclude Include="..\src\vm\tms3631.h" />
     <ClInclude Include="..\src\vm\upd1990a.h" />
     <ClInclude Include="..\src\vm\upd7220.h" />

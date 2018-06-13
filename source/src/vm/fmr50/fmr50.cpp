@@ -13,6 +13,7 @@
 #include "../device.h"
 #include "../event.h"
 
+#include "../harddisk.h"
 #include "../hd46505.h"
 #ifdef _FMR60
 #include "../hd63484.h"
@@ -143,16 +144,13 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pcm = new PCM1BIT(this, emu);
 	
 	scsi_host = new SCSI_HOST(this, emu);
-	for(int i = 0; i < 7; i++) {
-		if(FILEIO::IsFileExisting(create_local_path(_T("SCSI%d.DAT"), i))) {
-			scsi_hdd[i] = new SCSI_HDD(this, emu);
-			scsi_hdd[i]->set_device_name(_T("SCSI Hard Disk Drive #%d"), i + 1);
-			scsi_hdd[i]->scsi_id = i;
-			scsi_hdd[i]->set_context_interface(scsi_host);
-			scsi_host->set_context_target(scsi_hdd[i]);
-		} else {
-			scsi_hdd[i] = NULL;
-		}
+	for(int i = 0; i < USE_HARD_DISK; i++) {
+		scsi_hdd[i] = new SCSI_HDD(this, emu);
+		scsi_hdd[i]->set_device_name(_T("SCSI Hard Disk Drive #%d"), i + 1);
+		scsi_hdd[i]->scsi_id = i;
+		scsi_hdd[i]->set_disk_handler(0, new HARDDISK(emu));
+		scsi_hdd[i]->set_context_interface(scsi_host);
+		scsi_host->set_context_target(scsi_hdd[i]);
 	}
 	dma = new UPD71071(this, emu);
 	if(FILEIO::IsFileExisting(create_local_path(_T("IPL.ROM")))) {
@@ -320,9 +318,20 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
+	decl_state();
+	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
+#ifdef OPEN_HARD_DISK_IN_RESET
+		create_local_path(hd_file_path[drv], _MAX_PATH, _T("SCSI%d.DAT"), drv);
+#else
+		open_hard_disk_tmp(drv, create_local_path(_T("SCSI%d.DAT"), drv));
+#endif
+	}
 	if(bios) {
-		for(int i = 0; i < MAX_DRIVE; i++) {
-			bios->set_disk_handler(i, fdc->get_disk_handler(i));
+		for(int drv = 0; drv < MAX_DRIVE; drv++) {
+			bios->set_floppy_disk_handler(drv, fdc->get_disk_handler(drv));
+		}
+		for(int drv = 0; drv < USE_HARD_DISK; drv++) {
+			bios->set_hard_disk_handler(drv, scsi_hdd[drv]->get_disk_handler(0));
 		}
 	}
 }
@@ -362,6 +371,17 @@ void VM::reset()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
+	
+#if defined(OPEN_HARD_DISK_IN_RESET)
+	// open/close hard disk images
+	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
+		if(hd_file_path[drv][0] != _T('\0')) {
+			open_hard_disk_tmp(drv, hd_file_path[drv]);
+		} else {
+			close_hard_disk_tmp(drv);
+		}
+	}
+#endif
 }
 
 void VM::run()
@@ -481,18 +501,71 @@ uint32_t VM::is_floppy_disk_accessed()
 	return status;
 }
 
+void VM::open_hard_disk(int drv, const _TCHAR* file_path)
+{
+	if(drv < USE_HARD_DISK) {
+#if defined(OPEN_HARD_DISK_IN_RESET)
+		my_tcscpy_s(hd_file_path[drv], _MAX_PATH, file_path);
+#else
+		open_hard_disk_tmp(drv, file_path);
+#endif
+	}
+}
+
+void VM::close_hard_disk(int drv)
+{
+	if(drv < USE_HARD_DISK) {
+#if defined(OPEN_HARD_DISK_IN_RESET)
+		hd_file_path[drv][0] = _T('\0');
+#else
+		close_hard_disk_tmp(drv);
+#endif
+	}
+}
+
+bool VM::is_hard_disk_inserted(int drv)
+{
+	if(drv < USE_HARD_DISK) {
+#if defined(OPEN_HARD_DISK_IN_RESET)
+		return (hd_file_path[drv][0] != _T('\0'));
+#else
+		return is_hard_disk_inserted_tmp(drv);
+#endif
+	}
+	return false;
+}
+
 uint32_t VM::is_hard_disk_accessed()
 {
 	uint32_t status = 0;
-	for(int i = 0; i < 7; i++) {
-		if(scsi_hdd[i] != NULL && scsi_hdd[i]->read_signal(0) != 0) {
-			status |= 1 << i;
+	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
+		if(scsi_hdd[drv]->get_disk_handler(0)->accessed()) {
+			status |= 1 << drv;
 		}
 	}
-	if(bios) {
-		status |= bios->read_signal(1);
-	}
 	return status;
+}
+
+void VM::open_hard_disk_tmp(int drv, const _TCHAR* file_path)
+{
+	if(drv < USE_HARD_DISK) {
+		scsi_hdd[drv]->get_disk_handler(0)->open(file_path, 512);
+	}
+}
+
+void VM::close_hard_disk_tmp(int drv)
+{
+	if(drv < USE_HARD_DISK) {
+		scsi_hdd[drv]->get_disk_handler(0)->close();
+	}
+}
+
+bool VM::is_hard_disk_inserted_tmp(int drv)
+{
+	if(drv < USE_HARD_DISK) {
+		return scsi_hdd[drv]->get_disk_handler(0)->mounted();
+	}
+	return false;
 }
 
 bool VM::is_frame_skippable()
@@ -507,32 +580,69 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	5
+#define STATE_VERSION	6
+
+#include "../../statesub.h"
+
+void VM::decl_state(void)
+{
+#if defined(_FMR50)
+#  if defined(HAS_I286)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_50_I286_HEAD")));
+#  elif defined(HAS_I386)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_50_I386_HEAD")));
+#  elif defined(HAS_I486)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_50_I486_HEAD")));
+#  elif defined(HAS_PENTIUM)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_250_HEAD")));
+#  else
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_50_SERIES_HEAD")));
+#  endif	
+#elif defined(_FMR60)
+#  if defined(HAS_I286)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_60_HEAD")));
+#  elif defined(HAS_I386)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_70_HEAD")));
+#  elif defined(HAS_I486)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_80_HEAD")));
+#  elif defined(HAS_PENTIUM)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_280_HEAD")));
+#  else
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_60_SERIES_HEAD")));
+#  endif	
+#endif
+	
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		device->decl_state();
+	}
+}
 
 void VM::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
+	//state_fio->FputUint32(STATE_VERSION);
 	
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const char *name = typeid(*device).name() + 6; // skip "class "
-		
-		state_fio->FputInt32(strlen(name));
-		state_fio->Fwrite(name, strlen(name), 1);
 		device->save_state(state_fio);
 	}
 }
 
 bool VM::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	//if(state_fio->FgetUint32() != STATE_VERSION) {
+	//	return false;
+	//}
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
+		emu->out_debug_log("INFO: HEADER DATA ERROR");
 		return false;
 	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const char *name = typeid(*device).name() + 6; // skip "class "
-		
-		if(!(state_fio->FgetInt32() == strlen(name) && state_fio->Fcompare(name, strlen(name)))) {
-			return false;
-		}
 		if(!device->load_state(state_fio)) {
 			return false;
 		}

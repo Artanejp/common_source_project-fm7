@@ -12,11 +12,13 @@
 #include "./fm7.h"
 #include "fm7_common.h"
 #include "../device.h"
+
 class EMU;
 class VM;
 class KANJIROM: public DEVICE {
 private:
 	EMU *p_emu;
+	
 	uint8_t data_table[0x20000];
 	bool read_ok;
 	bool class2;
@@ -30,7 +32,8 @@ public:
 	void release();
 	void reset(void);
 	bool get_readstat(void);
-	
+
+	void decl_state();
 	void save_state(FILEIO *state_fio);
 	bool load_state(FILEIO *state_fio);
 };

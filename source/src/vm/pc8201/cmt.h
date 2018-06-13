@@ -56,6 +56,18 @@ public:
 	{
 		return rec;
 	}
+	bool is_tape_playing()
+	{
+		return false;
+	}
+	bool is_tape_recording()
+	{
+		return rec && remote;
+	}
+	int get_tape_position()
+	{
+		return 0;
+	}
 };
 
 #endif

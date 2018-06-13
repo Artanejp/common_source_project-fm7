@@ -27,7 +27,8 @@
 #define HAS_I8085
 
 // device informations for win32
-#define USE_TAPE1
+#define USE_TAPE		1
+#define USE_TAPE_BUTTON
 #define NOTIFY_KEY_DOWN
 #define USE_KEY_LOCKED
 #define USE_ALT_F10_KEY
@@ -47,6 +48,8 @@ static const _TCHAR *sound_device_caption[] = {
 	_T("Beep"), _T("CMT (Signal)"), _T("Noise (CMT)"),
 };
 #endif
+
+class csp_state_utils;
 
 class EMU;
 class DEVICE;
@@ -68,6 +71,7 @@ class VM
 {
 protected:
 	EMU* emu;
+	csp_state_utils *state_entry;
 	
 	// devices
 	EVENT* event;
@@ -131,9 +135,16 @@ public:
 	bool is_tape_recording(int drv);
 	int get_tape_position(int drv);
 	const _TCHAR* get_tape_message(int drv);
+	void push_play(int drv);
+	void push_stop(int drv);
+	void push_fast_forward(int drv);
+	void push_fast_rewind(int drv);
+	void push_apss_forward(int drv) {}
+	void push_apss_rewind(int drv) {}
 	bool is_frame_skippable();
 	
 	void update_config();
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

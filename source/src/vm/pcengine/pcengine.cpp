@@ -85,6 +85,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
+	decl_state();
 }
 
 VM::~VM()
@@ -196,49 +197,41 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 
 void VM::open_cart(int drv, const _TCHAR* file_path)
 {
-	if(drv == 0) {
-		pce->open_cart(file_path);
-		pce->reset();
-		pcecpu->reset();
-	}
+	pce->open_cart(file_path);
+	pce->reset();
+	pcecpu->reset();
 }
 
 void VM::close_cart(int drv)
 {
-	if(drv == 0) {
-		pce->close_cart();
-		pce->reset();
-		pcecpu->reset();
-	}
+	pce->close_cart();
+	pce->reset();
+	pcecpu->reset();
 }
 
 bool VM::is_cart_inserted(int drv)
 {
-	if(drv == 0) {
-		return pce->is_cart_inserted();
-	} else {
-		return false;
-	}
+	return pce->is_cart_inserted();
 }
 
-void VM::open_compact_disc(const _TCHAR* file_path)
+void VM::open_compact_disc(int drv, const _TCHAR* file_path)
 {
-	scsi_cdrom->open_disc(file_path);
+	scsi_cdrom->open(file_path);
 }
 
-void VM::close_compact_disc()
+void VM::close_compact_disc(int drv)
 {
-	scsi_cdrom->close_disc();
+	scsi_cdrom->close();
 }
 
-bool VM::is_compact_disc_inserted()
+bool VM::is_compact_disc_inserted(int drv)
 {
-	return scsi_cdrom->is_disc_inserted();
+	return scsi_cdrom->mounted();
 }
 
 uint32_t VM::is_compact_disc_accessed()
 {
-	return scsi_cdrom->read_signal(0);
+	return scsi_cdrom->accessed();
 }
 
 void VM::update_config()
@@ -250,30 +243,42 @@ void VM::update_config()
 
 #define STATE_VERSION	2
 
+#include "../../statesub.h"
+
+void VM::decl_state(void)
+{
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC_ENGINE_HEAD")));
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		device->decl_state();
+	}
+}
+
 void VM::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
+	//state_fio->FputUint32(STATE_VERSION);
 	
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const char *name = typeid(*device).name() + 6; // skip "class "
-		
-		state_fio->FputInt32(strlen(name));
-		state_fio->Fwrite(name, strlen(name), 1);
 		device->save_state(state_fio);
 	}
 }
 
 bool VM::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	//if(state_fio->FgetUint32() != STATE_VERSION) {
+	//	return false;
+	//}
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
+		emu->out_debug_log("INFO: HEADER DATA ERROR");
 		return false;
 	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const char *name = typeid(*device).name() + 6; // skip "class "
-		
-		if(!(state_fio->FgetInt32() == strlen(name) && state_fio->Fcompare(name, strlen(name)))) {
-			return false;
-		}
 		if(!device->load_state(state_fio)) {
 			return false;
 		}

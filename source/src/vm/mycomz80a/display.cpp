@@ -92,6 +92,8 @@ void DISPLAY::draw_screen()
 	}
 	
 	// copy to real screen
+	emu->set_vm_screen_lines(200);
+	
 	scrntype_t col = RGB_COLOR(255, 255, 255);
 	emu->set_vm_screen_lines(200);
 	for(int y = 0; y < 200; y++) {

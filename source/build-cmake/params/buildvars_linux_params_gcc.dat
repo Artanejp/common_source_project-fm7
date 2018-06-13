@@ -76,7 +76,7 @@ esac
 
 case ${COMPRESS_SYMBOLS} in
    "Yes" | "yes" | "YES" )
-   COMPRESS_CFLAGS="-gz"
+   COMPRESS_CFLAGS="-gz=zlib"
    ;;
    "No" | "no" | "NO" | * )
    COMPRESS_CFLAGS=""
@@ -89,15 +89,15 @@ case ${CSP_DEBUG} in
       MAKEFLAGS_BASE2="-g -ggdb ${COMPRESS_CFLAGS} ${MAKEFLAGS_BASE3} -DNDEBUG"
       ;;
    "No" | "no" | "NO" | * )
-      MAKEFLAGS_DLL_LINK_BASE="${MAKEFLAGS_BASE3}"
-      MAKEFLAGS_BASE2="${MAKEFLAGS_BASE3}"
+      MAKEFLAGS_DLL_LINK_BASE="${COMPRESS_CFLAGS} ${MAKEFLAGS_BASE3}"
+      MAKEFLAGS_BASE2="${COMPRESS_CFLAGS} ${MAKEFLAGS_BASE3}"
       ;;
 esac
 
 case ${USE_LTO} in
    "Yes" | "yes" | "YES" )
-       MAKEFLAGS_LINK_BASE2="-flto=6 ${LTO_FLAGS} ${MAKEFLAGS_BASE2}"
-       MAKEFLAGS_BASE2="-flto -ffat-lto-objects ${MAKEFLAGS_BASE2}"
+       MAKEFLAGS_LINK_BASE2="-flto=6 -flto-compression-level=9 ${LTO_FLAGS} ${MAKEFLAGS_BASE2}"
+       MAKEFLAGS_BASE2="-flto -flto-compression-level=9 -ffat-lto-objects ${MAKEFLAGS_BASE2}"
        ;;
    "No" | "no" | "NO" | * )
        MAKEFLAGS_LINK_BASE2="${MAKEFLAGS_BASE2}"

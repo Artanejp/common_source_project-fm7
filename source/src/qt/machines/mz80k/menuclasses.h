@@ -19,6 +19,7 @@ public:
 	~Object_Menu_Control_MZ80();
 signals:
 	int sig_dipsw(int, bool);
+	int sig_update_config();
 public slots:
 	void set_dipsw(bool);
 };
@@ -31,7 +32,8 @@ public:
 	Action_Control_MZ80(QObject *parent, USING_FLAGS *p);
 	~Action_Control_MZ80();
 };
-
+class QMenu;
+class QActionGroup;
 class Ui_MainWindow;
 class META_MainWindow : public Ui_MainWindow {
 	Q_OBJECT

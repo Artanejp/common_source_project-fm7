@@ -75,6 +75,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
+	decl_state();
 	inserted = false;
 }
 
@@ -216,38 +217,53 @@ void VM::update_config()
 
 #define STATE_VERSION	2
 
+#include "../../statesub.h"
+
+void VM::decl_state(void)
+{
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PV_1000_HEAD")));
+
+	DECL_STATE_ENTRY_1D_ARRAY(mem, sizeof(mem));
+	DECL_STATE_ENTRY_BOOL(inserted);
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		device->decl_state();
+	}
+}
+
 void VM::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
+	//state_fio->FputUint32(STATE_VERSION);
 	
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const char *name = typeid(*device).name() + 6; // skip "class "
-		
-		state_fio->FputInt32(strlen(name));
-		state_fio->Fwrite(name, strlen(name), 1);
 		device->save_state(state_fio);
 	}
-	state_fio->Fwrite(mem, sizeof(mem), 1);
-	state_fio->FputBool(inserted);
+	//state_fio->Fwrite(mem, sizeof(mem), 1);
+	//state_fio->FputBool(inserted);
 }
 
 bool VM::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	//if(state_fio->FgetUint32() != STATE_VERSION) {
+	//	return false;
+	//}
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
+		emu->out_debug_log("INFO: HEADER DATA ERROR");
 		return false;
 	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const char *name = typeid(*device).name() + 6; // skip "class "
-		
-		if(!(state_fio->FgetInt32() == strlen(name) && state_fio->Fcompare(name, strlen(name)))) {
-			return false;
-		}
 		if(!device->load_state(state_fio)) {
 			return false;
 		}
 	}
-	state_fio->Fread(mem, sizeof(mem), 1);
-	inserted = state_fio->FgetBool();
+	//state_fio->Fread(mem, sizeof(mem), 1);
+	//inserted = state_fio->FgetBool();
 	return true;
 }
 

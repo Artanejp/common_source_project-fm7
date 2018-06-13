@@ -924,99 +924,72 @@ void MB61VH010::reset(void)
 	}
 }
 
-#define STATE_VERSION 1
+#define STATE_VERSION 2
+#include "../../statesub.h"
+
+void MB61VH010::decl_state(void)
+{
+	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("MB61VH010"));
+	DECL_STATE_ENTRY_INT(this_device_id);
+	
+	DECL_STATE_ENTRY_UINT8(command_reg);
+	DECL_STATE_ENTRY_UINT8(color_reg);
+	DECL_STATE_ENTRY_UINT8(mask_reg);
+	DECL_STATE_ENTRY_UINT8(cmp_status_reg);
+	DECL_STATE_ENTRY_UINT8(bank_disable_reg);
+	DECL_STATE_ENTRY_UINT8(multi_page);
+	DECL_STATE_ENTRY_UINT32(direct_access_offset);
+	
+	DECL_STATE_ENTRY_UINT8_ARRAY(cmp_color_data, 8);
+	DECL_STATE_ENTRY_UINT8_ARRAY(tile_reg, 4);
+		
+
+	DECL_STATE_ENTRY_PAIR(line_addr_offset);
+	DECL_STATE_ENTRY_PAIR(line_pattern);
+	DECL_STATE_ENTRY_PAIR(line_xbegin);
+	DECL_STATE_ENTRY_PAIR(line_ybegin);
+	DECL_STATE_ENTRY_PAIR(line_xend);
+	DECL_STATE_ENTRY_PAIR(line_yend);
+		
+	DECL_STATE_ENTRY_BOOL(busy_flag);
+	DECL_STATE_ENTRY_PAIR(line_style);
+
+	DECL_STATE_ENTRY_UINT32(total_bytes);
+	DECL_STATE_ENTRY_UINT32(oldaddr);
+	DECL_STATE_ENTRY_UINT32(alu_addr);
+
+	DECL_STATE_ENTRY_UINT32(planes);
+	DECL_STATE_ENTRY_BOOL(is_400line);
+	DECL_STATE_ENTRY_UINT32(screen_width);
+	DECL_STATE_ENTRY_UINT32(screen_height);
+
+	DECL_STATE_ENTRY_INT(eventid_busy);
+		
+}
 void MB61VH010::save_state(FILEIO *state_fio)
 {
-	int i;
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	this->out_debug_log(_T("Save State: MB61VH010 : id=%d ver=%d\n"), this_device_id, STATE_VERSION);
-
-	{ // V1
-		state_fio->FputUint8(command_reg);
-		state_fio->FputUint8(color_reg);
-		state_fio->FputUint8(mask_reg);
-		state_fio->FputUint8(cmp_status_reg);
-		for(i = 0; i < 8; i++) 	state_fio->FputUint8(cmp_color_data[i]);
-		state_fio->FputUint8(bank_disable_reg);
-		for(i = 0; i < 4; i++) 	state_fio->FputUint8(tile_reg[i]);
-		state_fio->FputUint8(multi_page);
-		
-		state_fio->FputUint32_BE(line_addr_offset.d);
-		state_fio->FputUint16_BE(line_pattern.w.l);
-		state_fio->FputUint16_BE(line_xbegin.w.l);
-		state_fio->FputUint16_BE(line_ybegin.w.l);
-		state_fio->FputUint16_BE(line_xend.w.l);
-		state_fio->FputUint16_BE(line_yend.w.l);
-		
-		state_fio->FputBool(busy_flag);
-		state_fio->FputInt32_BE(eventid_busy);
-
-		state_fio->FputUint32_BE(total_bytes);
-		state_fio->FputUint32_BE(oldaddr);
-		state_fio->FputUint32_BE(alu_addr);
-
-		state_fio->FputUint32_BE(planes);
-		state_fio->FputBool(is_400line);
-		state_fio->FputUint32_BE(screen_width);
-		state_fio->FputUint32_BE(screen_height);
-
-		state_fio->FputUint16_BE(line_style.w.l);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+		out_debug_log(_T("Save State: MB61VH010 : id=%d ver=%d\n"), this_device_id, STATE_VERSION);
 	}
-   
 }
 
 bool MB61VH010::load_state(FILEIO *state_fio)
 {
-	uint32_t version = state_fio->FgetUint32();
-	int i;
-	this->out_debug_log(_T("Load State: MB61VH010 : id=%d ver=%d\n"), this_device_id, version);
-	if(this_device_id != state_fio->FgetInt32()) return false;
-	if(version >= 1) {
-		command_reg = state_fio->FgetUint8();
-		color_reg = state_fio->FgetUint8();
-		mask_reg = state_fio->FgetUint8();
-		cmp_status_reg = state_fio->FgetUint8();
-		for(i = 0; i < 8; i++) 	cmp_color_data[i] = state_fio->FgetUint8();
-		bank_disable_reg = state_fio->FgetUint8();
-		for(i = 0; i < 4; i++) 	tile_reg[i] = state_fio->FgetUint8();
-		multi_page = state_fio->FgetUint8();
-
-		line_addr_offset.d = state_fio->FgetUint32_BE();
-		line_pattern.d = 0;
-		line_xbegin.d = 0;
-		line_ybegin.d = 0;
-		line_xend.d = 0;
-		line_yend.d = 0;
-	   
-		line_pattern.w.l = state_fio->FgetUint16_BE();
-		line_xbegin.w.l = state_fio->FgetUint16_BE();
-		line_ybegin.w.l = state_fio->FgetUint16_BE();
-		line_xend.w.l = state_fio->FgetUint16_BE();
-		line_yend.w.l = state_fio->FgetUint16_BE();
-
-		busy_flag = state_fio->FgetBool();
-		eventid_busy = state_fio->FgetInt32_BE();
-		
-		total_bytes = state_fio->FgetUint32_BE();
-		oldaddr = state_fio->FgetUint32_BE();
-		alu_addr = state_fio->FgetUint32_BE();
-
-		planes = state_fio->FgetUint32_BE();
-		is_400line = state_fio->FgetBool();
-		screen_width = state_fio->FgetUint32_BE();
-		screen_height = state_fio->FgetUint32_BE();
-
-		line_style.d = 0;
-		line_style.w.l = state_fio->FgetUint16_BE();
-		// Update
-		for(i = 0; i < 4; i++) {
-			disable_flags[i] = ((bank_disable_reg & (1 << i)) != 0) ? true : false;
-		}
-		for(i = 0; i < 4; i++) {
-			multi_flags[i] = (((1 << i) & multi_page) != 0) ? true : false;
-		}
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(version != STATE_VERSION) return false;
+	out_debug_log(_T("Load State: MB61VH010 : id=%d stat=%s"), this_device_id, (mb) ? _T("OK") : _T("NG"));
+	if(!mb) return false;
+	
+	line_style.w.h = 0;
+	// Update
+	for(int i = 0; i < 4; i++) {
+		disable_flags[i] = ((bank_disable_reg & (1 << i)) != 0) ? true : false;
+	}
+	for(int i = 0; i < 4; i++) {
+		multi_flags[i] = (((1 << i) & multi_page) != 0) ? true : false;
+	}
 	return true;
 }

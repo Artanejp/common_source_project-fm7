@@ -2,6 +2,7 @@
 	SHARP X1 Emulator 'eX1'
 	SHARP X1twin Emulator 'eX1twin'
 	SHARP X1turbo Emulator 'eX1turbo'
+	SHARP X1turboZ Emulator 'eX1turboZ'
 
 	Author : Takeda.Toshiya
 	Date   : 2009.03.14-
@@ -55,6 +56,7 @@ private:
 	
 	uint8_t pal[3];
 	uint8_t priority, pri[8][8];	// pri[cg][txt]
+	uint8_t dr_priority;
 	
 	bool column40;
 #ifdef _X1TURBO_FEATURE
@@ -70,6 +72,8 @@ private:
 	uint8_t zscroll;
 	uint8_t zmode2;
 	uint8_t ztpal[8];
+	uint8_t dr_zpriority;
+
 	struct {
 		uint8_t b, r, g;
 	} zpal[4096];
@@ -80,17 +84,31 @@ private:
 	uint8_t text[400][640];
 	uint8_t cg[400][640];
 	uint8_t pri_line[400][8][8];
+
+	
+	uint8_t dr_text[400][640];
+	uint8_t dr_cg[400][640];
+	uint8_t dr_pri_line[400][8][8];
 #else
 	uint8_t text[200][640+8];
 	uint8_t cg[200][640];
 	uint8_t pri_line[200][8][8];
+
+	uint8_t dr_text[200][640+8];
+	uint8_t dr_cg[200][640];
+	uint8_t dr_pri_line[200][8][8];
 #endif
 #ifdef _X1TURBOZ
 	uint16_t zcg[2][400][640];
 	bool aen_line[400];
 	scrntype_t zpalette_pc[8+8+4096];	// 0-7:text, 8-15:cg, 16-:4096cg
+
+	uint16_t dr_zcg[2][400][640];
+	bool dr_aen_line[400];
+	scrntype_t dr_zpalette_pc[8+8+4096];	// 0-7:text, 8-15:cg, 16-:4096cg
 #endif
 	scrntype_t palette_pc[8+8];		// 0-7:text, 8-15:cg
+	scrntype_t dr_palette_pc[8+8];		// 0-7:text, 8-15:cg
 	bool prev_vert_double;
 	int raster, cblink;
 	

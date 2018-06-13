@@ -6,7 +6,7 @@
  * History:
  * Jan 24, 2014 : Moved from some files.
  */
-
+#include <QApplication>
 
 #include "mainwidget_base.h"
 #include "commonclasses.h"
@@ -127,7 +127,7 @@ void Ui_MainWindowBase::CreateBinaryMenu(int drv, int drv_base)
 	} else {
 		desc1 = "Memory Dump";
 	}
-	menu_BINs[drv] = new Menu_BinaryClass(menubar, QString::fromUtf8("Obj_Binary"), using_flags, this, drv);
+	menu_BINs[drv] = new Menu_BinaryClass(menubar, QString::fromUtf8("Binary"), using_flags, this, drv, drv_base);
 	menu_BINs[drv]->create_pulldown_menu();
 	
 	menu_BINs[drv]->do_clear_inner_media();

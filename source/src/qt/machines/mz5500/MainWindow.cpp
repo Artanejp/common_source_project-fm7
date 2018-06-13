@@ -7,8 +7,11 @@
  * Jan 14, 2015 : Initial, many of constructors were moved to qt/gui/menu_main.cpp.
  */
 
+#include <QApplication>
 #include <QVariant>
 #include <QtGui>
+#include <QActionGroup>
+#include <QMenu>
 #include "commonclasses.h"
 #include "menuclasses.h"
 #include "emu.h"
@@ -25,22 +28,15 @@ void META_MainWindow::setupUI_Emu(void)
 
 void META_MainWindow::retranslateUi(void)
 {
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("NMI Reset",  true);
-	retranslateFloppyMenu(0, 1);
-	retranslateFloppyMenu(1, 2);
-	retranslateFloppyMenu(2, 3);
-	retranslateFloppyMenu(3, 4);
-	
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateMachineMenu();
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
 #if defined(USE_PRINTER)
 	actionPrintDevice[1]->setText(QString::fromUtf8("MZ-1P17"));
 	actionPrintDevice[1]->setToolTip(QApplication::translate("MainWindow", "Sharp MZ-1P17 kanji thermal printer.", 0));
+	actionPrintDevice[2]->setText(QString::fromUtf8("PC-PR201"));
+	actionPrintDevice[2]->setToolTip(QApplication::translate("MainWindow", "PC-PR201 kanji printer.", 0));
+	actionPrintDevice[2]->setEnabled(false);
 #endif   
-	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 	
 	actionReset->setText(QApplication::translate("MainWindow", "Reset", 0));
 	actionSpecial_Reset->setText(QApplication::translate("MainWindow", "NMI Reset", 0));

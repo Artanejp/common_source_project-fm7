@@ -245,6 +245,36 @@ int HUC6280_BASE::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 }
 //#endif
 
+#include "../statesub.h"
+
+void HUC6280_BASE::decl_state_registers()
+{
+	// You should call this after initialize().
+	h6280_Regs *cpustate = (h6280_Regs *)opaque;
+
+	DECL_STATE_ENTRY_INT32((cpustate->ICount));
+	DECL_STATE_ENTRY_PAIR((cpustate->ppc));
+	DECL_STATE_ENTRY_PAIR((cpustate->pc));
+	DECL_STATE_ENTRY_PAIR((cpustate->sp));
+	DECL_STATE_ENTRY_PAIR((cpustate->zp));
+	DECL_STATE_ENTRY_PAIR((cpustate->ea));
+	DECL_STATE_ENTRY_UINT8((cpustate->a));
+	DECL_STATE_ENTRY_UINT8((cpustate->x));
+	DECL_STATE_ENTRY_UINT8((cpustate->y));
+	DECL_STATE_ENTRY_UINT8((cpustate->p));
+	DECL_STATE_ENTRY_1D_ARRAY(cpustate->mmr, sizeof(uint8_t) * 8);
+	DECL_STATE_ENTRY_UINT8((cpustate->irq_mask));
+	DECL_STATE_ENTRY_UINT8((cpustate->timer_status));
+	DECL_STATE_ENTRY_UINT8((cpustate->timer_ack));
+	DECL_STATE_ENTRY_UINT8((cpustate->clocks_per_cycle));
+	DECL_STATE_ENTRY_INT32((cpustate->timer_value));
+	DECL_STATE_ENTRY_INT32((cpustate->timer_load));
+	DECL_STATE_ENTRY_UINT8(cpustate->nmi_state);
+	DECL_STATE_ENTRY_1D_ARRAY(cpustate->irq_state, sizeof(uint8_t) * 3);
+	DECL_STATE_ENTRY_UINT8((cpustate->irq_pending));
+}
+
+	
 void HUC6280_BASE::save_state_registers(FILEIO* state_fio)
 {
 	h6280_Regs *cpustate = (h6280_Regs *)opaque;

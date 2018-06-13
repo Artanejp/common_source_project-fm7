@@ -1,0 +1,26 @@
+"eBUBCOM80" - Systems Formulate BUBCOM80 emulator for Win32
+								5/24/2018
+
+--- Internal ROM image
+
+	BOOT.ROM	0000H - 07FFH
+	BASIC.ROM
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	GRAPH		Alt
+	CLS		Home
+	EDIT		End
+	LIST		PgUp
+	RUN		PgDn
+	LABEL		F9
+	FILES		F10
+	INIT		F11
+	STOP		F12
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://takeda-toshiya.my.coocan.jp/

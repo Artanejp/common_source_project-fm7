@@ -40,6 +40,7 @@ set(VMFILES_LIB
 #		   scsi_hdd.cpp
 		   noise.cpp
 		   disk.cpp
+		   harddisk.cpp
 		   )
 		 
 set(BUILD_SHARED_LIBS OFF)

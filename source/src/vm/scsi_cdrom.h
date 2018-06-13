@@ -29,6 +29,8 @@ private:
 		bool is_audio;
 	} toc_table[1024];
 	int track_num;
+	uint32_t max_logical_block;
+	bool access;
 	
 	uint32_t cdda_start_frame, cdda_end_frame, cdda_playing_frame;
 	uint8_t cdda_status;
@@ -57,11 +59,12 @@ public:
 		my_sprintf_s(product_id, 17, "SCSI-CDROM");
 		device_type = 0x05; // CD-ROM drive
 		is_removable = true;
-		physical_block_size = 2352;
-		logical_block_size = 2048;
 //		seek_time = 400000; // 400msec (temporary)
 		seek_time = 10.0;
 		bytes_per_sec = 2048 * 75; // speed x1
+		max_logical_block = 0;
+		access = false;
+
 		set_device_name(_T("SCSI CDROM"));
 	}
 	~SCSI_CDROM() {}
@@ -80,6 +83,21 @@ public:
 	// virtual scsi functions
 	void reset_device();
 	bool is_device_ready();
+	uint32_t physical_block_size()
+	{
+		return 2352;
+	}
+	uint32_t logical_block_size()
+	{
+		return 2048;
+	}
+	uint32_t max_logical_block_addr()
+	{
+		if(max_logical_block > 0) {
+			return max_logical_block - 1;
+		}
+		return 0;
+	}
 	int get_command_length(int value);
 	void start_command();
 	void read_buffer(int length);
@@ -89,9 +107,10 @@ public:
 	{
 		register_output_signal(&outputs_done, device, id, mask);
 	}
-	void open_disc(const _TCHAR* file_path);
-	void close_disc();
-	bool is_disc_inserted();
+	void open(const _TCHAR* file_path);
+	void close();
+	bool mounted();
+	bool accessed();
 	void set_volume(int volume);
 };
 

@@ -770,6 +770,48 @@ bool I386_OPS::write_debug_reg(const _TCHAR *reg, uint32_t data)
 	return true;
 }
 
+uint32_t I386_OPS::read_debug_reg(const _TCHAR *reg)
+{
+#if defined(USE_DEBUGGER)
+	if(_tcsicmp(reg, _T("IP")) == 0) {
+		return cpustate->eip;
+	} else if(_tcsicmp(reg, _T("AX")) == 0) {
+		return REG16(AX);
+	} else if(_tcsicmp(reg, _T("BX")) == 0) {
+		return REG16(BX);
+	} else if(_tcsicmp(reg, _T("CX")) == 0) {
+		return REG16(CX);
+	} else if(_tcsicmp(reg, _T("DX")) == 0) {
+		return REG16(DX);
+	} else if(_tcsicmp(reg, _T("SP")) == 0) {
+		return REG16(SP);
+	} else if(_tcsicmp(reg, _T("BP")) == 0) {
+		return REG16(BP);
+	} else if(_tcsicmp(reg, _T("SI")) == 0) {
+		return REG16(SI);
+	} else if(_tcsicmp(reg, _T("DI")) == 0) {
+		return REG16(DI);
+	} else if(_tcsicmp(reg, _T("AL")) == 0) {
+		return REG8(AL);
+	} else if(_tcsicmp(reg, _T("AH")) == 0) {
+		return REG8(AH);
+	} else if(_tcsicmp(reg, _T("BL")) == 0) {
+		return REG8(BL);
+	} else if(_tcsicmp(reg, _T("BH")) == 0) {
+		return REG8(BH);
+	} else if(_tcsicmp(reg, _T("CL")) == 0) {
+		return REG8(CL);
+	} else if(_tcsicmp(reg, _T("CH")) == 0) {
+		return REG8(CH);
+	} else if(_tcsicmp(reg, _T("DL")) == 0) {
+		return REG8(DL);
+	} else if(_tcsicmp(reg, _T("DH")) == 0) {
+		return REG8(DH);
+	}
+#endif
+	return 0;
+}
+
 int I386_OPS::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
 #if defined(USE_DEBUGGER)

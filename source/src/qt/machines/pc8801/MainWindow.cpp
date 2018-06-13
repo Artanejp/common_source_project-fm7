@@ -9,6 +9,9 @@
 
 #include <QVariant>
 #include <QtGui>
+#include <QApplication>
+#include <QMenu>
+
 #include "commonclasses.h"
 #include "menuclasses.h"
 #include "emu.h"
@@ -26,7 +29,6 @@ Object_Menu_Control_88::Object_Menu_Control_88(QObject *parent, USING_FLAGS *p) 
 Object_Menu_Control_88::~Object_Menu_Control_88()
 {
 }
-
 
 
 void Object_Menu_Control_88::do_set_memory_wait(bool flag)
@@ -95,27 +97,19 @@ void META_MainWindow::retranslateVolumeLabels(Ui_SoundDialog *p)
 void META_MainWindow::retranslateUi(void)
 {
 	const char *title="";
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu(title, false);
-	retranslateFloppyMenu(0, 1);
-	retranslateFloppyMenu(1, 2);
-	retranslateCMTMenu(0);
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateMachineMenu();
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
 	config_sound_device_type = config.sound_type;
 	
 	this->setWindowTitle(QApplication::translate("MenuPC88", "MainWindow", 0));
 	
 	// PC88 Specified
-#if defined(_PC8801MA)
 	menuCpuType->setTitle(QApplication::translate("MenuPC88", "CPU Frequency", 0));
+#if defined(_PC8801MA)
 	actionCpuType[0]->setText(QString::fromUtf8("8MHz"));
 	actionCpuType[1]->setText(QString::fromUtf8("4MHz"));
 	actionCpuType[2]->setText(QString::fromUtf8("8MHz (FE2/MC)"));
 #else // _PC8001SR
-	menuCpuType->setTitle(QApplication::translate("MenuPC88", "CPU Frequency", 0));
 	actionCpuType[0]->setText(QString::fromUtf8("4MHz"));
 	//menuCpuType->setVisible(false);
 	//actionCpuType[0]->setVisible(false);
@@ -188,9 +182,15 @@ void META_MainWindow::retranslateUi(void)
 #if defined(USE_PRINTER)
 	actionPrintDevice[1]->setText(QString::fromUtf8("PC-PR201"));
 	actionPrintDevice[1]->setToolTip(QApplication::translate("MenuPC88", "NEC PC-PR201 kanji serial printer.", 0));
-#endif	
+	actionPrintDevice[1]->setEnabled(false);
+#endif
+	
 	actionMemoryWait->setText(QApplication::translate("MenuPC88", "Wait Memory", 0));
 	actionMemoryWait->setToolTip(QApplication::translate("MenuPC88", "Simulate waiting memory.", 0));
+#if defined(USE_MONITOR_TYPE)
+	actionMonitorType[0]->setText(QApplication::translate("MenuPC88", "High Resolution", 0));
+	actionMonitorType[1]->setText(QApplication::translate("MenuPC88", "Standard", 0));
+#endif
 // End.
    // Set Labels
   
@@ -199,18 +199,10 @@ void META_MainWindow::retranslateUi(void)
 
 void META_MainWindow::setupUI_Emu(void)
 {
-	menuCpuType = new QMenu(menuMachine);
-	menuCpuType->setObjectName(QString::fromUtf8("menuControl_CpuType"));
-#if defined(_PC8801MA)
-	ConfigCPUTypes(3);
-#else
-	ConfigCPUTypes(1);
+#if defined(USE_CPU_TYPE)
+	ConfigCPUTypes(USE_CPU_TYPE);
 #endif
-	menuMachine->addAction(menuCpuType->menuAction());
 
-	menuBootMode = new QMenu(menuMachine);
-	menuBootMode->setObjectName(QString::fromUtf8("menuControl_BootMode"));
-	menuMachine->addAction(menuBootMode->menuAction());
 #if defined(_PC8801MA)
 	ConfigCPUBootMode(4);
 #elif defined(_PC8001SR)
@@ -227,6 +219,7 @@ void META_MainWindow::setupUI_Emu(void)
 			actionMemoryWait->pc88_binds, SLOT(do_set_memory_wait(bool)));
 	connect(actionMemoryWait->pc88_binds, SIGNAL(sig_set_dipsw(int, bool)),
 			this, SLOT(set_dipsw(int, bool)));
+
 }
 
 

@@ -1,10 +1,10 @@
 "eYIS" - YAMAHA YIS emulator for Win32
-								5/13/2017
+								5/20/2017
 
 --- Internal ROM image
 
 	BIOS.ROM	$F000 - $FFFF ($F000-$F0FF is null)
-	FONT.ROM	8x8 dots font image
+	FONT.ROM	8x16 dots font image
 
 --- Key maps
 

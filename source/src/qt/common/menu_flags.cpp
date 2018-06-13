@@ -30,6 +30,8 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 	use_auto_key_shift = use_binary_file = false;
 	
 	max_binary = 0;
+	base_binary_num = 0;
+	
 	use_bitmap = false;
 	use_boot_mode = 0;
 
@@ -38,24 +40,43 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 
 	use_cart = false;
 	max_cart = 0;
+	
+	base_cart_num = 0;
+	base_fd_num = 1;
+	base_qd_num = 1;
+	base_hd_num = 1;
+	base_cd_num = 1;
+	base_ld_num = 1;
+	base_binary_num = 1;
+	base_bubble_num = 1;
 
 	use_cpu_type = 0;
 
 	use_compact_disc = use_debugger = false;
+	max_compact_disc = 0;
+	base_cd_num = 0;
+	
 	use_device_type = 0;
 	use_dipswitch = false;
 
 	use_drive_type = 0;
 
 	use_fd = false;
+	base_fd_num = 1;
 	max_drive = max_d88_banks = 0;
 
 	max_draw_ranges = 0;
+	
+	use_hd = false;
+	max_hd = 0;
+	base_hd_num = 1;
 	
 	use_joystick = use_joy_button_captions = false;
 	num_joy_button_captions = 0;
 
 	use_laser_disc = false;
+	max_laser_disc = 0;
+	base_ld_num = 0;
 
 	max_memcard = 0;
 	use_minimum_rendering = use_dig_resolution = false;
@@ -70,7 +91,8 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 
 	use_qd = false;
 	max_qd = 0;
-
+	base_qd_num = 1;
+	
 	use_scanline = use_screen_rotate = false;
 	use_shift_numpad_key = false;
 	screen_mode_num = 1;
@@ -229,10 +251,69 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 		use_auto_key_shift = true;
 	#endif
 #endif
-#if defined(USE_BINARY_FILE1) || defined(USE_BINARY_FILE2) || defined(USE_BINARY_FILE3) || defined(USE_BINARY_FILE4) || \
-	defined(USE_BINARY_FILE5) || defined(USE_BINARY_FILE6) || defined(USE_BINARY_FILE7) || defined(USE_BINARY_FILE8)
+#if defined(USE_CART)
+	use_cart = true;
+	max_cart = USE_CART;
+	base_cart_num = BASE_CART_NUM;
+#endif
+#if defined(USE_FLOPPY_DISK)
+	use_fd = true;
+	max_drive = USE_FLOPPY_DISK;
+	#if defined(MAX_D88_BANKS)
+		max_d88_banks = MAX_D88_BANKS;
+	#else
+		max_d88_banks = 64;
+	#endif
+	base_fd_num = BASE_FLOPPY_DISK_NUM;
+#endif
+#if defined(USE_QUICK_DISK)
+	use_qd = true;
+	max_qd = USE_QUICK_DISK;
+	base_qd_num = BASE_QUICK_DISK_NUM;
+#endif
+#if defined(USE_HARD_DISK)
+	use_hd = true;
+	max_hd = USE_HARD_DISK;
+	base_hd_num = BASE_HARD_DISK_NUM;
+#endif
+#if defined(USE_TAPE)
+	use_tape = true;
+	#if defined(USE_TAPE_BAUD)
+		use_tape_baud = true;
+	#endif
+	#if defined(USE_TAPE_BUTTON)
+		use_tape_button = true;
+	#endif
+	#if defined(USE_TAPE_PTR)
+		use_tape_ptr = true;
+	#endif
+	max_tape = USE_TAPE;
+	base_tape_num = BASE_TAPE_NUM;
+#endif
+#if defined(USE_COMPACT_DISC)
+	use_compact_disc = true;
+	max_compact_disc = USE_COMPACT_DISC;
+	base_cd_num = BASE_COMPACT_DISC_NUM;
+#endif
+#if defined(USE_LASER_DISC)
+	use_laser_disc = true;
+	max_laser_disc = USE_LASER_DISC;
+	base_ld_num = BASE_LASER_DISC_NUM;
+#endif
+#if defined(USE_BINARY_FILE)
 	use_binary_file = true;
-	max_binary = MAX_BINARY;
+	max_binary = USE_BINARY_FILE;
+	base_binary_num = BASE_BINARY_FILE_NUM;
+#endif
+#if defined(USE_BUBBLE)
+	use_bubble = true;
+	max_bubble = USE_BUBBLE;
+	base_bubble_num = BASE_BUBBLE_NUM;
+	#if defined(MAX_B77_BANKS)
+		max_b77_banks = MAX_B77_BANKS;
+	#else
+		max_b77_banks = 16;
+	#endif
 #endif
 #if defined(USE_BITMAP)
 	use_bitmap = true;
@@ -240,26 +321,8 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 #if defined(USE_BOOT_MODE)
 	use_boot_mode = USE_BOOT_MODE;
 #endif
-#if defined(USE_BUBBLE1) || defined(USE_BUBBLE2) || defined(USE_BUBBLE3) || defined(USE_BUBBLE4) || \
-	defined(USE_BUBBLE5) || defined(USE_BUBBLE6) || defined(USE_BUBBLE7) || defined(USE_BUBBLE8)
-	use_bubble = true;
-	max_bubble = MAX_BUBBLE;
-	#if defined(MAX_B77_BANKS)
-		max_b77_banks = MAX_B77_BANKS;
-	#else
-		max_b77_banks = 16;
-	#endif
-#endif
-#if defined(USE_CART1) || defined(USE_CART2) || defined(USE_CART3) || defined(USE_CART4) || \
-	defined(USE_CART5) || defined(USE_CART6) || defined(USE_CART7) || defined(USE_CART8)
-	use_cart = true;
-	max_cart = MAX_CART;
-#endif
 #if defined(USE_CPU_TYPE)
 	use_cpu_type = USE_CPU_TYPE;
-#endif
-#if defined(USE_COMPACT_DISC)
-	use_compact_disc = true;
 #endif
 #if defined(SUPPORT_TV_RENDER)
 	support_tv_render = true;
@@ -285,16 +348,6 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 #if defined(USE_DRIVE_TYPE)
 	use_drive_type = USE_DRIVE_TYPE;
 #endif
-#if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
-	defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
-	use_fd = true;
-	max_drive = MAX_FD;
-	#if defined(MAX_D88_BANKS)
-		max_d88_banks = MAX_D88_BANKS;
-	#else
-		max_d88_banks = 64;
-	#endif
-#endif
 #if defined(MAX_DRAW_RANGES)
 	max_draw_ranges = MAX_DRAW_RANGES;
 #endif
@@ -305,14 +358,11 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 		num_joy_button_captions = sizeof(joy_button_captions) / sizeof(_TCHAR *);
 	#endif	
 #endif
-#if defined(USE_LASER_DISC)
-	use_laser_disc = true;
-#endif
 #if defined(USE_KEY_LOCKED)
 	use_key_locked = true;
 #endif
-#if defined(USE_EXTRA_LEDS)
-	use_extra_leds = USE_EXTRA_LEDS;
+#if defined(USE_LED_DEVICE)
+	use_led_devices = USE_LED_DEVICE;
 #endif
 #if defined(INDEPENDENT_CAPS_KANA_LED)
 	independent_caps_kana_led = true;
@@ -348,11 +398,6 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 		use_printer_type = USE_PRINTER_TYPE;
 	#endif	
 #endif
-#if defined(USE_QD1) || defined(USE_QD2) || defined(USE_QD3) ||defined(USE_QD4) || \
-	defined(USE_QD5) || defined(USE_QD6) || defined(USE_QD7) ||defined(USE_QD8)
-	use_qd = true;
-	max_qd = MAX_QD;
-#endif
 #if defined(USE_SCANLINE)
 	use_scanline = true;
 #endif
@@ -374,28 +419,15 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 #if defined(WITHOUT_SOUND)
 	without_sound = true;
 #endif
-#if defined(USE_FD1)
+#if defined(USE_FLOPPY_DISK)
 	use_sound_files_fdd = true;
 #endif
-#if defined(USE_TAPE1)
+#if defined(USE_TAPE)
 	use_sound_files_relay = true;
 #endif
 #if defined(USE_SPECIAL_RESET)
 	use_special_reset = true;
 #endif	
-#if defined(USE_TAPE1)
-	use_tape = true;
-	#if defined(USE_TAPE_BAUD)
-		use_tape_baud = true;
-	#endif
-	#if defined(USE_TAPE_BUTTON)
-		use_tape_button = true;
-	#endif
-	#if defined(USE_TAPE_PTR)
-		use_tape_ptr = true;
-	#endif
-		max_tape = MAX_TAPE;
-#endif
 #if defined(USE_VM_AUTO_KEY_TABLE)
 	use_vm_auto_key_table = true;
 #endif

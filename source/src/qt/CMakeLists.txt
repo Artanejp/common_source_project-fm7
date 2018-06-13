@@ -1,9 +1,11 @@
 message("* qt/osd")
-SET(THIS_LIB_VERSION 2.11.0) 
+SET(THIS_LIB_VERSION 2.11.2) 
 
 set(s_qt_osd_headers
 	osd_base.h
 )
+#include(PrecompiledHeader)
+
 if(USE_QT_5)
   QT5_WRAP_CPP(s_qt_osd_headers_MOC ${s_qt_osd_headers})
 else()
@@ -11,6 +13,7 @@ else()
 endif()
 
 SET(s_qt_osd_srcs
+#	  pch.cpp
 	  osd_base.cpp
 	  osd_screen.cpp
 	  osd_console.cpp
@@ -20,9 +23,9 @@ SET(s_qt_osd_srcs
 	  osd_sound.cpp
 	  osd_video.cpp
 	  ${s_qt_osd_headers_MOC}
+
 )
 add_definitions(-D_LIBOSD_VERSION=${THIS_LIB_VERSION})
-
 if(WIN32)
 #add_library(qt_osd
 #    ${s_qt_osd_srcs}
@@ -34,6 +37,7 @@ include (GenerateExportHeader)
     ${s_qt_osd_srcs}
     ${s_qt_osd_headers_MOC}
   )
+
 target_link_libraries(CSPosd PUBLIC
           ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPemu_utils.dll.a
 #          ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libqt_avio.a
@@ -59,14 +63,17 @@ else()
 	  add_library(CSPosd SHARED
 		${s_qt_osd_srcs}
 		${s_qt_osd_headers_MOC}
+#		pch.cpp
 		)
+#	  add_precompiled_header(CSPosd pch_list
+#		SOURCE_CXX pch.cpp FORCEINCLUDE
+#		)
 	  target_link_libraries(CSPosd PUBLIC
 		Qt5::Core
 		Qt5::Gui
 		Qt5::Widgets
 		${SDL2_LIBRARIES}
 		)
-  
 	  set_target_properties(CSPosd PROPERTIES 
 		SOVERSION ${THIS_LIB_VERSION}
 		VERSION ${THIS_LIB_VERSION}
@@ -79,4 +86,5 @@ else()
 	#	)
 	#endif()
 endif()
+
 

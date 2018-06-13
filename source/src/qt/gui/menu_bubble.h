@@ -17,7 +17,7 @@ class DLL_PREFIX Menu_BubbleClass: public Menu_MetaClass {
 protected:
 	//QIcon icon_bubble_casette;
 public:
-	Menu_BubbleClass(QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent = 0, int drv = 0);
+	Menu_BubbleClass(QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent = 0, int drv = 0, int base_drv = 1);
 	~Menu_BubbleClass();
 	void create_pulldown_menu_device_sub();
 	void connect_menu_device_sub(void);

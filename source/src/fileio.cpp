@@ -45,38 +45,34 @@
 		#include "zlib-1.2.11/zlib.h"
 		#include "zlib-1.2.11/zconf.h"
 	#endif
-#endif
-
-#if ZLIB_VERNUM < 0x1290
-inline size_t gzfread(void *buffer, size_t size, size_t count, gzFile file)
-{
-	uint8_t *p = (uint8_t *)buffer;
-	int s = 0;
-	int i = 0;
-	for(i = 0; i < count; i++) {
-		for(int j = 0; j < size; j++) {
-			s = gzgetc(file);
-			if(s < 0) return 0; // EOF
-			*p++ = (uint8_t)s; 
+	#if defined(ZLIB_VERNUM) && (ZLIB_VERNUM < 0x1290)
+		inline size_t gzfread(void *buffer, size_t size, size_t count, gzFile file)
+		{
+			uint8_t *p = (uint8_t *)buffer;
+			int i = 0;
+			for(i = 0; i < count; i++) {
+				for(int j = 0; j < size; j++) {
+					int s = gzgetc(file);
+					if(s < 0) return 0; // EOF
+					*p++ = (uint8_t)s; 
+				}
+			}
+			return i + 1;
 		}
-	}
-	return i + 1;
-}
-inline size_t gzfwrite(void *buffer, size_t size, size_t count, gzFile file)
-{
-	uint8_t *p = (uint8_t *)buffer;
-	uint8_t n;
-	int s = 0;
-	int i = 0;
-	for(i = 0; i < count; i++) {
-		for(int j = 0; j < size; j++) {
-			n = *p++; 
-			s = gzputc(file, n);
-			if(s < 0) return 0; // EOF
+		inline size_t gzfwrite(void *buffer, size_t size, size_t count, gzFile file)
+		{
+			uint8_t *p = (uint8_t *)buffer;
+			int i = 0;
+			for(i = 0; i < count; i++) {
+				for(int j = 0; j < size; j++) {
+					uint8_t n = *p++; 
+					int s = gzputc(file, n);
+					if(s < 0) return 0; // EOF
+				}
+			}
+			return i + 1;
 		}
-	}
-	return i + 1;
-}
+	#endif
 #endif			
 FILEIO::FILEIO()
 {
@@ -246,8 +242,8 @@ bool FILEIO::Gzopen(const _TCHAR *file_path, int mode)
 	switch(mode) {
 	case FILEIO_READ_BINARY:
 		return ((gz = gzopen(tchar_to_char(file_path), "rb")) != NULL);
-//	case FILEIO_WRITE_BINARY:
-//		return ((fp = _tfopen(file_path, _T("wb"))) != NULL);
+	case FILEIO_WRITE_BINARY:
+		return ((gz = gzopen(tchar_to_char(file_path), "wb")) != NULL);
 //	case FILEIO_READ_WRITE_BINARY:
 //		return ((fp = _tfopen(file_path, _T("r+b"))) != NULL);
 //	case FILEIO_READ_WRITE_NEW_BINARY:
@@ -294,10 +290,9 @@ long FILEIO::FileLength()
 }
 
 #define GET_VALUE(type) \
-	uint8_t buffer[sizeof(type)];				\
-	type *tmpv = (type *)buffer;				\
+	uint8_t buffer[sizeof(type)] = {0};		\
 	Fread(buffer, sizeof(buffer), 1);		\
-	return *tmpv;						
+	return *(type *)buffer;						
 
 #define PUT_VALUE(type, v) \
 	Fwrite(&v, sizeof(type), 1)
@@ -714,10 +709,9 @@ int FILEIO::Fgetc()
 	{
 		if(fp != NULL) {
 			return getc(fp);
-		} else {
-			return 0;
 		}
 	}
+	return 0;
 }
 
 int FILEIO::Fputc(int c)
@@ -730,11 +724,10 @@ int FILEIO::Fputc(int c)
 	{
 		if(fp != NULL) {
 			return fputc(c, fp);
-		} else {
-			return 0;
 		}
 	}
-}
+	return 0;
+ }
 
 char *FILEIO::Fgets(char *str, int n)
 {
@@ -746,10 +739,9 @@ char *FILEIO::Fgets(char *str, int n)
 	{
 		if(fp != NULL) {
 			return fgets(str, n, fp);
-		} else {
-			return 0;
 		}
 	}
+	return 0;
 }
 
 _TCHAR *FILEIO::Fgetts(_TCHAR *str, int n)
@@ -784,13 +776,10 @@ int FILEIO::Fprintf(const char* format, ...)
 		return gzprintf(gz, "%s", buffer);
 	} else
 #endif
-	{
-		if(fp != NULL) {
-			return my_fprintf_s(fp, "%s", buffer);
-		} else {
-			return 0;
-		}
+	if(fp != NULL) {
+		return my_fprintf_s(fp, "%s", buffer);
 	}
+	return 0;
 }
 
 int FILEIO::Ftprintf(const _TCHAR* format, ...)
@@ -807,7 +796,10 @@ int FILEIO::Ftprintf(const _TCHAR* format, ...)
 		return gzprintf(gz, "%s", tchar_to_char(buffer));
 	} else
 #endif
-	return my_ftprintf_s(fp, _T("%s"), buffer);
+	if(fp != NULL) {
+		return my_ftprintf_s(fp, _T("%s"), buffer);
+	}
+	return 0;
 }
 
 size_t FILEIO::Fread(void* buffer, size_t size, size_t count)
@@ -817,13 +809,10 @@ size_t FILEIO::Fread(void* buffer, size_t size, size_t count)
 		return gzfread(buffer, size, count, gz);
 	} else
 #endif
-	{
-		if(fp != NULL) {
-			return fread(buffer, size, count, fp);
-		} else {
-			return 0;
-		}
+	if(fp != NULL) {
+		return fread(buffer, size, count, fp);
 	}
+	return 0;
 }
 
 size_t FILEIO::Fwrite(const void* buffer, size_t size, size_t count)
@@ -833,13 +822,10 @@ size_t FILEIO::Fwrite(const void* buffer, size_t size, size_t count)
 		return gzfwrite(buffer, size, count, gz);
 	} else
 #endif
-	{
-		if(fp != NULL) {
-			return fwrite(buffer, size, count, fp);
-		} else {
-			return 0;
-		}
+	if(fp != NULL) {
+		return fwrite(buffer, size, count, fp);
 	}
+	return 0;
 }
 
 int FILEIO::Fseek(long offset, int origin)
@@ -856,8 +842,7 @@ int FILEIO::Fseek(long offset, int origin)
 		}
 	} else
 #endif
-	{
-		if(fp == NULL) return -1;
+	if(fp != NULL) {
 		switch(origin) {
 		case FILEIO_SEEK_CUR:
 			return fseek(fp, offset, SEEK_CUR);
@@ -877,14 +862,11 @@ long FILEIO::Ftell()
 		return gztell(gz);
 	} else
 #endif
-	{
-		if(fp != NULL) {
-			return ftell(fp);
-		} else {
-			return 0;
-		}
+	if(fp != NULL) {
+		return ftell(fp);
 	}
-}
+	return 0;
+ }
 
 
 bool FILEIO::Fcompare(const void* buffer, size_t size)

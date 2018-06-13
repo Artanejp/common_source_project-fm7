@@ -151,6 +151,7 @@ public:
 	void reset() override;
 	int run(int clock) override;
 	void write_signal(int id, uint32_t data, uint32_t mask) override;
+	void decl_state();
 	void save_state(FILEIO* state_fio) override;
 	bool load_state(FILEIO* state_fio) override;
 

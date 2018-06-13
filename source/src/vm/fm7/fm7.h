@@ -10,14 +10,14 @@
 #ifndef _FM7_H_
 #define _FM7_H_
 
-#define USE_TAPE1
+#define USE_TAPE 1
 #define USE_TAPE_PTR
 #define USE_TAPE_BUTTON
 #define USE_SCANLINE
 #define USE_DIPSWITCH
 #define USE_CPU_TYPE 2
 #define USE_SPECIAL_RESET
-#define USE_EXTRA_LEDS 3
+#define USE_LED_DEVICE			3
 #define USE_MINIMUM_RENDERING 1
 #define USE_MOUSE
 #define USE_JOYSTICK
@@ -50,9 +50,8 @@
 #define CONFIG_NAME		"fm8"
 #define CAPABLE_Z80
 #define DIPSWITCH_DEFAULT 0x00000000 
-#define USE_BUBBLE1
-#define USE_BUBBLE2
-#define MAX_BUBBLE 2
+#define USE_BUBBLE 2
+#define BASE_BUBBLE_NUM 0
 #define MAX_DRIVE  4
 
 #undef CPU_TYPE_DEFAULT
@@ -301,14 +300,12 @@
 //#define IO_ADDR_MAX		0x10000
 
 // device informations for win32
-#define USE_FD1
-#define USE_FD2
-
 #if defined(HAS_2HD)
-#define USE_FD3
-#define USE_FD4
+#define USE_FLOPPY_DISK 4
+#else
+#define USE_FLOPPY_DISK 2
 #endif
-
+#define BASE_FLOPPY_DISK_NUM 0
 
 #ifdef BUILD_Z80
 # ifdef CAPABLE_Z80
@@ -425,7 +422,7 @@ class I8251;
 #if defined(USE_AY_3_8910_AS_PSG) && !defined(_FM77AV_VARIANTS)
 class AY_3_891X;
 #endif
-#if defined(_FM8)
+#if defined(USE_BUBBLE)
 class BUBBLECASETTE;
 #endif
 class DISPLAY;
@@ -455,6 +452,7 @@ class OR;
 #ifdef CAPABLE_JCOMMCARD
 class FM7_JCOMMCARD;
 #endif
+class csp_state_utils;
 
 class VM {
 protected:
@@ -493,8 +491,8 @@ protected:
 #  endif
 # endif
 #endif
-#if defined(_FM8)
-	BUBBLECASETTE *bubble_casette[2];
+#if defined(USE_BUBBLE)
+	BUBBLECASETTE *bubble_casette[USE_BUBBLE];
 #endif
 	I8251 *uart[3];
 # if defined(_FM77AV20) || defined(_FM77AV40) || defined(_FM77AV20EX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -545,6 +543,8 @@ protected:
 #endif
 	bool connect_320kfdc;
 	bool connect_1Mfdc;
+
+	csp_state_utils *state_entry;
 public:
 	// ----------------------------------------
 	// initialize
@@ -588,7 +588,7 @@ public:
 	void key_up(int code);
 	bool get_caps_locked();
 	bool get_kana_locked();
-	uint32_t get_extra_leds(); 
+	uint32_t get_led_status(); 
 	
 	// user interface
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
@@ -617,7 +617,9 @@ public:
 	void update_config();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-#if defined(USE_BUBBLE1)
+	void decl_state(void);
+	
+#if defined(USE_BUBBLE)
 	void open_bubble_casette(int drv, const _TCHAR *path, int bank);
 	void close_bubble_casette(int drv);
 	bool is_bubble_casette_inserted(int drv);

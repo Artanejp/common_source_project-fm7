@@ -4,6 +4,7 @@
  *   LIcense: GPLv2
  *   History: Jan 10, 2015 (MAYBE) : Initial.
  */
+#include <QApplication>
 
 #include "commonclasses.h"
 #include "mainwidget_base.h"
@@ -13,7 +14,7 @@
 //#include "emu.h"
 
 
-Menu_FDClass::Menu_FDClass(QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent, int drv) : Menu_MetaClass(root_entry, desc, p, parent, drv)
+Menu_FDClass::Menu_FDClass(QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent, int drv, int base_drv) : Menu_MetaClass(root_entry, desc, p, parent, drv, base_drv)
 {
 	use_write_protect = true;
 	use_d88_menus = true;

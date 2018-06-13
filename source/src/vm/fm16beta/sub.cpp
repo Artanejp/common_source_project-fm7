@@ -8,7 +8,7 @@
 */
 
 #include "sub.h"
-#include "main.h"
+#include "mainbus.h"
 #include "../pcm1bit.h"
 
 void SUB::initialize()

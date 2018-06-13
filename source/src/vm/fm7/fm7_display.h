@@ -33,6 +33,7 @@ class MB61VH010;
 #if defined(_FM77L4)
 class HD46505;
 #endif
+
 class DISPLAY: public DEVICE
 {
 private:
@@ -441,7 +442,8 @@ public:
 	void event_vline(int v, int clock);
 	void save_state(FILEIO *state_fio);
 	bool load_state(FILEIO *state_fio);
-
+	void decl_state(void);
+	
 	int get_screen_mode(void) {
 		return display_mode;
 	}

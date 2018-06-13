@@ -5,7 +5,13 @@
  * History: 2015-11-11 Initial.
  */
 
-
+#include <QAction>
+#include <QActionGroup>
+#include <QWidget>
+#include <QDir>
+#include <QStyle>
+#include <QApplication>
+#include <QMenuBar>
 //#include "emu.h"
 //#include "vm.h"
 #include "qt_dialogs.h"
@@ -15,7 +21,7 @@
 #include "commonclasses.h"
 #include "qt_main.h"
 
-Menu_MetaClass::Menu_MetaClass(QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent, int drv) : QMenu(root_entry)
+Menu_MetaClass::Menu_MetaClass(QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent, int drv, int base_drv) : QMenu(root_entry)
 {
 	QString tmps;
 	int ii;
@@ -27,10 +33,13 @@ Menu_MetaClass::Menu_MetaClass(QMenuBar *root_entry, QString desc, USING_FLAGS *
 	using_flags = p;
 	
 	media_drive = drv;
-
+	base_drive = base_drv;
+	
 	tmps.setNum(drv);
-	object_desc = desc;
+	object_desc = QString::fromUtf8("Obj_") + desc;
 	object_desc.append(tmps);
+	setObjectName(object_desc);
+	
 	for(ii = 0; ii < using_flags->get_max_d88_banks(); ii++) {
 		action_select_media_list[ii] = NULL;
 	}
@@ -48,6 +57,10 @@ Menu_MetaClass::Menu_MetaClass(QMenuBar *root_entry, QString desc, USING_FLAGS *
 	icon_write_protected = QApplication::style()->standardIcon(QStyle::SP_DialogApplyButton);
 	icon_write_enabled = QIcon();
 	setToolTipsVisible(true);
+
+	tmps = QString::fromUtf8("%1").arg(drv + base_drv);
+	tmps = desc + tmps;
+	setTitle(tmps);
 }
 
 Menu_MetaClass::~Menu_MetaClass()

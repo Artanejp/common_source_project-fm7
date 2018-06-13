@@ -11,7 +11,7 @@
 //extern USING_FLAGS *using_flags;
 extern class EMU *emu;
 
-#if defined(USE_FD1)	
+#if defined(USE_FLOPPY_DISK)	
 
 #ifndef UPDATE_D88_LIST
 #define UPDATE_D88_LIST(__d, lst) { \
@@ -56,6 +56,7 @@ void Ui_MainWindow::do_update_recent_disk(int drv)
 		menu_fds[drv]->do_write_unprotect_media();
 	}
 }
+
 
 extern const _TCHAR* DLL_PREFIX_I get_parent_dir(const _TCHAR* file);
 int Ui_MainWindow::set_recent_disk(int drv, int num) 
@@ -142,3 +143,4 @@ void Ui_MainWindow::_open_disk(int drv, const QString fname)
 }
 
 #endif	
+

@@ -168,6 +168,7 @@
     <ClCompile Include="..\src\win32\winmain.cpp" />
     <ClCompile Include="..\src\vm\disk.cpp" />
     <ClCompile Include="..\src\vm\event.cpp" />
+    <ClCompile Include="..\src\vm\harddisk.cpp" />
     <ClCompile Include="..\src\vm\hd46505.cpp" />
     <ClCompile Include="..\src\vm\hd63484.cpp" />
     <ClCompile Include="..\src\vm\i286.cpp" />
@@ -203,6 +204,7 @@
     <ClInclude Include="..\src\vm\device.h" />
     <ClInclude Include="..\src\vm\disk.h" />
     <ClInclude Include="..\src\vm\event.h" />
+    <ClInclude Include="..\src\vm\harddisk.h" />
     <ClInclude Include="..\src\vm\hd46505.h" />
     <ClInclude Include="..\src\vm\hd63484.h" />
     <ClInclude Include="..\src\vm\i286.h" />

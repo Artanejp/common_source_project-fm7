@@ -27,7 +27,8 @@
 // device informations for win32
 #define WINDOW_MODE_BASE	2
 #define USE_BOOT_MODE		2
-#define USE_TAPE1
+#define USE_TAPE		1
+#define USE_TAPE_BUTTON
 #define NOTIFY_KEY_DOWN
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5
@@ -48,6 +49,7 @@ static const _TCHAR *sound_device_caption[] = {
 };
 #endif
 
+class csp_state_utils;
 class EMU;
 class DEVICE;
 class EVENT;
@@ -63,6 +65,7 @@ class VM
 {
 protected:
 	EMU* emu;
+	csp_state_utils *state_entry;
 	
 	// devices
 	EVENT* event;
@@ -123,9 +126,16 @@ public:
 	bool is_tape_recording(int drv);
 	int get_tape_position(int drv);
 	const _TCHAR* get_tape_message(int drv);
+	void push_play(int drv);
+	void push_stop(int drv);
+	void push_fast_forward(int drv);
+	void push_fast_rewind(int drv);
+	void push_apss_forward(int drv) {}
+	void push_apss_rewind(int drv) {}
 	bool is_frame_skippable();
 	
 	void update_config();
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

@@ -31,7 +31,7 @@
 #define TV_WINDOW_HEIGHT	TV_SCREEN_HEIGHT
 
 #define WINDOW_MODE_BASE	2
-#define USE_TAPE1
+#define USE_TAPE		1
 #define TAPE_BINARY_ONLY
 #define NOTIFY_KEY_DOWN
 #define USE_KEY_LOCKED
@@ -52,6 +52,8 @@ static const _TCHAR *sound_device_caption[] = {
 };
 #endif
 
+class csp_state_utils;
+
 class EMU;
 class DEVICE;
 class EVENT;
@@ -68,6 +70,7 @@ class VM
 {
 protected:
 	EMU* emu;
+	csp_state_utils* state_entry;
 	
 	// devices
 	EVENT* event;
@@ -132,6 +135,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

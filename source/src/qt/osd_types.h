@@ -14,7 +14,6 @@
 #include <QWidget>
 #include <QThread>
 #include <QMutex>
-#include <QSemaphore>
 #include <QPainter>
 #include <QElapsedTimer>
 #include <QString>
@@ -38,7 +37,6 @@ typedef struct {
 	int *sound_buffer_size;
 	int *sound_write_pos;
 	int *sound_data_len;
-	SDL_sem **snd_apply_sem;
 	Uint8 *snd_total_volume;
 	bool *sound_exit;
 	bool *sound_debug;

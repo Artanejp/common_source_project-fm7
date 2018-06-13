@@ -88,6 +88,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
+	decl_state();
 }
 
 VM::~VM()
@@ -215,11 +216,15 @@ void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	io->close_tape();
 	drec->play_tape(file_path);
+//	drec->set_remote(true);
 }
 
 void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
-	drec->close_tape();
+ 	emu->lock_vm();
+ 	drec->close_tape();
+ 	emu->unlock_vm();
+//	drec->set_remote(false);
 	io->rec_tape(file_path);
 }
 
@@ -228,6 +233,7 @@ void VM::close_tape(int drv)
 	emu->lock_vm();
 	drec->close_tape();
 	emu->unlock_vm();
+//	drec->set_remote(false);
 	io->close_tape();
 }
 
@@ -238,22 +244,69 @@ bool VM::is_tape_inserted(int drv)
 
 bool VM::is_tape_playing(int drv)
 {
-	return drec->is_tape_playing();
+	if(drec->is_tape_inserted()) {
+		return drec->is_tape_playing();
+	} else {
+		return io->is_tape_playing();
+	}
 }
 
 bool VM::is_tape_recording(int drv)
 {
-	return drec->is_tape_recording();
+	if(drec->is_tape_inserted()) {
+		return drec->is_tape_recording();
+	} else {
+		return io->is_tape_recording();
+	}
 }
 
 int VM::get_tape_position(int drv)
 {
-	return drec->get_tape_position();
+	if(drec->is_tape_inserted()) {
+		return drec->get_tape_position();
+	} else {
+		return io->get_tape_position();
+	}
 }
 
 const _TCHAR* VM::get_tape_message(int drv)
 {
-	return drec->get_message();
+	if(drec->is_tape_inserted()) {
+		return drec->get_message();
+	} else {
+		return NULL;
+	}
+}
+
+void VM::push_play(int drv)
+{
+	if(drec->is_tape_inserted()) {
+		drec->set_ff_rew(0);
+		drec->set_remote(true);
+	}
+}
+
+void VM::push_stop(int drv)
+{
+	if(drec->is_tape_inserted()) {
+		drec->set_remote(false);
+	}
+}
+
+void VM::push_fast_forward(int drv)
+{
+	if(drec->is_tape_inserted()) {
+		drec->set_ff_rew(1);
+		drec->set_remote(true);
+	}
+}
+
+void VM::push_fast_rewind(int drv)
+{
+	if(drec->is_tape_inserted()) {
+		drec->set_ff_rew(-1);
+		drec->set_remote(true);
+	}
 }
 
 bool VM::is_frame_skippable()
@@ -270,36 +323,48 @@ void VM::update_config()
 
 #define STATE_VERSION	3
 
+#include "../../statesub.h"
+
+void VM::decl_state(void)
+{
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FP_200_HEAD")));
+	DECL_STATE_ENTRY_MULTI(void, ram, sizeof(ram));
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		device->decl_state();
+	}
+}
 void VM::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
+	//state_fio->FputUint32(STATE_VERSION);
 	
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const char *name = typeid(*device).name() + 6; // skip "class "
-		
-		state_fio->FputInt32(strlen(name));
-		state_fio->Fwrite(name, strlen(name), 1);
 		device->save_state(state_fio);
 	}
-	state_fio->Fwrite(ram, sizeof(ram), 1);
+	//state_fio->Fwrite(ram, sizeof(ram), 1);
 }
 
 bool VM::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	//if(state_fio->FgetUint32() != STATE_VERSION) {
+	//	return false;
+	//}
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
+		emu->out_debug_log("INFO: HEADER DATA ERROR");
 		return false;
 	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const char *name = typeid(*device).name() + 6; // skip "class "
-		
-		if(!(state_fio->FgetInt32() == strlen(name) && state_fio->Fcompare(name, strlen(name)))) {
-			return false;
-		}
 		if(!device->load_state(state_fio)) {
 			return false;
 		}
 	}
-	state_fio->Fread(ram, sizeof(ram), 1);
+	//state_fio->Fread(ram, sizeof(ram), 1);
 	return true;
 }
 

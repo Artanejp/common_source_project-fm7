@@ -14,6 +14,7 @@
 
 #include "hd6844.h"
 
+#include "../../statesub.h"
 
 void HD6844::reset()
 {
@@ -443,74 +444,47 @@ void HD6844::event_callback(int event_id, int err)
 	}
 }
 
-#define STATE_VERSION 2
+#define STATE_VERSION 4
+
+void HD6844::decl_state(void)
+{
+	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, (_TCHAR *)get_device_name());
+
+	DECL_STATE_ENTRY_INT(this_device_id);
+	DECL_STATE_ENTRY_UINT32_ARRAY(addr_reg, 4);
+	DECL_STATE_ENTRY_UINT16_ARRAY(words_reg, 4);
+	DECL_STATE_ENTRY_UINT8_ARRAY(channel_control, 4);
+	
+	DECL_STATE_ENTRY_UINT8(priority_reg);
+	DECL_STATE_ENTRY_UINT8(interrupt_reg);
+	DECL_STATE_ENTRY_UINT8(datachain_reg);
+	DECL_STATE_ENTRY_UINT8(num_reg);
+	DECL_STATE_ENTRY_UINT32(addr_offset);
+		
+	DECL_STATE_ENTRY_BOOL_ARRAY(transfering, 4);
+	DECL_STATE_ENTRY_BOOL_ARRAY(first_transfer, 4);
+	DECL_STATE_ENTRY_BOOL_ARRAY(cycle_steal, 4);
+	DECL_STATE_ENTRY_BOOL_ARRAY(halt_flag, 4);
+		
+	DECL_STATE_ENTRY_UINT32_ARRAY(fixed_addr, 4);
+	DECL_STATE_ENTRY_UINT8_ARRAY(data_reg, 4);
+	DECL_STATE_ENTRY_INT32_ARRAY(event_dmac, 4);
+}
+
 void HD6844::save_state(FILEIO *state_fio)
 {
-	int i;
-	state_fio->FputUint32_BE(STATE_VERSION);
-	state_fio->FputInt32_BE(this_device_id);
-	this->out_debug_log(_T("Save State: HD6844: id=%d ver=%d\n"), this_device_id, STATE_VERSION);
-	{ // V1
-		//if(!(__FM77AV40EX)) { // FM77AV40 HAS ONE channle and must be reset per save.
-			for(i = 0; i < 4; i++) {
-				state_fio->FputUint32_BE(addr_reg[i]);
-				state_fio->FputUint16_BE(words_reg[i]);
-				state_fio->FputUint8(channel_control[i]);
-			}
-			//}
-		state_fio->FputUint8(priority_reg);
-		state_fio->FputUint8(interrupt_reg);
-		state_fio->FputUint8(datachain_reg);
-		state_fio->FputUint8(num_reg);
-		state_fio->FputUint32_BE(addr_offset);
-		for(i = 0; i < 4; i++) {
-			state_fio->FputUint32_BE(fixed_addr[i]);
-			state_fio->FputUint8(data_reg[i]);
-			state_fio->FputBool(transfering[i]);
-			state_fio->FputBool(first_transfer[i]);
-			state_fio->FputBool(cycle_steal[i]);
-			state_fio->FputBool(halt_flag[i]);
-			state_fio->FputInt32_BE(event_dmac[i]);
-		}
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+		out_debug_log(_T("Save State: HD6844: id=%d ver=%d"), this_device_id, STATE_VERSION);
 	}
 }
 
 bool HD6844::load_state(FILEIO *state_fio)
 {
-	uint32_t version;
-	int i;
-	version = state_fio->FgetUint32_BE();
-	if(this_device_id != state_fio->FgetInt32_BE()) return false;
-	this->out_debug_log(_T("Load State: HD6844: id=%d ver=%d\n"), this_device_id, version);
-	if(version >= 1) {
-		//if(__FM77AV40EX) { 	if(__SINGLE_CHANNEL) channel = 0;
-		//	for(i = 0; i < 4; i++) {
-		//		addr_reg = 0xffff;
-		//		words_reg[i] = 0xffff;
-		//		channel_control = 0x00;
-		//	}
-		//} else {
-			for(i = 0; i < 4; i++) {
-				addr_reg[i] = state_fio->FgetUint32_BE();
-				words_reg[i] = state_fio->FgetUint16_BE();
-				channel_control[i] = state_fio->FgetUint8();
-			}
-			//}
-		priority_reg = state_fio->FgetUint8();
-		interrupt_reg = state_fio->FgetUint8();
-		datachain_reg = state_fio->FgetUint8();
-		num_reg = state_fio->FgetUint8();
-		addr_offset = state_fio->FgetUint32_BE();
-		for(i = 0; i < 4; i++) {
-			fixed_addr[i] = state_fio->FgetUint32_BE();
-			data_reg[i] = state_fio->FgetUint8();
-			transfering[i] = state_fio->FgetBool();
-			first_transfer[i] = state_fio->FgetBool();
-			cycle_steal[i] = state_fio->FgetBool();
-			halt_flag[i] = state_fio->FgetBool();
-			event_dmac[i] = state_fio->FgetInt32_BE();
-		}
-		if(version == 1) return true;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+		out_debug_log(_T("Load State: HD6844: id=%d stat=%s"), this_device_id, (mb) ? _T("OK") : _T("NG"));
 	}
-	return false;
+	return mb;
 }

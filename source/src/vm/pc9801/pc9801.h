@@ -6,6 +6,7 @@
 	NEC PC-9801VM Emulator 'ePC-9801VM'
 	NEC PC-9801VX Emulator 'ePC-9801VX'
 	NEC PC-9801RA Emulator 'ePC-9801RA'
+	NEC PC-98XA Emulator 'ePC-98XA'
 	NEC PC-98XL Emulator 'ePC-98XL'
 	NEC PC-98RL Emulator 'ePC-98RL'
 	NEC PC-98DO Emulator 'ePC-98DO'
@@ -104,6 +105,12 @@
 //	#define CPU_CLOCKS		7987248
 //	#define PIT_CLOCK_8MHZ
 	#define USE_CPU_TYPE		2
+#elif defined(_PC98XA)
+	#define DEVICE_NAME		"NEC PC-98XA"
+	#define CONFIG_NAME		"pc98xa"
+	#define HAS_I286
+	#define CPU_CLOCKS		7987248
+	#define PIT_CLOCK_8MHZ
 #elif defined(_PC9801RA) || defined(_PC98RL)
 	#if defined(_PC9801RA)
 		#define DEVICE_NAME	"NEC PC-9801RA"
@@ -145,13 +152,13 @@
 	#define SUPPORT_GRCG
 #endif
 #if !(defined(HAS_I86) || defined(HAS_V30))
-	#define SUPPORT_EGC
 	#if !defined(_PC98XA) && !defined(_PC98XL)
 		#define SUPPORT_ITF_ROM
 	#endif
-//	#if !defined(_PC98XA)
+	#if !defined(_PC98XA)
+		#define SUPPORT_EGC
 		#define HAS_UPD4990A
-//	#endif
+	#endif
 	#if !defined(SUPPORT_HIRESO)
 		#define SUPPORT_NEC_EMS
 	#endif
@@ -229,26 +236,21 @@
 #define SUPPORT_VARIABLE_TIMING
 
 // device informations for win32
-#if defined(_PC98DO) || defined(_PC98DOPLUS)
+#if defined(_PC9801) || defined(_PC9801E)
+#define USE_FLOPPY_DISK		6
+#elif defined(_PC98DO) || defined(_PC98DOPLUS)
 #define USE_BOOT_MODE		5
 #define USE_DIPSWITCH
+#define USE_FLOPPY_DISK		4
+#else
+#define USE_FLOPPY_DISK		2
 #endif
-#define USE_FD1
-#define USE_FD2
-#if defined(_PC9801) || defined(_PC9801E)
-// for 640KB drives
-#define USE_FD3
-#define USE_FD4
-// for 320KB drives
-#define USE_FD5
-#define USE_FD6
-#elif defined(_PC98DO) || defined(_PC98DOPLUS)
-// for PC-8801 drives
-#define USE_FD3
-#define USE_FD4
+#if defined(SUPPORT_SASI_IF) || defined(SUPPORT_SCSI_IF) || defined(SUPPORT_IDE_IF)
+#define USE_HARD_DISK		2
+#define OPEN_HARD_DISK_IN_RESET
 #endif
 #if defined(SUPPORT_CMT_IF) || defined(_PC98DO) || defined(_PC98DOPLUS)
-#define USE_TAPE1
+#define USE_TAPE		1
 #define TAPE_BINARY_ONLY
 #endif
 #define NOTIFY_KEY_DOWN
@@ -325,12 +327,18 @@ static const _TCHAR *sound_device_caption[] = {
 };
 #endif
 
+class csp_state_utils;
+
 class EMU;
 class DEVICE;
 class EVENT;
 
 #if defined(SUPPORT_OLD_BUZZER)
 class BEEP;
+#endif
+class DISK;
+#if defined(USE_HARD_DISK)
+class HARDDISK;
 #endif
 class I8237;
 class I8251;
@@ -351,6 +359,11 @@ class NOISE;
 class NOT;
 #if !defined(SUPPORT_OLD_BUZZER)
 class PCM1BIT;
+#endif
+#if defined(SUPPORT_SASI_IF) || defined(SUPPORT_SCSI_IF)
+class SCSI_HDD;
+class SCSI_HOST;
+#define SCSI_HOST_AUTO_ACK
 #endif
 class TMS3631;
 class UPD1990A;
@@ -398,6 +411,7 @@ class VM
 {
 protected:
 	EMU* emu;
+	csp_state_utils* state_entry;
 	
 	// devices
 	EVENT* event;
@@ -435,6 +449,14 @@ protected:
 	NOT* not_busy;
 #if defined(HAS_I86) || defined(HAS_V30)
 	NOT* not_prn;
+#endif
+#if defined(SUPPORT_SASI_IF)
+	SCSI_HDD* sasi_hdd;
+	SCSI_HOST* sasi_host;
+#endif
+#if defined(SUPPORT_SCSI_IF)
+	SCSI_HDD* scsi_hdd[2];
+	SCSI_HOST* scsi_host;
 #endif
 	UPD1990A* rtc;
 #if defined(SUPPORT_2HD_FDD_IF)
@@ -518,6 +540,19 @@ protected:
 	int boot_mode;
 #endif
 	
+	// drives
+	UPD765A *get_floppy_disk_controller(int drv);
+	DISK *get_floppy_disk_handler(int drv);
+#if defined(USE_HARD_DISK)
+#if defined(OPEN_HARD_DISK_IN_RESET)
+	_TCHAR hd_file_path[2][_MAX_PATH];
+#endif
+	void open_hard_disk_tmp(int drv, const _TCHAR* file_path);
+	void close_hard_disk_tmp(int drv);
+	bool is_hard_disk_inserted_tmp(int drv);
+	HARDDISK *get_hard_disk_handler(int drv);
+#endif
+	
 public:
 	// ----------------------------------------
 	// initialize
@@ -564,7 +599,13 @@ public:
 	void is_floppy_disk_protected(int drv, bool value);
 	bool is_floppy_disk_protected(int drv);
 	uint32_t is_floppy_disk_accessed();
-#if defined(SUPPORT_CMT_IF) || defined(_PC98DO) || defined(_PC98DOPLUS)
+#if defined(USE_HARD_DISK)
+	void open_hard_disk(int drv, const _TCHAR* file_path);
+	void close_hard_disk(int drv);
+	bool is_hard_disk_inserted(int drv);
+	uint32_t is_hard_disk_accessed();
+#endif
+#if defined(USE_TAPE)
 	void play_tape(int drv, const _TCHAR* file_path);
 	void rec_tape(int drv, const _TCHAR* file_path);
 	void close_tape(int drv);
@@ -573,6 +614,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

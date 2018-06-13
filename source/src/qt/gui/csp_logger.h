@@ -76,7 +76,8 @@ enum {
 	CSP_LOG_TYPE_VFILE_LASERDISC = 312,
 	CSP_LOG_TYPE_VFILE_QUICKDISK = 320,
 	CSP_LOG_TYPE_VFILE_END = 336,
-
+	CSP_LOG_TYPE_VM_STATE = 512,
+	CSP_LOG_TYPE_END = 1023,
 };
 	
 	
@@ -155,6 +156,10 @@ private:
 	int64_t line_wrap;
 	int cons_log_levels;
 	int sys_log_levels;
+
+	bool level_state_out_record;
+	bool level_state_out_syslog;
+	bool level_state_out_console;
 	
 	QString loglist;
 	QString log_sysname;
@@ -202,6 +207,9 @@ public:
 	void set_device_node_log(int device_id, int to_output, int type, bool flag);
 	void set_device_node_log(int to_output, int type, bool* flags, int start, int devices);
 	void set_device_node_log(int to_output, int type, int *flags, int start, int devices);
+
+	void set_state_log(int to_output, bool flag);
+
 	void output_event_log(int device_id, int level, const char *fmt, ...);
 	int64_t get_console_list(char *buffer, int64_t buf_size, bool utf8, char *domainname, bool forget, int64_t start = -1, int64_t end = -1, int64_t *end_line = 0);
 	void clear_log(void);

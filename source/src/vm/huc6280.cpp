@@ -117,34 +117,57 @@ int HUC6280::run_one_opecode()
 
 #define STATE_VERSION	5
 
+#include "../statesub.h"
+
+void HUC6280::decl_state()
+{
+	// You should call this after initialize().
+	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("HuC6280"));
+	
+	decl_state_registers();
+	
+#ifdef USE_DEBUGGER
+	DECL_STATE_ENTRY_UINT64(total_icount);
+#endif
+	DECL_STATE_ENTRY_INT32(icount);
+	DECL_STATE_ENTRY_BOOL(busreq);
+	
+}
 void HUC6280::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+	//state_fio->FputUint32(STATE_VERSION);
+	//state_fio->FputInt32(this_device_id);
 
-	save_state_registers(state_fio);
-#ifdef USE_DEBUGGER
-	state_fio->FputUint64(total_icount);
-#endif
-	state_fio->FputInt32(icount);
-	state_fio->FputBool(busreq);
+	//save_state_registers(state_fio);
+//#ifdef USE_DEBUGGER
+	//state_fio->FputUint64(total_icount);
+//#endif
+	//state_fio->FputInt32(icount);
+	//state_fio->FputBool(busreq);
 }
 
 bool HUC6280::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-#ifdef USE_DEBUGGER
-	total_icount = prev_total_icount = state_fio->FgetUint64();
-#endif
-	load_state_registers(state_fio);
-	icount = state_fio->FgetInt32();
-	busreq = state_fio->FgetBool();
+	if(!mb) return false;
+	//if(state_fio->FgetUint32() != STATE_VERSION) {
+	//	return false;
+	//}
+	//if(state_fio->FgetInt32() != this_device_id) {
+	//	return false;
+	//}
+//#ifdef USE_DEBUGGER
+	//total_icount = prev_total_icount = state_fio->FgetUint64();
+//#endif
+	//load_state_registers(state_fio);
+	//icount = state_fio->FgetInt32();
+	//busreq = state_fio->FgetBool();
 
 	// post process   
 	h6280_Regs *cpustate = (h6280_Regs *)opaque;
@@ -155,6 +178,7 @@ bool HUC6280::load_state(FILEIO* state_fio)
 	cpustate->debugger = d_debugger;
 	cpustate->program_stored = d_mem;
 	cpustate->io_stored = d_io;
+	prev_total_icount = total_icount;
 #endif
 	return true;
 }

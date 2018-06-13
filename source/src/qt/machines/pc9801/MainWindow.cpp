@@ -7,8 +7,11 @@
  * Jan 14, 2015 : Initial, many of constructors were moved to qt/gui/menu_main.cpp.
  */
 
+#include <QApplication>
 #include <QVariant>
 #include <QtGui>
+#include <QMenu>
+
 #include "commonclasses.h"
 #include "menuclasses.h"
 #include "emu.h"
@@ -31,11 +34,6 @@ void Object_Menu_Control_98::do_set_memory_wait(bool flag)
 	emit sig_set_dipsw(0, flag);
 }
 
-void Object_Menu_Control_98::do_set_display_mode(void)
-{
-	emit sig_display_mode(getValue1());
-}
-
 
 Action_Control_98::Action_Control_98(QObject *parent, USING_FLAGS *p) : Action_Control(parent, p)
 {
@@ -52,26 +50,9 @@ Action_Control_98::~Action_Control_98()
 void META_MainWindow::retranslateUi(void)
 {
 	const char *title="";
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu(title, false);
-	retranslateMachineMenu();
-#if defined(USE_FD1)
-	retranslateFloppyMenu(0, 1);
-#endif
-#if defined(USE_FD2)
-	retranslateFloppyMenu(1, 2);
-#endif
-#if defined(USE_FD3)
-	retranslateFloppyMenu(2, 3);
-#endif
-#if defined(USE_FD4)
-	retranslateFloppyMenu(3, 4);
-#endif
-#if defined(USE_FD5)
-	retranslateFloppyMenu(4, 5);
-#endif
-#if defined(USE_FD6)
-	retranslateFloppyMenu(5, 6);
-#endif
+
 #if defined(_PC9801) || defined(_PC9801E)
    // Drive 3,4
 	menu_fds[2]->setTitle(QApplication::translate("MainWindow", "2DD-1", 0));
@@ -98,30 +79,32 @@ void META_MainWindow::retranslateUi(void)
 	actionSoundDevice[3]->setToolTip(QApplication::translate("MainWindow", "PC-9801-14 sound board has connected.\nThis uses TI TMS3631-RI104 synthesizer chip.\nOn board BIOS is disabled.", 0));
 	actionSoundDevice[4]->setToolTip(QApplication::translate("MainWindow", "None sound devices has connected.", 0));
 #endif
-#if defined(USE_TAPE)
-	retranslateCMTMenu(0);
+#if defined(_PC9801RA) || defined(_PC98XL) || defined(_PC98XA) \
+	|| defined(_PC98RL) || defined(PC9801VX)
+	actionSoundDevice[2]->setVisible(false);
+	actionSoundDevice[3]->setVisible(false);
 #endif
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateEmulatorMenu();
 #ifdef USE_CPU_TYPE
 	menuCpuType->setTitle(QApplication::translate("MainWindow", "CPU Frequency", 0));
 # if  defined(_PC98DO)
-	actionCpuType[0]->setText(QString::fromUtf8("10/8MHz"));
-	actionCpuType[1]->setText(QString::fromUtf8("8/4MHz"));
+	actionCpuType[0]->setText(QString::fromUtf8("V30 10MHz / Z80 8MHz"));
+	actionCpuType[1]->setText(QString::fromUtf8("V30 8MHz  / Z80 4MHz"));
 # elif  defined(_PC98DOPLUS)
-	actionCpuType[0]->setText(QString::fromUtf8("16/8MHz"));
-	actionCpuType[1]->setText(QString::fromUtf8("8/4MHz"));
+	actionCpuType[0]->setText(QString::fromUtf8("V30 16MHz / Z80 8MHz"));
+	actionCpuType[1]->setText(QString::fromUtf8("V30 8MHz  / Z80 4MHz"));
 # elif  defined(_PC9801E) || defined(_PC9801F) || defined(_PC9801M)
-	actionCpuType[0]->setText(QString::fromUtf8("8MHz"));
-	actionCpuType[1]->setText(QString::fromUtf8("5MHz"));
-# elif  defined(_PC9801VX) || defined(_PC9801VM) || defined(_PC9801XL)
-	actionCpuType[0]->setText(QString::fromUtf8("10MHz"));
-	actionCpuType[1]->setText(QString::fromUtf8("8MHz"));
+	actionCpuType[0]->setText(QString::fromUtf8("8086 8MHz"));
+	actionCpuType[1]->setText(QString::fromUtf8("8086 5MHz"));
+# elif  defined(_PC9801VM)
+	actionCpuType[0]->setText(QString::fromUtf8("V30 10MHz"));
+	actionCpuType[1]->setText(QString::fromUtf8("V30 8MHz"));
+# elif  defined(_PC9801VX) || defined(_PC98XL)
+	actionCpuType[0]->setText(QString::fromUtf8("80286 10MHz"));
+	actionCpuType[1]->setText(QString::fromUtf8("80286 8MHz"));
 # elif  defined(_PC9801RA) || defined(_PC98RL)
 	// ToDo: PC98RL's display rotate.
-	actionCpuType[0]->setText(QString::fromUtf8("20MHz"));
-	actionCpuType[1]->setText(QString::fromUtf8("16MHz"));
+	actionCpuType[0]->setText(QString::fromUtf8("80386 20MHz"));
+	actionCpuType[1]->setText(QString::fromUtf8("80386 16MHz"));
 # endif
 #endif
 	
@@ -148,8 +131,8 @@ void META_MainWindow::retranslateUi(void)
 #if defined(USE_PRINTER)
 	actionPrintDevice[1]->setText(QString::fromUtf8("PC-PR201"));
 	actionPrintDevice[1]->setToolTip(QApplication::translate("MainWindow", "NEC PC-PR201 kanji serial printer.", 0));
+	actionPrintDevice[1]->setEnabled(false);
 #endif	
-	retranslateUI_Help();
 	// End.
 	// Set Labels
 #ifdef USE_DEBUGGER
@@ -170,18 +153,14 @@ void META_MainWindow::retranslateUi(void)
 #endif	
 #endif
 #ifdef USE_MONITOR_TYPE
-	menu_Emu_DisplayMode->setTitle(QApplication::translate("MainWindow", "Display Mode", 0));
-	action_Emu_DisplayMode[0]->setText(QApplication::translate("MainWindow", "High Resolution", 0));
-	action_Emu_DisplayMode[1]->setText(QApplication::translate("MainWindow", "Standard Resolution", 0));
+	actionMonitorType[0]->setText(QApplication::translate("MainWindow", "High Resolution", 0));
+	actionMonitorType[1]->setText(QApplication::translate("MainWindow", "Standard Resolution", 0));
 #endif	
 } // retranslateUi
 
 void META_MainWindow::setupUI_Emu(void)
 {
 #ifdef USE_CPU_TYPE
-	menuCpuType = new QMenu(menuMachine);
-	menuCpuType->setObjectName(QString::fromUtf8("menuControl_CpuType"));
-	menuMachine->addAction(menuCpuType->menuAction());
 	ConfigCPUTypes(2);
 #endif
 	
@@ -198,37 +177,7 @@ void META_MainWindow::setupUI_Emu(void)
 #endif   
 	
 #ifdef USE_BOOT_MODE
-# if defined(_PC98DO)
-	menuBootMode = new QMenu(menuMachine);
-	menuBootMode->setObjectName(QString::fromUtf8("menuControl_BootMode"));
-	menuMachine->addAction(menuBootMode->menuAction());
-	ConfigCPUBootMode(5);
-# endif
-#endif
-#ifdef USE_MONITOR_TYPE
-   menu_Emu_DisplayMode = new QMenu(menuMachine);
-   menu_Emu_DisplayMode->setObjectName(QString::fromUtf8("menu_DisplayMode"));
-   
-   actionGroup_DisplayMode = new QActionGroup(this);
-   actionGroup_DisplayMode->setObjectName(QString::fromUtf8("actionGroup_DisplayMode"));
-   actionGroup_DisplayMode->setExclusive(true);
-   menuMachine->addAction(menu_Emu_DisplayMode->menuAction());   
-   for(int i = 0; i < USE_MONITOR_TYPE; i++) {
-	   action_Emu_DisplayMode[i] = new Action_Control_98(this, using_flags);
-	   action_Emu_DisplayMode[i]->setCheckable(true);
-	   action_Emu_DisplayMode[i]->pc98_binds->setValue1(i);
-	   if(i == config.monitor_type) action_Emu_DisplayMode[i]->setChecked(true); // Need to write configure
-   }
-   action_Emu_DisplayMode[0]->setObjectName(QString::fromUtf8("action_Emu_DisplayMode_High"));
-   action_Emu_DisplayMode[1]->setObjectName(QString::fromUtf8("action_Emu_DisplayMode_Standard"));
-   for(int i = 0; i < USE_MONITOR_TYPE; i++) {
-	   menu_Emu_DisplayMode->addAction(action_Emu_DisplayMode[i]);
-	   actionGroup_DisplayMode->addAction(action_Emu_DisplayMode[i]);
-	   connect(action_Emu_DisplayMode[i], SIGNAL(triggered()),
-			   action_Emu_DisplayMode[i]->pc98_binds, SLOT(do_set_display_mode()));
-	   connect(action_Emu_DisplayMode[i]->pc98_binds, SIGNAL(sig_display_mode(int)),
-			   this, SLOT(set_monitor_type(int)));
-   }
+	ConfigCPUBootMode(USE_BOOT_MODE);
 #endif
 
 }

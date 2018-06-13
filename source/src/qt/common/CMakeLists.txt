@@ -1,5 +1,8 @@
 message("* qt/common")
 
+#include(cotire)
+#include(PrecompiledHeader)
+
 set(s_qt_common_headers
 	  emu_thread.h
 	  mainwidget.h
@@ -23,6 +26,7 @@ set(QT_COMMON_BASE
 	  emu_thread.cpp
 	  emu_thread_slots.cpp
 	  util_fd2.cpp
+	  util_hdd2.cpp
 #	  util_bubble2.cpp
 	  util_main.cpp
 	  ../osd.cpp
@@ -49,6 +53,9 @@ if(WIN32)
 	  ${s_qt_common_headers_MOC}
 	  ${s_qt_common_RCC}
 	  )
+#  add_precompiled_header(${EXEC_TARGET} pch_list
+#	  SOURCE_CXX pch.cpp FORCEINCLUDE
+#	  )
 endif()
 #cotire(${EXEC_TARGET})
 

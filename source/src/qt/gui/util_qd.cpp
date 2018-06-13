@@ -6,7 +6,7 @@
  * History:
  * Jan 24, 2014 : Moved from some files.
  */
-
+#include <QApplication>
 
 #include "mainwidget_base.h"
 #include "commonclasses.h"
@@ -152,7 +152,7 @@ void Ui_MainWindowBase::CreateQuickDiskMenu(int drv, int drv_base)
 	{
 		QString ext = "*.mzt *.q20 *.qdf";
 		QString desc1 = "Quick DIsk";
-		menu_QDs[drv] = new Menu_QDClass(menubar, QString::fromUtf8("Obj_QuickDisk"), using_flags, this, drv);
+		menu_QDs[drv] = new Menu_QDClass(menubar, QString::fromUtf8("QD"), using_flags, this, drv);
 		menu_QDs[drv]->create_pulldown_menu();
 		
 		menu_QDs[drv]->do_clear_inner_media();
@@ -161,11 +161,6 @@ void Ui_MainWindowBase::CreateQuickDiskMenu(int drv, int drv_base)
 		menu_QDs[drv]->do_update_histories(listQDs[drv]);
 		menu_QDs[drv]->do_set_initialize_directory(using_flags->get_config_ptr()->initial_quick_disk_dir);
 
-		QString name = QString::fromUtf8("Quick Disk");
-		QString tmpv;
-		tmpv.setNum(drv_base);
-		name.append(tmpv);
-		menu_QDs[drv]->setTitle(name);
 	}
 }
 

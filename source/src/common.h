@@ -23,6 +23,9 @@
 		#endif
 	#endif
 #endif
+#ifdef _USE_OT
+			#define USE_ZLIB
+#endif
 
 // check environemnt/language
 #ifdef _WIN32
@@ -435,7 +438,7 @@ uint16_t DLL_PREFIX EndianToLittle_WORD(uint16_t x);
 	errno_t DLL_PREFIX my_strncpy_s(char *strDestination, size_t numberOfElements, const char *strSource, size_t count);
 	errno_t DLL_PREFIX my_tcsncpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource, size_t count);
 	char * DLL_PREFIX my_strtok_s(char *strToken, const char *strDelimit, char **context);
-	_TCHAR * DLL_PREFIX my_tcstok_s(_TCHAR *strToken, const char *strDelimit, _TCHAR **context);
+	_TCHAR *DLL_PREFIX my_tcstok_s(_TCHAR *strToken, const char *strDelimit, _TCHAR **context);
 	#define my_fprintf_s fprintf
 	#define my_ftprintf_s fprintf
 	int DLL_PREFIX my_sprintf_s(char *buffer, size_t sizeOfBuffer, const char *format, ...);
@@ -459,6 +462,22 @@ uint16_t DLL_PREFIX EndianToLittle_WORD(uint16_t x);
 	#define my_stprintf_s _stprintf_s
 	#define my_vsprintf_s vsprintf_s
 	#define my_vstprintf_s _vstprintf_s
+#endif
+
+// memory
+#ifndef _MSC_VER
+	void *DLL_PREFIX my_memcpy(void *dst, void *src, size_t len);
+#else
+	#define my_memcpy memcpy
+#endif
+
+// hint for SIMD
+#if defined(__clang__)
+	#define __DECL_VECTORIZED_LOOP   _Pragma("clang loop vectorize(enable) interleave(enable)")
+#elif defined(__GNUC__)
+	#define __DECL_VECTORIZED_LOOP	_Pragma("GCC ivdep")
+#else
+	#define __DECL_VECTORIZED_LOOP
 #endif
 
 // C99 math functions
@@ -506,16 +525,6 @@ uint16_t DLL_PREFIX EndianToLittle_WORD(uint16_t x);
 	#define B_OF_COLOR(c)		(((c)      ) & 0xff)
 	#define A_OF_COLOR(c)		(((c) >> 24) & 0xff)
 #endif
-/*
- * Below macros are hint for SIMD.
- */
-#if defined(__clang__)
-	#define __DECL_VECTORIZED_LOOP   _Pragma("clang loop vectorize(enable) interleave(enable)")
-#elif defined(__GNUC__)
-	#define __DECL_VECTORIZED_LOOP	_Pragma("GCC ivdep")
-#else
-	#define __DECL_VECTORIZED_LOOP
-#endif
 
 // wav file header
 #pragma pack(1)
@@ -562,13 +571,13 @@ const char *DLL_PREFIX tchar_to_char(const _TCHAR *ts);
 const _TCHAR *DLL_PREFIX wchar_to_tchar(const wchar_t *ws);
 const wchar_t *DLL_PREFIX tchar_to_wchar(const _TCHAR *ts);
 
-void *DLL_PREFIX my_memcpy(void *dst, void *src, size_t len);
 
 // misc
 int32_t DLL_PREFIX muldiv_s32(int32_t nNumber, int32_t nNumerator, int32_t nDenominator);
 uint32_t DLL_PREFIX muldiv_u32(uint32_t nNumber, uint32_t nNumerator, uint32_t nDenominator);
 
 uint32_t DLL_PREFIX get_crc32(uint8_t data[], int size);
+uint32_t DLL_PREFIX calc_crc32(uint32_t seed, uint8_t data[], int size);
 uint16_t DLL_PREFIX jis_to_sjis(uint16_t jis);
 
 int DLL_PREFIX decibel_to_volume(int decibel);
@@ -598,6 +607,8 @@ typedef DLL_PREFIX struct cur_time_s {
 	void update_day_of_week();
 	void save_state(void *f);
 	bool load_state(void *f);
+	void save_state_helper(void *f, uint32_t *sumseed, bool *__stat);
+	bool load_state_helper(void *f, uint32_t *sumseed, bool *__stat);
 } cur_time_t;
 
 void DLL_PREFIX get_host_time(cur_time_t* cur_time);

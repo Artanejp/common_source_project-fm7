@@ -1,6 +1,9 @@
 message("* qt/gui")
 
-set(THIS_LIB_VERSION 2.12.1)
+set(THIS_LIB_VERSION 2.12.2)
+#include(cotire)
+#include(PrecompiledHeader)
+
 set(s_qt_gui_headers
 	  csp_logger.h
   
@@ -16,6 +19,7 @@ set(s_qt_gui_headers
 	  mainwidget_base.h
 	  menu_metaclass.h
 	  menu_disk.h
+	  menu_harddisk.h
 	  menu_cmt.h
 	  menu_cart.h
 	  menu_quickdisk.h
@@ -65,6 +69,7 @@ set(s_qt_gui_srcs
 	  menu_control.cpp
 	  menu_metaclass.cpp
 	  menu_disk.cpp
+	  menu_harddisk.cpp
 	  menu_quickdisk.cpp
 	  menu_compactdisc.cpp
 	  menu_laserdisc.cpp
@@ -77,6 +82,7 @@ set(s_qt_gui_srcs
 	  menu_screen.cpp
 	  mainwindow_utils.cpp
 	  util_fd.cpp
+	  util_hdd.cpp
 	  util_cd.cpp
 	  util_ld.cpp
 	  util_cmt.cpp
@@ -164,6 +170,9 @@ add_library(CSPgui SHARED
 	  ${s_qt_gui_headers_MOC}
 	  ${s_qt_gui_RCC}
 )
+#add_precompiled_header(CSPgui pch_list
+#		SOURCE_CXX pch.cpp FORCEINCLUDE
+#)
 target_link_libraries(CSPgui PUBLIC
 	  Qt5::Core
 	  Qt5::Gui
@@ -177,5 +186,7 @@ set_target_properties(CSPgui PROPERTIES
 			     VERSION ${THIS_LIB_VERSION}
 			     )
 INSTALL(TARGETS CSPgui DESTINATION ${LIBCSP_INSTALL_DIR})
+
 endif()
 
+#cotire(CSPgui)

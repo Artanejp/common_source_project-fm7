@@ -7,7 +7,7 @@
 	[ main system ]
 */
 
-#include "main.h"
+#include "mainbus.h"
 #include "sub.h"
 #include "keyboard.h"
 #include "../disk.h"
@@ -16,8 +16,11 @@
 #include "../mb8877.h"
 #include "../msm58321.h"
 #include "../pcm1bit.h"
+#ifdef HAS_I286
+#include "../i286.h"
+#endif
 
-void MAIN::initialize()
+void MAINBUS::initialize()
 {
 	MEMORY::initialize();
 	
@@ -57,12 +60,12 @@ void MAIN::initialize()
 	int0 = int1 = int2 = int3 = int4 = int5 = int6 = int7 = false;
 }
 
-void MAIN::release()
+void MAINBUS::release()
 {
 	MEMORY::release();
 }
 
-void MAIN::reset()
+void MAINBUS::reset()
 {
 	MEMORY::reset();
 	
@@ -76,7 +79,7 @@ void MAIN::reset()
 	d_pcm->write_signal(SIG_PCM1BIT_ON, 0, 0);
 }
 
-void MAIN::write_io8(uint32_t addr, uint32_t data)
+void MAINBUS::write_io8(uint32_t addr, uint32_t data)
 {
 	uint8_t change;
 	
@@ -184,7 +187,7 @@ void MAIN::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t MAIN::read_io8(uint32_t addr)
+uint32_t MAINBUS::read_io8(uint32_t addr)
 {
 	switch(addr) {
 #ifdef HAS_I286
@@ -254,7 +257,7 @@ uint32_t MAIN::read_io8(uint32_t addr)
 	return 0xff;
 }
 
-void MAIN::write_signal(int id, uint32_t data, uint32_t mask)
+void MAINBUS::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MAIN_IRQ0_TX) {
 		irq0_tx = ((data & mask) != 0);
@@ -347,7 +350,7 @@ IRQ7			-> INT7
 	IRQ7: ƒvƒŠƒ“ƒ^
 */
 
-void MAIN::update_int0()
+void MAINBUS::update_int0()
 {
 //	bool prev = int0;
 	int0 = (irq8 && (irq_enb & 0x10));
@@ -356,7 +359,7 @@ void MAIN::update_int0()
 //	}
 }
 
-void MAIN::update_int1()
+void MAINBUS::update_int1()
 {
 //	bool prev = int1;
 	int1 = (irq1 && (irq_enb & 0x80)) || firq1;
@@ -365,7 +368,7 @@ void MAIN::update_int1()
 //	}
 }
 
-void MAIN::update_int2()
+void MAINBUS::update_int2()
 {
 //	bool prev = int2;
 	int2 = (irq5 && (ext_irq_enb & 0x08)) || irq6;
@@ -374,7 +377,7 @@ void MAIN::update_int2()
 //	}
 }
 
-void MAIN::update_int3()
+void MAINBUS::update_int3()
 {
 //	bool prev = int3;
 	int3 = firq0 || firq2 || firq3;
@@ -383,7 +386,7 @@ void MAIN::update_int3()
 //	}
 }
 
-void MAIN::update_int4()
+void MAINBUS::update_int4()
 {
 //	bool prev = int4;
 	int4 = (irq0_tx && (irq_enb & 0x02)) || (irq0_rx && (irq_enb & 0x04)) || (irq0_syn && (irq_enb & 0x08));
@@ -392,7 +395,7 @@ void MAIN::update_int4()
 //	}
 }
 
-void MAIN::update_int5()
+void MAINBUS::update_int5()
 {
 //	bool prev = int5;
 	int5 = irq2 || irq9;
@@ -401,7 +404,7 @@ void MAIN::update_int5()
 //	}
 }
 
-void MAIN::update_int6()
+void MAINBUS::update_int6()
 {
 //	bool prev = int6;
 	int6 = (irq6 && (irq_enb & 0x20));
@@ -410,7 +413,7 @@ void MAIN::update_int6()
 //	}
 }
 
-void MAIN::update_int7()
+void MAINBUS::update_int7()
 {
 //	bool prev = int7;
 	int7 = irq7 && (irq_enb & 0x01);
@@ -421,14 +424,14 @@ void MAIN::update_int7()
 
 #define STATE_VERSION	1
 
-void MAIN::save_state(FILEIO* state_fio)
+void MAINBUS::save_state(FILEIO* state_fio)
 {
 	state_fio->FputUint32(STATE_VERSION);
 	state_fio->FputInt32(this_device_id);
 	
 }
 
-bool MAIN::load_state(FILEIO* state_fio)
+bool MAINBUS::load_state(FILEIO* state_fio)
 {
 	if(state_fio->FgetUint32() != STATE_VERSION) {
 		return false;

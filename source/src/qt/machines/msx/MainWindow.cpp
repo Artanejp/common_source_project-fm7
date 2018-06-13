@@ -9,6 +9,9 @@
 
 #include <QVariant>
 #include <QtGui>
+#include <QApplication>
+#include <QMenu>
+
 #include "commonclasses.h"
 #include "menuclasses.h"
 #include "emu.h"
@@ -23,23 +26,22 @@ void META_MainWindow::setupUI_Emu(void)
 
 void META_MainWindow::retranslateUi(void)
 {
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu(" ",  false);
-	retranslateFloppyMenu(0, 1);
-	retranslateFloppyMenu(1, 2);
-	retranslateCartMenu(0, 1);
-	retranslateCartMenu(1, 2);
-	retranslateCMTMenu(0);
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateMachineMenu();
-#if defined(_PX7)
-	retranslateLaserdiscMenu();
+#if defined(MSX_PSG_STEREO)
+	actionSoundDevice[0]->setText(QApplication::translate("MachineMSX", "PSG Mono", 0));
+	actionSoundDevice[0]->setToolTip(QApplication::translate("MachineMSX", "Use PSG as monoral.\nCompatibility for generic MSX.", 0));
+	actionSoundDevice[1]->setText(QApplication::translate("MachineMSX", "PSG Stereo", 0));
+	actionSoundDevice[1]->setToolTip(QApplication::translate("MachineMSX", "Use PSG as stereo.\nHX-20's special feature.", 0));
 #endif
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
-   
-	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
-  
+#if defined(USE_PRINTER_TYPE)
+	actionPrintDevice[1]->setText(QApplication::translate("MachineMSX", "MSX PRINTER", 0));
+	actionPrintDevice[1]->setToolTip(QApplication::translate("MachineMSX", "Use MSX spec. printer.", 0));
+	actionPrintDevice[2]->setText(QApplication::translate("MachineMSX", "PC-PR201", 0));
+	actionPrintDevice[2]->setToolTip(QApplication::translate("MachineMSX", "Use NEC PC-PR201 printer.", 0));
+	actionPrintDevice[1]->setEnabled(false);
+	actionPrintDevice[2]->setEnabled(false);
+#endif
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(false);

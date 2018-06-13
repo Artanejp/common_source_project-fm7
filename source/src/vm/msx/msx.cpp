@@ -324,11 +324,13 @@ bool VM::is_cart_inserted(int drv)
 void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	drec->play_tape(file_path);
+//	drec->set_remote(true);
 }
 
 void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
 	drec->rec_tape(file_path);
+//	drec->set_remote(true);
 }
 
 void VM::close_tape(int drv)
@@ -336,6 +338,7 @@ void VM::close_tape(int drv)
 	emu->lock_vm();
 	drec->close_tape();
 	emu->unlock_vm();
+//	drec->set_remote(false);
 }
 
 bool VM::is_tape_inserted(int drv)
@@ -363,18 +366,48 @@ const _TCHAR* VM::get_tape_message(int drv)
 	return drec->get_message();
 }
 
+void VM::push_play(int drv)
+{
+	drec->set_ff_rew(0);
+	drec->set_remote(true);
+}
+
+void VM::push_stop(int drv)
+{
+	drec->set_remote(false);
+}
+
+void VM::push_fast_forward(int drv)
+{
+	drec->set_ff_rew(1);
+	drec->set_remote(true);
+}
+
+void VM::push_fast_rewind(int drv)
+{
+	drec->set_ff_rew(-1);
+	drec->set_remote(true);
+}
+
+void VM::load_binary(int drv, const _TCHAR* file_path)
+{
+	if(drv == 0) {
+		pac2->open_rampac2(file_path);
+	}
+}
+
 #if defined(_PX7)
-void VM::open_laser_disc(const _TCHAR* file_path)
+void VM::open_laser_disc(int drv, const _TCHAR* file_path)
 {
 	ldp->open_disc(file_path);
 }
 
-void VM::close_laser_disc()
+void VM::close_laser_disc(int drv)
 {
 	ldp->close_disc();
 }
 
-bool VM::is_laser_disc_inserted()
+bool VM::is_laser_disc_inserted(int drv)
 {
 	return ldp->is_disc_inserted();
 }
@@ -434,10 +467,6 @@ void VM::save_state(FILEIO* state_fio)
 	state_fio->FputUint32(STATE_VERSION);
 	
 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const char *name = typeid(*device).name() + 6; // skip "class "
-		
-		state_fio->FputInt32(strlen(name));
-		state_fio->Fwrite(name, strlen(name), 1);
 		device->save_state(state_fio);
 	}
 }
@@ -448,11 +477,6 @@ bool VM::load_state(FILEIO* state_fio)
 		return false;
 	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const char *name = typeid(*device).name() + 6; // skip "class "
-		
-		if(!(state_fio->FgetInt32() == strlen(name) && state_fio->Fcompare(name, strlen(name)))) {
-			return false;
-		}
 		if(!device->load_state(state_fio)) {
 			return false;
 		}

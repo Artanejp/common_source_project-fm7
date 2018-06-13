@@ -7,8 +7,12 @@
  * Jan 14, 2015 : Initial, many of constructors were moved to qt/gui/menu_main.cpp.
  */
 
+#include <QApplication>
 #include <QVariant>
 #include <QtGui>
+#include <QMenu>
+#include <QActionGroup>
+
 #include "commonclasses.h"
 #include "menuclasses.h"
 #include "emu.h"
@@ -56,39 +60,21 @@ void META_MainWindow::do_set_sound_device(int num)
 void META_MainWindow::retranslateUi(void)
 {
 	const char *title="";
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu(title, false);
-	retranslateFloppyMenu(0, 1);
-	retranslateFloppyMenu(1, 2);
-#if defined(USE_FD3)
-	retranslateFloppyMenu(2, 3);
-#endif   
-#if defined(USE_FD4)
-	retranslateFloppyMenu(3, 4);
-#endif   
-#if defined(USE_CART1)
-	retranslateCartMenu(0, 1);
-#endif   
-	retranslateCMTMenu(0);
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateMachineMenu();
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
-   
-	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
-  
 #ifdef USE_DEBUGGER
-	actionDebugger[0]->setText(QApplication::translate("MainWindow", "Main CPU", 0));
-	actionDebugger[1]->setText(QApplication::translate("MainWindow", "Sub  CPU", 0));
-	actionDebugger[2]->setText(QApplication::translate("MainWindow", "PC-80S31K", 0));
+	actionDebugger[0]->setText(QApplication::translate("MenuPC6001", "Main CPU", 0));
+	actionDebugger[1]->setText(QApplication::translate("MenuPC6001", "Sub  CPU", 0));
+	actionDebugger[2]->setText(QApplication::translate("MenuPC6001", "PC-80S31K", 0));
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(true);
 	actionDebugger[2]->setVisible(true);
 	actionDebugger[3]->setVisible(false);
 #endif	
 #if defined(USE_PRINTER)
-	//actionPrintDevice[1]->setText(QString::fromUtf8("PC-PR201"));
-	//actionPrintDevice[1]->setToolTip(QApplication::translate("NEC PC-PR201 kanji serial printer."));
+	actionPrintDevice[1]->setText(QString::fromUtf8("PC-PR201"));
+	actionPrintDevice[1]->setToolTip(QApplication::translate("MenuPC6001", "NEC PC-PR201 kanji serial printer.", 0));
+	actionPrintDevice[1]->setEnabled(false);
 #endif
 
    // Set Labels

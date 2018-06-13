@@ -1,6 +1,7 @@
 /*
 	Skelton for retropc emulator
 
+	Origin : MAME i286 core
 	Author : Takeda.Toshiya
 	Date  : 2012.10.18-
 
@@ -344,6 +345,47 @@ bool I286::write_debug_reg(const _TCHAR *reg, uint32_t data)
 		return false;
 	}
 	return true;
+}
+
+uint32_t I286::read_debug_reg(const _TCHAR *reg)
+{
+	cpu_state *cpustate = (cpu_state *)opaque;
+	if(_tcsicmp(reg, _T("IP")) == 0) {
+		return cpustate->pc - cpustate->base[CS];
+	} else if(_tcsicmp(reg, _T("AX")) == 0) {
+		return cpustate->regs.w[AX];
+	} else if(_tcsicmp(reg, _T("BX")) == 0) {
+		return cpustate->regs.w[BX];
+	} else if(_tcsicmp(reg, _T("CX")) == 0) {
+		return cpustate->regs.w[CX];
+	} else if(_tcsicmp(reg, _T("DX")) == 0) {
+		return cpustate->regs.w[DX];
+	} else if(_tcsicmp(reg, _T("SP")) == 0) {
+		return cpustate->regs.w[SP];
+	} else if(_tcsicmp(reg, _T("BP")) == 0) {
+		return cpustate->regs.w[BP];
+	} else if(_tcsicmp(reg, _T("SI")) == 0) {
+		return cpustate->regs.w[SI];
+	} else if(_tcsicmp(reg, _T("DI")) == 0) {
+		return cpustate->regs.w[DI];
+	} else if(_tcsicmp(reg, _T("AL")) == 0) {
+		return cpustate->regs.b[AL];
+	} else if(_tcsicmp(reg, _T("AH")) == 0) {
+		return cpustate->regs.b[AH];
+	} else if(_tcsicmp(reg, _T("BL")) == 0) {
+		return cpustate->regs.b[BL];
+	} else if(_tcsicmp(reg, _T("BH")) == 0) {
+		return cpustate->regs.b[BH];
+	} else if(_tcsicmp(reg, _T("CL")) == 0) {
+		return cpustate->regs.b[CL];
+	} else if(_tcsicmp(reg, _T("CH")) == 0) {
+		return cpustate->regs.b[CH];
+	} else if(_tcsicmp(reg, _T("DL")) == 0) {
+		return cpustate->regs.b[DL];
+	} else if(_tcsicmp(reg, _T("DH")) == 0) {
+		return cpustate->regs.b[DH];
+	}
+	return 0;
 }
 
 void I286::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)

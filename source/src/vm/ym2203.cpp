@@ -24,11 +24,11 @@ void YM2203::initialize()
 {
 	DEVICE::initialize();
 	_HAS_YM2608 = osd->check_feature(_T("HAS_YM2608"));
-	if(_HAS_YM2608) {
-		is_ym2608 = true;
-	} else {
-		is_ym2608 = false;
-	}
+//	if(_HAS_YM2608) {
+//		is_ym2608 = true;
+//	} else {
+//		is_ym2608 = false;
+//	}
 	_HAS_AY_3_8910 = osd->check_feature(_T("HAS_AY_3_8910"));
 	_HAS_AY_3_8912 = osd->check_feature(_T("HAS_AY_3_8912"));
 	_HAS_AY_3_8913 = osd->check_feature(_T("HAS_AY_3_8913"));
@@ -62,16 +62,16 @@ void YM2203::initialize()
 //#ifdef HAS_YM2608
 //		is_ym2608 = true;
 //#endif
-	_amask = (is_ym2608) ? 3 : 1;
+	_amask = ((is_ym2608) && (_HAS_YM2608)) ? 3 : 1;
 //#ifdef HAS_YM2608
-	if(is_ym2608) {
+	if((_HAS_YM2608) && (is_ym2608)) {
 		opna = new FM::OPNA;
 	} else {
 //#endif
 		opn = new FM::OPN;
 	}
 //#ifdef HAS_YM2608
-	if(_HAS_YM2608) {
+	if((_HAS_YM2608) && (is_ym2608)) {
 		set_device_name(_T("YM2608 OPNA"));
 	} else {
 //#else		
@@ -729,108 +729,160 @@ void YM2203::update_timing(int new_clocks, double new_frames_per_sec, int new_li
 
 #define STATE_VERSION	4
 
-void YM2203::save_state(FILEIO* state_fio)
+#include "../statesub.h"
+
+void YM2203::decl_state()
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-//#ifdef HAS_YM2608
-	if(is_ym2608 && _HAS_YM2608) {
-		opna->SaveState((void *)state_fio);;
-	} else {
-//#endif
-		opn->SaveState((void *)state_fio);
-	}
-#ifdef SUPPORT_MAME_FM_DLL
-	state_fio->Fwrite(port_log, sizeof(port_log), 1);
-#endif
-	state_fio->FputUint8(ch);
-	state_fio->FputUint8(fnum2);
-//#ifdef HAS_YM2608
 	if(_HAS_YM2608) {
-		state_fio->FputUint8(ch1);
-		state_fio->FputUint8(data1);
-		state_fio->FputUint8(fnum21);
+		state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("YM2608"));
+	} else if(_HAS_AY_3_8910) {
+		state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("AY_3_8910"));
+	} else if(_HAS_AY_3_8913) {
+		state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("AY_3_8912"));
+	} else if(_HAS_AY_3_8912) {
+		state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("AY_3_8913"));
+	} else {
+		state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("YM2203"));
 	}
-//#endif
-//#ifdef SUPPORT_YM2203_PORT
+	// ToDo: OPN/OPNA.
+#ifdef SUPPORT_MAME_FM_DLL
+	//DECL_STATE_ENTRY_1D_ARRAY(port_log, sizeof(port_log));
+	for(int i = 0; i < 0x200; i++) {
+		DECL_STATE_ENTRY_BOOL_MEMBER((port_log[i].written), i);
+		DECL_STATE_ENTRY_UINT8_MEMBER((port_log[i].data), i);
+	}
+#endif
+	DECL_STATE_ENTRY_UINT8(ch);
+	DECL_STATE_ENTRY_UINT8(fnum2);
+	if(_HAS_YM2608) {
+		DECL_STATE_ENTRY_UINT8(ch1);
+		DECL_STATE_ENTRY_UINT8(data1);
+		DECL_STATE_ENTRY_UINT8(fnum21);
+	}
 	if(_SUPPORT_YM2203_PORT) {
 		for(int i = 0; i < 2; i++) {
-			state_fio->FputUint8(port[i].wreg);
-			state_fio->FputUint8(port[i].rreg);
-			state_fio->FputBool(port[i].first);
+			DECL_STATE_ENTRY_UINT8_MEMBER((port[i].wreg), i);
+			DECL_STATE_ENTRY_UINT8_MEMBER((port[i].rreg), i);
+			DECL_STATE_ENTRY_BOOL_MEMBER((port[i].first), i);
 		}
-		state_fio->FputUint8(mode);
+		DECL_STATE_ENTRY_UINT8(mode);
 	}
+	DECL_STATE_ENTRY_INT32(chip_clock);
+	DECL_STATE_ENTRY_BOOL(irq_prev);
+	DECL_STATE_ENTRY_BOOL(mute);
+	DECL_STATE_ENTRY_UINT32(clock_prev);
+	DECL_STATE_ENTRY_UINT32(clock_accum);
+	DECL_STATE_ENTRY_UINT32(clock_const);
+	DECL_STATE_ENTRY_UINT32(clock_busy);
+	DECL_STATE_ENTRY_INT32(timer_event_id);
+	DECL_STATE_ENTRY_BOOL(busy);
+	DECL_STATE_ENTRY_INT32(decibel_vol);
+	DECL_STATE_ENTRY_INT32(left_volume);
+	DECL_STATE_ENTRY_INT32(right_volume);
+	DECL_STATE_ENTRY_INT32(v_left_volume);
+	DECL_STATE_ENTRY_INT32(v_right_volume);
+
+}
+
+void YM2203::save_state(FILEIO* state_fio)
+{
+	//state_fio->FputUint32(STATE_VERSION);
+	//state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+	if(is_ym2608 && _HAS_YM2608) {
+		opna->SaveState((void *)state_fio);
+	} else {
+		opn->SaveState((void *)state_fio);
+	}
+//#ifdef SUPPORT_MAME_FM_DLL
+//	state_fio->Fwrite(port_log, sizeof(port_log), 1);
 //#endif
-	state_fio->FputInt32(chip_clock);
-	state_fio->FputBool(irq_prev);
-	state_fio->FputBool(mute);
-	state_fio->FputUint32(clock_prev);
-	state_fio->FputUint32(clock_accum);
-	state_fio->FputUint32(clock_const);
-	state_fio->FputUint32(clock_busy);
-	state_fio->FputInt32(timer_event_id);
-	state_fio->FputBool(busy);
-	state_fio->FputInt32(decibel_vol);
-	state_fio->FputInt32(left_volume);
-	state_fio->FputInt32(right_volume);
-	state_fio->FputInt32(v_left_volume);
-	state_fio->FputInt32(v_right_volume);
+//	state_fio->FputUint8(ch);
+//	state_fio->FputUint8(fnum2);
+//	if(_HAS_YM2608) {
+//		state_fio->FputUint8(ch1);
+//		state_fio->FputUint8(data1);
+//		state_fio->FputUint8(fnum21);
+//	}
+
+//	if(_SUPPORT_YM2203_PORT) {
+//		for(int i = 0; i < 2; i++) {
+//			state_fio->FputUint8(port[i].wreg);
+//			state_fio->FputUint8(port[i].rreg);
+//			state_fio->FputBool(port[i].first);
+//		}
+//		state_fio->FputUint8(mode);
+//	}
+//	state_fio->FputInt32(chip_clock);
+//	state_fio->FputBool(irq_prev);
+//	state_fio->FputBool(mute);
+//	state_fio->FputUint32(clock_prev);
+//	state_fio->FputUint32(clock_accum);
+//	state_fio->FputUint32(clock_const);
+//	state_fio->FputUint32(clock_busy);
+//	state_fio->FputInt32(timer_event_id);
+//	state_fio->FputBool(busy);
+//	state_fio->FputInt32(decibel_vol);
+//	state_fio->FputInt32(left_volume);
+//	state_fio->FputInt32(right_volume);
+//	state_fio->FputInt32(v_left_volume);
+//	state_fio->FputInt32(v_right_volume);
 }
 
 bool YM2203::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-//#ifdef HAS_YM2608
+	if(!mb) return false;
+	//if(!opn->LoadState((void *)state_fio)) {
+	//	return false;
+	//}
 	if(is_ym2608 && _HAS_YM2608) {
 		if(!opna->LoadState((void *)state_fio)) {
 			return false;
 		}
 	} else {
-//#endif
 		if(!opn->LoadState((void *)state_fio)) {
 			return false;
 		}
-//#ifdef HAS_YM2608
 	}
+//#ifdef SUPPORT_MAME_FM_DLL
+//	state_fio->Fread(port_log, sizeof(port_log), 1);
 //#endif
-#ifdef SUPPORT_MAME_FM_DLL
-	state_fio->Fread(port_log, sizeof(port_log), 1);
-#endif
-	ch = state_fio->FgetUint8();
-	fnum2 = state_fio->FgetUint8();
-//#ifdef HAS_YM2608
-	if(_HAS_YM2608) {
-		ch1 = state_fio->FgetUint8();
-		data1 = state_fio->FgetUint8();
-		fnum21 = state_fio->FgetUint8();
-	}
-//#endif
-//#ifdef SUPPORT_YM2203_PORT
-	if(_SUPPORT_YM2203_PORT) {
-		for(int i = 0; i < 2; i++) {
-			port[i].wreg = state_fio->FgetUint8();
-			port[i].rreg = state_fio->FgetUint8();
-			port[i].first = state_fio->FgetBool();
-		}
-		mode = state_fio->FgetUint8();
-	}
-//#endif
-	chip_clock = state_fio->FgetInt32();
-	irq_prev = state_fio->FgetBool();
-	mute = state_fio->FgetBool();
-	clock_prev = state_fio->FgetUint32();
-	clock_accum = state_fio->FgetUint32();
-	clock_const = state_fio->FgetUint32();
-	clock_busy = state_fio->FgetUint32();
-	timer_event_id = state_fio->FgetInt32();
-	busy = state_fio->FgetBool();
+//	ch = state_fio->FgetUint8();
+//	fnum2 = state_fio->FgetUint8();
+//	if(_HAS_YM2608) {
+//		ch1 = state_fio->FgetUint8();
+//		data1 = state_fio->FgetUint8();
+//		fnum21 = state_fio->FgetUint8();
+//	}
+//	if(_SUPPORT_YM2203_PORT) {
+//		for(int i = 0; i < 2; i++) {
+//			port[i].wreg = state_fio->FgetUint8();
+//			port[i].rreg = state_fio->FgetUint8();
+//			port[i].first = state_fio->FgetBool();
+//		}
+//		mode = state_fio->FgetUint8();
+//	}
+//	chip_clock = state_fio->FgetInt32();
+//	irq_prev = state_fio->FgetBool();
+//	mute = state_fio->FgetBool();
+//	clock_prev = state_fio->FgetUint32();
+//	clock_accum = state_fio->FgetUint32();
+//	clock_const = state_fio->FgetUint32();
+//	clock_busy = state_fio->FgetUint32();
+//	timer_event_id = state_fio->FgetInt32();
+//	busy = state_fio->FgetBool();
 
 #ifdef SUPPORT_MAME_FM_DLL
 	// post process
@@ -853,11 +905,11 @@ bool YM2203::load_state(FILEIO* state_fio)
 #endif
 	}
 #endif
-	decibel_vol = state_fio->FgetInt32();
-	left_volume = state_fio->FgetInt32();
-	right_volume = state_fio->FgetInt32();
-	v_left_volume = state_fio->FgetInt32();
-	v_right_volume = state_fio->FgetInt32();
+	//decibel_vol = state_fio->FgetInt32();
+	//left_volume = state_fio->FgetInt32();
+	//right_volume = state_fio->FgetInt32();
+	//v_left_volume = state_fio->FgetInt32();
+	//v_right_volume = state_fio->FgetInt32();
 	//touch_sound();
 
 	return true;

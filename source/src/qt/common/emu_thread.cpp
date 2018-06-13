@@ -51,6 +51,8 @@ EmuThreadClass::EmuThreadClass(META_MainWindow *rootWindow, USING_FLAGS *p, QObj
 	connect(this, SIGNAL(sig_open_cdrom(int, QString)), MainWindow, SLOT(do_open_cdrom(int, QString)));
 	connect(this, SIGNAL(sig_open_laser_disc(int, QString)), MainWindow, SLOT(do_open_laserdisc(int, QString)));
 	
+	connect(this, SIGNAL(sig_open_hdd(int, QString)), MainWindow, SLOT(_open_hard_disk(int, QString)));
+	
 	connect(this, SIGNAL(sig_set_d88_num(int, int)), MainWindow, SLOT(set_d88_slot(int, int)));
 	connect(this, SIGNAL(sig_set_b77_num(int, int)), MainWindow, SLOT(set_b77_slot(int, int)));
 }
@@ -136,7 +138,7 @@ void EmuThreadClass::button_released_mouse_sub(Qt::MouseButton button)
 
 void EmuThreadClass::get_fd_string(void)
 {
-#if defined(USE_FD1)
+#if defined(USE_FLOPPY_DISK)
 	int i;
 	QString tmpstr;
 	QString iname;
@@ -187,7 +189,7 @@ void EmuThreadClass::get_fd_string(void)
 
 void EmuThreadClass::get_qd_string(void)
 {
-#if defined(USE_QD1)
+#if defined(USE_QUICK_DISK)
 	int i;
 	QString iname;
 	QString alamp;
@@ -227,8 +229,8 @@ void EmuThreadClass::get_tape_string()
 	QString tmpstr;
 	bool readwrite;
 	bool inserted;
-#if defined(USE_TAPE1) && !defined(TAPE_BINARY_ONLY)
-	for(int i = 0; i < MAX_TAPE; i++) {
+#if defined(USE_TAPE) && !defined(TAPE_BINARY_ONLY)
+	for(int i = 0; i < USE_TAPE; i++) {
 		inserted = p_emu->is_tape_inserted(i);
 		readwrite = false;
 		if(inserted) {
@@ -259,21 +261,23 @@ void EmuThreadClass::get_cd_string(void)
 {
 #if defined(USE_COMPACT_DISC)
 	QString tmpstr;
-	if(p_emu->is_compact_disc_inserted()) {
-		tmpstr = QString::fromUtf8("<FONT COLOR=BLUE>💿</FONT>");  // U+1F4BF OPTICAL DISC
-	} else {
-		tmpstr = QString::fromUtf8("×");
-	}
-	if(tmpstr != cdrom_text) {
-		emit sig_change_access_lamp(CSP_DockDisks_Domain_CD, 0, tmpstr);
-		cdrom_text = tmpstr;
+	for(int i = 0; i < (int)using_flags->get_max_cd(); i++) {
+		if(p_emu->is_compact_disc_inserted(i)) {
+			tmpstr = QString::fromUtf8("<FONT COLOR=BLUE>💿</FONT>");  // U+1F4BF OPTICAL DISC
+		} else {
+			tmpstr = QString::fromUtf8("×");
+		}
+		if(tmpstr != cdrom_text[i]) {
+			emit sig_change_access_lamp(CSP_DockDisks_Domain_CD, i, tmpstr);
+			cdrom_text[i] = tmpstr;
+		}
 	}
 #endif
 }
 
 void EmuThreadClass::get_bubble_string(void)
 {
-#if defined(USE_BUBBLE1)
+#if defined(USE_BUBBLE)
 	uint32_t access_drv;
 	int i;
 	QString alamp;
@@ -355,7 +359,16 @@ void EmuThreadClass::doWork(const QString &params)
 	for(int i = 0; i < using_flags->get_max_tape(); i++) {
 		cmt_text[i].clear();
 	}
-	cdrom_text.clear();
+	for(int i = 0; i < (int)using_flags->get_max_cd(); i++) {
+		cdrom_text[i].clear();
+	}
+	for(int i = 0; i < (int)using_flags->get_max_ld(); i++) {
+		laserdisc_text[i].clear();
+	}
+	for(int i = 0; i < (int)using_flags->get_max_hdd(); i++) {
+		hdd_text[i].clear();
+		hdd_lamp[i].clear();
+	}
 	for(int i = 0; i < using_flags->get_max_bubble(); i++) bubble_text[i].clear();
 
 	_queue_begin = parse_command_queue(virtualMediaList, 0);
@@ -369,7 +382,7 @@ void EmuThreadClass::doWork(const QString &params)
 			continue;
 		}
 		if(first) {
-			if((using_flags->get_use_extra_leds() > 0) || (using_flags->get_use_key_locked())) emit sig_send_data_led((quint32)led_data);
+			if((using_flags->get_use_led_devices() > 0) || (using_flags->get_use_key_locked())) emit sig_send_data_led((quint32)led_data);
 			for(int ii = 0; ii < using_flags->get_max_drive(); ii++ ) {
 				emit sig_change_access_lamp(CSP_DockDisks_Domain_FD, ii, fd_lamp[ii]);
 			}
@@ -521,13 +534,14 @@ void EmuThreadClass::doWork(const QString &params)
 #else
 			led_data = 0x00;
 #endif
-#if defined(USE_EXTRA_LEDS)
+#if defined(USE_LED_DEVICE)
   #if !defined(INDEPENDENT_CAPS_KANA_LED)
-			led_data <<= USE_EXTRA_LEDS;
+			led_data <<= USE_LED_DEVICE;
   #endif
-	   		led_data |= p_emu->get_extra_leds();
+	   		led_data |= p_emu->get_led_status();
 #endif
-#if defined(USE_EXTRA_LEDS) || defined(USE_KEY_LOCKED)
+
+#if defined(USE_LED_DEVICE) || defined(USE_KEY_LOCKED)
 			if(led_data != led_data_old) {
 				emit sig_send_data_led((quint32)led_data);
 				led_data_old = led_data;

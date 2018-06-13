@@ -32,6 +32,7 @@ public:
 
 class Ui_MainWindow;
 class CSP_Logger;
+class QActionGroup;
 //  wrote of Specific menu.
 class META_MainWindow : public Ui_MainWindow {
 	Q_OBJECT
@@ -44,6 +45,7 @@ public:
 	META_MainWindow(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent = 0);
 	~META_MainWindow();
 	void retranslateVolumeLabels(Ui_SoundDialog *p);
+public slots:
 };
 
 QT_END_NAMESPACE

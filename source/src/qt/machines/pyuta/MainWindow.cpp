@@ -7,6 +7,7 @@
  * Jan 14, 2015 : Initial, many of constructors were moved to qt/gui/menu_main.cpp.
  */
 
+#include <QApplication>
 #include <QVariant>
 #include <QtGui>
 #include "commonclasses.h"
@@ -24,27 +25,13 @@ void META_MainWindow::setupUI_Emu(void)
 
 void META_MainWindow::retranslateUi(void)
 {
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("",  false);
-	retranslateCartMenu(0, 1);
-	retranslateCMTMenu(0);
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateMachineMenu();
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
-   
-	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(false);
 	actionDebugger[2]->setVisible(false);
 	actionDebugger[3]->setVisible(false);
-#endif
-#if 0
-	for(int i = 0; i < 10; i++) {
-		if(actionLoad_state[i] != NULL) actionLoad_State[i]->setEnabled(false);
-		if(actionSave_state[i] != NULL) actionSave_State[i]->setEnabled(false);
-	}
 #endif
 } // retranslateUi
 

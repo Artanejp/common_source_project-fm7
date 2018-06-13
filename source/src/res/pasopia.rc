@@ -154,6 +154,11 @@ BEGIN
         MENUITEM "Rec",                         ID_REC_TAPE1
         MENUITEM "Eject",                       ID_CLOSE_TAPE1
         MENUITEM SEPARATOR
+        MENUITEM "Play Button",                 ID_PLAY_BUTTON1
+        MENUITEM "Stop Button",                 ID_STOP_BUTTON1
+        MENUITEM "Fast Forward",                ID_FAST_FORWARD1
+        MENUITEM "Fast Rewind",                 ID_FAST_REWIND1
+        MENUITEM SEPARATOR
         MENUITEM "Waveform Shaper",             ID_USE_WAVE_SHAPER1
         MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_TAPE1
@@ -276,7 +281,7 @@ IDI_BITMAP_ACCESS_ON    BITMAP  DISCARDABLE     "indicator/access_on.bmp"
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_ICON1               ICON    DISCARDABLE     "pasopia5.ico"
+IDI_ICON1               ICON    DISCARDABLE     "pasopia.ico"
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 

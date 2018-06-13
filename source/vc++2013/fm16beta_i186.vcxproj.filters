@@ -113,6 +113,9 @@
     <ClCompile Include="..\src\vm\mc6809.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\vm\mc6809_base.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\vm\mc6840.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>

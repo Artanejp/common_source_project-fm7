@@ -32,7 +32,6 @@ void SCSI_DEV::reset()
 	data_bus = 0;
 	sel_status = atn_status = ack_status = rst_status = false;
 	selected = atn_pending = false;
-	access = false;
 	
 	event_sel = event_phase = event_req = -1;
 	set_phase(SCSI_PHASE_BUS_FREE);
@@ -179,28 +178,46 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 					switch(phase) {
 					case SCSI_PHASE_DATA_OUT:
 						if(--remain > 0) {
-							// flush buffer
-							if(buffer->full()) {
-								write_buffer(buffer->count());
-							}
-							// request to write next data
 							switch(command[0]) {
 							case SCSI_CMD_WRITE6:
 							case SCSI_CMD_WRITE10:
 							case SCSI_CMD_WRITE12:
+								// flush buffer
+								if(buffer->full()) {
+									write_buffer(buffer->count());
+								}
+								// request to write next data
 								{
 									next_req_usec += 1000000.0 / bytes_per_sec;
 									double usec = next_req_usec - get_passed_usec(first_req_clock);
 									set_req_delay(1, (usec > 1.0) ? usec : 1.0);
 								}
+								break;
 							default:
+								// flush buffer
+								if(buffer->full()) {
+									buffer->clear();
+								}
+								// request to write next data
 								set_req_delay(1, 1.0);
 								break;
 							}
 						} else {
-							// flush buffer
-							if(!buffer->empty()) {
-								write_buffer(buffer->count());
+							switch(command[0]) {
+							case SCSI_CMD_WRITE6:
+							case SCSI_CMD_WRITE10:
+							case SCSI_CMD_WRITE12:
+								// flush buffer
+								if(!buffer->empty()) {
+									write_buffer(buffer->count());
+								}
+								break;
+							default:
+								// flush buffer
+								if(!buffer->empty()) {
+									buffer->clear();
+								}
+								break;
 							}
 							// change to status phase
 							set_dat(SCSI_STATUS_GOOD);
@@ -307,25 +324,20 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
-uint32_t SCSI_DEV::read_signal(int id)
-{
-	uint32_t stat = access ? 1 : 0;
-	access = false;
-	return stat;
-}
-
 void SCSI_DEV::event_callback(int event_id, int err)
 {
 	switch(event_id) {
 	case EVENT_SEL:
 		event_sel = -1;
 		if((data_bus & 0x7f) == (1 << scsi_id)) {
-			// this device is selected!
-			#ifdef _SCSI_DEBUG_LOG
-				this->out_debug_log(_T("[SCSI_DEV:ID=%d] This device is selected\n"), scsi_id);
-			#endif
-			set_bsy(true);
-			selected = true;
+			if(is_device_existing()) {
+				// this device is selected!
+				#ifdef _SCSI_DEBUG_LOG
+					this->out_debug_log(_T("[SCSI_DEV:ID=%d] This device is selected\n"), scsi_id);
+				#endif
+				set_bsy(true);
+				selected = true;
+			}
 		}
 		break;
 		
@@ -485,7 +497,7 @@ void SCSI_DEV::start_command()
 		#endif
 		// start position
 		position = (command[1] & 0x1f) * 0x10000 + command[2] * 0x100 + command[3];
-		position *= physical_block_size;
+		position *= physical_block_size();
 		// transfer length
 		remain = 16;
 		// create sense data table
@@ -517,7 +529,7 @@ void SCSI_DEV::start_command()
 		#endif
 		// start position
 		position = (command[1] & 0x1f) * 0x10000 + command[2] * 0x100 + command[3];
-		position *= physical_block_size;
+		position *= physical_block_size();
 		// transfer length
 		remain = 32;
 		// create inquiry data table
@@ -551,23 +563,21 @@ void SCSI_DEV::start_command()
 		#ifdef _SCSI_DEBUG_LOG
 			this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: Read Capacity\n"), scsi_id);
 		#endif
-		// initialize max logical block address
-		initialize_max_logical_block_addr();
 		// start position
 		position = command[2] * 0x1000000 + command[3] * 0x10000 + command[4] * 0x100 + command[5];
-		position *= physical_block_size;
+		position *= physical_block_size();
 		// transfer length
 		remain = 8;
 		// create capacity data table
 		buffer->clear();
-		buffer->write((max_logical_block_addr >> 24) & 0xff);
-		buffer->write((max_logical_block_addr >> 16) & 0xff);
-		buffer->write((max_logical_block_addr >>  8) & 0xff);
-		buffer->write((max_logical_block_addr >>  0) & 0xff);
-		buffer->write((    logical_block_size >> 24) & 0xff);
-		buffer->write((    logical_block_size >> 16) & 0xff);
-		buffer->write((    logical_block_size >> 8) & 0xff);
-		buffer->write((    logical_block_size >> 0) & 0xff);
+		buffer->write((max_logical_block_addr() >> 24) & 0xff);
+		buffer->write((max_logical_block_addr() >> 16) & 0xff);
+		buffer->write((max_logical_block_addr() >>  8) & 0xff);
+		buffer->write((max_logical_block_addr() >>  0) & 0xff);
+		buffer->write((    logical_block_size() >> 24) & 0xff);
+		buffer->write((    logical_block_size() >> 16) & 0xff);
+		buffer->write((    logical_block_size() >>  8) & 0xff);
+		buffer->write((    logical_block_size() >>  0) & 0xff);
 		// change to data in phase
 		set_dat(buffer->read());
 		set_phase_delay(SCSI_PHASE_DATA_IN, 10.0);
@@ -611,9 +621,9 @@ void SCSI_DEV::start_command()
 		#endif
 		// start position
 		position = (command[1] & 0x1f) * 0x10000 + command[2] * 0x100 + command[3];
-		position *= physical_block_size;
+		position *= physical_block_size();
 		// transfer length
-		remain = command[4] * logical_block_size;
+		remain = command[4] * logical_block_size();
 		if(remain != 0) {
 			// read data buffer
 			buffer->clear();
@@ -638,9 +648,9 @@ void SCSI_DEV::start_command()
 		#endif
 		// start position
 		position = (command[1] & 0x1f) * 0x10000 + command[2] * 0x100 + command[3];
-		position *= physical_block_size;
+		position *= physical_block_size();
 		// transfer length
-		remain = command[4] * logical_block_size;
+		remain = command[4] * logical_block_size();
 		if(remain != 0) {
 			// clear data buffer
 			buffer->clear();
@@ -659,10 +669,10 @@ void SCSI_DEV::start_command()
 		#endif
 		// start position
 		position = command[2] * 0x1000000 + command[3] * 0x10000 + command[4] * 0x100 + command[5];
-		position *= physical_block_size;
+		position *= physical_block_size();
 		// transfer length
 		remain = command[7] * 0x100 + command[8];
-		remain *= logical_block_size;
+		remain *= logical_block_size();
 		if(remain != 0) {
 			// read data buffer
 			buffer->clear();
@@ -693,10 +703,10 @@ void SCSI_DEV::start_command()
 	WRITE10:
 		// start position
 		position = command[2] * 0x1000000 + command[3] * 0x10000 + command[4] * 0x100 + command[5];
-		position *= physical_block_size;
+		position *= physical_block_size();
 		// transfer length
 		remain = command[7] * 0x100 + command[8];
-		remain *= logical_block_size;
+		remain *= logical_block_size();
 		if(remain != 0) {
 			// clear data buffer
 			buffer->clear();
@@ -715,10 +725,10 @@ void SCSI_DEV::start_command()
 		#endif
 		// start position
 		position = command[2] * 0x1000000 + command[3] * 0x10000 + command[4] * 0x100 + command[5];
-		position *= physical_block_size;
+		position *= physical_block_size();
 		// transfer length
 		remain = command[6] * 0x1000000 + command[7] * 0x10000 + command[8] * 0x100 + command[9];
-		remain *= logical_block_size;
+		remain *= logical_block_size();
 		if(remain != 0) {
 			// read data buffer
 			buffer->clear();
@@ -743,10 +753,10 @@ void SCSI_DEV::start_command()
 		#endif
 		// start position
 		position = command[2] * 0x1000000 + command[3] * 0x10000 + command[4] * 0x100 + command[5];
-		position *= physical_block_size;
+		position *= physical_block_size();
 		// transfer length
 		remain = command[6] * 0x1000000 + command[7] * 0x10000 + command[8] * 0x100 + command[9];
-		remain *= logical_block_size;
+		remain *= logical_block_size();
 		if(remain != 0) {
 			// clear data buffer
 			buffer->clear();
@@ -757,6 +767,18 @@ void SCSI_DEV::start_command()
 			set_dat(SCSI_STATUS_GOOD);
 			set_phase_delay(SCSI_PHASE_STATUS, 10.0);
 		}
+		break;
+		
+	case SASI_CMD_SPECIFY:
+		#ifdef _SCSI_DEBUG_LOG
+			this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: SASI Command 0xC2\n"), scsi_id);
+		#endif
+		// transfer length
+		remain = 10;
+		// clear data buffer
+		buffer->clear();
+		// change to data in phase
+		set_phase_delay(SCSI_PHASE_DATA_OUT, 1.0);
 		break;
 		
 	default:

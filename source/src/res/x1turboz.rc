@@ -169,6 +169,34 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_TAPE1
     END
+    POPUP "HD1"
+    BEGIN
+        MENUITEM "Insert",                      ID_OPEN_HD1
+        MENUITEM "Eject",                       ID_CLOSE_HD1
+        MENUITEM SEPARATOR
+        MENUITEM "Recent",                      ID_RECENT_HD1
+    END
+    POPUP "HD2"
+    BEGIN
+        MENUITEM "Insert",                      ID_OPEN_HD2
+        MENUITEM "Eject",                       ID_CLOSE_HD2
+        MENUITEM SEPARATOR
+        MENUITEM "Recent",                      ID_RECENT_HD2
+    END
+    POPUP "HD3"
+    BEGIN
+        MENUITEM "Insert",                      ID_OPEN_HD3
+        MENUITEM "Eject",                       ID_CLOSE_HD3
+        MENUITEM SEPARATOR
+        MENUITEM "Recent",                      ID_RECENT_HD3
+    END
+    POPUP "HD4"
+    BEGIN
+        MENUITEM "Insert",                      ID_OPEN_HD4
+        MENUITEM "Eject",                       ID_CLOSE_HD4
+        MENUITEM SEPARATOR
+        MENUITEM "Recent",                      ID_RECENT_HD4
+    END
     POPUP "Device"
     BEGIN
         POPUP "Drive"

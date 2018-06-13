@@ -38,9 +38,9 @@ SW3-1/2	ON ,ON  = 8000H-81FFH
 */
 #define USE_DIPSWITCH
 #define DIPSWITCH_DEFAULT	0x0e
-#define USE_TAPE1
+#define USE_TAPE		1
 #define TAPE_BINARY_ONLY
-#define USE_BINARY_FILE1
+#define USE_BINARY_FILE		1
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
@@ -110,6 +110,7 @@ const struct {
 	{8, 8, 8 * 6 * 12, 8 * 2 * 29}, // CRT
 };
 
+class csp_state_utils;
 class EMU;
 class DEVICE;
 class EVENT;
@@ -129,7 +130,7 @@ class VM
 {
 protected:
 	EMU* emu;
-	
+	csp_state_utils *state_entry;
 	// devices
 	EVENT* event;
 	
@@ -187,6 +188,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

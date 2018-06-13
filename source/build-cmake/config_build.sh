@@ -111,6 +111,8 @@ function build_dll() {
     echo ${CMAKE_FLAGS1} ${CMAKE_FLAGS2}
     ${CMAKE} -DCMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
              -DCMAKE_CXX_COMPILER:STRING=${CCMAKE_CXX} \
+	     -DCOTIRE_MINIMUM_NUMBER_OF_TARGET_SOURCES=1 \
+	     -DCOTIRE_ADD_CLEAN=0 \
 	     "-DLIBCSP_INSTALL_DIR:STRING=${LIB_INSTALL}" \
 	     ${CMAKE_FLAGS1} \
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
@@ -121,6 +123,8 @@ function build_dll() {
     
     ${CMAKE} -DCMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
 	     -DCMAKE_CXX_COMPILER:STRING=${CCMAKE_CXX} \
+	     -DCOTIRE_MINIMUM_NUMBER_OF_TARGET_SOURCES=1 \
+	     -DCOTIRE_ADD_CLEAN=0 \
 	     "-DLIBCSP_INSTALL_DIR:STRING=${LIB_INSTALL}" \
 	     ${CMAKE_FLAGS1} \
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
@@ -141,7 +145,7 @@ function build_dll() {
 	    ;;
     esac
     
-    make clean
+   make clean
     cd ../..
 }
 
@@ -201,6 +205,8 @@ for SRCDATA in $@ ; do\
     echo ${CMAKE_FLAGS1} ${CMAKE_FLAGS2}
     ${CMAKE} -D CMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
              -D CMAKE_CXX_COMPILER:STRING=${CCMAKE_CXX} \
+	     -DCOTIRE_MINIMUM_NUMBER_OF_TARGET_SOURCES=1 \
+	     -DCOTIRE_ADD_CLEAN=0 \
 	     ${CMAKE_FLAGS1} \
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_CC}" \

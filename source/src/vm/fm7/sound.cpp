@@ -28,18 +28,58 @@ void FM7_MAINIO::reset_sound(void)
 		opn_address[i] = 0;
 		opn_stat[i] = 0;
 		opn_ch3mode[i] = 0x00;
+		opn_prescaler_type[i] = 1;
+		memset(opn_regs[i], 0x00, 0x100 * sizeof(uint8_t));
 		if(opn[i] != NULL) {
 			opn[i]->reset();
-			opn[i]->write_data8(0, 0x2e);
-			opn[i]->write_data8(1, 0);	// set prescaler
-			opn[i]->write_data8(0, 0x27);
-			opn[i]->write_data8(1, 0x00);
+			
+			for(int ch = 0x00; ch < 0x0e; ch++) { // PSG from XM7.
+				if(ch == 7) {
+					opn[i]->set_reg(ch, 0xff); 
+				} else {
+					opn[i]->set_reg(ch, 0x00);
+				}
+			}
+			for(int ch = 0x30; ch < 0x40; ch++) {  // MUL, DT from XM7.
+				if((ch & 0x03) != 3) {
+					opn[i]->set_reg(ch, 0);
+				}
+			}
+			for(int ch = 0x40; ch < 0x50; ch++) { // TL
+				if((ch & 0x03) != 3) {
+					opn[i]->set_reg(ch, 0x7f);
+					opn_regs[i][ch] = 0x7f;
+				}
+			}
+			for(int ch = 0x50; ch < 0x60; ch++) { // AR
+				if((ch & 0x03) != 3) {
+					opn[i]->set_reg(ch, 0x1f);
+					opn_regs[i][ch] = 0x1f;
+				}
+			}
+			for(int ch = 0x60; ch < 0xb4; ch++) { // MISC
+				if((ch & 0x03) != 3) {
+					opn[i]->set_reg(ch, 0x7f);
+					opn_regs[i][ch] = 0x7f;
+				}
+			}
+			for(int ch = 0x80; ch < 0x90; ch++) { // SL/RR
+				if((ch & 0x03) != 3) {
+					opn[i]->set_reg(ch, 0xff);
+					opn_regs[i][ch] = 0xff;
+				}
+			}
+			// Note
 			for(j = 0; j < 3; j++) {
 				opn[i]->set_reg(0x28, j | 0xfe);
+				opn_regs[i][0x28] = (uint8_t)(j | 0xfe);
+				//opn_keys[i][j] = j | 0xfe;
 			}
-//			opn[i]->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
+			opn[i]->write_io8(0, 0x2e);
+			opn[i]->write_io8(1, 0);	// set prescaler
+			opn[i]->write_io8(0, 0x27);
+			opn[i]->write_io8(1, 0x00);
 		}
-	   
 	}
 //#endif
 #if !defined(_FM77AV_VARIANTS)
@@ -107,6 +147,50 @@ void FM7_MAINIO::reset_sound(void)
 # endif
 }
 
+// After loading state, OPN's prescaler needs to reset.
+void FM7_MAINIO::restore_opn(void)
+{
+	for(int i = 0; i < 3; i++) {
+		if(opn[i] != NULL) {
+#if 0
+			for(int j = 0x0; j < 0x0d; j++) {
+				if((j < 0x08) || (j > 0x0a)) {
+					opn[i]->set_reg(j, opn_regs[i][j]);
+				} else {
+					opn[i]->set_reg(j, 0);
+				}
+			}
+			for(int j = 0x30; j < 0xb4; j++) {
+				opn[i]->set_reg(j, opn_regs[i][j]);
+			}
+#endif
+			int pre = opn_prescaler_type[i];
+			if((pre >= 0) && (pre < 3)) {
+				opn[i]->set_reg(pre + 0x2d, 0);
+			}
+			// Key
+			for(int j = 0; j < 3; j++) {
+				//opn[i]->set_reg(0x28, opn_keys[i][j]);
+			}
+			opn[i]->set_reg(0x27, opn_regs[i][0x27]);
+		}
+	}
+# if !defined(_FM77AV_VARIANTS)
+	if(psg != NULL) {
+#if 0
+		for(int j = 0x0; j < 0x0d; j++) {
+			if((j < 0x08) || (j > 0x0a)) {
+				psg->set_reg(j, opn_regs[3][j]);
+			} else {
+				psg->set_reg(j, 0);
+			}
+		}
+#endif
+		//psg->set_reg(0x27, opn_regs[3][0x27]);
+		psg->set_reg(0x2e, 0);
+	}
+#endif
+}
 
 void FM7_MAINIO::set_psg(uint8_t val)
 {
@@ -140,19 +224,25 @@ void FM7_MAINIO::set_psg_cmd(uint8_t cmd)
 // Write to FD16, same as 
 void FM7_MAINIO::write_opn_reg(int index, uint32_t addr, uint32_t data)
 {
+	//printf("OPN: #%d REG=%02x VAL=%02x\n", index, addr, data);
 # if !defined(_FM77AV_VARIANTS)
 	if(index == 3) { // PSG
 	  	psg->write_io8(0, addr & 0x0f);
 		psg->write_io8(1, data);
+		opn_regs[index][addr] = data;
 		return;
 	}
 # endif
+
 	if((addr >= 0x2d) && (addr < 0x30)) {
+		opn_prescaler_type[index] = addr - 0x2d;
 		opn[index]->write_io8(0, addr);
+		opn_regs[index][addr] = 0;
 		return;
-	}
-	if(addr == 0x27) {
+	} else if(addr == 0x27) {
 		opn_ch3mode[index] = data & 0xc0;
+	} else  if(addr == 0x28) {
+		//opn_keys[index][data & 3] = data;
 	}
 	opn[index]->write_io8(0, addr);
 	opn[index]->write_io8(1, data);
@@ -191,10 +281,12 @@ void FM7_MAINIO::set_opn(int index, uint8_t val)
 				opn_address[index] = val;
 //#if !defined(_FM8)
 				if((val > 0x2c) && (val < 0x30)) {
+					opn_prescaler_type[index] = val - 0x2d;
 					opn_data[index] = 0;
 					opn[index]->write_io8(0, val);
 					opn[index]->write_io8(1, 0);
 				}
+
 //#endif
 			}
 			break;
@@ -261,7 +353,7 @@ void FM7_MAINIO::set_opn_cmd(int index, uint8_t cmd)
 		if(psg == NULL) return;
 	}
 # endif
-	uint32_t mask[16] = { // Parameter is related by XM7. Thanks Ryu.
+	static const uint32_t mask[16] = { // Parameter is related by XM7. Thanks Ryu.
 		0xff, 0x0f, 0xff, 0x0f,
 		0xff, 0x0f, 0x1f, 0xff,
 		0x1f, 0x1f, 0x1f, 0xff,
@@ -299,6 +391,7 @@ void FM7_MAINIO::set_opn_cmd(int index, uint8_t cmd)
 				opn_address[index] = val;
 //#if !defined(_FM8)
 				if((val > 0x2c) && (val < 0x30)) {
+					opn_prescaler_type[index] = val - 0x2d;
 					opn_data[index] = 0;
 					opn[index]->write_io8(0, val);
 					opn[index]->write_io8(1, 0);
@@ -336,7 +429,7 @@ void FM7_MAINIO::opn_note_on(int index)
 {
 	uint8_t r;
 //#if !defined(_FM8)
-	if((index < 0) || (index >= 2)) return;
+	if((index < 0) || (index >= 3)) return;
 	// Not on for CSM mode. From XM7. Thanks, Ryu.
 	r = opn_ch3mode[index];
 	if ((r & 0xc0) == 0x80) {

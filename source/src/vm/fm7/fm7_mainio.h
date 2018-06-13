@@ -62,7 +62,7 @@ class FM7_MAINIO : public DEVICE {
  protected:
 	VM* p_vm;
 	EMU* p_emu;
-
+	
 	uint8_t io_w_latch[0x100];
    
 	/* FD00: R */
@@ -179,7 +179,8 @@ class FM7_MAINIO : public DEVICE {
 	uint32_t opn_stat[4];
 	uint8_t  opn_cmdreg[4]; // OPN register, bit 3-0, maybe dummy.
 	uint8_t  opn_ch3mode[4];
-
+	uint8_t  opn_prescaler_type[4];
+	
 	/* FD47 */
 	bool intstat_whg;   // bit3 : OPN interrupt. '0' = happened.
 	/* FD53 */
@@ -269,7 +270,7 @@ class FM7_MAINIO : public DEVICE {
 #endif	
 #if defined(HAS_DMA)
 	bool intstat_dma;
-	uint32_t dma_addr;
+	uint8_t dma_addr;
 #endif	
 	void set_clockmode(uint8_t flags);
 	uint8_t get_clockmode(void);
@@ -517,14 +518,14 @@ public:
 
 	virtual void write_signal(int id, uint32_t data, uint32_t mask);
 	virtual uint32_t read_signal(int id);
-
+	void restore_opn(void);
+	
 	virtual void event_callback(int event_id, int err);
 	virtual void reset();
 	virtual void update_config();
 	virtual void save_state(FILEIO *state_fio);
 	virtual bool load_state(FILEIO *state_fio);
-	void save_state_main(FILEIO *state_fio);
-	bool load_state_main(FILEIO *state_fio, uint32_t version);
+	virtual void decl_state(void);
 	
 	void set_context_printer(DEVICE *p)
 	{

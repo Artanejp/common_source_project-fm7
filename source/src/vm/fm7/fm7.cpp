@@ -130,6 +130,19 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	if((config.dipswitch & FM7_DIPSW_MIDI_ON) != 0) uart[2] = new I8251(this, emu);
 
 		
+#if defined(_FM77AV_VARIANTS)
+	alu = new MB61VH010(this, emu);
+	keyboard_beep = new BEEP(this, emu);
+#endif	
+	keyboard = new KEYBOARD(this, emu);
+	display = new DISPLAY(this, emu);
+#if defined(_FM8)
+	mainio  = new FM8_MAINIO(this, emu);
+#else
+	mainio  = new FM7_MAINIO(this, emu);
+#endif
+	mainmem = new FM7_MAINMEM(this, emu);
+
 	// basic devices
 	// I/Os
 #if defined(HAS_DMA)
@@ -201,18 +214,6 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #if defined(_FM77L4)
 	l4crtc = new HD46505(this, emu);;
 #endif
-#if defined(_FM77AV_VARIANTS)
-	alu = new MB61VH010(this, emu);
-	keyboard_beep = new BEEP(this, emu);
-#endif	
-	keyboard = new KEYBOARD(this, emu);
-	display = new DISPLAY(this, emu);	
-#if defined(_FM8)
-	mainio  = new FM8_MAINIO(this, emu);
-#else
-	mainio  = new FM7_MAINIO(this, emu);
-#endif
-	mainmem = new FM7_MAINMEM(this, emu);
 
 #if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
 	if((config.dipswitch & FM7_DIPSW_CONNECT_KANJIROM) != 0) {
@@ -332,7 +333,7 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	g_substat_mainhalt->set_device_name(_T("SUBSYSTEM HALT STATUS(AND)"));
 #endif	
 	this->connect_bus();
-	
+	decl_state();
 }
 
 VM::~VM()
@@ -820,7 +821,7 @@ void VM::initialize_sound(int rate, int samples)
 	keyboard_beep->initialize_sound(rate, 2400.0, 512);
 # endif
 #endif	
-	pcm1bit->initialize_sound(rate, 2000);
+	pcm1bit->initialize_sound(rate, 8000);
 	//drec->initialize_sound(rate, 0);
 }
 
@@ -923,7 +924,7 @@ bool VM::get_kana_locked()
 }
 
 // Get INS status.Important with FM-7 series (^_^;
-uint32_t VM::get_extra_leds()
+uint32_t VM::get_led_status()
 {
 	return keyboard->read_signal(SIG_FM7KEY_LED_STATUS);
 }
@@ -1172,7 +1173,7 @@ void VM::set_cpu_clock(DEVICE *cpu, uint32_t clocks) {
 	event->set_secondary_cpu_clock(cpu, clocks);
 }
 
-#if defined(USE_BUBBLE1)
+#if defined(USE_BUBBLE)
 void VM::open_bubble_casette(int drv, const _TCHAR *path, int bank)
 {
 	if((drv >= 2) || (drv < 0)) return;
@@ -1214,55 +1215,71 @@ void VM::set_vm_frame_rate(double fps)
    if(event != NULL) event->set_frames_per_sec(fps);
 }
 
+#define STATE_VERSION	10
+#include "../../statesub.h"
 
-#define STATE_VERSION	8
+void VM::decl_state(void)
+{
+#if defined(_FM8)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM8_HEAD")));
+#elif defined(_FM7) || defined(_FMNEW7)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM7_HEAD")));
+#elif defined(_FM77) || defined(_FM77L2)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM77_HEAD")));
+#elif defined(_FM77L4)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM77L4_HEAD")));
+#elif defined(_FM77AV)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM77AV_HEAD")));
+#elif defined(_FM77AV20)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM77AV20_HEAD")));
+#elif defined(_FM77AV40)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM77AV40_HEAD")));
+#elif defined(_FM77AV20EX)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM77AV20EX_HEAD")));
+#elif defined(_FM77AV40EX)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM77AV40EX_HEAD")));
+#elif defined(_FM77AV40SX)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM77AV40SX_HEAD")));
+#else
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM7_SERIES_HEAD")));
+#endif
+	DECL_STATE_ENTRY_BOOL(connect_320kfdc);
+	DECL_STATE_ENTRY_BOOL(connect_1Mfdc);
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		device->decl_state();
+	}
+}
+
 void VM::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32_BE(STATE_VERSION);
-	state_fio->FputBool(connect_320kfdc);
-	state_fio->FputBool(connect_1Mfdc);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const char *name = typeid(*device).name() + 6; // skip "class "
-		int _len = strlen(name);
-		if(_len <= 0) _len = 1;
-		if(_len >= 128) _len = 128;
-		state_fio->FputInt32(_len);
-		state_fio->Fwrite(name, _len, 1);
-		//printf("SAVE State: DEVID=%d NAME=%s\n", device->this_device_id, name);
+		emu->out_debug_log("SAVE State: DEVID=%d", device->this_device_id);
 		device->save_state(state_fio);
 	}
 }
 
 bool VM::load_state(FILEIO* state_fio)
 {
-	uint32_t version = state_fio->FgetUint32_BE();
-	if(version != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
+		emu->out_debug_log("INFO: HEADER DATA ERROR");
 		return false;
 	}
-	connect_320kfdc = state_fio->FgetBool();
-	connect_1Mfdc = state_fio->FgetBool();
 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const char *name = typeid(*device).name() + 6; // skip "class "
-		char nr_data[130];
-		int _len;
-		bool b_stat = false;
-		_len = state_fio->FgetInt32();
-		if(_len > 0) {
-			if(_len >= 128) _len = 128;
-			memset(nr_data, 0x00, sizeof(nr_data));
-			state_fio->Fread(nr_data, _len, 1);
-			int stat = strncmp(name, nr_data, _len);
-			if(stat == 0) b_stat = true;
-		} 
-		if(!b_stat) {
-			//printf("Load Error: DEVID=%d NAME=%s\n", device->this_device_id, name);
-			return false;
-		}
 		if(!device->load_state(state_fio)) {
-			//printf("Load Error: DEVID=%d\n", device->this_device_id);
+			printf("Load Error: DEVID=%d\n", device->this_device_id);
 			return false;
 		}
 	}
+	update_config();
+	mainio->restore_opn();
+	
 	return true;
 }
 

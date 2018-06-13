@@ -1,3 +1,39 @@
+5/24/2018
+
+[COMMON] import Mr.Artane.'s fixes (Commits on May 10, 2018)
+[COMMON/FIFO] import Mr.Artane.'s fixes (Commits on May 10, 2018)
+[EMU] support set_vm_screen_lines() (thanks Mr.Artane.)
+[EMU] fix interfaces for bubble cassette
+[EMU] add interfaces for hard disk
+[WINMAIN] add interfaces for hard disk
+
+[VM/DEVICE] support read_debug_reg()
+[VM/DISK] import Mr.Artane.'s fixes (Commits on May 10, 2018)
+[VM/HARDDISK] support hard disk handler
+[VM/I286] improve i286 core based on MAME 0.197
+[VM/I286] support read_debug_reg()
+[VM/I386] support read_debug_reg()
+[VM/I8237] fix verify command
+[VM/I8237] support to read bank register by read_signal()
+[VM/MC6809] import Mr.Artane.'s fixes (Commits on May 10, 2018)
+[VM/SCSI_DEV] support SASI specify command
+[VM/SCSI_HDD] improve to use hard disk handler
+[VM/SCSI_HOST] support to read ack signal
+
+[BUBCOM80] support Systems Formulate BUBCOM80
+[FM77AV] import Mr.Artane.'s fixes (Commits on May 10, 2018)
+[FMR30] support to change hard disk image
+[FMR50] support to change hard disk image
+[FMR50/BIOS] improve to use hard disk handler
+[MZ2500] support to select floppy drive type 2DD/2D
+[MZ2500] support to change hard disk image
+[MZ2500/MZ1E30] reimplent SASI I/F with general SCSI host/hard disk device
+[PC9801/CPUREG] support NMI enable/disable
+[PC9801/MEMBUS] improve for 24bit/32bit address
+[PC9801/SASI] support SASI I/F and hard disk drives
+[X1TURBO/SASI] support SASI I/F and hard disk drives
+
+
 5/6/2018
 
 [COMMON] add is_absolute_path() and create_absolute_path() functions
@@ -3688,7 +3724,7 @@ In this release:
 
 12/31/2007
 
-[VM/FIFO] support read_not_remove()
+[COMMON/FIFO] support read_not_remove()
 [VM/NSC800] fix NSC800
 
 [X07] support CANON X-07

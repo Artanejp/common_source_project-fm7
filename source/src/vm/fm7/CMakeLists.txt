@@ -1,6 +1,7 @@
 cmake_minimum_required (VERSION 2.6)
 
 message("* vm/fm7")
+#include(cotire)
 
 set(VM_FM7_LIB_SRCS
 	display.cpp
@@ -58,3 +59,4 @@ endif()
 add_library(vm_fm7
 	${VM_FM7_LIB_SRCS}
 )
+#cotire(vm_fm7)

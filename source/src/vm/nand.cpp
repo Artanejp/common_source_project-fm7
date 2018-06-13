@@ -26,6 +26,7 @@ void NAND::write_signal(int id, uint32_t data, uint32_t mask)
 
 #define STATE_VERSION	1
 
+
 void NAND::save_state(FILEIO* state_fio)
 {
 	state_fio->FputUint32(STATE_VERSION);

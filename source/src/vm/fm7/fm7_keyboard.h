@@ -144,6 +144,7 @@ private:
 	void write_data8(uint32_t addr, uint32_t data);
 	void reset(void);
 	void release(void);
+	void decl_state();
 	void save_state(FILEIO *f);
 	bool load_state(FILEIO *f);
 	void set_context_rxrdy(DEVICE *p, int id, uint32_t mask) {

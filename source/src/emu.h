@@ -51,10 +51,10 @@
 #include "win32/osd.h"
 #endif
 
-#ifdef USE_FD1
+#ifdef USE_FLOPPY_DISK
 #define MAX_D88_BANKS 64
 #endif
-#ifdef USE_BUBBLE1
+#ifdef USE_BUBBLE
 #define MAX_B77_BANKS 16
 #endif
 
@@ -135,26 +135,29 @@ private:
 		int wait_count;
 	} media_status_t;
 	
-#ifdef USE_CART1
-	media_status_t cart_status[MAX_CART];
+#ifdef USE_CART
+	media_status_t cart_status[USE_CART];
 #endif
-#ifdef USE_FD1
-	media_status_t floppy_disk_status[MAX_FD];
+#ifdef USE_FLOPPY_DISK
+	media_status_t floppy_disk_status[USE_FLOPPY_DISK];
 #endif
-#ifdef USE_QD1
-	media_status_t quick_disk_status[MAX_QD];
+#ifdef USE_QUICK_DISK
+	media_status_t quick_disk_status[USE_QUICK_DISK];
 #endif
-#ifdef USE_TAPE1
-	media_status_t tape_status[MAX_TAPE];
+#ifdef USE_HARD_DISK
+	media_status_t hard_disk_status[USE_HARD_DISK];
+#endif
+#ifdef USE_TAPE
+	media_status_t tape_status[USE_TAPE];
 #endif
 #ifdef USE_COMPACT_DISC
-	media_status_t compact_disc_status;
+	media_status_t compact_disc_status[USE_COMPACT_DISC];
 #endif
 #ifdef USE_LASER_DISC
-	media_status_t laser_disc_status;
+	media_status_t laser_disc_status[USE_LASER_DISC];
 #endif
-#ifdef USE_BUBBLE1
-	media_status_t bubble_casette_status[MAX_BUBBLE];
+#ifdef USE_BUBBLE
+	media_status_t bubble_casette_status[USE_BUBBLE];
 #endif
 	
 	void initialize_media();
@@ -234,9 +237,6 @@ public:
 #ifdef USE_KEY_LOCKED
 	bool get_caps_locked();
 	bool get_kana_locked();
-#endif
-#ifdef USE_EXTRA_LEDS
-	uint32_t get_extra_leds();
 #endif
 	void key_lost_focus();
 #ifdef ONE_BOARD_MICRO_COMPUTER
@@ -407,22 +407,22 @@ public:
 #endif
 	
 	// media
-#ifdef USE_FD1
+#ifdef USE_FLOPPY_DISK
 	struct {
 		_TCHAR path[_MAX_PATH];
 		_TCHAR disk_name[MAX_D88_BANKS][128];  // Convert to UTF8
  		int bank_num;
 		int cur_bank;
-	} d88_file[MAX_FD];
+	} d88_file[USE_FLOPPY_DISK];
 #endif
 
 	// user interface
-#ifdef USE_CART1
+#ifdef USE_CART
 	void open_cart(int drv, const _TCHAR* file_path);
 	void close_cart(int drv);
 	bool is_cart_inserted(int drv);
 #endif
-#ifdef USE_FD1
+#ifdef USE_FLOPPY_DISK
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_floppy_disk(int drv);
 	bool is_floppy_disk_inserted(int drv);
@@ -430,65 +430,66 @@ public:
 	bool is_floppy_disk_protected(int drv);
 	uint32_t is_floppy_disk_accessed();
 #endif
-#ifdef USE_QD1
+#ifdef USE_QUICK_DISK
 	void open_quick_disk(int drv, const _TCHAR* file_path);
 	void close_quick_disk(int drv);
 	bool is_quick_disk_inserted(int drv);
 	uint32_t is_quick_disk_accessed();
 #endif
-#ifdef USE_TAPE1
+#ifdef USE_HARD_DISK
+	void open_hard_disk(int drv, const _TCHAR* file_path);
+	void close_hard_disk(int drv);
+	bool is_hard_disk_inserted(int drv);
+	uint32_t is_hard_disk_accessed();
+#endif
+#ifdef USE_TAPE
 	void play_tape(int drv, const _TCHAR* file_path);
 	void rec_tape(int drv, const _TCHAR* file_path);
 	void close_tape(int drv);
 	bool is_tape_inserted(int drv);
-# ifndef TAPE_BINARY_ONLY
 	bool is_tape_playing(int drv);
 	bool is_tape_recording(int drv);
 	int get_tape_position(int drv);
 	const _TCHAR* get_tape_message(int drv);
-# endif
-# ifdef USE_TAPE_BUTTON
 	void push_play(int drv);
 	void push_stop(int drv);
 	void push_fast_forward(int drv);
 	void push_fast_rewind(int drv);
 	void push_apss_forward(int drv);
 	void push_apss_rewind(int drv);
-# endif
 #endif
 #ifdef USE_COMPACT_DISC
-	void open_compact_disc(const _TCHAR* file_path);
-	void close_compact_disc();
-	bool is_compact_disc_inserted();
+	void open_compact_disc(int drv, const _TCHAR* file_path);
+	void close_compact_disc(int drv);
+	bool is_compact_disc_inserted(int drv);
 	uint32_t is_compact_disc_accessed();
 #endif
 #ifdef USE_LASER_DISC
-	void open_laser_disc(const _TCHAR* file_path);
-	void close_laser_disc();
-	bool is_laser_disc_inserted();
+	void open_laser_disc(int drv, const _TCHAR* file_path);
+	void close_laser_disc(int drv);
+	bool is_laser_disc_inserted(int drv);
 	uint32_t is_laser_disc_accessed();
 #endif
-#ifdef USE_BINARY_FILE1
+#ifdef USE_BINARY_FILE
 	void load_binary(int drv, const _TCHAR* file_path);
 	void save_binary(int drv, const _TCHAR* file_path);
 #endif
-#ifdef USE_BUBBLE1
+#ifdef USE_BUBBLE
 	struct {
 		_TCHAR path[_MAX_PATH];
 		_TCHAR bubble_name[MAX_B77_BANKS][128];  // Convert to UTF8
  		int bank_num;
 		int cur_bank;
-	} b77_file[MAX_BUBBLE];
+	} b77_file[USE_BUBBLE];
 	void open_bubble_casette(int drv, const _TCHAR* file_path, int bank);
 	void close_bubble_casette(int drv);
 	bool is_bubble_casette_inserted(int drv);
 	bool is_bubble_casette_protected(int drv);
 	void is_bubble_casette_protected(int drv, bool value);
 #endif
-
-#ifdef USE_HARD_DISK
-	uint32_t is_hard_disk_accessed();
-#endif	
+#ifdef USE_LED_DEVICE
+	uint32_t get_led_status();
+#endif
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif

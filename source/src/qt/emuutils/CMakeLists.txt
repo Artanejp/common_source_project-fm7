@@ -5,9 +5,11 @@ set(s_qt_emuutils_srcs
 	  ../../common.cpp
 	  ../../fifo.cpp
 	  ../../fileio.cpp
+	  ../../statesub.cpp
 	  )
+#include(cotire)
 	
-SET(THIS_LIB_VERSION 2.8.0) 
+SET(THIS_LIB_VERSION 2.9.1) 
 
 if(WIN32)
 include (GenerateExportHeader)
@@ -46,6 +48,8 @@ set_target_properties(CSPemu_utils PROPERTIES
 			     SOVERSION ${THIS_LIB_VERSION}
 			     VERSION ${THIS_LIB_VERSION}
 			     )
+#cotire(CSPemu_utils)
 INSTALL(TARGETS CSPemu_utils DESTINATION ${LIBCSP_INSTALL_DIR})
+
 endif()
 

@@ -60,7 +60,7 @@ class CSP_KeyTables;
 class USING_FLAGS;
 class CSP_LOGGER;
 class QMutex;
-class QSemaphore;
+
 QT_BEGIN_NAMESPACE
 
 typedef struct {
@@ -193,7 +193,7 @@ protected:
 	int sound_write_pos;
 	bool sound_exit;
 	bool sound_debug;
-	SDL_sem *snd_apply_sem;
+	bool sound_initialized;
 	Sint16 *sound_buf_ptr;
 	Uint8 snd_total_volume;
 #if defined(USE_SDL2)   

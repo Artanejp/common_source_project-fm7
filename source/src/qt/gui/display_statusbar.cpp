@@ -61,8 +61,8 @@ void Ui_MainWindowBase::initStatusBar(void)
 
 	dummyStatusArea2 = new QWidget;
 	dummyStatusArea2->setFixedWidth(100);
-	if((using_flags->get_use_extra_leds() > 0) || (using_flags->get_use_key_locked())) {
-		int _leds = using_flags->get_use_extra_leds();
+	if((using_flags->get_use_led_devices() > 0) || (using_flags->get_use_key_locked())) {
+		int _leds = using_flags->get_use_led_devices();
 		if(_leds < 0) _leds = 0;
 		if((using_flags->get_use_key_locked()) && (!using_flags->get_independent_caps_kana_led())) _leds += 2;
 		
@@ -105,7 +105,7 @@ void Ui_MainWindowBase::initStatusBar(void)
 	//   statusbar->addWidget(dummyStatusArea2);
 	connect(statusUpdateTimer, SIGNAL(timeout()), this, SLOT(redraw_status_bar()));
 	statusUpdateTimer->start(33);
-	if((using_flags->get_use_extra_leds() > 0) || (using_flags->get_use_key_locked())) {
+	if((using_flags->get_use_led_devices() > 0) || (using_flags->get_use_key_locked())) {
 		ledUpdateTimer = new QTimer;
 		connect(statusUpdateTimer, SIGNAL(timeout()), this, SLOT(redraw_leds()));
 		statusUpdateTimer->start(5);
@@ -140,7 +140,7 @@ void Ui_MainWindowBase::resize_statusbar(int w, int h)
 	tmps = tmps + n_s + QString::fromUtf8("pt \"Sans\";");
 	messagesStatusBar->setStyleSheet(tmps);
    
-	if((using_flags->get_use_extra_leds() > 0) || (using_flags->get_use_key_locked())) {
+	if((using_flags->get_use_led_devices() > 0) || (using_flags->get_use_key_locked())) {
 		led_graphicsView->setFixedWidth((int)(100.0 * scaleFactor));
 	}
 	dummyStatusArea2->setFixedWidth((int)(108.0 * scaleFactor));
@@ -153,11 +153,11 @@ void Ui_MainWindowBase::resize_statusbar(int w, int h)
 		sfactor = 10;
 	}
 	dummyStatusArea1->setFixedWidth(sfactor);   
-	if((using_flags->get_use_extra_leds() > 0) || (using_flags->get_use_key_locked())) {
+	if((using_flags->get_use_led_devices() > 0) || (using_flags->get_use_key_locked())) {
 		QPen pen;
 		QBrush rbrush = QBrush(QColor(Qt::red));
 		QBrush bbrush = QBrush(QColor(Qt::black));
-		int _leds = using_flags->get_use_extra_leds();
+		int _leds = using_flags->get_use_led_devices();
 		float bitwidth;
 		float start;
 		
@@ -195,7 +195,7 @@ void Ui_MainWindowBase::redraw_leds(void)
 {
 		uint32_t drawflags;
 		int i;
-		int _leds = using_flags->get_use_extra_leds();
+		int _leds = using_flags->get_use_led_devices();
 		float bitwidth;
 		float start;
 		

@@ -8,7 +8,11 @@
  */
 
 #include <QVariant>
+#include <QApplication>
 #include <QtGui>
+#include <QActionGroup>
+#include <QMenu>
+
 #include "commonclasses.h"
 #include "menuclasses.h"
 #include "emu.h"
@@ -39,7 +43,6 @@ void Object_Menu_Control_MZ3500::set_dipsw(bool flag)
 	emit sig_dipsw(getValue1(), flag);
 }
 	
-
 void META_MainWindow::setupUI_Emu(void)
 {
 	int i;
@@ -78,18 +81,8 @@ void META_MainWindow::setupUI_Emu(void)
 
 void META_MainWindow::retranslateUi(void)
 {
-	int i;
+	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("Halt",  true);
-	retranslateFloppyMenu(0, 1);
-	retranslateFloppyMenu(1, 2);
-	retranslateFloppyMenu(2, 3);
-	retranslateFloppyMenu(3, 4);
-	retranslateMachineMenu();
-
-	retranslateSoundMenu();
-	retranslateScreenMenu();
-	retranslateEmulatorMenu();
-	retranslateUI_Help();
 	actionReset->setToolTip(QApplication::translate("MainWindow", "Do system reset.", 0));
 	actionSpecial_Reset->setToolTip(QApplication::translate("MainWindow", "HALT a machine.", 0));
    
@@ -101,6 +94,12 @@ void META_MainWindow::retranslateUi(void)
 
 	actionPrintDevice[1]->setText(QApplication::translate("MainWindow", "MZ-1P17", 0));
 	actionPrintDevice[1]->setToolTip(QApplication::translate("MainWindow", "Sharp MZ-1P17 kanji thermal printer.", 0));
+#if defined(USE_MONITOR_TYPE)
+	actionMonitorType[0]->setText(QApplication::translate("MachineMZ2500", "400Lines, Analog.", 0));
+	actionMonitorType[1]->setText(QApplication::translate("MachineMZ2500", "400Lines, Digital.", 0));
+	actionMonitorType[2]->setText(QApplication::translate("MachineMZ2500", "200Lines, Analog.", 0));
+	actionMonitorType[3]->setText(QApplication::translate("MachineMZ2500", "200Lines, Digital.", 0));
+#endif
 #if defined(USE_DEBUGGER)
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(true);

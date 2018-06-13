@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
+#include <QApplication>
 #include <QString>
 #include <QTextCodec>
 #include <QImage>
@@ -142,45 +143,26 @@ void Ui_MainWindow::LaunchEmuThread(void)
 			connect(actionSave_State[i], SIGNAL(sig_save_state(QString)), hRunEmu, SLOT(do_save_state(QString))); // OK?
 		}
 	}
-#if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
-    defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
+#if defined(USE_FLOPPY_DISK)
 	connect(this, SIGNAL(sig_write_protect_disk(int, bool)), hRunEmu, SLOT(do_write_protect_disk(int, bool)));
 	connect(this, SIGNAL(sig_open_disk(int, QString, int)), hRunEmu, SLOT(do_open_disk(int, QString, int)));
 	connect(this, SIGNAL(sig_close_disk(int)), hRunEmu, SLOT(do_close_disk(int)));
 	connect(hRunEmu, SIGNAL(sig_update_recent_disk(int)), this, SLOT(do_update_recent_disk(int)));
 	//connect(hRunEmu, SIGNAL(sig_change_osd_fd(int, QString)), this, SLOT(do_change_osd_fd(int, QString)));
-	drvs = 0;
-# if defined(USE_FD1)
-	drvs = 1;
-# endif
-# if defined(USE_FD2)
-	drvs = 2;
-# endif
-# if defined(USE_FD3)
-	drvs = 3;
-# endif
-# if defined(USE_FD4)
-	drvs = 4;
-# endif
-# if defined(USE_FD5)
-	drvs = 5;
-# endif
-# if defined(USE_FD6)
-	drvs = 6;
-# endif
-# if defined(USE_FD7)
-	drvs = 7;
-# endif
-# if defined(USE_FD8)
-	drvs = 8;
-# endif
+	drvs = USE_FLOPPY_DISK;
 	for(int ii = 0; ii < drvs; ii++) {
 		menu_fds[ii]->setEmu(emu);
 		connect(menu_fds[ii], SIGNAL(sig_update_inner_fd(int ,QStringList , class Action_Control **, QStringList , int, bool)),
 				this, SLOT(do_update_inner_fd(int ,QStringList , class Action_Control **, QStringList , int, bool)));
 	}
 #endif
-#if defined(USE_TAPE1)
+#if defined(USE_HARD_DISK)
+	connect(this, SIGNAL(sig_open_hard_disk(int, QString)), hRunEmu, SLOT(do_open_hard_disk(int, QString)));
+	connect(this, SIGNAL(sig_close_hard_disk(int)), hRunEmu, SLOT(do_close_hard_disk(int)));
+	connect(hRunEmu, SIGNAL(sig_update_recent_hard_disk(int)), this, SLOT(do_update_recent_hard_disk(int)));
+	//connect(hRunEmu, SIGNAL(sig_change_osd_fd(int, QString)), this, SLOT(do_change_osd_fd(int, QString)));
+#endif
+#if defined(USE_TAPE)
 	connect(this, SIGNAL(sig_play_tape(int, QString)), hRunEmu, SLOT(do_play_tape(int, QString)));
 	connect(this, SIGNAL(sig_rec_tape(int, QString)),  hRunEmu, SLOT(do_rec_tape(int, QString)));
 	connect(this, SIGNAL(sig_close_tape(int)),   hRunEmu, SLOT(do_close_tape(int)));
@@ -194,42 +176,38 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(this, SIGNAL(sig_cmt_push_apss_rewind(int)),  hRunEmu, SLOT(do_cmt_push_apss_rewind(int)));
 # endif
 #endif
-#if defined(USE_QD1)
+#if defined(USE_QUICK_DISK)
 	connect(this, SIGNAL(sig_write_protect_quickdisk(int, bool)), hRunEmu, SLOT(do_write_protect_quickdisk(int, bool)));
 	connect(this, SIGNAL(sig_open_quickdisk(int, QString)), hRunEmu, SLOT(do_open_quickdisk(int, QString)));
 	connect(this, SIGNAL(sig_close_quickdisk(int)), hRunEmu, SLOT(do_close_quickdisk(int)));
 	//connect(hRunEmu, SIGNAL(sig_change_osd_qd(int, QString)), this, SLOT(do_change_osd_qd(int, QString)));
 #endif
-#if defined(USE_CART1)
+#if defined(USE_CART)
 	connect(this, SIGNAL(sig_open_cart(int, QString)), hRunEmu, SLOT(do_open_cart(int, QString)));
 	connect(this, SIGNAL(sig_close_cart(int)), hRunEmu, SLOT(do_close_cart(int)));
 #endif
 #if defined(USE_COMPACT_DISC)
-	connect(this, SIGNAL(sig_open_cdrom(QString)), hRunEmu, SLOT(do_open_cdrom(QString)));
-	connect(this, SIGNAL(sig_close_cdrom()), hRunEmu, SLOT(do_eject_cdrom()));
+	connect(this, SIGNAL(sig_open_cdrom(int, QString)), hRunEmu, SLOT(do_open_cdrom(int, QString)));
+	connect(this, SIGNAL(sig_close_cdrom(int)), hRunEmu, SLOT(do_eject_cdrom(int)));
 	//connect(hRunEmu, SIGNAL(sig_change_osd_cdrom(QString)), this, SLOT(do_change_osd_cdrom(QString)));
+	// ToDo: multiple CDs
 #endif	
 #if defined(USE_LASER_DISC)
-	connect(this, SIGNAL(sig_open_laserdisc(QString)), hRunEmu, SLOT(do_open_laser_disc(QString)));
-	connect(this, SIGNAL(sig_close_laserdisc(void)), hRunEmu, SLOT(do_close_laser_disc(void)));
+	connect(this, SIGNAL(sig_open_laserdisc(int, QString)), hRunEmu, SLOT(do_open_laser_disc(int, QString)));
+	connect(this, SIGNAL(sig_close_laserdisc(int)), hRunEmu, SLOT(do_close_laser_disc(int)));
+	// ToDo: multiple LDs
 #endif
-#if defined(USE_BINARY_FILE1)
+#if defined(USE_BINARY_FILE)
 	connect(this, SIGNAL(sig_load_binary(int, QString)), hRunEmu, SLOT(do_load_binary(int, QString)));
 	connect(this, SIGNAL(sig_save_binary(int, QString)), hRunEmu, SLOT(do_save_binary(int, QString)));
 #endif
-#if defined(USE_BUBBLE1)
+#if defined(USE_BUBBLE)
 	connect(this, SIGNAL(sig_write_protect_bubble(int, bool)), hRunEmu, SLOT(do_write_protect_bubble_casette(int, bool)));
 	connect(this, SIGNAL(sig_open_bubble(int, QString, int)), hRunEmu, SLOT(do_open_bubble_casette(int, QString, int)));
 	connect(this, SIGNAL(sig_close_bubble(int)), hRunEmu, SLOT(do_close_bubble_casette(int)));
 	connect(hRunEmu, SIGNAL(sig_update_recent_bubble(int)), this, SLOT(do_update_recent_bubble(int)));
 	//connect(hRunEmu, SIGNAL(sig_change_osd_bubble(int, QString)), this, SLOT(do_change_osd_bubble(int, QString)));
-	drvs = 0;
-# if defined(USE_BUBBLE1)
-	drvs = 1;
-# endif
-# if defined(USE_BUBBLE2)
-	drvs = 2;
-# endif
+	drvs = USE_BUBBLE;
 	for(int ii = 0; ii < drvs; ii++) {
 		menu_bubbles[ii]->setEmu(emu);
 		connect(menu_bubbles[ii],
@@ -247,7 +225,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 #ifdef USE_TAPE_BUTTON
 	hRunEmu->set_tape_play(false);
 #endif
-#if defined(USE_KEY_LOCKED) || defined(USE_EXTRA_LEDS)
+#if defined(USE_KEY_LOCKED) || defined(USE_LED_DEVICE)
 	connect(hRunEmu, SIGNAL(sig_send_data_led(quint32)), this, SLOT(do_recv_data_led(quint32)));
 #endif
 #ifdef USE_AUTO_KEY
@@ -440,7 +418,7 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 	}
 #endif
 	if(statusUpdateTimer != NULL) statusUpdateTimer->stop();
-#if defined(USE_KEY_LOCKED) || defined(USE_EXTRA_LEDS)
+#if defined(USE_KEY_LOCKED) || defined(USE_LED_DEVICE)
 	if(ledUpdateTimer != NULL) ledUpdateTimer->stop();
 #endif
 	emit quit_draw_thread();
@@ -598,6 +576,7 @@ static void setup_logs(void)
 CSP_Logger *csp_logger;
 QStringList virtualMediaList; // {TYPE, POSITION}
 QCommandLineOption *_opt_fds[8];
+QCommandLineOption *_opt_hdds[8];
 QCommandLineOption *_opt_cmts[2];
 QCommandLineOption *_opt_lds[2];
 QCommandLineOption *_opt_cds[2];
@@ -620,8 +599,8 @@ std::string config_fullpath;
 
 void SetFDOptions(QCommandLineParser *cmdparser)
 {
-#if defined(USE_FD1)
-	for(int i = 0; i < MAX_FD; i++) {
+#if defined(USE_FLOPPY_DISK)
+	for(int i = 0; i < USE_FLOPPY_DISK; i++) {
 		QString sfdType1 = QString::fromUtf8("fd%1").arg(i);
 		QString sfdType2 = QString::fromUtf8("vFd%1").arg(i);
 		QString sfdType3 = QString::fromUtf8("vFloppyDisk%1").arg(i);
@@ -636,10 +615,30 @@ void SetFDOptions(QCommandLineParser *cmdparser)
 #endif
 }
 
+void SetHDDOptions(QCommandLineParser *cmdparser)
+{
+#if defined(USE_HARD_DISK)
+	for(int i = 0; i < USE_HARD_DISK; i++) {
+		QString sfdType1 = QString::fromUtf8("hd%1").arg(i);
+		QString sfdType2 = QString::fromUtf8("vHd%1").arg(i);
+		QString sfdType3 = QString::fromUtf8("vHardDisk%1").arg(i);
+		QString sfdType4 = QString::fromUtf8("vHardDrive%1").arg(i);
+		QStringList _cl;
+	 	_cl.append(sfdType1);
+	 	_cl.append(sfdType2);
+	 	_cl.append(sfdType3);
+	 	_cl.append(sfdType4);
+		_opt_hdds[i] = new QCommandLineOption(_cl,QCoreApplication::translate("main", "Set virtual hard drive %1.").arg(i) , "[D88_SLOT@]fullpath");
+		cmdparser->addOption(*_opt_hdds[i]);
+		_cl.clear();
+	}
+#endif
+}
+
 void SetBinaryOptions(QCommandLineParser *cmdparser)
 {
-#if defined(USE_BINARY_FILE1)
-	for(int i = 0; i < MAX_BINARY; i++) {
+#if defined(USE_BINARY_FILE)
+	for(int i = 0; i < USE_BINARY_FILE; i++) {
 		QString sfdType1 = QString::fromUtf8("bin%1").arg(i);
 		QString sfdType2 = QString::fromUtf8("vBinary%1").arg(i);
 		QStringList _cl;
@@ -654,8 +653,8 @@ void SetBinaryOptions(QCommandLineParser *cmdparser)
 
 void SetCartOptions(QCommandLineParser *cmdparser)
 {
-#if defined(USE_CART1)
-	for(int i = 0; i < MAX_CART; i++) {
+#if defined(USE_CART)
+	for(int i = 0; i < USE_CART; i++) {
 		QString sfdType1 = QString::fromUtf8("cart%1").arg(i);
 		QString sfdType2 = QString::fromUtf8("vCart%1").arg(i);
 		QString sfdType3 = QString::fromUtf8("vCartridge%1").arg(i);
@@ -671,8 +670,8 @@ void SetCartOptions(QCommandLineParser *cmdparser)
 }
 void SetBubbleOptions(QCommandLineParser *cmdparser)
 {
-#if defined(USE_BUBBLE1)
-	for(int i = 0; i < MAX_BUBBLE; i++) {
+#if defined(USE_BUBBLE)
+	for(int i = 0; i < USE_BUBBLE; i++) {
 		QString sfdType1 = QString::fromUtf8("bub%1").arg(i);
 		QString sfdType2 = QString::fromUtf8("vBubble%1").arg(i);
 		QStringList _cl;
@@ -687,7 +686,7 @@ void SetBubbleOptions(QCommandLineParser *cmdparser)
 void SetLDOptions(QCommandLineParser *cmdparser)
 {
 #if defined(USE_LASER_DISC)
-	for(int i = 0; i < 1; i++) {
+	for(int i = 0; i < USE_LASER_DISC; i++) {
 		QString sfdType1 = QString::fromUtf8("ld%1").arg(i);
 		QString sfdType2 = QString::fromUtf8("vLaserDisc%1").arg(i);
 		QStringList _cl;
@@ -702,7 +701,7 @@ void SetLDOptions(QCommandLineParser *cmdparser)
 void SetCDOptions(QCommandLineParser *cmdparser)
 {
 #if defined(USE_COMPACT_DISC)
-	for(int i = 0; i < 1; i++) {
+	for(int i = 0; i < USE_COMPACT_DISC; i++) {
 		QString sfdType1 = QString::fromUtf8("cd%1").arg(i);
 		QString sfdType2 = QString::fromUtf8("vCompactDisc%1").arg(i);
    		QStringList _cl;
@@ -717,8 +716,8 @@ void SetCDOptions(QCommandLineParser *cmdparser)
 
 void SetCmtOptions(QCommandLineParser *cmdparser)
 {
-#if defined(USE_TAPE1)
-	for(int i = 0; i < MAX_TAPE; i++) {
+#if defined(USE_TAPE)
+	for(int i = 0; i < USE_TAPE; i++) {
 		QString sfdType1 = QString::fromUtf8("cmt%1").arg(i);
 		QString sfdType2 = QString::fromUtf8("tape%1").arg(i);
 		QString sfdType3 = QString::fromUtf8("vCmt%1").arg(i);
@@ -737,8 +736,8 @@ void SetCmtOptions(QCommandLineParser *cmdparser)
 
 void SetQuickDiskOptions(QCommandLineParser *cmdparser)
 {
-#if defined(USE_QD1)
-	for(int i = 0; i < MAX_QD; i++) {
+#if defined(USE_QUICK_DISK)
+	for(int i = 0; i < USE_QUICK_DISK; i++) {
 		QString sfdType1 = QString::fromUtf8("qd%1").arg(i);
 		QString sfdType2 = QString::fromUtf8("vQuickDisk%1").arg(i);
 
@@ -755,8 +754,8 @@ void SetQuickDiskOptions(QCommandLineParser *cmdparser)
 
 void SetProcCmdFD(QCommandLineParser *cmdparser, QStringList *_l)
 {
-#if defined(USE_FD1)
-	for(int i = 0; i < MAX_FD; i++) {
+#if defined(USE_FLOPPY_DISK)
+	for(int i = 0; i < USE_FLOPPY_DISK; i++) {
 		if(_opt_fds[i] != NULL) {
 			if(cmdparser->isSet(*_opt_fds[i])) {
 				QString sfdType = QString::fromUtf8("vFloppyDisk%1").arg(i);
@@ -769,10 +768,26 @@ void SetProcCmdFD(QCommandLineParser *cmdparser, QStringList *_l)
 #endif
 }
 
+void SetProcCmdHDD(QCommandLineParser *cmdparser, QStringList *_l)
+{
+#if defined(USE_HARD_DISK)
+	for(int i = 0; i < USE_HARD_DISK; i++) {
+		if(_opt_hdds[i] != NULL) {
+			if(cmdparser->isSet(*_opt_hdds[i])) {
+				QString sfdType = QString::fromUtf8("vHardDisk%1").arg(i);
+				QString medianame = cmdparser->value(*_opt_hdds[i]);
+				_l->append(sfdType);
+				_l->append(medianame);
+			}
+		}
+	}
+#endif
+}
+
 void SetProcCmdQuickDisk(QCommandLineParser *cmdparser, QStringList *_l)
 {
-#if defined(USE_QD1)
-	for(int i = 0; i < MAX_QD; i++) {
+#if defined(USE_QUICK_DISK)
+	for(int i = 0; i < USE_QUICK_DISK; i++) {
 		if(_opt_qds[i] != NULL) {
 			if(cmdparser->isSet(*_opt_qds[i])) {
 				QString sfdType = QString::fromUtf8("vQuickDisk%1").arg(i);
@@ -787,8 +802,8 @@ void SetProcCmdQuickDisk(QCommandLineParser *cmdparser, QStringList *_l)
 
 void SetProcCmdCmt(QCommandLineParser *cmdparser, QStringList *_l)
 {
-#if defined(USE_TAPE1)
-	for(int i = 0; i < MAX_TAPE; i++) {
+#if defined(USE_TAPE)
+	for(int i = 0; i < USE_TAPE; i++) {
 		if(_opt_cmts[i] != NULL) {
 			if(cmdparser->isSet(*_opt_cmts[i])) {
 				QString sfdType = QString::fromUtf8("vCmt%1").arg(i);
@@ -803,8 +818,8 @@ void SetProcCmdCmt(QCommandLineParser *cmdparser, QStringList *_l)
 
 void SetProcCmdBinary(QCommandLineParser *cmdparser, QStringList *_l)
 {
-#if defined(USE_BINARY_FILE1)
-	for(int i = 0; i < MAX_BINARY; i++) {
+#if defined(USE_BINARY_FILE)
+	for(int i = 0; i < USE_BINARY_FILE; i++) {
 		if(_opt_binaries[i] != NULL) {
 			if(cmdparser->isSet(*_opt_binaries[i])) {
 				QString sfdType = QString::fromUtf8("vBinary%1").arg(i);
@@ -819,8 +834,8 @@ void SetProcCmdBinary(QCommandLineParser *cmdparser, QStringList *_l)
 
 void SetProcCmdBubble(QCommandLineParser *cmdparser, QStringList *_l)
 {
-#if defined(USE_BUBBLE1)
-	for(int i = 0; i < MAX_BUBBLE; i++) {
+#if defined(USE_BUBBLE)
+	for(int i = 0; i < USE_BUBBLE; i++) {
 		if(_opt_bubbles[i] != NULL) {
 			if(cmdparser->isSet(*_opt_bubbles[i])) {
 				QString sfdType = QString::fromUtf8("vBubble%1").arg(i);
@@ -835,8 +850,8 @@ void SetProcCmdBubble(QCommandLineParser *cmdparser, QStringList *_l)
 
 void SetProcCmdCart(QCommandLineParser *cmdparser, QStringList *_l)
 {
-#if defined(USE_CART1)
-	for(int i = 0; i < MAX_CART; i++) {
+#if defined(USE_CART)
+	for(int i = 0; i < USE_CART; i++) {
 		if(_opt_carts[i] != NULL) {
 			if(cmdparser->isSet(*_opt_carts[i])) {
 				QString sfdType = QString::fromUtf8("vCart%1").arg(i);
@@ -852,7 +867,7 @@ void SetProcCmdCart(QCommandLineParser *cmdparser, QStringList *_l)
 void SetProcCmdLD(QCommandLineParser *cmdparser, QStringList *_l)
 {
 #if defined(USE_LASER_DISC)
-	for(int i = 0; i < 1; i++) {
+	for(int i = 0; i < USE_LASER_DISC; i++) {
 		if(_opt_lds[i] != NULL) {
 			if(cmdparser->isSet(*_opt_lds[i])) {
 				QString sfdType = QString::fromUtf8("vLD%1").arg(i);
@@ -868,7 +883,7 @@ void SetProcCmdLD(QCommandLineParser *cmdparser, QStringList *_l)
 void SetProcCmdCD(QCommandLineParser *cmdparser, QStringList *_l)
 {
 #if defined(USE_COMPACT_DISC)
-	for(int i = 0; i < 1; i++) {
+	for(int i = 0; i < USE_COMPACT_DISC; i++) {
 		if(_opt_cds[i] != NULL) {
 			if(cmdparser->isSet(*_opt_cds[i])) {
 				QString sfdType = QString::fromUtf8("vCD%1").arg(i);
@@ -937,6 +952,7 @@ void SetOptions(QCommandLineParser *cmdparser)
 	
 	for(int i = 0; i < 8; i++) {
 		_opt_fds[i] = NULL;
+		_opt_hdds[i] = NULL;
 		_opt_qds[i] = NULL;
 		_opt_bubbles[i] = NULL;
 		_opt_binaries[i] = NULL;
@@ -957,6 +973,7 @@ void SetOptions(QCommandLineParser *cmdparser)
     cmdparser->addOption(*_opt_dipsw_off);
 
 	SetFDOptions(cmdparser);
+	SetHDDOptions(cmdparser);
 	//SetBinaryOptions(cmdparser); // Temporally disabled.
 	SetCmtOptions(cmdparser);
 	SetCartOptions(cmdparser);
@@ -980,6 +997,7 @@ void ProcessCmdLine(QCommandLineParser *cmdparser, QStringList *_l)
 #endif
 	
 	SetProcCmdFD(cmdparser, _l);
+	SetProcCmdHDD(cmdparser, _l);
 	SetProcCmdQuickDisk(cmdparser, _l);
 	SetProcCmdCmt(cmdparser, _l);
 	SetProcCmdCart(cmdparser, _l);
@@ -1224,6 +1242,11 @@ void SetupLogger(std::string emustr, int _size)
 	csp_logger->set_log_stdout(CSP_LOG_DEBUG, true);
 	csp_logger->set_log_stdout(CSP_LOG_INFO, true);
 	csp_logger->set_log_stdout(CSP_LOG_WARN, true);
+	
+	csp_logger->set_state_log(0, config.state_log_to_recording);
+	csp_logger->set_state_log(1, config.state_log_to_syslog);
+	csp_logger->set_state_log(2, config.state_log_to_console);
+	
 	for(int ii = 0; ii < _size; ii++) {
 		for(int jj = 0; jj < 8; jj++) {
 			csp_logger->set_device_node_log(ii, 1, jj, config.dev_log_to_syslog[ii][jj]);
@@ -1345,7 +1368,7 @@ int MainLoop(int argc, char *argv[])
 void Ui_MainWindow::do_update_inner_fd(int drv, QStringList base, class Action_Control **action_select_media_list,
 				       QStringList lst, int num, bool use_d88_menus)
 {
-#if defined(USE_FD1)
+#if defined(USE_FLOPPY_DISK)
 	if(use_d88_menus) {
 		for(int ii = 0; ii < using_flags->get_max_d88_banks(); ii++) {
 			if(ii < emu->d88_file[drv].bank_num) {
@@ -1367,7 +1390,7 @@ void Ui_MainWindow::do_update_inner_fd(int drv, QStringList base, class Action_C
 void Ui_MainWindow::do_update_inner_bubble(int drv, QStringList base, class Action_Control **action_select_media_list,
 				       QStringList lst, int num, bool use_d88_menus)
 {
-#if defined(USE_BUBBLE1)	
+#if defined(USE_BUBBLE)	
 	if(use_d88_menus) {
 		for(int ii = 0; ii < using_flags->get_max_b77_banks(); ii++) {
 			if(ii < emu->b77_file[drv].bank_num) {

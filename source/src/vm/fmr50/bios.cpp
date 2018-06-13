@@ -11,6 +11,7 @@
 
 #include "bios.h"
 #include "../disk.h"
+#include "../harddisk.h"
 
 // regs
 #define AX	regs[0]
@@ -262,32 +263,6 @@ void BIOS::initialize()
 {
 	// to increment timeout counter
 	register_frame_event(this);
-	
-	// check scsi drives
-	FILEIO* fio = new FILEIO();
-	for(int i = 0; i < MAX_SCSI; i++) {
-		if(fio->Fopen(create_local_path(_T("SCSI%d.DAT"), i), FILEIO_READ_WRITE_BINARY)) {
-			uint32_t file_size = fio->FileLength();
-			if(file_size == 0) {
-				// from ../scsi_hdd.cpp
-				#define SCSI_BUFFER_SIZE	0x10000
-				uint32_t remain = (file_size = 0x2800000); // 40MB
-				void *tmp = calloc(1, SCSI_BUFFER_SIZE);
-				while(remain > 0) {
-					uint32_t length = min(remain, (uint32_t)SCSI_BUFFER_SIZE);
-					fio->Fwrite(tmp, length, 1);
-					remain -= length;
-				}
-				free(tmp);
-				#undef SCSI_BUFFER_SIZE
-			}
-			scsi_blocks[i] = file_size / BLOCK_SIZE;
-			fio->Fclose();
-		} else {
-			scsi_blocks[i] = 0;
-		}
-	}
-	delete fio;
 }
 
 void BIOS::reset()
@@ -297,8 +272,12 @@ void BIOS::reset()
 		drive_mode1[i] = 0x03;	// MFM, 2HD, 1024B
 		drive_mode2[i] = 0x208;	// 2 Heads, 8 sectors
 	}
-	for(int i = 0; i < MAX_SCSI; i++) {
-		access_scsi[i] = false;
+	for(int i = 0; i < USE_HARD_DISK; i++) {
+		if(harddisk[i] != NULL && harddisk[i]->mounted()) {
+			scsi_blocks[i] = harddisk[i]->cylinders * harddisk[i]->surfaces * harddisk[i]->sectors * harddisk[i]->sector_size / BLOCK_SIZE;
+		} else {
+			scsi_blocks[i] = 0;
+		}
 	}
 	secnum = 1;
 	timeout = 0;
@@ -385,7 +364,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 			}
 			if((AL & 0xf0) == 0xb0) {
 				// scsi
-				if(!(drv < MAX_SCSI && scsi_blocks[drv])) {
+				if(!(drv < USE_HARD_DISK && scsi_blocks[drv])) {
 					AH = 0x80;
 					CX = ERR_SCSI_NOTCONNECTED;
 					*CarryFlag = 1;
@@ -419,7 +398,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 			}
 			if((AL & 0xf0) == 0xb0) {
 				// scsi
-				if(!(drv < MAX_SCSI && scsi_blocks[drv])) {
+				if(!(drv < USE_HARD_DISK && scsi_blocks[drv])) {
 					AH = 0x80;
 					CX = ERR_SCSI_NOTCONNECTED;
 					*CarryFlag = 1;
@@ -506,37 +485,33 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 			}
 			if((AL & 0xf0) == 0xb0) {
 				// scsi
-				if(!(drv < MAX_SCSI && scsi_blocks[drv])) {
+				if(!(drv < USE_HARD_DISK && scsi_blocks[drv])) {
 					AH = 0x80;
 					CX = ERR_SCSI_NOTCONNECTED;
 					*CarryFlag = 1;
 					return true;
 				}
-				FILEIO* fio = new FILEIO();
-				if(!fio->Fopen(create_local_path(_T("SCSI%d.DAT"), drv), FILEIO_READ_BINARY)) {
+				if(!(harddisk[drv] != NULL && harddisk[drv]->mounted())) {
 					AH = 0x80;
 					CX = ERR_SCSI_NOTREADY;
 					*CarryFlag = 1;
-					delete fio;
 					return true;
 				}
 				// get params
 				int ofs = DS * 16 + DI;
 				int block = (CL << 16) | DX;
-				fio->Fseek(block * BLOCK_SIZE, FILEIO_SEEK_SET);
+				long position = block * BLOCK_SIZE;
 				while(BX > 0) {
 					// check block
-					access_scsi[drv] = true;
 					if(!(block++ < scsi_blocks[drv])) {
 						AH = 0x80;
 						CX = ERR_SCSI_PARAMERROR;
 						*CarryFlag = 1;
-						fio->Fclose();
-						delete fio;
 						return true;
 					}
 					// data transfer
-					fio->Fread(buffer, BLOCK_SIZE, 1);
+					harddisk[drv]->read_buffer(position, BLOCK_SIZE, buffer);
+					position += BLOCK_SIZE;
 					for(int i = 0; i < BLOCK_SIZE; i++) {
 						d_mem->write_data8(ofs++, buffer[i]);
 					}
@@ -545,8 +520,6 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				AH = 0;
 				CX = 0;
 				*CarryFlag = 0;
-				fio->Fclose();
-				delete fio;
 				return true;
 			}
 			AH = 2;
@@ -620,47 +593,41 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 			}
 			if((AL & 0xf0) == 0xb0) {
 				// scsi
-				if(!(drv < MAX_SCSI && scsi_blocks[drv])) {
+				if(!(drv < USE_HARD_DISK && scsi_blocks[drv])) {
 					AH = 0x80;
 					CX = ERR_SCSI_NOTCONNECTED;
 					*CarryFlag = 1;
 					return true;
 				}
-				FILEIO* fio = new FILEIO();
-				if(!fio->Fopen(create_local_path(_T("SCSI%d.DAT"), drv), FILEIO_READ_WRITE_BINARY)) {
+				if(!(harddisk[drv] != NULL && harddisk[drv]->mounted())) {
 					AH = 0x80;
 					CX = ERR_SCSI_NOTREADY;
 					*CarryFlag = 1;
-					delete fio;
 					return true;
 				}
 				// get params
 				int ofs = DS * 16 + DI;
 				int block = (CL << 16) | DX;
-				fio->Fseek(block * BLOCK_SIZE, FILEIO_SEEK_SET);
+				long position = block * BLOCK_SIZE;
 				while(BX > 0) {
 					// check block
-					access_scsi[drv] = true;
 					if(!(block++ < scsi_blocks[drv])) {
 						AH = 0x80;
 						CX = ERR_SCSI_PARAMERROR;
 						*CarryFlag = 1;
-						fio->Fclose();
-						delete fio;
 						return true;
 					}
 					// data transfer
 					for(int i = 0; i < BLOCK_SIZE; i++) {
 						buffer[i] = d_mem->read_data8(ofs++);
 					}
-					fio->Fwrite(buffer, BLOCK_SIZE, 1);
+					harddisk[drv]->write_buffer(position, BLOCK_SIZE, buffer);
+					position += BLOCK_SIZE;
 					BX--;
 				}
 				AH = 0;
 				CX = 0;
 				*CarryFlag = 0;
-				fio->Fclose();
-				delete fio;
 				return true;
 			}
 			AH = 2;
@@ -728,7 +695,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 			}
 			if((AL & 0xf0) == 0xb0) {
 				// scsi
-				if(!(drv < MAX_SCSI && scsi_blocks[drv])) {
+				if(!(drv < USE_HARD_DISK && scsi_blocks[drv])) {
 					AH = 0x80;
 					CX = ERR_SCSI_NOTCONNECTED;
 					*CarryFlag = 1;
@@ -738,7 +705,6 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				int block = (CL << 16) | DX;
 				while(BX > 0) {
 					// check block
-					access_scsi[drv] = true;
 					if(!(block++ < scsi_blocks[drv])) {
 						AH = 0x80;
 						CX = ERR_SCSI_PARAMERROR;
@@ -909,7 +875,7 @@ write_id:
 			}
 			if((AL & 0xf0) == 0xb0) {
 				// scsi
-				if(!(drv < MAX_SCSI && scsi_blocks[drv])) {
+				if(!(drv < USE_HARD_DISK && scsi_blocks[drv])) {
 					AH = 3;	// ???
 					CX = 0;
 					*CarryFlag = 1;
@@ -935,7 +901,7 @@ write_id:
 			}
 			if((AL & 0xf0) == 0xb0) {
 				// scsi
-				if(!(drv < MAX_SCSI && scsi_blocks[drv])) {
+				if(!(drv < USE_HARD_DISK && scsi_blocks[drv])) {
 					AH = 0x80;
 					CX = ERR_SCSI_NOTCONNECTED;
 					*CarryFlag = 1;
@@ -960,7 +926,7 @@ write_id:
 			}
 			if((AL & 0xf0) == 0xb0) {
 				// scsi
-				if(!(drv < MAX_SCSI && scsi_blocks[drv])) {
+				if(!(drv < USE_HARD_DISK && scsi_blocks[drv])) {
 					AH = 0;
 					CX = 0x200;	// ???
 					*CarryFlag = 0;
@@ -1058,17 +1024,12 @@ write_id:
 				*CarryFlag = 1;
 				return true;
 			}
-			FILEIO* fio = new FILEIO();
-			if(!fio->Fopen(create_local_path(_T("SCSI%d.DAT"), drv), FILEIO_READ_BINARY)) {
+			if(!(harddisk[drv] != NULL && harddisk[drv]->mounted())) {
 				*CarryFlag = 1;
-				delete fio;
 				return true;
 			}
 			// load ipl
-			access_scsi[drv] = true;
-			fio->Fread(buffer, BLOCK_SIZE * 4, 1);
-			fio->Fclose();
-			delete fio;
+			harddisk[drv]->read_buffer(0, BLOCK_SIZE * 4, buffer);
 			// check ipl
 			if(!(buffer[0] == 'I' && buffer[1] == 'P' && buffer[2] == 'L' && buffer[3] == IPL_ID)) {
 				*CarryFlag = 1;
@@ -1163,13 +1124,6 @@ uint32_t BIOS::read_signal(int ch)
 				stat |= 1 << i;
 			}
 			access_fdd[i] = false;
-		}
-	} else if(ch == 1) {
-		for(int i = 0; i < MAX_SCSI; i++) {
-			if(access_scsi[i]) {
-				stat |= 1 << i;
-			}
-			access_scsi[i] = false;
 		}
 	}
 	return stat;

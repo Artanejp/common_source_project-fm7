@@ -6,6 +6,7 @@
 	NEC PC-9801VM Emulator 'ePC-9801VM'
 	NEC PC-9801VX Emulator 'ePC-9801VX'
 	NEC PC-9801RA Emulator 'ePC-9801RA'
+	NEC PC-98XA Emulator 'ePC-98XA'
 	NEC PC-98XL Emulator 'ePC-98XL'
 	NEC PC-98RL Emulator 'ePC-98RL'
 	NEC PC-98DO Emulator 'ePC-98DO'
@@ -25,6 +26,9 @@
 #include "../beep.h"
 #endif
 #include "../disk.h"
+#if defined(USE_HARD_DISK)
+#include "../harddisk.h"
+#endif
 #include "../i8237.h"
 #include "../i8251.h"
 #include "../i8253.h"
@@ -47,6 +51,10 @@
 #endif
 //#include "../pcpr201.h"
 #include "../prnfile.h"
+#if defined(SUPPORT_SASI_IF) || defined(SUPPORT_SCSI_IF)
+#include "../scsi_hdd.h"
+#include "../scsi_host.h"
+#endif
 #include "../tms3631.h"
 #include "../upd1990a.h"
 #include "../upd7220.h"
@@ -211,6 +219,29 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	noise_seek = new NOISE(this, emu);
 	noise_head_down = new NOISE(this, emu);
 	noise_head_up = new NOISE(this, emu);
+#if defined(SUPPORT_SASI_IF)
+	sasi_host = new SCSI_HOST(this, emu);
+	sasi_hdd = new SCSI_HDD(this, emu);
+	sasi_hdd->set_device_name(_T("SASI Hard Disk Drive"));
+	sasi_hdd->scsi_id = 0;
+	sasi_hdd->bytes_per_sec = 625 * 1024; // 625KB/s
+	for(int i = 0; i < USE_HARD_DISK; i++) {
+		sasi_hdd->set_disk_handler(i, new HARDDISK(emu));
+	}
+	sasi_hdd->set_context_interface(sasi_host);
+	sasi_host->set_context_target(sasi_hdd);
+#endif
+#if defined(SUPPORT_SCSI_IF)
+	scsi_host = new SCSI_HOST(this, emu);
+	for(int i = 0; i < USE_HARD_DISK; i++) {
+		scsi_hdd[i] = new SCSI_HDD(this, emu);
+		scsi_hdd[i]->set_device_name(_T("SCSI Hard Disk Drive #%d"), i + 1);
+		scsi_hdd[i]->scsi_id = i;
+		scsi_hdd[i]->set_disk_handler(0, new HARDDISK(emu));
+		scsi_hdd[i]->set_context_interface(scsi_host);
+		scsi_host->set_context_target(scsi_hdd[i]);
+	}
+#endif
 	gdc_chr = new UPD7220(this, emu);
 	gdc_chr->set_device_name(_T("uPD7220 GDC (Character)"));
 	gdc_gfx = new UPD7220(this, emu);
@@ -435,19 +466,32 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	floppy->set_context_pic(pic);
 	
 #if defined(SUPPORT_SASI_IF)
+#if !defined(SUPPORT_HIRESO)
+	sasi_host->set_context_irq(pio_sys, SIG_I8255_PORT_B, 0x10);
+#endif
+	sasi_host->set_context_irq(sasi, SIG_SASI_IRQ, 1);
+	sasi_host->set_context_drq(sasi, SIG_SASI_DRQ, 1);
+#ifdef _PC98XA
+	dma->set_context_ch3(sasi_host);
+	dma->set_context_tc3(sasi, SIG_SASI_TC, 1);
+#else
+	dma->set_context_ch0(sasi_host);
+	dma->set_context_tc0(sasi, SIG_SASI_TC, 1);
+#endif
+	sasi->set_context_host(sasi_host);
+	sasi->set_context_hdd(sasi_hdd);
 	sasi->set_context_dma(dma);
 	sasi->set_context_pic(pic);
-	dma->set_context_ch0(sasi);
 #endif
 #if defined(SUPPORT_SCSI_IF)
+	dma->set_context_ch0(scsi);
 	scsi->set_context_dma(dma);
 	scsi->set_context_pic(pic);
-	dma->set_context_ch0(scsi);
 #endif
 #if defined(SUPPORT_IDE_IF)
+	dma->set_context_ch0(ide);
 	ide->set_context_dma(dma);
 	ide->set_context_pic(pic);
-	dma->set_context_ch0(ide);
 #endif
 	
 #if defined(SUPPORT_CMT_IF)
@@ -550,9 +594,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	io->set_iomap_alias_rw(0x0041, sio_kbd, 0);
 	io->set_iomap_alias_rw(0x0043, sio_kbd, 1);
 	
-#if !defined(_PC9801U)
-	io->set_iomap_single_w(0x0050, dummy); // NMI disabled
-	io->set_iomap_single_w(0x0052, dummy); // NMI enabled
+#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
+	io->set_iomap_single_w(0x0050, cpureg);
+	io->set_iomap_single_w(0x0052, cpureg);
 #endif
 	
 #if defined(SUPPORT_320KB_FDD_IF)
@@ -639,22 +683,24 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	io->set_iomap_alias_rw(0x0075, pit, 2);
 	io->set_iomap_alias_w (0x0077, pit, 3);
 	
-	// 80h, 82h: SASI
-	
 	io->set_iomap_single_rw(0x0090, floppy);
 	io->set_iomap_single_rw(0x0092, floppy);
 	io->set_iomap_single_rw(0x0094, floppy);
+	io->set_iomap_single_rw(0x0096, floppy);
 #if defined(SUPPORT_2HD_2DD_FDD_IF)
 #if !defined(SUPPORT_HIRESO)
 	io->set_iomap_single_rw(0x00be, floppy);
 #else
+//#if !defined(_PC98XA) && !defined(_PC98XL)
 	io->set_iomap_single_w (0x00be, floppy);
+//#endif
 #endif
 #endif
 #if !defined(SUPPORT_HIRESO)
 	io->set_iomap_single_rw(0x00c8, floppy);
 	io->set_iomap_single_rw(0x00ca, floppy);
 	io->set_iomap_single_rw(0x00cc, floppy);
+	io->set_iomap_single_rw(0x00ce, floppy);
 #endif
 	
 #if defined(SUPPORT_CMT_IF)
@@ -696,6 +742,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 //		io->set_iovalue_single_r(0x018e, 0xc0); // INT6
 	}
 	
+//#if !defined(SUPPORT_HIRESO)
+//	io->set_iovalue_single_r(0x0431, 0x04); // bit2: 1 = Normal mode, 0 = Hireso mode
+//#else
+//	io->set_iovalue_single_r(0x0431, 0x00);
+//#endif
 #if defined(SUPPORT_ITF_ROM)
 	io->set_iomap_single_w(0x043d, memory);
 #endif
@@ -703,7 +754,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	io->set_iomap_single_w(0x043f, memory);
 #endif
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
+#if !defined(_PC98XA)
 	io->set_iomap_single_rw(0x0439, memory);
+#endif
 #if !defined(SUPPORT_HIRESO)
 	io->set_iomap_single_rw(0x0461, memory);
 	io->set_iomap_single_rw(0x0463, memory);
@@ -729,14 +782,12 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	io->set_iomap_alias_rw(0x7fdb, pio_mouse, 1);
 	io->set_iomap_alias_rw(0x7fdd, pio_mouse, 2);
 	io->set_iomap_alias_w (0x7fdf, pio_mouse, 3);
+	io->set_iomap_single_rw(0xbfdb, mouse);
 #else
 	io->set_iomap_alias_rw(0x0061, pio_mouse, 0);
 	io->set_iomap_alias_rw(0x0063, pio_mouse, 1);
 	io->set_iomap_alias_rw(0x0065, pio_mouse, 2);
 	io->set_iomap_alias_rw(0x0067, pio_mouse, 3);
-#endif
-#if !(defined(_PC9801) || defined(_PC9801E) || defined(SUPPORT_HIRESO))
-	io->set_iomap_single_rw(0xbfdb, mouse);
 #endif
 	
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
@@ -849,11 +900,13 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pc88cpu_sub->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 #endif
-	
+
 	// initialize all devices
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
+	decl_state();
+	
 #if defined(_PC9801) || defined(_PC9801E)
 	fdc_2hd->get_disk_handler(0)->drive_num = 0;
 	fdc_2hd->get_disk_handler(1)->drive_num = 1;
@@ -872,6 +925,31 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #else
 	fdc->get_disk_handler(0)->drive_num = 0;
 	fdc->get_disk_handler(1)->drive_num = 1;
+#endif
+#if defined(USE_HARD_DISK)
+	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
+#if defined(SUPPORT_SASI_IF)
+	#if defined(OPEN_HARD_DISK_IN_RESET)
+		create_local_path(hd_file_path[drv], _MAX_PATH, _T("SASI%d.DAT"), drv);
+	#else
+		open_hard_disk_tmp(drv, create_local_path(_T("SASI%d.DAT"), drv));
+	#endif
+#endif
+#if defined(SUPPORT_SCSI_IF)
+	#if defined(OPEN_HARD_DISK_IN_RESET)
+		create_local_path(hd_file_path[drv], _MAX_PATH, _T("SCSI%d.DAT"), drv);
+	#else
+		open_hard_disk_tmp(drv, create_local_path(_T("SCSI%d.DAT"), drv));
+	#endif
+#endif
+#if defined(SUPPORT_IDE_IF)
+	#if defined(OPEN_HARD_DISK_IN_RESET)
+		create_local_path(hd_file_path[drv], _MAX_PATH, _T("IDE%d.DAT"),  drv);
+	#else
+		open_hard_disk_tmp(drv, create_local_path(_T("IDE%d.DAT"), drv));
+	#endif
+#endif
+	}
 #endif
 }
 
@@ -913,40 +991,103 @@ void VM::reset()
 #endif
 	
 	// initial device settings
-	pio_mouse->write_signal(SIG_I8255_PORT_A, 0xf0, 0xff);	// clear mouse status
-	pio_mouse->write_signal(SIG_I8255_PORT_B, 0x40, 0xff);	// cpu high & sw3-6
-	uint8_t port_c = 0x08;	// normal mode & sw1-5 & sw1-6
-#if defined(HAS_V30) || defined(HAS_V33)
-	port_c |= 0x04;		// V30
-#endif
-	pio_mouse->write_signal(SIG_I8255_PORT_C, 0x40, 0xff);
+	uint8_t port_a, port_b, port_c;
 	
-	pio_sys->write_signal(SIG_I8255_PORT_A, 0xe3, 0xff);
-	pio_sys->write_signal(SIG_I8255_PORT_B, 0xf8, 0xff);//0xe8??
-	pio_sys->write_signal(SIG_I8255_PORT_C, 0xff, 0xff);
-	
-#if defined(_PC9801)
-	uint8_t prn_b = 0x00;	// system type = first PC-9801
-#elif defined(_PC9801U)
-	uint8_t prn_b = 0xc0;	// system type = PC-9801U,PC-98LT,PC-98HA
+	port_a  = 0xf0; // Clear mouse buttons and counters
+	port_b  = 0x00;
+#if defined(_PC98XA)
+	port_b |= (uint8_t)((RAM_SIZE - 0x100000) / 0x40000);
 #else
-	uint8_t prn_b = 0x80;	// system type = others
+#if defined(SUPPORT_HIRESO)
+	port_b |= 0x80; // DIP SW 1-4, 1 = External FDD #3/#4, 0 = #1/#2
+#endif
+	port_b |= 0x40; // DIP SW 3-6, 1 = Enable internal RAM 80000h-9FFFFh
+#if defined(_PC98RL)
+	port_b |= 0x10; // DIP SW 3-3, 1 = DMA ch.0 for SASI-HDD
+#endif
+#if defined(USE_CPU_TYPE)
+	if(config.cpu_type != 0) {
+#if !defined(SUPPORT_HIRESO)
+		port_b |= 0x02; // SPDSW, 1 = 10MHz, 0 = 12MHz
+#else
+		port_b |= 0x01; // SPDSW, 1 = 8/16MHz, 0 = 10/20MHz
+#endif
+	}
+#endif
+#endif
+	port_c  = 0x00;
+#if defined(SUPPORT_HIRESO)
+//	port_c |= 0x08; // MODSW, 1 = Normal Mode, 0 = Hirezo Mode
+#endif
+#if defined(HAS_V30) || defined(HAS_V33)
+	port_c |= 0x04; // DIP SW 3-8, 1 = V30, 0 = 80x86
+#endif
+	pio_mouse->write_signal(SIG_I8255_PORT_A, port_a, 0xff);
+	pio_mouse->write_signal(SIG_I8255_PORT_B, port_b, 0xff);
+	pio_mouse->write_signal(SIG_I8255_PORT_C, port_c, 0xff);
+	
+	port_a  = 0x00;
+	port_a |= 0x80; // DIP SW 2-8, 1 = GDC 2.5MHz, 0 = GDC 5MHz
+	port_a |= 0x40; // DIP SW 2-7, 1 = Do not control FD motor
+	port_a |= 0x20; // DIP SW 2-6, 1 = Enable internal HD
+//	port_a |= 0x10; // DIP SW 2-5, 1 = Initialize emory switch
+//	port_a |= 0x08; // DIP SW 2-4, 1 = 20 lines, 0 = 25 lines
+//	port_a |= 0x04; // DIP SW 2-3, 1 = 40 columns, 0 = 80 columns
+	port_a |= 0x02; // DIP SW 2-2, 1 = BASIC mode, 0 = Terminal mode
+	port_a |= 0x01; // DIP SW 2-1, 1 = Normal mode, 0 = LT mode
+	port_b  = 0x00;
+	port_b |= 0x80; // RS-232C CI#, 1 = OFF
+	port_b |= 0x40; // RS-232C CS#, 1 = OFF
+	port_b |= 0x20; // RS-232C CD#, 1 = OFF
+#if !defined(SUPPORT_HIRESO)
+//	port_b |= 0x10; // INT3, 1 = Active, 0 = Inactive
+	port_b |= 0x08; // DIP SW 1-1, 1 = Hiresolution CRT, 0 = Standard CRT
+#else
+	port_b |= 0x10; // SHUT0
+	port_b |= 0x08; // SHUT1
+#endif
+//	port_b |= 0x04; // IMCK, 1 = Parity error occurs in internal RAM
+//	port_b |= 0x02; // EMCK, 1 = Parity error occurs in external RAM
+//	port_b |= 0x01; // CDAT
+	port_c  = 0x00;
+	port_c |= 0x80; // SHUT0
+	port_c |= 0x40; // PSTBM, 1 = Mask printer's PSTB#
+	port_c |= 0x20; // SHUT1
+	port_c |= 0x10; // MCHKEN, 1 = Enable parity check for RAM
+	port_c |= 0x08; // BUZ, 1 = Stop buzzer
+	port_c |= 0x04; // TXRE, 1 = Enable IRQ from RS-232C 8251A TXRDY
+	port_c |= 0x02; // TXEE, 1 = Enable IRQ from RS-232C 8251A TXEMPTY
+	port_c |= 0x01; // RXRE, 1 = Enable IRQ from RS-232C 8251A RXRDY
+	pio_sys->write_signal(SIG_I8255_PORT_A, port_a, 0xff);
+	pio_sys->write_signal(SIG_I8255_PORT_B, port_b, 0xff);
+	pio_sys->write_signal(SIG_I8255_PORT_C, port_c, 0xff);
+	
+	port_b  = 0x00;
+#if defined(_PC9801)
+//	port_b |= 0x80; // TYP1, 0 = PC-9801 (first)
+//	port_b |= 0x40; // TYP0, 0
+#elif defined(_PC9801U)
+	port_b |= 0x80; // TYP1, 1 = PC-9801U
+	port_b |= 0x40; // TYP0, 1
+#else
+	port_b |= 0x80; // TYP1, 1 = Other PC-9801 series
+//	port_b |= 0x40; // TYP0, 0
 #endif
 	if(pit_clock_8mhz) {
-		prn_b |= 0x20;		// system clock is 8MHz
+		port_b |= 0x20; // MOD, 1 = System clock 8MHz, 0 = 5/10MHz
 	}
-	prn_b |= 0x10;		// don't use LCD display
+	port_b |= 0x10; // DIP SW 1-3, 1 = Don't use LCD
 #if !defined(SUPPORT_16_COLORS)
-	prn_b |= 0x08;		// standard graphics
+	port_b |= 0x08; // DIP SW 1-8, 1 = Standard graphic mode, 0 = Enhanced graphic mode
 #endif
-	prn_b |= 0x04;		// printer is not busy
+	port_b |= 0x04; // Printer BUSY#, 1 = Inactive, 0 = Active (BUSY)
 #if defined(HAS_V30) || defined(HAS_V33)
-	prn_b |= 0x02;
+	port_b |= 0x02; // CPUT, 1 = V30/V33, 0 = 80x86
 #endif
 #if defined(_PC9801VF) || defined(_PC9801U)
-	prn_b |= 0x01;		// PC-9801VF or PC-9801U
+	port_b |= 0x01; // VF, 1 = PC-9801VF/U
 #endif
-	pio_prn->write_signal(SIG_I8255_PORT_B, prn_b, 0xff);
+	pio_prn->write_signal(SIG_I8255_PORT_B, port_b, 0xff);
 	
 #if defined(SUPPORT_320KB_FDD_IF)
 	pio_fdd->write_signal(SIG_I8255_PORT_A, 0xff, 0xff);
@@ -976,6 +1117,17 @@ void VM::reset()
 	pc88opn->set_reg(0x29, 3); // for Misty Blue
 	pc88pio->write_signal(SIG_I8255_PORT_C, 0, 0xff);
 	pc88pio_sub->write_signal(SIG_I8255_PORT_C, 0, 0xff);
+#endif
+	
+#if defined(USE_HARD_DISK) && defined(OPEN_HARD_DISK_IN_RESET)
+	// open/close hard disk images
+	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
+		if(hd_file_path[drv][0] != _T('\0')) {
+			open_hard_disk_tmp(drv, hd_file_path[drv]);
+		} else {
+			close_hard_disk_tmp(drv);
+		}
+	}
 #endif
 }
 
@@ -1204,159 +1356,206 @@ bool VM::get_kana_locked()
 
 void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
-#if defined(_PC9801) || defined(_PC9801E)
-	if(drv == 0 || drv == 1) {
-		fdc_2hd->open_disk(drv, file_path, bank);
-	} else if(drv == 2 || drv == 3) {
-		fdc_2dd->open_disk(drv - 2, file_path, bank);
-	} else if(drv == 4 || drv == 5) {
-		fdc_sub->open_disk(drv - 4, file_path, bank);
+	UPD765A *controller = get_floppy_disk_controller(drv);
+	
+	if(controller != NULL) {
+		controller->open_disk(drv & 1, file_path, bank);
 	}
-#elif defined(_PC9801VF) || defined(_PC9801U)
-	if(drv == 0 || drv == 1) {
-		fdc_2dd->open_disk(drv, file_path, bank);
-	}
-#elif defined(_PC98DO) || defined(_PC98DOPLUS)
-	if(drv == 0 || drv == 1) {
-		fdc->open_disk(drv, file_path, bank);
-	} else if(drv == 2 || drv == 3) {
-		pc88fdc_sub->open_disk(drv - 2, file_path, bank);
-	}
-#else
-	if(drv == 0 || drv == 1) {
-		fdc->open_disk(drv, file_path, bank);
-	}
-#endif
 }
 
 void VM::close_floppy_disk(int drv)
 {
-#if defined(_PC9801) || defined(_PC9801E)
-	if(drv == 0 || drv == 1) {
-		fdc_2hd->close_disk(drv);
-	} else if(drv == 2 || drv == 3) {
-		fdc_2dd->close_disk(drv - 2);
-	} else if(drv == 4 || drv == 5) {
-		fdc_sub->close_disk(drv - 4);
+	UPD765A *controller = get_floppy_disk_controller(drv);
+	
+	if(controller != NULL) {
+		controller->close_disk(drv & 1);
 	}
-#elif defined(_PC9801VF) || defined(_PC9801U)
-	if(drv == 0 || drv == 1) {
-		fdc_2dd->close_disk(drv);
-	}
-#elif defined(_PC98DO) || defined(_PC98DOPLUS)
-	if(drv == 0 || drv == 1) {
-		fdc->close_disk(drv);
-	} else if(drv == 2 || drv == 3) {
-		pc88fdc_sub->close_disk(drv - 2);
-	}
-#else
-	if(drv == 0 || drv == 1) {
-		fdc->close_disk(drv);
-	}
-#endif
 }
 
 bool VM::is_floppy_disk_inserted(int drv)
 {
-#if defined(_PC9801) || defined(_PC9801E)
-	if(drv == 0 || drv == 1) {
-		return fdc_2hd->is_disk_inserted(drv);
-	} else if(drv == 2 || drv == 3) {
-		return fdc_2dd->is_disk_inserted(drv - 2);
-	} else if(drv == 4 || drv == 5) {
-		return fdc_sub->is_disk_inserted(drv - 4);
+	DISK *handler = get_floppy_disk_handler(drv);
+	
+	if(handler != NULL) {
+		return handler->inserted;
 	}
-#elif defined(_PC9801VF) || defined(_PC9801U)
-	if(drv == 0 || drv == 1) {
-		return fdc_2dd->is_disk_inserted(drv);
-	}
-#elif defined(_PC98DO) || defined(_PC98DOPLUS)
-	if(drv == 0 || drv == 1) {
-		return fdc->is_disk_inserted(drv);
-	} else if(drv == 2 || drv == 3) {
-		return pc88fdc_sub->is_disk_inserted(drv - 2);
-	}
-#else
-	if(drv == 0 || drv == 1) {
-		return fdc->is_disk_inserted(drv);
-	}
-#endif
 	return false;
 }
 
 void VM::is_floppy_disk_protected(int drv, bool value)
 {
-#if defined(_PC9801) || defined(_PC9801E)
-	if(drv == 0 || drv == 1) {
-		fdc_2hd->is_disk_protected(drv, value);
-	} else if(drv == 2 || drv == 3) {
-		fdc_2dd->is_disk_protected(drv - 2, value);
-	} else if(drv == 4 || drv == 5) {
-		fdc_sub->is_disk_protected(drv - 4, value);
+	DISK *handler = get_floppy_disk_handler(drv);
+	
+	if(handler != NULL) {
+		handler->write_protected = value;
 	}
-#elif defined(_PC9801VF) || defined(_PC9801U)
-	if(drv == 0 || drv == 1) {
-		fdc_2dd->is_disk_protected(drv, value);
-	}
-#elif defined(_PC98DO) || defined(_PC98DOPLUS)
-	if(drv == 0 || drv == 1) {
-		fdc->is_disk_protected(drv, value);
-	} else if(drv == 2 || drv == 3) {
-		pc88fdc_sub->is_disk_protected(drv - 2, value);
-	}
-#else
-	if(drv == 0 || drv == 1) {
-		fdc->is_disk_protected(drv, value);
-	}
-#endif
 }
 
 bool VM::is_floppy_disk_protected(int drv)
 {
-#if defined(_PC9801) || defined(_PC9801E)
-	if(drv == 0 || drv == 1) {
-		return fdc_2hd->is_disk_protected(drv);
-	} else if(drv == 2 || drv == 3) {
-		return fdc_2dd->is_disk_protected(drv - 2);
-	} else if(drv == 4 || drv == 5) {
-		return fdc_sub->is_disk_protected(drv - 4);
+	DISK *handler = get_floppy_disk_handler(drv);
+	
+	if(handler != NULL) {
+		return handler->write_protected;
 	}
-#elif defined(_PC9801VF) || defined(_PC9801U)
-	if(drv == 0 || drv == 1) {
-		return fdc_2dd->is_disk_protected(drv);
-	}
-#elif defined(_PC98DO) || defined(_PC98DOPLUS)
-	if(drv == 0 || drv == 1) {
-		return fdc->is_disk_protected(drv);
-	} else if(drv == 2 || drv == 3) {
-		return pc88fdc_sub->is_disk_protected(drv - 2);
-	}
-#else
-	if(drv == 0 || drv == 1) {
-		return fdc->is_disk_protected(drv);
-	}
-#endif
 	return false;
 }
 
 uint32_t VM::is_floppy_disk_accessed()
 {
-#if defined(_PC9801) || defined(_PC9801E)
-	return (fdc_2hd->read_signal(0) & 3) | ((fdc_2dd->read_signal(0) & 3) << 2) | ((fdc_sub->read_signal(0) & 3) << 4);
-#elif defined(_PC9801VF) || defined(_PC9801U)
-	return fdc_2dd->read_signal(0);
-#elif defined(_PC98DO) || defined(_PC98DOPLUS)
+	uint32_t value = 0;
+	
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
 	if(boot_mode != 0) {
-		return pc88fdc_sub->read_signal(0);
+		value = pc88fdc_sub->read_signal(0) & 3;
 	} else {
-		return fdc->read_signal(0);
+		value = fdc->read_signal(0) & 3;
 	}
 #else
-	return fdc->read_signal(0);
+	for(int drv = 0; drv < USE_FLOPPY_DISK; drv += 2) {
+		UPD765A *controller = get_floppy_disk_controller(drv);
+		
+		if(controller != NULL) {
+			value |= (controller->read_signal(0) & 3) << drv;
+		}
+	}
 #endif
+	return value;
 }
 
-#if defined(SUPPORT_CMT_IF) || defined(_PC98DO) || defined(_PC98DOPLUS)
+UPD765A *VM::get_floppy_disk_controller(int drv)
+{
+#if defined(_PC9801) || defined(_PC9801E)
+	if(drv == 0 || drv == 1) {
+		return fdc_2hd;
+	} else if(drv == 2 || drv == 3) {
+		return fdc_2dd;
+	} else if(drv == 4 || drv == 5) {
+		return fdc_sub;
+	}
+#elif defined(_PC9801VF) || defined(_PC9801U)
+	if(drv == 0 || drv == 1) {
+		return fdc_2dd;
+	}
+#elif defined(_PC98DO) || defined(_PC98DOPLUS)
+	if(drv == 0 || drv == 1) {
+		return fdc;
+	} else if(drv == 2 || drv == 3) {
+		return pc88fdc_sub;
+	}
+#else
+	if(drv == 0 || drv == 1) {
+		return fdc;
+	}
+#endif
+	return NULL;
+}
+
+DISK *VM::get_floppy_disk_handler(int drv)
+{
+	UPD765A *controller = get_floppy_disk_controller(drv);
+	
+	if(controller != NULL) {
+		return controller->get_disk_handler(drv & 1);
+	}
+	return NULL;
+}
+
+#if defined(USE_HARD_DISK)
+void VM::open_hard_disk(int drv, const _TCHAR* file_path)
+{
+	if(drv < USE_HARD_DISK) {
+#if defined(OPEN_HARD_DISK_IN_RESET)
+		my_tcscpy_s(hd_file_path[drv], _MAX_PATH, file_path);
+#else
+		open_hard_disk_tmp(drv, file_path);
+#endif
+	}
+}
+
+void VM::close_hard_disk(int drv)
+{
+	if(drv < USE_HARD_DISK) {
+#if defined(OPEN_HARD_DISK_IN_RESET)
+		hd_file_path[drv][0] = _T('\0');
+#else
+		close_hard_disk_tmp(drv);
+#endif
+	}
+}
+
+bool VM::is_hard_disk_inserted(int drv)
+{
+	if(drv < USE_HARD_DISK) {
+#if defined(OPEN_HARD_DISK_IN_RESET)
+		return (hd_file_path[drv][0] != _T('\0'));
+#else
+		return is_hard_disk_inserted_tmp(drv);
+#endif
+	}
+	return false;
+}
+
+uint32_t VM::is_hard_disk_accessed()
+{
+	uint32_t status = 0;
+	
+	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
+		HARDDISK *handler = get_hard_disk_handler(drv);
+		
+		if(handler != NULL && handler->accessed()) {
+			status |= 1 << drv;
+		}
+	}
+	return status;
+}
+
+void VM::open_hard_disk_tmp(int drv, const _TCHAR* file_path)
+{
+	HARDDISK *handler = get_hard_disk_handler(drv);
+	
+	if(handler != NULL) {
+		handler->open(file_path);
+	}
+}
+
+void VM::close_hard_disk_tmp(int drv)
+{
+	HARDDISK *handler = get_hard_disk_handler(drv);
+	
+	if(handler != NULL) {
+		handler->close();
+	}
+}
+
+bool VM::is_hard_disk_inserted_tmp(int drv)
+{
+	HARDDISK *handler = get_hard_disk_handler(drv);
+	
+	if(handler != NULL) {
+		return handler->mounted();
+	}
+	return false;
+}
+
+HARDDISK *VM::get_hard_disk_handler(int drv)
+{
+	if(drv < USE_HARD_DISK) {
+#if defined(SUPPORT_SASI_IF)
+		return sasi_hdd->get_disk_handler(drv);
+#endif
+#if defined(SUPPORT_SCSI_IF)
+		return scsi_hdd[drv]->get_disk_handler(0);
+#endif
+#if defined(SUPPORT_IDE_IF)
+		return ide_hdd[drv]->get_disk_handler(0);
+#endif
+	}
+	return NULL;
+}
+#endif
+
+#if defined(USE_TAPE)
 void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
@@ -1419,46 +1618,78 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	12
+#define STATE_VERSION	13
+
+#include "../../statesub.h"
+
+void VM::decl_state(void)
+{
+#if defined(_PC9801)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801_HEAD")));
+#elif defined(_PC9801E)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801E_HEAD")));
+#elif defined(_PC9801U)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801U_HEAD")));
+#elif defined(_PC9801VF)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801VF_HEAD")));
+#elif defined(_PC9801VM)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801VF_HEAD")));
+#elif defined(_PC98DO)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC98DO_HEAD")));
+#elif defined(_PC9801DOPLUS)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC98DO_PLUS_HEAD")));
+#elif defined(_PC9801VX)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801VX_HEAD")));
+#elif defined(_PC98XL)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC98XL_HEAD")));
+#elif defined(_PC98XA)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC98XA_HEAD")));
+#elif defined(_PC9801RA)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801RA_HEAD")));
+#elif defined(_PC98RL)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC98RL_HEAD")));
+#else
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801_SERIES_HEAD")));
+#endif
+	
+	DECL_STATE_ENTRY_BOOL(pit_clock_8mhz);
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
+	DECL_STATE_ENTRY_INT32(boot_mode);
+#endif
+	DECL_STATE_ENTRY_INT32(sound_type);
+#if defined(USE_HARD_DISK) && defined(OPEN_HARD_DISK_IN_RESET)
+	DECL_STATE_ENTRY_MULTI(void, hd_file_path, sizeof(hd_file_path));
+#endif
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		device->decl_state();
+	}
+}
 
 void VM::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const char *name = typeid(*device).name() + 6; // skip "class "
-		
-		state_fio->FputInt32(strlen(name));
-		state_fio->Fwrite(name, strlen(name), 1);
 		device->save_state(state_fio);
 	}
-	state_fio->FputBool(pit_clock_8mhz);
-#if defined(_PC98DO) || defined(_PC98DOPLUS)
-	state_fio->FputInt32(boot_mode);
-#endif
-	state_fio->FputInt32(sound_type);
 }
 
 bool VM::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
+		emu->out_debug_log("INFO: HEADER DATA ERROR");
 		return false;
 	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const char *name = typeid(*device).name() + 6; // skip "class "
-		
-		if(!(state_fio->FgetInt32() == strlen(name) && state_fio->Fcompare(name, strlen(name)))) {
-			return false;
-		}
 		if(!device->load_state(state_fio)) {
 			return false;
 		}
 	}
-	pit_clock_8mhz = state_fio->FgetBool();
-#if defined(_PC98DO) || defined(_PC98DOPLUS)
-	boot_mode = state_fio->FgetInt32();
-#endif
-	sound_type = state_fio->FgetInt32();
 	return true;
 }
 

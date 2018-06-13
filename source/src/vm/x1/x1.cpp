@@ -2,6 +2,7 @@
 	SHARP X1 Emulator 'eX1'
 	SHARP X1twin Emulator 'eX1twin'
 	SHARP X1turbo Emulator 'eX1turbo'
+	SHARP X1turboZ Emulator 'eX1turboZ'
 
 	Author : Takeda.Toshiya
 	Date   : 2009.03.11-
@@ -16,6 +17,7 @@
 
 #include "../datarec.h"
 #include "../disk.h"
+#include "../harddisk.h"
 #include "../hd46505.h"
 #include "../i8255.h"
 #include "../io.h"
@@ -24,6 +26,8 @@
 #include "../noise.h"
 //#include "../pcpr201.h"
 #include "../prnfile.h"
+#include "../scsi_hdd.h"
+#include "../scsi_host.h"
 #include "../ym2151.h"
 //#include "../ym2203.h"
 #include "../ay_3_891x.h"
@@ -46,6 +50,7 @@
 #include "memory.h"
 #include "mouse.h"
 #include "psub.h"
+#include "sasi.h"
 
 #include "../mcs48.h"
 #include "../upd1990a.h"
@@ -87,6 +92,18 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	fdc->set_context_noise_seek(new NOISE(this, emu));
 	fdc->set_context_noise_head_down(new NOISE(this, emu));
 	fdc->set_context_noise_head_up(new NOISE(this, emu));
+	sasi_host = new SCSI_HOST(this, emu);
+	for (int i = 0; i < array_length(sasi_hdd); i++) {
+		sasi_hdd[i] = new SCSI_HDD(this, emu);
+		sasi_hdd[i]->set_device_name(_T("SASI Hard Disk Drive #%d"), i + 1);
+		sasi_hdd[i]->scsi_id = i;
+		sasi_hdd[i]->bytes_per_sec = 32 * 1024; // 32KB/s
+		sasi_hdd[i]->set_context_interface(sasi_host);
+		sasi_host->set_context_target(sasi_hdd[i]);
+	}
+	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
+		sasi_hdd[drv >> 1]->set_disk_handler(drv & 1, new HARDDISK(emu));
+	}
 //	psg = new YM2203(this, emu);
 	psg = new AY_3_891X(this, emu);
 	cpu = new Z80(this, emu);
@@ -124,6 +141,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	joy = new JOYSTICK(this, emu);
 	memory = new MEMORY(this, emu);
 	mouse = new MOUSE(this, emu);
+	sasi = new SASI(this, emu);
 	
 	if(pseudo_sub_cpu) {
 		psub = new PSUB(this, emu);
@@ -179,6 +197,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #ifdef _X1TURBO_FEATURE
 	fdc->set_context_drq(dma, SIG_Z80DMA_READY, 1);
 #endif
+	sasi_host->set_context_irq(sasi, SIG_SASI_IRQ, 1);
+	sasi_host->set_context_drq(sasi, SIG_SASI_DRQ, 1);
 	ctc->set_context_zc0(ctc, SIG_Z80CTC_TRIG_3, 1);
 	ctc->set_context_zc1(sio, SIG_Z80SIO_TX_CLK_CH0, 1);
 	ctc->set_context_zc1(sio, SIG_Z80SIO_RX_CLK_CH0, 1);
@@ -233,6 +253,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	memory->set_context_pio(pio);
 #endif
 	mouse->set_context_sio(sio);
+	sasi->set_context_host(sasi_host);
+#ifdef _X1TURBO_FEATURE
+	sasi->set_context_dma(dma);
+#endif
 	
 	if(pseudo_sub_cpu) {
 		drec->set_context_remote(psub, SIG_PSUB_TAPE_REMOTE, 1);
@@ -338,6 +362,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	io->set_iomap_range_rw(0xd00, 0xd03, emm);
 	io->set_iomap_range_r(0xe80, 0xe81, display);
 	io->set_iomap_range_w(0xe80, 0xe82, display);
+	io->set_iomap_range_rw(0xfd0, 0xfd3, sasi);
 	io->set_iomap_range_rw(0xff8, 0xffb, fdc);
 	io->set_iomap_single_w(0xffc, floppy);
 #ifdef _X1TURBO_FEATURE
@@ -428,15 +453,23 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 			rom[0x26] = TO_BCD(cur_time.year);
 		}
 	}
-	for(int i = 0; i < MAX_DRIVE; i++) {
+	for(int drv = 0; drv < MAX_DRIVE; drv++) {
 //#ifdef _X1TURBO_FEATURE
-//		fdc->set_drive_type(i, DRIVE_TYPE_2DD);
+//		fdc->set_drive_type(drv, DRIVE_TYPE_2DD);
 //#else
-		fdc->set_drive_type(i, DRIVE_TYPE_2D);
+		fdc->set_drive_type(drv, DRIVE_TYPE_2D);
 //#endif
-//		fdc->set_drive_rpm(i, 300);
-//		fdc->set_drive_mfm(i, true);
+//		fdc->set_drive_rpm(drv, 300);
+//		fdc->set_drive_mfm(drv, true);
 	}
+	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
+#if defined(OPEN_HARD_DISK_IN_RESET)
+		create_local_path(hd_file_path[drv], _MAX_PATH, _T("SASI%d.DAT"), drv);
+#else
+		open_hard_disk_tmp(drv, create_local_path(_T("SASI%d.DAT"), drv));
+#endif
+	}
+	decl_state();
 }
 
 VM::~VM()
@@ -472,6 +505,17 @@ void VM::reset()
 	}
 	pio->write_signal(SIG_I8255_PORT_B, 0x00, 0x08);	// busy = low
 	psg->set_reg(0x2e, 0);	// set prescaler
+	
+#if defined(OPEN_HARD_DISK_IN_RESET)
+	// open/close hard disk images
+	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
+		if(hd_file_path[drv][0] != _T('\0')) {
+			open_hard_disk_tmp(drv, hd_file_path[drv]);
+		} else {
+			close_hard_disk_tmp(drv);
+		}
+	}
+#endif
 }
 
 void VM::special_reset()
@@ -716,6 +760,74 @@ uint32_t VM::is_floppy_disk_accessed()
 	return fdc->read_signal(0);
 }
 
+void VM::open_hard_disk(int drv, const _TCHAR* file_path)
+{
+	if(drv < USE_HARD_DISK) {
+#if defined(OPEN_HARD_DISK_IN_RESET)
+		my_tcscpy_s(hd_file_path[drv], _MAX_PATH, file_path);
+#else
+		open_hard_disk_tmp(drv, file_path);
+#endif
+	}
+}
+
+void VM::close_hard_disk(int drv)
+{
+	if(drv < USE_HARD_DISK) {
+#if defined(OPEN_HARD_DISK_IN_RESET)
+		hd_file_path[drv][0] = _T('\0');
+#else
+		close_hard_disk_tmp(drv);
+#endif
+	}
+}
+
+bool VM::is_hard_disk_inserted(int drv)
+{
+	if(drv < USE_HARD_DISK) {
+#if defined(OPEN_HARD_DISK_IN_RESET)
+		return (hd_file_path[drv][0] != _T('\0'));
+#else
+		return is_hard_disk_inserted_tmp(drv);
+#endif
+	}
+	return false;
+}
+
+uint32_t VM::is_hard_disk_accessed()
+{
+	uint32_t status = 0;
+	
+	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
+		if(sasi_hdd[drv >> 1]->get_disk_handler(drv & 1)->accessed()) {
+			status |= 1 << drv;
+		}
+	}
+	return status;
+}
+
+void VM::open_hard_disk_tmp(int drv, const _TCHAR* file_path)
+{
+	if(drv < USE_HARD_DISK) {
+		sasi_hdd[drv >> 1]->get_disk_handler(drv & 1)->open(file_path);
+	}
+}
+
+void VM::close_hard_disk_tmp(int drv)
+{
+	if(drv < USE_HARD_DISK) {
+		sasi_hdd[drv >> 1]->get_disk_handler(drv & 1)->close();
+	}
+}
+
+bool VM::is_hard_disk_inserted_tmp(int drv)
+{
+	if(drv < USE_HARD_DISK) {
+		return sasi_hdd[drv >> 1]->get_disk_handler(drv & 1)->mounted();
+	}
+	return false;
+}
+
 void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	bool value = drec->play_tape(file_path);
@@ -868,41 +980,54 @@ void VM::update_dipswitch()
 }
 #endif
 
-#define STATE_VERSION	9
+#define STATE_VERSION	10
+#include "../../statesub.h"
 
+void VM::decl_state(void)
+{
+#if defined(_X1)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, _T("CSP::X1_HEAD"));
+#elif defined(_X1TURBO)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, _T("CSP::X1_TURBO_HEAD"));
+#elif defined(_X1TURBOZ)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, _T("CSP::X1_TURBO_Z_HEAD"));
+#elif defined(_X1TWIN)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, _T("CSP::X1_TWIN_HEAD"));
+#else
+	state_entry = new csp_state_utils(STATE_VERSION, 0, _T("CSP::X1_SERIES_HEAD"));
+#endif
+	
+	DECL_STATE_ENTRY_BOOL(pseudo_sub_cpu);
+	DECL_STATE_ENTRY_INT32(sound_type);
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		device->decl_state();
+	}
+}
 void VM::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
+	if(state_entry != NULL) state_entry->save_state(state_fio);
 	
 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const char *name = typeid(*device).name() + 6; // skip "class "
-		
-		state_fio->FputInt32(strlen(name));
-		state_fio->Fwrite(name, strlen(name), 1);
 		device->save_state(state_fio);
 	}
-	state_fio->FputBool(pseudo_sub_cpu);
-	state_fio->FputInt32(sound_type);
 }
 
 bool VM::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
+	if(!mb) return false;
+
+	int n = 1;
 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const char *name = typeid(*device).name() + 6; // skip "class "
-		
-		if(!(state_fio->FgetInt32() == strlen(name) && state_fio->Fcompare(name, strlen(name)))) {
-			return false;
-		}
 		if(!device->load_state(state_fio)) {
+			printf("STATE ERROR at device #%d\n", n);
 			return false;
 		}
+		n++;
 	}
-	pseudo_sub_cpu = state_fio->FgetBool();
-	sound_type = state_fio->FgetInt32();
-	
 #ifdef _X1TURBO_FEATURE
 	// post process
 	update_dipswitch();

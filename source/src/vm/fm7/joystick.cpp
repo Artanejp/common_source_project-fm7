@@ -297,73 +297,49 @@ void JOYSTICK::update_config(void)
 #endif	
 }
 #define STATE_VERSION 4
-void JOYSTICK::save_state(FILEIO *state_fio)
+
+#include "../../statesub.h"
+
+void JOYSTICK::decl_state()
 {
-	int ch;
-	state_fio->FputUint32_BE(STATE_VERSION);
-	state_fio->FputInt32_BE(this_device_id);
-	this->out_debug_log(_T("Save State: JOYSTICK: id=%d ver=%d\n"), this_device_id, STATE_VERSION);
-	// Version 1
-	for(ch = 0; ch < 2; ch++) {
+	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("JOYSTICK"));
+
 #if !defined(_FM8)
-		state_fio->FputBool(emulate_mouse[ch]);
+	DECL_STATE_ENTRY_1D_ARRAY(emulate_mouse, 2);
 #endif		
-		state_fio->FputUint32_BE(joydata[ch]);
-	}
-	// After Version2.
+	DECL_STATE_ENTRY_1D_ARRAY(joydata, 2);
+
 #if !defined(_FM8)
-	state_fio->FputInt32_BE(dx);
-	state_fio->FputInt32_BE(dy);
-	state_fio->FputInt32_BE(lx);
-	state_fio->FputInt32_BE(ly);
-	state_fio->FputUint32_BE(mouse_button);
-	state_fio->FputBool(mouse_strobe);
-	state_fio->FputUint32_BE(mouse_phase);
-	state_fio->FputUint32_BE(mouse_data);
-	//state_fio->FputInt32(mouse_timeout_event);
+	DECL_STATE_ENTRY_INT32(dx);
+	DECL_STATE_ENTRY_INT32(dy);
+	DECL_STATE_ENTRY_INT32(lx);
+	DECL_STATE_ENTRY_INT32(ly);
+	DECL_STATE_ENTRY_UINT32(mouse_button);
+	DECL_STATE_ENTRY_BOOL(mouse_strobe);
+	DECL_STATE_ENTRY_UINT32(mouse_phase);
+	DECL_STATE_ENTRY_INT32(mouse_data);
+	//DECL_STATE_ENTRY_INT32(mouse_timeout_event);
 #endif	
 	// Version 3
-	state_fio->FputUint8(lpmask);
+	DECL_STATE_ENTRY_UINT8(lpmask);
 	// Version 4
-	state_fio->FputUint8(port_b_val);
+	DECL_STATE_ENTRY_UINT8(port_b_val);
+}
+void JOYSTICK::save_state(FILEIO *state_fio)
+{
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
 }
 
 bool JOYSTICK::load_state(FILEIO *state_fio)
 {
-	uint32_t version = state_fio->FgetUint32_BE();
-	int32_t devid = state_fio->FgetInt32_BE();
-	bool stat = false;
-	int ch;
-	this->out_debug_log(_T("Load State: JOYSTICK: id=%d ver=%d\n"), devid, version);
-	if(devid != this_device_id) return stat;
-	if(version >= 1) {
-		for(ch = 0; ch < 2; ch++) {
-#if !defined(_FM8)
-			emulate_mouse[ch] = state_fio->FgetBool();
-#endif			
-			joydata[ch] = state_fio->FgetUint32_BE();
-		}
-		//if(version == 1) stat = true;
+	bool mb;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+		if(!mb) return false;
 	}
-#if !defined(_FM8)
-	// After version 2.
-	dx = state_fio->FgetInt32_BE();
-	dy = state_fio->FgetInt32_BE();
-	lx = state_fio->FgetInt32_BE();
-	ly = state_fio->FgetInt32_BE();
-	mouse_button = state_fio->FgetUint32_BE();
-	mouse_strobe = state_fio->FgetBool();
-	mouse_phase = state_fio->FgetUint32_BE();
-	mouse_data = state_fio->FgetUint32_BE();
-	//mouse_timeout_event = state_fio->FgetInt32();
-#endif	
-	// V3
-	lpmask = state_fio->FgetUint8();
-	lpt_type = config.printer_type;
-	// V4
-	port_b_val = state_fio->FgetUint8();
-	if(version == STATE_VERSION) stat = true; 
-	return stat;
+	return true;
 }
 		
 	

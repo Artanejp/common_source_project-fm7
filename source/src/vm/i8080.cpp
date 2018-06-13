@@ -572,52 +572,83 @@ void I8080::check_interrupt()
 }
 
 
-
 #define STATE_VERSION	2
 
+#include "../statesub.h"
+
+void I8080::decl_state()
+{
+	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("i8080"));
+
+#ifdef USE_DEBUGGER
+	DECL_STATE_ENTRY_UINT64(total_count);
+#endif
+	DECL_STATE_ENTRY_INT32(count);
+	DECL_STATE_ENTRY_1D_ARRAY(regs, sizeof(regs) / sizeof(pair_t));
+	DECL_STATE_ENTRY_UINT16(SP);
+	DECL_STATE_ENTRY_UINT16(PC);
+	DECL_STATE_ENTRY_UINT16(prevPC);
+	DECL_STATE_ENTRY_UINT16(IM);
+	DECL_STATE_ENTRY_UINT16(RIM_IEN);
+	DECL_STATE_ENTRY_BOOL(afterHALT);
+	DECL_STATE_ENTRY_BOOL(BUSREQ);
+	DECL_STATE_ENTRY_BOOL(SID);
+	DECL_STATE_ENTRY_BOOL(afterEI);
+
+}
 void I8080::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-#ifdef USE_DEBUGGER
-	state_fio->FputUint64(total_count);
-#endif
-	state_fio->FputInt32(count);
-	state_fio->Fwrite(regs, sizeof(regs), 1);
-	state_fio->FputUint16(SP);
-	state_fio->FputUint16(PC);
-	state_fio->FputUint16(prevPC);
-	state_fio->FputUint16(IM);
-	state_fio->FputUint16(RIM_IEN);
-	state_fio->FputBool(afterHALT);
-	state_fio->FputBool(BUSREQ);
-	state_fio->FputBool(SID);
-	state_fio->FputBool(afterEI);
+//#ifdef USE_DEBUGGER
+//	state_fio->FputUint64(total_count);
+//#endif
+//	state_fio->FputInt32(count);
+//	state_fio->Fwrite(regs, sizeof(regs), 1);
+//	state_fio->FputUint16(SP);
+//	state_fio->FputUint16(PC);
+//	state_fio->FputUint16(prevPC);
+//	state_fio->FputUint16(IM);
+//	state_fio->FputUint16(RIM_IEN);
+//	state_fio->FputBool(afterHALT);
+//	state_fio->FputBool(BUSREQ);
+//	state_fio->FputBool(SID);
+//	state_fio->FputBool(afterEI);
 }
 
 bool I8080::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-#ifdef USE_DEBUGGER
-	total_count = prev_total_count = state_fio->FgetUint64();
-#endif
-	count = state_fio->FgetInt32();
-	state_fio->Fread(regs, sizeof(regs), 1);
-	SP = state_fio->FgetUint16();
-	PC = state_fio->FgetUint16();
-	prevPC = state_fio->FgetUint16();
-	IM = state_fio->FgetUint16();
-	RIM_IEN = state_fio->FgetUint16();
-	afterHALT = state_fio->FgetBool();
-	BUSREQ = state_fio->FgetBool();
-	SID = state_fio->FgetBool();
-	afterEI = state_fio->FgetBool();
+	if(!mb) return false;
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//#ifdef USE_DEBUGGER
+//	total_count = prev_total_count = state_fio->FgetUint64();
+//#endif
+//	count = state_fio->FgetInt32();
+//	state_fio->Fread(regs, sizeof(regs), 1);
+//	SP = state_fio->FgetUint16();
+//	PC = state_fio->FgetUint16();
+//	prevPC = state_fio->FgetUint16();
+//	IM = state_fio->FgetUint16();
+//	RIM_IEN = state_fio->FgetUint16();
+//	afterHALT = state_fio->FgetBool();
+//	BUSREQ = state_fio->FgetBool();
+//	SID = state_fio->FgetBool();
+//	afterEI = state_fio->FgetBool();
+//
+	prev_total_count = total_count;
 	return true;
 }
 

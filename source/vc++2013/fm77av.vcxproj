@@ -166,13 +166,16 @@
     <ClCompile Include="..\src\win32\osd_screen.cpp" />
     <ClCompile Include="..\src\win32\osd_sound.cpp" />
     <ClCompile Include="..\src\win32\winmain.cpp" />
+    <ClCompile Include="..\src\vm\and.cpp" />
     <ClCompile Include="..\src\vm\ay_3_891x.cpp" />
     <ClCompile Include="..\src\vm\beep.cpp" />
     <ClCompile Include="..\src\vm\datarec.cpp" />
     <ClCompile Include="..\src\vm\disk.cpp" />
     <ClCompile Include="..\src\vm\event.cpp" />
+    <ClCompile Include="..\src\vm\i8251.cpp" />
     <ClCompile Include="..\src\vm\mb8877.cpp" />
     <ClCompile Include="..\src\vm\mc6809.cpp" />
+    <ClCompile Include="..\src\vm\mc6809_base.cpp" />
     <ClCompile Include="..\src\vm\memory.cpp" />
     <ClCompile Include="..\src\vm\noise.cpp" />
     <ClCompile Include="..\src\vm\pcm1bit.cpp" />
@@ -189,9 +192,15 @@
     <ClCompile Include="..\src\vm\fm7\fm7.cpp" />
     <ClCompile Include="..\src\vm\fm7\fm7_mainio.cpp" />
     <ClCompile Include="..\src\vm\fm7\fm7_mainmem.cpp" />
+    <ClCompile Include="..\src\vm\fm7\jcommcard.cpp" />
     <ClCompile Include="..\src\vm\fm7\joystick.cpp" />
     <ClCompile Include="..\src\vm\fm7\kanjirom.cpp" />
     <ClCompile Include="..\src\vm\fm7\keyboard.cpp" />
+    <ClCompile Include="..\src\vm\fm7\mainmem_mmr.cpp" />
+    <ClCompile Include="..\src\vm\fm7\mainmem_page2.cpp" />
+    <ClCompile Include="..\src\vm\fm7\mainmem_readseq.cpp" />
+    <ClCompile Include="..\src\vm\fm7\mainmem_utils.cpp" />
+    <ClCompile Include="..\src\vm\fm7\mainmem_writeseq.cpp" />
     <ClCompile Include="..\src\vm\fm7\mb61vh010.cpp" />
     <ClCompile Include="..\src\vm\fm7\sound.cpp" />
     <ClCompile Include="..\src\vm\fm7\vram.cpp" />
@@ -203,6 +212,7 @@
     <ClInclude Include="..\src\fileio.h" />
     <ClInclude Include="..\src\emu.h" />
     <ClInclude Include="..\src\win32\osd.h" />
+    <ClInclude Include="..\src\vm\and.h" />
     <ClInclude Include="..\src\vm\ay_3_891x.h" />
     <ClInclude Include="..\src\vm\beep.h" />
     <ClInclude Include="..\src\vm\datarec.h" />
@@ -210,6 +220,7 @@
     <ClInclude Include="..\src\vm\device.h" />
     <ClInclude Include="..\src\vm\disk.h" />
     <ClInclude Include="..\src\vm\event.h" />
+    <ClInclude Include="..\src\vm\i8251.h" />
     <ClInclude Include="..\src\vm\mb8877.h" />
     <ClInclude Include="..\src\vm\mc6809.h" />
     <ClInclude Include="..\src\vm\memory.h" />
@@ -234,6 +245,7 @@
     <ClInclude Include="..\src\vm\fm7\fm7_keyboard.h" />
     <ClInclude Include="..\src\vm\fm7\fm7_mainio.h" />
     <ClInclude Include="..\src\vm\fm7\fm7_mainmem.h" />
+    <ClInclude Include="..\src\vm\fm7\jcommcard.h" />
     <ClInclude Include="..\src\vm\fm7\joystick.h" />
     <ClInclude Include="..\src\vm\fm7\keyboard_tables.h" />
     <ClInclude Include="..\src\vm\fm7\mb61vh010.h" />

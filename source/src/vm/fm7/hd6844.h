@@ -66,6 +66,7 @@ protected:
 
 	outputs_t interrupt_line; // 20180117 K.O
 	outputs_t busreq_line[2];
+
 	// Registers
 
 	uint32_t addr_reg[4];
@@ -113,6 +114,7 @@ protected:
 	//void update_config(void);
 	void save_state(FILEIO *state_fio);
 	bool load_state(FILEIO *state_fio);
+	void decl_state(void);
 	
 	void set_context_int_line(DEVICE *p, int id, uint32_t mask) {
 		register_output_signal(&interrupt_line, p, id, mask);

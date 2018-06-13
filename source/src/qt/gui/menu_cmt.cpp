@@ -6,6 +6,9 @@
  *     Jan 13 2015 : Start
  */
 
+#include <QApplication>
+#include <QStyle>
+
 #include "commonclasses.h"
 #include "mainwidget_base.h"
 #include "menu_cmt.h"
@@ -14,7 +17,7 @@
 //#include "emu.h"
 
 
-Menu_CMTClass::Menu_CMTClass(QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent, int drv) : Menu_MetaClass(root_entry, desc, p, parent, drv)
+Menu_CMTClass::Menu_CMTClass(QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent, int drv, int base_drv) : Menu_MetaClass(root_entry, desc, p, parent, drv, base_drv)
 {
 	use_write_protect = true;
 	use_d88_menus = false;

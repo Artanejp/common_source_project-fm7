@@ -3657,5 +3657,72 @@ static void dasm_fdcb(uint32_t pc, _TCHAR *buffer, size_t buffer_len, symbol_t *
 }
 //#endif
 }
+#define STATE_VERSION 3
+#include "../statesub.h"
+void Z80_BASE::decl_state(void)
+{
+	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, (_TCHAR *)(_T("Z80")));
+	
+	DECL_STATE_ENTRY_INT(this_device_id);
+	
+	DECL_STATE_ENTRY_INT32(icount);
+	DECL_STATE_ENTRY_INT32(extra_icount);
+	DECL_STATE_ENTRY_UINT64(total_icount);
+	
+	DECL_STATE_ENTRY_UINT16(prevpc);
+	
+	DECL_STATE_ENTRY_PAIR(pc);
+	DECL_STATE_ENTRY_PAIR(sp);
+	DECL_STATE_ENTRY_PAIR(af);
+	DECL_STATE_ENTRY_PAIR(bc);
+	DECL_STATE_ENTRY_PAIR(de);
+	DECL_STATE_ENTRY_PAIR(hl);
+	DECL_STATE_ENTRY_PAIR(ix);
+	DECL_STATE_ENTRY_PAIR(iy);
+	DECL_STATE_ENTRY_PAIR(wz);
+	
+	DECL_STATE_ENTRY_PAIR(af2);
+	DECL_STATE_ENTRY_PAIR(bc2);
+	DECL_STATE_ENTRY_PAIR(de2);
+	DECL_STATE_ENTRY_PAIR(hl2);
+	
+	DECL_STATE_ENTRY_UINT8(I);
+	DECL_STATE_ENTRY_UINT8(R);
+	DECL_STATE_ENTRY_UINT8(R2);
+	DECL_STATE_ENTRY_UINT32(ea);
+	
+	DECL_STATE_ENTRY_BOOL(busreq);
+	DECL_STATE_ENTRY_BOOL(after_halt);
+	
+	DECL_STATE_ENTRY_UINT8(im);
+	DECL_STATE_ENTRY_UINT8(iff1);
+	DECL_STATE_ENTRY_UINT8(iff2);
+	DECL_STATE_ENTRY_UINT8(icr);
+	
+	DECL_STATE_ENTRY_BOOL(after_ei);
+	DECL_STATE_ENTRY_BOOL(after_ldair);
+	
+	DECL_STATE_ENTRY_UINT32(intr_req_bit);
+	DECL_STATE_ENTRY_UINT32(intr_pend_bit);
+
+}
+
+void Z80_BASE::save_state(FILEIO* state_fio)
+{
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+}
+
+bool Z80_BASE::load_state(FILEIO* state_fio)
+{
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) return false;
+	prev_total_icount = total_icount;
+	return true;
+}
 
 /* load_state() and save_state() has moved to z80.cpp . */

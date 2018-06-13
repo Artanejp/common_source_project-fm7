@@ -9,6 +9,7 @@ cmake_policy(SET CMP0011 NEW)
 #set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 include(CheckFunctionExists)
+#include(cotire)
 
 if(USE_DEVICES_SHARED_LIB)
   add_definitions(-DUSE_SHARED_DLL)

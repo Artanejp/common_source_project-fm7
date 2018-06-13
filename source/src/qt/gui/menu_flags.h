@@ -41,19 +41,25 @@ protected:
 
 	bool use_binary_file;
 	int max_binary;
+	int base_binary_num;
+	
 	bool use_bitmap;
 	int use_boot_mode;
 
 	bool use_bubble;
 	int max_bubble;
+	int base_bubble_num;
 	int max_b77_banks;
 
 	bool use_cart;
 	int max_cart;
+	int base_cart_num;
 
 	int use_cpu_type;
 
 	bool use_compact_disc;
+	int max_compact_disc;
+	int base_cd_num;
 
 	bool use_debugger;
 
@@ -64,6 +70,7 @@ protected:
 	int use_drive_type;
 
 	bool use_fd;
+	int base_fd_num;
 	int max_drive;
 	int max_d88_banks;
 
@@ -76,12 +83,19 @@ protected:
 
 	int use_keyboard_type;
 
+	bool use_hd;
+	int max_hd;
+	int base_hd_num;
+	
 	bool use_laser_disc;
+	int max_laser_disc;
+	int base_ld_num;
+
 
 	bool use_key_locked;
 	bool independent_caps_kana_led;
 
-	int use_extra_leds;
+	int use_led_devices;
 
 	int max_memcard;
 	
@@ -102,6 +116,7 @@ protected:
 
 	bool use_qd;
 	int max_qd;
+	int base_qd_num;
 
 	bool use_scanline;
 	bool use_screen_rotate;
@@ -124,6 +139,7 @@ protected:
 	bool use_tape_button;
 	bool use_tape_ptr;
 	int max_tape;
+	int base_tape_num;
 	
 	bool use_vm_auto_key_table;
 
@@ -186,6 +202,8 @@ public:
 
 	bool is_use_binary_file() { return use_binary_file; }
 	int get_max_binary() { return max_binary; }
+	int get_base_binary_num() { return base_binary_num; }
+	
 	bool is_use_bitmap() { return use_bitmap; }
 
 	int get_use_boot_mode() { return use_boot_mode; }
@@ -193,13 +211,17 @@ public:
 	bool is_use_bubble() { return use_bubble; }
 	int get_max_bubble() { return max_bubble; }
 	int get_max_b77_banks() { return max_b77_banks; }
+	int get_base_bubble_num() { return base_bubble_num; }
 
 	bool is_use_cart() { return use_cart; }
 	int get_max_cart() { return max_cart; }
+	int get_base_cart_num() { return base_cart_num; }
 
 	int get_use_cpu_type() { return use_cpu_type; }
 
 	bool is_use_compact_disc() { return use_compact_disc; }
+	int get_max_cd() { return max_compact_disc; }
+	int get_base_compact_disc_num() { return base_cd_num; }
 
 	bool is_use_debugger() { return use_debugger; }
 
@@ -212,6 +234,7 @@ public:
 	bool is_use_fd() { return use_fd; }
 	int get_max_drive() { return max_drive; }
 	int get_max_d88_banks() { return max_d88_banks; }
+	int get_base_floppy_disk_num() { return base_fd_num; }
 
 	bool is_use_joystick() { return use_joystick; }
 	bool is_use_joy_button_captions() { return use_joy_button_captions; }
@@ -220,10 +243,16 @@ public:
 
 	int  get_use_keyboard_type() { return use_keyboard_type; }
 	
+	bool is_use_hdd() { return use_hd; }
+	int get_max_hdd() { return max_hd; }
+	int get_base_hdd_num() { return base_hd_num; }
+	
 	bool is_use_laser_disc() {return use_laser_disc; }
+	int get_max_ld() { return max_laser_disc; }
+	int get_base_laser_disc_num() { return base_ld_num; }
 
 	bool get_use_key_locked() { return use_key_locked; }
-	int get_use_extra_leds() { return use_extra_leds; }
+	int get_use_led_devices() { return use_led_devices; }
 	bool get_independent_caps_kana_led() { return independent_caps_kana_led; }
 
 	int get_max_memcard() { return max_memcard; }
@@ -245,6 +274,7 @@ public:
 
 	bool is_use_qd() { return use_qd; }
 	int get_max_qd() { return max_qd; }
+	int get_base_quick_disk_num() { return base_qd_num; }
 
 	bool is_use_scanline() { return use_scanline; }
 	bool is_use_screen_rotate() { return use_screen_rotate; }
@@ -266,6 +296,7 @@ public:
 	bool is_use_tape_button() { return use_tape_button; }
 	bool is_use_tape_ptr() { return use_tape_ptr; }
 	int get_max_tape() { return max_tape; }
+	int get_base_tape_num() { return base_tape_num; }
 
 	bool is_use_vm_auto_key_table() { return use_vm_auto_key_table; }
 

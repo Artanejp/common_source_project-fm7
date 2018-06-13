@@ -6,7 +6,7 @@
  * History:
  * Jan 24, 2014 : Moved from some files.
  */
-
+#include <QApplication>
 
 #include "mainwidget_base.h"
 #include "commonclasses.h"
@@ -100,7 +100,7 @@ void Ui_MainWindowBase::CreateFloppyMenu(int drv, int drv_base)
 	{
 		QString ext = "*.d88 *.d77 *.1dd *.td0 *.imd *.dsk *.nfd *.fdi *.hdm *.hd5 *.hd4 *.hdb *.dd9 *.dd6 *.tfd *.xdf *.2d *.sf7 *.img *.ima *.vfd";
 		QString desc1 = "Floppy Disk";
-		menu_fds[drv] = new Menu_FDClass(menubar, QString::fromUtf8("Obj_Floppy"), using_flags, this, drv);
+		menu_fds[drv] = new Menu_FDClass(menubar, QString::fromUtf8("Floppy"), using_flags, this, drv, drv_base);
 		menu_fds[drv]->create_pulldown_menu();
 		
 		menu_fds[drv]->do_clear_inner_media();
@@ -109,12 +109,6 @@ void Ui_MainWindowBase::CreateFloppyMenu(int drv, int drv_base)
 		menu_fds[drv]->do_update_histories(listFDs[drv]);
 		menu_fds[drv]->do_set_initialize_directory(using_flags->get_config_ptr()->initial_floppy_disk_dir);
 		listD88[drv].clear();
-
-		QString name = QString::fromUtf8("FD");
-		QString tmpv;
-		tmpv.setNum(drv_base);
-		name.append(tmpv);
-		menu_fds[drv]->setTitle(name);
 	}
 }
 

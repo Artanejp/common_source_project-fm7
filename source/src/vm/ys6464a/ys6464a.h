@@ -26,7 +26,7 @@
 #define ONE_BOARD_MICRO_COMPUTER
 #define MAX_BUTTONS		21
 #define MAX_DRAW_RANGES		6
-#define USE_BINARY_FILE1
+#define USE_BINARY_FILE		1
 #define USE_DEBUGGER
 #define USE_STATE
 #define USE_CPU_Z80
@@ -73,6 +73,8 @@ const struct {
 	{582, 23, 28, 40},
 };
 
+class csp_state_utils;
+
 class EMU;
 class DEVICE;
 class EVENT;
@@ -90,6 +92,7 @@ class VM
 {
 protected:
 	EMU* emu;
+	csp_state_utils* state_entry;
 	
 	// devices
 	EVENT* event;
@@ -142,6 +145,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

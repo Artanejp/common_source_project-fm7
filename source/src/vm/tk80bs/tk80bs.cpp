@@ -205,6 +205,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
+	decl_state();
 }
 
 VM::~VM()
@@ -397,7 +398,7 @@ void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	if(drv == 0) {
 		drec->play_tape(file_path);
-		drec->set_remote(true);
+//		drec->set_remote(true);
 #if defined(_TK80BS)
 	} else if(drv == 1) {
 		cmt->play_tape(file_path);
@@ -409,7 +410,7 @@ void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
 	if(drv == 0) {
 		drec->rec_tape(file_path);
-		drec->set_remote(true);
+//		drec->set_remote(true);
 #if defined(_TK80BS)
 	} else if(drv == 1) {
 		cmt->rec_tape(file_path);
@@ -423,7 +424,7 @@ void VM::close_tape(int drv)
 		emu->lock_vm();
 		drec->close_tape();
 		emu->unlock_vm();
-		drec->set_remote(false);
+//		drec->set_remote(false);
 #if defined(_TK80BS)
 	} else if(drv == 1) {
 		cmt->close_tape();
@@ -447,6 +448,10 @@ bool VM::is_tape_playing(int drv)
 {
 	if(drv == 0) {
 		return drec->is_tape_playing();
+#if defined(_TK80BS)
+	} else if(drv == 1) {
+		return cmt->is_tape_playing();
+#endif
 	}
 	return false;
 }
@@ -455,6 +460,10 @@ bool VM::is_tape_recording(int drv)
 {
 	if(drv == 0) {
 		return drec->is_tape_recording();
+#if defined(_TK80BS)
+	} else if(drv == 1) {
+		return cmt->is_tape_recording();
+#endif
 	}
 	return false;
 }
@@ -463,6 +472,10 @@ int VM::get_tape_position(int drv)
 {
 	if(drv == 0) {
 		return drec->get_tape_position();
+#if defined(_TK80BS)
+	} else if(drv == 1) {
+		return cmt->get_tape_position();
+#endif
 	}
 	return 0;
 }
@@ -473,6 +486,37 @@ const _TCHAR* VM::get_tape_message(int drv)
 		return drec->get_message();
 	}
 	return NULL;
+}
+
+void VM::push_play(int drv)
+{
+	if(drv == 0) {
+		drec->set_ff_rew(0);
+		drec->set_remote(true);
+	}
+}
+
+void VM::push_stop(int drv)
+{
+	if(drv == 0) {
+		drec->set_remote(false);
+	}
+}
+
+void VM::push_fast_forward(int drv)
+{
+	if(drv == 0) {
+		drec->set_ff_rew(1);
+		drec->set_remote(true);
+	}
+}
+
+void VM::push_fast_rewind(int drv)
+{
+	if(drv == 0) {
+		drec->set_ff_rew(-1);
+		drec->set_remote(true);
+	}
 }
 
 bool VM::is_frame_skippable()
@@ -500,45 +544,71 @@ void VM::update_config()
 
 #define STATE_VERSION	6
 
+#include "../../statesub.h"
+
+void VM::decl_state(void)
+{
+#if defined(_TK80)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::TK_80_HEAD")));
+#elif defined(_TK85)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::TK_85_HEAD")));
+#elif defined(_TK80BS)
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::TK_80BS_HEAD")));
+#else
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::TK_80_SERIES_HEAD")));
+#endif
+	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
+#if defined(_TK80BS)
+	DECL_STATE_ENTRY_1D_ARRAY(vram, sizeof(vram));
+	DECL_STATE_ENTRY_INT32(boot_mode);
+	//DECL_STATE_ENTRY_INT32(draw_ranges);
+#endif
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		device->decl_state();
+	}
+}
+
 void VM::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
+	//state_fio->FputUint32(STATE_VERSION);
 	
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const char *name = typeid(*device).name() + 6; // skip "class "
-		
-		state_fio->FputInt32(strlen(name));
-		state_fio->Fwrite(name, strlen(name), 1);
 		device->save_state(state_fio);
 	}
-	state_fio->Fwrite(ram, sizeof(ram), 1);
-#if defined(_TK80BS)
-	state_fio->Fwrite(vram, sizeof(vram), 1);
-	state_fio->FputInt32(boot_mode);
-//	state_fio->FputInt32(draw_ranges);
-#endif
+//	state_fio->Fwrite(ram, sizeof(ram), 1);
+//#if defined(_TK80BS)
+//	state_fio->Fwrite(vram, sizeof(vram), 1);
+//	state_fio->FputInt32(boot_mode);
+////	state_fio->FputInt32(draw_ranges);
+//#endif
 }
 
 bool VM::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	//if(state_fio->FgetUint32() != STATE_VERSION) {
+	//	return false;
+	//}
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
+		emu->out_debug_log("INFO: HEADER DATA ERROR");
 		return false;
 	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const char *name = typeid(*device).name() + 6; // skip "class "
-		
-		if(!(state_fio->FgetInt32() == strlen(name) && state_fio->Fcompare(name, strlen(name)))) {
-			return false;
-		}
 		if(!device->load_state(state_fio)) {
 			return false;
 		}
 	}
-	state_fio->Fread(ram, sizeof(ram), 1);
+//	state_fio->Fread(ram, sizeof(ram), 1);
 #if defined(_TK80BS)
-	state_fio->Fread(vram, sizeof(vram), 1);
-	boot_mode = state_fio->FgetInt32();
-//	draw_ranges = state_fio->FgetInt32();
+//	state_fio->Fread(vram, sizeof(vram), 1);
+//	boot_mode = state_fio->FgetInt32();
+////	draw_ranges = state_fio->FgetInt32();
 	
 	// post process
 	emu->reload_bitmap();

@@ -8,6 +8,7 @@ export PATH="$PATH:\
 export PKG_CONFIG_LIBDIR=/usr/i686-w64-mingw32/lib
 export PKG_CONFIG_SYSROOT_DIR=/usr/i686-w64-mingw32
 
+
 #wine ./qtbase/configure.exe \
 ./configure \
 	    -release \
@@ -29,23 +30,27 @@ export PKG_CONFIG_SYSROOT_DIR=/usr/i686-w64-mingw32
 	    -icu \
 	    -nomake examples \
 	    -nomake tests \
-	    -D GL_GLEXT_PROTOTYPES \
-	    -I /usr/local/i586-mingw-msvc/Angle/include \
-	    -L /usr/local/i586-mingw-msvc/Angle/lib \
 	    -I /usr/local/i586-mingw-msvc/SDL/i686-w64-mingw32/include/SDL2 \
 	    -L /usr/local/i586-mingw-msvc/SDL/i686-w64-mingw32/lib \
 	    -I /usr/local/i586-mingw-msvc/DirectX_June_2010/Include \
 	    -L /usr/local/i586-mingw-msvc/DirectX_June_2010/Lib/x86 \
-	    -device-option ANGLE_PREFIX=/usr/local/i586-mingw-msvc/Angle \
+	    -I /usr/local/i586-mingw-msvc/Angle/include \
+	    -L /usr/local/i586-mingw-msvc/Angle/lib \
 	    -device-option SDL_PREFIX=/usr/local/i586-mingw-msvc/SDL/i686-w64-mingw32 \
 	    -device-option SDL2_PREFIX=/usr/local/i586-mingw-msvc/SDL/i686-w64-mingw32 \
 	    -device-option ICU_PREFIX=/usr/local/i586-mingw-msvc/icu \
-	    -device-option DIRECTX_PREFIX=/usr/local/i586-mingw-msvc \
+	    -device-option OPENGL_ES2_PREFIX=/usr/local/i586-mingw-msvc/Angle \
+	    -device-option LIBS_OPENGL_ES2+=GLESv2 \
+	    -device-option LIBS_OPENGL_ES2+=EGL \
 	    -opengl dynamic \
+	    -opengles3 \
 	    -no-eglfs \
+            -pkg-config \
 	    $@ \
 
-
+#	    -D GL_GLEXT_PROTOTYPES \
+#	    -opengl es2 \
+#	    -device-option ANGLE_PREFIX=/usr/local/i586-mingw-msvc/Angle \
 #           -device-option QMAKE_CFLAGS+=-mno-rdrnd \
 #	    -device-option QMAKE_CXXFLAGS+=-mno-rdrnd \
 #            -pkg-config \

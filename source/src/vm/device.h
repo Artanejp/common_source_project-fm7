@@ -31,7 +31,8 @@
 #define SIG_CPU_FIRQ		102
 #define SIG_CPU_NMI		103
 #define SIG_CPU_BUSREQ		104
-#define SIG_CPU_DEBUG		105
+#define SIG_CPU_HALTREQ		105
+#define SIG_CPU_DEBUG		106
 
 #define SIG_PRINTER_DATA	201
 #define SIG_PRINTER_STROBE	202
@@ -51,12 +52,14 @@
 #define SIG_SCSI_ACK		309
 #define SIG_SCSI_RST		310
 
+class csp_state_utils;
 class DEVICE
 {
 protected:
 	VM* vm;
 	EMU* emu;
 	OSD* osd;
+	csp_state_utils *state_entry;
 public:
 	DEVICE(VM* parent_vm, EMU* parent_emu) : vm(parent_vm), emu(parent_emu)
 	{
@@ -98,6 +101,7 @@ public:
 	{
 		return true;
 	}
+	virtual void decl_state(void) {}
 	
 	// control
 	virtual void reset() {}
@@ -824,6 +828,10 @@ public:
 	virtual bool write_debug_reg(const _TCHAR *reg, uint32_t data)
 	{
 		return false;
+	}
+	virtual uint32_t read_debug_reg(const _TCHAR *reg)
+	{
+		return 0;
 	}
 	virtual void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len) {}
 	virtual int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)

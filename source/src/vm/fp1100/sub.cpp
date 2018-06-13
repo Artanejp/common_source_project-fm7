@@ -388,7 +388,8 @@ void SUB::draw_screen()
 	
 	memset(screen, 0, sizeof(screen));
 	
-	emu->set_vm_screen_lines((ymax > 400) ? 400 : ymax);
+//	emu->set_vm_screen_lines((ymax > 400) ? 400 : ymax);
+	
 	if((regs[8] & 0x30) != 0x30 && (pa & 7) != 0) {
 		if(pa & 8) {
 			// 40 column

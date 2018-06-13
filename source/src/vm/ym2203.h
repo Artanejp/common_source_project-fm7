@@ -125,6 +125,7 @@ public:
 		_IS_YM2203_PORT_MODE = false;
 		_YM2203_PORT_MODE = 0xff;
 		_SUPPORT_YM2203_PORT_A = _SUPPORT_YM2203_PORT_B = false;
+		is_ym2608 = false;
 		//if(_SUPPORT_YM2203_PORT) {
 		for(int i = 0; i < 2; i++) {
 			initialize_output_signals(&port[i].outputs);
@@ -148,6 +149,7 @@ public:
 	void mix(int32* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	// unique functions

@@ -185,6 +185,11 @@ bool I386::write_debug_reg(const _TCHAR *reg, uint32_t data)
 	return cpucore->write_debug_reg(reg, data);
 }
 
+uint32_t I386::read_debug_reg(const _TCHAR *reg)
+{
+	return cpucore->read_debug_reg(reg);
+}
+
 void I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 	i386_state *cpustate = cpucore->get_cpu_state();

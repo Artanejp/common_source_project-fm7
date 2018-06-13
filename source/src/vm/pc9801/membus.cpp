@@ -6,6 +6,7 @@
 	NEC PC-9801VM Emulator 'ePC-9801VM'
 	NEC PC-9801VX Emulator 'ePC-9801VX'
 	NEC PC-9801RA Emulator 'ePC-9801RA'
+	NEC PC-98XA Emulator 'ePC-98XA'
 	NEC PC-98XL Emulator 'ePC-98XL'
 	NEC PC-98RL Emulator 'ePC-98RL'
 	NEC PC-98DO Emulator 'ePC-98DO'
@@ -58,7 +59,7 @@ void MEMBUS::initialize()
 	// RAM
 	memset(ram, 0x00, sizeof(ram));
 #if !defined(SUPPORT_HIRESO)
-	set_memory_rw(0x000000, 0x09ffff, ram);
+	set_memory_rw(0x00000, 0x9ffff, ram);
 #else
 	set_memory_rw(0x00000, 0xbffff, ram);
 #endif
@@ -167,11 +168,12 @@ void MEMBUS::reset()
 #endif
 	
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
-	dma_access_ctrl = 0x00;
 #if !defined(SUPPORT_HIRESO)
+	dma_access_ctrl = 0xfe; // bit2 = 1, bit0 = 0
 	window_80000h = 0x80000;
 	window_a0000h = 0xa0000;
 #else
+	dma_access_ctrl = 0xfb; // bit2 = 0, bit0 = 1
 	window_80000h = 0x100000;
 	window_a0000h = 0x120000;
 #endif
@@ -263,13 +265,20 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 		break;
 #endif
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
+#if !defined(_PC98XA)
 	case 0x0439:
 		dma_access_ctrl = data;
 		break;
+#endif
 #if !defined(SUPPORT_HIRESO)
 	case 0x0461:
 #else
 	case 0x0091:
+#if defined(_PC98XA)
+		if(data < 0x10) {
+			break;
+		}
+#endif
 #endif
 		window_80000h = (data & 0xfe) << 16;
 		break;
@@ -277,6 +286,11 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 	case 0x0463:
 #else
 	case 0x0093:
+#if defined(_PC98XA)
+		if(data < 0x10) {
+			break;
+		}
+#endif
 #endif
 		window_a0000h = (data & 0xfe) << 16;
 		break;
@@ -325,8 +339,10 @@ uint32_t MEMBUS::read_io8(uint32_t addr)
 {
 	switch(addr) {
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
+#if !defined(_PC98XA)
 	case 0x0439:
 		return dma_access_ctrl;
+#endif
 #if !defined(SUPPORT_HIRESO)
 	case 0x0461:
 #else
@@ -351,212 +367,69 @@ uint32_t MEMBUS::read_io8(uint32_t addr)
 
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 #if !defined(SUPPORT_HIRESO)
-	#define UPPER_MEMORY_ADDR 0xfa0000
+	#define UPPER_MEMORY_24BIT	0x00fa0000
+	#define UPPER_MEMORY_32BIT	0xfffa0000
 #else
-	#define UPPER_MEMORY_ADDR 0xfc0000
+	#define UPPER_MEMORY_24BIT	0x00fc0000
+	#define UPPER_MEMORY_32BIT	0xfffc0000
 #endif
+
 uint32_t MEMBUS::read_data8(uint32_t addr)
 {
-#if defined(SUPPORT_32BIT_ADDRESS)
-	if(addr < 0x1000000) {
-#endif
-		if(addr >= UPPER_MEMORY_ADDR) {
-			addr &= 0xfffff;
-		}
-		if(addr >= 0x80000 && addr < 0xa0000) {
-			if((addr = (addr & 0x1ffff) | window_80000h) >= UPPER_MEMORY_ADDR) {
-				addr &= 0xfffff;
-			}
-		} else if(addr >= 0xa0000 && addr < 0xc0000) {
-			if((addr = (addr & 0x1ffff) | window_a0000h) >= UPPER_MEMORY_ADDR) {
-				addr &= 0xfffff;
-			}
-		}
+	if(addr < 0x80000) {
 		return MEMORY::read_data8(addr);
-#if defined(SUPPORT_32BIT_ADDRESS)
-	} else if(addr >= 0xfff00000) {
-		return this->read_data8(addr & 0xffffff);
-	} else {
-		return 0xff;
+	} else if(addr < 0xa0000) {
+		addr = (addr & 0x1ffff) | window_80000h;
+	} else if(addr < 0xc0000) {
+		addr = (addr & 0x1ffff) | window_a0000h;
 	}
+	if(addr < UPPER_MEMORY_24BIT) {
+		return MEMORY::read_data8(addr);
+#if defined(SUPPORT_24BIT_ADDRESS)
+	} else {
+#else
+	} else if(addr < 0x1000000 || addr >= UPPER_MEMORY_32BIT) {
 #endif
+		return MEMORY::read_data8(addr & 0xfffff);
+	}
+	return 0xff;
 }
 
 void MEMBUS::write_data8(uint32_t addr, uint32_t data)
 {
-#if defined(SUPPORT_32BIT_ADDRESS)
-	if(addr < 0x1000000) {
-#endif
-		if(addr >= UPPER_MEMORY_ADDR) {
-			addr &= 0xfffff;
-		}
-		if(addr >= 0x80000 && addr < 0xa0000) {
-			if((addr = (addr & 0x1ffff) | window_80000h) >= UPPER_MEMORY_ADDR) {
-				addr &= 0xfffff;
-			}
-		} else if(addr >= 0xa0000 && addr < 0xc0000) {
-			if((addr = (addr & 0x1ffff) | window_a0000h) >= UPPER_MEMORY_ADDR) {
-				addr &= 0xfffff;
-			}
-		}
+	if(addr < 0x80000) {
 		MEMORY::write_data8(addr, data);
-#if defined(SUPPORT_32BIT_ADDRESS)
-	} else if(addr >= 0xfff00000) {
-		this->write_data8(addr & 0xffffff, data);
+		return;
+	} else if(addr < 0xa0000) {
+		addr = (addr & 0x1ffff) | window_80000h;
+	} else if(addr < 0xc0000) {
+		addr = (addr & 0x1ffff) | window_a0000h;
 	}
-#endif
-}
-
-uint32_t MEMBUS::read_data16(uint32_t addr)
-{
-#if defined(SUPPORT_32BIT_ADDRESS)
-	if(addr < 0x1000000) {
-#endif
-		if(addr >= UPPER_MEMORY_ADDR) {
-			addr &= 0xfffff;
-		}
-		if(addr >= 0x80000 && addr < 0xa0000) {
-			if((addr = (addr & 0x1ffff) | window_80000h) >= UPPER_MEMORY_ADDR) {
-				addr &= 0xfffff;
-			}
-		} else if(addr >= 0xa0000 && addr < 0xc0000) {
-			if((addr = (addr & 0x1ffff) | window_a0000h) >= UPPER_MEMORY_ADDR) {
-				addr &= 0xfffff;
-			}
-		}
-		return MEMORY::read_data16(addr);
-#if defined(SUPPORT_32BIT_ADDRESS)
-	} else if(addr >= 0xfff00000) {
-		return this->read_data16(addr & 0xffffff);
+	if(addr < UPPER_MEMORY_24BIT) {
+		MEMORY::write_data8(addr, data);
+#if defined(SUPPORT_24BIT_ADDRESS)
 	} else {
-		return 0xffff;
+#else
+	} else if(addr < 0x1000000 || addr >= UPPER_MEMORY_32BIT) {
+#endif
+		MEMORY::write_data8(addr & 0xfffff, data);
 	}
-#endif
-}
-
-void MEMBUS::write_data16(uint32_t addr, uint32_t data)
-{
-#if defined(SUPPORT_32BIT_ADDRESS)
-	if(addr < 0x1000000) {
-#endif
-		if(addr >= UPPER_MEMORY_ADDR) {
-			addr &= 0xfffff;
-		}
-		if(addr >= 0x80000 && addr < 0xa0000) {
-			if((addr = (addr & 0x1ffff) | window_80000h) >= UPPER_MEMORY_ADDR) {
-				addr &= 0xfffff;
-			}
-		} else if(addr >= 0xa0000 && addr < 0xc0000) {
-			if((addr = (addr & 0x1ffff) | window_a0000h) >= UPPER_MEMORY_ADDR) {
-				addr &= 0xfffff;
-			}
-		}
-		MEMORY::write_data16(addr, data);
-#if defined(SUPPORT_32BIT_ADDRESS)
-	} else if(addr >= 0xfff00000) {
-		this->write_data16(addr & 0xffffff, data);
-	}
-#endif
-}
-
-uint32_t MEMBUS::read_data32(uint32_t addr)
-{
-#if defined(SUPPORT_32BIT_ADDRESS)
-	if(addr < 0x1000000) {
-#endif
-		if(addr >= UPPER_MEMORY_ADDR) {
-			addr &= 0xfffff;
-		}
-		if(addr >= 0x80000 && addr < 0xa0000) {
-			if((addr = (addr & 0x1ffff) | window_80000h) >= UPPER_MEMORY_ADDR) {
-				addr &= 0xfffff;
-			}
-		} else if(addr >= 0xa0000 && addr < 0xc0000) {
-			if((addr = (addr & 0x1ffff) | window_a0000h) >= UPPER_MEMORY_ADDR) {
-				addr &= 0xfffff;
-			}
-		}
-		return MEMORY::read_data32(addr);
-#if defined(SUPPORT_32BIT_ADDRESS)
-	} else if(addr >= 0xfff00000) {
-		return this->read_data32(addr & 0xffffff);
-	} else {
-		return 0xffffffff;
-	}
-#endif
-}
-
-void MEMBUS::write_data32(uint32_t addr, uint32_t data)
-{
-#if defined(SUPPORT_32BIT_ADDRESS)
-	if(addr < 0x1000000) {
-#endif
-		if(addr >= UPPER_MEMORY_ADDR) {
-			addr &= 0xfffff;
-		}
-		if(addr >= 0x80000 && addr < 0xa0000) {
-			if((addr = (addr & 0x1ffff) | window_80000h) >= UPPER_MEMORY_ADDR) {
-				addr &= 0xfffff;
-			}
-		} else if(addr >= 0xa0000 && addr < 0xc0000) {
-			if((addr = (addr & 0x1ffff) | window_a0000h) >= UPPER_MEMORY_ADDR) {
-				addr &= 0xfffff;
-			}
-		}
-		MEMORY::write_data32(addr, data);
-#if defined(SUPPORT_32BIT_ADDRESS)
-	} else if(addr >= 0xfff00000) {
-		this->write_data32(addr & 0xffffff, data);
-	}
-#endif
 }
 
 uint32_t MEMBUS::read_dma_data8(uint32_t addr)
 {
 	if(dma_access_ctrl & 4) {
-		addr &= 0xfffff;
+		addr &= 0x000fffff;
 	}
-	return this->read_data8(addr);
+	return MEMBUS::read_data8(addr);
 }
 
 void MEMBUS::write_dma_data8(uint32_t addr, uint32_t data)
 {
 	if(dma_access_ctrl & 4) {
-		addr &= 0xfffff;
+		addr &= 0x000fffff;
 	}
-	this->write_data8(addr, data);
-}
-
-uint32_t MEMBUS::read_dma_data16(uint32_t addr)
-{
-	if(dma_access_ctrl & 4) {
-		addr &= 0xfffff;
-	}
-	return this->read_data16(addr);
-}
-
-void MEMBUS::write_dma_data16(uint32_t addr, uint32_t data)
-{
-	if(dma_access_ctrl & 4) {
-		addr &= 0xfffff;
-	}
-	this->write_data16(addr, data);
-}
-
-uint32_t MEMBUS::read_dma_data32(uint32_t addr)
-{
-	if(dma_access_ctrl & 4) {
-		addr &= 0xfffff;
-	}
-	return this->read_data32(addr);
-}
-
-void MEMBUS::write_dma_data32(uint32_t addr, uint32_t data)
-{
-	if(dma_access_ctrl & 4) {
-		addr &= 0xfffff;
-	}
-	this->write_data32(addr, data);
+	MEMBUS::write_data8(addr, data);
 }
 #endif
 

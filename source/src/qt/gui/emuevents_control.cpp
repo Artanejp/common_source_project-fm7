@@ -5,7 +5,8 @@
  *  History: April 07, 2016 : Initial.
  */
 
-
+#include <QApplication>
+#include <QClipboard>
 #include "qt_emuevents.h"
 #include "qt_main.h"
 #include "qt_dialogs.h"
@@ -23,6 +24,11 @@ void Ui_MainWindowBase::OnSpecialReset(void)
 {
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GUI, "Special reset");
 	emit sig_vm_specialreset();
+}
+
+void Ui_MainWindowBase::do_emu_full_speed(bool flag)
+{
+	using_flags->get_config_ptr()->full_speed = flag;
 }
 
 

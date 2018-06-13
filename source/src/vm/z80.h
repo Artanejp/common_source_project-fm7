@@ -27,7 +27,7 @@
 //#ifdef USE_DEBUGGER
 class DEBUGGER;
 //#endif
-
+class csp_state_utils;
 class Z80_BASE : public DEVICE
 {
 protected:
@@ -47,6 +47,7 @@ protected:
 	DEVICE *d_mem_stored, *d_io_stored;
 //#endif
 	outputs_t outputs_busack;
+	csp_state_utils *state_entry;
 
 	bool has_nsc800;
 	bool has_memory_wait;
@@ -261,6 +262,7 @@ public:
 		total_icount = prev_total_icount = 0;
 		initialize_output_signals(&outputs_busack);
 		set_device_name(_T("Z80 CPU"));
+
 	}
 	~Z80_BASE() {}
 	
@@ -268,6 +270,11 @@ public:
 	virtual void initialize();
 	virtual void reset();
 	int run(int clock);
+
+	virtual void save_state(FILEIO* state_fio);
+	virtual bool load_state(FILEIO* state_fio);
+	virtual void decl_state(void);
+	
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void set_intr_line(bool line, bool pending, uint32_t bit)
 	{
@@ -347,9 +354,10 @@ public:
 	void initialize();
 	void reset();
 	int run(int clock) override;
+	void save_state(FILEIO* state_fio) override;
+	bool load_state(FILEIO* state_fio) override;
+	void decl_state(void) override;
 
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
 	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 #ifdef USE_DEBUGGER
 	void write_debug_data8(uint32_t addr, uint32_t data);

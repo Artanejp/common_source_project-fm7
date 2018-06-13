@@ -1,3 +1,33 @@
+commit a5e741fafe9c2adffb230bafcbb4daadf9012567
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 16 18:36:42 2018 +0900
+
+    [VM][M6502] Fix compiler warning.
+
+commit 38e78a021214ca349c93b2a6be41cea633c9090b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 16 18:34:42 2018 +0900
+
+    [VM][HD146818] Fix compilation warning.
+
+commit 2ca756db19eae26d990f7d0bfb04be5f8935ada9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 16 18:31:53 2018 +0900
+
+    [VM][MSM58321] Fix OOPS around counting pulse.
+
+commit 4766bd24b215c5569dede99c7b511210838f52b3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 16 18:24:07 2018 +0900
+
+    [CONFIG] I forgot change top default of renderer. X-)
+
+commit f896ddbdf4f36f1030df5c4fcd21a71c2ee6e321
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 16 18:23:53 2018 +0900
+
+    [DOC] Updated.
+
 commit cf31c26aab576798a073e5d523bfc21b2091fd76
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Wed May 16 15:00:11 2018 +0900
