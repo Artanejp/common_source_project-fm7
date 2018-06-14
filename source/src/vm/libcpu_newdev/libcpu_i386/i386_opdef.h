@@ -1816,6 +1816,8 @@ protected:
 	INLINE int floatx80_is_inf(floatx80 fx);
 	INLINE int floatx80_is_denormal(floatx80 fx);
 	INLINE floatx80 floatx80_abs(floatx80 fx);
+
+	INLINE UINT64 __SWAP64(UINT64 in);
 	INLINE double fx80_to_double(floatx80 fx);
 	INLINE floatx80 double_to_fx80(double in);
 	INLINE floatx80 READ80( UINT32 ea);
@@ -2809,15 +2811,57 @@ INLINE floatx80 I386_OPS_BASE::floatx80_abs(floatx80 fx)
 	return fx;
 }
 
+inline UINT64 I386_OPS_BASE::__SWAP64(UINT64 in)
+{						
+	typedef union {										
+		struct {									
+			uint8_t h7, h6, h5, h4, h3, h2, h, l;	
+		} b;   
+		UINT64 ld;
+	} d1_t;
+	
+	d1_t id, od;
+	id.ld = in;
+	od.b.h7 = id.b.l;
+	od.b.h6 = id.b.h;
+	od.b.h5 = id.b.h2;
+	od.b.h4 = id.b.h3;
+	od.b.h3 = id.b.h4;
+	od.b.h2 = id.b.h5;
+	od.b.h  = id.b.h6;
+	od.b.l  = id.b.h7;
+	
+	return od.ld;
+}
+
 INLINE double I386_OPS_BASE::fx80_to_double(floatx80 fx)
 {
-	UINT64 d = floatx80_to_float64(fx);
-	return *(double*)&d;
+	union {
+		UINT64 ld;
+		double fd; // WIP: If sizeof(double) != sizeof(UINT64).(or IEEE 754 format has changed).
+	} d;
+	UINT64 nd;
+	nd = floatx80_to_float64(fx);
+#if __FLOAT_WORD_ORDER != __BYTE_ORDER
+	nd = __SWAP64(nd);
+#endif
+	d.ld = nd;
+	return d.fd;
 }
 
 INLINE floatx80 I386_OPS_BASE::double_to_fx80(double in)
 {
-	return float64_to_floatx80(*(UINT64*)&in);
+	union {
+		UINT64 ld;
+		double fd; // WIP: If sizeof(double) != sizeof(UINT64).(or IEEE 754 format has changed).
+	} d;
+	UINT64 nd;
+	d.fd = in;
+	nd = d.ld;
+#if __FLOAT_WORD_ORDER != __BYTE_ORDER
+	nd = __SWAP64(nd);
+#endif
+	return float64_to_floatx80(nd);
 }
 
 INLINE floatx80 I386_OPS_BASE::READ80( UINT32 ea)

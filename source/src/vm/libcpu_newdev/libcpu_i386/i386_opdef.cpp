@@ -54,7 +54,7 @@ UINT32 I386_OPS_BASE::i386_load_protected_mode_segment( I386_SREG *seg, UINT64 *
 	}
 
 	entry = seg->selector & ~0x7;
-	if (limit == 0 || entry + 7 > limit)
+	if ((limit == 0) || ((UINT32)(entry + 7) > limit))
 		return 0;
 
 	v1 = READ32PL0(base + entry );
@@ -89,7 +89,7 @@ void I386_OPS_BASE::i386_load_call_gate(I386_CALL_GATE *gate)
 	}
 
 	entry = gate->segment & ~0x7;
-	if (limit == 0 || entry + 7 > limit)
+	if ((limit == 0) || ((UINT32)(entry + 7) > limit))
 		return;
 
 	v1 = READ32PL0(base + entry );
@@ -923,7 +923,7 @@ void I386_OPS_BASE::i386_trap(int irq, int irq_gate, int trap_level)
 					else
 						stack_limit = 6;
 					// TODO: Add check for error code (2 extra bytes)
-					if(REG32(ESP) < stack_limit)
+					if((int)(REG32(ESP)) < stack_limit)
 					{
 						logerror("IRQ: Stack has no space left (needs %i bytes).\n",stack_limit);
 						FAULT_EXP(FAULT_SS,0)
@@ -1787,7 +1787,7 @@ void I386_OPS_BASE::i386_protected_mode_call( UINT16 seg, UINT32 off, int indire
 					}
 					if(operand32 != 0)
 					{
-						if(newESP < ((gate.dword_count & 0x1f) + 16))
+						if(newESP < (UINT32)((gate.dword_count & 0x1f) + 16))
 						{
 							logerror("CALL: Call gate: New stack has no room for 32-bit return address and parameters.\n");
 							FAULT(FAULT_SS,0) // #SS(0)
@@ -1800,7 +1800,7 @@ void I386_OPS_BASE::i386_protected_mode_call( UINT16 seg, UINT32 off, int indire
 					}
 					else
 					{
-						if(newESP < ((gate.dword_count & 0x1f) + 8))
+						if(newESP < (UINT32)((gate.dword_count & 0x1f) + 8))
 						{
 							logerror("CALL: Call gate: New stack has no room for 16-bit return address and parameters.\n");
 							FAULT(FAULT_SS,0) // #SS(0)
@@ -2696,7 +2696,7 @@ void I386_OPS_BASE::i386_protected_mode_iret(int operand32)
 
 void I386_OPS_BASE::build_cycle_table()
 {
-	int i, j;
+	uint32_t i, j;
 	for (j=0; j < X86_NUM_CPUS; j++)
 	{
 //		cycle_table_rm[j] = (UINT8 *)malloc(CYCLES_NUM_OPCODES);
@@ -2986,7 +2986,7 @@ void I386_OPS_BASE::build_opcode_table(UINT32 features)
 		_cpustate->lock_table[1][i] = false;
 	}
 
-	for (i=0; i < sizeof(x86_opcode_table)/sizeof(X86_OPCODE); i++)
+	for (i=0; i < (int)(sizeof(x86_opcode_table) / sizeof(X86_OPCODE)); i++)
 	{
 		const X86_OPCODE *op = &x86_opcode_table[i];
 
