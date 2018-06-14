@@ -131,6 +131,7 @@ void GLDraw_ES_2::initBitmapVertex(void)
 void GLDraw_ES_2::initFBO(void)
 {
 	glHorizGrids = (GLfloat *)malloc(sizeof(float) * (using_flags->get_real_screen_height() + 2) * 6);
+
 	if(glHorizGrids != NULL) {
 		doSetGridsHorizonal(using_flags->get_real_screen_height(), true);
 	}
@@ -437,7 +438,7 @@ void GLDraw_ES_2::updateGridsVAO(QOpenGLBuffer *bp,
 			bp->allocate((number + 1) * sizeof(GLfloat) * 3 * 2);
 		}
 		if(tp != NULL) {
-			bp->write(0, tp, (number + 1) * sizeof(GLfloat) * 3 * 2);
+			bp->write(0, tp, number * sizeof(GLfloat) * 3 * 2);
 		}
 		bp->release();
 		vp->release();
@@ -502,6 +503,7 @@ void GLDraw_ES_2::doSetGridsHorizonal(int lines, bool force)
 {
 	if((lines == vert_lines) && !force) return;
 	GLDraw_2_0::doSetGridsHorizonal(lines, force);
+
 	updateGridsVAO(grids_horizonal_buffer,
 				   grids_horizonal_vertex,
 				   glHorizGrids,
@@ -1370,6 +1372,12 @@ void GLDraw_ES_2::do_set_texture_size(QImage *p, int w, int h)
 					 main_pass->getVertexBuffer(),
 					 vertexFormat, 4);
 		
+		if(w > using_flags->get_real_screen_width()) {
+			w = using_flags->get_real_screen_width();
+		}			
+		if(h > using_flags->get_real_screen_height()) {
+			h = using_flags->get_real_screen_height();
+		}
 		this->doSetGridsHorizonal(h, false);
 		this->doSetGridsVertical(w, false);
 		p_wid->doneCurrent();

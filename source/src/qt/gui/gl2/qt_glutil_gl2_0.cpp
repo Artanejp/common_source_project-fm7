@@ -1262,8 +1262,15 @@ void GLDraw_2_0::do_set_texture_size(QImage *p, int w, int h)
 					 vertexFormat, 4);
 		p_wid->doneCurrent();
 	}		
-	this->doSetGridsHorizonal(h, false);
+	if(w > using_flags->get_real_screen_width()) {
+		w = using_flags->get_real_screen_width();
+	}			
+	if(h > using_flags->get_real_screen_height()) {
+		h = using_flags->get_real_screen_height();
+	}
 	this->doSetGridsVertical(w, false);
+	this->doSetGridsHorizonal(h, false);
+
 }
 
 void GLDraw_2_0::do_set_horiz_lines(int lines)
