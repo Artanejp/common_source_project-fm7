@@ -22,8 +22,8 @@ CSP_TabMovieH264::CSP_TabMovieH264(MOVIE_SAVER *ms, CSP_DialogMovie *parent_wind
 	p_movie = ms;
 	p_window = parent_window;
 
-	video_maxq = using_flags->get_config_ptr()->video_h264_maxq;
-	video_minq = using_flags->get_config_ptr()->video_h264_minq;
+	video_maxq = config.video_h264_maxq;
+	video_minq = config.video_h264_minq;
 
 	label_video_bframes = new QLabel(QApplication::translate("MovieTabH264", "Max B Frames", 0), this);
 	combo_video_bframes = new QComboBox(this);
@@ -52,12 +52,12 @@ CSP_TabMovieH264::CSP_TabMovieH264(MOVIE_SAVER *ms, CSP_DialogMovie *parent_wind
 
 	for(int i = 0; i < combo_video_bitrate->count(); i++) {
 		int br = combo_video_bitrate->itemData(i).toInt();
-		if(br == using_flags->get_config_ptr()->video_h264_bitrate) {
+		if(br == config.video_h264_bitrate) {
 			combo_video_bitrate->setCurrentIndex(i);
 		}
 	}
 	connect(combo_video_bitrate, SIGNAL(activated(int)), this, SLOT(do_set_video_bitrate(int)));
-	video_bitrate = using_flags->get_config_ptr()->video_h264_bitrate;
+	video_bitrate = config.video_h264_bitrate;
 
 	// Video bframes
 	combo_video_bframes->addItem(QString::fromUtf8("0"), 0);
@@ -72,11 +72,11 @@ CSP_TabMovieH264::CSP_TabMovieH264(MOVIE_SAVER *ms, CSP_DialogMovie *parent_wind
 	combo_video_bframes->setToolTip(QApplication::translate("MovieTabH264", "Max numbers of B FRAMEs.\nLarger value will make smaller file, but slowly.", 0));
 	for(int i = 0; i < combo_video_bframes->count(); i++) {
 		int br = combo_video_bframes->itemData(i).toInt();
-		if(br == using_flags->get_config_ptr()->video_h264_bframes) {
+		if(br == config.video_h264_bframes) {
 			combo_video_bframes->setCurrentIndex(i);
 		}
 	}
-	video_bframes = using_flags->get_config_ptr()->video_h264_bframes;
+	video_bframes = config.video_h264_bframes;
 	connect(combo_video_bframes, SIGNAL(activated(int)), this, SLOT(do_set_bframes(int)));
 
 	// B adapt
@@ -86,37 +86,37 @@ CSP_TabMovieH264::CSP_TabMovieH264(MOVIE_SAVER *ms, CSP_DialogMovie *parent_wind
 	combo_video_b_adapt->setToolTip(QApplication::translate("MovieTabH264", "Set decision of using B FRAMEs.", 0));
 	for(int i = 0; i < combo_video_b_adapt->count(); i++) {
 		int br = combo_video_b_adapt->itemData(i).toInt();
-		if(br == using_flags->get_config_ptr()->video_h264_b_adapt) {
+		if(br == config.video_h264_b_adapt) {
 			combo_video_b_adapt->setCurrentIndex(i);
 		}
 	}
-	video_b_adapt = using_flags->get_config_ptr()->video_h264_b_adapt;
+	video_b_adapt = config.video_h264_b_adapt;
 	connect(combo_video_b_adapt, SIGNAL(activated(int)), this, SLOT(do_set_b_adapt(int)));
 
 	slider_qmin = new QSlider(Qt::Horizontal, this);
 	slider_qmin->setMinimum(0);
 	slider_qmin->setMaximum(63);
-	slider_qmin->setValue(using_flags->get_config_ptr()->video_h264_minq);
+	slider_qmin->setValue(config.video_h264_minq);
 	label_qmin_val = new QLabel(this);
-	tmps.setNum(using_flags->get_config_ptr()->video_h264_minq);
+	tmps.setNum(config.video_h264_minq);
 	label_qmin_val->setText(tmps);
 	label_qmin_name = new QLabel(QString::fromUtf8("QP Min"), this);
 	slider_qmin->setToolTip(QApplication::translate("MovieTabH264", "Minimum Quant.\nSmaller value is better quality, but making larger file.\nLarger value is dirty picture, but making smaller file.\n15 to 24 is recommended.", 0));
 
-	video_minq = using_flags->get_config_ptr()->video_h264_minq;
+	video_minq = config.video_h264_minq;
 	connect(slider_qmin, SIGNAL(valueChanged(int)), this, SLOT(do_set_qmin(int)));
 		
 	slider_qmax = new QSlider(Qt::Horizontal, this);
 	slider_qmax->setMinimum(0);
 	slider_qmax->setMaximum(63);
-	slider_qmax->setValue(using_flags->get_config_ptr()->video_h264_maxq);
+	slider_qmax->setValue(config.video_h264_maxq);
 	label_qmax_val = new QLabel(this);
-	tmps.setNum(using_flags->get_config_ptr()->video_h264_maxq);
+	tmps.setNum(config.video_h264_maxq);
 	label_qmax_val->setText(tmps);
 	label_qmax_name = new QLabel(QString::fromUtf8("QP Max"), this);
 	slider_qmax->setToolTip(QApplication::translate("MovieTabH264", "Maximum Quant.\nSmaller value is better quality, but making larger file.\nLarger value is dirty picture, but making smaller file.\n20 to 28 is recommended.", 0));
 	connect(slider_qmax, SIGNAL(valueChanged(int)), this, SLOT(do_set_qmax(int)));
-	video_maxq = using_flags->get_config_ptr()->video_h264_maxq;
+	video_maxq = config.video_h264_maxq;
 	
 	// Subme
 	combo_video_subme->addItem(QApplication::translate("MovieTabH264", "RD mode decision for I/P-frames", 0), 6);
@@ -129,11 +129,11 @@ CSP_TabMovieH264::CSP_TabMovieH264(MOVIE_SAVER *ms, CSP_DialogMovie *parent_wind
 
 	for(int i = 0; i < combo_video_subme->count(); i++) {
 		int br = combo_video_subme->itemData(i).toInt();
-		if(br == using_flags->get_config_ptr()->video_h264_subme) {
+		if(br == config.video_h264_subme) {
 			combo_video_subme->setCurrentIndex(i);
 		}
 	}
-	video_subme = using_flags->get_config_ptr()->video_h264_subme;
+	video_subme = config.video_h264_subme;
 	connect(combo_video_subme, SIGNAL(activated(int)), this, SLOT(do_set_subme(int)));
 		
 	label_title = new QLabel(QApplication::translate("MovieTabH264", "Set H.264 parameter.", 0), this);
@@ -177,13 +177,13 @@ void CSP_TabMovieH264::do_set_codecs(void)
 	QString value;
 	// See:
 	// https://libav.org/avconv.html#Video-Options
-	using_flags->get_config_ptr()->video_h264_bitrate = video_bitrate;
+	config.video_h264_bitrate = video_bitrate;
 
-	using_flags->get_config_ptr()->video_h264_maxq = video_maxq;
-	using_flags->get_config_ptr()->video_h264_minq = video_minq;
-	using_flags->get_config_ptr()->video_h264_bframes = video_bframes;
-	using_flags->get_config_ptr()->video_h264_b_adapt = video_b_adapt;
-	using_flags->get_config_ptr()->video_h264_subme = video_subme;
+	config.video_h264_maxq = video_maxq;
+	config.video_h264_minq = video_minq;
+	config.video_h264_bframes = video_bframes;
+	config.video_h264_b_adapt = video_b_adapt;
+	config.video_h264_subme = video_subme;
 }
 
 void CSP_TabMovieH264::do_set_qmin(int n)

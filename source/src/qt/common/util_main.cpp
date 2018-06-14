@@ -58,7 +58,7 @@ void Ui_MainWindow::set_window(int mode)
 		dest_x = (dest_x < 0) ? 0 : dest_x;
 		dest_y = (dest_y < 0) ? 0 : dest_y;
 		
-		p_config->window_mode = prev_window_mode = mode;
+		config.window_mode = prev_window_mode = mode;
 		
 		// set screen size to emu class
 		emit sig_emu_set_display_size(width, height, width, height);
@@ -78,7 +78,7 @@ void Ui_MainWindow::set_window(int mode)
 			height = (int)(nd * (double)using_flags->get_screen_height());
 
 			if(using_flags->is_use_screen_rotate()) {
-				if(p_config->rotate_type) {
+				if(config.rotate_type) {
 					int tmp_w = width;
 					width = height;
 					height = tmp_w;
@@ -86,7 +86,7 @@ void Ui_MainWindow::set_window(int mode)
 			}
 
 		}
-		p_config->window_mode = mode;
+		config.window_mode = mode;
 		emit sig_emu_set_display_size(using_flags->get_screen_width(), using_flags->get_screen_height(), width, height);
 		emit sig_resize_osd(width);
 		this->resize_statusbar(width, height);

@@ -173,7 +173,7 @@ void Menu_MetaClass::do_open_dialog()
 		QDir dir;
 		char app[PATH_MAX];
 		initial_dir = dir.currentPath();
-		strncpy(app, initial_dir.toLocal8Bit().constData(), PATH_MAX);
+		strncpy(app, initial_dir.toLocal8Bit().constData(), PATH_MAX - 1);
 		initial_dir = QString::fromLocal8Bit(get_parent_dir(app));
 	}
 	dlg.setOption(QFileDialog::ReadOnly, false);

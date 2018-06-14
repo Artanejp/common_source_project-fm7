@@ -88,7 +88,7 @@ QT_BEGIN_NAMESPACE
 		__action[_i]->setEnabled(__enabled);							\
 		__action[_i]->binds->setValue1(_i);								\
 		__menu->addAction(__action[_i]);								\
-		if(using_flags->get_config_ptr()->__cnf[_i][0]) __action[_i]->setChecked(true); \
+		if(config.__cnf[_i][0]) __action[_i]->setChecked(true); \
 		connect(__action[_i], __signal1, __action[_i], __slot1);		\
 		connect(__action[_i], __signal2, this, __slot2);				\
 	}																	\

@@ -112,7 +112,7 @@ void Ui_MainWindowBase::ConfigCpuSpeed(void)
 	actionGroup_CpuSpeed->addAction(actionSpeed_x16);
 	//actionGroup_CpuSpeed->addAction(actionSpeed_FULL);
 
-	switch(using_flags->get_config_ptr()->cpu_power) {
+	switch(config.cpu_power) {
 	case 0:
 		actionSpeed_x1->setChecked(true);
 		break;
@@ -129,7 +129,7 @@ void Ui_MainWindowBase::ConfigCpuSpeed(void)
 		actionSpeed_x16->setChecked(true);
 		break;
 	default:
-		using_flags->get_config_ptr()->cpu_power = 0;
+		config.cpu_power = 0;
 		actionSpeed_x1->setChecked(true);
 		break;
 	}
@@ -137,7 +137,7 @@ void Ui_MainWindowBase::ConfigCpuSpeed(void)
 void Ui_MainWindowBase::do_change_boot_mode(int mode)
 {
 	if((mode < 0) || (mode >= 8)) return;
-	using_flags->get_config_ptr()->boot_mode = mode;
+	config.boot_mode = mode;
 	emit sig_emu_update_config();
 }
 
@@ -160,7 +160,7 @@ void Ui_MainWindowBase::ConfigCPUBootMode(int num)
 		tmps = QString::fromUtf8("actionBootMode_") + tmps;
 		actionBootMode[i]->setObjectName(tmps);
 		actionBootMode[i]->setCheckable(true);
-		if(i == using_flags->get_config_ptr()->boot_mode) actionBootMode[i]->setChecked(true);
+		if(i == config.boot_mode) actionBootMode[i]->setChecked(true);
 		actionBootMode[i]->binds->setValue1(i);
 		menuBootMode->addAction(actionBootMode[i]);
 		actionGroup_BootMode->addAction(actionBootMode[i]);
@@ -173,7 +173,7 @@ void Ui_MainWindowBase::ConfigCPUBootMode(int num)
 void Ui_MainWindowBase::do_change_cpu_type(int mode)
 {
 	if((mode < 0) || (mode >= 8)) return;
-	using_flags->get_config_ptr()->cpu_type = mode;
+	config.cpu_type = mode;
 	emit sig_emu_update_config();
 }
 
@@ -194,7 +194,7 @@ void Ui_MainWindowBase::ConfigCPUTypes(int num)
 		tmps = QString::fromUtf8("actionCpuType_") + tmps;
 		actionCpuType[i]->setObjectName(tmps);
 		actionCpuType[i]->setCheckable(true);
-		if(i == using_flags->get_config_ptr()->cpu_type) actionCpuType[i]->setChecked(true);
+		if(i == config.cpu_type) actionCpuType[i]->setChecked(true);
 		actionCpuType[i]->binds->setValue1(i);
 		menuCpuType->addAction(actionCpuType[i]);
 		actionGroup_CpuType->addAction(actionCpuType[i]);
@@ -240,7 +240,7 @@ void Ui_MainWindowBase::ConfigControlMenu(void)
 			_TCHAR tmpbuf[_MAX_PATH];
 			actionSave_State[i] = new Action_Control(this, using_flags);
 
-			strncpy(tmpbuf, create_local_path(_T("%s.sta%d"), using_flags->get_config_name().toLocal8Bit().constData(), i), _MAX_PATH);
+			strncpy(tmpbuf, create_local_path(_T("%s.sta%d"), using_flags->get_config_name().toLocal8Bit().constData(), i), _MAX_PATH - 1);
 				
 			tmps = QString::fromUtf8("");
 			tmpss = QString::fromUtf8("");
@@ -418,6 +418,6 @@ void Ui_MainWindowBase::retranslateControlMenu(const char *SpecialResetTitle,  b
 void Ui_MainWindowBase::do_set_sound_device(int num)
 {
 	if((num < 0) || (num >= using_flags->get_use_sound_device_type())) return;
-	using_flags->get_config_ptr()->sound_type = num;
+	config.sound_type = num;
 	emit sig_emu_update_config();
 }

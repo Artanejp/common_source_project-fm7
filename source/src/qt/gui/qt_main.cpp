@@ -41,7 +41,7 @@ void get_short_filename(_TCHAR *dst, _TCHAR *file, int maxlen)
 		return;
 	}
 	l = strlen(file) - i + 1;
-	if(l >= maxlen) l = maxlen;
+	if(l >= maxlen) l = maxlen - 1;
 	strncpy(dst, &file[i + 1], l);
 	return;
 }

@@ -108,7 +108,7 @@ void OSD_BASE::initialize_sound(int rate, int samples)
 	snddata.snd_total_volume = &snd_total_volume;
 	snddata.sound_exit = &sound_exit;
 	snddata.sound_debug = &sound_debug;
-	snddata.p_config = p_config;
+	snddata.p_config = &config;
 	
 	snd_spec_req.format = AUDIO_S16SYS;
 	snd_spec_req.channels = 2;
@@ -347,7 +347,7 @@ void OSD_BASE::start_record_sound()
 		tmps = tmps + QString::fromUtf8("_");
 		tmps = tmps + nowTime.toString(QString::fromUtf8("yyyy-MM-dd_hh-mm-ss.zzz"));
 		tmps = tmps + QString::fromUtf8(".wav");
-		strncpy((char *)sound_file_name, tmps.toLocal8Bit().constData(), sizeof(sound_file_name));
+		strncpy((char *)sound_file_name, tmps.toLocal8Bit().constData(), sizeof(sound_file_name) - 1);
 		// create wave file
 		rec_sound_fio = new FILEIO();
 		if(rec_sound_fio->Fopen(bios_path(sound_file_name), FILEIO_WRITE_BINARY)) {

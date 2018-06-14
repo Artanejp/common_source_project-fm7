@@ -92,7 +92,7 @@ void OSD_BASE::do_assign_js_setting(int jsnum, int axis_idx, int assigned_value)
 	if((jsnum < 0) || (jsnum >= 4)) return;
 	if((axis_idx < 0) || (axis_idx >= 16)) return;
 	if((assigned_value < -256) || (assigned_value >= 0x10000)) return;
-	p_config->joy_buttons[jsnum][axis_idx] = assigned_value;
+	config.joy_buttons[jsnum][axis_idx] = assigned_value;
 }
 
 void OSD_BASE::update_input()
@@ -187,7 +187,7 @@ void OSD_BASE::key_down(int code, bool extended, bool repeat)
 {
 	if((code >= 256) || (code < 0)) return; // WORKAROUND
 //#ifdef USE_AUTO_KEY
-	if(!__USE_AUTO_KEY || (!now_auto_key && !p_config->romaji_to_kana)) {
+	if(!__USE_AUTO_KEY || (!now_auto_key && !config.romaji_to_kana)) {
 //#endif
 		//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_OSD, "KEY DOWN %d", code);
 		//if(!dinput_key_available) {
@@ -217,7 +217,7 @@ void OSD_BASE::key_down(int code, bool extended, bool repeat)
 				}
 			}
 
-			switch(p_config->cursor_as_ten_key) {
+			switch(config.cursor_as_ten_key) {
 			case CONFIG_CURSOR_AS_2468:
 				if(code == VK_RIGHT) {
 					code = VK_NUMPAD6;
@@ -335,7 +335,7 @@ void OSD_BASE::key_up(int code, bool extended)
 {
 	if((code >= 256) || (code < 0)) return; // WORKAROUND
 //#ifdef USE_AUTO_KEY
-	if(!__USE_AUTO_KEY || (!now_auto_key && !p_config->romaji_to_kana)) {
+	if(!__USE_AUTO_KEY || (!now_auto_key && !config.romaji_to_kana)) {
 //#endif
 		//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_OSD, "KEY UP %d", code);
 		//if(!dinput_key_available) {
@@ -364,7 +364,7 @@ void OSD_BASE::key_up(int code, bool extended)
 					return;
 				}
 			}
-			switch(p_config->cursor_as_ten_key) {
+			switch(config.cursor_as_ten_key) {
 			case CONFIG_CURSOR_AS_2468:
 				if(code == VK_RIGHT) {
 					code = VK_NUMPAD6;

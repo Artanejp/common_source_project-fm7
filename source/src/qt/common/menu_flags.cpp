@@ -455,7 +455,7 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 #if defined(USE_STATE)
 	use_state = true;
 #endif   
-	p_config = cfg;
+	p_config = &config;
 }
 
 USING_FLAGS_EXT::~USING_FLAGS_EXT()

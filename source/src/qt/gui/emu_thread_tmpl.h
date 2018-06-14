@@ -157,7 +157,7 @@ protected:
 			s->type = _type;
 			s->code = (uint32_t)key_fifo->read();
 			s->mod  = (uint32_t)key_fifo->read();
-			uint32_t dummy = key_fifo->read();
+			volatile uint32_t dummy = key_fifo->read();
 			s->repeat = false;
 		} else {
 			s->type = 0;

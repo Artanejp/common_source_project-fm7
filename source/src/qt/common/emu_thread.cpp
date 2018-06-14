@@ -318,16 +318,16 @@ void EmuThreadClass::doWork(const QString &params)
 	//
 	QString ctext;
 	bool req_draw = true;
-	bool vert_line_bak = using_flags->get_config_ptr()->opengl_scanline_vert;
-	bool horiz_line_bak = using_flags->get_config_ptr()->opengl_scanline_horiz;
-	bool gl_crt_filter_bak = using_flags->get_config_ptr()->use_opengl_filters;
-	int opengl_filter_num_bak = using_flags->get_config_ptr()->opengl_filter_num;
+	bool vert_line_bak = config.opengl_scanline_vert;
+	bool horiz_line_bak = config.opengl_scanline_horiz;
+	bool gl_crt_filter_bak = config.use_opengl_filters;
+	int opengl_filter_num_bak = config.opengl_filter_num;
 	//uint32_t key_mod_old = 0xffffffff;
 	int no_draw_count = 0;	
 	bool prevRecordReq = false;
 	double nr_fps = -1.0;
 	int _queue_begin;
-	bool multithread_draw = using_flags->get_config_ptr()->use_separate_thread_draw;
+	bool multithread_draw = config.use_separate_thread_draw;
 	
 	doing_debug_command = false;
 	ctext.clear();
@@ -425,14 +425,14 @@ void EmuThreadClass::doWork(const QString &params)
 			}
 #endif
 #if defined(USE_MINIMUM_RENDERING)
-			if((vert_line_bak != p_config->opengl_scanline_vert) ||
-			   (horiz_line_bak != p_config->opengl_scanline_horiz) ||
-			   (gl_crt_filter_bak != p_config->use_opengl_filters) ||
-			   (opengl_filter_num_bak != p_config->opengl_filter_num)) req_draw = true;
-			vert_line_bak = p_config->opengl_scanline_vert;
-			horiz_line_bak = p_config->opengl_scanline_horiz;
-			gl_crt_filter_bak = p_config->use_opengl_filters;
-			opengl_filter_num_bak = p_config->opengl_filter_num;
+			if((vert_line_bak != config.opengl_scanline_vert) ||
+			   (horiz_line_bak != config.opengl_scanline_horiz) ||
+			   (gl_crt_filter_bak != config.use_opengl_filters) ||
+			   (opengl_filter_num_bak != config.opengl_filter_num)) req_draw = true;
+			vert_line_bak = config.opengl_scanline_vert;
+			horiz_line_bak = config.opengl_scanline_horiz;
+			gl_crt_filter_bak = config.use_opengl_filters;
+			opengl_filter_num_bak = config.opengl_filter_num;
 #endif
 			if(bStartRecordSoundReq != false) {
 				p_emu->start_record_sound();
@@ -485,7 +485,7 @@ void EmuThreadClass::doWork(const QString &params)
 #if defined(USE_SOUND_VOLUME)
 			for(int ii = 0; ii < USE_SOUND_VOLUME; ii++) {
 				if(bUpdateVolumeReq[ii]) {
-					p_emu->set_sound_device_volume(ii, p_config->sound_volume_l[ii], p_config->sound_volume_r[ii]);
+					p_emu->set_sound_device_volume(ii, config.sound_volume_l[ii], config.sound_volume_r[ii]);
 					bUpdateVolumeReq[ii] = false;
 				}
 			}
@@ -502,7 +502,7 @@ void EmuThreadClass::doWork(const QString &params)
 							p_emu->key_up(sp.code, true); // need decicion of extend.
 							break;
 					case KEY_QUEUE_DOWN:
-							if(p_config->romaji_to_kana) {
+							if(config.romaji_to_kana) {
 								p_emu->get_osd()->key_modifiers(sp.mod);
 								p_emu->key_char(sp.code);
 							} else {

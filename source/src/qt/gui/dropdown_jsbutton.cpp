@@ -31,10 +31,10 @@ CSP_DropDownJSButton::CSP_DropDownJSButton(USING_FLAGS *p, QWidget *parent, QStr
 	}
 	if((button_num < 16) && (button_num >= 0)) {
 		if((jsnum < 4) && (jsnum >= 0)){
-			if((using_flags->get_config_ptr()->joy_buttons[jsnum][button_num] < 0) && (using_flags->get_config_ptr()->joy_buttons[jsnum][button_num] > -256)) {
-				combo->setCurrentIndex(-using_flags->get_config_ptr()->joy_buttons[jsnum][button_num] + 16);
-			} else if((using_flags->get_config_ptr()->joy_buttons[jsnum][button_num] >= 0) && (using_flags->get_config_ptr()->joy_buttons[jsnum][button_num] < 16)) {
-				combo->setCurrentIndex(using_flags->get_config_ptr()->joy_buttons[jsnum][button_num]);
+			if((config.joy_buttons[jsnum][button_num] < 0) && (config.joy_buttons[jsnum][button_num] > -256)) {
+				combo->setCurrentIndex(-config.joy_buttons[jsnum][button_num] + 16);
+			} else if((config.joy_buttons[jsnum][button_num] >= 0) && (config.joy_buttons[jsnum][button_num] < 16)) {
+				combo->setCurrentIndex(config.joy_buttons[jsnum][button_num]);
 			}
 		}
 	}

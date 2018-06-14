@@ -29,11 +29,12 @@ void Ui_MainWindowBase::_open_cart(int drv, const QString fname)
 	char path_shadow[PATH_MAX];
 
 	if(fname.length() <= 0) return;
-	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX);
-	UPDATE_HISTORY(path_shadow, using_flags->get_config_ptr()->recent_cart_path[drv], listCARTs[drv]);
-	strcpy(using_flags->get_config_ptr()->initial_cart_dir, 	get_parent_dir(path_shadow));
+	memset(path_shadow, 0x00, PATH_MAX * sizeof(char));
+	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX - 1);
+	UPDATE_HISTORY(path_shadow, config.recent_cart_path[drv], listCARTs[drv]);
+	strcpy(config.initial_cart_dir, 	get_parent_dir(path_shadow));
 	menu_Cart[drv]->do_update_histories(listCARTs[drv]);
-	menu_Cart[drv]->do_set_initialize_directory(using_flags->get_config_ptr()->initial_cart_dir);
+	menu_Cart[drv]->do_set_initialize_directory(config.initial_cart_dir);
 	
 	emit sig_close_cart(drv);
 	emit sig_open_cart(drv, fname);
@@ -52,14 +53,17 @@ void Ui_MainWindowBase::set_recent_cart(int drv, int num)
     
 	if((num < 0) || (num >= MAX_HISTORY)) return;
  
-	s_path = QString::fromLocal8Bit(using_flags->get_config_ptr()->recent_cart_path[drv][num]);
-	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
-	UPDATE_HISTORY(path_shadow, using_flags->get_config_ptr()->recent_cart_path[drv], listCARTs[drv]);
-	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
+	s_path = QString::fromLocal8Bit(config.recent_cart_path[drv][num]);
+	memset(path_shadow, 0x00, PATH_MAX * sizeof(char));
+	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX - 1);
+	UPDATE_HISTORY(path_shadow, config.recent_cart_path[drv], listCARTs[drv]);
+	
+	memset(path_shadow, 0x00, PATH_MAX * sizeof(char));
+	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX - 1);
    
-	strcpy(using_flags->get_config_ptr()->initial_cart_dir, 	get_parent_dir(path_shadow));
+	strcpy(config.initial_cart_dir, 	get_parent_dir(path_shadow));
 	menu_Cart[drv]->do_update_histories(listCARTs[drv]);
-	menu_Cart[drv]->do_set_initialize_directory(using_flags->get_config_ptr()->initial_cart_dir);
+	menu_Cart[drv]->do_set_initialize_directory(config.initial_cart_dir);
    
 	//eject_cart(drv);
 	emit sig_open_cart(drv, s_path);
@@ -100,9 +104,9 @@ void Ui_MainWindowBase::CreateCartMenu(int drv, int drv_base)
 		
 	menu_Cart[drv]->do_clear_inner_media();
 	menu_Cart[drv]->do_add_media_extension(ext, desc);
-	SETUP_HISTORY(using_flags->get_config_ptr()->recent_cart_path[drv], listCARTs[drv]);
+	SETUP_HISTORY(config.recent_cart_path[drv], listCARTs[drv]);
 	menu_Cart[drv]->do_update_histories(listCARTs[drv]);
-	menu_Cart[drv]->do_set_initialize_directory(using_flags->get_config_ptr()->initial_cart_dir);
+	menu_Cart[drv]->do_set_initialize_directory(config.initial_cart_dir);
 
 	QString name = QString::fromUtf8("Cart");
 	QString tmpv;

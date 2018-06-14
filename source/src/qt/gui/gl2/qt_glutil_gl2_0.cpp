@@ -821,8 +821,8 @@ void GLDraw_2_0::drawGridsVertical(void)
 
 void GLDraw_2_0::drawGrids(void)
 {
-	gl_grid_horiz = using_flags->get_config_ptr()->opengl_scanline_horiz;
-	gl_grid_vert  = using_flags->get_config_ptr()->opengl_scanline_vert;
+	gl_grid_horiz = config.opengl_scanline_horiz;
+	gl_grid_vert  = config.opengl_scanline_vert;
 	if(gl_grid_horiz && (vert_lines > 0)) {
 		drawGridsHorizonal();
 	} // Will fix.
@@ -917,7 +917,7 @@ void GLDraw_2_0::drawScreenTexture(void)
 	}
 	if(uVramTextureID == NULL) return;
 	QVector4D color;
-	smoosing = using_flags->get_config_ptr()->use_opengl_filters;
+	smoosing = config.use_opengl_filters;
 	if(set_brightness) {
 		color = QVector4D(fBrightR, fBrightG, fBrightB, 1.0);
 	} else {
@@ -982,7 +982,7 @@ void GLDraw_2_0::drawMain(QOpenGLShaderProgram *prg,
 					prg->setUniformValue("tex_height", (float)p->height());
 				}
 				if(using_flags->is_use_screen_rotate()) {
-					if(using_flags->get_config_ptr()->rotate_type) {
+					if(config.rotate_type) {
 						prg->setUniformValue("rotate", GL_TRUE);
 					} else {
 						prg->setUniformValue("rotate", GL_FALSE);
@@ -1211,7 +1211,7 @@ void GLDraw_2_0::paintGL(void)
 		if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
 			drawGrids();
 		}
-		if(using_flags->get_config_ptr()->use_osd_virtual_media) drawOsdIcons();
+		if(config.use_osd_virtual_media) drawOsdIcons();
 		extfunc_2->glFlush();
 }
 

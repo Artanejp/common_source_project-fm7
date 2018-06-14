@@ -33,7 +33,7 @@ void Ui_SndSliderObject::setValue(int level)
 		float n;
 		if(level < -32768) level = -32678;
 		if(level > 32767)  level = 32767;
-		using_flags->get_config_ptr()->general_sound_level = level;
+		config.general_sound_level = level;
 		
 		tmps = QApplication::translate("Ui_SoundDialog", "Set Volume", 0);
 		n = (float)(((level + 32768) * 1000) / 65535) / 10.0;
@@ -115,7 +115,7 @@ Ui_SoundDialog::Ui_SoundDialog(USING_FLAGS *p, QWidget *parent) : QWidget(0)
 	sliderMasterVolume->setMaximum(32768);
 	sliderMasterVolume->setSingleStep(256);
 	sliderMasterVolume->setPageStep(4096);
-	sliderMasterVolume->setValue(using_flags->get_config_ptr()->general_sound_level);
+	sliderMasterVolume->setValue(config.general_sound_level);
 	sliderMasterVolume->connect(sliderMasterVolume, SIGNAL(valueChanged(int)),
 								sliderMasterVolume, SLOT(setValue(int)));
 	VBoxMasterVolume = new QVBoxLayout;
@@ -134,8 +134,8 @@ Ui_SoundDialog::Ui_SoundDialog(USING_FLAGS *p, QWidget *parent) : QWidget(0)
 		int ij = 0;
 		for(ii = 0; ii < using_flags->get_use_sound_volume(); ii++) {
 			QString lbl = QApplication::translate("Ui_SoundDialog", using_flags->get_sound_device_caption(ii), 0);
-			int l_val = using_flags->get_config_ptr()->sound_volume_l[ii];
-			int r_val = using_flags->get_config_ptr()->sound_volume_r[ii];
+			int l_val = config.sound_volume_l[ii];
+			int r_val = config.sound_volume_r[ii];
 			
 			int s_lvl;
 			int s_balance;

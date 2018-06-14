@@ -610,10 +610,10 @@ int64_t CSP_Logger::get_console_list(char *buffer, int64_t buf_size, bool utf8, 
 				if(l > 0) {
 					memset(tmpbuf, 0x00, 8192);
 					if(l >= 8192) l = 8192 -1;
-					strncpy(tmpbuf, ns.constData(), l);
+					if(l != 0) strncpy(tmpbuf, ns.constData(), l);
 				}
 				if(((int64_t)l + total_size) < buf_size) {
-					strncpy(pp, tmpbuf, l);
+					if(l != 0)strncpy(pp, tmpbuf, l);
 					pp += l;
 					total_size += (int64_t)l;
 				} else {
@@ -663,7 +663,7 @@ int64_t CSP_Logger::write_log(const _TCHAR *name, const char *domain_name, bool 
 		len = get_console_list(strbuf, 0x20000, utf8, (char *)domain_name, forget);
 		if(len > 0x20000) break; // Illegal
 		if(len <= 0) break;
-		if(fio->Fwrite(strbuf, (uint32_t)len, 1) != len) break;
+		if((int64_t)(fio->Fwrite(strbuf, (uint32_t)len, 1)) != len) break;
 		n_len += len;
 	} while(len > 0);
 	fio->Fclose();

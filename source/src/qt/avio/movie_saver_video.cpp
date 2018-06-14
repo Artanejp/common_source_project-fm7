@@ -36,10 +36,10 @@ void MOVIE_SAVER::setup_h264(void *_codec_context)
 #if defined(USE_LIBAV)
 	AVCodecContext *c = (AVCodecContext *)_codec_context;
 
-	c->qmin	 = p_config->video_h264_minq;
-	c->qmax	 = p_config->video_h264_maxq;
-	c->bit_rate = p_config->video_h264_bitrate * 1000;
-	c->max_b_frames = p_config->video_h264_bframes;
+	c->qmin	 = config.video_h264_minq;
+	c->qmax	 = config.video_h264_maxq;
+	c->bit_rate = config.video_h264_bitrate * 1000;
+	c->max_b_frames = config.video_h264_bframes;
 	c->b_quant_offset = 2;
 	c->temporal_cplx_masking = 0.1;
 	c->spatial_cplx_masking = 0.15;
@@ -49,8 +49,8 @@ void MOVIE_SAVER::setup_h264(void *_codec_context)
 	c->refs = 5;
 	c->chromaoffset = 2;
 	c->max_qdiff = 6;
-	c->b_frame_strategy = p_config->video_h264_b_adapt;
-	c->me_subpel_quality = p_config->video_h264_subme;
+	c->b_frame_strategy = config.video_h264_b_adapt;
+	c->me_subpel_quality = config.video_h264_subme;
 	c->i_quant_offset = 1.2;
 	c->i_quant_factor = 1.5;
 	c->trellis = 2;
@@ -76,10 +76,10 @@ void MOVIE_SAVER::setup_mpeg4(void *_codec)
 {
 #if defined(USE_LIBAV)
 	AVCodecContext *c = (AVCodecContext *)_codec;
-	c->qmin	 = p_config->video_mpeg4_minq;
-	c->qmax	 = p_config->video_mpeg4_maxq;
-	c->max_b_frames	 = p_config->video_mpeg4_bframes;
-	c->bit_rate = p_config->video_mpeg4_bitrate * 1000;
+	c->qmin	 = config.video_mpeg4_minq;
+	c->qmax	 = config.video_mpeg4_maxq;
+	c->max_b_frames	 = config.video_mpeg4_bframes;
+	c->bit_rate = config.video_mpeg4_bitrate * 1000;
 	c->b_quant_offset = 2;
 	c->temporal_cplx_masking = 0.1;
 	c->spatial_cplx_masking = 0.15;

@@ -131,7 +131,7 @@ void Action_Control::do_set_dev_log_to_syslog(bool f)
 
 void Ui_MainWindowBase::do_set_window_focus_type(bool flag)
 {
-	using_flags->get_config_ptr()->focus_with_click = flag;
+	config.focus_with_click = flag;
 	if(flag) {
 		graphicsView->setFocusPolicy(Qt::ClickFocus);
 		graphicsView->setFocus(0);
@@ -156,31 +156,31 @@ void Ui_MainWindowBase::do_browse_document(QString fname)
 void Ui_MainWindowBase::do_set_sound_files_fdd(bool f)
 {
 	if(f) {
-		using_flags->get_config_ptr()->sound_noise_fdd = 1;
+		config.sound_noise_fdd = 1;
 	} else {
-		using_flags->get_config_ptr()->sound_noise_fdd = 0;
+		config.sound_noise_fdd = 0;
 	}
 }
 
 void Ui_MainWindowBase::do_set_sound_files_relay(bool f)
 {
 	if(f) {
-		using_flags->get_config_ptr()->sound_noise_cmt = 1;
+		config.sound_noise_cmt = 1;
 	} else {
-		using_flags->get_config_ptr()->sound_noise_cmt = 0;
+		config.sound_noise_cmt = 0;
 	}
 }
 
 
 void Ui_MainWindowBase::do_set_conslog(bool f)
 {
-	using_flags->get_config_ptr()->log_to_console = f;
+	config.log_to_console = f;
 	csp_logger->set_log_stdout(-1, f);
 }
 
 void Ui_MainWindowBase::do_set_syslog(bool f)
 {
-	using_flags->get_config_ptr()->log_to_syslog = f;
+	config.log_to_syslog = f;
 	csp_logger->set_log_syslog(-1, f);
 }
 
@@ -215,32 +215,32 @@ void Ui_MainWindowBase::do_update_device_node_name(int id, const _TCHAR *name)
 
 void Ui_MainWindowBase::do_set_logging_fdc(bool f)
 {
-	using_flags->get_config_ptr()->special_debug_fdc = f;
+	config.special_debug_fdc = f;
 	emit sig_emu_update_config();
 }
 
 void Ui_MainWindowBase::do_set_dev_log_to_console(int num, bool f)
 {
 	csp_logger->set_device_node_log(num, 2, CSP_LOG_DEBUG, f);
-	using_flags->get_config_ptr()->dev_log_to_console[num][0] = f;
+	config.dev_log_to_console[num][0] = f;
 }
 
 void Ui_MainWindowBase::do_set_state_log_to_console(bool f)
 {
 	csp_logger->set_state_log(2, f);
-	using_flags->get_config_ptr()->state_log_to_console = f;
+	config.state_log_to_console = f;
 }
 
 void Ui_MainWindowBase::do_set_state_log_to_syslog(bool f)
 {
 	csp_logger->set_state_log(1, f);
-	using_flags->get_config_ptr()->state_log_to_syslog = f;
+	config.state_log_to_syslog = f;
 }
 
 void Ui_MainWindowBase::do_set_state_log_to_record(bool f)
 {
 	csp_logger->set_state_log(0, f);
-	using_flags->get_config_ptr()->state_log_to_recording = f;
+	config.state_log_to_recording = f;
 }
 
 
@@ -248,14 +248,14 @@ void Ui_MainWindowBase::do_set_state_log_to_record(bool f)
 void Ui_MainWindowBase::do_set_emulate_cursor_as(int num)
 {
 	if((num < 0) || (num > 2)) return;
-	using_flags->get_config_ptr()->cursor_as_ten_key = num;
+	config.cursor_as_ten_key = num;
 	emit sig_emu_update_config();
 }
 
 void Ui_MainWindowBase::do_set_dev_log_to_syslog(int num, bool f)
 {
 	csp_logger->set_device_node_log(num, 2, CSP_LOG_DEBUG, f);
-	using_flags->get_config_ptr()->dev_log_to_syslog[num][0] = f;
+	config.dev_log_to_syslog[num][0] = f;
 }
 
 void Ui_MainWindowBase::do_select_render_platform(int num)
@@ -289,9 +289,9 @@ void Ui_MainWindowBase::do_select_render_platform(int num)
 		break;
 	}
 	if(_type >= 0) {
-		using_flags->get_config_ptr()->render_platform = _type;
-		using_flags->get_config_ptr()->render_major_version = _major;
-		using_flags->get_config_ptr()->render_minor_version = _minor;
+		config.render_platform = _type;
+		config.render_major_version = _major;
+		config.render_minor_version = _minor;
 	}
 }
 
@@ -299,16 +299,16 @@ void Ui_MainWindowBase::set_dipsw(int num, bool flag)
 {
 	if((num < 0) || (num >= 32)) return;
 	if(flag) {
-		using_flags->get_config_ptr()->dipswitch = using_flags->get_config_ptr()->dipswitch | (1 << num);
+		config.dipswitch = config.dipswitch | (1 << num);
 	} else {
-		using_flags->get_config_ptr()->dipswitch = using_flags->get_config_ptr()->dipswitch & ~(1 << num);
+		config.dipswitch = config.dipswitch & ~(1 << num);
 	}
 }
 
 bool Ui_MainWindowBase::get_dipsw(int num)
 {
 	if((num < 0) || (num >= 32)) return false;
-	if(((1 << num) & using_flags->get_config_ptr()->dipswitch) == 0) return false;
+	if(((1 << num) & config.dipswitch) == 0) return false;
 	return true;
 }
 
@@ -355,10 +355,10 @@ void Ui_MainWindowBase::setupUi(void)
 
 		QSurfaceFormat fmt;
 		{
-			int render_type = using_flags->get_config_ptr()->render_platform;
+			int render_type = config.render_platform;
 			QOpenGLContext *glContext = QOpenGLContext::globalShareContext();
-			//int _major_version = using_flags->get_config_ptr()->render_major_version;
-			//int _minor_version = using_flags->get_config_ptr()->render_minor_version;
+			//int _major_version = config.render_major_version;
+			//int _minor_version = config.render_minor_version;
 
 			if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_ES) {
 				fmt.setRenderableType(QSurfaceFormat::OpenGLES);
@@ -386,7 +386,7 @@ void Ui_MainWindowBase::setupUi(void)
 	bitmapImage = NULL;
 	driveData = new CSP_DockDisks(this, using_flags);
 	MainWindow->setDockOptions(QMainWindow::AnimatedDocks);
-	if(using_flags->get_config_ptr()->virtual_media_position > 0) {
+	if(config.virtual_media_position > 0) {
 		driveData->setVisible(true);
 	} else {	
 		driveData->setVisible(false);
@@ -397,7 +397,7 @@ void Ui_MainWindowBase::setupUi(void)
 	pCentralLayout->setContentsMargins(0, 0, 0, 0);
 	pCentralLayout->addWidget(graphicsView);
 	pCentralLayout->addWidget(driveData);
-	switch(using_flags->get_config_ptr()->virtual_media_position) {
+	switch(config.virtual_media_position) {
 	case 0:
 		pCentralLayout->setDirection(QBoxLayout::TopToBottom);
 		pCentralLayout->removeWidget(driveData);
@@ -427,13 +427,13 @@ void Ui_MainWindowBase::setupUi(void)
 	pCentralWidget->setLayout(pCentralLayout);
 	MainWindow->setCentralWidget(pCentralWidget);
 	
-	if(using_flags->get_config_ptr()->focus_with_click) {
+	if(config.focus_with_click) {
 		graphicsView->setFocusPolicy(Qt::ClickFocus);
 		graphicsView->setFocus(0);
 	} else {
 		graphicsView->setFocusPolicy(Qt::NoFocus);
 	}
-	driveData->setOrientation(using_flags->get_config_ptr()->virtual_media_position);
+	driveData->setOrientation(config.virtual_media_position);
 	connect(this, SIGNAL(sig_set_orientation_osd(int)), driveData, SLOT(setOrientation(int)));
 	connect(graphicsView, SIGNAL(sig_resize_osd(int)), driveData, SLOT(setScreenWidth(int)));
 
@@ -681,16 +681,16 @@ void Ui_MainWindowBase::setupUi(void)
 	SET_HELP_MENUENTRY(menuHELP, actionHelp_License, "menuHelp_License", "LICENSE.txt");
 	SET_HELP_MENUENTRY(menuHELP, actionHelp_License_JP, "menuHelp_License_JP", "LICENSE.ja.txt");
 	
-	if(using_flags->get_config_ptr()->window_mode <= 0) using_flags->get_config_ptr()->window_mode = 0;
-	if(using_flags->get_config_ptr()->window_mode >= using_flags->get_screen_mode_num()) using_flags->get_config_ptr()->window_mode = using_flags->get_screen_mode_num() - 1;
+	if(config.window_mode <= 0) config.window_mode = 0;
+	if(config.window_mode >= using_flags->get_screen_mode_num()) config.window_mode = using_flags->get_screen_mode_num() - 1;
 	w = using_flags->get_screen_width();
 	h = using_flags->get_screen_height();
-	if(actionScreenSize[using_flags->get_config_ptr()->window_mode] != NULL) {
-		double nd = actionScreenSize[using_flags->get_config_ptr()->window_mode]->binds->getDoubleValue();
+	if(actionScreenSize[config.window_mode] != NULL) {
+		double nd = actionScreenSize[config.window_mode]->binds->getDoubleValue();
 		w = (int)(nd * (double)w);
 		h = (int)(nd * (double)h);
 		if(using_flags->is_use_screen_rotate()) {
-			if(using_flags->get_config_ptr()->rotate_type) {
+			if(config.rotate_type) {
 				int tmp_w = w;
 				w = h;
 				h = tmp_w;
@@ -698,7 +698,7 @@ void Ui_MainWindowBase::setupUi(void)
 		}
 	} else {
 		if(using_flags->is_use_screen_rotate()) {
-			if(using_flags->get_config_ptr()->rotate_type) {
+			if(config.rotate_type) {
 				w = 600;
 				h = 960;
 			} else {		   
@@ -718,9 +718,9 @@ void Ui_MainWindowBase::setupUi(void)
 		}
 	}
 	this->set_screen_size(w, h);
-	this->set_screen_aspect(using_flags->get_config_ptr()->window_stretch_type);
-	if(actionScreenSize[using_flags->get_config_ptr()->window_mode] != NULL) {
-		double nd = actionScreenSize[using_flags->get_config_ptr()->window_mode]->binds->getDoubleValue();
+	this->set_screen_aspect(config.window_stretch_type);
+	if(actionScreenSize[config.window_mode] != NULL) {
+		double nd = actionScreenSize[config.window_mode]->binds->getDoubleValue();
 		graphicsView->do_set_screen_multiply(nd);
 	}
 	if(using_flags->is_use_joystick()) {
@@ -863,18 +863,18 @@ void Ui_MainWindowBase::retranselateUi_Depended_OSD(void)
 
 void Ui_MainWindowBase::do_set_roma_kana(bool flag)
 {
-	using_flags->get_config_ptr()->romaji_to_kana = flag;
+	config.romaji_to_kana = flag;
 	emit sig_set_roma_kana(flag);
 }
 
 void Ui_MainWindowBase::do_set_numpad_enter_as_fullkey(bool flag)
 {
-	using_flags->get_config_ptr()->numpad_enter_as_fullkey = flag;
+	config.numpad_enter_as_fullkey = flag;
 }
 
 void Ui_MainWindowBase::do_set_print_cpu_statistics(bool flag)
 {
-	using_flags->get_config_ptr()->print_statistics = flag;
+	config.print_statistics = flag;
 }
 
 void Ui_MainWindowBase::CreateEmulatorMenu(void)
@@ -937,7 +937,7 @@ void Ui_MainWindowBase::ConfigMonitorType(void)
 			actionMonitorType[ii]->setCheckable(true);
 			actionMonitorType[ii]->setVisible(true);
 			actionMonitorType[ii]->binds->setValue1(ii);
-			if(using_flags->get_config_ptr()->monitor_type == ii) actionMonitorType[ii]->setChecked(true);
+			if(config.monitor_type == ii) actionMonitorType[ii]->setChecked(true);
 			menuMonitorType->addAction(actionMonitorType[ii]);
 			connect(actionMonitorType[ii], SIGNAL(triggered()),
 					actionMonitorType[ii]->binds, SLOT(do_set_monitor_type()));
@@ -959,7 +959,7 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 		action_DispVirtualMedias[i] = new Action_Control(this, using_flags);
 		action_DispVirtualMedias[i]->setCheckable(true);
 		action_DispVirtualMedias[i]->setChecked(false);
-		if(i == using_flags->get_config_ptr()->virtual_media_position) action_DispVirtualMedias[i]->setChecked(true);
+		if(i == config.virtual_media_position) action_DispVirtualMedias[i]->setChecked(true);
 		action_DispVirtualMedias[i]->setEnabled(true);
 		actionGroup_DispVirtualMedias->addAction(action_DispVirtualMedias[i]);
 		menu_DispVirtualMedias->addAction(action_DispVirtualMedias[i]);
@@ -970,13 +970,13 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 			
 	if(using_flags->is_use_auto_key()) {
 		// ToDo: Setup if checked.
-		SET_ACTION_SINGLE(action_UseRomaKana, true, true, (using_flags->get_config_ptr()->romaji_to_kana)); 
+		SET_ACTION_SINGLE(action_UseRomaKana, true, true, (config.romaji_to_kana)); 
 		connect(action_UseRomaKana, SIGNAL(toggled(bool)), this, SLOT(do_set_roma_kana(bool)));
 	}
-	SET_ACTION_SINGLE(action_NumPadEnterAsFullkey, true, true, (using_flags->get_config_ptr()->numpad_enter_as_fullkey));
+	SET_ACTION_SINGLE(action_NumPadEnterAsFullkey, true, true, (config.numpad_enter_as_fullkey));
 	connect(action_NumPadEnterAsFullkey, SIGNAL(toggled(bool)), this, SLOT(do_set_numpad_enter_as_fullkey(bool)));
 
-	SET_ACTION_SINGLE(action_PrintCpuStatistics, true, true, (using_flags->get_config_ptr()->print_statistics));
+	SET_ACTION_SINGLE(action_PrintCpuStatistics, true, true, (config.print_statistics));
 	connect(action_PrintCpuStatistics, SIGNAL(toggled(bool)), this, SLOT(do_set_print_cpu_statistics(bool)));
 	
 	// Cursor to ten key.
@@ -993,7 +993,7 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 			action_EmulateCursorAs[i]->binds->setValue1(i);
 			actionGroup_EmulateCursorAs->addAction(action_EmulateCursorAs[i]);
 			menu_EmulateCursorAs->addAction(action_EmulateCursorAs[i]);
-			if(i == using_flags->get_config_ptr()->cursor_as_ten_key) action_EmulateCursorAs[i]->setChecked(true);
+			if(i == config.cursor_as_ten_key) action_EmulateCursorAs[i]->setChecked(true);
 				
 			connect(action_EmulateCursorAs[i], SIGNAL(triggered()),
 					action_EmulateCursorAs[i], SLOT(do_set_emulate_cursor_as()));
@@ -1007,7 +1007,7 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	actionSpeed_FULL->setVisible(true);
 	actionSpeed_FULL->setCheckable(true);
 	actionSpeed_FULL->setChecked(false);
-	if(using_flags->get_config_ptr()->full_speed) actionSpeed_FULL->setChecked(true);
+	if(config.full_speed) actionSpeed_FULL->setChecked(true);
 	connect(actionSpeed_FULL, SIGNAL(toggle(bool)), this,SLOT(do_emu_full_speed(bool))); // OK?
 	
 	if(using_flags->is_use_joystick()) {
@@ -1019,11 +1019,11 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 		action_SoundFilesFDD->setCheckable(true);
 		action_SoundFilesFDD->setEnabled(true);
 		action_SoundFilesFDD->setChecked(false);
-		if(using_flags->get_config_ptr()->sound_noise_fdd != 0) {
+		if(config.sound_noise_fdd != 0) {
 			action_SoundFilesFDD->setChecked(true);
 		}
 		*/
-		SET_ACTION_SINGLE(action_SoundFilesFDD, true, true, (using_flags->get_config_ptr()->sound_noise_fdd != 0));
+		SET_ACTION_SINGLE(action_SoundFilesFDD, true, true, (config.sound_noise_fdd != 0));
 	}
 	if(using_flags->is_use_sound_files_relay()) {
 		/*
@@ -1031,16 +1031,16 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 		action_SoundFilesRelay->setCheckable(true);
 		action_SoundFilesRelay->setEnabled(true);
 		action_SoundFilesRelay->setChecked(false);
-		if(using_flags->get_config_ptr()->sound_noise_cmt != 0) {
+		if(config.sound_noise_cmt != 0) {
 			action_SoundFilesRelay->setChecked(true);
 		}
 		*/
-		SET_ACTION_SINGLE(action_SoundFilesRelay, true, true, (using_flags->get_config_ptr()->sound_noise_cmt != 0));
+		SET_ACTION_SINGLE(action_SoundFilesRelay, true, true, (config.sound_noise_cmt != 0));
 	}
 	action_FocusWithClick = new Action_Control(this, using_flags);
 	action_FocusWithClick->setCheckable(true);
 	action_FocusWithClick->setEnabled(true);
-	if(using_flags->get_config_ptr()->focus_with_click) {
+	if(config.focus_with_click) {
 		action_FocusWithClick->setChecked(true);
 	}
 
@@ -1051,14 +1051,14 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 
 	action_Logging_FDC = NULL;
 	if(using_flags->is_use_fd()) {
-		SET_ACTION_SINGLE(action_Logging_FDC, true, true, (using_flags->get_config_ptr()->special_debug_fdc != 0));
+		SET_ACTION_SINGLE(action_Logging_FDC, true, true, (config.special_debug_fdc != 0));
 		connect(action_Logging_FDC, SIGNAL(toggled(bool)), this, SLOT(do_set_logging_fdc(bool)));
 	}
 #if !defined(Q_OS_WIN)
 	action_LogToSyslog = new Action_Control(this, using_flags);
 	action_LogToSyslog->setCheckable(true);
 	action_LogToSyslog->setEnabled(true);
-	if(using_flags->get_config_ptr()->log_to_syslog != 0) action_LogToSyslog->setChecked(true);
+	if(config.log_to_syslog != 0) action_LogToSyslog->setChecked(true);
 	menuDevLogToSyslog = new QMenu(this);
 	menuDevLogToSyslog->setToolTipsVisible(true);
 	for(int i = 0; i < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1); i++) {
@@ -1067,7 +1067,7 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 		action_DevLogToSyslog[i]->setEnabled(false);
 		action_DevLogToSyslog[i]->binds->setValue1(i);
 		menuDevLogToSyslog->addAction(action_DevLogToSyslog[i]);
-		if(using_flags->get_config_ptr()->dev_log_to_syslog[i][0]) action_DevLogToSyslog[i]->setChecked(true);
+		if(config.dev_log_to_syslog[i][0]) action_DevLogToSyslog[i]->setChecked(true);
 		connect(action_DevLogToSyslog[i], SIGNAL(toggled(bool)),
 				action_DevLogToSyslog[i], SLOT(do_set_dev_log_to_syslog(bool)));
 		connect(action_DevLogToSyslog[i], SIGNAL(sig_set_dev_log_to_syslog(int, bool)),
@@ -1077,7 +1077,7 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	action_LogToConsole = new Action_Control(this, using_flags);
 	action_LogToConsole->setCheckable(true);
 	action_LogToConsole->setEnabled(true);
-	if(using_flags->get_config_ptr()->log_to_console != 0) action_LogToConsole->setChecked(true);
+	if(config.log_to_console != 0) action_LogToConsole->setChecked(true);
 
 	//menuDevLogToConsole = new QMenu(menuEmulator);
 	menuDevLogToConsole = new QMenu(this);
@@ -1098,7 +1098,7 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 		action_DevLogToConsole[i]->setEnabled(false);
 		action_DevLogToConsole[i]->binds->setValue1(i);
 		menuDevLogToConsole->addAction(action_DevLogToConsole[i]);
-		if(using_flags->get_config_ptr()->dev_log_to_console[i][0]) action_DevLogToConsole[i]->setChecked(true);
+		if(config.dev_log_to_console[i][0]) action_DevLogToConsole[i]->setChecked(true);
 		connect(action_DevLogToConsole[i], SIGNAL(toggled(bool)),
 				action_DevLogToConsole[i], SLOT(do_set_dev_log_to_console(bool)));
 		connect(action_DevLogToConsole[i], SIGNAL(sig_set_dev_log_to_console(int, bool)),
@@ -1114,9 +1114,9 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	actionGroup_SetRenderPlatform = new QActionGroup(this);
 	actionGroup_SetRenderPlatform->setExclusive(true);
 	{
-			int render_type = using_flags->get_config_ptr()->render_platform;
-			int _major_version = using_flags->get_config_ptr()->render_major_version;
-			//int _minor_version = using_flags->get_config_ptr()->render_minor_version; // ToDo
+			int render_type = config.render_platform;
+			int _major_version = config.render_major_version;
+			//int _minor_version = config.render_minor_version; // ToDo
 			for(i = 0; i < MAX_RENDER_PLATFORMS; i++) {
 				tmps = QString::number(i);
 				action_SetRenderPlatform[i] = new Action_Control(this, using_flags);
@@ -1412,7 +1412,7 @@ void Ui_MainWindowBase::do_set_visible_virtual_media_none()
 {
 	QRect rect;
 	driveData->setVisible(false);
-	using_flags->get_config_ptr()->virtual_media_position = 0;
+	config.virtual_media_position = 0;
 	set_screen_size(graphicsView->width(), graphicsView->height());
 	
 	pCentralLayout->setDirection(QBoxLayout::TopToBottom);
@@ -1431,7 +1431,7 @@ void Ui_MainWindowBase::do_set_visible_virtual_media_upper()
 {
 	QRect rect;
 	driveData->setVisible(true);
-	using_flags->get_config_ptr()->virtual_media_position = 1;
+	config.virtual_media_position = 1;
 	set_screen_size(graphicsView->width(), graphicsView->height());
 	emit sig_set_orientation_osd(1);
 	pCentralLayout->setDirection(QBoxLayout::TopToBottom);
@@ -1452,7 +1452,7 @@ void Ui_MainWindowBase::do_set_visible_virtual_media_lower()
 {
 	QRect rect;
 	driveData->setVisible(true);
-	using_flags->get_config_ptr()->virtual_media_position = 2;
+	config.virtual_media_position = 2;
 	set_screen_size(graphicsView->width(), graphicsView->height());
 	emit sig_set_orientation_osd(2);
 	pCentralLayout->setDirection(QBoxLayout::BottomToTop);
@@ -1472,7 +1472,7 @@ void Ui_MainWindowBase::do_set_visible_virtual_media_left()
 {
 #if 0
 	driveData->setVisible(true);
-	using_flags->get_config_ptr()->virtual_media_position = 3;
+	config.virtual_media_position = 3;
 	set_screen_size(graphicsView->width(), graphicsView->height());
 	emit sig_set_orientation_osd(3);
 	pCentralLayout->removeWidget(driveData);
@@ -1485,7 +1485,7 @@ void Ui_MainWindowBase::do_set_visible_virtual_media_right()
 {
 #if 0
 	driveData->setVisible(true);
-	using_flags->get_config_ptr()->virtual_media_position = 4;
+	config.virtual_media_position = 4;
 	set_screen_size(graphicsView->width(), graphicsView->height());
 	emit sig_set_orientation_osd(4);
 	pCentralLayout->removeWidget(driveData);

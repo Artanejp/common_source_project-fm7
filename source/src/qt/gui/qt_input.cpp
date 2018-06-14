@@ -160,7 +160,7 @@ uint32_t GLDrawClass::get106Scancode2VK(uint32_t data)
 {
 	uint32_t vk;
 	vk = key_table->get_vk_from_scan(data);
-	if(using_flags->get_config_ptr()->swap_kanji_pause) {
+	if(config.swap_kanji_pause) {
 		if(vk == VK_KANJI) {
 			vk = VK_PAUSE;
 		} else if(vk == VK_PAUSE) {
@@ -172,7 +172,7 @@ uint32_t GLDrawClass::get106Scancode2VK(uint32_t data)
 		if((vk == VK_LMENU) || (vk == VK_RMENU)) vk = VK_MENU;
 	}
 	if((vk == VK_LCONTROL) || (vk == VK_RCONTROL)) vk = VK_CONTROL;
-	if(using_flags->get_config_ptr()->numpad_enter_as_fullkey) {
+	if(config.numpad_enter_as_fullkey) {
 		if(vk == VK_OEM_CSP_KPRET) vk = VK_RETURN;
 	}
 	return vk;

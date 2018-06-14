@@ -99,13 +99,13 @@ void Menu_CMTClass::create_pulldown_menu_device_sub(void)
 	action_recording->setVisible(true);
 	action_recording->setCheckable(false);
 
-	if(using_flags->get_config_ptr()->wave_shaper == 0) {
+	if(config.wave_shaper == 0) {
 		action_wave_shaper->setChecked(false);
 	} else {
 		action_wave_shaper->setChecked(true);
 	}
 	if(using_flags->is_machine_cmt_mz_series()) {
-		if(using_flags->get_config_ptr()->direct_load_mzt == 0) {
+		if(config.direct_load_mzt == 0) {
 			action_direct_load_mzt->setChecked(false);
 		} else {
 			action_direct_load_mzt->setChecked(true);
@@ -228,7 +228,7 @@ void Menu_CMTClass::do_open_rec_dialog()
 		QDir dir;
 		char app[PATH_MAX];
 		initial_dir = dir.currentPath();
-		strncpy(app, initial_dir.toLocal8Bit().constData(), PATH_MAX);
+		strncpy(app, initial_dir.toLocal8Bit().constData(), PATH_MAX - 1);
 		initial_dir = QString::fromLocal8Bit(get_parent_dir(app));
 	}
 	dlg.setOption(QFileDialog::ReadOnly, false);

@@ -22,6 +22,7 @@
 
 #include "common.h"
 #include "fileio.h"
+#include "config.h"
 #include "emu.h"
 #include "menuclasses.h"
 #include "mainwidget.h"
@@ -44,6 +45,7 @@
 
 EMU* emu;
 QApplication *GuiMain = NULL;
+extern config_t config;
 
 // Start to define MainWindow.
 class META_MainWindow *rMainWindow;
@@ -258,7 +260,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(hDrawEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
 	connect(actionCapture_Screen, SIGNAL(triggered()), glv, SLOT(do_save_frame_screen()));
 
-	/*if(using_flags->get_config_ptr()->use_separate_thread_draw) {
+	/*if(config.use_separate_thread_draw) {
 		connect(hRunEmu, SIGNAL(sig_draw_thread(bool)), hDrawEmu, SLOT(doDraw(bool)), Qt::QueuedConnection);
 		connect(hRunEmu, SIGNAL(sig_set_draw_fps(double)), hDrawEmu, SLOT(do_set_frames_per_second(double)), Qt::QueuedConnection);
 		connect(hRunEmu, SIGNAL(sig_draw_one_turn(bool)), hDrawEmu, SLOT(do_draw_one_turn(bool)), Qt::QueuedConnection);
@@ -297,11 +299,11 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	objNameStr = QString("EmuDrawThread");
 	hDrawEmu->setObjectName(objNameStr);
 
-	if(using_flags->get_config_ptr()->use_separate_thread_draw) hDrawEmu->start();
+	if(config.use_separate_thread_draw) hDrawEmu->start();
 
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "DrawThread : Launch done.");
 
-	hSaveMovieThread = new MOVIE_SAVER(640, 400,  30, emu->get_osd(), using_flags->get_config_ptr());
+	hSaveMovieThread = new MOVIE_SAVER(640, 400,  30, emu->get_osd(), &config);
 	
 	connect(actionStart_Record_Movie->binds, SIGNAL(sig_start_record_movie(int)), hRunEmu, SLOT(do_start_record_video(int)));
 	connect(this, SIGNAL(sig_start_saving_movie()),
@@ -345,7 +347,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 
 	hRunEmu->start();
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "EmuThread : Launch done.");
-	this->set_screen_aspect(using_flags->get_config_ptr()->window_stretch_type);
+	this->set_screen_aspect(config.window_stretch_type);
 	emit sig_movie_set_width(SCREEN_WIDTH);
 	emit sig_movie_set_height(SCREEN_HEIGHT);
 }
@@ -353,7 +355,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 void Ui_MainWindow::LaunchJoyThread(void)
 {
 #if defined(USE_JOYSTICK)
-	hRunJoy = new JoyThreadClass(emu, emu->get_osd(), using_flags, using_flags->get_config_ptr(), csp_logger);
+	hRunJoy = new JoyThreadClass(emu, emu->get_osd(), using_flags, &config, csp_logger);
 	connect(this, SIGNAL(quit_joy_thread()), hRunJoy, SLOT(doExit()));
 	hRunJoy->setObjectName("JoyThread");
 	hRunJoy->start();
@@ -1302,8 +1304,6 @@ int MainLoop(int argc, char *argv[])
 	/*
 	 * Into Qt's Loop.
 	 */
-	USING_FLAGS_EXT *using_flags = new USING_FLAGS_EXT(&config);
-	// initialize emulation core
 
 	//SetupTranslators();
 	QTranslator local_translator;
@@ -1336,6 +1336,8 @@ int MainLoop(int argc, char *argv[])
 		}
 	}
 	
+	USING_FLAGS_EXT *using_flags = new USING_FLAGS_EXT(&config);
+	// initialize emulation core
 	rMainWindow = new META_MainWindow(using_flags, csp_logger);
 	rMainWindow->connect(rMainWindow, SIGNAL(sig_quit_all(void)), rMainWindow, SLOT(deleteLater(void)));
 	rMainWindow->setCoreApplication(GuiMain);

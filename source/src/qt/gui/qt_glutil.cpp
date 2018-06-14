@@ -251,9 +251,9 @@ void GLDrawClass::InitFBO(void)
 {
 	QOpenGLContext *glContext = QOpenGLContext::currentContext();
 	//QOpenGLContext *glContext = QOpenGLContext::globalShareContext();
-	int render_type = using_flags->get_config_ptr()->render_platform;
-	int _major_version = using_flags->get_config_ptr()->render_major_version;
-	int _minor_version = using_flags->get_config_ptr()->render_minor_version;
+	int render_type = config.render_platform;
+	int _major_version = config.render_major_version;
+	int _minor_version = config.render_minor_version;
 	QSurfaceFormat _fmt = glContext->format();
 	//QSurfaceFormat::RenderableType capability = _fmt.renderableType();
 #if !defined(Q_OS_WIN)

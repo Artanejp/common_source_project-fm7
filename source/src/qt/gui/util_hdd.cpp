@@ -53,9 +53,9 @@ void Ui_MainWindowBase::CreateHardDiskMenu(int drv, int drv_base)
 		
 		menu_hdds[drv]->do_clear_inner_media();
 		menu_hdds[drv]->do_add_media_extension(ext, desc1);
-		SETUP_HISTORY(using_flags->get_config_ptr()->recent_hard_disk_path[drv], listHDDs[drv]);
+		SETUP_HISTORY(config.recent_hard_disk_path[drv], listHDDs[drv]);
 		menu_hdds[drv]->do_update_histories(listHDDs[drv]);
-		menu_hdds[drv]->do_set_initialize_directory(using_flags->get_config_ptr()->initial_hard_disk_dir);
+		menu_hdds[drv]->do_set_initialize_directory(config.initial_hard_disk_dir);
 	}
 }
 

@@ -100,7 +100,8 @@ void JoyThreadClass::joystick_plugged(int num)
 		if(controller_table[num] != NULL) {
 			names[num] = QString::fromUtf8(SDL_GameControllerNameForIndex(num));
 			csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "JoyThread : Controller %d : %s : is plugged.", num, names[num].toUtf8().constData());
-			strncpy(p_config->assigned_joystick_name[num], names[num].toUtf8().constData(), 255);
+			strncpy(config.assigned_joystick_name[num], names[num].toUtf8().constData(),
+					(sizeof(config.assigned_joystick_name)  / sizeof(char)) - 1);
 			joy_num[num] = num;
 		}
 	} else 
@@ -115,7 +116,8 @@ void JoyThreadClass::joystick_plugged(int num)
 					joy_num[i] = SDL_JoystickInstanceID(joyhandle[i]);
 					names[i] = QString::fromUtf8(SDL_JoystickNameForIndex(num));
 					csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "JoyThread : Joystick %d : %s : is plugged.", num, names[i].toUtf8().data());
-					strncpy(p_config->assigned_joystick_name[num], names[num].toUtf8().constData(), 255);
+					strncpy(config.assigned_joystick_name[num], names[num].toUtf8().constData(),
+							(sizeof(config.assigned_joystick_name)  / sizeof(char)) - 1);
 					break;
 				}
 			}
@@ -147,7 +149,7 @@ void JoyThreadClass::joystick_unplugged(int num)
 		}
 	}
 	names[num] = QString::fromUtf8("");
-	memset(p_config->assigned_joystick_name[num], 0x00, 255);
+	memset(config.assigned_joystick_name[num], 0x00, 255);
 }	
 
 void JoyThreadClass::x_axis_changed(int index, int value)

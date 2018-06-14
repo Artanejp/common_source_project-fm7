@@ -49,7 +49,7 @@ void Ui_MainWindow::do_update_recent_disk(int drv)
 {
 	if(emu == NULL) return;
 	menu_fds[drv]->do_update_histories(listFDs[drv]);
-	menu_fds[drv]->do_set_initialize_directory(p_config->initial_floppy_disk_dir);
+	menu_fds[drv]->do_set_initialize_directory(config.initial_floppy_disk_dir);
 	if(emu->is_floppy_disk_protected(drv)) {
 		menu_fds[drv]->do_write_protect_media();
 	} else {
@@ -64,19 +64,18 @@ int Ui_MainWindow::set_recent_disk(int drv, int num)
 	QString s_path;
 	char path_shadow[PATH_MAX];
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
-	s_path = QString::fromLocal8Bit(p_config->recent_floppy_disk_path[drv][num]);
-	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
-	UPDATE_HISTORY(path_shadow, p_config->recent_floppy_disk_path[drv], listFDs[drv]);
-	//strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
+	s_path = QString::fromLocal8Bit(config.recent_floppy_disk_path[drv][num]);
+	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX - 1);
+	UPDATE_HISTORY(path_shadow, config.recent_floppy_disk_path[drv], listFDs[drv]);
    
-	strncpy(p_config->initial_floppy_disk_dir, 	get_parent_dir((const _TCHAR *)path_shadow), _MAX_PATH);
-	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
+	strncpy(config.initial_floppy_disk_dir, 	get_parent_dir((const _TCHAR *)path_shadow), _MAX_PATH - 1);
+	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX - 1);
 
 	if(emu) {
 		emit sig_close_disk(drv);
 		emit sig_open_disk(drv, s_path, 0);
 		menu_fds[drv]->do_update_histories(listFDs[drv]);
-		menu_fds[drv]->do_set_initialize_directory(p_config->initial_floppy_disk_dir);
+		menu_fds[drv]->do_set_initialize_directory(config.initial_floppy_disk_dir);
 		if(check_file_extension(path_shadow, ".d88") || check_file_extension(path_shadow, ".d77")) {
 			UPDATE_D88_LIST(drv, listD88[drv]);
 			menu_fds[drv]->do_update_inner_media(listD88[drv], 0);
@@ -84,14 +83,14 @@ int Ui_MainWindow::set_recent_disk(int drv, int num)
 			menu_fds[drv]->do_clear_inner_media();
 		}
 		if(using_flags->get_max_drive() >= 2) {
-			strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
+			strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX - 1);
 			if(check_file_extension(path_shadow, ".d88") || check_file_extension(path_shadow, ".d77")) {
 				if(((drv & 1) == 0) && (drv + 1 < using_flags->get_max_drive()) && (1 < emu->d88_file[drv].bank_num)) {
 					int drv2 = drv + 1;
 					emit sig_close_disk(drv2);
 					emit sig_open_disk(drv2, s_path, 1);
 					menu_fds[drv2]->do_update_histories(listFDs[drv2]);
-					menu_fds[drv2]->do_set_initialize_directory(p_config->initial_floppy_disk_dir);
+					menu_fds[drv2]->do_set_initialize_directory(config.initial_floppy_disk_dir);
 					UPDATE_D88_LIST(drv2, listD88[drv2]);
 					menu_fds[drv2]->do_update_inner_media(listD88[drv2], 1);
 				}
@@ -107,17 +106,17 @@ void Ui_MainWindow::_open_disk(int drv, const QString fname)
 
 	if(fname.length() <= 0) return;
 	drv = drv & 7;
-	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX);
-	UPDATE_HISTORY(path_shadow, p_config->recent_floppy_disk_path[drv], listFDs[drv]);
-	strcpy(p_config->initial_floppy_disk_dir, 	get_parent_dir((const _TCHAR *)path_shadow));
+	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX - 1);
+	UPDATE_HISTORY(path_shadow, config.recent_floppy_disk_path[drv], listFDs[drv]);
+	strcpy(config.initial_floppy_disk_dir, 	get_parent_dir((const _TCHAR *)path_shadow));
 	// Update List
-	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX);
+	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX - 1);
 	if(emu) {
 		emit sig_close_disk(drv);
 		//emu->LockVM();
 		emit sig_open_disk(drv, fname, 0);
 		menu_fds[drv]->do_update_histories(listFDs[drv]);
-		menu_fds[drv]->do_set_initialize_directory(p_config->initial_floppy_disk_dir);
+		menu_fds[drv]->do_set_initialize_directory(config.initial_floppy_disk_dir);
 		if(check_file_extension(path_shadow, ".d88") || check_file_extension(path_shadow, ".d77")) {
 			UPDATE_D88_LIST(drv, listD88[drv]);
 			menu_fds[drv]->do_update_inner_media(listD88[drv], 0);
@@ -131,10 +130,10 @@ void Ui_MainWindow::_open_disk(int drv, const QString fname)
 				int drv2 = drv + 1;
 				emit sig_close_disk(drv2);
 				//emu->LockVM();
-				strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX);
+				strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX - 1);
 				emit sig_open_disk(drv2, fname, 1);
 				menu_fds[drv2]->do_update_histories(listFDs[drv2]);
-				menu_fds[drv2]->do_set_initialize_directory(p_config->initial_floppy_disk_dir);
+				menu_fds[drv2]->do_set_initialize_directory(config.initial_floppy_disk_dir);
 				UPDATE_D88_LIST(drv2, listD88[drv2]);
 				menu_fds[drv2]->do_update_inner_media(listD88[drv2], 1);
 			}

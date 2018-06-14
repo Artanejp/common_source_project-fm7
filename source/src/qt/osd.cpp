@@ -18,10 +18,12 @@
 
 #include "qt_gldraw.h"
 #include "osd.h"
+#include "config.h"
 
 OSD::OSD(USING_FLAGS *p, CSP_Logger *logger) : OSD_BASE(p, logger)
 {
-	p_config = using_flags->get_config_ptr();
+	//p_config = using_flags->get_config_ptr();
+	p_config = &config;
 	set_features();
 }
 
@@ -1112,7 +1114,7 @@ void OSD::initialize(int rate, int samples)
 	tmp_path = tmp_path + QString::fromStdString(my_procname);
 	tmp_path = tmp_path + QString::fromUtf8(delim);
 	memset(app_path, 0x00, sizeof(app_path));
-	strncpy(app_path, tmp_path.toUtf8().constData(), _MAX_PATH);
+	strncpy(app_path, tmp_path.toUtf8().constData(), _MAX_PATH - 1);
 	
 	console_cmd_str.clear();
 	osd_console_opened = false;

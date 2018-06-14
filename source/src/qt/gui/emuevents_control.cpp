@@ -28,13 +28,13 @@ void Ui_MainWindowBase::OnSpecialReset(void)
 
 void Ui_MainWindowBase::do_emu_full_speed(bool flag)
 {
-	using_flags->get_config_ptr()->full_speed = flag;
+	config.full_speed = flag;
 }
 
 
 void Ui_MainWindowBase::OnCpuPower(int mode)
 {
-	using_flags->get_config_ptr()->cpu_power = mode;
+	config.cpu_power = mode;
 	emit sig_emu_update_config();
 }
 

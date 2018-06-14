@@ -57,10 +57,10 @@ EmuThreadClassBase::EmuThreadClassBase(META_MainWindow *rootWindow, USING_FLAGS 
 	if(using_flags->get_use_sound_volume() > 0) {
 		for(int i = 0; i < using_flags->get_use_sound_volume(); i++) {
 			bUpdateVolumeReq[i] = true;
-			volume_avg[i] = (using_flags->get_config_ptr()->sound_volume_l[i] +
-							 using_flags->get_config_ptr()->sound_volume_r[i]) / 2;
-			volume_balance[i] = (using_flags->get_config_ptr()->sound_volume_r[i] -
-								 using_flags->get_config_ptr()->sound_volume_l[i]) / 2;
+			volume_avg[i] = (config.sound_volume_l[i] +
+							 config.sound_volume_r[i]) / 2;
+			volume_balance[i] = (config.sound_volume_r[i] -
+								 config.sound_volume_l[i]) / 2;
 		}
 	}
 	keyMutex->lock();
@@ -85,8 +85,8 @@ void EmuThreadClassBase::calc_volume_from_balance(int num, int balance)
 	volume_balance[num] = balance;
 	right = level + balance;
 	left  = level - balance;
-	using_flags->get_config_ptr()->sound_volume_l[num] = left;	
-	using_flags->get_config_ptr()->sound_volume_r[num] = right;
+	config.sound_volume_l[num] = left;	
+	config.sound_volume_r[num] = right;
 }
 
 void EmuThreadClassBase::calc_volume_from_level(int num, int level)
@@ -96,8 +96,8 @@ void EmuThreadClassBase::calc_volume_from_level(int num, int level)
 	volume_avg[num] = level;
 	right = level + balance;
 	left  = level - balance;
-	using_flags->get_config_ptr()->sound_volume_l[num] = left;	
-	using_flags->get_config_ptr()->sound_volume_r[num] = right;
+	config.sound_volume_l[num] = left;	
+	config.sound_volume_r[num] = right;
 }
 
 void EmuThreadClassBase::doExit(void)
@@ -313,7 +313,7 @@ int EmuThreadClassBase::parse_command_queue(QStringList _l, int _begin)
 					fileInfo = QFileInfo(_file);
 				}
 				if(fileInfo.isFile()) {
-					_TCHAR *path_shadow = fileInfo.absoluteFilePath().toLocal8Bit().constData();
+					const _TCHAR *path_shadow = (const _TCHAR *)(fileInfo.absoluteFilePath().toLocal8Bit().constData());
 					if(_dom_type == QString::fromUtf8("vFloppyDisk")) {
 						emit sig_open_fd(_dom_num, fileInfo.absoluteFilePath());
 						if(check_file_extension(path_shadow, ".d88") || check_file_extension(path_shadow, ".d77")) {
@@ -409,7 +409,7 @@ void EmuThreadClassBase::print_framerate(int frames)
 						snprintf(buf, 255, _T("%s - %d fps (%d %%)"), get_device_name(), draw_frames, ratio);
 					}
 				}
-				if(p_config->romaji_to_kana) {
+				if(config.romaji_to_kana) {
 					message = QString::fromUtf8("[R]");
 					message = message + QString::fromUtf8(buf);
 				} else {

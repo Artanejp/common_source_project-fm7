@@ -194,9 +194,9 @@ bool MOVIE_SAVER::do_open_main()
 		//do_add_option(QString::fromUtf8("c:v"), QString::fromUtf8("theora"));
 		do_add_option(QString::fromUtf8("c:a"), QString::fromUtf8("vorbis"));
 		
-		video_encode_threads = p_config->video_threads;
-		video_geometry = QSize(p_config->video_width, p_config->video_height);
-		audio_bit_rate = p_config->audio_bitrate * 1000;
+		video_encode_threads = config.video_threads;
+		video_geometry = QSize(config.video_width, config.video_height);
+		audio_bit_rate = config.audio_bitrate * 1000;
 		
 	}
 
@@ -216,7 +216,7 @@ bool MOVIE_SAVER::do_open_main()
 		return false;
 
 	fmt = oc->oformat;
-	switch(p_config->video_codec_type) {
+	switch(config.video_codec_type) {
 	case VIDEO_CODEC_MPEG4:
 		fmt->video_codec = AV_CODEC_ID_MPEG4;
 		break;
@@ -224,7 +224,7 @@ bool MOVIE_SAVER::do_open_main()
 		fmt->video_codec = AV_CODEC_ID_H264;
 		break;
 	}
-	switch(p_config->audio_codec_type) {
+	switch(config.audio_codec_type) {
 	case AUDIO_CODEC_MP3:
 		fmt->audio_codec = AV_CODEC_ID_MP3;
 		break;

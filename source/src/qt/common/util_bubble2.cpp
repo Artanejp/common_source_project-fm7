@@ -42,7 +42,7 @@ void Ui_MainWindowBase::do_update_recent_bubble(int drv)
 {
 	int i;
 	menu_bubbles[drv]->do_update_histories(listBubbles[drv]);
-	menu_bubbles[drv]->do_set_initialize_directory(p_config->initial_bubble_casette_dir);
+	menu_bubbles[drv]->do_set_initialize_directory(config.initial_bubble_casette_dir);
 	if(GetBubbleCasetteIsProtected(drv)) {
 		menu_bubbles[drv]->do_write_protect_media();
 	} else {
@@ -57,18 +57,18 @@ int Ui_MainWindowBase::set_recent_bubble(int drv, int num)
 	char path_shadow[PATH_MAX];
 	int i;
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
-	s_path = QString::fromLocal8Bit(p_config->recent_bubble_casette_path[drv][num]);
-	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
-	UPDATE_HISTORY(path_shadow, p_config->recent_bubble_casette_path[drv], listBubbles[drv]);
-	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
+	s_path = QString::fromLocal8Bit(config.recent_bubble_casette_path[drv][num]);
+	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX - 1);
+	UPDATE_HISTORY(path_shadow, config.recent_bubble_casette_path[drv], listBubbles[drv]);
+	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX - 1);
    
-	strcpy(p_config->initial_bubble_casette_dir, get_parent_dir((const _TCHAR *)path_shadow));
-	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
+	strcpy(config.initial_bubble_casette_dir, get_parent_dir((const _TCHAR *)path_shadow));
+	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX - 1);
 	{
 		emit sig_close_bubble(drv);
 		emit sig_open_bubble(drv, s_path, 0);
 		menu_bubbles[drv]->do_update_histories(listBubbles[drv]);
-		menu_bubbles[drv]->do_set_initialize_directory(p_config->initial_bubble_casette_dir);
+		menu_bubbles[drv]->do_set_initialize_directory(config.initial_bubble_casette_dir);
 		if(check_file_extension(path_shadow, ".b77")) {
 			UPDATE_B77_LIST(drv, listB77[drv]);
 			menu_bubbles[drv]->do_update_inner_media_bubble(listB77[drv], 0);
@@ -86,16 +86,16 @@ void Ui_MainWindowBase::_open_bubble(int drv, const QString fname)
 
 	if(fname.length() <= 0) return;
 	drv = drv & 7;
-	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX);
-	UPDATE_HISTORY(path_shadow, p_config->recent_bubble_casette_path[drv], listBubbles[drv]);
-	strcpy(p_config->initial_bubble_casette_dir, get_parent_dir((const _TCHAR *)path_shadow));
+	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX - 1);
+	UPDATE_HISTORY(path_shadow, config.recent_bubble_casette_path[drv], listBubbles[drv]);
+	strcpy(config.initial_bubble_casette_dir, get_parent_dir((const _TCHAR *)path_shadow));
 	// Update List
-	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX);
+	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX - 1);
 	{
 		emit sig_close_bubble(drv);
 		emit sig_open_bubble(drv, fname, 0);
 		menu_bubbles[drv]->do_update_histories(listBubbles[drv]);
-		menu_bubbles[drv]->do_set_initialize_directory(p_config->initial_bubble_casette_dir);
+		menu_bubbles[drv]->do_set_initialize_directory(config.initial_bubble_casette_dir);
 		if(check_file_extension(path_shadow, ".b77")) {
 			UPDATE_B77_LIST(drv, listB77[drv]);
 			menu_bubbles[drv]->do_update_inner_media_bubble(listB77[drv], 0);
