@@ -13,7 +13,7 @@ void LS393::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	bool signal = ((data & mask) != 0);
 	if(prev_in && !signal) {
-		int prev_count = count++;
+		uint32_t prev_count = count++;
 		for(int i = 0; i < 8; i++) {
 			if(outputs[i].count) {
 				int bit = 1 << i;

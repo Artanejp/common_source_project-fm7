@@ -64,7 +64,8 @@ enum
 
 #define EXPMEM_OFFSET 0x20000
 
-#define LONG_WIDTH (512 + 32)
+// LONG_WIDTH has already defined limits.h for GCC.20180614 K.O
+#define _V9938_LONG_WIDTH (512 + 32)
 
 static const char *const v9938_modes[] = {
 	"TEXT 1", "MULTICOLOR", "GRAPHIC 1", "GRAPHIC 2", "GRAPHIC 3",
@@ -961,7 +962,7 @@ void v99x8_device::default_border(const scrntype_t *pens, scrntype_t *ln)
 	int i;
 
 	pen = pens[m_pal_ind16[(m_cont_reg[7]&0x0f)]];
-	i = LONG_WIDTH;
+	i = _V9938_LONG_WIDTH;
 	while (i--) *ln++ = pen;
 }
 
@@ -971,7 +972,7 @@ void v99x8_device::graphic7_border(const scrntype_t *pens, scrntype_t *ln)
 	int i;
 
 	pen = pens[m_pal_ind256[m_cont_reg[7]]];
-	i = LONG_WIDTH;
+	i = _V9938_LONG_WIDTH;
 	while (i--) *ln++ = pen;
 }
 
@@ -983,7 +984,7 @@ void v99x8_device::graphic5_border(const scrntype_t *pens, scrntype_t *ln)
 
 	pen1 = pens[m_pal_ind16[(m_cont_reg[7]&0x03)]];
 	pen0 = pens[m_pal_ind16[((m_cont_reg[7]>>2)&0x03)]];
-	i = LONG_WIDTH / 2;
+	i = _V9938_LONG_WIDTH / 2;
 	while (i--) { *ln++ = pen0; *ln++ = pen1; }
 }
 
@@ -1886,14 +1887,14 @@ void v99x8_device::refresh_16(int line)
 	if (m_cont_reg[9] & 0x08)
 	{
 //		ln = &m_bitmap.pix16(m_scanline*2+((m_stat_reg[2]>>1)&1));
-		ln = screen+(m_scanline*2+((m_stat_reg[2]>>1)&1))*LONG_WIDTH;
+		ln = screen+(m_scanline*2+((m_stat_reg[2]>>1)&1))*_V9938_LONG_WIDTH;
 	}
 	else
 	{
 //		ln = &m_bitmap.pix16(m_scanline*2);
 //		ln2 = &m_bitmap.pix16(m_scanline*2+1);
-		ln = screen+(m_scanline*2)*LONG_WIDTH;
-		ln2 = screen+(m_scanline*2+1)*LONG_WIDTH;
+		ln = screen+(m_scanline*2)*_V9938_LONG_WIDTH;
+		ln2 = screen+(m_scanline*2+1)*_V9938_LONG_WIDTH;
 		double_lines = true;
 	}
 
@@ -3120,7 +3121,7 @@ void v99x8_device::draw_screen()
 	emu->set_vm_screen_lines(__SCREEN_HEIGHT);
 	for(y=0; y< __SCREEN_HEIGHT; y++) {
 		if((dst = osd->get_vm_screen_buffer(y)) != NULL) {
-			my_memcpy(dst, screen+(y+18)*LONG_WIDTH+2, __SCREEN_WIDTH*sizeof(scrntype_t));
+			my_memcpy(dst, screen+(y+18)*_V9938_LONG_WIDTH+2, __SCREEN_WIDTH*sizeof(scrntype_t));
 		}
 	}
 }

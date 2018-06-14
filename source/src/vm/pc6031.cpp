@@ -216,14 +216,14 @@ void PC6031::FddOut60(unsigned char dat)
 // control input from disk unit (port D2H)
 unsigned char PC6031::FddCntIn60(void)
 {
-	if (((old_D2H & 0x01) ^ mdisk.DAV) || mdisk.RFD && mdisk.DAV) {
+	if ((((old_D2H & 0x01) ^ mdisk.DAV) != 0) || (mdisk.RFD != 0) && (mdisk.DAV != 0)) {  // ToDo: Check Logic 20180614 K.O
 		mdisk.DAC = mdisk.DAV;
-	} else if (mdisk.ATN) {
+	} else if (mdisk.ATN != 0) {
 		mdisk.RFD = 1;
 		mdisk.command = WAIT;
-	} else if (mdisk.DAC) {
+	} else if (mdisk.DAC != 0) {
 		mdisk.DAV = 0;
-	} else if (mdisk.RFD) {
+	} else if (mdisk.RFD != 0) {
 		mdisk.DAV = 1;
 	}	
 	old_D2H = io_D2H;

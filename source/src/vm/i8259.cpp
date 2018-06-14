@@ -17,7 +17,7 @@ void I8259::initialize()
 	__I8259_MAX_CHIPS = osd->get_feature_uint32_value(_T("I8259_MAX_CHIPS"));
 	if(__I8259_MAX_CHIPS >= 2) __I8259_MAX_CHIPS = 2;
 	__CHIP_MASK = __I8259_MAX_CHIPS - 1;
-	for(int c = 0; c < __I8259_MAX_CHIPS; c++) {
+	for(uint32_t c = 0; c < __I8259_MAX_CHIPS; c++) {
 		pic[c].imr = 0xff;
 		pic[c].irr = pic[c].isr = pic[c].prio = 0;
 		pic[c].icw1 = pic[c].icw2 = pic[c].icw3 = pic[c].icw4 = 0;
@@ -28,7 +28,7 @@ void I8259::initialize()
 
 void I8259::reset()
 {
-	for(int c = 0; c < __I8259_MAX_CHIPS; c++) {
+	for(uint32_t c = 0; c < __I8259_MAX_CHIPS; c++) {
 		pic[c].irr_tmp = 0;
 		pic[c].irr_tmp_id = -1;
 	}
@@ -202,9 +202,9 @@ void I8259::update_intr()
 {
 	bool intr = false;
 	
-	for(int c = 0; c < __I8259_MAX_CHIPS; c++) {
+	for(uint32_t c = 0; c < __I8259_MAX_CHIPS; c++) {
 		uint8_t irr = pic[c].irr;
-		if(c + 1 < __I8259_MAX_CHIPS) {
+		if((c + 1) < __I8259_MAX_CHIPS) {
 			// this is master
 			if(pic[c + 1].irr & (~pic[c + 1].imr)) {
 				// request from slave
@@ -224,7 +224,7 @@ void I8259::update_intr()
 			level = (level + 1) & 7;
 			bit = 1 << level;
 		}
-		if((c + 1 < __I8259_MAX_CHIPS) && (pic[c].icw3 & bit)) {
+		if(((c + 1) < __I8259_MAX_CHIPS) && (pic[c].icw3 & bit)) {
 			// check slave
 			continue;
 		}
@@ -285,7 +285,7 @@ void I8259::decl_state()
 {
 	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("i8259"));
 	
-	for(int i = 0; i < __I8259_MAX_CHIPS; i++) {
+	for(int i = 0; i < (int)__I8259_MAX_CHIPS; i++) {
 		DECL_STATE_ENTRY_UINT8_MEMBER((pic[i].imr), i);
 		DECL_STATE_ENTRY_UINT8_MEMBER((pic[i].isr), i);
 		DECL_STATE_ENTRY_UINT8_MEMBER((pic[i].irr), i);

@@ -473,7 +473,7 @@ void HD63484::doclr16(int opcode, uint16_t fill, int *dst, int _ax, int _ay)
 
 void HD63484::docpy16(int opcode, int src, int *dst, int _ax, int _ay)
 {
-	int dstep1, dstep2;
+	int dstep1, dstep2 = 0;
 	int ax = _ax, ay = _ay;
 	
 	switch(opcode & 0x700) {
@@ -773,8 +773,8 @@ int HD63484::get_pixel_ptn(int x, int y)
 
 void HD63484::agcpy(int opcode, int src_x, int src_y, int dst_x, int dst_y, int16_t _ax, int16_t _ay)
 {
-	int dst_step1_x, dst_step1_y, dst_step2_x, dst_step2_y;
-	int src_step1_x, src_step1_y, src_step2_x, src_step2_y;
+	int dst_step1_x, dst_step1_y, dst_step2_x, dst_step2_y = 0;
+	int src_step1_x, src_step1_y, src_step2_x, src_step2_y = 0;
 	int ax = _ax;
 	int ay = _ay;
 	int ax_neg = (_ax >= 0) ? 1 : -1;

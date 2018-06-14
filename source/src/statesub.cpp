@@ -865,8 +865,8 @@ csp_state_utils::csp_state_utils(int _version, int device_id, const _TCHAR *clas
 	memset(magic, 0x00, sizeof(magic));
 	memset(magic_bak, 0x00, sizeof(magic_bak));
 	
-	strncpy(magic, _T("CSP_SAVE"), 16);
-	strncpy(magic_bak, magic, 16);
+	strncpy(magic, _T("CSP_SAVE"), 16 - 1);
+	strncpy(magic_bak, magic, 16 - 1);
 	
 	if(classname != NULL) {
 		strncpy(__classname, classname, sizeof(__classname) - 1); 
@@ -997,7 +997,7 @@ uint32_t csp_state_utils::get_crc_value(void)
 }
 void csp_state_utils::get_class_name(_TCHAR *buf, int len)
 {
-	strncpy(buf, __classname_bak, ((size_t)len > sizeof(__classname_bak)) ? sizeof(__classname_bak) : len);
+	strncpy(buf, __classname_bak, ((size_t)len >= sizeof(__classname_bak)) ? (sizeof(__classname_bak) - 1) : len);
 }
 
 
@@ -1067,7 +1067,7 @@ bool csp_state_utils::save_state(FILEIO *__fio, uint32_t *pcrc)
 	class_version_bak = class_version;
 	this_device_id_bak = this_device_id;
 	memset(__classname_bak, 0x00, sizeof(__classname_bak));
-	strncpy(__classname_bak, __classname, sizeof(__classname));
+	strncpy(__classname_bak, __classname, sizeof(__classname) - 1);
 	// Initialize crc;
 	if(pcrc == NULL) {
 		crc_value = 0xffffffff;

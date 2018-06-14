@@ -147,7 +147,7 @@ void T3444A::reset()
 		fdc[i].index = 0;
 		fdc[i].access = false;
 	}
-	for(int i = 0; i < array_length(register_id); i++) {
+	for(long unsigned int i = 0; i < array_length(register_id); i++) {
 		register_id[i] = -1;
 	}
 	now_search = false;
@@ -430,9 +430,9 @@ void T3444A::process_cmd()
 		_T("Seek and Write Data with Deleted Data Address Mark"),
 	};
 	if(_fdc_debug_log)  {
-		if(cmdreg == cmdreg) {
+		//if(cmdreg == cmdreg) {
 			this->out_debug_log(_T("FDC\tCMD=%2xh (%s) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, cmdstr[cmdreg], datareg, drvreg, trkreg, sidereg, secreg);
-		}
+		//}
 	}
 //#endif
 	status = 0; // FDC is busy

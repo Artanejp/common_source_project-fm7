@@ -844,7 +844,7 @@ const _TCHAR *DLL_PREFIX get_application_path()
 	   
 		std::string cpath = csppath + my_procname + delim;
 		_my_mkdir(cpath);
-		strncpy(app_path, cpath.c_str(), _MAX_PATH);
+		strncpy(app_path, cpath.c_str(), _MAX_PATH - 1);
 #endif
 		initialized = true;
 	}

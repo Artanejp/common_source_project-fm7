@@ -22,8 +22,9 @@ DEVICE::DEVICE(VM* parent_vm, EMU* parent_emu) : vm(parent_vm), emu(parent_emu)
 	emu = parent_emu;
 	//osd = NULL;
 	osd = emu->get_osd();
-	//this->out_debug_log("OSD is %08x", osd); 
-	strncpy(this_device_name, "Base Device", 128);
+	//this->out_debug_log("OSD is %08x", osd);
+	memset(this_device_name, 0x00, sizeof(this_device_name));
+	strncpy(this_device_name, "Base Device", 128 - 1);
 	prev_device = vm->last_device;
 	next_device = NULL;
 	if(vm->first_device == NULL) {

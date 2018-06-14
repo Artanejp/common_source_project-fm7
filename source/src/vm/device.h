@@ -68,8 +68,8 @@ public:
 #else
 		osd = NULL;
 #endif
-
-		strncpy(this_device_name, "Base Device", 128);
+		memset(this_device_name, 0x00, sizeof(this_device_name));
+		strncpy(this_device_name, "Base Device", 128 - 1);
 		prev_device = vm->last_device;
 		next_device = NULL;
 		if(vm->first_device == NULL) {
