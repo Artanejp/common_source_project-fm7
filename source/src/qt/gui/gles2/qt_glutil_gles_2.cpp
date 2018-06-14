@@ -1385,6 +1385,9 @@ void GLDraw_ES_2::do_set_texture_size(QImage *p, int w, int h)
 }
 void GLDraw_ES_2::do_set_horiz_lines(int lines)
 {
+	if(lines > using_flags->get_real_screen_height()) {
+		lines = using_flags->get_real_screen_height();
+	}			
 	this->doSetGridsHorizonal(lines, false);
 }
 
