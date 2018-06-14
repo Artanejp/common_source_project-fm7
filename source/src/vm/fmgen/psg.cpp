@@ -89,7 +89,7 @@ void PSG::MakeNoiseTable()
 			for (int j=0; j<32; j++)
 			{
 				n = n * 2 + (noise & 1);
-				noise = (noise >> 1) | (((noise << 14) ^ (noise << 16)) & 0x10000);
+				noise = (noise >> 1) | (((noise << 14) ^ ((noise & 0x0000ffff) << 16)) & 0x10000);
 			}
 			noisetable[i] = n;
 		}
