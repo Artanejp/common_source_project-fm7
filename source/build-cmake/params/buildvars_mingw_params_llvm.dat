@@ -55,6 +55,42 @@ case ${USE_WHOLE_PROGRAM_OPTIMIZE} in
       LTO_FLAGS=""
       ;;
 esac
+case ${USE_SANITIZER} in
+   "Yes" | "yes" | "YES" )
+      MAKEFLAGS_BASE3="${MAKEFLAGS_BASE3} \
+	       -fsanitize=address \
+	       -fsanitize=undefined \
+	       -fsanitize=vptr \
+		   "
+		   ;;
+   "No" | "no" | "NO" | * )
+		   ;;
+esac	
+
+case ${USE_STACK_PROTECTION} in
+   "Yes" | "yes" | "YES" )
+      MAKEFLAGS_BASE3="${MAKEFLAGS_BASE3} \
+	       -fstack-protector \
+		   "
+		   ;;
+   "All" | "all" | "ALL" )
+      MAKEFLAGS_BASE3="${MAKEFLAGS_BASE3} \
+	       -fstack-protector-all \
+		   "
+		   ;;
+   "Strong" | "strong" | "STRONG" )
+      MAKEFLAGS_BASE3="${MAKEFLAGS_BASE3} \
+	       -fstack-protector-strong \
+		   "
+		   ;;
+   "No" | "no" | "NO" )
+      MAKEFLAGS_BASE3="${MAKEFLAGS_BASE3} \
+	       -fno-stack-protector \
+		   "		   
+		   ;;
+   "Default" | "default" | "DEFAULT" | * )
+           ;;
+esac	
 
 case ${COMPRESS_SYMBOLS} in
    "Yes" | "yes" | "YES" )

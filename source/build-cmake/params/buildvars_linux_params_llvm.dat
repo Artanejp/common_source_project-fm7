@@ -48,6 +48,42 @@ case ${CSP_DEBUG} in
 		MAKEFLAGS_DLL_LINK_BASE="-s ${MAKEFLAGS_BASE3}"
 		;;
 esac
+case ${USE_SANITIZER} in
+   "Yes" | "yes" | "YES" )
+      MAKEFLAGS_BASE3="${MAKEFLAGS_BASE3} \
+	       -fsanitize=address \
+	       -fsanitize=undefined \
+	       -fsanitize=vptr \
+		   "
+		   ;;
+   "No" | "no" | "NO" | * )
+		   ;;
+esac	
+
+case ${USE_STACK_PROTECTION} in
+   "Yes" | "yes" | "YES" )
+      MAKEFLAGS_BASE3="${MAKEFLAGS_BASE3} \
+	       -fstack-protector \
+		   "
+		   ;;
+   "All" | "all" | "ALL" )
+      MAKEFLAGS_BASE3="${MAKEFLAGS_BASE3} \
+	       -fstack-protector-all \
+		   "
+		   ;;
+   "Strong" | "strong" | "STRONG" )
+      MAKEFLAGS_BASE3="${MAKEFLAGS_BASE3} \
+	       -fstack-protector-strong \
+		   "
+		   ;;
+   "No" | "no" | "NO" )
+      MAKEFLAGS_BASE3="${MAKEFLAGS_BASE3} \
+	       -fno-stack-protector \
+		   "		   
+		   ;;
+   "Default" | "default" | "DEFAULT" | * )
+           ;;
+esac	
 
 case ${USE_LTO} in
    "Yes" | "yes" | "YES" )

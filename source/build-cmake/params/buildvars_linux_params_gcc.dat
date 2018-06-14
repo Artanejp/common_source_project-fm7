@@ -43,6 +43,45 @@ case ${USE_RADICAL_OPTIMIZE} in
 	       "
 	       ;;
 esac
+
+case ${USE_SANITIZER} in
+   "Yes" | "yes" | "YES" )
+      MAKEFLAGS_BASE3="${MAKEFLAGS_BASE3} \
+	       -fsanitize=address \
+	       -fsanitize=undefined \
+	       -fsanitize=vptr \
+		   "
+		   ;;
+   "No" | "no" | "NO" | * )
+		   ;;
+esac	
+
+case ${USE_STACK_PROTECTION} in
+   "Yes" | "yes" | "YES" )
+      MAKEFLAGS_BASE3="${MAKEFLAGS_BASE3} \
+	       -fstack-protector \
+		   "
+		   ;;
+   "All" | "all" | "ALL" )
+      MAKEFLAGS_BASE3="${MAKEFLAGS_BASE3} \
+	       -fstack-protector-all \
+		   "
+		   ;;
+   "Strong" | "strong" | "STRONG" )
+      MAKEFLAGS_BASE3="${MAKEFLAGS_BASE3} \
+	       -fstack-protector-strong \
+		   "
+		   ;;
+   "No" | "no" | "NO" )
+      MAKEFLAGS_BASE3="${MAKEFLAGS_BASE3} \
+	       -fno-stack-protector \
+		   "
+		   ;;
+   "Default" | "default" | "DEFAULT" | * )
+           ;;
+esac	
+
+#	       -fstack-clash-protection \
 #	       -ftree-vectorize \
 #	       -ftree-loop-vectorize \
 #               -ftree-loop-distribute-patterns \
