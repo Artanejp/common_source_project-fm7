@@ -32,7 +32,11 @@ void FM7_MAINIO::reset_sound(void)
 		memset(opn_regs[i], 0x00, 0x100 * sizeof(uint8_t));
 		if(opn[i] != NULL) {
 			opn[i]->reset();
-			
+			opn[i]->write_data8(0, 0x2e);
+			opn[i]->write_data8(1, 0);	// set prescaler
+			opn[i]->write_data8(0, 0x27);
+			opn[i]->write_data8(1, 0x00);
+#if 0			
 			for(int ch = 0x00; ch < 0x0e; ch++) { // PSG from XM7.
 				if(ch == 7) {
 					opn[i]->set_reg(ch, 0xff); 
@@ -75,10 +79,9 @@ void FM7_MAINIO::reset_sound(void)
 				opn_regs[i][0x28] = (uint8_t)(j | 0xfe);
 				//opn_keys[i][j] = j | 0xfe;
 			}
-			opn[i]->write_io8(0, 0x2e);
-			opn[i]->write_io8(1, 0);	// set prescaler
-			opn[i]->write_io8(0, 0x27);
-			opn[i]->write_io8(1, 0x00);
+			write_opn_reg(i, 0x2e, 0);
+			write_opn_reg(i, 0x27, 0);
+#endif
 		}
 	}
 //#endif
@@ -150,45 +153,38 @@ void FM7_MAINIO::reset_sound(void)
 // After loading state, OPN's prescaler needs to reset.
 void FM7_MAINIO::restore_opn(void)
 {
+#if 1
 	for(int i = 0; i < 3; i++) {
 		if(opn[i] != NULL) {
-#if 0
+			int pre = opn_prescaler_type[i];
+			if((pre >= 0) && (pre < 3)) {
+				write_opn_reg(i, pre + 0x2d, 0);
+			}
+			// Key
+			write_opn_reg(i, 0x27, opn_regs[i][0x27]);
+			//for(int j = 0; j < 3; j++) {
+				//opn[i]->set_reg(0x28, opn_keys[i][j]);
+			//	write_opn_reg(i, 0x28, (uint8_t)j);
+			//}
 			for(int j = 0x0; j < 0x0d; j++) {
 				if((j < 0x08) || (j > 0x0a)) {
-					opn[i]->set_reg(j, opn_regs[i][j]);
+					write_opn_reg(i, j, opn_regs[i][j]);
 				} else {
-					opn[i]->set_reg(j, 0);
+					write_opn_reg(i, j, 0);
 				}
 			}
 			for(int j = 0x30; j < 0xb4; j++) {
-				opn[i]->set_reg(j, opn_regs[i][j]);
+				write_opn_reg(i, j, opn_regs[i][j]);
 			}
-#endif
-			int pre = opn_prescaler_type[i];
-			if((pre >= 0) && (pre < 3)) {
-				opn[i]->set_reg(pre + 0x2d, 0);
-			}
-			// Key
-			for(int j = 0; j < 3; j++) {
-				//opn[i]->set_reg(0x28, opn_keys[i][j]);
-			}
-			opn[i]->set_reg(0x27, opn_regs[i][0x27]);
+			
 		}
 	}
 # if !defined(_FM77AV_VARIANTS)
 	if(psg != NULL) {
-#if 0
-		for(int j = 0x0; j < 0x0d; j++) {
-			if((j < 0x08) || (j > 0x0a)) {
-				psg->set_reg(j, opn_regs[3][j]);
-			} else {
-				psg->set_reg(j, 0);
-			}
-		}
-#endif
 		//psg->set_reg(0x27, opn_regs[3][0x27]);
 		psg->set_reg(0x2e, 0);
 	}
+#endif
 #endif
 }
 
@@ -224,7 +220,7 @@ void FM7_MAINIO::set_psg_cmd(uint8_t cmd)
 // Write to FD16, same as 
 void FM7_MAINIO::write_opn_reg(int index, uint32_t addr, uint32_t data)
 {
-	//printf("OPN: #%d REG=%02x VAL=%02x\n", index, addr, data);
+	//out_debug_log("OPN_WRITE: #%d REG=%02x VAL=%02x\n", index, addr, data);
 # if !defined(_FM77AV_VARIANTS)
 	if(index == 3) { // PSG
 	  	psg->write_io8(0, addr & 0x0f);
@@ -237,13 +233,23 @@ void FM7_MAINIO::write_opn_reg(int index, uint32_t addr, uint32_t data)
 	if((addr >= 0x2d) && (addr < 0x30)) {
 		opn_prescaler_type[index] = addr - 0x2d;
 		opn[index]->write_io8(0, addr);
+		
 		opn_regs[index][addr] = 0;
 		return;
 	} else if(addr == 0x27) {
+		//if(opn_ch3mode[index] == data) { // From XM7.
+		//	opn_regs[index][addr] = data;
+		//	return;
+		//}
 		opn_ch3mode[index] = data & 0xc0;
 	} else  if(addr == 0x28) {
 		//opn_keys[index][data & 3] = data;
-	}
+	}/* else if(addr == 0xff) { // Check : from XM7.
+		if((opn_regs[index][0x27] & 0xc0) != 0x80) {
+			opn_regs[index][addr] = data;
+			return;
+		}
+		}*/
 	opn[index]->write_io8(0, addr);
 	opn[index]->write_io8(1, data);
 	opn_regs[index][addr] = data;
@@ -500,4 +506,23 @@ void FM7_MAINIO::event_beep_cycle(void)
 	if(beep_flag) {
 		pcm1bit->write_signal(SIG_PCM1BIT_SIGNAL, beep_snd ? 1 : 0, 1);
 	}
+}
+
+#include "../../statesub.h"
+
+void FM7_MAINIO::decl_state_opn(void)
+{
+
+	DECL_STATE_ENTRY_BOOL(connect_opn);
+	DECL_STATE_ENTRY_BOOL(connect_whg);
+	DECL_STATE_ENTRY_BOOL(connect_thg);
+
+	DECL_STATE_ENTRY_BOOL(opn_psg_77av);
+	DECL_STATE_ENTRY_UINT8_ARRAY(opn_address, 4);
+	DECL_STATE_ENTRY_UINT8_ARRAY(opn_data, 4);
+	DECL_STATE_ENTRY_UINT8_ARRAY(opn_stat, 4);
+	DECL_STATE_ENTRY_UINT8_ARRAY(opn_cmdreg, 4);
+	DECL_STATE_ENTRY_UINT8_ARRAY(opn_ch3mode, 4);
+	DECL_STATE_ENTRY_UINT8_ARRAY(opn_prescaler_type, 4);
+	DECL_STATE_ENTRY_2D_ARRAY(opn_regs, 4, 0x100);
 }

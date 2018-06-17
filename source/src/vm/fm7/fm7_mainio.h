@@ -174,9 +174,9 @@ class FM7_MAINIO : public DEVICE {
 	bool connect_whg; // [1]
 	bool connect_thg; // [2]
 //#endif
-	uint32_t opn_address[4];
-	uint32_t opn_data[4];
-	uint32_t opn_stat[4];
+	uint8_t opn_address[4];
+	uint8_t opn_data[4];
+	uint8_t opn_stat[4];
 	uint8_t  opn_cmdreg[4]; // OPN register, bit 3-0, maybe dummy.
 	uint8_t  opn_ch3mode[4];
 	uint8_t  opn_prescaler_type[4];
@@ -498,6 +498,8 @@ class FM7_MAINIO : public DEVICE {
 		//T *nnp = static_cast<T *>(np);
 		return static_cast<T *>(np)->read_dma_data8(addr);
 	}
+
+	void decl_state_opn(void);
 public:
 	FM7_MAINIO(VM* parent_vm, EMU* parent_emu);
 	~FM7_MAINIO();

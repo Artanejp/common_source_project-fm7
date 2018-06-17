@@ -130,24 +130,14 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	if((config.dipswitch & FM7_DIPSW_MIDI_ON) != 0) uart[2] = new I8251(this, emu);
 
 		
+
 #if defined(_FM77AV_VARIANTS)
 	alu = new MB61VH010(this, emu);
 	keyboard_beep = new BEEP(this, emu);
 #endif	
-	keyboard = new KEYBOARD(this, emu);
-	display = new DISPLAY(this, emu);
-#if defined(_FM8)
-	mainio  = new FM8_MAINIO(this, emu);
-#else
-	mainio  = new FM7_MAINIO(this, emu);
-#endif
-	mainmem = new FM7_MAINMEM(this, emu);
 
 	// basic devices
 	// I/Os
-#if defined(HAS_DMA)
-	dmac = new HD6844(this, emu);
-#endif   
 #if defined(_FM8)
 #  if defined(USE_AY_3_8910_AS_PSG)
 	psg = new AY_3_891X(this, emu);
@@ -166,6 +156,10 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #  endif
 # endif	
 #endif
+
+#if defined(HAS_DMA)
+	dmac = new HD6844(this, emu);
+#endif   
 #if defined(_FM8)
 	for(int i = 0; i < 2; i++) bubble_casette[i] = new BUBBLECASETTE(this, emu);
 #endif
@@ -227,6 +221,17 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #ifdef CAPABLE_KANJI_CLASS2
 	kanjiclass2 = new KANJIROM(this, emu, true);
 #endif
+
+	keyboard = new KEYBOARD(this, emu);
+	//display = new DISPLAY(this, emu);
+#if defined(_FM8)
+	mainio  = new FM8_MAINIO(this, emu);
+#else
+	mainio  = new FM7_MAINIO(this, emu);
+#endif
+	mainmem = new FM7_MAINMEM(this, emu);
+	display = new DISPLAY(this, emu);
+
 
 # if defined(_FM77AV20) || defined(_FM77AV40) || defined(_FM77AV20EX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	g_rs232c_dtr = new AND(this, emu);
@@ -724,6 +729,7 @@ void VM::reset()
 		opn[i]->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
 	}
 #endif
+//	display->reset(); // 20180618 K.O for RELICS
 }
 
 void VM::special_reset()
@@ -1280,7 +1286,7 @@ bool VM::load_state(FILEIO* state_fio)
 		}
 	}
 	update_config();
-	mainio->restore_opn();
+	//mainio->restore_opn();
 	
 	return true;
 }
