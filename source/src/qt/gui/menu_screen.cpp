@@ -34,7 +34,7 @@ void Object_Menu_Control::set_screen_size(void) {
 	float nd, ww, hh;
 	float xzoom = using_flags->get_screen_x_zoom();
 	float yzoom = using_flags->get_screen_y_zoom();
-	config.window_mode = getNumber();
+	p_config->window_mode = getNumber();
 	nd = getDoubleValue();
 	ww = (float)using_flags->get_screen_width();
 	hh = (float)using_flags->get_screen_height();
@@ -43,7 +43,7 @@ void Object_Menu_Control::set_screen_size(void) {
 		float par_w = (float)using_flags->get_screen_width_aspect() / ww;
 		float par_h = (float)using_flags->get_screen_height_aspect() / hh;
 		//float par = par_h / par_w;
-		switch(config.window_stretch_type) {
+		switch(p_config->window_stretch_type) {
 		case 0: // refer to X and Y.
 			ww = ww * nd * xzoom;
 			hh = hh * nd * yzoom;
@@ -73,7 +73,7 @@ void Object_Menu_Control::set_screen_size(void) {
 
 void Object_Menu_Control::do_save_as_movie(void)
 {
-	int fps = config.video_frame_rate;
+	int fps = p_config->video_frame_rate;
 	emit sig_start_record_movie(fps);
 }
 
@@ -95,12 +95,12 @@ void Ui_MainWindowBase::do_start_saving_movie(void)
 
 void Ui_MainWindowBase::do_set_render_mode_std(void)
 {
-	config.rendering_type = CONFIG_RENDER_TYPE_STD;
+	p_config->rendering_type = CONFIG_RENDER_TYPE_STD;
 }
 
 void Ui_MainWindowBase::do_set_render_mode_tv(void)
 {
-	config.rendering_type = CONFIG_RENDER_TYPE_TV;
+	p_config->rendering_type = CONFIG_RENDER_TYPE_TV;
 }
 
 void Ui_MainWindowBase::do_set_state_saving_movie(bool state)
@@ -111,22 +111,22 @@ void Ui_MainWindowBase::do_set_state_saving_movie(bool state)
 
 void Ui_MainWindowBase::set_gl_scan_line_vert(bool f)
 {
-	config.opengl_scanline_vert = f;
+	p_config->opengl_scanline_vert = f;
 }
 
 void Ui_MainWindowBase::do_set_separate_thread_draw(bool f)
 {
-	config.use_separate_thread_draw = f;
+	p_config->use_separate_thread_draw = f;
 }
 
 void Ui_MainWindowBase::set_gl_scan_line_horiz(bool f)
 {
-	config.opengl_scanline_horiz = f;
+	p_config->opengl_scanline_horiz = f;
 }
 
 void Ui_MainWindowBase::set_osd_virtual_media(bool f)
 {
-	config.use_osd_virtual_media = f;
+	p_config->use_osd_virtual_media = f;
 }
 
 void Ui_MainWindowBase::ConfigScreenMenu_List(void)
@@ -151,7 +151,7 @@ void Ui_MainWindowBase::ConfigScreenMenu_List(void)
 		actionScreenSize[i]->setCheckable(true);
 		actionScreenSize[i]->binds->setNumber(i);
 
-		if(i == config.window_mode)  actionScreenSize[i]->setChecked(true);  // OK?
+		if(i == p_config->window_mode)  actionScreenSize[i]->setChecked(true);  // OK?
 
 		actionGroup_ScreenSize->addAction(actionScreenSize[i]);
 		actionScreenSize[i]->binds->setDoubleValue(screen_multiply_table[i]);
@@ -173,13 +173,13 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 	actionDisplay_Mode = new Action_Control(this, using_flags);
 	actionDisplay_Mode->setObjectName(QString::fromUtf8("actionDisplay_Mode"));
 	
-	SET_ACTION_SINGLE(action_ScreenSeparateThread, true, true, (config.use_separate_thread_draw));
+	SET_ACTION_SINGLE(action_ScreenSeparateThread, true, true, (p_config->use_separate_thread_draw));
 	connect(action_ScreenSeparateThread, SIGNAL(toggled(bool)), this, SLOT(do_set_separate_thread_draw(bool)));
 	if(using_flags->is_use_scanline()) {
 		actionScanLine = new Action_Control(this, using_flags);
 		actionScanLine->setObjectName(QString::fromUtf8("actionScanLine"));
 		actionScanLine->setCheckable(true);
-		if(config.scan_line) {
+		if(p_config->scan_line) {
 			actionScanLine->setChecked(true);
 		} else {
 			actionScanLine->setChecked(false);
@@ -188,14 +188,14 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 			this, SLOT(set_scan_line(bool)));
 	}
 	
-	SET_ACTION_SINGLE(action_ScreenUseOSD, true, true, (config.use_osd_virtual_media));
+	SET_ACTION_SINGLE(action_ScreenUseOSD, true, true, (p_config->use_osd_virtual_media));
 	connect(action_ScreenUseOSD, SIGNAL(toggled(bool)),this, SLOT(set_osd_virtual_media(bool)));
 	
 	if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
 		actionGLScanLineHoriz = new Action_Control(this, using_flags);
 		actionGLScanLineHoriz->setObjectName(QString::fromUtf8("actionGLScanLineHoriz"));
 		actionGLScanLineHoriz->setCheckable(true);
-		if(config.opengl_scanline_horiz != 0) {
+		if(p_config->opengl_scanline_horiz != 0) {
 			actionGLScanLineHoriz->setChecked(true);
 		} else {
 			actionGLScanLineHoriz->setChecked(false);
@@ -206,7 +206,7 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 			actionGLScanLineVert = new Action_Control(this, using_flags);
 			actionGLScanLineVert->setObjectName(QString::fromUtf8("actionGLScanLineVert"));
 			actionGLScanLineVert->setCheckable(true);
-			if(config.opengl_scanline_vert != 0) {
+			if(p_config->opengl_scanline_vert != 0) {
 				actionGLScanLineVert->setChecked(true);
 			} else {
 				actionGLScanLineVert->setChecked(false);
@@ -219,7 +219,7 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 		actionRotate = new Action_Control(this, using_flags);
 		actionRotate->setObjectName(QString::fromUtf8("actionScanLine"));
 		actionRotate->setCheckable(true);
-		if(config.rotate_type) {
+		if(p_config->rotate_type) {
 			actionRotate->setChecked(true);
 		} else {
 			actionRotate->setChecked(false);
@@ -232,7 +232,7 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 	actionOpenGL_Filter->setObjectName(QString::fromUtf8("actionOpenGL_Filter"));
 	actionOpenGL_Filter->setEnabled(true);
 	actionOpenGL_Filter->setCheckable(true);
-	if(config.use_opengl_filters) actionOpenGL_Filter->setChecked(true);
+	if(p_config->use_opengl_filters) actionOpenGL_Filter->setChecked(true);
 	connect(actionOpenGL_Filter, SIGNAL(toggled(bool)), this, SLOT(set_gl_crt_filter(bool)));
 
 	if((using_flags->get_screen_height_aspect() != using_flags->get_screen_height()) ||
@@ -240,26 +240,26 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 		actionDot_by_Dot = new Action_Control(this, using_flags);
 		actionDot_by_Dot->setObjectName(QString::fromUtf8("actionDot_by_Dot"));
 		actionDot_by_Dot->setCheckable(true);
-		if(config.window_stretch_type == 0) actionDot_by_Dot->setChecked(true);
+		if(p_config->window_stretch_type == 0) actionDot_by_Dot->setChecked(true);
 		actionDot_by_Dot->binds->setValue1(0);
 		
 		actionReferToX_Display = new Action_Control(this, using_flags);
 		actionReferToX_Display->setObjectName(QString::fromUtf8("actionReferToX_Display"));
 		actionReferToX_Display->setCheckable(true);
 		actionReferToX_Display->binds->setValue1(1);
-		if(config.window_stretch_type == 1) actionReferToX_Display->setChecked(true);
+		if(p_config->window_stretch_type == 1) actionReferToX_Display->setChecked(true);
 		
 		actionReferToY_Display = new Action_Control(this, using_flags);
 		actionReferToY_Display->setObjectName(QString::fromUtf8("actionReferToY_Display"));
 		actionReferToY_Display->setCheckable(true);
 		actionReferToY_Display->binds->setValue1(2);
-		if(config.window_stretch_type == 2) actionReferToY_Display->setChecked(true);
+		if(p_config->window_stretch_type == 2) actionReferToY_Display->setChecked(true);
 	
 		actionFill_Display = new Action_Control(this, using_flags);
 		actionFill_Display->setObjectName(QString::fromUtf8("actionFill_Display"));
 		actionFill_Display->setCheckable(true);
 		actionFill_Display->binds->setValue1(3);
-		if(config.window_stretch_type == 3) actionFill_Display->setChecked(true);
+		if(p_config->window_stretch_type == 3) actionFill_Display->setChecked(true);
 	
 		actionGroup_Stretch = new QActionGroup(this);
 		actionGroup_Stretch->setExclusive(true);
@@ -306,7 +306,7 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 			action_SetRenderMode[i]->setVisible(false);
 			action_SetRenderMode[i]->binds->setValue1(i);
 			
-			if(i == config.rendering_type) action_SetRenderMode[i]->setChecked(true);
+			if(i == p_config->rendering_type) action_SetRenderMode[i]->setChecked(true);
 		
 			if(i == CONFIG_RENDER_TYPE_STD) {
 				action_SetRenderMode[i]->setEnabled(true);

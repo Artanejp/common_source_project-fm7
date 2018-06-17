@@ -14,6 +14,7 @@
 #include <QString>
 #include <QList>
 
+#include "config.h"
 #include "common.h"
 #include "qt_glpack.h"
 
@@ -40,6 +41,7 @@ protected:
 	USING_FLAGS *using_flags;
 	QImage *imgptr;
 	CSP_Logger *csp_logger;
+	config_t *p_config;
 	bool smoosing;
 	bool gl_grid_horiz;
 	bool gl_grid_vert;

@@ -31,6 +31,7 @@ Menu_MetaClass::Menu_MetaClass(QMenuBar *root_entry, QString desc, USING_FLAGS *
 	//p_emu = ep;
 	p_emu = NULL;
 	using_flags = p;
+	p_config = p->get_config_ptr();
 	
 	media_drive = drv;
 	base_drive = base_drv;

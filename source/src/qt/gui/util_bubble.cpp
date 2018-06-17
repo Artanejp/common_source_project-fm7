@@ -61,9 +61,9 @@ void Ui_MainWindowBase::CreateBubbleMenu(int drv, int drv_base)
 		
 		menu_bubbles[drv]->do_clear_inner_media();
 		menu_bubbles[drv]->do_add_media_extension(ext, desc1);
-		SETUP_HISTORY(config.recent_bubble_casette_path[drv], listBubbles[drv]);
+		SETUP_HISTORY(p_config->recent_bubble_casette_path[drv], listBubbles[drv]);
 		menu_bubbles[drv]->do_update_histories(listBubbles[drv]);
-		menu_bubbles[drv]->do_set_initialize_directory(config.initial_bubble_casette_dir);
+		menu_bubbles[drv]->do_set_initialize_directory(p_config->initial_bubble_casette_dir);
 		listB77[drv].clear();
 
 		QString name = QString::fromUtf8("BUBBLE");

@@ -13,8 +13,11 @@
 
 CSP_DropDownJSButton::CSP_DropDownJSButton(USING_FLAGS *p, QWidget *parent, QStringList *lst, int jsnum, int button_num) : QWidget(parent)
 {
+	config_t *p_config;
 	p_wid = parent;
 	using_flags = p;
+	p_config = p->get_config_ptr();
+	
 	bind_jsnum = jsnum;
 	bind_button = button_num;
 	layout = new QHBoxLayout(this);
@@ -31,10 +34,10 @@ CSP_DropDownJSButton::CSP_DropDownJSButton(USING_FLAGS *p, QWidget *parent, QStr
 	}
 	if((button_num < 16) && (button_num >= 0)) {
 		if((jsnum < 4) && (jsnum >= 0)){
-			if((config.joy_buttons[jsnum][button_num] < 0) && (config.joy_buttons[jsnum][button_num] > -256)) {
-				combo->setCurrentIndex(-config.joy_buttons[jsnum][button_num] + 16);
-			} else if((config.joy_buttons[jsnum][button_num] >= 0) && (config.joy_buttons[jsnum][button_num] < 16)) {
-				combo->setCurrentIndex(config.joy_buttons[jsnum][button_num]);
+			if((p_config->joy_buttons[jsnum][button_num] < 0) && (p_config->joy_buttons[jsnum][button_num] > -256)) {
+				combo->setCurrentIndex(-p_config->joy_buttons[jsnum][button_num] + 16);
+			} else if((p_config->joy_buttons[jsnum][button_num] >= 0) && (p_config->joy_buttons[jsnum][button_num] < 16)) {
+				combo->setCurrentIndex(p_config->joy_buttons[jsnum][button_num]);
 			}
 		}
 	}

@@ -18,12 +18,13 @@ CSP_TabMovieMPEG4::CSP_TabMovieMPEG4(MOVIE_SAVER *ms, CSP_DialogMovie *parent_wi
 {
 	QString tmps;
 	using_flags = p;
+	p_config = p->get_config_ptr();
 	p_wid = parent;
 	p_movie = ms;
 	p_window = parent_window;
 
-	video_maxq = config.video_mpeg4_maxq;
-	video_minq = config.video_mpeg4_minq;
+	video_maxq = p_config->video_mpeg4_maxq;
+	video_minq = p_config->video_mpeg4_minq;
 	if(video_maxq < video_minq) {
 		int n = video_maxq;
 		video_maxq = video_minq;
@@ -60,12 +61,12 @@ CSP_TabMovieMPEG4::CSP_TabMovieMPEG4(MOVIE_SAVER *ms, CSP_DialogMovie *parent_wi
 	combo_video_bitrate->addItem(QString::fromUtf8("20000Kbps"), 20000);
 	for(int i = 0; i < combo_video_bitrate->count(); i++) {
 		int br = combo_video_bitrate->itemData(i).toInt();
-		if(br == config.video_mpeg4_bitrate) {
+		if(br == p_config->video_mpeg4_bitrate) {
 			combo_video_bitrate->setCurrentIndex(i);
 		}
 	}
 	connect(combo_video_bitrate, SIGNAL(activated(int)), this, SLOT(do_set_video_bitrate(int)));
-	video_bitrate = config.video_mpeg4_bitrate;
+	video_bitrate = p_config->video_mpeg4_bitrate;
 
 	// Video bframes
 	combo_video_bframes->addItem(QString::fromUtf8("1"), 1);
@@ -78,35 +79,35 @@ CSP_TabMovieMPEG4::CSP_TabMovieMPEG4(MOVIE_SAVER *ms, CSP_DialogMovie *parent_wi
 	combo_video_bframes->addItem(QString::fromUtf8("8"), 8);
 	for(int i = 0; i < combo_video_bframes->count(); i++) {
 		int br = combo_video_bframes->itemData(i).toInt();
-		if(br == config.video_mpeg4_bframes) {
+		if(br == p_config->video_mpeg4_bframes) {
 			combo_video_bframes->setCurrentIndex(i);
 		}
 	}
-	video_bframes = config.video_mpeg4_bframes;
+	video_bframes = p_config->video_mpeg4_bframes;
 	connect(combo_video_bframes, SIGNAL(activated(int)), this, SLOT(do_set_bframes(int)));
 
 
 	slider_qmin = new QSlider(Qt::Horizontal, this);
 	slider_qmin->setMinimum(1);
 	slider_qmin->setMaximum(31);
-	slider_qmin->setValue(config.video_mpeg4_minq);
+	slider_qmin->setValue(p_config->video_mpeg4_minq);
 	label_qmin_val = new QLabel(this);
-	tmps.setNum(config.video_mpeg4_minq);
+	tmps.setNum(p_config->video_mpeg4_minq);
 	label_qmin_val->setText(tmps);
 	label_qmin_name = new QLabel(QString::fromUtf8("QP Min"), this);
-	video_minq = config.video_mpeg4_minq;
+	video_minq = p_config->video_mpeg4_minq;
 	connect(slider_qmin, SIGNAL(valueChanged(int)), this, SLOT(do_set_qmin(int)));
 		
 	slider_qmax = new QSlider(Qt::Horizontal, this);
 	slider_qmax->setMinimum(1);
 	slider_qmax->setMaximum(31);
-	slider_qmax->setValue(config.video_mpeg4_maxq);
+	slider_qmax->setValue(p_config->video_mpeg4_maxq);
 	label_qmax_val = new QLabel(this);
-	tmps.setNum(config.video_mpeg4_maxq);
+	tmps.setNum(p_config->video_mpeg4_maxq);
 	label_qmax_val->setText(tmps);
 	label_qmax_name = new QLabel(QString::fromUtf8("QP Max"), this);
 	connect(slider_qmax, SIGNAL(valueChanged(int)), this, SLOT(do_set_qmax(int)));
-	video_maxq = config.video_mpeg4_maxq;
+	video_maxq = p_config->video_mpeg4_maxq;
 	
 	label_title = new QLabel(QApplication::translate("MovieTabMPEG4", "Set MPEG4v1 parameter.", 0), this);
 	grid_layout = new QGridLayout(this);
@@ -142,11 +143,11 @@ void CSP_TabMovieMPEG4::do_set_codecs(void)
 	QString value;
 	// See:
 	// https://libav.org/avconv.html#Video-Options
-	config.video_mpeg4_bitrate = video_bitrate;
+	p_config->video_mpeg4_bitrate = video_bitrate;
 
-	config.video_mpeg4_maxq = video_maxq;
-	config.video_mpeg4_minq = video_minq;
-	config.video_mpeg4_bframes = video_bframes;
+	p_config->video_mpeg4_maxq = video_maxq;
+	p_config->video_mpeg4_minq = video_minq;
+	p_config->video_mpeg4_bframes = video_bframes;
 }
 
 void CSP_TabMovieMPEG4::do_set_qmin(int n)

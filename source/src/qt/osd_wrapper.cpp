@@ -418,21 +418,21 @@ void OSD::release_screen()
 int OSD::get_window_mode_width(int mode)
 {
 	if(get_use_screen_rotate()) {
-		if(config.rotate_type == 1 || config.rotate_type == 3) {
-			return (config.window_stretch_type == 0 ? vm_window_height : vm_window_height_aspect) * (mode + WINDOW_MODE_BASE);
+		if(p_config->rotate_type == 1 || p_config->rotate_type == 3) {
+			return (p_config->window_stretch_type == 0 ? vm_window_height : vm_window_height_aspect) * (mode + WINDOW_MODE_BASE);
 		}
 	}
-	return (config.window_stretch_type == 0 ? vm_window_width : vm_window_width_aspect) * (mode + WINDOW_MODE_BASE);
+	return (p_config->window_stretch_type == 0 ? vm_window_width : vm_window_width_aspect) * (mode + WINDOW_MODE_BASE);
 }
 
 int OSD::get_window_mode_height(int mode)
 {
 	if(get_use_screen_rotate()) {
-		if(config.rotate_type == 1 || config.rotate_type == 3) {
-			return (config.window_stretch_type == 0 ? vm_window_width : vm_window_width_aspect) * (mode + WINDOW_MODE_BASE);
+		if(p_config->rotate_type == 1 || p_config->rotate_type == 3) {
+			return (p_config->window_stretch_type == 0 ? vm_window_width : vm_window_width_aspect) * (mode + WINDOW_MODE_BASE);
 		}
 	}
-	return (config.window_stretch_type == 0 ? vm_window_height : vm_window_height_aspect) * (mode + WINDOW_MODE_BASE);
+	return (p_config->window_stretch_type == 0 ? vm_window_height : vm_window_height_aspect) * (mode + WINDOW_MODE_BASE);
 }
 
 void OSD::initialize_video()

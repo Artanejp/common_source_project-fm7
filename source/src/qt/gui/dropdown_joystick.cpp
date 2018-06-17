@@ -17,6 +17,7 @@ CSP_DropDownJoysticks::CSP_DropDownJoysticks(QWidget *parent, QStringList *lst, 
 {
 	p_wid = parent;
 	using_flags = p;
+	p_config = p->get_config_ptr();
 	
 	layout = new QHBoxLayout(this);
 	int i;
@@ -46,7 +47,7 @@ void CSP_DropDownJoysticks::do_set_js_button(int jsnum, int button_num, int assi
 	if((button_num < 0) || (button_num >= 16)) return;
 	if((jsnum < 0) || (jsnum >= 4)) return;
 	//printf("Select: %d %d %d\n", jsnum, button_num, assigned_value);
-	config.joy_buttons[jsnum][button_num] = assigned_value;
+	p_config->joy_buttons[jsnum][button_num] = assigned_value;
 }
 
 void CSP_DropDownJoysticks::do_set_js_button_idx(int jsnum, int button_num, int assigned_value)
@@ -54,6 +55,6 @@ void CSP_DropDownJoysticks::do_set_js_button_idx(int jsnum, int button_num, int 
 	if((button_num < 0) || (button_num >= 16)) return;
 	if((jsnum < 0) || (jsnum >= 4)) return;
 	//printf("Select_Idx: %d %d %d\n", jsnum, button_num, assigned_value);
-	config.joy_buttons[jsnum][button_num] = assigned_value;
+	p_config->joy_buttons[jsnum][button_num] = assigned_value;
 }
 

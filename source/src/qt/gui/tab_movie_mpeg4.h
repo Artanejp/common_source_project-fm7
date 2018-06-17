@@ -12,6 +12,7 @@
 #include <QStringList>
 #include <QSize>
 #include <QWidget>
+#include "config.h"
 #include "common.h"
 
 class QHBoxLayout;
@@ -46,6 +47,7 @@ private:
 	QLabel *label_qmin_name;
 	QLabel *label_qmax_name;
 protected:
+	config_t *p_config;
 	QWidget *p_wid;
 	MOVIE_SAVER *p_movie;
 	USING_FLAGS *using_flags;

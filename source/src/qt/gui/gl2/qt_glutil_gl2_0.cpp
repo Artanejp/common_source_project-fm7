@@ -26,6 +26,7 @@ GLDraw_2_0::GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, 
 	p_wid = parent;
 	using_flags = p;
 	csp_logger = logger;
+	p_config = p->get_config_ptr();
 	
 	gl_grid_horiz = false;
 	gl_grid_vert = false;
@@ -821,8 +822,8 @@ void GLDraw_2_0::drawGridsVertical(void)
 
 void GLDraw_2_0::drawGrids(void)
 {
-	gl_grid_horiz = config.opengl_scanline_horiz;
-	gl_grid_vert  = config.opengl_scanline_vert;
+	gl_grid_horiz = p_config->opengl_scanline_horiz;
+	gl_grid_vert  = p_config->opengl_scanline_vert;
 	if(gl_grid_horiz && (vert_lines > 0)) {
 		drawGridsHorizonal();
 	} // Will fix.
@@ -917,7 +918,7 @@ void GLDraw_2_0::drawScreenTexture(void)
 	}
 	if(uVramTextureID == NULL) return;
 	QVector4D color;
-	smoosing = config.use_opengl_filters;
+	smoosing = p_config->use_opengl_filters;
 	if(set_brightness) {
 		color = QVector4D(fBrightR, fBrightG, fBrightB, 1.0);
 	} else {
@@ -982,7 +983,7 @@ void GLDraw_2_0::drawMain(QOpenGLShaderProgram *prg,
 					prg->setUniformValue("tex_height", (float)p->height());
 				}
 				if(using_flags->is_use_screen_rotate()) {
-					if(config.rotate_type) {
+					if(p_config->rotate_type) {
 						prg->setUniformValue("rotate", GL_TRUE);
 					} else {
 						prg->setUniformValue("rotate", GL_FALSE);
@@ -1211,7 +1212,7 @@ void GLDraw_2_0::paintGL(void)
 		if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
 			drawGrids();
 		}
-		if(config.use_osd_virtual_media) drawOsdIcons();
+		if(p_config->use_osd_virtual_media) drawOsdIcons();
 		extfunc_2->glFlush();
 }
 

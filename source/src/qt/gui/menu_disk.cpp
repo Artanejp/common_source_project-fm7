@@ -43,7 +43,7 @@ void Menu_FDClass::create_pulldown_menu_device_sub(void)
 	action_count_immediate->setCheckable(true);
 	action_count_immediate->binds->setDrive(media_drive);
 	
-	p = &config;
+	p = p_config;
 	if(p != NULL) {
 		if(p->correct_disk_timing[media_drive]) action_correct_timing->setChecked(true);
 		if(p->ignore_disk_crc[media_drive]) action_ignore_crc_error->setChecked(true);

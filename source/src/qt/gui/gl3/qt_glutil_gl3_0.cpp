@@ -770,7 +770,7 @@ void GLDraw_3_0::uploadMainTexture(QImage *p, bool use_chromakey)
 								 GL_BGRA, GL_UNSIGNED_BYTE, p->constBits());
 		extfunc->glBindTexture(GL_TEXTURE_2D, 0);
 	}
-	if(using_flags->is_support_tv_render() && (config.rendering_type == CONFIG_RENDER_TYPE_TV)) {
+	if(using_flags->is_support_tv_render() && (p_config->rendering_type == CONFIG_RENDER_TYPE_TV)) {
 		renderToTmpFrameBuffer_nPass(uVramTextureID->textureId(),
 									 screen_texture_width,
 									 screen_texture_height,
@@ -811,7 +811,7 @@ void GLDraw_3_0::drawScreenTexture(void)
 	}
 	
 	QVector4D color;
-	smoosing = config.use_opengl_filters;
+	smoosing = p_config->use_opengl_filters;
 	if(set_brightness) {
 		color = QVector4D(fBrightR, fBrightG, fBrightB, 1.0);
 	} else {
@@ -874,7 +874,7 @@ void GLDraw_3_0::drawMain(QOpenGLShaderProgram *prg,
 			prg->setUniformValue(ii,  (float)screen_texture_height);
 		}
 		if(using_flags->is_use_screen_rotate()) {
-			if(config.rotate_type) {
+			if(p_config->rotate_type) {
 				prg->setUniformValue("rotate", GL_TRUE);
 			} else {
 				prg->setUniformValue("rotate", GL_FALSE);
@@ -926,7 +926,7 @@ void GLDraw_3_0::drawMain(QOpenGLShaderProgram *prg,
 			prg->setUniformValue(ii,  color);
 		}
 		if(using_flags->is_use_screen_rotate()) {
-			if(config.rotate_type) {
+			if(p_config->rotate_type) {
 				prg->setUniformValue("rotate", GL_TRUE);
 			} else {
 				prg->setUniformValue("rotate", GL_FALSE);
@@ -1018,7 +1018,7 @@ void GLDraw_3_0::drawButtonsMain(int num, bool f_smoosing)
 				prg->setUniformValue(ii, GL_FALSE);
 			}
 			if(using_flags->is_use_screen_rotate()) {
-				if(config.rotate_type) {
+				if(p_config->rotate_type) {
 					prg->setUniformValue("rotate", GL_TRUE);
 				} else {
 					prg->setUniformValue("rotate", GL_FALSE);
@@ -1057,7 +1057,7 @@ void GLDraw_3_0::drawButtons(void)
 void GLDraw_3_0::drawBitmapTexture(void)
 {
 	QVector4D color = QVector4D(1.0f, 1.0f, 1.0f, 1.0f);
-	smoosing = config.use_opengl_filters;
+	smoosing = p_config->use_opengl_filters;
 	if(uBitmapTextureID == NULL) return;
 	if(using_flags->is_use_one_board_computer()) {
 		extfunc->glDisable(GL_BLEND);
@@ -1214,7 +1214,7 @@ void GLDraw_3_0::paintGL(void)
 		extfunc->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		extfunc->glDisable(GL_DEPTH_TEST);
 		//drawOsdLeds();
-		if(config.use_osd_virtual_media) drawOsdIcons();
+		if(p_config->use_osd_virtual_media) drawOsdIcons();
 		extfunc->glDisable(GL_BLEND);
 		if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
 			drawGrids();

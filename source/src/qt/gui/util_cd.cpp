@@ -27,9 +27,9 @@ void Ui_MainWindowBase::CreateCDROMMenu(int drv, int drv_base)
 	
 	menu_CDROM[drv]->create_pulldown_menu();	
 	// Translate Menu
-	SETUP_HISTORY(config.recent_compact_disc_path[drv], listCDROM[drv]);
+	SETUP_HISTORY(p_config->recent_compact_disc_path[drv], listCDROM[drv]);
 	menu_CDROM[drv]->do_update_histories(listCDROM[drv]);
-	menu_CDROM[drv]->do_set_initialize_directory(config.initial_compact_disc_dir);
+	menu_CDROM[drv]->do_set_initialize_directory(p_config->initial_compact_disc_dir);
 	
 	ext_play = "*.ccd *.cue *.gz";
 	desc_play = "Compact Disc";
@@ -52,19 +52,19 @@ int Ui_MainWindowBase::set_recent_cdrom(int drv, int num)
 	char path_shadow[PATH_MAX];
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
     
-	s_path = QString::fromLocal8Bit(config.recent_compact_disc_path[drv][num]);
+	s_path = QString::fromLocal8Bit(p_config->recent_compact_disc_path[drv][num]);
 	memset(path_shadow, 0x00, PATH_MAX * sizeof(char));
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX - 1);
-	UPDATE_HISTORY(path_shadow, config.recent_compact_disc_path[drv], listCDROM[drv]);
+	UPDATE_HISTORY(path_shadow, p_config->recent_compact_disc_path[drv], listCDROM[drv]);
    
-	strcpy(config.initial_compact_disc_dir, 	get_parent_dir(path_shadow));
+	strcpy(p_config->initial_compact_disc_dir, 	get_parent_dir(path_shadow));
 	memset(path_shadow, 0x00, PATH_MAX * sizeof(char));
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX - 1);
 	emit sig_close_cdrom(drv);
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_VFILE_COMPACTDISC + 0, "Open : filename = %s", path_shadow);
 	emit sig_open_cdrom(drv, s_path);
 	menu_CDROM[drv]->do_update_histories(listCDROM[drv]);
-	menu_CDROM[drv]->do_set_initialize_directory(config.initial_compact_disc_dir);
+	menu_CDROM[drv]->do_set_initialize_directory(p_config->initial_compact_disc_dir);
 	return 0;
 }
 
@@ -79,8 +79,8 @@ void Ui_MainWindowBase::do_open_cdrom(int drv, QString path)
 	if(path.length() <= 0) return;
 	memset(path_shadow, 0x00, PATH_MAX * sizeof(char));
 	strncpy(path_shadow, path.toLocal8Bit().constData(), PATH_MAX - 1);
-	UPDATE_HISTORY(path_shadow, config.recent_compact_disc_path[drv], listCDROM[drv]);
-	strcpy(config.initial_compact_disc_dir, get_parent_dir(path_shadow));
+	UPDATE_HISTORY(path_shadow, p_config->recent_compact_disc_path[drv], listCDROM[drv]);
+	strcpy(p_config->initial_compact_disc_dir, get_parent_dir(path_shadow));
 	// Copy filename again.
 	memset(path_shadow, 0x00, PATH_MAX * sizeof(char));
 	strncpy(path_shadow, path.toLocal8Bit().constData(), PATH_MAX - 1);
@@ -89,7 +89,7 @@ void Ui_MainWindowBase::do_open_cdrom(int drv, QString path)
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_VFILE_COMPACTDISC + 0, "Open : filename = %s", path_shadow);
 	emit sig_open_cdrom(drv, path);
 	menu_CDROM[drv]->do_update_histories(listCDROM[drv]);
-	menu_CDROM[drv]->do_set_initialize_directory(config.initial_compact_disc_dir);
+	menu_CDROM[drv]->do_set_initialize_directory(p_config->initial_compact_disc_dir);
 }
 
 void Ui_MainWindowBase::retranslateCDROMMenu(void)

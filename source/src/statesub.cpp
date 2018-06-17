@@ -895,29 +895,36 @@ csp_state_utils::~csp_state_utils()
 {
 }
 
+/*
+ * Note: 
+ * With MinGW and DLL linker, not able top find extern symbols.
+ */
+
 #include "config.h"
 #include "csp_logger.h"
 #if defined(_USE_QT)
 #	include <QtGlobal>
 #endif
 extern CSP_Logger DLL_PREFIX_I *csp_logger;
+extern config_t config;
 
 void csp_state_utils::out_debug_log(const char *fmt, ...)
 {
 	char strbuf[8192];
-	
+#ifndef CSP_OS_WINDOWS	
 	va_list ap;
-	
 	va_start(ap, fmt);	
 	vsnprintf(strbuf, 8192, fmt, ap);
-	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_VM_STATE, strbuf);
+	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_VM_STATE, strbuf);
 #if defined(_USE_QT)
-	if((config.state_log_to_console) || (config.state_log_to_syslog) 
-	   || (config.state_log_to_recording)) {
+	config_t *ptr_config = &config;
+	if((ptr_config->state_log_to_console) || (ptr_config->state_log_to_syslog) 
+	   || (ptr_config->state_log_to_recording)) {
 		qInfo("[STATE] %s", strbuf);
 	}
 #endif
 	va_end(ap);
+#endif
 }
 
 std::list<std::string> csp_state_utils::get_entries_list(void)

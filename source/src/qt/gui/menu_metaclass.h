@@ -35,6 +35,7 @@ protected:
 	QWidget *p_wid;
 	QMenuBar *menu_root;
 	EMU *p_emu;
+	config_t *p_config;
 	
 	QMenu *menu_inner_media;
 	QMenu *menu_history;

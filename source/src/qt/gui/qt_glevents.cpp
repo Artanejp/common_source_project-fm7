@@ -56,7 +56,7 @@ void GLDrawClass::mouseMoveEvent(QMouseEvent *event)
 		double xpos = (double)(pos.x()) / (double)width();
 		double ypos = (double)(pos.y()) / (double)height();
 		if(using_flags->is_use_screen_rotate()) {
-			if(config.rotate_type) {
+			if(p_config->rotate_type) {
 				xx = ypos * (double)d_hh;
 				yy = xpos * (double)d_ww;
 			} else 	{

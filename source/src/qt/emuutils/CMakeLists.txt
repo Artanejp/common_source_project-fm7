@@ -9,7 +9,7 @@ set(s_qt_emuutils_srcs
 	  )
 #include(cotire)
 	
-SET(THIS_LIB_VERSION 2.9.2) 
+SET(THIS_LIB_VERSION 2.10.0) 
 
 if(WIN32)
 include (GenerateExportHeader)

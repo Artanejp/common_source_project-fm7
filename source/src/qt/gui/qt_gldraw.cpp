@@ -130,6 +130,7 @@ GLDrawClass::GLDrawClass(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent, co
 	enable_mouse = true;
 	p_emu = NULL;
 	using_flags = p;
+	p_config = p->get_config_ptr();
 	
 	filename_screen_pixmap.clear();
 	//imgptr = NULL;

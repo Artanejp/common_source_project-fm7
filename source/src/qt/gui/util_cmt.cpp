@@ -30,10 +30,10 @@ void Ui_MainWindowBase::CreateCMTMenu(int drive, int base_drv)
 	
 	menu_CMT[drive]->create_pulldown_menu();	
 	// Translate Menu
-	SETUP_HISTORY(config.recent_tape_path[drive], listCMT[drive]);
+	SETUP_HISTORY(p_config->recent_tape_path[drive], listCMT[drive]);
 	menu_CMT[drive]->do_set_write_protect(false);
 	menu_CMT[drive]->do_update_histories(listCMT[drive]);
-	menu_CMT[drive]->do_set_initialize_directory(config.initial_tape_dir);
+	menu_CMT[drive]->do_set_initialize_directory(p_config->initial_tape_dir);
 
 	if(using_flags->is_machine_pc6001()) {
 		ext_play = "*.wav *.p6 *.cas *.gz";
@@ -77,12 +77,12 @@ int Ui_MainWindowBase::set_recent_cmt(int drv, int num)
 
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
     
-	s_path = QString::fromLocal8Bit(config.recent_tape_path[drv][num]);
+	s_path = QString::fromLocal8Bit(p_config->recent_tape_path[drv][num]);
 	memset(path_shadow, 0x00, PATH_MAX * sizeof(char));
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX - 1);
-	UPDATE_HISTORY(path_shadow, config.recent_tape_path[drv], listCMT[drv]);
+	UPDATE_HISTORY(path_shadow, p_config->recent_tape_path[drv], listCMT[drv]);
    
-	strcpy(config.initial_tape_dir, get_parent_dir(path_shadow));
+	strcpy(p_config->initial_tape_dir, get_parent_dir(path_shadow));
 	memset(path_shadow, 0x00, PATH_MAX * sizeof(char));
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX - 1);
 	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_VFILE_CMT + 0, "Open READ (from history) : filename = %s", s_path.toLocal8Bit().constData());
@@ -90,7 +90,7 @@ int Ui_MainWindowBase::set_recent_cmt(int drv, int num)
 	emit sig_close_tape(drv);
 	emit sig_play_tape(drv, s_path);
 	menu_CMT[drv]->do_update_histories(listCMT[drv]);
-	menu_CMT[drv]->do_set_initialize_directory(config.initial_tape_dir);
+	menu_CMT[drv]->do_set_initialize_directory(p_config->initial_tape_dir);
 	return 0;
 }
 
@@ -136,30 +136,30 @@ void Ui_MainWindowBase::do_push_apss_rewind_tape(int drive)
 void Ui_MainWindowBase::set_wave_shaper(int drive, bool f)
 {
 	if(f) {
-		config.wave_shaper[drive] = 1;
+		p_config->wave_shaper[drive] = 1;
 	} else {
-		config.wave_shaper[drive] = 0;
+		p_config->wave_shaper[drive] = 0;
 	}
 }
 
 bool Ui_MainWindowBase::get_wave_shaper(int drive)
 {
-	if(config.wave_shaper[drive] == 0) return false;
+	if(p_config->wave_shaper[drive] == 0) return false;
 	return true;
 }
 
 void Ui_MainWindowBase::set_direct_load_from_mzt(int drive, bool f)
 {
 	if(f) {
-		config.direct_load_mzt[drive] = 1;
+		p_config->direct_load_mzt[drive] = 1;
 	} else {
-		config.direct_load_mzt[drive] = 0;
+		p_config->direct_load_mzt[drive] = 0;
 	}
 }
 
 bool Ui_MainWindowBase::get_direct_load_mzt(int drive)
 {
-	if(config.direct_load_mzt[drive] == 0) return false;
+	if(p_config->direct_load_mzt[drive] == 0) return false;
 	return true;
 }
 
@@ -175,8 +175,8 @@ void Ui_MainWindowBase::do_open_read_cmt(int drive, QString path)
 	if(path.length() <= 0) return;
 	memset(path_shadow, 0x00, PATH_MAX * sizeof(char));
 	strncpy(path_shadow, path.toLocal8Bit().constData(), PATH_MAX - 1);
-	UPDATE_HISTORY(path_shadow, config.recent_tape_path[drive], listCMT[drive]);
-	strcpy(config.initial_tape_dir, get_parent_dir(path_shadow));
+	UPDATE_HISTORY(path_shadow, p_config->recent_tape_path[drive], listCMT[drive]);
+	strcpy(p_config->initial_tape_dir, get_parent_dir(path_shadow));
 	// Copy filename again.
 	memset(path_shadow, 0x00, PATH_MAX * sizeof(char));
 	strncpy(path_shadow, path.toLocal8Bit().constData(), PATH_MAX - 1);
@@ -185,7 +185,7 @@ void Ui_MainWindowBase::do_open_read_cmt(int drive, QString path)
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_VFILE_CMT + 0, "Open READ : filename = %s", path_shadow);
 	emit sig_play_tape(drive, path);
 	menu_CMT[drive]->do_update_histories(listCMT[drive]);
-	menu_CMT[drive]->do_set_initialize_directory(config.initial_tape_dir);
+	menu_CMT[drive]->do_set_initialize_directory(p_config->initial_tape_dir);
 }
 
 void Ui_MainWindowBase::do_open_write_cmt(int drive, QString path) 
@@ -195,9 +195,9 @@ void Ui_MainWindowBase::do_open_write_cmt(int drive, QString path)
 	if(path.length() <= 0) return;
 	memset(path_shadow, 0x00, PATH_MAX * sizeof(char));
 	strncpy(path_shadow, path.toLocal8Bit().constData(), PATH_MAX - 1);
-	UPDATE_HISTORY(path_shadow, config.recent_tape_path[drive], listCMT[drive]);
+	UPDATE_HISTORY(path_shadow, p_config->recent_tape_path[drive], listCMT[drive]);
 	get_parent_dir(path_shadow);
-	strcpy(config.initial_tape_dir,	get_parent_dir(path_shadow));
+	strcpy(p_config->initial_tape_dir,	get_parent_dir(path_shadow));
 	// Copy filename again.
 	memset(path_shadow, 0x00, PATH_MAX * sizeof(char));
 	strncpy(path_shadow, path.toLocal8Bit().constData(), PATH_MAX - 1);
@@ -211,7 +211,7 @@ void Ui_MainWindowBase::do_open_write_cmt(int drive, QString path)
 		emit sig_rec_tape(drive, path);
 	}
 	menu_CMT[drive]->do_update_histories(listCMT[drive]);
-	menu_CMT[drive]->do_set_initialize_directory(config.initial_tape_dir);
+	menu_CMT[drive]->do_set_initialize_directory(p_config->initial_tape_dir);
 }
 
 

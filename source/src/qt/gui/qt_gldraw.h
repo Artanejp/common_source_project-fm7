@@ -10,6 +10,7 @@
 //#include "emu.h"
 #include "../osd_types.h"
 #include "dropdown_keyset.h"
+#include "config.h"
 #include "menu_flags.h"
 
 
@@ -43,6 +44,7 @@ class DLL_PREFIX GLDrawClass: public QOpenGLWidget
 	EMU *p_emu;
 	CSP_Logger *csp_logger;
 	USING_FLAGS *using_flags;
+	config_t *p_config;
 	
 	bool enable_mouse;
 	GLfloat screen_width, screen_height;

@@ -21,21 +21,21 @@
 void Ui_MainWindowBase::set_latency(int num)
 {
 	if((num < 0) || (num >= 8)) return;
-	config.sound_latency = num;
+	p_config->sound_latency = num;
 	emit sig_emu_update_config();
 }
 
 void Ui_MainWindowBase::set_freq(int num)
 {
 	if((num < 0) || (num >= 16)) return;
-	config.sound_frequency = num;
+	p_config->sound_frequency = num;
 	emit sig_emu_update_config();
 }
 
 void Ui_MainWindowBase::set_sound_device(int num)
 {
 	if((num < 0) || (num >= using_flags->get_use_sound_device_type())) return;
-	config.sound_type = num;
+	p_config->sound_type = num;
 	emit sig_emu_update_config();
 }
 
@@ -57,69 +57,69 @@ void Ui_MainWindowBase::start_record_sound(bool start)
 void Ui_MainWindowBase::set_monitor_type(int num)
 {
 	if((num < 0) || (num >= using_flags->get_use_monitor_type())) return;
-	config.monitor_type = num;
+	p_config->monitor_type = num;
 	emit sig_emu_update_config();
 }
 
 void Ui_MainWindowBase::set_scan_line(bool flag)
 {
-	config.scan_line = flag;
+	p_config->scan_line = flag;
 	emit sig_emu_update_config();
 }
 
 void Ui_MainWindowBase::set_screen_rotate(bool flag)
 {
-	config.rotate_type = flag;
-	if(config.window_mode >= using_flags->get_screen_mode_num()) config.window_mode = using_flags->get_screen_mode_num() - 1;
-	if(config.window_mode < 0) config.window_mode = 0;
-	if(actionScreenSize[config.window_mode] != NULL) {
-		actionScreenSize[config.window_mode]->binds->set_screen_size();
+	p_config->rotate_type = flag;
+	if(p_config->window_mode >= using_flags->get_screen_mode_num()) p_config->window_mode = using_flags->get_screen_mode_num() - 1;
+	if(p_config->window_mode < 0) p_config->window_mode = 0;
+	if(actionScreenSize[p_config->window_mode] != NULL) {
+		actionScreenSize[p_config->window_mode]->binds->set_screen_size();
 	}
 }
 
 void Ui_MainWindowBase::set_gl_crt_filter(bool flag)
 {
-	config.use_opengl_filters = flag;
+	p_config->use_opengl_filters = flag;
 }
 
 void Ui_MainWindowBase::set_cmt_sound(bool flag)
 {
-	//config.tape_sound = flag;
+	//p_config->tape_sound = flag;
 	emit sig_emu_update_config();
 }
 
 void Ui_MainWindowBase::set_mouse_type(int num)
 {
 	if((num >= using_flags->get_use_mouse_type()) && (num < 0)) return;
-	config.mouse_type = num;
+	p_config->mouse_type = num;
 	emit sig_emu_update_config();
 }
 
 void Ui_MainWindowBase::set_device_type(int num)
 {
 	if((num >= using_flags->get_use_device_type()) && (num < 0)) return;
-	config.device_type = num;
+	p_config->device_type = num;
 	emit sig_emu_update_config();
 }
 
 void Ui_MainWindowBase::set_keyboard_type(int num)
 {
 	if((num >= using_flags->get_use_keyboard_type()) && (num < 0)) return;
-	config.keyboard_type = num;
+	p_config->keyboard_type = num;
 	emit sig_emu_update_config();
 }
 
 void Ui_MainWindowBase::set_joystick_type(int num)
 {
 	if((num >= using_flags->get_use_joystick_type()) && (num < 0)) return;
-	config.joystick_type = num;
+	p_config->joystick_type = num;
 	emit sig_emu_update_config();
 }
 
 void Ui_MainWindowBase::set_drive_type(int num)
 {
 	if((num >= using_flags->get_use_drive_type()) && (num < 0)) return;
-	config.drive_type = num;
+	p_config->drive_type = num;
 	emit sig_emu_update_config();
 }
    
@@ -128,7 +128,7 @@ void Ui_MainWindowBase::set_screen_size(int w, int h)
 {
 	if((w <= 0) || (h <= 0)) return;
 	if(using_flags->is_use_screen_rotate()) {
-		if(config.rotate_type) {
+		if(p_config->rotate_type) {
 			this->graphicsView->setFixedSize(h, w);
 			this->resize_statusbar(h, w);
 			//emit sig_resize_osd(h);
@@ -155,14 +155,14 @@ void Ui_MainWindowBase::set_screen_aspect(int num)
 	// 2 = ASPECT(SCale Y)
 	// 3 = ASPECT(Scale X,Y)
 	
-	config.window_stretch_type = num;
+	p_config->window_stretch_type = num;
 	
 	if(using_flags->get_emu()) {
 		int w, h, n;
 		float nd, ww, hh;
 		float xzoom = using_flags->get_screen_x_zoom();
 		float yzoom = using_flags->get_screen_y_zoom();
-		n = config.window_mode;
+		n = p_config->window_mode;
 		if(n < 0) n = 1;
 		nd = actionScreenSize[n]->binds->getDoubleValue();
 		ww = (float)using_flags->get_screen_width();
@@ -173,7 +173,7 @@ void Ui_MainWindowBase::set_screen_aspect(int num)
 			float par_w = (float)using_flags->get_screen_width_aspect() / ww;
 			float par_h = (float)using_flags->get_screen_height_aspect() / hh;
 			//double par = par_h / par_w;
-			switch(config.window_stretch_type) {
+			switch(p_config->window_stretch_type) {
 			case 0: // refer to X and Y.
 				ww = ww * nd * xzoom;
 				hh = hh * nd * yzoom;
@@ -219,7 +219,7 @@ void Ui_MainWindowBase::ConfigDeviceType(void)
 			actionDeviceType[ii]->setCheckable(true);
 			actionDeviceType[ii]->setVisible(true);
 			actionDeviceType[ii]->binds->setValue1(ii);
-			if(config.device_type == ii) actionDeviceType[ii]->setChecked(true);
+			if(p_config->device_type == ii) actionDeviceType[ii]->setChecked(true);
 			menuDeviceType->addAction(actionDeviceType[ii]);
 			connect(actionDeviceType[ii], SIGNAL(triggered()),
 				actionDeviceType[ii]->binds, SLOT(do_set_device_type()));
@@ -246,7 +246,7 @@ void Ui_MainWindowBase::ConfigJoystickType(void)
 			actionJoystickType[ii]->setCheckable(true);
 			actionJoystickType[ii]->setVisible(true);
 			actionJoystickType[ii]->binds->setValue1(ii);
-			if(config.joystick_type == ii) actionJoystickType[ii]->setChecked(true);
+			if(p_config->joystick_type == ii) actionJoystickType[ii]->setChecked(true);
 			menuJoystickType->addAction(actionJoystickType[ii]);
 			connect(actionJoystickType[ii], SIGNAL(triggered()),
 				actionJoystickType[ii]->binds, SLOT(do_set_joystick_type()));
@@ -273,7 +273,7 @@ void Ui_MainWindowBase::ConfigKeyboardType(void)
 			actionKeyboardType[ii]->setCheckable(true);
 			actionKeyboardType[ii]->setVisible(true);
 			actionKeyboardType[ii]->binds->setValue1(ii);
-			if(config.keyboard_type == ii) actionKeyboardType[ii]->setChecked(true);
+			if(p_config->keyboard_type == ii) actionKeyboardType[ii]->setChecked(true);
 			menuKeyboardType->addAction(actionKeyboardType[ii]);
 			connect(actionKeyboardType[ii], SIGNAL(triggered()),
 				actionKeyboardType[ii]->binds, SLOT(do_set_keyboard_type()));
@@ -300,7 +300,7 @@ void Ui_MainWindowBase::ConfigMouseType(void)
 			actionMouseType[ii]->setCheckable(true);
 			actionMouseType[ii]->setVisible(true);
 			actionMouseType[ii]->binds->setValue1(ii);
-			if(config.mouse_type == ii) actionMouseType[ii]->setChecked(true);
+			if(p_config->mouse_type == ii) actionMouseType[ii]->setChecked(true);
 			menuMouseType->addAction(actionMouseType[ii]);
 			connect(actionMouseType[ii], SIGNAL(triggered()),
 				actionMouseType[ii]->binds, SLOT(do_set_mouse_type()));
@@ -327,7 +327,7 @@ void Ui_MainWindowBase::ConfigDriveType(void)
 			actionDriveType[i]->setCheckable(true);
 			actionDriveType[i]->setVisible(true);
 			actionDriveType[i]->binds->setValue1(i);
-			if(i == config.drive_type) actionDriveType[i]->setChecked(true); // Need to write configure
+			if(i == p_config->drive_type) actionDriveType[i]->setChecked(true); // Need to write configure
 			actionGroup_DriveType->addAction(actionDriveType[i]);
 			menuDriveType->addAction(actionDriveType[i]);
 			connect(actionDriveType[i], SIGNAL(triggered()),
@@ -354,7 +354,7 @@ void Ui_MainWindowBase::ConfigSoundDeviceType(void)
 			actionSoundDevice[i] = new Action_Control(this, using_flags);
 			actionSoundDevice[i]->setCheckable(true);
 			actionSoundDevice[i]->binds->setValue1(i);
-			if(i == config.sound_type) actionSoundDevice[i]->setChecked(true); // Need to write configure
+			if(i == p_config->sound_type) actionSoundDevice[i]->setChecked(true); // Need to write configure
 			tmps = QString::fromUtf8("actionSoundDevice_");
 			actionSoundDevice[i]->setObjectName(tmps + QString::number(i));
 			menuSoundDevice->addAction(actionSoundDevice[i]);
@@ -387,7 +387,7 @@ void Ui_MainWindowBase::ConfigPrinterType(void)
 			actionPrintDevice[i] = new Action_Control(this, using_flags);
 			actionPrintDevice[i]->setCheckable(true);
 			actionPrintDevice[i]->binds->setValue1(i);
-			if(i == config.printer_type) actionPrintDevice[i]->setChecked(true); // Need to write configure
+			if(i == p_config->printer_type) actionPrintDevice[i]->setChecked(true); // Need to write configure
 			tmps = QString::fromUtf8("actionPrintDevice_");
 			actionPrintDevice[i]->setObjectName(tmps + QString::number(i));
 			menuPrintDevice->addAction(actionPrintDevice[i]);
@@ -411,6 +411,6 @@ void Ui_MainWindowBase::set_printer_device(int p_type)
 	} else {
 		if(p_type >= 8) p_type = 0;
 	}
-	config.printer_type = p_type;
+	p_config->printer_type = p_type;
 	emit sig_emu_update_config();
 }

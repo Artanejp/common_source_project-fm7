@@ -108,7 +108,7 @@ void OSD_BASE::initialize_sound(int rate, int samples)
 	snddata.snd_total_volume = &snd_total_volume;
 	snddata.sound_exit = &sound_exit;
 	snddata.sound_debug = &sound_debug;
-	snddata.p_config = &config;
+	snddata.p_config = p_config;
 	
 	snd_spec_req.format = AUDIO_S16SYS;
 	snd_spec_req.channels = 2;

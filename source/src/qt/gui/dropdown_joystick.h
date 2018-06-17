@@ -13,6 +13,7 @@
 #include <QStringList>
 #include <QString>
 #include <QHBoxLayout>
+#include "config.h"
 #include "common.h"
 #include "menu_flags.h"
 
@@ -23,6 +24,7 @@ QT_BEGIN_NAMESPACE
 class DLL_PREFIX CSP_DropDownJoysticks: public QWidget {
 	Q_OBJECT
 protected:
+	config_t *p_config;
 	QWidget *p_wid;
 	QWidget *window;
 	QHBoxLayout *layout;

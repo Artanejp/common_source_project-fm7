@@ -12,6 +12,7 @@
 #include <QStringList>
 #include <QSize>
 #include <QWidget>
+#include "config.h"
 #include "common.h"
 
 class QHBoxLayout;
@@ -52,6 +53,7 @@ private:
 	QComboBox *combo_video_fps;
 
 protected:
+	config_t *p_config;
 	USING_FLAGS *using_flags;
 	QWidget *p_wid;
 	MOVIE_SAVER *p_movie;

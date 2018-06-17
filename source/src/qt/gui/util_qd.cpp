@@ -63,8 +63,8 @@ void Ui_MainWindowBase::open_quick_disk_dialog(int drv)
 	desc2 = desc1 + " (" + ext.toLower() + " " + ext.toUpper() + ")";
 	//desc2 = desc1 + " (" + ext.toLower() + ")";
 	//desc1 = desc1 + " (" + ext.toUpper() + ")";
-	if(config.initial_quick_disk_dir != NULL) {
-		dirname = config.initial_quick_disk_dir;	        
+	if(p_config->initial_quick_disk_dir != NULL) {
+		dirname = p_config->initial_quick_disk_dir;	        
 	} else {
 		char app[_MAX_PATH];
 		QDir df;
@@ -100,19 +100,19 @@ int Ui_MainWindowBase::set_recent_quick_disk(int drv, int num)
 	QString s_path;
 	char path_shadow[_MAX_PATH];
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
-	s_path = QString::fromLocal8Bit(config.recent_quick_disk_path[drv][num]);
+	s_path = QString::fromLocal8Bit(p_config->recent_quick_disk_path[drv][num]);
 	memset(path_shadow, 0x00, _MAX_PATH * sizeof(char));
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), _MAX_PATH - 1);
-	UPDATE_HISTORY(path_shadow, config.recent_quick_disk_path[drv], listQDs[drv]);
+	UPDATE_HISTORY(path_shadow, p_config->recent_quick_disk_path[drv], listQDs[drv]);
     
 	memset(path_shadow, 0x00, _MAX_PATH * sizeof(char));
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), _MAX_PATH - 1);
-	strncpy(config.initial_quick_disk_dir, 	get_parent_dir(path_shadow), _MAX_PATH - 1);
+	strncpy(p_config->initial_quick_disk_dir, 	get_parent_dir(path_shadow), _MAX_PATH - 1);
 	
 	emit sig_close_quickdisk(drv);
 	emit sig_open_quickdisk(drv, s_path);
 	menu_QDs[drv]->do_update_histories(listQDs[drv]);
-	menu_QDs[drv]->do_set_initialize_directory(config.initial_quick_disk_dir);
+	menu_QDs[drv]->do_set_initialize_directory(p_config->initial_quick_disk_dir);
 	//if(emu->get_quickdisk_protected(drv)) {
 	//	menu_QDs[drv]->do_write_protect_media();
 	//} else {
@@ -130,16 +130,16 @@ void Ui_MainWindowBase::_open_quick_disk(int drv, const QString fname)
 	memset(path_shadow, 0x00, _MAX_PATH * sizeof(char));
 	strncpy(path_shadow, s_name.toLocal8Bit().constData(), _MAX_PATH - 1);
 
-	UPDATE_HISTORY(path_shadow, config.recent_quick_disk_path[drv], listQDs[drv]);
+	UPDATE_HISTORY(path_shadow, p_config->recent_quick_disk_path[drv], listQDs[drv]);
 		
 	memset(path_shadow, 0x00, _MAX_PATH * sizeof(char));
 	strncpy(path_shadow, s_name.toLocal8Bit().constData(), _MAX_PATH - 1);
-	strncpy(config.initial_quick_disk_dir, 	get_parent_dir(path_shadow), _MAX_PATH - 1);
+	strncpy(p_config->initial_quick_disk_dir, 	get_parent_dir(path_shadow), _MAX_PATH - 1);
 
 	emit sig_close_quickdisk(drv);
 	emit sig_open_quickdisk(drv, s_name);
 	menu_QDs[drv]->do_update_histories(listQDs[drv]);
-	menu_QDs[drv]->do_set_initialize_directory(config.initial_quick_disk_dir);
+	menu_QDs[drv]->do_set_initialize_directory(p_config->initial_quick_disk_dir);
 	//if(emu->get_quickdisk_protected(drv)) {
 	//	menu_QDs[drv]->do_write_protect_media();
 	//} else {
@@ -162,9 +162,9 @@ void Ui_MainWindowBase::CreateQuickDiskMenu(int drv, int drv_base)
 		
 		menu_QDs[drv]->do_clear_inner_media();
 		menu_QDs[drv]->do_add_media_extension(ext, desc1);
-		SETUP_HISTORY(config.recent_quick_disk_path[drv], listQDs[drv]);
+		SETUP_HISTORY(p_config->recent_quick_disk_path[drv], listQDs[drv]);
 		menu_QDs[drv]->do_update_histories(listQDs[drv]);
-		menu_QDs[drv]->do_set_initialize_directory(config.initial_quick_disk_dir);
+		menu_QDs[drv]->do_set_initialize_directory(p_config->initial_quick_disk_dir);
 
 	}
 }

@@ -17,9 +17,9 @@
 #include "simd_types.h"
 #include "common.h"
 #include "config.h"
-
+#include "menu_flags.h"
 class EMU;
-class USING_FLAGS;
+//class USING_FLAGS;
 //extern class EMU* emu;
 
 QT_BEGIN_NAMESPACE
@@ -33,6 +33,7 @@ Object_Menu_Control(QObject *parent, USING_FLAGS *p) : QObject(parent){
 		s_num = 0;
 		double_val = 0.0;
 		using_flags = p;
+		p_config = p->get_config_ptr();
 		play = true; // Read
 		write_protect = false; // Enable to write
 		_str.clear();
@@ -46,6 +47,7 @@ protected:
 	bool write_protect;
 	double double_val;
 	QString _str;
+	config_t *p_config;
  public:
 	void setValue1(int v) {bindValue = v;}
 	int getValue1(void) {return bindValue;}

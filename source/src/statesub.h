@@ -66,7 +66,7 @@ enum {
 	csp_saver_entry_const = 0x20000,
 };
 
-class csp_state_utils {
+class DLL_PREFIX csp_state_utils {
 protected:
 	const uint32_t CRC_MAGIC_WORD = 0x04C11DB7;
 	struct __list_t {

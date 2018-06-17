@@ -12,6 +12,7 @@
 #include <QStringList>
 #include <QSize>
 #include <QWidget>
+#include "config.h"
 #include "common.h"
 
 class QHBoxLayout;
@@ -61,6 +62,7 @@ private:
 	QPushButton *close_button;
 
 protected:
+	config_t *p_config;
 	QWidget *p_wid;
 	MOVIE_SAVER *p_movie;
 	CSP_DialogMovie *p_window;

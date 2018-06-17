@@ -42,6 +42,7 @@ private:
 	USING_FLAGS *using_flags;
 	
 	QWidget *parent_widget;
+	config_t *p_config;
 	int bind_num;
 public:
 	Ui_SndSliderObject(USING_FLAGS *p, Qt::Orientation orientation, QWidget *parent, int num = 0);
@@ -69,6 +70,7 @@ private:
 	QGridLayout *MasterLayout;
 protected:
 	USING_FLAGS *using_flags;
+	config_t *p_config;
 	Ui_SndSliderObject *sliderMasterVolume;
 	QGroupBox *boxMasterVolume;
 	QVBoxLayout *VBoxMasterVolume;

@@ -48,8 +48,10 @@ DrawThreadClass::DrawThreadClass(OSD *o, CSP_Logger *logger,QObject *parent) : Q
 	connect(this, SIGNAL(sig_push_frames_to_avio(int, int, int)), glv->extfunc, SLOT(paintGL_OffScreen(int, int, int)));
 	//connect(this, SIGNAL(sig_call_draw_screen()), p_osd, SLOT(draw_screen()));
 	//connect(this, SIGNAL(sig_call_no_draw_screen()), p_osd, SLOT(no_draw_screen()));
-	use_separate_thread_draw = config.use_separate_thread_draw;
-	
+	use_separate_thread_draw = true;
+	if(using_flags->get_config_ptr() != NULL) {
+		use_separate_thread_draw = using_flags->get_config_ptr()->use_separate_thread_draw;
+	}
 	rec_frame_width = 640;
 	rec_frame_height = 480;
 	rec_frame_count = -1;

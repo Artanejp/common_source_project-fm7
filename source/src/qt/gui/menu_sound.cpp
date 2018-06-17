@@ -32,14 +32,14 @@ void Object_Menu_Control::on_set_latency(void) {
 void Ui_MainWindowBase::do_set_sound_strict_rendering(bool f)
 {
 	if(using_flags != NULL) {
-		config.sound_strict_rendering = f;
+		p_config->sound_strict_rendering = f;
 	}
 }
 
 void Ui_MainWindowBase::do_set_sound_play_tape(bool f)
 {
 	if(using_flags != NULL) {
-		config.sound_play_tape = f;
+		p_config->sound_play_tape = f;
 	}
 }
 
@@ -53,7 +53,7 @@ void Ui_MainWindowBase::rise_volume_dialog(void)
 	dlg->setWindowIcon(img);
 	this->retranslateVolumeLabels(dlg);
 
-	n = (float)(((config.general_sound_level + 32768) * 1000) / 65535) / 10.0;
+	n = (float)(((p_config->general_sound_level + 32768) * 1000) / 65535) / 10.0;
 	s_val.setNum(n, 'f', 1);
 	tmps = QApplication::translate("Ui_SoundDialog", "Set Volume", 0);
 	tmps = tmps + QString::fromUtf8(" (") + s_val + QString::fromUtf8("%)");
@@ -76,16 +76,16 @@ void Ui_MainWindowBase::CreateSoundMenu(void)
 	menuSound->addAction(actionStart_Record);
 	menuSound->addSeparator();
 	SET_ACTION_CHECKABLE_SINGLE_CONNECT(menuSound, actionSoundStrictRendering,
-										"actionSoundStrictRendering", config.sound_strict_rendering,
+										"actionSoundStrictRendering", p_config->sound_strict_rendering,
 										SIGNAL(toggled(bool)), SLOT(do_set_sound_strict_rendering(bool)));
 	SET_ACTION_CHECKABLE_SINGLE_CONNECT(menuSound, actionSoundPlayTape,
-										"actionSoundPlayTape", config.sound_play_tape,
+										"actionSoundPlayTape", p_config->sound_play_tape,
 										SIGNAL(toggled(bool)), SLOT(do_set_sound_play_tape(bool)));
 	
 	//actionSoundStrictRendering = new Action_Control(this, using_flags);
 	//actionSoundStrictRendering->setObjectName(QString::fromUtf8("actionSoundStrictRendering"));
 	//actionSoundStrictRendering->setCheckable(true);
-	//if(config.sound_strict_rendering) actionSoundStrictRendering->setChecked(true);
+	//if(p_config->sound_strict_rendering) actionSoundStrictRendering->setChecked(true);
 	//connect(actionSoundStrictRendering, SIGNAL(toggled(bool)),
 	//		this, SLOT(do_set_sound_strict_rendering(bool)));
 	//menuSound->addAction(actionSoundStrictRendering);
@@ -130,7 +130,7 @@ void Ui_MainWindowBase::ConfigSoundMenu(void)
 		action_Freq[i]->setObjectName(tmps);
 		action_Freq[i]->setCheckable(true);
 		action_Freq[i]->binds->setNumber(i);
-		if(i == config.sound_frequency) {
+		if(i == p_config->sound_frequency) {
 			action_Freq[i]->setChecked(true);
 			//freq = using_flags->get_s_freq_table(i);
 		}
@@ -148,7 +148,7 @@ void Ui_MainWindowBase::ConfigSoundMenu(void)
 		action_Latency[i]->setObjectName(tmps);
 		action_Latency[i]->setCheckable(true);
 		action_Latency[i]->binds->setNumber(i);
-		if(i == config.sound_latency) action_Latency[i]->setChecked(true);
+		if(i == p_config->sound_latency) action_Latency[i]->setChecked(true);
 		actionGroup_Sound_Latency->addAction(action_Latency[i]);
 	}
 
@@ -218,5 +218,5 @@ void Ui_MainWindowBase::retranslateSoundMenu(void)
 	action_VolumeDialog->setToolTip(QApplication::translate("MenuSound", "Open a VOLUME dialog.", 0));
 
 	menuSound->setToolTipsVisible(true);
-	do_update_volume(config.general_sound_level);
+	do_update_volume(p_config->general_sound_level);
 }

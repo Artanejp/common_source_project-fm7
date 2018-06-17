@@ -112,7 +112,7 @@ void Ui_MainWindowBase::ConfigCpuSpeed(void)
 	actionGroup_CpuSpeed->addAction(actionSpeed_x16);
 	//actionGroup_CpuSpeed->addAction(actionSpeed_FULL);
 
-	switch(config.cpu_power) {
+	switch(p_config->cpu_power) {
 	case 0:
 		actionSpeed_x1->setChecked(true);
 		break;
@@ -129,7 +129,7 @@ void Ui_MainWindowBase::ConfigCpuSpeed(void)
 		actionSpeed_x16->setChecked(true);
 		break;
 	default:
-		config.cpu_power = 0;
+		p_config->cpu_power = 0;
 		actionSpeed_x1->setChecked(true);
 		break;
 	}
@@ -137,7 +137,7 @@ void Ui_MainWindowBase::ConfigCpuSpeed(void)
 void Ui_MainWindowBase::do_change_boot_mode(int mode)
 {
 	if((mode < 0) || (mode >= 8)) return;
-	config.boot_mode = mode;
+	p_config->boot_mode = mode;
 	emit sig_emu_update_config();
 }
 
@@ -160,7 +160,7 @@ void Ui_MainWindowBase::ConfigCPUBootMode(int num)
 		tmps = QString::fromUtf8("actionBootMode_") + tmps;
 		actionBootMode[i]->setObjectName(tmps);
 		actionBootMode[i]->setCheckable(true);
-		if(i == config.boot_mode) actionBootMode[i]->setChecked(true);
+		if(i == p_config->boot_mode) actionBootMode[i]->setChecked(true);
 		actionBootMode[i]->binds->setValue1(i);
 		menuBootMode->addAction(actionBootMode[i]);
 		actionGroup_BootMode->addAction(actionBootMode[i]);
@@ -173,7 +173,7 @@ void Ui_MainWindowBase::ConfigCPUBootMode(int num)
 void Ui_MainWindowBase::do_change_cpu_type(int mode)
 {
 	if((mode < 0) || (mode >= 8)) return;
-	config.cpu_type = mode;
+	p_config->cpu_type = mode;
 	emit sig_emu_update_config();
 }
 
@@ -194,7 +194,7 @@ void Ui_MainWindowBase::ConfigCPUTypes(int num)
 		tmps = QString::fromUtf8("actionCpuType_") + tmps;
 		actionCpuType[i]->setObjectName(tmps);
 		actionCpuType[i]->setCheckable(true);
-		if(i == config.cpu_type) actionCpuType[i]->setChecked(true);
+		if(i == p_config->cpu_type) actionCpuType[i]->setChecked(true);
 		actionCpuType[i]->binds->setValue1(i);
 		menuCpuType->addAction(actionCpuType[i]);
 		actionGroup_CpuType->addAction(actionCpuType[i]);
@@ -418,6 +418,6 @@ void Ui_MainWindowBase::retranslateControlMenu(const char *SpecialResetTitle,  b
 void Ui_MainWindowBase::do_set_sound_device(int num)
 {
 	if((num < 0) || (num >= using_flags->get_use_sound_device_type())) return;
-	config.sound_type = num;
+	p_config->sound_type = num;
 	emit sig_emu_update_config();
 }

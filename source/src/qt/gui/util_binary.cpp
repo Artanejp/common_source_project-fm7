@@ -44,17 +44,17 @@ int Ui_MainWindowBase::set_recent_binary_load(int drv, int num)
 	
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
 	
-	s_path = QString::fromLocal8Bit(config.recent_binary_path[drv][num]);
+	s_path = QString::fromLocal8Bit(p_config->recent_binary_path[drv][num]);
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX - 1);
-	UPDATE_HISTORY(path_shadow, config.recent_binary_path[drv], listBINs[drv]);
+	UPDATE_HISTORY(path_shadow, p_config->recent_binary_path[drv], listBINs[drv]);
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX - 1);
 	
-	strcpy(config.initial_binary_dir, get_parent_dir(path_shadow));
+	strcpy(p_config->initial_binary_dir, get_parent_dir(path_shadow));
 	//strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX - 1);
 	
 	emit sig_load_binary(drv, s_path);
 	menu_BINs[drv]->do_update_histories(listBINs[drv]);
-	menu_BINs[drv]->do_set_initialize_directory(config.initial_binary_dir);
+	menu_BINs[drv]->do_set_initialize_directory(p_config->initial_binary_dir);
 	return 0;
 }
 
@@ -65,21 +65,21 @@ int Ui_MainWindowBase::set_recent_binary_save(int drv, int num)
 	
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
 	
-	s_path = QString::fromLocal8Bit(config.recent_binary_path[drv][num]);
+	s_path = QString::fromLocal8Bit(p_config->recent_binary_path[drv][num]);
 	memset(path_shadow, 0x00, PATH_MAX * sizeof(char));
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX - 1);
 	
-	UPDATE_HISTORY(path_shadow, config.recent_binary_path[drv], listBINs[drv]);
+	UPDATE_HISTORY(path_shadow, p_config->recent_binary_path[drv], listBINs[drv]);
 	
 	memset(path_shadow, 0x00, PATH_MAX * sizeof(char));
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX - 1);
 	
-	strcpy(config.initial_binary_dir, get_parent_dir(path_shadow));
+	strcpy(p_config->initial_binary_dir, get_parent_dir(path_shadow));
 	//strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX - 1);
 	
 	emit sig_save_binary(drv, s_path);
 	menu_BINs[drv]->do_update_histories(listBINs[drv]);
-	menu_BINs[drv]->do_set_initialize_directory(config.initial_binary_dir);
+	menu_BINs[drv]->do_set_initialize_directory(p_config->initial_binary_dir);
 	return 0;
 }
 
@@ -92,13 +92,13 @@ void Ui_MainWindowBase::_open_binary_load(int drv, const QString fname)
 	drv = drv & 7;
 	memset(path_shadow, 0x00, PATH_MAX * sizeof(char));
 	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX - 1);
-	UPDATE_HISTORY(path_shadow, config.recent_binary_path[drv], listBINs[drv]);
-	strcpy(config.initial_binary_dir, 	get_parent_dir(path_shadow));
+	UPDATE_HISTORY(path_shadow, p_config->recent_binary_path[drv], listBINs[drv]);
+	strcpy(p_config->initial_binary_dir, 	get_parent_dir(path_shadow));
 	// Update List
 	emit sig_load_binary(drv, fname);
 		
 	menu_BINs[drv]->do_update_histories(listBINs[drv]);
-	menu_BINs[drv]->do_set_initialize_directory(config.initial_binary_dir);
+	menu_BINs[drv]->do_set_initialize_directory(p_config->initial_binary_dir);
 }
 
 void Ui_MainWindowBase::_open_binary_save(int drv, const QString fname)
@@ -109,13 +109,13 @@ void Ui_MainWindowBase::_open_binary_save(int drv, const QString fname)
 	drv = drv & 7;
 	memset(path_shadow, 0x00, PATH_MAX * sizeof(char));
 	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX - 1);
-	UPDATE_HISTORY(path_shadow, config.recent_binary_path[drv], listBINs[drv]);
-	strcpy(config.initial_binary_dir, get_parent_dir(path_shadow));
+	UPDATE_HISTORY(path_shadow, p_config->recent_binary_path[drv], listBINs[drv]);
+	strcpy(p_config->initial_binary_dir, get_parent_dir(path_shadow));
 	// Update List
 	emit sig_save_binary(drv, fname);
 
 	menu_BINs[drv]->do_update_histories(listBINs[drv]);
-	menu_BINs[drv]->do_set_initialize_directory(config.initial_binary_dir);
+	menu_BINs[drv]->do_set_initialize_directory(p_config->initial_binary_dir);
 }
 
 
@@ -138,9 +138,9 @@ void Ui_MainWindowBase::CreateBinaryMenu(int drv, int drv_base)
 	
 	menu_BINs[drv]->do_clear_inner_media();
 	menu_BINs[drv]->do_add_media_extension(ext, desc1);
-	SETUP_HISTORY(config.recent_binary_path[drv], listBINs[drv]);
+	SETUP_HISTORY(p_config->recent_binary_path[drv], listBINs[drv]);
 	menu_BINs[drv]->do_update_histories(listBINs[drv]);
-	menu_BINs[drv]->do_set_initialize_directory(config.initial_binary_dir);
+	menu_BINs[drv]->do_set_initialize_directory(p_config->initial_binary_dir);
 	listBINs[drv].clear();
 
 	QString name = QString::fromUtf8("Binary");

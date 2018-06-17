@@ -204,7 +204,7 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	machine_has_pcengine = false;
 	machine_sc3000 = false;
 	machine_z80tvgame = false;
-	//p_config = cfg;
+	p_config = cfg;
 }
 
 USING_FLAGS::~USING_FLAGS()
