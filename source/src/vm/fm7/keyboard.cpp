@@ -1237,9 +1237,9 @@ KEYBOARD::~KEYBOARD()
 void KEYBOARD::decl_state()
 {
 #if defined(_FM77AV_VARIANTS)
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("KEYBOARD_AND_RTC"));
+	enter_decl_state(STATE_VERSION, _T("KEYBOARD_AND_RTC"));
 #else
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("KEYBOARD"));
+	enter_decl_state(STATE_VERSION, _T("KEYBOARD"));
 #endif
 	
 	DECL_STATE_ENTRY_UINT32(keycode_7);
@@ -1309,6 +1309,8 @@ void KEYBOARD::decl_state()
 	DECL_STATE_ENTRY_BOOL(caps_led_status);
 	// Version 6
 	DECL_STATE_ENTRY_BOOL(override_break_key);
+
+	leave_decl_state();
 }
 
 void KEYBOARD::save_state(FILEIO *state_fio)

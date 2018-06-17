@@ -66,8 +66,11 @@ enum {
 	csp_saver_entry_const = 0x20000,
 };
 
+
+class CSP_Logger;
 class DLL_PREFIX csp_state_utils {
 protected:
+	CSP_Logger *logger;
 	const uint32_t CRC_MAGIC_WORD = 0x04C11DB7;
 	struct __list_t {
 		int type_id;
@@ -96,7 +99,7 @@ protected:
 
 	void out_debug_log(const char *fmt, ...);
 public:
-	csp_state_utils(int _version = 1, int device_id = 1, const _TCHAR *classname = NULL);
+	csp_state_utils(int _version = 1, int device_id = 1, const _TCHAR *classname = NULL, CSP_Logger* p_logger = NULL);
 	~csp_state_utils();
 	std::list<std::string> get_entries_list(void);
 
@@ -301,7 +304,12 @@ public:
 		state_entry->add_entry((const _TCHAR *)_T(#___name), &(___name[0][0][0]), __tmplen); \
 	}
 
-#define DECL_STATE_ENTRY_1D_ARRAY_MEMBER(___name, ___lenvar, __num) {			\
+#define DECL_STATE_ENTRY_4D_ARRAY(___name, __len1, __len2, __len3, __len4) {	\
+		int __tmplen = ((int)__len1 * (int)__len2 * (int)__len3 * (int)__len4); \
+		state_entry->add_entry((const _TCHAR *)_T(#___name), &(___name[0][0][0][0]), __tmplen); \
+	}
+
+#define DECL_STATE_ENTRY_1D_ARRAY_MEMBER(___name, ___lenvar, __num) {	\
 		state_entry->add_entry((const _TCHAR *)(_T(#___name)), ___name, ___lenvar, __num); \
 	}
 

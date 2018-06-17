@@ -296,15 +296,17 @@ void VM::update_config()
 #define STATE_VERSION	4
 
 #include "../../statesub.h"
+#include "../../qt/gui/csp_logger.h"
+extern CSP_Logger DLL_PREFIX_I *csp_logger;
 
 void VM::decl_state(void)
 {
 #if defined(_PHC25)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PHC_25_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PHC_25_HEAD")), csp_logger);
 #elif defined(_MAP1010)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::MAP_1010_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::MAP_1010_HEAD")), csp_logger);
 #else
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PHC_25_SERIES_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PHC_25_SERIES_HEAD")), csp_logger);
 #endif
 	
 	for(DEVICE* device = first_device; device; device = device->next_device) {

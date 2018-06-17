@@ -177,37 +177,63 @@ void PRNFILE::close_file()
 
 #define STATE_VERSION	2
 
+#include "../statesub.h"
+
+void PRNFILE::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	DECL_STATE_ENTRY_INT32(value);
+	DECL_STATE_ENTRY_INT32(busy_id);
+	DECL_STATE_ENTRY_INT32(ack_id);
+	DECL_STATE_ENTRY_BOOL(strobe);
+	DECL_STATE_ENTRY_BOOL(res);
+	DECL_STATE_ENTRY_BOOL(busy);
+	DECL_STATE_ENTRY_BOOL(ack);
+
+	leave_decl_state();
+}
 void PRNFILE::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
 	
-	state_fio->FputInt32(value);
-	state_fio->FputInt32(busy_id);
-	state_fio->FputInt32(ack_id);
-	state_fio->FputBool(strobe);
-	state_fio->FputBool(res);
-	state_fio->FputBool(busy);
-	state_fio->FputBool(ack);
+	//state_fio->FputUint32(STATE_VERSION);
+	//state_fio->FputInt32(this_device_id);
+	
+	//state_fio->FputInt32(value);
+	//state_fio->FputInt32(busy_id);
+	//state_fio->FputInt32(ack_id);
+	//state_fio->FputBool(strobe);
+	//state_fio->FputBool(res);
+	//state_fio->FputBool(busy);
+	//state_fio->FputBool(ack);
 }
 
 bool PRNFILE::load_state(FILEIO* state_fio)
 {
 	close_file();
-	
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+		
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	value = state_fio->FgetInt32();
-	busy_id = state_fio->FgetInt32();
-	ack_id = state_fio->FgetInt32();
-	strobe = state_fio->FgetBool();
-	res = state_fio->FgetBool();
-	busy = state_fio->FgetBool();
-	ack = state_fio->FgetBool();
+	if(!mb) return false;
+
+	//if(state_fio->FgetUint32() != STATE_VERSION) {
+	//	return false;
+	//}
+	//if(state_fio->FgetInt32() != this_device_id) {
+	//	return false;
+	//}
+	//value = state_fio->FgetInt32();
+	//busy_id = state_fio->FgetInt32();
+	//ack_id = state_fio->FgetInt32();
+	//strobe = state_fio->FgetBool();
+	//res = state_fio->FgetBool();
+	//busy = state_fio->FgetBool();
+	//ack = state_fio->FgetBool();
 	
 	// post process
 	wait_frames = -1;

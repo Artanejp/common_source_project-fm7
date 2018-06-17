@@ -25,6 +25,7 @@ void AY_3_891X::initialize()
 void AY_3_891X::release()
 {
 	delete opn;
+	DEVICE::release();
 }
 
 void AY_3_891X::reset()
@@ -219,8 +220,7 @@ void AY_3_891X::update_timing(int new_clocks, double new_frames_per_sec, int new
 
 void AY_3_891X::decl_state()
 {
-#if 1
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("AY_3_891x"));
+	enter_decl_state(STATE_VERSION);
 	
 	DECL_STATE_ENTRY_UINT8(ch);
 	DECL_STATE_ENTRY_UINT8(fnum2);
@@ -241,7 +241,8 @@ void AY_3_891X::decl_state()
 	DECL_STATE_ENTRY_UINT32(clock_busy);
 	DECL_STATE_ENTRY_INT32(timer_event_id);
 	DECL_STATE_ENTRY_BOOL(busy);
-#endif
+
+	leave_decl_state();
 }
 
 void AY_3_891X::save_state(FILEIO* state_fio)

@@ -420,7 +420,7 @@ int I8253::get_next_count(int ch)
 
 void I8253::decl_state()
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("i8253"));
+	enter_decl_state(STATE_VERSION);
 
 	for(int i = 0; i < 3; i++) {
 		DECL_STATE_ENTRY_BOOL_MEMBER((counter[i].prev_out), i);
@@ -452,6 +452,8 @@ void I8253::decl_state()
 		DECL_STATE_ENTRY_UINT32_MEMBER((counter[i].prev_clk), i);
 	}
 	DECL_STATE_ENTRY_UINT64(cpu_clocks);
+
+	leave_decl_state();
 }
 
 void I8253::save_state(FILEIO* state_fio)

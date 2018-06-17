@@ -30,6 +30,7 @@ void IO::release()
 {
 	free(wr_table);
 	free(rd_table);
+	DEVICE::release();
 }
 
 void IO::write_io8(uint32_t addr, uint32_t data)
@@ -381,29 +382,57 @@ void IO::set_iowait_range_rw(uint32_t s, uint32_t e, int wait)
 	set_iowait_range_w(s, e, wait);
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
+#include "../statesub.h"
+
+void IO::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	for(int i = 0; i < addr_max; i++) {
+		// Read
+		DECL_STATE_ENTRY_UINT32_MEMBER((rd_table[i].addr), i);
+		DECL_STATE_ENTRY_INT32_MEMBER((rd_table[i].wait), i);
+		DECL_STATE_ENTRY_BOOL_MEMBER((rd_table[i].value_registered), i);
+		DECL_STATE_ENTRY_UINT32_MEMBER((rd_table[i].value), i);
+	   
+		DECL_STATE_ENTRY_UINT32_MEMBER((wr_table[i].addr), i);
+		DECL_STATE_ENTRY_INT32_MEMBER((wr_table[i].wait), i);
+		DECL_STATE_ENTRY_BOOL_MEMBER((wr_table[i].is_flipflop), i);
+	}
+	
+	leave_decl_state();
+}
 void IO::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	for(int i = 0; i < addr_max; i++) {
-		state_fio->FputUint32(rd_table[i].value);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
 	}
+	//state_fio->FputUint32(STATE_VERSION);
+	//state_fio->FputInt32(this_device_id);
+	
+	//for(int i = 0; i < addr_max; i++) {
+	//	state_fio->FputUint32(rd_table[i].value);
+	//}
 }
 
 bool IO::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	for(int i = 0; i < addr_max; i++) {
-		rd_table[i].value = state_fio->FgetUint32();
-	}
+	if(!mb) return false;
+	//if(state_fio->FgetUint32() != STATE_VERSION) {
+	//	return false;
+	//}
+	//if(state_fio->FgetInt32() != this_device_id) {
+	//	return false;
+	//}
+	//for(int i = 0; i < addr_max; i++) {
+	//	rd_table[i].value = state_fio->FgetUint32();
+	//}
 	return true;
 }
 

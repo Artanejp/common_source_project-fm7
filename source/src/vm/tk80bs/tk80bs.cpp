@@ -545,17 +545,19 @@ void VM::update_config()
 #define STATE_VERSION	6
 
 #include "../../statesub.h"
+#include "../../qt/gui/csp_logger.h"
+extern CSP_Logger DLL_PREFIX_I *csp_logger;
 
 void VM::decl_state(void)
 {
 #if defined(_TK80)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::TK_80_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::TK_80_HEAD")), csp_logger);
 #elif defined(_TK85)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::TK_85_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::TK_85_HEAD")), csp_logger);
 #elif defined(_TK80BS)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::TK_80BS_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::TK_80BS_HEAD")), csp_logger);
 #else
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::TK_80_SERIES_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::TK_80_SERIES_HEAD")), csp_logger);
 #endif
 	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
 #if defined(_TK80BS)

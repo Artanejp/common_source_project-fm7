@@ -272,7 +272,7 @@ void HD46505::set_hsync(bool val)
 
 void HD46505::decl_state()
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("HD46505"));
+	enter_decl_state(STATE_VERSION);
 
 	DECL_STATE_ENTRY_1D_ARRAY(regs, sizeof(regs));
 	DECL_STATE_ENTRY_1D_ARRAY(regs_written, sizeof(regs_written) / sizeof(bool));
@@ -305,6 +305,8 @@ void HD46505::decl_state()
 	DECL_STATE_ENTRY_BOOL(vblank);
 	DECL_STATE_ENTRY_BOOL(vsync);
 	DECL_STATE_ENTRY_BOOL(hsync);
+
+	leave_decl_state();
 }
 void HD46505::save_state(FILEIO* state_fio)
 {

@@ -227,7 +227,8 @@ void HD146818P::update_intr()
 
 void HD146818P::decl_state()
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("HD146818P"));
+	enter_decl_state(STATE_VERSION);
+	
 	DECL_STATE_ENTRY_INT32(register_id_1sec);
 	DECL_STATE_ENTRY_1D_ARRAY(regs, sizeof(regs));
 	DECL_STATE_ENTRY_INT32(ch);
@@ -236,6 +237,8 @@ void HD146818P::decl_state()
 	DECL_STATE_ENTRY_BOOL(intr);
 	DECL_STATE_ENTRY_BOOL(sqw);
 	DECL_STATE_ENTRY_BOOL(modified);
+
+	leave_decl_state();
 }
 
 void HD146818P::save_state(FILEIO* state_fio)

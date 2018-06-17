@@ -3053,7 +3053,7 @@ void MC6800::stx_ex()
 
 void MC6800::decl_state()
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("MC6800"));
+	enter_decl_state(STATE_VERSION);
 	
 	DECL_STATE_ENTRY_PAIR(pc);
 	DECL_STATE_ENTRY_UINT16(prevpc);
@@ -3068,6 +3068,8 @@ void MC6800::decl_state()
 		DECL_STATE_ENTRY_UINT64(total_icount);
 	}
 	DECL_STATE_ENTRY_INT32(icount);
+
+	leave_decl_state();
 }
 
 void MC6800::save_state(FILEIO* state_fio)

@@ -42,7 +42,6 @@ class MC6809_BASE : public DEVICE
 {
 protected:
 	// context
-	csp_state_utils *state_entry;
 	DEVICE *d_mem;
 
 	DEBUGGER *d_debugger;

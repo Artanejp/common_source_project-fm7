@@ -122,7 +122,7 @@ int HUC6280::run_one_opecode()
 void HUC6280::decl_state()
 {
 	// You should call this after initialize().
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("HuC6280"));
+	enter_decl_state(STATE_VERSION);
 	
 	decl_state_registers();
 	
@@ -131,7 +131,8 @@ void HUC6280::decl_state()
 #endif
 	DECL_STATE_ENTRY_INT32(icount);
 	DECL_STATE_ENTRY_BOOL(busreq);
-	
+
+	leave_decl_state();
 }
 void HUC6280::save_state(FILEIO* state_fio)
 {

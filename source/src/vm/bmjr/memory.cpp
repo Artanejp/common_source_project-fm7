@@ -409,7 +409,7 @@ void MEMORY::draw_screen()
 
 void MEMORY::decl_state()
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("MEMORY_AND_DISPLAY"));
+	enter_decl_state(STATE_VERSION);
 
 	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
 	DECL_STATE_ENTRY_UINT8(memory_bank);
@@ -431,6 +431,8 @@ void MEMORY::decl_state()
 	DECL_STATE_ENTRY_DOUBLE(sound_accum);
 	DECL_STATE_ENTRY_UINT32(sound_clock);
 	DECL_STATE_ENTRY_UINT32(sound_mix_clock);
+
+	leave_decl_state();
 }
 
 void MEMORY::save_state(FILEIO* state_fio)

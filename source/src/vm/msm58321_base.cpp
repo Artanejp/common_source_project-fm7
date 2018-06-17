@@ -214,53 +214,87 @@ void MSM58321_BASE::set_busy(bool val)
 
 #define STATE_VERSION	1
 
+#include "../statesub.h"
+
+void MSM58321_BASE::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+	
+	DECL_STATE_ENTRY_CUR_TIME_T(cur_time);
+	DECL_STATE_ENTRY_INT32(register_id);
+	DECL_STATE_ENTRY_1D_ARRAY(regs, sizeof(regs));
+	DECL_STATE_ENTRY_UINT8(wreg);
+	DECL_STATE_ENTRY_UINT8(regnum);
+	DECL_STATE_ENTRY_BOOL(cs);
+	DECL_STATE_ENTRY_BOOL(rd);
+	DECL_STATE_ENTRY_BOOL(wr);
+	DECL_STATE_ENTRY_BOOL(addr_wr);
+	DECL_STATE_ENTRY_BOOL(busy);
+	DECL_STATE_ENTRY_BOOL(hold);
+	DECL_STATE_ENTRY_INT32(count_1024hz);
+	DECL_STATE_ENTRY_INT32(count_1s);
+	DECL_STATE_ENTRY_INT32(count_1m);
+	DECL_STATE_ENTRY_INT32(count_1h);
+
+	leave_decl_state();
+}
 void MSM58321_BASE::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
 	
-	cur_time.save_state((void *)state_fio);
-	state_fio->FputInt32(register_id);
-	state_fio->Fwrite(regs, sizeof(regs), 1);
-	state_fio->FputUint8(wreg);
-	state_fio->FputUint8(regnum);
-	state_fio->FputBool(cs);
-	state_fio->FputBool(rd);
-	state_fio->FputBool(wr);
-	state_fio->FputBool(addr_wr);
-	state_fio->FputBool(busy);
-	state_fio->FputBool(hold);
-	state_fio->FputInt32(count_1024hz);
-	state_fio->FputInt32(count_1s);
-	state_fio->FputInt32(count_1m);
-	state_fio->FputInt32(count_1h);
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
+	
+//	cur_time.save_state((void *)state_fio);
+//	state_fio->FputInt32(register_id);
+//	state_fio->Fwrite(regs, sizeof(regs), 1);
+//	state_fio->FputUint8(wreg);
+//	state_fio->FputUint8(regnum);
+//	state_fio->FputBool(cs);
+//	state_fio->FputBool(rd);
+//	state_fio->FputBool(wr);
+//	state_fio->FputBool(addr_wr);
+//	state_fio->FputBool(busy);
+//	state_fio->FputBool(hold);
+//	state_fio->FputInt32(count_1024hz);
+//	state_fio->FputInt32(count_1s);
+//	state_fio->FputInt32(count_1m);
+//	state_fio->FputInt32(count_1h);
 }
 
 bool MSM58321_BASE::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	if(!cur_time.load_state((void *)state_fio)) {
-		return false;
-	}
-	register_id = state_fio->FgetInt32();
-	state_fio->Fread(regs, sizeof(regs), 1);
-	wreg = state_fio->FgetUint8();
-	regnum = state_fio->FgetUint8();
-	cs = state_fio->FgetBool();
-	rd = state_fio->FgetBool();
-	wr = state_fio->FgetBool();
-	addr_wr = state_fio->FgetBool();
-	busy = state_fio->FgetBool();
-	hold = state_fio->FgetBool();
-	count_1024hz = state_fio->FgetInt32();
-	count_1s = state_fio->FgetInt32();
-	count_1m = state_fio->FgetInt32();
-	count_1h = state_fio->FgetInt32();
+	if(!mb) return false;
+	
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	if(!cur_time.load_state((void *)state_fio)) {
+//		return false;
+//	}
+//	register_id = state_fio->FgetInt32();
+//	state_fio->Fread(regs, sizeof(regs), 1);
+//	wreg = state_fio->FgetUint8();
+//	regnum = state_fio->FgetUint8();
+//	cs = state_fio->FgetBool();
+//	rd = state_fio->FgetBool();
+//	wr = state_fio->FgetBool();
+//	addr_wr = state_fio->FgetBool();
+//	busy = state_fio->FgetBool();
+//	hold = state_fio->FgetBool();
+//	count_1024hz = state_fio->FgetInt32();
+//	count_1s = state_fio->FgetInt32();
+//	count_1m = state_fio->FgetInt32();
+//	count_1h = state_fio->FgetInt32();
 	return true;
 }
 

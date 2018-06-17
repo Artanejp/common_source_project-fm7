@@ -851,7 +851,7 @@ void csp_state_data_saver::put_pair64(pair64_sav_t val, uint32_t *sumseed, bool 
 	return;
 }
 
-csp_state_utils::csp_state_utils(int _version, int device_id, const _TCHAR *classname)
+csp_state_utils::csp_state_utils(int _version, int device_id, const _TCHAR *classname, CSP_Logger* p_logger)
 {
 	listptr.clear();
 	crc_value = 0;
@@ -859,7 +859,8 @@ csp_state_utils::csp_state_utils(int _version, int device_id, const _TCHAR *clas
 		
 	this_device_id = device_id;
 	this_device_id_bak = this_device_id;
-		
+	logger = p_logger;
+	
 	memset(__classname, 0x00, sizeof(__classname));
 	memset(__classname_bak, 0x00, sizeof(__classname_bak));
 	memset(magic, 0x00, sizeof(magic));
@@ -902,29 +903,16 @@ csp_state_utils::~csp_state_utils()
 
 #include "config.h"
 #include "csp_logger.h"
-#if defined(_USE_QT)
-#	include <QtGlobal>
-#endif
-extern CSP_Logger DLL_PREFIX_I *csp_logger;
-extern config_t config;
 
 void csp_state_utils::out_debug_log(const char *fmt, ...)
 {
+	if(logger == NULL) return;
 	char strbuf[8192];
-#ifndef CSP_OS_WINDOWS	
 	va_list ap;
 	va_start(ap, fmt);	
 	vsnprintf(strbuf, 8192, fmt, ap);
-	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_VM_STATE, strbuf);
-#if defined(_USE_QT)
-	config_t *ptr_config = &config;
-	if((ptr_config->state_log_to_console) || (ptr_config->state_log_to_syslog) 
-	   || (ptr_config->state_log_to_recording)) {
-		qInfo("[STATE] %s", strbuf);
-	}
-#endif
+	logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_VM_STATE, strbuf);
 	va_end(ap);
-#endif
 }
 
 std::list<std::string> csp_state_utils::get_entries_list(void)

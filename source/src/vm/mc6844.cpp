@@ -185,37 +185,64 @@ void MC6844::update_irq()
 
 #define STATE_VERSION	1
 
+#include "../statesub.h"
+
+void MC6844::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+		
+	for(int i = 0; i < 4; i++) {
+		DECL_STATE_ENTRY_PAIR_MEMBER((dma[i].address_reg), i);
+		DECL_STATE_ENTRY_PAIR_MEMBER((dma[i].byte_count_reg), i);
+		DECL_STATE_ENTRY_UINT8_MEMBER((dma[i].channel_ctrl_reg), i);
+	}
+	DECL_STATE_ENTRY_UINT8(priority_ctrl_reg);
+	DECL_STATE_ENTRY_UINT8(interrupt_ctrl_reg);
+	DECL_STATE_ENTRY_UINT8(data_chain_reg);
+
+	leave_decl_state();
+}
 void MC6844::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	for(int i = 0; i < 4; i++) {
-		state_fio->FputUint32(dma[i].address_reg.d);
-		state_fio->FputUint32(dma[i].byte_count_reg.d);
-		state_fio->FputUint8(dma[i].channel_ctrl_reg);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
 	}
-	state_fio->FputUint8(priority_ctrl_reg);
-	state_fio->FputUint8(interrupt_ctrl_reg);
-	state_fio->FputUint8(data_chain_reg);
+
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
+	
+//	for(int i = 0; i < 4; i++) {
+//		state_fio->FputUint32(dma[i].address_reg.d);
+//		state_fio->FputUint32(dma[i].byte_count_reg.d);
+//		state_fio->FputUint8(dma[i].channel_ctrl_reg);
+//	}
+//	state_fio->FputUint8(priority_ctrl_reg);
+//	state_fio->FputUint8(interrupt_ctrl_reg);
+//	state_fio->FputUint8(data_chain_reg);
 }
 
 bool MC6844::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	for(int i = 0; i < 4; i++) {
-		dma[i].address_reg.d = state_fio->FgetUint32();
-		dma[i].byte_count_reg.d = state_fio->FgetUint32();
-		dma[i].channel_ctrl_reg = state_fio->FgetUint8();
-	}
-	priority_ctrl_reg = state_fio->FgetUint8();
-	interrupt_ctrl_reg = state_fio->FgetUint8();
-	data_chain_reg = state_fio->FgetUint8();
+	if(!mb) return false;
+	
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	for(int i = 0; i < 4; i++) {
+//		dma[i].address_reg.d = state_fio->FgetUint32();
+//		dma[i].byte_count_reg.d = state_fio->FgetUint32();
+//		dma[i].channel_ctrl_reg = state_fio->FgetUint8();
+//	}
+//	priority_ctrl_reg = state_fio->FgetUint8();
+//	interrupt_ctrl_reg = state_fio->FgetUint8();
+//	data_chain_reg = state_fio->FgetUint8();
 	return true;
 }
 

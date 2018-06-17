@@ -975,33 +975,59 @@ int N2A03::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 
 #define STATE_VERSION	2
 
+#include "../statesub.h"
+
+void N2A03::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	decl_state_regs();
+	
+#ifdef USE_DEBUGGER
+	DECL_STATE_ENTRY_UINT64(total_icount);
+#endif
+	DECL_STATE_ENTRY_INT32(icount);
+	DECL_STATE_ENTRY_BOOL(busreq);
+
+	leave_decl_state();
+	
+}
 void N2A03::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 
-	save_state_regs(state_fio);
-#ifdef USE_DEBUGGER
-	state_fio->FputUint64(total_icount);
-#endif
-	state_fio->FputInt32(icount);
-	state_fio->FputBool(busreq);
+//	save_state_regs(state_fio);
+//#ifdef USE_DEBUGGER
+//	state_fio->FputUint64(total_icount);
+//#endif
+//	state_fio->FputInt32(icount);
+//	state_fio->FputBool(busreq);
 }
 
 bool N2A03::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
+	if(!mb) return false;
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
 
-	load_state_regs(state_fio);
-#ifdef USE_DEBUGGER
-	total_icount = prev_total_icount = state_fio->FgetUint64();
-#endif
- 	icount = state_fio->FgetInt32();
- 	busreq = state_fio->FgetBool();
+//	load_state_regs(state_fio);
+//#ifdef USE_DEBUGGER
+//	total_icount = prev_total_icount = state_fio->FgetUint64();
+//#endif
+//	icount = state_fio->FgetInt32();
+// 	busreq = state_fio->FgetBool();
+	prev_total_icount = total_icount;
 	return true;
 }

@@ -583,32 +583,34 @@ void VM::update_config()
 #define STATE_VERSION	6
 
 #include "../../statesub.h"
+#include "../../qt/gui/csp_logger.h"
+extern CSP_Logger DLL_PREFIX_I *csp_logger;
 
 void VM::decl_state(void)
 {
 #if defined(_FMR50)
 #  if defined(HAS_I286)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_50_I286_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_50_I286_HEAD")), csp_logger);
 #  elif defined(HAS_I386)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_50_I386_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_50_I386_HEAD")), csp_logger);
 #  elif defined(HAS_I486)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_50_I486_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_50_I486_HEAD")), csp_logger);
 #  elif defined(HAS_PENTIUM)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_250_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_250_HEAD")), csp_logger);
 #  else
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_50_SERIES_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_50_SERIES_HEAD")), csp_logger);
 #  endif	
 #elif defined(_FMR60)
 #  if defined(HAS_I286)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_60_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_60_HEAD")), csp_logger);
 #  elif defined(HAS_I386)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_70_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_70_HEAD")), csp_logger);
 #  elif defined(HAS_I486)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_80_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_80_HEAD")), csp_logger);
 #  elif defined(HAS_PENTIUM)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_280_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_280_HEAD")), csp_logger);
 #  else
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_60_SERIES_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FMR_60_SERIES_HEAD")), csp_logger);
 #  endif	
 #endif
 	

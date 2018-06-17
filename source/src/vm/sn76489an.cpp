@@ -200,37 +200,71 @@ void SN76489AN::initialize_sound(int rate, int clock, int volume)
 
 #define STATE_VERSION	1
 
+#include "../statesub.h"
+
+void SN76489AN::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	DECL_STATE_ENTRY_1D_ARRAY(regs, sizeof(regs) / sizeof(uint16_t));
+	DECL_STATE_ENTRY_INT32(index);
+	for(int i = 0; i < 4; i++) {
+		DECL_STATE_ENTRY_INT32_MEMBER((ch[i].count), i);
+		DECL_STATE_ENTRY_INT32_MEMBER((ch[i].period), i);
+		DECL_STATE_ENTRY_INT32_MEMBER((ch[i].volume), i);
+		DECL_STATE_ENTRY_BOOL_MEMBER((ch[i].signal), i);
+	}
+//		state_fio->Fwrite(ch, sizeof(ch), 1);
+	DECL_STATE_ENTRY_UINT32(noise_gen);
+	DECL_STATE_ENTRY_BOOL(mute);
+	DECL_STATE_ENTRY_BOOL(cs);
+	DECL_STATE_ENTRY_BOOL(we);
+	DECL_STATE_ENTRY_UINT8(val);
+
+	leave_decl_state();
+}
+
 void SN76489AN::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
 	
-	state_fio->Fwrite(regs, sizeof(regs), 1);
-	state_fio->FputInt32(index);
-	state_fio->Fwrite(ch, sizeof(ch), 1);
-	state_fio->FputUint32(noise_gen);
-	state_fio->FputBool(mute);
-	state_fio->FputBool(cs);
-	state_fio->FputBool(we);
-	state_fio->FputUint8(val);
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
+	
+//	state_fio->Fwrite(regs, sizeof(regs), 1);
+//	state_fio->FputInt32(index);
+//	state_fio->Fwrite(ch, sizeof(ch), 1);
+//	state_fio->FputUint32(noise_gen);
+//	DECL_STATE_ENTRY_BOOL(mute);
+//	DECL_STATE_ENTRY_BOOL(cs);
+//	DECL_STATE_ENTRY_BOOL(we);
+//	state_fio->FputUint8(val);
 }
 
 bool SN76489AN::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	state_fio->Fread(regs, sizeof(regs), 1);
-	index = state_fio->FgetInt32();
-	state_fio->Fread(ch, sizeof(ch), 1);
-	noise_gen = state_fio->FgetUint32();
-	mute = state_fio->FgetBool();
-	cs = state_fio->FgetBool();
-	we = state_fio->FgetBool();
-	val = state_fio->FgetUint8();
+	if(!mb) return false;
+
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	state_fio->Fread(regs, sizeof(regs), 1);
+//	index = state_fio->FgetInt32();
+//	state_fio->Fread(ch, sizeof(ch), 1);
+//	noise_gen = state_fio->FgetUint32();
+//	mute = state_fio->FgetBool();
+//	cs = state_fio->FgetBool();
+//	we = state_fio->FgetBool();
+//	val = state_fio->FgetUint8();
 	//touch_sound();
 	return true;
 }

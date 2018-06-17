@@ -306,51 +306,85 @@ void RP5C01::write_to_cur_time()
 
 #define STATE_VERSION	1
 
-void RP5C01::save_state(FILEIO* state_fio)
+#include "../statesub.h"
+
+void RP5C01::decl_state()
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	cur_time.save_state((void *)state_fio);
-	state_fio->FputInt32(register_id);
-	state_fio->Fwrite(regs, sizeof(regs), 1);
-	state_fio->Fwrite(time, sizeof(time), 1);
+	enter_decl_state(STATE_VERSION);
+
+	DECL_STATE_ENTRY_CUR_TIME_T(cur_time);
+	DECL_STATE_ENTRY_INT32(register_id);
+	DECL_STATE_ENTRY_1D_ARRAY(regs, sizeof(regs));
+	DECL_STATE_ENTRY_1D_ARRAY(time, sizeof(time));
 //#ifndef HAS_RP5C15
 	if(!__HAS_RP5C15) {
-		state_fio->Fwrite(ram, sizeof(ram), 1);
-		state_fio->FputBool(modified);
+		DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
+		DECL_STATE_ENTRY_BOOL(modified);
 	}
 //#endif
-	state_fio->FputBool(alarm);
-	state_fio->FputBool(pulse_1hz);
-	state_fio->FputBool(pulse_16hz);
-	state_fio->FputInt32(count_16hz);
+	DECL_STATE_ENTRY_BOOL(alarm);
+	DECL_STATE_ENTRY_BOOL(pulse_1hz);
+	DECL_STATE_ENTRY_BOOL(pulse_16hz);
+	DECL_STATE_ENTRY_INT32(count_16hz);
+
+	leave_decl_state();
+}
+
+void RP5C01::save_state(FILEIO* state_fio)
+{
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+	
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
+	
+//	cur_time.save_state((void *)state_fio);
+//	state_fio->FputInt32(register_id);
+//	state_fio->Fwrite(regs, sizeof(regs), 1);
+//	state_fio->Fwrite(time, sizeof(time), 1);
+//#ifndef HAS_RP5C15
+//	if(!__HAS_RP5C15) {
+//		state_fio->Fwrite(ram, sizeof(ram), 1);
+//		state_fio->FputBool(modified);
+//	}
+//#endif
+//	state_fio->FputBool(alarm);
+//	state_fio->FputBool(pulse_1hz);
+//	state_fio->FputBool(pulse_16hz);
+//	state_fio->FputInt32(count_16hz);
 }
 
 bool RP5C01::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	if(!cur_time.load_state((void *)state_fio)) {
-		return false;
-	}
-	register_id = state_fio->FgetInt32();
-	state_fio->Fread(regs, sizeof(regs), 1);
-	state_fio->Fread(time, sizeof(time), 1);
+	if(!mb) return false;
+
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	if(!cur_time.load_state((void *)state_fio)) {
+//		return false;
+//	}
+//	register_id = state_fio->FgetInt32();
+//	state_fio->Fread(regs, sizeof(regs), 1);
+//	state_fio->Fread(time, sizeof(time), 1);
 //#ifndef HAS_RP5C15
-	if(!__HAS_RP5C15) {
-		state_fio->Fread(ram, sizeof(ram), 1);
-		modified = state_fio->FgetBool();
-	}
+//	if(!__HAS_RP5C15) {
+//		state_fio->Fread(ram, sizeof(ram), 1);
+//		modified = state_fio->FgetBool();
+//	}
 //#endif
-	alarm = state_fio->FgetBool();
-	pulse_1hz = state_fio->FgetBool();
-	pulse_16hz = state_fio->FgetBool();
-	count_16hz = state_fio->FgetInt32();
+//	alarm = state_fio->FgetBool();
+//	pulse_1hz = state_fio->FgetBool();
+//	pulse_16hz = state_fio->FgetBool();
+//	count_16hz = state_fio->FgetInt32();
 	return true;
 }
 

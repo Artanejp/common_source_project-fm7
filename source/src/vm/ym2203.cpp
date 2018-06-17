@@ -733,17 +733,7 @@ void YM2203::update_timing(int new_clocks, double new_frames_per_sec, int new_li
 
 void YM2203::decl_state()
 {
-	if(_HAS_YM2608) {
-		state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("YM2608"));
-	} else if(_HAS_AY_3_8910) {
-		state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("AY_3_8910"));
-	} else if(_HAS_AY_3_8913) {
-		state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("AY_3_8912"));
-	} else if(_HAS_AY_3_8912) {
-		state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("AY_3_8913"));
-	} else {
-		state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("YM2203"));
-	}
+	enter_decl_state(STATE_VERSION);
 	// ToDo: OPN/OPNA.
 #ifdef SUPPORT_MAME_FM_DLL
 	//DECL_STATE_ENTRY_1D_ARRAY(port_log, sizeof(port_log));
@@ -782,6 +772,7 @@ void YM2203::decl_state()
 	DECL_STATE_ENTRY_INT32(v_left_volume);
 	DECL_STATE_ENTRY_INT32(v_right_volume);
 
+	leave_decl_state();
 }
 
 void YM2203::save_state(FILEIO* state_fio)

@@ -170,39 +170,67 @@ void MC6850::update_irq()
 
 #define STATE_VERSION	1
 
+#include "../statesub.h"
+
+void MC6850::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+	
+	DECL_STATE_ENTRY_INT32(this_device_id);
+	
+	DECL_STATE_ENTRY_UINT8(recv);
+	DECL_STATE_ENTRY_UINT8(status);
+	DECL_STATE_ENTRY_UINT8(ctrl);
+	DECL_STATE_ENTRY_FIFO(recv_buffer);
+	DECL_STATE_ENTRY_FIFO(send_buffer);
+	DECL_STATE_ENTRY_INT32(recv_id);
+	DECL_STATE_ENTRY_INT32(send_id);
+
+	leave_decl_state();
+}
 void MC6850::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->FputUint8(recv);
-	state_fio->FputUint8(status);
-	state_fio->FputUint8(ctrl);
-	recv_buffer->save_state((void *)state_fio);
-	send_buffer->save_state((void *)state_fio);
-	state_fio->FputInt32(recv_id);
-	state_fio->FputInt32(send_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
+//	
+//	state_fio->FputUint8(recv);
+//	state_fio->FputUint8(status);
+//	state_fio->FputUint8(ctrl);
+//	recv_buffer->save_state((void *)state_fio);
+//	send_buffer->save_state((void *)state_fio);
+//	state_fio->FputInt32(recv_id);
+//	state_fio->FputInt32(send_id);
 }
 
 bool MC6850::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	recv = state_fio->FgetUint8();
-	status = state_fio->FgetUint8();
-	ctrl = state_fio->FgetUint8();
-	if(!recv_buffer->load_state((void *)state_fio)) {
-		return false;
-	}
-	if(!send_buffer->load_state((void *)state_fio)) {
-		return false;
-	}
-	recv_id = state_fio->FgetInt32();
-	send_id = state_fio->FgetInt32();
+	if(!mb) return false;
+	
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	recv = state_fio->FgetUint8();
+//	status = state_fio->FgetUint8();
+//	ctrl = state_fio->FgetUint8();
+//	if(!recv_buffer->load_state((void *)state_fio)) {
+//		return false;
+//	}
+//	if(!send_buffer->load_state((void *)state_fio)) {
+//		return false;
+//	}
+//	recv_id = state_fio->FgetInt32();
+//	send_id = state_fio->FgetInt32();
 	return true;
 }
 

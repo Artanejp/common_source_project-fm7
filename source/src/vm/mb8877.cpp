@@ -2026,7 +2026,8 @@ void MB8877::decl_state_fdc(int ch)
 
 void MB8877::decl_state()
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("MB8877"));
+	enter_decl_state(STATE_VERSION);
+
 	for(int ch = 0; ch < 16; ch++) {
 		decl_state_fdc(ch);
 	}
@@ -2052,6 +2053,7 @@ void MB8877::decl_state()
 	DECL_STATE_ENTRY_UINT32(prev_drq_clock);
 	DECL_STATE_ENTRY_UINT32(seekend_clock);
 
+	leave_decl_state();
 }
 void MB8877::save_state(FILEIO* state_fio)
 {

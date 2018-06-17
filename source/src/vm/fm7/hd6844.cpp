@@ -448,7 +448,7 @@ void HD6844::event_callback(int event_id, int err)
 
 void HD6844::decl_state(void)
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, (_TCHAR *)get_device_name());
+	enter_decl_state(STATE_VERSION);
 
 	DECL_STATE_ENTRY_INT(this_device_id);
 	DECL_STATE_ENTRY_UINT32_ARRAY(addr_reg, 4);
@@ -469,6 +469,8 @@ void HD6844::decl_state(void)
 	DECL_STATE_ENTRY_UINT32_ARRAY(fixed_addr, 4);
 	DECL_STATE_ENTRY_UINT8_ARRAY(data_reg, 4);
 	DECL_STATE_ENTRY_INT32_ARRAY(event_dmac, 4);
+
+	leave_decl_state();
 }
 
 void HD6844::save_state(FILEIO *state_fio)

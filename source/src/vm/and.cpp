@@ -30,12 +30,14 @@ void AND::write_signal(int id, uint32_t data, uint32_t mask)
 
 void AND::decl_state()
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("AND_GATE"));
+	enter_decl_state(STATE_VERSION);
 
 	DECL_STATE_ENTRY_UINT32(bits_mask);
 	DECL_STATE_ENTRY_UINT32(bits_in);
 	DECL_STATE_ENTRY_BOOL(prev);
 	DECL_STATE_ENTRY_BOOL(first);
+
+	leave_decl_state();
 }
 
 void AND::save_state(FILEIO* state_fio)

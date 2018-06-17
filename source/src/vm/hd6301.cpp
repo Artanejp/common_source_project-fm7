@@ -600,7 +600,7 @@ int HD6301::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 
 void HD6301::decl_state()
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("HD6301"));
+	enter_decl_state(STATE_VERSION);
 	
 	DECL_STATE_ENTRY_PAIR(pc);
 	DECL_STATE_ENTRY_UINT16(prevpc);
@@ -650,7 +650,8 @@ void HD6301::decl_state()
 	DECL_STATE_ENTRY_UINT8(ram_ctrl);
 	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
 //#endif
-	
+
+	leave_decl_state();
 }
 
 void HD6301::save_state(FILEIO* state_fio)

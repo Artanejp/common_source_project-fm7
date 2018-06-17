@@ -166,13 +166,14 @@ void DISPLAY::draw_screen()
 
 void DISPLAY::decl_state()
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("DISPLAY"));
+	enter_decl_state(STATE_VERSION);
 	
 	DECL_STATE_ENTRY_1D_ARRAY(seg, sizeof(seg));
 	DECL_STATE_ENTRY_UINT8(ls373);
 	DECL_STATE_ENTRY_UINT8(pio_7seg);
 	DECL_STATE_ENTRY_UINT8(pio_8bit);
-	
+
+	leave_decl_state();
 }
 
 void DISPLAY::save_state(FILEIO* state_fio)

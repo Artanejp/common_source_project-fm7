@@ -238,7 +238,7 @@ void YM2151::update_timing(int new_clocks, double new_frames_per_sec, int new_li
 
 void YM2151::decl_state()
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("YM2151"));
+	enter_decl_state(STATE_VERSION);
 	// ToDo: OPM.
 	
 #ifdef SUPPORT_MAME_FM_DLL
@@ -257,6 +257,8 @@ void YM2151::decl_state()
 	DECL_STATE_ENTRY_UINT32(clock_busy);
 	DECL_STATE_ENTRY_INT32(timer_event_id);
 	DECL_STATE_ENTRY_BOOL(busy);
+
+	leave_decl_state();
 }
 void YM2151::save_state(FILEIO* state_fio)
 {

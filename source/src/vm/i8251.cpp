@@ -235,7 +235,7 @@ void I8251::event_callback(int event_id, int err)
 
 void I8251::decl_state()
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("i8251"));
+	enter_decl_state(STATE_VERSION);
 
 	DECL_STATE_ENTRY_UINT8(recv);
 	DECL_STATE_ENTRY_UINT8(status);
@@ -248,6 +248,7 @@ void I8251::decl_state()
 	DECL_STATE_ENTRY_INT32(recv_id);
 	DECL_STATE_ENTRY_INT32(send_id);
 	
+	leave_decl_state();
 }
 void I8251::save_state(FILEIO* state_fio)
 {

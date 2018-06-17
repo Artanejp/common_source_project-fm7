@@ -1621,35 +1621,37 @@ void VM::update_config()
 #define STATE_VERSION	13
 
 #include "../../statesub.h"
+#include "../../qt/gui/csp_logger.h"
+extern CSP_Logger DLL_PREFIX_I *csp_logger;
 
 void VM::decl_state(void)
 {
 #if defined(_PC9801)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801_HEAD")), csp_logger);
 #elif defined(_PC9801E)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801E_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801E_HEAD")), csp_logger);
 #elif defined(_PC9801U)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801U_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801U_HEAD")), csp_logger);
 #elif defined(_PC9801VF)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801VF_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801VF_HEAD")), csp_logger);
 #elif defined(_PC9801VM)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801VF_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801VF_HEAD")), csp_logger);
 #elif defined(_PC98DO)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC98DO_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC98DO_HEAD")), csp_logger);
 #elif defined(_PC9801DOPLUS)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC98DO_PLUS_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC98DO_PLUS_HEAD")), csp_logger);
 #elif defined(_PC9801VX)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801VX_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801VX_HEAD")), csp_logger);
 #elif defined(_PC98XL)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC98XL_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC98XL_HEAD")), csp_logger);
 #elif defined(_PC98XA)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC98XA_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC98XA_HEAD")), csp_logger);
 #elif defined(_PC9801RA)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801RA_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801RA_HEAD")), csp_logger);
 #elif defined(_PC98RL)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC98RL_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC98RL_HEAD")), csp_logger);
 #else
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801_SERIES_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801_SERIES_HEAD")), csp_logger);
 #endif
 	
 	DECL_STATE_ENTRY_BOOL(pit_clock_8mhz);

@@ -179,7 +179,7 @@ void NOISE::get_sample()
 
 void NOISE::decl_state()
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("NOISE"));
+	enter_decl_state(STATE_VERSION);
 
 	DECL_STATE_ENTRY_INT32(register_id);
 	DECL_STATE_ENTRY_INT32(ptr);
@@ -187,6 +187,8 @@ void NOISE::decl_state()
 	DECL_STATE_ENTRY_INT32(sample_r);
 	DECL_STATE_ENTRY_BOOL(loop);
 	DECL_STATE_ENTRY_BOOL(mute);
+
+	leave_decl_state();
 }
 void NOISE::save_state(FILEIO* state_fio)
 {

@@ -111,11 +111,14 @@ void KANJIROM::release()
 
 void KANJIROM::decl_state()
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("KANJI_ROM"));
+	enter_decl_state(STATE_VERSION);
+	
 	DECL_STATE_ENTRY_BOOL(class2);
 	DECL_STATE_ENTRY_BOOL(read_ok);
 	DECL_STATE_ENTRY_1D_ARRAY(data_table, sizeof(data_table));
 	DECL_STATE_ENTRY_PAIR(kanjiaddr);
+
+	leave_decl_state();
 }
 void KANJIROM::save_state(FILEIO *state_fio)
 {

@@ -52,19 +52,32 @@
 #define SIG_SCSI_ACK		309
 #define SIG_SCSI_RST		310
 
+#if defined(_USE_QT)
+class CSP_Logger;
 class csp_state_utils;
+
+extern CSP_Logger *csp_logger;
+
+#include "../statesub.h"
+#endif
 class DEVICE
 {
 protected:
 	VM* vm;
 	EMU* emu;
 	OSD* osd;
+#if defined(_USE_QT)
+	CSP_Logger *p_logger;
 	csp_state_utils *state_entry;
+#endif
+
 public:
 	DEVICE(VM* parent_vm, EMU* parent_emu) : vm(parent_vm), emu(parent_emu)
 	{
 #if defined(_USE_QT)
 		osd = emu->get_osd();
+		p_logger = csp_logger;
+		state_entry = NULL;
 #else
 		osd = NULL;
 #endif
@@ -93,7 +106,14 @@ public:
 	~DEVICE(void) {}
 	
 	virtual void initialize() {	/* osd = emu->get_osd(); */ /* Initializing VM must be after initializing OSD. */ }
+#if defined(_USE_QT)
+	virtual void release() {
+		if(state_entry != NULL) delete state_entry;
+		state_entry = NULL;
+	}
+#else
 	virtual void release() {}
+#endif
 	
 	virtual void update_config() {}
 	virtual void save_state(FILEIO* state_fio) {}
@@ -101,8 +121,21 @@ public:
 	{
 		return true;
 	}
+#if defined(_USE_QT)
+	virtual void decl_state(void) { }
+	virtual void enter_decl_state(int version) {
+		state_entry = new csp_state_utils(version, this_device_id, (const _TCHAR *)this_device_name, p_logger);
+	}
+	virtual void enter_decl_state(int version,  _TCHAR *name) {
+		state_entry = new csp_state_utils(version, this_device_id, (const _TCHAR *)name, p_logger);
+	}
+	virtual void leave_decl_state(void) {}
+#else
 	virtual void decl_state(void) {}
-	
+	void enter_decl_state(int version) {}
+	void enter_decl_state(int version,  _TCHAR *name) {}
+	void leave_decl_state(void) {}
+#endif
 	// control
 	virtual void reset() {}
 	virtual void special_reset()

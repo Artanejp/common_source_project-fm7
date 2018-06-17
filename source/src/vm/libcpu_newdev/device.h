@@ -15,7 +15,7 @@
 #include "../emu.h"
 #if defined(_USE_QT)
 #include "osd.h"
-#include "csp_logger.h"
+
 //#define USE_DEVICE_NAME
 #endif
 // max devices connected to the output port
@@ -46,6 +46,7 @@
 #define SIG_SCSI_ACK		309
 #define SIG_SCSI_RST		310
 
+class CSP_Logger;
 class csp_state_utils;
 class VM;
 class EMU;
@@ -57,6 +58,7 @@ protected:
 	EMU* emu;
 	OSD* osd;
 	csp_state_utils *state_entry;
+	CSP_Logger *p_logger;
 public:
 	DEVICE(VM* parent_vm, EMU* parent_emu);
 	//ToDo: Will implement real destructor per real classes and below destructor decl. with "virtual".
@@ -67,7 +69,7 @@ public:
 	virtual ~DEVICE() {}
 	
 	virtual void initialize() { /* osd = emu->get_osd(); */}
-	virtual void release() {}
+	virtual void release();
 	
 	virtual void update_config() {}
 	virtual void save_state(FILEIO* state_fio) {}
@@ -75,7 +77,11 @@ public:
 	{
 		return true;
 	}
-	virtual void decl_state(void) {}
+	
+	virtual void decl_state(void);
+	virtual void enter_decl_state(int version);
+	virtual void enter_decl_state(int version,  _TCHAR *name); 
+	virtual void leave_decl_state(void);
 	
 	// control
 	virtual void reset() {}

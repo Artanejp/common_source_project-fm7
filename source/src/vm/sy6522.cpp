@@ -942,98 +942,145 @@ void SY6522::write_signal(int id, uint32_t data, uint32_t mask)
 }
 
 #define STATE_VERSION	1
+#include "../statesub.h"
+
+void SY6522::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	DECL_STATE_ENTRY_UINT8(m_in_a);
+	DECL_STATE_ENTRY_INT32(m_in_ca1);
+	DECL_STATE_ENTRY_INT32(m_in_ca2);
+	DECL_STATE_ENTRY_UINT8(m_out_a);
+	DECL_STATE_ENTRY_INT32(m_out_ca2);
+	DECL_STATE_ENTRY_UINT8(m_ddr_a);
+	DECL_STATE_ENTRY_UINT8(m_latch_a);
+	DECL_STATE_ENTRY_UINT8(m_in_b);
+	DECL_STATE_ENTRY_INT32(m_in_cb1);
+	DECL_STATE_ENTRY_INT32(m_in_cb2);
+	DECL_STATE_ENTRY_UINT8(m_out_b);
+	DECL_STATE_ENTRY_INT32(m_out_cb1);
+	DECL_STATE_ENTRY_INT32(m_out_cb2);
+	DECL_STATE_ENTRY_UINT8(m_ddr_b);
+	DECL_STATE_ENTRY_UINT8(m_latch_b);
+	DECL_STATE_ENTRY_UINT8(m_t1cl);
+	DECL_STATE_ENTRY_UINT8(m_t1ch);
+	DECL_STATE_ENTRY_UINT8(m_t1ll);
+	DECL_STATE_ENTRY_UINT8(m_t1lh);
+	DECL_STATE_ENTRY_UINT8(m_t2cl);
+	DECL_STATE_ENTRY_UINT8(m_t2ch);
+	DECL_STATE_ENTRY_UINT8(m_t2ll);
+	DECL_STATE_ENTRY_UINT8(m_t2lh);
+	DECL_STATE_ENTRY_UINT8(m_sr);
+	DECL_STATE_ENTRY_UINT8(m_pcr);
+	DECL_STATE_ENTRY_UINT8(m_acr);
+	DECL_STATE_ENTRY_UINT8(m_ier);
+	DECL_STATE_ENTRY_UINT8(m_ifr);
+	DECL_STATE_ENTRY_INT32(m_t1);
+	DECL_STATE_ENTRY_UINT32(m_time1);
+	DECL_STATE_ENTRY_UINT8(m_t1_active);
+	DECL_STATE_ENTRY_INT32(m_t1_pb7);
+	DECL_STATE_ENTRY_INT32(m_t2);
+	DECL_STATE_ENTRY_UINT32(m_time2);
+	DECL_STATE_ENTRY_UINT8(m_t2_active);
+	DECL_STATE_ENTRY_INT32(m_ca2_timer);
+	DECL_STATE_ENTRY_INT32(m_shift_timer);
+	DECL_STATE_ENTRY_UINT8(m_shift_counter);
+
+	leave_decl_state();
+}
 
 void SY6522::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->FputUint8(m_in_a);
-	state_fio->FputInt32(m_in_ca1);
-	state_fio->FputInt32(m_in_ca2);
-	state_fio->FputUint8(m_out_a);
-	state_fio->FputInt32(m_out_ca2);
-	state_fio->FputUint8(m_ddr_a);
-	state_fio->FputUint8(m_latch_a);
-	state_fio->FputUint8(m_in_b);
-	state_fio->FputInt32(m_in_cb1);
-	state_fio->FputInt32(m_in_cb2);
-	state_fio->FputUint8(m_out_b);
-	state_fio->FputInt32(m_out_cb1);
-	state_fio->FputInt32(m_out_cb2);
-	state_fio->FputUint8(m_ddr_b);
-	state_fio->FputUint8(m_latch_b);
-	state_fio->FputUint8(m_t1cl);
-	state_fio->FputUint8(m_t1ch);
-	state_fio->FputUint8(m_t1ll);
-	state_fio->FputUint8(m_t1lh);
-	state_fio->FputUint8(m_t2cl);
-	state_fio->FputUint8(m_t2ch);
-	state_fio->FputUint8(m_t2ll);
-	state_fio->FputUint8(m_t2lh);
-	state_fio->FputUint8(m_sr);
-	state_fio->FputUint8(m_pcr);
-	state_fio->FputUint8(m_acr);
-	state_fio->FputUint8(m_ier);
-	state_fio->FputUint8(m_ifr);
-	state_fio->FputInt32(m_t1);
-	state_fio->FputUint32(m_time1);
-	state_fio->FputUint8(m_t1_active);
-	state_fio->FputInt32(m_t1_pb7);
-	state_fio->FputInt32(m_t2);
-	state_fio->FputUint32(m_time2);
-	state_fio->FputUint8(m_t2_active);
-	state_fio->FputInt32(m_ca2_timer);
-	state_fio->FputInt32(m_shift_timer);
-	state_fio->FputUint8(m_shift_counter);
+//	state_fio->FputUint8(m_in_a);
+//	state_fio->FputInt32(m_in_ca1);
+//	state_fio->FputInt32(m_in_ca2);
+//	state_fio->FputUint8(m_out_a);
+//	state_fio->FputInt32(m_out_ca2);
+//	state_fio->FputUint8(m_ddr_a);
+//	state_fio->FputUint8(m_latch_a);
+//	state_fio->FputUint8(m_in_b);
+//	state_fio->FputInt32(m_in_cb1);
+//	state_fio->FputInt32(m_in_cb2);
+//	state_fio->FputUint8(m_out_b);
+//	state_fio->FputInt32(m_out_cb1);
+//	state_fio->FputInt32(m_out_cb2);
+//	state_fio->FputUint8(m_ddr_b);
+//	state_fio->FputUint8(m_latch_b);
+//	state_fio->FputUint8(m_t1cl);
+//	state_fio->FputUint8(m_t1ch);
+//	state_fio->FputUint8(m_t1ll);
+//	state_fio->FputUint8(m_t1lh);
+//	state_fio->FputUint8(m_t2cl);
+//	state_fio->FputUint8(m_t2ch);
+//	state_fio->FputUint8(m_t2ll);
+//	state_fio->FputUint8(m_t2lh);
+//	state_fio->FputUint8(m_sr);
+//	state_fio->FputUint8(m_pcr);
+//	state_fio->FputUint8(m_acr);
+//	state_fio->FputUint8(m_ier);
+//	state_fio->FputUint8(m_ifr);
+//	state_fio->FputInt32(m_t1);
+//	state_fio->FputUint32(m_time1);
+//	state_fio->FputUint8(m_t1_active);
+//	state_fio->FputInt32(m_t1_pb7);
+//	state_fio->FputInt32(m_t2);
+//	state_fio->FputUint32(m_time2);
+//	state_fio->FputUint8(m_t2_active);
+//	state_fio->FputInt32(m_ca2_timer);
+//	state_fio->FputInt32(m_shift_timer);
+//	state_fio->FputUint8(m_shift_counter);
 }
 
 bool SY6522::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
-	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	m_in_a = state_fio->FgetUint8();
-	m_in_ca1 = state_fio->FgetInt32();
-	m_in_ca2 = state_fio->FgetInt32();
-	m_out_a = state_fio->FgetUint8();
-	m_out_ca2 = state_fio->FgetInt32();
-	m_ddr_a = state_fio->FgetUint8();
-	m_latch_a = state_fio->FgetUint8();
-	m_in_b = state_fio->FgetUint8();
-	m_in_cb1 = state_fio->FgetInt32();
-	m_in_cb2 = state_fio->FgetInt32();
-	m_out_b = state_fio->FgetUint8();
-	m_out_cb1 = state_fio->FgetInt32();
-	m_out_cb2 = state_fio->FgetInt32();
-	m_ddr_b = state_fio->FgetUint8();
-	m_latch_b = state_fio->FgetUint8();
-	m_t1cl = state_fio->FgetUint8();
-	m_t1ch = state_fio->FgetUint8();
-	m_t1ll = state_fio->FgetUint8();
-	m_t1lh = state_fio->FgetUint8();
-	m_t2cl = state_fio->FgetUint8();
-	m_t2ch = state_fio->FgetUint8();
-	m_t2ll = state_fio->FgetUint8();
-	m_t2lh = state_fio->FgetUint8();
-	m_sr = state_fio->FgetUint8();
-	m_pcr = state_fio->FgetUint8();
-	m_acr = state_fio->FgetUint8();
-	m_ier = state_fio->FgetUint8();
-	m_ifr = state_fio->FgetUint8();
-	m_t1 = state_fio->FgetInt32();
-	m_time1 = state_fio->FgetUint32();
-	m_t1_active = state_fio->FgetUint8();
-	m_t1_pb7 = state_fio->FgetInt32();
-	m_t2 = state_fio->FgetInt32();
-	m_time2 = state_fio->FgetUint32();
-	m_t2_active = state_fio->FgetUint8();
-	m_ca2_timer = state_fio->FgetInt32();
-	m_shift_timer = state_fio->FgetInt32();
-	m_shift_counter = state_fio->FgetUint8();
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	m_in_a = state_fio->FgetUint8();
+//	m_in_ca1 = state_fio->FgetInt32();
+//	m_in_ca2 = state_fio->FgetInt32();
+//	m_out_a = state_fio->FgetUint8();
+//	m_out_ca2 = state_fio->FgetInt32();
+//	m_ddr_a = state_fio->FgetUint8();
+//	m_latch_a = state_fio->FgetUint8();
+//	m_in_b = state_fio->FgetUint8();
+//	m_in_cb1 = state_fio->FgetInt32();
+//	m_in_cb2 = state_fio->FgetInt32();
+//	m_out_b = state_fio->FgetUint8();
+//	m_out_cb1 = state_fio->FgetInt32();
+//	m_out_cb2 = state_fio->FgetInt32();
+//	m_ddr_b = state_fio->FgetUint8();
+//	m_latch_b = state_fio->FgetUint8();
+//	m_t1cl = state_fio->FgetUint8();
+//	m_t1ch = state_fio->FgetUint8();
+//	m_t1ll = state_fio->FgetUint8();
+//	m_t1lh = state_fio->FgetUint8();
+//	m_t2cl = state_fio->FgetUint8();
+//	m_t2ch = state_fio->FgetUint8();
+//	m_t2ll = state_fio->FgetUint8();
+//	m_t2lh = state_fio->FgetUint8();
+//	m_sr = state_fio->FgetUint8();
+//	m_pcr = state_fio->FgetUint8();
+//	m_acr = state_fio->FgetUint8();
+//	m_ier = state_fio->FgetUint8();
+//	m_ifr = state_fio->FgetUint8();
+//	m_t1 = state_fio->FgetInt32();
+//	m_time1 = state_fio->FgetUint32();
+//	m_t1_active = state_fio->FgetUint8();
+//	m_t1_pb7 = state_fio->FgetInt32();
+//	m_t2 = state_fio->FgetInt32();
+//	m_time2 = state_fio->FgetUint32();
+//	m_t2_active = state_fio->FgetUint8();
+//	m_ca2_timer = state_fio->FgetInt32();
+//	m_shift_timer = state_fio->FgetInt32();
+//	m_shift_counter = state_fio->FgetUint8();
 	return true;
 }
 

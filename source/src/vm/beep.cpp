@@ -69,11 +69,14 @@ void BEEP::set_frequency(double frequency)
 
 void BEEP::decl_state()
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("BEEP"));
+	enter_decl_state(STATE_VERSION);
+	
 	DECL_STATE_ENTRY_BOOL(signal);
 	DECL_STATE_ENTRY_INT32(count);
 	DECL_STATE_ENTRY_BOOL(on);
 	DECL_STATE_ENTRY_BOOL(mute);
+
+	leave_decl_state();
 }
 
 void BEEP::save_state(FILEIO* state_fio)

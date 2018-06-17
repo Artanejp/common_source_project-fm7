@@ -578,7 +578,7 @@ void I8080::check_interrupt()
 
 void I8080::decl_state()
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("i8080"));
+	enter_decl_state(STATE_VERSION);
 
 #ifdef USE_DEBUGGER
 	DECL_STATE_ENTRY_UINT64(total_count);
@@ -595,6 +595,7 @@ void I8080::decl_state()
 	DECL_STATE_ENTRY_BOOL(SID);
 	DECL_STATE_ENTRY_BOOL(afterEI);
 
+	leave_decl_state();
 }
 void I8080::save_state(FILEIO* state_fio)
 {

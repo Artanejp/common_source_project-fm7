@@ -221,7 +221,7 @@ void FM7_JCOMMCARD::reset(void)
 
 void FM7_JCOMMCARD::decl_state(void)
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("FM7_JCOMM_CARD"));
+	enter_decl_state(STATE_VERSION);
  
 	DECL_STATE_ENTRY_SINGLE(n_bank);
 	DECL_STATE_ENTRY_SINGLE(rcb_address);
@@ -232,6 +232,8 @@ void FM7_JCOMMCARD::decl_state(void)
 	DECL_STATE_ENTRY_1D_ARRAY(dict_rom, 0x60000);
 	DECL_STATE_ENTRY_1D_ARRAY(p_ram, 0x2000);
 	DECL_STATE_ENTRY_BOOL(firmware_ok);
+
+	leave_decl_state();
 }
 
 void FM7_JCOMMCARD::save_state(FILEIO *state_fio)

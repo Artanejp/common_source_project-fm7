@@ -3661,7 +3661,7 @@ static void dasm_fdcb(uint32_t pc, _TCHAR *buffer, size_t buffer_len, symbol_t *
 #include "../statesub.h"
 void Z80_BASE::decl_state(void)
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, (_TCHAR *)(_T("Z80")));
+	enter_decl_state(STATE_VERSION);
 	
 	DECL_STATE_ENTRY_INT(this_device_id);
 	
@@ -3705,6 +3705,7 @@ void Z80_BASE::decl_state(void)
 	DECL_STATE_ENTRY_UINT32(intr_req_bit);
 	DECL_STATE_ENTRY_UINT32(intr_pend_bit);
 
+	leave_decl_state();
 }
 
 void Z80_BASE::save_state(FILEIO* state_fio)

@@ -20,9 +20,12 @@ DEVICE::DEVICE(VM* parent_vm, EMU* parent_emu) : vm(parent_vm), emu(parent_emu)
 {
 	vm = parent_vm;
 	emu = parent_emu;
-	//osd = NULL;
+
 	osd = emu->get_osd();
-	//this->out_debug_log("OSD is %08x", osd);
+#if defined(_USE_QT)
+	p_logger = csp_logger;
+	state_entry = NULL;
+#endif	
 	memset(this_device_name, 0x00, sizeof(this_device_name));
 	strncpy(this_device_name, "Base Device", 128 - 1);
 	prev_device = vm->last_device;
@@ -45,6 +48,13 @@ DEVICE::DEVICE(VM* parent_vm, EMU* parent_emu) : vm(parent_vm), emu(parent_emu)
 //DEVICE::~DEVICE(void)
 //{
 //}
+
+
+void DEVICE::release()
+{
+	if(state_entry != NULL) delete state_entry;
+	state_entry = NULL;
+}
 
 uint32_t DEVICE::read_io8(uint32_t addr)
 {
@@ -211,6 +221,26 @@ int DEVICE::get_lines_per_frame()
 	return event_manager->get_lines_per_frame();
 }
 
+#include "../../statesub.h"
+
+void DEVICE::decl_state()
+{
+	state_entry = new csp_state_utils(1, this_device_id, (const _TCHAR *)this_device_name, p_logger);
+}
+
+void DEVICE::enter_decl_state(int version)
+{
+	state_entry = new csp_state_utils(version, this_device_id, (const _TCHAR *)this_device_name, p_logger);
+}
+
+void DEVICE::enter_decl_state(int version, _TCHAR *name)
+{
+	state_entry = new csp_state_utils(version, this_device_id, (const _TCHAR *)name, p_logger);
+}
+
+void DEVICE::leave_decl_state()
+{
+}
 // Force render sound immediately when device's status has changed.
 // You must call this after you changing registers (or anything).
 // If has problems, try set_realtime_render.
@@ -253,13 +283,24 @@ void DEVICE::set_device_name(const _TCHAR *format, ...)
 
 void DEVICE::out_debug_log(const char *fmt, ...)
 {
-	char strbuf[4096];
+#if defined(_USE_QT)
+	if(p_logger == NULL) return;
+   	char strbuf[4096];
 	va_list ap;
 	
 	va_start(ap, fmt);
 	vsnprintf(strbuf, 4095, fmt, ap);
-	csp_logger->debug_log(CSP_LOG_DEBUG, this_device_id + CSP_LOG_TYPE_VM_DEVICE_0, "%s", strbuf);
+	p_logger->debug_log(CSP_LOG_DEBUG, this_device_id + CSP_LOG_TYPE_VM_DEVICE_0, "%s", strbuf);
 	va_end(ap);
+#else
+	char strbuf[4096];
+	va_list ap;
+
+	va_start(ap, fmt);
+	vsnprintf(strbuf, 4095, fmt, ap);
+	emu->out_debug_log("%s", strbuf);
+	va_end(ap);
+#endif
 }
 
 void DEVICE::force_out_debug_log(const char *fmt, ...)

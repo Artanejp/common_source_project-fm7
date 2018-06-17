@@ -45,9 +45,10 @@ protected:
 	void run_one_opecode();
 	virtual void OP(uint8_t code);
 	void update_irq();
-	
-	void save_state_regs(FILEIO* state_fio);
-	void load_state_regs(FILEIO* state_fio);
+
+	void decl_state_regs();
+	//void save_state_regs(FILEIO* state_fio);
+	//void load_state_regs(FILEIO* state_fio);
 public:
 	M6502_BASE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -124,6 +125,7 @@ public:
 	void reset();
 	int run(int clock);
 	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 };	
@@ -141,6 +143,7 @@ public:
 	void reset();
 	int run(int clock);
 	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 };	

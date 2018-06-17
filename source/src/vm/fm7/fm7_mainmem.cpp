@@ -526,7 +526,7 @@ void FM7_MAINMEM::update_config()
 
 void FM7_MAINMEM::decl_state(void)
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("MAINMEM"));
+	enter_decl_state(STATE_VERSION);
 	
 	DECL_STATE_ENTRY_BOOL(ioaccess_wait);
 	DECL_STATE_ENTRY_INT32(waitfactor);
@@ -637,6 +637,8 @@ void FM7_MAINMEM::decl_state(void)
 	DECL_STATE_ENTRY_UINT32(mem_waitcount); // OK?
 
 	DECL_STATE_ENTRY_UINT32(cpu_clocks); // OK?
+
+	leave_decl_state();
 }
 
 void FM7_MAINMEM::save_state(FILEIO *state_fio)

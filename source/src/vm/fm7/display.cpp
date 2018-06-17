@@ -3505,7 +3505,7 @@ void DISPLAY::release()
 #define STATE_VERSION 11
 void DISPLAY::decl_state(void)
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("FM7_DISPLAY"));
+	enter_decl_state(STATE_VERSION);
 	DECL_STATE_ENTRY_INT(this_device_id);
 	{
 		int i;
@@ -3665,6 +3665,7 @@ void DISPLAY::decl_state(void)
 	DECL_STATE_ENTRY_INT32(event_id_l4_cursor_blink);
 	DECL_STATE_ENTRY_INT32(event_id_l4_text_blink);
 #endif
+	leave_decl_state();
 }	
 
 void DISPLAY::save_state(FILEIO *state_fio)

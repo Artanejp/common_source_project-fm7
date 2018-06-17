@@ -441,13 +441,15 @@ void VM::update_config()
 #define STATE_VERSION	3
 
 #include "../../statesub.h"
+#include "../../qt/gui/csp_logger.h"
+extern CSP_Logger DLL_PREFIX_I *csp_logger;
 
 void VM::decl_state(void)
 {
 #if defined(_LCD)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PASOPIA_WITH_LCD_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PASOPIA_WITH_LCD_HEAD")), csp_logger);
 #else
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PASOPIA_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PASOPIA_HEAD")), csp_logger);
 #endif	
 	DECL_STATE_ENTRY_INT32(boot_mode);
 	for(DEVICE* device = first_device; device; device = device->next_device) {

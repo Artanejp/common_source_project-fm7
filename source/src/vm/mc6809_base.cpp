@@ -3960,7 +3960,7 @@ OP_HANDLER(pref11) {
 
 void MC6809_BASE::decl_state(void)
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("MC6809"));
+	enter_decl_state(STATE_VERSION);
 
 	DECL_STATE_ENTRY_INT(this_device_id);
 	
@@ -3987,7 +3987,8 @@ void MC6809_BASE::decl_state(void)
 	DECL_STATE_ENTRY_UINT64(total_icount);
 	DECL_STATE_ENTRY_UINT32(waitfactor);
 	DECL_STATE_ENTRY_UINT32(waitcount);
-	
+
+	leave_decl_state();
 }
 void MC6809_BASE::save_state(FILEIO* state_fio)
 {

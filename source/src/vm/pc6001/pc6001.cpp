@@ -697,21 +697,23 @@ void VM::update_config()
 #define STATE_VERSION	6
 
 #include "../../statesub.h"
+#include "../../qt/gui/csp_logger.h"
+extern CSP_Logger DLL_PREFIX_I *csp_logger;
 
 void VM::decl_state(void)
 {
 #if defined(_PC6001)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC_6001_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC_6001_HEAD")), csp_logger);
 #elif defined(_PC6001MK2)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC_6001_MK2_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC_6001_MK2_HEAD")), csp_logger);
 #elif defined(_PC6001MK2SR)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC_6001_MK2_SR_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC_6001_MK2_SR_HEAD")), csp_logger);
 #elif defined(_PC6601)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC_6601_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC_6601_HEAD")), csp_logger);
 #elif defined(_PC601SR)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC_6601_SR_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC_6601_SR_HEAD")), csp_logger);
 #else
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC_6001_SERIES_HEAD")));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC_6001_SERIES_HEAD")), csp_logger);
 #endif
 	DECL_STATE_ENTRY_INT32(sr_mode);
 	for(DEVICE* device = first_device; device; device = device->next_device) {

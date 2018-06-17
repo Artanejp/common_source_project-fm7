@@ -1968,7 +1968,8 @@ void FM7_MAINIO::event_vline(int v, int clock)
 
 void FM7_MAINIO::decl_state(void)
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("MAINIO"));
+	enter_decl_state(STATE_VERSION);
+
 	DECL_STATE_ENTRY_INT(this_device_id);
 
 	DECL_STATE_ENTRY_MULTI(void, io_w_latch, sizeof(io_w_latch));
@@ -2131,13 +2132,9 @@ void FM7_MAINIO::decl_state(void)
 	DECL_STATE_ENTRY_UINT8_ARRAY(opn_cmdreg, 4);
 	DECL_STATE_ENTRY_UINT8_ARRAY(opn_ch3mode, 4);
 	DECL_STATE_ENTRY_UINT8_ARRAY(opn_prescaler_type, 4);
-	//DECL_STATE_ENTRY_2D_ARRAY(opn_keys, 4, 4);
-	
 	DECL_STATE_ENTRY_2D_ARRAY(opn_regs, 4, 0x100);
-
-	//DECL_STATE_ENTRY_1D_ARRAY((uint8_t *)opn_keys, 16);
 	
-	//DECL_STATE_ENTRY_1D_ARRAY((uint8_t *)opn_regs, 0x400);
+	leave_decl_state();
 }
 void FM7_MAINIO::save_state(FILEIO *state_fio)
 {

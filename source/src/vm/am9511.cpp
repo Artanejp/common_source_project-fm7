@@ -673,12 +673,14 @@ void AM9511::event_callback(int event_id, int err)
 
 void AM9511::decl_state()
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("AM9511_APU"));
+	enter_decl_state(STATE_VERSION);
 
 	DECL_STATE_ENTRY_1D_ARRAY(_apu_stack, sizeof(_apu_stack));
 	DECL_STATE_ENTRY_INT32(_apu_tos);
 	DECL_STATE_ENTRY_UINT8(_apu_status);
 	DECL_STATE_ENTRY_INT32(register_id);
+
+	leave_decl_state();
 }
 void AM9511::save_state(FILEIO* state_fio)
 {

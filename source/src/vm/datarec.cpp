@@ -104,6 +104,7 @@ void DATAREC::release()
 	close_file();
 	delete play_fio;
 	delete rec_fio;
+	DEVICE::release();
 }
 
 void DATAREC::write_signal(int id, uint32_t data, uint32_t mask)
@@ -1799,7 +1800,7 @@ void DATAREC::update_config()
 
 void DATAREC::decl_state()
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("DATAREC"));
+	enter_decl_state(STATE_VERSION);
 	
 	DECL_STATE_ENTRY_BOOL(play);
 	DECL_STATE_ENTRY_BOOL(rec);
@@ -1851,7 +1852,8 @@ void DATAREC::decl_state()
 	DECL_STATE_ENTRY_UINT32(pcm_prev_clock);
 	DECL_STATE_ENTRY_INT32(pcm_positive_clocks);
 	DECL_STATE_ENTRY_INT32(pcm_negative_clocks);
-	
+
+	leave_decl_state();
 }
 void DATAREC::save_state(FILEIO* state_fio)
 {

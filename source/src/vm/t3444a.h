@@ -113,7 +113,8 @@ private:
 	
 	// rqm
 	void set_rqm(bool val);
-	
+
+	void decl_state_fdc(int ch);
 public:
 	T3444A(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -142,6 +143,7 @@ public:
 	uint32_t read_signal(int ch);
 	void event_callback(int event_id, int err);
 	void update_config();
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

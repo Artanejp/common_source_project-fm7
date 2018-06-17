@@ -249,7 +249,7 @@ void HD44102::screen_update(int m_sx, int m_sy, bool reverse)
 
 void HD44102::decl_state()
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("HD44102"));
+	enter_decl_state(STATE_VERSION);
 
 	DECL_STATE_ENTRY_2D_ARRAY(m_ram, 4, 50);
 	DECL_STATE_ENTRY_UINT8(m_status);
@@ -259,6 +259,7 @@ void HD44102::decl_state()
 	DECL_STATE_ENTRY_INT32(m_x);
 	DECL_STATE_ENTRY_INT32(m_y);
 
+	leave_decl_state();
 }
 void HD44102::save_state(FILEIO* state_fio)
 {

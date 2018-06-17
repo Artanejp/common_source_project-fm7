@@ -119,7 +119,8 @@ void PCM1BIT::initialize_sound(int rate, int volume)
 
 void PCM1BIT::decl_state()
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("PCM1BIT"));
+	enter_decl_state(STATE_VERSION);
+	
 	DECL_STATE_ENTRY_BOOL(signal);
 	DECL_STATE_ENTRY_BOOL(on);
 	DECL_STATE_ENTRY_BOOL(mute);
@@ -128,6 +129,8 @@ void PCM1BIT::decl_state()
 	DECL_STATE_ENTRY_UINT32(prev_clock);
 	DECL_STATE_ENTRY_INT32(positive_clocks);
 	DECL_STATE_ENTRY_INT32(negative_clocks);
+
+	leave_decl_state();
 }
 
 void PCM1BIT::save_state(FILEIO* state_fio)

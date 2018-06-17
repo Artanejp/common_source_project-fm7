@@ -812,6 +812,15 @@ void dmac_t::run(int c)
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void DISPLAY::decl_state()
+{
+
+	// ToDo:
+
+}
+
 void DISPLAY::save_state(FILEIO* state_fio)
 {
 	state_fio->FputUint32(STATE_VERSION);

@@ -283,7 +283,7 @@ uint32_t I8259::get_intr_ack()
 
 void I8259::decl_state()
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("i8259"));
+	enter_decl_state(STATE_VERSION);
 	
 	for(int i = 0; i < (int)__I8259_MAX_CHIPS; i++) {
 		DECL_STATE_ENTRY_UINT8_MEMBER((pic[i].imr), i);
@@ -308,6 +308,8 @@ void I8259::decl_state()
 	DECL_STATE_ENTRY_INT32(req_chip);
 	DECL_STATE_ENTRY_INT32(req_level);
 	DECL_STATE_ENTRY_UINT8(req_bit);
+
+	leave_decl_state();
 }
 
 void I8259::save_state(FILEIO* state_fio)

@@ -929,7 +929,8 @@ void MB61VH010::reset(void)
 
 void MB61VH010::decl_state(void)
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("MB61VH010"));
+	enter_decl_state(STATE_VERSION);
+	
 	DECL_STATE_ENTRY_INT(this_device_id);
 	
 	DECL_STATE_ENTRY_UINT8(command_reg);
@@ -964,7 +965,8 @@ void MB61VH010::decl_state(void)
 	DECL_STATE_ENTRY_UINT32(screen_height);
 
 	DECL_STATE_ENTRY_INT(eventid_busy);
-		
+
+	leave_decl_state();
 }
 void MB61VH010::save_state(FILEIO *state_fio)
 {

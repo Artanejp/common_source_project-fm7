@@ -687,8 +687,8 @@ void BUBBLECASETTE::event_callback(int event_id, int err)
 
 void BUBBLECASETTE::decl_state(void)
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("BUBBLE_CASETTE"));
-	DECL_STATE_ENTRY_INT(this_device_id);
+	enter_decl_state(STATE_VERSION);
+	
 	DECL_STATE_ENTRY_BOOL(is_wrote);
 	DECL_STATE_ENTRY_BOOL(is_b77);
 	DECL_STATE_ENTRY_BOOL(header_changed);
@@ -732,7 +732,8 @@ void BUBBLECASETTE::decl_state(void)
 	DECL_STATE_ENTRY_UINT32(media_size);
 	DECL_STATE_ENTRY_UINT32(file_length);
 	DECL_STATE_ENTRY_MULTI(void, bubble_data, sizeof(bubble_data));
-	
+
+	leave_decl_state();
 }
 void BUBBLECASETTE::save_state(FILEIO *state_fio)
 {

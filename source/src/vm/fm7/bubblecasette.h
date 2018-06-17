@@ -48,7 +48,6 @@ class BUBBLECASETTE: public DEVICE {
 protected:
 	EMU *p_emu;
 	VM *p_vm;
-	csp_state_utils *state_entry;
 
 	FILEIO* fio;
 	

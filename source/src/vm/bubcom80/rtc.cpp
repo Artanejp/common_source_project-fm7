@@ -150,10 +150,13 @@ void RTC::event_callback(int event_id, int err)
 
 void RTC::decl_state()
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("RTC"));
+	enter_decl_state(STATE_VERSION);
+	
 	DECL_STATE_ENTRY_UINT8(ctrl);
 	DECL_STATE_ENTRY_CUR_TIME_T(cur_time);
 	DECL_STATE_ENTRY_CUR_TIME_T(tmp_time);
+
+	leave_decl_state();
 }
 
 void RTC::save_state(FILEIO* state_fio)

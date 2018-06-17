@@ -247,7 +247,7 @@ uint32_t I8255::read_signal(int id)
 
 void I8255::decl_state()
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("i8255"));
+	enter_decl_state(STATE_VERSION);
 	
 	for(int i = 0; i < 3; i++) {
 		DECL_STATE_ENTRY_UINT8_MEMBER((port[i].wreg), i);
@@ -256,7 +256,8 @@ void I8255::decl_state()
 		DECL_STATE_ENTRY_UINT8_MEMBER((port[i].mode), i);
 		DECL_STATE_ENTRY_BOOL_MEMBER((port[i].first), i);
 	}
-	
+
+	leave_decl_state();
 }
 void I8255::save_state(FILEIO* state_fio)
 {

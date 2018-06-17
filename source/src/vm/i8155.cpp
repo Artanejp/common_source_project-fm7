@@ -322,7 +322,7 @@ void I8155::set_pio(int ch, uint8_t data)
 
 void I8155::decl_state()
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("i8155"));
+	enter_decl_state(STATE_VERSION);
 
 	DECL_STATE_ENTRY_UINT16(count);
 	DECL_STATE_ENTRY_UINT16(countreg);
@@ -347,6 +347,8 @@ void I8155::decl_state()
 	DECL_STATE_ENTRY_UINT8(cmdreg);
 	DECL_STATE_ENTRY_UINT8(statreg);
 	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
+
+	leave_decl_state();
 }
 void I8155::save_state(FILEIO* state_fio)
 {

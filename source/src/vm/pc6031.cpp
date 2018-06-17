@@ -425,49 +425,96 @@ void PC6031::update_config()
 
 #define STATE_VERSION	1
 
+#include "../statesub.h"
+
+void PC6031::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+	
+	DECL_STATE_ENTRY_1D_ARRAY(cur_trk, sizeof(cur_trk) / sizeof(int));
+	DECL_STATE_ENTRY_1D_ARRAY(cur_sct, sizeof(cur_sct) / sizeof(int));
+	DECL_STATE_ENTRY_1D_ARRAY(cur_pos, sizeof(cur_pos) / sizeof(int));
+	DECL_STATE_ENTRY_1D_ARRAY(access, sizeof(access) / sizeof(bool));
+
+	// mdisk
+	{
+		DECL_STATE_ENTRY_INT32((mdisk.ATN));
+		DECL_STATE_ENTRY_INT32((mdisk.DAC));
+		DECL_STATE_ENTRY_INT32((mdisk.RFD));
+		DECL_STATE_ENTRY_INT32((mdisk.DAV));
+		
+		DECL_STATE_ENTRY_INT32((mdisk.command));
+		DECL_STATE_ENTRY_INT32((mdisk.step));
+		DECL_STATE_ENTRY_INT32((mdisk.blk));
+
+		DECL_STATE_ENTRY_INT32((mdisk.drv));
+		DECL_STATE_ENTRY_INT32((mdisk.trk));
+		DECL_STATE_ENTRY_INT32((mdisk.sct));
+		DECL_STATE_ENTRY_INT32((mdisk.size));
+		
+		DECL_STATE_ENTRY_UINT8((mdisk.retdat));
+	}
+	//state_fio->Fwrite(&mdisk, sizeof(DISK60), 1);
+	DECL_STATE_ENTRY_UINT8(io_D1H);
+	DECL_STATE_ENTRY_UINT8(io_D2H);
+	DECL_STATE_ENTRY_UINT8(old_D2H);
+	DECL_STATE_ENTRY_UINT8(io_D3H);
+	DECL_STATE_ENTRY_INT32(DrvNum);
+
+	leave_decl_state();
+}
 void PC6031::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
 	
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	for(int i = 0; i < 2; i++) {
 		disk[i]->save_state(state_fio);
 	}
-	state_fio->Fwrite(cur_trk, sizeof(cur_trk), 1);
-	state_fio->Fwrite(cur_sct, sizeof(cur_sct), 1);
-	state_fio->Fwrite(cur_pos, sizeof(cur_pos), 1);
-	state_fio->Fwrite(access, sizeof(access), 1);
-	state_fio->Fwrite(&mdisk, sizeof(DISK60), 1);
-	state_fio->FputUint8(io_D1H);
-	state_fio->FputUint8(io_D2H);
-	state_fio->FputUint8(old_D2H);
-	state_fio->FputUint8(io_D3H);
-	state_fio->FputInt32(DrvNum);
+//	state_fio->Fwrite(cur_trk, sizeof(cur_trk), 1);
+//	state_fio->Fwrite(cur_sct, sizeof(cur_sct), 1);
+//	state_fio->Fwrite(cur_pos, sizeof(cur_pos), 1);
+//	state_fio->Fwrite(access, sizeof(access), 1);
+//	state_fio->Fwrite(&mdisk, sizeof(DISK60), 1);
+//	state_fio->FputUint8(io_D1H);
+//	state_fio->FputUint8(io_D2H);
+//	state_fio->FputUint8(old_D2H);
+//	state_fio->FputUint8(io_D3H);
+//	state_fio->FputInt32(DrvNum);
 }
 
 bool PC6031::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
+	if(!mb) return false;
+
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
 	for(int i = 0; i < 2; i++) {
 		if(!disk[i]->load_state(state_fio)) {
 			return false;
 		}
 	}
-	state_fio->Fread(cur_trk, sizeof(cur_trk), 1);
-	state_fio->Fread(cur_sct, sizeof(cur_sct), 1);
-	state_fio->Fread(cur_pos, sizeof(cur_pos), 1);
-	state_fio->Fread(access, sizeof(access), 1);
-	state_fio->Fread(&mdisk, sizeof(DISK60), 1);
-	io_D1H = state_fio->FgetUint8();
-	io_D2H = state_fio->FgetUint8();
-	old_D2H = state_fio->FgetUint8();
-	io_D3H = state_fio->FgetUint8();
-	DrvNum = state_fio->FgetInt32();
+//	state_fio->Fread(cur_trk, sizeof(cur_trk), 1);
+//	state_fio->Fread(cur_sct, sizeof(cur_sct), 1);
+//	state_fio->Fread(cur_pos, sizeof(cur_pos), 1);
+//	state_fio->Fread(access, sizeof(access), 1);
+//	state_fio->Fread(&mdisk, sizeof(DISK60), 1);
+//	io_D1H = state_fio->FgetUint8();
+//	io_D2H = state_fio->FgetUint8();
+//	old_D2H = state_fio->FgetUint8();
+//	io_D3H = state_fio->FgetUint8();
+//	DrvNum = state_fio->FgetInt32();
 	return true;
 }
 

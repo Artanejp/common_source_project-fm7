@@ -1243,13 +1243,13 @@ void MC6801::std_ex()
 	WM16(EAD, &pD);
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 #include "../statesub.h"
 
 void MC6801::decl_state()
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("MC6801"));
+	enter_decl_state(STATE_VERSION);
 	
 	DECL_STATE_ENTRY_PAIR(pc);
 	DECL_STATE_ENTRY_UINT16(prevpc);
@@ -1284,7 +1284,8 @@ void MC6801::decl_state()
 	DECL_STATE_ENTRY_UINT8(pending_tcsr);
 	DECL_STATE_ENTRY_UINT16(input_capture);
 	DECL_STATE_ENTRY_UINT32(timer_next);
-	//recv_buffer->save_state((void *)state_fio);
+	DECL_STATE_ENTRY_FIFO(recv_buffer);
+
 	DECL_STATE_ENTRY_UINT8(trcsr);
 	DECL_STATE_ENTRY_UINT8(rdr);
 	DECL_STATE_ENTRY_UINT8(tdr);
@@ -1296,8 +1297,9 @@ void MC6801::decl_state()
 	DECL_STATE_ENTRY_UINT8(ram_ctrl);
 	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
 //#endif
-	
 
+	
+	leave_decl_state();
 }
 
 void MC6801::save_state(FILEIO* state_fio)
@@ -1339,7 +1341,7 @@ void MC6801::save_state(FILEIO* state_fio)
 //	state_fio->FputUint8(pending_tcsr);
 //	state_fio->FputUint16(input_capture);
 //	state_fio->FputUint32(timer_next);
-	recv_buffer->save_state((void *)state_fio);
+//	recv_buffer->save_state((void *)state_fio);
 //	state_fio->FputUint8(trcsr);
 //	state_fio->FputUint8(rdr);
 //	state_fio->FputUint8(tdr);
@@ -1403,9 +1405,9 @@ bool MC6801::load_state(FILEIO* state_fio)
 	if(__USE_DEBUGGER) {
 		prev_total_icount = total_icount;
 	}
-	if(!recv_buffer->load_state((void *)state_fio)) {
-		return false;
-	}
+//	if(!recv_buffer->load_state((void *)state_fio)) {
+//		return false;
+//	}
 //	trcsr = state_fio->FgetUint8();
 //	rdr = state_fio->FgetUint8();
 //	tdr = state_fio->FgetUint8();

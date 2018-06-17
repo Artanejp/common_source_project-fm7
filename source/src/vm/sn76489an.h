@@ -62,6 +62,7 @@ public:
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

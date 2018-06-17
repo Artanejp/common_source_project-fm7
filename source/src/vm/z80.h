@@ -47,7 +47,6 @@ protected:
 	DEVICE *d_mem_stored, *d_io_stored;
 //#endif
 	outputs_t outputs_busack;
-	csp_state_utils *state_entry;
 
 	bool has_nsc800;
 	bool has_memory_wait;

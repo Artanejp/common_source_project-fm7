@@ -982,19 +982,21 @@ void VM::update_dipswitch()
 
 #define STATE_VERSION	10
 #include "../../statesub.h"
+#include "../../qt/gui/csp_logger.h"
+extern CSP_Logger DLL_PREFIX_I *csp_logger;
 
 void VM::decl_state(void)
 {
 #if defined(_X1)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, _T("CSP::X1_HEAD"));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, _T("CSP::X1_HEAD"), csp_logger);
 #elif defined(_X1TURBO)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, _T("CSP::X1_TURBO_HEAD"));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, _T("CSP::X1_TURBO_HEAD"), csp_logger);
 #elif defined(_X1TURBOZ)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, _T("CSP::X1_TURBO_Z_HEAD"));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, _T("CSP::X1_TURBO_Z_HEAD"), csp_logger);
 #elif defined(_X1TWIN)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, _T("CSP::X1_TWIN_HEAD"));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, _T("CSP::X1_TWIN_HEAD"), csp_logger);
 #else
-	state_entry = new csp_state_utils(STATE_VERSION, 0, _T("CSP::X1_SERIES_HEAD"));
+	state_entry = new csp_state_utils(STATE_VERSION, 0, _T("CSP::X1_SERIES_HEAD"), csp_logger);
 #endif
 	
 	DECL_STATE_ENTRY_BOOL(pseudo_sub_cpu);

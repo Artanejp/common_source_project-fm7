@@ -213,7 +213,7 @@ void I8237::do_dma()
 
 void I8237::decl_state()
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("i8237"));
+	enter_decl_state(STATE_VERSION);
 	
 	for(int i = 0; i < 4; i++) {
 		DECL_STATE_ENTRY_UINT16_MEMBER((dma[i].areg), i);
@@ -233,6 +233,7 @@ void I8237::decl_state()
 	DECL_STATE_ENTRY_BOOL(mode_word);
 	DECL_STATE_ENTRY_UINT32(addr_mask);
 
+	leave_decl_state();
 }
 void I8237::save_state(FILEIO* state_fio)
 {
