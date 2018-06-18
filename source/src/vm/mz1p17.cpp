@@ -3779,7 +3779,7 @@ void MZ1P17::decl_state()
 	DECL_STATE_ENTRY_4D_ARRAY(gaiji, 3, 94, 48, 48);
 	DECL_STATE_ENTRY_1D_ARRAY(htab, sizeof(htab));
 	for(int i = 0; i < 14; i++) {
-		DECL_STATE_ENTRY_INT_MEMBER((vtab[i].y), i);
+		DECL_STATE_ENTRY_INT32_MEMBER((vtab[i].y), i);
 		DECL_STATE_ENTRY_BOOL_MEMBER((vtab[i].active), i);
 	}		
 	DECL_STATE_ENTRY_FIFO(fifo);
