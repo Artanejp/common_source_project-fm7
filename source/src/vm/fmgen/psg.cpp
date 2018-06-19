@@ -433,52 +433,64 @@ void PSG::Mix(Sample* dest, int nsamples)
 // ---------------------------------------------------------------------------
 //	ステートセーブ
 //
-#define PSG_STATE_VERSION	2
+#define PSG_STATE_VERSION	3
 
 void PSG::SaveState(void *f)
 {
 	FILEIO *state_fio = (FILEIO *)f;
 	
-	state_fio->FputUint32(PSG_STATE_VERSION);
+	state_fio->FputUint32_BE(PSG_STATE_VERSION);
 	
 	state_fio->Fwrite(reg, sizeof(reg), 1);
-	state_fio->FputInt32((int)(envelop_l - &enveloptable_l[0][0]));
-	state_fio->Fwrite(olevel_l, sizeof(olevel_l), 1);
-	state_fio->Fwrite(olevel_r, sizeof(olevel_r), 1);
-	state_fio->Fwrite(scount, sizeof(scount), 1);
-	state_fio->Fwrite(speriod, sizeof(speriod), 1);
-	state_fio->FputUint32(ecount);
-	state_fio->FputUint32(eperiod);
-	state_fio->FputUint32(ncount);
-	state_fio->FputUint32(nperiod);
-	state_fio->FputUint32(tperiodbase);
-	state_fio->FputUint32(eperiodbase);
-	state_fio->FputUint32(nperiodbase);
-	state_fio->FputInt32(mask);
+	state_fio->FputInt32_BE((int)(envelop_l - &enveloptable_l[0][0]));
+	//state_fio->Fwrite(olevel_l, sizeof(olevel_l), 1);
+	//state_fio->Fwrite(olevel_r, sizeof(olevel_r), 1);
+	//state_fio->Fwrite(scount, sizeof(scount), 1);
+	//state_fio->Fwrite(speriod, sizeof(speriod), 1);
+	for(int i = 0; i < 3; i++) {
+		state_fio->FputUint32_BE(olevel_l[i]);
+		state_fio->FputUint32_BE(olevel_r[i]);
+		state_fio->FputUint32_BE(scount[i]);
+		state_fio->FputUint32_BE(speriod[i]);
+	}
+	state_fio->FputUint32_BE(ecount);
+	state_fio->FputUint32_BE(eperiod);
+	state_fio->FputUint32_BE(ncount);
+	state_fio->FputUint32_BE(nperiod);
+	state_fio->FputUint32_BE(tperiodbase);
+	state_fio->FputUint32_BE(eperiodbase);
+	state_fio->FputUint32_BE(nperiodbase);
+	state_fio->FputInt32_BE(mask);
 }
 
 bool PSG::LoadState(void *f)
 {
 	FILEIO *state_fio = (FILEIO *)f;
 	
-	if(state_fio->FgetUint32() != PSG_STATE_VERSION) {
+	if(state_fio->FgetUint32_BE() != PSG_STATE_VERSION) {
 		return false;
 	}
 	state_fio->Fread(reg, sizeof(reg), 1);
-	int offset = state_fio->FgetInt32();
+	int offset = state_fio->FgetInt32_BE();
 	envelop_l = &enveloptable_l[0][0] + offset;
 	envelop_r = &enveloptable_r[0][0] + offset;
-	state_fio->Fread(olevel_l, sizeof(olevel_l), 1);
-	state_fio->Fread(olevel_r, sizeof(olevel_r), 1);
-	state_fio->Fread(scount, sizeof(scount), 1);
-	state_fio->Fread(speriod, sizeof(speriod), 1);
-	ecount = state_fio->FgetUint32();
-	eperiod = state_fio->FgetUint32();
-	ncount = state_fio->FgetUint32();
-	nperiod = state_fio->FgetUint32();
-	tperiodbase = state_fio->FgetUint32();
-	eperiodbase = state_fio->FgetUint32();
-	nperiodbase = state_fio->FgetUint32();
-	mask = state_fio->FgetInt32();
+	//state_fio->Fread(olevel_l, sizeof(olevel_l), 1);
+	//state_fio->Fread(olevel_r, sizeof(olevel_r), 1);
+	//state_fio->Fread(scount, sizeof(scount), 1);
+	//state_fio->Fread(speriod, sizeof(speriod), 1);
+	for(int i = 0; i < 3; i++) {
+		olevel_l[i] = state_fio->FgetUint32_BE();
+		olevel_r[i] = state_fio->FgetUint32_BE();
+		scount[i]   = state_fio->FgetUint32_BE();
+		speriod[i]  = state_fio->FgetUint32_BE();
+	}
+	ecount = state_fio->FgetUint32_BE();
+	eperiod = state_fio->FgetUint32_BE();
+	ncount = state_fio->FgetUint32_BE();
+	nperiod = state_fio->FgetUint32_BE();
+	tperiodbase = state_fio->FgetUint32_BE();
+	eperiodbase = state_fio->FgetUint32_BE();
+	nperiodbase = state_fio->FgetUint32_BE();
+	mask = state_fio->FgetInt32_BE();
 	return true;
 }

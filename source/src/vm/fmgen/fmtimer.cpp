@@ -113,39 +113,39 @@ void Timer::SetTimerPrescaler(int32 p)
 // ---------------------------------------------------------------------------
 //	ステートセーブ
 //
-#define TIMER_STATE_VERSION	1
+#define TIMER_STATE_VERSION	2
 
 void Timer::SaveState(void *f)
 {
 	FILEIO *state_fio = (FILEIO *)f;
 	
-	state_fio->FputUint32(TIMER_STATE_VERSION);
+	state_fio->FputUint32_BE(TIMER_STATE_VERSION);
 	
 	state_fio->FputUint8(status);
 	state_fio->FputUint8(regtc);
 	state_fio->Fwrite(regta, sizeof(regta), 1);
-	state_fio->FputInt32(timera);
-	state_fio->FputInt32(timera_count);
-	state_fio->FputInt32(timerb);
-	state_fio->FputInt32(timerb_count);
-	state_fio->FputInt32(prescaler);
+	state_fio->FputInt32_BE(timera);
+	state_fio->FputInt32_BE(timera_count);
+	state_fio->FputInt32_BE(timerb);
+	state_fio->FputInt32_BE(timerb_count);
+	state_fio->FputInt32_BE(prescaler);
 }
 
 bool Timer::LoadState(void *f)
 {
 	FILEIO *state_fio = (FILEIO *)f;
 	
-	if(state_fio->FgetUint32() != TIMER_STATE_VERSION) {
+	if(state_fio->FgetUint32_BE() != TIMER_STATE_VERSION) {
 		return false;
 	}
 	status = state_fio->FgetUint8();
 	regtc = state_fio->FgetUint8();
 	state_fio->Fread(regta, sizeof(regta), 1);
-	timera = state_fio->FgetInt32();
-	timera_count = state_fio->FgetInt32();
-	timerb = state_fio->FgetInt32();
-	timerb_count = state_fio->FgetInt32();
-	prescaler = state_fio->FgetInt32();
+	timera = state_fio->FgetInt32_BE();
+	timera_count = state_fio->FgetInt32_BE();
+	timerb = state_fio->FgetInt32_BE();
+	timerb_count = state_fio->FgetInt32_BE();
+	prescaler = state_fio->FgetInt32_BE();
 	return true;
 }
 

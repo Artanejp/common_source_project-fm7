@@ -527,33 +527,33 @@ void OPM::Mix(Sample* buffer, int nsamples)
 // ---------------------------------------------------------------------------
 //	ステートセーブ
 //
-#define OPM_STATE_VERSION	3
+#define OPM_STATE_VERSION	4
 
 void OPM::SaveState(void *f)
 {
 	FILEIO *state_fio = (FILEIO *)f;
 	
-	state_fio->FputUint32(OPM_STATE_VERSION);
+	state_fio->FputUint32_BE(OPM_STATE_VERSION);
 	
 	Timer::SaveState(f);
-	state_fio->FputInt32(fmvolume_l);
-	state_fio->FputInt32(fmvolume_r);
-	state_fio->FputUint32(clock);
-	state_fio->FputUint32(rate);
-	state_fio->FputUint32(pcmrate);
-	state_fio->FputUint32(pmd);
-	state_fio->FputUint32(amd);
-	state_fio->FputUint32(lfocount);
-	state_fio->FputUint32(lfodcount);
-	state_fio->FputUint32(lfo_count_);
-	state_fio->FputUint32(lfo_count_diff_);
-	state_fio->FputUint32(lfo_step_);
-	state_fio->FputUint32(lfo_count_prev_);
-	state_fio->FputUint32(lfowaveform);
-	state_fio->FputUint32(rateratio);
-	state_fio->FputUint32(noise);
-	state_fio->FputInt32(noisecount);
-	state_fio->FputUint32(noisedelta);
+	state_fio->FputInt32_BE(fmvolume_l);
+	state_fio->FputInt32_BE(fmvolume_r);
+	state_fio->FputUint32_BE(clock);
+	state_fio->FputUint32_BE(rate);
+	state_fio->FputUint32_BE(pcmrate);
+	state_fio->FputUint32_BE(pmd);
+	state_fio->FputUint32_BE(amd);
+	state_fio->FputUint32_BE(lfocount);
+	state_fio->FputUint32_BE(lfodcount);
+	state_fio->FputUint32_BE(lfo_count_);
+	state_fio->FputUint32_BE(lfo_count_diff_);
+	state_fio->FputUint32_BE(lfo_step_);
+	state_fio->FputUint32_BE(lfo_count_prev_);
+	state_fio->FputUint32_BE(lfowaveform);
+	state_fio->FputUint32_BE(rateratio);
+	state_fio->FputUint32_BE(noise);
+	state_fio->FputInt32_BE(noisecount);
+	state_fio->FputUint32_BE(noisedelta);
 	state_fio->FputBool(interpolation);
 	state_fio->FputUint8(lfofreq);
 	state_fio->FputUint8(status);
@@ -572,30 +572,30 @@ bool OPM::LoadState(void *f)
 {
 	FILEIO *state_fio = (FILEIO *)f;
 	
-	if(state_fio->FgetUint32() != OPM_STATE_VERSION) {
+	if(state_fio->FgetUint32_BE() != OPM_STATE_VERSION) {
 		return false;
 	}
 	if(!Timer::LoadState(f)) {
 		return false;
 	}
-	fmvolume_l = state_fio->FgetInt32();
-	fmvolume_r = state_fio->FgetInt32();
-	clock = state_fio->FgetUint32();
-	rate = state_fio->FgetUint32();
-	pcmrate = state_fio->FgetUint32();
-	pmd = state_fio->FgetUint32();
-	amd = state_fio->FgetUint32();
-	lfocount = state_fio->FgetUint32();
-	lfodcount = state_fio->FgetUint32();
-	lfo_count_ = state_fio->FgetUint32();
-	lfo_count_diff_ = state_fio->FgetUint32();
-	lfo_step_ = state_fio->FgetUint32();
-	lfo_count_prev_ = state_fio->FgetUint32();
-	lfowaveform = state_fio->FgetUint32();
-	rateratio = state_fio->FgetUint32();
-	noise = state_fio->FgetUint32();
-	noisecount = state_fio->FgetInt32();
-	noisedelta = state_fio->FgetUint32();
+	fmvolume_l = state_fio->FgetInt32_BE();
+	fmvolume_r = state_fio->FgetInt32_BE();
+	clock = state_fio->FgetUint32_BE();
+	rate = state_fio->FgetUint32_BE();
+	pcmrate = state_fio->FgetUint32_BE();
+	pmd = state_fio->FgetUint32_BE();
+	amd = state_fio->FgetUint32_BE();
+	lfocount = state_fio->FgetUint32_BE();
+	lfodcount = state_fio->FgetUint32_BE();
+	lfo_count_ = state_fio->FgetUint32_BE();
+	lfo_count_diff_ = state_fio->FgetUint32_BE();
+	lfo_step_ = state_fio->FgetUint32_BE();
+	lfo_count_prev_ = state_fio->FgetUint32_BE();
+	lfowaveform = state_fio->FgetUint32_BE();
+	rateratio = state_fio->FgetUint32_BE();
+	noise = state_fio->FgetUint32_BE();
+	noisecount = state_fio->FgetInt32_BE();
+	noisedelta = state_fio->FgetUint32_BE();
 	interpolation = state_fio->FgetBool();
 	lfofreq = state_fio->FgetUint8();
 	status = state_fio->FgetUint8();
