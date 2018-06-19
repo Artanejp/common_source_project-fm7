@@ -25,10 +25,11 @@ extern "C" {
 #endif
 
 #include "config.h"
-extern DLL_PREFIX CSP_Logger *csp_logger;
+class CSP_Logger;
 class DLL_PREFIX SOUND_LOADER
 {
 private:
+	CSP_Logger *p_logger;
 #if defined(USE_LIBAV)
 	AVFormatContext *fmt_ctx; // = NULL;
 	AVCodecContext *audio_dec_ctx;
@@ -55,7 +56,7 @@ protected:
 	void *prev_loader;
 	int this_id;
 public:
-	SOUND_LOADER(void *prev_sound_loader);
+	SOUND_LOADER(void *prev_sound_loader, CSP_Logger *logger);
 	~SOUND_LOADER();
 	
 	bool open(int id, QString filename);

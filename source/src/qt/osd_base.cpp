@@ -49,7 +49,7 @@ OSD_BASE::OSD_BASE(USING_FLAGS *p, CSP_Logger *logger) : QThread(0)
 	screen_mutex = new QMutex(QMutex::Recursive);
 	device_node_list.clear();
 	max_vm_nodes = 0;
-	csp_logger = logger;
+	p_logger = logger;
 	
 	SupportedFeatures.clear();
 }
@@ -348,7 +348,7 @@ int OSD_BASE::get_window_mode_height(int mode)
 void OSD_BASE::reset_vm_node(void)
 {
 	device_node_list.clear();
-//	csp_logger->reset();
+//	p_logger->reset();
 	max_vm_nodes = 0;
 }
 

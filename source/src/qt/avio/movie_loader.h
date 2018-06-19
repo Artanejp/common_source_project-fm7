@@ -44,13 +44,13 @@ typedef struct {
 QT_BEGIN_NAMESPACE
 class OSD;
 class QMutex;
-extern DLL_PREFIX CSP_Logger *csp_logger;
-
+class CSP_Logger;
 class DLL_PREFIX MOVIE_LOADER: public QObject
 {
 	Q_OBJECT
 private:
 	bool req_transfer;
+	CSP_Logger *p_logger;
 #if defined(USE_LIBAV)
 	AVFormatContext *fmt_ctx; // = NULL;
 	AVCodecContext *video_dec_ctx;// = NULL

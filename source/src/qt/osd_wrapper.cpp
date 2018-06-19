@@ -128,7 +128,7 @@ void OSD::init_sound_files()
 {
 	for(int i = 0; i < USE_SOUND_FILES; i++) {
 		sound_file_obj[i] = NULL;
-		SOUND_LOADER *p = new SOUND_LOADER((void *)tail_sound_file);
+		SOUND_LOADER *p = new SOUND_LOADER((void *)tail_sound_file, p_logger);
 		if(p != NULL) {
 			sound_file_obj[i] = p;
 		}
@@ -543,13 +543,13 @@ void OSD::reset_vm_node()
 {
 	device_node_t sp;
 	device_node_list.clear();
-	csp_logger->reset();
+	p_logger->reset();
 	max_vm_nodes = 0;
 	for(DEVICE *p = vm->first_device; p != NULL; p = p->next_device) {
 		sp.id = p->this_device_id;
 		sp.name = p->this_device_name;
-		csp_logger->set_device_name(sp.id, sp.name);
-		csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL,  "Device %d :%s", sp.id, sp.name);
+		p_logger->set_device_name(sp.id, sp.name);
+		p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL,  "Device %d :%s", sp.id, sp.name);
 		device_node_list.append(sp);
 		if(max_vm_nodes <= p->this_device_id) max_vm_nodes = p->this_device_id + 1;
 	}

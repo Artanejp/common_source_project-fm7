@@ -1,6 +1,6 @@
 message("* qt/avio")
 
-SET(THIS_LIB_VERSION 2.7.6)
+SET(THIS_LIB_VERSION 2.8.0)
 set(s_qt_avio_headers
 	  movie_saver.h
 	  movie_loader.h
@@ -23,42 +23,45 @@ else()
 endif()
 
 if(WIN32)
-add_library(qt_avio
-	  ${s_qt_avio_srcs}
-	  ${s_qt_avio_headers_MOC}
-)
-
-#include (GenerateExportHeader)
-#add_library(CSPavio SHARED
+#add_library(qt_avio
 #	  ${s_qt_avio_srcs}
 #	  ${s_qt_avio_headers_MOC}
 #)
 
-#target_link_libraries(CSPavio PUBLIC
-#		   ${LIBAV_LIBRARIES}
-#		   Qt5::Core
-#		   Qt5::Gui
-#		   Qt5::Widgets
-#	  )
-#QT5_USE_MODULES(CSPavio Widgets Core Gui OpenGL)
+include (GenerateExportHeader)
+add_library(CSPavio SHARED
+	  ${s_qt_avio_srcs}
+	  ${s_qt_avio_headers_MOC}
+)
 
-#set_target_properties(CSPavio PROPERTIES 
-#			     SOVERSION 2.6.3
-#			     VERSION 2.6.3
-#			     )
-#generate_export_header(CSPavio
-#       BASE_NAME CSPavio
-#        EXPORT_MACRO_NAME CSPavio_EXPORT
-#        EXPORT_FILE_NAME CSPavio_Export.h
-#        STATIC_DEFINE CSPavio_BUILT_AS_STATIC
-#)
+target_link_libraries(CSPavio PUBLIC
+		   ${LIBAV_LIBRARIES}
+		   ${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libCSPosd.dll.a
+#		   ${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libCSPgui.dll.a
+	  	   ${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libCSPemu_utils.dll.a
+		   Qt5::Core
+		   Qt5::Gui
+		   Qt5::Widgets
+	  )
+#QT5_USE_MODULES(CSPavio Widgets Core Gui OpenGL)
+set_target_properties(CSPavio PROPERTIES 
+			     SOVERSION ${THIS_LIB_VERSION}
+			     VERSION ${THIS_LIB_VERSION}
+			     )
+
+generate_export_header(CSPavio
+       BASE_NAME CSPavio
+        EXPORT_MACRO_NAME CSPavio_EXPORT
+        EXPORT_FILE_NAME CSPavio_Export.h
+        STATIC_DEFINE CSPavio_BUILT_AS_STATIC
+)
 
 else()
 add_library(CSPavio SHARED
 	  ${s_qt_avio_srcs}
 	  ${s_qt_avio_headers_MOC}
 	  )
-#set(LIBAV_STATIC_PREFIX /usr/local/ffmpeg-2.8.7/lib)
+
 target_link_libraries(CSPavio PUBLIC
 		   ${LIBAV_LIBRARIES}
 		   Qt5::Core

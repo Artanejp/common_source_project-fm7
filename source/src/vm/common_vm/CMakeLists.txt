@@ -122,13 +122,13 @@ set(s_vm_common_vm_srcs
 #)
 
 if(WIN32)
-#include (GenerateExportHeader)
+include (GenerateExportHeader)
 #add_library(CSPcommon_vm SHARED
-#    ${s_vm_common_vm_srcs}
+#   ${s_vm_common_vm_srcs}
 #    )
-#   
+   
 #target_link_libraries(CSPcommon_vm PUBLIC
-#	  ${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libqt_osd.a
+#	  ${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libCSPosd.dll.a
 #	  ${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libCSPemu_utils.dll.a
 #	  Qt5::Core
 #	  Qt5::Gui
@@ -142,13 +142,13 @@ if(WIN32)
 #			     LINK_INTERFACE_LIBRARIES ""
 #			     )
 #generate_export_header(CSPcommon_vm
-#        BASE_NAME CSPcommon_vm
+#       BASE_NAME CSPcommon_vm
 #        EXPORT_MACRO_NAME CSPcommon_vm_EXPORT
 #        EXPORT_FILE_NAME CSPcommon_vm_Export.h
 #        STATIC_DEFINE CSPcommon_vm_BUILT_AS_STATIC
 #)
 add_library(vm_common_vm
-    ${s_vm_common_vm_srcs}
+   ${s_vm_common_vm_srcs}
     )
 else()
 

@@ -68,7 +68,6 @@ protected:
 
 	QTcpSocket2 *tcp_socket[SOCKET_MAX];
 	QUdpSocket2 *udp_socket[SOCKET_MAX];
-	
 
 #ifdef USE_SOUND_FILES
 	SOUND_LOADER *tail_sound_file;
@@ -140,6 +139,7 @@ public slots:
 	void do_run_movie_audio_callback(uint8_t *data, long len);
 	void do_notify_socket_connected(int ch);
 	void do_notify_socket_disconnected(int ch);
+
 };
 QT_END_NAMESPACE
 

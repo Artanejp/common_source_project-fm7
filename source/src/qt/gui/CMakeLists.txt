@@ -1,11 +1,11 @@
 message("* qt/gui")
 
-set(THIS_LIB_VERSION 2.12.4)
+set(THIS_LIB_VERSION 2.13.0)
 #include(cotire)
 #include(PrecompiledHeader)
 
 set(s_qt_gui_headers
-	  csp_logger.h
+#	  csp_logger.h
   
 	  qt_dialogs.h
 	  qt_gldraw.h
@@ -43,7 +43,6 @@ set(s_qt_gui_headers
 	  tab_movie_mpeg4.h
 
 	  dock_disks.h
-#	  qt_drawitem.h
 	  
 	  draw_thread.h
 	  joy_thread.h
@@ -116,7 +115,7 @@ set(s_qt_gui_srcs
 
 #	  ../../romakana.cpp
 	  menu_flags_tmpl.cpp
-	  csp_logger.cpp
+#	  csp_logger.cpp
 	  qt_main.cpp
 	  ../common/util_bubble2.cpp
 )
@@ -144,8 +143,9 @@ add_library(CSPgui SHARED
 
 target_link_libraries(CSPgui 
 	  ${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libCSPosd.dll.a
-	  ${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libqt_avio.a
-	  ${LIBAV_LIBRARIES}
+#	  ${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libqt_avio.a
+#	  ${LIBAV_LIBRARIES}
+	  ${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libCSPavio.dll.a
 	  ${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libCSPemu_utils.dll.a
 	  Qt5::Core
 	  Qt5::Gui

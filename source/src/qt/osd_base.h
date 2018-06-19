@@ -58,7 +58,7 @@ class FIFO;
 class FILEIO;
 class CSP_KeyTables;
 class USING_FLAGS;
-class CSP_LOGGER;
+class CSP_logger;
 class QMutex;
 
 QT_BEGIN_NAMESPACE
@@ -84,7 +84,7 @@ protected:
 	sdl_snddata_t snddata;
 	USING_FLAGS *using_flags;
 	config_t *p_config;
-	CSP_Logger *csp_logger;
+	CSP_Logger *p_logger;
 
 	QList<supportedlist_t> SupportedFeatures;
 	
@@ -467,6 +467,10 @@ public:
 	virtual void debug_log(int level, int domain_num, char *strbuf);
 
 	USING_FLAGS *get_config_flags(void) { return using_flags; }
+
+	// Special
+	CSP_Logger *get_logger(void) { return p_logger; }
+	
 public slots:
 	void do_write_inputdata(QString s);
 	void do_set_input_string(QString s);
@@ -513,6 +517,7 @@ signals:
 	int sig_close_console(void);
 
 	int sig_move_mouse_to_center(void);
+	
 };
 QT_END_NAMESPACE
 

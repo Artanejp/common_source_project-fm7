@@ -9,7 +9,7 @@
 #include "sound_loader.h"
 #include "../osd_base.h"
 
-SOUND_LOADER::SOUND_LOADER(void *prev_sound_loader)
+SOUND_LOADER::SOUND_LOADER(void *prev_sound_loader, CSP_Logger *logger)
 {
 	_filename.clear();
 	_dst_size = _dataptr = 0;
@@ -18,7 +18,9 @@ SOUND_LOADER::SOUND_LOADER(void *prev_sound_loader)
 	_data_size = 0;
 	sound_rate = 48000;
 	this_id = -1;
+	
 	prev_loader = prev_sound_loader;
+	p_logger = logger;
 #if defined(USE_LIBAV)
 	fmt_ctx = NULL;
 	audio_dec_ctx = NULL;
@@ -52,13 +54,13 @@ bool SOUND_LOADER::open(int id, QString filename)
 	
 	/* open input file, and allocate format context */
 	if (avformat_open_input(&fmt_ctx, _filename.toLocal8Bit().constData(), NULL, NULL) < 0) {
-		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Could not open source file %s\n", _filename.toLocal8Bit().constData());
+		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Could not open source file %s\n", _filename.toLocal8Bit().constData());
         return false;
 	}
 	this_id = id;
 	/* retrieve stream information */
 	if (avformat_find_stream_info(fmt_ctx, NULL) < 0) {
-		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Could not find stream information\n");
+		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Could not find stream information\n");
 		return false;
 	}
 	if (open_codec_context(&audio_stream_idx, fmt_ctx, AVMEDIA_TYPE_AUDIO) >= 0) {
@@ -68,7 +70,7 @@ bool SOUND_LOADER::open(int id, QString filename)
 	}
 	swr_context = swr_alloc();
 	if(swr_context == NULL) {
-		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Could not allocate resampler context\n");
+		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Could not allocate resampler context\n");
 		goto _end;
 	}
 	av_opt_set_int	   (swr_context, "in_channel_count",   audio_stream->codec->channels,	   0);
@@ -80,21 +82,21 @@ bool SOUND_LOADER::open(int id, QString filename)
 	
 	/* initialize the resampling context */
 	if ((ret = swr_init(swr_context)) < 0) {
-		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Failed to initialize the resampling context\n");
+		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Failed to initialize the resampling context\n");
 		goto _end;
 	}
 	
 	/* dump input information to stderr */
 	av_dump_format(fmt_ctx, 0, _filename.toLocal8Bit().constData(), 0);
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Audio is %d Hz ", sound_rate);
+	p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Audio is %d Hz ", sound_rate);
 	if (!audio_stream) {
-		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Could not find audio or video stream in the input, aborting\n");
+		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Could not find audio or video stream in the input, aborting\n");
 		ret = 1;
 		goto _end;
 	}
 	frame = av_frame_alloc();
 	if (!frame) {
-		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Could not allocate frame\n");
+		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Could not allocate frame\n");
 		ret = AVERROR(ENOMEM);
 		goto _end;
 	}
@@ -104,7 +106,7 @@ bool SOUND_LOADER::open(int id, QString filename)
 	pkt.data = NULL;
 	pkt.size = 0;
 	// ToDo : Initialize SWScaler and SWresampler.
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "SOUND_LOADER: Loading movie completed.\n");
+	p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "SOUND_LOADER: Loading movie completed.\n");
 	return true;
 _end:
 	this->close();
@@ -129,7 +131,7 @@ void SOUND_LOADER::close(void)
 		if(_data[i] != NULL) free(_data[i]);
 		_data[i] = NULL;
 	}
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "SOUND_LOADER: Close sound.");
+	p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "SOUND_LOADER: Close sound.");
 }
 
 #if defined(USE_LIBAV)	
@@ -143,7 +145,7 @@ int SOUND_LOADER::decode_packet(int *got_frame, int cached)
 		if (ret < 0) {
 			char str_buf[AV_ERROR_MAX_STRING_SIZE] = {0};
 			av_make_error_string(str_buf, AV_ERROR_MAX_STRING_SIZE, ret);
-			csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Error decoding audio frame (%s)\n", str_buf);
+			p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Error decoding audio frame (%s)\n", str_buf);
 			return ret;
 		}
 		/* Some audio decoders decode only part of the packet, and have to be
@@ -159,7 +161,7 @@ int SOUND_LOADER::decode_packet(int *got_frame, int cached)
 			int dst_nb_samples = av_rescale_rnd(swr_get_delay(swr_context, c->sample_rate) + frame->nb_samples,
 												c->sample_rate, c->sample_rate,  AV_ROUND_UP);
 			//av_ts_make_time_string(str_buf, frame->pts, &audio_dec_ctx->time_base);
-			//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND_LOADER,"audio_frame%s n:%d nb_samples:%d pts:%s\n",
+			//p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND_LOADER,"audio_frame%s n:%d nb_samples:%d pts:%s\n",
 			//			  cached ? "(cached)" : "",
 			//			  audio_frame_count++, frame->nb_samples,
 			//			  str_buf);
@@ -174,7 +176,7 @@ int SOUND_LOADER::decode_packet(int *got_frame, int cached)
 			_data[0] = (uint8_t *)malloc((long)dst_nb_samples * 2 * sizeof(int16_t));
 			_data[1] = _data[2] = _data[3] = NULL;
 			if(_data[0] == NULL) {
-				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Error allocating local buffers\n");
+				p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Error allocating local buffers\n");
 				return -1;
 			}
 				
@@ -182,14 +184,14 @@ int SOUND_LOADER::decode_packet(int *got_frame, int cached)
 							  _data, dst_nb_samples,
 							  (const uint8_t **)frame->data, frame->nb_samples);
 			if (ret < 0) {
-				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Error while converting\n");
+				p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Error while converting\n");
 				return -1;
 			}
 			_dst_size += dst_nb_samples;
 			if(_data_size <= (uint)(_dst_size * 2 * sizeof(int16_t))) {
 				sound_buffer = (int16_t *)realloc(sound_buffer, _data_size << 1);
 				if(sound_buffer == NULL) {
-					csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Error re-allocate sound buffer");
+					p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Error re-allocate sound buffer");
 					if(_data[0] != NULL) free(_data[0]);
 					_data[0] = NULL;
 					return -1;
@@ -223,7 +225,7 @@ int SOUND_LOADER::open_codec_context(int *stream_idx,
 
     ret = av_find_best_stream(fmt_ctx, type, -1, -1, NULL, 0);
     if (ret < 0) {
-        csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Could not find %s stream in input file '%s'\n",
+        p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Could not find %s stream in input file '%s'\n",
                 av_get_media_type_string(type), _filename.toLocal8Bit().constData());
         return ret;
     } else {
@@ -234,7 +236,7 @@ int SOUND_LOADER::open_codec_context(int *stream_idx,
         dec_ctx = st->codec;
         dec = avcodec_find_decoder(dec_ctx->codec_id);
         if (!dec) {
-            csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Failed to find %s codec\n",
+            p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Failed to find %s codec\n",
                     av_get_media_type_string(type));
             return AVERROR(EINVAL);
         }
@@ -242,7 +244,7 @@ int SOUND_LOADER::open_codec_context(int *stream_idx,
         /* Init the decoders, with or without reference counting */
         av_dict_set(&opts, "refcounted_frames", "1", 0);
         if ((ret = avcodec_open2(dec_ctx, dec, &opts)) < 0) {
-            csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Failed to open %s codec\n",
+            p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Failed to open %s codec\n",
                     av_get_media_type_string(type));
             return ret;
         }
@@ -275,7 +277,7 @@ int SOUND_LOADER::get_format_from_sample_fmt(const char **fmt,
         }
     }
 
-    csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER,
+    p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER,
             "sample format %s is not supported as output format\n",
             av_get_sample_fmt_name(sample_fmt));
     return -1;

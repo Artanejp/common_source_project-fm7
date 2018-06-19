@@ -66,14 +66,14 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
 	/* find the encoder */
 	*codec = avcodec_find_encoder(codec_id);
 	if (!(*codec)) {
-		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not find encoder for '%s'\n",
+		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not find encoder for '%s'\n",
 				(const char *)avcodec_get_name(codec_id));
 		return false;
 	}
 
 	ost->st = avformat_new_stream(oc, *codec);
 	if (!ost->st) {
-		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not allocate stream\n");
+		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not allocate stream\n");
 		return false;
 	}
 	ost->st->id = oc->nb_streams-1;
@@ -194,9 +194,9 @@ bool MOVIE_SAVER::do_open_main()
 		//do_add_option(QString::fromUtf8("c:v"), QString::fromUtf8("theora"));
 		do_add_option(QString::fromUtf8("c:a"), QString::fromUtf8("vorbis"));
 		
-		video_encode_threads = config.video_threads;
-		video_geometry = QSize(config.video_width, config.video_height);
-		audio_bit_rate = config.audio_bitrate * 1000;
+		video_encode_threads = p_config->video_threads;
+		video_geometry = QSize(p_config->video_width, p_config->video_height);
+		audio_bit_rate = p_config->audio_bitrate * 1000;
 		
 	}
 
@@ -216,7 +216,7 @@ bool MOVIE_SAVER::do_open_main()
 		return false;
 
 	fmt = oc->oformat;
-	switch(config.video_codec_type) {
+	switch(p_config->video_codec_type) {
 	case VIDEO_CODEC_MPEG4:
 		fmt->video_codec = AV_CODEC_ID_MPEG4;
 		break;
@@ -224,7 +224,7 @@ bool MOVIE_SAVER::do_open_main()
 		fmt->video_codec = AV_CODEC_ID_H264;
 		break;
 	}
-	switch(config.audio_codec_type) {
+	switch(p_config->audio_codec_type) {
 	case AUDIO_CODEC_MP3:
 		fmt->audio_codec = AV_CODEC_ID_MP3;
 		break;
@@ -263,12 +263,12 @@ bool MOVIE_SAVER::do_open_main()
 	if (!(fmt->flags & AVFMT_NOFILE)) {
 		ret = avio_open(&oc->pb, _filename.toLocal8Bit().constData(), AVIO_FLAG_WRITE);
 		if (ret < 0) {
-			csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER,
+			p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER,
 								  "Could not open '%s': %s\n", _filename.toLocal8Bit().constData(),
 					err2str(ret).toLocal8Bit().constData());
 			goto _err_final;
 		} else {
-			csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER,
+			p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER,
 								  "Success to Open file: '%s\n", _filename.toLocal8Bit().constData());
 		}			
 	}
@@ -280,7 +280,7 @@ bool MOVIE_SAVER::do_open_main()
 	/* Write the stream header, if any. */
 	ret = avformat_write_header(oc, &raw_options_list);
 	if (ret < 0) {
-		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER,
+		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER,
 							  "Error occurred when opening output file: %s\n",
 				err2str(ret).toLocal8Bit().constData());
 		goto _err_final;
@@ -402,15 +402,15 @@ void MOVIE_SAVER::do_close_main()
 	}
 	video_data_queue.clear();
 
-	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER,
+	p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER,
 						  "Close: Left:  Video %lld frames, Audio %lld frames",
 				  leftq_v,
 				  leftq_a
 	);
 	// Message
-	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER,
+	p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER,
 				  "MOVIE: Close: Write:  Video %lld frames, Audio %lld frames", totalDstFrame, totalAudioFrame);
-	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER,
+	p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER,
 						  "MOVIE: Close: Dequeue:  Video %lld frames, Audio %lld frames", totalDstFrame, audio_count);
 	totalSrcFrame = 0;
 	totalDstFrame = 0;

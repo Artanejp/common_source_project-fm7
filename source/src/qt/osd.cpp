@@ -33,13 +33,13 @@ OSD::~OSD()
 
 void OSD::debug_log(int level, int domain_num, char *strbuf)
 {
-	if(csp_logger != NULL) csp_logger->debug_log(level, domain_num, strbuf);
+	if(p_logger != NULL) p_logger->debug_log(level, domain_num, strbuf);
 }
 
 
 void OSD::set_device_name(int id, char *name)
 {
-	if(csp_logger != NULL)	csp_logger->set_device_name(id, (char *)name);
+	if(p_logger != NULL)	p_logger->set_device_name(id, (char *)name);
 }
 
 void OSD::set_features_machine(void)

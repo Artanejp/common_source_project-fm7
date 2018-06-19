@@ -84,7 +84,9 @@ find_package(Qt5Core)
  ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPemu_utils.dll.a
  ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPosd.dll.a
  ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPgui.dll.a
- ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libqt_avio.a
+ ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPavio.dll.a
+# ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/avio.dll.a
+
  ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPfmgen.dll.a
  ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libvm_common_vm.a
  #${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPcommon_vm.dll.a

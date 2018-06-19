@@ -18,8 +18,10 @@ MOVIE_SAVER::MOVIE_SAVER(int width, int height, int fps, OSD *osd, config_t *cfg
 	_width = width;
 	_height = height;
 	rec_fps = fps;
+	
 	p_osd = osd;
 	p_config = cfg;
+	p_logger = osd->get_logger();
 	
 	recording = false;
 	audio_sample_rate = 48000;
@@ -107,7 +109,7 @@ void MOVIE_SAVER::log_packet(const void *_fmt_ctx, const void *_pkt)
 	const AVPacket *pkt = (const AVPacket *)_pkt;
 	AVRational *time_base = &fmt_ctx->streams[pkt->stream_index]->time_base;
 
-	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "pts:%s pts_time:%s dts:%s dts_time:%s duration:%s duration_time:%s stream_index:%d\n",
+	p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "pts:%s pts_time:%s dts:%s dts_time:%s duration:%s duration_time:%s stream_index:%d\n",
 		   ts2str(pkt->pts).toLocal8Bit().constData(),
 		   ts2timestr(pkt->pts, (void *)time_base).toLocal8Bit().constData(),
 		   ts2str(pkt->dts).toLocal8Bit().constData(),
@@ -128,7 +130,7 @@ void MOVIE_SAVER::enqueue_video(int frames, int width, int height, QImage *p)
 	if((width  <= 0) || (height <= 0) || (frames <= 0)) return;
 	if((p->width() <= 0) || (p->height() <= 0)) return;
 	VIDEO_DATA *px = new VIDEO_DATA(frames, width, height, p);
-	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "Movie: Enqueue video data %dx%d %d bytes %dx%d %d frames", width, height, p->byteCount(), p->width(), p->height(), frames);
+	//p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "Movie: Enqueue video data %dx%d %d bytes %dx%d %d frames", width, height, p->byteCount(), p->width(), p->height(), frames);
 	//video_queue_mutex->lock();
 	video_data_queue.enqueue(px);
 	//video_queue_mutex->unlock();
@@ -156,7 +158,7 @@ bool MOVIE_SAVER::dequeue_video(uint32_t *p)
 			my_memcpy(&(p[_width * y]), pq, (((uint)_width * sizeof(uint32_t)) > pp_i->bytesPerLine()) ? pp_i->bytesPerLine() : _width * sizeof(uint32_t));
 		}
 		video_size = _width * y;
-		//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "Movie: Dequeue video data %d bytes", video_size);
+		//p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "Movie: Dequeue video data %d bytes", video_size);
 	}
 #else
 	video_size = 0;
@@ -172,7 +174,7 @@ void MOVIE_SAVER::enqueue_audio(int16_t *p, int size)
 	if(p == NULL) return;
 	if(req_stop) return;
 	QByteArray *pp = new QByteArray((const char *)p, size);
-	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "Movie: Enqueue audio data %d bytes", size);
+	//p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "Movie: Enqueue audio data %d bytes", size);
 	audio_data_queue.enqueue(pp);
 //	audio_enqueue_count++;
 #endif   
@@ -212,7 +214,7 @@ bool MOVIE_SAVER::dequeue_audio(int16_t *p)
 void MOVIE_SAVER::run()
 {
 	bRunThread = true;
-	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "MOVIE THREAD: Start");
+	//p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "MOVIE THREAD: Start");
 	int ret;
 	int fps_wait = (int)((1000.0 / (double)rec_fps) / 4.0);
 	int tmp_wait = fps_wait;
@@ -252,7 +254,7 @@ void MOVIE_SAVER::run()
 					recording = false;
 					goto _next_turn;
 				}
-				csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "MOVIE/Saver: Start to recording.");
+				p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "MOVIE/Saver: Start to recording.");
 				old_recording = true;
 				a_f = v_f = false;
 			}
@@ -281,20 +283,20 @@ void MOVIE_SAVER::run()
 														audio_st.next_pts, audio_st.st->codec->time_base) <= 0)) {
 				n_encode_video = write_video_frame();
 				if(n_encode_video < 0) {
-					csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "MOVIE/Saver: Something wrong with encoding video.");
+					p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "MOVIE/Saver: Something wrong with encoding video.");
 					goto _final;
 				}
 			} else {
 				n_encode_audio = write_audio_frame();
 				if(n_encode_audio < 0) {
-					csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "MOVIE/Saver: Something wrong with encoding audio.");
+					p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "MOVIE/Saver: Something wrong with encoding audio.");
 					goto _final;
 				}
 			}
 			if (ret < 0 && ret != AVERROR_EOF) {
 				char errbuf[128];
 				av_strerror(ret, errbuf, sizeof(errbuf));
-				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error while filtering: %s\n", (const char *)errbuf);
+				p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error while filtering: %s\n", (const char *)errbuf);
 				goto _final;
 			}
 			
@@ -335,7 +337,7 @@ void MOVIE_SAVER::run()
 		do_close_main();
 		old_recording = false;
 	}
-	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "MOVIE: Exit thread.");
+	p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "MOVIE: Exit thread.");
 	if(recording) {
 		req_close = true;
 		do_close_main();

@@ -36,10 +36,10 @@ void MOVIE_SAVER::setup_h264(void *_codec_context)
 #if defined(USE_LIBAV)
 	AVCodecContext *c = (AVCodecContext *)_codec_context;
 
-	c->qmin	 = config.video_h264_minq;
-	c->qmax	 = config.video_h264_maxq;
-	c->bit_rate = config.video_h264_bitrate * 1000;
-	c->max_b_frames = config.video_h264_bframes;
+	c->qmin	 = p_config->video_h264_minq;
+	c->qmax	 = p_config->video_h264_maxq;
+	c->bit_rate = p_config->video_h264_bitrate * 1000;
+	c->max_b_frames = p_config->video_h264_bframes;
 	c->b_quant_offset = 2;
 	c->temporal_cplx_masking = 0.1;
 	c->spatial_cplx_masking = 0.15;
@@ -49,8 +49,8 @@ void MOVIE_SAVER::setup_h264(void *_codec_context)
 	c->refs = 5;
 	c->chromaoffset = 2;
 	c->max_qdiff = 6;
-	c->b_frame_strategy = config.video_h264_b_adapt;
-	c->me_subpel_quality = config.video_h264_subme;
+	c->b_frame_strategy = p_config->video_h264_b_adapt;
+	c->me_subpel_quality = p_config->video_h264_subme;
 	c->i_quant_offset = 1.2;
 	c->i_quant_factor = 1.5;
 	c->trellis = 2;
@@ -76,10 +76,10 @@ void MOVIE_SAVER::setup_mpeg4(void *_codec)
 {
 #if defined(USE_LIBAV)
 	AVCodecContext *c = (AVCodecContext *)_codec;
-	c->qmin	 = config.video_mpeg4_minq;
-	c->qmax	 = config.video_mpeg4_maxq;
-	c->max_b_frames	 = config.video_mpeg4_bframes;
-	c->bit_rate = config.video_mpeg4_bitrate * 1000;
+	c->qmin	 = p_config->video_mpeg4_minq;
+	c->qmax	 = p_config->video_mpeg4_maxq;
+	c->max_b_frames	 = p_config->video_mpeg4_bframes;
+	c->bit_rate = p_config->video_mpeg4_bitrate * 1000;
 	c->b_quant_offset = 2;
 	c->temporal_cplx_masking = 0.1;
 	c->spatial_cplx_masking = 0.15;
@@ -129,7 +129,7 @@ void *MOVIE_SAVER::alloc_picture(uint64_t _pix_fmt, int width, int height)
 	/* allocate the buffers for the frame data */
 	ret = av_frame_get_buffer(picture, 32);
 	if (ret < 0) {
-		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not allocate frame data.\n");
+		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not allocate frame data.\n");
 		return (void *)NULL;
 	}
 
@@ -157,14 +157,14 @@ bool MOVIE_SAVER::open_video()
 	ret = avcodec_open2(c, codec, &opt);
 	av_dict_free(&opt);
 	if (ret < 0) {
-		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not open video codec: %s\n", err2str(ret).toLocal8Bit().constData());
+		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not open video codec: %s\n", err2str(ret).toLocal8Bit().constData());
 		return false;
 	}
 
 	/* allocate and init a re-usable frame */
 	ost->frame = (AVFrame *)alloc_picture(c->pix_fmt, c->width, c->height);
 	if (!ost->frame) {
-		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not allocate video frame\n");
+		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not allocate video frame\n");
 		return false;
 	}
 
@@ -181,7 +181,7 @@ bool MOVIE_SAVER::open_video()
 	}
 	//}
 	
-	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER,
+	p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER,
 						  "MOVIE: Open to write video : Success.");
 	return true;
 #else
@@ -239,7 +239,7 @@ void *MOVIE_SAVER::get_video_frame(void)
 			av_frame_free(&ost->tmp_frame);
 			ost->tmp_frame = (AVFrame *)alloc_picture(AV_PIX_FMT_BGRA, _width, _height);
 			if (ost->tmp_frame == NULL) {
-				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not re-allocate video frame\n");
+				p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not re-allocate video frame\n");
 				return (void *)NULL;
 			}
 		}
@@ -255,7 +255,7 @@ void *MOVIE_SAVER::get_video_frame(void)
 									  c->pix_fmt,
 									  SCALE_FLAGS, NULL, NULL, NULL);
 		if (!ost->sws_ctx) {
-			csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER,
+			p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER,
 					"Could not initialize the conversion context\n");
 			return (void *)NULL;
 		}
@@ -350,7 +350,7 @@ int MOVIE_SAVER::write_video_frame()
 	ret = avcodec_encode_video2(c, &pkt, frame, &got_packet);
 	//if(!got_packet) break;
 	if (ret < 0) {
-		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error encoding video frame: %s\n", err2str(ret).toLocal8Bit().constData());
+		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error encoding video frame: %s\n", err2str(ret).toLocal8Bit().constData());
 		return -1;
 	}
 	totalDstFrame++;
@@ -363,7 +363,7 @@ int MOVIE_SAVER::write_video_frame()
 	}
 	
 	if (ret < 0) {
-		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error while writing video frame: %s\n", err2str(ret).toLocal8Bit().constData());
+		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error while writing video frame: %s\n", err2str(ret).toLocal8Bit().constData());
 		return -1;
 	}
 	//}

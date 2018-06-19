@@ -1,24 +1,27 @@
 message("* qt/emuutils")
 
-
+set(s_qt_emuutils_headers
+	../gui/csp_logger.h
+	)
+	
 set(s_qt_emuutils_srcs
 	  ../../common.cpp
 	  ../../fifo.cpp
 	  ../../fileio.cpp
 	  ../../statesub.cpp
+	  ../gui/csp_logger.cpp
 	  )
-#include(cotire)
+
+QT5_WRAP_CPP(s_qt_emuutils_headers_MOC ${s_qt_emuutils_headers})
 	
-SET(THIS_LIB_VERSION 2.10.0) 
+SET(THIS_LIB_VERSION 2.11.0) 
 
 if(WIN32)
 include (GenerateExportHeader)
 
-#add_library(emu_utils
-#	  ${s_qt_emuutils_srcs}
-#)
 add_library(CSPemu_utils SHARED
 	  ${s_qt_emuutils_srcs}
+	  ${s_qt_emuutils_headers_MOC}
 )
 
 target_link_libraries(CSPemu_utils PUBLIC
@@ -30,8 +33,6 @@ set_target_properties(CSPemu_utils PROPERTIES
 			     VERSION ${THIS_LIB_VERSION}
 			     LINK_INTERFACE_LIBRARIES ""
 			     )
-#QT5_USE_MODULES(CSPgui Widgets Core Gui OpenGL)
-#
 generate_export_header(CSPemu_utils
         BASE_NAME CSPemu_utils
         EXPORT_MACRO_NAME CSPemu_utils_EXPORT
@@ -42,13 +43,14 @@ generate_export_header(CSPemu_utils
 else()
 add_library(CSPemu_utils SHARED
 	  ${s_qt_emuutils_srcs}
+	  ${s_qt_emuutils_headers_MOC}
 )
 
 set_target_properties(CSPemu_utils PROPERTIES 
 			     SOVERSION ${THIS_LIB_VERSION}
 			     VERSION ${THIS_LIB_VERSION}
 			     )
-#cotire(CSPemu_utils)
+
 INSTALL(TARGETS CSPemu_utils DESTINATION ${LIBCSP_INSTALL_DIR})
 
 endif()
