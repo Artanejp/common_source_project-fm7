@@ -33,6 +33,8 @@
 
 #include <string>
 #include <list>
+#include <typeindex>
+#include <map>
 #include "state_data.h"
 
 enum {
@@ -51,10 +53,12 @@ enum {
 	csp_saver_entry_float,
 	csp_saver_entry_double,
 	csp_saver_entry_long_double,
+	csp_saver_entry_void,
 	csp_saver_entry_any,
 	
 	csp_saver_entry_fifo,
 	csp_saver_entry_cur_time_t,
+	csp_saver_entry_device,
 	
 	csp_saver_entry_custom0 = 256,
 	csp_saver_entry_custom1 = 257,
@@ -70,6 +74,11 @@ enum {
 class CSP_Logger;
 class DLL_PREFIX csp_state_utils {
 protected:
+	typedef union  {
+		int64_t s;
+		uint64_t u;
+		void *p;
+	} union64_t;
 	CSP_Logger *logger;
 	const uint32_t CRC_MAGIC_WORD = 0x04C11DB7;
 	struct __list_t {
@@ -79,8 +88,18 @@ protected:
 		int len;
 		int atomlen;
 		std::string name;
-		void *ptr;
+		union64_t ptr;
 		int *datalenptr;
+
+		bool use_is_null;
+		int _null_type_id;
+		union64_t is_null_value;
+		bool is_null_value_const;
+		int _null_atomlen;
+		union64_t not_null_value;
+		bool not_null_value_const;
+
+		union64_t recv_ptr;
 	};
 	std::list<__list_t>listptr;
 	_TCHAR __classname[128];
@@ -98,6 +117,26 @@ protected:
 	csp_state_data_saver *fio;
 
 	void out_debug_log(const char *fmt, ...);
+
+	std::map <std::type_index, int> typeid_map= {
+		{ typeid(int),  csp_saver_entry_int },
+		{ typeid(pair_t), csp_saver_entry_pair },
+		{ typeid(float), csp_saver_entry_float },
+		{ typeid(double), csp_saver_entry_double },
+		{ typeid(long double), csp_saver_entry_long_double },
+		{ typeid(int8_t), csp_saver_entry_int8 },
+		{ typeid(uint8_t), csp_saver_entry_uint8 },
+		{ typeid(int16_t), csp_saver_entry_int16 },
+		{ typeid(uint16_t), csp_saver_entry_uint16 },
+		{ typeid(int32_t), csp_saver_entry_int32 },
+		{ typeid(uint32_t), csp_saver_entry_uint32 },
+		{ typeid(int64_t), csp_saver_entry_int64 },
+		{ typeid(uint64_t), csp_saver_entry_uint64 },
+		{ typeid(bool), csp_saver_entry_bool },
+		{ typeid(void), csp_saver_entry_void },
+		{ typeid(FIFO), csp_saver_entry_fifo },
+		{ typeid(cur_time_t), csp_saver_entry_cur_time_t },
+	};
 public:
 	csp_state_utils(int _version = 1, int device_id = 1, const _TCHAR *classname = NULL, CSP_Logger* p_logger = NULL);
 	~csp_state_utils();
@@ -109,48 +148,156 @@ public:
 		__list_t _l;
 		std::string _name = std::string(__name);
 		if(__num >= 0) _name = _name + std::string("_#[") +std::to_string(__num) + std::string("]");
-		_l.ptr = (void *)p;
-		_l.type_id = csp_saver_entry_any;
+		_l.ptr.p = (void *)p;
+		_l.type_id = typeid_map[typeid(T)];
 		_l.len = _len;
 		_l.atomlen = sizeof(T);
 		_l.name = _name;
 		_l.datalenptr = NULL;
 		_l.local_num = __num;
 		_l.assume_byte = false;
+		_l.use_is_null = false;
+		_l._null_atomlen = 1;
+		_l._null_type_id = csp_saver_entry_any;
+		_l.is_null_value.u = 0;
+		_l.is_null_value_const = false;
+		_l.not_null_value.u = 0;
+		_l.not_null_value_const = false;
+		_l.recv_ptr.u = 0;
 		out_debug_log("ADD ENTRY: NAME=%s TYPE=%s len=%d atomlen=%d", _name.c_str(), typeid(T).name(), _len, _l.atomlen);
-		if(typeid(T) == typeid(int)) {
-			_l.type_id = csp_saver_entry_int;
-		} else if(typeid(T) == typeid(pair_t)) {
-			_l.type_id = csp_saver_entry_pair;
-		} else if(typeid(T) == typeid(float)) {
-			_l.type_id = csp_saver_entry_float;
-		} else if(typeid(T) == typeid(double)) {
-			_l.type_id = csp_saver_entry_double;
-		} else if(typeid(T) == typeid(long double)) {
-			_l.type_id = csp_saver_entry_long_double;
-		} else if(typeid(T) == typeid(int8_t)) {
-			_l.type_id = csp_saver_entry_int8;
-		} else if(typeid(T) == typeid(uint8_t)) {
-			_l.type_id = csp_saver_entry_uint8;
-		} else if(typeid(T) == typeid(int16_t)) {
-			_l.type_id = csp_saver_entry_int16;
-		} else if(typeid(T) == typeid(uint16_t)) {
-			_l.type_id = csp_saver_entry_uint16;
-		} else if(typeid(T) == typeid(int32_t)) {
-			_l.type_id = csp_saver_entry_int32;
-		} else if(typeid(T) == typeid(uint32_t)) {
-			_l.type_id = csp_saver_entry_uint32;
-		} else if(typeid(T) == typeid(int64_t)) {
-			_l.type_id = csp_saver_entry_int64;
-		} else if(typeid(T) == typeid(uint64_t)) {
-			_l.type_id = csp_saver_entry_uint64;
-		} else if(typeid(T) == typeid(bool)) {
-			_l.type_id = csp_saver_entry_bool;
-		}
-
 		if(is_const) _l.type_id = _l.type_id | csp_saver_entry_const;
 		listptr.push_back(_l);
 	};
+	// WIP: DECL_STATE_ENTRY_IS_NULL* is weird.
+#if 0
+	template <class _T1, class _T2>
+	void add_entry_is_null(const _TCHAR *__name, _T1 **__check_var, _T2 *__recv_var,
+						   _T2 *__not_null_var, 
+						   _T2 *__is_null_var, int __num = 0)
+	{
+		__list_t _l;
+		std::string _name = std::string(__name);
+		if(__num >= 0) _name = _name + std::string("_#[") +std::to_string(__num) + std::string("]");
+		_l.ptr.p = (void *)__check_var;
+		_l.type_id = typeid_map[typeid(_T1)];
+		_l.len = 1;
+		_l.atomlen = sizeof(_T1);
+		_l.name = _name;
+		_l.datalenptr = NULL;
+		_l.local_num = __num;
+		_l.assume_byte = false;
+		_l.use_is_null = true;
+		_l._null_type_id = typeid_map[typeid(_T2)];
+
+		_l.not_null_value.p = (void *)__not_null_var;
+		_l.not_null_value_const = false;
+		_l._null_atomlen = sizeof(_T2);
+		
+		_l.is_null_value.p = (void *)__is_null_var;
+		_l.is_null_value_const = false;
+
+		_l.recv_ptr.p = (void *)__recv_var;
+
+		out_debug_log("ADD ENTRY (IS NULL): NAME=%s CHKTYPE=%s RCVTYPE=%s", _name.c_str(), typeid(_T1).name(), typeid(_T2).name());
+		listptr.push_back(_l);
+		
+	};
+	template <class _T1, class _T2>
+	void add_entry_is_null_const(const _TCHAR *__name, _T1 **__check_var, _T2 *__recv_var,
+						   _T2 *__not_null_var, 
+						   _T2 __is_null_var, int __num = 0)
+	{
+		__list_t _l;
+		std::string _name = std::string(__name);
+		if(__num >= 0) _name = _name + std::string("_#[") +std::to_string(__num) + std::string("]");
+		_l.ptr.p = (void *)__check_var;
+		_l.type_id = typeid_map[typeid(_T1)];
+		_l.len = 1;
+		_l.atomlen = sizeof(_T1);
+		_l.name = _name;
+		_l.datalenptr = NULL;
+		_l.local_num = __num;
+		_l.assume_byte = false;
+		_l.use_is_null = true;
+		_l._null_type_id = typeid_map[typeid(_T2)];
+
+		_l.not_null_value.p = (void *)__not_null_var;
+		_l.not_null_value_const = false;
+		_l._null_atomlen = sizeof(_T2);
+		
+		_l.is_null_value.s = (int64_t)__is_null_var;
+		_l.is_null_value_const = true;
+
+		_l.recv_ptr.p = (void *)__recv_var;
+		out_debug_log("ADD ENTRY (IS NULL): NAME=%s CHKTYPE=%s RCVTYPE=%s", _name.c_str(), typeid(_T1).name(), typeid(_T2).name());
+		listptr.push_back(_l);
+		
+	};
+	template <class _T1, class _T2>
+	void add_entry_not_null_const(const _TCHAR *__name, _T1 **__check_var, _T2 *__recv_var,
+						   _T2 __not_null_var, 
+						   _T2 *__is_null_var, int __num = 0)
+	{
+		__list_t _l;
+		std::string _name = std::string(__name);
+		if(__num >= 0) _name = _name + std::string("_#[") +std::to_string(__num) + std::string("]");
+		_l.ptr.p = (void *)__check_var;
+		_l.type_id = typeid_map[typeid(_T1)];
+		_l.len = 1;
+		_l.atomlen = sizeof(_T1);
+		_l.name = _name;
+		_l.datalenptr = NULL;
+		_l.local_num = __num;
+		_l.assume_byte = false;
+		_l.use_is_null = true;
+		_l._null_type_id = typeid_map[typeid(_T2)];
+
+		_l.not_null_value.s = (int64_t)__not_null_var;
+		_l.not_null_value_const = true;
+		_l._null_atomlen = sizeof(_T2);
+		
+		_l.is_null_value.p = (void *)__is_null_var;
+		_l.is_null_value_const = false;
+
+		_l.recv_ptr.p = (void *)__recv_var;
+
+		out_debug_log("ADD ENTRY (IS NULL): NAME=%s CHKTYPE=%s RCVTYPE=%s", _name.c_str(), typeid(_T1).name(), typeid(_T2).name());
+		listptr.push_back(_l);
+		
+	};
+	template <class _T1, class _T2>
+	void add_entry_is_null_both_const(const _TCHAR *__name, _T1 **__check_var, _T2 *__recv_var,
+						   _T2 __not_null_var, 
+						   _T2 __is_null_var, int __num = 0)
+	{
+		__list_t _l;
+		std::string _name = std::string(__name);
+		if(__num >= 0) _name = _name + std::string("_#[") +std::to_string(__num) + std::string("]");
+		_l.ptr.p = (void *)__check_var;
+		_l.type_id = typeid_map[typeid(_T1)];
+		_l.len = 1;
+		_l.atomlen = sizeof(_T1);
+		_l.name = _name;
+		_l.datalenptr = NULL;
+		_l.local_num = __num;
+		_l.assume_byte = false;
+		_l.use_is_null = true;
+		_l._null_type_id = typeid_map[typeid(_T2)];
+
+		_l.not_null_value.s = (int64_t)__not_null_var;
+		_l.not_null_value_const = true;
+		_l._null_atomlen = sizeof(_T2);
+		
+		_l.is_null_value.s = (int64_t)__is_null_var;
+		_l.is_null_value_const = true;
+
+		_l.recv_ptr.p = (void *)__recv_var;
+
+		out_debug_log("ADD ENTRY (IS NULL): NAME=%s CHKTYPE=%s RCVTYPE=%s", _name.c_str(), typeid(_T1).name(), typeid(_T2).name());
+		listptr.push_back(_l);
+		
+	};
+#endif
 	template <class T>
 	void add_entry_vararray(const _TCHAR *__name, T **p, void *datalen, bool assume_byte = false, int __num = -1)
 	{
@@ -163,44 +310,22 @@ public:
 		std::string _name = std::string(__name);
 		if(__num >= 0) _name = _name + std::string("_#[") +std::to_string(__num) + std::string("]");
 		
-		_l.ptr = (void *)p;
-		_l.type_id = 0;
+		_l.ptr.p = (void *)p;
+		_l.type_id = typeid_map[typeid(T)];;
 		_l.len = 0;
 		_l.atomlen = sizeof(T);
 		_l.name = _name;
 		_l.local_num = __num;
 		_l.datalenptr = (int *) datalen;
 		_l.assume_byte = assume_byte;
-		if(typeid(T) == typeid(int)) {
-			_l.type_id = csp_saver_entry_int;
-		} else if(typeid(T) == typeid(pair_t)) {
-			_l.type_id = csp_saver_entry_pair;
-		} else if(typeid(T) == typeid(float)) {
-			_l.type_id = csp_saver_entry_float;
-		} else if(typeid(T) == typeid(double)) {
-			_l.type_id = csp_saver_entry_double;
-		} else if(typeid(T) == typeid(long double)) {
-			_l.type_id = csp_saver_entry_long_double;
-		} else if(typeid(T) == typeid(int8_t)) {
-			_l.type_id = csp_saver_entry_int8;
-		} else if(typeid(T) == typeid(uint8_t)) {
-			_l.type_id = csp_saver_entry_uint8;
-		} else if(typeid(T) == typeid(int16_t)) {
-			_l.type_id = csp_saver_entry_int16;
-		} else if(typeid(T) == typeid(uint16_t)) {
-			_l.type_id = csp_saver_entry_uint16;
-		} else if(typeid(T) == typeid(int32_t)) {
-			_l.type_id = csp_saver_entry_int32;
-		} else if(typeid(T) == typeid(uint32_t)) {
-			_l.type_id = csp_saver_entry_uint32;
-		} else if(typeid(T) == typeid(int64_t)) {
-			_l.type_id = csp_saver_entry_int64;
-		} else if(typeid(T) == typeid(uint64_t)) {
-			_l.type_id = csp_saver_entry_uint64;
-		} else if(typeid(T) == typeid(bool)) {
-			_l.type_id = csp_saver_entry_bool;
-		}
 		_l.type_id = _l.type_id | csp_saver_entry_vararray;
+		_l.use_is_null = false;
+		_l._null_atomlen = 1;
+		_l._null_type_id = csp_saver_entry_any;
+		_l.is_null_value.u = 0;
+		
+		_l.not_null_value.u = 0;
+		_l.recv_ptr.u = 0;
 		out_debug_log("ADD ENTRY(VARARRAY): NAME=%s TYPE=%s atomlen=%d linked len=%08x", __name, typeid(T).name(), _l.atomlen, datalen);
 		listptr.push_back(_l);
 	};
@@ -386,5 +511,37 @@ public:
 		state_entry->add_entry_cur_time_t((const _TCHAR *)_T(#_n_name), &_n_name, __len, __n); \
 	}
 
+// WIP: DECL_STATE_ENTRY_IS_NULL* is weird.
+#if 0
+#define DECL_STATE_ENTRY_IS_NULL(__chk_name, __recv_name, __at_not_null, __at_null) { \
+		state_entry->add_entry_is_null((const _TCHAR *)_T(#__recv_name), &__chk_name, &__recv_name, &__at_not_null, &__at_null); \
+	}
+#define DECL_STATE_ENTRY_IS_NULL_CONST(__chk_name, __recv_name, __at_not_null, __at_null) { \
+		state_entry->add_entry_is_null_const((const _TCHAR *)_T(#__recv_name), &__chk_name, &__recv_name, &__at_not_null, __at_null); \
+	}
 
+#define DECL_STATE_ENTRY_NOT_NULL_CONST(__chk_name, __recv_name, __at_not_null, __at_null) { \
+		state_entry->add_entry_not_null_const((const _TCHAR *)_T(#__recv_name), &__chk_name, &__recv_name, _at_not_null, &__at_null); \
+	}
+
+#define DECL_STATE_ENTRY_IS_NULL_BOTH_CONST(__chk_name, __recv_name, __at_not_null, __at_null) { \
+		state_entry->add_entry_is_null_both_const((const _TCHAR *)_T(#__recv_name), &__chk_name, &__recv_name, __at_not_null, __at_null; \
+	}
+
+#define DECL_STATE_ENTRY_IS_NULL_MEMBER(__chk_name, __recv_name, __at_not_null, __at_null, __num) { \
+		state_entry->add_entry_is_null((const _TCHAR *)_T(#__recv_name), &__chk_name, &__recv_name, &__at_not_null, &__at_null, __num); \
+	}
+
+#define DECL_STATE_ENTRY_IS_NULL_CONST_MEMBER(__chk_name, __recv_name, __at_not_null, __at_null, __num) { \
+		state_entry->add_entry_is_null_const((const _TCHAR *)_T(#__recv_name), &__chk_name, &__recv_name, &__at_not_null, __at_null, __num); \
+	}
+
+#define DECL_STATE_ENTRY_NOT_NULL_CONST_MEMBER(__chk_name, __recv_name, __at_not_null, __at_null, __num) { \
+		state_entry->add_entry_not_null_const((const _TCHAR *)_T(#__recv_name), &__chk_name, &__recv_name, __at_not_null, &__at_null, __num); \
+	}
+
+#define DECL_STATE_ENTRY_IS_NULL_BOTH_CONST_MEMBER(__chk_name, __recv_name, __at_not_null, __at_null, __num) { \
+		state_entry->add_entry_is_null_both_const((const _TCHAR *)_T(#__recv_name), &__chk_name, &__recv_name, __at_not_null, __at_null,  __num);	\
+	}
+#endif
 #endif /* _CSP_STATE_SUB_H */

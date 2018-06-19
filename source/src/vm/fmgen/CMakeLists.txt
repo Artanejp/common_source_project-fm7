@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.6)
 
 message("* vm/fmgen")
-SET(THIS_LIB_VERSION 1.1.5)
+SET(THIS_LIB_VERSION 1.1.6)
 
 SET(s_vm_fmgen_srcs
 	fmgen.cpp

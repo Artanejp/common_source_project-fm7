@@ -78,7 +78,7 @@ private:
 	event_t event[MAX_EVENT];
 	event_t *first_free_event;
 	event_t *first_fire_event;
-	
+	// For State
 	DEVICE* frame_event[MAX_EVENT];
 	DEVICE* vline_event[MAX_EVENT];
 	int frame_event_count, vline_event_count;
@@ -243,6 +243,7 @@ public:
 	void reset();
 	void event_callback(int event_id, int err);
 	void update_config();
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

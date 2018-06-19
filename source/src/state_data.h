@@ -125,6 +125,11 @@ public:
 	csp_state_data_saver(FILEIO *_fio);
 	~csp_state_data_saver();
 	
+	bool pre_proc_saving(uint32_t *sumseed, bool *__stat);
+	bool pre_proc_loading(uint32_t *sumseed, bool *__stat);
+	bool post_proc_saving(uint32_t *sumseed, bool *__stat);
+	bool post_proc_loading(uint32_t *sumseed, bool *__stat);
+	
 	size_t save_string_data(const _TCHAR *p, uint32_t *sumseed, int maxlen = -1, bool *__stat = NULL);
 	size_t  load_string_data(_TCHAR *p, uint32_t *sumseed, int maxlen, bool *__stat = NULL);
 	// ALL OF BYNARY VALUES SHOULD BE SAVED BY BIG ENDIAN
