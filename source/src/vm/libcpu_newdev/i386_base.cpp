@@ -122,22 +122,31 @@ void I386_BASE::set_context_intr(DEVICE* device)
 
 #define STATE_VERSION	2
 
+void I386_BASE::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+	
+	cpucore->decl_state(state_entry);
+
+	leave_decl_state();
+}
+
 void I386_BASE::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	cpucore->save_state(state_fio);
+	//state_fio->FputUint32(STATE_VERSION);
+	//state_fio->FputInt32(this_device_id);
+	cpucore->save_state(state_fio, state_entry);
 }
 
 bool I386_BASE::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
-	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	cpucore->load_state(state_fio);
+	//if(state_fio->FgetUint32() != STATE_VERSION) {
+	//	return false;
+	//}
+	//if(state_fio->FgetInt32() != this_device_id) {
+	//	return false;
+	//}
+	if(!cpucore->load_state(state_fio, state_entry)) return false;
 	
 	// post process
 	cpucore->set_context_pic(d_pic);

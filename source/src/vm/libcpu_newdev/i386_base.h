@@ -51,7 +51,8 @@ public:
 	int get_extra_clock();
 	uint32_t get_pc();
 	uint32_t get_next_pc();
-	
+
+	void decl_state();
 	virtual void save_state(FILEIO* state_fio);
 	virtual bool load_state(FILEIO* state_fio);
 	

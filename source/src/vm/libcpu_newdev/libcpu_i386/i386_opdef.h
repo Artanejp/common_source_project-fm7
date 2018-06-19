@@ -503,6 +503,7 @@ enum {
 /************************************** vtlb.h ***************************************/
 
 class DEBUG;
+class csp_state_utils;
 class I386_OPS_BASE {
 protected:
 	i386_state *cpustate;
@@ -535,6 +536,7 @@ protected:
 	DEVICE *d_dma;
 	
 	UINT32 i386_escape_ea;   // hack around GCC 4.6 error because we need the side effects of GetEA()
+
 public:
 	I386_OPS_BASE(int cputypes = I386_OPS_CPUTYPE_I386)
 	{
@@ -616,8 +618,9 @@ public:
 	virtual int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len) { return 0;}
 	void vtlb_flush_dynamic(void) { vtlb_flush_dynamic(cpustate->vtlb); }
 
-	void save_state(FILEIO *state_fio);
-	bool load_state(FILEIO *state_fio);
+	void decl_state(csp_state_utils *state_entry);
+	void save_state(FILEIO *state_fio, csp_state_utils *state_entry);
+	bool load_state(FILEIO *state_fio, csp_state_utils *state_entry);
 	
 protected:
 	// Utilities
@@ -686,6 +689,11 @@ protected:
 	virtual int cpu_disassemble_x86_16(_TCHAR *buffer, UINT64 eip, const UINT8 *oprom) { return 0; }
 	virtual int cpu_disassemble_x86_32(_TCHAR *buffer, UINT64 eip, const UINT8 *oprom) { return 0; }
 	virtual int cpu_disassemble_x86_64(_TCHAR *buffer, UINT64 eip, const UINT8 *oprom) { return 0; }
+
+	void decl_state_sreg(csp_state_utils *state_entry, int num);
+	void decl_state_sys_table(csp_state_utils *state_entry, struct I386_SYS_TABLE *i386_sys_table_p);
+	void decl_state_seg_desc(csp_state_utils *state_entry, struct I386_SEG_DESC *i386_seg_desc);
+
 public:
 	// Init per vm..
 	void *cpu_init_i386(void);
