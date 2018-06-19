@@ -88,18 +88,18 @@ protected:
 		int len;
 		int atomlen;
 		std::string name;
-		union64_t ptr;
+		void *ptr;
 		int *datalenptr;
 
 		bool use_is_null;
 		int _null_type_id;
-		union64_t is_null_value;
+		void *is_null_value;
 		bool is_null_value_const;
 		int _null_atomlen;
-		union64_t not_null_value;
+		void *not_null_value;
 		bool not_null_value_const;
 
-		union64_t recv_ptr;
+		void *recv_ptr;
 	};
 	std::list<__list_t>listptr;
 	_TCHAR __classname[128];
@@ -148,7 +148,7 @@ public:
 		__list_t _l;
 		std::string _name = std::string(__name);
 		if(__num >= 0) _name = _name + std::string("_#[") +std::to_string(__num) + std::string("]");
-		_l.ptr.p = (void *)p;
+		_l.ptr = (void *)p;
 		_l.type_id = typeid_map[typeid(T)];
 		_l.len = _len;
 		_l.atomlen = sizeof(T);
@@ -159,11 +159,11 @@ public:
 		_l.use_is_null = false;
 		_l._null_atomlen = 1;
 		_l._null_type_id = csp_saver_entry_any;
-		_l.is_null_value.u = 0;
+		_l.is_null_value = 0;
 		_l.is_null_value_const = false;
-		_l.not_null_value.u = 0;
+		_l.not_null_value = 0;
 		_l.not_null_value_const = false;
-		_l.recv_ptr.u = 0;
+		_l.recv_ptr = 0;
 		out_debug_log("ADD ENTRY: NAME=%s TYPE=%s len=%d atomlen=%d", _name.c_str(), typeid(T).name(), _len, _l.atomlen);
 		if(is_const) _l.type_id = _l.type_id | csp_saver_entry_const;
 		listptr.push_back(_l);
@@ -178,7 +178,7 @@ public:
 		__list_t _l;
 		std::string _name = std::string(__name);
 		if(__num >= 0) _name = _name + std::string("_#[") +std::to_string(__num) + std::string("]");
-		_l.ptr.p = (void *)__check_var;
+		_l.ptr = (void *)__check_var;
 		_l.type_id = typeid_map[typeid(_T1)];
 		_l.len = 1;
 		_l.atomlen = sizeof(_T1);
@@ -189,14 +189,14 @@ public:
 		_l.use_is_null = true;
 		_l._null_type_id = typeid_map[typeid(_T2)];
 
-		_l.not_null_value.p = (void *)__not_null_var;
+		_l.not_null_value = (void *)__not_null_var;
 		_l.not_null_value_const = false;
 		_l._null_atomlen = sizeof(_T2);
 		
-		_l.is_null_value.p = (void *)__is_null_var;
+		_l.is_null_value = (void *)__is_null_var;
 		_l.is_null_value_const = false;
 
-		_l.recv_ptr.p = (void *)__recv_var;
+		_l.recv_ptr = (void *)__recv_var;
 
 		out_debug_log("ADD ENTRY (IS NULL): NAME=%s CHKTYPE=%s RCVTYPE=%s", _name.c_str(), typeid(_T1).name(), typeid(_T2).name());
 		listptr.push_back(_l);
@@ -210,7 +210,7 @@ public:
 		__list_t _l;
 		std::string _name = std::string(__name);
 		if(__num >= 0) _name = _name + std::string("_#[") +std::to_string(__num) + std::string("]");
-		_l.ptr.p = (void *)__check_var;
+		_l.ptr = (void *)__check_var;
 		_l.type_id = typeid_map[typeid(_T1)];
 		_l.len = 1;
 		_l.atomlen = sizeof(_T1);
@@ -221,14 +221,14 @@ public:
 		_l.use_is_null = true;
 		_l._null_type_id = typeid_map[typeid(_T2)];
 
-		_l.not_null_value.p = (void *)__not_null_var;
+		_l.not_null_value = (void *)__not_null_var;
 		_l.not_null_value_const = false;
 		_l._null_atomlen = sizeof(_T2);
 		
-		_l.is_null_value.s = (int64_t)__is_null_var;
+		_l.is_null_value = (int64_t)__is_null_var;
 		_l.is_null_value_const = true;
 
-		_l.recv_ptr.p = (void *)__recv_var;
+		_l.recv_ptr = (void *)__recv_var;
 		out_debug_log("ADD ENTRY (IS NULL): NAME=%s CHKTYPE=%s RCVTYPE=%s", _name.c_str(), typeid(_T1).name(), typeid(_T2).name());
 		listptr.push_back(_l);
 		
@@ -241,7 +241,7 @@ public:
 		__list_t _l;
 		std::string _name = std::string(__name);
 		if(__num >= 0) _name = _name + std::string("_#[") +std::to_string(__num) + std::string("]");
-		_l.ptr.p = (void *)__check_var;
+		_l.ptr = (void *)__check_var;
 		_l.type_id = typeid_map[typeid(_T1)];
 		_l.len = 1;
 		_l.atomlen = sizeof(_T1);
@@ -252,14 +252,14 @@ public:
 		_l.use_is_null = true;
 		_l._null_type_id = typeid_map[typeid(_T2)];
 
-		_l.not_null_value.s = (int64_t)__not_null_var;
+		_l.not_null_value = (int64_t)__not_null_var;
 		_l.not_null_value_const = true;
 		_l._null_atomlen = sizeof(_T2);
 		
-		_l.is_null_value.p = (void *)__is_null_var;
+		_l.is_null_value = (void *)__is_null_var;
 		_l.is_null_value_const = false;
 
-		_l.recv_ptr.p = (void *)__recv_var;
+		_l.recv_ptr = (void *)__recv_var;
 
 		out_debug_log("ADD ENTRY (IS NULL): NAME=%s CHKTYPE=%s RCVTYPE=%s", _name.c_str(), typeid(_T1).name(), typeid(_T2).name());
 		listptr.push_back(_l);
@@ -273,7 +273,7 @@ public:
 		__list_t _l;
 		std::string _name = std::string(__name);
 		if(__num >= 0) _name = _name + std::string("_#[") +std::to_string(__num) + std::string("]");
-		_l.ptr.p = (void *)__check_var;
+		_l.ptr = (void *)__check_var;
 		_l.type_id = typeid_map[typeid(_T1)];
 		_l.len = 1;
 		_l.atomlen = sizeof(_T1);
@@ -284,14 +284,14 @@ public:
 		_l.use_is_null = true;
 		_l._null_type_id = typeid_map[typeid(_T2)];
 
-		_l.not_null_value.s = (int64_t)__not_null_var;
+		_l.not_null_value = (int64_t)__not_null_var;
 		_l.not_null_value_const = true;
 		_l._null_atomlen = sizeof(_T2);
 		
-		_l.is_null_value.s = (int64_t)__is_null_var;
+		_l.is_null_value = (int64_t)__is_null_var;
 		_l.is_null_value_const = true;
 
-		_l.recv_ptr.p = (void *)__recv_var;
+		_l.recv_ptr = (void *)__recv_var;
 
 		out_debug_log("ADD ENTRY (IS NULL): NAME=%s CHKTYPE=%s RCVTYPE=%s", _name.c_str(), typeid(_T1).name(), typeid(_T2).name());
 		listptr.push_back(_l);
@@ -310,7 +310,7 @@ public:
 		std::string _name = std::string(__name);
 		if(__num >= 0) _name = _name + std::string("_#[") +std::to_string(__num) + std::string("]");
 		
-		_l.ptr.p = (void *)p;
+		_l.ptr = (void *)p;
 		_l.type_id = typeid_map[typeid(T)];;
 		_l.len = 0;
 		_l.atomlen = sizeof(T);
@@ -322,10 +322,10 @@ public:
 		_l.use_is_null = false;
 		_l._null_atomlen = 1;
 		_l._null_type_id = csp_saver_entry_any;
-		_l.is_null_value.u = 0;
+		_l.is_null_value = 0;
 		
-		_l.not_null_value.u = 0;
-		_l.recv_ptr.u = 0;
+		_l.not_null_value = 0;
+		_l.recv_ptr = 0;
 		out_debug_log("ADD ENTRY(VARARRAY): NAME=%s TYPE=%s atomlen=%d linked len=%08x", __name, typeid(T).name(), _l.atomlen, datalen);
 		listptr.push_back(_l);
 	};

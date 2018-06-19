@@ -46,7 +46,7 @@ void DATAREC::initialize()
 	play_fio = new FILEIO();
 	rec_fio = new FILEIO();
 	
-	memset(rec_file_path, sizeof(rec_file_path), 1);
+	memset(rec_file_path, 0x00, sizeof(rec_file_path));
 	play = rec = remote = trigger = false;
 	ff_rew = 0;
 	in_signal = out_signal = false;
@@ -1806,7 +1806,7 @@ void DATAREC::decl_state()
 	DECL_STATE_ENTRY_BOOL(rec);
 	DECL_STATE_ENTRY_BOOL(remote);
 	DECL_STATE_ENTRY_BOOL(trigger);
-	DECL_STATE_ENTRY_STRING(rec_file_path, sizeof(rec_file_path));
+	DECL_STATE_ENTRY_STRING(rec_file_path, sizeof(rec_file_path) / sizeof(_TCHAR));
 	
 	DECL_STATE_ENTRY_INT32(ff_rew);
 	DECL_STATE_ENTRY_BOOL(in_signal);
@@ -1823,14 +1823,14 @@ void DATAREC::decl_state()
 
 	DECL_STATE_ENTRY_INT32(buffer_length);
 	DECL_STATE_ENTRY_INT32(_tmp_buffer_length);
-	DECL_STATE_ENTRY_VARARRAY_BYTES(buffer, _tmp_buffer_length);
+	DECL_STATE_ENTRY_VARARRAY_VAR(buffer, _tmp_buffer_length);
 	
 	DECL_STATE_ENTRY_INT32(_tmp_buffer_bak_length);
-	DECL_STATE_ENTRY_VARARRAY_BYTES(buffer_bak, _tmp_buffer_bak_length);
+	DECL_STATE_ENTRY_VARARRAY_VAR(buffer_bak, _tmp_buffer_bak_length);
 	
 	if(__DATAREC_SOUND) {
 		DECL_STATE_ENTRY_INT32(sound_buffer_length);
-//		DECL_STATE_ENTRY_VARARRAY_VAR(sound_buffer, sound_buffer_length);
+		DECL_STATE_ENTRY_VARARRAY_BYTES(sound_buffer, sound_buffer_length);
 		DECL_STATE_ENTRY_INT16(sound_sample);
 	}
 
@@ -1962,12 +1962,12 @@ bool DATAREC::load_state(FILEIO* state_fio)
 		mb = state_entry->load_state(state_fio);
 	}
 	if(!mb) return false;
-	if(__DATAREC_SOUND) {
-		if(sound_buffer_length > 0) {
-			sound_buffer = (int16_t *)malloc(sound_buffer_length);
-			memset(sound_buffer, 0x00, sound_buffer_length);
-		}
-	}
+//	if(__DATAREC_SOUND) {
+//		if(sound_buffer_length > 0) {
+//			sound_buffer = (int16_t *)malloc(sound_buffer_length);
+//			memset(sound_buffer, 0x00, sound_buffer_length);
+//		}
+//	}
 	
 	
 	int length_tmp = state_fio->FgetInt32_BE();
