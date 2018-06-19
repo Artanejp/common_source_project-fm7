@@ -908,14 +908,14 @@ void csp_state_utils::out_debug_log(const char *fmt, ...)
 {
 	if(logger == NULL) return;
 	// Temporally disabled 20180618
-#if !defined(__MINGW32__) && !defined(__MINGW64__)
+//#if !defined(__MINGW32__) && !defined(__MINGW64__)
 	char strbuf[8192];
 	va_list ap;
 	va_start(ap, fmt);	
 	vsnprintf(strbuf, 8192, fmt, ap);
 	logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_VM_STATE, strbuf);
 	va_end(ap);
-#endif
+//#endif
 }
 
 std::list<std::string> csp_state_utils::get_entries_list(void)
