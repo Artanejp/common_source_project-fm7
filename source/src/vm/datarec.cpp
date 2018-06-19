@@ -1794,7 +1794,7 @@ void DATAREC::update_config()
 	update_realtime_render();
 }
 
-#define STATE_VERSION	9
+#define STATE_VERSION	10
 
 #include "../statesub.h"
 
@@ -1823,14 +1823,14 @@ void DATAREC::decl_state()
 
 	DECL_STATE_ENTRY_INT32(buffer_length);
 	DECL_STATE_ENTRY_INT32(_tmp_buffer_length);
-	DECL_STATE_ENTRY_VARARRAY_VAR(buffer, _tmp_buffer_length);
+	DECL_STATE_ENTRY_VARARRAY_BYTES(buffer, _tmp_buffer_length);
 	
 	DECL_STATE_ENTRY_INT32(_tmp_buffer_bak_length);
-	DECL_STATE_ENTRY_VARARRAY_VAR(buffer_bak, _tmp_buffer_bak_length);
+	DECL_STATE_ENTRY_VARARRAY_BYTES(buffer_bak, _tmp_buffer_bak_length);
 	
 	if(__DATAREC_SOUND) {
 		DECL_STATE_ENTRY_INT32(sound_buffer_length);
-		DECL_STATE_ENTRY_VARARRAY_BYTES(sound_buffer, sound_buffer_length);
+//		DECL_STATE_ENTRY_VARARRAY_VAR(sound_buffer, sound_buffer_length);
 		DECL_STATE_ENTRY_INT16(sound_sample);
 	}
 
@@ -1886,7 +1886,7 @@ void DATAREC::save_state(FILEIO* state_fio)
 			length_tmp -= length_rw;
 		}
 	} else {
-		state_fio->FputInt32(0);
+		state_fio->FputInt32_BE(0);
 	}
 	//state_fio->FputInt32(ff_rew);
 	//state_fio->FputBool(in_signal);
@@ -1962,6 +1962,13 @@ bool DATAREC::load_state(FILEIO* state_fio)
 		mb = state_entry->load_state(state_fio);
 	}
 	if(!mb) return false;
+	if(__DATAREC_SOUND) {
+		if(sound_buffer_length > 0) {
+			sound_buffer = (int16_t *)malloc(sound_buffer_length);
+			memset(sound_buffer, 0x00, sound_buffer_length);
+		}
+	}
+	
 	
 	int length_tmp = state_fio->FgetInt32_BE();
 	if(rec) {
@@ -1976,6 +1983,7 @@ bool DATAREC::load_state(FILEIO* state_fio)
 			length_tmp -= length_rw;
 		}
 	}
+	
 //	ff_rew = state_fio->FgetInt32();
 //	in_signal = state_fio->FgetBool();
 //	out_signal = state_fio->FgetBool();
