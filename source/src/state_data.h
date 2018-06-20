@@ -118,7 +118,7 @@ typedef union {
 	}
 } pair64_sav_t;
 
-class csp_state_data_saver {
+class DLL_PREFIX csp_state_data_saver {
 protected:
 	FILEIO *fio;
 public:
