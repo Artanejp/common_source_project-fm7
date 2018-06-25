@@ -9,6 +9,7 @@
 #include "opna.h"
 #include "fmgeninl.h"
 
+#include "../../common.h"
 #include "../../fileio.h"
 
 #define BUILD_OPN
@@ -1565,49 +1566,60 @@ bool OPNA::LoadRhythmSample(const _TCHAR* path)
 		FILEIO file;
 		uint32 fsize;
 		_TCHAR buf[_MAX_PATH] = _T("");
+		memset(buf, 0x00, sizeof(buf));
 		if (path)
-			_tcsncpy(buf, path, _MAX_PATH);
-		_tcsncat(buf, _T("2608_"), _MAX_PATH);
-		_tcsncat(buf, rhythmname[i], _MAX_PATH);
-		_tcsncat(buf, _T(".WAV"), _MAX_PATH);
+			_tcsncpy(buf, path, _MAX_PATH - 1);
+		_tcsncat(buf, _T("2608_"), _MAX_PATH - 1);
+		_tcsncat(buf, rhythmname[i], _MAX_PATH- 1);
+		_tcsncat(buf, _T(".WAV"), _MAX_PATH - 1);
 
 		if (!file.Fopen(buf, FILEIO_READ_BINARY))
 		{
 			if (i != 5)
 				break;
-			if (path)
-				_tcsncpy(buf, path, _MAX_PATH);
-			_tcsncpy(buf, _T("2608_RYM.WAV"), _MAX_PATH);
+			memset(buf, 0x00, sizeof(buf));
+			if (path) {
+				_tcsncpy(buf, path, _MAX_PATH - 1);
+			}
+			_tcsncat(buf, _T("2608_RYM.WAV"), _MAX_PATH - 1);
 			if (!file.Fopen(buf, FILEIO_READ_BINARY))
 				break;
 		}
 		
-		struct
-		{
-			uint32 chunksize;
-			uint16 tag;
-			uint16 nch;
-			uint32 rate;
-			uint32 avgbytes;
-			uint16 align;
-			uint16 bps;
-			uint16 size;
-		} whdr;
+		wav_header_t whdr;
+		wav_chunk_t chunk;
 
-		file.Fseek(0x10, FILEIO_SEEK_SET);
 		file.Fread(&whdr, sizeof(whdr), 1);
 		
 		uint8 subchunkname[4];
-		fsize = 4 + whdr.chunksize - sizeof(whdr);
-		do 
+		bool is_eof = false;
+		file.Fseek(EndianToLittle_DWORD(whdr.fmt_chunk.size) - 16, FILEIO_SEEK_CUR);
+		while(1) 
 		{
-			file.Fseek(fsize, FILEIO_SEEK_CUR);
-			file.Fread(&subchunkname, 4, 1);
-			file.Fread(&fsize, 4, 1);
-		} while (memcmp("data", subchunkname, 4));
-
+			if(file.Fread(&chunk, sizeof(chunk), 1) != 1) {
+				is_eof = true;
+				break;
+			}
+			if(strncmp(chunk.id, "data", 4) == 0) {
+					break;
+			}
+			file.Fseek(EndianToLittle_DWORD(chunk.size), FILEIO_SEEK_CUR);
+		}
+		if(is_eof) {
+//			fsize = 8192;
+//			rhythm[i].rate = whdr.sample_rate;
+//			rhythm[i].step = rhythm[i].rate * 1024 / rate;
+//			rhythm[i].pos = rhythm[i].size = fsize * 1024;
+//			delete rhythm[i].sample;
+//			rhythm[i].sample = new int16[fsize];
+//			memset(rhythm[i].sample, 0x00, fsize * 2);
+			file.Fclose();
+			break;
+		}
+		fsize = EndianToLittle_DWORD(chunk.size);
+		
 		fsize /= 2;
-		if (fsize >= 0x100000 || whdr.tag != 1 || whdr.nch != 1)
+		if ((fsize >= 0x100000) || (EndianToLittle_WORD(whdr.format_id) != 1) || (EndianToLittle_WORD(whdr.channels) != 1))
 			break;
 		fsize = Max(fsize, (1<<31)/1024);
 		
@@ -1615,15 +1627,27 @@ bool OPNA::LoadRhythmSample(const _TCHAR* path)
 		rhythm[i].sample = new int16[fsize];
 		if (!rhythm[i].sample)
 			break;
+		for(int __iptr = 0; __iptr < fsize; __iptr++) {
+			union {
+				int16_t s16;
+				struct {
+					uint8_t l, h;
+				} b;
+			} pair16;
+			pair16.b.l = file.FgetUint8();
+			pair16.b.h = file.FgetUint8();
+			rhythm[i].sample[__iptr] = pair16.s16;
+		}
+		//file.Fread(rhythm[i].sample, fsize * 2, 1);
 		
-		file.Fread(rhythm[i].sample, fsize * 2, 1);
-		
-		rhythm[i].rate = whdr.rate;
+		rhythm[i].rate = EndianToLittle_DWORD(whdr.sample_rate);
 		rhythm[i].step = rhythm[i].rate * 1024 / rate;
 		rhythm[i].pos = rhythm[i].size = fsize * 1024;
+		file.Fclose();
 	}
 	if (i != 6)
 	{
+//		printf("NG %d\n", i);
 		for (i=0; i<6; i++)
 		{
 			delete[] rhythm[i].sample;
@@ -1631,6 +1655,7 @@ bool OPNA::LoadRhythmSample(const _TCHAR* path)
 		}
 		return false;
 	}
+//	printf("OK\n");
 	return true;
 }
 
