@@ -214,7 +214,6 @@ void OPNBase::SaveState(void *f)
 bool OPNBase::LoadState(void *f)
 {
 	FILEIO *state_fio = (FILEIO *)f;
-	
 	if(state_fio->FgetUint32_BE() != OPN_BASE_STATE_VERSION) {
 		return false;
 	}
@@ -229,6 +228,12 @@ bool OPNBase::LoadState(void *f)
 	status = state_fio->FgetUint32_BE();
 	interrupt = state_fio->FgetBool();
 	prescale = state_fio->FgetUint8();
+	{
+		// Make force-restore around prescaler and timers. 20180625 K.O
+		uint bak = prescale;
+		prescale = 10;
+		SetPrescaler(bak);
+	}
 	if(!chip.LoadState(f)) {
 		return false;
 	}
