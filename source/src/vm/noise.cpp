@@ -79,32 +79,45 @@ bool NOISE::load_wav_file(const _TCHAR *file_name)
 	if(fio->Fopen(create_local_path(file_name), FILEIO_READ_BINARY)) {
 		wav_header_t header;
 		wav_chunk_t chunk;
-		
+		uint16_t __nr_channels;
+		uint16_t __nr_bits;
 		fio->Fread(&header, sizeof(header), 1);
 		
-		if(header.format_id == 1 && (header.sample_bits == 8 || header.sample_bits == 16)) {
-			fio->Fseek(header.fmt_chunk.size - 16, FILEIO_SEEK_CUR);
+		if((EndianToLittle_WORD(header.format_id) == 1) && ((EndianToLittle_WORD(header.sample_bits) == 8) || (EndianToLittle_DWORD(header.sample_bits) == 16))) {
+			fio->Fseek(EndianToLittle_DWORD(header.fmt_chunk.size) - 16, FILEIO_SEEK_CUR);
+			bool is_eof = false;
 			while(1) {
-				fio->Fread(&chunk, sizeof(chunk), 1);
+				if(fio->Fread(&chunk, sizeof(chunk), 1) != 1) {
+					is_eof = true;
+					break;
+				}
 				if(strncmp(chunk.id, "data", 4) == 0) {
 					break;
 				}
-				fio->Fseek(chunk.size, FILEIO_SEEK_CUR);
+				fio->Fseek(EndianToLittle_DWORD(chunk.size), FILEIO_SEEK_CUR);
 			}
-			if((samples = chunk.size / header.channels) > 0) {
-				if(header.sample_bits == 16) {
+			if(is_eof) {
+				buffer_l = buffer_r = NULL;
+				fio->Fclose();
+				delete fio;
+				return false;
+			}
+			__nr_channels = EndianToLittle_WORD(header.channels);
+			__nr_bits = EndianToLittle_WORD(header.sample_bits);
+			if((samples = EndianToLittle_DWORD(chunk.size) / __nr_channels) > 0) {
+				if(__nr_bits == 16) {
 					samples /= 2;
 				}
-				sample_rate = header.sample_rate;
-				
+				sample_rate = EndianToLittle_DWORD(header.sample_rate);
+			   
 				buffer_l = (int16_t *)malloc(samples * sizeof(int16_t));
 				buffer_r = (int16_t *)malloc(samples * sizeof(int16_t));
 				
 				for(int i = 0; i < samples; i++) {
 					int sample_lr[2];
-					for(int ch = 0; ch < header.channels; ch++) {
+					for(int ch = 0; ch < __nr_channels; ch++) {
 						int16_t sample = 0;
-						if(header.sample_bits == 16) {
+						if(__nr_bits == 16) {
 							union {
 								int16_t s16;
 								struct {
@@ -121,7 +134,7 @@ bool NOISE::load_wav_file(const _TCHAR *file_name)
 						if(ch < 2) sample_lr[ch] = sample;
 					}
 					buffer_l[i] = sample_lr[0];
-					buffer_r[i] = sample_lr[(header.channels > 1) ? 1 : 0];
+					buffer_r[i] = sample_lr[(__nr_channels > 1) ? 1 : 0];
 				}
 				result = true;
 			}
@@ -167,7 +180,7 @@ void NOISE::get_sample()
 		sample_l = 0;
 	}
 	if(buffer_r != NULL && ptr < samples) {
-		sample_r = buffer_l[ptr];
+		sample_r = buffer_r[ptr];
 	} else {
 		sample_r = 0;
 	}
