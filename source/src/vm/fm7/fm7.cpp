@@ -827,7 +827,8 @@ void VM::initialize_sound(int rate, int samples)
 	keyboard_beep->initialize_sound(rate, 2400.0, 512);
 # endif
 #endif	
-	pcm1bit->initialize_sound(rate, 8000);
+	pcm1bit->initialize_sound(rate, 6000);
+
 	//drec->initialize_sound(rate, 0);
 }
 

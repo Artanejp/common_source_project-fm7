@@ -144,7 +144,7 @@ void FM7_MAINIO::write_opn_reg(int index, uint32_t addr, uint32_t data)
 		0xff, 0x0f, 0xff, 0xff
 	};
 #if 1
-# if !defined(_FM77AV_VARIANTS)
+#  if !defined(_FM77AV_VARIANTS)
 	if(index == 3) { // PSG
 		data = data & mask[addr & 0x0f];
 	  	psg->write_io8(0, addr & 0x0f);
@@ -152,7 +152,7 @@ void FM7_MAINIO::write_opn_reg(int index, uint32_t addr, uint32_t data)
 		opn_regs[index][addr & 0x0f] = data;
 		return;
 	}
-# endif
+#  endif
 	if(addr < 0x10) { // PSG part
 		data = data & mask[addr]; // Right?
 	} else	if((addr >= 0x2d) && (addr < 0x30)) {  // Prescaler
@@ -184,9 +184,12 @@ void FM7_MAINIO::write_opn_reg(int index, uint32_t addr, uint32_t data)
 	opn[index]->write_io8(1, data);
 	opn_regs[index][addr] = data;
 #else
+#  if !defined(_FM77AV_VARIANTS)
 	if(index == 3) {
 		if(psg != NULL) psg->set_reg(addr & 0x0f, data);
-	} else {
+	} else
+#  endif
+	{
 		if(opn[index] != NULL) opn[index]->set_reg(addr, data);
 	}
 	opn_regs[index][addr] = data;
@@ -215,10 +218,13 @@ void FM7_MAINIO::set_opn(int index, uint8_t val)
 			write_opn_reg(index, opn_address[index], opn_data[index]);
 	 		break;
 		case 3: // Register address
+# if !defined(_FM77AV_VARIANTS)
 			if(index == 3) {
 				opn_address[index] = val & 0x0f;
 				if(psg != NULL) psg->write_io8(0, opn_address[index]);
-			} else {
+			} else
+# endif
+			{
 				opn_address[index] = val;
 				if(opn[index] != NULL) opn[index]->write_io8(0, opn_address[index]);
 			}
@@ -256,9 +262,12 @@ uint8_t FM7_MAINIO::get_opn(int index)
 					val = opn_data[index]; // OK?
 				}
 			} else {
+# if !defined(_FM77AV_VARIANTS)
 				if(index == 3) {
 					val = psg->read_io8(1);
-				} else {
+				} else
+# endif
+				{
 					val = opn[index]->read_io8(1);
 				}
 			}
@@ -319,10 +328,13 @@ void FM7_MAINIO::set_opn_cmd(int index, uint8_t cmd)
 			write_opn_reg(index, opn_address[index], opn_data[index]);
 	 		break;
 		case 3: // Register address
+# if !defined(_FM77AV_VARIANTS)
 			if(index == 3) {
 				opn_address[index] = val & 0x0f;
 				if(psg != NULL) psg->write_io8(0, opn_address[index]);
-			} else {
+			} else
+# endif
+			{
 				opn_address[index] = val;
 				if(opn[index] != NULL) opn[index]->write_io8(0, opn_address[index]);
 			}
@@ -353,25 +365,27 @@ void FM7_MAINIO::set_beep(uint32_t data) // fd03
 {
 	bool flag = ((data & 0xc0) != 0);
 	pcm1bit->write_signal(SIG_PCM1BIT_MUTE, ~data, 0x01);
+#if 0	
 	if(flag != beep_flag) {
 		if(flag) {
 			beep_snd = true;
 			pcm1bit->write_signal(SIG_PCM1BIT_SIGNAL, 1, 1);
 			pcm1bit->write_signal(SIG_PCM1BIT_ON, 1, 1);
-			//if(event_beep <= -1) {
-			//	register_event(this, EVENT_BEEP_CYCLE, (1000.0 * 1000.0) / (1200.0 * 2.0), true, &event_beep);
-			//}		
 		} else {
 			beep_snd = false;
 			pcm1bit->write_signal(SIG_PCM1BIT_SIGNAL, 0, 1);
 			pcm1bit->write_signal(SIG_PCM1BIT_ON, 0, 1);
-			//if(event_beep > -1) {
-			//	cancel_event(this, event_beep);
-			//	event_beep = -1;
-			//}		
 		}
 		beep_flag = flag;
 	}
+#else
+	if(flag != beep_flag) {
+		beep_snd = flag;
+		beep_flag = flag;
+		pcm1bit->write_signal(SIG_PCM1BIT_SIGNAL, data, 0xc0);
+		pcm1bit->write_signal(SIG_PCM1BIT_ON, data, 0xc0);
+	}
+#endif
 	if((data & 0x40) != 0) {
 		// BEEP ON, after 205ms, BEEP OFF.  
 		set_beep_oneshot();
@@ -398,8 +412,6 @@ void FM7_MAINIO::event_beep_off(void)
 	beep_snd = false;
 	pcm1bit->write_signal(SIG_PCM1BIT_ON, 0, 1);
 	event_beep_oneshot = -1;
-	//if(event_beep >= 0) cancel_event(this, event_beep);
-	//event_beep = -1;
 }
 
 // EVENT_BEEP_CYCLE
