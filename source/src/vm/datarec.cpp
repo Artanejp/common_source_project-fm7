@@ -1968,8 +1968,10 @@ bool DATAREC::load_state(FILEIO* state_fio)
 //	trigger = state_fio->FgetBool();
 //	state_fio->Fread(rec_file_path, sizeof(rec_file_path), 1);
 	bool mb = false;
+	bool stat;
+	uint32_t crc_value = 0xffffffff;
 	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
+		mb = state_entry->load_state(state_fio, &crc_value);
 	}
 	if(!mb) return false;
 //	if(__DATAREC_SOUND) {
@@ -1981,8 +1983,6 @@ bool DATAREC::load_state(FILEIO* state_fio)
 	
 	
 	csp_state_data_saver saver(state_fio);
-	bool stat;
-	uint32_t crc_value = 0xffffffff;
 	//int length_tmp = state_fio->FgetInt32_BE();
 	int length_tmp = saver.get_int32(&crc_value, &stat);
 	if(!stat) return false;

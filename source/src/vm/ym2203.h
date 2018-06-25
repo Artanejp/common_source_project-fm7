@@ -143,11 +143,11 @@ public:
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
 	void write_signal(int id, uint32_t data, uint32_t mask);
-	uint32_t read_signal(int ch);
+	uint32_t read_signal(int id);
 	void event_vline(int v, int clock);
 	void event_callback(int event_id, int error);
 	void mix(int32* buffer, int cnt);
-	void set_volume(int ch, int decibel_l, int decibel_r);
+	void set_volume(int _ch, int decibel_l, int decibel_r);
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
 	void decl_state();
 	void save_state(FILEIO* state_fio);

@@ -324,10 +324,6 @@ uint8_t FM8_MAINIO::get_extirq_thg(void)
 	uint8_t val = 0xff;
 	return val;
 }
-void FM8_MAINIO::opn_note_on(int index)
-{
-}
-
 void FM8_MAINIO::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	bool val_b = ((data & mask) != 0);

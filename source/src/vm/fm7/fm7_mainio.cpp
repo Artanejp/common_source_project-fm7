@@ -1963,15 +1963,13 @@ void FM7_MAINIO::event_vline(int v, int clock)
 {
 }
 
-//#define STATE_VERSION 13
-#define STATE_VERSION 15
+
+#define STATE_VERSION 16
 #include "../../statesub.h"
 
 void FM7_MAINIO::decl_state(void)
 {
 	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_INT(this_device_id);
 
 	DECL_STATE_ENTRY_MULTI(void, io_w_latch, sizeof(io_w_latch));
 	
@@ -2176,7 +2174,6 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 		}
 	}
 #endif
-	//restore_opn();
 	this->out_debug_log(_T("Load State: MAINIO: id=%d stat=%s\n"), this_device_id, (mb) ? _T("OK") : _T("NG"));
 	return mb;
 }

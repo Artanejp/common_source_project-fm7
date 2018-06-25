@@ -43,8 +43,6 @@ class FM8_MAINIO : public FM7_MAINIO {
 	void set_opn_cmd(int index, uint8_t cmd) override;
 	uint8_t get_extirq_whg(void) override;
 	uint8_t get_extirq_thg(void) override;
-	void opn_note_on(int index) override;
-
 public:
 	FM8_MAINIO(VM* parent_vm, EMU* parent_emu);
 	~FM8_MAINIO();

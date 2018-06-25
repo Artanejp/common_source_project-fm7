@@ -575,11 +575,11 @@ void YM2203::mix(int32_t* buffer, int cnt)
 	}
 }
 
-void YM2203::set_volume(int ch, int decibel_l, int decibel_r)
+void YM2203::set_volume(int _ch, int decibel_l, int decibel_r)
 {
 	v_right_volume = (int)(pow(10.0, (double)decibel_vol / 10.0) * (double)right_volume);
 	v_left_volume = (int)(pow(10.0, (double)decibel_vol / 10.0) * (double)left_volume);
-	if(ch == 0) {
+	if(_ch == 0) {
 //#ifdef HAS_YM2608
 		if(is_ym2608 && _HAS_YM2608) {
 			opna->SetVolumeFM(base_decibel_fm + decibel_l, base_decibel_fm + decibel_r);
@@ -592,7 +592,7 @@ void YM2203::set_volume(int ch, int decibel_l, int decibel_r)
 			fmdll->SetVolumeFM(dllchip, base_decibel_fm + decibel_l);
 		}
 #endif
-	} else if(ch == 1) {
+	} else if(_ch == 1) {
 //#ifdef HAS_YM2608
 		if(is_ym2608 && _HAS_YM2608) {
 			opna->SetVolumePSG(base_decibel_psg + decibel_l, base_decibel_psg + decibel_r);
@@ -606,11 +606,11 @@ void YM2203::set_volume(int ch, int decibel_l, int decibel_r)
 		}
 #endif
 //#ifdef HAS_YM2608
-	} else if(ch == 2) {
+	} else if(_ch == 2) {
 		if(is_ym2608 && _HAS_YM2608) {
 			opna->SetVolumeADPCM(decibel_l, decibel_r);
 		}
-	} else if(ch == 3) {
+	} else if(_ch == 3) {
 		if(is_ym2608 && _HAS_YM2608) {
 			opna->SetVolumeRhythmTotal(decibel_l, decibel_r);
 		}
@@ -771,7 +771,7 @@ void YM2203::decl_state()
 	DECL_STATE_ENTRY_INT32(right_volume);
 	DECL_STATE_ENTRY_INT32(v_left_volume);
 	DECL_STATE_ENTRY_INT32(v_right_volume);
-
+	
 	leave_decl_state();
 }
 
@@ -820,6 +820,7 @@ void YM2203::save_state(FILEIO* state_fio)
 //	state_fio->FputInt32(right_volume);
 //	state_fio->FputInt32(v_left_volume);
 //	state_fio->FputInt32(v_right_volume);
+//	out_debug_log("SAVE: ID=%d FNUM2=%d FNUM21=%d CHIP_CLOCK=%d\n", this_device_id, fnum2, fnum21, chip_clock); 
 }
 
 bool YM2203::load_state(FILEIO* state_fio)
@@ -881,9 +882,9 @@ bool YM2203::load_state(FILEIO* state_fio)
 		fmdll->Reset(dllchip);
 		for(int i = 0; i < 0x200; i++) {
 			// write fnum2 before fnum1
-			int ch = ((i >= 0xa0 && i <= 0xaf) || (i >= 0x1a0 && i <= 0x1a7)) ? (i ^ 4) : i;
+			int _ch = ((i >= 0xa0 && i <= 0xaf) || (i >= 0x1a0 && i <= 0x1a7)) ? (i ^ 4) : i;
 			if(port_log[ch].written) {
-				fmdll->SetReg(dllchip, ch, port_log[ch].data);
+				fmdll->SetReg(dllchip, _ch, port_log[ch].data);
 			}
 		}
 #ifdef HAS_YM2608
@@ -902,7 +903,8 @@ bool YM2203::load_state(FILEIO* state_fio)
 	//v_left_volume = state_fio->FgetInt32();
 	//v_right_volume = state_fio->FgetInt32();
 	//touch_sound();
-
+//	out_debug_log("LOAD: ID=%d FNUM2=%d FNUM21=%d CHIP_CLOCK=%d\n", this_device_id, fnum2, fnum21, chip_clock);
+	
 	return true;
 }
 

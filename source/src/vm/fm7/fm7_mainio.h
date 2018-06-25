@@ -337,7 +337,6 @@ class FM7_MAINIO : public DEVICE {
 	uint8_t subsystem_read_status(void);
 #endif   
 	// OPN
-	virtual void opn_note_on(int index);
 	virtual void set_opn(int index, uint8_t val);
 	virtual uint8_t get_opn(int index);
 	virtual void set_opn_cmd(int index, uint8_t cmd);
@@ -520,7 +519,6 @@ public:
 
 	virtual void write_signal(int id, uint32_t data, uint32_t mask);
 	virtual uint32_t read_signal(int id);
-	void restore_opn(void);
 	
 	virtual void event_callback(int event_id, int err);
 	virtual void reset();
