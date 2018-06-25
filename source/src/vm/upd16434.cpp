@@ -461,27 +461,49 @@ void UPD16434::draw(int xoffset)
 
 #define STATE_VERSION	1
 
+#include "../statesub.h"
+
+void UPD16434::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+	
+	DECL_STATE_ENTRY_UINT8(pointer);
+	DECL_STATE_ENTRY_UINT8(mode);
+	DECL_STATE_ENTRY_1D_ARRAY(imem, sizeof(imem));
+
+	leave_decl_state();
+}
 void UPD16434::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
 	
-	state_fio->FputUint8(pointer);
-	state_fio->FputUint8(mode);
-	state_fio->Fwrite(imem, sizeof(imem), 1);
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
+	
+//	state_fio->FputUint8(pointer);
+//	state_fio->FputUint8(mode);
+//	state_fio->Fwrite(imem, sizeof(imem), 1);
 }
 
 bool UPD16434::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	pointer = state_fio->FgetUint8();
-	mode = state_fio->FgetUint8();
-	state_fio->Fread(imem, sizeof(imem), 1);
+	if(!mb) return false;
+
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	pointer = state_fio->FgetUint8();
+//	mode = state_fio->FgetUint8();
+//	state_fio->Fread(imem, sizeof(imem), 1);
 	return true;
 }
 

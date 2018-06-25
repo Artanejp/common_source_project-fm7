@@ -3015,77 +3015,217 @@ void cmdtime_chk(void)
 
 #define STATE_VERSION	1
 
+#include "../statesub.h"
+
+void V99X8::decl_state_v99x8()
+{
+	DECL_STATE_ENTRY_1D_ARRAY((v99x8.ctrl), V99X8_NREG);
+	DECL_STATE_ENTRY_1D_ARRAY((v99x8.status), V99X8_NSTAT);
+
+	DECL_STATE_ENTRY_INT32((v99x8.scr));
+	{
+		DECL_STATE_ENTRY_BOOL((v99x8.mode.f_tms));
+		DECL_STATE_ENTRY_BOOL((v99x8.mode.f_interleave));
+		DECL_STATE_ENTRY_INT32((v99x8.mode.xsize));
+		DECL_STATE_ENTRY_INT32((v99x8.mode.xshift));
+	}
+
+	DECL_STATE_ENTRY_UINT8((v99x8.col_fg));
+	DECL_STATE_ENTRY_UINT8((v99x8.col_bg));
+	//DECL_STATE_ENTRY_UINT32((v99x8.tbl_pg));
+	//DECL_STATE_ENTRY_UINT32((v99x8.tbl_pn));
+	//DECL_STATE_ENTRY_UINT32((v99x8.tbl_cl));
+
+	DECL_STATE_ENTRY_INT32((v99x8.pages));
+	//DECL_STATE_ENTRY_UINT32((v99x8.vram));
+
+	DECL_STATE_ENTRY_INT32((v99x8.scanline));
+	DECL_STATE_ENTRY_INT32((v99x8.n_scanlines));
+}
+
+void V99X8::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	decl_state_v99x8();
+#ifdef USE_CMDTIME
+		DECL_STATE_ENTRY_INT32(cmdtime_t);
+		DECL_STATE_ENTRY_INT32(cmdtime_m);
+#endif
+	DECL_STATE_ENTRY_INT32(latch1);
+	DECL_STATE_ENTRY_INT32(latch2);
+	DECL_STATE_ENTRY_INT32(vram_addr);
+	DECL_STATE_ENTRY_INT32(vram_page);
+	DECL_STATE_ENTRY_BOOL(f_out3);
+	DECL_STATE_ENTRY_BOOL(f_mode);
+	DECL_STATE_ENTRY_BOOL(flag_frame);
+	{
+		//state_fio->Fwrite(&vcom, sizeof(vcom), 1);
+		DECL_STATE_ENTRY_INT32((vcom.xbytes));
+		DECL_STATE_ENTRY_INT32((vcom.xmask));
+		DECL_STATE_ENTRY_INT32((vcom.xshift));
+		DECL_STATE_ENTRY_INT32((vcom.ymask));
+		DECL_STATE_ENTRY_INT32((vcom.yshift));
+		
+		DECL_STATE_ENTRY_INT32((vcom.sx));
+		DECL_STATE_ENTRY_INT32((vcom.sy));
+		DECL_STATE_ENTRY_INT32((vcom.dx));
+		DECL_STATE_ENTRY_INT32((vcom.dy));
+		DECL_STATE_ENTRY_INT32((vcom.nx));
+		DECL_STATE_ENTRY_INT32((vcom.ny));
+
+		DECL_STATE_ENTRY_INT32((vcom.lop));
+
+		//DECL_STATE_ENTRY_INT32((int)(vcom.src - vram));
+		//DECL_STATE_ENTRY_INT32((int)(vcom.dst - vram));
+	}
+	{
+		//state_fio->Fwrite(&r44, sizeof(r44), 1);
+		DECL_STATE_ENTRY_INT32((r44.sx));
+		DECL_STATE_ENTRY_INT32((r44.sy));
+		DECL_STATE_ENTRY_INT32((r44.ex));
+		DECL_STATE_ENTRY_INT32((r44.ey));
+
+		DECL_STATE_ENTRY_INT32((r44.x));
+		DECL_STATE_ENTRY_INT32((r44.y));
+		DECL_STATE_ENTRY_INT32((r44.xsize));
+	}
+	{
+		//state_fio->Fwrite(&pixmask, sizeof(pixmask), 1);
+		DECL_STATE_ENTRY_INT32((picmask.npix));
+		DECL_STATE_ENTRY_INT32((picmask.xmask));
+		DECL_STATE_ENTRY_INT32((picmask.mask));
+		DECL_STATE_ENTRY_1D_ARRAY((picmask.pmask), 4);
+		DECL_STATE_ENTRY_1D_ARRAY((picmask.lshift), 4);
+		DECL_STATE_ENTRY_1D_ARRAY((picmask.rshift), 4);
+	}
+	{
+		//state_fio->Fwrite(&v99x8_refresh, sizeof(v99x8_refresh), 1);
+		DECL_STATE_ENTRY_INT32((v99x8_refresh.width));
+		DECL_STATE_ENTRY_INT32((v99x8_refresh.height));
+		DECL_STATE_ENTRY_INT32((v99x8_refresh.bpp));
+	}
+	for(int i = 0; i < (16 + 1); i++) {
+		//state_fio->Fwrite(pal, sizeof(pal), 1);
+		DECL_STATE_ENTRY_BOOL_MEMBER((pal[i].flag), i);
+		DECL_STATE_ENTRY_UINT8_MEMBER((pal[i].b), i);
+		DECL_STATE_ENTRY_UINT8_MEMBER((pal[i].r), i);
+		DECL_STATE_ENTRY_UINT8_MEMBER((pal[i].g), i);
+		DECL_STATE_ENTRY_UINT32_MEMBER((pal[i].color), i);
+	}
+	//state_fio->Fwrite(pal_8, sizeof(pal_8), 1);
+	//state_fio->Fwrite(pal_m, sizeof(pal_m), 1);
+	DECL_STATE_ENTRY_1D_ARRAY(pal_8, sizeof(pal_8) / sizeof(uint32_t));
+	DECL_STATE_ENTRY_1D_ARRAY(pal_m, sizeof(pal_m) / sizeof(uint32_t));
+	DECL_STATE_ENTRY_INT32(col_bg);
+	
+	DECL_STATE_ENTRY_1D_ARRAY(tbl_yjk_b, sizeof(tbl_yjk_b));
+	DECL_STATE_ENTRY_1D_ARRAY(tbl_yjk_rg, sizeof(tbl_yjk_rg));
+	DECL_STATE_ENTRY_1D_ARRAY(blackbuf, sizeof(blackbuf));
+	
+	DECL_STATE_ENTRY_1D_ARRAY(sbuf, sizeof(sbuf));
+	DECL_STATE_ENTRY_1D_ARRAY(vram, sizeof(vram));
+	DECL_STATE_ENTRY_BOOL(intstat);
+
+	leave_decl_state();
+}
+
 void V99X8::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	uint32_t crc_value = 0xffffffff;
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio, &crc_value);
+	}
+	csp_state_data_saver saver(state_fio);
+	bool stat;
+	saver.put_int32((int)(vcom.src - vram), &crc_value, &stat);
+	saver.put_int32((int)(vcom.dst - vram), &crc_value, &stat);
+
+	saver.post_proc_saving(&crc_value, &stat);
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->Fwrite(&v99x8, sizeof(v99x8), 1);
-#ifdef USE_CMDTIME
-		state_fio->FputInt32(cmdtime_t);
-		state_fio->FputInt32(cmdtime_m);
-#endif
-	state_fio->FputInt32(latch1);
-	state_fio->FputInt32(latch2);
-	state_fio->FputInt32(vram_addr);
-	state_fio->FputInt32(vram_page);
-	state_fio->FputBool(f_out3);
-	state_fio->FputBool(f_mode);
-	state_fio->FputBool(flag_frame);
-	state_fio->Fwrite(&vcom, sizeof(vcom), 1);
-	state_fio->FputInt32((int)(vcom.src - vram));
-	state_fio->FputInt32((int)(vcom.dst - vram));
-	state_fio->Fwrite(&r44, sizeof(r44), 1);
-	state_fio->Fwrite(&pixmask, sizeof(pixmask), 1);
-	state_fio->Fwrite(&v99x8_refresh, sizeof(v99x8_refresh), 1);
-	state_fio->Fwrite(pal, sizeof(pal), 1);
-	state_fio->Fwrite(pal_8, sizeof(pal_8), 1);
-	state_fio->Fwrite(pal_m, sizeof(pal_m), 1);
-	state_fio->FputInt32(col_bg);
-	state_fio->Fwrite(tbl_yjk_b, sizeof(tbl_yjk_b), 1);
-	state_fio->Fwrite(tbl_yjk_rg, sizeof(tbl_yjk_rg), 1);
-	state_fio->Fwrite(blackbuf, sizeof(blackbuf), 1);
-	state_fio->Fwrite(sbuf, sizeof(sbuf), 1);
-	state_fio->Fwrite(vram, sizeof(vram), 1);
-	state_fio->FputBool(intstat);
+//	state_fio->Fwrite(&v99x8, sizeof(v99x8), 1);
+//#ifdef USE_CMDTIME
+//		state_fio->FputInt32(cmdtime_t);
+//		state_fio->FputInt32(cmdtime_m);
+//#endif
+//	state_fio->FputInt32(latch1);
+//	state_fio->FputInt32(latch2);
+//	state_fio->FputInt32(vram_addr);
+//	state_fio->FputInt32(vram_page);
+//	state_fio->FputBool(f_out3);
+//	state_fio->FputBool(f_mode);
+//	state_fio->FputBool(flag_frame);
+//	state_fio->Fwrite(&vcom, sizeof(vcom), 1);
+//	state_fio->FputInt32((int)(vcom.src - vram));
+//	state_fio->FputInt32((int)(vcom.dst - vram));
+//	state_fio->Fwrite(&r44, sizeof(r44), 1);
+//	state_fio->Fwrite(&pixmask, sizeof(pixmask), 1);
+//	state_fio->Fwrite(&v99x8_refresh, sizeof(v99x8_refresh), 1);
+//	state_fio->Fwrite(pal, sizeof(pal), 1);
+//	state_fio->Fwrite(pal_8, sizeof(pal_8), 1);
+//	state_fio->Fwrite(pal_m, sizeof(pal_m), 1);
+//	state_fio->FputInt32(col_bg);
+//	state_fio->Fwrite(tbl_yjk_b, sizeof(tbl_yjk_b), 1);
+//	state_fio->Fwrite(tbl_yjk_rg, sizeof(tbl_yjk_rg), 1);
+//	state_fio->Fwrite(blackbuf, sizeof(blackbuf), 1);
+//	state_fio->Fwrite(sbuf, sizeof(sbuf), 1);
+//	state_fio->Fwrite(vram, sizeof(vram), 1);
+//	state_fio->FputBool(intstat);
 }
 
 bool V99X8::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	state_fio->Fread(&v99x8, sizeof(v99x8), 1);
-#ifdef USE_CMDTIME
-		cmdtime_t = state_fio->FgetInt32();
-		cmdtime_m = state_fio->FgetInt32();
-#endif
-	latch1 = state_fio->FgetInt32();
-	latch2 = state_fio->FgetInt32();
-	vram_addr = state_fio->FgetInt32();
-	vram_page = state_fio->FgetInt32();
-	f_out3 = state_fio->FgetBool();
-	f_mode = state_fio->FgetBool();
-	flag_frame = state_fio->FgetBool();
-	state_fio->Fread(&vcom, sizeof(vcom), 1);
-	vcom.src = vram + state_fio->FgetInt32();
-	vcom.dst = vram + state_fio->FgetInt32();
-	state_fio->Fread(&r44, sizeof(r44), 1);
-	state_fio->Fread(&pixmask, sizeof(pixmask), 1);
-	state_fio->Fread(&v99x8_refresh, sizeof(v99x8_refresh), 1);
-	state_fio->Fread(pal, sizeof(pal), 1);
-	state_fio->Fread(pal_8, sizeof(pal_8), 1);
-	state_fio->Fread(pal_m, sizeof(pal_m), 1);
-	col_bg = state_fio->FgetInt32();
-	state_fio->Fread(tbl_yjk_b, sizeof(tbl_yjk_b), 1);
-	state_fio->Fread(tbl_yjk_rg, sizeof(tbl_yjk_rg), 1);
-	state_fio->Fread(blackbuf, sizeof(blackbuf), 1);
-	state_fio->Fread(sbuf, sizeof(sbuf), 1);
-	state_fio->Fread(vram, sizeof(vram), 1);
-	intstat = state_fio->FgetBool();
+	if(!mb) return false;
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	state_fio->Fread(&v99x8, sizeof(v99x8), 1);
+//#ifdef USE_CMDTIME
+//		cmdtime_t = state_fio->FgetInt32();
+//		cmdtime_m = state_fio->FgetInt32();
+//#endif
+//	latch1 = state_fio->FgetInt32();
+//	latch2 = state_fio->FgetInt32();
+//	vram_addr = state_fio->FgetInt32();
+//	vram_page = state_fio->FgetInt32();
+//	f_out3 = state_fio->FgetBool();
+//	f_mode = state_fio->FgetBool();
+//	flag_frame = state_fio->FgetBool();
+//	state_fio->Fread(&vcom, sizeof(vcom), 1);
+	csp_state_data_saver saver(state_fio);
+	bool stat;
+	uint32_t crc_value = 0xffffffff;
+	//int length_tmp = state_fio->FgetInt32_BE();
+	vcom.src = vram + saver.get_int32(&crc_value, &stat);
+	if(!stat) return false;
+	vcom.dst = vram + saver.get_int32(&crc_value, &stat);
+	if(!stat) return false;
+//	vcom.src = vram + state_fio->FgetInt32();
+//	vcom.dst = vram + state_fio->FgetInt32();
+	if(!(saver.post_proc_loading(&crc_value, &stat))) return false;
+	
+//	state_fio->Fread(&r44, sizeof(r44), 1);
+//	state_fio->Fread(&pixmask, sizeof(pixmask), 1);
+//	state_fio->Fread(&v99x8_refresh, sizeof(v99x8_refresh), 1);
+//	state_fio->Fread(pal, sizeof(pal), 1);
+//	state_fio->Fread(pal_8, sizeof(pal_8), 1);
+//	state_fio->Fread(pal_m, sizeof(pal_m), 1);
+//	col_bg = state_fio->FgetInt32();
+//	state_fio->Fread(tbl_yjk_b, sizeof(tbl_yjk_b), 1);
+//	state_fio->Fread(tbl_yjk_rg, sizeof(tbl_yjk_rg), 1);
+//	state_fio->Fread(blackbuf, sizeof(blackbuf), 1);
+//	state_fio->Fread(sbuf, sizeof(sbuf), 1);
+//	state_fio->Fread(vram, sizeof(vram), 1);
+//	intstat = state_fio->FgetBool();
 	
 	// post process
 	v99x8.vram = vram;

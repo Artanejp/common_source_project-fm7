@@ -992,6 +992,10 @@ void SY6522::decl_state()
 
 void SY6522::save_state(FILEIO* state_fio)
 {
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+	
 //	state_fio->FputUint32(STATE_VERSION);
 //	state_fio->FputInt32(this_device_id);
 	
@@ -1037,6 +1041,12 @@ void SY6522::save_state(FILEIO* state_fio)
 
 bool SY6522::load_state(FILEIO* state_fio)
 {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) return false;
+
 //	if(state_fio->FgetUint32() != STATE_VERSION) {
 //		return false;
 //	}

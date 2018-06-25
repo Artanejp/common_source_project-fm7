@@ -90,7 +90,8 @@ struct i80286_state
 	uint64_t prev_total_icount;
 #endif
 	int icount;
-	char seg_prefix;
+	//char seg_prefix;
+	UINT8 seg_prefix;
 	UINT8   prefix_seg;
 	unsigned ea;
 	UINT16 eo; /* HJB 12/13/98 effective offset of the address (before segment is added) */

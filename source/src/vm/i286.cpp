@@ -458,6 +458,133 @@ typedef struct i286_dtr_2_t{
 	UINT8 rights;
 };
 
+#include "../statesub.h"
+
+void I286::decl_state_cpustate()
+{
+#if defined(HAS_I286)
+	struct i80286_state *state = (i80286_state *)opaque;
+	//state_fio->Fwrite(&(state->regs), sizeof(i80286basicregs), 1);
+	for(int i = 0; i < 8; i++) {
+		DECL_STATE_ENTRY_UINT16_MEMBER((state->regs.w[i]), i);
+	}
+	DECL_STATE_ENTRY_UINT32((state->amask));
+	DECL_STATE_ENTRY_UINT32((state->pc));
+	DECL_STATE_ENTRY_UINT32((state->prevpc));
+	DECL_STATE_ENTRY_UINT16((state->flags));
+	DECL_STATE_ENTRY_UINT16((state->msw));
+	DECL_STATE_ENTRY_1D_ARRAY((state->base), 4);
+	DECL_STATE_ENTRY_1D_ARRAY((state->sregs), 4);
+	DECL_STATE_ENTRY_1D_ARRAY((state->limit), 4);
+	DECL_STATE_ENTRY_1D_ARRAY((state->rights), 4);
+	DECL_STATE_ENTRY_1D_ARRAY((state->valid), 4);
+	
+	DECL_STATE_ENTRY_UINT32((state->gdtr.base));
+	DECL_STATE_ENTRY_UINT16((state->gdtr.limit));
+
+	DECL_STATE_ENTRY_UINT32((state->idtr.base));
+	DECL_STATE_ENTRY_UINT16((state->idtr.limit));
+	
+	DECL_STATE_ENTRY_UINT16((state->ldtr.sel));
+	DECL_STATE_ENTRY_UINT32((state->ldtr.base));
+	DECL_STATE_ENTRY_UINT32((state->ldtr.limit));
+	DECL_STATE_ENTRY_UINT32((state->ldtr.rights));
+
+	DECL_STATE_ENTRY_UINT16((state->tr.sel));
+	DECL_STATE_ENTRY_UINT32((state->tr.base));
+	DECL_STATE_ENTRY_UINT32((state->tr.limit));
+	DECL_STATE_ENTRY_UINT32((state->tr.rights));
+
+	DECL_STATE_ENTRY_INT32((state->AuxVal));
+	DECL_STATE_ENTRY_INT32((state->OverVal));
+	DECL_STATE_ENTRY_INT32((state->SignVal));
+	DECL_STATE_ENTRY_INT32((state->ZeroVal));
+	DECL_STATE_ENTRY_INT32((state->CarryVal));
+	DECL_STATE_ENTRY_INT32((state->DirVal));
+	
+	DECL_STATE_ENTRY_UINT8((state->ParityVal));
+	DECL_STATE_ENTRY_UINT8((state->TF));
+	DECL_STATE_ENTRY_UINT8((state->IF));
+	DECL_STATE_ENTRY_UINT8((state->MF));
+	DECL_STATE_ENTRY_INT8((state->nmi_state));
+	DECL_STATE_ENTRY_INT8((state->irq_state));
+	DECL_STATE_ENTRY_INT8((state->test_state));
+	
+	DECL_STATE_ENTRY_UINT8((state->rep_in_progress));	
+	DECL_STATE_ENTRY_INT32((state->extra_cycles));
+	
+	DECL_STATE_ENTRY_INT32((state->halted));
+	DECL_STATE_ENTRY_INT32((state->busreq));
+	DECL_STATE_ENTRY_INT32((state->trap_level));
+	DECL_STATE_ENTRY_INT32((state->shutdown));
+	DECL_STATE_ENTRY_INT32((state->icount));
+
+	DECL_STATE_ENTRY_UINT8((state->seg_prefix));
+	DECL_STATE_ENTRY_UINT8((state->prefix_seg));
+	
+	DECL_STATE_ENTRY_UINT32((state->ea));
+	DECL_STATE_ENTRY_UINT16((state->eo));
+	DECL_STATE_ENTRY_UINT8((state->ea_seg));
+
+#  ifdef USE_DEBUGGER
+	DECL_STATE_ENTRY_UINT64((state->total_icount));
+#  endif
+#else // not I286
+
+	struct i8086_state *state = (i8086_state *)opaque;
+	for(int i = 0; i < 8; i++) {
+		DECL_STATE_ENTRY_UINT16_MEMBER((state->regs.w[i]), i);
+	}
+	DECL_STATE_ENTRY_UINT32((state->amask));
+	DECL_STATE_ENTRY_UINT32((state->pc));
+	DECL_STATE_ENTRY_UINT32((state->prevpc));
+	DECL_STATE_ENTRY_1D_ARRAY((state->base), 4);
+	DECL_STATE_ENTRY_1D_ARRAY((state->sregs), 4);
+	
+	DECL_STATE_ENTRY_UINT16((state->flags));
+
+	DECL_STATE_ENTRY_INT32((state->AuxVal));
+	DECL_STATE_ENTRY_INT32((state->OverVal));
+	DECL_STATE_ENTRY_INT32((state->SignVal));
+	DECL_STATE_ENTRY_INT32((state->ZeroVal));
+	DECL_STATE_ENTRY_INT32((state->CarryVal));
+	DECL_STATE_ENTRY_INT32((state->DirVal));
+	
+	DECL_STATE_ENTRY_UINT8((state->ParityVal));
+	DECL_STATE_ENTRY_UINT8((state->TF));
+	DECL_STATE_ENTRY_UINT8((state->IF));
+	DECL_STATE_ENTRY_UINT8((state->MF));
+	
+	DECL_STATE_ENTRY_UINT8((state->int_vector));
+
+	DECL_STATE_ENTRY_INT8((state->nmi_state));
+	DECL_STATE_ENTRY_INT8((state->irq_state));
+	DECL_STATE_ENTRY_INT8((state->test_state));
+	
+	DECL_STATE_ENTRY_UINT8((state->rep_in_progress));	
+	DECL_STATE_ENTRY_INT32((state->extra_cycles));
+	
+	DECL_STATE_ENTRY_INT32((state->halted));
+	DECL_STATE_ENTRY_INT32((state->busreq));
+
+	DECL_STATE_ENTRY_UINT16((state->ip));
+	DECL_STATE_ENTRY_UINT32((state->sp));
+	
+	DECL_STATE_ENTRY_INT32((state->icount));
+
+	DECL_STATE_ENTRY_UINT8((state->seg_prefix));
+	DECL_STATE_ENTRY_UINT8((state->prefix_seg));
+	
+	DECL_STATE_ENTRY_UINT32((state->ea));
+	DECL_STATE_ENTRY_UINT16((state->eo));
+	DECL_STATE_ENTRY_UINT8((state->ea_seg));
+	
+#  ifdef USE_DEBUGGER
+	DECL_STATE_ENTRY_UINT64((state->total_icount));
+#  endif
+#endif
+}
+
 void I286::save_state_cpustate(FILEIO* state_fio)
 {
 #if defined(HAS_I286)
@@ -705,25 +832,44 @@ void I286::load_state_cpustate(FILEIO* state_fio)
 
 #define STATE_VERSION	4
 
+void I286::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+	
+	decl_state_cpustate();
+	
+	leave_decl_state();
+}
+
 void I286::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+	
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
 	//state_fio->Fwrite(opaque, sizeof(cpu_state), 1);
-	save_state_cpustate(state_fio);
+	//save_state_cpustate(state_fio);
 }
 
 bool I286::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	//state_fio->Fread(opaque, sizeof(cpu_state), 1);
-	load_state_cpustate(state_fio);
+	if(!mb) return false;
+
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	//state_fio->Fread(opaque, sizeof(cpu_state), 1);
+//	load_state_cpustate(state_fio);
 	
 	// post process
 	cpu_state *cpustate = (cpu_state *)opaque;
@@ -741,6 +887,7 @@ bool I286::load_state(FILEIO* state_fio)
 	cpustate->debugger = d_debugger;
 	cpustate->program_stored = d_mem;
 	cpustate->io_stored = d_io;
+	cpustate->prev_total_icount = cpustate->total_icount;
 #endif
 	return true;
 }

@@ -367,33 +367,169 @@ int UPD7810::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 
 #define STATE_VERSION	4
 
+#include "../statesub.h"
+
+void UPD7810::decl_state_cpustate()
+{
+	upd7810_state *cpustate = (upd7810_state *)opaque;
+
+	DECL_STATE_ENTRY_PAIR((cpustate->ppc));    /* previous program counter */
+	DECL_STATE_ENTRY_PAIR((cpustate->pc));     /* program counter */
+	DECL_STATE_ENTRY_PAIR((cpustate->sp));     /* stack pointer */
+	DECL_STATE_ENTRY_UINT8((cpustate->op));     /* opcode */
+	DECL_STATE_ENTRY_UINT8((cpustate->op2));    /* opcode part 2 */
+	DECL_STATE_ENTRY_UINT8((cpustate->iff));    /* interrupt enable flip flop */
+	DECL_STATE_ENTRY_UINT8((cpustate->softi));
+	DECL_STATE_ENTRY_UINT8((cpustate->psw));    /* processor status word */
+	DECL_STATE_ENTRY_PAIR((cpustate->ea));     /* extended accumulator */
+	DECL_STATE_ENTRY_PAIR((cpustate->va));     /* accumulator + vector register */
+	DECL_STATE_ENTRY_PAIR((cpustate->bc));     /* 8bit B and C registers / 16bit BC register */
+	DECL_STATE_ENTRY_PAIR((cpustate->de));     /* 8bit D and E registers / 16bit DE register */
+	DECL_STATE_ENTRY_PAIR((cpustate->hl));     /* 8bit H and L registers / 16bit HL register */
+	DECL_STATE_ENTRY_PAIR((cpustate->ea2));    /* alternate register set */
+	DECL_STATE_ENTRY_PAIR((cpustate->va2));
+	DECL_STATE_ENTRY_PAIR((cpustate->bc2));
+	DECL_STATE_ENTRY_PAIR((cpustate->de2));
+	DECL_STATE_ENTRY_PAIR((cpustate->hl2));
+	DECL_STATE_ENTRY_PAIR((cpustate->cnt));    /* 8 bit timer counter */
+	DECL_STATE_ENTRY_PAIR((cpustate->tm));     /* 8 bit timer 0/1 comparator inputs */
+	DECL_STATE_ENTRY_PAIR((cpustate->ecnt));   /* timer counter register / capture register */
+	DECL_STATE_ENTRY_PAIR((cpustate->etm));    /* timer 0/1 comparator inputs */
+	DECL_STATE_ENTRY_UINT8((cpustate->ma));     /* port A input or output mask */
+	DECL_STATE_ENTRY_UINT8((cpustate->mb));     /* port B input or output mask */
+	DECL_STATE_ENTRY_UINT8((cpustate->mcc));    /* port C control/port select */
+	DECL_STATE_ENTRY_UINT8((cpustate->mc));     /* port C input or output mask */
+	DECL_STATE_ENTRY_UINT8((cpustate->mm));     /* memory mapping */
+	DECL_STATE_ENTRY_UINT8((cpustate->mf));     /* port F input or output mask */
+	DECL_STATE_ENTRY_UINT8((cpustate->tmm));    /* timer 0 and timer 1 operating parameters */
+	DECL_STATE_ENTRY_UINT8((cpustate->etmm));   /* 16-bit multifunction timer/event counter */
+	DECL_STATE_ENTRY_UINT8((cpustate->eom));    /* 16-bit timer/event counter output control */
+	DECL_STATE_ENTRY_UINT8((cpustate->sml));    /* serial interface parameters low */
+	DECL_STATE_ENTRY_UINT8((cpustate->smh));    /* -"- high */
+	DECL_STATE_ENTRY_UINT8((cpustate->anm));    /* analog to digital converter operating parameters */
+	DECL_STATE_ENTRY_UINT8((cpustate->mkl));    /* interrupt mask low */
+	DECL_STATE_ENTRY_UINT8((cpustate->mkh));    /* -"- high */
+	DECL_STATE_ENTRY_UINT8((cpustate->zcm));    /* bias circuitry for ac zero-cross detection */
+	DECL_STATE_ENTRY_UINT8((cpustate->pa_in));  /* port A,B,C,D,F inputs */
+	DECL_STATE_ENTRY_UINT8((cpustate->pb_in));
+	DECL_STATE_ENTRY_UINT8((cpustate->pc_in));
+	DECL_STATE_ENTRY_UINT8((cpustate->pd_in));
+	DECL_STATE_ENTRY_UINT8((cpustate->pf_in));
+	DECL_STATE_ENTRY_UINT8((cpustate->pa_out)); /* port A,B,C,D,F outputs */
+	DECL_STATE_ENTRY_UINT8((cpustate->pb_out));
+	DECL_STATE_ENTRY_UINT8((cpustate->pc_out));
+	DECL_STATE_ENTRY_UINT8((cpustate->pd_out));
+	DECL_STATE_ENTRY_UINT8((cpustate->pf_out));
+	DECL_STATE_ENTRY_UINT8((cpustate->cr0));    /* analog digital conversion register 0 */
+	DECL_STATE_ENTRY_UINT8((cpustate->cr1));    /* analog digital conversion register 1 */
+	DECL_STATE_ENTRY_UINT8((cpustate->cr2));    /* analog digital conversion register 2 */
+	DECL_STATE_ENTRY_UINT8((cpustate->cr3));    /* analog digital conversion register 3 */
+	DECL_STATE_ENTRY_UINT8((cpustate->txb));    /* transmitter buffer */
+	DECL_STATE_ENTRY_UINT8((cpustate->rxb));    /* receiver buffer */
+	DECL_STATE_ENTRY_UINT8((cpustate->txd));    /* port C control line states */
+	DECL_STATE_ENTRY_UINT8((cpustate->rxd));
+	DECL_STATE_ENTRY_UINT8((cpustate->sck));
+	DECL_STATE_ENTRY_UINT8((cpustate->ti));
+	DECL_STATE_ENTRY_UINT8((cpustate->to));
+	DECL_STATE_ENTRY_UINT8((cpustate->ci));
+	DECL_STATE_ENTRY_UINT8((cpustate->co0));
+	DECL_STATE_ENTRY_UINT8((cpustate->co1));
+	DECL_STATE_ENTRY_UINT16((cpustate->irr));    /* interrupt request register */
+	DECL_STATE_ENTRY_UINT16((cpustate->itf));    /* interrupt test flag register */
+	DECL_STATE_ENTRY_INT32((cpustate->int1));   /* keep track of current int1 state. Needed for 7801 irq checking. */
+	DECL_STATE_ENTRY_INT32((cpustate->int2));   /* keep track to current int2 state. Needed for 7801 irq checking. */
+
+/* internal helper variables */
+	DECL_STATE_ENTRY_UINT16((cpustate->txs));    /* transmitter shift register */
+	DECL_STATE_ENTRY_UINT16((cpustate->rxs));    /* receiver shift register */
+	DECL_STATE_ENTRY_UINT8((cpustate->txcnt));  /* transmitter shift register bit count */
+	DECL_STATE_ENTRY_UINT8((cpustate->rxcnt));  /* receiver shift register bit count */
+	DECL_STATE_ENTRY_UINT8((cpustate->txbuf));  /* transmitter buffer was written */
+	DECL_STATE_ENTRY_INT32((cpustate->ovc0));   /* overflow counter for timer 0 ((for clock div 12/384) */
+	DECL_STATE_ENTRY_INT32((cpustate->ovc1));   /* overflow counter for timer 0 (for clock div 12/384) */
+	DECL_STATE_ENTRY_INT32((cpustate->ovce));   /* overflow counter for ecnt */
+	DECL_STATE_ENTRY_INT32((cpustate->ovcf));   /* overflow counter for fixed clock div 3 mode */
+	DECL_STATE_ENTRY_INT32((cpustate->ovcs));   /* overflow counter for serial I/O */
+	DECL_STATE_ENTRY_INT32((cpustate->ovcsio));
+	DECL_STATE_ENTRY_UINT8((cpustate->edges));  /* rising/falling edge flag for serial I/O */
+//	const struct opcode_s *opXX;    /* opcode table */
+//	const struct opcode_s *op48;
+//	const struct opcode_s *op4C;
+//	const struct opcode_s *op4D;
+//	const struct opcode_s *op60;
+//	const struct opcode_s *op64;
+//	const struct opcode_s *op70;
+//	const struct opcode_s *op74;
+//	void (*handle_timers)(upd7810_state *cpustate, int cycles);
+//	UPD7810_CONFIG config;
+//	device_irq_acknowledge_callback irq_callback;
+//	legacy_cpu_device *device;
+//	DEVICE *program;
+//	DEVICE *io;
+//	void *outputs_to;
+//	void *outputs_txd;
+//#ifdef USE_DEBUGGER
+//	EMU *emu;
+//	DEBUGGER *debugger;
+//	DEVICE *program_stored;
+//	DEVICE *io_stored;
+//#endif
+	DECL_STATE_ENTRY_INT32((cpustate->icount));
+
+}
+
+void UPD7810::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	decl_state_cpustate();
+#ifdef USE_DEBUGGER
+	DECL_STATE_ENTRY_UINT64(total_icount);
+#endif
+	DECL_STATE_ENTRY_INT32(icount);
+	DECL_STATE_ENTRY_BOOL(busreq);
+
+	leave_decl_state();
+}
+
 void UPD7810::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->Fwrite(opaque, sizeof(upd7810_state), 1);
-#ifdef USE_DEBUGGER
-	state_fio->FputUint64(total_icount);
-#endif
-	state_fio->FputInt32(icount);
-	state_fio->FputBool(busreq);
+//	state_fio->Fwrite(opaque, sizeof(upd7810_state), 1);
+//#ifdef USE_DEBUGGER
+//	state_fio->FputUint64(total_icount);
+//#endif
+//	state_fio->FputInt32(icount);
+//	state_fio->FputBool(busreq);
 }
 
 bool UPD7810::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	state_fio->Fread(opaque, sizeof(upd7810_state), 1);
+	if(!mb) return false;
+
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	state_fio->Fread(opaque, sizeof(upd7810_state), 1);
 #ifdef USE_DEBUGGER
-	total_icount = prev_total_icount = state_fio->FgetUint64();
+	//total_icount = prev_total_icount = state_fio->FgetUint64();
+	prev_total_icount = total_icount;
 #endif
-	icount = state_fio->FgetInt32();
-	busreq = state_fio->FgetBool();
+	//icount = state_fio->FgetInt32();
+	//busreq = state_fio->FgetBool();
 	
 	// post process
 	upd7810_state *cpustate = (upd7810_state *)opaque;

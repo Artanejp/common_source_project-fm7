@@ -1794,7 +1794,7 @@ void DATAREC::update_config()
 	update_realtime_render();
 }
 
-#define STATE_VERSION	10
+#define STATE_VERSION	11
 
 #include "../statesub.h"
 
@@ -1857,6 +1857,7 @@ void DATAREC::decl_state()
 }
 void DATAREC::save_state(FILEIO* state_fio)
 {
+	uint32_t crc_value = 0xffffffff;
 
 	_tmp_buffer_length = buffer_length;
 	_tmp_buffer_bak_length = buffer_length;
@@ -1872,22 +1873,31 @@ void DATAREC::save_state(FILEIO* state_fio)
 //	state_fio->Fwrite(rec_file_path, sizeof(rec_file_path), 1);
 	
 	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
+		state_entry->save_state(state_fio, &crc_value);
 	}
+	csp_state_data_saver saver(state_fio);
+	bool stat;
 	if(rec && rec_fio->IsOpened()) {
+		
 		int length_tmp = (int)rec_fio->Ftell();
 		rec_fio->Fseek(0, FILEIO_SEEK_SET);
-		state_fio->FputInt32_BE(length_tmp);
+		//state_fio->FputInt32_BE(length_tmp);
+		saver.put_int32(length_tmp, &crc_value, &stat);
 		while(length_tmp != 0) {
 			uint8_t buffer_tmp[1024];
 			int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
 			rec_fio->Fread(buffer_tmp, length_rw, 1);
+			
 			state_fio->Fwrite(buffer_tmp, length_rw, 1);
+			crc_value = calc_crc32(crc_value, buffer_tmp, length_rw);
+			
 			length_tmp -= length_rw;
 		}
 	} else {
-		state_fio->FputInt32_BE(0);
+		saver.put_int32(0, &crc_value, &stat);
+		//state_fio->FputInt32_BE(0);
 	}
+	saver.post_proc_saving(&crc_value, &stat);
 	//state_fio->FputInt32(ff_rew);
 	//state_fio->FputBool(in_signal);
 	//state_fio->FputBool(out_signal);
@@ -1970,19 +1980,27 @@ bool DATAREC::load_state(FILEIO* state_fio)
 //	}
 	
 	
-	int length_tmp = state_fio->FgetInt32_BE();
+	csp_state_data_saver saver(state_fio);
+	bool stat;
+	uint32_t crc_value = 0xffffffff;
+	//int length_tmp = state_fio->FgetInt32_BE();
+	int length_tmp = saver.get_int32(&crc_value, &stat);
+	if(!stat) return false;
 	if(rec) {
 		rec_fio->Fopen(rec_file_path, FILEIO_READ_WRITE_NEW_BINARY);
 		while(length_tmp != 0) {
 			uint8_t buffer_tmp[1024];
 			int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
 			state_fio->Fread(buffer_tmp, length_rw, 1);
+			crc_value = calc_crc32(crc_value, buffer_tmp, length_rw);
+			
 			if(rec_fio->IsOpened()) {
 				rec_fio->Fwrite(buffer_tmp, length_rw, 1);
 			}
 			length_tmp -= length_rw;
 		}
 	}
+	if(!(saver.post_proc_loading(&crc_value, &stat))) return false;
 	
 //	ff_rew = state_fio->FgetInt32();
 //	in_signal = state_fio->FgetBool();

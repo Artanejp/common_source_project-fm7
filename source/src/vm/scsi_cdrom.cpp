@@ -715,61 +715,105 @@ void SCSI_CDROM::set_volume(int volume)
 	volume_m = (int)(1024.0 * (max(0, min(100, volume)) / 100.0));
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
+#include "../statesub.h"
+
+void SCSI_CDROM::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+	
+	DECL_STATE_ENTRY_UINT32(cdda_start_frame);
+	DECL_STATE_ENTRY_UINT32(cdda_end_frame);
+	DECL_STATE_ENTRY_UINT32(cdda_playing_frame);
+	DECL_STATE_ENTRY_UINT8(cdda_status);
+	DECL_STATE_ENTRY_BOOL(cdda_repeat);
+	DECL_STATE_ENTRY_BOOL(cdda_interrupt);
+	DECL_STATE_ENTRY_1D_ARRAY(cdda_buffer, sizeof(cdda_buffer));
+	DECL_STATE_ENTRY_INT32(cdda_buffer_ptr);
+	DECL_STATE_ENTRY_INT32(cdda_sample_l);
+	DECL_STATE_ENTRY_INT32(cdda_sample_r);
+	DECL_STATE_ENTRY_INT32(event_cdda);
+//	DECL_STATE_ENTRY_INT32(mix_loop_num);
+	DECL_STATE_ENTRY_INT32(volume_m);
+//	if(fio_img->IsOpened()) {
+//		state_fio->FputUint32(fio_img->Ftell());
+//	} else {
+//		state_fio->FputUint32(0);
+//	}
+	SCSI_DEV::decl_state();
+
+	leave_decl_state();
+}
 void SCSI_CDROM::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->FputUint32(cdda_start_frame);
-	state_fio->FputUint32(cdda_end_frame);
-	state_fio->FputUint32(cdda_playing_frame);
-	state_fio->FputUint8(cdda_status);
-	state_fio->FputBool(cdda_repeat);
-	state_fio->FputBool(cdda_interrupt);
-	state_fio->Fwrite(cdda_buffer, sizeof(cdda_buffer), 1);
-	state_fio->FputInt32(cdda_buffer_ptr);
-	state_fio->FputInt32(cdda_sample_l);
-	state_fio->FputInt32(cdda_sample_r);
-	state_fio->FputInt32(event_cdda);
-//	state_fio->FputInt32(mix_loop_num);
-	state_fio->FputInt32(volume_m);
-	if(fio_img->IsOpened()) {
-		state_fio->FputUint32(fio_img->Ftell());
-	} else {
-		state_fio->FputUint32(0);
+	uint32_t crc_value = 0xffffffff;
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio, &crc_value);
 	}
-	SCSI_DEV::save_state(state_fio);
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
+	
+//	state_fio->FputUint32(cdda_start_frame);
+//	state_fio->FputUint32(cdda_end_frame);
+//	state_fio->FputUint32(cdda_playing_frame);
+//	state_fio->FputUint8(cdda_status);
+//	state_fio->FputBool(cdda_repeat);
+//	state_fio->FputBool(cdda_interrupt);
+//	state_fio->Fwrite(cdda_buffer, sizeof(cdda_buffer), 1);
+//	state_fio->FputInt32(cdda_buffer_ptr);
+//	state_fio->FputInt32(cdda_sample_l);
+//	state_fio->FputInt32(cdda_sample_r);
+//	state_fio->FputInt32(event_cdda);
+////	state_fio->FputInt32(mix_loop_num);
+//	state_fio->FputInt32(volume_m);
+	csp_state_data_saver saver(state_fio);
+	bool stat = false;
+	if(fio_img->IsOpened()) {
+		saver.put_dword(fio_img->Ftell(), &crc_value, &stat);
+	} else {
+		saver.put_dword(0, &crc_value, &stat);
+	}
+	//SCSI_DEV::save_state(state_fio);
+	saver.post_proc_saving(&crc_value, &stat);
 }
 
 bool SCSI_CDROM::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	uint32_t crc_value = 0xffffffff;
+	bool mb = false;
+	bool stat = false;
+	if(state_entry != NULL) {
+	   mb = state_entry->load_state(state_fio, &crc_value);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	cdda_start_frame = state_fio->FgetUint32();
-	cdda_end_frame = state_fio->FgetUint32();
-	cdda_playing_frame = state_fio->FgetUint32();
-	cdda_status = state_fio->FgetUint8();
-	cdda_repeat = state_fio->FgetBool();
-	cdda_interrupt = state_fio->FgetBool();
-	state_fio->Fread(cdda_buffer, sizeof(cdda_buffer), 1);
-	cdda_buffer_ptr = state_fio->FgetInt32();
-	cdda_sample_l = state_fio->FgetInt32();
-	cdda_sample_r = state_fio->FgetInt32();
-	event_cdda = state_fio->FgetInt32();
+	if(!mb) return false;
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	cdda_start_frame = state_fio->FgetUint32();
+//	cdda_end_frame = state_fio->FgetUint32();
+//	cdda_playing_frame = state_fio->FgetUint32();
+//	cdda_status = state_fio->FgetUint8();
+//	cdda_repeat = state_fio->FgetBool();
+//	cdda_interrupt = state_fio->FgetBool();
+//	state_fio->Fread(cdda_buffer, sizeof(cdda_buffer), 1);
+//	cdda_buffer_ptr = state_fio->FgetInt32();
+//	cdda_sample_l = state_fio->FgetInt32();
+//	cdda_sample_r = state_fio->FgetInt32();
+//	event_cdda = state_fio->FgetInt32();
 //	mix_loop_num = state_fio->FgetInt32();
-	volume_m = state_fio->FgetInt32();
-	uint32_t offset = state_fio->FgetUint32();
+//	volume_m = state_fio->FgetInt32();
+	uint32_t offset = saver.get_dword(&crc_value, &stat);
+	if(!(saver.post_proc_loading(&crc_value, &stat))) return false;
 	
 	// post process
 	if(fio_img->IsOpened()) {
 		fio_img->Fseek(offset, FILEIO_SEEK_SET);
 	}
-	return SCSI_DEV::load_state(state_fio);
+//	return SCSI_DEV::load_state(state_fio);
+	return true;
 }
 

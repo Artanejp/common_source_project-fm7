@@ -102,10 +102,21 @@ void SCSI_HDD::write_buffer(int length)
 
 #define STATE_VERSION	1
 
+#include "../statesub.h"
+
+void SCSI_HDD::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+	
+	SCSI_DEV::decl_state();
+
+	leave_decl_state();
+}
+
 void SCSI_HDD::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 /*
 	for(int i = 0; i < 8; i++) {
 		if(disk[i] != NULL) {
@@ -118,12 +129,12 @@ void SCSI_HDD::save_state(FILEIO* state_fio)
 
 bool SCSI_HDD::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
-	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
 /*
 	for(int i = 0; i < 8; i++) {
 		if(disk[i] != NULL) {

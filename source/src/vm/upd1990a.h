@@ -72,6 +72,7 @@ public:
 		return dout;
 	}
 	void event_callback(int event_id, int err);
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	// unique functions

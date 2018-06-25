@@ -486,31 +486,75 @@ void UPD7752::set_volume(int ch, int decibel_l, int decibel_r)
 
 #define STATE_VERSION	1
 
+#include "../statesub.h"
+
+void UPD7752::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	DECL_STATE_ENTRY_BOOL(mute);
+	DECL_STATE_ENTRY_INT32(ThreadLoopStop);
+	DECL_STATE_ENTRY_UINT8(io_E0H);
+	DECL_STATE_ENTRY_UINT8(io_E2H);
+	DECL_STATE_ENTRY_UINT8(io_E3H);
+	DECL_STATE_ENTRY_INT32(VStat);
+	DECL_STATE_ENTRY_1D_ARRAY(ParaBuf, sizeof(ParaBuf));
+	DECL_STATE_ENTRY_UINT8(Pnum);
+	DECL_STATE_ENTRY_INT32(Fnum);
+	DECL_STATE_ENTRY_INT32(PReady);
+
+	DECL_STATE_ENTRY_INT32(fin);
+	DECL_STATE_ENTRY_INT32(fout);
+	
+	//state_fio->Fwrite(&Coef, sizeof(D7752Coef), 1);
+	DECL_STATE_ENTRY_1D_ARRAY(Coef.f, 5);
+	DECL_STATE_ENTRY_1D_ARRAY(Coef.b, 5);
+	DECL_STATE_ENTRY_INT32(Coef.amp);
+	DECL_STATE_ENTRY_INT32(Coef.pitch);
+
+	DECL_STATE_ENTRY_2D_ARRAY(Y, 5, 2);
+	DECL_STATE_ENTRY_INT32(PitchCount);
+	DECL_STATE_ENTRY_INT32(FrameSize);
+
+	leave_decl_state();
+
+}
 void UPD7752::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->FputBool(mute);
-	state_fio->FputInt32(ThreadLoopStop);
-	state_fio->FputUint8(io_E0H);
-	state_fio->FputUint8(io_E2H);
-	state_fio->FputUint8(io_E3H);
-	state_fio->FputInt32(VStat);
-	state_fio->Fwrite(ParaBuf, sizeof(ParaBuf), 1);
-	state_fio->FputUint8(Pnum);
-	state_fio->FputInt32(Fnum);
-	state_fio->FputInt32(PReady);
-	state_fio->FputInt32(Fbuf != NULL ? FbufLength : 0);
-	if(Fbuf != NULL && FbufLength > 0) {
-		state_fio->Fread(Fbuf, FbufLength, 1);
+	uint32_t crc_value = 0xffffffff;
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio, &crc_value);
 	}
-	state_fio->FputInt32(fin);
-	state_fio->FputInt32(fout);
-	state_fio->Fwrite(&Coef, sizeof(D7752Coef), 1);
-	state_fio->Fwrite(Y, sizeof(Y), 1);
-	state_fio->FputInt32(PitchCount);
-	state_fio->FputInt32(FrameSize);
+	csp_state_data_saver saver(state_fio);
+	bool stat;
+	
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
+	
+//	state_fio->FputBool(mute);
+//	state_fio->FputInt32(ThreadLoopStop);
+//	state_fio->FputUint8(io_E0H);
+//	state_fio->FputUint8(io_E2H);
+//	state_fio->FputUint8(io_E3H);
+//	state_fio->FputInt32(VStat);
+//	state_fio->Fwrite(ParaBuf, sizeof(ParaBuf), 1);
+//	state_fio->FputUint8(Pnum);
+//	state_fio->FputInt32(Fnum);
+//	state_fio->FputInt32(PReady);
+	saver.put_int32(Fbuf != NULL ? FbufLength : 0, &crc_value, &stat);
+	//state_fio->FputInt32(Fbuf != NULL ? FbufLength : 0);
+	if(Fbuf != NULL && FbufLength > 0) {
+		for(int i = 0; i < (FbufLength / sizeof(int)) ; i++) {
+			saver.put_int32(Fbuf[i], &crc_value, &stat);
+		}
+	}
+//	state_fio->FputInt32(fin);
+//	state_fio->FputInt32(fout);
+//	state_fio->Fwrite(&Coef, sizeof(D7752Coef), 1);
+//	state_fio->Fwrite(Y, sizeof(Y), 1);
+//	state_fio->FputInt32(PitchCount);
+//	state_fio->FputInt32(FrameSize);
+	saver.post_proc_saving(&crc_value, &stat);
 }
 
 bool UPD7752::load_state(FILEIO* state_fio)
@@ -525,33 +569,53 @@ bool UPD7752::load_state(FILEIO* state_fio)
 		voicebuf = NULL;
 	}
 	
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	uint32_t crc_value = 0xffffffff;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio, &crc_value);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	mute = state_fio->FgetBool();
-	ThreadLoopStop = state_fio->FgetInt32();
-	io_E0H = state_fio->FgetUint8();
-	io_E2H = state_fio->FgetUint8();
-	io_E3H = state_fio->FgetUint8();
-	VStat = state_fio->FgetInt32();
-	state_fio->Fread(ParaBuf, sizeof(ParaBuf), 1);
-	Pnum = state_fio->FgetUint8();
-	Fnum = state_fio->FgetInt32();
-	PReady = state_fio->FgetInt32();
-	FbufLength = state_fio->FgetInt32();
+	if(!mb) return false;
+	csp_state_data_saver saver(state_fio);
+	bool stat;
+	
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	mute = state_fio->FgetBool();
+//	ThreadLoopStop = state_fio->FgetInt32();
+//	io_E0H = state_fio->FgetUint8();
+//	io_E2H = state_fio->FgetUint8();
+//	io_E3H = state_fio->FgetUint8();
+//	VStat = state_fio->FgetInt32();
+//	state_fio->Fread(ParaBuf, sizeof(ParaBuf), 1);
+//	Pnum = state_fio->FgetUint8();
+//	Fnum = state_fio->FgetInt32();
+//	PReady = state_fio->FgetInt32();
+	
+	FbufLength = saver.get_int32(&crc_value, &stat);
+	if(!stat) return false;
+	
 	if(FbufLength > 0) {
 		Fbuf = (D7752_SAMPLE *)malloc(FbufLength);
-		state_fio->Fread(Fbuf, FbufLength, 1);
+		if(Fbuf == NULL) return false;
+		//state_fio->Fread(Fbuf, FbufLength, 1);
+		for(int i = 0; i < (FbufLength / sizeof(int)); i++) {
+			Fbuf[i] = saver.get_int32(&crc_value, &stat);
+			if(!stat) return false;
+		}
 	}
-	fin = state_fio->FgetInt32();
-	fout = state_fio->FgetInt32();
-	state_fio->Fread(&Coef, sizeof(D7752Coef), 1);
-	state_fio->Fread(Y, sizeof(Y), 1);
-	PitchCount = state_fio->FgetInt32();
-	FrameSize = state_fio->FgetInt32();
+	if(!(saver.post_proc_loading(&crc_value, &stat))) {
+		return false;
+	}
+	//fin = state_fio->FgetInt32();
+	//fout = state_fio->FgetInt32();
+	//state_fio->Fread(&Coef, sizeof(D7752Coef), 1);
+	//state_fio->Fread(Y, sizeof(Y), 1);
+	//PitchCount = state_fio->FgetInt32();
+	//FrameSize = state_fio->FgetInt32();
 	return true;
 }
 

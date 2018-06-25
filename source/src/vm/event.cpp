@@ -788,7 +788,7 @@ void EVENT::update_config()
 	}
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 #include "../statesub.h"
 
@@ -834,7 +834,7 @@ void EVENT::decl_state()
 void EVENT::save_state(FILEIO* state_fio)
 {
 #if 1
-	uint32_t crc_value = 0;
+	uint32_t crc_value = 0xffffffff;
 	if(state_entry != NULL) {
 		state_entry->save_state(state_fio, &crc_value);
 	}
@@ -891,7 +891,7 @@ bool EVENT::load_state(FILEIO* state_fio)
 {
 #if 1
 	bool mb = false;
-	uint32_t crc_value = 0;
+	uint32_t crc_value = 0xffffffff;
 	if(state_entry != NULL) {
 		mb = state_entry->load_state(state_fio, &crc_value);
 	}

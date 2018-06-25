@@ -73,7 +73,8 @@ struct i8086_state
 #endif
 	int icount;
 
-	char seg_prefix;                   /* prefix segment indicator */
+	//char seg_prefix;                   /* prefix segment indicator */
+	UINT8 seg_prefix;                   /* prefix segment indicator */
 	UINT8   prefix_seg;                 /* The prefixed segment */
 	unsigned ea;
 	UINT16 eo; /* HJB 12/13/98 effective offset of the address (before segment is added) */
