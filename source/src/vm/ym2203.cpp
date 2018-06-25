@@ -24,11 +24,11 @@ void YM2203::initialize()
 {
 	DEVICE::initialize();
 	_HAS_YM2608 = osd->check_feature(_T("HAS_YM2608"));
-//	if(_HAS_YM2608) {
-//		is_ym2608 = true;
-//	} else {
-//		is_ym2608 = false;
-//	}
+	if(_HAS_YM2608) {
+		is_ym2608 = true;
+	} else {
+		is_ym2608 = false;
+	}
 	_HAS_AY_3_8910 = osd->check_feature(_T("HAS_AY_3_8910"));
 	_HAS_AY_3_8912 = osd->check_feature(_T("HAS_AY_3_8912"));
 	_HAS_AY_3_8913 = osd->check_feature(_T("HAS_AY_3_8913"));

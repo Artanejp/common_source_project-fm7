@@ -535,7 +535,7 @@ void I286::decl_state_cpustate()
 	for(int i = 0; i < 8; i++) {
 		DECL_STATE_ENTRY_UINT16_MEMBER((state->regs.w[i]), i);
 	}
-	DECL_STATE_ENTRY_UINT32((state->amask));
+
 	DECL_STATE_ENTRY_UINT32((state->pc));
 	DECL_STATE_ENTRY_UINT32((state->prevpc));
 	DECL_STATE_ENTRY_1D_ARRAY((state->base), 4);

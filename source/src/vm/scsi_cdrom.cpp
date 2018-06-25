@@ -787,6 +787,7 @@ bool SCSI_CDROM::load_state(FILEIO* state_fio)
 	   mb = state_entry->load_state(state_fio, &crc_value);
 	}
 	if(!mb) return false;
+	csp_state_data_saver saver(state_fio);
 //	if(state_fio->FgetUint32() != STATE_VERSION) {
 //		return false;
 //	}
