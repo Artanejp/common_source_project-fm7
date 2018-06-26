@@ -407,17 +407,6 @@ void FILEIO::FputDouble(double val)
 	PUT_VALUE(double, val);
 }
 
-typedef union {
-	struct {
-#ifdef __BIG_ENDIAN__
-		uint8_t h, l;
-#else
-		uint8_t l, h;
-#endif
-	} b;
-	uint16_t u16;
-	int16_t s16;
-} pair16_t;
 
 typedef union {
 	struct {
@@ -431,30 +420,19 @@ typedef union {
 	int32_t s32;
 } pair32_t;
 
-typedef union {
-	struct {
-#ifdef __BIG_ENDIAN__
-		uint8_t h7, h6, h5, h4, h3, h2, h, l;
-#else
-		uint8_t l, h, h2, h3, h4, h5, h6, h7;
-#endif
-	} b;
-	uint64_t u64;
-	int64_t s64;
-} pair64_t;
 
 uint16_t FILEIO::FgetUint16_LE()
 {
 	pair16_t tmp;
 	tmp.b.l = FgetUint8();
 	tmp.b.h = FgetUint8();
-	return tmp.u16;
+	return tmp.w;
 }
 
 void FILEIO::FputUint16_LE(uint16_t val)
 {
 	pair16_t tmp;
-	tmp.u16 = val;
+	tmp.w = val;
 	FputUint8(tmp.b.l);
 	FputUint8(tmp.b.h);
 }
@@ -490,13 +468,13 @@ uint64_t FILEIO::FgetUint64_LE()
 	tmp.b.h5 = FgetUint8();
 	tmp.b.h6 = FgetUint8();
 	tmp.b.h7 = FgetUint8();
-	return tmp.u64;
+	return tmp.q;
 }
 
 void FILEIO::FputUint64_LE(uint64_t val)
 {
 	pair64_t tmp;
-	tmp.u64 = val;
+	tmp.q = val;
 	FputUint8(tmp.b.l);
 	FputUint8(tmp.b.h);
 	FputUint8(tmp.b.h2);
@@ -512,13 +490,13 @@ int16_t FILEIO::FgetInt16_LE()
 	pair16_t tmp;
 	tmp.b.l = FgetUint8();
 	tmp.b.h = FgetUint8();
-	return tmp.s16;
+	return tmp.sw;
 }
 
 void FILEIO::FputInt16_LE(int16_t val)
 {
 	pair16_t tmp;
-	tmp.s16 = val;
+	tmp.sw = val;
 	FputUint8(tmp.b.l);
 	FputUint8(tmp.b.h);
 }
@@ -554,13 +532,13 @@ int64_t FILEIO::FgetInt64_LE()
 	tmp.b.h5 = FgetUint8();
 	tmp.b.h6 = FgetUint8();
 	tmp.b.h7 = FgetUint8();
-	return tmp.s64;
+	return tmp.sq;
 }
 
 void FILEIO::FputInt64_LE(int64_t val)
 {
 	pair64_t tmp;
-	tmp.s64 = val;
+	tmp.sq = val;
 	FputUint8(tmp.b.l);
 	FputUint8(tmp.b.h);
 	FputUint8(tmp.b.h2);
@@ -576,13 +554,13 @@ uint16_t FILEIO::FgetUint16_BE()
 	pair16_t tmp;
 	tmp.b.h = FgetUint8();
 	tmp.b.l = FgetUint8();
-	return tmp.u16;
+	return tmp.w;
 }
 
 void FILEIO::FputUint16_BE(uint16_t val)
 {
 	pair16_t tmp;
-	tmp.u16 = val;
+	tmp.w = val;
 	FputUint8(tmp.b.h);
 	FputUint8(tmp.b.l);
 }
@@ -618,13 +596,13 @@ uint64_t FILEIO::FgetUint64_BE()
 	tmp.b.h2 = FgetUint8();
 	tmp.b.h  = FgetUint8();
 	tmp.b.l  = FgetUint8();
-	return tmp.u64;
+	return tmp.q;
 }
 
 void FILEIO::FputUint64_BE(uint64_t val)
 {
 	pair64_t tmp;
-	tmp.u64 = val;
+	tmp.q = val;
 	FputUint8(tmp.b.h7);
 	FputUint8(tmp.b.h6);
 	FputUint8(tmp.b.h5);
@@ -640,13 +618,13 @@ int16_t FILEIO::FgetInt16_BE()
 	pair16_t tmp;
 	tmp.b.h = FgetUint8();
 	tmp.b.l = FgetUint8();
-	return tmp.s16;
+	return tmp.sw;
 }
 
 void FILEIO::FputInt16_BE(int16_t val)
 {
 	pair16_t tmp;
-	tmp.s16 = val;
+	tmp.sw = val;
 	FputUint8(tmp.b.h);
 	FputUint8(tmp.b.l);
 }
@@ -682,13 +660,13 @@ int64_t FILEIO::FgetInt64_BE()
 	tmp.b.h2 = FgetUint8();
 	tmp.b.h  = FgetUint8();
 	tmp.b.l  = FgetUint8();
-	return tmp.s64;
+	return tmp.sq;
 }
 
 void FILEIO::FputInt64_BE(int64_t val)
 {
 	pair64_t tmp;
-	tmp.s64 = val;
+	tmp.sq = val;
 	FputUint8(tmp.b.h7);
 	FputUint8(tmp.b.h6);
 	FputUint8(tmp.b.h5);

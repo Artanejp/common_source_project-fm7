@@ -305,9 +305,9 @@ void csp_state_data_saver::put_qword(uint64_t val, uint32_t *sumseed, bool *__st
 			fio->FputUint64_BE(val);
 			if(__stat != NULL) *__stat =  true;
 			if(sumseed != NULL) {
-				pair64_sav_t tval;
+				pair64_t tval;
 				uint8_t buf[8];
-				tval.u64 = val;
+				tval.q = val;
 				tval.write_8bytes_be_to(buf);
 				*sumseed = calc_crc32(*sumseed, buf, 8);
 			}
@@ -325,9 +325,9 @@ uint64_t csp_state_data_saver::get_qword(uint32_t *sumseed, bool *__stat)
 			uint64_t val = fio->FgetUint64_BE();
 			if(__stat != NULL) *__stat =  true;
 			if(sumseed != NULL) {
-				pair64_sav_t tval;
+				pair64_t tval;
 				uint8_t buf[8];
-				tval.u64 = val;
+				tval.q = val;
 				tval.write_8bytes_be_to(buf);
 				*sumseed = calc_crc32(*sumseed, buf, 8);
 			}
@@ -461,9 +461,9 @@ void csp_state_data_saver::put_int64(int64_t val, uint32_t *sumseed, bool *__sta
 			fio->FputInt64_BE(val);
 			if(__stat != NULL) *__stat = true;
 			if(sumseed != NULL) {
-				pair64_sav_t tval;
+				pair64_t tval;
 				uint8_t buf[8];
-				tval.s64 = val;
+				tval.sq = val;
 				tval.write_8bytes_be_to(buf);
 				*sumseed = calc_crc32(*sumseed, buf, 8);
 			}
@@ -481,9 +481,9 @@ int64_t csp_state_data_saver::get_int64(uint32_t *sumseed, bool *__stat)
 			int64_t val = fio->FgetInt64_BE();
 			if(__stat != NULL) *__stat = true;
 			if(sumseed != NULL) {
-				pair64_sav_t tval;
+				pair64_t tval;
 				uint8_t buf[8];
-				tval.s64 = val;
+				tval.sq = val;
 				tval.write_8bytes_be_to(buf);
 				*sumseed = calc_crc32(*sumseed, buf, 8);
 			}
@@ -805,10 +805,10 @@ pair_t csp_state_data_saver::get_pair32(uint32_t *sumseed, bool *__stat)
 	return val;
 }
 
-pair64_sav_t csp_state_data_saver::get_pair64(uint32_t *sumseed, bool *__stat)
+pair64_t csp_state_data_saver::get_pair64(uint32_t *sumseed, bool *__stat)
 {
-	pair64_sav_t val;
-	val.u64 = 0;
+	pair64_t val;
+	val.q = 0;
 	if(fio != NULL) {
 		if(fio->IsOpened()) {
 			uint8_t buf[8];
@@ -829,7 +829,7 @@ pair64_sav_t csp_state_data_saver::get_pair64(uint32_t *sumseed, bool *__stat)
 	return val;
 }
 
-void csp_state_data_saver::put_pair64(pair64_sav_t val, uint32_t *sumseed, bool *__stat)
+void csp_state_data_saver::put_pair64(pair64_t val, uint32_t *sumseed, bool *__stat)
 {
 	if(fio != NULL) {
 		if(fio->IsOpened()) {
