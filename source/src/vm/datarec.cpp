@@ -596,9 +596,7 @@ bool DATAREC::rec_tape(const _TCHAR* file_path)
 		
 		if(check_file_extension(file_path, _T(".wav"))) {
 			// write wave header
-			uint8_t dummy[sizeof(wav_header_t) + sizeof(wav_chunk_t)];
-			memset(dummy, 0, sizeof(dummy));
-			rec_fio->Fwrite(dummy, sizeof(dummy), 1);
+			write_dummy_wav_header((void *)rec_fio);
 			is_wav = true;
 		} else if(check_file_extension(file_path, _T(".tap"))) {
 			// write frequency
@@ -1035,6 +1033,7 @@ void DATAREC::save_wav_image()
 	
 	wav_header_t wav_header;
 	wav_chunk_t wav_chunk;
+#if 0
 	pair_t __riff_chunk_size;
 	pair_t __fmt_chunk_size;
 	pair_t __wav_chunk_size;
@@ -1051,7 +1050,6 @@ void DATAREC::save_wav_image()
 	__sample_rate.d = sample_rate;
 	__block_size.w = 1;
 	__sample_bits.w = 8;
-	
 	memcpy(wav_header.riff_chunk.id, "RIFF", 4);
 	wav_header.riff_chunk.size = __riff_chunk_size.get_4bytes_le_to();
 	
@@ -1068,10 +1066,17 @@ void DATAREC::save_wav_image()
 	memcpy(wav_chunk.id, "data", 4);
 	__wav_chunk_size.d = length - sizeof(wav_header) - sizeof(wav_chunk);
 	wav_chunk.size = __wav_chunk_size.get_4bytes_le_to();
-	
+
 	rec_fio->Fseek(0, FILEIO_SEEK_SET);
 	rec_fio->Fwrite(&wav_header, sizeof(wav_header), 1);
 	rec_fio->Fwrite(&wav_chunk, sizeof(wav_chunk), 1);
+#else
+	if(set_wav_header(&wav_header, &wav_chunk, 1, sample_rate, 8, length)) {
+		rec_fio->Fseek(0, FILEIO_SEEK_SET);
+		rec_fio->Fwrite(&wav_header, sizeof(wav_header), 1);
+		rec_fio->Fwrite(&wav_chunk, sizeof(wav_chunk), 1);
+	}
+#endif
 }
 
 // FUJITSU FM-7 series tape image

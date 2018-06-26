@@ -65,6 +65,76 @@ uint16_t DLL_PREFIX EndianToLittle_WORD(uint16_t x)
 #endif
 }
 
+uint32_t DLL_PREFIX EndianFromLittle_DWORD(uint32_t x)
+{
+#if defined(__LITTLE_ENDIAN__)
+	return x;
+#else
+	uint32_t y;
+	y = ((x & 0x000000ff) << 24) | ((x & 0x0000ff00) << 8) |
+	    ((x & 0x00ff0000) >> 8)  | ((x & 0xff000000) >> 24);
+	return y;
+#endif
+}
+
+uint16_t DLL_PREFIX EndianFromLittle_WORD(uint16_t x)
+{
+#if defined(__LITTLE_ENDIAN__)
+	return x;
+#else
+	uint16_t y;
+	y = ((x & 0x00ff) << 8) | ((x & 0xff00) >> 8);
+	return y;
+#endif
+}
+
+
+uint32_t DLL_PREFIX EndianToBig_DWORD(uint32_t x)
+{
+#if defined(__BIG_ENDIAN__)
+	return x;
+#else
+	uint32_t y;
+	y = ((x & 0x000000ff) << 24) | ((x & 0x0000ff00) << 8) |
+	    ((x & 0x00ff0000) >> 8)  | ((x & 0xff000000) >> 24);
+	return y;
+#endif
+}
+
+uint16_t DLL_PREFIX EndianToBig_WORD(uint16_t x)
+{
+#if defined(__BIG_ENDIAN__)
+	return x;
+#else
+	uint16_t y;
+	y = ((x & 0x00ff) << 8) | ((x & 0xff00) >> 8);
+	return y;
+#endif
+}
+
+uint32_t DLL_PREFIX EndianFromBig_DWORD(uint32_t x)
+{
+#if defined(__BIG_ENDIAN__)
+	return x;
+#else
+	uint32_t y;
+	y = ((x & 0x000000ff) << 24) | ((x & 0x0000ff00) << 8) |
+	    ((x & 0x00ff0000) >> 8)  | ((x & 0xff000000) >> 24);
+	return y;
+#endif
+}
+
+uint16_t DLL_PREFIX EndianFromBig_WORD(uint16_t x)
+{
+#if defined(__BIG_ENDIAN__)
+	return x;
+#else
+	uint16_t y;
+	y = ((x & 0x00ff) << 8) | ((x & 0xff00) >> 8);
+	return y;
+#endif
+}
+
 #ifndef _MSC_VER
 int DLL_PREFIX max(int a, int b)
 {
@@ -84,12 +154,56 @@ unsigned DLL_PREFIX int max(unsigned int a, unsigned int b)
 	}
 }
 
+unsigned DLL_PREFIX int max(unsigned int a, int b)
+{
+	if(b < 0) return a;
+	if(a > (unsigned int)b) {
+		return a;
+	} else {
+		return b;
+	}
+}
+
+unsigned DLL_PREFIX int max(int a, unsigned int b)
+{
+	if(a < 0) return b;
+	if((unsigned int)a > b) {
+		return a;
+	} else {
+		return b;
+	}
+}
+
 int DLL_PREFIX min(int a, int b)
 {
 	if(a < b) {
 		return a;
 	} else {
 		return b;
+	}
+}
+
+int DLL_PREFIX min(unsigned int a, int b)
+{
+	if(b < 0) return b;
+	if(a > INT_MAX) return b;
+	
+	if((int)a < b) {
+		return (int)a;
+	} else {
+		return b;
+	}
+}
+
+int DLL_PREFIX min(int a, unsigned int b)
+{
+	if(a < 0) return a;
+	if(b > INT_MAX) return a;
+	
+	if(a < (int)b) {
+		return a;
+	} else {
+		return (int)b;
 	}
 }
 
@@ -1493,4 +1607,410 @@ const _TCHAR *DLL_PREFIX get_value_and_symbol(symbol_t *first_symbol, const _TCH
 		}
 	}
 	return name[output_index];
+}
+
+// Use this before writing wav_data.
+bool DLL_PREFIX write_dummy_wav_header(void *__fio)
+{
+	if(__fio == NULL) return false;
+
+	FILEIO *fio = (FILEIO *)__fio;
+	uint8_t dummy[sizeof(wav_header_t) + sizeof(wav_chunk_t)];
+
+	if(!fio->IsOpened()) return false;
+	
+	memset(dummy, 0, sizeof(dummy));
+	fio->Fwrite(dummy, sizeof(dummy), 1);
+	return true;
+}
+// Use this after writing wav_data.
+bool DLL_PREFIX set_wav_header(wav_header_t *header, wav_chunk_t *first_chunk, uint16_t channels, uint32_t rate,
+							   uint16_t bits, size_t file_length)
+{
+	uint32_t length = (uint32_t) file_length;
+	
+	if(header == NULL) return false;
+	if(first_chunk == NULL) return false;
+
+	pair_t __riff_chunk_size;
+	pair_t __fmt_chunk_size;
+	pair_t __wav_chunk_size;
+	pair16_t __fmt_id;
+	pair16_t __channels;
+	pair_t __sample_rate;
+	pair_t __data_speed;
+	pair16_t __block_size;
+	pair16_t __sample_bits;
+
+	__riff_chunk_size.d = length - 8;
+	__fmt_chunk_size.d = 16;
+	__fmt_id.w = 1;
+	__channels.w = channels;
+	__sample_rate.d = rate;
+	__block_size.w = (uint16_t)((channels * bits) / 8);
+	__sample_bits.w = bits;
+	__data_speed.d = rate * (uint32_t)(__block_size.w);
+
+	memcpy(&(header->riff_chunk.id), "RIFF", 4);
+	header->riff_chunk.size = __riff_chunk_size.get_4bytes_le_to();
+	
+	memcpy(&(header->wave), "WAVE", 4);
+	memcpy(&(header->fmt_chunk.id), "fmt ", 4);
+	header->fmt_chunk.size = __fmt_chunk_size.get_4bytes_le_to();
+	header->format_id = __fmt_id.get_2bytes_le_to();
+	header->channels = __channels.get_2bytes_le_to();
+	header->sample_rate = __sample_rate.get_4bytes_le_to();
+	header->data_speed =  __data_speed.get_4bytes_le_to();
+	header->block_size = __block_size.get_2bytes_le_to();
+	header->sample_bits = __sample_bits.get_2bytes_le_to();
+
+	memcpy(&(first_chunk->id), "data", 4);
+	__wav_chunk_size.d = length - sizeof(wav_header_t) - sizeof(wav_chunk_t);
+	first_chunk->size = __wav_chunk_size.get_4bytes_le_to();
+
+	return true;
+}
+// Note: buffers are allocated by this, You should free() within user class.
+bool DLL_PREFIX load_wav_to_stereo(void *__fio, int16_t **left_buf, int16_t **right_buf, uint32_t *rate, int *got_samples)
+{
+
+	if(__fio == NULL) return false;
+	if(left_buf == NULL) return false;
+	if(right_buf == NULL) return false;
+	if(rate == NULL) return false;
+	if(got_samples == NULL) return false;
+	//if((bits != 8) && (bits != 16) && (bits != 32)) return false;
+
+	FILEIO *fio = (FILEIO *)__fio;
+	if(!fio->IsOpened()) return false;
+
+	
+	int16_t *left_buffer = NULL;
+	int16_t *right_buffer = NULL;
+	size_t samples = 0;
+	uint32_t sample_rate = 0;
+	
+	wav_header_t header;
+	wav_chunk_t  chunk;
+
+	pair16_t __fmt_id;
+	pair16_t __sample_bits;
+	pair16_t __channels;
+	pair_t __sample_rate;
+	pair_t __chunk_size;
+
+	fio->Fread(&header, sizeof(header), 1);
+	__fmt_id.set_2bytes_le_from(header.format_id);
+	__sample_bits.set_2bytes_le_from(header.sample_bits);
+	__chunk_size.set_4bytes_le_from(header.fmt_chunk.size);
+	__channels.set_2bytes_le_from(header.channels);
+	__sample_rate.set_4bytes_le_from(header.sample_rate);
+
+	if((__fmt_id.w == 1) && ((__sample_bits.w == 8) || (__sample_bits.w == 16) || (__sample_bits.w == 32))) {
+		fio->Fseek(__chunk_size.d - 16, FILEIO_SEEK_CUR);
+		bool is_eof = false;
+		while(1) {
+			if(fio->Fread(&chunk, sizeof(chunk), 1) != 1) {
+				is_eof = true;
+				break;
+			}
+			__chunk_size.set_4bytes_le_from(chunk.size);
+			if(strncmp(chunk.id, "data", 4) == 0) {
+				break;
+			}
+			fio->Fseek(__chunk_size.d, FILEIO_SEEK_CUR);
+		}
+		__chunk_size.set_4bytes_le_from(chunk.size);
+		if(is_eof) {
+			fio->Fclose();
+			delete fio;
+			return false;
+		}
+		
+		samples = (size_t)(__chunk_size.d / __channels.w);
+		int16_t data_l, data_r;
+		union {
+			int16_t s16;
+			struct {
+				uint8_t l, h;
+			} b;
+		} pair16;
+		union {
+			int32_t s32;
+			struct {
+				uint8_t l, h, h2, h3;
+			} b;
+		} pair32;
+		
+		if(samples > 0) {
+			if(__sample_bits.w == 16) {
+				samples /= 2;
+			} else if(__sample_bits.w == 32) {
+				samples /= 4;
+			}
+			if(samples == 0) return false;
+			sample_rate = __sample_rate.d;
+
+			left_buffer = (int16_t *)malloc(samples * sizeof(int16_t));
+			right_buffer = (int16_t *)malloc(samples * sizeof(int16_t));
+			if(left_buffer == NULL) {
+				if(right_buffer != NULL) free(right_buffer);
+				return false;
+			}
+			if(right_buffer == NULL) {
+				if(left_buffer != NULL) free(left_buffer);
+				return false;
+			}
+			switch(__sample_bits.w) {
+			case 8:
+				if(__channels.sw == 1) {
+					for(int i = 0; i < samples; i++) {
+						data_l = (int16_t)(fio->FgetUint8());
+						data_l = (data_l - 128) * 256;
+						left_buffer[i] = data_l;
+						right_buffer[i] = data_l;
+					}
+				} else if(__channels.sw == 2) {
+					for(int i = 0; i < samples; i++) {
+						data_l = (int16_t)(fio->FgetUint8());
+						data_l = (data_l - 128) * 256;
+						data_r = (int16_t)(fio->FgetUint8());
+						data_r = (data_r - 128) * 256;
+						left_buffer[i] = data_l;
+						right_buffer[i] = data_r;
+					}
+				}
+				break;
+			case 16:
+				if(__channels.sw == 1) {
+					for(int i = 0; i < samples; i++) {
+						pair16.b.l = fio->FgetUint8();
+						pair16.b.h = fio->FgetUint8();
+						data_l = pair16.s16;
+						
+						left_buffer[i] = data_l;
+						right_buffer[i] = data_l;
+					}
+				} else if(__channels.sw == 2) {
+					for(int i = 0; i < samples; i++) {
+						pair16.b.l = fio->FgetUint8();
+						pair16.b.h = fio->FgetUint8();
+						data_l = pair16.s16;
+						
+						pair16.b.l = fio->FgetUint8();
+						pair16.b.h = fio->FgetUint8();
+						data_r = pair16.s16;
+						left_buffer[i] = data_l;
+						right_buffer[i] = data_r;
+					}
+				}
+				break;
+			case 32:
+				if(__channels.sw == 1) {
+					for(int i = 0; i < samples; i++) {
+						pair32.b.l = fio->FgetUint8();
+						pair32.b.h = fio->FgetUint8();
+						pair32.b.h2 = fio->FgetUint8();
+						pair32.b.h3 = fio->FgetUint8();
+						data_l = (int16_t)(pair32.s32 / 65536);
+						
+						left_buffer[i] = data_l;
+						right_buffer[i] = data_l;
+					}
+				} else if(__channels.sw == 2) {
+					for(int i = 0; i < samples; i++) {
+						pair32.b.l = fio->FgetUint8();
+						pair32.b.h = fio->FgetUint8();
+						pair32.b.h2 = fio->FgetUint8();
+						pair32.b.h3 = fio->FgetUint8();
+						data_l = (int16_t)(pair32.s32 / 65536);
+						
+						pair32.b.l = fio->FgetUint8();
+						pair32.b.h = fio->FgetUint8();
+						pair32.b.h2 = fio->FgetUint8();
+						pair32.b.h3 = fio->FgetUint8();
+						data_r = (int16_t)(pair32.s32 / 65536);
+						
+						left_buffer[i] = data_l;
+						right_buffer[i] = data_r;
+					}
+				}
+				break;
+			default:
+				break;
+			}
+		}
+	} else {
+		return false;
+	}
+	*left_buf = left_buffer;
+	*right_buf = right_buffer;
+	*rate = sample_rate;
+	*got_samples = (int)samples;
+	return true;
+}
+
+bool DLL_PREFIX load_wav_to_monoral(void *__fio, int16_t **buffer, uint32_t *rate, int *got_samples)
+{
+
+	if(__fio == NULL) return false;
+	if(buffer == NULL) return false;
+	if(rate == NULL) return false;
+	if(got_samples == NULL) return false;
+	//if((bits != 8) && (bits != 16) && (bits != 32)) return false;
+
+	FILEIO *fio = (FILEIO *)__fio;
+	if(!fio->IsOpened()) return false;
+
+	
+	int16_t *left_buffer = NULL;
+	size_t samples = 0;
+	uint32_t sample_rate = 0;
+	
+	wav_header_t header;
+	wav_chunk_t  chunk;
+
+	pair16_t __fmt_id;
+	pair16_t __sample_bits;
+	pair16_t __channels;
+	pair_t __sample_rate;
+	pair_t __chunk_size;
+
+	fio->Fread(&header, sizeof(header), 1);
+	__fmt_id.set_2bytes_le_from(header.format_id);
+	__sample_bits.set_2bytes_le_from(header.sample_bits);
+	__chunk_size.set_4bytes_le_from(header.fmt_chunk.size);
+	__channels.set_2bytes_le_from(header.channels);
+	__sample_rate.set_4bytes_le_from(header.sample_rate);
+
+	if((__fmt_id.w == 1) && ((__sample_bits.w == 8) || (__sample_bits.w == 16) || (__sample_bits.w == 32))) {
+		fio->Fseek(__chunk_size.d - 16, FILEIO_SEEK_CUR);
+		bool is_eof = false;
+		while(1) {
+			if(fio->Fread(&chunk, sizeof(chunk), 1) != 1) {
+				is_eof = true;
+				break;
+			}
+			__chunk_size.set_4bytes_le_from(chunk.size);
+			if(strncmp(chunk.id, "data", 4) == 0) {
+				break;
+			}
+			fio->Fseek(__chunk_size.d, FILEIO_SEEK_CUR);
+		}
+		__chunk_size.set_4bytes_le_from(chunk.size);
+		if(is_eof) {
+			fio->Fclose();
+			delete fio;
+			return false;
+		}
+		
+		samples = (size_t)(__chunk_size.d / __channels.w);
+		int16_t data_l, data_r;
+		int32_t data32_l, data32_r;
+		union {
+			int16_t s16;
+			struct {
+				uint8_t l, h;
+			} b;
+		} pair16;
+		union {
+			int32_t s32;
+			struct {
+				uint8_t l, h, h2, h3;
+			} b;
+		} pair32;
+		
+		if(samples > 0) {
+			if(__sample_bits.w == 16) {
+				samples /= 2;
+			} else if(__sample_bits.w == 32) {
+				samples /= 4;
+			}
+			if(samples == 0) return false;
+			sample_rate = __sample_rate.d;
+
+			left_buffer = (int16_t *)malloc(samples * sizeof(int16_t));
+			if(left_buffer == NULL) {
+				return false;
+			}
+			switch(__sample_bits.w) {
+			case 8:
+				if(__channels.sw == 1) {
+					for(int i = 0; i < samples; i++) {
+						data_l = (int16_t)(fio->FgetUint8());
+						data_l = (data_l - 128) * 256;
+						left_buffer[i] = data_l;
+					}
+				} else if(__channels.sw == 2) {
+					for(int i = 0; i < samples; i++) {
+						data_l = (int16_t)(fio->FgetUint8());
+						data_l = (data_l - 128) * 256;
+						data_r = (int16_t)(fio->FgetUint8());
+						data_r = (data_r - 128) * 256;
+						left_buffer[i] = (data_l + data_r) / 2;
+					}
+				}
+				break;
+			case 16:
+				if(__channels.sw == 1) {
+					for(int i = 0; i < samples; i++) {
+						pair16.b.l = fio->FgetUint8();
+						pair16.b.h = fio->FgetUint8();
+						data_l = pair16.s16;
+						
+						left_buffer[i] = data_l;
+					}
+				} else if(__channels.sw == 2) {
+					for(int i = 0; i < samples; i++) {
+						pair16.b.l = fio->FgetUint8();
+						pair16.b.h = fio->FgetUint8();
+						data_l = pair16.s16;
+						
+						pair16.b.l = fio->FgetUint8();
+						pair16.b.h = fio->FgetUint8();
+						data_r = pair16.s16;
+						left_buffer[i] = (data_l + data_r) / 2;
+					}
+				}
+				break;
+			case 32:
+				if(__channels.sw == 1) {
+					for(int i = 0; i < samples; i++) {
+						pair32.b.l = fio->FgetUint8();
+						pair32.b.h = fio->FgetUint8();
+						pair32.b.h2 = fio->FgetUint8();
+						pair32.b.h3 = fio->FgetUint8();
+						data_l = (int16_t)(pair32.s32 / 65536);
+						
+						left_buffer[i] = data_l;
+					}
+				} else if(__channels.sw == 2) {
+					for(int i = 0; i < samples; i++) {
+						pair32.b.l = fio->FgetUint8();
+						pair32.b.h = fio->FgetUint8();
+						pair32.b.h2 = fio->FgetUint8();
+						pair32.b.h3 = fio->FgetUint8();
+						data32_l = pair32.s32 / 65536;
+						
+						pair32.b.l = fio->FgetUint8();
+						pair32.b.h = fio->FgetUint8();
+						pair32.b.h2 = fio->FgetUint8();
+						pair32.b.h3 = fio->FgetUint8();
+						data32_r = pair32.s32 / 65536;
+						
+						left_buffer[i] = (int16_t)((data32_l + data32_r) / 2);
+					}
+				}
+				break;
+			default:
+				break;
+			}
+		}
+	} else {
+		return false;
+	}
+	*buffer = left_buffer;
+	*rate = sample_rate;
+	*got_samples = (int)samples;
+	return true;
 }

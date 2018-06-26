@@ -1593,7 +1593,7 @@ bool OPNA::LoadRhythmSample(const _TCHAR* path)
 		
 		uint8 subchunkname[4];
 		bool is_eof = false;
-		file.Fseek(EndianToLittle_DWORD(whdr.fmt_chunk.size) - 16, FILEIO_SEEK_CUR);
+		file.Fseek(EndianFromLittle_DWORD(whdr.fmt_chunk.size) - 16, FILEIO_SEEK_CUR);
 		while(1) 
 		{
 			if(file.Fread(&chunk, sizeof(chunk), 1) != 1) {
@@ -1603,7 +1603,7 @@ bool OPNA::LoadRhythmSample(const _TCHAR* path)
 			if(strncmp(chunk.id, "data", 4) == 0) {
 					break;
 			}
-			file.Fseek(EndianToLittle_DWORD(chunk.size), FILEIO_SEEK_CUR);
+			file.Fseek(EndianFromLittle_DWORD(chunk.size), FILEIO_SEEK_CUR);
 		}
 		if(is_eof) {
 //			fsize = 8192;
@@ -1616,10 +1616,10 @@ bool OPNA::LoadRhythmSample(const _TCHAR* path)
 			file.Fclose();
 			break;
 		}
-		fsize = EndianToLittle_DWORD(chunk.size);
+		fsize = EndianFromLittle_DWORD(chunk.size);
 		
 		fsize /= 2;
-		if ((fsize >= 0x100000) || (EndianToLittle_WORD(whdr.format_id) != 1) || (EndianToLittle_WORD(whdr.channels) != 1))
+		if ((fsize >= 0x100000) || (EndianFromLittle_WORD(whdr.format_id) != 1) || (EndianFromLittle_WORD(whdr.channels) != 1))
 			break;
 		fsize = Max(fsize, (1<<31)/1024);
 		
@@ -1640,7 +1640,7 @@ bool OPNA::LoadRhythmSample(const _TCHAR* path)
 		}
 		//file.Fread(rhythm[i].sample, fsize * 2, 1);
 		
-		rhythm[i].rate = EndianToLittle_DWORD(whdr.sample_rate);
+		rhythm[i].rate = EndianFromLittle_DWORD(whdr.sample_rate);
 		rhythm[i].step = rhythm[i].rate * 1024 / rate;
 		rhythm[i].pos = rhythm[i].size = fsize * 1024;
 		file.Fclose();

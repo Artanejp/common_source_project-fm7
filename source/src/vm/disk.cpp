@@ -1441,7 +1441,7 @@ void DISK::trim_buffer()
 	file_size.write_4bytes_le_to(tmp_buffer + 0x1c);
 	
 	memset(buffer, 0, sizeof(buffer));
-	memcpy(buffer, tmp_buffer, min(sizeof(buffer), file_size.d));
+	memcpy(buffer, tmp_buffer, min((unsigned int)sizeof(buffer), file_size.d));
 }
 
 int DISK::get_max_tracks()

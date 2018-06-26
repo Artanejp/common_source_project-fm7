@@ -77,6 +77,7 @@ bool NOISE::load_wav_file(const _TCHAR *file_name)
 	bool result = false;
 	
 	if(fio->Fopen(create_local_path(file_name), FILEIO_READ_BINARY)) {
+#if 0		
 		wav_header_t header;
 		wav_chunk_t chunk;
 		pair16_t __fmt_id;
@@ -148,6 +149,9 @@ bool NOISE::load_wav_file(const _TCHAR *file_name)
 				result = true;
 			}
 		}
+#else
+		result = load_wav_to_stereo((void *)fio, &buffer_l, &buffer_r, &sample_rate, &samples);
+#endif
 		fio->Fclose();
 	}
 	delete fio;

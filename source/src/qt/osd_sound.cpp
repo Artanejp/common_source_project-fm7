@@ -352,12 +352,7 @@ void OSD_BASE::start_record_sound()
 		rec_sound_fio = new FILEIO();
 		if(rec_sound_fio->Fopen(bios_path(sound_file_name), FILEIO_WRITE_BINARY)) {
 			// write dummy wave header
-			wav_header_t wav_header;
-			wav_chunk_t wav_chunk;
-			memset(&wav_header, 0, sizeof(wav_header));
-			memset(&wav_chunk, 0, sizeof(wav_chunk));
-			rec_sound_fio->Fwrite(&wav_header, sizeof(wav_header), 1);
-			rec_sound_fio->Fwrite(&wav_chunk, sizeof(wav_chunk), 1);
+			write_dummy_wav_header((void *)rec_sound_fio);
 			
 			rec_sound_bytes = 0;
 			rec_sound_buffer_ptr = 0;
@@ -381,6 +376,7 @@ void OSD_BASE::stop_record_sound()
 			// update wave header
 			wav_header_t wav_header;
 			wav_chunk_t wav_chunk;
+#if 0
 			pair16_t tmpval16;
 			pair_t tmpval32;
 			
@@ -417,7 +413,14 @@ void OSD_BASE::stop_record_sound()
 
 			tmpval32.d = rec_sound_bytes;
 			wav_chunk.size = tmpval32.get_4bytes_le_to();
-
+#else
+			if(!set_wav_header(&wav_header, &wav_chunk, 2, snd_spec_presented.freq, 16,
+							 (size_t)(rec_sound_bytes + sizeof(wav_header) + sizeof(wav_chunk)))) {
+				delete rec_sound_fio;
+				now_record_sound = false;
+				return;
+			}
+#endif
 			rec_sound_fio->Fseek(0, FILEIO_SEEK_SET);
 			rec_sound_fio->Fwrite(&wav_header, sizeof(wav_header_t), 1);
 			rec_sound_fio->Fwrite(&wav_chunk, sizeof(wav_chunk), 1);

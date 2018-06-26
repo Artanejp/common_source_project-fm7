@@ -815,7 +815,7 @@ void PSUB::close_tape()
 				}
 #endif
 				uint32_t length = fio->Ftell();
-				
+#if 0				
 				pair_t __riff_chunk_size;
 				pair_t __fmt_chunk_size;
 				pair_t __wav_chunk_size;
@@ -853,6 +853,13 @@ void PSUB::close_tape()
 				fio->Fseek(0, FILEIO_SEEK_SET);
 				fio->Fwrite(&wav_header, sizeof(wav_header), 1);
 				fio->Fwrite(&wav_chunk, sizeof(wav_chunk), 1);
+#else
+				if(set_wav_header(&wav_header, &wav_chunk, 1, sample_rate, 8, length)) {
+					fio->Fseek(0, FILEIO_SEEK_SET);
+					fio->Fwrite(&wav_header, sizeof(wav_header), 1);
+					fio->Fwrite(&wav_chunk, sizeof(wav_chunk), 1);
+				}
+#endif
 			} else {
 				fio->Fwrite(CasData, CasIndex, 1);
 				if(is_p6t) {

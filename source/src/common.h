@@ -782,14 +782,24 @@ typedef union {
 
 uint32_t DLL_PREFIX EndianToLittle_DWORD(uint32_t x);
 uint16_t DLL_PREFIX EndianToLittle_WORD(uint16_t x);
+uint32_t DLL_PREFIX EndianFromLittle_DWORD(uint32_t x);
+uint16_t DLL_PREFIX EndianFromLittle_WORD(uint16_t x);
 
+uint32_t DLL_PREFIX EndianToBig_DWORD(uint32_t x);
+uint16_t DLL_PREFIX EndianToBig_WORD(uint16_t x);
+uint32_t DLL_PREFIX EndianFromBig_DWORD(uint32_t x);
+uint16_t DLL_PREFIX EndianFromBig_WORD(uint16_t x);
 // max/min
 #ifndef _MSC_VER
 	#undef max
 	#undef min
 	int DLL_PREFIX max(int a, int b);
+	unsigned int DLL_PREFIX max(int a, unsigned int b);
+	unsigned int DLL_PREFIX max(unsigned int a, int b);
 	unsigned int DLL_PREFIX max(unsigned int a, unsigned int b);
 	int DLL_PREFIX min(int a, int b);
+	int DLL_PREFIX min(unsigned int a, int b);
+	int DLL_PREFIX min(int a, unsigned int b);
 	unsigned int DLL_PREFIX min(unsigned int a, unsigned int b);
 #endif
 
@@ -1064,6 +1074,31 @@ typedef struct {
 	uint16_t sample_bits;
 } wav_header_t;
 #pragma pack()
+
+//  See http://www-mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/WAVE.html.
+#pragma pack(1)
+typedef struct {
+	wav_chunk_t riff_chunk;
+	char wave[4];
+	wav_chunk_t fmt_chunk;
+	uint16_t format_id;
+	uint16_t channels;
+	uint32_t sample_rate;
+	uint32_t data_speed;
+	uint16_t block_size;
+	uint16_t sample_bits;
+	uint16_t cbsize; // Extension size.Normaly set to 0.
+	wav_chunk_t fact_chunk; // "fact", 4.
+} wav_header_float_t;
+#pragma pack()
+
+// Use this before writing wav_data.
+bool DLL_PREFIX write_dummy_wav_header(void *__fio);
+// Use this after writng wav_data.
+bool DLL_PREFIX set_wav_header(wav_header_t *header, wav_chunk_t *first_chunk, uint16_t channels, uint32_t rate,
+							   uint16_t bits, size_t file_length);
+bool DLL_PREFIX load_wav_to_stereo(void *__fio, int16_t **left_buf, int16_t **right_buf, uint32_t *rate, int *got_samples);
+bool DLL_PREFIX load_wav_to_monoral(void *__fio, int16_t **buffer, uint32_t *rate, int *got_samples);
 
 // file path
 const _TCHAR *DLL_PREFIX get_application_path();

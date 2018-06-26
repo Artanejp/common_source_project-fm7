@@ -484,9 +484,7 @@ void IO::rec_tape(const _TCHAR* file_path)
 	if(cmt_fio->Fopen(file_path, FILEIO_READ_WRITE_NEW_BINARY)) {
 		my_tcscpy_s(cmt_rec_file_path, _MAX_PATH, file_path);
 		if(check_file_extension(file_path, _T(".wav"))) {
-			uint8_t dummy[sizeof(wav_header_t) + sizeof(wav_chunk_t)];
-			memset(dummy, 0, sizeof(dummy));
-			cmt_fio->Fwrite(dummy, sizeof(dummy), 1);
+			write_dummy_wav_header((void *)cmt_fio);
 			cmt_is_wav = true;
 		}
 		cmt_bufcnt = 0;
@@ -507,7 +505,7 @@ void IO::close_tape()
 				
 				wav_header_t wav_header;
 				wav_chunk_t wav_chunk;
-				
+#if 0				
 				pair_t __riff_chunk_size;
 				pair_t __fmt_chunk_size;
 				pair_t __wav_chunk_size;
@@ -545,6 +543,13 @@ void IO::close_tape()
 				cmt_fio->Fseek(0, FILEIO_SEEK_SET);
 				cmt_fio->Fwrite(&wav_header, sizeof(wav_header), 1);
 				cmt_fio->Fwrite(&wav_chunk, sizeof(wav_chunk), 1);
+#else
+				if(set_wav_header(&wav_header, &wav_chunk, 1, CMT_SAMPLE_RATE, 8, length)) {
+					cmt_fio->Fseek(0, FILEIO_SEEK_SET);
+					cmt_fio->Fwrite(&wav_header, sizeof(wav_header), 1);
+					cmt_fio->Fwrite(&wav_chunk, sizeof(wav_chunk), 1);
+				}
+#endif
 			}
 		}
 		cmt_fio->Fclose();
