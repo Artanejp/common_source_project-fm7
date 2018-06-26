@@ -63,6 +63,10 @@ PC-98RL
 
 	(*) optional
 
+--- Saved data
+
+	MEMSW.BIN	Settings of MEMORY SWITCH (Even byte of A3FE0 - A3FFE : 16bytes)
+
 --- Key maps
 
 	Virtual		PC
