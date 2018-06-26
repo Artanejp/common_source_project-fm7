@@ -720,38 +720,57 @@ int DATAREC::load_wav_image(int offset)
 	// check wave header
 	wav_header_t header;
 	wav_chunk_t chunk;
+	pair_t tmpval32;
+	pair16_t tmpval16;
+	
+	pair16_t __fmt_id;
+	pair16_t __sample_bits;
+	pair16_t __channels;
+	pair_t __sample_rate;
+	pair_t __chunk_size;
 	
 	play_fio->Fseek(offset, FILEIO_SEEK_SET);
 	play_fio->Fread(&header, sizeof(header), 1);
-	if(header.format_id != 1 || !(header.sample_bits == 8 || header.sample_bits == 16)) {
+	
+	__fmt_id.set_2bytes_le_from(header.format_id);
+	__sample_bits.set_2bytes_le_from(header.sample_bits);
+	
+	if((__fmt_id.w != 1) || !((__sample_bits.w == 8) || (__sample_bits.w == 16))) {
 		return 0;
 	}
-	play_fio->Fseek(header.fmt_chunk.size - 16, FILEIO_SEEK_CUR);
+	tmpval32.set_4bytes_le_from(header.fmt_chunk.size);
+	play_fio->Fseek(tmpval32.d - 16, FILEIO_SEEK_CUR);
 	while(1) {
 		play_fio->Fread(&chunk, sizeof(chunk), 1);
+		__chunk_size.set_4bytes_le_from(chunk.size);
 		if(strncmp(chunk.id, "data", 4) == 0) {
 			break;
 		}
-		play_fio->Fseek(chunk.size, FILEIO_SEEK_CUR);
+
+		play_fio->Fseek(tmpval32.d, FILEIO_SEEK_CUR);
 	}
+
+	__channels.set_2bytes_le_from(header.channels);
 	
-	int samples = chunk.size / header.channels, loaded_samples = 0;
-	if(header.sample_bits == 16) {
+	int samples = (int)(__chunk_size.d / (uint32_t)(__channels.w)), loaded_samples = 0;
+
+	if(__sample_bits.w == 16) {
 		samples /= 2;
 	}
-	sample_rate = header.sample_rate;
-	sample_usec = 1000000. / sample_rate;
+	__sample_rate.set_4bytes_le_from(header.sample_rate);
+	sample_rate = __sample_rate.d;
+	sample_usec = 1000000. / (float)sample_rate;
 	
 	// load samples
 	if(samples > 0) {
-		#define TMP_LENGTH (0x10000 * header.channels)
+		#define TMP_LENGTH (0x10000 * (uint32_t)(__channels.w))
 		
 		uint8_t *tmp_buffer = (uint8_t *)malloc(TMP_LENGTH);
 		play_fio->Fread(tmp_buffer, TMP_LENGTH, 1);
 		
 		#define GET_SAMPLE { \
-			for(int ch = 0; ch < header.channels; ch++) { \
-				if(header.sample_bits == 16) { \
+			for(int ch = 0; ch < __channels.sw; ch++) { \
+				if(__sample_bits.w == 16) { \
 					union { \
 						int16_t s16; \
 						struct { \
@@ -773,7 +792,7 @@ int DATAREC::load_wav_image(int offset)
 
 		bool __t = false;
 		if(__DATAREC_SOUND) {
-		   if(!config.wave_shaper[drive_num] || header.channels > 1) {
+		   if(!config.wave_shaper[drive_num] || __channels.w > 1) {
 			   __t = true;
 		   }
 		} else {
@@ -790,7 +809,7 @@ int DATAREC::load_wav_image(int offset)
 			// load samples
 //#ifdef DATAREC_SOUND
 			if(__DATAREC_SOUND) {
-				if(header.channels > 1) {
+				if(__channels.w > 1) {
 					sound_buffer_length = samples * sizeof(int16_t);
 					sound_buffer = (int16_t *)malloc(sound_buffer_length);
 				}
@@ -803,7 +822,7 @@ int DATAREC::load_wav_image(int offset)
 				int16_t sample_signal = sample[0];
 //#ifdef DATAREC_SOUND
 				if(__DATAREC_SOUND) {
-					if(header.channels > 1) {
+					if(__channels.w > 1) {
 //#ifdef DATAREC_SOUND_LEFT
 						if(__DATAREC_SOUND_LEFT) {
 							sample_signal = sample[1];
@@ -818,7 +837,7 @@ int DATAREC::load_wav_image(int offset)
 //#endif
 				wav_buffer[i] = sample_signal;
 			}
-			adjust_zero_position(wav_buffer, samples, header.sample_rate);
+			adjust_zero_position(wav_buffer, samples, __sample_rate.d);
 			
 			// copy to dest buffer
 			buffer = (uint8_t *)malloc(samples);
@@ -883,14 +902,14 @@ int DATAREC::load_wav_image(int offset)
 				GET_SAMPLE
 				wav_buffer[i] = sample[0];
 			}
-			adjust_zero_position(wav_buffer, samples, header.sample_rate);
+			adjust_zero_position(wav_buffer, samples, __sample_rate.d);
 			
 			// t=0 : get thresholds
 			// t=1 : get number of samples
 			// t=2 : load samples
 			#define FREQ_SCALE 16
-			int min_threshold = (int)(header.sample_rate * FREQ_SCALE / 2400.0 / 2.0 / 3.0 + 0.5);
-			int max_threshold = (int)(header.sample_rate * FREQ_SCALE / 1200.0 / 2.0 * 3.0 + 0.5);
+			int min_threshold = (int)(__sample_rate.d * FREQ_SCALE / 2400.0 / 2.0 / 3.0 + 0.5);
+			int max_threshold = (int)(__sample_rate.d * FREQ_SCALE / 1200.0 / 2.0 * 3.0 + 0.5);
 			int half_threshold, hi_count, lo_count;
 			int *counts = (int *)calloc(max_threshold, sizeof(int));
 			
@@ -946,7 +965,7 @@ int DATAREC::load_wav_image(int offset)
 					if(sum_count > 60 * 1920) {
 						half_tmp = (int)((double)sum_value / (double)sum_count + 0.5);
 					} else {
-						half_tmp = (int)(header.sample_rate * FREQ_SCALE / 1920.0 / 2.0 + 0.5);
+						half_tmp = (int)(__sample_rate.d * FREQ_SCALE / 1920.0 / 2.0 + 0.5);
 					}
 					
 					sum_value = sum_count = 0;
@@ -988,7 +1007,7 @@ int DATAREC::load_wav_image(int offset)
 					buffer = (uint8_t *)malloc(loaded_samples);
 //#ifdef DATAREC_SOUND
 					if(__DATAREC_SOUND) {
-						if(header.channels > 1) {
+						if(__channels.w > 1) {
 							sound_buffer_length = loaded_samples * sizeof(int16_t);
 							sound_buffer = (int16_t *)malloc(sound_buffer_length);
 						}
@@ -1016,21 +1035,39 @@ void DATAREC::save_wav_image()
 	
 	wav_header_t wav_header;
 	wav_chunk_t wav_chunk;
+	pair_t __riff_chunk_size;
+	pair_t __fmt_chunk_size;
+	pair_t __wav_chunk_size;
+	pair16_t __fmt_id;
+	pair16_t __channels;
+	pair_t __sample_rate;
+	pair16_t __block_size;
+	pair16_t __sample_bits;
+
+	__riff_chunk_size.d = length - 8;
+	__fmt_chunk_size.d = 16;
+	__fmt_id.w = 1;
+	__channels.w = 1;
+	__sample_rate.d = sample_rate;
+	__block_size.w = 1;
+	__sample_bits.w = 8;
 	
 	memcpy(wav_header.riff_chunk.id, "RIFF", 4);
-	wav_header.riff_chunk.size = length - 8;
+	wav_header.riff_chunk.size = __riff_chunk_size.get_4bytes_le_to();
+	
 	memcpy(wav_header.wave, "WAVE", 4);
 	memcpy(wav_header.fmt_chunk.id, "fmt ", 4);
-	wav_header.fmt_chunk.size = 16;
-	wav_header.format_id = 1;
-	wav_header.channels = 1;
-	wav_header.sample_rate = sample_rate;
-	wav_header.data_speed = sample_rate;
-	wav_header.block_size = 1;
-	wav_header.sample_bits = 8;
+	wav_header.fmt_chunk.size = __riff_chunk_size.get_4bytes_le_to();
+	wav_header.format_id = __fmt_id.get_2bytes_le_to();
+	wav_header.channels = __channels.get_2bytes_le_to();
+	wav_header.sample_rate = __sample_rate.get_4bytes_le_to();
+	wav_header.data_speed =  __sample_rate.get_4bytes_le_to();
+	wav_header.block_size = __block_size.get_2bytes_le_to();
+	wav_header.sample_bits = __sample_bits.get_2bytes_le_to();
 	
 	memcpy(wav_chunk.id, "data", 4);
-	wav_chunk.size = length - sizeof(wav_header) - sizeof(wav_chunk);
+	__wav_chunk_size.d = length - sizeof(wav_header) - sizeof(wav_chunk);
+	wav_chunk.size = __wav_chunk_size.get_4bytes_le_to();
 	
 	rec_fio->Fseek(0, FILEIO_SEEK_SET);
 	rec_fio->Fwrite(&wav_header, sizeof(wav_header), 1);

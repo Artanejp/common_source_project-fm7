@@ -79,45 +79,54 @@ bool NOISE::load_wav_file(const _TCHAR *file_name)
 	if(fio->Fopen(create_local_path(file_name), FILEIO_READ_BINARY)) {
 		wav_header_t header;
 		wav_chunk_t chunk;
-		uint16_t __nr_channels;
-		uint16_t __nr_bits;
+		pair16_t __fmt_id;
+		pair16_t __sample_bits;
+		pair16_t __channels;
+		pair_t __sample_rate;
+		pair_t __chunk_size;
+
 		fio->Fread(&header, sizeof(header), 1);
+		__fmt_id.set_2bytes_le_from(header.format_id);
+		__sample_bits.set_2bytes_le_from(header.sample_bits);
+		__chunk_size.set_4bytes_le_from(header.fmt_chunk.size);
+		__channels.set_2bytes_le_from(header.channels);
+		__sample_rate.set_4bytes_le_from(header.sample_rate);
 		
-		if((EndianToLittle_WORD(header.format_id) == 1) && ((EndianToLittle_WORD(header.sample_bits) == 8) || (EndianToLittle_DWORD(header.sample_bits) == 16))) {
-			fio->Fseek(EndianToLittle_DWORD(header.fmt_chunk.size) - 16, FILEIO_SEEK_CUR);
+		if((__fmt_id.w == 1) && ((__sample_bits.w == 8) || (__sample_bits.w == 16))) {
+			fio->Fseek(__chunk_size.d - 16, FILEIO_SEEK_CUR);
 			bool is_eof = false;
 			while(1) {
 				if(fio->Fread(&chunk, sizeof(chunk), 1) != 1) {
 					is_eof = true;
 					break;
 				}
+				__chunk_size.set_4bytes_le_from(chunk.size);
 				if(strncmp(chunk.id, "data", 4) == 0) {
 					break;
 				}
-				fio->Fseek(EndianToLittle_DWORD(chunk.size), FILEIO_SEEK_CUR);
+				fio->Fseek(__chunk_size.d, FILEIO_SEEK_CUR);
 			}
+			__chunk_size.set_4bytes_le_from(chunk.size);
 			if(is_eof) {
 				buffer_l = buffer_r = NULL;
 				fio->Fclose();
 				delete fio;
 				return false;
 			}
-			__nr_channels = EndianToLittle_WORD(header.channels);
-			__nr_bits = EndianToLittle_WORD(header.sample_bits);
-			if((samples = EndianToLittle_DWORD(chunk.size) / __nr_channels) > 0) {
-				if(__nr_bits == 16) {
+			if((samples = __chunk_size.d / __channels.w) > 0) {
+				if(__sample_bits.w == 16) {
 					samples /= 2;
 				}
-				sample_rate = EndianToLittle_DWORD(header.sample_rate);
+				sample_rate = __sample_rate.d;
 			   
 				buffer_l = (int16_t *)malloc(samples * sizeof(int16_t));
 				buffer_r = (int16_t *)malloc(samples * sizeof(int16_t));
 				
 				for(int i = 0; i < samples; i++) {
 					int sample_lr[2];
-					for(int ch = 0; ch < __nr_channels; ch++) {
+					for(int ch = 0; ch < __channels.sw; ch++) {
 						int16_t sample = 0;
-						if(__nr_bits == 16) {
+						if(__sample_bits.w == 16) {
 							union {
 								int16_t s16;
 								struct {
@@ -134,7 +143,7 @@ bool NOISE::load_wav_file(const _TCHAR *file_name)
 						if(ch < 2) sample_lr[ch] = sample;
 					}
 					buffer_l[i] = sample_lr[0];
-					buffer_r[i] = sample_lr[(__nr_channels > 1) ? 1 : 0];
+					buffer_r[i] = sample_lr[(__channels.w > 1) ? 1 : 0];
 				}
 				result = true;
 			}

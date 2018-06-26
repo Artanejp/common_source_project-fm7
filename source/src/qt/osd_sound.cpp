@@ -381,21 +381,42 @@ void OSD_BASE::stop_record_sound()
 			// update wave header
 			wav_header_t wav_header;
 			wav_chunk_t wav_chunk;
+			pair16_t tmpval16;
+			pair_t tmpval32;
 			
 			memcpy(wav_header.riff_chunk.id, "RIFF", 4);
-			wav_header.riff_chunk.size = EndianToLittle_DWORD(rec_sound_bytes + sizeof(wav_header_t) - 8);
+			
+			tmpval32.d = rec_sound_bytes + sizeof(wav_header_t) - 8;
+			wav_header.riff_chunk.size = tmpval32.get_4bytes_le_to();
+			
 			memcpy(wav_header.wave, "WAVE", 4);
 			memcpy(wav_header.fmt_chunk.id, "fmt ", 4);
-			wav_header.fmt_chunk.size = EndianToLittle_DWORD(16);
-			wav_header.format_id = EndianToLittle_WORD(1);
-			wav_header.channels =  EndianToLittle_WORD(2);
-			wav_header.sample_bits = EndianToLittle_WORD(16);
-			wav_header.sample_rate = EndianToLittle_DWORD(snd_spec_presented.freq);
-			wav_header.block_size = EndianToLittle_WORD(wav_header.channels * wav_header.sample_bits / 8);
-			wav_header.data_speed = EndianToLittle_DWORD(wav_header.sample_rate * wav_header.block_size);
+			
+			tmpval32.d = 16;
+			wav_header.fmt_chunk.size = tmpval32.get_4bytes_le_to();
+
+			tmpval16.w = 1;
+			wav_header.format_id = tmpval16.get_2bytes_le_to();
+			
+			tmpval16.w = 2;
+			wav_header.channels =  tmpval16.get_2bytes_le_to();
+			
+			tmpval16.w = 16;
+			wav_header.sample_bits = tmpval16.get_2bytes_le_to();
+
+			tmpval32.d = snd_spec_presented.freq;
+			wav_header.sample_rate = tmpval32.get_4bytes_le_to();
+
+			tmpval16.w = wav_header.channels * wav_header.sample_bits / 8;
+			wav_header.block_size = tmpval16.get_2bytes_le_to();
+
+			tmpval32.d = wav_header.sample_rate * wav_header.block_size;
+			wav_header.data_speed = tmpval32.get_4bytes_le_to();
 			
 			memcpy(wav_chunk.id, "data", 4);
-			wav_chunk.size = EndianToLittle_DWORD(rec_sound_bytes);
+
+			tmpval32.d = rec_sound_bytes;
+			wav_chunk.size = tmpval32.get_4bytes_le_to();
 
 			rec_sound_fio->Fseek(0, FILEIO_SEEK_SET);
 			rec_sound_fio->Fwrite(&wav_header, sizeof(wav_header_t), 1);
