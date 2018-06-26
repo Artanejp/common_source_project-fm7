@@ -219,7 +219,6 @@ void DISPLAY::initialize()
 		memcpy(font + ANK_FONT_OFS + FONT_SIZE * 0x300, font + ANK_FONT_OFS, FONT_SIZE * 0x100);
 	}
 #endif
-	delete fio;
 	
 	// init palette
 	for(int i = 0; i < 8; i++) {
@@ -238,9 +237,24 @@ void DISPLAY::initialize()
 //	memset(tvram, 0, sizeof(tvram));
 	memset(vram, 0, sizeof(vram));
 	
-	for(int i = 0; i < 16; i++) {
-		tvram[0x3fe0 + (i << 1)] = memsw_default[i];
+// WIP: MEMSW
+	bool memsw_stat = false;
+	if(fio->Fopen(create_local_path(_T("MEMSW.BIN")), FILEIO_READ_BINARY)) {
+		if(fio->IsOpened()) {
+			for(int i = 0; i < 16; i++) {
+				tvram[0x3fe0 + (i << 1)] = fio->FgetUint8();
+				if(i == 15) memsw_stat = true;
+			}
+			fio->Fclose();
+		}
 	}
+	if(!memsw_stat) {
+		for(int i = 0; i < 16; i++) {
+			tvram[0x3fe0 + (i << 1)] = memsw_default[i];
+		}
+	}
+	delete fio;
+
 #ifndef HAS_UPD4990A
 	cur_time_t cur_time;
 	get_host_time(&cur_time);
@@ -255,6 +269,21 @@ void DISPLAY::initialize()
 	
 	// register event
 	register_frame_event(this);
+}
+
+void DISPLAY::release()
+{
+	FILEIO *fio = new FILEIO();
+	if(fio == NULL) return;
+	if(fio->Fopen(create_local_path(_T("MEMSW.BIN")), FILEIO_WRITE_BINARY)) {
+		if(fio->IsOpened()) {
+			for(int i = 0; i < 16; i++) {
+				fio->FputUint8(tvram[0x3fe0 + (i << 1)]);
+			}
+			fio->Fclose();
+		}
+	}
+	delete fio;
 }
 
 #if !defined(SUPPORT_HIRESO)

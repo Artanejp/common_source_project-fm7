@@ -202,6 +202,7 @@ public:
 	
 	// common functions
 	void initialize();
+	void release();
 	void reset();
 	void event_frame();
 	void write_io8(uint32_t addr, uint32_t data);
