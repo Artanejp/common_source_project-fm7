@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
 //	}
 	nErrorCode = MainLoop(argc, argv);
 	_resource_free();
-	if(csp_logger != NULL) delete csp_logger;
+	//if(csp_logger != NULL) delete csp_logger;
 	
 	return nErrorCode;
 }

@@ -1237,10 +1237,11 @@ void SetupSDL(void)
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Audio and JOYSTICK subsystem was initialised.");
 }
 
-void SetupLogger(std::string emustr, int _size)
+
+void SetupLogger(QObject *parent, std::string emustr, int _size)
 {
 
-	csp_logger = new CSP_Logger(config.log_to_syslog, config.log_to_console, emustr.c_str()); // Write to syslog, console
+	csp_logger = new CSP_Logger(parent, config.log_to_syslog, config.log_to_console, emustr.c_str()); // Write to syslog, console
 	csp_logger->set_log_stdout(CSP_LOG_DEBUG, true);
 	csp_logger->set_log_stdout(CSP_LOG_INFO, true);
 	csp_logger->set_log_stdout(CSP_LOG_WARN, true);
@@ -1289,7 +1290,7 @@ int MainLoop(int argc, char *argv[])
 
 	emustr = emustr + cfgstr;
 
-	SetupLogger(emustr, CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1);
+	SetupLogger(GuiMain, emustr, CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1);
 
 	
 	archstr = "Generic";
