@@ -2,6 +2,7 @@ message("* qt/emuutils")
 
 set(s_qt_emuutils_headers
 	../gui/csp_logger.h
+	  ../../statesub.h
 	)
 	
 set(s_qt_emuutils_srcs
@@ -14,7 +15,7 @@ set(s_qt_emuutils_srcs
 
 QT5_WRAP_CPP(s_qt_emuutils_headers_MOC ${s_qt_emuutils_headers})
 	
-SET(THIS_LIB_VERSION 2.11.1) 
+SET(THIS_LIB_VERSION 2.11.2) 
 
 if(WIN32)
 include (GenerateExportHeader)
