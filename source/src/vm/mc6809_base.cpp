@@ -205,9 +205,9 @@ void MC6809_BASE::initialize()
 	nmi_count = 0;
 	firq_count = 0;
 	irq_count = 0;
-	if(config.print_statistics) {
+//	if(config.print_statistics) {
 		register_frame_event(this);
-	}
+//	}
 	waitfactor = 0;
 	waitcount = 0;
 }
