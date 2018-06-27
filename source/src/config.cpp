@@ -555,9 +555,9 @@ void load_config(const _TCHAR *config_path)
 			flags >>= 1;
 			}
 		}
-		config.state_log_to_console = MyGetPrivateProfileInt(_T("Qt"), _T("StateLogToConsole"), config.state_log_to_console, config_path);;
-		config.state_log_to_syslog = MyGetPrivateProfileInt(_T("Qt"), _T("StateLogToSyslog"), config.state_log_to_syslog, config_path);;
-		config.state_log_to_recording = MyGetPrivateProfileInt(_T("Qt"), _T("StateLogToRecording"), config.state_log_to_recording, config_path);;
+		config.state_log_to_console = MyGetPrivateProfileBool(_T("Qt"), _T("StateLogToConsole"), config.state_log_to_console, config_path);;
+		config.state_log_to_syslog = MyGetPrivateProfileBool(_T("Qt"), _T("StateLogToSyslog"), config.state_log_to_syslog, config_path);;
+		config.state_log_to_recording = MyGetPrivateProfileBool(_T("Qt"), _T("StateLogToRecording"), config.state_log_to_recording, config_path);;
 
 		config.virtual_media_position = MyGetPrivateProfileInt(_T("Qt"), _T("UiVirtualMediaPosition"), config.virtual_media_position, config_path);
 		//csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Read config done.");
@@ -851,9 +851,9 @@ void save_config(const _TCHAR *config_path)
 			}
 			MyWritePrivateProfileInt(_T("Qt"), create_string(_T("RecordLogEnabled%d"), ii), flags, config_path);
 		}
-		MyWritePrivateProfileInt(_T("Qt"), _T("StateLogToConsole"), config.state_log_to_console, config_path);
-		MyWritePrivateProfileInt(_T("Qt"), _T("StateLogToSyslog"), config.state_log_to_syslog, config_path);
-		MyWritePrivateProfileInt(_T("Qt"), _T("StateLogToRecording"), config.state_log_to_recording, config_path);
+		MyWritePrivateProfileBool(_T("Qt"), _T("StateLogToConsole"), config.state_log_to_console, config_path);
+		MyWritePrivateProfileBool(_T("Qt"), _T("StateLogToSyslog"), config.state_log_to_syslog, config_path);
+		MyWritePrivateProfileBool(_T("Qt"), _T("StateLogToRecording"), config.state_log_to_recording, config_path);
 		
 		MyWritePrivateProfileInt(_T("Qt"), _T("UiVirtualMediaPosition"), config.virtual_media_position, config_path);
 		//csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Write config done.");

@@ -875,6 +875,7 @@ void Ui_MainWindowBase::do_set_numpad_enter_as_fullkey(bool flag)
 void Ui_MainWindowBase::do_set_print_cpu_statistics(bool flag)
 {
 	p_config->print_statistics = flag;
+	emit sig_emu_update_config();
 }
 
 void Ui_MainWindowBase::CreateEmulatorMenu(void)
@@ -1008,7 +1009,7 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	actionSpeed_FULL->setCheckable(true);
 	actionSpeed_FULL->setChecked(false);
 	if(p_config->full_speed) actionSpeed_FULL->setChecked(true);
-	connect(actionSpeed_FULL, SIGNAL(toggle(bool)), this,SLOT(do_emu_full_speed(bool))); // OK?
+	connect(actionSpeed_FULL, SIGNAL(toggled(bool)), this,SLOT(do_emu_full_speed(bool))); // OK?
 	
 	if(using_flags->is_use_joystick()) {
 		action_SetupJoystick = new Action_Control(this, using_flags);
