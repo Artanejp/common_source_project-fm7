@@ -910,8 +910,16 @@ bool csp_state_data_saver::post_proc_loading(uint32_t *sumseed, bool *__stat)
 	return mb;
 }
 
+#include "config.h"
+#include "csp_logger.h"
+#if defined(_USE_QT)
+#include <QObject>
+#include <QString>
 
+csp_state_utils::csp_state_utils(int _version, int device_id, const _TCHAR *classname, CSP_Logger* p_logger) : QObject(NULL)
+#else
 csp_state_utils::csp_state_utils(int _version, int device_id, const _TCHAR *classname, CSP_Logger* p_logger)
+#endif
 {
 	listptr.clear();
 	crc_value = 0;
@@ -950,6 +958,9 @@ csp_state_utils::csp_state_utils(int _version, int device_id, const _TCHAR *clas
 	add_entry(_T("INTERNAL_VER"), &internal_version_bak);	
 
 	fio = NULL;
+#if defined(_USE_QT)
+	if(p_logger != NULL) connect(this, SIGNAL(sig_debug_log(int, int, QString)), p_logger, SLOT(do_debug_log(int, int, QString)), Qt::QueuedConnection);
+#endif
 }
 
 csp_state_utils::~csp_state_utils()
@@ -961,20 +972,21 @@ csp_state_utils::~csp_state_utils()
  * With MinGW and DLL linker, not able top find extern symbols.
  */
 
-#include "config.h"
-#include "csp_logger.h"
 
 void csp_state_utils::out_debug_log(const char *fmt, ...)
 {
-	if(logger == NULL) return;
 	// Temporally disabled 20180618
 //#if !defined(__MINGW32__) && !defined(__MINGW64__)
 	char strbuf[8192];
 	va_list ap;
 	va_start(ap, fmt);	
 	vsnprintf(strbuf, 8192, fmt, ap);
-	logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_VM_STATE, strbuf);
-	//printf("%s\n", strbuf);
+#if defined(_USE_QT)
+	QString mes = QString::fromUtf8(strbuf);
+	emit sig_debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_VM_STATE, mes);
+#else
+	/* PUT MESSAGE HANDLER HERE */
+#endif
 	va_end(ap);
 //#endif
 }

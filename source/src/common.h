@@ -23,7 +23,7 @@
 		#endif
 	#endif
 #endif
-#ifdef _USE_OT
+#ifdef _USE_QT
 			#define USE_ZLIB
 #endif
 

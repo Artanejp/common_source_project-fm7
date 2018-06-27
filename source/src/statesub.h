@@ -29,15 +29,18 @@
 #define _CSP_STATE_SUB_H
 #include "common.h"
 #include "fileio.h"
-
+#include "fifo.h"
 
 #include <string>
 #include <list>
 #include <typeindex>
 #include <map>
 #include "state_data.h"
-
-enum {
+#if defined(_USE_QT)
+#include <QObject>
+#include <QString>
+#endif
+typedef enum csp_saver_type_t {
 	csp_saver_entry_int = 0,
 	csp_saver_entry_uint8,
 	csp_saver_entry_int8,
@@ -72,7 +75,16 @@ enum {
 
 
 class CSP_Logger;
+
+#if defined(_USE_QT)
+  QT_BEGIN_NAMESPACE
+class DLL_PREFIX csp_state_utils : public QObject {
+#else
 class DLL_PREFIX csp_state_utils {
+#endif
+#if defined(_USE_QT)
+	Q_OBJECT
+#endif
 protected:
 	typedef union  {
 		int64_t s;
@@ -135,7 +147,7 @@ protected:
 		{ typeid(bool), csp_saver_entry_bool },
 		{ typeid(void), csp_saver_entry_void },
 		{ typeid(FIFO), csp_saver_entry_fifo },
-		{ typeid(cur_time_t), csp_saver_entry_cur_time_t },
+		{ typeid(cur_time_t), csp_saver_entry_cur_time_t }
 	};
 public:
 	csp_state_utils(int _version = 1, int device_id = 1, const _TCHAR *classname = NULL, CSP_Logger* p_logger = NULL);
@@ -338,8 +350,14 @@ public:
 	void get_class_name(_TCHAR *buf, int len);
 	bool save_state(FILEIO *__fio, uint32_t *pcrc = NULL);
 	bool load_state(FILEIO *__fio, uint32_t *pcrc = NULL);
+#if defined(_USE_QT)
+signals:
+	int sig_debug_log(int, int, QString);
+#endif
 };
-	
+#if defined(_USE_QT)
+    QT_END_NAMESPACE
+#endif
 			
 #define DECL_STATE_ENTRY0(_n_name, __list) {				  \
 		__list->add_entry((const _TCHAR *)_T(#_n_name), &_n_name);		  \

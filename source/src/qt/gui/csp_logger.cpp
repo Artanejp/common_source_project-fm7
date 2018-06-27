@@ -5,7 +5,7 @@
  *  Dec 30, 2014 Move from XM7/SDL, this was Ohta's original code.
  * Licence : GPLv2
  */
-
+#include <QObject>
 #include <QMutex>
 #include <QMutexLocker>
 
@@ -16,11 +16,14 @@
 #include "menu_flags.h"
 #include "../osd.h"
 
-CSP_Logger::CSP_Logger(bool b_syslog, bool cons, const char *devname)
+CSP_Logger::CSP_Logger(QObject *parent, bool b_syslog, bool cons, const char *devname) : QObject(parent)
 {
 	lock_mutex = new QMutex(QMutex::Recursive);
 	this->reset();
 	this->open(b_syslog, cons, devname);
+	level_state_out_record = false;
+	level_state_out_syslog = false;
+	level_state_out_console = false;
 }
 
 
@@ -125,9 +128,6 @@ void CSP_Logger::reset(void)
 			level_dev_out_console[i][j] = true;
 		}
 	}
-	level_state_out_record = false;
-	level_state_out_syslog = false;
-	level_state_out_console = false;
 }
 
 //extern class USING_FLAGS *using_flags;
@@ -208,6 +208,11 @@ void CSP_Logger::debug_log(int level, int domain_num, const char *fmt, ...)
 	va_end(ap);
 }
 
+void CSP_Logger::do_debug_log(int level, int domain_num, QString mes)
+{
+	debug_log(level, domain_num, (char *)mes.toUtf8().constData());
+}
+
 void CSP_Logger::debug_log(int level, int domain_num, char *strbuf)
 {
 	struct tm *timedat;
@@ -231,7 +236,7 @@ void CSP_Logger::debug_log(int level, int domain_num, char *strbuf)
 	} else {
 	   level_flag |= LOG_DEBUG;
 	}
-#endif	
+#endif
 	char *p;
 	char *p_bak;
 	const char delim[2] = "\n";

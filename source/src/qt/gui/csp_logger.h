@@ -187,7 +187,7 @@ private:
 protected:
 
 public:
-	CSP_Logger(bool b_syslog, bool cons, const char *devname);
+	CSP_Logger(QObject *parent, bool b_syslog, bool cons, const char *devname);
 	~CSP_Logger();
 	void set_osd(OSD *p) { p_osd = p; }
 	void open(bool b_syslog, bool cons, const char *devname);
@@ -216,6 +216,8 @@ public:
 	int64_t write_log(const _TCHAR *name, const char *domain_name = NULL, bool utf8 = true, bool forget = false);
 	int64_t copy_log(char *buffer, int64_t buf_size, int64_t *lines = NULL, char *domainname = NULL, bool utf8 = true, bool forget = false, int64_t start = 0, int64_t start_size = 0, int64_t *end_line = 0);
 	void *get_raw_data(bool forget = false, int64_t start = 0, int64_t *end_line = NULL);
+public slots:
+	void do_debug_log(int level, int domain_num, QString mes);
 };
 QT_END_NAMESPACE
 
