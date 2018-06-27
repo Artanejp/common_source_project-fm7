@@ -236,7 +236,18 @@ protected:
 	/* ---------------------------------------------------------------------------
 	debug
 	--------------------------------------------------------------------------- */
-	
+	// Collect counters
+	uint64_t cycles_tmp_count;
+	uint64_t extra_tmp_count;
+	uint32_t insns_count;
+	int frames_count;
+	int nmi_count;
+	int	irq_count;
+	int	nsc800_int_count;
+	int	nsc800_rsta_count;
+	int	nsc800_rstb_count;
+	int	nsc800_rstc_count;
+
 public:
 	Z80_BASE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -268,6 +279,7 @@ public:
 	// common functions
 	virtual void initialize();
 	virtual void reset();
+	void event_frame();
 	int run(int clock);
 
 	virtual void save_state(FILEIO* state_fio);
@@ -280,6 +292,7 @@ public:
 		uint32_t mask = 1 << bit;
 		intr_req_bit = line ? (intr_req_bit | mask) : (intr_req_bit & ~mask);
 		intr_pend_bit = pending ? (intr_pend_bit | mask) : (intr_pend_bit & ~mask);
+		if(line) irq_count++;
 	}
 	void set_extra_clock(int clock)
 	{

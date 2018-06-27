@@ -1921,14 +1921,61 @@ void Z80_BASE::initialize()
 		}
 		flags_initialized = true;
 	}
-//#ifdef USE_DEBUGGER
-//	d_mem_stored = d_mem;
-//	d_io_stored = d_io;
-//	d_debugger->set_context_mem(d_mem);
-//	d_debugger->set_context_io(d_io);
-//#endif
+
+	// Collecting stateus.
+	cycles_tmp_count = 0;
+	extra_tmp_count = 0;
+	insns_count = 0;
+	frames_count = 0;
+	nmi_count = 0;
+	irq_count = 0;
+	nsc800_int_count = 0;
+	nsc800_rsta_count = 0;
+	nsc800_rsta_count = 0;
+	nsc800_rsta_count = 0;
+	register_frame_event(this);
+
 }
 
+void Z80_BASE::event_frame()
+{
+	if(frames_count < 0) {
+		cycles_tmp_count = total_icount;
+		extra_tmp_count = 0;
+		insns_count = 0;
+		frames_count = 0;
+		nmi_count = 0;
+		irq_count = 0;
+		nsc800_int_count = 0;
+		nsc800_rsta_count = 0;
+		nsc800_rstb_count = 0;
+		nsc800_rstc_count = 0;
+	} else if(frames_count >= 16) {
+		uint64_t _icount = total_icount - cycles_tmp_count;
+		if(config.print_statistics) {
+			if(has_nsc800) {
+				out_debug_log(_T("INFO: 16 frames done.\nINFO: CLOCKS = %ld INSNS = %d EXTRA_ICOUNT = %d \nINFO: NMI# = %d IRQ# = %d NSC800_INT# = %d RSTA# = %d RSTB# = %d RSTC# = %d"),
+							  _icount, insns_count, extra_tmp_count, nmi_count, irq_count,
+							  nsc800_int_count, nsc800_rsta_count, nsc800_rstb_count, nsc800_rstc_count);
+			} else {
+				out_debug_log(_T("INFO: 16 frames done.\nINFO: CLOCKS = %ld INSNS = %d EXTRA_ICOUNT = %d \nINFO: NMI# = %d IRQ# = %d"), _icount, insns_count, extra_tmp_count, nmi_count, irq_count);
+			}
+		}
+		cycles_tmp_count = total_icount;
+		insns_count = 0;
+		extra_tmp_count = 0;
+		frames_count = 0;
+		nmi_count = 0;
+		irq_count = 0;
+		nsc800_int_count = 0;
+		nsc800_rsta_count = 0;
+		nsc800_rstb_count = 0;
+		nsc800_rstc_count = 0;
+	} else {
+		frames_count++;
+	}
+
+}
 void Z80_BASE::reset()
 {
 	//PCD = CPU_START_ADDR;
@@ -1956,8 +2003,10 @@ void Z80_BASE::write_signal(int id, uint32_t data, uint32_t mask)
 		intr_req_bit = (intr_req_bit & ~mask) | (data & mask);
 		// always pending (temporary)
 		intr_pend_bit = (intr_pend_bit & ~mask) | (0xffffffff & mask);
+		irq_count++;
 	} else if(id == SIG_CPU_NMI) {
 		intr_req_bit = (data & mask) ? (intr_req_bit | NMI_REQ_BIT) : (intr_req_bit & ~NMI_REQ_BIT);
+		nmi_count++;
 	} else if(id == SIG_CPU_BUSREQ) {
 		busreq = ((data & mask) != 0);
 		write_signals(&outputs_busack, busreq ? 0xffffffff : 0);
@@ -1965,12 +2014,16 @@ void Z80_BASE::write_signal(int id, uint32_t data, uint32_t mask)
 //#ifdef HAS_NSC800
 		if(id == SIG_NSC800_INT) {
 			intr_req_bit = (data & mask) ? (intr_req_bit | 1) : (intr_req_bit & ~1);
+			nsc800_int_count++;
 		} else if(id == SIG_NSC800_RSTA) {
 			intr_req_bit = (data & mask) ? (intr_req_bit | 8) : (intr_req_bit & ~8);
+			nsc800_rsta_count++;
 		} else if(id == SIG_NSC800_RSTB) {
 			intr_req_bit = (data & mask) ? (intr_req_bit | 4) : (intr_req_bit & ~4);
+			nsc800_rstb_count++;
 		} else if(id == SIG_NSC800_RSTC) {
 			intr_req_bit = (data & mask) ? (intr_req_bit | 2) : (intr_req_bit & ~2);
+			nsc800_rstc_count++;
 		}
 	}
 //#endif
@@ -1978,6 +2031,9 @@ void Z80_BASE::write_signal(int id, uint32_t data, uint32_t mask)
 
 int Z80_BASE::run(int clock)
 {
+	if(extra_icount > 0) {
+		extra_tmp_count += extra_icount;
+	}
 	if(clock == -1) {
 		if(busreq) {
 			// run dma once
@@ -1996,6 +2052,7 @@ int Z80_BASE::run(int clock)
 			icount = -extra_icount;
 			extra_icount = 0;
 			run_one_opecode();
+			insns_count++;
 			return -icount;
 		}
 	} else {
@@ -2019,6 +2076,7 @@ int Z80_BASE::run(int clock)
 			// run cpu while given clocks
 			while(icount > 0 && !busreq) {
 				run_one_opecode();
+				insns_count++;
 			}
 		}
 		// if busreq is raised, spin cpu while remained clock
@@ -3722,7 +3780,21 @@ bool Z80_BASE::load_state(FILEIO* state_fio)
 		mb = state_entry->load_state(state_fio);
 	}
 	if(!mb) return false;
+	
 	prev_total_icount = total_icount;
+
+	
+	// Post process for collecting statistics.
+	cycles_tmp_count = total_icount;
+	extra_tmp_count = 0;
+	insns_count = 0;
+	frames_count = 0;
+	nmi_count = 0;
+	irq_count = 0;
+	nsc800_int_count = 0;
+	nsc800_rsta_count = 0;
+	nsc800_rsta_count = 0;
+	nsc800_rsta_count = 0;
 	return true;
 }
 

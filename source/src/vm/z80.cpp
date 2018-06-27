@@ -206,6 +206,10 @@ void Z80::debugger_hook(void)
 
 int Z80::run(int clock)
 {
+
+	if(extra_icount > 0) {
+		extra_tmp_count += extra_icount;
+	}
 	if(clock == -1) {
 		if(busreq) {
 			// run dma once
@@ -218,27 +222,28 @@ int Z80::run(int clock)
 			int passed_icount = max(1, extra_icount);
 			// this is main cpu, icount is not used
 			/*icount = */extra_icount = 0;
-			#ifdef USE_DEBUGGER
 				total_icount += passed_icount;
+			#ifdef USE_DEBUGGER
 				debugger_hook();
 			#endif
 			return passed_icount;
 		} else {
 			// run only one opcode
-			#ifdef USE_DEBUGGER
+			//#ifdef USE_DEBUGGER
 				total_icount += extra_icount;
-			#endif
+			//#endif
 			icount = -extra_icount;
 			extra_icount = 0;
 			run_one_opecode();
+			insns_count++;
 			return -icount;
 		}
 	} else {
 		icount += clock;
 		int first_icount = icount;
-		#ifdef USE_DEBUGGER
+		//#ifdef USE_DEBUGGER
 			total_icount += extra_icount;
-		#endif
+		//#endif
 		icount -= extra_icount;
 		extra_icount = 0;
 		
@@ -256,13 +261,14 @@ int Z80::run(int clock)
 			// run cpu while given clocks
 			while(icount > 0 && !busreq) {
 				run_one_opecode();
+				insns_count++;
 			}
 		}
 		// if busreq is raised, spin cpu while remained clock
 		if(icount > 0 && busreq) {
-			#ifdef USE_DEBUGGER
+			//#ifdef USE_DEBUGGER
 				total_icount += icount;
-			#endif
+			//#endif
 			icount = 0;
 		}
 		return first_icount - icount;
@@ -523,9 +529,9 @@ void Z80::check_interrupt()
 //#else
 		}
 	}
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 	total_icount += first_icount - icount;
-#endif
+//#endif
 }
 
 #ifdef USE_DEBUGGER

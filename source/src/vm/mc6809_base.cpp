@@ -225,7 +225,7 @@ void MC6809_BASE::event_frame()
 	} else if(frames_count >= 16) {
 		uint64_t _icount = total_icount - cycles_tmp_count;
 		if(config.print_statistics) {
-			out_debug_log(_T("INFO: 16 frames done.\nINFO: CLOCKS = %ld INSNS = %ld EXTRA_ICOUNT = %ld \nINFO: NMI# = %d FIRQ# = %d IRQ# = %d"), _icount, insns_count, extra_tmp_count, nmi_count, firq_count, irq_count);
+			out_debug_log(_T("INFO: 16 frames done.\nINFO: CLOCKS = %ld INSNS = %d EXTRA_ICOUNT = %d \nINFO: NMI# = %d FIRQ# = %d IRQ# = %d"), _icount, insns_count, extra_tmp_count, nmi_count, firq_count, irq_count);
 		}
 		cycles_tmp_count = total_icount;
 		insns_count = 0;
@@ -4001,6 +4001,16 @@ bool MC6809_BASE::load_state(FILEIO* state_fio)
 	if(state_entry != NULL) {
 		mb = state_entry->load_state(state_fio);
 	}
+	if(!mb) return false;
+
+	// Post process for collecting statistics.
+	cycles_tmp_count = total_icount;
+	extra_tmp_count = 0;
+	insns_count = 0;
+	frames_count = 0;
+	nmi_count = 0;
+	firq_count = 0;
+	irq_count = 0;
 	return mb;
 }
 

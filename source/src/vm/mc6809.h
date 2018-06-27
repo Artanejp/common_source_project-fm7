@@ -524,8 +524,8 @@ protected:
 
 	bool __USE_DEBUGGER;
 	uint64_t cycles_tmp_count;
-	uint64_t insns_count;
-	uint64_t extra_tmp_count;
+	uint32_t insns_count;
+	uint32_t extra_tmp_count;
 	uint32_t nmi_count;
 	uint32_t firq_count;
 	uint32_t irq_count;
