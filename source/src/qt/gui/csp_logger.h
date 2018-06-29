@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <QObject>
 #include <QStringList>
+#include <QVector>
 #include <QString>
 #include <QQueue>
 
@@ -178,7 +179,7 @@ private:
 	bool level_cpu_out_syslog[8][CSP_LOG_LEVELS]; // Syslog chain
 	bool level_cpu_out_console[8][CSP_LOG_LEVELS]; // Console log chain
 	
-	QQueue<CSP_LoggerLine *> squeue;
+	QVector<CSP_LoggerLine *> squeue;
 	QMutex *lock_mutex;
 	OSD *p_osd;
 

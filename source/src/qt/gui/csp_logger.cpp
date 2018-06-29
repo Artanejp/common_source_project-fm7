@@ -322,7 +322,8 @@ void CSP_Logger::debug_log(int level, int domain_num, char *strbuf)
 					delete tmps;
 				} else {
 					QMutexLocker locker(lock_mutex);
-					squeue.enqueue(tmps);
+					//squeue.enqueue(tmps);
+					squeue.push_back(tmps);
 					if(linenum == LLONG_MAX) {
 						line_wrap++;
 						linenum = 0;
@@ -401,9 +402,13 @@ void CSP_Logger::close(void)
 	
 	log_onoff = false;
 	
-	while(!squeue.isEmpty()) {
-		CSP_LoggerLine *p = squeue.dequeue();
-		if(p != NULL) delete p;
+//	while(!squeue.isEmpty()) {
+//		CSP_LoggerLine *p = squeue.dequeue();
+//		if(p != NULL) delete p;
+//	}
+	for(auto p = squeue.begin(); p != squeue.end(); ++p) {
+		CSP_LoggerLine *np = (*p);
+		if(np != NULL) delete p;
 	}
 	loglist.clear();
 	log_sysname.clear();
@@ -568,18 +573,11 @@ int64_t CSP_Logger::get_console_list(char *buffer, int64_t buf_size, bool utf8, 
 	char *pp = buffer;
 	bool check_line = ((start >= 0) && (end >= start));
 	int ssize;
-	{
-		QMutexLocker locker(lock_mutex);
-		ssize=squeue.size();
-	}
-	for(int i = 0; i < ssize; i++) {
-		if(forget) {
+	int ipos = 0;
+	for(auto p = squeue.begin(); p != squeue.end(); ++p) {
+		{
 			QMutexLocker locker(lock_mutex);
-			if(squeue.isEmpty()) break;
-			t = squeue.dequeue();
-		} else {
-			QMutexLocker locker(lock_mutex);
-			t = squeue.at(i);
+			t = (*p);
 		}
 		if(t != NULL) {
 			int64_t n_line = t->get_line_num();
@@ -588,12 +586,14 @@ int64_t CSP_Logger::get_console_list(char *buffer, int64_t buf_size, bool utf8, 
 				if((n_line < start) || (n_line >= end)) {
 					if(forget) {
 						QMutexLocker locker(lock_mutex);
+						squeue.removeAt(ipos);
 						delete t;
 					}
+					ipos++;
 					continue;
 				}
 			}
-
+			ipos++;
 			if(not_match_domain) {
 				tmps = t->get_element_console();
 			} else {
@@ -641,10 +641,11 @@ int64_t CSP_Logger::get_console_list(char *buffer, int64_t buf_size, bool utf8, 
 void CSP_Logger::clear_log(void)
 {
 	QMutexLocker locker(lock_mutex);
-	while(!squeue.isEmpty()) {
-		CSP_LoggerLine *p = squeue.dequeue();
-		if(p != NULL) delete p;
+	for(auto p = squeue.begin(); p != squeue.end(); ++p) {
+		CSP_LoggerLine *pp = (*p);
+		if(pp != NULL) delete pp;
 	}
+	squeue.clear();
 }
 
 int64_t CSP_Logger::write_log(const _TCHAR *name, const char *domain_name, bool utf8, bool forget)
@@ -717,7 +718,8 @@ void *CSP_Logger::get_raw_data(bool forget, int64_t start, int64_t *end_line)
 	if(start < 0)  return (void *)NULL;
 	if(start >= n) return (void *)NULL;
 	if(forget) {
-		t = squeue.dequeue();
+		t = squeue.at(start);
+		squeue.removeAt(start);
 	} else {
 		t = squeue.at(start);
 	}
