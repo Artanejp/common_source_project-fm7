@@ -97,17 +97,35 @@ void CMT::release_tape()
 	play = rec = false;
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
+#include "../../statesub.h"
+
+void CMT::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+	
+	DECL_STATE_ENTRY_BOOL(play);
+	DECL_STATE_ENTRY_BOOL(rec);
+	DECL_STATE_ENTRY_BOOL(remote);
+	DECL_STATE_ENTRY_STRING(rec_file_path, sizeof(rec_file_path));
+	DECL_STATE_ENTRY_CMT_RECORDING(fio, rec, rec_file_path);
+	
+	DECL_STATE_ENTRY_INT32(bufcnt);
+	DECL_STATE_ENTRY_1D_ARRAY(buffer, sizeof(buffer), 1);
+
+	leave_decl_state();
+}	
 void CMT::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->FputBool(play);
-	state_fio->FputBool(rec);
-	state_fio->FputBool(remote);
-	state_fio->Fwrite(rec_file_path, sizeof(rec_file_path), 1);
+//	state_fio->FputBool(play);
+//	state_fio->FputBool(rec);
+//	state_fio->FputBool(remote);
+//	state_fio->Fwrite(rec_file_path, sizeof(rec_file_path), 1);
+#if 0
 	if(rec && fio->IsOpened()) {
 		int length_tmp = (int)fio->Ftell();
 		fio->Fseek(0, FILEIO_SEEK_SET);
@@ -122,24 +140,26 @@ void CMT::save_state(FILEIO* state_fio)
 	} else {
 		state_fio->FputInt32(0);
 	}
-	state_fio->FputInt32(bufcnt);
-	state_fio->Fwrite(buffer, sizeof(buffer), 1);
+#endif
+//	state_fio->FputInt32(bufcnt);
+//	state_fio->Fwrite(buffer, sizeof(buffer), 1);
 }
 
 bool CMT::load_state(FILEIO* state_fio)
 {
 	release_tape();
 	
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
-	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	play = state_fio->FgetBool();
-	rec = state_fio->FgetBool();
-	remote = state_fio->FgetBool();
-	state_fio->Fread(rec_file_path, sizeof(rec_file_path), 1);
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	play = state_fio->FgetBool();
+//	rec = state_fio->FgetBool();
+//	remote = state_fio->FgetBool();
+//	state_fio->Fread(rec_file_path, sizeof(rec_file_path), 1);
+#if 0
 	int length_tmp = state_fio->FgetInt32();
 	if(rec) {
 		fio->Fopen(rec_file_path, FILEIO_READ_WRITE_NEW_BINARY);
@@ -153,8 +173,9 @@ bool CMT::load_state(FILEIO* state_fio)
 			length_tmp -= length_rw;
 		}
 	}
-	bufcnt = state_fio->FgetInt32();
-	state_fio->Fread(buffer, sizeof(buffer), 1);
+#endif
+//	bufcnt = state_fio->FgetInt32();
+//	state_fio->Fread(buffer, sizeof(buffer), 1);
 	return true;
 }
 
