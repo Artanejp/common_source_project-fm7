@@ -33,6 +33,7 @@
 
 #include <string>
 #include <list>
+#include <vector>
 #include <typeindex>
 #include <map>
 #include "state_data.h"
@@ -87,17 +88,21 @@ class DLL_PREFIX csp_state_utils {
 #if defined(_USE_QT)
 	Q_OBJECT
 #endif
+private:
+	int64_t nr_lines;
 protected:
 	typedef union  {
 		int64_t s;
 		uint64_t u;
 		void *p;
 	} union64_t;
+	
 	CSP_Logger *logger;
 	const uint32_t CRC_MAGIC_WORD = 0x04C11DB7;
 	struct __list_t {
 		int type_id;
 		int local_num;
+		int stride;
 		bool assume_byte;
 		int len;
 		int atomlen;
@@ -108,7 +113,8 @@ protected:
 		void *recv_ptr;
 		_TCHAR *path_ptr;
 	};
-	std::list<__list_t>listptr;
+	//std::list<__list_t>listptr;
+	std::vector<__list_t>listptr;
 	_TCHAR __classname[128];
 	_TCHAR __classname_bak[128];
 	
@@ -150,7 +156,7 @@ public:
 	std::list<std::string> get_entries_list(void);
 
 	template <class T>
-	void add_entry(const _TCHAR *__name, T *p, int _len = 1, int __num = -1, bool is_const = false)
+	void add_entry(const _TCHAR *__name, T *p, int _len = 1, int __num = -1, bool is_const = false, int stride = 0)
 	{
 		__list_t _l;
 		std::string _name = std::string(__name);
@@ -164,13 +170,14 @@ public:
 		_l.local_num = __num;
 		_l.assume_byte = false;
 		_l.recv_ptr = 0;
+		_l.stride = stride;
 		out_debug_log("ADD ENTRY: NAME=%s TYPE=%s len=%d atomlen=%d", _name.c_str(), typeid(T).name(), _len, _l.atomlen);
 		if(is_const) _l.type_id = _l.type_id | csp_saver_entry_const;
 		listptr.push_back(_l);
 	};
 
 	template <class T>
-	void add_entry_vararray(const _TCHAR *__name, T **p, void *datalen, bool assume_byte = false, int __num = -1)
+	void add_entry_vararray(const _TCHAR *__name, T **p, void *datalen, bool assume_byte = false, int __num = -1, int stride = 0)
 	{
 		__list_t _l;
 		
@@ -191,12 +198,13 @@ public:
 		_l.assume_byte = assume_byte;
 		_l.type_id = _l.type_id | csp_saver_entry_vararray;
 		_l.recv_ptr = 0;
+		_l.stride = stride;
 		out_debug_log("ADD ENTRY(VARARRAY): NAME=%s TYPE=%s atomlen=%d linked len=%08x", __name, typeid(T).name(), _l.atomlen, datalen);
 		listptr.push_back(_l);
 	};
 
-	void add_entry_fifo(const _TCHAR *__name, FIFO **p, int _len = 1, int __num = -1);
-	void add_entry_cur_time_t(const _TCHAR *__name, cur_time_t *p, int _len = 1, int __num = -1);
+	void add_entry_fifo(const _TCHAR *__name, FIFO **p, int _len = 1, int __num = -1, int stride = 0);
+	void add_entry_cur_time_t(const _TCHAR *__name, cur_time_t *p, int _len = 1, int __num = -1, int stride = 0);
 	void add_entry_string(const _TCHAR *__name, _TCHAR *p, int _len = 1, int __num = -1, bool is_const = false);
 	void add_entry_cmt_recording(const _TCHAR *__name, FILEIO **__fio, bool* __flag, _TCHAR *__path); 
 	
@@ -225,6 +233,10 @@ signals:
 		__list->add_entry((const _TCHAR *)_T(#_n_name), &_n_name, __len, __n); \
 	}
 
+#define DECL_STATE_ENTRY4(_n_name, __list, __len, __n, __stride) {				\
+			__list->add_entry((const _TCHAR *)_T(#_n_name), &_n_name, __len, __n, false, __stride); \
+	}
+		
 #define DECL_STATE_ENTRY_MULTI0(__type, _n_name, __list, __size) {		\
 		__list->add_entry((const _TCHAR *)_T(#_n_name), (uint8_t *)_n_name, __size * sizeof(__type)); \
 	}
@@ -275,6 +287,20 @@ signals:
 #define DECL_STATE_ENTRY_DOUBLE_MEMBER(___name, __num) DECL_STATE_ENTRY2(___name, state_entry, 1, __num)
 #define DECL_STATE_ENTRY_LONG_DOUBLE_MEMBER(___name, __num)  DECL_STATE_ENTRY2(___name, state_entry, 1, __num)
 
+#define DECL_STATE_ENTRY_UINT8_STRIDE(___name, __len, __stride) DECL_STATE_ENTRY4(___name, state_entry, __len,  1, __stride)
+#define DECL_STATE_ENTRY_INT8_STRIDE(___name, __len, __stride)  DECL_STATE_ENTRY4(___name, state_entry, __len,  1, __stride)
+#define DECL_STATE_ENTRY_UINT16_STRIDE(___name, __len, __stride) DECL_STATE_ENTRY4(___name, state_entry, __len,  1, __stride)
+#define DECL_STATE_ENTRY_INT16_STRIDE(___name, __len, __stride)  DECL_STATE_ENTRY4(___name, state_entry, __len,  1, __stride)
+#define DECL_STATE_ENTRY_UINT32_STRIDE(___name, __len, __stride) DECL_STATE_ENTRY4(___name, state_entry, __len,  1, __stride)
+#define DECL_STATE_ENTRY_INT32_STRIDE(___name, __len, __stride)  DECL_STATE_ENTRY4(___name, state_entry, __len,  1, __stride)
+#define DECL_STATE_ENTRY_UINT64_STRIDE(___name, __len, __stride) DECL_STATE_ENTRY4(___name, state_entry, __len,  1, __stride)
+#define DECL_STATE_ENTRY_INT64_STRIDE(___name, __len, __stride)  DECL_STATE_ENTRY4(___name, state_entry, __len,  1, __stride)
+#define DECL_STATE_ENTRY_BOOL_STRIDE(___name, __len, __stride) DECL_STATE_ENTRY4(___name, state_entry, __len,  1, __stride)
+#define DECL_STATE_ENTRY_PAIR_STRIDE(___name, __len, __stride)  DECL_STATE_ENTRY4(___name, state_entry, __len,  1, __stride)
+#define DECL_STATE_ENTRY_UINT8_STRIDE(___name, __len, __stride) DECL_STATE_ENTRY4(___name, state_entry, __len,  1, __stride)
+#define DECL_STATE_ENTRY_FLOAT_STRIDE(___name, __len, __stride)  DECL_STATE_ENTRY4(___name, state_entry, __len,  1, __stride)
+#define DECL_STATE_ENTRY_DOUBLE_STRIDE(___name, __len, __stride) DECL_STATE_ENTRY4(___name, state_entry, __len,  1, __stride)
+#define DECL_STATE_ENTRY_LONG_DOUBLE_STRIDE(___name, __len, __stride)  DECL_STATE_ENTRY4(___name, state_entry, __len,  1, __stride)
 
 
 #define DECL_STATE_ENTRY_MULTI(_n_type, ___name, ___size) DECL_STATE_ENTRY_MULTI0(_n_type, ___name, state_entry, ___size)

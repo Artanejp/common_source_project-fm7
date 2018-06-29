@@ -382,7 +382,7 @@ void IO::set_iowait_range_rw(uint32_t s, uint32_t e, int wait)
 	set_iowait_range_w(s, e, wait);
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 #include "../statesub.h"
 
@@ -390,18 +390,19 @@ void IO::decl_state()
 {
 	enter_decl_state(STATE_VERSION);
 
-	for(int i = 0; i < addr_max; i++) {
+//	for(int i = 0; i < addr_max; i++) {
+		// Is comment outing right? (^_^; 20180630 K.O
 		// Read
-		DECL_STATE_ENTRY_UINT32_MEMBER((rd_table[i].addr), i);
-		DECL_STATE_ENTRY_INT32_MEMBER((rd_table[i].wait), i);
-		DECL_STATE_ENTRY_BOOL_MEMBER((rd_table[i].value_registered), i);
-		DECL_STATE_ENTRY_UINT32_MEMBER((rd_table[i].value), i);
-	   
-		DECL_STATE_ENTRY_UINT32_MEMBER((wr_table[i].addr), i);
-		DECL_STATE_ENTRY_INT32_MEMBER((wr_table[i].wait), i);
-		DECL_STATE_ENTRY_BOOL_MEMBER((wr_table[i].is_flipflop), i);
-	}
-	
+//		DECL_STATE_ENTRY_UINT32_MEMBER((rd_table[i].addr), i);
+//		DECL_STATE_ENTRY_INT32_MEMBER((rd_table[i].wait), i);
+//		DECL_STATE_ENTRY_BOOL_MEMBER((rd_table[i].value_registered), i);
+//		DECL_STATE_ENTRY_UINT32_MEMBER((rd_table[i].value), i);
+		// Write
+//		DECL_STATE_ENTRY_UINT32_MEMBER((wr_table[i].addr), i);
+//		DECL_STATE_ENTRY_INT32_MEMBER((wr_table[i].wait), i);
+//		DECL_STATE_ENTRY_BOOL_MEMBER((wr_table[i].is_flipflop), i);
+//	}
+	DECL_STATE_ENTRY_UINT32_STRIDE((rd_table[0].value), addr_max, sizeof(rd_bank_t));
 	leave_decl_state();
 }
 void IO::save_state(FILEIO* state_fio)
