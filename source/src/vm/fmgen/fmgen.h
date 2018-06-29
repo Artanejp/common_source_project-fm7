@@ -8,6 +8,7 @@
 #define FM_GEN_H
 
 #include "types.h"
+#include "common.h"
 
 // ---------------------------------------------------------------------------
 //	èoóÕÉTÉìÉvÉãÇÃå^
@@ -50,6 +51,7 @@ namespace FM
 	{
 	protected:
 		csp_state_utils *state_entry;
+		class CSP_Logger *p_logger;
 		int tmp_eg_phase;
 		int tmp_ams;
 		int operators_num;
@@ -98,7 +100,7 @@ namespace FM
 		void	dbgStopPG() { pg_diff_ = 0; pg_diff_lfo_ = 0; }
 		
 	protected:
-		void DeclState();
+		void DeclState(void *f);
 		void SaveState(void *f);
 		bool LoadState(void *f);
 		
@@ -210,6 +212,7 @@ namespace FM
 		int tmp_pms;
 		int channel4s_num;
 		csp_state_utils *state_entry;
+		class CSP_Logger *p_logger;
 	public:
 		Channel4();
 		void SetChip(Chip* chip);
@@ -232,7 +235,7 @@ namespace FM
 
 		void dbgStopPG() { for (int i=0; i<4; i++) op[i].dbgStopPG(); }
 		
-		void DeclState();
+		void DeclState(void *f);
 		void SaveState(void *f);
 		bool LoadState(void *f);
 		
@@ -260,6 +263,7 @@ namespace FM
 	class Chip
 	{
 	protected:
+		class CSP_Logger *p_logger;
 		csp_state_utils *state_entry;
 		int chip_num;
 	public:
@@ -275,7 +279,7 @@ namespace FM
 		int		GetPMV() { return pmv_; }
 		uint	GetRatio() { return ratio_; }
 
-		void DeclState();
+		void DeclState(void *f);
 		void SaveState(void *f);
 		bool LoadState(void *f);
 		

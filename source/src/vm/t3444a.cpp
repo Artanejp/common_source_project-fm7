@@ -846,6 +846,9 @@ void T3444A::decl_state()
 	DECL_STATE_ENTRY_BOOL(tnd);
 	DECL_STATE_ENTRY_BOOL(motor_on);
 	DECL_STATE_ENTRY_UINT32(prev_rqm_clock);
+	for(int i = 0; i < 4; i++) {
+		disk[i]->decl_state(p_logger);
+	}
 }
 
 void T3444A::save_state(FILEIO* state_fio)

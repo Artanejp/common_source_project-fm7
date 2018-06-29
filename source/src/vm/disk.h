@@ -56,6 +56,7 @@ typedef struct {
 } fd_format_t;
 
 class csp_state_utils;
+class CSP_Logger;
 class FILEIO;
 class OSD;
 class DISK
@@ -152,7 +153,7 @@ public:
 		open_as_1dd = false;
 		open_as_256 = false;
 		setup_fd_formats();
-		decl_state();
+		//decl_state();
 	}
 	~DISK()
 	{
@@ -258,7 +259,7 @@ public:
 	}
 	
 	// state
-	void decl_state();
+	void decl_state(void *p);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

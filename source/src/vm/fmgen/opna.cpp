@@ -13,7 +13,7 @@
 #include "../../fileio.h"
 
 #include "../../statesub.h"
-extern DLL_PREFIX_I CSP_Logger *csp_logger;
+
 
 #define BUILD_OPN
 #define BUILD_OPNA
@@ -198,9 +198,9 @@ void OPNBase::Intr(bool value)
 //
 #define OPN_BASE_STATE_VERSION	4
 
-void OPNBase::DeclState()
+void OPNBase::DeclState(void *f)
 {
-	Timer::DeclState();
+	Timer::DeclState(f);
 	DECL_STATE_ENTRY_INT32(fmvolume_l);
 	DECL_STATE_ENTRY_INT32(fmvolume_r);
 	DECL_STATE_ENTRY_UINT32(clock);
@@ -209,8 +209,8 @@ void OPNBase::DeclState()
 	DECL_STATE_ENTRY_UINT32(status);
 	DECL_STATE_ENTRY_BOOL(interrupt);
 	DECL_STATE_ENTRY_UINT8(prescale);
-	chip.DeclState();
-	psg.DeclState();
+	chip.DeclState(f);
+	psg.DeclState(f);
 }
 
 void OPNBase::SaveState(void *f)
@@ -481,10 +481,13 @@ void OPN::Mix(Sample* buffer, int nsamples)
 //
 #define OPN_STATE_VERSION	2
 
-void OPN::DeclState()
+void OPN::DeclState(void *f)
 {
-	state_entry = new csp_state_utils(OPN_STATE_VERSION, chip_num, _T("FMGEN::OPN::"), csp_logger);
-	OPNBase::DeclState();
+
+	p_logger = (CSP_Logger *)f;
+	state_entry = new csp_state_utils(OPN_STATE_VERSION, chip_num, _T("FMGEN::OPN::"), p_logger);
+
+	OPNBase::DeclState(f);
 	
 	for(int i = 0; i < 3; i++) {
 		DECL_STATE_ENTRY_UINT32_MEMBER((fnum[i]), i);
@@ -492,7 +495,7 @@ void OPN::DeclState()
 	}		
 	DECL_STATE_ENTRY_1D_ARRAY(fnum2, sizeof(fnum2));
 	for(int i = 0; i < 3; i++) {
-		ch[i].DeclState();
+		ch[i].DeclState(f);
 	}
 }
 
@@ -1371,10 +1374,10 @@ void OPNABase::Mix6(Sample* buffer, int nsamples, int activech)
 //
 #define OPNA_BASE_STATE_VERSION	2
 
-void OPNABase::DeclState()
+void OPNABase::DeclState(void *f)
 {
 
-	OPNBase::DeclState();
+	OPNBase::DeclState(f);
 	
 	DECL_STATE_ENTRY_1D_ARRAY(pan, sizeof(pan));
 	DECL_STATE_ENTRY_1D_ARRAY(fnum2, sizeof(fnum2));
@@ -1426,7 +1429,7 @@ void OPNABase::DeclState()
 	DECL_STATE_ENTRY_INT32(rhythmmask_);
 
 	for(int i = 0; i < 6; i++) {
-		ch[i].DeclState();
+		ch[i].DeclState(f);
 	}
 }
 void OPNABase::SaveState(void *f)
@@ -1952,11 +1955,12 @@ void OPNA::Mix(Sample* buffer, int nsamples)
 //
 #define OPNA_STATE_VERSION	4
 
-void OPNA::DeclState()
+void OPNA::DeclState(void *f)
 {
-	state_entry = new csp_state_utils(OPNA_STATE_VERSION, chip_num, _T("FMGEN::OPNA::"), csp_logger);
+	p_logger = (CSP_Logger *)f;
+	state_entry = new csp_state_utils(OPNA_STATE_VERSION, chip_num, _T("FMGEN::OPNA::"), p_logger);
 
-	OPNABase::DeclState();
+	OPNABase::DeclState(f);
 	
 	for(int i = 0; i < 6; i++) {
 		DECL_STATE_ENTRY_UINT8_MEMBER((rhythm[i].pan), i);

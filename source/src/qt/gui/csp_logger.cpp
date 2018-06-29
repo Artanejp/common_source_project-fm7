@@ -251,11 +251,12 @@ void CSP_Logger::debug_log(int level, int domain_num, char *strbuf)
 	if(strbuf != NULL) {
 		nowtime = time(NULL);
 		gettimeofday(&tv, NULL);
-		if((log_cons != 0) || (syslog_flag != 0)) {
-			timedat = localtime(&nowtime);
-			strftime(strbuf2, 255, "%Y-%m-%d %H:%M:%S", timedat);
-			snprintf(strbuf3, 23, ".%06ld", tv.tv_usec);
-		}
+		memset(strbuf2, 0x00, sizeof(strbuf2));
+		memset(strbuf3, 0x00, sizeof(strbuf3));
+		timedat = localtime(&nowtime);
+		strftime(strbuf2, 255, "%Y-%m-%d %H:%M:%S", timedat);
+		snprintf(strbuf3, 23, ".%06ld", tv.tv_usec);
+		
 		QString time_s = QString::fromLocal8Bit(strbuf2) + QString::fromLocal8Bit(strbuf3);
 		
 		int cons_log_level_n = (1 << level) & cons_log_levels;
@@ -296,6 +297,7 @@ void CSP_Logger::debug_log(int level, int domain_num, char *strbuf)
 			if(p != NULL) {
 				CSP_LoggerLine *tmps = NULL;
 				tmps = new CSP_LoggerLine(linenum, level, domain_s, time_s, QString::fromUtf8(p));
+				//tmps = new CSP_LoggerLine(linenum, level, domain_s, time_s, QString::fromLocal8Bit(p));
 				if(log_onoff) {
 					if(cons_log_level_n != 0) {
 						fprintf(stdout, "%s : %s\n",
@@ -729,3 +731,7 @@ void *CSP_Logger::get_raw_data(bool forget, int64_t start, int64_t *end_line)
 	}
 	return (void *)NULL;
 }
+
+#if defined(CSP_OS_WINDOWS)
+CSP_Logger DLL_PREFIX *csp_logger;
+#endif

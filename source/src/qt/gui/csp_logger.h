@@ -85,7 +85,7 @@ enum {
 	
 QT_BEGIN_NAMESPACE
 
-class CSP_LoggerLine {
+class DLL_PREFIX CSP_LoggerLine {
 private:
 	int64_t linenum;
 	int level;

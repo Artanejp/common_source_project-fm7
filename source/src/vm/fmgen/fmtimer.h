@@ -8,6 +8,7 @@
 #define FM_TIMER_H
 
 #include "types.h"
+#include "common.h"
 
 class csp_state_utils;
 class CSP_Logger;
@@ -15,10 +16,11 @@ class CSP_Logger;
 
 namespace FM
 {
-	class Timer
+	class DLL_PREFIX Timer
 	{
 	protected:
 		csp_state_utils *state_entry;
+		CSP_Logger *p_logger;
 	public:
 		void	Reset();
 		bool	Count(int32 clock);
@@ -33,7 +35,7 @@ namespace FM
 		void	SetTimerB(uint data);
 		void	SetTimerControl(uint data);
 
-		void DeclState();
+		void DeclState(void *f);
 		void SaveState(void *f);
 		bool LoadState(void *f);
 		

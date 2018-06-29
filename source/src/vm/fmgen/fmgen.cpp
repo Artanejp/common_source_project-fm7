@@ -28,7 +28,6 @@
 
 #include "../../fileio.h"
 
-extern DLL_PREFIX_I CSP_Logger *csp_logger;
 
 #include "../../statesub.h"
 
@@ -283,10 +282,11 @@ void Chip::MakeTable()
 //
 #define CHIP_STATE_VERSION	2
 
-void Chip::DeclState()
+void Chip::DeclState(void *f)
 {
-	state_entry = new csp_state_utils(CHIP_STATE_VERSION, chip_num, _T("FMGEN::Chip::"), csp_logger);
-	
+	p_logger = (CSP_Logger *)f;
+	state_entry = new csp_state_utils(CHIP_STATE_VERSION, chip_num, _T("FMGEN::Chip::"), p_logger);
+
 	DECL_STATE_ENTRY_UINT32(ratio_);
 	DECL_STATE_ENTRY_UINT32(aml_);
 	DECL_STATE_ENTRY_UINT32(pml_);
@@ -761,9 +761,10 @@ inline FM::ISample FM::Operator::CalcFBL(uint fb)
 //
 #define OPERATOR_STATE_VERSION	2
 
-void Operator::DeclState()
+void Operator::DeclState(void *f)
 {
-	state_entry = new csp_state_utils(OPERATOR_STATE_VERSION, operators_num, _T("FMGEN::Operator::"), csp_logger);
+	p_logger = (CSP_Logger *)f;
+	state_entry = new csp_state_utils(OPERATOR_STATE_VERSION, operators_num, _T("FMGEN::Operator::"), p_logger);
 
 	DECL_STATE_ENTRY_INT32(out_);
 	DECL_STATE_ENTRY_INT32(out2_);
@@ -1190,9 +1191,11 @@ ISample Channel4::CalcLN(uint noise)
 //	ステートセーブ
 //
 #define CHANNEL4_STATE_VERSION	2
-void Channel4::DeclState()
+void Channel4::DeclState(void *f)
 {
-	state_entry = new csp_state_utils(CHIP_STATE_VERSION, channel4s_num, _T("FMGEN::Channel4::"), csp_logger);
+	p_logger = (CSP_Logger *)f;
+	state_entry = new csp_state_utils(CHIP_STATE_VERSION, channel4s_num, _T("FMGEN::Channel4::"), p_logger);
+
 	DECL_STATE_ENTRY_UINT32(fb);
 	DECL_STATE_ENTRY_1D_ARRAY(buf, sizeof(buf) / sizeof(int));
 	for(int i = 0; i < 3; i++) {
@@ -1202,7 +1205,7 @@ void Channel4::DeclState()
 	DECL_STATE_ENTRY_INT32(tmp_pms);
 	DECL_STATE_ENTRY_INT32(algo_);
 	for(int i = 0; i < 4; i++) {
-		op[i].DeclState();
+		op[i].DeclState(f);
 	}
 	
 }

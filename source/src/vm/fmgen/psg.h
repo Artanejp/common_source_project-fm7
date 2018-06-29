@@ -8,6 +8,7 @@
 #define PSG_H
 
 #include "types.h"
+#include "common.h"
 
 #define PSG_SAMPLETYPE		int32		// int32 or int16
 
@@ -43,13 +44,13 @@ class CSP_Logger;
 //		äeâπåπÇÃâπó Çí≤êﬂÇ∑ÇÈ
 //		íPà ÇÕñÒ 1/2 dB
 //
-class PSG
+class DLL_PREFIX  PSG
 {
 protected:
 	int chip_num;
 	int tmp_envelop_l;
 	csp_state_utils *state_entry;
-
+	CSP_Logger *p_logger;
 public:
 	typedef PSG_SAMPLETYPE Sample;
 	
@@ -76,7 +77,7 @@ public:
 	void SetReg(uint regnum, uint8 data);
 	uint GetReg(uint regnum) { return reg[regnum & 0x0f]; }
 
-	void DeclState();
+	void DeclState(void *f);
 	void SaveState(void *f);
 	bool LoadState(void *f);
 	

@@ -12,8 +12,6 @@
 
 #include "../../statesub.h"
 
-extern DLL_PREFIX_I CSP_Logger *csp_logger;
-
 // ---------------------------------------------------------------------------
 //	コンストラクタ・デストラクタ
 //
@@ -440,9 +438,10 @@ void PSG::Mix(Sample* dest, int nsamples)
 //	ステートセーブ
 //
 #define PSG_STATE_VERSION	3
-void PSG::DeclState()
+void PSG::DeclState(void *f)
 {
-	state_entry = new csp_state_utils(PSG_STATE_VERSION, chip_num, _T("FMGEN::PSG::"), csp_logger);
+	p_logger = (CSP_Logger *)f;
+	state_entry = new csp_state_utils(PSG_STATE_VERSION, chip_num, _T("FMGEN::PSG::"), p_logger);
 
 	DECL_STATE_ENTRY_1D_ARRAY(reg, sizeof(reg));
 	DECL_STATE_ENTRY_INT32(tmp_envelop_l);

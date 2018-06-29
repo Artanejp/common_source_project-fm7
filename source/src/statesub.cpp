@@ -963,6 +963,7 @@ bool csp_state_data_saver::post_proc_loading(uint32_t *sumseed, bool *__stat)
 
 #include "config.h"
 #include "csp_logger.h"
+
 #if defined(_USE_QT)
 #include <QObject>
 #include <QString>
@@ -1027,7 +1028,9 @@ csp_state_utils::~csp_state_utils()
 
 void csp_state_utils::out_debug_log(const char *fmt, ...)
 {
+#if !defined(__MINGW32__) && !defined(__MINGW64__)
 	if(!(config.state_log_to_console) && !(config.state_log_to_syslog) && !(config.state_log_to_recording)) return;
+#endif
 	nr_lines++;
 	// Temporally disabled 20180618
 //#if !defined(__MINGW32__) && !defined(__MINGW64__)

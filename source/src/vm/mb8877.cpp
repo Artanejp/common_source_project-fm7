@@ -2053,6 +2053,9 @@ void MB8877::decl_state()
 	DECL_STATE_ENTRY_UINT32(prev_drq_clock);
 	DECL_STATE_ENTRY_UINT32(seekend_clock);
 
+	for(int i = 0; i < _max_drive; i++) {
+		disk[i]->decl_state(p_logger);
+	}
 	leave_decl_state();
 }
 void MB8877::save_state(FILEIO* state_fio)

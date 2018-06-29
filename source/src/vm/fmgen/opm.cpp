@@ -12,7 +12,6 @@
 #include "../../fileio.h"
 
 #include "../../statesub.h"
-extern DLL_PREFIX_I CSP_Logger *csp_logger;
 
 //#define LOGNAME "opm"
 
@@ -534,10 +533,12 @@ void OPM::Mix(Sample* buffer, int nsamples)
 //
 #define OPM_STATE_VERSION	4
 
-void OPM::DeclState()
+void OPM::DeclState(void *f)
 {
-	state_entry = new csp_state_utils(OPM_STATE_VERSION, chip_num, _T("FMGEN::OPM::"), csp_logger);
-	Timer::DeclState();
+	p_logger = (CSP_Logger *)f;
+	state_entry = new csp_state_utils(OPM_STATE_VERSION, chip_num, _T("FMGEN::OPM::"), p_logger);
+
+	Timer::DeclState(f);
 
 	DECL_STATE_ENTRY_INT32(fmvolume_l);
 	DECL_STATE_ENTRY_INT32(fmvolume_r);
@@ -566,9 +567,9 @@ void OPM::DeclState()
 	DECL_STATE_ENTRY_1D_ARRAY(kf, sizeof(kf));
 	DECL_STATE_ENTRY_1D_ARRAY(pan, sizeof(pan));
 	for(int i = 0; i < 8; i++) {
-		ch[i].DeclState();
+		ch[i].DeclState(f);
 	}
-	chip.DeclState();
+	chip.DeclState(f);
 }
 
 void OPM::SaveState(void *f)

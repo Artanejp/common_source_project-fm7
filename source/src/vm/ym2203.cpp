@@ -770,9 +770,9 @@ void YM2203::decl_state()
 	leave_decl_state();
 
 	if((_HAS_YM2608) && (is_ym2608)) {
-		opna->DeclState();
+		opna->DeclState((void *)p_logger);
 	} else {
-		opn->DeclState();
+		opn->DeclState((void *)p_logger);
 	}
 }
 

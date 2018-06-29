@@ -117,8 +117,9 @@ void Timer::SetTimerPrescaler(int32 p)
 //
 #define TIMER_STATE_VERSION	2
 
-void Timer::DeclState()
+void Timer::DeclState(void *f)
 {
+
 	DECL_STATE_ENTRY_UINT8(status);
 	DECL_STATE_ENTRY_UINT8(regtc);
 	DECL_STATE_ENTRY_1D_ARRAY(regta, sizeof(regta));

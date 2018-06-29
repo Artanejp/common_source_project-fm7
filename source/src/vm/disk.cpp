@@ -2564,10 +2564,12 @@ bool DISK::solid_to_d88(FILEIO *fio, int type, int ncyl, int nside, int nsec, in
 #define STATE_VERSION	14
 
 #include "../../statesub.h"
+#include "../../qt/gui/csp_logger.h"
 
-void DISK::decl_state()
+void DISK::decl_state(void *p)
 {
-	state_entry = new csp_state_utils(STATE_VERSION, drive_num, _T("FLOPPY_DISK"));
+	CSP_Logger *p_logger = (CSP_Logger *)p;
+	state_entry = new csp_state_utils(STATE_VERSION, drive_num, _T("FLOPPY_DISK"), p_logger);
 
 	DECL_STATE_ENTRY_1D_ARRAY(buffer, sizeof(buffer));
 	DECL_STATE_ENTRY_STRING(orig_path, sizeof(orig_path) / sizeof(_TCHAR));

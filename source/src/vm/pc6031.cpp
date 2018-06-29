@@ -461,6 +461,9 @@ void PC6031::decl_state()
 	DECL_STATE_ENTRY_UINT8(io_D3H);
 	DECL_STATE_ENTRY_INT32(DrvNum);
 
+	for(int i = 0; i < 2; i++) {
+		disk[i]->decl_state(p_logger);
+	}
 	leave_decl_state();
 }
 void PC6031::save_state(FILEIO* state_fio)

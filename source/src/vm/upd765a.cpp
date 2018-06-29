@@ -1836,6 +1836,7 @@ void UPD765A::decl_state_fdc(int ch)
 	DECL_STATE_ENTRY_INT32_MEMBER((fdc[ch].next_trans_position), ch);
 
 	DECL_STATE_ENTRY_UINT32_MEMBER((fdc[ch].prev_clock), ch);
+
 }
 
 void UPD765A::decl_state()
@@ -1886,6 +1887,9 @@ void UPD765A::decl_state()
 	DECL_STATE_ENTRY_BOOL(prev_index);
 	DECL_STATE_ENTRY_UINT32(prev_drq_clock);
 
+	for(int i = 0; i < 4; i++) {
+		disk[i]->decl_state(p_logger);
+	}
 	leave_decl_state();
 }
 void UPD765A::save_state(FILEIO* state_fio)

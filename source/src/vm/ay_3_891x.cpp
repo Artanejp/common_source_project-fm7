@@ -244,7 +244,7 @@ void AY_3_891X::decl_state()
 
 	leave_decl_state();
 
-	opn->DeclState();
+	opn->DeclState((void *)p_logger);
 }
 
 void AY_3_891X::save_state(FILEIO* state_fio)

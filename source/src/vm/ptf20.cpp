@@ -507,6 +507,9 @@ void PTF20::decl_state()
 	DECL_STATE_ENTRY_INT32(buflen);
 	DECL_STATE_ENTRY_INT32(phase);
 
+	for(int i = 0; i < __MAX_DRIVE; i++) {
+		disk[i]->decl_state(p_logger);
+	}
 	leave_decl_state();
 }
 void PTF20::save_state(FILEIO* state_fio)

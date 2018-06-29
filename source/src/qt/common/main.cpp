@@ -26,7 +26,11 @@
 
 extern EMU* emu;
 extern QApplication *GuiMain;
+#if defined(CSP_OS_WINDOWS)
+CSP_Logger DLL_PREFIX_I *csp_logger;
+#else
 extern CSP_Logger *csp_logger;
+#endif
 
 // Start to define MainWindow.
 extern class META_MainWindow *rMainWindow;

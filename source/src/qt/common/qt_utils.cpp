@@ -46,6 +46,11 @@
 EMU* emu;
 QApplication *GuiMain = NULL;
 extern config_t config;
+#if defined(CSP_OS_WINDOWS)
+CSP_Logger DLL_PREFIX_I *csp_logger;
+#else
+extern CSP_Logger *csp_logger;
+#endif
 
 // Start to define MainWindow.
 class META_MainWindow *rMainWindow;
@@ -575,7 +580,6 @@ static void setup_logs(void)
 
 #include <QString>
 #include <QCommandLineParser>
-CSP_Logger *csp_logger;
 QStringList virtualMediaList; // {TYPE, POSITION}
 QCommandLineOption *_opt_fds[8];
 QCommandLineOption *_opt_hdds[8];

@@ -258,7 +258,7 @@ void YM2151::decl_state()
 
 	leave_decl_state();
 
-	opm->DeclState();
+	opm->DeclState((void *)p_logger);
 }
 void YM2151::save_state(FILEIO* state_fio)
 {

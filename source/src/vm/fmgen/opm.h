@@ -73,7 +73,7 @@ class CSP_Logger;
 namespace FM
 {
 	//	YM2151(OPM) ----------------------------------------------------
-	class OPM : public Timer
+	class DLL_PREFIX  OPM : public Timer
 	{
 	protected:
 		int chip_num;
@@ -96,7 +96,7 @@ namespace FM
 		void	SetVolume(int db_l, int db_r);
 		void	SetChannelMask(uint mask);
 
-		void DeclState();
+		void DeclState(void *f);
 		void SaveState(void *f);
 		bool LoadState(void *f);
 		

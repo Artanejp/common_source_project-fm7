@@ -87,7 +87,7 @@ class CSP_Logger;
 namespace FM
 {
 	//	OPN Base -------------------------------------------------------
-	class OPNBase : public Timer
+	class DLL_PREFIX OPNBase : public Timer
 	{
 	protected:
 		int chip_num;
@@ -111,7 +111,7 @@ namespace FM
 		void	RebuildTimeTable();
 		void	Intr(bool value);
 		
-		void DeclState();
+		void DeclState(void *f);
 		void SaveState(void *f);
 		bool LoadState(void *f);
 		
@@ -138,7 +138,7 @@ namespace FM
 	};
 
 	//	OPN2 Base ------------------------------------------------------
-	class OPNABase : public OPNBase
+	class DLL_PREFIX OPNABase : public OPNBase
 	{
 	public:
 		OPNABase();
@@ -160,7 +160,7 @@ namespace FM
 		void	SetADPCMBReg(uint reg, uint data);
 		uint	GetReg(uint addr);	
 		
-		void DeclState();
+		void DeclState(void *f);
 		void SaveState(void *f);
 		bool LoadState(void *f);
 	
@@ -247,7 +247,7 @@ namespace FM
 	};
 
 	//	YM2203(OPN) ----------------------------------------------------
-	class OPN : public OPNBase
+	class DLL_PREFIX OPN : public OPNBase
 	{
 	public:
 		OPN();
@@ -269,7 +269,7 @@ namespace FM
 		int		dbgGetPGOut(int c, int s) { return ch[c].op[s].dbgpgout_; }
 		Channel4* dbgGetCh(int c) { return &ch[c]; }
 		
-		void DeclState();
+		void DeclState(void *f);
 		void SaveState(void *f);
 		bool LoadState(void *f);
 	
@@ -285,7 +285,7 @@ namespace FM
 	};
 
 	//	YM2608(OPNA) ---------------------------------------------------
-	class OPNA : public OPNABase
+	class DLL_PREFIX OPNA : public OPNABase
 	{
 	public:
 		OPNA();
@@ -311,7 +311,7 @@ namespace FM
 		int		dbgGetPGOut(int c, int s) { return ch[c].op[s].dbgpgout_; }
 		Channel4* dbgGetCh(int c) { return &ch[c]; }
 
-		void DeclState();
+		void DeclState(void *f);
 		void SaveState(void *f);
 		bool LoadState(void *f);
 		
@@ -340,7 +340,7 @@ namespace FM
 	};
 
 	//	YM2610/B(OPNB) ---------------------------------------------------
-	class OPNB : public OPNABase
+	class DLL_PREFIX OPNB : public OPNABase
 	{
 	public:
 		OPNB();
