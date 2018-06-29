@@ -15,7 +15,7 @@ set(s_qt_emuutils_srcs
 
 QT5_WRAP_CPP(s_qt_emuutils_headers_MOC ${s_qt_emuutils_headers})
 	
-SET(THIS_LIB_VERSION 2.11.2) 
+SET(THIS_LIB_VERSION 2.11.3) 
 
 if(WIN32)
 include (GenerateExportHeader)

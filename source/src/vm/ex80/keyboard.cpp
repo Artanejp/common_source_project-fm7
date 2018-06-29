@@ -62,23 +62,40 @@ void KEYBOARD::event_frame()
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void KEYBOARD::decl_state(void)
+{
+	enter_decl_state(STATE_VERSION);
+	DECL_STATE_ENTRY_UINT32(column);
+	leave_decl_state();
+}
+
 void KEYBOARD::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->FputUint32(column);
+//	state_fio->FputUint32(column);
 }
 
 bool KEYBOARD::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	column = state_fio->FgetUint32();
+	if(!mb) return false;
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	column = state_fio->FgetUint32();
 	return true;
 }
 

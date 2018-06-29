@@ -95,60 +95,103 @@ void CMT::release_tape()
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void CMT::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	DECL_STATE_ENTRY_BOOL(play);
+	DECL_STATE_ENTRY_BOOL(rec);
+	DECL_STATE_ENTRY_STRING(rec_file_path, sizeof(rec_file_path));
+	DECL_STATE_ENTRY_INT32(bufcnt);
+	DECL_STATE_ENTRY_1D_ARRAY(buffer, sizeof(buffer));
+
+	leave_decl_state();
+}
 void CMT::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	uint32_t crc_value = 0xffffffff;
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio, &crc_value);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->FputBool(play);
-	state_fio->FputBool(rec);
-	state_fio->Fwrite(rec_file_path, sizeof(rec_file_path), 1);
+//	state_fio->FputBool(play);
+//	state_fio->FputBool(rec);
+//	state_fio->Fwrite(rec_file_path, sizeof(rec_file_path), 1);
+	csp_state_data_saver saver(state_fio);
+	bool stat;
 	if(rec && fio->IsOpened()) {
 		int length_tmp = (int)fio->Ftell();
 		fio->Fseek(0, FILEIO_SEEK_SET);
-		state_fio->FputInt32(length_tmp);
+		
+		saver.put_int32(length_tmp, &crc_value, &stat);
+		//state_fio->FputInt32(length_tmp);
+	
 		while(length_tmp != 0) {
 			uint8_t buffer_tmp[1024];
 			int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
 			fio->Fread(buffer_tmp, length_rw, 1);
 			state_fio->Fwrite(buffer_tmp, length_rw, 1);
+			crc_value = calc_crc32(crc_value, buffer_tmp, length_rw);
+			
 			length_tmp -= length_rw;
 		}
 	} else {
-		state_fio->FputInt32(0);
+		saver.put_int32(0, &crc_value, &stat);
+//		state_fio->FputInt32(0);
 	}
-	state_fio->FputInt32(bufcnt);
-	state_fio->Fwrite(buffer, sizeof(buffer), 1);
+	saver.post_proc_saving(&crc_value, &stat);
+	
+//	state_fio->FputInt32(bufcnt);
+//	state_fio->Fwrite(buffer, sizeof(buffer), 1);
 }
 
 bool CMT::load_state(FILEIO* state_fio)
 {
 	release_tape();
 	
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	play = state_fio->FgetBool();
+//	rec = state_fio->FgetBool();
+//	state_fio->Fread(rec_file_path, sizeof(rec_file_path), 1);
+//	int length_tmp = state_fio->FgetInt32();
+	bool mb = false;
+	bool stat;
+	uint32_t crc_value = 0xffffffff;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio, &crc_value);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	play = state_fio->FgetBool();
-	rec = state_fio->FgetBool();
-	state_fio->Fread(rec_file_path, sizeof(rec_file_path), 1);
-	int length_tmp = state_fio->FgetInt32();
+	if(!mb) return false;
+	csp_state_data_saver saver(state_fio);
+	int length_tmp = saver.get_int32(&crc_value, &stat);
+	if(!stat) return false;
+	
 	if(rec) {
 		fio->Fopen(rec_file_path, FILEIO_READ_WRITE_NEW_BINARY);
 		while(length_tmp != 0) {
 			uint8_t buffer_tmp[1024];
 			int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
 			state_fio->Fread(buffer_tmp, length_rw, 1);
+			crc_value = calc_crc32(crc_value, buffer_tmp, length_rw);
+			
 			if(fio->IsOpened()) {
 				fio->Fwrite(buffer_tmp, length_rw, 1);
 			}
 			length_tmp -= length_rw;
 		}
 	}
-	bufcnt = state_fio->FgetInt32();
-	state_fio->Fread(buffer, sizeof(buffer), 1);
+	if(!(saver.post_proc_loading(&crc_value, &stat))) return false;
+	
+//	bufcnt = state_fio->FgetInt32();
+//	state_fio->Fread(buffer, sizeof(buffer), 1);
 	return true;
 }
 

@@ -324,25 +324,43 @@ void DISPLAY::draw_screen()
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void DISPLAY::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+	DECL_STATE_ENTRY_INT32(odd_even);
+	DECL_STATE_ENTRY_BOOL(dma);
+	leave_decl_state();
+}
+
 void DISPLAY::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->FputInt32(odd_even);
-	state_fio->FputBool(dma);
+//	state_fio->FputInt32(odd_even);
+//	state_fio->FputBool(dma);
 }
 
 bool DISPLAY::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	odd_even = state_fio->FgetInt32();
-	dma = state_fio->FgetBool();
+	if(!mb) return false;
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	odd_even = state_fio->FgetInt32();
+//	dma = state_fio->FgetBool();
 	return true;
 }
 

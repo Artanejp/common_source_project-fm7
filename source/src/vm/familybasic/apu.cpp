@@ -796,49 +796,187 @@ void APU::set_volume(int ch, int decibel_l, int decibel_r)
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void APU::decl_state_rectangle(int num)
+{
+	DECL_STATE_ENTRY_1D_ARRAY_MEMBER((rectangle[num].regs), 4, num);
+	DECL_STATE_ENTRY_BOOL_MEMBER((rectangle[num].enabled), num);
+	DECL_STATE_ENTRY_INT32_MEMBER((rectangle[num].phaseacc), num);
+	DECL_STATE_ENTRY_INT32_MEMBER((rectangle[num].freq), num);
+	DECL_STATE_ENTRY_INT32_MEMBER((rectangle[num].output_vol), num);
+	DECL_STATE_ENTRY_BOOL_MEMBER((rectangle[num].fixed_envelope), num);
+	DECL_STATE_ENTRY_BOOL_MEMBER((rectangle[num].holdnote), num);
+	DECL_STATE_ENTRY_UINT8_MEMBER((rectangle[num].volume), num);
+	DECL_STATE_ENTRY_INT32_MEMBER((rectangle[num].sweep_phase), num);
+	DECL_STATE_ENTRY_INT32_MEMBER((rectangle[num].sweep_delay), num);
+	DECL_STATE_ENTRY_BOOL_MEMBER((rectangle[num].sweep_on), num);
+	DECL_STATE_ENTRY_UINT8_MEMBER((rectangle[num].sweep_shifts), num);
+	DECL_STATE_ENTRY_UINT8_MEMBER((rectangle[num].sweep_length), num);
+	DECL_STATE_ENTRY_BOOL_MEMBER((rectangle[num].sweep_inc), num);
+	DECL_STATE_ENTRY_INT32_MEMBER((rectangle[num].freq_limit), num);
+	DECL_STATE_ENTRY_BOOL_MEMBER((rectangle[num].sweep_complement), num);
+	DECL_STATE_ENTRY_INT32_MEMBER((rectangle[num].env_phase), num);
+	DECL_STATE_ENTRY_INT32_MEMBER((rectangle[num].env_delay), num);
+	DECL_STATE_ENTRY_UINT8_MEMBER((rectangle[num].env_vol), num);
+	DECL_STATE_ENTRY_INT_MEMBER((rectangle[num].vbl_length), num);
+	DECL_STATE_ENTRY_UINT8_MEMBER((rectangle[num].adder), num);
+	DECL_STATE_ENTRY_INT_MEMBER((rectangle[num].duty_flip), num);
+	DECL_STATE_ENTRY_BOOL_MEMBER((rectangle[num].enabled_cur), num);
+	DECL_STATE_ENTRY_BOOL_MEMBER((rectangle[num].holdnote_cur), num);
+	DECL_STATE_ENTRY_INT_MEMBER((rectangle[num].vbl_length_cur), num);
+}
+void APU::decl_state_triangle()
+{
+	DECL_STATE_ENTRY_1D_ARRAY((trinangle.regs), 3);
+	DECL_STATE_ENTRY_BOOL((trinangle.enabled));
+	DECL_STATE_ENTRY_INT32((trinangle.freq));
+	DECL_STATE_ENTRY_INT32((trinangle.phaseacc));
+	DECL_STATE_ENTRY_INT32((trinangle.output_vol));
+	DECL_STATE_ENTRY_UINT8((trinangle.adder));
+	DECL_STATE_ENTRY_BOOL((trinangle.holdnote));
+	DECL_STATE_ENTRY_BOOL((trinangle.counter_started));
+	DECL_STATE_ENTRY_INT((trinangle.write_latency));
+	DECL_STATE_ENTRY_INT((trinangle.vbl_length));
+	DECL_STATE_ENTRY_INT((trinangle.linear_length));
+	DECL_STATE_ENTRY_BOOL((trinangle.enabled_cur));
+	DECL_STATE_ENTRY_BOOL((trinangle.holdnote_cur));
+	DECL_STATE_ENTRY_BOOL((trinangle.counter_started_cur));
+	DECL_STATE_ENTRY_INT((trinangle.vbl_length_cur));
+	
+}
+
+void APU::decl_state_noise()
+{
+	DECL_STATE_ENTRY_1D_ARRAY((noise.regs), 3);
+	DECL_STATE_ENTRY_BOOL((noise.enabled));
+	DECL_STATE_ENTRY_INT32((noise.freq));
+	DECL_STATE_ENTRY_INT32((noise.phaseacc));
+	DECL_STATE_ENTRY_INT32((noise.output_vol));
+	DECL_STATE_ENTRY_INT32((noise.env_phase));
+	DECL_STATE_ENTRY_INT32((noise.env_delay));
+	DECL_STATE_ENTRY_UINT8((noise.env_vol));
+	DECL_STATE_ENTRY_BOOL((noise.fixed_envelope));
+	DECL_STATE_ENTRY_BOOL((noise.holdnote));
+	DECL_STATE_ENTRY_UINT8((noise.volume));
+	DECL_STATE_ENTRY_INT((noise.vbl_length));
+	DECL_STATE_ENTRY_UINT8((noise.xor_tap));
+	DECL_STATE_ENTRY_BOOL((noise.enabled_cur));
+	DECL_STATE_ENTRY_BOOL((noise.holdnote_cur));
+	DECL_STATE_ENTRY_INT((noise.vbl_length_cur));
+		
+	DECL_STATE_ENTRY_INT((noise.shift_reg));
+	DECL_STATE_ENTRY_INT((noise.noise_bit));
+}
+
+void APU::decl_state_dmc()
+{
+	DECL_STATE_ENTRY_1D_ARRAY((dmc.regs), 4);
+	DECL_STATE_ENTRY_BOOL((dmc.enabled));
+	DECL_STATE_ENTRY_INT32((dmc.freq));
+	DECL_STATE_ENTRY_INT32((dmc.phaseacc));
+	DECL_STATE_ENTRY_INT32((dmc.output_vol));
+	DECL_STATE_ENTRY_UINT32((dmc.address));
+	DECL_STATE_ENTRY_UINT32((dmc.cached_addr));
+	DECL_STATE_ENTRY_INT((dmc.dma_length));
+	DECL_STATE_ENTRY_INT((dmc.cached_dmalength));
+	DECL_STATE_ENTRY_UINT8((dmc.cur_byte));
+	DECL_STATE_ENTRY_BOOL((dmc.looping));
+	DECL_STATE_ENTRY_BOOL((dmc.irq_gen));
+	DECL_STATE_ENTRY_BOOL((dmc.irq_occurred));
+	DECL_STATE_ENTRY_INT32((dmc.freq_cur));
+	DECL_STATE_ENTRY_INT32((dmc.phaseacc_cur));
+	DECL_STATE_ENTRY_INT((dmc.dma_length_cur));
+	DECL_STATE_ENTRY_INT((dmc.cached_dmalength_cur));
+	DECL_STATE_ENTRY_BOOL((dmc.enabled_cur));
+	DECL_STATE_ENTRY_BOOL((dmc.looping_cur));
+	DECL_STATE_ENTRY_BOOL((dmc.irq_gen_cur));
+	DECL_STATE_ENTRY_BOOL((dmc.irq_occurred_cur));
+}
+
+void APU::decl_state_queue(int num)
+{
+	DECL_STATE_ENTRY_UINT32_MEMBER((queue[num].timestamp), num);
+	DECL_STATE_ENTRY_UINT32_MEMBER((queue[num].addr), num);
+	DECL_STATE_ENTRY_UINT32_MEMBER((queue[num].data), num);
+}
+
+void APU::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	for(int i = 0; i < 2; i++) decl_state_rectangle(i);
+	decl_state_triangle();
+	decl_state_noise();
+	decl_state_dmc();
+	
+	DECL_STATE_ENTRY_UINT32(enable_reg);
+	DECL_STATE_ENTRY_UINT32(enable_reg_cur);
+	DECL_STATE_ENTRY_INT32(count_rate);
+	
+	for(int i = 0; i < APUQUEUE_SIZE) decl_state_queue(i);
+	
+	DECL_STATE_ENTRY_INT32(q_head);
+	DECL_STATE_ENTRY_INT32(q_tail);
+	DECL_STATE_ENTRY_UINT32(elapsed_cycles);
+	DECL_STATE_ENTRY_DOUBLE(ave);
+	DECL_STATE_ENTRY_DOUBLE(max);
+	DECL_STATE_ENTRY_DOUBLE(min);
+
+	leave_decl_state();
+}
+
 void APU::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->Fwrite(rectangle, sizeof(rectangle), 1);
-	state_fio->Fwrite(&triangle, sizeof(triangle), 1);
-	state_fio->Fwrite(&noise, sizeof(noise), 1);
-	state_fio->Fwrite(&dmc, sizeof(dmc), 1);
-	state_fio->FputUint32(enable_reg);
-	state_fio->FputUint32(enable_reg_cur);
-	state_fio->FputInt32(count_rate);
-	state_fio->Fwrite(queue, sizeof(queue), 1);
-	state_fio->FputInt32(q_head);
-	state_fio->FputInt32(q_tail);
-	state_fio->FputUint32(elapsed_cycles);
-	state_fio->FputDouble(ave);
-	state_fio->FputDouble(max);
-	state_fio->FputDouble(min);
+//	state_fio->Fwrite(rectangle, sizeof(rectangle), 1);
+//	state_fio->Fwrite(&triangle, sizeof(triangle), 1);
+//	state_fio->Fwrite(&noise, sizeof(noise), 1);
+//	state_fio->Fwrite(&dmc, sizeof(dmc), 1);
+//	state_fio->FputUint32(enable_reg);
+//	state_fio->FputUint32(enable_reg_cur);
+//	state_fio->FputInt32(count_rate);
+//	state_fio->Fwrite(queue, sizeof(queue), 1);
+//	state_fio->FputInt32(q_head);
+//	state_fio->FputInt32(q_tail);
+//	state_fio->FputUint32(elapsed_cycles);
+//	state_fio->FputDouble(ave);
+//	state_fio->FputDouble(max);
+//	state_fio->FputDouble(min);
 }
 
 bool APU::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	state_fio->Fread(rectangle, sizeof(rectangle), 1);
-	state_fio->Fread(&triangle, sizeof(triangle), 1);
-	state_fio->Fread(&noise, sizeof(noise), 1);
-	state_fio->Fread(&dmc, sizeof(dmc), 1);
-	enable_reg = state_fio->FgetUint32();
-	enable_reg_cur = state_fio->FgetUint32();
-	count_rate = state_fio->FgetInt32();
-	state_fio->Fread(queue, sizeof(queue), 1);
-	q_head = state_fio->FgetInt32();
-	q_tail = state_fio->FgetInt32();
-	elapsed_cycles = state_fio->FgetUint32();
-	ave = state_fio->FgetDouble();
-	max = state_fio->FgetDouble();
-	min = state_fio->FgetDouble();
+	if(!mb) return false;
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	state_fio->Fread(rectangle, sizeof(rectangle), 1);
+//	state_fio->Fread(&triangle, sizeof(triangle), 1);
+//	state_fio->Fread(&noise, sizeof(noise), 1);
+//	state_fio->Fread(&dmc, sizeof(dmc), 1);
+//	enable_reg = state_fio->FgetUint32();
+//	enable_reg_cur = state_fio->FgetUint32();
+//	count_rate = state_fio->FgetInt32();
+//	state_fio->Fread(queue, sizeof(queue), 1);
+//	q_head = state_fio->FgetInt32();
+//	q_tail = state_fio->FgetInt32();
+//	elapsed_cycles = state_fio->FgetUint32();
+//	ave = state_fio->FgetDouble();
+//	max = state_fio->FgetDouble();
+//	min = state_fio->FgetDouble();
 	//touch_sound();
 	return true;
 }

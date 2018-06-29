@@ -308,6 +308,7 @@ void DATAREC::event_callback(int event_id, int err)
 						}
 					} else {
 						rec_fio->Fwrite(buffer, buffer_length, 1);
+						rec_fio->Fflush();
 					}
 					buffer_ptr = 0;
 				}
@@ -317,6 +318,7 @@ void DATAREC::event_callback(int event_id, int err)
 				if(signal != ((data & 0x8000) != 0)) {
 					if((buffer_ptr += 2) >= buffer_length) {
 						rec_fio->Fwrite(buffer, buffer_length, 1);
+						rec_fio->Fflush();
 						buffer_ptr = 0;
 					}
 					data = signal ? 0x8001 : 0x0001;
@@ -331,6 +333,7 @@ void DATAREC::event_callback(int event_id, int err)
 				if(prev_signal != cur_signal || (buffer[buffer_ptr] & 0x7f) == 0x7f) {
 					if(++buffer_ptr >= buffer_length) {
 						rec_fio->Fwrite(buffer, buffer_length, 1);
+						rec_fio->Fflush();
 						buffer_ptr = 0;
 					}
 					buffer[buffer_ptr] = cur_signal ? 0x80 : 0;
@@ -665,6 +668,7 @@ void DATAREC::close_file()
 				rec_fio->Fwrite(buffer, buffer_ptr + 1, 1);
 			}
 		}
+		rec_fio->Fflush();
 		rec_fio->Fclose();
 	}
 	if(buffer != NULL) {
@@ -1028,6 +1032,7 @@ void DATAREC::save_wav_image()
 	// write samples remained in buffer
 	if(buffer_ptr > 0) {
 		rec_fio->Fwrite(buffer, buffer_ptr, 1);
+		rec_fio->Fflush();
 	}
 	uint32_t length = rec_fio->Ftell();
 	
@@ -1836,7 +1841,7 @@ void DATAREC::update_config()
 	update_realtime_render();
 }
 
-#define STATE_VERSION	11
+#define STATE_VERSION	12
 
 #include "../statesub.h"
 
@@ -1849,6 +1854,7 @@ void DATAREC::decl_state()
 	DECL_STATE_ENTRY_BOOL(remote);
 	DECL_STATE_ENTRY_BOOL(trigger);
 	DECL_STATE_ENTRY_STRING(rec_file_path, sizeof(rec_file_path) / sizeof(_TCHAR));
+	DECL_STATE_ENTRY_CMT_RECORDING(rec_fio, rec, rec_file_path);
 	
 	DECL_STATE_ENTRY_INT32(ff_rew);
 	DECL_STATE_ENTRY_BOOL(in_signal);
@@ -1917,6 +1923,7 @@ void DATAREC::save_state(FILEIO* state_fio)
 	if(state_entry != NULL) {
 		state_entry->save_state(state_fio, &crc_value);
 	}
+#if 0
 	csp_state_data_saver saver(state_fio);
 	bool stat;
 	if(rec && rec_fio->IsOpened()) {
@@ -1940,6 +1947,7 @@ void DATAREC::save_state(FILEIO* state_fio)
 		//state_fio->FputInt32_BE(0);
 	}
 	saver.post_proc_saving(&crc_value, &stat);
+#endif
 	//state_fio->FputInt32(ff_rew);
 	//state_fio->FputBool(in_signal);
 	//state_fio->FputBool(out_signal);
@@ -2022,8 +2030,7 @@ bool DATAREC::load_state(FILEIO* state_fio)
 //			memset(sound_buffer, 0x00, sound_buffer_length);
 //		}
 //	}
-	
-	
+#if 0	
 	csp_state_data_saver saver(state_fio);
 	//int length_tmp = state_fio->FgetInt32_BE();
 	int length_tmp = saver.get_int32(&crc_value, &stat);
@@ -2043,7 +2050,7 @@ bool DATAREC::load_state(FILEIO* state_fio)
 		}
 	}
 	if(!(saver.post_proc_loading(&crc_value, &stat))) return false;
-	
+#endif	
 //	ff_rew = state_fio->FgetInt32();
 //	in_signal = state_fio->FgetBool();
 //	out_signal = state_fio->FgetBool();

@@ -155,6 +155,12 @@ private:
 	void write_data_cur(uint32_t addr, uint32_t data);
 	
 	int volume_l, volume_r;
+
+	void decl_state_rectangle(int num);
+	void decl_state_triangle();
+	void decl_state_noise();
+	void decl_state_dmc();
+	void decl_state_queue(int num);
 	
 public:
 	APU(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -173,6 +179,7 @@ public:
 	void event_vline(int v, int clock);
 	void mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

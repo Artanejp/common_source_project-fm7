@@ -60,6 +60,7 @@ private:
 	void render_bg(int v);
 	void render_spr(int v);
 	void update_palette();
+	void decl_state_header(header_t *p);
 	
 public:
 	PPU(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
