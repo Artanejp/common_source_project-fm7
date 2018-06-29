@@ -729,7 +729,7 @@ void YM2203::update_timing(int new_clocks, double new_frames_per_sec, int new_li
 void YM2203::decl_state()
 {
 	enter_decl_state(STATE_VERSION);
-	// ToDo: OPN/OPNA.
+
 #ifdef SUPPORT_MAME_FM_DLL
 	//DECL_STATE_ENTRY_1D_ARRAY(port_log, sizeof(port_log));
 	for(int i = 0; i < 0x200; i++) {
@@ -768,6 +768,12 @@ void YM2203::decl_state()
 	DECL_STATE_ENTRY_INT32(v_right_volume);
 	
 	leave_decl_state();
+
+	if((_HAS_YM2608) && (is_ym2608)) {
+		opna->DeclState();
+	} else {
+		opn->DeclState();
+	}
 }
 
 void YM2203::save_state(FILEIO* state_fio)

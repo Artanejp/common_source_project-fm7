@@ -32,6 +32,8 @@
 
 // ---------------------------------------------------------------------------
 
+class csp_state_utils;
+class CSP_Logger;
 namespace FM
 {	
 	//	Types ----------------------------------------------------------------
@@ -43,10 +45,14 @@ namespace FM
 	void StoreSample(ISample& dest, int data);
 
 	class Chip;
-
 	//	Operator -------------------------------------------------------------
 	class Operator
 	{
+	protected:
+		csp_state_utils *state_entry;
+		int tmp_eg_phase;
+		int tmp_ams;
+		int operators_num;
 	public:
 		Operator();
 		void	SetChip(Chip* chip) { chip_ = chip; }
@@ -92,6 +98,7 @@ namespace FM
 		void	dbgStopPG() { pg_diff_ = 0; pg_diff_lfo_ = 0; }
 		
 	protected:
+		void DeclState();
 		void SaveState(void *f);
 		bool LoadState(void *f);
 		
@@ -197,6 +204,12 @@ namespace FM
 	//	4-op Channel ---------------------------------------------------------
 	class Channel4
 	{
+	protected:
+		int tmp_in_bufptr[3];
+		int tmp_out_bufptr[3];
+		int tmp_pms;
+		int channel4s_num;
+		csp_state_utils *state_entry;
 	public:
 		Channel4();
 		void SetChip(Chip* chip);
@@ -219,6 +232,7 @@ namespace FM
 
 		void dbgStopPG() { for (int i=0; i<4; i++) op[i].dbgStopPG(); }
 		
+		void DeclState();
 		void SaveState(void *f);
 		bool LoadState(void *f);
 		
@@ -245,6 +259,9 @@ namespace FM
 	//	Chip resource
 	class Chip
 	{
+	protected:
+		csp_state_utils *state_entry;
+		int chip_num;
 	public:
 		Chip();
 		void	SetRatio(uint ratio);
@@ -258,6 +275,7 @@ namespace FM
 		int		GetPMV() { return pmv_; }
 		uint	GetRatio() { return ratio_; }
 
+		void DeclState();
 		void SaveState(void *f);
 		bool LoadState(void *f);
 		

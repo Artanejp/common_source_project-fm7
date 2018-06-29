@@ -9,17 +9,21 @@
 
 #include "types.h"
 
+class csp_state_utils;
+class CSP_Logger;
 // ---------------------------------------------------------------------------
 
 namespace FM
 {
 	class Timer
 	{
+	protected:
+		csp_state_utils *state_entry;
 	public:
 		void	Reset();
 		bool	Count(int32 clock);
 		int32	GetNextEvent();
-	
+		
 	protected:
 		virtual void SetStatus(uint bit) = 0;
 		virtual void ResetStatus(uint bit) = 0;
@@ -28,7 +32,8 @@ namespace FM
 		void	SetTimerA(uint addr, uint data);
 		void	SetTimerB(uint data);
 		void	SetTimerControl(uint data);
-		
+
+		void DeclState();
 		void SaveState(void *f);
 		bool LoadState(void *f);
 		

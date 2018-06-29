@@ -214,7 +214,7 @@ void AY_3_891X::update_timing(int new_clocks, double new_frames_per_sec, int new
 	clock_const = (uint32_t)((double)chip_clock * 1024.0 * 1024.0 / (double)new_clocks + 0.5);
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 #include "../statesub.h"
 
@@ -243,6 +243,8 @@ void AY_3_891X::decl_state()
 	DECL_STATE_ENTRY_BOOL(busy);
 
 	leave_decl_state();
+
+	opn->DeclState();
 }
 
 void AY_3_891X::save_state(FILEIO* state_fio)

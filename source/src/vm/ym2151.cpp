@@ -232,15 +232,13 @@ void YM2151::update_timing(int new_clocks, double new_frames_per_sec, int new_li
 	clock_const = (uint32_t)((double)chip_clock * 1024.0 * 1024.0 / (double)new_clocks + 0.5);
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	4
 
 #include "../statesub.h"
 
 void YM2151::decl_state()
 {
 	enter_decl_state(STATE_VERSION);
-	// ToDo: OPM.
-	
 #ifdef SUPPORT_MAME_FM_DLL
 	for(int i = 0; i < 0x100; i++) {
 		DECL_STATE_ENTRY_BOOL_MEMBER((port_log[i].written), i);
@@ -259,6 +257,8 @@ void YM2151::decl_state()
 	DECL_STATE_ENTRY_BOOL(busy);
 
 	leave_decl_state();
+
+	opm->DeclState();
 }
 void YM2151::save_state(FILEIO* state_fio)
 {

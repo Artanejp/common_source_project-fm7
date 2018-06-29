@@ -12,6 +12,8 @@
 #include "fmtimer.h"
 #include "psg.h"
 
+class csp_state_utils;
+class CSP_Logger;
 // ---------------------------------------------------------------------------
 //	class OPN/OPNA
 //	OPN/OPNA Ç…ó«Ç≠éóÇΩâπÇê∂ê¨Ç∑ÇÈâπåπÉÜÉjÉbÉg
@@ -87,6 +89,8 @@ namespace FM
 	//	OPN Base -------------------------------------------------------
 	class OPNBase : public Timer
 	{
+	protected:
+		int chip_num;
 	public:
 		OPNBase();
 		virtual ~OPNBase() {}
@@ -107,6 +111,7 @@ namespace FM
 		void	RebuildTimeTable();
 		void	Intr(bool value);
 		
+		void DeclState();
 		void SaveState(void *f);
 		bool LoadState(void *f);
 		
@@ -125,9 +130,9 @@ namespace FM
 	
 	private:
 		void	TimerA();
-		uint8	prescale;
 		
 	protected:
+		uint8	prescale;
 		Chip	chip;
 		PSG		psg;
 	};
@@ -155,6 +160,7 @@ namespace FM
 		void	SetADPCMBReg(uint reg, uint data);
 		uint	GetReg(uint addr);	
 		
+		void DeclState();
 		void SaveState(void *f);
 		bool LoadState(void *f);
 	
@@ -263,6 +269,7 @@ namespace FM
 		int		dbgGetPGOut(int c, int s) { return ch[c].op[s].dbgpgout_; }
 		Channel4* dbgGetCh(int c) { return &ch[c]; }
 		
+		void DeclState();
 		void SaveState(void *f);
 		bool LoadState(void *f);
 	
@@ -304,6 +311,7 @@ namespace FM
 		int		dbgGetPGOut(int c, int s) { return ch[c].op[s].dbgpgout_; }
 		Channel4* dbgGetCh(int c) { return &ch[c]; }
 
+		void DeclState();
 		void SaveState(void *f);
 		bool LoadState(void *f);
 		

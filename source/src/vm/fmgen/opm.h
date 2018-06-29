@@ -11,6 +11,8 @@
 #include "fmtimer.h"
 #include "psg.h"
 
+class csp_state_utils;
+class CSP_Logger;
 // ---------------------------------------------------------------------------
 //	class OPM
 //	OPM ‚É—Ç‚­—‚½(?)‰¹‚ğ¶¬‚·‚é‰¹Œ¹ƒ†ƒjƒbƒg
@@ -73,6 +75,8 @@ namespace FM
 	//	YM2151(OPM) ----------------------------------------------------
 	class OPM : public Timer
 	{
+	protected:
+		int chip_num;
 	public:
 		OPM();
 		~OPM() {}
@@ -91,7 +95,8 @@ namespace FM
 		
 		void	SetVolume(int db_l, int db_r);
 		void	SetChannelMask(uint mask);
-		
+
+		void DeclState();
 		void SaveState(void *f);
 		bool LoadState(void *f);
 		

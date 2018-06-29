@@ -11,6 +11,8 @@
 
 #define PSG_SAMPLETYPE		int32		// int32 or int16
 
+class csp_state_utils;
+class CSP_Logger;
 // ---------------------------------------------------------------------------
 //	class PSG
 //	PSG ‚É—Ç‚­—‚½‰¹‚ğ¶¬‚·‚é‰¹Œ¹ƒ†ƒjƒbƒg
@@ -43,6 +45,11 @@
 //
 class PSG
 {
+protected:
+	int chip_num;
+	int tmp_envelop_l;
+	csp_state_utils *state_entry;
+
 public:
 	typedef PSG_SAMPLETYPE Sample;
 	
@@ -69,6 +76,7 @@ public:
 	void SetReg(uint regnum, uint8 data);
 	uint GetReg(uint regnum) { return reg[regnum & 0x0f]; }
 
+	void DeclState();
 	void SaveState(void *f);
 	bool LoadState(void *f);
 	
