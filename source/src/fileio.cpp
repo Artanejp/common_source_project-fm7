@@ -793,6 +793,18 @@ size_t FILEIO::Fread(void* buffer, size_t size, size_t count)
 	return 0;
 }
 
+bool FILEIO::Fflush()
+{
+#ifdef USE_ZLIB
+	if(gz != NULL) {
+		return (gzflush(gz, Z_SYNC_FLUSH) == Z_OK) ? true : false;
+	} else
+#endif
+	{
+		return (fflush(fp) == 0) ? true : false;
+	}
+}
+
 size_t FILEIO::Fwrite(const void* buffer, size_t size, size_t count)
 {
 #ifdef USE_ZLIB
