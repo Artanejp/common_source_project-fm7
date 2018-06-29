@@ -66,6 +66,9 @@ public:
 	size_t get_byte_array(uint8_t *p, size_t len, size_t repeat, uint32_t *sumseed = NULL, bool *__stat = NULL);
 	size_t put_byte_array(uint8_t *p, size_t len, size_t repeat, uint32_t *sumseed = NULL, bool *__stat = NULL);
 	
+	size_t save_tchar_data(const _TCHAR *p, uint32_t *sumseed, int maxlen, bool *__stat);
+	size_t load_tchar_data(_TCHAR *p, uint32_t *sumseed, int maxlen, bool *__stat);
+
 	pair_t get_pair32(uint32_t *sumseed = NULL, bool *__stat = NULL);
 	void put_pair32(pair_t val, uint32_t *sumseed = NULL, bool *__stat = NULL);
 

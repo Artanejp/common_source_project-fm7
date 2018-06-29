@@ -83,6 +83,56 @@ size_t csp_state_data_saver::load_string_data(_TCHAR *p, uint32_t *sumseed, int 
 	}
 	return _nlen;
 }
+
+size_t csp_state_data_saver::save_tchar_data(const _TCHAR *p, uint32_t *sumseed, int maxlen, bool *__stat)
+{
+	size_t locallen;
+	if(__stat != NULL) *__stat =  false;
+	if(p == NULL) return -1;
+	locallen = maxlen;
+	if(locallen < 0) return locallen;
+	if(sumseed != NULL) {
+		*sumseed = calc_crc32(*sumseed, (uint8_t *)p, locallen * sizeof(char));
+	}
+	size_t cp;
+	for(cp = 0; cp < locallen; cp++) {
+		int _t = (int)(p[cp]);
+		int res = fio->Fputc(_t);
+		if(_t == EOF) {
+			if(__stat != NULL) *__stat =  false;
+			return (size_t)EOF; // ERROR
+		}
+	}
+	if(__stat != NULL) *__stat =  true;
+	return locallen;
+}
+
+size_t csp_state_data_saver::load_tchar_data(_TCHAR *p, uint32_t *sumseed, int maxlen, bool *__stat)
+{
+	size_t cp;
+	size_t _nlen;
+	if(__stat != NULL) *__stat =  false;
+	if(p == NULL) return -1;
+	if(maxlen <= 0) return -1;
+	memset(p, 0x00, sizeof(_TCHAR) * maxlen);
+	for(cp = 0; cp < maxlen; cp++) {
+		int _t = fio->Fgetc();
+		if(_t == EOF) {
+			p[cp] = 0x00;
+			cp++;
+			if(__stat != NULL) *__stat =  false;
+			return (size_t)EOF;
+		}
+		p[cp] = (_TCHAR)_t;
+	}
+	if(__stat != NULL) *__stat =  true;
+	_nlen = (size_t)maxlen;
+	if(sumseed != NULL){
+		*sumseed = calc_crc32(*sumseed, (uint8_t *)p, _nlen * sizeof(_TCHAR));
+	}
+	return _nlen;
+}
+
 // ALL OF BYNARY VALUES SHOULD BE SAVED BY BIG ENDIAN
 int csp_state_data_saver::save_and_change_byteorder_be(uint32_t *sum, void *val, int bytes, int rep)
 {
@@ -951,8 +1001,8 @@ csp_state_utils::csp_state_utils(int _version, int device_id, const _TCHAR *clas
 	internal_version_bak = internal_version;
 	out_debug_log("NEW SAVE STATE: NAME=%s DEVID=%d VER=%d", classname, device_id, _version);
 	
-	add_entry_tchar(_T("HEADER"), magic_bak, strlen(magic_bak) + 1);
-	add_entry_tchar(_T("CLASSNAME"), __classname_bak, strlen(__classname_bak) + 1);
+	add_entry_string(_T("HEADER"), magic_bak, strlen(magic_bak) + 1);
+	add_entry_string(_T("CLASSNAME"), __classname_bak, strlen(__classname_bak) + 1);
 	add_entry(_T("DEVICE_ID"), &this_device_id_bak);
 	add_entry(_T("STAVE_VER"), &class_version_bak);	
 	add_entry(_T("INTERNAL_VER"), &internal_version_bak);	
@@ -1048,6 +1098,9 @@ std::list<std::string> csp_state_utils::get_entries_list(void)
 			case csp_saver_entry_tchar:
 				_tname = _T("TYPE: _TCHAR");
 				break;
+			case csp_saver_entry_string:
+				_tname = _T("TYPE: _TCHAR(STRING)");
+				break;
 			case csp_saver_entry_any:
 				_tname = _T("TYPE: ANY");
 				break;
@@ -1085,13 +1138,6 @@ void csp_state_utils::add_entry_fifo(const _TCHAR *__name, FIFO **p, int _len, i
 	_l.local_num = __num;
 	_l.assume_byte = false;
 	_l.type_id = csp_saver_entry_fifo;
-	_l.use_is_null = false;
-	_l._null_atomlen = 1;
-	_l._null_type_id = csp_saver_entry_any;
-	_l.is_null_value = NULL;
-	_l.is_null_value_const = false;
-	_l.not_null_value = NULL;
-	_l.not_null_value_const = false;
 	_l.recv_ptr = NULL;
 	
 	out_debug_log("ADD ENTRY: NAME=%s TYPE=FIFO len=%d atomlen=%d", _name.c_str(), _len, _l.atomlen);
@@ -1110,20 +1156,13 @@ void csp_state_utils::add_entry_cur_time_t(const _TCHAR *__name, cur_time_t *p, 
 	_l.datalenptr = NULL;
 	_l.local_num = __num;
 	_l.assume_byte = false;
-	_l.use_is_null = false;
 	_l.type_id = csp_saver_entry_cur_time_t;
-	_l._null_atomlen = 1;
-	_l._null_type_id = csp_saver_entry_any;
-	_l.is_null_value = NULL;
-	_l.is_null_value_const = false;
-	_l.not_null_value = NULL;
-	_l.not_null_value_const = false;
 	_l.recv_ptr = 0;
 	out_debug_log("ADD ENTRY: NAME=%s TYPE=CUR_TIME_T len=%d atomlen=%d", _name.c_str(), _len, _l.atomlen);
 	listptr.push_back(_l);
 }
 	
-void csp_state_utils::add_entry_tchar(const _TCHAR *__name, _TCHAR *p, int _len, int __num, bool is_const)
+void csp_state_utils::add_entry_string(const _TCHAR *__name, _TCHAR *p, int _len, int __num, bool is_const)
 {
 	__list_t _l;
 	std::string _name = std::string(__name);
@@ -1131,24 +1170,35 @@ void csp_state_utils::add_entry_tchar(const _TCHAR *__name, _TCHAR *p, int _len,
 		
 	if(p == NULL) return;
 	_l.ptr = (void *)p;
-	_l.type_id = csp_saver_entry_tchar;
+	_l.type_id = csp_saver_entry_string;
 	_l.len = _len;
 	_l.atomlen = sizeof(_TCHAR);
 	_l.name = _name;
 	_l.local_num = __num;
 	_l.assume_byte = true;
-	_l.use_is_null = false;
-	_l._null_atomlen = 1;
-	_l._null_type_id = csp_saver_entry_any;
-	_l.is_null_value = NULL;
-	_l.is_null_value_const = false;
-	_l.not_null_value = NULL;
-	_l.not_null_value_const = false;
 	_l.recv_ptr = 0;
 
 	if(is_const) _l.type_id = _l.type_id | csp_saver_entry_const;
 
 	out_debug_log("ADD ENTRY: NAME=%s TYPE=_TCHAR* VAL=%s len=%d atomlen=%d HEAD=%08x", __name, p, _len, _l.atomlen, p);
+	listptr.push_back(_l);
+}
+
+void csp_state_utils::add_entry_cmt_recording(const _TCHAR *__name, FILEIO **__fio, bool *__flag, _TCHAR *__path)
+{
+	__list_t _l;
+	std::string _name = std::string(__name);
+		
+	_l.ptr = (void *)__flag;
+	_l.recv_ptr = (void *)__fio;
+	_l.type_id = csp_saver_entry_cmt_recording;
+	_l.len = 1;
+	_l.atomlen = 1;
+	_l.name = _name;
+	_l.local_num = 1;
+	_l.assume_byte = true;
+	_l.path_ptr = __path;
+	out_debug_log("ADD ENTRY: NAME=%s TYPE=[CMT RECORDING] FIO=%08x FLAG=%08x PATH=%08x", __name, __fio, __flag, __path);
 	listptr.push_back(_l);
 }
 
@@ -1184,10 +1234,7 @@ bool csp_state_utils::save_state(FILEIO *__fio, uint32_t *pcrc)
 			int _tid = (*p).type_id;
 			int _asize = (*p).atomlen;
 			int _len = (*p).len;
-			bool _use_is_null = (*p).use_is_null;
-			/*if(_use_is_null) {
-				pp = (*p).ptr;
-				} else */if((_tid & csp_saver_entry_const) != 0) {
+			if((_tid & csp_saver_entry_const) != 0) {
 				_ppshadow = (*p).ptr;
 				if((*p).assume_byte) {
 					pp = malloc(_len);
@@ -1230,40 +1277,6 @@ bool csp_state_utils::save_state(FILEIO *__fio, uint32_t *pcrc)
 			}
 			if((pp != NULL) && (_len > 0)) {
 				int64_t tval;
-				/*if(_use_is_null) {
-					bool nval;
-					_tid = (*p)._null_type_id;
-					_asize = (*p)._null_atomlen;
-					void **_pp = (void **)pp;
-					if(*_pp == NULL) { // is_null
-						if((*p).is_null_value_const) {
-							tval = (*p).is_null_value;
-							pp = &tval;
-							_tid = typeid_map[typeid(int64_t)];
-						} else {
-							// Assume int
-							// ToDo: Apply type.
-							tval = *((int *)((*p).is_null_value));
-							pp = &tval;
-							_tid = typeid_map[typeid(int64_t)];
-						} 
-						nval = true;
-					} else { // not_null
-						if((*p).not_null_value_const) {
-							tval = (*p).not_null_value;
-							pp = &tval;
-							_tid = typeid_map[typeid(int64_t)];
-						} else {
-							// Assume int
-							// ToDo: Apply type.
-							tval = *((int *)((*p).not_null_value));
-							pp = &tval;
-							_tid = typeid_map[typeid(int64_t)];
-						} 
-						nval = false;
-					}						
-					fio->put_bool(nval, &crc_value, &_stat);
-					}*/
 				switch(_tid) {
 				case csp_saver_entry_float:
 					{
@@ -1483,6 +1496,12 @@ bool csp_state_utils::save_state(FILEIO *__fio, uint32_t *pcrc)
 					break;
 				case csp_saver_entry_tchar:
 					{
+						retval = fio->save_tchar_data((const _TCHAR *)pp, &crc_value, _len, &_stat);
+						if(!_stat) retval = -1;
+					}
+					break;
+				case csp_saver_entry_string:
+					{
 						retval = fio->save_string_data((const _TCHAR *)pp, &crc_value, _len, &_stat);
 						if(!_stat) retval = -1;
 					}
@@ -1495,11 +1514,56 @@ bool csp_state_utils::save_state(FILEIO *__fio, uint32_t *pcrc)
 					break;
 				case csp_saver_entry_fifo:
 					if(pp != NULL) {
+						retval = 0;
 						FIFO **fp = (FIFO **)pp;
 						for(int i = 0; i < _len; i++) {
 							fp[i]->save_state_helper(fio, &crc_value, &_stat);
 						}
 						retval = _len;
+					}
+					break;
+				case csp_saver_entry_cmt_recording:
+					if(pp != NULL) {
+						retval = 0;
+						bool _flag = *((bool *)pp);
+						FILEIO **ffp = (FILEIO **)((*p).recv_ptr);
+						for(int i = 0; i < _len; i++) {
+							if(ffp[i] == NULL) {
+								retval = -1;
+								break;
+							}
+							if((_flag) && (ffp[i]->IsOpened())) {
+								int length_tmp = (int)ffp[i]->Ftell();
+								ffp[i]->Fseek(0, FILEIO_SEEK_SET);
+								fio->put_int32(length_tmp, &crc_value, &_stat);
+								if(!_stat) {
+									retval = -1;
+									break;
+								}
+								while(length_tmp > 0) {
+									uint8_t buffer[1024];
+									int length_rw = min(length_tmp, (int)sizeof(buffer));
+									ffp[i]->Fread(buffer, length_rw, 1);
+									fio->put_byte_array(buffer, length_rw, 1, &crc_value, &_stat);
+									if(!_stat) {
+										retval = -1;
+										break;
+									}
+									length_tmp -= length_rw;
+								}
+								if(!_stat) {
+									retval = -1;
+									break;
+								}
+							} else {
+								fio->put_int32(0, &crc_value, &_stat);
+								if(!_stat) {
+									retval = -1;
+									break;
+								}
+							}
+							retval++;
+						}
 					}
 					break;
 				case csp_saver_entry_cur_time_t:
@@ -1567,13 +1631,10 @@ bool csp_state_utils::load_state(FILEIO *__fio, uint32_t *pcrc)
 			int _asize = (*p).atomlen;
 			int _len = (*p).len;
 			std::string _name = (*p).name;
-			bool _use_is_null = (*p).use_is_null;
 			bool nval = false;
 			int64_t tval;
 			need_mfree = false;
-			/*if(_use_is_null) {
-				pp = (*p).ptr;
-				} else */if((_tid & csp_saver_entry_const) != 0) {
+			if((_tid & csp_saver_entry_const) != 0) {
 				//_ppshadow = (*p).ptr;
 				if((*p).assume_byte) {
 					pp = malloc(_len);
@@ -1624,30 +1685,6 @@ bool csp_state_utils::load_state(FILEIO *__fio, uint32_t *pcrc)
 				pp = (*p).ptr;
 			}
 			if((pp != NULL) && (_len > 0)) {
-				/*if(_use_is_null) {
-					nval = fio->get_bool(&crc_value, &_stat);
-					if(nval) {
-						if((*p).is_null_value_const) {
-							_tid = typeid_map[typeid(int64_t)];
-							pp = &tval;
-							_asize = sizeof(int64_t);
-						} else {
-							_tid = (*p)._null_type_id;
-							pp = (*p).recv_ptr;
-							_asize = (*p)._null_atomlen;
-						}
-					} else {
-						if((*p).not_null_value_const) {
-							_tid = typeid_map[typeid(int64_t)];
-							pp = &tval;
-							_asize = sizeof(int64_t);
-						} else {
-							_tid = (*p)._null_type_id;
-							pp = (*p).recv_ptr;
-							_asize = (*p)._null_atomlen;
-						}
-					}						
-					} */
 				switch(_tid) {
 				case csp_saver_entry_float:
 					{
@@ -1882,6 +1919,13 @@ bool csp_state_utils::load_state(FILEIO *__fio, uint32_t *pcrc)
 					break;
 				case csp_saver_entry_tchar:
 					{
+						retval = fio->load_tchar_data((const _TCHAR *)pp, &crc_value, _len, &_stat);
+						out_debug_log("NAME=%s TCHAR: LEN=%d STAT=%d S=%s", _name.c_str(), retval, (_stat) ? 1 : 0, (_TCHAR *)pp);
+						if(!_stat) retval = -1;
+					}
+					break;
+				case csp_saver_entry_string:
+					{
 						retval = fio->load_string_data((const _TCHAR *)pp, &crc_value, _len, &_stat);
 						out_debug_log("NAME=%s STR: LEN=%d STAT=%d S=%s", _name.c_str(), retval, (_stat) ? 1 : 0, (_TCHAR *)pp);
 						if(!_stat) retval = -1;
@@ -1900,6 +1944,7 @@ bool csp_state_utils::load_state(FILEIO *__fio, uint32_t *pcrc)
 						bool _s = false;
 						for(int i = 0; i < _len; i++) {
 							_s = fp[i]->load_state_helper(fio, &crc_value, &_stat);
+							out_debug_log("NAME=%s FIFO: MEMB=%d CRC=%08x STAT=%s PTR=%08x", _name.c_str(), i, crc_value, (_stat) ? "OK" : "NG", pp);
 							if(!(_s)) {
 								retval = -1;
 								_stat = false;
@@ -1907,6 +1952,48 @@ bool csp_state_utils::load_state(FILEIO *__fio, uint32_t *pcrc)
 							}
 						}
 						if(_s) retval = _len;
+
+					}
+					break;
+				case csp_saver_entry_cmt_recording:
+					if(pp != NULL) {
+						retval = 0;
+						bool _flag = *((bool *)pp);
+						FILEIO **ffp = (FILEIO **)((*p).recv_ptr);
+						for(int i = 0; i < _len; i++) {
+							_TCHAR *__path = (_TCHAR*)((*p).path_ptr);
+							if((ffp[i] == NULL) || (__path == NULL)){
+								retval = -1;
+								break;
+							}
+							
+							int length_tmp = fio->get_int32(&crc_value, &_stat);
+							if(!_stat) {
+								retval = -1;
+								break;
+							}
+							
+							if((_flag) && (strlen(__path) > 0)) {
+								ffp[i]->Fopen(__path, FILEIO_READ_WRITE_NEW_BINARY);
+								while(length_tmp > 0) {
+									uint8_t buffer[1024];
+									int length_rw = min(length_tmp, (int)sizeof(buffer));
+									fio->get_byte_array(buffer, length_rw, 1, &crc_value, &_stat);
+									if(!_stat) {
+										retval = -1;
+										break;
+									}
+									ffp[i]->Fwrite(buffer, length_rw, 1);
+									length_tmp -= length_rw;
+								}
+								ffp[i]->Fflush();
+								if(!_stat) {
+									retval = -1;
+									break;
+								}
+							}
+							retval++;
+						}
 					}
 					break;
 				case csp_saver_entry_cur_time_t:
@@ -1947,53 +2034,6 @@ bool csp_state_utils::load_state(FILEIO *__fio, uint32_t *pcrc)
 				free(pp);
 			}
 			need_mfree = false;
-			/*if((_use_is_null) && ((*p).recv_ptr != NULL)){
-				void *np;
-				bool f = false;
-				if(nval) {
-					if((*p).is_null_value_const) {
-						f = true;
-					}
-				} else {
-					if((*p).not_null_value_const) {
-						f = true;
-					}
-				}
-				if(f) {
-					switch((*p)._null_type_id) {
-					case csp_saver_entry_int:
-					case csp_saver_entry_int32:
-						*((int32_t *)((*p).recv_ptr)) = (int32_t)tval;
-						break;
-					case csp_saver_entry_uint32:
-						*((uint32_t *)((*p).recv_ptr)) = (uint32_t)tval;
-						break;
-					case csp_saver_entry_int8:
-						*((int8_t *)((*p).recv_ptr)) = (int8_t)tval;
-						break;
-					case csp_saver_entry_uint8:
-						*((uint8_t *)((*p).recv_ptr)) = (uint8_t)tval;
-						break;
-					case csp_saver_entry_int16:
-						*((int16_t *)((*p).recv_ptr)) = (int16_t)tval;
-						break;
-					case csp_saver_entry_uint16:
-						*((uint16_t *)((*p).recv_ptr)) = (uint16_t)tval;
-						break;
-					case csp_saver_entry_int64:
-						*((int64_t *)((*p).recv_ptr)) = (int64_t)tval;
-						break;
-					case csp_saver_entry_uint64:
-						*((uint64_t *)((*p).recv_ptr)) = (uint64_t)tval;
-						break;
-					case csp_saver_entry_bool:
-						*((bool *)((*p).recv_ptr)) = (tval == 0) ? false : true;
-						break;
-					default:
-						break;
-					}						
-				}
-				}*/
 		}
 		crc_stat = fio->post_proc_loading(&crc_value, &_stat);
 		delete fio;
