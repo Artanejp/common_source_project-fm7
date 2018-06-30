@@ -722,7 +722,7 @@ void SCSI_CDROM::set_volume(int volume)
 void SCSI_CDROM::decl_state()
 {
 	enter_decl_state(STATE_VERSION);
-	
+
 	DECL_STATE_ENTRY_UINT32(cdda_start_frame);
 	DECL_STATE_ENTRY_UINT32(cdda_end_frame);
 	DECL_STATE_ENTRY_UINT32(cdda_playing_frame);
@@ -741,9 +741,11 @@ void SCSI_CDROM::decl_state()
 //	} else {
 //		state_fio->FputUint32(0);
 //	}
-	SCSI_DEV::decl_state();
 
 	leave_decl_state();
+
+	// ToDo: Add Fix Value.
+	SCSI_DEV::decl_state();
 }
 void SCSI_CDROM::save_state(FILEIO* state_fio)
 {
@@ -774,8 +776,9 @@ void SCSI_CDROM::save_state(FILEIO* state_fio)
 	} else {
 		saver.put_dword(0, &crc_value, &stat);
 	}
-	//SCSI_DEV::save_state(state_fio);
 	saver.post_proc_saving(&crc_value, &stat);
+
+	//SCSI_DEV::save_state(state_fio);
 }
 
 bool SCSI_CDROM::load_state(FILEIO* state_fio)

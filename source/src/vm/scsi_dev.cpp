@@ -812,7 +812,8 @@ void SCSI_DEV::write_buffer(int length)
 
 void SCSI_DEV::decl_state()
 {
-	enter_decl_state(STATE_VERSION);
+	// ToDo: Add Fix Value.
+//	enter_decl_state(STATE_VERSION);
 
 	DECL_STATE_ENTRY_UINT32(data_bus);
 	DECL_STATE_ENTRY_BOOL(sel_status);
@@ -835,7 +836,7 @@ void SCSI_DEV::decl_state()
 	DECL_STATE_ENTRY_UINT64(position);
 	DECL_STATE_ENTRY_UINT64(remain);
 
-	leave_decl_state();
+//	leave_decl_state();
 }
 void SCSI_DEV::save_state(FILEIO* state_fio)
 {

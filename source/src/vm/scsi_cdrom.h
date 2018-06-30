@@ -17,6 +17,7 @@
 #define SIG_SCSI_CDROM_SAMPLE_R	2
 
 class FILEIO;
+//class csp_state_utils;
 
 class SCSI_CDROM : public SCSI_DEV
 {
@@ -46,6 +47,9 @@ private:
 	
 	int volume_m;
 	int volume_l, volume_r;
+
+//protected:
+//	csp_state_utils *state_entry;
 	
 public:
 	SCSI_CDROM(VM* parent_vm, EMU* parent_emu) : SCSI_DEV(parent_vm, parent_emu) 

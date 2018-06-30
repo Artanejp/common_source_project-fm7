@@ -13,12 +13,16 @@
 #include "scsi_dev.h"
 
 class HARDDISK;
+//class csp_state_utils;
 
 class SCSI_HDD : public SCSI_DEV
 {
 private:
 	HARDDISK* disk[8];
 	
+//protected:
+//	csp_state_utils *state_entry;
+
 public:
 	SCSI_HDD(VM* parent_vm, EMU* parent_emu) : SCSI_DEV(parent_vm, parent_emu) 
 	{

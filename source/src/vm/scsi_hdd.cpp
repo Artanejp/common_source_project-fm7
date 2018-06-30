@@ -108,13 +108,17 @@ void SCSI_HDD::decl_state()
 {
 	enter_decl_state(STATE_VERSION);
 	
-	SCSI_DEV::decl_state();
-
 	leave_decl_state();
+
+	SCSI_DEV::decl_state();
 }
 
 void SCSI_HDD::save_state(FILEIO* state_fio)
 {
+	uint32_t crc_value = 0xffffffff;
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio, &crc_value);
+	}
 //	state_fio->FputUint32(STATE_VERSION);
 //	state_fio->FputInt32(this_device_id);
 /*
@@ -124,11 +128,18 @@ void SCSI_HDD::save_state(FILEIO* state_fio)
 		}
 	}
 */
-	SCSI_DEV::save_state(state_fio);
+//	SCSI_DEV::save_state(state_fio);
 }
 
 bool SCSI_HDD::load_state(FILEIO* state_fio)
 {
+	uint32_t crc_value = 0xffffffff;
+	bool stat = false;
+	bool mb = false;
+	if(state_entry != NULL) {
+	   mb = state_entry->load_state(state_fio, &crc_value);
+	}
+	if(!mb) return false;
 //	if(state_fio->FgetUint32() != STATE_VERSION) {
 //		return false;
 //	}
@@ -144,6 +155,7 @@ bool SCSI_HDD::load_state(FILEIO* state_fio)
 		}
 	}
 */
-	return SCSI_DEV::load_state(state_fio);
+//	return SCSI_DEV::load_state(state_fio);
+	return true;
 }
 

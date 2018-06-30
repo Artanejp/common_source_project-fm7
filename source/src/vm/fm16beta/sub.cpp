@@ -938,10 +938,10 @@ void SUB::draw_cg()
 void SUB::decl_state()
 {
 	enter_decl_state(STATE_VERSION);
-
-	MEMORY::decl_state(); //
-
+	
 	leave_decl_state();
+
+//	MEMORY::decl_state(); //
 }
 
 void SUB::save_state(FILEIO* state_fio)
@@ -953,7 +953,7 @@ void SUB::save_state(FILEIO* state_fio)
 //	state_fio->FputUint32(STATE_VERSION);
 //	state_fio->FputInt32(this_device_id);
 	
-//	MEMORY::save_state(state_fio);
+	MEMORY::save_state(state_fio);
 }
 
 bool SUB::load_state(FILEIO* state_fio)
@@ -972,9 +972,9 @@ bool SUB::load_state(FILEIO* state_fio)
 //	if(state_fio->FgetInt32() != this_device_id) {
 //		return false;
 //	}
-//	if(!MEMORY::load_state(state_fio)) {
-//		return false;
-//	}
+	if(!MEMORY::load_state(state_fio)) {
+		return false;
+	}
 	return true;
 }
 

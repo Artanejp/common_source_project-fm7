@@ -12,9 +12,12 @@
 
 #include "../memory.h"
 
+//class csp_state_utils;
+
 class MEMBUS : public MEMORY
 {
 private:
+//	csp_state_utils *state_entry;
 	
 	uint8_t boot[0x800];
 	uint8_t basic[0x10000];

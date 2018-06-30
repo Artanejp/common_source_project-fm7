@@ -43,9 +43,12 @@ class I286;
 class I8237;
 class MB8877;
 
+//class csp_state_utils;
 class MAINBUS : public MEMORY
 {
 private:
+	//csp_state_utils *state_entry;
+
 #ifdef HAS_I286
 	I286 *d_cpu;
 	uint8_t rst;

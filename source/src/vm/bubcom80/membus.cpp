@@ -85,14 +85,13 @@ void MEMBUS::decl_state()
 {
 	enter_decl_state(STATE_VERSION);
 
-	MEMORY::decl_state(); // ??
-
 	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
 	DECL_STATE_ENTRY_PAIR(basic_addr);
 	DECL_STATE_ENTRY_BOOL(ram_selected);
 	
 	leave_decl_state();
 	
+//	MEMORY::decl_state(); // ??
 }
 void MEMBUS::save_state(FILEIO* state_fio)
 {
@@ -102,12 +101,12 @@ void MEMBUS::save_state(FILEIO* state_fio)
 
 //	state_fio->FputUint32(STATE_VERSION);
 //	state_fio->FputInt32(this_device_id);
-	
-//	MEMORY::save_state(state_fio); // OK?
 
 //	state_fio->Fwrite(ram, sizeof(ram), 1);
 //	state_fio->FputUint32(basic_addr.d);
 //	state_fio->FputBool(ram_selected);
+
+	MEMORY::save_state(state_fio); // OK?
 }
 
 bool MEMBUS::load_state(FILEIO* state_fio)
@@ -127,9 +126,9 @@ bool MEMBUS::load_state(FILEIO* state_fio)
 //		return false;
 //	}
 
-//	if(!MEMORY::load_state(state_fio)) {  // OK?
-//		return false;
-//	}
+	if(!MEMORY::load_state(state_fio)) {  // OK?
+		return false;
+	}
 
 //	state_fio->Fread(ram, sizeof(ram), 1);
 //	basic_addr.d = state_fio->FgetUint32();

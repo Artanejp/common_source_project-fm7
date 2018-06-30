@@ -430,8 +430,9 @@ void MAINBUS::decl_state()
 {
 	enter_decl_state(STATE_VERSION);
 
-
 	leave_decl_state();
+
+//	MEMORY::decl_state();
 }
 
 void MAINBUS::save_state(FILEIO* state_fio)
@@ -442,7 +443,8 @@ void MAINBUS::save_state(FILEIO* state_fio)
 
 //	state_fio->FputUint32(STATE_VERSION);
 //	state_fio->FputInt32(this_device_id);
-	
+
+	MEMORY::save_state(state_fio);
 }
 
 bool MAINBUS::load_state(FILEIO* state_fio)
@@ -461,6 +463,7 @@ bool MAINBUS::load_state(FILEIO* state_fio)
 //	if(state_fio->FgetInt32() != this_device_id) {
 //		return false;
 //	}
+	if(MEMORY::load_state(state_fio) == false) return false;
 	return true;
 }
 

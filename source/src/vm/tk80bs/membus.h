@@ -18,10 +18,15 @@
 #define SIG_MEMBUS_PC7	0
 #endif
 
+//class csp_state_utils;
+
 class MEMBUS : public MEMORY
 {
 private:
 	DEVICE *d_cpu;
+
+//	csp_state_utils *state_entry;
+
 #if defined(_TK85)
 	uint32_t pc7, count;
 #endif
