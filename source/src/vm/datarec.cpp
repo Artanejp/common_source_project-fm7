@@ -94,9 +94,19 @@ void DATAREC::initialize()
 void DATAREC::reset()
 {
 	touch_sound();
-	close_tape();
+	// TRY: Not close even resetting.20180630 K.O
+	// ToDo: Resume tape-counter after re-initializing VM.
+	//	close_tape();
+	set_remote(false);
+
+	update_event();
+	
+	write_signals(&outputs_ear, 0);
+	in_signal = false;
+
 	pcm_prev_clock = get_current_clock();
 	pcm_positive_clocks = pcm_negative_clocks = 0;
+
 }
 
 void DATAREC::release()
@@ -629,8 +639,12 @@ bool DATAREC::rec_tape(const _TCHAR* file_path)
 void DATAREC::close_tape()
 {
 	touch_sound();
-	close_file();
 	set_remote(false);
+	if(register_id >= 0) {
+		cancel_event(this, register_id);
+		register_id = -1;
+	}
+	close_file();
 	
 	play = rec = is_wav = is_tap = is_t77 = false;
 	buffer_ptr = buffer_length = 0;
