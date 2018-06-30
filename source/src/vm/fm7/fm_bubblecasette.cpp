@@ -682,7 +682,7 @@ void BUBBLECASETTE::event_callback(int event_id, int err)
 }
 
 
-#define STATE_VERSION 3
+#define STATE_VERSION 4
 #include "../../statesub.h"
 
 void BUBBLECASETTE::decl_state(void)
@@ -721,17 +721,18 @@ void BUBBLECASETTE::decl_state(void)
 	DECL_STATE_ENTRY_INT(bubble_type);
 	DECL_STATE_ENTRY_INT(media_num);
 	// Header
-	DECL_STATE_ENTRY_MULTI(void, bbl_header.filename, sizeof(bbl_header.filename));
+	DECL_STATE_ENTRY_STRING(image_path, sizeof(image_path));
+	DECL_STATE_ENTRY_1D_ARRAY((bbl_header.filename), sizeof(bbl_header.filename));
 	DECL_STATE_ENTRY_PAIR((bbl_header.size));
 	DECL_STATE_ENTRY_PAIR((bbl_header.offset));
-	DECL_STATE_ENTRY_MULTI(void, bbl_header.misc, sizeof(bbl_header.misc));
+	DECL_STATE_ENTRY_1D_ARRAY((bbl_header.misc), sizeof(bbl_header.misc));
 
-	DECL_STATE_ENTRY_MULTI(void, image_path, sizeof(image_path));
+
 	DECL_STATE_ENTRY_UINT32(media_offset);
 	DECL_STATE_ENTRY_UINT32(media_offset_new);
 	DECL_STATE_ENTRY_UINT32(media_size);
 	DECL_STATE_ENTRY_UINT32(file_length);
-	DECL_STATE_ENTRY_MULTI(void, bubble_data, sizeof(bubble_data));
+	DECL_STATE_ENTRY_1D_ARRAY(bubble_data, sizeof(bubble_data));
 
 	leave_decl_state();
 }

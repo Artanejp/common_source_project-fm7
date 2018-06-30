@@ -819,30 +819,30 @@ void APU::decl_state_rectangle(int num)
 	DECL_STATE_ENTRY_INT32_MEMBER((rectangle[num].env_phase), num);
 	DECL_STATE_ENTRY_INT32_MEMBER((rectangle[num].env_delay), num);
 	DECL_STATE_ENTRY_UINT8_MEMBER((rectangle[num].env_vol), num);
-	DECL_STATE_ENTRY_INT_MEMBER((rectangle[num].vbl_length), num);
+	DECL_STATE_ENTRY_INT32_MEMBER((rectangle[num].vbl_length), num);
 	DECL_STATE_ENTRY_UINT8_MEMBER((rectangle[num].adder), num);
-	DECL_STATE_ENTRY_INT_MEMBER((rectangle[num].duty_flip), num);
+	DECL_STATE_ENTRY_INT32_MEMBER((rectangle[num].duty_flip), num);
 	DECL_STATE_ENTRY_BOOL_MEMBER((rectangle[num].enabled_cur), num);
 	DECL_STATE_ENTRY_BOOL_MEMBER((rectangle[num].holdnote_cur), num);
-	DECL_STATE_ENTRY_INT_MEMBER((rectangle[num].vbl_length_cur), num);
+	DECL_STATE_ENTRY_INT32_MEMBER((rectangle[num].vbl_length_cur), num);
 }
 void APU::decl_state_triangle()
 {
-	DECL_STATE_ENTRY_1D_ARRAY((trinangle.regs), 3);
-	DECL_STATE_ENTRY_BOOL((trinangle.enabled));
-	DECL_STATE_ENTRY_INT32((trinangle.freq));
-	DECL_STATE_ENTRY_INT32((trinangle.phaseacc));
-	DECL_STATE_ENTRY_INT32((trinangle.output_vol));
-	DECL_STATE_ENTRY_UINT8((trinangle.adder));
-	DECL_STATE_ENTRY_BOOL((trinangle.holdnote));
-	DECL_STATE_ENTRY_BOOL((trinangle.counter_started));
-	DECL_STATE_ENTRY_INT((trinangle.write_latency));
-	DECL_STATE_ENTRY_INT((trinangle.vbl_length));
-	DECL_STATE_ENTRY_INT((trinangle.linear_length));
-	DECL_STATE_ENTRY_BOOL((trinangle.enabled_cur));
-	DECL_STATE_ENTRY_BOOL((trinangle.holdnote_cur));
-	DECL_STATE_ENTRY_BOOL((trinangle.counter_started_cur));
-	DECL_STATE_ENTRY_INT((trinangle.vbl_length_cur));
+	DECL_STATE_ENTRY_1D_ARRAY((triangle.regs), 3);
+	DECL_STATE_ENTRY_BOOL((triangle.enabled));
+	DECL_STATE_ENTRY_INT32((triangle.freq));
+	DECL_STATE_ENTRY_INT32((triangle.phaseacc));
+	DECL_STATE_ENTRY_INT32((triangle.output_vol));
+	DECL_STATE_ENTRY_UINT8((triangle.adder));
+	DECL_STATE_ENTRY_BOOL((triangle.holdnote));
+	DECL_STATE_ENTRY_BOOL((triangle.counter_started));
+	DECL_STATE_ENTRY_INT((triangle.write_latency));
+	DECL_STATE_ENTRY_INT((triangle.vbl_length));
+	DECL_STATE_ENTRY_INT((triangle.linear_length));
+	DECL_STATE_ENTRY_BOOL((triangle.enabled_cur));
+	DECL_STATE_ENTRY_BOOL((triangle.holdnote_cur));
+	DECL_STATE_ENTRY_BOOL((triangle.counter_started_cur));
+	DECL_STATE_ENTRY_INT((triangle.vbl_length_cur));
 	
 }
 
@@ -894,11 +894,14 @@ void APU::decl_state_dmc()
 	DECL_STATE_ENTRY_BOOL((dmc.irq_occurred_cur));
 }
 
-void APU::decl_state_queue(int num)
+void APU::decl_state_queue(int __size)
 {
-	DECL_STATE_ENTRY_UINT32_MEMBER((queue[num].timestamp), num);
-	DECL_STATE_ENTRY_UINT32_MEMBER((queue[num].addr), num);
-	DECL_STATE_ENTRY_UINT32_MEMBER((queue[num].data), num);
+//	DECL_STATE_ENTRY_UINT32_MEMBER((queue[num].timestamp), num);
+//	DECL_STATE_ENTRY_UINT32_MEMBER((queue[num].addr), num);
+//	DECL_STATE_ENTRY_UINT32_MEMBER((queue[num].data), num);
+	DECL_STATE_ENTRY_UINT32_STRIDE((queue[0].timestamp), __size, sizeof(queue_t));
+	DECL_STATE_ENTRY_UINT32_STRIDE((queue[0].addr),      __size, sizeof(queue_t));
+	DECL_STATE_ENTRY_UINT32_STRIDE((queue[0].data),      __size, sizeof(queue_t));
 }
 
 void APU::decl_state()
@@ -914,7 +917,7 @@ void APU::decl_state()
 	DECL_STATE_ENTRY_UINT32(enable_reg_cur);
 	DECL_STATE_ENTRY_INT32(count_rate);
 	
-	for(int i = 0; i < APUQUEUE_SIZE) decl_state_queue(i);
+	decl_state_queue(APUQUEUE_SIZE);
 	
 	DECL_STATE_ENTRY_INT32(q_head);
 	DECL_STATE_ENTRY_INT32(q_tail);

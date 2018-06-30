@@ -103,7 +103,7 @@ void MEMORY::save_binary(const _TCHAR* file_path)
 
 #include "../../statesub.h"
 
-void KEYBOARD::decl_state(void)
+void MEMORY::decl_state(void)
 {
 	enter_decl_state(STATE_VERSION);
 	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));

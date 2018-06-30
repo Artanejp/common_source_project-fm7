@@ -905,7 +905,7 @@ void MEMORY::decl_state()
 	DECL_STATE_ENTRY_1D_ARRAY(banks, sizeof(banks) / sizeof(uint32_t));
 	DECL_STATE_ENTRY_UINT16(dma_addr);
 	DECL_STATE_ENTRY_UINT8(frame_irq_enabled);
-	DECL_STATE_ENTRY_1D_ARRAY(mmc5_wram_bank, sizeof(mmc5_wram_bank)/ sizeof(uint32_r));
+	DECL_STATE_ENTRY_1D_ARRAY(mmc5_wram_bank, sizeof(mmc5_wram_bank)/ sizeof(uint32_t));
 	DECL_STATE_ENTRY_2D_ARRAY(mmc5_chr_reg, 8, 2);
 	DECL_STATE_ENTRY_UINT32(mmc5_value0);
 	DECL_STATE_ENTRY_UINT32(mmc5_value0);
