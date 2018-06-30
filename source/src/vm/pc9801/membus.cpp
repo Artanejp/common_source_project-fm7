@@ -578,9 +578,10 @@ void MEMBUS::decl_state()
 	DECL_STATE_ENTRY_INT32(window_80000h);
 	DECL_STATE_ENTRY_INT32(window_a0000h);
 #endif
-	MEMORY::decl_state();
-	
 	leave_decl_state();
+
+	// ToDo: Helper.
+//	MEMORY::decl_state();
 }
 
 void MEMBUS::save_state(FILEIO* state_fio)

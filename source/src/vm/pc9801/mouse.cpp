@@ -127,63 +127,37 @@ void MOUSE::update_mouse()
 
 #define STATE_VERSION	2
 
-#include "../statesub.h"
-
-void MOUSE::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-	
-	DECL_STATE_ENTRY_INT32(ctrlreg);
-	DECL_STATE_ENTRY_INT32(freq);
-	DECL_STATE_ENTRY_INT32(cur_freq);
-	DECL_STATE_ENTRY_INT32(dx);
-	DECL_STATE_ENTRY_INT32(dy);
-	DECL_STATE_ENTRY_INT32(lx);
-	DECL_STATE_ENTRY_INT32(ly);
-	DECL_STATE_ENTRY_INT32(register_id);
-	
-	leave_decl_state();
-}
-
 void MOUSE::save_state(FILEIO* state_fio)
 {
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
 	
-//	state_fio->FputInt32(ctrlreg);
-//	state_fio->FputInt32(freq);
-//	state_fio->FputInt32(cur_freq);
-//	state_fio->FputInt32(dx);
-//	state_fio->FputInt32(dy);
-//	state_fio->FputInt32(lx);
-//	state_fio->FputInt32(ly);
-//	state_fio->FputInt32(register_id);
+	state_fio->FputInt32(ctrlreg);
+	state_fio->FputInt32(freq);
+	state_fio->FputInt32(cur_freq);
+	state_fio->FputInt32(dx);
+	state_fio->FputInt32(dy);
+	state_fio->FputInt32(lx);
+	state_fio->FputInt32(ly);
+	state_fio->FputInt32(register_id);
 }
 
 bool MOUSE::load_state(FILEIO* state_fio)
 {
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
 	}
-	if(!mb) return false;
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	ctrlreg = state_fio->FgetInt32();
-//	freq = state_fio->FgetInt32();
-//	cur_freq = state_fio->FgetInt32();
-//	dx = state_fio->FgetInt32();
-//	dy = state_fio->FgetInt32();
-//	lx = state_fio->FgetInt32();
-//	ly = state_fio->FgetInt32();
-//	register_id = state_fio->FgetInt32();
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	ctrlreg = state_fio->FgetInt32();
+	freq = state_fio->FgetInt32();
+	cur_freq = state_fio->FgetInt32();
+	dx = state_fio->FgetInt32();
+	dy = state_fio->FgetInt32();
+	lx = state_fio->FgetInt32();
+	ly = state_fio->FgetInt32();
+	register_id = state_fio->FgetInt32();
 	return true;
 }
 

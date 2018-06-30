@@ -32,11 +32,14 @@ class DISPLAY;
 	#define RAM_SIZE	0x100000	// 1MB
 #endif
 
+//class csp_state_utils;
+
 class MEMBUS : public MEMORY
 {
 private:
 	DISPLAY *d_display;
 	
+//	csp_state_utils *state_entry;
 	// RAM
 	uint8_t ram[RAM_SIZE];
 	
