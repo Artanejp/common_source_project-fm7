@@ -215,39 +215,69 @@ void RTC::update_intr()
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void RTC::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	DECL_STATE_ENTRY_CUR_TIME_T(cur_time);
+	DECL_STATE_ENTRY_INT32(register_id);
+	DECL_STATE_ENTRY_UINT16(rtcmr);
+	DECL_STATE_ENTRY_UINT16(rtdsr);
+	DECL_STATE_ENTRY_UINT16(rtadr);
+	DECL_STATE_ENTRY_UINT16(rtobr);
+	DECL_STATE_ENTRY_UINT16(rtibr);
+	DECL_STATE_ENTRY_1D_ARRAY(regs, sizeof(regs));
+
+	leave_decl_state();
+}
+
 void RTC::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	cur_time.save_state((void *)state_fio);
-	state_fio->FputInt32(register_id);
-	state_fio->FputUint16(rtcmr);
-	state_fio->FputUint16(rtdsr);
-	state_fio->FputUint16(rtadr);
-	state_fio->FputUint16(rtobr);
-	state_fio->FputUint16(rtibr);
-	state_fio->Fwrite(regs, sizeof(regs), 1);
+//	cur_time.save_state((void *)state_fio);
+//	state_fio->FputInt32(register_id);
+//	state_fio->FputUint16(rtcmr);
+//	state_fio->FputUint16(rtdsr);
+//	state_fio->FputUint16(rtadr);
+//	state_fio->FputUint16(rtobr);
+//	state_fio->FputUint16(rtibr);
+//	state_fio->Fwrite(regs, sizeof(regs), 1);
 }
 
 bool RTC::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	if(!cur_time.load_state((void *)state_fio)) {
-		return false;
-	}
-	register_id = state_fio->FgetInt32();
-	rtcmr = state_fio->FgetUint16();
-	rtdsr = state_fio->FgetUint16();
-	rtadr = state_fio->FgetUint16();
-	rtobr = state_fio->FgetUint16();
-	rtibr = state_fio->FgetUint16();
-	state_fio->Fread(regs, sizeof(regs), 1);
+
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	if(!cur_time.load_state((void *)state_fio)) {
+//		return false;
+//	}
+//	register_id = state_fio->FgetInt32();
+//	rtcmr = state_fio->FgetUint16();
+//	rtdsr = state_fio->FgetUint16();
+//	rtadr = state_fio->FgetUint16();
+//	rtobr = state_fio->FgetUint16();
+//	rtibr = state_fio->FgetUint16();
+//	state_fio->Fread(regs, sizeof(regs), 1);
 	return true;
 }
 

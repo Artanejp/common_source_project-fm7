@@ -56,27 +56,52 @@ uint32_t SYSTEM::read_io8(uint32_t addr)
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void SYSTEM::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+	
+	DECL_STATE_ENTRY_UINT8(arr);
+	DECL_STATE_ENTRY_UINT8(nmistat);
+	DECL_STATE_ENTRY_UINT8(nmimask);
+
+	leave_decl_state();
+}
+
 void SYSTEM::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->FputUint8(arr);
-	state_fio->FputUint8(nmistat);
-	state_fio->FputUint8(nmimask);
+//	state_fio->FputUint8(arr);
+//	state_fio->FputUint8(nmistat);
+//	state_fio->FputUint8(nmimask);
 }
 
 bool SYSTEM::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	arr = state_fio->FgetUint8();
-	nmistat = state_fio->FgetUint8();
-	nmimask = state_fio->FgetUint8();
+
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	arr = state_fio->FgetUint8();
+//	nmistat = state_fio->FgetUint8();
+//	nmimask = state_fio->FgetUint8();
 	return true;
 }
 

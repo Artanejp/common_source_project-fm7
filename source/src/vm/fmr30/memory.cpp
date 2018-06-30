@@ -518,53 +518,91 @@ void MEMORY::draw_cg()
 
 #define STATE_VERSION	2
 
+#include "../../statesub.h"
+
+void MEMORY::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
+	DECL_STATE_ENTRY_1D_ARRAY(vram, sizeof(vram));
+	DECL_STATE_ENTRY_1D_ARRAY(cvram, sizeof(cvram));
+	DECL_STATE_ENTRY_1D_ARRAY(kvram, sizeof(kvram));
+	DECL_STATE_ENTRY_UINT8(mcr1);
+	DECL_STATE_ENTRY_UINT8(mcr2);
+	DECL_STATE_ENTRY_UINT8(a20);
+	DECL_STATE_ENTRY_UINT8(lcdadr);
+	DECL_STATE_ENTRY_1D_ARRAY(lcdreg, sizeof(lcdreg));
+	DECL_STATE_ENTRY_UINT16(dcr1);
+	DECL_STATE_ENTRY_UINT16(dcr2);
+	DECL_STATE_ENTRY_INT32(kj_h);
+	DECL_STATE_ENTRY_INT32(kj_l);
+	DECL_STATE_ENTRY_INT32(kj_ofs);
+	DECL_STATE_ENTRY_INT32(kj_row);
+	DECL_STATE_ENTRY_INT32(blinkcnt);
+	
+	leave_decl_state();
+}
+
 void MEMORY::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->Fwrite(ram, sizeof(ram), 1);
-	state_fio->Fwrite(vram, sizeof(vram), 1);
-	state_fio->Fwrite(cvram, sizeof(cvram), 1);
-	state_fio->Fwrite(kvram, sizeof(kvram), 1);
-	state_fio->FputUint8(mcr1);
-	state_fio->FputUint8(mcr2);
-	state_fio->FputUint8(a20);
-	state_fio->FputUint8(lcdadr);
-	state_fio->Fwrite(lcdreg, sizeof(lcdreg), 1);
-	state_fio->FputUint16(dcr1);
-	state_fio->FputUint16(dcr2);
-	state_fio->FputInt32(kj_h);
-	state_fio->FputInt32(kj_l);
-	state_fio->FputInt32(kj_ofs);
-	state_fio->FputInt32(kj_row);
-	state_fio->FputInt32(blinkcnt);
+//	state_fio->Fwrite(ram, sizeof(ram), 1);
+//	state_fio->Fwrite(vram, sizeof(vram), 1);
+//	state_fio->Fwrite(cvram, sizeof(cvram), 1);
+//	state_fio->Fwrite(kvram, sizeof(kvram), 1);
+//	state_fio->FputUint8(mcr1);
+//	state_fio->FputUint8(mcr2);
+//	state_fio->FputUint8(a20);
+//	state_fio->FputUint8(lcdadr);
+//	state_fio->Fwrite(lcdreg, sizeof(lcdreg), 1);
+//	state_fio->FputUint16(dcr1);
+//	state_fio->FputUint16(dcr2);
+//	state_fio->FputInt32(kj_h);
+//	state_fio->FputInt32(kj_l);
+//	state_fio->FputInt32(kj_ofs);
+//	state_fio->FputInt32(kj_row);
+//	state_fio->FputInt32(blinkcnt);
 }
 
 bool MEMORY::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	state_fio->Fread(ram, sizeof(ram), 1);
-	state_fio->Fread(vram, sizeof(vram), 1);
-	state_fio->Fread(cvram, sizeof(cvram), 1);
-	state_fio->Fread(kvram, sizeof(kvram), 1);
-	mcr1 = state_fio->FgetUint8();
-	mcr2 = state_fio->FgetUint8();
-	a20 = state_fio->FgetUint8();
-	lcdadr = state_fio->FgetUint8();
-	state_fio->Fread(lcdreg, sizeof(lcdreg), 1);
-	dcr1 = state_fio->FgetUint16();
-	dcr2 = state_fio->FgetUint16();
-	kj_h = state_fio->FgetInt32();
-	kj_l = state_fio->FgetInt32();
-	kj_ofs = state_fio->FgetInt32();
-	kj_row = state_fio->FgetInt32();
-	blinkcnt = state_fio->FgetInt32();
+
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	state_fio->Fread(ram, sizeof(ram), 1);
+//	state_fio->Fread(vram, sizeof(vram), 1);
+//	state_fio->Fread(cvram, sizeof(cvram), 1);
+//	state_fio->Fread(kvram, sizeof(kvram), 1);
+//	mcr1 = state_fio->FgetUint8();
+//	mcr2 = state_fio->FgetUint8();
+//	a20 = state_fio->FgetUint8();
+//	lcdadr = state_fio->FgetUint8();
+//	state_fio->Fread(lcdreg, sizeof(lcdreg), 1);
+//	dcr1 = state_fio->FgetUint16();
+//	dcr2 = state_fio->FgetUint16();
+//	kj_h = state_fio->FgetInt32();
+//	kj_l = state_fio->FgetInt32();
+//	kj_ofs = state_fio->FgetInt32();
+//	kj_row = state_fio->FgetInt32();
+//	blinkcnt = state_fio->FgetInt32();
 	
 	// post process
 	update_bank();

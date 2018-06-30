@@ -309,6 +309,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 			AH = 0;
 			drive_mode1[drv] = DL;
 			drive_mode2[drv] = BX;
+			// ToDo: Trap when not resiztered disk[drv].
 			switch(DL & 0x30) {
 			case 0x00: disk[drv]->drive_type = DRIVE_TYPE_2HD; break;
 			case 0x10: disk[drv]->drive_type = DRIVE_TYPE_2DD; break;
@@ -332,6 +333,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 			// drive status
 			if((AL & 0xf0) == 0x20) {
 				// floppy
+				// ToDo: Trap when not resiztered disk[drv].
 				if(!(drv < MAX_DRIVE && disk[drv]->inserted)) {
 					AH = 0x80;
 					CX = ERR_FDD_NOTREADY;
@@ -385,6 +387,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 			// restore/seek
 			if((AL & 0xf0) == 0x20) {
 				// floppy
+				// ToDo: Trap when not resiztered disk[drv].
 				if(!(drv < MAX_DRIVE && disk[drv]->inserted)) {
 					AH = 0x80;
 					CX = ERR_FDD_NOTREADY;
@@ -416,6 +419,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 			// read sectors
 			if((AL & 0xf0) == 0x20) {
 				// floppy
+				// ToDo: Trap when not resiztered disk[drv].
 				if(!(drv < MAX_DRIVE && disk[drv]->inserted)) {
 					AH = 0x80;
 					CX = ERR_FDD_NOTREADY;
@@ -429,6 +433,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				int sct = DL;
 				while(BX > 0) {
 					// search sector
+					// ToDo: Trap when not resiztered disk[drv].
 					if(!disk[drv]->get_track(trk, hed)) {
 						AH = 0x80;
 						CX = ERR_FDD_NOTFOUND;
@@ -547,6 +552,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				int hed = DH & 1;
 				int sct = DL;
 				while(BX > 0) {
+					// ToDo: Trap when not resiztered disk[drv].
 					// search sector
 					if(!disk[drv]->get_track(trk, hed)) {
 						AH = 0x80;
@@ -649,6 +655,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				int sct = DL;
 				while(BX > 0) {
 					// search sector
+					// ToDo: Trap when not resiztered disk[drv].
 					if(!disk[drv]->get_track(trk, hed)) {
 						AH = 0x80;
 						CX = ERR_FDD_NOTFOUND;
@@ -731,6 +738,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 			// read id
 			if((AL & 0xf0) == 0x20) {
 				// floppy
+				// ToDo: Trap when not resiztered disk[drv].
 				if(!(drv < MAX_DRIVE && disk[drv]->inserted)) {
 					AH = 0x80;
 					CX = ERR_FDD_NOTREADY;
@@ -781,6 +789,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 			// format track
 			if((AL & 0xf0) == 0x20) {
 				// floppy
+				// ToDo: Trap when not resiztered disk[drv].
 				if(!(drv < MAX_DRIVE && disk[drv]->inserted)) {
 					AH = 0x80;
 					CX = ERR_FDD_NOTREADY;
@@ -792,6 +801,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				int trk = CX;
 				int hed = DH & 1;
 				// format track
+				// ToDo: Trap when not resiztered disk[drv].
 				disk[drv]->format_track(trk, hed);
 				access_fdd[drv] = true;
 				bool id_written = false;
@@ -808,6 +818,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 						if(!id_written) {
 							// insert new sector with data crc error
 write_id:
+							// ToDo: Trap when not resiztered disk[drv].
 							id_written = true;
 							sector_found = false;
 							uint8_t c = disk[drv]->track[index - 4];
@@ -829,12 +840,14 @@ write_id:
 					} else if(id_written) {
 						if(sector_found) {
 							// sector data
+							// ToDo: Trap when not resiztered disk[drv].
 							if(sector_index < sector_length) {
 								disk[drv]->sector[sector_index] = datareg;
 							}
 							sector_index++;
 						} else if(datareg == 0xf8 || datareg == 0xfb) {
 							// data mark
+							// ToDo: Trap when not resiztered disk[drv].
 							disk[drv]->set_deleted(datareg == 0xf8);
 							sector_found = true;
 						}
@@ -859,6 +872,7 @@ write_id:
 			// disk change ???
 			if((AL & 0xf0) == 0x20) {
 				// floppy
+				// ToDo: Trap when not resiztered disk[drv].
 				if(!(drv < MAX_DRIVE && disk[drv]->inserted)) {
 					AH = 0;
 					CX = 0;
@@ -975,6 +989,7 @@ write_id:
 			return true;
 		} else if(AH == 0x81) {
 			// pseudo bios: boot from fdd #0
+			// ToDo: Trap when not resiztered disk[drv].
 			*ZeroFlag = (timeout > (int)(FRAMES_PER_SEC * 4));
 			if(!disk[0]->inserted) {
 				*CarryFlag = 1;
@@ -1129,41 +1144,69 @@ uint32_t BIOS::read_signal(int ch)
 	return stat;
 }
 
-#define STATE_VERSION	4
+#define STATE_VERSION	5
 
+#include "../statesub.h"
+
+void BIOS::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	DECL_STATE_ENTRY_INT32(secnum);
+	DECL_STATE_ENTRY_INT32(timeout);
+	DECL_STATE_ENTRY_1D_ARRAY(drive_mode1, sizeof(drive_mode1));
+	DECL_STATE_ENTRY_1D_ARRAY(drive_mode2, sizeof(drive_mode2) / sizeof(uint16_t));
+	DECL_STATE_ENTRY_1D_ARRAY(scsi_blocks, sizeof(scsi_blocks) / sizeof(int));
+	
+	leave_decl_state();
+
+	for(int i = 0; i < MAX_DRIVE; i++) {
+		if(disk[i] != NULL) disk[i]->decl_state(p_logger);
+	}
+}
 void BIOS::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	for(int i = 0; i < MAX_DRIVE; i++) {
-		disk[i]->save_state(state_fio);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
 	}
-	state_fio->FputInt32(secnum);
-	state_fio->FputInt32(timeout);
-	state_fio->Fwrite(drive_mode1, sizeof(drive_mode1), 1);
-	state_fio->Fwrite(drive_mode2, sizeof(drive_mode2), 1);
-	state_fio->Fwrite(scsi_blocks, sizeof(scsi_blocks), 1);
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
+
+	for(int i = 0; i < MAX_DRIVE; i++) {
+		if(disk[i] != NULL) disk[i]->save_state(state_fio);
+	}
+//	state_fio->FputInt32(secnum);
+//	state_fio->FputInt32(timeout);
+//	state_fio->Fwrite(drive_mode1, sizeof(drive_mode1), 1);
+//	state_fio->Fwrite(drive_mode2, sizeof(drive_mode2), 1);
+//	state_fio->Fwrite(scsi_blocks, sizeof(scsi_blocks), 1);
 }
 
 bool BIOS::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
+	if(!mb) return false;
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
 	for(int i = 0; i < MAX_DRIVE; i++) {
-		if(!disk[i]->load_state(state_fio)) {
-			return false;
+		if(disk[i] != NULL) {
+			if(!disk[i]->load_state(state_fio)) {
+				return false;
+			}
 		}
 	}
-	secnum = state_fio->FgetInt32();
-	timeout = state_fio->FgetInt32();
-	state_fio->Fread(drive_mode1, sizeof(drive_mode1), 1);
-	state_fio->Fread(drive_mode2, sizeof(drive_mode2), 1);
-	state_fio->Fread(scsi_blocks, sizeof(scsi_blocks), 1);
+//	secnum = state_fio->FgetInt32();
+//	timeout = state_fio->FgetInt32();
+//	state_fio->Fread(drive_mode1, sizeof(drive_mode1), 1);
+//	state_fio->Fread(drive_mode2, sizeof(drive_mode2), 1);
+//	state_fio->Fread(scsi_blocks, sizeof(scsi_blocks), 1);
 	return true;
 }
 

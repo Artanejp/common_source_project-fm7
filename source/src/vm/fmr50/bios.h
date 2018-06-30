@@ -43,6 +43,8 @@ private:
 	
 public:
 	BIOS(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
+		for(int i = 0; i < MAX_DRIVE; i++) disk[i] = NULL;
+		//for(int i = 0; i < USE_HARD_DISK; i++) harddisk[i] = NULL;
 		set_device_name(_T("Pseudo BIOS"));
 	}
 	~BIOS() {}
@@ -54,6 +56,7 @@ public:
 	bool bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag);
 	bool bios_int_i86(int intnum, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag);
 	uint32_t read_signal(int ch);
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
