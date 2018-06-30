@@ -56,25 +56,49 @@ uint32_t RAMPACK::read_io8(uint32_t addr)
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void RAMPACK::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
+	DECL_STATE_ENTRY_BOOL(modified);
+	
+	leave_decl_state();
+}
+
 void RAMPACK::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->Fwrite(ram, sizeof(ram), 1);
-	state_fio->FputBool(modified);
+//	state_fio->Fwrite(ram, sizeof(ram), 1);
+//	state_fio->FputBool(modified);
 }
 
 bool RAMPACK::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	state_fio->Fread(ram, sizeof(ram), 1);
-	modified = state_fio->FgetBool();
+
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	state_fio->Fread(ram, sizeof(ram), 1);
+//	modified = state_fio->FgetBool();
 	return true;
 }
 

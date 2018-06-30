@@ -184,35 +184,63 @@ void SUB::draw_screen()
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void SUB::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	DECL_STATE_ENTRY_FIFO(key_buffer);
+	DECL_STATE_ENTRY_UINT8(key_data);
+	DECL_STATE_ENTRY_BOOL(key_irq);
+	DECL_STATE_ENTRY_UINT8(fdc_drive);
+	DECL_STATE_ENTRY_UINT8(fdc_side);
+	DECL_STATE_ENTRY_UINT8(rtc_data);
+
+	leave_decl_state();
+}
+
 void SUB::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	key_buffer->save_state((void *)state_fio);
-	state_fio->FputUint8(key_data);
-	state_fio->FputBool(key_irq);
-	state_fio->FputUint8(fdc_drive);
-	state_fio->FputUint8(fdc_side);
-	state_fio->FputUint8(rtc_data);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
+//	
+//	key_buffer->save_state((void *)state_fio);
+//	state_fio->FputUint8(key_data);
+//	state_fio->FputBool(key_irq);
+//	state_fio->FputUint8(fdc_drive);
+//	state_fio->FputUint8(fdc_side);
+//	state_fio->FputUint8(rtc_data);
 }
 
 bool SUB::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	if(!key_buffer->load_state((void *)state_fio)) {
-		return false;
-	}
-	key_data = state_fio->FgetUint8();
-	key_irq = state_fio->FgetBool();
-	fdc_drive = state_fio->FgetUint8();
-	fdc_side = state_fio->FgetUint8();
-	rtc_data = state_fio->FgetUint8();
+
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	if(!key_buffer->load_state((void *)state_fio)) {
+//		return false;
+//	}
+//	key_data = state_fio->FgetUint8();
+//	key_irq = state_fio->FgetBool();
+//	fdc_drive = state_fio->FgetUint8();
+//	fdc_side = state_fio->FgetUint8();
+//	rtc_data = state_fio->FgetUint8();
 	return true;
 }
 

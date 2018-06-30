@@ -526,67 +526,165 @@ void SUB::draw_screen()
 
 #define STATE_VERSION	2
 
+#include "../../statesub.h"
+
+#define DECL_STATE_ENTRY_74LS74(foo) {			\
+		DECL_STATE_ENTRY_BOOL((foo.in_d));		\
+		DECL_STATE_ENTRY_BOOL((foo.in_ck));		\
+		DECL_STATE_ENTRY_BOOL((foo.in_s));		\
+		DECL_STATE_ENTRY_BOOL((foo.in_r));		\
+		DECL_STATE_ENTRY_BOOL((foo.out_q));		\
+		DECL_STATE_ENTRY_BOOL((foo.out_nq));	\
+		DECL_STATE_ENTRY_BOOL((foo.tmp_ck));	\
+	}
+
+#define DECL_STATE_ENTRY_74LS151(foo) { \
+	DECL_STATE_ENTRY_BOOL((foo.in_d0)); \
+	DECL_STATE_ENTRY_BOOL((foo.in_d1)); \
+	DECL_STATE_ENTRY_BOOL((foo.in_d2)); \
+	DECL_STATE_ENTRY_BOOL((foo.in_d3)); \
+	DECL_STATE_ENTRY_BOOL((foo.in_d4)); \
+	DECL_STATE_ENTRY_BOOL((foo.in_d5)); \
+	DECL_STATE_ENTRY_BOOL((foo.in_d6)); \
+	DECL_STATE_ENTRY_BOOL((foo.in_d7)); \
+	DECL_STATE_ENTRY_BOOL((foo.in_a)); \
+	DECL_STATE_ENTRY_BOOL((foo.in_b)); \
+	DECL_STATE_ENTRY_BOOL((foo.in_c)); \
+	DECL_STATE_ENTRY_BOOL((foo.in_s));	\
+	DECL_STATE_ENTRY_BOOL((foo.out_y)); \
+	DECL_STATE_ENTRY_BOOL((foo.out_ny));		\
+	}
+
+#define DECL_STATE_ENTRY_74LS93(foo) {			\
+		DECL_STATE_ENTRY_BOOL((foo.in_a));		\
+		DECL_STATE_ENTRY_BOOL((foo.in_b));		\
+		DECL_STATE_ENTRY_BOOL((foo.in_rc1));	\
+		DECL_STATE_ENTRY_BOOL((foo.in_rc2));	\
+		DECL_STATE_ENTRY_BOOL((foo.out_qa));	\
+		DECL_STATE_ENTRY_BOOL((foo.out_qb));	\
+		DECL_STATE_ENTRY_BOOL((foo.out_qc));	\
+		DECL_STATE_ENTRY_BOOL((foo.tmp_a));		\
+		DECL_STATE_ENTRY_BOOL((foo.tmp_b));		\
+		DECL_STATE_ENTRY_UINT8((foo.counter_a));	\
+		DECL_STATE_ENTRY_UINT8((foo.counter_b));	\
+	}
+
+#define DECL_STATE_ENTRY_TC4024BP(foo) {			\
+		DECL_STATE_ENTRY_BOOL((foo.in_ck));			\
+		DECL_STATE_ENTRY_BOOL((foo.in_clr));		\
+		DECL_STATE_ENTRY_BOOL((foo.out_q5));		\
+		DECL_STATE_ENTRY_BOOL((foo.out_q6));		\
+		DECL_STATE_ENTRY_BOOL((foo.tmp_ck));		\
+		DECL_STATE_ENTRY_UINT8((foo.counter));		\
+	}
+
+void SUB::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
+	DECL_STATE_ENTRY_1D_ARRAY(vram_b, sizeof(vram_b));
+	DECL_STATE_ENTRY_1D_ARRAY(vram_r, sizeof(vram_r));
+	DECL_STATE_ENTRY_1D_ARRAY(vram_g, sizeof(vram_g));
+	DECL_STATE_ENTRY_UINT8(pa);
+	DECL_STATE_ENTRY_UINT8(pb);
+	DECL_STATE_ENTRY_UINT8(pc);
+	DECL_STATE_ENTRY_UINT8(comm_data);
+	DECL_STATE_ENTRY_BOOL(so);
+	DECL_STATE_ENTRY_UINT8(clock);
+	DECL_STATE_ENTRY_74LS74(b16_1);
+	DECL_STATE_ENTRY_74LS74(b16_2);
+	DECL_STATE_ENTRY_74LS74(g21_1);
+	DECL_STATE_ENTRY_74LS74(g21_2);
+
+	DECL_STATE_ENTRY_74LS151(c15);
+	DECL_STATE_ENTRY_74LS93(c16);
+
+	DECL_STATE_ENTRY_TC4024BP(f21);
+
+	DECL_STATE_ENTRY_UINT8(key_sel);
+	DECL_STATE_ENTRY_UINT8(key_data);
+	DECL_STATE_ENTRY_UINT8(color_reg);
+	DECL_STATE_ENTRY_BOOL(hsync);
+	DECL_STATE_ENTRY_BOOL(wait);
+	DECL_STATE_ENTRY_UINT8(cblink);
+
+	leave_decl_state();
+}
+
 void SUB::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->Fwrite(ram, sizeof(ram), 1);
-	state_fio->Fwrite(vram_b, sizeof(vram_b), 1);
-	state_fio->Fwrite(vram_r, sizeof(vram_r), 1);
-	state_fio->Fwrite(vram_g, sizeof(vram_g), 1);
-	state_fio->FputUint8(pa);
-	state_fio->FputUint8(pb);
-	state_fio->FputUint8(pc);
-	state_fio->FputUint8(comm_data);
-	state_fio->FputBool(so);
-	state_fio->FputUint8(clock);
-	state_fio->Fwrite(&b16_1, sizeof(b16_1), 1);
-	state_fio->Fwrite(&b16_2, sizeof(b16_2), 1);
-	state_fio->Fwrite(&g21_1, sizeof(g21_1), 1);
-	state_fio->Fwrite(&g21_2, sizeof(g21_2), 1);
-	state_fio->Fwrite(&c15, sizeof(c15), 1);
-	state_fio->Fwrite(&c16, sizeof(c16), 1);
-	state_fio->Fwrite(&f21, sizeof(f21), 1);
-	state_fio->FputUint8(key_sel);
-	state_fio->FputUint8(key_data);
-	state_fio->FputUint8(color_reg);
-	state_fio->FputBool(hsync);
-	state_fio->FputBool(wait);
-	state_fio->FputUint8(cblink);
+//	state_fio->Fwrite(ram, sizeof(ram), 1);
+//	state_fio->Fwrite(vram_b, sizeof(vram_b), 1);
+//	state_fio->Fwrite(vram_r, sizeof(vram_r), 1);
+//	state_fio->Fwrite(vram_g, sizeof(vram_g), 1);
+//	state_fio->FputUint8(pa);
+//	state_fio->FputUint8(pb);
+//	state_fio->FputUint8(pc);
+//	state_fio->FputUint8(comm_data);
+//	state_fio->FputBool(so);
+//	state_fio->FputUint8(clock);
+//	state_fio->Fwrite(&b16_1, sizeof(b16_1), 1);
+//	state_fio->Fwrite(&b16_2, sizeof(b16_2), 1);
+//	state_fio->Fwrite(&g21_1, sizeof(g21_1), 1);
+//	state_fio->Fwrite(&g21_2, sizeof(g21_2), 1);
+//	state_fio->Fwrite(&c15, sizeof(c15), 1);
+//	state_fio->Fwrite(&c16, sizeof(c16), 1);
+//	state_fio->Fwrite(&f21, sizeof(f21), 1);
+//	state_fio->FputUint8(key_sel);
+//	state_fio->FputUint8(key_data);
+//	state_fio->FputUint8(color_reg);
+//	state_fio->FputBool(hsync);
+//	state_fio->FputBool(wait);
+//	state_fio->FputUint8(cblink);
 }
 
 bool SUB::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	state_fio->Fread(ram, sizeof(ram), 1);
-	state_fio->Fread(vram_b, sizeof(vram_b), 1);
-	state_fio->Fread(vram_r, sizeof(vram_r), 1);
-	state_fio->Fread(vram_g, sizeof(vram_g), 1);
-	pa = state_fio->FgetUint8();
-	pb = state_fio->FgetUint8();
-	pc = state_fio->FgetUint8();
-	comm_data = state_fio->FgetUint8();
-	so = state_fio->FgetBool();
-	clock = state_fio->FgetUint8();
-	state_fio->Fread(&b16_1, sizeof(b16_1), 1);
-	state_fio->Fread(&b16_2, sizeof(b16_2), 1);
-	state_fio->Fread(&g21_1, sizeof(g21_1), 1);
-	state_fio->Fread(&g21_2, sizeof(g21_2), 1);
-	state_fio->Fread(&c15, sizeof(c15), 1);
-	state_fio->Fread(&c16, sizeof(c16), 1);
-	state_fio->Fread(&f21, sizeof(f21), 1);
-	key_sel = state_fio->FgetUint8();
-	key_data = state_fio->FgetUint8();
-	color_reg = state_fio->FgetUint8();
-	hsync = state_fio->FgetBool();
-	wait = state_fio->FgetBool();
-	cblink = state_fio->FgetUint8();
+
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	state_fio->Fread(ram, sizeof(ram), 1);
+//	state_fio->Fread(vram_b, sizeof(vram_b), 1);
+//	state_fio->Fread(vram_r, sizeof(vram_r), 1);
+//	state_fio->Fread(vram_g, sizeof(vram_g), 1);
+//	pa = state_fio->FgetUint8();
+//	pb = state_fio->FgetUint8();
+//	pc = state_fio->FgetUint8();
+//	comm_data = state_fio->FgetUint8();
+//	so = state_fio->FgetBool();
+//	clock = state_fio->FgetUint8();
+//	state_fio->Fread(&b16_1, sizeof(b16_1), 1);
+//	state_fio->Fread(&b16_2, sizeof(b16_2), 1);
+//	state_fio->Fread(&g21_1, sizeof(g21_1), 1);
+//	state_fio->Fread(&g21_2, sizeof(g21_2), 1);
+//	state_fio->Fread(&c15, sizeof(c15), 1);
+//	state_fio->Fread(&c16, sizeof(c16), 1);
+//	state_fio->Fread(&f21, sizeof(f21), 1);
+//	key_sel = state_fio->FgetUint8();
+//	key_data = state_fio->FgetUint8();
+//	color_reg = state_fio->FgetUint8();
+//	hsync = state_fio->FgetBool();
+//	wait = state_fio->FgetBool();
+//	cblink = state_fio->FgetUint8();
 	return true;
 }
 

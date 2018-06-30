@@ -624,100 +624,206 @@ void IO::draw_screen()
 	}
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
+#include "../../statesub.h"
+
+#define DECL_STATE_ENTRY_74LS74(foo) {			\
+		DECL_STATE_ENTRY_BOOL((foo.in_d));		\
+		DECL_STATE_ENTRY_BOOL((foo.in_ck));		\
+		DECL_STATE_ENTRY_BOOL((foo.in_s));		\
+		DECL_STATE_ENTRY_BOOL((foo.in_r));		\
+		DECL_STATE_ENTRY_BOOL((foo.out_q));		\
+		DECL_STATE_ENTRY_BOOL((foo.out_nq));	\
+		DECL_STATE_ENTRY_BOOL((foo.tmp_ck));	\
+	}
+
+#define DECL_STATE_ENTRY_74LS151(foo) { \
+	DECL_STATE_ENTRY_BOOL((foo.in_d0)); \
+	DECL_STATE_ENTRY_BOOL((foo.in_d1)); \
+	DECL_STATE_ENTRY_BOOL((foo.in_d2)); \
+	DECL_STATE_ENTRY_BOOL((foo.in_d3)); \
+	DECL_STATE_ENTRY_BOOL((foo.in_d4)); \
+	DECL_STATE_ENTRY_BOOL((foo.in_d5)); \
+	DECL_STATE_ENTRY_BOOL((foo.in_d6)); \
+	DECL_STATE_ENTRY_BOOL((foo.in_d7)); \
+	DECL_STATE_ENTRY_BOOL((foo.in_a)); \
+	DECL_STATE_ENTRY_BOOL((foo.in_b)); \
+	DECL_STATE_ENTRY_BOOL((foo.in_c)); \
+	DECL_STATE_ENTRY_BOOL((foo.in_s));	\
+	DECL_STATE_ENTRY_BOOL((foo.out_y)); \
+	DECL_STATE_ENTRY_BOOL((foo.out_ny));		\
+	}
+
+#define DECL_STATE_ENTRY_74LS93(foo) {			\
+		DECL_STATE_ENTRY_BOOL((foo.in_a));		\
+		DECL_STATE_ENTRY_BOOL((foo.in_b));		\
+		DECL_STATE_ENTRY_BOOL((foo.in_rc1));	\
+		DECL_STATE_ENTRY_BOOL((foo.in_rc2));	\
+		DECL_STATE_ENTRY_BOOL((foo.out_qa));	\
+		DECL_STATE_ENTRY_BOOL((foo.out_qb));	\
+		DECL_STATE_ENTRY_BOOL((foo.out_qc));	\
+		DECL_STATE_ENTRY_BOOL((foo.tmp_a));		\
+		DECL_STATE_ENTRY_BOOL((foo.tmp_b));		\
+		DECL_STATE_ENTRY_UINT8((foo.counter_a));	\
+		DECL_STATE_ENTRY_UINT8((foo.counter_b));	\
+	}
+
+#define DECL_STATE_ENTRY_TC4024BP(foo) {			\
+		DECL_STATE_ENTRY_BOOL((foo.in_ck));			\
+		DECL_STATE_ENTRY_BOOL((foo.in_clr));		\
+		DECL_STATE_ENTRY_BOOL((foo.out_q5));		\
+		DECL_STATE_ENTRY_BOOL((foo.out_q6));		\
+		DECL_STATE_ENTRY_BOOL((foo.tmp_ck));		\
+		DECL_STATE_ENTRY_UINT8((foo.counter));		\
+	}
+
+void IO::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	for(int i = 0; i < 2; i++) {
+		DECL_STATE_ENTRY_1D_ARRAY_MEMBER(lcd[i].ram, sizeof(lcd[0].ram), i);
+		DECL_STATE_ENTRY_INT32_MEMBER((lcd[i].offset), i);
+		DECL_STATE_ENTRY_INT32_MEMBER((lcd[i].cursor), i);
+	}		
+	DECL_STATE_ENTRY_INT32(lcd_status);
+	DECL_STATE_ENTRY_INT32(lcd_addr);
+	DECL_STATE_ENTRY_BOOL(lcd_text);
+	DECL_STATE_ENTRY_BOOL(cmt_selected);
+	DECL_STATE_ENTRY_UINT8(cmt_mode);
+	DECL_STATE_ENTRY_BOOL(cmt_play_ready);
+	DECL_STATE_ENTRY_BOOL(cmt_play_signal);
+	DECL_STATE_ENTRY_BOOL(cmt_rec_ready);
+	DECL_STATE_ENTRY_BOOL(cmt_rec);
+	DECL_STATE_ENTRY_BOOL(cmt_is_wav);
+	DECL_STATE_ENTRY_STRING(cmt_rec_file_path, sizeof(cmt_rec_file_path));
+	DECL_STATE_ENTRY_CMT_RECORDING(cmt_fio, cmt_rec, cmt_rec_file_path);
+	
+	DECL_STATE_ENTRY_INT32(cmt_bufcnt);
+	// ToDo: Write cmt_buffer only used (indicated by cmt_bufcnt).
+	DECL_STATE_ENTRY_1D_ARRAY(cmt_buffer, sizeof(cmt_buffer));
+	
+	DECL_STATE_ENTRY_UINT8(cmt_clock);
+	DECL_STATE_ENTRY_74LS74(b16_1);
+	DECL_STATE_ENTRY_74LS74(b16_2);
+	DECL_STATE_ENTRY_74LS74(g21_1);
+	DECL_STATE_ENTRY_74LS74(g21_2);
+	
+	DECL_STATE_ENTRY_74LS151(c15);
+	
+	DECL_STATE_ENTRY_74LS93(c16);
+
+	DECL_STATE_ENTRY_TC4024BP(f21);
+	DECL_STATE_ENTRY_UINT8(key_column);
+
+	leave_decl_state();
+}
+	
 void IO::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->Fwrite(lcd, sizeof(lcd), 1);
-	state_fio->FputInt32(lcd_status);
-	state_fio->FputInt32(lcd_addr);
-	state_fio->FputBool(lcd_text);
-	state_fio->FputBool(cmt_selected);
-	state_fio->FputUint8(cmt_mode);
-	state_fio->FputBool(cmt_play_ready);
-	state_fio->FputBool(cmt_play_signal);
-	state_fio->FputBool(cmt_rec_ready);
-	state_fio->FputBool(cmt_rec);
-	state_fio->FputBool(cmt_is_wav);
-	state_fio->Fwrite(cmt_rec_file_path, sizeof(cmt_rec_file_path), 1);
-	if(cmt_rec && cmt_fio->IsOpened()) {
-		int length_tmp = (int)cmt_fio->Ftell();
-		cmt_fio->Fseek(0, FILEIO_SEEK_SET);
-		state_fio->FputInt32(length_tmp);
-		while(length_tmp != 0) {
-			uint8_t buffer_tmp[1024];
-			int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
-			cmt_fio->Fread(buffer_tmp, length_rw, 1);
-			state_fio->Fwrite(buffer_tmp, length_rw, 1);
-			length_tmp -= length_rw;
-		}
-	} else {
-		state_fio->FputInt32(0);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
 	}
-	state_fio->FputInt32(cmt_bufcnt);
-	state_fio->Fwrite(cmt_buffer, cmt_bufcnt, 1);
-	state_fio->FputUint8(cmt_clock);
-	state_fio->Fwrite(&b16_1, sizeof(b16_1), 1);
-	state_fio->Fwrite(&b16_2, sizeof(b16_2), 1);
-	state_fio->Fwrite(&g21_1, sizeof(g21_1), 1);
-	state_fio->Fwrite(&g21_2, sizeof(g21_2), 1);
-	state_fio->Fwrite(&c15, sizeof(c15), 1);
-	state_fio->Fwrite(&c16, sizeof(c16), 1);
-	state_fio->Fwrite(&f21, sizeof(f21), 1);
-	state_fio->FputUint8(key_column);
+
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
+	
+//	state_fio->Fwrite(lcd, sizeof(lcd), 1);
+//	state_fio->FputInt32(lcd_status);
+//	state_fio->FputInt32(lcd_addr);
+//	state_fio->FputBool(lcd_text);
+//	state_fio->FputBool(cmt_selected);
+//	state_fio->FputUint8(cmt_mode);
+//	state_fio->FputBool(cmt_play_ready);
+//	state_fio->FputBool(cmt_play_signal);
+//	state_fio->FputBool(cmt_rec_ready);
+//	state_fio->FputBool(cmt_rec);
+//	state_fio->FputBool(cmt_is_wav);
+//	state_fio->Fwrite(cmt_rec_file_path, sizeof(cmt_rec_file_path), 1);
+//	if(cmt_rec && cmt_fio->IsOpened()) {
+//		int length_tmp = (int)cmt_fio->Ftell();
+//		cmt_fio->Fseek(0, FILEIO_SEEK_SET);
+///		state_fio->FputInt32(length_tmp);
+//		while(length_tmp != 0) {
+///			uint8_t buffer_tmp[1024];
+///			int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
+//			cmt_fio->Fread(buffer_tmp, length_rw, 1);
+//			state_fio->Fwrite(buffer_tmp, length_rw, 1);
+//			length_tmp -= length_rw;
+//		}
+//	} else {
+//		state_fio->FputInt32(0);
+//	}
+//	state_fio->FputInt32(cmt_bufcnt);
+//	state_fio->Fwrite(cmt_buffer, cmt_bufcnt, 1);
+//	state_fio->FputUint8(cmt_clock);
+//	state_fio->Fwrite(&b16_1, sizeof(b16_1), 1);
+//	state_fio->Fwrite(&b16_2, sizeof(b16_2), 1);
+//	state_fio->Fwrite(&g21_1, sizeof(g21_1), 1);
+//	state_fio->Fwrite(&g21_2, sizeof(g21_2), 1);
+//	state_fio->Fwrite(&c15, sizeof(c15), 1);
+//	state_fio->Fwrite(&c16, sizeof(c16), 1);
+//	state_fio->Fwrite(&f21, sizeof(f21), 1);
+//	state_fio->FputUint8(key_column);
 }
 
 bool IO::load_state(FILEIO* state_fio)
 {
 	close_tape();
 	
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	state_fio->Fread(lcd, sizeof(lcd), 1);
-	lcd_status = state_fio->FgetInt32();
-	lcd_addr = state_fio->FgetInt32();
-	lcd_text = state_fio->FgetBool();
-	cmt_selected = state_fio->FgetBool();
-	cmt_mode = state_fio->FgetUint8();
-	cmt_play_ready = state_fio->FgetBool();
-	cmt_play_signal = state_fio->FgetBool();
-	cmt_rec_ready = state_fio->FgetBool();
-	cmt_rec = state_fio->FgetBool();
-	cmt_is_wav = state_fio->FgetBool();
-	state_fio->Fread(cmt_rec_file_path, sizeof(cmt_rec_file_path), 1);
-	int length_tmp = state_fio->FgetInt32();
-	if(cmt_rec) {
-		cmt_fio->Fopen(cmt_rec_file_path, FILEIO_READ_WRITE_NEW_BINARY);
-		while(length_tmp != 0) {
-			uint8_t buffer_tmp[1024];
-			int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
-			state_fio->Fread(buffer_tmp, length_rw, 1);
-			if(cmt_fio->IsOpened()) {
-				cmt_fio->Fwrite(buffer_tmp, length_rw, 1);
-			}
-			length_tmp -= length_rw;
-		}
-	}
-	cmt_bufcnt = state_fio->FgetInt32();
-	if(cmt_bufcnt) {
-		state_fio->Fread(cmt_buffer, cmt_bufcnt, 1);
-	}
-	cmt_clock = state_fio->FgetUint8();
-	state_fio->Fread(&b16_1, sizeof(b16_1), 1);
-	state_fio->Fread(&b16_2, sizeof(b16_2), 1);
-	state_fio->Fread(&g21_1, sizeof(g21_1), 1);
-	state_fio->Fread(&g21_2, sizeof(g21_2), 1);
-	state_fio->Fread(&c15, sizeof(c15), 1);
-	state_fio->Fread(&c16, sizeof(c16), 1);
-	state_fio->Fread(&f21, sizeof(f21), 1);
-	key_column = state_fio->FgetUint8();
+
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	state_fio->Fread(lcd, sizeof(lcd), 1);
+//	lcd_status = state_fio->FgetInt32();
+//	lcd_addr = state_fio->FgetInt32();
+//	lcd_text = state_fio->FgetBool();
+//	cmt_selected = state_fio->FgetBool();
+//	cmt_mode = state_fio->FgetUint8();
+//	cmt_play_ready = state_fio->FgetBool();
+//	cmt_play_signal = state_fio->FgetBool();
+//	cmt_rec_ready = state_fio->FgetBool();
+//	cmt_rec = state_fio->FgetBool();
+//	cmt_is_wav = state_fio->FgetBool();
+//	state_fio->Fread(cmt_rec_file_path, sizeof(cmt_rec_file_path), 1);
+//	int length_tmp = state_fio->FgetInt32();
+//	if(cmt_rec) {
+//		cmt_fio->Fopen(cmt_rec_file_path, FILEIO_READ_WRITE_NEW_BINARY);
+//		while(length_tmp != 0) {
+//			uint8_t buffer_tmp[1024];
+//			int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
+//			state_fio->Fread(buffer_tmp, length_rw, 1);
+//			if(cmt_fio->IsOpened()) {
+//				cmt_fio->Fwrite(buffer_tmp, length_rw, 1);
+//			}
+//			length_tmp -= length_rw;
+//		}
+//	}
+//	cmt_bufcnt = state_fio->FgetInt32();
+//	if(cmt_bufcnt) {
+//		state_fio->Fread(cmt_buffer, cmt_bufcnt, 1);
+//	}
+//	cmt_clock = state_fio->FgetUint8();
+//	state_fio->Fread(&b16_1, sizeof(b16_1), 1);
+//	state_fio->Fread(&b16_2, sizeof(b16_2), 1);
+//	state_fio->Fread(&g21_1, sizeof(g21_1), 1);
+//	state_fio->Fread(&g21_2, sizeof(g21_2), 1);
+//	state_fio->Fread(&c15, sizeof(c15), 1);
+///	state_fio->Fread(&c16, sizeof(c16), 1);
+//	state_fio->Fread(&f21, sizeof(f21), 1);
+//	key_column = state_fio->FgetUint8();
 	return true;
 }
 
