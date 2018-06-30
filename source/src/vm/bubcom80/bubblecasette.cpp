@@ -497,6 +497,7 @@ bool BUBBLECASETTE::read_header()
 	// You need convert to [UTF8|Local8Bit] when using UI.
 	fio->Fread(bbl_header.filename, 0x10, 1);
 	if(fio->Fread(&tmpval, 0x10, 1) != 0x10) return false;
+	
 	// Offset(little endian)
 	bbl_header.offset.b.l  = tmpval[4];
 	bbl_header.offset.b.h  = tmpval[5];
@@ -704,53 +705,102 @@ void BUBBLECASETTE::event_callback(int event_id, int err)
 
 #define STATE_VERSION 2
 
+void BUBBLECASETTE::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	// Attributes
+	DECL_STATE_ENTRY_UINT32(file_length);
+	DECL_STATE_ENTRY_BOOL(bubble_inserted);
+	DECL_STATE_ENTRY_INT32(bubble_type);
+	DECL_STATE_ENTRY_INT32(media_num);
+	DECL_STATE_ENTRY_UINT32(media_offset);
+	DECL_STATE_ENTRY_UINT32(media_offset_new);
+	DECL_STATE_ENTRY_UINT32(media_size);
+	// Data reg
+	DECL_STATE_ENTRY_UINT8(data_reg);
+	// Command reg
+	DECL_STATE_ENTRY_UINT8(cmd_reg);
+	// Status reg
+	DECL_STATE_ENTRY_BOOL(stat_busy);
+	DECL_STATE_ENTRY_BOOL(stat_tdra);
+	DECL_STATE_ENTRY_BOOL(stat_rda);
+	DECL_STATE_ENTRY_BOOL(cmd_error);
+	DECL_STATE_ENTRY_BOOL(stat_error);
+	DECL_STATE_ENTRY_BOOL(not_ready);
+	// Error reg
+	DECL_STATE_ENTRY_BOOL(eject_error);
+	DECL_STATE_ENTRY_BOOL(povr_error);
+	DECL_STATE_ENTRY_BOOL(crc_error);
+	DECL_STATE_ENTRY_BOOL(transfer_error);
+	DECL_STATE_ENTRY_BOOL(bad_loop_over_error);
+	DECL_STATE_ENTRY_BOOL(no_marker_error);
+	DECL_STATE_ENTRY_BOOL(undefined_cmd_error);
+	// Page address
+	DECL_STATE_ENTRY_UINT32(page_address.d);
+	//Page Count
+	DECL_STATE_ENTRY_UINT32(page_count.d);
+	// Misc flags
+	DECL_STATE_ENTRY_BOOL(is_b77);
+	DECL_STATE_ENTRY_BOOL(read_access);
+	DECL_STATE_ENTRY_BOOL(write_access);
+	DECL_STATE_ENTRY_BOOL(write_protect);
+	DECL_STATE_ENTRY_UINT8(offset_reg);
+	DECL_STATE_ENTRY_STRING(image_path, _MAX_PATH);
+	
+	leave_decl_state();
+}
 void BUBBLECASETTE::save_state(FILEIO *state_fio)
 {
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+
 //	int i, j;
-	state_fio->FputUint32_BE(STATE_VERSION);
-	state_fio->FputInt32_BE(this_device_id);
+//	state_fio->FputUint32_BE(STATE_VERSION);
+//	state_fio->FputInt32_BE(this_device_id);
 //	this->out_debug_log(_T("Save State: BUBBLE: id=%d ver=%d\n"), this_device_id, STATE_VERSION);
 
 	// Attributes
-	state_fio->FputUint32_BE(file_length);
-	state_fio->FputBool(bubble_inserted);
-	state_fio->FputInt32_BE(bubble_type);
-	state_fio->FputInt32_BE(media_num);
-	state_fio->FputUint32_BE(media_offset);
-	state_fio->FputUint32_BE(media_offset_new);
-	state_fio->FputUint32_BE(media_size);
+//	state_fio->FputUint32_BE(file_length);
+//	state_fio->FputBool(bubble_inserted);
+//	state_fio->FputInt32_BE(bubble_type);
+//	state_fio->FputInt32_BE(media_num);
+//	state_fio->FputUint32_BE(media_offset);
+//	state_fio->FputUint32_BE(media_offset_new);
+//	state_fio->FputUint32_BE(media_size);
 	// Data reg
-	state_fio->FputUint8(data_reg);
-	// Command reg
-	state_fio->FputUint8(cmd_reg);
+//	state_fio->FputUint8(data_reg);
+//	// Command reg
+//	state_fio->FputUint8(cmd_reg);
 	// Status reg
-	state_fio->FputBool(stat_busy);
-	state_fio->FputBool(stat_tdra);
-	state_fio->FputBool(stat_rda);
-	state_fio->FputBool(cmd_error);
-	state_fio->FputBool(stat_error);
-	state_fio->FputBool(not_ready);
+//	state_fio->FputBool(stat_busy);
+//	state_fio->FputBool(stat_tdra);
+//	state_fio->FputBool(stat_rda);
+//	state_fio->FputBool(cmd_error);
+//	state_fio->FputBool(stat_error);
+//	state_fio->FputBool(not_ready);
 	// Error reg
-	state_fio->FputBool(eject_error);
-	state_fio->FputBool(povr_error);
-	state_fio->FputBool(crc_error);
-	state_fio->FputBool(transfer_error);
-	state_fio->FputBool(bad_loop_over_error);
-	state_fio->FputBool(no_marker_error);
-	state_fio->FputBool(undefined_cmd_error);
+//	state_fio->FputBool(eject_error);
+//	state_fio->FputBool(povr_error);
+//	state_fio->FputBool(crc_error);
+//	state_fio->FputBool(transfer_error);
+//	state_fio->FputBool(bad_loop_over_error);
+//	state_fio->FputBool(no_marker_error);
+//	state_fio->FputBool(undefined_cmd_error);
 	// Page address
-	state_fio->FputUint32_BE(page_address.d);
+//	state_fio->FputUint32_BE(page_address.d);
 	//Page Count
-	state_fio->FputUint32_BE(page_count.d);
+//	state_fio->FputUint32_BE(page_count.d);
 	// Misc flags
-	state_fio->FputBool(is_b77);
-	state_fio->FputBool(read_access);
-	state_fio->FputBool(write_access);
-	state_fio->FputBool(write_protect);
-	state_fio->FputUint8(offset_reg);
+//	state_fio->FputBool(is_b77);
+//	state_fio->FputBool(read_access);
+//	state_fio->FputBool(write_access);
+//	state_fio->FputBool(write_protect);
+//	state_fio->FputUint8(offset_reg);
 
 	
-	state_fio->Fwrite(image_path, _MAX_PATH * sizeof(_TCHAR), 1);
+//	state_fio->Fwrite(image_path, _MAX_PATH * sizeof(_TCHAR), 1);
 	if(fio != NULL) {
 		if(fio->IsOpened()) {
 			if(is_wrote) write_one_page();
@@ -766,52 +816,57 @@ void BUBBLECASETTE::save_state(FILEIO *state_fio)
 
 bool BUBBLECASETTE::load_state(FILEIO *state_fio)
 {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) return false;
 //	int i, j;
-	if(state_fio->FgetUint32_BE() != STATE_VERSION) return false;
-	if(state_fio->FgetInt32_BE() != this_device_id) return false;
+//	if(state_fio->FgetUint32_BE() != STATE_VERSION) return false;
+//	if(state_fio->FgetInt32_BE() != this_device_id) return false;
 //	this->out_debug_log(_T("Load State: BUBBLE: id=%d ver=%d\n"), this_device_id, STATE_VERSION);
 
 	// Attributes
-	file_length = state_fio->FgetUint32_BE();
-	bubble_inserted = state_fio->FgetBool();
-	bubble_type = state_fio->FgetInt32_BE();
-	media_num = state_fio->FgetInt32_BE();
-	media_offset = state_fio->FgetInt32_BE();
-	media_offset_new = state_fio->FgetInt32_BE();
-	media_size = state_fio->FgetInt32_BE();
+//	file_length = state_fio->FgetUint32_BE();
+//	bubble_inserted = state_fio->FgetBool();
+//	bubble_type = state_fio->FgetInt32_BE();
+//	media_num = state_fio->FgetInt32_BE();
+//	media_offset = state_fio->FgetInt32_BE();
+//	media_offset_new = state_fio->FgetInt32_BE();
+//	media_size = state_fio->FgetInt32_BE();
 	// Data reg
-	data_reg = state_fio->FgetUint8();
+//	data_reg = state_fio->FgetUint8();
 	// Command reg
-	cmd_reg = state_fio->FgetUint8();
+//	cmd_reg = state_fio->FgetUint8();
 	// Status reg
-	stat_busy = state_fio->FgetBool();
-	stat_tdra = state_fio->FgetBool();
-	stat_rda = state_fio->FgetBool();
-	cmd_error = state_fio->FgetBool();
-	stat_error = state_fio->FgetBool();
-	not_ready = state_fio->FgetBool();
+//	stat_busy = state_fio->FgetBool();
+//	stat_tdra = state_fio->FgetBool();
+//	stat_rda = state_fio->FgetBool();
+//	cmd_error = state_fio->FgetBool();
+//	stat_error = state_fio->FgetBool();
+//	not_ready = state_fio->FgetBool();
 	// Error reg
-	eject_error = state_fio->FgetBool();
-	povr_error = state_fio->FgetBool();
-	crc_error = state_fio->FgetBool();
-	transfer_error = state_fio->FgetBool();
-	bad_loop_over_error = state_fio->FgetBool();
-	no_marker_error = state_fio->FgetBool();
-	undefined_cmd_error = state_fio->FgetBool();
+//	eject_error = state_fio->FgetBool();
+//	povr_error = state_fio->FgetBool();
+//	crc_error = state_fio->FgetBool();
+//	transfer_error = state_fio->FgetBool();
+//	bad_loop_over_error = state_fio->FgetBool();
+//	no_marker_error = state_fio->FgetBool();
+//	undefined_cmd_error = state_fio->FgetBool();
 	// Page address
-	page_address.d = state_fio->FgetUint32_BE();
+//	page_address.d = state_fio->FgetUint32_BE();
 	//Page Count
-	page_count.d = state_fio->FgetUint32_BE();
+//	page_count.d = state_fio->FgetUint32_BE();
 	// Misc flags
-	is_b77 = state_fio->FgetBool();
-	read_access = state_fio->FgetBool();
-	write_access = state_fio->FgetBool();
-	write_protect = state_fio->FgetBool();
-	offset_reg = state_fio->FgetUint8();
+//	is_b77 = state_fio->FgetBool();
+//	read_access = state_fio->FgetBool();
+//	write_access = state_fio->FgetBool();
+//	write_protect = state_fio->FgetBool();
+//	offset_reg = state_fio->FgetUint8();
 	is_wrote = false;
 	header_changed = false;
 	
-	if(state_fio->Fread(image_path, _MAX_PATH * sizeof(_TCHAR), 1) != (_MAX_PATH * sizeof(_TCHAR))) return false;
+	//if(state_fio->Fread(image_path, _MAX_PATH * sizeof(_TCHAR), 1) != (_MAX_PATH * sizeof(_TCHAR))) return false;
 	if(_tcslen(image_path) > 0) {
 		this->open(image_path, (int)media_num);
 	}
