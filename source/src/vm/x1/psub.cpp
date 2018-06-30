@@ -827,77 +827,125 @@ uint16_t PSUB::get_key(int code, bool repeat)
 
 #define STATE_VERSION	1
 
+#include "../statesub.h"
+
+void PSUB::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	DECL_STATE_ENTRY_CUR_TIME_T(cur_time);
+	DECL_STATE_ENTRY_INT32(time_register_id);
+	DECL_STATE_ENTRY_2D_ARRAY(databuf, 32, 8);
+	DECL_STATE_ENTRY_INT32(tmp_datap); // (int)(datap - &databuf[0][0]);
+	DECL_STATE_ENTRY_UINT8(mode);
+	DECL_STATE_ENTRY_UINT8(inbuf);
+	DECL_STATE_ENTRY_UINT8(outbuf);
+	DECL_STATE_ENTRY_BOOL(ibf);
+	DECL_STATE_ENTRY_BOOL(obf);
+	DECL_STATE_ENTRY_INT32(cmdlen);
+	DECL_STATE_ENTRY_INT32(datalen);
+	DECL_STATE_ENTRY_FIFO(key_buf);
+	DECL_STATE_ENTRY_INT32(key_prev);
+	DECL_STATE_ENTRY_INT32(key_break);
+	DECL_STATE_ENTRY_BOOL(key_shift);
+	DECL_STATE_ENTRY_BOOL(key_ctrl);
+	DECL_STATE_ENTRY_BOOL(key_graph);
+	DECL_STATE_ENTRY_BOOL(key_caps_locked);
+	DECL_STATE_ENTRY_BOOL(key_kana_locked);
+	DECL_STATE_ENTRY_INT32(key_register_id);
+	DECL_STATE_ENTRY_BOOL(play);
+	DECL_STATE_ENTRY_BOOL(rec);
+	DECL_STATE_ENTRY_BOOL(eot);
+	DECL_STATE_ENTRY_BOOL(iei);
+	DECL_STATE_ENTRY_BOOL(intr);
+	DECL_STATE_ENTRY_UINT32(intr_bit);
+	
+	leave_decl_state();
+}
+
 void PSUB::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	tmp_datap = (int)(datap - &databuf[0][0]);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	cur_time.save_state((void *)state_fio);
-	state_fio->FputInt32(time_register_id);
-	state_fio->Fwrite(databuf, sizeof(databuf), 1);
-	state_fio->FputInt32((int)(datap - &databuf[0][0]));
-	state_fio->FputUint8(mode);
-	state_fio->FputUint8(inbuf);
-	state_fio->FputUint8(outbuf);
-	state_fio->FputBool(ibf);
-	state_fio->FputBool(obf);
-	state_fio->FputInt32(cmdlen);
-	state_fio->FputInt32(datalen);
-	key_buf->save_state((void *)state_fio);
-	state_fio->FputInt32(key_prev);
-	state_fio->FputInt32(key_break);
-	state_fio->FputBool(key_shift);
-	state_fio->FputBool(key_ctrl);
-	state_fio->FputBool(key_graph);
-	state_fio->FputBool(key_caps_locked);
-	state_fio->FputBool(key_kana_locked);
-	state_fio->FputInt32(key_register_id);
-	state_fio->FputBool(play);
-	state_fio->FputBool(rec);
-	state_fio->FputBool(eot);
-	state_fio->FputBool(iei);
-	state_fio->FputBool(intr);
-	state_fio->FputUint32(intr_bit);
+//	cur_time.save_state((void *)state_fio);
+//	state_fio->FputInt32(time_register_id);
+//	state_fio->Fwrite(databuf, sizeof(databuf), 1);
+//	state_fio->FputInt32((int)(datap - &databuf[0][0]));
+//	state_fio->FputUint8(mode);
+//	state_fio->FputUint8(inbuf);
+//	state_fio->FputUint8(outbuf);
+//	state_fio->FputBool(ibf);
+//	state_fio->FputBool(obf);
+//	state_fio->FputInt32(cmdlen);
+//	state_fio->FputInt32(datalen);
+//	key_buf->save_state((void *)state_fio);
+//	state_fio->FputInt32(key_prev);
+//	state_fio->FputInt32(key_break);
+//	state_fio->FputBool(key_shift);
+//	state_fio->FputBool(key_ctrl);
+//	state_fio->FputBool(key_graph);
+//	state_fio->FputBool(key_caps_locked);
+//	state_fio->FputBool(key_kana_locked);
+//	state_fio->FputInt32(key_register_id);
+//	state_fio->FputBool(play);
+//	state_fio->FputBool(rec);
+//	state_fio->FputBool(eot);
+//	state_fio->FputBool(iei);
+//	state_fio->FputBool(intr);
+//	state_fio->FputUint32(intr_bit);
 }
 
 bool PSUB::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	if(!cur_time.load_state((void *)state_fio)) {
-		return false;
-	}
-	time_register_id = state_fio->FgetInt32();
-	state_fio->Fread(databuf, sizeof(databuf), 1);
-	datap = &databuf[0][0] + state_fio->FgetInt32();
-	mode = state_fio->FgetUint8();
-	inbuf = state_fio->FgetUint8();
-	outbuf = state_fio->FgetUint8();
-	ibf = state_fio->FgetBool();
-	obf = state_fio->FgetBool();
-	cmdlen = state_fio->FgetInt32();
-	datalen = state_fio->FgetInt32();
-	if(!key_buf->load_state((void *)state_fio)) {
-		return false;
-	}
-	key_prev = state_fio->FgetInt32();
-	key_break = state_fio->FgetInt32();
-	key_shift = state_fio->FgetBool();
-	key_ctrl = state_fio->FgetBool();
-	key_graph = state_fio->FgetBool();
-	key_caps_locked = state_fio->FgetBool();
-	key_kana_locked = state_fio->FgetBool();
-	key_register_id = state_fio->FgetInt32();
-	play = state_fio->FgetBool();
-	rec = state_fio->FgetBool();
-	eot = state_fio->FgetBool();
-	iei = state_fio->FgetBool();
-	intr = state_fio->FgetBool();
-	intr_bit = state_fio->FgetUint32();
+	if(!mb) return false;
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	if(!cur_time.load_state((void *)state_fio)) {
+//		return false;
+//	}
+//	time_register_id = state_fio->FgetInt32();
+//	state_fio->Fread(databuf, sizeof(databuf), 1);
+//	datap = &databuf[0][0] + state_fio->FgetInt32();
+//	mode = state_fio->FgetUint8();
+//	inbuf = state_fio->FgetUint8();
+//	outbuf = state_fio->FgetUint8();
+//	ibf = state_fio->FgetBool();
+//	obf = state_fio->FgetBool();
+//	cmdlen = state_fio->FgetInt32();
+//	datalen = state_fio->FgetInt32();
+//	if(!key_buf->load_state((void *)state_fio)) {
+//		return false;
+//	}
+//	key_prev = state_fio->FgetInt32();
+//	key_break = state_fio->FgetInt32();
+//	key_shift = state_fio->FgetBool();
+//	key_ctrl = state_fio->FgetBool();
+//	key_graph = state_fio->FgetBool();
+//	key_caps_locked = state_fio->FgetBool();
+//	key_kana_locked = state_fio->FgetBool();
+//	key_register_id = state_fio->FgetInt32();
+//	play = state_fio->FgetBool();
+//	rec = state_fio->FgetBool();
+//	eot = state_fio->FgetBool();
+//	iei = state_fio->FgetBool();
+//	intr = state_fio->FgetBool();
+//	intr_bit = state_fio->FgetUint32();
+
+	datap = tmp_datap + &databuf[0][0];
+
 	return true;
 }
 

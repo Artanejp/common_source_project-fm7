@@ -1513,124 +1513,200 @@ uint16_t DISPLAY::jis2sjis(uint16_t jis)
 
 #define STATE_VERSION	4
 
-void DISPLAY::save_state(FILEIO* state_fio)
+#include "../statesub.h"
+
+void DISPLAY::decl_state()
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	enter_decl_state(STATE_VERSION);
 	
-	state_fio->Fwrite(vram_t, sizeof(vram_t), 1);
-	state_fio->Fwrite(vram_a, sizeof(vram_a), 1);
+	DECL_STATE_ENTRY_1D_ARRAY(vram_t, sizeof(vram_t));
+	DECL_STATE_ENTRY_1D_ARRAY(vram_a, sizeof(vram_a));
 #ifdef _X1TURBO_FEATURE
-	state_fio->Fwrite(vram_k, sizeof(vram_k), 1);
+	DECL_STATE_ENTRY_1D_ARRAY(vram_k, sizeof(vram_k));
 #endif
-	state_fio->Fwrite(pcg_b, sizeof(pcg_b), 1);
-	state_fio->Fwrite(pcg_r, sizeof(pcg_r), 1);
-	state_fio->Fwrite(pcg_g, sizeof(pcg_g), 1);
+	DECL_STATE_ENTRY_2D_ARRAY(pcg_b, 256, 8);
+	DECL_STATE_ENTRY_2D_ARRAY(pcg_r, 256, 8);
+	DECL_STATE_ENTRY_2D_ARRAY(pcg_g, 256, 8);
 #ifdef _X1TURBO_FEATURE
-	state_fio->Fwrite(gaiji_b, sizeof(gaiji_b), 1);
-	state_fio->Fwrite(gaiji_r, sizeof(gaiji_r), 1);
-	state_fio->Fwrite(gaiji_g, sizeof(gaiji_g), 1);
+	DECL_STATE_ENTRY_2D_ARRAY(gaiji_b, 128, 16);
+	DECL_STATE_ENTRY_2D_ARRAY(gaiji_r, 128, 16);
+	DECL_STATE_ENTRY_2D_ARRAY(gaiji_g, 128, 16);
 #endif
-	state_fio->FputUint8(cur_code);
-	state_fio->FputUint8(cur_line);
-	state_fio->FputInt32(kaddr);
-	state_fio->FputInt32(kofs);
-	state_fio->FputInt32(kflag);
-	state_fio->FputInt32((int)(kanji_ptr - &kanji[0]));
-	state_fio->Fwrite(pal, sizeof(pal), 1);
-	state_fio->FputUint8(priority);
-	state_fio->Fwrite(pri, sizeof(pri), 1);
-	state_fio->FputBool(column40);
+	DECL_STATE_ENTRY_UINT8(cur_code);
+	DECL_STATE_ENTRY_UINT8(cur_line);
+	DECL_STATE_ENTRY_INT32(kaddr);
+	DECL_STATE_ENTRY_INT32(kofs);
+	DECL_STATE_ENTRY_INT32(kflag);
+	DECL_STATE_ENTRY_INT32(tmp_kanji_ptr); // (int)(kanji_ptr - &kanji[0]);
+	DECL_STATE_ENTRY_1D_ARRAY(pal, sizeof(pal));
+	DECL_STATE_ENTRY_UINT8(priority);
+	DECL_STATE_ENTRY_2D_ARRAY(pri, 8, 8);
+	DECL_STATE_ENTRY_BOOL(column40);
 #ifdef _X1TURBO_FEATURE
-	state_fio->FputUint8(mode1);
-	state_fio->FputUint8(mode2);
-	state_fio->FputBool(hireso);
+	DECL_STATE_ENTRY_UINT8(mode1);
+	DECL_STATE_ENTRY_UINT8(mode2);
+	DECL_STATE_ENTRY_BOOL(hireso);
 #endif
 #ifdef _X1TURBOZ
-	state_fio->FputUint8(zmode1);
-	state_fio->FputUint8(zpriority);
-	state_fio->FputUint8(zadjust);
-	state_fio->FputUint8(zmosaic);
-	state_fio->FputUint8(zchromakey);
-	state_fio->FputUint8(zscroll);
-	state_fio->FputUint8(zmode2);
-	state_fio->Fwrite(ztpal, sizeof(ztpal), 1);
-	state_fio->Fwrite(zpal, sizeof(zpal), 1);
-	state_fio->FputInt32(zpal_num);
-	state_fio->Fwrite(zpalette_pc, sizeof(zpalette_pc), 1);
+	DECL_STATE_ENTRY_UINT8(zmode1);
+	DECL_STATE_ENTRY_UINT8(zpriority);
+	DECL_STATE_ENTRY_UINT8(zadjust);
+	DECL_STATE_ENTRY_UINT8(zmosaic);
+	DECL_STATE_ENTRY_UINT8(zchromakey);
+	DECL_STATE_ENTRY_UINT8(zscroll);
+	DECL_STATE_ENTRY_UINT8(zmode2);
+	DECL_STATE_ENTRY_1D_ARRAY(ztpal, sizeof(ztpal));
+
+	DECL_STATE_ENTRY_UINT8_STRIDE((zpal[0].b), sizeof(zpal) / sizeof(zpal[0]) ,sizeof(zpal[0]));
+	DECL_STATE_ENTRY_UINT8_STRIDE((zpal[0].r), sizeof(zpal) / sizeof(zpal[0]) ,sizeof(zpal[0]));
+	DECL_STATE_ENTRY_UINT8_STRIDE((zpal[0].g), sizeof(zpal) / sizeof(zpal[0]) ,sizeof(zpal[0]));
+	DECL_STATE_ENTRY_INT32(zpal_num);
+	
+	DECL_STATE_ENTRY_1D_ARRAY(zpalette_pc, sizeof(zpalette_pc) / sizeof(scrntype_t)); // ToDo: Generic value.
 #endif
-	state_fio->FputBool(prev_vert_double);
-	state_fio->FputInt32(raster);
-	state_fio->FputInt32(cblink);
-	state_fio->FputInt32(ch_height);
-	state_fio->FputInt32(hz_total);
-	state_fio->FputInt32(hz_disp);
-	state_fio->FputInt32(vt_disp);
-	state_fio->FputInt32(st_addr);
-	state_fio->FputUint32(vblank_clock);
-	state_fio->FputBool(cur_blank);
+	DECL_STATE_ENTRY_BOOL(prev_vert_double);
+	DECL_STATE_ENTRY_INT32(raster);
+	DECL_STATE_ENTRY_INT32(cblink);
+	DECL_STATE_ENTRY_INT32(ch_height);
+	DECL_STATE_ENTRY_INT32(hz_total);
+	DECL_STATE_ENTRY_INT32(hz_disp);
+	DECL_STATE_ENTRY_INT32(vt_disp);
+	DECL_STATE_ENTRY_INT32(st_addr);
+	DECL_STATE_ENTRY_UINT32(vblank_clock);
+	DECL_STATE_ENTRY_BOOL(cur_blank);
+	
+	leave_decl_state();
+}
+void DISPLAY::save_state(FILEIO* state_fio)
+{
+	tmp_kanji_ptr = (int)(kanji_ptr - &kanji[0]);
+	
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
+	
+//	state_fio->Fwrite(vram_t, sizeof(vram_t), 1);
+//	state_fio->Fwrite(vram_a, sizeof(vram_a), 1);
+//#ifdef _X1TURBO_FEATURE
+//	state_fio->Fwrite(vram_k, sizeof(vram_k), 1);
+//#endif
+//	state_fio->Fwrite(pcg_b, sizeof(pcg_b), 1);
+//	state_fio->Fwrite(pcg_r, sizeof(pcg_r), 1);
+//	state_fio->Fwrite(pcg_g, sizeof(pcg_g), 1);
+//#ifdef _X1TURBO_FEATURE
+//	state_fio->Fwrite(gaiji_b, sizeof(gaiji_b), 1);
+//	state_fio->Fwrite(gaiji_r, sizeof(gaiji_r), 1);
+//	state_fio->Fwrite(gaiji_g, sizeof(gaiji_g), 1);
+//#endif
+//	state_fio->FputUint8(cur_code);
+//	state_fio->FputUint8(cur_line);
+//	state_fio->FputInt32(kaddr);
+//	state_fio->FputInt32(kofs);
+//	state_fio->FputInt32(kflag);
+
+//	state_fio->FputInt32((int)(kanji_ptr - &kanji[0]));
+//	state_fio->Fwrite(pal, sizeof(pal), 1);
+//	state_fio->FputUint8(priority);
+//	state_fio->Fwrite(pri, sizeof(pri), 1);
+//	state_fio->FputBool(column40);
+//#ifdef _X1TURBO_FEATURE
+//	state_fio->FputUint8(mode1);
+//	state_fio->FputUint8(mode2);
+//	state_fio->FputBool(hireso);
+//#endif
+//#ifdef _X1TURBOZ
+//	state_fio->FputUint8(zmode1);
+//	state_fio->FputUint8(zpriority);
+//	state_fio->FputUint8(zadjust);
+//	state_fio->FputUint8(zmosaic);
+//	state_fio->FputUint8(zchromakey);
+//	state_fio->FputUint8(zscroll);
+//	state_fio->FputUint8(zmode2);
+//	state_fio->Fwrite(ztpal, sizeof(ztpal), 1);
+//	state_fio->Fwrite(zpal, sizeof(zpal), 1);
+//	state_fio->FputInt32(zpal_num);
+//	state_fio->Fwrite(zpalette_pc, sizeof(zpalette_pc), 1);
+//#endif
+//	state_fio->FputBool(prev_vert_double);
+//	state_fio->FputInt32(raster);
+//	state_fio->FputInt32(cblink);
+//	state_fio->FputInt32(ch_height);
+//	state_fio->FputInt32(hz_total);
+//	state_fio->FputInt32(hz_disp);
+//	state_fio->FputInt32(vt_disp);
+//	state_fio->FputInt32(st_addr);
+//	state_fio->FputUint32(vblank_clock);
+//	state_fio->FputBool(cur_blank);
 }
 
 bool DISPLAY::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	state_fio->Fread(vram_t, sizeof(vram_t), 1);
-	state_fio->Fread(vram_a, sizeof(vram_a), 1);
-#ifdef _X1TURBO_FEATURE
-	state_fio->Fread(vram_k, sizeof(vram_k), 1);
-#endif
-	state_fio->Fread(pcg_b, sizeof(pcg_b), 1);
-	state_fio->Fread(pcg_r, sizeof(pcg_r), 1);
-	state_fio->Fread(pcg_g, sizeof(pcg_g), 1);
-#ifdef _X1TURBO_FEATURE
-	state_fio->Fread(gaiji_b, sizeof(gaiji_b), 1);
-	state_fio->Fread(gaiji_r, sizeof(gaiji_r), 1);
-	state_fio->Fread(gaiji_g, sizeof(gaiji_g), 1);
-#endif
-	cur_code = state_fio->FgetUint8();
-	cur_line = state_fio->FgetUint8();
-	kaddr = state_fio->FgetInt32();
-	kofs = state_fio->FgetInt32();
-	kflag = state_fio->FgetInt32();
-	kanji_ptr = &kanji[0] + state_fio->FgetInt32();
-	state_fio->Fread(pal, sizeof(pal), 1);
-	priority = state_fio->FgetUint8();
-	state_fio->Fread(pri, sizeof(pri), 1);
-	column40 = state_fio->FgetBool();
-#ifdef _X1TURBO_FEATURE
-	mode1 = state_fio->FgetUint8();
-	mode2 = state_fio->FgetUint8();
-	hireso = state_fio->FgetBool();
-#endif
-#ifdef _X1TURBOZ
-	zmode1 = state_fio->FgetUint8();
-	zpriority = state_fio->FgetUint8();
-	zadjust = state_fio->FgetUint8();
-	zmosaic = state_fio->FgetUint8();
-	zchromakey = state_fio->FgetUint8();
-	zscroll = state_fio->FgetUint8();
-	zmode2 = state_fio->FgetUint8();
-	state_fio->Fread(ztpal, sizeof(ztpal), 1);
-	state_fio->Fread(zpal, sizeof(zpal), 1);
-	zpal_num = state_fio->FgetInt32();
-	state_fio->Fread(zpalette_pc, sizeof(zpalette_pc), 1);
-#endif
-	prev_vert_double = state_fio->FgetBool();
-	raster = state_fio->FgetInt32();
-	cblink = state_fio->FgetInt32();
-	ch_height = state_fio->FgetInt32();
-	hz_total = state_fio->FgetInt32();
-	hz_disp = state_fio->FgetInt32();
-	vt_disp = state_fio->FgetInt32();
-	st_addr = state_fio->FgetInt32();
-	vblank_clock = state_fio->FgetUint32();
-	cur_blank = state_fio->FgetBool();
+	if(!mb) return false;
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	state_fio->Fread(vram_t, sizeof(vram_t), 1);
+//	state_fio->Fread(vram_a, sizeof(vram_a), 1);
+//#ifdef _X1TURBO_FEATURE
+//	state_fio->Fread(vram_k, sizeof(vram_k), 1);
+//#endif
+//	state_fio->Fread(pcg_b, sizeof(pcg_b), 1);
+//	state_fio->Fread(pcg_r, sizeof(pcg_r), 1);
+//	state_fio->Fread(pcg_g, sizeof(pcg_g), 1);
+//#ifdef _X1TURBO_FEATURE
+//	state_fio->Fread(gaiji_b, sizeof(gaiji_b), 1);
+//	state_fio->Fread(gaiji_r, sizeof(gaiji_r), 1);
+//	state_fio->Fread(gaiji_g, sizeof(gaiji_g), 1);
+//#endif
+//	cur_code = state_fio->FgetUint8();
+//	cur_line = state_fio->FgetUint8();
+//	kaddr = state_fio->FgetInt32();
+//	kofs = state_fio->FgetInt32();
+//	kflag = state_fio->FgetInt32();
+//	kanji_ptr = &kanji[0] + state_fio->FgetInt32();
+//	state_fio->Fread(pal, sizeof(pal), 1);
+//	priority = state_fio->FgetUint8();
+//	state_fio->Fread(pri, sizeof(pri), 1);
+//	column40 = state_fio->FgetBool();
+//#ifdef _X1TURBO_FEATURE
+//	mode1 = state_fio->FgetUint8();
+//	mode2 = state_fio->FgetUint8();
+//	hireso = state_fio->FgetBool();
+//#endif
+//#ifdef _X1TURBOZ
+//	zmode1 = state_fio->FgetUint8();
+//	zpriority = state_fio->FgetUint8();
+//	zadjust = state_fio->FgetUint8();
+//	zmosaic = state_fio->FgetUint8();
+//	zchromakey = state_fio->FgetUint8();
+//	zscroll = state_fio->FgetUint8();
+//	zmode2 = state_fio->FgetUint8();
+//	state_fio->Fread(ztpal, sizeof(ztpal), 1);
+//	state_fio->Fread(zpal, sizeof(zpal), 1);
+//	zpal_num = state_fio->FgetInt32();
+//	state_fio->Fread(zpalette_pc, sizeof(zpalette_pc), 1);
+//#endif
+//	prev_vert_double = state_fio->FgetBool();
+//	raster = state_fio->FgetInt32();
+//	cblink = state_fio->FgetInt32();
+//	ch_height = state_fio->FgetInt32();
+//	hz_total = state_fio->FgetInt32();
+//	hz_disp = state_fio->FgetInt32();
+//	vt_disp = state_fio->FgetInt32();
+//	st_addr = state_fio->FgetInt32();
+//	vblank_clock = state_fio->FgetUint32();
+//	cur_blank = state_fio->FgetBool();
 	
+	kanji_ptr = &kanji[0] + tmp_kanji_ptr;
 	// post process
 	// Copy images to draw buffers.
 	my_memcpy(dr_text, text, sizeof(dr_text));

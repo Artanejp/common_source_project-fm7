@@ -102,33 +102,56 @@ void FLOPPY::event_callback(int event_id, int err)
 
 #define STATE_VERSION	2
 
+#include "../statesub.h"
+
+void FLOPPY::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+	
+	DECL_STATE_ENTRY_INT32(prev);
+#ifdef _X1TURBO_FEATURE
+	DECL_STATE_ENTRY_BOOL(select_2dd);
+#endif
+	DECL_STATE_ENTRY_BOOL(motor_on);
+	DECL_STATE_ENTRY_INT32(register_id);
+	leave_decl_state();
+}
+
 void FLOPPY::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->FputInt32(prev);
-#ifdef _X1TURBO_FEATURE
-	state_fio->FputBool(select_2dd);
-#endif
-	state_fio->FputBool(motor_on);
-	state_fio->FputInt32(register_id);
+//	state_fio->FputInt32(prev);
+//#ifdef _X1TURBO_FEATURE
+//	state_fio->FputBool(select_2dd);
+//#endif
+//	state_fio->FputBool(motor_on);
+//	state_fio->FputInt32(register_id);
 }
 
 bool FLOPPY::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	prev = state_fio->FgetInt32();
-#ifdef _X1TURBO_FEATURE
-	select_2dd = state_fio->FgetBool();
-#endif
-	motor_on = state_fio->FgetBool();
-	register_id = state_fio->FgetInt32();
+	if(!mb) return false;
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	prev = state_fio->FgetInt32();
+//#ifdef _X1TURBO_FEATURE
+//	select_2dd = state_fio->FgetBool();
+//#endif
+//	motor_on = state_fio->FgetBool();
+//	register_id = state_fio->FgetInt32();
 	return true;
 }
 

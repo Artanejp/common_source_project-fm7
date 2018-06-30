@@ -35,7 +35,10 @@ private:
 	uint8_t* vram_b;
 	uint8_t* vram_r;
 	uint8_t* vram_g;
-	
+
+	int vramptr_b;
+	int vramptr_r;
+	int vramptr_g;
 	uint8_t vdisp;
 	
 	uint32_t prev_clock, vram_wait_index;
@@ -68,6 +71,7 @@ public:
 	uint32_t read_io8w(uint32_t addr, int* wait);
 	void write_dma_io8w(uint32_t addr, uint32_t data, int* wait);
 	uint32_t read_dma_io8w(uint32_t addr, int* wait);
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

@@ -82,21 +82,39 @@ uint32_t DMAREG::read_io8(uint32_t addr)
 /*
 #define STATE_VERSION	1
 
+#include "../statesub.h"
+
+void DMAREG::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+	
+	leave_decl_state();
+}
+
 void DMAREG::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
 }
 
 bool DMAREG::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
+	if(!mb) return false;
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
 	return true;
 }
 */

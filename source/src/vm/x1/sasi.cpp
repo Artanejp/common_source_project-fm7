@@ -123,25 +123,45 @@ void SASI::write_signal(int id, uint32_t data, uint32_t mask)
 
 #define STATE_VERSION	1
 
+#include "../statesub.h"
+
+void SASI::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+	
+	DECL_STATE_ENTRY_BOOL(irq_status);
+	DECL_STATE_ENTRY_BOOL(drq_status);
+	
+	leave_decl_state();
+}
+
 void SASI::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->FputBool(irq_status);
-	state_fio->FputBool(drq_status);
+//	state_fio->FputBool(irq_status);
+//	state_fio->FputBool(drq_status);
 }
 
 bool SASI::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	irq_status = state_fio->FgetBool();
-	drq_status = state_fio->FgetBool();
+	if(!mb) return false;
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	irq_status = state_fio->FgetBool();
+//	drq_status = state_fio->FgetBool();
 	return true;
 }
 

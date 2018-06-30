@@ -49,6 +49,7 @@ public:
 	uint32_t read_io8(uint32_t addr);
 #endif
 	void event_callback(int event_id, int err);
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

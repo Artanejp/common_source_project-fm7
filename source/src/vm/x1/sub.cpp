@@ -266,47 +266,78 @@ void SUB::update_intr()
 
 #define STATE_VERSION	1
 
+#include "../statesub.h"
+
+void SUB::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+	
+	DECL_STATE_ENTRY_UINT8(p1_out);
+	DECL_STATE_ENTRY_UINT8(p1_in);
+	DECL_STATE_ENTRY_UINT8(p2_out);
+	DECL_STATE_ENTRY_UINT8(p2_in);
+	DECL_STATE_ENTRY_UINT8(portc);
+	DECL_STATE_ENTRY_BOOL(tape_play);
+	DECL_STATE_ENTRY_BOOL(tape_rec);
+	DECL_STATE_ENTRY_BOOL(tape_eot);
+	DECL_STATE_ENTRY_BOOL(tape_apss);
+	DECL_STATE_ENTRY_BOOL(intr);
+	DECL_STATE_ENTRY_BOOL(obf);
+	DECL_STATE_ENTRY_BOOL(iei);
+	DECL_STATE_ENTRY_UINT32(intr_bit);
+	
+	leave_decl_state();
+}
+
 void SUB::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->FputUint8(p1_out);
-	state_fio->FputUint8(p1_in);
-	state_fio->FputUint8(p2_out);
-	state_fio->FputUint8(p2_in);
-	state_fio->FputUint8(portc);
-	state_fio->FputBool(tape_play);
-	state_fio->FputBool(tape_rec);
-	state_fio->FputBool(tape_eot);
-	state_fio->FputBool(tape_apss);
-	state_fio->FputBool(intr);
-	state_fio->FputBool(obf);
-	state_fio->FputBool(iei);
-	state_fio->FputUint32(intr_bit);
+//	state_fio->FputUint8(p1_out);
+//	state_fio->FputUint8(p1_in);
+//	state_fio->FputUint8(p2_out);
+//	state_fio->FputUint8(p2_in);
+//	state_fio->FputUint8(portc);
+//	state_fio->FputBool(tape_play);
+//	state_fio->FputBool(tape_rec);
+//	state_fio->FputBool(tape_eot);
+//	state_fio->FputBool(tape_apss);
+//	state_fio->FputBool(intr);
+//	state_fio->FputBool(obf);
+//	state_fio->FputBool(iei);
+//	state_fio->FputUint32(intr_bit);
 }
 
 bool SUB::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	p1_out = state_fio->FgetUint8();
-	p1_in = state_fio->FgetUint8();
-	p2_out = state_fio->FgetUint8();
-	p2_in = state_fio->FgetUint8();
-	portc = state_fio->FgetUint8();
-	tape_play = state_fio->FgetBool();
-	tape_rec = state_fio->FgetBool();
-	tape_eot = state_fio->FgetBool();
-	tape_apss = state_fio->FgetBool();
-	intr = state_fio->FgetBool();
-	obf = state_fio->FgetBool();
-	iei = state_fio->FgetBool();
-	intr_bit = state_fio->FgetUint32();
+	if(!mb) return false;
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	p1_out = state_fio->FgetUint8();
+//	p1_in = state_fio->FgetUint8();
+//	p2_out = state_fio->FgetUint8();
+//	p2_in = state_fio->FgetUint8();
+//	portc = state_fio->FgetUint8();
+//	tape_play = state_fio->FgetBool();
+//	tape_rec = state_fio->FgetBool();
+//	tape_eot = state_fio->FgetBool();
+//	tape_apss = state_fio->FgetBool();
+//	intr = state_fio->FgetBool();
+//	obf = state_fio->FgetBool();
+//	iei = state_fio->FgetBool();
+//	intr_bit = state_fio->FgetUint32();
 	return true;
 }
 

@@ -145,7 +145,8 @@ private:
 #endif
 	uint32_t jis2knj(uint16_t jis);
 	uint16_t jis2sjis(uint16_t jis);
-	
+
+	int tmp_kanji_ptr;
 public:
 	DISPLAY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -164,6 +165,7 @@ public:
 #ifdef _X1TURBO_FEATURE
 	void event_callback(int event_id, int err);
 #endif
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

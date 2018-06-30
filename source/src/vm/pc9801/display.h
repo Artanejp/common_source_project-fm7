@@ -103,6 +103,10 @@ private:
 	uint32_t egc_stack;
 	uint8_t* egc_inptr;
 	uint8_t* egc_outptr;
+
+	int tmp_inptr_ofs;
+	int tmp_outptr_ofs;
+	
 	egcword_t egc_mask2;
 	egcword_t egc_srcmask;
 	uint8_t egc_srcbit;
@@ -215,6 +219,7 @@ public:
 	void write_dma_io16(uint32_t addr, uint32_t data);
 	uint32_t read_dma_io8(uint32_t addr);
 	uint32_t read_dma_io16(uint32_t addr);
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

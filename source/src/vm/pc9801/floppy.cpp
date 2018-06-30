@@ -319,43 +319,72 @@ void FLOPPY::event_callback(int event_id, int err)
 
 #define STATE_VERSION	1
 
-void FLOPPY::save_state(FILEIO* state_fio)
+#include "../statesub.h"
+
+void FLOPPY::decl_state()
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	enter_decl_state(STATE_VERSION);
 	
 #if defined(SUPPORT_2HD_FDD_IF)
-	state_fio->FputUint8(ctrlreg_2hd);
+	DECL_STATE_ENTRY_UINT8(ctrlreg_2hd);
 #endif
 #if defined(SUPPORT_2DD_FDD_IF)
-	state_fio->FputUint8(ctrlreg_2dd);
+	DECL_STATE_ENTRY_UINT8(ctrlreg_2dd);
 #endif
 #if defined(SUPPORT_2HD_2DD_FDD_IF)
-	state_fio->FputUint8(ctrlreg);
-	state_fio->FputUint8(modereg);
+	DECL_STATE_ENTRY_UINT8(ctrlreg);
+	DECL_STATE_ENTRY_UINT8(modereg);
 #endif
-	state_fio->FputInt32(timer_id);
+	DECL_STATE_ENTRY_INT32(timer_id);
+	
+	leave_decl_state();
+}
+
+void FLOPPY::save_state(FILEIO* state_fio)
+{
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
+	
+//#if defined(SUPPORT_2HD_FDD_IF)
+//	state_fio->FputUint8(ctrlreg_2hd);
+//#endif
+//#if defined(SUPPORT_2DD_FDD_IF)
+//	state_fio->FputUint8(ctrlreg_2dd);
+//#endif
+//#if defined(SUPPORT_2HD_2DD_FDD_IF)
+//	state_fio->FputUint8(ctrlreg);
+//	state_fio->FputUint8(modereg);
+//#endif
+//	state_fio->FputInt32(timer_id);
 }
 
 bool FLOPPY::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-#if defined(SUPPORT_2HD_FDD_IF)
-	ctrlreg_2hd = state_fio->FgetUint8();
-#endif
-#if defined(SUPPORT_2DD_FDD_IF)
-	ctrlreg_2dd = state_fio->FgetUint8();
-#endif
-#if defined(SUPPORT_2HD_2DD_FDD_IF)
-	ctrlreg = state_fio->FgetUint8();
-	modereg = state_fio->FgetUint8();
-#endif
-	timer_id = state_fio->FgetInt32();
+	if(!mb) return false;
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//#if defined(SUPPORT_2HD_FDD_IF)
+//	ctrlreg_2hd = state_fio->FgetUint8();
+//#endif
+//#if defined(SUPPORT_2DD_FDD_IF)
+//	ctrlreg_2dd = state_fio->FgetUint8();
+//#endif
+//#if defined(SUPPORT_2HD_2DD_FDD_IF)
+//	ctrlreg = state_fio->FgetUint8();
+//	modereg = state_fio->FgetUint8();
+//#endif
+//	timer_id = state_fio->FgetInt32();
 	return true;
 }
 

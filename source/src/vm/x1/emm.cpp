@@ -60,24 +60,44 @@ uint32_t EMM::read_io8(uint32_t addr)
 
 #define STATE_VERSION	1
 
+#include "../statesub.h"
+
+void EMM::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+	
+	DECL_STATE_ENTRY_1D_ARRAY(data_buffer, sizeof(data_buffer));
+	DECL_STATE_ENTRY_UINT32(data_addr);
+
+	leave_decl_state();
+}
+
 void EMM::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->Fwrite(data_buffer, sizeof(data_buffer), 1);
-	state_fio->FputUint32(data_addr);
+//	state_fio->Fwrite(data_buffer, sizeof(data_buffer), 1);
+//	state_fio->FputUint32(data_addr);
 }
 
 bool EMM::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	state_fio->Fread(data_buffer, sizeof(data_buffer), 1);
-	data_addr = state_fio->FgetUint32();
+	if(!mb) return false;
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	state_fio->Fread(data_buffer, sizeof(data_buffer), 1);
+//	data_addr = state_fio->FgetUint32();
 	return true;
 }
