@@ -705,6 +705,8 @@ void BUBBLECASETTE::event_callback(int event_id, int err)
 
 #define STATE_VERSION 2
 
+#include "../../statesub.h"
+
 void BUBBLECASETTE::decl_state()
 {
 	enter_decl_state(STATE_VERSION);

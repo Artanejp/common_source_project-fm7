@@ -152,9 +152,9 @@ void RTC::decl_state()
 {
 	enter_decl_state(STATE_VERSION);
 	
-	DECL_STATE_ENTRY_UINT8(ctrl);
 	DECL_STATE_ENTRY_CUR_TIME_T(cur_time);
 	DECL_STATE_ENTRY_CUR_TIME_T(tmp_time);
+	DECL_STATE_ENTRY_UINT8(ctrl);
 
 	leave_decl_state();
 }

@@ -881,7 +881,6 @@ void DISPLAY::decl_state()
 
 void DISPLAY::save_state(FILEIO* state_fio)
 {
-
 	if(state_entry != NULL) {
 		state_entry->save_state(state_fio);
 	}
