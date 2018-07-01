@@ -526,6 +526,7 @@ void SCC::initialize()
 void SCC::release()
 {
 	SCC_delete(emu2212);
+	delete state_entry;
 }
 
 void SCC::reset()
@@ -549,6 +550,7 @@ void SCC::initialize_sound(int rate, int clock, int samples)
 	emu2212 = SCC_new(clock, rate);
 	this->reset();
 	this->initialize();
+	this->decl_state();
 }
 
 void SCC::set_volume(int ch, int decibel_l, int decibel_r)
@@ -559,25 +561,84 @@ void SCC::set_volume(int ch, int decibel_l, int decibel_r)
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void SCC::decl_state_scc()
+{
+	DECL_STATE_ENTRY_UINT32((emu2212->clk));
+    DECL_STATE_ENTRY_UINT32((emu2212->rate));
+	DECL_STATE_ENTRY_UINT32((emu2212->base_incr));
+	DECL_STATE_ENTRY_UINT32((emu2212->quality));
+
+	DECL_STATE_ENTRY_INT32((emu2212->out));
+	DECL_STATE_ENTRY_INT32((emu2212->prev));
+	DECL_STATE_ENTRY_INT32((emu2212->next));
+	DECL_STATE_ENTRY_UINT32((emu2212->type));
+	DECL_STATE_ENTRY_UINT32((emu2212->mode));
+	DECL_STATE_ENTRY_UINT32((emu2212->active));
+	DECL_STATE_ENTRY_UINT32((emu2212->base_adr));
+	DECL_STATE_ENTRY_UINT32((emu2212->mask));
+	
+	DECL_STATE_ENTRY_UINT32((emu2212->realstep));
+	DECL_STATE_ENTRY_UINT32((emu2212->scctime));
+	DECL_STATE_ENTRY_UINT32((emu2212->sccstep));
+	
+	DECL_STATE_ENTRY_1D_ARRAY(emu2212->incr, 5);
+
+	DECL_STATE_ENTRY_2D_ARRAY(emu2212->wave, 5, 32);
+
+	DECL_STATE_ENTRY_1D_ARRAY(emu2212->count, 5);
+	DECL_STATE_ENTRY_1D_ARRAY(emu2212->freq, 5);
+	DECL_STATE_ENTRY_1D_ARRAY(emu2212->phase, 5);
+	DECL_STATE_ENTRY_1D_ARRAY(emu2212->volume, 5);
+	DECL_STATE_ENTRY_1D_ARRAY(emu2212->offset, 5);
+	DECL_STATE_ENTRY_1D_ARRAY(emu2212->reg, 0x100-0xC0);
+
+	DECL_STATE_ENTRY_INT32((emu2212->ch_enable));
+	DECL_STATE_ENTRY_INT32((emu2212->ch_enable_next));
+
+	DECL_STATE_ENTRY_INT32((emu2212->cycle_4bit));
+	DECL_STATE_ENTRY_INT32((emu2212->cycle_8bit));
+	DECL_STATE_ENTRY_INT32((emu2212->refresh));
+	DECL_STATE_ENTRY_1D_ARRAY(emu2212->rotate, 5) ;
+}
+
+void SCC::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	decl_state_scc();
+	
+	leave_decl_state();
+}
 void SCC::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 
-	save_load_state(state_fio, true);
+//	save_load_state(state_fio, true);
 }
 
 bool SCC::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
 
-	save_load_state(state_fio, false);
-
+//	save_load_state(state_fio, false);
 	return true;
 }
 

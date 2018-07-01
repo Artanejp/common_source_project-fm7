@@ -81,7 +81,8 @@ private:
 	EMU2212 *emu2212;
 	int volume_l, volume_r;
 	void save_load_state(FILEIO* state_fio, bool is_save);
-
+	void decl_state_scc();
+	
 public:
 	SCC(VM* parent_vm, EMU* parent_emu);
 	~SCC() {}
@@ -94,6 +95,7 @@ public:
 	void reset();
 	void mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

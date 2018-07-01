@@ -109,7 +109,8 @@ private:
 	int iramdisk_count,iramdisk_dest;
 	uint8_t iramdisk_buf[130];
 	uint8_t *iramdisk_ptr;
-	
+
+	int tmp_iramdisk_size;
 public:
 	IO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -128,6 +129,7 @@ public:
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
 	uint32_t get_intr_ack();
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

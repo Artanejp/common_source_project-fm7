@@ -47,23 +47,44 @@ void JOYSTICK::write_signal(int id, uint32_t data, uint32_t mask)
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void JOYSTICK::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+	
+	DECL_STATE_ENTRY_INT32(select);
+	
+	leave_decl_state();
+}
+
 void JOYSTICK::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->FputInt32(select);
+//	state_fio->FputInt32(select);
 }
 
 bool JOYSTICK::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	select = state_fio->FgetInt32();
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	select = state_fio->FgetInt32();
 	return true;
 }
 
