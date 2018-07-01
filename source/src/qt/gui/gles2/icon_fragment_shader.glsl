@@ -12,7 +12,12 @@ precision  highp float;
 precision  mediump float;
 #endif
 
+#if __VERSION__ >= 300
+in vec2 v_texcoord;
+out mediump vec4 opixel;
+#else
 varying  vec2 v_texcoord;
+#endif
 uniform  vec4 color;
 uniform  vec3 chromakey;
 uniform bool do_chromakey;
@@ -27,7 +32,10 @@ void main ()
 
 	pixel_r_1 = pixel_r_1 * color;
 	pixel = pixel_r_1 * color; //;vec4(pixel_r_1.rgb, alpha);
+#if __VERSION__ >= 300
+	opixel = pixel;
+#else
 	gl_FragColor = pixel;
-
+#endif
 }
 

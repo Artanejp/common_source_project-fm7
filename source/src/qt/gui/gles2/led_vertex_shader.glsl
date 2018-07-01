@@ -1,4 +1,8 @@
+#if __VERSION__ >= 300
+in vec3 vertex;
+#else
 attribute vec3 vertex;
+#endif
 void main ()
 {
     vec4 tmpvar_1;

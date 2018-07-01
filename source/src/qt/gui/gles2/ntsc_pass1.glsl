@@ -8,20 +8,23 @@
 #extension GL_OES_texture_float : enable
 #endif
 #endif
-#ifdef HAS_FRAGMENT_HIGH_PRECISION
-#extension GL_OES_fragment_precision_high : enable
-precision  highp float;
-#else
+//#ifdef HAS_FRAGMENT_HIGH_PRECISION
+//#extension GL_OES_fragment_precision_high : enable
+//precision  highp float;
+//#else
 precision  mediump float;
-#endif
+//#endif
 
+#if __VERSION__ >= 300
+in mediump vec2 v_texcoord;
+out vec4 opixel;
+#else
 varying mediump vec2 v_texcoord;
-
+#endif
 uniform sampler2D a_texture;
 uniform vec4 source_size;
 uniform vec4 target_size;
 uniform float phase;
-uniform bool swap_byteorder;
 
 // uniforms added for compatibility
 //vec3 col;
@@ -64,27 +67,6 @@ mat3 mix_mat = mat3(
 // moved from vertex
 #define pix_no (v_texcoord.xy * source_size.xy * (target_size.xy / source_size.xy))
 
-mat3 yiq2rgb_mat = mat3(
-   1.0, 1.0, 1.0,
-   0.956, -0.2720, -1.1060,
-   0.6210, -0.6474, 1.7046
-);
-
-vec3 yiq2rgb(vec3 yiq)
-{
-   return (yiq * yiq2rgb_mat);
-}
-
-mat3 yiq_mat = mat3(
-      0.2989, 0.5959, 0.2115,
-      0.5870, -0.2744, -0.5229,
-    0.1140, -0.3216, 0.3114
-);
-vec3 rgb2yiq(vec3 col)
-{
-   return (col * yiq_mat);
-}
-
 // Change Matrix: [RGB]->[YCbCr]
 
 mat3 ycbcr_mat = mat3(
@@ -92,11 +74,13 @@ mat3 ycbcr_mat = mat3(
       0.58661, -0.33126, -0.41869,
       0.11448,  0.50000, -0.08131
 );
-vec3 rgb2ycbcr(vec3 col)
-{
-	vec3 ycbcr = col * ycbcr_mat;
-   return ycbcr;
-}
+//vec3 rgb2ycbcr(vec3 col)
+//{
+//	vec3 ycbcr = col * ycbcr_mat;
+//   return ycbcr;
+//}
+
+#define rgb2ycbcr(foo) (col.rgb * ycbcr_mat)
 
 mat3 ycbcr2rgb_mat = mat3(
 	 1.0, 1.0, 1.0,
@@ -115,10 +99,9 @@ void main() {
 	
 	vec3 col = texture2D(a_texture, v_texcoord).rgb;
 	vec3 ycbcr;
-	if(swap_byteorder) {
-		col.rgb = col.bgr;
-	}
-	//ycbcr = rgb2yiq(col);
+#ifdef HOST_ENDIAN_IS_LITTLE
+	col.rgb = col.bgr;
+#endif
 	ycbcr = rgb2ycbcr(col);
 //
 // From https://ja.wikipedia.org/wiki/YUV#RGB%E3%81%8B%E3%82%89%E3%81%AE%E5%A4%89%E6%8F%9B
@@ -152,6 +135,10 @@ void main() {
 #endif
 	// Normalise
 	vec4 outvar = vec4(ycbcr, 1.0);
+#if __VERSION__ >= 300
+	opixel = outvar;
+#else
 	gl_FragColor = outvar;
+#endif
 // END "ntsc-pass1-encode-demodulate.inc" //
 }

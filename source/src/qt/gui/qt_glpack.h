@@ -102,7 +102,14 @@ public:
 	
 	QString getShaderLog(void)
 	{
-		return program->log();
+		QString s = program->log();
+		//QStringList slist = s.split('\n');
+		QString ostr = QString::fromUtf8("");
+		ostr = s;
+		//for(int i = 0; i < slist.size(); i++) {
+		//	ostr = ostr + QString("%1: %2\n").arg(i + 1, 5).arg(slist.at(i));
+		//}
+		return ostr;
 	}
 	
 	QString getGLLog(void)
@@ -115,6 +122,7 @@ public:
 		for(int i = 0; i < log_str.size(); i++) {
 			s = log_str.at(i);
 			rets = rets + QString::fromUtf8("[") + obj_name + QString::fromUtf8("] ");
+			//rets = rets + QString("%1: ").arg(i + 1, 5);
 			rets = rets + s + QString::fromUtf8(" \n");
 		}
 		return rets;

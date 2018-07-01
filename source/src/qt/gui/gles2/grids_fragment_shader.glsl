@@ -11,10 +11,16 @@ precision  highp float;
 #else
 precision  mediump float;
 #endif
-
+#if __VERSION__ >= 300
+out mediump vec4 opixel;
+#endif
 uniform vec4 color;
 void main ()
 {
+#if __VERSION__ >= 300
+  opixel = color;
+#else
   gl_FragColor = color;
+#endif
 }
 

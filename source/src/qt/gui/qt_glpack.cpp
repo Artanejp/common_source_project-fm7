@@ -7,6 +7,7 @@
 #include <QFile>
 #include <QString>
 
+#include "common.h"
 #include "qt_glpack.h"
 
 GLScreenPack::GLScreenPack(int _width, int _height, QString _name, QObject *parent) : QObject(parent)
@@ -156,12 +157,55 @@ bool GLScreenPack::initialize(int total_width, int total_height, const QString &
 	
 	if(program != NULL) {
 		//if(program->isLinked()) break;
-		shader_status  = program->addShaderFromSourceFile(QOpenGLShader::Vertex, vertex_shader_file);
+		QOpenGLContext *context = QOpenGLContext::currentContext();
+		QPair<int, int> _version = QOpenGLVersionProfile(context->format()).version();
+		QString versionext = QString::fromUtf8("");
+
+		if(context->isOpenGLES()) {
+			if(((_version.first == 3) && (_version.second >= 1)) || (_version.first >= 4)){
+				versionext = QString::fromUtf8("#version 310 es \n");
+			} /* else if((_version.first == 3)) {
+				 _ext = _ext + QString::fromUtf8("#version 300 es \n");
+				 } */ else {
+				versionext = QString::fromUtf8("#version 100 \n");
+			}
+		} else if(context->format().profile() == QSurfaceFormat::CoreProfile) {
+			if(((_version.first == 4) && (_version.second >= 3)) || (_version.first >= 5)) {
+				versionext = QString::fromUtf8("#version 430 \n"); // OK?
+			} else if((_version.first == 4)) {
+				versionext = QString::fromUtf8("#version 400 \n");
+			} else { // Require GLVersion >= 3.2
+				versionext = QString::fromUtf8("#version 150 \n");
+			}					
+		} else { // Compatibility
+			if((_version.first >= 3)) {
+				versionext = QString::fromUtf8("#version 130 \n");
+			} else {
+				//_ext = _ext + QString::fromUtf8("#version 110 \n");
+			}
+		}
+		QFile vertex_src(vertex_shader_file);
+		if (vertex_src.open(QIODevice::ReadOnly | QIODevice::Text)) {
+			QString srcs = versionext;
+			srcs = srcs + QString::fromUtf8(vertex_src.readAll());
+			shader_status  = program->addShaderFromSourceCode(QOpenGLShader::Vertex, srcs);
+		} else {
+			shader_status = false;
+		}
+
+
 		QFile fragment_src(fragment_shader_file);
-		if (fragment_src.open(QIODevice::ReadOnly | QIODevice::Text)) {
+		if ((fragment_src.open(QIODevice::ReadOnly | QIODevice::Text)) && (shader_status)){
 			QString _src;
 			QString _ext = QString::fromUtf8("");;
+			_ext = versionext;
 			_src = QString::fromUtf8(fragment_src.readAll());
+#if defined(__LITTLE_ENDIAN__)
+			_ext = _ext + QString::fromUtf8("#define HOST_ENDIAN_IS_LITTLE \n");
+#else
+			_ext = _ext + QString::fromUtf8("#define HOST_ENDIAN_IS_BIG \n");
+#endif
+
 			if((has_extension_texture_float) || (has_extension_texture_half_float)) {
 				_ext = _ext + QString::fromUtf8("#define HAS_FLOAT_TEXTURE \n");
 			}

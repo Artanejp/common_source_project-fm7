@@ -8,23 +8,90 @@
 #extension GL_OES_texture_float : enable
 #endif
 #endif
+
 #ifdef HAS_FRAGMENT_HIGH_PRECISION
 #extension GL_OES_fragment_precision_high : enable
-precision  highp float;
-#else
+//precision  highp float;
+//#else
+//precision  mediump float;
+#endif
 precision  mediump float;
+
+#if __VERSION__ >= 300
+in mediump vec2 v_texcoord;
+out vec4 opixel;
+#else
+varying mediump vec2 v_texcoord;
 #endif
 
-varying mediump vec2 v_texcoord;
-
-uniform bool swap_byteorder;
 uniform sampler2D a_texture;
 uniform vec4 source_size;
 uniform vec4 target_size;
 
 #define TAPS 24
+
+#if __VERSION__ >= 300
+	// THREE_PHASE
+const float luma_filter[24 + 1] = float[24 + 1](
+		-0.000012020,
+		-0.000022146,
+		-0.000013155,
+		-0.000012020,
+		-0.000049979,
+		-0.000113940,
+		-0.000122150,
+		-0.000005612,
+		0.000170516,
+		0.000237199,
+		0.000169640,
+		0.000285688,
+		0.000984574,
+		0.002018683,
+		0.002002275,
+		-0.000909882,
+		-0.007049081,
+		-0.013222860,
+		-0.012606931,
+		0.002460860,
+		0.035868225,
+		0.084016453,
+		0.135563500,
+		0.175261268,
+		0.190176552
+	);
+const float chroma_filter[24 + 1] = float [24 + 1](
+		-0.000118847,
+		-0.000271306,
+		-0.000502642,
+		-0.000930833,
+		-0.001451013,
+		-0.002064744,
+		-0.002700432,
+		-0.003241276,
+		-0.003524948,
+		-0.003350284,
+		-0.002491729,
+		-0.000721149,
+		0.002164659,
+		0.006313635,
+		0.011789103,
+		0.018545660,
+		0.026414396,
+		0.035100710,
+		0.044196567,
+		0.053207202,
+		0.061590275,
+		0.068803602,
+		0.074356193,
+		0.077856564,
+		0.079052396
+	);
+// END "ntsc-decode-filter-3phase.inc" //
+
+#else
 uniform float luma_filter[24 + 1];
 uniform float chroma_filter[24 + 1];
+#endif
 
 #define GAMMA_CORRECTION //comment to disable gamma correction, usually because higan's gamma correction is enabled or you have another shader already doing it
 #ifndef HAS_FLOAT_TEXTURE
@@ -36,27 +103,7 @@ uniform float chroma_filter[24 + 1];
 
 
 // #include ntsc-rgbyuv.inc //
-mat3 yiq2rgb_mat = mat3(
-   1.0, 1.0, 1.0,
-   0.956, -0.2720, -1.1060,
-   0.6210, -0.0, 1.7046
-);
 
-vec3 yiq2rgb(vec3 yiq)
-{
-	return (yiq * yiq2rgb_mat);
-}
-
-mat3 ycbcr_mat = mat3(
-      0.29891, -0.16874,  0.50000,
-      0.58661, -0.33126, -0.41869,
-      0.11448,  0.50000, -0.08131
-);
-vec3 rgb2ycbcr(vec3 col)
-{
-	vec3 ycbcr = col * ycbcr_mat;
-   return ycbcr;
-}
 
 mat3 ycbcr2rgb_mat = mat3(
 	 1.0, 1.0, 1.0,
@@ -64,30 +111,17 @@ mat3 ycbcr2rgb_mat = mat3(
 	 1.40200, -0.71414, 0.0
  );
  
-vec3 ycbcr2rgb(vec3 ycbcr)
-{
-	//vec3 ra = ycbcr * vec3(1.0, 0.7, 1.0);
-	return (ycbcr * ycbcr2rgb_mat);
-}
+//vec3 ycbcr2rgb(vec3 ycbcr)
+//{
+//	//vec3 ra = ycbcr * vec3(1.0, 0.7, 1.0);
+//	return (ycbcr * ycbcr2rgb_mat);
+//}
+#define ycbcr2rgb(foo) (foo.rgb * ycbcr2rgb_mat)
 
-mat3 yiq_mat = mat3(
-      0.2989, 0.5959, 0.2115,
-      0.5870, -0.2744, -0.5229,
-      0.1140, -0.3216, 0.3114
-);
-
-vec3 rgb2yiq(vec3 col)
-{
-   return (col * yiq_mat);
-}
 // END ntsc-rgbyuv.inc //
 
 // fixCoord moved from vertex
-#define fixCoord (v_texcoord - vec2(0.5 / source_size.x, 0.0)) // Compensate for decimate-by-2.
-
-#define fetch_offset(offset, one_x) \
-	texture2D(a_texture, fixCoord + vec2((offset) * (one_x), 0.0)).xyz
-
+#define fixCoord (v_texcoord - (vec2(0.5) * delta)) // Compensate for decimate-by-2.
 
 void main() {
 // #include "ntsc-pass2-decode.inc" //
@@ -95,20 +129,10 @@ void main() {
 	vec3 signal = vec3(0.0);
 	int i,j;
 	int ibegin = 1;
-#if 0
-	for (int ii = 1; ii < TAPS; ii++)
-	{
-		float offset = float(ii);
-		vec3 sums = fetch_offset(offset - float(TAPS), one_x) +
-				fetch_offset(float(TAPS) - offset, one_x);
-		sums = sums * vec3(3.6, 1.7, 1.7);
-		signal += sums * vec3(luma_filter[ii], chroma_filter[ii], chroma_filter[ii]);
-	}
-#else
 	float pos_offset = float(TAPS - ibegin) * one_x;
 	vec3 sums_p = vec3(0.0, 0.0, 0.0);
-	//vec3 sums_n[TAPS];
-	vec2 fix_coord = v_texcoord - vec2(0.5 / source_size.x, 0.0);
+
+	vec2 fix_coord = v_texcoord - vec2(0.5 * one_x, 0.0);
 	vec2 delta = vec2(one_x, 0);
 	vec3 pix_p, pix_n;
 	vec3 tmpv;
@@ -127,8 +151,7 @@ void main() {
 		addr_p = addr_p - delta;
 		addr_n = addr_n + delta;
 	}
-#endif
-	vec3 texvar = texture2D(a_texture, fixCoord).xyz;
+	vec3 texvar = texture2D(a_texture, fix_coord).xyz;
 	// yMax = (0.299+0.587+0.114) * (+-1.0) * (BRIGHTNESS + ARTIFACTING + ARTIFACTING) * (+-1.0)
 	// CbMax = (-0.168736 -0.331264 + 0.5) * (+-1.0) * (FRINGING + 2*SATURATION) * (+-1.0)
 	// CrMax = (0.5 - 0.418688 - 0.081312) * (+-1.0) * (FRINGING + 2*SATURATION) * (+-1.0)
@@ -151,10 +174,13 @@ void main() {
    rgb = pow(abs(rgb), gamma.rgb);
 #endif
 	vec4 pixel = vec4(rgb, 1.0);
-	if(swap_byteorder) {
-		pixel.rgba = pixel.bgra;
-		gl_FragColor = pixel;
-	} else {
-		gl_FragColor = pixel;
-	}
+#ifdef HOST_ENDIAN_IS_LITTLE
+	pixel.rgba = pixel.bgra;
+#endif
+
+#if __VERSION__ >= 300
+	opixel = pixel;
+#else
+	gl_FragColor = pixel;
+#endif
 }

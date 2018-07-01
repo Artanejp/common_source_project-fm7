@@ -203,11 +203,18 @@ void GLDraw_ES_2::initPackedGLObject(GLScreenPack **p,
 			}
 			s = pp->getGLLog();
 			if(s.size() > 0) {
+				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GL_SHADER, "In shader of %s ", _name.toLocal8Bit().constData());
+				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GL_SHADER, "Vertex: %s ",  vertex_shader.toLocal8Bit().constData());
+				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GL_SHADER, "Fragment: %s ", fragment_shader.toLocal8Bit().constData());
 				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GL_SHADER, "%s", s.toLocal8Bit().constData());
-				pp->clearGLLog();
 			}
+			pp->clearGLLog();
 		}
 	}
+	QOpenGLContext *context = QOpenGLContext::currentContext();
+	gl_major_version = context->format().version().first;
+	gl_minor_version = context->format().version().second;
+
 }
 					
 
@@ -374,7 +381,7 @@ void GLDraw_ES_2::initLocalGLObjects(void)
 					   _width / 2, _height,
 					   ":/gles2/vertex_shader.glsl" , ":/gles2/ntsc_pass2.glsl",
 					   "NTSC Shader Pass2");
-	{
+	if(!(((gl_major_version >= 3) && (gl_minor_version >= 1)) || (gl_major_version >= 4))){
 		int ii;
 		QOpenGLShaderProgram *shader = ntsc_pass2->getShader();
 		shader->bind();
@@ -388,6 +395,7 @@ void GLDraw_ES_2::initLocalGLObjects(void)
 		}
 		shader->release();
 	}
+
 #endif   
 	if(using_flags->is_use_one_board_computer()) {
 		initBitmapVertex();
@@ -583,13 +591,15 @@ void GLDraw_ES_2::renderToTmpFrameBuffer_nPass(GLuint src_texture,
 						if(ringing_phase > 1.0) ringing_phase = ringing_phase - 1.0;
 						shader->setUniformValue(ii,  ringing_phase);
 					}
-					//ii = shader->uniformLocation("luma_filter");
-					//if(ii >= 0) {
-					//	shader->setUniformValueArray(ii, luma_filter, 24 + 1, 1);
-					//}
-					//ii = shader->uniformLocation("chroma_filter");
-					//if(ii >= 0) {
-					//	shader->setUniformValueArray(ii, chroma_filter, 24 + 1, 1);
+					//if(!(((gl_major_version >= 3) && (gl_minor_version >= 1)) || (gl_major_version >= 4))){
+						//ii = shader->uniformLocation("luma_filter");
+						//if(ii >= 0) {
+						//	shader->setUniformValueArray(ii, luma_filter, 24 + 1, 1);
+						//}
+						//ii = shader->uniformLocation("chroma_filter");
+						//if(ii >= 0) {
+						//	shader->setUniformValueArray(ii, chroma_filter, 24 + 1, 1);
+						//}
 					//}
 				}
 				{
@@ -618,10 +628,6 @@ void GLDraw_ES_2::renderToTmpFrameBuffer_nPass(GLuint src_texture,
 				}
 				shader->enableAttributeArray("texcoord");
 				shader->enableAttributeArray("vertex");
-				ii = shader->uniformLocation("swap_byteorder");
-				if(ii >= 0) {
-					shader->setUniformValue(ii, (swap_byteorder) ? GL_TRUE : GL_FALSE);
-				}
 				
 				int vertex_loc = shader->attributeLocation("vertex");
 				int texcoord_loc = shader->attributeLocation("texcoord");
@@ -657,6 +663,7 @@ void GLDraw_ES_2::uploadMainTexture(QImage *p, bool use_chromakey)
 		extfunc->glTexSubImage2D(GL_TEXTURE_2D, 0,
 								 0, 0, p->width(), p->height(),
 								 GL_RGBA, GL_UNSIGNED_BYTE,
+								 //GL_BGRA, GL_UNSIGNED_BYTE,
 								 p->bits());
 		extfunc->glBindTexture(GL_TEXTURE_2D, 0);
 	}
@@ -800,10 +807,6 @@ void GLDraw_ES_2::drawMain(QOpenGLShaderProgram *prg,
 			}
 		}
 		
-		ii = prg->uniformLocation("swap_byteorder");
-		if(ii >= 0) {
-			prg->setUniformValue(ii, (swap_byteorder) ? GL_TRUE : GL_FALSE);
-		}
 		prg->enableAttributeArray("texcoord");
 		prg->enableAttributeArray("vertex");
 		int vertex_loc = prg->attributeLocation("vertex");

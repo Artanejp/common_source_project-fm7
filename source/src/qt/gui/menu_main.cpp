@@ -365,6 +365,7 @@ void Ui_MainWindowBase::setupUi(void)
 				csp_logger->debug_log(CSP_LOG_DEBUG,  CSP_LOG_TYPE_GENERAL, "Try to use OpenGL ES.");
 			} else if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_CORE) { 
 				fmt.setProfile(QSurfaceFormat::CoreProfile); // Requires >=Qt-4.8.0
+				fmt.setVersion(4, 7); // Requires >=Qt-4.8.0
 				csp_logger->debug_log(CSP_LOG_DEBUG,  CSP_LOG_TYPE_GENERAL, "Try to use OpenGL CORE profile.");
 			} else { // Fallback
 				fmt.setProfile(QSurfaceFormat::CompatibilityProfile); // Requires >=Qt-4.8.0

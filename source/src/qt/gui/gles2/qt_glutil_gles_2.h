@@ -82,7 +82,8 @@ protected:
 		0.077856564,
 		0.079052396
 	};
-	
+	int gl_major_version;
+	int gl_minor_version;
 	GLScreenPack *main_pass;
 	GLScreenPack *std_pass;
 	GLScreenPack *ntsc_pass1;

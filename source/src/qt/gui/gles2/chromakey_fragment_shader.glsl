@@ -12,7 +12,13 @@ precision  highp float;
 precision  mediump float;
 #endif
 
+#if __VERSION__ >= 300
+in mediump vec2 v_texcoord;
+out vec4 opixel;
+#else
 varying mediump vec2 v_texcoord;
+#endif
+
 uniform vec4 color;
 uniform vec3 chromakey;
 uniform bool do_chromakey;

@@ -272,7 +272,7 @@ void GLDrawClass::InitFBO(void)
 			}
 		}
 	}
-	if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_CORE) {
+	if(_fmt.profile() == QSurfaceFormat::CoreProfile) {
 		QPair<int, int> _glversion = _fmt.version();
 		if((((_glversion.first == 3) && (_glversion.second >= 2)) || (_glversion.first >= 4)) &&
 		   (extfunc == NULL) &&
@@ -283,7 +283,7 @@ void GLDrawClass::InitFBO(void)
 				goto _nr_end;
 			}
 		}
-	} else if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_MAIN) {
+	} else /*if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_MAIN) */{
 		QPair<int, int> _glversion = _fmt.version();
 		if((_glversion.first >= 3) && (_glversion.second >= 0) &&
 		   (extfunc == NULL) &&

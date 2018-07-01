@@ -1,6 +1,13 @@
+#if __VERSION__ >= 300
+in mediump vec3 vertex;
+in mediump vec2 texcoord;
+out mediump vec2 v_texcoord;
+#else
 attribute mediump vec3 vertex;
 attribute mediump vec2 texcoord;
 varying mediump vec2 v_texcoord;
+#endif
+
 uniform bool rotate;
 uniform mediump mat4 v_ortho;
 void main ()

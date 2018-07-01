@@ -1,4 +1,9 @@
+#if __VERSION__ >= 300
+in mediump vec3 vertex;
+#else
 attribute mediump vec3 vertex;
+#endif
+
 uniform bool rotate;
 void main ()
 {

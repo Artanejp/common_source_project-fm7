@@ -5,24 +5,31 @@
 #extension GL_OES_texture_float : enable
 #endif
 #endif
-#ifdef HAS_FRAGMENT_HIGH_PRECISION
-#extension GL_OES_fragment_precision_high : enable
-precision  highp float;
-#else
+
 precision  mediump float;
+
+#if __VERSION__ >= 300
+in vec2 v_texcoord;
+out vec4 opixel;
+#else
+varying mediump vec2 v_texcoord;
 #endif
 
-varying mediump vec2 v_texcoord;
 uniform sampler2D a_texture;
-uniform bool swap_byteorder;
+
 void main ()
 {
-	if(swap_byteorder) {
-		vec4 pixel = texture2D(a_texture, v_texcoord);
-		pixel.rgb = pixel.bgr;
-		gl_FragColor = pixel;
-	} else {
-		gl_FragColor = texture2D (a_texture, v_texcoord);
-	}
+#if __VERSION__ >= 300
+	vec4 pixel = texture(a_texture, v_texcoord);
+#else
+	vec4 pixel = texture2D(a_texture, v_texcoord);
+#endif	   
+#ifdef HOST_ENDIAN_IS_LITTLE
+	pixel.rgb = pixel.bgr;
+#endif
+#if __VERSION__ >= 300
+	opixel = pixel;
+#else
+	gl_FragColor = pixel;
+#endif
 }
-

@@ -12,28 +12,33 @@ precision  highp float;
 precision  mediump float;
 #endif
 
+#if __VERSION__ >= 300
+in vec2 v_texcoord;
+out vec4 opixel;
+#else
 varying vec2 v_texcoord;
+#endif
+
 uniform vec4 color;
 uniform vec3 chromakey;
-uniform bool do_chromakey;
-uniform bool swap_byteorder;
 uniform sampler2D a_texture;
+
 void main ()
 {
 	vec4 pixel_r_1;
 	vec4 pixel;
 	
 	pixel_r_1 = texture2D(a_texture, v_texcoord);
-	
-	if(pixel_r_1.rgb != chromakey.rgb) {
-		pixel_r_1 = pixel_r_1 * color;
-		if(swap_byteorder) {
-			pixel_r_1.rgb = pixel_r_1.bgr;
-		}
-		pixel = vec4(pixel_r_1.rgb, 1.0);
-		gl_FragColor = pixel;
-	} else {
-	    discard;
-	}
+#ifdef HOST_ENDIAN_IS_LITTLE
+	pixel_r_1.rgb = pixel_r_1.bgr;
+#endif
+	bvec3 _match;
+	_match = equal(pixel_r_1.rgb, chromakey.rgb);
+	pixel = (all(_match) == true) ? vec4(0.0, 0.0, 0.0, 0.0) : vec4(pixel_r_1.rgb, 1.0);
+#if __VERSION__ >= 300
+    opixel = pixel;
+#else
+	gl_FragColor = pixel;
+#endif
 }
 
