@@ -82,6 +82,11 @@ protected:
 		0.077856564,
 		0.079052396
 	};
+	const float rot0[4] =   {1, -0,  0, 1};
+	const float rot90[4] =  {0,  1, -1,  0};
+	const float rot180[4] = {-1, 0,  0, -1};
+	const float rot270[4] = {0, -1,  1, 0};
+
 	int gl_major_version;
 	int gl_minor_version;
 	GLScreenPack *main_pass;

@@ -690,8 +690,13 @@ void Ui_MainWindowBase::setupUi(void)
 		double nd = actionScreenSize[p_config->window_mode]->binds->getDoubleValue();
 		w = (int)(nd * (double)w);
 		h = (int)(nd * (double)h);
-		if(using_flags->is_use_screen_rotate()) {
-			if(p_config->rotate_type) {
+		switch(p_config->rotate_type) {
+		case 0:
+		case 2:
+			break;
+		case 1:
+		case 4:
+			 {
 				int tmp_w = w;
 				w = h;
 				h = tmp_w;
@@ -699,12 +704,17 @@ void Ui_MainWindowBase::setupUi(void)
 		}
 	} else {
 		if(using_flags->is_use_screen_rotate()) {
-			if(p_config->rotate_type) {
+			switch(p_config->rotate_type) {
+			case 0:
+			case 2:
+				w = 1208;
+				h = 800;
+				break;
+			case 1:
+			case 4:
 				w = 600;
 				h = 960;
-			} else {		   
-				w = 1280;
-				h = 800;
+				break;
 			}
 		} else {
 			w = 1280;

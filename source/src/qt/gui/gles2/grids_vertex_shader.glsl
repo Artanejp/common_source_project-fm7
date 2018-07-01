@@ -4,9 +4,11 @@ in mediump vec3 vertex;
 attribute mediump vec3 vertex;
 #endif
 
-uniform bool rotate;
+uniform mat2 rotate_mat;
+//uniform bool rotate;
 void main ()
 {
+#if 0
   if (!(rotate)) {
     mediump vec4 tmpvar_1;
     tmpvar_1.w = 1.0;
@@ -18,5 +20,11 @@ void main ()
     tmpvar_2.xyz = vertex;
     gl_Position = (mat4(0.0, -1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0) * tmpvar_2);
   };
+#else
+	vec2 xy = vertex.xy;
+	xy = rotate_mat * xy;
+	
+	gl_Position = vec4(xy, vertex.z, 1.0);
+#endif		
 }
 

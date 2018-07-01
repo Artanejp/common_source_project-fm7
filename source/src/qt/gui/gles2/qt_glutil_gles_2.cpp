@@ -224,11 +224,7 @@ bool GLDraw_ES_2::initGridShaders(const QString vertex_fixed, const QString vert
 	bool f = false;
 	grids_shader = new QOpenGLShaderProgram(p_wid);
 	if(grids_shader != NULL) {
-		if(using_flags->is_use_screen_rotate()) {
-			f = grids_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, vertex_rotate);
-		} else {
-			f = grids_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, vertex_fixed);
-		}
+		f = grids_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, vertex_rotate);
 		f &= grids_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, fragment);
 		f &= grids_shader->link();
 	}
@@ -781,15 +777,32 @@ void GLDraw_ES_2::drawMain(QOpenGLShaderProgram *prg,
 		if(ii >= 0) {
 			prg->setUniformValue(ii,  (float)screen_texture_height);
 		}
-		if(using_flags->is_use_screen_rotate()) {
-			if(p_config->rotate_type) {
-				prg->setUniformValue("rotate", GL_TRUE);
-			} else {
-				prg->setUniformValue("rotate", GL_FALSE);
-			}
-		} else {
-			prg->setUniformValue("rotate", GL_FALSE);
+		float rot0[4] =   {1, -0,  0, 1};
+		float rot270[4] =  {0, -1,  1, 0};
+		float rot180[4] = {-1, 0,  0, -1};
+		float rot90[4] = {0,  1, -1,  0};
+		QMatrix2x2 rot;
+		switch(p_config->rotate_type) {
+			case 0:
+				rot = QMatrix2x2(rot0);
+				break;
+			case 1:
+				rot = QMatrix2x2(rot90);
+				break;
+			case 2:
+				rot = QMatrix2x2(rot180);
+				break;
+			case 3:
+				rot = QMatrix2x2(rot270);
+				break;
+			default:
+				rot = QMatrix2x2(rot0);
+				break;
 		}
+		prg->setUniformValue("rotate_mat", rot);
+		//} else {
+		//prg->setUniformValue("rotate", GL_FALSE);
+		//}
 
 		if(do_chromakey) {
 			ii = prg->uniformLocation("chromakey");
@@ -837,15 +850,25 @@ void GLDraw_ES_2::drawMain(QOpenGLShaderProgram *prg,
 		if(ii >= 0) {
 			prg->setUniformValue(ii,  color);
 		}
-		if(using_flags->is_use_screen_rotate()) {
-			if(p_config->rotate_type) {
-				prg->setUniformValue("rotate", GL_TRUE);
-			} else {
-				prg->setUniformValue("rotate", GL_FALSE);
-			}
-		} else {
-			prg->setUniformValue("rotate", GL_FALSE);
+		QMatrix2x2 rot;
+		switch(p_config->rotate_type) {
+			case 0:
+				rot = QMatrix2x2(rot0);
+				break;
+			case 1:
+				rot = QMatrix2x2(rot90);
+				break;
+			case 2:
+				rot = QMatrix2x2(rot180);
+				break;
+			case 3:
+				rot = QMatrix2x2(rot270);
+				break;
+			default:
+				rot = QMatrix2x2(rot0);
+				break;
 		}
+		prg->setUniformValue("rotate_mat", rot);
 		prg->setUniformValue("v_ortho", ortho);
 
 		if(do_chromakey) {
@@ -929,15 +952,26 @@ void GLDraw_ES_2::drawButtonsMain(int num, bool f_smoosing)
 			if(ii >= 0) {
 				prg->setUniformValue(ii, GL_FALSE);
 			}
-			if(using_flags->is_use_screen_rotate()) {
-				if(p_config->rotate_type) {
-					prg->setUniformValue("rotate", GL_TRUE);
-				} else {
-					prg->setUniformValue("rotate", GL_FALSE);
-				}
-			} else {
-				prg->setUniformValue("rotate", GL_FALSE);
+			QMatrix2x2 rot;
+			switch(p_config->rotate_type) {
+			case 0:
+				rot = QMatrix2x2(rot0);
+				break;
+			case 1:
+				rot = QMatrix2x2(rot90);
+				break;
+			case 2:
+				rot = QMatrix2x2(rot180);
+				break;
+			case 3:
+				rot = QMatrix2x2(rot270);
+				break;
+			default:
+				rot = QMatrix2x2(rot0);
+				break;
 			}
+			prg->setUniformValue("rotate_mat", rot);
+			
 			int vertex_loc = prg->attributeLocation("vertex");
 			int texcoord_loc = prg->attributeLocation("texcoord");
 			prg->setAttributeBuffer(vertex_loc, GL_FLOAT, 0, 3, sizeof(VertexTexCoord_t));

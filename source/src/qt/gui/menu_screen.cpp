@@ -215,18 +215,18 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 					this, SLOT(set_gl_scan_line_vert(bool)));
 		}
 	}
-	if(using_flags->is_use_screen_rotate()) {
+	//if(using_flags->is_use_screen_rotate()) {
 		actionRotate = new Action_Control(this, using_flags);
 		actionRotate->setObjectName(QString::fromUtf8("actionScanLine"));
 		actionRotate->setCheckable(true);
-		if(p_config->rotate_type) {
+		if(p_config->rotate_type != 0) {
 			actionRotate->setChecked(true);
 		} else {
 			actionRotate->setChecked(false);
 		}
 		connect(actionRotate, SIGNAL(toggled(bool)),
 				this, SLOT(set_screen_rotate(bool)));
-	}
+		//}
 
 	actionOpenGL_Filter = new Action_Control(this, using_flags);
 	actionOpenGL_Filter->setObjectName(QString::fromUtf8("actionOpenGL_Filter"));
@@ -384,9 +384,9 @@ void Ui_MainWindowBase::CreateScreenMenu(void)
 			menuScreen->addAction(actionGLScanLineVert);
 		}
 	}
-	if(using_flags->is_use_screen_rotate()) {
+	//if(using_flags->is_use_screen_rotate()) {
 		menuScreen->addAction(actionRotate);
-	}
+		//}
 	menuScreen->addAction(actionOpenGL_Filter);
 	menuScreen->addAction(actionCapture_Screen);
 	menuScreen->addSeparator();
@@ -411,10 +411,10 @@ void Ui_MainWindowBase::retranslateScreenMenu(void)
 		actionScanLine->setText(QApplication::translate("MenuScreen", "Software Scan Line", 0));
 		actionScanLine->setToolTip(QApplication::translate("MenuScreen", "Display scan line by software.", 0));
 	}
-	if(using_flags->is_use_screen_rotate()) {
+	//if(using_flags->is_use_screen_rotate()) {
 		actionRotate->setText(QApplication::translate("MenuScreen", "Rotate Screen", 0));
 		actionRotate->setToolTip(QApplication::translate("MenuScreen", "Rotate screen.", 0));
-	}
+		//}
 	if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
 		actionGLScanLineHoriz->setText(QApplication::translate("MenuScreen", "OpenGL Scan Line", 0));
 		actionGLScanLineHoriz->setToolTip(QApplication::translate("MenuScreen", "Display scan line by OpenGL.", 0));

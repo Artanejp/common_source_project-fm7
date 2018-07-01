@@ -43,34 +43,38 @@ void GLDrawClass::setEnableMouse(bool enable)
 
 void GLDrawClass::mouseMoveEvent(QMouseEvent *event)
 {
+	double xx;
+	double yy;
+	int d_ww = using_flags->get_screen_width();
+	int d_hh = using_flags->get_screen_height();
+	QPointF pos = event->localPos();
+	double xpos = (double)(pos.x()) / (double)width();
+	double ypos = (double)(pos.y()) / (double)height();
 	if(using_flags->is_use_one_board_computer() || using_flags->is_use_mouse()) {
 		if(!enable_mouse) return;
 		//if(QApplication::overrideCursor() == NULL) {
 			//QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
 		//}
-		int d_ww = using_flags->get_screen_width();
-		int d_hh = using_flags->get_screen_height();
-		double xx;
-		double yy;
-		QPointF pos = event->localPos();
-		double xpos = (double)(pos.x()) / (double)width();
-		double ypos = (double)(pos.y()) / (double)height();
-		if(using_flags->is_use_screen_rotate()) {
-			if(p_config->rotate_type) {
-				xx = ypos * (double)d_hh;
-				yy = xpos * (double)d_ww;
-			} else 	{
+		switch(p_config->rotate_type) {
+			case 0:
+			case 2:
 				xx = xpos * (double)d_ww;
 				yy = ypos * (double)d_hh;
-			}
-		} else {
-			xx = xpos * (double)d_ww;
-			yy = ypos * (double)d_hh;
+				break;
+		case 1:
+		case 3:
+				xx = ypos * (double)d_hh;
+				yy = xpos * (double)d_ww;
+				break;
 		}
+	} else {
+		xx = xpos * (double)d_ww;
+		yy = ypos * (double)d_hh;
+	}
 
 		//printf("Mouse Move: (%f,%f) -> (%d, %d)\n", xpos, ypos, (int)xx, (int)yy);
-		emit do_notify_move_mouse((int)xx, (int)yy);
-	}
+	emit do_notify_move_mouse((int)xx, (int)yy);
+
 }
 // Will fix. zap of emu-> or ??
 void GLDrawClass::mousePressEvent(QMouseEvent *event)
