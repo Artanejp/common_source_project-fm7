@@ -238,7 +238,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
-	decl_state();
+
 	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
 #if defined(OPEN_HARD_DISK_IN_RESET)
 		create_local_path(hd_file_path[drv], _MAX_PATH, _T("SASI%d.DAT"), drv);
@@ -247,6 +247,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #endif
 	}
 	monitor_type = config.monitor_type;
+	decl_state();
 }
 
 VM::~VM()

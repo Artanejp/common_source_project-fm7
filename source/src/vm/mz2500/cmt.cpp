@@ -317,55 +317,92 @@ void CMT::close_tape()
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void CMT::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	DECL_STATE_ENTRY_UINT8(pa);
+	DECL_STATE_ENTRY_UINT8(pc);
+	DECL_STATE_ENTRY_BOOL(play);
+	DECL_STATE_ENTRY_BOOL(rec);
+	DECL_STATE_ENTRY_BOOL(now_play);
+	DECL_STATE_ENTRY_BOOL(now_rewind);
+	DECL_STATE_ENTRY_INT32(register_id_frew);
+	DECL_STATE_ENTRY_INT32(register_id_ffwd);
+	DECL_STATE_ENTRY_INT32(register_id_fwd);
+	DECL_STATE_ENTRY_INT32(register_id_stop);
+	DECL_STATE_ENTRY_INT32(register_id_eject);
+#ifndef _MZ80B
+	DECL_STATE_ENTRY_INT32(register_id_apss);
+	DECL_STATE_ENTRY_BOOL(now_apss);
+	DECL_STATE_ENTRY_BOOL(now_apss_tmp);
+#endif
+	DECL_STATE_ENTRY_INT32(register_id_ipl);
+	
+	leave_decl_state();
+}
+
 void CMT::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->FputUint8(pa);
-	state_fio->FputUint8(pc);
-	state_fio->FputBool(play);
-	state_fio->FputBool(rec);
-	state_fio->FputBool(now_play);
-	state_fio->FputBool(now_rewind);
-	state_fio->FputInt32(register_id_frew);
-	state_fio->FputInt32(register_id_ffwd);
-	state_fio->FputInt32(register_id_fwd);
-	state_fio->FputInt32(register_id_stop);
-	state_fio->FputInt32(register_id_eject);
-#ifndef _MZ80B
-	state_fio->FputInt32(register_id_apss);
-	state_fio->FputBool(now_apss);
-	state_fio->FputBool(now_apss_tmp);
-#endif
-	state_fio->FputInt32(register_id_ipl);
+//	state_fio->FputUint8(pa);
+//	state_fio->FputUint8(pc);
+//	state_fio->FputBool(play);
+//	state_fio->FputBool(rec);
+//	state_fio->FputBool(now_play);
+//	state_fio->FputBool(now_rewind);
+//	state_fio->FputInt32(register_id_frew);
+//	state_fio->FputInt32(register_id_ffwd);
+//	state_fio->FputInt32(register_id_fwd);
+//	state_fio->FputInt32(register_id_stop);
+//	state_fio->FputInt32(register_id_eject);
+//#ifndef _MZ80B
+//	state_fio->FputInt32(register_id_apss);
+//	state_fio->FputBool(now_apss);
+//	state_fio->FputBool(now_apss_tmp);
+//#endif
+//	state_fio->FputInt32(register_id_ipl);
 }
 
 bool CMT::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	pa = state_fio->FgetUint8();
-	pc = state_fio->FgetUint8();
-	play = state_fio->FgetBool();
-	rec = state_fio->FgetBool();
-	now_play = state_fio->FgetBool();
-	now_rewind = state_fio->FgetBool();
-	register_id_frew = state_fio->FgetInt32();
-	register_id_ffwd = state_fio->FgetInt32();
-	register_id_fwd = state_fio->FgetInt32();
-	register_id_stop = state_fio->FgetInt32();
-	register_id_eject = state_fio->FgetInt32();
-#ifndef _MZ80B
-	register_id_apss = state_fio->FgetInt32();
-	now_apss = state_fio->FgetBool();
-	now_apss_tmp = state_fio->FgetBool();
-#endif
-	register_id_ipl = state_fio->FgetInt32();
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	pa = state_fio->FgetUint8();
+//	pc = state_fio->FgetUint8();
+//	play = state_fio->FgetBool();
+//	rec = state_fio->FgetBool();
+//	now_play = state_fio->FgetBool();
+//	now_rewind = state_fio->FgetBool();
+//	register_id_frew = state_fio->FgetInt32();
+//	register_id_ffwd = state_fio->FgetInt32();
+//	register_id_fwd = state_fio->FgetInt32();
+//	register_id_stop = state_fio->FgetInt32();
+//	register_id_eject = state_fio->FgetInt32();
+//#ifndef _MZ80B
+//	register_id_apss = state_fio->FgetInt32();
+//	now_apss = state_fio->FgetBool();
+//	now_apss_tmp = state_fio->FgetBool();
+//#endif
+//	register_id_ipl = state_fio->FgetInt32();
 	return true;
 }
 
