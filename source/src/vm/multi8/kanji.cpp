@@ -57,19 +57,40 @@ uint32_t KANJI::read_io8(uint32_t addr)
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void KANJI::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	DECL_STATE_ENTRY_UINT32(ptr);
+
+	leave_decl_state();
+}
+
 void KANJI::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
 	
-	state_fio->FputUint32(ptr);
+//	state_fio->FputUint32(ptr);
 }
 
 bool KANJI::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	ptr = state_fio->FgetUint32();
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	ptr = state_fio->FgetUint32();
 	return true;
 }
 
