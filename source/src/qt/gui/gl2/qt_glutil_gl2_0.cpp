@@ -788,13 +788,22 @@ void GLDraw_2_0::drawGridsMain(GLfloat *tp,
 		if(tp != NULL) {
 			int i;
 			int p = 0;
+			QMatrix2x2 rot;
 			extfunc_2->glColor4f(color.x(), color.y(), color.z(), color.w());
 			extfunc_2->glLineWidth(lineWidth);
 			extfunc_2->glBegin(GL_LINES);
-			for(i = 0; i < (number + 1); i++) {
-				extfunc_2->glVertex3f(tp[p + 0], tp[p + 1], tp[p + 2]);
-				extfunc_2->glVertex3f(tp[p + 3], tp[p + 4], tp[p + 5]);
-				p += 6;
+			if((p_config->rotate_type == 1) || (p_config->rotate_type == 3)) {
+				for(i = 0; i < (number + 1); i++) {
+					extfunc_2->glVertex3f(tp[p + 1], tp[p + 0], tp[p + 2]);
+					extfunc_2->glVertex3f(tp[p + 4], tp[p + 3], tp[p + 5]);
+					p += 6;
+				}
+			} else {
+				for(i = 0; i < (number + 1); i++) {
+					extfunc_2->glVertex3f(tp[p + 0], tp[p + 1], tp[p + 2]);
+					extfunc_2->glVertex3f(tp[p + 3], tp[p + 4], tp[p + 5]);
+					p += 6;
+				}
 			}
 			extfunc_2->glEnd();
 		}
@@ -982,7 +991,6 @@ void GLDraw_2_0::drawMain(QOpenGLShaderProgram *prg,
 					prg->setUniformValue("tex_width",  (float)p->width()); 
 					prg->setUniformValue("tex_height", (float)p->height());
 				}
-				// ToDo: Put Matrix.
 				QMatrix2x2 rot;
 				switch(p_config->rotate_type) {
 				case 0:

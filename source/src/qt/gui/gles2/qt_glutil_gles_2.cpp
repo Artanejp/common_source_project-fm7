@@ -465,29 +465,35 @@ void GLDraw_ES_2::drawGridsMain_es(QOpenGLShaderProgram *prg,
 		bp->bind();
 		vp->bind();
 		prg->bind();
-		//GLfloat ff[2];
-		//bp->read(8, &ff, sizeof(GLfloat) * 2);
-		//printf("%d %f %f\n", number, ff[0], ff[1]);
-		
+		QMatrix2x2 rot;
+		switch(p_config->rotate_type) {
+			case 0:
+				rot = QMatrix2x2(rot0);
+				break;
+			case 1:
+				rot = QMatrix2x2(rot90);
+				break;
+			case 2:
+				rot = QMatrix2x2(rot180);
+				break;
+			case 3:
+				rot = QMatrix2x2(rot270);
+				break;
+			default:
+				rot = QMatrix2x2(rot0);
+				break;
+		}
+		prg->setUniformValue("rotate_mat", rot);
 		prg->setUniformValue("color", color);
 		prg->enableAttributeArray("vertex");
 		int vertex_loc = prg->attributeLocation("vertex");
 		
 		extfunc->glViewport(0, 0, p_wid->width(), p_wid->height());
-		//extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
-		//extfunc->glEnable(GL_BLEND);
-		//extfunc->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		//extfunc->glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 		extfunc->glVertexAttribPointer(vertex_loc, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3, 0); 
 		extfunc->glEnableVertexAttribArray(vertex_loc);
 		
-		//extfunc->glEnableClientState(GL_VERTEX_ARRAY);
-		//extfunc->glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 		extfunc->glLineWidth(lineWidth);
-		//extfunc->glVertexPointer(3, GL_FLOAT, 0, 0);
 		extfunc->glDrawArrays(GL_LINES, 0, (number + 1) * 2);
-		//extfunc->glDisableClientState(GL_VERTEX_ARRAY);
-		//extfunc->glDisable(GL_BLEND);
 		prg->release();
 		vp->release();
 		bp->release();
@@ -587,6 +593,31 @@ void GLDraw_ES_2::renderToTmpFrameBuffer_nPass(GLuint src_texture,
 						if(ringing_phase > 1.0) ringing_phase = ringing_phase - 1.0;
 						shader->setUniformValue(ii,  ringing_phase);
 					}
+					QMatrix2x2 rot;
+					/*
+					 * Note : Not rotate within renderer.
+					 */
+					/*
+					switch(p_config->rotate_type) {
+					case 0:
+						rot = QMatrix2x2(rot0);
+						break;
+					case 1:
+						rot = QMatrix2x2(rot90);
+						break;
+					case 2:
+						rot = QMatrix2x2(rot180);
+						break;
+					case 3:
+						rot = QMatrix2x2(rot270);
+						break;
+					default:
+						rot = QMatrix2x2(rot0);
+						break;
+					}
+					*/
+					rot = QMatrix2x2(rot0);
+					shader->setUniformValue("rotate_mat", rot);
 					//if(!(((gl_major_version >= 3) && (gl_minor_version >= 1)) || (gl_major_version >= 4))){
 						//ii = shader->uniformLocation("luma_filter");
 						//if(ii >= 0) {
@@ -619,9 +650,8 @@ void GLDraw_ES_2::renderToTmpFrameBuffer_nPass(GLuint src_texture,
 							shader->setUniformValue(ii, GL_FALSE);
 						}
 					}
-					//shader->setUniformValue("tex_width",  (float)w); 
-					//shader->setUniformValue("tex_height", (float)h);
 				}
+
 				shader->enableAttributeArray("texcoord");
 				shader->enableAttributeArray("vertex");
 				
