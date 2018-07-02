@@ -49,6 +49,10 @@ protected:
 	QOpenGLVertexArrayObject *grids_vertical_vertex;
 
 	GLuint uTmpTextureID;
+	const float rot0[4] =   {1, -0,  0, 1};
+	const float rot90[4] =  {0,  1, -1,  0};
+	const float rot180[4] = {-1, 0,  0, -1};
+	const float rot270[4] = {0, -1,  1, 0};
 	
 	virtual void setNormalVAO(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
 							  QOpenGLBuffer *bp, VertexTexCoord_t *tp, int size = 4);

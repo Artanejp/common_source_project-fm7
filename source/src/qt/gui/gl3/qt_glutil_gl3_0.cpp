@@ -335,11 +335,7 @@ bool GLDraw_3_0::initGridShaders(const QString vertex_fixed, const QString verte
 	bool f = false;
 	grids_shader = new QOpenGLShaderProgram(p_wid);
 	if(grids_shader != NULL) {
-		if(using_flags->is_use_screen_rotate()) {
-			f = grids_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, vertex_rotate);
-		} else {
-			f = grids_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, vertex_fixed);
-		}
+		f = grids_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, vertex_rotate);
 		f &= grids_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, fragment);
 		f &= grids_shader->link();
 	}
@@ -786,17 +782,17 @@ void GLDraw_3_0::uploadMainTexture(QImage *p, bool use_chromakey)
 									 ntsc_pass2->getViewportHeight());
 		uTmpTextureID = ntsc_pass2->getTexture();
 	} else {
-		renderToTmpFrameBuffer_nPass(uVramTextureID->textureId(),
-									 screen_texture_width,
-									 screen_texture_height,
-									 std_pass,
-									 std_pass->getViewportWidth(),
-									 std_pass->getViewportHeight(),
-									 use_chromakey);
+//		renderToTmpFrameBuffer_nPass(uVramTextureID->textureId(),
+//									 screen_texture_width,
+//									 screen_texture_height,
+//									 std_pass,
+//									 std_pass->getViewportWidth(),
+//									 std_pass->getViewportHeight(),
+//									 use_chromakey);
 
 		//std_pass->bind();
-		uTmpTextureID = std_pass->getTexture();
-		//std_pass->release();
+		//uTmpTextureID = std_pass->getTexture();
+		uTmpTextureID = uVramTextureID->textureId();	//std_pass->release();
 	}
 	crt_flag = true;
 }
@@ -873,15 +869,26 @@ void GLDraw_3_0::drawMain(QOpenGLShaderProgram *prg,
 		if(ii >= 0) {
 			prg->setUniformValue(ii,  (float)screen_texture_height);
 		}
-		if(using_flags->is_use_screen_rotate()) {
-			if(p_config->rotate_type) {
-				prg->setUniformValue("rotate", GL_TRUE);
-			} else {
-				prg->setUniformValue("rotate", GL_FALSE);
-			}
-		} else {
-			prg->setUniformValue("rotate", GL_FALSE);
+		
+		QMatrix2x2 rot;
+		switch(p_config->rotate_type) {
+			case 0:
+				rot = QMatrix2x2(rot0);
+				break;
+			case 1:
+				rot = QMatrix2x2(rot90);
+				break;
+			case 2:
+				rot = QMatrix2x2(rot180);
+				break;
+			case 3:
+				rot = QMatrix2x2(rot270);
+				break;
+			default:
+				rot = QMatrix2x2(rot0);
+				break;
 		}
+		prg->setUniformValue("rotate_mat", rot);
 
 		if(do_chromakey) {
 			ii = prg->uniformLocation("chromakey");
@@ -925,15 +932,25 @@ void GLDraw_3_0::drawMain(QOpenGLShaderProgram *prg,
 		if(ii >= 0) {
 			prg->setUniformValue(ii,  color);
 		}
-		if(using_flags->is_use_screen_rotate()) {
-			if(p_config->rotate_type) {
-				prg->setUniformValue("rotate", GL_TRUE);
-			} else {
-				prg->setUniformValue("rotate", GL_FALSE);
-			}
-		} else {
-			prg->setUniformValue("rotate", GL_FALSE);
+		QMatrix2x2 rot;
+		switch(p_config->rotate_type) {
+			case 0:
+				rot = QMatrix2x2(rot0);
+				break;
+			case 1:
+				rot = QMatrix2x2(rot90);
+				break;
+			case 2:
+				rot = QMatrix2x2(rot180);
+				break;
+			case 3:
+				rot = QMatrix2x2(rot270);
+				break;
+			default:
+				rot = QMatrix2x2(rot0);
+				break;
 		}
+		prg->setUniformValue("rotate_mat", rot);
 
 		if(do_chromakey) {
 			ii = prg->uniformLocation("chromakey");
@@ -1017,15 +1034,25 @@ void GLDraw_3_0::drawButtonsMain(int num, bool f_smoosing)
 			if(ii >= 0) {
 				prg->setUniformValue(ii, GL_FALSE);
 			}
-			if(using_flags->is_use_screen_rotate()) {
-				if(p_config->rotate_type) {
-					prg->setUniformValue("rotate", GL_TRUE);
-				} else {
-					prg->setUniformValue("rotate", GL_FALSE);
-				}
-			} else {
-				prg->setUniformValue("rotate", GL_FALSE);
+			QMatrix2x2 rot;
+			switch(p_config->rotate_type) {
+			case 0:
+				rot = QMatrix2x2(rot0);
+				break;
+			case 1:
+				rot = QMatrix2x2(rot90);
+				break;
+			case 2:
+				rot = QMatrix2x2(rot180);
+				break;
+			case 3:
+				rot = QMatrix2x2(rot270);
+				break;
+			default:
+				rot = QMatrix2x2(rot0);
+				break;
 			}
+			prg->setUniformValue("rotate_mat", rot);
 			int vertex_loc = prg->attributeLocation("vertex");
 			int texcoord_loc = prg->attributeLocation("texcoord");
 			prg->setAttributeBuffer(vertex_loc, GL_FLOAT, 0, 3, sizeof(VertexTexCoord_t));

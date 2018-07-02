@@ -982,15 +982,26 @@ void GLDraw_2_0::drawMain(QOpenGLShaderProgram *prg,
 					prg->setUniformValue("tex_width",  (float)p->width()); 
 					prg->setUniformValue("tex_height", (float)p->height());
 				}
-				if(using_flags->is_use_screen_rotate()) {
-					if(p_config->rotate_type) {
-						prg->setUniformValue("rotate", GL_TRUE);
-					} else {
-						prg->setUniformValue("rotate", GL_FALSE);
-					}
-				} else {
-					prg->setUniformValue("rotate", GL_FALSE);
+				// ToDo: Put Matrix.
+				QMatrix2x2 rot;
+				switch(p_config->rotate_type) {
+				case 0:
+					rot = QMatrix2x2(rot0);
+					break;
+				case 1:
+					rot = QMatrix2x2(rot90);
+					break;
+				case 2:
+					rot = QMatrix2x2(rot180);
+					break;
+				case 3:
+					rot = QMatrix2x2(rot270);
+					break;
+				default:
+					rot = QMatrix2x2(rot0);
+					break;
 				}
+				prg->setUniformValue("rotate_mat", rot);
 				if(do_chromakey) {
 					prg->setUniformValue("chromakey", chromakey);
 					prg->setUniformValue("do_chromakey", GL_TRUE);

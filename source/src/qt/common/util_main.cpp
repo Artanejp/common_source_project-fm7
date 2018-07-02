@@ -77,14 +77,11 @@ void Ui_MainWindow::set_window(int mode)
 			width = (int)(nd * (double)using_flags->get_screen_width());
 			height = (int)(nd * (double)using_flags->get_screen_height());
 
-			if(using_flags->is_use_screen_rotate()) {
-				if(config.rotate_type) {
+			if((config.rotate_type == 1) || (config.rotate_type == 3)){
 					int tmp_w = width;
 					width = height;
 					height = tmp_w;
-				}
 			}
-
 		}
 		config.window_mode = mode;
 		emit sig_emu_set_display_size(using_flags->get_screen_width(), using_flags->get_screen_height(), width, height);

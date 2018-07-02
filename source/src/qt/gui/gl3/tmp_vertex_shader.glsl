@@ -1,6 +1,7 @@
 attribute vec3 vertex;
 attribute vec2 texcoord;
 varying vec2 v_texcoord;
+
 void main ()
 {
   vec4 tmpvar_1;

@@ -29,6 +29,11 @@ void Object_Menu_Control::set_screen_aspect(void) {
 	emit sig_screen_aspect(num);
 }
 
+void Object_Menu_Control::do_set_screen_rotate(void) {
+	int num = getValue1();
+	emit sig_screen_rotate(num);
+}
+
 void Object_Menu_Control::set_screen_size(void) {
 	int w, h;
 	float nd, ww, hh;
@@ -215,18 +220,19 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 					this, SLOT(set_gl_scan_line_vert(bool)));
 		}
 	}
-	//if(using_flags->is_use_screen_rotate()) {
-		actionRotate = new Action_Control(this, using_flags);
-		actionRotate->setObjectName(QString::fromUtf8("actionScanLine"));
-		actionRotate->setCheckable(true);
-		if(p_config->rotate_type != 0) {
-			actionRotate->setChecked(true);
-		} else {
-			actionRotate->setChecked(false);
-		}
-		connect(actionRotate, SIGNAL(toggled(bool)),
-				this, SLOT(set_screen_rotate(bool)));
-		//}
+	actionGroup_RotateType = new QActionGroup(this);
+	actionGroup_RotateType->setExclusive(true);
+
+	for(int i = 0; i < 4; i++) {
+		actionRotate[i] = new Action_Control(this, using_flags);
+		actionRotate[i]->setObjectName(QString::fromUtf8("actionRotate") + QString("%1").arg(i));
+		actionRotate[i]->setCheckable(true);
+		actionRotate[i]->binds->setValue1(i);
+		actionGroup_RotateType->addAction(actionRotate[i]);
+		if(p_config->rotate_type == i) actionRotate[i]->setChecked(true);
+		connect(actionRotate[i], SIGNAL(triggered()), actionRotate[i]->binds, SLOT(do_set_screen_rotate()));
+		connect(actionRotate[i]->binds, SIGNAL(sig_screen_rotate(int)), this, SLOT(do_set_screen_rotate(int)));
+	}
 
 	actionOpenGL_Filter = new Action_Control(this, using_flags);
 	actionOpenGL_Filter->setObjectName(QString::fromUtf8("actionOpenGL_Filter"));
@@ -384,9 +390,11 @@ void Ui_MainWindowBase::CreateScreenMenu(void)
 			menuScreen->addAction(actionGLScanLineVert);
 		}
 	}
-	//if(using_flags->is_use_screen_rotate()) {
-		menuScreen->addAction(actionRotate);
-		//}
+	menuScreen_Rotate = new QMenu(menuScreen);
+	menuScreen_Rotate->setObjectName(QString::fromUtf8("menuScreenRotate"));
+	for(int i = 0; i < 4; i++) menuScreen_Rotate->addAction(actionRotate[i]);
+	menuScreen->addAction(menuScreen_Rotate->menuAction());
+
 	menuScreen->addAction(actionOpenGL_Filter);
 	menuScreen->addAction(actionCapture_Screen);
 	menuScreen->addSeparator();
@@ -411,10 +419,22 @@ void Ui_MainWindowBase::retranslateScreenMenu(void)
 		actionScanLine->setText(QApplication::translate("MenuScreen", "Software Scan Line", 0));
 		actionScanLine->setToolTip(QApplication::translate("MenuScreen", "Display scan line by software.", 0));
 	}
-	//if(using_flags->is_use_screen_rotate()) {
-		actionRotate->setText(QApplication::translate("MenuScreen", "Rotate Screen", 0));
-		actionRotate->setToolTip(QApplication::translate("MenuScreen", "Rotate screen.", 0));
-		//}
+
+	menuScreen_Rotate->setTitle(QApplication::translate("MenuScreen", "Rotate Screen", 0));
+	menuScreen_Rotate->setToolTip(QApplication::translate("MenuScreen", "Rotate screen.", 0));
+
+	actionRotate[0]->setText(QApplication::translate("MenuScreen", "0 deg", 0));
+	actionRotate[0]->setToolTip(QApplication::translate("MenuScreen", "Not rotate screen.", 0));
+
+	actionRotate[1]->setText(QApplication::translate("MenuScreen", "90 deg", 0));
+	actionRotate[1]->setToolTip(QApplication::translate("MenuScreen", "Rotate screen to 90 deg.", 0));
+
+	actionRotate[2]->setText(QApplication::translate("MenuScreen", "180 deg", 0));
+	actionRotate[2]->setToolTip(QApplication::translate("MenuScreen", "Rotate screen to 180 deg.", 0));
+
+	actionRotate[3]->setText(QApplication::translate("MenuScreen", "270 deg", 0));
+	actionRotate[3]->setToolTip(QApplication::translate("MenuScreen", "Rotate screen to 270 deg.", 0));
+	
 	if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
 		actionGLScanLineHoriz->setText(QApplication::translate("MenuScreen", "OpenGL Scan Line", 0));
 		actionGLScanLineHoriz->setToolTip(QApplication::translate("MenuScreen", "Display scan line by OpenGL.", 0));

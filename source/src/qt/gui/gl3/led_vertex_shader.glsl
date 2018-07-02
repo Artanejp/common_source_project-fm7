@@ -1,9 +1,13 @@
 attribute vec3 vertex;
+uniform mat2 rotate_mat;
+
 void main ()
 {
-    vec4 tmpvar_1;
-    tmpvar_1.w = 1.0;
-    tmpvar_1.xyz = vertex.xyz;
-    gl_Position = tmpvar_1;
+	vec4 xyzw = vec4(vertex, 1.0);
+	xyzw.xy = rotate_mat * xyzw.xy;
+#if 0
+	xyzw = mat4(0.0, -1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0) * xyzw;
+#endif		   
+	gl_Position = xyzw;
 }
 

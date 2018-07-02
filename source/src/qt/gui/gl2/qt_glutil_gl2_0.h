@@ -84,6 +84,10 @@ protected:
 	QOpenGLVertexArrayObject *vertex_osd[32];
 	QOpenGLBuffer *buffer_osd[32];
 	QOpenGLShaderProgram *osd_shader;
+	const float rot0[4] =   {1, -0,  0, 1};
+	const float rot90[4] =  {0,  1, -1,  0};
+	const float rot180[4] = {-1, 0,  0, -1};
+	const float rot270[4] = {0, -1,  1, 0};
 
 	virtual void initButtons(void);
 	virtual void initBitmapVertex(void);

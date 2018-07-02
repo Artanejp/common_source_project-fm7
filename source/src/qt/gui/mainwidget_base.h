@@ -162,6 +162,7 @@ private:
 	// Screen
 	QActionGroup *actionGroup_Stretch;
 	QActionGroup *actionGroup_SetRenderPlatform;
+	QActionGroup *actionGroup_RotateType;
 	class Action_Control *action_ScreenSeparateThread;
 	class Action_Control *action_ScreenUseOSD;
 	class Action_Control *actionZoom;
@@ -169,7 +170,8 @@ private:
 	class Action_Control *actionScanLine;
 	class Action_Control *actionGLScanLineHoriz;
 	class Action_Control *actionGLScanLineVert;
-	class Action_Control *actionRotate;
+	
+	class Action_Control *actionRotate[4];
 	class Action_Control *actionCRT_Filter;
 	class Action_Control *actionOpenGL_Filter;
 	class Action_Control *actionDot_by_Dot;
@@ -414,6 +416,7 @@ protected:
 	QMenu *menuStretch_Mode;
 	QMenu *menuScreenSize;
 	QMenu *menuScreen_Render;
+	QMenu *menuScreen_Rotate;
 	
 	QMenu *menuCpuType;
 	QMenu *menuBootMode;
@@ -535,6 +538,7 @@ public slots:
 	void do_update_volume(int level);
 	void set_screen_aspect(int num);
 	void set_screen_size(int w, int h);
+	void do_set_screen_rotate(int type);
 	void OnReset(void);
 	void OnSpecialReset(void);
 	virtual void do_set_mouse_enable(bool flag);
@@ -555,7 +559,6 @@ public slots:
 	virtual void OnOpenDebugger(int n);
 	virtual void OnCloseDebugger(void);
 	void doBeforeCloseMainWindow(void);	
-	void set_screen_rotate(bool);
 	void set_gl_crt_filter(bool);
 	void set_cpu_power(int pw) {
 		OnCpuPower(pw);

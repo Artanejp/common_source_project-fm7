@@ -777,10 +777,6 @@ void GLDraw_ES_2::drawMain(QOpenGLShaderProgram *prg,
 		if(ii >= 0) {
 			prg->setUniformValue(ii,  (float)screen_texture_height);
 		}
-		float rot0[4] =   {1, -0,  0, 1};
-		float rot270[4] =  {0, -1,  1, 0};
-		float rot180[4] = {-1, 0,  0, -1};
-		float rot90[4] = {0,  1, -1,  0};
 		QMatrix2x2 rot;
 		switch(p_config->rotate_type) {
 			case 0:

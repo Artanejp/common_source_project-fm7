@@ -703,22 +703,17 @@ void Ui_MainWindowBase::setupUi(void)
 			}
 		}
 	} else {
-		if(using_flags->is_use_screen_rotate()) {
-			switch(p_config->rotate_type) {
-			case 0:
-			case 2:
-				w = 1208;
-				h = 800;
-				break;
-			case 1:
-			case 4:
-				w = 600;
-				h = 960;
-				break;
-			}
-		} else {
-			w = 1280;
+		switch(p_config->rotate_type) {
+		case 0:
+		case 2:
+			w = 1208;
 			h = 800;
+			break;
+		case 1:
+		case 4:
+			w = 600;
+			h = 960;
+			break;
 		}
 	}
 	graphicsView->setFixedSize(w, h);

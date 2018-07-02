@@ -89,6 +89,7 @@ public slots:
 
 	void set_screen_aspect(void);
 	void set_screen_size(void);
+	void do_set_screen_rotate(void);
 	void do_set_device_type(void);
 	void do_set_keyboard_type(void);
 	void do_set_joystick_type(void);
@@ -176,7 +177,8 @@ signals:
 	int sig_screen_aspect(int);
 	int sig_screen_size(int, int);
 	int sig_screen_multiply(float);
-
+	int sig_screen_rotate(int);
+	
 	int sig_monitor_type(int);
 	
 signals:

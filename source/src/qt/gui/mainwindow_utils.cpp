@@ -67,9 +67,9 @@ void Ui_MainWindowBase::set_scan_line(bool flag)
 	emit sig_emu_update_config();
 }
 
-void Ui_MainWindowBase::set_screen_rotate(bool flag)
+void Ui_MainWindowBase::do_set_screen_rotate(int type)
 {
-	p_config->rotate_type = flag;
+	p_config->rotate_type = type;
 	if(p_config->window_mode >= using_flags->get_screen_mode_num()) p_config->window_mode = using_flags->get_screen_mode_num() - 1;
 	if(p_config->window_mode < 0) p_config->window_mode = 0;
 	if(actionScreenSize[p_config->window_mode] != NULL) {
@@ -127,17 +127,11 @@ void Ui_MainWindowBase::set_drive_type(int num)
 void Ui_MainWindowBase::set_screen_size(int w, int h)
 {
 	if((w <= 0) || (h <= 0)) return;
-	if(using_flags->is_use_screen_rotate()) {
-		if(p_config->rotate_type) {
-			this->graphicsView->setFixedSize(h, w);
-			this->resize_statusbar(h, w);
-			//emit sig_resize_osd(h);
-		} else {
-			this->graphicsView->setFixedSize(w, h);
-			this->resize_statusbar(w, h);
-			//emit sig_resize_osd(w);
-		}
-	} else 	{
+	if((p_config->rotate_type == 1) || (p_config->rotate_type == 3)) {
+		this->graphicsView->setFixedSize(h, w);
+		this->resize_statusbar(h, w);
+		//emit sig_resize_osd(h);
+	} else {
 		this->graphicsView->setFixedSize(w, h);
 		this->resize_statusbar(w, h);
 		//emit sig_resize_osd(w);
