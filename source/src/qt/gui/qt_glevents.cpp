@@ -50,21 +50,32 @@ void GLDrawClass::mouseMoveEvent(QMouseEvent *event)
 	QPointF pos = event->localPos();
 	double xpos = (double)(pos.x()) / (double)width();
 	double ypos = (double)(pos.y()) / (double)height();
-	if(using_flags->is_use_one_board_computer() || using_flags->is_use_mouse()) {
+	//printf("@@ %d %d\n", pos.x(), pos.y());
+	if(using_flags->is_use_one_board_computer() || using_flags->is_use_mouse() || (using_flags->get_max_button() > 0)) {
 		if(!enable_mouse) return;
 		//if(QApplication::overrideCursor() == NULL) {
 			//QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
 		//}
 		switch(p_config->rotate_type) {
 			case 0:
-			case 2:
 				xx = xpos * (double)d_ww;
 				yy = ypos * (double)d_hh;
 				break;
-		case 1:
-		case 3:
-				xx = ypos * (double)d_hh;
-				yy = xpos * (double)d_ww;
+			case 2:
+				xx = (1.0 - xpos) * (double)d_ww;
+				yy = (1.0 - ypos) * (double)d_hh;
+				break;
+			case 1:
+				xx = ypos * (double)d_ww;
+				yy = (1.0 - xpos) * (double)d_hh;
+				break;
+			case 3:
+				xx = (1.0 - ypos) * (double)d_ww;
+				yy = xpos * (double)d_hh;
+				break;
+			default:
+				xx = xpos * (double)d_ww;
+				yy = ypos * (double)d_hh;
 				break;
 		}
 	} else {
@@ -72,14 +83,14 @@ void GLDrawClass::mouseMoveEvent(QMouseEvent *event)
 		yy = ypos * (double)d_hh;
 	}
 
-		//printf("Mouse Move: (%f,%f) -> (%d, %d)\n", xpos, ypos, (int)xx, (int)yy);
+	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Mouse Move: (%f,%f) -> (%d, %d)\n", xpos, ypos, (int)xx, (int)yy);
 	emit do_notify_move_mouse((int)xx, (int)yy);
 
 }
 // Will fix. zap of emu-> or ??
 void GLDrawClass::mousePressEvent(QMouseEvent *event)
 {
-	if(using_flags->is_use_one_board_computer() || using_flags->is_use_mouse()) {
+	if(using_flags->is_use_one_board_computer() || using_flags->is_use_mouse() || (using_flags->get_max_button() > 0)) {
 		if(event->button() == Qt::MiddleButton)	{
 			emit sig_check_grab_mouse(true);
 			return;
@@ -92,7 +103,7 @@ void GLDrawClass::mousePressEvent(QMouseEvent *event)
 
 void GLDrawClass::mouseReleaseEvent(QMouseEvent *event)
 {
-	if(using_flags->is_use_one_board_computer() || using_flags->is_use_mouse()) {
+	if(using_flags->is_use_one_board_computer() || using_flags->is_use_mouse() || (using_flags->get_max_button() > 0)) {
 		if(!enable_mouse) return;
 		mouseMoveEvent(event); // Update pointer's location. 20180514
 		emit do_notify_button_released(event->button());

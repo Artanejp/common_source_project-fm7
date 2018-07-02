@@ -81,7 +81,7 @@ void EmuThreadClass::moved_mouse(int x, int y)
 {
 	mouse_x = x;
 	mouse_y = y;
-	
+	//printf("Moved Mouse %d, %d\n", x, y);
 #if defined(USE_MOUSE)
 	bool flag = p_emu->get_osd()->is_mouse_enabled();
 	if(!flag) return;
