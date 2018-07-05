@@ -98,6 +98,7 @@ public:
 #if defined(_MZ80K)
 	void update_config();
 #endif
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

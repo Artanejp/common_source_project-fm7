@@ -560,55 +560,92 @@ void QUICKDISK::release_disk()
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void QUICKDISK::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	DECL_STATE_ENTRY_STRING(file_path, sizeof(file_path) / sizeof(_TCHAR));
+	DECL_STATE_ENTRY_BOOL(insert);
+	DECL_STATE_ENTRY_BOOL(protect);
+	DECL_STATE_ENTRY_BOOL(home);
+	DECL_STATE_ENTRY_BOOL(modified);
+	DECL_STATE_ENTRY_BOOL(accessed);
+	DECL_STATE_ENTRY_1D_ARRAY(buffer, sizeof(buffer) / sizeof(uint16_t));
+	DECL_STATE_ENTRY_INT32(buffer_ptr);
+	DECL_STATE_ENTRY_INT32(write_ptr);
+	DECL_STATE_ENTRY_BOOL(first_data);
+	DECL_STATE_ENTRY_BOOL(send_break);
+	DECL_STATE_ENTRY_BOOL(wrga);
+	DECL_STATE_ENTRY_BOOL(mton);
+	DECL_STATE_ENTRY_BOOL(sync);
+	DECL_STATE_ENTRY_BOOL(motor_on);
+	DECL_STATE_ENTRY_INT32(restore_id);
+	DECL_STATE_ENTRY_INT32(end_id);
+	
+	leave_decl_state();
+}
+
 void QUICKDISK::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->Fwrite(file_path, sizeof(file_path), 1);
-	state_fio->FputBool(insert);
-	state_fio->FputBool(protect);
-	state_fio->FputBool(home);
-	state_fio->FputBool(modified);
-	state_fio->FputBool(accessed);
-	state_fio->Fwrite(buffer, sizeof(buffer), 1);
-	state_fio->FputInt32(buffer_ptr);
-	state_fio->FputInt32(write_ptr);
-	state_fio->FputBool(first_data);
-	state_fio->FputBool(send_break);
-	state_fio->FputBool(wrga);
-	state_fio->FputBool(mton);
-	state_fio->FputBool(sync);
-	state_fio->FputBool(motor_on);
-	state_fio->FputInt32(restore_id);
-	state_fio->FputInt32(end_id);
+//	state_fio->Fwrite(file_path, sizeof(file_path), 1);
+//	state_fio->FputBool(insert);
+//	state_fio->FputBool(protect);
+//	state_fio->FputBool(home);
+//	state_fio->FputBool(modified);
+//	state_fio->FputBool(accessed);
+//	state_fio->Fwrite(buffer, sizeof(buffer), 1);
+//	state_fio->FputInt32(buffer_ptr);
+//	state_fio->FputInt32(write_ptr);
+//	state_fio->FputBool(first_data);
+//	state_fio->FputBool(send_break);
+//	state_fio->FputBool(wrga);
+//	state_fio->FputBool(mton);
+//	state_fio->FputBool(sync);
+//	state_fio->FputBool(motor_on);
+//	state_fio->FputInt32(restore_id);
+//	state_fio->FputInt32(end_id);
 }
 
 bool QUICKDISK::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	state_fio->Fread(file_path, sizeof(file_path), 1);
-	insert = state_fio->FgetBool();
-	protect = state_fio->FgetBool();
-	home = state_fio->FgetBool();
-	modified = state_fio->FgetBool();
-	accessed = state_fio->FgetBool();
-	state_fio->Fread(buffer, sizeof(buffer), 1);
-	buffer_ptr = state_fio->FgetInt32();
-	write_ptr = state_fio->FgetInt32();
-	first_data = state_fio->FgetBool();
-	send_break = state_fio->FgetBool();
-	wrga = state_fio->FgetBool();
-	mton = state_fio->FgetBool();
-	sync = state_fio->FgetBool();
-	motor_on = state_fio->FgetBool();
-	restore_id = state_fio->FgetInt32();
-	end_id = state_fio->FgetInt32();
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	state_fio->Fread(file_path, sizeof(file_path), 1);
+//	insert = state_fio->FgetBool();
+//	protect = state_fio->FgetBool();
+//	home = state_fio->FgetBool();
+//	modified = state_fio->FgetBool();
+//	accessed = state_fio->FgetBool();
+//	state_fio->Fread(buffer, sizeof(buffer), 1);
+//	buffer_ptr = state_fio->FgetInt32();
+//	write_ptr = state_fio->FgetInt32();
+//	first_data = state_fio->FgetBool();
+//	send_break = state_fio->FgetBool();
+//	wrga = state_fio->FgetBool();
+//	mton = state_fio->FgetBool();
+//	sync = state_fio->FgetBool();
+//	motor_on = state_fio->FgetBool();
+//	restore_id = state_fio->FgetInt32();
+//	end_id = state_fio->FgetInt32();
 	return true;
 }
 

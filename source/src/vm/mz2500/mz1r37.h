@@ -19,6 +19,7 @@ class MZ1R37 : public DEVICE
 private:
 	uint8_t* buffer;
 	uint32_t address;
+	int tmp_buffer_size;
 public:
 	MZ1R37(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{

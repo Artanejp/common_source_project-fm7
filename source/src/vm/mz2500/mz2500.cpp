@@ -628,7 +628,7 @@ extern CSP_Logger DLL_PREFIX_I *csp_logger;
 
 void VM::decl_state(void)
 {
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::MZ700_SERIES_HEAD")), csp_logger);
+	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::MZ2500_SERIES_HEAD")), csp_logger);
 	DECL_STATE_ENTRY_BOOL(monitor_type);
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->decl_state();
@@ -644,6 +644,7 @@ void VM::save_state(FILEIO* state_fio)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->save_state(state_fio);
 	}
+
 	//state_fio->FputInt32(monitor_type);
 }
 
@@ -651,7 +652,7 @@ bool VM::load_state(FILEIO* state_fio)
 {
 	bool mb = false;
 	if(state_entry != NULL) {
-		mb = state_entry->save_state(state_fio);
+		mb = state_entry->load_state(state_fio);
 	}
 	if(!mb) return false;
 	//if(state_fio->FgetUint32() != STATE_VERSION) {
@@ -663,6 +664,6 @@ bool VM::load_state(FILEIO* state_fio)
 		}
 	}
 	//monitor_type = state_fio->FgetInt32();
-	//return true;
+	return true;
 }
 

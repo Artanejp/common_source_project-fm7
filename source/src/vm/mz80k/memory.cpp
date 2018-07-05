@@ -410,73 +410,120 @@ void MEMORY::draw_screen()
 
 #define STATE_VERSION	3
 
-void MEMORY::save_state(FILEIO* state_fio)
+#include "../../statesub.h"
+
+void MEMORY::decl_state()
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	enter_decl_state(STATE_VERSION);
 	
-	state_fio->Fwrite(ram, sizeof(ram), 1);
-	state_fio->Fwrite(vram, sizeof(vram), 1);
-	state_fio->FputBool(tempo);
-	state_fio->FputBool(blink);
+	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
+	DECL_STATE_ENTRY_1D_ARRAY(vram, sizeof(vram));
+	DECL_STATE_ENTRY_BOOL(tempo);
+	DECL_STATE_ENTRY_BOOL(blink);
 #if defined(_MZ1200) || defined(_MZ80A)
-	state_fio->FputBool(hblank);
-	state_fio->FputBool(memory_swap);
+	DECL_STATE_ENTRY_BOOL(hblank);
+	DECL_STATE_ENTRY_BOOL(memory_swap);
 #endif
 #if defined(SUPPORT_MZ80AIF)
-	state_fio->FputBool(fdc_irq);
-	state_fio->FputBool(fdc_drq);
+	DECL_STATE_ENTRY_BOOL(fdc_irq);
+	DECL_STATE_ENTRY_BOOL(fdc_drq);
 #endif
-	vgate = state_fio->FgetBool();
+	DECL_STATE_ENTRY_BOOL(vgate);
 #if defined(_MZ1200) || defined(_MZ80A)
-	reverse = state_fio->FgetBool();
+	DECL_STATE_ENTRY_BOOL(reverse);
 #endif
 #if defined(_MZ80A)
-	state_fio->FputUint32(e200);
+	DECL_STATE_ENTRY_UINT32(e200);
 #endif
-	state_fio->Fwrite(pcg + 0x400, 0x400, 1);
+	DECL_STATE_ENTRY_1D_ARRAY(&(pcg[0x400]), 0x400);
 #if defined(_MZ1200)
-	state_fio->Fwrite(pcg + 0xc00, 0x400, 1);
+	DECL_STATE_ENTRY_1D_ARRAY(&(pcg[0xc00]), 0x400);
 #endif
-	state_fio->FputUint8(pcg_data);
-	state_fio->FputUint8(pcg_addr);
-	state_fio->FputUint8(pcg_ctrl);
+	DECL_STATE_ENTRY_UINT8(pcg_data);
+	DECL_STATE_ENTRY_UINT8(pcg_addr);
+	DECL_STATE_ENTRY_UINT8(pcg_ctrl);
+	
+	leave_decl_state();
+}
+
+void MEMORY::save_state(FILEIO* state_fio)
+{
+
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
+	
+//	state_fio->Fwrite(ram, sizeof(ram), 1);
+//	state_fio->Fwrite(vram, sizeof(vram), 1);
+//	state_fio->FputBool(tempo);
+//	state_fio->FputBool(blink);
+//#if defined(_MZ1200) || defined(_MZ80A)
+//	state_fio->FputBool(hblank);
+//	state_fio->FputBool(memory_swap);
+//#endif
+//#if defined(SUPPORT_MZ80AIF)
+//	state_fio->FputBool(fdc_irq);
+//	state_fio->FputBool(fdc_drq);
+//#endif
+//	vgate = state_fio->FgetBool();
+//#if defined(_MZ1200) || defined(_MZ80A)
+//	reverse = state_fio->FgetBool();
+//#endif
+//#if defined(_MZ80A)
+//	state_fio->FputUint32(e200);
+//#endif
+//	state_fio->Fwrite(pcg + 0x400, 0x400, 1);
+//#if defined(_MZ1200)
+//	state_fio->Fwrite(pcg + 0xc00, 0x400, 1);
+//#endif
+//	state_fio->FputUint8(pcg_data);
+//	state_fio->FputUint8(pcg_addr);
+//	state_fio->FputUint8(pcg_ctrl);
 }
 
 bool MEMORY::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	state_fio->Fread(ram, sizeof(ram), 1);
-	state_fio->Fread(vram, sizeof(vram), 1);
-	tempo = state_fio->FgetBool();
-	blink = state_fio->FgetBool();
-#if defined(_MZ1200) || defined(_MZ80A)
-	hblank = state_fio->FgetBool();
-	memory_swap = state_fio->FgetBool();
-#endif
-#if defined(SUPPORT_MZ80AIF)
-	fdc_irq = state_fio->FgetBool();
-	fdc_drq = state_fio->FgetBool();
-#endif
-	state_fio->FputBool(vgate);
-#if defined(_MZ1200) || defined(_MZ80A)
-	state_fio->FputBool(reverse);
-#endif
-#if defined(_MZ80A)
-	e200 = state_fio->FgetUint32();
-#endif
-	state_fio->Fread(pcg + 0x400, 0x400, 1);
-#if defined(_MZ1200)
-	state_fio->Fread(pcg + 0xc00, 0x400, 1);
-#endif
-	pcg_data = state_fio->FgetUint8();
-	pcg_addr = state_fio->FgetUint8();
-	pcg_ctrl = state_fio->FgetUint8();
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	state_fio->Fread(ram, sizeof(ram), 1);
+//	state_fio->Fread(vram, sizeof(vram), 1);
+//	tempo = state_fio->FgetBool();
+//	blink = state_fio->FgetBool();
+//#if defined(_MZ1200) || defined(_MZ80A)
+//	hblank = state_fio->FgetBool();
+//	memory_swap = state_fio->FgetBool();
+//#endif
+//#if defined(SUPPORT_MZ80AIF)
+//	fdc_irq = state_fio->FgetBool();
+//	fdc_drq = state_fio->FgetBool();
+//#endif
+//	state_fio->FputBool(vgate);
+//#if defined(_MZ1200) || defined(_MZ80A)
+//	state_fio->FputBool(reverse);
+//#endif
+//#if defined(_MZ80A)
+//	e200 = state_fio->FgetUint32();
+//#endif
+//	state_fio->Fread(pcg + 0x400, 0x400, 1);
+//#if defined(_MZ1200)
+//	state_fio->Fread(pcg + 0xc00, 0x400, 1);
+//#endif
+//	pcg_data = state_fio->FgetUint8();
+//	pcg_addr = state_fio->FgetUint8();
+//	pcg_ctrl = state_fio->FgetUint8();
 	
 	// post process
 #if defined(_MZ1200) || defined(_MZ80A)

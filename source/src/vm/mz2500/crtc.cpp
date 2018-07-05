@@ -1728,28 +1728,28 @@ void CRTC::decl_state()
 	DECL_STATE_ENTRY_BOOL(pal_select);
 	DECL_STATE_ENTRY_BOOL(screen_mask);
 	DECL_STATE_ENTRY_2D_ARRAY(priority16, 16, 9);
-	// ToDo: scrntype_t
-	DECL_STATE_ENTRY_SCRNTYPE_T_1D_ARRAY(palette16, sizeof(palette16) / sizeof(scrntype_t));
-	DECL_STATE_ENTRY_SCRNTYPE_T_1D_ARRAY(palette4096, sizeof(palette4096) / sizeof(scrntype_t));
+
+	DECL_STATE_ENTRY_SCRNTYPE_T_1D_ARRAY(palette16, 16 + 8);
+	DECL_STATE_ENTRY_SCRNTYPE_T_1D_ARRAY(palette4096, 16);
 	DECL_STATE_ENTRY_1D_ARRAY(palette4096r, sizeof(palette4096r));
 	DECL_STATE_ENTRY_1D_ARRAY(palette4096g, sizeof(palette4096g));
 	DECL_STATE_ENTRY_1D_ARRAY(palette4096b, sizeof(palette4096b));
-	DECL_STATE_ENTRY_SCRNTYPE_T_1D_ARRAY(palette16txt, sizeof(palette16txt) / sizeof(scrntype_t));
-	DECL_STATE_ENTRY_SCRNTYPE_T_1D_ARRAY(palette4096txt, sizeof(palette4096txt) / sizeof(scrntype_t));
+	DECL_STATE_ENTRY_SCRNTYPE_T_1D_ARRAY(palette16txt, 9);
+	DECL_STATE_ENTRY_SCRNTYPE_T_1D_ARRAY(palette4096txt, 9);
 	DECL_STATE_ENTRY_SCRNTYPE_T_2D_ARRAY(palette16pri, 16, 9);
 	DECL_STATE_ENTRY_SCRNTYPE_T_2D_ARRAY(palette4096pri, 16, 9);
 	DECL_STATE_ENTRY_UINT8(prev16);
 	DECL_STATE_ENTRY_BOOL(update16);
 	DECL_STATE_ENTRY_2D_ARRAY(priority256, 256, 16+64);
-	DECL_STATE_ENTRY_SCRNTYPE_T_1D_ARRAY(palette256, sizeof(palette256) / sizeof(scrntype_t));
-	DECL_STATE_ENTRY_SCRNTYPE_T_1D_ARRAY(palette256txt, sizeof(palette256txt) / sizeof(scrntype_t));
+	DECL_STATE_ENTRY_SCRNTYPE_T_1D_ARRAY(palette256, 256 + 16 + 64);
+	DECL_STATE_ENTRY_SCRNTYPE_T_1D_ARRAY(palette256txt, 16 + 64);
 	DECL_STATE_ENTRY_SCRNTYPE_T_2D_ARRAY(palette256pri, 256, 16+64);
 	DECL_STATE_ENTRY_SCRNTYPE_T(prev256);
 	DECL_STATE_ENTRY_BOOL(update256);
 	DECL_STATE_ENTRY_2D_ARRAY(map_addr, 400, 80);
 	DECL_STATE_ENTRY_2D_ARRAY(map_hdsc, 400, 80);
 	DECL_STATE_ENTRY_3D_ARRAY(text_matrix, 256, 8, 8);
-	DECL_STATE_ENTRY_3D_ARRAY(text_matrixw, 256, 8, 8);
+	DECL_STATE_ENTRY_3D_ARRAY(text_matrixw, 256, 8, 16);
 	DECL_STATE_ENTRY_UINT8(trans_color);
 	DECL_STATE_ENTRY_BOOL(map_init);
 	DECL_STATE_ENTRY_BOOL(trans_init);

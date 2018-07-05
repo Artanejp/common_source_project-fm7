@@ -576,7 +576,7 @@ bool VM::load_state(FILEIO* state_fio)
 	//}
 	bool mb = false;
 	if(state_entry != NULL) {
-		mb = state_entry->save_state(state_fio);
+		mb = state_entry->load_state(state_fio);
 	}
 	if(!mb) return false;
 	for(DEVICE* device = first_device; device; device = device->next_device) {

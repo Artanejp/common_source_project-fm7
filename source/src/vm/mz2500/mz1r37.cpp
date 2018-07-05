@@ -60,7 +60,8 @@ void MZ1R37::decl_state()
 {
 	enter_decl_state(STATE_VERSION);
 
-	DECL_STATE_ENTRY_1D_ARRAY(buffer, EMM_SIZE);
+	DECL_STATE_ENTRY_INT32(tmp_buffer_size);
+	DECL_STATE_ENTRY_VARARRAY_VAR(buffer, tmp_buffer_size);
 	DECL_STATE_ENTRY_UINT32(address);
 	
 	leave_decl_state();
@@ -68,6 +69,7 @@ void MZ1R37::decl_state()
 
 void MZ1R37::save_state(FILEIO* state_fio)
 {
+	tmp_buffer_size = EMM_SIZE;
 	if(state_entry != NULL) {
 		state_entry->save_state(state_fio);
 	}
