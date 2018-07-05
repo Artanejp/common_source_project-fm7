@@ -500,45 +500,77 @@ void DISPLAY::update_palette()
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void DISPLAY::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	DECL_STATE_ENTRY_SCRNTYPE_T_1D_ARRAY(palette_pc, sizeof(palette_pc) / sizeof(scrntype_t));
+	DECL_STATE_ENTRY_1D_ARRAY(palette, sizeof(palette));
+	DECL_STATE_ENTRY_1D_ARRAY(back, sizeof(back));
+	DECL_STATE_ENTRY_1D_ARRAY(reverse, sizeof(reverse));
+	DECL_STATE_ENTRY_UINT8(rno);
+	DECL_STATE_ENTRY_1D_ARRAY(wregs, sizeof(wregs));
+	DECL_STATE_ENTRY_1D_ARRAY(pri, sizeof(pri) / sizeof(int));
+	DECL_STATE_ENTRY_1D_ARRAY(vma, sizeof(vma) / sizeof(int));
+	DECL_STATE_ENTRY_1D_ARRAY(vds, sizeof(vds));
+	DECL_STATE_ENTRY_UINT8(mode_r);
+	DECL_STATE_ENTRY_UINT8(mode_c);
+	DECL_STATE_ENTRY_UINT8(mode_p);
+
+	leave_decl_state();
+}
+
 void DISPLAY::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->Fwrite(palette_pc, sizeof(palette_pc), 1);
-	state_fio->Fwrite(palette, sizeof(palette), 1);
-	state_fio->Fwrite(back, sizeof(back), 1);
-	state_fio->Fwrite(reverse, sizeof(reverse), 1);
-	state_fio->FputUint8(rno);
-	state_fio->Fwrite(wregs, sizeof(wregs), 1);
-	state_fio->Fwrite(pri, sizeof(pri), 1);
-	state_fio->Fwrite(vma, sizeof(vma), 1);
-	state_fio->Fwrite(vds, sizeof(vds), 1);
-	state_fio->FputUint8(mode_r);
-	state_fio->FputUint8(mode_c);
-	state_fio->FputUint8(mode_p);
+//	state_fio->Fwrite(palette_pc, sizeof(palette_pc), 1);
+//	state_fio->Fwrite(palette, sizeof(palette), 1);
+//	state_fio->Fwrite(back, sizeof(back), 1);
+//	state_fio->Fwrite(reverse, sizeof(reverse), 1);
+//	state_fio->FputUint8(rno);
+//	state_fio->Fwrite(wregs, sizeof(wregs), 1);
+//	state_fio->Fwrite(pri, sizeof(pri), 1);
+//	state_fio->Fwrite(vma, sizeof(vma), 1);
+//	state_fio->Fwrite(vds, sizeof(vds), 1);
+//	state_fio->FputUint8(mode_r);
+//	state_fio->FputUint8(mode_c);
+//	state_fio->FputUint8(mode_p);
 }
 
 bool DISPLAY::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	state_fio->Fread(palette_pc, sizeof(palette_pc), 1);
-	state_fio->Fread(palette, sizeof(palette), 1);
-	state_fio->Fread(back, sizeof(back), 1);
-	state_fio->Fread(reverse, sizeof(reverse), 1);
-	rno = state_fio->FgetUint8();
-	state_fio->Fread(wregs, sizeof(wregs), 1);
-	state_fio->Fread(pri, sizeof(pri), 1);
-	state_fio->Fread(vma, sizeof(vma), 1);
-	state_fio->Fread(vds, sizeof(vds), 1);
-	mode_r = state_fio->FgetUint8();
-	mode_c = state_fio->FgetUint8();
-	mode_p = state_fio->FgetUint8();
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	state_fio->Fread(palette_pc, sizeof(palette_pc), 1);
+//	state_fio->Fread(palette, sizeof(palette), 1);
+//	state_fio->Fread(back, sizeof(back), 1);
+//	state_fio->Fread(reverse, sizeof(reverse), 1);
+//	rno = state_fio->FgetUint8();
+//	state_fio->Fread(wregs, sizeof(wregs), 1);
+//	state_fio->Fread(pri, sizeof(pri), 1);
+//	state_fio->Fread(vma, sizeof(vma), 1);
+//	state_fio->Fread(vds, sizeof(vds), 1);
+//	mode_r = state_fio->FgetUint8();
+//	mode_c = state_fio->FgetUint8();
+//	mode_p = state_fio->FgetUint8();
 	return true;
 }
 

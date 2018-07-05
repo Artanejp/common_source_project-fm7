@@ -466,51 +466,84 @@ void KEYBOARD::process(int cmd)
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void KEYBOARD::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	DECL_STATE_ENTRY_FIFO(key_buf);
+	DECL_STATE_ENTRY_FIFO(rsp_buf);
+	DECL_STATE_ENTRY_BOOL(caps);
+	DECL_STATE_ENTRY_BOOL(kana);
+	DECL_STATE_ENTRY_BOOL(graph);
+	DECL_STATE_ENTRY_INT32(dk);
+	DECL_STATE_ENTRY_INT32(srk);
+	DECL_STATE_ENTRY_INT32(dc);
+	DECL_STATE_ENTRY_INT32(stc);
+	DECL_STATE_ENTRY_INT32(send);
+	DECL_STATE_ENTRY_INT32(recv);
+	DECL_STATE_ENTRY_INT32(phase);
+	DECL_STATE_ENTRY_INT32(timeout);
+	
+	leave_decl_state();
+}
+
 void KEYBOARD::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	key_buf->save_state((void *)state_fio);
-	rsp_buf->save_state((void *)state_fio);
-	state_fio->FputBool(caps);
-	state_fio->FputBool(kana);
-	state_fio->FputBool(graph);
-	state_fio->FputInt32(dk);
-	state_fio->FputInt32(srk);
-	state_fio->FputInt32(dc);
-	state_fio->FputInt32(stc);
-	state_fio->FputInt32(send);
-	state_fio->FputInt32(recv);
-	state_fio->FputInt32(phase);
-	state_fio->FputInt32(timeout);
+//	key_buf->save_state((void *)state_fio);
+//	rsp_buf->save_state((void *)state_fio);
+//	state_fio->FputBool(caps);
+//	state_fio->FputBool(kana);
+//	state_fio->FputBool(graph);
+//	state_fio->FputInt32(dk);
+//	state_fio->FputInt32(srk);
+//	state_fio->FputInt32(dc);
+//	state_fio->FputInt32(stc);
+//	state_fio->FputInt32(send);
+//	state_fio->FputInt32(recv);
+//	state_fio->FputInt32(phase);
+//	state_fio->FputInt32(timeout);
 }
 
 bool KEYBOARD::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	if(!key_buf->load_state((void *)state_fio)) {
-		return false;
-	}
-	if(!rsp_buf->load_state((void *)state_fio)) {
-		return false;
-	}
-	caps = state_fio->FgetBool();
-	kana = state_fio->FgetBool();
-	graph = state_fio->FgetBool();
-	dk = state_fio->FgetInt32();
-	srk = state_fio->FgetInt32();
-	dc = state_fio->FgetInt32();
-	stc = state_fio->FgetInt32();
-	send = state_fio->FgetInt32();
-	recv = state_fio->FgetInt32();
-	phase = state_fio->FgetInt32();
-	timeout = state_fio->FgetInt32();
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	if(!key_buf->load_state((void *)state_fio)) {
+//		return false;
+//	}
+//	if(!rsp_buf->load_state((void *)state_fio)) {
+//		return false;
+//	}
+//	caps = state_fio->FgetBool();
+//	kana = state_fio->FgetBool();
+//	graph = state_fio->FgetBool();
+//	dk = state_fio->FgetInt32();
+//	srk = state_fio->FgetInt32();
+//	dc = state_fio->FgetInt32();
+//	stc = state_fio->FgetInt32();
+//	send = state_fio->FgetInt32();
+//	recv = state_fio->FgetInt32();
+//	phase = state_fio->FgetInt32();
+//	timeout = state_fio->FgetInt32();
 	return true;
 }
 
