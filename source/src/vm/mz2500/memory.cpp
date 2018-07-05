@@ -330,45 +330,77 @@ void MEMORY::set_map(uint8_t data)
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void MEMORY::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
+	DECL_STATE_ENTRY_1D_ARRAY(vram, sizeof(vram));
+	DECL_STATE_ENTRY_1D_ARRAY(tvram, sizeof(tvram));
+	DECL_STATE_ENTRY_1D_ARRAY(pcg, sizeof(pcg));
+	DECL_STATE_ENTRY_UINT8(bank);
+	DECL_STATE_ENTRY_1D_ARRAY(page, sizeof(page));
+	DECL_STATE_ENTRY_UINT8(dic_bank);
+	DECL_STATE_ENTRY_UINT8(kanji_bank);
+	DECL_STATE_ENTRY_BOOL(blank);
+	DECL_STATE_ENTRY_BOOL(hblank);
+	DECL_STATE_ENTRY_BOOL(vblank);
+	DECL_STATE_ENTRY_BOOL(busreq);
+	
+	leave_decl_state();
+}
+
 void MEMORY::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->Fwrite(ram, sizeof(ram), 1);
-	state_fio->Fwrite(vram, sizeof(vram), 1);
-	state_fio->Fwrite(tvram, sizeof(tvram), 1);
-	state_fio->Fwrite(pcg, sizeof(pcg), 1);
-	state_fio->FputUint8(bank);
-	state_fio->Fwrite(page, sizeof(page), 1);
-	state_fio->FputUint8(dic_bank);
-	state_fio->FputUint8(kanji_bank);
-	state_fio->FputBool(blank);
-	state_fio->FputBool(hblank);
-	state_fio->FputBool(vblank);
-	state_fio->FputBool(busreq);
+//	state_fio->Fwrite(ram, sizeof(ram), 1);
+//	state_fio->Fwrite(vram, sizeof(vram), 1);
+//	state_fio->Fwrite(tvram, sizeof(tvram), 1);
+//	state_fio->Fwrite(pcg, sizeof(pcg), 1);
+//	state_fio->FputUint8(bank);
+//	state_fio->Fwrite(page, sizeof(page), 1);
+//	state_fio->FputUint8(dic_bank);
+//	state_fio->FputUint8(kanji_bank);
+//	state_fio->FputBool(blank);
+//	state_fio->FputBool(hblank);
+//	state_fio->FputBool(vblank);
+//	state_fio->FputBool(busreq);
 }
 
 bool MEMORY::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	state_fio->Fread(ram, sizeof(ram), 1);
-	state_fio->Fread(vram, sizeof(vram), 1);
-	state_fio->Fread(tvram, sizeof(tvram), 1);
-	state_fio->Fread(pcg, sizeof(pcg), 1);
-	bank = state_fio->FgetUint8();
-	state_fio->Fread(page, sizeof(page), 1);
-	dic_bank = state_fio->FgetUint8();
-	kanji_bank = state_fio->FgetUint8();
-	blank = state_fio->FgetBool();
-	hblank = state_fio->FgetBool();
-	vblank = state_fio->FgetBool();
-	busreq = state_fio->FgetBool();
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	state_fio->Fread(ram, sizeof(ram), 1);
+//	state_fio->Fread(vram, sizeof(vram), 1);
+//	state_fio->Fread(tvram, sizeof(tvram), 1);
+//	state_fio->Fread(pcg, sizeof(pcg), 1);
+//	bank = state_fio->FgetUint8();
+//	state_fio->Fread(page, sizeof(page), 1);
+//	dic_bank = state_fio->FgetUint8();
+//	kanji_bank = state_fio->FgetUint8();
+//	blank = state_fio->FgetBool();
+//	hblank = state_fio->FgetBool();
+//	vblank = state_fio->FgetBool();
+//	busreq = state_fio->FgetBool();
 	
 	// post process
 	uint8_t bank_tmp = bank;

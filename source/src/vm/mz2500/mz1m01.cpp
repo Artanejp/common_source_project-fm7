@@ -113,25 +113,47 @@ void MZ1M01::write_signal(int id, uint32_t data, uint32_t mask)
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void MZ1M01::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
+	DECL_STATE_ENTRY_1D_ARRAY(port, sizeof(port));
+	
+	leave_decl_state();
+}
+
 void MZ1M01::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->Fwrite(ram, sizeof(ram), 1);
-	state_fio->Fwrite(port, sizeof(port), 1);
+//	state_fio->Fwrite(ram, sizeof(ram), 1);
+//	state_fio->Fwrite(port, sizeof(port), 1);
 }
 
 bool MZ1M01::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	state_fio->Fread(ram, sizeof(ram), 1);
-	state_fio->Fread(port, sizeof(port), 1);
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	state_fio->Fread(ram, sizeof(ram), 1);
+//	state_fio->Fread(port, sizeof(port), 1);
 	return true;
 }
 

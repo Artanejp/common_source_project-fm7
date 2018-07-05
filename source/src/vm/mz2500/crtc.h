@@ -119,6 +119,7 @@ public:
 	void event_callback(int event_id, int err);
 	void event_vline(int v, int clock);
 	void update_config();
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
