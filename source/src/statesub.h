@@ -36,7 +36,7 @@
 #include <vector>
 #include <typeindex>
 #include <map>
-#include "state_data.h"
+//#include "state_data.h"
 #if defined(_USE_QT)
 #include <QObject>
 #include <QString>
@@ -79,6 +79,7 @@ typedef enum csp_saver_type_t {
 
 
 class CSP_Logger;
+class csp_state_data_saver;
 
 #if defined(_USE_QT)
   QT_BEGIN_NAMESPACE

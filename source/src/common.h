@@ -976,7 +976,7 @@ uint16_t DLL_PREFIX EndianFromBig_WORD(uint16_t x);
 	uint8_t DLL_PREFIX A_OF_COLOR(scrntype_t c);
 #elif defined(_RGB888)
 	typedef uint32_t scrntype_t;
-	#define RGB_COLOR(r, g, b)	(((uint32_t)(r) << 16) | ((uint32_t)(g) << 8) | ((uint32_t)(b) << 0))
+	#define RGB_COLOR(r, g, b)	(((uint32_t)(r) << 16) | ((uint32_t)(g) << 8) | ((uint32_t)(b) << 0) | (0xff << 24))
 	#define RGBA_COLOR(r, g, b, a)	(((uint32_t)(r) << 16) | ((uint32_t)(g) << 8) | ((uint32_t)(b) << 0) | ((uint32_t)(a) << 24))
 	#define R_OF_COLOR(c)		(((c) >> 16) & 0xff)
 	#define G_OF_COLOR(c)		(((c) >>  8) & 0xff)

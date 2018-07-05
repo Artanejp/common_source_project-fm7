@@ -547,16 +547,11 @@ int64_t csp_state_data_saver::get_int64(uint32_t *sumseed, bool *__stat)
 
 void csp_state_data_saver::put_scrntype_t(scrntype_t val, uint32_t *sumseed, bool *__stat)
 {
-	uint8_t r, g, b, a;
 	uint8_t buf[4];
-	r = R_OF_COLOR(val);
-	g = G_OF_COLOR(val);
-	b = B_OF_COLOR(val);
-	a = A_OF_COLOR(val);
-	buf[0] = r;
-	buf[1] = g;
-	buf[2] = b;
-	buf[3] = a;
+	buf[0] = R_OF_COLOR(val);
+	buf[1] = G_OF_COLOR(val);
+	buf[2] = B_OF_COLOR(val);
+	buf[3] = A_OF_COLOR(val);
 	if(fio != NULL) {
 		if(fio->IsOpened()) {
 			fio->Fwrite(buf, 4, 1);
@@ -1257,7 +1252,7 @@ void csp_state_utils::add_entry_cmt_recording(const _TCHAR *__name, FILEIO **__f
 	listptr.push_back(_l);
 }
 
-void csp_state_utils::add_entry_scrn_type_t(const _TCHAR *__name, scrntype_t *p, int _len = 1, int __num = -1, int stride = 0)
+void csp_state_utils::add_entry_scrntype_t(const _TCHAR *__name, scrntype_t *p, int _len = 1, int __num = -1, int stride = 0)
 {
 	__list_t _l;
 	std::string _name = std::string(__name);
@@ -1855,6 +1850,7 @@ bool csp_state_utils::load_state(FILEIO *__fio, uint32_t *pcrc)
  			} else {
 				pp = (*p).ptr;
 			}
+			//printf("%s\n", (*p).name);
 			if((pp != NULL) && (_len > 0)) {
 				switch(_tid) {
 				case csp_saver_entry_float:
@@ -1875,7 +1871,7 @@ bool csp_state_utils::load_state(FILEIO *__fio, uint32_t *pcrc)
 							retval++;
 						}
 					}
-					out_debug_log("NAME=%s FLOAT: LEN=%d STAT=%d HEAD=%08x", _name.c_str(), retval, (_stat) ? 1 : 0, pp);
+					out_debug_log("NAME=%s FLOAT: LEN=%d STAT=%d HEAD=%08x", _name.c_str(), _len, (_stat) ? 1 : 0, pp);
 					break;
 				case csp_saver_entry_double:
 					{
@@ -1895,7 +1891,7 @@ bool csp_state_utils::load_state(FILEIO *__fio, uint32_t *pcrc)
 							retval++;
 						}
 					}
-					out_debug_log("NAME=%s DOUBLE: LEN=%d STAT=%d HEAD=%08x", _name.c_str(), retval, (_stat) ? 1 : 0, pp);
+					out_debug_log("NAME=%s DOUBLE: LEN=%d STAT=%d HEAD=%08x", _name.c_str(), _len, (_stat) ? 1 : 0, pp);
 					break;
 				case csp_saver_entry_long_double:
 					{
@@ -2278,7 +2274,7 @@ bool csp_state_utils::load_state(FILEIO *__fio, uint32_t *pcrc)
 					break;
 				default:
 					retval = 0;
-					//printf("NAME=%s UNKNOWN TID=%d: LEN=%d STAT=%d HEAD=%08x", _name.c_str(), _tid, retval, (_stat) ? 1 : 0, pp);
+					out_debug_log("NAME=%s UNKNOWN TID=%d", _name.c_str(), _tid);
 					break;
 				}
 				if((retval <= 0) || (!_stat)) {
