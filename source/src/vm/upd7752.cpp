@@ -519,6 +519,8 @@ void UPD7752::decl_state()
 	leave_decl_state();
 
 }
+#include "../state_data.h"
+
 void UPD7752::save_state(FILEIO* state_fio)
 {
 	uint32_t crc_value = 0xffffffff;

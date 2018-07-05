@@ -747,6 +747,9 @@ void SCSI_CDROM::decl_state()
 	// ToDo: Add Fix Value.
 	SCSI_DEV::decl_state();
 }
+
+#include "../state_data.h"
+
 void SCSI_CDROM::save_state(FILEIO* state_fio)
 {
 	uint32_t crc_value = 0xffffffff;

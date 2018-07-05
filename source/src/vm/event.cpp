@@ -831,6 +831,9 @@ void EVENT::decl_state()
 	leave_decl_state();
 #endif
 }
+
+#include "../state_data.h"
+
 void EVENT::save_state(FILEIO* state_fio)
 {
 #if 1

@@ -3130,6 +3130,8 @@ void V99X8::decl_state()
 	leave_decl_state();
 }
 
+#include "../state_data.h"
+
 void V99X8::save_state(FILEIO* state_fio)
 {
 	uint32_t crc_value = 0xffffffff;
