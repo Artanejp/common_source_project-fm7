@@ -545,6 +545,51 @@ int64_t csp_state_data_saver::get_int64(uint32_t *sumseed, bool *__stat)
 	return 0x00000000;
 }
 
+void csp_state_data_saver::put_scrntype_t(scrntype_t val, uint32_t *sumseed, bool *__stat)
+{
+	uint8_t r, g, b, a;
+	uint8_t buf[4];
+	r = R_OF_COLOR(val);
+	g = G_OF_COLOR(val);
+	b = B_OF_COLOR(val);
+	a = A_OF_COLOR(val);
+	buf[0] = r;
+	buf[1] = g;
+	buf[2] = b;
+	buf[3] = a;
+	if(fio != NULL) {
+		if(fio->IsOpened()) {
+			fio->Fwrite(buf, 4, 1);
+			if(__stat != NULL) *__stat =  true;
+			if(sumseed != NULL) {
+				*sumseed = calc_crc32(*sumseed, buf, 4);
+			}
+			return;
+		}
+	}
+	if(__stat != NULL) *__stat =  false;
+	return;
+}
+
+scrntype_t csp_state_data_saver::get_scrntype_t(uint32_t *sumseed, bool *__stat)
+{
+	uint8_t buf[4];
+	if(fio != NULL) {
+		if(fio->IsOpened()) {
+			size_t _ret = fio->Fread(buf, 4, 1);
+			if(_ret == 1) {
+				if(__stat != NULL) *__stat =  true;
+				if(sumseed != NULL) {
+					*sumseed = calc_crc32(*sumseed, buf, 4);
+				}
+				scrntype_t val = RGBA_COLOR(buf[0], buf[1], buf[2], buf[3]);
+				return val;
+			}
+		}
+	}
+	if(__stat != NULL) *__stat =  false;
+	return 0x00000000;
+}
 /*
  * For floating values, internal format is differnt by ARCHTECTURE, OS, COMPILER etc.
  * So, saving / loading those values by ascii, not binary.
@@ -1212,6 +1257,25 @@ void csp_state_utils::add_entry_cmt_recording(const _TCHAR *__name, FILEIO **__f
 	listptr.push_back(_l);
 }
 
+void csp_state_utils::add_entry_scrn_type_t(const _TCHAR *__name, scrntype_t *p, int _len = 1, int __num = -1, int stride = 0)
+{
+	__list_t _l;
+	std::string _name = std::string(__name);
+	if(__num >= 0) _name = _name + std::string("_#[") +std::to_string(__num) + std::string("]");
+	_l.ptr = (void *)p;
+	_l.len = _len;
+	_l.atomlen = 1;
+	_l.name = _name;
+	_l.datalenptr = NULL;
+	_l.local_num = __num;
+	_l.assume_byte = false;
+	_l.type_id = csp_saver_entry_scrntype_t;
+	_l.recv_ptr = 0;
+	_l.stride = stride;
+	out_debug_log("ADD ENTRY: NAME=%s TYPE=scrntype_t len=%d atomlen=%d", _name.c_str(), _len, _l.atomlen);
+	
+}
+
 bool csp_state_utils::save_state(FILEIO *__fio, uint32_t *pcrc)
 {
 	const uint8_t initdata[4] = {0xff, 0xff, 0xff, 0xff};
@@ -1658,6 +1722,25 @@ bool csp_state_utils::save_state(FILEIO *__fio, uint32_t *pcrc)
 							fp[i].save_state_helper(fio, &crc_value, &_stat);
 						}
 						retval = _len;
+					}
+					break;
+				case csp_saver_entry_scrntype_t:
+					{
+						retval = 0;
+						scrntype_t *px = (scrntype_t *)pp;
+						for(int i = 0; i < _len; i++) {
+							fio->put_scrntype_t(*px, &crc_value, &_stat);
+							if(_stride > sizeof(scrntype_t)) {
+								px = (scrntype_t *)((uint8_t *)px + _stride);
+							} else {
+								px++;
+							}
+							if(!_stat) {
+								retval = -1;
+								break;
+							}
+							retval++;
+						}
 					}
 					break;
 				default:
@@ -2172,6 +2255,26 @@ bool csp_state_utils::load_state(FILEIO *__fio, uint32_t *pcrc)
 						}
 						if(_s) retval = _len;
 					}
+					break;
+				case csp_saver_entry_scrntype_t:
+					{
+						retval = 0;
+						scrntype_t *px = (scrntype_t *)pp;
+						for(int i = 0; i < _len; i++) {
+							*px = fio->get_scrntype_t(&crc_value, &_stat);
+							if(_stride > sizeof(scrntype_t)) {
+								px = (scrntype_t *)((uint8_t *)px + _stride);
+							} else {
+								px++;
+							}
+							if(!_stat) {
+								retval = -1;
+								break;
+							}
+						retval++;
+						}
+					}
+					out_debug_log("NAME=%s SCRNTYPE_T: LEN=%d STAT=%d HEAD=%08x", _name.c_str(), retval, (_stat) ? 1 : 0, pp);
 					break;
 				default:
 					retval = 0;

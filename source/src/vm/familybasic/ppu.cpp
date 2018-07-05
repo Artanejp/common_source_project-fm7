@@ -678,7 +678,7 @@ void PPU::decl_state()
 {
 	enter_decl_state(STATE_VERSION);
 	// ToDo: Read register value, then calculate display values.
-	DECL_STATE_ENTRY_1D_ARRAY(palette_pc, sizeof(palette_pc) / sizeof(scrntype_t));
+	DECL_STATE_ENTRY_SCRNTYPE_T_1D_ARRAY(palette_pc, sizeof(palette_pc) / sizeof(scrntype_t));
 	DECL_STATE_ENTRY_1D_ARRAY(solid_buf, sizeof(solid_buf));
 	decl_state_header(&header);
 

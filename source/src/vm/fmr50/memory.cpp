@@ -1269,7 +1269,7 @@ void MEMORY::decl_state()
 	DECL_STATE_ENTRY_UINT16(ley);
 #endif
 	// ToDo: Generate Generic value(s).
-	DECL_STATE_ENTRY_1D_ARRAY(palette_cg, sizeof(palette_cg) / sizeof(scrntype_t));
+	DECL_STATE_ENTRY_SCRNTYPE_T_1D_ARRAY(palette_cg, sizeof(palette_cg) / sizeof(scrntype_t));
 	leave_decl_state();
 }
 

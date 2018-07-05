@@ -59,7 +59,8 @@ typedef enum csp_saver_type_t {
 	csp_saver_entry_long_double,
 	csp_saver_entry_void,
 	csp_saver_entry_string,
-	csp_saver_entry_cmt_recording,
+	csp_saver_entry_cmt_recording,	
+	csp_saver_entry_scrntype_t,
 	csp_saver_entry_any,
 	
 	csp_saver_entry_fifo,
@@ -148,7 +149,8 @@ protected:
 		{ typeid(bool), csp_saver_entry_bool },
 		{ typeid(void), csp_saver_entry_void },
 		{ typeid(FIFO), csp_saver_entry_fifo },
-		{ typeid(cur_time_t), csp_saver_entry_cur_time_t }
+		{ typeid(cur_time_t), csp_saver_entry_cur_time_t },
+		{ typeid(scrntype_t), csp_saver_entry_scrntype_t }
 	};
 public:
 	csp_state_utils(int _version = 1, int device_id = 1, const _TCHAR *classname = NULL, CSP_Logger* p_logger = NULL);
@@ -206,6 +208,7 @@ public:
 	void add_entry_fifo(const _TCHAR *__name, FIFO **p, int _len = 1, int __num = -1, int stride = 0);
 	void add_entry_cur_time_t(const _TCHAR *__name, cur_time_t *p, int _len = 1, int __num = -1, int stride = 0);
 	void add_entry_string(const _TCHAR *__name, _TCHAR *p, int _len = 1, int __num = -1, bool is_const = false);
+	void add_entry_scrntype_t(const _TCHAR *__name, scrntype_t *p, int _len = 1, int __num = -1, int stride = 0);
 	void add_entry_cmt_recording(const _TCHAR *__name, FILEIO **__fio, bool* __flag, _TCHAR *__path); 
 	
 	uint32_t get_crc_value(void);
@@ -302,6 +305,48 @@ signals:
 #define DECL_STATE_ENTRY_DOUBLE_STRIDE(___name, __len, __stride) DECL_STATE_ENTRY4(___name, state_entry, __len,  1, __stride)
 #define DECL_STATE_ENTRY_LONG_DOUBLE_STRIDE(___name, __len, __stride)  DECL_STATE_ENTRY4(___name, state_entry, __len,  1, __stride)
 
+
+#define DECL_STATE_ENTRY_SCRNTYPE_T(__name) { \
+			state_entry->add_entry_scrntype_t((_TCHAR *)(_T(#__name)), __name, 1, -1, 0); \
+		}
+
+#define DECL_STATE_ENTRY_SCRNTYPE_T_MEMBER(__name, __num) {					\
+			state_entry->add_entry_scrntype_t((_TCHAR *)(_T(#__name)), __name, 1, __num, 0); \
+		}
+
+#define DECL_STATE_ENTRY_SCRNTYPE_T_1D_ARRAY(__name, __len) {					\
+			state_entry->add_entry_scrntype_t((_TCHAR *)(_T(#__name)), __name, __len, -1, 0); \
+		}
+
+#define DECL_STATE_ENTRY_SCRNTYPE_T_2D_ARRAY(__name, __lenx, __leny) {			\
+			state_entry->add_entry_scrntype_t((_TCHAR *)(_T(#__name)), &(__name[0][0]), (__lenx * __leny) , -1, 0); \
+		}
+
+#define DECL_STATE_ENTRY_SCRNTYPE_T_3D_ARRAY(__name, __lenx, __leny, __lenz) {	\
+			state_entry->add_entry_scrntype_t((_TCHAR *)(_T(#__name)), &(__name[0][0][0]), (__lenx * __leny * __lenz), -1, 0); \
+		}
+
+#define DECL_STATE_ENTRY_SCRNTYPE_T_1D_ARRAY_MEMBER(__name, __len, __num) {	\
+			state_entry->add_entry_scrntype_t((_TCHAR *)(_T(#__name)), __name, __num, -1, 0); \
+		}
+
+#define DECL_STATE_ENTRY_SCRNTYPE_T_2D_ARRAY_MEMBER(__name, __lenx, __leny, __num) {	\
+			state_entry->add_entry_scrntype_t((_TCHAR *)(_T(#__name)), &(__name[0][0]), (__lenx * __leny) , __num, 0); \
+		}
+
+#define DECL_STATE_ENTRY_SCRNTYPE_T_3D_ARRAY_MEMBER(__name, __lenx, __leny, __lenz, __num) {	\
+			state_entry->add_entry_scrntype_t((_TCHAR *)(_T(#__name)), &(__name[0][0][0]), (__lenx * __leny * __lenz), __num, 0); \
+		}
+
+		
+#define DECL_STATE_ENTRY_SCRNTYPE_T_STRIDE(__name, __len, __stride) {	\
+			state_entry->add_entry_scrntype_t((_TCHAR *)(_T(#__name)), __name, __len, -1, __stride); \
+		}
+
+#define DECL_STATE_ENTRY_SCRNTYPE_T_MEMBER_STRIDE(__name, __len, __num, __stride) {	\
+			state_entry->add_entry_scrntype_t((_TCHAR *)(_T(#__name)), __name, __len, __num, __stride); \
+		}
+		
 
 #define DECL_STATE_ENTRY_MULTI(_n_type, ___name, ___size) DECL_STATE_ENTRY_MULTI0(_n_type, ___name, state_entry, ___size)
 

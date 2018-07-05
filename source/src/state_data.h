@@ -75,6 +75,8 @@ public:
 	pair64_t get_pair64(uint32_t *sumseed = NULL, bool *__stat = NULL);
 	void put_pair64(pair64_t val, uint32_t *sumseed = NULL, bool *__stat = NULL);
 
+	void put_scrntype_t(scrntype_t val, uint32_t *sumseed = NULL, bool *__stat = NULL);
+	scrntype_t get_scrntype(uint32_t *sumseed = NULL, bool *__stat = NULL);
 };
 
 
