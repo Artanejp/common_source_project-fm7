@@ -3166,30 +3166,6 @@ void PC88::save_state(FILEIO* state_fio)
 //	state_fio->FputBool(cmt_play);
 //	state_fio->FputBool(cmt_rec);
 //	state_fio->Fwrite(rec_file_path, sizeof(rec_file_path), 1);
-#if 0
-	csp_state_data_saver saver(state_fio);
-	bool stat;
-	if(cmt_rec && cmt_fio->IsOpened()) {
-		int length_tmp = (int)cmt_fio->Ftell();
-		cmt_fio->Fseek(0, FILEIO_SEEK_SET);
-		
-		saver.put_int32(length_tmp, &crc_value, &stat);
-		//state_fio->FputInt32(length_tmp);
-		while(length_tmp != 0) {
-			uint8_t buffer[1024];
-			int length_rw = min(length_tmp, (int)sizeof(buffer));
-			cmt_fio->Fread(buffer, length_rw, 1);
-			state_fio->Fwrite(buffer, length_rw, 1);
-			crc_value = calc_crc32(crc_value, buffer, length_rw);
-			
-			length_tmp -= length_rw;
-		}
-	} else {
-		saver.put_int32(0, &crc_value, &stat);
-		//state_fio->FputInt32(0);
-	}
-	saver.post_proc_saving(&crc_value, &stat);
-#endif
 //	state_fio->FputInt32(cmt_bufptr);
 //	state_fio->FputInt32(cmt_bufcnt);
 //	state_fio->Fwrite(cmt_buffer, sizeof(cmt_buffer), 1);
@@ -3283,27 +3259,6 @@ bool PC88::load_state(FILEIO* state_fio)
 		mb = state_entry->load_state(state_fio, &crc_value);
 	}
 	if(!mb) return false;
-#if 0
-	csp_state_data_saver saver(state_fio);
-	int length_tmp = saver.get_int32(&crc_value, &stat);
-	if(!stat) return false;
-	
-//	int length_tmp = state_fio->FgetInt32();
-	if(cmt_rec) {
-		cmt_fio->Fopen(rec_file_path, FILEIO_READ_WRITE_NEW_BINARY);
-		while(length_tmp != 0) {
-			uint8_t buffer[1024];
-			int length_rw = min(length_tmp, (int)sizeof(buffer));
-			state_fio->Fread(buffer, length_rw, 1);
-			crc_value = calc_crc32(crc_value, buffer, length_rw);
-			if(cmt_fio->IsOpened()) {
-				cmt_fio->Fwrite(buffer, length_rw, 1);
-			}
-			length_tmp -= length_rw;
-		}
-	}
-	if(!(saver.post_proc_loading(&crc_value, &stat))) return false;
-#endif
 //	cmt_bufptr = state_fio->FgetInt32();
 //	cmt_bufcnt = state_fio->FgetInt32();
 //	state_fio->Fread(cmt_buffer, sizeof(cmt_buffer), 1);
