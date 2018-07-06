@@ -219,7 +219,9 @@ void IOCTRL::update_key()
 
 #define STATE_VERSION	1
 
-void IOCTRL::decl_state(FILEIO* state_fio)
+#include "../../statesub.h"
+
+void IOCTRL::decl_state()
 {
 	enter_decl_state(STATE_VERSION);
 	
