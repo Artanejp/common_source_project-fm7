@@ -1271,7 +1271,563 @@ void csp_state_utils::add_entry_scrntype_t(const _TCHAR *__name, scrntype_t *p, 
 	
 }
 
-bool csp_state_utils::save_state(FILEIO *__fio, uint32_t *pcrc)
+int csp_state_utils::save_sub_float(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride)
+{
+	int retval = 0;
+	float *px = (float *)pp;
+	if(_stat != NULL) {
+		*_stat = false;
+	}
+	for(int i = 0; i < _len; i++) {
+		fio->put_float(*px, crc_value, _stat);
+		if(_stride > sizeof(float)) {
+			px = (float *)((uint8_t *)px + _stride);
+		} else {
+			px++;
+		}
+		if(_stat != NULL) {
+			if(!(*_stat)) {
+				return -1;
+			}
+		}
+		retval++;
+	}
+	return retval;
+}
+
+int csp_state_utils::save_sub_double(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride)
+{
+	int retval = 0;
+	double *px = (double *)pp;
+	if(_stat != NULL) {
+		*_stat = false;
+	}
+	for(int i = 0; i < _len; i++) {
+		fio->put_double(*px, crc_value, _stat);
+		if(_stride > sizeof(double)) {
+			px = (double *)((uint8_t *)px + _stride);
+		} else {
+			px++;
+		}
+		if(_stat != NULL) {
+			if(!(*_stat)) {
+				retval = -1;
+				break;
+			}
+		}
+		retval++;
+	}
+	return retval;
+}
+
+int csp_state_utils::save_sub_long_double(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride)
+{
+	int retval = 0;
+	long double *px = (long double *)pp;
+	if(_stat != NULL) {
+		*_stat = false;
+	}
+	for(int i = 0; i < _len; i++) {
+		fio->put_long_double(*px, crc_value, _stat);
+		if(_stride > sizeof(long double)) {
+			px = (long double *)((uint8_t *)px + _stride);
+		} else {
+			px++;
+		}
+		if(_stat != NULL) {
+			if(!(*_stat)) {
+				retval = -1;
+				break;
+			}
+		}
+		retval++;
+	}
+	return retval;
+}
+
+int csp_state_utils::save_sub_pair_t(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride)
+{
+	int retval = 0;
+	pair_t *px = (pair_t *)pp;
+	if(_stat != NULL) {
+		*_stat = false;
+	}
+	for(int i = 0; i < _len; i++) {
+		fio->put_pair32(*px, crc_value, _stat);
+		if(_stride > sizeof(pair_t)) {
+			px = (pair_t *)((uint8_t *)px + _stride);
+		} else {
+			px++;
+		}
+		if(_stat != NULL) {
+			if(!(*_stat)) {
+				retval = -1;
+				break;
+			}
+		}
+		retval++;
+	}
+	return retval;
+}
+
+int csp_state_utils::save_sub_int(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride)
+{
+	int retval = 0;
+	int *px = (int *)pp;
+	if(_stat != NULL) {
+		*_stat = false;
+	}
+	for(int i = 0; i < _len; i++) {
+		fio->put_int32(*px, crc_value, _stat);
+		if(_stride > sizeof(int)) {
+			px = (int *)((uint8_t *)px + _stride);
+		} else {
+			px++;
+		}
+		if(_stat != NULL) {
+			if(!(*_stat)) {
+				retval = -1;
+				break;
+			}
+		}
+		retval++;
+	}
+	return retval;
+}
+
+int csp_state_utils::save_sub_uint8(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride)
+{
+	int retval = 0;
+	uint8_t *px = (uint8_t *)pp;
+	if(_stat != NULL) {
+		*_stat = false;
+	}
+	if((_len > 1) && (_stride <= 1)){
+		size_t _n = fio->get_file_io()->Fwrite(px, _len, 1);
+		bool b_stat = false;
+		if(_n != 1) {
+			retval = -1;
+			b_stat = false;
+		} else {
+			retval = _len;
+			b_stat = true;
+			if(crc_value != NULL) *crc_value = calc_crc32(*crc_value, px, _len);
+		}
+		if(_stat != NULL) {
+			*_stat = b_stat;
+		}
+	} else {
+		for(int ii = 0; ii < _len; ii++) {
+			fio->put_byte(*px, crc_value, _stat);
+			if(_stride > 1) {
+				px = (uint8_t *)((uint8_t *)px + _stride);
+			} else {
+				px++;
+			}
+			if(_stat != NULL) {
+				if(!(*_stat)) {
+					retval = -1;
+					break;
+				}
+			}
+			retval++;
+		}
+	}
+	return retval;
+}
+
+int csp_state_utils::save_sub_int8(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride)
+{
+	int retval = 0;
+	int8_t *px = (int8_t *)pp;
+	if(_stat != NULL) {
+		*_stat = false;
+	}
+	if((_len > 1) && (_stride <= 1)){
+		size_t _n = fio->get_file_io()->Fwrite(px, _len, 1);
+		bool b_stat = false;
+		if(_n != 1) {
+			retval = -1;
+			b_stat = false;
+		} else {
+			retval = _len;
+			b_stat = true;
+			if(crc_value != NULL) *crc_value = calc_crc32(*crc_value, px, _len);
+		}
+		if(_stat != NULL) {
+			*_stat = b_stat;
+		}
+	} else {
+		for(int ii = 0; ii < _len; ii++) {
+			fio->put_int8(*px, crc_value, _stat);
+			if(_stride > 1) {
+				px = (int8_t *)((int8_t *)px + _stride);
+			} else {
+				px++;
+			}
+			if(_stat != NULL) {
+				if(!(*_stat)) {
+					retval = -1;
+					break;
+				}
+			}
+			retval++;
+		}
+	}
+	return retval;
+}
+
+int csp_state_utils::save_sub_uint16(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride)
+{
+	int retval = 0;
+	uint16_t *px = (uint16_t *)pp;
+	if(_stat != NULL) {
+		*_stat = false;
+	}
+	for(int i = 0; i < _len; i++) {
+		fio->put_word(*px, crc_value, _stat);
+		if(_stride > sizeof(uint16_t)) {
+			px = (uint16_t *)((uint8_t *)px + _stride);
+		} else {
+			px++;
+		}
+		if(_stat != NULL) {
+			if(!(*_stat)) {
+				retval = -1;
+				break;
+			}
+		}
+		retval++;
+	}
+	return retval;
+}
+
+int csp_state_utils::save_sub_int16(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride)
+{
+	int retval = 0;
+	int16_t *px = (int16_t *)pp;
+	if(_stat != NULL) {
+		*_stat = false;
+	}
+	for(int i = 0; i < _len; i++) {
+		fio->put_int16(*px, crc_value, _stat);
+		if(_stride > sizeof(int16_t)) {
+			px = (int16_t *)((uint8_t *)px + _stride);
+		} else {
+			px++;
+		}
+		if(_stat != NULL) {
+			if(!(*_stat)) {
+				retval = -1;
+				break;
+			}
+		}
+		retval++;
+	}
+	return retval;
+}
+
+int csp_state_utils::save_sub_uint32(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride)
+{
+	int retval = 0;
+	uint32_t *px = (uint32_t *)pp;
+	if(_stat != NULL) {
+		*_stat = false;
+	}
+	for(int i = 0; i < _len; i++) {
+		fio->put_dword(*px, crc_value, _stat);
+		if(_stride > sizeof(uint32_t)) {
+			px = (uint32_t *)((uint8_t *)px + _stride);
+		} else {
+			px++;
+		}
+		if(_stat != NULL) {
+			if(!(*_stat)) {
+				retval = -1;
+				break;
+			}
+		}
+		retval++;
+	}
+	return retval;
+}
+
+int csp_state_utils::save_sub_int32(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride)
+{
+	int retval = 0;
+	int32_t *px = (int32_t *)pp;
+	if(_stat != NULL) {
+		*_stat = false;
+	}
+	for(int i = 0; i < _len; i++) {
+		fio->put_int32(*px, crc_value, _stat);
+		if(_stride > sizeof(int32_t)) {
+			px = (int32_t *)((uint8_t *)px + _stride);
+		} else {
+			px++;
+		}
+		if(_stat != NULL) {
+			if(!(*_stat)) {
+				retval = -1;
+				break;
+			}
+		}
+		retval++;
+	}
+	return retval;
+}
+
+int csp_state_utils::save_sub_uint64(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride)
+{
+	int retval = 0;
+	uint64_t *px = (uint64_t *)pp;
+	if(_stat != NULL) {
+		*_stat = false;
+	}
+	for(int i = 0; i < _len; i++) {
+		fio->put_qword(*px, crc_value, _stat);
+		if(_stride > sizeof(uint64_t)) {
+			px = (uint64_t *)((uint8_t *)px + _stride);
+		} else {
+			px++;
+		}
+		if(_stat != NULL) {
+			if(!(*_stat)) {
+				retval = -1;
+				break;
+			}
+		}
+		retval++;
+	}
+	return retval;
+}
+
+int csp_state_utils::save_sub_int64(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride)
+{
+	int retval = 0;
+	int64_t *px = (int64_t *)pp;
+	if(_stat != NULL) {
+		*_stat = false;
+	}
+	for(int i = 0; i < _len; i++) {
+		fio->put_int64(*px, crc_value, _stat);
+		if(_stride > sizeof(int64_t)) {
+			px = (int64_t *)((uint8_t *)px + _stride);
+		} else {
+			px++;
+		}
+		if(_stat != NULL) {
+			if(!(*_stat)) {
+				retval = -1;
+				break;
+			}
+		}
+		retval++;
+	}
+	return retval;
+}
+
+int csp_state_utils::save_sub_bool(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride)
+{
+	int retval = 0;
+	bool *px = (bool *)pp;
+	if(_stat != NULL) {
+		*_stat = false;
+	}
+	for(int i = 0; i < _len ; i++) {
+		fio->put_bool(*px, crc_value, _stat);
+		if(_stride > sizeof(bool)) {
+			px = (bool *)((uint8_t *)px + _stride);
+		} else {
+			px++;
+		}
+		if(_stat != NULL) {
+			if(!(*_stat)) {
+				retval = -1;
+				break;
+			}
+		}
+		retval++;
+	}
+	return retval;
+}
+
+int csp_state_utils::save_sub_tchar(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride)
+{
+	int retval;
+	retval = fio->save_tchar_data((const _TCHAR *)pp, crc_value, _len, _stat);
+	if(_stat != NULL) {
+		if(!(*_stat)) retval = -1;
+	}
+	return retval;
+}
+
+int csp_state_utils::save_sub_string(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride)
+{
+	int retval;
+	retval = fio->save_string_data((const _TCHAR *)pp, crc_value, _len, _stat);
+	if(_stat != NULL) {
+		if(!(*_stat)) retval = -1;
+	}
+	return retval;
+}
+
+int csp_state_utils::save_sub_byte_array(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride, int _atomsize)
+{
+	int retval;
+	retval = fio->put_byte_array((uint8_t *)pp, _atomsize, _len, crc_value, _stat);
+	if(_stat != NULL) {
+		if(!(*_stat)) retval = -1;
+	}
+	return retval;
+}
+
+int csp_state_utils::save_sub_fifo(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride)
+{
+	int retval = 0;
+	if(_stat != NULL) {
+		*_stat = false;
+	}
+	if(pp != NULL) {
+		retval = 0;
+		FIFO **fp = (FIFO **)pp;
+		for(int i = 0; i < _len; i++) {
+			fp[i]->save_state_helper(fio, crc_value, _stat);
+		}
+		if(_stat != NULL) {
+			if(!(*_stat)) {
+				return -1;
+			}
+		}
+		retval = _len;
+	}
+	if(_stat != NULL) {
+		if(!(*_stat)) {
+			return -1;
+		}
+	}
+	return retval;
+}
+
+int csp_state_utils::save_sub_cur_time_t(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride)
+{
+	int retval = 0;
+	if(_stat != NULL) {
+		*_stat = false;
+	}
+	if(pp != NULL) {
+		cur_time_t *fp = (cur_time_t *)pp;
+		for(int i = 0; i < _len; i++) {
+			fp[i].save_state_helper(fio, crc_value, _stat);
+		}
+		if(_stat != NULL) {
+			if(!(*_stat)) {
+				return -1;
+			}
+		}
+		retval = _len;
+	}
+	if(_stat != NULL) {
+		if(!(*_stat)) {
+			return -1;
+		}
+	}
+	return retval;
+}
+
+int csp_state_utils::save_sub_cmt_recording(uint32_t *crc_value, bool *_stat, void *pp, FILEIO **ffp, int _len, int _stride)
+{
+	int retval = 0;
+	if(_stat != NULL) {
+		*_stat = false;
+	}
+	if(pp != NULL) {
+		retval = 0;
+		bool _flag = *((bool *)pp);
+		//FILEIO **ffp = (FILEIO **)((*p).recv_ptr);
+		for(int i = 0; i < _len; i++) {
+			if(_stat != NULL) {
+				*_stat = false;
+			}
+			if(ffp[i] == NULL) {
+				retval = -1;
+				break;
+			}
+			if((_flag) && (ffp[i]->IsOpened())) {
+				int length_tmp = (int)ffp[i]->Ftell();
+				ffp[i]->Fseek(0, FILEIO_SEEK_SET);
+				fio->put_int32(length_tmp, crc_value, _stat);
+				if(_stat != NULL) {
+					if(!(*_stat)) {
+						return -1;
+					}
+				}
+				while(length_tmp > 0) {
+					uint8_t buffer[1024];
+					int length_rw = min(length_tmp, (int)sizeof(buffer));
+					ffp[i]->Fread(buffer, length_rw, 1);
+					fio->put_byte_array(buffer, length_rw, 1, crc_value, _stat);
+					if(_stat != NULL) {
+						if(!(*_stat)) {
+							return -1;
+						}
+					}
+					length_tmp -= length_rw;
+				}
+				if(_stat != NULL) {
+					if(!(*_stat)) {
+						return -1;
+					}
+				}
+			} else {
+				fio->put_int32(0, crc_value, _stat);
+				if(_stat != NULL) {
+					if(!(*_stat)) {
+						return -1;
+					}
+				}
+			}
+			retval++;
+		}
+	}
+	if(_stat != NULL) {
+		if(!(*_stat)) {
+			return -1;
+		}
+	}
+	return retval;
+}
+
+int csp_state_utils::save_sub_scrntype_t(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride)
+{
+	int retval = 0;
+	scrntype_t *px = (scrntype_t *)pp;
+	if(_stat != NULL) {
+		*_stat = false;
+	}
+	for(int i = 0; i < _len; i++) {
+		fio->put_scrntype_t(*px, crc_value, _stat);
+		if(_stride > sizeof(scrntype_t)) {
+			px = (scrntype_t *)((uint8_t *)px + _stride);
+		} else {
+			px++;
+		}
+		if(_stat != NULL) {
+			if(!(*_stat)) {
+				return -1;
+			}
+		}
+		retval++;
+	}
+	if(_stat != NULL) {
+		if(!(*_stat)) {
+			return -1;
+		}
+	}
+	return retval;
+}
+
+void csp_state_utils::save_state(FILEIO *__fio, uint32_t *pcrc)
 {
 	const uint8_t initdata[4] = {0xff, 0xff, 0xff, 0xff};
 	const uint8_t taildata[4] = {0x00, 0x00, 0x00, 0x00};
@@ -1349,394 +1905,71 @@ bool csp_state_utils::save_state(FILEIO *__fio, uint32_t *pcrc)
 				int64_t tval;
 				switch(_tid) {
 				case csp_saver_entry_float:
-					{
-						retval = 0;
-						float *px = (float *)pp;
-						for(int i = 0; i < _len; i++) {
-							fio->put_float(*px, &crc_value, &_stat);
-							if(_stride > sizeof(float)) {
-								px = (float *)((uint8_t *)px + _stride);
-							} else {
-								px++;
-							}
-							if(!_stat) {
-								retval = -1;
-								break;
-							}
-							retval++;
-						}
-					}
+					retval = save_sub_float(&crc_value, &_stat, pp, _len, _stride);
 					break;
 				case csp_saver_entry_double:
-					{
-						retval = 0;
-						double *px = (double *)pp;
-						for(int i = 0; i < _len; i++) {
-							fio->put_double(*px, &crc_value, &_stat);
-							if(_stride > sizeof(double)) {
-								px = (double *)((uint8_t *)px + _stride);
-							} else {
-								px++;
-							}
-							if(!_stat) {
-								retval = -1;
-								break;
-							}
-							retval++;
-						}
-					}
+					retval = save_sub_double(&crc_value, &_stat, pp, _len, _stride);
 					break;
 				case csp_saver_entry_long_double:
-					{
-						retval = 0;
-						long double *px = (long double *)pp;
-						for(int i = 0; i < _len; i++) {
-							fio->put_long_double(*px, &crc_value, &_stat);
-							if(_stride > sizeof(long double)) {
-								px = (long double *)((uint8_t *)px + _stride);
-							} else {
-								px++;
-							}
-							if(!_stat) {
-								retval = -1;
-								break;
-							}
-							retval++;
-						}
-					}
+					retval = save_sub_long_double(&crc_value, &_stat, pp, _len, _stride);
 					break;
 				case csp_saver_entry_pair:
-					{
-						retval = 0;
-						pair_t *px = (pair_t *)pp;
-						for(int i = 0; i < _len; i++) {
-							fio->put_pair32(*px, &crc_value, &_stat);
-							if(_stride > sizeof(pair_t)) {
-								px = (pair_t *)((uint8_t *)px + _stride);
-							} else {
-								px++;
-							}
-							if(!_stat) {
-								retval = -1;
-								break;
-							}
-							retval++;
-						}
-					}
+					retval = save_sub_pair_t(&crc_value, &_stat, pp, _len, _stride);
 					break;
 				case csp_saver_entry_int:
-					{
-						retval = 0;
-						int *px = (int *)pp;
-						for(int i = 0; i < _len; i++) {
-							fio->put_int32(*px, &crc_value, &_stat);
-							if(_stride > sizeof(int)) {
-								px = (int *)((uint8_t *)px + _stride);
-							} else {
-								px++;
-							}
-							if(!_stat) {
-								retval = -1;
-								break;
-							}
-							retval++;
-						}
-					}
+					retval = save_sub_int(&crc_value, &_stat, pp, _len, _stride);
 					break;
 				case csp_saver_entry_uint8:
-					{
-						retval = 0;
-						uint8_t *px = (uint8_t *)pp;
-						if((_len > 1) && (_stride <= 1)){
-							size_t _n = __fio->Fwrite(px, _len, 1);
-							if(_n != 1) {
-								retval = 0;
-								_stat = false;
-							} else {
-								retval = _len;
-								_stat = true;
-								crc_value = calc_crc32(crc_value, px, _len);
-							}
-						} else {
-							for(int ii = 0; ii < _len; ii++) {
-								fio->put_byte(*px, &crc_value, &_stat);
-								if(_stride > 1) {
-									px = (uint8_t *)((uint8_t *)px + _stride);
-								} else {
-									px++;
-								}
-								if(!_stat) {
-									retval = -1;
-									break;
-								}
-								retval++;
-							}
-						}
-					}
+					retval = save_sub_uint8(&crc_value, &_stat, pp, _len, _stride);
 					break;
 				case csp_saver_entry_int8:
-					{
-						retval = 0;
-						int8_t *px = (int8_t *)pp;
-						if((_len > 1) && (_stride <= 1)) {
-							size_t _n = __fio->Fwrite(px, _len, 1);
-							if(_n != 1) {
-								retval = 0;
-								_stat = false;
-							} else {
-								retval = _len;
-								_stat = true;
-								crc_value = calc_crc32(crc_value, (uint8_t *)px, _len);
-							}
-						} else {
-							for(int ii = 0; ii < _len; ii++) {
-								fio->put_int8(*px, &crc_value, &_stat);
-								if(_stride > 1) {
-									px = (int8_t *)((uint8_t *)px + _stride);
-								} else {
-									px++;
-								}
-								if(!_stat) {
-									retval = -1;
-									break;
-								}
-								retval++;
-							}
-						}
-					}
+					retval = save_sub_int8(&crc_value, &_stat, pp, _len, _stride);
 					break;
 				case csp_saver_entry_uint16:
-					{
-						retval = 0;
-						uint16_t *px = (uint16_t *)pp;
-						for(int i = 0; i < _len; i++) {
-							fio->put_word(*px, &crc_value, &_stat);
-							if(_stride > sizeof(uint16_t)) {
-								px = (uint16_t *)((uint8_t *)px + _stride);
-							} else {
-								px++;
-							}
-							if(!_stat) {
-								retval = -1;
-								break;
-							}
-							retval++;
-						}
-					}
+					retval = save_sub_uint16(&crc_value, &_stat, pp, _len, _stride);
 					break;
 				case csp_saver_entry_int16:
-					{
-						retval = 0;
-						int16_t *px = (int16_t *)pp;
-						for(int i = 0; i < _len; i++) {
-							fio->put_int16(*px, &crc_value, &_stat);
-							if(_stride > sizeof(int16_t)) {
-								px = (int16_t *)((uint8_t *)px + _stride);
-							} else {
-								px++;
-							}
-							if(!_stat) {
-								retval = -1;
-								break;
-							}
-							retval++;
-						}
-					}
+					retval = save_sub_int16(&crc_value, &_stat, pp, _len, _stride);
 					break;
 				case csp_saver_entry_uint32:
-					{
-						retval = 0;
-						uint32_t *px = (uint32_t *)pp;
-						for(int i = 0; i < _len; i++) {
-							fio->put_dword(*px, &crc_value, &_stat);
-							if(_stride > sizeof(uint32_t)) {
-								px = (uint32_t *)((uint8_t *)px + _stride);
-							} else {
-								px++;
-							}
-							if(!_stat) {
-								retval = -1;
-								break;
-							}
-							retval++;
-						}
-					}
+					retval = save_sub_uint32(&crc_value, &_stat, pp, _len, _stride);
 					break;
 				case csp_saver_entry_int32:
-					{
-						retval = 0;
-						int32_t *px = (int32_t *)pp;
-						for(int i = 0; i < _len; i++) {
-							fio->put_int32(*px, &crc_value, &_stat);
-							if(_stride > sizeof(int32_t)) {
-								px = (int32_t *)((uint8_t *)px + _stride);
-							} else {
-								px++;
-							}
-							if(!_stat) {
-								retval = -1;
-								break;
-							}
-							retval++;
-						}
-					}
+					retval = save_sub_int32(&crc_value, &_stat, pp, _len, _stride);
 					break;
 				case csp_saver_entry_uint64:
-					{
-						retval = 0;
-						uint64_t *px = (uint64_t *)pp;
-						for(int i = 0; i < _len; i++) {
-							fio->put_qword(*px, &crc_value, &_stat);
-							if(_stride > sizeof(uint64_t)) {
-								px = (uint64_t *)((uint8_t *)px + _stride);
-							} else {
-								px++;
-							}
-							if(!_stat) {
-								retval = -1;
-								break;
-							}
-							retval++;
-						}
-					}
+					retval = save_sub_uint64(&crc_value, &_stat, pp, _len, _stride);
 					break;
 				case csp_saver_entry_int64:
-					{
-						retval = 0;
-						int64_t *px = (int64_t *)pp;
-						for(int i = 0; i < _len; i++) {
-							fio->put_int64(*px, &crc_value, &_stat);
-							if(_stride > sizeof(int64_t)) {
-								px = (int64_t *)((uint8_t *)px + _stride);
-							} else {
-								px++;
-							}
-							if(!_stat) {
-								retval = -1;
-								break;
-							}
-							retval++;
-						}
-					}
+					retval = save_sub_int64(&crc_value, &_stat, pp, _len, _stride);
 					break;
 				case csp_saver_entry_bool:
-					{
-						retval = 0;
-						bool *px = (bool *)pp;
-						for(int i = 0; i < _len ; i++) {
-							fio->put_bool(*px, &crc_value, &_stat);
-							if(_stride > sizeof(bool)) {
-								px = (bool *)((uint8_t *)px + _stride);
-							} else {
-								px++;
-							}
-							if(!_stat) {
-								retval = -1;
-								break;
-							}
-							retval++;
-						}
-					}
+					retval = save_sub_bool(&crc_value, &_stat, pp, _len, _stride);
 					break;
 				case csp_saver_entry_tchar:
-					{
-						retval = fio->save_tchar_data((const _TCHAR *)pp, &crc_value, _len, &_stat);
-						if(!_stat) retval = -1;
-					}
+					retval = save_sub_tchar(&crc_value, &_stat, pp, _len, _stride);
 					break;
 				case csp_saver_entry_string:
-					{
-						retval = fio->save_string_data((const _TCHAR *)pp, &crc_value, _len, &_stat);
-						if(!_stat) retval = -1;
-					}
+					retval = save_sub_string(&crc_value, &_stat, pp, _len, _stride);
 					break;
 				case csp_saver_entry_any:
-					{
-						retval = fio->put_byte_array((uint8_t *)pp, _asize, _len, &crc_value, &_stat);
-						if(!_stat) retval = -1;
-					}
+					retval = save_sub_byte_array(&crc_value, &_stat, pp, _len, _stride, _asize);
 					break;
 				case csp_saver_entry_fifo:
-					if(pp != NULL) {
-						retval = 0;
-						FIFO **fp = (FIFO **)pp;
-						for(int i = 0; i < _len; i++) {
-							fp[i]->save_state_helper(fio, &crc_value, &_stat);
-						}
-						retval = _len;
-					}
-					break;
-				case csp_saver_entry_cmt_recording:
-					if(pp != NULL) {
-						retval = 0;
-						bool _flag = *((bool *)pp);
-						FILEIO **ffp = (FILEIO **)((*p).recv_ptr);
-						for(int i = 0; i < _len; i++) {
-							if(ffp[i] == NULL) {
-								retval = -1;
-								break;
-							}
-							if((_flag) && (ffp[i]->IsOpened())) {
-								int length_tmp = (int)ffp[i]->Ftell();
-								ffp[i]->Fseek(0, FILEIO_SEEK_SET);
-								fio->put_int32(length_tmp, &crc_value, &_stat);
-								if(!_stat) {
-									retval = -1;
-									break;
-								}
-								while(length_tmp > 0) {
-									uint8_t buffer[1024];
-									int length_rw = min(length_tmp, (int)sizeof(buffer));
-									ffp[i]->Fread(buffer, length_rw, 1);
-									fio->put_byte_array(buffer, length_rw, 1, &crc_value, &_stat);
-									if(!_stat) {
-										retval = -1;
-										break;
-									}
-									length_tmp -= length_rw;
-								}
-								if(!_stat) {
-									retval = -1;
-									break;
-								}
-							} else {
-								fio->put_int32(0, &crc_value, &_stat);
-								if(!_stat) {
-									retval = -1;
-									break;
-								}
-							}
-							retval++;
-						}
-					}
+					retval = save_sub_fifo(&crc_value, &_stat, pp, _len, _stride);
 					break;
 				case csp_saver_entry_cur_time_t:
-					if(pp != NULL) {
-						cur_time_t *fp = (cur_time_t *)pp;
-						for(int i = 0; i < _len; i++) {
-							fp[i].save_state_helper(fio, &crc_value, &_stat);
-						}
-						retval = _len;
+					retval = save_sub_cur_time_t(&crc_value, &_stat, pp, _len, _stride);
+					break;
+				case csp_saver_entry_cmt_recording:
+					{
+						FILEIO **ffp = (FILEIO **)((*p).recv_ptr);
+						retval = save_sub_cmt_recording(&crc_value, &_stat, pp, ffp, _len, _stride);
+
 					}
 					break;
 				case csp_saver_entry_scrntype_t:
-					{
-						retval = 0;
-						scrntype_t *px = (scrntype_t *)pp;
-						for(int i = 0; i < _len; i++) {
-							fio->put_scrntype_t(*px, &crc_value, &_stat);
-							if(_stride > sizeof(scrntype_t)) {
-								px = (scrntype_t *)((uint8_t *)px + _stride);
-							} else {
-								px++;
-							}
-							if(!_stat) {
-								retval = -1;
-								break;
-							}
-							retval++;
-						}
-					}
+					retval = save_sub_scrntype_t(&crc_value, &_stat, pp, _len, _stride);
 					break;
 				default:
 					retval = 0;
@@ -1747,7 +1980,7 @@ bool csp_state_utils::save_state(FILEIO *__fio, uint32_t *pcrc)
 						if(pp != NULL) free(pp);
 					}
 					delete fio;
-					return false;
+					return;
 				}
 
 			}
@@ -1765,7 +1998,7 @@ bool csp_state_utils::save_state(FILEIO *__fio, uint32_t *pcrc)
 	// embed CRC
 	out_debug_log("CRC: VAL=%08x", crc_value);
 	if(pcrc != NULL) *pcrc = crc_value;
-	return true;
+	return;
 }
 
 bool csp_state_utils::load_state(FILEIO *__fio, uint32_t *pcrc)

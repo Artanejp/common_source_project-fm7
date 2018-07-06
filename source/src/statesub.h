@@ -132,7 +132,31 @@ protected:
 	csp_state_data_saver *fio;
 
 	void out_debug_log(const char *fmt, ...);
+	
+	int save_sub_float(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int save_sub_double(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int save_sub_long_double(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int save_sub_pair_t(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int save_sub_int(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int save_sub_uint8(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int save_sub_int8(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int save_sub_uint16(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int save_sub_int16(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int save_sub_uint32(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int save_sub_int32(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int save_sub_uint64(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int save_sub_int64(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int save_sub_bool(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int save_sub_tchar(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int save_sub_string(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
 
+	int save_sub_fifo(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int save_sub_cur_time_t(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int save_sub_scrntype_t(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+
+	int save_sub_byte_array(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride, int _atomsize);
+	int save_sub_cmt_recording(uint32_t *crc_value, bool *_stat, void *pp, FILEIO **ffp, int _len, int _stride);
+	
 	std::map <std::type_index, int> typeid_map= {
 		{ typeid(int),  csp_saver_entry_int },
 		{ typeid(pair_t), csp_saver_entry_pair },
@@ -214,7 +238,7 @@ public:
 	
 	uint32_t get_crc_value(void);
 	void get_class_name(_TCHAR *buf, int len);
-	bool save_state(FILEIO *__fio, uint32_t *pcrc = NULL);
+	void save_state(FILEIO *__fio, uint32_t *pcrc = NULL);
 	bool load_state(FILEIO *__fio, uint32_t *pcrc = NULL);
 #if defined(_USE_QT)
 signals:

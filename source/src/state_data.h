@@ -8,7 +8,7 @@
 #include <string>
 #include <list>
 
-
+class FILEIO;
 class DLL_PREFIX csp_state_data_saver {
 protected:
 	FILEIO *fio;
@@ -77,6 +77,8 @@ public:
 
 	void put_scrntype_t(scrntype_t val, uint32_t *sumseed = NULL, bool *__stat = NULL);
 	scrntype_t get_scrntype_t(uint32_t *sumseed = NULL, bool *__stat = NULL);
+
+	FILEIO *get_file_io() { return fio; }
 };
 
 
