@@ -51,6 +51,7 @@ public:
 	void write_memory_mapped_io16(uint32_t addr, uint32_t data);
 	uint32_t read_memory_mapped_io16(uint32_t addr);
 	void write_signal(int id, uint32_t data, uint32_t mask);
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

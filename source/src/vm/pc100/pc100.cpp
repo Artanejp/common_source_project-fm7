@@ -343,7 +343,7 @@ extern CSP_Logger DLL_PREFIX_I *csp_logger;
 void VM::decl_state(void)
 {
 	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC_100_HEAD")), csp_logger);
-	DECL_STATE_ENTRY_MULTI(void, ram, sizeof(ram));
+	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->decl_state();
 	}
