@@ -387,78 +387,113 @@ void SUB::close_tape()
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void SUB::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	DECL_STATE_ENTRY_INT32(p1_out);
+	DECL_STATE_ENTRY_INT32(p2_in);
+	DECL_STATE_ENTRY_BOOL(drec_in);
+	DECL_STATE_ENTRY_BOOL(rxrdy_in);
+	DECL_STATE_ENTRY_BOOL(update_key);
+	DECL_STATE_ENTRY_BOOL(rec);
+	DECL_STATE_ENTRY_BOOL(is_wav);
+	DECL_STATE_ENTRY_BOOL(is_p6t);
+	DECL_STATE_ENTRY_STRING(rec_file_path, sizeof(rec_file_path));
+	DECL_STATE_ENTRY_CMT_RECORDING(fio, rec, rec_file_path);
+	DECL_STATE_ENTRY_INT32(prev_command);
+	DECL_STATE_ENTRY_INT32(baud);
+	DECL_STATE_ENTRY_INT32(index);
+	DECL_STATE_ENTRY_BOOL(skip);
+	DECL_STATE_ENTRY_1D_ARRAY(buffer, sizeof(buffer));
+	
+	leave_decl_state();
+}
+
 void SUB::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->FputInt32(p1_out);
-	state_fio->FputInt32(p2_in);
-	state_fio->FputBool(drec_in);
-	state_fio->FputBool(rxrdy_in);
-	state_fio->FputBool(update_key);
-	state_fio->FputBool(rec);
-	state_fio->FputBool(is_wav);
-	state_fio->FputBool(is_p6t);
-	state_fio->Fwrite(rec_file_path, sizeof(rec_file_path), 1);
-	if(rec && fio->IsOpened()) {
-		int length_tmp = (int)fio->Ftell();
-		fio->Fseek(0, FILEIO_SEEK_SET);
-		state_fio->FputInt32(length_tmp);
-		while(length_tmp != 0) {
-			uint8_t buffer_tmp[1024];
-			int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
-			fio->Fread(buffer_tmp, length_rw, 1);
-			state_fio->Fwrite(buffer_tmp, length_rw, 1);
-			length_tmp -= length_rw;
-		}
-	} else {
-		state_fio->FputInt32(0);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
 	}
-	state_fio->FputInt32(prev_command);
-	state_fio->FputInt32(baud);
-	state_fio->FputInt32(index);
-	state_fio->FputBool(skip);
-	state_fio->Fwrite(buffer, sizeof(buffer), 1);
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
+	
+//	state_fio->FputInt32(p1_out);
+//	state_fio->FputInt32(p2_in);
+//	state_fio->FputBool(drec_in);
+//	state_fio->FputBool(rxrdy_in);
+//	state_fio->FputBool(update_key);
+//	state_fio->FputBool(rec);
+//	state_fio->FputBool(is_wav);
+//	state_fio->FputBool(is_p6t);
+//	state_fio->Fwrite(rec_file_path, sizeof(rec_file_path), 1);
+//	if(rec && fio->IsOpened()) {
+//		int length_tmp = (int)fio->Ftell();
+//		fio->Fseek(0, FILEIO_SEEK_SET);
+//		state_fio->FputInt32(length_tmp);
+//		while(length_tmp != 0) {
+//			uint8_t buffer_tmp[1024];
+//			int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
+//			fio->Fread(buffer_tmp, length_rw, 1);
+//			state_fio->Fwrite(buffer_tmp, length_rw, 1);
+//			length_tmp -= length_rw;
+//		}
+//	} else {
+//		state_fio->FputInt32(0);
+//	}
+//	state_fio->FputInt32(prev_command);
+//	state_fio->FputInt32(baud);
+//	state_fio->FputInt32(index);
+//	state_fio->FputBool(skip);
+//	state_fio->Fwrite(buffer, sizeof(buffer), 1);
 }
 
 bool SUB::load_state(FILEIO* state_fio)
 {
 	close_tape();
 	
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	p1_out = state_fio->FgetInt32();
-	p2_in = state_fio->FgetInt32();
-	drec_in = state_fio->FgetBool();
-	rxrdy_in = state_fio->FgetBool();
-	update_key = state_fio->FgetBool();
-	rec = state_fio->FgetBool();
-	is_wav = state_fio->FgetBool();
-	is_p6t = state_fio->FgetBool();
-	state_fio->Fread(rec_file_path, sizeof(rec_file_path), 1);
-	int length_tmp = state_fio->FgetInt32();
-	if(rec) {
-		fio->Fopen(rec_file_path, FILEIO_READ_WRITE_NEW_BINARY);
-		while(length_tmp != 0) {
-			uint8_t buffer_tmp[1024];
-			int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
-			state_fio->Fread(buffer_tmp, length_rw, 1);
-			if(fio->IsOpened()) {
-				fio->Fwrite(buffer_tmp, length_rw, 1);
-			}
-			length_tmp -= length_rw;
-		}
-	}
-	prev_command = state_fio->FgetInt32();
-	baud = state_fio->FgetInt32();
-	index = state_fio->FgetInt32();
-	skip = state_fio->FgetBool();
-	state_fio->Fread(buffer, sizeof(buffer), 1);
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	p1_out = state_fio->FgetInt32();
+//	p2_in = state_fio->FgetInt32();
+//	drec_in = state_fio->FgetBool();
+//	rxrdy_in = state_fio->FgetBool();
+//	update_key = state_fio->FgetBool();
+//	rec = state_fio->FgetBool();
+//	is_wav = state_fio->FgetBool();
+//	is_p6t = state_fio->FgetBool();
+//	state_fio->Fread(rec_file_path, sizeof(rec_file_path), 1);
+//	int length_tmp = state_fio->FgetInt32();
+//	if(rec) {
+//		fio->Fopen(rec_file_path, FILEIO_READ_WRITE_NEW_BINARY);
+//		while(length_tmp != 0) {
+//			uint8_t buffer_tmp[1024];
+//			int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
+//			state_fio->Fread(buffer_tmp, length_rw, 1);
+//			if(fio->IsOpened()) {
+//				fio->Fwrite(buffer_tmp, length_rw, 1);
+//			}
+//			length_tmp -= length_rw;
+//		}
+//	}
+//	prev_command = state_fio->FgetInt32();
+//	baud = state_fio->FgetInt32();
+//	index = state_fio->FgetInt32();
+//	skip = state_fio->FgetBool();
+//	state_fio->Fread(buffer, sizeof(buffer), 1);
 	return true;
 }
 

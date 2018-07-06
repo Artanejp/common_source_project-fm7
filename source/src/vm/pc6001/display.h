@@ -25,7 +25,8 @@ private:
 	
 	uint8_t *ram_ptr;
 	uint8_t *vram_ptr;
-	
+
+	int tmp_vram_size;
 public:
 	DISPLAY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -36,6 +37,7 @@ public:
 	// common functions
 	void reset();
 	void write_io8(uint32_t addr, uint32_t data);
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

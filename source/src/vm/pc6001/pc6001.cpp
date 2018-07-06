@@ -274,7 +274,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
-	decl_state();
+
 	if(support_sub_cpu) {
 		// load rom images after cpustate is allocated
 #ifdef _PC6601SR
@@ -294,6 +294,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		pc6031->get_disk_handler(0)->drive_num = drive_num++;
 		pc6031->get_disk_handler(1)->drive_num = drive_num++;
 	}
+	decl_state();
 }
 
 VM::~VM()

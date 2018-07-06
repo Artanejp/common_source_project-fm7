@@ -281,51 +281,85 @@ void TIMER::update_intr()
 
 #define STATE_VERSION	1
 
-void TIMER::save_state(FILEIO* state_fio)
+#include "../../statesub.h"
+
+void TIMER::decl_state()
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->FputUint8(IRQ);
-	state_fio->FputUint8(NewIRQ);
-	state_fio->FputInt32(timer_id);
+	enter_decl_state(STATE_VERSION);
+
+	DECL_STATE_ENTRY_UINT8(IRQ);
+	DECL_STATE_ENTRY_UINT8(NewIRQ);
+	DECL_STATE_ENTRY_INT32(timer_id);
 #ifndef _PC6001
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
-	state_fio->Fwrite(sr_vectors, sizeof(sr_vectors), 1);
-	state_fio->FputUint8(portFA);
-	state_fio->FputUint8(portFB);
+	DECL_STATE_ENTRY_1D_ARRAY(sr_vectors, sizeof(sr_vectors));
+	DECL_STATE_ENTRY_UINT8(portFA);
+	DECL_STATE_ENTRY_UINT8(portFB);
 #endif
-	state_fio->FputUint8(portF3);
-	state_fio->FputUint8(portF4);
-	state_fio->FputUint8(portF5);
-	state_fio->FputUint8(portF6);
-	state_fio->FputUint8(portF7);
+	DECL_STATE_ENTRY_UINT8(portF3);
+	DECL_STATE_ENTRY_UINT8(portF4);
+	DECL_STATE_ENTRY_UINT8(portF5);
+	DECL_STATE_ENTRY_UINT8(portF6);
+	DECL_STATE_ENTRY_UINT8(portF7);
 #endif
+	
+	leave_decl_state();
+}
+void TIMER::save_state(FILEIO* state_fio)
+{
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
+	
+//	state_fio->FputUint8(IRQ);
+//	state_fio->FputUint8(NewIRQ);
+//	state_fio->FputInt32(timer_id);
+//#ifndef _PC6001
+//#if defined(_PC6601SR) || defined(_PC6001MK2SR)
+//	state_fio->Fwrite(sr_vectors, sizeof(sr_vectors), 1);
+//	state_fio->FputUint8(portFA);
+//	state_fio->FputUint8(portFB);
+//#endif
+//	state_fio->FputUint8(portF3);
+//	state_fio->FputUint8(portF4);
+//	state_fio->FputUint8(portF5);
+//	state_fio->FputUint8(portF6);
+//	state_fio->FputUint8(portF7);
+//#endif
 }
 
 bool TIMER::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	IRQ = state_fio->FgetUint8();
-	NewIRQ = state_fio->FgetUint8();
-	timer_id = state_fio->FgetInt32();
-#ifndef _PC6001
-#if defined(_PC6601SR) || defined(_PC6001MK2SR)
-	state_fio->Fread(sr_vectors, sizeof(sr_vectors), 1);
-	portFA = state_fio->FgetUint8();
-	portFB = state_fio->FgetUint8();
-#endif
-	portF3 = state_fio->FgetUint8();
-	portF4 = state_fio->FgetUint8();
-	portF5 = state_fio->FgetUint8();
-	portF6 = state_fio->FgetUint8();
-	portF7 = state_fio->FgetUint8();
-#endif
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	IRQ = state_fio->FgetUint8();
+//	NewIRQ = state_fio->FgetUint8();
+//	timer_id = state_fio->FgetInt32();
+//#ifndef _PC6001
+//#if defined(_PC6601SR) || defined(_PC6001MK2SR)
+//	state_fio->Fread(sr_vectors, sizeof(sr_vectors), 1);
+//	portFA = state_fio->FgetUint8();
+//	portFB = state_fio->FgetUint8();
+//#endif
+//	portF3 = state_fio->FgetUint8();
+//	portF4 = state_fio->FgetUint8();
+//	portF5 = state_fio->FgetUint8();
+//	portF6 = state_fio->FgetUint8();
+//	portF7 = state_fio->FgetUint8();
+//#endif
 	return true;
 }
 

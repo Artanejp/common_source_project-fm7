@@ -149,6 +149,21 @@ private:
 #endif
 #endif
 	
+	// Pointer Values
+	int tmp_cgrom_ptr;
+	int tmp_extrom1_ptr;
+	int tmp_extrom2_ptr;
+	int tmp_rdmem_ptr[8];
+	int tmp_wrmem_ptr[8];
+	int tmp_vram_ptr;
+#ifndef _PC6001
+	int tmp_kanjirom_ptr;
+#if defined(_PC6601SR) || defined(_PC6001MK2SR)
+	int tmp_textvram_ptr;
+	int tmp_sysrom2_ptr;
+#endif
+#endif
+
 public:
 	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -169,6 +184,7 @@ public:
 	void event_callback(int event_id, int err);
 #endif
 	void write_signal(int id, uint32_t data, uint32_t mask);
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
