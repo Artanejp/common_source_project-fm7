@@ -22,10 +22,12 @@ private:
 	uint8_t ram[32*1024];
 	uint32_t ptr;
 	bool opened, modified;
-	
+	int this_device_id;
 public:
 	RAMPAC2(VM* parent_vm, EMU* parent_emu) : PAC2DEV(parent_vm, parent_emu)
 	{
+		static int num = 1;
+		this_device_id = num++;
 		set_device_name(_T("RAM PAC2"));
 	}
 	~RAMPAC2() {}
@@ -37,6 +39,7 @@ public:
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
 	void open_file(const _TCHAR* file_path);
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 };

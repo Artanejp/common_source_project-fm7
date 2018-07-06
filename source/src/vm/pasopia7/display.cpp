@@ -757,35 +757,60 @@ void DISPLAY::draw_fine_lcd(uint16_t src)
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void DISPLAY::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+	
+	DECL_STATE_ENTRY_UINT8(mode);
+	DECL_STATE_ENTRY_UINT8(text_page);
+	DECL_STATE_ENTRY_UINT16(cursor);
+	DECL_STATE_ENTRY_UINT16(cblink);
+	DECL_STATE_ENTRY_UINT16(flash_cnt);
+	DECL_STATE_ENTRY_BOOL(blink);
+	DECL_STATE_ENTRY_BOOL(pal_dis);
+
+	leave_decl_state();
+}
+
 void DISPLAY::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->FputUint8(mode);
-	state_fio->FputUint8(text_page);
-	state_fio->FputUint16(cursor);
-	state_fio->FputUint16(cblink);
-	state_fio->FputUint16(flash_cnt);
-	state_fio->FputBool(blink);
-	state_fio->FputBool(pal_dis);
+//	state_fio->FputUint8(mode);
+//	state_fio->FputUint8(text_page);
+//	state_fio->FputUint16(cursor);
+//	state_fio->FputUint16(cblink);
+//	state_fio->FputUint16(flash_cnt);
+//	state_fio->FputBool(blink);
+//	state_fio->FputBool(pal_dis);
 }
 
 bool DISPLAY::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	mode = state_fio->FgetUint8();
-	text_page = state_fio->FgetUint8();
-	cursor = state_fio->FgetUint16();
-	cblink = state_fio->FgetUint16();
-	flash_cnt = state_fio->FgetUint16();
-	blink = state_fio->FgetBool();
-	pal_dis = state_fio->FgetBool();
+	if(!mb) return false;
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	mode = state_fio->FgetUint8();
+//	text_page = state_fio->FgetUint8();
+//	cursor = state_fio->FgetUint16();
+//	cblink = state_fio->FgetUint16();
+//	flash_cnt = state_fio->FgetUint16();
+//	blink = state_fio->FgetBool();
+//	pal_dis = state_fio->FgetBool();
 	return true;
 }
 

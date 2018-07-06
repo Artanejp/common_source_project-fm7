@@ -631,27 +631,50 @@ void DISPLAY::draw_screen15_wide(uint16_t src)
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void DISPLAY::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	DECL_STATE_ENTRY_UINT8(mode);
+	DECL_STATE_ENTRY_UINT16(cursor);
+	DECL_STATE_ENTRY_UINT16(cblink);
+	
+	leave_decl_state();
+}
+
 void DISPLAY::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->FputUint8(mode);
-	state_fio->FputUint16(cursor);
-	state_fio->FputUint16(cblink);
+//	state_fio->FputUint8(mode);
+//	state_fio->FputUint16(cursor);
+//	state_fio->FputUint16(cblink);
 }
 
 bool DISPLAY::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	mode = state_fio->FgetUint8();
-	cursor = state_fio->FgetUint16();
-	cblink = state_fio->FgetUint16();
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	mode = state_fio->FgetUint8();
+//	cursor = state_fio->FgetUint16();
+//	cblink = state_fio->FgetUint16();
 	return true;
 }
 

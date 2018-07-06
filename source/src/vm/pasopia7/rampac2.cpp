@@ -96,25 +96,47 @@ void RAMPAC2::open_file(const _TCHAR* file_path)
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void RAMPAC2::decl_state()
+{
+	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, (const _TCHAR *)_T("PAC2SLOT::RAMPAC2"), NULL);
+
+	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
+	DECL_STATE_ENTRY_UINT32(ptr);
+	
+	DECL_STATE_ENTRY_BOOL(opened);
+	DECL_STATE_ENTRY_BOOL(modified);
+	//leave_decl_state();
+}
+
 void RAMPAC2::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	
-	state_fio->Fwrite(ram, sizeof(ram), 1);
-	state_fio->FputUint32(ptr);
-	state_fio->FputBool(opened);
-	state_fio->FputBool(modified);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	
+//	state_fio->Fwrite(ram, sizeof(ram), 1);
+//	state_fio->FputUint32(ptr);
+//	state_fio->FputBool(opened);
+//	state_fio->FputBool(modified);
 }
 
 bool RAMPAC2::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	state_fio->Fread(ram, sizeof(ram), 1);
-	ptr = state_fio->FgetUint32();
-	opened = state_fio->FgetBool();
-	modified = state_fio->FgetBool();
+	if(!mb) return false;
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	state_fio->Fread(ram, sizeof(ram), 1);
+//	ptr = state_fio->FgetUint32();
+//	opened = state_fio->FgetBool();
+//	modified = state_fio->FgetBool();
 	return true;
 }
 

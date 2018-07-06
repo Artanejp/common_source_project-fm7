@@ -14,11 +14,13 @@
 #include "../vm.h"
 #include "../../emu.h"
 
+class csp_state_utils;
 class PAC2DEV
 {
 protected:
 	VM* vm;
 	EMU* emu;
+	csp_state_utils *state_entry;
 public:
 	PAC2DEV(VM* parent_vm, EMU* parent_emu) : vm(parent_vm), emu(parent_emu)
 	{
@@ -31,6 +33,7 @@ public:
 	virtual void reset() {}
 	virtual void write_io8(uint32_t addr, uint32_t data) {}
 	virtual uint32_t read_io8(uint32_t addr) { return 0xff; }
+	virtual void decl_state() { state_entry = NULL; }
 	virtual void save_state(FILEIO* state_fio) {}
 	virtual bool load_state(FILEIO* state_fio) { return true; }
 	

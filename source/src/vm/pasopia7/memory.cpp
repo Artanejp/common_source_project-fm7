@@ -167,41 +167,69 @@ void MEMORY::update_memory_map()
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void MEMORY::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+	
+	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
+	DECL_STATE_ENTRY_1D_ARRAY(vram, sizeof(vram));
+	DECL_STATE_ENTRY_1D_ARRAY(pal, sizeof(pal));
+	DECL_STATE_ENTRY_UINT8(mem_map);
+	DECL_STATE_ENTRY_UINT8(plane);
+	DECL_STATE_ENTRY_UINT8(attr_data);
+	DECL_STATE_ENTRY_UINT8(attr_latch);
+	DECL_STATE_ENTRY_BOOL(vram_sel);
+	DECL_STATE_ENTRY_BOOL(pal_sel);
+	DECL_STATE_ENTRY_BOOL(attr_wrap);
+
+	leave_decl_state();
+}
+
 void MEMORY::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->Fwrite(ram, sizeof(ram), 1);
-	state_fio->Fwrite(vram, sizeof(vram), 1);
-	state_fio->Fwrite(pal, sizeof(pal), 1);
-	state_fio->FputUint8(mem_map);
-	state_fio->FputUint8(plane);
-	state_fio->FputUint8(attr_data);
-	state_fio->FputUint8(attr_latch);
-	state_fio->FputBool(vram_sel);
-	state_fio->FputBool(pal_sel);
-	state_fio->FputBool(attr_wrap);
+//	state_fio->Fwrite(ram, sizeof(ram), 1);
+//	state_fio->Fwrite(vram, sizeof(vram), 1);
+//	state_fio->Fwrite(pal, sizeof(pal), 1);
+//	state_fio->FputUint8(mem_map);
+//	state_fio->FputUint8(plane);
+//	state_fio->FputUint8(attr_data);
+//	state_fio->FputUint8(attr_latch);
+//	state_fio->FputBool(vram_sel);
+//	state_fio->FputBool(pal_sel);
+//	state_fio->FputBool(attr_wrap);
 }
 
 bool MEMORY::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	state_fio->Fread(ram, sizeof(ram), 1);
-	state_fio->Fread(vram, sizeof(vram), 1);
-	state_fio->Fread(pal, sizeof(pal), 1);
-	mem_map = state_fio->FgetUint8();
-	plane = state_fio->FgetUint8();
-	attr_data = state_fio->FgetUint8();
-	attr_latch = state_fio->FgetUint8();
-	vram_sel = state_fio->FgetBool();
-	pal_sel = state_fio->FgetBool();
-	attr_wrap = state_fio->FgetBool();
+	if(!mb) return false;
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	state_fio->Fread(ram, sizeof(ram), 1);
+//	state_fio->Fread(vram, sizeof(vram), 1);
+//	state_fio->Fread(pal, sizeof(pal), 1);
+//	mem_map = state_fio->FgetUint8();
+//	plane = state_fio->FgetUint8();
+//	attr_data = state_fio->FgetUint8();
+//	attr_latch = state_fio->FgetUint8();
+//	vram_sel = state_fio->FgetBool();
+//	pal_sel = state_fio->FgetBool();
+//	attr_wrap = state_fio->FgetBool();
 	
 	// post process
 	update_memory_map();
