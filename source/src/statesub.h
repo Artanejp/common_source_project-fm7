@@ -156,6 +156,30 @@ protected:
 
 	int save_sub_byte_array(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride, int _atomsize);
 	int save_sub_cmt_recording(uint32_t *crc_value, bool *_stat, void *pp, FILEIO **ffp, int _len, int _stride);
+
+	int load_sub_float(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int load_sub_double(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int load_sub_long_double(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int load_sub_pair_t(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int load_sub_int(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int load_sub_uint8(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int load_sub_int8(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int load_sub_uint16(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int load_sub_int16(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int load_sub_uint32(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int load_sub_int32(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int load_sub_uint64(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int load_sub_int64(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int load_sub_bool(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int load_sub_tchar(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int load_sub_string(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	
+	int load_sub_fifo(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int load_sub_cur_time_t(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+	int load_sub_scrntype_t(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
+
+	int load_sub_byte_array(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride, int _atomsize);
+	int load_sub_cmt_recording(uint32_t *crc_value, bool *_stat, void *pp, FILEIO **ffp, _TCHAR *__path, int _len, int _stride);
 	
 	std::map <std::type_index, int> typeid_map= {
 		{ typeid(int),  csp_saver_entry_int },
