@@ -2447,130 +2447,254 @@ void PCE::event_callback(int event_id, int err)
 }
 #endif
 
-#define STATE_VERSION	4
+#define STATE_VERSION	5
 
+#include "../../statesub.h"
+
+void PCE::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	DECL_STATE_ENTRY_BOOL(support_6btn_pad);
+	DECL_STATE_ENTRY_BOOL(support_multi_tap);
+#ifdef SUPPORT_SUPER_GFX
+	DECL_STATE_ENTRY_BOOL(support_sgfx);
+#endif
+#ifdef SUPPORT_CDROM
+	DECL_STATE_ENTRY_BOOL(support_cdrom);
+#endif
+	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
+//	DECL_STATE_ENTRY_1D_ARRAY(cart + 0x80000, 0x80000);
+	DECL_STATE_ENTRY_1D_ARRAY(cart, sizeof(cart));  // Does correct this?
+#ifdef SUPPORT_BACKUP_RAM
+	DECL_STATE_ENTRY_1D_ARRAY(backup, sizeof(backup));
+	DECL_STATE_ENTRY_UINT32(backup_crc32);
+#endif
+	DECL_STATE_ENTRY_UINT32(bank);
+	DECL_STATE_ENTRY_UINT8(buffer);
+	DECL_STATE_ENTRY_INT32(prev_width);
+	DECL_STATE_ENTRY_BOOL(inserted);
+	// vdc
+	for(int i = 0; i < 2; i++) {
+		DECL_STATE_ENTRY_INT32_MEMBER((vdc[i].dvssr_write), i);		/* Set when the DVSSR register has been written to */
+		DECL_STATE_ENTRY_INT32_MEMBER((vdc[i].physical_width), i);		/* Width of the display */
+		DECL_STATE_ENTRY_INT32_MEMBER((vdc[i].physical_height), i);		/* Height of the display */
+		DECL_STATE_ENTRY_1D_ARRAY_MEMBER((vdc[i].sprite_ram), 64*4, i);	/* Sprite RAM */
+		DECL_STATE_ENTRY_INT32_MEMBER((vdc[i].curline), i);				/* the current scanline we're on */
+		DECL_STATE_ENTRY_INT32_MEMBER((vdc[i].current_segment), i);		/* current segment of display */
+		DECL_STATE_ENTRY_INT32_MEMBER((vdc[i].current_segment_line), i);	/* current line inside a segment of display */
+		DECL_STATE_ENTRY_INT32_MEMBER((vdc[i].vblank_triggered), i);		/* to indicate whether vblank has been triggered */
+		DECL_STATE_ENTRY_INT32_MEMBER((vdc[i].raster_count), i);		/* counter to compare RCR against */
+		DECL_STATE_ENTRY_INT32_MEMBER((vdc[i].satb_countdown), i);		/* scanlines to wait to trigger the SATB irq */
+		DECL_STATE_ENTRY_1D_ARRAY_MEMBER((vdc[i].vram), 0x10000, i);
+		DECL_STATE_ENTRY_UINT8_MEMBER((vdc[i].inc), i);
+		DECL_STATE_ENTRY_UINT8_MEMBER((vdc[i].vdc_register), i);
+		DECL_STATE_ENTRY_UINT8_MEMBER((vdc[i].vdc_latch), i);
+		DECL_STATE_ENTRY_PAIR_ARRAY((vdc[i].vdc_data), 32);
+		DECL_STATE_ENTRY_INT32_MEMBER((vdc[i].status), i);
+		DECL_STATE_ENTRY_INT32_MEMBER((vdc[i].y_scroll), i);
+	}
+	// vce
+	{
+		DECL_STATE_ENTRY_UINT8((vce.vce_control));		/* VCE control register */
+		DECL_STATE_ENTRY_PAIR((vce.vce_address));		/* Current address in the palette */
+		DECL_STATE_ENTRY_PAIR_ARRAY((vce.vce_data), 512);		/* Palette data */
+		DECL_STATE_ENTRY_INT32((vce.current_bitmap_line));	/* The current line in the display we are on */
+		//bitmap_ind16 *bmp;
+		DECL_STATE_ENTRY_SCRNTYPE_T_2D_ARRAY((vce.bmp), VDC_LPF, VDC_WPF);
+		DECL_STATE_ENTRY_SCRNTYPE_T_1D_ARRAY((vce.palette), 1024);
+	}
+	// vpc
+	{
+		for(int i = 0; i < 4; i++) {
+			DECL_STATE_ENTRY_UINT8_MEMBER((vpc.vpc_prio[i].prio), i);
+			DECL_STATE_ENTRY_UINT8_MEMBER((vpc.vpc_prio[i].vdc0_enabled), i);
+			DECL_STATE_ENTRY_UINT8_MEMBER((vpc.vpc_prio[i].vdc1_enabled), i);
+		}
+		DECL_STATE_ENTRY_1D_ARRAY((vpc.prio_map), 512);
+		DECL_STATE_ENTRY_PAIR((vpc.priority));
+		DECL_STATE_ENTRY_PAIR((vpc.window1));
+		DECL_STATE_ENTRY_PAIR((vpc.window2));
+		DECL_STATE_ENTRY_UINT8((vpc.vdc_select));
+	}
+	// psg
+	{
+		for(int i = 0; i < 8; i++ ){
+			DECL_STATE_ENTRY_1D_ARRAY_MEMBER((psg[i].regs), 8, i);
+			DECL_STATE_ENTRY_1D_ARRAY_MEMBER((psg[i].wav), 32, i);
+			DECL_STATE_ENTRY_UINT8_MEMBER((psg[i].wavptr), i);
+			DECL_STATE_ENTRY_UINT32_MEMBER((psg[i].genptr), i);
+			DECL_STATE_ENTRY_UINT32_MEMBER((psg[i].remain), i);
+			DECL_STATE_ENTRY_BOOL_MEMBER((psg[i].noise), i);
+			DECL_STATE_ENTRY_UINT32_MEMBER((psg[i].randval), i);
+		}
+	}
+	DECL_STATE_ENTRY_UINT8(psg_ch);
+	DECL_STATE_ENTRY_UINT8(psg_vol);
+	DECL_STATE_ENTRY_UINT8(psg_lfo_freq);
+	DECL_STATE_ENTRY_UINT8(psg_lfo_ctrl);
+	DECL_STATE_ENTRY_UINT8(joy_counter);
+	DECL_STATE_ENTRY_BOOL(joy_high_nibble);
+	DECL_STATE_ENTRY_BOOL(joy_second_byte);
+#ifdef SUPPORT_CDROM
+	DECL_STATE_ENTRY_1D_ARRAY(cdrom_ram, sizeof(cdrom_ram));
+	DECL_STATE_ENTRY_1D_ARRAY(cdrom_regs, sizeof(cdrom_regs));
+	DECL_STATE_ENTRY_BOOL(backup_locked);
+	DECL_STATE_ENTRY_BOOL(irq_status);
+	DECL_STATE_ENTRY_BOOL(drq_status);
+	DECL_STATE_ENTRY_1D_ARRAY(adpcm_ram, sizeof(adpcm_ram));
+	DECL_STATE_ENTRY_INT32(adpcm_read_ptr);
+	DECL_STATE_ENTRY_INT32(adpcm_write_ptr);
+	DECL_STATE_ENTRY_INT32(adpcm_written);
+	DECL_STATE_ENTRY_INT32(adpcm_length);
+	DECL_STATE_ENTRY_INT32(adpcm_clock_divider);
+	DECL_STATE_ENTRY_UINT8(adpcm_read_buf);
+	DECL_STATE_ENTRY_UINT8(adpcm_write_buf);
+	DECL_STATE_ENTRY_BOOL(adpcm_dma_enabled);
+	DECL_STATE_ENTRY_INT32(msm_start_addr);
+	DECL_STATE_ENTRY_INT32(msm_end_addr);
+	DECL_STATE_ENTRY_INT32(msm_half_addr);
+	DECL_STATE_ENTRY_UINT8(msm_nibble);
+	DECL_STATE_ENTRY_UINT8(msm_idle);
+	DECL_STATE_ENTRY_DOUBLE(cdda_volume);
+	DECL_STATE_ENTRY_DOUBLE(adpcm_volume);
+	DECL_STATE_ENTRY_INT32(event_cdda_fader);
+	DECL_STATE_ENTRY_INT32(event_adpcm_fader);
+#endif
+	leave_decl_state();
+}
 void PCE::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->FputBool(support_6btn_pad);
-	state_fio->FputBool(support_multi_tap);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
+//	
+//	state_fio->FputBool(support_6btn_pad);
+//	state_fio->FputBool(support_multi_tap);
 #ifdef SUPPORT_SUPER_GFX
-	state_fio->FputBool(support_sgfx);
+//	state_fio->FputBool(support_sgfx);
 #endif
 #ifdef SUPPORT_CDROM
-	state_fio->FputBool(support_cdrom);
+//	state_fio->FputBool(support_cdrom);
 #endif
-	state_fio->Fwrite(ram, sizeof(ram), 1);
-	state_fio->Fwrite(cart + 0x80000, 0x80000, 1);
+//	state_fio->Fwrite(ram, sizeof(ram), 1);
+//	state_fio->Fwrite(cart + 0x80000, 0x80000, 1);
 #ifdef SUPPORT_BACKUP_RAM
-	state_fio->Fwrite(backup, sizeof(backup), 1);
-	state_fio->FputUint32(backup_crc32);
+//	state_fio->Fwrite(backup, sizeof(backup), 1);
+//	state_fio->FputUint32(backup_crc32);
 #endif
-	state_fio->FputUint32(bank);
-	state_fio->FputUint8(buffer);
-	state_fio->FputInt32(prev_width);
-	state_fio->FputBool(inserted);
-	state_fio->Fwrite(vdc, sizeof(vdc), 1);
-	state_fio->Fwrite(&vce, sizeof(vce), 1);
-	state_fio->Fwrite(&vpc, sizeof(vpc), 1);
-	state_fio->Fwrite(psg, sizeof(psg), 1);
-	state_fio->FputUint8(psg_ch);
-	state_fio->FputUint8(psg_vol);
-	state_fio->FputUint8(psg_lfo_freq);
-	state_fio->FputUint8(psg_lfo_ctrl);
-	state_fio->FputUint8(joy_counter);
-	state_fio->FputBool(joy_high_nibble);
-	state_fio->FputBool(joy_second_byte);
+//	state_fio->FputUint32(bank);
+//	state_fio->FputUint8(buffer);
+//	state_fio->FputInt32(prev_width);
+//	state_fio->FputBool(inserted);
+//	state_fio->Fwrite(vdc, sizeof(vdc), 1);
+//	state_fio->Fwrite(&vce, sizeof(vce), 1);
+//	state_fio->Fwrite(&vpc, sizeof(vpc), 1);
+//	state_fio->Fwrite(psg, sizeof(psg), 1);
+//	state_fio->FputUint8(psg_ch);
+//	state_fio->FputUint8(psg_vol);
+//	state_fio->FputUint8(psg_lfo_freq);
+//	state_fio->FputUint8(psg_lfo_ctrl);
+//	state_fio->FputUint8(joy_counter);
+//	state_fio->FputBool(joy_high_nibble);
+//	state_fio->FputBool(joy_second_byte);
 #ifdef SUPPORT_CDROM
-	state_fio->Fwrite(cdrom_ram, sizeof(cdrom_ram), 1);
-	state_fio->Fwrite(cdrom_regs, sizeof(cdrom_regs), 1);
-	state_fio->FputBool(backup_locked);
-	state_fio->FputBool(irq_status);
-	state_fio->FputBool(drq_status);
-	state_fio->Fwrite(adpcm_ram, sizeof(adpcm_ram), 1);
-	state_fio->FputInt32(adpcm_read_ptr);
-	state_fio->FputInt32(adpcm_write_ptr);
-	state_fio->FputInt32(adpcm_written);
-	state_fio->FputInt32(adpcm_length);
-	state_fio->FputInt32(adpcm_clock_divider);
-	state_fio->FputUint8(adpcm_read_buf);
-	state_fio->FputUint8(adpcm_write_buf);
-	state_fio->FputBool(adpcm_dma_enabled);
-	state_fio->FputInt32(msm_start_addr);
-	state_fio->FputInt32(msm_end_addr);
-	state_fio->FputInt32(msm_half_addr);
-	state_fio->FputUint8(msm_nibble);
-	state_fio->FputUint8(msm_idle);
-	state_fio->FputDouble(cdda_volume);
-	state_fio->FputDouble(adpcm_volume);
-	state_fio->FputInt32(event_cdda_fader);
-	state_fio->FputInt32(event_adpcm_fader);
+//	state_fio->Fwrite(cdrom_ram, sizeof(cdrom_ram), 1);
+//	state_fio->Fwrite(cdrom_regs, sizeof(cdrom_regs), 1);
+//	state_fio->FputBool(backup_locked);
+//	state_fio->FputBool(irq_status);
+//	state_fio->FputBool(drq_status);
+//	state_fio->Fwrite(adpcm_ram, sizeof(adpcm_ram), 1);
+//	state_fio->FputInt32(adpcm_read_ptr);
+//	state_fio->FputInt32(adpcm_write_ptr);
+//	state_fio->FputInt32(adpcm_written);
+//	state_fio->FputInt32(adpcm_length);
+//	state_fio->FputInt32(adpcm_clock_divider);
+//	state_fio->FputUint8(adpcm_read_buf);
+//	state_fio->FputUint8(adpcm_write_buf);
+//	state_fio->FputBool(adpcm_dma_enabled);
+//	state_fio->FputInt32(msm_start_addr);
+//	state_fio->FputInt32(msm_end_addr);
+//	state_fio->FputInt32(msm_half_addr);
+//	state_fio->FputUint8(msm_nibble);
+//	state_fio->FputUint8(msm_idle);
+//	state_fio->FputDouble(cdda_volume);
+//	state_fio->FputDouble(adpcm_volume);
+//	state_fio->FputInt32(event_cdda_fader);
+//	state_fio->FputInt32(event_adpcm_fader);
 #endif
 }
 
 bool PCE::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	support_6btn_pad = state_fio->FgetBool();
-	support_multi_tap = state_fio->FgetBool();
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//	//	return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//	//	return false;
+//	}
+//	support_6btn_pad = state_fio->FgetBool();
+//	support_multi_tap = state_fio->FgetBool();
 #ifdef SUPPORT_SUPER_GFX
-	support_sgfx = state_fio->FgetBool();
+//	support_sgfx = state_fio->FgetBool();
 #endif
 #ifdef SUPPORT_CDROM
-	support_cdrom = state_fio->FgetBool();
+//	support_cdrom = state_fio->FgetBool();
 #endif
-	state_fio->Fread(ram, sizeof(ram), 1);
-	state_fio->Fread(cart + 0x80000, 0x80000, 1);
+//	state_fio->Fread(ram, sizeof(ram), 1);
+//	state_fio->Fread(cart + 0x80000, 0x80000, 1);
 #ifdef SUPPORT_BACKUP_RAM
-	state_fio->Fread(backup, sizeof(backup), 1);
-	backup_crc32 = state_fio->FgetUint32();
+//	state_fio->Fread(backup, sizeof(backup), 1);
+//	backup_crc32 = state_fio->FgetUint32();
 #endif
-	bank = state_fio->FgetUint32();
-	buffer = state_fio->FgetUint8();
-	prev_width = state_fio->FgetInt32();
-	inserted = state_fio->FgetBool();
-	state_fio->Fread(vdc, sizeof(vdc), 1);
-	state_fio->Fread(&vce, sizeof(vce), 1);
-	state_fio->Fread(&vpc, sizeof(vpc), 1);
-	state_fio->Fread(psg, sizeof(psg), 1);
-	psg_ch = state_fio->FgetUint8();
-	psg_vol = state_fio->FgetUint8();
-	psg_lfo_freq = state_fio->FgetUint8();
-	psg_lfo_ctrl = state_fio->FgetUint8();
-	joy_counter = state_fio->FgetUint8();
-	joy_high_nibble = state_fio->FgetBool();
-	joy_second_byte = state_fio->FgetBool();
+//	bank = state_fio->FgetUint32();
+//	buffer = state_fio->FgetUint8();
+//	prev_width = state_fio->FgetInt32();
+//	inserted = state_fio->FgetBool();
+//	state_fio->Fread(vdc, sizeof(vdc), 1);
+//	state_fio->Fread(&vce, sizeof(vce), 1);
+//	state_fio->Fread(&vpc, sizeof(vpc), 1);
+//	state_fio->Fread(psg, sizeof(psg), 1);
+//	psg_ch = state_fio->FgetUint8();
+//	psg_vol = state_fio->FgetUint8();
+//	psg_lfo_freq = state_fio->FgetUint8();
+//	psg_lfo_ctrl = state_fio->FgetUint8();
+//	joy_counter = state_fio->FgetUint8();
+//	joy_high_nibble = state_fio->FgetBool();
+//	joy_second_byte = state_fio->FgetBool();
 #ifdef SUPPORT_CDROM
-	state_fio->Fread(cdrom_ram, sizeof(cdrom_ram), 1);
-	state_fio->Fread(cdrom_regs, sizeof(cdrom_regs), 1);
-	backup_locked = state_fio->FgetBool();
-	irq_status = state_fio->FgetBool();
-	drq_status = state_fio->FgetBool();
-	state_fio->Fread(adpcm_ram, sizeof(adpcm_ram), 1);
-	adpcm_read_ptr = state_fio->FgetInt32();
-	adpcm_write_ptr = state_fio->FgetInt32();
-	adpcm_written = state_fio->FgetInt32();
-	adpcm_length = state_fio->FgetInt32();
-	adpcm_clock_divider = state_fio->FgetInt32();
-	adpcm_read_buf = state_fio->FgetUint8();
-	adpcm_write_buf = state_fio->FgetUint8();
-	adpcm_dma_enabled = state_fio->FgetBool();
-	msm_start_addr = state_fio->FgetInt32();
-	msm_end_addr = state_fio->FgetInt32();
-	msm_half_addr = state_fio->FgetInt32();
-	msm_nibble = state_fio->FgetUint8();
-	msm_idle = state_fio->FgetUint8();
-	cdda_volume = state_fio->FgetDouble();
-	adpcm_volume = state_fio->FgetDouble();
-	event_cdda_fader = state_fio->FgetInt32();
-	event_adpcm_fader = state_fio->FgetInt32();
+//	state_fio->Fread(cdrom_ram, sizeof(cdrom_ram), 1);
+//	state_fio->Fread(cdrom_regs, sizeof(cdrom_regs), 1);
+//	backup_locked = state_fio->FgetBool();
+//	irq_status = state_fio->FgetBool();
+//	drq_status = state_fio->FgetBool();
+//	state_fio->Fread(adpcm_ram, sizeof(adpcm_ram), 1);
+//	adpcm_read_ptr = state_fio->FgetInt32();
+//	adpcm_write_ptr = state_fio->FgetInt32();
+//	adpcm_written = state_fio->FgetInt32();
+//	adpcm_length = state_fio->FgetInt32();
+//	adpcm_clock_divider = state_fio->FgetInt32();
+//	adpcm_read_buf = state_fio->FgetUint8();
+//	adpcm_write_buf = state_fio->FgetUint8();
+//	adpcm_dma_enabled = state_fio->FgetBool();
+//	msm_start_addr = state_fio->FgetInt32();
+//	msm_end_addr = state_fio->FgetInt32();
+//	msm_half_addr = state_fio->FgetInt32();
+//	msm_nibble = state_fio->FgetUint8();
+//	msm_idle = state_fio->FgetUint8();
+//	cdda_volume = state_fio->FgetDouble();
+//	adpcm_volume = state_fio->FgetDouble();
+//	event_cdda_fader = state_fio->FgetInt32();
+//	event_adpcm_fader = state_fio->FgetInt32();
 #endif
 	return true;
 }

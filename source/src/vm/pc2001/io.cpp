@@ -275,33 +275,59 @@ bool IO::key_hit(int code)
 
 #define STATE_VERSION	2
 
+#include "../../statesub.h"
+
+void IO::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+	
+	DECL_STATE_ENTRY_UINT8(port_a);
+	DECL_STATE_ENTRY_UINT8(port_b);
+	DECL_STATE_ENTRY_UINT8(port_s);
+	DECL_STATE_ENTRY_BOOL(drec_in);
+	DECL_STATE_ENTRY_BOOL(rtc_in);
+	DECL_STATE_ENTRY_UINT16(key_strobe);
+
+	leave_decl_state();
+}
+
 void IO::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->FputUint8(port_a);
-	state_fio->FputUint8(port_b);
-	state_fio->FputUint8(port_s);
-	state_fio->FputBool(drec_in);
-	state_fio->FputBool(rtc_in);
-	state_fio->FputUint16(key_strobe);
+//	state_fio->FputUint8(port_a);
+//	state_fio->FputUint8(port_b);
+//	state_fio->FputUint8(port_s);
+//	state_fio->FputBool(drec_in);
+//	state_fio->FputBool(rtc_in);
+//	state_fio->FputUint16(key_strobe);
 }
 
 bool IO::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	port_a = state_fio->FgetUint8();
-	port_b = state_fio->FgetUint8();
-	port_s = state_fio->FgetUint8();
-	drec_in = state_fio->FgetBool();
-	rtc_in = state_fio->FgetBool();
-	key_strobe = state_fio->FgetUint16();
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	port_a = state_fio->FgetUint8();
+//	port_b = state_fio->FgetUint8();
+//	port_s = state_fio->FgetUint8();
+//	drec_in = state_fio->FgetBool();
+//	rtc_in = state_fio->FgetBool();
+//	key_strobe = state_fio->FgetUint16();
 	return true;
 }
 
