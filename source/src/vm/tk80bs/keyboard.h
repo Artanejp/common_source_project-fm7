@@ -54,6 +54,7 @@ public:
 		return kb_type & 3;
 	}
 #endif
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

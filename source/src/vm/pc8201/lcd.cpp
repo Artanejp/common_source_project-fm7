@@ -163,25 +163,55 @@ void LCD::draw_screen()
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void LCD::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	for(int i = 0; i < 10; i++) {
+		DECL_STATE_ENTRY_2D_ARRAY_MEMBER((seg[i].vram), 4, 50, i);
+		DECL_STATE_ENTRY_INT32_MEMBER((seg[i].updown), i);
+		DECL_STATE_ENTRY_INT32_MEMBER((seg[i].disp), i);
+		DECL_STATE_ENTRY_INT32_MEMBER((seg[i].spg), i);
+		DECL_STATE_ENTRY_INT32_MEMBER((seg[i].page), i);
+		DECL_STATE_ENTRY_INT32_MEMBER((seg[i].ofs), i);
+		DECL_STATE_ENTRY_INT32_MEMBER((seg[i].ofs2), i);
+	}
+	DECL_STATE_ENTRY_UINT16(sel);
+
+	leave_decl_state();
+}
+
 void LCD::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->Fwrite(seg, sizeof(seg), 1);
-	state_fio->FputUint16(sel);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
+//	
+//	state_fio->Fwrite(seg, sizeof(seg), 1);
+//	state_fio->FputUint16(sel);
 }
 
 bool LCD::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	state_fio->Fread(seg, sizeof(seg), 1);
-	sel = state_fio->FgetUint16();
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	state_fio->Fread(seg, sizeof(seg), 1);
+//	sel = state_fio->FgetUint16();
 	return true;
 }
 

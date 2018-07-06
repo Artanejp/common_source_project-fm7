@@ -46,8 +46,9 @@ public:
 	void write_data8(uint32_t addr, uint32_t data);
 	uint32_t read_data8(uint32_t addr);
 	uint32_t fetch_op(uint32_t addr, int *wait);
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	virtual void decl_state();
+	virtual void save_state(FILEIO* state_fio);
+	virtual bool load_state(FILEIO* state_fio);
 	
 	// unique functions
 	void set_context_cpu(DEVICE* device)
