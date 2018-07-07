@@ -201,58 +201,16 @@ protected:
 		{ typeid(cur_time_t), csp_saver_entry_cur_time_t },
 		{ typeid(scrntype_t), csp_saver_entry_scrntype_t }
 	};
+
 public:
 	csp_state_utils(int _version = 1, int device_id = 1, const _TCHAR *classname = NULL, CSP_Logger* p_logger = NULL);
 	~csp_state_utils();
 	std::list<std::string> get_entries_list(void);
 
 	template <class T>
-	void add_entry(const _TCHAR *__name, T *p, int _len = 1, int __num = -1, bool is_const = false, int stride = 0)
-	{
-		__list_t _l;
-		std::string _name = std::string(__name);
-		if(__num >= 0) _name = _name + std::string("_#[") +std::to_string(__num) + std::string("]");
-		_l.ptr = (void *)p;
-		_l.type_id = typeid_map[typeid(T)];
-		_l.len = _len;
-		_l.atomlen = sizeof(T);
-		_l.name = _name;
-		_l.datalenptr = NULL;
-		_l.local_num = __num;
-		_l.assume_byte = false;
-		_l.recv_ptr = 0;
-		_l.stride = stride;
-		out_debug_log("ADD ENTRY: NAME=%s TYPE=%s len=%d atomlen=%d", _name.c_str(), typeid(T).name(), _len, _l.atomlen);
-		if(is_const) _l.type_id = _l.type_id | csp_saver_entry_const;
-		listptr.push_back(_l);
-	};
-
+	void add_entry(const _TCHAR *__name, T *p, int _len = 1, int __num = -1, bool is_const = false, int stride = 0);
 	template <class T>
-	void add_entry_vararray(const _TCHAR *__name, T **p, void *datalen, bool assume_byte = false, int __num = -1, int stride = 0)
-	{
-		__list_t _l;
-		
-		if(datalen == NULL) {
-			add_entry(__name, p, 1);
-			return;
-		}
-		std::string _name = std::string(__name);
-		if(__num >= 0) _name = _name + std::string("_#[") +std::to_string(__num) + std::string("]");
-		
-		_l.ptr = (void *)p;
-		_l.type_id = typeid_map[typeid(T)];;
-		_l.len = 0;
-		_l.atomlen = sizeof(T);
-		_l.name = _name;
-		_l.local_num = __num;
-		_l.datalenptr = (int *) datalen;
-		_l.assume_byte = assume_byte;
-		_l.type_id = _l.type_id | csp_saver_entry_vararray;
-		_l.recv_ptr = 0;
-		_l.stride = stride;
-		out_debug_log("ADD ENTRY(VARARRAY): NAME=%s TYPE=%s atomlen=%d linked len=%08x", __name, typeid(T).name(), _l.atomlen, datalen);
-		listptr.push_back(_l);
-	};
+	void add_entry_vararray(const _TCHAR *__name, T **p, void *datalen, bool assume_byte = false, int __num = -1, int stride = 0);
 
 	void add_entry_fifo(const _TCHAR *__name, FIFO **p, int _len = 1, int __num = -1, int stride = 0);
 	void add_entry_cur_time_t(const _TCHAR *__name, cur_time_t *p, int _len = 1, int __num = -1, int stride = 0);
