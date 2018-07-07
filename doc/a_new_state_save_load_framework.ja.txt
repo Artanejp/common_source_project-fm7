@@ -36,12 +36,14 @@
   　又、実際の使用は、サポートルーチンやマクロを使って行うほうがよい。
 
   2.1 扱うデータ型
-      （論理）数値：　bool , uintXX_t, intXX_t, float, double, long double
+      （論理）数値 : bool , uintXX_t, intXX_t, float, double, long double
 	   文字 (*1)  :  _TCHAR, _TCHAR *
+	   ピクセル   : scrntype_t
 	   固定長配列 : 1D_ARRAY, 2D_ARRAY, 3D_ARRAY
 	   可変長配列 : VARARRAY_VAR
 	   クラス     : FIFO*,  CUR_TIME_T
-	   特殊　　　 ：DECL_STATE_ENTRY_CMT_RECORDING() : テープ録音(VM)絡みの処理に使う。
+	   特殊　　　 : DECL_STATE_ENTRY_CMT_RECORDING() : テープ録音(VM)絡みの処理に使う。
+	               
 
        (*1) 単純に_TCHARの配列 として宣言した場合には、配列、
 	        DECL_STATE_ENTRY_STRING だと、0ターミネートの文字列として扱う
@@ -96,6 +98,11 @@
 
 						   : cur_time_t 型のエントリ関数。ポインタ渡しでなければならない。
 						   
+		void add_entry_scrntype_t(const _TCHAR *__name, cur_time_t *p,
+		                          int _len = 1, int __num = -1, int stride = 0);
+
+						   : scrntype_t 型のエントリ関数。ポインタ渡しでなければならない。
+						   
 		void add_entry_string(const _TCHAR *__name, _TCHAR *p,
 							 int _len = 1, int __num = -1, bool is_const = false);
 
@@ -120,7 +127,8 @@
 		bool csp_state_data_saver::pre_proc_saving(uint32_t *sumseed, bool *__stat);
 		bool csp_state_data_saver::pre_proc_loading(uint32_t *sumseed, bool *__stat);
 							 : ステートセーブ／ロード前の事前処理をする。
-							 　sumseed は、CRCを初期化したい変数のポインタ。
+							 　sumseed は、CRCを初期化したい変数のポインタ(通常、この変
+							   数の初期値は0xffffffffである)。
 							   __stat  は、成功か失敗かを知るときの判定変数へのポインタ。
 
 		bool csp_state_data_saver::post_proc_saving(uint32_t *sumseed, bool *__stat);
@@ -132,7 +140,7 @@
 							 　セーブ時に追加されたCRC値とsumseedから計算されたCRCを照合
 							 　して、あっていればtrueを返す。
 							 
-	　2.3 API(2) エントリ宣言マクロなど
+	　2.4 API(2) エントリ宣言マクロなど
 
 	    FOO::decl_state()
 		        : そのデバイスなどのセーブステート項目を宣言する関数（スケルトンがDEVICE::にある）
@@ -144,29 +152,28 @@
         DEVICE::leave_decl_state();
 		        : del_state()の末尾につけると良い。
 
-
 	 
-         DECL_STATE_ENTRY_FOO(__name)
+        DECL_STATE_ENTRY_FOO(__name)
 		                    : FOOは基本的な変数型やFIFO*など : 一個の要素を宣言する。
-         DECL_STATE_ENTRY_FOO_MEMBER(__name, __num)
+        DECL_STATE_ENTRY_FOO_MEMBER(__name, __num)
 		                    : FOOは基本的な変数型 : 一個の要素が__num目配列の要素のだと宣言する。
-         DECL_STATE_ENTRY_FOO_STRIDE(__name, __len, __stride)
+        DECL_STATE_ENTRY_FOO_STRIDE(__name, __len, __stride)
 		                    : FOOは基本的な変数型 : 大きさ__strideでああり、__len回の配列となってる構造体内の
 							　　　　　　　　　　　　特定要素__nameを宣言する。
 
-		 DECL_STATE_ENTRY_1D_ARRAY(__name, __lenvar)
+	    DECL_STATE_ENTRY_1D_ARRAY(__name, __lenvar)
 							: 1次元配列(要素数__lenvar)を定義する。__lenvar = sizeof(ARRAY) / sizeof(__name)。
 							
-		 DECL_STATE_ENTRY_2D_ARRAY(__name, x, y)
+	    DECL_STATE_ENTRY_2D_ARRAY(__name, x, y)
 							: 2次元配列(要素数[x][y])を定義する。
 
-		 DECL_STATE_ENTRY_3D_ARRAY(__name, x, y, z)
+	    DECL_STATE_ENTRY_3D_ARRAY(__name, x, y, z)
 							: 3次元配列(要素数[x][y][z])を定義する。
 
-		 DECL_STATE_ENTRY_STRING(__name, __len)
+		DECL_STATE_ENTRY_STRING(__name, __len)
 		                    : 文字列型変数__name (最大長__len - 1)を定義する。
 
-		 DECL_STATE_ENTRY_VARARRAY_VAR(__name, __sizevar)
+		DECL_STATE_ENTRY_VARARRAY_VAR(__name, __sizevar)
 		 					: 可変長変数へのポインタ__nameが、__sizevarの値によってバイト数を
 							　規定される事を宣言する。
 							  uint8_t *__name = malloc(__sizevar);
@@ -175,7 +182,7 @@
 							  ...
 							  注意：__sizevarのセーブ・ロードは、__nameより前に行うこと。
 
-		 DECL_STATE_ENTRY_CMT_RECORDING(__fio, __flag, __path)
+		DECL_STATE_ENTRY_CMT_RECORDING(__fio, __flag, __path)
 							:セーブでは：
 							　　　__fioをつかって、仮想テープを「録音」してることを__flagが示した場合に、
 							 　　　書かれた仮想テープのデータをステートに書き込み、そのサイズも書き込む。
@@ -185,4 +192,38 @@
 								  書き込み直す。
 
 
+3.デーブデータ構造
+　・各データは、ビッグエンディアンのバイナリ値で記録される（例外あり）。
+　・文字列型データは、\0ターミネートして記録される。
+　・実数型(float, double, long double)は、アスキー文字列に変換された形で記録される。
+    0.0 = "0.0" + '\0' など。
+  ・各デバイスのステート(チャンクの)書式は以下のようになっている：
+  
+      　   HEADER : ヘッダ ("CSP_SAVE" + '\0')
+  　    CLASSNAME : デバイス名(foo->this_device_name + '\0')
+        DEVICE_ID : デバイスID(foo->this_device_id      INT32)
+        STATE_VER : デバイス内のステートのヴァージョン  (INT32)
+	 INTERNAL_VER : ステートフレーム側のヴァージョン
+[バイナリデータ列] : DECL_STATE_ENTRY_fooで定義された実データの並び
+	        CRC32 : HEADER欄からバイナリデータ列末尾までのCRC32値をUINT32 Big Endianで記録する。
+		            与えるSEED値は0xffffffff.
+
+  ・VM::save_state()でセーブされるデータは、以下のような構造になっている：
+         HEADER   : "CSP_SAVE" + '\0'
+        CLASSNAME : (例) "CSP::VM_HEAD" + '\0'
+        DEVICE_ID : 通常0
+        STATE_VER : 各VMの(vm/foo/foo.cppの)STATE_VERSION
+	 INTERNAL_VER : 通常0
+[バイナリデータ列] : [必要に応じて。0バイトの場合もある]
+	        CRC32 :
+			
+			[DEVICE #2 (通常Event)のステートチャンク)]
+			[DEVICE #3 のステートチャンク)]
+			           ・
+					   ・
+					   ・
+			[DEVICE #n(最後のデバイス) のステートチャンク)]
+            [EMU::側のフッター]
+
+　　　　※ DEVICE #1は通常DUMMY DEVICEであり、セーブ項目が、ない。
 ---
