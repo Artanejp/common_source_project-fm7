@@ -148,27 +148,50 @@ void KEYBOARD::process_cmd(uint8_t val)
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void KEYBOARD::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	DECL_STATE_ENTRY_1D_ARRAY(led, sizeof(led) / sizeof(bool));
+	DECL_STATE_ENTRY_BOOL(repeat);
+	DECL_STATE_ENTRY_BOOL(enable);
+	
+	leave_decl_state();
+}
+
 void KEYBOARD::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->Fwrite(led, sizeof(led), 1);
-	state_fio->FputBool(repeat);
-	state_fio->FputBool(enable);
+//	state_fio->Fwrite(led, sizeof(led), 1);
+//	state_fio->FputBool(repeat);
+//	state_fio->FputBool(enable);
 }
 
 bool KEYBOARD::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	state_fio->Fread(led, sizeof(led), 1);
-	repeat = state_fio->FgetBool();
-	enable = state_fio->FgetBool();
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	state_fio->Fread(led, sizeof(led), 1);
+//	repeat = state_fio->FgetBool();
+//	enable = state_fio->FgetBool();
 	return true;
 }
 

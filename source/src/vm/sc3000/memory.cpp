@@ -138,29 +138,53 @@ void MEMORY::update_bank()
 
 #define STATE_VERSION	2
 
+#include "../../statesub.h"
+
+void MEMORY::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
+	DECL_STATE_ENTRY_BOOL(inserted);
+	DECL_STATE_ENTRY_BOOL(ram_selected);
+	DECL_STATE_ENTRY_1D_ARRAY(bank, sizeof(bank));
+	
+	leave_decl_state();
+}
+
 void MEMORY::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->Fwrite(ram, sizeof(ram), 1);
-	state_fio->FputBool(inserted);
-	state_fio->FputBool(ram_selected);
-	state_fio->Fwrite(bank, sizeof(bank), 1);
+//	state_fio->Fwrite(ram, sizeof(ram), 1);
+//	state_fio->FputBool(inserted);
+//	state_fio->FputBool(ram_selected);
+//	state_fio->Fwrite(bank, sizeof(bank), 1);
 }
 
 bool MEMORY::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	state_fio->Fread(ram, sizeof(ram), 1);
-	inserted = state_fio->FgetBool();
-	ram_selected = state_fio->FgetBool();
-	state_fio->Fread(bank, sizeof(bank), 1);
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	state_fio->Fread(ram, sizeof(ram), 1);
+//	inserted = state_fio->FgetBool();
+//	ram_selected = state_fio->FgetBool();
+//	state_fio->Fread(bank, sizeof(bank), 1);
 	
 	// post process
 	update_bank();

@@ -25,6 +25,10 @@ private:
 	uint8_t* pattern;
 	uint8_t* base;
 	bool force_pattern;
+
+	int tmp_vram_size;
+	int tmp_pcg_size;
+	int tmp_pattern_size;
 	
 	void draw_pattern(int x8, int y8, uint16_t top);
 	void draw_pcg(int x8, int y8, uint16_t top);
@@ -42,6 +46,7 @@ public:
 	void write_io8(uint32_t addr, uint32_t data);
 	void event_callback(int event_id, int err);
 	void event_vline(int v, int clock);
+	void decl_state();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

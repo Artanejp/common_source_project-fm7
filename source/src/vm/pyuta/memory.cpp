@@ -314,31 +314,56 @@ void MEMORY::close_cart()
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void MEMORY::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+	
+	DECL_STATE_ENTRY_BOOL(cmt_signal);
+	DECL_STATE_ENTRY_BOOL(cmt_remote);
+	DECL_STATE_ENTRY_BOOL(has_extrom);
+	DECL_STATE_ENTRY_BOOL(cart_enabled);
+	DECL_STATE_ENTRY_INT32(ctype);
+
+	leave_decl_state();
+}
+
 void MEMORY::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->FputBool(cmt_signal);
-	state_fio->FputBool(cmt_remote);
-	state_fio->FputBool(has_extrom);
-	state_fio->FputBool(cart_enabled);
-	state_fio->FputInt32(ctype);
+//	state_fio->FputBool(cmt_signal);
+//	state_fio->FputBool(cmt_remote);
+//	state_fio->FputBool(has_extrom);
+//	state_fio->FputBool(cart_enabled);
+//	state_fio->FputInt32(ctype);
 }
 
 bool MEMORY::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	cmt_signal = state_fio->FgetBool();
-	cmt_remote = state_fio->FgetBool();
-	has_extrom = state_fio->FgetBool();
-	cart_enabled = state_fio->FgetBool();
-	ctype = state_fio->FgetInt32();
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	cmt_signal = state_fio->FgetBool();
+//	cmt_remote = state_fio->FgetBool();
+//	has_extrom = state_fio->FgetBool();
+//	cart_enabled = state_fio->FgetBool();
+//	ctype = state_fio->FgetInt32();
 	
 	// post process
 	if(cart_enabled) {

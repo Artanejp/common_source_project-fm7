@@ -62,27 +62,48 @@ void PSG::set_volume(int ch, int decibel_l, int decibel_r)
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void PSG::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	DECL_STATE_ENTRY_INT32_STRIDE((ch[0].period), 3, sizeof(ch[0]));
+	
+	leave_decl_state();
+}
+
 void PSG::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	for(int i = 0; i < 3; i++) {
-		state_fio->FputInt32(ch[i].period);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
 	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
+	
+//	for(int i = 0; i < 3; i++) {
+//		state_fio->FputInt32(ch[i].period);
+//	}
 }
 
 bool PSG::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	for(int i = 0; i < 3; i++) {
-		ch[i].period = state_fio->FgetInt32();
-	}
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	for(int i = 0; i < 3; i++) {
+//		ch[i].period = state_fio->FgetInt32();
+//	}
 	return true;
 }
 

@@ -70,31 +70,56 @@ void CMT::event_frame()
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void CMT::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+	DECL_STATE_ENTRY_BOOL(in);
+	DECL_STATE_ENTRY_BOOL(out);
+	DECL_STATE_ENTRY_BOOL(remote);
+	DECL_STATE_ENTRY_BOOL(now_acc);
+	DECL_STATE_ENTRY_INT32(framecnt);
+	
+	leave_decl_state();
+}
+
 void CMT::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->FputBool(in);
-	state_fio->FputBool(out);
-	state_fio->FputBool(remote);
-	state_fio->FputBool(now_acc);
-	state_fio->FputInt32(framecnt);
+//	state_fio->FputBool(in);
+//	state_fio->FputBool(out);
+//	state_fio->FputBool(remote);
+//	state_fio->FputBool(now_acc);
+//	state_fio->FputInt32(framecnt);
 }
 
 bool CMT::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	in = state_fio->FgetBool();
-	out = state_fio->FgetBool();
-	remote = state_fio->FgetBool();
-	now_acc = state_fio->FgetBool();
-	framecnt = state_fio->FgetInt32();
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	in = state_fio->FgetBool();
+//	out = state_fio->FgetBool();
+//	remote = state_fio->FgetBool();
+//	now_acc = state_fio->FgetBool();
+//	framecnt = state_fio->FgetInt32();
 	return true;
 }
 

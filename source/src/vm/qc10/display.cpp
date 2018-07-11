@@ -307,39 +307,68 @@ void DISPLAY::draw_screen()
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void DISPLAY::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+
+#ifdef _COLOR_MONITOR
+	DECL_STATE_ENTRY_1D_ARRAY(vram_r, sizeof(vram_r));
+	DECL_STATE_ENTRY_1D_ARRAY(vram_g, sizeof(vram_g));
+	DECL_STATE_ENTRY_1D_ARRAY(vram_b, sizeof(vram_b));
+#else
+	DECL_STATE_ENTRY_1D_ARRAY(vram, sizeof(vram));
+#endif
+	DECL_STATE_ENTRY_UINT8(bank);
+	DECL_STATE_ENTRY_INT32(blink);
+	
+	leave_decl_state();
+}
+
 void DISPLAY::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-#ifdef _COLOR_MONITOR
-	state_fio->Fwrite(vram_r, sizeof(vram_r), 1);
-	state_fio->Fwrite(vram_g, sizeof(vram_g), 1);
-	state_fio->Fwrite(vram_b, sizeof(vram_b), 1);
-#else
-	state_fio->Fwrite(vram, sizeof(vram), 1);
-#endif
-	state_fio->FputUint8(bank);
-	state_fio->FputInt32(blink);
+//#ifdef _COLOR_MONITOR
+//	state_fio->Fwrite(vram_r, sizeof(vram_r), 1);
+//	state_fio->Fwrite(vram_g, sizeof(vram_g), 1);
+//	state_fio->Fwrite(vram_b, sizeof(vram_b), 1);
+//#else
+//	state_fio->Fwrite(vram, sizeof(vram), 1);
+//#endif
+//	state_fio->FputUint8(bank);
+//	state_fio->FputInt32(blink);
 }
 
 bool DISPLAY::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-#ifdef _COLOR_MONITOR
-	state_fio->Fread(vram_r, sizeof(vram_r), 1);
-	state_fio->Fread(vram_g, sizeof(vram_g), 1);
-	state_fio->Fread(vram_b, sizeof(vram_b), 1);
-#else
-	state_fio->Fread(vram, sizeof(vram), 1);
-#endif
-	bank = state_fio->FgetUint8();
-	blink = state_fio->FgetInt32();
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//#ifdef _COLOR_MONITOR
+//	state_fio->Fread(vram_r, sizeof(vram_r), 1);
+//	state_fio->Fread(vram_g, sizeof(vram_g), 1);
+//	state_fio->Fread(vram_b, sizeof(vram_b), 1);
+//#else
+//	state_fio->Fread(vram, sizeof(vram), 1);
+//#endif
+//	bank = state_fio->FgetUint8();
+//	blink = state_fio->FgetInt32();
 	return true;
 }
 
