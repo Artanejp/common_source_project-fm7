@@ -27,6 +27,9 @@ public:
 	int save_and_change_byteorder_be(uint32_t *sum, void *val, int bytes = 4, int rep = 1);
 	int load_and_change_byteorder_be(uint32_t *sum, void *val, int bytes = 4, int rep = 1);
 	
+	void put_char(char val, uint32_t *sumseed = NULL, bool *__stat = NULL);
+	char get_char(uint32_t *sumseed = NULL, bool *__stat = NULL);
+
 	void put_byte(uint8_t val, uint32_t *sumseed = NULL, bool *__stat = NULL);
 	uint8_t get_byte(uint32_t *sumseed = NULL, bool *__stat = NULL);
 	

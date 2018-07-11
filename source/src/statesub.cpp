@@ -199,6 +199,43 @@ int csp_state_data_saver::load_and_change_byteorder_be(uint32_t *sum, void *val,
 	return members;
 }
 
+
+void csp_state_data_saver::put_char(char val, uint32_t *sumseed, bool *__stat)
+{
+	
+	if(fio != NULL) {
+		if(fio->IsOpened()) {
+			if(fio->Fputc(val) != EOF) {
+				if(sumseed != NULL) {
+					*sumseed = calc_crc32(*sumseed, &val, 1);
+				}
+				if(__stat != NULL) *__stat =  true;
+				return;
+			}
+		}
+	}
+	if(__stat != NULL) *__stat =  false;
+	return;
+}
+
+char csp_state_data_saver::get_char(uint32_t *sumseed, bool *__stat)
+{
+	if(fio != NULL) {
+		if(fio->IsOpened()) {
+			char val = fio->Fgetc();
+			if(val != EOF) {
+				if(sumseed != NULL) {
+					*sumseed = calc_crc32(*sumseed, &val, 1);
+				}
+				if(__stat != NULL) *__stat =  true;
+				return val;
+			}
+		}
+	}
+	if(__stat != NULL) *__stat =  false;
+	return 0x00000000;
+}
+
 void csp_state_data_saver::put_byte(uint8_t val, uint32_t *sumseed, bool *__stat)
 {
 	
@@ -1114,6 +1151,8 @@ void csp_state_utils::add_entry_vararray(const _TCHAR *__name, T **p, void *data
 //		void csp_state_utils::add_entry(const _TCHAR *__name, T *p, int _len = 1, int __num = -1, bool is_const = false, int stride = 0);
 
 template 
+	void csp_state_utils::add_entry<char>(const _TCHAR *__name, char *p, int _len = 1, int __num = -1, bool is_const = false, int stride = 0);
+template 
 	void csp_state_utils::add_entry<float>(const _TCHAR *__name, float *p, int _len = 1, int __num = -1, bool is_const = false, int stride = 0);
 template 
 	void csp_state_utils::add_entry<double>(const _TCHAR *__name, double *p, int _len = 1, int __num = -1, bool is_const = false, int stride = 0);
@@ -1390,6 +1429,35 @@ void csp_state_utils::add_entry_scrntype_t(const _TCHAR *__name, scrntype_t *p, 
 	_l.stride = stride;
 	out_debug_log("ADD ENTRY: NAME=%s TYPE=scrntype_t len=%d atomlen=%d", _name.c_str(), _len, _l.atomlen);
 	
+}
+
+int csp_state_utils::save_sub_char(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride)
+{
+	int retval = 0;
+	char *px = (char *)pp;
+	if(_stat != NULL) {
+		*_stat = false;
+	}
+	for(int i = 0; i < _len; i++) {
+		fio->put_char(*px, crc_value, _stat);
+		if(_stride > sizeof(char)) {
+			px = (char *)((uint8_t *)px + _stride);
+		} else {
+			px++;
+		}
+		if(_stat != NULL) {
+			if(!(*_stat)) {
+				return -1;
+			}
+		}
+		retval++;
+	}
+	if(_stat != NULL) {
+		if(!(*_stat)) {
+			retval = -1;
+		}
+	}
+	return retval;
 }
 
 int csp_state_utils::save_sub_float(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride)
@@ -2095,6 +2163,9 @@ void csp_state_utils::save_state(FILEIO *__fio, uint32_t *pcrc)
 			if((pp != NULL) && (_len > 0)) {
 				int64_t tval;
 				switch(_tid) {
+				case csp_saver_entry_char:
+					retval = save_sub_char(&crc_value, &_stat, pp, _len, _stride);
+					break;
 				case csp_saver_entry_float:
 					retval = save_sub_float(&crc_value, &_stat, pp, _len, _stride);
 					break;
@@ -2190,6 +2261,36 @@ void csp_state_utils::save_state(FILEIO *__fio, uint32_t *pcrc)
 	out_debug_log("CRC: VAL=%08x", crc_value);
 	if(pcrc != NULL) *pcrc = crc_value;
 	return;
+}
+
+int csp_state_utils::load_sub_char(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride)
+{
+	int retval = 0;
+	char *px = (char *)pp;
+	if(_stat != NULL) {
+		*_stat = false;
+	}
+	for(int i = 0; i < _len; i++) {
+		*px = fio->get_char(crc_value, _stat);
+		if(_stride > sizeof(char)) {
+			px = (char *)((uint8_t *)px + _stride);
+		} else {
+			px++;
+		}
+		if(_stat != NULL) {
+			if(!(*_stat)) {
+				return -1;
+			}
+		}
+		retval++;
+	}
+	if(_stat != NULL) {
+		//out_debug_log("NAME=%s CHAR: LEN=%d STAT=%d HEAD=%08x", _name.c_str(), _len, (_stat) ? 1 : 0, pp);
+		if(!(*_stat)) {
+			return -1;
+		}
+	}
+	return retval;
 }
 
 int csp_state_utils::load_sub_float(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride)
@@ -2905,6 +3006,9 @@ bool csp_state_utils::load_state(FILEIO *__fio, uint32_t *pcrc)
 			//printf("%s\n", (*p).name);
 			if((pp != NULL) && (_len > 0)) {
 				switch(_tid) {
+				case csp_saver_entry_char:
+					retval = load_sub_char(&crc_value, &_stat, pp, _len, _stride);
+					break;
 				case csp_saver_entry_float:
 					retval = load_sub_float(&crc_value, &_stat, pp, _len, _stride);
 					break;

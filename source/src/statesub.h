@@ -52,6 +52,7 @@ typedef enum csp_saver_type_t {
 	csp_saver_entry_uint64,
 	csp_saver_entry_int64,
 	csp_saver_entry_bool,
+	csp_saver_entry_char,
 	csp_saver_entry_tchar,
 	csp_saver_entry_pair,
 	csp_saver_entry_float,
@@ -133,6 +134,7 @@ protected:
 
 	void out_debug_log(const char *fmt, ...);
 	
+	int save_sub_char(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
 	int save_sub_float(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
 	int save_sub_double(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
 	int save_sub_long_double(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
@@ -157,6 +159,7 @@ protected:
 	int save_sub_byte_array(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride, int _atomsize);
 	int save_sub_cmt_recording(uint32_t *crc_value, bool *_stat, void *pp, FILEIO **ffp, int _len, int _stride);
 
+	int load_sub_char(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
 	int load_sub_float(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
 	int load_sub_double(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
 	int load_sub_long_double(uint32_t *crc_value, bool *_stat, void *pp, int _len, int _stride);
@@ -195,6 +198,7 @@ protected:
 		{ typeid(uint32_t), csp_saver_entry_uint32 },
 		{ typeid(int64_t), csp_saver_entry_int64 },
 		{ typeid(uint64_t), csp_saver_entry_uint64 },
+		{ typeid(char), csp_saver_entry_char },
 		{ typeid(bool), csp_saver_entry_bool },
 		{ typeid(void), csp_saver_entry_void },
 		{ typeid(FIFO), csp_saver_entry_fifo },
