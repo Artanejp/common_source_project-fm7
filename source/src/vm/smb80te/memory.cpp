@@ -278,33 +278,59 @@ void MEMORY::save_ram(const _TCHAR* file_path)
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void MEMORY::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+	
+	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
+	DECL_STATE_ENTRY_UINT8(pio1_pa);
+	DECL_STATE_ENTRY_UINT8(pio1_pb);
+	DECL_STATE_ENTRY_UINT8(shift_reg);
+	DECL_STATE_ENTRY_UINT32(a15_mask);
+	DECL_STATE_ENTRY_BOOL(led);
+
+	leave_decl_state();
+}
+
 void MEMORY::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->Fwrite(ram, sizeof(ram), 1);
-	state_fio->FputUint8(pio1_pa);
-	state_fio->FputUint8(pio1_pb);
-	state_fio->FputUint8(shift_reg);
-	state_fio->FputUint32(a15_mask);
-	state_fio->FputBool(led);
+//	state_fio->Fwrite(ram, sizeof(ram), 1);
+//	state_fio->FputUint8(pio1_pa);
+//	state_fio->FputUint8(pio1_pb);
+//	state_fio->FputUint8(shift_reg);
+//	state_fio->FputUint32(a15_mask);
+//	state_fio->FputBool(led);
 }
 
 bool MEMORY::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	state_fio->Fread(ram, sizeof(ram), 1);
-	pio1_pa = state_fio->FgetUint8();
-	pio1_pb = state_fio->FgetUint8();
-	shift_reg = state_fio->FgetUint8();
-	a15_mask = state_fio->FgetUint32();
-	led = state_fio->FgetBool();
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	state_fio->Fread(ram, sizeof(ram), 1);
+//	pio1_pa = state_fio->FgetUint8();
+//	pio1_pb = state_fio->FgetUint8();
+//	shift_reg = state_fio->FgetUint8();
+//	a15_mask = state_fio->FgetUint32();
+//	led = state_fio->FgetBool();
 	return true;
 }
 

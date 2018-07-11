@@ -1243,138 +1243,201 @@ void IO::process_sub()
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void IO::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+	
+	DECL_STATE_ENTRY_1D_ARRAY(rregs, sizeof(rregs));
+	DECL_STATE_ENTRY_1D_ARRAY(wregs, sizeof(wregs));
+	DECL_STATE_ENTRY_CUR_TIME_T(cur_time);
+	
+	DECL_STATE_ENTRY_INT32(register_id_1sec);
+	DECL_STATE_ENTRY_FIFO(cmd_buf);
+	DECL_STATE_ENTRY_FIFO(rsp_buf);
+	DECL_STATE_ENTRY_UINT8(sub_int);
+	DECL_STATE_ENTRY_1D_ARRAY(wram, sizeof(wram));
+	DECL_STATE_ENTRY_1D_ARRAY(alarm, sizeof(alarm));
+	DECL_STATE_ENTRY_FIFO(key_buf);
+	DECL_STATE_ENTRY_BOOL(ctrl);
+	DECL_STATE_ENTRY_BOOL(shift);
+	DECL_STATE_ENTRY_BOOL(kana);
+	DECL_STATE_ENTRY_BOOL(graph);
+	DECL_STATE_ENTRY_BOOL(brk);
+	DECL_STATE_ENTRY_UINT8(stick);
+	DECL_STATE_ENTRY_UINT8(strig);
+	DECL_STATE_ENTRY_UINT8(strig1);
+	DECL_STATE_ENTRY_BOOL(cmt_play);
+	DECL_STATE_ENTRY_BOOL(cmt_rec);
+	DECL_STATE_ENTRY_BOOL(cmt_mode);
+	DECL_STATE_ENTRY_STRING(rec_file_path, sizeof(rec_file_path) / sizeof(_TCHAR));
+	DECL_STATE_ENTRY_CMT_RECORDING(cmt_fio, cmt_rec, rec_file_path);
+	
+	DECL_STATE_ENTRY_INT32(cmt_len);
+	DECL_STATE_ENTRY_INT32(cmt_ptr);
+	DECL_STATE_ENTRY_1D_ARRAY(cmt_buf, sizeof(cmt_buf));
+	DECL_STATE_ENTRY_BOOL(vblank);
+	DECL_STATE_ENTRY_UINT8(font_code);
+	DECL_STATE_ENTRY_1D_ARRAY(udc, sizeof(udc));
+	DECL_STATE_ENTRY_2D_ARRAY(lcd, 32, 120);
+	DECL_STATE_ENTRY_BOOL(locate_on);
+	DECL_STATE_ENTRY_BOOL(cursor_on);
+	DECL_STATE_ENTRY_BOOL(udk_on);
+	DECL_STATE_ENTRY_INT32(locate_x);
+	DECL_STATE_ENTRY_INT32(locate_y);
+	DECL_STATE_ENTRY_INT32(cursor_x);
+	DECL_STATE_ENTRY_INT32(cursor_y);
+	DECL_STATE_ENTRY_INT32(cursor_blink);
+	DECL_STATE_ENTRY_INT32(scroll_min);
+	DECL_STATE_ENTRY_INT32(scroll_max);
+	DECL_STATE_ENTRY_INT32(register_id_beep);
+
+	leave_decl_state();
+}
+
 void IO::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->Fwrite(rregs, sizeof(rregs), 1);
-	state_fio->Fwrite(wregs, sizeof(wregs), 1);
-	cur_time.save_state((void *)state_fio);
-	state_fio->FputInt32(register_id_1sec);
-	cmd_buf->save_state((void *)state_fio);
-	rsp_buf->save_state((void *)state_fio);
-	state_fio->FputUint8(sub_int);
-	state_fio->Fwrite(wram, sizeof(wram), 1);
-	state_fio->Fwrite(alarm, sizeof(alarm), 1);
-	key_buf->save_state((void *)state_fio);
-	state_fio->FputBool(ctrl);
-	state_fio->FputBool(shift);
-	state_fio->FputBool(kana);
-	state_fio->FputBool(graph);
-	state_fio->FputBool(brk);
-	state_fio->FputUint8(stick);
-	state_fio->FputUint8(strig);
-	state_fio->FputUint8(strig1);
-	state_fio->FputBool(cmt_play);
-	state_fio->FputBool(cmt_rec);
-	state_fio->FputBool(cmt_mode);
-	state_fio->Fwrite(rec_file_path, sizeof(rec_file_path), 1);
-	if(cmt_rec && cmt_fio->IsOpened()) {
-		int length_tmp = (int)cmt_fio->Ftell();
-		cmt_fio->Fseek(0, FILEIO_SEEK_SET);
-		state_fio->FputInt32(length_tmp);
-		while(length_tmp != 0) {
-			uint8_t buffer_tmp[1024];
-			int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
-			cmt_fio->Fread(buffer_tmp, length_rw, 1);
-			state_fio->Fwrite(buffer_tmp, length_rw, 1);
-			length_tmp -= length_rw;
-		}
-	} else {
-		state_fio->FputInt32(0);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
 	}
-	state_fio->FputInt32(cmt_len);
-	state_fio->FputInt32(cmt_ptr);
-	state_fio->Fwrite(cmt_buf, sizeof(cmt_buf), 1);
-	state_fio->FputBool(vblank);
-	state_fio->FputUint8(font_code);
-	state_fio->Fwrite(udc, sizeof(udc), 1);
-	state_fio->Fwrite(lcd, sizeof(lcd), 1);
-	state_fio->FputBool(locate_on);
-	state_fio->FputBool(cursor_on);
-	state_fio->FputBool(udk_on);
-	state_fio->FputInt32(locate_x);
-	state_fio->FputInt32(locate_y);
-	state_fio->FputInt32(cursor_x);
-	state_fio->FputInt32(cursor_y);
-	state_fio->FputInt32(cursor_blink);
-	state_fio->FputInt32(scroll_min);
-	state_fio->FputInt32(scroll_max);
-	state_fio->FputInt32(register_id_beep);
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
+//	
+//	state_fio->Fwrite(rregs, sizeof(rregs), 1);
+//	state_fio->Fwrite(wregs, sizeof(wregs), 1);
+//	cur_time.save_state((void *)state_fio);
+//	state_fio->FputInt32(register_id_1sec);
+//	cmd_buf->save_state((void *)state_fio);
+//	rsp_buf->save_state((void *)state_fio);
+//	state_fio->FputUint8(sub_int);
+//	state_fio->Fwrite(wram, sizeof(wram), 1);
+//	state_fio->Fwrite(alarm, sizeof(alarm), 1);
+//	key_buf->save_state((void *)state_fio);
+//	state_fio->FputBool(ctrl);
+//	state_fio->FputBool(shift);
+//	state_fio->FputBool(kana);
+//	state_fio->FputBool(graph);
+//	state_fio->FputBool(brk);
+//	state_fio->FputUint8(stick);
+//	state_fio->FputUint8(strig);
+//	state_fio->FputUint8(strig1);
+//	state_fio->FputBool(cmt_play);
+//	state_fio->FputBool(cmt_rec);
+//	state_fio->FputBool(cmt_mode);
+//	state_fio->Fwrite(rec_file_path, sizeof(rec_file_path), 1);
+//	if(cmt_rec && cmt_fio->IsOpened()) {
+//		int length_tmp = (int)cmt_fio->Ftell();
+//		cmt_fio->Fseek(0, FILEIO_SEEK_SET);
+//		state_fio->FputInt32(length_tmp);
+//		while(length_tmp != 0) {
+//			uint8_t buffer_tmp[1024];
+//			int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
+//			cmt_fio->Fread(buffer_tmp, length_rw, 1);
+//			state_fio->Fwrite(buffer_tmp, length_rw, 1);
+//			length_tmp -= length_rw;
+//		}
+//	} else {
+//		state_fio->FputInt32(0);
+//	}
+//	state_fio->FputInt32(cmt_len);
+//	state_fio->FputInt32(cmt_ptr);
+//	state_fio->Fwrite(cmt_buf, sizeof(cmt_buf), 1);
+//	state_fio->FputBool(vblank);
+//	state_fio->FputUint8(font_code);
+//	state_fio->Fwrite(udc, sizeof(udc), 1);
+//	state_fio->Fwrite(lcd, sizeof(lcd), 1);
+//	state_fio->FputBool(locate_on);
+//	state_fio->FputBool(cursor_on);
+//	state_fio->FputBool(udk_on);
+//	state_fio->FputInt32(locate_x);
+//	state_fio->FputInt32(locate_y);
+//	state_fio->FputInt32(cursor_x);
+//	state_fio->FputInt32(cursor_y);
+//	state_fio->FputInt32(cursor_blink);
+//	state_fio->FputInt32(scroll_min);
+//	state_fio->FputInt32(scroll_max);
+//	state_fio->FputInt32(register_id_beep);
 }
 
 bool IO::load_state(FILEIO* state_fio)
 {
 	close_tape();
 	
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	state_fio->Fread(rregs, sizeof(rregs), 1);
-	state_fio->Fread(wregs, sizeof(wregs), 1);
-	if(!cur_time.load_state((void *)state_fio)) {
-		return false;
-	}
-	register_id_1sec = state_fio->FgetInt32();
-	if(!cmd_buf->load_state((void *)state_fio)) {
-		return false;
-	}
-	if(!rsp_buf->load_state((void *)state_fio)) {
-		return false;
-	}
-	sub_int = state_fio->FgetUint8();
-	state_fio->Fread(wram, sizeof(wram), 1);
-	state_fio->Fread(alarm, sizeof(alarm), 1);
-	if(!key_buf->load_state((void *)state_fio)) {
-		return false;
-	}
-	ctrl = state_fio->FgetBool();
-	shift = state_fio->FgetBool();
-	kana = state_fio->FgetBool();
-	graph = state_fio->FgetBool();
-	brk = state_fio->FgetBool();
-	stick = state_fio->FgetUint8();
-	strig = state_fio->FgetUint8();
-	strig1 = state_fio->FgetUint8();
-	cmt_play = state_fio->FgetBool();
-	cmt_rec = state_fio->FgetBool();
-	cmt_mode = state_fio->FgetBool();
-	state_fio->Fread(rec_file_path, sizeof(rec_file_path), 1);
-	int length_tmp = state_fio->FgetInt32();
-	if(cmt_rec) {
-		cmt_fio->Fopen(rec_file_path, FILEIO_READ_WRITE_NEW_BINARY);
-		while(length_tmp != 0) {
-			uint8_t buffer_tmp[1024];
-			int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
-			state_fio->Fread(buffer_tmp, length_rw, 1);
-			if(cmt_fio->IsOpened()) {
-				cmt_fio->Fwrite(buffer_tmp, length_rw, 1);
-			}
-			length_tmp -= length_rw;
-		}
-	}
-	cmt_len = state_fio->FgetInt32();
-	cmt_ptr = state_fio->FgetInt32();
-	state_fio->Fread(cmt_buf, sizeof(cmt_buf), 1);
-	vblank = state_fio->FgetBool();
-	font_code = state_fio->FgetUint8();
-	state_fio->Fread(udc, sizeof(udc), 1);
-	state_fio->Fread(lcd, sizeof(lcd), 1);
-	locate_on = state_fio->FgetBool();
-	cursor_on = state_fio->FgetBool();
-	udk_on = state_fio->FgetBool();
-	locate_x = state_fio->FgetInt32();
-	locate_y = state_fio->FgetInt32();
-	cursor_x = state_fio->FgetInt32();
-	cursor_y = state_fio->FgetInt32();
-	cursor_blink = state_fio->FgetInt32();
-	scroll_min = state_fio->FgetInt32();
-	scroll_max = state_fio->FgetInt32();
-	register_id_beep = state_fio->FgetInt32();
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	state_fio->Fread(rregs, sizeof(rregs), 1);
+//	state_fio->Fread(wregs, sizeof(wregs), 1);
+//	if(!cur_time.load_state((void *)state_fio)) {
+//		return false;
+//	}
+//	register_id_1sec = state_fio->FgetInt32();
+//	if(!cmd_buf->load_state((void *)state_fio)) {
+//		return false;
+//	}
+//	if(!rsp_buf->load_state((void *)state_fio)) {
+//		return false;
+//	}
+//	sub_int = state_fio->FgetUint8();
+//	state_fio->Fread(wram, sizeof(wram), 1);
+//	state_fio->Fread(alarm, sizeof(alarm), 1);
+//	if(!key_buf->load_state((void *)state_fio)) {
+//		return false;
+//	}
+//	ctrl = state_fio->FgetBool();
+//	shift = state_fio->FgetBool();
+//	kana = state_fio->FgetBool();
+//	graph = state_fio->FgetBool();
+//	brk = state_fio->FgetBool();
+//	stick = state_fio->FgetUint8();
+//	strig = state_fio->FgetUint8();
+//	strig1 = state_fio->FgetUint8();
+//	cmt_play = state_fio->FgetBool();
+//	cmt_rec = state_fio->FgetBool();
+//	cmt_mode = state_fio->FgetBool();
+//	state_fio->Fread(rec_file_path, sizeof(rec_file_path), 1);
+//	int length_tmp = state_fio->FgetInt32();
+//	if(cmt_rec) {
+//		cmt_fio->Fopen(rec_file_path, FILEIO_READ_WRITE_NEW_BINARY);
+//		while(length_tmp != 0) {
+//			uint8_t buffer_tmp[1024];
+//			int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
+//			state_fio->Fread(buffer_tmp, length_rw, 1);
+//			if(cmt_fio->IsOpened()) {
+//				cmt_fio->Fwrite(buffer_tmp, length_rw, 1);
+//			}
+//			length_tmp -= length_rw;
+//		}
+//	}
+//	cmt_len = state_fio->FgetInt32();
+//	cmt_ptr = state_fio->FgetInt32();
+//	state_fio->Fread(cmt_buf, sizeof(cmt_buf), 1);
+//	vblank = state_fio->FgetBool();
+//	font_code = state_fio->FgetUint8();
+//	state_fio->Fread(udc, sizeof(udc), 1);
+//	state_fio->Fread(lcd, sizeof(lcd), 1);
+//	locate_on = state_fio->FgetBool();
+//	cursor_on = state_fio->FgetBool();
+//	udk_on = state_fio->FgetBool();
+//	locate_x = state_fio->FgetInt32();
+//	locate_y = state_fio->FgetInt32();
+//	cursor_x = state_fio->FgetInt32();
+//	cursor_y = state_fio->FgetInt32();
+//	cursor_blink = state_fio->FgetInt32();
+//	scroll_min = state_fio->FgetInt32();
+//	scroll_max = state_fio->FgetInt32();
+//	register_id_beep = state_fio->FgetInt32();
 	return true;
 }
 

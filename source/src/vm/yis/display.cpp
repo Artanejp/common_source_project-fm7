@@ -1599,105 +1599,169 @@ void DISPLAY::draw_text()
 
 #define STATE_VERSION	2
 
+#include "../../statesub.h"
+
+void DISPLAY::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+	
+	DECL_STATE_ENTRY_FIFO(cmd_buffer);
+	DECL_STATE_ENTRY_INT32(active_cmd);
+	DECL_STATE_ENTRY_UINT8(dpp_data);
+	DECL_STATE_ENTRY_UINT8(dpp_ctrl);
+	DECL_STATE_ENTRY_INT32(scroll_x0);
+	DECL_STATE_ENTRY_INT32(scroll_y0);
+	DECL_STATE_ENTRY_INT32(scroll_x1);
+	DECL_STATE_ENTRY_INT32(scroll_y1);
+	DECL_STATE_ENTRY_INT32(cursor_x);
+	DECL_STATE_ENTRY_INT32(cursor_y);
+	DECL_STATE_ENTRY_INT32(read_x);
+	DECL_STATE_ENTRY_INT32(read_y);
+	DECL_STATE_ENTRY_UINT8(mode1);
+	DECL_STATE_ENTRY_UINT8(mode2);
+	DECL_STATE_ENTRY_UINT8(mode3);
+	DECL_STATE_ENTRY_UINT32(report);
+	DECL_STATE_ENTRY_BOOL(write_cr);
+	for(int i = 0; i < 25; i++) {
+		DECL_STATE_ENTRY_UINT8_STRIDE((cvram[i][0].code), 80, sizeof(cvram[i][0]));
+		DECL_STATE_ENTRY_UINT8_STRIDE((cvram[i][0].attr), 80, sizeof(cvram[i][0]));
+	}									  
+	DECL_STATE_ENTRY_2D_ARRAY(gvram, 480, 640);
+	DECL_STATE_ENTRY_INT32(window_x0);
+	DECL_STATE_ENTRY_INT32(window_y0);
+	DECL_STATE_ENTRY_INT32(window_x1);
+	DECL_STATE_ENTRY_INT32(window_y1);
+	DECL_STATE_ENTRY_INT32(view_x0);
+	DECL_STATE_ENTRY_INT32(view_y0);
+	DECL_STATE_ENTRY_INT32(view_x1);
+	DECL_STATE_ENTRY_INT32(view_y1);
+	DECL_STATE_ENTRY_DOUBLE(expand);
+	DECL_STATE_ENTRY_INT32(rotate);
+	DECL_STATE_ENTRY_INT32(translate_x);
+	DECL_STATE_ENTRY_INT32(translate_y);
+	DECL_STATE_ENTRY_INT32(point_x);
+	DECL_STATE_ENTRY_INT32(point_y);
+	DECL_STATE_ENTRY_INT32(fore_color);
+	DECL_STATE_ENTRY_INT32(back_color);
+	DECL_STATE_ENTRY_BOOL(erase);
+	DECL_STATE_ENTRY_INT32(texture);
+	DECL_STATE_ENTRY_INT32(texture_index);
+	DECL_STATE_ENTRY_INT32(pattern);
+	DECL_STATE_ENTRY_SCRNTYPE_T_1D_ARRAY(palette_graph, sizeof(palette_graph) / sizeof(scrntype_t));
+	DECL_STATE_ENTRY_INT32(blink);
+
+	leave_decl_state();
+}
+
 void DISPLAY::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	cmd_buffer->save_state((void *)state_fio);
-	state_fio->FputInt32(active_cmd);
-	state_fio->FputUint8(dpp_data);
-	state_fio->FputUint8(dpp_ctrl);
-	state_fio->FputInt32(scroll_x0);
-	state_fio->FputInt32(scroll_y0);
-	state_fio->FputInt32(scroll_x1);
-	state_fio->FputInt32(scroll_y1);
-	state_fio->FputInt32(cursor_x);
-	state_fio->FputInt32(cursor_y);
-	state_fio->FputInt32(read_x);
-	state_fio->FputInt32(read_y);
-	state_fio->FputUint8(mode1);
-	state_fio->FputUint8(mode2);
-	state_fio->FputUint8(mode3);
-	state_fio->FputUint32(report);
-	state_fio->FputBool(write_cr);
-	state_fio->Fwrite(cvram, sizeof(cvram), 1);
-	state_fio->Fwrite(gvram, sizeof(gvram), 1);
-	state_fio->FputInt32(window_x0);
-	state_fio->FputInt32(window_y0);
-	state_fio->FputInt32(window_x1);
-	state_fio->FputInt32(window_y1);
-	state_fio->FputInt32(view_x0);
-	state_fio->FputInt32(view_y0);
-	state_fio->FputInt32(view_x1);
-	state_fio->FputInt32(view_y1);
-	state_fio->FputDouble(expand);
-	state_fio->FputInt32(rotate);
-	state_fio->FputInt32(translate_x);
-	state_fio->FputInt32(translate_y);
-	state_fio->FputInt32(point_x);
-	state_fio->FputInt32(point_y);
-	state_fio->FputInt32(fore_color);
-	state_fio->FputInt32(back_color);
-	state_fio->FputBool(erase);
-	state_fio->FputInt32(texture);
-	state_fio->FputInt32(texture_index);
-	state_fio->FputInt32(pattern);
-	state_fio->Fwrite(palette_graph, sizeof(palette_graph), 1);
-	state_fio->FputInt32(blink);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
+//	
+//	cmd_buffer->save_state((void *)state_fio);
+//	state_fio->FputInt32(active_cmd);
+//	state_fio->FputUint8(dpp_data);
+//	state_fio->FputUint8(dpp_ctrl);
+//	state_fio->FputInt32(scroll_x0);
+//	state_fio->FputInt32(scroll_y0);
+//	state_fio->FputInt32(scroll_x1);
+//	state_fio->FputInt32(scroll_y1);
+//	state_fio->FputInt32(cursor_x);
+//	state_fio->FputInt32(cursor_y);
+//	state_fio->FputInt32(read_x);
+//	state_fio->FputInt32(read_y);
+//	state_fio->FputUint8(mode1);
+//	state_fio->FputUint8(mode2);
+//	state_fio->FputUint8(mode3);
+//	state_fio->FputUint32(report);
+//	state_fio->FputBool(write_cr);
+//	state_fio->Fwrite(cvram, sizeof(cvram), 1);
+//	state_fio->Fwrite(gvram, sizeof(gvram), 1);
+//	state_fio->FputInt32(window_x0);
+//	state_fio->FputInt32(window_y0);
+//	state_fio->FputInt32(window_x1);
+//	state_fio->FputInt32(window_y1);
+//	state_fio->FputInt32(view_x0);
+//	state_fio->FputInt32(view_y0);
+//	state_fio->FputInt32(view_x1);
+//	state_fio->FputInt32(view_y1);
+//	state_fio->FputDouble(expand);
+//	state_fio->FputInt32(rotate);
+//	state_fio->FputInt32(translate_x);
+//	state_fio->FputInt32(translate_y);
+//	state_fio->FputInt32(point_x);
+//	state_fio->FputInt32(point_y);
+//	state_fio->FputInt32(fore_color);
+//	state_fio->FputInt32(back_color);
+//	state_fio->FputBool(erase);
+//	state_fio->FputInt32(texture);
+//	state_fio->FputInt32(texture_index);
+//	state_fio->FputInt32(pattern);
+//	state_fio->Fwrite(palette_graph, sizeof(palette_graph), 1);
+//	state_fio->FputInt32(blink);
 }
 
 bool DISPLAY::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	if(!cmd_buffer->load_state((void *)state_fio)) {
-		return false;
-	}
-	active_cmd = state_fio->FgetInt32();
-	dpp_data = state_fio->FgetUint8();
-	dpp_ctrl = state_fio->FgetUint8();
-	scroll_x0 = state_fio->FgetInt32();
-	scroll_y0 = state_fio->FgetInt32();
-	scroll_x1 = state_fio->FgetInt32();
-	scroll_y1 = state_fio->FgetInt32();
-	cursor_x = state_fio->FgetInt32();
-	cursor_y = state_fio->FgetInt32();
-	read_x = state_fio->FgetInt32();
-	read_y = state_fio->FgetInt32();
-	mode1 = state_fio->FgetUint8();
-	mode2 = state_fio->FgetUint8();
-	mode3 = state_fio->FgetUint8();
-	report = state_fio->FgetUint32();
-	write_cr = state_fio->FgetBool();
-	state_fio->Fread(cvram, sizeof(cvram), 1);
-	state_fio->Fread(gvram, sizeof(gvram), 1);
-	window_x0 = state_fio->FgetInt32();
-	window_y0 = state_fio->FgetInt32();
-	window_x1 = state_fio->FgetInt32();
-	window_y1 = state_fio->FgetInt32();
-	view_x0 = state_fio->FgetInt32();
-	view_y0 = state_fio->FgetInt32();
-	view_x1 = state_fio->FgetInt32();
-	view_y1 = state_fio->FgetInt32();
-	expand = state_fio->FgetDouble();
-	rotate = state_fio->FgetInt32();
-	translate_x = state_fio->FgetInt32();
-	translate_y = state_fio->FgetInt32();
-	point_x = state_fio->FgetInt32();
-	point_y = state_fio->FgetInt32();
-	fore_color = state_fio->FgetInt32();
-	back_color = state_fio->FgetInt32();
-	erase = state_fio->FgetBool();
-	texture = state_fio->FgetInt32();
-	texture_index = state_fio->FgetInt32();
-	pattern = state_fio->FgetInt32();
-	state_fio->Fread(palette_graph, sizeof(palette_graph), 1);
-	blink = state_fio->FgetInt32();
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	if(!cmd_buffer->load_state((void *)state_fio)) {
+//		return false;
+//	}
+//	active_cmd = state_fio->FgetInt32();
+//	dpp_data = state_fio->FgetUint8();
+//	dpp_ctrl = state_fio->FgetUint8();
+//	scroll_x0 = state_fio->FgetInt32();
+//	scroll_y0 = state_fio->FgetInt32();
+//	scroll_x1 = state_fio->FgetInt32();
+//	scroll_y1 = state_fio->FgetInt32();
+//	cursor_x = state_fio->FgetInt32();
+//	cursor_y = state_fio->FgetInt32();
+//	read_x = state_fio->FgetInt32();
+//	read_y = state_fio->FgetInt32();
+//	mode1 = state_fio->FgetUint8();
+//	mode2 = state_fio->FgetUint8();
+//	mode3 = state_fio->FgetUint8();
+//	report = state_fio->FgetUint32();
+//	write_cr = state_fio->FgetBool();
+//	state_fio->Fread(cvram, sizeof(cvram), 1);
+//	state_fio->Fread(gvram, sizeof(gvram), 1);
+//	window_x0 = state_fio->FgetInt32();
+//	window_y0 = state_fio->FgetInt32();
+//	window_x1 = state_fio->FgetInt32();
+//	window_y1 = state_fio->FgetInt32();
+//	view_x0 = state_fio->FgetInt32();
+//	view_y0 = state_fio->FgetInt32();
+//	view_x1 = state_fio->FgetInt32();
+//	view_y1 = state_fio->FgetInt32();
+//	expand = state_fio->FgetDouble();
+//	rotate = state_fio->FgetInt32();
+//	translate_x = state_fio->FgetInt32();
+//	translate_y = state_fio->FgetInt32();
+//	point_x = state_fio->FgetInt32();
+//	point_y = state_fio->FgetInt32();
+//	fore_color = state_fio->FgetInt32();
+//	back_color = state_fio->FgetInt32();
+//	erase = state_fio->FgetBool();
+//	texture = state_fio->FgetInt32();
+//	texture_index = state_fio->FgetInt32();
+//	pattern = state_fio->FgetInt32();
+//	state_fio->Fread(palette_graph, sizeof(palette_graph), 1);
+//	blink = state_fio->FgetInt32();
 	return true;
 }
 

@@ -269,41 +269,71 @@ void IO::draw_screen()
 
 #define STATE_VERSION	2
 
+#include "../../statesub.h"
+
+void IO::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+	
+	DECL_STATE_ENTRY_UINT8(pb);
+	DECL_STATE_ENTRY_UINT8(pc);
+	DECL_STATE_ENTRY_UINT8(div_counter);
+	DECL_STATE_ENTRY_UINT8(counter);
+	DECL_STATE_ENTRY_INT32(posi_counter);
+	DECL_STATE_ENTRY_INT32(nega_counter);
+	DECL_STATE_ENTRY_BOOL(drec_in);
+	DECL_STATE_ENTRY_BOOL(drec_toggle);
+	DECL_STATE_ENTRY_UINT32(prev_clock);
+	DECL_STATE_ENTRY_INT32(register_id);
+
+	leave_decl_state();
+}
+
 void IO::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->FputUint8(pb);
-	state_fio->FputUint8(pc);
-	state_fio->FputUint8(div_counter);
-	state_fio->FputUint8(counter);
-	state_fio->FputInt32(posi_counter);
-	state_fio->FputInt32(nega_counter);
-	state_fio->FputBool(drec_in);
-	state_fio->FputBool(drec_toggle);
-	state_fio->FputUint32(prev_clock);
-	state_fio->FputInt32(register_id);
+//	state_fio->FputUint8(pb);
+//	state_fio->FputUint8(pc);
+//	state_fio->FputUint8(div_counter);
+//	state_fio->FputUint8(counter);
+//	state_fio->FputInt32(posi_counter);
+//	state_fio->FputInt32(nega_counter);
+//	state_fio->FputBool(drec_in);
+//	state_fio->FputBool(drec_toggle);
+//	state_fio->FputUint32(prev_clock);
+//	state_fio->FputInt32(register_id);
 }
 
 bool IO::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	pb = state_fio->FgetUint8();
-	pc = state_fio->FgetUint8();
-	div_counter = state_fio->FgetUint8();
-	counter = state_fio->FgetUint8();
-	posi_counter = state_fio->FgetInt32();
-	nega_counter = state_fio->FgetInt32();
-	drec_in = state_fio->FgetBool();
-	drec_toggle = state_fio->FgetBool();
-	prev_clock = state_fio->FgetUint32();
-	register_id = state_fio->FgetInt32();
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	pb = state_fio->FgetUint8();
+//	pc = state_fio->FgetUint8();
+//	div_counter = state_fio->FgetUint8();
+//	counter = state_fio->FgetUint8();
+//	posi_counter = state_fio->FgetInt32();
+//	nega_counter = state_fio->FgetInt32();
+//	drec_in = state_fio->FgetBool();
+//	drec_toggle = state_fio->FgetBool();
+//	prev_clock = state_fio->FgetUint32();
+//	register_id = state_fio->FgetInt32();
 	return true;
 }
 

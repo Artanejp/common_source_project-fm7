@@ -170,27 +170,50 @@ void KEYBOARD::key_down(int code)
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void KEYBOARD::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+	
+	DECL_STATE_ENTRY_UINT8(column);
+	DECL_STATE_ENTRY_BOOL(caps_locked);
+	DECL_STATE_ENTRY_BOOL(kana_locked);
+
+	leave_decl_state();
+}
+
 void KEYBOARD::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->FputUint8(column);
-	state_fio->FputBool(caps_locked);
-	state_fio->FputBool(kana_locked);
+//	state_fio->FputUint8(column);
+//	state_fio->FputBool(caps_locked);
+//	state_fio->FputBool(kana_locked);
 }
 
 bool KEYBOARD::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	column = state_fio->FgetUint8();
-	caps_locked = state_fio->FgetBool();
-	kana_locked = state_fio->FgetBool();
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	column = state_fio->FgetUint8();
+//	caps_locked = state_fio->FgetBool();
+//	kana_locked = state_fio->FgetBool();
 	return true;
 }
 

@@ -101,29 +101,53 @@ void MAPPER::update_bank(int num)
 
 #define STATE_VERSION	1
 
+#include "../../statesub.h"
+
+void MAPPER::decl_state()
+{
+	enter_decl_state(STATE_VERSION);
+	
+	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
+	DECL_STATE_ENTRY_UINT8(mapper_reg);
+	DECL_STATE_ENTRY_1D_ARRAY(bank_reg, sizeof(bank_reg));
+//	DECL_STATE_ENTRY_1D_ARRAY(cur_bank, sizeof(cur_bank));
+	
+	leave_decl_state();
+}
+
 void MAPPER::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+//	state_fio->FputUint32(STATE_VERSION);
+//	state_fio->FputInt32(this_device_id);
 	
-	state_fio->Fwrite(ram, sizeof(ram), 1);
-	state_fio->FputUint8(mapper_reg);
-	state_fio->Fwrite(bank_reg, sizeof(bank_reg), 1);
-//	state_fio->Fwrite(cur_bank, sizeof(cur_bank), 1);
+//	state_fio->Fwrite(ram, sizeof(ram), 1);
+//	state_fio->FputUint8(mapper_reg);
+//	state_fio->Fwrite(bank_reg, sizeof(bank_reg), 1);
+////	state_fio->Fwrite(cur_bank, sizeof(cur_bank), 1);
 }
 
 bool MAPPER::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	state_fio->Fread(ram, sizeof(ram), 1);
-	mapper_reg = state_fio->FgetUint8();
-	state_fio->Fread(bank_reg, sizeof(bank_reg), 1);
-//	state_fio->Fread(cur_bank, sizeof(cur_bank), 1);
+//	if(state_fio->FgetUint32() != STATE_VERSION) {
+//		return false;
+//	}
+//	if(state_fio->FgetInt32() != this_device_id) {
+//		return false;
+//	}
+//	state_fio->Fread(ram, sizeof(ram), 1);
+//	mapper_reg = state_fio->FgetUint8();
+//	state_fio->Fread(bank_reg, sizeof(bank_reg), 1);
+////	state_fio->Fread(cur_bank, sizeof(cur_bank), 1);
 	
 	// post process
 	for(int i = 0; i < 15; i++) {
