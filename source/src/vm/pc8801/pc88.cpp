@@ -3046,16 +3046,18 @@ void PC88::decl_state()
 	DECL_STATE_ENTRY_INT32(gvram_wait_clocks_r);
 	DECL_STATE_ENTRY_INT32(gvram_wait_clocks_w);
 	DECL_STATE_ENTRY_INT32(busreq_clocks);
-	DECL_STATE_ENTRY_1D_ARRAY(palette, sizeof(palette));
+	DECL_STATE_ENTRY_UINT8_STRIDE((palette[0].b), 9, sizeof(palette[0]));
+	DECL_STATE_ENTRY_UINT8_STRIDE((palette[0].r), 9, sizeof(palette[0]));
+	DECL_STATE_ENTRY_UINT8_STRIDE((palette[0].g), 9, sizeof(palette[0]));
 	DECL_STATE_ENTRY_BOOL(update_palette);
 	DECL_STATE_ENTRY_BOOL(hireso);
 	DECL_STATE_ENTRY_2D_ARRAY(text, 200, 640);
 	DECL_STATE_ENTRY_2D_ARRAY(graph, 400, 640);
 	
 	// ToDo: Read register value, then calculate display values.
-	DECL_STATE_ENTRY_1D_ARRAY(palette_text_pc, 9);
+	DECL_STATE_ENTRY_SCRNTYPE_T_1D_ARRAY(palette_text_pc, 9);
 	// ToDo: Read register value, then calculate display values.
-	DECL_STATE_ENTRY_1D_ARRAY(palette_graph_pc, 9);
+	DECL_STATE_ENTRY_SCRNTYPE_T_1D_ARRAY(palette_graph_pc, 9);
 	DECL_STATE_ENTRY_BOOL(usart_dcd);
 	DECL_STATE_ENTRY_BOOL(opn_busy);
 	DECL_STATE_ENTRY_UINT8(key_caps);

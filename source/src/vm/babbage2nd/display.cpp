@@ -168,7 +168,7 @@ void DISPLAY::decl_state()
 {
 	enter_decl_state(STATE_VERSION);
 	
-	DECL_STATE_ENTRY_1D_ARRAY(seg, sizeof(seg));
+	DECL_STATE_ENTRY_2D_ARRAY(seg, 6, 7);
 	DECL_STATE_ENTRY_UINT8(ls373);
 	DECL_STATE_ENTRY_UINT8(pio_7seg);
 	DECL_STATE_ENTRY_UINT8(pio_8bit);

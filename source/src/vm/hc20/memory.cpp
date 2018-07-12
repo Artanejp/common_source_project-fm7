@@ -839,7 +839,12 @@ void MEMORY::decl_state()
 	
 	DECL_STATE_ENTRY_INT32(cmt_count);
 	DECL_STATE_ENTRY_1D_ARRAY(cmt_buffer, sizeof(cmt_buffer));
-	DECL_STATE_ENTRY_1D_ARRAY(lcd, sizeof(lcd));
+	for(int i = 0; i < 6; i++) {
+		DECL_STATE_ENTRY_1D_ARRAY_MEMBER((lcd[i].buffer), 80, i);
+		DECL_STATE_ENTRY_INT32_MEMBER((lcd[i].bank), i);
+		DECL_STATE_ENTRY_INT32_MEMBER((lcd[i].addr), i);
+	}
+
 	DECL_STATE_ENTRY_UINT8(lcd_select);
 	DECL_STATE_ENTRY_UINT8(lcd_data);
 	DECL_STATE_ENTRY_INT32(lcd_clock);

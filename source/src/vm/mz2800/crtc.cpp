@@ -1360,7 +1360,7 @@ void CRTC::decl_state()
 	DECL_STATE_ENTRY_SCRNTYPE_T_2D_ARRAY(palette4096pri, 16, 9);
 	DECL_STATE_ENTRY_UINT8(prev16);
 	DECL_STATE_ENTRY_BOOL(update16);
-	DECL_STATE_ENTRY_1D_ARRAY(map_addr, sizeof(map_addr) / sizeof(uint32_t));
+	DECL_STATE_ENTRY_2D_ARRAY(map_addr, 400, 80);
 	DECL_STATE_ENTRY_2D_ARRAY(map_hdsc, 400, 80);
 	DECL_STATE_ENTRY_3D_ARRAY(text_matrix, 256, 8, 8);
 	DECL_STATE_ENTRY_3D_ARRAY(text_matrixw, 256, 8, 16);
