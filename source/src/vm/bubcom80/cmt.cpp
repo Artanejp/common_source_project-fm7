@@ -112,7 +112,7 @@ void CMT::decl_state()
 	DECL_STATE_ENTRY_CMT_RECORDING(fio, rec, rec_file_path);
 	
 	DECL_STATE_ENTRY_INT32(bufcnt);
-	DECL_STATE_ENTRY_1D_ARRAY(buffer, sizeof(buffer), 1);
+	DECL_STATE_ENTRY_1D_ARRAY(buffer, sizeof(buffer));
 
 	leave_decl_state();
 }	
