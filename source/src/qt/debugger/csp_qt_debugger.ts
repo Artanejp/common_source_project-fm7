@@ -4,7 +4,7 @@
 <context>
     <name>Debugger</name>
     <message>
-        <location filename="qt_debugger.cpp" line="53"/>
+        <location filename="qt_debugger.cpp" line="54"/>
         <source>Emulator still not start
 Please wait.</source>
         <translation>エミュレータが未だ始まっていません。
