@@ -1,3 +1,922 @@
+commit 9275209c6bed03ccd06716a486e29451c446751d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 13 12:46:27 2018 +0900
+
+    [] .
+
+commit 7d6fb3efa6989914b9e9b404a34e6cdfdbbe1ffe
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 13 12:44:43 2018 +0900
+
+    [VM][Qt] Add BUBCOM80.
+
+commit 7340e253d0100ce9f01f23e9f4df389902c7d4c6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 13 12:43:44 2018 +0900
+
+    [UI][Qt] Update translations.
+
+commit 6698678c957cc70a359a71c9994f662d6a2d780a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jul 12 22:20:05 2018 +0900
+
+    [VM][STATE] Fix FTBFSs.
+
+commit 48ff443161947e2146f270c72f6230fd9a453fbe
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jul 12 04:25:06 2018 +0900
+
+    [STATE] .
+
+commit 7ca04b788ad3af0de9129e20943537694898517c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jul 12 04:24:15 2018 +0900
+
+    [VM][STATE] (Maybe) Apply new state framework to ALL VMs.
+
+commit 419860f6635a90d0445671d6fc02395ec28d1e32
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jul 11 17:28:37 2018 +0900
+
+    [VM][STATE][PHC20][PHC25]PV1000][PV2000][PYUTA][QC10][RX78][SC3000] Apply new state framework to VMs.
+    [VM][STATE][TK80BS] CMT: OOPs.
+
+commit a88a2ecec2e3b6e6ce4b3eb2c2031d31a61e91e4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jul 7 10:47:20 2018 +0900
+
+    [DOC] .
+
+commit 1f4c39a5e304bfbe07918f39152f5592e3c51d5b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jul 7 10:43:08 2018 +0900
+
+    [STATE] Update SOVERSION.
+
+commit 264ea450d09e8705f122887b16cb82aaa18106b7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jul 7 10:40:47 2018 +0900
+
+    [DOC] Update about new state framework.
+
+commit b52e7c90d3f29db8cefd83a6ff936952b6b7decd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jul 7 01:51:19 2018 +0900
+
+    [VM][PASOPIA][PASOPIA7] Apply new state framework to VMs.
+
+commit eba0fdb48f53c6a51d7c86fd52499aa1166c3bd7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jul 7 01:50:21 2018 +0900
+
+    [VM][TK80BS][PC2001][PC8201][PC98HA] Apply new state framework to VMs.
+
+commit 8f4ac58afa1c1f07a811b42246c8917db3dcb7df
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 6 21:46:55 2018 +0900
+
+    [VM][PC2001][PCENGINE] Apply new state framework to VMs.
+
+commit 55f85685be763a8dd4329ac4bf371fd3449b989f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 6 21:46:34 2018 +0900
+
+    [VM][PC100][STATE] Fix FTBFS.
+
+commit 4a08ade44ba5fd9eb27f6a799f800461fe10fc8d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 6 21:02:22 2018 +0900
+
+    [VM][PC100] Apply new state framework to PC100.
+
+commit a7a5adc229fdb1a0c409e9de6e6b8a974ed1a692
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 6 21:01:55 2018 +0900
+
+    [VM][PC6001] Apply new state framework to VMs.
+
+commit c350a560cf9080997d57233709fe337843d1f821
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 6 21:01:32 2018 +0900
+
+    [VM][MZ5500] Fix FTBFS.
+
+commit ccc2062edd0133564282cfe9927c5589d6fa5985
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 6 21:00:54 2018 +0900
+
+    [STATE] LOAD: Move elements to separate functions.
+
+commit d3704a8beb727c422932e9ee64b83e3aabada86a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 6 19:48:07 2018 +0900
+
+    [COMMON_VM] Update SOVERSION.
+
+commit 3aaee50544399e2c4c6a7e4eb363d822cfb27fea
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 6 19:47:35 2018 +0900
+
+    [STATE] Update SOVERSION.
+
+commit 5df91c161b625b14c5fa738b3d4b7ab5a2844f11
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 6 19:46:41 2018 +0900
+
+    [STATE] SAVE: Separate process routines to functions;
+
+commit 5dd8492b437e3e8850078b637801d39a11d89b66
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 6 05:06:04 2018 +0900
+
+    [VM][MZ2800] Fix FTBFS.
+
+commit af49f62be4b11dfdbad909a36ee434eb7da132c0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 6 04:58:02 2018 +0900
+
+    [VM][MZ5500][WIP] Applying new state framework.WIP.
+
+commit 2ac613a399830170988cc5000bb8649c37a9c0d5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 6 04:57:29 2018 +0900
+
+    [VM][MZ3500] Apply new state framework.
+    [VM][MZ2800] Apply new state framework.
+
+commit bd8c196accb4aac13b5b1b4067d3b594c74a4c2a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 6 04:55:59 2018 +0900
+
+    [VM][EX80][STATE] Fix typo.
+
+commit 709151ea3cde1ac534520d4eb2862315a34635e0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 6 04:55:33 2018 +0900
+
+    [VM][STATE][PC8801] Remove unused part.
+
+commit 082a07e80f7d0d761c3fd4d1dfdb5322a33b7e63
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 6 04:54:29 2018 +0900
+
+    [VM][STATE][MZ2500][MZ700][MZ80K] Apply new state framework to some VMs.
+
+commit deb6192e9e4056088fd2ff2dcc0fa826a1392f15
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 6 04:53:24 2018 +0900
+
+    [VM][STATE] .
+
+commit 5867d6d8e5eca1ca454ba7a1b11f8b456282cbe3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 6 04:53:01 2018 +0900
+
+    [VM][STATE] .
+
+commit 485f897f1474f2028d0b2b2e679f6bd9e10a8532
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jul 5 17:11:59 2018 +0900
+
+    [VM][STATE] Apply new state framework to MZ80B, MZ2200 and MZ2500.
+
+commit 96abb79078beec10ac86e63accd1ac45ca844cda
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jul 5 17:11:23 2018 +0900
+
+    [VM][STATE] Add DECL_STATE_ENTRY_SCRNTYPE_T_foo().
+
+commit 5251988ede591b2f5cb235ce742af0c00d1b0ff1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jul 3 01:18:07 2018 +0900
+
+    [DOC][VM][STATE] Add "a new state save load framerork.txt".
+
+commit 89bb3c57cee8fa1474a37291cea34fb5558561fe
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 2 16:47:12 2018 +0900
+
+    [VM][STATE][MZ2500] .
+
+commit fa2edeaecebdea4ec504ea5df05850fb4adb0364
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 2 16:46:38 2018 +0900
+
+    [VM][MYCOMZ80A][MULTI8] Apply new state framework to VMs.
+
+commit 07ba51d4d9658610699fa22a6d60d0e19ed61db2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 2 16:06:10 2018 +0900
+
+    [Qt][OpenGL] Fix wrong screen.
+
+commit 0659adcb9145ed4f632ce15610e16538d9610e6a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 2 15:27:03 2018 +0900
+
+    [Qt][MOUSE] Fix returning wrong point when rotating screen.
+
+commit 43fdc362658211660de16eea6603132e0865de47
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 2 14:16:36 2018 +0900
+
+    [Qt][MENU] Fix Screen Rotate.
+
+commit ed2d51b837749c5c8931e900c16d12618dce18c9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 2 03:39:33 2018 +0900
+
+    [Qt][OpenGL][WIP] Re-Add screen rotate.
+
+commit 539cdbbccc9a3b5d281a0ccfcca6299e2202c77c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 2 00:49:19 2018 +0900
+
+    [Qt][OpenGL][GLES] TRY: Reduce power consumption.
+    [Qt][OpenGL] Prepare to use OpenGL 4.x (CORE).
+    [Qt][OpenGLES] Prepare to use OpenGL ES 3.1.
+    [Qt][OpenGLES] Delete condition branch in shader, use #ifdef and const values.
+
+commit 2a728468bb62a00ef1ade31cbd5b6a77e6e60c62
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jul 1 15:44:10 2018 +0900
+
+    [VM][STATE][HC20][HC40][HC80][M5][MSX] Apply new state framerork to some VMs.
+
+commit 87b25e53189b6b6ee58069f42589c6858c81cf35
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jul 1 04:18:28 2018 +0900
+
+    [VM][BUILD][Qt] Remove FM NEW7 entry.
+
+commit 671b30451a5a844e23bddfc849561d213cce6a18
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jul 1 03:05:26 2018 +0900
+
+    [VM][STATE] .
+
+commit 1c01f80b43685a24cc8820c35596ca69f6fd0940
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jul 1 03:01:30 2018 +0900
+
+    [BUG][VM][PC9801] Fix wrong state sequence.
+
+commit 22ee55673fcc41df32b2a3ace3c8587f455fd748
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jul 1 01:19:39 2018 +0900
+
+    [VM][PC9801] Remove unused itf.[cpp|h].
+
+commit a25fbc7aa77938193e2a1bf637c584833a3a23e7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jul 1 01:18:44 2018 +0900
+
+    [VM][STATE][PC9801][X1] Apply new state framework to PC9801 series and X1 series.
+
+commit 4a2d316a65d1b40848d98246af6c6e0f5d8e6b3d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 30 22:53:15 2018 +0900
+
+    [VM][DATAREC] Fix crash at removing CMT when not stopping to play.
+
+commit eaa8d00d433bf1085c5f5bda1d40fb3c44085409
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 30 22:17:55 2018 +0900
+
+    [VM][BUBCOM80] Apply new state framework to BUBCOM80.
+
+commit 991d7b6bcbcadb00f443fb2d6794ad585b08c0e0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 30 22:17:06 2018 +0900
+
+    [VM][FM16BETA][FM16PI][FP1100][FP200][STATE] Apply new state framework to these.
+
+commit 62eb3b8d190708c4370655baa9e1a726716fa810
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 30 21:31:21 2018 +0900
+
+    [VM][FMR50][FMR30] Apply new state framework to FMR30/50 etc.
+
+commit 1120ba9e2d6d651eda96e7c7bcf158737003f7ae
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 30 13:12:27 2018 +0900
+
+    [VM]Fix FTBFS.
+
+commit 34a5b581bda42e2d6b3c36ae654598f099825064
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 30 13:11:29 2018 +0900
+
+    [BUBCOM80][STATE][WIP] Applying new stateframework to BUBCOM80.WIP.
+
+commit 3e26908434f3f37bb4e7deb500b5963ad6d45029
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 30 04:24:12 2018 +0900
+
+    [Qt][VM][FMGEN][DISK][LOGGER] Logging all devices.
+
+commit 31650bf89570e1ce88181c3339e36b834ec0e6bf
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 30 01:42:08 2018 +0900
+
+    [VM][BUBCOM80][STATE][WIP] Applying new state framework to CMT::.WIP.
+
+commit fc5a4a0b52669fb567779b1b73c73e6fb22187a4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 30 01:40:41 2018 +0900
+
+    [LOGGER][Qt] Use QVector insterad of QQueue to reduce CPU usage.
+
+commit eb69ce764f1db55dd3662323fca30385e0f9cdf6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 30 01:40:08 2018 +0900
+
+    [STATE][FMGEN] Apply new state framerork to FMGEN.
+
+commit 30af9c094664f72e3700fd55638050db017e0515
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 30 01:38:49 2018 +0900
+
+    [VM][IO][STATESUB] Add foo_STRIDE() to reduce entries for IO:: .
+
+commit e84f46c1fbf4011c92dbaf0fc5fa2a0a8bd93a17
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jun 29 19:10:08 2018 +0900
+
+    [STATESUB][COLECOVISION][EX80][FAMILYBASIC][PC8801] Apply some new state framework to VMs.
+
+commit d0cf7b01d087ebb1655538bc22c744084d58c805
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jun 29 19:06:19 2018 +0900
+
+    [STATESUB] Add entry "DECL_STATE_ENTRY_CMT_RECORDING".
+
+commit 8b4e296f41e8d3b50b793947f028076ea7f4e5c1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jun 29 19:05:42 2018 +0900
+
+    [FILEIO] Add FILEIO::Fflush().
+
+commit a0f3ac50e16337d7954a88097014243027d35917
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 27 23:48:56 2018 +0900
+
+    [VM][Z80] Add collecting cpu status feature for Z80.
+
+commit 7e54012b3305ffc191c79ac7107bb9209c54b67d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 27 22:00:16 2018 +0900
+
+    [BUILD][Qt] Update SOVERSION of shared libs.
+
+commit 3db5b32031694744f67cea5f825ce77c07c3f38e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 27 21:58:38 2018 +0900
+
+    [VM][MC6809] Collect CPU statistics always, printing is controlled by menu immediately.
+
+commit 560ee5a167f3554a517236abaf0ae74ad5b91cb2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 27 21:58:04 2018 +0900
+
+    [MENU][Qt] Fix not effect of "FULL SPEED".
+
+commit 1004c6718a76d9d0b49b8fa86b8e241bcb485682
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 27 21:55:53 2018 +0900
+
+    [Qt][LOGGER] CSP_Logger makes daughter of QObject.Add messaging slot entry.
+    [STATE][Qt] csp_state_utils:: use QObject's messaging system for logging.
+
+commit b2d9c082b9b2908072680379060d1cf2d730b8ff
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 27 21:54:39 2018 +0900
+
+    [Qt][MAIN][LOGGER] Fix crash on exit.
+
+commit f4247699f4484c162a6620761eec9f5acfe9decf
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 27 01:33:01 2018 +0900
+
+    [DOC][PC9801] Add MEMSW.BIN.
+
+commit 4ac4aaa4133ddba69ecb802986d4c41b5685534d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 27 01:24:46 2018 +0900
+
+    [VM][PC9801][DISPLAY] Keep memory switch settings (saved to MEMSW.BIN).
+
+commit 1520a07bae7608ab21a8b58eace929a94c45489a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 26 22:18:33 2018 +0900
+
+    [COMMON][VM][Qt] Add common wav-loading / saving helper functions to common.cpp .
+    [COMMON] Update min() and max().
+
+commit 53c174b40785954fa8d0f4c276e8a45e059cff40
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 26 18:40:36 2018 +0900
+
+    [VM][CMT] Align endianess around loading/saving WAV.
+
+commit e909df1ebe073dd2ef51a827068ed0426438ad19
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 26 18:39:06 2018 +0900
+
+    [COMMON] Add pair16_t and pair64_t.
+    [COMMON] Add immediate value functions for pair_t.
+
+commit ee18c5b50e54a7a09c0e85b104c293f5527a4d9f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 26 04:53:53 2018 +0900
+
+    [VM][NOISE] Adjust endian of WAV data.
+    [VM][NOISE] Fix infinity loop with corruptWAV data.
+    [VM][YM2203][OOPS] YM2203::is_ym2608 should be set outsize of device.
+
+commit 6e100124d0be6af450da948f8b45cbc4deb86a04
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 26 04:52:41 2018 +0900
+
+    [FMGEN][OPNA] Fix infinity loop at loading rhythm WAVs.
+    [FMGEN][OPNA] Adjust endian of WAV data (maybe).
+
+commit 9bd1dddb9d3b0c49f97c19cbdae26520bb3c6f80
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 26 03:14:24 2018 +0900
+
+    [VM][PC9801][I286] Fix FTBFS.
+    [VM][PCENGINE][SCSI_CDROM] Fix FTBFS.
+    [VM][YM2203] Enable OPNA.
+
+commit f28032d13e4bf7e146b1c9de320523e0fb1ef26a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 26 03:13:21 2018 +0900
+
+    [VM][FM7][SOUND][BEEP] Set samplerate to 6000Hz.Simplize logic.
+    [VM][FM77AV][SOUND] Fix FTBFS.
+
+commit 22e0f7de948d503872f63770bbe7432f8fc4e972
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jun 25 23:59:10 2018 +0900
+
+    [VM][FM7][SOUND] Fix sequences around OPN/PSG.
+
+commit 7e60c66c871dae3256304c8a3e4696978e14f12d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jun 25 23:57:33 2018 +0900
+
+    [FMGEN][OPN][OPNBASE] Force to calculate frequency factors around prescaler when OPNBase::LoadState(). Fix wrong sound after loding state.
+
+commit 5235e1ee41bda1f0538444810a3e6297365abaa9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jun 25 19:11:40 2018 +0900
+
+    [VM][STATE][DEVICE] Apply new state framework to all devices (except virtual machines).
+
+commit 533153f706f94936e0f5858f683e4546882196cf
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 20 20:18:56 2018 +0900
+
+    [BUILD][WIN32] Fix linkage error with MinGW32.
+
+commit 3c253f5846b7edac48eca0f57f81ffe188e39257
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 20 08:48:23 2018 +0900
+
+    [VM][STATE][DATAREC] Fix memory leak and invalid memory access.
+
+commit 986a72a716ab37fb86e23b64d2c16e897b30d7ac
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 20 05:58:52 2018 +0900
+
+    [FMGEN][STATE] Keep endian of multi byte values; Make endian to BIG-ENDIAN.
+
+commit 09e63d1dfbf2233bccbff564c6207d1d7efe96e5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 20 05:58:39 2018 +0900
+
+    [STATE] .
+
+commit 5b7fe2b04315b16517e02647e3ae14a9b8dabce8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 20 05:58:12 2018 +0900
+
+    [VM][DATAREC] (Maybe) Fix unstable state saving.
+
+commit 34410999d7db34ec2181c8cc972848135838d3c2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 20 04:25:31 2018 +0900
+
+    [VM][EVENT] Apply new state framework to EVENT:: .
+
+commit 212a57229329efd747bc39d874b5756f2233ba1c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 19 18:46:42 2018 +0900
+
+    [VM][I386] Apply new state framework (only within libcpu_newdev).
+
+commit 54efb249d2971ddf7a84747a24c0ec200e9fe391
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 19 15:06:11 2018 +0900
+
+    [Qt][QIN32][EMUUTILS] Move CSP_Logger to libCSPemu_utils.[foo.so|dll] from libCSPgui.[foo.so|dll] .
+
+commit 44002cdbba39b558ea04cbf7707af6627155ab42
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 19 15:03:43 2018 +0900
+
+    [Qt][WIN32] Move config and logger to inner pointer, now, libCSPavio is separated to single DLL.
+    [WIN32] Update cross build script.
+    [Qt][General] Update SOVERSION.
+
+commit 5ecb6b517783972cf6423a167efb314e51cb8bcd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jun 18 12:21:20 2018 +0900
+
+    [VM][MZ1P17][MZ] Fix FTBFS.
+
+commit 1320e3e265bbaf1c9940346ff3ce9d6e13731028
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jun 18 05:50:14 2018 +0900
+
+    [VM][FM7][OPN][WIP] Fixing weird OPN sound after loading (pre-saved) state.WIP.
+
+commit 1d5d1bda4bdad413c9ef040852d9eee4fb2cea63
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jun 18 02:56:19 2018 +0900
+
+    [BUILD][CMAKE][FM7] Not build IO::, this is not used.
+
+commit 351996e2efcf0532fba38600e870e538a2cbdcf6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jun 18 02:54:42 2018 +0900
+
+    [VM][STATE] Apply new state framework to some devices a lot (excepts some devices and event, ix86).
+
+commit f1dde8ed148c5e383c46ca8605e916b2150bc9b5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jun 17 16:53:21 2018 +0900
+
+    [Qt][WIN32] Fix linkage error at MinGW.
+
+commit 797ee9c1ac784fc06e483bf0923120b91b658e39
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jun 15 03:53:02 2018 +0900
+
+    [FMGEN][PSG] Fix weird noise generation for SSG/PSG.
+
+commit dcd744c4f8f7c891a4b09e0facd99aed7ce8b69e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jun 15 03:52:22 2018 +0900
+
+    [Qt][OpenGL] .
+
+commit 0e3df44ac26a5b151bc0abcfe22e8a44448b783a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jun 15 03:51:31 2018 +0900
+
+    [Qt][Draw][OpenGL] More fix against buffer overflow.
+
+commit 16a07823307a70e541f5a87c3a6cd3c8719c1430
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jun 15 03:43:39 2018 +0900
+
+    [Qt][OpenGL] Fix buffer overflow when changing VM's screen size.
+
+commit cd53338269ad26a7e8f95562a86a587b4d316d26
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jun 15 03:41:29 2018 +0900
+
+    [BUILD][CMAKE] Add "USE_SANITIZER" and "USE_STACK_PROTECTOR" entries to buildvars_foo.dat[.tmpl] to detect wrong usage of variables / protect from stack overflow.
+
+commit d54f358a6032863d081f527269a26511184d861f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 14 21:56:53 2018 +0900
+
+    [VM][I386] Remove compiler warning conversion float64 (a.k.a UINT64) <-> double. This still not regard when sizeof(double) != sizeof(UINT64).
+
+commit 0b03b3f6ae242a42e35f94ef98061e101e6cc8c2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 14 21:55:48 2018 +0900
+
+    [VM] Remove compiler warinings.
+    [General] Update SOVERSION.
+    [COMMON] Fix buffer overflow around strncpy().
+
+commit 35816be8ae25e3a3c59fdee6f32d501ec3b3f51d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 14 21:52:19 2018 +0900
+
+    [UI][Qt] Remove using_flags->get_config_ptr()->foo. Try to fix issue of http://matsuri.5ch.net/test/read.cgi/i4004/1526806551/38 .
+
+commit 2dcbffb98b6307e29243ba95fb7259e0f32ccf95
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 13 14:08:57 2018 +0900
+
+    [Build] Fix FTBFS with Ubuntu Xenial.Use -std=gnu++11 for gcc-5.
+
+commit 3e5263475799c0cedf2467465f2451c1cda8e39e
+Merge: 5fcf309f 30e92a5f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 13 13:19:09 2018 +0900
+
+    Merge branch 'master' of github.com:Artanejp/common_source_project-fm7
+
+commit 5fcf309fb22a69e5359f915aa76464fb86764e18
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 13 13:18:57 2018 +0900
+
+    .
+
+commit 30e92a5fa2e77b862bc91e4099f6d19ae776b506
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 13 05:06:06 2018 +0900
+
+    [VM][FM7][SOUND][WIP] Fixing wrong frequency after load_state with RELICS.This is WIP.
+
+commit 3893390679bde5991dda65c98940d2ac6d9c5386
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 13 05:05:35 2018 +0900
+
+    [VM][DEVICE][STATE] Apply new state framework to some devices.
+
+commit 406e2a125c1d0a2dbd475b679047d7a1226944e9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 13 05:05:13 2018 +0900
+
+    [OSD][Qt][SOUND] Remove unused semaphore.
+
+commit 242a0173d2d16df138cd0490404e5cd3106c3656
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 13 05:04:41 2018 +0900
+
+    [STATE] Fix FTBFS.
+    [STATE] Fix wrong sequence.
+
+commit 400358935e9a6459842b9c517337eea55847560f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 12 22:36:51 2018 +0900
+
+    [STATE] Fix FTBFS.
+    [STATE] Add save_state_helper()/load_state_helper() to cur_time_t:: and FIFO:: .
+
+commit 148b1ba8b7d51fdba9f9bce6b8545ddb0ae5831a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 7 17:41:22 2018 +0900
+
+    [STATE][VM][FM7] .
+
+commit 223210545f8ea301ad8df247a6a1c4631244697f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 7 17:40:16 2018 +0900
+
+    [VM][STATE] Apply new state framework to some devices.
+
+commit 1ee61f2dc0ea1d470da482027ad227c2c5d5725a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 7 17:39:26 2018 +0900
+
+    [VM][STATESUB] Add var-array assume allocated by BYTES, not units.
+
+commit 55944ca38b04f787ef57d0f07b242be638cac115
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 7 04:07:04 2018 +0900
+
+    [BUILD][LINJNUX][GCC] Update parameters.
+
+commit 99390c168067efca2cfedb63f182a924d0347cfe
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 7 04:06:20 2018 +0900
+
+    [STATE] Fix weird save/load at vararray with some situation.
+
+commit 7cd6743434ee2e3bcce89777e0151fda3e9fb03d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 7 04:05:40 2018 +0900
+
+    [VM][STATE] Apply new state framework to some devices.
+
+commit 4959af6b652c30e6fcf87b3cc5674d755a674920
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 6 17:09:41 2018 +0900
+
+    [VM][BABBAGE2ND] .
+
+commit 483914f33e2c78103b9bfc3f63d87040ec9e4669
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 6 17:08:27 2018 +0900
+
+    [VM][BMJR][PASOPIA7][PV1000][PV2000][X07][YALKY][YS6464A] Apply new state framework to VM:: .
+
+commit 97eee77cb1d3a8953f6922562d0edb9ab63c492c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 6 17:07:08 2018 +0900
+
+    [STATESUB] Fix don't calculate CRC with empty string.
+
+commit c9232cee76e3df909f68a196d7f27755dc9eba90
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 6 17:06:32 2018 +0900
+
+    [VM][MB8877][DISK] Apply new state framework to DISK:: and MB8877:: .
+
+commit 1c4fbf7d02ad2d838c9b5f386e9e4890d3ee86ff
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 6 17:05:11 2018 +0900
+
+    [VM][FM7][STATE] Apply new state framework to all components.
+
+commit 77fc099fd20eaecbe5576769fe4a331328be43a5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 2 12:09:33 2018 +0900
+
+    [VM][FAMILYBASIC][STATE] Fix FTBFS.
+
+commit 46d9a4691f5d227c3fb775e8616ca04baee9ff6c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 2 11:31:19 2018 +0900
+
+    [LIBCSP_COMMONVM] Update SOVERSION.
+
+commit e30a750f991ff84f36b90fea23e007a0584eb093
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 2 11:30:22 2018 +0900
+
+    [VM][STATE] Apply statesub.h to VM::foo_state() with remained VMs.
+
+commit fcac37775c039817c9bd1f0cf048502808cbd114
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jun 1 23:17:12 2018 +0900
+
+    [VM][STATE][WIP] Apply csp_state_utils:: to some VMs.This is WIP.
+
+commit 4b5a754387b33644cd5f21f73c466e7b7b520a8d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 31 07:04:38 2018 +0900
+
+    [STATESUB] Improve var-array save/load.
+
+commit 0f9c6e7ce56a9f67b65340df2fc8058524a77b79
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 31 06:34:52 2018 +0900
+
+    [VM][FM7][JCOMMCARD][STATE] Apply to new state saving/loading framework.
+
+commit e3782e259b70fd96b83e4fee51955f69c2d9b5ef
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 31 04:37:04 2018 +0900
+
+    [VM][MSX][STATE] Add new state feature.
+    [VM][MZ700][STATE] Add new state feature.
+    [VM][MZ2500][STATE] Add new state feature.
+    [VM][MZ80K][STATE] Add new state feature.
+    [VM][PCENGINE][STATE] Add new state feature.
+
+commit a93b99746633582f6d0ae69acf20b5031c439005
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 31 04:06:44 2018 +0900
+
+    [VM][SN76489AN] Fix TYPO on load_state().
+
+commit 82b318792b1fbfa8dc377c6d7b49555276a2367c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 31 03:23:59 2018 +0900
+
+    [VM][BABBAGE2ND] Fix crash when save / load state.
+
+commit 5acc6ad9e3f74b14ad92c67edf712926696858cd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 31 02:43:40 2018 +0900
+
+    [OSD][SOUND][Qt] Fix hang-up with resetting at some situations.
+
+commit 7dc2a502f39d190b259177827f42c129e497b8ca
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 31 02:42:28 2018 +0900
+
+    [UI][EMU_THREAD][Qt] Update functions.
+    [LOGGER] Update logger entries.
+
+commit e75fa7f5dc5e881500b30cba136483bd10f303b6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 31 02:41:09 2018 +0900
+
+    [VM][STATE] Update state feature with some VMs, some devices.
+
+commit 3affd46f7a078b0a74b193adb0126cb7f9cc270f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 31 02:39:07 2018 +0900
+
+    [VM][STATE] Improve state helper.
+
+commit 024a5ebd24cb67e31275e2cbe1f79f793a24ea83
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 29 04:47:07 2018 +0900
+
+    [VM][Qt] Fix FTBFSs.
+
+commit 14a4f35de0faaea7879ac842e1fd7a5f852a0e6e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 29 04:45:57 2018 +0900
+
+    [VM][Qt][FM16BETA] Fix FTBFS. Class name MAIN:: may not use for MinGW + SDL2.
+
+commit 9df70368f7a7c57b9f2933e3212a76daab336964
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 28 22:28:46 2018 +0900
+
+    [VM][X1] Copy VRAMs to shadow data at starting a frame.Reduce flickering a lot.
+
+commit 38236e3a4f584c742ff24d919eba3171aaeff8e9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 28 20:31:49 2018 +0900
+
+    [VM][UI][Qt] Fix FTBFSs.
+
+commit 57b06d33c0ac60278ecec7409a8909f13dd32345
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 28 18:22:42 2018 +0900
+
+    [UI][Qt] Update UIs, related by src/rc/foo.rc .
+
+commit 1a85bcdbc7fc979d068b841d3e6376ff58e2a49b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 28 14:37:04 2018 +0900
+
+    [DOC] Update ToDo (Still updated only Japanese doc.).
+
+commit 1b9be9167de66d67920176732d9de14253b057e5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 28 03:28:55 2018 +0900
+
+    [UI][Qt] (Maybe, maybe) Fix FTBFSs.
+
+commit 5b195572032f2fb9be47722dff19a5610643672d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 27 23:43:57 2018 +0900
+
+    [UI][Qt] Update UI.
+
+commit 744ff4c4e59fb11720a1446699fb8536a0b6626e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 27 15:12:24 2018 +0900
+
+    [UI][Qt] Apply to upstream's updating definitions.Still not implement around HDDs.
+
+commit abddc0265f0e921c97840ed34012716e84e14e60
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 27 14:16:54 2018 +0900
+
+    [General] Merge upstream 2018-05-24. Still not test to build, will test.
+
+commit aafd263a9a6c5553050166021a1b2631dd89d58f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 21 15:57:01 2018 +0900
+
+    [VM][FM7] Fix FTBFS with pre-compiled headers.
+
+commit 0ee1e889921ea0aa5e6d0429e35c360b7aaad0d8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 20 22:03:58 2018 +0900
+
+    [VM][STATE] Remove typeid() from state data, this seems to be buggy.
+    [VM][COMMON_VM] Update soversion.
+
+commit 84fc06b957823e71f7db1c4834c029948eb1fc92
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 20 21:34:51 2018 +0900
+
+    [EMU] Enable to Gzip'ed state saving / loading.
+
+commit d8feeedfa40581eed28a205917fece2c4235f5a4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 20 18:16:42 2018 +0900
+
+    [VM][FM7] Fix FTBFS.
+    [VM][FM7] STATE: Move some devices to new framework.
+
+commit 265c377b59f55a60d237a244abb9c1c549d4b86a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 20 18:16:19 2018 +0900
+
+    [VM][STATE] Delete duplicate logics.
+
+commit 4048c441545c1520f77c6d45f69346fb80715994
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 20 04:43:21 2018 +0900
+
+    [VM][STATE_SAVE] Fix bug of loading [int64_t|uint64_t] .
+    [VM][STATE_SAVE] Add float, double and long double.
+    [VM][MC6809][STATE_SAVE] Use statesub.h instead of old state save.
+
+commit c41ec8e642aa951560154291171f78dcd5d52db4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 20 02:27:06 2018 +0900
+
+    [VM] Add save state utilities.See src/statesub.h and src/vm/fm7/fm7_mainio.[cpp|h] .
+    [VM] Add CRC32 protection for saved state.
+
 commit a5e741fafe9c2adffb230bafcbb4daadf9012567
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Wed May 16 18:36:42 2018 +0900

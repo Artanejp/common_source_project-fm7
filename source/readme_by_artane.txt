@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                         May 16, 2018
+                                         July 13, 2018
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -12,7 +12,7 @@
    
    ソースコード：
    
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20180516
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20180713
 
    追加情報:
    
@@ -158,49 +158,95 @@ Changes:
 
 * 前の変更点をお読みになる場合には、ChangeLogと000_gitlog.txtをお読み下さい。
 
-* SNAPSHOT May 16, 2018
-  * Upstream 2018-05-06 .
-  * [EMU] Remove unneeded functions for only Qt version.
-  * [Qt/OpenGL] Add OpenGL ES2 renderer.Still not display.
-  * [Qt/Draw] Use Semaphore instead of mSecs waiting.Expect to improve real-time-drawing on multi thread.
-  * [Qt/AVIO] Fix FTBFS with FFMPEG 4.0.Will be needed to apply to new API.Will fix.
-  * [Qt/FM8] Fix number of bubble-casette: Start from 0, not 1.
-  * [Qt/COMMAND_LINE] Add --opengl , --envvar and --dump-envvar .
-  * [Qt/OSD] Fix around moving mouse pointer.
-  * [Qt/UI] Not reset slot number when opening disk.
-  * [Qt/UI] Fix around mouse problems.
-  * [Build/CROSS] Add cross-compiling scripts and patch(es) to build Qt5.10.
-  * [VM/MB8877] Keep command phase even changing (or removing) disk.Fix booting RELICS for FM-7 with single FDD drive.
-  * [VM/MB8877] Reaset track (per drive) on reset.Fix booting RELICS for FM-7 with two FDDs.
-  * [VM/MB8877] Check head loading READ/WRITE command.
-  * [Win32] Built with Qt 5.10 and Angle-project's OpenGL ES2 renderer. 
-  * Built with cf31c26aab576798a073e5d523bfc21b2091fd76 or later.
+* SNAPSHOT July 13, 2018
+  * Upstream 2018-05-24 .
+  * [STATE] Apply new state save/load framework.See doc/a_new_state_save_load_framework.ja.txt (still only written in Japanese).
+  * [STATE] Use CRC32 protection to data.
+  * [STATE] Add header per devices.
+  * [EMU/STATE] Enable to Gzip'ed state saving / loading.
+  * [CONFIG/Bug] I forgot change top default of renderer. X-)
+  * [VM/X1] Copy VRAMs to shadow data at starting a frame.Reduce flickering a lot.
+  * [VM/PC9801] DISPLAY: Keep memory switch settings (saved to MEMSW.BIN).
+  * [VM/I386] Remove compiler warning conversion float64 (a.k.a UINT64) <-> double.
+              This still not regard when sizeof(double) != sizeof(UINT64).
+  * [VM/FM7][SOUND/BEEP] Set samplerate to 6000Hz.Simplize logic.
+  * [VM/DATAREC] Fix crash at removing CMT when not stopping to play.
+  * [VM/DATAREC] Fix crash with MZT data.
+  * [VM/NOISE] Adjust endian of WAV data.
+  * [VM/NOISE] Fix infinity loop with corruptWAV data.
+  * [VM/MC6809] Collect CPU statistics always, printing is controlled by menu immediately.
+  * [VM/Z80] Add collecting cpu status feature for Z80.
+  * [OSD/SOUND] Qt: Fix hang-up with resetting at some situations.
+                Try to fix issue of http://matsuri.5ch.net/test/read.cgi/i4004/1526806551/38 .
+  * [COMMON] Fix buffer overflow around strncpy().
+  * [COMMON] Add pair16_t and pair64_t.
+  * [COMMON] Add immediate value functions for pair_t.
+  * [COMMON][VM/Qt] Add common wav-loading / saving helper functions to common.cpp .
+  * [COMMON] Update min() and max().
+  * [FILEIO] Add FILEIO::Fflush().
+  * [FMGEN/PSG] Fix weird noise generation for SSG/PSG.
+  * [FMGEN/OPNBASE] Force to calculate frequency factors around prescaler when OPNBase::LoadState().
+                    Fix wrong sound after loding state.
+  * [FMGEN/OPNA] Fix infinity loop at loading rhythm WAVs.
+  * [FMGEN/OPNA] Adjust endian of WAV data (maybe).
+  * [Qt/OpenGL] Fix buffer overflow when changing VM's screen size.
+  * [Qt/Bug] Remove using_flags->get_config_ptr()->foo.
+  * [Qt/MAIN] LOGGER: Fix crash on exit.
+  * [Qt/LOGGER] CSP_Logger makes daughter of QObject.Add messaging slot entry.
+  * [Qt/LOGGER] Use QVector insterad of QQueue to reduce CPU usage.
+  * [Qt/LOGGER] Bug: Logging all devices.
+  * [Qt/OpenGLES] TRY: Reduce power consumption.
+  * [Qt/OpenGL] Prepare to use OpenGL 4.x (CORE).
+  * [Qt/OpenGLES] Prepare to use OpenGL ES 3.1.
+  * [Qt/OpenGLES] Delete condition branch in shader, use #ifdef and const values.
+  * [Qt/OpenGL] Re-Add screen rotate.
+  * [BUILD/CMAKE] Add "USE_SANITIZER" and "USE_STACK_PROTECTOR" entries to buildvars_foo.dat[.tmpl]
+                  to detect wrong usage of variables / protect from stack overflow.
+  * [BUILD/CMAKE] FM7: Not build IO::, this is not used.
+  * [Qt/WIN32] Move config and logger to inner pointer, now, libCSPavio is separated to single DLL.
+  * [Qt/WIN32] Move CSP_Logger to libCSPemu_utils.[foo.so|dll] from libCSPgui.[foo.so|dll] .
+  * [WIN32] Update cross build script.
+  * Built with 9275209c6bed03ccd06716a486e29451c446751d or later.
 
--- May 16, 2018 18:09:00 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- July 13, 2018 13:09:15 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 本家の変更:
 * 前の変更点をお読みになる場合には、history.txtをお読み下さい。
 
-5/6/2018
+5/24/2018
 
-[COMMON] add is_absolute_path() and create_absolute_path() functions
-[COMMON/FILEIO] add Gzopen() function to read/write compressed file by gzip
+[COMMON] import Mr.Artane.'s fixes (Commits on May 10, 2018)
+[COMMON/FIFO] import Mr.Artane.'s fixes (Commits on May 10, 2018)
+[EMU] support set_vm_screen_lines() (thanks Mr.Artane.)
+[EMU] fix interfaces for bubble cassette
+[EMU] add interfaces for hard disk
+[WINMAIN] add interfaces for hard disk
 
-[EMU] support to save/load compressed state file
-[EMU/DEBUGGER] support to switch the target cpu/device
+[VM/DEVICE] support read_debug_reg()
+[VM/DISK] import Mr.Artane.'s fixes (Commits on May 10, 2018)
+[VM/HARDDISK] support hard disk handler
+[VM/I286] improve i286 core based on MAME 0.197
+[VM/I286] support read_debug_reg()
+[VM/I386] support read_debug_reg()
+[VM/I8237] fix verify command
+[VM/I8237] support to read bank register by read_signal()
+[VM/MC6809] import Mr.Artane.'s fixes (Commits on May 10, 2018)
+[VM/SCSI_DEV] support SASI specify command
+[VM/SCSI_HDD] improve to use hard disk handler
+[VM/SCSI_HOST] support to read ack signal
 
-[VM/I386] improve i386 core based on MAME 0.197
-[VM/MB8877] improve for debugger
-[VM/TMS9918] improve for debugger
-[VM/UPD765A] improve for debugger
-[VM/UPD765A] fix read/write commands to check density (thanks PC8801MA��)
-[VM/UPD765A] fix read diagnostics status for unformat/density mismatch case
-
-[PC8801/PC88] fix underline/upperline attributes
-[PC98XL] support NEC PC-98XL
-[PC9801/MEMBUS] support NEC EMS
-[PC9801/MEMBUS] support SASI/SCSI/IDE BIOS (only BIOS, not drives)
-[X1/KEYBOAD] improve phantom keys (thanks Mr.Sato)
+[BUBCOM80] support Systems Formulate BUBCOM80
+[FM77AV] import Mr.Artane.'s fixes (Commits on May 10, 2018)
+[FMR30] support to change hard disk image
+[FMR50] support to change hard disk image
+[FMR50/BIOS] improve to use hard disk handler
+[MZ2500] support to select floppy drive type 2DD/2D
+[MZ2500] support to change hard disk image
+[MZ2500/MZ1E30] reimplent SASI I/F with general SCSI host/hard disk device
+[PC9801/CPUREG] support NMI enable/disable
+[PC9801/MEMBUS] improve for 24bit/32bit address
+[PC9801/SASI] support SASI I/F and hard disk drives
+[X1TURBO/SASI] support SASI I/F and hard disk drives
 
 -----
 
