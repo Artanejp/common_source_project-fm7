@@ -155,8 +155,8 @@ cp ./libCSPosd/build-win32/qt/osd/*.dll ./bin-win32/
 cp ./libCSPosd/build-win32/qt/osd/*.a   ./bin-win32/
 
 build_dll libCSPavio
-#cp ./libCSPavio/build-win32/qt/avio/*.h   ./bin-win32/
-#cp ./libCSPavio/build-win32/qt/avio/*.dll ./bin-win32/
+cp ./libCSPavio/build-win32/qt/avio/*.h   ./bin-win32/
+cp ./libCSPavio/build-win32/qt/avio/*.dll ./bin-win32/
 cp ./libCSPavio/build-win32/qt/avio/*.a   ./bin-win32/
 
 
