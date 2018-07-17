@@ -15,7 +15,11 @@ out vec4 opixel;
 varying mediump vec2 v_texcoord;
 #endif
 
+#if __VERSION__ >= 300
 uniform sampler2D a_texture;
+#else
+uniform sampler2D a_texture;
+#endif
 
 void main ()
 {
@@ -24,9 +28,9 @@ void main ()
 #else
 	vec4 pixel = texture2D(a_texture, v_texcoord);
 #endif	   
-#ifdef HOST_ENDIAN_IS_LITTLE
-	pixel.rgb = pixel.bgr;
-#endif
+//#ifdef HOST_ENDIAN_IS_LITTLE
+//	pixel.rgb = pixel.bgr;
+//#endif
 #if __VERSION__ >= 300
 	opixel = pixel;
 #else

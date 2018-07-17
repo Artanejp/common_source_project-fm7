@@ -237,7 +237,7 @@ void *MOVIE_SAVER::get_video_frame(void)
 		}
 		if(ost->tmp_frame != NULL) {
 			av_frame_free(&ost->tmp_frame);
-			ost->tmp_frame = (AVFrame *)alloc_picture(AV_PIX_FMT_BGRA, _width, _height);
+			ost->tmp_frame = (AVFrame *)alloc_picture(AV_PIX_FMT_RGBA, _width, _height);
 			if (ost->tmp_frame == NULL) {
 				p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not re-allocate video frame\n");
 				return (void *)NULL;
@@ -250,7 +250,7 @@ void *MOVIE_SAVER::get_video_frame(void)
 	
 	if (!ost->sws_ctx) {
 		ost->sws_ctx = sws_getContext(ost->tmp_frame->width, ost->tmp_frame->height,
-									  AV_PIX_FMT_BGRA,
+									  AV_PIX_FMT_RGBA,
 									  c->width, c->height,
 									  c->pix_fmt,
 									  SCALE_FLAGS, NULL, NULL, NULL);

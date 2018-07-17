@@ -10,12 +10,9 @@ varying vec2 v_texcoord;
 uniform mat2 rotate_mat;
 void main ()
 {
-	vec4 xyzw = vec4(vertex, 1.0);
-	xyzw.xy = rotate_mat * xyzw.xy;
-#if 0
-	xyzw = mat4(0.0, -1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0) * xyzw;
-#endif		   
-	gl_Position = xyzw;
+	vec2 xy = vertex.xy;
+	xy = rotate_mat * xy;
+	gl_Position = vec4(xy, vertex.z, 1.0);
     v_texcoord = texcoord;
 }
 

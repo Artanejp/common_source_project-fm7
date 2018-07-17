@@ -29,9 +29,9 @@ void main ()
 	vec4 pixel;
 	
 	pixel_r_1 = texture2D(a_texture, v_texcoord);
-#ifdef HOST_ENDIAN_IS_LITTLE
-	pixel_r_1.rgb = pixel_r_1.bgr;
-#endif
+//#ifdef HOST_ENDIAN_IS_LITTLE
+//	pixel_r_1.rgb = pixel_r_1.bgr;
+//#endif
 	bvec3 _match;
 	_match = equal(pixel_r_1.rgb, chromakey.rgb);
 	pixel = (all(_match) == true) ? vec4(0.0, 0.0, 0.0, 0.0) : vec4(pixel_r_1.rgb, 1.0);

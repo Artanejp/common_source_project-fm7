@@ -1111,7 +1111,7 @@ void GLDraw_2_0::uploadMainTexture(QImage *p, bool use_chromakey)
 		extfunc_2->glTexSubImage2D(GL_TEXTURE_2D, 0,
 								 0, 0,
 								 p->width(), p->height(),
-								 GL_BGRA, GL_UNSIGNED_BYTE, p->constBits());
+								 GL_RGBA, GL_UNSIGNED_BYTE, p->constBits());
 		extfunc_2->glBindTexture(GL_TEXTURE_2D, 0);
 	}
 	crt_flag = true;

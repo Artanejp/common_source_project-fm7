@@ -125,119 +125,6 @@ bool OSD_BASE::connect_capture_dev(int index, bool pin)
 		//release_video();
 		cur_capture_dev_index = -1;
 	}
-#if 0	
-	AM_MEDIA_TYPE mt;
-	ZeroMemory(&mt, sizeof(AM_MEDIA_TYPE));
-	mt.majortype = MEDIATYPE_Video;
-#if defined(_RGB555)
-	mt.subtype = MEDIASUBTYPE_RGB555;
-#elif defined(_RGB565)
-	mt.subtype = MEDIASUBTYPE_RGB565;
-#elif defined(_RGB888)
-	mt.subtype = MEDIASUBTYPE_RGB32;
-#endif
-	mt.formattype = FORMAT_VideoInfo;
-	
-	if(FAILED(CoCreateInstance(CLSID_FilterGraph, NULL, CLSCTX_INPROC, IID_IGraphBuilder, (void **)&pGraphBuilder))) {
-		return false;
-	}
-	
-	ICreateDevEnum *pDevEnum = NULL;
-	IEnumMoniker *pClassEnum = NULL;
-	
-	if(SUCCEEDED(CoCreateInstance(CLSID_SystemDeviceEnum, NULL, CLSCTX_INPROC, IID_ICreateDevEnum, (void **)&pDevEnum))) {
-		if(SUCCEEDED(pDevEnum->CreateClassEnumerator(CLSID_VideoInputDeviceCategory, &pClassEnum, 0)) && pClassEnum != NULL) {
-			for(int i = 0; i <= index; i++) {
-				IMoniker *pMoniker = NULL;
-				ULONG cFetched;
-				
-				if(SUCCEEDED(pClassEnum->Next(1, &pMoniker, &cFetched)) && pMoniker != NULL) {
-					if(i == index) {
-						pMoniker->BindToObject(0, 0, IID_IBaseFilter, (void **)&pCaptureBaseFilter);
-					}
-					SAFE_RELEASE(pMoniker);
-				} else {
-					break;
-				}
-			}
-		}
-	}
-	SAFE_RELEASE(pClassEnum);
-	SAFE_RELEASE(pDevEnum);
-	
-	if(&pCaptureBaseFilter == NULL) {
-		return false;
-	}
-	if(FAILED(pGraphBuilder->AddFilter(pCaptureBaseFilter, L"Video Capture"))) {
-		return false;
-	}
-	if(FAILED(CoCreateInstance(CLSID_CaptureGraphBuilder2, NULL, CLSCTX_INPROC, IID_ICaptureGraphBuilder2, (void **)&pCaptureGraphBuilder2))) {
-		return false;
-	}
-	if(FAILED(pCaptureGraphBuilder2->SetFiltergraph(pGraphBuilder))) {
-		return false;
-	}
-	
-	IAMStreamConfig *pSC = NULL;
-	ISpecifyPropertyPages *pSpec = NULL;
-	
-	if(FAILED(pCaptureGraphBuilder2->FindInterface(&PIN_CATEGORY_CAPTURE, &MEDIATYPE_Interleaved, pCaptureBaseFilter, IID_IAMStreamConfig, (void **)&pSC))) {
-		if(FAILED(pCaptureGraphBuilder2->FindInterface(&PIN_CATEGORY_CAPTURE, &MEDIATYPE_Video, pCaptureBaseFilter, IID_IAMStreamConfig, (void **)&pSC))) {
-			return false;
-		}
-	}
-	if(SUCCEEDED(pSC->QueryInterface(IID_ISpecifyPropertyPages, (void **)&pSpec))) {
-		CAUUID cauuid;
-		pSpec->GetPages(&cauuid);
-		if(pin) {
-			OleCreatePropertyFrame(NULL, 30, 30, NULL, 1, (IUnknown **)&pSC, cauuid.cElems, (GUID *)cauuid.pElems, 0, 0, NULL);
-			CoTaskMemFree(cauuid.pElems);
-		}
-		SAFE_RELEASE(pSpec);
-	}
-	SAFE_RELEASE(pSC);
-	
-	if(FAILED(CoCreateInstance(CLSID_SampleGrabber, NULL, CLSCTX_INPROC, IID_IBaseFilter, (void **)&pVideoBaseFilter))) {
-		return false;
-	}
-	if(FAILED(pVideoBaseFilter->QueryInterface(IID_ISampleGrabber, (void **)&pVideoSampleGrabber))) {
-		return false;
-	}
-	if(FAILED(pVideoSampleGrabber->SetMediaType(&mt))) {
-		return false;
-	}
-	if(FAILED(pGraphBuilder->AddFilter(pVideoBaseFilter, L"Video Sample Grabber"))) {
-		return false;
-	}
-	if(FAILED(pGraphBuilder->Connect(get_pin(pCaptureBaseFilter, PINDIR_OUTPUT), get_pin(pVideoBaseFilter, PINDIR_INPUT)))) {
-		return false;
-	}
-	if(FAILED(pVideoSampleGrabber->SetBufferSamples(TRUE))) {
-		return false;
-	}
-	if(FAILED(pVideoSampleGrabber->SetOneShot(FALSE))) {
-		return false;
-	}
-	if(FAILED(pGraphBuilder->QueryInterface(IID_IMediaControl, (void **)&pMediaControl))) {
-		return false;
-	}
-	if(FAILED(pGraphBuilder->QueryInterface(IID_IBasicAudio, (void **)&pBasicAudio))) {
-		//return false;
-	}
-	if(FAILED(pMediaControl->Run())) {
-		return false;
-	}
-	
-	// get the capture size
-	pVideoSampleGrabber->GetConnectedMediaType(&mt);
-	VIDEOINFOHEADER *pVideoHeader = (VIDEOINFOHEADER*)mt.pbFormat;
-	direct_show_width = pVideoHeader->bmiHeader.biWidth;
-	direct_show_height = pVideoHeader->bmiHeader.biHeight;
-	
-	if(dshow_screen_buffer.width != direct_show_width || dshow_screen_buffer.height != direct_show_height) {
-		initialize_screen_buffer(&dshow_screen_buffer, direct_show_width, direct_show_height, COLORONCOLOR);
-	}
-#endif	
 	cur_capture_dev_index = index;
 	return true;
 }
@@ -257,18 +144,6 @@ void OSD_BASE::close_capture_dev()
 
 void OSD_BASE::show_capture_dev_filter()
 {
-#if 0	
-	if(pCaptureBaseFilter != NULL) {
-		ISpecifyPropertyPages *pSpec = NULL;
-		CAUUID cauuid;
-		if(SUCCEEDED(pCaptureBaseFilter->QueryInterface(IID_ISpecifyPropertyPages, (void **)&pSpec))) {
-			pSpec->GetPages(&cauuid);
-			OleCreatePropertyFrame(NULL, 30, 30, NULL, 1, (IUnknown **)&pCaptureBaseFilter, cauuid.cElems, (GUID *)cauuid.pElems, 0, 0, NULL);
-			CoTaskMemFree(cauuid.pElems);
-			SAFE_RELEASE(pSpec);
-		}
-	}
-#endif	
 }
 
 void OSD_BASE::show_capture_dev_pin()

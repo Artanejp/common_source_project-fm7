@@ -770,7 +770,7 @@ void GLDraw_3_0::uploadMainTexture(QImage *p, bool use_chromakey)
 								 //screen_texture_width * 2,
 								 //screen_texture_height * 2,
 								 p->width(), p->height(),
-								 GL_BGRA, GL_UNSIGNED_BYTE, p->constBits());
+								 GL_RGBA, GL_UNSIGNED_BYTE, p->constBits());
 		extfunc->glBindTexture(GL_TEXTURE_2D, 0);
 	}
 	if(using_flags->is_support_tv_render() && (p_config->rendering_type == CONFIG_RENDER_TYPE_TV)) {

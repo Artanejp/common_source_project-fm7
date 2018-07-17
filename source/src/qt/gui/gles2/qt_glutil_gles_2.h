@@ -11,6 +11,7 @@
 #define _QT_COMMON_GLUTIL_ES_2_H
 
 #include <QString>
+
 #include "../gl2/qt_glutil_gl2_0.h"
 
 QT_BEGIN_NAMESPACE
@@ -20,6 +21,7 @@ class QOpenGLFunctions;
 class QOpenGLBuffer;
 class QOpenGLVertexArrayObject;
 class QOpenGLShaderProgram;
+class QOpenGLPixelTransferOptions;
 
 class DLL_PREFIX GLDraw_ES_2 : public GLDraw_2_0
 {
@@ -111,6 +113,7 @@ protected:
 
 	GLuint uTmpTextureID;
 	bool swap_byteorder;
+	QOpenGLPixelTransferOptions *TextureTransferParam;
 	
 	virtual void setNormalVAO(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
 							  QOpenGLBuffer *bp, VertexTexCoord_t *tp, int size = 4);
@@ -165,6 +168,7 @@ protected:
 	virtual void set_led_vertex(int bit);
 	virtual void set_osd_vertex(int bit);
 	virtual void initBitmapVertex(void);
+	virtual QOpenGLTexture *createMainTexture(QImage *img);
 
 public:
 	GLDraw_ES_2(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU *emu = 0);

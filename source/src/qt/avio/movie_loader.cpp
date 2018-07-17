@@ -111,7 +111,7 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 				//video_mutex->lock();
 				for(int i = 0; i < 4; i++) av_free(video_dst_data[i]);
 				ret = av_image_alloc(video_dst_data, video_dst_linesize,
-									 dst_width, dst_height, AV_PIX_FMT_BGRA, 1);
+									 dst_width, dst_height, AV_PIX_FMT_RGBA, 1);
 				
 				if(ret < 0) {
 					p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "MOVIE_LOADER: Could not re-allocate output buffer\n");
@@ -141,7 +141,7 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 				sws_context = sws_getContext(frame->width, frame->height,
 											 (enum AVPixelFormat) frame->format,
 											 dst_width, dst_height,
-											 AV_PIX_FMT_BGRA,
+											 AV_PIX_FMT_RGBA,
 											 SCALE_FLAGS, NULL, NULL, NULL);
 				//p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_LOADER, "Src frame=%dx%d Allocate frame: %dx%d", frame->width, frame->height, dst_width, dst_height);
 
@@ -397,7 +397,7 @@ bool MOVIE_LOADER::open(QString filename)
 	// Re-allocate buffer;
 	video_mutex->lock();
 	ret = av_image_alloc(video_dst_data, video_dst_linesize,
-                             dst_width, dst_height, AV_PIX_FMT_BGRA, 1);
+                             dst_width, dst_height, AV_PIX_FMT_RGBA, 1);
 	old_dst_width = dst_width;
 	old_dst_height = dst_height;
 	video_mutex->unlock();

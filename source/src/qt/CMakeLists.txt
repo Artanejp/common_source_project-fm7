@@ -1,5 +1,5 @@
 message("* qt/osd")
-SET(THIS_LIB_VERSION 2.12.3) 
+SET(THIS_LIB_VERSION 2.13.0)
 
 set(s_qt_osd_headers
 	osd_base.h
@@ -14,7 +14,7 @@ endif()
 
 SET(s_qt_osd_srcs
 #	  pch.cpp
-	  osd_base.cpp
+      osd_base.cpp
 	  osd_screen.cpp
 	  osd_console.cpp
 	  osd_input.cpp
