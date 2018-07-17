@@ -106,7 +106,7 @@ void Ui_MainWindowBase::do_open_laserdisc(int drv, QString path)
 void Ui_MainWindowBase::retranslateLaserdiscMenu(void)
 {
 	if(using_flags->is_use_laser_disc()) {
-		for(int drv = 0; using_flags->get_max_ld(); drv++) {
+		for(int drv = 0; drv < using_flags->get_max_ld(); drv++) {
 			menu_Laserdisc[drv]->retranslateUi();
 		}
 	}
