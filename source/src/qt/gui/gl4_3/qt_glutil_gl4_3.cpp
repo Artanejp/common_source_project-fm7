@@ -1,18 +1,17 @@
 /*
- * qt_glutil_gles_2.cpp
- * (c) 2018 K.Ohta <whatisthis.sowhat@gmail.com>
+ * qt_glutil_gl3_0.cpp
+ * (c) 2016 K.Ohta <whatisthis.sowhat@gmail.com>
  * License: GPLv2.
- * Renderer with OpenGL ES v2.0 (extend from renderer with OpenGL v2.0).
+ * Renderer with OpenGL v3.0 (extend from renderer with OpenGL v2.0).
  * History:
- * May 05, 2018 : Copy from GL v3.0.
+ * Jan 22, 2016 : Initial.
  */
 
 #include "qt_gldraw.h"
 #include "qt_glpack.h"
-#include "qt_glutil_gles_2.h"
+#include "qt_glutil_gl4_3.h"
 #include "csp_logger.h"
 #include "menu_flags.h"
-#include "common.h"
 
 #include <QOpenGLFunctions>
 #include <QOpenGLTexture>
@@ -37,9 +36,11 @@
 #include <QVector3D>
 #include <QVector4D>
 
+#include <QOpenGLFunctions_4_3_Core>
+
 //extern USING_FLAGS *using_flags;
 
-GLDraw_ES_2::GLDraw_ES_2(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU *emu) : GLDraw_Tmpl(parent, p, logger, emu)
+GLDraw_4_3::GLDraw_4_3(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU *emu) : GLDraw_Tmpl(parent, p, logger, emu)
 {
 	uTmpTextureID = 0;
 	
@@ -71,7 +72,7 @@ GLDraw_ES_2::GLDraw_ES_2(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger
 	TextureTransferParam = new QOpenGLPixelTransferOptions();
 }
 
-GLDraw_ES_2::~GLDraw_ES_2()
+GLDraw_4_3::~GLDraw_4_3()
 {
 
 	if(main_pass  != NULL) delete main_pass;
@@ -101,7 +102,7 @@ GLDraw_ES_2::~GLDraw_ES_2()
 	if(TextureTransferParam != NULL) delete TextureTransferParam;
 }
 
-QOpenGLTexture *GLDraw_ES_2::createMainTexture(QImage *img)
+QOpenGLTexture *GLDraw_4_3::createMainTexture(QImage *img)
 {
 	QOpenGLTexture *tx;
 	if(img == NULL) {
@@ -119,7 +120,7 @@ QOpenGLTexture *GLDraw_ES_2::createMainTexture(QImage *img)
 	tx->setWrapMode(QOpenGLTexture::ClampToEdge);
 	return tx;
 }
-void GLDraw_ES_2::initBitmapVertex(void)
+void GLDraw_4_3::initBitmapVertex(void)
 {
 	if(using_flags->is_use_one_board_computer()) {
 		vertexBitmap[0].x = -1.0f;
@@ -149,7 +150,7 @@ void GLDraw_ES_2::initBitmapVertex(void)
 	}
 }
 
-void GLDraw_ES_2::initFBO(void)
+void GLDraw_4_3::initFBO(void)
 {
 	glHorizGrids = (GLfloat *)malloc(sizeof(float) * (using_flags->get_real_screen_height() + 2) * 6);
 
@@ -167,7 +168,7 @@ void GLDraw_ES_2::initFBO(void)
 	extfunc->glClearColor(0.0, 0.0, 0.0, 1.0);
 }
 
-void GLDraw_ES_2::setNormalVAO(QOpenGLShaderProgram *prg,
+void GLDraw_4_3::setNormalVAO(QOpenGLShaderProgram *prg,
 							   QOpenGLVertexArrayObject *vp,
 							   QOpenGLBuffer *bp,
 							   VertexTexCoord_t *tp,
@@ -196,14 +197,14 @@ void GLDraw_ES_2::setNormalVAO(QOpenGLShaderProgram *prg,
 	prg->enableAttributeArray(texcoord_loc);
 }
 
-void GLDraw_ES_2::initGLObjects()
+void GLDraw_4_3::initGLObjects()
 {
-	extfunc = new QOpenGLFunctions;
+	extfunc = new QOpenGLFunctions_4_3_Core();
 	extfunc->initializeOpenGLFunctions();
 	extfunc->glGetIntegerv(GL_MAX_TEXTURE_SIZE, &texture_max_size);
 }	
 
-void GLDraw_ES_2::initPackedGLObject(GLScreenPack **p,
+void GLDraw_4_3::initPackedGLObject(GLScreenPack **p,
 									int _width, int _height,
 									const QString vertex_shader, const QString fragment_shader,
 									const QString _name)
@@ -240,19 +241,50 @@ void GLDraw_ES_2::initPackedGLObject(GLScreenPack **p,
 					
 
 
-bool GLDraw_ES_2::initGridShaders(const QString vertex_fixed, const QString vertex_rotate, const QString fragment)
+bool GLDraw_4_3::initGridShaders(const QString vertex_fixed, const QString vertex_rotate, const QString fragment)
 {
-	bool f = false;
-	grids_shader = new QOpenGLShaderProgram(p_wid);
-	if(grids_shader != NULL) {
-		f = grids_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, vertex_rotate);
-		f &= grids_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, fragment);
-		f &= grids_shader->link();
+	QOpenGLContext *context = QOpenGLContext::currentContext();
+	QPair<int, int> _version = QOpenGLVersionProfile(context->format()).version();
+	QString versionext = QString::fromUtf8("");
+	if(((_version.first == 4) && (_version.second >= 3)) || (_version.first >= 5)) {
+		versionext = QString::fromUtf8("#version 430 core \n"); // OK?
+	} else if((_version.first == 4)) {
+		versionext = QString::fromUtf8("#version 400 core \n");
+	} else { // Require GLVersion >= 3.2
+		versionext = QString::fromUtf8("#version 150 \n");
 	}
+	bool f = false;
+	
+	grids_shader = new QOpenGLShaderProgram(p_wid);
+	if(grids_shader == NULL) return false;
+	
+	QFile vertex_src(vertex_rotate);
+	if (vertex_src.open(QIODevice::ReadOnly | QIODevice::Text)) {
+		QString srcs = versionext;
+		srcs = srcs + QString::fromUtf8(vertex_src.readAll());
+		f  = grids_shader->addShaderFromSourceCode(QOpenGLShader::Vertex, srcs);
+		vertex_src.close();
+	} else {
+		return false;
+	}
+	
+	QFile fragment_src(fragment);
+	if ((fragment_src.open(QIODevice::ReadOnly | QIODevice::Text)) && (f)){
+		QString _src;
+		QString _ext = QString::fromUtf8("");;
+		_ext = versionext;
+		_src = QString::fromUtf8(fragment_src.readAll());
+		f &= grids_shader->addShaderFromSourceCode(QOpenGLShader::Fragment, _ext + _src);
+		fragment_src.close();
+	} else {
+		return false;
+	}
+
+	f &= grids_shader->link();
 	return f;
 }
 
-bool GLDraw_ES_2::initGridVertexObject(QOpenGLBuffer **vbo, QOpenGLVertexArrayObject **vao, int alloc_size)
+bool GLDraw_4_3::initGridVertexObject(QOpenGLBuffer **vbo, QOpenGLVertexArrayObject **vao, int alloc_size)
 {
 	QOpenGLBuffer *bp = NULL;
 	QOpenGLVertexArrayObject *ap = NULL;
@@ -290,7 +322,7 @@ bool GLDraw_ES_2::initGridVertexObject(QOpenGLBuffer **vbo, QOpenGLVertexArrayOb
 }
 
 
-void GLDraw_ES_2::initLocalGLObjects(void)
+void GLDraw_4_3::initLocalGLObjects(void)
 {
 
 	int _width = using_flags->get_screen_width();
@@ -331,12 +363,12 @@ void GLDraw_ES_2::initLocalGLObjects(void)
 	if(using_flags->is_use_one_board_computer() || (using_flags->get_max_button() > 0)) {
 		initPackedGLObject(&main_pass,
 						   using_flags->get_screen_width() * 2, using_flags->get_screen_height() * 2,
-						   ":/gles2/vertex_shader.glsl" , ":/gles2/chromakey_fragment_shader2.glsl",
+						   ":/gl4_3/vertex_shader.glsl" , ":/gl4_3/chromakey_fragment_shader2.glsl",
 						   "Main Shader");
 	} else {
 		initPackedGLObject(&main_pass,
 						   using_flags->get_screen_width() * 2, using_flags->get_screen_height() * 2,
-						   ":/gles2/vertex_shader.glsl" , ":/gles2/fragment_shader.glsl",
+						   ":/gl4_3/vertex_shader.glsl" , ":/gl4_3/fragment_shader.glsl",
 						   "Main Shader");
 	}		
 	if(main_pass != NULL) {
@@ -347,12 +379,12 @@ void GLDraw_ES_2::initLocalGLObjects(void)
 #if 0
 	initPackedGLObject(&std_pass,
 					   using_flags->get_screen_width(), using_flags->get_screen_height(),
-					   ":/gles2/vertex_shader.glsl" , ":/gles2/chromakey_fragment_shader.glsl",
+					   ":/gl4_3/vertex_shader.glsl" , ":/gl4_3/chromakey_fragment_shader.glsl",
 					   "Standard Shader");
 #endif
 	initPackedGLObject(&led_pass,
 					   10, 10,
-					   ":/gles2/led_vertex_shader.glsl" , ":/gles2/led_fragment_shader.glsl",
+					   ":/gl4_3/led_vertex_shader.glsl" , ":/gl4_3/led_fragment_shader.glsl",
 					   "LED Shader");
 	for(int i = 0; i < 32; i++) {
 		led_pass_vao[i] = new QOpenGLVertexArrayObject;
@@ -371,7 +403,7 @@ void GLDraw_ES_2::initLocalGLObjects(void)
 	}
 	initPackedGLObject(&osd_pass,
 					   48.0, 48.0,
-					   ":/gles2/vertex_shader.glsl" , ":/gles2/icon_fragment_shader.glsl",
+					   ":/gl4_3/vertex_shader.glsl" , ":/gl4_3/icon_fragment_shader.glsl",
 					   "OSD Shader");
 	for(int i = 0; i < 32; i++) {
 		osd_pass_vao[i] = new QOpenGLVertexArrayObject;
@@ -392,11 +424,11 @@ void GLDraw_ES_2::initLocalGLObjects(void)
 
 	initPackedGLObject(&ntsc_pass1,
 					   _width, _height,
-					   ":/gles2/vertex_shader.glsl" , ":/gles2/ntsc_pass1.glsl",
+					   ":/gl4_3/vertex_shader.glsl" , ":/gl4_3/ntsc_pass1.glsl",
 					   "NTSC Shader Pass1");
 	initPackedGLObject(&ntsc_pass2,
 					   _width / 2, _height,
-					   ":/gles2/vertex_shader.glsl" , ":/gles2/ntsc_pass2.glsl",
+					   ":/gl4_3/vertex_shader.glsl" , ":/gl4_3/ntsc_pass2.glsl",
 					   "NTSC Shader Pass2");
 	if(!(((gl_major_version >= 3) && (gl_minor_version >= 1)) || (gl_major_version >= 4))){
 		int ii;
@@ -418,7 +450,7 @@ void GLDraw_ES_2::initLocalGLObjects(void)
 		initBitmapVertex();
 		initPackedGLObject(&bitmap_block,
 						   _width * 2, _height * 2,
-						   ":/gles2/vertex_shader.glsl", ":/gles2/normal_fragment_shader.glsl",
+						   ":/gl4_3/vertex_shader.glsl", ":/gl4_3/normal_fragment_shader.glsl",
 						   "Background Bitmap Shader");
 		if(bitmap_block != NULL) {
 			setNormalVAO(bitmap_block->getShader(), bitmap_block->getVAO(),
@@ -427,7 +459,7 @@ void GLDraw_ES_2::initLocalGLObjects(void)
 		}
 	}
 
-	initGridShaders(":/gles2/grids_vertex_shader_fixed.glsl", ":/gles2/grids_vertex_shader.glsl", ":/gles2/grids_fragment_shader.glsl");
+	initGridShaders(":/gl4_3/grids_vertex_shader_fixed.glsl", ":/gl4_3/grids_vertex_shader.glsl", ":/gl4_3/grids_fragment_shader.glsl");
 	
 	initGridVertexObject(&grids_horizonal_buffer, &grids_horizonal_vertex, using_flags->get_real_screen_height() + 3);
 	doSetGridsHorizonal(using_flags->get_real_screen_height(), true);
@@ -439,7 +471,7 @@ void GLDraw_ES_2::initLocalGLObjects(void)
 	p_wid->doneCurrent();
 }
 
-void GLDraw_ES_2::updateGridsVAO(QOpenGLBuffer *bp,
+void GLDraw_4_3::updateGridsVAO(QOpenGLBuffer *bp,
 								QOpenGLVertexArrayObject *vp,
 								GLfloat *tp,
 								int number)
@@ -469,7 +501,22 @@ void GLDraw_ES_2::updateGridsVAO(QOpenGLBuffer *bp,
 		vp->release();
 	}
 }
-void GLDraw_ES_2::drawGridsMain(QOpenGLShaderProgram *prg,
+
+void GLDraw_4_3::drawGrids(void)
+{
+	gl_grid_horiz = p_config->opengl_scanline_horiz;
+	gl_grid_vert  = p_config->opengl_scanline_vert;
+	if(gl_grid_horiz && (vert_lines > 0)) {
+		drawGridsHorizonal();
+	} // Will fix.
+	if(using_flags->is_use_vertical_pixel_lines()) {
+		if(gl_grid_vert && (horiz_pixels > 0)) {
+			drawGridsVertical();
+		}
+	}
+}
+
+void GLDraw_4_3::drawGridsMain(QOpenGLShaderProgram *prg,
 								 QOpenGLBuffer *bp,
 								 QOpenGLVertexArrayObject *vp,
 								 int number,
@@ -513,7 +560,7 @@ void GLDraw_ES_2::drawGridsMain(QOpenGLShaderProgram *prg,
 		extfunc->glVertexAttribPointer(vertex_loc, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3, 0); 
 		extfunc->glEnableVertexAttribArray(vertex_loc);
 		
-		extfunc->glLineWidth(lineWidth);
+		extfunc->glLineWidth(1.5);
 		extfunc->glDrawArrays(GL_LINES, 0, (number + 1) * 2);
 		prg->release();
 		vp->release();
@@ -521,7 +568,7 @@ void GLDraw_ES_2::drawGridsMain(QOpenGLShaderProgram *prg,
 	}
 }
 
-void GLDraw_ES_2::doSetGridsVertical(int pixels, bool force)
+void GLDraw_4_3::doSetGridsVertical(int pixels, bool force)
 {
 	GLDraw_Tmpl::doSetGridsVertical(pixels, force);
 	updateGridsVAO(grids_vertical_buffer,
@@ -530,7 +577,7 @@ void GLDraw_ES_2::doSetGridsVertical(int pixels, bool force)
 				   pixels);
 	
 }
-void GLDraw_ES_2::doSetGridsHorizonal(int lines, bool force)
+void GLDraw_4_3::doSetGridsHorizonal(int lines, bool force)
 {
 	if((lines == vert_lines) && !force) return;
 	GLDraw_Tmpl::doSetGridsHorizonal(lines, force);
@@ -541,7 +588,7 @@ void GLDraw_ES_2::doSetGridsHorizonal(int lines, bool force)
 				   lines);
 }
 
-void GLDraw_ES_2::drawGridsHorizonal(void)
+void GLDraw_4_3::drawGridsHorizonal(void)
 {
 	QVector4D c= QVector4D(0.0f, 0.0f, 0.0f, 1.0f);
 	drawGridsMain(grids_shader,
@@ -552,7 +599,7 @@ void GLDraw_ES_2::drawGridsHorizonal(void)
 					c);
 }
 
-void GLDraw_ES_2::drawGridsVertical(void)
+void GLDraw_4_3::drawGridsVertical(void)
 {
 	QVector4D c= QVector4D(0.0f, 0.0f, 0.0f, 1.0f);
 	drawGridsMain(grids_shader,
@@ -563,21 +610,7 @@ void GLDraw_ES_2::drawGridsVertical(void)
 					c);
 }
 
-void GLDraw_ES_2::drawGrids(void)
-{
-	gl_grid_horiz = p_config->opengl_scanline_horiz;
-	gl_grid_vert  = p_config->opengl_scanline_vert;
-	if(gl_grid_horiz && (vert_lines > 0)) {
-		drawGridsHorizonal();
-	} // Will fix.
-	if(using_flags->is_use_vertical_pixel_lines()) {
-		if(gl_grid_vert && (horiz_pixels > 0)) {
-			drawGridsVertical();
-		}
-	}
-}
-
-void GLDraw_ES_2::renderToTmpFrameBuffer_nPass(GLuint src_texture,
+void GLDraw_4_3::renderToTmpFrameBuffer_nPass(GLuint src_texture,
 											  GLuint src_w,
 											  GLuint src_h,
 											  GLScreenPack *renderObject,
@@ -709,7 +742,7 @@ void GLDraw_ES_2::renderToTmpFrameBuffer_nPass(GLuint src_texture,
 }
 
 
-void GLDraw_ES_2::uploadMainTexture(QImage *p, bool use_chromakey)
+void GLDraw_4_3::uploadMainTexture(QImage *p, bool use_chromakey)
 {
 	// set vertex
 	redraw_required = true;
@@ -748,7 +781,7 @@ void GLDraw_ES_2::uploadMainTexture(QImage *p, bool use_chromakey)
 	crt_flag = true;
 }
 
-void GLDraw_ES_2::drawScreenTexture(void)
+void GLDraw_4_3::drawScreenTexture(void)
 {
 	if(using_flags->is_use_one_board_computer()) {
 		extfunc->glEnable(GL_BLEND);
@@ -777,7 +810,7 @@ void GLDraw_ES_2::drawScreenTexture(void)
 	}
 }
 
-void GLDraw_ES_2::drawMain(QOpenGLShaderProgram *prg,
+void GLDraw_4_3::drawMain(QOpenGLShaderProgram *prg,
 						  QOpenGLVertexArrayObject *vp,
 						  QOpenGLBuffer *bp,
 						  GLuint texid,
@@ -941,7 +974,7 @@ void GLDraw_ES_2::drawMain(QOpenGLShaderProgram *prg,
 	}
 }
 
-void GLDraw_ES_2::drawMain(GLScreenPack *obj,
+void GLDraw_4_3::drawMain(GLScreenPack *obj,
 						  GLuint texid,
 						  QVector4D color,
 						  bool f_smoosing,
@@ -956,7 +989,7 @@ void GLDraw_ES_2::drawMain(GLScreenPack *obj,
 	drawMain(prg, vp, bp, texid, color, f_smoosing, do_chromakey, chromakey);
 }
 
-void GLDraw_ES_2::drawButtonsMain(int num, bool f_smoosing)
+void GLDraw_4_3::drawButtonsMain(int num, bool f_smoosing)
 {
 	GLuint texid = uButtonTextureID[num]->textureId();
 	QOpenGLBuffer *bp = buffer_button_vertex[num];
@@ -1034,14 +1067,14 @@ void GLDraw_ES_2::drawButtonsMain(int num, bool f_smoosing)
 
 }
 
-void GLDraw_ES_2::drawButtons(void)
+void GLDraw_4_3::drawButtons(void)
 {
 	for(int i = 0; i < using_flags->get_max_button(); i++) {
 		drawButtonsMain(i, false);
 	}
 }
 
-void GLDraw_ES_2::drawBitmapTexture(void)
+void GLDraw_4_3::drawBitmapTexture(void)
 {
 	QVector4D color = QVector4D(1.0f, 1.0f, 1.0f, 1.0f);
 	smoosing = p_config->use_opengl_filters;
@@ -1054,7 +1087,7 @@ void GLDraw_ES_2::drawBitmapTexture(void)
 	}
 }
 
-void GLDraw_ES_2::drawLedMain(GLScreenPack *obj, int num, QVector4D color)
+void GLDraw_4_3::drawLedMain(GLScreenPack *obj, int num, QVector4D color)
 {
 	QOpenGLShaderProgram *prg = obj->getShader();
 	QOpenGLVertexArrayObject *vp = led_pass_vao[num];
@@ -1091,7 +1124,7 @@ void GLDraw_ES_2::drawLedMain(GLScreenPack *obj, int num, QVector4D color)
 }
 
 
-void GLDraw_ES_2::drawOsdLeds()
+void GLDraw_4_3::drawOsdLeds()
 {
 	QVector4D color_on;
 	QVector4D color_off;
@@ -1119,7 +1152,7 @@ void GLDraw_ES_2::drawOsdLeds()
 	}
 }
 
-void GLDraw_ES_2::drawOsdIcons()
+void GLDraw_4_3::drawOsdIcons()
 {
 	QVector4D color_on;
 	QVector4D color_off;
@@ -1170,7 +1203,7 @@ void GLDraw_ES_2::drawOsdIcons()
 	}
 }
 
-void GLDraw_ES_2::paintGL(void)
+void GLDraw_4_3::paintGL(void)
 {
 	//p_wid->makeCurrent();
 	
@@ -1204,21 +1237,9 @@ void GLDraw_ES_2::paintGL(void)
 			drawGrids();
 		}
 		extfunc->glFlush();
-//	} else {
-//		extfunc->glViewport(0, 0, p_wid->width(), p_wid->height());
-///		extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
-//		//drawOsdLeds();
-//		extfunc->glClear(GL_DEPTH_BUFFER_BIT);
-//		extfunc->glEnable(GL_DEPTH_TEST);
-//		extfunc->glEnable(GL_BLEND);
-//		//drawOsdLeds();
-//		drawOsdIcons();
-//		extfunc->glFlush();
-//	}		
-	//p_wid->doneCurrent();
 }
 
-void GLDraw_ES_2::setBrightness(GLfloat r, GLfloat g, GLfloat b)
+void GLDraw_4_3::setBrightness(GLfloat r, GLfloat g, GLfloat b)
 {
 	fBrightR = r;
 	fBrightG = g;
@@ -1239,7 +1260,7 @@ void GLDraw_ES_2::setBrightness(GLfloat r, GLfloat g, GLfloat b)
 	}
 }
 
-void GLDraw_ES_2::set_texture_vertex(float wmul, float hmul)
+void GLDraw_4_3::set_texture_vertex(float wmul, float hmul)
 {
 	float wfactor = 1.0f;
 	float hfactor = 1.0f;
@@ -1270,7 +1291,7 @@ void GLDraw_ES_2::set_texture_vertex(float wmul, float hmul)
 }
 
 
-void GLDraw_ES_2::set_osd_vertex(int xbit)
+void GLDraw_4_3::set_osd_vertex(int xbit)
 {
 	float xbase, ybase, zbase;
 	VertexTexCoord_t vertex[4];
@@ -1334,7 +1355,7 @@ void GLDraw_ES_2::set_osd_vertex(int xbit)
 				 vertex, 4);
 }
 
-void GLDraw_ES_2::set_led_vertex(int xbit)
+void GLDraw_4_3::set_led_vertex(int xbit)
 {
 	float xbase, ybase, zbase;
 	VertexTexCoord_t vertex[4];
@@ -1372,13 +1393,13 @@ void GLDraw_ES_2::set_led_vertex(int xbit)
 				 vertex, 4);
 }
 
-void GLDraw_ES_2::do_set_screen_multiply(float mul)
+void GLDraw_4_3::do_set_screen_multiply(float mul)
 {
 	screen_multiply = mul;
 	do_set_texture_size(imgptr, screen_texture_width, screen_texture_height);
 }
 
-void GLDraw_ES_2::do_set_texture_size(QImage *p, int w, int h)
+void GLDraw_4_3::do_set_texture_size(QImage *p, int w, int h)
 {
 	if(w <= 0) w = using_flags->get_real_screen_width();
 	if(h <= 0) h = using_flags->get_real_screen_height();
@@ -1466,7 +1487,7 @@ void GLDraw_ES_2::do_set_texture_size(QImage *p, int w, int h)
 		p_wid->doneCurrent();
 	}
 }
-void GLDraw_ES_2::do_set_horiz_lines(int lines)
+void GLDraw_4_3::do_set_horiz_lines(int lines)
 {
 	if(lines > using_flags->get_real_screen_height()) {
 		lines = using_flags->get_real_screen_height();
@@ -1474,7 +1495,7 @@ void GLDraw_ES_2::do_set_horiz_lines(int lines)
 	this->doSetGridsHorizonal(lines, false);
 }
 
-void GLDraw_ES_2::resizeGL_Screen(void)
+void GLDraw_4_3::resizeGL_Screen(void)
 {
 	if(main_pass != NULL) {
 		setNormalVAO(main_pass->getShader(), main_pass->getVAO(),
@@ -1483,7 +1504,7 @@ void GLDraw_ES_2::resizeGL_Screen(void)
 	}
 }	
 
-void GLDraw_ES_2::resizeGL(int width, int height)
+void GLDraw_4_3::resizeGL(int width, int height)
 {
 	//int side = qMin(width, height);
 	p_wid->makeCurrent();
@@ -1509,25 +1530,25 @@ void GLDraw_ES_2::resizeGL(int width, int height)
 	p_wid->doneCurrent();
 }
 
-void GLDraw_ES_2::initButtons(void)
+void GLDraw_4_3::initButtons(void)
 {
 	button_desc_t *vm_buttons_d = using_flags->get_vm_buttons();
 	QOpenGLContext *context = QOpenGLContext::currentContext();
 	QPair<int, int> _version = QOpenGLVersionProfile(context->format()).version();
 	QString versionext = QString::fromUtf8("");
-	if(((_version.first == 3) && (_version.second >= 1)) || (_version.first >= 4)){
-		versionext = QString::fromUtf8("#version 310 es \n");
-	} /* else if((_version.first == 3)) {
-		 _ext = _ext + QString::fromUtf8("#version 300 es \n");
-		 } */ else {
-		versionext = QString::fromUtf8("#version 100 \n");
+	if(((_version.first == 4) && (_version.second >= 3)) || (_version.first >= 5)) {
+		versionext = QString::fromUtf8("#version 430 core \n"); // OK?
+	} else if((_version.first == 4)) {
+		versionext = QString::fromUtf8("#version 400 core \n");
+	} else { // Require GLVersion >= 3.2
+		versionext = QString::fromUtf8("#version 150 \n");
 	}
 	
 	if(vm_buttons_d != NULL) {
 		button_shader = new QOpenGLShaderProgram(p_wid);
 		if(button_shader != NULL) {
 			bool f = false;
-			QFile vertex_src(QString::fromUtf8(":/gles2/vertex_shader.glsl"));
+			QFile vertex_src(QString::fromUtf8(":/gl4_3/vertex_shader.glsl"));
 			if (vertex_src.open(QIODevice::ReadOnly | QIODevice::Text)) {
 				QString srcs = versionext;
 				srcs = srcs + QString::fromUtf8(vertex_src.readAll());
@@ -1536,7 +1557,7 @@ void GLDraw_ES_2::initButtons(void)
 			} else {
 				return;
 			}
-			QFile fragment_src(QString::fromUtf8(":/gles2/normal_fragment_shader.glsl"));
+			QFile fragment_src(QString::fromUtf8(":/gl4_3/normal_fragment_shader.glsl"));
 			if (fragment_src.open(QIODevice::ReadOnly | QIODevice::Text)) {
 				QString srcs = versionext;
 				srcs = srcs + QString::fromUtf8(fragment_src.readAll());
@@ -1630,12 +1651,12 @@ void GLDraw_ES_2::initButtons(void)
 	}
 }
 
-void GLDraw_ES_2::do_set_display_osd(bool onoff)
+void GLDraw_4_3::do_set_display_osd(bool onoff)
 {
 	osd_onoff = onoff;
 }
 
-void GLDraw_ES_2::do_display_osd_leds(int lednum, bool onoff)
+void GLDraw_4_3::do_display_osd_leds(int lednum, bool onoff)
 {
 	if(lednum == -1) {
 		osd_led_status = (onoff) ? 0xffffffff : 0x00000000;
@@ -1650,7 +1671,7 @@ void GLDraw_ES_2::do_display_osd_leds(int lednum, bool onoff)
 	}
 }
 
-void GLDraw_ES_2::uploadIconTexture(QPixmap *p, int icon_type, int localnum)
+void GLDraw_4_3::uploadIconTexture(QPixmap *p, int icon_type, int localnum)
 {
 	if((icon_type >  7) || (icon_type < 0)) return;
 	if((localnum  >= 9) || (localnum  <  0)) return;
@@ -1667,7 +1688,7 @@ void GLDraw_ES_2::uploadIconTexture(QPixmap *p, int icon_type, int localnum)
 }
 
 
-void GLDraw_ES_2::updateBitmap(QImage *p)
+void GLDraw_4_3::updateBitmap(QImage *p)
 {
 	if(!using_flags->is_use_one_board_computer()) return;
 	redraw_required = true;
@@ -1675,7 +1696,7 @@ void GLDraw_ES_2::updateBitmap(QImage *p)
 	uploadBitmapTexture(p);
 }
 
-void GLDraw_ES_2::uploadBitmapTexture(QImage *p)
+void GLDraw_4_3::uploadBitmapTexture(QImage *p)
 {
 	if(!using_flags->is_use_one_board_computer()) return;
 	if(p == NULL) return;
@@ -1691,7 +1712,7 @@ void GLDraw_ES_2::uploadBitmapTexture(QImage *p)
 	}
 }
 
-void GLDraw_ES_2::updateButtonTexture(void)
+void GLDraw_4_3::updateButtonTexture(void)
 {
 	int i;
 	button_desc_t *vm_buttons_d = using_flags->get_vm_buttons();
@@ -1707,3 +1728,4 @@ void GLDraw_ES_2::updateButtonTexture(void)
 	}
 	button_updated = true;
 }
+

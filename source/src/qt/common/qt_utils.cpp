@@ -19,6 +19,7 @@
 #include <QDir>
 #include <QTranslator>
 #include <QProcessEnvironment>
+#include <QCommandLineParser>
 
 #include "common.h"
 #include "fileio.h"
@@ -62,10 +63,10 @@ class META_MainWindow *rMainWindow;
 #endif
 
 // menu
-extern std::string cpp_homedir;
+extern DLL_PREFIX_I std::string cpp_homedir;
 extern DLL_PREFIX_I std::string cpp_confdir;
-extern std::string my_procname;
-std::string sRssDir;
+extern DLL_PREFIX_I std::string my_procname;
+extern DLL_PREFIX_I std::string sRssDir;
 bool now_menuloop = false;
 static int close_notified = 0;
 // timing control
@@ -578,8 +579,6 @@ static void setup_logs(void)
 #endif
 }
 
-#include <QString>
-#include <QCommandLineParser>
 QStringList virtualMediaList; // {TYPE, POSITION}
 QCommandLineOption *_opt_fds[8];
 QCommandLineOption *_opt_hdds[8];
@@ -590,16 +589,16 @@ QCommandLineOption *_opt_binaries[8];
 QCommandLineOption *_opt_bubbles[8];
 QCommandLineOption *_opt_qds[8];
 QCommandLineOption *_opt_carts[8];
-QCommandLineOption *_opt_homedir;
-QCommandLineOption *_opt_cfgfile;
-QCommandLineOption *_opt_cfgdir;
-QCommandLineOption *_opt_resdir;
-QCommandLineOption *_opt_opengl;
-QCommandLineOption *_opt_envver;
-QCommandLineOption *_opt_dump_envver;
-QCommandLineOption *_opt_dipsw_on;
-QCommandLineOption *_opt_dipsw_off;
-QProcessEnvironment _envvers;
+extern QCommandLineOption *_opt_homedir;
+extern QCommandLineOption *_opt_cfgfile;
+extern QCommandLineOption *_opt_cfgdir;
+extern QCommandLineOption *_opt_resdir;
+extern QCommandLineOption *_opt_opengl;
+extern QCommandLineOption *_opt_envver;
+extern QCommandLineOption *_opt_dump_envver;
+extern QCommandLineOption *_opt_dipsw_on;
+extern QCommandLineOption *_opt_dipsw_off;
+extern QProcessEnvironment _envvers;
 bool _b_dump_envver;
 std::string config_fullpath;
 
@@ -902,7 +901,7 @@ void SetProcCmdCD(QCommandLineParser *cmdparser, QStringList *_l)
 #endif
 }
 
-
+extern void SetOptions_Sub(QCommandLineParser *cmdparser);
 void SetOptions(QCommandLineParser *cmdparser)
 {
 	QString emudesc = QString::fromUtf8("Emulator for ");
@@ -910,51 +909,9 @@ void SetOptions(QCommandLineParser *cmdparser)
     cmdparser->setApplicationDescription(emudesc);
     cmdparser->addHelpOption();
     //cmdparser->addVersionOption();
+
+	SetOptions_Sub(cmdparser);
 	QStringList _cl;
-    _cl.append("d");
-    _cl.append("homedir");
-    _opt_homedir = new QCommandLineOption(_cl, QCoreApplication::translate("main", "Custom home directory."), "homedir");
-    _cl.clear();
-   
-    _cl.append("c");
-    _cl.append("cfgfile");
-    _opt_cfgfile = new QCommandLineOption(_cl, QCoreApplication::translate("main", "Custom config file (without path)."), "cfgfile");
-    _cl.clear();
-   
-    _opt_cfgdir = new QCommandLineOption("cfgdir", QCoreApplication::translate("main", "Custom config directory."), "cfgdir");
-
-    _cl.append("r");
-    _cl.append("res");
-    _opt_resdir = new QCommandLineOption(_cl, QCoreApplication::translate("main", "Custom resource directory (ROMs, WAVs, etc)."), "resdir");
-    _cl.clear();
-
-    _cl.append("on");
-    _cl.append("dipsw-on");
-    _opt_dipsw_on = new QCommandLineOption(_cl, QCoreApplication::translate("main", "Turn on <onbit> of dip switch."), "onbit");
-    _cl.clear();
-   
-    _cl.append("off");
-    _cl.append("dipsw-off");
-    _opt_dipsw_off = new QCommandLineOption(_cl, QCoreApplication::translate("main", "Turn off <offbit> of dip switch."), "offbit");
-    _cl.clear();
-	
-    _cl.append("g");
-    _cl.append("gl");
-    _cl.append("opengl");
-    _cl.append("render");
-    _opt_opengl = new QCommandLineOption(_cl, QCoreApplication::translate("main", "Force set using renderer type."), "{ GL | GL2 | GLES}");
-    _cl.clear();
-	
-    _cl.append("v");
-    _cl.append("env");
-    _cl.append("envver");
-    _opt_envver = new QCommandLineOption(_cl, QCoreApplication::translate("main", "Set / Delete environment variable."), "{NAME[=VAL] | -NAME}");
-    _cl.clear();
-
-    _cl.append("dump-env");
-    _cl.append("dump-envver");
-    _opt_dump_envver = new QCommandLineOption(_cl, QCoreApplication::translate("main", "Dump environment variables."), "");
-    _cl.clear();
 	
 	for(int i = 0; i < 8; i++) {
 		_opt_fds[i] = NULL;
@@ -969,14 +926,6 @@ void SetOptions(QCommandLineParser *cmdparser)
 		_opt_lds[i] = NULL;
 		_opt_cds[i] = NULL;
 	}		
-		
-    cmdparser->addOption(*_opt_opengl);
-    cmdparser->addOption(*_opt_homedir);
-    cmdparser->addOption(*_opt_cfgfile);
-    cmdparser->addOption(*_opt_cfgdir);
-    cmdparser->addOption(*_opt_resdir);
-    cmdparser->addOption(*_opt_dipsw_on);
-    cmdparser->addOption(*_opt_dipsw_off);
 
 	SetFDOptions(cmdparser);
 	SetHDDOptions(cmdparser);
@@ -992,6 +941,8 @@ void SetOptions(QCommandLineParser *cmdparser)
     cmdparser->addOption(*_opt_dump_envver);
 }
 
+extern void ProcessCmdLine_Sub(QCommandLineParser *cmdparser, QStringList *_l);
+
 void ProcessCmdLine(QCommandLineParser *cmdparser, QStringList *_l)
 {
 	char homedir[PATH_MAX];
@@ -1001,7 +952,67 @@ void ProcessCmdLine(QCommandLineParser *cmdparser, QStringList *_l)
 #else
 	delim = "/";
 #endif
-	
+	ProcessCmdLine_Sub(cmdparser, _l);	
+	{
+		char tmps[128];
+		std::string localstr;
+		memset(tmps, 0x00, 128);
+		if(cmdparser->isSet(*_opt_cfgfile)) {
+			strncpy(tmps, cmdparser->value(*_opt_cfgfile).toLocal8Bit().constData(), 127);
+		}
+		if(strlen(tmps) <= 0){
+			snprintf(tmps, sizeof(tmps), _T("%s.ini"), _T(CONFIG_NAME));
+		}
+		localstr = tmps;
+		localstr = cpp_confdir + localstr;
+		load_config(localstr.c_str());
+		config_fullpath = localstr;
+	}
+	if(cmdparser->isSet(*_opt_opengl)) {
+		char tmps[128] = {0};
+		strncpy(tmps, cmdparser->value(*_opt_opengl).toLocal8Bit().constData(), 128 - 1);
+		if(strlen(tmps) > 0) {
+			QString render = QString::fromLocal8Bit(tmps).toUpper();
+			if((render == QString::fromUtf8("GL2")) ||
+			   (render == QString::fromUtf8("GLV2"))) {
+				config.render_platform = CONFIG_RENDER_PLATFORM_OPENGL_MAIN;
+				config.render_major_version = 2;
+				config.render_minor_version = 0;
+				GuiMain->setAttribute(Qt::AA_UseDesktopOpenGL, true);
+				GuiMain->setAttribute(Qt::AA_UseOpenGLES, false);
+			} else if((render == QString::fromUtf8("GL3")) ||
+					  (render == QString::fromUtf8("GLV3")) ||
+					  (render == QString::fromUtf8("OPENGLV3")) ||
+					  (render == QString::fromUtf8("OPENGL")) ||
+					  (render == QString::fromUtf8("GL"))) {
+				config.render_platform = CONFIG_RENDER_PLATFORM_OPENGL_MAIN;
+				config.render_major_version = 3;
+				config.render_minor_version = 0;
+				GuiMain->setAttribute(Qt::AA_UseDesktopOpenGL, true);
+				GuiMain->setAttribute(Qt::AA_UseOpenGLES, false);
+			} else if((render == QString::fromUtf8("GLES2")) ||
+					 (render == QString::fromUtf8("GLESV2")) ||
+					 (render == QString::fromUtf8("GLES3")) ||
+					 (render == QString::fromUtf8("GLESV3")) ||
+					 (render == QString::fromUtf8("GLES"))) {
+				config.render_platform = CONFIG_RENDER_PLATFORM_OPENGL_ES;
+				config.render_major_version = 2;
+				config.render_minor_version = 1;
+				GuiMain->setAttribute(Qt::AA_UseDesktopOpenGL, false);
+				GuiMain->setAttribute(Qt::AA_UseOpenGLES, true);
+			} else if((render == QString::fromUtf8("GL4")) ||
+					 (render == QString::fromUtf8("GL43")) ||
+					 (render == QString::fromUtf8("GL4.3")) ||
+					 (render == QString::fromUtf8("GL4_3")) ||
+					 (render == QString::fromUtf8("GL4_CORE"))) {
+				config.render_platform = CONFIG_RENDER_PLATFORM_OPENGL_CORE;
+				config.render_major_version = 4;
+				config.render_minor_version = 3;
+				GuiMain->setAttribute(Qt::AA_UseDesktopOpenGL, true);
+				GuiMain->setAttribute(Qt::AA_UseOpenGLES, false);
+			}
+		}
+	}
 	SetProcCmdFD(cmdparser, _l);
 	SetProcCmdHDD(cmdparser, _l);
 	SetProcCmdQuickDisk(cmdparser, _l);
@@ -1012,6 +1023,7 @@ void ProcessCmdLine(QCommandLineParser *cmdparser, QStringList *_l)
 	SetProcCmdLD(cmdparser, _l);
 	SetProcCmdCD(cmdparser, _l);
 
+#if 0
 	memset(homedir, 0x00, PATH_MAX);
 	if(cmdparser->isSet(*_opt_homedir)) {
 		strncpy(homedir, cmdparser->value(*_opt_homedir).toLocal8Bit().constData(), PATH_MAX - 1);
@@ -1100,6 +1112,16 @@ void ProcessCmdLine(QCommandLineParser *cmdparser, QStringList *_l)
 				config.render_minor_version = 1;
 				GuiMain->setAttribute(Qt::AA_UseDesktopOpenGL, false);
 				GuiMain->setAttribute(Qt::AA_UseOpenGLES, true);
+			} else if((render == QString::fromUtf8("GL4")) ||
+					 (render == QString::fromUtf8("GL43")) ||
+					 (render == QString::fromUtf8("GL4.3")) ||
+					 (render == QString::fromUtf8("GL4_3")) ||
+					 (render == QString::fromUtf8("GL4_CORE"))) {
+				config.render_platform = CONFIG_RENDER_PLATFORM_OPENGL_CORE;
+				config.render_major_version = 4;
+				config.render_minor_version = 3;
+				GuiMain->setAttribute(Qt::AA_UseDesktopOpenGL, true);
+				GuiMain->setAttribute(Qt::AA_UseOpenGLES, false);
 			}
 		}
 	}
@@ -1146,6 +1168,7 @@ void ProcessCmdLine(QCommandLineParser *cmdparser, QStringList *_l)
 	if(cmdparser->isSet(*_opt_dump_envver)) {
 		_b_dump_envver = true;
 	}
+#endif
 	uint32_t dipsw_onbits = 0x0000000;
 	uint32_t dipsw_offmask = 0xffffffff;
 	if(cmdparser->isSet(*_opt_dipsw_off)) {
@@ -1178,7 +1201,6 @@ void ProcessCmdLine(QCommandLineParser *cmdparser, QStringList *_l)
 	}
 	config.dipswitch &= dipsw_offmask;
 	config.dipswitch |= dipsw_onbits;
-
 }
 
 void OpeningMessage(std::string archstr)

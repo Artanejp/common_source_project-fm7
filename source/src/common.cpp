@@ -40,6 +40,7 @@
 #if defined(_USE_QT)
 	std::string DLL_PREFIX cpp_homedir;
 	std::string DLL_PREFIX my_procname;
+	std::string DLL_PREFIX sRssDir;
 #endif
 
 uint32_t DLL_PREFIX EndianToLittle_DWORD(uint32_t x)

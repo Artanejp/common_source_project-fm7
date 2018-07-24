@@ -11,9 +11,13 @@
 #include "qt_glpack.h"
 #include "qt_glutil_gl3_0.h"
 #include "csp_logger.h"
-#include "menu_flags.h"
 #include <QOpenGLTexture>
 #include <QOpenGLFunctions_3_0>
+
+#include <QColor>
+#include <QImageReader>
+#include <QRect>
+#include <QOpenGLTexture>
 
 //extern USING_FLAGS *using_flags;
 #if 0
@@ -616,7 +620,7 @@ void GLDraw_3_0::drawGridsMain_3(QOpenGLShaderProgram *prg,
 
 void GLDraw_3_0::doSetGridsVertical(int pixels, bool force)
 {
-	GLDraw_2_0::doSetGridsVertical(pixels, force);
+	GLDraw_Tmpl::doSetGridsVertical(pixels, force);
 	updateGridsVAO(grids_vertical_buffer,
 				   grids_vertical_vertex,
 				   glVertGrids,
@@ -626,7 +630,7 @@ void GLDraw_3_0::doSetGridsVertical(int pixels, bool force)
 void GLDraw_3_0::doSetGridsHorizonal(int lines, bool force)
 {
 	if((lines == vert_lines) && !force) return;
-	GLDraw_2_0::doSetGridsHorizonal(lines, force);
+	GLDraw_Tmpl::doSetGridsHorizonal(lines, force);
 	updateGridsVAO(grids_horizonal_buffer,
 				   grids_horizonal_vertex,
 				   glHorizGrids,

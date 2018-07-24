@@ -1,17 +1,18 @@
 message("* qt/gui")
 
-set(THIS_LIB_VERSION 2.14.0)
+set(THIS_LIB_VERSION 2.15.1)
 #include(cotire)
 #include(PrecompiledHeader)
 
 set(s_qt_gui_headers
-#	  csp_logger.h
-  
 	  qt_dialogs.h
 	  qt_gldraw.h
 	  qt_glpack.h
+	  
+	  gl/qt_glutil_gl_tmpl.h
 	  gl2/qt_glutil_gl2_0.h
 	  gl3/qt_glutil_gl3_0.h
+	  gl4_3/qt_glutil_gl4_3.h
 	  gles2/qt_glutil_gles_2.h
 	  
 	  commonclasses.h
@@ -59,6 +60,7 @@ set(s_qt_gui_srcs
 	  qt_glpack.cpp
 	  gl2/qt_glutil_gl2_0.cpp
 	  gl3/qt_glutil_gl3_0.cpp
+	  gl4_3/qt_glutil_gl4_3.cpp
 	  gles2/qt_glutil_gles_2.cpp
 	  qt_glevents.cpp
 	  qt_dialogs.cpp
@@ -113,11 +115,9 @@ set(s_qt_gui_srcs
 	  emu_thread_tmpl.cpp
 	  qt_debugger_tmpl.cpp
 
-#	  ../../romakana.cpp
 	  menu_flags_tmpl.cpp
-#	  csp_logger.cpp
-	  qt_main.cpp
 	  ../common/util_bubble2.cpp
+#	  qt_main.cpp
 )
 if(USE_QT_5)
   QT5_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})
@@ -165,6 +165,8 @@ generate_export_header(CSPgui
         STATIC_DEFINE CSPgui_BUILT_AS_STATIC
 )
 else()
+set(s_qt_gui_srcs ${s_qt_gui_srcs} qt_main.cpp)
+
 add_library(CSPgui SHARED
 	  ${s_qt_gui_srcs}
 	  ${s_qt_gui_headers_MOC}

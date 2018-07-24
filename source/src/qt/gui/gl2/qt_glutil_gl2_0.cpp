@@ -9,114 +9,20 @@
 
 //#include "emu.h"
 
-
 #include <QOpenGLFramebufferObject>
 #include <QColor>
 #include <QImageReader>
 #include <QRect>
 #include <QOpenGLFunctions_2_0>
-#include <QOpenGLTexture>
 
 #include "qt_gldraw.h"
 #include "qt_glutil_gl2_0.h"
 #include "menu_flags.h"
 
-GLDraw_2_0::GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU *emu) : QObject(parent)
+GLDraw_2_0::GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU *emu) : GLDraw_Tmpl(parent, p, logger, emu)
 {
-	p_wid = parent;
-	using_flags = p;
-	csp_logger = logger;
-	p_config = p->get_config_ptr();
-	
-	gl_grid_horiz = false;
-	gl_grid_vert = false;
-	glVertGrids = NULL;
-	glHorizGrids = NULL;
-
-	vert_lines = using_flags->get_real_screen_height();
-	horiz_pixels = using_flags->get_real_screen_width();
-	set_brightness = false;
-	crt_flag = false;
-	smoosing = false;
-	uVramTextureID = NULL;
-	emu_launched = false;
-	
-	imgptr = NULL;
-	screen_multiply = 1.0f;
-	screen_texture_width = using_flags->get_screen_width();
-	screen_texture_width_old = using_flags->get_screen_width();
-	screen_texture_height = using_flags->get_screen_height();
-	screen_texture_height_old = using_flags->get_screen_height();
 	extfunc_2 = NULL;
-	redraw_required = false;
-	osd_led_status = 0x00000000;
-	osd_led_status_bak = 0x00000000;
-	osd_led_bit_width = 12;
-	if(using_flags->is_use_fd()) {
-		osd_led_bit_width = 10;
-	}
-	if(using_flags->is_use_qd()) {
-		osd_led_bit_width = 12;
-	}
-	if(using_flags->is_use_tape()) {
-		osd_led_bit_width = 16;
-	}
-	if(using_flags->get_max_scsi() > 0) {
-		osd_led_bit_width = 24;
-	}
-
-	osd_onoff = true;
-
-	uBitmapTextureID = NULL;
-	bitmap_uploaded = false;
-	texture_max_size = 128;
-	low_resolution_screen = false;
-	int i;
-	// Will fix: Must fix setup of vm_buttons[].
-	button_desc_t *vm_buttons_d = using_flags->get_vm_buttons();
-	if(vm_buttons_d != NULL) {
-		for(i = 0; i < using_flags->get_max_button(); i++) {
-			uButtonTextureID[i] = new QOpenGLTexture(QOpenGLTexture::Target2D);;
-			fButtonX[i] = -1.0 + (float)(vm_buttons_d[i].x * 2) / (float)using_flags->get_screen_width();
-			fButtonY[i] = 1.0 - (float)(vm_buttons_d[i].y * 2) / (float)using_flags->get_screen_height();
-			fButtonWidth[i] = (float)(vm_buttons_d[i].width * 2) / (float)using_flags->get_screen_width();
-			fButtonHeight[i] = (float)(vm_buttons_d[i].height * 2) / (float)using_flags->get_screen_height();
-		} // end of will fix.
-	}
-
-	for(int i = 0; i < 8; i++) {
-		for(int j = 0; j < 8; j++) {
-			icon_texid[i][j] = NULL;
-		}
-	}
-
-	button_updated = false;
-	button_drawn = false;
-
-	fBrightR = 1.0; // 輝度の初期化
-	fBrightG = 1.0;
-	fBrightB = 1.0;
-	set_brightness = false;
-	crt_flag = false;
-	smoosing = false;
 	
-	gl_grid_horiz = false;
-	gl_grid_vert = false;
-
-	vert_lines = using_flags->get_screen_height();
-	horiz_pixels = using_flags->get_screen_width();
-	screen_width = 1.0;
-	screen_height = 1.0;
-
-	buffer_screen_vertex = NULL;
-	vertex_screen = NULL;
-
-	offscreen_frame_buffer = NULL;
-	offscreen_frame_buffer_format = NULL;
-	rec_count = 0;
-	rec_width  = using_flags->get_screen_width();
-	rec_height = using_flags->get_screen_height();
-	ButtonImages.clear();
 }
 
 GLDraw_2_0::~GLDraw_2_0()
@@ -720,61 +626,6 @@ void GLDraw_2_0::initOsdObjects(void)
 	}
 }
 
-void GLDraw_2_0::doSetGridsHorizonal(int lines, bool force)
-{
-	int i;
-	GLfloat yf;
-	GLfloat delta;
-	
-	if((lines == vert_lines) && !force) return;
-	//printf("lines: %d\n", lines);
-	vert_lines = lines;
-	yf = -screen_height;
-	if(vert_lines <= 0) return;
-	if(vert_lines > using_flags->get_real_screen_height()) vert_lines = using_flags->get_real_screen_height();
-	
-	delta = (2.0f * screen_height) / (float)vert_lines;
-	yf = yf - delta * 1.0f;
-	if(glHorizGrids != NULL) {
-		for(i = 0; i < (vert_lines + 1) ; i++) {
-			glHorizGrids[i * 6]     = -screen_width; // XBegin
-			glHorizGrids[i * 6 + 3] = +screen_width; // XEnd
-			glHorizGrids[i * 6 + 1] = yf; // YBegin
-			glHorizGrids[i * 6 + 4] = yf; // YEnd
-			glHorizGrids[i * 6 + 2] = -0.95f; // ZBegin
-			glHorizGrids[i * 6 + 5] = -0.95f; // ZEnd
-			yf = yf + delta;
-		}
-	}
-}
-
-void GLDraw_2_0::doSetGridsVertical(int pixels, bool force)
-{
-	int i;
-	GLfloat xf;
-	GLfloat delta;
-	
-	if((pixels == horiz_pixels) && !force) return;
-	horiz_pixels = pixels;
-	if(horiz_pixels <= 0) return;
-	if(horiz_pixels > using_flags->get_real_screen_width()) horiz_pixels = using_flags->get_real_screen_width();
-	
-	xf = -screen_width;
-	delta = (2.0f * screen_width) / (float)horiz_pixels;
-	xf = xf - delta * 0.75f;
-	if(glVertGrids != NULL) {
-		if(horiz_pixels > using_flags->get_real_screen_width()) horiz_pixels = using_flags->get_real_screen_width();
-		for(i = 0; i < (horiz_pixels + 1) ; i++) {
-			glVertGrids[i * 6]     = xf; // XBegin
-			glVertGrids[i * 6 + 3] = xf; // XEnd
-			glVertGrids[i * 6 + 1] = -screen_height; // YBegin
-			glVertGrids[i * 6 + 4] =  screen_height; // YEnd
-			glVertGrids[i * 6 + 2] = -0.95f; // ZBegin
-			glVertGrids[i * 6 + 5] = -0.95f; // ZEnd
-			xf = xf + delta;
-		}
-	}
-}
 void GLDraw_2_0::drawGridsMain(GLfloat *tp,
 							   int number,
 							   GLfloat lineWidth,
@@ -1128,27 +979,14 @@ void GLDraw_2_0::resizeGL_Screen(void)
 
 void GLDraw_2_0::resizeGL_SetVertexs(void)
 {
-	float iw = (float)using_flags->get_real_screen_width();
-	float ih = (float)using_flags->get_real_screen_height();
 	vertexFormat[0].x = -screen_width;
 	vertexFormat[0].y = -screen_height;
-	//vertexFormat[0].s = 0.0f;
-	//vertexFormat[0].t = ih / screen_texture_height;
-
 	vertexFormat[1].x = +screen_width;
 	vertexFormat[1].y = -screen_height;
-	//vertexFormat[1].s = iw / screen_texture_width;
-	//vertexFormat[1].t = ih / screen_texture_height;
-	
 	vertexFormat[2].x = +screen_width;
 	vertexFormat[2].y = +screen_height;
-	//vertexFormat[2].s = iw / screen_texture_width;
-	//vertexFormat[2].t = 0.0f;
-	
 	vertexFormat[3].x = -screen_width;
 	vertexFormat[3].y = +screen_height;
-	//vertexFormat[3].s = 0.0f;
-	//vertexFormat[3].t = 0.0f;
 	
 	if(using_flags->is_use_one_board_computer()) {
 #if !defined(BITMAP_OFFSET_X)

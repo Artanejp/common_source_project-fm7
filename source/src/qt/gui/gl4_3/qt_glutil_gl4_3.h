@@ -1,34 +1,32 @@
 /*
- * qt_glutil_gles_2.h
- * (c) 2018 K.Ohta <whatisthis.sowhat@gmail.com>
+ * qt_glutil_gl3_0.cpp
+ * (c) 2016 K.Ohta <whatisthis.sowhat@gmail.com>
  * License: GPLv2.
- * Renderer with OpenGL ES v2.0 (extend from renderer with OpenGL v2.0).
+ * Renderer with OpenGL v3.0 (extend from renderer with OpenGL v2.0).
  * History:
- * May 05, 2018 : Copy from GL v3.0.
+ * Jan 22, 2016 : Initial.
  */
 
-#ifndef _QT_COMMON_GLUTIL_ES_2_H
-#define _QT_COMMON_GLUTIL_ES_2_H
+#ifndef _QT_COMMON_GLUTIL_4_3_H
+#define _QT_COMMON_GLUTIL_4_3_H
 
 #include <QString>
-
 #include "../gl/qt_glutil_gl_tmpl.h"
-//#include "../gl2/qt_glutil_gl2_0.h"
 
 QT_BEGIN_NAMESPACE
 class GLScreenPack;
 class CSP_Logger;
-class QOpenGLFunctions;
+class QOpenGLFunctions_4_3_Core;
 class QOpenGLBuffer;
 class QOpenGLVertexArrayObject;
 class QOpenGLShaderProgram;
 class QOpenGLPixelTransferOptions;
 
-class DLL_PREFIX GLDraw_ES_2 : public GLDraw_Tmpl
+class DLL_PREFIX GLDraw_4_3 : public GLDraw_Tmpl
 {
 	Q_OBJECT
 private:
-	QOpenGLFunctions *extfunc;
+	QOpenGLFunctions_4_3_Core *extfunc;
 	float ringing_phase;
 protected:
 	const float luma_filter[24 + 1] = {
@@ -125,6 +123,7 @@ protected:
 									QOpenGLVertexArrayObject *vp,
 									GLfloat *tp,
 									int number);
+
 	virtual void drawGridsMain(QOpenGLShaderProgram *prg,
 								  QOpenGLBuffer *bp,
 								  QOpenGLVertexArrayObject *vp,
@@ -173,8 +172,8 @@ protected:
 	void updateButtonTexture(void);
 
 public:
-	GLDraw_ES_2(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU *emu = 0);
-	~GLDraw_ES_2();
+	GLDraw_4_3(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU *emu = 0);
+	~GLDraw_4_3();
 	void drawButtons(void);
 	virtual void initGLObjects();
 	virtual void initLocalGLObjects(void);

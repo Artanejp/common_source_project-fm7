@@ -282,8 +282,8 @@ void Ui_MainWindowBase::do_select_render_platform(int num)
 		break;
 	case RENDER_PLATFORMS_OPENGL_CORE:
 		_type = CONFIG_RENDER_PLATFORM_OPENGL_CORE;
-		_major = 3;
-		_minor = 2;
+		_major = 4;
+		_minor = 3;
 		break;
 	default:
 		break;
@@ -1153,10 +1153,6 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 						if(i == RENDER_PLATFORMS_OPENGL_CORE) {
 							action_SetRenderPlatform[i]->setChecked(true);
 						}						
-					}
-					if(i == RENDER_PLATFORMS_OPENGL_CORE) {
-							action_SetRenderPlatform[i]->setEnabled(false);
-							//action_SetRenderPlatform[i]->setCheckable(false);
 					}						
 				}
 				connect(action_SetRenderPlatform[i], SIGNAL(triggered()),
@@ -1377,7 +1373,7 @@ void Ui_MainWindowBase::setCoreApplication(QApplication *p)
 #include <string>
 // Move from common/qt_main.cpp
 // menu
-std::string cpp_confdir;
+DLL_PREFIX std::string cpp_confdir;
 extern std::string my_procname;
 extern bool now_menuloop;
 // timing control

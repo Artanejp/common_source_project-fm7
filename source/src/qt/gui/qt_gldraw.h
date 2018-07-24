@@ -22,8 +22,7 @@
 
 class EMU;
 class QEvent;
-class GLDraw_2_0;
-class GLDraw_3_0;
+class GLDraw_Tmpl;
 class CSP_KeyTables;
 class USING_FLAGS;
 class CSP_Logger;
@@ -80,7 +79,7 @@ public:
 
 	GLDrawClass(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent = 0, const QSurfaceFormat &fmt = QSurfaceFormat::defaultFormat());
 	~GLDrawClass();
-	GLDraw_2_0 *extfunc;
+	GLDraw_Tmpl *extfunc;
 	
 	QSize minimumSizeHint() const;
 	QSize sizeHint() const;

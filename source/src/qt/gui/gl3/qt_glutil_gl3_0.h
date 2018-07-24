@@ -12,15 +12,12 @@
 
 #include <QString>
 #include "../gl2/qt_glutil_gl2_0.h"
+//#include "../gl/qt_glutil_gl_tmpl.h"
 
 QT_BEGIN_NAMESPACE
 class GLScreenPack;
-class CSP_Logger;
 class QOpenGLFunctions_3_0;
-class QOpenGLBuffer;
-class QOpenGLVertexArrayObject;
-class QOpenGLShaderProgram;
-
+class GLDrawClass;
 class DLL_PREFIX GLDraw_3_0 : public GLDraw_2_0
 {
 	Q_OBJECT

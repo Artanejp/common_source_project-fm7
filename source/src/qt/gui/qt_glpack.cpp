@@ -171,9 +171,9 @@ bool GLScreenPack::initialize(int total_width, int total_height, const QString &
 			}
 		} else if(context->format().profile() == QSurfaceFormat::CoreProfile) {
 			if(((_version.first == 4) && (_version.second >= 3)) || (_version.first >= 5)) {
-				versionext = QString::fromUtf8("#version 430 \n"); // OK?
+				versionext = QString::fromUtf8("#version 430 core \n"); // OK?
 			} else if((_version.first == 4)) {
-				versionext = QString::fromUtf8("#version 400 \n");
+				versionext = QString::fromUtf8("#version 400 core \n");
 			} else { // Require GLVersion >= 3.2
 				versionext = QString::fromUtf8("#version 150 \n");
 			}					
@@ -189,6 +189,7 @@ bool GLScreenPack::initialize(int total_width, int total_height, const QString &
 			QString srcs = versionext;
 			srcs = srcs + QString::fromUtf8(vertex_src.readAll());
 			shader_status  = program->addShaderFromSourceCode(QOpenGLShader::Vertex, srcs);
+			vertex_src.close();
 		} else {
 			shader_status = false;
 		}

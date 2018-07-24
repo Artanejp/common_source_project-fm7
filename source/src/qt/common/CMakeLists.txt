@@ -39,7 +39,7 @@ set(QT_COMMON_BASE
 		      ${CMAKE_CURRENT_SOURCE_DIR}/qrc/icons.qrc)
 
 if(WIN32)
-    #add_library(Qt5::WinMain STATIC IMPORTED)
+	set(QT_COMMON_BASE ../gui/qt_main.cpp ${QT_COMMON_BASE} )
 
   add_executable(${EXEC_TARGET}
 	  WIN32

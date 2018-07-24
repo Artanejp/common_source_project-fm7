@@ -9,12 +9,16 @@
 //#include "emu.h"
 
 #include "../osd_types.h"
+
 #include "qt_gldraw.h"
+
+#include "gl/qt_glutil_gl_tmpl.h"
 #include "gl2/qt_glutil_gl2_0.h"
 #include "gl3/qt_glutil_gl3_0.h"
+#include "gl4_3/qt_glutil_gl4_3.h"
 #include "gles2/qt_glutil_gles_2.h"
-#include <QOpenGLFunctions_4_1_Core>
-#include <QOpenGLFunctions_3_2_Core>
+
+#include <QOpenGLFunctions_4_3_Core>
 #include <QApplication>
 #include "./qt_drawitem.h"
 
@@ -274,16 +278,16 @@ void GLDrawClass::InitFBO(void)
 	}
 	if(_fmt.profile() == QSurfaceFormat::CoreProfile) {
 		QPair<int, int> _glversion = _fmt.version();
-		if((((_glversion.first == 3) && (_glversion.second >= 2)) || (_glversion.first >= 4)) &&
+		if((((_glversion.first == 4) && (_glversion.second >= 3)) || (_glversion.first >= 5)) &&
 		   (extfunc == NULL) &&
-		   (((_major_version == 3) && (_minor_version >= 2)) || (_major_version >= 4))){
-			//extfunc = new GLDraw_3_0(this, using_flags); // ToDo
+		   (((_major_version == 4) && (_minor_version >= 3)) || (_major_version >= 5))){
+			extfunc = new GLDraw_4_3(this, using_flags, csp_logger); // ToDo
 			if(extfunc != NULL) {
-				csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Use OpenGL v3.2(CORE) Renderer");
+				csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Use OpenGL v4.3(CORE) Renderer");
 				goto _nr_end;
 			}
 		}
-	} else /*if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_MAIN) */{
+	} else /* if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_MAIN) */ {
 		QPair<int, int> _glversion = _fmt.version();
 		if((_glversion.first >= 3) && (_glversion.second >= 0) &&
 		   (extfunc == NULL) &&
