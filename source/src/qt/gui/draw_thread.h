@@ -52,11 +52,18 @@ class DLL_PREFIX DrawThreadClass : public QThread {
 	CSP_Logger *csp_logger;
 	int ncount;
 	double emu_frame_rate;
+
+	bool mapping_status;
+	scrntype_t *mapping_pointer;
+	int mapping_width;
+	int mapping_height;
+	bool mapped_drawn;
 	void doDrawMain(bool flag);
  public:
 	DrawThreadClass(OSD *o, CSP_Logger *logger, QObject *parent = 0);
 	~DrawThreadClass();
 	QSemaphore *renderSemaphore;
+	QSemaphore *textureMappingSemaphore;
 	
 	void run() { doWork("");}
 	void SetEmu(EMU *p);
@@ -69,6 +76,11 @@ public slots:
 	void do_req_encueue_video(int count, int width, int height);
 	void do_draw_one_turn(bool _req_draw);
 	void do_set_frames_per_second(double fps);
+	void do_recv_texture_map_status(bool f, void *p, int width, int height);
+	void do_recv_texture_unmap_status(void);
+
+	void req_map_screen_texture();
+	void req_unmap_screen_texture();
 signals:
 	int sig_draw_frames(int);
 	int message_changed(QString);
@@ -78,6 +90,8 @@ signals:
 	int sig_push_frames_to_avio(int, int, int);
 	int sig_call_draw_screen();
 	int sig_call_no_draw_screen();
+	int sig_map_texture();
+	int sig_unmap_texture();
 };
 
 QT_END_NAMESPACE

@@ -1255,9 +1255,9 @@ void GLDraw_4_3::setBrightness(GLfloat r, GLfloat g, GLfloat b)
 		} else {
 			uploadMainTexture(imgptr, false);
 		}
-		crt_flag = true;
 		p_wid->doneCurrent();
 	}
+	crt_flag = true;
 }
 
 void GLDraw_4_3::set_texture_vertex(float wmul, float hmul)

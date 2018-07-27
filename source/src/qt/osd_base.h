@@ -207,6 +207,10 @@ protected:
 	virtual void initialize_video();
 	virtual void release_video();
   
+	scrntype_t *mapped_screen_pointer;
+	int mapped_screen_width;
+	int mapped_screen_height;
+	bool mapped_screen_status;
 	bitmap_t dshow_screen_buffer;
 	int direct_show_width, direct_show_height;
 	bool direct_show_mute[2];
@@ -487,6 +491,7 @@ public slots:
 	int draw_screen();
 	int no_draw_screen();
 	void do_draw(bool flag);
+	void do_set_screen_map_texture_address(scrntype_t *p, int width, int height);
 
 signals:
 	int sig_update_screen(bitmap_t *);

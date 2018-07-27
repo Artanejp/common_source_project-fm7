@@ -197,3 +197,39 @@ void GLDrawClass::do_stop_run_vm()
 {
 	run_vm = false;
 }
+
+void GLDrawClass::do_map_vram_texture()
+{
+	bool stat = false;
+	int w = 0;
+	int h = 0;
+	void *p = NULL;
+	if(extfunc != NULL) {
+		if(extfunc->is_ready_to_map_vram_texture()) {
+			this->makeCurrent();
+			stat = extfunc->map_vram_texture();
+			if(stat) {
+				extfunc->get_screen_geometry(&w, &h);
+				p = extfunc->get_screen_buffer(0);
+			}
+		}
+	}
+	emit sig_map_texture_reply(stat, p, w, h);
+}
+
+void GLDrawClass::do_unmap_vram_texture()
+{
+	if(extfunc != NULL) {
+		if(extfunc->is_ready_to_map_vram_texture()) {
+			extfunc->unmap_vram_texture();	
+			this->doneCurrent();
+		}
+	}
+	emit sig_unmap_texture_reply();
+}
+
+const bool GLDrawClass::is_ready_to_map_vram_texture(void)
+{
+	if(extfunc == NULL) return false;
+	return extfunc->is_ready_to_map_vram_texture();
+}

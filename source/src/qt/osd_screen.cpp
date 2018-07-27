@@ -79,6 +79,20 @@ void OSD_BASE::set_vm_screen_size(int screen_width, int screen_height, int windo
 
 scrntype_t* OSD_BASE::get_vm_screen_buffer(int y)
 {
+	if(mapped_screen_status) {
+		if((mapped_screen_width > 0) && (mapped_screen_pointer != NULL)){
+			if(y < mapped_screen_height) {
+				int offset = y * mapped_screen_width;
+				uint8_t *p = (uint8_t *)mapped_screen_pointer;
+				p = p + offset;
+				return (scrntype_t *)p;
+			} else {
+				return NULL;
+			}
+		} else {
+			return NULL;
+		}
+	}
 	return get_buffer(&vm_screen_buffer, y);
 }
 
@@ -88,6 +102,21 @@ scrntype_t* OSD_BASE::get_buffer(bitmap_t *p, int y)
 		return NULL;
 	}
 	return (scrntype_t *)p->pImage.scanLine(y);
+}
+
+void OSD_BASE::do_set_screen_map_texture_address(scrntype_t *p, int width, int height)
+{
+	if((p != NULL) && (width > 0) && (height > 0)) {
+		mapped_screen_pointer = p;
+		mapped_screen_width = width;
+		mapped_screen_height = height;
+		mapped_screen_status = true;
+	} else {
+		mapped_screen_pointer = NULL;
+		mapped_screen_width = 0;
+		mapped_screen_height = 0;
+		mapped_screen_status = false;
+	}
 }
 
 int OSD_BASE::draw_screen()

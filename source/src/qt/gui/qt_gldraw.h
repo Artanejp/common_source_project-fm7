@@ -97,12 +97,16 @@ public:
 	uint32_t get_scan_from_index(int index);
 	const char *get_key_vk_name(int index);
 	quint32 getModState(void) { return modifier;}
-	quint32 modifier;
+	
 	void InitFBO(void);
 	void closeEvent(QCloseEvent *event);
 	void drawUpdateTexture(bitmap_t *p);
 	QString logGLString(bool getExtensions = false);
 	bool emu_launched;
+	quint32 modifier;
+
+	const bool is_ready_to_map_vram_texture(void);
+	
 public slots:
 	void initKeyCode(void);
 	void releaseKeyCode(void);
@@ -145,6 +149,8 @@ public slots:
 	void do_update_icon(int icon_type,  int localnum, QPixmap *p);
 	void do_update_icon(int icon_type, int localnum, QString message, QColor bg, QColor fg, QColor fg2, QColor fg3, QColor lg, QColor tg, float pt);
 
+	void do_map_vram_texture();
+	void do_unmap_vram_texture();
 signals:
 	void update_screenChanged(int tick);
 	void do_notify_move_mouse(int x, int y);
@@ -161,6 +167,9 @@ signals:
 	int sig_set_display_osd(bool);
 	int sig_display_osd_leds(int,bool);
 	int sig_resize_osd(int);
+
+	int sig_map_texture_reply(bool, void *, int, int);
+	int sig_unmap_texture_reply();
 };
 
 #endif // End.

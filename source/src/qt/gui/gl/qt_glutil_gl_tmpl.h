@@ -321,6 +321,14 @@ public:
 			}
 		}
 	}
+	virtual scrntype_t *get_screen_buffer(int y) { return NULL; }
+	virtual void get_screen_geometry(int *w, int *h) {
+		if(w != NULL) *w = 0;
+		if(h != NULL) *h = 0;
+	}
+	virtual bool is_ready_to_map_vram_texture(void) { return false; }
+	virtual bool map_vram_texture(void) { return false; }
+	virtual bool unmap_vram_texture(void) { return false; }
 public slots:
 	virtual void paintGL(void) { }
 	virtual void resizeGL(int width, int height) { }
@@ -347,6 +355,7 @@ public slots:
 	virtual void do_set_display_osd(bool onoff) { }
 	virtual void do_display_osd_leds(int lednum, bool onoff) { }
 	virtual void do_set_led_width(int bitwidth) { }
+
 signals:
 	int sig_push_image_to_movie(int, int, int, QImage *);
 };
