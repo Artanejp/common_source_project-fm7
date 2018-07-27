@@ -90,6 +90,12 @@ protected:
 
 	int gl_major_version;
 	int gl_minor_version;
+
+	int pixel_width;
+	int pixel_height;
+	GLuint main_texture_buffer;
+	scrntype_t *map_base_address;
+	
 	GLScreenPack *main_pass;
 	GLScreenPack *std_pass;
 	GLScreenPack *ntsc_pass1;
@@ -112,7 +118,6 @@ protected:
 
 	GLuint uTmpTextureID;
 	bool swap_byteorder;
-	QOpenGLPixelTransferOptions *TextureTransferParam;
 	
 	virtual void setNormalVAO(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
 							  QOpenGLBuffer *bp, VertexTexCoord_t *tp, int size = 4);
@@ -187,6 +192,13 @@ public:
 	virtual void doSetGridsHorizonal(int lines, bool force);
 	virtual void doSetGridsVertical(int pixels, bool force);
 	void uploadBitmapTexture(QImage *p);
+	
+	void get_screen_geometry(int *w, int *h);
+	scrntype_t *get_screen_buffer(int y);
+	bool is_ready_to_map_vram_texture(void);
+	bool map_vram_texture(void);
+	bool unmap_vram_texture(void);
+
 public slots:
 	void updateBitmap(QImage *);
 	void uploadIconTexture(QPixmap *p, int icon_type, int localnum);

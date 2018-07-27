@@ -68,8 +68,10 @@ GLDraw_4_3::GLDraw_4_3(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, 
 #else
 	swap_byteorder = false;
 #endif
-
-	TextureTransferParam = new QOpenGLPixelTransferOptions();
+	pixel_width = 0;
+	pixel_height = 0;
+	main_texture_buffer = 0;
+	map_base_address = 0;
 }
 
 GLDraw_4_3::~GLDraw_4_3()
@@ -99,27 +101,53 @@ GLDraw_4_3::~GLDraw_4_3()
 	if(grids_horizonal_vertex != NULL) {
 		if(grids_vertical_vertex->isCreated()) grids_vertical_vertex->destroy();
 	}
-	if(TextureTransferParam != NULL) delete TextureTransferParam;
 }
 
 QOpenGLTexture *GLDraw_4_3::createMainTexture(QImage *img)
 {
 	QOpenGLTexture *tx;
+	QImage *ip = NULL;
+	int w;
+	int h;
 	if(img == NULL) {
-		QImage nImg(using_flags->get_real_screen_width(), using_flags->get_real_screen_height(), QImage::Format_RGBA8888);
-		tx = new QOpenGLTexture(nImg, QOpenGLTexture::DontGenerateMipMaps);
-		TextureTransferParam->setImageHeight(using_flags->get_real_screen_height());
-		TextureTransferParam->setRowLength(using_flags->get_real_screen_width());
+		w = using_flags->get_real_screen_width();
+		h = using_flags->get_real_screen_height();
 	} else {
-		tx = new QOpenGLTexture(*img, QOpenGLTexture::DontGenerateMipMaps);
-		TextureTransferParam->setImageHeight(img->height());
-		TextureTransferParam->setRowLength(img->width());
+		w = img->width();
+		h = img->height();
 	}
-	tx->setFormat(QOpenGLTexture::RGBA8_UNorm);
-	tx->setMinMagFilters(QOpenGLTexture::Linear, QOpenGLTexture::Nearest);
-	tx->setWrapMode(QOpenGLTexture::ClampToEdge);
+	QImage im(w, h, QImage::Format_RGBA8888);
+	if(img == NULL) {
+		ip = &im;
+	} else {
+		ip = img;
+	}
+	//tx->setFormat(QOpenGLTexture::RGBA8_UNorm);
+	
+	if(main_texture_buffer != 0) {
+		extfunc->glDeleteBuffers(1, &main_texture_buffer);
+	}
+	{
+		extfunc->glGenBuffers(1, &main_texture_buffer);
+		extfunc->glBindBuffer(GL_TEXTURE_BUFFER, main_texture_buffer);
+		extfunc->glBufferData(GL_TEXTURE_BUFFER, w * h * sizeof(uint32_t), ip->constBits(), GL_DYNAMIC_COPY);
+		tx = new QOpenGLTexture(QOpenGLTexture::TargetBuffer);
+		tx->setFormat(QOpenGLTexture::RGBA8_UNorm);
+		tx->setMinMagFilters(QOpenGLTexture::Linear, QOpenGLTexture::Nearest);
+		tx->setWrapMode(QOpenGLTexture::ClampToEdge);
+		tx->setSize(w * h);
+		tx->bind();
+		extfunc->glActiveTexture(GL_TEXTURE0);
+		extfunc->glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA8, main_texture_buffer);
+		tx->release();
+		extfunc->glBindBuffer(GL_TEXTURE_BUFFER, 0);
+	}
+	pixel_width = w;
+	pixel_height = h;
+
 	return tx;
 }
+
 void GLDraw_4_3::initBitmapVertex(void)
 {
 	if(using_flags->is_use_one_board_computer()) {
@@ -560,7 +588,7 @@ void GLDraw_4_3::drawGridsMain(QOpenGLShaderProgram *prg,
 		extfunc->glVertexAttribPointer(vertex_loc, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3, 0); 
 		extfunc->glEnableVertexAttribArray(vertex_loc);
 		
-		extfunc->glLineWidth(1.5);
+		extfunc->glLineWidth(lineWidth);
 		extfunc->glDrawArrays(GL_LINES, 0, (number + 1) * 2);
 		prg->release();
 		vp->release();
@@ -753,9 +781,30 @@ void GLDraw_4_3::uploadMainTexture(QImage *p, bool use_chromakey)
 		uVramTextureID = createMainTexture(p);
 	} else 	{
 		// Upload to main texture
-		TextureTransferParam->setImageHeight(p->height());
-		TextureTransferParam->setRowLength(p->width());
-		uVramTextureID->setData(QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, p->constBits(), TextureTransferParam);
+		if(p != NULL) {
+			extfunc->glBindBuffer(GL_TEXTURE_BUFFER, main_texture_buffer);
+			uint32_t *pp = (uint32_t *)(extfunc->glMapBuffer(GL_TEXTURE_BUFFER, GL_WRITE_ONLY));
+			if(pp != NULL) {
+#if 1
+				int s1 = pixel_width * pixel_height * sizeof(uint32_t);
+				int s2 = p->height() * p->width() * sizeof(uint32_t);
+				int ww = (pixel_width < p->width()) ? pixel_width : p->width();
+				int hh = (pixel_height < p->height()) ? pixel_height : p->height();
+				for(int y = 0; y < hh; y++) {
+					memcpy(&(pp[y * pixel_width]), p->scanLine(y), p->width() * sizeof(uint32_t));
+				}
+#else
+				int s1 = pixel_width * pixel_height * sizeof(uint32_t);
+				memcpy(pp, p->constBits(), s1);
+#endif				
+			}
+			extfunc->glUnmapBuffer(GL_TEXTURE_BUFFER);
+			extfunc->glBindTexture(GL_TEXTURE_BUFFER, uVramTextureID->textureId());
+			extfunc->glActiveTexture(GL_TEXTURE0);
+			extfunc->glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA8, main_texture_buffer);
+			extfunc->glBindTexture(GL_TEXTURE_BUFFER, 0);
+			extfunc->glBindBuffer(GL_TEXTURE_BUFFER, 0);
+		}
 	}
 #if 1
 	if(using_flags->is_support_tv_render() && (p_config->rendering_type == CONFIG_RENDER_TYPE_TV)) {
@@ -830,7 +879,8 @@ void GLDraw_4_3::drawMain(QOpenGLShaderProgram *prg,
 		ortho.ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
 
 		extfunc->glActiveTexture(GL_TEXTURE0);
-		extfunc->glBindTexture(GL_TEXTURE_2D, texid);
+		//extfunc->glBindTexture(GL_TEXTURE_2D, texid);
+		extfunc->glBindTexture(GL_TEXTURE_BUFFER, texid);
 
 		extfunc->glClearColor(1.0, 1.0, 1.0, 1.0);
 		if(!f_smoosing) {
@@ -912,7 +962,8 @@ void GLDraw_4_3::drawMain(QOpenGLShaderProgram *prg,
 		vp->release();
 		
 		prg->release();
-		extfunc->glBindTexture(GL_TEXTURE_2D, 0);
+		extfunc->glBindTexture(GL_TEXTURE_BUFFER, 0);
+		//extfunc->glBindTexture(GL_TEXTURE_2D, 0);
    }
 	else {
 		vp->bind();
@@ -970,7 +1021,7 @@ void GLDraw_4_3::drawMain(QOpenGLShaderProgram *prg,
 		bp->release();
 		vp->release();
 		prg->release();
-		extfunc->glBindTexture(GL_TEXTURE_2D, 0);
+		extfunc->glBindTexture(GL_TEXTURE_BUFFER, 0);
 	}
 }
 
@@ -1431,15 +1482,17 @@ void GLDraw_4_3::do_set_texture_size(QImage *p, int w, int h)
 						 vertexTmpTexture, 4);
 			
 		}
-		if(p != NULL) {
+		if(((int)iw != pixel_width) || ((int)ih != pixel_height)) {
+			QImage im((int)screen_texture_width, (int)screen_texture_height, QImage::Format_RGBA8888);
+			if(p == NULL) {
+				p = &im;
+			}
 			if(uVramTextureID != NULL) {
-				if(((int)iw != uVramTextureID->width()) || ((int)ih != uVramTextureID->height())) {
-					p_wid->makeCurrent();
-					uVramTextureID->destroy();
-					delete uVramTextureID;
-					uVramTextureID = createMainTexture(p);
-					p_wid->doneCurrent();
-				}
+				p_wid->makeCurrent();
+				uVramTextureID->destroy();
+				delete uVramTextureID;
+				uVramTextureID = createMainTexture(p);
+				p_wid->doneCurrent();
 			} else {
 				p_wid->makeCurrent();
 				uVramTextureID = createMainTexture(p);
@@ -1729,3 +1782,34 @@ void GLDraw_4_3::updateButtonTexture(void)
 	button_updated = true;
 }
 
+void GLDraw_4_3::get_screen_geometry(int *w, int *h)
+{
+	if(w != NULL) *w = pixel_width; 
+	if(h != NULL) *h = pixel_height;
+}
+
+scrntype_t *GLDraw_4_3::get_screen_buffer(int y)
+{
+	if(map_base_address == NULL) {
+		return NULL;
+	} else {
+		scrntype_t *p = (scrntype_t *)map_base_address;
+		p = p + (pixel_width * y);
+		return p;
+	}
+}
+
+bool GLDraw_4_3::is_ready_to_map_vram_texture(void)
+{
+	return false;
+}
+
+bool GLDraw_4_3::map_vram_texture(void)
+{
+	return false;
+}
+
+bool GLDraw_4_3::unmap_vram_texture(void)
+{
+	return false;
+}
