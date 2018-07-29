@@ -105,7 +105,7 @@ protected:
 	//csp_state_utils* state_entry;
 	
 	// devices
-	EVENT* event;
+	//EVENT* event;
 	
 	IO* io;
 	MEMORY* memory;
