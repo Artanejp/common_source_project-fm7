@@ -99,16 +99,18 @@ void DrawThreadClass::do_set_frames_per_second(double fps)
 	wait_count += (_n * 1.0);
 }
 
+// Note: Mapping vram from draw_thread does'nt work well.
+// This feature might be disable. 20180728 K.Ohta.
 void DrawThreadClass::doDrawMain(bool flag)
 {
-	req_map_screen_texture();
+	//req_map_screen_texture();
 	p_osd->do_decode_movie(1);
 	if(flag) {
 		draw_frames = p_osd->draw_screen();
 	} else {
 		draw_frames = p_osd->no_draw_screen();
 	}
-	req_unmap_screen_texture();
+	//req_unmap_screen_texture();
 
 	emit sig_draw_frames(draw_frames);
 }
@@ -202,7 +204,8 @@ void DrawThreadClass::do_req_encueue_video(int count, int width, int height)
 	rec_frame_height = height;
 	rec_frame_count = count;
 }
-
+// Note: Mapping vram from draw_thread does'nt work well.
+// This feature might be disable. 20180728 K.Ohta.
 void DrawThreadClass::req_map_screen_texture()
 {
 	mapping_status = false;
@@ -212,6 +215,16 @@ void DrawThreadClass::req_map_screen_texture()
 	if(glv->is_ready_to_map_vram_texture()) {
 		emit sig_map_texture();
 		textureMappingSemaphore->acquire();
+		//mapping_pointer = (scrntype_t *)(glv->do_map_vram_texture(&mapping_width, &mapping_height));
+		//if(mapping_pointer == NULL) {
+		//	mapping_status = false;
+		//	mapping_pointer = NULL;
+		//	mapping_width = 0;
+		//	mapping_height = 0;
+		//} else {
+		//	mapping_status = true;
+		//}
+		//p_osd->do_set_screen_map_texture_address(mapping_pointer, mapping_width, mapping_height);
 	}
 }
 
@@ -219,8 +232,15 @@ void DrawThreadClass::req_unmap_screen_texture()
 {
 	if(mapping_status) {
 		if(glv->is_ready_to_map_vram_texture()) {
-			emit sig_unmap_texture();
-			textureMappingSemaphore->acquire();
+				emit sig_unmap_texture();
+				textureMappingSemaphore->acquire();
+				
+				//glv->do_unmap_vram_texture();
+				//mapping_status = false;
+				//mapping_pointer = NULL;
+				//mapping_width = 0;
+				//mapping_height = 0;
+				//p_osd->do_set_screen_map_texture_address(mapping_pointer, mapping_width, mapping_height);
 		}
 	}
 }
@@ -232,6 +252,7 @@ void DrawThreadClass::do_recv_texture_map_status(bool f, void *p, int width, int
 	mapping_width = width;
 	mapping_height = height;
 	p_osd->do_set_screen_map_texture_address(mapping_pointer, mapping_width, mapping_height);
+	//printf("%08x\n", mapping_pointer);
 	if(mapping_status) {
 		mapped_drawn = true;
 	}
@@ -244,6 +265,7 @@ void DrawThreadClass::do_recv_texture_unmap_status(void)
 	mapping_pointer = NULL;
 	mapping_width = 0;
 	mapping_height = 0;
+	mapped_drawn = false;
 	p_osd->do_set_screen_map_texture_address(mapping_pointer, mapping_width, mapping_height);
 	textureMappingSemaphore->release(1);
 }

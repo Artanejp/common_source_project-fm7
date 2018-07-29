@@ -149,7 +149,7 @@ public slots:
 	void do_update_icon(int icon_type,  int localnum, QPixmap *p);
 	void do_update_icon(int icon_type, int localnum, QString message, QColor bg, QColor fg, QColor fg2, QColor fg3, QColor lg, QColor tg, float pt);
 
-	void do_map_vram_texture();
+	void do_map_vram_texture(void);
 	void do_unmap_vram_texture();
 signals:
 	void update_screenChanged(int tick);

@@ -198,7 +198,9 @@ void GLDrawClass::do_stop_run_vm()
 	run_vm = false;
 }
 
-void GLDrawClass::do_map_vram_texture()
+// Note: Mapping vram from draw_thread does'nt work well.
+// This feature might be disable. 20180728 K.Ohta.
+void GLDrawClass::do_map_vram_texture(void)
 {
 	bool stat = false;
 	int w = 0;
@@ -212,9 +214,15 @@ void GLDrawClass::do_map_vram_texture()
 				extfunc->get_screen_geometry(&w, &h);
 				p = extfunc->get_screen_buffer(0);
 			}
+			if(p == NULL) {
+				w = 0;
+				h = 0;
+			}
+			emit sig_map_texture_reply(stat, p, w, h);
+			return;
 		}
 	}
-	emit sig_map_texture_reply(stat, p, w, h);
+	emit sig_map_texture_reply(false, NULL, 0, 0);
 }
 
 void GLDrawClass::do_unmap_vram_texture()
@@ -223,6 +231,8 @@ void GLDrawClass::do_unmap_vram_texture()
 		if(extfunc->is_ready_to_map_vram_texture()) {
 			extfunc->unmap_vram_texture();	
 			this->doneCurrent();
+			emit sig_unmap_texture_reply();
+			return;
 		}
 	}
 	emit sig_unmap_texture_reply();

@@ -71,7 +71,7 @@ GLDraw_4_3::GLDraw_4_3(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, 
 	pixel_width = 0;
 	pixel_height = 0;
 	main_texture_buffer = 0;
-	map_base_address = 0;
+	map_base_address = NULL;
 }
 
 GLDraw_4_3::~GLDraw_4_3()
@@ -129,18 +129,16 @@ QOpenGLTexture *GLDraw_4_3::createMainTexture(QImage *img)
 	}
 	{
 		extfunc->glGenBuffers(1, &main_texture_buffer);
-		extfunc->glBindBuffer(GL_TEXTURE_BUFFER, main_texture_buffer);
-		extfunc->glBufferData(GL_TEXTURE_BUFFER, w * h * sizeof(uint32_t), ip->constBits(), GL_DYNAMIC_COPY);
-		tx = new QOpenGLTexture(QOpenGLTexture::TargetBuffer);
+		extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, main_texture_buffer);
+		extfunc->glBufferData(GL_PIXEL_UNPACK_BUFFER, w * h * sizeof(uint32_t), ip->constBits(), GL_DYNAMIC_COPY);
+		tx = new QOpenGLTexture(QOpenGLTexture::Target2D);
 		tx->setFormat(QOpenGLTexture::RGBA8_UNorm);
 		tx->setMinMagFilters(QOpenGLTexture::Linear, QOpenGLTexture::Nearest);
 		tx->setWrapMode(QOpenGLTexture::ClampToEdge);
-		tx->setSize(w * h);
+		tx->setData(*ip, QOpenGLTexture::DontGenerateMipMaps);
 		tx->bind();
-		extfunc->glActiveTexture(GL_TEXTURE0);
-		extfunc->glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA8, main_texture_buffer);
 		tx->release();
-		extfunc->glBindBuffer(GL_TEXTURE_BUFFER, 0);
+		extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 	}
 	pixel_width = w;
 	pixel_height = h;
@@ -774,7 +772,7 @@ void GLDraw_4_3::uploadMainTexture(QImage *p, bool use_chromakey)
 {
 	// set vertex
 	redraw_required = true;
-	if(p == NULL) return;
+	//if(p == NULL) return;
 	//redraw_required = true;
 	imgptr = p;
 	if(uVramTextureID == NULL) {
@@ -782,28 +780,35 @@ void GLDraw_4_3::uploadMainTexture(QImage *p, bool use_chromakey)
 	} else 	{
 		// Upload to main texture
 		if(p != NULL) {
-			extfunc->glBindBuffer(GL_TEXTURE_BUFFER, main_texture_buffer);
-			uint32_t *pp = (uint32_t *)(extfunc->glMapBuffer(GL_TEXTURE_BUFFER, GL_WRITE_ONLY));
-			if(pp != NULL) {
 #if 1
-				int s1 = pixel_width * pixel_height * sizeof(uint32_t);
-				int s2 = p->height() * p->width() * sizeof(uint32_t);
-				int ww = (pixel_width < p->width()) ? pixel_width : p->width();
+			extfunc->glBindBuffer(GL_PIXEL_PACK_BUFFER, main_texture_buffer);
+			uint32_t *pp = (uint32_t *)(extfunc->glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_WRITE_ONLY));
+			if(pp != NULL) {
 				int hh = (pixel_height < p->height()) ? pixel_height : p->height();
 				for(int y = 0; y < hh; y++) {
 					memcpy(&(pp[y * pixel_width]), p->scanLine(y), p->width() * sizeof(uint32_t));
 				}
-#else
-				int s1 = pixel_width * pixel_height * sizeof(uint32_t);
-				memcpy(pp, p->constBits(), s1);
-#endif				
 			}
-			extfunc->glUnmapBuffer(GL_TEXTURE_BUFFER);
-			extfunc->glBindTexture(GL_TEXTURE_BUFFER, uVramTextureID->textureId());
-			extfunc->glActiveTexture(GL_TEXTURE0);
-			extfunc->glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA8, main_texture_buffer);
-			extfunc->glBindTexture(GL_TEXTURE_BUFFER, 0);
-			extfunc->glBindBuffer(GL_TEXTURE_BUFFER, 0);
+			extfunc->glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+			extfunc->glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+			
+			extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, main_texture_buffer);
+			extfunc->glBindTexture(GL_TEXTURE_2D, uVramTextureID->textureId());
+			//extfunc->glActiveTexture(GL_TEXTURE0);
+			extfunc->glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, p->width(), p->height(), GL_RGBA, GL_UNSIGNED_BYTE, 0);
+			extfunc->glBindTexture(GL_TEXTURE_2D, 0);
+			extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+#else
+			uVramTextureID->setData(*p, QOpenGLTexture::DontGenerateMipMaps);
+#endif
+		} else {
+			// This sequence is *outside* of normal rendering phase, maybe using compute shader.
+			extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, main_texture_buffer);
+			extfunc->glBindTexture(GL_TEXTURE_2D, uVramTextureID->textureId());
+			//extfunc->glActiveTexture(GL_TEXTURE0);
+			extfunc->glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, pixel_width, pixel_height, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+			extfunc->glBindTexture(GL_TEXTURE_2D, 0);
+			extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 		}
 	}
 #if 1
@@ -879,8 +884,8 @@ void GLDraw_4_3::drawMain(QOpenGLShaderProgram *prg,
 		ortho.ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
 
 		extfunc->glActiveTexture(GL_TEXTURE0);
-		//extfunc->glBindTexture(GL_TEXTURE_2D, texid);
-		extfunc->glBindTexture(GL_TEXTURE_BUFFER, texid);
+		extfunc->glBindTexture(GL_TEXTURE_2D, texid);
+		//extfunc->glBindTexture(GL_PIXEL_UNPACK_BUFFER, texid);
 
 		extfunc->glClearColor(1.0, 1.0, 1.0, 1.0);
 		if(!f_smoosing) {
@@ -962,7 +967,7 @@ void GLDraw_4_3::drawMain(QOpenGLShaderProgram *prg,
 		vp->release();
 		
 		prg->release();
-		extfunc->glBindTexture(GL_TEXTURE_BUFFER, 0);
+		extfunc->glBindTexture(GL_TEXTURE_2D, 0);
 		//extfunc->glBindTexture(GL_TEXTURE_2D, 0);
    }
 	else {
@@ -1021,7 +1026,7 @@ void GLDraw_4_3::drawMain(QOpenGLShaderProgram *prg,
 		bp->release();
 		vp->release();
 		prg->release();
-		extfunc->glBindTexture(GL_TEXTURE_BUFFER, 0);
+		extfunc->glBindTexture(GL_TEXTURE_2D, 0);
 	}
 }
 
@@ -1790,6 +1795,7 @@ void GLDraw_4_3::get_screen_geometry(int *w, int *h)
 
 scrntype_t *GLDraw_4_3::get_screen_buffer(int y)
 {
+	if((y < 0) || (y >= pixel_height)) return NULL;
 	if(map_base_address == NULL) {
 		return NULL;
 	} else {
@@ -1798,7 +1804,8 @@ scrntype_t *GLDraw_4_3::get_screen_buffer(int y)
 		return p;
 	}
 }
-
+// Note: Mapping vram from draw_thread does'nt work well.
+// This feature might be disable. 20180728 K.Ohta.
 bool GLDraw_4_3::is_ready_to_map_vram_texture(void)
 {
 	return false;
@@ -1806,10 +1813,27 @@ bool GLDraw_4_3::is_ready_to_map_vram_texture(void)
 
 bool GLDraw_4_3::map_vram_texture(void)
 {
-	return false;
+	if(main_texture_buffer == 0) {
+		return false;
+	}
+	extfunc->glBindBuffer(GL_PIXEL_PACK_BUFFER, main_texture_buffer);
+	map_base_address = (scrntype_t *)(extfunc->glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_WRITE));
+	if(map_base_address == NULL) return false;
+	return true;
 }
 
 bool GLDraw_4_3::unmap_vram_texture(void)
 {
-	return false;
+	if((map_base_address == NULL) || (main_texture_buffer == 0)) return false;
+
+	extfunc->glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+	extfunc->glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+			
+	extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, main_texture_buffer);
+	extfunc->glBindTexture(GL_TEXTURE_2D, uVramTextureID->textureId());
+	//extfunc->glActiveTexture(GL_TEXTURE0);
+	extfunc->glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, pixel_width, pixel_height, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+	extfunc->glBindTexture(GL_TEXTURE_2D, 0);
+	extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+	return true;
 }
