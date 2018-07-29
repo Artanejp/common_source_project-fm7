@@ -83,9 +83,9 @@ scrntype_t* OSD_BASE::get_vm_screen_buffer(int y)
 		if((mapped_screen_width > 0) && (mapped_screen_pointer != NULL)){
 			if(y < mapped_screen_height) {
 				int offset = y * mapped_screen_width;
-				uint8_t *p = (uint8_t *)mapped_screen_pointer;
+				scrntype_t *p = mapped_screen_pointer;
 				p = p + offset;
-				return (scrntype_t *)p;
+				return p;
 			} else {
 				return NULL;
 			}
