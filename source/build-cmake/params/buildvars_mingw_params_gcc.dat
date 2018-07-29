@@ -26,7 +26,7 @@ case ${LOCAL_ARCH_TYPE} in
 
 case ${CSP_DEBUG} in
    "Yes" | "yes" | "YES" )
-     MAKEFLAGS_BASE2="-g -ggdb ${ARCH_FLAGS} ${MAKEFLAGS_BASE} ${ADDITIONAL_CFLAGS} -DNDEBUG"
+     MAKEFLAGS_BASE2="-ggdb1 ${ARCH_FLAGS} ${MAKEFLAGS_BASE} ${ADDITIONAL_CFLAGS} -DNDEBUG"
      ;;
    "No" | "no" | "NO" | * )
      MAKEFLAGS_BASE2="${MAKEFLAGS_BASE} -O3 \
@@ -102,8 +102,8 @@ case ${STRIP_SYMBOLS} in
      MAKEFLAGS_LINK_BASE="-s ${MAKEFLAGS_LINK_BASE}"
    ;;
    "No" | "no" | "NO" | * )
-     MAKEFLAGS_BASE2="-g -ggdb ${MAKEFLAGS_BASE2}"
-     MAKEFLAGS_LINK_BASE="-g -ggdb ${MAKEFLAGS_LINK_BASE}"
+     MAKEFLAGS_BASE2="${MAKEFLAGS_BASE2}"
+     MAKEFLAGS_LINK_BASE="${MAKEFLAGS_LINK_BASE}"
    ;;
 esac
 case ${USE_OPENMP} in
