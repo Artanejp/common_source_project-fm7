@@ -30,7 +30,7 @@ private:
 	uint8_t* rbank[32];
 	
 public:
-	TF20(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	TF20(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		drive_no = 0;
 		set_device_name(_T("TF-20 FDD"));

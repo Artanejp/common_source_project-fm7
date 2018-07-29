@@ -114,7 +114,7 @@
 } while(0)
 
 // main
-Z80::Z80(VM* parent_vm, EMU* parent_emu) : Z80_BASE(parent_vm, parent_emu)
+Z80::Z80(VM_TEMPLATE* parent_vm, EMU* parent_emu) : Z80_BASE(parent_vm, parent_emu)
 {
 #ifdef HAS_NSC800
 	has_nsc800 = true;

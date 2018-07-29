@@ -124,7 +124,7 @@ protected:
 	//virtual void draw_text();
 	//virtual void draw_pset(int x, int y);
 public:
-	UPD7220_BASE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	UPD7220_BASE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_drq);
 		initialize_output_signals(&outputs_vsync);
@@ -242,7 +242,7 @@ private:
 	void draw_text();
 	void draw_pset(int x, int y);
 public:
-	UPD7220(VM* parent_vm, EMU* parent_emu) : UPD7220_BASE(parent_vm, parent_emu)
+	UPD7220(VM_TEMPLATE* parent_vm, EMU* parent_emu) : UPD7220_BASE(parent_vm, parent_emu)
 	{
 	}
 	~UPD7220() {}

@@ -72,7 +72,7 @@ private:
 	void update_event();
 	
 public:
-	AY_3_891X(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	AY_3_891X(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 #ifdef SUPPORT_AY_3_891X_PORT
 		for(int i = 0; i < 2; i++) {

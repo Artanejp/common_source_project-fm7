@@ -115,7 +115,7 @@ private:
 	inline uint16_t setst_sla_laeco(uint16_t a, uint16_t c);
 	
 public:
-	TMS9995(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	TMS9995(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		// init registers
 #ifdef USE_DEBUGGER

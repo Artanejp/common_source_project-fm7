@@ -36,7 +36,7 @@ private:
 	void update_intr();
 	
 public:
-	HD146818P(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	HD146818P(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_intr);
 		initialize_output_signals(&outputs_sqw);

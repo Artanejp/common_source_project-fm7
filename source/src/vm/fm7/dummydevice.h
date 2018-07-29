@@ -58,7 +58,7 @@ private:
 	bool clear_on_reset;
 	bool clear_with_zero;
 public:
-	DUMMYDEVICE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	DUMMYDEVICE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		status = 0x00000000;
 		clear_on_reset = true;

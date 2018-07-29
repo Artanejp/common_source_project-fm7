@@ -28,7 +28,7 @@ protected:
 #endif
 
 public:
-	I386(VM* parent_vm, EMU* parent_emu) : I386_BASE(parent_vm, parent_emu)
+	I386(VM_TEMPLATE* parent_vm, EMU* parent_emu) : I386_BASE(parent_vm, parent_emu)
 	{
 #ifdef USE_DEBUGGER
 		d_debugger = NULL;

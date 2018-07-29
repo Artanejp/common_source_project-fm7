@@ -38,7 +38,7 @@ private:
 	void *opaque;
 	
 public:
-	I286(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	I286(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 #ifdef I86_PSEUDO_BIOS
 		d_bios = NULL;

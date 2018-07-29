@@ -331,7 +331,7 @@ protected:
 	inline void _invalid();
 	
 public:
-	I86_BASE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	I86_BASE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		busreq = false;
 		d_bios = NULL;

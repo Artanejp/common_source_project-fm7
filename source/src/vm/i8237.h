@@ -63,7 +63,7 @@ protected:
 	uint32_t read_io(int ch);
 	
 public:
-	I8237_BASE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	I8237_BASE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		for(int i = 0; i < 4; i++) {
 			//dma[i].dev = vm->dummy;
@@ -141,7 +141,7 @@ private:
 	DEVICE* d_dma;
 #endif
 public:
-	I8237(VM* parent_vm, EMU* parent_emu);
+	I8237(VM_TEMPLATE* parent_vm, EMU* parent_emu);
 	~I8237();
 
 	virtual void write_io8(uint32_t addr, uint32_t data);

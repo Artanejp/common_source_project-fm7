@@ -11,7 +11,7 @@
 #include "../device.h"
 #include "./bubblecasette.h"
 
-BUBBLECASETTE::BUBBLECASETTE(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
+BUBBLECASETTE::BUBBLECASETTE(VM_TEMPLATE* parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
 {
 	fio = NULL;
 	memset(image_path, 0x00, _MAX_PATH * sizeof(_TCHAR));
@@ -20,7 +20,6 @@ BUBBLECASETTE::BUBBLECASETTE(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm,
 	memset(bubble_data, 0x00, 0x20000);
 	bubble_inserted = false;
 	read_access = write_access = false;
-	p_emu = parent_emu;
 	set_device_name(_T("FM Bubble Casette"));
 
 }

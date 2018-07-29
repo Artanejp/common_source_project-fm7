@@ -61,7 +61,7 @@ private:
 	int volume_l, volume_r;
 	
 public:
-	MSM5205(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MSM5205(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&m_vclk_cb);
 		volume_m = 1024;

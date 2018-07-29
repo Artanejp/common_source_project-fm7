@@ -57,7 +57,7 @@ protected:
 	virtual void draw_alpha();
 	
 public:
-	MC6847_BASE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MC6847_BASE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		d_cpu = NULL;
 		ag = as = intext = css = inv = false;
@@ -104,7 +104,7 @@ class MC6847 : public MC6847_BASE
 protected:
 	void draw_alpha();
 public:
-	MC6847(VM* parent_vm, EMU* parent_emu) : MC6847_BASE(parent_vm, parent_emu)
+	MC6847(VM_TEMPLATE* parent_vm, EMU* parent_emu) : MC6847_BASE(parent_vm, parent_emu)
 	{
 	}
 	~MC6847() {};

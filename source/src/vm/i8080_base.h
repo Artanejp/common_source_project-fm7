@@ -110,7 +110,7 @@ protected:
 	uint64_t total_count;
 	uint64_t prev_total_count;
 public:
-	I8080_BASE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	I8080_BASE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		BUSREQ = false;
 		SID = true;

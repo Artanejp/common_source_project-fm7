@@ -80,8 +80,8 @@ protected:
 	int __SCREEN_WIDTH;
 	int __SCREEN_HEIGHT;
 	// construction/destruction
-	//v99x8_device(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu){}
-	v99x8_device(VM* parent_vm, EMU* parent_emu);
+	//v99x8_device(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu){}
+	v99x8_device(VM_TEMPLATE* parent_vm, EMU* parent_emu);
 
 public:
 	//template<class _irq> void set_interrupt_callback(_irq irq) {
@@ -328,7 +328,7 @@ public:
 class v9938_device : public v99x8_device
 {
 public:
-	v9938_device(VM* parent_vm, EMU* parent_emu);
+	v9938_device(VM_TEMPLATE* parent_vm, EMU* parent_emu);
 
 	//DECLARE_PALETTE_INIT(v9938);
 protected:
@@ -339,7 +339,7 @@ protected:
 class v9958_device : public v99x8_device
 {
 public:
-	v9958_device(VM* parent_vm, EMU* parent_emu);
+	v9958_device(VM_TEMPLATE* parent_vm, EMU* parent_emu);
 
 	//DECLARE_PALETTE_INIT(v9958);
 

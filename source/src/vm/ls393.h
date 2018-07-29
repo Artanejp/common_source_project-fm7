@@ -28,7 +28,7 @@ private:
 	bool prev_in;
 	
 public:
-	LS393(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	LS393(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		for(int i = 0; i < 8; i++) {
 			initialize_output_signals(&outputs[i]);

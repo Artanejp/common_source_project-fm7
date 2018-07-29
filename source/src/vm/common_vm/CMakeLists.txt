@@ -1,6 +1,6 @@
 message("* vm/common_vm")
 
-SET(THIS_LIB_VERSION 1.5.0)
+SET(THIS_LIB_VERSION 1.6.0)
 
 #include(cotire)
 set(s_vm_common_vm_srcs
@@ -120,6 +120,8 @@ set(s_vm_common_vm_srcs
 #set_directory_properties(PROPERTIES
 #  COTIRE_PREFIX_HEADER_IGNORE_PATH ${SRC_BASE_DIR}/vm/mame
 #)
+
+add_definitions(-D_LIBRARY_NAME=libCSPcommon_vm.${THIS_LIB_VERSION})
 
 if(WIN32)
 include (GenerateExportHeader)

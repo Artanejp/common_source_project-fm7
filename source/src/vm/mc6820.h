@@ -39,7 +39,7 @@ private:
 	} port[2];
 	
 public:
-	MC6820(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MC6820(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		for(int i = 0; i < 2; i++) {
 			initialize_output_signals(&port[i].outputs);

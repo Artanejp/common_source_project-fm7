@@ -532,7 +532,7 @@ protected:
 	int frames_count;
 
 public:
-	MC6809_BASE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) 
+	MC6809_BASE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) 
 	{
 
 		total_icount = prev_total_icount = 0;
@@ -699,7 +699,7 @@ class MC6809 : public MC6809_BASE
 {
 
  public:
-	MC6809(VM* parent_vm, EMU* parent_emu) : MC6809_BASE(parent_vm, parent_emu) 
+	MC6809(VM_TEMPLATE* parent_vm, EMU* parent_emu) : MC6809_BASE(parent_vm, parent_emu) 
 	{
 	}
 	~MC6809() {}

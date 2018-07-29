@@ -112,7 +112,7 @@ class MCS48MEM : public DEVICE
 private:
 	uint8_t ram[0x100];
 public:
-	MCS48MEM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MCS48MEM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		memset(ram, 0, sizeof(ram));
 		set_device_name(_T("MCS48 MEMORY BUS"));
@@ -472,7 +472,7 @@ protected:
 	inline UINT8 opcode_fetch(mcs48_state *cpustate);
 	int op_call(mcs48_state *);
 public:
-	MCS48_BASE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MCS48_BASE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		d_mem = d_io = d_intr = NULL;
 		d_debugger = NULL;
@@ -736,7 +736,7 @@ private:
 	
 	
 public:
-	MCS48(VM* parent_vm, EMU* parent_emu) : MCS48_BASE(parent_vm, parent_emu)
+	MCS48(VM_TEMPLATE* parent_vm, EMU* parent_emu) : MCS48_BASE(parent_vm, parent_emu)
 	{
 	}
 	~MCS48() {}

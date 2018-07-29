@@ -16,7 +16,7 @@
 extern CSP_Logger *csp_logger;
 #endif
 
-DEVICE::DEVICE(VM* parent_vm, EMU* parent_emu) : vm(parent_vm), emu(parent_emu)
+DEVICE::DEVICE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : vm(parent_vm), emu(parent_emu)
 {
 	vm = parent_vm;
 	emu = parent_emu;

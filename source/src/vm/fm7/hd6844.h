@@ -92,7 +92,7 @@ protected:
 	void do_transfer_end(int ch);
 	void do_irq(void);
  public:
-	HD6844(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
+	HD6844(VM_TEMPLATE* parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		int i;
 		for(i = 0; i < 4; i++) {

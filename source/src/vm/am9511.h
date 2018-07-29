@@ -48,7 +48,7 @@ private:
 	void apu_write_command ( uint8_t cmd );
 	
 public:
-	AM9511(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	AM9511(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		_APU_CLOCK = 1.0e6;
 		set_device_name(_T("AM9511"));

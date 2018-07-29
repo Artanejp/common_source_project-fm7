@@ -46,9 +46,6 @@ class csp_state_utils;
 
 class BUBBLECASETTE: public DEVICE {
 protected:
-	EMU *p_emu;
-	VM *p_vm;
-
 	FILEIO* fio;
 	
 	bool is_wrote;
@@ -105,7 +102,7 @@ private:
 	bool read_one_page(void);
 	bool write_one_page(void);
 public:
-	BUBBLECASETTE(VM* parent_vm, EMU* parent_emu);
+	BUBBLECASETTE(VM_TEMPLATE* parent_vm, EMU* parent_emu);
 	~BUBBLECASETTE();
 
 	void initialize();

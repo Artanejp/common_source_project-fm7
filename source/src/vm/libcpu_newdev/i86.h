@@ -47,7 +47,7 @@ private:
 	void _0fpre();    /* Opcode 0x0f */
 #endif
 public:
-	I86(VM* parent_vm, EMU* parent_emu) : I86_BASE(parent_vm, parent_emu)
+	I86(VM_TEMPLATE* parent_vm, EMU* parent_emu) : I86_BASE(parent_vm, parent_emu)
 	{
 #ifdef SINGLE_MODE_DMA
 		d_dma = NULL;

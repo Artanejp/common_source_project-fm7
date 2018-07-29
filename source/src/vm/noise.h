@@ -31,7 +31,7 @@ private:
 	void get_sample();
 	
 public:
-	NOISE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	NOISE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		buffer_l = buffer_r = NULL;
 		samples = 0;

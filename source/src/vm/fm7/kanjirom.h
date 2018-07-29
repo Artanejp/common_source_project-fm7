@@ -17,15 +17,13 @@ class EMU;
 class VM;
 class KANJIROM: public DEVICE {
 private:
-	EMU *p_emu;
-	
 	uint8_t data_table[0x20000];
 	bool read_ok;
 	bool class2;
 	pair_t kanjiaddr;
 
 public:
-	KANJIROM(VM *parent_vm, EMU* parent_emu, bool type_2std);
+	KANJIROM(VM_TEMPLATE* parent_vm, EMU* parent_emu, bool type_2std);
 	~KANJIROM();
 	void write_data8(uint32_t addr, uint32_t data);
 	uint32_t read_data8(uint32_t addr);

@@ -22,8 +22,6 @@ class BEEP;
 #endif
 class KEYBOARD : public DEVICE {
  protected:
-	VM* p_vm;
-	EMU* p_emu;
 	uint8_t get_keycode_high(void);
 	uint8_t get_keycode_low(void);
 	void turn_on_ins_led(void);
@@ -123,7 +121,7 @@ private:
 	int repeat_time_long;
 	
  public:
-	KEYBOARD(VM *parent_vm, EMU *parent_emu);
+	KEYBOARD(VM_TEMPLATE* parent_vm, EMU *parent_emu);
 	~KEYBOARD();
    
 	void key_up(uint32_t vk);

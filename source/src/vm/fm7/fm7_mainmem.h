@@ -78,9 +78,6 @@ class FM7_MAINMEM : public DEVICE
 	bool boot_ram_write;
 #endif
  protected:
-	EMU *p_emu;
-	VM *p_vm;
-   
 	uint8_t fm7_mainmem_omote[0x8000];
 	uint8_t fm7_mainmem_ura[0x7c00];
 	uint8_t fm7_mainmem_basicrom[0x7c00];
@@ -225,7 +222,7 @@ class FM7_MAINMEM : public DEVICE
 		return static_cast<T *>(np)->read_dma_data8(addr);
 	}
  public:
-	FM7_MAINMEM(VM* parent_vm, EMU* parent_emu);
+	FM7_MAINMEM(VM_TEMPLATE* parent_vm, EMU* parent_emu);
 	~FM7_MAINMEM();
 	uint32_t read_data8(uint32_t addr);
 	uint32_t read_dma_data8(uint32_t addr);

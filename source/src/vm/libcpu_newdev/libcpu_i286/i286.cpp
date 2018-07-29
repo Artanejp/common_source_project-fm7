@@ -239,7 +239,7 @@ const uint8_t i80286_cpu_device::m_i80286_timing[] =
 };
 
 
-i80286_cpu_device::i80286_cpu_device(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+i80286_cpu_device::i80286_cpu_device(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
 	memcpy(m_timing, m_i80286_timing, sizeof(m_i80286_timing));
 	m_amask = 0xffffff;

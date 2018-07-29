@@ -94,7 +94,7 @@ at most 192 KiB RAM (128 KiB base, 64 KiB expansion).
 
 //v99x8_device::v99x8_device(const machine_config &mconfig, device_type type, const char *name, const char *shortname, const char *tag, device_t *owner, UINT32 clock)
 //:   device_t(mconfig, type, name, tag, owner, clock, shortname, __FILE__),
-v99x8_device::v99x8_device(VM* parent_vm, EMU* parent_emu)
+v99x8_device::v99x8_device(VM_TEMPLATE* parent_vm, EMU* parent_emu)
 :   DEVICE(parent_vm, parent_emu),
 //	device_memory_interface(mconfig, *this),
 //	device_video_interface(mconfig, *this),
@@ -132,7 +132,7 @@ v99x8_device::v99x8_device(VM* parent_vm, EMU* parent_emu)
 
 //v9938_device::v9938_device(const machine_config &mconfig, const char *tag, device_t *owner, UINT32 clock)
 //: v99x8_device(mconfig, V9938, "V9938 VDP", "v9938", tag, owner, clock)
-v9938_device::v9938_device(VM* parent_vm, EMU* parent_emu)
+v9938_device::v9938_device(VM_TEMPLATE* parent_vm, EMU* parent_emu)
 : v99x8_device(parent_vm, parent_emu)
 {
 	m_model = MODEL_V9938;
@@ -142,7 +142,7 @@ v9938_device::v9938_device(VM* parent_vm, EMU* parent_emu)
 
 //v9958_device::v9958_device(const machine_config &mconfig, const char *tag, device_t *owner, UINT32 clock)
 //: v99x8_device(mconfig, V9938, "V9958 VDP", "v9958", tag, owner, clock)
-v9958_device::v9958_device(VM* parent_vm, EMU* parent_emu)
+v9958_device::v9958_device(VM_TEMPLATE* parent_vm, EMU* parent_emu)
 : v99x8_device(parent_vm, parent_emu)
 {
 	m_model = MODEL_V9958;

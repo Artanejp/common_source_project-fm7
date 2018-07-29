@@ -61,7 +61,7 @@
 #include "./jcommcard.h"
 #endif
 
-VM::VM(EMU* parent_emu): emu(parent_emu)
+VM::VM(EMU* parent_emu): VM_TEMPLATE(parent_emu)
 {
 	
 	first_device = last_device = NULL;

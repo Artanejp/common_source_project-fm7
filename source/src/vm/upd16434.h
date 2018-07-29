@@ -30,7 +30,7 @@ private:
 	void update_pointer(uint8_t mode);
 	
 public:
-	UPD16434(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
+	UPD16434(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
 		set_device_name(_T("uPD16434 LCD Controller"));
 	}
 	~UPD16434() {}

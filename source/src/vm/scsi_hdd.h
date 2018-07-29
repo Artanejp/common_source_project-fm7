@@ -24,7 +24,7 @@ private:
 //	csp_state_utils *state_entry;
 
 public:
-	SCSI_HDD(VM* parent_vm, EMU* parent_emu) : SCSI_DEV(parent_vm, parent_emu) 
+	SCSI_HDD(VM_TEMPLATE* parent_vm, EMU* parent_emu) : SCSI_DEV(parent_vm, parent_emu) 
 	{
 		for(int i = 0; i < 8; i++) {
 			disk[i] = NULL;

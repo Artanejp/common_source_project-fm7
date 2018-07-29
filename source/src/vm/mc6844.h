@@ -41,7 +41,7 @@ private:
 	void update_irq();
 	
 public:
-	MC6844(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MC6844(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		// TIP: if((DEVICE::prev_device == NULL) || (DEVICE::this_device_id == 0)) DEVICE must be DUMMY.
 		// And, at this device, should not be FIRST DEVICE. 20170613 Ohta.

@@ -148,7 +148,7 @@ private:
 	double next_req_usec;
 	
 public:
-	SCSI_DEV(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	SCSI_DEV(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_dat);
 		initialize_output_signals(&outputs_bsy);

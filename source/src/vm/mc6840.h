@@ -79,7 +79,7 @@ private:
 	void set_clock(int idx, int state);
 	
 public:
-	MC6840(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MC6840(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_ch0);
 		initialize_output_signals(&outputs_ch1);

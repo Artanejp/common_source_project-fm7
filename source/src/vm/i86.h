@@ -337,7 +337,7 @@ private:
 	inline void _invalid();
 	
 public:
-	I86(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	I86(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		d_bios = NULL;
 #ifdef SINGLE_MODE_DMA

@@ -19,7 +19,7 @@
 DLL_PREFIX_I struct cur_time_s cur_time;
 #endif
 
-MSM58321::MSM58321(VM* parent_vm, EMU* parent_emu) : MSM58321_BASE(parent_vm, parent_emu)
+MSM58321::MSM58321(VM_TEMPLATE* parent_vm, EMU* parent_emu) : MSM58321_BASE(parent_vm, parent_emu)
 {
 		initialize_output_signals(&outputs_busy);
 		set_device_name(_T("MSM58321 RTC"));

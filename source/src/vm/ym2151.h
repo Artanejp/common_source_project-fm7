@@ -58,7 +58,7 @@ private:
 	void update_interrupt();
 	
 public:
-	YM2151(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	YM2151(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_irq);
 		base_decibel = 0;

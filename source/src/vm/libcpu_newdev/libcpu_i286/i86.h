@@ -34,7 +34,7 @@ class i8086_common_cpu_device : public DEVICE
 {
 public:
 	// construction/destruction
-	i8086_common_cpu_device(VM *prev_vm, EMU* prev_emu);
+	i8086_common_cpu_device(VM_TEMPLATE* prev_vm, EMU* prev_emu);
 	~i8086_common_cpu_device();
 
 	virtual void initialize();
@@ -417,7 +417,7 @@ class i8086_cpu_device : public i8086_common_cpu_device
 {
 public:
 	// construction/destruction
-	i8086_cpu_device(VM* prev_vm, EMU* prev_emu);
+	i8086_cpu_device(VM_TEMPLATE* prev_vm, EMU* prev_emu);
 	~i8086_cpu_device();
 
 	// device_memory_interface overrides

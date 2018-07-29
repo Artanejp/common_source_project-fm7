@@ -60,7 +60,7 @@ private:
 	void update_intr();
 	
 public:
-	Z80PIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	Z80PIO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		memset(port, 0, sizeof(port));
 		for(int i = 0; i < 2; i++) {

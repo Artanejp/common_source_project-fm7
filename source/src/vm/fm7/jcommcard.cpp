@@ -14,7 +14,7 @@
 #include "../mc6809.h"
 #include "./jcommcard.h"
 
-FM7_JCOMMCARD::FM7_JCOMMCARD(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
+FM7_JCOMMCARD::FM7_JCOMMCARD(VM_TEMPLATE* parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
 {
 	n_bank = 0;
 	rcb_address = 0;

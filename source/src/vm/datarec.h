@@ -106,7 +106,7 @@ private:
 	int load_msx_cas_image();
 	
 public:
-	DATAREC(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	DATAREC(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_ear);
 		initialize_output_signals(&outputs_remote);

@@ -61,7 +61,7 @@ private:
 	inline void draw_screen_256_nonimpose();
 	
 public:
-	TMS9918A(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	TMS9918A(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_irq);
 		vram = NULL;

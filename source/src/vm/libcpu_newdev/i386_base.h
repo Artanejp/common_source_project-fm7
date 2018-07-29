@@ -17,7 +17,7 @@
 #include "./device.h"
 #define SIG_I386_A20	1
 
-class VM;
+class VM_TEMPLATE;
 class EMU;
 class DEBUGGER;
 class I386_OPS_BASE;
@@ -31,7 +31,7 @@ protected:
 	DEVICE *d_bios;
 	DEVICE *d_dma;
 public:
-	I386_BASE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	I386_BASE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		d_bios = NULL;
 		d_dma = NULL;

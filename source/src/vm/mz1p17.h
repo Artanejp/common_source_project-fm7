@@ -94,7 +94,7 @@ private:
 	void finish_paper();
 	
 public:
-	MZ1P17(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MZ1P17(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_busy);
 		initialize_output_signals(&outputs_ack);

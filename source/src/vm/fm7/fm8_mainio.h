@@ -44,7 +44,7 @@ class FM8_MAINIO : public FM7_MAINIO {
 	uint8_t get_extirq_whg(void) override;
 	uint8_t get_extirq_thg(void) override;
 public:
-	FM8_MAINIO(VM* parent_vm, EMU* parent_emu);
+	FM8_MAINIO(VM_TEMPLATE* parent_vm, EMU* parent_emu);
 	~FM8_MAINIO();
 	
 	void write_data8(uint32_t addr, uint32_t data);

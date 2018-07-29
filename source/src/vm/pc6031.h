@@ -78,7 +78,7 @@ private:
 	unsigned char InD3H_60();
 	
 public:
-	PC6031(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	PC6031(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		d_noise_seek = NULL;
 //		d_noise_head_down = NULL;

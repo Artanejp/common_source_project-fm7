@@ -108,7 +108,7 @@ private:
 	void OP74();
 	
 public:
-	UPD7801(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	UPD7801(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 
 		total_count = prev_total_count = 0;

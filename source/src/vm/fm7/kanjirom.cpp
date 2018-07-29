@@ -12,7 +12,7 @@
 #include "fm7_common.h"
 #include "kanjirom.h"
 
-KANJIROM::KANJIROM(VM *parent_vm, EMU* parent_emu, bool type_2std): DEVICE(parent_vm, parent_emu)
+KANJIROM::KANJIROM(VM_TEMPLATE* parent_vm, EMU* parent_emu, bool type_2std): DEVICE(parent_vm, parent_emu)
 {
 	FILEIO *fio;
 	read_ok = false;
@@ -20,8 +20,6 @@ KANJIROM::KANJIROM(VM *parent_vm, EMU* parent_emu, bool type_2std): DEVICE(paren
 	fio = new FILEIO();
 	memset(data_table, 0xff, 0x20000); 
 	//	read_table[0].memory = data_table;
-	p_emu = parent_emu;
-
 	if(type_2std) {
 		class2 = true;
 		if(fio->Fopen(create_local_path(_T(ROM_KANJI_CLASS2)), FILEIO_READ_BINARY)) {

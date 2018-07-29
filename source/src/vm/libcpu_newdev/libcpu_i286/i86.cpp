@@ -87,7 +87,7 @@ const uint8_t i8086_cpu_device::m_i8086_timing[] =
 
 /***************************************************************************/
 
-i8088_cpu_device::i8088_cpu_device(VM* parent_vm, EMU* parent_emu) : i8086_cpu_device(parent_vm, parent_emu)
+i8088_cpu_device::i8088_cpu_device(VM_TEMPLATE* parent_vm, EMU* parent_emu) : i8086_cpu_device(parent_vm, parent_emu)
 {
 	memcpy(m_timing, m_i8086_timing, sizeof(m_i8086_timing));
 	m_amask = 0x000fffff;
@@ -98,7 +98,7 @@ i8088_cpu_device::~i8088_cpu_device()
 }
 
 
-i8086_cpu_device::i8086_cpu_device(VM* parent_vm, EMU* parent_emu) : i8086_common_cpu_device(parent_vm, parent_emu)
+i8086_cpu_device::i8086_cpu_device(VM_TEMPLATE* parent_vm, EMU* parent_emu) : i8086_common_cpu_device(parent_vm, parent_emu)
 {
 	memcpy(m_timing, m_i8086_timing, sizeof(m_i8086_timing));
 	m_extra_cycles = 0;
@@ -343,7 +343,7 @@ void i8086_cpu_device::execute_run()
 	m_extra_icount = 0;
 }
 
-i8086_common_cpu_device::i8086_common_cpu_device(VM* prev_vm, EMU* prev_emu)
+i8086_common_cpu_device::i8086_common_cpu_device(VM_TEMPLATE* prev_vm, EMU* prev_emu)
 	: DEVICE(prev_vm, prev_emu)
 	, m_ip(0)
 	, m_TF(0)

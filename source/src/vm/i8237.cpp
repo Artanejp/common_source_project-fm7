@@ -13,7 +13,7 @@
 #include "i8237.h"
 
 
-I8237::I8237(VM* parent_vm, EMU* parent_emu) : I8237_BASE(parent_vm, parent_emu)
+I8237::I8237(VM_TEMPLATE* parent_vm, EMU* parent_emu) : I8237_BASE(parent_vm, parent_emu)
 {
 	for(int i = 0; i < 4; i++) {
 		dma[i].dev = vm->dummy;

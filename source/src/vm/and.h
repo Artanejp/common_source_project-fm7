@@ -33,7 +33,7 @@ private:
 	bool prev, first;
 	
 public:
-	AND(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	AND(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs);
 		bits_mask = bits_in = 0;

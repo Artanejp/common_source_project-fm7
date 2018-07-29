@@ -93,7 +93,7 @@ private:
 	bool __315_5124_LIMIT_SPRITES;
 
 public:
-	_315_5124(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	_315_5124(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_irq);
 		set_device_name(_T("315-5124"));

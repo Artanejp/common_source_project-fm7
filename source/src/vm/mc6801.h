@@ -136,7 +136,7 @@ protected:
 
 //#endif
 public:
-	MC6801(VM* parent_vm, EMU* parent_emu) : MC6800(parent_vm, parent_emu)
+	MC6801(VM_TEMPLATE* parent_vm, EMU* parent_emu) : MC6800(parent_vm, parent_emu)
 	{
 		for(int i = 0; i < 4; i++) {
 			initialize_output_signals(&port[i].outputs);

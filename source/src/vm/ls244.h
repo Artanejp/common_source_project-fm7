@@ -27,7 +27,7 @@ private:
 	uint8_t din;
 	
 public:
-	LS244(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	LS244(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs);
 		set_device_name(_T("74LS244 Octal 3-State Buffer"));

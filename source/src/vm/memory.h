@@ -41,7 +41,7 @@ private:
 	uint8_t *wr_dummy;
 	
 public:
-	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		addr_max = MEMORY_ADDR_MAX;
 		bank_size = MEMORY_BANK_SIZE;

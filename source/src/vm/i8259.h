@@ -57,7 +57,7 @@ private:
 	void update_intr();
 	
 public:
-	I8259(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	I8259(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		d_cpu = NULL;
 		__I8259_MAX_CHIPS = 0;

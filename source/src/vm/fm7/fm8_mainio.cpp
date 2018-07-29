@@ -27,7 +27,7 @@
 #include "./fm7_mainmem.h"
 #include "bubblecasette.h"
 
-FM8_MAINIO::FM8_MAINIO(VM* parent_vm, EMU* parent_emu) : FM7_MAINIO(parent_vm, parent_emu)
+FM8_MAINIO::FM8_MAINIO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : FM7_MAINIO(parent_vm, parent_emu)
 {
     psg = NULL;
 	bubble_casette[0] = NULL;

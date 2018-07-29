@@ -54,7 +54,7 @@ protected:
 	void illegal() override;
 		
 public:
-	HD6301(VM* parent_vm, EMU* parent_emu) : MC6801(parent_vm, parent_emu)
+	HD6301(VM_TEMPLATE* parent_vm, EMU* parent_emu) : MC6801(parent_vm, parent_emu)
 	{
 		set_device_name(_T("HD6301 MPU"));
 	}

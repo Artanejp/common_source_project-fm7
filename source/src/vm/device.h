@@ -63,7 +63,7 @@ extern CSP_Logger *csp_logger;
 class DEVICE
 {
 protected:
-	VM* vm;
+	VM_TEMPLATE* vm;
 	EMU* emu;
 	OSD* osd;
 #if defined(_USE_QT)
@@ -72,7 +72,7 @@ protected:
 #endif
 
 public:
-	DEVICE(VM* parent_vm, EMU* parent_emu) : vm(parent_vm), emu(parent_emu)
+	DEVICE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : vm(parent_vm), emu(parent_emu)
 	{
 #if defined(_USE_QT)
 		osd = emu->get_osd();

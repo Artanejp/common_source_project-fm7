@@ -111,7 +111,7 @@ class MB61VH010: public DEVICE {
 	// LINE
 	void do_line(void);
  public:
-	MB61VH010(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
+	MB61VH010(VM_TEMPLATE* parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		target = NULL;
 		direct_access_offset = 0;

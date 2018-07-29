@@ -1151,11 +1151,8 @@ void KEYBOARD::write_data8(uint32_t addr, uint32_t data)
 	}
 }
 
-KEYBOARD::KEYBOARD(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
+KEYBOARD::KEYBOARD(VM_TEMPLATE* parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
 {
-	p_vm = parent_vm;
-	p_emu = parent_emu;
-	
 #if defined(_FM77AV_VARIANTS)
 	beep = NULL;
 #endif	

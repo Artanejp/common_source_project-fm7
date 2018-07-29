@@ -42,7 +42,7 @@ private:
 	void write_to_cur_time();
 	
 public:
-	RP5C01(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	RP5C01(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_alarm);
 		initialize_output_signals(&outputs_pulse);

@@ -32,8 +32,6 @@ class JOYSTICK : public DEVICE {
 	uint8_t lpmask;
 	int lpt_type;
  protected:
-	VM* p_vm;
-	EMU* p_emu;
 	DEVICE *opn;
 	
  private:
@@ -41,7 +39,7 @@ class JOYSTICK : public DEVICE {
 	void   update_strobe(bool flag);
 	uint32_t mouse_type;
  public:
-	JOYSTICK(VM *parent_vm, EMU *parent_emu);
+	JOYSTICK(VM_TEMPLATE* parent_vm, EMU *parent_emu);
 	~JOYSTICK();
 
 	void initialize(void);

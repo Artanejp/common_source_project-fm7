@@ -60,9 +60,6 @@ class FM7_MAINIO : public DEVICE {
 	outputs_t firq_bus;
 	outputs_t nmi_bus;
  protected:
-	VM* p_vm;
-	EMU* p_emu;
-	
 	uint8_t io_w_latch[0x100];
    
 	/* FD00: R */
@@ -500,7 +497,7 @@ class FM7_MAINIO : public DEVICE {
 
 	void decl_state_opn(void);
 public:
-	FM7_MAINIO(VM* parent_vm, EMU* parent_emu);
+	FM7_MAINIO(VM_TEMPLATE* parent_vm, EMU* parent_emu);
 	~FM7_MAINIO();
 	void event_vline(int v, int clock);
 

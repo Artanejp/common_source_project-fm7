@@ -29,7 +29,7 @@ private:
 	void write_to_cur_time();
 	
 public:
-	UPD4991A(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
+	UPD4991A(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
 		set_device_name(_T("uPD4991A RTC"));
 	}
 	~UPD4991A() {}

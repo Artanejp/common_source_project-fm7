@@ -37,7 +37,7 @@ private:
 	void update_irq();
 	
 public:
-	MC6850(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MC6850(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_out);
 		initialize_output_signals(&outputs_rts);

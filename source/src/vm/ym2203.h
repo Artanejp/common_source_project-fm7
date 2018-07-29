@@ -114,7 +114,7 @@ private:
 	void update_interrupt();
 //#endif
 public:
-	YM2203(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	YM2203(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		base_decibel_fm = base_decibel_psg = 0;
 		decibel_vol = 0 + 5;

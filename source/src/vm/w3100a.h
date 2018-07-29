@@ -29,7 +29,7 @@ private:
 	void process_status(uint16_t addr);
 	
 public:
-	W3100A(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
+	W3100A(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
 		set_device_name(_T("W3100A TCP/IP"));
 	}
 	~W3100A() {}

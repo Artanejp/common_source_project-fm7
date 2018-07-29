@@ -41,7 +41,7 @@ protected:
 	void adx_ex();
 
 public:
-	MB8861(VM* parent_vm, EMU* parent_emu) : MC6800(parent_vm, parent_emu)
+	MB8861(VM_TEMPLATE* parent_vm, EMU* parent_emu) : MC6800(parent_vm, parent_emu)
 	{
 		set_device_name(_T("MB8861 MPU"));
 	}

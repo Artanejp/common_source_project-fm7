@@ -40,7 +40,7 @@ private:
 	void *opaque;
 	
 public:
-	I386(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	I386(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 #ifdef I386_PSEUDO_BIOS
 		d_bios = NULL;

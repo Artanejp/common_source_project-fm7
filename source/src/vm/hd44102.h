@@ -42,7 +42,7 @@ private:
 	inline void count_up_or_down();
 	
 public:
-	HD44102(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	HD44102(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		_SCREEN_WIDTH = 192;
 		_SCREEN_HEIGHT = 64;

@@ -46,21 +46,23 @@
 #define SIG_SCSI_ACK		309
 #define SIG_SCSI_RST		310
 
+#include "vm_template.h"
+
 class CSP_Logger;
 class csp_state_utils;
-class VM;
+class VM_TEMPLATE;
 class EMU;
 class OSD;
 class DEVICE
 {
 protected:
-	VM* vm;
+	VM_TEMPLATE* vm;
 	EMU* emu;
 	OSD* osd;
 	csp_state_utils *state_entry;
 	CSP_Logger *p_logger;
 public:
-	DEVICE(VM* parent_vm, EMU* parent_emu);
+	DEVICE(VM_TEMPLATE* parent_vm, EMU* parent_emu);
 	//ToDo: Will implement real destructor per real classes and below destructor decl. with "virtual".
 	// This makes warning:
 	//"deleting object of polymorphic class type 'DEVICE' which has non-virtual
@@ -515,7 +517,7 @@ public:
 	{
 		event_manager = device;
 	}
-	virtual int get_event_manager_id();
+	int get_event_manager_id();
 	virtual void register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id);
 	virtual void register_event_by_clock(DEVICE* device, int event_id, uint64_t clock, bool loop, int* register_id);
 	virtual void cancel_event(DEVICE* device, int register_id);
@@ -529,7 +531,7 @@ public:
 	virtual uint32_t get_passed_clock_since_vline();
 	virtual double get_passed_usec_since_vline();
 	virtual int get_cur_vline();
-	virtual int get_cur_vline_clocks();
+	int get_cur_vline_clocks();
 	virtual uint32_t get_cpu_pc(int index);
 	virtual void request_skip_frames();
 	virtual void set_frames_per_sec(double frames);

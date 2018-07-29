@@ -15,10 +15,8 @@
 #include "../../config.h"
 #include "../../emu.h"
 
-JOYSTICK::JOYSTICK(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
+JOYSTICK::JOYSTICK(VM_TEMPLATE* parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
 {
-	p_vm = parent_vm;
-	p_emu = parent_emu;
 	rawdata = NULL;
 	mouse_state = NULL;
 	lpt_type = 0;
@@ -32,8 +30,8 @@ JOYSTICK::~JOYSTICK()
 
 void JOYSTICK::initialize()
 {
-	rawdata = p_emu->get_joy_buffer();
-	mouse_state = p_emu->get_mouse_buffer();
+	rawdata = emu->get_joy_buffer();
+	mouse_state = emu->get_mouse_buffer();
 	emulate_mouse[0] = emulate_mouse[1] = false;
 	joydata[0] = joydata[1] = 0xff;
 	dx = dy = 0;
@@ -71,7 +69,7 @@ void JOYSTICK::reset()
 		emulate_mouse[1] = false;
 		break;
 	}
-	mouse_state = p_emu->get_mouse_buffer();
+	mouse_state = emu->get_mouse_buffer();
 #endif	
 	if(opn != NULL) {
 		opn->write_signal(SIG_YM2203_PORT_A, 0xff, 0xff);
@@ -85,7 +83,7 @@ void JOYSTICK::event_frame()
 	uint32_t retval = 0xff;
 	uint32_t val;
 #if !defined(_FM8)
-	mouse_state = p_emu->get_mouse_buffer();
+	mouse_state = emu->get_mouse_buffer();
 	if(mouse_state != NULL) {
 		dx += mouse_state[0];
 		dy += mouse_state[1];
@@ -107,7 +105,7 @@ void JOYSTICK::event_frame()
 		if((stat & 0x02) == 0) mouse_button |= 0x20; // right
 	}
 #endif	
-	rawdata = p_emu->get_joy_buffer();
+	rawdata = emu->get_joy_buffer();
 	if(rawdata == NULL) return;
    
 	for(ch = 0; ch < 2; ch++) {

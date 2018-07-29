@@ -47,9 +47,6 @@ private:
 	uint16_t bit_trans_table_5[256][8];
 #endif
 protected:
-	EMU *p_emu;
-	VM *p_vm;
-
 	uint32_t (DISPLAY::*read_cpu_func_table[512])(uint32_t);
 	uint32_t (DISPLAY::*read_dma_func_table[512])(uint32_t);
 	void (DISPLAY::*write_cpu_func_table[512])(uint32_t, uint8_t);
@@ -420,7 +417,7 @@ protected:
 	}
 
 public:
-	DISPLAY(VM *parent_vm, EMU *parent_emu);
+	DISPLAY(VM_TEMPLATE* parent_vm, EMU *parent_emu);
 	~DISPLAY();
 	void event_callback(int event_id, int err);
 	void write_signal(int id, uint32_t data, uint32_t mask);

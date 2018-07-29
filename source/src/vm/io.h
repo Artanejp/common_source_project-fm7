@@ -48,7 +48,7 @@ private:
 	uint32_t read_port32(uint32_t addr, bool is_dma);
 	
 public:
-	IO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	IO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 #ifdef _IO_DEBUG_LOG
 		cpu_index = 0;

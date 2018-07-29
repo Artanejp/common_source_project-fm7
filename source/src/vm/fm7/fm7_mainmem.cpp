@@ -13,10 +13,8 @@
 #if defined(CAPABLE_DICTROM)
 #include "kanjirom.h"
 #endif
-FM7_MAINMEM::FM7_MAINMEM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+FM7_MAINMEM::FM7_MAINMEM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
-	p_vm = parent_vm;
-	p_emu = parent_emu;
 #if !defined(_FM77AV_VARIANTS)
 	for(int i = 0; i < 8; i++) fm7_bootroms[i] = (uint8_t *)malloc(0x200);
 #endif
