@@ -29,7 +29,7 @@ private:
 	uint8_t pio_8bit;
 	
 public:
-	DISPLAY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	DISPLAY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("7-Segment LEDs"));
 	}

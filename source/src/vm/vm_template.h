@@ -106,6 +106,7 @@ public:
 	virtual bool is_quick_disk_inserted(int drv) { return false; }
 	virtual bool is_hard_disk_inserted(int drv) { return false; }
 	virtual bool is_compact_disc_inserted(int drv) { return false; }
+	virtual bool is_cart_inserted(int drv) { return false; }
 	virtual bool is_laser_disc_inserted(int drv) { return false; }
 	virtual bool is_tape_inserted(int drv) { return false; }
 	
@@ -128,7 +129,7 @@ public:
 
 	virtual void update_config() { }
 	virtual void save_state(FILEIO* state_fio) { }
-	virtual bool load_state(FILEIO* state_fio) { }
+	virtual bool load_state(FILEIO* state_fio) { return true; }
 	virtual void decl_state(void) { }
 	
 	// devices

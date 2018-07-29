@@ -69,7 +69,7 @@ DLL_PREFIX_I struct cur_time_s cur_time;
 // initialize
 // ----------------------------------------------------------------------------
 
-VM::VM(EMU* parent_emu) : emu(parent_emu)
+VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 {
 	pseudo_sub_cpu = !(FILEIO::IsFileExisting(create_local_path(SUB_ROM_FILE_NAME)) && FILEIO::IsFileExisting(create_local_path(KBD_ROM_FILE_NAME)));
 	

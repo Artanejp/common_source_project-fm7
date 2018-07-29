@@ -33,7 +33,7 @@ private:
 #endif
 	
 public:
-	FMSOUND(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	FMSOUND(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 #ifdef SUPPORT_PC98_OPNA
 		set_device_name(_T("PC-9801-86 (FM Sound)"));

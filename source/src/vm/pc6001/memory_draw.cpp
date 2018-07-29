@@ -43,7 +43,7 @@ void MEMORY::draw_screen()
 			memset(dest, 0, 640 * sizeof(scrntype_t));
 		}
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
-	} else if (vm->sr_mode) {
+	} else if (static_cast<VM *>(vm)->sr_mode) {
 		if (CRTMode2) {
 			if (CRTMode3) RefreshScr63();
 			else RefreshScr62();

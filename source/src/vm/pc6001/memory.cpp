@@ -213,7 +213,7 @@ void MEMORY::reset()
 		EXTROM1 = EXTROM2 = EmptyRAM;
 	}
 #if defined(_PC6001MK2) || defined(_PC6601)
-	vm->sr_mode=0;
+	static_cast<VM *>(vm)->sr_mode=0;
 	CGROM = CGROM1;
 	VRAM = RAM+0xE000;
 	for (I=0; I<0x200; I++ ) *(VRAM+I)=0xde;
@@ -221,7 +221,7 @@ void MEMORY::reset()
 	for(J=4;J<8;J++) {RdMem[J]=RAM+0x2000*J;WrMem[J]=RAM+0x2000*J;};
 	EnWrite[0]=EnWrite[1]=0; EnWrite[2]=EnWrite[3]=1;
 #elif defined(_PC6601SR) || defined(_PC6001MK2SR)
-	vm->sr_mode=1;
+	static_cast<VM *>(vm)->sr_mode=1;
 	bitmap=1;
 	cols=40;
 	rows=20;
@@ -260,7 +260,7 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
 	/* Graphics Vram Write (SR basic) */
-	if(vm->sr_mode && chk_gvram(addr ,8)) 
+	if(static_cast<VM *>(vm)->sr_mode && chk_gvram(addr ,8)) 
 		gvram_write(addr, data);
 	else
 #endif
@@ -273,7 +273,7 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 {
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
 	/* Graphics Vram Read (SR basic) */
-	if(vm->sr_mode && chk_gvram(addr, 0))
+	if(static_cast<VM *>(vm)->sr_mode && chk_gvram(addr, 0))
 		return(gvram_read(addr));
 #endif
 	return(RdMem[addr >> 13][addr & 0x1FFF]);
@@ -372,7 +372,7 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 		break;
 #endif
 	case 0xB0:
-		if (vm->sr_mode) {
+		if (static_cast<VM *>(vm)->sr_mode) {
 			d_timer->set_portB0(Value);
 		} else {
 			VRAM=(RAM+VRAMHead[CRTMode1][(data&0x06)>>1]);
@@ -389,13 +389,13 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 		CRTMode3=(Value&0x08) ? 0 : 1;
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
 		portC1 = Value;
-		if (vm->sr_mode)
+		if (static_cast<VM *>(vm)->sr_mode)
 			lines=(Value&0x01) ? 200 : 204;
-		if (vm->sr_mode)
+		if (static_cast<VM *>(vm)->sr_mode)
 			CGROM = CGROM6;    // N66SR BASIC use CGROM6
 		else
 			CGROM = ((CRTMode1 == 0) ? CGROM1 : CGROM5);
-		if (vm->sr_mode) {
+		if (static_cast<VM *>(vm)->sr_mode) {
 			if (CRTMode1==1 && CRTMode2==0 && !bitmap) { /* width 80 */
 				cols=80;
 			} else if(CRTMode1==0 && CRTMode2==0 && !bitmap) { /* Width 40  */
@@ -407,7 +407,7 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 #endif
 		break;
 	case 0xC2: // ROM swtich
-		if (vm->sr_mode) return;	/* sr_mode do nothing! */
+		if (static_cast<VM *>(vm)->sr_mode) return;	/* sr_mode do nothing! */
 		if ((Value&0x02)==0x00) CurKANJIROM=KANJIROM;
 		else CurKANJIROM=KANJIROM+0x4000;
 		if ((Value&0x01)==0x00) {
@@ -429,18 +429,18 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 		bitmap  = (Value & 8)? 0:1;
 		rows    = (Value & 4)? 20:25;
 ///		busreq  = (Value & 2)? 0:1;
-		vm->sr_mode = ((Value & 1)==1) ? 0 : 1;
-		if (bitmap && vm->sr_mode)
+		static_cast<VM *>(vm)->sr_mode = ((Value & 1)==1) ? 0 : 1;
+		if (bitmap && static_cast<VM *>(vm)->sr_mode)
 		{
 			VRAM = (Value & 0x10) ? RAM+0x8000:RAM+0x0000;
 		}
-		if (vm->sr_mode) {
+		if (static_cast<VM *>(vm)->sr_mode) {
 			CGROM=CGROM6; 
 			portF0=0x11;
 		}
 		break;	
 	case 0xC9:
-		if (vm->sr_mode && !bitmap ) 
+		if (static_cast<VM *>(vm)->sr_mode && !bitmap ) 
 		{		
 			TEXTVRAM=RAM+(Value & 0xf)*0x1000;
 		}
@@ -452,7 +452,7 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 	case 0xCF: portCF=0; break;
 #endif
 	case 0xF0: // read block set 
-		if (vm->sr_mode) return;	/* sr_mode do nothing! */
+		if (static_cast<VM *>(vm)->sr_mode) return;	/* sr_mode do nothing! */
 		portF0 = Value;
 		switch(data & 0x0f)
 		{
@@ -507,7 +507,7 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 		if (CGSW93)	RdMem[3] = CGROM;
 		break;
 	case 0xF1: // read block set
-		if (vm->sr_mode) return;	/* sr_mode do nothing! */
+		if (static_cast<VM *>(vm)->sr_mode) return;	/* sr_mode do nothing! */
 		portF1 = Value;
 		switch(data & 0x0f)
 		{
@@ -557,7 +557,7 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 		};
 		break;
 	case 0xF2: // write ram block set
-		if (vm->sr_mode) return;	/* sr_mode do nothing! */
+		if (static_cast<VM *>(vm)->sr_mode) return;	/* sr_mode do nothing! */
 		if (data & 0x40) {EnWrite[3]=1;WrMem[6]=RAM+0xc000;WrMem[7]=RAM+0xe000;}
 		else EnWrite[3]=0;
 		if (data & 0x010) {EnWrite[2]=1;WrMem[4]=RAM+0x8000;WrMem[5]=RAM+0xa000;}
@@ -596,8 +596,8 @@ uint32_t MEMORY::read_io8(uint32_t addr)
 	case 0xC0: Value=0xff;break;
 	case 0xC2: Value=0xff;break;
 #endif
-	case 0xF0: if (!vm->sr_mode) Value=portF0;break;
-	case 0xF1: if (!vm->sr_mode) Value=portF1;break;
+	case 0xF0: if (!static_cast<VM *>(vm)->sr_mode) Value=portF0;break;
+	case 0xF1: if (!static_cast<VM *>(vm)->sr_mode) Value=portF1;break;
 	}
 	return(Value);
 }
@@ -607,7 +607,7 @@ uint32_t MEMORY::read_io8(uint32_t addr)
 void MEMORY::event_vline(int v, int clock)
 {
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
-	if(vm->sr_mode) {
+	if(static_cast<VM *>(vm)->sr_mode) {
 		if(v == (CRTMode1 ? 200 : 192)) {
 			d_timer->write_signal(SIG_TIMER_IRQ_VRTC, 1, 1);
 		}
@@ -645,7 +645,7 @@ void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 		}
 #else
 		if(data & 4) {
-			CGSW93=0; if (!vm->sr_mode) write_io8(0xf0, portF0);
+			CGSW93=0; if (!static_cast<VM *>(vm)->sr_mode) write_io8(0xf0, portF0);
 		} else {
 			CGSW93=1; RdMem[3]=CGROM;
 		}

@@ -57,7 +57,7 @@
 // initialize
 // ----------------------------------------------------------------------------
 
-VM::VM(EMU* parent_emu) : emu(parent_emu)
+VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 {
 	support_pc80s31k = FILEIO::IsFileExisting(create_local_path(_T("DISK.ROM")));
 #ifdef _PC6601SR

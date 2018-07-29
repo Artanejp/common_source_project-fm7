@@ -110,6 +110,7 @@
 
 #include "../../common.h"
 #include "../../fileio.h"
+#include "../vm_template.h"
 
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
@@ -159,11 +160,11 @@ class PSUB;
 class SUB;
 class TIMER;
 
-class VM
+class VM : public VM_TEMPLATE
 {
 protected:
-	EMU* emu;
-	csp_state_utils *state_entry;
+	//EMU* emu;
+	//csp_state_utils *state_entry;
 
 	int vdata;
 	
@@ -283,9 +284,9 @@ public:
 	
 	// devices
 	DEVICE* get_device(int id);
-	DEVICE* dummy;
-	DEVICE* first_device;
-	DEVICE* last_device;
+	//DEVICE* dummy;
+	//DEVICE* first_device;
+	//DEVICE* last_device;
 	
 	int sr_mode;
 };

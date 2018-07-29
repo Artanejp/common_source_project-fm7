@@ -133,7 +133,7 @@ void TIMER::event_callback(int event_id, int err)
 		register_event(this, EVENT_TIMER, 2000.0, false, &timer_id);
 #else
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
-		if(vm->sr_mode) {
+		if(static_cast<VM *>(vm)->sr_mode) {
 			register_event(this, EVENT_TIMER, 2000.0 * (portF6 + 1) / 0x80, false, &timer_id);
 		} else
 #endif
@@ -158,7 +158,7 @@ void TIMER::set_portB0(uint32_t data)
 			register_event(this, EVENT_TIMER, 1000.0, false, &timer_id);
 #else
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
-			if(vm->sr_mode) {
+			if(static_cast<VM *>(vm)->sr_mode) {
 				register_event(this, EVENT_TIMER, 2000.0 * (portF6 + 1) / 0x80, false, &timer_id);
 			} else
 #endif
@@ -181,7 +181,7 @@ void TIMER::write_signal(int id, uint32_t data, uint32_t mask)
 uint32_t TIMER::get_intr_ack()
 {
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
-	if(vm->sr_mode) {
+	if(static_cast<VM *>(vm)->sr_mode) {
 		for(int i = 0, bit = 1; i < 8; i++, bit <<= 1) {
 			if(NewIRQ & bit) {
 				if(portFB & bit) {
@@ -256,7 +256,7 @@ void TIMER::update_intr()
 	NewIRQ &= 0x05;	// Only Sub-CPU and Timer
 #else
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
-	if(vm->sr_mode) {
+	if(static_cast<VM *>(vm)->sr_mode) {
 		NewIRQ &= ~portFA;
 	} else
 #endif

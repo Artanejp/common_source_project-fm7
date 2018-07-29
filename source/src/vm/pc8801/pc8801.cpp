@@ -41,7 +41,7 @@
 // initialize
 // ----------------------------------------------------------------------------
 
-VM::VM(EMU* parent_emu) : emu(parent_emu)
+VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 {
 	// check configs
 	boot_mode = config.boot_mode;
