@@ -23,10 +23,6 @@
 		#endif
 	#endif
 #endif
-#ifdef _USE_QT
-			#define USE_ZLIB
-#endif
-
 // check environemnt/language
 #ifdef _WIN32
 	#ifdef _MSC_VER
