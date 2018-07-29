@@ -169,7 +169,7 @@ protected:
 	int vdata;
 	
 	// devices
-	EVENT* event;
+	//EVENT* event;
 	
 	DEVICE* printer;
 	I8255* pio_sub;

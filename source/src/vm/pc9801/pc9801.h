@@ -415,7 +415,7 @@ protected:
 	//csp_state_utils* state_entry;
 	
 	// devices
-	EVENT* event;
+	//EVENT* event;
 	
 #if defined(SUPPORT_OLD_BUZZER)
 	BEEP* beep;

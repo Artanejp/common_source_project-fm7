@@ -299,7 +299,7 @@ protected:
 	//EMU* emu;
 	
 	// devices for x1
-	EVENT* event;
+	//EVENT* event;
 	
 	DATAREC* drec;
 	DEVICE* printer;
