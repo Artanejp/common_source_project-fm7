@@ -517,7 +517,7 @@ public:
 	{
 		event_manager = device;
 	}
-	int get_event_manager_id();
+	virtual int get_event_manager_id();
 	virtual void register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id);
 	virtual void register_event_by_clock(DEVICE* device, int event_id, uint64_t clock, bool loop, int* register_id);
 	virtual void cancel_event(DEVICE* device, int register_id);
@@ -531,7 +531,7 @@ public:
 	virtual uint32_t get_passed_clock_since_vline();
 	virtual double get_passed_usec_since_vline();
 	virtual int get_cur_vline();
-	int get_cur_vline_clocks();
+	virtual int get_cur_vline_clocks();
 	virtual uint32_t get_cpu_pc(int index);
 	virtual void request_skip_frames();
 	virtual void set_frames_per_sec(double frames);
