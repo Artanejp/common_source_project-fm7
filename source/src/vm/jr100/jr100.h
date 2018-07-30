@@ -179,8 +179,8 @@ public:
 #endif
 	
 	// notify key
-	void key_down(int code, bool repeat);
-	void key_up(int code);
+	void key_down(int code, bool repeat) { }
+	void key_up(int code) { }
 	
 	// user interface
 	void play_tape(int drv, const _TCHAR* file_path);

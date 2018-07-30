@@ -81,7 +81,7 @@ class MAIN;
 class SUB;
 class KEYBOARD;
 
-class VM
+class VM : public VM_TEMPLATE
 {
 protected:
 	//EMU* emu;

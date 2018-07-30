@@ -212,7 +212,7 @@ class PSG;
 class QUICKDISK;
 #endif
 
-class VM
+class VM : public VM_TEMPLATE
 {
 protected:
 	//EMU* emu;

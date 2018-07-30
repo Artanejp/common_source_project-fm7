@@ -40,6 +40,7 @@
 #define USE_CPU_UPD7810
 
 #include "../../common.h"
+#include "../../fileio.h"
 #include "../vm_template.h"
 
 #ifdef USE_SOUND_VOLUME
@@ -61,10 +62,7 @@ class UPD1990A;
 class UPD7810;
 
 class IO;
-
-#include "../../fileio.h"
-
-class VM
+class VM : public VM_TEMPLATE
 {
 protected:
 	//EMU* emu;

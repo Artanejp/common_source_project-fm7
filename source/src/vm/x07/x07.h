@@ -45,6 +45,7 @@
 #define USE_CPU_Z80
 
 #include "../../common.h"
+#include "../../fileio.h"
 #include "../vm_template.h"
 
 #ifdef USE_SOUND_VOLUME
@@ -64,9 +65,6 @@ class MEMORY;
 class Z80;
 
 class IO;
-
-#include "../../fileio.h"
-
 class VM : public VM_TEMPLATE
 {
 protected:

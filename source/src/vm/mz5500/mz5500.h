@@ -106,7 +106,7 @@ class KEYBOARD;
 class MEMORY;
 class SYSPORT;
 
-class VM
+class VM : public VM_TEMPLATE
 {
 protected:
 	//EMU* emu;
