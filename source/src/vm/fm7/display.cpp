@@ -199,7 +199,7 @@ void DISPLAY::reset_some_devices()
 # endif	
 #endif
 	vram_wrote = true;
-	clr_count = 0;
+	delay_busy = false;
 	frame_skip_count_draw = 3;
 	frame_skip_count_transfer = 3;
 	need_transfer_line = true;
@@ -1670,8 +1670,12 @@ void DISPLAY::event_callback(int event_id, int err)
 			event_callback_vsync();
 			break;
 //#endif			
-		case EVENT_FM7SUB_CLR_BUSY:
+		case EVENT_FM7SUB_DELAY_BUSY:
+			delay_busy = false;
 			set_subbusy();
+			break;
+		case EVENT_FM7SUB_CLEAR_DELAY:
+			delay_busy = false;
 			break;
 		case EVENT_FM7SUB_CLR_CRTFLAG:
 			reset_crtflag();
@@ -2138,13 +2142,6 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 			do_firq(flag & !(firq_mask));
 			key_firq_req = flag;
 			break;
-		case SIG_FM7_SUB_USE_CLR:
-	   		if(flag) {
-				clr_count = data & 0x03;
-			} else {
-				clr_count = 0;
-			}
-			break;
 		default:
 			break;
 	}
@@ -2211,6 +2208,17 @@ uint32_t DISPLAY::read_mmio(uint32_t addr)
 			retval = set_vramaccess();
 			break;
 		case 0x0a:
+			{ // If use CLR insn to set busy flag, clear flag at first, then delay and set flag. 
+				double usec;
+				// Delay at least 3+ clocks (CLR <$0A )
+				delay_busy = true;
+				if(clock_fast) {
+					usec = (4000.0 * 1000.0) / 2000000.0;
+				} else {
+					usec = (4000.0 * 1000.0) / 999000.0;
+				}
+				register_event(this, EVENT_FM7SUB_CLEAR_DELAY, usec, false, NULL); // NEXT CYCLE_
+			}
 			reset_subbusy();
 			break;
 #if defined(_FM77L4)
@@ -2785,21 +2793,20 @@ void DISPLAY::write_mmio(uint32_t addr, uint8_t data)
 			break;
 		// BUSY
 		case 0x0a:
-			if(clr_count <= 0) {
-				set_subbusy();
-			} else { // Read once when using clr_foo() to set busy flag.
+			if(delay_busy) { // If WRITE after READ immediately.Perhaps use CLR insn.
 				double usec;
+				// Delay at least 5+ clocks (CLR $D40A or CLR (INDEX = $D40A))
 				if(clock_fast) {
-					usec = (1000.0 * 1000.0) / 2000000.0;
+					usec = (6000.0 * 1000.0) / 2000000.0;
 				} else {
-					usec = (1000.0 * 1000.0) / 999000.0;
+					usec = (6000.0 * 1000.0) / 999000.0;
 				}
-			 	if(!(is_cyclesteal) && (vram_accessflag))  usec = usec * 3.0;
-				usec = (double)clr_count * usec;
-				register_event(this, EVENT_FM7SUB_CLR_BUSY, usec, false, NULL); // NEXT CYCLE_
+				register_event(this, EVENT_FM7SUB_DELAY_BUSY, usec, false, NULL); // NEXT CYCLE_
 				reset_subbusy();
-				clr_count = 0;
-			}
+				delay_busy = false;
+			} else {
+				set_subbusy();
+			} 
 			break;
 		// LED
 #if defined(_FM77L4)
@@ -3500,14 +3507,14 @@ void DISPLAY::release()
 {
 }
 
-#define STATE_VERSION 11
+#define STATE_VERSION 12
 void DISPLAY::decl_state(void)
 {
 	enter_decl_state(STATE_VERSION);
 	DECL_STATE_ENTRY_INT(this_device_id);
 	{
 		int i;
-		DECL_STATE_ENTRY_INT32(clr_count);
+		DECL_STATE_ENTRY_BOOL(delay_busy);
 		DECL_STATE_ENTRY_BOOL(halt_flag);
 		DECL_STATE_ENTRY_INT32(active_page);
 		DECL_STATE_ENTRY_BOOL(sub_busy);
