@@ -163,9 +163,7 @@ void MC6809_BASE::reset()
 	S = 0;
 	EA = 0;
 //#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-	clr_used = false;
 
-	write_signals(&outputs_bus_clr, 0x00000000);
 	if((req_halt_on) && !(req_halt_off)) {
 		int_state |= MC6809_HALT_BIT;
 	} else {
@@ -615,17 +613,6 @@ void MC6809_BASE::run_one_opecode()
 
 void MC6809_BASE::op(uint8_t ireg)
 {
-	if(ireg == 0x0f) { // clr_di()
-		write_signals(&outputs_bus_clr, 0x00000001);
-		clr_used = true;
-	} else if((ireg == 0x6f) || (ireg == 0x7f)){ //clr_ex() clr_ix()
-		write_signals(&outputs_bus_clr, 0x00000002);
-		clr_used = true;
-	} else {
-		if(clr_used) write_signals(&outputs_bus_clr, 0x00000000);
-		clr_used = false;
-	}
-//#endif
 	//printf("CPU(%08x) PC=%04x OP=%02x %02x %02x %02x %02x\n", (void *)this, PC, ireg, RM(PC), RM(PC + 1), RM(PC + 2), RM(PC + 3));
 
 	(this->*m6809_main[ireg])();

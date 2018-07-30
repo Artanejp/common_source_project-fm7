@@ -48,10 +48,8 @@ protected:
 	DEVICE *d_mem_stored;
 	int dasm_ptr;
 
-	outputs_t outputs_bus_clr; // If clr() insn used, write "1" or "2".
 	outputs_t outputs_bus_ba; // Bus available.
 	outputs_t outputs_bus_bs; // Bus status.
-	bool clr_used;
 
 	// registers
 	pair_t pc; 	/* Program counter */
@@ -539,7 +537,6 @@ public:
 		cycles_tmp_count = 0;
 		insns_count = 0;
 		__USE_DEBUGGER = false;
-		initialize_output_signals(&outputs_bus_clr);
 		initialize_output_signals(&outputs_bus_ba);
 		initialize_output_signals(&outputs_bus_bs);
 		set_device_name(_T("MC6809 MPU"));
@@ -674,10 +671,6 @@ public:
 	void set_context_mem(DEVICE* device)
 	{
 		d_mem = device;
-	}
-	void set_context_bus_clr(DEVICE* device, int id, uint32_t mask)
-	{
-		register_output_signal(&outputs_bus_clr, device, id, mask);
 	}
 	void set_context_bus_ba(DEVICE* device, int id, uint32_t mask)
 	{
