@@ -729,7 +729,7 @@ void VM::reset()
 		opn[i]->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
 	}
 #endif
-//	display->reset(); // 20180618 K.O for RELICS
+	//display->reset(); // 20180618 K.O for RELICS
 }
 
 void VM::special_reset()

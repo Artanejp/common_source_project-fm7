@@ -47,8 +47,8 @@ void FM7_MAINMEM::reset()
 	mem_waitfactor = 0;
 	mem_waitcount = 0;
 	ioaccess_wait = false;
-	//sub_halted = (display->read_signal(SIG_DISPLAY_HALT) == 0) ? false : true;
-	sub_halted = false;
+	sub_halted = (display->read_signal(SIG_DISPLAY_HALT) == 0) ? false : true;
+	//sub_halted = false;
 	memset(fm7_mainmem_bootrom_vector, 0x00, 0x10); // Clear without vector
 
 #if defined(_FM77AV_VARIANTS)

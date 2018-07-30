@@ -106,15 +106,7 @@ FM7_MAINIO::FM7_MAINIO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_
 #endif
 	// FD05
 	extdet_neg = false;
-	req_z80run = false;
-	z80_run = false;
-	// FD06,07
-	intstat_syndet = false;
-	intstat_rxrdy = false;
-	intstat_txrdy = false;
-	irqstat_timer = false;
-	irqstat_printer = false;
-	irqstat_keyboard = false;
+
 	// FD0B
 	// FD0D
 	// FD0F
@@ -129,11 +121,7 @@ FM7_MAINIO::FM7_MAINIO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_
 		opn_cmdreg[i] = 0;
 		opn_prescaler_type[i] = 1;
 	}
-	intstat_whg = false;
-	intstat_thg = false;
 	// FD17
-	intstat_opn = false;
-	intstat_mouse = false;
 	mouse_enable = false;
 	// FD18-FD1F
 	connect_fdc = false;
@@ -145,24 +133,6 @@ FM7_MAINIO::FM7_MAINIO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_
 	fdc_headreg = 0x00;
 	fdc_drvsel = 0x00;
 	fdc_motor = false;
-	irqstat_fdc = false;
-	irqreg_fdc = 0xff; //0b11111111;
-	irqmask_syndet = true;
-	irqmask_rxrdy = true;
-	irqmask_txrdy = true;
-	irqmask_mfd = true;
-	irqmask_timer = true;
-	irqmask_printer = true;
-	irqmask_keyboard = true;
-	irqstat_reg0 = 0xff;
-	
-  
-	irqreq_syndet = false;
-	irqreq_rxrdy = false;
-	irqreq_txrdy = false;
-	irqreq_printer = false;
-	irqreq_keyboard = false;
-
 	// FD20, FD21, FD22, FD23
 	connect_kanjiroml1 = false;
 #if defined(_FM77AV_VARIANTS)
@@ -299,6 +269,7 @@ void FM7_MAINIO::reset()
 	irqmask_keyboard = true;
 	irqstat_reg0 = 0xff;
 	
+	// FD06,07
 	intstat_syndet = false;
 	intstat_rxrdy = false;
 	intstat_txrdy = false;
@@ -346,8 +317,17 @@ void FM7_MAINIO::reset()
 #if defined(WITH_Z80)
 	if(z80 != NULL) call_write_signal(z80, SIG_CPU_BUSREQ, 0xffffffff, 0xffffffff);
 #endif
+	irqreg_fdc = 0xff; //0b11111111;
+	irqstat_fdc = false;
 	call_write_signal(maincpu, SIG_CPU_BUSREQ, 0, 0xffffffff);
 	call_write_signal(maincpu, SIG_CPU_HALTREQ, 0, 0xffffffff);
+	
+	intstat_whg = false;
+	intstat_thg = false;
+	// FD17
+	intstat_opn = false;
+	intstat_mouse = false;
+
 	do_irq();
 
 //#if !defined(_FM8)
@@ -954,9 +934,9 @@ void FM7_MAINIO::write_signal(int id, uint32_t data, uint32_t mask)
 	val_b = ((data & mask) != 0);
   
 	switch(id) {
-		//case SIG_FM7_SUB_HALT:
-		//	mainmem->write_signal(SIG_FM7_SUB_HALT, data, mask);
-		//		break;
+	case SIG_FM7_SUB_HALT:
+		mainmem->write_signal(SIG_FM7_SUB_HALT, data, mask);
+		break;
 	case FM7_MAINIO_CLOCKMODE: // fd00
 		if(val_b) {
 			clock_fast = true;
