@@ -21,7 +21,7 @@ private:
 	bool modified;
 	
 public:
-	RAMPACK(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	RAMPACK(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("RAM Pack"));
 	}

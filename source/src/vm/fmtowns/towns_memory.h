@@ -110,7 +110,7 @@ private:
 	
 	void update_dma_addr_mask();
 public:
-	TOWNS_MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
+	TOWNS_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
 		set_device_name(_T("MEMORY"));
 		d_vram = NULL;
 		d_crtc = NULL;

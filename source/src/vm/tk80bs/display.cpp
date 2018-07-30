@@ -146,7 +146,7 @@ void DISPLAY::draw_screen()
 		for(int x = 0; x < 256; x += 8) {
 			int code = vram[ptr++];
 			if(code != 0x20) {
-				vm->draw_ranges = 9;
+				static_cast<VM *>(vm)->draw_ranges = 9;
 			}
 			code |= code_ofs;
 			uint8_t* font_base = &font[code << 3];

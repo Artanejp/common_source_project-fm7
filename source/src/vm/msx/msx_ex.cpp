@@ -74,7 +74,7 @@ private:
 	uint8_t port;
 	
 public:
-	PORT_F4(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
+	PORT_F4(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
 		port = 0;
 	}
 	~PORT_F4() {}
@@ -96,7 +96,7 @@ public:
 // initialize
 // ----------------------------------------------------------------------------
 
-VM::VM(EMU* parent_emu) : emu(parent_emu)
+VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 {
 	// create devices
 	first_device = last_device = NULL;

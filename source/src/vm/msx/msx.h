@@ -77,6 +77,7 @@
 
 #include "../../common.h"
 #include "../../fileio.h"
+#include "../vm_template.h"
 
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
@@ -121,13 +122,13 @@ class SLOT1;
 class SLOT2;
 class SLOT3;
 
-class VM
+class VM : public VM_TEMPLATE
 {
 protected:
-	EMU* emu;
+	//EMU* emu;
 	
 	// devices
-	EVENT* event;
+	//EVENT* event;
 	
 	DATAREC* drec;
 	I8255* pio;
@@ -236,9 +237,9 @@ public:
 	
 	// devices
 	DEVICE* get_device(int id);
-	DEVICE* dummy;
-	DEVICE* first_device;
-	DEVICE* last_device;
+	//DEVICE* dummy;
+	//DEVICE* first_device;
+	//DEVICE* last_device;
 };
 
 #endif

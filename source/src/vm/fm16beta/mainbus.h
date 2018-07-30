@@ -97,7 +97,7 @@ private:
 	void update_int7();
 	
 public:
-	MAINBUS(VM* parent_vm, EMU* parent_emu) : MEMORY(parent_vm, parent_emu)
+	MAINBUS(VM_TEMPLATE* parent_vm, EMU* parent_emu) : MEMORY(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Main System"));
 	}

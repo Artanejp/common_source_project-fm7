@@ -43,7 +43,7 @@ private:
 	uint8_t ram[0x8000];
 #endif	
 public:
-	SLOT0(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	SLOT0(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Slot #0"));
 	}
@@ -73,7 +73,7 @@ private:
 #endif
 	
 public:
-	SLOT1(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	SLOT1(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Slot #1"));
 	}
@@ -116,7 +116,7 @@ private:
 	bool pc4, mute_l, mute_r;
 	
 public:
-	SLOT2(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	SLOT2(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Slot #2"));
 	}
@@ -157,7 +157,7 @@ private:
 	uint8_t rom[0x8000];
 	
 public:
-	SLOT2(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	SLOT2(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Slot #2"));
 	}
@@ -185,7 +185,7 @@ private:
 	uint8_t mapper[4];
 	
 public:
-	SLOT3(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	SLOT3(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Slot #3"));
 	}
@@ -223,7 +223,7 @@ private:
 	void update_map(uint32_t val);
 	
 public:
-	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}

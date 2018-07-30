@@ -111,7 +111,7 @@ private:
 	void draw_graph();
 	
 public:
-	DISPLAY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	DISPLAY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		for(int i = 0; i < 4; i++) {
 			dmac.ch[i].io = parent_vm->dummy;

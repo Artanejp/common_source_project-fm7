@@ -56,7 +56,7 @@ private:
 	void update_bank();
 	
 public:
-	MAIN(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MAIN(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		intfd = int0 = int1 = int2 = int3 = int4 = false;
 		me = e1 = false;

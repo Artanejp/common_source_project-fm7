@@ -107,7 +107,7 @@ protected:
 	bool has_hardware_blending;
 	// End.
 public:
-	TOWNS_VRAM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	TOWNS_VRAM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		memset(vram, 0x00, sizeof(vram));
 		render_buffer = NULL;

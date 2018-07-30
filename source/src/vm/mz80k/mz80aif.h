@@ -23,7 +23,7 @@ private:
 	DEVICE* d_fdc;
 	
 public:
-	MZ80AIF(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MZ80AIF(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("MZ-80AIF (FDC I/F)"));
 	}

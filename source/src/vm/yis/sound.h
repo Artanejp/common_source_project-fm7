@@ -22,7 +22,7 @@ private:
 	BEEP* d_beep;
 	
 public:
-	SOUND(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	SOUND(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Sound I/F"));
 	}

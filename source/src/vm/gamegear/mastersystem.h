@@ -41,6 +41,7 @@
 
 #include "../../common.h"
 #include "../../fileio.h"
+#include "../vm_template.h"
 
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
@@ -66,13 +67,13 @@ class KEYBOARD;
 class MEMORY;
 class SYSTEM;
 
-class VM
+class VM : public VM_TEMPLATE
 {
 protected:
-	EMU* emu;
+	//EMU* emu;
 	
 	// devices
-	EVENT* event;
+	//EVENT* event;
 	
 ///	DATAREC* drec;
 ///	I8251* sio;
@@ -155,8 +156,8 @@ public:
 	
 	// devices
 	DEVICE* get_device(int id);
-	DEVICE* dummy;
-	DEVICE* first_device;
-	DEVICE* last_device;
+	//DEVICE* dummy;
+	//DEVICE* first_device;
+	//DEVICE* last_device;
 };
 #endif

@@ -40,7 +40,7 @@ private:
 	void update_intr();
 	
 public:
-	INTERRUPT(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	INTERRUPT(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		d_cpu = d_child = NULL;
 		set_device_name(_T("Interrupt"));

@@ -27,7 +27,7 @@ private:
 	bool enable_chip[SOUND_CHIP_MAX+1];
 
 public:
-	SOUND_CART(VM* parent_vm, EMU* parent_emu);
+	SOUND_CART(VM_TEMPLATE* parent_vm, EMU* parent_emu);
 	~SOUND_CART() {}
 	
 	// common functions

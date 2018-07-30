@@ -48,6 +48,7 @@
 
 #include "../../common.h"
 #include "../../fileio.h"
+#include "../vm_template.h"
 
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
@@ -55,7 +56,7 @@ static const _TCHAR *sound_device_caption[] = {
 };
 #endif
 
-class csp_state_utils;
+//class csp_state_utils;
 class EMU;
 class DEVICE;
 class EVENT;
@@ -77,14 +78,14 @@ class KEYBOARD;
 class MEMBUS;
 class RTC;
 
-class VM
+class VM : public VM_TEMPLATE
 {
 protected:
-	EMU* emu;
+	//EMU* emu;
 	
 	// devices
-	EVENT* event;
-	csp_state_utils *state_entry;
+	//EVENT* event;
+	//csp_state_utils *state_entry;
 	
 	IO* io;
 	LS393* flipflop;
@@ -167,9 +168,9 @@ public:
 	
 	// devices
 	DEVICE* get_device(int id);
-	DEVICE* dummy;
-	DEVICE* first_device;
-	DEVICE* last_device;
+	//DEVICE* dummy;
+	//DEVICE* first_device;
+	//DEVICE* last_device;
 };
 
 #endif

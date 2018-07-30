@@ -48,7 +48,7 @@ private:
 	uint8_t ram[0x8000];
 #endif
 public:
-	SLOT_MAINROM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	SLOT_MAINROM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Main ROM"));
 	}
@@ -85,7 +85,7 @@ private:
 	bool inserted;
 	
 public:
-	SLOT_CART(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	SLOT_CART(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 #ifdef USE_MEGAROM
 	event_register_id = -1;
@@ -136,7 +136,7 @@ private:
 	uint8_t mapper[2];
 	
 public:
-	SLOT_MSXDOS2(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	SLOT_MSXDOS2(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("MSX-DOS2"));
 	}
@@ -173,7 +173,7 @@ private:
 	bool pc4, mute_l, mute_r;
 	
 public:
-	SLOT_LDC(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	SLOT_LDC(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("LDC Control"));
 	}
@@ -223,7 +223,7 @@ private:
 #endif
 	
 public:
-	SLOT_SUBROM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	SLOT_SUBROM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Sub ROM"));
 	}
@@ -249,7 +249,7 @@ private:
 	uint8_t rom[0x4000];
 	
 public:
-	SLOT_FDD_PATCH(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	SLOT_FDD_PATCH(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("FDD I/F"));
 	}
@@ -276,7 +276,7 @@ private:
 	uint8_t mapper[4];
 	
 public:
-	SLOT_MAPPERRAM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	SLOT_MAPPERRAM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Mapper RAM"));
 	}
@@ -302,7 +302,7 @@ private:
 	uint8_t ram[0x10000];
 	
 public:
-	SLOT_RAM64K(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	SLOT_RAM64K(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("RAM 64KB"));
 	}
@@ -332,7 +332,7 @@ private:
 	const _TCHAR* m_filename;
 	
 public:
-	SLOT_FIRMWARE32K(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	SLOT_FIRMWARE32K(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Firmware 32KB"));
 	}
@@ -364,7 +364,7 @@ private:
 	uint8_t rom[0x4000];
 	
 public:
-	SLOT_MSXMUSIC(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	SLOT_MSXMUSIC(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("MSX-MUSIC"));
 	}
@@ -402,7 +402,7 @@ private:
 	void update_map(uint32_t val);
 	
 public:
-	MEMORY_EX(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MEMORY_EX(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		ssl[0] = ssl[1] = ssl[2] = ssl[3] = 0;
 		expanded[0] = expanded[1] = expanded[2] = expanded[3] = false;

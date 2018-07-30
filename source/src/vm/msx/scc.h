@@ -84,7 +84,7 @@ private:
 	void decl_state_scc();
 	
 public:
-	SCC(VM* parent_vm, EMU* parent_emu);
+	SCC(VM_TEMPLATE* parent_vm, EMU* parent_emu);
 	~SCC() {}
 	
 	// common functions

@@ -23,7 +23,7 @@ private:
 	HD44102 *d_lcd[8];
 	
 public:
-	IO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	IO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Mapped I/O"));
 	}

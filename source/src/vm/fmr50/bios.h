@@ -42,7 +42,7 @@ private:
 	int scsi_blocks[USE_HARD_DISK];
 	
 public:
-	BIOS(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
+	BIOS(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
 		for(int i = 0; i < MAX_DRIVE; i++) disk[i] = NULL;
 		//for(int i = 0; i < USE_HARD_DISK; i++) harddisk[i] = NULL;
 		set_device_name(_T("Pseudo BIOS"));

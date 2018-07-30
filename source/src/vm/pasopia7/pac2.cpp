@@ -19,11 +19,11 @@ void PAC2::initialize()
 	// slot 3 : ram pack #6
 	// slot 2 : kanji rom
 	// slot 1 : joystick
-	dummy = new PAC2DEV(vm, emu);
-	rampac2[0] = new RAMPAC2(vm, emu);
-	rampac2[1] = new RAMPAC2(vm, emu);
-	kanji = new KANJIPAC2(vm, emu);
-	joy = new JOYPAC2(vm, emu);
+	dummy = new PAC2DEV(static_cast<VM *>(vm), emu);
+	rampac2[0] = new RAMPAC2(static_cast<VM *>(vm), emu);
+	rampac2[1] = new RAMPAC2(static_cast<VM *>(vm), emu);
+	kanji = new KANJIPAC2(static_cast<VM *>(vm), emu);
+	joy = new JOYPAC2(static_cast<VM *>(vm), emu);
 	
 	rampac2[0]->initialize(1);
 	rampac2[1]->initialize(2);

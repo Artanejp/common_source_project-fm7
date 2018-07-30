@@ -8,8 +8,8 @@
 	[ virtual machine ]
 */
 
-#ifndef _FMR50_H_
-#define _FMR50_H_
+#ifndef _FMTOWNS_H_
+#define _FMTOWNS_H_
 
 #if defined(_FMR50)
 #if defined(HAS_I286)
@@ -97,6 +97,7 @@
 
 #include "../../common.h"
 #include "../../fileio.h"
+#include "../vm_template.h"
 
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
@@ -143,13 +144,13 @@ class SCSI_HDD;
 class SCSI_CDROM;
 class TIMER;
 
-class VM
+class VM : public VM_TEMPLATE
 {
 protected:
-	EMU* emu;
+	//EMU* emu;
 	
 	// devices
-	EVENT* event;
+	//EVENT* event;
 	
 	TOWNS_CRTC *crtc;
 	
@@ -237,9 +238,9 @@ public:
 	
 	// devices
 	DEVICE* get_device(int id);
-	DEVICE* dummy;
-	DEVICE* first_device;
-	DEVICE* last_device;
+	//DEVICE* dummy;
+	//DEVICE* first_device;
+	//DEVICE* last_device;
 };
 
 #endif

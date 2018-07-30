@@ -52,6 +52,7 @@
 
 #include "../../common.h"
 #include "../../fileio.h"
+#include "../vm_template.h"
 
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
@@ -90,13 +91,13 @@ class SERIAL;
 class SYSTEM;
 class TIMER;
 
-class VM
+class VM : public VM_TEMPLATE
 {
 protected:
-	EMU* emu;
-	csp_state_utils *state_entry;
+	//EMU* emu;
+	//csp_state_utils *state_entry;
 	// devices
-	EVENT* event;
+	//EVENT* event;
 	
 	I8237* dma;
 	I8251* sio_kb;
@@ -194,9 +195,9 @@ public:
 	
 	// devices
 	DEVICE* get_device(int id);
-	DEVICE* dummy;
-	DEVICE* first_device;
-	DEVICE* last_device;
+	//DEVICE* dummy;
+	//DEVICE* first_device;
+	//DEVICE* last_device;
 };
 
 #endif

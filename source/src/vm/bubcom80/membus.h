@@ -29,7 +29,7 @@ private:
 	void update_bank();
 	
 public:
-	MEMBUS(VM* parent_vm, EMU* parent_emu) : MEMORY(parent_vm, parent_emu)
+	MEMBUS(VM_TEMPLATE* parent_vm, EMU* parent_emu) : MEMORY(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}

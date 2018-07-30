@@ -33,6 +33,7 @@
 
 #include "../../common.h"
 #include "../../fileio.h"
+#include "../vm_template.h"
 
 const struct {
 	int x, y;
@@ -88,14 +89,14 @@ class Z80;
 class DISPLAY;
 class KEYBOARD;
 
-class VM
+class VM : public VM_TEMPLATE
 {
 protected:
-	EMU* emu;
-	csp_state_utils* state_entry;
+	//EMU* emu;
+	//csp_state_utils* state_entry;
 	
 	// devices
-	EVENT* event;
+	//EVENT* event;
 	
 	IO* io;
 	I8255* pio;
@@ -155,9 +156,9 @@ public:
 	
 	// devices
 	DEVICE* get_device(int id);
-	DEVICE* dummy;
-	DEVICE* first_device;
-	DEVICE* last_device;
+	//DEVICE* dummy;
+	//DEVICE* first_device;
+	//DEVICE* last_device;
 };
 
 #endif

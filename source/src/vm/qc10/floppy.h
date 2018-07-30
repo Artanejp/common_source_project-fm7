@@ -20,7 +20,7 @@ private:
 	DEVICE *d_fdc, *d_mem;
 	
 public:
-	FLOPPY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	FLOPPY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Floppy I/F"));
 	}

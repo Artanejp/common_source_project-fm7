@@ -455,7 +455,8 @@ class FM7_JCOMMCARD;
 #endif
 class csp_state_utils;
 
-class VM : public VM_TEMPLATE {
+class VM : public VM_TEMPLATE
+{
 protected:
 //	EMU* emu;
 	

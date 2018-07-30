@@ -101,7 +101,7 @@ protected:
 	void do_put_sprite(int num);
 	
 public:
-	TOWNS_SPRITE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
+	TOWNS_SPRITE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
 		set_device_name(_T("SPRITE"));
 		vram_head = NULL;
 		framebuffer = NULL;

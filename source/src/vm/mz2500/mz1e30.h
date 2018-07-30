@@ -31,7 +31,7 @@ private:
 	bool drq_status;
 	
 public:
-	MZ1E30(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MZ1E30(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("MZ-1E30 (SASI I/F)"));
 	}

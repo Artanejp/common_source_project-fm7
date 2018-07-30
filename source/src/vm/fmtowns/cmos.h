@@ -27,7 +27,7 @@ private:
 	uint8_t bank;
 	
 public:
-	CMOS(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	CMOS(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
 	~CMOS() {}
 	
 	// common functions
