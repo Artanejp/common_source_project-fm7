@@ -1,3 +1,162 @@
+commit 09ce60e5eb776b12b2149fbb870896f62154c75d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Aug 1 00:12:13 2018 +0900
+
+    [BUILD][WIN32] Update toolchain to Qt5.11.1.
+
+commit 98188c62b1d8180f9a3f2b3c2fd88282bd0d6d75
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Aug 1 00:11:55 2018 +0900
+
+    [] .
+
+commit 810dc1a0fc5b76c7823203f312f4502efc6ea864
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jul 31 04:43:53 2018 +0900
+
+    [DEVICE][DEBUGGER] Fix don't start debugger.
+
+commit 19f9602185c86541ce701a2b26236a90ad4fa9d6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jul 31 04:41:21 2018 +0900
+
+    [VM][MC6809] Remove dirty CLR insn hack.Related to before commit.
+
+commit 8ef31bd42431e6534b405a7b14f0234b8fb9d00a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jul 31 04:30:45 2018 +0900
+
+    [VM][FM7][DISPLAY] Not use CLR_HACK for MC6809 and delay using CLR to set busy flag.May be working MAGUS.
+
+commit db1a7d91bba363e92c88e2eaca13b6685a34feaf
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jul 31 04:09:03 2018 +0900
+
+    [VM][FM7] Clear OPN/WHG/THG interrupt on resetting. Fix freeze when resetting after using RELICS.
+
+commit e3aaa3868623d92a6662f1ce339d6c33da6f7830
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 30 16:28:53 2018 +0900
+
+    [VM] Fix FTBFSs.
+
+commit 75c44472a1250625fba8d2835934e592cabb5a14
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 30 15:15:41 2018 +0900
+
+    [VM] Apply VM_TEMPLATE to all VMs.
+
+commit f802903d4d6539fed6f876a255ce74701f12d019
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 30 03:04:23 2018 +0900
+
+    [VM][BABBAGE2ND] Fix FTBFS.
+
+commit db8cf4d5c1f75d0736f94d0d87f61bc4435520e9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 30 03:03:50 2018 +0900
+
+    [VM][PC600][PC9801][X1] Move event to VM_TEMPLATE.
+
+commit c86781039f835d95f5d7c1659ba953c4b32832a0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 30 02:50:38 2018 +0900
+
+    [BUILD][MinGW] .
+
+commit c2c5c31eb877407cd0a3f572e3f69117ebd12d39
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 30 02:49:00 2018 +0900
+
+    [VM][BABBAGE2ND][PC6001][PC8801][PC9801][PCENGINE][X1] Use VM_TEMPLATE.
+
+commit d1a870cacb442b092e54cd315ef1c35028eba28a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 30 01:34:30 2018 +0900
+
+    .
+
+commit cad9d412189049bd30e76b83fe2b7093733f48f2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 30 01:33:42 2018 +0900
+
+    [BUILD][CMAKE] Fix OOPs around debug symbols.
+
+commit ab5d7e6dd96133d8b6e75576e3ecbcc53bb47f1d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 30 01:32:48 2018 +0900
+
+    [Draw][OpenGL] OpenGL 4.3 : Upload SCREEN using glMapBuffer().
+
+commit 1e8ea55a9dc64753f1508ed432cc487e32c16703
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 30 01:31:46 2018 +0900
+
+    [OSD][Qt] Prepare to map surface directry, but does not work well.
+
+commit 6a8c95403ce1892d183cb81f8ea2d11b707e86c0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 30 01:30:38 2018 +0900
+
+    [COMMON][Qt] Remove USE_ZLIB, this should set at makefile or CMakeList.txt.
+
+commit 4a9dd913086e16c09daf42cdd2b1e25a939e5b30
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 30 01:29:24 2018 +0900
+
+    [VM] Add vm_template.h . This class, VM_TEMPLATE:: must be mother of VM:: .See fm7/foo.[h|cpp] .
+
+commit d15cf6012456bd41a4e2aa93e0f99c07652aff9f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jul 28 04:57:31 2018 +0900
+
+    [Qt][OpenGL][WIP] GL4.3: Implementing texture buffer with mapping.
+
+commit b5be90f0c9f1fd45725f7703216f5fb51d16fd69
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 27 16:40:25 2018 +0900
+
+    [Draw][OpenGL][OSD] Prepare to direct update vram.
+
+commit 2dc1bbaf124d23df7ab1e3735c81819cf56c3566
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jul 25 00:57:19 2018 +0900
+
+    [BUILD][Linux] Update -g flags.
+
+commit 53d426a7e5070f5e1e052a470e31f0c165276ab1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jul 25 00:53:07 2018 +0900
+
+    [Qt][OpenGL] Initial support of OpenGL 4.3 Core profile.
+    [Qt][OpenGL] Use template class instead of GL2.0.
+    [UI][Qt] Separate some command line parsing to sub-routines.
+    [Build][CMake] Update file desc.
+
+commit 5558e3955a51ee28e9c4258eb0715e3f2648f688
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jul 17 16:05:31 2018 +0900
+
+    [BUILD][CMAKE] Fix not uploading DLL.
+
+commit 364c49bf7402e9f43d75ec2a3a67d7ec14b30862
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jul 17 16:04:32 2018 +0900
+
+    [COMMON][Qt] Fix BYTEORDER of PIXEL@RGB888.Updated SOVERSION.
+
+commit f95e6de63d456b8c41d6f001a0917ee1adb57477
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jul 17 16:02:57 2018 +0900
+
+    [UI][Qt][BUG] Fix crash with using LaserDisc(s).
+
+commit 78fe94962617875d4bd9c2c53eef166261f780a0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 13 13:19:02 2018 +0900
+
+    [DOC] Updated to RC.
+
 commit 9275209c6bed03ccd06716a486e29451c446751d
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Fri Jul 13 12:46:27 2018 +0900
