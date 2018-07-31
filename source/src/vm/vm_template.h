@@ -7,7 +7,7 @@ class EMU;
 class EVENT;
 class DEVICE;
 class csp_state_utils;
-class VM_TEMPLATE {
+class DLL_PREFIX VM_TEMPLATE {
 protected:
 	EMU* emu;
 	// devices
