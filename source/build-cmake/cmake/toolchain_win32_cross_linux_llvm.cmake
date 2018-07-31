@@ -14,14 +14,14 @@ SET(CMAKE_NM  llvm-nm-3.9)
 set(CMAKE_CXX_FLAGS "-target i686-w64-mingw32")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -nostdinc -nostdinc++")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem /usr/lib/clang/3.9.0/include")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem /usr/i686-w64-mingw32/include/../../../usr/lib/gcc/i686-w64-mingw32/6.1-win32/include/c++")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem /usr/i686-w64-mingw32/include/../../../usr/lib/gcc/i686-w64-mingw32/6.1-win32/include/c++/i686-w64-mingw32")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem /usr/i686-w64-mingw32/include/../../../usr/lib/gcc/i686-w64-mingw32/8.2-win32/include/c++")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem /usr/i686-w64-mingw32/include/../../../usr/lib/gcc/i686-w64-mingw32/8.2-win32/include/c++/i686-w64-mingw32")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem /usr/i686-w64-mingw32/include")
 
-set(CMAKE_EXE_LINKER_FLAGS "-L/usr/lib/gcc/i686-w64-mingw32/6.1-win32 -target i686-w64-mingw32 ")
+set(CMAKE_EXE_LINKER_FLAGS "-L/usr/lib/gcc/i686-w64-mingw32/8.2-win32 -target i686-w64-mingw32 ")
 #set(CMAKE_EXE_LINKER_FLAGS "")
 
-set(LIBAV_ROOT_DIR "/usr/local/i586-mingw-msvc/ffmpeg-3.1.1")
+set(LIBAV_ROOT_DIR "/usr/local/i586-mingw-msvc/ffmpeg-4.0")
 
 
 # here is the target environment located
@@ -29,14 +29,14 @@ set(USE_SDL2 ON)
 if(USE_SDL2)
    SET(CMAKE_FIND_ROOT_PATH  /usr/i686-w64-mingw32 
                           /usr/local/i586-mingw-msvc
-                          /usr/local/i586-mingw-msvc/SDL2/i686-w64-mingw32
-			  /usr/local/i586-mingw-msvc/5.7/mingw_611
+                          /usr/local/i586-mingw-msvc/SDL/i686-w64-mingw32
+			  /usr/local/i586-mingw-msvc/5.11.1/mingw_82x
 			  )
 else()
    SET(CMAKE_FIND_ROOT_PATH  /usr/i686-w64-mingw32 
                           /usr/local/i586-mingw-msvc
                           /usr/local/i586-mingw-msvc/SDL1/
-			  /usr/local/i586-mingw-msvc/5.7/mingw_611
+			  /usr/local/i586-mingw-msvc/5.11.1/mingw_82x
 			  )
 endif()
 SET(CSP_CROSS_BUILD 1)
@@ -48,7 +48,6 @@ set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 
-#set(LIBAV_INCLUDE_DIRS /usr/local/i586-mingw-msvc/ffmpeg-3.0/include)
 
 set(SDL2_LIBRARIES
                          /usr/local/i586-mingw-msvc/SDL/i686-w64-mingw32/lib/libSDL2.dll.a 
