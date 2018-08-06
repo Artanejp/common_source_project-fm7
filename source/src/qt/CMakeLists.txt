@@ -1,5 +1,5 @@
 message("* qt/osd")
-SET(THIS_LIB_VERSION 2.13.1)
+SET(THIS_LIB_VERSION 2.13.2)
 
 set(s_qt_osd_headers
 	osd_base.h
@@ -25,7 +25,8 @@ SET(s_qt_osd_srcs
 	  ${s_qt_osd_headers_MOC}
 
 )
-add_definitions(-D_LIBOSD_VERSION=${THIS_LIB_VERSION})
+add_definitions(-D__LIBOSD_VERSION=\"libCSPosd.${THIS_LIB_VERSION}\")
+
 if(WIN32)
 #add_library(qt_osd
 #    ${s_qt_osd_srcs}

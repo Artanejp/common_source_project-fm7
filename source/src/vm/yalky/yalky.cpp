@@ -86,6 +86,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	memory->set_memory_rw(0x6000, 0x60ff, ram);	// 8156
 	
 	// initialize all devices
+#if defined(__GIT_REPO_VERSION)
+	strncpy(_git_revision, __GIT_REPO_VERSION, sizeof(_git_revision) - 1);
+#endif
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}

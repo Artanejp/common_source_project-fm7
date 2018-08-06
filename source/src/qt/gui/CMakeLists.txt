@@ -1,6 +1,6 @@
 message("* qt/gui")
 
-set(THIS_LIB_VERSION 2.15.2)
+set(THIS_LIB_VERSION 2.15.3)
 #include(cotire)
 #include(PrecompiledHeader)
 
@@ -119,6 +119,8 @@ set(s_qt_gui_srcs
 	  ../common/util_bubble2.cpp
 #	  qt_main.cpp
 )
+add_definitions(-D__GUI_LIBRARY_NAME=\"libCSPgui.${THIS_LIB_VERSION}\")
+
 if(USE_QT_5)
   QT5_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})
 #    QT5_ADD_RESOURCES(s_qt_gui_RCC ${RESOURCE}

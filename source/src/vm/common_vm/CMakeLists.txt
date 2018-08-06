@@ -1,6 +1,6 @@
 message("* vm/common_vm")
 
-SET(THIS_LIB_VERSION 1.6.0)
+SET(THIS_LIB_VERSION 2.0.0)
 
 #include(cotire)
 set(s_vm_common_vm_srcs
@@ -115,13 +115,15 @@ set(s_vm_common_vm_srcs
 	../fm7/hd6844.cpp
 	../fm7/mb61vh010.cpp
 #	../fm7/dummydevice.cpp
+
+	../libcpu_newdev/device.cpp
 )
 
 #set_directory_properties(PROPERTIES
 #  COTIRE_PREFIX_HEADER_IGNORE_PATH ${SRC_BASE_DIR}/vm/mame
 #)
 
-add_definitions(-D_LIBRARY_NAME=libCSPcommon_vm.${THIS_LIB_VERSION})
+add_definitions(-D__LIBRARY_NAME=\"libCSPcommon_vm.${THIS_LIB_VERSION}\")
 
 if(WIN32)
 include (GenerateExportHeader)

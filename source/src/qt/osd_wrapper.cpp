@@ -36,6 +36,7 @@
 #include "osd.h"
 #include "../vm/vm.h"
 #include "../vm/device.h"
+#include "../common.h"
 
 #include "emu.h"
 
@@ -49,6 +50,30 @@
 #endif
 #include "qt_gldraw.h"
 #include "csp_logger.h"
+
+const _TCHAR *OSD::get_lib_common_vm_version()
+{
+	if(vm->first_device != NULL) {
+		return vm->first_device->get_lib_common_vm_version();
+	} else {
+		return (const _TCHAR *)"\0";
+	}
+}
+
+const _TCHAR *OSD::get_lib_common_vm_git_version()
+{
+	return vm->get_vm_git_version();
+}
+
+const _TCHAR *OSD::get_lib_osd_version()
+{
+	const _TCHAR *p = (const _TCHAR *)"\0";
+#if defined(__LIBOSD_VERSION)
+	p = (const _TCHAR *)__LIBOSD_VERSION;
+#endif
+	return p;	  
+}
+
 
 void OSD::vm_draw_screen(void)
 {

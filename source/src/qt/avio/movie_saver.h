@@ -218,6 +218,7 @@ public:
 	MOVIE_SAVER(int width, int height, int fps, OSD *osd, config_t *cfg);
 	~MOVIE_SAVER();
 	bool is_recording(void);
+	QString get_avio_version();
 
 public slots:
 	void run();

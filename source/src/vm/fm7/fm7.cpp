@@ -657,6 +657,10 @@ void VM::connect_bus(void)
 	}
 # endif
 #endif
+
+#if defined(__GIT_REPO_VERSION)
+	strncpy(_git_revision, __GIT_REPO_VERSION, sizeof(_git_revision) - 1);
+#endif
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}

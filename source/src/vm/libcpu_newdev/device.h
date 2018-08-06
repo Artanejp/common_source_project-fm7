@@ -63,14 +63,9 @@ protected:
 	CSP_Logger *p_logger;
 public:
 	DEVICE(VM_TEMPLATE* parent_vm, EMU* parent_emu);
-	//ToDo: Will implement real destructor per real classes and below destructor decl. with "virtual".
-	// This makes warning:
-	//"deleting object of polymorphic class type 'DEVICE' which has non-virtual
-	// destructor might cause undefined behavior [-Wdelete-non-virtual-dtor]".
-	//~DEVICE(void);
-	virtual ~DEVICE() {}
-	
-	virtual void initialize() { /* osd = emu->get_osd(); */}
+	~DEVICE() {}
+
+	virtual void initialize() { }
 	virtual void release();
 	
 	virtual void update_config() {}
@@ -566,7 +561,7 @@ public:
 	virtual void set_device_name(const _TCHAR *format, ...);
 	virtual void out_debug_log(const char *fmt, ...);
 	virtual void force_out_debug_log(const char *fmt, ...);
-#if 1
+
 	// debugger
 	// DEBUGGER is enabled by default.
 	virtual void *get_debugger();
@@ -587,9 +582,13 @@ public:
 	virtual bool write_debug_reg(const _TCHAR *reg, uint32_t data);
 	virtual void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	virtual int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
-#endif
+	
+	// misc
+	const _TCHAR *get_lib_common_vm_version(void);
+
 	_TCHAR this_device_name[128];
 	
+	// device node using with iterator.
 	DEVICE* prev_device;
 	DEVICE* next_device;
 	int this_device_id;

@@ -109,6 +109,9 @@ if(GIT_FOUND)
 	endif()
 endif()
 
+string(TIMESTAMP __build_date "%b %d,%Y %H:%M:%S UTC" UTC)
+add_definitions(-D__BUILD_DATE=\"${__build_date}\")
+
 include(FindLibAV)
 if(LIBAV_FOUND)
       add_definitions(-DUSE_LIBAV)

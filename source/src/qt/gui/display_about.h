@@ -19,6 +19,7 @@
 QT_BEGIN_NAMESPACE
 class USING_FLAGS;
 class EMU;
+class Ui_MainWindowBase;
 class DLL_PREFIX Dlg_AboutCSP : public QWidget
 {
 	Q_OBJECT

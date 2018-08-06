@@ -43,6 +43,7 @@
 #include "dialog_movie.h"
 #include "../avio/movie_saver.h"
 // emulation core
+#include "../../vm/fmgen/fmgen.h"
 
 EMU* emu;
 QApplication *GuiMain = NULL;
@@ -1555,3 +1556,85 @@ void Ui_MainWindow::OnCloseDebugger(void )
 }
 #endif
 
+QString Ui_MainWindow::get_system_version()
+{
+	QString guiver = get_gui_version();
+	QString aviover;
+	QString vm_gitver;
+	QString common_vmver;
+	QString osdver;
+	QString libcommon_ver;
+	QString libfmgen_ver;
+	QString build_date;
+	
+	QString outstr;
+	
+	aviover.clear();
+	common_vmver.clear();
+	vm_gitver.clear();
+	osdver.clear();
+	libcommon_ver.clear();
+	
+	if(hSaveMovieThread != NULL) {
+		aviover = hSaveMovieThread->get_avio_version();
+	}
+	if(emu != NULL) {
+		if(emu->get_osd() != NULL) {
+			_TCHAR *cvp = emu->get_osd()->get_lib_common_vm_version();
+			_TCHAR *gvp = emu->get_osd()->get_lib_common_vm_git_version();
+			_TCHAR *ovp = emu->get_osd()->get_lib_osd_version();
+			if(cvp != NULL) {
+				common_vmver = QString::fromUtf8(cvp);
+			}
+			if(gvp != NULL) {
+				vm_gitver = QString::fromUtf8(gvp);
+			}
+			if(ovp != NULL) {
+				osdver = QString::fromUtf8(ovp);
+			}
+		}
+	}
+	
+	const _TCHAR *pp = get_lib_common_version();
+	if(pp != NULL) {
+		libcommon_ver = QString::fromUtf8(pp);
+	}
+	libfmgen_ver = QString::fromUtf8(FM::get_libfmgen_version());
+	
+	outstr.clear();
+	if(!(common_vmver.isEmpty())) {
+		outstr.append(common_vmver);
+		outstr.append("<BR>\n");
+	}
+	if(!(libcommon_ver.isEmpty())) {
+		outstr.append(libcommon_ver);
+		outstr.append("<BR>\n");
+	}
+	if(!(libfmgen_ver.isEmpty())) {
+		outstr.append(libfmgen_ver);
+		outstr.append("<BR>\n");
+	}
+	if(!(guiver.isEmpty())) {
+		outstr.append(guiver);
+		outstr.append("<BR>\n");
+	}
+	if(!(aviover.isEmpty())) {
+		outstr.append(aviover);
+		outstr.append("<BR>\n");
+	}
+	if(!(vm_gitver.isEmpty())) {
+		outstr.append("Build Version: ");
+		outstr.append(vm_gitver);
+		outstr.append("<BR>\n");
+	}
+	return outstr;
+}
+
+QString Ui_MainWindow::get_build_date()
+{
+#if defined(__BUILD_DATE)
+	return QString::fromUtf8(__BUILD_DATE);
+#else
+	return QString::fromUtf8("");
+#endif
+}

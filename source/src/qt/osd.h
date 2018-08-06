@@ -110,7 +110,10 @@ public:
 
 	// Misc
 	void reset_vm_node(void);
-
+	const _TCHAR *get_lib_common_vm_version();
+	const _TCHAR *get_lib_common_vm_git_version();
+	const _TCHAR *get_lib_osd_version();
+	
 	// Socket
 	void initialize_socket();
 	void release_socket();

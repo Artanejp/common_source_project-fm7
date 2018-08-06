@@ -176,6 +176,15 @@ namespace FM
 	uint	volatile  amtable[2][4][FM_LFOENTS];
 
 	static bool tablemade = false;
+
+	const char *get_libfmgen_version(void)
+	{
+#if defined(__LIBFMGEN_VERSION)
+		return (const char *)__LIBFMGEN_VERSION;
+#else
+		return (const char *)"\0";
+#endif
+	}
 }
 
 namespace FM

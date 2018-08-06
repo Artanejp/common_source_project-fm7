@@ -1,6 +1,6 @@
 message("* qt/avio")
 
-SET(THIS_LIB_VERSION 2.9.1)
+SET(THIS_LIB_VERSION 2.9.2)
 set(s_qt_avio_headers
 	  movie_saver.h
 	  movie_loader.h
@@ -15,6 +15,7 @@ set(s_qt_avio_srcs
 	  movie_saver_fileio.cpp
 	  sound_loader.cpp
 )
+add_definitions(-D__LIBAVIO_VERSION=\"libCSPavio.${THIS_LIB_VERSION}\")
 
 if(USE_QT_5)
   QT5_WRAP_CPP(s_qt_avio_headers_MOC ${s_qt_avio_headers})

@@ -14,10 +14,11 @@
 
 #include "display_about.h"
 #include "menu_flags.h"
+#include "mainwidget_base.h"
 
 //extern USING_FLAGS *using_flags;
 
-Dlg_AboutCSP::Dlg_AboutCSP(USING_FLAGS *p, QWidget *parent) : QWidget(parent)
+Dlg_AboutCSP::Dlg_AboutCSP(USING_FLAGS *p, QWidget *parent) : QWidget(NULL)
 {
 	QByteArray tmps;
 	QFile f_credits(":/credits.html");
@@ -32,10 +33,30 @@ Dlg_AboutCSP::Dlg_AboutCSP(USING_FLAGS *p, QWidget *parent) : QWidget(parent)
 	using_flags = p;
 	// Credits
 	credits.clear();
+	printf("%x\n",parent_widget);
 	if(f_credits.open(QIODevice::ReadOnly | QIODevice::Text)) {
 		tmps = f_credits.readAll();
 		if(!tmps.isEmpty()) {
-			credits = tmps;
+			QString ss;
+			QString bs;
+			ss.clear();
+			QString ns = QString::fromUtf8(tmps);
+			if(parent != NULL) {
+				ss = static_cast<Ui_MainWindowBase *>(parent)->get_system_version();
+				bs = static_cast<Ui_MainWindowBase *>(parent)->get_build_date();
+			}
+			QString reps = QString::fromUtf8("@@RevisionString@@");
+			int ni = ns.indexOf(reps);
+			if(ni >= 0) {
+				ns.replace(ni, reps.length(), ss);
+			}
+			reps = QString::fromUtf8("@@BuildDateAt@@");
+			ni = ns.indexOf(reps);
+			if(ni >= 0) {
+				ns.replace(ni, reps.length(), bs);
+			}
+			
+			credits = ns;
 		}
 		f_credits.close();
 	}
@@ -102,3 +123,4 @@ Dlg_AboutCSP::~Dlg_AboutCSP()
 {
 
 }	
+

@@ -13,11 +13,12 @@ protected:
 	// devices
 	EVENT* event;
 	csp_state_utils *state_entry;
-	
+	_TCHAR _git_revision[256];
 public:
 	VM_TEMPLATE(EMU* parent_emu) : emu(parent_emu)
 	{
 		emu = parent_emu;
+		memset(_git_revision, 0x00, sizeof(_git_revision));
 	}
 	~VM_TEMPLATE() {}
 	// drive virtual machine
@@ -140,9 +141,13 @@ public:
 	virtual bool is_screen_changed() { return true; }
 	virtual int max_draw_ranges() { return 0; }
 	virtual DEVICE* get_device(int id) { return first_device; }
-	
+	//	misc
+	virtual const _TCHAR *get_vm_git_version(void) {
+		return (const _TCHAR *)_git_revision;
+	}
 	DEVICE* dummy;
 	DEVICE* first_device;
 	DEVICE* last_device;
 };
+
 #endif /* __CSP_VM_TEMPLATE_H */

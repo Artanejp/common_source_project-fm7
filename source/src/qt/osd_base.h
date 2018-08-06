@@ -444,6 +444,10 @@ public:
 	virtual QString get_vm_config_name(void);
 	virtual double vm_frame_rate(void);
 	virtual void reset_vm_node(void);
+	virtual const _TCHAR *get_lib_common_vm_version() { return (const _TCHAR *)"\0"; }
+	virtual const _TCHAR *get_lib_common_vm_git_version() { return (const _TCHAR *)"\0"; }
+	virtual const _TCHAR *get_lib_osd_version() { return (const _TCHAR *)"\0"; }
+	
 	virtual void set_device_name(int id, char *name);
 	
 	virtual void set_vm_node(int id, const _TCHAR *name);

@@ -4,8 +4,8 @@
 // ---------------------------------------------------------------------------
 //	$Id: misc.h,v 1.5 2002/05/31 09:45:20 cisc Exp $
 
-#ifndef MISC_H
-#define MISC_H
+#ifndef __FMGEN_MISC_H
+#define __FMGEN_MISC_H
 
 inline int Max(int x, int y) { return (x > y) ? x : y; }
 inline int Min(int x, int y) { return (x < y) ? x : y; }

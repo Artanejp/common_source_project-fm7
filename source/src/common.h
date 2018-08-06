@@ -1169,6 +1169,7 @@ typedef DLL_PREFIX struct cur_time_s {
 } cur_time_t;
 
 void DLL_PREFIX get_host_time(cur_time_t* cur_time);
+const _TCHAR DLL_PREFIX *get_lib_common_version();
 
 // symbol
 typedef struct symbol_s {

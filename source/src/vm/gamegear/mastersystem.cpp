@@ -120,6 +120,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_range_rw(0xf0, 0xf2, fm);		// MS  FM
 	
 	// initialize all devices
+#if defined(__GIT_REPO_VERSION)
+	strncpy(_git_revision, __GIT_REPO_VERSION, sizeof(_git_revision) - 1);
+#endif
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}

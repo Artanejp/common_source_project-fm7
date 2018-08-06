@@ -412,3 +412,11 @@ int DEVICE::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	return 0;
 }
 
+const _TCHAR *DEVICE::get_lib_common_vm_version(void)
+{
+#if defined(__LIBRARY_NAME)
+	return (const _TCHAR *)__LIBRARY_NAME;
+#else
+	return (const _TCHAR *)"\0";
+#endif	
+}

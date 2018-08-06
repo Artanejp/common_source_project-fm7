@@ -47,6 +47,7 @@
 #include "qt_main.h"
 #include "menu_flags.h"
 #include "csp_logger.h"
+#include "common.h"
 
 extern EMU *emu;
 //extern USING_FLAGS *using_flags;
@@ -82,6 +83,16 @@ Ui_MainWindowBase::~Ui_MainWindowBase()
 	if(ledUpdateTimer != NULL) delete ledUpdateTimer;
 	if(driveData != NULL) delete driveData;
 	delete using_flags;
+}
+
+QString Ui_MainWindowBase::get_gui_version()
+{
+	QString retval;
+	retval.clear();
+#if defined(__GUI_LIBRARY_NAME)
+	retval = QString::fromUtf8(__GUI_LIBRARY_NAME);
+#endif
+	return retval;
 }
 
 void Action_Control::do_check_grab_mouse(bool flag)
@@ -143,7 +154,7 @@ void Ui_MainWindowBase::do_set_window_focus_type(bool flag)
 
 void Ui_MainWindowBase::do_show_about(void)
 {
-	Dlg_AboutCSP *dlg = new Dlg_AboutCSP(using_flags);
+	Dlg_AboutCSP *dlg = new Dlg_AboutCSP(using_flags, static_cast<QWidget *>(this));
 	dlg->show();
 }
 
@@ -1184,6 +1195,17 @@ void Ui_MainWindowBase::rise_joystick_dialog(void)
 		dlg->show();
 	}
 }
+
+QString Ui_MainWindowBase::get_system_version()
+{
+	return QString::fromUtf8("Dummy");
+}
+
+QString Ui_MainWindowBase::get_build_date()
+{
+	return QString::fromUtf8("Dummy");
+}
+
 
 void Ui_MainWindowBase::rise_movie_dialog(void)
 {

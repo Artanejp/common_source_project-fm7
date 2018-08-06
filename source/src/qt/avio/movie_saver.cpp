@@ -8,6 +8,7 @@
 #include <QDateTime>
 #include "movie_saver.h"
 #include "../osd.h"
+#include "common.h"
 #include "csp_logger.h"
 
 MOVIE_SAVER::MOVIE_SAVER(int width, int height, int fps, OSD *osd, config_t *cfg) : QThread(0)
@@ -65,6 +66,15 @@ MOVIE_SAVER::~MOVIE_SAVER()
 {
 	req_close = true;
 	if(recording) do_close_main();
+}
+
+QString MOVIE_SAVER::get_avio_version()
+{
+#if defined(__LIBAVIO_VERSION)
+	return QString::fromUtf8(__LIBAVIO_VERSION);
+#else
+	return QString::fromUtf8("\0");
+#endif
 }
 
 QString MOVIE_SAVER::ts2str(int64_t ts)

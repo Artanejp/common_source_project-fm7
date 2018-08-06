@@ -15,7 +15,9 @@ set(s_qt_emuutils_srcs
 
 QT5_WRAP_CPP(s_qt_emuutils_headers_MOC ${s_qt_emuutils_headers})
 	
-SET(THIS_LIB_VERSION 2.12.1) 
+SET(THIS_LIB_VERSION 2.12.2) 
+
+add_definitions(-D__LIBEMU_UTIL_VERSION=\"libCSPemu_utils.${THIS_LIB_VERSION}\")
 
 if(WIN32)
 include (GenerateExportHeader)

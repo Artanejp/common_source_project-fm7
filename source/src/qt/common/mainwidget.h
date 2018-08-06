@@ -50,6 +50,8 @@ public:
 	bool GetBubbleCasetteIsProtected(int drv);
 	QString GetBubbleB77FileName(int drv);
 	QString GetBubbleB77BubbleName(int drv, int num);
+	QString get_system_version();
+	QString get_build_date();
 
 public slots:
 #if defined(USE_FLOPPY_DISK)

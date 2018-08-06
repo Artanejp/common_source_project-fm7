@@ -2015,3 +2015,12 @@ bool DLL_PREFIX load_wav_to_monoral(void *__fio, int16_t **buffer, uint32_t *rat
 	*got_samples = (int)samples;
 	return true;
 }
+
+DLL_PREFIX const _TCHAR *get_lib_common_version()
+{
+#if defined(__LIBEMU_UTIL_VERSION)
+	return (const _TCHAR *)__LIBEMU_UTIL_VERSION;
+#else
+	return (const _TCHAR *)"\0";
+#endif
+}

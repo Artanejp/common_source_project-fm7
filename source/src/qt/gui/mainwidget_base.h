@@ -93,7 +93,7 @@ QT_BEGIN_NAMESPACE
 		connect(__action[_i], __signal2, this, __slot2);				\
 	}																	\
 
-
+class OSD;
 class QVariant;
 class QAction;
 class QActionGroup;
@@ -524,6 +524,11 @@ public:
 	bool get_direct_load_mzt(int drive);
 	virtual bool GetPowerState(void);
 	void set_logger(CSP_Logger *logger) { csp_logger = logger; }
+
+	virtual QString get_system_version();
+	virtual QString get_build_date();
+	QString get_gui_version();
+
 	// Basic slots
 public slots:
 	void delete_emu_thread(void);
