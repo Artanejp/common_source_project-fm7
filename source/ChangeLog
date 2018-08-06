@@ -1,5 +1,23 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
-*
+
+* SNAPSHOT August 07, 2018
+  * Upstream 2018-05-24 .
+  * [VM] Use VM_TEMPLATE, META-Class of VM::
+  * [VM/FM7] Clear OPN/WHG/THG interrupt on resetting. Fix freeze when resetting after using RELICS.
+  * [VM/FM7] DISPLAY: Not use CLR_HACK for MC6809 and delay using CLR to set busy flag.May be working MAGUS.
+  * [VM/MC6809] Remove dirty CLR insn hack.
+  * [VM/DEVICE] Add DEVICE:: to libCSPcommon_vm.
+  * [COMMON/Qt] Fix BYTEORDER of PIXEL@RGB888.
+  * [UI/Qt][BUG] Fix crash with using LaserDisc(s).
+  * [Qt/OpenGL] Initial support of OpenGL 4.3 Core profile.
+  * [Qt/OpenGL] OpenGL 4.3 : Upload SCREEN using glMapBuffer().
+  * [Qt/OpenGL] Use template class instead of GL2.0.
+  * [UI/Qt] Separate some command line parsing to sub-routines.
+  * [BUILD/WIN32] Update toolchain to Qt5.11.1.
+  * [BUILD] Set SOVERSION and GIT hash automatically.
+  * Built with df3888ca1199c6f75c1500dbb479d152ba6e2ad0 (or later).
+
+-- August 07, 2018 03:58:14 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT July 13, 2018
   * Upstream 2018-05-24 .

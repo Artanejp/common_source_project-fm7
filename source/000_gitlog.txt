@@ -1,3 +1,29 @@
+commit df3888ca1199c6f75c1500dbb479d152ba6e2ad0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Aug 6 22:41:33 2018 +0900
+
+    .
+
+commit 90a1d498c79c26d69c78435600856b152aa07291
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Aug 6 22:40:14 2018 +0900
+
+    [BUILD] Set SOVERSION and GIT hash automatically.
+    [DEVICE][COMMON_VM] Add DEVICE:: to libCSPcommon_vm.
+    [BUILD] Update SOVERSION.
+
+commit 840a9fe11de6d66f0430a999816edee30b498a11
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Aug 6 12:30:45 2018 +0900
+
+    [BUILD][CMAKE] Add __GIT_REPO_VERSION definition.
+
+commit d1d4774196516af82cf362843a7224dd80c63eab
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Aug 1 00:27:59 2018 +0900
+
+    [DOC] Update gitlog.
+
 commit 09ce60e5eb776b12b2149fbb870896f62154c75d
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Wed Aug 1 00:12:13 2018 +0900
