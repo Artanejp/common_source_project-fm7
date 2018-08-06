@@ -115,10 +115,10 @@ else()
   add_definitions(-D_GLIBCXX_USE_CXX11_ABI=1)
 endif()
 
+
 SET(CMAKE_AUTOMOC OFF)
 SET(CMAKE_AUTORCC ON)
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
-
 
 add_definitions(-D_USE_QT)
 add_definitions(-DUSE_QT)
@@ -139,6 +139,18 @@ find_package(Threads)
 include_directories(${THREADS_INCLUDE_PATH})
 
 include(FindPkgConfig)
+
+find_package(Git)
+if(GIT_FOUND)
+	execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse HEAD OUTPUT_VARIABLE __tstr)
+	string(FIND ${__tstr} "fatal" __notfound)
+	string(REPLACE "\n" "" __tstr2 ${__tstr})
+	if(${__notfound} EQUAL -1)
+		   add_definitions(-D__GIT_REPO_VERSION=${__tstr2})
+	else()
+		   add_definitions(-U__GIT_REPO_VERSION)
+	endif()
+endif()
 
 include(FindLibAV)
     if(LIBAV_FOUND)
