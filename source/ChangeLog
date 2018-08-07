@@ -4,7 +4,7 @@
   * Upstream 2018-05-24 .
   * [VM] Use VM_TEMPLATE, META-Class of VM::
   * [VM/FM7] Clear OPN/WHG/THG interrupt on resetting. Fix freeze when resetting after using RELICS.
-  * [VM/FM7] DISPLAY: Not use CLR_HACK for MC6809 and delay using CLR to set busy flag.May be working MAGUS.
+  * [VM/FM7] DISPLAY: Not use CLR_HACK for MC6809 and delay using CLR to set busy flag.May be working MAGUS.Thanks to Anna_Wu.
   * [VM/MC6809] Remove dirty CLR insn hack.
   * [VM/DEVICE] Add DEVICE:: to libCSPcommon_vm.
   * [COMMON/Qt] Fix BYTEORDER of PIXEL@RGB888.
