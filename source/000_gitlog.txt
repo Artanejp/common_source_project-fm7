@@ -1,3 +1,27 @@
+commit 15e4ff0c2cf6c69c43c05834684bbc7ebd5c1713
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Aug 7 12:45:43 2018 +0900
+
+    [DOC] Update ChangeLog.
+
+commit 4bd82d0551a845a0619339f4517cea6834b1ab13
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Aug 7 04:20:14 2018 +0900
+
+    [DOC][OOPS] Update credits.html .
+
+commit e5484b40d0a715dcbbfc47c2e974ca61b86b5511
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Aug 7 04:14:11 2018 +0900
+
+    [TOOL] Update installer.
+
+commit 650c5adf3830ad2e2167589a9b141340ccc935db
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Aug 7 04:02:20 2018 +0900
+
+    [DOC] Update to release.
+
 commit df3888ca1199c6f75c1500dbb479d152ba6e2ad0
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Mon Aug 6 22:41:33 2018 +0900
