@@ -293,7 +293,7 @@ namespace FM
 		OpType	optype_;
 		uint32	multable_[4][16];
 	};
-	const char *get_libfmgen_version(void);
+	DLL_PREFIX const char *get_libfmgen_version(void);
 }
 
 #endif // FM_GEN_H
