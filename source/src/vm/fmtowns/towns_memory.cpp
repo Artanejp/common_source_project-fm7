@@ -60,7 +60,9 @@ void TOWNS_MEMORY::initialize()
 	extram_size = TOWNS_EXTRAM_PAGES * 0x100000;
 	// ToDo: Limit extram_size per VM.
 	extram = (uint8_t *)malloc(extram_size);
-
+	// ToDo: More smart.
+	vram_size = 0x80000; // OK?
+	
 	initialize_tables();
 }
 
@@ -78,15 +80,41 @@ uint32_t TOWNS_MEMORY::read_data8w(uint32_t addr, int *wait)
 {
 	uint8_t *maddr;
 	DEVICE *daddr;
-	int udata;
-	uint32_t mask;
-	int wval;
-	if(set_mapaddress(addr, false, &maddr, &daddr, &udata, &mask, &wval)) {
-		if(maddr != NULL) {
-			if(wait != NULL) *wait = wval;
-			return (uint32_t)(*maddr);
-		} else if(daddr != NULL) {
-			return (uint32_t)(daddr->read_data8w((addr & mask) + (uint32_t)udata, wait));
+	uint32_t banknum = addr >> 12;
+	maddr = read_bank_adrs_cx[banknum];
+	if(maddr != NULL)  {
+		if(wait != NULL) *wait = mem_wait_val;
+		uint8_t *p = &maddr[addr & 0x00000fff];
+		return (uint32_t)(*p);
+	} else {
+		daddr = device_bank_adrs_cx[banknum];
+		if(daddr != NULL) {
+			return daddr->read_data8w(addr, wait);
+		} else {
+			uint8_t __type = (uint8_t)(type_bank_adrs_cx[banknum] >> 24);
+			uint32_t __offset = type_bank_adrs_cx[banknum] & 0x00ffffff;
+			uint8_t *pp = NULL;
+			switch(__type) {
+			case TOWNS_MEMORY_TYPE_PAGE0F8:
+				if(bankf8_ram) {
+					if(wait != NULL) *wait = mem_wait_val;
+					pp = &ram_0f8[addr & 0x7fff];
+				} else {
+					if(wait != NULL) *wait = mem_wait_val; // IS WAIT VALUE RIGHT?
+					pp = &rom_system[0x38000 + (addr & 0x7fff)];
+				}
+					
+				break;
+			default:
+				if(wait != NULL) *wait = 0;
+				pp = NULL;
+				break;
+			}
+			if(pp != NULL) {
+				return (uint32_t)(*pp);
+			} else {
+				return 0xff;
+			}
 		}
 	}
 	return 0xff;
@@ -96,16 +124,41 @@ uint32_t TOWNS_MEMORY::read_data16w(uint32_t addr, int *wait)
 {
 	uint8_t *maddr;
 	DEVICE *daddr;
-	int udata;
-	uint32_t mask;
-	int wval;
-	if(set_mapaddress(addr, false, &maddr, &daddr, &udata, &mask, &wval)) {
-		if(maddr != NULL) {
-			if(wait != NULL) *wait = wval;
-			uiint16_t *p = (uint16_t *)maddr;
-			return (uint32_t)(*p);
-		} else if(daddr != NULL) {
-			return (uint32_t)(daddr->read_data16w((addr & mask) + (uint32_t)udata, wait));
+	uint32_t banknum = addr >> 12;
+	maddr = read_bank_adrs_cx[banknum];
+	if(maddr != NULL)  {
+		if(wait != NULL) *wait = mem_wait_val;
+		uint16_t *p = (uint16_t*)(&maddr[addr & 0x00000fff]);
+		return (uint32_t)(*p);
+	} else {
+		daddr = device_bank_adrs_cx[banknum];
+		if(daddr != NULL) {
+			return daddr->read_data16w(addr, wait);
+		} else {
+			uint8_t __type = (uint8_t)(type_bank_adrs_cx[banknum] >> 24);
+			uint32_t __offset = type_bank_adrs_cx[banknum] & 0x00ffffff;
+			uint16_t *pp = NULL;
+			switch(__type) {
+			case TOWNS_MEMORY_TYPE_PAGE0F8:
+				if(bankf8_ram) {
+					if(wait != NULL) *wait = mem_wait_val;
+					pp = (uint16_t*)(&ram_0f8[addr & 0x7fff]);
+				} else {
+					if(wait != NULL) *wait = mem_wait_val; // IS WAIT VALUE RIGHT?
+					pp = (uint16_t*)(&rom_system[0x38000 + (addr & 0x7fff)]);
+				}
+					
+				break;
+			default:
+				if(wait != NULL) *wait = 0;
+				pp = NULL;
+				break;
+			}
+			if(pp != NULL) {
+				return (uint32_t)(*pp);
+			} else {
+				return 0xffff;
+			}
 		}
 	}
 	return 0xffff;
@@ -115,53 +168,126 @@ uint32_t TOWNS_MEMORY::read_data32w(uint32_t addr, int *wait)
 {
 	uint8_t *maddr;
 	DEVICE *daddr;
-	int udata;
-	uint32_t mask;
-	int wval;
-	if(set_mapaddress(addr, false, &maddr, &daddr, &udata, &mask, &wval)) {
-		if(maddr != NULL) {
-			if(wait != NULL) *wait = wval;
-			uiint32_t *p = (uint32_t *)maddr;
-			return *p;
-		} else if(daddr != NULL) {
-			return (uint32_t)(daddr->read_data32w((addr & mask) + (uint32_t)udata, wait));
+	uint32_t banknum = addr >> 12;
+	maddr = read_bank_adrs_cx[banknum];
+	if(maddr != NULL)  {
+		if(wait != NULL) *wait = mem_wait_val;
+		uint32_t *p = (uint32_t*)(&maddr[addr & 0x00000fff]);
+		return (uint32_t)(*p);
+	} else {
+		daddr = device_bank_adrs_cx[banknum];
+		if(daddr != NULL) {
+			return daddr->read_data16w(addr, wait);
+		} else {
+			uint8_t __type = (uint8_t)(type_bank_adrs_cx[banknum] >> 24);
+			uint32_t __offset = type_bank_adrs_cx[banknum] & 0x00ffffff;
+			uint32_t *pp = NULL;
+			switch(__type) {
+			case TOWNS_MEMORY_TYPE_PAGE0F8:
+				if(bankf8_ram) {
+					if(wait != NULL) *wait = mem_wait_val;
+					pp = (uint32_t*)(&ram_0f8[addr & 0x7fff]);
+				} else {
+					if(wait != NULL) *wait = mem_wait_val; // IS WAIT VALUE RIGHT?
+					pp = (uint32_t*)(&rom_system[0x38000 + (addr & 0x7fff)]);
+				}
+					
+				break;
+			default:
+				if(wait != NULL) *wait = 0;
+				pp = NULL;
+				break;
+			}
+			if(pp != NULL) {
+				return (uint32_t)(*pp);
+			} else {
+				return 0xffffffff;
+			}
 		}
 	}
 	return 0xffffffff;
 }
 
+
 void TOWNS_MEMORY::write_data8w(uint32_t addr, uint32_t data, int *wait)
 {
 	uint8_t *maddr;
 	DEVICE *daddr;
-	int udata;
-	uint32_t mask;
-	int wval;
-	if(set_mapaddress(addr, true, &maddr, &daddr, &udata, &mask, &wval)) {
-		if(maddr != NULL) {
-			if(wait != NULL) *wait = wval;
-			*maddr = (uint8_t)data;
-		} else if(daddr != NULL) {
-			daddr->write_data8w((addr & mask) + (uint32_t)udata, data, wait);
+	uint32_t banknum = addr >> 12;
+	maddr = write_bank_adrs_cx[banknum];
+	if(maddr != NULL) {
+		if(wait != NULL) *wait = mem_wait_val;
+		uint8_t *p = &maddr[addr & 0x00000fff];
+		*p = (uint8_t)(data & 0x000000ff);
+		return;
+	} else {
+		daddr = device_bank_adrs_cx[banknum];
+		if(daddr != NULL) {
+			return daddr->write_data8w(addr, data, wait);
+		} else {
+			uint8_t __type = (uint8_t)(type_bank_adrs_cx[banknum] >> 24);
+			uint32_t __offset = type_bank_adrs_cx[banknum] & 0x00ffffff;
+			uint8_t *pp = NULL;
+			switch(__type) {
+			case TOWNS_MEMORY_TYPE_PAGE0F8:
+				if(bankf8_ram) {
+					if(wait != NULL) *wait = mem_wait_val;
+					pp = &ram_0f8[addr & 0x7fff];
+				}					
+				break;
+			default:
+				if(wait != NULL) *wait = 0;
+				pp = NULL;
+				break;
+			}
+			if(pp != NULL) {
+				*pp = (uint8_t)(data & 0x000000ff);
+				return;
+			} else {
+				return;
+			}
 		}
 	}
 }
-
 
 void TOWNS_MEMORY::write_data16w(uint32_t addr, uint32_t data, int *wait)
 {
 	uint8_t *maddr;
 	DEVICE *daddr;
-	int udata;
-	uint32_t mask;
-	int wval;
-	if(set_mapaddress(addr, true, &maddr, &daddr, &udata, &mask, &wval)) {
-		if(maddr != NULL) {
-			uint16_t *p = (uint16_t *)maddr;
-			if(wait != NULL) *wait = wval;
-			*p = (uint16_t)data;
-		} else if(daddr != NULL) {
-			daddr->write_data16w((addr & mask) + (uint32_t)udata, data, wait);
+	uint32_t banknum = addr >> 12;
+	maddr = write_bank_adrs_cx[banknum];
+	if(maddr != NULL) {
+		if(wait != NULL) *wait = mem_wait_val;
+		uint16_t *p = (uint16_t*)(&maddr[addr & 0x00000fff]);
+		*p = (uint16_t)(data & 0x0000ffff);
+		return;
+	} else {
+		daddr = device_bank_adrs_cx[banknum];
+		if(daddr != NULL) {
+			return daddr->write_data16w(addr, data, wait);
+		} else {
+			uint8_t __type = (uint8_t)(type_bank_adrs_cx[banknum] >> 24);
+			uint32_t __offset = type_bank_adrs_cx[banknum] & 0x00ffffff;
+			uint8_t *pp = NULL;
+			switch(__type) {
+			case TOWNS_MEMORY_TYPE_PAGE0F8:
+				if(bankf8_ram) {
+					if(wait != NULL) *wait = mem_wait_val;
+					pp = &ram_0f8[addr & 0x7fff];
+				}					
+				break;
+			default:
+				if(wait != NULL) *wait = 0;
+				pp = NULL;
+				break;
+			}
+			if(pp != NULL) {
+				uint16_t *ppp = (uint16_t*)pp;
+				*ppp = (uint16_t)(data & 0x0000ffff);
+				return;
+			} else {
+				return;
+			}
 		}
 	}
 }
@@ -170,234 +296,42 @@ void TOWNS_MEMORY::write_data32w(uint32_t addr, uint32_t data, int *wait)
 {
 	uint8_t *maddr;
 	DEVICE *daddr;
-	int udata;
-	uint32_t mask;
-	int wval
-	if(set_mapaddress(addr, true, &maddr, &daddr, &udata, &mask, &wval)) {
-		if(maddr != NULL) {
-			uint32_t *p = (uint32_t *)maddr;
-			if(wait != NULL) *wait = wval;
-			*p = data;
-		} else if(daddr != NULL) {
-			daddr->write_data32w((addr & mask) + (uint32_t)udata, data, wait);
-		}
-	}
-}
-
-
-bool TOWNS_MEMORY::set_mapaddress(uint32_t addr, bool is_write, uint32_t **memory_address, DEVICE **device_address, int *userdata, uint32_t *maskdata, int *waitval)
-{
-	uint8_t *retaddr = NULL;
-	DEVICE *devaddr = NULL;
-	uint32_t mask = 0xffffffff;
-	bool stat = false;
-	int udata = 0;
-	int wait = 0;
-	uint8_t upper_bank = (addr & 0xf0000000) >> 28;
-	uint8_t mid_bank   = (addr & 0x0f000000) >> 24;
-	uint8_t low_bank =   (addr & 0x00ff0000) >> 16;
-	
-	switch(upper_bank) {
-	case 0:
-		{
-			if(addr < 0x100000) {
-				uint8_t naddr = (uint8_t)((addr >> 12) & 0xff);
-				switch(naddr >> 4) {
-				case 0x0:
-				case 0x1:
-				case 0x2:
-				case 0x3:
-				case 0x4:
-				case 0x5:
-				case 0x6:
-				case 0x7:
-				case 0x8:
-				case 0x9:
-				case 0xa:
-				case 0xb:
-					wait = mem_wait_val;
-					retaddr = (uint8_t *)(&(ram_page0[addr & 0xfffff]));
-					stat = true;
-					break;
-				case 0xc:
-					if((addr & 0x0f000) < 0x08000) {
-						mask = 0x00007fff;
-						devaddr = d_vram;
-						udata = TOWNS_VRAM_OFFSET_PLANE_BANKED;
-					} else {
-						mask = 0x00007fff;
-						devaddr = d_mmio;
-					}
-					stat = true;
-					break;
-				case 0xd:
-				case 0xe:
-					{
-						uint32_t maddr = addr & 0x1f000;
-						if(maddr < 0x08000) {
-							// Dictionary ROM.
-							if(!is_write) {
-								wait = vram_wait_val; // OK?
-								retaddr = &(rom_dict[(addr & 0x07fff) + (dicrom_bank << 15)]);
-								stat = true;
-							}
-						} else if(maddr < 0x0a000) {
-							if((addr & 0x7fff) < 0x0800) {
-								wait = mem_wait_val; // OK?
-								if((addr & 0x01) == 0) {
-									mask = 0x000007ff;
-									retaddr = &(ram_cmos[addr & 0x07ff]);
-									stat = true;
-								}
-							} else {
-								wait = vram_wait_val; // OK?
-								if((addr & 0x01) == 0) {
-									devaddr = d_vram;
-									udata = TOWNS_VRAM_OFFSET_GAIJI;
-									mask = 0x0000ffff;
-									stat = true;
-								}
-							}
-						
-						}
-					}
-					break;
-				case 0xf:
-					if(naddr < 0xf8) {
-						wait = mem_wait_val; // OK?
-						retaddr = &(ram_0f0[addr & 0x7fff]);
-						stat = true;
-					} else {
-						if(!bootrom_selected) {
-							wait = mem_wait_val; // OK?
-							retaddr = &(ram_0f8[addr & 0x7fff]);
-							stat = true;
-						} else {
-							wait = mem_wait_val; // OK?
-							if(!is_write) {
-								retaddr = &(rom_system[(addr & 0x7fff) + 0x38000]);
-								stat = true;
-							}
-						}				
-					}
-					break;
-				}
+	uint32_t banknum = addr >> 12;
+	maddr = write_bank_adrs_cx[banknum];
+	if(maddr != NULL) {
+		if(wait != NULL) *wait = mem_wait_val;
+		uint32_t *p = (uint32_t*)(&maddr[addr & 0x00000fff]);
+		*p = data;
+		return;
+	} else {
+		daddr = device_bank_adrs_cx[banknum];
+		if(daddr != NULL) {
+			return daddr->write_data32w(addr, data, wait);
+		} else {
+			uint8_t __type = (uint8_t)(type_bank_adrs_cx[banknum] >> 24);
+			uint32_t __offset = type_bank_adrs_cx[banknum] & 0x00ffffff;
+			uint8_t *pp = NULL;
+			switch(__type) {
+			case TOWNS_MEMORY_TYPE_PAGE0F8:
+				if(bankf8_ram) {
+					if(wait != NULL) *wait = mem_wait_val;
+					pp = &ram_0f8[addr & 0x7fff];
+				}					
+				break;
+			default:
+				if(wait != NULL) *wait = 0;
+				pp = NULL;
+				break;
+			}
+			if(pp != NULL) {
+				uint32_t *ppp = (uint32_t*)pp;
+				*ppp = data;
+				return;
 			} else {
-				wait = mem_wait_val; // OK?
-				if(extram_size >= (addr - 0x100000)) {
-					retaddr = &(extram[addr - 0x100000]);
-					stat = true;
-				}
+				return;
 			}
 		}
-		break;
-	case 1:
-	case 2:
-	case 3:
-		if(extram_size >= (addr - 0x100000)) {
-			wait = mem_wait_val; // OK?
-			retaddr = &(extram[addr - 0x100000]);
-			stat = true;
-		}
-		break;
-	case 4:
-	case 5:
-	case 6:
-	case 7:
-		// I/O extension slot
-		udata = FMTOWNS_IO_EXPAND_SLOT;
-		mask = 0x3fffffff;
-		wait = mem_wait_val; // OK?
-		retaddr = NULL;
-		stat = true;
-		break;
-	case 8:
-		// VRAM
-		if(addr < 0x81000000) {
-			if(d_vram != NULL) {
-				devaddr = d_vram;
-				mask = 0x000fffff; // OK?
-				if(addr < 0x80100000) {
-					udata = TOWNS_VRAM_OFFSET_SPLIT;
-				} else if(addr < 0x80200000) {
-					udata = TOWNS_VRAM_OFFSET_SINGLE;
-				} else {
-					udata = TOWNS_VRAM_OFFSET_UNDEFINED;
-				}
-				wait = vram_wait_val; // OK?
-				stat = true;
-			}
-		} else if(addr < 0x81020000) {
-			mask = 0x0001ffff; // OK?
-			devaddr = d_sprite;
-			stat = true;
-		}
-		break;
-	case 9:
-	case a:
-	case b:
-		// VRAM: Reserved
-
-		break;
-	case 0xc:
-		if(addr < 0xc2000000) {
-			uint32_t cardbank = ((addr & 0x01000000) >> 24);
-			if(d_romcard[cardbank] != NULL) {
-				wait = mem_wait_val; // OK?
-				devaddr = d_romcard[cardbank];
-				stat = true;
-			}
-		} else if(addr < 0xc2080000) {
-			if(!is_write) {
-				wait = mem_wait_val; // OK?
-				retaddr = &(rom_msdos[addr & 0x7ffff]);
-				stat = true;
-			}
-		} else if(addr < 0xc2100000) {
-			if(!is_write) {
-				wait = mem_wait_val; // OK?
-				retaddr = &(rom_dict[addr & 0x7ffff]);
-				stat = true;
-			}
-		} else if(addr < 0xc2140000) {
-			if(!is_write) {
-				wait = mem_wait_val; // OK?
-				retaddr = &(rom_font[addr & 0x4ffff]);
-				stat = true;
-			}
-		} else if(addr < 0xc2142000) {
-			wait = mem_wait_val; // OK?
-			retaddr = &(ram_cmos[addr & 0x1fff]);
-			stat = true;
-		} else if(addr < 0xc2200000) {
-			// Reserve
-		} else if(addr < 0xc2201000) {
-			if(d_pcm != NULL) {
-				devarrd = d_pcm;
-				stat = true;
-			}
-		}
-		break;
-	case 0xc:
-	case 0xd:
-	case 0xe:
-		break;
-	case 0xf:
-		if(addr >= 0xfffc0000) {
-			if(!is_write) {
-				wait = mem_wait_val; // OK?
-				retaddr = &(rom_system[addr & 0x3ffff]);
-				stat = true;
-			}
-		}
-		break;
 	}
-	if(memory_address != NULL) *memory_address = retaddr;
-	if(device_address != NULL) *device_address = devaddr;
-	if(userdata != NULL) *userdata = udata;
-	if(maskdata != NULL) *maskdata = mask;
-	if(waitval != NULL) *waitval = wait;
-	return stat;
 }
 
 
@@ -418,39 +352,73 @@ uint32_t TOWNS_MEMORY::read_data8(uint32_t addr)
 
 void TOWNS_MEMORY::initialize_tables(void)
 {
-	memset(extram_adrs, 0x00, sizeof(extram_adrs));
-	if(extram_base == NULL) {
-		extram_pages = 0;
-	} else {
-		for(uint32_t ui = 0; ui < extram_pages; ui++) {
-			uint8_t *p;
-			p = &(extram_base[ui << 20]);
-			extram_adrs[ui] = p;
-		}
-	}
 	// Address Cx000000
 	memset(write_bank_adrs_cx, 0x00, sizeof(write_bank_adrs_cx));
 	memset(read_bank_adrs_cx, 0x00, sizeof(read_bank_adrs_cx));
 	memset(device_bank_adrs_cx, 0x00, sizeof(device_bank_adrs_cx));
+	memset(type_bank_adrs_cx, 0x00, sizeof(type_bank_adrs_cx));
+
+	// PAGE0
+	for(uint32_t ui = 0x00000; ui < 0x000c0; ui++) {  // $00000000 - $000bffff
+		read_bank_adrs_cx[ui] = &(ram_page0[ui << 12]);
+		write_bank_adrs_cx[ui] = &(ram_page0[ui << 12]);
+	}
+	for(uint32_t ui = 0x000c0; ui < 0x000f0; ui++) { // $000c0000 - $000effff
+		type_bank_adrs_cx[ui] = (TOWNS_MEMORY_FMR_VRAM << 24) | ((ui - 0xc0) << 12);
+	}
+	for(uint32_t ui = 0x000f0; ui < 0x000f8; ui++) { // $000f0000 - $000f7fff
+		read_bank_adrs_cx[ui] = &(ram_0f0[(ui - 0xf0)  << 12]);
+		write_bank_adrs_cx[ui] = &(ram_0f0[(ui - 0xf0) << 12]);
+	}
+	for(uint32_t ui = 0x000f8; ui < 0x00100; ui++) { // $000c0000 - $000effff
+		type_bank_adrs_cx[ui] = (TOWNS_MEMORY_PAGE0F8 << 24) | ((ui - 0xf8) << 12);
+	}
+	// Extra RAM
+	for(uint32_t ui = 0x00100; ui < (0x00100 + (extram_size >> 12)); ui++) {
+		read_bank_adrs_cx[ui] = &(extram[(ui - 0x100)  << 12]);
+		write_bank_adrs_cx[ui] = &(extram[(ui - 0x100) << 12]);
+	}
+	// ToDo: EXTRA IO(0x40000000 - 0x80000000)
 	
-	for(uint32_t ui = 0x0000; ui < 0x4000; ui++) {
-		if(ui < 0x2000) {
-			// ROM CARD?
-		} else if(ui < 0x2080) {
-			read_bank_adrs_cx[ui] = &(msdos_rom[(ui - 0x2000) << 12]);
-		} else if(ui < 0x2100) {
-			read_bank_adrs_cx[ui] = &(dict_rom[(ui - 0x2080) << 12]);
-		} else if(ui < 0x2140) {
-			read_bank_adrs_cx[ui] = &(font_rom[(ui - 0x2100) << 12]);
-		} else if(ui < 0x2142) {
-			devicetype_adrs_cx[ui] = TOWNS_MEMORY_TYPE_DICTLEARN;
-		} eise if(ui < 0x2200) {
-			// Reserved.
-		} else if(ui < 0x2201) {
-			devicetype_adrs_cx[ui] = TOWNS_MEMORY_TYPE_WAVERAM;
-		} else {
-			// Reserved.
-		}
+	// VRAM
+	for(uint32_t ui = 0x80000; ui < (0x80000 + (vram_size >> 12)); ui++) {
+		device_bank_adrs_cx[ui] = d_vram;
+	}
+	for(uint32_t ui = 0x80100; ui < (0x80100 + (vram_size >> 12)); ui++) {
+		device_bank_adrs_cx[ui] = d_vram;
+	}
+	for(uint32_t ui = 0x81000; ui < 0x81020; ui++) {
+		device_bank_adrs_cx[ui] = d_sprite;
+	}
+
+	// ROM CARD
+	for(uint32_t ui = 0xc0000; ui < 0xc1000; ui++) {
+		device_bank_adrs_cx[ui] = d_romcard[0];
+	}
+	// ROM CARD2
+	for(uint32_t ui = 0xc1000; ui < 0xc2000; ui++) {
+		device_bank_adrs_cx[ui] = d_romcard[1];
+	}
+	// ROMs
+	for(uint32_t ui = 0xc2000; ui < 0xc2080; ui++) {
+		read_bank_adrs_cx[ui] = &(rom_msdos[(ui - 0xc2000)  << 12]);
+	}
+	for(uint32_t ui = 0xc2080; ui < 0xc2100; ui++) {
+		read_bank_adrs_cx[ui] = &(rom_dict[(ui - 0xc2080)  << 12]);
+	}
+	for(uint32_t ui = 0xc2100; ui < 0xc2140; ui++) {
+		read_bank_adrs_cx[ui] = &(rom_font1[(ui - 0xc2100)  << 12]);
+	}
+	for(uint32_t ui = 0xc2140; ui < 0xc2142; ui++) { 
+		type_bank_adrs_cx[ui] = (TOWNS_MEMORY_LEARN_RAM << 24) | ((ui - 0xc2140) << 12);
+	}
+	for(uint32_t ui = 0xc2200; ui < 0xc2201; ui++) { 
+		device_bank_adrs_cx[ui] = d_pcm;
+	}
+
+	// SYSTEM CODE ROM
+	for(uint32_t ui = 0xfffc0; ui < 0x100000; ui++) { 
+		read_bank_adrs_cx[ui] = &(rom_system[(ui - 0xfffc0)  << 12]);
 	}
 }
 
@@ -807,91 +775,52 @@ void TOWNS_MEMORY::update_dma_addr_mask()
 
 #define STATE_VERSION	2
 
+#include "../../statesub.h"
+
 void TOWNS_MEMORY::decl_state()
 {
+	enter_decl_state(STATE_VERSION);
+	
+	DECL_STATE_ENTRY_BOOL(bankf8_ram);
+	DECL_STATE_ENTRY_BOOL(bankd0_dict);
+	DECL_STATE_ENTRY_UINT32(dicrom_bank);
+	DECL_STATE_ENTRY_UINT8(machine_id);
+	
+	DECL_STATE_ENTRY_UINT32(vram_wait_val);
+	DECL_STATE_ENTRY_UINT32(mem_wait_val);
+	
+	DECL_STATE_ENTRY_UINT32(extram_size);
+	DECL_STATE_ENTRY_1D_ARRAY(ram_page0, sizeof(ram_page0));
+	DECL_STATE_ENTRY_1D_ARRAY(ram_0f0, sizeof(ram_0f0));
+	DECL_STATE_ENTRY_1D_ARRAY(ram_0f8, sizeof(ram_0f8));
+	DECL_STATE_ENTRY_VARARRAY_VAR(extram, extram_size);
+	DECL_STATE_ENTRY_1D_ARRAY(ram_cmos, sizeof(ram_cmos));
+
+	
+	leave_decl_state();
+	
 }
 void TOWNS_MEMORY::save_state(FILEIO* state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-
-	state_fio->FputBool(bank8_ram);
-	state_fio->FputBool(bankd0_dict);
-	state_fio->FputUint8(dict_bank);
-	state_fio->FputUint32_LE(extram_pages);
-
-	state_fio->FputInt8((int8_t)vram_wait_val);
-	state_fio->FputInt8((int8_t)mem_wait_val);
-	state_fio->FputInt8((int8_t)extio_wait_val);
-	
-	// Save rom?
-	state_fio->Fwrite(page0, sizeof(page0));
-	state_fio->Fwrite(ram_0d0, sizeof(ram_0d0));
-	state_fio->Fwrite(ram_0f0, sizeof(ram_0f0));
-	state_fio->Fwrite(ram_0f8, sizeof(ram_0f8));
-	
-	// ROM?
-	state_fio->Fwrite(msdos_rom, sizeof(msdos_rom));
-	state_fio->Fwrite(dict_rom, sizeof(dict_rom));
-	state_fio->Fwrite(font_rom, sizeof(font_rom));
-	//state_fio->Fwrite(font_20_rom, sizeof(font_20_rom));
-	state_fio->Fwrite(system_rom, sizeof(system_rom));
-	
-	state_fio->Fwrite(extram_base, extram_pages * 0x100000);
-	
-// ToDo
-	state_fio->FputUint8(protect);
-	state_fio->FputUint8(rst);
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
 }
 
 bool TOWNS_MEMORY::load_state(FILEIO* state_fio)
 {
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+		this->out_debug_log(_T("Load State: MAINMEM: id=%d stat=%s\n"), this_device_id, (mb) ? _T("OK") : _T("NG"));
+		if(!mb) return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-
-	bank8_tam = state_fio->FgetBool();
-	bank0_dict = state_fio->FgetBool();
-	dict_bank = state_fio->FgetUint8();
-	extram_pages = state_fio->FgetUint32_LE();
-	
-	vram_wait_val = (int)state_fio->FgetInt8();
-	mem_wait_val  = (int)state_fio->FgetInt8();
-	extio_wait_val  = (int)state_fio->FgetInt8();
-
-	// Save rom?
-	state_fio->Fread(page0, sizeof(page0));
-	state_fio->Fread(ram_0d0, sizeof(ram_0d0));
-	state_fio->Fread(ram_0f0, sizeof(ram_0f0));
-	state_fio->Fread(ram_0f8, sizeof(ram_0f8));
-	
-	// ROM?
-	state_fio->Fread(msdos_rom, sizeof(msdos_rom));
-	state_fio->Fread(dict_rom, sizeof(dict_rom));
-	state_fio->Fread(font_rom, sizeof(font_rom));
-	//state_fio->Fwrite(font_20_rom, sizeof(font_20_rom));
-	state_fio->Fread(system_rom, sizeof(system_rom));
-	
-	uint8_t *pp;
-	pp = malloc(extram_pages * 0x100000);
-	if(pp == NULL) {
-		return false;
-	} else {
-		state_fio->Fread(pp, extram_pages * 0x100000);
-	}
-	//ToDo
-	protect = state_fio->FgetUint8();
-	rst = state_fio->FgetUint8();
-	
 	
 	// post process
 	//update_bank();
-	extram_base = pp;
 	initialize_tables();
 	
-	return true;
+	return mb;
 }
 

@@ -40,17 +40,11 @@ class I386;
 // FFFC0000 - FFFFFFFF : Towns System ROM.
 
 enum {
-	TOWNS_MEMORY_TYPE_FORBID = 0,
-	TOWNS_MEMORY_TYPE_PAGE0  = 1, // - 0xfffff
-	TOWNS_MEMORY_TYPE_INTRAM,     // 0x100000 -
+	TOWNS_MEMORY_TYPE_NORMAL = 0,
+	TOWNS_MEMORY_TYPE_FMR_VRAM,
+	TOWNS_MEMORY_TYPE_PAGE0F8,
 	TOWNS_MEMORY_TYPE_EXT_MMIO,
-	TOWNS_MEMORY_TYPE_VRAM,
-	TOWNS_MEMORY_TYPE_SPRITE,
-	TOWNS_MEMORY_TYPE_ROMCARD,
-	TOWNS_MEMORY_TYPE_MSDOS,
-	TOWNS_MEMORY_TYPE_DICTROM,
-	TOWNS_MEMORY_TYPE_KANJIFONT,
-	TOWNS_MEMORY_TYPE_DICTLEARN,
+	TOWNS_MEMORY_TYPE_LEARN_RAM,
 	TOWNS_MEMORY_TYPE_WAVERAM,
 	TOWNS_MEMORY_TYPE_SYSTEM_ROM,
 };
@@ -69,6 +63,9 @@ protected:
 	TOWNS_SPRITE* d_sprite;       // 0x81000000 - 0x8101ffff ?
 	TOWNS_ROM_CARD* d_romcard[2]; // 0xc0000000 - 0xc0ffffff / 0xc1000000 - 0xc1ffffff
 	TOWNS_PCM* d_pcm;             // 0xc2200000 - 0xc2200fff 
+
+	bool bankf8_ram;
+	bool bank0_dict;
 	// RAM
 	uint8_t ram_page0[0xc0000];       // 0x00000000 - 0x000bffff : RAM
 	uint8_t ram_0f0[0x8000];      // 0x000f0000 - 0x000f7fff
@@ -93,6 +90,12 @@ protected:
 	// misc
 	uint8_t machine_id;
 	uint32_t dicrom_bank;
+	uint32_t vram_size; // Normally 512KB.
+
+	uint8_t* read_bank_adrs_cx[0x100000]; // Per 4KB.
+	uint8_t* write_bank_adrs_cx[0x100000]; // Per 4KB.
+	DEVICE*   device_bank_adrs_cx[0x100000]; // Per 4KB.
+	uint32_t type_bank_adrs_cx[0x100000]; // Per 4KB.
 public:
 	TOWNS_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
 		set_device_name(_T("FMTOWNS_MEMORY"));
