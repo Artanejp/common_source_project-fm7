@@ -40,9 +40,18 @@ class I386;
 // FFFC0000 - FFFFFFFF : Towns System ROM.
 
 enum {
-	TOWNS_MEMORY_TYPE_NORMAL = 0,
-	TOWNS_MEMORY_TYPE_FMR_VRAM,
-	TOWNS_MEMORY_TYPE_PAGE0F8,
+	TOWNS_MEMORY_NORMAL = 0,
+	TOWNS_MEMORY_FMR_VRAM,
+	TOWNS_MEMORY_FMR_TEXT,
+	TOWNS_MEMORY_FMR_VRAM_RESERVE,
+	TOWNS_MEMORY_SPRITE_ANKCG1,
+	TOWNS_MEMORY_ANKCG2,
+	
+	TOWNS_MEMORY_MMIO_0CC,
+	TOWNS_MEMORY_DICT_0D0,
+	TOWNS_MEMORY_CMOS_0D8,
+	TOWNS_MEMORY_PAGE0F8,
+	
 	TOWNS_MEMORY_TYPE_EXT_MMIO,
 	TOWNS_MEMORY_TYPE_LEARN_RAM,
 	TOWNS_MEMORY_TYPE_WAVERAM,
@@ -52,28 +61,55 @@ enum {
 // Please set from config
 #define TOWNS_EXTRAM_PAGES 6
 
+class I386;
+class BEEP;
 class TOWNS_VRAM;
+class TOWNS_SPRITE;
+class TOWNS_ROM_CARD;
+class TOWNS_CMOS;
+class TOWNS_PCM;
 class TOWNS_MEMORY : public DEVICE
 {
 protected:
 	I386 *d_cpu;
 
 	TOWNS_VRAM* d_vram;
-	TOWNS_MMIO* d_mmio;           // 0x40000000 - 0x7fffffff : MMIO
 	TOWNS_SPRITE* d_sprite;       // 0x81000000 - 0x8101ffff ?
 	TOWNS_ROM_CARD* d_romcard[2]; // 0xc0000000 - 0xc0ffffff / 0xc1000000 - 0xc1ffffff
+	TOWNS_CMOS* d_cmos;             // 0xc2140000 - 0xc2141fff 
 	TOWNS_PCM* d_pcm;             // 0xc2200000 - 0xc2200fff 
-
+	BEEP* d_beep;
+	
+	bool bankc0_vram;
 	bool bankf8_ram;
 	bool bank0_dict;
+	bool ankcg_enabled;
+	uint8_t dict_bank;
+
+	uint16_t machine_id;
+	uint8_t cpu_id;
+	
 	// RAM
 	uint8_t ram_page0[0xc0000];       // 0x00000000 - 0x000bffff : RAM
-	uint8_t ram_0f0[0x8000];      // 0x000f0000 - 0x000f7fff
-	uint8_t ram_0f8[0x8000];      // 0x000f8000 - 0x000fffff : RAM/ROM
+	//uint8_t vram_plane[0x8000 * 8]; // 0x000c0000 - 0x000c7fff : Plane Accessed VRAM
+	//uint8_t text_ram[0x1000];       // 0x000c8000 - 0x000c8fff : Character VRAM
+	//uint8_t vram_reserved[0x1000];    // 0x000c9000 - 0x000c9fff : Resetved
+	uint8_t ram_0c0[0x8000];          // 0x000ca000 - 0x000cafff : ANKCG1 / IO / RAM
+	uint8_t ram_0c8[0x2000];          // 0x000ca000 - 0x000cafff : ANKCG1 / IO / RAM
+	
+	//uint8_t sprite_ram[0x1000];     // 0x000ca000 - 0x000cafff : Sprite RAM
+	//uint8_t ank_cg1[0x800];         // 0x000ca000 - 0x000ca7ff : ANK CG ROM (FONTROM[0x3d000 - 0x3d7ff])
+	//uint8_t ank_cg2[0x1000];        // 0x000cb000 - 0x000cbfff : ANK CG ROM (FONTROM[0x3d800 - 0x3e7ff])
+	uint8_t ram_0ca[0x1000];          // 0x000ca000 - 0x000cafff : ANKCG1 / IO / RAM
+	uint8_t ram_0cb[0x1000];          // 0x000cb000 - 0x000cbfff : ANKCG2 / RAM
+	uint8_t ram_0cc[0x4000];          // 0x000cc000 - 0x000cffff : MMIO / RAM
+	uint8_t ram_0d0[0x8000];          // 0x000d0000 - 0x000d7fff : RAM / BANKED DICTIONARY
+	uint8_t ram_0d8[0x2000];          // 0x000d8000 - 0x000d9fff : RAM / CMOS
+	uint8_t ram_0da[0x16000];         // 0x000da000 - 0x000effff : RAM
+	uint8_t ram_0f0[0x8000];          // 0x000f0000 - 0x000f7fff
+	uint8_t ram_0f8[0x8000];          // 0x000f8000 - 0x000fffff : RAM/ROM
 
-	uint8_t ram_cmos[0x2000]; // OK? Learn RAM
-
-	uint8_t *extram; // 0x00100000 - (0x3fffffff) : Size is defined by extram_size;
+	uint8_t *extram;                  // 0x00100000 - (0x3fffffff) : Size is defined by extram_size;
 	uint32_t extram_size;
 
 	uint32_t vram_wait_val;
@@ -101,10 +137,10 @@ public:
 		set_device_name(_T("FMTOWNS_MEMORY"));
 		d_cpu = NULL;
 		d_vram = NULL;
-		d_mmio = NULL;
 		d_pcm = NULL;
 		d_sprite = NULL;
 		d_romcard[0] = d_romcard[1] = NULL;
+		d_beep = NULL;
 		machine_id = 0;
 	}
 	~TOWNS_MEMORY() {}
@@ -154,9 +190,9 @@ public:
 	{
 		d_vram = device;
 	}
-	void set_context_mmio(DEVICE* device)
+	void set_context_beep(DEVICE* device)
 	{
-		d_mmio = device;
+		d_beep = device;
 	}
 	void set_context_sprite(DEVICE* device)
 	{
