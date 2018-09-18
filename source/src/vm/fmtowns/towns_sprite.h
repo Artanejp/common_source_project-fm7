@@ -17,88 +17,35 @@
 
 class TOWNS_VRAM;
 
-class SPRITE_CACHE {
-private:
-	int begin_num;
-	bool blank;
-	bool is_16colors; // 32768colors = false
-	bool used;
-	
-	uint16_t palette[16];
-	bool cached_x10x10[8];
-	bool cached_x05x10[8];
-	bool cached_x10x05[8];
-	bool cached_x05x05[8];
-	uint16_t data_x10x10[8][16 * 16];
-	uint16_t data_x05x10[8][8 * 16];
-	uint16_t data_x10x05[8][16 * 8];
-	uint16_t data_x05x05[8][8 * 8];
-	uint16_t color_table[16];
-public:
-	SPRITE_CACHE(bool is_16c);
-	~SPRITE_CACHE();
-
-	uint16_t *get_cache_address(bool condense_x, bool condense_y, uint8_t rotate, uint32_t *size);
-	bool set_cache(bool condense_x, bool condense_y, uint8_t rotate, uint16_t *srcdata);
-	
-	int get_cached_num(void);
-	bool query_cached_range(int pos, bool is_16c);
-	bool get_cached_is_16c(void);
-	
-	bool is_cached(bool is_16c, bool condense_x, bool condense_y, uint8_t rotate, uint16_t *palette);
-	bool is_blank(void);
-	bool is_used(void);
-	void clean(void);
-	void set_num(int num, uint16_t *palette);
-};
-
 #define TOWNS_SPRITE_CACHE_NUM 512
 
 class TOWNS_SPRITE : public DEVICE
 {
 private:
 	TOWNS_VRAM *vram_head;
+
+	// REGISTERS
+	uint8_t reg_addr;
+	uint8_t reg_data[8];
+	// #0, #1
+	bool reg_spen;
+	uint16_t reg_index;
+
+	uint16_t reg_voffset;
+	uint16_t reg_hoffset;
+	bool disp_page0;
+	bool disp_page1;
 	
-	int cache_size_16c;
-	int cache_size_32768c;
+	int32_t splite_limit;
 
-	// NEED ATOMIC witn  MULTI-THREADED SPRITE
-	bool dirty_cache_16c[TOWNS_SPRITE_CACHE_NUM];
-	bool dirty_cache_32768c[TOWNS_SPRITE_CACHE_NUM];	
-	SPRITE_CACHE *cached_16c[TOWNS_SPRITE_CACHE_NUM]; // ToDo
-	SPRITE_CACHE *cached_32768c[TOWNS_SPRITE_CACHE_NUM]; // ToDo
+	uint16_t index_ram[4096]; // 1024 * 4
+	uint16_t color_ram[4096]; // 16 * 256
+	uint8_t pattern_ram[(65536 - (4096 * 2)) * 2];
 
-	bool dirty_color_table[256];
-	bool dirty_pattern_table[1024];
-	
-	int splite_limit;
-	int render_count;
-	bool bank0;
-
-	uint16_t palettes[256][16];
-
-	// Put address(16bit)
-	int xaddress[1024];
-	int yaddress[1024];
-
-	// Attribute(16bit)
-	bool check_offset[1024];
-	bool suy[1024];
-	bool sux[1024];
-	uint8_t rotate[1024];
-	uint32_t pattern_num[1024];
-
-	// Color Table(16bit)
-	bool is_16c[1024];
-	bool is_impose[1024];
-	bool is_disp[1024];
-	uint16_t color_table_num[1024];
-
-	uint8_t index_table[2 * 4 * 1024]; 
-	uint8_t color_table[2 * 16 * 256];
-	uint8_t pattern_table[2 * 16 * 16 * (256 - 32)];
+	bool pattern_cached[((65536 - (4096 * 2)) * 2) / (8 * 16)];
+	bool color_cached[256];
 protected:
-	void do_put_sprite(int num);
+
 	
 public:
 	TOWNS_SPRITE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
