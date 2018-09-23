@@ -30,7 +30,8 @@ class TOWNS_VRAM;
 
 class TOWNS_SPRITE : public DEVICE
 {
-private:
+
+protected:
 	TOWNS_VRAM *vram_head;
 
 	// REGISTERS
@@ -53,7 +54,19 @@ private:
 
 	bool pattern_cached[((65536 - (4096 * 2)) * 2) / (8 * 16)];
 	bool color_cached[256];
-protected:
+	
+	bool sprite_enabled;
+	bool use_cache;
+	inline void take_data_32768(uint16_t* src, uint16_t* dst, uint16_t* mask);
+	inline void take_data_32768_mirror(uint16_t* src, uint16_t* dst, uint16_t* mask);
+	inline void take_data_16(uint8_t* src, uint16_t* color_table, uint16_t* dst, uint16_t* mask);
+	inline void take_data_16_mirror(uint8_t* src, uint16_t* color_table, uint16_t* dst, uint16_t* mask);
+	inline void zoom_data(uint16_t* cache, uint16_t* maskcache, bool is_halfx, bool is_halfy, uint16_t* dstcache, uint16_t* dstmask);
+
+	void rotate_data_0(uint16_t* src, bool is_mirror, uint16_t* color_table, uint16_t* dstcache, uint16_t* mask, bool is_32768, bool is_halfx, bool is_halfy);
+	void rotate_data_90(uint16_t* src, bool is_mirror, uint16_t* color_table, uint16_t* dstcache, uint16_t* mask, bool is_32768, bool is_halfx, bool is_halfy);
+	void rotate_data_180(uint16_t* src, bool is_mirror, uint16_t* color_table, uint16_t* dstcache, uint16_t* mask, bool is_32768, bool is_halfx, bool is_halfy);
+	void rotate_data_270(uint16_t* src, bool is_mirror, uint16_t* color_table, uint16_t* dstcache, uint16_t* mask, bool is_32768, bool is_halfx, bool is_halfy);
 
 	
 public:
@@ -86,1252 +99,329 @@ public:
 	bool load_stste(FILEIO *fio);
 };
 
-inline void TOWNS_SPRITE::render_32768_x1_x1(int num, uint16_t* dst, int rot_type, bool is_mirror, int stride)
+inline void TOWNS_SPRITE::take_data_32768(uint16_t* src, uint16_t* dst, uint16_t* mask)
 {
-	uint16_t* qp = (uint16_t*)(sprite_table[num].pixels);
-	uint16_t *cache_pixel = &(cache_pixels[last_put_cache_num][0]);
-	uint16_t *cache_mask = cache_masks[last_put_cache_num][0];
-	int xbegin;
-	int xend;
-	int xstep;
-	int ybegin;
-	int yend;
-	int ystep;
-	int addr_base;
-	int addr_inc;
-	bool xreverse;
-	bool yreverse;
-	bool rotate = false;
-	switch(rot_type) {
-	case ROT_FMTOWNS_SPRITE_0:
-			xbegin = 0;
-			xend = 16;
-			xstep = 1;
-			ybegin = 0;
-			yend = 16;
-			ystep = 1;
-			xreverse = false;
-			yreverse = false;
-			rotate = false;
-			if(is_mirror) {
-				xreverse = true;
-			}
-		}			
-		break;
-	case ROT_FMTOWNS_SPRITE_90:
-			xbegin = 0;
-			xend = 16;
-			xstep = 1;
-			ybegin = 0;
-			yend = 16;
-			ystep = 1;
-			xreverse = false;
-			yreverse = true;
-			rotate = true;
-			if(is_mirror) {
-				yreverse = false;
-			}
-		}			
-		break;
-	case ROT_FMTOWNS_SPRITE_180:
-			xbegin = 0;
-			xend = 16;
-			xstep = 1;
-			ybegin = 0;
-			yend = 16;
-			ystep = 1;
-			xreverse = true;
-			yreverse = true;
-			rotate = false;
-			if(is_mirror) {
-				xreverse = false;
-			}
-		}			
-		break;
-	case ROT_FMTOWNS_SPRITE_270:
-			xbegin = 0;
-			xend = 16;
-			xstep = 1;
-			ybegin = 0;
-			yend = 16;
-			ystep = 1;
-			xreverse = true;
-			yreverse = false;
-			rotate = true;
-			if(is_mirror) {
-				yreverse = true;
-			}
-		}			
-		break;
-	}
-	uint16_t pixels[16];
-	uint16_t masks[16];
-	uint16_t tpixels[16];
-	uint16_t* cp;
-	uint16_t* cm;
-	uint16* dp;
-	uint16_t* yaddr;
-	uint16_t*p;
-	for(y = ybegin; y != yend; y += ystep) {
-		cp = &(cache_pixel[y << 5]);
-		cm = &(cache_mask[y << 5]);
-		dp =  &(dst[stride * y]);
-		if(!rotate) {
-			if(yreverse) {
-				yaddr = &(qp[(y - 15) << 5]); // 1 line is 4 bytes (16pixels)
-			} else {
-				yaddr = &(qp[y << 5]); // 1 line is 4 bytes (16pixels)
-			}
-			p = &(yaddr[0]);
-			if(xreverse) {
-__DECL_VECTORIZED_LOOP
-				for(int i = 15; i >= 0; i--) {
-					pixels[i] = p[15 - i];
-				}
-			} else {
-__DECL_VECTORIZED_LOOP
-				for(int i = 0; i <= 15; i++) {
-					pixels[i] = p[i];
-				}
-			}
-		} else {
-			// Rotate: Swap x, y
-			if(yreverse) {
-				yaddr = &(qp[15 - y]);
-			} else {
-				yaddr = &(qp[y]);
-			}			
-			if(xreverse) {
-__DECL_VECTORIZED_LOOP				
-				for(int x = 15; x >= 0; x--) {
-					p = &(yaddr[x << 5]);
-					pixels[x] = p[15 - y];
-				}
-			} else {
-__DECL_VECTORIZED_LOOP				
-				for(int x = 0; x <= 15; x++) {
-					p = &(yaddr[x << 5]);
-					pixels[x] = p[y];
-				}
-			}
-		}
-__DECL_VECTORIZED_LOOP		
+	uint16_t* p = src;
+	uint16_t* q = dst;
+	uint16_t* r = mask;
+	for(int y = 0; y < 16; y++) {
 		for(int x = 0; x < 16; x++) {
-			masks[x] = ((pixels[x] & 0x8000) == 0) ? 0xffff : 0x0000;
-			cp[x] = pixels[x];
-			cm[x] = masks[x];
-			// Draw to buffer
-			tpixels[x] = dp[x] & masks[x];
-			masks[x] = ~masks[x];
-			pixels[x] = pixels[x] & masks[x];
-			dp[x] = pixels[x] | tpixels[x];
+			q[x] = p[x];
 		}
-	}
-}
-
-inline void TOWNS_SPRITE::render_32768_x05_x1(int num, uint16_t* dst, int rot_type, bool is_mirror, int stride)
-{
-	uint16_t* qp = (uint16_t*)(sprite_table[num].pixels);
-	uint16_t *cache_pixel = &(cache_pixels[last_put_cache_num][0]);
-	uint16_t *cache_mask = cache_masks[last_put_cache_num][0];
-	int xbegin;
-	int xend;
-	int xstep;
-	int ybegin;
-	int yend;
-	int ystep;
-	int addr_base;
-	int addr_inc;
-	bool xreverse;
-	bool yreverse;
-	bool rotate = false;
-	switch(rot_type) {
-	case ROT_FMTOWNS_SPRITE_0:
-			xbegin = 0;
-			xend = 16;
-			xstep = 2;
-			ybegin = 0;
-			yend = 16;
-			ystep = 1;
-			xreverse = false;
-			yreverse = false;
-			rotate = false;
-			if(is_mirror) {
-				xreverse = true;
-			}
-		}			
-		break;
-	case ROT_FMTOWNS_SPRITE_90:
-			xbegin = 0;
-			xend = 16;
-			xstep = 2;
-			ybegin = 0;
-			yend = 16;
-			ystep = 1;
-			xreverse = false;
-			yreverse = true;
-			rotate = true;
-			if(is_mirror) {
-				yreverse = false;
-			}
-		}			
-		break;
-	case ROT_FMTOWNS_SPRITE_180:
-			xbegin = 0;
-			xend = 16;
-			xstep = 2;
-			ybegin = 0;
-			yend = 16;
-			ystep = 1;
-			xreverse = true;
-			yreverse = true;
-			rotate = false;
-			if(is_mirror) {
-				xreverse = false;
-			}
-		}			
-		break;
-	case ROT_FMTOWNS_SPRITE_270:
-			xbegin = 0;
-			xend = 16;
-			xstep = 2;
-			ybegin = 0;
-			yend = 16;
-			ystep = 1;
-			xreverse = true;
-			yreverse = false;
-			rotate = true;
-			if(is_mirror) {
-				yreverse = true;
-			}
-		}			
-		break;
-	}
-	uint16_t pixels[16];
-	uint16_t masks[16];
-	uint16_t tpixels[16];
-	uint16_t* cp;
-	uint16_t* cm;
-	uint16* dp;
-	uint16_t* yaddr;
-	uint16_t*p;
-	for(y = ybegin; y != yend; y += ystep) {
-		cp = &(cache_pixel[y << 5]);
-		cm = &(cache_mask[y << 5]);
-		dp =  &(dst[stride * y]);
-		if(!rotate) {
-			if(yreverse) {
-				yaddr = &(qp[(y - 15) << 5]); // 1 line is 4 bytes (16pixels)
-			} else {
-				yaddr = &(qp[y << 5]); // 1 line is 4 bytes (16pixels)
-			}
-			p = &(yaddr[0]);
-			if(xreverse) {
-__DECL_VECTORIZED_LOOP
-				for(int i = 7; i >= 0; i--) {
-					pixels[i] = p[15 - (i << 1)];
-				}
-			} else {
-__DECL_VECTORIZED_LOOP
-				for(int i = 0; i <= 7; i++) {
-					pixels[i] = p[i << 1];
-				}
-			}
-		} else {
-			// Rotate: Swap x, y
-			if(yreverse) {
-				yaddr = &(qp[15 - y]);
-			} else {
-				yaddr = &(qp[y]);
-			}			
-			if(xreverse) {
-__DECL_VECTORIZED_LOOP				
-				for(int x = 7; x >= 0; x--) {
-					p = &(yaddr[x << 6]);
-					pixels[x] = p[15 - y];
-				}
-			} else {
-__DECL_VECTORIZED_LOOP				
-				for(int x = 0; x <= 7; x++) {
-					p = &(yaddr[x << 6]);
-					pixels[x] = p[y];
-				}
-			}
-		}
-__DECL_VECTORIZED_LOOP		
-		for(int x = 0; x < 8; x++) {
-			masks[x] = ((pixels[x] & 0x8000) == 0) ? 0xffff : 0x0000;
-			cp[x] = pixels[x];
-			cm[x] = masks[x];
-			// Draw to buffer
-			tpixels[x] = dp[x] & masks[x];
-			masks[x] = ~masks[x];
-			pixels[x] = pixels[x] & masks[x];
-			dp[x] = pixels[x] | tpixels[x];
-		}
-	}
-}
-
-
-inline void TOWNS_SPRITE::render_32768_x1_x05(int num, uint16_t* dst, int rot_type, bool is_mirror, int stride)
-{
-	uint16_t* qp = (uint16_t*)(sprite_table[num].pixels);
-	uint16_t *cache_pixel = &(cache_pixels[last_put_cache_num][0]);
-	uint16_t *cache_mask = cache_masks[last_put_cache_num][0];
-	int xbegin;
-	int xend;
-	int xstep;
-	int ybegin;
-	int yend;
-	int ystep;
-	int addr_base;
-	int addr_inc;
-	bool xreverse;
-	bool yreverse;
-	bool rotate = false;
-	switch(rot_type) {
-	case ROT_FMTOWNS_SPRITE_0:
-			xbegin = 0;
-			xend = 16;
-			xstep = 1;
-			ybegin = 0;
-			yend = 8;
-			ystep = 1;
-			xreverse = false;
-			yreverse = false;
-			rotate = false;
-			if(is_mirror) {
-				xreverse = true;
-			}
-		}			
-		break;
-	case ROT_FMTOWNS_SPRITE_90:
-			xbegin = 0;
-			xend = 16;
-			xstep = 1;
-			ybegin = 0;
-			yend = 8;
-			ystep = 1;
-			xreverse = false;
-			yreverse = true;
-			rotate = true;
-			if(is_mirror) {
-				yreverse = false;
-			}
-		}			
-		break;
-	case ROT_FMTOWNS_SPRITE_180:
-			xbegin = 0;
-			xend = 16;
-			xstep = 1;
-			ybegin = 0;
-			yend = 8;
-			ystep = 1;
-			xreverse = true;
-			yreverse = true;
-			rotate = false;
-			if(is_mirror) {
-				xreverse = false;
-			}
-		}			
-		break;
-	case ROT_FMTOWNS_SPRITE_270:
-			xbegin = 0;
-			xend = 16;
-			xstep = 1;
-			ybegin = 0;
-			yend = 8;
-			ystep = 1;
-			xreverse = true;
-			yreverse = false;
-			rotate = true;
-			if(is_mirror) {
-				yreverse = true;
-			}
-		}			
-		break;
-	}
-	uint16_t pixels[16];
-	uint16_t masks[16];
-	uint16_t tpixels[16];
-	uint16_t* cp;
-	uint16_t* cm;
-	uint16* dp;
-	uint16_t* yaddr;
-	uint16_t*p;
-	for(y = ybegin; y != yend; y += ystep) {
-		cp = &(cache_pixel[y << 5]);
-		cm = &(cache_mask[y << 5]);
-		dp =  &(dst[stride * y]);
-		if(!rotate) {
-			if(yreverse) {
-				yaddr = &(qp[(7 - y) << 6]); // 1 line is 4 bytes (16pixels)
-			} else {
-				yaddr = &(qp[y << 6]); // 1 line is 4 bytes (16pixels)
-			}
-			p = &(yaddr[0]);
-			if(xreverse) {
-__DECL_VECTORIZED_LOOP
-				for(int i = 15; i >= 0; i--) {
-					pixels[i] = p[15 - i];
-				}
-			} else {
-__DECL_VECTORIZED_LOOP
-				for(int i = 0; i <= 15; i++) {
-					pixels[i] = p[i];
-				}
-			}
-		} else {
-			// Rotate: Swap x, y
-			if(yreverse) {
-				yaddr = &(qp[15 - (y << 1)]);
-			} else {
-				yaddr = &(qp[y << 1]);
-			}			
-			if(xreverse) {
-__DECL_VECTORIZED_LOOP				
-				for(int x = 7; x >= 0; x--) {
-					p = &(yaddr[x << 6]);
-					pixels[x] = p[7 - y];
-				}
-			} else {
-__DECL_VECTORIZED_LOOP				
-				for(int x = 0; x <= 7; x++) {
-					p = &(yaddr[x << 6]);
-					pixels[x] = p[y];
-				}
-			}
-		}
-__DECL_VECTORIZED_LOOP		
-		for(int x = 0; x < 8; x++) {
-			masks[x] = ((pixels[x] & 0x8000) == 0) ? 0xffff : 0x0000;
-			cp[x] = pixels[x];
-			cm[x] = masks[x];
-			// Draw to buffer
-			tpixels[x] = dp[x] & masks[x];
-			masks[x] = ~masks[x];
-			pixels[x] = pixels[x] & masks[x];
-			dp[x] = pixels[x] | tpixels[x];
-		}
-	}
-}
-
-inline void TOWNS_SPRITE::render_32768_x05_x05(int num, uint16_t* dst, int rot_type, bool is_mirror, int stride)
-{
-	uint16_t* qp = (uint16_t*)(sprite_table[num].pixels);
-	uint16_t *cache_pixel = &(cache_pixels[last_put_cache_num][0]);
-	uint16_t *cache_mask = cache_masks[last_put_cache_num][0];
-	int xbegin;
-	int xend;
-	int xstep;
-	int ybegin;
-	int yend;
-	int ystep;
-	int addr_base;
-	int addr_inc;
-	bool xreverse;
-	bool yreverse;
-	bool rotate = false;
-	switch(rot_type) {
-	case ROT_FMTOWNS_SPRITE_0:
-			xbegin = 0;
-			xend = 8;
-			xstep = 1;
-			ybegin = 0;
-			yend = 8;
-			ystep = 1;
-			xreverse = false;
-			yreverse = false;
-			rotate = false;
-			if(is_mirror) {
-				xreverse = true;
-			}
-		}			
-		break;
-	case ROT_FMTOWNS_SPRITE_90:
-			xbegin = 0;
-			xend = 8;
-			xstep = 1;
-			ybegin = 0;
-			yend = 8;
-			ystep = 1;
-			xreverse = false;
-			yreverse = true;
-			rotate = true;
-			if(is_mirror) {
-				yreverse = false;
-			}
-		}			
-		break;
-	case ROT_FMTOWNS_SPRITE_180:
-			xbegin = 0;
-			xend = 8;
-			xstep = 1;
-			ybegin = 0;
-			yend = 8;
-			ystep = 1;
-			xreverse = true;
-			yreverse = true;
-			rotate = false;
-			if(is_mirror) {
-				xreverse = false;
-			}
-		}			
-		break;
-	case ROT_FMTOWNS_SPRITE_270:
-			xbegin = 0;
-			xend = 8;
-			xstep = 1;
-			ybegin = 0;
-			yend = 8;
-			ystep = 1;
-			xreverse = true;
-			yreverse = false;
-			rotate = true;
-			if(is_mirror) {
-				yreverse = true;
-			}
-		}			
-		break;
-	}
-	uint16_t pixels[16];
-	uint16_t masks[16];
-	uint16_t tpixels[16];
-	uint16_t* cp;
-	uint16_t* cm;
-	uint16* dp;
-	uint16_t* yaddr;
-	uint16_t*p;
-	for(y = ybegin; y != yend; y += ystep) {
-		cp = &(cache_pixel[y << 5]);
-		cm = &(cache_mask[y << 5]);
-		dp =  &(dst[stride * y]);
-		if(!rotate) {
-			if(yreverse) {
-				yaddr = &(qp[(7 - y) << 6]); // 1 line is 8 bytes (16pixels)
-			} else {
-				yaddr = &(qp[y << 6]); // 1 line is 8 bytes (16pixels)
-			}
-			p = &(yaddr[0]);
-			if(xreverse) {
-__DECL_VECTORIZED_LOOP
-				for(int i = 7; i >= 0; i--) {
-					pixels[i] = p[15 - (i << 1)];
-				}
-			} else {
-__DECL_VECTORIZED_LOOP
-				for(int i = 0; i <= 7; i++) {
-					pixels[i] = p[i << 1];
-				}
-			}
-		} else {
-			// Rotate: Swap x, y
-			if(yreverse) {
-				yaddr = &(qp[15 - (y << 1)]);
-			} else {
-				yaddr = &(qp[y << 1]);
-			}			
-			if(xreverse) {
-__DECL_VECTORIZED_LOOP				
-				for(int x = 7; x >= 0; x--) {
-					p = &(yaddr[x << 6]);
-					pixels[x] = p[7 - (y >> 1)];
-				}
-			} else {
-__DECL_VECTORIZED_LOOP				
-				for(int x = 0; x <= 7; x++) {
-					p = &(yaddr[x << 6]);
-					pixels[x] = p[y];
-				}
-			}
-		}
-__DECL_VECTORIZED_LOOP		
-		for(int x = 0; x < 8; x++) {
-			masks[x] = ((pixels[x] & 0x8000) == 0) ? 0xffff : 0x0000;
-			cp[x] = pixels[x];
-			cm[x] = masks[x];
-			// Draw to buffer
-			tpixels[x] = dp[x] & masks[x];
-			masks[x] = ~masks[x];
-			pixels[x] = pixels[x] & masks[x];
-			dp[x] = pixels[x] | tpixels[x];
-		}
-	}
-}
-
-
-inline void TOWNS_SPRITE::render_16_x1_x1(int num, uint16_t* dst, int rot_type, bool is_mirror, int stride)
-{
-	uint8_t* qp = (uint8_t*)(sprite_table[num].pixels);
-	uint16_t *cache_pixel = &(cache_pixels[last_put_cache_num][0]);
-	uint16_t *cache_mask = cache_masks[last_put_cache_num][0];
-	int xbegin;
-	int xend;
-	int xstep;
-	int ybegin;
-	int yend;
-	int ystep;
-	int addr_base;
-	int addr_inc;
-	bool xreverse;
-	bool yreverse;
-	bool rotate = false;
-	switch(rot_type) {
-	case ROT_FMTOWNS_SPRITE_0:
-			xbegin = 0;
-			xend = 16;
-			xstep = 1;
-			ybegin = 0;
-			yend = 16;
-			ystep = 1;
-			xreverse = false;
-			yreverse = false;
-			rotate = false;
-			if(is_mirror) {
-				xreverse = true;
-			}
-		}			
-		break;
-	case ROT_FMTOWNS_SPRITE_90:
-			xbegin = 0;
-			xend = 16;
-			xstep = 1;
-			ybegin = 0;
-			yend = 16;
-			ystep = 1;
-			xreverse = false;
-			yreverse = true;
-			rotate = true;
-			if(is_mirror) {
-				yreverse = false;
-			}
-		}			
-		break;
-	case ROT_FMTOWNS_SPRITE_180:
-			xbegin = 0;
-			xend = 16;
-			xstep = 1;
-			ybegin = 0;
-			yend = 16;
-			ystep = 1;
-			xreverse = true;
-			yreverse = true;
-			rotate = false;
-			if(is_mirror) {
-				xreverse = false;
-			}
-		}			
-		break;
-	case ROT_FMTOWNS_SPRITE_270:
-			xbegin = 0;
-			xend = 16;
-			xstep = 1;
-			ybegin = 0;
-			yend = 16;
-			ystep = 1;
-			xreverse = true;
-			yreverse = false;
-			rotate = true;
-			if(is_mirror) {
-				yreverse = true;
-			}
-		}			
-		break;
-	}
-	uint8_t pixels[16];
-	uint16_t masks[16];
-	uint16_t tpixels[16];
-	uint16_t tpixels2[16];
-	uint16_t* cp;
-	uint16_t* cm;
-	uint16* dp;
-	uint8_t* yaddr;
-	uint8_t* p;
-	for(y = ybegin; y != yend; y += ystep) {
-		cp = &(cache_pixel[y << 5]);
-		cm = &(cache_mask[y << 5]);
-		dp =  &(dst[stride * y]);
-		if(!rotate) {
-			if(yreverse) {
-				yaddr = &(qp[(y - 15) << 3]); // 1 line is 4 bytes (16pixels)
-			} else {
-				yaddr = &(qp[y << 3]); // 1 line is 4 bytes (16pixels)
-			}
-			p = &(yaddr[0]);
-			if(xreverse) {
-__DECL_VECTORIZED_LOOP
-				for(int i = 15; i >= 0; i--) {
-					pixels[i] = p[(15 - i) >> 1];
-				}
-			} else {
-__DECL_VECTORIZED_LOOP
-				for(int i = 0; i <= 15; i++) {
-					pixels[i] = p[i];
-				}
-			}
-__DECL_VECTORIZED_LOOP
-			for(int i = 0; i < 16; i+= 2) {
-				pixels[i] = pixels[i] >> 4;
-			}
-__DECL_VECTORIZED_LOOP
-			for(int i = 0; i < 16; i++) {
-				pixels[i] = pixels[i] & 0x0f;
-			}
-		} else {
-			// Rotate: Swap x, y
-			if(yreverse) {
-				yaddr = &(qp[(15 - y) >> 1]);
-			} else {
-				yaddr = &(qp[(y >> 1)]);
-			}			
-			if(xreverse) {
-__DECL_VECTORIZED_LOOP				
-				for(int x = 15; x >= 0; x--) {
-					p = &(yaddr[x << 3]);
-					pixels[x] = p[(15 - y) >> 1];
-				}
-			} else {
-__DECL_VECTORIZED_LOOP				
-				for(int x = 0; x <= 15; x++) {
-					p = &(yaddr[x << 3]);
-					pixels[x] = p[y >> 1];
-				}
-			}
-__DECL_VECTORIZED_LOOP
-			for(int i = 0; i < 16; i++) {
-				pixels[i] = pixels[i] >> 4;
-				pixels[i] = pixels[i] & 0x0f;
-			}
-			
-		}
-__DECL_VECTORIZED_LOOP		
 		for(int x = 0; x < 16; x++) {
-			masks[x] = (pixels[x] == 0) ? 0xffff : 0x0000
-			tpixel[x] = color_index[pixels[x]];
-			cp[x] = tpixel;
-			cm[x] = masks[x];
-			// Draw to buffer
-			tpixels2[x] = dp[x] & masks[x];
-			masks[x] = ~masks[x];
-			tpixels[x] = tpixels[x] & masks[x];
-			dp[x] = tpixels[x] | tpixels2[x];
+			r[x] = ((q[x] & 0x8000) != 0) ? 0 : 0xffff;
 		}
+		r += 16;
+		q += 16;
+		p += 16;
 	}
 }
 
-inline void TOWNS_SPRITE::render_16_x05_x1(int num, uint16_t* dst, int rot_type, bool is_mirror, int stride)
+inline void TOWNS_SPRITE::take_data_32768_mirror(uint16_t* src, uint16_t* dst, uint16_t* mask)
 {
-	uint16_t* qp = (uint16_t*)(sprite_table[num].pixels);
-	uint16_t *cache_pixel = &(cache_pixels[last_put_cache_num][0]);
-	uint16_t *cache_mask = cache_masks[last_put_cache_num][0];
-	int xbegin;
-	int xend;
-	int xstep;
-	int ybegin;
-	int yend;
-	int ystep;
-	int addr_base;
-	int addr_inc;
-	bool xreverse;
-	bool yreverse;
-	bool rotate = false;
-	switch(rot_type) {
-	case ROT_FMTOWNS_SPRITE_0:
-			xbegin = 0;
-			xend = 16;
-			xstep = 2;
-			ybegin = 0;
-			yend = 16;
-			ystep = 1;
-			xreverse = false;
-			yreverse = false;
-			rotate = false;
-			if(is_mirror) {
-				xreverse = true;
-			}
-		}			
-		break;
-	case ROT_FMTOWNS_SPRITE_90:
-			xbegin = 0;
-			xend = 16;
-			xstep = 2;
-			ybegin = 0;
-			yend = 16;
-			ystep = 1;
-			xreverse = false;
-			yreverse = true;
-			rotate = true;
-			if(is_mirror) {
-				yreverse = false;
-			}
-		}			
-		break;
-	case ROT_FMTOWNS_SPRITE_180:
-			xbegin = 0;
-			xend = 16;
-			xstep = 2;
-			ybegin = 0;
-			yend = 16;
-			ystep = 1;
-			xreverse = true;
-			yreverse = true;
-			rotate = false;
-			if(is_mirror) {
-				xreverse = false;
-			}
-		}			
-		break;
-	case ROT_FMTOWNS_SPRITE_270:
-			xbegin = 0;
-			xend = 16;
-			xstep = 2;
-			ybegin = 0;
-			yend = 16;
-			ystep = 1;
-			xreverse = true;
-			yreverse = false;
-			rotate = true;
-			if(is_mirror) {
-				yreverse = true;
-			}
-		}			
-		break;
+	uint16_t* p = src;
+	uint16_t* q = dst;
+	uint16_t* r = mask;
+	for(int y = 0; y < 16; y++) {
+		for(int x = 0; x < 16; x++) {
+			q[x] = p[15 - x];
+		}
+		for(int x = 0; x < 16; x++) {
+			r[x] = ((q[x] & 0x8000) != 0) ? 0 : 0xffff;
+		}
+		r += 16;
+		q += 16;
+		p += 16;
 	}
-	uint16_t pixels[16];
-	uint16_t masks[16];
-	uint16_t tpixels[16];
-	uint16_t* cp;
-	uint16_t* cm;
-	uint16* dp;
-	uint8_t* yaddr;
-	uint8_t*p;
-	for(y = ybegin; y != yend; y += ystep) {
-		cp = &(cache_pixel[y << 5]);
-		cm = &(cache_mask[y << 5]);
-		dp =  &(dst[stride * y]);
-		if(!rotate) {
-			if(yreverse) {
-				yaddr = &(qp[(y - 15) << 3]); // 1 line is 4 bytes (16pixels)
-			} else {
-				yaddr = &(qp[y << 3]); // 1 line is 4 bytes (16pixels)
-			}
-			p = &(yaddr[0]);
-			if(xreverse) {
-__DECL_VECTORIZED_LOOP
-				for(int i = 7; i >= 0; i--) {
-					pixels[i] = p[7 - i];
-				}
-			} else {
-__DECL_VECTORIZED_LOOP
-				for(int i = 0; i <= 7; i++) {
-					pixels[i] = p[i];
-				}
-			}
-__DECL_VECTORIZED_LOOP
-			for(int i = 0; i < 8; i+= 2) {
-				pixels[i] = pixels[i] >> 4;
-				pixels[i] = pixels[i] & 0x0f;
-			}
+}
+
+
+inline void TOWNS_SPRITE::take_data_16(uint8_t* src, uint16_t* color_table, uint16_t* dst, uint16_t* mask)
+{
+	uint8_t* p = src;
+	uint16_t* q = dst;
+	uint16_t* r = mask;
+	uint8_t cache[16];
+	for(int y = 0; y < 16; y++) {
+		for(int x = 0; x < 16; x += 2) {
+			cache[x] = p[x >> 1];
+			cache[x + 1] = cache[x];
+		}
+		for(int x = 0; x < 16; x += 2) {
+			cache[x] = cache[x] >> 4;
+		}
+		for(int x = 0; x < 16; x++) {
+			cache[x] = cache[x] & 0x0f;
+			r[x] = (cache[x] == 0) ? 0x0000 : 0xffff;
+			q[x] = color_table[cache[x]];
+		}
+		r += 16;
+		q += 16;
+		p += 8;
+	}
+}
+
+inline void TOWNS_SPRITE::take_data_16_mirror(uint8_t* src, uint16_t* color_table, uint16_t* dst, uint16_t* mask)
+{
+	uint8_t* p = src;
+	uint16_t* q = dst;
+	uint16_t* r = mask;
+	uint8_t cache[16];
+	for(int y = 0; y < 16; y++) {
+		for(int x = 0; x < 16; x += 2) {
+			cache[x] = p[(15 - x) >> 1];
+			cache[x + 1] = cache[x];
+		}
+		for(int x = 1; x < 16; x += 2) {
+			cache[x] = cache[x] >> 4;
+		}
+		for(int x = 0; x < 16; x++) {
+			cache[x] = cache[x] & 0x0f;
+			r[x] = (cache[x] == 0) ? 0x0000 : 0xffff;
+			q[x] = color_table[cache[x]];
+		}
+		r += 16;
+		q += 16;
+		p += 8;
+	}
+}
+
+
+void TOWNS_SPRITE::rotate_data_0(uint16_t* src, bool is_mirror, uint16_t* color_table, uint16_t* dstcache, uint16_t* mask, bool is_32768, bool is_halfx, bool is_halfy)
+{
+	uint16_t cache[16 * 16];
+	if(!is_32768) {
+		if(is_mirror) {
+			take_data_16_mirror(src, color_table, cache, mask);
 		} else {
-			// Rotate: Swap x, y
-			if(yreverse) {
-				yaddr = &(qp[(15 - y) >> 1]);
-			} else {
-				yaddr = &(qp[y >> 1]);
-			}			
-			if(xreverse) {
-__DECL_VECTORIZED_LOOP				
-				for(int x = 7; x >= 0; x--) {
-					p = &(yaddr[x << 4]);
-					pixels[x] = p[15 - y];
-				}
-			} else {
-__DECL_VECTORIZED_LOOP				
-				for(int x = 0; x <= 7; x++) {
-					p = &(yaddr[x << 4]);
-					pixels[x] = p[y];
-				}
-			}
-__DECL_VECTORIZED_LOOP
-			for(int i = 0; i < 8; i++) {
-				pixels[i] = pixels[i] >> 4;
-				pixels[i] = pixels[i] & 0x0f;
-			}
+			take_data_16(src, color_table, cache, mask);
 		}
-__DECL_VECTORIZED_LOOP		
-		for(int x = 0; x < 8; x++) {
-			masks[x] = ((pixels[x] & 0x8000) == 0) ? 0xffff : 0x0000;
-			cp[x] = pixels[x];
-			cm[x] = masks[x];
-			// Draw to buffer
-			tpixels[x] = dp[x] & masks[x];
-			masks[x] = ~masks[x];
-			pixels[x] = pixels[x] & masks[x];
-			dp[x] = pixels[x] | tpixels[x];
-		}
-	}
-}
-
-
-inline void TOWNS_SPRITE::render_16_x1_x05(int num, uint16_t* dst, int rot_type, bool is_mirror, int stride)
-{
-	uint16_t* qp = (uint16_t*)(sprite_table[num].pixels);
-	uint16_t *cache_pixel = &(cache_pixels[last_put_cache_num][0]);
-	uint16_t *cache_mask = cache_masks[last_put_cache_num][0];
-	int xbegin;
-	int xend;
-	int xstep;
-	int ybegin;
-	int yend;
-	int ystep;
-	int addr_base;
-	int addr_inc;
-	bool xreverse;
-	bool yreverse;
-	bool rotate = false;
-	switch(rot_type) {
-	case ROT_FMTOWNS_SPRITE_0:
-			xbegin = 0;
-			xend = 16;
-			xstep = 1;
-			ybegin = 0;
-			yend = 8;
-			ystep = 1;
-			xreverse = false;
-			yreverse = false;
-			rotate = false;
-			if(is_mirror) {
-				xreverse = true;
-			}
-		}			
-		break;
-	case ROT_FMTOWNS_SPRITE_90:
-			xbegin = 0;
-			xend = 16;
-			xstep = 1;
-			ybegin = 0;
-			yend = 8;
-			ystep = 1;
-			xreverse = false;
-			yreverse = true;
-			rotate = true;
-			if(is_mirror) {
-				yreverse = false;
-			}
-		}			
-		break;
-	case ROT_FMTOWNS_SPRITE_180:
-			xbegin = 0;
-			xend = 16;
-			xstep = 1;
-			ybegin = 0;
-			yend = 8;
-			ystep = 1;
-			xreverse = true;
-			yreverse = true;
-			rotate = false;
-			if(is_mirror) {
-				xreverse = false;
-			}
-		}			
-		break;
-	case ROT_FMTOWNS_SPRITE_270:
-			xbegin = 0;
-			xend = 16;
-			xstep = 1;
-			ybegin = 0;
-			yend = 8;
-			ystep = 1;
-			xreverse = true;
-			yreverse = false;
-			rotate = true;
-			if(is_mirror) {
-				yreverse = true;
-			}
-		}			
-		break;
-	}
-	uint16_t pixels[16];
-	uint16_t masks[16];
-	uint16_t tpixels[16];
-	uint16_t* cp;
-	uint16_t* cm;
-	uint16* dp;
-	uint16_t* yaddr;
-	uint16_t*p;
-	for(y = ybegin; y != yend; y += ystep) {
-		cp = &(cache_pixel[y << 5]);
-		cm = &(cache_mask[y << 5]);
-		dp =  &(dst[stride * y]);
-		if(!rotate) {
-			if(yreverse) {
-				yaddr = &(qp[(7 - y) << 6]); // 1 line is 4 bytes (16pixels)
-			} else {
-				yaddr = &(qp[y << 6]); // 1 line is 4 bytes (16pixels)
-			}
-			p = &(yaddr[0]);
-			if(xreverse) {
-__DECL_VECTORIZED_LOOP
-				for(int i = 15; i >= 0; i--) {
-					pixels[i] = p[15 - i];
-				}
-			} else {
-__DECL_VECTORIZED_LOOP
-				for(int i = 0; i <= 15; i++) {
-					pixels[i] = p[i];
-				}
-			}
-		} else {
-			// Rotate: Swap x, y
-			if(yreverse) {
-				yaddr = &(qp[15 - (y << 1)]);
-			} else {
-				yaddr = &(qp[y << 1]);
-			}			
-			if(xreverse) {
-__DECL_VECTORIZED_LOOP				
-				for(int x = 7; x >= 0; x--) {
-					p = &(yaddr[x << 6]);
-					pixels[x] = p[7 - y];
-				}
-			} else {
-__DECL_VECTORIZED_LOOP				
-				for(int x = 0; x <= 7; x++) {
-					p = &(yaddr[x << 6]);
-					pixels[x] = p[y];
-				}
-			}
-		}
-__DECL_VECTORIZED_LOOP		
-		for(int x = 0; x < 8; x++) {
-			masks[x] = ((pixels[x] & 0x8000) == 0) ? 0xffff : 0x0000;
-			cp[x] = pixels[x];
-			cm[x] = masks[x];
-			// Draw to buffer
-			tpixels[x] = dp[x] & masks[x];
-			masks[x] = ~masks[x];
-			pixels[x] = pixels[x] & masks[x];
-			dp[x] = pixels[x] | tpixels[x];
-		}
-	}
-}
-
-inline void TOWNS_SPRITE::render_16_x05_x05(int num, uint16_t* dst, int rot_type, bool is_mirror, int stride)
-{
-	uint16_t* qp = (uint16_t*)(sprite_table[num].pixels);
-	uint16_t *cache_pixel = &(cache_pixels[last_put_cache_num][0]);
-	uint16_t *cache_mask = cache_masks[last_put_cache_num][0];
-	int xbegin;
-	int xend;
-	int xstep;
-	int ybegin;
-	int yend;
-	int ystep;
-	int addr_base;
-	int addr_inc;
-	bool xreverse;
-	bool yreverse;
-	bool rotate = false;
-	switch(rot_type) {
-	case ROT_FMTOWNS_SPRITE_0:
-			xbegin = 0;
-			xend = 8;
-			xstep = 1;
-			ybegin = 0;
-			yend = 8;
-			ystep = 1;
-			xreverse = false;
-			yreverse = false;
-			rotate = false;
-			if(is_mirror) {
-				xreverse = true;
-			}
-		}			
-		break;
-	case ROT_FMTOWNS_SPRITE_90:
-			xbegin = 0;
-			xend = 8;
-			xstep = 1;
-			ybegin = 0;
-			yend = 8;
-			ystep = 1;
-			xreverse = false;
-			yreverse = true;
-			rotate = true;
-			if(is_mirror) {
-				yreverse = false;
-			}
-		}			
-		break;
-	case ROT_FMTOWNS_SPRITE_180:
-			xbegin = 0;
-			xend = 8;
-			xstep = 1;
-			ybegin = 0;
-			yend = 8;
-			ystep = 1;
-			xreverse = true;
-			yreverse = true;
-			rotate = false;
-			if(is_mirror) {
-				xreverse = false;
-			}
-		}			
-		break;
-	case ROT_FMTOWNS_SPRITE_270:
-			xbegin = 0;
-			xend = 8;
-			xstep = 1;
-			ybegin = 0;
-			yend = 8;
-			ystep = 1;
-			xreverse = true;
-			yreverse = false;
-			rotate = true;
-			if(is_mirror) {
-				yreverse = true;
-			}
-		}			
-		break;
-	}
-	uint16_t pixels[16];
-	uint16_t masks[16];
-	uint16_t tpixels[16];
-	uint16_t* cp;
-	uint16_t* cm;
-	uint16* dp;
-	uint16_t* yaddr;
-	uint16_t*p;
-	for(y = ybegin; y != yend; y += ystep) {
-		cp = &(cache_pixel[y << 5]);
-		cm = &(cache_mask[y << 5]);
-		dp =  &(dst[stride * y]);
-		if(!rotate) {
-			if(yreverse) {
-				yaddr = &(qp[(7 - y) << 6]); // 1 line is 4 bytes (16pixels)
-			} else {
-				yaddr = &(qp[y << 6]); // 1 line is 4 bytes (16pixels)
-			}
-			p = &(yaddr[0]);
-			if(xreverse) {
-__DECL_VECTORIZED_LOOP
-				for(int i = 7; i >= 0; i--) {
-					pixels[i] = p[15 - (i << 1)];
-				}
-			} else {
-__DECL_VECTORIZED_LOOP
-				for(int i = 0; i <= 7; i++) {
-					pixels[i] = p[i << 1];
-				}
-			}
-		} else {
-			// Rotate: Swap x, y
-			if(yreverse) {
-				yaddr = &(qp[15 - (y << 1)]);
-			} else {
-				yaddr = &(qp[y << 1]);
-			}			
-			if(xreverse) {
-__DECL_VECTORIZED_LOOP				
-				for(int x = 7; x >= 0; x--) {
-					p = &(yaddr[x << 6]);
-					pixels[x] = p[7 - x];
-				}
-			} else {
-__DECL_VECTORIZED_LOOP				
-				for(int x = 0; x <= 7; x++) {
-					p = &(yaddr[x << 6]);
-					pixels[x] = p[x];
-				}
-			}
-		}
-__DECL_VECTORIZED_LOOP		
-		for(int x = 0; x < 8; x++) {
-			masks[x] = ((pixels[x] & 0x8000) == 0) ? 0xffff : 0x0000;
-			cp[x] = pixels[x];
-			cm[x] = masks[x];
-			// Draw to buffer
-			tpixels[x] = dp[x] & masks[x];
-			masks[x] = ~masks[x];
-			pixels[x] = pixels[x] & masks[x];
-			dp[x] = pixels[x] | tpixels[x];
-		}
-	}
-}
-
-
-inline void TOWNS_SPRITE::render_base(int num, uint16* dst_pixel, int width, int height, int stride)
-{
-	int half_type = 0;
-	int rot_type;
-	half_type = half_type | ((cache_index[num].is_halfx) ? 1 : 0);
-	half_type = half_type | ((cache_index[num].is_halfy) ? 2 : 0);
-
-	switch((sprite_table[num].rotate) & 7) {
-	case 0:
-		rot_type = ROT_FMTOWNS_SPRITE_0;
-		is_mirror = false;
-		break;
-	case 1:
-		rot_type = ROT_FMTOWNS_SPRITE_180;
-		is_mirror = true;
-		break;
-	case 2:
-		rot_type = ROT_FMTOWNS_SPRITE_180;
-		is_mirror = false;
-		break;
-	case 3:
-		rot_type = ROT_FMTOWNS_SPRITE_0;
-		is_mirror = true;
-		break;
-	case 4:
-		rot_type = ROT_FMTOWNS_SPRITE_270;
-		is_mirror = true;
-		break;
-	case 5:
-		rot_type = ROT_FMTOWNS_SPRITE_90;
-		is_mirror = false;
-		break;
-	case 6:
-		rotate = false;
-		rot_type = ROT_FMTOWNS_SPRITE_270;
-		is_mirror = false;
-		break;
-	case 7:
-		rot_type = ROT_FMTOWNS_SPRITE_90;
-		is_mirror = true;
-		break;
-	}
-	if(sprite_table[num].is_32768) {
-	switch(half_type & 3) {
-	case 0: // not rotate
-		render_32768_x1_x1(num, dst, rot_type, mirror, stride);
-		break;
-	case 1:
-		render_32768_x05_x1(num, dst, rot_type, mirror, stride);
-		break;
-	case 2:
-		render_32768_x1_x05(num, dst, rot_type, mirror, stride);
-		break;
-	case 3:
-		render_32768_x05_x05(num, dst, rot_type, mirror, stride);
-		break;
-	}
+		
 	} else {
-	switch(half_type & 3) {
-	case 0: // not rotate
-		render_16_x1_x1(num, dst, rot_type, mirror, stride);
-		break;
-	case 1:
-		render_16_x05_x1(num, dst, rot_type, mirror, stride);
-		break;
-	case 2:
-		render_16_x1_x05(num, dst, rot_type, mirror, stride);
-		break;
-	case 3:
-		render_16_x05_x05(num, dst, rot_type, mirror, stride);
-		break;
+		if(is_mirror) {
+			take_data_32768_mirror((uint16_t*)src, cache, mask);
+		} else {
+			take_data_16((uint16_t*)src, cache, mask);
+		}
 	}
+	// Rotate
+	// Zoom
+	uint16_t maskcache[16 * 16];
+	memcpy(maskcache, mask, sizeof(maskcache));
+	zoom_data(cache, maskcache, is_halfx, is_halfy, dstcache, mask);
+}
+
+void TOWNS_SPRITE::rotate_data_90(uint16_t* src, bool is_mirror, uint16_t* color_table, uint16_t* dstcache, uint16_t* mask, bool is_32768, bool is_halfx, bool is_halfy)
+{
+	uint16_t cache[16 * 16];
+	if(!is_32768) {
+		if(is_mirror) {
+			take_data_16_mirror(src, color_table, cache, mask);
+		} else {
+			take_data_16(src, color_table, cache, mask);
+		}
+		
+	} else {
+		if(is_mirror) {
+			take_data_32768_mirror((uint16_t*)src, cache, mask);
+		} else {
+			take_data_16((uint16_t*)src, cache, mask);
+		}
+	}
+	// Rotate
+	uint16_t maskcache[16][16];
+	uint16_t cache2[16][16];
+	if(is_mirror) {
+		// q[x][y] = p[15 - y][15 - x]
+__DECL_VECTORIZED_LOOP				
+		for(y = 0; y < 16; y++) {
+			uint16_t* p = &(cache[15 - y]); 
+			uint16_t* q = &(mask[15 - y]); 
+			for(x = 0; x < 16; x++) {
+				cache2[y][x] = p[(15 - x) << 4];
+				maskcache[y][x] = q[(15 - x) << 4];
+			}
+		}			
+	} else {
+		// q[x][y] = p[15 - y][x]
+		for(y = 0; y < 16; y++) {
+			uint16_t* p = &(cache[15 - y]);
+			uint16_t* q = &(mask[15 - y]);
+__DECL_VECTORIZED_LOOP					
+			for(x = 0; x < 16; x++) {
+				cache2[y][x] = p[x << 4];
+				maskcache[y][x] = q[x << 4];
+			}
+		}			
+	}	
+	zoom_data((uint16_t*)(&(cache2[0][0])), (uint16_t*)(&(maskcache[0][0])), is_halfx, is_halfy, dstcache, mask);
+}
+
+void TOWNS_SPRITE::rotate_data_180(uint16_t* src, bool is_mirror, uint16_t* color_table, uint16_t* dstcache, uint16_t* mask, bool is_32768, bool is_halfx, bool is_halfy)
+{
+	uint16_t cache[16 * 16];
+	if(!is_32768) {
+		if(is_mirror) {
+			take_data_16_mirror(src, color_table, cache, mask);
+		} else {
+			take_data_16(src, color_table, cache, mask);
+		}
+		
+	} else {
+		if(is_mirror) {
+			take_data_32768_mirror((uint16_t*)src, cache, mask);
+		} else {
+			take_data_16((uint16_t*)src, cache, mask);
+		}
+	}
+	// Rotate
+	uint16_t maskcache[16][16];
+	uint16_t cache2[16][16];
+	if(is_mirror) {
+		// q[x][y] = p[x][15 - y]
+		for(y = 0; y < 16; y++) {
+			uint16_t* p = &(cache[(15 - y) << 4]); 
+			uint16_t* q = &(mask[(15 - y) << 4]);
+__DECL_VECTORIZED_LOOP					
+			for(x = 0; x < 16; x++) {
+				cache2[y][x] = p[x];
+				maskcache[y][x] = q[x];
+			}
+		}			
+	} else {
+		// q[x][y] = p[15 - x][15 - y]
+		for(y = 0; y < 16; y++) {
+			uint16_t* p = &(cache[15 - y] << 4); 
+			uint16_t* q = &(mask[15 - y] << 4);
+__DECL_VECTORIZED_LOOP
+			for(x = 0; x < 16; x++) {
+				cache2[y][x] = p[15 - x];
+				maskcache[y][x] = q[15 - x];
+			}
+		}			
+	}	
+	zoom_data((uint16_t*)(&(cache2[0][0])), (uint16_t*)(&(maskcache[0][0])), is_halfx, is_halfy, dstcache, mask);
+}
+
+void TOWNS_SPRITE::rotate_data_270(uint16_t* src, bool is_mirror, uint16_t* color_table, uint16_t* dstcache, uint16_t* mask, bool is_32768,bool is_halfx, bool is_halfy)
+{
+	uint16_t cache[16 * 16];
+	if(!is_32768) {
+		if(is_mirror) {
+			take_data_16_mirror(src, color_table, cache, mask);
+		} else {
+			take_data_16(src, color_table, cache, mask);
+		}
+		
+	} else {
+		if(is_mirror) {
+			take_data_32768_mirror((uint16_t*)src, cache, mask);
+		} else {
+			take_data_16((uint16_t*)src, cache, mask);
+		}
+	}
+	// Rotate
+	uint16_t maskcache[16][16];
+	uint16_t cache2[16][16];
+	if(is_mirror) {
+		// q[x][y] = p[y][x]
+		
+		for(y = 0; y < 16; y++) {
+			uint16_t* p = &(cache[y]); 
+			uint16_t* q = &(mask[y]);
+__DECL_VECTORIZED_LOOP			
+			for(x = 0; x < 16; x++) {
+				cache2[y][x] = p[x << 4];
+				maskcache[y][x] = q[x << 4];
+			}
+		}			
+	} else {
+		// q[x][y] = p[y][15 - x]
+		for(y = 0; y < 16; y++) {
+			uint16_t* p = &(cache[15 - y]); 
+			uint16_t* q = &(mask[15 - y]);
+__DECL_VECTORIZED_LOOP			
+			for(x = 0; x < 16; x++) {
+				cache2[y][x] = p[x << 4];
+				maskcache[y][x] = q[x << 4];
+			}
+		}			
+	}	
+	zoom_data((uint16_t*)(&(cache2[0][0])), (uint16_t*)(&(maskcache[0][0])), is_halfx, is_halfy, dstcache, mask);
+}
+
+inline void TOWNS_SPRITE::zoom_data(uint16_t* cache, uint16_t* maskcache, bool is_halfx, bool is_halfy, uint16_t* dstcache, uint16_t* dstmask)
+{
+	if(is_halfx) {
+		if(is_halfy) {
+			uint16_t cache2[8][8];
+			uint16_t maskcache2[8][8];
+			for(int y = 0; y < 16; y += 2) {
+				uint16_t cacheline[8];
+				uint16_t *pp = &(cache[y << 4]);
+				uint16_t maskcacheline[8];
+				uint16_t *pq = &(maskcache[y << 4]);
+__DECL_VECTORIZED_LOOP				
+				for(int x = 0; x < 8; x++) {
+					cacheline[x] = pp[x << 1];
+					maskcacheline[x] = pq[x << 1];
+				}
+__DECL_VECTORIZED_LOOP				
+				for(int x = 0; x < 8; x++) {
+					cache2[y >> 1][x] = cacheline[x];
+					maskcache2[y >> 1][x] = maskcacheline[x];
+				}
+			}
+			memcpy(dstcache, &(cache2[0][0]), 8 * 8 * sizeof(uint16_t));
+			memcpy(dstmask, &(maskcache2[0][0]), 8 * 8 * sizeof(uint16_t));
+		} else { // halfx only, not halfy
+			uint16_t cache2[16][8];
+			uint16_t maskcache2[16][8];
+			for(int y = 0; y < 16; y++) {
+				uint16_t cacheline[8];
+				uint16_t *pp = &(cache[y << 4]);
+				uint16_t maskcacheline[8];
+				uint16_t *pq = &(maskcache[y << 4]);
+__DECL_VECTORIZED_LOOP				
+				for(int x = 0; x < 8; x++) {
+					cacheline[x] = pp[x << 1];
+					maskcacheline[x] = pq[x << 1];
+				}
+__DECL_VECTORIZED_LOOP				
+				for(int x = 0; x < 8; x++) {
+					cache2[y][x] = cacheline[x];
+					maskcache2[y][x] = maskcacheline[x];
+				}
+			}
+			memcpy(dstcache, &(cache2[0][0]), 16 * 8 * sizeof(uint16_t));
+			memcpy(mask, &(maskcache2[0][0]), 16 * 8 * sizeof(uint16_t));
+		}
+	} else {
+		if(is_halfy) { // halfx only, not halfx
+			uint16_t cache2[16][8];
+			uint16_t maskcache2[16][8];
+			for(int y = 0; y < 16; y += 2) {
+				uint16_t cacheline[16];
+				uint16_t *pp = &(cache[y << 4]);
+				uint16_t maskcacheline[16];
+				uint16_t *pq = &(maskcache[y << 4]);
+__DECL_VECTORIZED_LOOP
+				for(int x = 0; x < 16; x++) {
+					cacheline[x] = pp[x];
+					maskcacheline[x] = pq[x];
+				}
+__DECL_VECTORIZED_LOOP
+				for(int x = 0; x < 16; x++) {
+					cache2[y >> 1][x] = cacheline[x];
+					maskcache2[y >> 1][x] = maskcacheline[x];
+				}
+			}
+			memcpy(dstcache, &(cache2[0][0]), 8 * 16 * sizeof(uint16_t));
+			memcpy(dstmask, &(maskcache2[0][0]), 8 * 16 * sizeof(uint16_t));
+		} else { // 1x1
+			memcpy(dstcache, cache, 16 * 16 * sizeof(uint16_t));
+			memcpy(dstmask, maskcache, 16 * 16 * sizeof(uint16_t));
+		}
 	}
 }
 

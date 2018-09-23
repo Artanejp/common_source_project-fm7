@@ -35,6 +35,7 @@ void TOWNS_SPRITE::initialize(void)
 	for(int i = 0; i < 256; i++) {
 		color_cached[i] = false;
 	}
+	use_cache = false; // ToDo: Enable cache.
 }
 
 void TOWNS_SPRITE::reset()
@@ -66,6 +67,7 @@ void TOWNS_SPRITE::set_sprite_attribute(int table_num, uint16_t num_attr)
 	bool halfx = ((num_attr &  0x0400) != 0);
 	bool halfy = ((num_attr &  0x0800) != 0);
 	bool enable_offset = ((num_attr & 0x8000) != 0);
+	
 	sprite_table[table_num].num = num;
 	sprite_table[table_num].rotate_type = rotate_type;
 	sprite_table[table_num].is_halfx = halfx;
@@ -83,124 +85,26 @@ void TOWNS_SPRITE::set_sprite_color(int table_num, uint16_t color_table_num)
 	sprite_table[table_num].is_disp   = ((color_table_num & 0x2000) != 0);
 }
 
-void TOWNS_SPRITE::render_not_rotate(int num, uint16* dst_pixel, int width, int height, int stride)
-{
-	uint16_t* qp = (uint16_t*)(sprite_table[num].pixels);
-	uint8_t* addr;
-	uint16_t *cache_pixel = &(cache_pixels[last_put_cache_num][0]);
-	uint16_t *cache_mask = cache_masks[last_put_cache_num][0];
-	if(sprite_table[num].is_32768) {
-	} else {
-		addr = &(pattern_ram[(sprite_table[num].num - 128) << 3]);
-		int ystep = (cache_index[num].is_halfy) ? 2 : 1;
-		int xstep = (cache_index[num].is_halfx) ? 2 : 1;
-		int w = (cache_index[num].is_halfy) ? 8 : 16;
-		int h = (cache_index[num].is_halfx) ? 8 : 16;
-		int color = sprite_table[num].color;
-		if(color < 256) return;
-		if(color > 511) return;
-		color = color - 256;
-		uint16_t* p;
-		uint16_t* m;
-		uint16_t* q;
-		uint16_t* dp;
-		int yy = 0;
-		uint8_t pixels[16];
-		uint8_t pixels_lo[16];
-		uint8_t pixels_hi[16];
-		uint16_t masks[16];
-		uint16_t tpixels[16];
-		uint16_t t2pixels[16];
-		uint16_t* color_index = (uint16_t*)(&color_index_ram[color << 5]);
-		for(int y = 0; y < 16; y += ystep) {
-			p = &(cache_pixel[yy << 4]);
-			m = &(cache_mask[yy << 4]);
-			q = (uint8_t*)qp;
-			q = &q[y << 3];
-			dp = &(dst_pixel[yy * stride]);
-			if(cache_index[num].is_halfx) {
-				for(int x = 0; x < 8; x++) {
-					pixels[x] = q[x];
-				}
-				for(int x = 0; x < 8; x++) {
-					pixels[x] = pixels[x] & 0xf0;
-				}
-				
-				for(int x = 0; x < 8; x++) {
-					masks[x] = (pixels[x] == 0) ? 0xffff : 0x0000;
-				}
-				for(int x = 0; x < 8; x++) {
-					p[x] = color_index[pixels[x]];
-				}
-				for(int x = 0; x < 8; x++) {
-					m[x] = masks[x];
-				}
-				// Draw to buffer
-				for(int x = 0; x < 8; x++) {
-					tpixels[x] = dp[x] & masks[x];
-				}
-				for(int x = 0; x < 8; x++) {
-					pixels[x] = p[x] & ~masks[x];
-				}
-				for(int x = 0; x < 8; x++) {
-					dp[x] = pixels[x] | tpixels[x];
-				}
-			} else {
-				for(int x = 0; x < 8; x++) {
-					pixels[x] = q[x];
-				}
-				for(int x = 0; x < 8; x++) {
-					pixels_hi[x] = pixels[x] & 0xf0;
-				}
-				for(int x = 0; x < 8; x++) {
-					pixels_lo[x] = pixels[x] & 0x0f;
-				}
-				
-				for(int x = 0; x < 8; x++) {
-					masks[x << 1] = (pixels_hi[x] == 0) ? 0xffff : 0x0000;
-				}
-				for(int x = 0; x < 8; x++) {
-					masks[(x << 1) + 1] = (pixels_lo[x] == 0) ? 0xffff : 0x0000;
-				}
-				for(int x = 0; x < 8; x++) {
-					p[x << 1] = color_index[pixels_hi[x]];
-					p[(x << 1) + 1] = color_index[pixels_lo[x]];
-				}
-				for(int x = 0; x < 16; x++) {
-					m[x] = masks[x];
-				}
-				// Draw to buffer
-				for(int x = 0; x < 16; x++) {
-					tpixels[x] = dp[x] & masks[x];
-				}
-				for(int x = 0; x < 16; x++) {
-					t2pixels[x] = p[x] & ~masks[x];
-				}
-				for(int x = 0; x < 16; x++) {
-					dp[x] = t2pixels[x] | tpixels[x];
-				}
-			}
-			yy++;
-		}
-	}
-}
-
 
 void TOWNS_SPRITE::render_sprite(int num, uint16* dst_pixel, int width, int height, int stride)
 {
+	uint16_t sprite_limit = reg_index & 0x3ff;
+	if(sprite_limit == 0) sprite_limit = 1024;
 	if(num < 0) return;
 	if(num >= sprite_limit) return;
 	if(num >= 1024) return;
 	if(stride <= 0) return;
 	if(stride > 512) return;
 	if(!(sprite_table[num].is_disp)) return;
-	
+
+	if(use_cache) {
 	for(int i = 0; i < TOWNS_SPRITE_CACHE_NUM; i++) {
 		if(!(cache_index[i].is_use)) continue;
 		if(cache_index[i].attribute == sprite_table[num].attribute) {
 			if(cache_index[i].is_32768 == sprite_table[num].is_32768) {
 				if(cache_index[i].is_32768) {
 					//
+					// ToDo: Integrate to not hitting cache.
 					int h = (cache_index[i].is_halfy) ? 8 : 16;
 					int w = (cache_index[i].is_halfx) ? 8 : 16;
 					if(height < h) h = height;
@@ -246,6 +150,7 @@ void TOWNS_SPRITE::render_sprite(int num, uint16* dst_pixel, int width, int heig
 						uint16_t* rp = &qp[y << 4];
 						uint16_t* rm = &qm[y << 4];
 						ppp = pp;
+__DECL_VECTORIZED_LOOP				
 						for(x = 0; x < w; x++) {
 							uint16_t pixel = *rp;
 							uint16_t dpixel = *ppp;
@@ -261,6 +166,7 @@ void TOWNS_SPRITE::render_sprite(int num, uint16* dst_pixel, int width, int heig
 				}
 			}
 		}
+	}
 	}
 	// Cache Not hit
 	int target_num = -1;
@@ -284,12 +190,158 @@ void TOWNS_SPRITE::render_sprite(int num, uint16* dst_pixel, int width, int heig
 	cache_index[target_num].masks = (uint16_t*)(&(cache_masks[target_num][0]));
 	cache_index[target_num].color = sprite_table[num].color;
 	cache_index[target_num].num = sprite_table[num].num;
-	color_cached[(cache_index[target_num].color) & 0xff] = true;
+	if(!(cache_index[target_num].is_32768)) {
+		color_cached[(cache_index[target_num].color) & 0xff] = true;
+	}
 	pattern_cached[sprite_table[num].num] = true; // OK?
 
-	render_base(num, dst_pixel, width, height, stride);
+	switch((sprite_table[num].rotate) & 7) {
+	case 0:
+		rot_type = ROT_FMTOWNS_SPRITE_0;
+		is_mirror = false;
+		break;
+	case 1:
+		rot_type = ROT_FMTOWNS_SPRITE_180;
+		is_mirror = true;
+		break;
+	case 2:
+		rot_type = ROT_FMTOWNS_SPRITE_180;
+		is_mirror = false;
+		break;
+	case 3:
+		rot_type = ROT_FMTOWNS_SPRITE_0;
+		is_mirror = true;
+		break;
+	case 4:
+		rot_type = ROT_FMTOWNS_SPRITE_270;
+		is_mirror = true;
+		break;
+	case 5:
+		rot_type = ROT_FMTOWNS_SPRITE_90;
+		is_mirror = false;
+		break;
+	case 6:
+		rotate = false;
+		rot_type = ROT_FMTOWNS_SPRITE_270;
+		is_mirror = false;
+		break;
+	case 7:
+		rot_type = ROT_FMTOWNS_SPRITE_90;
+		is_mirror = true;
+		break;
+	}
+	uint32_t index_num = cache_index[target_num].attribute & 0x3ff;
+	if(index_num < 128) return;
+	
+	uint8_t* src = &(pattern_ram[index_num << 7]);
+	bool is_32768 = cache_index[target_num].is_32768;
+	bool is_halfx = cache_index[target_num].is_halfx;
+	bool is_halfy = cache_index[target_num].is_halfy;
+
+	switch(rot_type) {
+	case ROT_FMTOWNS_SPRITE_00:
+		rot_data_0(src, is_mirror, cache_index[target_num].pixels, cache_index[target_num].masks, is_32768, is_halfx, is_halfy);
+		break;
+	case ROT_FMTOWNS_SPRITE_90:
+		rot_data_0(src, is_mirror, cache_index[target_num].pixels, cache_index[target_num].masks, is_32768, is_halfx, is_halfy);
+		break;
+	case ROT_FMTOWNS_SPRITE_180:
+		rot_data_0(src, is_mirror, cache_index[target_num].pixels, cache_index[target_num].masks, is_32768, is_halfx, is_halfy);
+		break;
+	case ROT_FMTOWNS_SPRITE_270:
+		rot_data_0(src, is_mirror, cache_index[target_num].pixels, cache_index[target_num].masks, is_32768, is_halfx, is_halfy);
+		break;
+	}
+	// ToDo: wrap round.This is still bogus implement.
+	// ToDo: Separate writing buffer and integrate cache.
+	// copy cache to buffer
+	uint16_t* pp = cache_index[target_num].pixels;
+	uint16_t* pq = cache_index[target_num].masks;
+	uint16_t* pd = dst_pixel;
+	if(is_halfx) {
+		uint16_t cacheline[8];
+		uint16_t mcacheline[8];
+		uint16_t pcacheline[8];
+		int ysize = 16;
+		if(is_halfy) {
+			ysize = 8;
+		}
+		for(int y = 0; y < ysize; y++) {
+__DECL_VECTORIZED_LOOP				
+			for(int x = 0; x < 8; x++) {
+				cacheline[x] = pp[x];
+				mcacheline[x] = pq[x];
+			}
+__DECL_VECTORIZED_LOOP				
+			for(int x = 0; x < 8; x++) {
+				pcacheline[x] = pd[x] & mcacheline[x];
+				mcacheline[x] = ~mcacheline[x];
+				cacheline[x] = cacheline[x] & mcacheline[x];
+			}
+__DECL_VECTORIZED_LOOP				
+			for(int x = 0; x < 8; x++) {
+				pd[x] = pcacheline[x] | mcacheline[x];
+			}
+			pd = pd + stride;
+			pp += 8;
+			pq += 8;
+		}
+	} else { // Not halfx
+		uint16_t cacheline[16];
+		uint16_t mcacheline[16];
+		uint16_t pcacheline[16];
+		int ysize = 16;
+		if(is_halfy) {
+			ysize = 8;
+		}
+		for(int y = 0; y < ysize; y++) {
+__DECL_VECTORIZED_LOOP				
+			for(int x = 0; x < 16; x++) {
+				cacheline[x] = pp[x];
+				mcacheline[x] = pq[x];
+			}
+__DECL_VECTORIZED_LOOP				
+			for(int x = 0; x < 16; x++) {
+				pcacheline[x] = pd[x] & mcacheline[x];
+				mcacheline[x] = ~mcacheline[x];
+				cacheline[x] = cacheline[x] & mcacheline[x];
+			}
+__DECL_VECTORIZED_LOOP				
+			for(int x = 0; x < 16; x++) {
+				pd[x] = pcacheline[x] | mcacheline[x];
+			}
+			pd = pd + stride;
+			pp += 8;
+			pq += 8;
+		}
+	}
 }
 
+void TOWNS_SPRITE::render(uint16_t *buffer, int w, int h, int stride)
+{
+	// ToDo: Implement Register #2-5
+	uint16_t lot = reg_index & 0x3ff;
+	if(lot == 0) lot = 1024;
+	if((w <= 0) || (h <= 0)) return;
+	if(stride <= 0) return;
+	// Clear buffer?
+	memset(buffer, 0x00, w * h * sizeof(uint16_t));
+	
+	if(reg_spen) {
+		for(int i = 0; i < (int)lot; i++) {
+			uint16_t* index_base = &(index_ram[i << 2]);
+			uint16_t xaddr = index_base[0] & 0x1ff;
+			uint16_t yaddr = index_base[1] & 0x1ff;
+			if((xaddr < (uint16_t)w) && (yaddr < (uint16_t)h)) {
+				// ToDo: wrap round.This is still bogus implement.
+				uint16_t* addr = &(buffer[yaddr * w + xaddr]);
+				render_sprite(i, addr, width, height, stride);
+			}
+		}
+	}
+}
+// ToDo: Discard cache(s) if dirty color index and if used this cache at 16 colors.
+// ToDo: Discard cache(s) if dirty 
 void TOWNS_SPRITE::write_io8(uint32_t addr, uint32_t data)
 {
 	reg_addr = addr & 7;
@@ -440,6 +492,9 @@ uint32_t TOWNS_SPRITE::read_data32(uint32_t addr)
 void TOWNS_SPRITE::write_data8(uint32_t addr, uint32_t data)
 {
 	uint32_t nbank;
+	uint32_t uaddr;
+	uint16_t tmp16;
+	uint8_t tmp8;
 	uint8_t* p8;
 	pair_t tval;
 	if((addr >= 0x81000000) && (addr < 0x81020000)) {
@@ -447,54 +502,107 @@ void TOWNS_SPRITE::write_data8(uint32_t addr, uint32_t data)
 	} else {
 		nbank = 0; // OK?
 	}
+	
 	switch(nbank) {
 	case 0:
 	case 1:
-		tval.w.l = index_ram[(addr & 0x1ffe) >> 1];
+		uaddr = (addr & 0x1ffe) >> 1;
+		tval.w.l = index_ram[uaddr];
+		tmp16 = tval.w.l;
 		if((addr & 1) == 0) { // Lo
 			tval.b.l = (uint8_t)(data & 0xff);
 		} else {
 			tval.b.h = (uint8_t)(data & 0xff);
 		}
-		index_ram[(addr & 0x1ffe) >> 1] = tval.w.l;
+		if(use_cache) {
+		if(uaddr == 2) { // ATTR 
+			if((tmp16 & 0x7c00) != (tval.w.l & 0x7c00)) {
+				// Search cache and Discard cache
+			}
+		} else if(uaddr == 3) {
+			if((tmp16 & 0x8fff) != (tval.w.l & 0x8fff)) {
+				// Search cache and Discard cache
+			}
+		}
+		}
+		index_ram[uaddr] = tval.w.l;
 		break;
 	case 2:
 	case 3:
 		// ToDO: Discard cache
-		tval.w.l = color_ram[(addr & 0x1ffe) >> 1];
+		uaddr = (addr & 0x1ffe) >> 1;
+		tval.w.l = color_ram[uaddr];
+		tmp16 = tval.w.l;
 		if((addr & 1) == 0) { // Lo
 			tval.b.l = (uint8_t)(data & 0xff);
 		} else {
 			tval.b.h = (uint8_t)(data & 0xff);
 		}
-		color_ram[(addr & 0x1ffe) >> 1] = tval.w.l;
-		if(color_cached[(addr & 0x1ffe) >> 5]) {
-			uint32_t nnum = (addr & 0x1ffe) >> 5;
-			for(int i = 0; i < TOWNS_SPRITE_CACHE_NUM; i++) {
-				if(cache_index[i].color == (uint16_t)(nnum + 256)) {
-					if(cache_index[i].is_use) {
-						clear_cache(i);
+		if(use_cache) {
+		if(tmp16 != tval.w.l) { // Dirty color table
+			uint32_t nnum = uaddr >> 4;
+			color_ram[uaddr] = tval.w.l;
+			if(color_cached[nnum]) {
+				for(int i = 0; i < TOWNS_SPRITE_CACHE_NUM; i++) {
+					if(cache_index[i].color == (uint16_t)(nnum + 256)) {
+						if((cache_index[i].is_use) && !(cache_index[i].is_32768)) {
+							clear_cache(i);
+						}
 					}
 				}
+				color_cached[nnum] = false;
+
 			}
-			color_cached[nnum] = false;
+		} else {
+			color_ram[uaddr] = tval.w.l;
 		}
 		break;
 	default:
 		// ToDO: Discard cache
-		p8 = &(pattern_ram[(addr & 0x1ffff) - 0x4000]);
-		*p8 = (uint8_t)(data & 0xff);
-		if(pattern_cached[((addr & 0x1fffe) - 0x4000) >> 7]) {
-			uint32_t nnum = ((addr & 0x1fffe) - 0x4000) >> 7;
-			for(int i = 0; i < TOWNS_SPRITE_CACHE_NUM; i++) {
-				if(cache_index[i].num == (uint16_t)nnum) {
-					if(cache_index[i].is_use) {
-						clear_cache(i);
+		uaddr = (addr & 0x1ffff) - 0x4000;
+		p8 = &(pattern_ram[uaddr]);
+		tmp8 = *p8;
+		if(use_cache) {
+			if((uint8_t)(data & 0xff) != tmp8) { // Dirty pattern memory.
+				*p8 = (uint8_t)(data & 0xff);
+				uint32_t nnum = uaddr >> 7;
+				uint32_t nnum_bak = nnum;
+				if(pattern_cached[nnum]) {  // ToDo: Search another number.
+					for(int i = 0; i < TOWNS_SPRITE_CACHE_NUM; i++) {
+						if(cache_index[i].is_32768) {
+						if(cache_index[i].num == (uint16_t)nnum) {
+							if(cache_index[i].is_use) {
+								clear_cache(i);
+							}
+						}
+					} else {
+						uint32_t begin;
+						uint32_t end;
+						uint32_t clen = 0;
+						// OK?
+						begin = (nnum <= (128 + 3)) ? (128 + 3) : nnum - 3;
+						end = (nnum <= 128) ? 128 : nnum + 3;
+						if(begin < 1024) {
+							if(end > 1023) end = 1023;
+							if((cache_index[i].num >= begin) && (cache_index[i].num <= end)) { 
+								clen = end - begin + 1;
+								for(uint32_t j = 0; j < clen; j++) {
+									if(cache_index[i].num == (uint16_t)(begin + j)) {
+										if(cache_index[i].is_use) {
+											clear_cache(i);
+										}
+									}
+								}
+							}
+						}
 					}
 				}
+				pattern_cached[nnum] = false;
+				}
 			}
-			pattern_cached[((addr & 0x1fffe) - 0x4000) >> 7] = false;
-		}
+		} else {
+			*p8 = (uint8_t)(data & 0xff);
+		}		
 		break;
 	}
 	return;
@@ -502,65 +610,38 @@ void TOWNS_SPRITE::write_data8(uint32_t addr, uint32_t data)
 
 void TOWNS_SPRITE::write_data16(uint32_t addr, uint32_t data)
 {
-	uint32_t nbank;
-	uint16_t* p;
-	pair_t tval;
-	if((addr >= 0x81000000) && (addr < 0x81020000)) {
-		nbank = (addr & 0x1e000) >> 12;
-	} else {
-		nbank = 0; // OK?
-	}
-	switch(nbank) {
-	case 0:
-	case 1:
-		index_ram[(addr & 0x1ffe) >> 1] = (uint16_t)(data & 0xffff);
-		break;
-	case 2:
-	case 3:
-		// ToDO: Discard cache
-		color_ram[(addr & 0x1ffe) >> 1] = (uint16_t)(data & 0xffff);
-		if(color_cached[(addr & 0x1ffe) >> 5]) {
-			uint32_t nnum = (addr & 0x1ffe) >> 5;
-			for(int i = 0; i < TOWNS_SPRITE_CACHE_NUM; i++) {
-				if(cache_index[i].color == (uint16_t)(nnum + 256)) {
-					if(cache_index[i].is_use) {
-						clear_cache(i);
-					}
-				}
-			}
-			color_cached[nnum] = false;
-		}
-		break;
-	default:
-		// ToDO: Discard cache
-		tval.w.l = (uint16_t)data;
-		pattern_ram[(addr & 0x1fffe) - 0x4000] = tval.b.l;		
-		pattern_ram[(addr & 0x1fffe) - 0x4000 + 1] = tval.b.h;
-		if(pattern_cached[((addr & 0x1fffe) - 0x4000) >> 7]) {
-			uint32_t nnum = ((addr & 0x1fffe) - 0x4000) >> 7;
-			for(int i = 0; i < TOWNS_SPRITE_CACHE_NUM; i++) {
-				if(cache_index[i].num == (uint16_t)nnum) {
-					if(cache_index[i].is_use) {
-						clear_cache(i);
-					}
-				}
-			}
-			pattern_cached[((addr & 0x1fffe) - 0x4000) >> 7] = false;
-		}
-		break;
-	}
-	return;
+	pair_t t;
+	t.d = data;
+	write_data8(addr, (uint32_t)(t.b.l));
+	write_data8(addr + 1, (uint32_t)(t.b.h));
 }
-
+				
 void TOWNS_SPRITE::write_data32(uint32_t addr, uint32_t data)
 {
 	pair_t t;
 	t.d = data;
-	write_data16(addr, (uint32_t)(t.w.l));
-	if(addr < 0x8101fffe) write_data16(addr + 2, (uint32_t)(t.w.h));
+	write_data8(addr, (uint32_t)(t.b.l));
+	write_data8(addr + 1, (uint32_t)(t.b.h));
+	if(addr < 0x8101fffe) {
+		write_data8(addr + 2, (uint32_t)(t.b.h2));
+		write_data8(addr + 3, (uint32_t)(t.b.h3));
+	}
 }
 
-
+// Q: Is changing pages syncing to Frame?
+// ToDo: Implement VRAM.
+void FMTOWNS_SPRITE::write_signal(int id, uint32_t data, uint32_t mask)
+{
+	if(id == SIG_FMTOWNS_SPRITE_CACHE_ENABLE) {
+		cache_enabled = ((data & mask) != 0);
+	} else if(id == SIG_FMTOWNS_SPRITE_SWAP_BUFFER) {
+		write_page = display_page;
+		display_page = (displae_page + 1) & 1;
+	} else if(id == SIG_FMTOWNS_SPRITE_SET_DATA_VRAM) {
+	} else if(id == SIG_FMTOWNS_SPRITE_SET_MASK_VRAM) {
+	}
+	
+}
 #define STATE_VERSION	1
 
 #include "../../statesub.h"
@@ -578,8 +659,9 @@ void TOWNS_SPRITE::decl_state()
 	DECL_STATE_ENTRY_UINT16(reg_hoffset);
 	DECL_STATE_ENTRY_BOOL(disp_page0);
 	DECL_STATE_ENTRY_BOOL(disp_page1);
-	
-	DECL_STATE_ENTRY_INT32(sprite_limit);
+
+	DECL_STATE_ENTRY_BOOL(use_cache);
+
 	
 	DECL_STATE_ENTRY_1D_ARRAY(index_ram, sizeof(index_ram) / sizeof(uint16_t));
 	DECL_STATE_ENTRY_1D_ARRAY(pattern_ram, sizeof(pattern_ram) / sizeof(uint8_t));
