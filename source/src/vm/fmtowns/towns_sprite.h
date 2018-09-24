@@ -28,12 +28,41 @@ class TOWNS_VRAM;
 
 #define TOWNS_SPRITE_CACHE_NUM 512
 
+typedef struct {
+	uint16_t num;
+	uint8_t rotate_type;
+	uint16_t attribute;
+	uint16_t color;
+	
+	bool is_halfx;
+	bool is_halfy;
+	bool enable_offset;
+	bool is_32768;
+	bool is_impose;
+	bool is_disp;
+} sprite_table_t;
+
+typedef struct {
+	bool is_use;
+	uint16_t num;
+	uint16_t attribute;
+	uint8_t rotate_type;
+	bool is_32768;
+	bool is_halfx;
+	bool is_halfy;
+	uint16_t* pixels;
+	uint16_t* masks;
+	uint16_t color;
+} sprite_cache_t;	
+
+class TOWNS_VRAM;
 class TOWNS_SPRITE : public DEVICE
 {
 
 protected:
 	TOWNS_VRAM *vram_head;
-
+	uint16_t* vram_buffer; // uint16_t[256][256]
+	uint16_t* mask_buffer; // uint16_t[256][256]
 	// REGISTERS
 	uint8_t reg_addr;
 	uint8_t reg_data[8];
@@ -45,18 +74,29 @@ protected:
 	uint16_t reg_hoffset;
 	bool disp_page0;
 	bool disp_page1;
+	uint8_t display_page;
+	uint8_t write_page;
+	int render_num;
+	int render_mod;
+	int render_lines;
+	bool split_rendering;
 	
-	int32_t splite_limit;
-
 	uint16_t index_ram[4096]; // 1024 * 4
 	uint16_t color_ram[4096]; // 16 * 256
 	uint8_t pattern_ram[(65536 - (4096 * 2)) * 2];
-
+	
 	bool pattern_cached[((65536 - (4096 * 2)) * 2) / (8 * 16)];
 	bool color_cached[256];
 	
 	bool sprite_enabled;
 	bool use_cache;
+	int32_t last_put_cache_num;
+	
+	sprite_table_t sprite_table[1024];
+	sprite_cache_t cache_index[TOWNS_SPRITE_CACHE_NUM];
+	uint16_t cache_pixels[TOWNS_SPRITE_CACHE_NUM][16 * 16];
+	uint16_t cache_masks[TOWNS_SPRITE_CACHE_NUM][16 * 16];
+	
 	inline void take_data_32768(uint16_t* src, uint16_t* dst, uint16_t* mask);
 	inline void take_data_32768_mirror(uint16_t* src, uint16_t* dst, uint16_t* mask);
 	inline void take_data_16(uint8_t* src, uint16_t* color_table, uint16_t* dst, uint16_t* mask);
@@ -68,7 +108,16 @@ protected:
 	void rotate_data_180(uint16_t* src, bool is_mirror, uint16_t* color_table, uint16_t* dstcache, uint16_t* mask, bool is_32768, bool is_halfx, bool is_halfy);
 	void rotate_data_270(uint16_t* src, bool is_mirror, uint16_t* color_table, uint16_t* dstcache, uint16_t* mask, bool is_32768, bool is_halfx, bool is_halfy);
 
+	void clear_cache(int num);
+	void build_sprite_table(void);
 	
+	void set_sprite_attribute(int table_num, uint16_t num_attr);
+	void set_sprite_color(int table_num, uint16_t color_table_num);
+	bool check_cache(int num, sprite_cache_t** p);
+	void render_zoomed_pixels(int x, int y, int uint16_t* pixels, uint16_t* masks, bool is_halfx, bool is_halfy, uint16_t* dst_pixel, uint16_t* dst_mask);
+	void render_sprite(int num, uint16* dst_pixel, uint16_t* dst_mask, int x, int y);
+	void render(uint16_t *buffer, uint16_t* mask);
+
 public:
 	TOWNS_SPRITE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
 		set_device_name(_T("SPRITE"));
@@ -77,7 +126,9 @@ public:
 		
 	}
 	~TOWNS_SPRITE() {}
-	
+
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 
 	void write_data8(uint32_t addr, uint32_t data);
 	void write_data16(uint32_t addr, uint32_t data);
@@ -87,10 +138,12 @@ public:
 	uint32_t read_data16(uint32_t addr);
 	uint32_t read_data32(uint32_t addr);
 
+	void reset();
 	void write_signal(int id, uint32_t data, uint32_t mask);
-	
 	void initialize();
-
+	void event_frame();
+	void event_vline(int v, int clock);
+	
 	void set_context_vram(TOWNS_VRAM *p)
 	{
 		vram_head = p;
