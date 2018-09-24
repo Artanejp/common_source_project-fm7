@@ -2953,6 +2953,7 @@ void OPN2::SetReg(uint addr, uint data)
 //
 void OPN2::Mix(Sample* buffer, int nsamples)
 {
+	// ToDo: Implement ch.6 as PCM.
 	FMMix(buffer, nsamples);
 }
 
