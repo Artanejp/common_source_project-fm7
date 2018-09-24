@@ -18,6 +18,7 @@
 #define BUILD_OPN
 #define BUILD_OPNA
 #define BUILD_OPNB
+#define BUILD_OPN2
 
 
 //	TOFIX:
@@ -41,7 +42,7 @@ namespace FM
 // ---------------------------------------------------------------------------
 //	OPNBase
 
-#if defined(BUILD_OPN) || defined(BUILD_OPNA) || defined (BUILD_OPNB)
+#if defined(BUILD_OPN) || defined(BUILD_OPNA) || defined (BUILD_OPNB) || defined(BUILD_OPN2)
 
 uint32	OPNBase::lfotable[8];			// OPNA/B 用
 
@@ -272,7 +273,7 @@ bool OPNBase::LoadState(void *f)
 	return true;
 }
 
-#endif // defined(BUILD_OPN) || defined(BUILD_OPNA) || defined (BUILD_OPNB)
+#endif // defined(BUILD_OPN) || defined(BUILD_OPNA) || defined (BUILD_OPNB) || defined(BUILD_OPN2)
 
 // ---------------------------------------------------------------------------
 //	YM2203
@@ -2429,5 +2430,562 @@ void OPNB::Mix(Sample* buffer, int nsamples)
 }
 
 #endif // BUILD_OPNB
+
+// ---------------------------------------------------------------------------
+//	YM2612 common part
+// ---------------------------------------------------------------------------
+
+#if defined(BUILD_OPN2)
+
+int OPN2Base::amtable[FM_LFOENTS] = { -1, };
+int OPN2Base::pmtable[FM_LFOENTS];
+
+int32 OPN2Base::tltable[FM_TLENTS+FM_TLPOS];
+bool OPN2Base::tablehasmade = false;
+
+OPN2Base::OPN2Base()
+{
+
+	MakeTable2();
+	BuildLFOTable();
+	for (int i=0; i<6; i++)
+	{
+		ch[i].SetChip(&chip);
+		ch[i].SetType(typeN);
+	}
+}
+
+OPN2Base::~OPN2Base()
+{
+}
+
+// ---------------------------------------------------------------------------
+//	初期化
+//
+bool OPN2Base::Init(uint c, uint r, bool)
+{
+	RebuildTimeTable();
+	
+	Reset();
+
+	SetVolumeFM(0, 0);
+	SetVolumePSG(0, 0);
+	SetChannelMask(0);
+	return true;
+}
+
+// ---------------------------------------------------------------------------
+//	テーブル作成
+//
+void OPN2Base::MakeTable2()
+{
+	if (!tablehasmade)
+	{
+		for (int i=-FM_TLPOS; i<FM_TLENTS; i++)
+		{
+			tltable[i+FM_TLPOS] = uint(65536. * pow(2.0, i * -16. / FM_TLENTS))-1;
+		}
+
+		tablehasmade = true;
+	}
+}
+
+// ---------------------------------------------------------------------------
+//	リセット
+//
+void OPN2Base::Reset()
+{
+	int i;
+	
+	OPNBase::Reset();
+	for (i=0x20; i<0x28; i++) SetReg(i, 0);
+	for (i=0x30; i<0xc0; i++) SetReg(i, 0);
+	for (i=0x130; i<0x1c0; i++) SetReg(i, 0);
+	for (i=0x100; i<0x110; i++) SetReg(i, 0);
+	for (i=0x10; i<0x20; i++) SetReg(i, 0);
+	for (i=0; i<6; i++)
+	{
+		pan[i] = 3;
+		ch[i].Reset();
+	}
+	
+	stmask = ~0x1c;
+	statusnext = 0;
+	lfocount = 0;
+	status = 0;
+	UpdateStatus();
+}
+
+// ---------------------------------------------------------------------------
+//	サンプリングレート変更
+//
+bool OPN2Base::SetRate(uint c, uint r, bool)
+{
+	c /= 2;		// 従来版との互換性を重視したけりゃコメントアウトしよう
+	
+	OPNBase::Init(c, r);
+
+	RebuildTimeTable();
+
+	lfodcount = reg22 & 0x08 ? lfotable[reg22 & 7] : 0;
+	return true;
+}
+
+
+// ---------------------------------------------------------------------------
+//	チャンネルマスクの設定
+//
+void OPN2Base::SetChannelMask(uint mask)
+{
+	for (int i=0; i<6; i++)
+		ch[i].Mute(!!(mask & (1 << i)));
+}
+
+// ---------------------------------------------------------------------------
+//	レジスタアレイにデータを設定
+//
+void OPN2Base::SetReg(uint addr, uint data)
+{
+	int	c = addr & 3;
+	switch (addr)
+	{
+		uint modified;
+
+	// Timer -----------------------------------------------------------------
+		case 0x24: case 0x25:
+			SetTimerA(addr, data);
+			break;
+
+		case 0x26:
+			SetTimerB(data);
+			break;
+
+		case 0x27:
+			SetTimerControl(data);
+			break;
+
+	// Misc ------------------------------------------------------------------
+	case 0x28:		// Key On/Off
+		if ((data & 3) < 3)
+		{
+			c = (data & 3) + (data & 4 ? 3 : 0);
+			ch[c].KeyControl(data >> 4);
+		}
+		break;
+
+	// Status Mask -----------------------------------------------------------
+	case 0x29:
+		reg29 = data;
+//		UpdateStatus(); //?
+		break;
+	
+	// Prescaler -------------------------------------------------------------
+	case 0x2d: case 0x2e: case 0x2f:
+		SetPrescaler(addr-0x2d);
+		break;
+	
+	// F-Number --------------------------------------------------------------
+	case 0x1a0:	case 0x1a1: case 0x1a2:
+		c += 3;
+	case 0xa0:	case 0xa1: case 0xa2:
+		fnum[c] = data + fnum2[c] * 0x100;
+		ch[c].SetFNum(fnum[c]);
+		break;
+
+	case 0x1a4:	case 0x1a5: case 0x1a6:
+		c += 3;
+	case 0xa4 : case 0xa5: case 0xa6:
+		fnum2[c] = uint8(data);
+		break;
+
+	case 0xa8:	case 0xa9: case 0xaa:
+		fnum3[c] = data + fnum2[c+6] * 0x100;
+		break;
+
+	case 0xac : case 0xad: case 0xae:
+		fnum2[c+6] = uint8(data);
+		break;
+		
+	// Algorithm -------------------------------------------------------------
+	
+	case 0x1b0:	case 0x1b1:  case 0x1b2:
+		c += 3;
+	case 0xb0:	case 0xb1:  case 0xb2:
+		ch[c].SetFB((data >> 3) & 7);
+		ch[c].SetAlgorithm(data & 7);
+		break;
+	
+	case 0x1b4: case 0x1b5: case 0x1b6:
+		c += 3;
+	case 0xb4: case 0xb5: case 0xb6:
+		pan[c] = (data >> 6) & 3;
+		ch[c].SetMS(data);
+		break;
+
+	// LFO -------------------------------------------------------------------
+	case 0x22:
+		modified = reg22 ^ data;
+		reg22 = data;
+		if (modified & 0x8)
+			lfocount = 0;
+		lfodcount = reg22 & 8 ? lfotable[reg22 & 7] : 0;
+		break;
+
+	// PSG -------------------------------------------------------------------
+	case  0: case  1: case  2: case  3: case  4: case  5: case  6: case  7:
+	case  8: case  9: case 10: case 11: case 12: case 13: case 14: case 15:
+		break;
+
+	// 音色 ------------------------------------------------------------------
+	default:
+		if (c < 3)
+		{
+			if (addr & 0x100)
+				c += 3;
+			OPNBase::SetParameter(&ch[c], addr, data);
+		}
+		break;
+	}
+}
+
+// ---------------------------------------------------------------------------
+//	ステータスフラグ設定
+//
+void OPN2Base::SetStatus(uint bits)
+{
+	if (!(status & bits))
+	{
+//		LOG2("SetStatus(%.2x %.2x)\n", bits, stmask);
+		status |= bits & stmask;
+		UpdateStatus();
+	}
+//	else
+//		LOG1("SetStatus(%.2x) - ignored\n", bits);
+}
+
+void OPN2Base::ResetStatus(uint bits)
+{
+	status &= ~bits;
+//	LOG1("ResetStatus(%.2x)\n", bits);
+	UpdateStatus();
+}
+
+inline void OPN2Base::UpdateStatus()
+{
+//	LOG2("%d:INT = %d\n", Diag::GetCPUTick(), (status & stmask & reg29) != 0);
+	Intr((status & stmask & reg29) != 0);
+}
+
+// ---------------------------------------------------------------------------
+//	合成
+//	in:		buffer		合成先
+//			nsamples	合成サンプル数
+//
+void OPN2Base::FMMix(Sample* buffer, int nsamples)
+{
+	if (fmvolume_l > 0 || fmvolume_r > 0)
+	{
+		// 準備
+		// Set F-Number
+		if (!(regtc & 0xc0))
+			csmch->SetFNum(fnum[csmch-ch]);
+		else
+		{
+			// 効果音モード
+			csmch->op[0].SetFNum(fnum3[1]);	csmch->op[1].SetFNum(fnum3[2]);
+			csmch->op[2].SetFNum(fnum3[0]);	csmch->op[3].SetFNum(fnum[2]);
+		}
+		
+		int act = (((ch[2].Prepare() << 2) | ch[1].Prepare()) << 2) | ch[0].Prepare();
+		if (reg29 & 0x80)
+			act |= (ch[3].Prepare() | ((ch[4].Prepare() | (ch[5].Prepare() << 2)) << 2)) << 6;
+		if (!(reg22 & 0x08))
+			act &= 0x555;
+
+		if (act & 0x555)
+		{
+			Mix6(buffer, nsamples, act);
+		}
+	}
+}
+
+// ---------------------------------------------------------------------------
+
+void OPN2Base::MixSubSL(int activech, ISample** dest)
+{
+	if (activech & 0x001) (*dest[0]  = ch[0].CalcL());
+	if (activech & 0x004) (*dest[1] += ch[1].CalcL());
+	if (activech & 0x010) (*dest[2] += ch[2].CalcL());
+	if (activech & 0x040) (*dest[3] += ch[3].CalcL());
+	if (activech & 0x100) (*dest[4] += ch[4].CalcL());
+	if (activech & 0x400) (*dest[5] += ch[5].CalcL());
+}
+
+inline void OPN2Base::MixSubS(int activech, ISample** dest)
+{
+	if (activech & 0x001) (*dest[0]  = ch[0].Calc());
+	if (activech & 0x004) (*dest[1] += ch[1].Calc());
+	if (activech & 0x010) (*dest[2] += ch[2].Calc());
+	if (activech & 0x040) (*dest[3] += ch[3].Calc());
+	if (activech & 0x100) (*dest[4] += ch[4].Calc());
+	if (activech & 0x400) (*dest[5] += ch[5].Calc());
+}
+
+// ---------------------------------------------------------------------------
+
+void OPN2Base::BuildLFOTable()
+{
+	if (amtable[0] == -1)
+	{
+		for (int c=0; c<256; c++)
+		{
+			int v;
+			if (c < 0x40)		v = c * 2 + 0x80;
+			else if (c < 0xc0)	v = 0x7f - (c - 0x40) * 2 + 0x80;
+			else				v = (c - 0xc0) * 2;
+			pmtable[c] = v;
+
+			if (c < 0x80)		v = 0xff - c * 2;
+			else				v = (c - 0x80) * 2;
+			amtable[c] = v & ~3;
+		}
+	}
+}
+
+// ---------------------------------------------------------------------------
+
+inline void OPN2Base::LFO()
+{
+//	LOG3("%4d - %8d, %8d\n", c, lfocount, lfodcount);
+
+//	Operator::SetPML(pmtable[(lfocount >> (FM_LFOCBITS+1)) & 0xff]);
+//	Operator::SetAML(amtable[(lfocount >> (FM_LFOCBITS+1)) & 0xff]);
+	chip.SetPML(pmtable[(lfocount >> (FM_LFOCBITS+1)) & 0xff]);
+	chip.SetAML(amtable[(lfocount >> (FM_LFOCBITS+1)) & 0xff]);
+	lfocount += lfodcount;
+}
+
+// ---------------------------------------------------------------------------
+//	合成
+//
+//#define IStoSampleL(s)	((Limit(s, 0x7fff, -0x8000) * fmvolume_l) >> 14)
+//#define IStoSampleR(s)	((Limit(s, 0x7fff, -0x8000) * fmvolume_r) >> 14)
+
+void OPN2Base::Mix6(Sample* buffer, int nsamples, int activech)
+{
+	// Mix
+	ISample ibuf[4];
+	ISample* idest[6];
+	idest[0] = &ibuf[pan[0]];
+	idest[1] = &ibuf[pan[1]];
+	idest[2] = &ibuf[pan[2]];
+	idest[3] = &ibuf[pan[3]];
+	idest[4] = &ibuf[pan[4]];
+	idest[5] = &ibuf[pan[5]];
+
+	Sample* limit = buffer + nsamples * 2;
+	for (Sample* dest = buffer; dest < limit; dest+=2)
+	{
+		ibuf[1] = ibuf[2] = ibuf[3] = 0;
+		if (activech & 0xaaa)
+			LFO(), MixSubSL(activech, idest);
+		else
+			MixSubS(activech, idest);
+		StoreSample(dest[0], IStoSampleL(ibuf[2] + ibuf[3]));
+		StoreSample(dest[1], IStoSampleR(ibuf[1] + ibuf[3]));
+	}
+}
+// ---------------------------------------------------------------------------
+//	ステートセーブ
+//
+#define OPN2_BASE_STATE_VERSION	1
+
+void OPN2Base::DeclState(void *f)
+{
+
+	OPNBase::DeclState(f);
+	
+	DECL_STATE_ENTRY_1D_ARRAY(pan, sizeof(pan));
+	DECL_STATE_ENTRY_1D_ARRAY(fnum2, sizeof(fnum2));
+	DECL_STATE_ENTRY_UINT8(reg22);
+	DECL_STATE_ENTRY_UINT32(reg29);
+	DECL_STATE_ENTRY_UINT32(stmask);
+	DECL_STATE_ENTRY_UINT32(statusnext);
+	DECL_STATE_ENTRY_UINT32(lfocount);
+	DECL_STATE_ENTRY_UINT32(lfodcount);
+	//state_fio->Fwrite(fnum, sizeof(fnum), 1);
+	//state_fio->Fwrite(fnum3, sizeof(fnum3), 1);
+	for(int i = 0; i < 6; i++) {
+		DECL_STATE_ENTRY_UINT32_MEMBER((fnum[i]), i);
+	}		
+	for(int i = 0; i < 3; i++) {
+		DECL_STATE_ENTRY_UINT32_MEMBER((fnum3[i]), i);
+	}		
+	for(int i = 0; i < 6; i++) {
+		ch[i].DeclState(f);
+	}
+}
+
+void OPN2Base::SaveState(void *f)
+{
+	FILEIO *state_fio = (FILEIO *)f;
+	if(state_entry != NULL) {
+		state_entry->save_state(state_fio);
+	}
+	chip.SaveState(f);
+	for(int i = 0; i < 6; i++) {
+		ch[i].SaveState(f);
+	}
+}
+
+bool OPN2Base::LoadState(void *f)
+{
+	FILEIO *state_fio = (FILEIO *)f;
+	
+	bool mb = false;
+	if(state_entry != NULL) {
+		mb = state_entry->load_state(state_fio);
+	}
+	if(!mb) return false;
+	{
+		// Make force-restore around prescaler and timers. 20180625 K.O
+		uint bak = prescale;
+		prescale = 10;
+		SetPrescaler(bak);
+	}
+	if(!chip.LoadState(f)) {
+		return false;
+	}
+	for(int i = 0; i < 6; i++) {
+		if(!ch[i].LoadState(f)) {
+			return false;
+		}
+	}
+	return true;
+}
+#endif // defined(BUILD_OPN2)
+
+// ---------------------------------------------------------------------------
+//	YM2612(OPN2)
+// ---------------------------------------------------------------------------
+
+#ifdef BUILD_OPN2
+
+// ---------------------------------------------------------------------------
+//	レジスタ取得
+//
+uint OPN2::GetReg(uint addr)
+{
+	return 0;
+}
+
+// ---------------------------------------------------------------------------
+//	構築
+//
+OPN2::OPN2()
+{
+	csmch = &ch[2]; // ToDo: Check register.
+}
+// ---------------------------------------------------------------------------
+
+OPN2::~OPN2()
+{
+}
+
+// ---------------------------------------------------------------------------
+//	初期化
+//
+bool OPN2::Init(uint c, uint r, bool ipflag, const _TCHAR* path)
+{
+	rate = 8000;
+	if (!SetRate(c, r, ipflag))
+		return false;
+	if (!OPN2Base::Init(c, r, ipflag))
+		return false;
+	
+	Reset();
+	return true;
+}
+// ---------------------------------------------------------------------------
+//	リセット
+//
+void OPN2::Reset()
+{
+	reg29 = 0x1f;
+	OPN2Base::Reset();
+}
+// ---------------------------------------------------------------------------
+//	サンプリングレート変更
+//
+bool OPN2::SetRate(uint c, uint r, bool ipflag)
+{
+	if (!OPN2Base::SetRate(c, r, ipflag))
+		return false;
+	return true;
+}
+
+// ---------------------------------------------------------------------------
+//	レジスタアレイにデータを設定
+//
+void OPN2::SetReg(uint addr, uint data)
+{
+	addr &= 0x1ff;
+
+	switch (addr)
+	{
+	case 0x29:
+		reg29 = data;
+//		UpdateStatus(); //?
+		break;
+	
+	default:
+		OPN2Base::SetReg(addr, data);
+		break;
+	}
+}
+
+
+
+// ---------------------------------------------------------------------------
+//	合成
+//	in:		buffer		合成先
+//			nsamples	合成サンプル数
+//
+void OPN2::Mix(Sample* buffer, int nsamples)
+{
+	FMMix(buffer, nsamples);
+}
+
+// ---------------------------------------------------------------------------
+//	ステートセーブ
+//
+#define OPN2_STATE_VERSION	1
+
+void OPN2::DeclState(void *f)
+{
+	p_logger = (CSP_Logger *)f;
+	state_entry = new csp_state_utils(OPN2_STATE_VERSION, chip_num, _T("FMGEN::OPN2::"), p_logger);
+
+	OPN2Base::DeclState(f);
+}
+
+void OPN2::SaveState(void *f)
+{
+	FILEIO *state_fio = (FILEIO *)f;
+	OPN2Base::SaveState(f);
+}
+
+bool OPN2::LoadState(void *f)
+{
+	FILEIO *state_fio = (FILEIO *)f;
+	
+	bool mb = false;
+	mb = OPN2Base::LoadState(f);
+	if(!mb) return false;
+
+	return true;
+}
+
+#endif // BUILD_OPN2
 
 }	// namespace FM

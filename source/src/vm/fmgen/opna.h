@@ -137,7 +137,7 @@ namespace FM
 		PSG		psg;
 	};
 
-	//	OPN2 Base ------------------------------------------------------
+	//	OPNA Base ------------------------------------------------------
 	class DLL_PREFIX OPNABase : public OPNBase
 	{
 	public:
@@ -246,6 +246,68 @@ namespace FM
 		static bool	tablehasmade;
 	};
 
+	//	OPN2 Base ------------------------------------------------------
+	class DLL_PREFIX OPN2Base : public OPNBase
+	{
+	public:
+		OPN2Base();
+		~OPN2Base();
+		
+		uint	ReadStatus() { return status & 0x03; }
+		uint	ReadStatusEx();
+		void	SetChannelMask(uint mask);
+	
+	private:
+		void	MakeTable2();
+	
+	protected:
+		bool	Init(uint c, uint r, bool);
+		bool	SetRate(uint c, uint r, bool);
+
+		void	Reset();
+		void 	SetReg(uint addr, uint data);
+		uint	GetReg(uint addr);	
+		
+		void DeclState(void *f);
+		void SaveState(void *f);
+		bool LoadState(void *f);
+	
+	protected:
+		void	FMMix(Sample* buffer, int nsamples);
+		void 	Mix6(Sample* buffer, int nsamples, int activech);
+		
+		void	MixSubS(int activech, ISample**);
+		void	MixSubSL(int activech, ISample**);
+
+		void	SetStatus(uint bit);
+		void	ResetStatus(uint bit);
+		void	UpdateStatus();
+		void	LFO();
+
+	// FM 音源関係
+		uint8	pan[6];
+		uint8	fnum2[9];
+		
+		uint8	reg22;
+		uint	reg29;		// OPNA only?
+		
+		uint	stmask;
+		uint	statusnext;
+
+		uint32	lfocount;
+		uint32	lfodcount;
+		
+		uint	fnum[6];
+		uint	fnum3[3];
+		
+		Channel4 ch[6];
+
+		static void	BuildLFOTable();
+		static int amtable[FM_LFOENTS];
+		static int pmtable[FM_LFOENTS];
+		static int32 tltable[FM_TLENTS+FM_TLPOS];
+		static bool	tablehasmade;
+	};
 	//	YM2203(OPN) ----------------------------------------------------
 	class DLL_PREFIX OPN : public OPNBase
 	{
@@ -402,7 +464,7 @@ namespace FM
 	};
 
 	//	YM2612/3438(OPN2) ----------------------------------------------------
-	class OPN2 : public OPNBase
+	class OPN2 : public OPN2Base
 	{
 	public:
 		OPN2();
@@ -417,21 +479,16 @@ namespace FM
 		uint	GetReg(uint addr);
 		uint	ReadStatus() { return status & 0x03; }
 		uint	ReadStatusEx() { return 0xff; }
-		
-		void	SetChannelMask(uint mask);
-		
+		void DeclState(void *f);
+		void SaveState(void *f);
+		bool LoadState(void *f);
+
 	private:
 		void	SetStatus(uint bit);
 		void	ResetStatus(uint bit);
-		
-		uint	fnum[3];
-		uint	fnum3[3];
-		uint8	fnum2[6];
-		
 	// 線形補間用ワーク
 		int32	mixc, mixc1;
 		
-		Channel4 ch[3];
 	};
 }
 

@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.6)
 
 message("* vm/fmgen")
-SET(THIS_LIB_VERSION 1.3.0)
+SET(THIS_LIB_VERSION 1.4.0)
 add_definitions(-D__LIBFMGEN_VERSION=\"libCSPfmgen.${THIS_LIB_VERSION}\")
 
 SET(s_vm_fmgen_srcs
