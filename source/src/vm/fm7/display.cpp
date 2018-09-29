@@ -13,7 +13,7 @@
 # include "mb61vh010.h"
 #endif
 #if defined(_FM77L4)
-#include "hd46505.h"
+#include "../hd46505.h"
 #endif
 
 #include "fm7_mainio.h"

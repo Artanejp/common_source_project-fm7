@@ -40,7 +40,7 @@
 #include "hd6844.h"
 #endif
 #if defined(_FM77L4)
-#include "hd46505.h"
+#include "../hd46505.h"
 #endif
 
 #if defined(_FM8)

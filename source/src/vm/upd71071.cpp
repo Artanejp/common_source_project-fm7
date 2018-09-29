@@ -199,7 +199,12 @@ void UPD71071::do_dma()
 /*
 				if((dma[c].mode & 0x01) == 1) {
 					// 16bit transfer mode
-					if((dma[c].mode & 0x0c) == 4) {
+					if((dma[c].mode & 0x0c) == 0x00) {
+						// verify
+						uint32_t val = dma[c].dev->read_dma_io16(0);
+						// update temporary register
+						tmp = val;
+					} else if((dma[c].mode & 0x0c) == 0x04) {
 						// io -> memory
 						uint32_t val;
 						if(dma[c].dev != NULL) {
@@ -210,7 +215,7 @@ void UPD71071::do_dma()
 						d_mem->write_dma_data16(dma[c].areg, val);
 						// update temporary register
 						tmp = val;
-					} else if((dma[c].mode & 0x0c) == 8) {
+					} else if((dma[c].mode & 0x0c) == 0x08) {
 						// memory -> io
 						uint32_t val = d_mem->read_dma_data16(dma[c].areg);
 						if(dma[c].dev != NULL) dma[c].dev->write_dma_io16(0, val);
@@ -226,14 +231,19 @@ void UPD71071::do_dma()
 */
 				{
 					// 8bit transfer mode
-					if((dma[c].mode & 0x0c) == 4) {
+					if((dma[c].mode & 0x0c) == 0x00) {
+						// verify
+						uint32_t val = dma[c].dev->read_dma_io8(0);
+						// update temporary register
+						tmp = (tmp >> 8) | (val << 8);
+					} else if((dma[c].mode & 0x0c) == 0x04) {
 						// io -> memory
 						uint32_t val;
 						val = dma[c].dev->read_dma_io8(0);
 						d_mem->write_dma_data8(dma[c].areg, val);
 						// update temporary register
 						tmp = (tmp >> 8) | (val << 8);
-					} else if((dma[c].mode & 0x0c) == 8) {
+					} else if((dma[c].mode & 0x0c) == 0x08) {
 						// memory -> io
 						uint32_t val = d_mem->read_dma_data8(dma[c].areg);
 						dma[c].dev->write_dma_io8(0, val);

@@ -154,8 +154,7 @@ void HD146818P::event_callback(int event_id, int err)
 		update_intr();
 	} else if(event_id == EVENT_SQW) {
 		// periodic interrupt
-		sqw = !sqw;
-		if(sqw) {  // OK? 20180516 K.Ohta
+		if((sqw = !sqw) == true) {
 			regs[0x0c] |= 0x40;
 			update_intr();
 		}

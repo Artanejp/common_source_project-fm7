@@ -247,7 +247,6 @@
 #endif
 #if defined(SUPPORT_SASI_IF) || defined(SUPPORT_SCSI_IF) || defined(SUPPORT_IDE_IF)
 #define USE_HARD_DISK		2
-#define OPEN_HARD_DISK_IN_RESET
 #endif
 #if defined(SUPPORT_CMT_IF) || defined(_PC98DO) || defined(_PC98DOPLUS)
 #define USE_TAPE		1
@@ -361,7 +360,11 @@ class NOT;
 #if !defined(SUPPORT_OLD_BUZZER)
 class PCM1BIT;
 #endif
-#if defined(SUPPORT_SASI_IF) || defined(SUPPORT_SCSI_IF)
+#if defined(SUPPORT_SASI_IF)
+class SASI_HDD;
+class SCSI_HOST;
+#define SCSI_HOST_AUTO_ACK
+#elif defined(SUPPORT_SCSI_IF)
 class SCSI_HDD;
 class SCSI_HOST;
 #define SCSI_HOST_AUTO_ACK
@@ -452,7 +455,7 @@ protected:
 	NOT* not_prn;
 #endif
 #if defined(SUPPORT_SASI_IF)
-	SCSI_HDD* sasi_hdd;
+	SASI_HDD* sasi_hdd;
 	SCSI_HOST* sasi_host;
 #endif
 #if defined(SUPPORT_SCSI_IF)
@@ -544,15 +547,6 @@ protected:
 	// drives
 	UPD765A *get_floppy_disk_controller(int drv);
 	DISK *get_floppy_disk_handler(int drv);
-#if defined(USE_HARD_DISK)
-#if defined(OPEN_HARD_DISK_IN_RESET)
-	_TCHAR hd_file_path[2][_MAX_PATH];
-#endif
-	void open_hard_disk_tmp(int drv, const _TCHAR* file_path);
-	void close_hard_disk_tmp(int drv);
-	bool is_hard_disk_inserted_tmp(int drv);
-	HARDDISK *get_hard_disk_handler(int drv);
-#endif
 	
 public:
 	// ----------------------------------------

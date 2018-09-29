@@ -312,6 +312,7 @@ void load_config(const _TCHAR *config_path)
 			for(int i = 0; i < MAX_HISTORY; i++) {
 				MyGetPrivateProfileString(_T("RecentFiles"), create_string(_T("RecentHardDiskPath%d_%d"), drv + 1, i + 1), _T(""), config.recent_hard_disk_path[drv][i], _MAX_PATH, config_path);
 			}
+			MyGetPrivateProfileString(_T("RecentFiles"), create_string(_T("LastHardDiskPath%d"), drv + 1), _T(""), config.last_hard_disk_path[drv], _MAX_PATH, config_path);
 		}
 	#endif
 	#ifdef USE_TAPE
@@ -667,6 +668,7 @@ void save_config(const _TCHAR *config_path)
 			for(int i = 0; i < MAX_HISTORY; i++) {
 				MyWritePrivateProfileString(_T("RecentFiles"), create_string(_T("RecentHardDiskPath%d_%d"), drv + 1, i + 1), config.recent_hard_disk_path[drv][i], config_path);
 			}
+			MyWritePrivateProfileString(_T("RecentFiles"), create_string(_T("LastHardDiskPath%d"), drv + 1), config.last_hard_disk_path[drv], config_path);
 		}
 	#endif
 	#ifdef USE_TAPE

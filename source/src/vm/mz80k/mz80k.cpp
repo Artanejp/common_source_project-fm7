@@ -197,6 +197,20 @@ VM::~VM()
 		delete device;
 		device = next_device;
 	}
+#if defined(SUPPORT_MZ80AIF)
+	for(int drv = 0; drv < MAX_DRIVE; drv++) {
+//		if(config.drive_type) {
+			fdc->set_drive_type(drv, DRIVE_TYPE_2DD);
+//		} else {
+//			fdc->set_drive_type(drv, DRIVE_TYPE_2D);
+//		}
+	}
+#elif defined(SUPPORT_MZ80FIO)
+	for(int drv = 0; drv < MAX_DRIVE; drv++) {
+		fdc->set_drive_type(drv, DRIVE_TYPE_2D);
+//		fdc->set_drive_mfm(drv, false);
+	}
+#endif
 }
 
 DEVICE* VM::get_device(int id)
@@ -219,20 +233,6 @@ void VM::reset()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
-#if defined(SUPPORT_MZ80AIF)
-	for(int i = 0; i < MAX_DRIVE; i++) {
-		if(config.drive_type) {
-			fdc->set_drive_type(i, DRIVE_TYPE_2DD);
-		} else {
-			fdc->set_drive_type(i, DRIVE_TYPE_2D);
-		}
-	}
-#elif defined(SUPPORT_MZ80FIO)
-	for(int i = 0; i < MAX_DRIVE; i++) {
-		fdc->set_drive_type(i, DRIVE_TYPE_2D);
-//		fdc->set_drive_mfm(i, false);
-	}
-#endif
 #if defined(_MZ1200) || defined(_MZ80A)
 	and_int->write_signal(SIG_AND_BIT_0, 0, 1);	// CLOCK = L
 	and_int->write_signal(SIG_AND_BIT_1, 1, 1);	// INTMASK = H
@@ -345,6 +345,18 @@ bool VM::get_kana_locked()
 void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	fdc->open_disk(drv, file_path, bank);
+	
+#if defined(SUPPORT_MZ80AIF)
+	if(fdc->get_media_type(drv) == MEDIA_TYPE_2DD) {
+		if(fdc->get_drive_type(drv) == DRIVE_TYPE_2D) {
+			fdc->set_drive_type(drv, DRIVE_TYPE_2DD);
+		}
+	} else if(fdc->get_media_type(drv) == MEDIA_TYPE_2D) {
+		if(fdc->get_drive_type(drv) == DRIVE_TYPE_2DD) {
+			fdc->set_drive_type(drv, DRIVE_TYPE_2D);
+		}
+	}
+#endif
 }
 
 void VM::close_floppy_disk(int drv)

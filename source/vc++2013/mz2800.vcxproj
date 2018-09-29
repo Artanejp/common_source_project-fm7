@@ -168,6 +168,7 @@
     <ClCompile Include="..\src\win32\winmain.cpp" />
     <ClCompile Include="..\src\vm\disk.cpp" />
     <ClCompile Include="..\src\vm\event.cpp" />
+    <ClCompile Include="..\src\vm\harddisk.cpp" />
     <ClCompile Include="..\src\vm\i286.cpp" />
     <ClCompile Include="..\src\vm\i8253.cpp" />
     <ClCompile Include="..\src\vm\i8255.cpp" />
@@ -180,6 +181,9 @@
     <ClCompile Include="..\src\vm\pcm1bit.cpp" />
     <ClCompile Include="..\src\vm\prnfile.cpp" />
     <ClCompile Include="..\src\vm\rp5c01.cpp" />
+    <ClCompile Include="..\src\vm\scsi_dev.cpp" />
+    <ClCompile Include="..\src\vm\scsi_hdd.cpp" />
+    <ClCompile Include="..\src\vm\scsi_host.cpp" />
     <ClCompile Include="..\src\vm\upd71071.cpp" />
     <ClCompile Include="..\src\vm\ym2203.cpp" />
     <ClCompile Include="..\src\vm\z80pio.cpp" />
@@ -197,6 +201,7 @@
     <ClCompile Include="..\src\vm\mz2800\mz2800.cpp" />
     <ClCompile Include="..\src\vm\mz2800\printer.cpp" />
     <ClCompile Include="..\src\vm\mz2800\reset.cpp" />
+    <ClCompile Include="..\src\vm\mz2800\sasi.cpp" />
     <ClCompile Include="..\src\vm\mz2800\serial.cpp" />
     <ClCompile Include="..\src\vm\mz2800\sysport.cpp" />
   </ItemGroup>
@@ -211,6 +216,7 @@
     <ClInclude Include="..\src\vm\device.h" />
     <ClInclude Include="..\src\vm\disk.h" />
     <ClInclude Include="..\src\vm\event.h" />
+    <ClInclude Include="..\src\vm\harddisk.h" />
     <ClInclude Include="..\src\vm\i286.h" />
     <ClInclude Include="..\src\vm\i8253.h" />
     <ClInclude Include="..\src\vm\i8255.h" />
@@ -223,6 +229,9 @@
     <ClInclude Include="..\src\vm\pcm1bit.h" />
     <ClInclude Include="..\src\vm\prnfile.h" />
     <ClInclude Include="..\src\vm\rp5c01.h" />
+    <ClInclude Include="..\src\vm\scsi_dev.h" />
+    <ClInclude Include="..\src\vm\scsi_hdd.h" />
+    <ClInclude Include="..\src\vm\scsi_host.h" />
     <ClInclude Include="..\src\vm\upd71071.h" />
     <ClInclude Include="..\src\vm\vm.h" />
     <ClInclude Include="..\src\vm\ym2203.h" />
@@ -245,6 +254,7 @@
     <ClInclude Include="..\src\vm\mz2800\mz2800.h" />
     <ClInclude Include="..\src\vm\mz2800\printer.h" />
     <ClInclude Include="..\src\vm\mz2800\reset.h" />
+    <ClInclude Include="..\src\vm\mz2800\sasi.h" />
     <ClInclude Include="..\src\vm\mz2500\serial.h" />
     <ClInclude Include="..\src\vm\mz2800\sysport.h" />
     <ClInclude Include="..\src\res\resource.h" />

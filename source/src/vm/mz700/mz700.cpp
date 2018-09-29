@@ -382,7 +382,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	// printer
 	io->set_iovalue_single_r(0xfe, 0xc0);
 #endif
-
+	
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	strncpy(_git_revision, __GIT_REPO_VERSION, sizeof(_git_revision) - 1);
@@ -390,6 +390,15 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
+#if defined(_MZ800) || defined(_MZ1500)
+	for(int drv = 0; drv < MAX_DRIVE; drv++) {
+//		if(config.drive_type) {
+			fdc->set_drive_type(drv, DRIVE_TYPE_2DD);
+//		} else {
+//			fdc->set_drive_type(drv, DRIVE_TYPE_2D);
+//		}
+	}
+#endif
 	decl_state();
 }
 
@@ -424,15 +433,6 @@ void VM::reset()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
-#if defined(_MZ800) || defined(_MZ1500)
-	for(int i = 0; i < MAX_DRIVE; i++) {
-		if(config.drive_type) {
-			fdc->set_drive_type(i, DRIVE_TYPE_2DD);
-		} else {
-			fdc->set_drive_type(i, DRIVE_TYPE_2D);
-		}
-	}
-#endif
 	and_int->write_signal(SIG_AND_BIT_0, 0, 1);	// CLOCK = L
 	and_int->write_signal(SIG_AND_BIT_1, 1, 1);	// INTMASK = H
 #if defined(_MZ800) || defined(_MZ1500)
@@ -637,6 +637,16 @@ uint32_t VM::is_quick_disk_accessed()
 void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	fdc->open_disk(drv, file_path, bank);
+	
+	if(fdc->get_media_type(drv) == MEDIA_TYPE_2DD) {
+		if(fdc->get_drive_type(drv) == DRIVE_TYPE_2D) {
+			fdc->set_drive_type(drv, DRIVE_TYPE_2DD);
+		}
+	} else if(fdc->get_media_type(drv) == MEDIA_TYPE_2D) {
+		if(fdc->get_drive_type(drv) == DRIVE_TYPE_2DD) {
+			fdc->set_drive_type(drv, DRIVE_TYPE_2D);
+		}
+	}
 }
 
 void VM::close_floppy_disk(int drv)

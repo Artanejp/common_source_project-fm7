@@ -111,6 +111,14 @@ EMU::EMU()
 		vm->set_sound_device_volume(i, config.sound_volume_l[i], config.sound_volume_r[i]);
 	}
 #endif
+#ifdef USE_HARD_DISK
+	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
+		if(config.last_hard_disk_path[drv][0] != _T('\0') && FILEIO::IsFileExisting(config.last_hard_disk_path[drv])) {
+			vm->open_hard_disk(drv, config.last_hard_disk_path[drv]);
+			my_tcscpy_s(hard_disk_status[drv].path, _MAX_PATH, config.last_hard_disk_path[drv]);
+		}
+	}
+#endif
 	vm->reset();
 	now_suspended = false;
 }
@@ -263,10 +271,10 @@ void EMU::reset()
 			vm->set_sound_device_volume(i, config.sound_volume_l[i], config.sound_volume_r[i]);
 		}
 #endif
-		vm->reset();
-		osd->unlock_vm();
 		// restore inserted medias
 		restore_media();
+		vm->reset();
+		osd->unlock_vm();
 	} else {
 		// reset virtual machine
 		osd->lock_vm();		
@@ -1826,6 +1834,8 @@ static _TCHAR prev_buffer[1024] = {0};
 
 void EMU::out_debug_log(const _TCHAR* format, ...)
 {
+	common_initialize();
+	
 #ifdef _DEBUG_LOG
 	va_list ap;
 	_TCHAR buffer[1024];
@@ -2357,9 +2367,9 @@ void EMU::open_hard_disk(int drv, const _TCHAR* file_path)
 			hard_disk_status[drv].wait_count = (int)(FRAMES_PER_SEC / 2);
 #endif
 #if USE_HARD_DISK > 1
-			out_message(_T("HD%d: Ejected"), drv + BASE_HARD_DISK_NUM);
+			out_message(_T("HD%d: Unmounted"), drv + BASE_HARD_DISK_NUM);
 #else
-			out_message(_T("HD: Ejected"));
+			out_message(_T("HD: Unmounted"));
 #endif
 		} else if(hard_disk_status[drv].wait_count == 0) {
 			vm->open_hard_disk(drv, file_path);
@@ -2370,6 +2380,7 @@ void EMU::open_hard_disk(int drv, const _TCHAR* file_path)
 #endif
 		}
 		my_tcscpy_s(hard_disk_status[drv].path, _MAX_PATH, file_path);
+		my_tcscpy_s(config.last_hard_disk_path[drv], _MAX_PATH, file_path);
 	}
 }
 
@@ -2379,10 +2390,11 @@ void EMU::close_hard_disk(int drv)
 		vm->close_hard_disk(drv);
 		clear_media_status(&hard_disk_status[drv]);
 #if USE_HARD_DISK > 1
-		out_message(_T("HD%d: Ejected"), drv + BASE_HARD_DISK_NUM);
+		out_message(_T("HD%d: Unmounted"), drv + BASE_HARD_DISK_NUM);
 #else
-		out_message(_T("HD: Ejected"));
+		out_message(_T("HD: Unmounted"));
 #endif
+		config.last_hard_disk_path[drv][0] = '\0';
 	}
 }
 
@@ -2974,11 +2986,13 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 						vm->set_sound_device_volume(i, config.sound_volume_l[i], config.sound_volume_r[i]);
 					}
 #endif
+					restore_media();
 					vm->reset();
 					//osd->unlock_vm();
+				} else {
+					// restore inserted medias
+					restore_media();
 				}
-				// restore inserted medias
-				restore_media();
 				// load vm state
 				if(vm->load_state(fio)) {
 					// check end of state

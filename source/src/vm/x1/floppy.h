@@ -27,9 +27,6 @@ class FLOPPY : public DEVICE
 private:
 	MB8877 *d_fdc;
 	int prev;
-#ifdef _X1TURBO_FEATURE
-	bool select_2dd;
-#endif
 	bool motor_on;
 	int register_id;
 	

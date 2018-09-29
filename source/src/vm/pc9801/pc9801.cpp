@@ -221,7 +221,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	noise_head_up = new NOISE(this, emu);
 #if defined(SUPPORT_SASI_IF)
 	sasi_host = new SCSI_HOST(this, emu);
-	sasi_hdd = new SCSI_HDD(this, emu);
+	sasi_hdd = new SASI_HDD(this, emu);
 	sasi_hdd->set_device_name(_T("SASI Hard Disk Drive"));
 	sasi_hdd->scsi_id = 0;
 	sasi_hdd->bytes_per_sec = 625 * 1024; // 625KB/s
@@ -931,27 +931,17 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 #if defined(USE_HARD_DISK)
 	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
+		if(!(config.last_hard_disk_path[drv][0] != _T('\0') && FILEIO::IsFileExisting(config.last_hard_disk_path[drv]))) {
 #if defined(SUPPORT_SASI_IF)
-	#if defined(OPEN_HARD_DISK_IN_RESET)
-		create_local_path(hd_file_path[drv], _MAX_PATH, _T("SASI%d.DAT"), drv);
-	#else
-		open_hard_disk_tmp(drv, create_local_path(_T("SASI%d.DAT"), drv));
-	#endif
+			create_local_path(config.last_hard_disk_path[drv], _MAX_PATH, _T("SASI%d.DAT"), drv);
 #endif
 #if defined(SUPPORT_SCSI_IF)
-	#if defined(OPEN_HARD_DISK_IN_RESET)
-		create_local_path(hd_file_path[drv], _MAX_PATH, _T("SCSI%d.DAT"), drv);
-	#else
-		open_hard_disk_tmp(drv, create_local_path(_T("SCSI%d.DAT"), drv));
-	#endif
+			create_local_path(config.last_hard_disk_path[drv], _MAX_PATH, _T("SCSI%d.DAT"), drv);
 #endif
 #if defined(SUPPORT_IDE_IF)
-	#if defined(OPEN_HARD_DISK_IN_RESET)
-		create_local_path(hd_file_path[drv], _MAX_PATH, _T("IDE%d.DAT"),  drv);
-	#else
-		open_hard_disk_tmp(drv, create_local_path(_T("IDE%d.DAT"), drv));
-	#endif
+			create_local_path(config.last_hard_disk_path[drv], _MAX_PATH, _T("IDE%d.DAT"), drv);
 #endif
+		}
 	}
 #endif
 }
@@ -1120,17 +1110,6 @@ void VM::reset()
 	pc88opn->set_reg(0x29, 3); // for Misty Blue
 	pc88pio->write_signal(SIG_I8255_PORT_C, 0, 0xff);
 	pc88pio_sub->write_signal(SIG_I8255_PORT_C, 0, 0xff);
-#endif
-	
-#if defined(USE_HARD_DISK) && defined(OPEN_HARD_DISK_IN_RESET)
-	// open/close hard disk images
-	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
-		if(hd_file_path[drv][0] != _T('\0')) {
-			open_hard_disk_tmp(drv, hd_file_path[drv]);
-		} else {
-			close_hard_disk_tmp(drv);
-		}
-	}
 #endif
 }
 
@@ -1406,24 +1385,24 @@ bool VM::is_floppy_disk_protected(int drv)
 
 uint32_t VM::is_floppy_disk_accessed()
 {
-	uint32_t value = 0;
+	uint32_t status = 0;
 	
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 	if(boot_mode != 0) {
-		value = pc88fdc_sub->read_signal(0) & 3;
+		status = pc88fdc_sub->read_signal(0) & 3;
 	} else {
-		value = fdc->read_signal(0) & 3;
+		status = fdc->read_signal(0) & 3;
 	}
 #else
 	for(int drv = 0; drv < USE_FLOPPY_DISK; drv += 2) {
 		UPD765A *controller = get_floppy_disk_controller(drv);
 		
 		if(controller != NULL) {
-			value |= (controller->read_signal(0) & 3) << drv;
+			status |= (controller->read_signal(0) & 3) << drv;
 		}
 	}
 #endif
-	return value;
+	return status;
 }
 
 UPD765A *VM::get_floppy_disk_controller(int drv)
@@ -1468,10 +1447,14 @@ DISK *VM::get_floppy_disk_handler(int drv)
 void VM::open_hard_disk(int drv, const _TCHAR* file_path)
 {
 	if(drv < USE_HARD_DISK) {
-#if defined(OPEN_HARD_DISK_IN_RESET)
-		my_tcscpy_s(hd_file_path[drv], _MAX_PATH, file_path);
-#else
-		open_hard_disk_tmp(drv, file_path);
+#if defined(SUPPORT_SASI_IF)
+		sasi_hdd->open(drv, file_path, 256);
+#endif
+#if defined(SUPPORT_SCSI_IF)
+		scsi_hdd[drv]->open(0, file_path, 512);
+#endif
+#if defined(SUPPORT_IDE_IF)
+		ide_hdd[drv]->open(0, file_path, 512);
 #endif
 	}
 }
@@ -1479,10 +1462,14 @@ void VM::open_hard_disk(int drv, const _TCHAR* file_path)
 void VM::close_hard_disk(int drv)
 {
 	if(drv < USE_HARD_DISK) {
-#if defined(OPEN_HARD_DISK_IN_RESET)
-		hd_file_path[drv][0] = _T('\0');
-#else
-		close_hard_disk_tmp(drv);
+#if defined(SUPPORT_SASI_IF)
+		sasi_hdd->close(drv);
+#endif
+#if defined(SUPPORT_SCSI_IF)
+		scsi_hdd[drv]->close(0);
+#endif
+#if defined(SUPPORT_IDE_IF)
+		ide_hdd[drv]->close(0);
 #endif
 	}
 }
@@ -1490,10 +1477,14 @@ void VM::close_hard_disk(int drv)
 bool VM::is_hard_disk_inserted(int drv)
 {
 	if(drv < USE_HARD_DISK) {
-#if defined(OPEN_HARD_DISK_IN_RESET)
-		return (hd_file_path[drv][0] != _T('\0'));
-#else
-		return is_hard_disk_inserted_tmp(drv);
+#if defined(SUPPORT_SASI_IF)
+		return sasi_hdd->mounted(drv);
+#endif
+#if defined(SUPPORT_SCSI_IF)
+		return scsi_hdd[drv]->mounted(0);
+#endif
+#if defined(SUPPORT_IDE_IF)
+		return ide_hdd[drv]->mounted(0);
 #endif
 	}
 	return false;
@@ -1504,57 +1495,23 @@ uint32_t VM::is_hard_disk_accessed()
 	uint32_t status = 0;
 	
 	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
-		HARDDISK *handler = get_hard_disk_handler(drv);
-		
-		if(handler != NULL && handler->accessed()) {
+#if defined(SUPPORT_SASI_IF)
+		if(sasi_hdd->accessed(drv)) {
 			status |= 1 << drv;
 		}
-	}
-	return status;
-}
-
-void VM::open_hard_disk_tmp(int drv, const _TCHAR* file_path)
-{
-	HARDDISK *handler = get_hard_disk_handler(drv);
-	
-	if(handler != NULL) {
-		handler->open(file_path);
-	}
-}
-
-void VM::close_hard_disk_tmp(int drv)
-{
-	HARDDISK *handler = get_hard_disk_handler(drv);
-	
-	if(handler != NULL) {
-		handler->close();
-	}
-}
-
-bool VM::is_hard_disk_inserted_tmp(int drv)
-{
-	HARDDISK *handler = get_hard_disk_handler(drv);
-	
-	if(handler != NULL) {
-		return handler->mounted();
-	}
-	return false;
-}
-
-HARDDISK *VM::get_hard_disk_handler(int drv)
-{
-	if(drv < USE_HARD_DISK) {
-#if defined(SUPPORT_SASI_IF)
-		return sasi_hdd->get_disk_handler(drv);
 #endif
 #if defined(SUPPORT_SCSI_IF)
-		return scsi_hdd[drv]->get_disk_handler(0);
+		if(scsi_hdd[drv]->accessed(0)) {
+			status |= 1 << drv;
+		}
 #endif
 #if defined(SUPPORT_IDE_IF)
-		return ide_hdd[drv]->get_disk_handler(0);
+		if(ide_hdd[drv]->accessed(0)) {
+			status |= 1 << drv;
+		}
 #endif
 	}
-	return NULL;
+	return status;
 }
 #endif
 

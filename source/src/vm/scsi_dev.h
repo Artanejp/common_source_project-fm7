@@ -94,12 +94,11 @@ static const _TCHAR* scsi_phase_name[9] = {
 #define SCSI_CMD_READHEADER	0x44 	// Read Header (O)
 #define SCSI_CMD_SUBCHANNEL	0x42 	// Read Subchannel (O)
 #define SCSI_CMD_READ_TOC	0x43 	// Read TOC (O)
-#define SASI_CMD_SPECIFY	0xc2	// SASI Specify
 
 #define SCSI_STATUS_GOOD	0x00	// Status Good
 #define SCSI_STATUS_CHKCOND	0x02	// Check Condition
 #define SCSI_STATUS_CONDMET	0x04	// Condition Met
-#define SCSI_STATUS_BUSY	0x08	// Busy
+#define SCSI_STATUS_BUSY	0x08	// Busy 
 #define SCSI_STATUS_INTERM	0x10	// Intermediate
 #define SCSI_STATUS_INTCDMET	0x14	// Intermediate-Condition Met
 #define SCSI_STATUS_RESCONF	0x18	// Reservation Conflict
@@ -126,6 +125,13 @@ static const _TCHAR* scsi_phase_name[9] = {
 #define SCSI_KEY_MISCOMP	0x0E	// Miscompare (Search)
 #define SCSI_KEY_RESERVED	0x0F	// Reserved
 
+#define SCSI_SENSE_NOSENSE	0x00	// No Sense
+#define SCSI_SENSE_NOTREADY	0x04	// Not Ready
+#define SCSI_SENSE_NORECORDFND	0x14	// No Record Found
+#define SCSI_SENSE_SEEKERR	0x15	// Seek Error
+#define SCSI_SENSE_ILLGLBLKADDR	0x21	// Illegal Block Address
+#define SCSI_SENSE_WRITEPROTCT	0x27	// Write Protected
+
 class FIFO;
 
 class SCSI_DEV : public DEVICE
@@ -146,6 +152,8 @@ private:
 	int event_sel, event_phase, event_req;
 	uint32_t first_req_clock;
 	double next_req_usec;
+	
+	uint8_t sense_code;
 	
 public:
 	SCSI_DEV(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -186,6 +194,14 @@ public:
 		register_output_signal(&outputs_msg, device, SIG_SCSI_MSG, 1 << scsi_id);
 		register_output_signal(&outputs_req, device, SIG_SCSI_REQ, 1 << scsi_id);
 	}
+	uint8_t get_sense_code()
+	{
+		return sense_code;
+	}
+	void set_sense_code(uint8_t value)
+	{
+		sense_code = value;
+	}
 	void set_phase(int value);
 	void set_phase_delay(int value, double usec);
 	void set_dat(int value);
@@ -219,8 +235,8 @@ public:
 	}
 	virtual int get_command_length(int value);
 	virtual void start_command();
-	virtual void read_buffer(int length);
-	virtual void write_buffer(int length);
+	virtual bool read_buffer(int length);
+	virtual bool write_buffer(int length);
 	
 	uint8_t get_cur_command()
 	{
@@ -240,6 +256,7 @@ public:
 	char product_id[16 + 1];
 	uint8_t device_type;
 	bool is_removable;
+	bool is_hot_swappable;
 	double seek_time;
 	int bytes_per_sec;
 	

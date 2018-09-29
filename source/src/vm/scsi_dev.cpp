@@ -35,6 +35,7 @@ void SCSI_DEV::reset()
 	
 	event_sel = event_phase = event_req = -1;
 	set_phase(SCSI_PHASE_BUS_FREE);
+	set_sense_code(SCSI_SENSE_NOSENSE);
 }
 
 void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
@@ -184,7 +185,12 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 							case SCSI_CMD_WRITE12:
 								// flush buffer
 								if(buffer->full()) {
-									write_buffer(buffer->count());
+									if(!write_buffer(buffer->count())) {
+										// change to status phase
+										set_dat(SCSI_STATUS_CHKCOND);
+										set_phase_delay(SCSI_PHASE_STATUS, 10.0);
+										break;
+									}
 								}
 								// request to write next data
 								{
@@ -209,7 +215,12 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 							case SCSI_CMD_WRITE12:
 								// flush buffer
 								if(!buffer->empty()) {
-									write_buffer(buffer->count());
+									if(!write_buffer(buffer->count())) {
+										// change to status phase
+										set_dat(SCSI_STATUS_CHKCOND);
+										set_phase_delay(SCSI_PHASE_STATUS, 10.0);
+										break;
+									}
 								}
 								break;
 							default:
@@ -221,6 +232,7 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 							}
 							// change to status phase
 							set_dat(SCSI_STATUS_GOOD);
+							set_sense_code(SCSI_SENSE_NOSENSE);
 							set_phase_delay(SCSI_PHASE_STATUS, 10.0);
 						}
 						break;
@@ -229,10 +241,12 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 						if(--remain > 0) {
 							// update buffer
 							if(buffer->count() == 0) {
-								if(remain > SCSI_BUFFER_SIZE) {
-									read_buffer(SCSI_BUFFER_SIZE);
-								} else {
-									read_buffer((int)remain);
+								int length = remain > SCSI_BUFFER_SIZE ? SCSI_BUFFER_SIZE : (int)remain;
+								if(!read_buffer(length)) {
+									// change to status phase
+									set_dat(SCSI_STATUS_CHKCOND);
+									set_phase_delay(SCSI_PHASE_STATUS, 10.0);
+									break;
 								}
 							}
 							// request to read next data
@@ -254,6 +268,7 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 						} else {
 							// change to status phase
 							set_dat(SCSI_STATUS_GOOD);
+							set_sense_code(SCSI_SENSE_NOSENSE);
 							set_phase_delay(SCSI_PHASE_STATUS, 10.0);
 						}
 						break;
@@ -487,7 +502,13 @@ void SCSI_DEV::start_command()
 			this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: Test Unit Ready\n"), scsi_id);
 		#endif
 		// change to status phase
-		set_dat(is_device_ready() ? SCSI_STATUS_GOOD : SCSI_STATUS_CHKCOND);
+		if(!is_device_ready()) {
+			set_dat(SCSI_STATUS_CHKCOND);
+			set_sense_code(SCSI_SENSE_NOTREADY);
+		} else {
+			set_dat(SCSI_STATUS_GOOD);
+			set_sense_code(SCSI_SENSE_NOSENSE);
+		}
 		set_phase_delay(SCSI_PHASE_STATUS, 10.0);
 		break;
 		
@@ -627,10 +648,12 @@ void SCSI_DEV::start_command()
 		if(remain != 0) {
 			// read data buffer
 			buffer->clear();
-			if(remain > SCSI_BUFFER_SIZE) {
-				read_buffer(SCSI_BUFFER_SIZE);
-			} else {
-				read_buffer((int)remain);
+			int length = remain > SCSI_BUFFER_SIZE ? SCSI_BUFFER_SIZE : (int)remain;
+			if(!read_buffer(length)) {
+				// change to status phase
+				set_dat(SCSI_STATUS_CHKCOND);
+				set_phase_delay(SCSI_PHASE_STATUS, 10.0);
+				break;
 			}
 			// change to data in phase
 			set_dat(buffer->read());
@@ -638,6 +661,7 @@ void SCSI_DEV::start_command()
 		} else {
 			// transfer length is zero, change to status phase
 			set_dat(SCSI_STATUS_GOOD);
+			set_sense_code(SCSI_SENSE_NOSENSE);
 			set_phase_delay(SCSI_PHASE_STATUS, 10.0);
 		}
 		break;
@@ -659,6 +683,7 @@ void SCSI_DEV::start_command()
 		} else {
 			// transfer length is zero, change to status phase
 			set_dat(SCSI_STATUS_GOOD);
+			set_sense_code(SCSI_SENSE_NOSENSE);
 			set_phase_delay(SCSI_PHASE_STATUS, 10.0);
 		}
 		break;
@@ -676,10 +701,12 @@ void SCSI_DEV::start_command()
 		if(remain != 0) {
 			// read data buffer
 			buffer->clear();
-			if(remain > SCSI_BUFFER_SIZE) {
-				read_buffer(SCSI_BUFFER_SIZE);
-			} else {
-				read_buffer((int)remain);
+			int length = remain > SCSI_BUFFER_SIZE ? SCSI_BUFFER_SIZE : (int)remain;
+			if(!read_buffer(length)) {
+				// change to status phase
+				set_dat(SCSI_STATUS_CHKCOND);
+				set_phase_delay(SCSI_PHASE_STATUS, 10.0);
+				break;
 			}
 			// change to data in phase
 			set_dat(buffer->read());
@@ -687,6 +714,7 @@ void SCSI_DEV::start_command()
 		} else {
 			// transfer length is zero, change to status phase
 			set_dat(SCSI_STATUS_GOOD);
+			set_sense_code(SCSI_SENSE_NOSENSE);
 			set_phase_delay(SCSI_PHASE_STATUS, 10.0);
 		}
 		break;
@@ -715,6 +743,7 @@ void SCSI_DEV::start_command()
 		} else {
 			// transfer length is zero, change to status phase
 			set_dat(SCSI_STATUS_GOOD);
+			set_sense_code(SCSI_SENSE_NOSENSE);
 			set_phase_delay(SCSI_PHASE_STATUS, 10.0);
 		}
 		break;
@@ -732,10 +761,12 @@ void SCSI_DEV::start_command()
 		if(remain != 0) {
 			// read data buffer
 			buffer->clear();
-			if(remain > SCSI_BUFFER_SIZE) {
-				read_buffer(SCSI_BUFFER_SIZE);
-			} else {
-				read_buffer((int)remain);
+			int length = remain > SCSI_BUFFER_SIZE ? SCSI_BUFFER_SIZE : (int)remain;
+			if(!read_buffer(length)) {
+				// change to status phase
+				set_dat(SCSI_STATUS_CHKCOND);
+				set_phase_delay(SCSI_PHASE_STATUS, 10.0);
+				break;
 			}
 			// change to data in phase
 			set_dat(buffer->read());
@@ -743,6 +774,7 @@ void SCSI_DEV::start_command()
 		} else {
 			// transfer length is zero, change to status phase
 			set_dat(SCSI_STATUS_GOOD);
+			set_sense_code(SCSI_SENSE_NOSENSE);
 			set_phase_delay(SCSI_PHASE_STATUS, 10.0);
 		}
 		break;
@@ -765,20 +797,9 @@ void SCSI_DEV::start_command()
 		} else {
 			// transfer length is zero, change to status phase
 			set_dat(SCSI_STATUS_GOOD);
+			set_sense_code(SCSI_SENSE_NOSENSE);
 			set_phase_delay(SCSI_PHASE_STATUS, 10.0);
 		}
-		break;
-		
-	case SASI_CMD_SPECIFY:
-		#ifdef _SCSI_DEBUG_LOG
-			this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: SASI Command 0xC2\n"), scsi_id);
-		#endif
-		// transfer length
-		remain = 10;
-		// clear data buffer
-		buffer->clear();
-		// change to data in phase
-		set_phase_delay(SCSI_PHASE_DATA_OUT, 1.0);
 		break;
 		
 	default:
@@ -790,23 +811,27 @@ void SCSI_DEV::start_command()
 	}
 }
 
-void SCSI_DEV::read_buffer(int length)
+bool SCSI_DEV::read_buffer(int length)
 {
 	for(int i = 0; i < length; i++) {
 		buffer->write(0);
 		position++;
 	}
+	set_sense_code(SCSI_SENSE_NOSENSE);
+	return true;
 }
 
-void SCSI_DEV::write_buffer(int length)
+bool SCSI_DEV::write_buffer(int length)
 {
 	for(int i = 0; i < length; i++) {
 		buffer->read();
 		position++;
 	}
+	set_sense_code(SCSI_SENSE_NOSENSE);
+	return true;
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 #include "../statesub.h"
 
@@ -835,6 +860,7 @@ void SCSI_DEV::decl_state()
 	DECL_STATE_ENTRY_FIFO(buffer);
 	DECL_STATE_ENTRY_UINT64(position);
 	DECL_STATE_ENTRY_UINT64(remain);
+	DECL_STATE_ENTRY_UINT8(sense_code);
 
 //	leave_decl_state();
 }

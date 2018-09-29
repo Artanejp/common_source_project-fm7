@@ -43,6 +43,11 @@
 	std::string DLL_PREFIX sRssDir;
 #endif
 
+void common_initialize()
+{
+	get_initial_current_path();
+}
+
 uint32_t DLL_PREFIX EndianToLittle_DWORD(uint32_t x)
 {
 #if defined(__LITTLE_ENDIAN__)
@@ -966,6 +971,32 @@ const _TCHAR *DLL_PREFIX get_application_path()
 	return (const _TCHAR *)app_path;
 }
 
+const _TCHAR *DLL_PREFIX get_initial_current_path()
+{
+	static _TCHAR current_path[_MAX_PATH];
+	static bool initialized = false;
+	
+	if(!initialized) {
+#if defined(_WIN32) && !defined(_USE_QT)
+		GetCurrentDirectoryA(_MAX_PATH, current_path);
+#else
+		getcwd(current_path, _MAX_PATH);
+#endif
+		int len = strlen(current_path);
+		if(current_path[len - 1] != '\\' && current_path[len - 1] != '/') {
+#if defined(_WIN32) || defined(Q_OS_WIN)
+			current_path[len] = '\\';
+#else
+			current_path[len] = '/';
+#endif
+			current_path[len + 1] = '\0';
+		}
+
+		initialized = true;
+	}
+	return (const _TCHAR *)current_path;
+}
+
 const _TCHAR *DLL_PREFIX create_local_path(const _TCHAR *format, ...)
 {
 	static _TCHAR file_path[8][_MAX_PATH];
@@ -1001,25 +1032,6 @@ bool DLL_PREFIX is_absolute_path(const _TCHAR *file_path)
 	}
 #endif
 	return (_tcslen(file_path) > 1 && (file_path[0] == _T('/') || file_path[0] == _T('\\')));
-}
-
-const _TCHAR *DLL_PREFIX create_absolute_path(const _TCHAR *file_name)
-{
-	static _TCHAR file_path[8][_MAX_PATH];
-	static unsigned int table_index = 0;
-	unsigned int output_index = (table_index++) & 7;
-	
-	if(is_absolute_path(file_name)) {
-		my_tcscpy_s(file_path[output_index], _MAX_PATH, file_name);
-	} else {
-		my_tcscpy_s(file_path[output_index], _MAX_PATH, create_local_path(file_name));
-	}
-	return (const _TCHAR *)file_path[output_index];
-}
-
-void DLL_PREFIX create_absolute_path(_TCHAR *file_path, int length, const _TCHAR *file_name)
-{
-	my_tcscpy_s(file_path, length, create_absolute_path(file_name));
 }
 
 const _TCHAR *DLL_PREFIX create_date_file_path(const _TCHAR *extension)

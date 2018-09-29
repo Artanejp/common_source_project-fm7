@@ -10,11 +10,6 @@
 #include "harddisk.h"
 #include "../fileio.h"
 
-void HARDDISK::open(const _TCHAR* file_path)
-{
-	open(file_path, 256);
-}
-
 void HARDDISK::open(const _TCHAR* file_path, int default_sector_size)
 {
 	uint8_t header[512];
@@ -27,9 +22,13 @@ void HARDDISK::open(const _TCHAR* file_path, int default_sector_size)
 		
 		if(fio->Fopen(file_path, FILEIO_READ_WRITE_BINARY)) {
 			// from NP2 sxsihdd.c
+			const char sig_vhd[8] = "VHD1.00";
+			const char sig_nhd[15] = "T98HDDIMAGE.R0";
+			
+			fio->Fread(header, 256, 1);
+			
 			if(check_file_extension(file_path, _T(".thd"))) {
 				// T98
-				fio->Fread(header, 256, 1);
 /*
 				typedef struct thd_header_s {
 					int16_t cylinders;
@@ -37,14 +36,13 @@ void HARDDISK::open(const _TCHAR* file_path, int default_sector_size)
 */
 				header_size = 256;
 				tmp.read_2bytes_le_from(header + 0);
-				cylinders = tmp.sd;
+				int cylinders = tmp.sd;
 				surfaces = 8;
-				sectors = 33;
+				int sectors = 33;
 				sector_size = 256;
-
-			} else if(check_file_extension(file_path, _T(".nhd"))) {
+				sector_num = cylinders * surfaces * sectors;
+			} else if(check_file_extension(file_path, _T(".nhd")) && memcmp(header, sig_nhd, 15) == 0) {
 				// T98Next
-				fio->Fread(header, 256, 1);
 /*
 				typedef struct nhd_header_s {
 					char sig[16];
@@ -60,16 +58,16 @@ void HARDDISK::open(const _TCHAR* file_path, int default_sector_size)
 				tmp.read_4bytes_le_from(header + 272);
 				header_size = tmp.sd;
 				tmp.read_4bytes_le_from(header + 276);
-				cylinders = tmp.sd;
+				int cylinders = tmp.sd;
 				tmp.read_2bytes_le_from(header + 280);
 				surfaces = tmp.sd;
 				tmp.read_2bytes_le_from(header + 282);
-				sectors = tmp.sd;
+				int sectors = tmp.sd;
 				tmp.read_2bytes_le_from(header + 284);
 				sector_size = tmp.sd;
+				sector_num = cylinders * surfaces * sectors;
 			} else if(check_file_extension(file_path, _T(".hdi"))) {
 				// ANEX86
-				fio->Fread(header, 32, 1);
 /*
 				typedef struct hdi_header_s {
 					int32_t dummy;		// + 0
@@ -87,47 +85,48 @@ void HARDDISK::open(const _TCHAR* file_path, int default_sector_size)
 				tmp.read_4bytes_le_from(header + 16);
 				sector_size = tmp.sd;
 				tmp.read_4bytes_le_from(header + 20);
-				sectors = tmp.sd;
+				int sectors = tmp.sd;
 				tmp.read_4bytes_le_from(header + 24);
 				surfaces = tmp.sd;
 				tmp.read_4bytes_le_from(header + 28);
-				cylinders = tmp.sd;
+				int cylinders = tmp.sd;
+				sector_num = cylinders * surfaces * sectors;
+			} else if(check_file_extension(file_path, _T(".hdd")) && memcmp(header, sig_vhd, 5) == 0) {
+				// Virtual98
+/*
+				typedef struct {
+					char    sig[3];		// +  0
+					char    ver[4];		// +  3
+					char    delimita;	// +  7
+					char    comment[128];	// +  8
+					uint8_t pad1[4];	// +136
+					int16_t mbsize;		// +140
+					int16_t sectorsize;	// +142
+					uint8_t sectors;	// +144
+					uint8_t surfaces;	// +145
+					int16_t cylinders;	// +146
+					int32_t totals;		// +148
+					uint8_t pad2[0x44];	// +152
+				} virtual98_header_t;
+*/
+				header_size = 288;
+				tmp.read_2bytes_le_from(header + 142);
+				sector_size = tmp.sd;
+//				int sectors = header[144];
+				surfaces = header[145];
+//				tmp.read_2bytes_le_from(header + 146);
+//				int cylinders = tmp.sd;
+				tmp.read_4bytes_le_from(header + 148);
+				sector_num = tmp.sd;
+//				sector_num = cylinders * surfaces * sectors;
 			} else {
 				// solid
-				typedef struct {
-					int sectors, surfaces, cylinders, sector_size;
-				} hd_format_t;
-				long length = fio->FileLength();
-				
 				header_size = 0;
-				cylinders = (int)(length / (8 * 33 * default_sector_size));
-				surfaces = 8;
-				sectors = 33;
+				// sectors = 33, surfaces = 4, cylinders = 153, sector_size = 256	// 5MB
+				// sectors = 33, surfaces = 4, cylinders = 310, sector_size = 256	// 10MB
+				surfaces = (default_sector_size == 256 && fio->FileLength() <= 33 * 4 * 310 * 256) ? 4 : 8;
 				sector_size = default_sector_size;
-				
-				if(default_sector_size == 256) {
-					static const hd_format_t hd_formats[] = {
-						{33, 4, 153, 256},	// 5MB
-						{33, 4, 310, 256},	// 10MB
-						{33, 6, 310, 256},	// 15MB
-						{33, 8, 310, 256},	// 20MB
-						{33, 4, 615, 256},	// 20MB (not used!)
-						{33, 6, 615, 256},	// 30MB
-						{33, 8, 615, 256},	// 40MB
-					};
-					for(int i = 0; i < (int)array_length(hd_formats); i++) {
-						const hd_format_t *p = &hd_formats[i];
-						if(length == p->sectors * p->surfaces * p->cylinders * p->sector_size) {
-							cylinders = p->cylinders;
-							surfaces = p->surfaces;
-							sectors = p->sectors;
-							sector_size = p->sector_size;
-							break;
-						}
-					}
-				} else if(default_sector_size == 512) {
-					
-				}
+				sector_num = fio->FileLength() / sector_size;
 			}
 		}
 	}
@@ -203,10 +202,11 @@ void HARDDISK::save_state(FILEIO* state_fio)
 		state_fio->FputInt32(0);
 	}
 	state_fio->FputInt32(header_size);
-	state_fio->FputInt32(cylinders);
+//	state_fio->FputInt32(cylinders);
 	state_fio->FputInt32(surfaces);
-	state_fio->FputInt32(sectors);
+//	state_fio->FputInt32(sectors);
 	state_fio->FputInt32(sector_size);
+	state_fio->FputInt32(sector_num);
 }
 
 bool HARDDISK::load_state(FILEIO* state_fio)
@@ -247,10 +247,11 @@ bool HARDDISK::load_state(FILEIO* state_fio)
 		}
 	}
 	header_size = state_fio->FgetInt32();
-	cylinders = state_fio->FgetInt32();
+//	cylinders = state_fio->FgetInt32();
 	surfaces = state_fio->FgetInt32();
-	sectors = state_fio->FgetInt32();
+//	sectors = state_fio->FgetInt32();
 	sector_size = state_fio->FgetInt32();
+	sector_num = state_fio->FgetInt32();
 	return true;
 }
 */

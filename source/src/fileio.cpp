@@ -824,11 +824,11 @@ int FILEIO::Fseek(long offset, int origin)
 	if(gz != NULL) {
 		switch(origin) {
 		case FILEIO_SEEK_CUR:
-			return gzseek(gz, offset, SEEK_CUR);
+			return (gzseek(gz, offset, SEEK_CUR) == -1 ? -1 : 0);
 		case FILEIO_SEEK_END:
-			return gzseek(gz, offset + gz_size, SEEK_SET);
+			return (gzseek(gz, offset + gz_size, SEEK_SET) == -1 ? -1 : 0);
 		case FILEIO_SEEK_SET:
-			return gzseek(gz, offset, SEEK_SET);
+			return (gzseek(gz, offset, SEEK_SET) == -1 ? -1 : 0);
 		}
 	} else
 #endif

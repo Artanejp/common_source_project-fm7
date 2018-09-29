@@ -241,7 +241,7 @@ public:
 	bool disk_ejected();	// current hdu
 	void is_disk_protected(int drv, bool value);
 	bool is_disk_protected(int drv);
-	uint8_t media_type(int drv);
+	uint8_t get_media_type(int drv);
 	void set_drive_type(int drv, uint8_t type);
 	uint8_t get_drive_type(int drv);
 	void set_drive_rpm(int drv, int rpm);

@@ -38,7 +38,10 @@ void Menu_HDDClass::connect_menu_device_sub(void)
 void Menu_HDDClass::retranslate_pulldown_menu_device_sub(void)
 {
 	//action_insert->setIcon(icon_floppy);
-	action_insert->setToolTip(QApplication::translate("MenuMedia", "Connect virtual hard disk file.", 0));
-	action_eject->setToolTip(QApplication::translate("MenuMedia", "Disconnect virtual hard disk.", 0));
+	action_insert->setText(QApplication::translate("MenuHDD", "Mount", 0));
+	action_insert->setToolTip(QApplication::translate("MenuHDD", "Mount virtual hard disk file.", 0));
+   
+	action_eject->setText(QApplication::translate("MenuHDD", "Unmount", 0));
+	action_eject->setToolTip(QApplication::translate("MenuHDD", "Unmount virtual hard disk.", 0));
 
 }

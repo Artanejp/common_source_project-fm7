@@ -177,6 +177,7 @@ typedef struct {
 	#if defined(USE_SHARED_DLL) || defined(USE_HARD_DISK)
 		_TCHAR initial_hard_disk_dir[_MAX_PATH];
 		_TCHAR recent_hard_disk_path[USE_HARD_DISK_TMP][MAX_HISTORY][_MAX_PATH];
+		_TCHAR last_hard_disk_path[USE_HARD_DISK_TMP][_MAX_PATH];
 	#endif
 	#if defined(USE_SHARED_DLL) || defined(USE_TAPE)
 		_TCHAR initial_tape_dir[_MAX_PATH];

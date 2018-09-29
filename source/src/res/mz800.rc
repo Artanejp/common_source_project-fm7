@@ -176,11 +176,6 @@ BEGIN
             MENUITEM "MZ-800"                   ID_VM_BOOT_MODE0
             MENUITEM "MZ-700"                   ID_VM_BOOT_MODE1
         END
-        POPUP "Drive"
-        BEGIN
-            MENUITEM "Floppy Drive 2D",         ID_VM_DRIVE_TYPE0
-            MENUITEM "Floppy Drive 2DD",        ID_VM_DRIVE_TYPE1
-        END
         POPUP "Sound"
         BEGIN
             MENUITEM "Play FDD Noise",          ID_VM_SOUND_NOISE_FDD

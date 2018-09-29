@@ -102,7 +102,7 @@ uint32_t SASI::read_io8(uint32_t addr)
 				uint32_t dt = 7, ct = 0;
 				
 				if(unit != NULL && unit->mounted()) {
-					double size = unit->cylinders * unit->surfaces * unit->sectors * unit->sector_size;
+					double size = unit->sector_num * unit->sector_size;
 					int size_mb = (int)(size / 1024.0 / 1024.0 + 0.5);
 					
 					if(size_mb <= 6) {

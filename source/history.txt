@@ -1,3 +1,33 @@
+9/30/2018
+
+[COMMON/FILEIO] improve Fseek for compressed file by gzip
+[EMU] improve to mount/unmount hard disk image in reset() if not hot swappable
+[EMU/DEBUGGER] add commands for checkpoint
+[EMU/DEBUGGER] improve to read/write files in initial current directory
+
+[VM/DISK] improve for case 2D disk is inserted to 2DD drive (thanks Mr.Sato)
+[VM/HARDDISK] support Virtual98 hdd image
+[VM/HARDDISK] improve for solid image file
+[VM/IO] improve debug log
+[VM/MSM58321] fix pulse event (thanks Mr.Artane.)
+[VM/SCSI_DEV] add is_hot_swappable
+[VM/SCSI_HDD] improve to mount/unmount image in reset() if not hot swappable
+[VM/SASI_HDD] support SASI hard disk drive
+[VM/SN76489AN] fix save/load state function
+[VM/UPD71071] fix verify command
+
+[FM77L4] add eFM77L4 codes (thanks Mr.Artane.)
+[MZ80A] improve to switch 2D/2DD drive type
+[MZ80B] improve to switch 2D/2DD drive type
+[MZ1500] improve to switch 2D/2DD drive type
+[MZ2500] improve to switch 2D/2DD drive type
+[MZ2800/FLOPPY] improve to switch 2D/2DD drive type
+[MZ2800/SASI] support SASI I/F and HDD (partial)
+[PC98XA] support NEC PC-98XA
+[PC9801/MEMBUS] fix save/load state function
+[X1TURBO/FLOPPY] improve to switch 2D/2DD drive type (thanks Mr.Sato)
+
+
 5/24/2018
 
 [COMMON] import Mr.Artane.'s fixes (Commits on May 10, 2018)

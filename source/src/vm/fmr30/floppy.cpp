@@ -71,7 +71,7 @@ uint32_t FLOPPY::read_io8(uint32_t addr)
 	case 0x35:
 		{
 			uint32_t value = fdsl & 0x3f;
-			if(d_fdc->media_type(drvsel) == MEDIA_TYPE_2D || d_fdc->media_type(drvsel) == MEDIA_TYPE_2DD) {
+			if(d_fdc->get_media_type(drvsel) == MEDIA_TYPE_2D || d_fdc->get_media_type(drvsel) == MEDIA_TYPE_2DD) {
 				drvsel |= (drvsel & 2) ? 0x80 : 0x40;
 			}
 			return value;

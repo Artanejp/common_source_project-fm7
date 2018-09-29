@@ -46,7 +46,7 @@ void Ui_MainWindowBase::eject_hard_disk(int drv)
 void Ui_MainWindowBase::CreateHardDiskMenu(int drv, int drv_base)
 {
 	{
-		QString ext = "*.thd;*.nhd;*.hdi;*.dat";
+		QString ext = "*.thd;*.nhd;*.hdi;*.hdd;*.dat";
 		QString desc1 = "Hard Disk Drive";
 		menu_hdds[drv] = new Menu_HDDClass(menubar, QString::fromUtf8("HDD"), using_flags, this, drv, drv_base);
 		menu_hdds[drv]->create_pulldown_menu();

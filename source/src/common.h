@@ -1107,12 +1107,11 @@ bool DLL_PREFIX load_wav_to_monoral(void *__fio, int16_t **buffer, uint32_t *rat
 
 // file path
 const _TCHAR *DLL_PREFIX get_application_path();
+const _TCHAR *DLL_PREFIX get_initial_current_path();
 const _TCHAR *DLL_PREFIX create_local_path(const _TCHAR *format, ...);
 void DLL_PREFIX create_local_path(_TCHAR *file_path, int length, const _TCHAR *format, ...);
 const _TCHAR *DLL_PREFIX create_date_file_path(const _TCHAR *extension);
 bool DLL_PREFIX is_absolute_path(const _TCHAR *file_path);
-const _TCHAR *DLL_PREFIX create_absolute_path(const _TCHAR *file_name);
-void DLL_PREFIX create_absolute_path(_TCHAR *file_path, int length, const _TCHAR *file_name);
 void DLL_PREFIX create_date_file_path(_TCHAR *file_path, int length, const _TCHAR *extension);
 bool DLL_PREFIX check_file_extension(const _TCHAR *file_path, const _TCHAR *ext);
 const _TCHAR *DLL_PREFIX get_file_path_without_extensiton(const _TCHAR *file_path);
@@ -1130,6 +1129,8 @@ const wchar_t *DLL_PREFIX tchar_to_wchar(const _TCHAR *ts);
 
 
 // misc
+void common_initialize();
+
 int32_t DLL_PREFIX muldiv_s32(int32_t nNumber, int32_t nNumerator, int32_t nDenominator);
 uint32_t DLL_PREFIX muldiv_u32(uint32_t nNumber, uint32_t nNumerator, uint32_t nDenominator);
 

@@ -63,6 +63,7 @@ public:
 		my_sprintf_s(product_id, 17, "SCSI-CDROM");
 		device_type = 0x05; // CD-ROM drive
 		is_removable = true;
+		is_hot_swappable = false;
 //		seek_time = 400000; // 400msec (temporary)
 		seek_time = 10.0;
 		bytes_per_sec = 2048 * 75; // speed x1
@@ -105,7 +106,7 @@ public:
 	}
 	int get_command_length(int value);
 	void start_command();
-	void read_buffer(int length);
+	bool read_buffer(int length);
 	
 	// unique functions
 	void set_context_done(DEVICE* device, int id, uint32_t mask)

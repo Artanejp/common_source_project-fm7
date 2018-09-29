@@ -25,8 +25,9 @@ typedef struct {
 	struct {
 		uint32_t addr, mask;
 		int status;	// 0 = none, 1 = enabled, other = disabled
+		bool check_point;
 	} table[MAX_BREAK_POINTS], stored[MAX_BREAK_POINTS];
-	bool hit;
+	bool hit, restart;
 	uint32_t hit_addr;
 } break_point_t;
 
@@ -42,6 +43,7 @@ private:
 				if(addr >= bp->table[i].addr && addr < bp->table[i].addr + length) {
 					bp->hit = now_suspended = true;
 					bp->hit_addr = bp->table[i].addr;
+					bp->restart = bp->table[i].check_point;
 					break;
 				}
 			}
@@ -54,6 +56,7 @@ private:
 				if((addr & bp->table[i].mask) == (bp->table[i].addr & bp->table[i].mask)) {
 					bp->hit = now_suspended = true;
 					bp->hit_addr = addr;
+					bp->restart = bp->table[i].check_point;
 					break;
 				}
 			}

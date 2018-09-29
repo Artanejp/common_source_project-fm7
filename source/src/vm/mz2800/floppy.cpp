@@ -37,7 +37,11 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 			if(data & 1) {
 				d_fdc->set_drive_type(i, DRIVE_TYPE_2HD);
 			} else {
-				d_fdc->set_drive_type(i, DRIVE_TYPE_2DD);
+				if(d_fdc->get_media_type(i) == MEDIA_TYPE_2DD) {
+					d_fdc->set_drive_type(i, DRIVE_TYPE_2DD);
+				} else {
+					d_fdc->set_drive_type(i, DRIVE_TYPE_2D);
+				}
 			}
 		}
 		break;

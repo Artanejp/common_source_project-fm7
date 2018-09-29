@@ -533,7 +533,7 @@ void MEMBUS::update_nec_ems()
 #endif
 #endif
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 #include "../statesub.h"
 
@@ -575,8 +575,8 @@ void MEMBUS::decl_state()
 #endif
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 	DECL_STATE_ENTRY_UINT8(dma_access_ctrl);
-	DECL_STATE_ENTRY_INT32(window_80000h);
-	DECL_STATE_ENTRY_INT32(window_a0000h);
+	DECL_STATE_ENTRY_UINT32(window_80000h);
+	DECL_STATE_ENTRY_UINT32(window_a0000h);
 #endif
 	leave_decl_state();
 

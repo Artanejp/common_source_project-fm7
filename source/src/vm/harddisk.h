@@ -39,7 +39,6 @@ public:
 		close();
 	}
 	
-	void open(const _TCHAR* file_path);
 	void open(const _TCHAR* file_path, int default_sector_size);
 	void close();
 	bool mounted();
@@ -47,10 +46,11 @@ public:
 	bool read_buffer(long position, int length, uint8_t *buffer);
 	bool write_buffer(long position, int length, uint8_t *buffer);
 	
-	int cylinders;
+//	int cylinders;
 	int surfaces;
-	int sectors;
+//	int sectors;
 	int sector_size;
+	int sector_num;
 	int drive_num;
 	bool access;
 	

@@ -27,9 +27,11 @@
 #define SINGLE_MODE_DMA
 #define HAS_RP5C15
 #define IO_ADDR_MAX		0x8000
+#define SCSI_HOST_AUTO_ACK
 
 // device informations for win32
 #define USE_FLOPPY_DISK		4
+#define USE_HARD_DISK		2
 #define USE_SHIFT_NUMPAD_KEY
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5
@@ -69,7 +71,8 @@ class MB8877;
 class NOT;
 class PCM1BIT;
 class RP5C01;
-//class SASI;
+class SASI_HDD;
+class SCSI_HOST;
 class UPD71071;
 class YM2203;
 class Z80PIO;
@@ -83,6 +86,7 @@ class MEMORY;
 class MOUSE;
 class PRINTER;
 class RESET;
+class SASI;
 class SERIAL;
 class SYSPORT;
 
@@ -104,7 +108,8 @@ protected:
 	NOT* not_busy;
 	PCM1BIT* pcm;
 	RP5C01* rtc;
-//	SASI* sasi;
+	SASI_HDD* sasi_hdd[4];
+	SCSI_HOST* sasi_host;
 	UPD71071* dma;
 	YM2203* opn;
 	Z80PIO* pio1;
@@ -118,6 +123,7 @@ protected:
 	MOUSE* mouse;
 	PRINTER* printer;
 	RESET* rst;
+	SASI* sasi;
 	SERIAL* serial;
 	SYSPORT* sysport;
 	
@@ -161,6 +167,10 @@ public:
 	void is_floppy_disk_protected(int drv, bool value);
 	bool is_floppy_disk_protected(int drv);
 	uint32_t is_floppy_disk_accessed();
+	void open_hard_disk(int drv, const _TCHAR* file_path);
+	void close_hard_disk(int drv);
+	bool is_hard_disk_inserted(int drv);
+	uint32_t is_hard_disk_accessed();
 	bool is_frame_skippable();
 	
 	void update_config();

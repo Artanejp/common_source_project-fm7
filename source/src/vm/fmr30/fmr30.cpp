@@ -205,11 +205,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	}
 	decl_state();
 	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
-#ifdef OPEN_HARD_DISK_IN_RESET
-		create_local_path(hd_file_path[drv], _MAX_PATH, _T("SCSI%d.DAT"), drv);
-#else
-		open_hard_disk_tmp(drv, create_local_path(_T("SCSI%d.DAT"), drv));
-#endif
+		if(!(config.last_hard_disk_path[drv][0] != _T('\0') && FILEIO::IsFileExisting(config.last_hard_disk_path[drv]))) {
+			create_local_path(config.last_hard_disk_path[drv], _MAX_PATH, _T("SCSI%d.DAT"), drv);
+		}
 	}
 	if(bios) {
 		for(int drv = 0; drv < MAX_DRIVE; drv++) {
@@ -260,17 +258,6 @@ void VM::reset()
 	// set devices
 	sio_kb->write_signal(SIG_I8251_DSR, 1, 1);
 	sio_sub->write_signal(SIG_I8251_DSR, 0, 0);
-	
-#if defined(OPEN_HARD_DISK_IN_RESET)
-	// open/close hard disk images
-	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
-		if(hd_file_path[drv][0] != _T('\0')) {
-			open_hard_disk_tmp(drv, hd_file_path[drv]);
-		} else {
-			close_hard_disk_tmp(drv);
-		}
-	}
-#endif
 }
 
 void VM::run()
@@ -393,33 +380,21 @@ uint32_t VM::is_floppy_disk_accessed()
 void VM::open_hard_disk(int drv, const _TCHAR* file_path)
 {
 	if(drv < USE_HARD_DISK) {
-#if defined(OPEN_HARD_DISK_IN_RESET)
-		my_tcscpy_s(hd_file_path[drv], _MAX_PATH, file_path);
-#else
-		open_hard_disk_tmp(drv, file_path);
-#endif
+		scsi_hdd[drv]->open(0, file_path, 512);
 	}
 }
 
 void VM::close_hard_disk(int drv)
 {
 	if(drv < USE_HARD_DISK) {
-#if defined(OPEN_HARD_DISK_IN_RESET)
-		hd_file_path[drv][0] = _T('\0');
-#else
-		close_hard_disk_tmp(drv);
-#endif
+		scsi_hdd[drv]->close(0);
 	}
 }
 
 bool VM::is_hard_disk_inserted(int drv)
 {
 	if(drv < USE_HARD_DISK) {
-#if defined(OPEN_HARD_DISK_IN_RESET)
-		return (hd_file_path[drv][0] != _T('\0'));
-#else
-		return is_hard_disk_inserted_tmp(drv);
-#endif
+		return scsi_hdd[drv]->mounted(0);
 	}
 	return false;
 }
@@ -427,34 +402,13 @@ bool VM::is_hard_disk_inserted(int drv)
 uint32_t VM::is_hard_disk_accessed()
 {
 	uint32_t status = 0;
+	
 	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
-		if(scsi_hdd[drv]->get_disk_handler(0)->accessed()) {
+		if(scsi_hdd[drv]->accessed(0)) {
 			status |= 1 << drv;
 		}
 	}
 	return status;
-}
-
-void VM::open_hard_disk_tmp(int drv, const _TCHAR* file_path)
-{
-	if(drv < USE_HARD_DISK) {
-		scsi_hdd[drv]->get_disk_handler(0)->open(file_path, 512);
-	}
-}
-
-void VM::close_hard_disk_tmp(int drv)
-{
-	if(drv < USE_HARD_DISK) {
-		scsi_hdd[drv]->get_disk_handler(0)->close();
-	}
-}
-
-bool VM::is_hard_disk_inserted_tmp(int drv)
-{
-	if(drv < USE_HARD_DISK) {
-		return scsi_hdd[drv]->get_disk_handler(0)->mounted();
-	}
-	return false;
 }
 
 bool VM::is_frame_skippable()

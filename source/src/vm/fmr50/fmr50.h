@@ -78,7 +78,6 @@
 #define USE_CPU_TYPE		2
 #define USE_FLOPPY_DISK		4
 #define USE_HARD_DISK		7
-#define OPEN_HARD_DISK_IN_RESET
 #define NOTIFY_KEY_DOWN
 #define USE_SHIFT_NUMPAD_KEY
 #define USE_ALT_F10_KEY
@@ -178,13 +177,6 @@ protected:
 	SCSI* scsi;
 //	SERIAL* serial;
 	TIMER* timer;
-	
-#if defined(OPEN_HARD_DISK_IN_RESET)
-	_TCHAR hd_file_path[USE_HARD_DISK][_MAX_PATH];
-#endif
-	void open_hard_disk_tmp(int drv, const _TCHAR* file_path);
-	void close_hard_disk_tmp(int drv);
-	bool is_hard_disk_inserted_tmp(int drv);
 	
 public:
 	// ----------------------------------------

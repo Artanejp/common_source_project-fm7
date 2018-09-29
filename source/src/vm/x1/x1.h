@@ -95,7 +95,6 @@
 #define USE_FLOPPY_DISK		2
 #define BASE_FLOPPY_DISK_NUM	0
 #define USE_HARD_DISK		4
-#define OPEN_HARD_DISK_IN_RESET
 #define USE_TAPE		1
 #define USE_TAPE_BUTTON
 #ifdef _X1TWIN
@@ -261,7 +260,7 @@ class HD46505;
 class I8255;
 class IO;
 class MB8877;
-class SCSI_HDD;
+class SASI_HDD;
 class SCSI_HOST;
 class YM2151;
 //class YM2203;
@@ -307,7 +306,7 @@ protected:
 	I8255* pio;
 	IO* io;
 	MB8877* fdc;
-	SCSI_HDD* sasi_hdd[(USE_HARD_DISK >> 1) + (USE_HARD_DISK & 1)];
+	SASI_HDD* sasi_hdd[(USE_HARD_DISK >> 1) + (USE_HARD_DISK & 1)];
 	SCSI_HOST* sasi_host;
 	YM2151* opm1;
 	YM2151* opm2;
@@ -341,13 +340,6 @@ protected:
 	
 	bool pseudo_sub_cpu;
 	int sound_type;
-	
-#if defined(OPEN_HARD_DISK_IN_RESET)
-	_TCHAR hd_file_path[USE_HARD_DISK][_MAX_PATH];
-#endif
-	void open_hard_disk_tmp(int drv, const _TCHAR* file_path);
-	void close_hard_disk_tmp(int drv);
-	bool is_hard_disk_inserted_tmp(int drv);
 	
 #ifdef _X1TWIN
 	// device for pce

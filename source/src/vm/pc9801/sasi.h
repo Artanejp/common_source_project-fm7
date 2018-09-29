@@ -22,13 +22,13 @@
 #define SIG_SASI_DRQ	1
 #define SIG_SASI_TC	2
 
-class SCSI_HDD;
+class SASI_HDD;
 
 class SASI : public DEVICE
 {
 private:
 	DEVICE *d_host;
-	SCSI_HDD *d_hdd;
+	SASI_HDD *d_hdd;
 	DEVICE *d_dma, *d_pic;
 	
 	uint8_t ocr;
@@ -57,7 +57,7 @@ public:
 	{
 		d_host = device;
 	}
-	void set_context_hdd(SCSI_HDD* device)
+	void set_context_hdd(SASI_HDD* device)
 	{
 		d_hdd = device;
 	}

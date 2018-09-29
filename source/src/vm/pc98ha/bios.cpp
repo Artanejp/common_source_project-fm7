@@ -26,7 +26,7 @@ bool BIOS::bios_int_i86(int intnum, uint16_t regs[], uint16_t sregs[], int32_t* 
 		case 0x10:
 		case 0x70:
 			// 2DD
-			if(d_fdc->is_disk_inserted(AL & 0x03) && d_fdc->media_type(AL & 0x03) != MEDIA_TYPE_2DD) {
+			if(d_fdc->is_disk_inserted(AL & 0x03) && d_fdc->get_media_type(AL & 0x03) != MEDIA_TYPE_2DD) {
 				AH = 0xe0;
 				*CarryFlag = 1;
 				return true;
@@ -35,7 +35,7 @@ bool BIOS::bios_int_i86(int intnum, uint16_t regs[], uint16_t sregs[], int32_t* 
 		case 0x90:
 		case 0xf0:
 			// 2HD
-			if(d_fdc->is_disk_inserted(AL & 0x03) && d_fdc->media_type(AL & 0x03) != MEDIA_TYPE_2HD) {
+			if(d_fdc->is_disk_inserted(AL & 0x03) && d_fdc->get_media_type(AL & 0x03) != MEDIA_TYPE_2HD) {
 				AH = 0xe0;
 				*CarryFlag = 1;
 				return true;

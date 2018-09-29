@@ -508,6 +508,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\src\vm\harddisk.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\src\vm\i286.cpp"
 					>
 					<FileConfiguration
@@ -729,6 +749,66 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\rp5c01.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\scsi_dev.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\scsi_hdd.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\scsi_host.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -1098,6 +1178,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\src\vm\mz2800\sasi.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\src\vm\mz2800\serial.cpp"
 					>
 					<FileConfiguration
@@ -1198,6 +1298,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\src\vm\harddisk.h"
+					>
+				</File>
+				<File
 					RelativePath="..\src\vm\i286.h"
 					>
 				</File>
@@ -1243,6 +1347,18 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\rp5c01.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\scsi_dev.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\scsi_hdd.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\scsi_host.h"
 					>
 				</File>
 				<File
@@ -1340,6 +1456,10 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\mz2800\reset.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\mz2800\sasi.h"
 					>
 				</File>
 				<File

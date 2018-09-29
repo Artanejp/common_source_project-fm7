@@ -80,7 +80,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pcm = new PCM1BIT(this, emu);
 	rtc = new RP5C01(this, emu);	// RP-5C15
 	sasi_host = new SCSI_HOST(this, emu);
-	sasi_hdd = new SCSI_HDD(this, emu);
+	sasi_hdd = new SASI_HDD(this, emu);
 	sasi_hdd->set_device_name(_T("SASI Hard Disk Drive"));
 	sasi_hdd->scsi_id = 0;
 	sasi_hdd->bytes_per_sec = 32 * 1024; // 32KB/s
@@ -242,12 +242,17 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 		device->initialize();
 	}
 
+	for(int drv = 0; drv < MAX_DRIVE; drv++) {
+//		if(config.drive_type) {
+//			fdc->set_drive_type(drv, DRIVE_TYPE_2D);
+//		} else {
+			fdc->set_drive_type(drv, DRIVE_TYPE_2DD);
+//		}
+	}
 	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
-#if defined(OPEN_HARD_DISK_IN_RESET)
-		create_local_path(hd_file_path[drv], _MAX_PATH, _T("SASI%d.DAT"), drv);
-#else
-		open_hard_disk_tmp(drv, create_local_path(_T("SASI%d.DAT"), drv));
-#endif
+		if(!(config.last_hard_disk_path[drv][0] != _T('\0') && FILEIO::IsFileExisting(config.last_hard_disk_path[drv]))) {
+			create_local_path(config.last_hard_disk_path[drv], _MAX_PATH, _T("SASI%d.DAT"), drv);
+		}
 	}
 	monitor_type = config.monitor_type;
 	decl_state();
@@ -284,27 +289,9 @@ void VM::reset()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
-	for(int i = 0; i < MAX_DRIVE; i++) {
-		if(config.drive_type) {
-			fdc->set_drive_type(i, DRIVE_TYPE_2D);
-		} else {
-			fdc->set_drive_type(i, DRIVE_TYPE_2DD);
-		}
-	}
 	
 	// set initial port status
 	opn->write_signal(SIG_YM2203_PORT_B, (monitor_type & 2) ? 0x77 : 0x37, 0xff);
-	
-#if defined(OPEN_HARD_DISK_IN_RESET)
-	// open/close hard disk images
-	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
-		if(hd_file_path[drv][0] != _T('\0')) {
-			open_hard_disk_tmp(drv, hd_file_path[drv]);
-		} else {
-			close_hard_disk_tmp(drv);
-		}
-	}
-#endif
 }
 
 void VM::special_reset()
@@ -445,6 +432,16 @@ void VM::inc_socket_recv_buffer_ptr(int ch, int size)
 void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	fdc->open_disk(drv, file_path, bank);
+	
+	if(fdc->get_media_type(drv) == MEDIA_TYPE_2DD) {
+		if(fdc->get_drive_type(drv) == DRIVE_TYPE_2D) {
+			fdc->set_drive_type(drv, DRIVE_TYPE_2DD);
+		}
+	} else if(fdc->get_media_type(drv) == MEDIA_TYPE_2D) {
+		if(fdc->get_drive_type(drv) == DRIVE_TYPE_2DD) {
+			fdc->set_drive_type(drv, DRIVE_TYPE_2D);
+		}
+	}
 }
 
 void VM::close_floppy_disk(int drv)
@@ -475,33 +472,21 @@ uint32_t VM::is_floppy_disk_accessed()
 void VM::open_hard_disk(int drv, const _TCHAR* file_path)
 {
 	if(drv < USE_HARD_DISK) {
-#if defined(OPEN_HARD_DISK_IN_RESET)
-		my_tcscpy_s(hd_file_path[drv], _MAX_PATH, file_path);
-#else
-		open_hard_disk_tmp(drv, file_path);
-#endif
+		sasi_hdd->open(drv, file_path, 256);
 	}
 }
 
 void VM::close_hard_disk(int drv)
 {
 	if(drv < USE_HARD_DISK) {
-#if defined(OPEN_HARD_DISK_IN_RESET)
-		hd_file_path[drv][0] = _T('\0');
-#else
-		close_hard_disk_tmp(drv);
-#endif
+		sasi_hdd->close(drv);
 	}
 }
 
 bool VM::is_hard_disk_inserted(int drv)
 {
 	if(drv < USE_HARD_DISK) {
-#if defined(OPEN_HARD_DISK_IN_RESET)
-		return (hd_file_path[drv][0] != _T('\0'));
-#else
-		return is_hard_disk_inserted_tmp(drv);
-#endif
+		return sasi_hdd->mounted(drv);
 	}
 	return false;
 }
@@ -511,35 +496,12 @@ uint32_t VM::is_hard_disk_accessed()
 	uint32_t status = 0;
 	
 	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
-		if(sasi_hdd->get_disk_handler(drv)->accessed()) {
+		if(sasi_hdd->accessed(drv)) {
 			status |= 1 << drv;
 		}
 	}
 	return status;
 }
-
-void VM::open_hard_disk_tmp(int drv, const _TCHAR* file_path)
-{
-	if(drv < USE_HARD_DISK) {
-		sasi_hdd->get_disk_handler(drv)->open(file_path);
-	}
-}
-
-void VM::close_hard_disk_tmp(int drv)
-{
-	if(drv < USE_HARD_DISK) {
-		sasi_hdd->get_disk_handler(drv)->close();
-	}
-}
-
-bool VM::is_hard_disk_inserted_tmp(int drv)
-{
-	if(drv < USE_HARD_DISK) {
-		return sasi_hdd->get_disk_handler(drv)->mounted();
-	}
-	return false;
-}
-
 
 void VM::play_tape(int drv, const _TCHAR* file_path)
 {

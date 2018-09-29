@@ -434,29 +434,39 @@ void SCSI_CDROM::start_command()
 	SCSI_DEV::start_command();
 }
 
-void SCSI_CDROM::read_buffer(int length)
+bool SCSI_CDROM::read_buffer(int length)
 {
-	if(fio_img->IsOpened()) {
-		uint32_t offset = (uint32_t)(position % 2352);
-		
-		fio_img->Fseek((long)position, FILEIO_SEEK_SET);
-		while(length > 0) {
-			uint8_t tmp_buffer[SCSI_BUFFER_SIZE];
-			int tmp_length = min(length, (int)sizeof(tmp_buffer));
-			
-			fio_img->Fread(tmp_buffer, tmp_length, 1);
-			for(int i = 0; i < tmp_length && length > 0; i++) {
-				if(offset >= 16 && offset < 16 + 2048) {
-					int value = tmp_buffer[i];
-					buffer->write(value);
-					length--;
-				}
-				position++;
-				offset = (offset + 1) % 2352;
-			}
-			access = true;
-		}
+	if(!fio_img->IsOpened()) {
+		set_sense_code(SCSI_SENSE_NOTREADY);
+		return false;
 	}
+	uint32_t offset = (uint32_t)(position % 2352);
+	
+	if(fio_img->Fseek((long)position, FILEIO_SEEK_SET) != 0) {
+		set_sense_code(SCSI_SENSE_ILLGLBLKADDR); //SCSI_SENSE_SEEKERR
+		return false;
+	}
+	while(length > 0) {
+		uint8_t tmp_buffer[SCSI_BUFFER_SIZE];
+		int tmp_length = min(length, (int)sizeof(tmp_buffer));
+		
+		if(fio_img->Fread(tmp_buffer, tmp_length, 1) != 1) {
+			set_sense_code(SCSI_SENSE_ILLGLBLKADDR); //SCSI_SENSE_NORECORDFND
+			return false;
+		}
+		for(int i = 0; i < tmp_length && length > 0; i++) {
+			if(offset >= 16 && offset < 16 + 2048) {
+				int value = tmp_buffer[i];
+				buffer->write(value);
+				length--;
+			}
+			position++;
+			offset = (offset + 1) % 2352;
+		}
+		access = true;
+	}
+	set_sense_code(SCSI_SENSE_NOSENSE);
+	return true;
 }
 
 int get_frames_from_msf(const char *string)

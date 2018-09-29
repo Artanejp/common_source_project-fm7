@@ -274,7 +274,7 @@ void BIOS::reset()
 	}
 	for(int i = 0; i < USE_HARD_DISK; i++) {
 		if(harddisk[i] != NULL && harddisk[i]->mounted()) {
-			scsi_blocks[i] = harddisk[i]->cylinders * harddisk[i]->surfaces * harddisk[i]->sectors * harddisk[i]->sector_size / BLOCK_SIZE;
+			scsi_blocks[i] = harddisk[i]->sector_size * harddisk[i]->sector_num / BLOCK_SIZE;
 		} else {
 			scsi_blocks[i] = 0;
 		}

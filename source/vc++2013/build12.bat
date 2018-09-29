@@ -54,11 +54,14 @@ devenv.com fm7.vcxproj /Rebuild Release
 call :clean
 devenv.com fm77.vcxproj /Rebuild Release
 call :clean
+devenv.com fm77l4.vcxproj /Rebuild Release
+call :clean
 devenv.com fm77av.vcxproj /Rebuild Release
 call :clean
 mkdir build_vc12\fm7
 copy binary_vc12\fm7.exe build_vc12\fm7\.
 copy binary_vc12\fm77.exe build_vc12\fm7\.
+copy binary_vc12\fm77l4.exe build_vc12\fm7\.
 copy binary_vc12\fm77av.exe build_vc12\fm7\.
 
 devenv.com fm77av40.vcxproj /Rebuild Release
@@ -353,6 +356,11 @@ devenv.com pc98rl.vcxproj /Rebuild Release
 call :clean
 mkdir build_vc12\pc98rl
 copy binary_vc12\pc98rl.exe build_vc12\pc98rl\.
+
+devenv.com pc98xa.vcxproj /Rebuild Release
+call :clean
+mkdir build_vc12\pc98xa
+copy binary_vc12\pc98xa.exe build_vc12\pc98xa\.
 
 devenv.com pc98xl.vcxproj /Rebuild Release
 call :clean

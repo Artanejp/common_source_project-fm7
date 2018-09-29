@@ -45,10 +45,12 @@ copy Release\fm8.exe build_xp\fm8\.
 
 devenv.com fm7.vcproj /Rebuild Release
 devenv.com fm77.vcproj /Rebuild Release
+devenv.com fm77l4.vcproj /Rebuild Release
 devenv.com fm77av.vcproj /Rebuild Release
 mkdir build_xp\fm7
 copy Release\fm7.exe build_xp\fm7\.
 copy Release\fm77.exe build_xp\fm7\.
+copy Release\fm77l4.exe build_xp\fm7\.
 copy Release\fm77av.exe build_xp\fm7\.
 
 devenv.com fm77av40.vcproj /Rebuild Release
@@ -278,6 +280,10 @@ copy Release\pc9801ra.exe build_xp\pc9801ra\.
 devenv.com pc98rl.vcproj /Rebuild Release
 mkdir build_xp\pc98rl
 copy Release\pc98rl.exe build_xp\pc98rl\.
+
+devenv.com pc98xa.vcproj /Rebuild Release
+mkdir build_xp\pc98xa
+copy Release\pc98xa.exe build_xp\pc98xa\.
 
 devenv.com pc98xl.vcproj /Rebuild Release
 mkdir build_xp\pc98xl

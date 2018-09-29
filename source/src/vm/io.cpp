@@ -137,7 +137,7 @@ void IO::write_port8(uint32_t addr, uint32_t data, bool is_dma)
 	if(!wr_table[laddr].dev->this_device_id && !wr_table[laddr].is_flipflop) {
 		this->out_debug_log(_T("UNKNOWN:\t"));
 	}
-	this->out_debug_log(_T("%06x\tOUT8\t%04x,%02x\n"), get_cpu_pc(cpu_index), addr, data);
+	this->out_debug_log(_T("%06x\tOUT8\t%04x,%02x\n"), get_cpu_pc(cpu_index), addr, data & 0xff);
 #endif
 	if(wr_table[laddr].is_flipflop) {
 		rd_table[laddr].value = data & 0xff;
@@ -157,7 +157,7 @@ uint32_t IO::read_port8(uint32_t addr, bool is_dma)
 	if(!rd_table[laddr].dev->this_device_id && !rd_table[laddr].value_registered) {
 		this->out_debug_log(_T("UNKNOWN:\t"));
 	}
-	this->out_debug_log(_T("%06x\tIN8\t%04x = %02x\n"), get_cpu_pc(cpu_index), addr, val);
+	this->out_debug_log(_T("%06x\tIN8\t%04x = %02x\n"), get_cpu_pc(cpu_index), addr, val & 0xff);
 #endif
 	return val & 0xff;
 }
@@ -170,7 +170,7 @@ void IO::write_port16(uint32_t addr, uint32_t data, bool is_dma)
 	if(!wr_table[laddr].dev->this_device_id && !wr_table[laddr].is_flipflop) {
 		this->out_debug_log(_T("UNKNOWN:\t"));
 	}
-	this->out_debug_log(_T("%06x\tOUT16\t%04x,%04x\n"), get_cpu_pc(cpu_index), addr, data);
+	this->out_debug_log(_T("%06x\tOUT16\t%04x,%04x\n"), get_cpu_pc(cpu_index), addr, data & 0xffff);
 #endif
 	if(wr_table[laddr].is_flipflop) {
 		rd_table[laddr].value = data & 0xffff;
@@ -190,7 +190,7 @@ uint32_t IO::read_port16(uint32_t addr, bool is_dma)
 	if(!rd_table[laddr].dev->this_device_id && !rd_table[laddr].value_registered) {
 		this->out_debug_log(_T("UNKNOWN:\t"));
 	}
-	this->out_debug_log(_T("%06x\tIN16\t%04x = %04x\n"), get_cpu_pc(cpu_index), addr, val);
+	this->out_debug_log(_T("%06x\tIN16\t%04x = %04x\n"), get_cpu_pc(cpu_index), addr, val & 0xffff);
 #endif
 	return val & 0xffff;
 }

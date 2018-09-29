@@ -12,6 +12,8 @@
 #include "../device.h"
 #include "../event.h"
 
+#include "../disk.h"
+#include "../harddisk.h"
 #include "../i8253.h"
 #include "../i8255.h"
 #include "../i8259.h"
@@ -25,7 +27,8 @@
 //#include "../pcpr201.h"
 #include "../prnfile.h"
 #include "../rp5c01.h"
-//#include "../sasi.h"
+#include "../scsi_hdd.h"
+#include "../scsi_host.h"
 #include "../upd71071.h"
 #include "../ym2203.h"
 #include "../z80pio.h"
@@ -43,6 +46,7 @@
 #include "mouse.h"
 #include "printer.h"
 #include "reset.h"
+#include "sasi.h"
 #include "serial.h"
 #include "sysport.h"
 
@@ -72,7 +76,16 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 
 	pcm = new PCM1BIT(this, emu);
 	rtc = new RP5C01(this, emu);	// RP-5C15
-//	sasi = new SASI(this, emu);
+	sasi_host = new SCSI_HOST(this, emu);
+	for(int i = 0; i < USE_HARD_DISK; i++) {
+		sasi_hdd[i] = new SASI_HDD(this, emu);
+		sasi_hdd[i]->set_device_name(_T("SASI Hard Disk Drive #%d"), i + 1);
+		sasi_hdd[i]->scsi_id = i;
+		sasi_hdd[i]->set_disk_handler(0, new HARDDISK(emu));
+		sasi_hdd[i]->set_context_interface(sasi_host);
+		sasi_hdd[i]->bytes_per_sec = 32 * 1024; // 32KB/s
+		sasi_host->set_context_target(sasi_hdd[i]);
+	}
 	dma = new UPD71071(this, emu);
 	opn = new YM2203(this, emu);
 	pio1 = new Z80PIO(this, emu);
@@ -86,6 +99,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	mouse = new MOUSE(this, emu);
 	printer = new PRINTER(this, emu);
 	rst = new RESET(this, emu);
+	sasi = new SASI(this, emu);
 	serial = new SERIAL(this, emu);
 	sysport = new SYSPORT(this, emu);
 	
@@ -116,10 +130,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	not_busy->set_context_out(pic, SIG_I8259_CHIP1 | SIG_I8259_IR1, 1);
 	rtc->set_context_alarm(pic, SIG_I8259_CHIP1 | SIG_I8259_IR2, 1);
 	rtc->set_context_pulse(opn, SIG_YM2203_PORT_B, 8);
-//	sasi->set_context_drq(dma, SIG_UPD71071_CH0, 1);
-//	sasi->set_context_irq(pic, SIG_I8259_CHIP0 | SIG_I8259_IR4, 1);
+	sasi_host->set_context_irq(sasi, SIG_SASI_IRQ, 1);
+	sasi_host->set_context_drq(sasi, SIG_SASI_DRQ, 1);
 	dma->set_context_memory(memory);
-//	dma->set_context_ch0(sasi);
+	dma->set_context_ch0(sasi);
 	dma->set_context_ch1(fdc);
 	dma->set_context_tc(pic, SIG_I8259_CHIP0 | SIG_I8259_IR3, 1);
 	opn->set_context_irq(pic, SIG_I8259_CHIP1 | SIG_I8259_IR7, 1);
@@ -157,6 +171,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	} else {
 		printer->set_context_prn(dummy);
 	}
+	sasi->set_context_host(sasi_host);
+	sasi->set_context_dma(dma);
+	sasi->set_context_pic(pic);
 	serial->set_context_sio(sio);
 	sysport->set_context_pit(pit);
 	sysport->set_context_sio(sio);
@@ -185,7 +202,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	for(uint32_t p = 0xae; p <= 0x1fae; p += 0x100) {
 		io->set_iomap_single_w(p, crtc);
 	}
-//	io->set_iomap_single_rw(0xaf, sasi);
+	io->set_iomap_range_rw(0xa4, 0xa5, sasi);
 	io->set_iomap_range_rw(0xb0, 0xb3, serial);
 	io->set_iomap_single_r(0xbe, sysport);
 	io->set_iomap_range_rw(0xc8, 0xc9, opn);
@@ -230,6 +247,11 @@ VM::~VM()
 		device->release();
 		delete device;
 		device = next_device;
+	}
+	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
+		if(!(config.last_hard_disk_path[drv][0] != _T('\0') && FILEIO::IsFileExisting(config.last_hard_disk_path[drv]))) {
+			create_local_path(config.last_hard_disk_path[drv], _MAX_PATH, _T("SASI%d.DAT"), drv);
+		}
 	}
 }
 
@@ -344,6 +366,16 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	fdc->open_disk(drv, file_path, bank);
+	
+	if(fdc->get_media_type(drv) == MEDIA_TYPE_2DD) {
+		if(fdc->get_drive_type(drv) == DRIVE_TYPE_2D) {
+			fdc->set_drive_type(drv, DRIVE_TYPE_2DD);
+		}
+	} else if(fdc->get_media_type(drv) == MEDIA_TYPE_2D) {
+		if(fdc->get_drive_type(drv) == DRIVE_TYPE_2DD) {
+			fdc->set_drive_type(drv, DRIVE_TYPE_2D);
+		}
+	}
 }
 
 void VM::close_floppy_disk(int drv)
@@ -371,6 +403,40 @@ uint32_t VM::is_floppy_disk_accessed()
 	return fdc->read_signal(0);
 }
 
+void VM::open_hard_disk(int drv, const _TCHAR* file_path)
+{
+	if(drv < USE_HARD_DISK) {
+		sasi_hdd[drv]->open(0, file_path, 1024);
+	}
+}
+
+void VM::close_hard_disk(int drv)
+{
+	if(drv < USE_HARD_DISK) {
+		sasi_hdd[drv]->close(0);
+	}
+}
+
+bool VM::is_hard_disk_inserted(int drv)
+{
+	if(drv < USE_HARD_DISK) {
+		return sasi_hdd[drv]->mounted(0);
+	}
+	return false;
+}
+
+uint32_t VM::is_hard_disk_accessed()
+{
+	uint32_t status = 0;
+	
+	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
+		if(sasi_hdd[drv]->accessed(0)) {
+			status |= 1 << drv;
+		}
+	}
+	return status;
+}
+
 bool VM::is_frame_skippable()
 {
 	return event->is_frame_skippable();
@@ -383,7 +449,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	4
+#define STATE_VERSION	5
 
 #include "../../statesub.h"
 #include "../../qt/gui/csp_logger.h"

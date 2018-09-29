@@ -52,7 +52,6 @@
 // device informations for win32
 #define USE_SPECIAL_RESET
 #define USE_CPU_TYPE		2
-#define USE_DRIVE_TYPE		2
 #define USE_FLOPPY_DISK		4
 #ifdef SUPPORT_QUICK_DISK
 #define USE_QUICK_DISK		1

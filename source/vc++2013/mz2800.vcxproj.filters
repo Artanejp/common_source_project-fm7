@@ -96,6 +96,9 @@
     <ClCompile Include="..\src\vm\event.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\vm\harddisk.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\vm\i286.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
@@ -130,6 +133,15 @@
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\vm\rp5c01.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\scsi_dev.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\scsi_hdd.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\scsi_host.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\vm\upd71071.cpp">
@@ -183,6 +195,9 @@
     <ClCompile Include="..\src\vm\mz2800\reset.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\vm\mz2800\sasi.cpp">
+      <Filter>Source Files\VM Driver Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\vm\mz2800\serial.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
@@ -221,6 +236,9 @@
     <ClInclude Include="..\src\vm\event.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\vm\harddisk.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\vm\i286.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
@@ -255,6 +273,15 @@
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\rp5c01.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\scsi_dev.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\scsi_hdd.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\scsi_host.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\upd71071.h">
@@ -321,6 +348,9 @@
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\mz2800\reset.h">
+      <Filter>Header Files\VM Driver Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\mz2800\sasi.h">
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\mz2500\serial.h">

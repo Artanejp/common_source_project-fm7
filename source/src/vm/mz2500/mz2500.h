@@ -38,12 +38,10 @@
 
 // device informations for win32
 #define USE_SPECIAL_RESET
-#define USE_DRIVE_TYPE		2
 #define USE_FLOPPY_DISK		4
 #define USE_TAPE		1
 #define USE_TAPE_BUTTON
 #define USE_HARD_DISK		2
-#define OPEN_HARD_DISK_IN_RESET
 #define USE_SOCKET
 #define USE_SHIFT_NUMPAD_KEY
 #define USE_ALT_F10_KEY
@@ -84,7 +82,7 @@ class IO;
 class MB8877;
 class PCM1BIT;
 class RP5C01;
-class SCSI_HDD;
+class SASI_HDD;
 class SCSI_HOST;
 class W3100A;
 class YM2203;
@@ -125,7 +123,7 @@ protected:
 	MB8877* fdc;
 	PCM1BIT* pcm;
 	RP5C01* rtc;
-	SCSI_HDD* sasi_hdd;
+	SASI_HDD* sasi_hdd;
 	SCSI_HOST* sasi_host;
 	W3100A* w3100a;
 	YM2203* opn;
@@ -149,13 +147,6 @@ protected:
 	PRINTER* printer;
 	SERIAL* serial;
 	TIMER* timer;
-	
-#if defined(OPEN_HARD_DISK_IN_RESET)
-	_TCHAR hd_file_path[2][_MAX_PATH];
-#endif
-	void open_hard_disk_tmp(int drv, const _TCHAR* file_path);
-	void close_hard_disk_tmp(int drv);
-	bool is_hard_disk_inserted_tmp(int drv);
 	
 	// monitor type cache
 	int monitor_type;

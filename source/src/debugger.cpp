@@ -37,6 +37,18 @@
 static FILEIO* logfile = NULL;
 static FILEIO* cmdfile = NULL;
 
+const _TCHAR *my_absolute_path(const _TCHAR *file_name)
+{
+	static _TCHAR file_path[_MAX_PATH];
+	
+	if(is_absolute_path(file_name)) {
+		my_tcscpy_s(file_path, _MAX_PATH, file_name);
+	} else {
+		my_stprintf_s(file_path, _MAX_PATH, _T("%s%s"), get_initial_current_path(), file_name);
+	}
+	return (const _TCHAR *)file_path;
+}
+
 void my_printf(OSD *osd, const _TCHAR *format, ...)
 {
 	_TCHAR buffer[1024];
@@ -160,7 +172,7 @@ const _TCHAR *my_get_value_and_symbol(DEVICE *target, const _TCHAR *format, uint
 
 break_point_t *get_break_point(DEBUGGER *debugger, const _TCHAR *command)
 {
-	if(command[0] == _T('B') || command[0] == _T('b')) {
+	if(command[0] == _T('B') || command[0] == _T('b') || command[0] == _T('C') || command[0] == _T('c')) {
 		return &debugger->bp;
 	} else if(command[0] == _T('R') || command[0] == _T('r')) {
 		return &debugger->rbp;
@@ -595,12 +607,12 @@ void* debugger_thread(void *lpx)
 				if(num >= 2 && params[1][0] == _T('\"')) {
 					my_tcscpy_s(buffer, 1024, prev_command);
 					if((token = my_tcstok_s(buffer, _T("\""), &context)) != NULL && (token = my_tcstok_s(NULL, _T("\""), &context)) != NULL) {
-						my_tcscpy_s(debugger->file_path, _MAX_PATH, create_absolute_path(token));
+						my_tcscpy_s(debugger->file_path, _MAX_PATH, my_absolute_path(token));
 					} else {
 						my_printf(p->osd, _T("invalid parameter\n"));
 					}
 				} else if(num == 2) {
-					my_tcscpy_s(debugger->file_path, _MAX_PATH, create_absolute_path(params[1]));
+					my_tcscpy_s(debugger->file_path, _MAX_PATH, my_absolute_path(params[1]));
 				} else {
 					my_printf(p->osd, _T("invalid parameter number\n"));
 				}
@@ -744,7 +756,8 @@ void* debugger_thread(void *lpx)
 				} else {
 					my_printf(p->osd, _T("invalid parameter number\n"));
 				}
-			} else if(_tcsicmp(params[0], _T( "BP")) == 0 || _tcsicmp(params[0], _T("RBP")) == 0 || _tcsicmp(params[0], _T("WBP")) == 0) {
+			} else if(_tcsicmp(params[0], _T( "BP")) == 0 || _tcsicmp(params[0], _T("RBP")) == 0 || _tcsicmp(params[0], _T("WBP")) == 0 ||
+			          _tcsicmp(params[0], _T( "CP")) == 0 || _tcsicmp(params[0], _T("RCP")) == 0 || _tcsicmp(params[0], _T("WCP")) == 0) {
 				break_point_t *bp = get_break_point(debugger, params[0]);
 				if(num == 2) {
 					uint32_t addr = my_hexatoi(cpu, params[1]);
@@ -754,6 +767,7 @@ void* debugger_thread(void *lpx)
 							bp->table[i].addr = addr;
 							bp->table[i].mask = cpu->get_debug_prog_addr_mask();
 							bp->table[i].status = 1;
+							bp->table[i].check_point = (params[0][0] == 'C' || params[0][0] == 'c' || params[0][1] == 'C' || params[0][1] == 'c');
 							found = true;
 						}
 					}
@@ -763,7 +777,8 @@ void* debugger_thread(void *lpx)
 				} else {
 					my_printf(p->osd, _T("invalid parameter number\n"));
 				}
-			} else if(_tcsicmp(params[0], _T("IBP")) == 0 || _tcsicmp(params[0], _T("OBP")) == 0) {
+			} else if(_tcsicmp(params[0], _T("IBP")) == 0 || _tcsicmp(params[0], _T("OBP")) == 0 ||
+			          _tcsicmp(params[0], _T("ICP")) == 0 || _tcsicmp(params[0], _T("OCP")) == 0) {
 				break_point_t *bp = get_break_point(debugger, params[0]);
 				if(num == 2 || num == 3) {
 					uint32_t addr = my_hexatoi(cpu, params[1]), mask = 0xff;
@@ -776,6 +791,7 @@ void* debugger_thread(void *lpx)
 							bp->table[i].addr = addr;
 							bp->table[i].mask = mask;
 							bp->table[i].status = 1;
+							bp->table[i].check_point = (params[0][1] == 'C' || params[0][1] == 'c');
 							found = true;
 						}
 					}
@@ -831,7 +847,10 @@ void* debugger_thread(void *lpx)
 					break_point_t *bp = get_break_point(debugger, params[0]);
 					for(int i = 0; i < MAX_BREAK_POINTS; i++) {
 						if(bp->table[i].status) {
-							my_printf(p->osd, _T("%d %c %s\n"), i + 1, bp->table[i].status == 1 ? _T('e') : _T('d'), my_get_value_and_symbol(cpu, _T("%08X"), bp->table[i].addr));
+							my_printf(p->osd, _T("%d %c %s %s\n"), i + 1,
+								bp->table[i].status == 1 ? _T('e') : _T('d'),
+								my_get_value_and_symbol(cpu, _T("%08X"), bp->table[i].addr),
+								bp->table[i].check_point ? "checkpoint" : "");
 						}
 					}
 				} else {
@@ -842,7 +861,11 @@ void* debugger_thread(void *lpx)
 					break_point_t *bp = get_break_point(debugger, params[0]);
 					for(int i = 0; i < MAX_BREAK_POINTS; i++) {
 						if(bp->table[i].status) {
-							my_printf(p->osd, _T("%d %c %08X %08X\n"), i + 1, bp->table[i].status == 1 ? _T('e') : _T('d'), bp->table[i].addr, bp->table[i].mask);
+							my_printf(p->osd, _T("%d %c %s %08X %s\n"), i + 1,
+								bp->table[i].status == 1 ? _T('e') : _T('d'),
+								my_get_value_and_symbol(cpu, _T("%08X"), bp->table[i].addr),
+								bp->table[i].mask,
+								bp->table[i].check_point ? "checkpoint" : "");
 						}
 					}
 				} else {
@@ -856,14 +879,17 @@ void* debugger_thread(void *lpx)
 						debugger->bp.table[0].addr = (cpu->get_next_pc() + cpu->debug_dasm(cpu->get_next_pc(), buffer, 1024)) & cpu->get_debug_prog_addr_mask();
 						debugger->bp.table[0].mask = cpu->get_debug_prog_addr_mask();
 						debugger->bp.table[0].status = 1;
+						debugger->bp.table[0].check_point = false;
 						break_points_stored = true;
 					} else if(num >= 2) {
 						debugger->store_break_points();
 						debugger->bp.table[0].addr = my_hexatoi(cpu, params[1]) & cpu->get_debug_prog_addr_mask();
 						debugger->bp.table[0].mask = cpu->get_debug_prog_addr_mask();
 						debugger->bp.table[0].status = 1;
+						debugger->bp.table[0].check_point = false;
 						break_points_stored = true;
 					}
+RESTART_GO:
 					debugger->now_going = true;
 					debugger->now_suspended = false;
 #if defined(_MSC_VER)					   
@@ -919,24 +945,33 @@ void* debugger_thread(void *lpx)
 							if(_tcsicmp(params[0], _T("G")) == 0) {
 								my_printf(p->osd, _T("breaked at %s\n"), my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_next_pc()));
 							}
+							debugger->bp.hit = false;
+							if(debugger->bp.restart) goto RESTART_GO;
 						} else if(debugger->rbp.hit) {
 							my_printf(p->osd, _T("breaked at %s: memory %s was read at %s\n"), my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_next_pc()),
 								my_get_value_and_symbol(cpu, _T("%08X"), debugger->rbp.hit_addr),
 								my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_pc()));
+							debugger->rbp.hit = false;
+							if(debugger->rbp.restart) goto RESTART_GO;
 						} else if(debugger->wbp.hit) {
 							my_printf(p->osd, _T("breaked at %s: memory %s was written at %s\n"), my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_next_pc()),
 								my_get_value_and_symbol(cpu, _T("%08X"), debugger->wbp.hit_addr),
 								my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_pc()));
+							debugger->wbp.hit = false;
+							if(debugger->wbp.restart) goto RESTART_GO;
 						} else if(debugger->ibp.hit) {
 							my_printf(p->osd, _T("breaked at %s: port %s was read at %s\n"), my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_next_pc()),
 								my_get_value_and_symbol(cpu, _T("%08X"), debugger->ibp.hit_addr),
 								my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_pc()));
+							debugger->ibp.hit = false;
+							if(debugger->ibp.restart) goto RESTART_GO;
 						} else if(debugger->obp.hit) {
 							my_printf(p->osd, _T("breaked at %s: port %s was written at %s\n"), my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_next_pc()),
 								my_get_value_and_symbol(cpu, _T("%08X"), debugger->obp.hit_addr),
 								my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_pc()));
+							debugger->obp.hit = false;
+							if(debugger->obp.restart) goto RESTART_GO;
 						}
-						debugger->bp.hit = debugger->rbp.hit = debugger->wbp.hit = debugger->ibp.hit = debugger->obp.hit = false;
 					} else {
 						p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_INTENSITY);
 						my_printf(p->osd, _T("breaked at %s: esc key was pressed\n"), my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_next_pc()));
@@ -989,32 +1024,40 @@ void* debugger_thread(void *lpx)
 							my_printf(p->osd, _T("%s\n"), buffer);
 						}
 						
-						if(debugger->hit() || (p->osd->is_console_key_pressed(VK_ESCAPE) && p->osd->is_console_active())) {
+						if(debugger->hit()) {
+							p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_INTENSITY);
+							if(debugger->bp.hit) {
+								my_printf(p->osd, _T("breaked at %s\n"), my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_next_pc()));
+								debugger->bp.hit = false;
+								if(!debugger->bp.restart) break;
+							} else if(debugger->rbp.hit) {
+								my_printf(p->osd, _T("breaked at %s: memory %s was read at %s\n"), my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_next_pc()),
+									my_get_value_and_symbol(cpu, _T("%08X"), debugger->rbp.hit_addr),
+									my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_pc()));
+								debugger->rbp.hit = false;
+								if(!debugger->rbp.restart) break;
+							} else if(debugger->wbp.hit) {
+								my_printf(p->osd, _T("breaked at %s: memory %s was written at %s\n"), my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_next_pc()),
+									my_get_value_and_symbol(cpu, _T("%08X"), debugger->wbp.hit_addr),
+									my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_pc()));
+								debugger->wbp.hit = false;
+								if(!debugger->wbp.restart) break;
+							} else if(debugger->ibp.hit) {
+								my_printf(p->osd, _T("breaked at %s: port %s was read at %s\n"), my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_next_pc()),
+									my_get_value_and_symbol(cpu, _T("%08X"), debugger->ibp.hit_addr),
+									my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_pc()));
+								debugger->ibp.hit = false;
+								if(!debugger->ibp.restart) break;
+							} else if(debugger->obp.hit) {
+								my_printf(p->osd, _T("breaked at %s: port %s was written at %s\n"), my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_next_pc()),
+									my_get_value_and_symbol(cpu, _T("%08X"), debugger->obp.hit_addr),
+									my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_pc()));
+								debugger->obp.hit = false;
+								if(!debugger->obp.restart) break;
+							}
+						} else if(p->osd->is_console_key_pressed(VK_ESCAPE) && p->osd->is_console_active()) {
 							break;
 						}
-					}
-					if(debugger->hit()) {
-						p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_INTENSITY);
-						if(debugger->bp.hit) {
-							my_printf(p->osd, _T("breaked at %s\n"), my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_next_pc()));
-						} else if(debugger->rbp.hit) {
-							my_printf(p->osd, _T("breaked at %s: memory %s was read at %s\n"), my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_next_pc()),
-								my_get_value_and_symbol(cpu, _T("%08X"), debugger->rbp.hit_addr),
-								my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_pc()));
-						} else if(debugger->wbp.hit) {
-							my_printf(p->osd, _T("breaked at %s: memory %s was written at %s\n"), my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_next_pc()),
-								my_get_value_and_symbol(cpu, _T("%08X"), debugger->wbp.hit_addr),
-								my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_pc()));
-						} else if(debugger->ibp.hit) {
-							my_printf(p->osd, _T("breaked at %s: port %s was read at %s\n"), my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_next_pc()),
-								my_get_value_and_symbol(cpu, _T("%08X"), debugger->ibp.hit_addr),
-								my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_pc()));
-						} else if(debugger->obp.hit) {
-							my_printf(p->osd, _T("breaked at %s: port %s was written at %s\n"), my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_next_pc()),
-								my_get_value_and_symbol(cpu, _T("%08X"), debugger->obp.hit_addr),
-								my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_pc()));
-						}
-						debugger->bp.hit = debugger->rbp.hit = debugger->wbp.hit = debugger->ibp.hit = debugger->obp.hit = false;
 					}
 					p->osd->set_console_text_attribute(FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
 					cpu->debug_dasm(cpu->get_next_pc(), buffer, 1024);
@@ -1036,7 +1079,7 @@ void* debugger_thread(void *lpx)
 						logfile = NULL;
 					}
 					logfile = new FILEIO();
-					logfile->Fopen(create_absolute_path(params[1]), FILEIO_WRITE_ASCII);
+					logfile->Fopen(my_absolute_path(params[1]), FILEIO_WRITE_ASCII);
 				} else {
 					my_printf(p->osd, _T("invalid parameter number\n"));
 				}
@@ -1049,7 +1092,7 @@ void* debugger_thread(void *lpx)
 					} else {
 						cmdfile = new FILEIO();
 					}
-					if(!cmdfile->Fopen(create_absolute_path(params[1]), FILEIO_READ_ASCII)) {
+					if(!cmdfile->Fopen(my_absolute_path(params[1]), FILEIO_READ_ASCII)) {
 						delete cmdfile;
 						cmdfile = NULL;
 						my_printf(p->osd, _T("can't open %s\n"), params[1]);
@@ -1206,6 +1249,7 @@ void* debugger_thread(void *lpx)
 				my_printf(p->osd, _T("{I,O}BP <port> [<mask>] - set breakpoint (break at i/o access)\n"));
 				my_printf(p->osd, _T("[{R,W,I,O}]B{C,D,E} {*,<list>} - clear/disable/enable breakpoint(s)\n"));
 				my_printf(p->osd, _T("[{R,W,I,O}]BL - list breakpoint(s)\n"));
+				my_printf(p->osd, _T("[{R,W,I,O}]CP <address/port> [<mask>] - set checkpoint (don't break)\n"));
 				
 				my_printf(p->osd, _T("G - go (press esc key to break)\n"));
 				my_printf(p->osd, _T("G <address> - go and break at address\n"));

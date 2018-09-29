@@ -2600,7 +2600,7 @@ void open_hard_disk_dialog(HWND hWnd, int drv)
 {
 	_TCHAR* path = get_open_file_name(
 		hWnd,
-		_T("Supported Files (*.thd;*.nhd;*.hdi;*.dat)\0*.thd;*.nhd;*.hdi;*.dat\0All Files (*.*)\0*.*\0\0"),
+		_T("Supported Files (*.thd;*.nhd;*.hdi;*.hdd;*.dat)\0*.thd;*.nhd;*.hdi;*.hdd;*.dat\0All Files (*.*)\0*.*\0\0"),
 		_T("Hard Disk"),
 		config.initial_hard_disk_dir, _MAX_PATH
 	);
@@ -2866,7 +2866,8 @@ void open_any_file(const _TCHAR* path)
 #if defined(USE_HARD_DISK)
 	if(check_file_extension(path, _T(".thd")) || 
 	   check_file_extension(path, _T(".nhd")) || 
-	   check_file_extension(path, _T(".hdi"))) {
+	   check_file_extension(path, _T(".hdi")) || 
+	   check_file_extension(path, _T(".hdd"))) {
 		UPDATE_HISTORY(path, config.recent_hard_disk_path[0]);
 		my_tcscpy_s(config.initial_hard_disk_dir, _MAX_PATH, get_parent_dir(path));
 		emu->open_hard_disk(0, path);
