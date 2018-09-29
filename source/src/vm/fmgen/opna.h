@@ -468,7 +468,7 @@ namespace FM
 	{
 	public:
 		OPN2();
-		virtual ~OPN2() {}
+		virtual ~OPN2();
 		
 		bool	Init(uint c, uint r, bool=false, const char* =0);
 		bool	SetRate(uint c, uint r, bool);
@@ -484,8 +484,8 @@ namespace FM
 		bool LoadState(void *f);
 
 	private:
-		void	SetStatus(uint bit);
-		void	ResetStatus(uint bit);
+		//void	SetStatus(uint bit);
+		//void	ResetStatus(uint bit);
 	// 線形補間用ワーク
 		int32	mixc, mixc1;
 		
