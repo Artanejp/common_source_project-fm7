@@ -163,9 +163,9 @@ Changes:
   * [General/I18N] Update Japanese translations.
   * [FMGEN] Initial implementation of OPN2 (YM2612) from OPNA.
   * [VM/FMTOWNS] WORKING IN PROGRESS, WILL NOT BUILD due to still implement partly.
-  * Built with 699bbf012e9670269c408925525a5b4ea27dd418 (or later).
+  * Built with ecf1a85f48bd98c353ea90bc3a0a49ff100b9af4 (or later).
 
--- September 30, 2018 15:50:18 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- September 30, 2018 17:40:12 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 本家の変更:
 * 前の変更点をお読みになる場合には、history.txtをお読み下さい。

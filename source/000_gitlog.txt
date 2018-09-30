@@ -1,3 +1,16 @@
+commit ecf1a85f48bd98c353ea90bc3a0a49ff100b9af4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Sep 30 17:38:28 2018 +0900
+
+    [CONFIG][OpenGL] Fix not effective config for renderer.
+    [CONFIG][WIN32] Fix FTBFS.
+
+commit e161318282a1851a79f27e3ac75bad0892a6fed4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Sep 30 15:53:06 2018 +0900
+
+    [DOC] Update documents.
+
 commit 699bbf012e9670269c408925525a5b4ea27dd418
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sun Sep 30 15:46:22 2018 +0900
