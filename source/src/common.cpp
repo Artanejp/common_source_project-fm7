@@ -43,7 +43,7 @@
 	std::string DLL_PREFIX sRssDir;
 #endif
 
-void common_initialize()
+void DLL_PREFIX common_initialize()
 {
 	get_initial_current_path();
 }

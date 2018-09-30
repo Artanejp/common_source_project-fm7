@@ -979,8 +979,6 @@ void ProcessCmdLine(QCommandLineParser *cmdparser, QStringList *_l)
 				config.render_platform = CONFIG_RENDER_PLATFORM_OPENGL_MAIN;
 				config.render_major_version = 2;
 				config.render_minor_version = 0;
-				GuiMain->setAttribute(Qt::AA_UseDesktopOpenGL, true);
-				GuiMain->setAttribute(Qt::AA_UseOpenGLES, false);
 			} else if((render == QString::fromUtf8("GL3")) ||
 					  (render == QString::fromUtf8("GLV3")) ||
 					  (render == QString::fromUtf8("OPENGLV3")) ||
@@ -989,8 +987,6 @@ void ProcessCmdLine(QCommandLineParser *cmdparser, QStringList *_l)
 				config.render_platform = CONFIG_RENDER_PLATFORM_OPENGL_MAIN;
 				config.render_major_version = 3;
 				config.render_minor_version = 0;
-				GuiMain->setAttribute(Qt::AA_UseDesktopOpenGL, true);
-				GuiMain->setAttribute(Qt::AA_UseOpenGLES, false);
 			} else if((render == QString::fromUtf8("GLES2")) ||
 					 (render == QString::fromUtf8("GLESV2")) ||
 					 (render == QString::fromUtf8("GLES3")) ||
@@ -999,8 +995,6 @@ void ProcessCmdLine(QCommandLineParser *cmdparser, QStringList *_l)
 				config.render_platform = CONFIG_RENDER_PLATFORM_OPENGL_ES;
 				config.render_major_version = 2;
 				config.render_minor_version = 1;
-				GuiMain->setAttribute(Qt::AA_UseDesktopOpenGL, false);
-				GuiMain->setAttribute(Qt::AA_UseOpenGLES, true);
 			} else if((render == QString::fromUtf8("GL4")) ||
 					 (render == QString::fromUtf8("GL43")) ||
 					 (render == QString::fromUtf8("GL4.3")) ||
@@ -1009,10 +1003,26 @@ void ProcessCmdLine(QCommandLineParser *cmdparser, QStringList *_l)
 				config.render_platform = CONFIG_RENDER_PLATFORM_OPENGL_CORE;
 				config.render_major_version = 4;
 				config.render_minor_version = 3;
-				GuiMain->setAttribute(Qt::AA_UseDesktopOpenGL, true);
-				GuiMain->setAttribute(Qt::AA_UseOpenGLES, false);
 			}
 		}
+	}
+	switch(config.render_platform) {
+	case CONFIG_RENDER_PLATFORM_OPENGL_MAIN:
+	case CONFIG_RENDER_PLATFORM_OPENGL_CORE:
+		GuiMain->setAttribute(Qt::AA_UseDesktopOpenGL, true);
+		GuiMain->setAttribute(Qt::AA_UseOpenGLES, false);
+		break;
+	case CONFIG_RENDER_PLATFORM_OPENGL_ES:
+		GuiMain->setAttribute(Qt::AA_UseDesktopOpenGL, false);
+		GuiMain->setAttribute(Qt::AA_UseOpenGLES, true);
+		break;
+	default: // to GLES 2.1 as Default
+		GuiMain->setAttribute(Qt::AA_UseDesktopOpenGL, false);
+		GuiMain->setAttribute(Qt::AA_UseOpenGLES, true);
+		config.render_platform = CONFIG_RENDER_PLATFORM_OPENGL_ES;
+		config.render_major_version = 2;
+		config.render_minor_version = 1;
+		break;
 	}
 	SetProcCmdFD(cmdparser, _l);
 	SetProcCmdHDD(cmdparser, _l);
@@ -1024,152 +1034,6 @@ void ProcessCmdLine(QCommandLineParser *cmdparser, QStringList *_l)
 	SetProcCmdLD(cmdparser, _l);
 	SetProcCmdCD(cmdparser, _l);
 
-#if 0
-	memset(homedir, 0x00, PATH_MAX);
-	if(cmdparser->isSet(*_opt_homedir)) {
-		strncpy(homedir, cmdparser->value(*_opt_homedir).toLocal8Bit().constData(), PATH_MAX - 1);
-		cpp_homedir = homedir;
-		size_t _len = cpp_homedir.length() - 1;
-		size_t _pos = cpp_homedir.rfind(delim);
-		if((_pos < _len) ||
-		   (_pos == std::string::npos)) {
-			cpp_homedir.append(delim);
-		}
-	} else {
-		cpp_homedir.copy(homedir, PATH_MAX - 1, 0);
-	}
-
-	if(cmdparser->isSet(*_opt_cfgdir)) {
-		char tmps[PATH_MAX];
-		std::string tmpstr;
-		memset(tmps, 0x00, PATH_MAX);
-		strncpy(tmps, cmdparser->value(*_opt_cfgdir).toLocal8Bit().constData(), PATH_MAX - 1);
-		cpp_confdir = tmps;
-		size_t _len = cpp_confdir.length() - 1;
-		size_t _pos = cpp_confdir.rfind(delim);
-		if((_pos < _len) ||
-		   (_pos == std::string::npos)) {
-			cpp_confdir.append(delim);
-		}
-	}
-	
-	{
-		char tmps[128];
-		std::string localstr;
-		memset(tmps, 0x00, 128);
-		if(cmdparser->isSet(*_opt_cfgfile)) {
-			strncpy(tmps, cmdparser->value(*_opt_cfgfile).toLocal8Bit().constData(), 127);
-		}
-		if(strlen(tmps) <= 0){
-			snprintf(tmps, sizeof(tmps), _T("%s.ini"), _T(CONFIG_NAME));
-		}
-		localstr = tmps;
-		localstr = cpp_confdir + localstr;
-		load_config(localstr.c_str());
-		config_fullpath = localstr;
-	}
-	if(cmdparser->isSet(*_opt_resdir)) {
-		char tmps[PATH_MAX];
-		std::string tmpstr;
-		memset(tmps, 0x00, PATH_MAX);
-		strncpy(tmps, cmdparser->value(*_opt_resdir).toLocal8Bit().constData(), PATH_MAX - 1);
-		sRssDir = tmps;
-		size_t _len = sRssDir.length() - 1;
-		size_t _pos = sRssDir.rfind(delim);
-		if((_pos < _len) ||
-		   (_pos == std::string::npos)) {
-			sRssDir.append(delim);
-		}
-	}
-	if(cmdparser->isSet(*_opt_opengl)) {
-		char tmps[128] = {0};
-		strncpy(tmps, cmdparser->value(*_opt_opengl).toLocal8Bit().constData(), 128 - 1);
-		if(strlen(tmps) > 0) {
-			QString render = QString::fromLocal8Bit(tmps).toUpper();
-			if((render == QString::fromUtf8("GL2")) ||
-			   (render == QString::fromUtf8("GLV2"))) {
-				config.render_platform = CONFIG_RENDER_PLATFORM_OPENGL_MAIN;
-				config.render_major_version = 2;
-				config.render_minor_version = 0;
-				GuiMain->setAttribute(Qt::AA_UseDesktopOpenGL, true);
-				GuiMain->setAttribute(Qt::AA_UseOpenGLES, false);
-			} else if((render == QString::fromUtf8("GL3")) ||
-					  (render == QString::fromUtf8("GLV3")) ||
-					  (render == QString::fromUtf8("OPENGLV3")) ||
-					  (render == QString::fromUtf8("OPENGL")) ||
-					  (render == QString::fromUtf8("GL"))) {
-				config.render_platform = CONFIG_RENDER_PLATFORM_OPENGL_MAIN;
-				config.render_major_version = 3;
-				config.render_minor_version = 0;
-				GuiMain->setAttribute(Qt::AA_UseDesktopOpenGL, true);
-				GuiMain->setAttribute(Qt::AA_UseOpenGLES, false);
-			} else if((render == QString::fromUtf8("GLES2")) ||
-					 (render == QString::fromUtf8("GLESV2")) ||
-					 (render == QString::fromUtf8("GLES3")) ||
-					 (render == QString::fromUtf8("GLESV3")) ||
-					 (render == QString::fromUtf8("GLES"))) {
-				config.render_platform = CONFIG_RENDER_PLATFORM_OPENGL_ES;
-				config.render_major_version = 2;
-				config.render_minor_version = 1;
-				GuiMain->setAttribute(Qt::AA_UseDesktopOpenGL, false);
-				GuiMain->setAttribute(Qt::AA_UseOpenGLES, true);
-			} else if((render == QString::fromUtf8("GL4")) ||
-					 (render == QString::fromUtf8("GL43")) ||
-					 (render == QString::fromUtf8("GL4.3")) ||
-					 (render == QString::fromUtf8("GL4_3")) ||
-					 (render == QString::fromUtf8("GL4_CORE"))) {
-				config.render_platform = CONFIG_RENDER_PLATFORM_OPENGL_CORE;
-				config.render_major_version = 4;
-				config.render_minor_version = 3;
-				GuiMain->setAttribute(Qt::AA_UseDesktopOpenGL, true);
-				GuiMain->setAttribute(Qt::AA_UseOpenGLES, false);
-			}
-		}
-	}
-	if(cmdparser->isSet(*_opt_envver)) {
-		QStringList nList = cmdparser->values(*_opt_envver);
-		QString tv;
-		//QProcessEnvironment ev = QProcessEnvironment::systemEnvironment();
-		QProcessEnvironment ev = _envvers;
-		if(nList.size() > 0) {
-			for(int i = 0; i < nList.size(); i++) {
-				tv = nList.at(i);
-				if(tv.indexOf(QString::fromUtf8("-")) == 0) {
-					// Delete var
-					int n1 = tv.indexOf(QString::fromUtf8("="));
-					if(n1 > 0) {
-						tv = tv.left(n1).right(n1 - 1);
-					} else {
-						tv = tv.right(tv.length() - 1);
-					}
-					printf("DEBUG: DEL ENV:%s\n", tv.toLocal8Bit().constData());
-					ev.remove(tv);
-				} else if(tv.indexOf(QString::fromUtf8("=")) > 0) {
-					// Delete var
-					int n1 = tv.indexOf(QString::fromUtf8("="));
-					QString skey;
-					QString sval;
-					skey = tv.left(n1);
-					if((tv.length() - n1) < 1) {
-						sval = QString::fromUtf8("");
-					} else {
-						sval = tv.right(tv.length() - n1 - 1);
-					}
-					printf("DEBUG: SET ENV:%s to %s\n", skey.toLocal8Bit().constData(), sval.toLocal8Bit().constData());
-					if(skey.length() > 0) ev.insert(skey, sval);
-				} else if(tv.indexOf(QString::fromUtf8("=")) < 0) {
-					printf("DEBUG: SET ENV:%s to (NULL)\n", tv.toLocal8Bit().constData());
-					if(tv.length() > 0) ev.insert(tv, QString::fromUtf8(""));
-				}
-			}
-			_envvers.swap(ev);
-		}
-	}
-	_b_dump_envver = false;
-	if(cmdparser->isSet(*_opt_dump_envver)) {
-		_b_dump_envver = true;
-	}
-#endif
 	uint32_t dipsw_onbits = 0x0000000;
 	uint32_t dipsw_offmask = 0xffffffff;
 	if(cmdparser->isSet(*_opt_dipsw_off)) {
