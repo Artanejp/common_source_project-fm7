@@ -1,3 +1,106 @@
+commit 699bbf012e9670269c408925525a5b4ea27dd418
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Sep 30 15:46:22 2018 +0900
+
+    [General][I18N] Update Japanese translations.
+
+commit da3ec90c8d343af800b45ca298bd4fefca48c7f5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Sep 30 13:53:20 2018 +0900
+
+    [BUILD][MZ2800] Fix FTBFS.
+    [BUILD][VM][SCSI_HDD] Fix FTBFS around SASI_HDD.
+
+commit 80df61fb1e009ab0d229a335f546cd788d54b158
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Sep 30 04:11:23 2018 +0900
+
+    [VM][General] Merge Upstream 20180530.
+
+commit 94927e73fbd17e228fc6f378f498fbbb7a3e29a4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Sep 30 02:12:55 2018 +0900
+
+    [FMGEN][OPN2] Fix FTBFS.
+
+commit 7731ce2890752dc40ae8caad4ed445e7cd2ee4fb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Sep 25 02:31:37 2018 +0900
+
+    [FMGEN][OPN2] Add ToDo.
+
+commit 7e393b83d3a6a82a67c7b1fa0ed67448e61bdc83
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Sep 25 02:29:20 2018 +0900
+
+    [FMGEN] Initial implementation of OPN2 (YM2612) from OPNA.
+
+commit a460a0298d593bb80a9b3bc5da6bad7fdf1a08df
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Sep 25 00:34:10 2018 +0900
+
+    [VM][FMTOWNS][SPRITE] Maybe implemented.May be... (´・ω・｀)
+
+commit 9c3f13a8b9c9b51e247e35047ac76410a0f72d66
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Sep 24 05:02:54 2018 +0900
+
+    [VM][FMTOWNS][WIP] Implementing.Still WIP.
+
+commit fc025b159ca09d059a331fbcd30cb0387f623326
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Sep 23 16:23:58 2018 +0900
+
+    [VM][FMTOWNS][SPRITE][WIP] *Implementing* sprite rendering, this is strongly WIP.
+
+commit 003e13d019f6752dbaa1a07bfa73ba3e55e534b4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Sep 19 04:54:58 2018 +0900
+
+    [VM][FMTOWNS][SPRITE][WIP] Implementing sprite.
+
+commit a87927255906e2d834c0643711ebd33cb3bbed35
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Sep 18 19:12:22 2018 +0900
+
+    [FMTOWNS][MEMORY][WIP] Implementing MMIO, memory bank.
+
+commit a6f80ab3fd43274e9f1778b1ab9a5eb9800fcc37
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Sep 3 18:07:27 2018 +0900
+
+    [VM][FMTONWS][MEMORY][WIP] Use address tables instead of program.
+
+commit f39e49d52d2db4fd8981b5981e6e8f6924dd8180
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Aug 27 19:03:03 2018 +0900
+
+    [VM][FMTOWNS] .
+
+commit 09b3c30c0f9b41f16f0be568bc745116dc544983
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Aug 26 20:56:09 2018 +0900
+
+    [VM][FMTOWNS][WIP] Implementing main memory.
+
+commit 706918bc70e9245015a602563e18a8f22e0cf78d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Aug 7 12:53:56 2018 +0900
+
+    [DOC] Update timestamp of ChangeLog.
+
+commit 7ee98215fdb366ec7198c670d5e90edb60007a09
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Aug 7 12:51:38 2018 +0900
+
+    [VM][FMGEN][WIN32] Fix linkage error.
+
+commit 2222cebdadfc396bcc459f1e919a95717b8115bd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Aug 7 12:46:11 2018 +0900
+
+    [DOC] Update gitlog .
+
 commit 15e4ff0c2cf6c69c43c05834684bbc7ebd5c1713
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Tue Aug 7 12:45:43 2018 +0900

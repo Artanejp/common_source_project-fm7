@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                         August 07, 2018
+                                         September 30, 2018
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -12,7 +12,7 @@
    
    ソースコード：
    
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20180807
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20180930
 
    追加情報:
    
@@ -158,62 +158,46 @@ Changes:
 
 * 前の変更点をお読みになる場合には、ChangeLogと000_gitlog.txtをお読み下さい。
 
-* SNAPSHOT August 07, 2018
-  * Upstream 2018-05-24 .
-  * [VM] Use VM_TEMPLATE, META-Class of VM::
-  * [VM/FM7] Clear OPN/WHG/THG interrupt on resetting. Fix freeze when resetting after using RELICS.
-  * [VM/FM7] DISPLAY: Not use CLR_HACK for MC6809 and delay using CLR to set busy flag.May be working MAGUS.Thanks to Anna_Wu.
-  * [VM/MC6809] Remove dirty CLR insn hack.
-  * [VM/DEVICE] Add DEVICE:: to libCSPcommon_vm.
-  * [COMMON/Qt] Fix BYTEORDER of PIXEL@RGB888.
-  * [UI/Qt][BUG] Fix crash with using LaserDisc(s).
-  * [Qt/OpenGL] Initial support of OpenGL 4.3 Core profile.
-  * [Qt/OpenGL] OpenGL 4.3 : Upload SCREEN using glMapBuffer().
-  * [Qt/OpenGL] Use template class instead of GL2.0.
-  * [UI/Qt] Separate some command line parsing to sub-routines.
-  * [BUILD/WIN32] Update toolchain to Qt5.11.1.
-  * [BUILD] Set SOVERSION and GIT hash automatically.
-  * Built with df3888ca1199c6f75c1500dbb479d152ba6e2ad0 (or later).
+* SNAPSHOT September 30, 2018
+  * Upstream 2018-09-30 .
+  * [General/I18N] Update Japanese translations.
+  * [FMGEN] Initial implementation of OPN2 (YM2612) from OPNA.
+  * [VM/FMTOWNS] WORKING IN PROGRESS, WILL NOT BUILD due to still implement partly.
+  * Built with 699bbf012e9670269c408925525a5b4ea27dd418 (or later).
 
--- August 07, 2018 03:58:14 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- September 30, 2018 15:50:18 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 本家の変更:
 * 前の変更点をお読みになる場合には、history.txtをお読み下さい。
 
-5/24/2018
+9/30/2018
 
-[COMMON] import Mr.Artane.'s fixes (Commits on May 10, 2018)
-[COMMON/FIFO] import Mr.Artane.'s fixes (Commits on May 10, 2018)
-[EMU] support set_vm_screen_lines() (thanks Mr.Artane.)
-[EMU] fix interfaces for bubble cassette
-[EMU] add interfaces for hard disk
-[WINMAIN] add interfaces for hard disk
+[COMMON/FILEIO] improve Fseek for compressed file by gzip
+[EMU] improve to mount/unmount hard disk image in reset() if not hot swappable
+[EMU/DEBUGGER] add commands for checkpoint
+[EMU/DEBUGGER] improve to read/write files in initial current directory
 
-[VM/DEVICE] support read_debug_reg()
-[VM/DISK] import Mr.Artane.'s fixes (Commits on May 10, 2018)
-[VM/HARDDISK] support hard disk handler
-[VM/I286] improve i286 core based on MAME 0.197
-[VM/I286] support read_debug_reg()
-[VM/I386] support read_debug_reg()
-[VM/I8237] fix verify command
-[VM/I8237] support to read bank register by read_signal()
-[VM/MC6809] import Mr.Artane.'s fixes (Commits on May 10, 2018)
-[VM/SCSI_DEV] support SASI specify command
-[VM/SCSI_HDD] improve to use hard disk handler
-[VM/SCSI_HOST] support to read ack signal
+[VM/DISK] improve for case 2D disk is inserted to 2DD drive (thanks Mr.Sato)
+[VM/HARDDISK] support Virtual98 hdd image
+[VM/HARDDISK] improve for solid image file
+[VM/IO] improve debug log
+[VM/MSM58321] fix pulse event (thanks Mr.Artane.)
+[VM/SCSI_DEV] add is_hot_swappable
+[VM/SCSI_HDD] improve to mount/unmount image in reset() if not hot swappable
+[VM/SASI_HDD] support SASI hard disk drive
+[VM/SN76489AN] fix save/load state function
+[VM/UPD71071] fix verify command
 
-[BUBCOM80] support Systems Formulate BUBCOM80
-[FM77AV] import Mr.Artane.'s fixes (Commits on May 10, 2018)
-[FMR30] support to change hard disk image
-[FMR50] support to change hard disk image
-[FMR50/BIOS] improve to use hard disk handler
-[MZ2500] support to select floppy drive type 2DD/2D
-[MZ2500] support to change hard disk image
-[MZ2500/MZ1E30] reimplent SASI I/F with general SCSI host/hard disk device
-[PC9801/CPUREG] support NMI enable/disable
-[PC9801/MEMBUS] improve for 24bit/32bit address
-[PC9801/SASI] support SASI I/F and hard disk drives
-[X1TURBO/SASI] support SASI I/F and hard disk drives
+[FM77L4] add eFM77L4 codes (thanks Mr.Artane.)
+[MZ80A] improve to switch 2D/2DD drive type
+[MZ80B] improve to switch 2D/2DD drive type
+[MZ1500] improve to switch 2D/2DD drive type
+[MZ2500] improve to switch 2D/2DD drive type
+[MZ2800/FLOPPY] improve to switch 2D/2DD drive type
+[MZ2800/SASI] support SASI I/F and HDD (partial)
+[PC98XA] support NEC PC-98XA
+[PC9801/MEMBUS] fix save/load state function
+[X1TURBO/FLOPPY] improve to switch 2D/2DD drive type (thanks Mr.Sato)
 
 -----
 

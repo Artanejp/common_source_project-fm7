@@ -1,5 +1,14 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT September 30, 2018
+  * Upstream 2018-09-30 .
+  * [General/I18N] Update Japanese translations.
+  * [FMGEN] Initial implementation of OPN2 (YM2612) from OPNA.
+  * [VM/FMTOWNS] WORKING IN PROGRESS, WILL NOT BUILD due to still implement partly.
+  * Built with 699bbf012e9670269c408925525a5b4ea27dd418 (or later).
+
+-- September 30, 2018 15:50:18 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT August 07, 2018
   * Upstream 2018-05-24 .
   * [VM] Use VM_TEMPLATE, META-Class of VM::
