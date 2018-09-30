@@ -11,6 +11,7 @@ set(BASIC_VM_FILES
 	   memory.cpp
 	   mouse.cpp
 	   reset.cpp
+	   sasi.cpp
 	   serial.cpp
 	   sysport.cpp
 	   printer.cpp

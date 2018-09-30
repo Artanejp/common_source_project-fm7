@@ -23,7 +23,7 @@ private:
 //protected:
 //	csp_state_utils *state_entry;
 
-	_TCHAR image_path[8][MAX_PATH];
+	_TCHAR image_path[8][_MAX_PATH];
 	int sector_size[8];
  	
 public:

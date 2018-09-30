@@ -182,7 +182,7 @@ void SCSI_HDD::decl_state()
 	enter_decl_state(STATE_VERSION);
 
 	for(int i = 0; i < 8; i++) {
-		DECL_STATE_ENTRY_STRING_MEMBER(&(image_path[i][0]), MAX_PATH, i);
+		DECL_STATE_ENTRY_STRING_MEMBER(&(image_path[i][0]), _MAX_PATH, i);
 	}
 	DECL_STATE_ENTRY_1D_ARRAY(sector_size, sizeof(sector_size) / sizeof(int));  
 	leave_decl_state();
@@ -236,3 +236,47 @@ bool SCSI_HDD::load_state(FILEIO* state_fio)
 	return true;
 }
 
+int SASI_HDD::get_command_length(int value)
+{
+	return SCSI_HDD::get_command_length(value);
+}
+
+void SASI_HDD::start_command()
+{
+	switch(command[0]) {
+	case SCSI_CMD_REQ_SENSE:
+		#ifdef _SCSI_DEBUG_LOG
+			this->out_debug_log(_T("[SASI_HDD:ID=%d] Command: Request Sense\n"), scsi_id);
+		#endif
+		// start position
+		position = (command[1] & 0x1f) * 0x10000 + command[2] * 0x100 + command[3];
+		position *= physical_block_size();
+		// transfer length
+		remain = 4;
+		// create sense data table
+		buffer->clear();
+		buffer->write(get_sense_code());
+		buffer->write(((max_logical_block_addr() >> 16) & 0x1f) | (get_logical_unit_number() << 5));
+		buffer->write(((max_logical_block_addr() >>  8) & 0xff));
+		buffer->write(((max_logical_block_addr() >>  0) & 0xff));
+		// change to data in phase
+		set_dat(buffer->read());
+		set_phase_delay(SCSI_PHASE_DATA_IN, 10.0);
+		set_sense_code(SCSI_SENSE_NOSENSE);
+		return;
+		
+	case 0xc2:
+		#ifdef _SCSI_DEBUG_LOG
+			this->out_debug_log(_T("[SASI_HDD:ID=%d] Command: SASI Command 0xC2\n"), scsi_id);
+		#endif
+		// transfer length
+		remain = 10; // DTCŒn (ƒgƒ‰ƒ“ƒWƒXƒ^‹ZpSPECIAL No.27, P.88)
+		// clear data buffer
+		buffer->clear();
+		// change to data in phase
+		set_phase_delay(SCSI_PHASE_DATA_OUT, 1.0);
+		return;
+	}
+	// start standard command
+	SCSI_HDD::start_command();
+}

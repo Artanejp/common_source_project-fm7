@@ -20,7 +20,9 @@ set(WITH_MOUSE ON)
 
 set(VMFILES
 		   mz1p17.cpp
-		   
+		   scsi_dev.cpp
+		   scsi_hdd.cpp
+		   scsi_host.cpp
 		   event.cpp
 		   io.cpp
 )
