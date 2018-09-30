@@ -4,12 +4,12 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="MainWindow.cpp" line="43"/>
+        <location filename="MainWindow.cpp" line="34"/>
         <source>NEC PC-PR201 kanji serial printer.</source>
         <translation>NEC PC-PR201漢字シリアルプリンタを接続します。</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="45"/>
+        <location filename="MainWindow.cpp" line="37"/>
         <source>MainWindow</source>
         <translation type="unfinished"></translation>
     </message>

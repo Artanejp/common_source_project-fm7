@@ -308,7 +308,7 @@ THG(3枚目のFM音源ボード)を使います。</translation>
     </message>
     <message>
         <source>MainWindow</source>
-        <translation>MainWindow</translation>
+        <translation type="vanished">MainWindow</translation>
     </message>
     <message>
         <source>Hot Start(BREAK+RESET)</source>
@@ -656,11 +656,32 @@ Need to restart this emulator if changed.</source>
     </message>
     <message>
         <source>Green Display</source>
-        <translation>グリーンディスプレイ</translation>
+        <translation type="vanished">グリーンディスプレイ</translation>
     </message>
     <message>
         <source>Using ancient &quot;Green Display&quot; to display.</source>
-        <translation>いにしえのグリーンディスプレイで表示します。</translation>
+        <translation type="vanished">いにしえのグリーンディスプレイで表示します。</translation>
+    </message>
+    <message>
+        <source>Color Display (need reset)</source>
+        <translation>カラーCRT(リセットが必要)</translation>
+    </message>
+    <message>
+        <source>Using color display.
+Changes will be applied at reset, not immediately.</source>
+        <translation>カラーディスプレイで表示します。
+リセット後に変更が反映されます。</translation>
+    </message>
+    <message>
+        <source>Green Display (need reset)</source>
+        <translatorcomment>グリーンディスプレイ(リセットが必要)</translatorcomment>
+        <translation>グリーンディスプレイ(リセットが必要)</translation>
+    </message>
+    <message>
+        <source>Using ancient &quot;Green Display&quot; to display.
+Changes will be applied at reset, not immediately.</source>
+        <translation>古の「グリーンディスプレイ」で表示します。
+変更はリセット後に反映されます。</translation>
     </message>
 </context>
 <context>

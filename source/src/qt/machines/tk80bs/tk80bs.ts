@@ -4,30 +4,59 @@
 <context>
     <name>Machine</name>
     <message>
-        <location filename="MainWindow.cpp" line="35"/>
         <source>BOOT Mode</source>
-        <translation>起動モード</translation>
+        <translation type="vanished">起動モード</translation>
     </message>
 </context>
 <context>
-    <name>MainWindow</name>
+    <name>MachineTK80BS</name>
     <message>
-        <location filename="MainWindow.cpp" line="42"/>
-        <source>MainWindow</source>
-        <translation type="unfinished"></translation>
+        <location filename="MainWindow.cpp" line="64"/>
+        <source>RAM</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="66"/>
+        <source>BS-CMT</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="68"/>
+        <source>STEP/AUTO</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="69"/>
+        <source>If enabled, interrupt per instruction.
+Useful for debugging.</source>
+        <translation>可能ならば、各命令ごとに割り込みをかけます。
+デバッグに有用です。</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="72"/>
+        <source>BOOT Mode</source>
+        <translation>起動モード</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="77"/>
+        <source>Use L1 BASIC.</source>
+        <translation>L1 BASICを使用します。</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="78"/>
+        <source>Use L2 BASIC.</source>
+        <translation>L2 BASICを使用します。</translation>
     </message>
 </context>
 <context>
     <name>mainWindow</name>
     <message>
-        <location filename="MainWindow.cpp" line="39"/>
         <source>Use L1 BASIC.</source>
-        <translation>L1 BASICを使用します。</translation>
+        <translation type="vanished">L1 BASICを使用します。</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="40"/>
         <source>Use L2 BASIC.</source>
-        <translation>L2 BASICを使用します。</translation>
+        <translation type="vanished">L2 BASICを使用します。</translation>
     </message>
 </context>
 </TS>

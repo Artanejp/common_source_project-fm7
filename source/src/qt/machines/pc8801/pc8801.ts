@@ -278,5 +278,13 @@ PC-8001専用のモードです。</translation>
         <source>Simulate waiting memory.</source>
         <translation>メモリウェイトをシミュレートします。</translation>
     </message>
+    <message>
+        <source>High Resolution</source>
+        <translation>ハイレゾモード</translation>
+    </message>
+    <message>
+        <source>Standard</source>
+        <translation>通常モード</translation>
+    </message>
 </context>
 </TS>

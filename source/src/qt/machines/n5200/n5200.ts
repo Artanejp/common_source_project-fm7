@@ -2,11 +2,19 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="ja_JP">
 <context>
+    <name>Machine</name>
+    <message>
+        <location filename="MainWindow.cpp" line="35"/>
+        <source>Main CPU</source>
+        <translation>メインCPU</translation>
+    </message>
+</context>
+<context>
     <name>MainWindow</name>
     <message>
         <location filename="MainWindow.cpp" line="38"/>
         <source>MainWindow</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="MainWindow.cpp" line="40"/>

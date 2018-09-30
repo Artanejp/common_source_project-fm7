@@ -2,61 +2,54 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="ja_JP">
 <context>
-    <name>MainWindow</name>
+    <name>Machine</name>
     <message>
-        <location filename="MainWindow.cpp" line="38"/>
-        <source>Do system reset.</source>
-        <translation>システムリセットします。</translation>
-    </message>
-    <message>
-        <location filename="MainWindow.cpp" line="39"/>
+        <location filename="MainWindow.cpp" line="29"/>
         <source>Option Cartridge</source>
         <translation>オプションカートリッジ</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="41"/>
+        <location filename="MainWindow.cpp" line="31"/>
         <source>None</source>
         <translation>なし</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="42"/>
+        <location filename="MainWindow.cpp" line="32"/>
         <source>Intelligent RAM Disk</source>
         <translation>インテリジェントRAMディスク</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="43"/>
+        <location filename="MainWindow.cpp" line="33"/>
         <source>Non-intelligent RAM Disk</source>
         <translation>RAMディスク</translation>
     </message>
+</context>
+<context>
+    <name>MainWindow</name>
     <message>
-        <location filename="MainWindow.cpp" line="45"/>
-        <source>MainWindow</source>
-        <translation type="unfinished"></translation>
+        <location filename="MainWindow.cpp" line="28"/>
+        <source>Do system reset.</source>
+        <translation>システムリセットします。</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="47"/>
-        <source>About...</source>
-        <translation type="unfinished"></translation>
+        <source>Option Cartridge</source>
+        <translation type="vanished">オプションカートリッジ</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="49"/>
-        <source>Emulator</source>
-        <translation type="unfinished"></translation>
+        <source>None</source>
+        <translation type="vanished">なし</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="50"/>
-        <source>Machine</source>
-        <translation type="unfinished"></translation>
+        <source>Intelligent RAM Disk</source>
+        <translation type="vanished">インテリジェントRAMディスク</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="52"/>
+        <source>Non-intelligent RAM Disk</source>
+        <translation type="vanished">RAMディスク</translation>
+    </message>
+    <message>
         <source>HELP</source>
-        <translation>ヘルプ</translation>
-    </message>
-    <message>
-        <location filename="MainWindow.cpp" line="53"/>
-        <source>About Qt</source>
-        <translation type="unfinished"></translation>
+        <translation type="vanished">ヘルプ</translation>
     </message>
 </context>
 </TS>

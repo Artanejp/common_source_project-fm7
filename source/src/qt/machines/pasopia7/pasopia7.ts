@@ -4,7 +4,7 @@
 <context>
     <name>Machine</name>
     <message>
-        <location filename="MainWindow.cpp" line="45"/>
+        <location filename="MainWindow.cpp" line="33"/>
         <source>BOOT Mode</source>
         <translation>起動モード</translation>
     </message>
@@ -12,33 +12,33 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="MainWindow.cpp" line="44"/>
-        <location filename="MainWindow.cpp" line="54"/>
+        <location filename="MainWindow.cpp" line="32"/>
+        <location filename="MainWindow.cpp" line="42"/>
         <source>RAMPAC</source>
         <translation>RAMパック</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="53"/>
+        <location filename="MainWindow.cpp" line="41"/>
         <source>Extra connector</source>
         <translation>拡張コネクタ</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="55"/>
+        <location filename="MainWindow.cpp" line="43"/>
         <source>Kanji ROM</source>
         <translation>漢字ROM</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="56"/>
+        <location filename="MainWindow.cpp" line="44"/>
         <source>Joystick</source>
         <translation>ジョイスティック</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="60"/>
+        <location filename="MainWindow.cpp" line="48"/>
         <source>RAMPAC1</source>
         <translation>RAMパック1</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="63"/>
+        <location filename="MainWindow.cpp" line="51"/>
         <source>RAMPAC2</source>
         <translation>RAMパック2</translation>
     </message>

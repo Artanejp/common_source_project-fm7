@@ -44,27 +44,27 @@
     </message>
     <message>
         <source>Custom home directory.</source>
-        <translation>自前のホームディレクトリを設定します。</translation>
+        <translation type="vanished">自前のホームディレクトリを設定します。</translation>
     </message>
     <message>
         <source>Custom config file (without path).</source>
-        <translation>自前の設定ファイルを設定します。パスはいりません。</translation>
+        <translation type="vanished">自前の設定ファイルを設定します。パスはいりません。</translation>
     </message>
     <message>
         <source>Custom config directory.</source>
-        <translation>自前の設定ファイルディレクトリを設定します。</translation>
+        <translation type="vanished">自前の設定ファイルディレクトリを設定します。</translation>
     </message>
     <message>
         <source>Custom resource directory (ROMs, WAVs, etc).</source>
-        <translation>自前のリソースディレクトリ（BIOS ROM WAVなど）を設定します。</translation>
+        <translation type="vanished">自前のリソースディレクトリ（BIOS ROM WAVなど）を設定します。</translation>
     </message>
     <message>
         <source>Turn on &lt;onbit&gt; of dip switch.</source>
-        <translation>DIPSWの&lt;onbit&gt;ビットをONにします。</translation>
+        <translation type="vanished">DIPSWの&lt;onbit&gt;ビットをONにします。</translation>
     </message>
     <message>
         <source>Turn off &lt;offbit&gt; of dip switch.</source>
-        <translation>DIPSWの&lt;offbit&gt;ビットをOFFにします。</translation>
+        <translation type="vanished">DIPSWの&lt;offbit&gt;ビットをOFFにします。</translation>
     </message>
     <message>
         <source>Set virtual hard drive %1.</source>
@@ -72,15 +72,15 @@
     </message>
     <message>
         <source>Force set using renderer type.</source>
-        <translation>強制的に描画方法を設定します。</translation>
+        <translation type="vanished">強制的に描画方法を設定します。</translation>
     </message>
     <message>
         <source>Set / Delete environment variable.</source>
-        <translation>エミュレータに渡す環境変数を設定/削除します。</translation>
+        <translation type="vanished">エミュレータに渡す環境変数を設定/削除します。</translation>
     </message>
     <message>
         <source>Dump environment variables.</source>
-        <translation>使われる環境変数の一覧を表示します。</translation>
+        <translation type="vanished">使われる環境変数の一覧を表示します。</translation>
     </message>
 </context>
 </TS>

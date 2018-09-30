@@ -4,12 +4,7 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="MainWindow.cpp" line="39"/>
-        <source>MainWindow</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="MainWindow.cpp" line="40"/>
+        <location filename="MainWindow.cpp" line="29"/>
         <source>Do system reset.</source>
         <translation>システムリセットします。</translation>
     </message>

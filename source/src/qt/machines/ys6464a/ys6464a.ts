@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1">
+<TS version="2.1" language="ja_JP">
 <context>
-    <name>MainWindow</name>
+    <name>MenuYS6464</name>
     <message>
-        <location filename="MainWindow.cpp" line="32"/>
-        <source>MainWindow</source>
-        <translation type="unfinished"></translation>
+        <location filename="MainWindow.cpp" line="28"/>
+        <source>RAM</source>
+        <translation></translation>
     </message>
 </context>
 </TS>

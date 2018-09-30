@@ -2,10 +2,15 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="ja_JP">
 <context>
-    <name>MainWindow</name>
+    <name>MenuFM16B</name>
     <message>
-        <location filename="MainWindow.cpp" line="42"/>
-        <source>MainWindow</source>
+        <location filename="MainWindow.cpp" line="28"/>
+        <source>1MB FDD</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="29"/>
+        <source>320K FDD</source>
         <translation></translation>
     </message>
 </context>

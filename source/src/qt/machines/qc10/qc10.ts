@@ -4,19 +4,14 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="MainWindow.cpp" line="60"/>
+        <location filename="MainWindow.cpp" line="51"/>
         <source>DIP Switches</source>
         <translation>DIPスイッチ</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="63"/>
+        <location filename="MainWindow.cpp" line="54"/>
         <source>DIP Switch #</source>
         <translation>DIPスイッチ #</translation>
-    </message>
-    <message>
-        <location filename="MainWindow.cpp" line="67"/>
-        <source>MainWindow</source>
-        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

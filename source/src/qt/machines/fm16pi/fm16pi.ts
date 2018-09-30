@@ -4,7 +4,7 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="MainWindow.cpp" line="42"/>
+        <location filename="MainWindow.cpp" line="32"/>
         <source>MainWindow</source>
         <translation type="unfinished"></translation>
     </message>
