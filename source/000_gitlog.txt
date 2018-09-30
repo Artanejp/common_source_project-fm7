@@ -1,3 +1,16 @@
+commit d84c1bcfd7b3af192ca3bf4a315cd53cb74074c9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Sep 30 17:51:18 2018 +0900
+
+    [TOOL] Add binary BLOBs.
+
+commit a4013ec0755b9910c0139c345803322e0c75668d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Sep 30 17:43:39 2018 +0900
+
+    [DOC] Update for release.
+    [DOC][PC9801] Update VM's doc.
+
 commit ecf1a85f48bd98c353ea90bc3a0a49ff100b9af4
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sun Sep 30 17:38:28 2018 +0900
