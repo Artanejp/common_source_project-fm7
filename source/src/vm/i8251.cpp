@@ -231,72 +231,27 @@ void I8251::event_callback(int event_id, int err)
 
 #define STATE_VERSION	1
 
-#include "../statesub.h"
-
-void I8251::decl_state()
+bool I8251::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_UINT8(recv);
-	DECL_STATE_ENTRY_UINT8(status);
-	DECL_STATE_ENTRY_UINT8(mode);
-	DECL_STATE_ENTRY_BOOL(txen);
-	DECL_STATE_ENTRY_BOOL(rxen);
-	DECL_STATE_ENTRY_BOOL(loopback);
-	//recv_buffer->save_state((void *)state_fio);
-	//send_buffer->save_state((void *)state_fio);
-	DECL_STATE_ENTRY_INT32(recv_id);
-	DECL_STATE_ENTRY_INT32(send_id);
-	
-	leave_decl_state();
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+	state_fio->StateUint8(recv);
+	state_fio->StateUint8(status);
+	state_fio->StateUint8(mode);
+	state_fio->StateBool(txen);
+	state_fio->StateBool(rxen);
+	state_fio->StateBool(loopback);
+	if(!recv_buffer->process_state((void *)state_fio, loading)) {
+ 		return false;
+ 	}
+	if(!send_buffer->process_state((void *)state_fio, loading)) {
+ 		return false;
+ 	}
+	state_fio->StateInt32(recv_id);
+	state_fio->StateInt32(send_id);
+ 	return true;
 }
-void I8251::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->FputUint8(recv);
-//	state_fio->FputUint8(status);
-//	state_fio->FputUint8(mode);
-//	state_fio->FputBool(txen);
-//	state_fio->FputBool(rxen);
-//	state_fio->FputBool(loopback);
-	recv_buffer->save_state((void *)state_fio);
-	send_buffer->save_state((void *)state_fio);
-//	state_fio->FputInt32(recv_id);
-//	state_fio->FputInt32(send_id);
-}
-
-bool I8251::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	recv = state_fio->FgetUint8();
-//	status = state_fio->FgetUint8();
-//	mode = state_fio->FgetUint8();
-//	txen = state_fio->FgetBool();
-//	rxen = state_fio->FgetBool();
-//	loopback = state_fio->FgetBool();
-	if(!recv_buffer->load_state((void *)state_fio)) {
-		return false;
-	}
-	if(!send_buffer->load_state((void *)state_fio)) {
-		return false;
-	}
-//	recv_id = state_fio->FgetInt32();
-//	send_id = state_fio->FgetInt32();
-	return true;
-}
-

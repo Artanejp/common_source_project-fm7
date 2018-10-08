@@ -724,162 +724,53 @@ void YM2203::update_timing(int new_clocks, double new_frames_per_sec, int new_li
 
 #define STATE_VERSION	4
 
-#include "../statesub.h"
-
-void YM2203::decl_state()
+bool YM2203::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
 
-#ifdef SUPPORT_MAME_FM_DLL
-	//DECL_STATE_ENTRY_1D_ARRAY(port_log, sizeof(port_log));
-	for(int i = 0; i < 0x200; i++) {
-		DECL_STATE_ENTRY_BOOL_MEMBER((port_log[i].written), i);
-		DECL_STATE_ENTRY_UINT8_MEMBER((port_log[i].data), i);
-	}
-#endif
-	DECL_STATE_ENTRY_UINT8(ch);
-	DECL_STATE_ENTRY_UINT8(fnum2);
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+ 	}
 	if(_HAS_YM2608) {
-		DECL_STATE_ENTRY_UINT8(ch1);
-		DECL_STATE_ENTRY_UINT8(data1);
-		DECL_STATE_ENTRY_UINT8(fnum21);
-	}
-	if(_SUPPORT_YM2203_PORT) {
-		for(int i = 0; i < 2; i++) {
-			DECL_STATE_ENTRY_UINT8_MEMBER((port[i].wreg), i);
-			DECL_STATE_ENTRY_UINT8_MEMBER((port[i].rreg), i);
-			DECL_STATE_ENTRY_BOOL_MEMBER((port[i].first), i);
-		}
-		DECL_STATE_ENTRY_UINT8(mode);
-	}
-	DECL_STATE_ENTRY_INT32(chip_clock);
-	DECL_STATE_ENTRY_BOOL(irq_prev);
-	DECL_STATE_ENTRY_BOOL(mute);
-	DECL_STATE_ENTRY_UINT32(clock_prev);
-	DECL_STATE_ENTRY_UINT32(clock_accum);
-	DECL_STATE_ENTRY_UINT32(clock_const);
-	DECL_STATE_ENTRY_UINT32(clock_busy);
-	DECL_STATE_ENTRY_INT32(timer_event_id);
-	DECL_STATE_ENTRY_BOOL(busy);
-	DECL_STATE_ENTRY_INT32(decibel_vol);
-	DECL_STATE_ENTRY_INT32(left_volume);
-	DECL_STATE_ENTRY_INT32(right_volume);
-	DECL_STATE_ENTRY_INT32(v_left_volume);
-	DECL_STATE_ENTRY_INT32(v_right_volume);
-	
-	leave_decl_state();
-
-	if((_HAS_YM2608) && (is_ym2608)) {
-		opna->DeclState((void *)p_logger);
+		if(!opna->ProcessState((void *)state_fio, loading)) {
+ 			return false;
+ 		}
 	} else {
-		opn->DeclState((void *)p_logger);
-	}
-}
-
-void YM2203::save_state(FILEIO* state_fio)
-{
-	//state_fio->FputUint32(STATE_VERSION);
-	//state_fio->FputInt32(this_device_id);
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-	if(is_ym2608 && _HAS_YM2608) {
-		opna->SaveState((void *)state_fio);
-	} else {
-		opn->SaveState((void *)state_fio);
-	}
-//#ifdef SUPPORT_MAME_FM_DLL
-//	state_fio->Fwrite(port_log, sizeof(port_log), 1);
-//#endif
-//	state_fio->FputUint8(ch);
-//	state_fio->FputUint8(fnum2);
-//	if(_HAS_YM2608) {
-//		state_fio->FputUint8(ch1);
-//		state_fio->FputUint8(data1);
-//		state_fio->FputUint8(fnum21);
-//	}
-
-//	if(_SUPPORT_YM2203_PORT) {
-//		for(int i = 0; i < 2; i++) {
-//			state_fio->FputUint8(port[i].wreg);
-//			state_fio->FputUint8(port[i].rreg);
-//			state_fio->FputBool(port[i].first);
-//		}
-//		state_fio->FputUint8(mode);
-//	}
-//	state_fio->FputInt32(chip_clock);
-//	state_fio->FputBool(irq_prev);
-//	state_fio->FputBool(mute);
-//	state_fio->FputUint32(clock_prev);
-//	state_fio->FputUint32(clock_accum);
-//	state_fio->FputUint32(clock_const);
-//	state_fio->FputUint32(clock_busy);
-//	state_fio->FputInt32(timer_event_id);
-//	state_fio->FputBool(busy);
-//	state_fio->FputInt32(decibel_vol);
-//	state_fio->FputInt32(left_volume);
-//	state_fio->FputInt32(right_volume);
-//	state_fio->FputInt32(v_left_volume);
-//	state_fio->FputInt32(v_right_volume);
-//	out_debug_log("SAVE: ID=%d FNUM2=%d FNUM21=%d CHIP_CLOCK=%d\n", this_device_id, fnum2, fnum21, chip_clock); 
-}
-
-bool YM2203::load_state(FILEIO* state_fio)
-{
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-	//if(!opn->LoadState((void *)state_fio)) {
-	//	return false;
-	//}
-	if(is_ym2608 && _HAS_YM2608) {
-		if(!opna->LoadState((void *)state_fio)) {
-			return false;
-		}
-	} else {
-		if(!opn->LoadState((void *)state_fio)) {
+		if(!opn->ProcessState((void *)state_fio, loading)) {
 			return false;
 		}
 	}
-//#ifdef SUPPORT_MAME_FM_DLL
-//	state_fio->Fread(port_log, sizeof(port_log), 1);
-//#endif
-//	ch = state_fio->FgetUint8();
-//	fnum2 = state_fio->FgetUint8();
-//	if(_HAS_YM2608) {
-//		ch1 = state_fio->FgetUint8();
-//		data1 = state_fio->FgetUint8();
-//		fnum21 = state_fio->FgetUint8();
-//	}
-//	if(_SUPPORT_YM2203_PORT) {
-//		for(int i = 0; i < 2; i++) {
-//			port[i].wreg = state_fio->FgetUint8();
-//			port[i].rreg = state_fio->FgetUint8();
-//			port[i].first = state_fio->FgetBool();
-//		}
-//		mode = state_fio->FgetUint8();
-//	}
-//	chip_clock = state_fio->FgetInt32();
-//	irq_prev = state_fio->FgetBool();
-//	mute = state_fio->FgetBool();
-//	clock_prev = state_fio->FgetUint32();
-//	clock_accum = state_fio->FgetUint32();
-//	clock_const = state_fio->FgetUint32();
-//	clock_busy = state_fio->FgetUint32();
-//	timer_event_id = state_fio->FgetInt32();
-//	busy = state_fio->FgetBool();
-
 #ifdef SUPPORT_MAME_FM_DLL
-	// post process
-	if(dllchip) {
+	state_fio->StateBuffer(port_log, sizeof(port_log), 1);
+#endif
+	state_fio->StateUint8(ch);
+	state_fio->StateUint8(fnum2);
+	if(_HAS_YM2608) {
+		state_fio->StateUint8(ch1);
+		state_fio->StateUint8(data1);
+		state_fio->StateUint8(fnum21);
+	}
+ 	for(int i = 0; i < 2; i++) {
+		state_fio->StateUint8(port[i].wreg);
+		state_fio->StateUint8(port[i].rreg);
+		state_fio->StateBool(port[i].first);
+ 	}
+	state_fio->StateUint8(mode);
+	state_fio->StateInt32(chip_clock);
+	state_fio->StateBool(irq_prev);
+	state_fio->StateBool(mute);
+	state_fio->StateUint32(clock_prev);
+	state_fio->StateUint32(clock_accum);
+	state_fio->StateUint32(clock_const);
+	state_fio->StateUint32(clock_busy);
+	state_fio->StateInt32(timer_event_id);
+	state_fio->StateBool(busy);
+ 	
+#ifdef SUPPORT_MAME_FM_DLL
+ 	// post process
+	if(loading && dllchip) {
 		fmdll->Reset(dllchip);
 		for(int i = 0; i < 0x200; i++) {
 			// write fnum2 before fnum1
@@ -888,24 +779,17 @@ bool YM2203::load_state(FILEIO* state_fio)
 				fmdll->SetReg(dllchip, _ch, port_log[ch].data);
 			}
 		}
-#ifdef HAS_YM2608
-		if(is_ym2608) {
-			BYTE *dest = fmdll->GetADPCMBuffer(dllchip);
-			if(dest != NULL) {
-				memcpy(dest, opna->GetADPCMBuffer(), 0x40000);
+		if(_HAS_YM2608) {
+			if(is_ym2608) {
+				BYTE *dest = fmdll->GetADPCMBuffer(dllchip);
+				if(dest != NULL) {
+					memcpy(dest, opna->GetADPCMBuffer(), 0x40000);
+				}
 			}
 		}
-#endif
 	}
 #endif
-	//decibel_vol = state_fio->FgetInt32();
-	//left_volume = state_fio->FgetInt32();
-	//right_volume = state_fio->FgetInt32();
-	//v_left_volume = state_fio->FgetInt32();
-	//v_right_volume = state_fio->FgetInt32();
-	//touch_sound();
-//	out_debug_log("LOAD: ID=%d FNUM2=%d FNUM21=%d CHIP_CLOCK=%d\n", this_device_id, fnum2, fnum21, chip_clock);
-	
 	return true;
 }
+
 

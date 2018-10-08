@@ -16,24 +16,6 @@
 
 #define PRINTF_TLB          (0)
 
-/***************************************************************************
-    TYPE DEFINITIONS
-***************************************************************************/
-/* VTLB state */
-struct vtlb_state
-{
-	void *              cpudevice;          /* CPU device */
-	address_spacenum    space;              /* address space */
-	int                 dynamic;            /* number of dynamic entries */
-	int                 fixed;              /* number of fixed entries */
-	int                 dynindex;           /* index of next dynamic entry */
-	int                 pageshift;          /* bits to shift to get page index */
-	int                 addrwidth;          /* logical address bus width */
-	offs_t *            live;               /* array of live entries by table index */
-	int *               fixedpages;         /* number of pages each fixed entry covers */
-	vtlb_entry *        table;              /* table of entries by address */
-	vtlb_entry *        save;               /* cache of live table entries for saving */
-};
 
 /***************************************************************************
     INITIALIZATION/TEARDOWN
@@ -70,16 +52,19 @@ vtlb_state *I386_OPS_BASE::vtlb_alloc(void *cpu, address_spacenum space, int fix
 
 	/* allocate the entry array */
 	vtlb->live = (offs_t *)calloc(fixed_entries + dynamic_entries, sizeof(offs_t));
+	vtlb->live_size = (fixed_entries + dynamic_entries) * sizeof(offs_t);
 //	cpu->save_pointer(NAME(vtlb->live), fixed_entries + dynamic_entries, space);
 
 	/* allocate the lookup table */
 	vtlb->table = (vtlb_entry *)calloc((size_t) 1 << (vtlb->addrwidth - vtlb->pageshift), sizeof(vtlb_entry));
+	vtlb->table_size = ((size_t) 1 << (vtlb->addrwidth - vtlb->pageshift)) * sizeof(vtlb_entry);
 //	cpu->save_pointer(NAME(vtlb->table), 1 << (vtlb->addrwidth - vtlb->pageshift), space);
 
 	/* allocate the fixed page count array */
 	if (fixed_entries > 0)
 	{
 		vtlb->fixedpages = (int *)calloc(fixed_entries, sizeof(int));
+		vtlb->fixedpages_size = fixed_entries * sizeof(int);
 //		cpu->save_pointer(NAME(vtlb->fixedpages), fixed_entries, space);
 	}
 	return vtlb;

@@ -268,3 +268,59 @@ bool I386::load_state(FILEIO *state_fio)
 	cpucore->set_shutdown_flag(0);
 	return true;
 }
+
+void I386::cpu_table_call(void)
+{
+#if defined(HAS_I386)
+	cpucore->cpu_table_i386();
+#elif defined(HAS_I486)
+	cpucore->cpu_table_i486();
+#elif defined(HAS_PENTIUM)
+	cpucore->cpu_table_pentium();
+#elif defined(HAS_MEDIAGX)
+	cpucore->cpu_table_mediagx();
+#elif defined(HAS_PENTIUM_PRO)
+	cpucore->cpu_table_pentium_pro();
+#elif defined(HAS_PENTIUM_MMX)
+	cpucore->cpu_table_pentium_mmx();
+#elif defined(HAS_PENTIUM2)
+	cpucore->cpu_table_pentium2();
+#elif defined(HAS_PENTIUM3)
+	cpucore->cpu_table_pentium3();
+#elif defined(HAS_PENTIUM4)
+	cpucore->cpu_table_pentium4();
+#endif
+}
+
+
+bool I386::process_state(FILEIO* state_fio, bool loading)
+{
+	i386_state *cpustate = cpucore->get_cpu_state();
+	if(!(I386_BASE::process_state(state_fio, loading))) return false;
+//	if(save != NULL && save_size > 0) {
+//		state_fio->StateBuffer(save, save_size, 1);
+//	}
+
+	// post process
+	if(loading) {
+#ifdef I86_PSEUDO_BIOS
+		cpustate->bios = d_bios;
+#endif
+#ifdef SINGLE_MODE_DMA
+		cpustate->dma = d_dma;
+#endif
+#ifdef USE_DEBUGGER
+		cpustate->emu = emu;
+		cpustate->debugger = d_debugger;
+		cpustate->program_stored = d_mem;
+		cpustate->io_stored = d_io;
+		cpustate->prev_total_cycles = cpustate->total_cycles;
+#endif
+		cpu_table_call();
+		
+		cpucore->set_context_pic(d_pic);
+		cpucore->set_context_progmem(d_mem);
+		cpucore->set_context_io(d_io);
+	}
+	return true;
+}

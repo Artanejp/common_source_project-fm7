@@ -3017,6 +3017,13 @@ CPU_INIT( i386 )
 	return cpustate;
 }
 
+CPU_TABLE( i386 )
+{
+	build_opcode_table(cpustate, OP_I386);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_I386];
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_I386];
+}
+
 static void build_opcode_table(i386_state *cpustate, UINT32 features)
 {
 	int i;
@@ -3597,6 +3604,14 @@ static CPU_INIT( i486 )
 	return cpustate;
 }
 
+static CPU_TABLE( i486 )
+{
+	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486);
+	build_x87_opcode_table(cpustate);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_I486];
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_I486];
+}
+
 static CPU_RESET( i486 )
 {
 	zero_state(cpustate);
@@ -3650,6 +3665,15 @@ static CPU_INIT( pentium )
 	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];
 	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];
 	return cpustate;
+}
+
+static CPU_TABLE( pentium )
+{
+	// 64 dtlb small, 8 dtlb large, 32 itlb
+	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM);
+	build_x87_opcode_table(cpustate);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];
 }
 
 static CPU_RESET( pentium )
@@ -3724,6 +3748,15 @@ static CPU_INIT( mediagx )
 	return cpustate;
 }
 
+static CPU_TABLE( mediagx )
+{
+	// probably 32 unified
+	build_x87_opcode_table(cpustate);
+	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_CYRIX);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_MEDIAGX];
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_MEDIAGX];
+}
+
 static CPU_RESET( mediagx )
 {
 	zero_state(cpustate);
@@ -3786,6 +3819,15 @@ static CPU_INIT( pentium_pro )
 	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
 	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
 	return cpustate;
+}
+
+static CPU_TABLE( pentium_pro )
+{
+	// 64 dtlb small, 32 itlb
+	build_x87_opcode_table(cpustate);
+	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
 }
 
 static CPU_RESET( pentium_pro )
@@ -3861,6 +3903,15 @@ static CPU_INIT( pentium_mmx )
 	return cpustate;
 }
 
+static CPU_TABLE( pentium_mmx )
+{
+	// 64 dtlb small, 8 dtlb large, 32 itlb small, 2 itlb large
+	build_x87_opcode_table(cpustate);
+	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_MMX);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+}
+
 static CPU_RESET( pentium_mmx )
 {
 	zero_state(cpustate);
@@ -3933,6 +3984,15 @@ static CPU_INIT( pentium2 )
 	return cpustate;
 }
 
+static CPU_TABLE( pentium2 )
+{
+	// 64 dtlb small, 8 dtlb large, 32 itlb small, 2 itlb large
+	build_x87_opcode_table(cpustate);
+	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO | OP_MMX);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+}
+
 static CPU_RESET( pentium2 )
 {
 	zero_state(cpustate);
@@ -3997,6 +4057,15 @@ static CPU_INIT( pentium3 )
 	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
 	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
 	return cpustate;
+}
+
+static CPU_TABLE( pentium3 )
+{
+	// 64 dtlb small, 8 dtlb large, 32 itlb small, 2 itlb large
+	build_x87_opcode_table(cpustate);
+	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO | OP_MMX | OP_SSE);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
 }
 
 static CPU_RESET( pentium3 )
@@ -4065,6 +4134,15 @@ static CPU_INIT( pentium4 )
 	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
 	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
 	return cpustate;
+}
+
+static CPU_TABLE( pentium4 )
+{
+	// 128 dtlb, 64 itlb
+	build_x87_opcode_table(cpustate);
+	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO | OP_MMX | OP_SSE | OP_SSE2);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
 }
 
 static CPU_RESET( pentium4 )

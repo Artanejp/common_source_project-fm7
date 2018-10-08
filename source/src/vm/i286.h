@@ -105,13 +105,10 @@ public:
 	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 #endif
-	void decl_state_cpustate();
 	void save_state_cpustate(FILEIO* state_fio);
 	void load_state_cpustate(FILEIO* state_fio);
 	
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique function
 	void set_context_mem(DEVICE* device)

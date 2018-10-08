@@ -243,59 +243,20 @@ uint32_t I8255::read_signal(int id)
 
 #define STATE_VERSION	1
 
-#include "../statesub.h"
-
-void I8255::decl_state()
+bool I8255::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
-	
-	for(int i = 0; i < 3; i++) {
-		DECL_STATE_ENTRY_UINT8_MEMBER((port[i].wreg), i);
-		DECL_STATE_ENTRY_UINT8_MEMBER((port[i].rreg), i);
-		DECL_STATE_ENTRY_UINT8_MEMBER((port[i].rmask), i);
-		DECL_STATE_ENTRY_UINT8_MEMBER((port[i].mode), i);
-		DECL_STATE_ENTRY_BOOL_MEMBER((port[i].first), i);
-	}
-
-	leave_decl_state();
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+ 	for(int i = 0; i < 3; i++) {
+		state_fio->StateUint8(port[i].wreg);
+		state_fio->StateUint8(port[i].rreg);
+		state_fio->StateUint8(port[i].rmask);
+		state_fio->StateUint8(port[i].mode);
+		state_fio->StateBool(port[i].first);
+ 	}
+ 	return true;
 }
-void I8255::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	for(int i = 0; i < 3; i++) {
-//		state_fio->FputUint8(port[i].wreg);
-//		state_fio->FputUint8(port[i].rreg);
-//		state_fio->FputUint8(port[i].rmask);
-//		state_fio->FputUint8(port[i].mode);
-//		state_fio->FputBool(port[i].first);
-//	}
-}
-
-bool I8255::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	for(int i = 0; i < 3; i++) {
-//		port[i].wreg = state_fio->FgetUint8();
-//		port[i].rreg = state_fio->FgetUint8();
-//		port[i].rmask = state_fio->FgetUint8();
-//		port[i].mode = state_fio->FgetUint8();
-//		port[i].first = state_fio->FgetBool();
-//	}
-	return true;
-}
-

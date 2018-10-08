@@ -232,92 +232,36 @@ void YM2151::update_timing(int new_clocks, double new_frames_per_sec, int new_li
 	clock_const = (uint32_t)((double)chip_clock * 1024.0 * 1024.0 / (double)new_clocks + 0.5);
 }
 
-#define STATE_VERSION	4
+#define STATE_VERSION	2
 
-#include "../statesub.h"
-
-void YM2151::decl_state()
+bool YM2151::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+	if(!opm->ProcessState((void *)state_fio, loading)) {
+ 		return false;
+ 	}
 #ifdef SUPPORT_MAME_FM_DLL
-	for(int i = 0; i < 0x100; i++) {
-		DECL_STATE_ENTRY_BOOL_MEMBER((port_log[i].written), i);
-		DECL_STATE_ENTRY_UINT8_MEMBER((port_log[i].data), i);
-	}
+	state_fio->StateBuffer(port_log, sizeof(port_log), 1);
 #endif
-	DECL_STATE_ENTRY_INT32(chip_clock);
-	DECL_STATE_ENTRY_UINT8(ch);
-	DECL_STATE_ENTRY_BOOL(irq_prev);
-	DECL_STATE_ENTRY_BOOL(mute);
-	DECL_STATE_ENTRY_UINT32(clock_prev);
-	DECL_STATE_ENTRY_UINT32(clock_accum);
-	DECL_STATE_ENTRY_UINT32(clock_const);
-	DECL_STATE_ENTRY_UINT32(clock_busy);
-	DECL_STATE_ENTRY_INT32(timer_event_id);
-	DECL_STATE_ENTRY_BOOL(busy);
-
-	leave_decl_state();
-
-	opm->DeclState((void *)p_logger);
-}
-void YM2151::save_state(FILEIO* state_fio)
-{
-	//state_fio->FputUint32(STATE_VERSION);
-	//state_fio->FputInt32(this_device_id);
-	
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-	opm->SaveState((void *)state_fio);
-//#ifdef SUPPORT_MAME_FM_DLL
-//	state_fio->Fwrite(port_log, sizeof(port_log), 1);
-//#endif
-//	state_fio->FputInt32(chip_clock);
-//	state_fio->FputUint8(ch);
-//	state_fio->FputBool(irq_prev);
-//	state_fio->FputBool(mute);
-//	state_fio->FputUint32(clock_prev);
-//	state_fio->FputUint32(clock_accum);
-//	state_fio->FputUint32(clock_const);
-//	state_fio->FputUint32(clock_busy);
-//	state_fio->FputInt32(timer_event_id);
-//	state_fio->FputBool(busy);
-}
-
-bool YM2151::load_state(FILEIO* state_fio)
-{
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-
-	if(!opm->LoadState((void *)state_fio)) {
-		return false;
-	}
-//#ifdef SUPPORT_MAME_FM_DLL
-//	state_fio->Fread(port_log, sizeof(port_log), 1);
-//#endif
-//	chip_clock = state_fio->FgetInt32();
-//	ch = state_fio->FgetUint8();
-//	irq_prev = state_fio->FgetBool();
-//	mute = state_fio->FgetBool();
-//	clock_prev = state_fio->FgetUint32();
-//	clock_accum = state_fio->FgetUint32();
-//	clock_const = state_fio->FgetUint32();
-//	clock_busy = state_fio->FgetUint32();
-//	timer_event_id = state_fio->FgetInt32();
-//	busy = state_fio->FgetBool();
-	
+	state_fio->StateInt32(chip_clock);
+	state_fio->StateUint8(ch);
+	state_fio->StateBool(irq_prev);
+	state_fio->StateBool(mute);
+	state_fio->StateUint32(clock_prev);
+	state_fio->StateUint32(clock_accum);
+	state_fio->StateUint32(clock_const);
+	state_fio->StateUint32(clock_busy);
+	state_fio->StateInt32(timer_event_id);
+	state_fio->StateBool(busy);
+ 	
 #ifdef SUPPORT_MAME_FM_DLL
-	// post process
-	if(dllchip) {
+ 	// post process
+	if(loading && dllchip) {
 		fmdll->Reset(dllchip);
 		for(int i = 0; i < 0x100; i++) {
 			if(port_log[i].written) {
@@ -329,4 +273,3 @@ bool YM2151::load_state(FILEIO* state_fio)
 	//touch_sound();
 	return true;
 }
-

@@ -279,6 +279,22 @@ uint32_t I8259::get_intr_ack()
 
 #define STATE_VERSION	1
 
+bool I8259::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+	state_fio->StateBuffer(pic, sizeof(pic), 1); // ToDo:
+	state_fio->StateInt32(req_chip);
+	state_fio->StateInt32(req_level);
+	state_fio->StateUint8(req_bit);
+ 	return true;
+}
+
+#if 0
 #include "../statesub.h"
 
 void I8259::decl_state()
@@ -311,38 +327,4 @@ void I8259::decl_state()
 
 	leave_decl_state();
 }
-
-void I8259::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-	//state_fio->FputUint32(STATE_VERSION);
-	//state_fio->FputInt32(this_device_id);
-	
-	//for(int i = 0; i < __I8259_MAX_CHIPS; i++) state_fio->Fwrite(&pic[i], sizeof(struct i8259_pic_t), 1);
-	//state_fio->FputInt32(req_chip);
-	//state_fio->FputInt32(req_level);
-	//state_fio->FputUint8(req_bit);
-}
-
-bool I8259::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-	//if(state_fio->FgetUint32() != STATE_VERSION) {
-	//	return false;
-	//}
-	//if(state_fio->FgetInt32() != this_device_id) {
-	//	return false;
-	//}
-	//for(int i = 0; i < __I8259_MAX_CHIPS; i++) state_fio->Fread(&pic[i], sizeof(struct i8259_pic_t), 1);
-	//req_chip = state_fio->FgetInt32();
-	//req_level = state_fio->FgetInt32();
-	//req_bit = state_fio->FgetUint8();
-	return true;
-}
-
+#endif

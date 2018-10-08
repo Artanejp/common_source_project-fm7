@@ -259,9 +259,7 @@ public:
 	}
 	
 	// state
-	void decl_state(void *p);
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// device name
 	void set_device_name(const _TCHAR* format, ...)

@@ -38,6 +38,6 @@
 typedef UINT32 vtlb_entry;
 
 /* opaque structure describing VTLB state */
-struct vtlb_state;
+//struct vtlb_state;
 
 #endif /* __VTLB_H__ */

@@ -788,193 +788,76 @@ void EVENT::update_config()
 	}
 }
 
-#define STATE_VERSION	4
+#define STATE_VERSION	3
 
-#include "../statesub.h"
-
-void EVENT::decl_state()
+bool EVENT::process_state(FILEIO* state_fio, bool loading)
 {
-#if 1
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_INT32(dcount_cpu);
-	for(int i = 0; i < MAX_CPU; i++) {
-		DECL_STATE_ENTRY_UINT32_MEMBER((d_cpu[i].cpu_clocks), i);
-		DECL_STATE_ENTRY_UINT32_MEMBER((d_cpu[i].update_clocks), i);
-		DECL_STATE_ENTRY_UINT32_MEMBER((d_cpu[i].accum_clocks), i);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(dcount_cpu)) {
+ 		return false;
+ 	}
+ 	for(int i = 0; i < dcount_cpu; i++) {
+		state_fio->StateUint32(d_cpu[i].cpu_clocks);
+		state_fio->StateUint32(d_cpu[i].update_clocks);
+		state_fio->StateUint32(d_cpu[i].accum_clocks);
 	}
-	DECL_STATE_ENTRY_1D_ARRAY(vclocks, sizeof(vclocks) / sizeof(int));
-	DECL_STATE_ENTRY_INT32(event_remain);
-	DECL_STATE_ENTRY_INT32(cpu_remain);
-	DECL_STATE_ENTRY_INT32(cpu_accum);
-	DECL_STATE_ENTRY_INT32(cpu_done);
-	DECL_STATE_ENTRY_UINT64(event_clocks);
-	for(int i = 0; i < MAX_EVENT; i++) {
-//		DECL_STATE_ENTRY_IS_NULL_CONST_MEMBER((event[i].device), (event[i].tmp_device_id), (event[i].device->this_device_id), -1, i);
-		DECL_STATE_ENTRY_INT32_MEMBER((event[i].event_id), i);
-		DECL_STATE_ENTRY_UINT64_MEMBER((event[i].expired_clock), i);
-		DECL_STATE_ENTRY_UINT64_MEMBER((event[i].loop_clock), i);
-		DECL_STATE_ENTRY_UINT64_MEMBER((event[i].accum_clocks), i);
-		DECL_STATE_ENTRY_BOOL_MEMBER((event[i].active), i);
-//		DECL_STATE_ENTRY_IS_NULL_CONST_MEMBER((event[i].next), (event[i].tmp_next_index),  (event[i].next->index), -1, i);
-//		DECL_STATE_ENTRY_IS_NULL_CONST_MEMBER((event[i].prev), (event[i].tmp_prev_index),  (event[i].prev->index), -1, i);
+	state_fio->StateBuffer(vclocks, sizeof(vclocks), 1);
+	state_fio->StateInt32(event_remain);
+	state_fio->StateInt32(cpu_remain);
+	state_fio->StateInt32(cpu_accum);
+	state_fio->StateInt32(cpu_done);
+	state_fio->StateUint64(event_clocks);
+ 	for(int i = 0; i < MAX_EVENT; i++) {
+		if(loading) {
+			event[i].device = vm->get_device(state_fio->FgetInt32_LE());
+		} else {
+			state_fio->FputInt32_LE(event[i].device != NULL ? event[i].device->this_device_id : -1);
+		}
+		state_fio->StateInt32(event[i].event_id);
+		state_fio->StateUint64(event[i].expired_clock);
+		state_fio->StateUint64(event[i].loop_clock);
+		state_fio->StateUint64(event[i].accum_clocks);
+		state_fio->StateBool(event[i].active);
+		if(loading) {
+			event[i].next = (event_t *)get_event(state_fio->FgetInt32_LE());
+			event[i].prev = (event_t *)get_event(state_fio->FgetInt32_LE());
+		} else {
+			state_fio->FputInt32_LE(event[i].next != NULL ? event[i].next->index : -1);
+			state_fio->FputInt32_LE(event[i].prev != NULL ? event[i].prev->index : -1);
+		}
 	}
-//	DECL_STATE_ENTRY_IS_NULL_CONST(first_free_event, tmp_first_free_event, (first_free_event->index), -1);
-//	DECL_STATE_ENTRY_IS_NULL_CONST(first_fire_event, tmp_first_fire_event, (first_fire_event->index), -1);
-	DECL_STATE_ENTRY_DOUBLE(frames_per_sec);
-	DECL_STATE_ENTRY_DOUBLE(next_frames_per_sec);
-	DECL_STATE_ENTRY_INT32(lines_per_frame);
-	DECL_STATE_ENTRY_INT32(next_lines_per_frame);
-	DECL_STATE_ENTRY_1D_ARRAY(dev_need_mix, sizeof(dev_need_mix) / sizeof(bool));
-	DECL_STATE_ENTRY_INT32(need_mix);
-
-	leave_decl_state();
-#endif
-}
-
-#include "../state_data.h"
-
-void EVENT::save_state(FILEIO* state_fio)
-{
-#if 1
-	uint32_t crc_value = 0xffffffff;
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio, &crc_value);
+	if(loading) {
+		first_free_event = (event_t *)get_event(state_fio->FgetInt32_LE());
+		first_fire_event = (event_t *)get_event(state_fio->FgetInt32_LE());
+	} else {
+		state_fio->FputInt32_LE(first_free_event != NULL ? first_free_event->index : -1);
+		state_fio->FputInt32_LE(first_fire_event != NULL ? first_fire_event->index : -1);
 	}
-	// WIP: DECL_STATE_ENTRY_IS_NULL* is weird.
-	csp_state_data_saver saver(state_fio);
-	bool stat = false;
-	for(int i = 0; i < MAX_EVENT; i++) {
-		saver.put_int32(event[i].device != NULL ? event[i].device->this_device_id : -1, &crc_value, &stat);
-		saver.put_int32(event[i].next != NULL ? event[i].next->index : -1, &crc_value, &stat);
-		saver.put_int32(event[i].prev != NULL ? event[i].prev->index : -1, &crc_value, &stat);
-	}
-	saver.put_int32(first_free_event != NULL ? first_free_event->index : -1, &crc_value, &stat);
-	saver.put_int32(first_fire_event != NULL ? first_fire_event->index : -1, &crc_value, &stat);
-
-	saver.post_proc_saving(&crc_value, &stat);
-#else
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->FputInt32(dcount_cpu);
-	for(int i = 0; i < dcount_cpu; i++) {
-		state_fio->FputUint32(d_cpu[i].cpu_clocks);
-		state_fio->FputUint32(d_cpu[i].update_clocks);
-		state_fio->FputUint32(d_cpu[i].accum_clocks);
-	}
-	state_fio->Fwrite(vclocks, sizeof(vclocks), 1);
-	state_fio->FputInt32(event_remain);
-	state_fio->FputInt32(cpu_remain);
-	state_fio->FputInt32(cpu_accum);
-	state_fio->FputInt32(cpu_done);
-	state_fio->FputUint64(event_clocks);
-	for(int i = 0; i < MAX_EVENT; i++) {
-		state_fio->FputInt32(event[i].device != NULL ? event[i].device->this_device_id : -1);
-		state_fio->FputInt32(event[i].event_id);
-		state_fio->FputUint64(event[i].expired_clock);
-		state_fio->FputUint64(event[i].loop_clock);
-		state_fio->FputUint64(event[i].accum_clocks);
-		state_fio->FputBool(event[i].active);
-		state_fio->FputInt32(event[i].next != NULL ? event[i].next->index : -1);
-		state_fio->FputInt32(event[i].prev != NULL ? event[i].prev->index : -1);
-	}
-	state_fio->FputInt32(first_free_event != NULL ? first_free_event->index : -1);
-	state_fio->FputInt32(first_fire_event != NULL ? first_fire_event->index : -1);
-	state_fio->FputDouble(frames_per_sec);
-	state_fio->FputDouble(next_frames_per_sec);
-	state_fio->FputInt32(lines_per_frame);
-	state_fio->FputInt32(next_lines_per_frame);
-	state_fio->Fwrite(dev_need_mix, sizeof(dev_need_mix), 1);
-	state_fio->FputInt32(need_mix);
-#endif
-}
-
-bool EVENT::load_state(FILEIO* state_fio)
-{
-#if 1
-	bool mb = false;
-	uint32_t crc_value = 0xffffffff;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio, &crc_value);
-	}
-	if(!mb) return false;
-	for(int i = 0; i < dcount_cpu; i++) {
-		if(i >= MAX_CPU) break;
-		for(int k = 0; k < 5; k++) cpu_update_clocks[i][k] = d_cpu[i].update_clocks * k;
-	}
-	// WIP: DECL_STATE_ENTRY_IS_NULL* is weird.
-	csp_state_data_saver saver(state_fio);
-	bool stat = false;
-	for(int i = 0; i < MAX_EVENT; i++) {
-		event[i].device = vm->get_device(saver.get_int32(&crc_value, &stat));
-		if(!stat) return false;
-		event[i].next = (event_t *)get_event(saver.get_int32(&crc_value, &stat));
-		if(!stat) return false;
-		event[i].prev = (event_t *)get_event(saver.get_int32(&crc_value, &stat));
-		if(!stat) return false;
-	}
-	first_free_event = (event_t *)get_event(saver.get_int32(&crc_value, &stat));
-	if(!stat) return false;
-	first_fire_event = (event_t *)get_event(saver.get_int32(&crc_value, &stat));
-	if(!stat) return false;
-	
-	if(!(saver.post_proc_loading(&crc_value, &stat))) return false;
-	if(!stat) return false;
-	
-#else	
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
-	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	if(state_fio->FgetInt32() != dcount_cpu) {
-		return false;
-	}
-	for(int i = 0; i < dcount_cpu; i++) {
-		d_cpu[i].cpu_clocks = state_fio->FgetUint32();
-		d_cpu[i].update_clocks = state_fio->FgetUint32();
-		d_cpu[i].accum_clocks = state_fio->FgetUint32();
-		for(int k = 0; k < 5; k++) cpu_update_clocks[i][k] = d_cpu[i].update_clocks * k;
-	}
-
-	state_fio->Fread(vclocks, sizeof(vclocks), 1);
-	event_remain = state_fio->FgetInt32();
-	cpu_remain = state_fio->FgetInt32();
-	cpu_accum = state_fio->FgetInt32();
-	cpu_done = state_fio->FgetInt32();
-	event_clocks = state_fio->FgetUint64();
-	for(int i = 0; i < MAX_EVENT; i++) {
-		event[i].device = vm->get_device(state_fio->FgetInt32());
-		event[i].event_id = state_fio->FgetInt32();
-		event[i].expired_clock = state_fio->FgetUint64();
-		event[i].loop_clock = state_fio->FgetUint64();
-		event[i].accum_clocks = state_fio->FgetUint64();
-		event[i].active = state_fio->FgetBool();
-		event[i].next = (event_t *)get_event(state_fio->FgetInt32());
-		event[i].prev = (event_t *)get_event(state_fio->FgetInt32());
-	}
-	first_free_event = (event_t *)get_event(state_fio->FgetInt32());
-	first_fire_event = (event_t *)get_event(state_fio->FgetInt32());
-	frames_per_sec = state_fio->FgetDouble();
-	next_frames_per_sec = state_fio->FgetDouble();
-	lines_per_frame = state_fio->FgetInt32();
-	next_lines_per_frame = state_fio->FgetInt32();
-	state_fio->Fread(dev_need_mix, sizeof(dev_need_mix), 1);
-	need_mix = state_fio->FgetInt32();
-#endif	
-	// post process
-	if(sound_buffer) {
-		memset(sound_buffer, 0, sound_samples * sizeof(uint16_t) * 2);
-	}
-	if(sound_tmp) {
-		memset(sound_tmp, 0, sound_tmp_samples * sizeof(int32_t) * 2);
-	}
-	buffer_ptr = 0;
-	mix_counter = 1;
-	mix_limit = (int)((double)(emu->get_sound_rate() / 2000.0));  // per 0.5ms.
-	return true;
+	state_fio->StateDouble(frames_per_sec);
+	state_fio->StateDouble(next_frames_per_sec);
+	state_fio->StateInt32(lines_per_frame);
+	state_fio->StateInt32(next_lines_per_frame);
+	state_fio->StateBuffer(dev_need_mix, sizeof(dev_need_mix), 1);
+	state_fio->StateInt32(need_mix);
+ 	
+ 	// post process
+	if(loading) {
+		if(sound_buffer) {
+			memset(sound_buffer, 0, sound_samples * sizeof(uint16_t) * 2);
+		}
+		if(sound_tmp) {
+			memset(sound_tmp, 0, sound_tmp_samples * sizeof(int32_t) * 2);
+		}
+		buffer_ptr = 0;
+		mix_counter = 1;
+		mix_limit = (int)((double)(emu->get_sound_rate() / 2000.0));  // per 0.5ms.
+ 	}
+ 	return true;
 }
 
 void* EVENT::get_event(int index)

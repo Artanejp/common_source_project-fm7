@@ -52,10 +52,7 @@ public:
 	uint32_t get_pc();
 	uint32_t get_next_pc();
 
-	void decl_state();
-	virtual void save_state(FILEIO* state_fio);
-	virtual bool load_state(FILEIO* state_fio);
-	
+	virtual bool process_state(FILEIO* state_fio, bool loading);
 	// unique function
 	void set_context_mem(DEVICE* device);
 	void set_context_io(DEVICE* device);

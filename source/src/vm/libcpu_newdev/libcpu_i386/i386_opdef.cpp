@@ -2936,6 +2936,7 @@ i386_state *I386_OPS_BASE::i386_common_init(int tlbsize)
 void I386_OPS_BASE::i386_vtlb_free(void)
 {
 	vtlb_free(cpustate->vtlb);
+	cpustate->vtlb = NULL;
 }
 
 void I386_OPS_BASE::i386_free_state(void)
@@ -2952,6 +2953,85 @@ void *I386_OPS_BASE::cpu_init_i386(void)
 	return cpustate;
 }
 
+void I386_OPS_BASE::cpu_table_i386(void)
+{
+	build_opcode_table(cpustate, OP_I386);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_I386];
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_I386];
+}
+
+void I386_OPS_BASE::cpu_table_i486(void)
+{
+	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486);
+	build_x87_opcode_table(cpustate);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_I486];
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_I486];
+}
+
+void I386_OPS_BASE::cpu_table_pentium(void)
+{
+	// 64 dtlb small, 8 dtlb large, 32 itlb
+	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM);
+	build_x87_opcode_table(cpustate);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];
+}
+
+void I386_OPS_BASE::cpu_table_mediagx(void)
+{
+	// probably 32 unified
+	build_x87_opcode_table(cpustate);
+	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_CYRIX);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_MEDIAGX];
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_MEDIAGX];
+}
+
+void I386_OPS_BASE::cpu_table_pentium_pro(void)
+{
+	// 64 dtlb small, 32 itlb
+	build_x87_opcode_table(cpustate);
+	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+}
+
+void I386_OPS_BASE::cpu_table_pentium_mmx(void)
+{
+	// 64 dtlb small, 8 dtlb large, 32 itlb small, 2 itlb large
+	build_x87_opcode_table(cpustate);
+	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_MMX);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+}
+
+void I386_OPS_BASE::cpu_table_pentium2(void)
+{
+	// 64 dtlb small, 8 dtlb large, 32 itlb small, 2 itlb large
+	build_x87_opcode_table(cpustate);
+	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO | OP_MMX);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+}
+
+void I386_OPS_BASE::cpu_table_pentium3(void)
+{
+	// 64 dtlb small, 8 dtlb large, 32 itlb small, 2 itlb large
+	build_x87_opcode_table(cpustate);
+	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO | OP_MMX | OP_SSE);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+}
+
+void I386_OPS_BASE::cpu_table_pentium4(void)
+{
+	// 128 dtlb, 64 itlb
+	build_x87_opcode_table(cpustate);
+	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO | OP_MMX | OP_SSE | OP_SSE2);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+}
+
+
 //#include "./i386_ops_table.h"
 
 #include "../../statesub.h"
@@ -2966,6 +3046,7 @@ void I386_OPS_BASE::decl_state_sreg(csp_state_utils *state_entry, int num)
 	DECL_STATE_ENTRY_BOOL_MEMBER((cpustate->sreg[num].valid), num);
 }
 
+#if 0
 void I386_OPS_BASE::decl_state_sys_table(csp_state_utils *state_entry, struct I386_SYS_TABLE *i386_sys_table_p)
 {
 	DECL_STATE_ENTRY_UINT32((i386_sys_table_p->base));
@@ -3131,25 +3212,58 @@ void I386_OPS_BASE::decl_state(csp_state_utils *state_entry)
 	DECL_STATE_ENTRY_INT32((cpustate->opcode_bytes_length));
 #endif
 }
+#endif
 
-void I386_OPS_BASE::save_state(FILEIO *state_fio, csp_state_utils *state_entry)
+bool I386_OPS_BASE::process_state(FILEIO *state_fio, bool loading)
 {
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
+	// ToDo: Write endian
+	vtlb_state *vtlb = cpustate->vtlb;
+	void *cpudevice = NULL;
+	offs_t *live = NULL;
+	int live_size = 0;
+	int *fixedpages = NULL;
+	int fixedpages_size = 0;
+	vtlb_entry *table = NULL;
+	int table_size = 0;
+//	vtlb_entry *save = NULL;
+//	int save_size = 0;
+	if(vtlb != NULL) {
+		cpudevice = vtlb->cpudevice;
+		live = vtlb->live;
+		live_size = vtlb->live_size;
+		fixedpages = vtlb->fixedpages;
+		fixedpages_size = vtlb->fixedpages_size;
+		table = vtlb->table;
+		table_size = vtlb->table_size;
+//		save = vtlb->save;
+//		save_size = vtlb->save_size;
 	}
-//	state_fio->Fwrite(cpustate, sizeof(i386_state), 1);
-}
-
-bool I386_OPS_BASE::load_state(FILEIO *state_fio, csp_state_utils *state_entry)
-{
-//	state_fio->Fread(cpustate, sizeof(i386_state), 1);
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
+	state_fio->StateBuffer(cpustate, sizeof(i386_state), 1);
+	if(vtlb != NULL) {
+		state_fio->StateBuffer(vtlb, sizeof(vtlb_state), 1);
 	}
-	return mb;
+	if(live != NULL && live_size > 0) {
+		state_fio->StateBuffer(live, live_size, 1);
+	}
+	if(fixedpages != NULL && fixedpages_size > 0) {
+		state_fio->StateBuffer(fixedpages, fixedpages_size, 1);
+	}
+	if(table != NULL && table_size > 0) {
+		state_fio->StateBuffer(table, table_size, 1);
+	}
+	// post process
+	if(loading) {
+		cpustate->vtlb = vtlb;
+		if(vtlb != NULL) {
+			vtlb->cpudevice = cpudevice;
+			vtlb->live = live;
+			vtlb->fixedpages = fixedpages;
+			vtlb->table = table;
+//			vtlb->save = save;
+		}
+	}
+	return true;
 }
-
 
 void I386_OPS_BASE::build_opcode_table(UINT32 features)
 {

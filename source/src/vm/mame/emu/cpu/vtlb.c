@@ -36,9 +36,13 @@ struct vtlb_state
 	int                 pageshift;          /* bits to shift to get page index */
 	int                 addrwidth;          /* logical address bus width */
 	offs_t *            live;               /* array of live entries by table index */
+	int                 live_size;
 	int *               fixedpages;         /* number of pages each fixed entry covers */
+	int                 fixedpages_size;
 	vtlb_entry *        table;              /* table of entries by address */
-	vtlb_entry *        save;               /* cache of live table entries for saving */
+	int                 table_size;
+//	vtlb_entry *        save;               /* cache of live table entries for saving */
+//	int                 save_size;
 };
 
 
@@ -78,16 +82,19 @@ vtlb_state *vtlb_alloc(void *cpu, address_spacenum space, int fixed_entries, int
 
 	/* allocate the entry array */
 	vtlb->live = (offs_t *)calloc(fixed_entries + dynamic_entries, sizeof(offs_t));
+	vtlb->live_size = (fixed_entries + dynamic_entries) * sizeof(offs_t);
 //	cpu->save_pointer(NAME(vtlb->live), fixed_entries + dynamic_entries, space);
 
 	/* allocate the lookup table */
 	vtlb->table = (vtlb_entry *)calloc((size_t) 1 << (vtlb->addrwidth - vtlb->pageshift), sizeof(vtlb_entry));
+	vtlb->table_size = ((size_t) 1 << (vtlb->addrwidth - vtlb->pageshift)) * sizeof(vtlb_entry);
 //	cpu->save_pointer(NAME(vtlb->table), 1 << (vtlb->addrwidth - vtlb->pageshift), space);
 
 	/* allocate the fixed page count array */
 	if (fixed_entries > 0)
 	{
 		vtlb->fixedpages = (int *)calloc(fixed_entries, sizeof(int));
+		vtlb->fixedpages_size = fixed_entries * sizeof(int);
 //		cpu->save_pointer(NAME(vtlb->fixedpages), fixed_entries, space);
 	}
 	return vtlb;

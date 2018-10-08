@@ -148,9 +148,8 @@ public:
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	uint32_t read_signal(int id);
 	void do_dma();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
+	
 #ifdef SINGLE_MODE_DMA
 	void set_context_child_dma(DEVICE* device)
 	{

@@ -500,7 +500,28 @@ enum {
 	I386_OPS_CPUTYPE_END
 };
 
-/************************************** vtlb.h ***************************************/
+/***************************************************************************
+    TYPE DEFINITIONS
+***************************************************************************/
+/* VTLB state */
+struct vtlb_state
+{
+	void *              cpudevice;          /* CPU device */
+	address_spacenum    space;              /* address space */
+	int                 dynamic;            /* number of dynamic entries */
+	int                 fixed;              /* number of fixed entries */
+	int                 dynindex;           /* index of next dynamic entry */
+	int                 pageshift;          /* bits to shift to get page index */
+	int                 addrwidth;          /* logical address bus width */
+	offs_t *            live;               /* array of live entries by table index */
+	int                 live_size;
+	int *               fixedpages;         /* number of pages each fixed entry covers */
+	int                 fixedpages_size;
+	vtlb_entry *        table;              /* table of entries by address */
+	int                 table_size;
+//	vtlb_entry *        save;               /* cache of live table entries for saving */
+//	int                 save_size;
+};
 
 class DEBUG;
 class csp_state_utils;
@@ -618,9 +639,7 @@ public:
 	virtual int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len) { return 0;}
 	void vtlb_flush_dynamic(void) { vtlb_flush_dynamic(cpustate->vtlb); }
 
-	void decl_state(csp_state_utils *state_entry);
-	void save_state(FILEIO *state_fio, csp_state_utils *state_entry);
-	bool load_state(FILEIO *state_fio, csp_state_utils *state_entry);
+	bool process_state(FILEIO *state_fio, bool loading);
 	
 protected:
 	// Utilities
@@ -705,7 +724,7 @@ public:
 	void *cpu_init_pentium2(void);
 	void *cpu_init_pentium3(void);
 	void *cpu_init_pentium4(void);
-	// Reset pewr type.
+	// Reset per type.
 	void cpu_reset_i386(void);
 	void cpu_reset_i486(void);
 	void cpu_reset_pentium(void);
@@ -716,6 +735,17 @@ public:
 	void cpu_reset_pentium3(void);
 	void cpu_reset_pentium4(void);
 
+	// Re-Build table per type.
+	void cpu_table_i386(void);
+	void cpu_table_i486(void);
+	void cpu_table_pentium(void);
+	void cpu_table_mediagx(void);
+	void cpu_table_pentium_pro(void);
+	void cpu_table_pentium_mmx(void);
+	void cpu_table_pentium2(void);
+	void cpu_table_pentium3(void);
+	void cpu_table_pentium4(void);
+	
 	// INSNs.
 	// i386/op16
 	void I386OP_D(adc_rm16_r16)();      // Opcode 0x11

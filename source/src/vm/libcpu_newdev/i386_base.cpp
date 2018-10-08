@@ -120,7 +120,29 @@ void I386_BASE::set_context_intr(DEVICE* device)
 
 #include "../../fileio.h"
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
+
+bool I386_BASE::process_state(FILEIO* state_fio, bool loading)
+{
+	i386_state *cpustate = cpucore->get_cpu_state();
+
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	if(!(cpucore->process_state(state_fio, loading))) return false;
+
+	// post process
+	if(loading) {
+		cpustate->pic = d_pic;
+		cpustate->program = d_mem;
+		cpustate->io = d_io;
+		
+	}
+	return true;
+}
 
 void I386_BASE::decl_state()
 {

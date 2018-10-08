@@ -149,9 +149,7 @@ public:
 	void mix(int32* buffer, int cnt);
 	void set_volume(int _ch, int decibel_l, int decibel_r);
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	// unique functions
 //#ifdef HAS_YM_SERIES
 	void set_context_irq(DEVICE* device, int id, uint32_t mask)

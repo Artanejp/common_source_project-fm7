@@ -26,6 +26,7 @@ protected:
 #ifdef USE_DEBUGGER
 	DEBUGGER *d_debugger;
 #endif
+	void cpu_table_call(void);
 
 public:
 	I386(VM_TEMPLATE* parent_vm, EMU* parent_emu) : I386_BASE(parent_vm, parent_emu)
@@ -90,8 +91,7 @@ public:
 	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 #endif
 
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO *state_fio, bool loading);
 	
 	// unique function
 	void set_context_bios(DEVICE* device);

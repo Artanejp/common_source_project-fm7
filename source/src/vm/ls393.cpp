@@ -29,46 +29,16 @@ void LS393::write_signal(int id, uint32_t data, uint32_t mask)
 
 #define STATE_VERSION	1
 
-#include "../statesub.h"
-
-void LS393::decl_state()
+bool LS393::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
-	
-	DECL_STATE_ENTRY_UINT32(count);
-	DECL_STATE_ENTRY_BOOL(prev_in);
-
-	leave_decl_state();
-}
-	
-void LS393::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->FputUint32(count);
-//	state_fio->FputBool(prev_in);
-}
-
-bool LS393::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-	
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	count = state_fio->FgetUint32();
-//	prev_in = state_fio->FgetBool();
-	return true;
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+	state_fio->StateUint32(count);
+	state_fio->StateBool(prev_in);
+ 	return true;
 }
 

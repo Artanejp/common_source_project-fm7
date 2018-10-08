@@ -243,9 +243,7 @@ public:
 	void reset();
 	void event_callback(int event_id, int err);
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// common event functions
 	int get_event_manager_id()

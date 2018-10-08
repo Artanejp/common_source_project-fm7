@@ -209,89 +209,30 @@ void I8237::do_dma()
 
 #define STATE_VERSION	2
 
-#include "../statesub.h"
-
-void I8237::decl_state()
+bool I8237::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
-	
-	for(int i = 0; i < 4; i++) {
-		DECL_STATE_ENTRY_UINT16_MEMBER((dma[i].areg), i);
-		DECL_STATE_ENTRY_UINT16_MEMBER((dma[i].creg), i);
-		DECL_STATE_ENTRY_UINT16_MEMBER((dma[i].bareg), i);
-		DECL_STATE_ENTRY_UINT16_MEMBER((dma[i].bcreg), i);
-		DECL_STATE_ENTRY_UINT8_MEMBER((dma[i].mode), i);
-		DECL_STATE_ENTRY_UINT16_MEMBER((dma[i].bankreg), i);
-		DECL_STATE_ENTRY_UINT16_MEMBER((dma[i].incmask), i);
-	}
-	DECL_STATE_ENTRY_BOOL(low_high);
-	DECL_STATE_ENTRY_UINT8(cmd);
-	DECL_STATE_ENTRY_UINT8(req);
-	DECL_STATE_ENTRY_UINT8(mask);
-	DECL_STATE_ENTRY_UINT8(tc);
-	DECL_STATE_ENTRY_UINT32(tmp);
-	DECL_STATE_ENTRY_BOOL(mode_word);
-	DECL_STATE_ENTRY_UINT32(addr_mask);
-
-	leave_decl_state();
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+ 	for(int i = 0; i < 4; i++) {
+		state_fio->StateUint16(dma[i].areg);
+		state_fio->StateUint16(dma[i].creg);
+		state_fio->StateUint16(dma[i].bareg);
+		state_fio->StateUint16(dma[i].bcreg);
+		state_fio->StateUint8(dma[i].mode);
+		state_fio->StateUint16(dma[i].bankreg);
+		state_fio->StateUint16(dma[i].incmask);
+ 	}
+	state_fio->StateBool(low_high);
+	state_fio->StateUint8(cmd);
+	state_fio->StateUint8(req);
+	state_fio->StateUint8(mask);
+	state_fio->StateUint8(tc);
+	state_fio->StateUint32(tmp);
+	state_fio->StateBool(mode_word);
+	state_fio->StateUint32(addr_mask);
+ 	return true;
 }
-void I8237::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	for(int i = 0; i < 4; i++) {
-//		state_fio->FputUint16(dma[i].areg);
-//		state_fio->FputUint16(dma[i].creg);
-//		state_fio->FputUint16(dma[i].bareg);
-//		state_fio->FputUint16(dma[i].bcreg);
-//		state_fio->FputUint8(dma[i].mode);
-//		state_fio->FputUint16(dma[i].bankreg);
-//		state_fio->FputUint16(dma[i].incmask);
-//	}
-//	state_fio->FputBool(low_high);
-//	state_fio->FputUint8(cmd);
-//	state_fio->FputUint8(req);
-//	state_fio->FputUint8(mask);
-//	state_fio->FputUint8(tc);
-//	state_fio->FputUint32(tmp);
-//	state_fio->FputBool(mode_word);
-//	state_fio->FputUint32(addr_mask);
-}
-
-bool I8237::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	for(int i = 0; i < 4; i++) {
-//		dma[i].areg = state_fio->FgetUint16();
-//		dma[i].creg = state_fio->FgetUint16();
-//		dma[i].bareg = state_fio->FgetUint16();
-//		dma[i].bcreg = state_fio->FgetUint16();
-//		dma[i].mode = state_fio->FgetUint8();
-//		dma[i].bankreg = state_fio->FgetUint16();
-//		dma[i].incmask = state_fio->FgetUint16();
-//	}
-//	low_high = state_fio->FgetBool();
-//	cmd = state_fio->FgetUint8();
-//	req = state_fio->FgetUint8();
-//	mask = state_fio->FgetUint8();
-//	tc = state_fio->FgetUint8();
-//	tmp = state_fio->FgetUint32();
-//	mode_word = state_fio->FgetBool();
-//	addr_mask = state_fio->FgetUint32();
-	return true;
-}
-

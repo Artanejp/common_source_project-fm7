@@ -368,9 +368,7 @@ public:
 	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	virtual int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 //#endif
-	virtual void decl_state();
-	virtual void save_state(FILEIO* state_fio);
-	virtual bool load_state(FILEIO* state_fio);
+	virtual bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_mem(DEVICE* device)
