@@ -1224,113 +1224,108 @@ KEYBOARD::~KEYBOARD()
 {
 }
 
-#define STATE_VERSION 8
+#define STATE_VERSION 9
 //#if defined(Q_OS_WIN)
 //DLL_PREFIX_I struct cur_time_s cur_time;
 //#endif
 
-#include "../../statesub.h"
-
-void KEYBOARD::decl_state()
+bool KEYBOARD::decl_state(FILEIO *state_fio, bool loading)
 {
-#if defined(_FM77AV_VARIANTS)
-	enter_decl_state(STATE_VERSION, _T("KEYBOARD_AND_RTC"));
-#else
-	enter_decl_state(STATE_VERSION, _T("KEYBOARD"));
-#endif
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
 	
-	DECL_STATE_ENTRY_UINT32(keycode_7);
-	DECL_STATE_ENTRY_INT32(keymode);
-	   
-	DECL_STATE_ENTRY_BOOL(ctrl_pressed);
-	DECL_STATE_ENTRY_BOOL(lshift_pressed);
-	DECL_STATE_ENTRY_BOOL(rshift_pressed);
-	DECL_STATE_ENTRY_BOOL(shift_pressed);
-	DECL_STATE_ENTRY_BOOL(graph_pressed);
-	DECL_STATE_ENTRY_BOOL(caps_pressed);
-	DECL_STATE_ENTRY_BOOL(kana_pressed);
-	DECL_STATE_ENTRY_BOOL(break_pressed);
+	state_fio->StateUint32(keycode_7);
+	state_fio->StateInt32(keymode);
+	state_fio->StateBool(ctrl_pressed);
+	state_fio->StateBool(lshift_pressed);
+	state_fio->StateBool(rshift_pressed);
+	state_fio->StateBool(shift_pressed);
+	state_fio->StateBool(graph_pressed);
+	state_fio->StateBool(caps_pressed);
+	state_fio->StateBool(kana_pressed);
+	state_fio->StateBool(break_pressed);
 
-	DECL_STATE_ENTRY_INT32(event_keyrepeat);
+	state_fio->StateInt32(event_keyrepeat);
 	   
-	DECL_STATE_ENTRY_UINT8(scancode); // After V.4, uint8_t
-	DECL_STATE_ENTRY_UINT8(datareg);
-	DECL_STATE_ENTRY_UINT32(older_vk);
+	state_fio->StateUint8(scancode); // After V.4, uint8_t
+	state_fio->StateUint8(datareg);
+	state_fio->StateUint32(older_vk);
 	   
-	DECL_STATE_ENTRY_BOOL(repeat_mode);
-	DECL_STATE_ENTRY_INT32(repeat_time_short);
-	DECL_STATE_ENTRY_INT32(repeat_time_long);
-	DECL_STATE_ENTRY_UINT8(repeat_keycode);
-	   
+	state_fio->StateBool(repeat_mode);
+	state_fio->StateInt32(repeat_time_short);
+	state_fio->StateInt32(repeat_time_long);
+	state_fio->StateUint8(repeat_keycode);
+ 	   
 #if defined(_FM77AV_VARIANTS)
-	DECL_STATE_ENTRY_INT32(event_key_rtc);
-  
-	DECL_STATE_ENTRY_UINT8(rtc_yy);
-	DECL_STATE_ENTRY_UINT8(rtc_mm);
-	DECL_STATE_ENTRY_UINT8(rtc_dd);
-	DECL_STATE_ENTRY_UINT8(rtc_dayofweek);
-	DECL_STATE_ENTRY_UINT8(rtc_hour);
-	DECL_STATE_ENTRY_UINT8(rtc_minute);
-	DECL_STATE_ENTRY_UINT8(rtc_sec);
+	state_fio->StateInt32(event_key_rtc);
+	state_fio->StateUint8(rtc_yy);
+	state_fio->StateUint8(rtc_mm);
+	state_fio->StateUint8(rtc_dd);
+	state_fio->StateUint8(rtc_dayofweek);
+	state_fio->StateUint8(rtc_hour);
+	state_fio->StateUint8(rtc_minute);
+	state_fio->StateUint8(rtc_sec);
 
-	DECL_STATE_ENTRY_BOOL(rtc_count24h);
-	DECL_STATE_ENTRY_BOOL(rtc_ispm);
+	state_fio->StateBool(rtc_count24h);
+	state_fio->StateBool(rtc_ispm);
 
-	DECL_STATE_ENTRY_BOOL(rtc_set);
-	DECL_STATE_ENTRY_BOOL(rtc_set_flag);
-	DECL_STATE_ENTRY_BOOL(rxrdy_status);
-	DECL_STATE_ENTRY_BOOL(key_ack_status);
+	state_fio->StateBool(rtc_set);
+	state_fio->StateBool(rtc_set_flag);
+	state_fio->StateBool(rxrdy_status);
+	state_fio->StateBool(key_ack_status);
 		
-	DECL_STATE_ENTRY_BOOL(did_hidden_message_av_1);		
-	DECL_STATE_ENTRY_INT32(event_hidden1_av);
+	state_fio->StateBool(did_hidden_message_av_1);
+	state_fio->StateInt32(event_hidden1_av);
 
-	DECL_STATE_ENTRY_INT32(cmd_phase);
-	DECL_STATE_ENTRY_UINT16(hidden1_ptr);
-	DECL_STATE_ENTRY_INT32(beep_phase);
-	//cmd_fifo->save_state((void *)state_fio);
-	//data_fifo->save_state((void *)state_fio);
-	//cur_time.save_state((void *)state_fio);
+	state_fio->StateInt32(cmd_phase);
+	state_fio->StateUint16(hidden1_ptr);
+	state_fio->StateInt32(beep_phase);
+	
+	if(!cmd_fifo->process_state(state_fio, loading)) {
+		return false;
+	}
+	if(!data_fifo->process_state(state_fio, loading)) {
+		return false;
+	}
+	if(!cur_time.process_state(state_fio, loading)) {
+		return false;
+	}
 #endif
-#if defined(_FM77AV_VARIANTS)
-	DECL_STATE_ENTRY_FIFO(cmd_fifo);
-	DECL_STATE_ENTRY_FIFO(data_fifo);
-	DECL_STATE_ENTRY_CUR_TIME_T(cur_time);
-#endif
-	DECL_STATE_ENTRY_FIFO(key_fifo);
-	DECL_STATE_ENTRY_INT32(event_int);
-	//key_fifo->save_state((void *)state_fio);
-	DECL_STATE_ENTRY_UINT8(autokey_backup);
-	// Version 5
-	DECL_STATE_ENTRY_BOOL(ins_led_status);
-	DECL_STATE_ENTRY_BOOL(kana_led_status);
-	DECL_STATE_ENTRY_BOOL(caps_led_status);
-	// Version 6
-	DECL_STATE_ENTRY_BOOL(override_break_key);
+	if(!key_fifo->process_state(state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateInt32(event_int);
+	state_fio->StateUint8(autokey_backup);
+ 	// Version 5
+	state_fio->StateBool(ins_led_status);
+	state_fio->StateBool(kana_led_status);
+	state_fio->StateBool(caps_led_status);
+ 	// Version 6
+	state_fio->StateBool(override_break_key);
 
-	leave_decl_state();
+	return true;
 }
 
 void KEYBOARD::save_state(FILEIO *state_fio)
 {
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
+	decl_state(state_fio, false);
 	//state_fio->FputUint32_BE(STATE_VERSION);
 	//state_fio->FputInt32_BE(this_device_id);
 	this->out_debug_log(_T("Save State: KEYBOARD: id=%d ver=%d\n"), this_device_id, STATE_VERSION);
 }
-
+ 
 bool KEYBOARD::load_state(FILEIO *state_fio)
 {
-	uint32_t version;
-	
+ 	uint32_t version;
+ 	
 	//version = state_fio->FgetUint32_BE();
 	//if(this_device_id != state_fio->FgetInt32_BE()) return false;
 	//this->out_debug_log(_T("Load State: KEYBOARD: id=%d ver=%d\n"), this_device_id, version);
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
+	bool mb = decl_state(state_fio, true);
 	if(!mb) return false;
 	return true;
 }

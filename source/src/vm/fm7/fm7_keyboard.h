@@ -142,7 +142,7 @@ private:
 	void write_data8(uint32_t addr, uint32_t data);
 	void reset(void);
 	void release(void);
-	void decl_state();
+	bool decl_state(FILEIO *state_fio, bool loading);
 	void save_state(FILEIO *f);
 	bool load_state(FILEIO *f);
 	void set_context_rxrdy(DEVICE *p, int id, uint32_t mask) {

@@ -1942,170 +1942,173 @@ void FM7_MAINIO::event_vline(int v, int clock)
 }
 
 
-#define STATE_VERSION 16
-#include "../../statesub.h"
+#define STATE_VERSION 17
 
-void FM7_MAINIO::decl_state(void)
+bool FM7_MAINIO::decl_state(FILEIO *state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
 
-	DECL_STATE_ENTRY_MULTI(void, io_w_latch, sizeof(io_w_latch));
+	state_fio->StateBuffer(io_w_latch, sizeof(io_w_latch), 1);
 	
-	DECL_STATE_ENTRY_BOOL(clock_fast);
-	DECL_STATE_ENTRY_BOOL(lpt_strobe);
-	DECL_STATE_ENTRY_BOOL(lpt_slctin);
-	DECL_STATE_ENTRY_BOOL(beep_flag);
-	DECL_STATE_ENTRY_BOOL(beep_snd);
-	
-		// FD01
-	DECL_STATE_ENTRY_UINT8(lpt_outdata);
+	state_fio->StateBool(clock_fast);
+	state_fio->StateBool(lpt_strobe);
+	state_fio->StateBool(lpt_slctin);
+	state_fio->StateBool(beep_flag);
+	state_fio->StateBool(beep_snd);
+ 	
+	// FD01
+	state_fio->StateUint8(lpt_outdata);
 	// FD02
-	DECL_STATE_ENTRY_BOOL(cmt_indat);
-	DECL_STATE_ENTRY_BOOL(cmt_invert);
-	DECL_STATE_ENTRY_BOOL(lpt_det2);
-	DECL_STATE_ENTRY_BOOL(lpt_det1);
-	DECL_STATE_ENTRY_BOOL(lpt_pe);
-	DECL_STATE_ENTRY_BOOL(lpt_ackng_inv);
-	DECL_STATE_ENTRY_BOOL(lpt_error_inv);
-	DECL_STATE_ENTRY_UINT8(irqmask_reg0);
+	state_fio->StateBool(cmt_indat);
+	state_fio->StateBool(cmt_invert);
+	state_fio->StateBool(lpt_det2);
+	state_fio->StateBool(lpt_det1);
+	state_fio->StateBool(lpt_pe);
+	state_fio->StateBool(lpt_ackng_inv);
+	state_fio->StateBool(lpt_error_inv);
+	state_fio->StateUint8(irqmask_reg0);
 	
-	DECL_STATE_ENTRY_BOOL(irqmask_syndet);
-	DECL_STATE_ENTRY_BOOL(irqmask_rxrdy);
-	DECL_STATE_ENTRY_BOOL(irqmask_txrdy);
-	DECL_STATE_ENTRY_BOOL(irqmask_mfd);
-	DECL_STATE_ENTRY_BOOL(irqmask_timer);
-	DECL_STATE_ENTRY_BOOL(irqmask_printer);
-	DECL_STATE_ENTRY_BOOL(irqmask_keyboard);
+	state_fio->StateBool(irqmask_syndet);
+	state_fio->StateBool(irqmask_rxrdy);
+	state_fio->StateBool(irqmask_txrdy);
+	state_fio->StateBool(irqmask_mfd);
+	state_fio->StateBool(irqmask_timer);
+	state_fio->StateBool(irqmask_printer);
+	state_fio->StateBool(irqmask_keyboard);
 
-	DECL_STATE_ENTRY_BOOL(irqreq_syndet);
-	DECL_STATE_ENTRY_BOOL(irqreq_rxrdy);
-	DECL_STATE_ENTRY_BOOL(irqreq_txrdy);
-	DECL_STATE_ENTRY_BOOL(irqreq_printer);
-	DECL_STATE_ENTRY_BOOL(irqreq_keyboard);
-	DECL_STATE_ENTRY_UINT8(irqstat_reg0);
-		
-	DECL_STATE_ENTRY_BOOL(irqstat_timer);
-	DECL_STATE_ENTRY_BOOL(irqstat_printer);
-	DECL_STATE_ENTRY_BOOL(irqstat_keyboard);
-		
-		// FD04
+	state_fio->StateBool(irqreq_syndet);
+	state_fio->StateBool(irqreq_rxrdy);
+	state_fio->StateBool(irqreq_txrdy);
+	state_fio->StateBool(irqreq_printer);
+	state_fio->StateBool(irqreq_keyboard);
+	state_fio->StateUint8(irqstat_reg0);
+ 		
+	state_fio->StateBool(irqstat_timer);
+	state_fio->StateBool(irqstat_printer);
+	state_fio->StateBool(irqstat_keyboard);
+ 		
+	// FD04
 #if defined(_FM77_VARIANTS)
-	DECL_STATE_ENTRY_BOOL(stat_fdmode_2hd);
-	DECL_STATE_ENTRY_BOOL(stat_kanjirom);
+	state_fio->StateBool(stat_fdmode_2hd);
+	state_fio->StateBool(stat_kanjirom);
 #elif defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
-	defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
-	DECL_STATE_ENTRY_BOOL(stat_kanjirom);
+ 	defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
+	state_fio->StateBool(stat_kanjirom);
 #endif
-	DECL_STATE_ENTRY_BOOL(firq_break_key);
-	DECL_STATE_ENTRY_BOOL(firq_sub_attention);
+	state_fio->StateBool(firq_break_key);
+	state_fio->StateBool(firq_sub_attention);
 	
-	DECL_STATE_ENTRY_BOOL(intmode_fdc);
+	state_fio->StateBool(intmode_fdc);
 	// FD05
-	DECL_STATE_ENTRY_BOOL(extdet_neg);
-	DECL_STATE_ENTRY_BOOL(sub_halt);
-	DECL_STATE_ENTRY_BOOL(sub_cancel);
+	state_fio->StateBool(extdet_neg);
+	state_fio->StateBool(sub_halt);
+	state_fio->StateBool(sub_cancel);
 	// FD06, 07
-	DECL_STATE_ENTRY_BOOL(intstat_syndet);
-	DECL_STATE_ENTRY_BOOL(intstat_rxrdy);
-	DECL_STATE_ENTRY_BOOL(intstat_txrdy);
+	state_fio->StateBool(intstat_syndet);
+	state_fio->StateBool(intstat_rxrdy);
+	state_fio->StateBool(intstat_txrdy);
 	
 	
-	DECL_STATE_ENTRY_BOOL(intstat_opn);
-	DECL_STATE_ENTRY_BOOL(intstat_mouse);
-	DECL_STATE_ENTRY_BOOL(mouse_enable);
+	state_fio->StateBool(intstat_opn);
+	state_fio->StateBool(intstat_mouse);
+	state_fio->StateBool(mouse_enable);
 	
-	DECL_STATE_ENTRY_BOOL(intstat_whg);
-	DECL_STATE_ENTRY_BOOL(intstat_thg);
+	state_fio->StateBool(intstat_whg);
+	state_fio->StateBool(intstat_thg);
 	
 	// FDC
-	DECL_STATE_ENTRY_BOOL(connect_fdc);
-	DECL_STATE_ENTRY_UINT8(fdc_statreg);
-	DECL_STATE_ENTRY_UINT8(fdc_cmdreg);
-	DECL_STATE_ENTRY_UINT8(fdc_trackreg);
-	DECL_STATE_ENTRY_UINT8(fdc_sectreg);
-	DECL_STATE_ENTRY_UINT8(fdc_datareg);
-	DECL_STATE_ENTRY_UINT8(fdc_headreg);
-	DECL_STATE_ENTRY_UINT8(fdc_drvsel);
-	DECL_STATE_ENTRY_UINT8(irqreg_fdc);
-	DECL_STATE_ENTRY_BOOL(fdc_motor);
-	DECL_STATE_ENTRY_BOOL(irqstat_fdc);
+	state_fio->StateBool(connect_fdc);
+	state_fio->StateUint8(fdc_statreg);
+	state_fio->StateUint8(fdc_cmdreg);
+	state_fio->StateUint8(fdc_trackreg);
+	state_fio->StateUint8(fdc_sectreg);
+	state_fio->StateUint8(fdc_datareg);
+	state_fio->StateUint8(fdc_headreg);
+	state_fio->StateUint8(fdc_drvsel);
+	state_fio->StateUint8(irqreg_fdc);
+	state_fio->StateBool(fdc_motor);
+	state_fio->StateBool(irqstat_fdc);
 	// KANJI ROM
-	DECL_STATE_ENTRY_BOOL(connect_kanjiroml1);
+	state_fio->StateBool(connect_kanjiroml1);
 #if defined(_FM77AV_VARIANTS)
-	DECL_STATE_ENTRY_BOOL(connect_kanjiroml2);
-	
-	DECL_STATE_ENTRY_BOOL(boot_ram);
-	DECL_STATE_ENTRY_BOOL(hotreset);
-		// FD13
-	DECL_STATE_ENTRY_UINT8(sub_monitor_type);
+	state_fio->StateBool(connect_kanjiroml2);
+	state_fio->StateBool(boot_ram);
+	state_fio->StateBool(hotreset);
+	// FD13
+	state_fio->StateUint8(sub_monitor_type);
 #endif	
-		// MMR
-	//V2
-	{
-		DECL_STATE_ENTRY_INT(event_beep);
-		DECL_STATE_ENTRY_INT(event_beep_oneshot);
-		DECL_STATE_ENTRY_INT(event_timerirq);
-	}		
-	{ // V3
-		DECL_STATE_ENTRY_INT(event_fdc_motor);
+	{ // V2
+		state_fio->StateInt32(event_beep);
+		state_fio->StateInt32(event_beep_oneshot);
+		state_fio->StateInt32(event_timerirq);
+ 	}		
+ 	{  // V3
+		state_fio->StateInt32(event_fdc_motor);
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)|| \
-    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
-		DECL_STATE_ENTRY_UINT8_ARRAY(fdc_drive_table, 4);
-		DECL_STATE_ENTRY_UINT8(fdc_reg_fd1e);
+	defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
+		state_fio->StateBuffer(fdc_drive_table, sizeof(fdc_drive_table), 1);
+		state_fio->StateUint8(fdc_reg_fd1e);
 #endif	
 #if defined(HAS_DMA)
-		DECL_STATE_ENTRY_BOOL(intstat_dma);
-		DECL_STATE_ENTRY_UINT8(dma_addr);
+		state_fio->StateBool(intstat_dma);
+		state_fio->StateUint8(dma_addr);
 #endif			
 #if defined(_FM77AV_VARIANTS)
-		DECL_STATE_ENTRY_UINT8(reg_fd12);
+		state_fio->StateUint8(reg_fd12);
 #endif		
-	}
+ 	}
 // FD05
-	DECL_STATE_ENTRY_BOOL(req_z80run);
-	DECL_STATE_ENTRY_BOOL(z80_run);
-
-	// UART
-	DECL_STATE_ENTRY_BOOL(rs232c_enabled);
-	DECL_STATE_ENTRY_BOOL(rs232c_dcd);
-	DECL_STATE_ENTRY_BOOL_ARRAY(uart_enabled, 3);
+	state_fio->StateBool(req_z80run);
+	state_fio->StateBool(z80_run);
+ 
+ 	// UART
+	state_fio->StateBool(rs232c_enabled);
+	state_fio->StateBool(rs232c_dcd);
+	state_fio->StateBuffer(uart_enabled, sizeof(uart_enabled), 1);
 	
-	DECL_STATE_ENTRY_BOOL(modem_irqmask_rxrdy);
-	DECL_STATE_ENTRY_BOOL(modem_irqmask_txrdy);
-	DECL_STATE_ENTRY_BOOL(modem_syndet);
-	DECL_STATE_ENTRY_BOOL(modem_rxrdy);
-	DECL_STATE_ENTRY_BOOL(modem_txrdy);
+	state_fio->StateBool(modem_irqmask_rxrdy);
+	state_fio->StateBool(modem_irqmask_txrdy);
+	state_fio->StateBool(modem_syndet);
+	state_fio->StateBool(modem_rxrdy);
+	state_fio->StateBool(modem_txrdy);
 
-	DECL_STATE_ENTRY_BOOL(midi_uart_irqmask);
-	DECL_STATE_ENTRY_BOOL(midi_syndet);
-	DECL_STATE_ENTRY_BOOL(midi_rxrdy);
-	DECL_STATE_ENTRY_BOOL(midi_txrdy);
+	state_fio->StateBool(midi_uart_irqmask);
+	state_fio->StateBool(midi_syndet);
+	state_fio->StateBool(midi_rxrdy);
+	state_fio->StateBool(midi_txrdy);
 #if defined(HAS_2HD)
-	DECL_STATE_ENTRY_INT(event_fdc_motor_2HD);
-	DECL_STATE_ENTRY_BOOL(connect_fdc_2HD);
-	DECL_STATE_ENTRY_UINT8(fdc_2HD_statreg);
-	DECL_STATE_ENTRY_UINT8(fdc_2HD_cmdreg);
-	DECL_STATE_ENTRY_UINT8(fdc_2HD_trackreg);
-	DECL_STATE_ENTRY_UINT8(fdc_2HD_sectreg);
-	DECL_STATE_ENTRY_UINT8(fdc_2HD_datareg);
-	DECL_STATE_ENTRY_UINT8(fdc_2HD_headreg);
-	DECL_STATE_ENTRY_UINT8(fdc_2HD_drvsel);
-	DECL_STATE_ENTRY_UINT8(irqreg_fdc_2HD);
-	DECL_STATE_ENTRY_BOOL(fdc_2HD_motor);
-	//state_fio->FputBool(irqstat_fdc);
-	DECL_STATE_ENTRY_INT(event_2hd_nmi);
-	DECL_STATE_ENTRY_UINT32(nmi_delay);
-	DECL_STATE_ENTRY_BOOL(irqstat_fdc_2hd);
-	DECL_STATE_ENTRY_BOOL(drqstat_fdc_2hd);
+	state_fio->StateInt32(event_fdc_motor_2HD);
+	state_fio->StateBool(connect_fdc_2HD);
+	state_fio->StateUint8(fdc_2HD_statreg);
+	state_fio->StateUint8(fdc_2HD_cmdreg);
+	state_fio->StateUint8(fdc_2HD_trackreg);
+	state_fio->StateUint8(fdc_2HD_sectreg);
+	state_fio->StateUint8(fdc_2HD_datareg);
+	state_fio->StateUint8(fdc_2HD_headreg);
+	state_fio->StateUint8(fdc_2HD_drvsel);
+	state_fio->StateUint8(irqreg_fdc_2HD);
+	state_fio->StateBool(fdc_2HD_motor);
+	state_fio->StateInt32(event_2hd_nmi);
+	state_fio->StateUint32(nmi_delay);
+	state_fio->StateBool(irqstat_fdc_2hd);
+	state_fio->StateBool(drqstat_fdc_2hd);
 #endif
 	
-	decl_state_opn();
+	if(!decl_state_opn(state_fio, loading)) {
+		return false;
+ 	}
 	
-	leave_decl_state();
+	return true;
 }
+
 void FM7_MAINIO::save_state(FILEIO *state_fio)
 {
-	if(state_entry != NULL) state_entry->save_state(state_fio);
+	decl_state(state_fio, false);
 #if 0
 	// Debug
 	for(int i = 0; i < 3; i++) {
@@ -2119,24 +2122,20 @@ void FM7_MAINIO::save_state(FILEIO *state_fio)
 						  opn_regs[i][ladr + 8],  opn_regs[i][ladr + 9],  opn_regs[i][ladr + 10], opn_regs[i][ladr + 11],
 						  opn_regs[i][ladr + 12], opn_regs[i][ladr + 13], opn_regs[i][ladr + 14], opn_regs[i][ladr + 15]);
 		}
-	}
+ 	}
 #endif	
 }
-
+ 
 bool FM7_MAINIO::load_state(FILEIO *state_fio)
 {
-	int ch;
 	int addr;
 	//bool stat = false;
 	uint32_t version;
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-		if(mb) {
+	bool mb = decl_state(state_fio, true);
+	if(mb) {
 #if defined(HAS_DMA)
-			dma_addr = dma_addr & 0x1f;
+		dma_addr = dma_addr & 0x1f;
 #endif
-		}
 	}
 #if 0
 	for(int i = 0; i < 3; i++) {
@@ -2150,9 +2149,8 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 						  opn_regs[i][ladr + 8],  opn_regs[i][ladr + 9],  opn_regs[i][ladr + 10], opn_regs[i][ladr + 11],
 						  opn_regs[i][ladr + 12], opn_regs[i][ladr + 13], opn_regs[i][ladr + 14], opn_regs[i][ladr + 15]);
 		}
-	}
-#endif
+ 	}
 	this->out_debug_log(_T("Load State: MAINIO: id=%d stat=%s\n"), this_device_id, (mb) ? _T("OK") : _T("NG"));
 	return mb;
 }
-	  
+ 	  

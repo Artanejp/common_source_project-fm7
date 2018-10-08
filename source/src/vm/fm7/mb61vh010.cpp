@@ -925,63 +925,60 @@ void MB61VH010::reset(void)
 }
 
 #define STATE_VERSION 2
-#include "../../statesub.h"
 
-void MB61VH010::decl_state(void)
+bool MB61VH010::decl_state(FILEIO *state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
 	
-	DECL_STATE_ENTRY_INT(this_device_id);
+	state_fio->StateUint8(command_reg);
+	state_fio->StateUint8(color_reg);
+	state_fio->StateUint8(mask_reg);
+	state_fio->StateUint8(cmp_status_reg);
+	state_fio->StateUint8(bank_disable_reg);
+	state_fio->StateUint8(multi_page);
+	state_fio->StateUint32(direct_access_offset);
 	
-	DECL_STATE_ENTRY_UINT8(command_reg);
-	DECL_STATE_ENTRY_UINT8(color_reg);
-	DECL_STATE_ENTRY_UINT8(mask_reg);
-	DECL_STATE_ENTRY_UINT8(cmp_status_reg);
-	DECL_STATE_ENTRY_UINT8(bank_disable_reg);
-	DECL_STATE_ENTRY_UINT8(multi_page);
-	DECL_STATE_ENTRY_UINT32(direct_access_offset);
-	
-	DECL_STATE_ENTRY_UINT8_ARRAY(cmp_color_data, 8);
-	DECL_STATE_ENTRY_UINT8_ARRAY(tile_reg, 4);
-		
+	state_fio->StateBuffer(cmp_color_data, sizeof(cmp_color_data), 1);
+	state_fio->StateBuffer(tile_reg, sizeof(tile_reg), 1);
 
-	DECL_STATE_ENTRY_PAIR(line_addr_offset);
-	DECL_STATE_ENTRY_PAIR(line_pattern);
-	DECL_STATE_ENTRY_PAIR(line_xbegin);
-	DECL_STATE_ENTRY_PAIR(line_ybegin);
-	DECL_STATE_ENTRY_PAIR(line_xend);
-	DECL_STATE_ENTRY_PAIR(line_yend);
-		
-	DECL_STATE_ENTRY_BOOL(busy_flag);
-	DECL_STATE_ENTRY_PAIR(line_style);
+	state_fio->StateUint32(line_addr_offset.d);
+	state_fio->StateUint32(line_pattern.d);
+	state_fio->StateUint32(line_xbegin.d);
+	state_fio->StateUint32(line_ybegin.d);
+	state_fio->StateUint32(line_xend.d);
+	state_fio->StateUint32(line_yend.d);
+ 		
+	state_fio->StateBool(busy_flag);
+	state_fio->StateUint32(line_style.d);
+ 
+	state_fio->StateUint32(total_bytes);
+	state_fio->StateUint32(oldaddr);
+	state_fio->StateUint32(alu_addr);
 
-	DECL_STATE_ENTRY_UINT32(total_bytes);
-	DECL_STATE_ENTRY_UINT32(oldaddr);
-	DECL_STATE_ENTRY_UINT32(alu_addr);
+	state_fio->StateUint32(planes);
+	state_fio->StateBool(is_400line);
+	state_fio->StateUint32(screen_width);
+	state_fio->StateUint32(screen_height);
+ 
+	state_fio->StateInt32(eventid_busy);
 
-	DECL_STATE_ENTRY_UINT32(planes);
-	DECL_STATE_ENTRY_BOOL(is_400line);
-	DECL_STATE_ENTRY_UINT32(screen_width);
-	DECL_STATE_ENTRY_UINT32(screen_height);
-
-	DECL_STATE_ENTRY_INT(eventid_busy);
-
-	leave_decl_state();
+	return true;
 }
+
 void MB61VH010::save_state(FILEIO *state_fio)
 {
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-		out_debug_log(_T("Save State: MB61VH010 : id=%d ver=%d\n"), this_device_id, STATE_VERSION);
-	}
+	decl_state(state_fio, false);
+	out_debug_log(_T("Save State: MB61VH010 : id=%d ver=%d\n"), this_device_id, STATE_VERSION);
 }
 
 bool MB61VH010::load_state(FILEIO *state_fio)
 {
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
+	bool mb = decl_state(state_fio, true);
 	out_debug_log(_T("Load State: MB61VH010 : id=%d stat=%s"), this_device_id, (mb) ? _T("OK") : _T("NG"));
 	if(!mb) return false;
 	
@@ -992,6 +989,7 @@ bool MB61VH010::load_state(FILEIO *state_fio)
 	}
 	for(int i = 0; i < 4; i++) {
 		multi_flags[i] = (((1 << i) & multi_page) != 0) ? true : false;
-	}
-	return true;
+ 	}
+
+ 	return true;
 }

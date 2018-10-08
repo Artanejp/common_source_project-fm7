@@ -53,9 +53,7 @@ class JOYSTICK : public DEVICE {
 	
 	void reset(void);
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO *state_fio);
-	bool load_state(FILEIO *state_fio);
+	bool process_state(FILEIO *state_fio, bool loading);
 	
 	void set_context_opn(DEVICE *p) {
 		opn = p;

@@ -423,20 +423,19 @@ void FM7_MAINIO::event_beep_cycle(void)
 	}
 }
 
-#include "../../statesub.h"
-
-void FM7_MAINIO::decl_state_opn(void)
+bool FM7_MAINIO::decl_state_opn(FILEIO *state_fio, bool loading)
 {
+	state_fio->StateBool(connect_opn);
+	state_fio->StateBool(connect_whg);
+	state_fio->StateBool(connect_thg);
 
-	DECL_STATE_ENTRY_BOOL(connect_opn);
-	DECL_STATE_ENTRY_BOOL(connect_whg);
-	DECL_STATE_ENTRY_BOOL(connect_thg);
+	state_fio->StateBool(opn_psg_77av);
+	state_fio->StateBuffer(opn_address, sizeof(opn_address), 1);
+	state_fio->StateBuffer(opn_data, sizeof(opn_data), 1);
+	state_fio->StateBuffer(opn_stat, sizeof(opn_stat), 1);
+	state_fio->StateBuffer(opn_cmdreg, sizeof(opn_cmdreg), 1);
+	state_fio->StateBuffer(opn_prescaler_type, sizeof(opn_prescaler_type), 1);
+	state_fio->StateBuffer(opn_regs, sizeof(opn_regs), 1);
 
-	DECL_STATE_ENTRY_BOOL(opn_psg_77av);
-	DECL_STATE_ENTRY_UINT8_ARRAY(opn_address, 4);
-	DECL_STATE_ENTRY_UINT8_ARRAY(opn_data, 4);
-	DECL_STATE_ENTRY_UINT8_ARRAY(opn_stat, 4);
-	DECL_STATE_ENTRY_UINT8_ARRAY(opn_cmdreg, 4);
-	DECL_STATE_ENTRY_UINT8_ARRAY(opn_prescaler_type, 4);
-	DECL_STATE_ENTRY_2D_ARRAY(opn_regs, 4, 0x100);
+	return true;
 }

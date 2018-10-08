@@ -61,9 +61,7 @@ public:
 	void set_context_cpu(MC6809 *p)	{
 		cpu = p;
 	}
-	void decl_state();
-	void save_state(FILEIO *state_fio);
-	bool load_state(FILEIO *state_fio);
+	bool process_state(FILEIO *state_fio, bool loading);
 };
 
 #endif  /* ___CSP_FM7_JCOMM_CARD_H  */

@@ -121,7 +121,7 @@ class MB61VH010: public DEVICE {
 
 	void save_state(FILEIO *state_fio);
 	bool load_state(FILEIO *state_fio);
-	void decl_state(void);
+	bool decl_state(FILEIO *state_fio, bool loading);
 	
 	void event_callback(int event_id, int err);
 	void write_data8(uint32_t id, uint32_t data);

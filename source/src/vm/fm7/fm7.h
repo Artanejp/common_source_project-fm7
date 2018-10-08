@@ -616,9 +616,7 @@ public:
 	void push_apss_forward(int drv);
 	void push_apss_rewind(int drv);
 	void update_config();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
-	void decl_state(void);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 #if defined(USE_BUBBLE)
 	void open_bubble_casette(int drv, const _TCHAR *path, int bank);

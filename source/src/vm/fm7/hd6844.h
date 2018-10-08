@@ -112,9 +112,7 @@ protected:
 	void initialize(void);
 	void reset(void);
 	//void update_config(void);
-	void save_state(FILEIO *state_fio);
-	bool load_state(FILEIO *state_fio);
-	void decl_state(void);
+	bool process_state(FILEIO *state_fio, bool loading);
 	
 	void set_context_int_line(DEVICE *p, int id, uint32_t mask) {
 		register_output_signal(&interrupt_line, p, id, mask);

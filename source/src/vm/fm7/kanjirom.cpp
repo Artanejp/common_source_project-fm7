@@ -103,36 +103,24 @@ void KANJIROM::release()
 {
 }
 
-#define STATE_VERSION 4
+#define STATE_VERSION 5
 
-#include "../../statesub.h"
-
-void KANJIROM::decl_state()
+bool KANJIROM::process_state(FILEIO *state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
 	
-	DECL_STATE_ENTRY_BOOL(class2);
-	DECL_STATE_ENTRY_BOOL(read_ok);
-	DECL_STATE_ENTRY_1D_ARRAY(data_table, sizeof(data_table));
-	DECL_STATE_ENTRY_PAIR(kanjiaddr);
-
-	leave_decl_state();
-}
-void KANJIROM::save_state(FILEIO *state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
+	state_fio->StateBool(class2);
+	state_fio->StateBool(read_ok);
+	state_fio->StateBuffer(data_table, sizeof(data_table), 1);
+	state_fio->StateUint32(kanjiaddr.d);
+	if(loading) {
+		kanjiaddr.w.h = 0;
 	}
-}
-
-bool KANJIROM::load_state(FILEIO *state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-	kanjiaddr.w.h = 0;
 	return true;
 }
 

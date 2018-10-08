@@ -294,50 +294,38 @@ void JOYSTICK::update_config(void)
 	}
 #endif	
 }
-#define STATE_VERSION 4
+#define STATE_VERSION 5
 
-#include "../../statesub.h"
-
-void JOYSTICK::decl_state()
+bool JOYSTICK::process_state(FILEIO *state_fio, bool loading)
 {
-	state_entry = new csp_state_utils(STATE_VERSION, this_device_id, _T("JOYSTICK"));
-
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	for(int ch = 0; ch < 2; ch++) {
+		state_fio->StateUint32(joydata[ch]);
+	}
 #if !defined(_FM8)
-	DECL_STATE_ENTRY_1D_ARRAY(emulate_mouse, 2);
-#endif		
-	DECL_STATE_ENTRY_1D_ARRAY(joydata, 2);
-
-#if !defined(_FM8)
-	DECL_STATE_ENTRY_INT32(dx);
-	DECL_STATE_ENTRY_INT32(dy);
-	DECL_STATE_ENTRY_INT32(lx);
-	DECL_STATE_ENTRY_INT32(ly);
-	DECL_STATE_ENTRY_UINT32(mouse_button);
-	DECL_STATE_ENTRY_BOOL(mouse_strobe);
-	DECL_STATE_ENTRY_UINT32(mouse_phase);
-	DECL_STATE_ENTRY_INT32(mouse_data);
-	//DECL_STATE_ENTRY_INT32(mouse_timeout_event);
+	for(int ch = 0; ch < 2; ch++) {
+		state_fio->StateBool(emulate_mouse[ch]);
+	}
+	state_fio->StateInt32(dx);
+	state_fio->StateInt32(dy);
+	state_fio->StateInt32(lx);
+	state_fio->StateInt32(ly);
+	state_fio->StateUint32(mouse_button);
+	state_fio->StateBool(mouse_strobe);
+	state_fio->StateInt32(mouse_phase);
+	state_fio->StateUint32(mouse_data);
+	//state_fio->StateInt32(mouse_timeout_event);
 #endif	
-	// Version 3
-	DECL_STATE_ENTRY_UINT8(lpmask);
-	// Version 4
-	DECL_STATE_ENTRY_UINT8(port_b_val);
-}
-void JOYSTICK::save_state(FILEIO *state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-}
+ 	// Version 3
+	state_fio->StateUint8(lpmask);
+ 	// Version 4
+	state_fio->StateUint8(port_b_val);
 
-bool JOYSTICK::load_state(FILEIO *state_fio)
-{
-	bool mb;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-		if(!mb) return false;
-	}
 	return true;
 }
-		
 	

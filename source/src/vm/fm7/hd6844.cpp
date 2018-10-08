@@ -444,49 +444,38 @@ void HD6844::event_callback(int event_id, int err)
 	}
 }
 
-#define STATE_VERSION 4
+#define STATE_VERSION 5
 
-void HD6844::decl_state(void)
+bool HD6844::process_state(FILEIO *state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
 
-	DECL_STATE_ENTRY_INT(this_device_id);
-	DECL_STATE_ENTRY_UINT32_ARRAY(addr_reg, 4);
-	DECL_STATE_ENTRY_UINT16_ARRAY(words_reg, 4);
-	DECL_STATE_ENTRY_UINT8_ARRAY(channel_control, 4);
-	
-	DECL_STATE_ENTRY_UINT8(priority_reg);
-	DECL_STATE_ENTRY_UINT8(interrupt_reg);
-	DECL_STATE_ENTRY_UINT8(datachain_reg);
-	DECL_STATE_ENTRY_UINT8(num_reg);
-	DECL_STATE_ENTRY_UINT32(addr_offset);
-		
-	DECL_STATE_ENTRY_BOOL_ARRAY(transfering, 4);
-	DECL_STATE_ENTRY_BOOL_ARRAY(first_transfer, 4);
-	DECL_STATE_ENTRY_BOOL_ARRAY(cycle_steal, 4);
-	DECL_STATE_ENTRY_BOOL_ARRAY(halt_flag, 4);
-		
-	DECL_STATE_ENTRY_UINT32_ARRAY(fixed_addr, 4);
-	DECL_STATE_ENTRY_UINT8_ARRAY(data_reg, 4);
-	DECL_STATE_ENTRY_INT32_ARRAY(event_dmac, 4);
-
-	leave_decl_state();
-}
-
-void HD6844::save_state(FILEIO *state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-		out_debug_log(_T("Save State: HD6844: id=%d ver=%d"), this_device_id, STATE_VERSION);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+ 	}
+	for(int i = 0; i < 4; i++) {
+		state_fio->StateUint32(addr_reg[i]);
+		state_fio->StateUint16(words_reg[i]);
+		state_fio->StateUint8(channel_control[i]);
+	}
+	state_fio->StateUint8(priority_reg);
+	state_fio->StateUint8(interrupt_reg);
+	state_fio->StateUint8(datachain_reg);
+	state_fio->StateUint8(num_reg);
+	state_fio->StateUint32(addr_offset);
+		
+	for(int i = 0; i < 4; i++) {
+		state_fio->StateBool(transfering[i]);
+		state_fio->StateBool(first_transfer[i]);
+		state_fio->StateBool(cycle_steal[i]);
+		state_fio->StateBool(halt_flag[i]);
+		
+		state_fio->StateUint32(fixed_addr[i]);
+		state_fio->StateUint8(data_reg[i]);
+		state_fio->StateInt32(event_dmac[i]);
+	}
+	return true;
 }
 
-bool HD6844::load_state(FILEIO *state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-		out_debug_log(_T("Load State: HD6844: id=%d stat=%s"), this_device_id, (mb) ? _T("OK") : _T("NG"));
-	}
-	return mb;
-}

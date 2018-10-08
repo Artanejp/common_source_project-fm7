@@ -495,7 +495,8 @@ class FM7_MAINIO : public DEVICE {
 		return static_cast<T *>(np)->read_dma_data8(addr);
 	}
 
-	void decl_state_opn(void);
+	bool decl_state_opn(FILEIO *state_fio, bool loading);
+
 public:
 	FM7_MAINIO(VM_TEMPLATE* parent_vm, EMU* parent_emu);
 	~FM7_MAINIO();
@@ -522,7 +523,7 @@ public:
 	virtual void update_config();
 	virtual void save_state(FILEIO *state_fio);
 	virtual bool load_state(FILEIO *state_fio);
-	virtual void decl_state(void);
+	virtual bool decl_state(FILEIO *state_fio, bool loading);
 	
 	void set_context_printer(DEVICE *p)
 	{

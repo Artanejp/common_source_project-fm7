@@ -456,26 +456,23 @@ void FM8_MAINIO::update_config()
 	mainmem->write_signal(FM7_MAINIO_BOOTMODE, bootmode, 0xffffffff);
 }
 
-
-#include "../../statesub.h"
-void FM8_MAINIO::decl_state(void)
+bool FM8_MAINIO::decl_state(FILEIO *state_fio, bool loading)
 {
-	FM7_MAINIO::decl_state();
-	DECL_STATE_ENTRY_BOOL(connect_psg);
+	if(!FM7_MAINIO::decl_state(state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateBool(connect_psg);
+
+	return true;
 }
 
 void FM8_MAINIO::save_state(FILEIO *state_fio)
 {
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
+	decl_state(state_fio, false);
 }
-
+ 
 bool FM8_MAINIO::load_state(FILEIO *state_fio)
 {
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
+	bool mb = decl_state(state_fio, true);
 	return mb;
 }
