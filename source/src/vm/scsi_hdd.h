@@ -91,7 +91,6 @@ public:
 	~SASI_HDD() {}
 	
 	// virtual scsi functions
-	int get_command_length(int value);
 	void start_command();
 };
 

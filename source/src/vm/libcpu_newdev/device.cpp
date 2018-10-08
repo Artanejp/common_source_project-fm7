@@ -221,26 +221,6 @@ int DEVICE::get_lines_per_frame()
 	return event_manager->get_lines_per_frame();
 }
 
-#include "../../statesub.h"
-
-void DEVICE::decl_state()
-{
-	state_entry = new csp_state_utils(1, this_device_id, (const _TCHAR *)this_device_name, p_logger);
-}
-
-void DEVICE::enter_decl_state(int version)
-{
-	state_entry = new csp_state_utils(version, this_device_id, (const _TCHAR *)this_device_name, p_logger);
-}
-
-void DEVICE::enter_decl_state(int version, _TCHAR *name)
-{
-	state_entry = new csp_state_utils(version, this_device_id, (const _TCHAR *)name, p_logger);
-}
-
-void DEVICE::leave_decl_state()
-{
-}
 // Force render sound immediately when device's status has changed.
 // You must call this after you changing registers (or anything).
 // If has problems, try set_realtime_render.

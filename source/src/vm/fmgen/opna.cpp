@@ -197,80 +197,40 @@ void OPNBase::Intr(bool value)
 // ---------------------------------------------------------------------------
 //	ステートセーブ
 //
-#define OPN_BASE_STATE_VERSION	4
+#define OPN_BASE_STATE_VERSION	2
 
-void OPNBase::DeclState(void *f)
+bool OPNBase::ProcessState(void *f, bool loading)
 {
-	Timer::DeclState(f);
-	DECL_STATE_ENTRY_INT32(fmvolume_l);
-	DECL_STATE_ENTRY_INT32(fmvolume_r);
-	DECL_STATE_ENTRY_UINT32(clock);
-	DECL_STATE_ENTRY_UINT32(rate);
-	DECL_STATE_ENTRY_UINT32(psgrate);
-	DECL_STATE_ENTRY_UINT32(status);
-	DECL_STATE_ENTRY_BOOL(interrupt);
-	DECL_STATE_ENTRY_UINT8(prescale);
-	chip.DeclState(f);
-	psg.DeclState(f);
-}
-
-void OPNBase::SaveState(void *f)
-{
-	FILEIO *state_fio = (FILEIO *)f;
+ 	FILEIO *state_fio = (FILEIO *)f;
+ 	
+	if(!state_fio->StateCheckUint32(OPN_BASE_STATE_VERSION)) {
+ 		return false;
+ 	}
 	
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-	chip.SaveState(f);
-	psg.SaveState(f);
-//	state_fio->FputUint32_BE(OPN_BASE_STATE_VERSION);
-	
-//	Timer::SaveState(f);
-//	state_fio->FputInt32_BE(fmvolume_l);
-//	state_fio->FputInt32_BE(fmvolume_r);
-//	state_fio->FputUint32_BE(clock);
-//	state_fio->FputUint32_BE(rate);
-//	state_fio->FputUint32_BE(psgrate);
-//	state_fio->FputUint32_BE(status);
-//	state_fio->FputBool(interrupt);
-//	state_fio->FputUint8(prescale);
-}
-
-bool OPNBase::LoadState(void *f)
-{
-	FILEIO *state_fio = (FILEIO *)f;
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-//	if(state_fio->FgetUint32_BE() != OPN_BASE_STATE_VERSION) {
-//		return false;
-//	}
-//	if(!Timer::LoadState(f)) {
-//		return false;
-//	}
-//	fmvolume_l = state_fio->FgetInt32_BE();
-//	fmvolume_r = state_fio->FgetInt32_BE();
-//	clock = state_fio->FgetUint32_BE();
-//	rate = state_fio->FgetUint32_BE();
-//	psgrate = state_fio->FgetUint32_BE();
-//	status = state_fio->FgetUint32_BE();
-//	interrupt = state_fio->FgetBool();
-//	prescale = state_fio->FgetUint8();
-	{
+	if(!Timer::ProcessState(f, loading)) {
+ 		return false;
+ 	}
+	state_fio->StateInt32(fmvolume_l);
+	state_fio->StateInt32(fmvolume_r);
+	state_fio->StateUint32(clock);
+	state_fio->StateUint32(rate);
+	state_fio->StateUint32(psgrate);
+	state_fio->StateUint32(status);
+	state_fio->StateBool(interrupt);
+	state_fio->StateUint8(prescale);
+	if(loading){
 		// Make force-restore around prescaler and timers. 20180625 K.O
 		uint bak = prescale;
 		prescale = 10;
 		SetPrescaler(bak);
 	}
-	if(!chip.LoadState(f)) {
-		return false;
-	}
-	if(!psg.LoadState(f)) {
-		return false;
-	}
-	return true;
+	if(!chip.ProcessState(f, loading)) {
+ 		return false;
+ 	}
+	if(!psg.ProcessState(f, loading)) {
+ 		return false;
+ 	}
+ 	return true;
 }
 
 #endif // defined(BUILD_OPN) || defined(BUILD_OPNA) || defined (BUILD_OPNB) || defined(BUILD_OPN2)
@@ -480,74 +440,34 @@ void OPN::Mix(Sample* buffer, int nsamples)
 // ---------------------------------------------------------------------------
 //	ステートセーブ
 //
-#define OPN_STATE_VERSION	2
+#define OPN_STATE_VERSION	1
 
-void OPN::DeclState(void *f)
+bool OPN::ProcessState(void *f, bool loading)
 {
-
-	p_logger = (CSP_Logger *)f;
-	state_entry = new csp_state_utils(OPN_STATE_VERSION, chip_num, _T("FMGEN::OPN::"), p_logger);
-
-	OPNBase::DeclState(f);
+ 	FILEIO *state_fio = (FILEIO *)f;
 	
-	for(int i = 0; i < 3; i++) {
-		DECL_STATE_ENTRY_UINT32_MEMBER((fnum[i]), i);
-		DECL_STATE_ENTRY_UINT32_MEMBER((fnum3[i]), i);
-	}		
-	DECL_STATE_ENTRY_1D_ARRAY(fnum2, sizeof(fnum2));
-	for(int i = 0; i < 3; i++) {
-		ch[i].DeclState(f);
-	}
-}
+	if(!state_fio->StateCheckUint32(OPN_STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!OPNBase::ProcessState(f, loading)) {
+ 		return false;
+ 	}
+ 	
+	if(!state_fio->StateCheckUint32(OPN_STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!OPNBase::ProcessState(f, loading)) {
+ 		return false;
+ 	}
 
-void OPN::SaveState(void *f)
-{
-	FILEIO *state_fio = (FILEIO *)f;
-	OPNBase::SaveState(f);
-//	state_fio->FputUint32_BE(OPN_STATE_VERSION);
-//	
-//	OPNBase::SaveState(f);
-//	for(int i = 0; i < 3; i++) {
-//		state_fio->FputUint32_BE(fnum[i]);
-//	}		
-//	for(int i = 0; i < 3; i++) {
-//		state_fio->FputUint32_BE(fnum3[i]);
-//	}		
-//	//state_fio->Fwrite(fnum, sizeof(fnum), 1);
-//	//state_fio->Fwrite(fnum3, sizeof(fnum3), 1);
-//	state_fio->Fwrite(fnum2, sizeof(fnum2), 1);
-	for(int i = 0; i < 3; i++) {
-		ch[i].SaveState(f);
-	}
-}
-
-bool OPN::LoadState(void *f)
-{
-	FILEIO *state_fio = (FILEIO *)f;
-	
-	bool mb = false;
-	mb = OPNBase::LoadState(f);
-	if(!mb) return false;
-//	if(state_fio->FgetUint32_BE() != OPN_STATE_VERSION) {
-//		return false;
-//	}
-//	if(!OPNBase::LoadState(f)) {
-//		return false;
-//	}
-//	for(int i = 0; i < 3; i++) {
-//		fnum[i] = state_fio->FgetUint32_BE();
-//	}		
-//	for(int i = 0; i < 3; i++) {
-//		fnum3[i] = state_fio->FgetUint32_BE();
-//	}		
-//	//state_fio->Fread(fnum, sizeof(fnum), 1);
-//	//state_fio->Fread(fnum3, sizeof(fnum3), 1);
-//	state_fio->Fread(fnum2, sizeof(fnum2), 1);
-	for(int i = 0; i < 3; i++) {
-		if(!ch[i].LoadState(f)) {
-			return false;
-		}
-	}
+	state_fio->StateBuffer(fnum, sizeof(fnum), 1);
+	state_fio->StateBuffer(fnum3, sizeof(fnum3), 1);
+	state_fio->StateBuffer(fnum2, sizeof(fnum2), 1);
+ 	for(int i = 0; i < 3; i++) {
+		if(!ch[i].ProcessState(f, loading)) {
+ 			return false;
+ 		}
+ 	}
 	return true;
 }
 
@@ -1375,211 +1295,67 @@ void OPNABase::Mix6(Sample* buffer, int nsamples, int activech)
 //
 #define OPNA_BASE_STATE_VERSION	2
 
-void OPNABase::DeclState(void *f)
+bool OPNABase::ProcessState(void *f, bool loading)
 {
-
-	OPNBase::DeclState(f);
+ 	FILEIO *state_fio = (FILEIO *)f;
 	
-	DECL_STATE_ENTRY_1D_ARRAY(pan, sizeof(pan));
-	DECL_STATE_ENTRY_1D_ARRAY(fnum2, sizeof(fnum2));
-	DECL_STATE_ENTRY_UINT8(reg22);
-	DECL_STATE_ENTRY_UINT32(reg29);
-	DECL_STATE_ENTRY_UINT32(stmask);
-	DECL_STATE_ENTRY_UINT32(statusnext);
-	DECL_STATE_ENTRY_UINT32(lfocount);
-	DECL_STATE_ENTRY_UINT32(lfodcount);
-	//state_fio->Fwrite(fnum, sizeof(fnum), 1);
-	//state_fio->Fwrite(fnum3, sizeof(fnum3), 1);
+	if(!state_fio->StateCheckUint32(OPNA_BASE_STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!OPNBase::ProcessState(f, loading)) {
+ 		return false;
+ 	}
+	state_fio->StateBuffer(pan, sizeof(pan), 1);
+	state_fio->StateBuffer(fnum2, sizeof(fnum2), 1);
+	state_fio->StateUint8(reg22);
+	state_fio->StateUint32(reg29);
+	state_fio->StateUint32(stmask);
+	state_fio->StateUint32(statusnext);
+	state_fio->StateUint32(lfocount);
+	state_fio->StateUint32(lfodcount);
+	state_fio->StateBuffer(fnum, sizeof(fnum), 1);
+	state_fio->StateBuffer(fnum3, sizeof(fnum3), 1);
+	state_fio->StateBuffer(adpcmbuf, 0x40000, 1);
+	state_fio->StateUint32(adpcmmask);
+	state_fio->StateUint32(adpcmnotice);
+	state_fio->StateUint32(startaddr);
+	state_fio->StateUint32(stopaddr);
+	state_fio->StateUint32(memaddr);
+	state_fio->StateUint32(limitaddr);
+	state_fio->StateInt32(adpcmlevel);
+	state_fio->StateInt32(adpcmvolume_l);
+	state_fio->StateInt32(adpcmvolume_r);
+	state_fio->StateInt32(adpcmvol_l);
+	state_fio->StateInt32(adpcmvol_r);
+	state_fio->StateUint32(deltan);
+	state_fio->StateInt32(adplc);
+	state_fio->StateInt32(adpld);
+	state_fio->StateUint32(adplbase);
+	state_fio->StateInt32(adpcmx);
+	state_fio->StateInt32(adpcmd);
+	state_fio->StateInt32(adpcmout_l);
+	state_fio->StateInt32(adpcmout_r);
+	state_fio->StateInt32(apout0_l);
+	state_fio->StateInt32(apout0_r);
+	state_fio->StateInt32(apout1_l);
+	state_fio->StateInt32(apout1_r);
+	state_fio->StateUint32(adpcmreadbuf);
+	state_fio->StateBool(adpcmplay);
+	state_fio->StateInt8(granuality);
+	state_fio->StateBool(adpcmmask_);
+	state_fio->StateUint8(control1);
+	state_fio->StateUint8(control2);
+	state_fio->StateBuffer(adpcmreg, sizeof(adpcmreg), 1);
+	state_fio->StateInt32(rhythmmask_);
 	for(int i = 0; i < 6; i++) {
-		DECL_STATE_ENTRY_UINT32_MEMBER((fnum[i]), i);
-	}		
-	for(int i = 0; i < 3; i++) {
-		DECL_STATE_ENTRY_UINT32_MEMBER((fnum3[i]), i);
-	}		
-	DECL_STATE_ENTRY_1D_ARRAY(adpcmbuf, 0x40000);
-	DECL_STATE_ENTRY_UINT32(adpcmmask);
-	DECL_STATE_ENTRY_UINT32(adpcmnotice);
-	DECL_STATE_ENTRY_UINT32(startaddr);
-	DECL_STATE_ENTRY_UINT32(stopaddr);
-	DECL_STATE_ENTRY_UINT32(memaddr);
-	DECL_STATE_ENTRY_UINT32(limitaddr);
-	DECL_STATE_ENTRY_INT32(adpcmlevel);
-	DECL_STATE_ENTRY_INT32(adpcmvolume_l);
-	DECL_STATE_ENTRY_INT32(adpcmvolume_r);
-	DECL_STATE_ENTRY_INT32(adpcmvol_l);
-	DECL_STATE_ENTRY_INT32(adpcmvol_r);
-	DECL_STATE_ENTRY_UINT32(deltan);
-	DECL_STATE_ENTRY_INT32(adplc);
-	DECL_STATE_ENTRY_INT32(adpld);
-	DECL_STATE_ENTRY_UINT32(adplbase);
-	DECL_STATE_ENTRY_INT32(adpcmx);
-	DECL_STATE_ENTRY_INT32(adpcmd);
-	DECL_STATE_ENTRY_INT32(adpcmout_l);
-	DECL_STATE_ENTRY_INT32(adpcmout_r);
-	DECL_STATE_ENTRY_INT32(apout0_l);
-	DECL_STATE_ENTRY_INT32(apout0_r);
-	DECL_STATE_ENTRY_INT32(apout1_l);
-	DECL_STATE_ENTRY_INT32(apout1_r);
-	DECL_STATE_ENTRY_UINT32(adpcmreadbuf);
-	DECL_STATE_ENTRY_BOOL(adpcmplay);
-	DECL_STATE_ENTRY_INT8(granuality);
-	DECL_STATE_ENTRY_BOOL(adpcmmask_);
-	DECL_STATE_ENTRY_UINT8(control1);
-	DECL_STATE_ENTRY_UINT8(control2);
-	DECL_STATE_ENTRY_1D_ARRAY(adpcmreg, sizeof(adpcmreg));
-	DECL_STATE_ENTRY_INT32(rhythmmask_);
-
-	for(int i = 0; i < 6; i++) {
-		ch[i].DeclState(f);
-	}
-}
-void OPNABase::SaveState(void *f)
-{
-	FILEIO *state_fio = (FILEIO *)f;
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-	chip.SaveState(f);
-	psg.SaveState(f);
-	
-//	state_fio->FputUint32_BE(OPNA_BASE_STATE_VERSION);
-	
-//	OPNBase::SaveState(f);
-//	state_fio->Fwrite(pan, sizeof(pan), 1);
-//	state_fio->Fwrite(fnum2, sizeof(fnum2), 1);
-//	state_fio->FputUint8(reg22);
-//	state_fio->FputUint32_BE(reg29);
-//	state_fio->FputUint32_BE(stmask);
-//	state_fio->FputUint32_BE(statusnext);
-//	state_fio->FputUint32_BE(lfocount);
-//	state_fio->FputUint32_BE(lfodcount);
-//	//state_fio->Fwrite(fnum, sizeof(fnum), 1);
-//	//state_fio->Fwrite(fnum3, sizeof(fnum3), 1);
-//	for(int i = 0; i < 6; i++) {
-//		state_fio->FputUint32_BE(fnum[i]);
-//	}		
-//	for(int i = 0; i < 3; i++) {
-//		state_fio->FputUint32_BE(fnum3[i]);
-//	}		
-//	state_fio->Fwrite(adpcmbuf, 0x40000, 1);
-//	state_fio->FputUint32_BE(adpcmmask);
-//	state_fio->FputUint32_BE(adpcmnotice);
-//	state_fio->FputUint32_BE(startaddr);
-//	state_fio->FputUint32_BE(stopaddr);
-//	state_fio->FputUint32_BE(memaddr);
-//	state_fio->FputUint32_BE(limitaddr);
-//	state_fio->FputInt32_BE(adpcmlevel);
-//	state_fio->FputInt32_BE(adpcmvolume_l);
-//	state_fio->FputInt32_BE(adpcmvolume_r);
-//	state_fio->FputInt32_BE(adpcmvol_l);
-//	state_fio->FputInt32_BE(adpcmvol_r);
-//	state_fio->FputUint32_BE(deltan);
-//	state_fio->FputInt32_BE(adplc);
-//	state_fio->FputInt32_BE(adpld);
-//	state_fio->FputUint32_BE(adplbase);
-//	state_fio->FputInt32_BE(adpcmx);
-//	state_fio->FputInt32_BE(adpcmd);
-//	state_fio->FputInt32_BE(adpcmout_l);
-//	state_fio->FputInt32_BE(adpcmout_r);
-//	state_fio->FputInt32_BE(apout0_l);
-//	state_fio->FputInt32_BE(apout0_r);
-//	state_fio->FputInt32_BE(apout1_l);
-//	state_fio->FputInt32_BE(apout1_r);
-//	state_fio->FputUint32_BE(adpcmreadbuf);
-//	state_fio->FputBool(adpcmplay);
-//	state_fio->FputInt8(granuality);
-//	state_fio->FputBool(adpcmmask_);
-//	state_fio->FputUint8(control1);
-//	state_fio->FputUint8(control2);
-//	state_fio->Fwrite(adpcmreg, sizeof(adpcmreg), 1);
-//	state_fio->FputInt32_BE(rhythmmask_);
-	for(int i = 0; i < 6; i++) {
-		ch[i].SaveState(f);
-	}
-}
-
-bool OPNABase::LoadState(void *f)
-{
-	FILEIO *state_fio = (FILEIO *)f;
-	
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-	{
-		// Make force-restore around prescaler and timers. 20180625 K.O
-		uint bak = prescale;
-		prescale = 10;
-		SetPrescaler(bak);
-	}
-	if(!chip.LoadState(f)) {
-		return false;
-	}
-	if(!psg.LoadState(f)) {
-		return false;
-	}
-//	if(state_fio->FgetUint32_BE() != OPNA_BASE_STATE_VERSION) {
-//		return false;
-//	}
-//	if(!OPNBase::LoadState(f)) {
-//		return false;
-//	}
-//	state_fio->Fread(pan, sizeof(pan), 1);
-//	state_fio->Fread(fnum2, sizeof(fnum2), 1);
-//	reg22 = state_fio->FgetUint8();
-//	reg29 = state_fio->FgetUint32_BE();
-//	stmask = state_fio->FgetUint32_BE();
-//	statusnext = state_fio->FgetUint32_BE();
-//	lfocount = state_fio->FgetUint32_BE();
-//	lfodcount = state_fio->FgetUint32_BE();
-//	//state_fio->Fread(fnum, sizeof(fnum), 1);
-//	//state_fio->Fread(fnum3, sizeof(fnum3), 1);
-//	for(int i = 0; i < 6; i++) {
-//		fnum[i] = state_fio->FgetUint32_BE();
-//	}		
-//	for(int i = 0; i < 3; i++) {
-//		fnum3[i] = state_fio->FgetUint32_BE();
-//	}		
-//	state_fio->Fread(adpcmbuf, 0x40000, 1);
-//	adpcmmask = state_fio->FgetUint32_BE();
-//	adpcmnotice = state_fio->FgetUint32_BE();
-//	startaddr = state_fio->FgetUint32_BE();
-//	stopaddr = state_fio->FgetUint32_BE();
-//	memaddr = state_fio->FgetUint32_BE();
-//	limitaddr = state_fio->FgetUint32_BE();
-//	adpcmlevel = state_fio->FgetInt32_BE();
-//	adpcmvolume_l = state_fio->FgetInt32_BE();
-//	adpcmvolume_r = state_fio->FgetInt32_BE();
-//	adpcmvol_l = state_fio->FgetInt32_BE();
-//	adpcmvol_r = state_fio->FgetInt32_BE();
-//	deltan = state_fio->FgetUint32_BE();
-//	adplc = state_fio->FgetInt32_BE();
-//	adpld = state_fio->FgetInt32_BE();
-//	adplbase = state_fio->FgetUint32_BE();
-//	adpcmx = state_fio->FgetInt32_BE();
-//	adpcmd = state_fio->FgetInt32_BE();
-//	adpcmout_l = state_fio->FgetInt32_BE();
-//	adpcmout_r = state_fio->FgetInt32_BE();
-//	apout0_l = state_fio->FgetInt32_BE();
-//	apout0_r = state_fio->FgetInt32_BE();
-//	apout1_l = state_fio->FgetInt32_BE();
-//	apout1_r = state_fio->FgetInt32_BE();
-//	adpcmreadbuf = state_fio->FgetUint32_BE();
-//	adpcmplay = state_fio->FgetBool();
-//	granuality = state_fio->FgetInt8();
-//	adpcmmask_ = state_fio->FgetBool();
-//	control1 = state_fio->FgetUint8();
-//	control2 = state_fio->FgetUint8();
-///	state_fio->Fread(adpcmreg, sizeof(adpcmreg), 1);
-//	rhythmmask_ = state_fio->FgetInt32_BE();
-	for(int i = 0; i < 6; i++) {
-		if(!ch[i].LoadState(f)) {
-			return false;
-		}
-	}
+		if(!ch[i].ProcessState(f, loading)) {
+ 			return false;
+ 		}
+ 	}
 	return true;
 }
+
+
 
 #endif // defined(BUILD_OPNA) || defined(BUILD_OPNB)
 
@@ -1954,68 +1730,30 @@ void OPNA::Mix(Sample* buffer, int nsamples)
 // ---------------------------------------------------------------------------
 //	ステートセーブ
 //
-#define OPNA_STATE_VERSION	4
+#define OPNA_STATE_VERSION	2
 
-void OPNA::DeclState(void *f)
+bool OPNA::ProcessState(void *f, bool loading)
 {
-	p_logger = (CSP_Logger *)f;
-	state_entry = new csp_state_utils(OPNA_STATE_VERSION, chip_num, _T("FMGEN::OPNA::"), p_logger);
-
-	OPNABase::DeclState(f);
-	
-	for(int i = 0; i < 6; i++) {
-		DECL_STATE_ENTRY_UINT8_MEMBER((rhythm[i].pan), i);
-		DECL_STATE_ENTRY_INT8_MEMBER((rhythm[i].level), i);
-		DECL_STATE_ENTRY_UINT32_MEMBER((rhythm[i].pos), i);
+ 	FILEIO *state_fio = (FILEIO *)f;
+ 	
+	if(!state_fio->StateCheckUint32(OPNA_STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!OPNABase::ProcessState(f, loading)) {
+ 		return false;
+ 	}
+ 	for(int i = 0; i < 6; i++) {
+		state_fio->StateUint8(rhythm[i].pan);
+		state_fio->StateInt8(rhythm[i].level);
+		state_fio->StateUint32(rhythm[i].pos);
 	}
-	DECL_STATE_ENTRY_INT8(rhythmtl);
-	DECL_STATE_ENTRY_INT32(rhythmtvol_l);
-	DECL_STATE_ENTRY_INT32(rhythmtvol_r);
-	DECL_STATE_ENTRY_UINT8(rhythmkey);
+	state_fio->StateInt8(rhythmtl);
+	state_fio->StateInt32(rhythmtvol_l);
+	state_fio->StateInt32(rhythmtvol_r);
+	state_fio->StateUint8(rhythmkey);
+ 	return true;
 }
-void OPNA::SaveState(void *f)
-{
-	FILEIO *state_fio = (FILEIO *)f;
-	
-	OPNABase::SaveState(f);
-//	state_fio->FputUint32_BE(OPNA_STATE_VERSION);
-	
-//	OPNABase::SaveState(f);
-//	for(int i = 0; i < 6; i++) {
-//		state_fio->FputUint8(rhythm[i].pan);
-//		state_fio->FputInt8(rhythm[i].level);
-//		state_fio->FputUint32_BE(rhythm[i].pos);
-//	}
-//	state_fio->FputInt8(rhythmtl);
-//	state_fio->FputInt32_BE(rhythmtvol_l);
-//	state_fio->FputInt32_BE(rhythmtvol_r);
-//	state_fio->FputUint8(rhythmkey);
-}
-
-bool OPNA::LoadState(void *f)
-{
-	FILEIO *state_fio = (FILEIO *)f;
-	
-	bool mb = false;
-	mb = OPNABase::LoadState(f);
-	if(!mb) return false;
-//	if(state_fio->FgetUint32_BE() != OPNA_STATE_VERSION) {
-//		return false;
-//	}
-//	if(!OPNABase::LoadState(f)) {
-//		return false;
-//	}
-//	for(int i = 0; i < 6; i++) {
-//		rhythm[i].pan = state_fio->FgetUint8();
-//		rhythm[i].level = state_fio->FgetInt8();
-//		rhythm[i].pos = state_fio->FgetUint32_BE();
-//	}
-//	rhythmtl = state_fio->FgetInt8();
-//	rhythmtvol_l = state_fio->FgetInt32_BE();
-//	rhythmtvol_r = state_fio->FgetInt32_BE();
-//	rhythmkey = state_fio->FgetUint8();
-	return true;
-}
+ 
 
 #endif // BUILD_OPNA
 
@@ -2800,67 +2538,38 @@ void OPN2Base::Mix6(Sample* buffer, int nsamples, int activech)
 //
 #define OPN2_BASE_STATE_VERSION	1
 
-void OPN2Base::DeclState(void *f)
+bool OPN2Base::ProcessState(void *f, bool loading)
 {
-
-	OPNBase::DeclState(f);
+ 	FILEIO *state_fio = (FILEIO *)f;
 	
-	DECL_STATE_ENTRY_1D_ARRAY(pan, sizeof(pan));
-	DECL_STATE_ENTRY_1D_ARRAY(fnum2, sizeof(fnum2));
-	DECL_STATE_ENTRY_UINT8(reg22);
-	DECL_STATE_ENTRY_UINT32(reg29);
-	DECL_STATE_ENTRY_UINT32(stmask);
-	DECL_STATE_ENTRY_UINT32(statusnext);
-	DECL_STATE_ENTRY_UINT32(lfocount);
-	DECL_STATE_ENTRY_UINT32(lfodcount);
-	//state_fio->Fwrite(fnum, sizeof(fnum), 1);
-	//state_fio->Fwrite(fnum3, sizeof(fnum3), 1);
-	for(int i = 0; i < 6; i++) {
-		DECL_STATE_ENTRY_UINT32_MEMBER((fnum[i]), i);
-	}		
-	for(int i = 0; i < 3; i++) {
-		DECL_STATE_ENTRY_UINT32_MEMBER((fnum3[i]), i);
-	}		
-	for(int i = 0; i < 6; i++) {
-		ch[i].DeclState(f);
-	}
-}
-
-void OPN2Base::SaveState(void *f)
-{
-	FILEIO *state_fio = (FILEIO *)f;
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-	chip.SaveState(f);
-	for(int i = 0; i < 6; i++) {
-		ch[i].SaveState(f);
-	}
-}
-
-bool OPN2Base::LoadState(void *f)
-{
-	FILEIO *state_fio = (FILEIO *)f;
+	if(!state_fio->StateCheckUint32(OPN2_BASE_STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!OPNBase::ProcessState(f, loading)) {
+ 		return false;
+ 	}
+	state_fio->StateBuffer(pan, sizeof(pan), 1);
+	state_fio->StateBuffer(fnum2, sizeof(fnum2), 1);
+	state_fio->StateUint8(reg22);
+	state_fio->StateUint32(reg29);
+	state_fio->StateUint32(stmask);
+	state_fio->StateUint32(statusnext);
+	state_fio->StateUint32(lfocount);
+	state_fio->StateUint32(lfodcount);
+	state_fio->StateBuffer(fnum, sizeof(fnum), 1);
+	state_fio->StateBuffer(fnum3, sizeof(fnum3), 1);
 	
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-	{
+	if(loading) {
 		// Make force-restore around prescaler and timers. 20180625 K.O
 		uint bak = prescale;
 		prescale = 10;
 		SetPrescaler(bak);
 	}
-	if(!chip.LoadState(f)) {
-		return false;
-	}
 	for(int i = 0; i < 6; i++) {
-		if(!ch[i].LoadState(f)) {
-			return false;
-		}
-	}
+		if(!ch[i].ProcessState(f, loading)) {
+ 			return false;
+ 		}
+ 	}
 	return true;
 }
 #endif // defined(BUILD_OPN2)
@@ -2962,29 +2671,9 @@ void OPN2::Mix(Sample* buffer, int nsamples)
 //
 #define OPN2_STATE_VERSION	1
 
-void OPN2::DeclState(void *f)
+bool OPN2::ProcessState(void *f, bool loading)
 {
-	p_logger = (CSP_Logger *)f;
-	state_entry = new csp_state_utils(OPN2_STATE_VERSION, chip_num, _T("FMGEN::OPN2::"), p_logger);
-
-	OPN2Base::DeclState(f);
-}
-
-void OPN2::SaveState(void *f)
-{
-	FILEIO *state_fio = (FILEIO *)f;
-	OPN2Base::SaveState(f);
-}
-
-bool OPN2::LoadState(void *f)
-{
-	FILEIO *state_fio = (FILEIO *)f;
-	
-	bool mb = false;
-	mb = OPN2Base::LoadState(f);
-	if(!mb) return false;
-
-	return true;
+	return OPN2Base::ProcessState(f, loading);
 }
 
 #endif // BUILD_OPN2

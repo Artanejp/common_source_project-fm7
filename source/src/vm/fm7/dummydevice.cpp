@@ -60,32 +60,22 @@ void DUMMYDEVICE::reset()
 	}
 }
 
-#define STATE_VERSION 1
-void DUMMYDEVICE::save_state(FILEIO *state_fio)
-{
-	state_fio->FputUint32_BE(STATE_VERSION);
-	state_fio->FputInt32_BE(this_device_id);
-	this->out_debug_log(_T("Save State: id=%d ver=%d\n"), this_device_id, STATE_VERSION);
-	// Version 1
-	{
-		state_fio->FputUint32_BE(status);
-		state_fio->FputBool(clear_on_reset);
-		state_fio->FputBool(clear_with_zero);
-	}
-}
+#define STATE_VERSION 2
 
-bool DUMMYDEVICE::load_state(FILEIO *state_fio)
+bool DUMMYDEVICE::process_state(FILEIO* state_fio, bool loading)
 {
-	uint32_t version;
-	version = state_fio->FgetUint32_BE();
-	this->out_debug_log(_T("Load State: id=%d ver=%d\n"), this_device_id, version);
-	if(this_device_id != state_fio->FgetInt32_BE()) return false;
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
 	// Version 1
 	{
-		status = state_fio->FgetUint32_BE();
-		clear_on_reset = state_fio->FgetBool();
-		clear_with_zero = state_fio->FgetBool();
+		state_fio->StateUint32(status);
+		state_fio->StateBool(clear_on_reset);
+		state_fio->StateBool(clear_with_zero);
 	}
-	if(version != STATE_VERSION) return false;
 	return true;
 }
+

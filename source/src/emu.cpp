@@ -2847,7 +2847,7 @@ void EMU::save_state(const _TCHAR* file_path)
 		// save state file version
 		fio->FputUint32(STATE_VERSION);
 		// save config
-		save_config_state((void *)fio);
+		process_config_state((void *)fio, false);
 		// save inserted medias
 #ifdef USE_CART
 		fio->Fwrite(&cart_status, sizeof(cart_status), 1);
@@ -2875,9 +2875,9 @@ void EMU::save_state(const _TCHAR* file_path)
 		fio->Fwrite(&bubble_casette_status, sizeof(bubble_casette_status), 1);
 #endif
 		// save vm state
-		vm->save_state(fio);
+		vm->process_state(fio, false);
 		// end of state file
-		fio->FputInt32(-1);
+		fio->FputInt32_LE(-1);
 		fio->Fclose();
 	}
 	osd->unlock_vm();
@@ -2918,7 +2918,7 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 		// check state file version
 		if(fio->FgetUint32() == STATE_VERSION) {
 			// load config
-			if(load_config_state((void *)fio)) {
+			if(process_config_state((void *)fio, true)) {
 				// load inserted medias
 #ifdef USE_CART
 				fio->Fread(&cart_status, sizeof(cart_status), 1);
@@ -2994,9 +2994,9 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 					restore_media();
 				}
 				// load vm state
-				if(vm->load_state(fio)) {
+				if(vm->process_state(fio, true)) {
 					// check end of state
-					result = (fio->FgetInt32() == -1);
+					result = (fio->FgetInt32_LE() == -1);
 				}
 			}
 		}

@@ -77,9 +77,8 @@ public:
 	void SetReg(uint regnum, uint8 data);
 	uint GetReg(uint regnum) { return reg[regnum & 0x0f]; }
 
-	void DeclState(void *f);
-	void SaveState(void *f);
-	bool LoadState(void *f);
+	bool ProcessState(void *f, bool loading);
+
 	
 protected:
 	void MakeNoiseTable();

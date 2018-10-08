@@ -111,9 +111,7 @@ namespace FM
 		void	RebuildTimeTable();
 		void	Intr(bool value);
 		
-		void DeclState(void *f);
-		void SaveState(void *f);
-		bool LoadState(void *f);
+		bool ProcessState(void *f, bool loading);
 		
 		int		fmvolume_l;
 		int		fmvolume_r;
@@ -160,9 +158,7 @@ namespace FM
 		void	SetADPCMBReg(uint reg, uint data);
 		uint	GetReg(uint addr);	
 		
-		void DeclState(void *f);
-		void SaveState(void *f);
-		bool LoadState(void *f);
+		bool ProcessState(void *f, bool loading);
 	
 	protected:
 		void	FMMix(Sample* buffer, int nsamples);
@@ -268,9 +264,7 @@ namespace FM
 		void 	SetReg(uint addr, uint data);
 		uint	GetReg(uint addr);	
 		
-		void DeclState(void *f);
-		void SaveState(void *f);
-		bool LoadState(void *f);
+		bool ProcessState(void *f, bool loading);
 	
 	protected:
 		void	FMMix(Sample* buffer, int nsamples);
@@ -331,9 +325,7 @@ namespace FM
 		int		dbgGetPGOut(int c, int s) { return ch[c].op[s].dbgpgout_; }
 		Channel4* dbgGetCh(int c) { return &ch[c]; }
 		
-		void DeclState(void *f);
-		void SaveState(void *f);
-		bool LoadState(void *f);
+		bool ProcessState(void *f, bool loading);
 	
 	private:
 		void	SetStatus(uint bit);
@@ -373,9 +365,7 @@ namespace FM
 		int		dbgGetPGOut(int c, int s) { return ch[c].op[s].dbgpgout_; }
 		Channel4* dbgGetCh(int c) { return &ch[c]; }
 
-		void DeclState(void *f);
-		void SaveState(void *f);
-		bool LoadState(void *f);
+		bool ProcessState(void *f, bool loading);
 		
 	private:
 		struct Rhythm
@@ -479,9 +469,8 @@ namespace FM
 		uint	GetReg(uint addr);
 		uint	ReadStatus() { return status & 0x03; }
 		uint	ReadStatusEx() { return 0xff; }
-		void DeclState(void *f);
-		void SaveState(void *f);
-		bool LoadState(void *f);
+
+		bool ProcessState(void *f, bool loading);
 
 	private:
 		//void	SetStatus(uint bit);

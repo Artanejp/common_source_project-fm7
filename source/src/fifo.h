@@ -20,8 +20,6 @@ private:
 	int* buf;
 	int cnt, rpt, wpt;
 
-	const _TCHAR *_ns = "FIFO::BEGIN";
-	const _TCHAR *_ne = "FIFO::END";
 public:
 	FIFO(int s);
 	void release();
@@ -33,12 +31,7 @@ public:
 	int count();
 	bool full();
 	bool empty();
-	void save_state(void *f);
-	bool load_state(void *f);
-
-	void save_state_helper(csp_state_data_saver *state_saver, uint32_t *sumseed, bool *__stat);
-	bool load_state_helper(csp_state_data_saver *state_saver, uint32_t *sumseed, bool *__stat);
-	
+	bool process_state(void *f, bool loading);
 };
 
 #endif

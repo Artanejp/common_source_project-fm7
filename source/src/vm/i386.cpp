@@ -67,6 +67,10 @@
 #define CPU_INIT(name)				void* CPU_INIT_NAME(name)()
 #define CPU_INIT_CALL(name)			CPU_INIT_NAME(name)()
 
+#define CPU_TABLE_NAME(name)			cpu_table_##name
+#define CPU_TABLE(name)				void CPU_TABLE_NAME(name)(i386_state *cpustate)
+#define CPU_TABLE_CALL(name)			CPU_TABLE_NAME(name)(cpustate)
+
 #define CPU_RESET_NAME(name)			cpu_reset_##name
 #define CPU_RESET(name)				void CPU_RESET_NAME(name)(i386_state *cpustate)
 #define CPU_RESET_CALL(name)			CPU_RESET_NAME(name)(cpustate)
@@ -537,43 +541,83 @@ int I386::get_shutdown_flag()
 	return cpustate->shutdown;
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
-void I386::save_state(FILEIO* state_fio)
+bool I386::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->Fwrite(opaque, sizeof(i386_state), 1);
-}
-
-bool I386::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	i386_state *cpustate = (i386_state *)opaque;
+	vtlb_state *vtlb = cpustate->vtlb;
+	void *cpudevice = NULL;
+	offs_t *live = NULL;
+	int live_size = 0;
+	int *fixedpages = NULL;
+	int fixedpages_size = 0;
+	vtlb_entry *table = NULL;
+	int table_size = 0;
+//	vtlb_entry *save = NULL;
+//	int save_size = 0;
+	if(vtlb != NULL) {
+		cpudevice = vtlb->cpudevice;
+		live = vtlb->live;
+		live_size = vtlb->live_size;
+		fixedpages = vtlb->fixedpages;
+		fixedpages_size = vtlb->fixedpages_size;
+		table = vtlb->table;
+		table_size = vtlb->table_size;
+//		save = vtlb->save;
+//		save_size = vtlb->save_size;
+	}
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
+	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->Fread(opaque, sizeof(i386_state), 1);
+	state_fio->StateBuffer(opaque, sizeof(i386_state), 1);
+	if(vtlb != NULL) {
+		state_fio->StateBuffer(vtlb, sizeof(vtlb_state), 1);
+	}
+	if(live != NULL && live_size > 0) {
+		state_fio->StateBuffer(live, live_size, 1);
+	}
+	if(fixedpages != NULL && fixedpages_size > 0) {
+		state_fio->StateBuffer(fixedpages, fixedpages_size, 1);
+	}
+	if(table != NULL && table_size > 0) {
+		state_fio->StateBuffer(table, table_size, 1);
+	}
+//	if(save != NULL && save_size > 0) {
+//		state_fio->StateBuffer(save, save_size, 1);
+//	}
 	
 	// post process
-	i386_state *cpustate = (i386_state *)opaque;
-	cpustate->pic = d_pic;
-	cpustate->program = d_mem;
-	cpustate->io = d_io;
+	if(loading) {
+		cpustate->vtlb = vtlb;
+		if(vtlb != NULL) {
+			vtlb->cpudevice = cpudevice;
+			vtlb->live = live;
+			vtlb->fixedpages = fixedpages;
+			vtlb->table = table;
+//			vtlb->save = save;
+		}
+		cpustate->pic = d_pic;
+		cpustate->program = d_mem;
+		cpustate->io = d_io;
 #ifdef I86_PSEUDO_BIOS
-	cpustate->bios = d_bios;
+		cpustate->bios = d_bios;
 #endif
 #ifdef SINGLE_MODE_DMA
-	cpustate->dma = d_dma;
+		cpustate->dma = d_dma;
 #endif
 #ifdef USE_DEBUGGER
-	cpustate->emu = emu;
-	cpustate->debugger = d_debugger;
-	cpustate->program_stored = d_mem;
-	cpustate->io_stored = d_io;
+		cpustate->emu = emu;
+		cpustate->debugger = d_debugger;
+		cpustate->program_stored = d_mem;
+		cpustate->io_stored = d_io;
+		cpustate->prev_total_cycles = cpustate->total_cycles;
 #endif
+		CPU_TABLE_CALL(CPU_MODEL);
+	}
 	return true;
 }
 

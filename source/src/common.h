@@ -1163,10 +1163,7 @@ typedef DLL_PREFIX struct cur_time_s {
 	void increment();
 	void update_year();
 	void update_day_of_week();
-	void save_state(void *f);
-	bool load_state(void *f);
-	void save_state_helper(void *f, uint32_t *sumseed, bool *__stat);
-	bool load_state_helper(void *f, uint32_t *sumseed, bool *__stat);
+	bool process_state(void *f, bool loading);
 } cur_time_t;
 
 void DLL_PREFIX get_host_time(cur_time_t* cur_time);

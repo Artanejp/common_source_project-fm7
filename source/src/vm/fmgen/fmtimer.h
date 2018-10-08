@@ -10,7 +10,6 @@
 #include "types.h"
 #include "common.h"
 
-class csp_state_utils;
 class CSP_Logger;
 // ---------------------------------------------------------------------------
 
@@ -19,7 +18,6 @@ namespace FM
 	class DLL_PREFIX Timer
 	{
 	protected:
-		csp_state_utils *state_entry;
 		CSP_Logger *p_logger;
 	public:
 		void	Reset();
@@ -35,9 +33,7 @@ namespace FM
 		void	SetTimerB(uint data);
 		void	SetTimerControl(uint data);
 
-		void DeclState(void *f);
-		void SaveState(void *f);
-		bool LoadState(void *f);
+		bool ProcessState(void *f, bool loading);
 		
 		uint8	status;
 		uint8	regtc;

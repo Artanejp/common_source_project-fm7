@@ -437,9 +437,7 @@ public:
 	void draw_screen();
 	void event_frame();
 	void event_vline(int v, int clock);
-	void save_state(FILEIO *state_fio);
-	bool load_state(FILEIO *state_fio);
-	void decl_state(void);
+	bool process_state(FILEIO *state_fio, bool loading);
 	
 	int get_screen_mode(void) {
 		return display_mode;

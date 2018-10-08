@@ -3508,186 +3508,158 @@ void DISPLAY::release()
 }
 
 #define STATE_VERSION 12
-void DISPLAY::decl_state(void)
+
+bool DISPLAY::process_state(FILEIO *state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
-	DECL_STATE_ENTRY_INT(this_device_id);
-	{
-		int i;
-		DECL_STATE_ENTRY_BOOL(delay_busy);
-		DECL_STATE_ENTRY_BOOL(halt_flag);
-		DECL_STATE_ENTRY_INT32(active_page);
-		DECL_STATE_ENTRY_BOOL(sub_busy);
-		DECL_STATE_ENTRY_BOOL(crt_flag);
-		DECL_STATE_ENTRY_BOOL(vram_wrote);
-		DECL_STATE_ENTRY_BOOL(is_cyclesteal);
-		
-		DECL_STATE_ENTRY_BOOL(clock_fast);
-		
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+ 	{
+ 		int i;
+		state_fio->StateBool(delay_busy);
+		state_fio->StateBool(halt_flag);
+		state_fio->StateInt32(active_page);
+		state_fio->StateBool(sub_busy);
+		state_fio->StateBool(crt_flag);
+		state_fio->StateBool(vram_wrote);
+		state_fio->StateBool(is_cyclesteal);
+ 		
+		state_fio->StateBool(clock_fast);
+ 		
 #if defined(_FM77AV_VARIANTS)
-		DECL_STATE_ENTRY_BOOL(subcpu_resetreq);
-		DECL_STATE_ENTRY_BOOL(power_on_reset);
+		state_fio->StateBool(subcpu_resetreq);
+		state_fio->StateBool(power_on_reset);
 #endif	
-		DECL_STATE_ENTRY_BOOL(cancel_request);
-		DECL_STATE_ENTRY_BOOL(key_firq_req);
-
-		DECL_STATE_ENTRY_INT32(display_mode);
-		DECL_STATE_ENTRY_UINT32(prev_clock);
-
+		state_fio->StateBool(cancel_request);
+		state_fio->StateBool(key_firq_req);
+		state_fio->StateInt32(display_mode);
+		state_fio->StateUint32(prev_clock);
 #if !defined(_FM8)	
-		DECL_STATE_ENTRY_MULTI(void, dpalette_data, sizeof(dpalette_data));
-		DECL_STATE_ENTRY_UINT8(multimode_accessmask);
-		DECL_STATE_ENTRY_UINT8(multimode_dispmask);
+		state_fio->StateBuffer(dpalette_data, sizeof(dpalette_data), 1);
+		state_fio->StateUint8(multimode_accessmask);
+		state_fio->StateUint8(multimode_dispmask);
 #endif		
-		DECL_STATE_ENTRY_UINT32(offset_point);
+		state_fio->StateUint32(offset_point);
 #if defined(_FM77AV_VARIANTS)
-		DECL_STATE_ENTRY_UINT32(offset_point_bank1);
+		state_fio->StateUint32(offset_point_bank1);
 #endif		
 		//for(i = 0; i < 2; i++) {
-		DECL_STATE_ENTRY_PAIR_ARRAY(tmp_offset_point, 2);
-		DECL_STATE_ENTRY_BOOL_ARRAY(offset_changed, 2);
-			//}
-		DECL_STATE_ENTRY_BOOL(offset_77av);
-		DECL_STATE_ENTRY_BOOL(diag_load_subrom_c);
-		
-	
-		DECL_STATE_ENTRY_MULTI(void, io_w_latch, sizeof(io_w_latch));
-		DECL_STATE_ENTRY_MULTI(void, console_ram, sizeof(console_ram));
-		DECL_STATE_ENTRY_MULTI(void, work_ram, sizeof(work_ram));
-		DECL_STATE_ENTRY_MULTI(void, shared_ram, sizeof(shared_ram));
-		DECL_STATE_ENTRY_MULTI(void, subsys_c, sizeof(subsys_c));
-		DECL_STATE_ENTRY_MULTI(void, gvram, sizeof(gvram));
-		DECL_STATE_ENTRY_MULTI(void, gvram_shadow, sizeof(gvram_shadow));
-	
+		state_fio->StateBuffer(tmp_offset_point, sizeof(tmp_offset_point), 1);
+		state_fio->StateBuffer(offset_changed, sizeof(offset_changed), 1);
+		//}
+		state_fio->StateBool(offset_77av);
+		state_fio->StateBool(diag_load_subrom_c);
+		state_fio->StateBuffer(io_w_latch, sizeof(io_w_latch), 1);
+		state_fio->StateBuffer(console_ram, sizeof(console_ram), 1);
+		state_fio->StateBuffer(work_ram, sizeof(work_ram), 1);
+		state_fio->StateBuffer(shared_ram, sizeof(shared_ram), 1);
+		state_fio->StateBuffer(subsys_c, sizeof(subsys_c), 1);
+		state_fio->StateBuffer(gvram, sizeof(gvram), 1);
+		state_fio->StateBuffer(gvram_shadow, sizeof(gvram_shadow), 1);
 #if defined(_FM77_VARIANTS)
-		DECL_STATE_ENTRY_BOOL(kanjisub);
-		DECL_STATE_ENTRY_PAIR(kanjiaddr);
+		state_fio->StateBool(kanjisub);
+		state_fio->StateUint32(kanjiaddr.d);
 # if defined(_FM77L4)
-		DECL_STATE_ENTRY_BOOL(mode400line);
-		DECL_STATE_ENTRY_BOOL(stat_400linecard);
+		state_fio->StateBool(mode400line);
+		state_fio->StateBool(stat_400linecard);
 # endif
 #elif defined(_FM77AV_VARIANTS)
-		DECL_STATE_ENTRY_BOOL(kanjisub);
-		DECL_STATE_ENTRY_PAIR(kanjiaddr);
-
-		DECL_STATE_ENTRY_BOOL(mode320);
-		DECL_STATE_ENTRY_INT32(cgrom_bank);
+		state_fio->StateBool(kanjisub);
+		state_fio->StateUint32(kanjiaddr.d);
+		state_fio->StateBool(mode320);
+		state_fio->StateInt32(cgrom_bank);
 #if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX) || \
-    defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
-		DECL_STATE_ENTRY_INT32(vram_bank);
+	defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
+		state_fio->StateInt32(vram_bank);
 #endif	
+		state_fio->StateUint32(displine);
+		state_fio->StateUint8(subrom_bank);
+		state_fio->StateUint8(subrom_bank_using);
+		state_fio->StateBool(nmi_enable);
+		state_fio->StateBool(use_alu);
+		state_fio->StateUint32(apalette_index.d);
+		state_fio->StateBuffer(analog_palette_r, sizeof(analog_palette_r), 1);
+		state_fio->StateBuffer(analog_palette_g, sizeof(analog_palette_g), 1);
+		state_fio->StateBuffer(analog_palette_b, sizeof(analog_palette_b), 1);
+		state_fio->StateBool(diag_load_subrom_a);
+		state_fio->StateBool(diag_load_subrom_b);
+		state_fio->StateBool(diag_load_subrom_cg);
 	
-		DECL_STATE_ENTRY_UINT32(displine);
-		DECL_STATE_ENTRY_UINT8(subrom_bank);
-		DECL_STATE_ENTRY_UINT8(subrom_bank_using);
-	
-		DECL_STATE_ENTRY_BOOL(nmi_enable);
-		DECL_STATE_ENTRY_BOOL(use_alu);
-		
-		DECL_STATE_ENTRY_PAIR(apalette_index);
-		DECL_STATE_ENTRY_MULTI(void, analog_palette_r, sizeof(analog_palette_r));
-		DECL_STATE_ENTRY_MULTI(void, analog_palette_g, sizeof(analog_palette_g));
-		DECL_STATE_ENTRY_MULTI(void, analog_palette_b, sizeof(analog_palette_b));
-		
-
-		DECL_STATE_ENTRY_BOOL(diag_load_subrom_a);
-		DECL_STATE_ENTRY_BOOL(diag_load_subrom_b);
-		DECL_STATE_ENTRY_BOOL(diag_load_subrom_cg);
-	
-		DECL_STATE_ENTRY_MULTI(void, subsys_a, sizeof(subsys_a));
-		DECL_STATE_ENTRY_MULTI(void, subsys_b, sizeof(subsys_b));
-		DECL_STATE_ENTRY_MULTI(void, subsys_cg, sizeof(subsys_cg));
-		DECL_STATE_ENTRY_MULTI(void, submem_hidden, sizeof(submem_hidden));
+		state_fio->StateBuffer(subsys_a, sizeof(subsys_a), 1);
+		state_fio->StateBuffer(subsys_b, sizeof(subsys_b), 1);
+		state_fio->StateBuffer(subsys_cg, sizeof(subsys_cg), 1);
+		state_fio->StateBuffer(submem_hidden, sizeof(submem_hidden), 1);
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-		DECL_STATE_ENTRY_BOOL(mode400line);
-		DECL_STATE_ENTRY_BOOL(mode256k);
-		
-		DECL_STATE_ENTRY_BOOL(monitor_ram);
+		state_fio->StateBool(mode400line);
+		state_fio->StateBool(mode256k);
+		state_fio->StateBool(monitor_ram);
 #  if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-		DECL_STATE_ENTRY_UINT16(window_low);
-		DECL_STATE_ENTRY_UINT16(window_high);
-		DECL_STATE_ENTRY_UINT16(window_xbegin);
-		DECL_STATE_ENTRY_UINT16(window_xend);
-		DECL_STATE_ENTRY_BOOL(window_opened);
+		state_fio->StateUint16(window_low);
+		state_fio->StateUint16(window_high);
+		state_fio->StateUint16(window_xbegin);
+		state_fio->StateUint16(window_xend);
+		state_fio->StateBool(window_opened);
 #  endif	
-		DECL_STATE_ENTRY_BOOL(kanji_level2);
-
-		DECL_STATE_ENTRY_UINT8(vram_active_block);
-		DECL_STATE_ENTRY_UINT8(vram_display_block);
-		DECL_STATE_ENTRY_UINT8(console_ram_bank);
-		DECL_STATE_ENTRY_BOOL(ram_protect);
-		
-		DECL_STATE_ENTRY_UINT8(cgram_bank);
-		DECL_STATE_ENTRY_MULTI(void, subsys_ram, sizeof(subsys_ram));
-		DECL_STATE_ENTRY_MULTI(void, submem_cgram, sizeof(submem_cgram));
-		DECL_STATE_ENTRY_MULTI(void, submem_console_av40, sizeof(submem_console_av40));
+		state_fio->StateBool(kanji_level2);
+		state_fio->StateUint8(vram_active_block);
+		state_fio->StateUint8(vram_display_block);
+		state_fio->StateUint8(console_ram_bank);
+		state_fio->StateBool(ram_protect);
+		state_fio->StateUint8(cgram_bank);
+		state_fio->StateBuffer(subsys_ram, sizeof(subsys_ram), 1);
+		state_fio->StateBuffer(submem_cgram, sizeof(submem_cgram), 1);
+		state_fio->StateBuffer(submem_console_av40, sizeof(submem_console_av40), 1);
 # endif
 #endif
-	}
-	// V2
-	{
-		DECL_STATE_ENTRY_INT32(nmi_event_id);
+ 	}
+ 	// V2
+ 	{
+		state_fio->StateInt32(nmi_event_id);
 //#if defined(_FM77AV_VARIANTS)
-		DECL_STATE_ENTRY_INT32(hblank_event_id);
-		DECL_STATE_ENTRY_INT32(hdisp_event_id);
-		DECL_STATE_ENTRY_INT32(vsync_event_id);
-		DECL_STATE_ENTRY_INT32(vstart_event_id);
+		state_fio->StateInt32(hblank_event_id);
+		state_fio->StateInt32(hdisp_event_id);
+		state_fio->StateInt32(vsync_event_id);
+		state_fio->StateInt32(vstart_event_id);
 //#endif
-		DECL_STATE_ENTRY_BOOL(firq_mask);
-		DECL_STATE_ENTRY_BOOL(vram_accessflag);
-		
-		DECL_STATE_ENTRY_INT8(display_page);
-		DECL_STATE_ENTRY_INT8(display_page_bak);
-		
-		DECL_STATE_ENTRY_BOOL(vblank);
-		DECL_STATE_ENTRY_BOOL(vsync);
-		DECL_STATE_ENTRY_BOOL(hblank);
-		DECL_STATE_ENTRY_INT32(vblank_count);
-	}			
+		state_fio->StateBool(firq_mask);
+		state_fio->StateBool(vram_accessflag);
+		state_fio->StateInt8(display_page);
+		state_fio->StateInt8(display_page_bak);
+		state_fio->StateBool(vblank);
+		state_fio->StateBool(vsync);
+		state_fio->StateBool(hblank);
+		state_fio->StateInt32(vblank_count);
+ 	}			
 #if defined(_FM77L4)
-	DECL_STATE_ENTRY_MULTI(void, subsys_cg_l4, sizeof(subsys_cg_l4));
-	DECL_STATE_ENTRY_MULTI(void, subsys_l4, sizeof(subsys_l4));
-	DECL_STATE_ENTRY_MULTI(void, text_vram, sizeof(text_vram));
-	//state_fio->Fwrite(crtc_regs, sizeof(crtc_regs), 1);
+	state_fio->StateBuffer(subsys_cg_l4, sizeof(subsys_cg_l4), 1);
+	state_fio->StateBuffer(subsys_l4, sizeof(subsys_l4), 1);
+	state_fio->StateBuffer(text_vram, sizeof(text_vram), 1);
+ 	//state_fio->Fwrite(crtc_regs, sizeof(crtc_regs), 1);
+	state_fio->StateBool(workram_l4);
+	state_fio->StateBool(cursor_lsb);
+	state_fio->StateBool(text_width40);
 	
-	DECL_STATE_ENTRY_BOOL(workram_l4);
-	DECL_STATE_ENTRY_BOOL(cursor_lsb);
-    DECL_STATE_ENTRY_BOOL(text_width40);
+	state_fio->StateBool(text_blink);
+	state_fio->StateBool(cursor_blink);
 	
-	DECL_STATE_ENTRY_BOOL(text_blink);
-	DECL_STATE_ENTRY_BOOL(cursor_blink);
+	state_fio->StateUint32(text_start_addr.d);
+	state_fio->StateUint32(text_lines);
+	state_fio->StateUint32(text_xmax);
 	
-	DECL_STATE_ENTRY_PAIR(text_start_addr);
-	DECL_STATE_ENTRY_UINT32(text_lines);
-	DECL_STATE_ENTRY_UINT32(text_xmax);
-	
-	DECL_STATE_ENTRY_PAIR(cursor_addr);
-	DECL_STATE_ENTRY_INT32(cursor_start);
-	DECL_STATE_ENTRY_INT32(cursor_end);
-	DECL_STATE_ENTRY_UINT8(cursor_type);
-	DECL_STATE_ENTRY_UINT8(text_scroll_count);
-
-	DECL_STATE_ENTRY_INT32(event_id_l4_cursor_blink);
-	DECL_STATE_ENTRY_INT32(event_id_l4_text_blink);
+	state_fio->StateUint32(cursor_addr.d);
+	state_fio->StateInt32(cursor_start);
+	state_fio->StateInt32(cursor_end);
+	state_fio->StateUint8(cursor_type);
+	state_fio->StateUint8(text_scroll_count);
+ 
+	state_fio->StateInt32(event_id_l4_cursor_blink);
+	state_fio->StateInt32(event_id_l4_text_blink);
 #endif
-	leave_decl_state();
-}	
 
-void DISPLAY::save_state(FILEIO *state_fio)
-{
-	if(state_entry != NULL) state_entry->save_state(state_fio);
-}
-
-bool DISPLAY::load_state(FILEIO *state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	this->out_debug_log(_T("Load State: DISPLAY : id=%d stat=%s"), this_device_id, (mb) ? _T("OK") : _T("NG"));
-	if(!mb) return false;
-	
-	{
+	if(loading) {	
 		int addr;
 		int i;
 		crt_flag_bak = true;
@@ -3700,7 +3672,7 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 		memcpy(dpalette_pixel_green, dpalette_green_tmp, sizeof(dpalette_pixel_green));
   #endif
 #else
-
+	
 		for(addr = 0; addr < 8; addr++) set_dpalette(addr, dpalette_data[addr]);
 		memcpy(dpalette_pixel, dpalette_pixel_tmp, sizeof(dpalette_pixel));
 #if defined(USE_GREEN_DISPLAY)
@@ -3726,27 +3698,28 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 		palette_changed = true;
 		vram_wrote_shadow = true; // Force Draw
 		this->draw_screen();
-	}
+		
 		frame_skip_count_draw = 3;
 		frame_skip_count_transfer = 3;
 		need_transfer_line = true;
 #if defined(USE_GREEN_DISPLAY) && defined(USE_MONITOR_TYPE)
-	memcpy(dpalette_pixel_green, dpalette_green_tmp, sizeof(dpalette_pixel_green));
-	switch(config.monitor_type) {
-	case FM7_MONITOR_GREEN:
-		use_green_monitor = true;
-		break;
-	case FM7_MONITOR_STANDARD:
-	default:
-		use_green_monitor = false;
-		break;
-	}
+		memcpy(dpalette_pixel_green, dpalette_green_tmp, sizeof(dpalette_pixel_green));
+		switch(config.monitor_type) {
+		case FM7_MONITOR_GREEN:
+			use_green_monitor = true;
+			break;
+		case FM7_MONITOR_STANDARD:
+		default:
+			use_green_monitor = false;
+			break;
+		}
 #else
-	//use_green_monitor = false;
+		//use_green_monitor = false;
 #endif
-	force_update = true;
-	setup_display_mode();
-	return mb;
-}
+		force_update = true;
+		setup_display_mode();
+	}
+	return true;
+}	
 
 	

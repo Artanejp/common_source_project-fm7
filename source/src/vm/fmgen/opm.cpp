@@ -11,8 +11,6 @@
 
 #include "../../fileio.h"
 
-#include "../../statesub.h"
-
 //#define LOGNAME "opm"
 
 namespace FM
@@ -531,139 +529,53 @@ void OPM::Mix(Sample* buffer, int nsamples)
 // ---------------------------------------------------------------------------
 //	ステートセーブ
 //
-#define OPM_STATE_VERSION	4
+#define OPM_STATE_VERSION	3
 
-void OPM::DeclState(void *f)
+bool OPM::ProcessState(void *f, bool loading)
 {
-	p_logger = (CSP_Logger *)f;
-	state_entry = new csp_state_utils(OPM_STATE_VERSION, chip_num, _T("FMGEN::OPM::"), p_logger);
-
-	Timer::DeclState(f);
-
-	DECL_STATE_ENTRY_INT32(fmvolume_l);
-	DECL_STATE_ENTRY_INT32(fmvolume_r);
-	DECL_STATE_ENTRY_UINT32(clock);
-	DECL_STATE_ENTRY_UINT32(rate);
-	DECL_STATE_ENTRY_UINT32(pcmrate);
-	DECL_STATE_ENTRY_UINT32(pmd);
-	DECL_STATE_ENTRY_UINT32(amd);
-	DECL_STATE_ENTRY_UINT32(lfocount);
-	DECL_STATE_ENTRY_UINT32(lfodcount);
-	DECL_STATE_ENTRY_UINT32(lfo_count_);
-	DECL_STATE_ENTRY_UINT32(lfo_count_diff_);
-	DECL_STATE_ENTRY_UINT32(lfo_step_);
-	DECL_STATE_ENTRY_UINT32(lfo_count_prev_);
-	DECL_STATE_ENTRY_UINT32(lfowaveform);
-	DECL_STATE_ENTRY_UINT32(rateratio);
-	DECL_STATE_ENTRY_UINT32(noise);
-	DECL_STATE_ENTRY_INT32(noisecount);
-	DECL_STATE_ENTRY_UINT32(noisedelta);
-	DECL_STATE_ENTRY_BOOL(interpolation);
-	DECL_STATE_ENTRY_UINT8(lfofreq);
-	DECL_STATE_ENTRY_UINT8(status);
-	DECL_STATE_ENTRY_BOOL(interrupt);
-	DECL_STATE_ENTRY_UINT8(reg01);
-	DECL_STATE_ENTRY_1D_ARRAY(kc, sizeof(kc));
-	DECL_STATE_ENTRY_1D_ARRAY(kf, sizeof(kf));
-	DECL_STATE_ENTRY_1D_ARRAY(pan, sizeof(pan));
-	for(int i = 0; i < 8; i++) {
-		ch[i].DeclState(f);
-	}
-	chip.DeclState(f);
-}
-
-void OPM::SaveState(void *f)
-{
-	FILEIO *state_fio = (FILEIO *)f;
-	
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32_BE(OPM_STATE_VERSION);
-//	
-//	Timer::SaveState(f);
-//	state_fio->FputInt32_BE(fmvolume_l);
-//	state_fio->FputInt32_BE(fmvolume_r);
-//	state_fio->FputUint32_BE(clock);
-//	state_fio->FputUint32_BE(rate);
-//	state_fio->FputUint32_BE(pcmrate);
-//	state_fio->FputUint32_BE(pmd);
-//	state_fio->FputUint32_BE(amd);
-//	state_fio->FputUint32_BE(lfocount);
-//	state_fio->FputUint32_BE(lfodcount);
-//	state_fio->FputUint32_BE(lfo_count_);
-//	state_fio->FputUint32_BE(lfo_count_diff_);
-//	state_fio->FputUint32_BE(lfo_step_);
-//	state_fio->FputUint32_BE(lfo_count_prev_);
-//	state_fio->FputUint32_BE(lfowaveform);
-//	state_fio->FputUint32_BE(rateratio);
-//	state_fio->FputUint32_BE(noise);
-//	state_fio->FputInt32_BE(noisecount);
-//	state_fio->FputUint32_BE(noisedelta);
-//	state_fio->FputBool(interpolation);
-//	state_fio->FputUint8(lfofreq);
-//	state_fio->FputUint8(status);
-//	state_fio->FputBool(interrupt);
-//	state_fio->FputUint8(reg01);
-//	state_fio->Fwrite(kc, sizeof(kc), 1);
-//	state_fio->Fwrite(kf, sizeof(kf), 1);
-//	state_fio->Fwrite(pan, sizeof(pan), 1);
-	for(int i = 0; i < 8; i++) {
-		ch[i].SaveState(f);
-	}
-	chip.SaveState(f);
-}
-
-bool OPM::LoadState(void *f)
-{
-	FILEIO *state_fio = (FILEIO *)f;
-	
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-//	if(state_fio->FgetUint32_BE() != OPM_STATE_VERSION) {
-//		return false;
-//	}
-//	if(!Timer::LoadState(f)) {
-//		return false;
-//	}
-//	fmvolume_l = state_fio->FgetInt32_BE();
-//	fmvolume_r = state_fio->FgetInt32_BE();
-//	clock = state_fio->FgetUint32_BE();
-//	rate = state_fio->FgetUint32_BE();
-//	pcmrate = state_fio->FgetUint32_BE();
-//	pmd = state_fio->FgetUint32_BE();
-//	amd = state_fio->FgetUint32_BE();
-//	lfocount = state_fio->FgetUint32_BE();
-//	lfodcount = state_fio->FgetUint32_BE();
-//	lfo_count_ = state_fio->FgetUint32_BE();
-//	lfo_count_diff_ = state_fio->FgetUint32_BE();
-//	lfo_step_ = state_fio->FgetUint32_BE();
-//	lfo_count_prev_ = state_fio->FgetUint32_BE();
-//	lfowaveform = state_fio->FgetUint32_BE();
-//	rateratio = state_fio->FgetUint32_BE();
-//	noise = state_fio->FgetUint32_BE();
-//	noisecount = state_fio->FgetInt32_BE();
-//	noisedelta = state_fio->FgetUint32_BE();
-//	interpolation = state_fio->FgetBool();
-//	lfofreq = state_fio->FgetUint8();
-//	status = state_fio->FgetUint8();
-//	interrupt = state_fio->FgetBool();
-//	reg01 = state_fio->FgetUint8();
-//	state_fio->Fread(kc, sizeof(kc), 1);
-//	state_fio->Fread(kf, sizeof(kf), 1);
-//	state_fio->Fread(pan, sizeof(pan), 1);
-	for(int i = 0; i < 8; i++) {
-		if(!ch[i].LoadState(f)) {
-			return false;
-		}
-	}
-	if(!chip.LoadState(f)) {
-		return false;
-	}
-	return true;
+ 	FILEIO *state_fio = (FILEIO *)f;
+ 	
+	if(!state_fio->StateCheckUint32(OPM_STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!Timer::ProcessState(f, loading)) {
+ 		return false;
+ 	}
+	state_fio->StateInt32(fmvolume_l);
+	state_fio->StateInt32(fmvolume_r);
+	state_fio->StateUint32(clock);
+	state_fio->StateUint32(rate);
+	state_fio->StateUint32(pcmrate);
+	state_fio->StateUint32(pmd);
+	state_fio->StateUint32(amd);
+	state_fio->StateUint32(lfocount);
+	state_fio->StateUint32(lfodcount);
+	state_fio->StateUint32(lfo_count_);
+	state_fio->StateUint32(lfo_count_diff_);
+	state_fio->StateUint32(lfo_step_);
+	state_fio->StateUint32(lfo_count_prev_);
+	state_fio->StateUint32(lfowaveform);
+	state_fio->StateUint32(rateratio);
+	state_fio->StateUint32(noise);
+	state_fio->StateInt32(noisecount);
+	state_fio->StateUint32(noisedelta);
+	state_fio->StateBool(interpolation);
+	state_fio->StateUint8(lfofreq);
+	state_fio->StateUint8(status);
+	state_fio->StateBool(interrupt);
+	state_fio->StateUint8(reg01);
+	state_fio->StateBuffer(kc, sizeof(kc), 1);
+	state_fio->StateBuffer(kf, sizeof(kf), 1);
+	state_fio->StateBuffer(pan, sizeof(pan), 1);
+ 	for(int i = 0; i < 8; i++) {
+		if(!ch[i].ProcessState(f, loading)) {
+ 			return false;
+ 		}
+ 	}
+	if(!chip.ProcessState(f, loading)) {
+ 		return false;
+ 	}
+ 	return true;
 }
 
 }	// namespace FM

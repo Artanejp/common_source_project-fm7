@@ -116,9 +116,7 @@ public:
 	bool open(_TCHAR* file_path, int bank);
 	void close();
 	void event_callback(int event_id, int err);
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
-	void decl_state(void);
+	bool process_state(FILEIO *state_fio, bool loading);
 	
 	bool is_bubble_inserted()
 	{

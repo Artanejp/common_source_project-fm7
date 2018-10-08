@@ -54,10 +54,6 @@ public:
 	int drive_num;
 	bool access;
 	
-	// state
-//	void save_state(FILEIO* state_fio);
-//	bool load_state(FILEIO* state_fio);
-	
 	// device name
 	void set_device_name(const _TCHAR* format, ...)
 	{

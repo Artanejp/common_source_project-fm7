@@ -214,104 +214,37 @@ void AY_3_891X::update_timing(int new_clocks, double new_frames_per_sec, int new
 	clock_const = (uint32_t)((double)chip_clock * 1024.0 * 1024.0 / (double)new_clocks + 0.5);
 }
 
-#define STATE_VERSION	4
+#define STATE_VERSION	3
 
-#include "../statesub.h"
-
-void AY_3_891X::decl_state()
+bool AY_3_891X::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
-	
-	DECL_STATE_ENTRY_UINT8(ch);
-	DECL_STATE_ENTRY_UINT8(fnum2);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+	if(!opn->ProcessState((void *)state_fio, loading)) {
+ 		return false;
+ 	}
+	state_fio->StateUint8(ch);
+	state_fio->StateUint8(fnum2);
 #ifdef SUPPORT_AY_3_891X_PORT
-	for(int i = 0; i < 2; i++) {
-		DECL_STATE_ENTRY_UINT8_MEMBER((port[i].wreg), i);
-		DECL_STATE_ENTRY_UINT8_MEMBER((port[i].rreg), i);
-		DECL_STATE_ENTRY_BOOL_MEMBER((port[i].first), i);
-	}
-	DECL_STATE_ENTRY_UINT8(mode);
+ 	for(int i = 0; i < 2; i++) {
+		state_fio->StateUint8(port[i].wreg);
+		state_fio->StateUint8(port[i].rreg);
+		state_fio->StateBool(port[i].first);
+ 	}
+	state_fio->StateUint8(mode);
 #endif
-	DECL_STATE_ENTRY_INT32(chip_clock);
-	DECL_STATE_ENTRY_BOOL(irq_prev);
-	DECL_STATE_ENTRY_BOOL(mute);
-	DECL_STATE_ENTRY_UINT32(clock_prev);
-	DECL_STATE_ENTRY_UINT32(clock_accum);
-	DECL_STATE_ENTRY_UINT32(clock_const);
-	DECL_STATE_ENTRY_UINT32(clock_busy);
-	DECL_STATE_ENTRY_INT32(timer_event_id);
-	DECL_STATE_ENTRY_BOOL(busy);
-
-	leave_decl_state();
-
-	opn->DeclState((void *)p_logger);
+	state_fio->StateInt32(chip_clock);
+	state_fio->StateBool(irq_prev);
+	state_fio->StateBool(mute);
+	state_fio->StateUint32(clock_prev);
+	state_fio->StateUint32(clock_accum);
+	state_fio->StateUint32(clock_const);
+	state_fio->StateUint32(clock_busy);
+	state_fio->StateInt32(timer_event_id);
+	state_fio->StateBool(busy);
+ 	return true;
 }
-
-void AY_3_891X::save_state(FILEIO* state_fio)
-{
-	//state_fio->FputUint32(STATE_VERSION);
-	//state_fio->FputInt32(this_device_id);
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-	
-	opn->SaveState((void *)state_fio);
-	//state_fio->FputUint8(ch);
-	//state_fio->FputUint8(fnum2);
-#ifdef SUPPORT_AY_3_891X_PORT
-	//for(int i = 0; i < 2; i++) {
-	//	state_fio->FputUint8(port[i].wreg);
-	//	state_fio->FputUint8(port[i].rreg);
-	//	state_fio->FputBool(port[i].first);
-	//}
-	//state_fio->FputUint8(mode);
-#endif
-	//state_fio->FputInt32(chip_clock);
-	//state_fio->FputBool(irq_prev);
-	//state_fio->FputBool(mute);
-	//state_fio->FputUint32(clock_prev);
-	//state_fio->FputUint32(clock_accum);
-	//state_fio->FputUint32(clock_const);
-	//state_fio->FputUint32(clock_busy);
-	//state_fio->FputInt32(timer_event_id);
-	//state_fio->FputBool(busy);
-}
-
-bool AY_3_891X::load_state(FILEIO* state_fio)
-{
-	//if(state_fio->FgetUint32() != STATE_VERSION) {
-	//	return false;
-	//}
-	//if(state_fio->FgetInt32() != this_device_id) {
-	//	return false;
-	//}
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-	if(!opn->LoadState((void *)state_fio)) {
-		return false;
-	}
-	//ch = state_fio->FgetUint8();
-	//fnum2 = state_fio->FgetUint8();
-#ifdef SUPPORT_AY_3_891X_PORT
-	//for(int i = 0; i < 2; i++) {
-	//	port[i].wreg = state_fio->FgetUint8();
-	//	port[i].rreg = state_fio->FgetUint8();
-	//	port[i].first = state_fio->FgetBool();
-	//}
-	//mode = state_fio->FgetUint8();
-#endif
-	//chip_clock = state_fio->FgetInt32();
-	//irq_prev = state_fio->FgetBool();
-	//mute = state_fio->FgetBool();
-	//clock_prev = state_fio->FgetUint32();
-	//clock_accum = state_fio->FgetUint32();
-	//clock_const = state_fio->FgetUint32();
-	//clock_busy = state_fio->FgetUint32();
-	//timer_event_id = state_fio->FgetInt32();
-	//busy = state_fio->FgetBool();
-	return true;
-}
-

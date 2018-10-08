@@ -46,6 +46,10 @@
 #if defined(_FM8)
 #include "./bubblecasette.h"
 #endif
+
+#if defined(HAS_DMA)
+	dmac = new HD6844(this, emu);
+#endif   
 #if defined(_FM8)
 #include "./fm8_mainio.h"
 #else
@@ -221,6 +225,17 @@ VM::VM(EMU* parent_emu): VM_TEMPLATE(parent_emu)
 #ifdef CAPABLE_KANJI_CLASS2
 	kanjiclass2 = new KANJIROM(this, emu, true);
 #endif
+
+	keyboard = new KEYBOARD(this, emu);
+	//display = new DISPLAY(this, emu);
+#if defined(_FM8)
+	mainio  = new FM8_MAINIO(this, emu);
+#else
+	mainio  = new FM7_MAINIO(this, emu);
+#endif
+	mainmem = new FM7_MAINMEM(this, emu);
+	display = new DISPLAY(this, emu);
+
 
 	keyboard = new KEYBOARD(this, emu);
 	//display = new DISPLAY(this, emu);
@@ -661,6 +676,10 @@ void VM::connect_bus(void)
 #if defined(__GIT_REPO_VERSION)
 	strncpy(_git_revision, __GIT_REPO_VERSION, sizeof(_git_revision) - 1);
 #endif
+
+#if defined(__GIT_REPO_VERSION)
+	strncpy(_git_revision, __GIT_REPO_VERSION, sizeof(_git_revision) - 1);
+#endif
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
@@ -963,6 +982,7 @@ void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 		fdc->open_disk(drv, file_path, bank);
 	}
 #endif
+	//display->reset(); // 20180618 K.O for RELICS
 }
 
 void VM::close_floppy_disk(int drv)
@@ -1226,75 +1246,49 @@ void VM::set_vm_frame_rate(double fps)
    if(event != NULL) event->set_frames_per_sec(fps);
 }
 
-#define STATE_VERSION	10
-#include "../../statesub.h"
-#include "../../qt/gui/csp_logger.h"
-extern CSP_Logger DLL_PREFIX_I *csp_logger;
+#define STATE_VERSION	11
 
-void VM::decl_state(void)
+bool VM::process_state(FILEIO* state_fio, bool loading)
 {
-#if defined(_FM8)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM8_HEAD")), csp_logger);
-#elif defined(_FM7) || defined(_FMNEW7)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM7_HEAD")), csp_logger);
-#elif defined(_FM77) || defined(_FM77L2)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM77_HEAD")), csp_logger);
-#elif defined(_FM77L4)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM77L4_HEAD")), csp_logger);
-#elif defined(_FM77AV)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM77AV_HEAD")), csp_logger);
-#elif defined(_FM77AV20)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM77AV20_HEAD")), csp_logger);
-#elif defined(_FM77AV40)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM77AV40_HEAD")), csp_logger);
-#elif defined(_FM77AV20EX)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM77AV20EX_HEAD")), csp_logger);
-#elif defined(_FM77AV40EX)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM77AV40EX_HEAD")), csp_logger);
-#elif defined(_FM77AV40SX)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM77AV40SX_HEAD")), csp_logger);
-#else
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::FM7_SERIES_HEAD")), csp_logger);
-#endif
-	DECL_STATE_ENTRY_BOOL(connect_320kfdc);
-	DECL_STATE_ENTRY_BOOL(connect_1Mfdc);
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->decl_state();
-	}
-}
-
-void VM::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		emu->out_debug_log("SAVE State: DEVID=%d", device->this_device_id);
-		device->save_state(state_fio);
-	}
-}
-
-bool VM::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		emu->out_debug_log("INFO: HEADER DATA ERROR");
-		return false;
-	}
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		if(!device->load_state(state_fio)) {
-			printf("Load Error: DEVID=%d\n", device->this_device_id);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	state_fio->StateBool(connect_320kfdc);
+	state_fio->StateBool(connect_1Mfdc);
+ 	for(DEVICE* device = first_device; device; device = device->next_device) {
+		// Note: typeid(foo).name is fixed by recent ABI.Not dec 6.
+ 		// const char *name = typeid(*device).name();
+		//       But, using get_device_name() instead of typeid(foo).name() 20181008 K.O
+		const char *name = device->get_device_name();
+		int len = strlen(name);
+		
+		if(!state_fio->StateCheckInt32(len)) {
+			if(loading) {
+				printf("Class name len Error: DEVID=%d EXPECT=%s\n", device->this_device_id, name);
+			}
 			return false;
 		}
+		if(!state_fio->StateCheckBuffer(name, len, 1)) {
+			if(loading) {
+				printf("Class name Error: DEVID=%d EXPECT=%s\n", device->this_device_id, name);
+			}
+ 			return false;
+ 		}
+		if(!device->process_state(state_fio, loading)) {
+			if(loading) {
+				printf("Data loading Error: DEVID=%d\n", device->this_device_id);
+			}
+ 			return false;
+ 		}
+ 	}
+	if(loading) {
+		update_config();
 	}
-	update_config();
 	//mainio->restore_opn();
-	
-	return true;
+ 	return true;
 }
+
+
 
 #ifdef USE_DIG_RESOLUTION
 void VM::get_screen_resolution(int *w, int *h)

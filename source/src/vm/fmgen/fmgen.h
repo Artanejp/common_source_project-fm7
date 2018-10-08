@@ -33,7 +33,6 @@
 
 // ---------------------------------------------------------------------------
 
-class csp_state_utils;
 class CSP_Logger;
 namespace FM
 {	
@@ -50,7 +49,6 @@ namespace FM
 	class Operator
 	{
 	protected:
-		csp_state_utils *state_entry;
 		class CSP_Logger *p_logger;
 		int tmp_eg_phase;
 		int tmp_ams;
@@ -100,9 +98,7 @@ namespace FM
 		void	dbgStopPG() { pg_diff_ = 0; pg_diff_lfo_ = 0; }
 		
 	protected:
-		void DeclState(void *f);
-		void SaveState(void *f);
-		bool LoadState(void *f);
+		bool ProcessState(void *f, bool loading);
 		
 	private:
 		typedef uint32 Counter;
@@ -211,7 +207,6 @@ namespace FM
 		int tmp_out_bufptr[3];
 		int tmp_pms;
 		int channel4s_num;
-		csp_state_utils *state_entry;
 		class CSP_Logger *p_logger;
 	public:
 		Channel4();
@@ -235,9 +230,7 @@ namespace FM
 
 		void dbgStopPG() { for (int i=0; i<4; i++) op[i].dbgStopPG(); }
 		
-		void DeclState(void *f);
-		void SaveState(void *f);
-		bool LoadState(void *f);
+		bool ProcessState(void *f, bool loading);
 		
 	private:
 		static const uint8 fbtable[8];
@@ -264,7 +257,6 @@ namespace FM
 	{
 	protected:
 		class CSP_Logger *p_logger;
-		csp_state_utils *state_entry;
 		int chip_num;
 	public:
 		Chip();
@@ -279,9 +271,7 @@ namespace FM
 		int		GetPMV() { return pmv_; }
 		uint	GetRatio() { return ratio_; }
 
-		void DeclState(void *f);
-		void SaveState(void *f);
-		bool LoadState(void *f);
+		bool ProcessState(void *f, bool loading);
 		
 	private:
 		void	MakeTable();

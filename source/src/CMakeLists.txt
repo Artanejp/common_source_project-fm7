@@ -9,7 +9,6 @@ if(USE_DEVICES_SHARED_LIB)
   add_library(common_common
 	config.cpp
 	debugger.cpp
-#	statesub.cpp
 	)
 else()
   add_library(common_common
@@ -18,6 +17,5 @@ else()
 	debugger.cpp
 	fileio.cpp
 	fifo.cpp
-	statesub.cpp
 	)
 endif()

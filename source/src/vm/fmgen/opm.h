@@ -11,7 +11,6 @@
 #include "fmtimer.h"
 #include "psg.h"
 
-class csp_state_utils;
 class CSP_Logger;
 // ---------------------------------------------------------------------------
 //	class OPM
@@ -96,9 +95,7 @@ namespace FM
 		void	SetVolume(int db_l, int db_r);
 		void	SetChannelMask(uint mask);
 
-		void DeclState(void *f);
-		void SaveState(void *f);
-		bool LoadState(void *f);
+		bool	ProcessState(void *f, bool loading);
 		
 	private:
 		void	Intr(bool value);

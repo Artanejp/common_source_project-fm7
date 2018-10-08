@@ -1463,105 +1463,22 @@ void DLL_PREFIX cur_time_t::update_day_of_week()
 
 #define STATE_VERSION	1
 
-#include "./state_data.h"
 
-void DLL_PREFIX cur_time_t::save_state_helper(void *f, uint32_t *sumseed, bool *__stat)
-{
-	csp_state_data_saver *state_saver = (csp_state_data_saver *)f;
-	const _TCHAR *_ns = "cur_time_t::BEGIN";
-	const _TCHAR *_ne = "cur_time_t::END";
-	
-	if(f == NULL) return;
-	
-	state_saver->save_string_data(_ns, sumseed, strlen(_ns) + 1, __stat);
-	state_saver->put_dword(STATE_VERSION, sumseed, __stat);
-
-	state_saver->put_int32(year, sumseed, __stat);
-	state_saver->put_int8((int8_t)month, sumseed, __stat);
-	state_saver->put_int8((int8_t)day, sumseed, __stat);
-	state_saver->put_int8((int8_t)day_of_week, sumseed, __stat);
-	state_saver->put_int8((int8_t)hour, sumseed, __stat);
-	state_saver->put_int8((int8_t)minute, sumseed, __stat);
-	state_saver->put_int16((int16_t)second, sumseed, __stat);
-	state_saver->put_bool(initialized, sumseed, __stat);
-	
-	state_saver->save_string_data(_ne, sumseed, strlen(_ne) + 1, __stat);
-}
-
-bool DLL_PREFIX cur_time_t::load_state_helper(void *f, uint32_t *sumseed, bool *__stat)
-{
-	csp_state_data_saver *state_saver = (csp_state_data_saver *)f;
-	const _TCHAR *_ns = "cur_time_t::BEGIN";
-	const _TCHAR *_ne = "cur_time_t::END";
-	_TCHAR sbuf[128];
-	uint32_t tmpvar;
-
-	if(f == NULL) return false;
-	memset(sbuf, 0x00, sizeof(sbuf));
-	state_saver->load_string_data(sbuf, sumseed, strlen(_ns) + 1, __stat);
-	tmpvar = state_saver->get_dword(sumseed, __stat);
-	if(strncmp(sbuf, _ns, strlen(_ns) + 1) != 0) {
-		if(__stat != NULL) *__stat = false;
-		return false;
-	}
-	if(tmpvar != STATE_VERSION) {
-		if(__stat != NULL) *__stat = false;
-		return false;
-	}
-	year =              state_saver->get_int32(sumseed, __stat);
-	month =       (int)(state_saver->get_int8(sumseed, __stat));
-	day =         (int)(state_saver->get_int8(sumseed, __stat));
-	day_of_week = (int)(state_saver->get_int8(sumseed, __stat));
-	hour =        (int)(state_saver->get_int8(sumseed, __stat));
-	minute =      (int)(state_saver->get_int8(sumseed, __stat));
-	second =      (int)(state_saver->get_int16(sumseed, __stat));
-	initialized = state_saver->get_bool(sumseed, __stat);
-	
-	memset(sbuf, 0x00, sizeof(sbuf));
-	state_saver->load_string_data(sbuf, sumseed, strlen(_ne) + 1, __stat);
-	if(strncmp(_ne, sbuf, strlen(_ne) + 1) != 0) {
-		if(__stat != NULL) *__stat = false;
-		return false;
-	}
-	
-	if(__stat != NULL) {
-		if(*__stat == false) return false;
-		//*__stat = true;
-	}
-	return true;
-}
-
-void DLL_PREFIX cur_time_t::save_state(void *f)
+bool DLL_PREFIX cur_time_t::process_state(void *f, bool loading)
 {
 	FILEIO *state_fio = (FILEIO *)f;
 	
-	state_fio->FputUint32(STATE_VERSION);
-	
-	state_fio->FputInt32(year);
-	state_fio->FputInt32(month);
-	state_fio->FputInt32(day);
-	state_fio->FputInt32(day_of_week);
-	state_fio->FputInt32(hour);
-	state_fio->FputInt32(minute);
-	state_fio->FputInt32(second);
-	state_fio->FputBool(initialized);
-}
-
-bool DLL_PREFIX cur_time_t::load_state(void *f)
-{
-	FILEIO *state_fio = (FILEIO *)f;
-	
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	year = state_fio->FgetInt32();
-	month = state_fio->FgetInt32();
-	day = state_fio->FgetInt32();
-	day_of_week = state_fio->FgetInt32();
-	hour = state_fio->FgetInt32();
-	minute = state_fio->FgetInt32();
-	second = state_fio->FgetInt32();
-	initialized = state_fio->FgetBool();
+	state_fio->StateInt32(year);
+	state_fio->StateInt32(month);
+	state_fio->StateInt32(day);
+	state_fio->StateInt32(day_of_week);
+	state_fio->StateInt32(hour);
+	state_fio->StateInt32(minute);
+	state_fio->StateInt32(second);
+	state_fio->StateBool(initialized);
 	return true;
 }
 

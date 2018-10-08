@@ -864,103 +864,54 @@ void save_config(const _TCHAR *config_path)
 
 #define STATE_VERSION	6
 
-void save_config_state(void *f)
+bool process_config_state(void *f, bool loading)
 {
 	FILEIO *state_fio = (FILEIO *)f;
 	
-	state_fio->FputUint32(STATE_VERSION);
-	
-	#ifdef USE_BOOT_MODE
-		state_fio->FputInt32(config.boot_mode);
-	#endif
-	#ifdef USE_CPU_TYPE
-		state_fio->FputInt32(config.cpu_type);
-	#endif
-	#ifdef USE_DIPSWITCH
-		state_fio->FputUint32(config.dipswitch);
-	#endif
-	#ifdef USE_DEVICE_TYPE
-		state_fio->FputInt32(config.device_type);
-	#endif
-	#ifdef USE_DRIVE_TYPE
-		state_fio->FputInt32(config.drive_type);
-	#endif
-	#ifdef USE_KEYBOARD_TYPE
-		state_fio->FputInt32(config.keyboard_type);
-	#endif
-	#ifdef USE_MOUSE_TYPE
-		state_fio->FputInt32(config.mouse_type);
-	#endif
-	#ifdef USE_JOYSTICK_TYPE
-		state_fio->FputInt32(config.joystick_type);
-	#endif
-	#ifdef USE_SOUND_TYPE
-		state_fio->FputInt32(config.sound_type);
-	#endif
-	#ifdef USE_MONITOR_TYPE
-		state_fio->FputInt32(config.monitor_type);
-	#endif
-	#ifdef USE_PRINTER_TYPE
-		state_fio->FputInt32(config.printer_type);
-	#endif
-	#ifdef USE_FLOPPY_DISK
-		for(int drv = 0; drv < USE_FLOPPY_DISK; drv++) {
-			state_fio->FputBool(config.correct_disk_timing[drv]);
-			state_fio->FputBool(config.ignore_disk_crc[drv]);
-		}
-	#endif
-	state_fio->FputInt32(config.sound_frequency);
-	state_fio->FputInt32(config.sound_latency);
-}
-
-bool load_config_state(void *f)
-{
-	FILEIO *state_fio = (FILEIO *)f;
-	
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
 	#ifdef USE_BOOT_MODE
-		config.boot_mode = state_fio->FgetInt32();
+		state_fio->StateInt32(config.boot_mode);
 	#endif
 	#ifdef USE_CPU_TYPE
-		config.cpu_type = state_fio->FgetInt32();
+		state_fio->StateInt32(config.cpu_type);
 	#endif
 	#ifdef USE_DIPSWITCH
-		config.dipswitch = state_fio->FgetUint32();
+		state_fio->StateUint32(config.dipswitch);
 	#endif
 	#ifdef USE_DEVICE_TYPE
-		config.device_type = state_fio->FgetInt32();
+		state_fio->StateInt32(config.device_type);
 	#endif
 	#ifdef USE_DRIVE_TYPE
-		config.drive_type = state_fio->FgetInt32();
+		state_fio->StateInt32(config.drive_type);
 	#endif
 	#ifdef USE_KEYBOARD_TYPE
-		config.keyboard_type = state_fio->FgetInt32();
+		state_fio->StateInt32(config.keyboard_type);
 	#endif
 	#ifdef USE_MOUSE_TYPE
-		config.mouse_type = state_fio->FgetInt32();
+		state_fio->StateInt32(config.mouse_type);
 	#endif
 	#ifdef USE_JOYSTICK_TYPE
-		config.joystick_type = state_fio->FgetInt32();
+		state_fio->StateInt32(config.joystick_type);
 	#endif
 	#ifdef USE_SOUND_TYPE
-		config.sound_type = state_fio->FgetInt32();
+		state_fio->StateInt32(config.sound_type);
 	#endif
 	#ifdef USE_MONITOR_TYPE
-		config.monitor_type = state_fio->FgetInt32();
+		state_fio->StateInt32(config.monitor_type);
 	#endif
 	#ifdef USE_PRINTER_TYPE
-		config.printer_type = state_fio->FgetInt32();
+		state_fio->StateInt32(config.printer_type);
 	#endif
 	#ifdef USE_FLOPPY_DISK
 		for(int drv = 0; drv < USE_FLOPPY_DISK; drv++) {
-			config.correct_disk_timing[drv] = state_fio->FgetBool();
-			config.ignore_disk_crc[drv] = state_fio->FgetBool();
+			state_fio->StateBool(config.correct_disk_timing[drv]);
+			state_fio->StateBool(config.ignore_disk_crc[drv]);
 		}
 	#endif
-	config.sound_frequency = state_fio->FgetInt32();
-	config.sound_latency = state_fio->FgetInt32();
+	state_fio->StateInt32(config.sound_frequency);
+	state_fio->StateInt32(config.sound_latency);
 	return true;
 }
 

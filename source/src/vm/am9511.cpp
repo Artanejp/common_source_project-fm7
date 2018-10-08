@@ -669,50 +669,18 @@ void AM9511::event_callback(int event_id, int err)
 
 #define STATE_VERSION	1
 
-#include "../statesub.h"
-
-void AM9511::decl_state()
+bool AM9511::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_1D_ARRAY(_apu_stack, sizeof(_apu_stack));
-	DECL_STATE_ENTRY_INT32(_apu_tos);
-	DECL_STATE_ENTRY_UINT8(_apu_status);
-	DECL_STATE_ENTRY_INT32(register_id);
-
-	leave_decl_state();
-}
-void AM9511::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-
-	//state_fio->FputUint32(STATE_VERSION);
-	//state_fio->FputInt32(this_device_id);
-	
-	//state_fio->Fwrite(_apu_stack, sizeof(_apu_stack), 1);
-	//state_fio->FputInt32(_apu_tos);
-	//state_fio->FputUint8(_apu_status);
-	//state_fio->FputInt32(register_id);
-}
-
-bool AM9511::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-	//if(state_fio->FgetUint32() != STATE_VERSION) {
-	//	return false;
-	//}
-	//if(state_fio->FgetInt32() != this_device_id) {
-	//	return false;
-	//}
-	//state_fio->Fread(_apu_stack, sizeof(_apu_stack), 1);
-	//_apu_tos = state_fio->FgetInt32();
-	//_apu_status = state_fio->FgetUint8();
-	//register_id = state_fio->FgetInt32();
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+	state_fio->StateBuffer(_apu_stack, sizeof(_apu_stack), 1);
+	state_fio->StateInt32(_apu_tos);
+	state_fio->StateUint8(_apu_status);
+	state_fio->StateInt32(register_id);
 	return true;
 }
+

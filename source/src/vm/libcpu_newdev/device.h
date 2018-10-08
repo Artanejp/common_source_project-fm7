@@ -49,7 +49,6 @@
 #include "vm_template.h"
 
 class CSP_Logger;
-class csp_state_utils;
 class VM_TEMPLATE;
 class EMU;
 class OSD;
@@ -59,7 +58,6 @@ protected:
 	VM_TEMPLATE* vm;
 	EMU* emu;
 	OSD* osd;
-	csp_state_utils *state_entry;
 	CSP_Logger *p_logger;
 public:
 	DEVICE(VM_TEMPLATE* parent_vm, EMU* parent_emu);
@@ -75,16 +73,20 @@ public:
 		return true;
 	}
 	
-	virtual void decl_state(void);
-	virtual void enter_decl_state(int version);
-	virtual void enter_decl_state(int version,  _TCHAR *name); 
-	virtual void leave_decl_state(void);
-	
 	// control
 	virtual void reset() {}
 	virtual void special_reset()
 	{
 		reset();
+	}
+	virtual bool process_state(FILEIO* state_fio, bool loading)
+	{
+		if(loading) {
+			return load_state(state_fio);
+		} else {
+			save_state(state_fio);
+			return true;
+		}
 	}
 	
 	// NOTE: the virtual bus interface functions for 16/32bit access invite the cpu is little endian.

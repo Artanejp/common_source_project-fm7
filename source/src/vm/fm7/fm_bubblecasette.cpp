@@ -681,147 +681,129 @@ void BUBBLECASETTE::event_callback(int event_id, int err)
 }
 
 
-#define STATE_VERSION 4
-#include "../../statesub.h"
+#define STATE_VERSION 5
 
-void BUBBLECASETTE::decl_state(void)
+bool BUBBLECASETTE::process_state(FILEIO *state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
 	
-	DECL_STATE_ENTRY_BOOL(is_wrote);
-	DECL_STATE_ENTRY_BOOL(is_b77);
-	DECL_STATE_ENTRY_BOOL(header_changed);
-	DECL_STATE_ENTRY_BOOL(read_access);
-	DECL_STATE_ENTRY_BOOL(write_access);
+	state_fio->StateBool(is_wrote);
+	state_fio->StateBool(is_b77);
+	state_fio->StateBool(header_changed);
+	state_fio->StateBool(read_access);
+	state_fio->StateBool(write_access);
 
-	DECL_STATE_ENTRY_UINT8(offset_reg);
-	DECL_STATE_ENTRY_UINT8(data_reg);
-	DECL_STATE_ENTRY_UINT8(cmd_reg);
+	state_fio->StateUint8(offset_reg);
+	state_fio->StateUint8(data_reg);
+	state_fio->StateUint8(cmd_reg);
 
-	DECL_STATE_ENTRY_BOOL(cmd_error);  
-	DECL_STATE_ENTRY_BOOL(stat_tdra);  
-	DECL_STATE_ENTRY_BOOL(stat_rda);   
-	DECL_STATE_ENTRY_BOOL(not_ready);  
-	DECL_STATE_ENTRY_BOOL(write_protect); 
-	DECL_STATE_ENTRY_BOOL(stat_error); 
-	DECL_STATE_ENTRY_BOOL(stat_busy);  
+	state_fio->StateBool(cmd_error);  
+	state_fio->StateBool(stat_tdra);  
+	state_fio->StateBool(stat_rda);   
+	state_fio->StateBool(not_ready);  
+	state_fio->StateBool(write_protect); 
+	state_fio->StateBool(stat_error); 
+	state_fio->StateBool(stat_busy);  
 
-	DECL_STATE_ENTRY_BOOL(eject_error);         
-	DECL_STATE_ENTRY_BOOL(povr_error);          
-	DECL_STATE_ENTRY_BOOL(crc_error);           
-	DECL_STATE_ENTRY_BOOL(transfer_error);      
-	DECL_STATE_ENTRY_BOOL(bad_loop_over_error); 
-	DECL_STATE_ENTRY_BOOL(no_marker_error);     
-	DECL_STATE_ENTRY_BOOL(undefined_cmd_error); 
+	state_fio->StateBool(eject_error);         
+	state_fio->StateBool(povr_error);          
+	state_fio->StateBool(crc_error);           
+	state_fio->StateBool(transfer_error);      
+	state_fio->StateBool(bad_loop_over_error); 
+	state_fio->StateBool(no_marker_error);     
+	state_fio->StateBool(undefined_cmd_error); 
 	
-	DECL_STATE_ENTRY_PAIR(page_address);
-	DECL_STATE_ENTRY_PAIR(page_count);
-	DECL_STATE_ENTRY_BOOL(bubble_inserted);
-	DECL_STATE_ENTRY_INT(bubble_type);
-	DECL_STATE_ENTRY_INT(media_num);
+	state_fio->StateUint32(page_address.d);
+	state_fio->StateUint32(page_count.d);
+	state_fio->StateBool(bubble_inserted);
+	state_fio->StateInt32(bubble_type);
+	state_fio->StateInt32(media_num);
 	// Header
-	DECL_STATE_ENTRY_STRING(image_path, sizeof(image_path));
-	DECL_STATE_ENTRY_1D_ARRAY((bbl_header.filename), sizeof(bbl_header.filename));
-	DECL_STATE_ENTRY_PAIR((bbl_header.size));
-	DECL_STATE_ENTRY_PAIR((bbl_header.offset));
-	DECL_STATE_ENTRY_1D_ARRAY((bbl_header.misc), sizeof(bbl_header.misc));
+	state_fio->StateBuffer(image_path, sizeof(image_path), 1);
+	state_fio->StateBuffer((bbl_header.filename), sizeof(bbl_header.filename), 1);
+	state_fio->StateUint32((bbl_header.size.d));
+	state_fio->StateUint32((bbl_header.offset.d));
+	state_fio->StateBuffer((bbl_header.misc), sizeof(bbl_header.misc), 1);
 
 
-	DECL_STATE_ENTRY_UINT32(media_offset);
-	DECL_STATE_ENTRY_UINT32(media_offset_new);
-	DECL_STATE_ENTRY_UINT32(media_size);
-	DECL_STATE_ENTRY_UINT32(file_length);
-	DECL_STATE_ENTRY_1D_ARRAY(bubble_data, sizeof(bubble_data));
-
-	leave_decl_state();
-}
-void BUBBLECASETTE::save_state(FILEIO *state_fio)
-{
-	int i, j;
-	if(state_entry != NULL) state_entry->save_state(state_fio);
-	
+	state_fio->StateUint32(media_offset);
+	state_fio->StateUint32(media_offset_new);
+	state_fio->StateUint32(media_size);
+	state_fio->StateUint32(file_length);
+	state_fio->StateBuffer(bubble_data, sizeof(bubble_data), 1);
+ 
 #if 0
-	if(fio != NULL) {
-		if(fio->IsOpened()) {
-			if(is_wrote) write_one_page();
-			if(is_b77) {
-				if(header_changed) {
-					write_header();
-					header_changed = false;
-				}
+	if(loading) {
+		is_wrote = false;
+		header_changed = false;
+		if(_tcslen(image_path) > 0) {
+			bool is_wrote_bak = is_wrote;
+			bool header_changed_bak = header_changed;
+			bool is_b77_bak = is_b77;
+			uint32_t media_offset_bak = media_offset;
+			uint32_t media_offset_new_bak = media_offset_new;
+			uint32_t file_length_bak = file_length;
+			bool bubble_inserted_bak = bubble_inserted;
+			bool not_ready_bak = not_ready;
+			bool cmd_error_bak = cmd_error;
+			bool stat_tdra_bak = stat_tdra;
+			bool stat_rda_bak = stat_rda;
+			bool stat_error_bak = stat_error; // OK?
+			bool stat_busy_bak = stat_busy;
+			int bubble_type_bak = bubble_type;
+			uint32_t media_size_bak = media_size;
+			bool write_protect_bak = write_protect;
+			bool not_ready_bak = not_ready;
+			uint32_t media_num_bak = media_num;
+			
+			bbl_header_t bbl_header_bak;
+			uint8_t bubble_data_bak[0x20000];
+			_TCHAR image_path_bak[_MAX_PATH];
+			memcpy(&bbl_header_bak, &bbl_header, sizeof(bbl_header_t));
+			memcpy(bubble_data_bak, bubble_data, 0x20000);
+			memcpy(image_path_bak, image_path, _MAXPATH * sizeof(_TCHAR));
+			if(!open(image_path, (int)media_num)) {
+				// Revert loaded status
+				is_wrote = is_wrote_bak;
+				header_changed = header_changed_bak;
+				is_b77 = is_b77_bak;
+				media_offset = media_offset_bak;
+				media_offset_new = media_offset_new_bak;
+				file_length = file_length_bak;
+				bubble_inserted = bubble_inserted_bak;
+				not_ready = not_ready_bak;
+				cmd_error = cmd_error_bak;
+				stat_tdra = stat_tdra_bak;
+				stat_rda = stat_rda_bak;
+				stat_error = stat_error_bak; // OK?
+				stat_busy = stat_busy_bak;
+				bubble_type = bubble_type_bak;
+				media_size = media_size_bak;
+				write_protect = write_protect_bak;
+				not_ready = not_ready_bak;
+				media_num = media_num_bak;
+				memcpy(&bbl_header, &bbl_header_bak, sizeof(bbl_header_t));
+				memcpy(bubble_data, bubble_data_bak, 0x20000);
+				memcpy(image_path, image_path_bak, _MAXPATH * sizeof(_TCHAR));
+				return true;
 			}
 		}
-	}
-#endif
-}
-
-bool BUBBLECASETTE::load_state(FILEIO *state_fio)
-{
-	//int i, j;
-	//if(state_fio->FgetUint32_BE() != STATE_VERSION) return false;
-	//if(state_fio->FgetInt32_BE() != this_device_id) return false;
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	out_debug_log(_T("Load State: BUBBLE: id=%d status=%s"), this_device_id, (mb) ? _T("OK") : _T("NG"));
-	if(!mb) return false;
-	
-#if 0
-	is_wrote = false;
-	header_changed = false;
-
-
-	if(_tcslen(image_path) > 0) {
-		bool is_wrote_bak = is_wrote;
-		bool header_changed_bak = header_changed;
-		bool is_b77_bak = is_b77;
-		uint32_t media_offset_bak = media_offset;
-		uint32_t media_offset_new_bak = media_offset_new;
-		uint32_t file_length_bak = file_length;
-		bool bubble_inserted_bak = bubble_inserted;
-		bool not_ready_bak = not_ready;
-		bool cmd_error_bak = cmd_error;
-		bool stat_tdra_bak = stat_tdra;
-		bool stat_rda_bak = stat_rda;
-		bool stat_error_bak = stat_error; // OK?
-		bool stat_busy_bak = stat_busy;
-		int bubble_type_bak = bubble_type;
-		uint32_t media_size_bak = media_size;
-		bool write_protect_bak = write_protect;
-		bool not_ready_bak = not_ready;
-		uint32_t media_num_bak = media_num;
-		
-		bbl_header_t bbl_header_bak;
-		uint8_t bubble_data_bak[0x20000];
-		_TCHAR image_path_bak[_MAX_PATH];
-		memcpy(&bbl_header_bak, &bbl_header, sizeof(bbl_header_t));
-		memcpy(bubble_data_bak, bubble_data, 0x20000);
-		memcpy(image_path_bak, image_path, _MAXPATH * sizeof(_TCHAR));
-		if(!open(image_path, (int)media_num)) {
-			// Revert loaded status
-			is_wrote = is_wrote_bak;
-			header_changed = header_changed_bak;
-			is_b77 = is_b77_bak;
-			media_offset = media_offset_bak;
-			media_offset_new = media_offset_new_bak;
-			file_length = file_length_bak;
-			bubble_inserted = bubble_inserted_bak;
-			not_ready = not_ready_bak;
-			cmd_error = cmd_error_bak;
-			stat_tdra = stat_tdra_bak;
-			stat_rda = stat_rda_bak;
-			stat_error = stat_error_bak; // OK?
-			stat_busy = stat_busy_bak;
-			bubble_type = bubble_type_bak;
-			media_size = media_size_bak;
-			write_protect = write_protect_bak;
-			not_ready = not_ready_bak;
-			media_num = media_num_bak;
-			memcpy(&bbl_header, &bbl_header_bak, sizeof(bbl_header_t));
-			memcpy(bubble_data, bubble_data_bak, 0x20000);
-			memcpy(image_path, image_path_bak, _MAXPATH * sizeof(_TCHAR));
-			return true;
+	} else {
+		if(state_fio != NULL) {
+			if(state_fio->IsOpened()) {
+				if(is_wrote) write_one_page();
+				if(is_b77) {
+					if(header_changed) {
+						write_header();
+						header_changed = false;
+					}
+				}
+			}
 		}
 	}
 #endif

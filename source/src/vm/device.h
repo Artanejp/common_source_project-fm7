@@ -142,6 +142,15 @@ public:
 	{
 		reset();
 	}
+	virtual bool process_state(FILEIO* state_fio, bool loading)
+	{
+		if(loading) {
+			return load_state(state_fio);
+		} else {
+			save_state(state_fio);
+			return true;
+		}
+	}
 	
 	// NOTE: the virtual bus interface functions for 16/32bit access invite the cpu is little endian.
 	// if the cpu is big endian, you need to implement them in the virtual machine memory/io classes.
