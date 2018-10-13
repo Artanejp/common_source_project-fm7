@@ -108,66 +108,23 @@ void MC6820::write_signal(int id, uint32_t data, uint32_t mask)
 
 #define STATE_VERSION	1
 
-#include "../statesub.h"
-
-void MC6820::decl_state()
+bool MC6820::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
-		
-	for(int i = 0; i < 2; i++) {
-		DECL_STATE_ENTRY_UINT8_MEMBER((port[i].wreg), i);
-		DECL_STATE_ENTRY_UINT8_MEMBER((port[i].rreg), i);
-		DECL_STATE_ENTRY_UINT8_MEMBER((port[i].ctrl), i);
-		DECL_STATE_ENTRY_UINT8_MEMBER((port[i].ddr), i);
-		DECL_STATE_ENTRY_BOOL_MEMBER((port[i].c1), i);
-		DECL_STATE_ENTRY_BOOL_MEMBER((port[i].c2), i);
-		DECL_STATE_ENTRY_BOOL_MEMBER((port[i].first), i);
-	}
-
-	leave_decl_state();
-}
-void MC6820::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	for(int i = 0; i < 2; i++) {
-//		state_fio->FputUint8(port[i].wreg);
-//		state_fio->FputUint8(port[i].rreg);
-//		state_fio->FputUint8(port[i].ctrl);
-//		state_fio->FputUint8(port[i].ddr);
-//		state_fio->FputBool(port[i].c1);
-//		state_fio->FputBool(port[i].c2);
-//		state_fio->FputBool(port[i].first);
-//	}
-}
-
-bool MC6820::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	for(int i = 0; i < 2; i++) {
-//		port[i].wreg = state_fio->FgetUint8();
-//		port[i].rreg = state_fio->FgetUint8();
-//		port[i].ctrl = state_fio->FgetUint8();
-//		port[i].ddr = state_fio->FgetUint8();
-//		port[i].c1 = state_fio->FgetBool();
-//		port[i].c2 = state_fio->FgetBool();
-//		port[i].first = state_fio->FgetBool();
-//	}
-	return true;
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+ 	for(int i = 0; i < 2; i++) {
+		state_fio->StateUint8(port[i].wreg);
+		state_fio->StateUint8(port[i].rreg);
+		state_fio->StateUint8(port[i].ctrl);
+		state_fio->StateUint8(port[i].ddr);
+		state_fio->StateBool(port[i].c1);
+		state_fio->StateBool(port[i].c2);
+		state_fio->StateBool(port[i].first);
+ 	}
+ 	return true;
 }
 

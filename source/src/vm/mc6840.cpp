@@ -661,91 +661,43 @@ void MC6840::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
-#include "../statesub.h"
-
-void MC6840::decl_state()
+bool MC6840::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+	state_fio->StateBuffer(m_control_reg, sizeof(m_control_reg), 1);
+	state_fio->StateBuffer(m_output, sizeof(m_output), 1);
+	state_fio->StateBuffer(m_gate, sizeof(m_gate), 1);
+	state_fio->StateBuffer(m_clk, sizeof(m_clk), 1);
+	state_fio->StateBuffer(m_enabled, sizeof(m_enabled), 1);
+	state_fio->StateBuffer(m_mode, sizeof(m_mode), 1);
+	state_fio->StateBuffer(m_fired, sizeof(m_fired), 1);
+	state_fio->StateUint8(m_t3_divisor);
+	state_fio->StateUint8(m_t3_scaler);
+	state_fio->StateUint8(m_IRQ);
+	state_fio->StateUint8(m_status_reg);
+	state_fio->StateUint8(m_status_read_since_int);
+	state_fio->StateUint8(m_lsb_buffer);
+	state_fio->StateUint8(m_msb_buffer);
 
-	DECL_STATE_ENTRY_1D_ARRAY(m_control_reg, sizeof(m_control_reg));
-	DECL_STATE_ENTRY_1D_ARRAY(m_output, sizeof(m_output));
-	DECL_STATE_ENTRY_1D_ARRAY(m_gate, sizeof(m_gate));
-	DECL_STATE_ENTRY_1D_ARRAY(m_clk, sizeof(m_clk));
-	DECL_STATE_ENTRY_1D_ARRAY(m_enabled, sizeof(m_enabled));
-	DECL_STATE_ENTRY_1D_ARRAY(m_mode, sizeof(m_mode));
-	DECL_STATE_ENTRY_1D_ARRAY(m_fired, sizeof(m_fired));
-	DECL_STATE_ENTRY_UINT8(m_t3_divisor);
-	DECL_STATE_ENTRY_UINT8(m_t3_scaler);
-	DECL_STATE_ENTRY_UINT8(m_IRQ);
-	DECL_STATE_ENTRY_UINT8(m_status_reg);
-	DECL_STATE_ENTRY_UINT8(m_status_read_since_int);
-	DECL_STATE_ENTRY_UINT8(m_lsb_buffer);
-	DECL_STATE_ENTRY_UINT8(m_msb_buffer);
-	DECL_STATE_ENTRY_1D_ARRAY(m_timer, sizeof(m_timer)); // int
-	DECL_STATE_ENTRY_1D_ARRAY(m_latch, sizeof(m_latch)); // UINT16
-	DECL_STATE_ENTRY_1D_ARRAY(m_counter, sizeof(m_counter)); // UINT16
-
-	leave_decl_state();
-}
-void MC6840::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
+	//state_fio->StateBuffer(m_timer, sizeof(m_timer), 1);
+	//state_fio->StateBuffer(m_latch, sizeof(m_latch), 1);
+	//state_fio->StateBuffer(m_counter, sizeof(m_counter), 1);
+	for(int i = 0; i < (sizeof(m_timer) / sizeof(int)); i++) {
+		state_fio->StateInt32(m_timer[i]);
 	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(m_control_reg, sizeof(m_control_reg), 1);
-//	state_fio->Fwrite(m_output, sizeof(m_output), 1);
-//	state_fio->Fwrite(m_gate, sizeof(m_gate), 1);
-//	state_fio->Fwrite(m_clk, sizeof(m_clk), 1);
-//	state_fio->Fwrite(m_enabled, sizeof(m_enabled), 1);
-//	state_fio->Fwrite(m_mode, sizeof(m_mode), 1);
-//	state_fio->Fwrite(m_fired, sizeof(m_fired), 1);
-//	state_fio->FputUint8(m_t3_divisor);
-//	state_fio->FputUint8(m_t3_scaler);
-//	state_fio->FputUint8(m_IRQ);
-//	state_fio->FputUint8(m_status_reg);
-//	state_fio->FputUint8(m_status_read_since_int);
-//	state_fio->FputUint8(m_lsb_buffer);
-//	state_fio->FputUint8(m_msb_buffer);
-//	state_fio->Fwrite(m_timer, sizeof(m_timer), 1);
-//	state_fio->Fwrite(m_latch, sizeof(m_latch), 1);
-//	state_fio->Fwrite(m_counter, sizeof(m_counter), 1);
-}
-
-bool MC6840::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
+	for(int i = 0; i < (sizeof(m_latch) / sizeof(UINT16)); i++) {
+		state_fio->StateUint16(m_timer[i]);
 	}
-	if(!mb) return false;
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(m_control_reg, sizeof(m_control_reg), 1);
-//	state_fio->Fread(m_output, sizeof(m_output), 1);
-//	state_fio->Fread(m_gate, sizeof(m_gate), 1);
-//	state_fio->Fread(m_clk, sizeof(m_clk), 1);
-//	state_fio->Fread(m_enabled, sizeof(m_enabled), 1);
-//	state_fio->Fread(m_mode, sizeof(m_mode), 1);
-//	state_fio->Fread(m_fired, sizeof(m_fired), 1);
-//	m_t3_divisor = state_fio->FgetUint8();
-//	m_t3_scaler = state_fio->FgetUint8();
-//	m_IRQ = state_fio->FgetUint8();
-//	m_status_reg = state_fio->FgetUint8();
-//	m_status_read_since_int = state_fio->FgetUint8();
-//	m_lsb_buffer = state_fio->FgetUint8();
-//	m_msb_buffer = state_fio->FgetUint8();
-//	state_fio->Fread(m_timer, sizeof(m_timer), 1);
-//	state_fio->Fread(m_latch, sizeof(m_latch), 1);
-//	state_fio->Fread(m_counter, sizeof(m_counter), 1);
-	return true;
+	for(int i = 0; i < (sizeof(m_counter) / sizeof(UINT16)); i++) {
+		state_fio->StateUint16(m_timer[i]);
+	}
+ 	return true;
 }
-
+ 

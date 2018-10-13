@@ -579,23 +579,3 @@ int Z80::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 
 #endif
 
-void Z80::decl_state(void)
-{
-	Z80_BASE::decl_state();
-}
-
-void Z80::save_state(FILEIO* state_fio)
-{
-	Z80_BASE::save_state(state_fio);
-}
-
-bool Z80::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	mb = Z80_BASE::load_state(state_fio);
-	if(!mb) return false;
-	prev_total_icount = total_icount;
-	return true;
-}
-
-

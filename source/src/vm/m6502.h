@@ -46,9 +46,6 @@ protected:
 	virtual void OP(uint8_t code);
 	void update_irq();
 
-	void decl_state_regs();
-	//void save_state_regs(FILEIO* state_fio);
-	//void load_state_regs(FILEIO* state_fio);
 public:
 	M6502_BASE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -62,6 +59,7 @@ public:
 	virtual void initialize();
 	virtual void reset();
 	virtual int run(int clock);
+	
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void set_intr_line(bool line, bool pending, uint32_t bit)
 	{
@@ -125,9 +123,7 @@ public:
 	void reset();
 	int run(int clock);
 	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 };	
 
 class N2A03 : public M6502_BASE
@@ -143,9 +139,7 @@ public:
 	void reset();
 	int run(int clock);
 	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 };	
 
 #endif

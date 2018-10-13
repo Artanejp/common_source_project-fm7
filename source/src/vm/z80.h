@@ -282,9 +282,7 @@ public:
 	void event_frame();
 	int run(int clock);
 
-	virtual void save_state(FILEIO* state_fio);
-	virtual bool load_state(FILEIO* state_fio);
-	virtual void decl_state(void);
+	virtual bool process_state(FILEIO* state_fio, bool loading);
 	
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void set_intr_line(bool line, bool pending, uint32_t bit)
@@ -366,9 +364,6 @@ public:
 	void initialize();
 	void reset();
 	int run(int clock) override;
-	void save_state(FILEIO* state_fio) override;
-	bool load_state(FILEIO* state_fio) override;
-	void decl_state(void) override;
 
 	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 #ifdef USE_DEBUGGER

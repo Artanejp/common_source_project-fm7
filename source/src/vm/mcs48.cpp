@@ -207,92 +207,56 @@ int MCS48::run(int icount)
 }
 
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
-#include "../statesub.h"
-
-void MCS48::decl_state()
+bool MCS48::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
-	
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
 #ifdef USE_DEBUGGER
-	DECL_STATE_ENTRY_UINT64(total_icount);
+	state_fio->StateUint64(total_icount);
 #endif
+	//state_fio->StateBuffer(opaque, sizeof(mcs48_state), 1);
+
 	// BEGIN CPUREGS
 	mcs48_state *cpustate = (mcs48_state *)opaque;
-
-	DECL_STATE_ENTRY_UINT16((cpustate->prevpc));
-	DECL_STATE_ENTRY_UINT16((cpustate->pc));
-	
-	DECL_STATE_ENTRY_UINT8((cpustate->a));
-	DECL_STATE_ENTRY_INT32((cpustate->regptr));
-	DECL_STATE_ENTRY_UINT8((cpustate->psw));
-	DECL_STATE_ENTRY_UINT8((cpustate->p1));
-	DECL_STATE_ENTRY_UINT8((cpustate->p2));
-	DECL_STATE_ENTRY_UINT8((cpustate->timer));
-	DECL_STATE_ENTRY_UINT8((cpustate->prescaler));
-	DECL_STATE_ENTRY_UINT8((cpustate->t1_history));
-	DECL_STATE_ENTRY_UINT8((cpustate->sts));
-	
-	DECL_STATE_ENTRY_UINT8((cpustate->int_state));
-	DECL_STATE_ENTRY_UINT8((cpustate->irq_state));
-	DECL_STATE_ENTRY_UINT8((cpustate->irq_in_progress));
-	DECL_STATE_ENTRY_UINT8((cpustate->timer_overflow));
-	DECL_STATE_ENTRY_UINT8((cpustate->timer_flag));
-	DECL_STATE_ENTRY_UINT8((cpustate->tirq_enabled));
-	DECL_STATE_ENTRY_UINT8((cpustate->xirq_enabled));
-	DECL_STATE_ENTRY_UINT8((cpustate->t0_clk_enabled));
-	DECL_STATE_ENTRY_UINT8((cpustate->timecount_enabled));
-	
-	DECL_STATE_ENTRY_UINT16((cpustate->a11));
-
-	DECL_STATE_ENTRY_INT32((cpustate->icount));
-
-	DECL_STATE_ENTRY_1D_ARRAY((cpustate->rom), 0x1000); // 0x100 ?
-
+	state_fio->StateUint16(cpustate->prevpc);
+	state_fio->StateUint16(cpustate->pc);
+	state_fio->StateUint8(cpustate->a);
+	state_fio->StateInt32(cpustate->regptr);
+	state_fio->StateUint8(cpustate->psw);
+	state_fio->StateUint8(cpustate->p1);
+	state_fio->StateUint8(cpustate->p2);
+	state_fio->StateUint8(cpustate->timer);
+	state_fio->StateUint8(cpustate->prescaler);
+	state_fio->StateUint8(cpustate->t1_history);
+	state_fio->StateUint8(cpustate->sts);
+	state_fio->StateUint8(cpustate->int_state);
+	state_fio->StateUint8(cpustate->irq_state);
+	state_fio->StateUint8(cpustate->irq_in_progress);
+	state_fio->StateUint8(cpustate->timer_overflow);
+	state_fio->StateUint8(cpustate->timer_flag);
+	state_fio->StateUint8(cpustate->tirq_enabled);
+	state_fio->StateUint8(cpustate->xirq_enabled);
+	state_fio->StateUint8(cpustate->t0_clk_enabled);
+	state_fio->StateUint8(cpustate->timecount_enabled);
+	state_fio->StateUint16(cpustate->a11);
+	state_fio->StateInt32(cpustate->icount);
+	state_fio->StateBuffer(cpustate->rom, 0x1000); // 0x100 ?
 	// END CPUREGS
-	leave_decl_state();
-}
-void MCS48::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-	
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-//	
-//#ifdef USE_DEBUGGER
-//	state_fio->FputUint64(total_icount);
-//#endif
-//	state_fio->Fwrite(opaque, sizeof(mcs48_state), 1);
-}
 
-bool MCS48::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
+	if(loading) {
+		mcs48_state *cpustate = (mcs48_state *)opaque;
+		cpustate->mem = d_mem;
+		cpustate->io = d_io;
+		cpustate->intr = d_intr;
+#ifdef USE_DEBUGGER
+		prev_total_icount = total_icount;
+#endif
 	}
-	if(!mb) return false;
-	
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//#ifdef USE_DEBUGGER
-//	total_icount = prev_total_icount = state_fio->FgetUint64();
-//#endif
-//	state_fio->Fread(opaque, sizeof(mcs48_state), 1);
-	
-	// post process
-	mcs48_state *cpustate = (mcs48_state *)opaque;
-	cpustate->mem = d_mem;
-	cpustate->io = d_io;
-	cpustate->intr = d_intr;
-	prev_total_icount = total_icount;
-	return true;
+ 	return true;
 }
-

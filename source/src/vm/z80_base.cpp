@@ -3716,86 +3716,64 @@ static void dasm_fdcb(uint32_t pc, _TCHAR *buffer, size_t buffer_len, symbol_t *
 //#endif
 }
 #define STATE_VERSION 3
-#include "../statesub.h"
-void Z80_BASE::decl_state(void)
-{
-	enter_decl_state(STATE_VERSION);
-	
-	DECL_STATE_ENTRY_INT(this_device_id);
-	
-	DECL_STATE_ENTRY_INT32(icount);
-	DECL_STATE_ENTRY_INT32(extra_icount);
-	DECL_STATE_ENTRY_UINT64(total_icount);
-	
-	DECL_STATE_ENTRY_UINT16(prevpc);
-	
-	DECL_STATE_ENTRY_PAIR(pc);
-	DECL_STATE_ENTRY_PAIR(sp);
-	DECL_STATE_ENTRY_PAIR(af);
-	DECL_STATE_ENTRY_PAIR(bc);
-	DECL_STATE_ENTRY_PAIR(de);
-	DECL_STATE_ENTRY_PAIR(hl);
-	DECL_STATE_ENTRY_PAIR(ix);
-	DECL_STATE_ENTRY_PAIR(iy);
-	DECL_STATE_ENTRY_PAIR(wz);
-	
-	DECL_STATE_ENTRY_PAIR(af2);
-	DECL_STATE_ENTRY_PAIR(bc2);
-	DECL_STATE_ENTRY_PAIR(de2);
-	DECL_STATE_ENTRY_PAIR(hl2);
-	
-	DECL_STATE_ENTRY_UINT8(I);
-	DECL_STATE_ENTRY_UINT8(R);
-	DECL_STATE_ENTRY_UINT8(R2);
-	DECL_STATE_ENTRY_UINT32(ea);
-	
-	DECL_STATE_ENTRY_BOOL(busreq);
-	DECL_STATE_ENTRY_BOOL(after_halt);
-	
-	DECL_STATE_ENTRY_UINT8(im);
-	DECL_STATE_ENTRY_UINT8(iff1);
-	DECL_STATE_ENTRY_UINT8(iff2);
-	DECL_STATE_ENTRY_UINT8(icr);
-	
-	DECL_STATE_ENTRY_BOOL(after_ei);
-	DECL_STATE_ENTRY_BOOL(after_ldair);
-	
-	DECL_STATE_ENTRY_UINT32(intr_req_bit);
-	DECL_STATE_ENTRY_UINT32(intr_pend_bit);
 
-	leave_decl_state();
-}
-
-void Z80_BASE::save_state(FILEIO* state_fio)
+bool Z80_BASE::process_state(FILEIO* state_fio, bool loading)
 {
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+	state_fio->StateUint64(total_icount);
+	
+	state_fio->StateInt32(icount);
+	state_fio->StateInt32(extra_icount);
+	state_fio->StateUint16(prevpc);
+	state_fio->StateUint32(pc.d);
+	state_fio->StateUint32(sp.d);
+	state_fio->StateUint32(af.d);
+	state_fio->StateUint32(bc.d);
+	state_fio->StateUint32(de.d);
+	state_fio->StateUint32(hl.d);
+	state_fio->StateUint32(ix.d);
+	state_fio->StateUint32(iy.d);
+	state_fio->StateUint32(wz.d);
+	state_fio->StateUint32(af2.d);
+	state_fio->StateUint32(bc2.d);
+	state_fio->StateUint32(de2.d);
+	state_fio->StateUint32(hl2.d);
+	state_fio->StateUint8(I);
+	state_fio->StateUint8(R);
+	state_fio->StateUint8(R2);
+	state_fio->StateUint32(ea);
+	state_fio->StateBool(busreq);
+	state_fio->StateBool(after_halt);
+	state_fio->StateUint8(im);
+	state_fio->StateUint8(iff1);
+	state_fio->StateUint8(iff2);
+	state_fio->StateUint8(icr);
+	state_fio->StateBool(after_ei);
+	state_fio->StateBool(after_ldair);
+	state_fio->StateUint32(intr_req_bit);
+	state_fio->StateUint32(intr_pend_bit);
+	
+	// post process
+	if(loading) {
+		prev_total_icount = total_icount;
+		// Post process for collecting statistics.
+		cycles_tmp_count = total_icount;
+		extra_tmp_count = 0;
+		insns_count = 0;
+		frames_count = 0;
+		nmi_count = 0;
+		irq_count = 0;
+		nsc800_int_count = 0;
+		nsc800_rsta_count = 0;
+		nsc800_rsta_count = 0;
+		nsc800_rsta_count = 0;
 	}
+ 	return true;
 }
 
-bool Z80_BASE::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-	
-	prev_total_icount = total_icount;
-
-	
-	// Post process for collecting statistics.
-	cycles_tmp_count = total_icount;
-	extra_tmp_count = 0;
-	insns_count = 0;
-	frames_count = 0;
-	nmi_count = 0;
-	irq_count = 0;
-	nsc800_int_count = 0;
-	nsc800_rsta_count = 0;
-	nsc800_rsta_count = 0;
-	nsc800_rsta_count = 0;
-	return true;
-}
-
-/* load_state() and save_state() has moved to z80.cpp . */

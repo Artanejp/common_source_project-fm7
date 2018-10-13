@@ -127,9 +127,7 @@ public:
 	{
 		ram[addr & 0xff] = data;
 	}
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 };
 
 class MCS48_BASE : public DEVICE
@@ -743,9 +741,7 @@ public:
 	void initialize();
 	void release();
 	int run(int icount);
-	void decl_state();
-	void save_state(FILEIO* state_state_fio);
-	bool load_state(FILEIO* state_state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 #ifdef USE_DEBUGGER
 	void *get_debugger()
 	{

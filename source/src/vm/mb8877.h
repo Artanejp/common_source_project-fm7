@@ -146,7 +146,8 @@ private:
 	void set_irq(bool val);
 	void set_drq(bool val);
 
-	void decl_state_fdc(int ch);
+	void process_state_fdc(int ch, FILEIO* state_fio, bool loading);
+
 public:
 	MB8877(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -190,9 +191,7 @@ public:
 //#ifdef USE_DEBUGGER
 	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 //#endif
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_irq(DEVICE* device, int id, uint32_t mask)

@@ -3942,63 +3942,53 @@ OP_HANDLER(pref11) {
 		}
 	}
 
-#define STATE_VERSION	7
-#include "../statesub.h"
+#define STATE_VERSION	5
 
-void MC6809_BASE::decl_state(void)
+bool MC6809_BASE::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+	state_fio->StateInt32(icount);
+	state_fio->StateInt32(extra_icount);
+	state_fio->StateUint32(int_state);
 
-	DECL_STATE_ENTRY_INT(this_device_id);
+	state_fio->StateUint32(pc.d);
+	state_fio->StateUint32(ppc.d);
+	state_fio->StateUint32(acc.d);
+	state_fio->StateUint32(dp.d);
+	state_fio->StateUint32(u.d);
+	state_fio->StateUint32(s.d);
+	state_fio->StateUint32(x.d);
+	state_fio->StateUint32(y.d);
+	state_fio->StateUint8(cc);
+	state_fio->StateUint32(ea.d);
+ 
+ 	// V2
+	state_fio->StateBool(req_halt_on);
+	state_fio->StateBool(req_halt_off);
+	state_fio->StateBool(busreq);
 	
-	DECL_STATE_ENTRY_INT32(icount);
-	DECL_STATE_ENTRY_INT32(extra_icount);
-	DECL_STATE_ENTRY_UINT32(int_state);
-
-	DECL_STATE_ENTRY_PAIR(pc);
-	DECL_STATE_ENTRY_PAIR(ppc);
-	DECL_STATE_ENTRY_PAIR(acc);
-	DECL_STATE_ENTRY_PAIR(dp);
-	DECL_STATE_ENTRY_PAIR(u);
-	DECL_STATE_ENTRY_PAIR(s);
-	DECL_STATE_ENTRY_PAIR(x);
-	DECL_STATE_ENTRY_PAIR(y);
-	DECL_STATE_ENTRY_UINT8(cc);
-	DECL_STATE_ENTRY_PAIR(ea);
-
-	// V2
-	DECL_STATE_ENTRY_BOOL(req_halt_on);
-	DECL_STATE_ENTRY_BOOL(req_halt_off);
-	DECL_STATE_ENTRY_BOOL(busreq);
+	state_fio->StateUint64(total_icount);
+	state_fio->StateUint32(waitfactor);
+	state_fio->StateUint32(waitcount);
 	
-	DECL_STATE_ENTRY_UINT64(total_icount);
-	DECL_STATE_ENTRY_UINT32(waitfactor);
-	DECL_STATE_ENTRY_UINT32(waitcount);
-
-	leave_decl_state();
-}
-void MC6809_BASE::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) state_entry->save_state(state_fio);
-}
-
-bool MC6809_BASE::load_state(FILEIO* state_fio)
-{
-	bool mb = false;;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
+	// post process
+	if(loading) {
+		prev_total_icount = total_icount;
+		// Post process for collecting statistics.
+		cycles_tmp_count = total_icount;
+		extra_tmp_count = 0;
+		insns_count = 0;
+		frames_count = 0;
+		nmi_count = 0;
+		firq_count = 0;
+		irq_count = 0;
 	}
-	if(!mb) return false;
-
-	// Post process for collecting statistics.
-	cycles_tmp_count = total_icount;
-	extra_tmp_count = 0;
-	insns_count = 0;
-	frames_count = 0;
-	nmi_count = 0;
-	firq_count = 0;
-	irq_count = 0;
-	return mb;
+	return true;
 }
 
 
