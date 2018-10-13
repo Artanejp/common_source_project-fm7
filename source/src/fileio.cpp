@@ -977,6 +977,19 @@ bool FILEIO::Fcompare(const void* buffer, size_t size, size_t count)
 	return result;
 }
 
+bool FILEIO::Fflush()
+{
+#ifdef USE_ZLIB
+	if(gz != NULL) {
+		return (gzflush(gz, Z_SYNC_FLUSH) == Z_OK) ? true : false;
+	} else
+#endif
+	{
+		return (fflush(fp) == 0) ? true : false;
+	}
+}
+
+
 bool FILEIO::StateCheckUint32(uint32_t val)
 {
 	if(open_mode == FILEIO_READ_BINARY) {

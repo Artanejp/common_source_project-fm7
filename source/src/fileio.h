@@ -142,6 +142,7 @@ public:
 	long Ftell();
 	bool Fcompare(const void* buffer, size_t size);
 	bool Fcompare(const void* buffer, size_t size, size_t count);
+	bool Fflush(); // Pls.Add 20181013 K.O
 	
 	bool StateCheckUint32(uint32_t val);
 	bool StateCheckInt32(int32_t val);
