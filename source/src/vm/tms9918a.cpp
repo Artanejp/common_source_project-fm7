@@ -625,7 +625,7 @@ void TMS9918A::draw_sprites()
 	}
 }
 
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 void TMS9918A::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 	my_stprintf_s(buffer, buffer_len,
@@ -633,104 +633,38 @@ void TMS9918A::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	regs[0], regs[1], regs[2], regs[3], regs[4], regs[5], regs[6], regs[7],
 	vram_addr, status_reg);
 }
-#endif
+//#endif
 
 #define STATE_VERSION	1
 
-#include "../statesub.h"
-
-void TMS9918A::decl_state()
+bool TMS9918A::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
-	
-	DECL_STATE_ENTRY_1D_ARRAY(vram, _VRAM_SIZE * sizeof(uint8_t));
-	DECL_STATE_ENTRY_1D_ARRAY(regs, sizeof(regs));
-	DECL_STATE_ENTRY_UINT8(status_reg);
-	DECL_STATE_ENTRY_UINT8(read_ahead);
-	DECL_STATE_ENTRY_UINT8(first_byte);
-	DECL_STATE_ENTRY_UINT16(vram_addr);
-	DECL_STATE_ENTRY_BOOL(latch);
-	DECL_STATE_ENTRY_BOOL(intstat);
-	DECL_STATE_ENTRY_UINT16(color_table);
-	DECL_STATE_ENTRY_UINT16(pattern_table);
-	DECL_STATE_ENTRY_UINT16(name_table);
-	DECL_STATE_ENTRY_UINT16(sprite_pattern);
-	DECL_STATE_ENTRY_UINT16(sprite_attrib);
-	DECL_STATE_ENTRY_UINT16(color_mask);
-	DECL_STATE_ENTRY_UINT16(pattern_mask);
-//#ifdef TMS9918A_SUPER_IMPOSE
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+	//state_fio->StateBuffer(vram, sizeof(vram), 1);
+	state_fio->StateBuffer(vram, _VRAM_SIZE, 1);
+	state_fio->StateBuffer(regs, sizeof(regs), 1);
+	state_fio->StateUint8(status_reg);
+	state_fio->StateUint8(read_ahead);
+	state_fio->StateUint8(first_byte);
+	state_fio->StateUint16(vram_addr);
+	state_fio->StateBool(latch);
+	state_fio->StateBool(intstat);
+	state_fio->StateUint16(color_table);
+	state_fio->StateUint16(pattern_table);
+	state_fio->StateUint16(name_table);
+	state_fio->StateUint16(sprite_pattern);
+	state_fio->StateUint16(sprite_attrib);
+	state_fio->StateUint16(color_mask);
+	state_fio->StateUint16(pattern_mask);
 	if(_tms9918a_super_impose) {
-		DECL_STATE_ENTRY_BOOL(now_super_impose);
+		state_fio->StateBool(now_super_impose);
 	}
-//#endif
 
-	leave_decl_state();
-}
-void TMS9918A::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-	
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(vram, _VRAM_SIZE * sizeof(uint8_t), 1);
-//	state_fio->Fwrite(regs, sizeof(regs), 1);
-//	state_fio->FputUint8(status_reg);
-//	state_fio->FputUint8(read_ahead);
-//	state_fio->FputUint8(first_byte);
-//	state_fio->FputUint16(vram_addr);
-//	state_fio->FputBool(latch);
-//	state_fio->FputBool(intstat);
-//	state_fio->FputUint16(color_table);
-//	state_fio->FputUint16(pattern_table);
-//	state_fio->FputUint16(name_table);
-//	state_fio->FputUint16(sprite_pattern);
-//	state_fio->FputUint16(sprite_attrib);
-//	state_fio->FputUint16(color_mask);
-//	state_fio->FputUint16(pattern_mask);
-//#ifdef TMS9918A_SUPER_IMPOSE
-//	if(_tms9918a_super_impose) {
-//		state_fio->FputBool(now_super_impose);
-//	}
-//#endif
-}
-
-bool TMS9918A::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(vram, _VRAM_SIZE * sizeof(uint8_t), 1);
-//	state_fio->Fread(regs, sizeof(regs), 1);
-//	status_reg = state_fio->FgetUint8();
-//	read_ahead = state_fio->FgetUint8();
-//	first_byte = state_fio->FgetUint8();
-//	vram_addr = state_fio->FgetUint16();
-//	latch = state_fio->FgetBool();
-//	intstat = state_fio->FgetBool();
-//	color_table = state_fio->FgetUint16();
-//	pattern_table = state_fio->FgetUint16();
-//	name_table = state_fio->FgetUint16();
-//	sprite_pattern = state_fio->FgetUint16();
-//	sprite_attrib = state_fio->FgetUint16();
-//	color_mask = state_fio->FgetUint16();
-//	pattern_mask = state_fio->FgetUint16();
-//#ifdef TMS9918A_SUPER_IMPOSE
-//	if(_tms9918a_super_impose) {
-//		now_super_impose = state_fio->FgetBool();
-//	}
-//#endif
-	return true;
+ 	return true;
 }
 
