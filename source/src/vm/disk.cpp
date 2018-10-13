@@ -2616,10 +2616,24 @@ bool DISK::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBool(track_mfm);
 	state_fio->StateBool(invalid_format);
 //	state_fio->StateBool(no_skew);
-	state_fio->StateBuffer(sync_position, sizeof(sync_position), 1);
-	state_fio->StateBuffer(am1_position, sizeof(am1_position), 1);
-	state_fio->StateBuffer(id_position, sizeof(id_position), 1);
-	state_fio->StateBuffer(data_position, sizeof(data_position), 1);
+
+//	state_fio->StateBuffer(sync_position, sizeof(sync_position), 1);
+//	state_fio->StateBuffer(am1_position, sizeof(am1_position), 1);
+//	state_fio->StateBuffer(id_position, sizeof(id_position), 1);
+//	state_fio->StateBuffer(data_position, sizeof(data_position), 1);
+	for(int i = 0; i < (sizeof(sync_position) / sizeof(int)); i++) {
+		state_fio->StateInt32(sync_position[i]);
+	}
+	for(int i = 0; i < (sizeof(am1_position) / sizeof(int)); i++) {
+		state_fio->StateInt32(am1_position[i]);
+	}
+	for(int i = 0; i < (sizeof(id_position) / sizeof(int)); i++) {
+		state_fio->StateInt32(id_position[i]);
+	}
+	for(int i = 0; i < (sizeof(data_position) / sizeof(int)); i++) {
+		state_fio->StateInt32(data_position[i]);
+	}
+
 //	state_fio->StateInt32(gap3_size);
 	if(loading) {
 		int offset = state_fio->FgetInt32_LE();

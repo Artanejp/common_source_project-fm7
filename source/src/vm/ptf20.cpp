@@ -496,63 +496,23 @@ bool PTF20::is_disk_protected(int drv)
 
 #define STATE_VERSION	1
 
-#include "../statesub.h"
-
-void PTF20::decl_state()
+bool PTF20::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_1D_ARRAY(bufr, sizeof(bufr));
-	DECL_STATE_ENTRY_1D_ARRAY(bufs, sizeof(bufs));
-	DECL_STATE_ENTRY_INT32(buflen);
-	DECL_STATE_ENTRY_INT32(phase);
-
-	for(int i = 0; i < __MAX_DRIVE; i++) {
-		disk[i]->decl_state(p_logger);
-	}
-	leave_decl_state();
-}
-void PTF20::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-	
-	//state_fio->FputUint32(STATE_VERSION);
-	//state_fio->FputInt32(this_device_id);
-	
-	for(int i = 0; i < __MAX_DRIVE; i++) {
-		disk[i]->save_state(state_fio);
-	}
-	//state_fio->Fwrite(bufr, sizeof(bufr), 1);
-	//state_fio->Fwrite(bufs, sizeof(bufs), 1);
-	//state_fio->FputInt32(buflen);
-	//state_fio->FputInt32(phase);
-}
-
-bool PTF20::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-
-	//if(state_fio->FgetUint32() != STATE_VERSION) {
-	//	return false;
-	//}
-	//if(state_fio->FgetInt32() != this_device_id) {
-	//	return false;
-	//}
-	for(int i = 0; i < __MAX_DRIVE; i++) {
-		if(!disk[i]->load_state(state_fio)) {
-			return false;
-		}
-	}
-	//state_fio->Fread(bufr, sizeof(bufr), 1);
-	//state_fio->Fread(bufs, sizeof(bufs), 1);
-	//buflen = state_fio->FgetInt32();
-	//phase = state_fio->FgetInt32();
-	return true;
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+ 	for(int i = 0; i < __MAX_DRIVE; i++) {
+		if(!disk[i]->process_state(state_fio, loading)) {
+ 			return false;
+ 		}
+ 	}
+	state_fio->StateBuffer(bufr, sizeof(bufr), 1);
+	state_fio->StateBuffer(bufs, sizeof(bufs), 1);
+	state_fio->StateInt32(buflen);
+	state_fio->StateInt32(phase);
+ 	return true;
 }
 

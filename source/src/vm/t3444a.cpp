@@ -799,128 +799,63 @@ void T3444A::update_config()
 	_fdc_debug_log = config.special_debug_fdc;
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
-#include "../statesub.h"
-
-void T3444A::decl_state_fdc(int ch)
+bool T3444A::process_state_fdc(int ch, FILEIO* state_fio, bool loading)
 {
-	DECL_STATE_ENTRY_INT32_MEMBER((fdc[ch].track), ch);
-	DECL_STATE_ENTRY_INT32_MEMBER((fdc[ch].index), ch);
-	DECL_STATE_ENTRY_BOOL_MEMBER((fdc[ch].access), ch);
-	DECL_STATE_ENTRY_BOOL_MEMBER((fdc[ch].head_load), ch);
+	state_fio->StateInt32(fdc[ch].track);
+	state_fio->StateInt32(fdc[ch].index);
+	state_fio->StateInt32(fdc[ch].access);
+	state_fio->StateInt32(fdc[ch].head_load);
 
 	
-	DECL_STATE_ENTRY_INT32_MEMBER((fdc[ch].cur_position), ch);
-	DECL_STATE_ENTRY_INT32_MEMBER((fdc[ch].next_trans_position), ch);
+	state_fio->StateInt32(fdc[ch].cur_position);
+	state_fio->StateInt32(fdc[ch].next_trans_position);
 
-	DECL_STATE_ENTRY_INT32_MEMBER((fdc[ch].bytes_before_2nd_rqm), ch);
-	DECL_STATE_ENTRY_INT32_MEMBER((fdc[ch].next_sync_position), ch);
+	state_fio->StateInt32(fdc[ch].bytes_before_2nd_rqm);
+	state_fio->StateInt32(fdc[ch].next_sync_position);
 
-	DECL_STATE_ENTRY_UINT32_MEMBER((fdc[ch].prev_clock), ch);
-}
+	state_fio->StateInt32(fdc[ch].prev_clock);
 
-void T3444A::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-	
-	for(int i = 0; i < 4; i++) {
-		decl_state_fdc(i);
-	}
-
-	DECL_STATE_ENTRY_UINT8(status);
-	DECL_STATE_ENTRY_UINT8(cmdreg);
-	DECL_STATE_ENTRY_UINT8(trkreg);
-	DECL_STATE_ENTRY_UINT8(secreg);
-	DECL_STATE_ENTRY_UINT8(datareg);
-	DECL_STATE_ENTRY_UINT8(drvreg);
-	DECL_STATE_ENTRY_UINT8(sidereg);
-	DECL_STATE_ENTRY_BOOL(timerflag);
-
-	DECL_STATE_ENTRY_1D_ARRAY(sector_id, 26 * 4);
-	DECL_STATE_ENTRY_1D_ARRAY(register_id, sizeof(register_id) / sizeof(int));
-	
-	DECL_STATE_ENTRY_BOOL(now_search);
-	DECL_STATE_ENTRY_INT32(seektrk);
-	DECL_STATE_ENTRY_BOOL(rqm);
-	DECL_STATE_ENTRY_BOOL(tnd);
-	DECL_STATE_ENTRY_BOOL(motor_on);
-	DECL_STATE_ENTRY_UINT32(prev_rqm_clock);
-	for(int i = 0; i < 4; i++) {
-		disk[i]->decl_state(p_logger);
-	}
-}
-
-void T3444A::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-	
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(fdc, sizeof(fdc), 1);
-	for(int i = 0; i < _max_drive; i++) {
-		disk[i]->save_state(state_fio);
-	}
-//	state_fio->FputUint8(status);
-//	state_fio->FputUint8(cmdreg);
-//	state_fio->FputUint8(trkreg);
-//	state_fio->FputUint8(secreg);
-//	state_fio->FputUint8(datareg);
-//	state_fio->FputUint8(drvreg);
-//	state_fio->FputUint8(sidereg);
-//	state_fio->FputBool(timerflag);
-//	state_fio->Fwrite(sector_id, sizeof(uint8_t) * _sectors_in_track, 1);
-//	state_fio->Fwrite(register_id, sizeof(register_id), 1);
-//	state_fio->FputBool(now_search);
-//	state_fio->FputInt32(seektrk);
-//	state_fio->FputBool(rqm);
-//	state_fio->FputBool(tnd);
-//	state_fio->FputBool(motor_on);
-//	state_fio->FputUint32(prev_rqm_clock);
-}
-
-bool T3444A::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(fdc, sizeof(fdc), 1);
-	for(int i = 0; i < _max_drive; i++) {
-		if(!disk[i]->load_state(state_fio)) {
-			return false;
-		}
-	}
-//	status = state_fio->FgetUint8();
-//	cmdreg = state_fio->FgetUint8();
-//	trkreg = state_fio->FgetUint8();
-//	secreg = state_fio->FgetUint8();
-//	datareg = state_fio->FgetUint8();
-//	drvreg = state_fio->FgetUint8();
-//	sidereg = state_fio->FgetUint8();
-//	timerflag = state_fio->FgetBool();
-//	state_fio->Fread(sector_id, sizeof(uint8_t) * _sectors_in_track, 1);
-//	//state_fio->Fread(sector_id, sizeof(sector_id), 1);
-//	state_fio->Fread(register_id, sizeof(register_id), 1);
-//	now_search = state_fio->FgetBool();
-//	seektrk = state_fio->FgetInt32();
-//	rqm = state_fio->FgetBool();
-//	tnd = state_fio->FgetBool();
-//	motor_on = state_fio->FgetBool();
-//	prev_rqm_clock = state_fio->FgetUint32();
-	_fdc_debug_log = config.special_debug_fdc;
-	
 	return true;
 }
 
+bool T3444A::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+	
+	//state_fio->StateBuffer(fdc, sizeof(fdc), 1);
+	for(int ch = 0; ch < 4; ch++) {
+		process_state_fdc(ch, state_fio, loading);
+	}
+ 	for(int i = 0; i < __max_drive; i++) {
+		if(!disk[i]->process_state(state_fio, loading)) {
+ 			return false;
+ 		}
+ 	}
+	state_fio->StateUint8(status);
+	state_fio->StateUint8(cmdreg);
+	state_fio->StateUint8(trkreg);
+	state_fio->StateUint8(secreg);
+	state_fio->StateUint8(datareg);
+	state_fio->StateUint8(drvreg);
+	state_fio->StateUint8(sidereg);
+	state_fio->StateBool(timerflag);
+	state_fio->StateBuffer(sector_id, sizeof(sector_id), 1);
+	//state_fio->StateBuffer(register_id, sizeof(register_id), 1);
+	for(int i = 0; i < (sizeof(register_id) / sizeof(int)); i++) {
+		state_fio->StateInt32(register_id[i]);
+	}
+	state_fio->StateBool(now_search);
+	state_fio->StateInt32(seektrk);
+	state_fio->StateBool(rqm);
+	state_fio->StateBool(tnd);
+	state_fio->StateBool(motor_on);
+	state_fio->StateUint32(prev_rqm_clock);
+ 	return true;
+}

@@ -189,61 +189,21 @@ void SCSI_HOST::set_drq(bool value)
 
 #define STATE_VERSION	2
 
-#include "../statesub.h"
-
-void SCSI_HOST::decl_state()
+bool SCSI_HOST::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
-	
-	DECL_STATE_ENTRY_UINT32(data_reg);
-	DECL_STATE_ENTRY_UINT32(bsy_status);
-	DECL_STATE_ENTRY_UINT32(cd_status);
-	DECL_STATE_ENTRY_UINT32(io_status);
-	DECL_STATE_ENTRY_UINT32(msg_status);
-	DECL_STATE_ENTRY_UINT32(req_status);
-	DECL_STATE_ENTRY_UINT32(ack_status);
-
-	leave_decl_state();
-}
-void SCSI_HOST::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->FputUint32(data_reg);
-//	state_fio->FputUint32(bsy_status);
-//	state_fio->FputUint32(cd_status);
-//	state_fio->FputUint32(io_status);
-//	state_fio->FputUint32(msg_status);
-//	state_fio->FputUint32(req_status);
-//	state_fio->FputUint32(ack_status);
-}
-
-bool SCSI_HOST::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	data_reg = state_fio->FgetUint32();
-//	bsy_status = state_fio->FgetUint32();
-//	cd_status  = state_fio->FgetUint32();
-//	io_status  = state_fio->FgetUint32();
-//	msg_status = state_fio->FgetUint32();
-//	req_status = state_fio->FgetUint32();
-//	ack_status = state_fio->FgetUint32();
-	return true;
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+	state_fio->StateUint32(data_reg);
+	state_fio->StateUint32(bsy_status);
+	state_fio->StateUint32(cd_status);
+	state_fio->StateUint32(io_status);
+	state_fio->StateUint32(msg_status);
+	state_fio->StateUint32(req_status);
+	state_fio->StateUint32(ack_status);
+ 	return true;
 }
 

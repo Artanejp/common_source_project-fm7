@@ -3049,7 +3049,7 @@ void MC6800::stx_ex()
 
 #define STATE_VERSION	2
 
-bool MC6801::process_state(FILEIO* state_fio, bool loading)
+bool MC6800::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
  		return false;

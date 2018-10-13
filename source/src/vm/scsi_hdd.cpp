@@ -175,67 +175,32 @@ bool SCSI_HDD::write_buffer(int length)
 
 #define STATE_VERSION	3
 
-#include "../statesub.h"
-
-void SCSI_HDD::decl_state()
+bool SCSI_HDD::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
-
-	for(int i = 0; i < 8; i++) {
-		DECL_STATE_ENTRY_STRING_MEMBER(&(image_path[i][0]), _MAX_PATH, i);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+	/*
+ 	for(int drv = 0; drv < 8; drv++) {
+ 		if(disk[drv] != NULL) {
+			if(!disk[drv]->process_state(state_fio, loading)) {
+ 				return false;
+ 			}
+ 		}
+ 	}
+	*/
+	state_fio->StateBuffer(image_path, sizeof(image_path), 1);
+//	state_fio->StateBuffer(sector_size, sizeof(sector_size), 1);
+	for(int i = 0; i < (sizeof(sector_size) / sizeof(int)); i++) {
+		state_fio->StateInt32(sector_size[i]);
 	}
-	DECL_STATE_ENTRY_1D_ARRAY(sector_size, sizeof(sector_size) / sizeof(int));  
-	leave_decl_state();
-
-	SCSI_DEV::decl_state();
+	return SCSI_DEV::process_state(state_fio, loading);
 }
 
-void SCSI_HDD::save_state(FILEIO* state_fio)
-{
-	uint32_t crc_value = 0xffffffff;
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio, &crc_value);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-/*
-	for(int i = 0; i < 8; i++) {
-		if(disk[i] != NULL) {
-			disk[i]->save_state(state_fio);
-		}
-	}
-*/
-//	SCSI_DEV::save_state(state_fio);
-}
-
-bool SCSI_HDD::load_state(FILEIO* state_fio)
-{
-	uint32_t crc_value = 0xffffffff;
-	bool stat = false;
-	bool mb = false;
-	if(state_entry != NULL) {
-	   mb = state_entry->load_state(state_fio, &crc_value);
-	}
-	if(!mb) return false;
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-/*
-	for(int i = 0; i < 8; i++) {
-		if(disk[i] != NULL) {
-			if(!disk[i]->load_state(state_fio)) {
-				return false;
-			}
-		}
-	}
-*/
-//	return SCSI_DEV::load_state(state_fio);
-	return true;
-}
-
+// SASI hard disk drive
 int SASI_HDD::get_command_length(int value)
 {
 	return SCSI_HDD::get_command_length(value);

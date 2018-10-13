@@ -121,67 +121,25 @@ void TMS3631::initialize_sound(int rate, int volume)
 
 #define STATE_VERSION	1
 
-#include "../statesub.h"
-
-void TMS3631::decl_state()
+bool TMS3631::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_UINT8(envelop1);
-	DECL_STATE_ENTRY_UINT8(envelop2);
-	DECL_STATE_ENTRY_UINT8(datareg);
-	DECL_STATE_ENTRY_UINT8(maskreg);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+	state_fio->StateUint8(envelop1);
+	state_fio->StateUint8(envelop2);
+	state_fio->StateUint8(datareg);
+	state_fio->StateUint8(maskreg);
+//	state_fio->StateBuffer(ch, sizeof(ch), 1);
 	for(int i = 0; i < 8; i++) {
-		DECL_STATE_ENTRY_UINT32_MEMBER((ch[i].freq), i);
-		DECL_STATE_ENTRY_UINT32_MEMBER((ch[i].count), i);
+		state_fio->StateUint32(ch[i].freq);
+		state_fio->StateUint32(ch[i].count);
 	}
 
-	DECL_STATE_ENTRY_UINT8(channel);
-	DECL_STATE_ENTRY_BOOL(set_key);
-
-	leave_decl_state();
+	state_fio->StateUint8(channel);
+	state_fio->StateBool(set_key);
+ 	return true;
 }
-
-void TMS3631::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-	
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->FputUint8(envelop1);
-//	state_fio->FputUint8(envelop2);
-//	state_fio->FputUint8(datareg);
-//	state_fio->FputUint8(maskreg);
-//	state_fio->Fwrite(ch, sizeof(ch), 1);
-//	state_fio->FputUint8(channel);
-//	state_fio->FputBool(set_key);
-}
-
-bool TMS3631::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	envelop1 = state_fio->FgetUint8();
-//	envelop2 = state_fio->FgetUint8();
-//	datareg = state_fio->FgetUint8();
-//	maskreg = state_fio->FgetUint8();
-//	state_fio->Fread(ch, sizeof(ch), 1);
-//	channel = state_fio->FgetUint8();
-//	set_key = state_fio->FgetBool();
-	//touch_sound();
-	return true;
-}
-

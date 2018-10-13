@@ -115,68 +115,28 @@ void PCM1BIT::initialize_sound(int rate, int volume)
 
 #define STATE_VERSION	3
 
-#include "../statesub.h"
-
-void PCM1BIT::decl_state()
+bool PCM1BIT::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
-	
-	DECL_STATE_ENTRY_BOOL(signal);
-	DECL_STATE_ENTRY_BOOL(on);
-	DECL_STATE_ENTRY_BOOL(mute);
-	DECL_STATE_ENTRY_BOOL(realtime);
-	DECL_STATE_ENTRY_INT32(changed);
-	DECL_STATE_ENTRY_UINT32(prev_clock);
-	DECL_STATE_ENTRY_INT32(positive_clocks);
-	DECL_STATE_ENTRY_INT32(negative_clocks);
-
-	leave_decl_state();
-}
-
-void PCM1BIT::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+	state_fio->StateBool(signal);
+	state_fio->StateBool(on);
+	state_fio->StateBool(mute);
+	state_fio->StateBool(realtime);
+	state_fio->StateInt32(changed);
+	state_fio->StateUint32(prev_clock);
+	state_fio->StateInt32(positive_clocks);
+	state_fio->StateInt32(negative_clocks);
+ 	
+ 	// post process
+	if(loading) {
+		last_vol_l = last_vol_r = 0;
+		set_realtime_render(this, on & !mute);
+		//touch_sound();
 	}
-	//state_fio->FputUint32(STATE_VERSION);
-	//state_fio->FputInt32(this_device_id);
-	
-	//state_fio->FputBool(signal);
-	//state_fio->FputBool(on);
-	//state_fio->FputBool(mute);
-	//state_fio->FputBool(realtime);
-	//state_fio->FputInt32(changed);
-	//state_fio->FputUint32(prev_clock);
-	//state_fio->FputInt32(positive_clocks);
-	//state_fio->FputInt32(negative_clocks);
+ 	return true;
 }
-
-bool PCM1BIT::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-	//if(state_fio->FgetUint32() != STATE_VERSION) {
-	//	return false;
-	//}
-	//if(state_fio->FgetInt32() != this_device_id) {
-	//	return false;
-	//}
-	//signal = state_fio->FgetBool();
-	//on = state_fio->FgetBool();
-	//mute = state_fio->FgetBool();
-	//realtime = state_fio->FgetBool();
-	//changed = state_fio->FgetInt32();
-	//prev_clock = state_fio->FgetUint32();
-	//positive_clocks = state_fio->FgetInt32();
-	//negative_clocks = state_fio->FgetInt32();
-	
-	// post process
-	last_vol_l = last_vol_r = 0;
-	//touch_sound();
-	set_realtime_render(this, on & !mute);
-	return true;
-}
-

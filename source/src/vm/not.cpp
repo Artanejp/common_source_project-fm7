@@ -21,47 +21,15 @@ void NOT::write_signal(int id, uint32_t data, uint32_t mask)
 
 #define STATE_VERSION	1
 
-#include "../statesub.h"
-
-void NOT::decl_state()
+bool NOT::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
-	
-	DECL_STATE_ENTRY_BOOL(prev);
-	DECL_STATE_ENTRY_BOOL(first);
-
-	leave_decl_state();
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+	state_fio->StateBool(prev);
+	state_fio->StateBool(first);
+ 	return true;
 }
-	
-void NOT::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-	
-	//state_fio->FputUint32(STATE_VERSION);
-	//state_fio->FputInt32(this_device_id);
-	
-	//state_fio->FputBool(prev);
-	//state_fio->FputBool(first);
-}
-
-bool NOT::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-	
-	//if(state_fio->FgetUint32() != STATE_VERSION) {
-	//	return false;
-	//}
-	//if(state_fio->FgetInt32() != this_device_id) {
-	//	return false;
-	//}
-	//prev = state_fio->FgetBool();
-	//first = state_fio->FgetBool();
-	return true;
-}
-

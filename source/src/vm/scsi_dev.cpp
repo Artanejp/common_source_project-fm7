@@ -831,104 +831,38 @@ bool SCSI_DEV::write_buffer(int length)
 	return true;
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	2
 
-#include "../statesub.h"
-
-void SCSI_DEV::decl_state()
+bool SCSI_DEV::process_state(FILEIO* state_fio, bool loading)
 {
-	// ToDo: Add Fix Value.
-//	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_UINT32(data_bus);
-	DECL_STATE_ENTRY_BOOL(sel_status);
-	DECL_STATE_ENTRY_BOOL(atn_status);
-	DECL_STATE_ENTRY_BOOL(ack_status);
-	DECL_STATE_ENTRY_BOOL(rst_status);
-	DECL_STATE_ENTRY_BOOL(selected);
-	DECL_STATE_ENTRY_BOOL(atn_pending);
-	DECL_STATE_ENTRY_INT32(phase);
-	DECL_STATE_ENTRY_INT32(next_phase);
-	DECL_STATE_ENTRY_INT32(next_req);
-	DECL_STATE_ENTRY_INT32(event_sel);
-	DECL_STATE_ENTRY_INT32(event_phase);
-	DECL_STATE_ENTRY_INT32(event_req);
-	DECL_STATE_ENTRY_UINT32(first_req_clock);
-	DECL_STATE_ENTRY_DOUBLE(next_req_usec);
-	DECL_STATE_ENTRY_1D_ARRAY(command, sizeof(command));
-	DECL_STATE_ENTRY_INT32(command_index);
-	DECL_STATE_ENTRY_FIFO(buffer);
-	DECL_STATE_ENTRY_UINT64(position);
-	DECL_STATE_ENTRY_UINT64(remain);
-	DECL_STATE_ENTRY_UINT8(sense_code);
-
-//	leave_decl_state();
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+	state_fio->StateUint32(data_bus);
+	state_fio->StateBool(sel_status);
+	state_fio->StateBool(atn_status);
+	state_fio->StateBool(ack_status);
+	state_fio->StateBool(rst_status);
+	state_fio->StateBool(selected);
+	state_fio->StateBool(atn_pending);
+	state_fio->StateInt32(phase);
+	state_fio->StateInt32(next_phase);
+	state_fio->StateInt32(next_req);
+	state_fio->StateInt32(event_sel);
+	state_fio->StateInt32(event_phase);
+	state_fio->StateInt32(event_req);
+	state_fio->StateUint32(first_req_clock);
+	state_fio->StateDouble(next_req_usec);
+	state_fio->StateBuffer(command, sizeof(command), 1);
+	state_fio->StateInt32(command_index);
+	if(!buffer->process_state((void *)state_fio, loading)) {
+ 		return false;
+ 	}
+	state_fio->StateUint64(position);
+	state_fio->StateUint64(remain);
+	state_fio->StateUint8(sense_code);
+ 	return true;
 }
-void SCSI_DEV::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-//	
-//	state_fio->FputUint32(data_bus);
-//	state_fio->FputBool(sel_status);
-//	state_fio->FputBool(atn_status);
-//	state_fio->FputBool(ack_status);
-//	state_fio->FputBool(rst_status);
-//	state_fio->FputBool(selected);
-//	state_fio->FputBool(atn_pending);
-//	state_fio->FputInt32(phase);
-//	state_fio->FputInt32(next_phase);
-//	state_fio->FputInt32(next_req);
-//	state_fio->FputInt32(event_sel);
-//	state_fio->FputInt32(event_phase);
-//	state_fio->FputInt32(event_req);
-//	state_fio->FputUint32(first_req_clock);
-//	state_fio->FputDouble(next_req_usec);
-//	state_fio->Fwrite(command, sizeof(command), 1);
-//	state_fio->FputInt32(command_index);
-//	buffer->save_state((void *)state_fio);
-//	state_fio->FputUint64(position);
-//	state_fio->FputUint64(remain);
-}
-
-bool SCSI_DEV::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	data_bus = state_fio->FgetUint32();
-//	sel_status = state_fio->FgetBool();
-//	atn_status = state_fio->FgetBool();
-//	ack_status = state_fio->FgetBool();
-//	rst_status = state_fio->FgetBool();
-//	selected = state_fio->FgetBool();
-//	atn_pending = state_fio->FgetBool();
-//	phase = state_fio->FgetInt32();
-//	next_phase = state_fio->FgetInt32();
-//	next_req = state_fio->FgetInt32();
-//	event_sel = state_fio->FgetInt32();
-//	event_phase = state_fio->FgetInt32();
-//	event_req = state_fio->FgetInt32();
-//	first_req_clock = state_fio->FgetUint32();
-//	next_req_usec = state_fio->FgetDouble();
-//	state_fio->Fread(command, sizeof(command), 1);
-//	command_index = state_fio->FgetInt32();
-//	if(!buffer->load_state((void *)state_fio)) {
-//		return false;
-//	}
-//	position = state_fio->FgetUint64();
-//	remain = state_fio->FgetUint64();
-	return true;
-}
-

@@ -3762,163 +3762,79 @@ void MZ1P17::finish_paper()
 
 #define STATE_VERSION	3
 
-#include "../statesub.h"
-
-void MZ1P17::decl_state()
+bool MZ1P17::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
-	
-	DECL_STATE_ENTRY_INT32(value);
-	DECL_STATE_ENTRY_INT32(busy_id);
-	DECL_STATE_ENTRY_INT32(ack_id);
-	DECL_STATE_ENTRY_BOOL(strobe);
-	DECL_STATE_ENTRY_BOOL(res);
-	DECL_STATE_ENTRY_BOOL(busy);
-	DECL_STATE_ENTRY_BOOL(ack);
-	
-	DECL_STATE_ENTRY_4D_ARRAY(gaiji, 3, 94, 48, 48);
-	DECL_STATE_ENTRY_1D_ARRAY(htab, sizeof(htab));
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+	state_fio->StateInt32(value);
+	state_fio->StateInt32(busy_id);
+	state_fio->StateInt32(ack_id);
+	state_fio->StateBool(strobe);
+	state_fio->StateBool(res);
+	state_fio->StateBool(busy);
+	state_fio->StateBool(ack);
+//	state_fio->StateBuffer(gaiji, sizeof(gaiji), 1);
+//	state_fio->StateBuffer(htab, sizeof(htab), 1);
+//	state_fio->StateBuffer(vtab, sizeof(vtab), 1);
+	for(int i = 0; i < 3; i++) {
+		for(int j = 0; j < 94; j++) {
+			for(int k = 0; k < 48; k++) {
+				for(int l = 0; l < 48; l++) {
+					state_fio->StateBool(gaiji[i][j][k][l]);
+				}
+			}
+		}
+	}
+	for(int i = 0; i < (sizeof(htab) / sizeof(bool)) ; i++) {
+		state_fio->StateBool(htab[i]);
+	}
 	for(int i = 0; i < 14; i++) {
-		DECL_STATE_ENTRY_INT32_MEMBER((vtab[i].y), i);
-		DECL_STATE_ENTRY_BOOL_MEMBER((vtab[i].active), i);
-	}		
-	DECL_STATE_ENTRY_FIFO(fifo);
-	
-	DECL_STATE_ENTRY_INT32(lf_pitch);
-	DECL_STATE_ENTRY_BOOL(prev_esc_6);
-	DECL_STATE_ENTRY_INT32(margin_left);
-	DECL_STATE_ENTRY_INT32(margin_right);
-	DECL_STATE_ENTRY_INT32(pitch_mode);
-	DECL_STATE_ENTRY_INT32(script_mode);
-	DECL_STATE_ENTRY_BOOL(kanji_mode);
-	DECL_STATE_ENTRY_BOOL(kanji_half);
-	DECL_STATE_ENTRY_BOOL(bold);
-	DECL_STATE_ENTRY_BOOL(underline);
-	DECL_STATE_ENTRY_BOOL(hiragana_mode);
-	DECL_STATE_ENTRY_BOOL(reverse);
-	DECL_STATE_ENTRY_BOOL(vertical);
-	DECL_STATE_ENTRY_BOOL(ank_double_x);
-	DECL_STATE_ENTRY_BOOL(ank_double_y);
-	DECL_STATE_ENTRY_BOOL(kanji_double_x);
-	DECL_STATE_ENTRY_BOOL(kanji_double_y);
-	DECL_STATE_ENTRY_INT32(kanji_pitch);
-	DECL_STATE_ENTRY_INT32(kanji_half_pitch);
-	DECL_STATE_ENTRY_INT32(dest_line_x);
-	DECL_STATE_ENTRY_INT32(dest_paper_y);
-	DECL_STATE_ENTRY_INT32(color_mode);
-	DECL_STATE_ENTRY_BOOL(double_y_printed);
-
-	leave_decl_state();
-}
-
-void MZ1P17::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
+		state_fio->StateInt32(vtab[i].y);
+		state_fio->StateBool(vtab[i].active);
 	}
-
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
 	
-//	state_fio->FputInt32(value);
-//	state_fio->FputInt32(busy_id);
-//	state_fio->FputInt32(ack_id);
-//	state_fio->FputBool(strobe);
-//	state_fio->FputBool(res);
-//	state_fio->FputBool(busy);
-//	state_fio->FputBool(ack);
-//	state_fio->Fwrite(gaiji, sizeof(gaiji), 1);
-//	state_fio->Fwrite(htab, sizeof(htab), 1);
-//	state_fio->Fwrite(vtab, sizeof(vtab), 1);
-	
-//	fifo->save_state((void *)state_fio);
-//	state_fio->FputInt32(lf_pitch);
-//	state_fio->FputBool(prev_esc_6);
-//	state_fio->FputInt32(margin_left);
-//	state_fio->FputInt32(margin_right);
-//	state_fio->FputInt32(pitch_mode);
-//	state_fio->FputInt32(script_mode);
-//	state_fio->FputBool(kanji_mode);
-//	state_fio->FputBool(kanji_half);
-//	state_fio->FputBool(bold);
-//	state_fio->FputBool(underline);
-//	state_fio->FputBool(hiragana_mode);
-//	state_fio->FputBool(reverse);
-//	state_fio->FputBool(vertical);
-//	state_fio->FputBool(ank_double_x);
-//	state_fio->FputBool(ank_double_y);
-//	state_fio->FputBool(kanji_double_x);
-//	state_fio->FputBool(kanji_double_y);
-//	state_fio->FputInt32(kanji_pitch);
-//	state_fio->FputInt32(kanji_half_pitch);
-//	state_fio->FputInt32(dest_line_x);
-//	state_fio->FputInt32(dest_paper_y);
-//	state_fio->FputInt32(color_mode);
-//	state_fio->FputBool(double_y_printed);
-}
-
-bool MZ1P17::load_state(FILEIO* state_fio)
-{
-	finish();
-	
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
+	if(!fifo->process_state((void *)state_fio, loading)) {
+ 		return false;
+ 	}
+	state_fio->StateInt32(lf_pitch);
+	state_fio->StateBool(prev_esc_6);
+	state_fio->StateInt32(margin_left);
+	state_fio->StateInt32(margin_right);
+	state_fio->StateInt32(pitch_mode);
+	state_fio->StateInt32(script_mode);
+	state_fio->StateBool(kanji_mode);
+	state_fio->StateBool(kanji_half);
+	state_fio->StateBool(bold);
+	state_fio->StateBool(underline);
+	state_fio->StateBool(hiragana_mode);
+	state_fio->StateBool(reverse);
+	state_fio->StateBool(vertical);
+	state_fio->StateBool(ank_double_x);
+	state_fio->StateBool(ank_double_y);
+	state_fio->StateBool(kanji_double_x);
+	state_fio->StateBool(kanji_double_y);
+	state_fio->StateInt32(kanji_pitch);
+	state_fio->StateInt32(kanji_half_pitch);
+	state_fio->StateInt32(dest_line_x);
+	state_fio->StateInt32(dest_paper_y);
+	state_fio->StateInt32(color_mode);
+	state_fio->StateBool(double_y_printed);
+ 	
+ 	// post process
+	if(loading) {
+		emu->clear_bitmap(&bitmap_paper, 255, 255, 255);
+		emu->clear_bitmap(&bitmap_line[0], 0, 0, 0);
+		emu->clear_bitmap(&bitmap_line[1], 0, 0, 0);
+		emu->clear_bitmap(&bitmap_line[2], 0, 0, 0);
+		emu->clear_bitmap(&bitmap_line[3], 0, 0, 0);
+		wait_frames = -1;
+		line_printed = paper_printed = false;
+		paper_index = written_length = 0;
 	}
-	if(!mb) return false;
-
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	value = state_fio->FgetInt32();
-//	busy_id = state_fio->FgetInt32();
-//	ack_id = state_fio->FgetInt32();
-//	strobe = state_fio->FgetBool();
-//	res = state_fio->FgetBool();
-//	busy = state_fio->FgetBool();
-//	ack = state_fio->FgetBool();
-//	state_fio->Fread(gaiji, sizeof(gaiji), 1);
-//	state_fio->Fread(htab, sizeof(htab), 1);
-//	state_fio->Fread(vtab, sizeof(vtab), 1);
-//	if(!fifo->load_state((void *)state_fio)) {
-//		return false;
-//	}
-//	lf_pitch = state_fio->FgetInt32();
-//	prev_esc_6 = state_fio->FgetBool();
-//	margin_left = state_fio->FgetInt32();
-//	margin_right = state_fio->FgetInt32();
-//	pitch_mode = state_fio->FgetInt32();
-//	script_mode = state_fio->FgetInt32();
-//	kanji_mode = state_fio->FgetBool();
-//	kanji_half = state_fio->FgetBool();
-//	bold = state_fio->FgetBool();
-//	underline = state_fio->FgetBool();
-//	hiragana_mode = state_fio->FgetBool();
-//	reverse = state_fio->FgetBool();
-//	vertical = state_fio->FgetBool();
-//	ank_double_x = state_fio->FgetBool();
-//	ank_double_y = state_fio->FgetBool();
-//	kanji_double_x = state_fio->FgetBool();
-//	kanji_double_y = state_fio->FgetBool();
-//	kanji_pitch = state_fio->FgetInt32();
-//	kanji_half_pitch = state_fio->FgetInt32();
-//	dest_line_x = state_fio->FgetInt32();
-///	dest_paper_y = state_fio->FgetInt32();
-//	color_mode = state_fio->FgetInt32();
-//	double_y_printed = state_fio->FgetBool();
-	
-	// post process
-	emu->clear_bitmap(&bitmap_paper, 255, 255, 255);
-	emu->clear_bitmap(&bitmap_line[0], 0, 0, 0);
-	emu->clear_bitmap(&bitmap_line[1], 0, 0, 0);
-	emu->clear_bitmap(&bitmap_line[2], 0, 0, 0);
-	emu->clear_bitmap(&bitmap_line[3], 0, 0, 0);
-	wait_frames = -1;
-	line_printed = paper_printed = false;
-	paper_index = written_length = 0;
-	return true;
+ 	return true;
 }
 

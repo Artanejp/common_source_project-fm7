@@ -201,56 +201,19 @@ void NOISE::get_sample()
 
 #define STATE_VERSION	1
 
-#include "../statesub.h"
-
-void NOISE::decl_state()
+bool NOISE::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_INT32(register_id);
-	DECL_STATE_ENTRY_INT32(ptr);
-	DECL_STATE_ENTRY_INT32(sample_l);
-	DECL_STATE_ENTRY_INT32(sample_r);
-	DECL_STATE_ENTRY_BOOL(loop);
-	DECL_STATE_ENTRY_BOOL(mute);
-
-	leave_decl_state();
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+	state_fio->StateInt32(register_id);
+	state_fio->StateInt32(ptr);
+	state_fio->StateInt32(sample_l);
+	state_fio->StateInt32(sample_r);
+	state_fio->StateBool(loop);
+	state_fio->StateBool(mute);
+ 	return true;
 }
-void NOISE::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-	//state_fio->FputUint32(STATE_VERSION);
-	//state_fio->FputInt32(this_device_id);
-	
-	//state_fio->FputInt32(register_id);
-	//state_fio->FputInt32(ptr);
-	//state_fio->FputInt32(sample_l);
-	//state_fio->FputInt32(sample_r);
-	//state_fio->FputBool(loop);
-	//state_fio->FputBool(mute);
-}
-
-bool NOISE::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-	//if(state_fio->FgetUint32() != STATE_VERSION) {
-	//	return false;
-	//}
-	//if(state_fio->FgetInt32() != this_device_id) {
-	//	return false;
-	//}
-	//register_id = state_fio->FgetInt32();
-	//ptr = state_fio->FgetInt32();
-	//sample_l = state_fio->FgetInt32();
-	//sample_r = state_fio->FgetInt32();
-	//loop = state_fio->FgetBool();
-	//mute = state_fio->FgetBool();
-	return true;
-}
-
