@@ -1,3 +1,17 @@
+10/5/2018
+
+[COMMON] combine load_state and save_statet of cur_time_t to process_state
+[COMMON/FIFO] combine load_state and save_statet to process_state
+[COMMON/FILEIO] add functions to load/save state file
+
+[VM/*] combine load_state and save_statet to process_state
+[VM/I386] fix to load/save vtlb state
+[VM/I386] fix to rebuild tables when load state
+
+[JX] support save/load state
+[FM77AV] import Mr.Artane.'s fixes (Release in September 30, 2018)
+
+
 9/30/2018
 
 [COMMON/FILEIO] improve Fseek for compressed file by gzip
