@@ -279,8 +279,8 @@ typedef union {
 		int8_t l, h;
 #endif
 	} sb;
-	uint16_t w;
-	int16_t sw;
+	uint16_t u16;
+	int16_t s16;
 
 	inline void read_2bytes_le_from(uint8_t *t)
 	{
@@ -384,6 +384,7 @@ typedef union {
 	} p16;
 	uint32_t d;
 	int32_t sd;
+	float f;
 	inline void read_2bytes_le_from(uint8_t *t)
 	{
 		b.l = t[0]; b.h = t[1]; b.h2 = b.h3 = 0;
@@ -568,9 +569,9 @@ typedef union {
 		pair_t l, h;
 #endif
 	} p32;
-	uint64_t q;
-	int64_t sq;
-	
+	uint64_t u64;
+	int64_t s64;
+	double d64;
 	inline void read_2bytes_le_from(uint8_t *t)
 	{
 		b.l = t[0]; b.h = t[1]; b.h2 = b.h3 = 0;
@@ -992,7 +993,7 @@ uint16_t DLL_PREFIX EndianFromBig_WORD(uint16_t x);
 inline uint64_t ExchangeEndianU64(uint64_t __in)
 {
 	pair64_t __i, __o;
-	__i.q = __in;
+	__i.u64 = __in;
 	__o.b.h7  = __i.b.l;
 	__o.b.h6  = __i.b.h;
 	__o.b.h5  = __i.b.h2;
@@ -1001,13 +1002,13 @@ inline uint64_t ExchangeEndianU64(uint64_t __in)
 	__o.b.h2  = __i.b.h5;
 	__o.b.h   = __i.b.h6;
 	__o.b.l   = __i.b.h7;
-	return __o.q;
+	return __o.u64;
 }
 
 inline int64_t ExchangeEndianS64(uint64_t __in)
 {
 	pair64_t __i, __o;
-	__i.q = __in;
+	__i.u64 = __in;
 	__o.b.h7  = __i.b.l;
 	__o.b.h6  = __i.b.h;
 	__o.b.h5  = __i.b.h2;
@@ -1016,7 +1017,7 @@ inline int64_t ExchangeEndianS64(uint64_t __in)
 	__o.b.h2  = __i.b.h5;
 	__o.b.h   = __i.b.h6;
 	__o.b.l   = __i.b.h7;
-	return __o.sq;
+	return __o.s64;
 }
 inline uint32_t ExchangeEndianU32(uint32_t __in)
 {
@@ -1043,19 +1044,19 @@ inline int32_t ExchangeEndianS32(uint32_t __in)
 inline uint16_t ExchangeEndianU16(uint16_t __in)
 {
 	pair16_t __i, __o;
-	__i.w = __in;
+	__i.u16 = __in;
 	__o.b.h = __i.b.l;
 	__o.b.l  = __i.b.h;
-	return __o.w;
+	return __o.u16;
 }
 
 inline int16_t ExchangeEndianS16(uint16_t __in)
 {
 	pair16_t __i, __o;
-	__i.w = __in;
+	__i.u16 = __in;
 	__o.b.h = __i.b.l;
 	__o.b.l = __i.b.h;
-	return __o.sw;
+	return __o.s16;
 }
 
 // wav file header

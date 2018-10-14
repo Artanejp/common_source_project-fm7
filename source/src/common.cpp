@@ -1574,12 +1574,12 @@ bool DLL_PREFIX set_wav_header(wav_header_t *header, wav_chunk_t *first_chunk, u
 
 	__riff_chunk_size.d = length - 8;
 	__fmt_chunk_size.d = 16;
-	__fmt_id.w = 1;
-	__channels.w = channels;
+	__fmt_id.u16 = 1;
+	__channels.u16 = channels;
 	__sample_rate.d = rate;
-	__block_size.w = (uint16_t)((channels * bits) / 8);
-	__sample_bits.w = bits;
-	__data_speed.d = rate * (uint32_t)(__block_size.w);
+	__block_size.u16 = (uint16_t)((channels * bits) / 8);
+	__sample_bits.u16 = bits;
+	__data_speed.d = rate * (uint32_t)(__block_size.u16);
 
 	memcpy(&(header->riff_chunk.id), "RIFF", 4);
 	header->riff_chunk.size = __riff_chunk_size.get_4bytes_le_to();
@@ -1636,7 +1636,7 @@ bool DLL_PREFIX load_wav_to_stereo(void *__fio, int16_t **left_buf, int16_t **ri
 	__channels.set_2bytes_le_from(header.channels);
 	__sample_rate.set_4bytes_le_from(header.sample_rate);
 
-	if((__fmt_id.w == 1) && ((__sample_bits.w == 8) || (__sample_bits.w == 16) || (__sample_bits.w == 32))) {
+	if((__fmt_id.u16 == 1) && ((__sample_bits.u16 == 8) || (__sample_bits.u16 == 16) || (__sample_bits.u16 == 32))) {
 		fio->Fseek(__chunk_size.d - 16, FILEIO_SEEK_CUR);
 		bool is_eof = false;
 		while(1) {
@@ -1657,7 +1657,7 @@ bool DLL_PREFIX load_wav_to_stereo(void *__fio, int16_t **left_buf, int16_t **ri
 			return false;
 		}
 		
-		samples = (size_t)(__chunk_size.d / __channels.w);
+		samples = (size_t)(__chunk_size.d / __channels.u16);
 		int16_t data_l, data_r;
 		union {
 			int16_t s16;
@@ -1673,9 +1673,9 @@ bool DLL_PREFIX load_wav_to_stereo(void *__fio, int16_t **left_buf, int16_t **ri
 		} pair32;
 		
 		if(samples > 0) {
-			if(__sample_bits.w == 16) {
+			if(__sample_bits.u16 == 16) {
 				samples /= 2;
-			} else if(__sample_bits.w == 32) {
+			} else if(__sample_bits.u16 == 32) {
 				samples /= 4;
 			}
 			if(samples == 0) return false;
@@ -1691,16 +1691,16 @@ bool DLL_PREFIX load_wav_to_stereo(void *__fio, int16_t **left_buf, int16_t **ri
 				if(left_buffer != NULL) free(left_buffer);
 				return false;
 			}
-			switch(__sample_bits.w) {
+			switch(__sample_bits.u16) {
 			case 8:
-				if(__channels.sw == 1) {
+				if(__channels.s16 == 1) {
 					for(int i = 0; i < samples; i++) {
 						data_l = (int16_t)(fio->FgetUint8());
 						data_l = (data_l - 128) * 256;
 						left_buffer[i] = data_l;
 						right_buffer[i] = data_l;
 					}
-				} else if(__channels.sw == 2) {
+				} else if(__channels.s16 == 2) {
 					for(int i = 0; i < samples; i++) {
 						data_l = (int16_t)(fio->FgetUint8());
 						data_l = (data_l - 128) * 256;
@@ -1712,7 +1712,7 @@ bool DLL_PREFIX load_wav_to_stereo(void *__fio, int16_t **left_buf, int16_t **ri
 				}
 				break;
 			case 16:
-				if(__channels.sw == 1) {
+				if(__channels.s16 == 1) {
 					for(int i = 0; i < samples; i++) {
 						pair16.b.l = fio->FgetUint8();
 						pair16.b.h = fio->FgetUint8();
@@ -1721,7 +1721,7 @@ bool DLL_PREFIX load_wav_to_stereo(void *__fio, int16_t **left_buf, int16_t **ri
 						left_buffer[i] = data_l;
 						right_buffer[i] = data_l;
 					}
-				} else if(__channels.sw == 2) {
+				} else if(__channels.s16 == 2) {
 					for(int i = 0; i < samples; i++) {
 						pair16.b.l = fio->FgetUint8();
 						pair16.b.h = fio->FgetUint8();
@@ -1736,7 +1736,7 @@ bool DLL_PREFIX load_wav_to_stereo(void *__fio, int16_t **left_buf, int16_t **ri
 				}
 				break;
 			case 32:
-				if(__channels.sw == 1) {
+				if(__channels.s16 == 1) {
 					for(int i = 0; i < samples; i++) {
 						pair32.b.l = fio->FgetUint8();
 						pair32.b.h = fio->FgetUint8();
@@ -1747,7 +1747,7 @@ bool DLL_PREFIX load_wav_to_stereo(void *__fio, int16_t **left_buf, int16_t **ri
 						left_buffer[i] = data_l;
 						right_buffer[i] = data_l;
 					}
-				} else if(__channels.sw == 2) {
+				} else if(__channels.s16 == 2) {
 					for(int i = 0; i < samples; i++) {
 						pair32.b.l = fio->FgetUint8();
 						pair32.b.h = fio->FgetUint8();
@@ -1813,7 +1813,7 @@ bool DLL_PREFIX load_wav_to_monoral(void *__fio, int16_t **buffer, uint32_t *rat
 	__channels.set_2bytes_le_from(header.channels);
 	__sample_rate.set_4bytes_le_from(header.sample_rate);
 
-	if((__fmt_id.w == 1) && ((__sample_bits.w == 8) || (__sample_bits.w == 16) || (__sample_bits.w == 32))) {
+	if((__fmt_id.u16 == 1) && ((__sample_bits.u16 == 8) || (__sample_bits.u16 == 16) || (__sample_bits.u16 == 32))) {
 		fio->Fseek(__chunk_size.d - 16, FILEIO_SEEK_CUR);
 		bool is_eof = false;
 		while(1) {
@@ -1834,7 +1834,7 @@ bool DLL_PREFIX load_wav_to_monoral(void *__fio, int16_t **buffer, uint32_t *rat
 			return false;
 		}
 		
-		samples = (size_t)(__chunk_size.d / __channels.w);
+		samples = (size_t)(__chunk_size.d / __channels.u16);
 		int16_t data_l, data_r;
 		int32_t data32_l, data32_r;
 		union {
@@ -1851,9 +1851,9 @@ bool DLL_PREFIX load_wav_to_monoral(void *__fio, int16_t **buffer, uint32_t *rat
 		} pair32;
 		
 		if(samples > 0) {
-			if(__sample_bits.w == 16) {
+			if(__sample_bits.u16 == 16) {
 				samples /= 2;
-			} else if(__sample_bits.w == 32) {
+			} else if(__sample_bits.u16 == 32) {
 				samples /= 4;
 			}
 			if(samples == 0) return false;
@@ -1863,15 +1863,15 @@ bool DLL_PREFIX load_wav_to_monoral(void *__fio, int16_t **buffer, uint32_t *rat
 			if(left_buffer == NULL) {
 				return false;
 			}
-			switch(__sample_bits.w) {
+			switch(__sample_bits.u16) {
 			case 8:
-				if(__channels.sw == 1) {
+				if(__channels.s16 == 1) {
 					for(int i = 0; i < samples; i++) {
 						data_l = (int16_t)(fio->FgetUint8());
 						data_l = (data_l - 128) * 256;
 						left_buffer[i] = data_l;
 					}
-				} else if(__channels.sw == 2) {
+				} else if(__channels.s16 == 2) {
 					for(int i = 0; i < samples; i++) {
 						data_l = (int16_t)(fio->FgetUint8());
 						data_l = (data_l - 128) * 256;
@@ -1882,7 +1882,7 @@ bool DLL_PREFIX load_wav_to_monoral(void *__fio, int16_t **buffer, uint32_t *rat
 				}
 				break;
 			case 16:
-				if(__channels.sw == 1) {
+				if(__channels.s16 == 1) {
 					for(int i = 0; i < samples; i++) {
 						pair16.b.l = fio->FgetUint8();
 						pair16.b.h = fio->FgetUint8();
@@ -1890,7 +1890,7 @@ bool DLL_PREFIX load_wav_to_monoral(void *__fio, int16_t **buffer, uint32_t *rat
 						
 						left_buffer[i] = data_l;
 					}
-				} else if(__channels.sw == 2) {
+				} else if(__channels.s16 == 2) {
 					for(int i = 0; i < samples; i++) {
 						pair16.b.l = fio->FgetUint8();
 						pair16.b.h = fio->FgetUint8();
@@ -1904,7 +1904,7 @@ bool DLL_PREFIX load_wav_to_monoral(void *__fio, int16_t **buffer, uint32_t *rat
 				}
 				break;
 			case 32:
-				if(__channels.sw == 1) {
+				if(__channels.s16 == 1) {
 					for(int i = 0; i < samples; i++) {
 						pair32.b.l = fio->FgetUint8();
 						pair32.b.h = fio->FgetUint8();
@@ -1914,7 +1914,7 @@ bool DLL_PREFIX load_wav_to_monoral(void *__fio, int16_t **buffer, uint32_t *rat
 						
 						left_buffer[i] = data_l;
 					}
-				} else if(__channels.sw == 2) {
+				} else if(__channels.s16 == 2) {
 					for(int i = 0; i < samples; i++) {
 						pair32.b.l = fio->FgetUint8();
 						pair32.b.h = fio->FgetUint8();

@@ -397,6 +397,7 @@ void FILEIO::FputDouble(double val)
 	PUT_VALUE(double, val);
 }
 
+#if 0
 typedef union {
 	struct {
 #ifdef __BIG_ENDIAN__
@@ -408,6 +409,7 @@ typedef union {
 	uint16_t u16;
 	int16_t s16;
 } pair16_t;
+#endif
 
 typedef union {
 	struct {
@@ -422,6 +424,7 @@ typedef union {
 	float f32;
 } pair32_t;
 
+#if 0
 typedef union {
 	struct {
 #ifdef __BIG_ENDIAN__
@@ -434,6 +437,7 @@ typedef union {
 	int64_t s64;
 	double d64;
 } pair64_t;
+#endif
 
 uint16_t FILEIO::FgetUint16_LE()
 {
