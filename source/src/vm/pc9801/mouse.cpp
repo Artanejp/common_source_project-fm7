@@ -127,37 +127,22 @@ void MOUSE::update_mouse()
 
 #define STATE_VERSION	2
 
-void MOUSE::save_state(FILEIO* state_fio)
+bool MOUSE::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->FputInt32(ctrlreg);
-	state_fio->FputInt32(freq);
-	state_fio->FputInt32(cur_freq);
-	state_fio->FputInt32(dx);
-	state_fio->FputInt32(dy);
-	state_fio->FputInt32(lx);
-	state_fio->FputInt32(ly);
-	state_fio->FputInt32(register_id);
-}
-
-bool MOUSE::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
+	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	ctrlreg = state_fio->FgetInt32();
-	freq = state_fio->FgetInt32();
-	cur_freq = state_fio->FgetInt32();
-	dx = state_fio->FgetInt32();
-	dy = state_fio->FgetInt32();
-	lx = state_fio->FgetInt32();
-	ly = state_fio->FgetInt32();
-	register_id = state_fio->FgetInt32();
+	state_fio->StateInt32(ctrlreg);
+	state_fio->StateInt32(freq);
+	state_fio->StateInt32(cur_freq);
+	state_fio->StateInt32(dx);
+	state_fio->StateInt32(dy);
+	state_fio->StateInt32(lx);
+	state_fio->StateInt32(ly);
+	state_fio->StateInt32(register_id);
 	return true;
 }
 

@@ -2576,252 +2576,142 @@ void DISPLAY::draw_gfx_screen()
 
 #define STATE_VERSION	3
 
-#include "../statesub.h"
-
-#define DECL_STATE_ENTRY_EGCWORD_T(foo) { \
-		DECL_STATE_ENTRY_UINT16((foo.w));		\
-	}
-
-#define DECL_STATE_ENTRY_EGCQUAD_T(foo) { \
-		DECL_STATE_ENTRY_UINT64((foo.q));		\
-	}
-
-
-void DISPLAY::decl_state()
+bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
-	
-	DECL_STATE_ENTRY_1D_ARRAY(tvram, sizeof(tvram));
-	DECL_STATE_ENTRY_1D_ARRAY(vram, sizeof(vram));
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+	state_fio->StateBuffer(tvram, sizeof(tvram), 1);
+	state_fio->StateBuffer(vram, sizeof(vram), 1);
 #if defined(SUPPORT_2ND_VRAM) && !defined(SUPPORT_HIRESO)
-	DECL_STATE_ENTRY_UINT8(vram_disp_sel);
-	DECL_STATE_ENTRY_UINT8(vram_draw_sel);
+	state_fio->StateUint8(vram_disp_sel);
+	state_fio->StateUint8(vram_draw_sel);
 #endif
-	DECL_STATE_ENTRY_1D_ARRAY(palette_gfx8, sizeof(palette_gfx8) / sizeof(scrntype_t)); // ToDo
-	DECL_STATE_ENTRY_1D_ARRAY(digipal, sizeof(digipal));
+	//state_fio->StateBuffer(palette_gfx8, sizeof(palette_gfx8), 1);
+	if(loading) {
+		for(int i = 0; i < (sizeof(palette_gfx8) / sizeof(scrntype_t)); i++) {
+			uint8_t r, g, b;
+			r = state_fio->FgetUint8();
+			g = state_fio->FgetUint8();
+			b = state_fio->FgetUint8();
+			palette_gfx8[i] = RGB_COLOR(r, g, b);
+		}
+	} else {
+		for(int i = 0; i < (sizeof(palette_gfx8) / sizeof(scrntype_t)); i++) {
+			uint8_t r, g, b;
+			r = R_OF_COLOR(palette_gfx8[i]);
+			g = G_OF_COLOR(palette_gfx8[i]);
+			b = B_OF_COLOR(palette_gfx8[i]);
+			state_fio->FputUint8(r);
+			state_fio->FputUint8(g);
+			state_fio->FputUint8(b);
+		}
+	}
+	state_fio->StateBuffer(digipal, sizeof(digipal), 1);
 #if defined(SUPPORT_16_COLORS)
-	DECL_STATE_ENTRY_1D_ARRAY(palette_gfx16, sizeof(palette_gfx16) / sizeof(scrntype_t));
-	DECL_STATE_ENTRY_2D_ARRAY(anapal, 16, 3);
-	DECL_STATE_ENTRY_UINT8(anapal_sel);
+	//state_fio->StateBuffer(palette_gfx16, sizeof(palette_gfx16), 1);	
+	if(loading) {
+		for(int i = 0; i < (sizeof(palette_gfx16) / sizeof(scrntype_t)); i++) {
+			uint8_t r, g, b;
+			r = state_fio->FgetUint8();
+			g = state_fio->FgetUint8();
+			b = state_fio->FgetUint8();
+			palette_gfx16[i] = RGB_COLOR(r, g, b);
+		}
+	} else {
+		for(int i = 0; i < (sizeof(palette_gfx16) / sizeof(scrntype_t)); i++) {
+			uint8_t r, g, b;
+			r = R_OF_COLOR(palette_gfx16[i]);
+			g = G_OF_COLOR(palette_gfx16[i]);
+			b = B_OF_COLOR(palette_gfx16[i]);
+			state_fio->FputUint8(r);
+			state_fio->FputUint8(g);
+			state_fio->FputUint8(b);
+		}
+	}
+	state_fio->StateBuffer(anapal, sizeof(anapal), 1);
+	state_fio->StateUint8(anapal_sel);
 #endif
-	DECL_STATE_ENTRY_UINT8(crtv);
-	DECL_STATE_ENTRY_1D_ARRAY(scroll, sizeof(scroll));
-	DECL_STATE_ENTRY_1D_ARRAY(modereg1, sizeof(modereg1));
+	state_fio->StateUint8(crtv);
+	state_fio->StateBuffer(scroll, sizeof(scroll), 1);
+	state_fio->StateBuffer(modereg1, sizeof(modereg1), 1);
 #if defined(SUPPORT_16_COLORS)
-	DECL_STATE_ENTRY_1D_ARRAY(modereg2, sizeof(modereg2));
+	state_fio->StateBuffer(modereg2, sizeof(modereg2), 1);
 #endif
 #if defined(SUPPORT_GRCG)
-	DECL_STATE_ENTRY_UINT8(grcg_mode);
-	DECL_STATE_ENTRY_UINT8(grcg_tile_ptr);
-	DECL_STATE_ENTRY_1D_ARRAY(grcg_tile, sizeof(grcg_tile));
+	state_fio->StateUint8(grcg_mode);
+	state_fio->StateUint8(grcg_tile_ptr);
+	state_fio->StateBuffer(grcg_tile, sizeof(grcg_tile), 1);
 #endif
 #if defined(SUPPORT_EGC)
-	DECL_STATE_ENTRY_UINT16(egc_access);
-	DECL_STATE_ENTRY_UINT16(egc_fgbg);
-	DECL_STATE_ENTRY_UINT16(egc_ope);
-	DECL_STATE_ENTRY_UINT16(egc_fg);
-	DECL_STATE_ENTRY_UINT16(egc_mask.w);
-	DECL_STATE_ENTRY_UINT16(egc_bg);
-	DECL_STATE_ENTRY_UINT16(egc_sft);
-	DECL_STATE_ENTRY_UINT16(egc_leng);
-	DECL_STATE_ENTRY_EGCQUAD_T(egc_lastvram);
-	DECL_STATE_ENTRY_EGCQUAD_T(egc_patreg);
-	DECL_STATE_ENTRY_EGCQUAD_T(egc_fgc);
-	DECL_STATE_ENTRY_EGCQUAD_T(egc_bgc);
-	DECL_STATE_ENTRY_INT32(egc_func);
-	DECL_STATE_ENTRY_UINT32(egc_remain);
-	DECL_STATE_ENTRY_UINT32(egc_stack);
-//	int inptr_ofs = egc_inptr - egc_buf;
-//	int outptr_ofs = egc_outptr - egc_buf;
-	DECL_STATE_ENTRY_INT32(tmp_inptr_ofs);
-	DECL_STATE_ENTRY_INT32(tmp_outptr_ofs);
-	
-	DECL_STATE_ENTRY_EGCWORD_T(egc_mask2);
-	DECL_STATE_ENTRY_EGCWORD_T(egc_srcmask);
-	
-	DECL_STATE_ENTRY_UINT8(egc_srcbit);
-	DECL_STATE_ENTRY_UINT8(egc_dstbit);
-	DECL_STATE_ENTRY_UINT8(egc_sft8bitl);
-	DECL_STATE_ENTRY_UINT8(egc_sft8bitr);
-	DECL_STATE_ENTRY_1D_ARRAY(egc_buf, sizeof(egc_buf));
-	DECL_STATE_ENTRY_EGCQUAD_T(egc_vram_src);
-	DECL_STATE_ENTRY_EGCQUAD_T(egc_vram_data);
-#endif
-	DECL_STATE_ENTRY_UINT16(font_code);
-	DECL_STATE_ENTRY_UINT8(font_line);
-////	DECL_STATE_ENTRY_UINT16(font_lr);
-	leave_decl_state();
-}
-
-void DISPLAY::save_state(FILEIO* state_fio)
-{
-#if defined(SUPPORT_EGC)
-	tmp_inptr_ofs = (int)(egc_inptr - egc_buf);
-	tmp_outptr_ofs = (int)(egc_outptr - egc_buf);
-#endif
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
+	state_fio->StateUint16(egc_access);
+	state_fio->StateUint16(egc_fgbg);
+	state_fio->StateUint16(egc_ope);
+	state_fio->StateUint16(egc_fg);
+	state_fio->StateUint16(egc_mask.w);
+	state_fio->StateUint16(egc_bg);
+	state_fio->StateUint16(egc_sft);
+	state_fio->StateUint16(egc_leng);
+	state_fio->StateUint64(egc_lastvram.q);
+	state_fio->StateUint64(egc_patreg.q);
+	state_fio->StateUint64(egc_fgc.q);
+	state_fio->StateUint64(egc_bgc.q);
+	state_fio->StateInt32(egc_func);
+	state_fio->StateUint32(egc_remain);
+	state_fio->StateUint32(egc_stack);
+	if(loading) {
+		int inptr_ofs = state_fio->FgetInt32_LE();
+		int outptr_ofs = state_fio->FgetInt32_LE();
+		egc_inptr = egc_buf + inptr_ofs;
+		egc_outptr = egc_buf + outptr_ofs;
+	} else {
+		int inptr_ofs = egc_inptr - egc_buf;
+		int outptr_ofs = egc_outptr - egc_buf;
+		state_fio->FputInt32_LE(inptr_ofs);
+		state_fio->FputInt32_LE(outptr_ofs);
 	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(tvram, sizeof(tvram), 1);
-//	state_fio->Fwrite(vram, sizeof(vram), 1);
-//#if defined(SUPPORT_2ND_VRAM) && !defined(SUPPORT_HIRESO)
-//	state_fio->FputUint8(vram_disp_sel);
-//	state_fio->FputUint8(vram_draw_sel);
-//#endif
-//	state_fio->Fwrite(palette_gfx8, sizeof(palette_gfx8), 1);
-//	state_fio->Fwrite(digipal, sizeof(digipal), 1);
-//#if defined(SUPPORT_16_COLORS)
-//	state_fio->Fwrite(palette_gfx16, sizeof(palette_gfx16), 1);
-//	state_fio->Fwrite(anapal, sizeof(anapal), 1);
-//	state_fio->FputUint8(anapal_sel);
-//#endif
-//	state_fio->FputUint8(crtv);
-//	state_fio->Fwrite(scroll, sizeof(scroll), 1);
-//	state_fio->Fwrite(modereg1, sizeof(modereg1), 1);
-//#if defined(SUPPORT_16_COLORS)
-//	state_fio->Fwrite(modereg2, sizeof(modereg2), 1);
-//#endif
-//#if defined(SUPPORT_GRCG)
-//	state_fio->FputUint8(grcg_mode);
-//	state_fio->FputUint8(grcg_tile_ptr);
-//	state_fio->Fwrite(grcg_tile, sizeof(grcg_tile), 1);
-//#endif
-//#if defined(SUPPORT_EGC)
-//	state_fio->FputUint16(egc_access);
-//	state_fio->FputUint16(egc_fgbg);
-//	state_fio->FputUint16(egc_ope);
-//	state_fio->FputUint16(egc_fg);
-//	state_fio->FputUint16(egc_mask.w);
-//	state_fio->FputUint16(egc_bg);
-//	state_fio->FputUint16(egc_sft);
-//	state_fio->FputUint16(egc_leng);
-//	state_fio->FputUint64(egc_lastvram.q);
-//	state_fio->FputUint64(egc_patreg.q);
-//	state_fio->FputUint64(egc_fgc.q);
-//	state_fio->FputUint64(egc_bgc.q);
-//	state_fio->FputInt32(egc_func);
-//	state_fio->FputUint32(egc_remain);
-//	state_fio->FputUint32(egc_stack);
-//	int inptr_ofs = egc_inptr - egc_buf;
-//	int outptr_ofs = egc_outptr - egc_buf;
-//	state_fio->FputInt32(inptr_ofs);
-//	state_fio->FputInt32(outptr_ofs);
-//	state_fio->FputUint16(egc_mask2.w);
-//	state_fio->FputUint16(egc_srcmask.w);
-//	state_fio->FputUint8(egc_srcbit);
-//	state_fio->FputUint8(egc_dstbit);
-//	state_fio->FputUint8(egc_sft8bitl);
-//	state_fio->FputUint8(egc_sft8bitr);
-//	state_fio->Fwrite(egc_buf, sizeof(egc_buf), 1);
-//	state_fio->FputUint64(egc_vram_src.q);
-//	state_fio->FputUint64(egc_vram_data.q);
-//#endif
-//	state_fio->FputUint16(font_code);
-//	state_fio->FputUint8(font_line);
-//	state_fio->FputUint16(font_lr);
-}
-
-bool DISPLAY::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(tvram, sizeof(tvram), 1);
-//	state_fio->Fread(vram, sizeof(vram), 1);
-//#if defined(SUPPORT_2ND_VRAM) && !defined(SUPPORT_HIRESO)
-//	vram_disp_sel = state_fio->FgetUint8();
-//	vram_draw_sel = state_fio->FgetUint8();
-//#endif
-//	state_fio->Fread(palette_gfx8, sizeof(palette_gfx8), 1);
-//	state_fio->Fread(digipal, sizeof(digipal), 1);
-//#if defined(SUPPORT_16_COLORS)
-//	state_fio->Fread(palette_gfx16, sizeof(palette_gfx16), 1);
-//	state_fio->Fread(anapal, sizeof(anapal), 1);
-//	anapal_sel = state_fio->FgetUint8();
-//#endif
-//	crtv = state_fio->FgetUint8();
-//	state_fio->Fread(scroll, sizeof(scroll), 1);
-//	state_fio->Fread(modereg1, sizeof(modereg1), 1);
-//#if defined(SUPPORT_16_COLORS)
-//	state_fio->Fread(modereg2, sizeof(modereg2), 1);
-//#endif
-//#if defined(SUPPORT_GRCG)
-//	grcg_mode = state_fio->FgetUint8();
-//	grcg_tile_ptr = state_fio->FgetUint8();
-//	state_fio->Fread(grcg_tile, sizeof(grcg_tile), 1);
-//#endif
-//#if defined(SUPPORT_EGC)
-//	egc_access = state_fio->FgetUint16();
-//	egc_fgbg = state_fio->FgetUint16();
-//	egc_ope = state_fio->FgetUint16();
-//	egc_fg = state_fio->FgetUint16();
-//	egc_mask.w = state_fio->FgetUint16();
-//	egc_bg = state_fio->FgetUint16();
-//	egc_sft = state_fio->FgetUint16();
-//	egc_leng = state_fio->FgetUint16();
-//	egc_lastvram.q = state_fio->FgetUint64();
-//	egc_patreg.q = state_fio->FgetUint64();
-//	egc_fgc.q = state_fio->FgetUint64();
-//	egc_bgc.q = state_fio->FgetUint64();
-//	egc_func = state_fio->FgetInt32();
-//	egc_remain = state_fio->FgetUint32();
-//	egc_stack = state_fio->FgetUint32();
-//	int inptr_ofs = state_fio->FgetInt32();
-//	int outptr_ofs = state_fio->FgetInt32();
-//	egc_inptr = egc_buf + inptr_ofs;
-//	egc_outptr = egc_buf + outptr_ofs;
-//	egc_mask2.w = state_fio->FgetUint16();
-//	egc_srcmask.w = state_fio->FgetUint16();
-//	egc_srcbit = state_fio->FgetUint8();
-//	egc_dstbit = state_fio->FgetUint8();
-//	egc_sft8bitl = state_fio->FgetUint8();
-//	egc_sft8bitr = state_fio->FgetUint8();
-//	state_fio->Fread(egc_buf, sizeof(egc_buf), 1);
-//	egc_vram_src.q = state_fio->FgetUint64();
-//	egc_vram_data.q = state_fio->FgetUint64();
-//#endif
-//	font_code = state_fio->FgetUint16();
-//	font_line = state_fio->FgetUint8();
-//	font_lr = state_fio->FgetUint16();
-	
-	// post process
-#if defined(SUPPORT_EGC)
-	egc_inptr = egc_buf + tmp_inptr_ofs;
-	egc_outptr = egc_buf + tmp_outptr_ofs;
+	state_fio->StateUint16(egc_mask2.w);
+	state_fio->StateUint16(egc_srcmask.w);
+	state_fio->StateUint8(egc_srcbit);
+	state_fio->StateUint8(egc_dstbit);
+	state_fio->StateUint8(egc_sft8bitl);
+	state_fio->StateUint8(egc_sft8bitr);
+	state_fio->StateBuffer(egc_buf, sizeof(egc_buf), 1);
+	state_fio->StateUint64(egc_vram_src.q);
+	state_fio->StateUint64(egc_vram_data.q);
 #endif
+	state_fio->StateUint16(font_code);
+	state_fio->StateUint8(font_line);
+//	state_fio->StateUint16(font_lr);
+ 	
+ 	// post process
 #if defined(SUPPORT_2ND_VRAM) && !defined(SUPPORT_HIRESO)
-	if(vram_disp_sel & 1) {
-		vram_disp_b = vram + 0x28000;
-		vram_disp_r = vram + 0x30000;
-		vram_disp_g = vram + 0x38000;
+	if(loading) {
+		if(vram_disp_sel & 1) {
+			vram_disp_b = vram + 0x28000;
+			vram_disp_r = vram + 0x30000;
+			vram_disp_g = vram + 0x38000;
 #if defined(SUPPORT_16_COLORS)
-		vram_disp_e = vram + 0x20000;
+			vram_disp_e = vram + 0x20000;
 #endif
-	} else {
-		vram_disp_b = vram + 0x08000;
-		vram_disp_r = vram + 0x10000;
-		vram_disp_g = vram + 0x18000;
+		} else {
+			vram_disp_b = vram + 0x08000;
+			vram_disp_r = vram + 0x10000;
+			vram_disp_g = vram + 0x18000;
 #if defined(SUPPORT_16_COLORS)
-		vram_disp_e = vram + 0x00000;
+			vram_disp_e = vram + 0x00000;
 #endif
-	}
-	if(vram_draw_sel & 1) {
-		vram_draw = vram + 0x20000;
-	} else {
-		vram_draw = vram + 0x00000;
-	}
+		}
+		if(vram_draw_sel & 1) {
+			vram_draw = vram + 0x20000;
+		} else {
+			vram_draw = vram + 0x00000;
+		}
+ 	}
 #endif
-	return true;
+ 	return true;
 }
 

@@ -219,9 +219,7 @@ public:
 	void write_dma_io16(uint32_t addr, uint32_t data);
 	uint32_t read_dma_io8(uint32_t addr);
 	uint32_t read_dma_io16(uint32_t addr);
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_pic(DEVICE *device)

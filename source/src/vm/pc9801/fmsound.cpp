@@ -84,23 +84,15 @@ uint32_t FMSOUND::read_io8(uint32_t addr)
 #ifdef SUPPORT_PC98_OPNA
 #define STATE_VERSION	1
 
-void FMSOUND::save_state(FILEIO* state_fio)
+bool FMSOUND::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->FputUint8(mask);
-}
-
-bool FMSOUND::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
+	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	mask = state_fio->FgetUint8();
+	state_fio->StateUint8(mask);
 	return true;
 }
 #endif

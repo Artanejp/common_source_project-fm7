@@ -908,7 +908,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
-	decl_state();
 	
 #if defined(_PC9801) || defined(_PC9801E)
 	fdc_2hd->get_disk_handler(0)->drive_num = 0;
@@ -1580,78 +1579,40 @@ void VM::update_config()
 
 #define STATE_VERSION	13
 
-#include "../../statesub.h"
-#include "../../qt/gui/csp_logger.h"
-extern CSP_Logger DLL_PREFIX_I *csp_logger;
-
-void VM::decl_state(void)
+bool VM::process_state(FILEIO* state_fio, bool loading)
 {
-#if defined(_PC9801)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801_HEAD")), csp_logger);
-#elif defined(_PC9801E)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801E_HEAD")), csp_logger);
-#elif defined(_PC9801U)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801U_HEAD")), csp_logger);
-#elif defined(_PC9801VF)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801VF_HEAD")), csp_logger);
-#elif defined(_PC9801VM)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801VF_HEAD")), csp_logger);
-#elif defined(_PC98DO)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC98DO_HEAD")), csp_logger);
-#elif defined(_PC9801DOPLUS)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC98DO_PLUS_HEAD")), csp_logger);
-#elif defined(_PC9801VX)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801VX_HEAD")), csp_logger);
-#elif defined(_PC98XL)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC98XL_HEAD")), csp_logger);
-#elif defined(_PC98XA)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC98XA_HEAD")), csp_logger);
-#elif defined(_PC9801RA)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801RA_HEAD")), csp_logger);
-#elif defined(_PC98RL)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC98RL_HEAD")), csp_logger);
-#else
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC9801_SERIES_HEAD")), csp_logger);
-#endif
-	
-	DECL_STATE_ENTRY_BOOL(pit_clock_8mhz);
-#if defined(_PC98DO) || defined(_PC98DOPLUS)
-	DECL_STATE_ENTRY_INT32(boot_mode);
-#endif
-	DECL_STATE_ENTRY_INT32(sound_type);
-#if defined(USE_HARD_DISK) && defined(OPEN_HARD_DISK_IN_RESET)
-	DECL_STATE_ENTRY_MULTI(void, hd_file_path, sizeof(hd_file_path));
-#endif
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->decl_state();
-	}
-}
-
-void VM::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->save_state(state_fio);
-	}
-}
-
-bool VM::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		emu->out_debug_log("INFO: HEADER DATA ERROR");
-		return false;
-	}
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		if(!device->load_state(state_fio)) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+ 	for(DEVICE* device = first_device; device; device = device->next_device) {
+		// Note: typeid(foo).name is fixed by recent ABI.Not dec 6.
+ 		// const char *name = typeid(*device).name();
+		//       But, using get_device_name() instead of typeid(foo).name() 20181008 K.O
+		const char *name = device->get_device_name();
+		int len = strlen(name);
+		if(!state_fio->StateCheckInt32(len)) {
+			if(loading) {
+				printf("Class name len Error: DEVID=%d EXPECT=%s\n", device->this_device_id, name);
+			}
 			return false;
 		}
-	}
-	return true;
+		if(!state_fio->StateCheckBuffer(name, len, 1)) {
+			if(loading) {
+				printf("Class name Error: DEVID=%d EXPECT=%s\n", device->this_device_id, name);
+			}
+ 			return false;
+ 		}
+		if(!device->process_state(state_fio, loading)) {
+			if(loading) {
+				printf("Data loading Error: DEVID=%d\n", device->this_device_id);
+			}
+ 			return false;
+ 		}
+ 	}
+	state_fio->StateBool(pit_clock_8mhz);
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
+	state_fio->StateInt32(boot_mode);
+#endif
+	state_fio->StateInt32(sound_type);
+ 	return true;
 }
-

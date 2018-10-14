@@ -85,27 +85,17 @@ void KEYBOARD::key_up(int code)
 
 #define STATE_VERSION	1
 
-void KEYBOARD::save_state(FILEIO* state_fio)
+bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->FputBool(kana);
-	state_fio->FputBool(caps);
-	state_fio->Fwrite(flag, sizeof(flag), 1);
-}
-
-bool KEYBOARD::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
+	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	kana = state_fio->FgetBool();
-	caps = state_fio->FgetBool();
-	state_fio->Fread(flag, sizeof(flag), 1);
+	state_fio->StateBool(kana);
+	state_fio->StateBool(caps);
+	state_fio->StateBuffer(flag, sizeof(flag), 1);
 	return true;
 }
 
