@@ -201,10 +201,6 @@ bool SCSI_HDD::process_state(FILEIO* state_fio, bool loading)
 }
 
 // SASI hard disk drive
-int SASI_HDD::get_command_length(int value)
-{
-	return SCSI_HDD::get_command_length(value);
-}
 
 void SASI_HDD::start_command()
 {

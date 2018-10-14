@@ -25,7 +25,6 @@ private:
 
 	_TCHAR image_path[8][_MAX_PATH];
 	int sector_size[8];
- 	
 public:
 	SCSI_HDD(VM_TEMPLATE* parent_vm, EMU* parent_emu) : SCSI_DEV(parent_vm, parent_emu) 
 	{
