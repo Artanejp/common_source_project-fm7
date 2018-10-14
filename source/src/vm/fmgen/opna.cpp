@@ -12,8 +12,6 @@
 #include "../../common.h"
 #include "../../fileio.h"
 
-#include "../../statesub.h"
-
 
 #define BUILD_OPN
 #define BUILD_OPNA
