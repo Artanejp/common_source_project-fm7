@@ -203,7 +203,6 @@ void FM7_JCOMMCARD::release(void)
 	}
 	delete fio;
 #endif
-	if(state_entry != NULL) delete state_entry;
 }
 	
 void FM7_JCOMMCARD::reset(void)

@@ -14,8 +14,6 @@
 
 #include "hd6844.h"
 
-#include "../../statesub.h"
-
 void HD6844::reset()
 {
 	int ch;

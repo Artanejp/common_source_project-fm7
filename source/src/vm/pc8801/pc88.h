@@ -259,9 +259,6 @@ private:
 	// dirty patch for NIPPY
 	bool nippy_patch;
 #endif
-	void decl_state_crtc();
-	void decl_state_dmac();
-	
 public:
 	PC88(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -296,9 +293,7 @@ public:
 	void event_vline(int v, int clock);
 	uint32_t get_intr_ack();
 	void notify_intr_ei();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	bool is_sr_mr()

@@ -30,7 +30,6 @@
 #if defined(CAPABLE_JCOMMCARD)
 #include "./jcommcard.h"
 #endif
-#include "../../statesub.h"
 
 FM7_MAINIO::FM7_MAINIO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
@@ -2150,6 +2149,7 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 						  opn_regs[i][ladr + 12], opn_regs[i][ladr + 13], opn_regs[i][ladr + 14], opn_regs[i][ladr + 15]);
 		}
  	}
+#endif
 	this->out_debug_log(_T("Load State: MAINIO: id=%d stat=%s\n"), this_device_id, (mb) ? _T("OK") : _T("NG"));
 	return mb;
 }

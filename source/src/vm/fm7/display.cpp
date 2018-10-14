@@ -19,7 +19,6 @@
 #include "fm7_mainio.h"
 #include "./fm7_keyboard.h"
 #include "./kanjirom.h"
-#include "../../statesub.h"
 
 DISPLAY::DISPLAY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 {

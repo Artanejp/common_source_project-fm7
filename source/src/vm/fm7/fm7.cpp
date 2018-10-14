@@ -47,9 +47,6 @@
 #include "./bubblecasette.h"
 #endif
 
-#if defined(HAS_DMA)
-	dmac = new HD6844(this, emu);
-#endif   
 #if defined(_FM8)
 #include "./fm8_mainio.h"
 #else
@@ -226,16 +223,6 @@ VM::VM(EMU* parent_emu): VM_TEMPLATE(parent_emu)
 	kanjiclass2 = new KANJIROM(this, emu, true);
 #endif
 
-	keyboard = new KEYBOARD(this, emu);
-	//display = new DISPLAY(this, emu);
-#if defined(_FM8)
-	mainio  = new FM8_MAINIO(this, emu);
-#else
-	mainio  = new FM7_MAINIO(this, emu);
-#endif
-	mainmem = new FM7_MAINMEM(this, emu);
-	display = new DISPLAY(this, emu);
-
 
 	keyboard = new KEYBOARD(this, emu);
 	//display = new DISPLAY(this, emu);
@@ -353,7 +340,6 @@ VM::VM(EMU* parent_emu): VM_TEMPLATE(parent_emu)
 	g_substat_mainhalt->set_device_name(_T("SUBSYSTEM HALT STATUS(AND)"));
 #endif	
 	this->connect_bus();
-	decl_state();
 }
 
 VM::~VM()
@@ -1246,15 +1232,13 @@ void VM::set_vm_frame_rate(double fps)
    if(event != NULL) event->set_frames_per_sec(fps);
 }
 
-#define STATE_VERSION	11
+#define STATE_VERSION	12
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
  		return false;
  	}
-	state_fio->StateBool(connect_320kfdc);
-	state_fio->StateBool(connect_1Mfdc);
  	for(DEVICE* device = first_device; device; device = device->next_device) {
 		// Note: typeid(foo).name is fixed by recent ABI.Not dec 6.
  		// const char *name = typeid(*device).name();
@@ -1281,6 +1265,9 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
  			return false;
  		}
  	}
+	// Machine specified.
+	state_fio->StateBool(connect_320kfdc);
+	state_fio->StateBool(connect_1Mfdc);
 	if(loading) {
 		update_config();
 	}

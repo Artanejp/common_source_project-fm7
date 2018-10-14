@@ -2959,337 +2959,238 @@ void pc88_dmac_t::finish(int c)
 	}
 }
 
-#define STATE_VERSION	7
+#define STATE_VERSION	8
 
-#include "../../statesub.h"
-
-void PC88::decl_state_crtc()
+bool PC88::process_state(FILEIO* state_fio, bool loading)
 {
-	DECL_STATE_ENTRY_INT((crtc.blink.rate));
-	DECL_STATE_ENTRY_INT((crtc.blink.counter));
-	DECL_STATE_ENTRY_UINT8((crtc.blink.cursor));
-	DECL_STATE_ENTRY_UINT8((crtc.blink.attrib));
-
-	DECL_STATE_ENTRY_INT((crtc.cursor.type));
-	DECL_STATE_ENTRY_INT((crtc.cursor.mode));
-	DECL_STATE_ENTRY_INT((crtc.cursor.x));
-	DECL_STATE_ENTRY_INT((crtc.cursor.y));
-	
-	DECL_STATE_ENTRY_UINT8((crtc.attrib.data));
-	DECL_STATE_ENTRY_INT((crtc.attrib.num));
-	DECL_STATE_ENTRY_2D_ARRAY((crtc.attrib.expand), 200, 80);
-	
-	DECL_STATE_ENTRY_2D_ARRAY((crtc.text.expand), 200, 80);
-	
-	DECL_STATE_ENTRY_INT((crtc.width));
-	DECL_STATE_ENTRY_INT((crtc.height));
-	DECL_STATE_ENTRY_INT((crtc.char_height));
-	DECL_STATE_ENTRY_BOOL((crtc.skip_line));
-	DECL_STATE_ENTRY_INT((crtc.vretrace));
-	DECL_STATE_ENTRY_BOOL((crtc.timing_changed));
-	DECL_STATE_ENTRY_1D_ARRAY((crtc.buffer), sizeof(crtc.buffer));
-	DECL_STATE_ENTRY_INT((crtc.buffer_ptr));
-	DECL_STATE_ENTRY_UINT8((crtc.cmd));
-	DECL_STATE_ENTRY_INT((crtc.cmd_ptr));
-	DECL_STATE_ENTRY_UINT8((crtc.mode));
-	DECL_STATE_ENTRY_UINT8((crtc.reverse));
-	DECL_STATE_ENTRY_UINT8((crtc.intr_mask));
-	DECL_STATE_ENTRY_UINT8((crtc.status));
-	DECL_STATE_ENTRY_BOOL((crtc.vblank));
-
-}
-
-void PC88::decl_state_dmac()
-{
-	for(int i = 0; i < 4; i++) {
-		DECL_STATE_ENTRY_PAIR_MEMBER((dmac.ch[i].addr), i);
-		DECL_STATE_ENTRY_PAIR_MEMBER((dmac.ch[i].count), i);
-		DECL_STATE_ENTRY_UINT8_MEMBER((dmac.ch[i].mode), i);
-		DECL_STATE_ENTRY_INT32_MEMBER((dmac.ch[i].nbytes), i);
-		DECL_STATE_ENTRY_BOOL_MEMBER((dmac.ch[i].running), i);
-	}
-	DECL_STATE_ENTRY_UINT8((dmac.mode));
-	DECL_STATE_ENTRY_UINT8((dmac.status));
-	DECL_STATE_ENTRY_BOOL((dmac.high_low));
-}
-
-void PC88::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-	
-	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+	state_fio->StateBuffer(ram, sizeof(ram), 1);
 #if defined(PC88_EXRAM_BANKS)
-	DECL_STATE_ENTRY_1D_ARRAY(exram, sizeof(exram));
+	state_fio->StateBuffer(exram, sizeof(exram), 1);
 #endif
-	DECL_STATE_ENTRY_1D_ARRAY(gvram, sizeof(gvram));
-	DECL_STATE_ENTRY_1D_ARRAY(tvram, sizeof(tvram));
-	
-	DECL_STATE_ENTRY_1D_ARRAY(port, sizeof(port));
-	
-	decl_state_crtc();
-	decl_state_dmac();
-	
-	DECL_STATE_ENTRY_1D_ARRAY(alu_reg, sizeof(alu_reg));
-	DECL_STATE_ENTRY_UINT8(gvram_plane);
-	DECL_STATE_ENTRY_UINT8(gvram_sel);
-	DECL_STATE_ENTRY_BOOL(cpu_clock_low);
+	state_fio->StateBuffer(gvram, sizeof(gvram), 1);
+	state_fio->StateBuffer(tvram, sizeof(tvram), 1);
+	state_fio->StateBuffer(port, sizeof(port), 1);
+	//state_fio->StateBuffer(&crtc, sizeof(crtc), 1);
+	{
+		{
+			state_fio->StateInt32(crtc.blink.rate);
+			state_fio->StateInt32(crtc.blink.counter);
+			state_fio->StateUint8(crtc.blink.cursor);
+			state_fio->StateUint8(crtc.blink.attrib);
+		}
+		{
+			state_fio->StateInt32(crtc.cursor.type);
+			state_fio->StateInt32(crtc.cursor.mode);
+			state_fio->StateInt32(crtc.cursor.x);
+			state_fio->StateInt32(crtc.cursor.y);
+		}
+		{
+			state_fio->StateUint8(crtc.attrib.data);
+			state_fio->StateInt32(crtc.attrib.num);
+			for(int i = 0; i < 200; i++) {
+				for(int j = 0; j < 80; j++) {
+					state_fio->StateUint8(crtc.attrib.expand[i][j]);
+				}
+			}
+		}
+		{
+			for(int i = 0; i < 200; i++) {
+				for(int j = 0; j < 80; j++) {
+					state_fio->StateUint8(crtc.text.expand[i][j]);
+				}
+			}
+		}
+		state_fio->StateInt32(crtc.width);
+		state_fio->StateInt32(crtc.height);
+		state_fio->StateInt32(crtc.char_height);
+		state_fio->StateBool(crtc.skip_line);
+		state_fio->StateInt32(crtc.vretrace);
+		state_fio->StateBool(crtc.timing_changed);
+		state_fio->StateBuffer(crtc.buffer, sizeof(crtc.buffer), 1);
+		state_fio->StateInt32(crtc.buffer_ptr);
+		state_fio->StateUint8(crtc.cmd);
+		state_fio->StateInt32(crtc.cmd_ptr);
+		state_fio->StateUint8(crtc.mode);
+		state_fio->StateUint8(crtc.reverse);
+		state_fio->StateUint8(crtc.intr_mask);
+		state_fio->StateUint8(crtc.status);
+		state_fio->StateBool(crtc.vblank);
+	}
+	//state_fio->StateBuffer(&dmac, sizeof(dmac), 1);
+	{
+		for(int i = 0; i < 4; i++) {
+			state_fio->StateUint32(dmac.ch[i].addr.d);
+			state_fio->StateUint32(dmac.ch[i].count.d);
+			state_fio->StateUint8(dmac.ch[i].mode);
+			state_fio->StateInt32(dmac.ch[i].nbytes);
+			state_fio->StateBool(dmac.ch[i].running);
+		}
+		state_fio->StateUint8(dmac.mode);
+		state_fio->StateUint8(dmac.status);
+		state_fio->StateBool(dmac.high_low);
+
+	}
+	state_fio->StateBuffer(alu_reg, sizeof(alu_reg), 1);
+	state_fio->StateUint8(gvram_plane);
+	state_fio->StateUint8(gvram_sel);
+	state_fio->StateBool(cpu_clock_low);
 #if defined(SUPPORT_PC88_HIGH_CLOCK)
-	DECL_STATE_ENTRY_BOOL(cpu_clock_high_fe2);
+	state_fio->StateBool(cpu_clock_high_fe2);
 #endif
-	DECL_STATE_ENTRY_BOOL(mem_wait_on);
-	DECL_STATE_ENTRY_INT32(m1_wait_clocks);
-	DECL_STATE_ENTRY_INT32(f000_m1_wait_clocks);
-	DECL_STATE_ENTRY_INT32(mem_wait_clocks_r);
-	DECL_STATE_ENTRY_INT32(mem_wait_clocks_w);
-	DECL_STATE_ENTRY_INT32(tvram_wait_clocks_r);
-	DECL_STATE_ENTRY_INT32(tvram_wait_clocks_w);
-	DECL_STATE_ENTRY_INT32(gvram_wait_clocks_r);
-	DECL_STATE_ENTRY_INT32(gvram_wait_clocks_w);
-	DECL_STATE_ENTRY_INT32(busreq_clocks);
-	DECL_STATE_ENTRY_UINT8_STRIDE((palette[0].b), 9, sizeof(palette[0]));
-	DECL_STATE_ENTRY_UINT8_STRIDE((palette[0].r), 9, sizeof(palette[0]));
-	DECL_STATE_ENTRY_UINT8_STRIDE((palette[0].g), 9, sizeof(palette[0]));
-	DECL_STATE_ENTRY_BOOL(update_palette);
-	DECL_STATE_ENTRY_BOOL(hireso);
-	DECL_STATE_ENTRY_2D_ARRAY(text, 200, 640);
-	DECL_STATE_ENTRY_2D_ARRAY(graph, 400, 640);
-	
-	// ToDo: Read register value, then calculate display values.
-	DECL_STATE_ENTRY_SCRNTYPE_T_1D_ARRAY(palette_text_pc, 9);
-	// ToDo: Read register value, then calculate display values.
-	DECL_STATE_ENTRY_SCRNTYPE_T_1D_ARRAY(palette_graph_pc, 9);
-	DECL_STATE_ENTRY_BOOL(usart_dcd);
-	DECL_STATE_ENTRY_BOOL(opn_busy);
-	DECL_STATE_ENTRY_UINT8(key_caps);
-	DECL_STATE_ENTRY_UINT8(key_kana);
+	state_fio->StateBool(mem_wait_on);
+	state_fio->StateInt32(m1_wait_clocks);
+	state_fio->StateInt32(f000_m1_wait_clocks);
+	state_fio->StateInt32(mem_wait_clocks_r);
+	state_fio->StateInt32(mem_wait_clocks_w);
+	state_fio->StateInt32(tvram_wait_clocks_r);
+	state_fio->StateInt32(tvram_wait_clocks_w);
+	state_fio->StateInt32(gvram_wait_clocks_r);
+	state_fio->StateInt32(gvram_wait_clocks_w);
+	state_fio->StateInt32(busreq_clocks);
+	//state_fio->StateBuffer(palette, sizeof(palette), 1);
+	for(int i = 0; i < 9; i++) {
+		state_fio->StateUint8(palette[i].b);
+		state_fio->StateUint8(palette[i].r);
+		state_fio->StateUint8(palette[i].g);
+	}
+	state_fio->StateBool(update_palette);
+	state_fio->StateBool(hireso);
+	state_fio->StateBuffer(text, sizeof(text), 1);
+	state_fio->StateBuffer(graph, sizeof(graph), 1);
+
+	//state_fio->StateBuffer(palette_text_pc, sizeof(palette_text_pc), 1);
+	//state_fio->StateBuffer(palette_graph_pc, sizeof(palette_graph_pc), 1);
+	if(loading) {
+		for(int i = 0; i < (sizeof(palette_text_pc) / sizeof(scrntype_t)); i++) {
+			uint8_t r, g, b;
+			r = state_fio->FgetUint8();
+			g = state_fio->FgetUint8();
+			b = state_fio->FgetUint8();
+			palette_text_pc[i] = RGB_COLOR(r, g, b);
+		}
+	} else {
+		for(int i = 0; i < (sizeof(palette_text_pc) / sizeof(scrntype_t)); i++) {
+			uint8_t r, g, b;
+			r = R_OF_COLOR(palette_text_pc[i]);
+			g = G_OF_COLOR(palette_text_pc[i]);
+			b = B_OF_COLOR(palette_text_pc[i]);
+			state_fio->FputUint8(r);
+			state_fio->FputUint8(g);
+			state_fio->FputUint8(b);
+		}
+	}
+	if(loading) {
+		for(int i = 0; i < (sizeof(palette_graph_pc) / sizeof(scrntype_t)); i++) {
+			uint8_t r, g, b;
+			r = state_fio->FgetUint8();
+			g = state_fio->FgetUint8();
+			b = state_fio->FgetUint8();
+			palette_graph_pc[i] = RGB_COLOR(r, g, b);
+		}
+	} else {
+		for(int i = 0; i < (sizeof(palette_graph_pc) / sizeof(scrntype_t)); i++) {
+			uint8_t r, g, b;
+			r = R_OF_COLOR(palette_graph_pc[i]);
+			g = G_OF_COLOR(palette_graph_pc[i]);
+			b = B_OF_COLOR(palette_graph_pc[i]);
+			state_fio->FputUint8(r);
+			state_fio->FputUint8(g);
+			state_fio->FputUint8(b);
+		}
+	}
+	state_fio->StateBool(usart_dcd);
+	state_fio->StateBool(opn_busy);
+	state_fio->StateUint8(key_caps);
+	state_fio->StateUint8(key_kana);
 #ifdef SUPPORT_PC88_JOYSTICK
-	DECL_STATE_ENTRY_UINT32(mouse_strobe_clock);
-	DECL_STATE_ENTRY_UINT32(mouse_strobe_clock_lim);
-	DECL_STATE_ENTRY_INT32(mouse_phase);
-	DECL_STATE_ENTRY_INT32(mouse_dx);
-	DECL_STATE_ENTRY_INT32(mouse_dy);
-	DECL_STATE_ENTRY_INT32(mouse_lx);
-	DECL_STATE_ENTRY_INT32(mouse_ly);
+	state_fio->StateUint32(mouse_strobe_clock);
+	state_fio->StateUint32(mouse_strobe_clock_lim);
+	state_fio->StateInt32(mouse_phase);
+	state_fio->StateInt32(mouse_dx);
+	state_fio->StateInt32(mouse_dy);
+	state_fio->StateInt32(mouse_lx);
+	state_fio->StateInt32(mouse_ly);
 #endif
-	DECL_STATE_ENTRY_UINT8(intr_req);
-	DECL_STATE_ENTRY_BOOL(intr_req_sound);
+	state_fio->StateUint8(intr_req);
+	state_fio->StateBool(intr_req_sound);
 #ifdef SUPPORT_PC88_SB2
-	DECL_STATE_ENTRY_BOOL(intr_req_sb2);
+	state_fio->StateBool(intr_req_sb2);
 #endif
-	DECL_STATE_ENTRY_UINT8(intr_mask1);
-	DECL_STATE_ENTRY_UINT8(intr_mask2);
-	DECL_STATE_ENTRY_BOOL(cmt_play);
-	DECL_STATE_ENTRY_BOOL(cmt_rec);
-	DECL_STATE_ENTRY_STRING(rec_file_path, sizeof(rec_file_path));
-	
-	DECL_STATE_ENTRY_CMT_RECORDING(cmt_fio, cmt_rec, rec_file_path);
-	
-	DECL_STATE_ENTRY_INT32(cmt_bufptr);
-	DECL_STATE_ENTRY_INT32(cmt_bufcnt);
-	DECL_STATE_ENTRY_1D_ARRAY(cmt_buffer, sizeof(cmt_buffer));
-	DECL_STATE_ENTRY_1D_ARRAY(cmt_data_carrier, sizeof(cmt_data_carrier) / sizeof(int));
-	DECL_STATE_ENTRY_INT32(cmt_data_carrier_cnt);
-	DECL_STATE_ENTRY_INT32(cmt_register_id);
-	DECL_STATE_ENTRY_BOOL(beep_on);
-	DECL_STATE_ENTRY_BOOL(beep_signal);
-	DECL_STATE_ENTRY_BOOL(sing_signal);
+	state_fio->StateUint8(intr_mask1);
+	state_fio->StateUint8(intr_mask2);
+	state_fio->StateBool(cmt_play);
+	state_fio->StateBool(cmt_rec);
+	state_fio->StateBuffer(rec_file_path, sizeof(rec_file_path), 1);
+	if(loading) {
+		int length_tmp = state_fio->FgetInt32_LE();
+		if(cmt_rec) {
+			cmt_fio->Fopen(rec_file_path, FILEIO_READ_WRITE_NEW_BINARY);
+			while(length_tmp != 0) {
+				uint8_t buffer[1024];
+				int length_rw = min(length_tmp, (int)sizeof(buffer));
+				state_fio->Fread(buffer, length_rw, 1);
+				if(cmt_fio->IsOpened()) {
+					cmt_fio->Fwrite(buffer, length_rw, 1);
+				}
+				length_tmp -= length_rw;
+			}
+		}
+	} else {
+		if(cmt_rec && cmt_fio->IsOpened()) {
+			int length_tmp = (int)cmt_fio->Ftell();
+			cmt_fio->Fseek(0, FILEIO_SEEK_SET);
+			state_fio->FputInt32_LE(length_tmp);
+			while(length_tmp != 0) {
+				uint8_t buffer[1024];
+				int length_rw = min(length_tmp, (int)sizeof(buffer));
+				cmt_fio->Fread(buffer, length_rw, 1);
+				state_fio->Fwrite(buffer, length_rw, 1);
+				length_tmp -= length_rw;
+ 			}
+		} else {
+			state_fio->FputInt32_LE(0);
+ 		}
+ 	}
+	state_fio->StateInt32(cmt_bufptr);
+	state_fio->StateInt32(cmt_bufcnt);
+	state_fio->StateBuffer(cmt_buffer, sizeof(cmt_buffer), 1);
+	//state_fio->StateBuffer(cmt_data_carrier, sizeof(cmt_data_carrier), 1);
+	for(int i = 0; i < (sizeof(cmt_data_carrier) / sizeof(int)); i++) {
+		state_fio->StateInt32(cmt_data_carrier[i]);
+	}
+	state_fio->StateInt32(cmt_data_carrier_cnt);
+	state_fio->StateInt32(cmt_register_id);
+	state_fio->StateBool(beep_on);
+	state_fio->StateBool(beep_signal);
+	state_fio->StateBool(sing_signal);
 #ifdef SUPPORT_PC88_PCG8100
-	DECL_STATE_ENTRY_UINT16(pcg_addr);
-	DECL_STATE_ENTRY_UINT8(pcg_data);
-	DECL_STATE_ENTRY_UINT8(pcg_ctrl);
-	DECL_STATE_ENTRY_1D_ARRAY(pcg_pattern, sizeof(pcg_pattern));
+	state_fio->StateUint16(pcg_addr);
+	state_fio->StateUint8(pcg_data);
+	state_fio->StateUint8(pcg_ctrl);
+	state_fio->StateBuffer(pcg_pattern, sizeof(pcg_pattern), 1);
 #endif
 #ifdef NIPPY_PATCH
-	DECL_STATE_ENTRY_BOOL(nippy_patch);
+	state_fio->StateBool(nippy_patch);
 #endif
-}
-void PC88::save_state(FILEIO* state_fio)
-{
-	uint32_t crc_value = 0xffffffff;
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio, &crc_value);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(ram, sizeof(ram), 1);
-#if defined(PC88_EXRAM_BANKS)
-//	state_fio->Fwrite(exram, sizeof(exram), 1);
-#endif
-//	state_fio->Fwrite(gvram, sizeof(gvram), 1);
-//	state_fio->Fwrite(tvram, sizeof(tvram), 1);
-//	state_fio->Fwrite(port, sizeof(port), 1);
-//	state_fio->Fwrite(&crtc, sizeof(crtc), 1);
-//	state_fio->Fwrite(&dmac, sizeof(dmac), 1);
-//	state_fio->Fwrite(alu_reg, sizeof(alu_reg), 1);
-//	state_fio->FputUint8(gvram_plane);
-//	state_fio->FputUint8(gvram_sel);
-//	state_fio->FputBool(cpu_clock_low);
-#if defined(SUPPORT_PC88_HIGH_CLOCK)
-//	state_fio->FputBool(cpu_clock_high_fe2);
-#endif
-//	state_fio->FputBool(mem_wait_on);
-//	state_fio->FputInt32(m1_wait_clocks);
-//	state_fio->FputInt32(f000_m1_wait_clocks);
-//	state_fio->FputInt32(mem_wait_clocks_r);
-//	state_fio->FputInt32(mem_wait_clocks_w);
-//	state_fio->FputInt32(tvram_wait_clocks_r);
-//	state_fio->FputInt32(tvram_wait_clocks_w);
-//	state_fio->FputInt32(gvram_wait_clocks_r);
-//	state_fio->FputInt32(gvram_wait_clocks_w);
-//	state_fio->FputInt32(busreq_clocks);
-//	state_fio->Fwrite(palette, sizeof(palette), 1);
-//	state_fio->FputBool(update_palette);
-//	state_fio->FputBool(hireso);
-//	state_fio->Fwrite(text, sizeof(text), 1);
-//	state_fio->Fwrite(graph, sizeof(graph), 1);
-//	state_fio->Fwrite(palette_text_pc, sizeof(palette_text_pc), 1);
-//	state_fio->Fwrite(palette_graph_pc, sizeof(palette_graph_pc), 1);
-//	state_fio->FputBool(usart_dcd);
-//	state_fio->FputBool(opn_busy);
-//	state_fio->FputUint8(key_caps);
-//	state_fio->FputUint8(key_kana);
-#ifdef SUPPORT_PC88_JOYSTICK
-//	state_fio->FputUint32(mouse_strobe_clock);
-//	state_fio->FputUint32(mouse_strobe_clock_lim);
-//	state_fio->FputInt32(mouse_phase);
-//	state_fio->FputInt32(mouse_dx);
-//	state_fio->FputInt32(mouse_dy);
-//	state_fio->FputInt32(mouse_lx);
-//	state_fio->FputInt32(mouse_ly);
-#endif
-//	state_fio->FputUint8(intr_req);
-//	state_fio->FputBool(intr_req_sound);
-#ifdef SUPPORT_PC88_SB2
-//	state_fio->FputBool(intr_req_sb2);
-#endif
-//	state_fio->FputUint8(intr_mask1);
-//	state_fio->FputUint8(intr_mask2);
-//	state_fio->FputBool(cmt_play);
-//	state_fio->FputBool(cmt_rec);
-//	state_fio->Fwrite(rec_file_path, sizeof(rec_file_path), 1);
-//	state_fio->FputInt32(cmt_bufptr);
-//	state_fio->FputInt32(cmt_bufcnt);
-//	state_fio->Fwrite(cmt_buffer, sizeof(cmt_buffer), 1);
-//	state_fio->Fwrite(cmt_data_carrier, sizeof(cmt_data_carrier), 1);
-//	state_fio->FputInt32(cmt_data_carrier_cnt);
-//	state_fio->FputInt32(cmt_register_id);
-//	state_fio->FputBool(beep_on);
-//	state_fio->FputBool(beep_signal);
-//	state_fio->FputBool(sing_signal);
-#ifdef SUPPORT_PC88_PCG8100
-//	state_fio->FputUint16(pcg_addr);
-//	state_fio->FputUint8(pcg_data);
-//	state_fio->FputUint8(pcg_ctrl);
-//	state_fio->Fwrite(pcg_pattern, sizeof(pcg_pattern), 1);
-#endif
-#ifdef NIPPY_PATCH
-//	state_fio->FputBool(nippy_patch);
-#endif
-}
-
-bool PC88::load_state(FILEIO* state_fio)
-{
-	release_tape();
-	
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(ram, sizeof(ram), 1);
-#if defined(PC88_EXRAM_BANKS)
-//	state_fio->Fread(exram, sizeof(exram), 1);
-#endif
-//	state_fio->Fread(gvram, sizeof(gvram), 1);
-//	state_fio->Fread(tvram, sizeof(tvram), 1);
-//	state_fio->Fread(port, sizeof(port), 1);
-//	state_fio->Fread(&crtc, sizeof(crtc), 1);
-//	state_fio->Fread(&dmac, sizeof(dmac), 1);
-//	state_fio->Fread(alu_reg, sizeof(alu_reg), 1);
-//	gvram_plane = state_fio->FgetUint8();
-//	gvram_sel = state_fio->FgetUint8();
-//	cpu_clock_low = state_fio->FgetBool();
-#if defined(SUPPORT_PC88_HIGH_CLOCK)
-//	cpu_clock_high_fe2 = state_fio->FgetBool();
-#endif
-//	mem_wait_on = state_fio->FgetBool();
-//	m1_wait_clocks = state_fio->FgetInt32();
-//	f000_m1_wait_clocks = state_fio->FgetInt32();
-//	mem_wait_clocks_r = state_fio->FgetInt32();
-//	mem_wait_clocks_w = state_fio->FgetInt32();
-//	tvram_wait_clocks_r = state_fio->FgetInt32();
-//	tvram_wait_clocks_w = state_fio->FgetInt32();
-//	gvram_wait_clocks_r = state_fio->FgetInt32();
-//	gvram_wait_clocks_w = state_fio->FgetInt32();
-//	busreq_clocks = state_fio->FgetInt32();
-//	state_fio->Fread(palette, sizeof(palette), 1);
-//	update_palette = state_fio->FgetBool();
-//	hireso = state_fio->FgetBool();
-//	state_fio->Fread(text, sizeof(text), 1);
-//	state_fio->Fread(graph, sizeof(graph), 1);
-//	state_fio->Fread(palette_text_pc, sizeof(palette_text_pc), 1);
-//	state_fio->Fread(palette_graph_pc, sizeof(palette_graph_pc), 1);
-//	usart_dcd = state_fio->FgetBool();
-//	opn_busy = state_fio->FgetBool();
-//	key_caps = state_fio->FgetUint8();
-//	key_kana = state_fio->FgetUint8();
-#ifdef SUPPORT_PC88_JOYSTICK
-//	mouse_strobe_clock = state_fio->FgetUint32();
-//	mouse_strobe_clock_lim = state_fio->FgetUint32();
-//	mouse_phase = state_fio->FgetInt32();
-//	mouse_dx = state_fio->FgetInt32();
-//	mouse_dy = state_fio->FgetInt32();
-//	mouse_lx = state_fio->FgetInt32();
-//	mouse_ly = state_fio->FgetInt32();
-#endif
-//	intr_req = state_fio->FgetUint8();
-//	intr_req_sound = state_fio->FgetBool();
-#ifdef SUPPORT_PC88_SB2
-//	intr_req_sb2 = state_fio->FgetBool();
-#endif
-//	intr_mask1 = state_fio->FgetUint8();
-//	intr_mask2 = state_fio->FgetUint8();
-//	cmt_play = state_fio->FgetBool();
-//	cmt_rec = state_fio->FgetBool();
-//	state_fio->Fread(rec_file_path, sizeof(rec_file_path), 1);
-	bool mb = false;
-	bool stat;
-	uint32_t crc_value = 0xffffffff;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio, &crc_value);
-	}
-	if(!mb) return false;
-//	cmt_bufptr = state_fio->FgetInt32();
-//	cmt_bufcnt = state_fio->FgetInt32();
-//	state_fio->Fread(cmt_buffer, sizeof(cmt_buffer), 1);
-//	state_fio->Fread(cmt_data_carrier, sizeof(cmt_data_carrier), 1);
-//	cmt_data_carrier_cnt = state_fio->FgetInt32();
-//	cmt_register_id = state_fio->FgetInt32();
-//	beep_on = state_fio->FgetBool();
-//	beep_signal = state_fio->FgetBool();
-//	sing_signal = state_fio->FgetBool();
-#ifdef SUPPORT_PC88_PCG8100
-//	pcg_addr = state_fio->FgetUint16();
-//	pcg_data = state_fio->FgetUint8();
-//	pcg_ctrl = state_fio->FgetUint8();
-//	state_fio->Fread(pcg_pattern, sizeof(pcg_pattern), 1);
-#endif
-#ifdef NIPPY_PATCH
-//	nippy_patch = state_fio->FgetBool();
-#endif
-	
-	// post process
-	dmac.mem = dmac.ch[2].io = this;
-	dmac.ch[0].io = dmac.ch[1].io = dmac.ch[3].io = vm->dummy;
+ 	
+ 	// post process
+	if(loading) {
+		dmac.mem = dmac.ch[2].io = this;
+		dmac.ch[0].io = dmac.ch[1].io = dmac.ch[3].io = vm->dummy;
 #if defined(_PC8001SR)
-	update_n80_write();
-	update_n80_read();
+		update_n80_write();
+		update_n80_read();
 #else
-	update_low_memmap();
-	update_tvram_memmap();
+		update_low_memmap();
+		update_tvram_memmap();
 #endif
-	return true;
+	}
+ 	return true;
 }
 
