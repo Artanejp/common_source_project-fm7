@@ -716,244 +716,89 @@ void UPD7220::draw_vectr()
 
 #define STATE_VERSION	2
 
-#include "../statesub.h"
-
-void UPD7220::decl_state()
+bool UPD7220::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_INT32(cmdreg);
-	DECL_STATE_ENTRY_UINT8(statreg);
-	DECL_STATE_ENTRY_1D_ARRAY(sync, sizeof(sync));
-	DECL_STATE_ENTRY_INT32(vtotal);
-	DECL_STATE_ENTRY_INT32(vfp);
-	DECL_STATE_ENTRY_INT32(vs);
-	DECL_STATE_ENTRY_INT32(vbp);
-	DECL_STATE_ENTRY_INT32(v1);
-	DECL_STATE_ENTRY_INT32(v2);
-	DECL_STATE_ENTRY_INT32(v3);
-	DECL_STATE_ENTRY_INT32(v4);
-	DECL_STATE_ENTRY_INT32(hfp);
-	DECL_STATE_ENTRY_INT32(hs);
-	DECL_STATE_ENTRY_INT32(hbp);
-	DECL_STATE_ENTRY_INT32(h1);
-	DECL_STATE_ENTRY_INT32(h2);
-	DECL_STATE_ENTRY_INT32(h3);
-	DECL_STATE_ENTRY_INT32(h4);
-	DECL_STATE_ENTRY_BOOL(sync_changed);
-	DECL_STATE_ENTRY_BOOL(master);
-	DECL_STATE_ENTRY_UINT8(zoom);
-	DECL_STATE_ENTRY_UINT8(zr);
-	DECL_STATE_ENTRY_UINT8(zw);
-	DECL_STATE_ENTRY_1D_ARRAY(ra, sizeof(ra));
-	DECL_STATE_ENTRY_1D_ARRAY(cs, sizeof(cs));
-	DECL_STATE_ENTRY_UINT8(pitch);
-	DECL_STATE_ENTRY_UINT32(lad);
-	DECL_STATE_ENTRY_1D_ARRAY(vect, sizeof(vect));
-	DECL_STATE_ENTRY_INT32(ead);
-	DECL_STATE_ENTRY_INT32(dad);
-	DECL_STATE_ENTRY_UINT8(maskl);
-	DECL_STATE_ENTRY_UINT8(maskh);
-	DECL_STATE_ENTRY_UINT8(mod);
-	DECL_STATE_ENTRY_BOOL(hsync);
-	DECL_STATE_ENTRY_BOOL(hblank);
-	DECL_STATE_ENTRY_BOOL(vsync);
-	DECL_STATE_ENTRY_BOOL(vblank);
-	DECL_STATE_ENTRY_BOOL(start);
-	DECL_STATE_ENTRY_INT32(blink_cursor);
-	DECL_STATE_ENTRY_INT32(blink_attr);
-	DECL_STATE_ENTRY_INT32(blink_rate);
-	DECL_STATE_ENTRY_BOOL(low_high);
-	DECL_STATE_ENTRY_BOOL(cmd_write_done);
-	DECL_STATE_ENTRY_INT32(cpu_clocks);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+	state_fio->StateInt32(cmdreg);
+	state_fio->StateUint8(statreg);
+	state_fio->StateBuffer(sync, sizeof(sync), 1);
+	state_fio->StateInt32(vtotal);
+	state_fio->StateInt32(vfp);
+	state_fio->StateInt32(vs);
+	state_fio->StateInt32(vbp);
+	state_fio->StateInt32(v1);
+	state_fio->StateInt32(v2);
+	state_fio->StateInt32(v3);
+	state_fio->StateInt32(v4);
+	state_fio->StateInt32(hfp);
+	state_fio->StateInt32(hs);
+	state_fio->StateInt32(hbp);
+	state_fio->StateInt32(h1);
+	state_fio->StateInt32(h2);
+	state_fio->StateInt32(h3);
+	state_fio->StateInt32(h4);
+	state_fio->StateBool(sync_changed);
+	state_fio->StateBool(master);
+	state_fio->StateUint8(zoom);
+	state_fio->StateUint8(zr);
+	state_fio->StateUint8(zw);
+	state_fio->StateBuffer(ra, sizeof(ra), 1);
+	state_fio->StateBuffer(cs, sizeof(cs), 1);
+	state_fio->StateUint8(pitch);
+	state_fio->StateUint32(lad);
+	state_fio->StateBuffer(vect, sizeof(vect), 1);
+	state_fio->StateInt32(ead);
+	state_fio->StateInt32(dad);
+	state_fio->StateUint8(maskl);
+	state_fio->StateUint8(maskh);
+	state_fio->StateUint8(mod);
+	state_fio->StateBool(hsync);
+	state_fio->StateBool(hblank);
+	state_fio->StateBool(vsync);
+	state_fio->StateBool(vblank);
+	state_fio->StateBool(start);
+	state_fio->StateInt32(blink_cursor);
+	state_fio->StateInt32(blink_attr);
+	state_fio->StateInt32(blink_rate);
+	state_fio->StateBool(low_high);
+	state_fio->StateBool(cmd_write_done);
+	state_fio->StateInt32(cpu_clocks);
 #ifdef UPD7220_HORIZ_FREQ
-	DECL_STATE_ENTRY_INT32(horiz_freq);
-	DECL_STATE_ENTRY_INT32(next_horiz_freq);
+	state_fio->StateInt32(horiz_freq);
+	state_fio->StateInt32(next_horiz_freq);
 #endif
-	DECL_STATE_ENTRY_DOUBLE(frames_per_sec);
-	DECL_STATE_ENTRY_INT32(lines_per_frame);
-	DECL_STATE_ENTRY_1D_ARRAY(params, sizeof(params));
-	DECL_STATE_ENTRY_INT32(params_count);
-	DECL_STATE_ENTRY_FIFO(fo);
-	
-	DECL_STATE_ENTRY_1D_ARRAY(rt, sizeof(rt) / sizeof(int));
-	DECL_STATE_ENTRY_INT32(dx);
-	DECL_STATE_ENTRY_INT32(dy);
-	DECL_STATE_ENTRY_INT32(dir);
-	DECL_STATE_ENTRY_INT32(dif);
-	DECL_STATE_ENTRY_INT32(sl);
-	DECL_STATE_ENTRY_INT32(dc);
-	DECL_STATE_ENTRY_INT32(d);
-	DECL_STATE_ENTRY_INT32(d2);
-	DECL_STATE_ENTRY_INT32(d1);
-	DECL_STATE_ENTRY_INT32(dm);
-	DECL_STATE_ENTRY_UINT16(pattern);
-	
-	leave_decl_state();
-}	
-
-void UPD7220::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
+	state_fio->StateDouble(frames_per_sec);
+	state_fio->StateInt32(lines_per_frame);
+	state_fio->StateBuffer(params, sizeof(params), 1);
+	state_fio->StateInt32(params_count);
+	if(!fo->process_state((void *)state_fio, loading)) {
+ 		return false;
+ 	}
+	//state_fio->StateBuffer(rt, sizeof(rt), 1);
+	for(int i = 0; i < (sizeof(rt) / sizeof(int)) ; i++) {
+		state_fio->StateInt32(rt[i]);
 	}
-	
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->FputInt32(cmdreg);
-//	state_fio->FputUint8(statreg);
-//	state_fio->Fwrite(sync, sizeof(sync), 1);
-//	state_fio->FputInt32(vtotal);
-//	state_fio->FputInt32(vfp);
-//	state_fio->FputInt32(vs);
-//	state_fio->FputInt32(vbp);
-//	state_fio->FputInt32(v1);
-//	state_fio->FputInt32(v2);
-//	state_fio->FputInt32(v3);
-//	state_fio->FputInt32(v4);
-//	state_fio->FputInt32(hfp);
-//	state_fio->FputInt32(hs);
-//	state_fio->FputInt32(hbp);
-//	state_fio->FputInt32(h1);
-//	state_fio->FputInt32(h2);
-//	state_fio->FputInt32(h3);
-//	state_fio->FputInt32(h4);
-//	state_fio->FputBool(sync_changed);
-//	state_fio->FputBool(master);
-//	state_fio->FputUint8(zoom);
-//	state_fio->FputUint8(zr);
-//	state_fio->FputUint8(zw);
-//	state_fio->Fwrite(ra, sizeof(ra), 1);
-//	state_fio->Fwrite(cs, sizeof(cs), 1);
-//	state_fio->FputUint8(pitch);
-//	state_fio->FputUint32(lad);
-//	state_fio->Fwrite(vect, sizeof(vect), 1);
-//	state_fio->FputInt32(ead);
-//	state_fio->FputInt32(dad);
-//	state_fio->FputUint8(maskl);
-//	state_fio->FputUint8(maskh);
-//	state_fio->FputUint8(mod);
-//	state_fio->FputBool(hsync);
-//	state_fio->FputBool(hblank);
-//	state_fio->FputBool(vsync);
-//	state_fio->FputBool(vblank);
-//	state_fio->FputBool(start);
-//	state_fio->FputInt32(blink_cursor);
-//	state_fio->FputInt32(blink_attr);
-//	state_fio->FputInt32(blink_rate);
-//	state_fio->FputBool(low_high);
-//	state_fio->FputBool(cmd_write_done);
-//	state_fio->FputInt32(cpu_clocks);
-//#ifdef UPD7220_HORIZ_FREQ
-//	state_fio->FputInt32(horiz_freq);
-//	state_fio->FputInt32(next_horiz_freq);
-//#endif
-//	state_fio->FputDouble(frames_per_sec);
-//	state_fio->FputInt32(lines_per_frame);
-//	state_fio->Fwrite(params, sizeof(params), 1);
-//	state_fio->FputInt32(params_count);
-//	fo->save_state((void *)state_fio);
-//	state_fio->Fwrite(rt, sizeof(rt), 1);
-//	state_fio->FputInt32(dx);
-//	state_fio->FputInt32(dy);
-//	state_fio->FputInt32(dir);
-//	state_fio->FputInt32(dif);
-//	state_fio->FputInt32(sl);
-//	state_fio->FputInt32(dc);
-//	state_fio->FputInt32(d);
-//	state_fio->FputInt32(d2);
-//	state_fio->FputInt32(d1);
-//	state_fio->FputInt32(dm);
-//	state_fio->FputUint16(pattern);
-}
-
-bool UPD7220::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	cmdreg = state_fio->FgetInt32();
-//	statreg = state_fio->FgetUint8();
-//	state_fio->Fread(sync, sizeof(sync), 1);
-//	vtotal = state_fio->FgetInt32();
-//	vfp = state_fio->FgetInt32();
-//	vs = state_fio->FgetInt32();
-//	vbp = state_fio->FgetInt32();
-//	v1 = state_fio->FgetInt32();
-//	v2 = state_fio->FgetInt32();
-//	v3 = state_fio->FgetInt32();
-//	v4 = state_fio->FgetInt32();
-//	hfp = state_fio->FgetInt32();
-//	hs = state_fio->FgetInt32();
-//	hbp = state_fio->FgetInt32();
-//	h1 = state_fio->FgetInt32();
-//	h2 = state_fio->FgetInt32();
-//	h3 = state_fio->FgetInt32();
-//	h4 = state_fio->FgetInt32();
-//	sync_changed = state_fio->FgetBool();
-//	master = state_fio->FgetBool();
-//	zoom = state_fio->FgetUint8();
-//	zr = state_fio->FgetUint8();
-//	zw = state_fio->FgetUint8();
-//	state_fio->Fread(ra, sizeof(ra), 1);
-//	state_fio->Fread(cs, sizeof(cs), 1);
-//	pitch = state_fio->FgetUint8();
-//	lad = state_fio->FgetUint32();
-//	state_fio->Fread(vect, sizeof(vect), 1);
-//	ead = state_fio->FgetInt32();
-//	dad = state_fio->FgetInt32();
-//	maskl = state_fio->FgetUint8();
-//	maskh = state_fio->FgetUint8();
-//	mod = state_fio->FgetUint8();
-//	hsync = state_fio->FgetBool();
-//	hblank = state_fio->FgetBool();
-//	vsync = state_fio->FgetBool();
-//	vblank = state_fio->FgetBool();
-//	start = state_fio->FgetBool();
-//	blink_cursor = state_fio->FgetInt32();
-//	blink_attr = state_fio->FgetInt32();
-//	blink_rate = state_fio->FgetInt32();
-//	low_high = state_fio->FgetBool();
-//	cmd_write_done = state_fio->FgetBool();
-//	cpu_clocks = state_fio->FgetInt32();
-//#ifdef UPD7220_HORIZ_FREQ
-//	horiz_freq = state_fio->FgetInt32();
-//	next_horiz_freq = state_fio->FgetInt32();
-//#endif
-//	frames_per_sec = state_fio->FgetDouble();
-//	lines_per_frame = state_fio->FgetInt32();
-//	state_fio->Fread(params, sizeof(params), 1);
-//	params_count = state_fio->FgetInt32();
-//	if(!fo->load_state((void *)state_fio)) {
-//		return false;
-//	}
-//	state_fio->Fread(rt, sizeof(rt), 1);
-//	dx = state_fio->FgetInt32();
-//	dy = state_fio->FgetInt32();
-//	dir = state_fio->FgetInt32();
-//	dif = state_fio->FgetInt32();
-//	sl = state_fio->FgetInt32();
-//	dc = state_fio->FgetInt32();
-//	d = state_fio->FgetInt32();
-//	d2 = state_fio->FgetInt32();
-//	d1 = state_fio->FgetInt32();
-//	dm = state_fio->FgetInt32();
-//	pattern = state_fio->FgetUint16();
-	
-	// post process
-	if(master) {
-		// force update timing
-		vtotal = 0;
+	state_fio->StateInt32(dx);
+	state_fio->StateInt32(dy);
+	state_fio->StateInt32(dir);
+	state_fio->StateInt32(dif);
+	state_fio->StateInt32(sl);
+	state_fio->StateInt32(dc);
+	state_fio->StateInt32(d);
+	state_fio->StateInt32(d2);
+	state_fio->StateInt32(d1);
+	state_fio->StateInt32(dm);
+	state_fio->StateUint16(pattern);
+ 	
+ 	// post process
+	if(loading && master) {
+ 		// force update timing
+ 		vtotal = 0;
 #ifdef UPD7220_HORIZ_FREQ
 		horiz_freq = 0;
 #endif

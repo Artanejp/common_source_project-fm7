@@ -3163,98 +3163,16 @@ void v99x8_device::write_signal(int id, uint32_t data, uint32_t mask)
 
 #define STATE_VERSION	2
 
-#include "../statesub.h"
-
-void v99x8_device::decl_state()
+bool v99x8_device::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
-	
-	DECL_STATE_ENTRY_INT32(m_offset_x);
-	DECL_STATE_ENTRY_INT32(m_offset_y);
-	DECL_STATE_ENTRY_INT32(m_visible_y);
-	DECL_STATE_ENTRY_INT32(m_mode);
-	DECL_STATE_ENTRY_INT32(m_pal_write_first);
-	DECL_STATE_ENTRY_INT32(m_cmd_write_first);
-	DECL_STATE_ENTRY_UINT8(m_pal_write);
-	DECL_STATE_ENTRY_UINT8(m_cmd_write);
-	DECL_STATE_ENTRY_1D_ARRAY(m_pal_reg, 32);
-	DECL_STATE_ENTRY_1D_ARRAY(m_stat_reg, 10);
-	DECL_STATE_ENTRY_1D_ARRAY(m_cont_reg, 46);
-	DECL_STATE_ENTRY_UINT8(m_read_ahead);
-			
-	DECL_STATE_ENTRY_UINT8(m_int_state);
-	DECL_STATE_ENTRY_INT32(m_scanline);
-	DECL_STATE_ENTRY_INT32(m_blink);
-	DECL_STATE_ENTRY_UINT8(m_blink_count);
-	DECL_STATE_ENTRY_UINT8(m_mx_delta);
-	DECL_STATE_ENTRY_UINT8(m_my_delta);
-	DECL_STATE_ENTRY_UINT8(m_button_state);
-	DECL_STATE_ENTRY_1D_ARRAY(m_pal_ind16, 16);
-	DECL_STATE_ENTRY_1D_ARRAY(m_pal_ind256, 256);
-	{
-		DECL_STATE_ENTRY_INT32((m_mmc.SX));
-		DECL_STATE_ENTRY_INT32((m_mmc.SY));
-		DECL_STATE_ENTRY_INT32((m_mmc.DX));
-		DECL_STATE_ENTRY_INT32((m_mmc.DY));
-		DECL_STATE_ENTRY_INT32((m_mmc.TX));
-		DECL_STATE_ENTRY_INT32((m_mmc.TY));
-		DECL_STATE_ENTRY_INT32((m_mmc.NX));
-		DECL_STATE_ENTRY_INT32((m_mmc.NY));
-		DECL_STATE_ENTRY_INT32((m_mmc.MX));
-		DECL_STATE_ENTRY_INT32((m_mmc.ASX));
-		DECL_STATE_ENTRY_INT32((m_mmc.ADX));
-		DECL_STATE_ENTRY_INT32((m_mmc.ANX));
-		DECL_STATE_ENTRY_UINT8((m_mmc.CL));
-		DECL_STATE_ENTRY_UINT8((m_mmc.LO));
-		DECL_STATE_ENTRY_UINT8((m_mmc.CM));
-		DECL_STATE_ENTRY_UINT8((m_mmc.MXS));
-		DECL_STATE_ENTRY_UINT8((m_mmc.MXD));
-	}
-	DECL_STATE_ENTRY_INT32(m_vdp_ops_count);
-	DECL_STATE_ENTRY_UINT8(m_pal_ntsc);
-	DECL_STATE_ENTRY_INT32(m_scanline_start);
-	DECL_STATE_ENTRY_INT32(m_vblank_start);
-	DECL_STATE_ENTRY_INT32(m_scanline_max);
-	DECL_STATE_ENTRY_INT32(m_height);
-	
-	DECL_STATE_ENTRY_INT32(m_v9958_sp_mode);
-	DECL_STATE_ENTRY_UINT16(m_address_latch);
-	
-	DECL_STATE_ENTRY_1D_ARRAY(vram, sizeof(vram));
-
-	leave_decl_state();
-}
-
-void v99x8_device::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-	
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-
-//	save_load_state(state_fio, true);
-}
-
-bool v99x8_device::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//
-//	save_load_state(state_fio, false);
-
-	return true;
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+	save_load_state(state_fio, !loading);
+ 	return true;
 }
 
 void v99x8_device::save_load_state(FILEIO* state_fio, bool is_save)

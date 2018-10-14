@@ -751,7 +751,7 @@ int DATAREC::load_wav_image(int offset)
 	__fmt_id.set_2bytes_le_from(header.format_id);
 	__sample_bits.set_2bytes_le_from(header.sample_bits);
 	
-	if((__fmt_id.w != 1) || !((__sample_bits.w == 8) || (__sample_bits.w == 16))) {
+	if((__fmt_id.u16 != 1) || !((__sample_bits.u16 == 8) || (__sample_bits.u16 == 16))) {
 		return 0;
 	}
 	tmpval32.set_4bytes_le_from(header.fmt_chunk.size);
@@ -768,9 +768,9 @@ int DATAREC::load_wav_image(int offset)
 
 	__channels.set_2bytes_le_from(header.channels);
 	
-	int samples = (int)(__chunk_size.d / (uint32_t)(__channels.w)), loaded_samples = 0;
+	int samples = (int)(__chunk_size.d / (uint32_t)(__channels.u16)), loaded_samples = 0;
 
-	if(__sample_bits.w == 16) {
+	if(__sample_bits.u16 == 16) {
 		samples /= 2;
 	}
 	__sample_rate.set_4bytes_le_from(header.sample_rate);
@@ -779,14 +779,14 @@ int DATAREC::load_wav_image(int offset)
 	
 	// load samples
 	if(samples > 0) {
-		#define TMP_LENGTH (0x10000 * (uint32_t)(__channels.w))
+		#define TMP_LENGTH (0x10000 * (uint32_t)(__channels.u16))
 		
 		uint8_t *tmp_buffer = (uint8_t *)malloc(TMP_LENGTH);
 		play_fio->Fread(tmp_buffer, TMP_LENGTH, 1);
 		
 		#define GET_SAMPLE { \
-			for(int ch = 0; ch < __channels.sw; ch++) { \
-				if(__sample_bits.w == 16) { \
+			for(int ch = 0; ch < __channels.s16; ch++) { \
+				if(__sample_bits.u16 == 16) { \
 					union { \
 						int16_t s16; \
 						struct { \
@@ -808,7 +808,7 @@ int DATAREC::load_wav_image(int offset)
 
 		bool __t = false;
 		if(__DATAREC_SOUND) {
-		   if(!config.wave_shaper[drive_num] || __channels.w > 1) {
+		   if(!config.wave_shaper[drive_num] || __channels.u16 > 1) {
 			   __t = true;
 		   }
 		} else {
@@ -825,7 +825,7 @@ int DATAREC::load_wav_image(int offset)
 			// load samples
 //#ifdef DATAREC_SOUND
 			if(__DATAREC_SOUND) {
-				if(__channels.w > 1) {
+				if(__channels.u16 > 1) {
 					sound_buffer_length = samples * sizeof(int16_t);
 					sound_buffer = (int16_t *)malloc(sound_buffer_length);
 				}
@@ -838,7 +838,7 @@ int DATAREC::load_wav_image(int offset)
 				int16_t sample_signal = sample[0];
 //#ifdef DATAREC_SOUND
 				if(__DATAREC_SOUND) {
-					if(__channels.w > 1) {
+					if(__channels.u16 > 1) {
 //#ifdef DATAREC_SOUND_LEFT
 						if(__DATAREC_SOUND_LEFT) {
 							sample_signal = sample[1];
@@ -1023,7 +1023,7 @@ int DATAREC::load_wav_image(int offset)
 					buffer = (uint8_t *)malloc(loaded_samples);
 //#ifdef DATAREC_SOUND
 					if(__DATAREC_SOUND) {
-						if(__channels.w > 1) {
+						if(__channels.u16 > 1) {
 							sound_buffer_length = loaded_samples * sizeof(int16_t);
 							sound_buffer = (int16_t *)malloc(sound_buffer_length);
 						}
@@ -1064,11 +1064,11 @@ void DATAREC::save_wav_image()
 
 	__riff_chunk_size.d = length - 8;
 	__fmt_chunk_size.d = 16;
-	__fmt_id.w = 1;
-	__channels.w = 1;
+	__fmt_id.u16 = 1;
+	__channels.u16 = 1;
 	__sample_rate.d = sample_rate;
-	__block_size.w = 1;
-	__sample_bits.w = 8;
+	__block_size.u16 = 1;
+	__sample_bits.u16 = 8;
 	memcpy(wav_header.riff_chunk.id, "RIFF", 4);
 	wav_header.riff_chunk.size = __riff_chunk_size.get_4bytes_le_to();
 	

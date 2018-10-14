@@ -160,7 +160,6 @@ private:
 	void v99x8_refresh_scc(int y, int h);
 	void v99x8_refresh_scx(int y, int h);
 	
-	void decl_state_v99x8();
 public:
 	V99X8(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -176,9 +175,7 @@ public:
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
 	void event_vline(int v, int clock);
-	void decl_staet();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	// unique functions
 	void set_context_irq(DEVICE* device, int id, uint32_t mask)
 	{

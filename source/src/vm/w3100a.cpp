@@ -389,84 +389,58 @@ void W3100A::inc_recv_buffer_ptr(int ch, int size)
 
 #define STATE_VERSION	1
 
-#include "../statesub.h"
-
-void W3100A::decl_state()
+bool W3100A::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
-	
-	DECL_STATE_ENTRY_UINT8(idm_or);
-	DECL_STATE_ENTRY_UINT8(idm_ar0);
-	DECL_STATE_ENTRY_UINT8(idm_ar1);
-	DECL_STATE_ENTRY_1D_ARRAY(regs, sizeof(regs));
-	DECL_STATE_ENTRY_1D_ARRAY(is_tcp, sizeof(is_tcp) / sizeof(bool));
-	
-	DECL_STATE_ENTRY_1D_ARRAY(rx_bufsz, sizeof(rx_bufsz) / sizeof(uint16_t));
-	DECL_STATE_ENTRY_1D_ARRAY(tx_bufsz, sizeof(tx_bufsz) / sizeof(uint16_t));
-	DECL_STATE_ENTRY_1D_ARRAY(cx_rw_pr, sizeof(cx_rw_pr) / sizeof(uint32_t));
-	DECL_STATE_ENTRY_1D_ARRAY(cx_rr_pr, sizeof(cx_rr_pr) / sizeof(uint32_t));
-	DECL_STATE_ENTRY_1D_ARRAY(cx_ta_pr, sizeof(cx_ta_pr) / sizeof(uint32_t));
-	DECL_STATE_ENTRY_1D_ARRAY(cx_tw_pr, sizeof(cx_tw_pr) / sizeof(uint32_t));
-	DECL_STATE_ENTRY_1D_ARRAY(cx_tr_pr, sizeof(cx_tr_pr) / sizeof(uint32_t));
-	DECL_STATE_ENTRY_1D_ARRAY(send_dst_ptr, sizeof(send_dst_ptr) / sizeof(uint32_t));
-	DECL_STATE_ENTRY_1D_ARRAY(recv_dst_ptr, sizeof(recv_dst_ptr) / sizeof(uint32_t));
-
-	leave_decl_state();
-}
-
-void W3100A::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+	state_fio->StateUint8(idm_or);
+	state_fio->StateUint8(idm_ar0);
+	state_fio->StateUint8(idm_ar1);
+	state_fio->StateBuffer(regs, sizeof(regs), 1);
+	//state_fio->StateBuffer(is_tcp, sizeof(is_tcp), 1);
+	for(int i = 0; i < 4; i++) {
+		state_fio->StateBool(is_tcp[i]);
 	}
-	
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->FputUint8(idm_or);
-//	state_fio->FputUint8(idm_ar0);
-//	state_fio->FputUint8(idm_ar1);
-//	state_fio->Fwrite(regs, sizeof(regs), 1);
-//	state_fio->Fwrite(is_tcp, sizeof(is_tcp), 1);
-//	state_fio->Fwrite(rx_bufsz, sizeof(rx_bufsz), 1);
-//	state_fio->Fwrite(tx_bufsz, sizeof(tx_bufsz), 1);
-//	state_fio->Fwrite(cx_rw_pr, sizeof(cx_rw_pr), 1);
-//	state_fio->Fwrite(cx_rr_pr, sizeof(cx_rr_pr), 1);
-//	state_fio->Fwrite(cx_ta_pr, sizeof(cx_ta_pr), 1);
-//	state_fio->Fwrite(cx_tw_pr, sizeof(cx_tw_pr), 1);
-//	state_fio->Fwrite(cx_tr_pr, sizeof(cx_tr_pr), 1);
-//	state_fio->Fwrite(send_dst_ptr, sizeof(send_dst_ptr), 1);
-//	state_fio->Fwrite(recv_dst_ptr, sizeof(recv_dst_ptr), 1);
-}
-
-bool W3100A::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
+	//state_fio->StateBuffer(rx_bufsz, sizeof(rx_bufsz), 1);
+	//state_fio->StateBuffer(tx_bufsz, sizeof(tx_bufsz), 1);
+	for(int i = 0; i < 4; i++) {
+		state_fio->StateUint16(rx_bufsz[i]);
 	}
-	if(!mb) return false;
+	for(int i = 0; i < 4; i++) {
+		state_fio->StateUint16(tx_bufsz[i]);
+	}
+	//state_fio->StateBuffer(cx_rw_pr, sizeof(cx_rw_pr), 1);
+	//state_fio->StateBuffer(cx_rr_pr, sizeof(cx_rr_pr), 1);
+	for(int i = 0; i < 4; i++) {
+		state_fio->StateUint32(cx_rw_pr[i]);
+	}
+	for(int i = 0; i < 4; i++) {
+		state_fio->StateUint32(cx_rr_pr[i]);
+	}
+	//state_fio->StateBuffer(cx_ta_pr, sizeof(cx_ta_pr), 1);
+	//state_fio->StateBuffer(cx_tw_pr, sizeof(cx_tw_pr), 1);
+	//state_fio->StateBuffer(cx_tr_pr, sizeof(cx_tr_pr), 1);
+	for(int i = 0; i < 4; i++) {
+		state_fio->StateUint32(cx_ta_pr[i]);
+	}
+	for(int i = 0; i < 4; i++) {
+		state_fio->StateUint32(cx_tw_pr[i]);
+	}
+	for(int i = 0; i < 4; i++) {
+		state_fio->StateUint32(cx_tr_pr[i]);
+	}
+	//state_fio->StateBuffer(send_dst_ptr, sizeof(send_dst_ptr), 1);
+	//state_fio->StateBuffer(recv_dst_ptr, sizeof(recv_dst_ptr), 1);
+	for(int i = 0; i < 4; i++) {
+		state_fio->StateUint32(send_dst_ptr[i]);
+	}
+	for(int i = 0; i < 4; i++) {
+		state_fio->StateUint32(recv_dst_ptr[i]);
+	}
 
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	idm_or = state_fio->FgetUint8();
-//	idm_ar0 = state_fio->FgetUint8();
-//	idm_ar1 = state_fio->FgetUint8();
-//	state_fio->Fread(regs, sizeof(regs), 1);
-//	state_fio->Fread(is_tcp, sizeof(is_tcp), 1);
-//	state_fio->Fread(rx_bufsz, sizeof(rx_bufsz), 1);
-//	state_fio->Fread(tx_bufsz, sizeof(tx_bufsz), 1);
-//	state_fio->Fread(cx_rw_pr, sizeof(cx_rw_pr), 1);
-//	state_fio->Fread(cx_rr_pr, sizeof(cx_rr_pr), 1);
-//	state_fio->Fread(cx_ta_pr, sizeof(cx_ta_pr), 1);
-//	state_fio->Fread(cx_tw_pr, sizeof(cx_tw_pr), 1);
-//	state_fio->Fread(cx_tr_pr, sizeof(cx_tr_pr), 1);
-//	state_fio->Fread(send_dst_ptr, sizeof(send_dst_ptr), 1);
-//	state_fio->Fread(recv_dst_ptr, sizeof(recv_dst_ptr), 1);
-	return true;
+ 	return true;
 }
-

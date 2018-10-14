@@ -693,10 +693,10 @@ bool MC6840::process_state(FILEIO* state_fio, bool loading)
 		state_fio->StateInt32(m_timer[i]);
 	}
 	for(int i = 0; i < (sizeof(m_latch) / sizeof(UINT16)); i++) {
-		state_fio->StateUint16(m_timer[i]);
+		state_fio->StateUint16(m_latch[i]);
 	}
 	for(int i = 0; i < (sizeof(m_counter) / sizeof(UINT16)); i++) {
-		state_fio->StateUint16(m_timer[i]);
+		state_fio->StateUint16(m_counter[i]);
 	}
  	return true;
 }

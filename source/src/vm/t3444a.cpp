@@ -805,8 +805,8 @@ bool T3444A::process_state_fdc(int ch, FILEIO* state_fio, bool loading)
 {
 	state_fio->StateInt32(fdc[ch].track);
 	state_fio->StateInt32(fdc[ch].index);
-	state_fio->StateInt32(fdc[ch].access);
-	state_fio->StateInt32(fdc[ch].head_load);
+	state_fio->StateBool(fdc[ch].access);
+	state_fio->StateBool(fdc[ch].head_load);
 
 	
 	state_fio->StateInt32(fdc[ch].cur_position);
@@ -815,7 +815,7 @@ bool T3444A::process_state_fdc(int ch, FILEIO* state_fio, bool loading)
 	state_fio->StateInt32(fdc[ch].bytes_before_2nd_rqm);
 	state_fio->StateInt32(fdc[ch].next_sync_position);
 
-	state_fio->StateInt32(fdc[ch].prev_clock);
+	state_fio->StateUint32(fdc[ch].prev_clock);
 
 	return true;
 }
@@ -833,7 +833,7 @@ bool T3444A::process_state(FILEIO* state_fio, bool loading)
 	for(int ch = 0; ch < 4; ch++) {
 		process_state_fdc(ch, state_fio, loading);
 	}
- 	for(int i = 0; i < __max_drive; i++) {
+ 	for(int i = 0; i < _max_drive; i++) {
 		if(!disk[i]->process_state(state_fio, loading)) {
  			return false;
  		}

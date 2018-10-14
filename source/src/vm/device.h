@@ -121,21 +121,6 @@ public:
 	{
 		return true;
 	}
-#if defined(_USE_QT)
-	virtual void decl_state(void) { }
-	virtual void enter_decl_state(int version) {
-		state_entry = new csp_state_utils(version, this_device_id, (const _TCHAR *)this_device_name, p_logger);
-	}
-	virtual void enter_decl_state(int version,  _TCHAR *name) {
-		state_entry = new csp_state_utils(version, this_device_id, (const _TCHAR *)name, p_logger);
-	}
-	virtual void leave_decl_state(void) {}
-#else
-	virtual void decl_state(void) {}
-	void enter_decl_state(int version) {}
-	void enter_decl_state(int version,  _TCHAR *name) {}
-	void leave_decl_state(void) {}
-#endif
 	// control
 	virtual void reset() {}
 	virtual void special_reset()

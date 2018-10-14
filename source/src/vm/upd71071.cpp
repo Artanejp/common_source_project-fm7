@@ -292,89 +292,30 @@ void UPD71071::do_dma()
 
 #define STATE_VERSION	1
 
-#include "../statesub.h"
-
-void UPD71071::decl_state()
+bool UPD71071::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
-
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
 	for(int i = 0; i < 4; i++) {
-		DECL_STATE_ENTRY_UINT32_MEMBER((dma[i].areg), i);
-		DECL_STATE_ENTRY_UINT32_MEMBER((dma[i].bareg), i);
-		DECL_STATE_ENTRY_UINT16_MEMBER((dma[i].creg), i);
-		DECL_STATE_ENTRY_UINT16_MEMBER((dma[i].bcreg), i);
-		DECL_STATE_ENTRY_UINT8_MEMBER((dma[i].mode), i);
+		state_fio->StateUint32(dma[i].areg);
+		state_fio->StateUint32(dma[i].bareg);
+		state_fio->StateUint16(dma[i].creg);
+		state_fio->StateUint16(dma[i].bcreg);
+		state_fio->StateUint8(dma[i].mode);
 	}
-	DECL_STATE_ENTRY_UINT8(b16);
-	DECL_STATE_ENTRY_UINT8(selch);
-	DECL_STATE_ENTRY_UINT8(base);
-	DECL_STATE_ENTRY_UINT16(cmd);
-	DECL_STATE_ENTRY_UINT16(tmp);
-	DECL_STATE_ENTRY_UINT8(req);
-	DECL_STATE_ENTRY_UINT8(sreq);
-	DECL_STATE_ENTRY_UINT8(mask);
-	DECL_STATE_ENTRY_UINT8(tc);
-
-	leave_decl_state();
-}	
-
-void UPD71071::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-	
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	for(int i = 0; i < 4; i++) {
-//		state_fio->FputUint32(dma[i].areg);
-//		state_fio->FputUint32(dma[i].bareg);
-//		state_fio->FputUint16(dma[i].creg);
-//		state_fio->FputUint16(dma[i].bcreg);
-//		state_fio->FputUint8(dma[i].mode);
-//	}
-//	state_fio->FputUint8(b16);
-//	state_fio->FputUint8(selch);
-//	state_fio->FputUint8(base);
-//	state_fio->FputUint16(cmd);
-//	state_fio->FputUint16(tmp);
-//	state_fio->FputUint8(req);
-//	state_fio->FputUint8(sreq);
-//	state_fio->FputUint8(mask);
-//	state_fio->FputUint8(tc);
-}
-
-bool UPD71071::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	for(int i = 0; i < 4; i++) {
-//		dma[i].areg = state_fio->FgetUint32();
-//		dma[i].bareg = state_fio->FgetUint32();
-//		dma[i].creg = state_fio->FgetUint16();
-//		dma[i].bcreg = state_fio->FgetUint16();
-//		dma[i].mode = state_fio->FgetUint8();
-//	}
-//	b16 = state_fio->FgetUint8();
-//	selch = state_fio->FgetUint8();
-//	base = state_fio->FgetUint8();
-//	cmd = state_fio->FgetUint16();
-//	tmp = state_fio->FgetUint16();
-//	req = state_fio->FgetUint8();
-//	sreq = state_fio->FgetUint8();
-//	mask = state_fio->FgetUint8();
-//	tc = state_fio->FgetUint8();
+	state_fio->StateUint8(b16);
+	state_fio->StateUint8(selch);
+	state_fio->StateUint8(base);
+	state_fio->StateUint16(cmd);
+	state_fio->StateUint16(tmp);
+	state_fio->StateUint8(req);
+	state_fio->StateUint8(sreq);
+	state_fio->StateUint8(mask);
+	state_fio->StateUint8(tc);
 	return true;
 }
 

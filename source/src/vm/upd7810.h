@@ -44,7 +44,7 @@ private:
 	
 	int run_one_opecode();
 
-	void decl_state_cpustate();
+	void process_state_cpustate(FILEIO* state_fio, bool loading);
 public:
 	UPD7810(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -86,9 +86,7 @@ public:
 	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 #endif
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_mem(DEVICE* device)

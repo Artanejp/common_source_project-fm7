@@ -1202,9 +1202,11 @@ void UPD7801::run_one_opecode()
 		}
 		
 		// run 1 opecode
-#ifdef USE_DEBUGGER
-		d_debugger->add_cpu_trace(PC);
-#endif
+//#ifdef USE_DEBUGGER
+		if(__USE_DEBUGGER) {
+			d_debugger->add_cpu_trace(PC);
+		}
+//#endif
 		period = 0;
 		prevPC = PC;
 		OP();
@@ -3910,134 +3912,53 @@ void UPD7801::OP74()
 
 #define STATE_VERSION	4
 
-#include "../statesub.h"
-
-void UPD7801::decl_state()
+bool UPD7801::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
-
-#ifdef USE_DEBUGGER
-	DECL_STATE_ENTRY_UINT64(total_count);
-#endif
-	DECL_STATE_ENTRY_INT32(count);
-	DECL_STATE_ENTRY_INT32(period);
-	DECL_STATE_ENTRY_INT32(scount);
-	DECL_STATE_ENTRY_INT32(tcount);
-	DECL_STATE_ENTRY_BOOL(wait);
-	for(int i = 0; i < (sizeof(regs) / sizeof(pair_t)); i++) {
-		DECL_STATE_ENTRY_PAIR_MEMBER((regs[i]), i);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+	if(__USE_DEBUGGER) {
+		state_fio->StateUint64(total_count);
 	}
-	DECL_STATE_ENTRY_UINT16(SP);
-	DECL_STATE_ENTRY_UINT16(PC);
-	DECL_STATE_ENTRY_UINT16(prevPC);
-	DECL_STATE_ENTRY_UINT8(PSW);
-	DECL_STATE_ENTRY_UINT8(IRR);
-	DECL_STATE_ENTRY_UINT8(IFF);
-	DECL_STATE_ENTRY_UINT8(SIRQ);
-	DECL_STATE_ENTRY_UINT8(HALT);
-	DECL_STATE_ENTRY_UINT8(MK);
-	DECL_STATE_ENTRY_UINT8(MB);
-	DECL_STATE_ENTRY_UINT8(MC);
-	DECL_STATE_ENTRY_UINT8(TM0);
-	DECL_STATE_ENTRY_UINT8(TM1);
-	DECL_STATE_ENTRY_UINT8(SR);
-	DECL_STATE_ENTRY_UINT8(SAK);
-	DECL_STATE_ENTRY_UINT8(TO);
-	DECL_STATE_ENTRY_UINT8(HLDA);
-	DECL_STATE_ENTRY_UINT8(PORTC);
-	DECL_STATE_ENTRY_BOOL(SI);
-	DECL_STATE_ENTRY_BOOL(SCK);
-	DECL_STATE_ENTRY_INT32(sio_count);
-	
-	leave_decl_state();
-}
-
-void UPD7801::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
+	state_fio->StateInt32(count);
+	state_fio->StateInt32(period);
+	state_fio->StateInt32(scount);
+	state_fio->StateInt32(tcount);
+	state_fio->StateBool(wait);
+	//state_fio->StateBuffer(regs, sizeof(regs), 1);
+	for(int i = 0; i < (sizeof(regs) / sizeof(uint32_t)); i++) {
+		state_fio->StateUint32(regs[i].d);
 	}
+	state_fio->StateUint16(SP);
+	state_fio->StateUint16(PC);
+	state_fio->StateUint16(prevPC);
+	state_fio->StateUint8(PSW);
+	state_fio->StateUint8(IRR);
+	state_fio->StateUint8(IFF);
+	state_fio->StateUint8(SIRQ);
+	state_fio->StateUint8(HALT);
+	state_fio->StateUint8(MK);
+	state_fio->StateUint8(MB);
+	state_fio->StateUint8(MC);
+	state_fio->StateUint8(TM0);
+	state_fio->StateUint8(TM1);
+	state_fio->StateUint8(SR);
+	state_fio->StateUint8(SAK);
+	state_fio->StateUint8(TO);
+	state_fio->StateUint8(HLDA);
+	state_fio->StateUint8(PORTC);
+	state_fio->StateBool(SI);
+	state_fio->StateBool(SCK);
+	state_fio->StateInt32(sio_count);
 	
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//#ifdef USE_DEBUGGER
-//	state_fio->FputUint64(total_count);
-//#endif
-//	state_fio->FputInt32(count);
-//	state_fio->FputInt32(period);
-//	state_fio->FputInt32(scount);
-//	state_fio->FputInt32(tcount);
-//	state_fio->FputBool(wait);
-//	state_fio->Fwrite(regs, sizeof(regs), 1);
-//	state_fio->FputUint16(SP);
-//	state_fio->FputUint16(PC);
-//	state_fio->FputUint16(prevPC);
-//	state_fio->FputUint8(PSW);
-//	state_fio->FputUint8(IRR);
-//	state_fio->FputUint8(IFF);
-//	state_fio->FputUint8(SIRQ);
-//	state_fio->FputUint8(HALT);
-//	state_fio->FputUint8(MK);
-//	state_fio->FputUint8(MB);
-//	state_fio->FputUint8(MC);
-//	state_fio->FputUint8(TM0);
-//	state_fio->FputUint8(TM1);
-//	state_fio->FputUint8(SR);
-//	state_fio->FputUint8(SAK);
-//	state_fio->FputUint8(TO);
-//	state_fio->FputUint8(HLDA);
-//	state_fio->FputUint8(PORTC);
-//	state_fio->FputBool(SI);
-//	state_fio->FputBool(SCK);
-//	state_fio->FputInt32(sio_count);
-}
-
-bool UPD7801::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
+	// post process
+	if(__USE_DEBUGGER) {
+		if(loading) {
+			prev_total_count = total_count;
+		}
 	}
-	if(!mb) return false;
-
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//#ifdef USE_DEBUGGER
-//	total_count = prev_total_count = state_fio->FgetUint64();
-//#endif
-//	count = state_fio->FgetInt32();
-//	period = state_fio->FgetInt32();
-//	scount = state_fio->FgetInt32();
-//	tcount = state_fio->FgetInt32();
-//	wait = state_fio->FgetBool();
-//	state_fio->Fread(regs, sizeof(regs), 1);
-//	SP = state_fio->FgetUint16();
-//	PC = state_fio->FgetUint16();
-//	prevPC = state_fio->FgetUint16();
-//	PSW = state_fio->FgetUint8();
-//	IRR = state_fio->FgetUint8();
-//	IFF = state_fio->FgetUint8();
-//	SIRQ = state_fio->FgetUint8();
-//	HALT = state_fio->FgetUint8();
-//	MK = state_fio->FgetUint8();
-//	MB = state_fio->FgetUint8();
-//	MC = state_fio->FgetUint8();
-//	TM0 = state_fio->FgetUint8();
-//	TM1 = state_fio->FgetUint8();
-//	SR = state_fio->FgetUint8();
-//	SAK = state_fio->FgetUint8();
-//	TO = state_fio->FgetUint8();
-//	HLDA = state_fio->FgetUint8();
-//	PORTC = state_fio->FgetUint8();
-//	SI = state_fio->FgetBool();
-//	SCK = state_fio->FgetBool();
-//	sio_count = state_fio->FgetInt32();
-	prev_total_count = total_count;
-	return true;
+ 	return true;
 }
-

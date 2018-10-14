@@ -2955,15 +2955,15 @@ void *I386_OPS_BASE::cpu_init_i386(void)
 
 void I386_OPS_BASE::cpu_table_i386(void)
 {
-	build_opcode_table(cpustate, OP_I386);
+	build_opcode_table(OP_I386);
 	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_I386];
 	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_I386];
 }
 
 void I386_OPS_BASE::cpu_table_i486(void)
 {
-	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486);
-	build_x87_opcode_table(cpustate);
+	build_opcode_table(OP_I386 | OP_FPU | OP_I486);
+	build_x87_opcode_table();
 	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_I486];
 	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_I486];
 }
@@ -2971,8 +2971,8 @@ void I386_OPS_BASE::cpu_table_i486(void)
 void I386_OPS_BASE::cpu_table_pentium(void)
 {
 	// 64 dtlb small, 8 dtlb large, 32 itlb
-	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM);
-	build_x87_opcode_table(cpustate);
+	build_opcode_table(OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM);
+	build_x87_opcode_table();
 	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];
 	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];
 }
@@ -2980,8 +2980,8 @@ void I386_OPS_BASE::cpu_table_pentium(void)
 void I386_OPS_BASE::cpu_table_mediagx(void)
 {
 	// probably 32 unified
-	build_x87_opcode_table(cpustate);
-	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_CYRIX);
+	build_x87_opcode_table();
+	build_opcode_table(OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_CYRIX);
 	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_MEDIAGX];
 	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_MEDIAGX];
 }
@@ -2989,8 +2989,8 @@ void I386_OPS_BASE::cpu_table_mediagx(void)
 void I386_OPS_BASE::cpu_table_pentium_pro(void)
 {
 	// 64 dtlb small, 32 itlb
-	build_x87_opcode_table(cpustate);
-	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO);
+	build_x87_opcode_table();
+	build_opcode_table(OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO);
 	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
 	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
 }
@@ -2998,8 +2998,8 @@ void I386_OPS_BASE::cpu_table_pentium_pro(void)
 void I386_OPS_BASE::cpu_table_pentium_mmx(void)
 {
 	// 64 dtlb small, 8 dtlb large, 32 itlb small, 2 itlb large
-	build_x87_opcode_table(cpustate);
-	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_MMX);
+	build_x87_opcode_table();
+	build_opcode_table(OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_MMX);
 	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
 	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
 }
@@ -3007,8 +3007,8 @@ void I386_OPS_BASE::cpu_table_pentium_mmx(void)
 void I386_OPS_BASE::cpu_table_pentium2(void)
 {
 	// 64 dtlb small, 8 dtlb large, 32 itlb small, 2 itlb large
-	build_x87_opcode_table(cpustate);
-	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO | OP_MMX);
+	build_x87_opcode_table();
+	build_opcode_table(OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO | OP_MMX);
 	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
 	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
 }
@@ -3016,8 +3016,8 @@ void I386_OPS_BASE::cpu_table_pentium2(void)
 void I386_OPS_BASE::cpu_table_pentium3(void)
 {
 	// 64 dtlb small, 8 dtlb large, 32 itlb small, 2 itlb large
-	build_x87_opcode_table(cpustate);
-	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO | OP_MMX | OP_SSE);
+	build_x87_opcode_table();
+	build_opcode_table(OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO | OP_MMX | OP_SSE);
 	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
 	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
 }
@@ -3025,194 +3025,13 @@ void I386_OPS_BASE::cpu_table_pentium3(void)
 void I386_OPS_BASE::cpu_table_pentium4(void)
 {
 	// 128 dtlb, 64 itlb
-	build_x87_opcode_table(cpustate);
-	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO | OP_MMX | OP_SSE | OP_SSE2);
+	build_x87_opcode_table();
+	build_opcode_table(OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO | OP_MMX | OP_SSE | OP_SSE2);
 	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
 	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
 }
 
 
-//#include "./i386_ops_table.h"
-
-#include "../../statesub.h"
-
-void I386_OPS_BASE::decl_state_sreg(csp_state_utils *state_entry, int num)
-{
-	DECL_STATE_ENTRY_UINT16_MEMBER((cpustate->sreg[num].selector), num);
-	DECL_STATE_ENTRY_UINT16_MEMBER((cpustate->sreg[num].flags), num);
-	DECL_STATE_ENTRY_UINT32_MEMBER((cpustate->sreg[num].base), num);
-	DECL_STATE_ENTRY_UINT32_MEMBER((cpustate->sreg[num].limit), num);
-	DECL_STATE_ENTRY_INT32_MEMBER((cpustate->sreg[num].d), num);
-	DECL_STATE_ENTRY_BOOL_MEMBER((cpustate->sreg[num].valid), num);
-}
-
-#if 0
-void I386_OPS_BASE::decl_state_sys_table(csp_state_utils *state_entry, struct I386_SYS_TABLE *i386_sys_table_p)
-{
-	DECL_STATE_ENTRY_UINT32((i386_sys_table_p->base));
-	DECL_STATE_ENTRY_UINT16((i386_sys_table_p->limit));
-}
-
-void I386_OPS_BASE::decl_state_seg_desc(csp_state_utils *state_entry, struct I386_SEG_DESC *i386_seg_desc)
-{
-	DECL_STATE_ENTRY_UINT16((i386_seg_desc->segment));
-	DECL_STATE_ENTRY_UINT16((i386_seg_desc->flags));
-	DECL_STATE_ENTRY_UINT32((i386_seg_desc->base));
-	DECL_STATE_ENTRY_UINT32((i386_seg_desc->limit));
-}
-
-#define DECL_STATE_ENTRY_XMM(foo) {				\
-		DECL_STATE_ENTRY_DOUBLE((foo.f64[0]));	\
-		DECL_STATE_ENTRY_DOUBLE((foo.f64[1]));		\
-	}
-
-#define DECL_STATE_ENTRY_XMM_MEMBER(foo, num) {						\
-		DECL_STATE_ENTRY_DOUBLE_MEMBER((foo.f64[0]), num);		\
-		DECL_STATE_ENTRY_DOUBLE_MEMBER((foo.f64[1]), num);			\
-	}
-
-
-#define DECL_STATE_ENTRY_FLOATX80(foo) {		\
-		DECL_STATE_ENTRY_UINT16((foo.high));	\
-		DECL_STATE_ENTRY_DOUBLE((foo.low));		\
-	}
-
-#define DECL_STATE_ENTRY_FLOATX80_MEMBER(foo, num) {	\
-		DECL_STATE_ENTRY_UINT16_MEMBER((foo.high), num);	\
-		DECL_STATE_ENTRY_DOUBLE_MEMBER((foo.low), num);			\
-	}
-
-#define DECL_STATE_FLOAT128(foo) { \
-		DECL_STATE_ENTRY_DOUBLE((foo.high));	\
-		DECL_STATE_ENTRY_DOUBLE((foo.low));		\
-	}
-
-#define DECL_STATE_ENTRY_FLOAT128_MEMBER(foo, num) {			\
-		DECL_STATE_ENTRY_DOUBLE_MEMBER((foo.high), num);	\
-		DECL_STATE_ENTRY_DOUBLE_MEMBER((foo.low), num);			\
-	}
-
-void I386_OPS_BASE::decl_state(csp_state_utils *state_entry)
-{
-
-	DECL_STATE_ENTRY_1D_ARRAY((cpustate->reg.d), 8);  // GPR
-	for(int i = 0; i < 6; i++) {
-		decl_state_sreg(state_entry, i);
-	}
-	DECL_STATE_ENTRY_UINT32((cpustate->eip));
-	DECL_STATE_ENTRY_UINT32((cpustate->pc));
-	DECL_STATE_ENTRY_UINT32((cpustate->prev_eip));
-	DECL_STATE_ENTRY_UINT32((cpustate->prev_pc));
-	DECL_STATE_ENTRY_UINT32((cpustate->eflags));
-	DECL_STATE_ENTRY_UINT32((cpustate->eflags_mask));
-	
-	DECL_STATE_ENTRY_UINT8((cpustate->CF));
-	DECL_STATE_ENTRY_UINT8((cpustate->DF));
-	DECL_STATE_ENTRY_UINT8((cpustate->SF));
-	DECL_STATE_ENTRY_UINT8((cpustate->OF));
-	DECL_STATE_ENTRY_UINT8((cpustate->ZF));
-	DECL_STATE_ENTRY_UINT8((cpustate->PF));
-	DECL_STATE_ENTRY_UINT8((cpustate->AF));
-	DECL_STATE_ENTRY_UINT8((cpustate->IF));
-	DECL_STATE_ENTRY_UINT8((cpustate->TF));
-	DECL_STATE_ENTRY_UINT8((cpustate->IOP1));
-	DECL_STATE_ENTRY_UINT8((cpustate->IOP2));
-	DECL_STATE_ENTRY_UINT8((cpustate->NT));
-	DECL_STATE_ENTRY_UINT8((cpustate->RF));
-	DECL_STATE_ENTRY_UINT8((cpustate->VM));
-	DECL_STATE_ENTRY_UINT8((cpustate->AC));
-	DECL_STATE_ENTRY_UINT8((cpustate->VIF));
-	DECL_STATE_ENTRY_UINT8((cpustate->VIP));
-	DECL_STATE_ENTRY_UINT8((cpustate->ID));
-
-	DECL_STATE_ENTRY_UINT8((cpustate->CPL));
-
-	DECL_STATE_ENTRY_UINT8((cpustate->performed_intersegment_jump));
-	DECL_STATE_ENTRY_UINT8((cpustate->delayed_interrupt_enable));
-
-	DECL_STATE_ENTRY_1D_ARRAY((cpustate->cr), 5);       // Control registers
-	DECL_STATE_ENTRY_1D_ARRAY((cpustate->dr), 8);       // Debug registers
-	DECL_STATE_ENTRY_1D_ARRAY((cpustate->tr), 8);       // Test registers
-
-	decl_state_sys_table(state_entry, &(cpustate->gdtr));
-	decl_state_sys_table(state_entry, &(cpustate->idtr));
-
-	decl_state_seg_desc(state_entry, &(cpustate->task));
-	decl_state_seg_desc(state_entry, &(cpustate->ldtr));
-
-	DECL_STATE_ENTRY_UINT8((cpustate->ext));
-
-	DECL_STATE_ENTRY_INT32((cpustate->halted));
-	DECL_STATE_ENTRY_INT32((cpustate->busreq));
-	DECL_STATE_ENTRY_INT32((cpustate->shutdown));
-
-	DECL_STATE_ENTRY_INT32((cpustate->operand_size));
-	DECL_STATE_ENTRY_INT32((cpustate->xmm_operand_size));
-	DECL_STATE_ENTRY_INT32((cpustate->address_size));
-	DECL_STATE_ENTRY_INT32((cpustate->operand_prefix));
-	DECL_STATE_ENTRY_INT32((cpustate->address_prefix));
-
-	DECL_STATE_ENTRY_INT32((cpustate->segment_prefix));
-	DECL_STATE_ENTRY_INT32((cpustate->segment_override));
-	
-	DECL_STATE_ENTRY_UINT64((cpustate->total_cycles));
-	DECL_STATE_ENTRY_UINT64((cpustate->prev_total_cycles));
-
-	DECL_STATE_ENTRY_INT32((cpustate->cycles));
-	DECL_STATE_ENTRY_INT32((cpustate->extra_cycles));
-	DECL_STATE_ENTRY_INT32((cpustate->base_cycles));
-
-	DECL_STATE_ENTRY_UINT8((cpustate->opcode));
-	DECL_STATE_ENTRY_UINT8((cpustate->irq_state));
-
-	DECL_STATE_ENTRY_UINT32((cpustate->a20_mask));
-
-	DECL_STATE_ENTRY_INT32((cpustate->cpuid_max_input_value_eax));
-	DECL_STATE_ENTRY_UINT32((cpustate->cpuid_id0));
-	DECL_STATE_ENTRY_UINT32((cpustate->cpuid_id1));
-	DECL_STATE_ENTRY_UINT32((cpustate->cpuid_id2));
-	
-	DECL_STATE_ENTRY_UINT32((cpustate->cpu_version));
-	DECL_STATE_ENTRY_UINT32((cpustate->feature_flags));
-	DECL_STATE_ENTRY_UINT64((cpustate->tsc));
-	DECL_STATE_ENTRY_1D_ARRAY((cpustate->perfctr), 2);
-
-	for(int i = 0; i < 8; i++) {
-		DECL_STATE_ENTRY_FLOATX80_MEMBER(cpustate->x87_reg[i], i);
-	}
-
-	DECL_STATE_ENTRY_UINT16((cpustate->x87_cw));
-	DECL_STATE_ENTRY_UINT16((cpustate->x87_sw));
-	DECL_STATE_ENTRY_UINT16((cpustate->x87_tw));
-	DECL_STATE_ENTRY_UINT64((cpustate->x87_data_ptr));
-	DECL_STATE_ENTRY_UINT64((cpustate->x87_inst_ptr));
-	DECL_STATE_ENTRY_UINT16((cpustate->x87_opcode));
-
-	// ToDo? : opcode_table
-	for(int i = 0; i < 8; i++) {
-		DECL_STATE_ENTRY_XMM_MEMBER(cpustate->sse_reg[i], i);
-	}
-	DECL_STATE_ENTRY_UINT32((cpustate->mxcsr));
-
-	DECL_STATE_ENTRY_2D_ARRAY(cpustate->lock_table, 2, 256);
-
-	//ToDo: VTLB load/save.
-	DECL_STATE_ENTRY_BOOL((cpustate->smm));
-	DECL_STATE_ENTRY_BOOL((cpustate->smi));
-	DECL_STATE_ENTRY_BOOL((cpustate->smi_latched));
-	DECL_STATE_ENTRY_BOOL((cpustate->nmi_masked));
-	DECL_STATE_ENTRY_BOOL((cpustate->nmi_latched));
-	
-	DECL_STATE_ENTRY_UINT32((cpustate->smbase));
-
-	DECL_STATE_ENTRY_BOOL((cpustate->lock));
-#ifdef DEBUG_MISSING_OPCODE
-	DECL_STATE_ENTRY_1D_ARRAY((cpustate->opcode_bytes), 16);
-	DECL_STATE_ENTRY_UINT32((cpustate->opcode_pc));
-	DECL_STATE_ENTRY_INT32((cpustate->opcode_bytes_length));
-#endif
-}
-#endif
 
 bool I386_OPS_BASE::process_state(FILEIO *state_fio, bool loading)
 {

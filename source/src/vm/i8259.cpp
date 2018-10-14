@@ -294,37 +294,3 @@ bool I8259::process_state(FILEIO* state_fio, bool loading)
  	return true;
 }
 
-#if 0
-#include "../statesub.h"
-
-void I8259::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-	
-	for(int i = 0; i < (int)__I8259_MAX_CHIPS; i++) {
-		DECL_STATE_ENTRY_UINT8_MEMBER((pic[i].imr), i);
-		DECL_STATE_ENTRY_UINT8_MEMBER((pic[i].isr), i);
-		DECL_STATE_ENTRY_UINT8_MEMBER((pic[i].irr), i);
-		DECL_STATE_ENTRY_UINT8_MEMBER((pic[i].irr_tmp), i);
-		DECL_STATE_ENTRY_UINT8_MEMBER((pic[i].prio), i);
-		
-		DECL_STATE_ENTRY_UINT8_MEMBER((pic[i].icw1), i);
-		DECL_STATE_ENTRY_UINT8_MEMBER((pic[i].icw2), i);
-		DECL_STATE_ENTRY_UINT8_MEMBER((pic[i].icw3), i);
-		DECL_STATE_ENTRY_UINT8_MEMBER((pic[i].icw4), i);
-		DECL_STATE_ENTRY_UINT8_MEMBER((pic[i].ocw3), i);
-		
-		DECL_STATE_ENTRY_UINT8_MEMBER((pic[i].icw2_r), i);
-		DECL_STATE_ENTRY_UINT8_MEMBER((pic[i].icw3_r), i);
-		DECL_STATE_ENTRY_UINT8_MEMBER((pic[i].icw4_r), i);
-
-		DECL_STATE_ENTRY_INT32_MEMBER((pic[i].irr_tmp_id), i);
-	}
-
-	DECL_STATE_ENTRY_INT32(req_chip);
-	DECL_STATE_ENTRY_INT32(req_level);
-	DECL_STATE_ENTRY_UINT8(req_bit);
-
-	leave_decl_state();
-}
-#endif

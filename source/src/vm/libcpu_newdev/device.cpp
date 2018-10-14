@@ -24,7 +24,6 @@ DEVICE::DEVICE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : vm(parent_vm), emu(par
 	osd = emu->get_osd();
 #if defined(_USE_QT)
 	p_logger = csp_logger;
-	state_entry = NULL;
 #endif	
 	memset(this_device_name, 0x00, sizeof(this_device_name));
 	strncpy(this_device_name, "Base Device", 128 - 1);
@@ -52,8 +51,6 @@ DEVICE::DEVICE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : vm(parent_vm), emu(par
 
 void DEVICE::release()
 {
-	if(state_entry != NULL) delete state_entry;
-	state_entry = NULL;
 }
 
 uint32_t DEVICE::read_io8(uint32_t addr)

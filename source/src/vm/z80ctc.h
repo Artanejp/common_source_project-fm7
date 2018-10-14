@@ -90,9 +90,7 @@ public:
 	{
 		cpu_clocks = new_clocks;
 	}
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	// interrupt common functions
 	void set_context_intr(DEVICE* device, uint32_t bit)
 	{

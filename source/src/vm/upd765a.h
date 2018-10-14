@@ -143,7 +143,7 @@ private:
 	void cmd_invalid();
 	void update_head_flag(int drv, bool head_load);
 
-	void decl_state_fdc(int ch);
+	void process_state_fdc(int ch, FILEIO* state_fio, bool loading);
 public:
 	UPD765A(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -181,9 +181,7 @@ public:
 	//#ifdef USE_DEBUGGER
 	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 //#endif
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique function
 	void set_context_irq(DEVICE* device, int id, uint32_t mask)

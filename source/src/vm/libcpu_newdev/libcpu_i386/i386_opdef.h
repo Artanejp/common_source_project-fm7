@@ -709,10 +709,6 @@ protected:
 	virtual int cpu_disassemble_x86_32(_TCHAR *buffer, UINT64 eip, const UINT8 *oprom) { return 0; }
 	virtual int cpu_disassemble_x86_64(_TCHAR *buffer, UINT64 eip, const UINT8 *oprom) { return 0; }
 
-	void decl_state_sreg(csp_state_utils *state_entry, int num);
-	void decl_state_sys_table(csp_state_utils *state_entry, struct I386_SYS_TABLE *i386_sys_table_p);
-	void decl_state_seg_desc(csp_state_utils *state_entry, struct I386_SEG_DESC *i386_seg_desc);
-
 public:
 	// Init per vm..
 	void *cpu_init_i386(void);

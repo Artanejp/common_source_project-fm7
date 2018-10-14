@@ -424,6 +424,7 @@ union XMM_REG {
 	double  f64[2];
 };
 
+struct vtlb_state;
 class EMU;
 class DEBUGGER;
 class DEVICE;
