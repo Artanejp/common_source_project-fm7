@@ -471,7 +471,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 			create_local_path(config.last_hard_disk_path[drv], _MAX_PATH, _T("SASI%d.DAT"), drv);
 		}
 	}
-	decl_state();
 }
 
 VM::~VM()
@@ -950,59 +949,39 @@ void VM::update_dipswitch()
 #endif
 
 #define STATE_VERSION	10
-#include "../../statesub.h"
-#include "../../qt/gui/csp_logger.h"
-extern CSP_Logger DLL_PREFIX_I *csp_logger;
 
-void VM::decl_state(void)
+bool VM::process_state(FILEIO* state_fio, bool loading)
 {
-#if defined(_X1)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, _T("CSP::X1_HEAD"), csp_logger);
-#elif defined(_X1TURBO)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, _T("CSP::X1_TURBO_HEAD"), csp_logger);
-#elif defined(_X1TURBOZ)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, _T("CSP::X1_TURBO_Z_HEAD"), csp_logger);
-#elif defined(_X1TWIN)
-	state_entry = new csp_state_utils(STATE_VERSION, 0, _T("CSP::X1_TWIN_HEAD"), csp_logger);
-#else
-	state_entry = new csp_state_utils(STATE_VERSION, 0, _T("CSP::X1_SERIES_HEAD"), csp_logger);
-#endif
-	
-	DECL_STATE_ENTRY_BOOL(pseudo_sub_cpu);
-	DECL_STATE_ENTRY_INT32(sound_type);
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->decl_state();
-	}
-}
-void VM::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) state_entry->save_state(state_fio);
-	
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->save_state(state_fio);
-	}
-}
-
-bool VM::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-
-	int n = 1;
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		if(!device->load_state(state_fio)) {
-			printf("STATE ERROR at device #%d\n", n);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+ 	for(DEVICE* device = first_device; device; device = device->next_device) {
+		// Note: typeid(foo).name is fixed by recent ABI.Not decr. 6.
+ 		// const char *name = typeid(*device).name();
+		//       But, using get_device_name() instead of typeid(foo).name() 20181008 K.O
+		const char *name = device->get_device_name();
+		int len = strlen(name);
+		if(!state_fio->StateCheckInt32(len)) {
 			return false;
 		}
-		n++;
-	}
+		if(!state_fio->StateCheckBuffer(name, len, 1)) {
+ 			return false;
+ 		}
+		if(!device->process_state(state_fio, loading)) {
+			if(loading) {
+				printf("Data loading Error: DEVID=%d\n", device->this_device_id);
+			}
+ 			return false;
+ 		}
+ 	}
+	state_fio->StateBool(pseudo_sub_cpu);
+	state_fio->StateInt32(sound_type);
+ 	
 #ifdef _X1TURBO_FEATURE
-	// post process
-	update_dipswitch();
+ 	// post process
+	if(loading) {
+		update_dipswitch();
+	}
 #endif
-	return true;
+ 	return true;
 }
-

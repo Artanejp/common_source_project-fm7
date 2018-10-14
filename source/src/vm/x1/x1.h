@@ -425,9 +425,7 @@ public:
 #ifdef _X1TURBO_FEATURE
 	void update_dipswitch();
 #endif
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
-	void decl_state(void);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

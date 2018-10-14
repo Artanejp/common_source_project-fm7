@@ -235,103 +235,38 @@ int IOBUS::get_vram_wait()
 
 #define STATE_VERSION	3
 
-#include "../statesub.h"
-
-void IOBUS::decl_state()
+bool IOBUS::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_1D_ARRAY(vram, sizeof(vram));
-	DECL_STATE_ENTRY_BOOL(vram_mode);
-	DECL_STATE_ENTRY_BOOL(signal);
-	DECL_STATE_ENTRY_INT32(vramptr_b); //(int)(vram_b - vram);
-	DECL_STATE_ENTRY_INT32(vramptr_r); //(int)(vram_r - vram);
-	DECL_STATE_ENTRY_INT32(vramptr_g); //(int)(vram_g - vram);
-	DECL_STATE_ENTRY_UINT8(vdisp);
-	DECL_STATE_ENTRY_UINT32(prev_clock);
-	DECL_STATE_ENTRY_UINT32(vram_wait_index);
-	DECL_STATE_ENTRY_BOOL(column40);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+	state_fio->StateBuffer(vram, sizeof(vram), 1);
+	state_fio->StateBool(vram_mode);
+	state_fio->StateBool(signal);
+	if(loading) {
+		vram_b = vram + state_fio->FgetInt32_LE();
+		vram_r = vram + state_fio->FgetInt32_LE();
+		vram_g = vram + state_fio->FgetInt32_LE();
+	} else {
+		state_fio->FputInt32_LE((int)(vram_b - vram));
+		state_fio->FputInt32_LE((int)(vram_r - vram));
+		state_fio->FputInt32_LE((int)(vram_g - vram));
+	}
+	state_fio->StateUint8(vdisp);
+	state_fio->StateUint32(prev_clock);
+	state_fio->StateUint32(vram_wait_index);
+	state_fio->StateBool(column40);
 #ifdef _X1TURBO_FEATURE
-	DECL_STATE_ENTRY_1D_ARRAY(crtc_regs, sizeof(crtc_regs));
-	DECL_STATE_ENTRY_INT32(crtc_ch);
-	DECL_STATE_ENTRY_BOOL(hireso);
+	state_fio->StateBuffer(crtc_regs, sizeof(crtc_regs), 1);
+	state_fio->StateInt32(crtc_ch);
+	state_fio->StateBool(hireso);
 #ifdef _X1TURBOZ
-	DECL_STATE_ENTRY_UINT8(zmode1);
-	DECL_STATE_ENTRY_UINT8(zmode2);
+	state_fio->StateUint8(zmode1);
+	state_fio->StateUint8(zmode2);
 #endif
 #endif
-	leave_decl_state();
+ 	return true;
 }
-	
-void IOBUS::save_state(FILEIO* state_fio)
-{
-	vramptr_b = (int)(vram_b - vram);
-	vramptr_r = (int)(vram_r - vram);
-	vramptr_g = (int)(vram_g - vram);
-	
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(vram, sizeof(vram), 1);
-//	state_fio->FputBool(vram_mode);
-//	state_fio->FputBool(signal);
-//	state_fio->FputInt32((int)(vram_b - vram));
-//	state_fio->FputInt32((int)(vram_r - vram));
-//	state_fio->FputInt32((int)(vram_g - vram));
-//	state_fio->FputUint8(vdisp);
-//	state_fio->FputUint32(prev_clock);
-//	state_fio->FputUint32(vram_wait_index);
-//	state_fio->FputBool(column40);
-//#ifdef _X1TURBO_FEATURE
-//	state_fio->Fwrite(crtc_regs, sizeof(crtc_regs), 1);
-//	state_fio->FputInt32(crtc_ch);
-//	state_fio->FputBool(hireso);
-//#ifdef _X1TURBOZ
-//	state_fio->FputUint8(zmode1);
-//	state_fio->FputUint8(zmode2);
-//#endif
-//#endif
-}
-
-bool IOBUS::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(vram, sizeof(vram), 1);
-//	vram_mode = state_fio->FgetBool();
-//	signal = state_fio->FgetBool();
-//	vram_b = vram + state_fio->FgetInt32();
-//	vram_r = vram + state_fio->FgetInt32();
-//	vram_g = vram + state_fio->FgetInt32();
-//	vdisp = state_fio->FgetUint8();
-//	prev_clock = state_fio->FgetUint32();
-//	vram_wait_index = state_fio->FgetUint32();
-//	column40 = state_fio->FgetBool();
-//#ifdef _X1TURBO_FEATURE
-//	state_fio->Fread(crtc_regs, sizeof(crtc_regs), 1);
-//	crtc_ch = state_fio->FgetInt32();
-//	hireso = state_fio->FgetBool();
-//#ifdef _X1TURBOZ
-//	zmode1 = state_fio->FgetUint8();
-//	zmode2 = state_fio->FgetUint8();
-//#endif
-//#endif
-
-	vram_b = vram + vramptr_b;
-	vram_r = vram + vramptr_r;
-	vram_g = vram + vramptr_g;
-	return true;
-}
-
