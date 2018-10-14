@@ -129,9 +129,7 @@ public:
 	virtual void push_apss_rewind(int drv) { }
 
 	virtual void update_config() { }
-	virtual void save_state(FILEIO* state_fio) { }
-	virtual bool load_state(FILEIO* state_fio) { return true; }
-	virtual void decl_state(void) { }
+	virtual bool process_state(FILEIO* state_fio, bool loading) { return true; }
 	
 	// devices
 	virtual void set_cpu_clock(DEVICE *cpu, uint32_t clocks) { }

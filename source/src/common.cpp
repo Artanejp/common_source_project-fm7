@@ -869,7 +869,7 @@ uint8_t DLL_PREFIX B_OF_COLOR(scrntype_t c)
 
 uint8_t DLL_PREFIX A_OF_COLOR(scrntype_t c)
 {
-	return 0;
+	return 0xff; //
 }
 #elif defined(_RGB565)
 scrntype_t DLL_PREFIX RGB_COLOR(uint32_t r, uint32_t g, uint32_t b)
@@ -908,7 +908,7 @@ uint8_t DLL_PREFIX B_OF_COLOR(scrntype_t c)
 
 uint8_t DLL_PREFIX A_OF_COLOR(scrntype_t c)
 {
-	return 0;
+	return 0xff; // Alpha = 255
 }
 #endif
 
