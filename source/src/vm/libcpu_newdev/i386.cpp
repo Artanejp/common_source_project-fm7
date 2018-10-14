@@ -241,34 +241,6 @@ void I386::set_context_debugger(DEBUGGER* device)
 #endif
 
 
-void I386::save_state(FILEIO* state_fio)
-{
-	I386_BASE::save_state(state_fio);
-}
-
-bool I386::load_state(FILEIO *state_fio)
-{
-	if(!I386_BASE::load_state(state_fio)) return false;
-	
-#ifdef I386_PSEUDO_BIOS
-	cpucore->set_context_pseudo_bios(d_bios);
-#endif
-#ifdef SINGLE_MODE_DMA
-	cpucore->set_context_dma(d_dma);
-#endif
-	
-#ifdef USE_DEBUGGER
-	cpucore->set_context_emu(emu);
-	cpucore->set_context_debugger(d_debugger);
-	cpucore->set_context_progmem_stored(d_mem);
-	cpucore->set_context_io_stored(d_io);
-	//d_debugger->set_context_mem(d_mem);
-	//d_debugger->set_context_io(d_io);
-#endif
-	cpucore->set_shutdown_flag(0);
-	return true;
-}
-
 void I386::cpu_table_call(void)
 {
 #if defined(HAS_I386)
