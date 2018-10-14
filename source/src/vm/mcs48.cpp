@@ -246,7 +246,7 @@ bool MCS48::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateUint8(cpustate->timecount_enabled);
 	state_fio->StateUint16(cpustate->a11);
 	state_fio->StateInt32(cpustate->icount);
-	state_fio->StateBuffer(cpustate->rom, 0x1000); // 0x100 ?
+	state_fio->StateBuffer(cpustate->rom, 0x1000, 1); // 0x100 ?
 	// END CPUREGS
 
 	if(loading) {

@@ -58,7 +58,6 @@ class csp_state_utils;
 
 extern CSP_Logger *csp_logger;
 
-#include "../statesub.h"
 #endif
 class DEVICE
 {
