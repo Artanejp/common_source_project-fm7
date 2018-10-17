@@ -272,3 +272,26 @@ bool VM::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool VM::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		const char *name = typeid(*device).name() + 6; // skip "class "
+		int len = strlen(name);
+		
+		if(!state_fio->StateCheckInt32(len)) {
+			return false;
+		}
+		if(!state_fio->StateCheckBuffer(name, len, 1)) {
+			return false;
+		}
+		if(!device->process_state(state_fio, loading)) {
+			return false;
+		}
+	}
+	state_fio->StateBuffer(mem, sizeof(mem), 1);
+	state_fio->StateBool(inserted);
+	return true;
+}

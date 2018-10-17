@@ -898,3 +898,75 @@ bool MEMORY::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBuffer(RAM, RAM_SIZE, 1);
+	if(loading) {
+		CGROM = MEMORY_BASE + state_fio->FgetInt32_LE();
+		EXTROM1 = MEMORY_BASE + state_fio->FgetInt32_LE();
+		EXTROM2 = MEMORY_BASE + state_fio->FgetInt32_LE();
+		for(int i = 0; i < 8; i++) {
+			RdMem[i] = MEMORY_BASE + state_fio->FgetInt32_LE();
+			WrMem[i] = MEMORY_BASE + state_fio->FgetInt32_LE();
+		}
+		VRAM = MEMORY_BASE + state_fio->FgetInt32_LE();
+	} else {
+		state_fio->FputInt32_LE((int)(CGROM - MEMORY_BASE));
+		state_fio->FputInt32_LE((int)(EXTROM1 - MEMORY_BASE));
+		state_fio->FputInt32_LE((int)(EXTROM2 - MEMORY_BASE));
+		for(int i = 0; i < 8; i++) {
+			state_fio->FputInt32_LE((int)(RdMem[i] - MEMORY_BASE));
+			state_fio->FputInt32_LE((int)(WrMem[i] - MEMORY_BASE));
+		}
+		state_fio->FputInt32_LE((int)(VRAM - MEMORY_BASE));
+	}
+	state_fio->StateBuffer(EnWrite, sizeof(EnWrite), 1);
+	state_fio->StateUint8(CGSW93);
+	state_fio->StateBool(inserted);
+#ifndef _PC6001
+	state_fio->StateUint8(CRTKILL);
+	if(loading) {
+		CurKANJIROM = MEMORY_BASE + state_fio->FgetInt32_LE();
+	} else {
+		state_fio->FputInt32_LE((int)(CurKANJIROM - MEMORY_BASE));
+	}
+	state_fio->StateUint8(CRTMode1);
+	state_fio->StateUint8(CRTMode2);
+	state_fio->StateUint8(CRTMode3);
+	state_fio->StateUint8(CSS1);
+	state_fio->StateUint8(CSS2);
+	state_fio->StateUint8(CSS3);
+	state_fio->StateUint8(portF0);
+	state_fio->StateUint8(portF1);
+#if defined(_PC6601SR) || defined(_PC6001MK2SR)
+	state_fio->StateInt32(bitmap);
+	state_fio->StateInt32(cols);
+	state_fio->StateInt32(rows);
+	state_fio->StateInt32(lines);
+	if(loading) {
+		TEXTVRAM = MEMORY_BASE + state_fio->FgetInt32_LE();
+		SYSROM2 = MEMORY_BASE + state_fio->FgetInt32_LE();
+	} else {
+		state_fio->FputInt32_LE((int)(TEXTVRAM - MEMORY_BASE));
+		state_fio->FputInt32_LE((int)(SYSROM2 - MEMORY_BASE));
+	}
+	state_fio->StateBuffer(EXTRAM, EXTRAM_SIZE, 1);
+	state_fio->StateBuffer(port60, sizeof(port60), 1);
+	state_fio->StateUint8(portC1);
+	state_fio->StateUint8(portC8);
+	state_fio->StateUint8(portCA);
+	state_fio->StateUint8(portCB);
+	state_fio->StateUint8(portCC);
+	state_fio->StateUint8(portCE);
+	state_fio->StateUint8(portCF);
+	state_fio->StateBuffer(palet, sizeof(palet), 1);
+#endif
+#endif
+	return true;
+}

@@ -121,3 +121,15 @@ bool IOTRAP::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool IOTRAP::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBool(nmi_mask);
+	state_fio->StateBool(pasopia);
+	return true;
+}

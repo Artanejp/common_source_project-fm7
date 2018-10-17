@@ -244,3 +244,21 @@ bool SUB::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool SUB::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	if(!key_buffer->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateUint8(key_data);
+	state_fio->StateBool(key_irq);
+	state_fio->StateUint8(fdc_drive);
+	state_fio->StateUint8(fdc_side);
+	state_fio->StateUint8(rtc_data);
+	return true;
+}

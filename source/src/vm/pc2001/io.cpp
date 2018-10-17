@@ -331,3 +331,19 @@ bool IO::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool IO::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateUint8(port_a);
+	state_fio->StateUint8(port_b);
+	state_fio->StateUint8(port_s);
+	state_fio->StateBool(drec_in);
+	state_fio->StateBool(rtc_in);
+	state_fio->StateUint16(key_strobe);
+	return true;
+}

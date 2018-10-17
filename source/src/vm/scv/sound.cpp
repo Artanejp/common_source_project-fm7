@@ -443,3 +443,44 @@ bool SOUND::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool SOUND::process_state(FILEIO* state_fio, bool loading)
+{
+	// pre process
+	int tone_diff = tone.diff;
+	int noise_diff = noise.diff;
+	int square1_diff = square1.diff;
+	int square2_diff = square2.diff;
+	int square3_diff = square3.diff;
+	int pcm_diff = pcm.diff;
+	
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBuffer(&tone, sizeof(tone), 1);
+	state_fio->StateBuffer(&noise, sizeof(noise), 1);
+	state_fio->StateBuffer(&square1, sizeof(square1), 1);
+	state_fio->StateBuffer(&square2, sizeof(square2), 1);
+	state_fio->StateBuffer(&square3, sizeof(square3), 1);
+	state_fio->StateBuffer(&pcm, sizeof(pcm), 1);
+	state_fio->StateBuffer(pcm_table, sizeof(pcm_table), 1);
+	state_fio->StateUint32(cmd_addr);
+	state_fio->StateInt32(pcm_len);
+	state_fio->StateInt32(param_cnt);
+	state_fio->StateInt32(param_ptr);
+	state_fio->StateInt32(register_id);
+	state_fio->StateBuffer(params, sizeof(params), 1);
+	
+	// post process
+	if(loading) {
+		tone.diff = tone_diff;
+		noise.diff = noise_diff;
+		square1.diff = square1_diff;
+		square2.diff = square2_diff;
+		square3.diff = square3_diff;
+		pcm.diff = pcm_diff;
+	}
+	return true;
+}

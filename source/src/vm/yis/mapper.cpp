@@ -157,3 +157,25 @@ bool MAPPER::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool MAPPER::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBuffer(ram, sizeof(ram), 1);
+	state_fio->StateUint8(mapper_reg);
+	state_fio->StateBuffer(bank_reg, sizeof(bank_reg), 1);
+//	state_fio->StateBuffer(cur_bank, sizeof(cur_bank), 1);
+	
+	// post process
+	if(loading) {
+		for(int i = 0; i < 15; i++) {
+			cur_bank[i] = -1;
+			update_bank(i);
+		}
+	}
+	return true;
+}

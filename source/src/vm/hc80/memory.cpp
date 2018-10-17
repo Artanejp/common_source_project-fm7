@@ -138,3 +138,20 @@ bool MEMORY::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBuffer(ram, sizeof(ram), 1);
+	state_fio->StateUint8(bank);
+	
+	// post process
+	if(loading) {
+		set_bank(bank);
+	}
+	return true;
+}

@@ -202,3 +202,28 @@ bool MEMORY::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBuffer(ram, sizeof(ram), 1);
+	state_fio->StateBuffer(vram, sizeof(vram), 1);
+	state_fio->StateBuffer(attr, sizeof(attr), 1);
+	state_fio->StateUint16(vram_ptr);
+	state_fio->StateUint8(vram_data);
+	state_fio->StateUint8(mem_map);
+	
+	// post process
+	if(loading) {
+		if(mem_map & 2) {
+			SET_BANK(0x0000, 0x7fff, ram, ram);
+		} else {
+			SET_BANK(0x0000, 0x7fff, ram, rom);
+		}
+	}
+	return true;
+}

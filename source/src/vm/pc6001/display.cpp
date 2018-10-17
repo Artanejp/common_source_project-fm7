@@ -90,3 +90,18 @@ bool DISPLAY::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	if(loading) {
+		vram_ptr = ram_ptr + state_fio->FgetInt32_LE();
+	} else {
+		state_fio->FputInt32_LE((int)(vram_ptr - ram_ptr));
+	}
+	return true;
+}

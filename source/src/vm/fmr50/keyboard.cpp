@@ -161,3 +161,21 @@ bool KEYBOARD::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	if(!key_buf->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateUint8(kbstat);
+	state_fio->StateUint8(kbdata);
+	state_fio->StateUint8(kbint);
+	state_fio->StateUint8(kbmsk);
+	state_fio->StateBuffer(table, sizeof(table), 1);
+	return true;
+}

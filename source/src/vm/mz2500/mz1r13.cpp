@@ -116,3 +116,15 @@ bool MZ1R13::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool MZ1R13::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateUint16(address);
+	state_fio->StateBool(select_kanji);
+	return true;
+}

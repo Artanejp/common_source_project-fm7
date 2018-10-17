@@ -271,3 +271,19 @@ bool KEYBOARD::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	if(!key_buf->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateInt32(key_code);
+	state_fio->StateBool(kana);
+	state_fio->StateInt32(event_cnt);
+	return true;
+}

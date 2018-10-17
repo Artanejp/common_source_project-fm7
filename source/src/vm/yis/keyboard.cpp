@@ -217,3 +217,16 @@ bool KEYBOARD::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateUint8(column);
+	state_fio->StateBool(caps_locked);
+	state_fio->StateBool(kana_locked);
+	return true;
+}

@@ -275,3 +275,51 @@ bool CMT::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool CMT::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBool(is_wav);
+	state_fio->StateBool(rec);
+	state_fio->StateBool(remote);
+	state_fio->StateBuffer(rec_file_path, sizeof(rec_file_path), 1);
+	if(loading) {
+		int length_tmp = state_fio->FgetInt32_LE();
+		if(rec) {
+			fio->Fopen(rec_file_path, FILEIO_READ_WRITE_NEW_BINARY);
+			while(length_tmp != 0) {
+				uint8_t buffer_tmp[1024];
+				int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
+				state_fio->Fread(buffer_tmp, length_rw, 1);
+				if(fio->IsOpened()) {
+					fio->Fwrite(buffer_tmp, length_rw, 1);
+				}
+				length_tmp -= length_rw;
+			}
+		}
+	} else {
+		if(rec && fio->IsOpened()) {
+			int length_tmp = (int)fio->Ftell();
+			fio->Fseek(0, FILEIO_SEEK_SET);
+			state_fio->FputInt32_LE(length_tmp);
+			while(length_tmp != 0) {
+				uint8_t buffer_tmp[1024];
+				int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
+				fio->Fread(buffer_tmp, length_rw, 1);
+				state_fio->Fwrite(buffer_tmp, length_rw, 1);
+				length_tmp -= length_rw;
+			}
+		} else {
+			state_fio->FputInt32_LE(0);
+		}
+	}
+	state_fio->StateInt32(bufcnt);
+	state_fio->StateBuffer(buffer, sizeof(buffer), 1);
+	state_fio->StateInt32(prev_signal);
+	state_fio->StateUint32(prev_clock);
+	return true;
+}

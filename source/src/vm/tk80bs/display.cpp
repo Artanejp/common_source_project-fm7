@@ -260,3 +260,17 @@ bool DISPLAY::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+#if defined(_TK80BS)
+	state_fio->StateInt32(mode);
+#endif
+	state_fio->StateBool(dma);
+	return true;
+}

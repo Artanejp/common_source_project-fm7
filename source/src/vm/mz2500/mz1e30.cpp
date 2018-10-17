@@ -189,3 +189,16 @@ bool MZ1E30::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool MZ1E30::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateUint32(rom_address);
+	state_fio->StateBool(irq_status);
+	state_fio->StateBool(drq_status);
+	return true;
+}

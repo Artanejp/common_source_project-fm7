@@ -39,6 +39,7 @@ public:
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
 	void write_signal(int id, uint32_t data, uint32_t mask);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_dma(DEVICE* device)

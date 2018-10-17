@@ -195,3 +195,23 @@ bool MEMORY::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBuffer(ram0, sizeof(ram0), 1);
+	state_fio->StateBuffer(ram1, sizeof(ram1), 1);
+	state_fio->StateBuffer(vram, sizeof(vram), 1);
+	state_fio->StateUint8(map1);
+	state_fio->StateUint8(map2);
+	
+	// post process
+	if(loading) {
+		update_map();
+	}
+	return true;
+}

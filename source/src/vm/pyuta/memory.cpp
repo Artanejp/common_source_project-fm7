@@ -374,3 +374,27 @@ bool MEMORY::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBool(cmt_signal);
+	state_fio->StateBool(cmt_remote);
+	state_fio->StateBool(has_extrom);
+	state_fio->StateBool(cart_enabled);
+	state_fio->StateInt32(ctype);
+	
+	// post process
+	if(loading) {
+		if(cart_enabled) {
+			ENABLE_CART();
+		} else {
+			DISABLE_CART();
+		}
+	}
+	return true;
+}

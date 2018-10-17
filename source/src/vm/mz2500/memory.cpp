@@ -412,3 +412,35 @@ bool MEMORY::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBuffer(ram, sizeof(ram), 1);
+	state_fio->StateBuffer(vram, sizeof(vram), 1);
+	state_fio->StateBuffer(tvram, sizeof(tvram), 1);
+	state_fio->StateBuffer(pcg, sizeof(pcg), 1);
+	state_fio->StateUint8(bank);
+	state_fio->StateBuffer(page, sizeof(page), 1);
+	state_fio->StateUint8(dic_bank);
+	state_fio->StateUint8(kanji_bank);
+	state_fio->StateBool(blank);
+	state_fio->StateBool(hblank);
+	state_fio->StateBool(vblank);
+	state_fio->StateBool(busreq);
+	
+	// post process
+	if(loading) {
+		uint8_t bank_tmp = bank;
+		bank = 0;
+		for(int i = 0; i < 8; i++) {
+			set_map(page[i]);
+		}
+		bank = bank_tmp;
+	}
+	return true;
+}

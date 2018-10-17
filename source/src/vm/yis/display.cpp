@@ -1765,3 +1765,56 @@ bool DISPLAY::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	if(!cmd_buffer->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateInt32(active_cmd);
+	state_fio->StateUint8(dpp_data);
+	state_fio->StateUint8(dpp_ctrl);
+	state_fio->StateInt32(scroll_x0);
+	state_fio->StateInt32(scroll_y0);
+	state_fio->StateInt32(scroll_x1);
+	state_fio->StateInt32(scroll_y1);
+	state_fio->StateInt32(cursor_x);
+	state_fio->StateInt32(cursor_y);
+	state_fio->StateInt32(read_x);
+	state_fio->StateInt32(read_y);
+	state_fio->StateUint8(mode1);
+	state_fio->StateUint8(mode2);
+	state_fio->StateUint8(mode3);
+	state_fio->StateUint32(report);
+	state_fio->StateBool(write_cr);
+	state_fio->StateBuffer(cvram, sizeof(cvram), 1);
+	state_fio->StateBuffer(gvram, sizeof(gvram), 1);
+	state_fio->StateInt32(window_x0);
+	state_fio->StateInt32(window_y0);
+	state_fio->StateInt32(window_x1);
+	state_fio->StateInt32(window_y1);
+	state_fio->StateInt32(view_x0);
+	state_fio->StateInt32(view_y0);
+	state_fio->StateInt32(view_x1);
+	state_fio->StateInt32(view_y1);
+	state_fio->StateDouble(expand);
+	state_fio->StateInt32(rotate);
+	state_fio->StateInt32(translate_x);
+	state_fio->StateInt32(translate_y);
+	state_fio->StateInt32(point_x);
+	state_fio->StateInt32(point_y);
+	state_fio->StateInt32(fore_color);
+	state_fio->StateInt32(back_color);
+	state_fio->StateBool(erase);
+	state_fio->StateInt32(texture);
+	state_fio->StateInt32(texture_index);
+	state_fio->StateInt32(pattern);
+	state_fio->StateBuffer(palette_graph, sizeof(palette_graph), 1);
+	state_fio->StateInt32(blink);
+	return true;
+}

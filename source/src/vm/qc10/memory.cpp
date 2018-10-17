@@ -256,3 +256,29 @@ bool MEMORY::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBuffer(ram, sizeof(ram), 1);
+	state_fio->StateBuffer(cmos, sizeof(cmos), 1);
+	state_fio->StateUint32(cmos_crc32);
+	state_fio->StateUint8(bank);
+	state_fio->StateUint8(psel);
+	state_fio->StateUint8(csel);
+	state_fio->StateBool(pcm_on);
+	state_fio->StateBool(pcm_cont);
+	state_fio->StateBool(pcm_pit);
+	state_fio->StateBool(fdc_irq);
+	state_fio->StateBool(motor);
+	
+	// post process
+	if(loading) {
+		update_map();
+	}
+	return true;
+}

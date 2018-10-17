@@ -110,3 +110,14 @@ bool SERIAL::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool SERIAL::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBool(addr_a0);
+	return true;
+}

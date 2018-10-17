@@ -406,3 +406,30 @@ bool CMT::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool CMT::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateUint8(pa);
+	state_fio->StateUint8(pc);
+	state_fio->StateBool(play);
+	state_fio->StateBool(rec);
+	state_fio->StateBool(now_play);
+	state_fio->StateBool(now_rewind);
+	state_fio->StateInt32(register_id_frew);
+	state_fio->StateInt32(register_id_ffwd);
+	state_fio->StateInt32(register_id_fwd);
+	state_fio->StateInt32(register_id_stop);
+	state_fio->StateInt32(register_id_eject);
+#ifndef _MZ80B
+	state_fio->StateInt32(register_id_apss);
+	state_fio->StateBool(now_apss);
+	state_fio->StateBool(now_apss_tmp);
+#endif
+	state_fio->StateInt32(register_id_ipl);
+	return true;
+}

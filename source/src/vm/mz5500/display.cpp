@@ -574,3 +574,25 @@ bool DISPLAY::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBuffer(palette_pc, sizeof(palette_pc), 1);
+	state_fio->StateBuffer(palette, sizeof(palette), 1);
+	state_fio->StateBuffer(back, sizeof(back), 1);
+	state_fio->StateBuffer(reverse, sizeof(reverse), 1);
+	state_fio->StateUint8(rno);
+	state_fio->StateBuffer(wregs, sizeof(wregs), 1);
+	state_fio->StateBuffer(pri, sizeof(pri), 1);
+	state_fio->StateBuffer(vma, sizeof(vma), 1);
+	state_fio->StateBuffer(vds, sizeof(vds), 1);
+	state_fio->StateUint8(mode_r);
+	state_fio->StateUint8(mode_c);
+	state_fio->StateUint8(mode_p);
+	return true;
+}

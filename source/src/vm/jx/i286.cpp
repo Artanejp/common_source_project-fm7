@@ -417,41 +417,68 @@ int I286::get_shutdown_flag()
 
 #define STATE_VERSION	4
 
-void I286::save_state(FILEIO* state_fio)
+bool I286::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->Fwrite(opaque, sizeof(cpu_state), 1);
-}
-
-bool I286::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
+	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->Fread(opaque, sizeof(cpu_state), 1);
+	state_fio->StateBuffer(opaque, sizeof(cpu_state), 1);
 	
 	// post process
-	cpu_state *cpustate = (cpu_state *)opaque;
-	cpustate->pic = d_pic;
-	cpustate->program = d_mem;
-	cpustate->io = d_io;
+	if(loading) {
+		cpu_state *cpustate = (cpu_state *)opaque;
+		cpustate->pic = d_pic;
+		cpustate->program = d_mem;
+		cpustate->io = d_io;
 #ifdef I86_PSEUDO_BIOS
-	cpustate->bios = d_bios;
+		cpustate->bios = d_bios;
 #endif
 #ifdef SINGLE_MODE_DMA
-	cpustate->dma = d_dma;
+		cpustate->dma = d_dma;
 #endif
 #ifdef USE_DEBUGGER
-	cpustate->emu = emu;
-	cpustate->debugger = d_debugger;
-	cpustate->program_stored = d_mem;
-	cpustate->io_stored = d_io;
+		cpustate->emu = emu;
+		cpustate->debugger = d_debugger;
+		cpustate->program_stored = d_mem;
+		cpustate->io_stored = d_io;
+		cpustate->prev_total_icount = cpustate->total_icount;
 #endif
+	}
 	return true;
 }
 
+bool I286::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBuffer(opaque, sizeof(cpu_state), 1);
+	
+	// post process
+	if(loading) {
+		cpu_state *cpustate = (cpu_state *)opaque;
+		cpustate->pic = d_pic;
+		cpustate->program = d_mem;
+		cpustate->io = d_io;
+#ifdef I86_PSEUDO_BIOS
+		cpustate->bios = d_bios;
+#endif
+#ifdef SINGLE_MODE_DMA
+		cpustate->dma = d_dma;
+#endif
+#ifdef USE_DEBUGGER
+		cpustate->emu = emu;
+		cpustate->debugger = d_debugger;
+		cpustate->program_stored = d_mem;
+		cpustate->io_stored = d_io;
+		cpustate->prev_total_icount = cpustate->total_icount;
+#endif
+	}
+	return true;
+}

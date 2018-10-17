@@ -2153,3 +2153,97 @@ bool IO::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool IO::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateUint32(cur_clock);
+	state_fio->StateUint8(bcr);
+	state_fio->StateUint8(slbcr);
+	state_fio->StateUint8(isr);
+	state_fio->StateUint8(ier);
+	state_fio->StateUint8(ioctlr);
+	state_fio->StateUint32(icrc);
+	state_fio->StateUint32(icrb);
+	state_fio->StateBool(ear);
+	state_fio->StateUint8(vadr);
+	state_fio->StateUint8(yoff);
+	if(!cmd7508_buf->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	if(!rsp7508_buf->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	if(!cur_time.process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateInt32(register_id);
+	state_fio->StateBool(onesec_intr);
+	state_fio->StateBool(onesec_intr_enb);
+	state_fio->StateBool(alarm_intr);
+	state_fio->StateBool(alarm_intr_enb);
+	state_fio->StateBuffer(alarm, sizeof(alarm), 1);
+	if(!key_buf->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateBool(kb_intr_enb);
+	state_fio->StateBool(kb_rep_enb);
+	state_fio->StateBool(kb_caps);
+	state_fio->StateUint8(kb_rep_spd1);
+	state_fio->StateUint8(kb_rep_spd2);
+	state_fio->StateBool(beep);
+	state_fio->StateBool(res_z80);
+	state_fio->StateBool(res_7508);
+	state_fio->StateUint8(cmd6303);
+	state_fio->StateUint8(psr);
+	if(!cmd6303_buf->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	if(!rsp6303_buf->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateBuffer(ram, sizeof(ram), 1);
+	state_fio->StateUint16(cs_addr);
+	state_fio->StateUint16(gs_addr);
+	state_fio->StateUint8(lcd_on);
+	state_fio->StateUint8(scr_mode);
+	state_fio->StateUint16(scr_ptr);
+	state_fio->StateUint8(num_lines);
+	state_fio->StateUint8(curs_mode);
+	state_fio->StateUint8(curs_x);
+	state_fio->StateUint8(curs_y);
+	state_fio->StateUint8(wnd_ptr_x);
+	state_fio->StateUint8(wnd_ptr_y);
+	state_fio->StateUint8(flash_block);
+	state_fio->StateUint8(cs_blocks);
+	state_fio->StateBuffer(cs_block, sizeof(cs_block), 1);
+	state_fio->StateUint8(gs_blocks);
+	state_fio->StateBuffer(gs_block, sizeof(gs_block), 1);
+	state_fio->StateBuffer(font, sizeof(font), 1);
+	state_fio->StateBuffer(udgc, sizeof(udgc), 1);
+	state_fio->StateBuffer(mov, sizeof(mov), 1);
+	state_fio->StateBuffer(lcd, sizeof(lcd), 1);
+	state_fio->StateInt32(blink);
+	if(!tf20_buf->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateInt32(device_type);
+	state_fio->StateBuffer(ext, sizeof(ext), 1);
+	state_fio->StateUint32(extar);
+	state_fio->StateUint8(extcr);
+	state_fio->StateBuffer(iramdisk_sectors, sizeof(iramdisk_sectors), 1);
+	state_fio->StateUint8(iramdisk_cmd);
+	state_fio->StateInt32(iramdisk_count);
+	state_fio->StateInt32(iramdisk_dest);
+	state_fio->StateBuffer(iramdisk_buf, sizeof(iramdisk_buf), 1);
+	if(loading) {
+		iramdisk_ptr = iramdisk_buf + state_fio->FgetInt32_LE();
+	} else {
+		state_fio->FputInt32_LE((int)(iramdisk_ptr - iramdisk_buf));
+	}
+	return true;
+}

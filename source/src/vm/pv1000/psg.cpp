@@ -107,3 +107,16 @@ bool PSG::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool PSG::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	for(int i = 0; i < 3; i++) {
+		state_fio->StateInt32(ch[i].period);
+	}
+	return true;
+}

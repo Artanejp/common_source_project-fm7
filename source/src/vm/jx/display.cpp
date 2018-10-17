@@ -525,3 +525,48 @@ void DISPLAY::draw_graph_360x512_4col()
 	// TODO
 }
 
+#define STATE_VERSION	1
+
+bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBuffer(vram, sizeof(vram), 1);
+	state_fio->StateBuffer(extvram, sizeof(extvram), 1);
+	state_fio->StateBuffer(vgarray, sizeof(vgarray), 1);
+	state_fio->StateBuffer(palette, sizeof(palette), 1);
+	state_fio->StateInt32(vgarray_num);
+	state_fio->StateBuffer(bankreg, sizeof(bankreg), 1);
+	state_fio->StateInt32(bankreg_num);
+	state_fio->StateUint8(hires_mode);
+	state_fio->StateUint8(page);
+	state_fio->StateUint8(status);
+	state_fio->StateInt32(cblink);
+	return true;
+}
+
+bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBuffer(vram, sizeof(vram), 1);
+	state_fio->StateBuffer(extvram, sizeof(extvram), 1);
+	state_fio->StateBuffer(vgarray, sizeof(vgarray), 1);
+	state_fio->StateBuffer(palette, sizeof(palette), 1);
+	state_fio->StateInt32(vgarray_num);
+	state_fio->StateBuffer(bankreg, sizeof(bankreg), 1);
+	state_fio->StateInt32(bankreg_num);
+	state_fio->StateUint8(hires_mode);
+	state_fio->StateUint8(page);
+	state_fio->StateUint8(status);
+	state_fio->StateInt32(cblink);
+	return true;
+}

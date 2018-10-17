@@ -272,3 +272,19 @@ static const int scan_code[] = {
 -1,	-1,	0x34,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,
 -1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,
 };
+bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	if(!key_buf->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateInt32(kbstat);
+	state_fio->StateInt32(kbdata);
+	state_fio->StateBuffer(table, sizeof(table), 1);
+	return true;
+}

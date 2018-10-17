@@ -90,3 +90,17 @@ bool PRINTER::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool PRINTER::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateUint8(out);
+	state_fio->StateUint8(ctrl0);
+	state_fio->StateUint8(ctrl1);
+	state_fio->StateBool(busy);
+	return true;
+}

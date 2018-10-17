@@ -284,3 +284,26 @@ bool MEMORY::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBuffer(save_path, sizeof(save_path), 1);
+	state_fio->StateBuffer(&header, sizeof(header), 1);
+	state_fio->StateBool(inserted);
+	state_fio->StateUint32(sram_crc32);
+	state_fio->StateBuffer(vram, sizeof(vram), 1);
+	state_fio->StateBuffer(wreg, sizeof(wreg), 1);
+	state_fio->StateBuffer(sram, sizeof(sram), 1);
+	state_fio->StateUint8(cur_bank);
+	
+	// post process
+	if(loading) {
+		set_bank(cur_bank);
+	}
+	return true;
+}

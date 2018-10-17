@@ -215,3 +215,15 @@ bool LCD::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool LCD::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBuffer(seg, sizeof(seg), 1);
+	state_fio->StateUint16(sel);
+	return true;
+}

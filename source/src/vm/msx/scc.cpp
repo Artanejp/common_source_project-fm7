@@ -665,3 +665,14 @@ void SCC::save_load_state(FILEIO* state_fio, bool is_save)
 	return;
 }
 
+bool SCC::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	save_load_state(state_fio, !loading);
+	return true;
+}

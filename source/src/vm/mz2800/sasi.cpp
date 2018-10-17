@@ -123,27 +123,30 @@ void SASI::write_signal(int id, uint32_t data, uint32_t mask)
 
 #define STATE_VERSION	2
 
-void SASI::save_state(FILEIO* state_fio)
+bool SASI::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->FputUint8(control);
-	state_fio->FputBool(irq_status);
-	state_fio->FputBool(drq_status);
-}
-
-bool SASI::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
+	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	control = state_fio->FgetUint8();
-	irq_status = state_fio->FgetBool();
-	drq_status = state_fio->FgetBool();
+	state_fio->StateUint8(control);
+	state_fio->StateBool(irq_status);
+	state_fio->StateBool(drq_status);
 	return true;
 }
 
+bool SASI::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateUint8(control);
+	state_fio->StateBool(irq_status);
+	state_fio->StateBool(drq_status);
+	return true;
+}

@@ -119,3 +119,15 @@ bool EMM::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool EMM::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBuffer(data_buffer, DATA_SIZE, 1);
+	state_fio->StateUint32(data_addr);
+	return true;
+}

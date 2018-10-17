@@ -92,3 +92,17 @@ bool MEMBUS::load_state(FILEIO* state_fio)
 //#endif
 	return MEMORY::load_state(state_fio);
 }
+bool MEMBUS::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+#if defined(_TK85)
+	state_fio->StateUint32(pc7);
+	state_fio->StateUint32(count);
+#endif
+	return MEMORY::process_state(state_fio, loading);
+}

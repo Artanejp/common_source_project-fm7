@@ -703,3 +703,33 @@ bool FLOPPY::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool FLOPPY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateUint8(io_B1H);
+	for(int i = 0; i < 2; i++) {
+		if(!disk[i]->process_state(state_fio, loading)) {
+			return false;
+		}
+	}
+	state_fio->StateBuffer(cur_trk, sizeof(cur_trk), 1);
+	state_fio->StateBuffer(cur_sct, sizeof(cur_sct), 1);
+	state_fio->StateBuffer(cur_pos, sizeof(cur_pos), 1);
+	state_fio->StateBuffer(access, sizeof(access), 1);
+	state_fio->StateBuffer(Data, sizeof(Data), 1);
+	state_fio->StateBuffer(Index, sizeof(Index), 1);
+	state_fio->StateBuffer(&CmdIn, sizeof(CmdBuffer), 1);
+	state_fio->StateBuffer(&CmdOut, sizeof(CmdBuffer), 1);
+	state_fio->StateUint8(SeekST0);
+	state_fio->StateUint8(LastCylinder);
+	state_fio->StateInt32(SeekEnd);
+	state_fio->StateUint8(SendSectors);
+	state_fio->StateInt32(DIO);
+	state_fio->StateUint8(Status);
+	return true;
+}

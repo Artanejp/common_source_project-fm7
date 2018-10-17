@@ -135,3 +135,18 @@ bool TIMER::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool TIMER::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateUint16(free_run_counter);
+	state_fio->StateUint8(intr_reg);
+	state_fio->StateUint8(rtc_data);
+	state_fio->StateBool(tmout0);
+	state_fio->StateBool(tmout1);
+	return true;
+}

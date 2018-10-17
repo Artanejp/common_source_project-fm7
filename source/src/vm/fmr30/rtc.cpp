@@ -281,3 +281,23 @@ bool RTC::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool RTC::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	if(!cur_time.process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateInt32(register_id);
+	state_fio->StateUint16(rtcmr);
+	state_fio->StateUint16(rtdsr);
+	state_fio->StateUint16(rtadr);
+	state_fio->StateUint16(rtobr);
+	state_fio->StateUint16(rtibr);
+	state_fio->StateBuffer(regs, sizeof(regs), 1);
+	return true;
+}

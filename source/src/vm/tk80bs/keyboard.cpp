@@ -345,3 +345,21 @@ bool KEYBOARD::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+#if defined(_TK80BS)
+	state_fio->StateUint8(prev_type);
+	state_fio->StateUint8(prev_brk);
+	state_fio->StateUint8(prev_kana);
+	state_fio->StateBool(kana_lock);
+	state_fio->StateUint32(kb_type);
+#endif
+	state_fio->StateUint32(column);
+	return true;
+}

@@ -160,3 +160,16 @@ bool KEYBOARD::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBuffer(key_stat, sizeof(key_stat), 1);
+	state_fio->StateInt32(key_no);
+	state_fio->StateBool(intr_enb);
+	return true;
+}

@@ -121,3 +121,16 @@ bool KANJI::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool KANJI::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateUint32(control_reg);
+	state_fio->StateUint32(kanji_addr);
+	state_fio->StateUint32(dic_addr);
+	return true;
+}

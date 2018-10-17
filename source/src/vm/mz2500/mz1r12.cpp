@@ -127,3 +127,17 @@ bool MZ1R12::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool MZ1R12::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBuffer(sram, sizeof(sram), 1);
+	state_fio->StateBool(read_only);
+	state_fio->StateUint16(address);
+	state_fio->StateUint32(crc32);
+	return true;
+}

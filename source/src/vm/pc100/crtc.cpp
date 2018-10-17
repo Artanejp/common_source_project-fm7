@@ -390,3 +390,27 @@ bool CRTC::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool CRTC::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBuffer(palette_pc, sizeof(palette_pc), 1);
+	state_fio->StateBuffer(palette, sizeof(palette), 1);
+	state_fio->StateUint8(sel);
+	state_fio->StateBuffer(regs, sizeof(regs), 1);
+	state_fio->StateUint16(vs);
+	state_fio->StateUint16(cmd);
+	state_fio->StateBuffer(vram, sizeof(vram), 1);
+	state_fio->StateUint32(shift);
+	state_fio->StateUint32(maskl);
+	state_fio->StateUint32(maskh);
+	state_fio->StateUint32(busl);
+	state_fio->StateUint32(bush);
+	state_fio->StateUint32(write_plane);
+	state_fio->StateUint32(read_plane);
+	return true;
+}

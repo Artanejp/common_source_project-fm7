@@ -192,3 +192,44 @@ void KEYBOARD::key_up(int code)
 	}
 }
 
+#define STATE_VERSION	1
+
+bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	if(!key_buf->process_state(state_fio, loading)) {
+		return false;
+	}
+#ifndef KEYBOARD_HACK
+	state_fio->StateUint64(send_data);
+	state_fio->StateInt32(send_count);
+#endif
+	state_fio->StateBool(key_latched);
+	state_fio->StateUint8(nmi_reg);
+	return true;
+}
+
+bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	if(!key_buf->process_state(state_fio, loading)) {
+		return false;
+	}
+#ifndef KEYBOARD_HACK
+	state_fio->StateUint64(send_data);
+	state_fio->StateInt32(send_count);
+#endif
+	state_fio->StateBool(key_latched);
+	state_fio->StateUint8(nmi_reg);
+	return true;
+}

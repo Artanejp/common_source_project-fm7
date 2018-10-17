@@ -1267,3 +1267,70 @@ bool MEMORY::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+#if defined(_MZ700)
+	state_fio->StateBuffer(pcg + 0x400, 0x400, 1);
+	state_fio->StateBuffer(pcg + 0xc00, 0x400, 1);
+#elif defined(_MZ1500)
+	state_fio->StateBuffer(pcg, sizeof(pcg), 1);
+#endif
+	state_fio->StateBuffer(ram, sizeof(ram), 1);
+	state_fio->StateBuffer(vram, sizeof(vram), 1);
+	state_fio->StateUint8(mem_bank);
+#if defined(_MZ700)
+	state_fio->StateUint8(pcg_data);
+	state_fio->StateUint8(pcg_addr);
+	state_fio->StateUint8(pcg_ctrl);
+#elif defined(_MZ800)
+	state_fio->StateUint8(wf);
+	state_fio->StateUint8(rf);
+	state_fio->StateUint8(dmd);
+	state_fio->StateUint32(vram_addr_top);
+	state_fio->StateBool(is_mz800);
+#elif defined(_MZ1500)
+	state_fio->StateUint8(pcg_bank);
+#endif
+#if defined(_MZ800)
+	state_fio->StateUint16(sof);
+	state_fio->StateUint8(sw);
+	state_fio->StateUint8(ssa);
+	state_fio->StateUint8(sea);
+	state_fio->StateUint8(palette_sw);
+	state_fio->StateBuffer(palette, sizeof(palette), 1);
+	state_fio->StateBuffer(palette16, sizeof(palette16), 1);
+#elif defined(_MZ1500)
+	state_fio->StateUint8(priority);
+	state_fio->StateBuffer(palette, sizeof(palette), 1);
+#endif
+	state_fio->StateBool(blink);
+	state_fio->StateBool(tempo);
+	state_fio->StateBool(hblank);
+	state_fio->StateBool(hsync);
+	state_fio->StateBool(vblank);
+	state_fio->StateBool(vsync);
+#if defined(_MZ700) || defined(_MZ1500)
+	state_fio->StateBool(hblank_vram);
+#endif
+#if defined(_MZ1500)
+	state_fio->StateBool(hblank_pcg);
+#endif
+#if defined(_MZ800)
+	state_fio->StateBuffer(palette_mz800_pc, sizeof(palette_mz800_pc), 1);
+#endif
+	state_fio->StateBuffer(palette_pc, sizeof(palette_pc), 1);
+	
+	// post process
+	if(loading) {
+		update_map_low();
+		update_map_middle();
+		update_map_high();
+	}
+	return true;
+}

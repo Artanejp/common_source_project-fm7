@@ -372,3 +372,22 @@ bool DISPLAY::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+#ifdef _COLOR_MONITOR
+	state_fio->StateBuffer(vram_r, sizeof(vram_r), 1);
+	state_fio->StateBuffer(vram_g, sizeof(vram_g), 1);
+	state_fio->StateBuffer(vram_b, sizeof(vram_b), 1);
+#else
+	state_fio->StateBuffer(vram, sizeof(vram), 1);
+#endif
+	state_fio->StateUint8(bank);
+	state_fio->StateInt32(blink);
+	return true;
+}

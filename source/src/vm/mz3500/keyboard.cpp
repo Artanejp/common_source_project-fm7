@@ -535,3 +535,26 @@ bool KEYBOARD::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	if(!key_buf->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateInt32(phase);
+	state_fio->StateUint16(send_data);
+	state_fio->StateUint32(stc_clock);
+	state_fio->StateUint8(recv_data);
+	state_fio->StateBool(recv_ok);
+	state_fio->StateBool(stc);
+	state_fio->StateBool(dc);
+	state_fio->StateBool(caps);
+	state_fio->StateBool(kana);
+	state_fio->StateBool(pro_mode);
+	return true;
+}

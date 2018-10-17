@@ -728,3 +728,46 @@ bool MEMORY::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBuffer(ram, sizeof(ram), 1);
+	state_fio->StateBuffer(vram, sizeof(vram), 1);
+	state_fio->StateBuffer(tvram, sizeof(tvram), 1);
+	state_fio->StateBool(ipl_selected);
+	state_fio->StateUint8(vram_sel);
+	state_fio->StateUint8(vram_page);
+	state_fio->StateUint8(back_color);
+	state_fio->StateUint8(text_color);
+	state_fio->StateUint8(vram_mask);
+	state_fio->StateBool(width80);
+	state_fio->StateBool(reverse);
+	state_fio->StateBool(vgate);
+	state_fio->StateBool(hblank);
+#ifdef _MZ80B
+	state_fio->StateBuffer(pio3039_palette, sizeof(pio3039_palette), 1);
+	state_fio->StateBool(pio3039_txt_sw);
+	state_fio->StateUint8(pio3039_data);
+#endif
+	
+	// post process
+	if(loading) {
+		if(ipl_selected) {
+			SET_BANK(0x0000, 0x07ff, wdmy, ipl, false);
+			SET_BANK(0x0800, 0x7fff, wdmy, rdmy, false);
+			SET_BANK(0x8000, 0xffff, ram, ram, false);
+		} else {
+			SET_BANK(0x0000, 0xffff, ram, ram, false);
+		}
+		update_vram_map();
+#ifndef _MZ80B
+		update_green_palette();
+#endif
+	}
+	return true;
+}

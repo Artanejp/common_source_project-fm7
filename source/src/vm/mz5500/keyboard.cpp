@@ -547,3 +547,30 @@ bool KEYBOARD::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	if(!key_buf->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	if(!rsp_buf->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateBool(caps);
+	state_fio->StateBool(kana);
+	state_fio->StateBool(graph);
+	state_fio->StateInt32(dk);
+	state_fio->StateInt32(srk);
+	state_fio->StateInt32(dc);
+	state_fio->StateInt32(stc);
+	state_fio->StateInt32(send);
+	state_fio->StateInt32(recv);
+	state_fio->StateInt32(phase);
+	state_fio->StateInt32(timeout);
+	return true;
+}

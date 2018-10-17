@@ -267,3 +267,19 @@ bool DISPLAY::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBool(chr);
+	state_fio->StateBool(wide);
+	state_fio->StateUint16(cursor);
+	state_fio->StateUint16(cblink);
+	state_fio->StateBuffer(vram, sizeof(vram), 1);
+	state_fio->StateUint16(vram_addr);
+	return true;
+}

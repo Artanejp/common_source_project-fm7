@@ -234,3 +234,19 @@ bool INTERRUPT::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool INTERRUPT::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateUint8(select);
+	state_fio->StateBuffer(irq, sizeof(irq), 1);
+	state_fio->StateInt32(req_intr_ch);
+	state_fio->StateBool(iei);
+	state_fio->StateBool(oei);
+	state_fio->StateUint32(intr_bit);
+	return true;
+}

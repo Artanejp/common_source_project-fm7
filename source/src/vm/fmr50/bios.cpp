@@ -1210,3 +1210,23 @@ bool BIOS::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool BIOS::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	for(int i = 0; i < MAX_DRIVE; i++) {
+		if(!disk[i]->process_state(state_fio, loading)) {
+			return false;
+		}
+	}
+	state_fio->StateInt32(secnum);
+	state_fio->StateInt32(timeout);
+	state_fio->StateBuffer(drive_mode1, sizeof(drive_mode1), 1);
+	state_fio->StateBuffer(drive_mode2, sizeof(drive_mode2), 1);
+	state_fio->StateBuffer(scsi_blocks, sizeof(scsi_blocks), 1);
+	return true;
+}

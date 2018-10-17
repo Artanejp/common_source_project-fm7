@@ -255,3 +255,26 @@ bool MEMORY::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBuffer(ram, sizeof(ram), 1);
+	state_fio->StateBuffer(vram, sizeof(vram), 1);
+#if defined(_MZ6500) || defined(_MZ6550)
+	state_fio->StateBuffer(mz1r32, sizeof(mz1r32), 1);
+#endif
+	state_fio->StateUint8(bank1);
+	state_fio->StateUint8(bank2);
+	state_fio->StateUint32(haddr);
+	
+	// post process
+	if(loading) {
+		 update_bank();
+		}
+	return true;
+}

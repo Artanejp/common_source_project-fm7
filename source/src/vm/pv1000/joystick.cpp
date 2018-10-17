@@ -130,3 +130,15 @@ bool JOYSTICK::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool JOYSTICK::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateUint8(column);
+	state_fio->StateUint8(status);
+	return true;
+}

@@ -134,3 +134,14 @@ bool PAC2::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool PAC2::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateInt32(device_type);
+	return get_device()->process_state(state_fio, loading);
+}

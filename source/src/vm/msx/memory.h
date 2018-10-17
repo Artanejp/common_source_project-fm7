@@ -53,8 +53,7 @@ public:
 	void initialize();
 	void write_data8(uint32_t addr, uint32_t data);
 	uint32_t read_data8(uint32_t addr);
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 };
 
 // slot #1
@@ -83,8 +82,7 @@ public:
 	void initialize();
 	void write_data8(uint32_t addr, uint32_t data);
 	uint32_t read_data8(uint32_t addr);
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void open_cart(const _TCHAR *file_path);
@@ -129,8 +127,7 @@ public:
 	uint32_t read_data8(uint32_t addr);
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_callback(int event_id, int err);
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_cpu(DEVICE* device)
@@ -196,8 +193,7 @@ public:
 	void write_data8(uint32_t addr, uint32_t data);
 	uint32_t read_data8(uint32_t addr);
 	void write_io8(uint32_t addr, uint32_t data);
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void open_cart(const _TCHAR *file_path);
@@ -244,8 +240,7 @@ public:
 	uint32_t read_signal(int id);
 	bool bios_ret_z80(uint16_t PC, pair_t* af, pair_t* bc, pair_t* de, pair_t* hl, pair_t* ix, pair_t* iy, uint8_t* iff1);
 #endif
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_slot(int drv, DEVICE *device)

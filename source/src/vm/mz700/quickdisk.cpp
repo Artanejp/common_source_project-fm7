@@ -649,3 +649,30 @@ bool QUICKDISK::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool QUICKDISK::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBuffer(file_path, sizeof(file_path), 1);
+	state_fio->StateBool(insert);
+	state_fio->StateBool(protect);
+	state_fio->StateBool(home);
+	state_fio->StateBool(modified);
+	state_fio->StateBool(accessed);
+	state_fio->StateBuffer(buffer, sizeof(buffer), 1);
+	state_fio->StateInt32(buffer_ptr);
+	state_fio->StateInt32(write_ptr);
+	state_fio->StateBool(first_data);
+	state_fio->StateBool(send_break);
+	state_fio->StateBool(wrga);
+	state_fio->StateBool(mton);
+	state_fio->StateBool(sync);
+	state_fio->StateBool(motor_on);
+	state_fio->StateInt32(restore_id);
+	state_fio->StateInt32(end_id);
+	return true;
+}

@@ -382,3 +382,24 @@ bool DISPLAY::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBuffer(pal, sizeof(pal), 1);
+	state_fio->StateBool(text_wide);
+	state_fio->StateBool(text_color);
+	state_fio->StateUint8(graph_color);
+	state_fio->StateUint8(graph_page);
+	state_fio->StateUint16(cursor);
+	state_fio->StateUint16(cblink);
+	state_fio->StateBool(hsync);
+	state_fio->StateBool(vsync);
+	state_fio->StateBool(display);
+	state_fio->StateBool(blink);
+	return true;
+}

@@ -117,3 +117,15 @@ bool FLOPPY::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool FLOPPY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBool(intr);
+	state_fio->StateBool(supported);
+	return true;
+}

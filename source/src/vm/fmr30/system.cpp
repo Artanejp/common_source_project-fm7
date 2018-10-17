@@ -105,3 +105,16 @@ bool SYSTEM::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool SYSTEM::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateUint8(arr);
+	state_fio->StateUint8(nmistat);
+	state_fio->StateUint8(nmimask);
+	return true;
+}

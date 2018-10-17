@@ -100,3 +100,15 @@ bool MZ1R37::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool MZ1R37::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBuffer(buffer, EMM_SIZE, 1);
+	state_fio->StateUint32(address);
+	return true;
+}

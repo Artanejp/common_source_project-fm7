@@ -1406,3 +1406,68 @@ bool MEMORY::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBuffer(ram, sizeof(ram), 1);
+	state_fio->StateBuffer(vram, sizeof(vram), 1);
+	state_fio->StateBuffer(cvram, sizeof(cvram), 1);
+#ifdef _FMR60
+	state_fio->StateBuffer(avram, sizeof(avram), 1);
+#else
+	state_fio->StateBuffer(kvram, sizeof(kvram), 1);
+#endif
+	state_fio->StateUint8(machine_id);
+	state_fio->StateUint8(protect);
+	state_fio->StateUint8(rst);
+	state_fio->StateUint8(mainmem);
+	state_fio->StateUint8(rplane);
+	state_fio->StateUint8(wplane);
+	state_fio->StateUint8(dma_addr_reg);
+	state_fio->StateUint8(dma_wrap_reg);
+	state_fio->StateUint32(dma_addr_mask);
+	state_fio->StateBool(disp);
+	state_fio->StateBool(vsync);
+	state_fio->StateInt32(blink);
+	state_fio->StateBuffer(apal, sizeof(apal), 1);
+	state_fio->StateUint8(apalsel);
+	state_fio->StateBuffer(dpal, sizeof(dpal), 1);
+	state_fio->StateUint8(outctrl);
+#ifndef _FMR60
+	state_fio->StateUint8(pagesel);
+	state_fio->StateUint8(ankcg);
+	state_fio->StateUint8(dispctrl);
+	state_fio->StateUint8(mix);
+	state_fio->StateUint16(accaddr);
+	state_fio->StateUint16(dispaddr);
+	state_fio->StateInt32(kj_h);
+	state_fio->StateInt32(kj_l);
+	state_fio->StateInt32(kj_ofs);
+	state_fio->StateInt32(kj_row);
+	state_fio->StateUint8(cmdreg);
+	state_fio->StateUint8(imgcol);
+	state_fio->StateUint8(maskreg);
+	state_fio->StateBuffer(compreg, sizeof(compreg), 1);
+	state_fio->StateUint8(compbit);
+	state_fio->StateUint8(bankdis);
+	state_fio->StateBuffer(tilereg, sizeof(tilereg), 1);
+	state_fio->StateUint16(lofs);
+	state_fio->StateUint16(lsty);
+	state_fio->StateUint16(lsx);
+	state_fio->StateUint16(lsy);
+	state_fio->StateUint16(lex);
+	state_fio->StateUint16(ley);
+#endif
+	state_fio->StateBuffer(palette_cg, sizeof(palette_cg), 1);
+	
+	// post process
+	if(loading) {
+		update_bank();
+	}
+	return true;
+}

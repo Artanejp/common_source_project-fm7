@@ -290,3 +290,25 @@ bool IOCTRL::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool IOCTRL::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBool(caps);
+	state_fio->StateBool(kana);
+	if(!key_buf->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateUint32(key_val);
+	state_fio->StateUint32(key_mouse);
+	state_fio->StateInt32(key_prev);
+	state_fio->StateBool(key_res);
+	state_fio->StateBool(key_done);
+	state_fio->StateInt32(register_id);
+	state_fio->StateUint8(ts);
+	return true;
+}

@@ -228,8 +228,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

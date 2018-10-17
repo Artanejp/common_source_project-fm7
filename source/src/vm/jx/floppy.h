@@ -32,6 +32,7 @@ public:
 	void reset();
 	void write_io8(uint32_t addr, uint32_t data);
 	void event_callback(int event_id, int err);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_fdc(DEVICE* device)

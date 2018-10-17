@@ -82,3 +82,11 @@ bool KANJIPAC2::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool KANJIPAC2::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	state_fio->StateUint32(ptr);
+	return true;
+}

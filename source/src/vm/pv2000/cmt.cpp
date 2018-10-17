@@ -187,3 +187,19 @@ bool CMT::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool CMT::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateInt32(bufcnt);
+	state_fio->StateBuffer(buffer, sizeof(buffer), 1);
+	state_fio->StateBool(play);
+	state_fio->StateBool(rec);
+	state_fio->StateUint8(start);
+	state_fio->StateUint8(bit);
+	return true;
+}

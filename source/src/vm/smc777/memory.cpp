@@ -1158,3 +1158,67 @@ bool MEMORY::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBuffer(ram, sizeof(ram), 1);
+	state_fio->StateBuffer(cram, sizeof(cram), 1);
+	state_fio->StateBuffer(aram, sizeof(aram), 1);
+	state_fio->StateBuffer(pcg, sizeof(pcg), 1);
+	state_fio->StateBuffer(gram, sizeof(gram), 1);
+	state_fio->StateBool(rom_selected);
+	state_fio->StateInt32(rom_switch_wait);
+	state_fio->StateInt32(ram_switch_wait);
+	state_fio->StateBuffer(keytable, sizeof(keytable), 1);
+	state_fio->StateBuffer(keytable_shift, sizeof(keytable_shift), 1);
+	state_fio->StateBuffer(keytable_ctrl, sizeof(keytable_ctrl), 1);
+	state_fio->StateBuffer(keytable_kana, sizeof(keytable_kana), 1);
+	state_fio->StateBuffer(keytable_kana_shift, sizeof(keytable_kana_shift), 1);
+	state_fio->StateUint8(key_code);
+	state_fio->StateUint8(key_status);
+	state_fio->StateUint8(key_cmd);
+	state_fio->StateInt32(key_repeat_start);
+	state_fio->StateInt32(key_repeat_interval);
+	state_fio->StateInt32(key_repeat_event);
+	state_fio->StateUint8(funckey_code);
+	state_fio->StateInt32(funckey_index);
+	state_fio->StateBool(caps);
+	state_fio->StateBool(kana);
+	state_fio->StateUint8(gcw);
+	state_fio->StateBool(vsup);
+	state_fio->StateBool(vsync);
+	state_fio->StateBool(disp);
+	state_fio->StateInt32(cblink);
+#if defined(_SMC777)
+	state_fio->StateBool(use_palette_text);
+	state_fio->StateBool(use_palette_graph);
+	state_fio->StateBuffer(pal, sizeof(pal), 1);
+	state_fio->StateBuffer(palette_pc, sizeof(palette_pc), 1);
+#endif
+	state_fio->StateInt32(kanji_hi);
+	state_fio->StateInt32(kanji_lo);
+	state_fio->StateBool(ief_key);
+	state_fio->StateBool(ief_vsync);
+	state_fio->StateBool(fdc_irq);
+	state_fio->StateBool(fdc_drq);
+	state_fio->StateBool(drec_in);
+#if defined(_SMC70)
+	state_fio->StateUint8(rtc_data);
+	state_fio->StateBool(rtc_busy);
+#endif
+	
+	// post process
+	if(loading) {
+		if(rom_selected) {
+			SET_BANK(0x0000, sizeof(rom) - 1, wdmy, rom);
+		} else {
+			SET_BANK(0x0000, sizeof(rom) - 1, ram, ram);
+		}
+	}
+	return true;
+}

@@ -609,3 +609,34 @@ bool MEMORY::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBuffer(ram, sizeof(ram), 1);
+	state_fio->StateBuffer(vram, sizeof(vram), 1);
+	state_fio->StateBuffer(cvram, sizeof(cvram), 1);
+	state_fio->StateBuffer(kvram, sizeof(kvram), 1);
+	state_fio->StateUint8(mcr1);
+	state_fio->StateUint8(mcr2);
+	state_fio->StateUint8(a20);
+	state_fio->StateUint8(lcdadr);
+	state_fio->StateBuffer(lcdreg, sizeof(lcdreg), 1);
+	state_fio->StateUint16(dcr1);
+	state_fio->StateUint16(dcr2);
+	state_fio->StateInt32(kj_h);
+	state_fio->StateInt32(kj_l);
+	state_fio->StateInt32(kj_ofs);
+	state_fio->StateInt32(kj_row);
+	state_fio->StateInt32(blinkcnt);
+	
+	// post process
+	if(loading) {
+		update_bank();
+	}
+	return true;
+}

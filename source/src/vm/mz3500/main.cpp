@@ -504,3 +504,42 @@ bool MAIN::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool MAIN::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBuffer(ram, sizeof(ram), 1);
+	state_fio->StateBuffer(common, sizeof(common), 1);
+	state_fio->StateUint8(ma);
+	state_fio->StateUint8(ms);
+	state_fio->StateUint8(mo);
+	state_fio->StateBool(me1);
+	state_fio->StateBool(me2);
+	state_fio->StateUint8(srqb);
+	state_fio->StateUint8(sres);
+	state_fio->StateBool(sack);
+	state_fio->StateBool(srdy);
+	state_fio->StateBool(intfd);
+	state_fio->StateBool(int0);
+	state_fio->StateBool(int1);
+	state_fio->StateBool(int2);
+	state_fio->StateBool(int3);
+	state_fio->StateBool(int4);
+	state_fio->StateBool(me);
+	state_fio->StateBool(e1);
+	state_fio->StateUint8(inp);
+	state_fio->StateBool(motor);
+	state_fio->StateBool(drq);
+	state_fio->StateBool(index);
+	state_fio->StateBool(crt_400line);
+	
+	// post process
+	if(loading) {
+		 update_bank();
+	}
+	return true;
+}

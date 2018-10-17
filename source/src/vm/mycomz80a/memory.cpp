@@ -156,3 +156,21 @@ bool MEMORY::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBuffer(ram, sizeof(ram), 1);
+	state_fio->StateUint32(addr_mask);
+	state_fio->StateBool(rom_sel);
+	
+	// post process
+	if(loading) {
+		update_memory_map();
+	}
+	return true;
+}

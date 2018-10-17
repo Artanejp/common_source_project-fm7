@@ -52,3 +52,30 @@ void FLOPPY::event_callback(int event_id, int err)
 	register_id = -1;
 }
 
+#define STATE_VERSION	1
+
+bool FLOPPY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateUint8(prev);
+	state_fio->StateInt32(register_id);
+	return true;
+}
+
+bool FLOPPY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateUint8(prev);
+	state_fio->StateInt32(register_id);
+	return true;
+}

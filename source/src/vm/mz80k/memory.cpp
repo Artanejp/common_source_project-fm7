@@ -535,3 +535,49 @@ bool MEMORY::load_state(FILEIO* state_fio)
 	return true;
 }
 
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBuffer(ram, sizeof(ram), 1);
+	state_fio->StateBuffer(vram, sizeof(vram), 1);
+	state_fio->StateBool(tempo);
+	state_fio->StateBool(blink);
+#if defined(_MZ1200) || defined(_MZ80A)
+	state_fio->StateBool(hblank);
+	state_fio->StateBool(memory_swap);
+#endif
+#if defined(SUPPORT_MZ80AIF)
+	state_fio->StateBool(fdc_irq);
+	state_fio->StateBool(fdc_drq);
+#endif
+	state_fio->StateBool(vgate);
+#if defined(_MZ1200) || defined(_MZ80A)
+	state_fio->StateBool(reverse);
+#endif
+#if defined(_MZ80A)
+	state_fio->StateUint32(e200);
+#endif
+	state_fio->StateBuffer(pcg + 0x400, 0x400, 1);
+#if defined(_MZ1200)
+	state_fio->StateBuffer(pcg + 0xc00, 0x400, 1);
+#endif
+	state_fio->StateUint8(pcg_data);
+	state_fio->StateUint8(pcg_addr);
+	state_fio->StateUint8(pcg_ctrl);
+	
+	// post process
+	if(loading) {
+#if defined(_MZ1200) || defined(_MZ80A)
+		update_memory_swap();
+#endif
+#if defined(SUPPORT_MZ80AIF)
+		update_fdif_rom_bank();
+#endif
+	}
+	return true;
+}
