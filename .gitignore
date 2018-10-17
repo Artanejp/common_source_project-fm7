@@ -1,39 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 !packages/build/
 # (and the packages folder if the line above has been uncommented)
 # Backup & report files from converting an old project file
@@ -203,6 +167,7 @@ publish/
 source/build-cmake/*/build-win32/*
 source/build-cmake/*/build/*
 source/src/vm/libcpu_newdev/mame0185/*
+source/src/vm/libcpu_newdev/mame0197/*
 sql/
 x64/
 ~$*
