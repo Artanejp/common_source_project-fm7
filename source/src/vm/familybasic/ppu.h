@@ -60,7 +60,6 @@ private:
 	void render_bg(int v);
 	void render_spr(int v);
 	void update_palette();
-	void decl_state_header(header_t *p);
 	
 public:
 	PPU(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -76,9 +75,7 @@ public:
 	void write_data8(uint32_t addr, uint32_t data);
 	uint32_t read_data8(uint32_t addr);
 	void event_vline(int v, int clock);
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_cpu(DEVICE* device)

@@ -146,52 +146,20 @@ void RTC::event_callback(int event_id, int err)
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void RTC::decl_state()
+bool RTC::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
-	
-	DECL_STATE_ENTRY_CUR_TIME_T(cur_time);
-	DECL_STATE_ENTRY_CUR_TIME_T(tmp_time);
-	DECL_STATE_ENTRY_UINT8(ctrl);
-
-	leave_decl_state();
-}
-
-void RTC::save_state(FILEIO* state_fio)
-{
-	//state_fio->FputUint32(STATE_VERSION);
-	//state_fio->FputInt32(this_device_id);
-	
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
 	}
-	//cur_time.save_state((void *)state_fio);
-	//tmp_time.save_state((void *)state_fio);
-	//state_fio->FputUint8(ctrl);
-}
-
-bool RTC::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
 	}
-	if(!mb) return false;
-	//if(state_fio->FgetUint32() != STATE_VERSION) {
-	//	return false;
-	//}
-	//if(state_fio->FgetInt32() != this_device_id) {
-	//	return false;
-	//}
-	//if(!cur_time.load_state((void *)state_fio)) {
-	//	return false;
-	//}
-	//if(!tmp_time.load_state((void *)state_fio)) {
-	//	return false;
-	//}
-	//ctrl = state_fio->FgetUint8();
+	if(!cur_time.process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	if(!tmp_time.process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateUint8(ctrl);
 	return true;
 }
-

@@ -156,11 +156,11 @@ private:
 	
 	int volume_l, volume_r;
 
-	void decl_state_rectangle(int num);
-	void decl_state_triangle();
-	void decl_state_noise();
-	void decl_state_dmc();
-	void decl_state_queue(int num);
+	void process_state_rectangle(int num, FILEIO* state_fio, bool loading);
+	void process_state_triangle(FILEIO* state_fio, bool loading);
+	void process_state_noise(FILEIO* state_fio, bool loading);
+	void process_state_dmc(FILEIO* state_fio, bool loading);
+	void process_state_queue(int num, FILEIO* state_fio, bool loading);
 	
 public:
 	APU(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -179,9 +179,7 @@ public:
 	void event_vline(int v, int clock);
 	void mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_cpu(DEVICE* device)

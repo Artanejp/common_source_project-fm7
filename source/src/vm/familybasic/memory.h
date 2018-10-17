@@ -95,7 +95,6 @@ private:
 	void vrc7_hi_write(uint32_t addr, uint32_t data);
 	void vrc7_hsync(int v);
 	
-	void decl_state_header(header_t *p);
 public:
 	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -111,9 +110,7 @@ public:
 	uint32_t read_data8(uint32_t addr);
 	void event_vline(int v, int clock);
 	void event_callback(int event_id, int err);
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_cpu(DEVICE* device)

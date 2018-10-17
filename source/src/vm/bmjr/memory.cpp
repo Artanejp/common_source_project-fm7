@@ -405,100 +405,37 @@ void MEMORY::draw_screen()
 
 #define STATE_VERSION	2
 
-#include "../../statesub.h"
-
-void MEMORY::decl_state()
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
-	DECL_STATE_ENTRY_UINT8(memory_bank);
-	
-	DECL_STATE_ENTRY_1D_ARRAY(color_table, sizeof(color_table));
-	DECL_STATE_ENTRY_UINT8(char_color);
-	DECL_STATE_ENTRY_UINT8(back_color);
-	DECL_STATE_ENTRY_UINT8(mp1710_enb);
-	DECL_STATE_ENTRY_UINT8(screen_mode);
-	DECL_STATE_ENTRY_BOOL(screen_reversed);
-	DECL_STATE_ENTRY_BOOL(drec_bit);
-	DECL_STATE_ENTRY_BOOL(drec_in);
-	DECL_STATE_ENTRY_UINT32(drec_clock);
-	DECL_STATE_ENTRY_UINT8(key_column);
-	DECL_STATE_ENTRY_UINT8(key_data);
-	DECL_STATE_ENTRY_BOOL(nmi_enb);
-	DECL_STATE_ENTRY_BOOL(break_pressed);
-	DECL_STATE_ENTRY_UINT8(sound_sample);
-	DECL_STATE_ENTRY_DOUBLE(sound_accum);
-	DECL_STATE_ENTRY_UINT32(sound_clock);
-	DECL_STATE_ENTRY_UINT32(sound_mix_clock);
-
-	leave_decl_state();
-}
-
-void MEMORY::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
 	}
-	//state_fio->FputUint32(STATE_VERSION);
-	//state_fio->FputInt32(this_device_id);
-	
-	//state_fio->Fwrite(ram, sizeof(ram), 1);
-	//state_fio->FputUint8(memory_bank);
-	//state_fio->Fwrite(color_table, sizeof(color_table), 1);
-	//state_fio->FputUint8(char_color);
-	//state_fio->FputUint8(back_color);
-	//state_fio->FputUint8(mp1710_enb);
-	//state_fio->FputUint8(screen_mode);
-	//state_fio->FputBool(screen_reversed);
-	//state_fio->FputBool(drec_bit);
-	//state_fio->FputBool(drec_in);
-	//state_fio->FputUint32(drec_clock);
-	//state_fio->FputUint8(key_column);
-	//state_fio->FputUint8(key_data);
-	//state_fio->FputBool(nmi_enb);
-	//state_fio->FputBool(break_pressed);
-	//state_fio->FputUint8(sound_sample);
-	//state_fio->FputDouble(sound_accum);
-	//state_fio->FputUint32(sound_clock);
-	//state_fio->FputUint32(sound_mix_clock);
-}
-
-bool MEMORY::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
 	}
-	if(!mb) return false;
-	//if(state_fio->FgetUint32() != STATE_VERSION) {
-	//	return false;
-	//}
-	//if(state_fio->FgetInt32() != this_device_id) {
-	//	return false;
-	//}
-	//state_fio->Fread(ram, sizeof(ram), 1);
-	//memory_bank = state_fio->FgetUint8();
-	//state_fio->Fread(color_table, sizeof(color_table), 1);
-	//char_color = state_fio->FgetUint8();
-	//back_color = state_fio->FgetUint8();
-	//mp1710_enb = state_fio->FgetUint8();
-	//screen_mode = state_fio->FgetUint8();
-	//screen_reversed = state_fio->FgetBool();
-	//drec_bit = state_fio->FgetBool();
-	//drec_in = state_fio->FgetBool();
-	//drec_clock = state_fio->FgetUint32();
-	//key_column = state_fio->FgetUint8();
-	//key_data = state_fio->FgetUint8();
-	//nmi_enb = state_fio->FgetBool();
-	//break_pressed = state_fio->FgetBool();
-	//sound_sample = state_fio->FgetUint8();
-	//sound_accum = state_fio->FgetDouble();
-	//sound_clock = state_fio->FgetUint32();
-	//sound_mix_clock = state_fio->FgetUint32();
+	state_fio->StateBuffer(ram, sizeof(ram), 1);
+	state_fio->StateUint8(memory_bank);
+	state_fio->StateBuffer(color_table, sizeof(color_table), 1);
+	state_fio->StateUint8(char_color);
+	state_fio->StateUint8(back_color);
+	state_fio->StateUint8(mp1710_enb);
+	state_fio->StateUint8(screen_mode);
+	state_fio->StateBool(screen_reversed);
+	state_fio->StateBool(drec_bit);
+	state_fio->StateBool(drec_in);
+	state_fio->StateUint32(drec_clock);
+	state_fio->StateUint8(key_column);
+	state_fio->StateUint8(key_data);
+	state_fio->StateBool(nmi_enb);
+	state_fio->StateBool(break_pressed);
+	state_fio->StateUint8(sound_sample);
+	state_fio->StateDouble(sound_accum);
+	state_fio->StateUint32(sound_clock);
+	state_fio->StateUint32(sound_mix_clock);
 	
 	// post process
-	update_bank();
+	if(loading) {
+		update_bank();
+	}
 	return true;
 }
-

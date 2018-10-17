@@ -95,62 +95,49 @@ void CMT::release_tape()
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void CMT::decl_state()
+bool CMT::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_BOOL(play);
-	DECL_STATE_ENTRY_BOOL(rec);
-	DECL_STATE_ENTRY_STRING(rec_file_path, sizeof(rec_file_path));
-	DECL_STATE_ENTRY_CMT_RECORDING(fio, rec, rec_file_path);
-	
-	DECL_STATE_ENTRY_INT32(bufcnt);
-	DECL_STATE_ENTRY_1D_ARRAY(buffer, sizeof(buffer));
-
-	leave_decl_state();
-}
-void CMT::save_state(FILEIO* state_fio)
-{
-	uint32_t crc_value = 0xffffffff;
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio, &crc_value);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
 	}
-	
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->FputBool(play);
-//	state_fio->FputBool(rec);
-//	state_fio->Fwrite(rec_file_path, sizeof(rec_file_path), 1);
-//	state_fio->FputInt32(bufcnt);
-//	state_fio->Fwrite(buffer, sizeof(buffer), 1);
-}
-
-bool CMT::load_state(FILEIO* state_fio)
-{
-	release_tape();
-	
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	play = state_fio->FgetBool();
-//	rec = state_fio->FgetBool();
-//	state_fio->Fread(rec_file_path, sizeof(rec_file_path), 1);
-//	int length_tmp = state_fio->FgetInt32();
-	bool mb = false;
-	bool stat;
-	uint32_t crc_value = 0xffffffff;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio, &crc_value);
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
 	}
-	if(!mb) return false;
-//	bufcnt = state_fio->FgetInt32();
-//	state_fio->Fread(buffer, sizeof(buffer), 1);
+	state_fio->StateBool(play);
+	state_fio->StateBool(rec);
+	state_fio->StateBuffer(rec_file_path, sizeof(rec_file_path), 1);
+	if(loading) {
+		int length_tmp = state_fio->FgetInt32_LE();
+		if(rec) {
+			fio->Fopen(rec_file_path, FILEIO_READ_WRITE_NEW_BINARY);
+			while(length_tmp != 0) {
+				uint8_t buffer_tmp[1024];
+				int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
+				state_fio->Fread(buffer_tmp, length_rw, 1);
+				if(fio->IsOpened()) {
+					fio->Fwrite(buffer_tmp, length_rw, 1);
+				}
+				length_tmp -= length_rw;
+			}
+		}
+	} else {
+		if(rec && fio->IsOpened()) {
+			int length_tmp = (int)fio->Ftell();
+			fio->Fseek(0, FILEIO_SEEK_SET);
+			state_fio->FputInt32_LE(length_tmp);
+			while(length_tmp != 0) {
+				uint8_t buffer_tmp[1024];
+				int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
+				fio->Fread(buffer_tmp, length_rw, 1);
+				state_fio->Fwrite(buffer_tmp, length_rw, 1);
+				length_tmp -= length_rw;
+			}
+		} else {
+			state_fio->FputInt32_LE(0);
+		}
+	}
+	state_fio->StateInt32(bufcnt);
+	state_fio->StateBuffer(buffer, sizeof(buffer), 1);
 	return true;
 }
 

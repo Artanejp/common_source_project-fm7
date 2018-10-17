@@ -130,39 +130,14 @@ uint32_t KEYBOARD::read_io8(uint32_t addr)
 
 #define STATE_VERSION	2
 
-#include "../../statesub.h"
-
-void KEYBOARD::decl_state(void)
+bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
-	DECL_STATE_ENTRY_BOOL(tenkey);
-	leave_decl_state();
-}
-
-void KEYBOARD::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
 	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);	
-	
-//	state_fio->FputBool(tenkey);
-}
-
-bool KEYBOARD::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
 	}
-	if(!mb) return false;
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	tenkey = state_fio->FgetBool();
+	state_fio->StateBool(tenkey);
 	return true;
 }

@@ -659,128 +659,73 @@ void PPU::set_mirroring(uint32_t nt0, uint32_t nt1, uint32_t nt2, uint32_t nt3)
 	set_ppu_bank(11, nt3);
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
-#include "../../statesub.h"
-
-void PPU::decl_state_header(header_t *p)
+bool PPU::process_state(FILEIO* state_fio, bool loading)
 {
-	DECL_STATE_ENTRY_1D_ARRAY((p->id), 3);	// 'NES'
-	DECL_STATE_ENTRY_UINT8((p->ctrl_z));	// control-z
-	DECL_STATE_ENTRY_UINT8((p->dummy));
-	DECL_STATE_ENTRY_UINT8((p->num_8k_vrom_banks));
-	DECL_STATE_ENTRY_UINT8((p->flags_1));
-	DECL_STATE_ENTRY_UINT8((p->flags_2));
-	DECL_STATE_ENTRY_1D_ARRAY((p->reserved), 1);
-}
-
-void PPU::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-	// ToDo: Read register value, then calculate display values.
-	DECL_STATE_ENTRY_SCRNTYPE_T_1D_ARRAY(palette_pc, sizeof(palette_pc) / sizeof(scrntype_t));
-	DECL_STATE_ENTRY_1D_ARRAY(solid_buf, sizeof(solid_buf));
-	decl_state_header(&header);
-
-	DECL_STATE_ENTRY_1D_ARRAY(banks, sizeof(banks) / sizeof(uint32_t));
-	DECL_STATE_ENTRY_INT32(chr_rom_size);
-//	DECL_STATE_ENTRY_INT32(chr_rom_mask);
-	DECL_STATE_ENTRY_VARARRAY_VAR(chr_rom, chr_rom_size);
-	DECL_STATE_ENTRY_1D_ARRAY(name_tables, sizeof(name_tables));
-	DECL_STATE_ENTRY_1D_ARRAY(spr_ram, sizeof(spr_ram));
-	DECL_STATE_ENTRY_1D_ARRAY(bg_pal, sizeof(bg_pal));
-	DECL_STATE_ENTRY_1D_ARRAY(spr_pal, sizeof(spr_pal));
-	DECL_STATE_ENTRY_UINT8(spr_ram_rw_ptr);
-	DECL_STATE_ENTRY_1D_ARRAY(regs, sizeof(regs));
-	DECL_STATE_ENTRY_UINT16(bg_pattern_table_addr);
-	DECL_STATE_ENTRY_UINT16(spr_pattern_table_addr);
-	DECL_STATE_ENTRY_UINT16(ppu_addr_inc);
-	DECL_STATE_ENTRY_UINT8(rgb_bak);
-	DECL_STATE_ENTRY_BOOL(toggle_2005_2006);
-	DECL_STATE_ENTRY_UINT8(read_2007_buffer);
-	DECL_STATE_ENTRY_UINT16(loopy_v);
-	DECL_STATE_ENTRY_UINT16(loopy_t);
-	DECL_STATE_ENTRY_UINT8(loopy_x);
-	
-	leave_decl_state();
-}
-void PPU::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
 	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(palette_pc, sizeof(palette_pc), 1);
-//	state_fio->Fwrite(solid_buf, sizeof(solid_buf), 1);
-//	state_fio->Fwrite(&header, sizeof(header), 1);
-//	state_fio->Fwrite(banks, sizeof(banks), 1);
-//	state_fio->FputInt32(chr_rom_size);
-////	state_fio->FputInt32(chr_rom_mask);
-//	state_fio->Fwrite(chr_rom, chr_rom_size, 1);
-//	state_fio->Fwrite(name_tables, sizeof(name_tables), 1);
-//	state_fio->Fwrite(spr_ram, sizeof(spr_ram), 1);
-//	state_fio->Fwrite(bg_pal, sizeof(bg_pal), 1);
-//	state_fio->Fwrite(spr_pal, sizeof(spr_pal), 1);
-//	state_fio->FputUint8(spr_ram_rw_ptr);
-//	state_fio->Fwrite(regs, sizeof(regs), 1);
-//	state_fio->FputUint16(bg_pattern_table_addr);
-//	state_fio->FputUint16(spr_pattern_table_addr);
-//	state_fio->FputUint16(ppu_addr_inc);
-//	state_fio->FputUint8(rgb_bak);
-//	state_fio->FputBool(toggle_2005_2006);
-//	state_fio->FputUint8(read_2007_buffer);
-//	state_fio->FputUint16(loopy_v);
-//	state_fio->FputUint16(loopy_t);
-//	state_fio->FputUint8(loopy_x);
-}
-
-bool PPU::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
 	}
-	if(!mb) return false;
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(palette_pc, sizeof(palette_pc), 1);
-//	state_fio->Fread(solid_buf, sizeof(solid_buf), 1);
-//	state_fio->Fread(&header, sizeof(header), 1);
-//	state_fio->Fread(banks, sizeof(banks), 1);
-//	chr_rom_size = state_fio->FgetUint32();
-//	chr_rom_mask = state_fio->FgetUint32();
-	chr_rom_mask = (chr_rom_size / 0x400) - 1;
-//	if(chr_rom != NULL) {
-//		free(chr_rom);
-//	}
-//	chr_rom = (uint8_t *)malloc(chr_rom_size);
-//	state_fio->Fread(chr_rom, chr_rom_size, 1);
-//	state_fio->Fread(name_tables, sizeof(name_tables), 1);
-//	state_fio->Fread(spr_ram, sizeof(spr_ram), 1);
-//	state_fio->Fread(bg_pal, sizeof(bg_pal), 1);
-//	state_fio->Fread(spr_pal, sizeof(spr_pal), 1);
-//	spr_ram_rw_ptr = state_fio->FgetUint8();
-//	state_fio->Fread(regs, sizeof(regs), 1);
-//	bg_pattern_table_addr = state_fio->FgetUint16();
-//	spr_pattern_table_addr = state_fio->FgetUint16();
-//	ppu_addr_inc = state_fio->FgetUint16();
-//	rgb_bak = state_fio->FgetUint8();
-//	toggle_2005_2006 = state_fio->FgetBool();
-//	read_2007_buffer = state_fio->FgetUint8();
-//	loopy_v = state_fio->FgetUint16();
-//	loopy_t = state_fio->FgetUint16();
-//	loopy_x = state_fio->FgetUint8();
+	//state_fio->StateBuffer(palette_pc, sizeof(palette_pc), 1);
+	if(loading) {
+		for(int i = 0; i < (sizeof(palette_pc) / sizeof(scrntype_t)); i++) {
+			uint8_t r, g, b;
+			r = state_fio->FgetUint8();
+			g = state_fio->FgetUint8();
+			b = state_fio->FgetUint8();
+			palette_pc[i] = RGB_COLOR(r, g, b);
+		}
+	} else {
+		for(int i = 0; i < (sizeof(palette_pc) / sizeof(scrntype_t)); i++) {
+			uint8_t r, g, b;
+			r = R_OF_COLOR(palette_pc[i]);
+			g = G_OF_COLOR(palette_pc[i]);
+			b = B_OF_COLOR(palette_pc[i]);
+			state_fio->FputUint8(r);
+			state_fio->FputUint8(g);
+			state_fio->FputUint8(b);
+		}
+	}
+	state_fio->StateBuffer(solid_buf, sizeof(solid_buf), 1);
+	state_fio->StateBuffer(&header, sizeof(header), 1); // OK?
+//	state_fio->StateBuffer(banks, sizeof(banks), 1);
+	for(int i = 0; i < (sizeof(banks) / sizeof(uint32_t)); i++) {
+		state_fio->StateUint32(banks[i]);
+	}
+	state_fio->StateUint32(chr_rom_size);
+//	state_fio->StateInt32(chr_rom_mask);
+	if(loading) {
+		chr_rom_mask = (chr_rom_size / 0x400) - 1;
+		if(chr_rom != NULL) {
+			free(chr_rom);
+		}
+		chr_rom = (uint8_t *)malloc(chr_rom_size);
+	}
+	state_fio->StateBuffer(chr_rom, chr_rom_size, 1);
+	state_fio->StateBuffer(name_tables, sizeof(name_tables), 1);
+	state_fio->StateBuffer(spr_ram, sizeof(spr_ram), 1);
+	state_fio->StateBuffer(bg_pal, sizeof(bg_pal), 1);
+	state_fio->StateBuffer(spr_pal, sizeof(spr_pal), 1);
+	state_fio->StateUint8(spr_ram_rw_ptr);
+	state_fio->StateBuffer(regs, sizeof(regs), 1);
+	state_fio->StateUint16(bg_pattern_table_addr);
+	state_fio->StateUint16(spr_pattern_table_addr);
+	state_fio->StateUint16(ppu_addr_inc);
+	state_fio->StateUint8(rgb_bak);
+	state_fio->StateBool(toggle_2005_2006);
+	state_fio->StateUint8(read_2007_buffer);
+	state_fio->StateUint16(loopy_v);
+	state_fio->StateUint16(loopy_t);
+	state_fio->StateUint8(loopy_x);
 	
 	// post process
-	for(int i = 0; i < 12; i++) {
-		set_ppu_bank(i, banks[i]);
+	if(loading) {
+		for(int i = 0; i < 12; i++) {
+			set_ppu_bank(i, banks[i]);
+		}
 	}
 	return true;
 }
-

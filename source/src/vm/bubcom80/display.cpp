@@ -812,120 +812,74 @@ void dmac_t::run(int c)
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void DISPLAY::decl_state()
+bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 {
-
-	enter_decl_state(STATE_VERSION);
-	
-	DECL_STATE_ENTRY_1D_ARRAY(font, sizeof(font));
-	DECL_STATE_ENTRY_1D_ARRAY(vram, sizeof(vram));
-	DECL_STATE_ENTRY_INT32(busreq_clocks);
-	DECL_STATE_ENTRY_BOOL(color);
-	DECL_STATE_ENTRY_BOOL(width40);
-	DECL_STATE_ENTRY_UINT8(mode);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBuffer(font, sizeof(font), 1);
+	state_fio->StateBuffer(vram, sizeof(vram), 1);
+	state_fio->StateInt32(busreq_clocks);
+	state_fio->StateBool(color);
+	state_fio->StateBool(width40);
+	state_fio->StateUint8(mode);
+	//state_fio->StateBuffer(&crtc, sizeof(crtc), 1);
 	{
 		// crtc
 		/* struct */{
-			DECL_STATE_ENTRY_INT32((crtc.blink.rate));
-			DECL_STATE_ENTRY_INT32((crtc.blink.counter));
-			DECL_STATE_ENTRY_UINT8((crtc.blink.cursor));
-			DECL_STATE_ENTRY_UINT8((crtc.blink.attrib));
+			state_fio->StateInt32(crtc.blink.rate);
+			state_fio->StateInt32(crtc.blink.counter);
+			state_fio->StateUint8(crtc.blink.cursor);
+			state_fio->StateUint8(crtc.blink.attrib);
 		} /* blink */;
 		/*struct */{
-			DECL_STATE_ENTRY_INT32((crtc.cursor.type));
-			DECL_STATE_ENTRY_INT32((crtc.cursor.mode));
-			DECL_STATE_ENTRY_INT32((crtc.cursor.x));
-			DECL_STATE_ENTRY_INT32((crtc.cursor.y));
+			state_fio->StateInt32(crtc.cursor.type);
+			state_fio->StateInt32(crtc.cursor.mode);
+			state_fio->StateInt32(crtc.cursor.x);
+			state_fio->StateInt32(crtc.cursor.y);
 		} /* cursor */;
 		/*struct */{
-			DECL_STATE_ENTRY_UINT8((crtc.attrib.data));
-			DECL_STATE_ENTRY_INT32((crtc.attrib.num));
-			DECL_STATE_ENTRY_2D_ARRAY((crtc.attrib.expand), 200, 80);
+			state_fio->StateUint8(crtc.attrib.data);
+			state_fio->StateInt32(crtc.attrib.num);
+			state_fio->StateBuffer(crtc.attrib.expand, sizeof(crtc.attrib.expand), 1);
 		} /* attrib */;
 		/* struct */{
-			DECL_STATE_ENTRY_2D_ARRAY((crtc.text.expand), 200, 80);
+			state_fio->StateBuffer(crtc.text.expand, sizeof(crtc.text.expand), 1);
 		} /*text; */
-		DECL_STATE_ENTRY_INT32((crtc.width));
-		DECL_STATE_ENTRY_INT32((crtc.height));
-		DECL_STATE_ENTRY_INT32((crtc.char_height));
-		DECL_STATE_ENTRY_BOOL((crtc.skip_line));
-		DECL_STATE_ENTRY_INT32((crtc.vretrace));
-		DECL_STATE_ENTRY_BOOL((crtc.timing_changed));
-		DECL_STATE_ENTRY_1D_ARRAY((crtc.buffer), 120 * 200);
-		DECL_STATE_ENTRY_INT32((crtc.buffer_ptr));
-		DECL_STATE_ENTRY_UINT8((crtc.cmd));
-		DECL_STATE_ENTRY_INT32((crtc.cmd_ptr));
-		DECL_STATE_ENTRY_UINT8((crtc.mode));
-		DECL_STATE_ENTRY_UINT8((crtc.reverse));
-		DECL_STATE_ENTRY_UINT8((crtc.intr_mask));
-		DECL_STATE_ENTRY_UINT8((crtc.status));
-		DECL_STATE_ENTRY_BOOL((crtc.vblank));
+		state_fio->StateInt32(crtc.width);
+		state_fio->StateInt32(crtc.height);
+		state_fio->StateInt32(crtc.char_height);
+		state_fio->StateBool(crtc.skip_line);
+		state_fio->StateInt32(crtc.vretrace);
+		state_fio->StateBool(crtc.timing_changed);
+		state_fio->StateBuffer(crtc.buffer, sizeof(crtc.buffer), 1);
+		state_fio->StateInt32(crtc.buffer_ptr);
+		state_fio->StateUint8(crtc.cmd);
+		state_fio->StateInt32(crtc.cmd_ptr);
+		state_fio->StateUint8(crtc.mode);
+		state_fio->StateUint8(crtc.reverse);
+		state_fio->StateUint8(crtc.intr_mask);
+		state_fio->StateUint8(crtc.status);
+		state_fio->StateBool(crtc.vblank);
 	}
+	STORE_DMAC_CONTEXTS();
+	//state_fio->StateBuffer(&dmac, sizeof(dmac), 1);
 	{ // dmac
 
 		for(int i = 0; i < 4; i++) {
-			DECL_STATE_ENTRY_PAIR_MEMBER((dmac.ch[i].addr), i);
-			DECL_STATE_ENTRY_PAIR_MEMBER((dmac.ch[i].count), i);
-			DECL_STATE_ENTRY_UINT8_MEMBER((dmac.ch[i].mode), i);
-			DECL_STATE_ENTRY_INT32_MEMBER((dmac.ch[i].nbytes), i);
-			DECL_STATE_ENTRY_BOOL_MEMBER((dmac.ch[i].running), i);
+			state_fio->StateUint32(dmac.ch[i].addr.d);
+			state_fio->StateUint32(dmac.ch[i].count.d);
+			state_fio->StateUint8(dmac.ch[i].mode);
+			state_fio->StateInt32(dmac.ch[i].nbytes);
+			state_fio->StateBool(dmac.ch[i].running);
 		} /* ch[4] */
-		DECL_STATE_ENTRY_UINT8((dmac.mode));
-		DECL_STATE_ENTRY_UINT8((dmac.status));
-		DECL_STATE_ENTRY_BOOL((dmac.high_low))
+		state_fio->StateUint8(dmac.mode);
+		state_fio->StateUint8(dmac.status);
+		state_fio->StateBool(dmac.high_low);
 	}		
-	leave_decl_state();
-}
-
-void DISPLAY::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(font, sizeof(font), 1);
-//	state_fio->Fwrite(vram, sizeof(vram), 1);
-//	state_fio->FputInt32(busreq_clocks);
-//	state_fio->FputBool(color);
-//	state_fio->FputBool(width40);
-//	state_fio->FputUint8(mode);
-//	state_fio->Fwrite(&crtc, sizeof(crtc), 1);
-//	state_fio->Fwrite(&dmac, sizeof(dmac), 1);
-}
-
-bool DISPLAY::load_state(FILEIO* state_fio)
-{
-	STORE_DMAC_CONTEXTS();
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		RESTORE_DMAC_CONTEXTS();
-		return false;
-	}
 	RESTORE_DMAC_CONTEXTS();
-
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(font, sizeof(font), 1);
-//	state_fio->Fread(vram, sizeof(vram), 1);
-//	busreq_clocks = state_fio->FgetInt32();
-//	color = state_fio->FgetBool();
-//	width40 = state_fio->FgetBool();
-//	mode = state_fio->FgetUint8();
-//	state_fio->Fread(&crtc, sizeof(crtc), 1);
-//	STORE_DMAC_CONTEXTS();
-//	state_fio->Fread(&dmac, sizeof(dmac), 1);
-//	RESTORE_DMAC_CONTEXTS();
 	return true;
 }

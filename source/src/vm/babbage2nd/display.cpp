@@ -162,51 +162,17 @@ void DISPLAY::draw_screen()
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void DISPLAY::decl_state()
+bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
-	
-	DECL_STATE_ENTRY_2D_ARRAY(seg, 6, 7);
-	DECL_STATE_ENTRY_UINT8(ls373);
-	DECL_STATE_ENTRY_UINT8(pio_7seg);
-	DECL_STATE_ENTRY_UINT8(pio_8bit);
-
-	leave_decl_state();
-}
-
-void DISPLAY::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
 	}
-	//state_fio->FputUint32(STATE_VERSION);
-	//state_fio->FputInt32(this_device_id);
-	
-	//state_fio->Fwrite(seg, sizeof(seg), 1);
-	//state_fio->FputUint8(ls373);
-	//state_fio->FputUint8(pio_7seg);
-	//state_fio->FputUint8(pio_8bit);
-}
-
-bool DISPLAY::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
 	}
-	if(!mb) return false;
-	//if(state_fio->FgetUint32() != STATE_VERSION) {
-	//	return false;
-	//}
-	//if(state_fio->FgetInt32() != this_device_id) {
-	//	return false;
-	//}
-	//state_fio->Fread(seg, sizeof(seg), 1);
-	//ls373 = state_fio->FgetUint8();
-	//pio_7seg = state_fio->FgetUint8();
-	//pio_8bit = state_fio->FgetUint8();
+	state_fio->StateBuffer(seg, sizeof(seg), 1);
+	state_fio->StateUint8(ls373);
+	state_fio->StateUint8(pio_7seg);
+	state_fio->StateUint8(pio_8bit);
 	return true;
 }
-
