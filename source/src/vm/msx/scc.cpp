@@ -526,7 +526,6 @@ void SCC::initialize()
 void SCC::release()
 {
 	SCC_delete(emu2212);
-	delete state_entry;
 }
 
 void SCC::reset()
@@ -550,7 +549,6 @@ void SCC::initialize_sound(int rate, int clock, int samples)
 	emu2212 = SCC_new(clock, rate);
 	this->reset();
 	this->initialize();
-	this->decl_state();
 }
 
 void SCC::set_volume(int ch, int decibel_l, int decibel_r)
@@ -561,8 +559,19 @@ void SCC::set_volume(int ch, int decibel_l, int decibel_r)
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
+bool SCC::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	save_load_state(state_fio, !loading);
+	return true;
+}
 
+#if 0
 void SCC::decl_state_scc()
 {
 	DECL_STATE_ENTRY_UINT32((emu2212->clk));
@@ -602,46 +611,9 @@ void SCC::decl_state_scc()
 	DECL_STATE_ENTRY_INT32((emu2212->refresh));
 	DECL_STATE_ENTRY_1D_ARRAY(emu2212->rotate, 5) ;
 }
+#endif
 
-void SCC::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-	decl_state_scc();
-	
-	leave_decl_state();
-}
-void SCC::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-
-//	save_load_state(state_fio, true);
-}
-
-bool SCC::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-
-//	save_load_state(state_fio, false);
-	return true;
-}
-
+// ToDo: Dedicate endianness. 20181017 K.O.
 void SCC::save_load_state(FILEIO* state_fio, bool is_save)
 {
 #define STATE_ENTRY(x) {&(x), sizeof(x)}
@@ -665,14 +637,3 @@ void SCC::save_load_state(FILEIO* state_fio, bool is_save)
 	return;
 }
 
-bool SCC::process_state(FILEIO* state_fio, bool loading)
-{
-	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
-		return false;
-	}
-	if(!state_fio->StateCheckInt32(this_device_id)) {
-		return false;
-	}
-	save_load_state(state_fio, !loading);
-	return true;
-}

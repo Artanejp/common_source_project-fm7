@@ -48,7 +48,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 //	cpu = new M6502(this, emu);
 	opll = new YM2413(this, emu);
 	
-	memory = new MEMORY(this, emu);
+	memory = new FAMILYBASIC_MEMORY(this, emu);
 	apu = new APU(this, emu);
 	ppu = new PPU(this, emu);
 	cpu = new N2A03(this, emu); // cpu shoud be reset after other device

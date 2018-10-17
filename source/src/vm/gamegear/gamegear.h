@@ -61,7 +61,7 @@ class UPD765A;
 class Z80;
 
 class KEYBOARD;
-class MEMORY;
+class SMS_MEMORY;
 class SYSTEM;
 
 class VM : public VM_TEMPLATE
@@ -83,7 +83,7 @@ protected:
 	Z80* cpu;
 	
 	KEYBOARD* key;
-	MEMORY* memory;
+	SMS_MEMORY* memory;
 	SYSTEM* system;
 	
 public:

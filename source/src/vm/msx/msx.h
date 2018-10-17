@@ -113,7 +113,7 @@ class Z80;
 
 class JOYSTICK;
 class KEYBOARD;
-class MEMORY;
+class MSX_MEMORY;
 #if defined(_MSX2)
 class RTCIF;
 #endif
@@ -150,7 +150,7 @@ protected:
 	
 	JOYSTICK* joystick;
 	KEYBOARD* keyboard;
-	MEMORY* memory;
+	MSX_MEMORY* memory;
 #ifdef _MSX2
 	RTCIF* rtcif;
 #endif

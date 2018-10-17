@@ -7,14 +7,14 @@
 	[ memory ]
 */
 
-#ifndef _MEMORY_H_
-#define _MEMORY_H_
+#ifndef _COLECOVISION_MEMORY_H_
+#define _COLECOVISION_MEMORY_H_
 
 #include "../vm.h"
 #include "../../emu.h"
 #include "../device.h"
 
-class MEMORY : public DEVICE
+class COLECOVISION_MEMORY : public DEVICE
 {
 private:
 	// memory
@@ -30,11 +30,11 @@ private:
 	bool inserted;
 	
 public:
-	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	COLECOVISION_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~MEMORY() {}
+	~COLECOVISION_MEMORY() {}
 	
 	// common functions
 	void initialize();

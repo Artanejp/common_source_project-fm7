@@ -47,7 +47,7 @@
 #include "floppy.h"
 #include "iobus.h"
 #include "joystick.h"
-#include "memory.h"
+#include "./memory.h"
 #include "mouse.h"
 #include "psub.h"
 #include "sasi.h"
@@ -139,7 +139,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	floppy = new FLOPPY(this, emu);
 	iobus = new IOBUS(this, emu);
 	joy = new JOYSTICK(this, emu);
-	memory = new MEMORY(this, emu);
+	memory = new X1_MEMORY(this, emu);
 	mouse = new MOUSE(this, emu);
 	sasi = new SASI(this, emu);
 	

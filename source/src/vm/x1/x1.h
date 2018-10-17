@@ -277,7 +277,7 @@ class EMM;
 class FLOPPY;
 class IOBUS;
 class JOYSTICK;
-class MEMORY;
+class X1_MEMORY;
 class MOUSE;
 class PSUB;
 class SASI;
@@ -325,7 +325,7 @@ protected:
 	FLOPPY* floppy;
 	IOBUS* iobus;
 	JOYSTICK* joy;
-	MEMORY* memory;
+	X1_MEMORY* memory;
 	MOUSE* mouse;
 	PSUB* psub;
 	SASI* sasi;

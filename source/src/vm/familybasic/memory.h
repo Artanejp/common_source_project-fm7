@@ -8,8 +8,8 @@
 	[ memory ]
 */
 
-#ifndef _MEMORY_H_
-#define _MEMORY_H_
+#ifndef _FAMILYBASIC_MEMORY_H_
+#define _FAMILYBASIC_MEMORY_H_
 
 #include "../vm.h"
 #include "../../emu.h"
@@ -17,7 +17,7 @@
 
 class PPU;
 
-class MEMORY : public DEVICE
+class FAMILYBASIC_MEMORY : public DEVICE
 {
 private:
 	DEVICE *d_cpu, *d_apu, *d_drec, *d_opll;
@@ -96,11 +96,11 @@ private:
 	void vrc7_hsync(int v);
 	
 public:
-	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	FAMILYBASIC_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~MEMORY() {}
+	~FAMILYBASIC_MEMORY() {}
 	
 	// common functions
 	void initialize();

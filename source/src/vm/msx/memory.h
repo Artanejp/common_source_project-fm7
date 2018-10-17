@@ -12,8 +12,8 @@
 	[ memory ]
 */
 
-#ifndef _MEMORY_H_
-#define _MEMORY_H_
+#ifndef _MSX_MEMORY_H_
+#define _MSX_MEMORY_H_
 
 #include "../vm.h"
 #include "../../emu.h"
@@ -206,7 +206,7 @@ public:
 
 // memory bus
 
-class MEMORY : public DEVICE
+class MSX_MEMORY : public DEVICE
 {
 private:
 	DEVICE *d_slot[4];
@@ -219,11 +219,11 @@ private:
 	void update_map(uint32_t val);
 	
 public:
-	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MSX_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~MEMORY() {}
+	~MSX_MEMORY() {}
 	
 	// common functions
 #if !defined(_PX7)

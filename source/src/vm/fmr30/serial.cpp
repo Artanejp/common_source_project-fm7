@@ -141,54 +141,6 @@ void SERIAL::update_intr(int ch)
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void SERIAL::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_UINT8_STRIDE((sioctrl[0].baud),    4, sizeof(sioctrl[0]));
-	DECL_STATE_ENTRY_UINT8_STRIDE((sioctrl[0].ctrl),    4, sizeof(sioctrl[0]));
-	DECL_STATE_ENTRY_BOOL_STRIDE((sioctrl[0].rxrdy),    4, sizeof(sioctrl[0]));
-	DECL_STATE_ENTRY_BOOL_STRIDE((sioctrl[0].txrdy),    4, sizeof(sioctrl[0]));
-	DECL_STATE_ENTRY_UINT8_STRIDE((sioctrl[0].intmask), 4, sizeof(sioctrl[0]));
-	DECL_STATE_ENTRY_UINT8_STRIDE((sioctrl[0].intstat), 4, sizeof(sioctrl[0]));
-
-	leave_decl_state();
-}	
-
-void SERIAL::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(sioctrl, sizeof(sioctrl), 1);
-}
-
-bool SERIAL::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(sioctrl, sizeof(sioctrl), 1);
-	return true;
-}
-
 bool SERIAL::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
@@ -197,6 +149,14 @@ bool SERIAL::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBuffer(sioctrl, sizeof(sioctrl), 1);
+	//state_fio->StateBuffer(sioctrl, sizeof(sioctrl), 1);
+	for(int i = 0; i < 4; i++) {
+		state_fio->StateUint8(sioctrl[i].baud);
+		state_fio->StateUint8(sioctrl[i].ctrl);
+		state_fio->StateBool(sioctrl[i].rxrdy);
+		state_fio->StateBool(sioctrl[i].txrdy);
+		state_fio->StateUint8(sioctrl[i].intmask);
+		state_fio->StateUint8(sioctrl[i].intstat);
+	}
 	return true;
 }

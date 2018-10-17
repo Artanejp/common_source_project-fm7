@@ -41,7 +41,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu = new MC6800(this, emu);
 	pia = new MC6820(this, emu);
 	
-	memory = new MEMORY(this, emu);
+	memory = new BMJR_MEMORY(this, emu);
 	
 	// Set names
 #if defined(_USE_QT)

@@ -85,56 +85,6 @@ void TIMER::update_intr()
 
 #define STATE_VERSION	1
 
-#include "../statesub.h"
-
-void TIMER::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_UINT16(free_run_counter);
-	DECL_STATE_ENTRY_UINT8(intr_reg);
-	DECL_STATE_ENTRY_UINT8(rtc_data);
-	DECL_STATE_ENTRY_BOOL(tmout0);
-	DECL_STATE_ENTRY_BOOL(tmout1);
-	
-	leave_decl_state();
-}
-void TIMER::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->FputUint16(free_run_counter);
-//	state_fio->FputUint8(intr_reg);
-//	state_fio->FputUint8(rtc_data);
-//	state_fio->FputBool(tmout0);
-//	state_fio->FputBool(tmout1);
-}
-
-bool TIMER::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	free_run_counter = state_fio->FgetUint16();
-//	intr_reg = state_fio->FgetUint8();
-//	rtc_data = state_fio->FgetUint8();
-//	tmout0 = state_fio->FgetBool();
-//	tmout1 = state_fio->FgetBool();
-	return true;
-}
-
 bool TIMER::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {

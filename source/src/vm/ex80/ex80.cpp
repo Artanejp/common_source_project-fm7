@@ -25,7 +25,7 @@
 #include "cmt.h"
 #include "display.h"
 #include "keyboard.h"
-#include "memory.h"
+#include "./memory.h"
 
 // ----------------------------------------------------------------------------
 // initialize
@@ -47,7 +47,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cmt = new CMT(this, emu);
 	display = new DISPLAY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
-	memory = new MEMORY(this, emu);
+	memory = new EX80_MEMORY(this, emu);
 	// Set names
 #if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));

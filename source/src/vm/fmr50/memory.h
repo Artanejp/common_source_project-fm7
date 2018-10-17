@@ -8,8 +8,8 @@
 	[ memory ]
 */
 
-#ifndef _MEMORY_H_
-#define _MEMORY_H_
+#ifndef _FMR50_MEMORY_H_
+#define _FMR50_MEMORY_H_
 
 #include "../vm.h"
 #include "../../emu.h"
@@ -24,7 +24,7 @@ class I286;
 class I386;
 #endif
 
-class MEMORY : public DEVICE
+class FMR50_MEMORY : public DEVICE
 {
 private:
 #if defined(HAS_I286)
@@ -111,11 +111,11 @@ private:
 	void draw_cg();
 	
 public:
-	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) 
+	FMR50_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) 
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~MEMORY() {}
+	~FMR50_MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -128,9 +128,7 @@ public:
 	uint32_t read_io8(uint32_t addr);
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_frame();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 #if defined(HAS_I286)

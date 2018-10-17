@@ -44,7 +44,7 @@ static const int key_table[13][4] = {
 	{0x00, 0x0d, 0x2e, 0xdc},	//		RETURN	DEL	'\'
 };
 
-void MEMORY::initialize()
+void BMJR_MEMORY::initialize()
 {
 	// initialize memory
 	memset(ram, 0, sizeof(ram));
@@ -98,7 +98,7 @@ void MEMORY::initialize()
 	register_frame_event(this);
 }
 
-void MEMORY::reset()
+void BMJR_MEMORY::reset()
 {
 	touch_sound();
 	memory_bank = 0;
@@ -121,7 +121,7 @@ void MEMORY::reset()
 	sound_clock = sound_mix_clock = get_current_clock();
 }
 
-void MEMORY::write_data8(uint32_t addr, uint32_t data)
+void BMJR_MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	if((addr & 0xfe00) == 0xee00) {
 		// EE00h - EFFFh
@@ -183,7 +183,7 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 	wbank[(addr >> 11) & 0x1f][addr & 0x7ff] = data;
 }
 
-uint32_t MEMORY::read_data8(uint32_t addr)
+uint32_t BMJR_MEMORY::read_data8(uint32_t addr)
 {
 	if((addr & 0xfe00) == 0xee00) {
 		// EE00h - EFFFh
@@ -230,7 +230,7 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 	return rbank[(addr >> 11) & 0x1f][addr & 0x7ff];
 }
 
-void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
+void BMJR_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MEMORY_DATAREC_EAR) {
 		bool new_in = ((data & mask) != 0);
@@ -250,7 +250,7 @@ void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
-void MEMORY::event_frame()
+void BMJR_MEMORY::event_frame()
 {
 	key_data = 0xff;
 	if(key_column < 13) {
@@ -275,7 +275,7 @@ void MEMORY::event_frame()
 #endif
 }
 
-void MEMORY::key_down(int code)
+void BMJR_MEMORY::key_down(int code)
 {
 	// pause -> break
 	if(code == 0x13) {
@@ -286,7 +286,7 @@ void MEMORY::key_down(int code)
 	}
 }
 
-void MEMORY::update_bank()
+void BMJR_MEMORY::update_bank()
 {
 	if(memory_bank & 1) {
 		SET_BANK(0xb000, 0xdfff, ram + 0xb000, ram + 0xb000);
@@ -306,7 +306,7 @@ void MEMORY::update_bank()
 	}
 }
 
-void MEMORY::mix(int32_t* buffer, int cnt)
+void BMJR_MEMORY::mix(int32_t* buffer, int cnt)
 {
 	int32_t volume = 0;
 	if(get_passed_clock(sound_mix_clock) != 0) {
@@ -325,13 +325,13 @@ void MEMORY::mix(int32_t* buffer, int cnt)
 	}
 }
 
-void MEMORY::set_volume(int ch, int decibel_l, int decibel_r)
+void BMJR_MEMORY::set_volume(int ch, int decibel_l, int decibel_r)
 {
 	volume_l = decibel_to_volume(decibel_l);
 	volume_r = decibel_to_volume(decibel_r);
 }
 
-void MEMORY::draw_screen()
+void BMJR_MEMORY::draw_screen()
 {
 	if(!(screen_mode & 0x80)) {
 		// text
@@ -405,7 +405,7 @@ void MEMORY::draw_screen()
 
 #define STATE_VERSION	2
 
-bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool BMJR_MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;

@@ -7,8 +7,8 @@
 	[ memory bus ]
 */
 
-#ifndef _MEMORY_H_
-#define _MEMORY_H_
+#ifndef _BMJR_MEMORY_H_
+#define _BMJR_MEMORY_H_
 
 #include "../vm.h"
 #include "../../emu.h"
@@ -16,7 +16,7 @@
 
 #define SIG_MEMORY_DATAREC_EAR	0
 
-class MEMORY : public DEVICE
+class BMJR_MEMORY : public DEVICE
 {
 private:
 	// contexts
@@ -58,12 +58,12 @@ private:
 	int volume_l, volume_r;
 	
 public:
-	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	BMJR_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		volume_l = volume_r = 1024;
 		set_device_name(_T("Memory Bus"));
 	}
-	~MEMORY() {}
+	~BMJR_MEMORY() {}
 	
 	// common functions
 	void initialize();

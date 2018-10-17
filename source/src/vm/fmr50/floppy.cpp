@@ -113,61 +113,6 @@ void FLOPPY::update_intr()
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void FLOPPY::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_INT32(drvreg);
-	DECL_STATE_ENTRY_INT32(drvsel);
-	DECL_STATE_ENTRY_BOOL(irq);
-	DECL_STATE_ENTRY_BOOL(irqmsk);
-	DECL_STATE_ENTRY_1D_ARRAY(changed, sizeof(changed) / sizeof(bool));
-
-	leave_decl_state();
-}
-
-void FLOPPY::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-//	
-//	state_fio->FputInt32(drvreg);
-//	state_fio->FputInt32(drvsel);
-//	state_fio->FputBool(irq);
-//	state_fio->FputBool(irqmsk);
-//	state_fio->Fwrite(changed, sizeof(changed), 1);
-}
-
-bool FLOPPY::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	drvreg = state_fio->FgetInt32();
-//	drvsel = state_fio->FgetInt32();
-//	irq = state_fio->FgetBool();
-//	irqmsk = state_fio->FgetBool();
-//	state_fio->Fread(changed, sizeof(changed), 1);
-	return true;
-}
-
 bool FLOPPY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
@@ -180,6 +125,9 @@ bool FLOPPY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateInt32(drvsel);
 	state_fio->StateBool(irq);
 	state_fio->StateBool(irqmsk);
-	state_fio->StateBuffer(changed, sizeof(changed), 1);
+	//state_fio->StateBuffer(changed, sizeof(changed), 1);
+	for(int i = 0; i < (sizeof(changed) / sizeof(bool)); i++) {
+		state_fio->StateBool(changed[i]);
+	}
 	return true;
 }

@@ -7,14 +7,14 @@
 	[ memory ]
 */
 
-#ifndef _MEMORY_H_
-#define _MEMORY_H_
+#ifndef _EX80_MEMORY_H_
+#define _EX80_MEMORY_H_
 
 #include "../vm.h"
 #include "../../emu.h"
 #include "../device.h"
 
-class MEMORY : public DEVICE
+class EX80_MEMORY : public DEVICE
 {
 private:
 	DEVICE *d_cpu;
@@ -30,11 +30,11 @@ private:
 	uint8_t* rbank[64];
 	
 public:
-	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	EX80_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~MEMORY() {}
+	~EX80_MEMORY() {}
 	
 	// common functions
 	void initialize();

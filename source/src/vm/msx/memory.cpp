@@ -541,7 +541,7 @@ bool SLOT3::process_state(FILEIO* state_fio, bool loading)
 // memory bus
 
 #if !defined(_PX7)
-void MEMORY::initialize()
+void MSX_MEMORY::initialize()
 {
 	for(int i = 0; i < MAX_DRIVE; i++) {
 		disk[i] = new DISK(emu);
@@ -550,7 +550,7 @@ void MEMORY::initialize()
 	}
 }
 
-void MEMORY::release()
+void MSX_MEMORY::release()
 {
 	for(int i = 0; i < MAX_DRIVE; i++) {
 		if(disk[i]) {
@@ -561,7 +561,7 @@ void MEMORY::release()
 }
 #endif
 
-void MEMORY::reset()
+void MSX_MEMORY::reset()
 {
 #if !defined(_PX7)
 	for(int i = 0; i < MAX_DRIVE; i++) {
@@ -571,25 +571,25 @@ void MEMORY::reset()
 	update_map((0 << 0) | (1 << 2) | (2 << 4) | (3 << 6));
 }
 
-void MEMORY::write_data8(uint32_t addr, uint32_t data)
+void MSX_MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	d_map[addr >> 14]->write_data8(addr, data);
 }
 
-uint32_t MEMORY::read_data8(uint32_t addr)
+uint32_t MSX_MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	return d_map[addr >> 14]->read_data8(addr);
 }
 
-uint32_t MEMORY::fetch_op(uint32_t addr, int* wait)
+uint32_t MSX_MEMORY::fetch_op(uint32_t addr, int* wait)
 {
 	*wait = 1;
 	return read_data8(addr);
 }
 
-void MEMORY::write_io8(uint32_t addr, uint32_t data)
+void MSX_MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 #if !defined(_PX7)
 //	if(d_map[3] == d_slot[3]) {
@@ -598,7 +598,7 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 #endif
 }
 
-void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
+void MSX_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MEMORY_SEL) {
 		if(slot_select != (data & mask)) {
@@ -607,7 +607,7 @@ void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
-void MEMORY::update_map(uint32_t val)
+void MSX_MEMORY::update_map(uint32_t val)
 {
 	d_map[0] = d_slot[(val >> 0) & 3];
 	d_map[1] = d_slot[(val >> 2) & 3];
@@ -660,7 +660,7 @@ static bool get_boot_sector(DISK *disk)
 	return false;
 }
 
-uint32_t MEMORY::read_signal(int id)
+uint32_t MSX_MEMORY::read_signal(int id)
 {
 	uint32_t stat = 0;
 	for(int i = 0; i < MAX_DRIVE; i++) {
@@ -672,7 +672,7 @@ uint32_t MEMORY::read_signal(int id)
 	return stat;
 }
 
-bool MEMORY::bios_ret_z80(uint16_t PC, pair_t* af, pair_t* bc, pair_t* de, pair_t* hl, pair_t* ix, pair_t* iy, uint8_t* iff1)
+bool MSX_MEMORY::bios_ret_z80(uint16_t PC, pair_t* af, pair_t* bc, pair_t* de, pair_t* hl, pair_t* ix, pair_t* iy, uint8_t* iff1)
 {
 	#define AF	af->w.l
 	#define A	af->b.h
@@ -892,21 +892,21 @@ bool MEMORY::bios_ret_z80(uint16_t PC, pair_t* af, pair_t* bc, pair_t* de, pair_
 	return false;
 }
 
-void MEMORY::open_disk(int drv, const _TCHAR* file_path, int bank)
+void MSX_MEMORY::open_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	if(drv < MAX_DRIVE) {
 		disk[drv]->open(file_path, bank);
 	}
 }
 
-void MEMORY::close_disk(int drv)
+void MSX_MEMORY::close_disk(int drv)
 {
 	if(drv < MAX_DRIVE && disk[drv]->inserted) {
 		disk[drv]->close();
 	}
 }
 
-bool MEMORY::is_disk_inserted(int drv)
+bool MSX_MEMORY::is_disk_inserted(int drv)
 {
 	if(drv < MAX_DRIVE) {
 		return disk[drv]->inserted;
@@ -914,14 +914,14 @@ bool MEMORY::is_disk_inserted(int drv)
 	return false;
 }
 
-void MEMORY::is_disk_protected(int drv, bool value)
+void MSX_MEMORY::is_disk_protected(int drv, bool value)
 {
 	if(drv < MAX_DRIVE) {
 		disk[drv]->write_protected = value;
 	}
 }
 
-bool MEMORY::is_disk_protected(int drv)
+bool MSX_MEMORY::is_disk_protected(int drv)
 {
 	if(drv < MAX_DRIVE) {
 		return disk[drv]->write_protected;
@@ -933,7 +933,7 @@ bool MEMORY::is_disk_protected(int drv)
 
 #define STATE_VERSION	1
 
-bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool MSX_MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -957,112 +957,3 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 	return true;
 }
 
-bool SLOT0::process_state(FILEIO* state_fio, bool loading)
-{
-	if(!state_fio->StateCheckUint32(SLOT0_STATE_VERSION)) {
-		return false;
-	}
-	if(!state_fio->StateCheckInt32(this_device_id)) {
-		return false;
-	}
-#if defined(_PX7)
-	state_fio->StateBuffer(ram, sizeof(ram), 1);
-#endif
-	return true;
-}
-bool SLOT1::process_state(FILEIO* state_fio, bool loading)
-{
-	if(!state_fio->StateCheckUint32(SLOT1_STATE_VERSION)) {
-		return false;
-	}
-	if(!state_fio->StateCheckInt32(this_device_id)) {
-		return false;
-	}
-	state_fio->StateBool(inserted);
-#if defined(_MSX2)
-	state_fio->StateBuffer(mapper, sizeof(mapper), 1);
-#endif
-	
-	// post process
-	if(loading) {
-		if(inserted) {
-			SET_BANK(0x0000, 0xffff, wdmy, rom);
-#if defined(_MSX2)
-		} else if(mapper[0] < 4) {
-				SET_BANK(0x0000, 0x3fff, wdmy, rdmy);
-				SET_BANK(0x4000, 0x7fff, wdmy, rom + mapper[0] * 0x4000);
-				SET_BANK(0x8000, 0xbfff, wdmy, rom + mapper[1] * 0x4000);
-				SET_BANK(0xc000, 0xffff, wdmy, rdmy);
-#endif
-		} else {
-			SET_BANK(0x0000, 0xffff, wdmy, rdmy);
-		}
-	}
-	return true;
-}
-bool SLOT2::process_state(FILEIO* state_fio, bool loading)
-{
-	if(!state_fio->StateCheckUint32(SLOT2_STATE_VERSION)) {
-		return false;
-	}
-	if(!state_fio->StateCheckInt32(this_device_id)) {
-		return false;
-	}
-	state_fio->StateBool(clock);
-	state_fio->StateBool(exv);
-	state_fio->StateBool(ack);
-	state_fio->StateBool(super_impose);
-	state_fio->StateBool(req_intr);
-	state_fio->StateBool(pc4);
-	state_fio->StateBool(mute_l);
-	state_fio->StateBool(mute_r);
-	return true;
-}
-bool SLOT3::process_state(FILEIO* state_fio, bool loading)
-{
-	if(!state_fio->StateCheckUint32(SLOT3_STATE_VERSION)) {
-		return false;
-	}
-	if(!state_fio->StateCheckInt32(this_device_id)) {
-		return false;
-	}
-	state_fio->StateBuffer(ram, sizeof(ram), 1);
-	state_fio->StateBool(inserted);
-	state_fio->StateBuffer(mapper, sizeof(mapper), 1);
-	
-	// post process
-	if(loading) {
-		if(inserted) {
-			SET_BANK(0x0000, 0xffff, wdmy, rom);
-		} else {
-			SET_BANK(0x0000, 0x3fff, ram + mapper[0] * 0x4000, ram + mapper[0] * 0x4000);
-			SET_BANK(0x4000, 0x7fff, ram + mapper[1] * 0x4000, ram + mapper[1] * 0x4000);
-			SET_BANK(0x8000, 0xbfff, ram + mapper[2] * 0x4000, ram + mapper[2] * 0x4000);
-			SET_BANK(0xc000, 0xffff, ram + mapper[3] * 0x4000, ram + mapper[3] * 0x4000);
-		}
-	}
-	return true;
-}
-bool MEMORY::process_state(FILEIO* state_fio, bool loading)
-{
-	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
-		return false;
-	}
-	if(!state_fio->StateCheckInt32(this_device_id)) {
-		return false;
-	}
-#if !defined(_PX7)
-	for(int i = 0; i < MAX_DRIVE; i++) {
-		if(!disk[i]->process_state(state_fio, loading)) {
-			return false;
-		}
-	}
-#endif
-	state_fio->StateUint32(slot_select);
-	
-	// post process
-	if(loading) {
-		update_map(slot_select);
-	}
-	return true;
-}

@@ -164,58 +164,6 @@ void SCSI::write_signal(int id, uint32_t data, uint32_t mask)
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void SCSI::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_UINT8(ctrl_reg);
-	DECL_STATE_ENTRY_UINT8(intm_reg);
-	DECL_STATE_ENTRY_BOOL(phase_status);
-	DECL_STATE_ENTRY_BOOL(eop_status);
-	
-	leave_decl_state();
-}
-
-void SCSI::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->FputUint8(ctrl_reg);
-//	state_fio->FputUint8(intm_reg);
-//	state_fio->FputBool(phase_status);
-//	state_fio->FputBool(eop_status);
-}
-
-bool SCSI::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	ctrl_reg = state_fio->FgetUint8();
-//	intm_reg = state_fio->FgetUint8();
-//	phase_status = state_fio->FgetBool();
-//	eop_status = state_fio->FgetBool();
-	return true;
-}
-
 bool SCSI::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {

@@ -83,7 +83,7 @@ class BIOS;
 class CMOS;
 class FLOPPY;
 class KEYBOARD;
-class MEMORY;
+class FMR30_MEMORY;
 class RTC;
 class SCSI;
 class SERIAL;
@@ -120,7 +120,7 @@ protected:
 	CMOS* cmos;
 	FLOPPY* floppy;
 	KEYBOARD* keyboard;
-	MEMORY* memory;
+	FMR30_MEMORY* memory;
 	RTC* rtc;
 	SCSI* scsi;
 	SERIAL* serial;
@@ -177,9 +177,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

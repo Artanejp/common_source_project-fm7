@@ -8,7 +8,7 @@
 	[ memory and crtc ]
 */
 
-#include "memory.h"
+#include "./memory.h"
 #if defined(HAS_I286)
 #include "../i286.h"
 #else
@@ -60,7 +60,7 @@ static const uint8_t bios2[] = {
 	} \
 }
 
-void MEMORY::initialize()
+void FMR50_MEMORY::initialize()
 {
 	// init memory
 	memset(ram, 0, sizeof(ram));
@@ -149,7 +149,7 @@ void MEMORY::initialize()
 	register_frame_event(this);
 }
 
-void MEMORY::reset()
+void FMR50_MEMORY::reset()
 {
 	// reset memory
 	protect = rst = 0;
@@ -178,7 +178,7 @@ void MEMORY::reset()
 	d_cpu->set_address_mask(0x00ffffff);
 }
 
-void MEMORY::write_data8(uint32_t addr, uint32_t data)
+void FMR50_MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	if(addr & 0xff000000) {
 		// > 16MB
@@ -423,7 +423,7 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 	wbank[addr >> 11][addr & 0x7ff] = data;
 }
 
-uint32_t MEMORY::read_data8(uint32_t addr)
+uint32_t FMR50_MEMORY::read_data8(uint32_t addr)
 {
 	if(addr & 0xff000000) {
 		// > 16MB
@@ -483,17 +483,17 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 	return rbank[addr >> 11][addr & 0x7ff];
 }
 
-void MEMORY::write_dma_data8(uint32_t addr, uint32_t data)
+void FMR50_MEMORY::write_dma_data8(uint32_t addr, uint32_t data)
 {
 	write_data8(addr & dma_addr_mask, data);
 }
 
-uint32_t MEMORY::read_dma_data8(uint32_t addr)
+uint32_t FMR50_MEMORY::read_dma_data8(uint32_t addr)
 {
 	return read_data8(addr & dma_addr_mask);
 }
 
-void MEMORY::write_io8(uint32_t addr, uint32_t data)
+void FMR50_MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xffff) {
 	case 0x20:
@@ -594,7 +594,7 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t MEMORY::read_io8(uint32_t addr)
+uint32_t FMR50_MEMORY::read_io8(uint32_t addr)
 {
 	uint32_t val = 0xff;
 	
@@ -653,7 +653,7 @@ uint32_t MEMORY::read_io8(uint32_t addr)
 	return 0xff;
 }
 
-void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
+void FMR50_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MEMORY_DISP) {
 		disp = ((data & mask) != 0);
@@ -662,12 +662,12 @@ void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
-void MEMORY::event_frame()
+void FMR50_MEMORY::event_frame()
 {
 	blink++;
 }
 
-void MEMORY::update_bank()
+void FMR50_MEMORY::update_bank()
 {
 	if(!mainmem) {
 #ifdef _FMR60
@@ -713,7 +713,7 @@ void MEMORY::update_bank()
 	}
 }
 
-void MEMORY::update_dma_addr_mask()
+void FMR50_MEMORY::update_dma_addr_mask()
 {
 	switch(dma_addr_reg & 3) {
 	case 0:
@@ -737,7 +737,7 @@ void MEMORY::update_dma_addr_mask()
 }
 
 #ifndef _FMR60
-void MEMORY::point(int x, int y, int col)
+void FMR50_MEMORY::point(int x, int y, int col)
 {
 	if(x < 640 && y < 400) {
 		int ofs = ((lofs & 0x3fff) + (x >> 3) + y * 80) & 0x7fff;
@@ -755,7 +755,7 @@ void MEMORY::point(int x, int y, int col)
 	}
 }
 
-void MEMORY::line()
+void FMR50_MEMORY::line()
 {
 	int nx = lsx, ny = lsy;
 	int dx = abs(lex - lsx) * 2;
@@ -792,7 +792,7 @@ void MEMORY::line()
 }
 #endif
 
-void MEMORY::draw_screen()
+void FMR50_MEMORY::draw_screen()
 {
 	// render screen
 	memset(screen_txt, 0, sizeof(screen_txt));
@@ -825,7 +825,7 @@ void MEMORY::draw_screen()
 }
 
 #ifdef _FMR60
-void MEMORY::draw_text()
+void FMR50_MEMORY::draw_text()
 {
 	int src = ((chreg[12] << 9) | (chreg[13] << 1)) & 0x1fff;
 	int caddr = ((chreg[8] & 0xc0) == 0xc0) ? -1 : (((chreg[14] << 9) | (chreg[15] << 1)) & 0x1fff);
@@ -932,7 +932,7 @@ void MEMORY::draw_text()
 	}
 }
 #else
-void MEMORY::draw_text40()
+void FMR50_MEMORY::draw_text40()
 {
 	int src = ((chreg[12] << 9) | (chreg[13] << 1)) & 0xfff;
 	int caddr = ((chreg[8] & 0xc0) == 0xc0) ? -1 : (((chreg[14] << 9) | (chreg[15] << 1) | (mix & 0x20 ? 1 : 0)) & 0x7ff);
@@ -1026,7 +1026,7 @@ void MEMORY::draw_text40()
 	}
 }
 
-void MEMORY::draw_text80()
+void FMR50_MEMORY::draw_text80()
 {
 	int src = ((chreg[12] << 9) | (chreg[13] << 1)) & 0xfff;
 	int caddr = ((chreg[8] & 0xc0) == 0xc0) ? -1 : (((chreg[14] << 9) | (chreg[15] << 1) | (mix & 0x20 ? 1 : 0)) & 0x7ff);
@@ -1121,7 +1121,7 @@ void MEMORY::draw_text80()
 }
 #endif
 
-void MEMORY::draw_cg()
+void FMR50_MEMORY::draw_cg()
 {
 #ifdef _FMR60
 	uint8_t* p0 = &vram[0x00000];
@@ -1213,200 +1213,7 @@ void MEMORY::draw_cg()
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void MEMORY::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
-	DECL_STATE_ENTRY_1D_ARRAY(vram, sizeof(vram));
-	DECL_STATE_ENTRY_1D_ARRAY(cvram, sizeof(cvram));
-#ifdef _FMR60
-	DECL_STATE_ENTRY_1D_ARRAY(avram, sizeof(avram));
-#else
-	DECL_STATE_ENTRY_1D_ARRAY(kvram, sizeof(kvram));
-#endif
-	DECL_STATE_ENTRY_UINT8(machine_id);
-	DECL_STATE_ENTRY_UINT8(protect);
-	DECL_STATE_ENTRY_UINT8(rst);
-	DECL_STATE_ENTRY_UINT8(mainmem);
-	DECL_STATE_ENTRY_UINT8(rplane);
-	DECL_STATE_ENTRY_UINT8(wplane);
-	DECL_STATE_ENTRY_UINT8(dma_addr_reg);
-	DECL_STATE_ENTRY_UINT8(dma_wrap_reg);
-	DECL_STATE_ENTRY_UINT32(dma_addr_mask);
-	DECL_STATE_ENTRY_BOOL(disp);
-	DECL_STATE_ENTRY_BOOL(vsync);
-	DECL_STATE_ENTRY_INT32(blink);
-	DECL_STATE_ENTRY_2D_ARRAY(apal, 16, 3);
-	DECL_STATE_ENTRY_UINT8(apalsel);
-	DECL_STATE_ENTRY_1D_ARRAY(dpal, sizeof(dpal));
-	DECL_STATE_ENTRY_UINT8(outctrl);
-#ifndef _FMR60
-	DECL_STATE_ENTRY_UINT8(pagesel);
-	DECL_STATE_ENTRY_UINT8(ankcg);
-	DECL_STATE_ENTRY_UINT8(dispctrl);
-	DECL_STATE_ENTRY_UINT8(mix);
-	DECL_STATE_ENTRY_UINT16(accaddr);
-	DECL_STATE_ENTRY_UINT16(dispaddr);
-	DECL_STATE_ENTRY_INT32(kj_h);
-	DECL_STATE_ENTRY_INT32(kj_l);
-	DECL_STATE_ENTRY_INT32(kj_ofs);
-	DECL_STATE_ENTRY_INT32(kj_row);
-	DECL_STATE_ENTRY_UINT8(cmdreg);
-	DECL_STATE_ENTRY_UINT8(imgcol);
-	DECL_STATE_ENTRY_UINT8(maskreg);
-	DECL_STATE_ENTRY_1D_ARRAY(compreg, sizeof(compreg));
-	DECL_STATE_ENTRY_UINT8(compbit);
-	DECL_STATE_ENTRY_UINT8(bankdis);
-	DECL_STATE_ENTRY_1D_ARRAY(tilereg, sizeof(tilereg));
-	DECL_STATE_ENTRY_UINT16(lofs);
-	DECL_STATE_ENTRY_UINT16(lsty);
-	DECL_STATE_ENTRY_UINT16(lsx);
-	DECL_STATE_ENTRY_UINT16(lsy);
-	DECL_STATE_ENTRY_UINT16(lex);
-	DECL_STATE_ENTRY_UINT16(ley);
-#endif
-	// ToDo: Generate Generic value(s).
-	DECL_STATE_ENTRY_SCRNTYPE_T_1D_ARRAY(palette_cg, sizeof(palette_cg) / sizeof(scrntype_t));
-	leave_decl_state();
-}
-
-void MEMORY::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(ram, sizeof(ram), 1);
-//	state_fio->Fwrite(vram, sizeof(vram), 1);
-//	state_fio->Fwrite(cvram, sizeof(cvram), 1);
-//#ifdef _FMR60
-//	state_fio->Fwrite(avram, sizeof(avram), 1);
-//#else
-//	state_fio->Fwrite(kvram, sizeof(kvram), 1);
-//#endif
-//	state_fio->FputUint8(machine_id);
-//	state_fio->FputUint8(protect);
-//	state_fio->FputUint8(rst);
-//	state_fio->FputUint8(mainmem);
-//	state_fio->FputUint8(rplane);
-//	state_fio->FputUint8(wplane);
-//	state_fio->FputUint8(dma_addr_reg);
-//	state_fio->FputUint8(dma_wrap_reg);
-//	state_fio->FputUint32(dma_addr_mask);
-//	state_fio->FputBool(disp);
-//	state_fio->FputBool(vsync);
-//	state_fio->FputInt32(blink);
-//	state_fio->Fwrite(apal, sizeof(apal), 1);
-//	state_fio->FputUint8(apalsel);
-//	state_fio->Fwrite(dpal, sizeof(dpal), 1);
-//	state_fio->FputUint8(outctrl);
-//#ifndef _FMR60
-//	state_fio->FputUint8(pagesel);
-//	state_fio->FputUint8(ankcg);
-//	state_fio->FputUint8(dispctrl);
-//	state_fio->FputUint8(mix);
-//	state_fio->FputUint16(accaddr);
-//	state_fio->FputUint16(dispaddr);
-//	state_fio->FputInt32(kj_h);
-//	state_fio->FputInt32(kj_l);
-//	state_fio->FputInt32(kj_ofs);
-//	state_fio->FputInt32(kj_row);
-//	state_fio->FputUint8(cmdreg);
-//	state_fio->FputUint8(imgcol);
-//	state_fio->FputUint8(maskreg);
-//	state_fio->Fwrite(compreg, sizeof(compreg), 1);
-//	state_fio->FputUint8(compbit);
-//	state_fio->FputUint8(bankdis);
-//	state_fio->Fwrite(tilereg, sizeof(tilereg), 1);
-//	state_fio->FputUint16(lofs);
-//	state_fio->FputUint16(lsty);
-//	state_fio->FputUint16(lsx);
-//	state_fio->FputUint16(lsy);
-//	state_fio->FputUint16(lex);
-//	state_fio->FputUint16(ley);
-//#endif
-//	state_fio->Fwrite(palette_cg, sizeof(palette_cg), 1);
-}
-
-bool MEMORY::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(ram, sizeof(ram), 1);
-//	state_fio->Fread(vram, sizeof(vram), 1);
-//	state_fio->Fread(cvram, sizeof(cvram), 1);
-//#ifdef _FMR60
-//	state_fio->Fread(avram, sizeof(avram), 1);
-//#else
-//	state_fio->Fread(kvram, sizeof(kvram), 1);
-//#endif
-//	machine_id = state_fio->FgetUint8();
-//	protect = state_fio->FgetUint8();
-//	rst = state_fio->FgetUint8();
-//	mainmem = state_fio->FgetUint8();
-//	rplane = state_fio->FgetUint8();
-//	wplane = state_fio->FgetUint8();
-//	dma_addr_reg = state_fio->FgetUint8();
-//	dma_wrap_reg = state_fio->FgetUint8();
-//	dma_addr_mask = state_fio->FgetUint32();
-//	disp = state_fio->FgetBool();
-//	vsync = state_fio->FgetBool();
-//	blink = state_fio->FgetInt32();
-//	state_fio->Fread(apal, sizeof(apal), 1);
-//	apalsel = state_fio->FgetUint8();
-//	state_fio->Fread(dpal, sizeof(dpal), 1);
-//	outctrl = state_fio->FgetUint8();
-//#ifndef _FMR60
-//	pagesel = state_fio->FgetUint8();
-//	ankcg = state_fio->FgetUint8();
-//	dispctrl = state_fio->FgetUint8();
-//	mix = state_fio->FgetUint8();
-//	accaddr = state_fio->FgetUint16();
-//	dispaddr = state_fio->FgetUint16();
-//	kj_h = state_fio->FgetInt32();
-//	kj_l = state_fio->FgetInt32();
-//	kj_ofs = state_fio->FgetInt32();
-//	kj_row = state_fio->FgetInt32();
-//	cmdreg = state_fio->FgetUint8();
-//	imgcol = state_fio->FgetUint8();
-//	maskreg = state_fio->FgetUint8();
-//	state_fio->Fread(compreg, sizeof(compreg), 1);
-//	compbit = state_fio->FgetUint8();
-//	bankdis = state_fio->FgetUint8();
-//	state_fio->Fread(tilereg, sizeof(tilereg), 1);
-//	lofs = state_fio->FgetUint16();
-//	lsty = state_fio->FgetUint16();
-//	lsx = state_fio->FgetUint16();
-//	lsy = state_fio->FgetUint16();
-//	lex = state_fio->FgetUint16();
-//	ley = state_fio->FgetUint16();
-//#endif
-//	state_fio->Fread(palette_cg, sizeof(palette_cg), 1);
-	
-	// post process
-	update_bank();
-	return true;
-}
-
-bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool FMR50_MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -1463,8 +1270,45 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateUint16(lex);
 	state_fio->StateUint16(ley);
 #endif
-	state_fio->StateBuffer(palette_cg, sizeof(palette_cg), 1);
-	
+	//state_fio->StateBuffer(palette_cg, sizeof(palette_cg), 1);
+	if(loading) {
+		for(int i = 0; i < (sizeof(palette_cg) / sizeof(scrntype_t)); i++) {
+			uint8_t r, g, b;
+			r = state_fio->FgetUint8();
+			g = state_fio->FgetUint8();
+			b = state_fio->FgetUint8();
+			palette_cg[i] = RGB_COLOR(r, g, b);
+		}
+	} else {
+		for(int i = 0; i < (sizeof(palette_cg) / sizeof(scrntype_t)); i++) {
+			uint8_t r, g, b;
+			r = R_OF_COLOR(palette_cg[i]);
+			g = G_OF_COLOR(palette_cg[i]);
+			b = B_OF_COLOR(palette_cg[i]);
+			state_fio->FputUint8(r);
+			state_fio->FputUint8(g);
+			state_fio->FputUint8(b);
+		}
+	}
+	if(loading) {
+		for(int i = 0; i < (sizeof(palette_txt) / sizeof(scrntype_t)); i++) {
+			uint8_t r, g, b;
+			r = state_fio->FgetUint8();
+			g = state_fio->FgetUint8();
+			b = state_fio->FgetUint8();
+			palette_txt[i] = RGB_COLOR(r, g, b);
+		}
+	} else {
+		for(int i = 0; i < (sizeof(palette_txt) / sizeof(scrntype_t)); i++) {
+			uint8_t r, g, b;
+			r = R_OF_COLOR(palette_txt[i]);
+			g = G_OF_COLOR(palette_txt[i]);
+			b = B_OF_COLOR(palette_txt[i]);
+			state_fio->FputUint8(r);
+			state_fio->FputUint8(g);
+			state_fio->FputUint8(b);
+		}
+	}
 	// post process
 	if(loading) {
 		update_bank();

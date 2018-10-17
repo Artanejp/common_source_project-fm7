@@ -134,7 +134,7 @@ class BIOS;
 class CMOS;
 class FLOPPY;
 class KEYBOARD;
-class MEMORY;
+class FMR50_MEMORY;
 //class SERIAL;
 class SCSI;
 class TIMER;
@@ -173,7 +173,7 @@ protected:
 	CMOS* cmos;
 	FLOPPY* floppy;
 	KEYBOARD* keyboard;
-	MEMORY* memory;
+	FMR50_MEMORY* memory;
 	SCSI* scsi;
 //	SERIAL* serial;
 	TIMER* timer;
@@ -228,9 +228,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

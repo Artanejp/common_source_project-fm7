@@ -125,7 +125,7 @@ class I8080;
 class CMT;
 class DISPLAY;
 class KEYBOARD;
-class MEMORY;
+class EX80_MEMORY;
 
 class VM : public VM_TEMPLATE
 {
@@ -144,7 +144,7 @@ protected:
 	CMT* cmt;
 	DISPLAY* display;
 	KEYBOARD* keyboard;
-	MEMORY* memory;
+	EX80_MEMORY* memory;
 	
 public:
 	// ----------------------------------------

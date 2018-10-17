@@ -424,46 +424,15 @@ void MAINBUS::update_int7()
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void MAINBUS::decl_state()
+bool MAINBUS::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
-
-	leave_decl_state();
-
-//	MEMORY::decl_state();
-}
-
-void MAINBUS::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-
-	MEMORY::save_state(state_fio);
-}
-
-bool MAINBUS::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-	if(MEMORY::load_state(state_fio) == false) return false;
-	return true;
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	return MEMORY::process_state(state_fio, loading); // OK?
+//	return true;
 }
 

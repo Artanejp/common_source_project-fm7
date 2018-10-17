@@ -96,7 +96,7 @@ class DATAREC;
 class N2A03;
 class YM2413;
 
-class MEMORY;
+class FAMILYBASIC_MEMORY;
 class APU;
 class PPU;
 
@@ -113,7 +113,7 @@ protected:
 	N2A03* cpu;
 	YM2413* opll;
 	
-	MEMORY* memory;
+	FAMILYBASIC_MEMORY* memory;
 	APU* apu;
 	PPU* ppu;
 	

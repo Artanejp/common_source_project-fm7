@@ -9,7 +9,7 @@
 
 #include "../vm.h"
 #include "../../emu.h"
-#include "memory.h"
+#include "./memory.h"
 #include "../i8237.h"
 #include "../i286.h"
 
@@ -58,7 +58,7 @@ static const uint8_t bios2[] = {
 	} \
 }
 
-void MEMORY::initialize()
+void FMR30_MEMORY::initialize()
 {
 	// init memory
 	memset(ram, 0, sizeof(ram));
@@ -105,7 +105,7 @@ void MEMORY::initialize()
 	register_frame_event(this);
 }
 
-void MEMORY::reset()
+void FMR30_MEMORY::reset()
 {
 	// reset crtc
 	lcdadr = 0;
@@ -120,19 +120,19 @@ void MEMORY::reset()
 	update_bank();
 }
 
-void MEMORY::write_data8(uint32_t addr, uint32_t data)
+void FMR30_MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffffff;
 	wbank[addr >> 12][addr & 0xfff] = data;
 }
 
-uint32_t MEMORY::read_data8(uint32_t addr)
+uint32_t FMR30_MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffffff;
 	return rbank[addr >> 12][addr & 0xfff];
 }
 
-void MEMORY::write_io8(uint32_t addr, uint32_t data)
+void FMR30_MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xffff) {
 	// memory controller
@@ -207,7 +207,7 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t MEMORY::read_io8(uint32_t addr)
+uint32_t FMR30_MEMORY::read_io8(uint32_t addr)
 {
 	uint32_t val = 0xff;
 	
@@ -244,12 +244,12 @@ uint32_t MEMORY::read_io8(uint32_t addr)
 	return 0xff;
 }
 
-void MEMORY::event_frame()
+void FMR30_MEMORY::event_frame()
 {
 	blinkcnt++;
 }
 
-void MEMORY::update_bank()
+void FMR30_MEMORY::update_bank()
 {
 	if(!(mcr2 & 1)) {
 		// $c0000-$cffff: vram
@@ -269,7 +269,7 @@ void MEMORY::update_bank()
 	}
 }
 
-void MEMORY::draw_screen()
+void FMR30_MEMORY::draw_screen()
 {
 	// render screen
 	memset(screen_txt, 0, sizeof(screen_txt));
@@ -298,7 +298,7 @@ void MEMORY::draw_screen()
 	}
 }
 
-void MEMORY::draw_text40()
+void FMR30_MEMORY::draw_text40()
 {
 	uint8_t *ank8 = ipl;
 	uint8_t *ank16 = ipl + 0x800;
@@ -396,7 +396,7 @@ void MEMORY::draw_text40()
 	}
 }
 
-void MEMORY::draw_text80()
+void FMR30_MEMORY::draw_text80()
 {
 	uint8_t *ank8 = ipl;
 	uint8_t *ank16 = ipl + 0x800;
@@ -494,7 +494,7 @@ void MEMORY::draw_text80()
 	}
 }
 
-void MEMORY::draw_cg()
+void FMR30_MEMORY::draw_cg()
 {
 	uint8_t* plane = vram + ((dcr1 >> 8) & 3) * 0x8000;
 	int ptr = 0;
@@ -518,98 +518,7 @@ void MEMORY::draw_cg()
 
 #define STATE_VERSION	2
 
-#include "../../statesub.h"
-
-void MEMORY::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
-	DECL_STATE_ENTRY_1D_ARRAY(vram, sizeof(vram));
-	DECL_STATE_ENTRY_1D_ARRAY(cvram, sizeof(cvram));
-	DECL_STATE_ENTRY_1D_ARRAY(kvram, sizeof(kvram));
-	DECL_STATE_ENTRY_UINT8(mcr1);
-	DECL_STATE_ENTRY_UINT8(mcr2);
-	DECL_STATE_ENTRY_UINT8(a20);
-	DECL_STATE_ENTRY_UINT8(lcdadr);
-	DECL_STATE_ENTRY_1D_ARRAY(lcdreg, sizeof(lcdreg));
-	DECL_STATE_ENTRY_UINT16(dcr1);
-	DECL_STATE_ENTRY_UINT16(dcr2);
-	DECL_STATE_ENTRY_INT32(kj_h);
-	DECL_STATE_ENTRY_INT32(kj_l);
-	DECL_STATE_ENTRY_INT32(kj_ofs);
-	DECL_STATE_ENTRY_INT32(kj_row);
-	DECL_STATE_ENTRY_INT32(blinkcnt);
-	
-	leave_decl_state();
-}
-
-void MEMORY::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(ram, sizeof(ram), 1);
-//	state_fio->Fwrite(vram, sizeof(vram), 1);
-//	state_fio->Fwrite(cvram, sizeof(cvram), 1);
-//	state_fio->Fwrite(kvram, sizeof(kvram), 1);
-//	state_fio->FputUint8(mcr1);
-//	state_fio->FputUint8(mcr2);
-//	state_fio->FputUint8(a20);
-//	state_fio->FputUint8(lcdadr);
-//	state_fio->Fwrite(lcdreg, sizeof(lcdreg), 1);
-//	state_fio->FputUint16(dcr1);
-//	state_fio->FputUint16(dcr2);
-//	state_fio->FputInt32(kj_h);
-//	state_fio->FputInt32(kj_l);
-//	state_fio->FputInt32(kj_ofs);
-//	state_fio->FputInt32(kj_row);
-//	state_fio->FputInt32(blinkcnt);
-}
-
-bool MEMORY::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(ram, sizeof(ram), 1);
-//	state_fio->Fread(vram, sizeof(vram), 1);
-//	state_fio->Fread(cvram, sizeof(cvram), 1);
-//	state_fio->Fread(kvram, sizeof(kvram), 1);
-//	mcr1 = state_fio->FgetUint8();
-//	mcr2 = state_fio->FgetUint8();
-//	a20 = state_fio->FgetUint8();
-//	lcdadr = state_fio->FgetUint8();
-//	state_fio->Fread(lcdreg, sizeof(lcdreg), 1);
-//	dcr1 = state_fio->FgetUint16();
-//	dcr2 = state_fio->FgetUint16();
-//	kj_h = state_fio->FgetInt32();
-//	kj_l = state_fio->FgetInt32();
-//	kj_ofs = state_fio->FgetInt32();
-//	kj_row = state_fio->FgetInt32();
-//	blinkcnt = state_fio->FgetInt32();
-	
-	// post process
-	update_bank();
-	return true;
-}
-
-bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool FMR30_MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;

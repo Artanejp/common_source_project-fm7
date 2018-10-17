@@ -1146,70 +1146,6 @@ uint32_t BIOS::read_signal(int ch)
 
 #define STATE_VERSION	5
 
-#include "../statesub.h"
-
-void BIOS::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_INT32(secnum);
-	DECL_STATE_ENTRY_INT32(timeout);
-	DECL_STATE_ENTRY_1D_ARRAY(drive_mode1, sizeof(drive_mode1));
-	DECL_STATE_ENTRY_1D_ARRAY(drive_mode2, sizeof(drive_mode2) / sizeof(uint16_t));
-	DECL_STATE_ENTRY_1D_ARRAY(scsi_blocks, sizeof(scsi_blocks) / sizeof(int));
-	
-	leave_decl_state();
-
-	for(int i = 0; i < MAX_DRIVE; i++) {
-		if(disk[i] != NULL) disk[i]->decl_state(p_logger);
-	}
-}
-void BIOS::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-
-	for(int i = 0; i < MAX_DRIVE; i++) {
-		if(disk[i] != NULL) disk[i]->save_state(state_fio);
-	}
-//	state_fio->FputInt32(secnum);
-//	state_fio->FputInt32(timeout);
-//	state_fio->Fwrite(drive_mode1, sizeof(drive_mode1), 1);
-//	state_fio->Fwrite(drive_mode2, sizeof(drive_mode2), 1);
-//	state_fio->Fwrite(scsi_blocks, sizeof(scsi_blocks), 1);
-}
-
-bool BIOS::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-	for(int i = 0; i < MAX_DRIVE; i++) {
-		if(disk[i] != NULL) {
-			if(!disk[i]->load_state(state_fio)) {
-				return false;
-			}
-		}
-	}
-//	secnum = state_fio->FgetInt32();
-//	timeout = state_fio->FgetInt32();
-//	state_fio->Fread(drive_mode1, sizeof(drive_mode1), 1);
-//	state_fio->Fread(drive_mode2, sizeof(drive_mode2), 1);
-//	state_fio->Fread(scsi_blocks, sizeof(scsi_blocks), 1);
-	return true;
-}
-
 bool BIOS::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
@@ -1226,7 +1162,13 @@ bool BIOS::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateInt32(secnum);
 	state_fio->StateInt32(timeout);
 	state_fio->StateBuffer(drive_mode1, sizeof(drive_mode1), 1);
-	state_fio->StateBuffer(drive_mode2, sizeof(drive_mode2), 1);
-	state_fio->StateBuffer(scsi_blocks, sizeof(scsi_blocks), 1);
+	//state_fio->StateBuffer(drive_mode2, sizeof(drive_mode2), 1);
+	for(int i = 0; i < (sizeof(drive_mode2) / sizeof(uint16_t)); i++) {
+		state_fio->StateUint16(drive_mode2[i]);
+	}
+	//state_fio->StateBuffer(scsi_blocks, sizeof(scsi_blocks), 1);
+	for(int i = 0; i < (sizeof(scsi_blocks) / sizeof(int)); i++) {
+		state_fio->StateInt32(scsi_blocks[i]);
+	}
 	return true;
 }

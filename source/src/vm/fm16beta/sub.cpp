@@ -933,51 +933,6 @@ void SUB::draw_cg()
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void SUB::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-	
-	leave_decl_state();
-
-//	MEMORY::decl_state(); //
-}
-
-void SUB::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-	MEMORY::save_state(state_fio);
-}
-
-bool SUB::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-	if(!MEMORY::load_state(state_fio)) {
-		return false;
-	}
-	return true;
-}
-
 bool SUB::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {

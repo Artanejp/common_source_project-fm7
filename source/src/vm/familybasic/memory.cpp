@@ -8,14 +8,14 @@
 	[ memory ]
 */
 
-#include "memory.h"
+#include "./memory.h"
 #include "ppu.h"
 #include "../datarec.h"
 #include "../ym2413.h"
 
 #define EVENT_DMA_DONE	0
 
-void MEMORY::initialize()
+void FAMILYBASIC_MEMORY::initialize()
 {
 	key_stat = emu->get_key_buffer();
 	joy_stat = emu->get_joy_buffer();
@@ -24,7 +24,7 @@ void MEMORY::initialize()
 	register_vline_event(this);
 }
 
-void MEMORY::load_rom_image(const _TCHAR *file_name)
+void FAMILYBASIC_MEMORY::load_rom_image(const _TCHAR *file_name)
 {
 	FILEIO* fio = new FILEIO();
 	
@@ -75,7 +75,7 @@ void MEMORY::load_rom_image(const _TCHAR *file_name)
 	save_ram_crc32 = get_crc32(save_ram, sizeof(save_ram));
 }
 
-void MEMORY::save_backup()
+void FAMILYBASIC_MEMORY::save_backup()
 {
 	if(save_ram_crc32 != get_crc32(save_ram, sizeof(save_ram))) {
 		FILEIO* fio = new FILEIO();
@@ -87,7 +87,7 @@ void MEMORY::save_backup()
 	}
 }
 
-void MEMORY::release()
+void FAMILYBASIC_MEMORY::release()
 {
 	if(rom != NULL) {
 		free(rom);
@@ -96,7 +96,7 @@ void MEMORY::release()
 	save_backup();
 }
 
-void MEMORY::reset()
+void FAMILYBASIC_MEMORY::reset()
 {
 	memset(ram, 0, sizeof(ram));
 	
@@ -118,7 +118,7 @@ void MEMORY::reset()
 	vrc7_reset();
 }
 
-void MEMORY::write_data8(uint32_t addr, uint32_t data)
+void FAMILYBASIC_MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	
@@ -205,7 +205,7 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t MEMORY::read_data8(uint32_t addr)
+uint32_t FAMILYBASIC_MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	
@@ -378,7 +378,7 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 	}
 }
 
-void MEMORY::event_vline(int v, int clock)
+void FAMILYBASIC_MEMORY::event_vline(int v, int clock)
 {
 	// 525 -> 262.5
 	if(v & 1) {
@@ -400,13 +400,13 @@ void MEMORY::event_vline(int v, int clock)
 	}
 }
 
-void MEMORY::event_callback(int event_id, int err)
+void FAMILYBASIC_MEMORY::event_callback(int event_id, int err)
 {
 	// dma done
 	d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 }
 
-void MEMORY::set_rom_bank(uint8_t bank, uint32_t bank_num)
+void FAMILYBASIC_MEMORY::set_rom_bank(uint8_t bank, uint32_t bank_num)
 {
 	bank_ptr[bank] = rom + 0x2000 * (bank_num & rom_mask);
 	banks[bank] = bank_num;
@@ -417,7 +417,7 @@ void MEMORY::set_rom_bank(uint8_t bank, uint32_t bank_num)
 
 // mmc5
 
-void MEMORY::mmc5_reset()
+void FAMILYBASIC_MEMORY::mmc5_reset()
 {
 	if(header.mapper() == 5) {
 		mmc5_set_wram_bank(3, 0);
@@ -443,7 +443,7 @@ void MEMORY::mmc5_reset()
 	}
 }
 
-uint32_t MEMORY::mmc5_lo_read(uint32_t addr)
+uint32_t FAMILYBASIC_MEMORY::mmc5_lo_read(uint32_t addr)
 {
 	uint8_t data = (uint8_t)(addr >> 8);
 	
@@ -462,7 +462,7 @@ uint32_t MEMORY::mmc5_lo_read(uint32_t addr)
 	return data;
 }
 
-void MEMORY::mmc5_lo_write(uint32_t addr, uint32_t data)
+void FAMILYBASIC_MEMORY::mmc5_lo_write(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case 0x5100:
@@ -556,12 +556,12 @@ void MEMORY::mmc5_lo_write(uint32_t addr, uint32_t data)
 	}
 }
 
-//uint32_t MEMORY::mmc5_save_read(uint32_t addr)
+//uint32_t FAMILYBASIC_MEMORY::mmc5_save_read(uint32_t addr)
 //{
 //	return bank_ptr[3][addr & 0x1fff];
 //}
 
-void MEMORY::mmc5_save_write(uint32_t addr, uint32_t data)
+void FAMILYBASIC_MEMORY::mmc5_save_write(uint32_t addr, uint32_t data)
 {
 	if(mmc5_wram_protect0 == 0x02 && mmc5_wram_protect1 == 0x01) {
 		if(mmc5_wram_bank[3] < 8) {
@@ -570,7 +570,7 @@ void MEMORY::mmc5_save_write(uint32_t addr, uint32_t data)
 	}
 }
 
-void MEMORY::mmc5_hi_write(uint32_t addr, uint32_t data)
+void FAMILYBASIC_MEMORY::mmc5_hi_write(uint32_t addr, uint32_t data)
 {
 	if(mmc5_wram_protect0 == 0x02 && mmc5_wram_protect1 == 0x01) {
 		if(addr < 0xa000) {
@@ -593,7 +593,7 @@ void MEMORY::mmc5_hi_write(uint32_t addr, uint32_t data)
 	}
 }
 
-void MEMORY::mmc5_hsync(int v)
+void FAMILYBASIC_MEMORY::mmc5_hsync(int v)
 {
 	if(v <= 240) {
 		if(v == mmc5_irq_line) {
@@ -609,7 +609,7 @@ void MEMORY::mmc5_hsync(int v)
 	}
 }
 
-void MEMORY::mmc5_set_cpu_bank(uint8_t bank, uint32_t bank_num)
+void FAMILYBASIC_MEMORY::mmc5_set_cpu_bank(uint8_t bank, uint32_t bank_num)
 {
 	if(bank_num & 0x80) {
 		if(mmc5_prg_size == 0) {
@@ -673,7 +673,7 @@ void MEMORY::mmc5_set_cpu_bank(uint8_t bank, uint32_t bank_num)
 	}
 }
 
-void MEMORY::mmc5_set_wram_bank(uint8_t bank, uint32_t bank_num)
+void FAMILYBASIC_MEMORY::mmc5_set_wram_bank(uint8_t bank, uint32_t bank_num)
 {
 	if(bank_num < 8) {
 		bank_ptr[bank] = save_ram + 0x2000 * bank_num;
@@ -683,7 +683,7 @@ void MEMORY::mmc5_set_wram_bank(uint8_t bank, uint32_t bank_num)
 	}
 }
 
-void MEMORY::mmc5_set_ppu_bank(uint8_t mode)
+void FAMILYBASIC_MEMORY::mmc5_set_ppu_bank(uint8_t mode)
 {
 	if(mmc5_chr_size == 0) {
 		d_ppu->set_ppu_bank(0, mmc5_chr_reg[7][mode] * 8 + 0);
@@ -724,7 +724,7 @@ void MEMORY::mmc5_set_ppu_bank(uint8_t mode)
 	}
 }
 
-uint8_t MEMORY::mmc5_ppu_latch_render(uint8_t mode, uint32_t addr)
+uint8_t FAMILYBASIC_MEMORY::mmc5_ppu_latch_render(uint8_t mode, uint32_t addr)
 {
 	uint8_t data = 0;
 	
@@ -749,7 +749,7 @@ uint8_t MEMORY::mmc5_ppu_latch_render(uint8_t mode, uint32_t addr)
 
 // vrc7
 
-void MEMORY::vrc7_reset()
+void FAMILYBASIC_MEMORY::vrc7_reset()
 {
 	if(header.mapper() == 85) {
 		vrc7_irq_enabled = 0;
@@ -765,26 +765,26 @@ void MEMORY::vrc7_reset()
 	}
 }
 
-//uint32_t MEMORY::vrc7_lo_read(uint32_t addr)
+//uint32_t FAMILYBASIC_MEMORY::vrc7_lo_read(uint32_t addr)
 //{
 //	return 0xff;
 //}
 
-//void MEMORY::vrc7_lo_write(uint32_t addr, uint32_t data)
+//void FAMILYBASIC_MEMORY::vrc7_lo_write(uint32_t addr, uint32_t data)
 //{
 //}
 
-//uint32_t MEMORY::vrc7_save_read(uint32_t addr)
+//uint32_t FAMILYBASIC_MEMORY::vrc7_save_read(uint32_t addr)
 //{
 //	return bank_ptr[3][addr & 0x1fff];
 //}
 
-//void MEMORY::vrc7_save_write(uint32_t addr, uint32_t data)
+//void FAMILYBASIC_MEMORY::vrc7_save_write(uint32_t addr, uint32_t data)
 //{
 //	bank_ptr[3][addr & 0x1fff] = data;
 //}
 
-void MEMORY::vrc7_hi_write(uint32_t addr, uint32_t data)
+void FAMILYBASIC_MEMORY::vrc7_hi_write(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xf038) {
 	case 0x8000:
@@ -862,7 +862,7 @@ void MEMORY::vrc7_hi_write(uint32_t addr, uint32_t data)
 	}
 }
 
-void MEMORY::vrc7_hsync(int v)
+void FAMILYBASIC_MEMORY::vrc7_hsync(int v)
 {
 	if(vrc7_irq_enabled & 0x02) {
 		if(vrc7_irq_counter == 0xff) {
@@ -876,7 +876,7 @@ void MEMORY::vrc7_hsync(int v)
 
 #define STATE_VERSION	2
 
-bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool FAMILYBASIC_MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;

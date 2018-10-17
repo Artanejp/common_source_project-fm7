@@ -19,13 +19,13 @@
 #define MIRROR_VERT	1
 #define MIRROR_4SCREEN	2
 
-class MEMORY;
+class FAMILYBASIC_MEMORY;
 
 class PPU : public DEVICE
 {
 private:
 	DEVICE *d_cpu;
-	MEMORY *d_memory;
+	FAMILYBASIC_MEMORY *d_memory;
 	
 	scrntype_t palette_pc[64];
 	uint8_t screen[240][256 + 16];	// 2*8 = side margin
@@ -82,7 +82,7 @@ public:
 	{
 		d_cpu = device;
 	}
-	void set_context_memory(MEMORY* device)
+	void set_context_memory(FAMILYBASIC_MEMORY* device)
 	{
 		d_memory = device;
 	}

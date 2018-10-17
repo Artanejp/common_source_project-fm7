@@ -25,7 +25,7 @@
 	} \
 }
 
-void MEMORY::initialize()
+void X1_MEMORY::initialize()
 {
 	// init memory
 	memset(rom, 0xff, sizeof(rom));
@@ -49,7 +49,7 @@ void MEMORY::initialize()
 #endif
 }
 
-void MEMORY::reset()
+void X1_MEMORY::reset()
 {
 	SET_BANK(0x0000, 0x7fff, ram, rom);
 	SET_BANK(0x8000, 0xffff, ram + 0x8000, ram + 0x8000);
@@ -62,27 +62,27 @@ void MEMORY::reset()
 #endif
 }
 
-void MEMORY::write_data8(uint32_t addr, uint32_t data)
+void X1_MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	wbank[addr >> 12][addr & 0xfff] = data;
 }
 
-uint32_t MEMORY::read_data8(uint32_t addr)
+uint32_t X1_MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	return rbank[addr >> 12][addr & 0xfff];
 }
 
 #ifndef _X1TURBO_FEATURE
-uint32_t MEMORY::fetch_op(uint32_t addr, int *wait)
+uint32_t X1_MEMORY::fetch_op(uint32_t addr, int *wait)
 {
 	*wait = m1_cycle;
 	return read_data8(addr);
 }
 #endif
 
-void MEMORY::write_io8(uint32_t addr, uint32_t data)
+void X1_MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	bool update_map_required = false;
 	
@@ -123,7 +123,7 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t MEMORY::read_io8(uint32_t addr)
+uint32_t X1_MEMORY::read_io8(uint32_t addr)
 {
 	switch(addr & 0xff00) {
 	case 0x1e00: // thanks Mr.Sato
@@ -145,7 +145,7 @@ uint32_t MEMORY::read_io8(uint32_t addr)
 	return 0xff;
 }
 
-void MEMORY::update_map()
+void X1_MEMORY::update_map()
 {
 #ifdef _X1TURBO_FEATURE
 	if(!(bank & 0x10)) {
@@ -162,7 +162,7 @@ void MEMORY::update_map()
 
 #define STATE_VERSION	1
 
-bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool X1_MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
  		return false;

@@ -7,8 +7,8 @@
 	[ memory ]
 */
 
-#ifndef _MEMORY_H_
-#define _MEMORY_H_
+#ifndef _FMR30_MEMORY_H_
+#define _FMR30_MEMORY_H_
 
 #include "../vm.h"
 #include "../../emu.h"
@@ -17,7 +17,7 @@
 #define SIG_MEMORY_DISP		0
 #define SIG_MEMORY_VSYNC	1
 
-class MEMORY : public DEVICE
+class FMR30_MEMORY : public DEVICE
 {
 private:
 	DEVICE *d_cpu, *d_dma;
@@ -54,11 +54,11 @@ private:
 	void draw_cg();
 	
 public:
-	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	FMR30_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~MEMORY() {}
+	~FMR30_MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -68,9 +68,7 @@ public:
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
 	void event_frame();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_cpu(DEVICE* device)

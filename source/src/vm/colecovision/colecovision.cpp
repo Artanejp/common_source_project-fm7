@@ -22,7 +22,7 @@
 #endif
 
 #include "keyboard.h"
-#include "memory.h"
+#include "./memory.h"
 
 // ----------------------------------------------------------------------------
 // initialize
@@ -41,7 +41,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu = new Z80(this, emu);
 	
 	key = new KEYBOARD(this, emu);
-	memory = new MEMORY(this, emu);
+	memory = new COLECOVISION_MEMORY(this, emu);
 	
 	// set contexts
 	event->set_context_cpu(cpu);

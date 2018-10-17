@@ -55,7 +55,7 @@ class DATAREC;
 class MC6800;
 class MC6820;
 
-class MEMORY;
+class BMJR_MEMORY;
 
 class VM : public VM_TEMPLATE
 {
@@ -69,7 +69,7 @@ protected:
 	MC6800* cpu;
 	MC6820* pia;
 	
-	MEMORY* memory;
+	BMJR_MEMORY* memory;
 	
 public:
 	// ----------------------------------------

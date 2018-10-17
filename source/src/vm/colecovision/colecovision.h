@@ -51,7 +51,7 @@ class TMS9918A;
 class Z80;
 
 class KEYBOARD;
-class MEMORY;
+class COLECOVISION_MEMORY;
 
 class VM : public VM_TEMPLATE
 {
@@ -68,7 +68,7 @@ protected:
 	Z80* cpu;
 	
 	KEYBOARD* key;
-	MEMORY* memory;
+	COLECOVISION_MEMORY* memory;
 	
 public:
 	// ----------------------------------------

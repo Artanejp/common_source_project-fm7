@@ -7,7 +7,7 @@
 	[ memory ]
 */
 
-#include "memory.h"
+#include "./memory.h"
 #include "../i8080.h"
 
 #define SET_BANK(s, e, w, r) { \
@@ -26,7 +26,7 @@
 	} \
 }
 
-void MEMORY::initialize()
+void EX80_MEMORY::initialize()
 {
 	memset(mon, 0xff, sizeof(mon));
 	memset(prom1, 0xff, sizeof(prom1));
@@ -58,19 +58,19 @@ void MEMORY::initialize()
 	SET_BANK(0x8800, 0xffff, wdmy, rdmy);
 }
 
-void MEMORY::write_data8(uint32_t addr, uint32_t data)
+void EX80_MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	wbank[addr >> 10][addr & 0x3ff] = data;
 }
 
-uint32_t MEMORY::read_data8(uint32_t addr)
+uint32_t EX80_MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	return rbank[addr >> 10][addr & 0x3ff];
 }
 
-uint32_t MEMORY::fetch_op(uint32_t addr, int *wait)
+uint32_t EX80_MEMORY::fetch_op(uint32_t addr, int *wait)
 {
 	if((config.dipswitch & 1) && d_cpu->read_signal(SIG_I8080_INTE)) {
 		d_cpu->write_signal(SIG_I8080_INTR, 1, 1);
@@ -79,7 +79,7 @@ uint32_t MEMORY::fetch_op(uint32_t addr, int *wait)
 	return read_data8(addr);
 }
 
-void MEMORY::load_binary(const _TCHAR* file_path)
+void EX80_MEMORY::load_binary(const _TCHAR* file_path)
 {
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(file_path, FILEIO_READ_BINARY)) {
@@ -89,7 +89,7 @@ void MEMORY::load_binary(const _TCHAR* file_path)
 	delete fio;
 }
 
-void MEMORY::save_binary(const _TCHAR* file_path)
+void EX80_MEMORY::save_binary(const _TCHAR* file_path)
 {
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(file_path, FILEIO_WRITE_BINARY)) {
@@ -101,7 +101,7 @@ void MEMORY::save_binary(const _TCHAR* file_path)
 
 #define STATE_VERSION	1
 
-bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool EX80_MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;

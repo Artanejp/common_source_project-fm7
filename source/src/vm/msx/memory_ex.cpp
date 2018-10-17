@@ -265,49 +265,17 @@ uint32_t SLOT_MAINROM::read_data8(uint32_t addr)
 
 #define SLOT_MAINROM_STATE_VERSION	1
 
-
-void SLOT_MAINROM::decl_state()
+bool SLOT_MAINROM::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(SLOT_MAINROM_STATE_VERSION);
-
-#ifdef MAINROM_PLUS_RAM_32K
-	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
-#endif
-
-	leave_decl_state();
-}
-
-void SLOT_MAINROM::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(SLOT_MAINROM_STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//#ifdef MAINROM_PLUS_RAM_32K
-//	state_fio->Fwrite(ram, sizeof(ram), 1);
-//#endif
-}
-
-bool SLOT_MAINROM::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
+	if(!state_fio->StateCheckUint32(SLOT_MAINROM_STATE_VERSION)) {
 		return false;
 	}
-//	if(state_fio->FgetUint32() != SLOT_MAINROM_STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//#ifdef MAINROM_PLUS_RAM_32K
-//	state_fio->Fread(ram, sizeof(ram), 1);
-//#endif
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+#ifdef MAINROM_PLUS_RAM_32K
+	state_fio->StateBuffer(ram, sizeof(ram), 1);
+#endif
 	return true;
 }
 
@@ -457,114 +425,59 @@ void SLOT_CART::event_callback(int event_id, int err)
 
 #define SLOT_CART_STATE_VERSION	1
 
-void SLOT_CART::decl_state()
+bool SLOT_CART::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(SLOT_CART_STATE_VERSION);
-
-	DECL_STATE_ENTRY_BOOL(inserted);
-#ifdef USE_MEGAROM
-	DECL_STATE_ENTRY_INT32(type);
-	DECL_STATE_ENTRY_BOOL(bank_scc);
-	/* Todo: MEGA ROM bank select */
-	/* is this OK? */
-	DECL_STATE_ENTRY_1D_ARRAY(tmp_rbank_ptr, 8);
-	
-	//DECL_STATE_ENTRY_INT32(rbank[0]==rdmy ? (-1) : rbank[0] - rom);
-	//DECL_STATE_ENTRY_INT32(rbank[1]==rdmy ? (-1) : rbank[1] - rom);
-	//DECL_STATE_ENTRY_INT32(rbank[2]==rdmy ? (-1) : rbank[2] - rom);
-	//DECL_STATE_ENTRY_INT32(rbank[3]==rdmy ? (-1) : rbank[3] - rom);
-	//DECL_STATE_ENTRY_INT32(rbank[4]==rdmy ? (-1) : rbank[4] - rom);
-	//DECL_STATE_ENTRY_INT32(rbank[5]==rdmy ? (-1) : rbank[5] - rom);
-	//DECL_STATE_ENTRY_INT32(rbank[6]==rdmy ? (-1) : rbank[6] - rom);
-	//DECL_STATE_ENTRY_INT32(rbank[7]==rdmy ? (-1) : rbank[7] - rom);
-#endif
-
-	leave_decl_state();
-}
-void SLOT_CART::save_state(FILEIO* state_fio)
-{
-#ifdef USE_MEGAROM
-	for(int i = 0; i < 8; i++) {
-		tmp_rbank_ptr[i] = (rbank[i]==rdmy) ? (-1) : (int)(rbank[i] - rom);
-	}
-#endif
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(SLOT_CART_STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->FputBool(inserted);
-//#ifdef USE_MEGAROM
-//	state_fio->FputInt32(type);
-//	state_fio->FputBool(bank_scc);
-	/* Todo: MEGA ROM bank select */
-	/* is this OK? */
-//	if(inserted) {
-//		state_fio->FputInt32(rbank[0]==rdmy ? (-1) : rbank[0] - rom);
-//		state_fio->FputInt32(rbank[1]==rdmy ? (-1) : rbank[1] - rom);
-//		state_fio->FputInt32(rbank[2]==rdmy ? (-1) : rbank[2] - rom);
-//		state_fio->FputInt32(rbank[3]==rdmy ? (-1) : rbank[3] - rom);
-//		state_fio->FputInt32(rbank[4]==rdmy ? (-1) : rbank[4] - rom);
-//		state_fio->FputInt32(rbank[5]==rdmy ? (-1) : rbank[5] - rom);
-//		state_fio->FputInt32(rbank[6]==rdmy ? (-1) : rbank[6] - rom);
-//		state_fio->FputInt32(rbank[7]==rdmy ? (-1) : rbank[7] - rom);
-//	}
-//#endif
-}
-
-bool SLOT_CART::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
+	if(!state_fio->StateCheckUint32(SLOT_CART_STATE_VERSION)) {
 		return false;
 	}
-//	if(state_fio->FgetUint32() != SLOT_CART_STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	inserted = state_fio->FgetBool();
-	
-	// post process
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBool(inserted);
 #ifdef USE_MEGAROM
-//	type = state_fio->FgetInt32();
-//	bank_scc = state_fio->FgetBool();
+	state_fio->StateInt32(type);
+	state_fio->StateBool(bank_scc);
 	/* Todo: MEGA ROM bank select */
 	/* is this OK? */
-	if(inserted) {
-		SET_BANK(0x0000, 0xffff, wdmy, rom);
-//		int i32;
-//		i32 = state_fio->FgetInt32() ; rbank[0] = ((i32 == -1) ? rdmy : rom + i32);
-//		i32 = state_fio->FgetInt32() ; rbank[1] = ((i32 == -1) ? rdmy : rom + i32);
-//		i32 = state_fio->FgetInt32() ; rbank[2] = ((i32 == -1) ? rdmy : rom + i32);
-//		i32 = state_fio->FgetInt32() ; rbank[3] = ((i32 == -1) ? rdmy : rom + i32);
-//		i32 = state_fio->FgetInt32() ; rbank[4] = ((i32 == -1) ? rdmy : rom + i32);
-//		i32 = state_fio->FgetInt32() ; rbank[5] = ((i32 == -1) ? rdmy : rom + i32);
-//		i32 = state_fio->FgetInt32() ; rbank[6] = ((i32 == -1) ? rdmy : rom + i32);
-//		i32 = state_fio->FgetInt32() ; rbank[7] = ((i32 == -1) ? rdmy : rom + i32);
-		for(int i = 0; i < 8; i++) {
-			rbank[i] = ((tmp_rbank_ptr[i] == -1) ? rdmy : rom + tmp_rbank_ptr[i]);
+	if(loading) {
+		if(inserted) {
+			SET_BANK(0x0000, 0xffff, wdmy, rom);
+			int i32;
+			i32 = state_fio->FgetInt32_LE() ; rbank[0] = ((i32 == -1) ? rdmy : rom + i32);
+			i32 = state_fio->FgetInt32_LE() ; rbank[1] = ((i32 == -1) ? rdmy : rom + i32);
+			i32 = state_fio->FgetInt32_LE() ; rbank[2] = ((i32 == -1) ? rdmy : rom + i32);
+			i32 = state_fio->FgetInt32_LE() ; rbank[3] = ((i32 == -1) ? rdmy : rom + i32);
+			i32 = state_fio->FgetInt32_LE() ; rbank[4] = ((i32 == -1) ? rdmy : rom + i32);
+			i32 = state_fio->FgetInt32_LE() ; rbank[5] = ((i32 == -1) ? rdmy : rom + i32);
+			i32 = state_fio->FgetInt32_LE() ; rbank[6] = ((i32 == -1) ? rdmy : rom + i32);
+			i32 = state_fio->FgetInt32_LE() ; rbank[7] = ((i32 == -1) ? rdmy : rom + i32);
+		} else {
+			SET_BANK(0x0000, 0xffff, wdmy, rdmy);
 		}
 	} else {
-		SET_BANK(0x0000, 0xffff, wdmy, rdmy);
+		if(inserted) {
+			state_fio->FputInt32_LE(rbank[0]==rdmy ? (-1) : rbank[0] - rom);
+			state_fio->FputInt32_LE(rbank[1]==rdmy ? (-1) : rbank[1] - rom);
+			state_fio->FputInt32_LE(rbank[2]==rdmy ? (-1) : rbank[2] - rom);
+			state_fio->FputInt32_LE(rbank[3]==rdmy ? (-1) : rbank[3] - rom);
+			state_fio->FputInt32_LE(rbank[4]==rdmy ? (-1) : rbank[4] - rom);
+			state_fio->FputInt32_LE(rbank[5]==rdmy ? (-1) : rbank[5] - rom);
+			state_fio->FputInt32_LE(rbank[6]==rdmy ? (-1) : rbank[6] - rom);
+			state_fio->FputInt32_LE(rbank[7]==rdmy ? (-1) : rbank[7] - rom);
+		}
 	}
-	//return false;
-	return true;
 #else
-	if(inserted) {
-		SET_BANK(0x0000, 0xffff, wdmy, rom);
-	} else {
-		SET_BANK(0x0000, 0xffff, wdmy, rdmy);
+	// post process
+	if(loading) {
+		if(inserted) {
+			SET_BANK(0x0000, 0xffff, wdmy, rom);
+		} else {
+			SET_BANK(0x0000, 0xffff, wdmy, rdmy);
+		}
 	}
-	return true;
 #endif
+	return true;
 }
-
 // MSXDOS2
 
 #if defined(MSXDOS2_SLOT)
@@ -608,54 +521,30 @@ uint32_t SLOT_MSXDOS2::read_data8(uint32_t addr)
 
 #define SLOT_MSXDOS2_STATE_VERSION	1
 
-void SLOT_MSXDOS2::decl_state()
+bool SLOT_MSXDOS2::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(SLOT_MSXDOS2_STATE_VERSION);
-
-	DECL_STATE_ENTRY_1D_ARRAY(mapper, sizeof(mapper));
-	
-	leave_decl_state();
-}
-
-void SLOT_MSXDOS2::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(SLOT_MSXDOS2_STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(mapper, sizeof(mapper), 1);
-}
-
-bool SLOT_MSXDOS2::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
+	if(!state_fio->StateCheckUint32(SLOT_MSXDOS2_STATE_VERSION)) {
 		return false;
 	}
-//	if(state_fio->FgetUint32() != SLOT_MSXDOS2_STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(mapper, sizeof(mapper), 1);
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBuffer(mapper, sizeof(mapper), 1);
 	
 	// post process
-	if(mapper[0] < 4) {
-			SET_BANK(0x0000, 0x3fff, wdmy, rdmy);
-			SET_BANK(0x4000, 0x7fff, wdmy, rom + mapper[0] * 0x4000);
-			SET_BANK(0x8000, 0xbfff, wdmy, rom + mapper[1] * 0x4000);
-			SET_BANK(0xc000, 0xffff, wdmy, rdmy);
-	} else {
-		SET_BANK(0x0000, 0xffff, wdmy, rdmy);
+	if(loading) {
+		if(mapper[0] < 4) {
+				SET_BANK(0x0000, 0x3fff, wdmy, rdmy);
+				SET_BANK(0x4000, 0x7fff, wdmy, rom + mapper[0] * 0x4000);
+				SET_BANK(0x8000, 0xbfff, wdmy, rom + mapper[1] * 0x4000);
+				SET_BANK(0xc000, 0xffff, wdmy, rdmy);
+		} else {
+			SET_BANK(0x0000, 0xffff, wdmy, rdmy);
+		}
 	}
 	return true;
 }
+
 #endif
 
 // LD Control
@@ -766,63 +655,22 @@ void SLOT_LDC::event_callback(int event_id, int err)
 
 #define SLOT_LDC_STATE_VERSION	1
 
-void SLOT_LDC::decl_state()
+bool SLOT_LDC::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(SLOT_LDC_STATE_VERSION);
-
-	DECL_STATE_ENTRY_BOOL(clock);
-	DECL_STATE_ENTRY_BOOL(exv);
-	DECL_STATE_ENTRY_BOOL(ack);
-	DECL_STATE_ENTRY_BOOL(super_impose);
-	DECL_STATE_ENTRY_BOOL(req_intr);
-	DECL_STATE_ENTRY_BOOL(pc4);
-	DECL_STATE_ENTRY_BOOL(mute_l);
-	DECL_STATE_ENTRY_BOOL(mute_r);
-
-	leave_decl_state();
-}
-
-void SLOT_LDC::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(SLOT_LDC_STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->FputBool(clock);
-//	state_fio->FputBool(exv);
-//	state_fio->FputBool(ack);
-//	state_fio->FputBool(super_impose);
-//	state_fio->FputBool(req_intr);
-//	state_fio->FputBool(pc4);
-//	state_fio->FputBool(mute_l);
-//	state_fio->FputBool(mute_r);
-}
-
-bool SLOT_LDC::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
+	if(!state_fio->StateCheckUint32(SLOT_LDC_STATE_VERSION)) {
 		return false;
 	}
-//	if(state_fio->FgetUint32() != SLOT_LDC_STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	clock = state_fio->FgetBool();
-//	exv = state_fio->FgetBool();
-//	ack = state_fio->FgetBool();
-//	super_impose = state_fio->FgetBool();
-//	req_intr = state_fio->FgetBool();
-//	pc4 = state_fio->FgetBool();
-//	mute_l = state_fio->FgetBool();
-//	mute_r = state_fio->FgetBool();
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBool(clock);
+	state_fio->StateBool(exv);
+	state_fio->StateBool(ack);
+	state_fio->StateBool(super_impose);
+	state_fio->StateBool(req_intr);
+	state_fio->StateBool(pc4);
+	state_fio->StateBool(mute_l);
+	state_fio->StateBool(mute_r);
 	return true;
 }
 #endif
@@ -961,51 +809,24 @@ void SLOT_MAPPERRAM::write_io8(uint32_t addr, uint32_t data)
 
 #define SLOT_MAPPERRAM_STATE_VERSION	1
 
-void SLOT_MAPPERRAM::decl_state()
+bool SLOT_MAPPERRAM::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(SLOT_MAPPERRAM_STATE_VERSION);
-
-	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
-	DECL_STATE_ENTRY_1D_ARRAY(mapper, sizeof(mapper));
-	
-	leave_decl_state();
-}
-
-void SLOT_MAPPERRAM::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(SLOT_MAPPERRAM_STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(ram, sizeof(ram), 1);
-//	state_fio->Fwrite(mapper, sizeof(mapper), 1);
-}
-
-bool SLOT_MAPPERRAM::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
+	if(!state_fio->StateCheckUint32(SLOT_MAPPERRAM_STATE_VERSION)) {
 		return false;
 	}
-//	if(state_fio->FgetUint32() != SLOT_MAPPERRAM_STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(ram, sizeof(ram), 1);
-//	state_fio->Fread(mapper, sizeof(mapper), 1);
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBuffer(ram, sizeof(ram), 1);
+	state_fio->StateBuffer(mapper, sizeof(mapper), 1);
 	
 	// post process
-	SET_BANK(0x0000, 0x3fff, ram + mapper[0] * 0x4000, ram + mapper[0] * 0x4000);
-	SET_BANK(0x4000, 0x7fff, ram + mapper[1] * 0x4000, ram + mapper[1] * 0x4000);
-	SET_BANK(0x8000, 0xbfff, ram + mapper[2] * 0x4000, ram + mapper[2] * 0x4000);
-	SET_BANK(0xc000, 0xffff, ram + mapper[3] * 0x4000, ram + mapper[3] * 0x4000);
+	if(loading) {
+		SET_BANK(0x0000, 0x3fff, ram + mapper[0] * 0x4000, ram + mapper[0] * 0x4000);
+		SET_BANK(0x4000, 0x7fff, ram + mapper[1] * 0x4000, ram + mapper[1] * 0x4000);
+		SET_BANK(0x8000, 0xbfff, ram + mapper[2] * 0x4000, ram + mapper[2] * 0x4000);
+		SET_BANK(0xc000, 0xffff, ram + mapper[3] * 0x4000, ram + mapper[3] * 0x4000);
+	}
 	return true;
 }
 #endif
@@ -1030,42 +851,15 @@ uint32_t SLOT_RAM64K::read_data8(uint32_t addr)
 
 #define SLOT_RAM64K_STATE_VERSION	1
 
-void SLOT_RAM64K::decl_state()
+bool SLOT_RAM64K::process_state(FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(SLOT_RAM64K_STATE_VERSION);
-
-	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
-	
-	leave_decl_state();
-}
-
-void SLOT_RAM64K::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(SLOT_RAM64K_STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(ram, sizeof(ram), 1);
-}
-
-bool SLOT_RAM64K::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
+	if(!state_fio->StateCheckUint32(SLOT_RAM64K_STATE_VERSION)) {
 		return false;
 	}
-//	if(state_fio->FgetUint32() != SLOT_RAM64K_STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(ram, sizeof(ram), 1);
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateBuffer(ram, sizeof(ram), 1);
 	return true;
 }
 #endif
@@ -1595,216 +1389,6 @@ bool MEMORY_EX::is_disk_protected(int drv)
 
 #define STATE_VERSION	1
 
-void MEMORY_EX::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_UINT8(psl);
-	DECL_STATE_ENTRY_UINT8(ssl[0]);
-	DECL_STATE_ENTRY_UINT8(ssl[1]);
-	DECL_STATE_ENTRY_UINT8(ssl[2]);
-	DECL_STATE_ENTRY_UINT8(ssl[3]);
-	
-	leave_decl_state();
-	
-#if defined(FDD_PATCH_SLOT)
-	for(int i = 0; i < MAX_DRIVE; i++) {
-		if(disk[i] != NULL) disk[i]->decl_state((void *)p_logger);
-	}
-#endif
-}
-
-void MEMORY_EX::save_state(FILEIO* state_fio)
-{
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-#if defined(FDD_PATCH_SLOT)
-	for(int i = 0; i < MAX_DRIVE; i++) {
-		disk[i]->save_state(state_fio);
-	}
-#endif
-//	DECL_STATE_ENTRY_UINT8(psl);
-//	DECL_STATE_ENTRY_UINT8(ssl[0]);
-//	DECL_STATE_ENTRY_UINT8(ssl[1]);
-//	DECL_STATE_ENTRY_UINT8(ssl[2]);
-//	DECL_STATE_ENTRY_UINT8(ssl[3]);
-}
-
-bool MEMORY_EX::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-#if defined(FDD_PATCH_SLOT)
-	for(int i = 0; i < MAX_DRIVE; i++) {
-		if(!disk[i]->load_state(state_fio)) {
-			return false;
-		}
-	}
-#endif
-//	psl = state_fio->FgetUint8();
-//	ssl[0] = state_fio->FgetUint8();
-//	ssl[1] = state_fio->FgetUint8();
-//	ssl[2] = state_fio->FgetUint8();
-//	ssl[3] = state_fio->FgetUint8();
-	
-	// post process
-	update_map(psl);
-	return true;
-}
-
-bool SLOT_MAINROM::process_state(FILEIO* state_fio, bool loading)
-{
-	if(!state_fio->StateCheckUint32(SLOT_MAINROM_STATE_VERSION)) {
-		return false;
-	}
-	if(!state_fio->StateCheckInt32(this_device_id)) {
-		return false;
-	}
-#ifdef MAINROM_PLUS_RAM_32K
-	state_fio->StateBuffer(ram, sizeof(ram), 1);
-#endif
-	return true;
-}
-bool SLOT_CART::process_state(FILEIO* state_fio, bool loading)
-{
-	if(!state_fio->StateCheckUint32(SLOT_CART_STATE_VERSION)) {
-		return false;
-	}
-	if(!state_fio->StateCheckInt32(this_device_id)) {
-		return false;
-	}
-	state_fio->StateBool(inserted);
-#ifdef USE_MEGAROM
-	state_fio->StateInt32(type);
-	state_fio->StateBool(bank_scc);
-	/* Todo: MEGA ROM bank select */
-	/* is this OK? */
-	if(loading) {
-		if(inserted) {
-			SET_BANK(0x0000, 0xffff, wdmy, rom);
-			int i32;
-			i32 = state_fio->FgetInt32_LE() ; rbank[0] = ((i32 == -1) ? rdmy : rom + i32);
-			i32 = state_fio->FgetInt32_LE() ; rbank[1] = ((i32 == -1) ? rdmy : rom + i32);
-			i32 = state_fio->FgetInt32_LE() ; rbank[2] = ((i32 == -1) ? rdmy : rom + i32);
-			i32 = state_fio->FgetInt32_LE() ; rbank[3] = ((i32 == -1) ? rdmy : rom + i32);
-			i32 = state_fio->FgetInt32_LE() ; rbank[4] = ((i32 == -1) ? rdmy : rom + i32);
-			i32 = state_fio->FgetInt32_LE() ; rbank[5] = ((i32 == -1) ? rdmy : rom + i32);
-			i32 = state_fio->FgetInt32_LE() ; rbank[6] = ((i32 == -1) ? rdmy : rom + i32);
-			i32 = state_fio->FgetInt32_LE() ; rbank[7] = ((i32 == -1) ? rdmy : rom + i32);
-		} else {
-			SET_BANK(0x0000, 0xffff, wdmy, rdmy);
-		}
-	} else {
-		if(inserted) {
-			state_fio->FputInt32_LE(rbank[0]==rdmy ? (-1) : rbank[0] - rom);
-			state_fio->FputInt32_LE(rbank[1]==rdmy ? (-1) : rbank[1] - rom);
-			state_fio->FputInt32_LE(rbank[2]==rdmy ? (-1) : rbank[2] - rom);
-			state_fio->FputInt32_LE(rbank[3]==rdmy ? (-1) : rbank[3] - rom);
-			state_fio->FputInt32_LE(rbank[4]==rdmy ? (-1) : rbank[4] - rom);
-			state_fio->FputInt32_LE(rbank[5]==rdmy ? (-1) : rbank[5] - rom);
-			state_fio->FputInt32_LE(rbank[6]==rdmy ? (-1) : rbank[6] - rom);
-			state_fio->FputInt32_LE(rbank[7]==rdmy ? (-1) : rbank[7] - rom);
-		}
-	}
-#else
-	// post process
-	if(loading) {
-		if(inserted) {
-			SET_BANK(0x0000, 0xffff, wdmy, rom);
-		} else {
-			SET_BANK(0x0000, 0xffff, wdmy, rdmy);
-		}
-	}
-#endif
-	return true;
-}
-bool SLOT_MSXDOS2::process_state(FILEIO* state_fio, bool loading)
-{
-	if(!state_fio->StateCheckUint32(SLOT_MSXDOS2_STATE_VERSION)) {
-		return false;
-	}
-	if(!state_fio->StateCheckInt32(this_device_id)) {
-		return false;
-	}
-	state_fio->StateBuffer(mapper, sizeof(mapper), 1);
-	
-	// post process
-	if(loading) {
-		if(mapper[0] < 4) {
-				SET_BANK(0x0000, 0x3fff, wdmy, rdmy);
-				SET_BANK(0x4000, 0x7fff, wdmy, rom + mapper[0] * 0x4000);
-				SET_BANK(0x8000, 0xbfff, wdmy, rom + mapper[1] * 0x4000);
-				SET_BANK(0xc000, 0xffff, wdmy, rdmy);
-		} else {
-			SET_BANK(0x0000, 0xffff, wdmy, rdmy);
-		}
-	}
-	return true;
-}
-bool SLOT_LDC::process_state(FILEIO* state_fio, bool loading)
-{
-	if(!state_fio->StateCheckUint32(SLOT_LDC_STATE_VERSION)) {
-		return false;
-	}
-	if(!state_fio->StateCheckInt32(this_device_id)) {
-		return false;
-	}
-	state_fio->StateBool(clock);
-	state_fio->StateBool(exv);
-	state_fio->StateBool(ack);
-	state_fio->StateBool(super_impose);
-	state_fio->StateBool(req_intr);
-	state_fio->StateBool(pc4);
-	state_fio->StateBool(mute_l);
-	state_fio->StateBool(mute_r);
-	return true;
-}
-bool SLOT_MAPPERRAM::process_state(FILEIO* state_fio, bool loading)
-{
-	if(!state_fio->StateCheckUint32(SLOT_MAPPERRAM_STATE_VERSION)) {
-		return false;
-	}
-	if(!state_fio->StateCheckInt32(this_device_id)) {
-		return false;
-	}
-	state_fio->StateBuffer(ram, sizeof(ram), 1);
-	state_fio->StateBuffer(mapper, sizeof(mapper), 1);
-	
-	// post process
-	if(loading) {
-		SET_BANK(0x0000, 0x3fff, ram + mapper[0] * 0x4000, ram + mapper[0] * 0x4000);
-		SET_BANK(0x4000, 0x7fff, ram + mapper[1] * 0x4000, ram + mapper[1] * 0x4000);
-		SET_BANK(0x8000, 0xbfff, ram + mapper[2] * 0x4000, ram + mapper[2] * 0x4000);
-		SET_BANK(0xc000, 0xffff, ram + mapper[3] * 0x4000, ram + mapper[3] * 0x4000);
-	}
-	return true;
-}
-bool SLOT_RAM64K::process_state(FILEIO* state_fio, bool loading)
-{
-	if(!state_fio->StateCheckUint32(SLOT_RAM64K_STATE_VERSION)) {
-		return false;
-	}
-	if(!state_fio->StateCheckInt32(this_device_id)) {
-		return false;
-	}
-	state_fio->StateBuffer(ram, sizeof(ram), 1);
-	return true;
-}
 bool MEMORY_EX::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
@@ -1832,3 +1416,4 @@ bool MEMORY_EX::process_state(FILEIO* state_fio, bool loading)
 	}
 	return true;
 }
+
