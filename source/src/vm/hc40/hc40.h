@@ -56,8 +56,8 @@ class DATAREC;
 class PTF20;
 class Z80;
 
-class IO;
-class MEMORY;
+class HC40_IO;
+class HC40_MEMORY;
 
 class VM : public VM_TEMPLATE
 {
@@ -73,8 +73,8 @@ protected:
 	PTF20* tf20;
 	Z80* cpu;
 	
-	IO* io;
-	MEMORY* memory;
+	HC40_IO* io;
+	HC40_MEMORY* memory;
 	
 public:
 	// ----------------------------------------
@@ -137,9 +137,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

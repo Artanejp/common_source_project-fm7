@@ -195,7 +195,7 @@ class Z80;
 class EMM;
 class KANJI;
 class KEYBOARD;
-class MEMORY;
+class MZ700_MEMORY;
 class RAMFILE;
 
 #if defined(_MZ800) || defined(_MZ1500)
@@ -232,7 +232,7 @@ protected:
 	EMM* emm;
 	KANJI* kanji;
 	KEYBOARD* keyboard;
-	MEMORY* memory;
+	MZ700_MEMORY* memory;
 	RAMFILE* ramfile;
 	
 #if defined(_MZ800) || defined(_MZ1500)
@@ -325,9 +325,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

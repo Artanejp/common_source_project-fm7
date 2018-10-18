@@ -447,393 +447,132 @@ int I286::get_shutdown_flag()
 }
 #endif
 
-typedef struct i286_dtr_1_t{
-	UINT32 base;
-	UINT16 limit;
-};
-typedef struct i286_dtr_2_t{
-	UINT16 sel;
-	UINT32 base;
-	UINT16 limit;
-	UINT8 rights;
-};
+#define STATE_VERSION	5
 
-#if 0
-#include "../statesub.h"
-
-
-void I286::decl_state_cpustate()
+void I286::process_state_cpustate(FILEIO* state_fio, bool loading)
 {
-#if defined(HAS_I286)
-	struct i80286_state *state = (i80286_state *)opaque;
-	//state_fio->Fwrite(&(state->regs), sizeof(i80286basicregs), 1);
-	for(int i = 0; i < 8; i++) {
-		DECL_STATE_ENTRY_UINT16_MEMBER((state->regs.w[i]), i);
+#if defined(HAS_I86) || defined(HAS_I88) || defined(HAS_I186) || defined(HAS_V30)
+	struct i8086_state *cpustate = (struct i8086_state *)opaque;
+
+	state_fio->StateBuffer(&(cpustate->regs.b[0]), 16, 1);
+	state_fio->StateUint32(cpustate->pc);
+	state_fio->StateUint32(cpustate->prevpc);
+	for(int i = 0; i < 4; i++) {
+		state_fio->StateUint32(cpustate->base[i]);
 	}
-	DECL_STATE_ENTRY_UINT32((state->amask));
-	DECL_STATE_ENTRY_UINT32((state->pc));
-	DECL_STATE_ENTRY_UINT32((state->prevpc));
-	DECL_STATE_ENTRY_UINT16((state->flags));
-	DECL_STATE_ENTRY_UINT16((state->msw));
-	DECL_STATE_ENTRY_1D_ARRAY((state->base), 4);
-	DECL_STATE_ENTRY_1D_ARRAY((state->sregs), 4);
-	DECL_STATE_ENTRY_1D_ARRAY((state->limit), 4);
-	DECL_STATE_ENTRY_1D_ARRAY((state->rights), 4);
-	DECL_STATE_ENTRY_1D_ARRAY((state->valid), 4);
-	
-	DECL_STATE_ENTRY_UINT32((state->gdtr.base));
-	DECL_STATE_ENTRY_UINT16((state->gdtr.limit));
-
-	DECL_STATE_ENTRY_UINT32((state->idtr.base));
-	DECL_STATE_ENTRY_UINT16((state->idtr.limit));
-	
-	DECL_STATE_ENTRY_UINT16((state->ldtr.sel));
-	DECL_STATE_ENTRY_UINT32((state->ldtr.base));
-	DECL_STATE_ENTRY_UINT32((state->ldtr.limit));
-	DECL_STATE_ENTRY_UINT32((state->ldtr.rights));
-
-	DECL_STATE_ENTRY_UINT16((state->tr.sel));
-	DECL_STATE_ENTRY_UINT32((state->tr.base));
-	DECL_STATE_ENTRY_UINT32((state->tr.limit));
-	DECL_STATE_ENTRY_UINT32((state->tr.rights));
-
-	DECL_STATE_ENTRY_INT32((state->AuxVal));
-	DECL_STATE_ENTRY_INT32((state->OverVal));
-	DECL_STATE_ENTRY_INT32((state->SignVal));
-	DECL_STATE_ENTRY_INT32((state->ZeroVal));
-	DECL_STATE_ENTRY_INT32((state->CarryVal));
-	DECL_STATE_ENTRY_INT32((state->DirVal));
-	
-	DECL_STATE_ENTRY_UINT8((state->ParityVal));
-	DECL_STATE_ENTRY_UINT8((state->TF));
-	DECL_STATE_ENTRY_UINT8((state->IF));
-	DECL_STATE_ENTRY_UINT8((state->MF));
-	DECL_STATE_ENTRY_INT8((state->nmi_state));
-	DECL_STATE_ENTRY_INT8((state->irq_state));
-	DECL_STATE_ENTRY_INT8((state->test_state));
-	
-	DECL_STATE_ENTRY_UINT8((state->rep_in_progress));	
-	DECL_STATE_ENTRY_INT32((state->extra_cycles));
-	
-	DECL_STATE_ENTRY_INT32((state->halted));
-	DECL_STATE_ENTRY_INT32((state->busreq));
-	DECL_STATE_ENTRY_INT32((state->trap_level));
-	DECL_STATE_ENTRY_INT32((state->shutdown));
-	DECL_STATE_ENTRY_INT32((state->icount));
-
-	DECL_STATE_ENTRY_UINT8((state->seg_prefix));
-	DECL_STATE_ENTRY_UINT8((state->prefix_seg));
-	
-	DECL_STATE_ENTRY_UINT32((state->ea));
-	DECL_STATE_ENTRY_UINT16((state->eo));
-	DECL_STATE_ENTRY_UINT8((state->ea_seg));
-
-#  ifdef USE_DEBUGGER
-	DECL_STATE_ENTRY_UINT64((state->total_icount));
-#  endif
-#else // not I286
-
-	struct i8086_state *state = (i8086_state *)opaque;
-	for(int i = 0; i < 8; i++) {
-		DECL_STATE_ENTRY_UINT16_MEMBER((state->regs.w[i]), i);
+	for(int i = 0; i < 4; i++) {
+		state_fio->StateUint16(cpustate->sregs[i]);
 	}
+	state_fio->StateUint16(cpustate->flags);
+	state_fio->StateInt32(cpustate->AuxVal);
+	state_fio->StateInt32(cpustate->OverVal);
+	state_fio->StateInt32(cpustate->SignVal);
+	state_fio->StateInt32(cpustate->ZeroVal);
+	state_fio->StateInt32(cpustate->CarryVal);
+	state_fio->StateInt32(cpustate->DirVal);
+	state_fio->StateUint8(cpustate->ParityVal);
+	state_fio->StateUint8(cpustate->TF);
+	state_fio->StateUint8(cpustate->IF);
+	state_fio->StateUint8(cpustate->MF);
+	
+	state_fio->StateUint8(cpustate->int_vector);
+	state_fio->StateInt8(cpustate->nmi_state);
+	state_fio->StateInt8(cpustate->irq_state);
+	state_fio->StateInt8(cpustate->test_state);
+	state_fio->StateUint8(cpustate->rep_in_progress);
+	state_fio->StateInt32(cpustate->extra_cycles);
 
-	DECL_STATE_ENTRY_UINT32((state->pc));
-	DECL_STATE_ENTRY_UINT32((state->prevpc));
-	DECL_STATE_ENTRY_1D_ARRAY((state->base), 4);
-	DECL_STATE_ENTRY_1D_ARRAY((state->sregs), 4);
-	
-	DECL_STATE_ENTRY_UINT16((state->flags));
+	state_fio->StateInt32(cpustate->halted);
+	state_fio->StateInt32(cpustate->busreq);
 
-	DECL_STATE_ENTRY_INT32((state->AuxVal));
-	DECL_STATE_ENTRY_INT32((state->OverVal));
-	DECL_STATE_ENTRY_INT32((state->SignVal));
-	DECL_STATE_ENTRY_INT32((state->ZeroVal));
-	DECL_STATE_ENTRY_INT32((state->CarryVal));
-	DECL_STATE_ENTRY_INT32((state->DirVal));
-	
-	DECL_STATE_ENTRY_UINT8((state->ParityVal));
-	DECL_STATE_ENTRY_UINT8((state->TF));
-	DECL_STATE_ENTRY_UINT8((state->IF));
-	DECL_STATE_ENTRY_UINT8((state->MF));
-	
-	DECL_STATE_ENTRY_UINT8((state->int_vector));
+	state_fio->StateUint16(cpustate->ip);
+	state_fio->StateUint32(cpustate->sp);
 
-	DECL_STATE_ENTRY_INT8((state->nmi_state));
-	DECL_STATE_ENTRY_INT8((state->irq_state));
-	DECL_STATE_ENTRY_INT8((state->test_state));
-	
-	DECL_STATE_ENTRY_UINT8((state->rep_in_progress));	
-	DECL_STATE_ENTRY_INT32((state->extra_cycles));
-	
-	DECL_STATE_ENTRY_INT32((state->halted));
-	DECL_STATE_ENTRY_INT32((state->busreq));
+  #ifdef USE_DEBUGGER
+	state_fio->StateUint64(cpustate->total_icount);
+  #endif
+	state_fio->StateInt32(cpustate->icount);
 
-	DECL_STATE_ENTRY_UINT16((state->ip));
-	DECL_STATE_ENTRY_UINT32((state->sp));
-	
-	DECL_STATE_ENTRY_INT32((state->icount));
+	state_fio->StateUint8(cpustate->seg_prefix);
+	state_fio->StateUint8(cpustate->prefix_seg);
+	state_fio->StateUint32(cpustate->ea);
+	state_fio->StateUint16(cpustate->eo);
+	state_fio->StateUint8(cpustate->ea_seg);
 
-	DECL_STATE_ENTRY_UINT8((state->seg_prefix));
-	DECL_STATE_ENTRY_UINT8((state->prefix_seg));
+#elif defined(HAS_I286)
+
+	struct i80286_state *cpustate = (struct i80286_state *)opaque;
+
+	state_fio->StateBuffer(&(cpustate->regs.b[0]), 16, 1);
+	state_fio->StateUint32(cpustate->amask);
+	state_fio->StateUint32(cpustate->pc);
+	state_fio->StateUint32(cpustate->prevpc);
+	state_fio->StateUint16(cpustate->flags);
+	state_fio->StateUint16(cpustate->msw);
+	for(int i = 0; i < 4; i++) {
+		state_fio->StateUint32(cpustate->base[i]);
+	}
+	for(int i = 0; i < 4; i++) {
+		state_fio->StateUint16(cpustate->sregs[i]);
+	}
+	for(int i = 0; i < 4; i++) {
+		state_fio->StateUint16(cpustate->limit[i]);
+	}
+	state_fio->StateBuffer(cpustate->rights, 4, 1);
+	for(int i = 0; i < 4; i++) {
+		state_fio->StateBool(cpustate->valid[i]);
+	}
+	state_fio->StateUint32(cpustate->gdtr.base);
+	state_fio->StateUint16(cpustate->gdtr.limit);
+
+	state_fio->StateUint32(cpustate->idtr.base);
+	state_fio->StateUint16(cpustate->idtr.limit);
+
+	state_fio->StateUint16(cpustate->ldtr.sel);
+	state_fio->StateUint32(cpustate->ldtr.base);
+	state_fio->StateUint16(cpustate->ldtr.limit);
+	state_fio->StateUint8(cpustate->ldtr.rights);
 	
-	DECL_STATE_ENTRY_UINT32((state->ea));
-	DECL_STATE_ENTRY_UINT16((state->eo));
-	DECL_STATE_ENTRY_UINT8((state->ea_seg));
+	state_fio->StateUint16(cpustate->tr.sel);
+	state_fio->StateUint32(cpustate->tr.base);
+	state_fio->StateUint16(cpustate->tr.limit);
+	state_fio->StateUint8(cpustate->tr.rights);
 	
-#  ifdef USE_DEBUGGER
-	DECL_STATE_ENTRY_UINT64((state->total_icount));
-#  endif
+	state_fio->StateInt32(cpustate->AuxVal);
+	state_fio->StateInt32(cpustate->OverVal);
+	state_fio->StateInt32(cpustate->SignVal);
+	state_fio->StateInt32(cpustate->ZeroVal);
+	state_fio->StateInt32(cpustate->CarryVal);
+	state_fio->StateInt32(cpustate->DirVal);
+	state_fio->StateUint8(cpustate->ParityVal);
+	state_fio->StateUint8(cpustate->TF);
+	state_fio->StateUint8(cpustate->IF);
+	state_fio->StateUint8(cpustate->MF);
+	
+	state_fio->StateInt8(cpustate->nmi_state);
+	state_fio->StateInt8(cpustate->irq_state);
+	state_fio->StateInt8(cpustate->test_state);
+	state_fio->StateUint8(cpustate->rep_in_progress);
+	state_fio->StateInt32(cpustate->extra_cycles);
+
+	state_fio->StateInt32(cpustate->halted);
+	state_fio->StateInt32(cpustate->busreq);
+	state_fio->StateInt32(cpustate->trap_level);
+	state_fio->StateInt32(cpustate->shutdown);
+
+
+  #ifdef USE_DEBUGGER
+	state_fio->StateUint64(cpustate->total_icount);
+  #endif
+	state_fio->StateInt32(cpustate->icount);
+
+	state_fio->StateUint8(cpustate->seg_prefix);
+	state_fio->StateUint8(cpustate->prefix_seg);
+	state_fio->StateUint32(cpustate->ea);
+	state_fio->StateUint16(cpustate->eo);
+	state_fio->StateUint8(cpustate->ea_seg);
 #endif
 }
-#endif
-
-void I286::save_state_cpustate(FILEIO* state_fio)
-{
-#if defined(HAS_I286)
-	struct i80286_state *state = (i80286_state *)opaque;
-	state_fio->Fwrite(&(state->regs), sizeof(i80286basicregs), 1);
-	state_fio->Fwrite(&(state->amask), sizeof(UINT32), 1);
-	state_fio->Fwrite(&(state->pc), sizeof(UINT32), 1);
-	state_fio->Fwrite(&(state->prevpc), sizeof(UINT32), 1);
-	state_fio->Fwrite(&(state->flags), sizeof(UINT16), 1);
-	state_fio->Fwrite(&(state->msw), sizeof(UINT16), 1);
-	
-	state_fio->Fwrite(&(state->base[0]), sizeof(UINT32) * 4, 1);
-	state_fio->Fwrite(&(state->sregs[0]), sizeof(UINT16) * 4, 1);
-	
-	state_fio->Fwrite(&(state->limit[0]), sizeof(UINT16) * 4, 1);
-	state_fio->Fwrite(&(state->rights[0]), sizeof(UINT8) * 4, 1);
-	
-	state_fio->Fwrite(&(state->valid), sizeof(bool) * 4, 1);
-	
-	state_fio->Fwrite(&(state->gdtr), sizeof(i286_dtr_1_t), 1);
-	state_fio->Fwrite(&(state->idtr), sizeof(i286_dtr_1_t), 1);
-	state_fio->Fwrite(&(state->ldtr), sizeof(i286_dtr_2_t), 1);
-	state_fio->Fwrite(&(state->tr), sizeof(i286_dtr_2_t), 1);
-	
-	state_fio->Fwrite(&(state->pic), sizeof(DEVICE *), 1);
-	state_fio->Fwrite(&(state->program), sizeof(DEVICE *), 1);
-	state_fio->Fwrite(&(state->io), sizeof(DEVICE *), 1);
-#ifdef I86_PSEUDO_BIOS
-	state_fio->Fwrite(&(state->bios), sizeof(DEVICE *), 1);
-#endif
-#ifdef SINGLE_MODE_DMA
-	state_fio->Fwrite(&(state->dma), sizeof(DEVICE *), 1);
-#endif
-#ifdef USE_DEBUGGER
-	state_fio->Fwrite(&(state->emu), sizeof(EMU *), 1);
-	state_fio->Fwrite(&(state->debugger), sizeof(DEBUGGER *), 1);
-	state_fio->Fwrite(&(state->program_stored), sizeof(DEVICE *), 1);
-	state_fio->Fwrite(&(state->io_stored), sizeof(DEVICE *), 1);
-#endif
-	//INT32   AuxVal, OverVal, SignVal, ZeroVal, CarryVal, DirVal; /* 0 or non-0 valued flags */
-	state_fio->Fwrite(&(state->AuxVal), sizeof(INT32) * 6, 1);
-	//UINT8   ParityVal;
-	//UINT8   TF, IF;     /* 0 or 1 valued flags */
-	//UINT8   MF;         /* V30 mode flag */
-	state_fio->Fwrite(&(state->ParityVal), sizeof(UINT8) * 4, 1);
-	//INT8    nmi_state;
-	//INT8    irq_state;
-	//INT8    test_state;
-	state_fio->Fwrite(&(state->nmi_state), sizeof(INT8) * 3, 1);
-	//UINT8 rep_in_progress;
-	state_fio->Fwrite(&(state->rep_in_progress), sizeof(UINT8) * 1, 1);
-	//INT32   extra_cycles;       /* extra cycles for interrupts */
-	state_fio->Fwrite(&(state->extra_cycles), sizeof(INT32) * 1, 1);
-	//int halted;         /* Is the CPU halted ? */
-	//int busreq;
-	//int trap_level;
-	//int shutdown;
-	//int icount;
-	state_fio->Fwrite(&(state->halted), sizeof(int) * 5, 1);
-	state_fio->Fwrite(&(state->seg_prefix), sizeof(char) * 1, 1);
-	state_fio->Fwrite(&(state->prefix_seg), sizeof(UINT8) * 1, 1);
-	state_fio->Fwrite(&(state->ea), sizeof(unsigned), 1);
-	state_fio->Fwrite(&(state->eo), sizeof(UINT16), 1);
-	state_fio->Fwrite(&(state->ea_seg), sizeof(UINT8), 1);
-
-#else // not I286
-
-	struct i8086_state *state = (i8086_state *)opaque;
-	state_fio->Fwrite(&(state->regs), sizeof(i8086basicregs), 1);
-	state_fio->Fwrite(&(state->pc), sizeof(UINT32), 1);
-	state_fio->Fwrite(&(state->prevpc), sizeof(UINT32), 1);
-	state_fio->Fwrite(&(state->base[0]), sizeof(UINT32) * 4, 1);
-	state_fio->Fwrite(&(state->sregs[0]), sizeof(UINT16) * 4, 1);
-	
-	state_fio->Fwrite(&(state->flags), sizeof(UINT16), 1);
-
-	//INT32   AuxVal, OverVal, SignVal, ZeroVal, CarryVal, DirVal; /* 0 or non-0 valued flags */
-	state_fio->Fwrite(&(state->AuxVal), sizeof(INT32) * 6, 1);
-	//UINT8   ParityVal;
-	//UINT8   TF, IF;     /* 0 or 1 valued flags */
-	//UINT8   MF;         /* V30 mode flag */
-	state_fio->Fwrite(&(state->ParityVal), sizeof(UINT8) * 4, 1);
-	state_fio->Fwrite(&(state->int_vector), sizeof(UINT8), 1);
-	//INT8    nmi_state;
-	//INT8    irq_state;
-	//INT8    test_state;
-	state_fio->Fwrite(&(state->nmi_state), sizeof(INT8) * 3, 1);
-	//UINT8 rep_in_progress;
-	state_fio->Fwrite(&(state->rep_in_progress), sizeof(UINT8) * 1, 1);
-	//INT32   extra_cycles;       /* extra cycles for interrupts */
-	state_fio->Fwrite(&(state->extra_cycles), sizeof(INT32) * 1, 1);
-	//int halted;         /* Is the CPU halted ? */
-	//int busreq;
-	state_fio->Fwrite(&(state->halted), sizeof(int) * 2, 1);
-
-	state_fio->Fwrite(&(state->ip), sizeof(UINT16) * 1, 1);
-	state_fio->Fwrite(&(state->sp), sizeof(UINT32) * 1, 1);
-	
-	state_fio->Fwrite(&(state->pic), sizeof(DEVICE *), 1);
-	state_fio->Fwrite(&(state->program), sizeof(DEVICE *), 1);
-	state_fio->Fwrite(&(state->io), sizeof(DEVICE *), 1);
-#ifdef I86_PSEUDO_BIOS
-	state_fio->Fwrite(&(state->bios), sizeof(DEVICE *), 1);
-#endif
-#ifdef SINGLE_MODE_DMA
-	state_fio->Fwrite(&(state->dma), sizeof(DEVICE *), 1);
-#endif
-#ifdef USE_DEBUGGER
-	state_fio->Fwrite(&(state->emu), sizeof(EMU *), 1);
-	state_fio->Fwrite(&(state->debugger), sizeof(DEBUGGER *), 1);
-	state_fio->Fwrite(&(state->program_stored), sizeof(DEVICE *), 1);
-	state_fio->Fwrite(&(state->io_stored), sizeof(DEVICE *), 1);
-#endif
-	state_fio->Fwrite(&(state->icount), sizeof(int) * 1, 1);
-	state_fio->Fwrite(&(state->seg_prefix), sizeof(char) * 1, 1);
-	state_fio->Fwrite(&(state->prefix_seg), sizeof(UINT8) * 1, 1);
-	state_fio->Fwrite(&(state->ea), sizeof(unsigned), 1);
-	state_fio->Fwrite(&(state->eo), sizeof(UINT16), 1);
-	state_fio->Fwrite(&(state->ea_seg), sizeof(UINT8), 1);
-#endif
-}
-
-void I286::load_state_cpustate(FILEIO* state_fio)
-{
-#if defined(HAS_I286)
-	struct i80286_state *state = (i80286_state *)opaque;
-	state_fio->Fread(&(state->regs), sizeof(i80286basicregs), 1);
-	state_fio->Fread(&(state->amask), sizeof(UINT32), 1);
-	state_fio->Fread(&(state->pc), sizeof(UINT32), 1);
-	state_fio->Fread(&(state->prevpc), sizeof(UINT32), 1);
-	state_fio->Fread(&(state->flags), sizeof(UINT16), 1);
-	state_fio->Fread(&(state->msw), sizeof(UINT16), 1);
-	
-	state_fio->Fread(&(state->base[0]), sizeof(UINT32) * 4, 1);
-	state_fio->Fread(&(state->sregs[0]), sizeof(UINT16) * 4, 1);
-	
-	state_fio->Fread(&(state->limit[0]), sizeof(UINT16) * 4, 1);
-	state_fio->Fread(&(state->rights[0]), sizeof(UINT8) * 4, 1);
-	
-	state_fio->Fread(&(state->valid), sizeof(bool) * 4, 1);
-	
-	state_fio->Fread(&(state->gdtr), sizeof(i286_dtr_1_t), 1);
-	state_fio->Fread(&(state->idtr), sizeof(i286_dtr_1_t), 1);
-	state_fio->Fread(&(state->ldtr), sizeof(i286_dtr_2_t), 1);
-	state_fio->Fread(&(state->tr), sizeof(i286_dtr_2_t), 1);
-	
-	state_fio->Fread(&(state->pic), sizeof(DEVICE *), 1);
-	state_fio->Fread(&(state->program), sizeof(DEVICE *), 1);
-	state_fio->Fread(&(state->io), sizeof(DEVICE *), 1);
-#ifdef I86_PSEUDO_BIOS
-	state_fio->Fread(&(state->bios), sizeof(DEVICE *), 1);
-#endif
-#ifdef SINGLE_MODE_DMA
-	state_fio->Fread(&(state->dma), sizeof(DEVICE *), 1);
-#endif
-#ifdef USE_DEBUGGER
-	state_fio->Fread(&(state->emu), sizeof(EMU *), 1);
-	state_fio->Fread(&(state->debugger), sizeof(DEBUGGER *), 1);
-	state_fio->Fread(&(state->program_stored), sizeof(DEVICE *), 1);
-	state_fio->Fread(&(state->io_stored), sizeof(DEVICE *), 1);
-#endif
-	//INT32   AuxVal, OverVal, SignVal, ZeroVal, CarryVal, DirVal; /* 0 or non-0 valued flags */
-	state_fio->Fread(&(state->AuxVal), sizeof(INT32) * 6, 1);
-	//UINT8   ParityVal;
-	//UINT8   TF, IF;     /* 0 or 1 valued flags */
-	//UINT8   MF;         /* V30 mode flag */
-	state_fio->Fread(&(state->ParityVal), sizeof(UINT8) * 4, 1);
-	//INT8    nmi_state;
-	//INT8    irq_state;
-	//INT8    test_state;
-	state_fio->Fread(&(state->nmi_state), sizeof(INT8) * 3, 1);
-	//UINT8 rep_in_progress;
-	state_fio->Fread(&(state->rep_in_progress), sizeof(UINT8) * 1, 1);
-	//INT32   extra_cycles;       /* extra cycles for interrupts */
-	state_fio->Fread(&(state->extra_cycles), sizeof(INT32) * 1, 1);
-	//int halted;         /* Is the CPU halted ? */
-	//int busreq;
-	//int trap_level;
-	//int shutdown;
-	//int icount;
-	state_fio->Fread(&(state->halted), sizeof(int) * 5, 1);
-	state_fio->Fread(&(state->seg_prefix), sizeof(char) * 1, 1);
-	state_fio->Fread(&(state->prefix_seg), sizeof(UINT8) * 1, 1);
-	state_fio->Fread(&(state->ea), sizeof(unsigned), 1);
-	state_fio->Fread(&(state->eo), sizeof(UINT16), 1);
-	state_fio->Fread(&(state->ea_seg), sizeof(UINT8), 1);
-
-#else // not I286
-
-	struct i8086_state *state = (i8086_state *)opaque;
-	state_fio->Fread(&(state->regs), sizeof(i8086basicregs), 1);
-	state_fio->Fread(&(state->pc), sizeof(UINT32), 1);
-	state_fio->Fread(&(state->prevpc), sizeof(UINT32), 1);
-	state_fio->Fread(&(state->base[0]), sizeof(UINT32) * 4, 1);
-	state_fio->Fread(&(state->sregs[0]), sizeof(UINT16) * 4, 1);
-	
-	state_fio->Fread(&(state->flags), sizeof(UINT16), 1);
-
-	//INT32   AuxVal, OverVal, SignVal, ZeroVal, CarryVal, DirVal; /* 0 or non-0 valued flags */
-	state_fio->Fread(&(state->AuxVal), sizeof(INT32) * 6, 1);
-	//UINT8   ParityVal;
-	//UINT8   TF, IF;     /* 0 or 1 valued flags */
-	//UINT8   MF;         /* V30 mode flag */
-	state_fio->Fread(&(state->ParityVal), sizeof(UINT8) * 4, 1);
-	state_fio->Fread(&(state->int_vector), sizeof(UINT8), 1);
-	//INT8    nmi_state;
-	//INT8    irq_state;
-	//INT8    test_state;
-	state_fio->Fread(&(state->nmi_state), sizeof(INT8) * 3, 1);
-	//UINT8 rep_in_progress;
-	state_fio->Fread(&(state->rep_in_progress), sizeof(UINT8) * 1, 1);
-	//INT32   extra_cycles;       /* extra cycles for interrupts */
-	state_fio->Fread(&(state->extra_cycles), sizeof(INT32) * 1, 1);
-	//int halted;         /* Is the CPU halted ? */
-	//int busreq;
-	state_fio->Fread(&(state->halted), sizeof(int) * 2, 1);
-
-	state_fio->Fread(&(state->ip), sizeof(UINT16) * 1, 1);
-	state_fio->Fread(&(state->sp), sizeof(UINT32) * 1, 1);
-	
-	state_fio->Fread(&(state->pic), sizeof(DEVICE *), 1);
-	state_fio->Fread(&(state->program), sizeof(DEVICE *), 1);
-	state_fio->Fread(&(state->io), sizeof(DEVICE *), 1);
-#ifdef I86_PSEUDO_BIOS
-	state_fio->Fread(&(state->bios), sizeof(DEVICE *), 1);
-#endif
-#ifdef SINGLE_MODE_DMA
-	state_fio->Fread(&(state->dma), sizeof(DEVICE *), 1);
-#endif
-#ifdef USE_DEBUGGER
-	state_fio->Fread(&(state->emu), sizeof(EMU *), 1);
-	state_fio->Fread(&(state->debugger), sizeof(DEBUGGER *), 1);
-	state_fio->Fread(&(state->program_stored), sizeof(DEVICE *), 1);
-	state_fio->Fread(&(state->io_stored), sizeof(DEVICE *), 1);
-#endif
-	state_fio->Fread(&(state->icount), sizeof(int) * 1, 1);
-	state_fio->Fread(&(state->seg_prefix), sizeof(char) * 1, 1);
-	state_fio->Fread(&(state->prefix_seg), sizeof(UINT8) * 1, 1);
-	state_fio->Fread(&(state->ea), sizeof(unsigned), 1);
-	state_fio->Fread(&(state->eo), sizeof(UINT16), 1);
-	state_fio->Fread(&(state->ea_seg), sizeof(UINT8), 1);
-#endif
-}
-
-
-#define STATE_VERSION	4
 
 bool I286::process_state(FILEIO* state_fio, bool loading)
 {
@@ -843,7 +582,8 @@ bool I286::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateBuffer(opaque, sizeof(cpu_state), 1);
+	//state_fio->StateBuffer(opaque, sizeof(cpu_state), 1);
+	process_state_cpustate(state_fio, loading);
  	
  	// post process
 	if(loading) {

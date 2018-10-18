@@ -70,65 +70,6 @@ void CMT::write_signal(int id, uint32_t data, uint32_t mask)
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void CMT::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-	
-	DECL_STATE_ENTRY_BOOL(in);
-	DECL_STATE_ENTRY_BOOL(out);
-	DECL_STATE_ENTRY_BOOL(remote);
-	DECL_STATE_ENTRY_BOOL(eot);
-	DECL_STATE_ENTRY_UINT8(pout);
-	DECL_STATE_ENTRY_BOOL(strobe);
-	DECL_STATE_ENTRY_BOOL(busy);
-	
-	leave_decl_state();
-}
-
-void CMT::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->FputBool(in);
-//	state_fio->FputBool(out);
-//	state_fio->FputBool(remote);
-//	state_fio->FputBool(eot);
-//	state_fio->FputUint8(pout);
-//	state_fio->FputBool(strobe);
-//	state_fio->FputBool(busy);
-}
-
-bool CMT::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	in = state_fio->FgetBool();
-//	out = state_fio->FgetBool();
-//	remote = state_fio->FgetBool();
-//	eot = state_fio->FgetBool();
-//	pout = state_fio->FgetUint8();
-//	strobe = state_fio->FgetBool();
-//	busy = state_fio->FgetBool();
-	return true;
-}
-
 bool CMT::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {

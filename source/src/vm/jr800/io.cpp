@@ -8,10 +8,10 @@
 	[ memory mapped i/o ]
 */
 
-#include "io.h"
+#include "./io.h"
 #include "../hd44102.h"
 
-void IO::write_memory_mapped_io8(uint32_t addr, uint32_t data)
+void JR800_IO::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
 	int chip = 0;
 	
@@ -33,7 +33,7 @@ void IO::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t IO::read_memory_mapped_io8(uint32_t addr)
+uint32_t JR800_IO::read_memory_mapped_io8(uint32_t addr)
 {
 	const uint8_t* key_stat = emu->get_key_buffer();
 	uint8_t data = 0;
@@ -164,43 +164,7 @@ uint32_t IO::read_memory_mapped_io8(uint32_t addr)
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void IO::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-	
-	leave_decl_state();
-}
-
-void IO::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-}
-
-bool IO::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-	return true;
-}
-
-bool IO::process_state(FILEIO* state_fio, bool loading)
+bool JR800_IO::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;

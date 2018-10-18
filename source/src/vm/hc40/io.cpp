@@ -7,7 +7,7 @@
 	[ i/o ]
 */
 
-#include "io.h"
+#include "./io.h"
 #include "../beep.h"
 #include "../datarec.h"
 #include "../ptf20.h"
@@ -58,7 +58,7 @@ static const int key_tbl[256] = {
 DLL_PREFIX_I struct cur_time_s cur_time;
 #endif
 
-void IO::initialize()
+void HC40_IO::initialize()
 {
 	// init external ram disk
 	memset(ext, 0, 0x20000);
@@ -100,7 +100,7 @@ void IO::initialize()
 	register_event_by_clock(this, EVENT_1SEC, CPU_CLOCKS, true, &register_id_1sec);
 }
 
-void IO::release()
+void HC40_IO::release()
 {
 	// save external ram disk
 	FILEIO* fio = new FILEIO();
@@ -120,7 +120,7 @@ void IO::release()
 	delete art_buf;
 }
 
-void IO::reset()
+void HC40_IO::reset()
 {
 	// reset gapnit
 	bcr = slbcr = isr = ier = bankr = ioctlr = 0;
@@ -136,7 +136,7 @@ void IO::reset()
 	register_id_art = -1;
 }
 
-void IO::sysreset()
+void HC40_IO::sysreset()
 {
 	// reset 7508
 	onesec_intr = alarm_intr = false;
@@ -144,7 +144,7 @@ void IO::sysreset()
 	res_7508 = true;
 }
 
-void IO::write_signal(int id, uint32_t data, uint32_t mask)
+void HC40_IO::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_IO_DREC) {
 		// signal from data recorder
@@ -166,13 +166,13 @@ void IO::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
-void IO::event_frame()
+void HC40_IO::event_frame()
 {
 	d_beep->write_signal(SIG_BEEP_ON, beep ? 1 : 0, 1);
 	beep = false;
 }
 
-void IO::event_callback(int event_id, int err)
+void HC40_IO::event_callback(int event_id, int err)
 {
 	if(event_id == EVENT_FRC) {
 		// FRC overflow event
@@ -215,7 +215,7 @@ void IO::event_callback(int event_id, int err)
 	}
 }
 
-void IO::write_io8(uint32_t addr, uint32_t data)
+void HC40_IO::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0x00:
@@ -322,7 +322,7 @@ void IO::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t IO::read_io8(uint32_t addr)
+uint32_t HC40_IO::read_io8(uint32_t addr)
 {
 	uint32_t val = 0xff;
 	
@@ -377,7 +377,7 @@ uint32_t IO::read_io8(uint32_t addr)
 	return 0xff;
 }
 
-uint32_t IO::get_intr_ack()
+uint32_t HC40_IO::get_intr_ack()
 {
 	if(isr & BIT_7508) {
 		isr &= ~BIT_7508;
@@ -395,7 +395,7 @@ uint32_t IO::get_intr_ack()
 	return 0xff;
 }
 
-void IO::update_intr()
+void HC40_IO::update_intr()
 {
 	// set int signal
 	bool next = ((isr & ier & 0x1f) != 0);
@@ -406,7 +406,7 @@ void IO::update_intr()
 // 7508
 // ----------------------------------------------------------------------------
 
-void IO::send_to_7508(uint8_t val)
+void HC40_IO::send_to_7508(uint8_t val)
 {
 	int res;
 	
@@ -644,12 +644,12 @@ void IO::send_to_7508(uint8_t val)
 	}
 }
 
-uint8_t IO::rec_from_7508()
+uint8_t HC40_IO::rec_from_7508()
 {
 	return rsp_buf->read();
 }
 
-void IO::key_down(int code)
+void HC40_IO::key_down(int code)
 {
 	if(code == 0x14) {
 		// toggle caps lock
@@ -661,7 +661,7 @@ void IO::key_down(int code)
 	}
 }
 
-void IO::key_up(int code)
+void HC40_IO::key_up(int code)
 {
 	if(code == 0x10) {
 		update_key(0xa3);	// break shift
@@ -670,7 +670,7 @@ void IO::key_up(int code)
 	}
 }
 
-void IO::update_key(int code)
+void HC40_IO::update_key(int code)
 {
 	if(code != 0xff) {
 		// add to buffer
@@ -694,7 +694,7 @@ void IO::update_key(int code)
 // video
 // ----------------------------------------------------------------------------
 
-void IO::draw_screen()
+void HC40_IO::draw_screen()
 {
 	if(yoff & 0x80) {
 		uint8_t* vram = ram + ((vadr & 0xf8) << 8);
@@ -726,178 +726,7 @@ void IO::draw_screen()
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void IO::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_UINT32(cur_clock);
-	DECL_STATE_ENTRY_UINT8(bcr);
-	DECL_STATE_ENTRY_UINT8(slbcr);
-	DECL_STATE_ENTRY_UINT8(isr);
-	DECL_STATE_ENTRY_UINT8(ier);
-	DECL_STATE_ENTRY_UINT8(bankr);
-	DECL_STATE_ENTRY_UINT8(ioctlr);
-	DECL_STATE_ENTRY_UINT32(icrc);
-	DECL_STATE_ENTRY_UINT32(icrb);
-	DECL_STATE_ENTRY_BOOL(ear);
-	DECL_STATE_ENTRY_UINT8(vadr);
-	DECL_STATE_ENTRY_UINT8(yoff);
-	DECL_STATE_ENTRY_FIFO(cmd_buf);
-	DECL_STATE_ENTRY_FIFO(rsp_buf);
-	DECL_STATE_ENTRY_CUR_TIME_T(cur_time);
-	
-	DECL_STATE_ENTRY_INT32(register_id_1sec);
-	DECL_STATE_ENTRY_BOOL(onesec_intr);
-	DECL_STATE_ENTRY_BOOL(onesec_intr_enb);
-	DECL_STATE_ENTRY_BOOL(alarm_intr);
-	DECL_STATE_ENTRY_BOOL(alarm_intr_enb);
-	DECL_STATE_ENTRY_1D_ARRAY(alarm, sizeof(alarm));
-	DECL_STATE_ENTRY_FIFO(key_buf);
-	DECL_STATE_ENTRY_BOOL(kb_intr_enb);
-	DECL_STATE_ENTRY_BOOL(kb_rep_enb);
-	DECL_STATE_ENTRY_BOOL(kb_caps);
-	DECL_STATE_ENTRY_UINT8(kb_rep_spd1);
-	DECL_STATE_ENTRY_UINT8(kb_rep_spd2);
-	DECL_STATE_ENTRY_FIFO(art_buf);
-	DECL_STATE_ENTRY_UINT8(artsr);
-	DECL_STATE_ENTRY_UINT8(artdir);
-	DECL_STATE_ENTRY_BOOL(txen);
-	DECL_STATE_ENTRY_BOOL(rxen);
-	DECL_STATE_ENTRY_BOOL(dsr);
-	DECL_STATE_ENTRY_INT32(register_id_art);
-	DECL_STATE_ENTRY_BOOL(beep);
-	DECL_STATE_ENTRY_BOOL(res_z80);
-	DECL_STATE_ENTRY_BOOL(res_7508);
-	DECL_STATE_ENTRY_1D_ARRAY(ext, sizeof(ext));
-	DECL_STATE_ENTRY_UINT32(extar);
-	DECL_STATE_ENTRY_UINT8(extcr);
-	
-	leave_decl_state();
-}
-
-
-void IO::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->FputUint32(cur_clock);
-//	state_fio->FputUint8(bcr);
-//	state_fio->FputUint8(slbcr);
-//	state_fio->FputUint8(isr);
-//	state_fio->FputUint8(ier);
-//	state_fio->FputUint8(bankr);
-//	state_fio->FputUint8(ioctlr);
-//	state_fio->FputUint32(icrc);
-//	state_fio->FputUint32(icrb);
-//	state_fio->FputBool(ear);
-//	state_fio->FputUint8(vadr);
-//	state_fio->FputUint8(yoff);
-//	cmd_buf->save_state((void *)state_fio);
-//	rsp_buf->save_state((void *)state_fio);
-//	cur_time.save_state((void *)state_fio);
-//	state_fio->FputInt32(register_id_1sec);
-//	state_fio->FputBool(onesec_intr);
-//	state_fio->FputBool(onesec_intr_enb);
-//	state_fio->FputBool(alarm_intr);
-//	state_fio->FputBool(alarm_intr_enb);
-//	state_fio->Fwrite(alarm, sizeof(alarm), 1);
-//	key_buf->save_state((void *)state_fio);
-//	state_fio->FputBool(kb_intr_enb);
-//	state_fio->FputBool(kb_rep_enb);
-//	state_fio->FputBool(kb_caps);
-//	state_fio->FputUint8(kb_rep_spd1);
-//	state_fio->FputUint8(kb_rep_spd2);
-//	art_buf->save_state((void *)state_fio);
-//	state_fio->FputUint8(artsr);
-//	state_fio->FputUint8(artdir);
-//	state_fio->FputBool(txen);
-//	state_fio->FputBool(rxen);
-//	state_fio->FputBool(dsr);
-//	state_fio->FputInt32(register_id_art);
-//	state_fio->FputBool(beep);
-//	state_fio->FputBool(res_z80);
-//	state_fio->FputBool(res_7508);
-//	state_fio->Fwrite(ext, sizeof(ext), 1);
-//	state_fio->FputUint32(extar);
-//	state_fio->FputUint8(extcr);
-}
-
-bool IO::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	cur_clock = state_fio->FgetUint32();
-//	bcr = state_fio->FgetUint8();
-//	slbcr = state_fio->FgetUint8();
-//	isr = state_fio->FgetUint8();
-//	ier = state_fio->FgetUint8();
-//	bankr = state_fio->FgetUint8();
-//	ioctlr = state_fio->FgetUint8();
-//	icrc = state_fio->FgetUint32();
-//	icrb = state_fio->FgetUint32();
-//	ear = state_fio->FgetBool();
-//	vadr = state_fio->FgetUint8();
-//	yoff = state_fio->FgetUint8();
-//	if(!cmd_buf->load_state((void *)state_fio)) {
-//		return false;
-//	}
-//	if(!rsp_buf->load_state((void *)state_fio)) {
-//		return false;
-//	}
-//	if(!cur_time.load_state((void *)state_fio)) {
-//		return false;
-//	}
-	
-//	register_id_1sec = state_fio->FgetInt32();
-//	onesec_intr = state_fio->FgetBool();
-//	onesec_intr_enb = state_fio->FgetBool();
-//	alarm_intr = state_fio->FgetBool();
-//	alarm_intr_enb = state_fio->FgetBool();
-//	state_fio->Fread(alarm, sizeof(alarm), 1);
-//	if(!key_buf->load_state((void *)state_fio)) {
-//		return false;
-//	}
-//	kb_intr_enb = state_fio->FgetBool();
-//	kb_rep_enb = state_fio->FgetBool();
-//	kb_caps = state_fio->FgetBool();
-//	kb_rep_spd1 = state_fio->FgetUint8();
-//	kb_rep_spd2 = state_fio->FgetUint8();
-//	if(!art_buf->load_state((void *)state_fio)) {
-//		return false;
-//	}
-//	artsr = state_fio->FgetUint8();
-//	artdir = state_fio->FgetUint8();
-//	txen = state_fio->FgetBool();
-//	rxen = state_fio->FgetBool();
-//	dsr = state_fio->FgetBool();
-//	register_id_art = state_fio->FgetInt32();
-//	beep = state_fio->FgetBool();
-//	res_z80 = state_fio->FgetBool();
-//	res_7508 = state_fio->FgetBool();
-//	state_fio->Fread(ext, sizeof(ext), 1);
-//	extar = state_fio->FgetUint32();
-//	extcr = state_fio->FgetUint8();
-	return true;
-}
-
-bool IO::process_state(FILEIO* state_fio, bool loading)
+bool HC40_IO::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;

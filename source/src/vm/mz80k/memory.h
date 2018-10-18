@@ -12,8 +12,8 @@
 	[ memory ]
 */
 
-#ifndef _MEMORY_H_
-#define _MEMORY_H_
+#ifndef _MZ80A_MEMORY_H_
+#define _MZ80A_MEMORY_H_
 
 #include "../vm.h"
 #include "../../emu.h"
@@ -25,7 +25,7 @@
 #define SIG_MEMORY_FDC_DRQ	2
 #endif
 
-class MEMORY : public DEVICE
+class MZ80A_MEMORY : public DEVICE
 {
 private:
 	DEVICE *d_ctc, *d_pio;
@@ -81,11 +81,11 @@ private:
 	uint8_t pcg_ctrl;
 	
 public:
-	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MZ80A_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~MEMORY() {}
+	~MZ80A_MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -98,9 +98,7 @@ public:
 #if defined(_MZ80K)
 	void update_config();
 #endif
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_ctc(DEVICE* device)

@@ -109,7 +109,7 @@ class PCM1BIT;
 class Z80;
 
 class KEYBOARD;
-class MEMORY;
+class MZ80A_MEMORY;
 class PRINTER;
 
 #if defined(SUPPORT_MZ80AIF)
@@ -142,7 +142,7 @@ protected:
 	Z80* cpu;
 	
 	KEYBOARD* keyboard;
-	MEMORY* memory;
+	MZ80A_MEMORY* memory;
 	PRINTER* printer;
 	
 #if defined(SUPPORT_MZ80AIF)
@@ -219,9 +219,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

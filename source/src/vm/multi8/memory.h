@@ -16,7 +16,7 @@
 
 #define SIG_MEMORY_I8255_C	0
 
-class MEMORY : public DEVICE
+class MULTI8_MEMORY : public DEVICE
 {
 private:
 	DEVICE* d_pio;
@@ -36,11 +36,11 @@ private:
 	uint8_t map1, map2;
 	
 public:
-	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MULTI8_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~MEMORY() {}
+	~MULTI8_MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -49,9 +49,7 @@ public:
 	uint32_t read_data8(uint32_t addr);
 	void write_io8(uint32_t addr, uint32_t data);
 	void write_signal(int id, uint32_t data, uint32_t mask);
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_pio(DEVICE* device)

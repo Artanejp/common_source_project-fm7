@@ -57,7 +57,7 @@ class HD6301;
 class MEMORY;
 class PCM1BIT;
 
-class IO;
+class JR800_IO;
 
 class VM : public VM_TEMPLATE
 {
@@ -75,7 +75,7 @@ protected:
 	MEMORY* memory;
 	PCM1BIT* pcm;
 	
-	IO* io;
+	JR800_IO* io;
 	
 	uint8_t ram[0x6000];
 	uint8_t rom[0x8000];
@@ -130,9 +130,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

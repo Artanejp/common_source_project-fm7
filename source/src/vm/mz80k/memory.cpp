@@ -12,7 +12,7 @@
 	[ memory ]
 */
 
-#include "memory.h"
+#include "./memory.h"
 #include "../i8253.h"
 #include "../i8255.h"
 
@@ -36,7 +36,7 @@
 	} \
 }
 
-void MEMORY::initialize()
+void MZ80A_MEMORY::initialize()
 {
 	// init memory
 	memset(ram, 0, sizeof(ram));
@@ -131,7 +131,7 @@ void MEMORY::initialize()
 	register_event_by_clock(this, EVENT_BLINK, CPU_CLOCKS / 3, true, NULL);		// 1.5hz * 2
 }
 
-void MEMORY::reset()
+void MZ80A_MEMORY::reset()
 {
 #if defined(_MZ1200) || defined(_MZ80A)
 	// reset memory swap
@@ -156,7 +156,7 @@ void MEMORY::reset()
 	d_pio->write_signal(SIG_I8255_PORT_C, 0xff, 0x10);
 }
 
-void MEMORY::event_vline(int v, int clock)
+void MZ80A_MEMORY::event_vline(int v, int clock)
 {
 	// draw one line
 	if(0 <= v && v < 200) {
@@ -212,7 +212,7 @@ void MEMORY::event_vline(int v, int clock)
 #endif
 }
 
-void MEMORY::event_callback(int event_id, int err)
+void MZ80A_MEMORY::event_callback(int event_id, int err)
 {
 	if(event_id == EVENT_TEMPO) {
 		// 32khz
@@ -227,7 +227,7 @@ void MEMORY::event_callback(int event_id, int err)
 	}
 }
 
-void MEMORY::write_data8(uint32_t addr, uint32_t data)
+void MZ80A_MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	if(0xe000 <= addr && addr <= 0xe7ff) {
@@ -266,7 +266,7 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 	wbank[addr >> 10][addr & 0x3ff] = data;
 }
 
-uint32_t MEMORY::read_data8(uint32_t addr)
+uint32_t MZ80A_MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	if(0xe000 <= addr && addr <= 0xe7ff) {
@@ -320,7 +320,7 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 }
 
 #if defined(_MZ1200) || defined(_MZ80A)
-void MEMORY::update_memory_swap()
+void MZ80A_MEMORY::update_memory_swap()
 {
 	if(memory_swap) {
 		SET_BANK(0x0000, 0x0fff, ram + 0xc000, ram + 0xc000);
@@ -333,7 +333,7 @@ void MEMORY::update_memory_swap()
 #endif
 
 #if defined(SUPPORT_MZ80AIF)
-void MEMORY::update_fdif_rom_bank()
+void MZ80A_MEMORY::update_fdif_rom_bank()
 {
 	// FD IF ROM BANK switching
 	if(fdc_drq) {
@@ -348,7 +348,7 @@ void MEMORY::update_fdif_rom_bank()
 }
 #endif
 
-void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
+void MZ80A_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	bool signal = ((data & mask) != 0);
 	
@@ -376,7 +376,7 @@ void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 }
 
 #if defined(_MZ80K)
-void MEMORY::update_config()
+void MZ80A_MEMORY::update_config()
 {
 	if(config.monitor_type) {
 		palette_pc[1] = RGB_COLOR(0, 255, 0);
@@ -386,7 +386,7 @@ void MEMORY::update_config()
 }
 #endif
 
-void MEMORY::draw_screen()
+void MZ80A_MEMORY::draw_screen()
 {
 	// copy to real screen
 	emu->set_vm_screen_lines(200);
@@ -410,132 +410,7 @@ void MEMORY::draw_screen()
 
 #define STATE_VERSION	3
 
-#include "../../statesub.h"
-
-void MEMORY::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-	
-	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
-	DECL_STATE_ENTRY_1D_ARRAY(vram, sizeof(vram));
-	DECL_STATE_ENTRY_BOOL(tempo);
-	DECL_STATE_ENTRY_BOOL(blink);
-#if defined(_MZ1200) || defined(_MZ80A)
-	DECL_STATE_ENTRY_BOOL(hblank);
-	DECL_STATE_ENTRY_BOOL(memory_swap);
-#endif
-#if defined(SUPPORT_MZ80AIF)
-	DECL_STATE_ENTRY_BOOL(fdc_irq);
-	DECL_STATE_ENTRY_BOOL(fdc_drq);
-#endif
-	DECL_STATE_ENTRY_BOOL(vgate);
-#if defined(_MZ1200) || defined(_MZ80A)
-	DECL_STATE_ENTRY_BOOL(reverse);
-#endif
-#if defined(_MZ80A)
-	DECL_STATE_ENTRY_UINT32(e200);
-#endif
-	DECL_STATE_ENTRY_1D_ARRAY(&(pcg[0x400]), 0x400);
-#if defined(_MZ1200)
-	DECL_STATE_ENTRY_1D_ARRAY(&(pcg[0xc00]), 0x400);
-#endif
-	DECL_STATE_ENTRY_UINT8(pcg_data);
-	DECL_STATE_ENTRY_UINT8(pcg_addr);
-	DECL_STATE_ENTRY_UINT8(pcg_ctrl);
-	
-	leave_decl_state();
-}
-
-void MEMORY::save_state(FILEIO* state_fio)
-{
-
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(ram, sizeof(ram), 1);
-//	state_fio->Fwrite(vram, sizeof(vram), 1);
-//	state_fio->FputBool(tempo);
-//	state_fio->FputBool(blink);
-//#if defined(_MZ1200) || defined(_MZ80A)
-//	state_fio->FputBool(hblank);
-//	state_fio->FputBool(memory_swap);
-//#endif
-//#if defined(SUPPORT_MZ80AIF)
-//	state_fio->FputBool(fdc_irq);
-//	state_fio->FputBool(fdc_drq);
-//#endif
-//	vgate = state_fio->FgetBool();
-//#if defined(_MZ1200) || defined(_MZ80A)
-//	reverse = state_fio->FgetBool();
-//#endif
-//#if defined(_MZ80A)
-//	state_fio->FputUint32(e200);
-//#endif
-//	state_fio->Fwrite(pcg + 0x400, 0x400, 1);
-//#if defined(_MZ1200)
-//	state_fio->Fwrite(pcg + 0xc00, 0x400, 1);
-//#endif
-//	state_fio->FputUint8(pcg_data);
-//	state_fio->FputUint8(pcg_addr);
-//	state_fio->FputUint8(pcg_ctrl);
-}
-
-bool MEMORY::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(ram, sizeof(ram), 1);
-//	state_fio->Fread(vram, sizeof(vram), 1);
-//	tempo = state_fio->FgetBool();
-//	blink = state_fio->FgetBool();
-//#if defined(_MZ1200) || defined(_MZ80A)
-//	hblank = state_fio->FgetBool();
-//	memory_swap = state_fio->FgetBool();
-//#endif
-//#if defined(SUPPORT_MZ80AIF)
-//	fdc_irq = state_fio->FgetBool();
-//	fdc_drq = state_fio->FgetBool();
-//#endif
-//	state_fio->FputBool(vgate);
-//#if defined(_MZ1200) || defined(_MZ80A)
-//	state_fio->FputBool(reverse);
-//#endif
-//#if defined(_MZ80A)
-//	e200 = state_fio->FgetUint32();
-//#endif
-//	state_fio->Fread(pcg + 0x400, 0x400, 1);
-//#if defined(_MZ1200)
-//	state_fio->Fread(pcg + 0xc00, 0x400, 1);
-//#endif
-//	pcg_data = state_fio->FgetUint8();
-//	pcg_addr = state_fio->FgetUint8();
-//	pcg_ctrl = state_fio->FgetUint8();
-	
-	// post process
-#if defined(_MZ1200) || defined(_MZ80A)
-	update_memory_swap();
-#endif
-#if defined(SUPPORT_MZ80AIF)
-	update_fdif_rom_bank();
-#endif
-	return true;
-}
-
-bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool MZ80A_MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;

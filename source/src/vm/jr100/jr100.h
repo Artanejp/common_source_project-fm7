@@ -111,7 +111,6 @@ static const _TCHAR *sound_device_caption[] = {
 };
 #endif
 
-class csp_state_utils;
 class EMU;
 class DEVICE;
 class EVENT;
@@ -123,13 +122,12 @@ class NOT;
 class PCM1BIT;
 class SY6522;
 
-class MEMORY;
+class JR100_MEMORY;
 
 class VM : public VM_TEMPLATE
 {
 protected:
 	//EMU* emu;
-	//csp_state_utils *state_entry;
 	
 	// devices
 	//EVENT* event;
@@ -142,7 +140,7 @@ protected:
 	PCM1BIT* pcm;
 	SY6522* via;
 	
-	MEMORY* memory;
+	JR100_MEMORY* memory;
 	
 public:
 	// ----------------------------------------
@@ -200,9 +198,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

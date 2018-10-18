@@ -55,50 +55,6 @@ uint32_t RAMFILE::read_io8(uint32_t addr)
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void RAMFILE::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_1D_ARRAY(data_buffer, DATA_SIZE);
-	DECL_STATE_ENTRY_UINT32(data_addr);
-	
-	leave_decl_state();
-}
-
-void RAMFILE::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(data_buffer, DATA_SIZE, 1);
-//	state_fio->FputUint32(data_addr);
-}
-
-bool RAMFILE::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(data_buffer, DATA_SIZE, 1);
-//	data_addr = state_fio->FgetUint32();
-	return true;
-}
-
 bool RAMFILE::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {

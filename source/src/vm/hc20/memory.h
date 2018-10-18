@@ -7,8 +7,8 @@
 	[ memory ]
 */
 
-#ifndef _MEMORY_H_
-#define _MEMORY_H_
+#ifndef _HC20_MEMORY_H_
+#define _HC20_MEMORY_H_
 
 #include "../vm.h"
 #include "../../emu.h"
@@ -26,7 +26,7 @@
 class BEEP;
 class FIFO;
 
-class MEMORY : public DEVICE
+class HC20_MEMORY : public DEVICE
 {
 private:
 	BEEP *d_beep;
@@ -92,11 +92,11 @@ private:
 	void send_to_main(uint8_t val);
 	
 public:
-	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	HC20_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~MEMORY() {}
+	~HC20_MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -106,9 +106,7 @@ public:
 	uint32_t read_data8(uint32_t addr);
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_callback(int event_id, int err);
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_beep(BEEP* device)

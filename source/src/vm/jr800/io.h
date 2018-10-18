@@ -8,8 +8,8 @@
 	[ memory mapped i/o ]
 */
 
-#ifndef _IO_H_
-#define _IO_H_
+#ifndef _JR800_IO_H_
+#define _JR800_IO_H_
 
 #include "../vm.h"
 #include "../../emu.h"
@@ -17,24 +17,22 @@
 
 class HD44102;
 
-class IO : public DEVICE
+class JR800_IO : public DEVICE
 {
 private:
 	HD44102 *d_lcd[8];
 	
 public:
-	IO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	JR800_IO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Mapped I/O"));
 	}
-	~IO() {}
+	~JR800_IO() {}
 	
 	// common functions
 	void write_memory_mapped_io8(uint32_t addr, uint32_t data);
 	uint32_t read_memory_mapped_io8(uint32_t addr);
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique function
 	void set_context_lcd(int i, HD44102 *device)

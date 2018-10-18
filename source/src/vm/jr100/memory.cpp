@@ -26,7 +26,7 @@
 	} \
 }
 
-void MEMORY::initialize()
+void JR100_MEMORY::initialize()
 {
 	// initialize memory
 	memset(ram, 0, sizeof(ram));
@@ -64,7 +64,7 @@ void MEMORY::initialize()
 	register_frame_event(this);
 }
 
-void MEMORY::write_data8(uint32_t addr, uint32_t data)
+void JR100_MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	if((addr & 0xf000) == 0xc000) {
 		switch(addr & 0xfc00) {
@@ -80,7 +80,7 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 	wbank[(addr >> 13) & 7][addr & 0x1fff] = data;
 }
 
-uint32_t MEMORY::read_data8(uint32_t addr)
+uint32_t JR100_MEMORY::read_data8(uint32_t addr)
 {
 	if((addr & 0xf000) == 0xc000) {
 		switch(addr & 0xfc00) {
@@ -104,7 +104,7 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 	return rbank[(addr >> 13) & 7][addr & 0x1fff];
 }
 
-void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
+void JR100_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MEMORY_VIA_PORT_A) {
 		key_column = data & 0x0f;
@@ -126,7 +126,7 @@ static const int key_table[9][5] = {
 	{0xbe, 0x20, 0xba, 0x0d, 0xbd},	//	.	SPACE	:	RET	-
 };
 
-void MEMORY::event_frame()
+void JR100_MEMORY::event_frame()
 {
 	uint32_t data = 0;
 	if(key_column < 9) {
@@ -139,7 +139,7 @@ void MEMORY::event_frame()
 	d_via->write_signal(SIG_SY6522_PORT_B, ~data, 0x1f);
 }
 
-void MEMORY::draw_screen()
+void JR100_MEMORY::draw_screen()
 {
 	int src = 0x100;
 	for(int y = 0, yy = 0; y < 24; y++, yy += 8) {
@@ -166,57 +166,7 @@ void MEMORY::draw_screen()
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void MEMORY::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-	
-	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
-	DECL_STATE_ENTRY_1D_ARRAY(vram, sizeof(vram));
-	DECL_STATE_ENTRY_INT32(key_column);
-	DECL_STATE_ENTRY_BOOL(cmode);
-	
-	leave_decl_state();
-}
-
-void MEMORY::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(ram, sizeof(ram), 1);
-//	state_fio->Fwrite(vram, sizeof(vram), 1);
-//	state_fio->FputInt32(key_column);
-//	state_fio->FputBool(cmode);
-}
-
-bool MEMORY::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(ram, sizeof(ram), 1);
-//	state_fio->Fread(vram, sizeof(vram), 1);
-//	key_column = state_fio->FgetInt32();
-//	cmode = state_fio->FgetBool();
-	return true;
-}
-
-bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool JR100_MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;

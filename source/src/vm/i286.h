@@ -108,6 +108,7 @@ public:
 	void save_state_cpustate(FILEIO* state_fio);
 	void load_state_cpustate(FILEIO* state_fio);
 	
+	void process_state_cpustate(FILEIO* state_fio, bool loading);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique function

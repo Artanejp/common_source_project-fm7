@@ -74,53 +74,6 @@ uint32_t KANJI::read_io8(uint32_t addr)
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void KANJI::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-	
-	DECL_STATE_ENTRY_UINT32(control_reg);
-	DECL_STATE_ENTRY_UINT32(kanji_addr);
-	DECL_STATE_ENTRY_UINT32(dic_addr);
-	
-	leave_decl_state();
-}
-
-void KANJI::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->FputUint32(control_reg);
-//	state_fio->FputUint32(kanji_addr);
-//	state_fio->FputUint32(dic_addr);
-}
-
-bool KANJI::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	control_reg = state_fio->FgetUint32();
-//	kanji_addr = state_fio->FgetUint32();
-//	dic_addr = state_fio->FgetUint32();
-	return true;
-}
-
 bool KANJI::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {

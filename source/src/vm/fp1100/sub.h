@@ -184,9 +184,7 @@ public:
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_frame();
 	void event_callback(int event_id, int err);
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_cpu(DEVICE *device)

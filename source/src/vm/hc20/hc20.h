@@ -68,7 +68,7 @@ class UPD765A;
 class Z80;
 class Z80SIO;
 
-class MEMORY;
+class HC20_MEMORY;
 
 class VM : public VM_TEMPLATE
 {
@@ -90,7 +90,7 @@ protected:
 	Z80* cpu_tf20;
 	Z80SIO* sio_tf20;
 	
-	MEMORY* memory;
+	HC20_MEMORY* memory;
 	
 public:
 	// ----------------------------------------
@@ -143,9 +143,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

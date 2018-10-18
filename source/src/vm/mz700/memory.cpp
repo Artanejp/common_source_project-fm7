@@ -9,7 +9,7 @@
 	[ memory ]
 */
 
-#include "memory.h"
+#include "./memory.h"
 #include "../i8253.h"
 #include "../i8255.h"
 #if defined(_MZ800)
@@ -65,7 +65,7 @@
 #define EXT_FILE_NAME	"EXT.ROM"
 #endif
 
-void MEMORY::initialize()
+void MZ700_MEMORY::initialize()
 {
 	// init memory
 	memset(ipl, 0xff, sizeof(ipl));
@@ -127,7 +127,7 @@ void MEMORY::initialize()
 }
 
 
-void MEMORY::reset()
+void MZ700_MEMORY::reset()
 {
 #if defined(_MZ800)
 	// check dip-switch
@@ -191,7 +191,7 @@ void MEMORY::reset()
 }
 
 #if defined(_MZ800)
-void MEMORY::update_config()
+void MZ700_MEMORY::update_config()
 {
 	if(config.monitor_type == 0) {
 		// color
@@ -215,7 +215,7 @@ void MEMORY::update_config()
 }
 #endif
 
-void MEMORY::event_vline(int v, int clock)
+void MZ700_MEMORY::event_vline(int v, int clock)
 {
 	// vblank / vsync
 	set_vblank(v >= 200);
@@ -275,7 +275,7 @@ void MEMORY::event_vline(int v, int clock)
 	}
 }
 
-void MEMORY::event_callback(int event_id, int err)
+void MZ700_MEMORY::event_callback(int event_id, int err)
 {
 	if(event_id == EVENT_TEMPO) {
 		// 32KHz
@@ -307,7 +307,7 @@ void MEMORY::event_callback(int event_id, int err)
 	}
 }
 
-void MEMORY::write_data8(uint32_t addr, uint32_t data)
+void MZ700_MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 #if defined(_MZ800)
@@ -456,7 +456,7 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 	wbank[addr >> 11][addr & 0x7ff] = data;
 }
 
-uint32_t MEMORY::read_data8(uint32_t addr)
+uint32_t MZ700_MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 #if defined(_MZ800)
@@ -541,19 +541,19 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 	return rbank[addr >> 11][addr & 0x7ff];
 }
 
-void MEMORY::write_data8w(uint32_t addr, uint32_t data, int* wait)
+void MZ700_MEMORY::write_data8w(uint32_t addr, uint32_t data, int* wait)
 {
 	*wait = ((mem_bank & MEM_BANK_MON_L) && addr < 0x1000) ? 1 : 0;
 	write_data8(addr, data);
 }
 
-uint32_t MEMORY::read_data8w(uint32_t addr, int* wait)
+uint32_t MZ700_MEMORY::read_data8w(uint32_t addr, int* wait)
 {
 	*wait = ((mem_bank & MEM_BANK_MON_L) && addr < 0x1000) ? 1 : 0;
 	return read_data8(addr);
 }
 
-void MEMORY::write_io8(uint32_t addr, uint32_t data)
+void MZ700_MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 #if defined(_MZ800)
@@ -656,7 +656,7 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 }
 
 #if defined(_MZ800)
-uint32_t MEMORY::read_io8(uint32_t addr)
+uint32_t MZ700_MEMORY::read_io8(uint32_t addr)
 {
 	switch(addr & 0xff) {
 	case 0xce:
@@ -675,7 +675,7 @@ uint32_t MEMORY::read_io8(uint32_t addr)
 }
 #endif
 
-void MEMORY::set_vblank(bool val)
+void MZ700_MEMORY::set_vblank(bool val)
 {
 	if(vblank != val) {
 		// VBLANK -> 8255:PC7
@@ -688,14 +688,14 @@ void MEMORY::set_vblank(bool val)
 	}
 }
 
-void MEMORY::set_hblank(bool val)
+void MZ700_MEMORY::set_hblank(bool val)
 {
 	if(hblank != val) {
 		hblank = val;
 	}
 }
 
-void MEMORY::update_map_low()
+void MZ700_MEMORY::update_map_low()
 {
 	if(mem_bank & MEM_BANK_MON_L) {
 		SET_BANK(0x0000, 0x0fff, wdmy, ipl);
@@ -704,7 +704,7 @@ void MEMORY::update_map_low()
 	}
 }
 
-void MEMORY::update_map_middle()
+void MZ700_MEMORY::update_map_middle()
 {
 #if defined(_MZ800)
 	if(MZ700_MODE) {
@@ -726,7 +726,7 @@ void MEMORY::update_map_middle()
 #endif
 }
 
-void MEMORY::update_map_high()
+void MZ700_MEMORY::update_map_high()
 {
 #if defined(_MZ800)
 	// MZ-800
@@ -781,7 +781,7 @@ void MEMORY::update_map_high()
 }
 
 #if defined(_MZ800)
-int MEMORY::vram_page_mask(uint8_t f)
+int MZ700_MEMORY::vram_page_mask(uint8_t f)
 {
 	switch(dmd & 7) {
 	case 0:	// 320x200,4col
@@ -798,7 +798,7 @@ int MEMORY::vram_page_mask(uint8_t f)
 	return 0;
 }
 
-int MEMORY::vram_addr(int addr)
+int MZ700_MEMORY::vram_addr(int addr)
 {
 	if(dmd & 4) {
 		// 640x200
@@ -822,7 +822,7 @@ int MEMORY::vram_addr(int addr)
 #endif
 
 #if defined(_MZ700) || defined(_MZ1500)
-void MEMORY::draw_line(int v)
+void MZ700_MEMORY::draw_line(int v)
 {
 	int ptr = 40 * (v >> 3);
 #if defined(_MZ700)
@@ -899,7 +899,7 @@ void MEMORY::draw_line(int v)
 	}
 }
 
-void MEMORY::draw_screen()
+void MZ700_MEMORY::draw_screen()
 {
 	// copy to real screen
 	emu->set_vm_screen_lines(200);
@@ -924,7 +924,7 @@ void MEMORY::draw_screen()
 	emu->screen_skip_line(true);
 }
 #else
-void MEMORY::draw_line_320x200_2bpp(int v)
+void MZ700_MEMORY::draw_line_320x200_2bpp(int v)
 {
 	int ofs1 = (dmd & 1) ? 0x4000 : 0;
 	int ofs2 = ofs1 | 0x2000;
@@ -947,7 +947,7 @@ void MEMORY::draw_line_320x200_2bpp(int v)
 	}
 }
 
-void MEMORY::draw_line_320x200_4bpp(int v)
+void MZ700_MEMORY::draw_line_320x200_4bpp(int v)
 {
 	int ptr = 40 * v;
 	
@@ -970,7 +970,7 @@ void MEMORY::draw_line_320x200_4bpp(int v)
 	}
 }
 
-void MEMORY::draw_line_640x200_1bpp(int v)
+void MZ700_MEMORY::draw_line_640x200_1bpp(int v)
 {
 	int ofs = (dmd & 1) ? 0x4000 : 0;
 	int ptr = 80 * v;
@@ -991,7 +991,7 @@ void MEMORY::draw_line_640x200_1bpp(int v)
 	}
 }
 
-void MEMORY::draw_line_640x200_2bpp(int v)
+void MZ700_MEMORY::draw_line_640x200_2bpp(int v)
 {
 	int ptr = 80 * v;
 	
@@ -1012,7 +1012,7 @@ void MEMORY::draw_line_640x200_2bpp(int v)
 	}
 }
 
-void MEMORY::draw_line_mz700(int v)
+void MZ700_MEMORY::draw_line_mz700(int v)
 {
 	int ptr = (40 * (v >> 3)) | 0x3000;
 	
@@ -1037,7 +1037,7 @@ void MEMORY::draw_line_mz700(int v)
 	}
 }
 
-void MEMORY::draw_screen()
+void MZ700_MEMORY::draw_screen()
 {
 	// copy to real screen
 	emu->set_vm_screen_lines(200);
@@ -1074,200 +1074,7 @@ void MEMORY::draw_screen()
 
 #define STATE_VERSION	2
 
-#include "../../statesub.h"
-
-void MEMORY::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-	
-#if defined(_MZ700)
-	DECL_STATE_ENTRY_1D_ARRAY(&(pcg[0x400]), 0x400);
-	DECL_STATE_ENTRY_1D_ARRAY(&(pcg[0xc00]), 0x400);
-#elif defined(_MZ1500)
-	DECL_STATE_ENTRY_1D_ARRAY(pcg, sizeof(pcg));
-#endif
-	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
-	DECL_STATE_ENTRY_1D_ARRAY(vram, sizeof(vram));
-	DECL_STATE_ENTRY_UINT8(mem_bank);
-#if defined(_MZ700)
-	DECL_STATE_ENTRY_UINT8(pcg_data);
-	DECL_STATE_ENTRY_UINT8(pcg_addr);
-	DECL_STATE_ENTRY_UINT8(pcg_ctrl);
-#elif defined(_MZ800)
-	DECL_STATE_ENTRY_UINT8(wf);
-	DECL_STATE_ENTRY_UINT8(rf);
-	DECL_STATE_ENTRY_UINT8(dmd);
-	DECL_STATE_ENTRY_UINT32(vram_addr_top);
-	DECL_STATE_ENTRY_BOOL(is_mz800);
-#elif defined(_MZ1500)
-	DECL_STATE_ENTRY_UINT8(pcg_bank);
-#endif
-#if defined(_MZ800)
-	DECL_STATE_ENTRY_UINT16(sof);
-	DECL_STATE_ENTRY_UINT8(sw);
-	DECL_STATE_ENTRY_UINT8(ssa);
-	DECL_STATE_ENTRY_UINT8(sea);
-	DECL_STATE_ENTRY_UINT8(palette_sw);
-	DECL_STATE_ENTRY_1D_ARRAY(palette, sizeof(palette));
-	DECL_STATE_ENTRY_1D_ARRAY(palette16, sizeof(palette16));
-#elif defined(_MZ1500)
-	DECL_STATE_ENTRY_UINT8(priority);
-	DECL_STATE_ENTRY_1D_ARRAY(palette, sizeof(palette));
-#endif
-	DECL_STATE_ENTRY_BOOL(blink);
-	DECL_STATE_ENTRY_BOOL(tempo);
-	DECL_STATE_ENTRY_BOOL(hblank);
-	DECL_STATE_ENTRY_BOOL(hsync);
-	DECL_STATE_ENTRY_BOOL(vblank);
-	DECL_STATE_ENTRY_BOOL(vsync);
-#if defined(_MZ700) || defined(_MZ1500)
-	DECL_STATE_ENTRY_BOOL(hblank_vram);
-#endif
-#if defined(_MZ1500)
-	DECL_STATE_ENTRY_BOOL(hblank_pcg);
-#endif
-#if defined(_MZ800)
-	DECL_STATE_ENTRY_SCRNTYPE_T_1D_ARRAY(palette_mz800_pc, sizeof(palette_mz800_pc) / sizeof(scrntype_t));
-#endif
-	DECL_STATE_ENTRY_SCRNTYPE_T_1D_ARRAY(palette_pc, sizeof(palette_pc) / sizeof(scrntype_t));
-
-	leave_decl_state();
-}
-
-void MEMORY::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//#if defined(_MZ700)
-//	state_fio->Fwrite(pcg + 0x400, 0x400, 1);
-//	state_fio->Fwrite(pcg + 0xc00, 0x400, 1);
-//#elif defined(_MZ1500)
-//	state_fio->Fwrite(pcg, sizeof(pcg), 1);
-//#endif
-//	state_fio->Fwrite(ram, sizeof(ram), 1);
-//	state_fio->Fwrite(vram, sizeof(vram), 1);
-//	state_fio->FputUint8(mem_bank);
-//#if defined(_MZ700)
-//	state_fio->FputUint8(pcg_data);
-//	state_fio->FputUint8(pcg_addr);
-//	state_fio->FputUint8(pcg_ctrl);
-//#elif defined(_MZ800)
-//	state_fio->FputUint8(wf);
-//	state_fio->FputUint8(rf);
-//	state_fio->FputUint8(dmd);
-//	state_fio->FputUint32(vram_addr_top);
-//	state_fio->FputBool(is_mz800);
-//#elif defined(_MZ1500)
-//	state_fio->FputUint8(pcg_bank);
-//#endif
-//#if defined(_MZ800)
-//	state_fio->FputUint16(sof);
-//	state_fio->FputUint8(sw);
-//	state_fio->FputUint8(ssa);
-//	state_fio->FputUint8(sea);
-//	state_fio->FputUint8(palette_sw);
-//	state_fio->Fwrite(palette, sizeof(palette), 1);
-//	state_fio->Fwrite(palette16, sizeof(palette16), 1);
-//#elif defined(_MZ1500)
-//	state_fio->FputUint8(priority);
-//	state_fio->Fwrite(palette, sizeof(palette), 1);
-//#endif
-//	state_fio->FputBool(blink);
-//	state_fio->FputBool(tempo);
-//	state_fio->FputBool(hblank);
-//	state_fio->FputBool(hsync);
-//	state_fio->FputBool(vblank);
-//	state_fio->FputBool(vsync);
-//#if defined(_MZ700) || defined(_MZ1500)
-//	state_fio->FputBool(hblank_vram);
-//#endif
-//#if defined(_MZ1500)
-//	state_fio->FputBool(hblank_pcg);
-//#endif
-//#if defined(_MZ800)
-//	state_fio->Fwrite(palette_mz800_pc, sizeof(palette_mz800_pc), 1);
-//#endif
-//	state_fio->Fwrite(palette_pc, sizeof(palette_pc), 1);
-}
-
-bool MEMORY::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//#if defined(_MZ700)
-//	state_fio->Fread(pcg + 0x400, 0x400, 1);
-//	state_fio->Fread(pcg + 0xc00, 0x400, 1);
-//#elif defined(_MZ1500)
-//	state_fio->Fread(pcg, sizeof(pcg), 1);
-//#endif
-//	state_fio->Fread(ram, sizeof(ram), 1);
-//	state_fio->Fread(vram, sizeof(vram), 1);
-//	mem_bank = state_fio->FgetUint8();
-//#if defined(_MZ700)
-//	pcg_data = state_fio->FgetUint8();
-//	pcg_addr = state_fio->FgetUint8();
-//	pcg_ctrl = state_fio->FgetUint8();
-//#elif defined(_MZ800)
-//	wf = state_fio->FgetUint8();
-//	rf = state_fio->FgetUint8();
-//	dmd = state_fio->FgetUint8();
-//	vram_addr_top = state_fio->FgetUint32();
-//	is_mz800 = state_fio->FgetBool();
-//#elif defined(_MZ1500)
-//	pcg_bank = state_fio->FgetUint8();
-//#endif
-//#if defined(_MZ800)
-//	sof = state_fio->FgetUint16();
-//	sw = state_fio->FgetUint8();
-//	ssa = state_fio->FgetUint8();
-//	sea = state_fio->FgetUint8();
-//	palette_sw = state_fio->FgetUint8();
-//	state_fio->Fread(palette, sizeof(palette), 1);
-//	state_fio->Fread(palette16, sizeof(palette16), 1);
-//#elif defined(_MZ1500)
-//	priority = state_fio->FgetUint8();
-//	state_fio->Fread(palette, sizeof(palette), 1);
-//#endif
-//	blink = state_fio->FgetBool();
-//	tempo = state_fio->FgetBool();
-//	hblank = state_fio->FgetBool();
-//	hsync = state_fio->FgetBool();
-//	vblank = state_fio->FgetBool();
-//	vsync = state_fio->FgetBool();
-//#if defined(_MZ700) || defined(_MZ1500)
-//	hblank_vram = state_fio->FgetBool();
-//#endif
-//#if defined(_MZ1500)
-//	hblank_pcg = state_fio->FgetBool();
-//#endif
-//#if defined(_MZ800)
-//	state_fio->Fread(palette_mz800_pc, sizeof(palette_mz800_pc), 1);
-//#endif
-//	state_fio->Fread(palette_pc, sizeof(palette_pc), 1);
-	
-	// post process
-	update_map_low();
-	update_map_middle();
-	update_map_high();
-	return true;
-}
-
-bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool MZ700_MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -1322,9 +1129,47 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBool(hblank_pcg);
 #endif
 #if defined(_MZ800)
-	state_fio->StateBuffer(palette_mz800_pc, sizeof(palette_mz800_pc), 1);
+	//state_fio->StateBuffer(palette_mz800_pc, sizeof(palette_mz800_pc), 1);
+	if(loading) {
+		for(int i = 0; i < (sizeof(palette_mz800_pc) / sizeof(scrntype_t)); i++) {
+			uint8_t r, g, b;
+			r = state_fio->FgetUint8();
+			g = state_fio->FgetUint8();
+			b = state_fio->FgetUint8();
+			palette_mz800_pc[i] = RGB_COLOR(r, g, b);
+		}
+	} else {
+		for(int i = 0; i < (sizeof(palette_mz800_pc) / sizeof(scrntype_t)); i++) {
+			uint8_t r, g, b;
+			r = R_OF_COLOR(palette_mz800_pc[i]);
+			g = G_OF_COLOR(palette_mz800_pc[i]);
+			b = B_OF_COLOR(palette_mz800_pc[i]);
+			state_fio->FputUint8(r);
+			state_fio->FputUint8(g);
+			state_fio->FputUint8(b);
+		}
+	}
 #endif
-	state_fio->StateBuffer(palette_pc, sizeof(palette_pc), 1);
+	//state_fio->StateBuffer(palette_pc, sizeof(palette_pc), 1);
+	if(loading) {
+		for(int i = 0; i < (sizeof(palette_pc) / sizeof(scrntype_t)); i++) {
+			uint8_t r, g, b;
+			r = state_fio->FgetUint8();
+			g = state_fio->FgetUint8();
+			b = state_fio->FgetUint8();
+			palette_pc[i] = RGB_COLOR(r, g, b);
+		}
+	} else {
+		for(int i = 0; i < (sizeof(palette_pc) / sizeof(scrntype_t)); i++) {
+			uint8_t r, g, b;
+			r = R_OF_COLOR(palette_pc[i]);
+			g = G_OF_COLOR(palette_pc[i]);
+			b = B_OF_COLOR(palette_pc[i]);
+			state_fio->FputUint8(r);
+			state_fio->FputUint8(g);
+			state_fio->FputUint8(b);
+		}
+	}
 	
 	// post process
 	if(loading) {

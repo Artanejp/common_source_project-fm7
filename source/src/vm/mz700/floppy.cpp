@@ -96,56 +96,6 @@ void FLOPPY::write_signal(int id, uint32_t data, uint32_t mask)
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void FLOPPY::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-	
-	DECL_STATE_ENTRY_UINT32(prev_dc);
-	DECL_STATE_ENTRY_INT32(register_id);
-	DECL_STATE_ENTRY_BOOL(motor_on);
-	DECL_STATE_ENTRY_BOOL(irq_enabled);
-
-	leave_decl_state();
-}
-
-void FLOPPY::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->FputUint32(prev_dc);
-//	state_fio->FputInt32(register_id);
-//	state_fio->FputBool(motor_on);
-//	state_fio->FputBool(irq_enabled);
-}
-
-bool FLOPPY::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	prev_dc = state_fio->FgetUint32();
-//	register_id = state_fio->FgetInt32();
-//	motor_on = state_fio->FgetBool();
-//	irq_enabled = state_fio->FgetBool();
-	return true;
-}
-
 bool FLOPPY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {

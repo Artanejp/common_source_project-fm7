@@ -394,7 +394,7 @@ public:
 	{
 		ssl[0] = ssl[1] = ssl[2] = ssl[3] = 0;
 		expanded[0] = expanded[1] = expanded[2] = expanded[3] = false;
-		set_device_name(_T("Memory Bus"));
+		set_device_name(_T("Memory Bus (ex)"));
 	}
 	~MEMORY_EX() {}
 	

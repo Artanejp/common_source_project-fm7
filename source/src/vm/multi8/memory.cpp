@@ -26,7 +26,7 @@
 	} \
 }
 
-void MEMORY::initialize()
+void MULTI8_MEMORY::initialize()
 {
 	// init memory
 	memset(rom, 0xff, sizeof(rom));
@@ -55,14 +55,14 @@ void MEMORY::initialize()
 	delete fio;
 }
 
-void MEMORY::reset()
+void MULTI8_MEMORY::reset()
 {
 	map1 = 0xf;
 	map2 = 0;
 	update_map();
 }
 
-void MEMORY::write_data8(uint32_t addr, uint32_t data)
+void MULTI8_MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	if((addr & 0xc000) == 0x8000 && (map1 & 0x10)) {
@@ -85,7 +85,7 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 	wbank[addr >> 12][addr & 0xfff] = data;
 }
 
-uint32_t MEMORY::read_data8(uint32_t addr)
+uint32_t MULTI8_MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	if((addr & 0xc000) == 0x8000 && (map1 & 0x10)) {
@@ -109,13 +109,13 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 	return rbank[addr >> 12][addr & 0xfff];
 }
 
-void MEMORY::write_io8(uint32_t addr, uint32_t data)
+void MULTI8_MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	map2 = data;
 	update_map();
 }
 
-void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
+void MULTI8_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MEMORY_I8255_C) {
 		map1 = data & mask;
@@ -123,7 +123,7 @@ void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
-void MEMORY::update_map()
+void MULTI8_MEMORY::update_map()
 {
 	if(map1 & 0x20) {
 		SET_BANK(0x0000, 0x7fff, ram0, ram0);
@@ -139,63 +139,7 @@ void MEMORY::update_map()
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void MEMORY::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_1D_ARRAY(ram0, sizeof(ram0));
-	DECL_STATE_ENTRY_1D_ARRAY(ram1, sizeof(ram1));
-	DECL_STATE_ENTRY_1D_ARRAY(vram, sizeof(vram));
-	DECL_STATE_ENTRY_UINT8(map1);
-	DECL_STATE_ENTRY_UINT8(map2);
-	
-	leave_decl_state();
-}
-	
-void MEMORY::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(ram0, sizeof(ram0), 1);
-//	state_fio->Fwrite(ram1, sizeof(ram1), 1);
-//	state_fio->Fwrite(vram, sizeof(vram), 1);
-//	state_fio->FputUint8(map1);
-//	state_fio->FputUint8(map2);
-}
-
-bool MEMORY::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(ram0, sizeof(ram0), 1);
-//	state_fio->Fread(ram1, sizeof(ram1), 1);
-//	state_fio->Fread(vram, sizeof(vram), 1);
-//	map1 = state_fio->FgetUint8();
-//	map2 = state_fio->FgetUint8();
-	
-	// post process
-	update_map();
-	return true;
-}
-
-bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool MULTI8_MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;

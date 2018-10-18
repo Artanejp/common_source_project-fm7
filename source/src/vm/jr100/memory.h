@@ -7,8 +7,8 @@
 	[ memory bus ]
 */
 
-#ifndef _MEMORY_H_
-#define _MEMORY_H_
+#ifndef _JR100_MEMORY_H_
+#define _JR100_MEMORY_H_
 
 #include "../vm.h"
 #include "../../emu.h"
@@ -17,7 +17,7 @@
 #define SIG_MEMORY_VIA_PORT_A	0
 #define SIG_MEMORY_VIA_PORT_B	1
 
-class MEMORY : public DEVICE
+class JR100_MEMORY : public DEVICE
 {
 private:
 	// contexts
@@ -40,11 +40,11 @@ private:
 	scrntype_t palette_pc[2];
 	
 public:
-	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	JR100_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~MEMORY() {}
+	~JR100_MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -52,9 +52,7 @@ public:
 	uint32_t read_data8(uint32_t addr);
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_frame();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_via(DEVICE* device)

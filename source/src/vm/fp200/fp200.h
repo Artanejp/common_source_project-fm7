@@ -60,7 +60,7 @@ class I8080;
 class MEMORY;
 class RP5C01;
 
-class IO;
+class FP200_IO;
 
 class VM : public VM_TEMPLATE
 {
@@ -76,7 +76,7 @@ protected:
 	MEMORY* memory;
 	RP5C01* rtc;
 	
-	IO* io;
+	FP200_IO* io;
 	
 	// memory
 	uint8_t rom[0x8000];
@@ -136,9 +136,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

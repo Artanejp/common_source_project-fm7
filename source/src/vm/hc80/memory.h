@@ -7,14 +7,14 @@
 	[ memory ]
 */
 
-#ifndef _MEMORY_H_
-#define _MEMORY_H_
+#ifndef _HC80_MEMORY_H_
+#define _HC80_MEMORY_H_
 
 #include "../vm.h"
 #include "../../emu.h"
 #include "../device.h"
 
-class MEMORY : public DEVICE
+class HC80_MEMORY : public DEVICE
 {
 private:
 	// memory
@@ -30,11 +30,11 @@ private:
 	void set_bank(uint32_t val);
 	
 public:
-	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	HC80_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~MEMORY() {}
+	~HC80_MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -43,9 +43,7 @@ public:
 	void write_data8(uint32_t addr, uint32_t data);
 	uint32_t read_data8(uint32_t addr);
 	void write_signal(int id, uint32_t data, uint32_t mask);
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 };
 
 #endif

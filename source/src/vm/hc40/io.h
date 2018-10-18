@@ -7,8 +7,8 @@
 	[ i/o ]
 */
 
-#ifndef _IO_H_
-#define _IO_H_
+#ifndef _HC40_IO_H_
+#define _HC40_IO_H_
 
 #include "../vm.h"
 #include "../../emu.h"
@@ -19,7 +19,7 @@
 
 class FIFO;
 
-class IO : public DEVICE
+class HC40_IO : public DEVICE
 {
 private:
 	DEVICE *d_cpu, *d_mem, *d_tf20, *d_beep, *d_drec;
@@ -71,11 +71,11 @@ private:
 	scrntype_t pd, pb;
 	
 public:
-	IO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	HC40_IO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("I/O Bus"));
 	}
-	~IO() {}
+	~HC40_IO() {}
 	
 	// common functions
 	void initialize();
@@ -88,9 +88,7 @@ public:
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
 	uint32_t get_intr_ack();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_cpu(DEVICE* device)

@@ -80,7 +80,7 @@ class DISPLAY;
 class FLOPPY;
 class KANJI;
 class KEYBOARD;
-class MEMORY;
+class MULTI8_MEMORY;
 
 class VM : public VM_TEMPLATE
 {
@@ -108,7 +108,7 @@ protected:
 	FLOPPY* floppy;
 	KANJI* kanji;
 	KEYBOARD* key;
-	MEMORY* memory;
+	MULTI8_MEMORY* memory;
 	
 public:
 	// ----------------------------------------
@@ -161,9 +161,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

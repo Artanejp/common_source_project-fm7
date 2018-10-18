@@ -7,7 +7,7 @@
 	[ memory ]
 */
 
-#include "memory.h"
+#include "./memory.h"
 #include "../beep.h"
 #include "../hd6301.h"
 #include "../z80sio.h"
@@ -47,7 +47,7 @@ static int key_table[8][10] = {
 	0x79, 0x7a, 0x77, 0x75, 0x2e, 0x76, 0x00, 0x00, 0x00, 0x21
 };
 
-void MEMORY::initialize()
+void HC20_MEMORY::initialize()
 {
 	// initialize memory
 	memset(ram, 0, sizeof(ram));
@@ -127,7 +127,7 @@ void MEMORY::initialize()
 	register_event_by_clock(this, EVENT_SOUND, 256, true, NULL);
 }
 
-void MEMORY::release()
+void HC20_MEMORY::release()
 {
 	// save battery backuped ram
 	FILEIO* fio = new FILEIO();
@@ -146,7 +146,7 @@ void MEMORY::release()
 	delete cmd_buf;
 }
 
-void MEMORY::reset()
+void HC20_MEMORY::reset()
 {
 	// select internal rom
 //	SET_BANK(0x4000, 0x7fff, wdmy, rdmy);
@@ -172,7 +172,7 @@ void MEMORY::reset()
 	int_mask = 0;
 }
 
-void MEMORY::write_data8(uint32_t addr, uint32_t data)
+void HC20_MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	if(addr < 0x40) {
@@ -222,7 +222,7 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t MEMORY::read_data8(uint32_t addr)
+uint32_t HC20_MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	if(addr < 0x40) {
@@ -284,7 +284,7 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 	return rbank[(addr >> 13) & 7][addr & 0x1fff];
 }
 
-void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
+void HC20_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MEMORY_PORT_2) {
 		sio_select = ((data & 0x04) != 0);
@@ -312,14 +312,14 @@ void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
-void MEMORY::event_callback(int event_id, int err)
+void HC20_MEMORY::event_callback(int event_id, int err)
 {
 	if(event_id == EVENT_SOUND) {
 		update_sound();
 	}
 }
 
-void MEMORY::update_sound()
+void HC20_MEMORY::update_sound()
 {
 	if(sound_ptr < sound_count) {
 		if(sound[sound_ptr].remain-- == 0) {
@@ -342,7 +342,7 @@ void MEMORY::update_sound()
 	}
 }
 
-void MEMORY::update_keyboard()
+void HC20_MEMORY::update_keyboard()
 {
 	key_data = 0x3ff;
 	
@@ -378,13 +378,13 @@ void MEMORY::update_keyboard()
 	}
 }
 
-void MEMORY::notify_power_off()
+void HC20_MEMORY::notify_power_off()
 {
 	int_status |= INT_POWER;
 	update_intr();
 }
 
-void MEMORY::key_down(int code)
+void HC20_MEMORY::key_down(int code)
 {
 	key_stat[code] = 1;
 	
@@ -398,18 +398,18 @@ void MEMORY::key_down(int code)
 	}
 }
 
-void MEMORY::key_up(int code)
+void HC20_MEMORY::key_up(int code)
 {
 	key_stat[code] = 0;
 }
 
-void MEMORY::update_intr()
+void HC20_MEMORY::update_intr()
 {
 //	d_cpu->write_signal(SIG_CPU_IRQ, (int_status && !int_mask) ? 1 : 0, 1);
 	d_cpu->write_signal(SIG_CPU_IRQ, int_status ? 1 : 0, 1);
 }
 
-void MEMORY::send_to_slave(uint8_t val)
+void HC20_MEMORY::send_to_slave(uint8_t val)
 {
 	cmd_buf->write(val);
 	uint8_t cmd = cmd_buf->read_not_remove(0);
@@ -729,13 +729,13 @@ void MEMORY::send_to_slave(uint8_t val)
 	}
 }
 
-void MEMORY::send_to_main(uint8_t val)
+void HC20_MEMORY::send_to_main(uint8_t val)
 {
 	// send to main cpu
 	d_cpu->write_signal(SIG_MC6801_SIO_RECV, val, 0xff);
 }
 
-void MEMORY::play_tape(const _TCHAR* file_path)
+void HC20_MEMORY::play_tape(const _TCHAR* file_path)
 {
 	close_tape();
 	
@@ -748,7 +748,7 @@ void MEMORY::play_tape(const _TCHAR* file_path)
 	}
 }
 
-void MEMORY::rec_tape(const _TCHAR* file_path)
+void HC20_MEMORY::rec_tape(const _TCHAR* file_path)
 {
 	close_tape();
 	
@@ -759,7 +759,7 @@ void MEMORY::rec_tape(const _TCHAR* file_path)
 	}
 }
 
-void MEMORY::close_tape()
+void HC20_MEMORY::close_tape()
 {
 	if(cmt_fio->IsOpened()) {
 		if(cmt_rec && cmt_count) {
@@ -771,7 +771,7 @@ void MEMORY::close_tape()
 	cmt_play = cmt_rec = false;
 }
 
-void MEMORY::draw_screen()
+void HC20_MEMORY::draw_screen()
 {
 	static const int xtop[12] = {0, 0, 40, 40, 80, 80, 0, 0, 40, 40, 80, 80};
 	static const int ytop[12] = {0, 8, 0, 8, 0, 8, 16, 24, 16, 24, 16, 24};
@@ -801,183 +801,7 @@ void MEMORY::draw_screen()
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void MEMORY::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_BOOL(tmp_wbank_is_ext); // (wbank[0x8000 >> 13] == ext);
-	DECL_STATE_ENTRY_BOOL(tmp_rbank_is_ext); // (rbank[0x8000 >> 13] == ext);
-
-	DECL_STATE_ENTRY_1D_ARRAY(rom, sizeof(rom));
-	DECL_STATE_ENTRY_1D_ARRAY(ext, sizeof(ext));
-	DECL_STATE_ENTRY_FIFO(cmd_buf);
-	
-	DECL_STATE_ENTRY_BOOL(sio_select);
-	DECL_STATE_ENTRY_BOOL(special_cmd_masked);
-	DECL_STATE_ENTRY_1D_ARRAY(slave_mem, sizeof(slave_mem));
-	{
-		DECL_STATE_ENTRY_DOUBLE_STRIDE((sound[0].freq),  sizeof(sound) / sizeof(sound[0]), sizeof(sound[0]));
-		DECL_STATE_ENTRY_INT32_STRIDE((sound[0].period), sizeof(sound) / sizeof(sound[0]), sizeof(sound[0]));
-		DECL_STATE_ENTRY_INT32_STRIDE((sound[0].remain), sizeof(sound) / sizeof(sound[0]), sizeof(sound[0]));
-	}
-
-	DECL_STATE_ENTRY_INT32(sound_ptr);
-	DECL_STATE_ENTRY_INT32(sound_count);
-	DECL_STATE_ENTRY_UINT8(sound_reply);
-	DECL_STATE_ENTRY_DOUBLE(sound_freq);
-	DECL_STATE_ENTRY_1D_ARRAY(key_stat, sizeof(key_stat));
-	DECL_STATE_ENTRY_1D_ARRAY(key_flag, sizeof(key_flag));
-	DECL_STATE_ENTRY_INT32(key_data);
-	DECL_STATE_ENTRY_INT32(key_strobe);
-	DECL_STATE_ENTRY_INT32(key_intmask);
-	DECL_STATE_ENTRY_BOOL(cmt_play);
-	DECL_STATE_ENTRY_BOOL(cmt_rec);
-	DECL_STATE_ENTRY_STRING(cmt_file_path, sizeof(cmt_file_path));
-	DECL_STATE_ENTRY_CMT_RECORDING(cmt_fio, cmt_rec, cmt_file_path);
-	
-	DECL_STATE_ENTRY_INT32(cmt_count);
-	DECL_STATE_ENTRY_1D_ARRAY(cmt_buffer, sizeof(cmt_buffer));
-	for(int i = 0; i < 6; i++) {
-		DECL_STATE_ENTRY_1D_ARRAY_MEMBER((lcd[i].buffer), 80, i);
-		DECL_STATE_ENTRY_INT32_MEMBER((lcd[i].bank), i);
-		DECL_STATE_ENTRY_INT32_MEMBER((lcd[i].addr), i);
-	}
-
-	DECL_STATE_ENTRY_UINT8(lcd_select);
-	DECL_STATE_ENTRY_UINT8(lcd_data);
-	DECL_STATE_ENTRY_INT32(lcd_clock);
-	DECL_STATE_ENTRY_INT32(int_status);
-	DECL_STATE_ENTRY_INT32(int_mask);
-
-	leave_decl_state();
-}
-
-void MEMORY::save_state(FILEIO* state_fio)
-{
-	tmp_wbank_is_ext = (wbank[0x8000 >> 13] == ext);
-	tmp_rbank_is_ext = (rbank[0x8000 >> 13] == ext);
-	
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->FputBool(wbank[0x8000 >> 13] == ext);
-//	state_fio->FputBool(rbank[0x8000 >> 13] == ext);
-//	state_fio->Fwrite(rom, sizeof(rom), 1);
-//	state_fio->Fwrite(ext, sizeof(ext), 1);
-//	cmd_buf->save_state((void *)state_fio);
-//	state_fio->FputBool(sio_select);
-//	state_fio->FputBool(special_cmd_masked);
-//	state_fio->Fwrite(slave_mem, sizeof(slave_mem), 1);
-//	state_fio->Fwrite(sound, sizeof(sound), 1);
-//	state_fio->FputInt32(sound_ptr);
-//	state_fio->FputInt32(sound_count);
-//	state_fio->FputUint8(sound_reply);
-//	state_fio->FputDouble(sound_freq);
-//	state_fio->Fwrite(key_stat, sizeof(key_stat), 1);
-//	state_fio->Fwrite(key_flag, sizeof(key_flag), 1);
-//	state_fio->FputInt32(key_data);
-//	state_fio->FputInt32(key_strobe);
-//	state_fio->FputInt32(key_intmask);
-//	state_fio->FputBool(cmt_play);
-//	state_fio->FputBool(cmt_rec);
-//	state_fio->Fwrite(cmt_file_path, sizeof(cmt_file_path), 1);
-//	if(cmt_rec && cmt_fio->IsOpened()) {
-//		int length_tmp = (int)cmt_fio->Ftell();
-//		cmt_fio->Fseek(0, FILEIO_SEEK_SET);
-//		state_fio->FputInt32(length_tmp);
-//		while(length_tmp != 0) {
-//			uint8_t buffer_tmp[1024];
-//			int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
-//			cmt_fio->Fread(buffer_tmp, length_rw, 1);
-//			state_fio->Fwrite(buffer_tmp, length_rw, 1);
-//			length_tmp -= length_rw;
-//		}
-//	} else {
-//		state_fio->FputInt32(0);
-//	}
-//	state_fio->FputInt32(cmt_count);
-//	state_fio->Fwrite(cmt_buffer, sizeof(cmt_buffer), 1);
-//	state_fio->Fwrite(lcd, sizeof(lcd), 1);
-//	state_fio->FputUint8(lcd_select);
-//	state_fio->FputUint8(lcd_data);
-//	state_fio->FputInt32(lcd_clock);
-//	state_fio->FputInt32(int_status);
-//	state_fio->FputInt32(int_mask);
-}
-
-bool MEMORY::load_state(FILEIO* state_fio)
-{
-	close_tape();
-	
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	bool wr = state_fio->FgetBool();
-//	bool rd = state_fio->FgetBool();
-//	state_fio->Fread(rom, sizeof(rom), 1);
-//	state_fio->Fread(ext, sizeof(ext), 1);
-//	if(!cmd_buf->load_state((void *)state_fio)) {
-//		return false;
-//	}
-//	sio_select = state_fio->FgetBool();
-//	special_cmd_masked = state_fio->FgetBool();
-//	state_fio->Fread(slave_mem, sizeof(slave_mem), 1);
-//	state_fio->Fread(sound, sizeof(sound), 1);
-//	sound_ptr = state_fio->FgetInt32();
-//	sound_count = state_fio->FgetInt32();
-//	sound_reply = state_fio->FgetUint8();
-//	sound_freq = state_fio->FgetDouble();
-//	state_fio->Fread(key_stat, sizeof(key_stat), 1);
-//	state_fio->Fread(key_flag, sizeof(key_flag), 1);
-//	key_data = state_fio->FgetInt32();
-//	key_strobe = state_fio->FgetInt32();
-//	key_intmask = state_fio->FgetInt32();
-//	cmt_play = state_fio->FgetBool();
-//	cmt_rec = state_fio->FgetBool();
-//	state_fio->Fread(cmt_file_path, sizeof(cmt_file_path), 1);
-//	int length_tmp = state_fio->FgetInt32();
-//	if(cmt_rec) {
-//		cmt_fio->Fopen(cmt_file_path, FILEIO_READ_WRITE_NEW_BINARY);
-//		while(length_tmp != 0) {
-//			uint8_t buffer_tmp[1024];
-//			int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
-//			state_fio->Fread(buffer_tmp, length_rw, 1);
-//			if(cmt_fio->IsOpened()) {
-//				cmt_fio->Fread(buffer_tmp, length_rw, 1);
-//			}
-//			length_tmp -= length_rw;
-//		}
-//	}
-//	cmt_count = state_fio->FgetInt32();
-//	state_fio->Fread(cmt_buffer, sizeof(cmt_buffer), 1);
-//	state_fio->Fread(lcd, sizeof(lcd), 1);
-//	lcd_select = state_fio->FgetUint8();
-//	lcd_data = state_fio->FgetUint8();
-//	lcd_clock = state_fio->FgetInt32();
-//	int_status = state_fio->FgetInt32();
-//	int_mask = state_fio->FgetInt32();
-	
-	// post process
-	SET_BANK(0x8000, 0xbfff, tmp_wbank_is_ext ? ext : wdmy, tmp_rbank_is_ext ? ext : rom);
-	return true;
-}
-
-bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool HC20_MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	bool wr = false;
 	bool rd = false;
@@ -996,6 +820,7 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 		state_fio->FputBool(rbank[0x8000 >> 13] == ext);
 	}
 	state_fio->StateBuffer(rom, sizeof(rom), 1);
+	state_fio->StateBuffer(ram, sizeof(ram), 1);
 	state_fio->StateBuffer(ext, sizeof(ext), 1);
 	if(!cmd_buf->process_state((void *)state_fio, loading)) {
 		return false;
@@ -1003,7 +828,12 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBool(sio_select);
 	state_fio->StateBool(special_cmd_masked);
 	state_fio->StateBuffer(slave_mem, sizeof(slave_mem), 1);
-	state_fio->StateBuffer(sound, sizeof(sound), 1);
+	//state_fio->StateBuffer(sound, sizeof(sound), 1);
+	for(int i = 0; i < 256; i++) {
+		state_fio->StateDouble(sound[i].freq);
+		state_fio->StateInt32(sound[i].period);
+		state_fio->StateInt32(sound[i].remain);
+	}		
 	state_fio->StateInt32(sound_ptr);
 	state_fio->StateInt32(sound_count);
 	state_fio->StateUint8(sound_reply);
@@ -1048,7 +878,12 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 	}
 	state_fio->StateInt32(cmt_count);
 	state_fio->StateBuffer(cmt_buffer, sizeof(cmt_buffer), 1);
-	state_fio->StateBuffer(lcd, sizeof(lcd), 1);
+	//state_fio->StateBuffer(lcd, sizeof(lcd), 1);
+	for(int i = 0; i < (sizeof(lcd) / sizeof(lcd_t)); i++) {
+		state_fio->StateBuffer(lcd[i].buffer, 0x80, 1);
+		state_fio->StateInt32(lcd[i].bank);
+		state_fio->StateInt32(lcd[i].addr);
+	}		
 	state_fio->StateUint8(lcd_select);
 	state_fio->StateUint8(lcd_data);
 	state_fio->StateInt32(lcd_clock);
