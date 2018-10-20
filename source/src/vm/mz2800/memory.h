@@ -7,14 +7,14 @@
 	[ memory ]
 */
 
-#ifndef _MEMORY_H_
-#define _MEMORY_H_
+#ifndef _MZ2800_MEMORY_H_
+#define _MZ2800_MEMORY_H_
 
 #include "../vm.h"
 #include "../../emu.h"
 #include "../device.h"
 
-class MEMORY : public DEVICE
+class MZ2800_MEMORY : public DEVICE
 {
 private:
 	DEVICE* d_crtc;
@@ -36,11 +36,11 @@ private:
 	uint8_t vram_bank, dic_bank, kanji_bank;
 	
 public:
-	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MZ2800_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~MEMORY() {}
+	~MZ2800_MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -51,9 +51,7 @@ public:
 	uint32_t read_dma_data8(uint32_t addr);
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unitque functions
 	void set_context_crtc(DEVICE* device)

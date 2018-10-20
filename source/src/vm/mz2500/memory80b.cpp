@@ -48,7 +48,7 @@
 	} \
 }
 
-void MEMORY::initialize()
+void MZ80B_MEMORY::initialize()
 {
 	// memory
 	memset(rdmy, 0xff, sizeof(rdmy));
@@ -94,7 +94,7 @@ void MEMORY::initialize()
 	register_vline_event(this);
 }
 
-void MEMORY::reset()
+void MZ80B_MEMORY::reset()
 {
 	// ipl reset
 	SET_BANK(0x0000, 0x07ff, wdmy, ipl, false);
@@ -105,7 +105,7 @@ void MEMORY::reset()
 	update_vram_map();
 }
 
-void MEMORY::special_reset()
+void MZ80B_MEMORY::special_reset()
 {
 	// reset
 	SET_BANK(0x0000, 0xffff, ram, ram, false);
@@ -114,7 +114,7 @@ void MEMORY::special_reset()
 	update_vram_map();
 }
 
-void MEMORY::write_data8(uint32_t addr, uint32_t data)
+void MZ80B_MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	if(!hblank && is_vram[addr >> 11]) {
@@ -123,7 +123,7 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 	wbank[addr >> 11][addr & 0x7ff] = data;
 }
 
-uint32_t MEMORY::read_data8(uint32_t addr)
+uint32_t MZ80B_MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	if(!hblank && is_vram[addr >> 11]) {
@@ -132,14 +132,14 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 	return rbank[addr >> 11][addr & 0x7ff];
 }
 
-uint32_t MEMORY::fetch_op(uint32_t addr, int *wait)
+uint32_t MZ80B_MEMORY::fetch_op(uint32_t addr, int *wait)
 {
 	addr &= 0xffff;
 	*wait = (ipl_selected && addr < 0x800);
 	return rbank[addr >> 11][addr & 0x7ff];
 }
 
-void MEMORY::write_io8(uint32_t addr, uint32_t data)
+void MZ80B_MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 #ifndef _MZ80B
@@ -197,7 +197,7 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
-void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
+void MZ80B_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MEMORY_VRAM_SEL) {
 		if(vram_sel != (data & mask)) {
@@ -216,7 +216,7 @@ void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
-void MEMORY::event_vline(int v, int clock)
+void MZ80B_MEMORY::event_vline(int v, int clock)
 {
 	if(v == 0) {
 		d_pio->write_signal(SIG_I8255_PORT_B, 1, 1);
@@ -229,7 +229,7 @@ void MEMORY::event_vline(int v, int clock)
 //	}
 }
 
-void MEMORY::event_callback(int event_id, int err)
+void MZ80B_MEMORY::event_callback(int event_id, int err)
 {
 	if(event_id == EVENT_HBLANK) {
 		hblank = true;
@@ -238,14 +238,14 @@ void MEMORY::event_callback(int event_id, int err)
 }
 
 #ifndef _MZ80B
-void MEMORY::update_green_palette()
+void MZ80B_MEMORY::update_green_palette()
 {
 	palette_green[reverse ? 1 : 0] = RGB_COLOR(0, 0, 0);
 	palette_green[reverse ? 0 : 1] = RGB_COLOR(0, 255, 0);
 }
 #endif
 
-void MEMORY::update_vram_map()
+void MZ80B_MEMORY::update_vram_map()
 {
 #ifndef _MZ80B
 	if(vram_sel == 0x80) {
@@ -282,7 +282,7 @@ void MEMORY::update_vram_map()
 #endif
 }
 
-void MEMORY::load_dat_image(const _TCHAR* file_path)
+void MZ80B_MEMORY::load_dat_image(const _TCHAR* file_path)
 {
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(file_path, FILEIO_READ_BINARY)) {
@@ -297,7 +297,7 @@ void MEMORY::load_dat_image(const _TCHAR* file_path)
 	delete fio;
 }
 
-bool MEMORY::load_mzt_image(const _TCHAR* file_path)
+bool MZ80B_MEMORY::load_mzt_image(const _TCHAR* file_path)
 {
 	bool result = false;
 	bool is_mtw = check_file_extension(file_path, _T(".mtw"));
@@ -327,7 +327,7 @@ bool MEMORY::load_mzt_image(const _TCHAR* file_path)
 	return result;
 }
 
-void MEMORY::draw_screen()
+void MZ80B_MEMORY::draw_screen()
 {
 	// render text
 #ifndef _MZ80B
@@ -624,111 +624,7 @@ void MEMORY::draw_screen()
 
 #define STATE_VERSION	3
 
-#include "../../statesub.h"
-
-void MEMORY::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
-	DECL_STATE_ENTRY_1D_ARRAY(vram, sizeof(vram));
-	DECL_STATE_ENTRY_1D_ARRAY(tvram, sizeof(tvram));
-	DECL_STATE_ENTRY_BOOL(ipl_selected);
-	DECL_STATE_ENTRY_UINT8(vram_sel);
-	DECL_STATE_ENTRY_UINT8(vram_page);
-	DECL_STATE_ENTRY_UINT8(back_color);
-	DECL_STATE_ENTRY_UINT8(text_color);
-	DECL_STATE_ENTRY_UINT8(vram_mask);
-	DECL_STATE_ENTRY_BOOL(width80);
-	DECL_STATE_ENTRY_BOOL(reverse);
-	DECL_STATE_ENTRY_BOOL(vgate);
-	DECL_STATE_ENTRY_BOOL(hblank);
-#ifdef _MZ80B
-	DECL_STATE_ENTRY_1D_ARRAY(pio3039_palette, sizeof(pio3039_palette));
-	DECL_STATE_ENTRY_BOOL(pio3039_txt_sw);
-	DECL_STATE_ENTRY_UINT8(pio3039_data);
-#endif
-	leave_decl_state();
-}
-
-void MEMORY::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(ram, sizeof(ram), 1);
-//	state_fio->Fwrite(vram, sizeof(vram), 1);
-//	state_fio->Fwrite(tvram, sizeof(tvram), 1);
-//	state_fio->FputBool(ipl_selected);
-//	state_fio->FputUint8(vram_sel);
-//	state_fio->FputUint8(vram_page);
-//	state_fio->FputUint8(back_color);
-//	state_fio->FputUint8(text_color);
-//	state_fio->FputUint8(vram_mask);
-//	state_fio->FputBool(width80);
-//	state_fio->FputBool(reverse);
-//	state_fio->FputBool(vgate);
-//	state_fio->FputBool(hblank);
-//#ifdef _MZ80B
-//	state_fio->Fwrite(pio3039_palette, sizeof(pio3039_palette), 1);
-//	state_fio->FputBool(pio3039_txt_sw);
-//	state_fio->FputUint8(pio3039_data);
-//#endif
-}
-
-bool MEMORY::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(ram, sizeof(ram), 1);
-//	state_fio->Fread(vram, sizeof(vram), 1);
-//	state_fio->Fread(tvram, sizeof(tvram), 1);
-//	ipl_selected = state_fio->FgetBool();
-//	vram_sel = state_fio->FgetUint8();
-//	vram_page = state_fio->FgetUint8();
-//	back_color = state_fio->FgetUint8();
-//	text_color = state_fio->FgetUint8();
-//	vram_mask = state_fio->FgetUint8();
-//	width80 = state_fio->FgetBool();
-//	reverse = state_fio->FgetBool();
-//	vgate = state_fio->FgetBool();
-//	hblank = state_fio->FgetBool();
-//#ifdef _MZ80B
-//	state_fio->Fread(pio3039_palette, sizeof(pio3039_palette), 1);
-//	pio3039_txt_sw = state_fio->FgetBool();
-//	pio3039_data = state_fio->FgetUint8();
-//#endif
-	
-	// post process
-	if(ipl_selected) {
-		SET_BANK(0x0000, 0x07ff, wdmy, ipl, false);
-		SET_BANK(0x0800, 0x7fff, wdmy, rdmy, false);
-		SET_BANK(0x8000, 0xffff, ram, ram, false);
-	} else {
-		SET_BANK(0x0000, 0xffff, ram, ram, false);
-	}
-	update_vram_map();
-#ifndef _MZ80B
-	update_green_palette();
-#endif
-	return true;
-}
-
-bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool MZ80B_MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;

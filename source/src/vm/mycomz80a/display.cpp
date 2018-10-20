@@ -211,62 +211,6 @@ void DISPLAY::draw_80column()
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void DISPLAY::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_BOOL(chr);
-	DECL_STATE_ENTRY_BOOL(wide);
-	DECL_STATE_ENTRY_UINT16(cursor);
-	DECL_STATE_ENTRY_UINT16(cblink);
-	DECL_STATE_ENTRY_1D_ARRAY(vram, sizeof(vram));
-	DECL_STATE_ENTRY_UINT16(vram_addr);
-	
-	leave_decl_state();
-}
-
-void DISPLAY::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->FputBool(chr);
-//	state_fio->FputBool(wide);
-//	state_fio->FputUint16(cursor);
-//	state_fio->FputUint16(cblink);
-//	state_fio->Fwrite(vram, sizeof(vram), 1);
-//	state_fio->FputUint16(vram_addr);
-}
-
-bool DISPLAY::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	chr = state_fio->FgetBool();
-//	wide = state_fio->FgetBool();
-//	cursor = state_fio->FgetUint16();
-//	cblink = state_fio->FgetUint16();
-//	state_fio->Fread(vram, sizeof(vram), 1);
-//	vram_addr = state_fio->FgetUint16();
-	return true;
-}
-
 bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {

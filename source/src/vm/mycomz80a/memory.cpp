@@ -30,7 +30,7 @@
 	} \
 }
 
-void MEMORY::initialize()
+void MYCOMZ80_MEMORY::initialize()
 {
 	// init memory
 	memset(ram, 0, sizeof(ram));
@@ -54,26 +54,26 @@ void MEMORY::initialize()
 	SET_BANK_R(0x0000, 0xffff, ram);
 }
 
-void MEMORY::reset()
+void MYCOMZ80_MEMORY::reset()
 {
 	addr_mask = 0xc000;
 	rom_sel = true;
 	update_memory_map();
 }
 
-void MEMORY::write_data8(uint32_t addr, uint32_t data)
+void MYCOMZ80_MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr = (addr & 0xffff) | addr_mask;
 	wbank[addr >> 12][addr & 0xfff] = data;
 }
 
-uint32_t MEMORY::read_data8(uint32_t addr)
+uint32_t MYCOMZ80_MEMORY::read_data8(uint32_t addr)
 {
 	addr = (addr & 0xffff) | addr_mask;
 	return rbank[addr >> 12][addr & 0xfff];
 }
 
-void MEMORY::write_io8(uint32_t addr, uint32_t data)
+void MYCOMZ80_MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	// $00: system control
 	switch(data) {
@@ -94,7 +94,7 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
-void MEMORY::update_memory_map()
+void MYCOMZ80_MEMORY::update_memory_map()
 {
 	if(rom_sel) {
 		SET_BANK_R(0xc000, 0xefff, bios);
@@ -106,57 +106,7 @@ void MEMORY::update_memory_map()
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void MEMORY::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
-	DECL_STATE_ENTRY_UINT32(addr_mask);
-	DECL_STATE_ENTRY_BOOL(rom_sel);
-
-	leave_decl_state();
-}
-
-void MEMORY::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(ram, sizeof(ram), 1);
-//	state_fio->FputUint32(addr_mask);
-//	state_fio->FputBool(rom_sel);
-}
-
-bool MEMORY::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(ram, sizeof(ram), 1);
-//	addr_mask = state_fio->FgetUint32();
-//	rom_sel = state_fio->FgetBool();
-	
-	// post process
-	update_memory_map();
-	return true;
-}
-
-bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool MYCOMZ80_MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;

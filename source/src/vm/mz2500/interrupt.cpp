@@ -172,68 +172,6 @@ void INTERRUPT::notify_intr_reti()
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void INTERRUPT::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_UINT8(select);
-	{
-		DECL_STATE_ENTRY_UINT8_STRIDE((irq[0].vector),    4, sizeof(irq[0]));
-		DECL_STATE_ENTRY_BOOL_STRIDE((irq[0].enb_intr),   4, sizeof(irq[0]));
-		DECL_STATE_ENTRY_BOOL_STRIDE((irq[0].req_intr),   4, sizeof(irq[0]));
-		DECL_STATE_ENTRY_BOOL_STRIDE((irq[0].in_service), 4, sizeof(irq[0]));
-	}
-	DECL_STATE_ENTRY_INT32(req_intr_ch);
-	DECL_STATE_ENTRY_BOOL(iei);
-	DECL_STATE_ENTRY_BOOL(oei);
-	DECL_STATE_ENTRY_UINT32(intr_bit);
-	
-	leave_decl_state();
-}
-
-
-void INTERRUPT::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->FputUint8(select);
-//	state_fio->Fwrite(irq, sizeof(irq), 1);
-//	state_fio->FputInt32(req_intr_ch);
-//	state_fio->FputBool(iei);
-//	state_fio->FputBool(oei);
-//	state_fio->FputUint32(intr_bit);
-}
-
-bool INTERRUPT::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	select = state_fio->FgetUint8();
-//	state_fio->Fread(irq, sizeof(irq), 1);
-//	req_intr_ch = state_fio->FgetInt32();
-//	iei = state_fio->FgetBool();
-//	oei = state_fio->FgetBool();
-//	intr_bit = state_fio->FgetUint32();
-	return true;
-}
-
 bool INTERRUPT::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
@@ -243,7 +181,13 @@ bool INTERRUPT::process_state(FILEIO* state_fio, bool loading)
 		return false;
 	}
 	state_fio->StateUint8(select);
-	state_fio->StateBuffer(irq, sizeof(irq), 1);
+	//state_fio->StateBuffer(irq, sizeof(irq), 1);
+	for(int i = 0; i < 4; i++) {
+		state_fio->StateUint8(irq[i].vector);
+		state_fio->StateBool(irq[i].enb_intr);
+		state_fio->StateBool(irq[i].req_intr);
+		state_fio->StateBool(irq[i].in_service);
+	}
 	state_fio->StateInt32(req_intr_ch);
 	state_fio->StateBool(iei);
 	state_fio->StateBool(oei);

@@ -53,47 +53,6 @@ uint32_t JOYSTICK::read_io8(uint32_t addr)
 
 #define STATE_VERSION	2
 
-#include "../../statesub.h"
-
-void JOYSTICK::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_UINT32(mode);
-	
-	leave_decl_state();
-}
-
-void JOYSTICK::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->FputUint32(mode);
-}
-
-bool JOYSTICK::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	mode = state_fio->FgetUint32();
-	return true;
-}
-
 bool JOYSTICK::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {

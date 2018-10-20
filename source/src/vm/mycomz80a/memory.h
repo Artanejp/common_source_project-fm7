@@ -14,7 +14,7 @@
 #include "../../emu.h"
 #include "../device.h"
 
-class MEMORY : public DEVICE
+class MYCOMZ80_MEMORY : public DEVICE
 {
 private:
 	uint8_t* rbank[16];
@@ -31,11 +31,11 @@ private:
 	void update_memory_map();
 	
 public:
-	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MYCOMZ80_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~MEMORY() {}
+	~MYCOMZ80_MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -43,9 +43,7 @@ public:
 	void write_data8(uint32_t addr, uint32_t data);
 	uint32_t read_data8(uint32_t addr);
 	void write_io8(uint32_t addr, uint32_t data);
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 };
 
 #endif

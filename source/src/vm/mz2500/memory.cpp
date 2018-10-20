@@ -31,7 +31,7 @@
 	} \
 }
 
-void MEMORY::initialize()
+void MZ2500_MEMORY::initialize()
 {
 	// init memory
 	memset(ram, 0, sizeof(ram));
@@ -67,7 +67,7 @@ void MEMORY::initialize()
 
 // NOTE: IPL reset is done at system boot
 
-void MEMORY::reset()
+void MZ2500_MEMORY::reset()
 {
 	// ipl reset
 	bank = 0;
@@ -85,7 +85,7 @@ void MEMORY::reset()
 	extra_wait = 0;
 }
 
-void MEMORY::special_reset()
+void MZ2500_MEMORY::special_reset()
 {
 	// reset
 	bank = 0;
@@ -103,7 +103,7 @@ void MEMORY::special_reset()
 	extra_wait = 0;
 }
 
-void MEMORY::write_data8_tmp(int b, uint32_t addr, uint32_t data)
+void MZ2500_MEMORY::write_data8_tmp(int b, uint32_t addr, uint32_t data)
 {
 	if(is_vram[b] && !blank) {
 		// vram wait
@@ -126,7 +126,7 @@ void MEMORY::write_data8_tmp(int b, uint32_t addr, uint32_t data)
 	wbank[addr >> 11][addr & 0x7ff] = data;
 }
 
-uint32_t MEMORY::read_data8_tmp(int b, uint32_t addr)
+uint32_t MZ2500_MEMORY::read_data8_tmp(int b, uint32_t addr)
 {
 	if(is_vram[b] && !blank) {
 		// vram wait
@@ -149,21 +149,21 @@ uint32_t MEMORY::read_data8_tmp(int b, uint32_t addr)
 }
 
 
-void MEMORY::write_data8(uint32_t addr, uint32_t data)
+void MZ2500_MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	int b = addr >> 13;
 	write_data8_tmp(b, addr, data);
 }
 
-uint32_t MEMORY::read_data8(uint32_t addr)
+uint32_t MZ2500_MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	int b = addr >> 13;
 	return read_data8_tmp(b, addr);
 }
 
-void MEMORY::write_data8w(uint32_t addr, uint32_t data, int* wait)
+void MZ2500_MEMORY::write_data8w(uint32_t addr, uint32_t data, int* wait)
 {
 	addr &= 0xffff;
 	int b = addr >> 13;
@@ -178,7 +178,7 @@ void MEMORY::write_data8w(uint32_t addr, uint32_t data, int* wait)
 	}
 }
 
-uint32_t MEMORY::read_data8w(uint32_t addr, int* wait)
+uint32_t MZ2500_MEMORY::read_data8w(uint32_t addr, int* wait)
 {
 	addr &= 0xffff;
 	int b = addr >> 13;
@@ -194,13 +194,13 @@ uint32_t MEMORY::read_data8w(uint32_t addr, int* wait)
 	return data;
 }
 
-uint32_t MEMORY::fetch_op(uint32_t addr, int* wait)
+uint32_t MZ2500_MEMORY::fetch_op(uint32_t addr, int* wait)
 {
 	*wait = 1;
 	return read_data8(addr);
 }
 
-void MEMORY::write_io8(uint32_t addr, uint32_t data)
+void MZ2500_MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xb4:
@@ -236,7 +236,7 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t MEMORY::read_io8(uint32_t addr)
+uint32_t MZ2500_MEMORY::read_io8(uint32_t addr)
 {
 	switch(addr & 0xff) {
 	case 0xb4:
@@ -251,7 +251,7 @@ uint32_t MEMORY::read_io8(uint32_t addr)
 	return 0xff;
 }
 
-void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
+void MZ2500_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MEMORY_HBLANK) {
 		hblank = ((data & mask) != 0);
@@ -268,7 +268,7 @@ void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 	blank = next;
 }
 
-void MEMORY::set_map(uint8_t data)
+void MZ2500_MEMORY::set_map(uint8_t data)
 {
 	int base = bank * 0x2000;
 	
@@ -330,89 +330,8 @@ void MEMORY::set_map(uint8_t data)
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
 
-void MEMORY::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
-	DECL_STATE_ENTRY_1D_ARRAY(vram, sizeof(vram));
-	DECL_STATE_ENTRY_1D_ARRAY(tvram, sizeof(tvram));
-	DECL_STATE_ENTRY_1D_ARRAY(pcg, sizeof(pcg));
-	DECL_STATE_ENTRY_UINT8(bank);
-	DECL_STATE_ENTRY_1D_ARRAY(page, sizeof(page));
-	DECL_STATE_ENTRY_UINT8(dic_bank);
-	DECL_STATE_ENTRY_UINT8(kanji_bank);
-	DECL_STATE_ENTRY_BOOL(blank);
-	DECL_STATE_ENTRY_BOOL(hblank);
-	DECL_STATE_ENTRY_BOOL(vblank);
-	DECL_STATE_ENTRY_BOOL(busreq);
-	
-	leave_decl_state();
-}
-
-void MEMORY::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(ram, sizeof(ram), 1);
-//	state_fio->Fwrite(vram, sizeof(vram), 1);
-//	state_fio->Fwrite(tvram, sizeof(tvram), 1);
-//	state_fio->Fwrite(pcg, sizeof(pcg), 1);
-//	state_fio->FputUint8(bank);
-//	state_fio->Fwrite(page, sizeof(page), 1);
-//	state_fio->FputUint8(dic_bank);
-//	state_fio->FputUint8(kanji_bank);
-//	state_fio->FputBool(blank);
-//	state_fio->FputBool(hblank);
-//	state_fio->FputBool(vblank);
-//	state_fio->FputBool(busreq);
-}
-
-bool MEMORY::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(ram, sizeof(ram), 1);
-//	state_fio->Fread(vram, sizeof(vram), 1);
-//	state_fio->Fread(tvram, sizeof(tvram), 1);
-//	state_fio->Fread(pcg, sizeof(pcg), 1);
-//	bank = state_fio->FgetUint8();
-//	state_fio->Fread(page, sizeof(page), 1);
-//	dic_bank = state_fio->FgetUint8();
-//	kanji_bank = state_fio->FgetUint8();
-//	blank = state_fio->FgetBool();
-//	hblank = state_fio->FgetBool();
-//	vblank = state_fio->FgetBool();
-//	busreq = state_fio->FgetBool();
-	
-	// post process
-	uint8_t bank_tmp = bank;
-	bank = 0;
-	for(int i = 0; i < 8; i++) {
-		set_map(page[i]);
-	}
-	bank = bank_tmp;
-	return true;
-}
-
-bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool MZ2500_MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;

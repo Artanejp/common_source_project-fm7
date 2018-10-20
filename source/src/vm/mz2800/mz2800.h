@@ -82,7 +82,7 @@ class CRTC;
 class FLOPPY;
 class JOYSTICK;
 class KEYBOARD;
-class MEMORY;
+class MZ2800_MEMORY;
 class MOUSE;
 class PRINTER;
 class RESET;
@@ -119,7 +119,7 @@ protected:
 	FLOPPY* floppy;
 	JOYSTICK* joystick;
 	KEYBOARD* keyboard;
-	MEMORY* memory;
+	MZ2800_MEMORY* memory;
 	MOUSE* mouse;
 	PRINTER* printer;
 	RESET* rst;
@@ -174,9 +174,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

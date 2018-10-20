@@ -97,7 +97,7 @@ class FLOPPY;
 class INTERRUPT;
 class JOYSTICK;
 class KEYBOARD;
-class MEMORY;
+class MZ2500_MEMORY;
 class MOUSE;
 class MZ1E26;
 class MZ1E30;
@@ -138,7 +138,7 @@ protected:
 	INTERRUPT* interrupt;
 	JOYSTICK* joystick;
 	KEYBOARD* keyboard;
-	MEMORY* memory;
+	MZ2500_MEMORY* memory;
 	MOUSE* mouse;
 	MZ1E26* mz1e26;
 	MZ1E30* mz1e30;
@@ -222,9 +222,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

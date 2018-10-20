@@ -219,58 +219,6 @@ void KEYBOARD::event_frame()
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void KEYBOARD::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_FIFO(key_buf);
-	DECL_STATE_ENTRY_INT32(key_code);
-	DECL_STATE_ENTRY_BOOL(kana);
-	DECL_STATE_ENTRY_INT32(event_cnt);
-	
-	leave_decl_state();
-}
-
-void KEYBOARD::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	key_buf->save_state((void *)state_fio);
-//	state_fio->FputInt32(key_code);
-//	state_fio->FputBool(kana);
-//	state_fio->FputInt32(event_cnt);
-}
-
-bool KEYBOARD::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	if(!key_buf->load_state((void *)state_fio)) {
-//		return false;
-//	}
-//	key_code = state_fio->FgetInt32();
-//	kana = state_fio->FgetBool();
-//	event_cnt = state_fio->FgetInt32();
-	return true;
-}
-
 bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {

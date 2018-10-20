@@ -7,7 +7,7 @@
 	[ memory ]
 */
 
-#include "memory.h"
+#include "./memory.h"
 
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 11, eb = (e) >> 11; \
@@ -25,7 +25,7 @@
 	} \
 }
 
-void MEMORY::initialize()
+void MZ2800_MEMORY::initialize()
 {
 	// init memory
 	memset(ram, 0, sizeof(ram));
@@ -61,7 +61,7 @@ void MEMORY::initialize()
 	delete fio;
 }
 
-void MEMORY::reset()
+void MZ2800_MEMORY::reset()
 {
 	SET_BANK(0x000000, 0x0bffff, ram, ram);
 	SET_BANK(0x0c0000, 0x0dffff, vram, vram);
@@ -79,7 +79,7 @@ void MEMORY::reset()
 	vram_bank = dic_bank = kanji_bank = 0;
 }
 
-void MEMORY::write_data8(uint32_t addr, uint32_t data)
+void MZ2800_MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	if((addr & 0xfc0000) == 0x80000) {
 		write_dma_data8((addr & 0x3ffff) | mem_window, data);
@@ -90,7 +90,7 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t MEMORY::read_data8(uint32_t addr)
+uint32_t MZ2800_MEMORY::read_data8(uint32_t addr)
 {
 	if((addr & 0xfc0000) == 0x80000) {
 		return read_dma_data8((addr & 0x3ffff) | mem_window);
@@ -101,17 +101,17 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 	}
 }
 
-void MEMORY::write_dma_data8(uint32_t addr, uint32_t data)
+void MZ2800_MEMORY::write_dma_data8(uint32_t addr, uint32_t data)
 {
 	wbank[addr >> 11][addr & 0x7ff] = data;
 }
 
-uint32_t MEMORY::read_dma_data8(uint32_t addr)
+uint32_t MZ2800_MEMORY::read_dma_data8(uint32_t addr)
 {
 	return rbank[addr >> 11][addr & 0x7ff];
 }
 
-void MEMORY::write_io8(uint32_t addr, uint32_t data)
+void MZ2800_MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0x7fff) {
 	case 0x8c:
@@ -160,7 +160,7 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t MEMORY::read_io8(uint32_t addr)
+uint32_t MZ2800_MEMORY::read_io8(uint32_t addr)
 {
 	switch(addr & 0x7fff) {
 	case 0x8c:
@@ -177,94 +177,7 @@ uint32_t MEMORY::read_io8(uint32_t addr)
 
 #define STATE_VERSION	2
 
-#include "../../statesub.h"
-
-void MEMORY::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
-	DECL_STATE_ENTRY_1D_ARRAY(ext, sizeof(ext));
-	DECL_STATE_ENTRY_1D_ARRAY(vram, sizeof(vram));
-	DECL_STATE_ENTRY_1D_ARRAY(tvram, sizeof(tvram));
-	DECL_STATE_ENTRY_1D_ARRAY(pcg, sizeof(pcg));
-	DECL_STATE_ENTRY_UINT32(mem_window);
-	DECL_STATE_ENTRY_UINT8(vram_bank);
-	DECL_STATE_ENTRY_UINT8(dic_bank);
-	DECL_STATE_ENTRY_UINT8(kanji_bank);
-
-	leave_decl_state();
-}
-
-void MEMORY::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(ram, sizeof(ram), 1);
-//	state_fio->Fwrite(ext, sizeof(ext), 1);
-//	state_fio->Fwrite(vram, sizeof(vram), 1);
-//	state_fio->Fwrite(tvram, sizeof(tvram), 1);
-//	state_fio->Fwrite(pcg, sizeof(pcg), 1);
-//	state_fio->FputUint32(mem_window);
-//	state_fio->FputUint8(vram_bank);
-//	state_fio->FputUint8(dic_bank);
-//	state_fio->FputUint8(kanji_bank);
-}
-
-bool MEMORY::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(ram, sizeof(ram), 1);
-//	state_fio->Fread(ext, sizeof(ext), 1);
-//	state_fio->Fread(vram, sizeof(vram), 1);
-//	state_fio->Fread(tvram, sizeof(tvram), 1);
-//	state_fio->Fread(pcg, sizeof(pcg), 1);
-//	mem_window = state_fio->FgetUint32();
-//	vram_bank = state_fio->FgetUint8();
-//	dic_bank = state_fio->FgetUint8();
-//	kanji_bank = state_fio->FgetUint8();
-	
-	// post process
-	if(vram_bank == 4) {
-		SET_BANK(0x0c0000, 0x0dffff, vram + 0x00000, vram + 0x00000);
-	} else if(vram_bank == 5) {
-		SET_BANK(0x0c0000, 0x0dffff, vram + 0x20000, vram + 0x20000);
-	} else if(vram_bank == 6) {
-		SET_BANK(0x0c0000, 0x0dffff, vram + 0x40000, vram + 0x40000);
-	} else if(vram_bank == 7) {
-		SET_BANK(0x0c0000, 0x0dffff, vram + 0x60000, vram + 0x60000);
-	} else {
-		SET_BANK(0x0c0000, 0x0dffff, vram + 0x00000, vram + 0x00000);
-	}
-	SET_BANK(0x0e0000, 0x0effff, wdmy, dic + ((dic_bank & 0x18) >> 3) * 0x10000);
-	if(kanji_bank & 0x80) {
-		SET_BANK(0x0f0000, 0x0f0fff, wdmy, kanji + 0x1000 * (kanji_bank & 0x7f));
-	} else {
-		SET_BANK(0x0f0000, 0x0f0fff, pcg, pcg);
-	}
-	SET_BANK(0x0f1000, 0x0f3fff, pcg + 0x1000, pcg + 0x1000);
-	SET_BANK(0x0f4000, 0x0f5fff, tvram, tvram);
-	SET_BANK(0x0f6000, 0x0f7fff, tvram, tvram);
-	return true;
-}
-
-bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool MZ2800_MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;

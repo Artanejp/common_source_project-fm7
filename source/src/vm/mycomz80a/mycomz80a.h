@@ -70,7 +70,7 @@ class Z80;
 
 class DISPLAY;
 class KEYBOARD;
-class MEMORY;
+class MYCOMZ80_MEMORY;
 
 class VM : public VM_TEMPLATE
 {
@@ -93,7 +93,7 @@ protected:
 	
 	DISPLAY* display;
 	KEYBOARD* keyboard;
-	MEMORY* memory;
+	MYCOMZ80_MEMORY* memory;
 	
 public:
 	// ----------------------------------------
@@ -152,9 +152,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

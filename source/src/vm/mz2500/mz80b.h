@@ -103,7 +103,7 @@ class Z80PIO;
 class CMT;
 class FLOPPY;
 class KEYBOARD;
-class MEMORY;
+class MZ80B_MEMORY;
 class MZ1R12;
 class MZ1R13;
 class PRINTER;
@@ -141,7 +141,7 @@ protected:
 	CMT* cmt;
 	FLOPPY* floppy;
 	KEYBOARD* keyboard;
-	MEMORY* memory;
+	MZ80B_MEMORY* memory;
 	MZ1R12* mz1r12;
 	MZ1R13* mz1r13;
 	PRINTER* printer;
@@ -222,9 +222,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device
