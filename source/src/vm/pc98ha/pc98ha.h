@@ -97,7 +97,7 @@ class BIOS;
 class CALENDAR;
 class FLOPPY;
 class KEYBOARD;
-class MEMORY;
+class PC98LT_MEMORY;
 class NOTE;
 
 class VM : public VM_TEMPLATE
@@ -136,7 +136,7 @@ protected:
 	CALENDAR* calendar;
 	FLOPPY* floppy;
 	KEYBOARD* keyboard;
-	MEMORY* memory;
+	PC98LT_MEMORY* memory;
 	NOTE* note;
 	
 public:
@@ -187,9 +187,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

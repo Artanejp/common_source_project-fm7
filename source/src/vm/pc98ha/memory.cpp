@@ -8,7 +8,7 @@
 	[ memory ]
 */
 
-#include "memory.h"
+#include "./memory.h"
 
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 14, eb = (e) >> 14; \
@@ -26,7 +26,7 @@
 	} \
 }
 
-void MEMORY::initialize()
+void PC98LT_MEMORY::initialize()
 {
 	// init memory
 	memset(ram, 0, sizeof(ram));
@@ -87,7 +87,7 @@ void MEMORY::initialize()
 #endif
 }
 
-void MEMORY::release()
+void PC98LT_MEMORY::release()
 {
 	// save ram images
 	FILEIO* fio = new FILEIO();
@@ -114,7 +114,7 @@ void MEMORY::release()
 	delete fio;
 }
 
-void MEMORY::reset()
+void PC98LT_MEMORY::reset()
 {
 	// set memory bank
 	learn_bank = dic_bank = kanji_bank = romdrv_bank = 0;
@@ -126,7 +126,7 @@ void MEMORY::reset()
 	update_bank();
 }
 
-void MEMORY::write_data8(uint32_t addr, uint32_t data)
+void PC98LT_MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xfffff;
 	wbank[addr >> 14][addr & 0x3fff] = data;
@@ -138,13 +138,13 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 #endif
 }
 
-uint32_t MEMORY::read_data8(uint32_t addr)
+uint32_t PC98LT_MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xfffff;
 	return rbank[addr >> 14][addr & 0x3fff];
 }
 
-void MEMORY::write_io8(uint32_t addr, uint32_t data)
+void PC98LT_MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xffff) {
 #ifdef _PC98HA
@@ -205,7 +205,7 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t MEMORY::read_io8(uint32_t addr)
+uint32_t PC98LT_MEMORY::read_io8(uint32_t addr)
 {
 	switch(addr & 0xffff) {
 	case 0x0c10:
@@ -220,7 +220,7 @@ uint32_t MEMORY::read_io8(uint32_t addr)
 	return 0xff;
 }
 
-void MEMORY::update_bank()
+void PC98LT_MEMORY::update_bank()
 {
 	SET_BANK(0x00000, 0xfffff, wdmy, rdmy);
 	
@@ -253,7 +253,7 @@ void MEMORY::update_bank()
 	SET_BANK(0xf0000, 0xfffff, wdmy, ipl);
 }
 
-void MEMORY::draw_screen()
+void PC98LT_MEMORY::draw_screen()
 {
 	// draw to real screen
 	scrntype_t cd = RGB_COLOR(48, 56, 16);
@@ -278,114 +278,7 @@ void MEMORY::draw_screen()
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void MEMORY::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
-	DECL_STATE_ENTRY_1D_ARRAY(vram, sizeof(vram));
-	DECL_STATE_ENTRY_1D_ARRAY(learn, sizeof(learn));
-#ifdef _PC98HA
-	DECL_STATE_ENTRY_1D_ARRAY(ramdrv, sizeof(ramdrv));
-	DECL_STATE_ENTRY_1D_ARRAY(ems, sizeof(ems));
-	DECL_STATE_ENTRY_1D_ARRAY(memcard, sizeof(memcard));
-#endif
-	DECL_STATE_ENTRY_UINT32(learn_crc32);
-#ifdef _PC98HA
-	DECL_STATE_ENTRY_UINT32(ramdrv_crc32);
-	DECL_STATE_ENTRY_UINT32(memcard_crc32);
-#endif
-	DECL_STATE_ENTRY_UINT8(learn_bank);
-	DECL_STATE_ENTRY_UINT8(dic_bank);
-	DECL_STATE_ENTRY_UINT8(kanji_bank);
-	DECL_STATE_ENTRY_UINT8(romdrv_bank);
-#ifdef _PC98HA
-	DECL_STATE_ENTRY_UINT8(ramdrv_bank);
-	DECL_STATE_ENTRY_UINT8(ramdrv_sel);
-	DECL_STATE_ENTRY_1D_ARRAY(ems_bank, sizeof(ems_bank));
-#endif
-
-	leave_decl_state();
-}
-
-void MEMORY::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(ram, sizeof(ram), 1);
-//	state_fio->Fwrite(vram, sizeof(vram), 1);
-//	state_fio->Fwrite(learn, sizeof(learn), 1);
-//#ifdef _PC98HA
-//	state_fio->Fwrite(ramdrv, sizeof(ramdrv), 1);
-//	state_fio->Fwrite(ems, sizeof(ems), 1);
-//	state_fio->Fwrite(memcard, sizeof(memcard), 1);
-//#endif
-//	state_fio->FputUint32(learn_crc32);
-//#ifdef _PC98HA
-//	state_fio->FputUint32(ramdrv_crc32);
-//	state_fio->FputUint32(memcard_crc32);
-//#endif
-//	state_fio->FputUint8(learn_bank);
-//	state_fio->FputUint8(dic_bank);
-//	state_fio->FputUint8(kanji_bank);
-//	state_fio->FputUint8(romdrv_bank);
-//#ifdef _PC98HA
-//	state_fio->FputUint8(ramdrv_bank);
-//	state_fio->FputUint8(ramdrv_sel);
-//	state_fio->Fwrite(ems_bank, sizeof(ems_bank), 1);
-//#endif
-}
-
-bool MEMORY::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(ram, sizeof(ram), 1);
-//	state_fio->Fread(vram, sizeof(vram), 1);
-//	state_fio->Fread(learn, sizeof(learn), 1);
-//#ifdef _PC98HA
-//	state_fio->Fread(ramdrv, sizeof(ramdrv), 1);
-//	state_fio->Fread(ems, sizeof(ems), 1);
-//	state_fio->Fread(memcard, sizeof(memcard), 1);
-//#endif
-//	learn_crc32 = state_fio->FgetUint32();
-//#ifdef _PC98HA
-//	ramdrv_crc32 = state_fio->FgetUint32();
-//	memcard_crc32 = state_fio->FgetUint32();
-//#endif
-//	learn_bank = state_fio->FgetUint8();
-//	dic_bank = state_fio->FgetUint8();
-//	kanji_bank = state_fio->FgetUint8();
-//	romdrv_bank = state_fio->FgetUint8();
-//#ifdef _PC98HA
-//	ramdrv_bank = state_fio->FgetUint8();
-//	ramdrv_sel = state_fio->FgetUint8();
-//	state_fio->Fread(ems_bank, sizeof(ems_bank), 1);
-//#endif
-	
-	// post process
-	update_bank();
-	return true;
-}
-
-bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool PC98LT_MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
