@@ -94,7 +94,7 @@ class DISPLAY;
 class IOBUS;
 class IOTRAP;
 class KEYBOARD;
-class MEMORY;
+class PASOPIA7_MEMORY;
 class PAC2;
 
 class VM : public VM_TEMPLATE
@@ -127,7 +127,7 @@ protected:
 	IOBUS* iobus;
 	IOTRAP* iotrap;
 	KEYBOARD* key;
-	MEMORY* memory;
+	PASOPIA7_MEMORY* memory;
 	PAC2* pac2;
 	
 public:
@@ -189,9 +189,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

@@ -68,7 +68,7 @@ class UPD765A;
 class DISPLAY;
 class FLOPPY;
 class KEYBOARD;
-class MEMORY;
+class N5200_MEMORY;
 class SYSTEM;
 
 class VM : public VM_TEMPLATE
@@ -97,7 +97,7 @@ protected:
 	DISPLAY* display;
 	FLOPPY* floppy;
 	KEYBOARD* keyboard;
-	MEMORY* memory;
+	N5200_MEMORY* memory;
 	SYSTEM* system;
 	
 public:

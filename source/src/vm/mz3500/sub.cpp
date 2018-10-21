@@ -569,62 +569,6 @@ void SUB::draw_gfx_200line_8bit()
 
 #define STATE_VERSION	3
 
-#include "../../statesub.h"
-
-void SUB::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
-	DECL_STATE_ENTRY_1D_ARRAY(vram_chr, sizeof(vram_chr));
-	DECL_STATE_ENTRY_1D_ARRAY(vram_gfx, sizeof(vram_gfx));
-	DECL_STATE_ENTRY_1D_ARRAY(disp, sizeof(disp));
-	DECL_STATE_ENTRY_INT32(cblink);
-	DECL_STATE_ENTRY_BOOL(crt_400line);
-	
-	leave_decl_state();
-}
-
-void SUB::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(ram, sizeof(ram), 1);
-//	state_fio->Fwrite(vram_chr, sizeof(vram_chr), 1);
-//	state_fio->Fwrite(vram_gfx, sizeof(vram_gfx), 1);
-//	state_fio->Fwrite(disp, sizeof(disp), 1);
-//	state_fio->FputInt32(cblink);
-//	state_fio->FputBool(crt_400line);
-}
-
-bool SUB::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(ram, sizeof(ram), 1);
-//	state_fio->Fread(vram_chr, sizeof(vram_chr), 1);
-//	state_fio->Fread(vram_gfx, sizeof(vram_gfx), 1);
-//	state_fio->Fread(disp, sizeof(disp), 1);
-//	cblink = state_fio->FgetInt32();
-//	crt_400line = state_fio->FgetBool();
-	return true;
-}
-
 bool SUB::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {

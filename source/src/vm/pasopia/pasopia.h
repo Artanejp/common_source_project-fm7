@@ -103,7 +103,7 @@ class Z80PIO;
 class FLOPPY;
 class DISPLAY;
 class KEYBOARD;
-class MEMORY;
+class PASOPIA_MEMORY;
 class PAC2;
 
 class VM : public VM_TEMPLATE
@@ -132,7 +132,7 @@ protected:
 	FLOPPY* floppy;
 	DISPLAY* display;
 	KEYBOARD* key;
-	MEMORY* memory;
+	PASOPIA_MEMORY* memory;
 	PAC2* pac2;
 	
 	int boot_mode;
@@ -196,9 +196,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

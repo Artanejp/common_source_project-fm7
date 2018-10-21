@@ -310,86 +310,6 @@ void CRTC::update_palette(int num)
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void CRTC::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_SCRNTYPE_T_1D_ARRAY(palette_pc, 16);
-	DECL_STATE_ENTRY_1D_ARRAY(palette, 16);
-	DECL_STATE_ENTRY_UINT8(sel);
-	DECL_STATE_ENTRY_1D_ARRAY(regs, sizeof(regs));
-	DECL_STATE_ENTRY_UINT16(vs);
-	DECL_STATE_ENTRY_UINT16(cmd);
-	DECL_STATE_ENTRY_1D_ARRAY(vram, sizeof(vram));
-	DECL_STATE_ENTRY_UINT32(shift);
-	DECL_STATE_ENTRY_UINT32(maskl);
-	DECL_STATE_ENTRY_UINT32(maskh);
-	DECL_STATE_ENTRY_UINT32(busl);
-	DECL_STATE_ENTRY_UINT32(bush);
-	DECL_STATE_ENTRY_UINT32(write_plane);
-	DECL_STATE_ENTRY_UINT32(read_plane);
-	
-	leave_decl_state();
-}
-	
-void CRTC::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(palette_pc, sizeof(palette_pc), 1);
-//	state_fio->Fwrite(palette, sizeof(palette), 1);
-//	state_fio->FputUint8(sel);
-//	state_fio->Fwrite(regs, sizeof(regs), 1);
-//	state_fio->FputUint16(vs);
-//	state_fio->FputUint16(cmd);
-//	state_fio->Fwrite(vram, sizeof(vram), 1);
-//	state_fio->FputUint32(shift);
-//	state_fio->FputUint32(maskl);
-//	state_fio->FputUint32(maskh);
-//	state_fio->FputUint32(busl);
-//	state_fio->FputUint32(bush);
-//	state_fio->FputUint32(write_plane);
-//	state_fio->FputUint32(read_plane);
-}
-
-bool CRTC::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(palette_pc, sizeof(palette_pc), 1);
-//	state_fio->Fread(palette, sizeof(palette), 1);
-//	sel = state_fio->FgetUint8();
-//	state_fio->Fread(regs, sizeof(regs), 1);
-//	vs = state_fio->FgetUint16();
-//	cmd = state_fio->FgetUint16();
-//	state_fio->Fread(vram, sizeof(vram), 1);
-//	shift = state_fio->FgetUint32();
-//	maskl = state_fio->FgetUint32();
-//	maskh = state_fio->FgetUint32();
-//	busl = state_fio->FgetUint32();
-//	bush = state_fio->FgetUint32();
-//	write_plane = state_fio->FgetUint32();
-//	read_plane = state_fio->FgetUint32();
-	return true;
-}
-
 bool CRTC::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
@@ -398,8 +318,28 @@ bool CRTC::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBuffer(palette_pc, sizeof(palette_pc), 1);
-	state_fio->StateBuffer(palette, sizeof(palette), 1);
+	//state_fio->StateBuffer(palette_pc, sizeof(palette_pc), 1);
+	for(int i = 0; i < (sizeof(palette_pc) / sizeof(scrntype_t)); i++) {
+		if(loading) {
+			uint8_t r, g, b;
+			r = state_fio->FgetUint8();
+			g = state_fio->FgetUint8();
+			b = state_fio->FgetUint8();
+			palette_pc[i] = RGB_COLOR(r, g, b);
+		} else {
+			uint8_t r, g, b;
+			r = R_OF_COLOR(palette_pc[i]);
+			g = G_OF_COLOR(palette_pc[i]);
+			b = B_OF_COLOR(palette_pc[i]);
+			state_fio->FputUint8(r);
+			state_fio->FputUint8(g);
+			state_fio->FputUint8(b);
+		}
+	}
+	//state_fio->StateBuffer(palette, sizeof(palette), 1);
+	for(int i = 0; i < (sizeof(palette) / sizeof(uint16_t)); i++) {
+		state_fio->StateUint16(palette[i]);
+	}
 	state_fio->StateUint8(sel);
 	state_fio->StateBuffer(regs, sizeof(regs), 1);
 	state_fio->StateUint16(vs);

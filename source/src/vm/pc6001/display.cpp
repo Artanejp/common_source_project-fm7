@@ -46,50 +46,6 @@ void DISPLAY::draw_screen()
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void DISPLAY::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_INT32(tmp_vram_size);
-	
-	leave_decl_state();
-}
-
-void DISPLAY::save_state(FILEIO* state_fio)
-{
-	tmp_vram_size = (int)(vram_ptr - ram_ptr);
-	
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->FputInt32((int)(vram_ptr - ram_ptr));
-}
-
-bool DISPLAY::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	vram_ptr = ram_ptr + state_fio->FgetInt32();
-	vram_ptr = ram_ptr + tmp_vram_size;
-	return true;
-}
-
 bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {

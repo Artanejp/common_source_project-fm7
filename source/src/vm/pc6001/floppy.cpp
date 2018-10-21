@@ -599,110 +599,6 @@ void FLOPPY::update_config()
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void FLOPPY::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_UINT8(io_B1H);
-	DECL_STATE_ENTRY_1D_ARRAY(cur_trk, 2);
-	DECL_STATE_ENTRY_1D_ARRAY(cur_sct, 2);
-	DECL_STATE_ENTRY_1D_ARRAY(cur_pos, 2);
-	DECL_STATE_ENTRY_1D_ARRAY(access, 2);
-	DECL_STATE_ENTRY_2D_ARRAY(Data, 4, 256);
-	DECL_STATE_ENTRY_1D_ARRAY(Index, 4);
-	{
-		DECL_STATE_ENTRY_1D_ARRAY((CmdIn.Data), 10 * sizeof(unsigned char));
-		DECL_STATE_ENTRY_INT32((CmdIn.Index));
-	}
-	{
-		DECL_STATE_ENTRY_1D_ARRAY((CmdOut.Data), 10 * sizeof(unsigned char));
-		DECL_STATE_ENTRY_INT32((CmdOut.Index));
-	}
-
-	DECL_STATE_ENTRY_UINT8(SeekST0);
-	DECL_STATE_ENTRY_UINT8(LastCylinder);
-	DECL_STATE_ENTRY_INT32(SeekEnd);
-	DECL_STATE_ENTRY_UINT8(SendSectors);
-	DECL_STATE_ENTRY_INT32(DIO);
-	DECL_STATE_ENTRY_UINT8(Status);
-	leave_decl_state();
-
-	for(int i = 0; i < 2; i++) {
-		disk[i]->decl_state(p_logger);
-	}
-
-}
-
-
-void FLOPPY::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->FputUint8(io_B1H);
-	for(int i = 0; i < 2; i++) {
-		disk[i]->save_state(state_fio);
-	}
-//	state_fio->Fwrite(cur_trk, sizeof(cur_trk), 1);
-//	state_fio->Fwrite(cur_sct, sizeof(cur_sct), 1);
-//	state_fio->Fwrite(cur_pos, sizeof(cur_pos), 1);
-//	state_fio->Fwrite(access, sizeof(access), 1);
-//	state_fio->Fwrite(Data, sizeof(Data), 1);
-//	state_fio->Fwrite(Index, sizeof(Index), 1);
-//	state_fio->Fwrite(&CmdIn, sizeof(CmdBuffer), 1);
-//	state_fio->Fwrite(&CmdOut, sizeof(CmdBuffer), 1);
-
-//	state_fio->FputUint8(SeekST0);
-//	state_fio->FputUint8(LastCylinder);
-//	state_fio->FputInt32(SeekEnd);
-//	state_fio->FputUint8(SendSectors);
-//	state_fio->FputInt32(DIO);
-//	state_fio->FputUint8(Status);
-}
-
-bool FLOPPY::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	io_B1H = state_fio->FgetUint8();
-	for(int i = 0; i < 2; i++) {
-		if(!disk[i]->load_state(state_fio)) {
-			return false;
-		}
-	}
-//	state_fio->Fread(cur_trk, sizeof(cur_trk), 1);
-//	state_fio->Fread(cur_sct, sizeof(cur_sct), 1);
-//	state_fio->Fread(cur_pos, sizeof(cur_pos), 1);
-//	state_fio->Fread(access, sizeof(access), 1);
-//	state_fio->Fread(Data, sizeof(Data), 1);
-//	state_fio->Fread(Index, sizeof(Index), 1);
-//	state_fio->Fread(&CmdIn, sizeof(CmdBuffer), 1);
-//	state_fio->Fread(&CmdOut, sizeof(CmdBuffer), 1);
-//	SeekST0 = state_fio->FgetUint8();
-//	LastCylinder = state_fio->FgetUint8();
-//	SeekEnd = state_fio->FgetInt32();
-//	SendSectors = state_fio->FgetUint8();
-//	DIO = state_fio->FgetInt32();
-//	Status = state_fio->FgetUint8();
-	return true;
-}
-
 bool FLOPPY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
@@ -717,14 +613,37 @@ bool FLOPPY::process_state(FILEIO* state_fio, bool loading)
 			return false;
 		}
 	}
-	state_fio->StateBuffer(cur_trk, sizeof(cur_trk), 1);
-	state_fio->StateBuffer(cur_sct, sizeof(cur_sct), 1);
-	state_fio->StateBuffer(cur_pos, sizeof(cur_pos), 1);
-	state_fio->StateBuffer(access, sizeof(access), 1);
+	//state_fio->StateBuffer(cur_trk, sizeof(cur_trk), 1);
+	for(int i = 0; i < (sizeof(cur_trk) / sizeof(int)); i++) {
+		state_fio->StateInt32(cur_trk[i]);
+	}
+	//state_fio->StateBuffer(cur_sct, sizeof(cur_sct), 1);
+	for(int i = 0; i < (sizeof(cur_sct) / sizeof(int)); i++) {
+		state_fio->StateInt32(cur_sct[i]);
+	}
+	//state_fio->StateBuffer(cur_pos, sizeof(cur_pos), 1);
+	for(int i = 0; i < (sizeof(cur_pos) / sizeof(int)); i++) {
+		state_fio->StateInt32(cur_pos[i]);
+	}
+	//state_fio->StateBuffer(access, sizeof(access), 1);
+	for(int i = 0; i < (sizeof(access) / sizeof(bool)); i++) {
+		state_fio->StateBool(access[i]);
+	}
 	state_fio->StateBuffer(Data, sizeof(Data), 1);
-	state_fio->StateBuffer(Index, sizeof(Index), 1);
-	state_fio->StateBuffer(&CmdIn, sizeof(CmdBuffer), 1);
-	state_fio->StateBuffer(&CmdOut, sizeof(CmdBuffer), 1);
+	//state_fio->StateBuffer(Index, sizeof(Index), 1);
+	for(int i = 0; i < (sizeof(Index) / sizeof(int)); i++) {
+		state_fio->StateInt32(Index[i]);
+	}
+	//state_fio->StateBuffer(&CmdIn, sizeof(CmdBuffer), 1);
+	{
+		state_fio->StateBuffer(CmdIn.Data, sizeof(CmdIn.Data), 1);
+		state_fio->StateInt32(CmdIn.Index);
+	}
+	//state_fio->StateBuffer(&CmdOut, sizeof(CmdBuffer), 1);
+	{
+		state_fio->StateBuffer(CmdOut.Data, sizeof(CmdOut.Data), 1);
+		state_fio->StateInt32(CmdOut.Index);
+	}
 	state_fio->StateUint8(SeekST0);
 	state_fio->StateUint8(LastCylinder);
 	state_fio->StateInt32(SeekEnd);

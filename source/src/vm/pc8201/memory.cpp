@@ -28,7 +28,7 @@
 	} \
 }
 
-void MEMORY::initialize()
+void PC8201_MEMORY::initialize()
 {
 	// init memory
 	memset(ram, 0, sizeof(ram));
@@ -53,7 +53,7 @@ void MEMORY::initialize()
 	delete fio;
 }
 
-void MEMORY::release()
+void PC8201_MEMORY::release()
 {
 	// save ram image
 	FILEIO* fio = new FILEIO();
@@ -64,25 +64,25 @@ void MEMORY::release()
 	delete fio;
 }
 
-void MEMORY::reset()
+void PC8201_MEMORY::reset()
 {
 	sio = bank = 0;
 	update_bank();
 }
 
-void MEMORY::write_data8(uint32_t addr, uint32_t data)
+void PC8201_MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	wbank[addr >> 12][addr & 0xfff] = data;
 }
 
-uint32_t MEMORY::read_data8(uint32_t addr)
+uint32_t PC8201_MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	return rbank[addr >> 12][addr & 0xfff];
 }
 
-void MEMORY::write_io8(uint32_t addr, uint32_t data)
+void PC8201_MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xf0) {
 	case 0x90:
@@ -104,13 +104,13 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t MEMORY::read_io8(uint32_t addr)
+uint32_t PC8201_MEMORY::read_io8(uint32_t addr)
 {
 	// $A0: bank status
 	return (sio & 0xc0) | (bank & 0xf);
 }
 
-void MEMORY::update_bank()
+void PC8201_MEMORY::update_bank()
 {
 	switch(bank & 3) {
 	case 0:
@@ -144,57 +144,7 @@ void MEMORY::update_bank()
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void MEMORY::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
-	DECL_STATE_ENTRY_UINT8(sio);
-	DECL_STATE_ENTRY_UINT8(bank);
-
-	leave_decl_state();
-}
-
-void MEMORY::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(ram, sizeof(ram), 1);
-//	state_fio->FputUint8(sio);
-//	state_fio->FputUint8(bank);
-}
-
-bool MEMORY::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(ram, sizeof(ram), 1);
-//	sio = state_fio->FgetUint8();
-//	bank = state_fio->FgetUint8();
-	
-	// post process
-	update_bank();
-	return true;
-}
-
-bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool PC8201_MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;

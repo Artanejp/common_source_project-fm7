@@ -28,7 +28,7 @@
 #define SIG_TIMER_IRQ_EXT_INT	7
 
 #ifndef _PC6001
-class MEMORY;
+class PC6001_MEMORY;
 #endif
 
 class TIMER : public DEVICE
@@ -36,7 +36,7 @@ class TIMER : public DEVICE
 private:
 	DEVICE *d_cpu, *d_sub;
 #ifndef _PC6001
-	MEMORY *d_mem;
+	PC6001_MEMORY *d_mem;
 #endif
 	
 	uint8_t IRQ, NewIRQ;
@@ -71,9 +71,7 @@ public:
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	uint32_t get_intr_ack();
 	void notify_intr_reti();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_cpu(DEVICE* device)
@@ -85,7 +83,7 @@ public:
 		d_sub = device;
 	}
 #ifndef _PC6001
-	void set_context_memory(MEMORY* device)
+	void set_context_memory(PC6001_MEMORY* device)
 	{
 		d_mem = device;
 	}

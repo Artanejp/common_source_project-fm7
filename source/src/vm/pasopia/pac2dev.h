@@ -34,9 +34,7 @@ public:
 	virtual void reset() {}
 	virtual void write_io8(uint32_t addr, uint32_t data) {}
 	virtual uint32_t read_io8(uint32_t addr) { return 0xff; }
-	virtual void decl_state() { state_entry = NULL; }
-	virtual void save_state(FILEIO* state_fio) { }
-	virtual bool load_state(FILEIO* state_fio) { return true; }
+	virtual bool process_state(FILEIO* state_fio, bool loading) { return true; }
 	
 	virtual void set_device_name(const _TCHAR* format, ...)
 	{

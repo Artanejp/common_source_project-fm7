@@ -66,7 +66,7 @@ class UPD1990A;
 class CMT;
 class KEYBOARD;
 class LCD;
-class MEMORY;
+class PC8201_MEMORY;
 
 class VM :public VM_TEMPLATE
 {
@@ -87,7 +87,7 @@ protected:
 	CMT* cmt;
 	KEYBOARD* keyboard;
 	LCD* lcd;
-	MEMORY* memory;
+	PC8201_MEMORY* memory;
 	
 public:
 	// ----------------------------------------
@@ -145,9 +145,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

@@ -7,14 +7,14 @@
 	[ memory ]
 */
 
-#ifndef _MEMORY_H_
-#define _MEMORY_H_
+#ifndef _N5200_MEMORY_H_
+#define _N5200_MEMORY_H_
 
 #include "../vm.h"
 #include "../../emu.h"
 #include "../device.h"
 
-class MEMORY : public DEVICE
+class N5200_MEMORY : public DEVICE
 {
 private:
 	uint8_t* rbank[8192];	// 16MB / 2KB
@@ -32,11 +32,11 @@ private:
 	bool protect;
 	
 public:
-	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	N5200_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~MEMORY() {}
+	~N5200_MEMORY() {}
 	
 	// common functions
 	void initialize();

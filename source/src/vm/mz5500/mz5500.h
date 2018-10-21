@@ -103,7 +103,7 @@ class Z80SIO;
 
 class DISPLAY;
 class KEYBOARD;
-class MEMORY;
+class MZ5500_MEMORY;
 class SYSPORT;
 
 class VM : public VM_TEMPLATE
@@ -148,7 +148,7 @@ protected:
 	
 	DISPLAY* display;
 	KEYBOARD* keyboard;
-	MEMORY* memory;
+	MZ5500_MEMORY* memory;
 	SYSPORT* sysport;
 	
 public:
@@ -201,9 +201,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

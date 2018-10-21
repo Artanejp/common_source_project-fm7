@@ -163,58 +163,6 @@ void LCD::draw_screen()
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void LCD::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-	for(int i = 0; i < 10; i++) {
-		DECL_STATE_ENTRY_2D_ARRAY_MEMBER((seg[i].vram), 4, 50, i);
-		DECL_STATE_ENTRY_INT32_MEMBER((seg[i].updown), i);
-		DECL_STATE_ENTRY_INT32_MEMBER((seg[i].disp), i);
-		DECL_STATE_ENTRY_INT32_MEMBER((seg[i].spg), i);
-		DECL_STATE_ENTRY_INT32_MEMBER((seg[i].page), i);
-		DECL_STATE_ENTRY_INT32_MEMBER((seg[i].ofs), i);
-		DECL_STATE_ENTRY_INT32_MEMBER((seg[i].ofs2), i);
-	}
-	DECL_STATE_ENTRY_UINT16(sel);
-
-	leave_decl_state();
-}
-
-void LCD::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-//	
-//	state_fio->Fwrite(seg, sizeof(seg), 1);
-//	state_fio->FputUint16(sel);
-}
-
-bool LCD::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(seg, sizeof(seg), 1);
-//	sel = state_fio->FgetUint16();
-	return true;
-}
-
 bool LCD::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
@@ -223,7 +171,16 @@ bool LCD::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBuffer(seg, sizeof(seg), 1);
+	//state_fio->StateBuffer(seg, sizeof(seg), 1);
+	for(int i = 0; i < 10; i++) {
+		state_fio->StateBuffer(&(seg[i].vram[0][0]), sizeof(seg[i].vram), 1);
+		state_fio->StateInt32(seg[i].updown);
+		state_fio->StateInt32(seg[i].disp);
+		state_fio->StateInt32(seg[i].spg);
+		state_fio->StateInt32(seg[i].page);
+		state_fio->StateInt32(seg[i].ofs);
+		state_fio->StateInt32(seg[i].ofs2);
+	}		
 	state_fio->StateUint16(sel);
 	return true;
 }

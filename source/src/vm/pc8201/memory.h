@@ -7,14 +7,14 @@
 	[ memory ]
 */
 
-#ifndef _MEMORY_H_
-#define _MEMORY_H_
+#ifndef _PC8201_MEMORY_H_
+#define _PC8201_MEMORY_H_
 
 #include "../vm.h"
 #include "../../emu.h"
 #include "../device.h"
 
-class MEMORY : public DEVICE
+class PC8201_MEMORY : public DEVICE
 {
 private:
 	DEVICE *d_cmt, *d_drec, *d_rtc;
@@ -31,11 +31,11 @@ private:
 	void update_bank();
 	
 public:
-	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	PC8201_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~MEMORY() {}
+	~PC8201_MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -45,9 +45,7 @@ public:
 	uint32_t read_data8(uint32_t addr);
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_cmt(DEVICE* device)

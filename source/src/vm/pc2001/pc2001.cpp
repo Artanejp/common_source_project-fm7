@@ -25,7 +25,7 @@
 #include "../debugger.h"
 #endif
 
-#include "io.h"
+#include "./io.h"
 
 // ----------------------------------------------------------------------------
 // initialize
@@ -55,7 +55,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	rtc = new UPD1990A(this, emu);
 	cpu = new UPD7810(this, emu);
 	
-	io = new IO(this, emu);
+	io = new PC2001_IO(this, emu);
 	
 	// set contexts
 	event->set_context_cpu(cpu);
@@ -104,7 +104,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
-	decl_state();
 }
 
 VM::~VM()
@@ -293,54 +292,6 @@ void VM::update_config()
 }
 
 #define STATE_VERSION	3
-
-#include "../../statesub.h"
-#include "../../qt/gui/csp_logger.h"
-extern CSP_Logger DLL_PREFIX_I *csp_logger;
-
-void VM::decl_state(void)
-{
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::PC_2001_HEAD")), csp_logger);
-	DECL_STATE_ENTRY_MULTI(void, ram, sizeof(ram));
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->decl_state();
-	}
-}
-
-void VM::save_state(FILEIO* state_fio)
-{
-	//state_fio->FputUint32(STATE_VERSION);
-	
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->save_state(state_fio);
-	}
-	//state_fio->Fwrite(ram, sizeof(ram), 1);
-}
-
-bool VM::load_state(FILEIO* state_fio)
-{
-	//if(state_fio->FgetUint32() != STATE_VERSION) {
-	//	return false;
-	//}
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		emu->out_debug_log("INFO: HEADER DATA ERROR");
-		return false;
-	}
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		if(!device->load_state(state_fio)) {
-			return false;
-		}
-	}
-	//state_fio->Fread(ram, sizeof(ram), 1);
-	return true;
-}
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

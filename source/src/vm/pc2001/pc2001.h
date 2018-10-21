@@ -61,7 +61,7 @@ class UPD16434;
 class UPD1990A;
 class UPD7810;
 
-class IO;
+class PC2001_IO;
 class VM : public VM_TEMPLATE
 {
 protected:
@@ -78,7 +78,7 @@ protected:
 	UPD1990A* rtc;
 	UPD7810* cpu;
 	
-	IO* io;
+	PC2001_IO* io;
 	
 	// memory
 	uint8_t ram[0x5000];
@@ -135,9 +135,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

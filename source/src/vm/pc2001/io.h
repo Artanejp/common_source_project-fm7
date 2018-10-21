@@ -8,8 +8,8 @@
 	[ i/o ]
 */
 
-#ifndef _IO_H_
-#define _IO_H_
+#ifndef _PC2001_IO_H_
+#define _PC2001_IO_H_
 
 #include "../vm.h"
 #include "../../emu.h"
@@ -20,7 +20,7 @@
 
 class UPD16434;
 
-class IO : public DEVICE
+class PC2001_IO : public DEVICE
 {
 private:
 	UPD16434 *d_lcd[4];
@@ -38,11 +38,11 @@ private:
 	bool key_hit(int code);
 	
 public:
-	IO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	PC2001_IO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("I/O Bus"));
 	}
-	~IO() {}
+	~PC2001_IO() {}
 	
 	// common functions
 	void initialize();
@@ -52,9 +52,7 @@ public:
 	void write_io16(uint32_t addr, uint32_t data);
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_callback(int event_id, int err);
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_lcd(int index, UPD16434* device)

@@ -17,8 +17,8 @@
 	[ memory ]
 */
 
-#ifndef _MEMORY_H_
-#define _MEMORY_H_
+#ifndef _PC6001_MEMORY_H_
+#define _PC6001_MEMORY_H_
 
 #include "../vm.h"
 #include "../../emu.h"
@@ -65,7 +65,7 @@ class TIMER;
 #define MEMORY_SIZE		(CGROM6_BASE + CGROM6_SIZE)
 #endif
 
-class MEMORY : public DEVICE
+class PC6001_MEMORY : public DEVICE
 {
 private:
 	DEVICE *d_cpu;
@@ -165,12 +165,12 @@ private:
 #endif
 
 public:
-	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	PC6001_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		inserted = false;
 		set_device_name(_T("Memory Bus"));
 	}
-	~MEMORY() {}
+	~PC6001_MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -184,9 +184,7 @@ public:
 	void event_callback(int event_id, int err);
 #endif
 	void write_signal(int id, uint32_t data, uint32_t mask);
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 #ifndef _PC6001

@@ -155,7 +155,7 @@ class DISPLAY;
 class FLOPPY;
 #endif
 class JOYSTICK;
-class MEMORY;
+class PC6001_MEMORY;
 class PSUB;
 class SUB;
 class TIMER;
@@ -193,7 +193,7 @@ protected:
 	FLOPPY* floppy;
 #endif
 	JOYSTICK* joystick;
-	MEMORY* memory;
+	PC6001_MEMORY* memory;
 	PSUB* psub;
 	TIMER* timer;
 	
@@ -274,9 +274,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

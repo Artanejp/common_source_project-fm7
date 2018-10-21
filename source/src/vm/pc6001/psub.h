@@ -67,9 +67,7 @@ public:
 	void event_frame();
 	void event_callback(int event_id, int err);
 	uint32_t get_intr_ack();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_pio(DEVICE* device)

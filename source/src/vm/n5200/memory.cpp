@@ -7,7 +7,7 @@
 	[ memory ]
 */
 
-#include "memory.h"
+#include "./memory.h"
 
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 11, eb = (e) >> 11; \
@@ -25,7 +25,7 @@
 	} \
 }
 
-void MEMORY::initialize()
+void N5200_MEMORY::initialize()
 {
 	// init memory
 	memset(ram, 0, sizeof(ram));
@@ -48,7 +48,7 @@ void MEMORY::initialize()
 	delete fio;
 }
 
-void MEMORY::release()
+void N5200_MEMORY::release()
 {
 	// save ram image
 	FILEIO* fio = new FILEIO();
@@ -59,7 +59,7 @@ void MEMORY::release()
 	delete fio;
 }
 
-void MEMORY::reset()
+void N5200_MEMORY::reset()
 {
 	SET_BANK(0x000000, 0xffffff, wdmy, rdmy);
 	SET_BANK(0x000000, 0x0bffff, ram, ram);
@@ -73,7 +73,7 @@ void MEMORY::reset()
 	protect = true;
 }
 
-void MEMORY::write_data8(uint32_t addr, uint32_t data)
+void N5200_MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffffff;
 	if(0xe7800 <= addr && addr < 0xf0000 && protect) {
@@ -82,13 +82,13 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 	wbank[addr >> 11][addr & 0x7ff] = data;
 }
 
-uint32_t MEMORY::read_data8(uint32_t addr)
+uint32_t N5200_MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffffff;
 	return rbank[addr >> 11][addr & 0x7ff];
 }
 
-void MEMORY::write_io8(uint32_t addr, uint32_t data)
+void N5200_MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case 0x74:
@@ -97,7 +97,7 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t MEMORY::read_io8(uint32_t addr)
+uint32_t N5200_MEMORY::read_io8(uint32_t addr)
 {
 	return 0xff;
 }

@@ -8,7 +8,7 @@
 	[ i/o ]
 */
 
-#include "io.h"
+#include "./io.h"
 #include "../datarec.h"
 #include "../upd16434.h"
 #include "../upd1990a.h"
@@ -17,20 +17,20 @@
 
 #define EVENT_TIMER	0
 
-void IO::initialize()
+void PC2001_IO::initialize()
 {
 	register_event(this, EVENT_TIMER, 20000, true, NULL);
 	key_stat = emu->get_key_buffer();
 }
 
-void IO::reset()
+void PC2001_IO::reset()
 {
 	port_a = port_b = port_s = 0xff;
 	drec_in = rtc_in = false;
 	key_strobe = 0xffff;
 }
 
-void IO::write_io8(uint32_t addr, uint32_t data)
+void PC2001_IO::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case UPD7807_PORTA:
@@ -81,7 +81,7 @@ void IO::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t IO::read_io8(uint32_t addr)
+uint32_t PC2001_IO::read_io8(uint32_t addr)
 {
 	uint32_t value = 0xff;
 	
@@ -110,7 +110,7 @@ uint32_t IO::read_io8(uint32_t addr)
 	return value;
 }
 
-void IO::write_io16(uint32_t addr, uint32_t data)
+void PC2001_IO::write_io16(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case UPD7807_PORTE:
@@ -122,7 +122,7 @@ void IO::write_io16(uint32_t addr, uint32_t data)
 	}
 }
 
-void IO::write_signal(int id, uint32_t data, uint32_t mask)
+void PC2001_IO::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	switch(id) {
 	case SIG_IO_DREC_IN:
@@ -135,14 +135,14 @@ void IO::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
-void IO::event_callback(int event_id, int err)
+void PC2001_IO::event_callback(int event_id, int err)
 {
 	if(event_id == EVENT_TIMER) {
 		d_cpu->write_signal(SIG_UPD7810_INTF1, 1, 1);
 	}
 }
 
-uint8_t IO::get_key()
+uint8_t PC2001_IO::get_key()
 {
 	uint8_t data = 0x3f;
 	
@@ -267,7 +267,7 @@ uint8_t IO::get_key()
 	return data;
 }
 
-bool IO::key_hit(int code)
+bool PC2001_IO::key_hit(int code)
 {
 	bool value = (key_stat[code] != 0);
 	return value;
@@ -275,63 +275,7 @@ bool IO::key_hit(int code)
 
 #define STATE_VERSION	2
 
-#include "../../statesub.h"
-
-void IO::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-	
-	DECL_STATE_ENTRY_UINT8(port_a);
-	DECL_STATE_ENTRY_UINT8(port_b);
-	DECL_STATE_ENTRY_UINT8(port_s);
-	DECL_STATE_ENTRY_BOOL(drec_in);
-	DECL_STATE_ENTRY_BOOL(rtc_in);
-	DECL_STATE_ENTRY_UINT16(key_strobe);
-
-	leave_decl_state();
-}
-
-void IO::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->FputUint8(port_a);
-//	state_fio->FputUint8(port_b);
-//	state_fio->FputUint8(port_s);
-//	state_fio->FputBool(drec_in);
-//	state_fio->FputBool(rtc_in);
-//	state_fio->FputUint16(key_strobe);
-}
-
-bool IO::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	port_a = state_fio->FgetUint8();
-//	port_b = state_fio->FgetUint8();
-//	port_s = state_fio->FgetUint8();
-//	drec_in = state_fio->FgetBool();
-//	rtc_in = state_fio->FgetBool();
-//	key_strobe = state_fio->FgetUint16();
-	return true;
-}
-
-bool IO::process_state(FILEIO* state_fio, bool loading)
+bool PC2001_IO::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;

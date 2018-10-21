@@ -21,7 +21,7 @@
 	[ memory ]
 */
 
-#include "memory.h"
+#include "./memory.h"
 #include "timer.h"
 
 #define RAM		(MEMORY_BASE + RAM_BASE)
@@ -39,7 +39,7 @@
 #define SYSTEMROM2	(MEMORY_BASE + SYSTEMROM2_BASE)
 #define CGROM6		(MEMORY_BASE + CGROM6_BASE)
 
-void MEMORY::initialize()
+void PC6001_MEMORY::initialize()
 {
 	FILEIO* fio = new FILEIO();
 #if defined(_PC6001)
@@ -167,7 +167,7 @@ void MEMORY::initialize()
 #endif
 }
 
-void MEMORY::reset()
+void PC6001_MEMORY::reset()
 {
 #ifdef _PC6001
 	int J;
@@ -256,7 +256,7 @@ void MEMORY::reset()
 #endif
 }
 
-void MEMORY::write_data8(uint32_t addr, uint32_t data)
+void PC6001_MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
 	/* Graphics Vram Write (SR basic) */
@@ -269,7 +269,7 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 		WrMem[addr >> 13][addr & 0x1FFF] = data;
 }
 
-uint32_t MEMORY::read_data8(uint32_t addr)
+uint32_t PC6001_MEMORY::read_data8(uint32_t addr)
 {
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
 	/* Graphics Vram Read (SR basic) */
@@ -279,7 +279,7 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 	return(RdMem[addr >> 13][addr & 0x1FFF]);
 }
 
-void MEMORY::write_io8(uint32_t addr, uint32_t data)
+void PC6001_MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	unsigned int VRAMHead[2][4] = {
 		{ 0xc000, 0xe000, 0x8000, 0xa000 },
@@ -581,7 +581,7 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 }
 
 #ifndef _PC6001
-uint32_t MEMORY::read_io8(uint32_t addr)
+uint32_t PC6001_MEMORY::read_io8(uint32_t addr)
 {
 	uint16_t port=(addr & 0x00ff);
 	uint8_t Value=0xff;
@@ -604,7 +604,7 @@ uint32_t MEMORY::read_io8(uint32_t addr)
 
 #define EVENT_HBLANK	1
 
-void MEMORY::event_vline(int v, int clock)
+void PC6001_MEMORY::event_vline(int v, int clock)
 {
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
 	if(static_cast<VM *>(vm)->sr_mode) {
@@ -626,7 +626,7 @@ void MEMORY::event_vline(int v, int clock)
 	}
 }
 
-void MEMORY::event_callback(int event_id, int err)
+void PC6001_MEMORY::event_callback(int event_id, int err)
 {
 	if(event_id == EVENT_HBLANK) {
 		d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 0);
@@ -634,7 +634,7 @@ void MEMORY::event_callback(int event_id, int err)
 }
 #endif
 
-void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
+void PC6001_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MEMORY_PIO_PORT_C) {
 #ifdef _PC6001
@@ -654,7 +654,7 @@ void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
-void MEMORY::open_cart(const _TCHAR* file_path)
+void PC6001_MEMORY::open_cart(const _TCHAR* file_path)
 {
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(file_path, FILEIO_READ_BINARY)) {
@@ -674,7 +674,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 	delete fio;
 }
 
-void MEMORY::close_cart()
+void PC6001_MEMORY::close_cart()
 {
 ///	EXTROM1 = EXTROM2 = EmptyRAM;
 	EXTROM1 = RAM + 0x4000;
@@ -685,220 +685,7 @@ void MEMORY::close_cart()
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void MEMORY::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-	
-	DECL_STATE_ENTRY_1D_ARRAY(&(MEMORY_BASE[RAM_BASE]), RAM_SIZE);
-//	state_fio->FputInt32((int)(CGROM - MEMORY_BASE));
-//	state_fio->FputInt32((int)(EXTROM1 - MEMORY_BASE));
-//	state_fio->FputInt32((int)(EXTROM2 - MEMORY_BASE));
-//	for(int i = 0; i < 8; i++) {
-//		state_fio->FputInt32((int)(RdMem[i] - MEMORY_BASE));
-//		state_fio->FputInt32((int)(WrMem[i] - MEMORY_BASE));
-//	}
-//	state_fio->FputInt32((int)(VRAM - MEMORY_BASE));
-	DECL_STATE_ENTRY_1D_ARRAY(EnWrite, sizeof(EnWrite));
-	DECL_STATE_ENTRY_UINT8(CGSW93);
-	DECL_STATE_ENTRY_BOOL(inserted);
-#ifndef _PC6001
-	DECL_STATE_ENTRY_UINT8(CRTKILL);
-//	DECL_STATE_ENTRY_INT32((int)(CurKANJIROM - MEMORY_BASE));
-	DECL_STATE_ENTRY_UINT8(CRTMode1);
-	DECL_STATE_ENTRY_UINT8(CRTMode2);
-	DECL_STATE_ENTRY_UINT8(CRTMode3);
-	DECL_STATE_ENTRY_UINT8(CSS1);
-	DECL_STATE_ENTRY_UINT8(CSS2);
-	DECL_STATE_ENTRY_UINT8(CSS3);
-	DECL_STATE_ENTRY_UINT8(portF0);
-	DECL_STATE_ENTRY_UINT8(portF1);
-#if defined(_PC6601SR) || defined(_PC6001MK2SR)
-	DECL_STATE_ENTRY_INT32(bitmap);
-	DECL_STATE_ENTRY_INT32(cols);
-	DECL_STATE_ENTRY_INT32(rows);
-	DECL_STATE_ENTRY_INT32(lines);
-//	state_fio->FputInt32((int)(TEXTVRAM - MEMORY_BASE));
-//	state_fio->FputInt32((int)(SYSROM2 - MEMORY_BASE));
-	DECL_STATE_ENTRY_1D_ARRAY(&(MEMORY_BASE[EXTRAM_BASE]), EXTRAM_SIZE);
-	DECL_STATE_ENTRY_1D_ARRAY(port60, sizeof(port60));
-	DECL_STATE_ENTRY_UINT8(portC1);
-	DECL_STATE_ENTRY_UINT8(portC8);
-	DECL_STATE_ENTRY_UINT8(portCA);
-	DECL_STATE_ENTRY_UINT8(portCB);
-	DECL_STATE_ENTRY_UINT8(portCC);
-	DECL_STATE_ENTRY_UINT8(portCE);
-	DECL_STATE_ENTRY_UINT8(portCF);
-	DECL_STATE_ENTRY_1D_ARRAY(palet, sizeof(palet) / sizeof(int));
-#endif
-#endif
-	// Pointer Values
-	DECL_STATE_ENTRY_INT32(tmp_cgrom_ptr);
-	DECL_STATE_ENTRY_INT32(tmp_extrom1_ptr);
-	DECL_STATE_ENTRY_INT32(tmp_extrom2_ptr);
-	{
-		DECL_STATE_ENTRY_1D_ARRAY(tmp_rdmem_ptr, 8);
-		DECL_STATE_ENTRY_1D_ARRAY(tmp_wrmem_ptr, 8);
-	}
-	DECL_STATE_ENTRY_INT32(tmp_vram_ptr);
-#ifndef _PC6001
-	DECL_STATE_ENTRY_INT32(tmp_kanjirom_ptr);
-#if defined(_PC6601SR) || defined(_PC6001MK2SR)
-	DECL_STATE_ENTRY_INT32(tmp_textvram_ptr);
-	DECL_STATE_ENTRY_INT32(tmp_sysrom2_ptr);
-#endif
-#endif
-
-	leave_decl_state();
-}
-
-void MEMORY::save_state(FILEIO* state_fio)
-{
-	tmp_cgrom_ptr = (int)(CGROM - MEMORY_BASE);
-	tmp_extrom1_ptr = (int)(EXTROM1 - MEMORY_BASE);
-	tmp_extrom2_ptr = (int)(EXTROM2 - MEMORY_BASE);
-	for(int i = 0; i < 8; i++) {
-		tmp_rdmem_ptr[i] = (int)(RdMem[i] - MEMORY_BASE);
-		tmp_wrmem_ptr[i] = (int)(WrMem[i] - MEMORY_BASE);
-	}
-	tmp_vram_ptr =(int)(VRAM - MEMORY_BASE);
-#ifndef _PC6001
-	tmp_kanjirom_ptr = (int)(CurKANJIROM - MEMORY_BASE);
-#if defined(_PC6601SR) || defined(_PC6001MK2SR)
-	tmp_textvram_ptr = (int)(TEXTVRAM - MEMORY_BASE);
-	tmp_sysrom2_ptr = (int)(SYSROM2 - MEMORY_BASE);
-#endif
-#endif
-
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(RAM, RAM_SIZE, 1);
-//	state_fio->FputInt32((int)(CGROM - MEMORY_BASE));
-//	state_fio->FputInt32((int)(EXTROM1 - MEMORY_BASE));
-//	state_fio->FputInt32((int)(EXTROM2 - MEMORY_BASE));
-//	for(int i = 0; i < 8; i++) {
-//		state_fio->FputInt32((int)(RdMem[i] - MEMORY_BASE));
-//		state_fio->FputInt32((int)(WrMem[i] - MEMORY_BASE));
-//	}
-//	state_fio->FputInt32((int)(VRAM - MEMORY_BASE));
-//	state_fio->Fwrite(EnWrite, sizeof(EnWrite), 1);
-//	state_fio->FputUint8(CGSW93);
-//	state_fio->FputBool(inserted);
-#ifndef _PC6001
-//	state_fio->FputUint8(CRTKILL);
-//	state_fio->FputInt32((int)(CurKANJIROM - MEMORY_BASE));
-//	state_fio->FputUint8(CRTMode1);
-//	state_fio->FputUint8(CRTMode2);
-//	state_fio->FputUint8(CRTMode3);
-//	state_fio->FputUint8(CSS1);
-//	state_fio->FputUint8(CSS2);
-//	state_fio->FputUint8(CSS3);
-//	state_fio->FputUint8(portF0);
-//	state_fio->FputUint8(portF1);
-#if defined(_PC6601SR) || defined(_PC6001MK2SR)
-//	state_fio->FputInt32(bitmap);
-//	state_fio->FputInt32(cols);
-//	state_fio->FputInt32(rows);
-//	state_fio->FputInt32(lines);
-//	state_fio->FputInt32((int)(TEXTVRAM - MEMORY_BASE));
-//	state_fio->FputInt32((int)(SYSROM2 - MEMORY_BASE));
-//	state_fio->Fwrite(EXTRAM, EXTRAM_SIZE, 1);
-//	state_fio->Fwrite(port60, sizeof(port60), 1);
-//	state_fio->FputUint8(portC1);
-//	state_fio->FputUint8(portC8);
-//	state_fio->FputUint8(portCA);
-//	state_fio->FputUint8(portCB);
-//	state_fio->FputUint8(portCC);
-//	state_fio->FputUint8(portCE);
-//	state_fio->FputUint8(portCF);
-//	state_fio->Fwrite(palet, sizeof(palet), 1);
-#endif
-#endif
-}
-
-bool MEMORY::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(RAM, RAM_SIZE, 1);
-//	CGROM = MEMORY_BASE + state_fio->FgetInt32();
-//	EXTROM1 = MEMORY_BASE + state_fio->FgetInt32();
-//	EXTROM2 = MEMORY_BASE + state_fio->FgetInt32();
-//	for(int i = 0; i < 8; i++) {
-//		RdMem[i] = MEMORY_BASE + state_fio->FgetInt32();
-//		WrMem[i] = MEMORY_BASE + state_fio->FgetInt32();
-//	}
-//	VRAM = MEMORY_BASE + state_fio->FgetInt32();
-//	state_fio->Fread(EnWrite, sizeof(EnWrite), 1);
-//	CGSW93 = state_fio->FgetUint8();
-//	inserted = state_fio->FgetBool();
-//#ifndef _PC6001
-//	CRTKILL = state_fio->FgetUint8();
-//	CurKANJIROM = MEMORY_BASE + state_fio->FgetInt32();
-//	CRTMode1 = state_fio->FgetUint8();
-//	CRTMode2 = state_fio->FgetUint8();
-//	CRTMode3 = state_fio->FgetUint8();
-//	CSS1 = state_fio->FgetUint8();
-//	CSS2 = state_fio->FgetUint8();
-//	CSS3 = state_fio->FgetUint8();
-//	portF0 = state_fio->FgetUint8();
-//	portF1 = state_fio->FgetUint8();
-//#if defined(_PC6601SR) || defined(_PC6001MK2SR)
-//	bitmap = state_fio->FgetInt32();
-//	cols = state_fio->FgetInt32();
-//	rows = state_fio->FgetInt32();
-//	lines = state_fio->FgetInt32();
-//	TEXTVRAM = MEMORY_BASE + state_fio->FgetInt32();
-//	SYSROM2 = MEMORY_BASE + state_fio->FgetInt32();
-//	state_fio->Fread(EXTRAM, EXTRAM_SIZE, 1);
-//	state_fio->Fread(port60, sizeof(port60), 1);
-//	portC1 = state_fio->FgetUint8();
-//	portC8 = state_fio->FgetUint8();
-//	portCA = state_fio->FgetUint8();
-//	portCB = state_fio->FgetUint8();
-//	portCC = state_fio->FgetUint8();
-//	portCE = state_fio->FgetUint8();
-//	portCF = state_fio->FgetUint8();
-//	state_fio->Fread(palet, sizeof(palet), 1);
-//#endif
-//#endif
-
-	// Post Process
-	CGROM = MEMORY_BASE + tmp_cgrom_ptr;
-	EXTROM1 = MEMORY_BASE + tmp_extrom1_ptr;
-	EXTROM2 = MEMORY_BASE + tmp_extrom2_ptr;
-	for(int i = 0; i < 8; i++) {
-		RdMem[i] = MEMORY_BASE + tmp_rdmem_ptr[i];
-		WrMem[i] = MEMORY_BASE + tmp_wrmem_ptr[i];
-	}
-	VRAM = MEMORY_BASE + tmp_vram_ptr;
-#ifndef _PC6001
-	CurKANJIROM = MEMORY_BASE + tmp_kanjirom_ptr;
-#if defined(_PC6601SR) || defined(_PC6001MK2SR)
-	TEXTVRAM = MEMORY_BASE + tmp_textvram_ptr;
-	SYSROM2 = MEMORY_BASE + tmp_sysrom2_ptr;
-#endif
-#endif
-	return true;
-}
-
-bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool PC6001_MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;

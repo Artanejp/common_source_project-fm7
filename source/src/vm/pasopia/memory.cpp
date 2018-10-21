@@ -7,7 +7,7 @@
 	[ memory ]
 */
 
-#include "memory.h"
+#include "./memory.h"
 #include "../i8255.h"
 
 #define SET_BANK(s, e, w, r) { \
@@ -26,7 +26,7 @@
 	} \
 }
 
-void MEMORY::initialize()
+void PASOPIA_MEMORY::initialize()
 {
 	// load ipl
 	memset(rdmy, 0xff, sizeof(rdmy));
@@ -39,7 +39,7 @@ void MEMORY::initialize()
 	vram_data = mem_map = 0;
 }
 
-void MEMORY::load_ipl()
+void PASOPIA_MEMORY::load_ipl()
 {
 	// load ipl
 	memset(rom, 0xff, sizeof(rom));
@@ -76,24 +76,24 @@ void MEMORY::load_ipl()
 	
 }
 
-void MEMORY::reset()
+void PASOPIA_MEMORY::reset()
 {
 	memset(vram, 0, sizeof(vram));
 }
 
-void MEMORY::write_data8(uint32_t addr, uint32_t data)
+void PASOPIA_MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	wbank[addr >> 12][addr & 0xfff] = data;
 }
 
-uint32_t MEMORY::read_data8(uint32_t addr)
+uint32_t PASOPIA_MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	return rbank[addr >> 12][addr & 0xfff];
 }
 
-void MEMORY::write_io8(uint32_t addr, uint32_t data)
+void PASOPIA_MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	mem_map = data;
 	
@@ -109,7 +109,7 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 	d_pio2->write_signal(SIG_I8255_PORT_C, (mem_map & 2) ? 4 : 0, 4);
 }
 
-void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
+void PASOPIA_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	// vram control
 	if(id == SIG_MEMORY_I8255_0_A) {
@@ -141,68 +141,7 @@ void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void MEMORY::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-	
-	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
-	DECL_STATE_ENTRY_1D_ARRAY(vram, sizeof(vram));
-	DECL_STATE_ENTRY_1D_ARRAY(attr, sizeof(attr));
-	DECL_STATE_ENTRY_UINT16(vram_ptr);
-	DECL_STATE_ENTRY_UINT8(vram_data);
-	DECL_STATE_ENTRY_UINT8(mem_map);
-
-	leave_decl_state();
-}
-
-void MEMORY::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(ram, sizeof(ram), 1);
-//	state_fio->Fwrite(vram, sizeof(vram), 1);
-//	state_fio->Fwrite(attr, sizeof(attr), 1);
-//	state_fio->FputUint16(vram_ptr);
-//	state_fio->FputUint8(vram_data);
-//	state_fio->FputUint8(mem_map);
-}
-
-bool MEMORY::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(ram, sizeof(ram), 1);
-//	state_fio->Fread(vram, sizeof(vram), 1);
-//	state_fio->Fread(attr, sizeof(attr), 1);
-//	vram_ptr = state_fio->FgetUint16();
-//	vram_data = state_fio->FgetUint8();
-//	mem_map = state_fio->FgetUint8();
-	
-	// post process
-	if(mem_map & 2) {
-		SET_BANK(0x0000, 0x7fff, ram, ram);
-	} else {
-		SET_BANK(0x0000, 0x7fff, ram, rom);
-	}
-	return true;
-}
-
-bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool PASOPIA_MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;

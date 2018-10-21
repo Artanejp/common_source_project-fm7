@@ -47,41 +47,6 @@ uint32_t KANJIPAC2::read_io8(uint32_t addr)
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void KANJIPAC2::decl_state()
-{
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (const _TCHAR *)_T("PAC2SLOT::KANJIPAC2"), NULL);
-
-	DECL_STATE_ENTRY_UINT32(ptr);
-	
-	//leave_decl_state();
-}
-
-void KANJIPAC2::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-	
-//	state_fio->FputUint32(ptr);
-}
-
-bool KANJIPAC2::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) return false;
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	ptr = state_fio->FgetUint32();
-	return true;
-}
-
 bool KANJIPAC2::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
