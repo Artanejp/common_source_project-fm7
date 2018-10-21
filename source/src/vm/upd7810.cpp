@@ -378,7 +378,7 @@ void UPD7810::process_state_cpustate(FILEIO* state_fio, bool loading)
 	state_fio->StateUint8(cpustate->op2);    /* opcode part 2 */
 	state_fio->StateUint8(cpustate->iff);    /* interrupt enable flip flop */
 	state_fio->StateUint8(cpustate->softi);
-	state_fio->StateUint8(cpustate->psw));    /* processor status word */
+	state_fio->StateUint8(cpustate->psw);    /* processor status word */
 	state_fio->StateUint32(cpustate->ea.d);     /* extended accumulator */
 	state_fio->StateUint32(cpustate->va.d);     /* accumulator + vector register */
 	state_fio->StateUint32(cpustate->bc.d);     /* 8bit B and C registers / 16bit BC register */
@@ -429,7 +429,7 @@ void UPD7810::process_state_cpustate(FILEIO* state_fio, bool loading)
 	state_fio->StateUint8(cpustate->sck);
 	state_fio->StateUint8(cpustate->ti);
 	state_fio->StateUint8(cpustate->to);
-	state_fio->StateUint8(cpustate->ci));
+	state_fio->StateUint8(cpustate->ci);
 	state_fio->StateUint8(cpustate->co0);
 	state_fio->StateUint8(cpustate->co1);
 	state_fio->StateUint16(cpustate->irr);    /* interrupt request register */
