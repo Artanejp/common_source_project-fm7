@@ -130,63 +130,6 @@ void VDP::draw_pcg(int x8, int y8, uint16_t top)
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void VDP::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_INT32(tmp_vram_size);    // (int)(vram - base);
-	DECL_STATE_ENTRY_INT32(tmp_pcg_size);     // (int)(pcg - base);
-	DECL_STATE_ENTRY_INT32(tmp_pattern_size); // (int)(pattern - base);
-	DECL_STATE_ENTRY_BOOL(force_pattern);
-	
-	leave_decl_state();
-}
-
-void VDP::save_state(FILEIO* state_fio)
-{
-	tmp_vram_size = (int)(vram - base);
-	tmp_pcg_size = (int)(pcg - base);
-	tmp_pattern_size = (int)(pattern - base);
-
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->FputInt32((int)(vram - base));
-//	state_fio->FputInt32((int)(pcg - base));
-//	state_fio->FputInt32((int)(pattern - base));
-//	state_fio->FputBool(force_pattern);
-}
-
-bool VDP::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	vram = base + state_fio->FgetInt32();
-//	pcg = base + state_fio->FgetInt32();
-//	pattern = base + state_fio->FgetInt32();
-//	force_pattern = state_fio->FgetBool();
-	vram = base + tmp_vram_size;
-	pcg = base + tmp_pcg_size;
-	pattern = base + tmp_pattern_size;
-	return true;
-}
-
 bool VDP::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {

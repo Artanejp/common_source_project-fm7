@@ -55,7 +55,7 @@ class DATAREC;
 class MC6847;
 class Z80;
 
-class MEMORY;
+class PHC20_MEMORY;
 
 class VM : public VM_TEMPLATE
 {
@@ -70,7 +70,7 @@ protected:
 	MC6847* vdp;
 	Z80* cpu;
 	
-	MEMORY* memory;
+	PHC20_MEMORY* memory;
 	
 public:
 	// ----------------------------------------
@@ -122,9 +122,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

@@ -46,9 +46,7 @@ public:
 	void write_io8(uint32_t addr, uint32_t data);
 	void event_callback(int event_id, int err);
 	void event_vline(int v, int clock);
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_cpu(DEVICE* device)

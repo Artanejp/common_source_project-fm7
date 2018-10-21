@@ -8,14 +8,14 @@
 	[ memory ]
 */
 
-#ifndef _MEMORY_H_
-#define _MEMORY_H_
+#ifndef _PHC25_MEMORY_H_
+#define _PHC25_MEMORY_H_
 
 #include "../vm.h"
 #include "../../emu.h"
 #include "../device.h"
 
-class MEMORY : public DEVICE
+class PHC25_MEMORY : public DEVICE
 {
 private:
 	DEVICE *d_kbd;
@@ -34,20 +34,18 @@ private:
 	uint8_t* rbank[32];
 	
 public:
-	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	PHC25_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~MEMORY() {}
+	~PHC25_MEMORY() {}
 	
 	// common functions
 	void initialize();
 	void reset();
 	void write_data8(uint32_t addr, uint32_t data);
 	uint32_t read_data8(uint32_t addr);
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_keyboard(DEVICE* device)

@@ -7,7 +7,7 @@
 	[ memory ]
 */
 
-#include "memory.h"
+#include "./memory.h"
 #include "../datarec.h"
 
 static const uint8_t key_map[9][8] = {
@@ -38,7 +38,7 @@ static const uint8_t key_map[9][8] = {
 	} \
 }
 
-void MEMORY::initialize()
+void PHC20_MEMORY::initialize()
 {
 	memset(rom, 0xff, sizeof(rom));
 	memset(rdmy, 0xff, sizeof(rdmy));
@@ -64,7 +64,7 @@ void MEMORY::initialize()
 	register_frame_event(this);
 }
 
-void MEMORY::reset()
+void PHC20_MEMORY::reset()
 {
 	memset(ram, 0, sizeof(ram));
 	memset(vram, 0, sizeof(vram));
@@ -73,7 +73,7 @@ void MEMORY::reset()
 	sysport = 0;
 }
 
-void MEMORY::write_data8(uint32_t addr, uint32_t data)
+void PHC20_MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	if((0x3000 <= addr && addr < 0x4000) || 0x4400 <= addr) {
@@ -104,7 +104,7 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 	wbank[addr >> 10][addr & 0x3ff] = data;
 }
 
-uint32_t MEMORY::read_data8(uint32_t addr)
+uint32_t PHC20_MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	if((0x3000 <= addr && addr < 0x4000) || 0x4400 <= addr) {
@@ -134,7 +134,7 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 	return rbank[addr >> 10][addr & 0x3ff];
 }
 
-void MEMORY::event_frame()
+void PHC20_MEMORY::event_frame()
 {
 	memset(status, 0, sizeof(status));
 	
@@ -147,7 +147,7 @@ void MEMORY::event_frame()
 	}
 }
 
-void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
+void PHC20_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(data & mask) {
 		sysport |= mask;
@@ -158,57 +158,7 @@ void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void MEMORY::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
-	DECL_STATE_ENTRY_1D_ARRAY(vram, sizeof(vram));
-	DECL_STATE_ENTRY_1D_ARRAY(status, sizeof(status));
-	DECL_STATE_ENTRY_UINT8(sysport);
-	
-	leave_decl_state();
-}
-
-void MEMORY::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(ram, sizeof(ram), 1);
-//	state_fio->Fwrite(vram, sizeof(vram), 1);
-//	state_fio->Fwrite(status, sizeof(status), 1);
-//	state_fio->FputUint8(sysport);
-}
-
-bool MEMORY::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(ram, sizeof(ram), 1);
-//	state_fio->Fread(vram, sizeof(vram), 1);
-//	state_fio->Fread(status, sizeof(status), 1);
-//	sysport = state_fio->FgetUint8();
-	return true;
-}
-
-bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool PHC20_MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;

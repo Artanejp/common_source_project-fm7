@@ -40,56 +40,6 @@ uint32_t PRINTER::read_io8(uint32_t addr)
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void PRINTER::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-	
-	DECL_STATE_ENTRY_UINT8(out);
-	DECL_STATE_ENTRY_UINT8(ctrl0);
-	DECL_STATE_ENTRY_UINT8(ctrl1);
-	DECL_STATE_ENTRY_BOOL(busy);
-
-	leave_decl_state();
-}
-
-void PRINTER::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->FputUint8(out);
-//	state_fio->FputUint8(ctrl0);
-//	state_fio->FputUint8(ctrl1);
-//	state_fio->FputBool(busy);
-}
-
-bool PRINTER::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	out = state_fio->FgetUint8();
-//	ctrl0 = state_fio->FgetUint8();
-//	ctrl1 = state_fio->FgetUint8();
-//	busy = state_fio->FgetBool();
-	return true;
-}
-
 bool PRINTER::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {

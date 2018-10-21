@@ -7,8 +7,8 @@
 	[ memory ]
 */
 
-#ifndef _MEMORY_H_
-#define _MEMORY_H_
+#ifndef _PHC20_MEMORY_H_
+#define _PHC20_MEMORY_H_
 
 #include "../vm.h"
 #include "../../emu.h"
@@ -16,7 +16,7 @@
 
 #define SIG_MEMORY_SYSPORT	0
 
-class MEMORY : public DEVICE
+class PHC20_MEMORY : public DEVICE
 {
 private:
 	DEVICE *d_drec;
@@ -35,11 +35,11 @@ private:
 	uint8_t sysport;
 	
 public:
-	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	PHC20_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~MEMORY() {}
+	~PHC20_MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -48,9 +48,7 @@ public:
 	uint32_t read_data8(uint32_t addr);
 	void event_frame();
 	void write_signal(int id, uint32_t data, uint32_t mask);
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_drec(DEVICE* device)

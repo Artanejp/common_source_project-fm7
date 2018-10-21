@@ -131,62 +131,6 @@ void CMT::close_tape()
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void CMT::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-	
-	DECL_STATE_ENTRY_INT32(bufcnt);
-	DECL_STATE_ENTRY_1D_ARRAY(buffer, sizeof(buffer));
-	DECL_STATE_ENTRY_BOOL(play);
-	DECL_STATE_ENTRY_BOOL(rec);
-	DECL_STATE_ENTRY_UINT8(start);
-	DECL_STATE_ENTRY_UINT8(bit);
-
-	leave_decl_state();
-}
-
-void CMT::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->FputInt32(bufcnt);
-//	state_fio->Fwrite(buffer, sizeof(buffer), 1);
-//	state_fio->FputBool(play);
-//	state_fio->FputBool(rec);
-//	state_fio->FputUint8(start);
-//	state_fio->FputUint8(bit);
-}
-
-bool CMT::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	bufcnt = state_fio->FgetInt32();
-//	state_fio->Fread(buffer, sizeof(buffer), 1);
-//	play = state_fio->FgetBool();
-//	rec = state_fio->FgetBool();
-//	start = state_fio->FgetUint8();
-//	bit = state_fio->FgetUint8();
-	return true;
-}
-
 bool CMT::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {

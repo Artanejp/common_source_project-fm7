@@ -120,57 +120,6 @@ void KEYBOARD::event_frame()
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void KEYBOARD::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-#ifdef _MAP1010
-	DECL_STATE_ENTRY_INT32(kana_pressed);
-#else
-	DECL_STATE_ENTRY_1D_ARRAY(status, sizeof(status));
-#endif
-	leave_decl_state();
-}
-
-void KEYBOARD::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-//	
-//#ifdef _MAP1010
-//	state_fio->FputInt32(kana_pressed);
-//#else
-//	state_fio->Fwrite(status, sizeof(status), 1);
-//#endif
-}
-
-bool KEYBOARD::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//#ifdef _MAP1010
-//	kana_pressed = state_fio->FgetInt32();
-//#else
-//	state_fio->Fread(status, sizeof(status), 1);
-//#endif
-	return true;
-}
-
 bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {

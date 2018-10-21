@@ -71,8 +71,8 @@ class Z80;
 
 class JOYSTICK;
 class KEYBOARD;
-class MEMORY;
-class SYSTEM;
+class PHC25_MEMORY;
+class PHC25_SYSTEM;
 
 class VM : public VM_TEMPLATE
 {
@@ -93,8 +93,8 @@ protected:
 	
 	JOYSTICK* joystick;
 	KEYBOARD* keyboard;
-	MEMORY* memory;
-	SYSTEM* system;
+	PHC25_MEMORY* memory;
+	PHC25_SYSTEM* system;
 	
 public:
 	// ----------------------------------------
@@ -146,9 +146,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

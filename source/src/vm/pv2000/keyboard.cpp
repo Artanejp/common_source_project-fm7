@@ -110,55 +110,6 @@ void KEYBOARD::key_up(int code)
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void KEYBOARD::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-	
-	DECL_STATE_ENTRY_1D_ARRAY(key_stat, sizeof(key_stat));
-	DECL_STATE_ENTRY_INT32(key_no);
-	DECL_STATE_ENTRY_BOOL(intr_enb);
-
-	leave_decl_state();
-}
-
-void KEYBOARD::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	if(state_entry != NULL) {
-//		state_entry->save_state(state_fio);
-//	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(key_stat, sizeof(key_stat), 1);
-//	state_fio->FputInt32(key_no);
-//	state_fio->FputBool(intr_enb);
-}
-
-bool KEYBOARD::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(key_stat, sizeof(key_stat), 1);
-//	key_no = state_fio->FgetInt32();
-//	intr_enb = state_fio->FgetBool();
-	return true;
-}
 
 bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 {
