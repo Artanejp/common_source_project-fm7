@@ -18,6 +18,8 @@
 #define SIG_SCSI_DRQ	1
 #define SIG_SCSI_TC	2
 
+namespace FMR30 {
+	
 class SCSI : public DEVICE
 {
 private:
@@ -54,5 +56,6 @@ public:
 	}
 };
 
+}
 #endif
 

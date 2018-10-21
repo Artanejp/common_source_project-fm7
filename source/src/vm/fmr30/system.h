@@ -7,12 +7,14 @@
 	[ system ]
 */
 
-#ifndef _SYSTEM_H_
-#define _SYSTEM_H_
+#ifndef _FMR30_SYSTEM_H_
+#define _FMR30_SYSTEM_H_
 
 #include "../vm.h"
 #include "../../emu.h"
 #include "../device.h"
+
+namespace FMR30 {
 
 class SYSTEM : public DEVICE
 {
@@ -34,5 +36,6 @@ public:
 	bool process_state(FILEIO* state_fio, bool loading);
 };
 
+}
 #endif
 

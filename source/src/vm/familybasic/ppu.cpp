@@ -8,8 +8,12 @@
 	[ PPU ]
 */
 
-#include "ppu.h"
-#include "memory.h"
+#include "./ppu.h"
+#include "./memory.h"
+
+using FAMILYBASIC::MEMORY;
+
+namespace FAMILYBASIC {
 
 static const uint8_t palette[64][3] = {
 	{0x75, 0x75, 0x75}, {0x27, 0x1b, 0x8f}, {0x00, 0x00, 0xab}, {0x47, 0x00, 0x9f},
@@ -728,4 +732,6 @@ bool PPU::process_state(FILEIO* state_fio, bool loading)
 		}
 	}
 	return true;
+}
+
 }

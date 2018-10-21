@@ -7,8 +7,10 @@
 	[ system ]
 */
 
-#include "system.h"
+#include "./system.h"
 
+namespace FMR30 {
+	
 void SYSTEM::initialize()
 {
 	arr = nmistat = 0;
@@ -69,4 +71,6 @@ bool SYSTEM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateUint8(nmistat);
 	state_fio->StateUint8(nmimask);
 	return true;
+}
+
 }

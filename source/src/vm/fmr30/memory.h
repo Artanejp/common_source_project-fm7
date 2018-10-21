@@ -17,7 +17,9 @@
 #define SIG_MEMORY_DISP		0
 #define SIG_MEMORY_VSYNC	1
 
-class FMR30_MEMORY : public DEVICE
+namespace FMR30 {
+
+class MEMORY : public DEVICE
 {
 private:
 	DEVICE *d_cpu, *d_dma;
@@ -54,11 +56,11 @@ private:
 	void draw_cg();
 	
 public:
-	FMR30_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~FMR30_MEMORY() {}
+	~MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -94,5 +96,6 @@ public:
 	void draw_screen();
 };
 
+}
 #endif
 

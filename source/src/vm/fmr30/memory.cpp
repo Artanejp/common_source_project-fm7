@@ -13,6 +13,8 @@
 #include "../i8237.h"
 #include "../i286.h"
 
+namespace FMR30 {
+
 static const uint8_t bios1[] = {
 	0xFA,				// cli
 	0xDB,0xE3,			// fninit
@@ -58,7 +60,7 @@ static const uint8_t bios2[] = {
 	} \
 }
 
-void FMR30_MEMORY::initialize()
+void MEMORY::initialize()
 {
 	// init memory
 	memset(ram, 0, sizeof(ram));
@@ -105,7 +107,7 @@ void FMR30_MEMORY::initialize()
 	register_frame_event(this);
 }
 
-void FMR30_MEMORY::reset()
+void MEMORY::reset()
 {
 	// reset crtc
 	lcdadr = 0;
@@ -120,19 +122,19 @@ void FMR30_MEMORY::reset()
 	update_bank();
 }
 
-void FMR30_MEMORY::write_data8(uint32_t addr, uint32_t data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffffff;
 	wbank[addr >> 12][addr & 0xfff] = data;
 }
 
-uint32_t FMR30_MEMORY::read_data8(uint32_t addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffffff;
 	return rbank[addr >> 12][addr & 0xfff];
 }
 
-void FMR30_MEMORY::write_io8(uint32_t addr, uint32_t data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xffff) {
 	// memory controller
@@ -207,7 +209,7 @@ void FMR30_MEMORY::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t FMR30_MEMORY::read_io8(uint32_t addr)
+uint32_t MEMORY::read_io8(uint32_t addr)
 {
 	uint32_t val = 0xff;
 	
@@ -244,12 +246,12 @@ uint32_t FMR30_MEMORY::read_io8(uint32_t addr)
 	return 0xff;
 }
 
-void FMR30_MEMORY::event_frame()
+void MEMORY::event_frame()
 {
 	blinkcnt++;
 }
 
-void FMR30_MEMORY::update_bank()
+void MEMORY::update_bank()
 {
 	if(!(mcr2 & 1)) {
 		// $c0000-$cffff: vram
@@ -269,7 +271,7 @@ void FMR30_MEMORY::update_bank()
 	}
 }
 
-void FMR30_MEMORY::draw_screen()
+void MEMORY::draw_screen()
 {
 	// render screen
 	memset(screen_txt, 0, sizeof(screen_txt));
@@ -298,7 +300,7 @@ void FMR30_MEMORY::draw_screen()
 	}
 }
 
-void FMR30_MEMORY::draw_text40()
+void MEMORY::draw_text40()
 {
 	uint8_t *ank8 = ipl;
 	uint8_t *ank16 = ipl + 0x800;
@@ -396,7 +398,7 @@ void FMR30_MEMORY::draw_text40()
 	}
 }
 
-void FMR30_MEMORY::draw_text80()
+void MEMORY::draw_text80()
 {
 	uint8_t *ank8 = ipl;
 	uint8_t *ank16 = ipl + 0x800;
@@ -494,7 +496,7 @@ void FMR30_MEMORY::draw_text80()
 	}
 }
 
-void FMR30_MEMORY::draw_cg()
+void MEMORY::draw_cg()
 {
 	uint8_t* plane = vram + ((dcr1 >> 8) & 3) * 0x8000;
 	int ptr = 0;
@@ -518,7 +520,7 @@ void FMR30_MEMORY::draw_cg()
 
 #define STATE_VERSION	2
 
-bool FMR30_MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -548,4 +550,6 @@ bool FMR30_MEMORY::process_state(FILEIO* state_fio, bool loading)
 		update_bank();
 	}
 	return true;
+}
+
 }

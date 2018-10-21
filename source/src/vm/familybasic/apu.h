@@ -15,6 +15,9 @@
 #include "../../emu.h"
 #include "../device.h"
 
+
+namespace FAMILYBASIC {
+
 #define APUQUEUE_SIZE	4096
 #define APUQUEUE_MASK	(APUQUEUE_SIZE - 1)
 
@@ -193,5 +196,6 @@ public:
 	void initialize_sound(int rate, int samples);
 };
 
+}
 #endif
 

@@ -7,7 +7,7 @@
 	[ keyboard ]
 */
 
-#include "keyboard.h"
+#include "./keyboard.h"
 #include "../i8251.h"
 
 /*
@@ -23,6 +23,7 @@
 	éÊè¡			F11
 	COPY
 */
+namespace FMR30 {
 
 static const int key_table[256] = {
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x0F,0x10,0x00,0x00,0x00,0x1D,0x00,0x00,
@@ -71,3 +72,4 @@ void KEYBOARD::key_up(int code)
 //	}
 }
 
+}

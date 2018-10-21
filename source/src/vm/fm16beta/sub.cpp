@@ -11,6 +11,10 @@
 #include "mainbus.h"
 #include "../pcm1bit.h"
 
+using ::MEMORY;
+
+namespace FM16BETA {
+	
 void SUB::initialize()
 {
 	MEMORY::initialize();
@@ -942,4 +946,6 @@ bool SUB::process_state(FILEIO* state_fio, bool loading)
 		return false;
 	}
 	return MEMORY::process_state(state_fio, loading);
+}
+
 }

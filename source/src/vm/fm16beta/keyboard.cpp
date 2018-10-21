@@ -7,10 +7,11 @@
 	[ keyboard ]
 */
 
-#include "keyboard.h"
-#include "mainbus.h"
+#include "./keyboard.h"
+#include "./mainbus.h"
 #include "../../fifo.h"
 
+namespace FM16BETA {
 
 void KEYBOARD::initialize()
 {
@@ -237,3 +238,4 @@ static const int scan_code[] = {
 -1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,
 };
 
+}

@@ -7,9 +7,7 @@
  *   Jan 03, 2015 : Initial
  *
  */
-
 #include "fm7.h"
-#include "fm7_mainio.h"
 
 #include "../mc6809.h"
 #include "../z80.h"
@@ -22,6 +20,8 @@
 # if defined(_FM77AV20) || defined(_FM77AV40) || defined(_FM77AV20EX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 #include "../and.h"
 #endif
+
+#include "fm7_mainio.h"
 #include "./fm7_mainmem.h"
 #include "./fm7_display.h"
 #include "./fm7_keyboard.h"

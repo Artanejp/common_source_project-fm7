@@ -17,6 +17,8 @@
 #define APU_TO_FIXED(x)    ((x) << 16)
 #define APU_FROM_FIXED(x)  ((x) >> 16)
 
+namespace FAMILYBASIC {
+	
 static const uint8_t vbl_length[32] = {
 	 5,	127,
 	10,	  1,
@@ -935,3 +937,4 @@ bool APU::process_state(FILEIO* state_fio, bool loading)
 	return true;
 }
 
+}

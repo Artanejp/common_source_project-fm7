@@ -18,6 +18,8 @@
 
 class FIFO;
 
+namespace FM16PI {
+	
 class SUB : public DEVICE
 {
 private:
@@ -82,4 +84,5 @@ public:
 	void draw_screen();
 };
 
+}
 #endif

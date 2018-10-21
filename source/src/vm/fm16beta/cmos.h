@@ -14,6 +14,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace FM16BETA {
+	
 class CMOS : public DEVICE
 {
 private:
@@ -35,5 +37,6 @@ public:
 	bool process_state(FILEIO* state_fio, bool loading);
 };
 
+}
 #endif
 

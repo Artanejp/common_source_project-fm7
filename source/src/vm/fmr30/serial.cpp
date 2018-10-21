@@ -11,6 +11,8 @@
 #include "../i8251.h"
 #include "../i8259.h"
 
+namespace FMR30 {
+
 void SERIAL::initialize()
 {
 	memset(sioctrl, sizeof(sioctrl), 1);
@@ -159,4 +161,6 @@ bool SERIAL::process_state(FILEIO* state_fio, bool loading)
 		state_fio->StateUint8(sioctrl[i].intstat);
 	}
 	return true;
+}
+
 }

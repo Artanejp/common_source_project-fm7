@@ -30,7 +30,9 @@
 #include "../debugger.h"
 #endif
 
-#include "sub.h"
+#include "./sub.h"
+
+using FM16PI::SUB;
 
 // ----------------------------------------------------------------------------
 // initialize

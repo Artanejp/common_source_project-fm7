@@ -14,6 +14,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace FMR30 {
+
 class RTC : public DEVICE
 {
 private:
@@ -59,5 +61,6 @@ public:
 	}
 };
 
+}
 #endif
 

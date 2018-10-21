@@ -51,7 +51,6 @@ static const _TCHAR *sound_device_caption[] = {
 };
 #endif
 
-class csp_state_utils;
 class EMU;
 class DEVICE;
 class EVENT;
@@ -68,7 +67,9 @@ class MSM58321;
 class NOT;
 class PCM1BIT;
 
-class SUB;
+namespace FM16PI {
+	class SUB;
+}
 
 class VM : public VM_TEMPLATE
 {
@@ -91,7 +92,7 @@ protected:
 	NOT* not_pit;
 	PCM1BIT* pcm;
 	
-	SUB* sub;
+	FM16PI::SUB* sub;
 	
 	// memory
 	uint8_t ram[0x80000];

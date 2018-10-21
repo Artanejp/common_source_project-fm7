@@ -7,7 +7,7 @@
 	[ sub system ]
 */
 
-#include "sub.h"
+#include "./sub.h"
 #include "../../fifo.h"
 #include "../i8255.h"
 #include "../i8259.h"
@@ -17,6 +17,8 @@
 
 #define EVENT_KEYSCAN	0
 
+namespace FM16PI {
+	
 static const int key_table[256] = {
 	// EXT -> END, GRAPH -> ALT
 	  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,0x0E,0x0F,  -1,  -1,  -1,0x1C,  -1,  -1,
@@ -201,4 +203,6 @@ bool SUB::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateUint8(fdc_side);
 	state_fio->StateUint8(rtc_data);
 	return true;
+}
+
 }

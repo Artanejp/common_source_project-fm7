@@ -35,6 +35,11 @@
 #include "mainbus.h"
 #include "sub.h"
 
+using FM16BETA::CMOS;
+using FM16BETA::KEYBOARD;
+using FM16BETA::MAINBUS;
+using FM16BETA::SUB;
+
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -68,11 +73,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cmos = new CMOS(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	mainbus = new MAINBUS(this, emu);
-	
-
-	
-	
-	
 	subbus = new SUB(this, emu);
 	
 	// set contexts

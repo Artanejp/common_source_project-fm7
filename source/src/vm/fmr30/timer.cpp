@@ -7,9 +7,11 @@
 	[ timer ]
 */
 
-#include "timer.h"
+#include "./timer.h"
 #include "../i8259.h"
 
+namespace FMR30 {
+	
 void TIMER::initialize()
 {
 	ctrl = status = 0;
@@ -74,4 +76,6 @@ bool TIMER::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateUint8(ctrl);
 	state_fio->StateUint8(status);
 	return true;
+}
+
 }

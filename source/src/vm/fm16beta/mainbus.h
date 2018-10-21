@@ -43,7 +43,8 @@ class I286;
 class I8237;
 class MB8877;
 
-//class csp_state_utils;
+namespace FM16BETA {
+
 class MAINBUS : public MEMORY
 {
 private:
@@ -153,4 +154,5 @@ public:
 	}
 };
 
+}
 #endif

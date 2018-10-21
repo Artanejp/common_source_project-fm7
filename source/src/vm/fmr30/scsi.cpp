@@ -14,6 +14,9 @@
 #include "../i8259.h"
 #include "../scsi_host.h"
 
+
+namespace FMR30 {
+	
 // control register
 #define CTRL_SWEN	0x80
 #define CTRL_IMSK	0x40
@@ -177,4 +180,6 @@ bool SCSI::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBool(phase_status);
 	state_fio->StateBool(eop_status);
 	return true;
+}
+
 }

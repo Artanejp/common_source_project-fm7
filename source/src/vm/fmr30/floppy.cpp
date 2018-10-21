@@ -7,11 +7,13 @@
 	[ floppy ]
 */
 
-#include "floppy.h"
+#include "./floppy.h"
 #include "../disk.h"
 #include "../i8259.h"
 #include "../mb8877.h"
 
+namespace FMR30 {
+	
 void FLOPPY::initialize()
 {
 	fdcr = 6;
@@ -115,4 +117,6 @@ bool FLOPPY::process_state(FILEIO* state_fio, bool loading)
 		state_fio->StateBool(changed[i]);
 	}
 	return true;
+}
+
 }

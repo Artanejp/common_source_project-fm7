@@ -7,7 +7,9 @@
 	[ cmos ]
 */
 
-#include "cmos.h"
+#include "./cmos.h"
+
+namespace FMR30 {
 
 void CMOS::initialize()
 {
@@ -61,4 +63,6 @@ bool CMOS::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBuffer(cmos, sizeof(cmos), 1);
 	state_fio->StateBool(modified);
 	return true;
+}
+
 }

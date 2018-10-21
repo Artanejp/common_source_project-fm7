@@ -86,8 +86,6 @@ typedef struct header_s {
 	}
 } header_t;
 
-class csp_state_utils;
-
 class EMU;
 class DEVICE;
 class EVENT;
@@ -96,9 +94,11 @@ class DATAREC;
 class N2A03;
 class YM2413;
 
-class FAMILYBASIC_MEMORY;
-class APU;
-class PPU;
+namespace FAMILYBASIC {
+	class MEMORY;
+	class APU;
+	class PPU;
+}
 
 class VM : public VM_TEMPLATE
 {
@@ -113,9 +113,9 @@ protected:
 	N2A03* cpu;
 	YM2413* opll;
 	
-	FAMILYBASIC_MEMORY* memory;
-	APU* apu;
-	PPU* ppu;
+	FAMILYBASIC::MEMORY* memory;
+	FAMILYBASIC::APU* apu;
+	FAMILYBASIC::PPU* ppu;
 	
 	int boot_mode;
 	

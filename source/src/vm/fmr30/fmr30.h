@@ -80,15 +80,17 @@ class SCSI_HOST;
 class SN76489AN;
 
 class BIOS;
-class CMOS;
-class FLOPPY;
-class KEYBOARD;
-class FMR30_MEMORY;
-class RTC;
-class SCSI;
-class SERIAL;
-class SYSTEM;
-class TIMER;
+namespace FMR30 {
+	class CMOS;
+	class FLOPPY;
+	class KEYBOARD;
+	class MEMORY;
+	class RTC;
+	class SCSI;
+	class SERIAL;
+	class SYSTEM;
+	class TIMER;
+}
 
 class VM : public VM_TEMPLATE
 {
@@ -117,15 +119,15 @@ protected:
 	SN76489AN* psg;
 	
 	BIOS* bios;
-	CMOS* cmos;
-	FLOPPY* floppy;
-	KEYBOARD* keyboard;
-	FMR30_MEMORY* memory;
-	RTC* rtc;
-	SCSI* scsi;
-	SERIAL* serial;
-	SYSTEM* system;
-	TIMER* timer;
+	FMR30::CMOS* cmos;
+	FMR30::FLOPPY* floppy;
+	FMR30::KEYBOARD* keyboard;
+	FMR30::MEMORY* memory;
+	FMR30::RTC* rtc;
+	FMR30::SCSI* scsi;
+	FMR30::SERIAL* serial;
+	FMR30::SYSTEM* system;
+	FMR30::TIMER* timer;
 	
 public:
 	// ----------------------------------------

@@ -7,9 +7,10 @@
 	[ main system ]
 */
 
-#include "mainbus.h"
-#include "sub.h"
-#include "keyboard.h"
+#include "./mainbus.h"
+#include "./sub.h"
+#include "./keyboard.h"
+
 #include "../disk.h"
 #include "../i8237.h"
 #include "../i8259.h"
@@ -19,6 +20,10 @@
 #ifdef HAS_I286
 #include "../i286.h"
 #endif
+
+using ::MEMORY;
+
+namespace FM16BETA {
 
 void MAINBUS::initialize()
 {
@@ -436,3 +441,4 @@ bool MAINBUS::process_state(FILEIO* state_fio, bool loading)
 //	return true;
 }
 
+}

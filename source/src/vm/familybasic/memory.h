@@ -15,9 +15,13 @@
 #include "../../emu.h"
 #include "../device.h"
 
-class PPU;
+namespace FAMILYBASIC {
+	class PPU;
+}
 
-class FAMILYBASIC_MEMORY : public DEVICE
+namespace FAMILYBASIC {
+
+class MEMORY : public DEVICE
 {
 private:
 	DEVICE *d_cpu, *d_apu, *d_drec, *d_opll;
@@ -96,11 +100,11 @@ private:
 	void vrc7_hsync(int v);
 	
 public:
-	FAMILYBASIC_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~FAMILYBASIC_MEMORY() {}
+	~MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -146,4 +150,5 @@ public:
 	uint8_t mmc5_ppu_latch_render(uint8_t mode, uint32_t addr);
 };
 
+}	
 #endif

@@ -14,6 +14,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace FMR30 {
+
 class CMOS : public DEVICE
 {
 private:
@@ -41,5 +43,6 @@ public:
 	}
 };
 
+}
 #endif
 

@@ -69,7 +69,6 @@ static const _TCHAR *sound_device_caption[] = {
 };
 #endif
 
-class csp_state_utils;
 class EMU;
 class DEVICE;
 class EVENT;
@@ -86,10 +85,12 @@ class MC6840;
 class MSM58321;
 class PCM1BIT;
 
-class CMOS;
-class KEYBOARD;
-class MAINBUS;
-class SUB;
+namespace FM16BETA {
+	class CMOS;
+	class KEYBOARD;
+	class MAINBUS;
+	class SUB;
+}
 
 class VM : public VM_TEMPLATE
 {
@@ -113,10 +114,10 @@ protected:
 	MSM58321* rtc;
 	PCM1BIT* pcm;
 	
-	CMOS* cmos;
-	MAINBUS* mainbus;
-	KEYBOARD* keyboard;
-	SUB* subbus;
+	FM16BETA::CMOS* cmos;
+	FM16BETA::MAINBUS* mainbus;
+	FM16BETA::KEYBOARD* keyboard;
+	FM16BETA::SUB* subbus;
 	
 public:
 	// ----------------------------------------

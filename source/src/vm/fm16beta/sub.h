@@ -19,14 +19,14 @@
 #define SIG_SUB_HALT	4
 #define SIG_SUB_MAINACK	5
 
-//class csp_state_utils;
+
+namespace FM16BETA {
+
 class SUB : public MEMORY
 {
 
 private:
 	DEVICE *d_crtc, *d_pcm, *d_main, *d_subcpu, *d_keyboard;
-	
-//	csp_state_utils *state_entry;
 	
 	uint8_t gvram[0x30000];
 	uint8_t dummy[0x8000];	// dummy plane
@@ -139,5 +139,7 @@ public:
 	void key_up(int code);
 	void draw_screen();
 };
+
+}
 
 #endif

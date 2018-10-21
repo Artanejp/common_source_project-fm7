@@ -23,6 +23,8 @@
 #define SIG_SERIAL_TXRDY_CH1	6
 #define SIG_SERIAL_TXRDY_CH2	7
 
+namespace FMR30 {
+	
 class SERIAL : public DEVICE
 {
 private:
@@ -64,5 +66,6 @@ public:
 	}
 };
 
+}
 #endif
 

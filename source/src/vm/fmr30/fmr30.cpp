@@ -44,6 +44,18 @@
 #include "system.h"
 #include "timer.h"
 
+//using FMR50::BIOS;
+using FMR30::CMOS;
+using FMR30::FLOPPY;
+using FMR30::KEYBOARD;
+using FMR30::MEMORY;
+using FMR30::RTC;
+using FMR30::SCSI;
+using FMR30::SERIAL;
+using FMR30::SYSTEM;
+using FMR30::TIMER;
+
+
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -97,7 +109,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cmos = new CMOS(this, emu);
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
-	memory = new FMR30_MEMORY(this, emu);
+	memory = new MEMORY(this, emu);
 	rtc = new RTC(this, emu);
 	scsi = new SCSI(this, emu);
 	serial = new SERIAL(this, emu);

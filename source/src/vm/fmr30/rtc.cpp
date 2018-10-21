@@ -7,7 +7,7 @@
 	[ rtc ]
 */
 
-#include "rtc.h"
+#include "./rtc.h"
 #include "../i8259.h"
 
 #define EVENT_1HZ	0
@@ -26,6 +26,8 @@
 DLL_PREFIX_I struct cur_time_s cur_time;
 #endif
 
+namespace FMR30 {
+	
 void RTC::initialize()
 {
 	// load rtc regs image
@@ -234,4 +236,6 @@ bool RTC::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateUint16(rtibr);
 	state_fio->StateBuffer(regs, sizeof(regs), 1);
 	return true;
+}
+
 }
