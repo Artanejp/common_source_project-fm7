@@ -14,7 +14,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
-class EX80_MEMORY : public DEVICE
+namespace EX80 {
+class MEMORY : public DEVICE
 {
 private:
 	DEVICE *d_cpu;
@@ -30,11 +31,11 @@ private:
 	uint8_t* rbank[64];
 	
 public:
-	EX80_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~EX80_MEMORY() {}
+	~MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -60,6 +61,7 @@ public:
 	void load_binary(const _TCHAR* file_path);
 	void save_binary(const _TCHAR* file_path);
 };
+}
 
 #endif
 

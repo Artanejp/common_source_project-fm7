@@ -14,6 +14,7 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace BUBCOM80 {
 class KEYBOARD : public DEVICE
 {
 private:
@@ -31,5 +32,5 @@ public:
 	void initialize();
 	uint32_t read_io8(uint32_t addr);
 };
-
+}
 #endif

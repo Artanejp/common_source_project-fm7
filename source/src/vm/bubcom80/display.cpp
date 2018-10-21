@@ -12,6 +12,7 @@
 #include "../pcm1bit.h"
 #include "../z80.h"
 
+namespace BUBCOM80 {
 #define EVENT_BUSREQ	0
 
 void DISPLAY::initialize()
@@ -882,4 +883,5 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 	}		
 	RESTORE_DMAC_CONTEXTS();
 	return true;
+}
 }

@@ -12,6 +12,8 @@
 #include "fm7_display.h"
 #include "kanjirom.h"
 
+namespace FM7 {
+
 uint8_t FM7_MAINMEM::read_data_tbl(uint32_t addr, bool dmamode)
 {
 	uint32_t paddr = addr >> 7;
@@ -255,4 +257,6 @@ uint8_t FM7_MAINMEM::read_bootrom(uint32_t addr, bool dmamode)
 #endif
 	}
 	return 0xff;
+}
+
 }

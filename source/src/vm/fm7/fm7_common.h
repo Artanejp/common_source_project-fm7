@@ -75,7 +75,6 @@ enum {
 #define FM7_DIPSW_SYNC_TO_HSYNC      0x80000000
 
 
-
 #define MAINCLOCK_NORMAL    1798000
 #define MAINCLOCK_MMR       1565000
 #define MAINCLOCK_FAST_MMR  2016000
@@ -432,6 +431,5 @@ enum {
 
 #define RAM_JCOMM_BACKUP           "JCOMMCARD.bin"
 #define RAM_FM77AV_DIC_BACKUP      "USERDIC.DAT"
-
 
 #endif // _FM7_COMMON_H_

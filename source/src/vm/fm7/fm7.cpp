@@ -62,6 +62,24 @@
 #include "./jcommcard.h"
 #endif
 
+#if defined(USE_BUBBLE)
+using FM7::BUBBLECASETTE;
+#endif
+using FM7::DISPLAY;
+#if defined(CAPABLE_JCOMMCARD)
+using FM7::FM7_JCOMMCARD;
+#endif
+
+#if defined(_FM8)
+using FM7::FM8_MAINIO;
+#else
+using FM7::FM7_MAINIO;
+#endif
+using FM7::FM7_MAINMEM;
+using FM7::JOYSTICK;
+using FM7::KEYBOARD;
+using FM7::KANJIROM;
+
 VM::VM(EMU* parent_emu): VM_TEMPLATE(parent_emu)
 {
 	

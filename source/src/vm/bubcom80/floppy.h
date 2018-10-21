@@ -14,6 +14,7 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace BUBCOM80 {
 class FLOPPY : public DEVICE
 {
 private:
@@ -35,6 +36,6 @@ public:
 		d_fdc = device;
 	}
 };
-
+}
 #endif
 

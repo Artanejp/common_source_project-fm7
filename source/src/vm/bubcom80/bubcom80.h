@@ -70,14 +70,15 @@ class PCM1BIT;
 class Z80;
 class Z80CTC;
 
-class BUBBLECASETTE;
-class CMT;
-class DISPLAY;
-class FLOPPY;
-class KEYBOARD;
-class MEMBUS;
-class RTC;
-
+namespace BUBCOM80 {
+	class BUBBLECASETTE;
+	class CMT;
+	class DISPLAY;
+	class FLOPPY;
+	class KEYBOARD;
+	class MEMBUS;
+	class RTC;
+}
 class VM : public VM_TEMPLATE
 {
 protected:
@@ -97,14 +98,14 @@ protected:
 	Z80* cpu;
 	Z80CTC* ctc;
 	
-	BUBBLECASETTE* bubblecasette[2];
-	CMT* cmt;
+	BUBCOM80::BUBBLECASETTE* bubblecasette[2];
+	BUBCOM80::CMT* cmt;
 	DEVICE* printer;
-	DISPLAY* display;
-	FLOPPY* floppy;
-	KEYBOARD* keyboard;
-	MEMBUS* membus;
-	RTC* rtc;
+	BUBCOM80::DISPLAY* display;
+	BUBCOM80::FLOPPY* floppy;
+	BUBCOM80::KEYBOARD* keyboard;
+	BUBCOM80::MEMBUS* membus;
+	BUBCOM80::RTC* rtc;
 	
 public:
 	// ----------------------------------------

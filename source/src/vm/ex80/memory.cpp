@@ -10,6 +10,7 @@
 #include "./memory.h"
 #include "../i8080.h"
 
+namespace EX80 {
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 10, eb = (e) >> 10; \
 	for(int i = sb; i <= eb; i++) { \
@@ -26,7 +27,7 @@
 	} \
 }
 
-void EX80_MEMORY::initialize()
+void MEMORY::initialize()
 {
 	memset(mon, 0xff, sizeof(mon));
 	memset(prom1, 0xff, sizeof(prom1));
@@ -58,19 +59,19 @@ void EX80_MEMORY::initialize()
 	SET_BANK(0x8800, 0xffff, wdmy, rdmy);
 }
 
-void EX80_MEMORY::write_data8(uint32_t addr, uint32_t data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	wbank[addr >> 10][addr & 0x3ff] = data;
 }
 
-uint32_t EX80_MEMORY::read_data8(uint32_t addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	return rbank[addr >> 10][addr & 0x3ff];
 }
 
-uint32_t EX80_MEMORY::fetch_op(uint32_t addr, int *wait)
+uint32_t MEMORY::fetch_op(uint32_t addr, int *wait)
 {
 	if((config.dipswitch & 1) && d_cpu->read_signal(SIG_I8080_INTE)) {
 		d_cpu->write_signal(SIG_I8080_INTR, 1, 1);
@@ -79,7 +80,7 @@ uint32_t EX80_MEMORY::fetch_op(uint32_t addr, int *wait)
 	return read_data8(addr);
 }
 
-void EX80_MEMORY::load_binary(const _TCHAR* file_path)
+void MEMORY::load_binary(const _TCHAR* file_path)
 {
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(file_path, FILEIO_READ_BINARY)) {
@@ -89,7 +90,7 @@ void EX80_MEMORY::load_binary(const _TCHAR* file_path)
 	delete fio;
 }
 
-void EX80_MEMORY::save_binary(const _TCHAR* file_path)
+void MEMORY::save_binary(const _TCHAR* file_path)
 {
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(file_path, FILEIO_WRITE_BINARY)) {
@@ -101,7 +102,7 @@ void EX80_MEMORY::save_binary(const _TCHAR* file_path)
 
 #define STATE_VERSION	1
 
-bool EX80_MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -111,4 +112,5 @@ bool EX80_MEMORY::process_state(FILEIO* state_fio, bool loading)
 	}
 	state_fio->StateBuffer(ram, sizeof(ram), 1);
 	return true;
+}
 }

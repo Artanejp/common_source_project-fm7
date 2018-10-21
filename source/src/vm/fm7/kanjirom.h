@@ -15,6 +15,9 @@
 
 class EMU;
 class VM;
+
+namespace FM7 {
+
 class KANJIROM: public DEVICE {
 private:
 	uint8_t data_table[0x20000];
@@ -33,4 +36,6 @@ public:
 
 	bool process_state(FILEIO *state_fio, bool loading);
 };
+
+}
 #endif

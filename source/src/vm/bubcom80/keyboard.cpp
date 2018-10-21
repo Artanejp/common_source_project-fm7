@@ -9,6 +9,7 @@
 
 #include "keyboard.h"
 
+namespace BUBCOM80 {
 static const uint8_t key_matrix[128] = {
 /*
 // keyboard
@@ -81,4 +82,4 @@ uint32_t KEYBOARD::read_io8(uint32_t addr)
 	}
 	return 0x0f;
 }
-
+}

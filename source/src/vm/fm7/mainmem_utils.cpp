@@ -9,6 +9,9 @@
 #include "emu.h"
 #include "fm7_mainmem.h"
 
+namespace FM7 {
+
+
 void FM7_MAINMEM::initialize(void)
 {
 	int i;
@@ -575,3 +578,4 @@ uint32_t FM7_MAINMEM::write_bios(const _TCHAR *name, uint8_t *ptr, uint32_t size
 	return blocks * size;
 }
 
+}

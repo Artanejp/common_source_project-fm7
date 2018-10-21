@@ -14,6 +14,7 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace BABBAGE2ND {
 class KEYBOARD : public DEVICE
 {
 private:
@@ -33,6 +34,6 @@ public:
 	}
 	void key_down(int code);
 };
-
+}
 #endif
 

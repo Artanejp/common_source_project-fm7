@@ -9,6 +9,7 @@
 
 #include "membus.h"
 
+namespace BUBCOM80 {
 void MEMBUS::initialize()
 {
 	MEMORY::initialize();
@@ -99,4 +100,5 @@ bool MEMBUS::process_state(FILEIO* state_fio, bool loading)
 		update_bank();
 	}
 	return true;
+}
 }

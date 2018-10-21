@@ -10,13 +10,20 @@
 #include "emu.h"
 #include "../../fifo.h"
 #include "../device.h"
+
 #include "fm7_keyboard.h"
 #include "keyboard_tables.h"
 
 #if defined(_FM77AV_VARIANTS)
 #include "../beep.h"
-#include "fm77av_hidden_message_keyboard.h"
+
+namespace FM7 {
+	#include "fm77av_hidden_message_keyboard.h"
+}
 #endif
+
+namespace FM7 {
+
 enum {
 	ID_KEYBOARD_RXRDY_OK = 1,
 	ID_KEYBOARD_ACK,
@@ -1330,4 +1337,4 @@ bool KEYBOARD::load_state(FILEIO *state_fio)
 	return true;
 }
 
-   
+}   

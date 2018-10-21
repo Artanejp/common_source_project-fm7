@@ -10,6 +10,7 @@
 #include "display.h"
 #include "../f9368.h"
 
+namespace EX80 {
 #define EVENT_HBLANK 0
 
 /*
@@ -336,4 +337,4 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBool(dma);
 	return true;
 }
-
+}

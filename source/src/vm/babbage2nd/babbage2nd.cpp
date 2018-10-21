@@ -25,6 +25,9 @@
 #include "display.h"
 #include "keyboard.h"
 
+using BABBAGE2ND::DISPLAY;
+using BABBAGE2ND::KEYBOARD;
+
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------

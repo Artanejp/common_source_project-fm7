@@ -20,6 +20,8 @@
 #include "./fm7_keyboard.h"
 #include "./kanjirom.h"
 
+namespace FM7 {
+	
 DISPLAY::DISPLAY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
 	ins_led = NULL;
@@ -3721,4 +3723,4 @@ bool DISPLAY::process_state(FILEIO *state_fio, bool loading)
 	return true;
 }	
 
-	
+}	

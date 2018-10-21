@@ -13,10 +13,14 @@
 
 #include "./fm7_mainio.h"
 
-class BUBBLECASETTE;
+namespace FM7 {
+	class BUBBLECASETTE;
+}
+
+namespace FM7 {
 class FM8_MAINIO : public FM7_MAINIO {
  protected:
-	BUBBLECASETTE *bubble_casette[2];
+	FM7::BUBBLECASETTE *bubble_casette[2];
 	uint8_t get_port_fd00(void) override;
 	void set_port_fd02(uint8_t val) override;
 	uint8_t get_irqstat_fd03(void) override;
@@ -80,4 +84,6 @@ public:
 		bubble_casette[drive] = p;
 	}
 };	
+
+}
 #endif

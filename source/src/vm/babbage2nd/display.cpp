@@ -8,7 +8,7 @@
 */
 
 #include "display.h"
-
+namespace BABBAGE2ND {
 static const int pat_7seg_led[58][34] = {
 	{0,6,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,2},
 	{0,6,6,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,2,2},
@@ -175,4 +175,5 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateUint8(pio_7seg);
 	state_fio->StateUint8(pio_8bit);
 	return true;
+}
 }

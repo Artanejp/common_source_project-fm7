@@ -46,7 +46,6 @@ static const _TCHAR *sound_device_caption[] = {
 };
 #endif
 
-class csp_state_utils;
 
 class EMU;
 class DEVICE;
@@ -56,8 +55,10 @@ class DATAREC;
 class SN76489AN;
 class TMS9918A;
 class TMS9995;
-
-class MEMORY;
+namespace PYUTA {
+	class MEMORY;
+}
+//class PYUTA::MEMORY;
 
 class VM : public VM_TEMPLATE
 {
@@ -72,9 +73,8 @@ protected:
 	SN76489AN* psg;
 	TMS9918A* vdp;
 	TMS9995* cpu;
-	
-	MEMORY* memory;
-	
+	PYUTA::MEMORY* memory;
+
 public:
 	// ----------------------------------------
 	// initialize
@@ -128,9 +128,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

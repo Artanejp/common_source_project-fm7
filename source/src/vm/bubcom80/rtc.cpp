@@ -9,6 +9,7 @@
 
 #include "rtc.h"
 
+namespace BUBCOM80 {
 #define EVENT_1HZ	0
 
 void RTC::initialize()
@@ -162,4 +163,5 @@ bool RTC::process_state(FILEIO* state_fio, bool loading)
 	}
 	state_fio->StateUint8(ctrl);
 	return true;
+}
 }

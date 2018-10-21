@@ -14,6 +14,7 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace EX80 {
 #define SIG_KEYBOARD_COLUMN	0
 
 class KEYBOARD : public DEVICE
@@ -44,6 +45,7 @@ public:
 		d_pio = device;
 	}
 };
+}
 
 #endif
 

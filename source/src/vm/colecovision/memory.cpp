@@ -9,6 +9,7 @@
 
 #include "memory.h"
 
+namespace COLECOVISION {
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 12, eb = (e) >> 12; \
 	for(int i = sb; i <= eb; i++) { \
@@ -25,7 +26,7 @@
 	} \
 }
 
-void COLECOVISION_MEMORY::initialize()
+void MEMORY::initialize()
 {
 	memset(cart, 0xff, sizeof(cart));
 	memset(ipl, 0xff, sizeof(ipl));
@@ -49,19 +50,19 @@ void COLECOVISION_MEMORY::initialize()
 	inserted = false;
 }
 
-void COLECOVISION_MEMORY::write_data8(uint32_t addr, uint32_t data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	wbank[addr >> 12][addr & 0xfff] = data;
 }
 
-uint32_t COLECOVISION_MEMORY::read_data8(uint32_t addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	return rbank[addr >> 12][addr & 0xfff];
 }
 
-void COLECOVISION_MEMORY::open_cart(const _TCHAR* file_path)
+void MEMORY::open_cart(const _TCHAR* file_path)
 {
 	FILEIO* fio = new FILEIO();
 	
@@ -77,7 +78,7 @@ void COLECOVISION_MEMORY::open_cart(const _TCHAR* file_path)
 	delete fio;
 }
 
-void COLECOVISION_MEMORY::close_cart()
+void MEMORY::close_cart()
 {
 	memset(cart, 0xff, sizeof(cart));
 	inserted = false;
@@ -91,7 +92,7 @@ void COLECOVISION_MEMORY::close_cart()
 
 #define STATE_VERSION	1
 
-bool COLECOVISION_MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -114,4 +115,5 @@ bool COLECOVISION_MEMORY::process_state(FILEIO* state_fio, bool loading)
 		}
 	}
 	return true;
+}
 }

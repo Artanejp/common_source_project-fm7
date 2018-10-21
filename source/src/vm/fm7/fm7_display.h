@@ -26,13 +26,18 @@
 
 class DEVICE;
 class MC6809;
-class FM7_MAINIO;
-class KEYBOARD;
-class KANJIROM;
 class MB61VH010;
 #if defined(_FM77L4)
 class HD46505;
 #endif
+
+namespace FM7 {
+	class FM7_MAINIO;
+	class KEYBOARD;
+	class KANJIROM;
+}
+
+namespace FM7 {
 
 class DISPLAY: public DEVICE
 {
@@ -300,10 +305,10 @@ protected:
 	uint8_t subsys_ram[0x2000];
 	uint8_t cgram_bank;
 	bool kanji_level2;
-	KANJIROM *kanjiclass1;
-	KANJIROM *kanjiclass2;
+	FM7::KANJIROM *kanjiclass1;
+	FM7::KANJIROM *kanjiclass2;
 #elif defined(_FM77_VARIANTS)
-	KANJIROM *kanjiclass1;
+	FM7::KANJIROM *kanjiclass1;
 #endif
 	bool force_update;
 	bool vram_wrote_shadow;
@@ -316,13 +321,13 @@ protected:
 	bool use_alu;
 	MB61VH010 *alu;
 #endif	
-	FM7_MAINIO *mainio;
-	MC6809 *subcpu;
-	KEYBOARD *keyboard;
+	FM7::FM7_MAINIO *mainio;
+	FM7::KEYBOARD *keyboard;
 	bool vram_wrote;
 #if defined(_FM77L4)
 	HD46505 *l4crtc;
 #endif
+	MC6809 *subcpu;
 	
 #if defined(USE_GREEN_DISPLAY)
 	void GETVRAM_8_200L_GREEN(int yoff, scrntype_t *p, scrntype_t *px, bool window_inv = false, bool scan_line = false);
@@ -457,21 +462,21 @@ public:
 #if defined(_FM77_VARIANTS) || \
     defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
     defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
-		kanjiclass1 = (KANJIROM *)p;
+		kanjiclass1 = (FM7::KANJIROM *)p;
 #endif
 	}
 	void set_context_kanjiclass2(DEVICE *p)	{
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)|| \
     defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
-		kanjiclass2 = (KANJIROM *)p;
+		kanjiclass2 = (FM7::KANJIROM *)p;
 		if(p != NULL) kanji_level2 = true;
 #endif
 	}
 	void set_context_mainio(DEVICE *p) {
-		mainio = (FM7_MAINIO *)p;
+		mainio = (FM7::FM7_MAINIO *)p;
 	}
 	void set_context_keyboard(DEVICE *p) {
-		keyboard = (KEYBOARD *)p;
+		keyboard = (FM7::KEYBOARD *)p;
 	}
 	void set_context_subcpu(DEVICE *p) {
 		subcpu = (MC6809 *)p;
@@ -487,5 +492,7 @@ public:
 	}
 #endif
 };  
+
+}
 
 #endif //  _CSP_FM7_DISPLAY_H

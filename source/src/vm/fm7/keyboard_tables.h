@@ -15,6 +15,8 @@
 #endif
 
 
+namespace FM7 {
+
 const uint16_t vk_matrix_106[0x68] = { // VK
 	// +0, +1, +2, +3, +4, +5, +6, +7
 	/* 0x00, ESC, 1 , 2, 3, 4, 5, 6 */
@@ -1368,5 +1370,6 @@ const struct key_tbl_t kana_shift_key_16beta[] = {
 	{0xffff, 0xffff}
 };
 #endif // _FM77AV_VARIANTS
+}
 
 #endif // _FM7_KEYBOARD_TABLES_H

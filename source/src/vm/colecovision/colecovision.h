@@ -50,8 +50,10 @@ class SN76489AN;
 class TMS9918A;
 class Z80;
 
-class KEYBOARD;
-class COLECOVISION_MEMORY;
+namespace COLECOVISION {
+	class KEYBOARD;
+	class MEMORY;
+}
 
 class VM : public VM_TEMPLATE
 {
@@ -67,8 +69,8 @@ protected:
 	TMS9918A* vdp;
 	Z80* cpu;
 	
-	KEYBOARD* key;
-	COLECOVISION_MEMORY* memory;
+	COLECOVISION::KEYBOARD* key;
+	COLECOVISION::MEMORY* memory;
 	
 public:
 	// ----------------------------------------

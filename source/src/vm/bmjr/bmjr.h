@@ -54,9 +54,9 @@ class EVENT;
 class DATAREC;
 class MC6800;
 class MC6820;
-
-class BMJR_MEMORY;
-
+namespace BMJR {
+	class MEMORY;
+}
 class VM : public VM_TEMPLATE
 {
 protected:
@@ -69,7 +69,7 @@ protected:
 	MC6800* cpu;
 	MC6820* pia;
 	
-	BMJR_MEMORY* memory;
+	BMJR::MEMORY* memory;
 	
 public:
 	// ----------------------------------------

@@ -83,8 +83,6 @@ const struct {
 	{369, 133, 17, 17},
 };
 
-class csp_state_utils;
-
 class EMU;
 class DEVICE;
 class EVENT;
@@ -95,8 +93,10 @@ class Z80;
 class Z80CTC;
 class Z80PIO;
 
-class DISPLAY;
-class KEYBOARD;
+namespace BABBAGE2ND {
+	class DISPLAY;
+	class KEYBOARD;
+}
 
 class VM : public VM_TEMPLATE
 {
@@ -114,8 +114,8 @@ protected:
 	Z80PIO* pio1;
 	Z80PIO* pio2;
 	
-	DISPLAY* display;
-	KEYBOARD* keyboard;
+	BABBAGE2ND::DISPLAY* display;
+	BABBAGE2ND::KEYBOARD* keyboard;
 	
 	// memory
 	uint8_t rom[0x800];

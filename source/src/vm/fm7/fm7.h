@@ -407,26 +407,27 @@ class DEVICE;
 class EVENT;
 class FILEIO;
 
-#if defined(_FM77AV_VARIANTS)
-class BEEP;
-#endif
-#if defined(_FM77L4)
-class HD46505;
-#endif
-class PCM1BIT;
-class MC6809;
-class YM2203;
-class MB8877;
-class MEMORY;
-class DATAREC;
-class I8251;
+class AND;
 #if defined(USE_AY_3_8910_AS_PSG) && !defined(_FM77AV_VARIANTS)
 class AY_3_891X;
 #endif
-#if defined(USE_BUBBLE)
-class BUBBLECASETTE;
+#if defined(_FM77AV_VARIANTS)
+class BEEP;
 #endif
-class DISPLAY;
+class DATAREC;
+#if defined(_FM77L4)
+class HD46505;
+#endif
+class I8251;
+class MB8877;
+class MC6809;
+class PCM1BIT;
+class YM2203;
+#ifdef WITH_Z80
+class Z80;
+class OR;
+#endif
+
 #if defined(_FM77AV_VARIANTS)
 class MB61VH010;
 #endif
@@ -434,26 +435,25 @@ class MB61VH010;
     defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
 class HD6844;
 #endif
-class AND;
-class FM7_MAINMEM;
-#if defined(_FM8)
-class FM8_MAINIO;
-#else
-class FM7_MAINIO;
-#endif
 
-class KEYBOARD;
-class KANJIROM;
-class JOYSTICK;
-
-#ifdef WITH_Z80
-class Z80;
-class OR;
+namespace FM7 {
+#if defined(USE_BUBBLE)
+	class BUBBLECASETTE;
 #endif
+	class DISPLAY;
 #ifdef CAPABLE_JCOMMCARD
 class FM7_JCOMMCARD;
 #endif
-class csp_state_utils;
+	class FM7_MAINMEM;
+#if defined(_FM8)
+	class FM8_MAINIO;
+#else
+	class FM7_MAINIO;
+#endif
+	class JOYSTICK;
+	class KEYBOARD;
+	class KANJIROM;
+}
 
 class VM : public VM_TEMPLATE
 {
@@ -465,11 +465,11 @@ protected:
 	
 	DEVICE* dummycpu;
 	MC6809* maincpu;
-	FM7_MAINMEM* mainmem;
+	FM7::FM7_MAINMEM* mainmem;
 #if defined(_FM8)
-	FM8_MAINIO* mainio;
+	FM7::FM8_MAINIO* mainio;
 #else
-	FM7_MAINIO* mainio;
+	FM7::FM7_MAINIO* mainio;
 #endif
 	MB8877* fdc;
 #if defined(HAS_2HD)
@@ -494,7 +494,7 @@ protected:
 # endif
 #endif
 #if defined(USE_BUBBLE)
-	BUBBLECASETTE *bubble_casette[USE_BUBBLE];
+	FM7::BUBBLECASETTE *bubble_casette[USE_BUBBLE];
 #endif
 	I8251 *uart[3];
 # if defined(_FM77AV20) || defined(_FM77AV40) || defined(_FM77AV20EX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -504,7 +504,7 @@ protected:
 	//BEEP* beep;
 	PCM1BIT* pcm1bit;
 	DATAREC *drec;
-	JOYSTICK *joystick;
+	FM7::JOYSTICK *joystick;
 	
 #ifdef  WITH_Z80
 	Z80* z80cpu;
@@ -528,16 +528,16 @@ protected:
 #if defined(HAS_DMA)
 	HD6844 *dmac;
 #endif   
-	DISPLAY* display;
-	KEYBOARD* keyboard;
+	FM7::DISPLAY* display;
+	FM7::KEYBOARD* keyboard;
    
-	KANJIROM *kanjiclass1;
+	FM7::KANJIROM *kanjiclass1;
 #ifdef CAPABLE_KANJI_CLASS2
-	KANJIROM *kanjiclass2;
+	FM7::KANJIROM *kanjiclass2;
 #endif
 #if defined(CAPABLE_JCOMMCARD)
 	MC6809 *jsubcpu;
-	FM7_JCOMMCARD *jcommcard;
+	FM7::FM7_JCOMMCARD *jcommcard;
 	AND *g_jsubhalt;
 #endif
 #if defined(_FM77L4)
@@ -546,7 +546,6 @@ protected:
 	bool connect_320kfdc;
 	bool connect_1Mfdc;
 
-	//csp_state_utils *state_entry;
 public:
 	// ----------------------------------------
 	// initialize

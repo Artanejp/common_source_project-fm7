@@ -13,6 +13,9 @@
 #if defined(CAPABLE_DICTROM)
 #include "kanjirom.h"
 #endif
+
+namespace FM7 {
+
 FM7_MAINMEM::FM7_MAINMEM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
 #if !defined(_FM77AV_VARIANTS)
@@ -672,4 +675,5 @@ bool FM7_MAINMEM::load_state(FILEIO *state_fio)
  	init_data_table();
  	update_all_mmr_jumptable();
  	return true;
+}
 }

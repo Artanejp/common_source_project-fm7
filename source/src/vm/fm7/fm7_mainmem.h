@@ -23,10 +23,14 @@
 
 class DEVICE;
 class MEMORY;
-class FM7_MAINIO;
-class KANJIROM;
-class DISPLAY;
 
+namespace FM7 {
+	class FM7_MAINIO;
+	class KANJIROM;
+	class DISPLAY;
+}
+
+namespace FM7 {
 class FM7_MAINMEM : public DEVICE
 {
  private:
@@ -136,12 +140,12 @@ class FM7_MAINMEM : public DEVICE
 # endif
 #endif
 #if defined(CAPABLE_DICTROM)
-	KANJIROM *kanjiclass1;
+	FM7::KANJIROM *kanjiclass1;
 	//KANJIROM *kanjiclass2;
 #endif	
 	MC6809 *maincpu;
-	FM7_MAINIO *mainio;
-	DISPLAY *display;
+	FM7::FM7_MAINIO *mainio;
+	FM7::DISPLAY *display;
 	
 	bool diag_load_basicrom;
 	bool diag_load_bootrom_bas;
@@ -256,17 +260,17 @@ class FM7_MAINMEM : public DEVICE
 	bool decl_state(FILEIO *state_fio, bool loading);
 
 	void set_context_display(DEVICE *p){
-		display = (DISPLAY *)p;
+		display = (FM7::DISPLAY *)p;
 	}
 	void set_context_maincpu(MC6809 *p){
 		maincpu = (MC6809 *)p;
 	}
 	void set_context_mainio(DEVICE *p){
-		mainio = (FM7_MAINIO *)p;
+		mainio = (FM7::FM7_MAINIO *)p;
 	}
 #if defined(CAPABLE_DICTROM)
 	void set_context_kanjirom_class1(DEVICE *p){
-		kanjiclass1 = (KANJIROM *)p;
+		kanjiclass1 = (FM7::KANJIROM *)p;
 	}
 #endif	
 	void write_signal(int sigid, uint32_t data, uint32_t mask);
@@ -274,5 +278,6 @@ class FM7_MAINMEM : public DEVICE
 	uint32_t read_io8(uint32_t addr);
 	void write_io8(uint32_t addr, uint32_t data);
 };
+}
 
 #endif

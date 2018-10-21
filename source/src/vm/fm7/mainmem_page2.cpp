@@ -10,6 +10,8 @@
 #include "fm7_mainmem.h"
 #include "./kanjirom.h"
 
+namespace FM7 {
+
 int FM7_MAINMEM::check_page2(uint32_t addr, uint32_t *realaddr, bool write_state, bool dmamode)
 {
 #if defined(_FM77AV_VARIANTS)
@@ -171,3 +173,4 @@ uint8_t FM7_MAINMEM::read_kanji_dummyaddr(uint32_t realaddr, bool dmamode)
 		return (realaddr & 0x01);
 }
 
+}

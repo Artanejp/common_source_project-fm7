@@ -21,11 +21,12 @@
 #include "../debugger.h"
 #endif
 
-#include "memory.h"
+#include "./memory.h"
 
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
+using BMJR::MEMORY;
 
 VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 {
@@ -41,7 +42,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu = new MC6800(this, emu);
 	pia = new MC6820(this, emu);
 	
-	memory = new BMJR_MEMORY(this, emu);
+	memory = new MEMORY(this, emu);
 	
 	// Set names
 #if defined(_USE_QT)

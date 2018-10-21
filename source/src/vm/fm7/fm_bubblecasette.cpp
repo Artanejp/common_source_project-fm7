@@ -11,6 +11,8 @@
 #include "../device.h"
 #include "./bubblecasette.h"
 
+namespace FM7 {
+
 BUBBLECASETTE::BUBBLECASETTE(VM_TEMPLATE* parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
 {
 	fio = NULL;
@@ -810,3 +812,4 @@ bool BUBBLECASETTE::process_state(FILEIO *state_fio, bool loading)
 	return true;
 }
 
+}

@@ -12,6 +12,8 @@
 #include "fm7_common.h"
 #include "kanjirom.h"
 
+namespace FM7 {
+	
 KANJIROM::KANJIROM(VM_TEMPLATE* parent_vm, EMU* parent_emu, bool type_2std): DEVICE(parent_vm, parent_emu)
 {
 	FILEIO *fio;
@@ -124,3 +126,4 @@ bool KANJIROM::process_state(FILEIO *state_fio, bool loading)
 	return true;
 }
 
+}

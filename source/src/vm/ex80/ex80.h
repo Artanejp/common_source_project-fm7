@@ -122,10 +122,12 @@ class IO;
 class PCM1BIT;
 class I8080;
 
-class CMT;
-class DISPLAY;
-class KEYBOARD;
-class EX80_MEMORY;
+namespace EX80 {
+	class CMT;
+	class DISPLAY;
+	class KEYBOARD;
+	class MEMORY;
+}
 
 class VM : public VM_TEMPLATE
 {
@@ -141,10 +143,10 @@ protected:
 	PCM1BIT* pcm;
 	I8080* cpu;
 	
-	CMT* cmt;
-	DISPLAY* display;
-	KEYBOARD* keyboard;
-	EX80_MEMORY* memory;
+	EX80::CMT* cmt;
+	EX80::DISPLAY* display;
+	EX80::KEYBOARD* keyboard;
+	EX80::MEMORY* memory;
 	
 public:
 	// ----------------------------------------

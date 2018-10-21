@@ -21,6 +21,7 @@
 
 class Z80;
 
+namespace BUBCOM80 {
 typedef struct {
 	struct {
 		int rate, counter;
@@ -165,5 +166,6 @@ public:
 	}
 	void draw_screen();
 };
+}
 
 #endif

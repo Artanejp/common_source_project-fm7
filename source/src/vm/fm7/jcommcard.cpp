@@ -14,6 +14,8 @@
 #include "../mc6809.h"
 #include "./jcommcard.h"
 
+namespace FM7 {
+
 FM7_JCOMMCARD::FM7_JCOMMCARD(VM_TEMPLATE* parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
 {
 	n_bank = 0;
@@ -254,3 +256,4 @@ bool FM7_JCOMMCARD::process_state(FILEIO *state_fio, bool loading)
 	return true;
 }
 
+}

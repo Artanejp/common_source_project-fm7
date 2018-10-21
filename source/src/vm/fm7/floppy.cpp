@@ -19,6 +19,8 @@
 #include "hd6844.h"
 #endif
 
+namespace FM7 {
+	
 #define FDC_CMD_TYPE1		1
 #define FDC_CMD_RD_SEC		2
 #define FDC_CMD_RD_MSEC		3
@@ -354,3 +356,4 @@ void FM7_MAINIO::set_fdc_motor(bool flag)
 	if(config.special_debug_fdc) out_debug_log(_T("FDC: MOTOR=%d VAL=$%02x"), flag, val);
 }
 
+}

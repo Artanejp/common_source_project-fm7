@@ -31,6 +31,7 @@
 #include "./jcommcard.h"
 #endif
 
+namespace FM7 {
 FM7_MAINIO::FM7_MAINIO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
 	int i;
@@ -2154,3 +2155,4 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 	return mb;
 }
  	  
+}

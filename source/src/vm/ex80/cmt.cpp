@@ -7,9 +7,10 @@
 	[ cmt ]
 */
 
-#include "cmt.h"
+#include "./cmt.h"
 #include "../i8251.h"
 
+namespace EX80 {
 void CMT::initialize()
 {
 	fio = new FILEIO();
@@ -140,4 +141,4 @@ bool CMT::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBuffer(buffer, sizeof(buffer), 1);
 	return true;
 }
-
+}

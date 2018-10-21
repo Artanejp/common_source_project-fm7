@@ -10,6 +10,7 @@
 #include "floppy.h"
 #include "../mb8877.h"
 
+namespace BUBCOM80 {
 void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
@@ -22,4 +23,4 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 		break;
 	}
 }
-
+}

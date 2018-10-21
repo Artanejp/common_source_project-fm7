@@ -14,6 +14,7 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace COLECOVISION {
 class KEYBOARD : public DEVICE
 {
 private:
@@ -42,5 +43,5 @@ public:
 		d_cpu = device;
 	}
 };
-
+}
 #endif

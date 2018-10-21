@@ -14,6 +14,8 @@
 
 class MC6809;
 
+namespace FM7 {
+
 class FM7_JCOMMCARD : public DEVICE {
 private:
 	MC6809 *cpu;
@@ -63,5 +65,7 @@ public:
 	}
 	bool process_state(FILEIO *state_fio, bool loading);
 };
+
+}
 
 #endif  /* ___CSP_FM7_JCOMM_CARD_H  */

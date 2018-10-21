@@ -12,6 +12,8 @@
 #include "fm7_display.h"
 #include "kanjirom.h"
 
+namespace FM7 {
+
 void FM7_MAINMEM::write_data_tbl(uint32_t addr, uint32_t data, bool dmamode)
 {
 	uint32_t paddr = addr >> 7;
@@ -206,4 +208,6 @@ void FM7_MAINMEM::write_data8_main(uint32_t addr, uint32_t data, bool dmamode)
 	}
 #endif
 	write_data(addr, data, dmamode);
+}
+
 }

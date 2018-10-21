@@ -14,7 +14,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
-class COLECOVISION_MEMORY : public DEVICE
+namespace COLECOVISION {
+class MEMORY : public DEVICE
 {
 private:
 	// memory
@@ -30,11 +31,11 @@ private:
 	bool inserted;
 	
 public:
-	COLECOVISION_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~COLECOVISION_MEMORY() {}
+	~MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -50,5 +51,5 @@ public:
 		return inserted;
 	}
 };
-
+}
 #endif

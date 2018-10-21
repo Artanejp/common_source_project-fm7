@@ -14,6 +14,7 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace BUBCOM80 {
 class RTC : public DEVICE
 {
 private:
@@ -36,6 +37,7 @@ public:
 	void event_callback(int event_id, int err);
 	bool process_state(FILEIO* state_fio, bool loading);
 };
+}
 
 #endif
 

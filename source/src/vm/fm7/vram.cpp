@@ -12,6 +12,9 @@
 #include "../hd46505.h"
 #endif
 
+extern config_t config;
+
+namespace FM7 {
 
 void DISPLAY::draw_screen()
 {
@@ -20,7 +23,6 @@ void DISPLAY::draw_screen()
 //#endif	
 }
 
-extern config_t config;
 void DISPLAY::draw_screen2()
 {
 	int y;
@@ -1082,3 +1084,5 @@ __DECL_VECTORIZED_LOOP
 #endif	
 }
 #endif
+
+}

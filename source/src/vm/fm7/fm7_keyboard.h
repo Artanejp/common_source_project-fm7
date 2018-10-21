@@ -20,6 +20,8 @@
 #if defined(_FM77AV_VARIANTS)  
 class BEEP;
 #endif
+
+namespace FM7 {
 class KEYBOARD : public DEVICE {
  protected:
 	uint8_t get_keycode_high(void);
@@ -168,6 +170,6 @@ private:
 #endif
 };
 
-
+}
 	 
 #endif

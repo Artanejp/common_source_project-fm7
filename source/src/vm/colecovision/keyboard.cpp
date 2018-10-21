@@ -9,6 +9,7 @@
 
 #include "keyboard.h"
 
+namespace COLECOVISION {
 void KEYBOARD::initialize()
 {
 	key_stat = emu->get_key_buffer();
@@ -140,4 +141,5 @@ bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 	}
 	state_fio->StateBool(tenkey);
 	return true;
+}
 }

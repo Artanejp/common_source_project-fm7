@@ -15,6 +15,9 @@
 #include "../../config.h"
 #include "../../emu.h"
 
+
+namespace FM7 {
+
 JOYSTICK::JOYSTICK(VM_TEMPLATE* parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
 {
 	rawdata = NULL;
@@ -329,3 +332,4 @@ bool JOYSTICK::process_state(FILEIO *state_fio, bool loading)
 	return true;
 }
 	
+}

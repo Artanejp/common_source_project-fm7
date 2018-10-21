@@ -9,6 +9,8 @@
 #include "emu.h"
 #include "fm7_mainmem.h"
 
+namespace FM7 {
+
 int FM7_MAINMEM::window_convert(uint32_t addr, uint32_t *realaddr)
 {
 	uint32_t raddr = addr;
@@ -295,4 +297,6 @@ void FM7_MAINMEM::write_with_mmr(uint32_t addr, uint32_t segment, uint32_t data,
 #else
 	return;
 #endif
+}
+
 }

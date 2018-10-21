@@ -25,8 +25,9 @@
 #include "../pcm1bit.h"
 
 #include "./fm7_mainmem.h"
-#include "bubblecasette.h"
+#include "./bubblecasette.h"
 
+namespace FM7 {
 FM8_MAINIO::FM8_MAINIO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : FM7_MAINIO(parent_vm, parent_emu)
 {
     psg = NULL;
@@ -475,4 +476,6 @@ bool FM8_MAINIO::load_state(FILEIO *state_fio)
 {
 	bool mb = decl_state(state_fio, true);
 	return mb;
+}
+
 }

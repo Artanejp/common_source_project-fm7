@@ -17,6 +17,7 @@
 
 class FILEIO;
 
+namespace BUBCOM80 {
 enum {
 	BUBBLE_DATA_REG = 0,
 	BUBBLE_CMD_REG,
@@ -151,5 +152,6 @@ public:
 		return (read_access | write_access);
 	}
 };
+}
 
 #endif

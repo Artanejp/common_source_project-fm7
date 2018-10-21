@@ -14,6 +14,7 @@
 
 //class csp_state_utils;
 
+namespace BUBCOM80 {
 class MEMBUS : public MEMORY
 {
 private:
@@ -44,5 +45,5 @@ public:
 	uint32_t read_dma_data8(uint32_t addr);
 	bool process_state(FILEIO* state_fio, bool loading);
 };
-
+}
 #endif

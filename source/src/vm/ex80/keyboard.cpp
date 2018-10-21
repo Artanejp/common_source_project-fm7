@@ -7,9 +7,10 @@
 	[ keyboard ]
 */
 
-#include "keyboard.h"
+#include "./keyboard.h"
 #include "../i8255.h"
 
+namespace EX80 {
 void KEYBOARD::initialize()
 {
 	column = 0xff;
@@ -72,4 +73,5 @@ bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 	}
 	state_fio->StateUint32(column);
 	return true;
+}
 }

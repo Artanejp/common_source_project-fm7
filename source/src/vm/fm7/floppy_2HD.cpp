@@ -19,6 +19,8 @@
 #include "hd6844.h"
 #endif
 
+namespace FM7 {
+
 #define FDC_CMD_TYPE1		1
 #define FDC_CMD_RD_SEC		2
 #define FDC_CMD_RD_MSEC		3
@@ -28,6 +30,8 @@
 #define FDC_CMD_RD_TRK		7
 #define FDC_CMD_WR_TRK		8
 #define FDC_CMD_TYPE4		0x80
+
+
 
 void FM7_MAINIO::reset_fdc_2HD(void)
 {
@@ -319,4 +323,6 @@ void FM7_MAINIO::set_fdc_motor_2HD(bool flag)
 	fdc_2HD_motor = (fdc_2HD->read_signal(SIG_MB8877_MOTOR) != 0);
 	fdc_2HD_motor = fdc_2HD_motor & (fdc_2HD->get_drive_type(fdc_2HD_drvsel & 3) != DRIVE_TYPE_UNK);
 #endif
+}
+
 }

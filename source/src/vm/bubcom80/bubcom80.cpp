@@ -39,6 +39,14 @@
 // initialize
 // ----------------------------------------------------------------------------
 
+using BUBCOM80::BUBBLECASETTE;
+using BUBCOM80::CMT;
+using BUBCOM80::DISPLAY;
+using BUBCOM80::FLOPPY;
+using BUBCOM80::KEYBOARD;
+using BUBCOM80::MEMBUS;
+using BUBCOM80::RTC;
+
 VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 {
 	// create devices

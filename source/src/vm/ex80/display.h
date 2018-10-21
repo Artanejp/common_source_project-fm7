@@ -16,6 +16,7 @@
 
 #define SIG_DISPLAY_DMA		0
 
+namespace EX80 {
 class DISPLAY : public DEVICE
 {
 private:
@@ -54,6 +55,6 @@ public:
 	}
 	void draw_screen();
 };
-
+}
 #endif
 

@@ -30,15 +30,18 @@ class AND;
 class HD6844;
 #endif
 
-class JOYSTICK;
-class FM7_MAINMEM;
-class DISPLAY;
-class KEYBOARD;
-class KANJIROM;
+namespace FM7 {
+	class JOYSTICK;
+	class FM7_MAINMEM;
+	class DISPLAY;
+	class KEYBOARD;
+	class KANJIROM;
 #if defined(CAPABLE_JCOMMCARD)
-class FM7_JCOMMCARD;
+	class FM7_JCOMMCARD;
 #endif
+}
 
+namespace FM7 {
 class FM7_MAINIO : public DEVICE {
  protected:
 	bool opn_psg_77av;
@@ -451,18 +454,19 @@ class FM7_MAINIO : public DEVICE {
 	DEVICE *printer;
 	//FM7_RS232C *rs232c;
 	/* */
-	KANJIROM *kanjiclass1;
-	KANJIROM *kanjiclass2;
-	DISPLAY *display;
-	KEYBOARD *keyboard;
+	FM7::KANJIROM *kanjiclass1;
+	FM7::KANJIROM *kanjiclass2;
+	FM7::DISPLAY *display;
+	FM7::KEYBOARD *keyboard;
+	FM7::FM7_MAINMEM *mainmem;
+	
 	MC6809 *maincpu;
-	FM7_MAINMEM *mainmem;
 	MC6809 *subcpu;
 #ifdef WITH_Z80
 	Z80 *z80;
 #endif
 #if defined(CAPABLE_JCOMMCARD)
-	FM7_JCOMMCARD *jcommcard;
+	FM7::FM7_JCOMMCARD *jcommcard;
 #endif
 	template <class T>
 	void call_write_signal(T *np, int id, uint32_t data, uint32_t mask)
@@ -531,13 +535,13 @@ public:
 	}
 	void set_context_kanjirom_class1(DEVICE *p)
 	{
-		kanjiclass1 = (KANJIROM *)p;
+		kanjiclass1 = (FM7::KANJIROM *)p;
 		if(p != NULL) connect_kanjiroml1 = true;
 	}
 	virtual void set_context_kanjirom_class2(DEVICE *p)
 	{
 #if defined(_FM77AV_VARIANTS)
-		kanjiclass2 = (KANJIROM *)p;
+		kanjiclass2 = (FM7::KANJIROM *)p;
 		if(p != NULL) connect_kanjiroml2 = true;
 #endif
 	}
@@ -623,10 +627,10 @@ public:
 		display = (DISPLAY *)p;
 	}
 	void set_context_keyboard(DEVICE *p){
-		keyboard = (KEYBOARD *)p;
+		keyboard = (FM7::KEYBOARD *)p;
 	}
 	void set_context_joystick(DEVICE *p){
-		joystick = (JOYSTICK *)p;
+		joystick = (FM7::JOYSTICK *)p;
 	}
 	void set_context_clock_status(DEVICE *p, int id, uint32_t mask) {
 		register_output_signal(&clock_status, p, id, mask);
@@ -657,7 +661,7 @@ public:
 	}
 	void set_context_jcommcard(DEVICE *p) {
 #if defined(CAPABLE_JCOMMCARD)
-		jcommcard = (FM7_JCOMMCARD *)p;
+		jcommcard = (FM7::FM7_JCOMMCARD *)p;
 #endif
 	}
 	void set_context_uart(int num, I8251 *p) {
@@ -681,4 +685,6 @@ public:
 	}
 #endif
 };
+
+}
 #endif

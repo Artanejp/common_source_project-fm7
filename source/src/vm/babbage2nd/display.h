@@ -17,7 +17,7 @@
 #define SIG_DISPLAY_7SEG_LED	0
 #define SIG_DISPLAY_8BIT_LED	1
 
-
+namespace BABBAGE2ND {
 class DISPLAY : public DEVICE
 {
 private:
@@ -44,6 +44,6 @@ public:
 	// unique function
 	void draw_screen();
 };
-
+}
 #endif
 

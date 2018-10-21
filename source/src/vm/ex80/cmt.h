@@ -19,6 +19,7 @@
 // max 256kbytes
 #define BUFFER_SIZE	0x40000
 
+namespace EX80 {
 class CMT : public DEVICE
 {
 private:
@@ -59,6 +60,7 @@ public:
 		d_sio = device;
 	}
 };
+}
 
 #endif
 

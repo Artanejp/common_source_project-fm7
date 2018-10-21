@@ -17,6 +17,9 @@
 #include "../../config.h"
 #include "./joystick.h"
 
+
+namespace FM7 {
+
 void FM7_MAINIO::reset_sound(void)
 {
 	int i, j;
@@ -438,4 +441,6 @@ bool FM7_MAINIO::decl_state_opn(FILEIO *state_fio, bool loading)
 	state_fio->StateBuffer(opn_regs, sizeof(opn_regs), 1);
 
 	return true;
+}
+
 }

@@ -22,10 +22,15 @@
 #include "../debugger.h"
 #endif
 
-#include "cmt.h"
-#include "display.h"
-#include "keyboard.h"
+#include "./cmt.h"
+#include "./display.h"
+#include "./keyboard.h"
 #include "./memory.h"
+
+using EX80::CMT;
+using EX80::DISPLAY;
+using EX80::KEYBOARD;
+using EX80::MEMORY;
 
 // ----------------------------------------------------------------------------
 // initialize
@@ -47,7 +52,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cmt = new CMT(this, emu);
 	display = new DISPLAY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
-	memory = new EX80_MEMORY(this, emu);
+	memory = new MEMORY(this, emu);
 	// Set names
 #if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));

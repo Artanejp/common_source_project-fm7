@@ -14,6 +14,7 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace BUBCOM80 {
 #define SIG_CMT_REMOTE	0
 #define SIG_CMT_OUT	1
 
@@ -60,6 +61,7 @@ public:
 		d_sio = device;
 	}
 };
+}
 
 #endif
 

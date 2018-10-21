@@ -10,6 +10,7 @@
 #include "keyboard.h"
 #include "../z80pio.h"
 
+namespace BABBAGE2ND {
 void KEYBOARD::key_down(int code)
 {
 	if(0x30 <= code && code <= 0x39) {
@@ -25,4 +26,4 @@ void KEYBOARD::key_down(int code)
 		vm->reset();
 	}
 }
-
+}

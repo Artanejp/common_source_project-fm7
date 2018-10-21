@@ -15,6 +15,7 @@
 #include "fm7_common.h"
 #include "../../fileio.h"
 
+namespace FM7 {
 class JOYSTICK : public DEVICE {
  private:
 	bool emulate_mouse[2];
@@ -60,4 +61,5 @@ class JOYSTICK : public DEVICE {
 	}
 };
 
+}
 #endif

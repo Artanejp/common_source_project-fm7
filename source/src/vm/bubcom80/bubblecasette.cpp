@@ -10,6 +10,7 @@
 
 #include "bubblecasette.h"
 
+namespace BUBCOM80 {
 void BUBBLECASETTE::initialize()
 {
 	is_wrote = false;
@@ -770,4 +771,5 @@ bool BUBBLECASETTE::process_state(FILEIO* state_fio, bool loading)
 		}
 	}
 	return true;
+}
 }

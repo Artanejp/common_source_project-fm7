@@ -18,6 +18,8 @@ class EMU;
 class VM;
 class FILEIO;
 
+namespace FM7 {
+	
 enum {
 	BUBBLE_DATA_REG = 0,
 	BUBBLE_CMD_REG,
@@ -41,8 +43,6 @@ typedef struct {
 	pair_t offset;
 	uint8_t misc[8];
 } bbl_header_t;
-
-class csp_state_utils;
 
 class BUBBLECASETTE: public DEVICE {
 protected:
@@ -139,4 +139,7 @@ public:
 	}
 
 };
+
+}
+
 #endif
